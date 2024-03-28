@@ -140,7 +140,6 @@ int main(int argc, char* argv[]) {
     sys.Add(container);
     container->SetPos(ChVector3d(0, 0, 0));
     container->SetFixed(true);
-    container->SetIdentifier(-1);
 
     container->EnableCollision(true);
     utils::AddBoxGeometry(container.get(), material, ChVector3d(8, 1, 8), ChVector3d(0, -0.5, 0));

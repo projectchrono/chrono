@@ -73,7 +73,7 @@ bool WriteCheckpoint(ChSystem* system, const std::string& filename) {
 
     for (auto body : system->GetBodies()) {
         // Write body identifier, the body fixed flag, and the collide flag
-        csv << body->GetIdentifier() << body->IsFixed() << body->IsCollisionEnabled() << tab;
+        csv << body->GetTag() << body->IsFixed() << body->IsCollisionEnabled() << tab;
 
         // Write collision family information.
         csv << body->GetCollisionModel()->GetFamilyGroup() << body->GetCollisionModel()->GetFamilyMask() << tab;
@@ -203,7 +203,7 @@ bool WriteCheckpoint(ChSystem* system, const std::string& filename) {
 // -----------------------------------------------------------------------------
 void ReadCheckpoint(ChSystem* system, const std::string& filename) {
     // Open input file stream
-    std::ifstream ifile(filename.c_str());
+    std::ifstream ifile(filename);
     std::string line;
 
     // Read the contact method type
@@ -224,9 +224,9 @@ void ReadCheckpoint(ChSystem* system, const std::string& filename) {
         std::istringstream iss1(line);
 
         // Read body Id and flags
-        int bid, bfixed, bcollide;
+        int btag, bfixed, bcollide;
         short family_group, family_mask;
-        iss1 >> bid >> bfixed >> bcollide >> family_group >> family_mask;
+        iss1 >> btag >> bfixed >> bcollide >> family_group >> family_mask;
 
         // Read body mass and inertia
         double mass;
@@ -251,7 +251,7 @@ void ReadCheckpoint(ChSystem* system, const std::string& filename) {
         body->SetPosDt(bpos_dt);
         body->SetRotDt(brot_dt);
 
-        body->SetIdentifier(bid);
+        body->SetTag(btag);
         body->SetFixed(bfixed != 0);
         body->EnableCollision(bcollide != 0);
 
@@ -612,7 +612,7 @@ void WriteMeshPovray(ChTriangleMeshConnected& trimesh,
 
     // Open output file.
     std::string pov_filename = out_dir + "/" + mesh_name + ".inc";
-    std::ofstream ofile(pov_filename.c_str());
+    std::ofstream ofile(pov_filename);
 
     ofile << "#declare " << mesh_name << "_mesh = mesh2 {" << std::endl;
 
@@ -694,7 +694,7 @@ void WriteCurvePovray(const ChBezierCurve& curve,
 
     // Open output file.
     std::string pov_filename = out_dir + "/" + curve_name + ".inc";
-    std::ofstream ofile(pov_filename.c_str());
+    std::ofstream ofile(pov_filename);
 
     ofile << "#declare " << curve_name << " = object {" << std::endl;
     ofile << "  sphere_sweep {" << std::endl;

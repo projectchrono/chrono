@@ -49,7 +49,7 @@ void CompositeInertia::AddComponent(
     double mass,                  // mass of sub-component
     const ChMatrix33<>& inertia,  // sub-component inertia tensor w.r.t. its centroidal frame
     bool is_void                  // indicate if sub-component represents a material void
-    ) {
+) {
     const ChVector3d& com = frame.GetPos();
     const ChMatrix33<>& A = frame.GetRotMat();
 

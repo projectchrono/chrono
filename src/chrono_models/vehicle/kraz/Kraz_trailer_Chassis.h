@@ -66,7 +66,6 @@ class CH_MODELS_API Kraz_trailer_Connector : public ChChassisConnectorHitch {
     ~Kraz_trailer_Connector() {}
 };
 
-
 /// @} vehicle_models_kraz
 
 }  // end namespace kraz

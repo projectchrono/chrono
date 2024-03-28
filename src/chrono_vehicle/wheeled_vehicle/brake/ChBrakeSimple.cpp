@@ -24,8 +24,7 @@
 namespace chrono {
 namespace vehicle {
 
-ChBrakeSimple::ChBrakeSimple(const std::string& name)
-    : ChBrake(name), m_modulation(0), m_locked(false) {
+ChBrakeSimple::ChBrakeSimple(const std::string& name) : ChBrake(name), m_modulation(0), m_locked(false) {
     m_brake = chrono_types::make_shared<ChLinkLockBrake>();
 }
 
@@ -61,7 +60,7 @@ void ChBrakeSimple::Initialize(std::shared_ptr<ChChassis> chassis,
 void ChBrakeSimple::Synchronize(double modulation) {
     m_modulation = modulation;
     m_brake->SetBrakeTorque(modulation * GetMaxBrakingTorque());
-    
+
     // If braking input is large enough, lock the brake
     if (!m_can_lock)
         return;

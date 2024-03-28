@@ -18,7 +18,6 @@
 #include "chrono/functions/ChFunctionBase.h"
 #include "chrono/utils/ChConstants.h"
 
-
 namespace chrono {
 
 /// @addtogroup chrono_functions

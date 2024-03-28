@@ -32,13 +32,13 @@ namespace unimog {
 
 /// Simple HMMWV brake subsystem (torque applied directly to the spindle joint).
 class CH_MODELS_API U401_BrakeSimple : public ChBrakeSimple {
-   public:
+  public:
     U401_BrakeSimple(const std::string& name);
     virtual ~U401_BrakeSimple() {}
 
     virtual double GetMaxBrakingTorque() override { return m_maxtorque; }
 
-   private:
+  private:
     static const double m_maxtorque;
 };
 

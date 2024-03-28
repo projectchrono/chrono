@@ -29,11 +29,7 @@
 
 using namespace chrono;
 
-enum class eChLinkFormulation {
-    Lock,
-    Mate,
-    Native
-};
+enum class eChLinkFormulation { Lock, Mate, Native };
 
 // =============================================================================
 // Local variables
@@ -51,7 +47,10 @@ bool TestRevolute(const ChVector3d& jointLoc,
                   double simTimeStep,
                   double outTimeStep,
                   const std::string& testName);
-bool ValidateReference(const std::string& testName, const std::string& refTestName, const std::string& what, double tolerance);
+bool ValidateReference(const std::string& testName,
+                       const std::string& refTestName,
+                       const std::string& what,
+                       double tolerance);
 bool ValidateConstraints(const std::string& testName, double tolerance);
 bool ValidateEnergy(const std::string& testName, double tolerance);
 utils::ChWriterCSV OutStream();
@@ -92,7 +91,8 @@ int main(int argc, char* argv[]) {
     ref_test_name = "Revolute_Case01";
 
     chrono_test_name = "Lock" + ref_test_name;
-    TestRevolute(ChVector3d(0, 0, 0), QuatFromAngleX(-CH_PI_2), eChLinkFormulation::Lock, sim_step, out_step, chrono_test_name);
+    TestRevolute(ChVector3d(0, 0, 0), QuatFromAngleX(-CH_PI_2), eChLinkFormulation::Lock, sim_step, out_step,
+                 chrono_test_name);
     test_passed &= ValidateReference(chrono_test_name, ref_test_name, "Pos", 1e-3);
     test_passed &= ValidateReference(chrono_test_name, ref_test_name, "Vel", 1e-4);
     test_passed &= ValidateReference(chrono_test_name, ref_test_name, "Acc", 2e-2);
@@ -105,7 +105,8 @@ int main(int argc, char* argv[]) {
     test_passed &= ValidateConstraints(chrono_test_name, 1e-5);
 
     chrono_test_name = "Mate" + ref_test_name;
-    TestRevolute(ChVector3d(0, 0, 0), QuatFromAngleX(-CH_PI_2), eChLinkFormulation::Mate, sim_step, out_step, chrono_test_name);
+    TestRevolute(ChVector3d(0, 0, 0), QuatFromAngleX(-CH_PI_2), eChLinkFormulation::Mate, sim_step, out_step,
+                 chrono_test_name);
     test_passed &= ValidateReference(chrono_test_name, ref_test_name, "Pos", 1e-3);
     test_passed &= ValidateReference(chrono_test_name, ref_test_name, "Vel", 1e-4);
     test_passed &= ValidateReference(chrono_test_name, ref_test_name, "Acc", 2e-2);
@@ -118,7 +119,8 @@ int main(int argc, char* argv[]) {
     test_passed &= ValidateConstraints(chrono_test_name, 1e-5);
 
     chrono_test_name = "Native" + ref_test_name;
-    TestRevolute(ChVector3d(0, 0, 0), QuatFromAngleX(-CH_PI_2), eChLinkFormulation::Native, sim_step, out_step, chrono_test_name);
+    TestRevolute(ChVector3d(0, 0, 0), QuatFromAngleX(-CH_PI_2), eChLinkFormulation::Native, sim_step, out_step,
+                 chrono_test_name);
     test_passed &= ValidateReference(chrono_test_name, ref_test_name, "Pos", 1e-3);
     test_passed &= ValidateReference(chrono_test_name, ref_test_name, "Vel", 1e-4);
     test_passed &= ValidateReference(chrono_test_name, ref_test_name, "Acc", 2e-2);
@@ -136,7 +138,8 @@ int main(int argc, char* argv[]) {
     ref_test_name = "Revolute_Case02";
 
     chrono_test_name = "Lock" + ref_test_name;
-    TestRevolute(ChVector3d(1, 2, 3), QuatFromAngleX(-CH_PI_4), eChLinkFormulation::Lock, sim_step, out_step, chrono_test_name);
+    TestRevolute(ChVector3d(1, 2, 3), QuatFromAngleX(-CH_PI_4), eChLinkFormulation::Lock, sim_step, out_step,
+                 chrono_test_name);
     test_passed &= ValidateReference(chrono_test_name, ref_test_name, "Pos", 1e-3);
     test_passed &= ValidateReference(chrono_test_name, ref_test_name, "Vel", 1e-4);
     test_passed &= ValidateReference(chrono_test_name, ref_test_name, "Acc", 1e-2);
@@ -149,7 +152,8 @@ int main(int argc, char* argv[]) {
     test_passed &= ValidateConstraints(chrono_test_name, 1e-5);
 
     chrono_test_name = "Mate" + ref_test_name;
-    TestRevolute(ChVector3d(1, 2, 3), QuatFromAngleX(-CH_PI_4), eChLinkFormulation::Mate, sim_step, out_step, chrono_test_name);
+    TestRevolute(ChVector3d(1, 2, 3), QuatFromAngleX(-CH_PI_4), eChLinkFormulation::Mate, sim_step, out_step,
+                 chrono_test_name);
     test_passed &= ValidateReference(chrono_test_name, ref_test_name, "Pos", 1e-3);
     test_passed &= ValidateReference(chrono_test_name, ref_test_name, "Vel", 1e-4);
     test_passed &= ValidateReference(chrono_test_name, ref_test_name, "Acc", 1e-2);
@@ -162,7 +166,8 @@ int main(int argc, char* argv[]) {
     test_passed &= ValidateConstraints(chrono_test_name, 1e-5);
 
     chrono_test_name = "Native" + ref_test_name;
-    TestRevolute(ChVector3d(1, 2, 3), QuatFromAngleX(-CH_PI_4), eChLinkFormulation::Native, sim_step, out_step, chrono_test_name);
+    TestRevolute(ChVector3d(1, 2, 3), QuatFromAngleX(-CH_PI_4), eChLinkFormulation::Native, sim_step, out_step,
+                 chrono_test_name);
     test_passed &= ValidateReference(chrono_test_name, ref_test_name, "Pos", 1e-3);
     test_passed &= ValidateReference(chrono_test_name, ref_test_name, "Vel", 1e-4);
     test_passed &= ValidateReference(chrono_test_name, ref_test_name, "Acc", 1e-2);
@@ -248,25 +253,27 @@ bool TestRevolute(const ChVector3d& jointLoc,        // absolute location of joi
     std::cout << "  Create joint..." << std::endl;
 
     std::shared_ptr<ChLink> revoluteJoint;
-    switch (formulation)
-    {
-    case eChLinkFormulation::Lock:
-        revoluteJoint = chrono_types::make_shared<ChLinkLockRevolute>();
-        std::dynamic_pointer_cast<ChLinkLockRevolute>(revoluteJoint)->Initialize(pendulum, ground, ChFrame<>(jointLoc, jointRot));
-        sys.AddLink(revoluteJoint);
-        break;
-    case eChLinkFormulation::Mate:
-        revoluteJoint = chrono_types::make_shared<ChLinkMateRevolute>();
-        std::dynamic_pointer_cast<ChLinkMateRevolute>(revoluteJoint)->Initialize(pendulum, ground, ChFrame<>(jointLoc, jointRot));
-        sys.AddLink(revoluteJoint);
-        break;
-    case eChLinkFormulation::Native:
-        revoluteJoint = chrono_types::make_shared<ChLinkRevolute>();
-        std::dynamic_pointer_cast<ChLinkRevolute>(revoluteJoint)->Initialize(pendulum, ground, ChFrame<>(jointLoc, jointRot));
-        sys.AddLink(revoluteJoint);
-        break;
-    default:
-        break;
+    switch (formulation) {
+        case eChLinkFormulation::Lock:
+            revoluteJoint = chrono_types::make_shared<ChLinkLockRevolute>();
+            std::dynamic_pointer_cast<ChLinkLockRevolute>(revoluteJoint)
+                ->Initialize(pendulum, ground, ChFrame<>(jointLoc, jointRot));
+            sys.AddLink(revoluteJoint);
+            break;
+        case eChLinkFormulation::Mate:
+            revoluteJoint = chrono_types::make_shared<ChLinkMateRevolute>();
+            std::dynamic_pointer_cast<ChLinkMateRevolute>(revoluteJoint)
+                ->Initialize(pendulum, ground, ChFrame<>(jointLoc, jointRot));
+            sys.AddLink(revoluteJoint);
+            break;
+        case eChLinkFormulation::Native:
+            revoluteJoint = chrono_types::make_shared<ChLinkRevolute>();
+            std::dynamic_pointer_cast<ChLinkRevolute>(revoluteJoint)
+                ->Initialize(pendulum, ground, ChFrame<>(jointLoc, jointRot));
+            sys.AddLink(revoluteJoint);
+            break;
+        default:
+            break;
     }
 
     // Perform the simulation (record results option)
@@ -360,7 +367,7 @@ bool TestRevolute(const ChVector3d& jointLoc,        // absolute location of joi
     while (simTime <= timeRecord + simTimeStep / 2) {
         // Ensure that the final data point is recorded.
         if (simTime >= outTime - simTimeStep / 2) {
-            //std::cout << "    record output at simTime=" << simTime << std::endl;
+            // std::cout << "    record output at simTime=" << simTime << std::endl;
 
             // CM position, velocity, and acceleration (expressed in global frame).
             const ChVector3d& position = pendulum->GetPos();
@@ -464,9 +471,9 @@ bool TestRevolute(const ChVector3d& jointLoc,        // absolute location of joi
 // reference file.
 //
 bool ValidateReference(const std::string& chronoTestName,  // name of the Chrono test
-                       const std::string& refTestName,  // name the reference test
-                       const std::string& what,      // identifier for test quantity
-                       double tolerance)             // validation tolerance
+                       const std::string& refTestName,     // name the reference test
+                       const std::string& what,            // identifier for test quantity
+                       double tolerance)                   // validation tolerance
 {
     std::string sim_file = out_dir + chronoTestName + "_CHRONO_" + what + ".txt";
     std::string ref_file = ref_dir + refTestName + "_ADAMS_" + what + ".txt";
@@ -484,7 +491,7 @@ bool ValidateReference(const std::string& chronoTestName,  // name of the Chrono
 // Wrapper function for checking constraint violations.
 //
 bool ValidateConstraints(const std::string& chronoTestName,  // name of the Chrono test
-                         double tolerance)             // validation tolerance
+                         double tolerance)                   // validation tolerance
 {
     std::string sim_file = out_dir + chronoTestName + "_CHRONO_Constraints.txt";
     utils::DataVector norms;
@@ -501,7 +508,7 @@ bool ValidateConstraints(const std::string& chronoTestName,  // name of the Chro
 // wrapper function for checking energy conservation.
 //
 bool ValidateEnergy(const std::string& chronoTestName,  // name of the Chrono test
-                    double tolerance)             // validation tolerance
+                    double tolerance)                   // validation tolerance
 {
     std::string sim_file = out_dir + chronoTestName + "_CHRONO_Energy.txt";
     utils::DataVector norms;

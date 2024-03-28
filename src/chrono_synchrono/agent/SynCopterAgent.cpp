@@ -73,7 +73,7 @@ void SynCopterAgent::Update() {
     chassis_pose.GetFrame().SetRotDt2(chassis_body->GetRotDt2());
 
     std::vector<SynPose> props_poses;
-    for (auto prop : m_copter->GetProps() ) {
+    for (auto prop : m_copter->GetProps()) {
         SynPose frame(prop->GetPos(), prop->GetRot());
         frame.GetFrame().SetPosDt(prop->GetPosDt());
         frame.GetFrame().SetPosDt2(prop->GetPosDt2());
@@ -99,8 +99,7 @@ void SynCopterAgent::SetKey(AgentKey agent_key) {
 std::shared_ptr<ChVisualShapeTriangleMesh> SynCopterAgent::CreateMeshZombieComponent(const std::string& filename) {
     auto trimesh = chrono_types::make_shared<ChVisualShapeTriangleMesh>();
     if (!filename.empty()) {
-        auto mesh =
-            ChTriangleMeshConnected::CreateFromWavefrontFile(GetChronoDataFile(filename), false, false);
+        auto mesh = ChTriangleMeshConnected::CreateFromWavefrontFile(GetChronoDataFile(filename), false, false);
         trimesh->SetMesh(mesh);
         trimesh->SetMutable(false);
         trimesh->SetName(filesystem::path(filename).stem());

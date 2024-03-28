@@ -189,7 +189,8 @@ int main(int argc, char* argv[]) {
 
             // Create new patch ahead of the vehicle.
             x_patch += patch_len;
-            patches[last_patch] = terrain.AddPatch(patch_mat, ChCoordsys<>(ChVector3d(x_patch, 0, 0), QUNIT), patch_len, 12);
+            patches[last_patch] =
+                terrain.AddPatch(patch_mat, ChCoordsys<>(ChVector3d(x_patch, 0, 0), QUNIT), patch_len, 12);
             patches[last_patch]->SetColor(ChColor(1, 1, 1));
             patches[last_patch]->SetTexture(textfiles[last_patch], 2, 2);
 
@@ -216,8 +217,8 @@ int main(int argc, char* argv[]) {
         // Get driver inputs
         DriverInputs driver_inputs = driver.GetInputs();
         if (veh_pos.x() > x_end) {
-          driver_inputs.m_braking = 1;
-          driver_inputs.m_throttle = 0;
+            driver_inputs.m_braking = 1;
+            driver_inputs.m_throttle = 0;
         }
 
         // Update systems

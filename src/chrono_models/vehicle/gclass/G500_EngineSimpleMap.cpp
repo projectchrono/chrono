@@ -61,7 +61,6 @@ void G500_EngineSimpleMap::SetEngineTorqueMaps(ChFunctionInterp& map0, ChFunctio
     mapF.AddPoint(rpm2rads * 5950.0, -200.0);
 }
 
-}  // namespace uaz
+}  // namespace gclass
 }  // end namespace vehicle
 }  // end namespace chrono
-

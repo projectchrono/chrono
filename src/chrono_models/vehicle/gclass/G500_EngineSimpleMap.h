@@ -56,4 +56,3 @@ class CH_MODELS_API G500_EngineSimpleMap : public ChEngineSimpleMap {
 }  // end namespace chrono
 
 #endif
-

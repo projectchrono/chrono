@@ -36,8 +36,8 @@ ChLinkLimit::ChLinkLimit()
     m_Rmin_modul = chrono_types::make_shared<ChFunctionConst>(1);
     m_polarMax_funct = chrono_types::make_shared<ChFunctionConst>(1);
 
-    constr_upper.SetMode(CONSTRAINT_UNILATERAL);
-    constr_lower.SetMode(CONSTRAINT_UNILATERAL);
+    constr_upper.SetMode(ChConstraint::Mode::UNILATERAL);
+    constr_lower.SetMode(ChConstraint::Mode::UNILATERAL);
 }
 
 ChLinkLimit::ChLinkLimit(const ChLinkLimit& other) {
@@ -127,7 +127,7 @@ void ChLinkLimit::ArchiveOut(ChArchiveOut& archive_out) {
 
 void ChLinkLimit::ArchiveIn(ChArchiveIn& archive_in) {
     // class version number
-    /*int version =*/ archive_in.VersionRead<ChLinkLimit>();
+    /*int version =*/archive_in.VersionRead<ChLinkLimit>();
 
     // stream in all member data
     archive_in >> CHNVP(m_active);

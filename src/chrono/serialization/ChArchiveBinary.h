@@ -36,7 +36,7 @@ inline void StreamSwapBytes(T* ptData) {
 }
 
 /// Serialization to binary stream.
-/// 
+///
 /// Typical usage:
 /// \code{.cpp}
 /// std::ofstream fileo("/file.dat", std::ios::binary);
@@ -92,7 +92,7 @@ template <>
 std::ostream& ChArchiveOutBinary::write(const char* val);
 
 /// Deserialization from binary stream.
-/// 
+///
 /// Typical usage:
 /// \code{.cpp}
 /// std::ifstream filei("/file.dat", std::ios::binary);
@@ -140,7 +140,7 @@ class ChApi ChArchiveInBinary : public ChArchiveIn {
     template <typename T>
     std::istream& read(T& val) {
         m_istream.read(reinterpret_cast<char*>(&val), sizeof(T));
-        if (m_big_endian_machine){
+        if (m_big_endian_machine) {
             StreamSwapBytes<T>(&val);
         }
 

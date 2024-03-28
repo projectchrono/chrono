@@ -32,7 +32,7 @@ namespace unimog {
 
 /// RotaryArm steering subsystem for the uaz vehicle.
 class CH_MODELS_API U401_RotaryArm : public ChRotaryArm {
-   public:
+  public:
     U401_RotaryArm(const std::string& name);
     ~U401_RotaryArm() {}
 
@@ -48,7 +48,7 @@ class CH_MODELS_API U401_RotaryArm : public ChRotaryArm {
     virtual const ChVector3d getLocation(PointId which) override;
     virtual const ChVector3d getDirection(DirectionId which) override;
 
-   private:
+  private:
     static const double m_pitmanArmMass;
 
     static const double m_pitmanArmRadius;

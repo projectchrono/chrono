@@ -218,7 +218,7 @@ def main():
                            gps_update_rate,    # update rate in Hz
                            offset_pose,        # offset pose
                            gps_reference,
-                           noise_none          # noise model
+                           nois_random_walk          # noise model
                            )
     gps.SetName("GPS Sensor")
     gps.SetLag(gps_lag)
@@ -325,6 +325,7 @@ gps_reference = chrono.ChVector3d(-89.400, 43.070, 260.0)
 # IMU and GPS noise models
 # Setting to none (does not affect the data)
 noise_none = sens.ChNoiseNone()
+nois_random_walk = sens.ChNoiseRandomWalks(0, 0.016, 100, 0.03, 0.005, gps_reference)
 
 # ---------------------
 # Simulation parameters

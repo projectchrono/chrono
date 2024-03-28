@@ -48,8 +48,8 @@ void ChLinkLockBrake::SetBrakeMode(Mode mmode) {
         brake_mode = mmode;
 
         // reset mask for default free brake
-        mask.Constr_E3().SetMode(CONSTRAINT_FREE);
-        mask.Constr_X().SetMode(CONSTRAINT_FREE);
+        mask.Constr_E3().SetMode(ChConstraint::Mode::FREE);
+        mask.Constr_X().SetMode(ChConstraint::Mode::FREE);
         BuildLink();
     }
 }
@@ -57,8 +57,8 @@ void ChLinkLockBrake::SetBrakeMode(Mode mmode) {
 void ChLinkLockBrake::SetDisabled(bool mdis) {
     ChLinkLock::SetDisabled(mdis);
 
-    mask.Constr_E3().SetMode(CONSTRAINT_FREE);
-    mask.Constr_X().SetMode(CONSTRAINT_FREE);
+    mask.Constr_E3().SetMode(ChConstraint::Mode::FREE);
+    mask.Constr_X().SetMode(ChConstraint::Mode::FREE);
     BuildLink();
 }
 

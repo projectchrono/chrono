@@ -14,7 +14,6 @@
 
 #include <cmath>
 
-
 #include "chrono/timestepper/ChTimestepperHHT.h"
 
 namespace chrono {
@@ -284,10 +283,12 @@ void ChTimestepperHHT::Increment(ChIntegrableIIorder* integrable) {
     Qc.setZero();  // zero
 
     // Set up linear system
-    integrable->LoadResidual_F(R, 1.0);                                              //  f_new
-    integrable->LoadResidual_CqL(R, Lnew, 1.0);                                      //  Cq'*l_new
-    integrable->LoadResidual_Mv(R, Anew, -1 / (1 + alpha));                          // -1/(1+alpha)*M*a_new
-    integrable->LoadConstraint_C(Qc, 1 / (beta * h * h), Qc_do_clamp, Qc_clamping);  //  Qc= 1/(beta*h^2)*C  (sign will be flipped later in StateSolveCorrection)
+    integrable->LoadResidual_F(R, 1.0);                      //  f_new
+    integrable->LoadResidual_CqL(R, Lnew, 1.0);              //  Cq'*l_new
+    integrable->LoadResidual_Mv(R, Anew, -1 / (1 + alpha));  // -1/(1+alpha)*M*a_new
+    integrable->LoadConstraint_C(
+        Qc, 1 / (beta * h * h), Qc_do_clamp,
+        Qc_clamping);  //  Qc= 1/(beta*h^2)*C  (sign will be flipped later in StateSolveCorrection)
 
     // Solve linear system
     integrable->StateSolveCorrection(Da, Dl, R, Qc,

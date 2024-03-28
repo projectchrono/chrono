@@ -387,7 +387,7 @@ double ChPathSteeringControllerXT::Advance(const ChFrameMoving<>& ref_frame, dou
     double y_err_out = m_PathErrCtl.Filter(y_err);
 
     // Calculate the heading error
-    ChVector3d veh_head = ref_frame.GetRotMat().GetAxisX(); // vehicle forward direction (ISO frame)
+    ChVector3d veh_head = ref_frame.GetRotMat().GetAxisX();  // vehicle forward direction (ISO frame)
     ChVector3d path_head = m_ptangent;
 
     double h_err = CalcHeadingError(veh_head, path_head);
@@ -537,12 +537,12 @@ void ChPathSteeringControllerSR::SetPreviewTime(double Tp) {
 double ChPathSteeringControllerSR::Advance(const ChFrameMoving<>& ref_frame, double time, double step) {
     const double g = 9.81;
 
-    double u = Vdot(ref_frame.GetPosDt(), ref_frame.GetRotMat().GetAxisX()); // vehicle forward speed
+    double u = Vdot(ref_frame.GetPosDt(), ref_frame.GetRotMat().GetAxisX());  // vehicle forward speed
 
     // Calculate unit vector pointing to the yaw center
     ChVector3d n_g = ref_frame.GetRotMat().GetAxisY();  // vehicle left direction (ISO frame)
-    ChWorldFrame::Project(n_g);                       // projected onto horizontal plane (world frame)
-    n_g.Normalize();                                  // normalized
+    ChWorldFrame::Project(n_g);                         // projected onto horizontal plane (world frame)
+    n_g.Normalize();                                    // normalized
 
     // Calculate current "sentinel" location. This is a point at the look-ahead distance in front of the vehicle.
     double R = 0;

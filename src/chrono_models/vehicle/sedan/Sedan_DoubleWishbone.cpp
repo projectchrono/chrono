@@ -95,11 +95,13 @@ double Sedan_ShockForce::evaluate(double time, double rest_length, double length
         m_ShockTable.Evaluate(vel, force, dcurve, ddcurve);
     } else if ((vel <= m_MinVel)) {
         m_ShockTable.Evaluate(m_MinVel, force, dcurve, ddcurve);
-        ////std::cout << "Time: " << time << ", vel: " << vel << ", minVel: " << m_MinVel << ", frc " << force << ", modfrc " << force - dcurve*(m_MinVel - vel) << std::endl;
+        ////std::cout << "Time: " << time << ", vel: " << vel << ", minVel: " << m_MinVel << ", frc " << force << ",
+        ///modfrc " << force - dcurve*(m_MinVel - vel) << std::endl;
         force -= dcurve * (m_MinVel - vel);
     } else {
         m_ShockTable.Evaluate(m_MaxVel, force, dcurve, ddcurve);
-        ////std::cout << "Time: " << time << ", vel: " << vel << ", maxVel: " << m_MaxVel << ", frc " << force << ", modfrc " << force + dcurve*(m_MaxVel - vel) << std::endl;
+        ////std::cout << "Time: " << time << ", vel: " << vel << ", maxVel: " << m_MaxVel << ", frc " << force << ",
+        ///modfrc " << force + dcurve*(m_MaxVel - vel) << std::endl;
         force += dcurve * (m_MaxVel - vel);
     }
 
@@ -112,8 +114,8 @@ double Sedan_ShockForce::evaluate(double time, double rest_length, double length
 Sedan_DoubleWishbone::Sedan_DoubleWishbone(const std::string& name) : ChDoubleWishbone(name) {
     m_springForceCB = chrono_types::make_shared<LinearSpringForce>(m_springCoefficient, m_springPreload);
     auto sptr = std::static_pointer_cast<LinearSpringForce>(m_springForceCB);
-    sptr->enable_stops(m_springRestLength-0.04,m_springRestLength+0.04);
-    sptr->set_stops(2.0*m_springCoefficient,2.0*m_springCoefficient);
+    sptr->enable_stops(m_springRestLength - 0.04, m_springRestLength + 0.04);
+    sptr->set_stops(2.0 * m_springCoefficient, 2.0 * m_springCoefficient);
     m_shockForceCB = chrono_types::make_shared<LinearDamperForce>(m_dampingCoefficient);
 }
 
@@ -134,37 +136,37 @@ Sedan_DoubleWishbone::~Sedan_DoubleWishbone() {}
 const ChVector3d Sedan_DoubleWishbone::getLocation(PointId which) {
     switch (which) {
         case SPINDLE:
-            return ChVector3d(-0.4584+0.4584, 0.7979, -0.1199);  // location of spindle center of mass
+            return ChVector3d(-0.4584 + 0.4584, 0.7979, -0.1199);  // location of spindle center of mass
         case UPRIGHT:
-            return ChVector3d(-0.4808+0.4584, 0.7470, -0.1118);  // location of upright center of mass
+            return ChVector3d(-0.4808 + 0.4584, 0.7470, -0.1118);  // location of upright center of mass
         case UCA_F:
-            return ChVector3d(-0.5584+0.4584, 0.4700, 0.1050);  // UCA front connection point to chassis
+            return ChVector3d(-0.5584 + 0.4584, 0.4700, 0.1050);  // UCA front connection point to chassis
         case UCA_B:
-            return ChVector3d(-0.7084+0.4584, 0.5100, 0.1100);  // UCA rear (back) connection point to chassis
+            return ChVector3d(-0.7084 + 0.4584, 0.5100, 0.1100);  // UCA rear (back) connection point to chassis
         case UCA_U:
-            return ChVector3d(-0.4984+0.4584, 0.6950, 0.1050);  // UCA connection point to upright
+            return ChVector3d(-0.4984 + 0.4584, 0.6950, 0.1050);  // UCA connection point to upright
         case UCA_CM:
-            return ChVector3d(-0.5667+0.4584, 0.5972, 0.1063);  // location of UCA center of mass
+            return ChVector3d(-0.5667 + 0.4584, 0.5972, 0.1063);  // location of UCA center of mass
         case LCA_F:
-            return ChVector3d(-0.2584+0.4584, 0.4200, -0.2700);  // LCA front connection point to chassis
+            return ChVector3d(-0.2584 + 0.4584, 0.4200, -0.2700);  // LCA front connection point to chassis
         case LCA_B:
-            return ChVector3d(-0.6584+0.4584, 0.4700, -0.2650);  // LCA rear (back) connection point to chassis
+            return ChVector3d(-0.6584 + 0.4584, 0.4700, -0.2650);  // LCA rear (back) connection point to chassis
         case LCA_U:
-            return ChVector3d(-0.4584+0.4584, 0.7700, -0.3200);  // LCA connection point to upright
+            return ChVector3d(-0.4584 + 0.4584, 0.7700, -0.3200);  // LCA connection point to upright
         case LCA_CM:
-            return ChVector3d(-0.4536+0.4584, 0.6112, -0.2932);  // location of LCA center of mass
+            return ChVector3d(-0.4536 + 0.4584, 0.6112, -0.2932);  // location of LCA center of mass
         case SHOCK_C:
-            return ChVector3d(-0.4984+0.4584, 0.5200, 0.2300);  // shock connection to chassis
+            return ChVector3d(-0.4984 + 0.4584, 0.5200, 0.2300);  // shock connection to chassis
         case SHOCK_A:
-            return ChVector3d(-0.4584+0.4584, 0.6200, -0.2700);  // shock connection point to LCA
+            return ChVector3d(-0.4584 + 0.4584, 0.6200, -0.2700);  // shock connection point to LCA
         case SPRING_C:
-            return ChVector3d(-0.4984+0.4584, 0.5200, 0.2300);  // spring connection point to chassis
+            return ChVector3d(-0.4984 + 0.4584, 0.5200, 0.2300);  // spring connection point to chassis
         case SPRING_A:
-            return ChVector3d(-0.4584+0.4584, 0.6200, -0.2700);  // spring connection point to LCA
+            return ChVector3d(-0.4584 + 0.4584, 0.6200, -0.2700);  // spring connection point to LCA
         case TIEROD_C:
-            return ChVector3d(-0.6584+0.4584, 0.4200, -0.1200);  // tierod connection point to chassis
+            return ChVector3d(-0.6584 + 0.4584, 0.4200, -0.1200);  // tierod connection point to chassis
         case TIEROD_U:
-            return ChVector3d(-0.6084+0.4584, 0.7700, -0.1200);  // tierod connection point to upright
+            return ChVector3d(-0.6084 + 0.4584, 0.7700, -0.1200);  // tierod connection point to upright
         default:
             return ChVector3d(0, 0, 0);
     }

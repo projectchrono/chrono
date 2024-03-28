@@ -16,7 +16,6 @@
 
 namespace chrono {
 
-
 // Register into the object factory, to enable run-time dynamic creation and persistence
 CH_FACTORY_REGISTER(ChSurfaceNurbs)
 
@@ -139,7 +138,7 @@ void ChSurfaceNurbs::ArchiveOut(ChArchiveOut& archive_out) {
 
 void ChSurfaceNurbs::ArchiveIn(ChArchiveIn& archive_in) {
     // version number
-    /*int version =*/ archive_in.VersionRead<ChSurfaceNurbs>();
+    /*int version =*/archive_in.VersionRead<ChSurfaceNurbs>();
     // deserialize parent class
     ChSurface::ArchiveIn(archive_in);
     // stream in all member data:
@@ -150,6 +149,5 @@ void ChSurfaceNurbs::ArchiveIn(ChArchiveIn& archive_in) {
     archive_in >> CHNVP(p_u);
     archive_in >> CHNVP(p_v);
 }
-
 
 }  // end namespace chrono

@@ -144,7 +144,6 @@ void CreateSolidPhase(ChSystemSMC& sysMBS, ChSystemFsi& sysFSI) {
     auto box = chrono_types::make_shared<ChBody>();
     box->SetPos(ChVector3d(0.0, 0.0, 0.0));
     box->SetRot(ChQuaternion<>(1, 0, 0, 0));
-    box->SetIdentifier(-1);
     box->SetFixed(true);
     sysMBS.AddBody(box);
 
@@ -152,7 +151,7 @@ void CreateSolidPhase(ChSystemSMC& sysMBS, ChSystemFsi& sysFSI) {
     chrono::utils::AddBoxContainer(box, cmaterial,                                 //
                                    ChFrame<>(ChVector3d(0, 0, bzDim / 2), QUNIT),  //
                                    ChVector3d(bxDim, byDim, bzDim), 0.1,           //
-                                   ChVector3i(2, 2, -1),                        //
+                                   ChVector3i(2, 2, -1),                           //
                                    false);
     box->EnableCollision(true);
 
@@ -193,8 +192,7 @@ void CreateSolidPhase(ChSystemSMC& sysMBS, ChSystemFsi& sysFSI) {
     sysFSI.AddFsiBody(cylinder);
 
     // Add BCE particles attached on the cylinder into FSI system
-    sysFSI.AddCylinderBCE(cylinder, ChFrame<>(VNULL, QuatFromAngleX(CH_PI_2)), cyl_radius, cyl_length,
-                          true);
+    sysFSI.AddCylinderBCE(cylinder, ChFrame<>(VNULL, QuatFromAngleX(CH_PI_2)), cyl_radius, cyl_length, true);
 }
 
 // =============================================================================

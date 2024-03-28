@@ -232,7 +232,8 @@ int main(int argc, char* argv[]) {
 
     class MyContactCallback : public ChContactContainer::AddContactCallback {
       public:
-        virtual void OnAddContact(const ChCollisionInfo& contactinfo, ChContactMaterialComposite* const material) override {
+        virtual void OnAddContact(const ChCollisionInfo& contactinfo,
+                                  ChContactMaterialComposite* const material) override {
             // Downcast to appropriate composite material type
             auto mat = static_cast<ChContactMaterialCompositeNSC* const>(material);
 

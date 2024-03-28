@@ -179,7 +179,7 @@ int main(int argc, char* argv[]) {
     //
 
     // use this array of points to store trajectory of a rod-point
-    std::vector<chrono::ChVector3d > mtrajectory;
+    std::vector<chrono::ChVector3d> mtrajectory;
 
     while (vis->Run()) {
         vis->BeginScene();

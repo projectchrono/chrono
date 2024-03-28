@@ -377,9 +377,9 @@ class ChQuaternion {
     /// normalized and expressed in absolute coords), the angular acceleration 'angle_dtdt' (scalar value),
     /// the rotation expressed as a quaternion 'quat' and th rotation speed 'q_dt'.
     void SetDt2FromAngleAxis(const ChQuaternion<Real>& q,
-                              const ChQuaternion<Real>& q_dt,
-                              Real angle_dtdt,
-                              const ChVector3<Real>& axis);
+                             const ChQuaternion<Real>& q_dt,
+                             Real angle_dtdt,
+                             const ChVector3<Real>& axis);
 
     // SERIALIZATION
 
@@ -1185,8 +1185,8 @@ inline void ChQuaternion<Real>::GetAngVelRel(ChVector3<Real>& w, const ChQuatern
 
 template <class Real>
 inline void ChQuaternion<Real>::SetDt2FromAngAccAbs(const ChVector3<Real>& a,
-                                                     const ChQuaternion<Real>& q,
-                                                     const ChQuaternion<Real>& q_dt) {
+                                                    const ChQuaternion<Real>& q,
+                                                    const ChQuaternion<Real>& q_dt) {
     ChQuaternion<Real> qao(0, a);
     ChQuaternion<Real> qwo;
     ChQuaternion<Real> qtmpa;
@@ -1200,8 +1200,8 @@ inline void ChQuaternion<Real>::SetDt2FromAngAccAbs(const ChVector3<Real>& a,
 
 template <class Real>
 inline void ChQuaternion<Real>::SetDt2FromAngAccRel(const ChVector3<Real>& a,
-                                                     const ChQuaternion<Real>& q,
-                                                     const ChQuaternion<Real>& q_dt) {
+                                                    const ChQuaternion<Real>& q,
+                                                    const ChQuaternion<Real>& q_dt) {
     ChQuaternion<Real> qal(0, a);
     ChQuaternion<Real> qwl;
     ChQuaternion<Real> qtmpa;
@@ -1215,16 +1215,16 @@ inline void ChQuaternion<Real>::SetDt2FromAngAccRel(const ChVector3<Real>& a,
 
 template <class Real>
 inline void ChQuaternion<Real>::SetDtFromAngleAxis(const ChQuaternion<Real>& q,
-                                                    Real angle_dt,
-                                                    const ChVector3<Real>& axis) {
+                                                   Real angle_dt,
+                                                   const ChVector3<Real>& axis) {
     this->SetDtFromAngVelAbs(angle_dt * axis, q);
 }
 
 template <class Real>
 inline void ChQuaternion<Real>::SetDt2FromAngleAxis(const ChQuaternion<Real>& q,
-                                                     const ChQuaternion<Real>& q_dt,
-                                                     Real angle_dtdt,
-                                                     const ChVector3<Real>& axis) {
+                                                    const ChQuaternion<Real>& q_dt,
+                                                    Real angle_dtdt,
+                                                    const ChVector3<Real>& axis) {
     this->SetDt2FromAngAccAbs(angle_dtdt * axis, q, q_dt);
 }
 

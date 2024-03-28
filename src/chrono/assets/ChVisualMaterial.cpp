@@ -31,10 +31,12 @@ ChVisualMaterial::ChVisualMaterial()
       illum(0),
       roughness(0),
       metallic(0),
+      anisotropy(0.f),
       use_specular_workflow(true),
       class_id(0),
-      instance_id(0)
-      {}
+      instance_id(0),
+      use_hapke(false),
+      emissive_power(0.f) {}
 
 void ChVisualMaterial::SetKdTexture(const std::string& filename) {
     kd_texture.SetFilename(filename);
@@ -60,10 +62,10 @@ void ChVisualMaterial::SetOpacityTexture(const std::string& filename) {
 void ChVisualMaterial::SetWeightTexture(const std::string& filename) {
     weight_texture.SetFilename(filename);
 }
-void ChVisualMaterial::SetDisplacementTexture(const std::string &filename) {
+void ChVisualMaterial::SetDisplacementTexture(const std::string& filename) {
     disp_texture.SetFilename(filename);
 }
-void ChVisualMaterial::SetAmbientOcclusionTexture(const std::string &filename) {
+void ChVisualMaterial::SetAmbientOcclusionTexture(const std::string& filename) {
     ao_texture.SetFilename(filename);
 }
 
@@ -109,6 +111,10 @@ void ChVisualMaterial::SetEmissiveColor(const ChColor& rgb) {
     }
 }
 
+void ChVisualMaterial::SetEmissivePower(const float& power) {
+    emissive_power = power;
+}
+
 void ChVisualMaterial::SetSpecularExponent(float exponent) {
     // valid exponent range [0,1000]
     if (exponent >= 0 && exponent <= 1000) {
@@ -148,6 +154,20 @@ void ChVisualMaterial::SetMetallic(float m) {
     metallic = std::max(0.001f, std::min(m, 1.f));
 }
 
+void ChVisualMaterial::SetAnisotropy(float a){
+    anisotropy = std::max(0.f, std::min(a, 1.f));
+}
+
+void ChVisualMaterial::SetHapkeParameters(float w, float b, float c, float B_s0, float h_s, float phi, float theta_p) {
+    hapke_w = w;
+    hapke_b = b;
+    hapke_c = c;
+    hapke_B_s0 = B_s0;
+    hapke_h_s = h_s;
+    hapke_phi = phi;
+    hapke_theta_p = theta_p;
+}
+
 void ChVisualMaterial::ArchiveOut(ChArchiveOut& archive_out) {
     archive_out.VersionWrite<ChVisualMaterial>();
 
@@ -174,7 +194,6 @@ void ChVisualMaterial::ArchiveOut(ChArchiveOut& archive_out) {
     archive_out << CHNVP(weight_texture);
     archive_out << CHNVP(disp_texture);
     archive_out << CHNVP(ao_texture);
-
 }
 
 void ChVisualMaterial::ArchiveIn(ChArchiveIn& archive_in) {

@@ -47,15 +47,14 @@ void example1(const std::string& out_dir) {
         virtual unsigned int GetNumCoordsVelLevel() override { return 1; }
         virtual unsigned int GetNumCoordsAccLevel() override { return 0; }
 
-
         // compute  dy/dt=f(y,t)
-        virtual bool StateSolve(ChStateDelta& dydt,        // result: computed dy/dt
-                                ChVectorDynamic<>& L,      // result: computed lagrangian multipliers, if any
-                                const ChState& y,          // current state y
-                                const double T,            // current time T
-                                const double dt,           // timestep (if needed)
-                                bool force_state_scatter,  // if false, y and T are not scattered to the system
-                                bool full_update,          // if true, perform a full update during scatter
+        virtual bool StateSolve(ChStateDelta& dydt,                // result: computed dy/dt
+                                ChVectorDynamic<>& L,              // result: computed lagrangian multipliers, if any
+                                const ChState& y,                  // current state y
+                                const double T,                    // current time T
+                                const double dt,                   // timestep (if needed)
+                                bool force_state_scatter,          // if false, y and T are not scattered to the system
+                                bool full_update,                  // if true, perform a full update during scatter
                                 ChLumpingParms* lumping = nullptr  // if not null, uses lumped masses to avoid
                                                                    // inverting a mass matrix. Not significant here.
                                 ) override {
@@ -83,20 +82,20 @@ void example1(const std::string& out_dir) {
         mystepper.Advance(0.1);
 
         double exact_solution = exp(mystepper.GetTime()) - 1;
-        std::cout << " T = " << mystepper.GetTime() << "  x=" << mystepper.get_Y()(0) << "  x_exact=" << exact_solution
-                  << std::endl;
-        log_file1 << mystepper.GetTime() << ", " << mystepper.get_Y()(0) << ", " << exact_solution << std::endl;
+        std::cout << " T = " << mystepper.GetTime() << "  x=" << mystepper.GetState()(0)
+                  << "  x_exact=" << exact_solution << std::endl;
+        log_file1 << mystepper.GetTime() << ", " << mystepper.GetState()(0) << ", " << exact_solution << std::endl;
     }
 
     // Plot results
     std::string gplfile = out_dir + "/tmp_timestepping_1.gpl";
-    ChGnuPlot mplot(gplfile.c_str());
+    ChGnuPlot mplot(gplfile);
     mplot.SetGrid();
     mplot.SetTitle("Integrate dx/dt=e^t ");
     mplot.SetLabelX("t");
     mplot.SetLabelY("x");
-    mplot.Plot(logfile.c_str(), 1, 2, "Euler explicit", " with lines lt -1 lw 2");
-    mplot.Plot(logfile.c_str(), 1, 3, "Exact, analytical", " with lines lt 2 lw 2");
+    mplot.Plot(logfile, 1, 2, "Euler explicit", " with lines lt -1 lw 2");
+    mplot.Plot(logfile, 1, 3, "Exact, analytical", " with lines lt 2 lw 2");
 }
 
 void example2(const std::string& out_dir) {
@@ -148,13 +147,13 @@ void example2(const std::string& out_dir) {
         };
 
         // compute  dy/dt=f(y,t)
-        virtual bool StateSolve(ChStateDelta& dydt,        // result: computed dy/dt
-                                ChVectorDynamic<>& L,      // result: computed lagrangian multipliers, if any
-                                const ChState& y,          // current state y
-                                const double T,            // current time T
-                                const double dt,           // timestep (if needed)
-                                bool force_state_scatter,  // if false, y and T are not scattered to the system
-                                bool full_update,          // if true, perform a full update during scatter
+        virtual bool StateSolve(ChStateDelta& dydt,                // result: computed dy/dt
+                                ChVectorDynamic<>& L,              // result: computed lagrangian multipliers, if any
+                                const ChState& y,                  // current state y
+                                const double T,                    // current time T
+                                const double dt,                   // timestep (if needed)
+                                bool force_state_scatter,          // if false, y and T are not scattered to the system
+                                bool full_update,                  // if true, perform a full update during scatter
                                 ChLumpingParms* lumping = nullptr  // if not null, uses lumped masses to avoid
                                                                    // inverting a mass matrix. Not significant here.
                                 ) override {
@@ -193,23 +192,23 @@ void example2(const std::string& out_dir) {
         mystepper.Advance(0.01);
         mystepper_rk.Advance(0.01);
 
-        std::cout << " T = " << mystepper.GetTime() << "  x=" << mystepper.get_Y()(0) << "  v=" << mystepper.get_Y()(1)
-                  << std::endl;
-        log_file2 << mystepper.GetTime() << ", " << mystepper.get_Y()(0) << ", " << mystepper.get_Y()(1) << ", "
-                  << mystepper_rk.get_Y()(0) << ", " << mystepper_rk.get_Y()(1) << std::endl;
+        std::cout << " T = " << mystepper.GetTime() << "  x=" << mystepper.GetState()(0)
+                  << "  v=" << mystepper.GetState()(1) << std::endl;
+        log_file2 << mystepper.GetTime() << ", " << mystepper.GetState()(0) << ", " << mystepper.GetState()(1) << ", "
+                  << mystepper_rk.GetState()(0) << ", " << mystepper_rk.GetState()(1) << std::endl;
     }
 
     // Plot results
     std::string gplfile = out_dir + "/tmp_timestepping_2.gpl";
-    ChGnuPlot mplot(gplfile.c_str());
+    ChGnuPlot mplot(gplfile);
     mplot.SetGrid();
     mplot.SetTitle("Integrate 2nd order oscillator with 1st order timestepper");
     mplot.SetLabelX("t");
     mplot.SetLabelY("x, v");
-    mplot.Plot(logfile.c_str(), 1, 2, "Euler exp. x", " with lines");
-    mplot.Plot(logfile.c_str(), 1, 3, "Euler exp. v", " with lines");
-    mplot.Plot(logfile.c_str(), 1, 4, "RungeKutta x", " with lines");
-    mplot.Plot(logfile.c_str(), 1, 5, "RungeKutta v", " with lines");
+    mplot.Plot(logfile, 1, 2, "Euler exp. x", " with lines");
+    mplot.Plot(logfile, 1, 3, "Euler exp. v", " with lines");
+    mplot.Plot(logfile, 1, 4, "RungeKutta x", " with lines");
+    mplot.Plot(logfile, 1, 5, "RungeKutta v", " with lines");
 }
 
 void example3(const std::string& out_dir) {
@@ -265,14 +264,14 @@ void example3(const std::string& out_dir) {
         };
 
         // compute  dy/dt=f(y,t)
-        virtual bool StateSolveA(ChStateDelta& dvdt,        // result: computed accel. a = dv/dt
-                                 ChVectorDynamic<>& L,      // result: computed lagrangian multipliers, if any
-                                 const ChState& x,          // current state, x
-                                 const ChStateDelta& v,     // current state, v
-                                 const double T,            // current time T
-                                 const double dt,           // timestep (if needed)
-                                 bool force_state_scatter,  // if false, y and T are not scattered to the system
-                                 bool full_update,          // if true, perform a full update during scatter
+        virtual bool StateSolveA(ChStateDelta& dvdt,                // result: computed accel. a = dv/dt
+                                 ChVectorDynamic<>& L,              // result: computed lagrangian multipliers, if any
+                                 const ChState& x,                  // current state, x
+                                 const ChStateDelta& v,             // current state, v
+                                 const double T,                    // current time T
+                                 const double dt,                   // timestep (if needed)
+                                 bool force_state_scatter,          // if false, y and T are not scattered to the system
+                                 bool full_update,                  // if true, perform a full update during scatter
                                  ChLumpingParms* lumping = nullptr  // if not null, uses lumped masses to avoid
                                                                     // inverting a mass matrix. Not significant here.
                                  ) override {
@@ -307,16 +306,16 @@ void example3(const std::string& out_dir) {
         mystepper2.Advance(0.01);
         mystepper3.Advance(0.01);
 
-        std::cout << "T = " << mystepper1.GetTime() << "  x=" << mystepper1.get_Y()(0)
-                  << "  v=" << mystepper1.get_Y()(1) << std::endl;
-        log_file3 << mystepper1.GetTime() << ", " << mystepper1.get_Y()(0) << ", " << mystepper1.get_Y()(1) << ", "
-                  << mystepper2.get_X()(0) << ", " << mystepper2.get_V()(0) << ", " << mystepper3.get_X()(0) << ", "
-                  << mystepper3.get_V()(0) << std::endl;
+        std::cout << "T = " << mystepper1.GetTime() << "  x=" << mystepper1.GetState()(0)
+                  << "  v=" << mystepper1.GetState()(1) << std::endl;
+        log_file3 << mystepper1.GetTime() << ", " << mystepper1.GetState()(0) << ", " << mystepper1.GetState()(1)
+                  << ", " << mystepper2.GetStatePos()(0) << ", " << mystepper2.GetStateVel()(0) << ", "
+                  << mystepper3.GetStatePos()(0) << ", " << mystepper3.GetStateVel()(0) << std::endl;
     }
 
     // Plot results
     std::string gplfile = out_dir + "/tmp_timestepping_3.gpl";
-    ChGnuPlot mplot(gplfile.c_str());
+    ChGnuPlot mplot(gplfile);
     mplot.SetGrid();
     mplot.SetTitle("Integrate 2nd order oscillator with 2nd order timestepper");
     mplot.SetLabelX("t");
@@ -506,19 +505,21 @@ void example4(const std::string& out_dir) {
         mystepper7.Advance(timestep);
         mystepper8.Advance(timestep);
 
-        std::cout << "T = " << mystepper1.GetTime() << "  x=" << mystepper1.get_X()(0)
-                  << "  v=" << mystepper1.get_V()(0) << std::endl;
-        log_file4 << mystepper1.GetTime() << ", " << mystepper1.get_X()(0) << ", " << mystepper1.get_V()(0) << ", "
-                  << mystepper2.get_X()(0) << ", " << mystepper2.get_V()(0) << ", " << mystepper3.get_X()(0) << ", "
-                  << mystepper3.get_V()(0) << ", " << mystepper4.get_X()(0) << ", " << mystepper4.get_V()(0) << ", "
-                  << mystepper5.get_X()(0) << ", " << mystepper5.get_V()(0) << ", " << mystepper6.get_X()(0) << ", "
-                  << mystepper6.get_V()(0) << ", " << mystepper7.get_X()(0) << ", " << mystepper7.get_V()(0) << ", "
-                  << mystepper8.get_X()(0) << ", " << mystepper8.get_V()(0) << std::endl;
+        std::cout << "T = " << mystepper1.GetTime() << "  x=" << mystepper1.GetStatePos()(0)
+                  << "  v=" << mystepper1.GetStateVel()(0) << std::endl;
+        log_file4 << mystepper1.GetTime() << ", " << mystepper1.GetStatePos()(0) << ", " << mystepper1.GetStateVel()(0)
+                  << ", " << mystepper2.GetStatePos()(0) << ", " << mystepper2.GetStateVel()(0) << ", "
+                  << mystepper3.GetStatePos()(0) << ", " << mystepper3.GetStateVel()(0) << ", "
+                  << mystepper4.GetStatePos()(0) << ", " << mystepper4.GetStateVel()(0) << ", "
+                  << mystepper5.GetStatePos()(0) << ", " << mystepper5.GetStateVel()(0) << ", "
+                  << mystepper6.GetStatePos()(0) << ", " << mystepper6.GetStateVel()(0) << ", "
+                  << mystepper7.GetStatePos()(0) << ", " << mystepper7.GetStateVel()(0) << ", "
+                  << mystepper8.GetStatePos()(0) << ", " << mystepper8.GetStateVel()(0) << std::endl;
     }
 
     // Plot results
     std::string gplfile = out_dir + "/tmp_timestepping_4.gpl";
-    ChGnuPlot mplot(gplfile.c_str());
+    ChGnuPlot mplot(gplfile);
     mplot.SetGrid();
     mplot.SetTitle("Test: oscillator with implicit integrators");
     mplot.SetLabelX("t");
@@ -659,11 +660,10 @@ void example5(const std::string& out_dir) {
 
         // Adds the lumped mass to a Md vector. This method is OPTIONAL, and needed only
         // if you want to use an explicit integrator with SetDiagonalLumpingON.
-        virtual void LoadLumpedMass_Md(
-            ChVectorDynamic<>& Md,  // result: Md vector, diagonal of the lumped mass matrix
-            double& err,            // result: not touched if lumping does not introduce errors
-            const double c          // a scaling factor
-            ) override {
+        virtual void LoadLumpedMass_Md(ChVectorDynamic<>& Md,  // diagonal of the lumped mass matrix
+                                       double& err,            // not touched if lumping does not introduce errors
+                                       const double c          // a scaling factor
+                                       ) override {
             Md(0) = this->M;
             Md(1) = this->M;
         }
@@ -792,23 +792,29 @@ void example5(const std::string& out_dir) {
         mystepper6.Advance(timestep);
         sys.DoStepDynamics(timestep);
 
-        std::cout << "T = " << mystepper1.GetTime() << "  x=" << mystepper1.get_X()(0)
-                  << "  y=" << mystepper1.get_X()(1) << std::endl;
+        std::cout << "T = " << mystepper1.GetTime() << "  x=" << mystepper1.GetStatePos()(0)
+                  << "  y=" << mystepper1.GetStatePos()(1) << std::endl;
         std::cout << "  = " << mystepper1.GetTime() << "  x=" << my_body_B->GetPos().x()
                   << "  y=" << my_body_B->GetPos().y() << std::endl;
-        log_file5 << mystepper1.GetTime() << ", " << mystepper1.get_X()(0) << ", " << mystepper1.get_X()(1) << ", "
-                  << mystepper1.get_V()(0) << ", " << mystepper1.get_V()(1) << ", " << mystepper2.get_X()(0) << ", "
-                  << mystepper2.get_X()(1) << ", " << mystepper2.get_V()(0) << ", " << mystepper2.get_V()(1) << ", "
-                  << mystepper3.get_X()(0) << ", " << mystepper3.get_X()(1) << ", " << mystepper3.get_V()(0) << ", "
-                  << mystepper3.get_V()(1) << ", " << mystepper4.get_X()(0) << ", " << mystepper4.get_X()(1) << ", "
-                  << mystepper4.get_V()(0) << ", " << mystepper4.get_V()(1) << ", " << mystepper5.get_X()(0) << ", "
-                  << mystepper5.get_X()(1) << ", " << mystepper5.get_V()(0) << ", " << mystepper5.get_V()(1) << ", "
-                  << mystepper6.get_X()(0) << ", " << mystepper6.get_X()(1) << ", " << mystepper6.get_V()(0) << ", "
-                  << mystepper6.get_V()(1) << ", " << my_body_B->GetPos().x() << ", " << my_body_B->GetPos().y() << ", "
-                  << my_body_B->GetPosDt().x() << ", " << my_body_B->GetPosDt().y() << std::endl;
-        log_file5r << mystepper1.GetTime() << ", " << mystepper1.get_L()(0) << ", " << mystepper2.get_L()(0) << ", "
-                   << mystepper3.get_L()(0) << ", " << mystepper4.get_L()(0) << ", " << mystepper5.get_L()(0) << ", "
-                   << mystepper6.get_L()(0) << ", " << my_link_AB->GetReaction2().force.y() << std::endl;
+        log_file5 << mystepper1.GetTime() << ", " << mystepper1.GetStatePos()(0) << ", " << mystepper1.GetStatePos()(1)
+                  << ", " << mystepper1.GetStateVel()(0) << ", " << mystepper1.GetStateVel()(1) << ", "
+                  << mystepper2.GetStatePos()(0) << ", " << mystepper2.GetStatePos()(1) << ", "
+                  << mystepper2.GetStateVel()(0) << ", " << mystepper2.GetStateVel()(1) << ", "
+                  << mystepper3.GetStatePos()(0) << ", " << mystepper3.GetStatePos()(1) << ", "
+                  << mystepper3.GetStateVel()(0) << ", " << mystepper3.GetStateVel()(1) << ", "
+                  << mystepper4.GetStatePos()(0) << ", " << mystepper4.GetStatePos()(1) << ", "
+                  << mystepper4.GetStateVel()(0) << ", " << mystepper4.GetStateVel()(1) << ", "
+                  << mystepper5.GetStatePos()(0) << ", " << mystepper5.GetStatePos()(1) << ", "
+                  << mystepper5.GetStateVel()(0) << ", " << mystepper5.GetStateVel()(1) << ", "
+                  << mystepper6.GetStatePos()(0) << ", " << mystepper6.GetStatePos()(1) << ", "
+                  << mystepper6.GetStateVel()(0) << ", " << mystepper6.GetStateVel()(1) << ", "
+                  << my_body_B->GetPos().x() << ", " << my_body_B->GetPos().y() << ", " << my_body_B->GetPosDt().x()
+                  << ", " << my_body_B->GetPosDt().y() << std::endl;
+        log_file5r << mystepper1.GetTime() << ", " << mystepper1.GetLagrangeMultipliers()(0) << ", "
+                   << mystepper2.GetLagrangeMultipliers()(0) << ", " << mystepper3.GetLagrangeMultipliers()(0) << ", "
+                   << mystepper4.GetLagrangeMultipliers()(0) << ", " << mystepper5.GetLagrangeMultipliers()(0) << ", "
+                   << mystepper6.GetLagrangeMultipliers()(0) << ", " << my_link_AB->GetReaction2().force.y()
+                   << std::endl;
     }
     // Execute the time integration with the explicit integrator,
     // hence using smaller time step
@@ -818,15 +824,16 @@ void example5(const std::string& out_dir) {
 
         log_file5e << mystepper7.GetTime()
                    << ", "
-                   //<< mystepper7.get_X()(0) << ", " << mystepper7.get_X()(1) << ", " << mystepper7.get_V()(0) << ", "
-                   //<< mystepper7.get_V()(1) << ", "
-                   << mystepper7.get_Y()(0) << ", " << mystepper7.get_Y()(1) << ", " << mystepper7.get_Y()(2) << ", "
-                   << mystepper7.get_Y()(3) << ", " << std::endl;
-        log_file5er << mystepper7.GetTime() << ", " << mystepper7.get_L()(0) << std::endl;
+                   //<< mystepper7.GetStatePos()(0) << ", " << mystepper7.GetStatePos()(1) << ", " <<
+                   // mystepper7.GetStateVel()(0) << ", "
+                   //<< mystepper7.GetStateVel()(1) << ", "
+                   << mystepper7.GetState()(0) << ", " << mystepper7.GetState()(1) << ", " << mystepper7.GetState()(2)
+                   << ", " << mystepper7.GetState()(3) << ", " << std::endl;
+        log_file5er << mystepper7.GetTime() << ", " << mystepper7.GetLagrangeMultipliers()(0) << std::endl;
     }
 
     std::string gplfile = out_dir + "/tmp_timestepping_5.gpl";
-    ChGnuPlot mplot(gplfile.c_str());
+    ChGnuPlot mplot(gplfile);
     mplot.OutputWindow(0);
     mplot.SetGrid();
     mplot.SetTitle("Test: DAE, constrained pendulum");

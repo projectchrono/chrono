@@ -102,7 +102,7 @@ void ChManualTransmissionShafts::Synchronize(double time,
                                              double motorshaft_torque,
                                              double driveshaft_speed) {
     // Enforce inputs from engine (torque) and driveline (speed)
-    m_motorshaft->SetAppliedTorque(motorshaft_torque);
+    m_motorshaft->SetAppliedLoad(motorshaft_torque);
     m_driveshaft->SetPosDt(driveshaft_speed);
 
     // Clutch

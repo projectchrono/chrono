@@ -42,6 +42,7 @@ class ChApi ChContactContainerNSC : public ChContactContainer {
     typedef ChContactNSC<ChContactable_3vars<6, 6, 6>, ChContactable_3vars<6, 6, 6> > ChContactNSC_666_666;
 
     typedef ChContactNSCrolling<ChContactable_1vars<6>, ChContactable_1vars<6> > ChContactNSCrolling_6_6;
+
   public:
     ChContactContainerNSC();
     ChContactContainerNSC(const ChContactContainerNSC& other);
@@ -87,7 +88,7 @@ class ChApi ChContactContainerNSC : public ChContactContainer {
 
     /// Class to be used as a NSC-specific callback interface for some user defined action to be taken
     /// for each contact (already added to the container, maybe with already computed forces).
-    /// It can be used to report or post-process contacts. 
+    /// It can be used to report or post-process contacts.
     /// It also tells the offset of the contact (first component, normal) in the vector of lagrangian multipliers,
     /// if this info is not needed, you can just use ChContactContainer::ReportContactCallback
     class ChApi ReportContactCallbackNSC {
@@ -106,7 +107,8 @@ class ChApi ChContactContainerNSC : public ChContactContainer {
             const ChVector3d& react_torques,  ///< react.torques, if rolling friction (if already computed).
             ChContactable* contactobjA,  ///< model A (note: some containers may not support it and could be nullptr)
             ChContactable* contactobjB,  ///< model B (note: some containers may not support it and could be nullptr)
-            const int offset  ///< offset of the first constraint (the normal component) in the vector of lagrangian multipliers, if already book-keeped
+            const int offset  ///< offset of the first constraint (the normal component) in the vector of lagrangian
+                              ///< multipliers, if already book-keeped
             ) = 0;
     };
 
@@ -165,10 +167,10 @@ class ChApi ChContactContainerNSC : public ChContactContainer {
 
     // SOLVER INTERFACE
 
-    virtual void InjectConstraints(ChSystemDescriptor& mdescriptor) override;
+    virtual void InjectConstraints(ChSystemDescriptor& descriptor) override;
     virtual void ConstraintsBiReset() override;
     virtual void ConstraintsBiLoad_C(double factor = 1, double recovery_clamp = 0.1, bool do_clamp = false) override;
-    virtual void ConstraintsLoadJacobians() override;
+    virtual void LoadConstraintJacobians() override;
     virtual void ConstraintsFetch_react(double factor = 1) override;
 
     // SERIALIZATION

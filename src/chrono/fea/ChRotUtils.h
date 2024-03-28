@@ -176,7 +176,7 @@ ChMatrix33<> Rot(const ChVector3d& phi) {
     ChStarMatrix33<> Phix(phi * coeff[0]);
     ChStarMatrix33<> pxpx(phi, phi * coeff[1]);
 
-    return Eye + Phix + pxpx; // I + c[0] * phi x + c[1] * phi x phi x
+    return Eye + Phix + pxpx;  // I + c[0] * phi x + c[1] * phi x phi x
 }
 
 /// Compute a G matrix from Euler Rogriguez's parameters Phi.
@@ -190,7 +190,7 @@ ChMatrix33<> DRot(const ChVector3d& phi) {
     ChStarMatrix33<> Phix(phi * coeff[1]);
     ChStarMatrix33<> pxpx(phi, phi * coeff[2]);
 
-    return Eye + Phix + pxpx; // I + c[1] * phi x += c[2] * phi x phi x
+    return Eye + Phix + pxpx;  // I + c[1] * phi x += c[2] * phi x phi x
 }
 
 /// Compute rotation matrix Phi and Ga matrix from Euler Rogriguez's parameters Phi.
@@ -200,7 +200,7 @@ void RotAndDRot(const ChVector3d& phi, ChMatrix33<>& Phi, ChMatrix33<>& Ga) {
     CoeffC(phi, phi, coeff);
 
     ChMatrix33<> Eye(1);
-    
+
     {
         ChStarMatrix33<> Phix(phi * coeff[0]);
         ChStarMatrix33<> pxpx(phi, phi * coeff[1]);
@@ -210,7 +210,7 @@ void RotAndDRot(const ChVector3d& phi, ChMatrix33<>& Phi, ChMatrix33<>& Ga) {
     {
         ChStarMatrix33<> Phix(phi * coeff[1]);
         ChStarMatrix33<> pxpx(phi, phi * coeff[2]);
-        Ga = Eye + Phix + pxpx; // I + c[1] * phi x + c[2] * phi x phi x
+        Ga = Eye + Phix + pxpx;  // I + c[1] * phi x + c[2] * phi x phi x
     }
 
     return;
@@ -241,7 +241,6 @@ ChMatrix33<> DRot_I(const ChVector3d& phi) {
 
     return Eye + Phix + pxpx;
 }
-
 
 /// Compute Euler Rogriguez's parameters phi from rotation matrix Phi.
 ChVector3d VecRot(const ChMatrix33<>& Phi) {

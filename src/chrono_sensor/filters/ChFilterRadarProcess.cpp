@@ -44,21 +44,18 @@ CH_SENSOR_API void ChFilterRadarProcess::Initialize(std::shared_ptr<ChSensor> pS
     }
     m_radar = std::dynamic_pointer_cast<ChRadarSensor>(pSensor);
     m_buffer_out = chrono_types::make_shared<SensorDeviceRadarXYZBuffer>();
-    std::shared_ptr<RadarXYZReturn[]> b(
-        cudaHostMallocHelper<RadarXYZReturn>(m_buffer_in->Width * m_buffer_in->Height),
-        cudaHostFreeHelper<RadarXYZReturn>);
+    std::shared_ptr<RadarXYZReturn[]> b(cudaHostMallocHelper<RadarXYZReturn>(m_buffer_in->Width * m_buffer_in->Height),
+                                        cudaHostFreeHelper<RadarXYZReturn>);
     m_buffer_out->Buffer = std::move(b);
     m_buffer_out->Width = bufferInOut->Width;
     m_buffer_out->Height = bufferInOut->Height;
     bufferInOut = m_buffer_out;
 }
 
-
 CH_SENSOR_API void ChFilterRadarProcess::Apply() {
     // converts azimuth and elevation to XYZ Coordinates in device
-    cuda_radar_pointcloud_from_angles(m_buffer_in->Buffer.get(), m_buffer_out->Buffer.get(), 
-                                      (int)m_buffer_in->Width, (int)m_buffer_in->Height, m_hFOV, m_vFOV,
-                                      m_cuda_stream);
+    cuda_radar_pointcloud_from_angles(m_buffer_in->Buffer.get(), m_buffer_out->Buffer.get(), (int)m_buffer_in->Width,
+                                      (int)m_buffer_in->Height, m_hFOV, m_vFOV, m_cuda_stream);
 
     // Transfer pointcloud to host
     auto buf = std::vector<RadarXYZReturn>(m_buffer_out->Width * m_buffer_out->Height);
@@ -67,14 +64,13 @@ CH_SENSOR_API void ChFilterRadarProcess::Apply() {
                     m_cuda_stream);
     cudaStreamSynchronize(m_cuda_stream);
 
-
     // sort returns to bins by objectId
     auto bins = std::vector<std::vector<RadarXYZReturn>>();
-    for (RadarXYZReturn point : buf){
+    for (RadarXYZReturn point : buf) {
         // remove rays with no returns
-        if (point.amplitude > 0){
+        if (point.amplitude > 0) {
             // tries to add the return to the bin, if bin doesnt exist, add the bin
-            while (bins.size() <= point.objectId){
+            while (bins.size() <= point.objectId) {
                 bins.push_back(std::vector<RadarXYZReturn>());
             }
             bins[point.objectId].push_back(point);
@@ -82,18 +78,18 @@ CH_SENSOR_API void ChFilterRadarProcess::Apply() {
     }
 
 #if PROFILE
-    
+
     printf("number of bins: %i\n", bins.size());
-    for (int i = 0; i < bins.size(); i++){
+    for (int i = 0; i < bins.size(); i++) {
         printf("bin %i has %i points\n", i, bins[i].size());
     }
 
 #endif
 
     // Down sample each bin to 30 points if necessary
-    for (std::vector<RadarXYZReturn>& bin : bins){
+    for (std::vector<RadarXYZReturn>& bin : bins) {
         auto rng = std::default_random_engine{};
-        if (bin.size() > 10000){
+        if (bin.size() > 10000) {
             std::shuffle(std::begin(bin), std::end(bin), rng);
             bin = std::vector<RadarXYZReturn>(bin.begin(), bin.begin() + (int)(bin.size() * 0.1));
         }
@@ -103,20 +99,18 @@ CH_SENSOR_API void ChFilterRadarProcess::Apply() {
     m_buffer_out->Beam_return_count = 0;
     auto processed_buffer = std::vector<RadarXYZReturn>(m_buffer_out->Width * m_buffer_out->Height);
 
-    // cluster each bin 
-    for (std::vector<RadarXYZReturn> bin : bins){
-        for (RadarXYZReturn point : bin){
+    // cluster each bin
+    for (std::vector<RadarXYZReturn> bin : bins) {
+        for (RadarXYZReturn point : bin) {
             buf[m_buffer_out->Beam_return_count] = point;
-            m_buffer_out->Beam_return_count+=1;
+            m_buffer_out->Beam_return_count += 1;
         }
     }
 
     std::vector<vec3f> points;
     for (int i = 0; i < m_buffer_out->Beam_return_count; i++) {
         processed_buffer[i] = buf[i];
-        points.push_back(vec3f{processed_buffer[i].x,
-                               processed_buffer[i].y,
-                               processed_buffer[i].z});
+        points.push_back(vec3f{processed_buffer[i].x, processed_buffer[i].y, processed_buffer[i].z});
     }
 
     int minimum_points = 1;
@@ -147,7 +141,7 @@ CH_SENSOR_API void ChFilterRadarProcess::Apply() {
 
     // initialize values for each cluster
     for (int i = 0; i < clusters.size(); i++) {
-        std::array<float,3> temp = {0,0,0};
+        std::array<float, 3> temp = {0, 0, 0};
         m_buffer_out->avg_velocity.push_back(temp);
         m_buffer_out->centroids.push_back(temp);
         m_buffer_out->amplitudes.push_back(0);
@@ -189,19 +183,18 @@ CH_SENSOR_API void ChFilterRadarProcess::Apply() {
     m_buffer_out->Beam_return_count = num_valid_returns;
     m_buffer_out->Num_clusters = static_cast<int>(clusters.size());
 
-//    for (int i = 0; i < clusters.size(); i++){
-//        valid_returns.data()[i].xyz[0] = m_buffer_out->centroids[i][0];
-//        valid_returns.data()[i].xyz[1] = m_buffer_out->centroids[i][1];
-//        valid_returns.data()[i].xyz[2] = m_buffer_out->centroids[i][2];
-//        valid_returns.data()[i].vel[0] = m_buffer_out->avg_velocity[i][0];
-//        valid_returns.data()[i].vel[1] = m_buffer_out->avg_velocity[i][1];
-//        valid_returns.data()[i].vel[2] = m_buffer_out->avg_velocity[i][2];
-//        valid_returns.data()[i].intensity = m_buffer_out->intensity[i];
-//    }
-//    m_buffer_out->Beam_return_count = clusters.size();
-//    printf("number of clusters: %f\n", clusters.size());
-    memcpy(m_buffer_out->Buffer.get(), valid_returns.data(),
-           m_buffer_out->Beam_return_count * sizeof(RadarXYZReturn));
+    //    for (int i = 0; i < clusters.size(); i++){
+    //        valid_returns.data()[i].xyz[0] = m_buffer_out->centroids[i][0];
+    //        valid_returns.data()[i].xyz[1] = m_buffer_out->centroids[i][1];
+    //        valid_returns.data()[i].xyz[2] = m_buffer_out->centroids[i][2];
+    //        valid_returns.data()[i].vel[0] = m_buffer_out->avg_velocity[i][0];
+    //        valid_returns.data()[i].vel[1] = m_buffer_out->avg_velocity[i][1];
+    //        valid_returns.data()[i].vel[2] = m_buffer_out->avg_velocity[i][2];
+    //        valid_returns.data()[i].intensity = m_buffer_out->intensity[i];
+    //    }
+    //    m_buffer_out->Beam_return_count = clusters.size();
+    //    printf("number of clusters: %f\n", clusters.size());
+    memcpy(m_buffer_out->Buffer.get(), valid_returns.data(), m_buffer_out->Beam_return_count * sizeof(RadarXYZReturn));
 
 #if PROFILE
     printf("Scan %i\n", m_scan_number);

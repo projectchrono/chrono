@@ -38,7 +38,7 @@ void plot(std::shared_ptr<ChBezierCurve> path, int n, const char* title, bool eq
         y(i) = pos.y();
     }
     std::string filename = out_dir + "/" + title + ".gpl";
-    ChGnuPlot mplot(filename.c_str());
+    ChGnuPlot mplot(filename);
     mplot.SetGrid();
     mplot.SetLabelX("x");
     mplot.SetLabelY("y");
@@ -48,14 +48,14 @@ void plot(std::shared_ptr<ChBezierCurve> path, int n, const char* title, bool eq
     std::string title_cmd("set title '");
     title_cmd += title;
     title_cmd += "'";
-    mplot.SetCommand(title_cmd.c_str());
+    mplot.SetCommand(title_cmd);
     mplot.Plot(x, y, "", " every 1 pt 1 ps 0.5 ");
     mplot.Plot(x, y, "", " with lines lt -1 lc rgb'#00AAEE' ");
 }
 
 int main(int argc, char* argv[]) {
     std::cout << "Copyright (c) 2017 projectchrono.org\nChrono version: " << CHRONO_VERSION << std::endl;
-    
+
     // Create (if needed) output directory
     if (!filesystem::create_directory(filesystem::path(out_dir))) {
         std::cout << "Error creating directory " << out_dir << std::endl;

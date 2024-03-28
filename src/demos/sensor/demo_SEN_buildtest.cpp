@@ -201,11 +201,11 @@ int main(int argc, char* argv[]) {
         texsphere->GetVisualModel()->GetShapes()[0].first->AddMaterial(vis_mat);
     }
 
-    auto texcyl = chrono_types::make_shared<ChBodyEasyCylinder>(ChAxis::Y,  //
-                                                                .5, 1,                // size
-                                                                1000,                 // density
-                                                                true,                 // vis enable?
-                                                                false, phys_mat);     //
+    auto texcyl = chrono_types::make_shared<ChBodyEasyCylinder>(ChAxis::Y,         //
+                                                                .5, 1,             // size
+                                                                1000,              // density
+                                                                true,              // vis enable?
+                                                                false, phys_mat);  //
     texcyl->SetPos({1, -4, 3});
     texcyl->SetFixed(true);
     sys.Add(texcyl);
@@ -221,12 +221,12 @@ int main(int argc, char* argv[]) {
         // add a box
         auto box = chrono_types::make_shared<ChBodyEasyBox>(ChRandom::Get() / 2.0 + 0.1, ChRandom::Get() / 2.0 + 0.1,
                                                             ChRandom::Get() / 2.0 + 0.1,  // x,y,z size
-                                                            1000,                    // density
-                                                            true,                    // collide enable?
-                                                            true, phys_mat);         // visualization?
+                                                            1000,                         // density
+                                                            true,                         // collide enable?
+                                                            true, phys_mat);              // visualization?
         box->SetPos({ChRandom::Get(), ChRandom::Get(), 2.0 + i});
-        box->SetRot(
-            QuatFromAngleSet({RotRepresentation::EULER_ANGLES_ZXZ, ChVector3d(ChRandom::Get(), ChRandom::Get(), ChRandom::Get())}));
+        box->SetRot(QuatFromAngleSet(
+            {RotRepresentation::EULER_ANGLES_ZXZ, ChVector3d(ChRandom::Get(), ChRandom::Get(), ChRandom::Get())}));
         sys.Add(box);
         {
             auto vis_mat = chrono_types::make_shared<ChVisualMaterial>();
@@ -239,15 +239,15 @@ int main(int argc, char* argv[]) {
             imu_parent = box;
         }
 
-        auto cyl = chrono_types::make_shared<ChBodyEasyCylinder>(ChAxis::Y,     //
+        auto cyl = chrono_types::make_shared<ChBodyEasyCylinder>(ChAxis::Y,                    //
                                                                  ChRandom::Get() / 2.0 + 0.1,  // radius
                                                                  ChRandom::Get() / 2.0 + 0.1,  // height
-                                                                 1000,                    // density
-                                                                 true,                    // collide enable?
-                                                                 true, phys_mat);         // visualization?
+                                                                 1000,                         // density
+                                                                 true,                         // collide enable?
+                                                                 true, phys_mat);              // visualization?
         cyl->SetPos({ChRandom::Get(), ChRandom::Get(), 2.0 + i});
-        cyl->SetRot(
-            QuatFromAngleSet({RotRepresentation::EULER_ANGLES_ZXZ, ChVector3d(ChRandom::Get(), ChRandom::Get(), ChRandom::Get())}));
+        cyl->SetRot(QuatFromAngleSet(
+            {RotRepresentation::EULER_ANGLES_ZXZ, ChVector3d(ChRandom::Get(), ChRandom::Get(), ChRandom::Get())}));
         sys.Add(cyl);
         {
             auto vis_mat = chrono_types::make_shared<ChVisualMaterial>();
@@ -257,9 +257,9 @@ int main(int argc, char* argv[]) {
         }
 
         auto sphere = chrono_types::make_shared<ChBodyEasySphere>((float)ChRandom::Get() / 2.0 + 0.1,  // radius
-                                                                  1000,                           // density
-                                                                  true,                           // collide enable?
-                                                                  true, phys_mat);                // visualization?
+                                                                  1000,                                // density
+                                                                  true,             // collide enable?
+                                                                  true, phys_mat);  // visualization?
         sphere->SetPos({ChRandom::Get(), ChRandom::Get(), 2.0 + i});
         sys.Add(sphere);
         if (!gps_parent) {
@@ -315,7 +315,7 @@ int main(int argc, char* argv[]) {
         chrono::ChFrame<double>({-10, 0, 1}, QuatFromAngleZ(0)),  // offset pose
         1920,                                                     // image width
         1080,                                                     // image height
-        (float)CH_PI / 4,                                       // field of view
+        (float)CH_PI / 4,                                         // field of view
         2, CameraLensModelType::FOV_LENS, false);
 
     std::string color_data_path = "SENSOR_OUTPUT/cam_color/";
@@ -366,8 +366,8 @@ int main(int argc, char* argv[]) {
         chrono::ChFrame<double>({-8, 0, 1}, QuatFromAngleX(0)),  // offset pose from body
         923,                                                     // horizontal samples
         23,                                                      // vertical samples/channels
-        2.f * (float)CH_PI / 3.0f,                             // horizontal field of view
-        (float)CH_PI / 8.0f, -(float)CH_PI / 8.0f, 100.0f    // vertical field of view
+        2.f * (float)CH_PI / 3.0f,                               // horizontal field of view
+        (float)CH_PI / 8.0f, -(float)CH_PI / 8.0f, 100.0f        // vertical field of view
     );
     lidar->SetName("Lidar Sensor");
     lidar->SetLag(.1f);
@@ -394,9 +394,9 @@ int main(int argc, char* argv[]) {
         chrono::ChFrame<double>({-8, 0, 1}, QuatFromAngleX(0)),  // offset pose from body
         923,                                                     // horizontal samples
         23,                                                      // vertical samples/channels
-        2.f * (float)CH_PI / 3.0f,                             // horizontal field of view
-        (float)CH_PI / 8.0f,                                   // max vert angle
-        -(float)CH_PI / 8.0f,                                  // min vert angle
+        2.f * (float)CH_PI / 3.0f,                               // horizontal field of view
+        (float)CH_PI / 8.0f,                                     // max vert angle
+        -(float)CH_PI / 8.0f,                                    // min vert angle
         100.0f,                                                  // max range
         LidarBeamShape::RECTANGULAR,                             // beam shape
         3,                                                       // beam sample radius

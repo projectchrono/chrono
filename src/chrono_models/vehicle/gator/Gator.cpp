@@ -108,13 +108,12 @@ void Gator::Initialize() {
     }
 
     // Create and initialize the powertrain system
-    if (true) { // set this to true/false to select one of the two powertrains below
+    if (true) {  // set this to true/false to select one of the two powertrains below
         auto engine = chrono_types::make_shared<Gator_EngineSimple>("Engine");
         auto transmission = chrono_types::make_shared<Gator_AutomaticTransmissionSimple>("Transmission");
         auto powertrain = chrono_types::make_shared<ChPowertrainAssembly>(engine, transmission);
         m_vehicle->InitializePowertrain(powertrain);
-    }
-    else {
+    } else {
         auto engine = chrono_types::make_shared<Gator_EngineSimpleMap>("Engine");
         auto transmission = chrono_types::make_shared<Gator_AutomaticTransmissionSimpleMap>("Transmission");
         auto powertrain = chrono_types::make_shared<ChPowertrainAssembly>(engine, transmission);

@@ -58,7 +58,7 @@ class CH_VEHICLE_API ChTranslationalIdler : public ChIdler {
 
     /// Return a handle to the carrier body to which the idler wheel is connected.
     virtual std::shared_ptr<ChBody> GetCarrierBody() const override { return m_carrier; }
-        
+
     /// Get the tensioner force element.
     std::shared_ptr<ChLinkTSDA> GetTensioner() const { return m_tensioner; }
 
@@ -70,7 +70,7 @@ class CH_VEHICLE_API ChTranslationalIdler : public ChIdler {
     virtual void Initialize(std::shared_ptr<ChChassis> chassis,  ///< [in] associated chassis
                             const ChVector3d& location,          ///< [in] location relative to the chassis frame
                             ChTrackAssembly* track               ///< [in] containing track assembly
-    ) override;
+                            ) override;
 
     /// Add visualization assets for the idler subsystem.
     /// This default implementation adds assets to the carrier body.

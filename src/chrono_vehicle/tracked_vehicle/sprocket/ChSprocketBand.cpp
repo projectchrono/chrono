@@ -27,7 +27,6 @@
 #include "chrono_vehicle/tracked_vehicle/sprocket/ChSprocketBand.h"
 #include "chrono_vehicle/tracked_vehicle/track_shoe/ChTrackShoeBand.h"
 
-
 namespace chrono {
 namespace vehicle {
 
@@ -97,9 +96,9 @@ class SprocketBandContactCB : public ChSystem::CustomCollisionCallback {
 
         // Points defining the sprocket tooth's base width
         ChVector2d ToothBaseWidthUpperPnt(OutRad * (std::cos(HalfBaseWidthCordAng)),
-                                           OutRad * (std::sin(HalfBaseWidthCordAng)));
+                                          OutRad * (std::sin(HalfBaseWidthCordAng)));
         ChVector2d ToothBaseWidthLowerPnt(OutRad * (std::cos(-HalfBaseWidthCordAng)),
-                                           OutRad * (std::sin(-HalfBaseWidthCordAng)));
+                                          OutRad * (std::sin(-HalfBaseWidthCordAng)));
         ChVector2d ToothBaseWidthCtrPnt = 0.5 * (ToothBaseWidthUpperPnt + ToothBaseWidthLowerPnt);
 
         // Points defining the sprocket tooth's tip width
@@ -170,11 +169,11 @@ class SprocketBandContactCB : public ChSystem::CustomCollisionCallback {
     // Test for collision between an arc on a tread segment body and the matching arc on the sprocket's gear profile
     void CheckTreadArcSprocketArc(
         std::shared_ptr<ChTrackShoeBand> shoe,  // track shoe
-        ChVector2d sprocket_arc_center,        // Center of the sprocket profile arc in the sprocket's X-Z plane
+        ChVector2d sprocket_arc_center,         // Center of the sprocket profile arc in the sprocket's X-Z plane
         double sprocket_arc_angle_start,        // Starting (smallest & positive) angle for the sprocket arc
         double sprocket_arc_angle_end,          // Ending (largest & positive) angle for the sprocket arc
         double sprocket_arc_radius,             // Radius for the sprocket arc
-        ChVector2d tooth_arc_center,           // Center of the belt tooth's profile arc in the sprocket's X-Z plane
+        ChVector2d tooth_arc_center,            // Center of the belt tooth's profile arc in the sprocket's X-Z plane
         double tooth_arc_angle_start,           // Starting (smallest & positive) angle for the belt tooth arc
         double tooth_arc_angle_end,             // Ending (largest & positive) angle for the belt tooth arc
         double tooth_arc_radius                 // Radius for the tooth arc
@@ -200,8 +199,8 @@ class SprocketBandContactCB : public ChSystem::CustomCollisionCallback {
 
     double m_gear_tread_broadphase_dist_squared;  // Tread body to Sprocket quick Broadphase distance squared check
 
-    ChVector2d m_gear_center_p;                 // center of (+x) arc, in sprocket body x-z plane
-    ChVector2d m_gear_center_m;                 // center of (-x) arc, in sprocket body x-z plane
+    ChVector2d m_gear_center_p;                  // center of (+x) arc, in sprocket body x-z plane
+    ChVector2d m_gear_center_m;                  // center of (-x) arc, in sprocket body x-z plane
     double m_gear_center_p_start_angle;          // starting positive angle of the first sprocket tooth (+z ) arc
     double m_gear_center_p_end_angle;            // ending positive angle of the first sprocket tooth (+z ) arc
     double m_gear_center_m_start_angle;          // starting positive angle of the first sprocket tooth (-z ) arc
@@ -209,8 +208,8 @@ class SprocketBandContactCB : public ChSystem::CustomCollisionCallback {
     double m_gear_outer_radius_arc_angle_start;  // starting positive angle of the first sprocket outer radius arc
     double m_gear_outer_radius_arc_angle_end;    // ending positive angle of the first sprocket outer radius arc
 
-    ChVector2d m_tread_center_p;         // center of (+x) arc, in tread body x-z plane
-    ChVector2d m_tread_center_m;         // center of (-x) arc, in tread body x-z plane
+    ChVector2d m_tread_center_p;          // center of (+x) arc, in tread body x-z plane
+    ChVector2d m_tread_center_m;          // center of (-x) arc, in tread body x-z plane
     double m_tread_center_p_start_angle;  // starting positive angle of the first tooth (+x ) arc
     double m_tread_center_p_end_angle;    // ending positive angle of the first tooth (+x ) arc
     double m_tread_center_m_start_angle;  // starting positive angle of the first tooth (-x ) arc
@@ -325,7 +324,7 @@ void SprocketBandContactCB::CheckTreadSegmentSprocket(std::shared_ptr<ChTrackSho
 
     // Calculate the sprocket positive arc center point for the closest tooth spacing angle
     ChVector2d sprocket_center_p(m_gear_center_p.x() * std::cos(alpha) - m_gear_center_p.y() * std::sin(alpha),
-                                  m_gear_center_p.x() * std::sin(alpha) + m_gear_center_p.y() * std::cos(alpha));
+                                 m_gear_center_p.x() * std::sin(alpha) + m_gear_center_p.y() * std::cos(alpha));
 
     // Adjust start & end angle based on the selected sprocket tooth spacing angle
     double gear_center_p_start_angle = m_gear_center_p_start_angle + alpha;
@@ -347,9 +346,9 @@ void SprocketBandContactCB::CheckTreadSegmentSprocket(std::shared_ptr<ChTrackSho
     // Don't add in the tooth_center_p point postion since it will get subtracted off to calculate the angle
     // This leads to the tooth arc angles in the sprocket frame
     ChVector2d tooth_arc_start_point_p = m_tread_arc_radius * std::cos(m_tread_center_p_start_angle) * tooth_x_axis +
-                                          m_tread_arc_radius * std::sin(m_tread_center_p_start_angle) * tooth_z_axis;
+                                         m_tread_arc_radius * std::sin(m_tread_center_p_start_angle) * tooth_z_axis;
     ChVector2d tooth_arc_end_point_p = m_tread_arc_radius * std::cos(m_tread_center_p_end_angle) * tooth_x_axis +
-                                        m_tread_arc_radius * std::sin(m_tread_center_p_end_angle) * tooth_z_axis;
+                                       m_tread_arc_radius * std::sin(m_tread_center_p_end_angle) * tooth_z_axis;
 
     double tooth_center_p_start_angle = std::atan2(tooth_arc_start_point_p.y(), tooth_arc_start_point_p.x());
     tooth_center_p_start_angle =
@@ -370,7 +369,7 @@ void SprocketBandContactCB::CheckTreadSegmentSprocket(std::shared_ptr<ChTrackSho
 
     // Calculate the sprocket negative arc center point for the closest tooth spacing angle
     ChVector2d sprocket_center_m(m_gear_center_m.x() * std::cos(alpha) - m_gear_center_m.y() * std::sin(alpha),
-                                  m_gear_center_m.x() * std::sin(alpha) + m_gear_center_m.y() * std::cos(alpha));
+                                 m_gear_center_m.x() * std::sin(alpha) + m_gear_center_m.y() * std::cos(alpha));
 
     // Adjust start & end angle based on the selected sprocket tooth spacing angle
     double gear_center_m_start_angle = m_gear_center_m_start_angle + alpha;
@@ -392,9 +391,9 @@ void SprocketBandContactCB::CheckTreadSegmentSprocket(std::shared_ptr<ChTrackSho
     // Don't add in the tooth_center_m point postion since it will get subtracted off to calculate the angle
     // This leads to the tooth arc angles in the sprocket frame
     ChVector2d tooth_arc_start_point_m = m_tread_arc_radius * std::cos(m_tread_center_m_start_angle) * tooth_x_axis +
-                                          m_tread_arc_radius * std::sin(m_tread_center_m_start_angle) * tooth_z_axis;
+                                         m_tread_arc_radius * std::sin(m_tread_center_m_start_angle) * tooth_z_axis;
     ChVector2d tooth_arc_end_point_m = m_tread_arc_radius * std::cos(m_tread_center_m_end_angle) * tooth_x_axis +
-                                        m_tread_arc_radius * std::sin(m_tread_center_m_end_angle) * tooth_z_axis;
+                                       m_tread_arc_radius * std::sin(m_tread_center_m_end_angle) * tooth_z_axis;
 
     double tooth_center_m_start_angle = std::atan2(tooth_arc_start_point_m.y(), tooth_arc_start_point_m.x());
     tooth_center_m_start_angle =

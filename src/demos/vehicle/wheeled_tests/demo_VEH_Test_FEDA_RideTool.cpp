@@ -275,7 +275,6 @@ void RunTest(double speed,
         }
     }
 
-
     if (vis) {
         auto sentinel = chrono_types::make_shared<ChVisualShapeSphere>(0.1);
         auto target = chrono_types::make_shared<ChVisualShapeSphere>(0.1);
@@ -430,7 +429,7 @@ int main(int argc, char* argv[]) {
     ChFunctionInterp powRec;
 
     std::string datafile = out_dir + "/test_gnuplot_data.dat";
-    std::ofstream mdatafile(datafile.c_str());
+    std::ofstream mdatafile(datafile);
 
     bool power_limit_reached = false;
 

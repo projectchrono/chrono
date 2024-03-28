@@ -190,8 +190,8 @@ class Crane {
 };
 
 class Actuator {
-    public:
-      Actuator(ChSystem& sys, double s0, double F0) : m_sys(sys) {
+  public:
+    Actuator(ChSystem& sys, double s0, double F0) : m_sys(sys) {
         m_actuation = chrono_types::make_shared<ChFunctionSetpoint>();
 
         // Construct the hydraulic actuator
@@ -222,14 +222,14 @@ class Actuator {
 
         // Initialize output
         m_csv.SetDelimiter(" ");
-      }
+    }
 
-      void SetActuation(double time, double Uref) { m_actuation->SetSetpoint(Uref, time); }
+    void SetActuation(double time, double Uref) { m_actuation->SetSetpoint(Uref, time); }
 
-      void SetActuatorLength(double s, double sd) { m_actuator->SetActuatorLength(s, sd); }
-      double GetActuatorForce() const { return m_actuator->GetActuatorForce(); }
+    void SetActuatorLength(double s, double sd) { m_actuator->SetActuatorLength(s, sd); }
+    double GetActuatorForce() const { return m_actuator->GetActuatorForce(); }
 
-      void Advance(double step) {
+    void Advance(double step) {
         m_sys.DoStepDynamics(step);
         double time = m_sys.GetChTime();
 
@@ -240,15 +240,15 @@ class Actuator {
         auto F = m_actuator->GetActuatorForce();
 
         m_csv << time << Uref << U << p[0] << p[1] << F << std::endl;
-      }
+    }
 
-      void WriteOutput(const std::string& filename) { m_csv.WriteToFile(filename); }
+    void WriteOutput(const std::string& filename) { m_csv.WriteToFile(filename); }
 
-    private:
-      ChSystem& m_sys;
-      std::shared_ptr<ChHydraulicActuator2> m_actuator;
-      std::shared_ptr<ChFunctionSetpoint> m_actuation;
-      utils::ChWriterCSV m_csv;
+  private:
+    ChSystem& m_sys;
+    std::shared_ptr<ChHydraulicActuator2> m_actuator;
+    std::shared_ptr<ChFunctionSetpoint> m_actuation;
+    utils::ChWriterCSV m_csv;
 };
 
 // -----------------------------------------------------------------------------
@@ -262,14 +262,14 @@ int main(int argc, char* argv[]) {
         return 1;
     }
 
-    // Create the two Chrono systems 
+    // Create the two Chrono systems
     ChSystemSMC sysMBS;
     ChSystemSMC sysHYD;
     sysMBS.SetGravitationalAcceleration(ChVector3d(0, 0, -9.8));
     sysHYD.SetGravitationalAcceleration(ChVector3d(0, 0, -9.8));
 
     // Construct the crane multibody system
-    Crane crane(sysMBS); 
+    Crane crane(sysMBS);
     double s0, sd0;
     crane.GetActuatorLength(s0, sd0);
     double F0 = crane.GetInitialLoad();
@@ -417,5 +417,4 @@ int main(int argc, char* argv[]) {
         gplot.Plot(out_file_actuator, 1, 6, "F", " with lines lt -1 lw 2");
     }
 #endif
-
 }

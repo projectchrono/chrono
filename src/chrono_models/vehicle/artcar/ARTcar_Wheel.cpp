@@ -33,13 +33,13 @@ namespace artcar {
 // Static variables
 // -----------------------------------------------------------------------------
 
-static const double in2m = 0.0254; 
+static const double in2m = 0.0254;
 static const double lb2kg = 0.453592;
 
 const double ARTcar_Wheel::m_mass = .07;
 const ChVector3d ARTcar_Wheel::m_inertia(.00007, 0.000136, .00007);
 
-const double ARTcar_Wheel::m_radius = .103/2;
+const double ARTcar_Wheel::m_radius = .103 / 2;
 const double ARTcar_Wheel::m_width = .0855;
 
 const std::string ARTcar_WheelLeft::m_meshName = "wheel_L_POV_geom";

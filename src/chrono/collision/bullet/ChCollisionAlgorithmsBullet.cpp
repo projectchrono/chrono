@@ -1082,9 +1082,12 @@ void cbtCEtriangleShapeCollisionAlgorithm::processCollision(const cbtCollisionOb
         return;
 
     // Interval boundaries for the distances between vertex-face or edge-edge,
-    // these intervals are used to reject distances, where the distance here is assumed for the naked triangles, i.e. WITHOUT the shpereswept_r inflating!
-    double max_allowed_dist = triModelA->GetEnvelope() + triModelB->GetEnvelope() + triA->sphereswept_r() + triB->sphereswept_r();
-    double min_allowed_dist = triA->sphereswept_r() + triB->sphereswept_r() - (triModelA->GetSafeMargin() + triModelB->GetSafeMargin());
+    // these intervals are used to reject distances, where the distance here is assumed for the naked triangles, i.e.
+    // WITHOUT the shpereswept_r inflating!
+    double max_allowed_dist =
+        triModelA->GetEnvelope() + triModelB->GetEnvelope() + triA->sphereswept_r() + triB->sphereswept_r();
+    double min_allowed_dist =
+        triA->sphereswept_r() + triB->sphereswept_r() - (triModelA->GetSafeMargin() + triModelB->GetSafeMargin());
     double max_edge_dist_earlyout = std::max(max_allowed_dist, std::fabs(min_allowed_dist));
 
     // Offsets for knowing where the contact points are respect to the points on the naked triangles
@@ -1093,8 +1096,6 @@ void cbtCEtriangleShapeCollisionAlgorithm::processCollision(const cbtCollisionOb
     //    contact points are offset inward by envelope, to cope with GJK method.
     double offset_A = triA->sphereswept_r() + triModelA->GetEnvelope();
     double offset_B = triB->sphereswept_r() + triModelB->GetEnvelope();
-
-
 
     const cbtTransform& m44Ta = triObj1Wrap->getCollisionObject()->getWorldTransform();
     const cbtTransform& m44Tb = triObj2Wrap->getCollisionObject()->getWorldTransform();
@@ -1309,9 +1310,9 @@ void cbtCEtriangleShapeCollisionAlgorithm::processCollision(const cbtCollisionOb
                     if ((alpha_A < beta_A1 - CH_C_PI_2_ptol) && (alpha_B < beta_B1 - CH_C_PI_2_ptol)) {
                         if (dist < max_allowed_dist && dist > min_allowed_dist)  // distance interval check - outside
                             _add_contact(cA, cB, dist, resultOut, offset_A, offset_B);
-                    }
-                    else if (alpha_A > CH_C_PI_mtol && (alpha_A < beta_A1 + CH_PI_2) && alpha_B > CH_C_PI_mtol && (alpha_B < beta_B1 + CH_C_PI_2_ptol)) {
-                        if (-dist < max_allowed_dist && -dist > min_allowed_dist) // distance interval check - inside
+                    } else if (alpha_A > CH_C_PI_mtol && (alpha_A < beta_A1 + CH_PI_2) && alpha_B > CH_C_PI_mtol &&
+                               (alpha_B < beta_B1 + CH_C_PI_2_ptol)) {
+                        if (-dist < max_allowed_dist && -dist > min_allowed_dist)  // distance interval check - inside
                             _add_contact(cA, cB, -dist, resultOut, offset_A, offset_B);
                     }
                 }
@@ -1334,9 +1335,9 @@ void cbtCEtriangleShapeCollisionAlgorithm::processCollision(const cbtCollisionOb
                     if ((alpha_A < beta_A1 - CH_C_PI_2_ptol) && (alpha_B < beta_B2 - CH_C_PI_2_ptol)) {
                         if (dist < max_allowed_dist && dist > min_allowed_dist)  // distance interval check - outside
                             _add_contact(cA, cB, dist, resultOut, offset_A, offset_B);
-                    }
-                    else if (alpha_A > CH_C_PI_mtol && (alpha_A < beta_A1 + CH_PI_2) && alpha_B > CH_C_PI_mtol && (alpha_B < beta_B2 + CH_C_PI_2_ptol)) {
-                        if (-dist < max_allowed_dist && -dist > min_allowed_dist) // distance interval check - inside
+                    } else if (alpha_A > CH_C_PI_mtol && (alpha_A < beta_A1 + CH_PI_2) && alpha_B > CH_C_PI_mtol &&
+                               (alpha_B < beta_B2 + CH_C_PI_2_ptol)) {
+                        if (-dist < max_allowed_dist && -dist > min_allowed_dist)  // distance interval check - inside
                             _add_contact(cA, cB, -dist, resultOut, offset_A, offset_B);
                     }
                 }
@@ -1359,9 +1360,9 @@ void cbtCEtriangleShapeCollisionAlgorithm::processCollision(const cbtCollisionOb
                     if ((alpha_A < beta_A1 - CH_C_PI_2_ptol) && (alpha_B < beta_B3 - CH_C_PI_2_ptol)) {
                         if (dist < max_allowed_dist && dist > min_allowed_dist)  // distance interval check - outside
                             _add_contact(cA, cB, dist, resultOut, offset_A, offset_B);
-                    }
-                    else if (alpha_A > CH_C_PI_mtol && (alpha_A < beta_A1 + CH_PI_2) && alpha_B > CH_C_PI_mtol && (alpha_B < beta_B3 + CH_C_PI_2_ptol)) {
-                        if (-dist < max_allowed_dist && -dist > min_allowed_dist) // distance interval check - inside
+                    } else if (alpha_A > CH_C_PI_mtol && (alpha_A < beta_A1 + CH_PI_2) && alpha_B > CH_C_PI_mtol &&
+                               (alpha_B < beta_B3 + CH_C_PI_2_ptol)) {
+                        if (-dist < max_allowed_dist && -dist > min_allowed_dist)  // distance interval check - inside
                             _add_contact(cA, cB, -dist, resultOut, offset_A, offset_B);
                     }
                 }
@@ -1384,9 +1385,9 @@ void cbtCEtriangleShapeCollisionAlgorithm::processCollision(const cbtCollisionOb
                     if ((alpha_A < beta_A2 - CH_C_PI_2_ptol) && (alpha_B < beta_B1 - CH_C_PI_2_ptol)) {
                         if (dist < max_allowed_dist && dist > min_allowed_dist)  // distance interval check - outside
                             _add_contact(cA, cB, dist, resultOut, offset_A, offset_B);
-                    }
-                    else if (alpha_A > CH_C_PI_mtol && (alpha_A < beta_A2 + CH_PI_2) && alpha_B > CH_C_PI_mtol && (alpha_B < beta_B1 + CH_C_PI_2_ptol))  {
-                        if (-dist < max_allowed_dist && -dist > min_allowed_dist) // distance interval check - inside
+                    } else if (alpha_A > CH_C_PI_mtol && (alpha_A < beta_A2 + CH_PI_2) && alpha_B > CH_C_PI_mtol &&
+                               (alpha_B < beta_B1 + CH_C_PI_2_ptol)) {
+                        if (-dist < max_allowed_dist && -dist > min_allowed_dist)  // distance interval check - inside
                             _add_contact(cA, cB, -dist, resultOut, offset_A, offset_B);
                     }
                 }
@@ -1409,9 +1410,9 @@ void cbtCEtriangleShapeCollisionAlgorithm::processCollision(const cbtCollisionOb
                     if ((alpha_A < beta_A2 - CH_C_PI_2_ptol) && (alpha_B < beta_B2 - CH_C_PI_2_ptol)) {
                         if (dist < max_allowed_dist && dist > min_allowed_dist)  // distance interval check - outside
                             _add_contact(cA, cB, dist, resultOut, offset_A, offset_B);
-                    }
-                    else if (alpha_A > CH_C_PI_mtol && (alpha_A < beta_A2 + CH_PI_2) && alpha_B > CH_C_PI_mtol && (alpha_B < beta_B2 + CH_C_PI_2_ptol)) {
-                        if (-dist < max_allowed_dist && -dist > min_allowed_dist) // distance interval check - inside
+                    } else if (alpha_A > CH_C_PI_mtol && (alpha_A < beta_A2 + CH_PI_2) && alpha_B > CH_C_PI_mtol &&
+                               (alpha_B < beta_B2 + CH_C_PI_2_ptol)) {
+                        if (-dist < max_allowed_dist && -dist > min_allowed_dist)  // distance interval check - inside
                             _add_contact(cA, cB, -dist, resultOut, offset_A, offset_B);
                     }
                 }
@@ -1434,9 +1435,9 @@ void cbtCEtriangleShapeCollisionAlgorithm::processCollision(const cbtCollisionOb
                     if ((alpha_A < beta_A2 - CH_C_PI_2_ptol) && (alpha_B < beta_B3 - CH_C_PI_2_ptol)) {
                         if (dist < max_allowed_dist && dist > min_allowed_dist)  // distance interval check - outside
                             _add_contact(cA, cB, dist, resultOut, offset_A, offset_B);
-                    }
-                    else if (alpha_A > CH_C_PI_mtol && (alpha_A < beta_A2 + CH_PI_2) && alpha_B > CH_C_PI_mtol && (alpha_B < beta_B3 + CH_C_PI_2_ptol)) {
-                        if (-dist < max_allowed_dist && -dist > min_allowed_dist) // distance interval check - inside
+                    } else if (alpha_A > CH_C_PI_mtol && (alpha_A < beta_A2 + CH_PI_2) && alpha_B > CH_C_PI_mtol &&
+                               (alpha_B < beta_B3 + CH_C_PI_2_ptol)) {
+                        if (-dist < max_allowed_dist && -dist > min_allowed_dist)  // distance interval check - inside
                             _add_contact(cA, cB, -dist, resultOut, offset_A, offset_B);
                     }
                 }
@@ -1456,12 +1457,12 @@ void cbtCEtriangleShapeCollisionAlgorithm::processCollision(const cbtCollisionOb
                         alpha_A += CH_2PI;
                     if (alpha_B < alpha_lo_limit)
                         alpha_B += CH_2PI;
-                    if ((alpha_A < beta_A3 - CH_C_PI_2_ptol) && (alpha_B < beta_B1 - CH_C_PI_2_ptol))  {
+                    if ((alpha_A < beta_A3 - CH_C_PI_2_ptol) && (alpha_B < beta_B1 - CH_C_PI_2_ptol)) {
                         if (dist < max_allowed_dist && dist > min_allowed_dist)  // distance interval check - outside
                             _add_contact(cA, cB, dist, resultOut, offset_A, offset_B);
-                    }
-                    else if (alpha_A > CH_C_PI_mtol && (alpha_A < beta_A3 + CH_PI_2) && alpha_B > CH_C_PI_mtol && (alpha_B < beta_B1 + CH_C_PI_2_ptol)) {
-                        if (-dist < max_allowed_dist && -dist > min_allowed_dist) // distance interval check - inside
+                    } else if (alpha_A > CH_C_PI_mtol && (alpha_A < beta_A3 + CH_PI_2) && alpha_B > CH_C_PI_mtol &&
+                               (alpha_B < beta_B1 + CH_C_PI_2_ptol)) {
+                        if (-dist < max_allowed_dist && -dist > min_allowed_dist)  // distance interval check - inside
                             _add_contact(cA, cB, -dist, resultOut, offset_A, offset_B);
                     }
                 }
@@ -1484,9 +1485,9 @@ void cbtCEtriangleShapeCollisionAlgorithm::processCollision(const cbtCollisionOb
                     if ((alpha_A < beta_A3 - CH_C_PI_2_ptol) && (alpha_B < beta_B2 - CH_C_PI_2_ptol)) {
                         if (dist < max_allowed_dist && dist > min_allowed_dist)  // distance interval check - outside
                             _add_contact(cA, cB, dist, resultOut, offset_A, offset_B);
-                    }
-                    else if (alpha_A > CH_C_PI_mtol && (alpha_A < beta_A3 + CH_PI_2) && alpha_B > CH_C_PI_mtol && (alpha_B < beta_B2 + CH_C_PI_2_ptol)) {
-                        if (-dist < max_allowed_dist && -dist > min_allowed_dist) // distance interval check - inside
+                    } else if (alpha_A > CH_C_PI_mtol && (alpha_A < beta_A3 + CH_PI_2) && alpha_B > CH_C_PI_mtol &&
+                               (alpha_B < beta_B2 + CH_C_PI_2_ptol)) {
+                        if (-dist < max_allowed_dist && -dist > min_allowed_dist)  // distance interval check - inside
                             _add_contact(cA, cB, -dist, resultOut, offset_A, offset_B);
                     }
                 }
@@ -1509,9 +1510,9 @@ void cbtCEtriangleShapeCollisionAlgorithm::processCollision(const cbtCollisionOb
                     if ((alpha_A < beta_A3 - CH_C_PI_2_ptol) && (alpha_B < beta_B3 - CH_C_PI_2_ptol)) {
                         if (dist < max_allowed_dist && dist > min_allowed_dist)  // distance interval check - outside
                             _add_contact(cA, cB, dist, resultOut, offset_A, offset_B);
-                    }
-                    else if (alpha_A > CH_C_PI_mtol && (alpha_A < beta_A3 + CH_PI_2) && alpha_B > CH_C_PI_mtol && (alpha_B < beta_B3 + CH_C_PI_2_ptol)) {
-                        if (-dist < max_allowed_dist && -dist > min_allowed_dist) // distance interval check - inside
+                    } else if (alpha_A > CH_C_PI_mtol && (alpha_A < beta_A3 + CH_PI_2) && alpha_B > CH_C_PI_mtol &&
+                               (alpha_B < beta_B3 + CH_C_PI_2_ptol)) {
+                        if (-dist < max_allowed_dist && -dist > min_allowed_dist)  // distance interval check - inside
                             _add_contact(cA, cB, -dist, resultOut, offset_A, offset_B);
                     }
                 }

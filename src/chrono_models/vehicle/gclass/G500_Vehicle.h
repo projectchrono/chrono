@@ -35,16 +35,16 @@ namespace gclass {
 class CH_MODELS_API G500_Vehicle : public ChWheeledVehicle {
   public:
     G500_Vehicle(const bool fixed,
-                   BrakeType brake_type,
-                   SteeringTypeWV steering_model,
-                   ChContactMethod contact_method = ChContactMethod::NSC,
-                   CollisionType chassis_collision_type = CollisionType::NONE);
+                 BrakeType brake_type,
+                 SteeringTypeWV steering_model,
+                 ChContactMethod contact_method = ChContactMethod::NSC,
+                 CollisionType chassis_collision_type = CollisionType::NONE);
 
     G500_Vehicle(ChSystem* system,
-                   const bool fixed,
-                   BrakeType brake_type,
-                   SteeringTypeWV steering_model,
-                   CollisionType chassis_collision_type = CollisionType::NONE);
+                 const bool fixed,
+                 BrakeType brake_type,
+                 SteeringTypeWV steering_model,
+                 CollisionType chassis_collision_type = CollisionType::NONE);
 
     ~G500_Vehicle();
 

@@ -19,14 +19,10 @@
 
 namespace chrono {
 
-/// Class for rigid bodies with an auxiliary reference frame.
-/// Unlike ChBody, where the COG frame is used as the reference frame, the
-/// auxiliary reference frame of a ChBodyAuxRef can be different from its
-/// COG frame.  This specialization is provided for situations where it is more
-/// convenient to specify collision shapes, visualization assets, and marker
-/// positions with respect to a reference frame other than the COG frame.
-/// Note that, because of the auxiliary reference, this type of rigid bodies
-/// can be slightly less efficient than the base ChBody object.
+/// Class for Rigid Bodies with an auxiliary Reference Frame.
+///
+/// An auxiliary reference frame is added to the base ChBody class thus offering the flexibility of placing
+/// collision and visual shapes, as well as ChMarkers, in a different position with respect to the Center of Mass.
 ///
 /// Additional information can be found in the @ref rigid_bodies manual page.
 
@@ -44,7 +40,7 @@ class ChApi ChBodyAuxRef : public ChBody {
     void SetFrameRefToAbs(const ChFrame<>& frame);
 
     /// Get the auxiliary reference frame with respect to the absolute frame.
-    /// Note that, in general, this is different from GetFrame_COG_to_abs().
+    /// Note that, in general, this is different from GetFrameCOMToAbs().
     virtual const ChFrameMoving<>& GetFrameRefToAbs() const override { return ref_to_abs; }
 
     /// Set the COG frame with respect to the auxiliary reference frame.

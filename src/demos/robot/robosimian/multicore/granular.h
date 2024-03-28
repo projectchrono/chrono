@@ -52,8 +52,6 @@ class GroundGranular {
     chrono::ChVector3d m_center;   // center of bottom boundary
     double m_radius1;              // inflated particle radius
     unsigned int m_num_particles;  // number of generated particles
-
-    static const int m_start_id = 1000000;
 };
 
 class GroundGranularA : public GroundGranular {

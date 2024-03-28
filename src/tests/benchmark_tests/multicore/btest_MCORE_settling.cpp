@@ -17,7 +17,7 @@
 // The global reference frame has Z up.
 // =============================================================================
 
-// Run benchamrk tests for a number of threads between MIN and MAX (inclusive) 
+// Run benchamrk tests for a number of threads between MIN and MAX (inclusive)
 // in increments of STEP.
 #define TEST_MIN_THREADS 1
 #define TEST_MAX_THREADS 16
@@ -152,7 +152,7 @@ void SettlingSMC::SimulateVis() {
 // =============================================================================
 
 #define NUM_SKIP_STEPS 500  // number of steps for hot start
-#define NUM_SIM_STEPS 500   // number of simulation steps for benchmarking
+#define NUM_SIM_STEPS 500  // number of simulation steps for benchmarking
 
 using TEST_NAME = chrono::utils::ChBenchmarkFixture<SettlingSMC, 0>;
 BENCHMARK_DEFINE_F(TEST_NAME, Settle)(benchmark::State& st) {

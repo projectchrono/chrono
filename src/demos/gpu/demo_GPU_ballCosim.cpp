@@ -52,8 +52,7 @@ void runBallDrop(ChSystemGpuMesh& gpu_sys, ChGpuSimulationParameters& params) {
     float ball_radius = 20.f;
     float ball_density = params.sphere_density;
     float ball_mass = 4.0f * (float)CH_PI * ball_radius * ball_radius * ball_radius * ball_density / 3.f;
-    gpu_sys.AddMesh(GetChronoDataFile("models/sphere.obj"), ChVector3f(0), ChMatrix33<float>(ball_radius),
-                    ball_mass);
+    gpu_sys.AddMesh(GetChronoDataFile("models/sphere.obj"), ChVector3f(0), ChMatrix33<float>(ball_radius), ball_mass);
 
     // One more thing: we need to manually enable mesh in this run, because we disabled it in the settling phase,
     // let's overload that option.

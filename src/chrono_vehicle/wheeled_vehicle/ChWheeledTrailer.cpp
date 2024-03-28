@@ -21,7 +21,7 @@
 namespace chrono {
 namespace vehicle {
 
-ChWheeledTrailer::ChWheeledTrailer(const std::string& name, ChSystem* system): m_name(name) {}
+ChWheeledTrailer::ChWheeledTrailer(const std::string& name, ChSystem* system) : m_name(name) {}
 
 void ChWheeledTrailer::Initialize(std::shared_ptr<ChChassis> frontChassis) {
     m_chassis->Initialize(frontChassis, WheeledCollisionFamily::CHASSIS);
@@ -29,9 +29,9 @@ void ChWheeledTrailer::Initialize(std::shared_ptr<ChChassis> frontChassis) {
 }
 
 void ChWheeledTrailer::InitializeTire(std::shared_ptr<ChTire> tire,
-                                 std::shared_ptr<ChWheel> wheel,
-                                 VisualizationType tire_vis,
-                                 ChTire::CollisionType tire_coll) {
+                                      std::shared_ptr<ChWheel> wheel,
+                                      VisualizationType tire_vis,
+                                      ChTire::CollisionType tire_coll) {
     wheel->SetTire(tire);
     tire->Initialize(wheel);
     tire->SetVisualizationType(tire_vis);

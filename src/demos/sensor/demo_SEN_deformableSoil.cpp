@@ -174,7 +174,7 @@ void CreateLuggedGeometry(std::shared_ptr<ChBody> wheel_body, std::shared_ptr<Ch
     for (int iseg = 0; iseg < 15; iseg++) {
         ChQuaternion<> rot = QuatFromAngleAxis(iseg * 24 * CH_DEG_TO_RAD, VECT_Y);
         for (int ihull = 0; ihull < num_hulls; ihull++) {
-            std::vector<ChVector3d > convexhull;
+            std::vector<ChVector3d> convexhull;
             lugged_convex.GetConvexHullResult(ihull, convexhull);
             auto ct_shape = chrono_types::make_shared<ChCollisionShapeConvexHull>(wheel_material, convexhull);
             wheel_body->AddCollisionShape(ct_shape, ChFrame<>(VNULL, rot));
@@ -186,14 +186,14 @@ void CreateLuggedGeometry(std::shared_ptr<ChBody> wheel_body, std::shared_ptr<Ch
     wheel_body->AddCollisionShape(cyl_shape, ChFrame<>(VNULL, QuatFromAngleX(CH_PI_2)));
 
     // Visualization
-    auto trimesh = ChTriangleMeshConnected::CreateFromWavefrontFile(
-        vehicle::GetDataFile("hmmwv/lugged_wheel.obj"), false, false);
+    auto trimesh =
+        ChTriangleMeshConnected::CreateFromWavefrontFile(vehicle::GetDataFile("hmmwv/lugged_wheel.obj"), false, false);
 
     auto trimesh_shape = chrono_types::make_shared<ChVisualShapeTriangleMesh>();
     trimesh_shape->SetMesh(trimesh);
     trimesh_shape->SetName("lugged_wheel");
     trimesh_shape->SetMutable(false);
-    wheel_body->AddVisualShape(trimesh_shape,ChFrame<>());
+    wheel_body->AddVisualShape(trimesh_shape, ChFrame<>());
 
     auto vis_mat = chrono_types::make_shared<ChVisualMaterial>();
     vis_mat->SetDiffuseColor({0.3f, 0.3f, 0.3f});
@@ -332,7 +332,7 @@ int main(int argc, char* argv[]) {
     // Set lights
     float intensity = 1.0;
     manager->scene->AddPointLight({20, 20, 30}, {intensity, intensity, intensity}, 5000);
-    
+
     // Set up Camera
     chrono::ChFrame<double> offset_pose1({-8, 0, 3}, QuatFromAngleAxis(.2, {0, 1, 0}));
     auto cam =

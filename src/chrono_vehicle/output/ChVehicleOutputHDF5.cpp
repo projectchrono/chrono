@@ -44,9 +44,9 @@ struct body_info {
 };
 
 struct bodyaux_info {
-    int id;                   // body identifier
-    double x, y, z;           // position
-    double e0, e1, e2, e3;    // orientation
+    int id;                 // body identifier
+    double x, y, z;         // position
+    double e0, e1, e2, e3;  // orientation
     /*
     double xd, yd, zd;        // linear velocity
     double wx, wy, wz;        // angular velocity
@@ -296,7 +296,7 @@ ChVehicleOutputHDF5::~ChVehicleOutputHDF5() {
     delete m_section_group;
     delete m_frame_group;
     delete m_fileHDF5;
-    
+
     delete m_body_type;
     delete m_bodyaux_type;
     delete m_shaft_type;
@@ -380,13 +380,13 @@ void ChVehicleOutputHDF5::WriteAuxRefBodies(const std::vector<std::shared_ptr<Ch
         return;
 
     auto nbodies = bodies.size();
-    hsize_t dim[] = { nbodies };
+    hsize_t dim[] = {nbodies};
     H5::DataSpace dataspace(1, dim);
     std::vector<bodyaux_info> info(nbodies);
     for (auto i = 0; i < nbodies; i++) {
         const ChVector3d& p = bodies[i]->GetPos();
         const ChQuaternion<>& q = bodies[i]->GetRot();
-        info[i] = { bodies[i]->GetIdentifier(), p.x(), p.y(), p.z(), q.e0(), q.e1(), q.e2(), q.e3() };
+        info[i] = {bodies[i]->GetIdentifier(), p.x(), p.y(), p.z(), q.e0(), q.e1(), q.e2(), q.e3()};
     }
 
     H5::DataSet set = m_section_group->createDataSet("Bodies AuxRef", getBodyAuxType(), dataspace);
@@ -422,7 +422,7 @@ void ChVehicleOutputHDF5::WriteShafts(const std::vector<std::shared_ptr<ChShaft>
     std::vector<shaft_info> info(nshafts);
     for (auto i = 0; i < nshafts; i++) {
         info[i] = {shafts[i]->GetIdentifier(), shafts[i]->GetPos(), shafts[i]->GetPosDt(), shafts[i]->GetPosDt2(),
-                   shafts[i]->GetAppliedTorque()};
+                   shafts[i]->GetAppliedLoad()};
     }
 
     H5::DataSet set = m_section_group->createDataSet("Shafts", getShaftType(), dataspace);
@@ -434,14 +434,14 @@ void ChVehicleOutputHDF5::WriteJoints(const std::vector<std::shared_ptr<ChLink>>
         return;
 
     auto njoints = joints.size();
-    hsize_t dim[] = { njoints };
+    hsize_t dim[] = {njoints};
     H5::DataSpace dataspace(1, dim);
     std::vector<joint_info> info(njoints);
     for (auto i = 0; i < njoints; i++) {
         auto reaction = joints[i]->GetReaction2();
         const ChVector3d& f = reaction.force;
         const ChVector3d& t = reaction.torque;
-        info[i] = { joints[i]->GetIdentifier(), f.x(), f.y(), f.z(), t.x(), t.y(), t.z() };
+        info[i] = {joints[i]->GetIdentifier(), f.x(), f.y(), f.z(), t.x(), t.y(), t.z()};
     }
 
     H5::DataSet set = m_section_group->createDataSet("Joints", getJointType(), dataspace);
@@ -507,13 +507,13 @@ void ChVehicleOutputHDF5::WriteBodyLoads(const std::vector<std::shared_ptr<ChLoa
         return;
 
     auto nloads = loads.size();
-    hsize_t dim[] = { nloads };
+    hsize_t dim[] = {nloads};
     H5::DataSpace dataspace(1, dim);
     std::vector<bodyload_info> info(nloads);
     for (auto i = 0; i < nloads; i++) {
         ChVector3d f = loads[i]->GetForce();
         ChVector3d t = loads[i]->GetTorque();
-        info[i] = { loads[i]->GetIdentifier(), f.x(), f.y(), f.z(), t.x(), t.y(), t.z() };
+        info[i] = {loads[i]->GetIdentifier(), f.x(), f.y(), f.z(), t.x(), t.y(), t.z()};
     }
 
     H5::DataSet set = m_section_group->createDataSet("Body-body Loads", getBodyLoadType(), dataspace);

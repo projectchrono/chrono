@@ -418,7 +418,7 @@ int main(int argc, char* argv[]) {
     postprocess::ChGnuPlot gplot;
     gplot.SetGrid();
     std::string speed_title = "Speed at ISO3888-" + test_title;
-    gplot.SetTitle(speed_title.c_str());
+    gplot.SetTitle(speed_title);
     gplot.SetLabelX("time (s)");
     gplot.SetLabelY("speed (m/s)");
     gplot.Plot(speed_recorder, "", " with lines lt -1 lc rgb'#00AAEE' ");
@@ -426,7 +426,7 @@ int main(int argc, char* argv[]) {
     postprocess::ChGnuPlot gplot_acc("_tmp2_gnuplot.gpl");
     gplot_acc.SetGrid();
     std::string accel_title = "Lateral Acceleration at ISO3888-" + test_title;
-    gplot_acc.SetTitle(accel_title.c_str());
+    gplot_acc.SetTitle(accel_title);
     gplot_acc.SetLabelX("time (s)");
     gplot_acc.SetLabelY("lateral acceleration (m/s^2)");
     gplot_acc.Plot(accel_recorder, "", " with lines lt -1 lc rgb'#00AAEE' ");
@@ -434,7 +434,7 @@ int main(int argc, char* argv[]) {
     postprocess::ChGnuPlot gplot_steer("_tmp3_gnuplot.gpl");
     gplot_steer.SetGrid();
     std::string steer_title = "Steering Wheel Angle at ISO3888-" + test_title;
-    gplot_steer.SetTitle(steer_title.c_str());
+    gplot_steer.SetTitle(steer_title);
     gplot_steer.SetLabelX("time (s)");
     gplot_steer.SetLabelY("steering wheel angle (degrees)");
     gplot_steer.Plot(steer_recorder, "", " with lines lt -1 lc rgb'#00AAEE' ");
@@ -442,7 +442,7 @@ int main(int argc, char* argv[]) {
     postprocess::ChGnuPlot gplot_angspeed("_tmp4_gnuplot.gpl");
     gplot_angspeed.SetGrid();
     std::string angspeed_title = "Steering Wheel Angular Speed at ISO3888-" + test_title;
-    gplot_angspeed.SetTitle(angspeed_title.c_str());
+    gplot_angspeed.SetTitle(angspeed_title);
     gplot_angspeed.SetLabelX("time (s)");
     gplot_angspeed.SetLabelY("steering wheel angle (degrees/s)");
     gplot_angspeed.Plot(angspeed_recorder, "", " with lines lt -1 lc rgb'#00AAEE' ");

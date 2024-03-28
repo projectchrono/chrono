@@ -81,12 +81,10 @@ class ChApiPardisoMKL ChSolverPardisoMKL : public ChDirectSolverLS {
     Eigen::PardisoLU<ChSparseMatrix> m_engine;  ///< underlying Eigen Pardiso interface
 };
 
-
-
 /// Sparse complex Pardiso direct solver.\n
 class ChApiPardisoMKL ChSolverComplexPardisoMKL : public ChDirectSolverLScomplex {
   public:
-      ChSolverComplexPardisoMKL(int num_threads = 0);
+    ChSolverComplexPardisoMKL(int num_threads = 0);
     ~ChSolverComplexPardisoMKL() {}
 
     /// Get a handle to the underlying MKL engine.
@@ -104,9 +102,9 @@ class ChApiPardisoMKL ChSolverComplexPardisoMKL : public ChDirectSolverLScomplex
     /// This function is only called if Factorize or Solve returned false.
     virtual void PrintErrorMessage() override;
 
-    Eigen::PardisoLU<Eigen::SparseMatrix<std::complex<double>, Eigen::ColMajor>> m_engine;  ///< underlying Eigen Pardiso interface
+    Eigen::PardisoLU<Eigen::SparseMatrix<std::complex<double>, Eigen::ColMajor>>
+        m_engine;  ///< underlying Eigen Pardiso interface
 };
-
 
 /// @} mkl_module
 

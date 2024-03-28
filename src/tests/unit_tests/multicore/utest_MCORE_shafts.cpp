@@ -105,7 +105,7 @@ TEST_P(ChShaftTest, shaft_shaft) {
     // By default, a ChShaft is free to rotate.
     auto shaftA = chrono_types::make_shared<ChShaft>();
     shaftA->SetInertia(J1);
-    shaftA->SetAppliedTorque(T);
+    shaftA->SetAppliedLoad(T);
     system->Add(shaftA);
 
     auto shaftB = chrono_types::make_shared<ChShaft>();
@@ -196,7 +196,7 @@ TEST_P(ChShaftTest, shaft_body) {
 
     // Create 'C', a 1D shaft, fixed
     auto shaftC = chrono_types::make_shared<ChShaft>();
-    shaftC->SetShaftFixed(true);
+    shaftC->SetFixed(true);
     system->Add(shaftC);
 
     // Create 'B', a 3D rigid body
@@ -267,13 +267,13 @@ TEST_P(ChShaftTest, shaft_body) {
     ////          << "  shaft A rot: " << shaftA->GetPos() << "  speed: " << shaftA->GetPosDt()
     ////          << "  accel: " << shaftA->GetPosDt2() << "\n"
     ////          << "  body B angular speed on z: " << bodyB->GetAngVelLocal().z() << "  accel on z: " <<
-    ///bodyB->GetAngAccLocal().z() /          << "\n" /          << "  AC spring, torque on A side: " <<
-    ///shaft_torsionAC->GetReaction1() /          << "  torque on C side: " <<
-    ///shaft_torsionAC->GetReaction2() << "\n" /          << "  torque on shaft A: " <<
-    ///shaftbody_connection->GetTorqueReactionOnShaft() << "\n" /          << "  torque on body B: " <<
-    ///shaftbody_connection->GetTorqueReactionOnBody().x() << " " /          <<
-    ///shaftbody_connection->GetTorqueReactionOnBody().y() << " " /          <<
-    ///shaftbody_connection->GetTorqueReactionOnBody().z() << " " /          << "\n\n\n";
+    /// bodyB->GetAngAccLocal().z() /          << "\n" /          << "  AC spring, torque on A side: " <<
+    /// shaft_torsionAC->GetReaction1() /          << "  torque on C side: " <<
+    /// shaft_torsionAC->GetReaction2() << "\n" /          << "  torque on shaft A: " <<
+    /// shaftbody_connection->GetTorqueReactionOnShaft() << "\n" /          << "  torque on body B: " <<
+    /// shaftbody_connection->GetTorqueReactionOnBody().x() << " " /          <<
+    /// shaftbody_connection->GetTorqueReactionOnBody().y() << " " /          <<
+    /// shaftbody_connection->GetTorqueReactionOnBody().z() << " " /          << "\n\n\n";
 }
 
 // -----------------------------------------------------------------------------
@@ -345,7 +345,7 @@ TEST_P(ChShaftTest, shaft_shaft_shaft) {
     // Create shaft A, with applied torque
     auto shaftA = chrono_types::make_shared<ChShaft>();
     shaftA->SetInertia(0.5);
-    shaftA->SetAppliedTorque(10);
+    shaftA->SetAppliedLoad(10);
     system->Add(shaftA);
 
     // Create shaft B
@@ -355,7 +355,7 @@ TEST_P(ChShaftTest, shaft_shaft_shaft) {
 
     // Create shaft C, that will be fixed (to be used as truss of epicycloidal reducer)
     auto shaftC = chrono_types::make_shared<ChShaft>();
-    shaftC->SetShaftFixed(true);
+    shaftC->SetFixed(true);
     system->Add(shaftC);
 
     // Create a ChShaftsPlanetary, that represents a simplified model
@@ -376,7 +376,7 @@ TEST_P(ChShaftTest, shaft_shaft_shaft) {
     // Now, let's make a shaft D, that is fixed, and used for the right side
     // of a clutch (so the clutch will act as a brake).
     auto shaftD = chrono_types::make_shared<ChShaft>();
-    shaftD->SetShaftFixed(true);
+    shaftD->SetFixed(true);
     system->Add(shaftD);
 
     // Make the brake. It is, in fact a clutch between shafts B and D, where

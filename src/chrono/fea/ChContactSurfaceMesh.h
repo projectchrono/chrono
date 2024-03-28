@@ -120,11 +120,11 @@ class ChApi ChContactTriangleXYZ : public ChContactable_3vars<3, 3, 3>, public C
     /// Each object must set the entries in Q corresponding to its variables, starting at the specified offset.
     /// If needed, the object states must be extracted from the provided state position.
     virtual void ContactComputeQ(const ChVector3d& F,
-                                   const ChVector3d& T,
-                                   const ChVector3d& point,
-                                   const ChState& state_x,
-                                   ChVectorDynamic<>& Q,
-                                   int offset) override;
+                                 const ChVector3d& T,
+                                 const ChVector3d& point,
+                                 const ChState& state_x,
+                                 ChVectorDynamic<>& Q,
+                                 int offset) override;
 
     /// Compute the jacobian(s) part(s) for this contactable item. For example,
     /// if the contactable is a ChBody, this should update the corresponding 1x6 jacobian.
@@ -221,10 +221,10 @@ class ChApi ChContactTriangleXYZ : public ChContactable_3vars<3, 3, 3>, public C
 
 /// Contact element of triangular type - version for triangles where the nodes are of ChNodeFEAxyzrot type.
 /// Used to 'tessellate' a generic surface like the outer of tetrahedral meshes.
-class ChApi ChContactTriangleXYZROT : public ChContactable_3vars<6, 6, 6>, public ChLoadableUV {
+class ChApi ChContactTriangleXYZRot : public ChContactable_3vars<6, 6, 6>, public ChLoadableUV {
   public:
-    ChContactTriangleXYZROT();
-    ChContactTriangleXYZROT(const std::array<std::shared_ptr<ChNodeFEAxyzrot>, 3>& nodes,
+    ChContactTriangleXYZRot();
+    ChContactTriangleXYZRot(const std::array<std::shared_ptr<ChNodeFEAxyzrot>, 3>& nodes,
                             ChContactSurface* container = nullptr);
 
     /// Set the FEA nodes for which this is a proxy.
@@ -300,7 +300,7 @@ class ChApi ChContactTriangleXYZROT : public ChContactable_3vars<6, 6, 6>, publi
 
     /// Apply the force & torque, expressed in absolute reference, applied in pos, to the
     /// coordinates of the variables. Force for example could come from a penalty model.
-    virtual void ContactForceLoadResidual_F(const ChVector3d& F, 
+    virtual void ContactForceLoadResidual_F(const ChVector3d& F,
                                             const ChVector3d& T,
                                             const ChVector3d& abs_point,
                                             ChVectorDynamic<>& R) override;
@@ -311,11 +311,11 @@ class ChApi ChContactTriangleXYZROT : public ChContactable_3vars<6, 6, 6>, publi
     /// Each object must set the entries in Q corresponding to its variables, starting at the specified offset.
     /// If needed, the object states must be extracted from the provided state position.
     virtual void ContactComputeQ(const ChVector3d& F,
-                                   const ChVector3d& T,
-                                   const ChVector3d& point,
-                                   const ChState& state_x,
-                                   ChVectorDynamic<>& Q,
-                                   int offset) override;
+                                 const ChVector3d& T,
+                                 const ChVector3d& point,
+                                 const ChState& state_x,
+                                 ChVectorDynamic<>& Q,
+                                 int offset) override;
 
     /// Compute the jacobian(s) part(s) for this contactable item. For example,
     /// if the contactable is a ChBody, this should update the corresponding 1x6 jacobian.
@@ -462,7 +462,7 @@ class ChApi ChContactSurfaceMesh : public ChContactSurface {
                  double sphere_swept = 0.0                  ///< thickness (radius of sweeping sphere)
     );
 
-    /// Add the face specified by the three specified XYZROT nodes to this collision mesh.
+    /// Add the face specified by the three given XYZROT nodes to this collision mesh.
     void AddFace(std::shared_ptr<ChNodeFEAxyzrot> node1,       ///< face node1
                  std::shared_ptr<ChNodeFEAxyzrot> node2,       ///< face node2
                  std::shared_ptr<ChNodeFEAxyzrot> node3,       ///< face node3
@@ -508,7 +508,7 @@ class ChApi ChContactSurfaceMesh : public ChContactSurface {
     std::vector<std::shared_ptr<ChContactTriangleXYZ>>& GetTrianglesXYZ() { return m_faces; }
 
     /// Get the list of triangles for nodes with rotational dofs.
-    std::vector<std::shared_ptr<ChContactTriangleXYZROT>>& GetTrianglesXYZROT() { return m_faces_rot; }
+    std::vector<std::shared_ptr<ChContactTriangleXYZRot>>& GetTrianglesXYZRot() { return m_faces_rot; }
 
     /// Get the number of triangles.
     unsigned int GetNumTriangles() const { return (unsigned int)(m_faces.size() + m_faces_rot.size()); }
@@ -525,9 +525,9 @@ class ChApi ChContactSurfaceMesh : public ChContactSurface {
     /// The mesh is specified as a set of 3D vertex points (with associated velocities) and a set of faces (indices into
     /// the vertex array). In addition, ownership of nodes and edges among the consitutent triangles is returned in
     /// 'owns_node' and 'owns_edge'.
-    void OutputSimpleMesh(std::vector<ChVector3d>& vert_pos,       ///< mesh vertices (absolute xyz positions)
-                          std::vector<ChVector3d>& vert_vel,       ///< vertex velocities (absolute xyz velocities)
-                          std::vector<ChVector3i>& triangles,   ///< triangle faces (indices in vertex array)
+    void OutputSimpleMesh(std::vector<ChVector3d>& vert_pos,   ///< mesh vertices (absolute xyz positions)
+                          std::vector<ChVector3d>& vert_vel,   ///< vertex velocities (absolute xyz velocities)
+                          std::vector<ChVector3i>& triangles,  ///< triangle faces (indices in vertex array)
                           std::vector<ChVector3b>& owns_node,  ///< node ownership for each triangular face
                           std::vector<ChVector3b>& owns_edge   ///< edge ownership for each triangular face
     ) const;
@@ -538,8 +538,8 @@ class ChApi ChContactSurfaceMesh : public ChContactSurface {
     void AddFacesFromTripletsXYZ(const std::vector<NodeTripletXYZ>& triangle_ptrs, double sphere_swept);
     void AddFacesFromTripletsXYZrot(const std::vector<NodeTripletXYZrot>& triangle_ptrs, double sphere_swept);
 
-    std::vector<std::shared_ptr<ChContactTriangleXYZ>> m_faces;         ///< XYZ-node collision faces
-    std::vector<std::shared_ptr<ChContactTriangleXYZROT>> m_faces_rot;  ///< XYWROT-node collision faces
+    std::vector<std::shared_ptr<ChContactTriangleXYZ>> m_faces;         ///< collision faces with XYZ nodes
+    std::vector<std::shared_ptr<ChContactTriangleXYZRot>> m_faces_rot;  ///< collision faces with XYZRot nodes
 };
 
 /// @} fea_contact

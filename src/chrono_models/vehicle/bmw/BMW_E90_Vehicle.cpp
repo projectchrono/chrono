@@ -122,8 +122,8 @@ void BMW_E90_Vehicle::Initialize(const ChCoordsys<>& chassisPos, double chassisF
     // Initialize the axle subsystems.
     m_axles[0]->Initialize(m_chassis, nullptr, m_steerings[0], ChVector3d(0), ChVector3d(-0.2, 0, 0.1), 0.0, m_omega[0],
                            m_omega[1]);
-    m_axles[1]->Initialize(m_chassis, nullptr, nullptr, ChVector3d(-2.75717, 0, 0), ChVector3d(-2.45717, 0, 0), 0.0, m_omega[2],
-                           m_omega[3]);
+    m_axles[1]->Initialize(m_chassis, nullptr, nullptr, ChVector3d(-2.75717, 0, 0), ChVector3d(-2.45717, 0, 0), 0.0,
+                           m_omega[2], m_omega[3]);
 
     // Initialize the driveline subsystem (FWD)
     std::vector<int> driven_susp_indexes = {1};

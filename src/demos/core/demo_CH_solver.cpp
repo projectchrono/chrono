@@ -19,7 +19,7 @@
 #include "chrono/solver/ChVariablesBodyOwnMass.h"
 #include "chrono/solver/ChConstraintTwoGeneric.h"
 #include "chrono/solver/ChConstraintTwoBodies.h"
-#include "chrono/solver/ChKblockGeneric.h"
+#include "chrono/solver/ChKRMBlock.h"
 #include "chrono/solver/ChSystemDescriptor.h"
 #include "chrono/solver/ChSolverPSOR.h"
 #include "chrono/solver/ChIterativeSolverLS.h"
@@ -69,8 +69,8 @@ void test_1(const std::string& out_dir) {
     mvarA.GetMass().setIdentity();
     mvarA.GetMass() *= 10;
     mvarA.GetInvMass() = mvarA.GetMass().inverse();
-    mvarA.Get_fb()(0) = 1;
-    mvarA.Get_fb()(1) = 2;
+    mvarA.Force()(0) = 1;
+    mvarA.Force()(1) = 2;
 
     ChVariablesGeneric mvarB(3);
     mvarB.GetMass().setIdentity();
@@ -83,7 +83,7 @@ void test_1(const std::string& out_dir) {
     // create C++ objects representing 'constraints' between variables:
 
     ChConstraintTwoGeneric mca(&mvarA, &mvarB);
-    mca.Set_b_i(-5);
+    mca.SetRightHandSide(-5);
     mca.Get_Cq_a()(0) = 1;
     mca.Get_Cq_a()(1) = 2;
     mca.Get_Cq_a()(2) = -1;
@@ -92,7 +92,7 @@ void test_1(const std::string& out_dir) {
     mca.Get_Cq_b()(2) = 0;
 
     ChConstraintTwoGeneric mcb(&mvarA, &mvarB);
-    mcb.Set_b_i(1);
+    mcb.SetRightHandSide(1);
     mcb.Get_Cq_a()(0) = 0;
     mcb.Get_Cq_a()(1) = 1;
     mcb.Get_Cq_a()(2) = 0;
@@ -136,19 +136,14 @@ void test_1(const std::string& out_dir) {
 
     // If needed, dump the full system M and Cq matrices
     // on disk, in Matlab sparse format:
-    ChSparseMatrix matrM;
-    ChSparseMatrix matrCq;
+    ChSparseMatrix matrM(mdescriptor.CountActiveVariables(), mdescriptor.CountActiveVariables());
+    ChSparseMatrix matrCq(mdescriptor.CountActiveConstraints(), mdescriptor.CountActiveVariables());
 
-    mdescriptor.ConvertToMatrixForm(&matrCq, &matrM, 0, 0, 0, 0, false, false);
+    matrM.setZeroValues();
+    matrCq.setZeroValues();
 
-    try {
-        std::ofstream fileM(out_dir + "/dump_M_1.dat");
-        std::ofstream fileCq(out_dir + "/dump_Cq_1.dat");
-        StreamOut(matrM, fileM, true);
-        StreamOut(matrCq, fileCq, true);
-    } catch (const std::exception& myex) {
-        std::cerr << "FILE ERROR: " << myex.what();
-    }
+    mdescriptor.PasteMassKRMMatrixInto(matrM);
+    mdescriptor.PasteConstraintsJacobianMatrixInto(matrCq);
 
     std::cout << "Matrix M (" << matrM.rows() << "x" << matrM.cols() << ")" << std::endl;
     StreamOut(matrM, std::cout, true);
@@ -158,18 +153,18 @@ void test_1(const std::string& out_dir) {
     std::cout << "**** Using ChSolverPSOR  **********\n" << std::endl;
     std::cout << "METRICS: max residual: " << max_res << "  max LCP error: " << max_LCPerr << "\n" << std::endl;
     std::cout << "vars q_a and q_b -------------------" << std::endl;
-    std::cout << mvarA.Get_qb() << std::endl;
-    std::cout << mvarB.Get_qb() << "  " << std::endl;
+    std::cout << mvarA.State() << std::endl;
+    std::cout << mvarB.State() << "  " << std::endl;
     std::cout << "multipliers l_1 and l_2 ------------\n" << std::endl;
-    std::cout << mca.Get_l_i() << " " << std::endl;
-    std::cout << mcb.Get_l_i() << " \n" << std::endl;
+    std::cout << mca.GetLagrangeMultiplier() << " " << std::endl;
+    std::cout << mcb.GetLagrangeMultiplier() << " \n" << std::endl;
     std::cout << "constraint residuals c_1 and c_2 ---" << std::endl;
-    std::cout << mca.Get_c_i() << " " << std::endl;
-    std::cout << mcb.Get_c_i() << " \n" << std::endl;
+    std::cout << mca.GetResidual() << " " << std::endl;
+    std::cout << mcb.GetResidual() << " \n" << std::endl;
 
     // reset variables
-    mvarA.Get_qb().setZero();
-    mvarB.Get_qb().setZero();
+    mvarA.State().setZero();
+    mvarB.State().setZero();
 }
 
 // Test 2
@@ -194,12 +189,12 @@ void test_2(const std::string& out_dir) {
         vars.push_back(new ChVariablesGeneric(1));
         vars[im]->GetMass()(0) = 10;
         vars[im]->GetInvMass()(0) = 1. / vars[im]->GetMass()(0);
-        vars[im]->Get_fb()(0) = -9.8 * vars[im]->GetMass()(0) * 0.01;
-        // if (im==5) vars[im]->Get_fb()(0)= 50;
+        vars[im]->Force()(0) = -9.8 * vars[im]->GetMass()(0) * 0.01;
+        // if (im==5) vars[im]->Force()(0)= 50;
         mdescriptor.InsertVariables(vars[im]);
         if (im > 0) {
             constraints.push_back(new ChConstraintTwoGeneric(vars[im], vars[im - 1]));
-            constraints[im - 1]->Set_b_i(0);
+            constraints[im - 1]->SetRightHandSide(0);
             constraints[im - 1]->Get_Cq_a()(0) = 1;
             constraints[im - 1]->Get_Cq_b()(0) = -1;
             mdescriptor.InsertConstraint(constraints[im - 1]);
@@ -210,36 +205,6 @@ void test_2(const std::string& out_dir) {
     vars[0]->SetDisabled(true);
 
     mdescriptor.EndInsertion();  // ----- system description is finished
-
-    try {
-        ChSparseMatrix mdM;
-        ChSparseMatrix mdCq;
-        ChSparseMatrix mdE;
-        ChVectorDynamic<double> mdf;
-        ChVectorDynamic<double> mdb;
-        ChVectorDynamic<double> mdfric;
-        mdescriptor.ConvertToMatrixForm(&mdCq, &mdM, &mdE, &mdf, &mdb, &mdfric);
-
-        std::ofstream file_M(out_dir + "/dump_M_2.dat");
-        StreamOut(mdM, file_M, true);
-
-        std::ofstream file_Cq(out_dir + "/dump_Cq_2.dat");
-        StreamOut(mdCq, file_Cq, true);
-
-        std::ofstream file_E(out_dir + "/dump_E_2.dat");
-        StreamOut(mdE, file_E, true);
-
-        std::ofstream file_f(out_dir + "/dump_f_2.dat");
-        StreamOut(mdf, file_f);
-
-        std::ofstream file_b(out_dir + "/dump_b_2.dat");
-        StreamOut(mdb, file_b);
-
-        std::ofstream file_fric(out_dir + "/dump_fric_2.dat");
-        StreamOut(mdfric, file_fric);
-    } catch (const std::exception& myexc) {
-        std::cerr << myexc.what();
-    }
 
     // Create the solver...
     ChSolverMINRES solver;
@@ -265,11 +230,11 @@ void test_2(const std::string& out_dir) {
     // Output values
     std::cout << "VARIABLES: " << std::endl;
     for (int im = 0; im < vars.size(); im++)
-        std::cout << "   " << vars[im]->Get_qb()(0) << std::endl;
+        std::cout << "   " << vars[im]->State()(0) << std::endl;
 
     std::cout << "CONSTRAINTS: " << std::endl;
     for (int ic = 0; ic < constraints.size(); ic++)
-        std::cout << "   " << constraints[ic]->Get_l_i() << std::endl;
+        std::cout << "   " << constraints[ic]->GetLagrangeMultiplier() << std::endl;
 }
 
 // Test 3
@@ -305,17 +270,17 @@ void test_3(const std::string& out_dir) {
     ChVariablesBodyOwnMass mvarA;
     mvarA.SetBodyMass(5);
     mvarA.SetBodyInertia(minertia);
-    mvarA.Get_fb().fillRandom(-3, 5);
+    mvarA.Force().fillRandom(-3, 5);
 
     ChVariablesBodyOwnMass mvarB;
     mvarB.SetBodyMass(4);
     mvarB.SetBodyInertia(minertia);
-    mvarB.Get_fb().fillRandom(1, 3);
+    mvarB.Force().fillRandom(1, 3);
 
     ChVariablesBodyOwnMass mvarC;
     mvarC.SetBodyMass(5.5);
     mvarC.SetBodyInertia(minertia);
-    mvarC.Get_fb().fillRandom(-8, 3);
+    mvarC.Force().fillRandom(-8, 3);
 
     ////ChMatrixDynamic<> foo(3, 4);
     ////foo.fillRandom(0, 10);
@@ -331,23 +296,23 @@ void test_3(const std::string& out_dir) {
     // Also set cfm term (E diagonal = -cfm)
 
     ChConstraintTwoBodies mca(&mvarA, &mvarB);
-    mca.Set_b_i(3);
+    mca.SetRightHandSide(3);
     mca.Get_Cq_a().fillRandom(-1, 1);
     mca.Get_Cq_b().fillRandom(-1, 1);
-    mca.Set_cfm_i(0.2);
+    mca.SetComplianceTerm(0.2);
 
     ChConstraintTwoBodies mcb(&mvarA, &mvarB);
-    mcb.Set_b_i(5);
+    mcb.SetRightHandSide(5);
     mcb.Get_Cq_a().fillRandom(-1, 1);
     mcb.Get_Cq_b().fillRandom(-1, 1);
-    mcb.Set_cfm_i(0.1);
+    mcb.SetComplianceTerm(0.1);
 
     mdescriptor.InsertConstraint(&mca);
     mdescriptor.InsertConstraint(&mcb);
 
     // Create two C++ objects representing 'stiffness' between variables:
 
-    ChKblockGeneric mKa;
+    ChKRMBlock mKa;
     // set the affected variables (so this K is a 12x12 matrix, relative to 4 6x6 blocks)
     std::vector<ChVariables*> mvarsa;
     mvarsa.push_back(&mvarA);
@@ -355,23 +320,23 @@ void test_3(const std::string& out_dir) {
     mKa.SetVariables(mvarsa);
 
     // just fill K with random values (but symmetric, by making a product of matr*matrtransposed)
-    ChMatrixDynamic<> mtempA = mKa.Get_K();
+    ChMatrixDynamic<> mtempA = mKa.GetMatrix();
     mtempA.fillRandom(-0.3, 0.3);
     ChMatrixDynamic<> mtempB(mtempA);
-    mKa.Get_K() = -mtempA * mtempB;
+    mKa.GetMatrix() = -mtempA * mtempB;
 
-    mdescriptor.InsertKblock(&mKa);
+    mdescriptor.InsertKRMBlock(&mKa);
 
-    ChKblockGeneric mKb;
+    ChKRMBlock mKb;
     // set the affected variables (so this K is a 12x12 matrix, relative to 4 6x6 blocks)
     std::vector<ChVariables*> mvarsb;
     mvarsb.push_back(&mvarB);
     mvarsb.push_back(&mvarC);
     mKb.SetVariables(mvarsb);
 
-    mKb.Get_K() = mKa.Get_K();
+    mKb.GetMatrix() = mKa.GetMatrix();
 
-    mdescriptor.InsertKblock(&mKb);
+    mdescriptor.InsertKRMBlock(&mKb);
 
     mdescriptor.EndInsertion();  // ----- system description ends here
 
@@ -409,10 +374,10 @@ void test_3(const std::string& out_dir) {
     // over the constraints (l values), as already shown in previous examples:
 
     for (int im = 0; im < mdescriptor.GetVariables().size(); im++)
-        std::cout << "   " << mdescriptor.GetVariables()[im]->Get_qb()(0) << std::endl;
+        std::cout << "   " << mdescriptor.GetVariables()[im]->State()(0) << std::endl;
 
     for (int ic = 0; ic < mdescriptor.GetConstraints().size(); ic++)
-        std::cout << "   " << mdescriptor.GetConstraints()[ic]->Get_l_i() << std::endl;
+        std::cout << "   " << mdescriptor.GetConstraints()[ic]->GetLagrangeMultiplier() << std::endl;
     */
 }
 
@@ -430,8 +395,8 @@ void test_4(const std::string& out_dir) {
     mvarA.GetMass().setIdentity();
     mvarA.GetMass() *= 10;
     mvarA.GetInvMass() = mvarA.GetMass().inverse();
-    mvarA.Get_fb()(0) = 1;
-    mvarA.Get_fb()(1) = 2;
+    mvarA.Force()(0) = 1;
+    mvarA.Force()(1) = 2;
 
     ChVariablesGeneric mvarB(3);
     mvarB.GetMass().setIdentity();
@@ -442,7 +407,7 @@ void test_4(const std::string& out_dir) {
     mdescriptor.InsertVariables(&mvarB);
 
     ChConstraintTwoGeneric mca(&mvarA, &mvarB);
-    mca.Set_b_i(-5);
+    mca.SetRightHandSide(-5);
     mca.Get_Cq_a()(0) = 1;
     mca.Get_Cq_a()(1) = 2;
     mca.Get_Cq_a()(2) = -1;
@@ -451,7 +416,7 @@ void test_4(const std::string& out_dir) {
     mca.Get_Cq_b()(2) = 0;
 
     ChConstraintTwoGeneric mcb(&mvarA, &mvarB);
-    mcb.Set_b_i(1);
+    mcb.SetRightHandSide(1);
     mcb.Get_Cq_a()(0) = 0;
     mcb.Get_Cq_a()(1) = 1;
     mcb.Get_Cq_a()(2) = 0;
@@ -489,9 +454,13 @@ void test_4(const std::string& out_dir) {
     double max_res, max_LCPerr;
     mdescriptor.ComputeFeasabilityViolation(max_res, max_LCPerr);
 
-    ChSparseMatrix matrM;
-    ChSparseMatrix matrCq;
-    mdescriptor.ConvertToMatrixForm(&matrCq, &matrM, 0, 0, 0, 0, false, false);
+    ChSparseMatrix matrM(mdescriptor.CountActiveVariables(), mdescriptor.CountActiveVariables());
+    ChSparseMatrix matrCq(mdescriptor.CountActiveConstraints(), mdescriptor.CountActiveVariables());
+    matrM.setZeroValues();
+    matrCq.setZeroValues();
+
+    mdescriptor.PasteMassKRMMatrixInto(matrM);
+    mdescriptor.PasteConstraintsJacobianMatrixInto(matrCq);
 
     std::cout << "Matrix M (" << matrM.rows() << "x" << matrM.cols() << ")" << std::endl;
     StreamOut(matrM, std::cout, true);
@@ -501,18 +470,18 @@ void test_4(const std::string& out_dir) {
     std::cout << "**** Using ChSolverSparseQR  **********\n" << std::endl;
     std::cout << "METRICS: max residual: " << max_res << "  max LCP error: " << max_LCPerr << "\n" << std::endl;
     std::cout << "vars q_a and q_b -------------------" << std::endl;
-    std::cout << mvarA.Get_qb() << std::endl;
-    std::cout << mvarB.Get_qb() << "  " << std::endl;
+    std::cout << mvarA.State() << std::endl;
+    std::cout << mvarB.State() << "  " << std::endl;
     std::cout << "multipliers l_1 and l_2 ------------\n" << std::endl;
-    std::cout << mca.Get_l_i() << " " << std::endl;
-    std::cout << mcb.Get_l_i() << " \n" << std::endl;
+    std::cout << mca.GetLagrangeMultiplier() << " " << std::endl;
+    std::cout << mcb.GetLagrangeMultiplier() << " \n" << std::endl;
     std::cout << "constraint residuals c_1 and c_2 ---" << std::endl;
-    std::cout << mca.Get_c_i() << " " << std::endl;
-    std::cout << mcb.Get_c_i() << " \n" << std::endl;
+    std::cout << mca.GetResidual() << " " << std::endl;
+    std::cout << mcb.GetResidual() << " \n" << std::endl;
 
     // reset variables
-    mvarA.Get_qb().setZero();
-    mvarB.Get_qb().setZero();
+    mvarA.State().setZero();
+    mvarB.State().setZero();
 }
 
 // Do some tests in a single run, inside the main() function.

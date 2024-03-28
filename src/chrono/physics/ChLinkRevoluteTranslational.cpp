@@ -372,23 +372,21 @@ void ChLinkRevoluteTranslational::IntStateScatterReactions(const unsigned int of
     react_torque.z() = 0;
 }
 
-void ChLinkRevoluteTranslational::IntLoadResidual_CqL(const unsigned int off_L,  
-                                                      ChVectorDynamic<>& R,  
-                                                      const ChVectorDynamic<>& L,  
-                                                      const double c               
-                                                      ) {
-    m_cnstr_par1.MultiplyTandAdd(R, L(off_L + 0) * c);
-    m_cnstr_par2.MultiplyTandAdd(R, L(off_L + 1) * c);
-    m_cnstr_dot.MultiplyTandAdd(R, L(off_L + 2) * c);
-    m_cnstr_dist.MultiplyTandAdd(R, L(off_L + 3) * c);
+void ChLinkRevoluteTranslational::IntLoadResidual_CqL(const unsigned int off_L,
+                                                      ChVectorDynamic<>& R,
+                                                      const ChVectorDynamic<>& L,
+                                                      const double c) {
+    m_cnstr_par1.AddJacobianTransposedTimesScalarInto(R, L(off_L + 0) * c);
+    m_cnstr_par2.AddJacobianTransposedTimesScalarInto(R, L(off_L + 1) * c);
+    m_cnstr_dot.AddJacobianTransposedTimesScalarInto(R, L(off_L + 2) * c);
+    m_cnstr_dist.AddJacobianTransposedTimesScalarInto(R, L(off_L + 3) * c);
 }
 
 void ChLinkRevoluteTranslational::IntLoadConstraint_C(const unsigned int off_L,
-                                                      ChVectorDynamic<>& Qc,   
-                                                      const double c,          
-                                                      bool do_clamp,           
-                                                      double recovery_clamp    
-                                                      ) {
+                                                      ChVectorDynamic<>& Qc,
+                                                      const double c,
+                                                      bool do_clamp,
+                                                      double recovery_clamp) {
     if (!IsActive())
         return;
 
@@ -398,8 +396,9 @@ void ChLinkRevoluteTranslational::IntLoadConstraint_C(const unsigned int off_L,
         do_clamp ? std::min(std::max(c * m_cur_par2, -recovery_clamp), recovery_clamp) : c * m_cur_par2;
     double cnstr_dot_violation =
         do_clamp ? std::min(std::max(c * m_cur_dot, -recovery_clamp), recovery_clamp) : c * m_cur_dot;
-    double cnstr_dist_violation =
-        do_clamp ? std::min(std::max(c * (m_cur_dist - m_dist), -recovery_clamp), recovery_clamp) : c * (m_cur_dist - m_dist);
+    double cnstr_dist_violation = do_clamp
+                                      ? std::min(std::max(c * (m_cur_dist - m_dist), -recovery_clamp), recovery_clamp)
+                                      : c * (m_cur_dist - m_dist);
 
     Qc(off_L + 0) += cnstr_par1_violation;
     Qc(off_L + 1) += cnstr_par2_violation;
@@ -416,15 +415,15 @@ void ChLinkRevoluteTranslational::IntToDescriptor(const unsigned int off_v,
     if (!IsActive())
         return;
 
-    m_cnstr_par1.Set_l_i(L(off_L + 0));
-    m_cnstr_par2.Set_l_i(L(off_L + 1));
-    m_cnstr_dot.Set_l_i(L(off_L + 2));
-    m_cnstr_dist.Set_l_i(L(off_L + 3));
+    m_cnstr_par1.SetLagrangeMultiplier(L(off_L + 0));
+    m_cnstr_par2.SetLagrangeMultiplier(L(off_L + 1));
+    m_cnstr_dot.SetLagrangeMultiplier(L(off_L + 2));
+    m_cnstr_dist.SetLagrangeMultiplier(L(off_L + 3));
 
-    m_cnstr_par1.Set_b_i(Qc(off_L + 0));
-    m_cnstr_par2.Set_b_i(Qc(off_L + 1));
-    m_cnstr_dot.Set_b_i(Qc(off_L + 2));
-    m_cnstr_dist.Set_b_i(Qc(off_L + 3));
+    m_cnstr_par1.SetRightHandSide(Qc(off_L + 0));
+    m_cnstr_par2.SetRightHandSide(Qc(off_L + 1));
+    m_cnstr_dot.SetRightHandSide(Qc(off_L + 2));
+    m_cnstr_dist.SetRightHandSide(Qc(off_L + 3));
 }
 
 void ChLinkRevoluteTranslational::IntFromDescriptor(const unsigned int off_v,
@@ -434,10 +433,10 @@ void ChLinkRevoluteTranslational::IntFromDescriptor(const unsigned int off_v,
     if (!IsActive())
         return;
 
-    L(off_L + 0) = m_cnstr_par1.Get_l_i();
-    L(off_L + 1) = m_cnstr_par2.Get_l_i();
-    L(off_L + 2) = m_cnstr_dot.Get_l_i();
-    L(off_L + 3) = m_cnstr_dist.Get_l_i();
+    L(off_L + 0) = m_cnstr_par1.GetLagrangeMultiplier();
+    L(off_L + 1) = m_cnstr_par2.GetLagrangeMultiplier();
+    L(off_L + 2) = m_cnstr_dot.GetLagrangeMultiplier();
+    L(off_L + 3) = m_cnstr_dist.GetLagrangeMultiplier();
 }
 
 // -----------------------------------------------------------------------------
@@ -454,10 +453,10 @@ void ChLinkRevoluteTranslational::InjectConstraints(ChSystemDescriptor& descript
 }
 
 void ChLinkRevoluteTranslational::ConstraintsBiReset() {
-    m_cnstr_par1.Set_b_i(0.0);
-    m_cnstr_par2.Set_b_i(0.0);
-    m_cnstr_dot.Set_b_i(0.0);
-    m_cnstr_dist.Set_b_i(0.0);
+    m_cnstr_par1.SetRightHandSide(0.0);
+    m_cnstr_par2.SetRightHandSide(0.0);
+    m_cnstr_dot.SetRightHandSide(0.0);
+    m_cnstr_dist.SetRightHandSide(0.0);
 }
 
 void ChLinkRevoluteTranslational::ConstraintsBiLoad_C(double factor, double recovery_clamp, bool do_clamp) {
@@ -470,26 +469,26 @@ void ChLinkRevoluteTranslational::ConstraintsBiLoad_C(double factor, double reco
         do_clamp ? std::min(std::max(factor * m_cur_par2, -recovery_clamp), recovery_clamp) : factor * m_cur_par2;
     double cnstr_dot_violation =
         do_clamp ? std::min(std::max(factor * m_cur_dot, -recovery_clamp), recovery_clamp) : factor * m_cur_dot;
-    double cnstr_dist_violation = do_clamp
-                                      ? std::min(std::max(factor * (m_cur_dist - m_dist), -recovery_clamp), recovery_clamp)
-                                      : factor * (m_cur_dist - m_dist);
+    double cnstr_dist_violation =
+        do_clamp ? std::min(std::max(factor * (m_cur_dist - m_dist), -recovery_clamp), recovery_clamp)
+                 : factor * (m_cur_dist - m_dist);
 
-    m_cnstr_par1.Set_b_i(m_cnstr_par1.Get_b_i() + cnstr_par1_violation);
-    m_cnstr_par2.Set_b_i(m_cnstr_par2.Get_b_i() + cnstr_par2_violation);
-    m_cnstr_dot.Set_b_i(m_cnstr_dot.Get_b_i() + cnstr_dot_violation);
-    m_cnstr_dist.Set_b_i(m_cnstr_dist.Get_b_i() + cnstr_dist_violation);
+    m_cnstr_par1.SetRightHandSide(m_cnstr_par1.GetRightHandSide() + cnstr_par1_violation);
+    m_cnstr_par2.SetRightHandSide(m_cnstr_par2.GetRightHandSide() + cnstr_par2_violation);
+    m_cnstr_dot.SetRightHandSide(m_cnstr_dot.GetRightHandSide() + cnstr_dot_violation);
+    m_cnstr_dist.SetRightHandSide(m_cnstr_dist.GetRightHandSide() + cnstr_dist_violation);
 }
 
-void ChLinkRevoluteTranslational::ConstraintsLoadJacobians() {
+void ChLinkRevoluteTranslational::LoadConstraintJacobians() {
     // Nothing to do here. Jacobians were loaded in Update().
 }
 
 void ChLinkRevoluteTranslational::ConstraintsFetch_react(double factor) {
     // Extract the Lagrange multipliers for the four constraints
-    double lam_par1 = m_cnstr_par1.Get_l_i();
-    double lam_par2 = m_cnstr_par2.Get_l_i();
-    double lam_dot = m_cnstr_dot.Get_l_i();
-    double lam_dist = m_cnstr_dist.Get_l_i();
+    double lam_par1 = m_cnstr_par1.GetLagrangeMultiplier();
+    double lam_par2 = m_cnstr_par2.GetLagrangeMultiplier();
+    double lam_dot = m_cnstr_dot.GetLagrangeMultiplier();
+    double lam_dist = m_cnstr_dist.GetLagrangeMultiplier();
 
     // Note that the Lagrange multipliers must be multiplied by 'factor' to
     // convert from reaction impulses to reaction forces.
@@ -536,7 +535,7 @@ void ChLinkRevoluteTranslational::ArchiveOut(ChArchiveOut& archive_out) {
 /// Method to allow de serialization of transient data from archives.
 void ChLinkRevoluteTranslational::ArchiveIn(ChArchiveIn& archive_in) {
     // version number
-    /*int version =*/ archive_in.VersionRead<ChLinkRevoluteTranslational>();
+    /*int version =*/archive_in.VersionRead<ChLinkRevoluteTranslational>();
 
     // deserialize parent class
     ChLink::ArchiveIn(archive_in);

@@ -53,8 +53,8 @@ MTV_LeafspringAxle1::MTV_LeafspringAxle1(const std::string& name) : ChLeafspring
     m_springForceCB =
         chrono_types::make_shared<MTV_SpringForceRear>(m_springCoefficient, m_springMinLength, m_springMaxLength);
 
-    m_shockForceCB = chrono_types::make_shared<MTV_ShockForceRear>(
-        m_damperCoefficient, m_damperDegressivityCompression, m_damperCoefficient, m_damperDegressivityExpansion);
+    m_shockForceCB = chrono_types::make_shared<MTV_ShockForceRear>(m_damperCoefficient, m_damperDegressivityCompression,
+                                                                   m_damperCoefficient, m_damperDegressivityExpansion);
 }
 
 const ChVector3d MTV_LeafspringAxle1::getLocation(PointId which) {

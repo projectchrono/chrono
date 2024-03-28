@@ -179,8 +179,7 @@ void ChMeshExporter::WriteFrame(std::shared_ptr<ChMesh> mesh,
         if (auto elementC = std::dynamic_pointer_cast<ChElementCableANCF>(mesh->GetElement(iele)))
             elementC->EvaluateSectionStrain(0.0, StrainV);
         else if (auto elementS = std::dynamic_pointer_cast<ChElementShellANCF_3423>(mesh->GetElement(iele))) {
-            const ChStrainStress3D strainStressOut =
-                elementS->EvaluateSectionStrainStress(ChVector3d(0, 0, 0), 0);
+            const ChStrainStress3D strainStressOut = elementS->EvaluateSectionStrainStress(ChVector3d(0, 0, 0), 0);
             StrainV.Set(strainStressOut.strain[0], strainStressOut.strain[1], strainStressOut.strain[3]);
         }
         StrainV += ChVector3d(1e-20);

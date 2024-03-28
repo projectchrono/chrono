@@ -168,10 +168,9 @@ void ChLinkMask::ArchiveOut(ChArchiveOut& archive_out) {
 }
 
 void ChLinkMask::ArchiveIn(ChArchiveIn& archive_in) {
-    /*int version =*/ archive_in.VersionRead<ChLinkMask>();
+    /*int version =*/archive_in.VersionRead<ChLinkMask>();
 
     archive_in >> CHNVP(constraints);
-
 }
 
 // -----------------------------------------------------------------------------
@@ -192,39 +191,39 @@ ChLinkMaskLF& ChLinkMaskLF::operator=(const ChLinkMaskLF& other) {
 
 void ChLinkMaskLF::SetLockMask(bool x, bool y, bool z, bool e0, bool e1, bool e2, bool e3) {
     if (x)
-        Constr_X().SetMode(CONSTRAINT_LOCK);
+        Constr_X().SetMode(ChConstraint::Mode::LOCK);
     else
-        Constr_X().SetMode(CONSTRAINT_FREE);
+        Constr_X().SetMode(ChConstraint::Mode::FREE);
 
     if (y)
-        Constr_Y().SetMode(CONSTRAINT_LOCK);
+        Constr_Y().SetMode(ChConstraint::Mode::LOCK);
     else
-        Constr_Y().SetMode(CONSTRAINT_FREE);
+        Constr_Y().SetMode(ChConstraint::Mode::FREE);
 
     if (z)
-        Constr_Z().SetMode(CONSTRAINT_LOCK);
+        Constr_Z().SetMode(ChConstraint::Mode::LOCK);
     else
-        Constr_Z().SetMode(CONSTRAINT_FREE);
+        Constr_Z().SetMode(ChConstraint::Mode::FREE);
 
     if (e0)
-        Constr_E0().SetMode(CONSTRAINT_LOCK);
+        Constr_E0().SetMode(ChConstraint::Mode::LOCK);
     else
-        Constr_E0().SetMode(CONSTRAINT_FREE);
+        Constr_E0().SetMode(ChConstraint::Mode::FREE);
 
     if (e1)
-        Constr_E1().SetMode(CONSTRAINT_LOCK);
+        Constr_E1().SetMode(ChConstraint::Mode::LOCK);
     else
-        Constr_E1().SetMode(CONSTRAINT_FREE);
+        Constr_E1().SetMode(ChConstraint::Mode::FREE);
 
     if (e2)
-        Constr_E2().SetMode(CONSTRAINT_LOCK);
+        Constr_E2().SetMode(ChConstraint::Mode::LOCK);
     else
-        Constr_E2().SetMode(CONSTRAINT_FREE);
+        Constr_E2().SetMode(ChConstraint::Mode::FREE);
 
     if (e3)
-        Constr_E3().SetMode(CONSTRAINT_LOCK);
+        Constr_E3().SetMode(ChConstraint::Mode::LOCK);
     else
-        Constr_E3().SetMode(CONSTRAINT_FREE);
+        Constr_E3().SetMode(ChConstraint::Mode::FREE);
 }
 
 void ChLinkMaskLF::ArchiveOut(ChArchiveOut& archive_out) {
@@ -233,9 +232,8 @@ void ChLinkMaskLF::ArchiveOut(ChArchiveOut& archive_out) {
 }
 
 void ChLinkMaskLF::ArchiveIn(ChArchiveIn& archive_in) {
-    /*int version =*/ archive_in.VersionRead<ChLinkMaskLF>();
+    /*int version =*/archive_in.VersionRead<ChLinkMaskLF>();
     ChLinkMask::ArchiveIn(archive_in);
 }
-
 
 }  // end namespace chrono

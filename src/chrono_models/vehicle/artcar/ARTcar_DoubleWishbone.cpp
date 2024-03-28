@@ -97,15 +97,15 @@ const double ARTcar_DoubleWishboneRear::m_springRestLength = .1363;  // TODO
 class ARTcar_ShockForce : public ChLinkTSDA::ForceFunctor {
   public:
     ARTcar_ShockForce(double midstroke_compression_slope,
-                     double midstroke_rebound_slope,
-                     double bumpstop_compression_slope,
-                     double bumpstop_rebound_slope,
-                     double metalmetal_slope,
-                     double min_bumpstop_compression_force,
-                     double midstroke_lower_bound,
-                     double midstroke_upper_bound,
-                     double metalmetal_lower_bound,
-                     double metalmetal_upper_bound);
+                      double midstroke_rebound_slope,
+                      double bumpstop_compression_slope,
+                      double bumpstop_rebound_slope,
+                      double metalmetal_slope,
+                      double min_bumpstop_compression_force,
+                      double midstroke_lower_bound,
+                      double midstroke_upper_bound,
+                      double metalmetal_lower_bound,
+                      double metalmetal_upper_bound);
 
     virtual double evaluate(double time,
                             double rest_length,
@@ -127,15 +127,15 @@ class ARTcar_ShockForce : public ChLinkTSDA::ForceFunctor {
 };
 
 ARTcar_ShockForce::ARTcar_ShockForce(double midstroke_compression_slope,
-                                   double midstroke_rebound_slope,
-                                   double bumpstop_compression_slope,
-                                   double bumpstop_rebound_slope,
-                                   double metalmetal_slope,
-                                   double min_bumpstop_compression_force,
-                                   double midstroke_lower_bound,
-                                   double midstroke_upper_bound,
-                                   double metalmetal_lower_bound,
-                                   double metalmetal_upper_bound)
+                                     double midstroke_rebound_slope,
+                                     double bumpstop_compression_slope,
+                                     double bumpstop_rebound_slope,
+                                     double metalmetal_slope,
+                                     double min_bumpstop_compression_force,
+                                     double midstroke_lower_bound,
+                                     double midstroke_upper_bound,
+                                     double metalmetal_lower_bound,
+                                     double metalmetal_upper_bound)
     : m_ms_compr(midstroke_compression_slope),
       m_ms_rebound(midstroke_rebound_slope),
       m_bs_compr(bumpstop_compression_slope),

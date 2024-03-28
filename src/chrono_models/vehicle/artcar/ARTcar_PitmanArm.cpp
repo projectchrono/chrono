@@ -38,12 +38,12 @@ const double ARTcar_PitmanArm::m_pitmanArmMass = 0.00524114;
 const double ARTcar_PitmanArm::m_steeringLinkRadius = 0.005;
 const double ARTcar_PitmanArm::m_pitmanArmRadius = 0.005;
 
-const double ARTcar_PitmanArm::m_maxAngle = 0.512; 
+const double ARTcar_PitmanArm::m_maxAngle = 0.512;
 
 const ChVector3d ARTcar_PitmanArm::m_steeringLinkInertiaMoments(0.00000560, 0.00000021, 0.00000569);
 const ChVector3d ARTcar_PitmanArm::m_steeringLinkInertiaProducts(0.0, 0.00000002, 0.0);
 
-const ChVector3d ARTcar_PitmanArm::m_pitmanArmInertiaMoments(0.00000041, 0.00000045, 0.00000032); 
+const ChVector3d ARTcar_PitmanArm::m_pitmanArmInertiaMoments(0.00000041, 0.00000045, 0.00000032);
 const ChVector3d ARTcar_PitmanArm::m_pitmanArmInertiaProducts(0.0, 0.0, 0.0);
 
 // -----------------------------------------------------------------------------
@@ -55,18 +55,18 @@ ARTcar_PitmanArm::ARTcar_PitmanArm(const std::string& name) : ChPitmanArm(name) 
 // -----------------------------------------------------------------------------
 const ChVector3d ARTcar_PitmanArm::getLocation(PointId which) {
     switch (which) {
-        case STEERINGLINK: //steering link COM
-            return ChVector3d(.10163,-.01632,-.03162);
-        case PITMANARM: // pitman arm COM
-            return ChVector3d(.10163,.01632,-.03162);
-        case REV: // pitman arm fixed point
-            return ChVector3d(.09163,.01632,-.03162);
-        case UNIV: //pitman arm moving end
-            return ChVector3d(.1128,.01632,-.03162);
-        case REVSPH_R: //idle arm fixed end
-            return ChVector3d(.09163,-.01632,-.03162);
-        case REVSPH_S: //idle arm moving end
-            return ChVector3d(.1128,-.01632,-.03162);
+        case STEERINGLINK:  // steering link COM
+            return ChVector3d(.10163, -.01632, -.03162);
+        case PITMANARM:  // pitman arm COM
+            return ChVector3d(.10163, .01632, -.03162);
+        case REV:  // pitman arm fixed point
+            return ChVector3d(.09163, .01632, -.03162);
+        case UNIV:  // pitman arm moving end
+            return ChVector3d(.1128, .01632, -.03162);
+        case REVSPH_R:  // idle arm fixed end
+            return ChVector3d(.09163, -.01632, -.03162);
+        case REVSPH_S:  // idle arm moving end
+            return ChVector3d(.1128, -.01632, -.03162);
         case TIEROD_PA:
             return ChVector3d(.1155, .033, -.027);
         case TIEROD_IA:

@@ -93,22 +93,22 @@ class ChMatrix33 : public Eigen::Matrix<Real, 3, 3, Eigen::RowMajor> {
     void SetFromDirectionAxes(const ChVector3<Real>& X, const ChVector3<Real>& Y, const ChVector3<Real>& Z);
 
     /// Fill this 3x3 matrix as a rotation matrix with the X axis along the provided direction.
-    /// Uses the Gram-Schmidt orthonormalization. The optional argument \a y_sugg, together with \a x_dir, suggests the XY
-    /// plane (as long as \a y_sugg is not too close \a y_sugg, in which case a different direction is selected).
+    /// Uses the Gram-Schmidt orthonormalization. The optional argument \a y_sugg, together with \a x_dir, suggests the
+    /// XY plane (as long as \a y_sugg is not too close \a y_sugg, in which case a different direction is selected).
     void SetFromAxisX(const ChVector3<Real>& x_dir,                             ///< X axis
                       const ChVector3<Real>& y_sugg = ChVector3<Real>(0, 1, 0)  ///< suggested Y axis
     );
 
     /// Fill this 3x3 matrix as a rotation matrix with the Y axis along the provided direction.
-    /// Uses the Gram-Schmidt orthonormalization. The optional argument \a z_sugg, together with \a y_dir, suggests the YZ
-    /// plane (as long as \a y_dir is not too close to \a z_sugg, in which case a different direction is selected).
+    /// Uses the Gram-Schmidt orthonormalization. The optional argument \a z_sugg, together with \a y_dir, suggests the
+    /// YZ plane (as long as \a y_dir is not too close to \a z_sugg, in which case a different direction is selected).
     void SetFromAxisY(const ChVector3<Real>& y_dir,                             ///< Y axis
                       const ChVector3<Real>& z_sugg = ChVector3<Real>(0, 0, 1)  ///< suggested Z axis
     );
 
     /// Fill this 3x3 matrix as a rotation matrix with the Z axis along the provided direction.
-    /// Uses the Gram-Schmidt orthonormalization. The optional argument \a x_sugg, together with \a z_dir, suggests the ZX
-    /// plane (as long as \a z_dir is not too close to \a x_sugg, in which case a different direction is selected).
+    /// Uses the Gram-Schmidt orthonormalization. The optional argument \a x_sugg, together with \a z_dir, suggests the
+    /// ZX plane (as long as \a z_dir is not too close to \a x_sugg, in which case a different direction is selected).
     void SetFromAxisZ(const ChVector3<Real>& z_dir,                             ///< Z axis
                       const ChVector3<Real>& x_sugg = ChVector3<Real>(1, 0, 0)  ///< suggested X axis
     );

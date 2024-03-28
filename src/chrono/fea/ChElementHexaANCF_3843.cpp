@@ -45,12 +45,7 @@ namespace fea {
 // ------------------------------------------------------------------------------
 
 ChElementHexaANCF_3843::ChElementHexaANCF_3843()
-    : m_method(IntFrcMethod::ContInt),
-      m_lenX(0),
-      m_lenY(0),
-      m_lenZ(0),
-      m_Alpha(0),
-      m_damping_enabled(false) {
+    : m_method(IntFrcMethod::ContInt), m_lenX(0), m_lenY(0), m_lenZ(0), m_Alpha(0), m_damping_enabled(false) {
     m_nodes.resize(8);
 }
 
@@ -1559,7 +1554,7 @@ void ChElementHexaANCF_3843::ComputeInternalJacobianContIntDamping(ChMatrixRef& 
     // =============================================================================
 
     ChMatrixNM_col<double, 3 * NIP, 3> FCscaled = (Kfactor + m_Alpha * Rfactor) * FC.template block<3 * NIP, 3>(0, 0) +
-                                               (m_Alpha * Kfactor) * FC.template block<3 * NIP, 3>(0, 3);
+                                                  (m_Alpha * Kfactor) * FC.template block<3 * NIP, 3>(0, 3);
 
     for (auto i = 0; i < 3; i++) {
         FCscaled.template block<NIP, 1>(0, i).array() *= m_kGQ.array();

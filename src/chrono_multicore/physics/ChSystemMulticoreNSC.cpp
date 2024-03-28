@@ -112,14 +112,16 @@ void ChSystemMulticoreNSC::CalculateContactForces() {
     Fc = D_u * gamma_u / data_manager->settings.step_size;
 }
 
-real3 ChSystemMulticoreNSC::GetBodyContactForce(uint body_id) const {
+real3 ChSystemMulticoreNSC::GetBodyContactForce(std::shared_ptr<ChBody> body) const {
     assert(data_manager->Fc_current);
+    auto body_id = body->GetIndex();
     return real3(data_manager->host_data.Fc[body_id * 6 + 0], data_manager->host_data.Fc[body_id * 6 + 1],
                  data_manager->host_data.Fc[body_id * 6 + 2]);
 }
 
-real3 ChSystemMulticoreNSC::GetBodyContactTorque(uint body_id) const {
+real3 ChSystemMulticoreNSC::GetBodyContactTorque(std::shared_ptr<ChBody> body) const {
     assert(data_manager->Fc_current);
+    auto body_id = body->GetIndex();
     return real3(data_manager->host_data.Fc[body_id * 6 + 3], data_manager->host_data.Fc[body_id * 6 + 4],
                  data_manager->host_data.Fc[body_id * 6 + 5]);
 }
@@ -196,7 +198,7 @@ void ChSystemMulticoreNSC::AssembleSystem() {
         link->ConstraintsBiLoad_Ct(Ct_factor);
         link->VariablesQbLoadSpeed();
         link->VariablesFbIncrementMq();
-        link->ConstraintsLoadJacobians();
+        link->LoadConstraintJacobians();
         link->ConstraintsFbLoadForces(F_factor);
     }
 
@@ -214,14 +216,14 @@ void ChSystemMulticoreNSC::AssembleSystem() {
         item->VariablesFbIncrementMq();
         item->ConstraintsBiLoad_C(C_factor, max_penetration_recovery_speed, true);
         item->ConstraintsBiLoad_Ct(Ct_factor);
-        item->ConstraintsLoadJacobians();
-        item->KRMmatricesLoad(K_factor, R_factor, M_factor);
+        item->LoadConstraintJacobians();
+        item->LoadKRMMatrices(K_factor, R_factor, M_factor);
         item->ConstraintsFbLoadForces(F_factor);
     }
 
     contact_container->ConstraintsBiLoad_C(C_factor, max_penetration_recovery_speed, true);
     contact_container->ConstraintsFbLoadForces(F_factor);
-    contact_container->ConstraintsLoadJacobians();
+    contact_container->LoadConstraintJacobians();
 
     // Inject all variables and constraints into the system descriptor.
     descriptor->BeginInsertion();

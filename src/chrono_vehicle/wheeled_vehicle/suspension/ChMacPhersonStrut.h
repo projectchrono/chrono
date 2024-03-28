@@ -253,9 +253,9 @@ class CH_VEHICLE_API ChMacPhersonStrut : public ChSuspension {
                         double ang_vel);
 
     static void AddVisualizationStrut(std::shared_ptr<ChBody> strut,
-                                       const ChVector3d pt_c,
-                                       const ChVector3d pt_u,
-                                       double radius);
+                                      const ChVector3d pt_c,
+                                      const ChVector3d pt_u,
+                                      double radius);
     static void AddVisualizationControlArm(std::shared_ptr<ChBody> arm,
                                            const ChVector3d pt_F,
                                            const ChVector3d pt_B,

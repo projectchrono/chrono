@@ -102,9 +102,9 @@ class ChApi ChElementBar : public ChElementGeneric {
     /// Get the elastic stress (sigma), after deformation.
     double GetStress() { return GetYoungModulus() * GetStrain(); }
 
-	/// Get the current force transmitted along the bar direction, 
-	/// including the effect of the damper. Positive if pulled. (N)
-	virtual double GetCurrentForce();
+    /// Get the current force transmitted along the bar direction,
+    /// including the effect of the damper. Positive if pulled. (N)
+    virtual double GetCurrentForce();
 
     //
     // Functions for interfacing to the solver

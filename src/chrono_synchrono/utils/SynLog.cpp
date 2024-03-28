@@ -25,7 +25,7 @@ std::string GetAppendingString(int node_id) {
 }
 
 std::ostream& AppendLog(int node_id) {
-    return std::cout << GetAppendingString(node_id).c_str();
+    return std::cout << GetAppendingString(node_id);
 }
 
 }  // namespace synchrono

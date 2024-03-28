@@ -13,7 +13,7 @@
 // =============================================================================
 //
 // Base class for a vehicle wheel.
-// A wheel subsystem does not own a body. Instead, when attached to the spindle 
+// A wheel subsystem does not own a body. Instead, when attached to the spindle
 // of a suspension subsystem, the wheel's mass properties are used to update
 // those of the spindle body owned by the suspension.
 // A concrete wheel subsystem can optionally carry its own visualization assets
@@ -61,8 +61,8 @@ void ChWheel::Initialize(std::shared_ptr<ChChassis> chassis,
     // Create ChLoad objects to apply terrain forces on spindle
     m_spindle_terrain_force = chrono_types::make_shared<ChLoadBodyForce>(m_spindle, VNULL, false, VNULL, false);
     m_spindle_terrain_torque = chrono_types::make_shared<ChLoadBodyTorque>(m_spindle, VNULL, false);
-    m_spindle_terrain_force->SetNameString(m_name + "_terrain_force");
-    m_spindle_terrain_torque->SetNameString(m_name + "_terrain_torque");
+    m_spindle_terrain_force->SetName(m_name + "_terrain_force");
+    m_spindle_terrain_torque->SetName(m_name + "_terrain_torque");
 
     // Add terrain loads to a container
     if (chassis) {
@@ -135,10 +135,9 @@ void ChWheel::AddVisualizationAssets(VisualizationType vis) {
         return;
 
     if (vis == VisualizationType::MESH && !m_vis_mesh_file.empty()) {
-        ChQuaternion<> rot =
-            (m_side == VehicleSide::LEFT) ? QuatFromAngleZ(0) : QuatFromAngleZ(CH_PI);
-        auto trimesh = ChTriangleMeshConnected::CreateFromWavefrontFile(vehicle::GetDataFile(m_vis_mesh_file),
-                                                                                  true, true);
+        ChQuaternion<> rot = (m_side == VehicleSide::LEFT) ? QuatFromAngleZ(0) : QuatFromAngleZ(CH_PI);
+        auto trimesh =
+            ChTriangleMeshConnected::CreateFromWavefrontFile(vehicle::GetDataFile(m_vis_mesh_file), true, true);
         m_trimesh_shape = chrono_types::make_shared<ChVisualShapeTriangleMesh>();
         m_trimesh_shape->SetMesh(trimesh);
         m_trimesh_shape->SetName(filesystem::path(m_vis_mesh_file).stem());

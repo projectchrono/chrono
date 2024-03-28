@@ -89,9 +89,10 @@ int main(int argc, char* argv[]) {
             vrot.SetFromAngleY(ChRandom::Get() * CH_2PI);
             mcube->Move(ChCoordsys<>(VNULL, vrot));
             vrot.SetFromAngleAxis((ChRandom::Get() - 0.5) * 2 * CH_DEG_TO_RAD * 20,
-                                ChVector3d(ChRandom::Get() - 0.5, 0, ChRandom::Get() - 0.5).Normalize());
+                                  ChVector3d(ChRandom::Get() - 0.5, 0, ChRandom::Get() - 0.5).Normalize());
             mcube->Move(ChCoordsys<>(VNULL, vrot));
-            mcube->SetPos(ChVector3d((ChRandom::Get() - 0.5) * 1.8, ChRandom::Get() * 0.1, -ChRandom::Get() * 3.2 + 0.9));
+            mcube->SetPos(
+                ChVector3d((ChRandom::Get() - 0.5) * 1.8, ChRandom::Get() * 0.1, -ChRandom::Get() * 3.2 + 0.9));
             mcube->SetFixed(true);
             sys.Add(mcube);
         }
@@ -104,7 +105,8 @@ int main(int argc, char* argv[]) {
             ChQuaternion<> vrot;
             vrot.SetFromAngleY(ChRandom::Get() * CH_2PI);
             mcube->Move(ChCoordsys<>(VNULL, vrot));
-            mcube->SetPos(ChVector3d((ChRandom::Get() - 0.5) * 1.4, ChRandom::Get() * 0.2 + 0.05, -ChRandom::Get() * 2.6 + 0.2));
+            mcube->SetPos(
+                ChVector3d((ChRandom::Get() - 0.5) * 1.4, ChRandom::Get() * 0.2 + 0.05, -ChRandom::Get() * 2.6 + 0.2));
             sys.Add(mcube);
         }
     }
@@ -191,16 +193,12 @@ int main(int argc, char* argv[]) {
     auto mloadcontainer = chrono_types::make_shared<ChLoadContainer>();
     sys.Add(mloadcontainer);
 
-    for (auto i = 0; i < mmeshsurf->GetFaces().size(); ++i) {
-        auto aface = std::shared_ptr<ChLoadableUV>(mmeshsurf->GetFaces()[i]);
-        auto faceload = chrono_types::make_shared<ChLoad<ChLoaderPressure>>(aface);
-        faceload->loader.SetPressure(10000);  // low pressure... the tire has no ply!
-        mloadcontainer->Add(faceload);
+    for (const auto& face : mmeshsurf->GetFaces()) {
+        auto face_loader = chrono_types::make_shared<ChLoaderPressure>(face);
+        face_loader->SetPressure(10000);  // low pressure... the tire has no ply!
+        auto face_load = chrono_types::make_shared<ChLoad>(face_loader);
+        mloadcontainer->Add(face_load);
     }
-
-    //
-    // Optional...  visualization
-    //
 
     // Visualization of the FEM mesh.
     // This will automatically update a triangle mesh (a ChVisualShapeTriangleMesh
@@ -239,7 +237,7 @@ int main(int argc, char* argv[]) {
     vis->AddTypicalLights();
     vis->AddCamera(ChVector3d(1.0, 1.4, -1.2), ChVector3d(0, tire_rad, 0));
     vis->AddLightWithShadow(ChVector3d(1.5, 5.5, -2.5), ChVector3d(0, 0, 0), 3, 2.2, 7.2, 40, 512,
-                           ChColor(0.8f, 0.8f, 1.0f));
+                            ChColor(0.8f, 0.8f, 1.0f));
     vis->EnableShadows();
 
     // SIMULATION LOOP

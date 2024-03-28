@@ -265,7 +265,7 @@ int main(int argc, char* argv[]) {
             sys.DoStepDynamics(step_size);
             out << sys.GetChTime() << nodetip->GetPos().z() << nodetip->GetForce().z() << std::endl;
             std::cout << "time = " << sys.GetChTime() << "\t" << nodetip->GetPos().z() << "\t"
-                     << nodetip->GetForce().z() << "\n";
+                      << nodetip->GetForce().z() << "\n";
         }
         // Write results to output file.
         out.WriteToFile("../TEST_Brick/tip_position.txt");

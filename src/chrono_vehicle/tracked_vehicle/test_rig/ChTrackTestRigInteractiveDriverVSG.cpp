@@ -28,9 +28,7 @@ namespace vehicle {
 //// TODO
 
 ChTrackTestRigInteractiveDriverVSG::ChTrackTestRigInteractiveDriverVSG(vsg3d::ChVisualSystemVSG& vsys)
-    : m_current_post(0), m_msg("Active post: 0"), m_displDelta(1.0 / 250), m_throttleDelta(1.0 / 50) {
-}
-
+    : m_current_post(0), m_msg("Active post: 0"), m_displDelta(1.0 / 250), m_throttleDelta(1.0 / 50) {}
 
 }  // end namespace vehicle
 }  // end namespace chrono

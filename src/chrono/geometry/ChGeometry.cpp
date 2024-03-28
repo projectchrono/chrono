@@ -18,7 +18,6 @@
 
 namespace chrono {
 
-
 // Register into the object factory, to enable run-time dynamic creation and persistence
 // CH_FACTORY_REGISTER(ChGeometry)  // NO! Abstract class!
 
@@ -73,7 +72,7 @@ void ChGeometry::ArchiveOut(ChArchiveOut& archive_out) {
 
 void ChGeometry::ArchiveIn(ChArchiveIn& archive_in) {
     // version number
-    /*int version =*/ archive_in.VersionRead<ChGeometry>();
+    /*int version =*/archive_in.VersionRead<ChGeometry>();
     ChGeometry_Type_enum_mapper::Type_mapper typemapper;
     Type type = GetType();
     archive_in >> CHNVP(typemapper(type), "ChGeometry__Type");
@@ -97,6 +96,5 @@ ChVector3d ChAABB::Size() const {
 bool ChAABB::IsInverted() const {
     return min > max;
 }
-
 
 }  // end namespace chrono

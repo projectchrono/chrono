@@ -126,7 +126,7 @@ void ChSingleWishbone::InitializeSide(VehicleSide side,
 
     // Create and initialize the spindle body
     m_spindle[side] = chrono_types::make_shared<ChBody>();
-    m_spindle[side]->SetNameString(m_name + "_spindle" + suffix);
+    m_spindle[side]->SetName(m_name + "_spindle" + suffix);
     m_spindle[side]->SetPos(points[SPINDLE]);
     m_spindle[side]->SetRot(spindleRot);
     m_spindle[side]->SetAngVelLocal(ChVector3d(0, ang_vel, 0));
@@ -136,7 +136,7 @@ void ChSingleWishbone::InitializeSide(VehicleSide side,
 
     // Create and initialize the upright body
     m_upright[side] = chrono_types::make_shared<ChBody>();
-    m_upright[side]->SetNameString(m_name + "_upright" + suffix);
+    m_upright[side]->SetName(m_name + "_upright" + suffix);
     m_upright[side]->SetPos(points[UPRIGHT]);
     m_upright[side]->SetRot(chassisRot);
     m_upright[side]->SetMass(getUprightMass());
@@ -153,7 +153,7 @@ void ChSingleWishbone::InitializeSide(VehicleSide side,
 
     // Create and initialize the control arm body
     m_control_arm[side] = chrono_types::make_shared<ChBody>();
-    m_control_arm[side]->SetNameString(m_name + "_arm" + suffix);
+    m_control_arm[side]->SetName(m_name + "_arm" + suffix);
     m_control_arm[side]->SetPos(points[CA_CM]);
     m_control_arm[side]->SetRot(rot.GetQuaternion());
     m_control_arm[side]->SetMass(getCAMass());
@@ -163,7 +163,7 @@ void ChSingleWishbone::InitializeSide(VehicleSide side,
 
     // Create and initialize the revolute joint between upright and spindle
     m_revolute[side] = chrono_types::make_shared<ChLinkLockRevolute>();
-    m_revolute[side]->SetNameString(m_name + "_revolute" + suffix);
+    m_revolute[side]->SetName(m_name + "_revolute" + suffix);
     m_revolute[side]->Initialize(m_spindle[side], m_upright[side],
                                  ChFrame<>(points[SPINDLE], spindleRot * QuatFromAngleX(CH_PI_2)));
     chassis->GetSystem()->AddLink(m_revolute[side]);
@@ -190,7 +190,7 @@ void ChSingleWishbone::InitializeSide(VehicleSide side,
 
         // Create the tierod body
         m_tierod[side] = chrono_types::make_shared<ChBody>();
-        m_tierod[side]->SetNameString(m_name + "_tierodBody" + suffix);
+        m_tierod[side]->SetName(m_name + "_tierodBody" + suffix);
         m_tierod[side]->SetPos((points[TIEROD_U] + points[TIEROD_C]) / 2);
         m_tierod[side]->SetRot(rot.GetQuaternion());
         m_tierod[side]->SetMass(getTierodMass());
@@ -209,20 +209,20 @@ void ChSingleWishbone::InitializeSide(VehicleSide side,
     } else {
         // Create and initialize the tierod distance constraint between chassis and upright.
         m_distTierod[side] = chrono_types::make_shared<ChLinkDistance>();
-        m_distTierod[side]->SetNameString(m_name + "_distTierod" + suffix);
+        m_distTierod[side]->SetName(m_name + "_distTierod" + suffix);
         m_distTierod[side]->Initialize(tierod_body, m_upright[side], false, points[TIEROD_C], points[TIEROD_U]);
         chassis->GetSystem()->AddLink(m_distTierod[side]);
     }
 
     // Create and initialize the tierod distance constraint between chassis and upright.
     m_distTierod[side] = chrono_types::make_shared<ChLinkDistance>();
-    m_distTierod[side]->SetNameString(m_name + "_distTierod" + suffix);
+    m_distTierod[side]->SetName(m_name + "_distTierod" + suffix);
     m_distTierod[side]->Initialize(tierod_body, m_upright[side], false, points[TIEROD_C], points[TIEROD_U]);
     chassis->GetSystem()->AddLink(m_distTierod[side]);
 
     // Create and initialize the spring-damper
     m_shock[side] = chrono_types::make_shared<ChLinkTSDA>();
-    m_shock[side]->SetNameString(m_name + "_shock" + suffix);
+    m_shock[side]->SetName(m_name + "_shock" + suffix);
     m_shock[side]->Initialize(chassis->GetBody(), m_control_arm[side], false, points[STRUT_C], points[STRUT_A]);
     m_shock[side]->SetRestLength(getShockRestLength());
     m_shock[side]->RegisterForceFunctor(getShockForceFunctor());
@@ -231,13 +231,13 @@ void ChSingleWishbone::InitializeSide(VehicleSide side,
     // Create and initialize the axle shaft and its connection to the spindle. Note that the
     // spindle rotates about the Y axis.
     m_axle[side] = chrono_types::make_shared<ChShaft>();
-    m_axle[side]->SetNameString(m_name + "_axle" + suffix);
+    m_axle[side]->SetName(m_name + "_axle" + suffix);
     m_axle[side]->SetInertia(getAxleInertia());
     m_axle[side]->SetPosDt(-ang_vel);
     chassis->GetSystem()->AddShaft(m_axle[side]);
 
     m_axle_to_spindle[side] = chrono_types::make_shared<ChShaftBodyRotation>();
-    m_axle_to_spindle[side]->SetNameString(m_name + "_axle_to_spindle" + suffix);
+    m_axle_to_spindle[side]->SetName(m_name + "_axle_to_spindle" + suffix);
     m_axle_to_spindle[side]->Initialize(m_axle[side], m_spindle[side], ChVector3d(0, -1, 0));
     chassis->GetSystem()->Add(m_axle_to_spindle[side]);
 }
@@ -258,17 +258,17 @@ void ChSingleWishbone::UpdateInertiaProperties() {
     ChMatrix33<> inertiaUpright(getUprightInertiaMoments(), getUprightInertiaProducts());
 
     utils::CompositeInertia composite;
-    composite.AddComponent(m_spindle[LEFT]->GetFrame_COG_to_abs(), getSpindleMass(), inertiaSpindle);
-    composite.AddComponent(m_spindle[RIGHT]->GetFrame_COG_to_abs(), getSpindleMass(), inertiaSpindle);
-    composite.AddComponent(m_control_arm[LEFT]->GetFrame_COG_to_abs(), getCAMass(), inertiaCA);
-    composite.AddComponent(m_control_arm[RIGHT]->GetFrame_COG_to_abs(), getCAMass(), inertiaCA);
-    composite.AddComponent(m_upright[LEFT]->GetFrame_COG_to_abs(), getUprightMass(), inertiaUpright);
-    composite.AddComponent(m_upright[RIGHT]->GetFrame_COG_to_abs(), getUprightMass(), inertiaUpright);
+    composite.AddComponent(m_spindle[LEFT]->GetFrameCOMToAbs(), getSpindleMass(), inertiaSpindle);
+    composite.AddComponent(m_spindle[RIGHT]->GetFrameCOMToAbs(), getSpindleMass(), inertiaSpindle);
+    composite.AddComponent(m_control_arm[LEFT]->GetFrameCOMToAbs(), getCAMass(), inertiaCA);
+    composite.AddComponent(m_control_arm[RIGHT]->GetFrameCOMToAbs(), getCAMass(), inertiaCA);
+    composite.AddComponent(m_upright[LEFT]->GetFrameCOMToAbs(), getUprightMass(), inertiaUpright);
+    composite.AddComponent(m_upright[RIGHT]->GetFrameCOMToAbs(), getUprightMass(), inertiaUpright);
 
     if (UseTierodBodies()) {
         ChMatrix33<> inertiaTierod(getTierodInertia());
-        composite.AddComponent(m_tierod[LEFT]->GetFrame_COG_to_abs(), getTierodMass(), inertiaTierod);
-        composite.AddComponent(m_tierod[RIGHT]->GetFrame_COG_to_abs(), getTierodMass(), inertiaTierod);
+        composite.AddComponent(m_tierod[LEFT]->GetFrameCOMToAbs(), getTierodMass(), inertiaTierod);
+        composite.AddComponent(m_tierod[RIGHT]->GetFrameCOMToAbs(), getTierodMass(), inertiaTierod);
     }
 
     // Express COM and inertia in subsystem reference frame

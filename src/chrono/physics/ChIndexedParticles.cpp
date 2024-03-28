@@ -24,7 +24,6 @@ namespace chrono {
 // Register into the object factory, to enable run-time  dynamic creation and persistence
 // CH_FACTORY_REGISTER(ChIndexedParticles)  // NO! abstract class!
 
-
 // Base class for particles
 
 ChParticleBase& ChParticleBase::operator=(const ChParticleBase& other) {
@@ -57,7 +56,7 @@ void ChIndexedParticles::ArchiveOut(ChArchiveOut& archive_out) {
 
 void ChIndexedParticles::ArchiveIn(ChArchiveIn& archive_in) {
     // class version number
-    /*int version =*/ archive_in.VersionRead<ChIndexedParticles>();
+    /*int version =*/archive_in.VersionRead<ChIndexedParticles>();
 
     // deserialize parent class too
     ChPhysicsItem::ArchiveIn(archive_in);

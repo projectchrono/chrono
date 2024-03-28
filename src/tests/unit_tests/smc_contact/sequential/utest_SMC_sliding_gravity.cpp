@@ -72,7 +72,7 @@ class SlidingGravityTest : public ::testing::TestWithParam<ChSystemSMC::ContactF
         ChVector3d wpos(0, -wsize.y() / 2 - 0.5, 0);
         ChVector3d init_wv(0, 0, 0);
 
-        auto wall = AddWall(-1, sys, mat, wsize, wmass, wpos, init_wv, true);
+        auto wall = AddWall(sys, mat, wsize, wmass, wpos, init_wv, true);
 
         // Add the block to the system
         double bmass = 1.0;
@@ -80,7 +80,7 @@ class SlidingGravityTest : public ::testing::TestWithParam<ChSystemSMC::ContactF
         ChVector3d bpos(0, bsize.y() / 2 - 0.49, 0);
         ChVector3d init_bv(0, 0, 0);
 
-        body = AddWall(0, sys, mat, bsize, bmass, bpos, init_bv, false);
+        body = AddWall(sys, mat, bsize, bmass, bpos, init_bv, false);
 
         // Let the block settle of the plate before giving it a push
         double t_end = 2;

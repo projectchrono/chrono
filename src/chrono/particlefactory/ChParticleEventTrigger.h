@@ -52,8 +52,8 @@ class ChParticleEventTriggerNever : public ChParticleEventTrigger {
 };
 
 /// Event trigger for particles inside a box volume.
-/// The event is triggered every time that the particle processor is run, not only the 1st time that particle enters the volume.
-/// Only the center of gravity of particle is taken into consideration, regardless of its size.
+/// The event is triggered every time that the particle processor is run, not only the 1st time that particle enters the
+/// volume. Only the center of gravity of particle is taken into consideration, regardless of its size.
 class ChParticleEventTriggerBox : public ChParticleEventTrigger {
   public:
     ChParticleEventTriggerBox() { invert_volume = false; }
@@ -74,8 +74,8 @@ class ChParticleEventTriggerBox : public ChParticleEventTrigger {
 
     void SetTriggerOutside(bool minvert) { invert_volume = minvert; }
 
-    ChBox m_box;  ///< box volume
-    ChFrame<> m_frame;      ///< box position and orientation
+    ChBox m_box;        ///< box volume
+    ChFrame<> m_frame;  ///< box position and orientation
 
   protected:
     bool invert_volume;

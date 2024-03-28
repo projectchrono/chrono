@@ -93,7 +93,7 @@ void ChPitmanArmShafts::Initialize(std::shared_ptr<ChChassis> chassis,
 
     // Create and initialize the steering link body
     m_link = chrono_types::make_shared<ChBody>();
-    m_link->SetNameString(m_name + "_link");
+    m_link->SetName(m_name + "_link");
     m_link->SetPos(points[STEERINGLINK]);
     m_link->SetRot(steering_to_abs.GetRot());
     m_link->SetMass(getSteeringLinkMass());
@@ -114,7 +114,7 @@ void ChPitmanArmShafts::Initialize(std::shared_ptr<ChChassis> chassis,
 
     // Create and initialize the Pitman arm body
     m_arm = chrono_types::make_shared<ChBody>();
-    m_arm->SetNameString(m_name + "_arm");
+    m_arm->SetName(m_name + "_arm");
     m_arm->SetPos(points[PITMANARM]);
     m_arm->SetRot(steering_to_abs.GetRot());
     m_arm->SetMass(getPitmanArmMass());
@@ -142,7 +142,7 @@ void ChPitmanArmShafts::Initialize(std::shared_ptr<ChChassis> chassis,
     rot.SetFromDirectionAxes(u, v, dirs[REV_AXIS]);
 
     m_revolute = chrono_types::make_shared<ChLinkLockRevolute>();
-    m_revolute->SetNameString(m_name + "_revolute");
+    m_revolute->SetName(m_name + "_revolute");
     m_revolute->Initialize(chassisBody, m_arm, ChFrame<>(points[REV], rot.GetQuaternion()));
     sys->AddLink(m_revolute);
 
@@ -154,7 +154,7 @@ void ChPitmanArmShafts::Initialize(std::shared_ptr<ChChassis> chassis,
     rot.SetFromDirectionAxes(dirs[UNIV_AXIS_ARM], dirs[UNIV_AXIS_LINK], w);
 
     m_universal = chrono_types::make_shared<ChLinkUniversal>();
-    m_universal->SetNameString(m_name + "_universal");
+    m_universal->SetName(m_name + "_universal");
     m_universal->Initialize(m_arm, m_link, ChFrame<>(points[UNIV], rot.GetQuaternion()));
     sys->AddLink(m_universal);
 
@@ -171,7 +171,7 @@ void ChPitmanArmShafts::Initialize(std::shared_ptr<ChChassis> chassis,
     rot.SetFromDirectionAxes(u, v, dirs[REVSPH_AXIS]);
 
     m_revsph = chrono_types::make_shared<ChLinkRevoluteSpherical>();
-    m_revsph->SetNameString(m_name + "_revsph");
+    m_revsph->SetName(m_name + "_revsph");
     m_revsph->Initialize(chassisBody, m_link, ChCoordsys<>(points[REVSPH_R], rot.GetQuaternion()), distance);
     sys->AddLink(m_revsph);
 
@@ -184,51 +184,51 @@ void ChPitmanArmShafts::Initialize(std::shared_ptr<ChChassis> chassis,
     double inertia = getSteeringColumnInertia();
 
     m_shaft_C = chrono_types::make_shared<ChShaft>();
-    m_shaft_C->SetNameString(m_name + "_shaftC");
+    m_shaft_C->SetName(m_name + "_shaftC");
     m_shaft_C->SetInertia(inertia);
-    m_shaft_C->SetShaftFixed(true);
+    m_shaft_C->SetFixed(true);
     sys->AddShaft(m_shaft_C);
 
     m_shaft_C1 = chrono_types::make_shared<ChShaft>();
-    m_shaft_C1->SetNameString(m_name + "_shaftC1");
+    m_shaft_C1->SetName(m_name + "_shaftC1");
     m_shaft_C1->SetInertia(inertia);
     sys->AddShaft(m_shaft_C1);
 
     m_shaft_A1 = chrono_types::make_shared<ChShaft>();
-    m_shaft_A1->SetNameString(m_name + "_shaftA1");
+    m_shaft_A1->SetName(m_name + "_shaftA1");
     m_shaft_A1->SetInertia(inertia);
     sys->AddShaft(m_shaft_A1);
 
     m_shaft_A = chrono_types::make_shared<ChShaft>();
-    m_shaft_A->SetNameString(m_name + "_shaftA");
+    m_shaft_A->SetName(m_name + "_shaftA");
     m_shaft_A->SetInertia(inertia);
     sys->AddShaft(m_shaft_A);
 
     // Rigidly attach shaftA to the arm body
     m_shaft_arm = chrono_types::make_shared<ChShaftBodyRotation>();
-    m_shaft_arm->SetNameString(m_name + "_shaftA_to_arm");
+    m_shaft_arm->SetName(m_name + "_shaftA_to_arm");
     m_shaft_arm->Initialize(m_shaft_A, m_arm, dirs[REV_AXIS]);
     sys->Add(m_shaft_arm);
 
     // Rigidly attach shaftC to the chassis body
     ////m_shaft_chassis = chrono_types::make_shared<ChShaftBodyRotation>();
-    ////m_shaft_chassis->SetNameString(m_name + "_shaftC_to_chassis");
+    ////m_shaft_chassis->SetName(m_name + "_shaftC_to_chassis");
     ////m_shaft_chassis->Initialize(m_shaft_C, chassisBody, dirs[REV_AXIS]);
     ////sys->Add(m_shaft_chassis);
 
     // A motor (for steering input) between shaftC and shaftC1
     // The setpoint for the motor angle function is set in Synchronize()
-    m_shaft_motor = chrono_types::make_shared<ChShaftsMotorAngle>();
-    m_shaft_motor->SetNameString(m_name + "_motor");
+    m_shaft_motor = chrono_types::make_shared<ChShaftsMotorPosition>();
+    m_shaft_motor->SetName(m_name + "_motor");
     m_shaft_motor->Initialize(m_shaft_C, m_shaft_C1);
     auto motor_fun = chrono_types::make_shared<ChFunctionSetpoint>();
-    m_shaft_motor->SetAngleFunction(motor_fun);
+    m_shaft_motor->SetPositionFunction(motor_fun);
     sys->Add(m_shaft_motor);
 
     // A reduction gear between shaftA and shaftA1
     // (note order of connected shafts for gear_ratio > 1)
     m_shaft_gear = chrono_types::make_shared<ChShaftsGear>();
-    m_shaft_gear->SetNameString(m_name + "_transmission");
+    m_shaft_gear->SetName(m_name + "_transmission");
     m_shaft_gear->SetTransmissionRatio(getGearRatio());
     m_shaft_gear->Initialize(m_shaft_A, m_shaft_A1);
     sys->Add(m_shaft_gear);
@@ -237,14 +237,14 @@ void ChPitmanArmShafts::Initialize(std::shared_ptr<ChChassis> chassis,
     if (m_rigid) {
         // Use a gear couple with ratio=1
         m_rigid_connection = chrono_types::make_shared<ChShaftsGear>();
-        m_rigid_connection->SetNameString(m_name + "_rigid_column");
+        m_rigid_connection->SetName(m_name + "_rigid_column");
         m_rigid_connection->SetTransmissionRatio(1.0);
         m_rigid_connection->Initialize(m_shaft_A1, m_shaft_C1);
         sys->Add(m_rigid_connection);
     } else {
         // Use a torsional spring between shaftA1 and shaftC1
         m_spring_connection = chrono_types::make_shared<ChShaftsTorsionSpring>();
-        m_spring_connection->SetNameString(m_name + "_compliant_column");
+        m_spring_connection->SetName(m_name + "_compliant_column");
         m_spring_connection->SetTorsionalStiffness(getSteeringCompliance());
         ////m_spring_connection->SetTorsionalDamping(10);
         m_spring_connection->Initialize(m_shaft_C1, m_shaft_A1);
@@ -254,7 +254,7 @@ void ChPitmanArmShafts::Initialize(std::shared_ptr<ChChassis> chassis,
 
 // -----------------------------------------------------------------------------
 void ChPitmanArmShafts::Synchronize(double time, const DriverInputs& driver_inputs) {
-    auto fun = std::static_pointer_cast<ChFunctionSetpoint>(m_shaft_motor->GetAngleFunction());
+    auto fun = std::static_pointer_cast<ChFunctionSetpoint>(m_shaft_motor->GetPositionFunction());
     fun->SetSetpoint(getMaxAngle() * driver_inputs.m_steering, time);
 }
 
@@ -267,8 +267,8 @@ void ChPitmanArmShafts::UpdateInertiaProperties() {
 
     // Calculate COM and inertia expressed in global frame
     utils::CompositeInertia composite;
-    composite.AddComponent(m_link->GetFrame_COG_to_abs(), m_link->GetMass(), m_link->GetInertia());
-    composite.AddComponent(m_arm->GetFrame_COG_to_abs(), m_arm->GetMass(), m_arm->GetInertia());
+    composite.AddComponent(m_link->GetFrameCOMToAbs(), m_link->GetMass(), m_link->GetInertia());
+    composite.AddComponent(m_arm->GetFrameCOMToAbs(), m_arm->GetMass(), m_arm->GetInertia());
 
     // Express COM and inertia in subsystem reference frame
     m_com.GetPos() = m_xform.TransformPointParentToLocal(composite.GetCOM());
@@ -342,7 +342,7 @@ void ChPitmanArmShafts::GetShaftInformation(double time,
                                             std::vector<double>& shaft_velocities,
                                             std::vector<double>& constraint_violations,
                                             ChVector3d& arm_angular_vel) const {
-    auto fun = std::static_pointer_cast<ChFunctionSetpoint>(m_shaft_motor->GetAngleFunction());
+    auto fun = std::static_pointer_cast<ChFunctionSetpoint>(m_shaft_motor->GetPositionFunction());
     motor_input = fun->GetVal(time);
     motor_input_der = fun->GetDer(time);
 

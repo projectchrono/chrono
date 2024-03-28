@@ -23,13 +23,13 @@ CH_FACTORY_REGISTER(ChLinkMotionImposed)
 
 ChLinkMotionImposed::ChLinkMotionImposed() : ChLinkMateGeneric(true, true, true, true, true, true) {
     // default motion and rotation: no rotation no translation
-	position_function = chrono_types::make_shared<ChFunctionPositionXYZFunctions>();
-	rotation_function = chrono_types::make_shared<ChFunctionRotationABCFunctions>();
+    position_function = chrono_types::make_shared<ChFunctionPositionXYZFunctions>();
+    rotation_function = chrono_types::make_shared<ChFunctionRotationABCFunctions>();
 }
 
 ChLinkMotionImposed::ChLinkMotionImposed(const ChLinkMotionImposed& other) : ChLinkMateGeneric(other) {
     position_function = other.position_function;
-	rotation_function = other.rotation_function;
+    rotation_function = other.rotation_function;
 }
 
 ChLinkMotionImposed::~ChLinkMotionImposed() {}
@@ -130,8 +130,7 @@ void ChLinkMotionImposed::Update(double mytime, bool update_assets) {
     }
 }
 
-
-void ChLinkMotionImposed::KRMmatricesLoad(double Kfactor, double Rfactor, double Mfactor) {
+void ChLinkMotionImposed::LoadKRMMatrices(double Kfactor, double Rfactor, double Mfactor) {
     if (!this->IsActive())
         return;
 
@@ -190,22 +189,20 @@ void ChLinkMotionImposed::KRMmatricesLoad(double Kfactor, double Rfactor, double
         Ks.block<3, 3>(9, 9) = R_B2_W.transpose() * R_F2_W * G * R_F1_W.transpose() * R_B2_W;
 
         // The complete tangent stiffness matrix
-        this->Kmatr->Get_K() = (Km + Ks) * Kfactor;
+        this->Kmatr->GetMatrix() = (Km + Ks) * Kfactor;
     }
 }
 
-
 void ChLinkMotionImposed::IntLoadConstraint_Ct(const unsigned int off_L, ChVectorDynamic<>& Qc, const double c) {
-    
-	double T = this->GetChTime();
-	ChVector3d mv = -position_function->GetLinVel(T);
-	ChVector3d mw_loc = -rotation_function->GetAngVel(T);
-	ChVector3d mv_rot = rotation_function->GetQuat(T).RotateBack(mv); // need velocity in local rotated system
+    double T = this->GetChTime();
+    ChVector3d mv = -position_function->GetLinVel(T);
+    ChVector3d mw_loc = -rotation_function->GetAngVel(T);
+    ChVector3d mv_rot = rotation_function->GetQuat(T).RotateBack(mv);  // need velocity in local rotated system
 
-	int nc = 0;
+    int nc = 0;
     if (c_x) {
         if (mask.GetConstraint(nc).IsActive())
-			Qc(off_L + nc) += c * mv_rot.x();
+            Qc(off_L + nc) += c * mv_rot.x();
         nc++;
     }
     if (c_y) {
@@ -233,7 +230,6 @@ void ChLinkMotionImposed::IntLoadConstraint_Ct(const unsigned int off_L, ChVecto
             Qc(off_L + nc) += c * 0.5 * mw_loc.z();
         nc++;
     }
-
 }
 
 // OLD
@@ -242,27 +238,27 @@ void ChLinkMotionImposed::ConstraintsBiLoad_Ct(double factor) {
         return;
 
     double T = this->GetChTime();
-	ChVector3d mv = -position_function->GetLinVel(T);
-	ChVector3d mw_loc = -rotation_function->GetAngVel(T);
-	ChVector3d mv_rot = rotation_function->GetQuat(T).RotateBack(mv); // need velocity in local rotated system
+    ChVector3d mv = -position_function->GetLinVel(T);
+    ChVector3d mw_loc = -rotation_function->GetAngVel(T);
+    ChVector3d mv_rot = rotation_function->GetQuat(T).RotateBack(mv);  // need velocity in local rotated system
 
     if (mask.GetConstraint(0).IsActive()) {
-        mask.GetConstraint(0).Set_b_i(mask.GetConstraint(0).Get_b_i() + factor * mv_rot.x());
+        mask.GetConstraint(0).SetRightHandSide(mask.GetConstraint(0).GetRightHandSide() + factor * mv_rot.x());
     }
-	if (mask.GetConstraint(1).IsActive()) {
-        mask.GetConstraint(1).Set_b_i(mask.GetConstraint(1).Get_b_i() + factor * mv_rot.y());
+    if (mask.GetConstraint(1).IsActive()) {
+        mask.GetConstraint(1).SetRightHandSide(mask.GetConstraint(1).GetRightHandSide() + factor * mv_rot.y());
     }
-	if (mask.GetConstraint(2).IsActive()) {
-        mask.GetConstraint(2).Set_b_i(mask.GetConstraint(2).Get_b_i() + factor * mv_rot.z());
+    if (mask.GetConstraint(2).IsActive()) {
+        mask.GetConstraint(2).SetRightHandSide(mask.GetConstraint(2).GetRightHandSide() + factor * mv_rot.z());
     }
-	if (mask.GetConstraint(3).IsActive()) {
-        mask.GetConstraint(3).Set_b_i(mask.GetConstraint(3).Get_b_i() + factor * 0.5 * mw_loc.x());
+    if (mask.GetConstraint(3).IsActive()) {
+        mask.GetConstraint(3).SetRightHandSide(mask.GetConstraint(3).GetRightHandSide() + factor * 0.5 * mw_loc.x());
     }
-	if (mask.GetConstraint(4).IsActive()) {
-        mask.GetConstraint(4).Set_b_i(mask.GetConstraint(4).Get_b_i() + factor * 0.5 * mw_loc.y());
+    if (mask.GetConstraint(4).IsActive()) {
+        mask.GetConstraint(4).SetRightHandSide(mask.GetConstraint(4).GetRightHandSide() + factor * 0.5 * mw_loc.y());
     }
-	if (mask.GetConstraint(5).IsActive()) {
-        mask.GetConstraint(5).Set_b_i(mask.GetConstraint(5).Get_b_i() + factor * 0.5 * mw_loc.z());
+    if (mask.GetConstraint(5).IsActive()) {
+        mask.GetConstraint(5).SetRightHandSide(mask.GetConstraint(5).GetRightHandSide() + factor * 0.5 * mw_loc.z());
     }
 }
 
@@ -275,20 +271,20 @@ void ChLinkMotionImposed::ArchiveOut(ChArchiveOut& archive_out) {
 
     // serialize all member data:
     archive_out << CHNVP(position_function);
-	archive_out << CHNVP(rotation_function);
+    archive_out << CHNVP(rotation_function);
 }
 
 /// Method to allow de serialization of transient data from archives.
 void ChLinkMotionImposed::ArchiveIn(ChArchiveIn& archive_in) {
     // version number
-    /*int version =*/ archive_in.VersionRead<ChLinkMotionImposed>();
+    /*int version =*/archive_in.VersionRead<ChLinkMotionImposed>();
 
     // deserialize parent class
     ChLinkMateGeneric::ArchiveIn(archive_in);
 
     // deserialize all member data:
     archive_in >> CHNVP(position_function);
-	archive_in >> CHNVP(rotation_function);
+    archive_in >> CHNVP(rotation_function);
 }
 
 }  // end namespace chrono

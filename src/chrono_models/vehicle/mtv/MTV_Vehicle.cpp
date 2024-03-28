@@ -92,7 +92,7 @@ void MTV_Vehicle::Create(bool fixed,
         m_axles[2]->m_suspension = chrono_types::make_shared<MTV_Solid3LinkAxle2>("RearSusp2");
     } else {
         m_axles[1]->m_suspension = chrono_types::make_shared<MTV_LeafspringAxle1>("RearSusp1");
-        m_axles[2]->m_suspension = chrono_types::make_shared<MTV_LeafspringAxle2>("RearSusp2");    
+        m_axles[2]->m_suspension = chrono_types::make_shared<MTV_LeafspringAxle2>("RearSusp2");
     }
 
     m_axles[0]->m_wheels.resize(2);
@@ -229,21 +229,21 @@ void MTV_Vehicle::DebugLog(int what) {
     if (what & OUT_SPRINGS) {
         std::cout << "\n---- Spring (front-left, front-right, rear-left, rear-right)\n";
         std::cout << "Length [m]       " << GetSpringLength(0, LEFT) << "  " << GetSpringLength(0, RIGHT) << "  "
-                 << GetSpringLength(1, LEFT) << "  " << GetSpringLength(1, RIGHT) << "\n";
+                  << GetSpringLength(1, LEFT) << "  " << GetSpringLength(1, RIGHT) << "\n";
         std::cout << "Deformation [m]  " << GetSpringDeformation(0, LEFT) << "  " << GetSpringDeformation(0, RIGHT)
-                 << "  " << GetSpringDeformation(1, LEFT) << "  " << GetSpringDeformation(1, RIGHT) << "\n";
+                  << "  " << GetSpringDeformation(1, LEFT) << "  " << GetSpringDeformation(1, RIGHT) << "\n";
         std::cout << "Force [N]         " << GetSpringForce(0, LEFT) << "  " << GetSpringForce(0, RIGHT) << "  "
-                 << GetSpringForce(1, LEFT) << "  " << GetSpringForce(1, RIGHT) << "\n";
+                  << GetSpringForce(1, LEFT) << "  " << GetSpringForce(1, RIGHT) << "\n";
     }
 
     if (what & OUT_SHOCKS) {
         std::cout << "\n---- Shock (front-left, front-right, rear-left, rear-right)\n";
         std::cout << "Length [m]       " << GetShockLength(0, LEFT) << "  " << GetShockLength(0, RIGHT) << "  "
-                 << GetShockLength(1, LEFT) << "  " << GetShockLength(1, RIGHT) << "\n";
+                  << GetShockLength(1, LEFT) << "  " << GetShockLength(1, RIGHT) << "\n";
         std::cout << "Velocity [m/s]   " << GetShockVelocity(0, LEFT) << "  " << GetShockVelocity(0, RIGHT) << "  "
-                 << GetShockVelocity(1, LEFT) << "  " << GetShockVelocity(1, RIGHT) << "\n";
+                  << GetShockVelocity(1, LEFT) << "  " << GetShockVelocity(1, RIGHT) << "\n";
         std::cout << "Force [N]         " << GetShockForce(0, LEFT) << "  " << GetShockForce(0, RIGHT) << "  "
-                 << GetShockForce(1, LEFT) << "  " << GetShockForce(1, RIGHT) << "\n";
+                  << GetShockForce(1, LEFT) << "  " << GetShockForce(1, RIGHT) << "\n";
     }
 
     if (what & OUT_CONSTRAINTS) {

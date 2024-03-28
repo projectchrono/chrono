@@ -162,8 +162,7 @@ void RigidTerrain::AddPatch(std::shared_ptr<Patch> patch,
 
     // Create the rigid body for this patch (fixed)
     patch->m_body = chrono_types::make_shared<ChBody>();
-    patch->m_body->SetIdentifier(-m_num_patches);
-    patch->m_body->SetNameString("patch_" + std::to_string(m_num_patches));
+    patch->m_body->SetName("patch_" + std::to_string(m_num_patches));
     patch->m_body->SetPos(position.pos);
     patch->m_body->SetRot(position.rot);
     patch->m_body->SetFixed(true);
@@ -680,7 +679,7 @@ std::shared_ptr<RigidTerrain::Patch> RigidTerrain::AddPatch(std::shared_ptr<ChCo
             // Calculate the angle between normals
             double dot_product = Vdot(normal1, normal2);
             double angle = std::acos(dot_product) * CH_RAD_TO_DEG;  // convert the angle
-            if (angle > refine_angle_limit) {                         // Mark both triangles for refinement
+            if (angle > refine_angle_limit) {                       // Mark both triangles for refinement
                 marked_tris.emplace_back(tri1_index);
                 marked_tris.emplace_back(tri2_index);
                 execute_refine = true;

@@ -75,7 +75,7 @@ class CH_VEHICLE_API ChVehicleCosimWheeledVehicleNode : public ChVehicleCosimWhe
   private:
     /// Initialize the vehicle MBS and any associated subsystems.
     virtual void InitializeMBS(const ChVector2d& terrain_size,  ///< terrain length x width
-                               double terrain_height             ///< initial terrain height
+                               double terrain_height            ///< initial terrain height
                                ) override;
 
     /// Apply tire info (mass, radius, width).

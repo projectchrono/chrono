@@ -54,7 +54,7 @@ const ChVector3d Sedan_MultiLink::m_uprightInertia(0.0250, 0.00653, 0.0284);
 const double Sedan_MultiLink::m_axleInertia = 0.166;
 
 const double Sedan_MultiLink::m_springCoefficient = 167062.000;
-const double Sedan_MultiLink::m_dampingCoefficient = 15000.0;//60068.000;
+const double Sedan_MultiLink::m_dampingCoefficient = 15000.0;  // 60068.000;
 const double Sedan_MultiLink::m_springRestLength = 0.339;
 
 // -----------------------------------------------------------------------------

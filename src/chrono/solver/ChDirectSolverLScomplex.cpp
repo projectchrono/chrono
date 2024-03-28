@@ -12,7 +12,6 @@
 // Authors: Alessandro Tasora
 // =============================================================================
 
-
 #include "chrono/core/ChSparsityPatternLearner.h"
 
 #include "chrono/solver/ChDirectSolverLScomplex.h"
@@ -21,13 +20,9 @@
 
 namespace chrono {
 
-ChDirectSolverLScomplex::ChDirectSolverLScomplex()
-    : m_dim(0)
-       {}
-
+ChDirectSolverLScomplex::ChDirectSolverLScomplex() : m_dim(0) {}
 
 bool ChDirectSolverLScomplex::Setup() {
-
     // Allow the matrix to be compressed, if not yet compressed
     m_mat.makeCompressed();
 
@@ -35,8 +30,7 @@ bool ChDirectSolverLScomplex::Setup() {
     bool result = FactorizeMatrix();
 
     if (verbose) {
-        std::cout << " Solver Setup()  n = " << m_dim
-                 << "  nnz = " << (int)m_mat.nonZeros() << std::endl;
+        std::cout << " Solver Setup()  n = " << m_dim << "  nnz = " << (int)m_mat.nonZeros() << std::endl;
     }
 
     if (!result) {
@@ -49,8 +43,6 @@ bool ChDirectSolverLScomplex::Setup() {
 }
 
 double ChDirectSolverLScomplex::Solve(const ChVectorDynamic<std::complex<double>>& b) {
-
-
     // Let the concrete solver compute the solution
     bool result = SolveSystem(b);
 
@@ -67,8 +59,6 @@ double ChDirectSolverLScomplex::Solve(const ChVectorDynamic<std::complex<double>
 
     return result;
 }
-
-
 
 // ---------------------------------------------------------------------------
 

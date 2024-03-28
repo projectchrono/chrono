@@ -20,10 +20,9 @@ namespace chrono {
 CH_FACTORY_REGISTER(ChLinkMotorRotationAngle)
 
 ChLinkMotorRotationAngle::ChLinkMotorRotationAngle() {
-
     this->c_rz = true;
     SetupLinkMask();
-    
+
     // default motion function
     m_func = chrono_types::make_shared<ChFunctionConst>(0.0);
 
@@ -47,13 +46,13 @@ void ChLinkMotorRotationAngle::Update(double mytime, bool update_assets) {
         ChFrame<> aframe1 = this->frame1 >> (*this->m_body1);
         ChFrame<> aframe2 = this->frame2 >> (*this->m_body2);
 
-        //ChFrame<> aframe12 = aframe2.TransformParentToLocal(aframe1);
+        // ChFrame<> aframe12 = aframe2.TransformParentToLocal(aframe1);
 
         double aux_rotation;
         aux_rotation = m_func->GetVal(mytime) + rot_offset;
 
         ChFrame<> aframe1rotating;
-        aframe1rotating.SetPos(aframe1.GetPos()); // for safe
+        aframe1rotating.SetPos(aframe1.GetPos());  // for safe
         aframe1rotating.SetRot(aframe1.GetRot() * QuatFromAngleZ(aux_rotation).GetConjugate());
 
         ChFrame<> aframe1rotating2 = aframe2.TransformParentToLocal(aframe1rotating);
@@ -107,8 +106,7 @@ void ChLinkMotorRotationAngle::Update(double mytime, bool update_assets) {
     }
 }
 
-
-void ChLinkMotorRotationAngle::KRMmatricesLoad(double Kfactor, double Rfactor, double Mfactor) {
+void ChLinkMotorRotationAngle::LoadKRMMatrices(double Kfactor, double Rfactor, double Mfactor) {
     if (!this->IsActive())
         return;
 
@@ -122,8 +120,8 @@ void ChLinkMotorRotationAngle::KRMmatricesLoad(double Kfactor, double Rfactor, d
         ChMatrix33<> R_F1_W = F1_W.GetRotMat();
         ChMatrix33<> R_F2_W = F2_W.GetRotMat();
         ChVector3d P12_B2 = R_B2_W.transpose() * (F1_W.GetPos() - F2_W.GetPos());
-        //ChFrame<> F1_wrt_F2;
-        //F2_W.TransformParentToLocal(F1_W, F1_wrt_F2);
+        // ChFrame<> F1_wrt_F2;
+        // F2_W.TransformParentToLocal(F1_W, F1_wrt_F2);
 
         ChVector3d r_F1_B1 = this->frame1.GetPos();
         ChVector3d r_F2_B2 = this->frame2.GetPos();
@@ -172,7 +170,7 @@ void ChLinkMotorRotationAngle::KRMmatricesLoad(double Kfactor, double Rfactor, d
         Ks.block<3, 3>(9, 9) = R_B2_W.transpose() * R_F2_W * G * R_F1M_W.transpose() * R_B2_W;
 
         // The complete tangent stiffness matrix
-        this->Kmatr->Get_K() = (Km + Ks) * Kfactor;
+        this->Kmatr->GetMatrix() = (Km + Ks) * Kfactor;
     }
 }
 
@@ -191,7 +189,7 @@ void ChLinkMotorRotationAngle::ConstraintsBiLoad_Ct(double factor) {
     double mCt = -0.5 * m_func->GetDer(this->GetChTime());
     unsigned int ncrz = mask.GetNumConstraints() - 1;
     if (mask.GetConstraint(ncrz).IsActive()) {
-        mask.GetConstraint(ncrz).Set_b_i(mask.GetConstraint(ncrz).Get_b_i() + factor * mCt);
+        mask.GetConstraint(ncrz).SetRightHandSide(mask.GetConstraint(ncrz).GetRightHandSide() + factor * mCt);
     }
 }
 
@@ -209,7 +207,7 @@ void ChLinkMotorRotationAngle::ArchiveOut(ChArchiveOut& archive_out) {
 /// Method to allow de serialization of transient data from archives.
 void ChLinkMotorRotationAngle::ArchiveIn(ChArchiveIn& archive_in) {
     // version number
-    /*int version =*/ archive_in.VersionRead<ChLinkMotorRotationAngle>();
+    /*int version =*/archive_in.VersionRead<ChLinkMotorRotationAngle>();
 
     // deserialize parent class
     ChLinkMotorRotation::ArchiveIn(archive_in);

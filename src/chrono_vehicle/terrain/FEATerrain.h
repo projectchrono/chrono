@@ -40,7 +40,7 @@ class CH_VEHICLE_API FEATerrain : public ChTerrain {
     /// Construct a default FEADeformableSoil.
     /// The user is responsible for calling various Set methods before Initialize.
     FEATerrain(ChSystem* system  ///< [in/out] pointer to the containing system);
-                         );
+    );
 
     ~FEATerrain() {}
 
@@ -67,14 +67,14 @@ class CH_VEHICLE_API FEATerrain : public ChTerrain {
                               double hardening_slope,  ///< [in] Soil hardening slope, for plasticity
                               double friction_angle,   ///< [in] Soil internal friction angle
                               double dilatancy_angle   ///< [in] Soil dilatancy angle
-                              );
+    );
 
     /// Initialize the terrain system (flat).
     /// This version creates a flat array of points.
-    void Initialize(const ChVector3d& start_point,               ///< [in] Base point to build terrain box
-                    const ChVector3d& terrain_dimension,         ///< [in] terrain dimensions in the 3 directions
+    void Initialize(const ChVector3d& start_point,            ///< [in] Base point to build terrain box
+                    const ChVector3d& terrain_dimension,      ///< [in] terrain dimensions in the 3 directions
                     const ChVector3i& terrain_discretization  ///< [in] Number of finite elements in the 3 directions
-                    );
+    );
 
     /// Get the underlying FEA mesh.
     std::shared_ptr<fea::ChMesh> GetMesh() const { return m_mesh; }

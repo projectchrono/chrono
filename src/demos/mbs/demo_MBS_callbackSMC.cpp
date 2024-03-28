@@ -113,19 +113,19 @@ class ContactForce : public ChSystemSMC::ChContactForceTorqueSMC {
   public:
     // Demonstration only.
     virtual ChWrenchd CalculateForceTorque(
-        const ChSystemSMC& sys,             ///< containing sys
-        const ChVector3d& normal_dir,       ///< normal contact direction (expressed in global frame)
-        const ChVector3d& p1,               ///< most penetrated point on obj1 (expressed in global frame)
-        const ChVector3d& p2,               ///< most penetrated point on obj2 (expressed in global frame)
-        const ChVector3d& vel1,             ///< velocity of contact point on obj1 (expressed in global frame)
-        const ChVector3d& vel2,             ///< velocity of contact point on obj2 (expressed in global frame)
+        const ChSystemSMC& sys,                    ///< containing sys
+        const ChVector3d& normal_dir,              ///< normal contact direction (expressed in global frame)
+        const ChVector3d& p1,                      ///< most penetrated point on obj1 (expressed in global frame)
+        const ChVector3d& p2,                      ///< most penetrated point on obj2 (expressed in global frame)
+        const ChVector3d& vel1,                    ///< velocity of contact point on obj1 (expressed in global frame)
+        const ChVector3d& vel2,                    ///< velocity of contact point on obj2 (expressed in global frame)
         const ChContactMaterialCompositeSMC& mat,  ///< composite material for contact pair
-        double delta,                       ///< overlap in normal direction
-        double eff_radius,                  ///< effective radius of curvature at contact
-        double mass1,                       ///< mass of obj1
-        double mass2,                       ///< mass of obj2
-        ChContactable* objA,                ///< pointer to contactable obj1
-        ChContactable* objB                 ///< pointer to contactable obj2
+        double delta,                              ///< overlap in normal direction
+        double eff_radius,                         ///< effective radius of curvature at contact
+        double mass1,                              ///< mass of obj1
+        double mass2,                              ///< mass of obj2
+        ChContactable* objA,                       ///< pointer to contactable obj1
+        ChContactable* objB                        ///< pointer to contactable obj2
     ) const override {
         // Relative velocity at contact
         ChVector3d relvel = vel2 - vel1;
@@ -136,7 +136,7 @@ class ContactForce : public ChSystemSMC::ChContactForceTorqueSMC {
 
         // Calculate effective mass
         double eff_mass = mass1 * mass2 / (mass1 + mass2);
-        
+
         // Calculate the magnitudes of the normal and tangential contact forces
         double kn = mat.kn;
         double kt = mat.kt;
@@ -157,7 +157,7 @@ class ContactForce : public ChSystemSMC::ChContactForceTorqueSMC {
         ChVector3d force = forceN * normal_dir;
         if (relvel_t_mag >= sys.GetSlipVelocityThreshold())
             force -= (forceT / relvel_t_mag) * relvel_t;
-        
+
         // for torque do nothing (this could be used to simulate rolling or spinning friction, if needed)
         ChVector3d torque = VNULL;
 
@@ -191,7 +191,7 @@ int main(int argc, char* argv[]) {
 
     // Change default collision effective radius of curvature
     ////ChCollisionInfo::SetDefaultEffectiveCurvatureRadius(1);
-    
+
     // --------------------------------------------------
     // Create a contact material, shared among all bodies
     // --------------------------------------------------
@@ -207,7 +207,6 @@ int main(int argc, char* argv[]) {
     sys.Add(container);
     container->SetPos(ChVector3d(0, 0, 0));
     container->SetFixed(true);
-    container->SetIdentifier(-1);
 
     container->EnableCollision(true);
     utils::AddBoxGeometry(container.get(), material, ChVector3d(8, 1, 8), ChVector3d(0, -0.5, 0));

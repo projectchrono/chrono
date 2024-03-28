@@ -27,19 +27,26 @@
 #include "chrono/physics/ChLinkMotorLinearForce.h"
 #include "chrono/physics/ChLinkMotorLinearDriveline.h"
 #include "chrono/physics/ChShaftsMotorSpeed.h"
-#include "chrono/physics/ChShaftsMotorAngle.h"
+#include "chrono/physics/ChShaftsMotorPosition.h"
 #include "chrono/physics/ChShaftsPlanetary.h"
 #include "chrono/physics/ChShaftsGear.h"
 
 #include "chrono/core/ChRealtimeStep.h"
 #include "chrono/functions/ChFunctionSine.h"
 
-#include "chrono_irrlicht/ChVisualSystemIrrlicht.h"
-
-// Use the namespaces of Chrono
-using namespace chrono;
+#include "chrono/assets/ChVisualSystem.h"
+#ifdef CHRONO_IRRLICHT
+    #include "chrono_irrlicht/ChVisualSystemIrrlicht.h"
 using namespace chrono::irrlicht;
+#endif
+#ifdef CHRONO_VSG
+    #include "chrono_vsg/ChVisualSystemVSG.h"
+using namespace chrono::vsg3d;
+#endif
 
+using namespace chrono;
+
+ChVisualSystem::Type vis_type = ChVisualSystem::Type::VSG;
 ChCollisionSystem::Type collision_type = ChCollisionSystem::Type::BULLET;
 
 // Shortcut function that creates two bodies (a slider and a guide) in a given position,
@@ -404,8 +411,8 @@ int main(int argc, char* argv[]) {
     auto motor1 = chrono_types::make_shared<ChLinkMotorLinearPosition>();
 
     // Connect the guide and the slider and add the motor to the system:
-    motor1->Initialize(slider1,               // body A (slave)
-                       guide1,                // body B (master)
+    motor1->Initialize(slider1,                                // body A (slave)
+                       guide1,                                 // body B (master)
                        ChFrame<>(positionB1, Q_ROTATE_Z_TO_X)  // motor frame, in abs. coords
     );
     sys.Add(motor1);
@@ -443,8 +450,8 @@ int main(int argc, char* argv[]) {
     auto motor2 = chrono_types::make_shared<ChLinkMotorLinearSpeed>();
 
     // Connect the guide and the slider and add the motor to the system:
-    motor2->Initialize(slider2,               // body A (slave)
-                       guide2,                // body B (master)
+    motor2->Initialize(slider2,                                // body A (slave)
+                       guide2,                                 // body B (master)
                        ChFrame<>(positionB2, Q_ROTATE_Z_TO_X)  // motor frame, in abs. coords
     );
     sys.Add(motor2);
@@ -496,8 +503,8 @@ int main(int argc, char* argv[]) {
     auto motor3 = chrono_types::make_shared<ChLinkMotorLinearForce>();
 
     // Connect the guide and the slider and add the motor to the system:
-    motor3->Initialize(slider3,               // body A (slave)
-                       guide3,                // body B (master)
+    motor3->Initialize(slider3,                                // body A (slave)
+                       guide3,                                 // body B (master)
                        ChFrame<>(positionB3, Q_ROTATE_Z_TO_X)  // motor frame, in abs. coords
     );
     sys.Add(motor3);
@@ -528,8 +535,8 @@ int main(int argc, char* argv[]) {
     auto motor4 = chrono_types::make_shared<ChLinkMotorLinearForce>();
 
     // Connect the guide and the slider and add the motor to the system:
-    motor4->Initialize(slider4,               // body A (slave)
-                       guide4,                // body B (master)
+    motor4->Initialize(slider4,                                // body A (slave)
+                       guide4,                                 // body B (master)
                        ChFrame<>(positionB4, Q_ROTATE_Z_TO_X)  // motor frame, in abs. coords
     );
     sys.Add(motor4);
@@ -616,7 +623,6 @@ int main(int argc, char* argv[]) {
     // drive+screw; you will anchor the drive to part 2 using this rotational shaft; so
     // reaction torques arising because of inner flywheel accelerations can be transmitted to this shaft.
 
-
     //               [************ motor5 ********]
     //  [ guide5  ]----[----(ChShaftBodyRotation)---------------[Shaft2Rot]----]--->
     //  [ guide5  ]----[----(ChShaftBodyTranslation)----[Shaft2Lin]----]--->
@@ -636,8 +642,8 @@ int main(int argc, char* argv[]) {
     auto motor5 = chrono_types::make_shared<ChLinkMotorLinearDriveline>();
 
     // Connect the rotor and the stator and add the motor to the system:
-    motor5->Initialize(slider5,               // body A (slave)
-                       guide5,                // body B (master)
+    motor5->Initialize(slider5,                                // body A (slave)
+                       guide5,                                 // body B (master)
                        ChFrame<>(positionB5, Q_ROTATE_Z_TO_X)  // motor frame, in abs. coords
     );
     sys.Add(motor5);
@@ -659,7 +665,7 @@ int main(int argc, char* argv[]) {
     my_shaftB->SetInertia(0.33);  // [kg/m^2]
     sys.AddShaft(my_shaftB);
 
-    auto my_driveli = chrono_types::make_shared<ChShaftsMotorAngle>();
+    auto my_driveli = chrono_types::make_shared<ChShaftsMotorPosition>();
     my_driveli->Initialize(my_shaftB,                   // B    , the rotor of the drive
                            motor5->GetInnerShaft2Rot()  // S2rot, the stator of the drive
     );
@@ -680,7 +686,7 @@ int main(int argc, char* argv[]) {
     my_functsequence->InsertFunct(my_funcpause2, 0.2, 1.0, true);  // fx, duration, weight, enforce C0 continuity
     auto my_functangle = chrono_types::make_shared<ChFunctionRepeat>(my_functsequence);
     my_functangle->SetSliceWidth(0.5 + 0.2 + 0.3 + 0.2);
-    my_driveli->SetAngleFunction(my_functangle);
+    my_driveli->SetPositionFunction(my_functangle);
 
     auto my_rackpinion = chrono_types::make_shared<ChShaftsPlanetary>();
     my_rackpinion->Initialize(motor5->GetInnerShaft2Lin(),  // S2lin, the carrier (truss)
@@ -732,8 +738,8 @@ int main(int argc, char* argv[]) {
     auto motor6 = chrono_types::make_shared<ChLinkMotorLinearPosition>();
 
     // Connect the guide and the slider and add the motor to the system:
-    motor6->Initialize(slider6,               // body A (slave)
-                       guide6,                // body B (master)
+    motor6->Initialize(slider6,                                // body A (slave)
+                       guide6,                                 // body B (master)
                        ChFrame<>(positionB6, Q_ROTATE_Z_TO_X)  // motor frame, in abs. coords
     );
     sys.Add(motor6);
@@ -745,21 +751,62 @@ int main(int argc, char* argv[]) {
     // Let the motor use this motion function:
     motor6->SetMotionFunction(motor6setpoint);
 
-    // Create the Irrlicht visualization system
-    auto vis = chrono_types::make_shared<ChVisualSystemIrrlicht>();
-    vis->AttachSystem(&sys);
-    vis->SetWindowSize(800, 600);
-    vis->SetWindowTitle("Motors");
-    vis->Initialize();
-    vis->AddLogo();
-    vis->AddSkyBox();
-    vis->AddCamera(ChVector3d(1, 3, -7));
-    vis->AddTypicalLights();
-    vis->AddLightWithShadow(ChVector3d(20.0, 35.0, -25.0), ChVector3d(0, 0, 0), 55, 20, 55, 35, 512,
-                            ChColor(0.6f, 0.8f, 1.0f));
-    vis->EnableShadows();
+    // Create the run-time visualization system
+#ifndef CHRONO_IRRLICHT
+    if (vis_type == ChVisualSystem::Type::IRRLICHT)
+        vis_type = ChVisualSystem::Type::VSG;
+#endif
+#ifndef CHRONO_VSG
+    if (vis_type == ChVisualSystem::Type::VSG)
+        vis_type = ChVisualSystem::Type::IRRLICHT;
+#endif
 
-    // Modify some setting of the physical system for the simulation, if you want
+    std::shared_ptr<ChVisualSystem> vis;
+    switch (vis_type) {
+        case ChVisualSystem::Type::IRRLICHT: {
+#ifdef CHRONO_IRRLICHT
+            auto vis_irr = chrono_types::make_shared<ChVisualSystemIrrlicht>();
+            vis_irr->AttachSystem(&sys);
+            vis_irr->SetWindowSize(800, 600);
+            vis_irr->SetWindowTitle("Motors");
+            vis_irr->Initialize();
+            vis_irr->AddLogo();
+            vis_irr->AddSkyBox();
+            vis_irr->AddTypicalLights();
+            vis_irr->AddCamera(ChVector3d(1, 3, -7));
+            vis_irr->AddLightWithShadow(ChVector3d(20.0, 35.0, -25.0), ChVector3d(0, 0, 0), 55, 20, 55, 35, 512,
+                                        ChColor(0.6f, 0.8f, 1.0f));
+            vis_irr->EnableShadows();
+
+            vis = vis_irr;
+#endif
+            break;
+        }
+        default:
+        case ChVisualSystem::Type::VSG: {
+#ifdef CHRONO_VSG
+            auto vis_vsg = chrono_types::make_shared<ChVisualSystemVSG>();
+            vis_vsg->AttachSystem(&sys);
+            vis_vsg->SetWindowTitle("Motors");
+            vis_vsg->AddCamera(ChVector3d(4.5, 4.5, -10.5));
+            vis_vsg->SetWindowSize(ChVector2i(800, 600));
+            vis_vsg->SetClearColor(ChColor(0.8f, 0.85f, 0.9f));
+            vis_vsg->SetUseSkyBox(true);
+            vis_vsg->SetCameraVertical(CameraVerticalDir::Y);
+            vis_vsg->SetCameraAngleDeg(40.0);
+            vis_vsg->SetLightIntensity(1.0f);
+            vis_vsg->SetLightDirection(1.5 * CH_PI_2, CH_PI_4);
+            vis_vsg->SetShadows(true);
+            vis_vsg->SetWireFrameMode(false);
+            vis_vsg->Initialize();
+
+            vis = vis_vsg;
+#endif
+            break;
+        }
+    }
+
+    // Modify some setting of the physical system for the simulation
     sys.SetSolverType(ChSolver::Type::PSOR);
     sys.GetSolver()->AsIterative()->SetMaxIterations(50);
 
@@ -770,8 +817,8 @@ int main(int argc, char* argv[]) {
         vis->Render();
         vis->EndScene();
 
-        // Example B.6 requires the setpoint to be changed in the simulation loop:
-        // for example use a clamped sinusoid, just for fun:
+        // Example B.6 requires the setpoint to be changed in the simulation loop.
+        // For example, use a clamped sinusoidal
         double t = sys.GetChTime();
         double Sp = std::min(std::max(2.6 * sin(t * 1.8), -1.4), 1.4);
         motor6setpoint->SetSetpoint(Sp, t);

@@ -166,7 +166,7 @@ void ChLinkLockClearance::UpdateTime(double mytime) {
     ma.SetFromDirectionAxes(mx, my, mz);
 
     // rotate "main" marker2 into tangent position
-    marker2->ImposeAbsoluteTransform(ChFrame<>(marker2->GetAbsCoordsys().pos, ma.GetQuaternion()));  
+    marker2->ImposeAbsoluteTransform(ChFrame<>(marker2->GetAbsCoordsys().pos, ma.GetQuaternion()));
 
     // imposed relative positions/speeds
     deltaC.pos = VNULL;

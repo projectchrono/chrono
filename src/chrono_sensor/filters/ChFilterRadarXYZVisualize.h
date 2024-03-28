@@ -14,7 +14,6 @@
 // This filter visualizes cartesian radar data
 // =============================================================================
 
-
 #ifndef CHFILTERRADARXYZVISUALIZE_H
 #define CHFILTERRADARXYZVISUALIZE_H
 
@@ -25,7 +24,7 @@ namespace chrono {
 namespace sensor {
 
 class ChSensor;
-class CH_SENSOR_API ChFilterRadarXYZVisualize: public ChFilterVisualize {
+class CH_SENSOR_API ChFilterRadarXYZVisualize : public ChFilterVisualize {
   public:
     ChFilterRadarXYZVisualize(int w, int h, float zoom, std::string name = "ChFilterVisualizeRadarPC");
 

@@ -537,7 +537,7 @@ void ChVisualShapeFEA::UpdateBuffers_Beam(std::shared_ptr<fea::ChElementBase> el
                 if (in > 0) {
                     ChVector3i ivert_offset(ivert_el, ivert_el, ivert_el);
                     ChVector3i islice_offset((in - 1) * n_section_pts, (in - 1) * n_section_pts,
-                                                (in - 1) * n_section_pts);
+                                             (in - 1) * n_section_pts);
                     for (size_t is = 0; is < msubline_pts.size() - 1; ++is) {
                         int ipa = int(is) + subline_stride;
                         int ipb = int(is + 1) + subline_stride;  // % n_section_pts; if wrapped - not needed here;
@@ -643,18 +643,18 @@ void ChVisualShapeFEA::UpdateBuffers_Shell(std::shared_ptr<fea::ChElementBase> e
                     if (iv > 1) {
                         trianglemesh.GetIndicesVertexes()[i_triindex] =
                             ivert_offset + ChVector3i(triangle_pt - 1, triangle_pt + shell_resolution - iu - 2,
-                                                         triangle_pt + shell_resolution - iu - 1);
+                                                      triangle_pt + shell_resolution - iu - 1);
                         trianglemesh.GetIndicesVertexes()[i_triindex + 1] =
                             ivert_offset + ChVector3i(triangle_pt - 1, triangle_pt + shell_resolution - iu - 1,
-                                                         triangle_pt + shell_resolution - iu - 2);
+                                                      triangle_pt + shell_resolution - iu - 2);
 
                         if (smooth_faces) {
                             trianglemesh.GetIndicesNormals()[i_triindex] =
                                 inorm_offset + ChVector3i(triangle_pt - 1, triangle_pt + shell_resolution - iu - 2,
-                                                             triangle_pt + shell_resolution - iu - 1);
+                                                          triangle_pt + shell_resolution - iu - 1);
                             trianglemesh.GetIndicesNormals()[i_triindex + 1] =
                                 inorm_offset + ChVector3i(triangle_pt - 1, triangle_pt + shell_resolution - iu - 1,
-                                                             triangle_pt + shell_resolution - iu - 2);
+                                                          triangle_pt + shell_resolution - iu - 2);
                         }
 
                         i_triindex += 2;
@@ -699,19 +699,18 @@ void ChVisualShapeFEA::UpdateBuffers_Shell(std::shared_ptr<fea::ChElementBase> e
                 if (iu > 0 && iv > 0) {
                     trianglemesh.GetIndicesVertexes()[i_triindex] =
                         ivert_offset + ChVector3i(iu * shell_resolution + iv, (iu - 1) * shell_resolution + iv,
-                                                     iu * shell_resolution + iv - 1);
+                                                  iu * shell_resolution + iv - 1);
                     trianglemesh.GetIndicesVertexes()[i_triindex + 1] =
                         ivert_offset + ChVector3i(iu * shell_resolution + iv - 1, (iu - 1) * shell_resolution + iv,
-                                                     (iu - 1) * shell_resolution + iv - 1);
+                                                  (iu - 1) * shell_resolution + iv - 1);
 
                     if (smooth_faces) {
                         trianglemesh.GetIndicesNormals()[i_triindex] =
                             inorm_offset + ChVector3i(iu * shell_resolution + iv, (iu - 1) * shell_resolution + iv,
-                                                         iu * shell_resolution + iv - 1);
+                                                      iu * shell_resolution + iv - 1);
                         trianglemesh.GetIndicesNormals()[i_triindex + 1] =
-                            inorm_offset + ChVector3i(iu * shell_resolution + iv - 1,
-                                                         (iu - 1) * shell_resolution + iv,
-                                                         (iu - 1) * shell_resolution + iv - 1);
+                            inorm_offset + ChVector3i(iu * shell_resolution + iv - 1, (iu - 1) * shell_resolution + iv,
+                                                      (iu - 1) * shell_resolution + iv - 1);
                     }
 
                     i_triindex += 2;

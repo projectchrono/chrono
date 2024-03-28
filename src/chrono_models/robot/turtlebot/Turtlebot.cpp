@@ -73,8 +73,8 @@ void AddRevoluteJoint(std::shared_ptr<ChBodyAuxRef> body_1,
                       const ChVector3d& rel_joint_pos,
                       const ChQuaternion<>& rel_joint_rot) {
     const ChFrame<>& X_GP = chassis->GetFrameRefToAbs();  // global -> parent
-    ChFrame<> X_PC(rel_joint_pos, rel_joint_rot);            // parent -> child
-    ChFrame<> X_GC = X_GP * X_PC;                            // global -> child
+    ChFrame<> X_PC(rel_joint_pos, rel_joint_rot);         // parent -> child
+    ChFrame<> X_GC = X_GP * X_PC;                         // global -> child
 
     auto revo = chrono_types::make_shared<ChLinkLockRevolute>();
     revo->Initialize(body_1, body_2, ChFrame<>(X_GC.GetCoordsys().pos, X_GC.GetCoordsys().rot));
@@ -90,8 +90,8 @@ void AddRevoluteJoint(std::shared_ptr<ChBodyEasyBox> body_1,
                       const ChVector3d& rel_joint_pos,
                       const ChQuaternion<>& rel_joint_rot) {
     const ChFrame<>& X_GP = chassis->GetFrameRefToAbs();  // global -> parent
-    ChFrame<> X_PC(rel_joint_pos, rel_joint_rot);            // parent -> child
-    ChFrame<> X_GC = X_GP * X_PC;                            // global -> child
+    ChFrame<> X_PC(rel_joint_pos, rel_joint_rot);         // parent -> child
+    ChFrame<> X_GC = X_GP * X_PC;                         // global -> child
 
     auto revo = chrono_types::make_shared<ChLinkLockRevolute>();
     revo->Initialize(body_1, body_2, ChFrame<>(X_GC.GetCoordsys().pos, X_GC.GetCoordsys().rot));
@@ -107,8 +107,8 @@ void AddLockJoint(std::shared_ptr<ChBodyAuxRef> body_1,
                   const ChVector3d& rel_joint_pos,
                   const ChQuaternion<>& rel_joint_rot) {
     const ChFrame<>& X_GP = chassis->GetFrameRefToAbs();  // global -> parent
-    ChFrame<> X_PC(rel_joint_pos, rel_joint_rot);            // parent -> child
-    ChFrame<> X_GC = X_GP * X_PC;                            // global -> child
+    ChFrame<> X_PC(rel_joint_pos, rel_joint_rot);         // parent -> child
+    ChFrame<> X_GC = X_GP * X_PC;                         // global -> child
 
     // auto revo = chrono_types::make_shared<ChLinkLockRevolute>();
     auto revo = chrono_types::make_shared<ChLinkLockLock>();
@@ -126,8 +126,8 @@ std::shared_ptr<ChLinkMotorRotationSpeed> AddMotor(std::shared_ptr<ChBody> body_
                                                    const ChQuaternion<>& rel_joint_rot,
                                                    std::shared_ptr<ChFunctionConst> speed_func) {
     const ChFrame<>& X_GP = chassis->GetFrameRefToAbs();  // global -> parent
-    ChFrame<> X_PC(rel_joint_pos, rel_joint_rot);            // parent -> child
-    ChFrame<> X_GC = X_GP * X_PC;                            // global -> child
+    ChFrame<> X_PC(rel_joint_pos, rel_joint_rot);         // parent -> child
+    ChFrame<> X_GC = X_GP * X_PC;                         // global -> child
 
     auto motor_angle = chrono_types::make_shared<ChLinkMotorRotationSpeed>();
     motor_angle->Initialize(body_1, body_2, ChFrame<>(X_GC.GetCoordsys().pos, X_GC.GetCoordsys().rot));
@@ -146,7 +146,7 @@ Turtlebot_Part::Turtlebot_Part(const std::string& name,
                                std::shared_ptr<ChBodyAuxRef> chassis_body,
                                bool collide) {
     m_body = chrono_types::make_shared<ChBodyAuxRef>();
-    m_body->SetNameString(name + "_body");
+    m_body->SetName(name + "_body");
     m_chassis = chassis_body;
     m_mat = mat;
     m_pos = body_pos;
@@ -279,8 +279,8 @@ void Turtlebot_ActiveWheel::Initialize() {
 
     // set relative position to chassis
     const ChFrame<>& X_GP = m_chassis->GetFrameRefToAbs();  // global -> parent
-    ChFrame<> X_PC(m_pos, m_rot);                              // parent -> child
-    ChFrame<> X_GC = X_GP * X_PC;                              // global -> child
+    ChFrame<> X_PC(m_pos, m_rot);                           // parent -> child
+    ChFrame<> X_GC = X_GP * X_PC;                           // global -> child
     m_body->SetFrameRefToAbs(X_GC);
     m_body->SetFixed(m_fixed);
 
@@ -341,8 +341,8 @@ void Turtlebot_PassiveWheel::Initialize() {
 
     // set relative position to chassis
     const ChFrame<>& X_GP = m_chassis->GetFrameRefToAbs();  // global -> parent
-    ChFrame<> X_PC(m_pos, m_rot);                              // parent -> child
-    ChFrame<> X_GC = X_GP * X_PC;                              // global -> child
+    ChFrame<> X_PC(m_pos, m_rot);                           // parent -> child
+    ChFrame<> X_GC = X_GP * X_PC;                           // global -> child
     m_body->SetFrameRefToAbs(X_GC);
     m_body->SetFixed(m_fixed);
 
@@ -403,8 +403,8 @@ void Turtlebot_Rod_Short::Initialize() {
 
     // set relative position to chassis
     const ChFrame<>& X_GP = m_chassis->GetFrameRefToAbs();  // global -> parent
-    ChFrame<> X_PC(m_pos, m_rot);                              // parent -> child
-    ChFrame<> X_GC = X_GP * X_PC;                              // global -> child
+    ChFrame<> X_PC(m_pos, m_rot);                           // parent -> child
+    ChFrame<> X_GC = X_GP * X_PC;                           // global -> child
     m_body->SetFrameRefToAbs(X_GC);
     m_body->SetFixed(m_fixed);
 
@@ -467,8 +467,8 @@ void Turtlebot_BottomPlate::Initialize() {
 
     // set relative position to chassis
     const ChFrame<>& X_GP = m_chassis->GetFrameRefToAbs();  // global -> parent
-    ChFrame<> X_PC(m_pos, m_rot);                              // parent -> child
-    ChFrame<> X_GC = X_GP * X_PC;                              // global -> child
+    ChFrame<> X_PC(m_pos, m_rot);                           // parent -> child
+    ChFrame<> X_GC = X_GP * X_PC;                           // global -> child
     m_body->SetFrameRefToAbs(X_GC);
     m_body->SetFixed(m_fixed);
 
@@ -530,8 +530,8 @@ void Turtlebot_MiddlePlate::Initialize() {
 
     // set relative position to chassis
     const ChFrame<>& X_GP = m_chassis->GetFrameRefToAbs();  // global -> parent
-    ChFrame<> X_PC(m_pos, m_rot);                              // parent -> child
-    ChFrame<> X_GC = X_GP * X_PC;                              // global -> child
+    ChFrame<> X_PC(m_pos, m_rot);                           // parent -> child
+    ChFrame<> X_GC = X_GP * X_PC;                           // global -> child
     m_body->SetFrameRefToAbs(X_GC);
     m_body->SetFixed(m_fixed);
 
@@ -593,8 +593,8 @@ void Turtlebot_TopPlate::Initialize() {
 
     // set relative position to chassis
     const ChFrame<>& X_GP = m_chassis->GetFrameRefToAbs();  // global -> parent
-    ChFrame<> X_PC(m_pos, m_rot);                              // parent -> child
-    ChFrame<> X_GC = X_GP * X_PC;                              // global -> child
+    ChFrame<> X_PC(m_pos, m_rot);                           // parent -> child
+    ChFrame<> X_GC = X_GP * X_PC;                           // global -> child
     m_body->SetFrameRefToAbs(X_GC);
     m_body->SetFixed(m_fixed);
 
@@ -658,8 +658,8 @@ void Turtlebot_Rod_Long::Initialize() {
 
     // set relative position to chassis
     const ChFrame<>& X_GP = m_chassis->GetFrameRefToAbs();  // global -> parent
-    ChFrame<> X_PC(m_pos, m_rot);                              // parent -> child
-    ChFrame<> X_GC = X_GP * X_PC;                              // global -> child
+    ChFrame<> X_PC(m_pos, m_rot);                           // parent -> child
+    ChFrame<> X_GC = X_GP * X_PC;                           // global -> child
     m_body->SetFrameRefToAbs(X_GC);
     m_body->SetFixed(m_fixed);
 

@@ -47,61 +47,35 @@ This will be the directory where you put your source code.
 ------------------------------------------------------------
 
 - In the template directory there is already a CMakeLists.txt script. It will be used by CMake.
-  **Optionally** you might edit it, see below.
+  Before customizing it for your own purposes it is highly recommended to first try to build the predefined example so to make sure to have all the other dependencies in place.
 
-<div class="ce-info">
-For example, suppose you want to use also the [POSTPROCESS module](group__postprocess__module.html).
-You can edit CMakeLists.txt where it reads:
-~~~{.c}
-find_package(Chrono
-             COMPONENTS Irrlicht
-             CONFIG)
-~~~
-and add the required module:
-~~~{.c}
-find_package(Chrono
-             COMPONENTS Irrlicht Postprocess
-             CONFIG)
-~~~
-The same is done for any other Chrono module.  The list of available modules is: `Cascade`, `Cosimulation`, `FSI`, `Granular`, `Irrlicht`, `Matlab`, `MKL`, `MUMPS`, `OpenGL`, `Parallel`, `Postprocess`, `Python`, `Vehicle`. The syntax is case insensitive (in other words, any of `OpenGL`, `OPENGL`, or `opengl` are valid component names).
-<br><br>
-Note also that Chrono modules can be listed as **required** (after the `COMPONENTS` option) or as **optional** (after `OPTIONAL_COMPONENTS`) as in the example below:
-~~~{.c}
-find_package(Chrono
-             COMPONENTS Irrlicht
-             OPTIONAL_COMPONENTS Postprocess
-             CONFIG)
-~~~
-In the former case, CMake processing is stopped if Chrono was not configured and built with one of the required modules enabled.  In the latter case, CMake processing continues.  When listing Chrono modules as optional components, it is the responsibility of the user to appropriately check in their project code whether or not that Chrono module is in fact available; e.g., by using the macros defined in `ChConfig.h` (`CHRONO_IRRLICHT`, `CHRONO_POSTPROCESS`, etc) which are defined for enabled modules.
-<br><br>
-For more details, see the CMake documentation for `find_package` and its "Config Mode".
-</div>
+- Only two elements should be customized:
+  - request the `COMPONENTS` and `OPTIONAL_COMPONENTS` required by your project in the call to `find_package`:  
+    ~~~{.c}
+    find_package(Chrono
+                COMPONENTS <list of required components>
+                OPTIONAL_COMPONENTS <list of optional components>
+                CONFIG)
+    ~~~
+    For example,
+    ~~~{.c}
+    find_package(Chrono
+                COMPONENTS Irrlicht
+                OPTIONAL_COMPONENTS Postprocess
+                CONFIG)
+    ~~~
+    Please mind that the `OPTIONAL_COMPONENTS` argument can be omitted if none.  
+    The list of available module is shown during compilation of the Chrono solution. Surely the most common is the visual interface "Irrlicht".
+  - the list of source files and the name of the target in the call to `add_executable`:  
+    ~~~{.c}
+    add_executable(myRobot robot_grip.cpp  robot_motors.cpp)
+    ~~~
 
-<div class="ce-info">
-If you prefer to change the name of the default *my_example.cpp* to 
-something more meaningful, say my_simulator.cpp, just rename that file and then change the line<br>
- `add_executable(myexe my_example.cpp)` <br>
- into <br>
- `add_executable(myexe my_simulator.cpp)`<br>
-</div>
-
-<div class="ce-info">
-If your program is split in multiple .cpp sources, simply list them in this line:
- `add_executable(myexe my_simulator.cpp  my_foo_source.cpp  my_bar_source.cpp)` 
-</div>
-
-<div class="ce-warning">
-As of version 2017 15.8, Visual Studio has changed its handling of aligned memory allocation.
-To properly deal with aligned memory allocation for classes that have members fixed-size vectorizable Eigen objects, make sure your CMakeLists.txt **retains** lines 104-108:
-~~~
-if(${CMAKE_SYSTEM_NAME} MATCHES "Windows")
-  if(MSVC AND ${MSVC_VERSION} GREATER_EQUAL 1915)
-    add_definitions( "-D_ENABLE_EXTENDED_ALIGNED_STORAGE" )
-  endif()
-endif()
-~~~
-which conditionally defines `_ENABLE_EXTENDED_ALIGNED_STORAGE`.
-</div>
+It is highly recommended to:
+- ask only for those `COMPONENTS` that are truly required;
+- do not modify any other line, especially for beginner users;
+- start your project by using the source file present in the `template_project` folder, not from a blank page;
+    
 
 4) Start CMake 
 --------------------------------------------------
@@ -174,9 +148,7 @@ Important information for Windows users
 
 If you are a Windows users, your project executables need to know where to find the Chrono shared libraries (i.e. those with .dll extension), otherwise they will crash as soon as you try to run them.
 
-To make things simple, we added an auxiliary CMake target (namely COPY_DLLS) that makes a copy of the Chrono DLLs (as well as other DLL dependencies such as the Irrlicht shared library, as appropriate) in the project binaries folder (e.g. `C:\workspace\my_project_build\Release`).  There are two different scenarios:
-  + `Chrono_DIR` is a _build_ folder; if you followed our [installation guide](@ref tutorial_install_chrono) then `C:/workspace/chrono_build` is of this type; in this case you may have both Release and Debug version of Chrono (under `C:/workspace/chrono_build/bin`); if both are present, please mind that **only Release libraries will be copied**; if you want to run your project in Debug configuration then you have to manually copy the Debug libraries contained in `C:/workspace/chrono_build/bin/Debug` into `C:/workspace/my_project_build/Debug`;
-  + `Chrono_DIR` is an _install_ folder; this is the folder type that is created by building the `INSTALL` target; this folder is usually `C:/Program Files/Chrono` and contains either Debug or Release libraries, depending on the configuration that you set when you built the `INSTALL` target.
+To make things simple, we added an auxiliary CMake target (namely COPY_DLLS) that makes a copy of the Chrono DLLs (as well as other DLL dependencies such as the Irrlicht shared library, as appropriate) in the project binaries folder (e.g. `C:\workspace\my_project_build\Release`). However, additional third-party libraries might require to change the `PATH` variable or copy the DLLs in the same folder as the executable.
 
 
 <div class="ce-warning">
@@ -184,7 +156,7 @@ The COPY_DLLS target must be re-run (i.e. rebuilt) any time the Chrono library h
 </div>
 
 <div class="ce-warning">
-Your project has to be compiled with the same build configuration as Chrono. For example, if Chrono was built in Release mode, your project must also be built in Release.  Note that automatic copying of Chrono DLLs as described above is hard-coded for Release builds only.  For other build configuraitons (Debug, RelWithDebInfo, etc.) it is the user's responsibility to ensure the Chrono DLLs are found (e.g., by manually copying them from the Chrono build directory).
+Your project has to be compiled with the same build configuration as Chrono. For example, if Chrono was built in Release mode, your project must also be built in Release.
 </div>
 
 <img src="http://www.projectchrono.org/assets/manual/Install_project_COPYDLLS.png" class="img-responsive">

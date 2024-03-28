@@ -32,14 +32,14 @@ namespace unimog {
 
 /// Shafts-based HMMWV brake subsystem (uses a clutch between two shafts).
 class CH_MODELS_API U401_BrakeShafts : public ChBrakeShafts {
-   public:
+  public:
     U401_BrakeShafts(const std::string& name);
     ~U401_BrakeShafts() {}
 
     virtual double GetMaxBrakingTorque() override { return m_maxtorque; }
     virtual double GetShaftInertia() override { return m_shaft_inertia; }
 
-   private:
+  private:
     static const double m_maxtorque;
     static const double m_shaft_inertia;
 };

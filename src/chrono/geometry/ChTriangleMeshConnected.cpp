@@ -34,7 +34,6 @@ extern "C" {
 
 namespace chrono {
 
-
 // Register into the object factory, to enable run-time dynamic creation and persistence
 CH_FACTORY_REGISTER(ChTriangleMeshConnected)
 
@@ -302,17 +301,17 @@ bool ChTriangleMeshConnected::LoadWavefrontMesh(const std::string& filename, boo
     for (size_t i = 0; i < shapes.size(); i++) {
         for (size_t j = 0; j < shapes[i].mesh.indices.size() / 3; j++) {
             m_face_v_indices.push_back(ChVector3i(shapes[i].mesh.indices[3 * j + 0].vertex_index,
-                                                     shapes[i].mesh.indices[3 * j + 1].vertex_index,
-                                                     shapes[i].mesh.indices[3 * j + 2].vertex_index));
+                                                  shapes[i].mesh.indices[3 * j + 1].vertex_index,
+                                                  shapes[i].mesh.indices[3 * j + 2].vertex_index));
             if (m_normals.size() > 0) {
                 m_face_n_indices.push_back(ChVector3i(shapes[i].mesh.indices[3 * j + 0].normal_index,
-                                                         shapes[i].mesh.indices[3 * j + 1].normal_index,
-                                                         shapes[i].mesh.indices[3 * j + 2].normal_index));
+                                                      shapes[i].mesh.indices[3 * j + 1].normal_index,
+                                                      shapes[i].mesh.indices[3 * j + 2].normal_index));
             }
             if (m_UV.size() > 0) {
                 m_face_uv_indices.push_back(ChVector3i(shapes[i].mesh.indices[3 * j + 0].texcoord_index,
-                                                          shapes[i].mesh.indices[3 * j + 1].texcoord_index,
-                                                          shapes[i].mesh.indices[3 * j + 2].texcoord_index));
+                                                       shapes[i].mesh.indices[3 * j + 1].texcoord_index,
+                                                       shapes[i].mesh.indices[3 * j + 2].texcoord_index));
             }
         }
     }
@@ -757,8 +756,8 @@ bool ChTriangleMeshConnected::MakeOffset(double moffset) {
 // If unique = true, swap the pair so that 1st < 2nd, to permit test sharing with other triangle.
 std::pair<int, int> ChTriangleMeshConnected::GetTriangleEdgeIndexes(
     const ChVector3i& face_indices,  // indices of a triangular face
-    int nedge,                          // number of edge: 0, 1, 2
-    bool unique                         // swap?
+    int nedge,                       // number of edge: 0, 1, 2
+    bool unique                      // swap?
 ) {
     std::pair<int, int> medge{face_indices[nedge], face_indices[(nedge + 1) % 3]};
     if (unique && medge.first > medge.second)
@@ -1084,7 +1083,7 @@ void ChTriangleMeshConnected::RefineMeshEdges(
 
             if (mlist.size() > 1000) {
                 ////std::cerr << "overflow in ChTriangleMeshConnected::RefineMeshEdges" << std::endl;
-                ////throw std::runtime_error("overflow in ChTriangleMeshConnected::RefineMeshEdges");            
+                ////throw std::runtime_error("overflow in ChTriangleMeshConnected::RefineMeshEdges");
                 continue;  // set the cap, exit this triangle loop, continue to the next
             }
 
@@ -1298,6 +1297,5 @@ void ChTriangleMeshConnected::ArchiveIn(ChArchiveIn& archive_in) {
     archive_in >> CHNVP(m_properties_per_vertex);
     archive_in >> CHNVP(m_properties_per_face);
 }
-
 
 }  // end namespace chrono

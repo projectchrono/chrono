@@ -12,7 +12,7 @@
 // Authors: Alessandro Tasora
 // =============================================================================
 //
-// FEA force-displacement co-simulation 
+// FEA force-displacement co-simulation
 //   - loading an Abaqus tetrahedron mesh
 //   - apply a load to the mesh using an external tool, e.g. CFD.
 //     (here simulated as a function in this .cpp file)
@@ -276,8 +276,8 @@ int main(int argc, char* argv[]) {
         // End of cosimulation block
         // -------------------------------------------------------------------------
 
-        tools::drawGrid(vis.get(), 0.1, 0.1, 20, 20, ChCoordsys<>(VNULL, CH_PI_2, VECT_X),
-                        ChColor(0.40f, 0.40f, 0.40f), true);
+        tools::drawGrid(vis.get(), 0.1, 0.1, 20, 20, ChCoordsys<>(VNULL, CH_PI_2, VECT_X), ChColor(0.40f, 0.40f, 0.40f),
+                        true);
 
         vis->EndScene();
     }

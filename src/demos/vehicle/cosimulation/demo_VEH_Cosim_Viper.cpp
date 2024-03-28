@@ -34,7 +34,7 @@
 
 #include "chrono_vehicle/cosim/mbs/ChVehicleCosimViperNode.h"
 #include "chrono_vehicle/cosim/tire/ChVehicleCosimTireNodeRigid.h"
-    #include "chrono_vehicle/cosim/terrain/ChVehicleCosimTerrainNodeRigid.h"
+#include "chrono_vehicle/cosim/terrain/ChVehicleCosimTerrainNodeRigid.h"
 #include "chrono_vehicle/cosim/terrain/ChVehicleCosimTerrainNodeSCM.h"
 #ifdef CHRONO_MULTICORE
     #include "chrono_vehicle/cosim/terrain/ChVehicleCosimTerrainNodeGranularOMP.h"

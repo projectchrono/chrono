@@ -55,10 +55,7 @@ float cr = 0.4f;
 // -----------------------------------------------------------------------------
 // Create a bin consisting of five boxes attached to the ground.
 // -----------------------------------------------------------------------------
-void AddContainer(ChSystemMulticoreSMC* sys) {
-    // IDs for the two bodies
-    int binId = -200;
-
+std::shared_ptr<ChBody> AddContainer(ChSystemMulticoreSMC* sys) {
     // Create a common material
     auto mat = chrono_types::make_shared<ChContactMaterialSMC>();
     mat->SetYoungModulus(Y);
@@ -67,7 +64,6 @@ void AddContainer(ChSystemMulticoreSMC* sys) {
 
     // Create the containing bin (4 x 4 x 1)
     auto bin = chrono_types::make_shared<ChBody>();
-    bin->SetIdentifier(binId);
     bin->SetMass(1);
     bin->SetPos(ChVector3d(0, 0, 0));
     bin->SetRot(QuatFromAngleY(tilt_angle));
@@ -80,6 +76,8 @@ void AddContainer(ChSystemMulticoreSMC* sys) {
                            ChVector3i(2, 2, -1));
 
     sys->AddBody(bin);
+
+    return bin;
 }
 
 // -----------------------------------------------------------------------------
@@ -94,7 +92,6 @@ void AddFallingBalls(ChSystemMulticore* sys) {
     ballMat->SetAdhesion(0);  // Magnitude of the adhesion in Constant adhesion model
 
     // Create the falling balls
-    int ballId = 0;
     double mass = 1;
     double radius = 0.15;
     ChVector3d inertia = (2.0 / 5.0) * mass * radius * radius * ChVector3d(1, 1, 1);
@@ -104,7 +101,6 @@ void AddFallingBalls(ChSystemMulticore* sys) {
             ChVector3d pos(0.4 * ix, 0.4 * iy, 1);
 
             auto ball = chrono_types::make_shared<ChBody>();
-            ball->SetIdentifier(ballId++);
             ball->SetMass(mass);
             ball->SetInertiaXX(inertia);
             ball->SetPos(pos);
@@ -160,7 +156,7 @@ int main(int argc, char* argv[]) {
 
     // Create the fixed and moving bodies
     // ----------------------------------
-    AddContainer(&sys);
+    auto container = AddContainer(&sys);
     AddFallingBalls(&sys);
 
     // Perform the simulation
@@ -181,7 +177,7 @@ int main(int argc, char* argv[]) {
             sys.DoStepDynamics(time_step);
             vis.Render();
             // Print cumulative contact force on container bin.
-            real3 frc = sys.GetBodyContactForce(0);
+            real3 frc = sys.GetBodyContactForce(container);
             std::cout << frc.x << "  " << frc.y << "  " << frc.z << std::endl;
         } else {
             break;

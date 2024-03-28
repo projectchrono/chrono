@@ -115,7 +115,7 @@ class SYN_API SynSCMTerrainAgent : public SynAgent {
 
     std::shared_ptr<vehicle::SCMTerrain> m_terrain;  ///< Underlying terrain we manage
 
-    std::shared_ptr<SynSCMMessage> m_message;                                ///< The message passed between nodes
+    std::shared_ptr<SynSCMMessage> m_message;                            ///< The message passed between nodes
     std::unordered_map<ChVector2i, double, CoordHash> m_modified_nodes;  ///< Where we store changes to our terrain
 };
 

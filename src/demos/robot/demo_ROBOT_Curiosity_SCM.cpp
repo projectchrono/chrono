@@ -103,9 +103,9 @@ int main(int argc, char* argv[]) {
         "robot/curiosity/rocks/rock3.obj", "robot/curiosity/rocks/rock3.obj"   //
     };
     std::vector<ChVector3d> rock_pos = {
-        ChVector3d(-2.5, -0.3, -1.0), ChVector3d(-2.5, -0.3, +1.0), //
-        ChVector3d(-1.0, -0.3, -1.0), ChVector3d(-1.0, -0.3, +1.0), //
-        ChVector3d(+0.5, -0.3, -1.0), ChVector3d(+0.5, -0.3, +1.0) //
+        ChVector3d(-2.5, -0.3, -1.0), ChVector3d(-2.5, -0.3, +1.0),  //
+        ChVector3d(-1.0, -0.3, -1.0), ChVector3d(-1.0, -0.3, +1.0),  //
+        ChVector3d(+0.5, -0.3, -1.0), ChVector3d(+0.5, -0.3, +1.0)   //
     };
     std::vector<double> rock_scale = {
         0.8,  0.8,   //
@@ -218,7 +218,7 @@ int main(int argc, char* argv[]) {
             vis_irr->AddCamera(ChVector3d(-1.0, 1.0, 3.0), ChVector3d(-5.0, 0.0, 0.0));
             vis_irr->AddTypicalLights();
             vis_irr->AddLightWithShadow(ChVector3d(-5.0, 8.0, -0.5), ChVector3d(-1, 0, 0), 100, 1, 35, 85, 512,
-                                    ChColor(0.8f, 0.8f, 0.8f));
+                                        ChColor(0.8f, 0.8f, 0.8f));
             vis_irr->EnableShadows();
 
             vis = vis_irr;

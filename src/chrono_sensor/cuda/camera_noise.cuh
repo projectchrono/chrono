@@ -42,7 +42,6 @@ void cuda_camera_noise_const_normal(unsigned char* bufPtr,
 /// major and contiguous. (Flat array representing image).
 /// @param width The width of the image in pixels.
 /// @param height The height of the image in pixels.
-/// @param gain The linear coefficient of correlation between pixel intensity and noise variance
 /// @param variance_slope The variance of multiplicative noise to be sampled.
 /// @param variance_intercept The variance of additive noise to be sampled.
 /// @param rng The states to be randomly generated

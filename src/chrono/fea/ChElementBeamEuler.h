@@ -91,16 +91,14 @@ class ChApi ChElementBeamEuler : public ChElementBeam,
     /// hence do not update the corotated reference. Just for benchmarks!
     void SetDisableCorotate(bool md) { disable_corotate = md; }
 
-
     /// Set this as true to force the tangent stiffness matrix to be
     /// inexact, but symmetric. This allows the use of faster solvers. For systems close to
     /// the equilibrium, the tangent stiffness would be symmetric anyway.
     void SetForceSymmetricStiffness(bool md) { force_symmetric_stiffness = md; }
 
-    /// Set this as false to disable the contribution of geometric stiffness 
+    /// Set this as false to disable the contribution of geometric stiffness
     /// to the total tangent stiffness. By default it is on.
     void SetUseGeometricStiffness(bool md) { this->use_geometric_stiffness = md; }
-
 
     /// Fills the N matrix (compressed! single row, 12 columns) with the
     /// values of shape functions at abscissa 'eta'.
@@ -129,10 +127,9 @@ class ChApi ChElementBeamEuler : public ChElementBeam,
     ///  {x_a y_a z_a Rx_a Ry_a Rz_a x_b y_b z_b Rx_b Ry_b Rz_b}
     virtual void GetStateBlock(ChVectorDynamic<>& mD) override;
 
-    /// Fills the Ddt vector with the current time derivatives of field values at the nodes of the element, with proper ordering.
-    /// If the D vector has not the size of this->GetNumCoordsPosLevel(), it will be resized.
-    /// For corotational elements, field is assumed in local reference!
-    /// Give that this element includes rotations at nodes, this gives:
+    /// Fills the Ddt vector with the current time derivatives of field values at the nodes of the element, with proper
+    /// ordering. If the D vector has not the size of this->GetNumCoordsPosLevel(), it will be resized. For corotational
+    /// elements, field is assumed in local reference! Give that this element includes rotations at nodes, this gives:
     ///  {v_a v_a v_a wx_a wy_a wz_a v_b v_b v_b wx_b wy_b wz_b}
     void GetFieldDt(ChVectorDynamic<>& mD_dt);
 
@@ -143,7 +140,7 @@ class ChApi ChElementBeamEuler : public ChElementBeam,
     /// K = integral( [B]' * [D] * [B] ),
     /// Note: in this 'basic' implementation, constant section and
     /// constant material are assumed, so the explicit result of quadrature is used.
-    /// Also, this local material stiffness matrix is constant, computed only at the beginning 
+    /// Also, this local material stiffness matrix is constant, computed only at the beginning
     /// for performance reasons; if you later change some material property, call this or InitialSetup().
     void ComputeStiffnessMatrix();
 
@@ -229,7 +226,9 @@ class ChApi ChElementBeamEuler : public ChElementBeam,
     virtual unsigned int GetNumSubBlocks() override { return 2; }
 
     /// Get the offset of the specified sub-block of DOFs in global vector.
-    virtual unsigned int GetSubBlockOffset(unsigned int nblock) override { return nodes[nblock]->NodeGetOffsetVelLevel(); }
+    virtual unsigned int GetSubBlockOffset(unsigned int nblock) override {
+        return nodes[nblock]->NodeGetOffsetVelLevel();
+    }
 
     /// Get the size of the specified sub-block of DOFs in global vector.
     virtual unsigned int GetSubBlockSize(unsigned int nblock) override { return 6; }
@@ -294,7 +293,7 @@ class ChApi ChElementBeamEuler : public ChElementBeam,
 
     bool use_geometric_stiffness;
 
-	friend class ChExtruderBeamEuler;
+    friend class ChExtruderBeamEuler;
 };
 
 /// @} fea_elements

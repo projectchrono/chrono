@@ -103,11 +103,10 @@ class CH_VEHICLE_API ChSprocket : public ChPart {
     void ApplyAxleTorque(double torque);
 
     /// Utility function to create a sprocket visualization mesh.
-    std::shared_ptr<ChTriangleMeshConnected> CreateVisualizationMesh(
-        double radius,                    ///< inner radius
-        double width,                     ///< gear width
-        double delta,                     ///< arclength between points
-        ChColor color = ChColor(1, 1, 1)  ///< mesh color
+    std::shared_ptr<ChTriangleMeshConnected> CreateVisualizationMesh(double radius,  ///< inner radius
+                                                                     double width,   ///< gear width
+                                                                     double delta,   ///< arclength between points
+                                                                     ChColor color = ChColor(1, 1, 1)  ///< mesh color
     ) const;
 
     /// Add visualization assets for the sprocket subsystem.
@@ -162,12 +161,12 @@ class CH_VEHICLE_API ChSprocket : public ChPart {
     /// Output data for this subsystem's component list to the specified database.
     virtual void Output(ChVehicleOutput& database) const override;
 
-    ChVector3d m_rel_loc;                             ///< sprocket subsystem location relative to chassis
-    std::shared_ptr<ChBody> m_gear;                   ///< sprocket gear body
-    std::shared_ptr<ChShaft> m_axle;                  ///< gear shafts
+    ChVector3d m_rel_loc;                                    ///< sprocket subsystem location relative to chassis
+    std::shared_ptr<ChBody> m_gear;                          ///< sprocket gear body
+    std::shared_ptr<ChShaft> m_axle;                         ///< gear shafts
     std::shared_ptr<ChShaftBodyRotation> m_axle_to_spindle;  ///< gear-shaft connector
-    std::shared_ptr<ChLinkLockRevolute> m_revolute;   ///< sprocket revolute joint
-    std::shared_ptr<ChContactMaterial> m_material;    ///< contact material;
+    std::shared_ptr<ChLinkLockRevolute> m_revolute;          ///< sprocket revolute joint
+    std::shared_ptr<ChContactMaterial> m_material;           ///< contact material;
 
     std::shared_ptr<ChSystem::CustomCollisionCallback> m_callback;  ///< cached collision callback
 

@@ -63,7 +63,7 @@ void ChLoadContactSurfaceMesh::InputSimpleForces(const std::vector<ChVector3d>& 
         for (size_t i = 0; i < vert_forces.size(); ++i) {
             auto node = ind_ptr_map.find(vert_ind[i]);
             if (node != ind_ptr_map.end()) {
-                auto frc = chrono_types::make_shared<ChLoadXYZnode>(node->second, vert_forces[i]);
+                auto frc = chrono_types::make_shared<ChLoadNodeXYZ>(node->second, vert_forces[i]);
                 m_forces.push_back(frc);
             }
         }
@@ -74,7 +74,7 @@ void ChLoadContactSurfaceMesh::InputSimpleForces(const std::vector<ChVector3d>& 
         std::map<ChNodeFEAxyzrot*, int> ptr_ind_map;                  // map from pointer-based mesh to index-based mesh
         std::map<int, std::shared_ptr<ChNodeFEAxyzrot>> ind_ptr_map;  // map from index-based mesh to pointer-based mesh
 
-        for (const auto& tri : m_contact_mesh->GetTrianglesXYZROT()) {
+        for (const auto& tri : m_contact_mesh->GetTrianglesXYZRot()) {
             if (ptr_ind_map.insert({tri->GetNode(0).get(), vertex_index}).second) {
                 ind_ptr_map.insert({vertex_index, tri->GetNode(0)});
                 ++vertex_index;
@@ -92,7 +92,7 @@ void ChLoadContactSurfaceMesh::InputSimpleForces(const std::vector<ChVector3d>& 
         for (size_t i = 0; i < vert_forces.size(); ++i) {
             auto node = ind_ptr_map.find(vert_ind[i]);
             if (node != ind_ptr_map.end()) {
-                auto frc = chrono_types::make_shared<ChLoadXYZROTnodeForceAbsolute>(node->second, vert_forces[i]);
+                auto frc = chrono_types::make_shared<ChLoadNodeXYZRotForceAbs>(node->second, vert_forces[i]);
                 m_forces_rot.push_back(frc);
             }
         }
@@ -133,8 +133,8 @@ int ChLoadContactSurfaceMesh::LoadGetNumCoordsVelLevel() {
 void ChLoadContactSurfaceMesh::LoadGetStateBlock_x(ChState& mD) {
     int ndoftot = 0;
     for (const auto& f : m_forces) {
-        f->loader.GetLoadable()->LoadableGetStateBlockPosLevel(ndoftot, mD);
-        ndoftot += f->loader.GetLoadable()->GetLoadableNumCoordsPosLevel();
+        f->loader->GetLoadable()->LoadableGetStateBlockPosLevel(ndoftot, mD);
+        ndoftot += f->loader->GetLoadable()->GetLoadableNumCoordsPosLevel();
     }
     for (const auto& f : m_forces_rot) {
         f->loadable->LoadableGetStateBlockPosLevel(ndoftot, mD);
@@ -145,8 +145,8 @@ void ChLoadContactSurfaceMesh::LoadGetStateBlock_x(ChState& mD) {
 void ChLoadContactSurfaceMesh::LoadGetStateBlock_w(ChStateDelta& mD) {
     int ndoftot = 0;
     for (const auto& f : m_forces) {
-        f->loader.GetLoadable()->LoadableGetStateBlockVelLevel(ndoftot, mD);
-        ndoftot += f->loader.GetLoadable()->GetLoadableNumCoordsVelLevel();
+        f->loader->GetLoadable()->LoadableGetStateBlockVelLevel(ndoftot, mD);
+        ndoftot += f->loader->GetLoadable()->GetLoadableNumCoordsVelLevel();
     }
     for (const auto& f : m_forces_rot) {
         f->loadable->LoadableGetStateBlockVelLevel(ndoftot, mD);
@@ -158,9 +158,9 @@ void ChLoadContactSurfaceMesh::LoadStateIncrement(const ChState& x, const ChStat
     int ndoftotx = 0;
     int ndoftotw = 0;
     for (const auto& f : m_forces) {
-        f->loader.GetLoadable()->LoadableStateIncrement(ndoftotx, x_new, x, ndoftotw, dw);
-        ndoftotx += f->loader.GetLoadable()->GetLoadableNumCoordsPosLevel();
-        ndoftotw += f->loader.GetLoadable()->GetLoadableNumCoordsVelLevel();
+        f->loader->GetLoadable()->LoadableStateIncrement(ndoftotx, x_new, x, ndoftotw, dw);
+        ndoftotx += f->loader->GetLoadable()->GetLoadableNumCoordsPosLevel();
+        ndoftotw += f->loader->GetLoadable()->GetLoadableNumCoordsVelLevel();
     }
     for (const auto& f : m_forces_rot) {
         f->loadable->LoadableStateIncrement(ndoftotx, x_new, x, ndoftotw, dw);
@@ -178,15 +178,11 @@ void ChLoadContactSurfaceMesh::ComputeQ(ChState* state_x, ChStateDelta* state_w)
         f->ComputeQ(state_x, state_w);
 }
 
-void ChLoadContactSurfaceMesh::ComputeJacobian(ChState* state_x,
-                                               ChStateDelta* state_w,
-                                               ChMatrixRef mK,
-                                               ChMatrixRef mR,
-                                               ChMatrixRef mM) {
+void ChLoadContactSurfaceMesh::ComputeJacobian(ChState* state_x, ChStateDelta* state_w) {
     for (const auto& f : m_forces)
-        f->ComputeJacobian(state_x, state_w, mK, mR, mM);
+        f->ComputeJacobian(state_x, state_w);
     for (const auto& f : m_forces_rot)
-        f->ComputeJacobian(state_x, state_w, mK, mR, mM);
+        f->ComputeJacobian(state_x, state_w);
 }
 
 // -----------------------------------------------------------------------------
@@ -205,18 +201,18 @@ void ChLoadContactSurfaceMesh::LoadIntLoadResidual_F(ChVectorDynamic<>& R, const
         f->LoadIntLoadResidual_F(R, c);
 }
 
-void ChLoadContactSurfaceMesh::InjectKRMmatrices(ChSystemDescriptor& mdescriptor) {
+void ChLoadContactSurfaceMesh::InjectKRMMatrices(ChSystemDescriptor& descriptor) {
     for (const auto& f : m_forces)
-        f->InjectKRMmatrices(mdescriptor);
+        f->InjectKRMMatrices(descriptor);
     for (const auto& f : m_forces_rot)
-        f->InjectKRMmatrices(mdescriptor);
+        f->InjectKRMMatrices(descriptor);
 }
 
-void ChLoadContactSurfaceMesh::KRMmatricesLoad(double Kfactor, double Rfactor, double Mfactor) {
+void ChLoadContactSurfaceMesh::LoadKRMMatrices(double Kfactor, double Rfactor, double Mfactor) {
     for (const auto& f : m_forces)
-        f->KRMmatricesLoad(Kfactor, Rfactor, Mfactor);
+        f->LoadKRMMatrices(Kfactor, Rfactor, Mfactor);
     for (const auto& f : m_forces_rot)
-        f->KRMmatricesLoad(Kfactor, Rfactor, Mfactor);
+        f->LoadKRMMatrices(Kfactor, Rfactor, Mfactor);
 }
 
 }  // end namespace fea

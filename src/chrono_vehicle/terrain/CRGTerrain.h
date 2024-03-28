@@ -150,13 +150,13 @@ class CH_VEHICLE_API CRGTerrain : public ChTerrain {
     void GenerateCurves();
     void SetRoadsidePosts();
 
-    double m_post_distance; // 0 means no posts
+    double m_post_distance;  // 0 means no posts
     std::string m_diffuse_texture_filename;
-    bool m_use_diffuseTexture; // if set, use a textured mesh
+    bool m_use_diffuseTexture;  // if set, use a textured mesh
     std::string m_normal_texture_filename;
-    bool m_use_normalTexture; // if set, use a textured mesh
+    bool m_use_normalTexture;  // if set, use a textured mesh
     std::string m_rough_texture_filename;
-    bool m_use_roughTexture; // if set, use a textured mesh
+    bool m_use_roughTexture;  // if set, use a textured mesh
 
     std::shared_ptr<ChBody> m_ground;  ///< ground body
     bool m_use_vis_mesh;               ///< mesh or boundary visual asset?
@@ -167,8 +167,8 @@ class CH_VEHICLE_API CRGTerrain : public ChTerrain {
     std::string m_curve_right_name;
 
     std::shared_ptr<ChTriangleMeshConnected> m_mesh;  ///< mesh for visualization/export
-    std::shared_ptr<ChBezierCurve> m_road_left;                 ///< curve for left road boundary
-    std::shared_ptr<ChBezierCurve> m_road_right;                ///< curve for right road boundary
+    std::shared_ptr<ChBezierCurve> m_road_left;       ///< curve for left road boundary
+    std::shared_ptr<ChBezierCurve> m_road_right;      ///< curve for right road boundary
 
     bool m_isClosed;  ///< closed road profile?
 

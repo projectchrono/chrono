@@ -70,7 +70,7 @@ class CH_VEHICLE_API ChBrakeSimple : public ChBrake {
     virtual double GetMaxBrakingTorque() = 0;
 
     double m_modulation;                        ///< current braking input
-    std::shared_ptr<ChLinkLockBrake> m_brake;       ///< underlying brake component
+    std::shared_ptr<ChLinkLockBrake> m_brake;   ///< underlying brake component
     std::shared_ptr<ChLinkLockRevolute> m_hub;  ///< associated spindle revolute joint
     bool m_locked;                              ///< is brake locked?
 };

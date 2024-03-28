@@ -55,10 +55,14 @@ class ChApi ChElementCableANCF : public ChElementANCF, public ChElementBeam, pub
     virtual unsigned int GetNumCoordsPosLevelActive() override { return m_element_dof; }
 
     /// Get the number of coordinates from the n-th node used by this element.
-    virtual unsigned int GetNodeNumCoordsPosLevel(unsigned int n) override { return m_nodes[n]->GetNumCoordsPosLevel(); }
+    virtual unsigned int GetNodeNumCoordsPosLevel(unsigned int n) override {
+        return m_nodes[n]->GetNumCoordsPosLevel();
+    }
 
     /// Get the number of coordinates from the n-th node used by this element.
-    virtual unsigned int GetNodeNumCoordsPosLevelActive(unsigned int n) override { return m_nodes[n]->GetNumCoordsPosLevelActive(); }
+    virtual unsigned int GetNodeNumCoordsPosLevelActive(unsigned int n) override {
+        return m_nodes[n]->GetNumCoordsPosLevelActive();
+    }
 
     virtual std::shared_ptr<ChNodeFEAbase> GetNode(unsigned int n) override { return m_nodes[n]; }
 
@@ -193,7 +197,9 @@ class ChApi ChElementCableANCF : public ChElementANCF, public ChElementBeam, pub
     virtual unsigned int GetNumSubBlocks() override { return 2; }
 
     /// Get the offset of the specified sub-block of DOFs in global vector.
-    virtual unsigned int GetSubBlockOffset(unsigned int nblock) override { return m_nodes[nblock]->NodeGetOffsetVelLevel(); }
+    virtual unsigned int GetSubBlockOffset(unsigned int nblock) override {
+        return m_nodes[nblock]->NodeGetOffsetVelLevel();
+    }
 
     /// Get the size of the specified sub-block of DOFs in global vector.
     virtual unsigned int GetSubBlockSize(unsigned int nblock) override { return 6; }

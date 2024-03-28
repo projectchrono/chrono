@@ -83,14 +83,12 @@ class JointsDVI : public ::testing::TestWithParam<Options> {
 
         // Create the ground body
         auto ground = chrono_types::make_shared<ChBody>();
-        ground->SetIdentifier(-1);
         ground->SetFixed(true);
         ground->EnableCollision(false);
         sys->AddBody(ground);
 
         // Create the sled body
         auto sled = chrono_types::make_shared<ChBody>();
-        sled->SetIdentifier(1);
         sled->SetMass(550);
         sled->SetInertiaXX(ChVector3d(100, 100, 100));
         sled->SetPos(ChVector3d(0, 0, 0));
@@ -105,7 +103,6 @@ class JointsDVI : public ::testing::TestWithParam<Options> {
 
         // Create the wheel body
         auto wheel = chrono_types::make_shared<ChBody>();
-        wheel->SetIdentifier(2);
         wheel->SetMass(350);
         wheel->SetInertiaXX(ChVector3d(50, 138, 138));
         wheel->SetPos(ChVector3d(2, 0, 0));
@@ -116,8 +113,7 @@ class JointsDVI : public ::testing::TestWithParam<Options> {
 
         auto wheel_mat = chrono_types::make_shared<ChContactMaterialNSC>();
 
-        utils::AddCylinderGeometry(wheel.get(), wheel_mat, 0.3, 0.1, ChVector3d(0, 0, 0),
-                                   QuatFromAngleZ(CH_PI_2));
+        utils::AddCylinderGeometry(wheel.get(), wheel_mat, 0.3, 0.1, ChVector3d(0, 0, 0), QuatFromAngleZ(CH_PI_2));
 
         sys->AddBody(wheel);
 
@@ -142,7 +138,7 @@ class JointsDVI : public ::testing::TestWithParam<Options> {
 TEST_P(JointsDVI, simulate) {
     ////std::cout << "Solver type:  " << as_integer(opts.type) << "  mode:  " << as_integer(opts.mode)
     ////          << "  max_iter_bilateral: " << opts.max_iter_bilateral << "  max_iter_normal: " <<
-    ///opts.max_iter_normal /          << "  max_iter_sliding: " << opts.max_iter_sliding << std::endl;
+    /// opts.max_iter_normal /          << "  max_iter_sliding: " << opts.max_iter_sliding << std::endl;
 
     // Maximum allowable constraint violation
     double max_cnstr_violation = 1e-4;

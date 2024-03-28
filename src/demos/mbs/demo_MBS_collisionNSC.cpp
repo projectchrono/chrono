@@ -70,9 +70,9 @@ void AddFallingItems(ChSystemNSC& sys) {
         sys.Add(boxBody);
 
         auto cylBody = chrono_types::make_shared<ChBodyEasyCylinder>(ChAxis::Y,  //
-                                                                     0.75, 0.5,            // radius, height
-                                                                     100,                  // density
-                                                                     cyl_mat               // contact material
+                                                                     0.75, 0.5,  // radius, height
+                                                                     100,        // density
+                                                                     cyl_mat     // contact material
         );
         cylBody->SetPos(ChVector3d(-5 + ChRandom::Get() * 10, 4 + bi * 0.05, -5 + ChRandom::Get() * 10));
         cylBody->GetVisualShape(0)->SetTexture(GetChronoDataFile("textures/pinkwhite.png"));

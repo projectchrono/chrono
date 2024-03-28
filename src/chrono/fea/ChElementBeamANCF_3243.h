@@ -112,10 +112,14 @@ class ChApi ChElementBeamANCF_3243 : public ChElementANCF,
     virtual unsigned int GetNumCoordsPosLevelActive() override { return m_element_dof; }
 
     /// Get the number of coordinates from the n-th node used by this element.
-    virtual unsigned int GetNodeNumCoordsPosLevel(unsigned int n) override { return m_nodes[n]->GetNumCoordsPosLevel(); }
+    virtual unsigned int GetNodeNumCoordsPosLevel(unsigned int n) override {
+        return m_nodes[n]->GetNumCoordsPosLevel();
+    }
 
     /// Get the number of active coordinates from the n-th node used by this element.
-    virtual unsigned int GetNodeNumCoordsPosLevelActive(unsigned int n) override { return m_nodes[n]->GetNumCoordsPosLevelActive(); }
+    virtual unsigned int GetNodeNumCoordsPosLevelActive(unsigned int n) override {
+        return m_nodes[n]->GetNumCoordsPosLevelActive();
+    }
 
     /// Specify the nodes of this element.
     void SetNodes(std::shared_ptr<ChNodeFEAxyzDDD> nodeA, std::shared_ptr<ChNodeFEAxyzDDD> nodeB);
@@ -211,9 +215,7 @@ class ChApi ChElementBeamANCF_3243 : public ChElementANCF,
     virtual void EvaluateSectionStrain(double, chrono::ChVector3d&) override {}
 
     // Dummy method definition - Does not translate to an ANCF continuum mechanics based beam element
-    virtual void EvaluateSectionForceTorque(double,
-                                            chrono::ChVector3d&,
-                                            chrono::ChVector3d&) override {}
+    virtual void EvaluateSectionForceTorque(double, chrono::ChVector3d&, chrono::ChVector3d&) override {}
 
     /// Gets the xyz displacement of a point on the beam line,
     /// and the rotation RxRyRz of section plane, at abscissa '(xi,0,0)'.
@@ -263,7 +265,9 @@ class ChApi ChElementBeamANCF_3243 : public ChElementANCF,
     virtual unsigned int GetNumSubBlocks() override { return 2; }
 
     /// Get the offset of the i-th sub-block of DOFs in global vector.
-    virtual unsigned int GetSubBlockOffset(unsigned int nblock) override { return m_nodes[nblock]->NodeGetOffsetVelLevel(); }
+    virtual unsigned int GetSubBlockOffset(unsigned int nblock) override {
+        return m_nodes[nblock]->NodeGetOffsetVelLevel();
+    }
 
     /// Get the size of the i-th sub-block of DOFs in global vector.
     virtual unsigned int GetSubBlockSize(unsigned int nblock) override { return 12; }
@@ -438,10 +442,10 @@ class ChApi ChElementBeamANCF_3243 : public ChElementANCF,
                    ///< used for capturing the Poisson effect with the Enhanced Continuum Mechanics method with only one
                    ///< point Gauss quadrature for the directions in the beam cross section and the full Gauss
                    ///< quadrature points only along the beam axis
-    ChMatrixDynamic_col<> m_O1;  ///< Precomputed Matrix combined with the nodal coordinates used for the
-                                 ///< "Pre-Integration" style method internal force calculation
-    ChMatrixDynamic_col<> m_O2;  ///< Precomputed Matrix combined with the nodal coordinates used for the
-                                 ///< "Pre-Integration" style method Jacobian calculation
+    ChMatrixDynamic_col<> m_O1;         ///< Precomputed Matrix combined with the nodal coordinates used for the
+                                        ///< "Pre-Integration" style method internal force calculation
+    ChMatrixDynamic_col<> m_O2;         ///< Precomputed Matrix combined with the nodal coordinates used for the
+                                        ///< "Pre-Integration" style method Jacobian calculation
     ChMatrixDynamic_col<> m_K3Compact;  ///< Precomputed Matrix combined with the nodal coordinates used for the
                                         ///< "Pre-Integration" style method internal force calculation
     ChMatrixDynamic_col<>

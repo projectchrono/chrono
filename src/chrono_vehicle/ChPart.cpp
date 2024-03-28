@@ -220,7 +220,7 @@ void ChPart::ExportBodyList(rapidjson::Document& jsonDocument, std::vector<std::
         ChFrame<> P_X_B = P_X_A * A_X_B;  // transform from body to parent
         rapidjson::Value obj(rapidjson::kObjectType);
         obj.SetObject();
-        obj.AddMember("name", rapidjson::StringRef(body->GetName()), allocator);
+        obj.AddMember("name", rapidjson::StringRef(body->GetName().c_str()), allocator);
         obj.AddMember("id", body->GetIdentifier(), allocator);
         obj.AddMember("mass", body->GetMass(), allocator);
         obj.AddMember("coordinates w.r.t. subsystem", Frame2Val(P_X_B, allocator), allocator);
@@ -240,7 +240,7 @@ void ChPart::ExportShaftList(rapidjson::Document& jsonDocument, std::vector<std:
     for (auto shaft : shafts) {
         rapidjson::Value obj(rapidjson::kObjectType);
         obj.SetObject();
-        obj.AddMember("name", rapidjson::StringRef(shaft->GetName()), allocator);
+        obj.AddMember("name", rapidjson::StringRef(shaft->GetName().c_str()), allocator);
         obj.AddMember("id", shaft->GetIdentifier(), allocator);
         obj.AddMember("inertia", shaft->GetInertia(), allocator);
         jsonArray.PushBack(obj, allocator);
@@ -256,16 +256,16 @@ void ChPart::ExportJointList(rapidjson::Document& jsonDocument, std::vector<std:
     rapidjson::Value jsonArray(rapidjson::kArrayType);
     for (auto joint : joints) {
         ChFrame<> A_X_J = ChFrame<>(joint->GetFrame2Abs());  // transform from joint to absolute
-        ChFrame<> P_X_J = P_X_A * A_X_J;                              // transform from joint to parent
+        ChFrame<> P_X_J = P_X_A * A_X_J;                     // transform from joint to parent
         rapidjson::Value obj(rapidjson::kObjectType);
         obj.SetObject();
-        obj.AddMember("name", rapidjson::StringRef(joint->GetName()), allocator);
+        obj.AddMember("name", rapidjson::StringRef(joint->GetName().c_str()), allocator);
         obj.AddMember("id", joint->GetIdentifier(), allocator);
         //// TODO: Change ChLink class hierarchy so we don't have to do these hacks!!!!
         auto body1 = static_cast<const ChBody*>(joint->GetBody1());
         auto body2 = static_cast<const ChBody*>(joint->GetBody2());
-        obj.AddMember("body1 name", rapidjson::StringRef(body1->GetName()), allocator);
-        obj.AddMember("body2 name", rapidjson::StringRef(body2->GetName()), allocator);
+        obj.AddMember("body1 name", rapidjson::StringRef(body1->GetName().c_str()), allocator);
+        obj.AddMember("body2 name", rapidjson::StringRef(body2->GetName().c_str()), allocator);
         obj.AddMember("body1 id", body1->GetIdentifier(), allocator);
         obj.AddMember("body2 id", body2->GetIdentifier(), allocator);
         obj.AddMember("coordinates w.r.t. subsystem", Frame2Val(P_X_J, allocator), allocator);
@@ -283,10 +283,10 @@ void ChPart::ExportCouplesList(rapidjson::Document& jsonDocument,
     for (auto couple : couples) {
         rapidjson::Value obj(rapidjson::kObjectType);
         obj.SetObject();
-        obj.AddMember("name", rapidjson::StringRef(couple->GetName()), allocator);
+        obj.AddMember("name", rapidjson::StringRef(couple->GetName().c_str()), allocator);
         obj.AddMember("id", couple->GetIdentifier(), allocator);
-        obj.AddMember("shaft1 name", rapidjson::StringRef(couple->GetShaft1()->GetName()), allocator);
-        obj.AddMember("shaft2 name", rapidjson::StringRef(couple->GetShaft2()->GetName()), allocator);
+        obj.AddMember("shaft1 name", rapidjson::StringRef(couple->GetShaft1()->GetName().c_str()), allocator);
+        obj.AddMember("shaft2 name", rapidjson::StringRef(couple->GetShaft2()->GetName().c_str()), allocator);
         obj.AddMember("shaft1 id", couple->GetShaft1()->GetIdentifier(), allocator);
         obj.AddMember("shaft2 id", couple->GetShaft2()->GetIdentifier(), allocator);
         jsonArray.PushBack(obj, allocator);
@@ -301,9 +301,9 @@ void ChPart::ExportMarkerList(rapidjson::Document& jsonDocument, std::vector<std
     for (auto marker : markers) {
         rapidjson::Value obj(rapidjson::kObjectType);
         obj.SetObject();
-        obj.AddMember("name", rapidjson::StringRef(marker->GetName()), allocator);
+        obj.AddMember("name", rapidjson::StringRef(marker->GetName().c_str()), allocator);
         obj.AddMember("id", marker->GetIdentifier(), allocator);
-        obj.AddMember("body name", rapidjson::StringRef(marker->GetBody()->GetName()), allocator);
+        obj.AddMember("body name", rapidjson::StringRef(marker->GetBody()->GetName().c_str()), allocator);
         obj.AddMember("body id", marker->GetBody()->GetIdentifier(), allocator);
         obj.AddMember("relative coordinates", Csys2Val(marker->GetCoordsys(), allocator), allocator);
         jsonArray.PushBack(obj, allocator);
@@ -321,13 +321,13 @@ void ChPart::ExportLinSpringList(rapidjson::Document& jsonDocument,
     for (auto spring : springs) {
         rapidjson::Value obj(rapidjson::kObjectType);
         obj.SetObject();
-        obj.AddMember("name", rapidjson::StringRef(spring->GetName()), allocator);
+        obj.AddMember("name", rapidjson::StringRef(spring->GetName().c_str()), allocator);
         obj.AddMember("id", spring->GetIdentifier(), allocator);
         //// TODO: Change ChLink class hierarchy so we don't have to do these hacks!!!!
         auto body1 = static_cast<const ChBody*>(spring->GetBody1());
         auto body2 = static_cast<const ChBody*>(spring->GetBody2());
-        obj.AddMember("body1 name", rapidjson::StringRef(body1->GetName()), allocator);
-        obj.AddMember("body2 name", rapidjson::StringRef(body2->GetName()), allocator);
+        obj.AddMember("body1 name", rapidjson::StringRef(body1->GetName().c_str()), allocator);
+        obj.AddMember("body2 name", rapidjson::StringRef(body2->GetName().c_str()), allocator);
         obj.AddMember("body1 id", body1->GetIdentifier(), allocator);
         obj.AddMember("body2 id", body2->GetIdentifier(), allocator);
         obj.AddMember("point1", Vec2Val(A_X_P.TransformPointParentToLocal(spring->GetPoint1Abs()), allocator),
@@ -356,17 +356,17 @@ void ChPart::ExportRotSpringList(rapidjson::Document& jsonDocument,
 
     rapidjson::Value jsonArray(rapidjson::kArrayType);
     for (auto spring : springs) {
-        auto pos = spring->GetVisualModelFrame().GetPos();               // position in absolute frame
+        auto pos = spring->GetVisualModelFrame().GetPos();                 // position in absolute frame
         auto axis = spring->GetVisualModelFrame().GetRotMat().GetAxisZ();  // axis in absolute frame
         rapidjson::Value obj(rapidjson::kObjectType);
         obj.SetObject();
-        obj.AddMember("name", rapidjson::StringRef(spring->GetName()), allocator);
+        obj.AddMember("name", rapidjson::StringRef(spring->GetName().c_str()), allocator);
         obj.AddMember("id", spring->GetIdentifier(), allocator);
         //// TODO: Change ChLink class hierarchy so we don't have to do these hacks!!!!
         auto body1 = static_cast<const ChBody*>(spring->GetBody1());
         auto body2 = static_cast<const ChBody*>(spring->GetBody2());
-        obj.AddMember("body1 name", rapidjson::StringRef(body1->GetName()), allocator);
-        obj.AddMember("body2 name", rapidjson::StringRef(body2->GetName()), allocator);
+        obj.AddMember("body1 name", rapidjson::StringRef(body1->GetName().c_str()), allocator);
+        obj.AddMember("body2 name", rapidjson::StringRef(body2->GetName().c_str()), allocator);
         obj.AddMember("body1 id", body1->GetIdentifier(), allocator);
         obj.AddMember("body2 id", body2->GetIdentifier(), allocator);
         obj.AddMember("pos", Vec2Val(A_X_P.TransformPointParentToLocal(pos), allocator), allocator);
@@ -393,10 +393,10 @@ void ChPart::ExportBodyLoadList(rapidjson::Document& jsonDocument,
     for (auto load : loads) {
         rapidjson::Value obj(rapidjson::kObjectType);
         obj.SetObject();
-        obj.AddMember("name", rapidjson::StringRef(load->GetName()), allocator);
+        obj.AddMember("name", rapidjson::StringRef(load->GetName().c_str()), allocator);
         obj.AddMember("id", load->GetIdentifier(), allocator);
-        obj.AddMember("body1 name", rapidjson::StringRef(load->GetBodyA()->GetName()), allocator);
-        obj.AddMember("body2 name", rapidjson::StringRef(load->GetBodyB()->GetName()), allocator);
+        obj.AddMember("body1 name", rapidjson::StringRef(load->GetBodyA()->GetName().c_str()), allocator);
+        obj.AddMember("body2 name", rapidjson::StringRef(load->GetBodyB()->GetName().c_str()), allocator);
         obj.AddMember("body1 id", load->GetBodyA()->GetIdentifier(), allocator);
         obj.AddMember("body2 id", load->GetBodyB()->GetIdentifier(), allocator);
         if (auto bushing = std::dynamic_pointer_cast<ChLoadBodyBodyBushingGeneric>(load)) {

@@ -26,7 +26,6 @@
 
 #include "chrono_vehicle/terrain/SCMTerrain.h"
 
-
 namespace chrono {
 namespace vehicle {
 
@@ -50,7 +49,7 @@ void ChRigidTire::Initialize(std::shared_ptr<ChWheel> wheel) {
 
     CreateContactMaterial(wheel_body->GetSystem()->GetContactMethod());
     assert(m_material && m_material->GetContactMethod() == wheel_body->GetSystem()->GetContactMethod());
-    
+
     wheel_body->EnableCollision(true);
 
     if (m_use_contact_mesh) {
@@ -70,8 +69,7 @@ void ChRigidTire::Initialize(std::shared_ptr<ChWheel> wheel) {
     } else {
         // Cylinder contact
         auto ct_shape = chrono_types::make_shared<ChCollisionShapeCylinder>(m_material, GetRadius(), GetWidth());
-        wheel_body->AddCollisionShape(ct_shape,
-                                      ChFrame<>(ChVector3d(0, 0, GetOffset()), QuatFromAngleX(CH_PI_2)));
+        wheel_body->AddCollisionShape(ct_shape, ChFrame<>(ChVector3d(0, 0, GetOffset()), QuatFromAngleX(CH_PI_2)));
     }
 
     wheel_body->GetCollisionModel()->SetFamily(WheeledCollisionFamily::TIRE);
@@ -125,7 +123,8 @@ void ChRigidTire::AddVisualizationAssets(VisualizationType vis) {
 
 void ChRigidTire::RemoveVisualizationAssets() {
     // Make sure we only remove the assets added by ChRigidTire::AddVisualizationAssets.
-    // This is important for the ChTire object because a wheel may add its own assets to the same body (the spindle/wheel).
+    // This is important for the ChTire object because a wheel may add its own assets to the same body (the
+    // spindle/wheel).
     ChPart::RemoveVisualizationAsset(m_wheel->GetSpindle(), m_cyl_shape);
 }
 

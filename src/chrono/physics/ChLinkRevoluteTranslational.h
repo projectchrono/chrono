@@ -27,7 +27,6 @@ namespace chrono {
 /// orthogonal directions on the second body (the translational side),
 /// and a distance.
 class ChApi ChLinkRevoluteTranslational : public ChLink {
-
   public:
     ChLinkRevoluteTranslational();
     ChLinkRevoluteTranslational(const ChLinkRevoluteTranslational& other);
@@ -50,14 +49,14 @@ class ChApi ChLinkRevoluteTranslational : public ChLink {
 
     /// Get the direction of the revolute joint, expressed in absolute coordinate system.
     ChVector3d GetDirZ1Abs() const { return m_body1->TransformDirectionLocalToParent(m_z1); }
-    
+
     /// Get the point on m_body2 (translational side), expressed in absolute coordinate system.
     ChVector3d GetPoint2Abs() const { return m_body2->TransformPointLocalToParent(m_p2); }
-    
+
     /// Get the first direction of the translational joint, expressed in absolute coordinate system.
     /// The translational axis is orthogonal to the direction.
     ChVector3d GetDirX2Abs() const { return m_body2->TransformDirectionLocalToParent(m_x2); }
-    
+
     /// Get the second direction of the translational joint, expressed in absolute coordinate system.
     /// The translational axis is orthogonal to the direction.
     ChVector3d GetDirY2Abs() const { return m_body2->TransformDirectionLocalToParent(m_y2); }
@@ -171,19 +170,17 @@ class ChApi ChLinkRevoluteTranslational : public ChLink {
                                    const unsigned int off_L,
                                    ChVectorDynamic<>& L) override;
 
-    // SOLVER INTERFACE
-
     virtual void InjectConstraints(ChSystemDescriptor& descriptor) override;
     virtual void ConstraintsBiReset() override;
     virtual void ConstraintsBiLoad_C(double factor = 1, double recovery_clamp = 0.1, bool do_clamp = false) override;
-    virtual void ConstraintsLoadJacobians() override;
+    virtual void LoadConstraintJacobians() override;
     virtual void ConstraintsFetch_react(double factor = 1) override;
 
   public:
     EIGEN_MAKE_ALIGNED_OPERATOR_NEW
 };
 
-CH_CLASS_VERSION(ChLinkRevoluteTranslational,0)
+CH_CLASS_VERSION(ChLinkRevoluteTranslational, 0)
 
 }  // end namespace chrono
 

@@ -12,7 +12,7 @@
 // Authors: Asher Elmquist
 // =============================================================================
 //
-// Container classes for sensors that make up an IMU (accelerometer, gyroscope, 
+// Container classes for sensors that make up an IMU (accelerometer, gyroscope,
 // magnetometer)
 //
 // =============================================================================

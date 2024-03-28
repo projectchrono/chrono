@@ -36,7 +36,6 @@ const double Gator_RackPinion::m_pinionRadius = 0.035;
 
 const double Gator_RackPinion::m_maxAngle = 1;
 
-
 // -----------------------------------------------------------------------------
 // -----------------------------------------------------------------------------
 Gator_RackPinion::Gator_RackPinion(const std::string& name) : ChRackPinion(name) {}

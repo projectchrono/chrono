@@ -50,7 +50,7 @@ void ChVisualShapeRoundedBox::ArchiveOut(ChArchiveOut& archive_out) {
 
 void ChVisualShapeRoundedBox::ArchiveIn(ChArchiveIn& archive_in) {
     // version number
-    /*int version =*/ archive_in.VersionRead<ChVisualShapeRoundedBox>();
+    /*int version =*/archive_in.VersionRead<ChVisualShapeRoundedBox>();
     // deserialize parent class
     ChVisualShape::ArchiveIn(archive_in);
     // stream in all member data:

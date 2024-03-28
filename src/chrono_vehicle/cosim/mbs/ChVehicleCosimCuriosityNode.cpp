@@ -84,7 +84,7 @@ class CuriosityDBPDriver : public CuriosityDriver {
             drive_speeds[i] = driving;
         }
         for (int i = 0; i < 4; i++) {
-            steer_angles[i] = steering;        
+            steer_angles[i] = steering;
         }
     }
 
@@ -191,8 +191,8 @@ std::shared_ptr<ChBody> ChVehicleCosimCuriosityNode::GetChassisBody() const {
 }
 
 void ChVehicleCosimCuriosityNode::OnInitializeDBPRig(std::shared_ptr<ChFunction> func) {
-    // Overwrite any driver attached to the underlying Curiosity rover with a custom driver which imposes zero steering and
-    // wheel angular speeds as returned by the provided motor function.
+    // Overwrite any driver attached to the underlying Curiosity rover with a custom driver which imposes zero steering
+    // and wheel angular speeds as returned by the provided motor function.
     m_curiosity->SetDriver(chrono_types::make_shared<CuriosityDBPDriver>(func));
 }
 

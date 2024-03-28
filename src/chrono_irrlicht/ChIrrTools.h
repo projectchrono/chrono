@@ -170,7 +170,7 @@ ChApiIrr void drawSegment(ChVisualSystemIrrlicht* vis,
 
 /// Draw a polyline in 3D space, given the array of points.
 ChApiIrr void drawPolyline(ChVisualSystemIrrlicht* vis,
-                           std::vector<ChVector3d >& points,
+                           std::vector<ChVector3d>& points,
                            ChColor col = ChColor(1, 1, 1),
                            bool use_Zbuffer = false);
 
@@ -245,7 +245,8 @@ ChApiIrr void drawArrow(ChVisualSystemIrrlicht* vis,           ///< visual syste
                         ChVector3d plane_normal = VECT_Y,      ///< normal to plane containing arrow segments
                         bool sharp = false,                    ///< set arrow shape as 'sharp' or 'wide'
                         ChColor col = ChColor(1.f, 1.f, 1.f),  ///< color
-                        bool use_Zbuffer = false);             ///< use Z buffer
+                        bool use_Zbuffer = false             ///< use Z buffer
+                        );
 
 }  // end namespace tools
 

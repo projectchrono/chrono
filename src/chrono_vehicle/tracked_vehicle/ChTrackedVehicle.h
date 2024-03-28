@@ -70,9 +70,7 @@ class CH_VEHICLE_API ChTrackedVehicle : public ChVehicle {
 
     /// Get the complete states for all track shoes of the specified track assembly.
     /// It is assumed that the vector of body states was properly sized.
-    void GetTrackShoeStates(VehicleSide side, BodyStates& states) const {
-        m_tracks[side]->GetTrackShoeStates(states);
-    }
+    void GetTrackShoeStates(VehicleSide side, BodyStates& states) const { m_tracks[side]->GetTrackShoeStates(states); }
 
     /// Set visualization type for the sprocket subsystem.
     void SetSprocketVisualizationType(VisualizationType vis);

@@ -70,7 +70,7 @@ bool ChCosimulation::SendData(double mtime, ChVectorConstRef out_data) {
         throw std::runtime_error("ERROR: Attempted 'SendData' with no connected client.");
 
     std::vector<char> mbuffer;
-    mbuffer.resize((out_data.size() + 1)*sizeof(double));
+    mbuffer.resize((out_data.size() + 1) * sizeof(double));
     // Serialize data (little endian)...
     // time:
     for (size_t ds = 0; ds < sizeof(double); ++ds) {
@@ -80,7 +80,8 @@ bool ChCosimulation::SendData(double mtime, ChVectorConstRef out_data) {
     // variables:
     for (int i = 0; i < out_data.size(); i++) {
         for (size_t ds = 0; ds < sizeof(double); ++ds) {
-            mbuffer[(i + 1) * sizeof(double) + ds] = reinterpret_cast<char*>(const_cast<double*>(&out_data.data()[i]))[ds];
+            mbuffer[(i + 1) * sizeof(double) + ds] =
+                reinterpret_cast<char*>(const_cast<double*>(&out_data.data()[i]))[ds];
         }
     }
 
@@ -111,7 +112,7 @@ bool ChCosimulation::ReceiveData(double& mtime, ChVectorRef in_data) {
     }
 
     // retrieve variables:
-    for (size_t i = 0; i < in_data.size(); ++i) {
+    for (size_t i = 0; i < (size_t)in_data.size(); ++i) {
         for (size_t ds = 0; ds < sizeof(double); ++ds) {
             reinterpret_cast<char*>(&(in_data.data()[i]))[ds] = rbuffer[(i + 1) * sizeof(double) + ds];
         }

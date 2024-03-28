@@ -18,7 +18,6 @@
 
 namespace chrono {
 
-
 // Register into the object factory, to enable run-time dynamic creation and persistence
 CH_FACTORY_REGISTER(ChBox)
 
@@ -119,6 +118,5 @@ void ChBox::ArchiveIn(ChArchiveIn& archive_in) {
     archive_in >> CHNVP(lengths);
     SetLengths(lengths);
 }
-
 
 }  // end namespace chrono

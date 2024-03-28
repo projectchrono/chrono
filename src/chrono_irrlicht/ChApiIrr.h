@@ -49,7 +49,7 @@ namespace irrlicht {}
 namespace irrlicht {
 /// Utilities for interfacing Chrono and Irrlicht
 namespace tools {}
-}
+}  // namespace irrlicht
 
 /// @}
 

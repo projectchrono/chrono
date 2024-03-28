@@ -107,4 +107,3 @@ class CH_MODELS_API U401_PushPipeAxle : public ChPushPipeAxle {
 }  // end namespace chrono
 
 #endif
-

@@ -22,7 +22,7 @@ CH_FACTORY_REGISTER(ChGlyphs)
 ChGlyphs::ChGlyphs() {
     draw_mode = GLYPH_POINT;
     glyph_length_type = eCh_GlyphLength::CONSTANT;
-    glyph_length_prop= "";
+    glyph_length_prop = "";
     glyph_scalelenght = 0.1;
     glyph_width_type = eCh_GlyphWidth::CONSTANT;
     glyph_width_prop = "";
@@ -32,52 +32,50 @@ ChGlyphs::ChGlyphs() {
     glyph_basis_constant = QUNIT;
     glyph_eigenvalues_type = eCh_GlyphEigenvalues::CONSTANT;
     glyph_eigenvalues_prop = "";
-    glyph_eigenvalue_constant = ChVector3d(1,1,1);
+    glyph_eigenvalue_constant = ChVector3d(1, 1, 1);
     glyph_color_type = eCh_GlyphColor::CONSTANT;
     glyph_color_prop = "";
-    glyph_color_constant = ChColor(1,0,0);
+    glyph_color_constant = ChColor(1, 0, 0);
     glyph_colormap_startscale = 0;
     glyph_colormap_endscale = 0;
     vector_tip = true;
     zbuffer_hide = true;
-    this->vectors = 0; 
+    this->vectors = 0;
     this->colors = 0;
     this->rotations = 0;
     this->eigenvalues = 0;
 }
 
 ChGlyphs::~ChGlyphs() {
-
     for (ChProperty* id : this->m_properties)
-        delete(id);
+        delete (id);
 }
 
-void ChGlyphs::SetDrawMode(eCh_GlyphType mmode) { 
-    draw_mode = mmode; 
+void ChGlyphs::SetDrawMode(eCh_GlyphType mmode) {
+    draw_mode = mmode;
 
     switch (draw_mode) {
-    case GLYPH_POINT:
-        break;
-    case GLYPH_VECTOR:
-        if (!this->vectors) {
-            ChPropertyVector my_vectors;
-            my_vectors.name = "V";
-            this->AddProperty(my_vectors);
-            this->vectors = &((ChPropertyVector*)(m_properties.back()))->data;
-        }
-        break;
-    case GLYPH_COORDSYS:
-        if (!this->rotations) {
-            ChPropertyQuaternion my_quats;
-            my_quats.name = "rot";
-            this->AddProperty(my_quats);
-            this->rotations = &((ChPropertyQuaternion*)(m_properties.back()))->data;
-        }
-        break;
-    default:
-        break;
+        case GLYPH_POINT:
+            break;
+        case GLYPH_VECTOR:
+            if (!this->vectors) {
+                ChPropertyVector my_vectors;
+                my_vectors.name = "V";
+                this->AddProperty(my_vectors);
+                this->vectors = &((ChPropertyVector*)(m_properties.back()))->data;
+            }
+            break;
+        case GLYPH_COORDSYS:
+            if (!this->rotations) {
+                ChPropertyQuaternion my_quats;
+                my_quats.name = "rot";
+                this->AddProperty(my_quats);
+                this->rotations = &((ChPropertyQuaternion*)(m_properties.back()))->data;
+            }
+            break;
+        default:
+            break;
     }
-
 }
 
 void ChGlyphs::Reserve(unsigned int n_glyphs) {
@@ -143,7 +141,11 @@ void ChGlyphs::SetGlyphVector(unsigned int id, ChVector3d mpoint, ChVector3d mve
 }
 
 // Fast method to set a glyph for GLYPH_VECTOR draw mode, local basis
-void ChGlyphs::SetGlyphVectorLocal(unsigned int id, ChVector3d mpoint, ChVector3d mvector, ChQuaternion<> mrot, ChColor mcolor) {
+void ChGlyphs::SetGlyphVectorLocal(unsigned int id,
+                                   ChVector3d mpoint,
+                                   ChVector3d mvector,
+                                   ChQuaternion<> mrot,
+                                   ChColor mcolor) {
     if (this->draw_mode != GLYPH_VECTOR)
         SetDrawMode(GLYPH_VECTOR);
 
@@ -183,7 +185,7 @@ void ChGlyphs::SetGlyphVectorLocal(unsigned int id, ChVector3d mpoint, ChVector3
 // Fast method to set a glyph for GLYPH_COORDSYS draw mode.
 // If the id is more than the reserved amount of glyphs (see Reserve() ) the csys are inflated.
 void ChGlyphs::SetGlyphCoordsys(unsigned int id, ChCoordsys<> mcoord) {
-    if (this->draw_mode != GLYPH_COORDSYS) 
+    if (this->draw_mode != GLYPH_COORDSYS)
         SetDrawMode(GLYPH_COORDSYS);
 
     if (points.size() <= id)
@@ -253,7 +255,7 @@ void ChGlyphs::ArchiveOut(ChArchiveOut& archive_out) {
 
 void ChGlyphs::ArchiveIn(ChArchiveIn& archive_in) {
     // version number
-    /*int version =*/ archive_in.VersionRead<ChGlyphs>();
+    /*int version =*/archive_in.VersionRead<ChGlyphs>();
     // deserialize parent class
     ChVisualShape::ArchiveIn(archive_in);
     // stream in all member data:

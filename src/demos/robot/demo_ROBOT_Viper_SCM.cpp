@@ -259,7 +259,7 @@ int main(int argc, char* argv[]) {
             vis_irr->AddCamera(ChVector3d(1.0, 2.0, 1.4), ChVector3d(0, 0, wheel_range));
             vis_irr->AddTypicalLights();
             vis_irr->AddLightWithShadow(ChVector3d(-5.0, -0.5, 8.0), ChVector3d(-1, 0, 0), 100, 1, 35, 85, 512,
-                                    ChColor(0.8f, 0.8f, 0.8f));
+                                        ChColor(0.8f, 0.8f, 0.8f));
             vis_irr->EnableShadows();
 
             vis = vis_irr;

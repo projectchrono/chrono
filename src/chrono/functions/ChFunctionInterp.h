@@ -32,8 +32,8 @@ class ChApi ChFunctionInterp : public ChFunction {
   private:
     std::map<double, double> m_table;  ///< map with x-y points
     mutable std::map<double, double>::const_iterator
-        m_last_greater;              ///< cached pointer to element greater than previous called 'x'
-    bool m_extrapolate = false;      ///< enable linear extrapolation for out-of-range values
+        m_last_greater;          ///< cached pointer to element greater than previous called 'x'
+    bool m_extrapolate = false;  ///< enable linear extrapolation for out-of-range values
 
   public:
     ChFunctionInterp() : m_last_greater(m_table.end()), m_extrapolate(false) {}

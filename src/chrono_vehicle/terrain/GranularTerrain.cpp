@@ -63,13 +63,15 @@ const double safety_factor = 1.001;
 // Note: this should be at least 3, to accommodate the case of rough surface.
 const double offset_factor = 3;
 
+// All particles have tags greater than this value
+static constexpr int tag_particles = 100;
+
 // -----------------------------------------------------------------------------
 // Default constructor.
 // -----------------------------------------------------------------------------
 GranularTerrain::GranularTerrain(ChSystem* system)
     : m_min_num_particles(0),
       m_num_particles(0),
-      m_start_id(1000000),
       m_moving_patch(false),
       m_moved(false),
       m_rough_surface(false),
@@ -155,7 +157,7 @@ void BoundaryContact::OnCustomCollision(ChSystem* system) {
     auto bodylist = system->GetBodies();
     for (auto body : bodylist) {
         auto center = body->GetPos();
-        if (body->GetIdentifier() > m_terrain->m_start_id) {
+        if (body->GetTag() >= tag_particles) {
             CheckBottom(body.get(), center);
             CheckLeft(body.get(), center);
             CheckRight(body.get(), center);
@@ -387,13 +389,10 @@ void GranularTerrain::Initialize(const ChVector3d& center,
         }
     }
 
-    // Set the ground body identifier.
-    m_ground->SetIdentifier(m_start_id);
-
     // Create a particle generator and a mixture entirely made out of spheres.
     // Set the starting value for particle body identifiers.
     utils::ChGenerator generator(m_ground->GetSystem());
-    generator.SetBodyIdentifier(m_start_id + 1);
+    generator.SetStartTag(tag_particles);
     std::shared_ptr<utils::ChMixtureIngredient> m1 = generator.AddMixtureIngredient(utils::MixtureType::SPHERE, 1.0);
     m1->SetDefaultMaterial(m_material);
     m1->SetDefaultDensity(density);
@@ -448,7 +447,7 @@ void GranularTerrain::Synchronize(double time) {
     // Count particles that must be relocated.
     unsigned int num_moved_particles = 0;
     for (auto body : m_ground->GetSystem()->GetBodies()) {
-        if (body->GetIdentifier() > m_start_id && body->GetPos().x() - m_radius < m_rear) {
+        if (body->GetTag() >= tag_particles && body->GetPos().x() - m_radius < m_rear) {
             num_moved_particles++;
         }
     }
@@ -469,7 +468,7 @@ void GranularTerrain::Synchronize(double time) {
     // Relocate particles at their new locations.
     size_t ip = 0;
     for (auto body : m_ground->GetSystem()->GetBodies()) {
-        if (body->GetIdentifier() > m_start_id && body->GetPos().x() - m_radius < m_rear) {
+        if (body->GetTag() >= tag_particles && body->GetPos().x() - m_radius < m_rear) {
             body->SetPos(new_points[ip++]);
             body->SetPosDt(m_init_part_vel);
         }
@@ -491,7 +490,7 @@ double GranularTerrain::GetHeight(const ChVector3d& loc) const {
     double highest = m_bottom;
     for (auto body : m_ground->GetSystem()->GetBodies()) {
         ////double height = ChWorldFrame::Height(body->GetPos());
-        if (body->GetIdentifier() > m_start_id && body->GetPos().z() > highest)
+        if (body->GetTag() >= tag_particles && body->GetPos().z() > highest)
             highest = body->GetPos().z();
     }
     return highest + m_radius;

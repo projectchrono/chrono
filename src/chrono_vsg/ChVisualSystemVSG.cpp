@@ -1174,8 +1174,7 @@ void ChVisualSystemVSG::PopulateGroup(vsg::ref_ptr<vsg::Group> group,
             size_t objHashValue = m_stringHash(objFilename);
             auto grp = vsg::Group::create();
             auto transform = vsg::MatrixTransform::create();
-            transform->matrix =
-                vsg::dmat4CH(ChFrame<>(X_SM.GetPos(), X_SM.GetRot() * QuatFromAngleX(-CH_PI_2)), scale);
+            transform->matrix = vsg::dmat4CH(ChFrame<>(X_SM.GetPos(), X_SM.GetRot() * QuatFromAngleX(-CH_PI_2)), scale);
             grp->addChild(transform);
             // needed, when BindAll() is called after Initialization
             // vsg::observer_ptr<vsg::Viewer> observer_viewer(m_viewer);
@@ -1513,7 +1512,7 @@ void ChVisualSystemVSG::BindLinkDistance(const std::shared_ptr<ChLinkDistance>& 
 
 void ChVisualSystemVSG::BindBodyFrame(const std::shared_ptr<ChBody>& body) {
     auto cog_transform = vsg::MatrixTransform::create();
-    cog_transform->matrix = vsg::dmat4CH(body->GetFrame_COG_to_abs(), m_cog_frame_scale);
+    cog_transform->matrix = vsg::dmat4CH(body->GetFrameCOMToAbs(), m_cog_frame_scale);
     vsg::Mask mask = m_show_cog_frames;
     auto cog_node = m_shapeBuilder->createFrameSymbol(cog_transform, 1.0f);
     cog_node->setValue("Body", body);
@@ -1615,7 +1614,7 @@ void ChVisualSystemVSG::UpdateFromMBS() {
             if (!child.node->getValue("Transform", transform))
                 continue;
 
-            transform->matrix = vsg::dmat4CH(body->GetFrame_COG_to_abs(), m_cog_frame_scale);
+            transform->matrix = vsg::dmat4CH(body->GetFrameCOMToAbs(), m_cog_frame_scale);
         }
     }
 

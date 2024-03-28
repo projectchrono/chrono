@@ -58,8 +58,8 @@ int main(int argc, char* argv[]) {
 
     // Insert the funnel
     float funnel_bottom = 0.f;
-    gpu_sys.AddMesh(GetChronoDataFile("models/funnel.obj"), ChVector3f(0, 0, funnel_bottom),
-                    ChMatrix33<float>(0.15f), 1e10);
+    gpu_sys.AddMesh(GetChronoDataFile("models/funnel.obj"), ChVector3f(0, 0, funnel_bottom), ChMatrix33<float>(0.15f),
+                    1e10);
     gpu_sys.EnableMeshCollision(true);
 
     gpu_sys.SetKn_SPH2SPH(params.normalStiffS2S);

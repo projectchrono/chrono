@@ -16,7 +16,6 @@
 
 namespace chrono {
 
-
 // Register into the object factory, to enable run-time dynamic creation and persistence
 CH_FACTORY_REGISTER(ChLinePoly)
 
@@ -102,13 +101,12 @@ void ChLinePoly::ArchiveOut(ChArchiveOut& archive_out) {
 
 void ChLinePoly::ArchiveIn(ChArchiveIn& archive_in) {
     // version number
-    /*int version =*/ archive_in.VersionRead<ChLinePoly>();
+    /*int version =*/archive_in.VersionRead<ChLinePoly>();
     // deserialize parent class
     ChLine::ArchiveIn(archive_in);
     // stream in all member data:
     archive_in >> CHNVP(points);
     archive_in >> CHNVP(degree);
 }
-
 
 }  // end namespace chrono

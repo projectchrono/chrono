@@ -32,8 +32,7 @@ class ChApi ChCollisionShapeRoundedCylinder : public ChCollisionShape {
                                     double radius,
                                     double height,
                                     double sradius);
-    ChCollisionShapeRoundedCylinder(std::shared_ptr<ChContactMaterial> material,
-                                    const ChRoundedCylinder& cyl);
+    ChCollisionShapeRoundedCylinder(std::shared_ptr<ChContactMaterial> material, const ChRoundedCylinder& cyl);
 
     ~ChCollisionShapeRoundedCylinder() {}
 

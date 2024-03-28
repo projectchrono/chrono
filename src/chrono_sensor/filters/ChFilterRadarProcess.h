@@ -49,12 +49,12 @@ class CH_SENSOR_API ChFilterRadarProcess : public ChFilter {
     virtual void Initialize(std::shared_ptr<ChSensor> pSensor, std::shared_ptr<SensorBuffer>& bufferInOut);
 
   private:
-    std::shared_ptr<ChRadarSensor> m_radar;                        /// radar this filter is attached
-    std::shared_ptr<SensorDeviceRadarBuffer> m_buffer_in;          /// holder of the input buffer
+    std::shared_ptr<ChRadarSensor> m_radar;                  /// radar this filter is attached
+    std::shared_ptr<SensorDeviceRadarBuffer> m_buffer_in;    /// holder of the input buffer
     std::shared_ptr<SensorHostRadarXYZBuffer> m_buffer_out;  /// holder of the output buffer
-    CUstream m_cuda_stream;                                        /// reference to the cuda stream
-    float m_hFOV;                                                  /// horizontal field of view of the radar
-    float m_vFOV;                                        /// mimimum vertical angle of the radar
+    CUstream m_cuda_stream;                                  /// reference to the cuda stream
+    float m_hFOV;                                            /// horizontal field of view of the radar
+    float m_vFOV;                                            /// mimimum vertical angle of the radar
     #if PROFILE
     unsigned int m_scan_number = 0;
     #endif

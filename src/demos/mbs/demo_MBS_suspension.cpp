@@ -144,8 +144,7 @@ class MySimpleCar {
         sys.AddBody(spindleRF);
 
         // ..the car right-front wheel
-        wheelRF =
-            chrono_types::make_shared<ChBodyEasyCylinder>(ChAxis::Y, 0.45, 0.3, 1.0, true, true, wheel_mat);
+        wheelRF = chrono_types::make_shared<ChBodyEasyCylinder>(ChAxis::Y, 0.45, 0.3, 1.0, true, true, wheel_mat);
         wheelRF->SetPos(ChVector3d(1.5, 1, 1));
         wheelRF->SetRot(chrono::QuatFromAngleZ(CH_PI_2));
         wheelRF->SetMass(3);
@@ -198,8 +197,7 @@ class MySimpleCar {
         sys.AddBody(spindleLF);
 
         // ..the car left-front wheel
-        wheelLF =
-            chrono_types::make_shared<ChBodyEasyCylinder>(ChAxis::Y, 0.45, 0.3, 1.0, true, true, wheel_mat);
+        wheelLF = chrono_types::make_shared<ChBodyEasyCylinder>(ChAxis::Y, 0.45, 0.3, 1.0, true, true, wheel_mat);
         wheelLF->SetPos(ChVector3d(-1.5, 1, 1));
         wheelLF->SetRot(chrono::QuatFromAngleZ(CH_PI_2));
         wheelLF->SetMass(3);
@@ -253,8 +251,7 @@ class MySimpleCar {
         sys.AddBody(spindleRB);
 
         // ..the car right-back wheel
-        wheelRB =
-            chrono_types::make_shared<ChBodyEasyCylinder>(ChAxis::Y, 0.45, 0.3, 1.0, true, true, wheel_mat);
+        wheelRB = chrono_types::make_shared<ChBodyEasyCylinder>(ChAxis::Y, 0.45, 0.3, 1.0, true, true, wheel_mat);
         wheelRB->SetPos(ChVector3d(1.5, 1, -1));
         wheelRB->SetRot(chrono::QuatFromAngleZ(CH_PI_2));
         wheelRB->SetMass(3);
@@ -313,8 +310,7 @@ class MySimpleCar {
         sys.AddBody(spindleLB);
 
         // ..the car left-back wheel
-        wheelLB =
-            chrono_types::make_shared<ChBodyEasyCylinder>(ChAxis::Y, 0.45, 0.3, 1.0, true, true, wheel_mat);
+        wheelLB = chrono_types::make_shared<ChBodyEasyCylinder>(ChAxis::Y, 0.45, 0.3, 1.0, true, true, wheel_mat);
         wheelLB->SetPos(ChVector3d(-1.5, 1, -1));
         wheelLB->SetRot(chrono::QuatFromAngleZ(CH_PI_2));
         wheelLB->SetMass(3);
@@ -330,8 +326,7 @@ class MySimpleCar {
 
         // .. create the motor transmission joint between the wheel and the truss (assuming small changes of alignment)
         link_motorL = chrono_types::make_shared<ChLinkMotorRotationTorque>();
-        link_motorL->Initialize(wheelLB, chassis,
-                                ChFrame<>(ChVector3d(-1.5, 1, -1), chrono::QuatFromAngleY(CH_PI_2)));
+        link_motorL->Initialize(wheelLB, chassis, ChFrame<>(ChVector3d(-1.5, 1, -1), chrono::QuatFromAngleY(CH_PI_2)));
         sys.AddLink(link_motorL);
 
         // .. impose distance between two parts (as a massless rod with two spherical joints at the end)

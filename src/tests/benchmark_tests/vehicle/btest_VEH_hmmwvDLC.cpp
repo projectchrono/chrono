@@ -169,7 +169,7 @@ void HmmwvDlcTest<EnumClass, TIRE_MODEL>::SimulateVis() {
 // =============================================================================
 
 #define NUM_SKIP_STEPS 2500  // number of steps for hot start (2e-3 * 2500 = 5s)
-#define NUM_SIM_STEPS 5000   // number of simulation steps for each benchmark (2e-3 * 5000 = 10s)
+#define NUM_SIM_STEPS 5000  // number of simulation steps for each benchmark (2e-3 * 5000 = 10s)
 #define REPEATS 10
 
 // NOTE: trick to prevent erros in expanding macros due to types that contain a comma.

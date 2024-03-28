@@ -122,9 +122,9 @@ double FMTV_SpringForceFront::evaluate(double time,
 class FMTV_ShockForceFront : public ChLinkTSDA::ForceFunctor {
   public:
     FMTV_ShockForceFront(double compression_slope,
-                           double compression_degressivity,
-                           double expansion_slope,
-                           double expansion_degressivity);
+                         double compression_degressivity,
+                         double expansion_slope,
+                         double expansion_degressivity);
 
     virtual double evaluate(double time,
                             double rest_length,
@@ -140,9 +140,9 @@ class FMTV_ShockForceFront : public ChLinkTSDA::ForceFunctor {
 };
 
 FMTV_ShockForceFront::FMTV_ShockForceFront(double compression_slope,
-                                               double compression_degressivity,
-                                               double expansion_slope,
-                                               double expansion_degressivity)
+                                           double compression_degressivity,
+                                           double expansion_slope,
+                                           double expansion_degressivity)
     : m_slope_compr(compression_slope),
       m_slope_expand(expansion_slope),
       m_degres_compr(compression_degressivity),

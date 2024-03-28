@@ -113,7 +113,7 @@ class CH_VEHICLE_API ChWheeledVehicle : public ChVehicle {
     double GetSpindleOmega(int axle, VehicleSide side) const;
 
     /// Return the vehicle wheelbase.
-    virtual double GetWheelbase() const  = 0;
+    virtual double GetWheelbase() const = 0;
 
     /// Return the vehicle wheel track of the specified suspension subsystem.
     double GetWheeltrack(int id) const { return m_axles[id]->m_suspension->GetTrack(); }

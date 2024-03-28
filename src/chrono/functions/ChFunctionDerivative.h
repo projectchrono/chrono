@@ -49,7 +49,7 @@ class ChApi ChFunctionDerivative : public ChFunction {
     void SetOrder(int m_order) { m_der_order = m_order; }
 
     /// Get the derivative order.
-    int GetOrder() const { return m_der_order; } 
+    int GetOrder() const { return m_der_order; }
 
     /// Set the function to be differentiated.
     void SetOperandFunction(std::shared_ptr<ChFunction> operand_function) { m_operand_fun = operand_function; }

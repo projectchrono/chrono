@@ -92,7 +92,7 @@ TEST(ChFunctionInterp, interp1_extrap) {
     // ASSERT_DOUBLE_EQ(fun_table.GetVal(-0.7), fun_table(-0.7));
 }
 
-//TEST(ChFunctionInterp, wrong_insertions) {
+// TEST(ChFunctionInterp, wrong_insertions) {
 //    ChFunctionInterp fun_table_noovr;
 //    fun_table_noovr.AddPoint(0.0, 2.7);
 //    bool thrown = false;

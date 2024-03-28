@@ -18,8 +18,7 @@ namespace chrono {
 
 CH_UPCASTING(ChIterativeSolverVI, ChIterativeSolver)
 CH_UPCASTING(ChIterativeSolverVI, ChSolverVI)
-CH_UPCASTING(ChSolverVI, ChSolver) // placed here since ChSolver is missing the .cpp
-
+CH_UPCASTING(ChSolverVI, ChSolver)  // placed here since ChSolver is missing the .cpp
 
 ChIterativeSolverVI::ChIterativeSolverVI()
     : ChIterativeSolver(50, 0.0, true, false),
@@ -68,7 +67,7 @@ void ChIterativeSolverVI::ArchiveOut(ChArchiveOut& archive_out) {
 
 void ChIterativeSolverVI::ArchiveIn(ChArchiveIn& archive_in) {
     // version number
-    /*int version =*/ archive_in.VersionRead<ChIterativeSolverVI>();
+    /*int version =*/archive_in.VersionRead<ChIterativeSolverVI>();
     // deserialize parent class
     ChSolver::ArchiveIn(archive_in);
     // stream in all member data:

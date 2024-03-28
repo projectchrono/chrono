@@ -29,18 +29,18 @@ using namespace chrono;
 const double ABS_ERR = 1e-8;
 
 TEST(MathTest, quadrature) {
-    class MySine1d : public ChIntegrable1D<double> {
+    class MySine1d : public ChIntegrand1D<double> {
       public:
         void Evaluate(double& result, const double x) { result = sin(x); }
     };
 
     MySine1d mfx;
     double qresult = 0;
-    ChQuadrature::Integrate1D<double>(qresult, mfx, 0, CH_PI, 6); // 6th order Gauss-Legendre quadrature on [0,pi]
+    ChQuadrature::Integrate1D<double>(qresult, mfx, 0, CH_PI, 6);  // 6th order Gauss-Legendre quadrature on [0,pi]
     cout << "Quadrature 1d result: " << qresult << " (analytic solution: 2.0) \n";
     ASSERT_NEAR(qresult, 2.0, ABS_ERR);
 
-    class MySine2d : public ChIntegrable2D<double> {
+    class MySine2d : public ChIntegrand2D<double> {
       public:
         void Evaluate(double& result, const double x, const double y) { result = sin(x); }
     };
@@ -51,7 +51,7 @@ TEST(MathTest, quadrature) {
     cout << "Quadrature 2d result: " << qresult << " (analytic solution: 4.0) \n";
     ASSERT_NEAR(qresult, 4.0, ABS_ERR);
 
-    class MySine2dM : public ChIntegrable2D<ChMatrixNM<double, 1, 2>> {
+    class MySine2dM : public ChIntegrand2D<ChMatrixNM<double, 1, 2>> {
       public:
         void Evaluate(ChMatrixNM<double, 1, 2>& result, const double x, const double y) {
             result(0, 0) = x * y;

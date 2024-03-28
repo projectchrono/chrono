@@ -108,12 +108,12 @@ int main(int argc, char* argv[]) {
         // Create a camera and add it to the sensor manager
         // ------------------------------------------------
         auto cam = std::make_shared<ChCameraSensor>(
-            cam_body,                                                            // body camera is attached to
-            60.0f,                                                               // update rate in Hz
+            cam_body,                                                               // body camera is attached to
+            60.0f,                                                                  // update rate in Hz
             chrono::ChFrame<double>({-10, 0, 0}, QuatFromAngleAxis(0, {0, 1, 0})),  // offset pose
-            1920,                                                                // image width
-            1080,                                                                // image height
-            (float)CH_PI / 3, 1, CameraLensModelType::PINHOLE, true            // FOV
+            1920,                                                                   // image width
+            1080,                                                                   // image height
+            (float)CH_PI / 3, 1, CameraLensModelType::PINHOLE, true                 // FOV
         );
         cam->SetName("Camera Sensor");
         if (vis)

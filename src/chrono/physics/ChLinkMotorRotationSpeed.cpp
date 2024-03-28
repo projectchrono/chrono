@@ -123,7 +123,7 @@ void ChLinkMotorRotationSpeed::Update(double mytime, bool update_assets) {
     }
 }
 
-void ChLinkMotorRotationSpeed::KRMmatricesLoad(double Kfactor, double Rfactor, double Mfactor) {
+void ChLinkMotorRotationSpeed::LoadKRMMatrices(double Kfactor, double Rfactor, double Mfactor) {
     if (!this->IsActive())
         return;
 
@@ -186,7 +186,7 @@ void ChLinkMotorRotationSpeed::KRMmatricesLoad(double Kfactor, double Rfactor, d
         Ks.block<3, 3>(9, 9) = R_B2_W.transpose() * R_F2_W * G * R_F1M_W.transpose() * R_B2_W;
 
         // The complete tangent stiffness matrix
-        this->Kmatr->Get_K() = (Km + Ks) * Kfactor;
+        this->Kmatr->GetMatrix() = (Km + Ks) * Kfactor;
     }
 }
 
@@ -206,7 +206,7 @@ void ChLinkMotorRotationSpeed::ConstraintsBiLoad_Ct(double factor) {
     double mCt = -0.5 * m_func->GetVal(this->GetChTime());
     unsigned int ncrz = mask.GetNumConstraints() - 1;
     if (mask.GetConstraint(ncrz).IsActive()) {
-        mask.GetConstraint(ncrz).Set_b_i(mask.GetConstraint(ncrz).Get_b_i() + factor * mCt);
+        mask.GetConstraint(ncrz).SetRightHandSide(mask.GetConstraint(ncrz).GetRightHandSide() + factor * mCt);
     }
 }
 
@@ -263,8 +263,7 @@ void ChLinkMotorRotationSpeed::IntLoadResidual_Mv(const unsigned int off,      /
 void ChLinkMotorRotationSpeed::IntLoadLumpedMass_Md(const unsigned int off,
                                                     ChVectorDynamic<>& Md,
                                                     double& err,
-                                                    const double c   
-) {
+                                                    const double c) {
     Md(off) += c * 1.0;
 }
 
@@ -277,8 +276,8 @@ void ChLinkMotorRotationSpeed::IntToDescriptor(const unsigned int off_v,  // off
     // inherit parent
     ChLinkMotorRotation::IntToDescriptor(off_v, v, R, off_L, L, Qc);
 
-    this->variable.Get_qb()(0, 0) = v(off_v);
-    this->variable.Get_fb()(0, 0) = R(off_v);
+    this->variable.State()(0, 0) = v(off_v);
+    this->variable.Force()(0, 0) = R(off_v);
 }
 
 void ChLinkMotorRotationSpeed::IntFromDescriptor(const unsigned int off_v,  // offset in v
@@ -288,37 +287,37 @@ void ChLinkMotorRotationSpeed::IntFromDescriptor(const unsigned int off_v,  // o
     // inherit parent
     ChLinkMotorRotation::IntFromDescriptor(off_v, v, off_L, L);
 
-    v(off_v) = this->variable.Get_qb()(0, 0);
+    v(off_v) = this->variable.State()(0, 0);
 }
 
 ////
-void ChLinkMotorRotationSpeed::InjectVariables(ChSystemDescriptor& mdescriptor) {
+void ChLinkMotorRotationSpeed::InjectVariables(ChSystemDescriptor& descriptor) {
     variable.SetDisabled(!IsActive());
 
-    mdescriptor.InsertVariables(&variable);
+    descriptor.InsertVariables(&variable);
 }
 
 void ChLinkMotorRotationSpeed::VariablesFbReset() {
-    variable.Get_fb().setZero();
+    variable.Force().setZero();
 }
 
 void ChLinkMotorRotationSpeed::VariablesFbLoadForces(double factor) {
     double imposed_speed = m_func->GetVal(this->GetChTime());
-    variable.Get_fb()(0) += imposed_speed * factor;
+    variable.Force()(0) += imposed_speed * factor;
 }
 
 void ChLinkMotorRotationSpeed::VariablesFbIncrementMq() {
-    variable.Compute_inc_Mb_v(variable.Get_fb(), variable.Get_qb());
+    variable.AddMassTimesVector(variable.Force(), variable.State());
 }
 
 void ChLinkMotorRotationSpeed::VariablesQbLoadSpeed() {
     // set current speed in 'qb', it can be used by the solver when working in incremental mode
-    variable.Get_qb()(0) = aux_dt;
+    variable.State()(0) = aux_dt;
 }
 
 void ChLinkMotorRotationSpeed::VariablesQbSetSpeed(double step) {
     // from 'qb' vector, sets body speed, and updates auxiliary data
-    aux_dt = variable.Get_qb()(0);
+    aux_dt = variable.State()(0);
 
     // Compute accel. by BDF (approximate by differentiation); not needed
 }
@@ -338,7 +337,7 @@ void ChLinkMotorRotationSpeed::ArchiveOut(ChArchiveOut& archive_out) {
 /// Method to allow de serialization of transient data from archives.
 void ChLinkMotorRotationSpeed::ArchiveIn(ChArchiveIn& archive_in) {
     // version number
-    /*int version =*/ archive_in.VersionRead<ChLinkMotorRotationSpeed>();
+    /*int version =*/archive_in.VersionRead<ChLinkMotorRotationSpeed>();
 
     // deserialize parent class
     ChLinkMotorRotation::ArchiveIn(archive_in);

@@ -30,7 +30,6 @@ namespace chrono {
 /// control assumption is a good approximation of what you simulate (e.g., very good and reactive controllers).
 /// By default it is initialized with linear ramp: df/dt= 1.
 /// Use SetMotionFunction() to change to other motion functions.
-
 class ChApi ChLinkMotorLinearPosition : public ChLinkMotorLinear {
   public:
     ChLinkMotorLinearPosition();
@@ -59,18 +58,6 @@ class ChApi ChLinkMotorLinearPosition : public ChLinkMotorLinear {
     /// Get the current actuator reaction force, as applied to slider
     virtual double GetMotorForce() const override { return -this->react_force.z(); }
 
-    void Update(double mytime, bool update_assets) override;
-
-    //
-    // STATE FUNCTIONS
-    //
-    virtual void IntLoadConstraint_Ct(const unsigned int off, ChVectorDynamic<>& Qc, const double c) override;
-
-    //
-    // SOLVER INTERFACE (OLD)
-    //
-    virtual void ConstraintsBiLoad_Ct(double factor = 1) override;
-
     /// Method to allow serialization of transient data to archives.
     virtual void ArchiveOut(ChArchiveOut& archive_out) override;
 
@@ -79,6 +66,10 @@ class ChApi ChLinkMotorLinearPosition : public ChLinkMotorLinear {
 
   private:
     double pos_offset;
+
+    virtual void Update(double mytime, bool update_assets) override;
+    virtual void IntLoadConstraint_Ct(const unsigned int off, ChVectorDynamic<>& Qc, const double c) override;
+    virtual void ConstraintsBiLoad_Ct(double factor = 1) override;
 };
 
 CH_CLASS_VERSION(ChLinkMotorLinearPosition, 0)

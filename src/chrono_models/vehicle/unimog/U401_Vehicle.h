@@ -33,7 +33,7 @@ namespace unimog {
 
 /// UAZ vehicle system.
 class CH_MODELS_API U401_Vehicle : public ChWheeledVehicle {
-   public:
+  public:
     U401_Vehicle(const bool fixed,
                  BrakeType brake_type,
                  SteeringTypeWV steering_model,
@@ -73,7 +73,7 @@ class CH_MODELS_API U401_Vehicle : public ChWheeledVehicle {
     void LogHardpointLocations();  /// suspension hardpoints at design
     void DebugLog(int what);       /// shock forces and lengths, constraints, etc.
 
-   private:
+  private:
     void Create(bool fixed, BrakeType brake_type, SteeringTypeWV steering_model, CollisionType chassis_collision_type);
 
     std::vector<double> m_omega;

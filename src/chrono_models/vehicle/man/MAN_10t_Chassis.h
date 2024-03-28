@@ -41,7 +41,6 @@ class CH_MODELS_API MAN_10t_Chassis : public ChRigidChassis {
                     CollisionType chassis_collision_type = CollisionType::NONE);
     ~MAN_10t_Chassis() {}
 
-
     /// Get the local driver position and orientation.
     /// This is a coordinate system relative to the chassis reference frame.
     virtual ChCoordsys<> GetLocalDriverCoordsys() const override { return m_driverCsys; }

@@ -60,7 +60,7 @@ namespace vehicle {
 class CH_VEHICLE_API ChRigidPinnedAxle : public ChSuspension {
   public:
     ChRigidPinnedAxle(const std::string& name  ///< [in] name of the subsystem
-                      );
+    );
 
     virtual ~ChRigidPinnedAxle();
 

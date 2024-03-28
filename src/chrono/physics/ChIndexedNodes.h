@@ -24,7 +24,6 @@ namespace chrono {
 /// Must be inherited by children classes.
 
 class ChApi ChIndexedNodes : public ChPhysicsItem {
-
   public:
     ChIndexedNodes() {}
     ChIndexedNodes(const ChIndexedNodes& other) : ChPhysicsItem(other) {}
@@ -62,7 +61,7 @@ class ChApi ChIndexedNodes : public ChPhysicsItem {
     virtual void ArchiveIn(ChArchiveIn& archive_in) override;
 };
 
-CH_CLASS_VERSION(ChIndexedNodes,0)
+CH_CLASS_VERSION(ChIndexedNodes, 0)
 
 }  // end namespace chrono
 

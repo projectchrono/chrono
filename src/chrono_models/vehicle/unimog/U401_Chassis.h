@@ -37,8 +37,8 @@ namespace unimog {
 class CH_MODELS_API U401_Chassis : public ChRigidChassis {
   public:
     U401_Chassis(const std::string& name,
-                    bool fixed = false,
-                    CollisionType chassis_collision_type = CollisionType::NONE);
+                 bool fixed = false,
+                 CollisionType chassis_collision_type = CollisionType::NONE);
     ~U401_Chassis() {}
 
     /// Get the location (in the local frame of this chassis) of the connection to
@@ -71,4 +71,3 @@ class CH_MODELS_API U401_Chassis : public ChRigidChassis {
 }  // end namespace chrono
 
 #endif
-

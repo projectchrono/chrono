@@ -70,7 +70,7 @@ class FmuComponent : public chrono::FmuChronoComponentBase {
     double pend_length = 0.3;
 
     double init_crane_angle = chrono::CH_PI / 6;  // Initial crane angle (default value)
-    double init_F;                                  // initial load
+    double init_F;                                // initial load
 
     double s;   // actuator length (FMU output)
     double sd;  // actuator length rate (FMU output)

@@ -234,8 +234,8 @@ void AddObstacle(ChSystem* sys) {
         return;
     }
 
-    auto mesh = ChTriangleMeshConnected::CreateFromWavefrontFile(GetChronoDataFile("models/cylinderZ.obj"),
-                                                                           false, true);
+    auto mesh =
+        ChTriangleMeshConnected::CreateFromWavefrontFile(GetChronoDataFile("models/cylinderZ.obj"), false, true);
     mesh->Transform(ChVector3d(0, 0, 0), ChMatrix33<>(ChVector3d(radius, radius, length)));
 
     if (obstacle_coll_type == CollisionType::MESH) {

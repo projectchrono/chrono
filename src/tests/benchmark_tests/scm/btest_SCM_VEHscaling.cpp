@@ -273,7 +273,7 @@ int main(int argc, char* argv[]) {
                 int nsteps = (int)(end_time / step_size);
 
                 std::string fname = "stats_" + std::to_string(nthreads) + ".out";
-                std::ofstream ofile(fname.c_str(), std::ios_base::app);
+                std::ofstream ofile(fname, std::ios_base::app);
                 ofile << raytest / nsteps << " " << raycast / nsteps << " " << rtf << endl;
                 ofile.close();
                 cout << "\nOUTPUT FILE: " << fname << endl;

@@ -152,8 +152,8 @@ class CH_MODELS_API HMMWV_Full : public HMMWV {
   private:
     virtual HMMWV_Vehicle* CreateVehicle() override;
 
-    bool m_use_tierod_bodies;       ///< tierod bodies + joints (true) or distance constraints (false)
-    bool m_rigidColumn;             ///< only used with PITMAN_ARM_SHAFT
+    bool m_use_tierod_bodies;  ///< tierod bodies + joints (true) or distance constraints (false)
+    bool m_rigidColumn;        ///< only used with PITMAN_ARM_SHAFT
 };
 
 /// Definition of a HMMWV vehicle assembly (vehicle, powertrain, and tires), using reduced

@@ -82,7 +82,7 @@ void Ch3DOFContainer::Setup3DOF(int start_constraint) {
             num_rigid_fluid_contacts = data_manager->cd_data->num_rigid_fluid_contacts;
         } else {
             num_fluid_contacts = 0;
-            num_rigid_fluid_contacts = 0;        
+            num_rigid_fluid_contacts = 0;
         }
         num_fluid_bodies = data_manager->num_fluid_bodies;
         num_rigid_bodies = data_manager->num_rigid_bodies;

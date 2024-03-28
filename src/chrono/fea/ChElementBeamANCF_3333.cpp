@@ -159,9 +159,7 @@ void ChElementBeamANCF_3333::SetIntFrcCalcMethod(IntFrcMethod method) {
 
 // Get the Green-Lagrange strain tensor at the normalized element coordinates (xi, eta, zeta) [-1...1]
 
-ChMatrix33<> ChElementBeamANCF_3333::GetGreenLagrangeStrain(const double xi,
-                                                    const double eta,
-                                                    const double zeta) {
+ChMatrix33<> ChElementBeamANCF_3333::GetGreenLagrangeStrain(const double xi, const double eta, const double zeta) {
     MatrixNx3c Sxi_D;  // Matrix of normalized shape function derivatives
     Calc_Sxi_D(Sxi_D, xi, eta, zeta);
 
@@ -185,9 +183,7 @@ ChMatrix33<> ChElementBeamANCF_3333::GetGreenLagrangeStrain(const double xi,
 // Get the 2nd Piola-Kirchoff stress tensor at the normalized element coordinates (xi, eta, zeta) [-1...1] at the
 // current state of the element.
 
-ChMatrix33<> ChElementBeamANCF_3333::GetPK2Stress(const double xi,
-                                                  const double eta,
-                                                  const double zeta) {
+ChMatrix33<> ChElementBeamANCF_3333::GetPK2Stress(const double xi, const double eta, const double zeta) {
     MatrixNx3c Sxi_D;  // Matrix of normalized shape function derivatives
     Calc_Sxi_D(Sxi_D, xi, eta, zeta);
 
@@ -610,11 +606,11 @@ void ChElementBeamANCF_3333::ComputeNF(
 
     // Compute the unique pieces that make up the moment projection matrix "G"
     VectorN G_A = Sxi_D.col(0).transpose() * J_Cxi_Inv(0, 0) + Sxi_D.col(1).transpose() * J_Cxi_Inv(1, 0) +
-        Sxi_D.col(2).transpose() * J_Cxi_Inv(2, 0);
+                  Sxi_D.col(2).transpose() * J_Cxi_Inv(2, 0);
     VectorN G_B = Sxi_D.col(0).transpose() * J_Cxi_Inv(0, 1) + Sxi_D.col(1).transpose() * J_Cxi_Inv(1, 1) +
-        Sxi_D.col(2).transpose() * J_Cxi_Inv(2, 1);
+                  Sxi_D.col(2).transpose() * J_Cxi_Inv(2, 1);
     VectorN G_C = Sxi_D.col(0).transpose() * J_Cxi_Inv(0, 2) + Sxi_D.col(1).transpose() * J_Cxi_Inv(1, 2) +
-        Sxi_D.col(2).transpose() * J_Cxi_Inv(2, 2);
+                  Sxi_D.col(2).transpose() * J_Cxi_Inv(2, 2);
 
     ChVectorN<double, 3> M_scaled = 0.5 * F.segment(3, 3);
 
@@ -852,7 +848,7 @@ void ChElementBeamANCF_3333::PrecomputeInternalForceMatricesWeightsContInt() {
         double eta = 0;
         double zeta = 0;
         ChMatrix33<> J_0xi;  // Element Jacobian between the reference configuration and normalized configuration
-        MatrixNx3c Sxi_D;          // Matrix of normalized shape function derivatives
+        MatrixNx3c Sxi_D;    // Matrix of normalized shape function derivatives
 
         Calc_Sxi_D(Sxi_D, xi, eta, zeta);
         J_0xi.noalias() = m_ebar0 * Sxi_D;
@@ -1033,7 +1029,7 @@ void ChElementBeamANCF_3333::PrecomputeInternalForceMatricesWeightsPreInt() {
         double zeta = 0;
 
         ChMatrix33<> J_0xi;  // Element Jacobian between the reference configuration and normalized configuration
-        MatrixNx3c Sxi_D;          // Matrix of normalized shape function derivatives
+        MatrixNx3c Sxi_D;    // Matrix of normalized shape function derivatives
 
         Calc_Sxi_D(Sxi_D, xi, eta, zeta);
         J_0xi.noalias() = m_ebar0 * Sxi_D;
@@ -1920,7 +1916,7 @@ void ChElementBeamANCF_3333::ComputeInternalJacobianContIntDamping(ChMatrixRef& 
     // =============================================================================
 
     ChMatrixNM_col<double, 3 * NIP, 3> FCscaled = (Kfactor + m_Alpha * Rfactor) * FC.template block<3 * NIP, 3>(0, 0) +
-                                               (m_Alpha * Kfactor) * FC.template block<3 * NIP, 3>(0, 3);
+                                                  (m_Alpha * Kfactor) * FC.template block<3 * NIP, 3>(0, 3);
 
     for (auto i = 0; i < 3; i++) {
         FCscaled.template block<NIP_D0, 1>(0, i).array() *= m_kGQ_D0.array();

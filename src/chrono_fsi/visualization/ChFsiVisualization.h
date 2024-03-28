@@ -36,7 +36,7 @@ namespace fsi {
 class CH_FSI_API ChFsiVisualization {
   public:
     /// Rendering mode for particles and mesh objects.
-    enum class RenderMode {POINTS, WIREFRAME, SOLID};
+    enum class RenderMode { POINTS, WIREFRAME, SOLID };
 
     /// Create a run-time FSI visualization object associated with a given Chrono::Fsi system.
     ChFsiVisualization(ChSystemFsi* sysFSI);

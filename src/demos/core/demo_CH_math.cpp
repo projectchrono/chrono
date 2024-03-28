@@ -29,8 +29,8 @@ int main(int argc, char* argv[]) {
 
     std::cout << "\n=== Computing integrals of functions in 1D/2D/3D ===\n" << std::endl;
 
-    // Define a y=f(x) function by inheriting ChIntegrable1D:
-    class MySine1d : public ChIntegrable1D<double> {
+    // Define a y=f(x) function by inheriting ChIntegrand1D:
+    class MySine1d : public ChIntegrand1D<double> {
       public:
         void Evaluate(double& result, const double x) { result = sin(x); }
     };
@@ -43,7 +43,7 @@ int main(int argc, char* argv[]) {
     std::cout << "Quadrature 1d result: " << qresult << " (analytic solution: 2.0)" << std::endl;
 
     // Other quadrature tests, this time in 2D
-    class MySine2d : public ChIntegrable2D<double> {
+    class MySine2d : public ChIntegrand2D<double> {
       public:
         void Evaluate(double& result, const double x, const double y) { result = sin(x); }
     };
@@ -54,7 +54,7 @@ int main(int argc, char* argv[]) {
     std::cout << "Quadrature 2d result: " << qresult << " (analytic solution: 4.0)" << std::endl;
 
     // Other quadrature tests, this time with vector function (that is, integrates 2x1 matrix)
-    class MySine2dM : public ChIntegrable2D<ChMatrixNM<double, 1, 2>> {
+    class MySine2dM : public ChIntegrand2D<ChMatrixNM<double, 1, 2>> {
       public:
         void Evaluate(ChMatrixNM<double, 1, 2>& result, const double x, const double y) {
             result(0, 0) = x * y;

@@ -18,7 +18,6 @@
 #include "chrono/functions/ChFunctionBase.h"
 #include "chrono/functions/ChFunctionPosition.h"
 
-
 namespace chrono {
 
 /// @addtogroup chrono_functions
@@ -28,39 +27,26 @@ namespace chrono {
 /// independent ChFunction objects, each for px, py, pz component.
 
 class ChApi ChFunctionPositionXYZFunctions : public ChFunctionPosition {
-
   public:
-	ChFunctionPositionXYZFunctions();
-	ChFunctionPositionXYZFunctions(const ChFunctionPositionXYZFunctions& other);
-	virtual ~ChFunctionPositionXYZFunctions();
+    ChFunctionPositionXYZFunctions();
+    ChFunctionPositionXYZFunctions(const ChFunctionPositionXYZFunctions& other);
+    virtual ~ChFunctionPositionXYZFunctions();
 
     /// "Virtual" copy constructor.
     virtual ChFunctionPositionXYZFunctions* Clone() const override { return new ChFunctionPositionXYZFunctions(*this); }
 
-	/// Set the fx(s) function for the X component of the motion, ie. p.x = fx(s)
-	void SetFunctionX(std::shared_ptr<ChFunction> mx) {
-		this->px = mx;
-	}
-	/// Get the fx(s) function for the X component of the motion, ie. p.x = fx(s)
-	std::shared_ptr<ChFunction> GetFunctionX() {
-		return this->px;
-	}
-	/// Set the fy(s) function for the Y component of the motion, ie. p.y = fy(s)
-	void SetFunctionY(std::shared_ptr<ChFunction> my) {
-		this->py = my;
-	}
-	/// Get the fy(s) function for the Y component of the motion, ie. p.y = fy(s)
-	std::shared_ptr<ChFunction> GetFunctionY() {
-		return this->py;
-	}
-	/// Set the fz(s) function for the Z component of the motion, ie. p.z = fz(s)
-	void SetFunctionZ(std::shared_ptr<ChFunction> mz) {
-		this->pz = mz;
-	}
-	/// Get the fz(s) function for the Z component of the motion, ie. p.z = fz(s)
-	std::shared_ptr<ChFunction> GetFunctionZ() {
-		return this->pz;
-	}
+    /// Set the fx(s) function for the X component of the motion, ie. p.x = fx(s)
+    void SetFunctionX(std::shared_ptr<ChFunction> mx) { this->px = mx; }
+    /// Get the fx(s) function for the X component of the motion, ie. p.x = fx(s)
+    std::shared_ptr<ChFunction> GetFunctionX() { return this->px; }
+    /// Set the fy(s) function for the Y component of the motion, ie. p.y = fy(s)
+    void SetFunctionY(std::shared_ptr<ChFunction> my) { this->py = my; }
+    /// Get the fy(s) function for the Y component of the motion, ie. p.y = fy(s)
+    std::shared_ptr<ChFunction> GetFunctionY() { return this->py; }
+    /// Set the fz(s) function for the Z component of the motion, ie. p.z = fz(s)
+    void SetFunctionZ(std::shared_ptr<ChFunction> mz) { this->pz = mz; }
+    /// Get the fz(s) function for the Z component of the motion, ie. p.z = fz(s)
+    std::shared_ptr<ChFunction> GetFunctionZ() { return this->pz; }
 
     /// Return the position imposed by the function, at \a s.
     virtual ChVector3d GetPos(double s) const override;
@@ -70,17 +56,17 @@ class ChApi ChFunctionPositionXYZFunctions : public ChFunctionPosition {
 
     /// Return the linear acceleration imposed the function, at \a s.
     virtual ChVector3d GetLinAcc(double s) const override;
-   
+
     /// Method to allow serialization of transient data to archives
     virtual void ArchiveOut(ChArchiveOut& archive_out) override;
 
     /// Method to allow de-serialization of transient data from archives.
     virtual void ArchiveIn(ChArchiveIn& archive_in) override;
 
-private:
-	std::shared_ptr<ChFunction> px;
-	std::shared_ptr<ChFunction> py;
-	std::shared_ptr<ChFunction> pz;
+  private:
+    std::shared_ptr<ChFunction> px;
+    std::shared_ptr<ChFunction> py;
+    std::shared_ptr<ChFunction> pz;
 };
 
 /// @} chrono_functions

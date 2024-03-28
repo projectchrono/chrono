@@ -36,13 +36,13 @@ class ChApi ChLinkMotorRotation : public ChLinkMotor {
 
     /// Sets which movements (of frame 1 respect to frame 2) are constrained.
     /// By default, acts as bearing, like a revolute joint.
-    /// Note that the Z direction is the motorized one, and is never affected by
+    /// Note that the Z direction is the actuated one, and is never affected by
     /// this option.
     void SetSpindleConstraint(const SpindleConstraint mconstraint);
 
     /// Sets which movements (of frame 1 respect to frame 2) are constrained.
     /// By default, acts as bearing, like a revolute joint.
-    /// Note that the Z direction is the motorized one, and is never affected by
+    /// Note that the Z direction is the actuated one, and is never affected by
     /// this option.
     void SetSpindleConstraint(bool mc_x, bool mc_y, bool mc_z, bool mc_rx, bool mc_ry);
 
@@ -67,8 +67,6 @@ class ChApi ChLinkMotorRotation : public ChLinkMotor {
     /// Get the current actuator reaction torque [Nm]
     virtual double GetMotorTorque() const = 0;
 
-    void Update(double mytime, bool update_assets) override;
-
     /// Method to allow serialization of transient data to archives.
     virtual void ArchiveOut(ChArchiveOut& archive_out) override;
 
@@ -80,6 +78,8 @@ class ChApi ChLinkMotorRotation : public ChLinkMotor {
     double mrot;
     double mrot_dt;
     double mrot_dtdt;
+
+    virtual void Update(double mytime, bool update_assets) override;
 };
 
 CH_CLASS_VERSION(ChLinkMotorRotation, 0)

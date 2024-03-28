@@ -127,32 +127,29 @@ int main(int argc, char* argv[]) {
     sys.Add(floor);
     floor->GetVisualModel()->GetShapes()[0].first->AddMaterial(green);
 
+    //    auto wall = chrono_types::make_shared<ChBodyEasyBox>(1,30,30, 1000, true, false);
+    //    wall->SetPos({15,0,4});
+    //    wall->SetFixed(true);
+    //    sys.Add(wall);
+    //    wall->GetVisualModel()->GetShapes()[0].first->AddMaterial(red);
 
-
-//    auto wall = chrono_types::make_shared<ChBodyEasyBox>(1,30,30, 1000, true, false);
-//    wall->SetPos({15,0,4});
-//    wall->SetFixed(true);
-//    sys.Add(wall);
-//    wall->GetVisualModel()->GetShapes()[0].first->AddMaterial(red);
-
-    auto box = chrono_types::make_shared<ChBodyEasyBox>(1,1,1, 1000, true, false);
-    box->SetPos({4,3,2});
+    auto box = chrono_types::make_shared<ChBodyEasyBox>(1, 1, 1, 1000, true, false);
+    box->SetPos({4, 3, 2});
     box->SetFixed(true);
     sys.Add(box);
     box->GetVisualModel()->GetShapes()[0].first->AddMaterial(green);
 
-    auto box1 = chrono_types::make_shared<ChBodyEasyBox>(1,1,1, 1000, true, false);
-    box1->SetPos({4,-3,2});
+    auto box1 = chrono_types::make_shared<ChBodyEasyBox>(1, 1, 1, 1000, true, false);
+    box1->SetPos({4, -3, 2});
     box1->SetFixed(true);
     sys.Add(box1);
     box1->GetVisualModel()->GetShapes()[0].first->AddMaterial(green);
 
-    auto box2 = chrono_types::make_shared<ChBodyEasyBox>(1,1,1, 1000, true, false);
-    box2->SetPos({4,0,2});
+    auto box2 = chrono_types::make_shared<ChBodyEasyBox>(1, 1, 1, 1000, true, false);
+    box2->SetPos({4, 0, 2});
     box2->SetFixed(true);
     sys.Add(box2);
     box2->GetVisualModel()->GetShapes()[0].first->AddMaterial(green);
-
 
     // -----------------------
     // Create a sensor manager
@@ -169,9 +166,8 @@ int main(int argc, char* argv[]) {
     // -----------------------------------------------
     auto offset_pose = chrono::ChFrame<double>({0, 0, 1}, QuatFromAngleZ(0));
 
-    auto radar =
-        chrono_types::make_shared<ChRadarSensor>(floor, update_rate, offset_pose, horizontal_samples, vertical_samples,
-                                                 horizontal_fov, vertical_fov, max_distance);
+    auto radar = chrono_types::make_shared<ChRadarSensor>(floor, update_rate, offset_pose, horizontal_samples,
+                                                          vertical_samples, horizontal_fov, vertical_fov, max_distance);
     radar->SetName("Radar Sensor");
     radar->SetLag(lag);
     radar->SetCollectionWindow(collection_time);

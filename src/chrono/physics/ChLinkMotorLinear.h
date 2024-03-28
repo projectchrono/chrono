@@ -19,12 +19,9 @@
 
 namespace chrono {
 
-/// Base class for all linear "motor" constraints between
-/// two frames on two bodies. Motors of this type assume that
-/// the actuator is directed along Z direction of the master frame.
-/// Look for children classes for specialized behaviors, for example
-/// ex. chrono::ChLinkMotorLinearPosition
-
+/// Base class for all linear "motor" constraints between two frames on two bodies.
+/// Motors of this type assume that the actuator is directed along Z direction of the master frame. Look for children
+/// classes for specialized behaviors, for example e.g. chrono::ChLinkMotorLinearPosition
 class ChApi ChLinkMotorLinear : public ChLinkMotor {
   public:
     /// Type of guide constraint
@@ -61,8 +58,6 @@ class ChApi ChLinkMotorLinear : public ChLinkMotor {
     /// Get the current actuator reaction force.
     virtual double GetMotorForce() const = 0;
 
-    void Update(double mytime, bool update_assets) override;
-
     /// Method to allow serialization of transient data to archives.
     virtual void ArchiveOut(ChArchiveOut& archive_out) override;
 
@@ -75,7 +70,9 @@ class ChApi ChLinkMotorLinear : public ChLinkMotor {
     double mpos_dt;
     double mpos_dtdt;
 
-    int m_actuated_idx; ///< row index of the actuated constraint (Z axis)
+    int m_actuated_idx;  ///< row index of the actuated constraint (Z axis)
+
+    virtual void Update(double mytime, bool update_assets) override;
 };
 
 CH_CLASS_VERSION(ChLinkMotorLinear, 0)

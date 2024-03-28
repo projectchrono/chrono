@@ -276,11 +276,14 @@ source_group(physics\\links FILES
     ${ChronoEngine_physics_links_HEADERS})
 
 set(ChronoEngine_physics_loads_SOURCES
-    physics/ChLoadContainer.cpp
+    physics/ChLoaderU.cpp
+    physics/ChLoaderUV.cpp
+    physics/ChLoaderUVW.cpp
     physics/ChLoad.cpp
     physics/ChLoadsBody.cpp
-    physics/ChLoadsXYZnode.cpp
+    physics/ChLoadsNodeXYZ.cpp
     physics/ChLoadBodyMesh.cpp
+    physics/ChLoadContainer.cpp
 )
 
 set(ChronoEngine_physics_loads_HEADERS
@@ -290,7 +293,7 @@ set(ChronoEngine_physics_loads_HEADERS
     physics/ChLoaderUV.h
     physics/ChLoaderUVW.h
     physics/ChLoad.h
-    physics/ChLoadsXYZnode.h
+    physics/ChLoadsNodeXYZ.h
     physics/ChLoadsBody.h
     physics/ChLoadBodyMesh.h
     physics/ChLoadContainer.h
@@ -323,9 +326,9 @@ set(ChronoEngine_physics_shafts_SOURCES
     physics/ChShaftsClutch.cpp
     physics/ChShaftsPlanetary.cpp
     physics/ChShaftsMotor.cpp
-    physics/ChShaftsMotorAngle.cpp
+    physics/ChShaftsMotorPosition.cpp
     physics/ChShaftsMotorSpeed.cpp
-    physics/ChShaftsMotorTorque.cpp
+    physics/ChShaftsMotorLoad.cpp
     physics/ChShaftsTorque.cpp
     physics/ChShaftsAppliedTorque.cpp
     physics/ChShaftsTorsionSpring.cpp
@@ -344,9 +347,9 @@ set(ChronoEngine_physics_shafts_HEADERS
     physics/ChShaftsGearbox.h
     physics/ChShaftsGearboxAngled.h
     physics/ChShaftsMotor.h
-    physics/ChShaftsMotorAngle.h
+    physics/ChShaftsMotorPosition.h
     physics/ChShaftsMotorSpeed.h
-    physics/ChShaftsMotorTorque.h
+    physics/ChShaftsMotorLoad.h
     physics/ChShaftsPlanetary.h
     physics/ChShaftsTorque.h
     physics/ChShaftsAppliedTorque.h
@@ -377,7 +380,7 @@ set(ChronoEngine_fea_FILES
     fea/ChContactSurfaceMesh.cpp
     fea/ChMeshSurface.cpp
     fea/ChLoadContactSurfaceMesh.cpp
-    fea/ChLoadsXYZROTnode.cpp
+    fea/ChLoadsNodeXYZRot.cpp
     #
     fea/ChBuilderBeam.h
     fea/ChHexahedronFace.h
@@ -395,7 +398,7 @@ set(ChronoEngine_fea_FILES
     fea/ChContactSurfaceMesh.h
     fea/ChMeshSurface.h
     fea/ChLoadContactSurfaceMesh.h
-    fea/ChLoadsXYZROTnode.h
+    fea/ChLoadsNodeXYZRot.h
     fea/ChRotUtils.h
 )
 
@@ -1149,7 +1152,7 @@ set(ChronoEngine_solver_SOURCES
     solver/ChSolverBB.cpp
     solver/ChSolverAPGD.cpp
     solver/ChSolverADMM.cpp
-    solver/ChKblockGeneric.cpp
+    solver/ChKRMBlock.cpp
     solver/ChNlsolver.cpp
     )
 
@@ -1170,8 +1173,7 @@ set(ChronoEngine_solver_HEADERS
     solver/ChSolverADMM.h
     solver/ChSolverPSOR.h
     solver/ChSolverPSSOR.h
-    solver/ChKblock.h
-    solver/ChKblockGeneric.h
+    solver/ChKRMBlock.h
     solver/ChNlsolver.h
     )
 

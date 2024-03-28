@@ -74,17 +74,18 @@ class ChApi ChContactContainer : public ChPhysicsItem {
         /// Callback used to process contact points being added to the container.
         /// A derived user-provided callback class must implement this. The provided
         /// composite material should be downcast to the appropriate type.
-        virtual void OnAddContact(
-            const ChCollisionInfo& contactinfo,  ///< information about the collision pair
-            ChContactMaterialComposite* const material             ///< composite material can be modified
-            ) = 0;
+        virtual void OnAddContact(const ChCollisionInfo& contactinfo,         ///< information about the collision pair
+                                  ChContactMaterialComposite* const material  ///< composite material can be modified
+                                  ) = 0;
     };
 
     /// Specify a callback object to be used each time a contact point is added to the container.
     /// Note that derived classes may not support this. If supported, the OnAddContact() method
     /// of the provided callback object will be called for each contact pair to allow modifying the
     /// composite material properties.
-    virtual void RegisterAddContactCallback(std::shared_ptr<AddContactCallback> callback) { add_contact_callback = callback; }
+    virtual void RegisterAddContactCallback(std::shared_ptr<AddContactCallback> callback) {
+        add_contact_callback = callback;
+    }
 
     /// Get the callback object to be used each time a contact point is added to the container.
     virtual std::shared_ptr<AddContactCallback> GetAddContactCallback() { return add_contact_callback; }

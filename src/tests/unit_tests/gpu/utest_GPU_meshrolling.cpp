@@ -44,8 +44,8 @@ TEST(gpuMeshRolling, check) {
     // Load in the mesh
     float mass = 100.f;
     float inertia = (2.0f / 5) * mass * 0.5f * 0.5f;
-    gpu_sys.AddMesh(GetChronoDataPath() + "testing/gpu/one_facet.obj", ChVector3f(0),
-                    ChMatrix33<float>(ChVector3f(1)), mass);
+    gpu_sys.AddMesh(GetChronoDataPath() + "testing/gpu/one_facet.obj", ChVector3f(0), ChMatrix33<float>(ChVector3f(1)),
+                    mass);
     gpu_sys.EnableMeshCollision(true);
 
     // assign initial condition for the sphere

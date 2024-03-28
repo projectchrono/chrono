@@ -42,7 +42,7 @@ namespace vehicle {
 class CH_VEHICLE_API ChRigidTire : public ChTire {
   public:
     ChRigidTire(const std::string& name  ///< [in] name of this tire system
-                );
+    );
 
     virtual ~ChRigidTire();
 
@@ -52,7 +52,7 @@ class CH_VEHICLE_API ChRigidTire : public ChTire {
     /// Set Wavefront OBJ file for contact mesh.
     void SetMeshFilename(const std::string& mesh_file,   ///< [in] name of Wavefront file
                          double sweep_sphere_radius = 0  ///< [in] radius of sweeping sphere
-                         );
+    );
 
     /// Check whether or not this tire uses a contact mesh.
     bool UseContactMesh() const { return m_use_contact_mesh; }

@@ -23,10 +23,10 @@
 
 namespace chrono {
 
-/// Class for assemblies of items, for example ChBody, ChLink, ChMesh, etc.
-/// Note that an assembly can be added to another assembly, to create a tree-like hierarchy.
-/// All positions of rigid bodies, FEA nodes, etc. are assumed with respect to the absolute frame.
-
+/// Class for assemblies of physical items.
+/// This class is a container of ChPhysicsItems items i.e. rigid bodies, shafts, links, etc.
+/// ChAssembly objects can also contain other ChAssembly objects. Location and rotation of the
+/// contained ChPhysicsItems are assumed to be expressed with respect to the absolute frame.
 class ChApi ChAssembly : public ChPhysicsItem {
   public:
     ChAssembly();
@@ -39,9 +39,7 @@ class ChApi ChAssembly : public ChPhysicsItem {
     /// Assignment operator for ChAssembly.
     ChAssembly& operator=(ChAssembly other);
 
-    //
     // CONTAINER FUNCTIONS
-    //
 
     /// Removes all inserted items: bodies, links, etc.
     void Clear();
@@ -135,9 +133,7 @@ class ChApi ChAssembly : public ChPhysicsItem {
     /// Search an item (body, link or other ChPhysics items) by name.
     std::shared_ptr<ChPhysicsItem> Search(const std::string& name) const;
 
-    //
     // STATISTICS
-    //
 
     /// Get the total number of bodies added to the assembly, including fixed and sleeping bodies.
     unsigned int GetNumBodies() const { return m_num_bodies_active + m_num_bodies_fixed + m_num_bodies_sleep; }
@@ -151,7 +147,6 @@ class ChApi ChAssembly : public ChPhysicsItem {
     /// Get the number of bodies fixed to ground.
     unsigned int GetNumBodiesFixed() const { return m_num_bodies_fixed; }
 
-
     /// Get the number of shafts.
     unsigned int GetNumShafts() const { return m_num_shafts; }
 
@@ -164,13 +159,11 @@ class ChApi ChAssembly : public ChPhysicsItem {
     /// Get the total number of shafts added to the assembly, including the grounded and sleeping shafts.
     unsigned int GetNumShaftsTotal() const { return m_num_shafts + m_num_shafts_fixed + m_num_shafts_sleep; }
 
-
     /// Get the number of links (including non active).
     unsigned int GetNumLinks() const { return (unsigned int)linklist.size(); }
 
     /// Get the number of active links.
     unsigned int GetNumLinksActive() const { return m_num_links_active; }
-
 
     /// Get the number of meshes.
     unsigned int GetNumMeshes() const { return m_num_meshes; }
@@ -181,9 +174,9 @@ class ChApi ChAssembly : public ChPhysicsItem {
     /// Get the number of other active physics items.
     unsigned int GetNumOtherPhysicsItemsActive() const { return m_num_otherphysicsitems_active; }
 
-
     /// Get the number of scalar coordinates at the position level.
-    /// This count includes the 4th dimension of quaternions (if any), thus potentially differing from GetNumCoordsVelLevel().
+    /// This count includes the 4th dimension of quaternions (if any), thus potentially differing from
+    /// GetNumCoordsVelLevel().
     virtual unsigned int GetNumCoordsPosLevel() override { return m_num_coords_pos; }
 
     /// Get the number of scalar coordinates at the velocity level.
@@ -286,13 +279,13 @@ class ChApi ChAssembly : public ChPhysicsItem {
                                    const unsigned int off_L,
                                    ChVectorDynamic<>& L) override;
 
-    virtual void InjectVariables(ChSystemDescriptor& mdescriptor) override;
+    virtual void InjectVariables(ChSystemDescriptor& descriptor) override;
 
-    virtual void InjectConstraints(ChSystemDescriptor& mdescriptor) override;
-    virtual void ConstraintsLoadJacobians() override;
+    virtual void InjectConstraints(ChSystemDescriptor& descriptor) override;
+    virtual void LoadConstraintJacobians() override;
 
-    virtual void InjectKRMmatrices(ChSystemDescriptor& mdescriptor) override;
-    virtual void KRMmatricesLoad(double Kfactor, double Rfactor, double Mfactor) override;
+    virtual void InjectKRMMatrices(ChSystemDescriptor& descriptor) override;
+    virtual void LoadKRMMatrices(double Kfactor, double Rfactor, double Mfactor) override;
 
     // Old bookkeeping system - to be removed soon
     virtual void VariablesFbReset() override;
@@ -308,9 +301,7 @@ class ChApi ChAssembly : public ChPhysicsItem {
     virtual void ConstraintsFbLoadForces(double factor = 1) override;
     virtual void ConstraintsFetch_react(double factor = 1) override;
 
-    //
     // SERIALIZATION
-    //
 
     /// Writes the hierarchy of contained bodies, markers, etc. in ASCII
     /// readable form, mostly for debugging purposes. Level is the tab spacing at the left.
@@ -340,22 +331,21 @@ class ChApi ChAssembly : public ChPhysicsItem {
     std::vector<std::shared_ptr<ChPhysicsItem>> batch_to_insert;   ///< list of items to insert at once
 
     // Statistics:
-    int m_num_bodies_active;      ///< number of active bodies
-    int m_num_bodies_sleep;       ///< number of sleeping bodies
-    int m_num_bodies_fixed;       ///< number of fixed bodies
-    int m_num_shafts;             ///< number of active shafts
-    int m_num_shafts_sleep;       ///< number of sleeping shafts
-    int m_num_shafts_fixed;       ///< number of fixed shafts
-    int m_num_links_active;       ///< number of active links
-    int m_num_meshes;             ///< number of meshes
-    int m_num_otherphysicsitems_active;  ///< number of other active physics items
+    unsigned int m_num_bodies_active;             ///< number of active bodies
+    unsigned int m_num_bodies_sleep;              ///< number of sleeping bodies
+    unsigned int m_num_bodies_fixed;              ///< number of fixed bodies
+    unsigned int m_num_shafts;                    ///< number of active shafts
+    unsigned int m_num_shafts_sleep;              ///< number of sleeping shafts
+    unsigned int m_num_shafts_fixed;              ///< number of fixed shafts
+    unsigned int m_num_links_active;              ///< number of active links
+    unsigned int m_num_meshes;                    ///< number of meshes
+    unsigned int m_num_otherphysicsitems_active;  ///< number of other active physics items
 
-    int m_num_coords_pos;  ///< number of scalar coordinates (including 4th dimension of quaternions) for all active
-                           ///< bodies
-    int m_num_coords_vel;  ///< number of scalar coordinates when using 3 rot. dof. per body;  for all active bodies
-    int m_num_constr;      ///< number of scalar constraints  when using 3 rot. dof. per body;  for all active bodies
-    int m_num_constr_bil;  ///< number of scalar constraints C, when using 3 rot. dof. per body (excluding unilaterals)
-    int m_num_constr_uni;  ///< number of scalar constraints D, when using 3 rot. dof. per body (only unilaterals)
+    unsigned int m_num_coords_pos;  ///< number of scalar position-level coordinates for all active bodies
+    unsigned int m_num_coords_vel;  ///< number of scalar velocity-level coordinates for all active bodies
+    unsigned int m_num_constr;      ///< number of scalar constraints
+    unsigned int m_num_constr_bil;  ///< number of scalar bilateral constraints
+    unsigned int m_num_constr_uni;  ///< number of scalar unilateral constraints
 
     friend class ChSystem;
     friend class ChSystemMulticore;

@@ -340,12 +340,12 @@ void ChMesh::ComputeMassProperties(double& mass,           // ChMesh object mass
     inertia = ChMatrix33<>(1);
 
     ChVector3d mmass_weighted_radius(0);
-    double mJxx=0;
-    double mJyy=0;
-    double mJzz=0;
-    double mJxy=0;
-    double mJyz=0;
-    double mJxz=0;
+    double mJxx = 0;
+    double mJyy = 0;
+    double mJzz = 0;
+    double mJxy = 0;
+    double mJyz = 0;
+    double mJxz = 0;
 
     // Initialize all nodal total masses to zero
     for (unsigned int j = 0; j < vnodes.size(); j++) {
@@ -388,7 +388,7 @@ void ChMesh::ComputeMassProperties(double& mass,           // ChMesh object mass
         com = mmass_weighted_radius / mass;
 
     // Using the lumped mass approximation to calculate the inertia tensor.
-    // Note: the inertia of the cross sections of the associated elements at the nodes 
+    // Note: the inertia of the cross sections of the associated elements at the nodes
     // are neglected here for the sake of the conciseness of code implementation.
     inertia(0, 0) = mJxx;
     inertia(0, 1) = -mJxy;
@@ -421,11 +421,7 @@ void ChMesh::IntLoadResidual_Mv(const unsigned int off,      ///< offset in R re
     }
 }
 
-void ChMesh::IntLoadLumpedMass_Md(const unsigned int off,
-                                  ChVectorDynamic<>& Md,
-                                  double& err,
-                                  const double c
-) {
+void ChMesh::IntLoadLumpedMass_Md(const unsigned int off, ChVectorDynamic<>& Md, double& err, const double c) {
     // nodal masses
     unsigned int local_off_v = 0;
     for (unsigned int j = 0; j < vnodes.size(); j++) {
@@ -471,18 +467,18 @@ void ChMesh::IntFromDescriptor(const unsigned int off_v,
 
 //// SOLVER FUNCTIONS
 
-void ChMesh::InjectKRMmatrices(ChSystemDescriptor& mdescriptor) {
+void ChMesh::InjectKRMMatrices(ChSystemDescriptor& descriptor) {
     for (unsigned int ie = 0; ie < velements.size(); ie++)
-        velements[ie]->InjectKRMmatrices(mdescriptor);
+        velements[ie]->InjectKRMMatrices(descriptor);
 }
 
-void ChMesh::KRMmatricesLoad(double Kfactor, double Rfactor, double Mfactor) {
+void ChMesh::LoadKRMMatrices(double Kfactor, double Rfactor, double Mfactor) {
     int nthreads = GetSystem()->nthreads_chrono;
 
     timer_KRMload.start();
 #pragma omp parallel for num_threads(nthreads)
     for (int ie = 0; ie < velements.size(); ie++)
-        velements[ie]->KRMmatricesLoad(Kfactor, Rfactor, Mfactor);
+        velements[ie]->LoadKRMMatrices(Kfactor, Rfactor, Mfactor);
     timer_KRMload.stop();
     ncalls_KRMload++;
 }
@@ -527,9 +523,9 @@ void ChMesh::VariablesQbIncrementPosition(double step) {
         vnodes[ie]->VariablesQbIncrementPosition(step);
 }
 
-void ChMesh::InjectVariables(ChSystemDescriptor& mdescriptor) {
+void ChMesh::InjectVariables(ChSystemDescriptor& descriptor) {
     for (unsigned int ie = 0; ie < vnodes.size(); ie++)
-        vnodes[ie]->InjectVariables(mdescriptor);
+        vnodes[ie]->InjectVariables(descriptor);
 }
 
 }  // end namespace fea

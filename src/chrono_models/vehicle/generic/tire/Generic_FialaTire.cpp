@@ -54,10 +54,6 @@ void Generic_FialaTire::SetFialaParams() {
     m_c_alpha = 50000.0;
     m_u_min = 0.5568;
     m_u_max = 0.9835;
-    // m_relax_length_x = 0.1244;
-    // m_relax_length_y = 0.0317;
-    m_relax_length_x = 2;
-    m_relax_length_y = 2;
 
     // load the vertical stiffness table
     m_vert_map.AddPoint(0.000, 0);

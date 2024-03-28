@@ -1014,7 +1014,8 @@ TEST_P(Collision, sphere_sphere) {
         shapeS2->position = real3(2, 0, 0);
         shapeS2->dimensions = real3(0.5, 0, 0);
 
-        ASSERT_TRUE(ChNarrowphase::PRIMSCollision(shapeS1, shapeS2, separation, &norm, &pt1, &pt2, &depth, &eff_rad, nC));
+        ASSERT_TRUE(
+            ChNarrowphase::PRIMSCollision(shapeS1, shapeS2, separation, &norm, &pt1, &pt2, &depth, &eff_rad, nC));
         ASSERT_EQ(nC, 0);
     }
 
@@ -1026,7 +1027,8 @@ TEST_P(Collision, sphere_sphere) {
         shapeS2->position = real3(2, 0, 0);
         shapeS2->dimensions = real3(0.95, 0, 0);
 
-        ASSERT_TRUE(ChNarrowphase::PRIMSCollision(shapeS1, shapeS2, separation, &norm, &pt1, &pt2, &depth, &eff_rad, nC));
+        ASSERT_TRUE(
+            ChNarrowphase::PRIMSCollision(shapeS1, shapeS2, separation, &norm, &pt1, &pt2, &depth, &eff_rad, nC));
         if (sep) {
             ASSERT_EQ(nC, 1);
             Assert_near(norm, real3(0, -1, 0), precision);
@@ -1047,7 +1049,8 @@ TEST_P(Collision, sphere_sphere) {
         shapeS2->position = real3(2, 0, 0);
         shapeS2->dimensions = real3(1, 0, 0);
 
-        ASSERT_TRUE(ChNarrowphase::PRIMSCollision(shapeS1, shapeS2, separation, &norm, &pt1, &pt2, &depth, &eff_rad, nC));
+        ASSERT_TRUE(
+            ChNarrowphase::PRIMSCollision(shapeS1, shapeS2, separation, &norm, &pt1, &pt2, &depth, &eff_rad, nC));
         if (sep) {
             ASSERT_EQ(nC, 1);
             Assert_near(norm, real3(0, -1, 0), precision);
@@ -1068,7 +1071,8 @@ TEST_P(Collision, sphere_sphere) {
         shapeS2->position = real3(2.5, 1, 0);
         shapeS2->dimensions = real3(1, 0, 0);
 
-        ASSERT_TRUE(ChNarrowphase::PRIMSCollision(shapeS1, shapeS2, separation, &norm, &pt1, &pt2, &depth, &eff_rad, nC));
+        ASSERT_TRUE(
+            ChNarrowphase::PRIMSCollision(shapeS1, shapeS2, separation, &norm, &pt1, &pt2, &depth, &eff_rad, nC));
         ASSERT_EQ(nC, 1);
         Assert_near(norm, real3(1, 0, 0), precision);
         ASSERT_NEAR(depth, -0.5, precision);

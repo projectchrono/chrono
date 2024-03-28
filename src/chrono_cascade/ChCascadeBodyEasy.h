@@ -113,9 +113,9 @@ class ChApiCASCADE ChCascadeBodyEasyProfile : public ChBodyAuxRef {
     ChCascadeBodyEasyProfile(
         std::vector<std::shared_ptr<::chrono::ChLinePath>> wires,  ///< profile of face, in XY plane
         std::vector<std::shared_ptr<::chrono::ChLinePath>> holes,  ///< profiles of holes, in XY plane
-        double thickness,                                                    ///< thickness in Z direction
-        double density,                                                      ///< density
-        std::shared_ptr<ChCascadeTriangulate> vis_params,                    ///< tesselation parameters
+        double thickness,                                          ///< thickness in Z direction
+        double density,                                            ///< density
+        std::shared_ptr<ChCascadeTriangulate> vis_params,          ///< tesselation parameters
         bool collide = false,  ///< if true, add a 2D collision shape that uses the outer profile of the face
         std::shared_ptr<ChContactMaterial> mat = nullptr  ///< surface contact material if colliding
     );
@@ -128,9 +128,9 @@ class ChApiCASCADE ChCascadeBodyEasyProfile : public ChBodyAuxRef {
     void AddProfile(
         std::vector<std::shared_ptr<::chrono::ChLinePath>> wires,  ///< profile of face, in XY plane
         std::vector<std::shared_ptr<::chrono::ChLinePath>> holes,  ///< profiles of holes, in XY plane
-        double mhickness,                                                    ///< thickness in Z direction
-        double density,                                                      ///< density
-        std::shared_ptr<ChCascadeTriangulate> vis_params,                    ///< tesselation parameters
+        double mhickness,                                          ///< thickness in Z direction
+        double density,                                            ///< density
+        std::shared_ptr<ChCascadeTriangulate> vis_params,          ///< tesselation parameters
         bool collide = false,  ///< if true, add a 2D collision shape that uses the outer profile of the face
         std::shared_ptr<ChContactMaterial> mat = nullptr  ///< surface contact material if colliding
     );

@@ -28,49 +28,49 @@
 #include "chrono_models/vehicle/ChVehicleModelDefs.h"
 
 namespace chrono {
-    namespace vehicle {
-        namespace bmw {
+namespace vehicle {
+namespace bmw {
 
 /// @addtogroup vehicle_models_bmw
 /// @{
 
 /// UAZBUS chassis subsystem.
-            class CH_MODELS_API BMW_E90_Chassis : public ChRigidChassis {
-            public:
-                BMW_E90_Chassis(const std::string &name,
-                                bool fixed = false,
-                                CollisionType chassis_collision_type = CollisionType::NONE);
+class CH_MODELS_API BMW_E90_Chassis : public ChRigidChassis {
+  public:
+    BMW_E90_Chassis(const std::string& name,
+                    bool fixed = false,
+                    CollisionType chassis_collision_type = CollisionType::NONE);
 
-                ~BMW_E90_Chassis() {}
+    ~BMW_E90_Chassis() {}
 
-                /// Get the location (in the local frame of this chassis) of the connection to a rear chassis.
-                virtual const ChVector3d GetLocalPosRearConnector() const override { return m_connector_rear_loc; }
+    /// Get the location (in the local frame of this chassis) of the connection to a rear chassis.
+    virtual const ChVector3d GetLocalPosRearConnector() const override { return m_connector_rear_loc; }
 
-                /// Get the local driver position and orientation.
-                /// This is a coordinate system relative to the chassis reference frame.
-                virtual ChCoordsys<> GetLocalDriverCoordsys() const override { return m_driverCsys; }
+    /// Get the local driver position and orientation.
+    /// This is a coordinate system relative to the chassis reference frame.
+    virtual ChCoordsys<> GetLocalDriverCoordsys() const override { return m_driverCsys; }
 
-            protected:
-                virtual double GetBodyMass() const override { return m_body_mass; }
+  protected:
+    virtual double GetBodyMass() const override { return m_body_mass; }
 
-                virtual ChMatrix33<> GetBodyInertia() const override { return m_body_inertia; }
+    virtual ChMatrix33<> GetBodyInertia() const override { return m_body_inertia; }
 
-                virtual ChFrame<> GetBodyCOMFrame() const override { return ChFrame<>(m_body_COM_loc, QUNIT); }
+    virtual ChFrame<> GetBodyCOMFrame() const override { return ChFrame<>(m_body_COM_loc, QUNIT); }
 
-                ChMatrix33<> m_body_inertia;
+    ChMatrix33<> m_body_inertia;
 
-                static const double m_body_mass;
-                static const ChVector3d m_body_inertiaXX;
-                static const ChVector3d m_body_inertiaXY;
-                static const ChVector3d m_body_COM_loc;
-                static const ChVector3d m_connector_rear_loc;
-                static const ChCoordsys<> m_driverCsys;
-            };
+    static const double m_body_mass;
+    static const ChVector3d m_body_inertiaXX;
+    static const ChVector3d m_body_inertiaXY;
+    static const ChVector3d m_body_COM_loc;
+    static const ChVector3d m_connector_rear_loc;
+    static const ChCoordsys<> m_driverCsys;
+};
 
 /// @} vehicle_models_bmw
 
-        }  // end namespace gclass
-    }  // end namespace vehicle
+}  // namespace bmw
+}  // end namespace vehicle
 }  // end namespace chrono
 
 #endif

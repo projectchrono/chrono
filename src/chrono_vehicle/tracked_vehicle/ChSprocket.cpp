@@ -57,8 +57,8 @@ void ChSprocket::Initialize(std::shared_ptr<ChChassis> chassis, const ChVector3d
 
     // Create and initialize the gear body (same orientation as the chassis).
     m_gear = chrono_types::make_shared<ChBody>();
-    m_gear->SetNameString(m_name + "_gear");
-    m_gear->SetIdentifier(BodyID::SPROCKET_BODY);
+    m_gear->SetName(m_name + "_gear");
+    m_gear->SetTag(TrackedVehicleBodyTag::SPROCKET_BODY);
     m_gear->SetPos(loc);
     m_gear->SetRot(chassisRot);
     m_gear->SetMass(GetGearMass());
@@ -71,19 +71,19 @@ void ChSprocket::Initialize(std::shared_ptr<ChChassis> chassis, const ChVector3d
     // Create and initialize the revolute joint between chassis and gear.
     ChFrame<> rev_frame(loc, chassisRot * y2z);
     m_revolute = chrono_types::make_shared<ChLinkLockRevolute>();
-    m_revolute->SetNameString(m_name + "_revolute");
+    m_revolute->SetName(m_name + "_revolute");
     m_revolute->Initialize(chassis->GetBody(), m_gear, rev_frame);
     chassis->GetSystem()->AddLink(m_revolute);
 
     // Create and initialize the axle shaft and its connection to the gear. Note that the
     // gear rotates about the Y axis.
     m_axle = chrono_types::make_shared<ChShaft>();
-    m_axle->SetNameString(m_name + "_axle");
+    m_axle->SetName(m_name + "_axle");
     m_axle->SetInertia(GetAxleInertia());
     chassis->GetSystem()->AddShaft(m_axle);
 
     m_axle_to_spindle = chrono_types::make_shared<ChShaftBodyRotation>();
-    m_axle_to_spindle->SetNameString(m_name + "_axle_to_spindle");
+    m_axle_to_spindle->SetName(m_name + "_axle_to_spindle");
     m_axle_to_spindle->Initialize(m_axle, m_gear, ChVector3d(0, -1, 0));
     chassis->GetSystem()->Add(m_axle_to_spindle);
 
@@ -140,30 +140,30 @@ void ChSprocket::RemoveVisualizationAssets() {
 
 // -----------------------------------------------------------------------------
 std::shared_ptr<ChTriangleMeshConnected> ChSprocket::CreateVisualizationMesh(double radius,
-                                                                                       double width,
-                                                                                       double delta,
-                                                                                       ChColor color) const {
+                                                                             double width,
+                                                                             double delta,
+                                                                             ChColor color) const {
     auto sep = GetSeparation();
     auto profile = GetProfile();
 
     // Evaluate points on gear profile and on ring.
     // Generate equidistant points on profile, then transform to x-z plane.
     // Calculate normals in radial direction.
-    std::vector<ChVector3d> ppoints; // points on profile
-    std::vector<ChVector3d> rpoints; // points on ring
-    std::vector<ChVector3d> pnormals; // normals on profile
-    std::vector<ChVector3d> rnormals; // normals on ring
+    std::vector<ChVector3d> ppoints;   // points on profile
+    std::vector<ChVector3d> rpoints;   // points on ring
+    std::vector<ChVector3d> pnormals;  // normals on profile
+    std::vector<ChVector3d> rnormals;  // normals on ring
     for (auto il = 0; il < profile->GetSubLinesCount(); il++) {
         auto line = profile->GetSubLineN(il);
         auto n = static_cast<int>(std::ceil(line->Length(2) / delta));
-        for (auto ip = 0; ip < n; ip++) {            
-            auto p = line->Evaluate((1.0 * ip)/n);
-            ppoints.push_back(ChVector3d(p.x(), 0, p.y())); // Point on profile
+        for (auto ip = 0; ip < n; ip++) {
+            auto p = line->Evaluate((1.0 * ip) / n);
+            ppoints.push_back(ChVector3d(p.x(), 0, p.y()));  // Point on profile
             p *= radius / p.Length();
-            rpoints.push_back(ChVector3d(p.x(), 0, p.y())); // Point on ring
+            rpoints.push_back(ChVector3d(p.x(), 0, p.y()));  // Point on ring
             p.Normalize();
-            pnormals.push_back(ChVector3d(+p.x(), 0, +p.y())); // Normal on profile (approximate)
-            rnormals.push_back(ChVector3d(-p.x(), 0, -p.y())); // Normal on ring
+            pnormals.push_back(ChVector3d(+p.x(), 0, +p.y()));  // Normal on profile (approximate)
+            rnormals.push_back(ChVector3d(-p.x(), 0, -p.y()));  // Normal on ring
         }
     }
 
@@ -237,8 +237,8 @@ std::shared_ptr<ChTriangleMeshConnected> ChSprocket::CreateVisualizationMesh(dou
                                         : ChVector3i(iv + np - 1, iv + 2 * np - 1, iv);
         idx_normals[it] = ChVector3i(i, i, i);
         ++it;
-        idx_vertices[it] = (i % 2 == 0) ? ChVector3i(iv, iv + np, iv + 2 * np - 1)   //
-                                        : ChVector3i(iv, iv + 2 * np - 1, iv + np);  
+        idx_vertices[it] = (i % 2 == 0) ? ChVector3i(iv, iv + np, iv + 2 * np - 1)  //
+                                        : ChVector3i(iv, iv + 2 * np - 1, iv + np);
         idx_normals[it] = ChVector3i(i, i, i);
         ++it;
     }
@@ -248,7 +248,7 @@ std::shared_ptr<ChTriangleMeshConnected> ChSprocket::CreateVisualizationMesh(dou
         size_t ivstart = i * (4 * npoints);
         for (size_t ip = 0; ip < npoints - 1; ip++) {
             int iv = static_cast<int>(ivstart + ip);
-            int in = 0;  //static_cast<int>(4 + ip);
+            int in = 0;  // static_cast<int>(4 + ip);
             idx_vertices[it] = ChVector3i(iv, iv + 2 * np, iv + 1);
             idx_normals[it] = ChVector3i(in, in, in);
             ++it;
@@ -296,7 +296,7 @@ std::shared_ptr<ChTriangleMeshConnected> ChSprocket::CreateVisualizationMesh(dou
 void ChSprocket::ApplyAxleTorque(double torque) {
     // Make sure this is added to any already applied torque. Change sign of provided torque (given the configuration of
     // the ChShaft) so that a positive torque corresponds to "forward" motion.
-    m_axle->SetAppliedTorque(m_axle->GetAppliedTorque() - torque);
+    m_axle->SetAppliedLoad(m_axle->GetAppliedLoad() - torque);
 }
 
 // -----------------------------------------------------------------------------

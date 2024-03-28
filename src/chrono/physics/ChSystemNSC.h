@@ -27,7 +27,6 @@ namespace chrono {
 /// Class for a physical system in which contact is modeled using a non-smooth
 /// (complementarity-based) method.
 class ChApi ChSystemNSC : public ChSystem {
-
   public:
     /// Create a physical system.
     ChSystemNSC();

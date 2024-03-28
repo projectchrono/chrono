@@ -309,7 +309,7 @@ bool ChParserOpenSim::parseBody(xml_node<>* bodyNode, ChSystem& system) {
     // Create a new body, consistent with the type of the containing system
     auto name = std::string(bodyNode->first_attribute("name")->value());
     auto newBody = chrono_types::make_shared<ChBodyAuxRef>();
-    newBody->SetNameString(name);
+    newBody->SetName(name);
     system.AddBody(newBody);
 
     newBody->EnableCollision(m_collide);
@@ -606,9 +606,8 @@ void ChParserOpenSim::initFunctionTable() {
                       << "," << newBody->GetFrameRefToAbs().GetPos().y() << ","
                       << newBody->GetFrameRefToAbs().GetPos().z() << std::endl;
             std::cout << "Orientation is " << newBody->GetFrameRefToAbs().GetRot().e0() << ","
-                      << newBody->GetFrameRefToAbs().GetRot().e1() << ","
-                      << newBody->GetFrameRefToAbs().GetRot().e2() << ","
-                      << newBody->GetFrameRefToAbs().GetRot().e3() << std::endl;
+                      << newBody->GetFrameRefToAbs().GetRot().e1() << "," << newBody->GetFrameRefToAbs().GetRot().e2()
+                      << "," << newBody->GetFrameRefToAbs().GetRot().e3() << std::endl;
         }
 
         // This is slightly cleaner than before, but still gross
@@ -643,7 +642,7 @@ void ChParserOpenSim::initFunctionTable() {
             joint = customJoint;
         }
 
-        joint->SetNameString(name);
+        joint->SetName(name);
         system->AddLink(joint);
 
         m_jointList.push_back(joint);

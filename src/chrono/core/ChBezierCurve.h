@@ -65,15 +65,15 @@ namespace chrono {
 class ChApi ChBezierCurve {
   public:
     /// Constructor from specified nodes and control points.
-    ChBezierCurve(const std::vector<ChVector3d >& points,
-                  const std::vector<ChVector3d >& inCV,
-                  const std::vector<ChVector3d >& outCV,
+    ChBezierCurve(const std::vector<ChVector3d>& points,
+                  const std::vector<ChVector3d>& inCV,
+                  const std::vector<ChVector3d>& outCV,
                   bool closed = false);
 
     /// Constructor from specified nodes.
     /// In this case, we evaluate the control polygon vertices inCV and outCV
     /// so that we obtain a piecewise cubic spline interpolant of the given knots.
-    ChBezierCurve(const std::vector<ChVector3d >& points, bool closed = false);
+    ChBezierCurve(const std::vector<ChVector3d>& points, bool closed = false);
 
     /// Default constructor (required by serialization)
     ChBezierCurve() {}
@@ -82,9 +82,9 @@ class ChApi ChBezierCurve {
     ~ChBezierCurve() {}
 
     /// Set the nodes and control points
-    void setPoints(const std::vector<ChVector3d >& points,
-                   const std::vector<ChVector3d >& inCV,
-                   const std::vector<ChVector3d >& outCV);
+    void setPoints(const std::vector<ChVector3d>& points,
+                   const std::vector<ChVector3d>& inCV,
+                   const std::vector<ChVector3d>& outCV);
 
     /// Return the number of knot points.
     size_t GetNumPoints() const { return m_points.size(); }
@@ -103,7 +103,7 @@ class ChApi ChBezierCurve {
 
     /// Evaluate the value of the Bezier curve.
     /// This function calculates and returns the point on the curve at the
-    /// given curve parameter (assumed to be in [0,1]).  
+    /// given curve parameter (assumed to be in [0,1]).
     /// A value t=0 returns the first point on the curve.
     /// A value t=1 returns the last point on the curve.
     ChVector3d Eval(double t) const;
@@ -165,9 +165,9 @@ class ChApi ChBezierCurve {
     /// resulting Bezier curve is a spline interpolant of the knots.
     static void SolveTriDiag(size_t n, double* rhs, double* x);
 
-    std::vector<ChVector3d > m_points;  ///< set of knot points
-    std::vector<ChVector3d > m_inCV;    ///< set on "incident" control points
-    std::vector<ChVector3d > m_outCV;   ///< set of "outgoing" control points
+    std::vector<ChVector3d> m_points;  ///< set of knot points
+    std::vector<ChVector3d> m_inCV;    ///< set on "incident" control points
+    std::vector<ChVector3d> m_outCV;   ///< set of "outgoing" control points
 
     bool m_closed;  ///< treat the path as a closed loop curve
 
@@ -224,7 +224,7 @@ class ChApi ChBezierCurveTracker {
     double m_curParam;                      ///< parameter for current closest point
 };
 
-CH_CLASS_VERSION(ChBezierCurve,0)
+CH_CLASS_VERSION(ChBezierCurve, 0)
 
 }  // end of namespace chrono
 

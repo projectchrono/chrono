@@ -155,7 +155,8 @@ void ChContactContainerMulticore::ComputeContactForces() {
 ChVector3d ChContactContainerMulticore::GetContactableForce(ChContactable* contactable) {
     // If contactable is a body, defer to associated system
     if (auto body = dynamic_cast<ChBody*>(contactable)) {
-        real3 frc = static_cast<ChSystemMulticore*>(GetSystem())->GetBodyContactForce(body->GetIndex());
+        std::shared_ptr<ChBody> pbody(body, [](ChBody*) {}); 
+        real3 frc = static_cast<ChSystemMulticore*>(GetSystem())->GetBodyContactForce(pbody);
         return ToChVector(frc);
     }
 
@@ -165,7 +166,8 @@ ChVector3d ChContactContainerMulticore::GetContactableForce(ChContactable* conta
 ChVector3d ChContactContainerMulticore::GetContactableTorque(ChContactable* contactable) {
     // If contactable is a body, defer to associated system
     if (auto body = dynamic_cast<ChBody*>(contactable)) {
-        real3 trq = static_cast<ChSystemMulticore*>(GetSystem())->GetBodyContactTorque(body->GetIndex());
+        std::shared_ptr<ChBody> pbody(body, [](ChBody*) {});
+        real3 trq = static_cast<ChSystemMulticore*>(GetSystem())->GetBodyContactTorque(pbody);
         return ToChVector(trq);
     }
 

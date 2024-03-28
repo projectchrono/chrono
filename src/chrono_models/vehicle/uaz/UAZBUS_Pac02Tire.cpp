@@ -61,7 +61,6 @@ void UAZBUS_Pac02Tire::RemoveVisualizationAssets() {
     ChPac02Tire::RemoveVisualizationAssets();
 }
 
-}  // namespace hmmwv
+}  // namespace uaz
 }  // end namespace vehicle
 }  // end namespace chrono
-

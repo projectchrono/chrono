@@ -33,7 +33,7 @@
 
 using namespace chrono;
 
-enum MotorType {ANGLE, SPEED};
+enum MotorType { ANGLE, SPEED };
 struct Options {
     MotorType mot_type;
     double speed;

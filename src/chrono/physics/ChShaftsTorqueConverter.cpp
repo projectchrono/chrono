@@ -152,9 +152,9 @@ void ChShaftsTorqueConverter::IntLoadResidual_F(const unsigned int off,  // offs
 
 void ChShaftsTorqueConverter::VariablesFbLoadForces(double factor) {
     // Apply torques to the three connected 1D variables:
-    shaft1->Variables().Get_fb()(0) += torque_in * factor;
-    shaft2->Variables().Get_fb()(0) += torque_out * factor;
-    shaft_stator->Variables().Get_fb()(0) += GetTorqueReactionOnStator() * factor;
+    shaft1->Variables().Force()(0) += torque_in * factor;
+    shaft2->Variables().Force()(0) += torque_out * factor;
+    shaft_stator->Variables().Force()(0) += GetTorqueReactionOnStator() * factor;
 }
 
 void ChShaftsTorqueConverter::ArchiveOut(ChArchiveOut& archive_out) {

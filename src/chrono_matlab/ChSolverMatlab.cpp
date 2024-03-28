@@ -29,35 +29,26 @@ ChSolverMatlab::ChSolverMatlab() {
 
 // Solve using the Matlab default direct solver (as in x=A\b)
 double ChSolverMatlab::Solve(ChSystemDescriptor& sysd) {
-    ChSparseMatrix mdM;
-    ChSparseMatrix mdCq;
-    ChSparseMatrix mdE;
-    ChVectorDynamic<double> mdf;
-    ChVectorDynamic<double> mdb;
-    ChVectorDynamic<double> mdfric;
-    sysd.ConvertToMatrixForm(&mdCq, &mdM, &mdE, &mdf, &mdb, &mdfric);
 
-    mengine->PutSparseMatrix(mdM, "mdM");
-    mengine->PutSparseMatrix(mdCq, "mdCq");
-    mengine->PutSparseMatrix(mdE, "mdE");
-    mengine->PutVariable(mdf, "mdf");
-    mengine->PutVariable(mdb, "mdb");
-    mengine->PutVariable(mdfric, "mdfric");
+    ChSparseMatrix Z;
+    ChVectorDynamic<double> rhs;
+    sysd.BuildSystemMatrix(&Z, &rhs);
 
-    mengine->Eval("mdZ = [mdM, mdCq'; mdCq, -mdE]; mdd=[mdf;-mdb];");
+    mengine->PutSparseMatrix(Z, "Z");
+    mengine->PutVariable(rhs, "rhs");
 
-    mengine->Eval("mdx = mldivide(mdZ , mdd);");
+    mengine->Eval("sol = mldivide(Z , rhs);");
 
-    ChMatrixDynamic<> mx;
-    if (!mengine->GetVariable(mx, "mdx"))
-        std::cerr << "ERROR!! cannot fetch mdx" << std::endl;
+    ChMatrixDynamic<> sol;
+    if (!mengine->GetVariable(sol, "sol"))
+        std::cerr << "ERROR!! cannot fetch sol" << std::endl;
 
-    sysd.FromVectorToUnknowns(mx);
+    sysd.FromVectorToUnknowns(sol);
 
-    mengine->Eval("resid = norm(mdZ*mdx - mdd);");
-    ChMatrixDynamic<> mres;
-    mengine->GetVariable(mres, "resid");
-    std::cout << " Matlab computed residual:" << mres(0, 0) << std::endl;
+    mengine->Eval("residual = norm(Z*sol - rhs);");
+    ChMatrixDynamic<> residual;
+    mengine->GetVariable(residual, "residual");
+    std::cout << " Matlab computed residual:" << residual(0, 0) << std::endl;
 
     return 0;
 }
@@ -73,7 +64,7 @@ void ChSolverMatlab::ArchiveOut(ChArchiveOut& archive_out) {
 
 void ChSolverMatlab::ArchiveIn(ChArchiveIn& archive_in) {
     // version number
-    /*int version =*/ archive_in.VersionRead<ChSolverMatlab>();
+    /*int version =*/archive_in.VersionRead<ChSolverMatlab>();
     // deserialize parent class
     ChSolver::ArchiveIn(archive_in);
     // stream in all member data:

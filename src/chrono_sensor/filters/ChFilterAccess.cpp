@@ -109,7 +109,7 @@ CH_SENSOR_API void ChFilterAccess<SensorHostSemanticBuffer, UserSemanticBufferPt
     } else {
         tmp_buffer = chrono_types::make_shared<SensorHostSemanticBuffer>();
         std::shared_ptr<PixelSemantic[]> b(cudaHostMallocHelper<PixelSemantic>(m_bufferIn->Width * m_bufferIn->Height),
-                                        cudaHostFreeHelper<PixelSemantic>);
+                                           cudaHostFreeHelper<PixelSemantic>);
         tmp_buffer->Buffer = std::move(b);
     }
 
@@ -119,7 +119,8 @@ CH_SENSOR_API void ChFilterAccess<SensorHostSemanticBuffer, UserSemanticBufferPt
     tmp_buffer->TimeStamp = m_bufferIn->TimeStamp;
 
     cudaMemcpyAsync(tmp_buffer->Buffer.get(), m_bufferIn->Buffer.get(),
-                    m_bufferIn->Width * m_bufferIn->Height * sizeof(PixelSemantic), cudaMemcpyDeviceToHost, m_cuda_stream);
+                    m_bufferIn->Width * m_bufferIn->Height * sizeof(PixelSemantic), cudaMemcpyDeviceToHost,
+                    m_cuda_stream);
 
     {  // lock in this scope before pushing to lag buffer queue
         std::lock_guard<std::mutex> lck(m_mutexBufferAccess);
@@ -137,6 +138,43 @@ CH_SENSOR_API void ChFilterAccess<SensorHostSemanticBuffer, UserSemanticBufferPt
     }
 }
 
+template <>
+CH_SENSOR_API void ChFilterAccess<SensorHostDepthBuffer, UserDepthBufferPtr>::Apply() {
+    // create a new buffer to push to the lag buffer list
+    std::shared_ptr<SensorHostDepthBuffer> tmp_buffer;
+    if (m_empty_lag_buffers.size() > 0) {
+        tmp_buffer = m_empty_lag_buffers.top();
+        m_empty_lag_buffers.pop();
+    } else {
+        tmp_buffer = chrono_types::make_shared<SensorHostDepthBuffer>();
+        std::shared_ptr<PixelDepth[]> b(cudaHostMallocHelper<PixelDepth>(m_bufferIn->Width * m_bufferIn->Height),
+                                        cudaHostFreeHelper<PixelDepth>);
+        tmp_buffer->Buffer = std::move(b);
+    }
+
+    tmp_buffer->Width = m_bufferIn->Width;
+    tmp_buffer->Height = m_bufferIn->Height;
+    tmp_buffer->LaunchedCount = m_bufferIn->LaunchedCount;
+    tmp_buffer->TimeStamp = m_bufferIn->TimeStamp;
+
+    cudaMemcpyAsync(tmp_buffer->Buffer.get(), m_bufferIn->Buffer.get(),
+                    m_bufferIn->Width * m_bufferIn->Height * sizeof(PixelDepth), cudaMemcpyDeviceToHost, m_cuda_stream);
+
+    {  // lock in this scope before pushing to lag buffer queue
+        std::lock_guard<std::mutex> lck(m_mutexBufferAccess);
+        // push our buffer into the lag queue
+        m_lag_buffers.push(tmp_buffer);
+        // prevent lag buffer overflow - remove any old buffers that have expired. We don't want the lag_buffer to
+        // grow unbounded
+        while (m_lag_buffers.size() > m_max_lag_buffers) {
+            m_empty_lag_buffers.push(
+                m_lag_buffers.front());  // push the buffer back for efficiency if it wasn't given to the user
+            m_lag_buffers.pop();
+        }
+        // synchronize the cuda stream since we moved data to the host
+        cudaStreamSynchronize(m_cuda_stream);
+    }
+}
 
 template <>
 CH_SENSOR_API void ChFilterAccess<SensorHostXYZIBuffer, UserXYZIBufferPtr>::Apply() {
@@ -224,7 +262,7 @@ CH_SENSOR_API void ChFilterAccess<SensorHostRadarBuffer, UserRadarBufferPtr>::Ap
     } else {
         tmp_buffer = chrono_types::make_shared<SensorHostRadarBuffer>();
         std::shared_ptr<RadarReturn[]> b(cudaHostMallocHelper<RadarReturn>(m_bufferIn->Width * m_bufferIn->Height),
-                                        cudaHostFreeHelper<RadarReturn>);
+                                         cudaHostFreeHelper<RadarReturn>);
         tmp_buffer->Buffer = std::move(b);
     }
 
@@ -234,7 +272,8 @@ CH_SENSOR_API void ChFilterAccess<SensorHostRadarBuffer, UserRadarBufferPtr>::Ap
     tmp_buffer->TimeStamp = m_bufferIn->TimeStamp;
 
     cudaMemcpyAsync(tmp_buffer->Buffer.get(), m_bufferIn->Buffer.get(),
-                    m_bufferIn->Width * m_bufferIn->Height * sizeof(RadarReturn), cudaMemcpyDeviceToHost, m_cuda_stream);
+                    m_bufferIn->Width * m_bufferIn->Height * sizeof(RadarReturn), cudaMemcpyDeviceToHost,
+                    m_cuda_stream);
 
     {  // lock in this scope before pushing to lag buffer queue
         std::lock_guard<std::mutex> lck(m_mutexBufferAccess);
@@ -462,7 +501,6 @@ CH_SENSOR_API void ChFilterAccess<SensorHostTachometerBuffer, UserTachometerBuff
     }
 }
 
-
 // template <>
 // CH_SENSOR_API void ChFilterAccess<SensorHostEncoderBuffer, UserEncoderBufferPtr>::Apply() {
 //     // create a new buffer to push to the lag buffer list
@@ -474,20 +512,21 @@ CH_SENSOR_API void ChFilterAccess<SensorHostTachometerBuffer, UserTachometerBuff
 //         tmp_buffer = chrono_types::make_shared<SensorHostEncoderBuffer>();
 //         tmp_buffer->Buffer = std::make_unique<EncoderData[]>(m_bufferIn->Width * m_bufferIn->Height);
 //     }
-// 
+//
 //     tmp_buffer->Width = m_bufferIn->Width;
 //     tmp_buffer->Height = m_bufferIn->Height;
 //     tmp_buffer->LaunchedCount = m_bufferIn->LaunchedCount;
 //     tmp_buffer->TimeStamp = m_bufferIn->TimeStamp;
-// 
+//
 //     // copy the data into our new buffer
 //     memcpy(tmp_buffer->Buffer.get(), m_bufferIn->Buffer.get(), sizeof(EncoderData));
-// 
+//
 //     {  // lock in this scope before pushing to lag buffer queue
 //         std::lock_guard<std::mutex> lck(m_mutexBufferAccess);
 //         // push our buffer into the lag queue
 //         m_lag_buffers.push(tmp_buffer);
-//         // prevent lag buffer overflow - remove any super old buffers that have expired. We don't want the lag_buffer to
+//         // prevent lag buffer overflow - remove any super old buffers that have expired. We don't want the lag_buffer
+//         to
 //         // grow unbounded
 //         while (m_lag_buffers.size() > m_max_lag_buffers) {
 //             m_empty_lag_buffers.push(

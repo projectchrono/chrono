@@ -20,7 +20,7 @@
 #define CH_MB_TIRE_H
 
 #include "chrono/fea/ChNodeFEAxyz.h"
-#include "chrono/solver/ChKblockGeneric.h"
+#include "chrono/solver/ChKRMBlock.h"
 
 #include "chrono_vehicle/wheeled_vehicle/tire/ChDeformableTire.h"
 
@@ -168,7 +168,7 @@ class MBTireModel : public ChPhysicsItem {
 
     // State functions
     virtual void InjectVariables(ChSystemDescriptor& descriptor) override;
-    virtual void InjectKRMmatrices(ChSystemDescriptor& mdescriptor) override;
+    virtual void InjectKRMMatrices(ChSystemDescriptor& mdescriptor) override;
 
     virtual void IntStateGather(const unsigned int off_x,
                                 ChState& x,
@@ -213,7 +213,7 @@ class MBTireModel : public ChPhysicsItem {
                                    const unsigned int off_L,
                                    ChVectorDynamic<>& L) override;
 
-    virtual void KRMmatricesLoad(double Kfactor, double Rfactor, double Mfactor) override;
+    virtual void LoadKRMMatrices(double Kfactor, double Rfactor, double Mfactor) override;
 
     // Get the node index from the ring index and division index.
     // Return -1 if out-of-bounds ring and use a cyclic index for divisions on the ring.
@@ -274,7 +274,7 @@ class MBTireModel : public ChPhysicsItem {
         ChVector3d force1;
         ChVector3d force2;
 
-        ChKblockGeneric KRM;
+        ChKRMBlock KRM;
 
         void Initialize();
         void CalculateForce();
@@ -302,7 +302,7 @@ class MBTireModel : public ChPhysicsItem {
         ChVector3d force_c;
         ChVector3d force_n;
 
-        ChKblockGeneric KRM;
+        ChKRMBlock KRM;
 
         void Initialize();
         void CalculateForce();

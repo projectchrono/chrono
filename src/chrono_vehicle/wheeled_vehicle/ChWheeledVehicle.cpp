@@ -46,7 +46,7 @@ void ChWheeledVehicle::InitializeTire(std::shared_ptr<ChTire> tire,
     tire->SetVisualizationType(tire_vis);
     tire->SetCollisionType(tire_coll);
 
-    // Recalculate vehicle mass to include the mass of the tire. 
+    // Recalculate vehicle mass to include the mass of the tire.
     InitializeInertiaProperties();
 }
 
@@ -409,30 +409,30 @@ void ChWheeledVehicle::LogConstraintViolations() {
 
 void ChWheeledVehicle::LogSubsystemTypes() {
     std::cout << "\nSubsystem types\n";
-    std::cout << "Chassis:        " << m_chassis->GetTemplateName().c_str() << "\n";
+    std::cout << "Chassis:        " << m_chassis->GetTemplateName() << "\n";
     if (m_powertrain_assembly) {
         std::cout << "Powertrain:\n";
-        std::cout << "  Engine:       " << GetEngine()->GetTemplateName().c_str() << "\n";
-        std::cout << "  Transmission: " << GetTransmission()->GetTemplateName().c_str() << "\n";
+        std::cout << "  Engine:       " << GetEngine()->GetTemplateName() << "\n";
+        std::cout << "  Transmission: " << GetTransmission()->GetTemplateName() << "\n";
     }
     if (m_driveline)
-        std::cout << "Driveline:      " << m_driveline->GetTemplateName().c_str() << "\n";
+        std::cout << "Driveline:      " << m_driveline->GetTemplateName() << "\n";
 
     for (int i = 0; i < m_steerings.size(); i++) {
-        std::cout << "Steering " << i << ":     " << m_steerings[i]->GetTemplateName().c_str() << "\n";
+        std::cout << "Steering " << i << ":     " << m_steerings[i]->GetTemplateName() << "\n";
     }
 
     for (int i = 0; i < m_axles.size(); i++) {
         std::cout << "Axle " << i << "\n";
-        std::cout << "  Suspension:   " << m_axles[i]->m_suspension->GetTemplateName().c_str() << "\n";
+        std::cout << "  Suspension:   " << m_axles[i]->m_suspension->GetTemplateName() << "\n";
         if (m_axles[i]->m_antirollbar)
-            std::cout << "  Antiroll bar: " << m_axles[i]->m_brake_left->GetTemplateName().c_str() << "\n";
+            std::cout << "  Antiroll bar: " << m_axles[i]->m_brake_left->GetTemplateName() << "\n";
         if (m_axles[i]->m_brake_left)
-            std::cout << "  Brake:        " << m_axles[i]->m_brake_left->GetTemplateName().c_str() << "\n";
+            std::cout << "  Brake:        " << m_axles[i]->m_brake_left->GetTemplateName() << "\n";
         if (m_axles[i]->m_wheels.size() == 2)
-            std::cout << "  Tire:         " << GetTire(i, LEFT, SINGLE)->GetTemplateName().c_str() << "\n";
+            std::cout << "  Tire:         " << GetTire(i, LEFT, SINGLE)->GetTemplateName() << "\n";
         else
-            std::cout << "  Tire:         " << GetTire(i, LEFT, INNER)->GetTemplateName().c_str() << "\n";
+            std::cout << "  Tire:         " << GetTire(i, LEFT, INNER)->GetTemplateName() << "\n";
     }
 }
 
@@ -445,7 +445,7 @@ std::string ChWheeledVehicle::ExportComponentList() const {
     std::string template_name = GetTemplateName();
     jsonDocument.AddMember("name", rapidjson::StringRef(m_name.c_str()), jsonDocument.GetAllocator());
     jsonDocument.AddMember("template", rapidjson::Value(template_name.c_str(), jsonDocument.GetAllocator()).Move(),
-        jsonDocument.GetAllocator());
+                           jsonDocument.GetAllocator());
 
     {
         rapidjson::Document jsonSubDocument(&jsonDocument.GetAllocator());
@@ -461,7 +461,7 @@ std::string ChWheeledVehicle::ExportComponentList() const {
         rapidjson::Document jsonSubDocument(&jsonDocument.GetAllocator());
         jsonSubDocument.SetObject();
         subchassis->ExportComponentList(jsonSubDocument);
-        subchassisArray.PushBack(jsonSubDocument, jsonDocument.GetAllocator());    
+        subchassisArray.PushBack(jsonSubDocument, jsonDocument.GetAllocator());
     }
     jsonDocument.AddMember("subchassis", subchassisArray, jsonDocument.GetAllocator());
 

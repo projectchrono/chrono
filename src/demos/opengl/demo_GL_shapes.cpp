@@ -19,7 +19,7 @@
 // =============================================================================
 
 #ifdef __EMSCRIPTEN__
-#include <emscripten.h>
+    #include <emscripten.h>
 #endif
 
 #include "chrono/physics/ChSystemNSC.h"
@@ -29,7 +29,7 @@
 
 using namespace chrono;
 
-int main(int argc, char *argv[]) {
+int main(int argc, char* argv[]) {
     std::cout << "Copyright (c) 2017 projectchrono.org\nChrono version: " << CHRONO_VERSION << std::endl;
 
     ChSystemNSC sys;

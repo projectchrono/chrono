@@ -15,7 +15,7 @@
 #ifndef CHELEMENTGENERIC_H
 #define CHELEMENTGENERIC_H
 
-#include "chrono/solver/ChKblockGeneric.h"
+#include "chrono/solver/ChKRMBlock.h"
 #include "chrono/solver/ChVariablesNode.h"
 #include "chrono/fea/ChElementBase.h"
 
@@ -34,7 +34,7 @@ class ChApi ChElementGeneric : public ChElementBase {
     virtual ~ChElementGeneric() {}
 
     /// Access the proxy to stiffness, for sparse solver
-    ChKblockGeneric& Kstiffness() { return Kmatr; }
+    ChKRMBlock& Kstiffness() { return Kmatr; }
 
     // Functions for interfacing to the state bookkeeping
 
@@ -77,13 +77,13 @@ class ChApi ChElementGeneric : public ChElementBase {
 
     // Functions for interfacing to the solver
 
-    /// Tell to a system descriptor that there are item(s) of type
-    /// ChKblock in this object (for further passing it to a solver)
-    virtual void InjectKRMmatrices(ChSystemDescriptor& descriptor) override;
+    /// Register with the given system descriptor any ChKRMBlock objects associated with this item.
+    virtual void InjectKRMMatrices(ChSystemDescriptor& descriptor) override;
 
-    /// Add the current stiffness K and damping R and mass M matrices in encapsulated ChKblock item(s), if any.
-    /// The K, R, M matrices are load with scaling values Kfactor, Rfactor, Mfactor.
-    virtual void KRMmatricesLoad(double Kfactor, double Rfactor, double Mfactor) override;
+    /// Compute and load current stiffnes (K), damping (R), and mass (M) matrices in encapsulated ChKRMBlock objects.
+    /// The resulting KRM blocks represent linear combinations of the K, R, and M matrices, with the specified
+    /// coefficients Kfactor, Rfactor,and Mfactor, respectively.
+    virtual void LoadKRMMatrices(double Kfactor, double Rfactor, double Mfactor) override;
 
     /// Add the internal forces, expressed as nodal forces, into the encapsulated ChVariables.
     virtual void VariablesFbLoadInternalForces(double factor = 1.) override;
@@ -92,7 +92,7 @@ class ChApi ChElementGeneric : public ChElementBase {
     virtual void VariablesFbIncrementMq() override;
 
   protected:
-    ChKblockGeneric Kmatr;
+    ChKRMBlock Kmatr;
 };
 
 /// @} fea_elements

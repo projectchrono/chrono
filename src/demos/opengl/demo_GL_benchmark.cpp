@@ -19,7 +19,7 @@
 // =============================================================================
 
 #ifdef __EMSCRIPTEN__
-#include <emscripten.h>
+    #include <emscripten.h>
 #endif
 
 #include "chrono/physics/ChSystemNSC.h"
@@ -64,11 +64,8 @@ int main(int argc, char* argv[]) {
     vis.AddCamera(ChVector3d(-50, -50, 0), ChVector3d(0, 0, 0));
     vis.SetCameraVertical(CameraVerticalDir::Z);
 
-    
-    std::function<void()> step_iter = [&]() {
-        vis.Render();
-    };
-    
+    std::function<void()> step_iter = [&]() { vis.Render(); };
+
 #ifdef __EMSCRIPTEN__
     emscripten_set_main_loop_arg(&opengl::ChVisualSystemOpenGL::WrapRenderStep, (void*)&step_iter, 50, true);
 #else

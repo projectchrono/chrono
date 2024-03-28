@@ -177,10 +177,10 @@ vsg::ref_ptr<vsg::Group> ShapeBuilder::CreateTrimeshColShape(std::shared_ptr<ChV
     unsigned int ntriangles = (unsigned int)v_indices.size();
 
     // Set the Irrlicht vertex and index buffers for the mesh buffer
-    ChVector3d t[3];    // positions of triangle vertices
-    ChVector3d n[3];    // normals at the triangle vertices
+    ChVector3d t[3];   // positions of triangle vertices
+    ChVector3d n[3];   // normals at the triangle vertices
     ChVector2d uv[3];  // UV coordinates at the triangle vertices
-    ChColor col[3];     // color coordinates at the triangle vertices
+    ChColor col[3];    // color coordinates at the triangle vertices
 
     auto default_color = tms->GetColor();
 
@@ -397,8 +397,8 @@ vsg::ref_ptr<vsg::Group> ShapeBuilder::CreateTrimeshPbrMatShape(std::shared_ptr<
         std::vector<ChVector3d> tmp_normals;
         std::vector<ChVector2d> tmp_texcoords;
         // Set the VSG vertex and index buffers for this material
-        ChVector3d t[3];    // positions of triangle vertices
-        ChVector3d n[3];    // normals at the triangle vertices
+        ChVector3d t[3];   // positions of triangle vertices
+        ChVector3d n[3];   // normals at the triangle vertices
         ChVector2d uv[3];  // UV coordinates at the triangle vertices
         for (size_t itri = 0; itri < ntriangles_all; itri++) {
             if (!m_indices.empty() && m_indices[itri] != imat)

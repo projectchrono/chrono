@@ -74,7 +74,7 @@ class CH_VEHICLE_API ChVehicleCosimTrackedVehicleNode : public ChVehicleCosimTra
   private:
     /// Initialize the vehicle MBS and any associated subsystems.
     virtual void InitializeMBS(const ChVector2d& terrain_size,  ///< terrain length x width
-                               double terrain_height             ///< initial terrain height
+                               double terrain_height            ///< initial terrain height
                                ) override;
 
     /// Return terrain contact geometry and material information for one track shoe.

@@ -37,7 +37,7 @@
 #include "chrono_multicore/physics/Ch3DOFContainer.h"
 
 #ifdef CHRONO_OPENGL
-#include "chrono_opengl/ChVisualSystemOpenGL.h"
+    #include "chrono_opengl/ChVisualSystemOpenGL.h"
 #endif
 
 using namespace chrono;
@@ -55,9 +55,9 @@ void AddContainer(ChSystemMulticoreNSC* sys) {
     auto mat = chrono_types::make_shared<ChContactMaterialNSC>();
     mat->SetFriction(0.4f);
 
-    utils::CreateBoxContainer(sys, 0, mat,                      //
+    utils::CreateBoxContainer(sys, mat,                         //
                               ChVector3d(1.1, 1.2, 1.1), 0.05,  //
-                              VNULL, QuatFromAngleY(-10),          //
+                              VNULL, QuatFromAngleY(-10),       //
                               true, true, true);
 }
 

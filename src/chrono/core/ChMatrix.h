@@ -194,29 +194,29 @@ using ChSparseMatrix = Eigen::SparseMatrix<double, Eigen::RowMajor, int>;
 
 // -----------------------------------------------------------------------------
 
-/// Paste a given matrix into a sparse matrix at position (\a insrow, \a inscol).
-/// The matrix \a matrFrom will be copied into \a matrTo[insrow : insrow + \a matrFrom.GetRows()][inscol : inscol +
+/// Paste a given matrix into a sparse matrix at position (\a start_row, \a start_col).
+/// The matrix \a matrFrom will be copied into \a matrTo[start_row : start_row + \a matrFrom.GetRows()][start_col : start_col +
 /// matrFrom.GetColumns()]
 /// \param[out] matrTo The output sparse matrix
 /// \param[in] matrFrom The source matrix that will be copied
-/// \param[in] insrow The row index where the first element will be copied
-/// \param[in] inscol The column index where the first element will be copied
+/// \param[in] start_row The row index where the first element will be copied
+/// \param[in] start_col The column index where the first element will be copied
 /// \param[in] overwrite Indicate if the copied elements will overwrite existing elements or be summed to them
 inline void PasteMatrix(ChSparseMatrix& matrTo,
                         ChMatrixConstRef matrFrom,
-                        int insrow,
-                        int inscol,
+                        int start_row,
+                        int start_col,
                         bool overwrite = true) {
     if (overwrite) {
         for (auto i = 0; i < matrFrom.rows(); i++) {
             for (auto j = 0; j < matrFrom.cols(); j++) {
-                matrTo.SetElement(insrow + i, inscol + j, matrFrom(i, j), true);
+                matrTo.SetElement(start_row + i, start_col + j, matrFrom(i, j), true);
             }
         }
     } else {
         for (auto i = 0; i < matrFrom.rows(); i++) {
             for (auto j = 0; j < matrFrom.cols(); j++) {
-                matrTo.SetElement(insrow + i, inscol + j, matrFrom(i, j), false);
+                matrTo.SetElement(start_row + i, start_col + j, matrFrom(i, j), false);
             }
         }
     }
@@ -249,15 +249,27 @@ inline void StreamOut(ChMatrixConstRef A, std::ostream& stream) {
     }
 }
 
-/// Serialization of a sparse matrix to an ASCI stream (e.g., a file) in COO sparse matrix format.
-/// By default, uses 0-based indices. If one_index=true, row and column indices start at 1 (as in Matlab).
+/// Serialization of a sparse matrix to an ASCII stream (e.g., a file) in COO sparse matrix format.
+/// By default, uses 0-based indices. If one_indexed=true, row and column indices start at 1 (as in Matlab).
 inline void StreamOut(ChSparseMatrix& mat, std::ostream& stream, bool one_indexed = false) {
     int offset = one_indexed ? 1 : 0;
+
+    bool last_row_visited = false;
+    bool last_col_visited = false;
+
     for (int k = 0; k < mat.outerSize(); ++k)
         for (ChSparseMatrix::InnerIterator it(mat, k); it; ++it) {
             if (it.value())
                 stream << it.row() + offset << " " << it.col() + offset << " " << it.value() << "\n";
+            if (it.row() == mat.rows() - 1)
+                last_row_visited = true;
+            if (it.col() == mat.cols() - 1)
+                last_col_visited = true;
         }
+
+    if (mat.rows() && mat.cols())                    // if the matrix is not empty
+        if (!last_row_visited || !last_col_visited)  // if the last row or last column is not visited
+            stream << mat.rows() - 1 + offset << " " << mat.cols() - 1 + offset << " " << 0. << "\n";
 }
 
 /// @} chrono_linalg

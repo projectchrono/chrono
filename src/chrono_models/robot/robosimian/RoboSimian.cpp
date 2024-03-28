@@ -196,6 +196,8 @@ const JointData joints[] = {
 
 };
 
+constexpr int Robosimian_body_tag = 100;
+
 // =============================================================================
 
 // Convert a triplet (roll-pitch-yaw) to a quaternion
@@ -317,13 +319,13 @@ bool ContactManager::OnReportContact(const ChVector3d& pA,
     auto bodyB = dynamic_cast<ChBodyAuxRef*>(modB);
 
     // Filter robot bodies based on their IDs.
-    bool a = (bodyA && bodyA->GetIndex() < 100);
-    bool b = (bodyB && bodyB->GetIndex() < 100);
+    bool a = (bodyA && bodyA->GetTag() == Robosimian_body_tag);
+    bool b = (bodyB && bodyB->GetTag() == Robosimian_body_tag);
 
     if (!a && !b)
         return true;
 
-    std::cout << "   " << (a ? bodyA->GetNameString() : "other") << " - " << (b ? bodyB->GetNameString() : "other")
+    std::cout << "   " << (a ? bodyA->GetName() : "other") << " - " << (b ? bodyB->GetName() : "other")
               << std::endl;
 
     m_num_contacts++;
@@ -700,17 +702,17 @@ RS_Driver::RS_Driver(const std::string& filename_start,
                      bool repeat)
     : m_repeat(repeat), m_time_pose(0), m_time_hold(0), m_offset(0), m_phase(POSE), m_callback(nullptr) {
     assert(!filename_cycle.empty());
-    m_ifs_cycle.open(filename_cycle.c_str());
+    m_ifs_cycle.open(filename_cycle);
 
     if (!filename_start.empty()) {
-        m_ifs_start.open(filename_start.c_str());
+        m_ifs_start.open(filename_start);
         m_ifs = &m_ifs_start;
     } else {
         m_ifs = &m_ifs_cycle;
     }
 
     if (!filename_stop.empty()) {
-        m_ifs_stop.open(filename_stop.c_str());
+        m_ifs_stop.open(filename_stop);
     }
 
     LoadDataLine(m_time_1, m_actuations_1);
@@ -860,7 +862,7 @@ void RS_DriverCallback::OnPhaseChange(RS_Driver::Phase old_phase, RS_Driver::Pha
 RS_Part::RS_Part(const std::string& name, std::shared_ptr<ChContactMaterial> mat, ChSystem* system)
     : m_name(name), m_mat(mat) {
     m_body = chrono_types::make_shared<ChBodyAuxRef>();
-    m_body->SetNameString(name + "_body");
+    m_body->SetName(name + "_body");
 }
 
 void RS_Part::SetVisualizationType(VisualizationType vis) {
@@ -967,7 +969,7 @@ RS_Chassis::RS_Chassis(const std::string& name, bool fixed, std::shared_ptr<ChCo
     ChVector3d inertia_xx(1.272134, 2.568776, 3.086984);
     ChVector3d inertia_xy(0.008890, -0.13942, 0.000325);
 
-    m_body->SetIdentifier(0);
+    m_body->SetTag(Robosimian_body_tag);
     m_body->SetMass(mass);
     m_body->SetFrameCOMToRef(ChFrame<>(com, ChQuaternion<>(1, 0, 0, 0)));
     m_body->SetInertiaXX(inertia_xx);
@@ -1040,7 +1042,7 @@ RS_Sled::RS_Sled(const std::string& name, std::shared_ptr<ChContactMaterial> mat
     ChVector3d inertia_xx(0.034856, 0.082427, 0.105853);
     ChVector3d inertia_xy(0.000007, -0.000002, 0);
 
-    m_body->SetIdentifier(1);
+    m_body->SetTag(Robosimian_body_tag);
     m_body->SetMass(mass);
     m_body->SetFrameCOMToRef(ChFrame<>(com, ChQuaternion<>(1, 0, 0, 0)));
     m_body->SetInertiaXX(inertia_xx);
@@ -1056,8 +1058,8 @@ RS_Sled::RS_Sled(const std::string& name, std::shared_ptr<ChContactMaterial> mat
 
 void RS_Sled::Initialize(std::shared_ptr<ChBodyAuxRef> chassis, const ChVector3d& xyz, const ChVector3d& rpy) {
     const ChFrame<>& X_GP = chassis->GetFrameRefToAbs();  // global -> parent
-    ChFrame<> X_PC(xyz, rpy2quat(rpy));                      // parent -> child
-    ChFrame<> X_GC = X_GP * X_PC;                            // global -> child
+    ChFrame<> X_PC(xyz, rpy2quat(rpy));                   // parent -> child
+    ChFrame<> X_GC = X_GP * X_PC;                         // global -> child
     m_body->SetFrameRefToAbs(X_GC);
 
     AddCollisionShapes();
@@ -1095,7 +1097,7 @@ RS_WheelDD::RS_WheelDD(const std::string& name, int id, std::shared_ptr<ChContac
     ChVector3d inertia_xx(0.01, 0.01, 0.02);
     ChVector3d inertia_xy(0, 0, 0);
 
-    m_body->SetIdentifier(id);
+    m_body->SetTag(Robosimian_body_tag);
     m_body->SetMass(mass);
     m_body->SetFrameCOMToRef(ChFrame<>(com, ChQuaternion<>(1, 0, 0, 0)));
     m_body->SetInertiaXX(inertia_xx);
@@ -1111,8 +1113,8 @@ RS_WheelDD::RS_WheelDD(const std::string& name, int id, std::shared_ptr<ChContac
 
 void RS_WheelDD::Initialize(std::shared_ptr<ChBodyAuxRef> chassis, const ChVector3d& xyz, const ChVector3d& rpy) {
     const ChFrame<>& X_GP = chassis->GetFrameRefToAbs();  // global -> parent
-    ChFrame<> X_PC(xyz, rpy2quat(rpy));                      // parent -> child
-    ChFrame<> X_GC = X_GP * X_PC;                            // global -> child
+    ChFrame<> X_PC(xyz, rpy2quat(rpy));                   // parent -> child
+    ChFrame<> X_GC = X_GP * X_PC;                         // global -> child
     m_body->SetFrameRefToAbs(X_GC);
 
     AddCollisionShapes();
@@ -1154,7 +1156,7 @@ RS_Limb::RS_Limb(const std::string& name,
         ChVector3d inertia_xx = data[i].link.m_inertia_xx;
         ChVector3d inertia_xy = data[i].link.m_inertia_xy;
 
-        link->m_body->SetIdentifier(4 + 4 * id + i);
+        link->m_body->SetTag(Robosimian_body_tag);
         link->m_body->SetMass(mass);
         link->m_body->SetFrameCOMToRef(ChFrame<>(com, ChQuaternion<>(1, 0, 0, 0)));
         link->m_body->SetInertiaXX(inertia_xx);
@@ -1185,7 +1187,7 @@ void RS_Limb::Initialize(std::shared_ptr<ChBodyAuxRef> chassis,
     // Set absolute position of link0
     auto parent_body = chassis;                               // parent body
     auto child_body = m_links.find("link0")->second->m_body;  // child body
-    ChFrame<> X_GP = parent_body->GetFrameRefToAbs();      // global -> parent
+    ChFrame<> X_GP = parent_body->GetFrameRefToAbs();         // global -> parent
     ChFrame<> X_PC(xyz, rpy2quat(rpy));                       // parent -> child
     ChFrame<> X_GC = X_GP * X_PC;                             // global -> child
     child_body->SetFrameRefToAbs(X_GC);
@@ -1199,7 +1201,7 @@ void RS_Limb::Initialize(std::shared_ptr<ChBodyAuxRef> chassis,
         auto child = m_links.find(joints[i].linkB)->second;        // child part
         parent_body = parent->m_body;                              // parent body
         child_body = child->m_body;                                // child body
-        X_GP = parent_body->GetFrameRefToAbs();                 // global -> parent
+        X_GP = parent_body->GetFrameRefToAbs();                    // global -> parent
         X_PC = ChFrame<>(joints[i].xyz, rpy2quat(joints[i].rpy));  // parent -> child
         X_GC = X_GP * X_PC;                                        // global -> child
         child_body->SetFrameRefToAbs(X_GC);
@@ -1226,7 +1228,7 @@ void RS_Limb::Initialize(std::shared_ptr<ChBodyAuxRef> chassis,
         // Weld joints
         if (joints[i].fixed) {
             auto joint = chrono_types::make_shared<ChLinkLockLock>();
-            joint->SetNameString(m_name + "_" + joints[i].name);
+            joint->SetName(m_name + "_" + joints[i].name);
             joint->Initialize(parent_body, child_body, calcJointFrame(X_GC, joints[i].axis));
             chassis->GetSystem()->AddLink(joint);
             m_joints.insert(std::make_pair(joints[i].name, joint));
@@ -1237,7 +1239,7 @@ void RS_Limb::Initialize(std::shared_ptr<ChBodyAuxRef> chassis,
         if (joints[i].name.compare("joint8") != 0) {
             auto motor_fun = chrono_types::make_shared<ChFunctionSetpoint>();
             auto joint = chrono_types::make_shared<ChLinkMotorRotationAngle>();
-            joint->SetNameString(m_name + "_" + joints[i].name);
+            joint->SetName(m_name + "_" + joints[i].name);
             joint->Initialize(parent_body, child_body, ChFrame<>(calcJointFrame(X_GC, joints[i].axis)));
             joint->SetAngleFunction(motor_fun);
             chassis->GetSystem()->AddLink(joint);
@@ -1250,7 +1252,7 @@ void RS_Limb::Initialize(std::shared_ptr<ChBodyAuxRef> chassis,
         if (wheel_mode == ActuationMode::SPEED) {
             auto motor_fun = chrono_types::make_shared<ChFunctionSetpoint>();
             auto joint = chrono_types::make_shared<ChLinkMotorRotationSpeed>();
-            joint->SetNameString(m_name + "_" + joints[i].name);
+            joint->SetName(m_name + "_" + joints[i].name);
             joint->Initialize(parent_body, child_body, ChFrame<>(calcJointFrame(X_GC, joints[i].axis)));
             joint->SetSpeedFunction(motor_fun);
             chassis->GetSystem()->AddLink(joint);
@@ -1260,7 +1262,7 @@ void RS_Limb::Initialize(std::shared_ptr<ChBodyAuxRef> chassis,
         } else {
             auto motor_fun = chrono_types::make_shared<ChFunctionSetpoint>();
             auto joint = chrono_types::make_shared<ChLinkMotorRotationAngle>();
-            joint->SetNameString(m_name + "_" + joints[i].name);
+            joint->SetName(m_name + "_" + joints[i].name);
             joint->Initialize(parent_body, child_body, ChFrame<>(calcJointFrame(X_GC, joints[i].axis)));
             joint->SetAngleFunction(motor_fun);
             chassis->GetSystem()->AddLink(joint);

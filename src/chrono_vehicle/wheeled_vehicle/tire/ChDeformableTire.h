@@ -159,11 +159,11 @@ class CH_VEHICLE_API ChDeformableTire : public ChTire {
     /// Create the SMC contact material.
     virtual void CreateContactMaterial() = 0;
 
-    std::shared_ptr<fea::ChMesh> m_mesh;                                ///< tire mesh
-    std::shared_ptr<ChLoadContainer> m_load_container;                  ///< load container (for pressure load)
-    std::vector<std::shared_ptr<fea::ChLinkNodeFrame>> m_connections;  ///< tire-wheel point connections
-    std::vector<std::shared_ptr<fea::ChLinkNodeSlopeFrame>> m_connectionsD;   ///< tire-wheel direction connections
-    std::vector<std::shared_ptr<ChLinkMateFix>> m_connectionsF;         ///< tire-wheel fix connection (point+rotation)
+    std::shared_ptr<fea::ChMesh> m_mesh;                                     ///< tire mesh
+    std::shared_ptr<ChLoadContainer> m_load_container;                       ///< load container (for pressure load)
+    std::vector<std::shared_ptr<fea::ChLinkNodeFrame>> m_connections;        ///< tire-wheel point connections
+    std::vector<std::shared_ptr<fea::ChLinkNodeSlopeFrame>> m_connectionsD;  ///< tire-wheel direction connections
+    std::vector<std::shared_ptr<ChLinkMateFix>> m_connectionsF;  ///< tire-wheel fix connection (point+rotation)
 
     bool m_connection_enabled;  ///< enable tire connections to rim
     bool m_pressure_enabled;    ///< enable internal tire pressure

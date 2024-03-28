@@ -36,8 +36,7 @@ ChTrackedVehicle::ChTrackedVehicle(const std::string& name, ChContactMethod cont
     m_contact_manager = chrono_types::make_shared<ChTrackContactManager>();
 }
 
-ChTrackedVehicle::ChTrackedVehicle(const std::string& name, ChSystem* system)
-    : ChVehicle(name, system) {
+ChTrackedVehicle::ChTrackedVehicle(const std::string& name, ChSystem* system) : ChVehicle(name, system) {
     m_contact_manager = chrono_types::make_shared<ChTrackContactManager>();
 }
 
@@ -71,8 +70,7 @@ void ChTrackedVehicle::Initialize(const ChCoordsys<>& chassisPos, double chassis
 // terrain forces on the track shoes (assumed to be expressed in the global
 // reference frame).
 // -----------------------------------------------------------------------------
-void ChTrackedVehicle::Synchronize(double time,
-                                   const DriverInputs& driver_inputs) {
+void ChTrackedVehicle::Synchronize(double time, const DriverInputs& driver_inputs) {
     // Let the driveline combine driver inputs if needed
     double braking_left = 0;
     double braking_right = 0;
@@ -354,14 +352,14 @@ void ChTrackedVehicle::InitializeInertiaProperties() {
 }
 
 // -----------------------------------------------------------------------------
-// Calculate current vehicle inertia properties 
+// Calculate current vehicle inertia properties
 // -----------------------------------------------------------------------------
 void ChTrackedVehicle::UpdateInertiaProperties() {
     // 1. Calculate the vehicle COM location relative to the global reference frame
     // 2. Calculate vehicle inertia relative to global reference frame
     ChVector3d com(0);
     ChMatrix33<> inertia(0);
-    
+
     m_chassis->AddInertiaProperties(com, inertia);
 
     for (auto& c : m_chassis_rear)

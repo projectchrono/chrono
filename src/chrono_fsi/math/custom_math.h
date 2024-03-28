@@ -22,7 +22,7 @@
 
 #include <cuda_runtime.h>
 #ifndef __CUDACC__
-#include <cmath>
+    #include <cmath>
 #endif
 #include "chrono_fsi/ChConfigFSI.h"
 
@@ -95,9 +95,9 @@ inline __host__ __device__ Real quintic(Real a) {
 ////////////////////////////////////////////////////////////////////////////////
 
 #if defined(__CUDACC_RTC__)
-#define __VECTOR_FUNCTIONS_DECL__ __host__ __device__
+    #define __VECTOR_FUNCTIONS_DECL__ __host__ __device__
 #else /* !__CUDACC_RTC__ */
-#define __VECTOR_FUNCTIONS_DECL__ static __inline__ __host__ __device__
+    #define __VECTOR_FUNCTIONS_DECL__ static __inline__ __host__ __device__
 #endif /* __CUDACC_RTC__ */
 
 /// Make a vector with two unsigned integer elements.
@@ -1600,19 +1600,19 @@ __host__ __device__ inline Real3 sgn(Real3 a) {
 }
 
 __host__ __device__ inline Real4 Cables_ShapeFunctions(Real l, Real xi) {
-        Real N1 = 1 - 3 * square(xi) + 2 * cube(xi);
-        Real N2 = l * (xi - 2 * square(xi) + cube(xi));
-    	Real N3 = 3 * square(xi) - 2 * cube(xi);
-        Real N4 = l * (-square(xi) + cube(xi));
+    Real N1 = 1 - 3 * square(xi) + 2 * cube(xi);
+    Real N2 = l * (xi - 2 * square(xi) + cube(xi));
+    Real N3 = 3 * square(xi) - 2 * cube(xi);
+    Real N4 = l * (-square(xi) + cube(xi));
 
     return make_Real4(N1, N2, N3, N4);
 }
 
 __host__ __device__ inline Real4 Cables_ShapeFunctionsDerivatives(Real l, Real xi) {
-    	Real N1 = (6 * square(xi) - 6 * xi)/l;
-        Real N2 = 1.0 - 4.0 * xi + 3 * square(xi);
-    	Real N3 = -(6.0 * square(xi) - 6 * xi) / l;
-        Real N4 = -2.0 * xi + 3 * square(xi);
+    Real N1 = (6 * square(xi) - 6 * xi) / l;
+    Real N2 = 1.0 - 4.0 * xi + 3 * square(xi);
+    Real N3 = -(6.0 * square(xi) - 6 * xi) / l;
+    Real N4 = -2.0 * xi + 3 * square(xi);
 
     return make_Real4(N1, N2, N3, N4);
 }

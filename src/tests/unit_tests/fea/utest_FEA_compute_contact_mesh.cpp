@@ -85,7 +85,6 @@ int numDiv_z = 1;
 // Parameters for ANCF shell element mesh
 // ---------------------------------
 
-int binId = 0;
 double bin_width = 20;
 double bin_length = 20;
 double bin_thickness = 0.1;
@@ -202,7 +201,7 @@ int main(int argc, char* argv[]) {
     system.Add(my_mesh);
 
     // Create container box
-    auto ground = utils::CreateBoxContainer(&system, binId, material,                                    //
+    auto ground = utils::CreateBoxContainer(&system, material,                                           //
                                             ChVector3d(bin_width, bin_length, 200 * dy), bin_thickness,  //
                                             ChVector3d(0, 0, -1.5 * m_contact_node_radius), QUNIT);      //
 
@@ -253,8 +252,9 @@ int main(int argc, char* argv[]) {
 
         system.GetContactContainer()->ComputeContactForces();
         ChVector3d contact_force = ground->GetContactForce();
-        std::cout << "t = " << system.GetChTime() << " num contacts = " << system.GetContactContainer()->GetNumContacts()
-                 << "  force =  " << contact_force.z() << "\n";
+        std::cout << "t = " << system.GetChTime()
+                  << " num contacts = " << system.GetContactContainer()->GetNumContacts()
+                  << "  force =  " << contact_force.z() << "\n";
         std::cout << "Vertical Displacement of a Node: " << nodeRef->GetPos().z() << "\n";
         std::cout << "Total Weight of Shell: " << total_weight << "\n";
 

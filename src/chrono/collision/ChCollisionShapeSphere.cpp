@@ -20,15 +20,14 @@ namespace chrono {
 CH_FACTORY_REGISTER(ChCollisionShapeSphere)
 CH_UPCASTING(ChCollisionShapeSphere, ChCollisionShape)
 
-ChCollisionShapeSphere::ChCollisionShapeSphere(): ChCollisionShape(Type::SPHERE) {}
+ChCollisionShapeSphere::ChCollisionShapeSphere() : ChCollisionShape(Type::SPHERE) {}
 
 ChCollisionShapeSphere::ChCollisionShapeSphere(std::shared_ptr<ChContactMaterial> material, double radius)
     : ChCollisionShape(Type::SPHERE, material) {
     gsphere.rad = radius;
 }
 
-ChCollisionShapeSphere::ChCollisionShapeSphere(std::shared_ptr<ChContactMaterial> material,
-                                               const ChSphere& sphere)
+ChCollisionShapeSphere::ChCollisionShapeSphere(std::shared_ptr<ChContactMaterial> material, const ChSphere& sphere)
     : ChCollisionShape(Type::SPHERE, material), gsphere(sphere) {}
 
 void ChCollisionShapeSphere::ArchiveOut(ChArchiveOut& archive_out) {

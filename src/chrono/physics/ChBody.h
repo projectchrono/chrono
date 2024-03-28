@@ -33,14 +33,21 @@ namespace chrono {
 
 class ChSystem;
 
-/// Class for rigid bodies. A rigid body is an entity which
-/// can move in 3D space, and can be constrained to other rigid
-/// bodies using ChLink objects. Rigid bodies can contain auxiliary
-/// references (the ChMarker objects) and forces (the ChForce objects).
-/// These objects have mass and inertia properties. A shape can also
-/// be associated to the body, for collision detection.
+/// Class for Rigid Bodies
 ///
-/// Further info at the @ref rigid_bodies  manual page.
+/// A rigid body is an entity with mass and inertia properties moving in the 3D space.
+/// Optionally, an object of the ChBody class (or derived) can:
+/// - be involved in collision, if a collision model is provided (@ref collisions) and the collision is enabled;
+/// - be visualized, if a visual model is provided and a proper visualization system is available (@ref visualization_system);
+/// - be constrained by means of ChLink objects (@ref links);
+/// - be loaded by ChLoad objects (@ref loads);
+/// - be used in coordinate transformation, being itself inherited from ChFrameMoving;
+/// 
+/// Location and orientation of the ChBody refer to its Center of Mass (CoM).
+/// Since no additional frame is available, also visual and collision shapes refer to the same frame.
+/// Derived classes might offer additional frames (e.g. @ref ChBodyAuxRef).
+/// 
+/// Further info at the @ref rigid_bodies manual page.
 
 class ChApi ChBody : public ChPhysicsItem, public ChBodyFrame, public ChContactable_1vars<6>, public ChLoadableUVW {
   public:
@@ -67,14 +74,8 @@ class ChApi ChBody : public ChPhysicsItem, public ChBodyFrame, public ChContacta
     /// Return true if collision is enabled for this body.
     virtual bool IsCollisionEnabled() const override;
 
-    /// Enable the maximum linear speed limit (beyond this limit it will be clamped).
-    /// This is useful in virtual reality and real-time simulations, because
-    /// it reduces the risk of bad collision detection.
-    /// The realism is limited, but the simulation is more stable.
+    /// Enable the maximum linear speed limit (default: false).
     void SetLimitSpeed(bool state);
-
-    /// Return true if maximum linear speed is limited.
-    bool GetLimitSpeed() const;
 
     /// Enable/disable the gyroscopic torque (quadratic term).
     /// This is useful in virtual reality and real-time simulations, where objects that spin too fast with non-uniform
@@ -86,7 +87,7 @@ class ChApi ChBody : public ChPhysicsItem, public ChBodyFrame, public ChContacta
     /// Return true if gyroscopic torque is used (default=true).
     bool IsUsingGyroTorque() const;
 
-    /// Enable/disable option for setting bodies to "sleep".
+    /// Enable/disable option for setting bodies to 'sleep'.
     /// If the sleeping is allowed, bodies which stay in same place for long enough time will be deactivated, for
     /// optimization.
     /// By default the sleeping is enabled.
@@ -96,7 +97,7 @@ class ChApi ChBody : public ChPhysicsItem, public ChBodyFrame, public ChContacta
     bool IsSleepingAllowed() const;
 
     /// Force the body in sleeping mode or not.
-    /// Usually, this state change is handled internally.
+    /// Usually this state change is handled internally.
     void SetSleeping(bool state);
 
     /// Return true if this body is currently in 'sleep' mode.
@@ -106,7 +107,7 @@ class ChApi ChBody : public ChPhysicsItem, public ChBodyFrame, public ChContacta
     /// Return true if state could be changed from no sleep to sleep.
     bool TrySleeping();
 
-    /// Return true if the body is currently active and thereofre included into the system solver.
+    /// Return true if the body is currently active and therefore included into the system solver.
     /// A body is inactive if it is fixed to ground or in sleep mode.
     virtual bool IsActive() const override;
 
@@ -139,7 +140,7 @@ class ChApi ChBody : public ChPhysicsItem, public ChBodyFrame, public ChContacta
     /// The mass and inertia tensor are defined with respect to this coordinate system, which is also assumed to be the
     /// default coordinates of the body. By default, a call to body.GetPos() is equivalent to
     /// body.GetFrame_COG_abs().GetPos().
-    virtual const ChFrameMoving<>& GetFrame_COG_to_abs() const { return *this; }
+    virtual const ChFrameMoving<>& GetFrameCOMToAbs() const { return *this; }
 
     /// Get the rigid body coordinate system that is used for defining the collision shapes and the ChMarker objects.
     /// For the base ChBody, this is always the same reference of the COG.
@@ -255,15 +256,11 @@ class ChApi ChBody : public ChPhysicsItem, public ChBodyFrame, public ChContacta
     ChVector3d GetInertiaXY() const;
 
     /// Set the maximum linear speed (beyond this limit it will be clamped).
-    /// This is useful in virtual reality and real-time simulations, because
-    /// it reduces the risk of bad collision detection.
     /// This speed limit is active only if you set  SetLimitSpeed(true);
     void SetMaxLinVel(float m_max_speed) { max_speed = m_max_speed; }
     float GetMaxLinVel() const { return max_speed; }
 
     /// Set the maximum angular speed (beyond this limit it will be clamped).
-    /// This is useful in virtual reality and real-time simulations, because
-    /// it reduces the risk of bad collision detection.
     /// This speed limit is active only if you set  SetLimitSpeed(true);
     void SetMaxAngVel(float m_max_wvel) { max_wvel = m_max_wvel; }
     float GetMaxAngVel() const { return max_wvel; }
@@ -303,8 +300,8 @@ class ChApi ChBody : public ChPhysicsItem, public ChBodyFrame, public ChContacta
     /// If local = true, the provided applied force is assumed to be expressed in body coordinates.
     /// If local = false, the provided applied force is assumed to be expressed in absolute coordinates.
     void AccumulateForce(const ChVector3d& force,       ///< applied force
-                          const ChVector3d& appl_point,  ///< application point
-                          bool local                     ///< force and point expressed in body local frame?
+                         const ChVector3d& appl_point,  ///< application point
+                         bool local                     ///< force and point expressed in body local frame?
     );
 
     /// Add an applied torque to the body's accumulator (as an increment).
@@ -312,7 +309,7 @@ class ChApi ChBody : public ChPhysicsItem, public ChBodyFrame, public ChContacta
     /// If local = true, the provided applied torque is assumed to be expressed in body coordinates.
     /// If local = false, the provided applied torque is assumed to be expressed in absolute coordinates.
     void AccumulateTorque(const ChVector3d& torque,  ///< applied torque
-                           bool local                 ///< torque expressed in body local frame?
+                          bool local                 ///< torque expressed in body local frame?
     );
 
     /// Clear the force and torque accumulators.
@@ -514,9 +511,8 @@ class ChApi ChBody : public ChPhysicsItem, public ChBodyFrame, public ChContacta
     /// Does not automatically update markers & forces.
     virtual void VariablesQbIncrementPosition(double step) override;
 
-    /// Tell to a system descriptor that there are variables of type
-    /// ChVariables in this object (for further passing it to a solver)
-    virtual void InjectVariables(ChSystemDescriptor& mdescriptor) override;
+    /// Register with the given system descriptor any ChVariable objects associated with this item.
+    virtual void InjectVariables(ChSystemDescriptor& descriptor) override;
 
     // INTERFACE TO ChContactable
 
@@ -629,12 +625,14 @@ class ChApi ChBody : public ChPhysicsItem, public ChBodyFrame, public ChContacta
 
     bool fixed;    ///< flag indicating whether or not the body is fixed to global frame
     bool collide;  ///< flag indicating whether or not the body participates in collisions
-    
-    bool limit_speed; ///< enable the clamping on body angular and linear speed
-    bool disable_gyrotorque;  ///< disable the gyroscopic (quadratic) term, help the stability of the simulation but reduces the accuracy
+
+    bool limit_speed;         ///< enable the clamping on body angular and linear speed
+    bool disable_gyrotorque;  ///< disable the gyroscopic (quadratic) term, help the stability of the simulation but
+                              ///< reduces the accuracy
     bool is_sleeping;         ///< flag indicating whether or not the body is currently in sleep mode
-    bool allow_sleeping;     ///< flag indicating whether or not the body can go to sleep mode
-    bool candidate_sleeping; ///< flag indicating whether or not the body is a candidate for sleep mode in the current simulation
+    bool allow_sleeping;      ///< flag indicating whether or not the body can go to sleep mode
+    bool candidate_sleeping;  ///< flag indicating whether or not the body is a candidate for sleep mode in the current
+                              ///< simulation
 
     // Friend classes with private access
     friend class ChSystem;

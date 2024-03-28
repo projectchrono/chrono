@@ -158,7 +158,7 @@ class CH_VEHICLE_API ChVehicleCosimBaseNode {
 
     /// Enable/disable tracking of objects (default: true).
     void SetCameraTracking(bool track) { m_track = track; }
- 
+
     /// Enable Blender postprocessing (default: false).
     /// If enabled, output will be generated in dir_name/[NodeName]suffix/ (see SetOutDir).
     void EnablePostprocessVisualization(double render_fps = 100);
@@ -280,8 +280,8 @@ class CH_VEHICLE_API ChVehicleCosimBaseNode {
     unsigned int m_num_terrain_nodes;
     unsigned int m_num_tire_nodes;
 
-    ChTimer m_timer;  ///< timer for integration cost
-    double m_cum_sim_time;    ///< cumulative integration cost
+    ChTimer m_timer;        ///< timer for integration cost
+    double m_cum_sim_time;  ///< cumulative integration cost
 
     bool m_verbose;  ///< verbose messages during simulation?
 

@@ -40,7 +40,7 @@ using namespace chrono::vehicle::m113;
 
 template <typename EnumClass, EnumClass SHOE_TYPE>
 class M113AccTest : public utils::ChBenchmarkTest {
-public:
+  public:
     M113AccTest();
     ~M113AccTest();
 
@@ -49,7 +49,7 @@ public:
 
     void SimulateVis();
 
-private:
+  private:
     M113* m_m113;
     RigidTerrain* m_terrain;
     ChPathFollowerDriver* m_driver;
@@ -184,7 +184,7 @@ void M113AccTest<EnumClass, SHOE_TYPE>::SimulateVis() {
 // =============================================================================
 
 #define NUM_SKIP_STEPS 1000  // number of steps for hot start
-#define NUM_SIM_STEPS 1000   // number of simulation steps for each benchmark
+#define NUM_SIM_STEPS 1000  // number of simulation steps for each benchmark
 #define REPEATS 10
 
 // NOTE: trick to prevent erros in expanding macros due to types that contain a comma.

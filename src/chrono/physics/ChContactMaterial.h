@@ -78,7 +78,7 @@ class ChApi ChContactMaterial {
     /// In the range [0,1].
     void SetRestitution(float val) { restitution = val; }
 
-    /// Get the coefficient of restitution. 
+    /// Get the coefficient of restitution.
     float GetRestitution() const { return restitution; }
 
     /// Method to allow serialization of transient data to archives.

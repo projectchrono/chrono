@@ -349,7 +349,7 @@ void ChAssembly::RemoveAllOtherPhysicsItems() {
 
 std::shared_ptr<ChBody> ChAssembly::SearchBody(const std::string& name) const {
     auto body = std::find_if(std::begin(bodylist), std::end(bodylist),
-                             [name](std::shared_ptr<ChBody> body) { return body->GetNameString() == name; });
+                             [name](std::shared_ptr<ChBody> body) { return body->GetName() == name; });
     return (body != std::end(bodylist)) ? *body : nullptr;
 }
 
@@ -361,25 +361,25 @@ std::shared_ptr<ChBody> ChAssembly::SearchBodyID(int id) const {
 
 std::shared_ptr<ChShaft> ChAssembly::SearchShaft(const std::string& name) const {
     auto shaft = std::find_if(std::begin(shaftlist), std::end(shaftlist),
-                              [name](std::shared_ptr<ChShaft> shaft) { return shaft->GetNameString() == name; });
+                              [name](std::shared_ptr<ChShaft> shaft) { return shaft->GetName() == name; });
     return (shaft != std::end(shaftlist)) ? *shaft : nullptr;
 }
 
 std::shared_ptr<ChLinkBase> ChAssembly::SearchLink(const std::string& name) const {
     auto link = std::find_if(std::begin(linklist), std::end(linklist),
-                             [name](std::shared_ptr<ChLinkBase> link) { return link->GetNameString() == name; });
+                             [name](std::shared_ptr<ChLinkBase> link) { return link->GetName() == name; });
     return (link != std::end(linklist)) ? *link : nullptr;
 }
 
 std::shared_ptr<fea::ChMesh> ChAssembly::SearchMesh(const std::string& name) const {
     auto mesh = std::find_if(std::begin(meshlist), std::end(meshlist),
-                             [name](std::shared_ptr<fea::ChMesh> mesh) { return mesh->GetNameString() == name; });
+                             [name](std::shared_ptr<fea::ChMesh> mesh) { return mesh->GetName() == name; });
     return (mesh != std::end(meshlist)) ? *mesh : nullptr;
 }
 
 std::shared_ptr<ChPhysicsItem> ChAssembly::SearchOtherPhysicsItem(const std::string& name) const {
     auto item = std::find_if(std::begin(otherphysicslist), std::end(otherphysicslist),
-                             [name](std::shared_ptr<ChPhysicsItem> item) { return item->GetNameString() == name; });
+                             [name](std::shared_ptr<ChPhysicsItem> item) { return item->GetName() == name; });
     return (item != std::end(otherphysicslist)) ? *item : nullptr;
 }
 
@@ -500,20 +500,20 @@ void ChAssembly::SyncCollisionModels() {
 // UPDATING ROUTINES
 
 void ChAssembly::SetupInitial() {
-    for (int ip = 0; ip < bodylist.size(); ++ip) {
-        bodylist[ip]->SetupInitial();
+    for (auto& body : bodylist) {
+        body->SetupInitial();
     }
-    for (int ip = 0; ip < shaftlist.size(); ++ip) {
-        shaftlist[ip]->SetupInitial();
+    for (auto& shaft : shaftlist) {
+        shaft->SetupInitial();
     }
-    for (int ip = 0; ip < linklist.size(); ++ip) {
-        linklist[ip]->SetupInitial();
+    for (auto& link : linklist) {
+        link->SetupInitial();
     }
-    for (int ip = 0; ip < meshlist.size(); ++ip) {
-        meshlist[ip]->SetupInitial();
+    for (auto& mesh : meshlist) {
+        mesh->SetupInitial();
     }
-    for (int ip = 0; ip < otherphysicslist.size(); ++ip) {
-        otherphysicslist[ip]->SetupInitial();
+    for (auto& otherphysics : otherphysicslist) {
+        otherphysics->SetupInitial();
     }
 }
 
@@ -563,7 +563,7 @@ void ChAssembly::Setup() {
     }
 
     for (auto& shaft : shaftlist) {
-        if (shaft->GetShaftFixed())
+        if (shaft->IsFixed())
             m_num_shafts_fixed++;
         else if (shaft->IsSleeping())
             m_num_shafts_sleep++;
@@ -649,22 +649,22 @@ void ChAssembly::Update(double mytime, bool update_assets) {
 // Updates all markers (automatic, as children of bodies).
 void ChAssembly::Update(bool update_assets) {
     //// NOTE: do not switch these to range for loops (may want to use OMP for)
-    for (int ip = 0; ip < (int)bodylist.size(); ++ip) {
-        bodylist[ip]->Update(ChTime, update_assets);
+    for (auto& body : bodylist) {
+        body->Update(ChTime, update_assets);
     }
-    for (int ip = 0; ip < (int)shaftlist.size(); ++ip) {
-        shaftlist[ip]->Update(ChTime, update_assets);
+    for (auto& shaft : shaftlist) {
+        shaft->Update(ChTime, update_assets);
     }
-    for (int ip = 0; ip < (int)meshlist.size(); ++ip) {
-        meshlist[ip]->Update(ChTime, update_assets);
+    for (auto& mesh : meshlist) {
+        mesh->Update(ChTime, update_assets);
     }
-    for (int ip = 0; ip < (int)otherphysicslist.size(); ++ip) {
-        otherphysicslist[ip]->Update(ChTime, update_assets);
+    for (auto& otherphysics : otherphysicslist) {
+        otherphysics->Update(ChTime, update_assets);
     }
     // The state of links depends on the bodylist,shaftlist,meshlist,otherphysicslist,
     // thus the update of linklist must be at the end.
-    for (int ip = 0; ip < (int)linklist.size(); ++ip) {
-        linklist[ip]->Update(ChTime, update_assets);
+    for (auto& link : linklist) {
+        link->Update(ChTime, update_assets);
     }
 }
 
@@ -1166,21 +1166,21 @@ void ChAssembly::IntFromDescriptor(const unsigned int off_v,
 
 // -----------------------------------------------------------------------------
 
-void ChAssembly::InjectVariables(ChSystemDescriptor& mdescriptor) {
+void ChAssembly::InjectVariables(ChSystemDescriptor& descriptor) {
     for (auto& body : bodylist) {
-        body->InjectVariables(mdescriptor);
+        body->InjectVariables(descriptor);
     }
     for (auto& shaft : shaftlist) {
-        shaft->InjectVariables(mdescriptor);
+        shaft->InjectVariables(descriptor);
     }
     for (auto& link : linklist) {
-        link->InjectVariables(mdescriptor);
+        link->InjectVariables(descriptor);
     }
     for (auto& mesh : meshlist) {
-        mesh->InjectVariables(mdescriptor);
+        mesh->InjectVariables(descriptor);
     }
     for (auto& item : otherphysicslist) {
-        item->InjectVariables(mdescriptor);
+        item->InjectVariables(descriptor);
     }
 }
 
@@ -1292,21 +1292,21 @@ void ChAssembly::VariablesQbIncrementPosition(double dt_step) {
     }
 }
 
-void ChAssembly::InjectConstraints(ChSystemDescriptor& mdescriptor) {
+void ChAssembly::InjectConstraints(ChSystemDescriptor& descriptor) {
     for (auto& body : bodylist) {
-        body->InjectConstraints(mdescriptor);
+        body->InjectConstraints(descriptor);
     }
     for (auto& shaft : shaftlist) {
-        shaft->InjectConstraints(mdescriptor);
+        shaft->InjectConstraints(descriptor);
     }
     for (auto& link : linklist) {
-        link->InjectConstraints(mdescriptor);
+        link->InjectConstraints(descriptor);
     }
     for (auto& mesh : meshlist) {
-        mesh->InjectConstraints(mdescriptor);
+        mesh->InjectConstraints(descriptor);
     }
     for (auto& item : otherphysicslist) {
-        item->InjectConstraints(mdescriptor);
+        item->InjectConstraints(descriptor);
     }
 }
 
@@ -1400,21 +1400,21 @@ void ChAssembly::ConstraintsFbLoadForces(double factor) {
     }
 }
 
-void ChAssembly::ConstraintsLoadJacobians() {
+void ChAssembly::LoadConstraintJacobians() {
     for (auto& body : bodylist) {
-        body->ConstraintsLoadJacobians();
+        body->LoadConstraintJacobians();
     }
     for (auto& shaft : shaftlist) {
-        shaft->ConstraintsLoadJacobians();
+        shaft->LoadConstraintJacobians();
     }
     for (auto& link : linklist) {
-        link->ConstraintsLoadJacobians();
+        link->LoadConstraintJacobians();
     }
     for (auto& mesh : meshlist) {
-        mesh->ConstraintsLoadJacobians();
+        mesh->LoadConstraintJacobians();
     }
     for (auto& item : otherphysicslist) {
-        item->ConstraintsLoadJacobians();
+        item->LoadConstraintJacobians();
     }
 }
 
@@ -1436,39 +1436,39 @@ void ChAssembly::ConstraintsFetch_react(double factor) {
     }
 }
 
-void ChAssembly::InjectKRMmatrices(ChSystemDescriptor& mdescriptor) {
+void ChAssembly::InjectKRMMatrices(ChSystemDescriptor& descriptor) {
     for (auto& body : bodylist) {
-        body->InjectKRMmatrices(mdescriptor);
+        body->InjectKRMMatrices(descriptor);
     }
     for (auto& shaft : shaftlist) {
-        shaft->InjectKRMmatrices(mdescriptor);
+        shaft->InjectKRMMatrices(descriptor);
     }
     for (auto& link : linklist) {
-        link->InjectKRMmatrices(mdescriptor);
+        link->InjectKRMMatrices(descriptor);
     }
     for (auto& mesh : meshlist) {
-        mesh->InjectKRMmatrices(mdescriptor);
+        mesh->InjectKRMMatrices(descriptor);
     }
     for (auto& item : otherphysicslist) {
-        item->InjectKRMmatrices(mdescriptor);
+        item->InjectKRMMatrices(descriptor);
     }
 }
 
-void ChAssembly::KRMmatricesLoad(double Kfactor, double Rfactor, double Mfactor) {
+void ChAssembly::LoadKRMMatrices(double Kfactor, double Rfactor, double Mfactor) {
     for (auto& body : bodylist) {
-        body->KRMmatricesLoad(Kfactor, Rfactor, Mfactor);
+        body->LoadKRMMatrices(Kfactor, Rfactor, Mfactor);
     }
     for (auto& shaft : shaftlist) {
-        shaft->KRMmatricesLoad(Kfactor, Rfactor, Mfactor);
+        shaft->LoadKRMMatrices(Kfactor, Rfactor, Mfactor);
     }
     for (auto& link : linklist) {
-        link->KRMmatricesLoad(Kfactor, Rfactor, Mfactor);
+        link->LoadKRMMatrices(Kfactor, Rfactor, Mfactor);
     }
     for (auto& mesh : meshlist) {
-        mesh->KRMmatricesLoad(Kfactor, Rfactor, Mfactor);
+        mesh->LoadKRMMatrices(Kfactor, Rfactor, Mfactor);
     }
     for (auto& item : otherphysicslist) {
-        item->KRMmatricesLoad(Kfactor, Rfactor, Mfactor);
+        item->LoadKRMMatrices(Kfactor, Rfactor, Mfactor);
     }
 }
 
@@ -1482,44 +1482,46 @@ void ChAssembly::ShowHierarchy(std::ostream& outstream, int level) const {
 
     outstream << "\n" << mtabs << "List of the " << (int)bodylist.size() << " added rigid bodies:" << std::endl;
     for (auto& body : bodylist) {
-        outstream << mtabs << "  BODY:       " << body->GetName() << std::endl;
+        outstream << mtabs << "  BODY:       " << body->GetIdentifier() << " " << body->GetName() << std::endl;
 
         for (auto& marker : body->GetMarkers()) {
-            outstream << mtabs << "    MARKER:  " << marker->GetName() << std::endl;
+            outstream << mtabs << "    MARKER:   " << marker->GetIdentifier() << " " << marker->GetName() << std::endl;
         }
 
         for (auto& force : body->GetForces()) {
-            outstream << mtabs << "    FORCE:  " << force->GetName() << std::endl;
+            outstream << mtabs << "    FORCE:    " << force->GetIdentifier() << " " << force->GetName() << std::endl;
         }
     }
 
     outstream << "\n" << mtabs << "List of the " << (int)shaftlist.size() << " added shafts:" << std::endl;
     for (auto& shaft : shaftlist) {
-        outstream << mtabs << "  SHAFT:      " << shaft->GetName() << std::endl;
+        outstream << mtabs << "  SHAFT:      " << shaft->GetIdentifier() << " " << shaft->GetName() << std::endl;
     }
 
     outstream << "\n" << mtabs << "List of the " << (int)linklist.size() << " added links:" << std::endl;
     for (auto& link : linklist) {
-        outstream << mtabs << "  LINK:       " << link->GetName() << " [" << typeid(link.get()).name() << "]"
-                  << std::endl;
+        outstream << mtabs << "  LINK:       " << link->GetIdentifier() << " " << link->GetName() << " ["
+                  << typeid(*link.get()).name() << "]" << std::endl;
         if (auto malink = std::dynamic_pointer_cast<ChLinkMarkers>(link)) {
             if (malink->GetMarker1())
-                outstream << mtabs << "    marker1:  " << malink->GetMarker1()->GetName() << std::endl;
+                outstream << mtabs << "    marker1:  " << malink->GetMarker1()->GetIdentifier() << " "
+                          << malink->GetMarker1()->GetName() << std::endl;
             if (malink->GetMarker2())
-                outstream << mtabs << "    marker2:  " << malink->GetMarker2()->GetName() << std::endl;
+                outstream << mtabs << "    marker2:  " << malink->GetMarker2()->GetIdentifier() << " "
+                          << malink->GetMarker2()->GetName() << std::endl;
         }
     }
 
     outstream << "\n" << mtabs << "List of the " << (int)meshlist.size() << " added meshes:" << std::endl;
     for (auto& mesh : meshlist) {
-        outstream << mtabs << "  MESH :      " << mesh->GetName() << std::endl;
+        outstream << mtabs << "  MESH :      " << mesh->GetIdentifier() << " " << mesh->GetName() << std::endl;
     }
 
     outstream << "\n"
               << mtabs << "List of other " << (int)otherphysicslist.size() << " added physic items:" << std::endl;
     for (auto& item : otherphysicslist) {
-        outstream << mtabs << "  PHYSIC ITEM: " << item->GetName() << " [" << typeid(item.get()).name() << "]"
-                  << std::endl;
+        outstream << mtabs << "  PHYSICS ITEM: " << item->GetIdentifier() << " " << item->GetName() << " ["
+                  << typeid(item.get()).name() << "]" << std::endl;
 
         // recursion:
         if (auto assem = std::dynamic_pointer_cast<ChAssembly>(item))

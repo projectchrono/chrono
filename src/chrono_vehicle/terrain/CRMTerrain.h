@@ -53,7 +53,7 @@ class CH_VEHICLE_API CRMTerrain : public ChTerrain {
 
     /// Add a rigid obstacle.
     /// A rigid body with visualization and collision geometry read from the Wavefront OBJ file is created
-    /// at the specified position and with the specified orientation. BCE markers are created with the 
+    /// at the specified position and with the specified orientation. BCE markers are created with the
     /// separation value specified at construction.
     /// Must be called before Initialize().
     void AddRigidObstacle(const std::string& obj_file,                      ///< Wavefront OBJ file name
@@ -97,7 +97,7 @@ class CH_VEHICLE_API CRMTerrain : public ChTerrain {
     void Construct(const std::string& heightmap_file,      ///< filename for the heightmap image
                    double length,                          ///< patch length (X direction)
                    double width,                           ///< patch width (Y direction)
-                   const ChVector2d& height_range,        ///< height range (black to white level)
+                   const ChVector2d& height_range,         ///< height range (black to white level)
                    double depth,                           ///< soil depth
                    int bce_layers = 3,                     ///< number of BCE layers
                    const ChVector3d& pos = ChVector3d(0),  ///< patch center
@@ -140,15 +140,15 @@ class CH_VEHICLE_API CRMTerrain : public ChTerrain {
 
     /// Specification of a rigid obstacle.
     struct RigidObstacle {
-        std::shared_ptr<ChBody> body;                                ///< associated body
-        double density;                                              ///< material density
-        ChContactMaterialData cmat;                                  ///< contact material properties
+        std::shared_ptr<ChBody> body;                      ///< associated body
+        double density;                                    ///< material density
+        ChContactMaterialData cmat;                        ///< contact material properties
         std::shared_ptr<ChTriangleMeshConnected> trimesh;  ///< geometry
-        std::vector<ChVector3d> point_cloud;                         ///< point cloud for BCE markers
-        ChVector3d point;                                            ///< location of an interior point
-        Points bce;                                                  ///< BCE marker grid locations
-        ChVector3d oobb_center;                                      ///< center of bounding box
-        ChVector3d oobb_dims;                                        ///< dimensions of bounding box
+        std::vector<ChVector3d> point_cloud;               ///< point cloud for BCE markers
+        ChVector3d point;                                  ///< location of an interior point
+        Points bce;                                        ///< BCE marker grid locations
+        ChVector3d oobb_center;                            ///< center of bounding box
+        ChVector3d oobb_dims;                              ///< dimensions of bounding box
     };
 
     /// Complete construction of the CRMTerrain.
@@ -173,7 +173,7 @@ class CH_VEHICLE_API CRMTerrain : public ChTerrain {
     Points m_bce;                            ///< BCE marker grid locations
     ChVector3d m_offset;                     ///< patch offset
     double m_angle;                          ///< patch rotation about vertical
-    ChAABB m_aabb;                 ///< particle AABB
+    ChAABB m_aabb;                           ///< particle AABB
     std::vector<RigidObstacle> m_obstacles;  ///< list of rigid obstacles
     bool m_verbose;                          ///< if true, write information to standard output
 };

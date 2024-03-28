@@ -63,7 +63,9 @@ class ChApi ChContactNodeXYZ : public ChContactable_1vars<3> {
     virtual void ContactableGetStateBlockPosLevel(ChState& x) override { x.segment(0, 3) = m_node->pos.eigen(); }
 
     /// Get all the DOFs packed in a single vector (speed part).
-    virtual void ContactableGetStateBlockVelLevel(ChStateDelta& w) override { w.segment(0, 3) = m_node->pos_dt.eigen(); }
+    virtual void ContactableGetStateBlockVelLevel(ChStateDelta& w) override {
+        w.segment(0, 3) = m_node->pos_dt.eigen();
+    }
 
     /// Increment the provided state of this object by the given state-delta increment.
     /// Compute: x_new = x + dw.
@@ -103,11 +105,11 @@ class ChApi ChContactNodeXYZ : public ChContactable_1vars<3> {
     /// Each object must set the entries in Q corresponding to its variables, starting at the specified offset.
     /// If needed, the object states must be extracted from the provided state position.
     virtual void ContactComputeQ(const ChVector3d& F,
-                                   const ChVector3d& T,
-                                   const ChVector3d& point,
-                                   const ChState& state_x,
-                                   ChVectorDynamic<>& Q,
-                                   int offset) override {
+                                 const ChVector3d& T,
+                                 const ChVector3d& point,
+                                 const ChState& state_x,
+                                 ChVectorDynamic<>& Q,
+                                 int offset) override {
         Q.segment(offset, 3) = F.eigen();
     }
 
@@ -141,13 +143,13 @@ class ChApi ChContactNodeXYZsphere : public ChContactNodeXYZ {
     ~ChContactNodeXYZsphere() {}
 };
 
+// Note: the ChContactNodeXYZ would be sufficient if ChNodeFEAxyz were inherited from ChNodeFEAxyzrot, but this is
+// currently not the case. As such, we need to also implement this ChContactNodeXYZRot as a proxy to ChNodeFEAxyzrot.
+
 /// Proxy to FEA nodes with 3 xyz + 3 rot coords, to grant them the features needed for collision detection.
-/// **Note: the ChContactNodeXYZ would be sufficient if ChNodeFEAxyz were inherited
-/// from ChNodeFEAxyzrot, but this does not happen -hopefully it will be, in future API-, so we need
-/// to implement also this ChContactNodeXYZROT as a proxy to ChNodeFEAxyzrot, sorry for code redundancy.
-class ChApi ChContactNodeXYZROT : public ChContactable_1vars<6> {
+class ChApi ChContactNodeXYZRot : public ChContactable_1vars<6> {
   public:
-    ChContactNodeXYZROT(ChNodeFEAxyzrot* node = nullptr, ChContactSurface* contact_surface = nullptr);
+    ChContactNodeXYZRot(ChNodeFEAxyzrot* node = nullptr, ChContactSurface* contact_surface = nullptr);
 
     /// Access the FEA node to whom this is is a proxy
     ChNodeFEAxyzrot* GetNode() { return m_node; }
@@ -181,7 +183,9 @@ class ChApi ChContactNodeXYZROT : public ChContactable_1vars<6> {
     virtual void ContactableGetStateBlockPosLevel(ChState& x) override { x.segment(0, 3) = m_node->GetPos().eigen(); }
 
     /// Get all the DOFs packed in a single vector (speed part).
-    virtual void ContactableGetStateBlockVelLevel(ChStateDelta& w) override { w.segment(0, 3) = m_node->GetPosDt().eigen(); }
+    virtual void ContactableGetStateBlockVelLevel(ChStateDelta& w) override {
+        w.segment(0, 3) = m_node->GetPosDt().eigen();
+    }
 
     /// Increment the provided state of this object by the given state-delta increment.
     /// Compute: x_new = x + dw.
@@ -221,11 +225,11 @@ class ChApi ChContactNodeXYZROT : public ChContactable_1vars<6> {
     /// Each object must set the entries in Q corresponding to its variables, starting at the specified offset.
     /// If needed, the object states must be extracted from the provided state position.
     virtual void ContactComputeQ(const ChVector3d& F,
-                                   const ChVector3d& T,
-                                   const ChVector3d& point,
-                                   const ChState& state_x,
-                                   ChVectorDynamic<>& Q,
-                                   int offset) override {
+                                 const ChVector3d& T,
+                                 const ChVector3d& point,
+                                 const ChState& state_x,
+                                 ChVectorDynamic<>& Q,
+                                 int offset) override {
         Q.segment(offset, 3) = F.eigen();
     }
 
@@ -253,10 +257,10 @@ class ChApi ChContactNodeXYZROT : public ChContactable_1vars<6> {
 };
 
 /// Proxy to FEA nodes for collisions, with spheres associated to nodes, for point-cloud type of collisions.
-class ChApi ChContactNodeXYZROTsphere : public ChContactNodeXYZROT {
+class ChApi ChContactNodeXYZRotSphere : public ChContactNodeXYZRot {
   public:
-    ChContactNodeXYZROTsphere(ChNodeFEAxyzrot* node = nullptr, ChContactSurface* contact_surface = nullptr);
-    ~ChContactNodeXYZROTsphere() {}
+    ChContactNodeXYZRotSphere(ChNodeFEAxyzrot* node = nullptr, ChContactSurface* contact_surface = nullptr);
+    ~ChContactNodeXYZRotSphere() {}
 };
 
 /// Class which defines a contact surface for FEA elements.
@@ -286,7 +290,7 @@ class ChApi ChContactSurfaceNodeCloud : public ChContactSurface {
     std::vector<std::shared_ptr<ChContactNodeXYZsphere>>& GetNodes() { return m_nodes; }
 
     /// Get the list of nodes with rotational dofs.
-    std::vector<std::shared_ptr<ChContactNodeXYZROTsphere>>& GetNodesRot() { return m_nodes_rot; }
+    std::vector<std::shared_ptr<ChContactNodeXYZRotSphere>>& GetNodesRot() { return m_nodes_rot; }
 
     /// Get the number of nodes.
     unsigned int GetNumNodes() const { return (unsigned int)m_nodes.size(); }
@@ -298,7 +302,7 @@ class ChApi ChContactSurfaceNodeCloud : public ChContactSurface {
     std::shared_ptr<ChContactNodeXYZsphere> GetNode(unsigned int n) { return m_nodes[n]; };
 
     /// Access the n-th node with rotational dofs.
-    std::shared_ptr<ChContactNodeXYZROTsphere> GetNodeRot(unsigned int n) { return m_nodes_rot[n]; };
+    std::shared_ptr<ChContactNodeXYZRotSphere> GetNodeRot(unsigned int n) { return m_nodes_rot[n]; };
 
     // Functions to interface this with ChPhysicsItem container.
     virtual void SyncCollisionModels() const override;
@@ -307,7 +311,7 @@ class ChApi ChContactSurfaceNodeCloud : public ChContactSurface {
 
   private:
     std::vector<std::shared_ptr<ChContactNodeXYZsphere>> m_nodes;         //  nodes
-    std::vector<std::shared_ptr<ChContactNodeXYZROTsphere>> m_nodes_rot;  //  nodes with rotations
+    std::vector<std::shared_ptr<ChContactNodeXYZRotSphere>> m_nodes_rot;  //  nodes with rotations
 };
 
 /// @} fea_contact

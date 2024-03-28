@@ -103,10 +103,10 @@ U401_FPPSpringForceFront::U401_FPPSpringForceFront(double spring_constant, doubl
 }
 
 double U401_FPPSpringForceFront::evaluate(double time,
-                                             double rest_length,
-                                             double length,
-                                             double vel,
-                                             const ChLinkTSDA& link) {
+                                          double rest_length,
+                                          double length,
+                                          double vel,
+                                          const ChLinkTSDA& link) {
     double force = 0;
 
     double defl_spring = rest_length - length;
@@ -132,9 +132,9 @@ double U401_FPPSpringForceFront::evaluate(double time,
 class U401_FPPShockForceFront : public ChLinkTSDA::ForceFunctor {
   public:
     U401_FPPShockForceFront(double compression_slope,
-                               double compression_degressivity,
-                               double expansion_slope,
-                               double expansion_degressivity);
+                            double compression_degressivity,
+                            double expansion_slope,
+                            double expansion_degressivity);
 
     virtual double evaluate(double time,
                             double rest_length,
@@ -150,19 +150,19 @@ class U401_FPPShockForceFront : public ChLinkTSDA::ForceFunctor {
 };
 
 U401_FPPShockForceFront::U401_FPPShockForceFront(double compression_slope,
-                                                       double compression_degressivity,
-                                                       double expansion_slope,
-                                                       double expansion_degressivity)
+                                                 double compression_degressivity,
+                                                 double expansion_slope,
+                                                 double expansion_degressivity)
     : m_slope_compr(compression_slope),
       m_degres_compr(compression_degressivity),
       m_slope_expand(expansion_slope),
       m_degres_expand(expansion_degressivity) {}
 
 double U401_FPPShockForceFront::evaluate(double time,
-                                            double rest_length,
-                                            double length,
-                                            double vel,
-                                            const ChLinkTSDA& link) {
+                                         double rest_length,
+                                         double length,
+                                         double vel,
+                                         const ChLinkTSDA& link) {
     // Simple model of a degressive damping characteristic
     double force = 0;
 
@@ -177,8 +177,8 @@ double U401_FPPShockForceFront::evaluate(double time,
 }
 
 U401_ToeBarPushPipeAxle::U401_ToeBarPushPipeAxle(const std::string& name) : ChToeBarPushPipeAxle(name) {
-    m_springForceCB = chrono_types::make_shared<U401_FPPSpringForceFront>(m_springCoefficient, m_springMinLength,
-                                                                             m_springMaxLength);
+    m_springForceCB =
+        chrono_types::make_shared<U401_FPPSpringForceFront>(m_springCoefficient, m_springMinLength, m_springMaxLength);
 
     m_shockForceCB = chrono_types::make_shared<U401_FPPShockForceFront>(
         m_damperCoefficient, m_damperDegressivityCompression, m_damperCoefficient, m_damperDegressivityExpansion);
@@ -227,4 +227,3 @@ const ChVector3d U401_ToeBarPushPipeAxle::getLocation(PointId which) {
 }  // namespace unimog
 }  // end namespace vehicle
 }  // end namespace chrono
-

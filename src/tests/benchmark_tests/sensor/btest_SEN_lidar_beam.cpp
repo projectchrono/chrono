@@ -76,26 +76,26 @@ int main(int argc, char* argv[]) {
     // ------------------------------------------------
 
     auto lidar1 = std::make_shared<ChLidarSensor>(
-        floor,                                                             // body lidar is attached to
-        10.0f,                                                             // scanning rate in Hz
+        floor,                                                                // body lidar is attached to
+        10.0f,                                                                // scanning rate in Hz
         chrono::ChFrame<double>({0, 0, 1}, QuatFromAngleAxis(0, {0, 1, 0})),  // offset pose
-        1,                                                                 // number of horizontal samples
-        1,                                                                 // number of vertical channels
-        1,                                                                 // horizontal field of view
-        0, 0, 100, LidarBeamShape::RECTANGULAR                             // vertical field of view
+        1,                                                                    // number of horizontal samples
+        1,                                                                    // number of vertical channels
+        1,                                                                    // horizontal field of view
+        0, 0, 100, LidarBeamShape::RECTANGULAR                                // vertical field of view
     );
     lidar1->SetName("Lidar Sensor");
     lidar1->PushFilter(std::make_shared<ChFilterDIAccess>());
     manager->AddSensor(lidar1);
 
     auto lidar2 = chrono_types::make_shared<ChLidarSensor>(
-        floor,                                                             // body lidar is attached to
-        10.0f,                                                             // scanning rate in Hz
+        floor,                                                                // body lidar is attached to
+        10.0f,                                                                // scanning rate in Hz
         chrono::ChFrame<double>({0, 0, 1}, QuatFromAngleAxis(0, {0, 1, 0})),  // offset pose
-        1,                                                                 // number of horizontal samples
-        1,                                                                 // number of vertical channels
-        1.f,                                                               // horizontal field of view
-        0.f, 0.f, 100.f, LidarBeamShape::RECTANGULAR,                      // vertical field of view
+        1,                                                                    // number of horizontal samples
+        1,                                                                    // number of vertical channels
+        1.f,                                                                  // horizontal field of view
+        0.f, 0.f, 100.f, LidarBeamShape::RECTANGULAR,                         // vertical field of view
         10,                                // radius of samples to use, 1->1 sample,2->9 samples, 3->25 samples...
         .003f, .003f,                      // 3 mradius cited by velodyne
         LidarReturnMode::STRONGEST_RETURN  // return mode for the lidar
@@ -107,13 +107,13 @@ int main(int argc, char* argv[]) {
     manager->AddSensor(lidar2);
 
     auto lidar3 = chrono_types::make_shared<ChLidarSensor>(
-        floor,                                                             // body lidar is attached to
-        10.0f,                                                             // scanning rate in Hz
+        floor,                                                                // body lidar is attached to
+        10.0f,                                                                // scanning rate in Hz
         chrono::ChFrame<double>({0, 0, 1}, QuatFromAngleAxis(0, {0, 1, 0})),  // offset pose
-        1,                                                                 // number of horizontal samples
-        1,                                                                 // number of vertical channels
-        1.f,                                                               // horizontal field of view
-        0.f, 0.f, 100.f, LidarBeamShape::RECTANGULAR,                      // vertical field of view
+        1,                                                                    // number of horizontal samples
+        1,                                                                    // number of vertical channels
+        1.f,                                                                  // horizontal field of view
+        0.f, 0.f, 100.f, LidarBeamShape::RECTANGULAR,                         // vertical field of view
         5,                                 // radius of samples to use, 1->1 sample,2->9 samples, 3->25 samples...
         .003f, .003f,                      // 3 mradius cited by velodyne
         LidarReturnMode::STRONGEST_RETURN  // return mode for the lidar

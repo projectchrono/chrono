@@ -30,8 +30,7 @@ ChCollisionShapeCylinder::ChCollisionShapeCylinder(std::shared_ptr<ChContactMate
     gcylinder.h = height;
 }
 
-ChCollisionShapeCylinder::ChCollisionShapeCylinder(std::shared_ptr<ChContactMaterial> material,
-                                                   const ChCylinder& cyl)
+ChCollisionShapeCylinder::ChCollisionShapeCylinder(std::shared_ptr<ChContactMaterial> material, const ChCylinder& cyl)
     : ChCollisionShape(Type::CYLINDER, material), gcylinder(cyl) {}
 
 void ChCollisionShapeCylinder::ArchiveOut(ChArchiveOut& archive_out) {

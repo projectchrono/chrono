@@ -971,7 +971,7 @@ class ChApi ChArchiveOut : public ChArchive {
     template <class T, class Tv>
     void out(ChNameValue<std::map<T, Tv>> bVal) {
         ChValueSpecific<std::map<T, Tv>> specVal(bVal.value(), bVal.name(), bVal.flags(), bVal.GetCausality(),
-                                                           bVal.GetVariability());
+                                                 bVal.GetVariability());
         this->out_array_pre(specVal, bVal.value().size());
         int i = 0;
         for (auto it = bVal.value().begin(); it != bVal.value().end(); ++it) {
@@ -982,7 +982,6 @@ class ChApi ChArchiveOut : public ChArchive {
         }
         this->out_array_end(specVal, bVal.value().size());
     }
-
 
     // trick to call out_ref on std::shared_ptr
     template <class T>
@@ -1290,7 +1289,6 @@ class ChApi ChArchiveIn : public ChArchive {
         return true;
     }
 
-
     // trick to call in_ref on ChSharedPointer:
     template <class T>
     bool in(ChNameValue<std::shared_ptr<T>> bVal) {
@@ -1402,8 +1400,9 @@ class ChApi ChArchiveIn : public ChArchive {
 };
 
 template <class TClass>
-void ChValueSpecific<TClass>::CallOut(ChArchiveOut& archive_out) { archive_out.out(CHNVP(*this->_ptr_to_val, this->_name.c_str())); }
-
+void ChValueSpecific<TClass>::CallOut(ChArchiveOut& archive_out) {
+    archive_out.out(CHNVP(*this->_ptr_to_val, this->_name.c_str()));
+}
 
 /// @} chrono_serialization
 

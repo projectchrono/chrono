@@ -38,7 +38,7 @@ class ChElementBase;
 /// Adds to the containing visual model a trimesh and a glyphs visual shapes.
 class ChApi ChVisualShapeFEA {
   public:
-    /// Visualization mesh data type.  
+    /// Visualization mesh data type.
     enum class DataType {
         NONE,
         SURFACE,

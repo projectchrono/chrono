@@ -163,9 +163,9 @@ class ChContactNSC : public ChContactTuple<Ta, Tb> {
                                          ChVectorDynamic<>& R,
                                          const ChVectorDynamic<>& L,
                                          const double c) override {
-        this->Nx.MultiplyTandAdd(R, L(off_L) * c);
-        this->Tu.MultiplyTandAdd(R, L(off_L + 1) * c);
-        this->Tv.MultiplyTandAdd(R, L(off_L + 2) * c);
+        this->Nx.AddJacobianTransposedTimesScalarInto(R, L(off_L) * c);
+        this->Tu.AddJacobianTransposedTimesScalarInto(R, L(off_L + 1) * c);
+        this->Tv.AddJacobianTransposedTimesScalarInto(R, L(off_L + 2) * c);
     }
 
     virtual void ContIntLoadConstraint_C(const unsigned int off_L,
@@ -208,12 +208,12 @@ class ChContactNSC : public ChContactTuple<Ta, Tb> {
                 double inv_hpa = 1.0 / (h + alpha);         // 1/(h+a)
                 double inv_hhpa = 1.0 / (h * (h + alpha));  // 1/(h*(h+a))
 
-                //// TODO  move to KRMmatricesLoad() the following, and only for !bounced case
-                Nx.Set_cfm_i((inv_hhpa) * this->compliance);
-                Tu.Set_cfm_i((inv_hhpa) * this->complianceT);
-                Tv.Set_cfm_i((inv_hhpa) * this->complianceT);
+                //// TODO  move to LoadKRMMatrices() the following, and only for !bounced case
+                Nx.SetComplianceTerm((inv_hhpa) * this->compliance);
+                Tu.SetComplianceTerm((inv_hhpa) * this->complianceT);
+                Tv.SetComplianceTerm((inv_hhpa) * this->complianceT);
 
-                double qc = inv_hpa * this->norm_dist;  //// TODO  see how to move this in KRMmatricesLoad()
+                double qc = inv_hpa * this->norm_dist;  //// TODO  see how to move this in LoadKRMMatrices()
 
                 // Note: clamping of Qc in case of compliance is questionable: it does not limit only the outbound
                 // speed, but also the reaction, so it might allow longer 'sinking' not related to the real compliance.
@@ -241,32 +241,32 @@ class ChContactNSC : public ChContactTuple<Ta, Tb> {
                                      const ChVectorDynamic<>& L,
                                      const ChVectorDynamic<>& Qc) override {
         // only for solver warm start
-        Nx.Set_l_i(L(off_L));
-        Tu.Set_l_i(L(off_L + 1));
-        Tv.Set_l_i(L(off_L + 2));
+        Nx.SetLagrangeMultiplier(L(off_L));
+        Tu.SetLagrangeMultiplier(L(off_L + 1));
+        Tv.SetLagrangeMultiplier(L(off_L + 2));
 
         // solver known terms
-        Nx.Set_b_i(Qc(off_L));
-        Tu.Set_b_i(Qc(off_L + 1));
-        Tv.Set_b_i(Qc(off_L + 2));
+        Nx.SetRightHandSide(Qc(off_L));
+        Tu.SetRightHandSide(Qc(off_L + 1));
+        Tv.SetRightHandSide(Qc(off_L + 2));
     }
 
     virtual void ContIntFromDescriptor(const unsigned int off_L, ChVectorDynamic<>& L) override {
-        L(off_L) = Nx.Get_l_i();
-        L(off_L + 1) = Tu.Get_l_i();
-        L(off_L + 2) = Tv.Get_l_i();
+        L(off_L) = Nx.GetLagrangeMultiplier();
+        L(off_L + 1) = Tu.GetLagrangeMultiplier();
+        L(off_L + 2) = Tv.GetLagrangeMultiplier();
     }
 
-    virtual void InjectConstraints(ChSystemDescriptor& mdescriptor) override {
-        mdescriptor.InsertConstraint(&Nx);
-        mdescriptor.InsertConstraint(&Tu);
-        mdescriptor.InsertConstraint(&Tv);
+    virtual void InjectConstraints(ChSystemDescriptor& descriptor) override {
+        descriptor.InsertConstraint(&Nx);
+        descriptor.InsertConstraint(&Tu);
+        descriptor.InsertConstraint(&Tv);
     }
 
     virtual void ConstraintsBiReset() override {
-        Nx.Set_b_i(0.);
-        Tu.Set_b_i(0.);
-        Tv.Set_b_i(0.);
+        Nx.SetRightHandSide(0.);
+        Tu.SetRightHandSide(0.);
+        Tv.SetRightHandSide(0.);
     }
 
     virtual void ConstraintsBiLoad_C(double factor = 1., double recovery_clamp = 0.1, bool do_clamp = false) override {
@@ -290,7 +290,7 @@ class ChContactNSC : public ChContactTuple<Ta, Tb> {
                     if (this->norm_dist + neg_rebounce_speed * h < 0) {
                         // CASE: BOUNCE
                         bounced = true;
-                        Nx.Set_b_i(Nx.Get_b_i() + neg_rebounce_speed);
+                        Nx.SetRightHandSide(Nx.GetRightHandSide() + neg_rebounce_speed);
                     }
             }
         }
@@ -306,9 +306,9 @@ class ChContactNSC : public ChContactTuple<Ta, Tb> {
                 double inv_hpa = 1.0 / (h + alpha);         // 1/(h+a)
                 double inv_hhpa = 1.0 / (h * (h + alpha));  // 1/(h*(h+a))
 
-                Nx.Set_cfm_i((inv_hhpa) * this->compliance);  // was (inv_hh)* ...   //// TEST DAMPING
-                Tu.Set_cfm_i((inv_hhpa) * this->complianceT);
-                Tv.Set_cfm_i((inv_hhpa) * this->complianceT);
+                Nx.SetComplianceTerm((inv_hhpa) * this->compliance);  // was (inv_hh)* ...   //// TEST DAMPING
+                Tu.SetComplianceTerm((inv_hhpa) * this->complianceT);
+                Tv.SetComplianceTerm((inv_hhpa) * this->complianceT);
 
                 double qc = inv_hpa * this->norm_dist;
 
@@ -316,26 +316,26 @@ class ChContactNSC : public ChContactTuple<Ta, Tb> {
                 if (do_clamp)
                     qc = std::max(qc, -recovery_clamp);
 
-                Nx.Set_b_i(Nx.Get_b_i() + qc);
+                Nx.SetRightHandSide(Nx.GetRightHandSide() + qc);
 
             } else {
                 // std::cout << "rigid " << (int)this << "  recov_clamp=" << recovery_clamp << std::endl;
                 if (do_clamp)
                     if (this->Nx.GetCohesion())
-                        Nx.Set_b_i(Nx.Get_b_i() + std::min(0.0, std::max(factor * this->norm_dist, -recovery_clamp)));
+                        Nx.SetRightHandSide(Nx.GetRightHandSide() + std::min(0.0, std::max(factor * this->norm_dist, -recovery_clamp)));
                     else
-                        Nx.Set_b_i(Nx.Get_b_i() + std::max(factor * this->norm_dist, -recovery_clamp));
+                        Nx.SetRightHandSide(Nx.GetRightHandSide() + std::max(factor * this->norm_dist, -recovery_clamp));
                 else
-                    Nx.Set_b_i(Nx.Get_b_i() + factor * this->norm_dist);
+                    Nx.SetRightHandSide(Nx.GetRightHandSide() + factor * this->norm_dist);
             }
         }
     }
 
     virtual void ConstraintsFetch_react(double factor) override {
         // From constraints to react vector:
-        react_force.x() = Nx.Get_l_i() * factor;
-        react_force.y() = Tu.Get_l_i() * factor;
-        react_force.z() = Tv.Get_l_i() * factor;
+        react_force.x() = Nx.GetLagrangeMultiplier() * factor;
+        react_force.y() = Tu.GetLagrangeMultiplier() * factor;
+        react_force.z() = Tv.GetLagrangeMultiplier() * factor;
     }
 };
 

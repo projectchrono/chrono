@@ -82,6 +82,6 @@ G500_Chassis::G500_Chassis(const std::string& name, bool fixed, CollisionType ch
     }
 }
 
-}  // end namespace uaz
+}  // namespace gclass
 }  // end namespace vehicle
 }  // end namespace chrono

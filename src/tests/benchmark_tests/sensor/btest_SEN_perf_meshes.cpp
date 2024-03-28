@@ -95,7 +95,7 @@ int main(int argc, char* argv[]) {
                     ChQuaternion<> quat = {randf(), randf(), randf(), randf()};
                     quat.Normalize();
                     mesh_body->SetRot(quat);
-                    mesh_body->AddVisualShape(trimesh_shape,ChFrame<>());
+                    mesh_body->AddVisualShape(trimesh_shape, ChFrame<>());
                     mesh_body->SetFixed(true);
                     sys.Add(mesh_body);
                 }
@@ -119,12 +119,12 @@ int main(int argc, char* argv[]) {
         // Create a camera and add it to the sensor manager
         // ------------------------------------------------
         auto cam = std::make_shared<ChCameraSensor>(
-            cam_body,                                                           // body camera is attached to
-            60.0f,                                                              // update rate in Hz
+            cam_body,                                                              // body camera is attached to
+            60.0f,                                                                 // update rate in Hz
             chrono::ChFrame<double>({-8, 0, 1}, QuatFromAngleAxis(0, {0, 1, 0})),  // offset pose
-            1920,                                                               // image width
-            1080,                                                               // image height
-            (float)CH_PI / 3                                                  // FOV
+            1920,                                                                  // image width
+            1080,                                                                  // image height
+            (float)CH_PI / 3                                                       // FOV
         );
         cam->SetName("Camera Sensor");
         // if (vis)

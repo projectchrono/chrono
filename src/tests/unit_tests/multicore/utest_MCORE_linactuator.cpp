@@ -38,8 +38,7 @@ double mass = 1.0;
 ChVector3d inertiaXX(1, 1, 1);
 ChVector3d gravity(0, 0, -9.80665);
 
-class ChLinActuatorTest
-    : public ::testing::TestWithParam<std::tuple<ChContactMethod, double, ChQuaternion<>>> {
+class ChLinActuatorTest : public ::testing::TestWithParam<std::tuple<ChContactMethod, double, ChQuaternion<>>> {
   protected:
     ChLinActuatorTest();
     ~ChLinActuatorTest() { delete sys; }
@@ -272,8 +271,8 @@ void ChLinActuatorTest::VerifySolution(double time) {
     for (int i = 0; i < 5; i++) {
         ASSERT_NEAR(CP(i), 0.0, cnstr_tol);
         ////if (std::abs(CP(i)) > cnstr_tol) {
-        ////    std::cout << "   at t = " << time << "  constraint violation (prismatic " << i  << ") = " << CP(i) << std::endl;
-        ////    return false;
+        ////    std::cout << "   at t = " << time << "  constraint violation (prismatic " << i  << ") = " << CP(i) <<
+        ///std::endl; /    return false;
         ////}
     }
 

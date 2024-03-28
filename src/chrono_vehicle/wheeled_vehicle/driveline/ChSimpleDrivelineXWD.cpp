@@ -113,8 +113,8 @@ void ChSimpleDrivelineXWD::Synchronize(double time, const DriverInputs& driver_i
         double torque_right;
         differentialSplitXWD(torque_axle, GetDifferentialMaxBias(), m_shaft_left[axle]->GetPosDt(),
                              m_shaft_right[axle]->GetPosDt(), torque_left, torque_right);
-        m_shaft_left[axle]->SetAppliedTorque(-torque_left);
-        m_shaft_right[axle]->SetAppliedTorque(-torque_right);
+        m_shaft_left[axle]->SetAppliedLoad(-torque_left);
+        m_shaft_right[axle]->SetAppliedLoad(-torque_right);
     }
 }
 
@@ -126,9 +126,9 @@ double ChSimpleDrivelineXWD::GetSpindleTorque(int axle, VehicleSide side) const 
 
     switch (side) {
         case LEFT:
-            return -m_shaft_left[axle]->GetAppliedTorque();
+            return -m_shaft_left[axle]->GetAppliedLoad();
         case RIGHT:
-            return -m_shaft_right[axle]->GetAppliedTorque();
+            return -m_shaft_right[axle]->GetAppliedLoad();
     }
 
     return 0;

@@ -26,7 +26,7 @@
 #include <cmath>
 
 #ifdef __EMSCRIPTEN__
-#include <emscripten.h>
+    #include <emscripten.h>
 #endif
 
 #include "chrono/physics/ChSystemNSC.h"
@@ -81,8 +81,8 @@ class MyController {
     double m_Ki_pend;
     double m_Kd_pend;
 
-    double m_x_cart;   // reference cart x location
-    double m_a_pend;   // reference pendulum angle
+    double m_x_cart;  // reference cart x location
+    double m_a_pend;  // reference pendulum angle
 
     double m_e_cart;   // error in cart x location
     double m_ed_cart;  // derivative of error in cart x location
@@ -92,7 +92,7 @@ class MyController {
     double m_ed_pend;  // derivative of error in pendulum angle
     double m_ei_pend;  // integral of error in pendulum angle
 
-    double m_force;    // controller output force (horizontal force on cart body)
+    double m_force;  // controller output force (horizontal force on cart body)
 };
 
 MyController::MyController(std::shared_ptr<ChBody> cart, std::shared_ptr<ChBody> pend)
@@ -175,11 +175,11 @@ int main(int argc, char* argv[]) {
 
     // Problem parameters
     // ------------------
-    double mass_cart = 1.0;    // mass of the cart
-    double mass_pend = 0.5;    // mass of the pendulum
-    double hlen_pend = 0.5;    // half-length of the pendulum
-    double r_pend = 0.02;      // radius of pendulum (visualization only)
-    double J_pend = 0.5;       // pendulum moment of inertia (Z component)
+    double mass_cart = 1.0;  // mass of the cart
+    double mass_pend = 0.5;  // mass of the pendulum
+    double hlen_pend = 0.5;  // half-length of the pendulum
+    double r_pend = 0.02;    // radius of pendulum (visualization only)
+    double J_pend = 0.5;     // pendulum moment of inertia (Z component)
 
     double travel_dist = 2;
     double switch_period = 20;
@@ -192,7 +192,6 @@ int main(int argc, char* argv[]) {
     // ----------------------
     auto ground = chrono_types::make_shared<ChBody>();
     sys.AddBody(ground);
-    ground->SetIdentifier(-1);
     ground->SetFixed(true);
 
     // Attach visualization assets
@@ -206,7 +205,6 @@ int main(int argc, char* argv[]) {
     // --------------------
     auto cart = chrono_types::make_shared<ChBody>();
     sys.AddBody(cart);
-    cart->SetIdentifier(1);
     cart->SetMass(mass_cart);
     cart->SetInertiaXX(ChVector3d(1, 1, 1));
     cart->SetPos(ChVector3d(0, 0, 0));
@@ -219,7 +217,6 @@ int main(int argc, char* argv[]) {
     // ------------------------
     auto pend = chrono_types::make_shared<ChBody>();
     sys.AddBody(pend);
-    pend->SetIdentifier(2);
     pend->SetMass(mass_pend);
     pend->SetInertiaXX(ChVector3d(1, 1, J_pend));
     pend->SetPos(ChVector3d(0, hlen_pend, 0));

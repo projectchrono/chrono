@@ -26,7 +26,7 @@
 #include "chrono/physics/ChLink.h"
 #include "chrono/physics/ChBody.h"
 #include "chrono/solver/ChVariablesGenericDiagonalMass.h"
-#include "chrono/solver/ChKblockGeneric.h"
+#include "chrono/solver/ChKRMBlock.h"
 
 #include "chrono_thirdparty/rapidjson/document.h"
 
@@ -204,7 +204,7 @@ class ChApi ChLinkTSDA : public ChLink {
     // Interface to solver
     ChVariables& Variables() { return *m_variables; }
     virtual void InjectVariables(ChSystemDescriptor& descriptor) override;
-    virtual void InjectKRMmatrices(ChSystemDescriptor& descriptor) override;
+    virtual void InjectKRMMatrices(ChSystemDescriptor& descriptor) override;
 
     virtual void IntStateGather(const unsigned int off_x,
                                 ChState& x,
@@ -239,7 +239,7 @@ class ChApi ChLinkTSDA : public ChLink {
                                    const unsigned int off_L,
                                    ChVectorDynamic<>& L) override;
 
-    virtual void KRMmatricesLoad(double Kfactor, double Rfactor, double Mfactor) override;
+    virtual void LoadKRMMatrices(double Kfactor, double Rfactor, double Mfactor) override;
 
     // Interface to the solver (old style)
     virtual void VariablesFbReset() override;
@@ -259,7 +259,7 @@ class ChApi ChLinkTSDA : public ChLink {
     /// CalculateJac, that will be used to override the bottom-right (nstates x nstates) block of R.
     class SpringJacobians {
       public:
-        ChKblockGeneric m_KRM;  ///< linear combination of K, R, M for the variables associated with this link
+        ChKRMBlock m_KRM;  ///< linear combination of K, R, M for the variables associated with this link
         ChMatrixDynamic<> m_J;  ///< Jacobian of ODE right-hand side with respect to ODE states (contributes to R term)
         ChMatrixDynamic<> m_K;  ///< K contribution from this link
         ChMatrixDynamic<> m_R;  ///< R contribution from this link

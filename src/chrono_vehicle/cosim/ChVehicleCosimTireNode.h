@@ -134,7 +134,7 @@ class CH_VEHICLE_API ChVehicleCosimTireNode : public ChVehicleCosimBaseNode {
             throw std::runtime_error("Current tire does not properly implement the MESH communication interface!");
         }
     }
- 
+
     /// Apply the spindle force (BODY communication interface).
     /// The TerrainForce struct contains the terrain forces applied to the spindle as received from the TERRAIN node.
     virtual void ApplySpindleForce(const TerrainForce& spindle_force) {}
@@ -166,8 +166,8 @@ class CH_VEHICLE_API ChVehicleCosimTireNode : public ChVehicleCosimBaseNode {
     ChSolver::Type m_slv_type;                       ///< solver type
     std::shared_ptr<ChTimestepperHHT> m_integrator;  ///< HHT integrator object
 
-    bool m_tire_pressure;     ///< tire pressure enabled?
-    int m_index;              ///< index of the tire
+    bool m_tire_pressure;  ///< tire pressure enabled?
+    int m_index;           ///< index of the tire
 
     std::shared_ptr<ChBody> m_spindle;  ///< spindle body
     std::shared_ptr<ChWheel> m_wheel;   ///< wheel subsystem (to which a tire is attached)

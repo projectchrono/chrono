@@ -118,7 +118,7 @@ void ChVehicleCosimTireNodeFlexible::InitializeTire(std::shared_ptr<ChWheel> whe
 
     //// RADU TODO
     std::copy(idx_verts.begin(), idx_verts.end(), std::back_inserter(idx_norms));
-    idx_norms.resize(idx_verts.size(), ChVector3d(0,0,1));
+    idx_norms.resize(idx_verts.size(), ChVector3d(0, 0, 1));
 
     // Tire geometry and contact material
     auto cmat = m_tire_def->GetContactMaterial();
@@ -158,8 +158,7 @@ void ChVehicleCosimTireNodeFlexible::InitializeTire(std::shared_ptr<ChWheel> whe
         vsys_vsg->AddCamera(m_cam_pos, ChVector3d(0, 0, 0));
         vsys_vsg->SetCameraAngleDeg(40);
         vsys_vsg->SetLightIntensity(1.0f);
-        vsys_vsg->AddGrid(0.1, 0.1, 40, 20, ChCoordsys<>(init_loc, QuatFromAngleX(CH_PI_2)),
-                         ChColor(0.1f, 0.1f, 0.1f));
+        vsys_vsg->AddGrid(0.1, 0.1, 40, 20, ChCoordsys<>(init_loc, QuatFromAngleX(CH_PI_2)), ChColor(0.1f, 0.1f, 0.1f));
         vsys_vsg->SetImageOutputDirectory(m_node_out_dir + "/images");
         vsys_vsg->SetImageOutput(m_writeRT);
         vsys_vsg->Initialize();
@@ -302,7 +301,8 @@ void ChVehicleCosimTireNodeFlexible::PrintLowestNode() {
         // Ugly castings here!!!
         if (auto nodeXYZ = std::dynamic_pointer_cast<fea::ChNodeFEAxyz>(m_tire_def->GetMesh()->GetNode(i))) {
             z = nodeXYZ->GetPos().z();
-        } else if (auto nodeXYZrot = std::dynamic_pointer_cast<fea::ChNodeFEAxyzrot>(m_tire_def->GetMesh()->GetNode(i))) {
+        } else if (auto nodeXYZrot =
+                       std::dynamic_pointer_cast<fea::ChNodeFEAxyzrot>(m_tire_def->GetMesh()->GetNode(i))) {
             z = nodeXYZrot->GetPos().z();
         }
 

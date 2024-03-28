@@ -172,20 +172,20 @@ class CH_VEHICLE_API ChTire : public ChPart {
     /// axis pointing towards the outside. This function uses one of the two provided OBJ files, depending on the side
     /// on which the tire is mounted. The name of the output mesh shape is set to be the stem of the input filename.
     std::shared_ptr<ChVisualShapeTriangleMesh> AddVisualizationMesh(const std::string& mesh_file_left,
-                                                              const std::string& mesh_file_right);
+                                                                    const std::string& mesh_file_right);
 
     /// Perform disc-terrain collision detection, using the specified method.
     static bool DiscTerrainCollision(
-        CollisionType method,                ///< [in] tire-terrain collision detection method
-        const ChTerrain& terrain,            ///< [in] reference to terrain system
-        const ChVector3d& disc_center,       ///< [in] global location of the disc center
-        const ChVector3d& disc_normal,       ///< [in] disc normal, expressed in the global frame
-        double disc_radius,                  ///< [in] disc radius
-        double width,                        ///< [in] tire width
+        CollisionType method,             ///< [in] tire-terrain collision detection method
+        const ChTerrain& terrain,         ///< [in] reference to terrain system
+        const ChVector3d& disc_center,    ///< [in] global location of the disc center
+        const ChVector3d& disc_normal,    ///< [in] disc normal, expressed in the global frame
+        double disc_radius,               ///< [in] disc radius
+        double width,                     ///< [in] tire width
         const ChFunctionInterp& areaDep,  ///< [in] lookup table to calculate depth from intersection area
-        ChCoordsys<>& contact,               ///< [out] contact coordinate system (relative to the global frame)
-        double& depth,                       ///< [out] penetration depth (positive if contact occurred)
-        float& mu                            ///< [out] coefficient of friction at contact
+        ChCoordsys<>& contact,            ///< [out] contact coordinate system (relative to the global frame)
+        double& depth,                    ///< [out] penetration depth (positive if contact occurred)
+        float& mu                         ///< [out] coefficient of friction at contact
     );
 
     /// Utility function to construct a loopkup table for penetration depth as function of intersection area,
@@ -231,22 +231,22 @@ class CH_VEHICLE_API ChTire : public ChPart {
     /// Collsion algorithm based on a paper of J. Shane Sui and John A. Hirshey II:
     /// "A New Analytical Tire Model for Vehicle Dynamic Analysis" presented at 2001 MSC User Meeting
     static bool DiscTerrainCollisionEnvelope(
-        const ChTerrain& terrain,            ///< [in] reference to terrain system
-        const ChVector3d& disc_center,       ///< [in] global location of the disc center
-        const ChVector3d& disc_normal,       ///< [in] disc normal, expressed in the global frame
-        double disc_radius,                  ///< [in] disc radius
-        double width,                        ///< [in] tire width
+        const ChTerrain& terrain,         ///< [in] reference to terrain system
+        const ChVector3d& disc_center,    ///< [in] global location of the disc center
+        const ChVector3d& disc_normal,    ///< [in] disc normal, expressed in the global frame
+        double disc_radius,               ///< [in] disc radius
+        double width,                     ///< [in] tire width
         const ChFunctionInterp& areaDep,  ///< [in] lookup table to calculate depth from intersection area
-        ChCoordsys<>& contact,               ///< [out] contact coordinate system (relative to the global frame)
-        double& depth,                       ///< [out] penetration depth (positive if contact occurred)
-        float& mu                            ///< [out] coefficient of friction at contact
+        ChCoordsys<>& contact,            ///< [out] contact coordinate system (relative to the global frame)
+        double& depth,                    ///< [out] penetration depth (positive if contact occurred)
+        float& mu                         ///< [out] coefficient of friction at contact
     );
 
     std::shared_ptr<ChWheel> m_wheel;  ///< associated wheel subsystem
     double m_stepsize;                 ///< tire integration step size (if applicable)
     double m_pressure;                 ///< internal tire pressure
     CollisionType m_collision_type;    ///< method used for tire-terrain collision
-    std::string m_vis_mesh_file;  ///< name of OBJ file for visualization of this tire (may be empty)
+    std::string m_vis_mesh_file;       ///< name of OBJ file for visualization of this tire (may be empty)
 
     double m_slip_angle;
     double m_longitudinal_slip;

@@ -392,7 +392,7 @@ void ChElementShellANCF_3833::SetupInitial(ChSystem* system) {
     for (int i = 0; i < 8; i++) {
         m_element_dof += m_nodes[i]->GetNumCoordsPosLevel();
     }
-    
+
     m_full_dof = (m_element_dof == 8 * 9);
 
     if (!m_full_dof) {
@@ -1388,7 +1388,8 @@ void ChElementShellANCF_3833::ComputeInternalForcesContIntNoDamping(ChVectorDyna
         //      [F13  F23  F33 ]
         // =============================================================================
 
-        ChMatrixNM_col<double, 3 * NIP, 3> FC = m_SD.block<NSF, 3 * NIP>(0, 3 * kl * NIP).transpose() * e_bar.transpose();
+        ChMatrixNM_col<double, 3 * NIP, 3> FC =
+            m_SD.block<NSF, 3 * NIP>(0, 3 * kl * NIP).transpose() * e_bar.transpose();
 
         // =============================================================================
         // Calculate each individual value of the Green-Lagrange strain component by component across all the
@@ -1708,8 +1709,9 @@ void ChElementShellANCF_3833::ComputeInternalJacobianContIntDamping(ChMatrixRef&
         //            [kGQ*(Kfactor+alpha*Rfactor)*F13+alpha*Rfactor*F13dot ... similar for F23 & F33 blocks]
         // =============================================================================
 
-        ChMatrixNM_col<double, 3 * NIP, 3> FCscaled = (Kfactor + m_Alpha * Rfactor) * FC.template block<3 * NIP, 3>(0, 0) +
-                                                   (m_Alpha * Kfactor) * FC.template block<3 * NIP, 3>(0, 3);
+        ChMatrixNM_col<double, 3 * NIP, 3> FCscaled =
+            (Kfactor + m_Alpha * Rfactor) * FC.template block<3 * NIP, 3>(0, 0) +
+            (m_Alpha * Kfactor) * FC.template block<3 * NIP, 3>(0, 3);
 
         for (auto i = 0; i < 3; i++) {
             FCscaled.template block<NIP, 1>(0, i).array() *= m_kGQ.block<NIP, 1>(kl * NIP, 0).array();
@@ -2077,7 +2079,8 @@ void ChElementShellANCF_3833::ComputeInternalJacobianContIntNoDamping(ChMatrixRe
         // FC = [F12  F22  F32 ]
         //      [F13  F23  F33 ]
         // =============================================================================
-        ChMatrixNM_col<double, 3 * NIP, 3> FC = m_SD.block<NSF, 3 * NIP>(0, 3 * NIP * kl).transpose() * e_bar.transpose();
+        ChMatrixNM_col<double, 3 * NIP, 3> FC =
+            m_SD.block<NSF, 3 * NIP>(0, 3 * NIP * kl).transpose() * e_bar.transpose();
 
         //==============================================================================
         //==============================================================================

@@ -41,6 +41,6 @@ const double BMW_E90_AntiRollBarFront::m_damping_coef = 378.251026;
 // -----------------------------------------------------------------------------
 BMW_E90_AntiRollBarFront::BMW_E90_AntiRollBarFront(const std::string& name) : ChAntirollBarRSD(name) {}
 
-}  // namespace feda
+}  // namespace bmw
 }  // end namespace vehicle
 }  // end namespace chrono

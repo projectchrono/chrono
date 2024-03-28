@@ -71,4 +71,3 @@ class CH_MODELS_API U401_FialaTire : public ChFialaTire {
 }  // end namespace chrono
 
 #endif
-

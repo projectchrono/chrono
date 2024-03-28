@@ -209,6 +209,28 @@ if vis:
 
 manager.AddSensor(cam1)
 
+
+# ------------------------------------------------------
+# Create a depth camera and add it to the sensor manager
+# ------------------------------------------------------
+depth_cam = sens.ChDepthCamera(
+    gator.GetChassisBody(),              # body camera is attached to
+    update_rate,            # update rate in Hz
+    offset_pose,            # offset pose
+    image_width,            # image width
+    image_height,           # image height
+    fov                    # camera's horizontal field of view
+)
+
+depth_cam.SetName("Depth Camera Sensor")
+depth_cam.SetLag(lag)
+depth_cam.SetCollectionWindow(exposure_time)
+
+if vis:
+    depth_cam.PushFilter(sens.ChFilterVisualize(
+        image_width, image_height, "Depth Map"))
+    manager.AddSensor(depth_cam)
+
 # ---------------
 # Simulation loop
 # ---------------

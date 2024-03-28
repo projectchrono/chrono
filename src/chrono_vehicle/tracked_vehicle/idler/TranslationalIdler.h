@@ -43,7 +43,9 @@ class CH_VEHICLE_API TranslationalIdler : public ChTranslationalIdler {
 
     virtual double GetPrismaticPitchAngle() const override { return m_pitch_angle; }
 
-    virtual std::shared_ptr<ChLinkTSDA::ForceFunctor> GetTensionerForceCallback() const override { return m_tensionerForceCB; }
+    virtual std::shared_ptr<ChLinkTSDA::ForceFunctor> GetTensionerForceCallback() const override {
+        return m_tensionerForceCB;
+    }
     virtual double GetTensionerFreeLength() const override { return m_tensioner_l0; }
 
   private:

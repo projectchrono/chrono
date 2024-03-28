@@ -590,8 +590,8 @@ void ChElementBeamEuler::ComputeKRMmatricesGlobal(ChMatrixRef H, double Kfactor,
 
                 // Rayleigh damping (stiffness proportional part)  [R] = beta*[Km] , so H = kf*[Km+Kg]+rf*[R] =
                 // (kf+rf*beta)*[Km] + kf*Kg
-                H_local = this->Km * (Kfactor + Rfactor * this->section->GetRayleighDampingBeta()) +
-                          this->Kg * Px * Kfactor;
+                H_local =
+                    this->Km * (Kfactor + Rfactor * this->section->GetRayleighDampingBeta()) + this->Kg * Px * Kfactor;
             } else {
                 // K = Km
 

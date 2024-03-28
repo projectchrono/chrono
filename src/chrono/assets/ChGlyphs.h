@@ -29,11 +29,7 @@ namespace chrono {
 /// (POVray, Irrlicht,etc.) this asset might not be supported.
 class ChApi ChGlyphs : public ChVisualShape {
   public:
-    enum eCh_GlyphType { 
-        GLYPH_POINT = 0, 
-        GLYPH_VECTOR,
-        GLYPH_COORDSYS,
-        GLYPH_TENSOR };
+    enum eCh_GlyphType { GLYPH_POINT = 0, GLYPH_VECTOR, GLYPH_COORDSYS, GLYPH_TENSOR };
 
     /// Modes vector length, if GLYPH_VECTOR
     enum class eCh_GlyphLength {
@@ -59,7 +55,7 @@ class ChApi ChGlyphs : public ChVisualShape {
         PROPERTY,
     };
 
-    /// Modes for colorizing glyph 
+    /// Modes for colorizing glyph
     enum class eCh_GlyphColor {
         CONSTANT = 0,
         PROPERTY,
@@ -68,15 +64,14 @@ class ChApi ChGlyphs : public ChVisualShape {
     ChGlyphs();
     ~ChGlyphs();
 
-
     /// Get the way that glyphs must be rendered
     eCh_GlyphType GetDrawMode() const { return draw_mode; }
 
     /// Set the way that glyphs must be rendered.
-    /// Also automatically add needed properties, if not yet done: 
+    /// Also automatically add needed properties, if not yet done:
     /// "V", an array of ChVector3d, for the GLYPH_VECTOR mode
     /// "rot", an array of ChQuaternion<>, for the GLYPH_COORDSYS mode
-    /// "color", an array of ChColor, for all modes 
+    /// "color", an array of ChColor, for all modes
     void SetDrawMode(eCh_GlyphType mmode);
 
     /// Resize the vectors of data so that memory management is faster
@@ -110,7 +105,11 @@ class ChApi ChGlyphs : public ChVisualShape {
 
     /// Fast method to set a glyph for GLYPH_VECTOR draw mode, with each vectors set in its own local (rotated) basis
     /// If the id is more than the reserved amount of glyphs (see Reserve() ) the vectors are inflated.
-    void SetGlyphVectorLocal(unsigned int id, ChVector3d mpoint, ChVector3d mvector, ChQuaternion<> mrot, ChColor mcolor = ChColor(1, 0, 0));
+    void SetGlyphVectorLocal(unsigned int id,
+                             ChVector3d mpoint,
+                             ChVector3d mvector,
+                             ChQuaternion<> mrot,
+                             ChColor mcolor = ChColor(1, 0, 0));
 
     /// Fast method to set a glyph for GLYPH_COORDSYS draw mode.
     /// If the id is more than the reserved amount of glyphs (see Reserve() ) the csys are inflated.
@@ -124,8 +123,8 @@ class ChApi ChGlyphs : public ChVisualShape {
     std::vector<ChProperty*> getProperties() { return m_properties; }
 
     /// Add a property as an array of data per-point. Deletion will be automatic at the end of mesh life.
-    /// Warning: mprop.data.size() must be equal to points.size().  Cost: allocation and a data copy. 
-    void AddProperty(ChProperty& mprop) { m_properties.push_back(mprop.clone());}
+    /// Warning: mprop.data.size() must be equal to points.size().  Cost: allocation and a data copy.
+    void AddProperty(ChProperty& mprop) { m_properties.push_back(mprop.clone()); }
 
     /// Method to allow serialization of transient data to archives.
     virtual void ArchiveOut(ChArchiveOut& archive_out) override;
@@ -142,25 +141,25 @@ class ChApi ChGlyphs : public ChVisualShape {
     CH_ENUM_MAPPER_END(eCh_GlyphType);
     /// @endcond
 
-    std::vector<ChVector3d > points;
+    std::vector<ChVector3d> points;
 
     eCh_GlyphLength glyph_length_type;
-    std::string glyph_length_prop; // selected property for length
+    std::string glyph_length_prop;  // selected property for length
     double glyph_scalelenght;
-    eCh_GlyphWidth  glyph_width_type;
-    std::string glyph_width_prop; // selected property for width
+    eCh_GlyphWidth glyph_width_type;
+    std::string glyph_width_prop;  // selected property for width
     double glyph_scalewidth;
-    eCh_GlyphBasis  glyph_basis_type;
-    std::string glyph_basis_prop; // selected property for basis
+    eCh_GlyphBasis glyph_basis_type;
+    std::string glyph_basis_prop;  // selected property for basis
     ChQuaternion<> glyph_basis_constant;
-    eCh_GlyphEigenvalues  glyph_eigenvalues_type;
-    std::string glyph_eigenvalues_prop; // selected property for eigs
+    eCh_GlyphEigenvalues glyph_eigenvalues_type;
+    std::string glyph_eigenvalues_prop;  // selected property for eigs
     ChVector3d glyph_eigenvalue_constant;
-    eCh_GlyphColor  glyph_color_type;
-    std::string glyph_color_prop; // selected property for color
+    eCh_GlyphColor glyph_color_type;
+    std::string glyph_color_prop;  // selected property for color
     ChColor glyph_color_constant;
-    double  glyph_colormap_startscale;
-    double  glyph_colormap_endscale;
+    double glyph_colormap_startscale;
+    double glyph_colormap_endscale;
     bool vector_tip;
 
     // list of per-glyph properties. Some properties ("color", "V", "rot") might be automatically added when needed.
@@ -168,9 +167,9 @@ class ChApi ChGlyphs : public ChVisualShape {
 
     // shortcut pointers to data of properties in m_properties, for often needed data:
     std::vector<ChColor>* colors;
-    std::vector<ChVector3d >* vectors;
+    std::vector<ChVector3d>* vectors;
     std::vector<ChQuaternion<double> >* rotations;
-    std::vector<ChVector3d >* eigenvalues;
+    std::vector<ChVector3d>* eigenvalues;
 
   private:
     eCh_GlyphType draw_mode;

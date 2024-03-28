@@ -196,7 +196,7 @@ void HMMWV::Initialize() {
 
             break;
         }
-            
+
         default:
             std::cout << "Unsupported Tire Model Type!, Switching to TMsimple.\n";
         case TireModelType::TMSIMPLE: {
@@ -246,7 +246,7 @@ void HMMWV::Initialize() {
 
             break;
         }
-            
+
         case TireModelType::ANCF: {
             auto tire_FL = chrono_types::make_shared<HMMWV_ANCFTire>("FL");
             auto tire_FR = chrono_types::make_shared<HMMWV_ANCFTire>("FR");

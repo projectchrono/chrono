@@ -49,8 +49,8 @@ class ChApi ChVisualShapePath : public ChVisualShape {
 
   private:
     std::shared_ptr<ChLinePath> gpath;  ///< underlying path geometry
-    unsigned int npoints;                         ///< number of points evaluated when rendering
-    double thickness;                         ///< thickness of line when rendering (for rendering engines that support it)
+    unsigned int npoints;               ///< number of points evaluated when rendering
+    double thickness;                   ///< thickness of line when rendering (for rendering engines that support it)
 };
 
 /// @} chrono_assets

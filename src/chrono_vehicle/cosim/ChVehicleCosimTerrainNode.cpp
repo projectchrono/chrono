@@ -157,7 +157,7 @@ void ChVehicleCosimTerrainNode::InitializeTireData() {
         // If using MESH interface, there must be one and exactly one mesh
         if (m_interface_type == InterfaceType::MESH && m_geometry[i].m_coll_meshes.size() != 1) {
             cout << "ERROR: using MESH interface, but tire geometry does not include a mesh!" << endl;
-            MPI_Abort(MPI_COMM_WORLD, 1);       
+            MPI_Abort(MPI_COMM_WORLD, 1);
         }
 
         // Set size of collision model for this tire
@@ -198,7 +198,7 @@ void ChVehicleCosimTerrainNode::InitializeTrackData() {
         MPI_Abort(MPI_COMM_WORLD, 1);
     }
 
-    // Set size of collision model for each track shoe    
+    // Set size of collision model for each track shoe
     m_aabb[0] = m_geometry[0].CalculateAABB();
 
     // Resize mesh state vectors (if used)
@@ -294,7 +294,8 @@ void ChVehicleCosimTerrainNode::SynchronizeTrackedBody(int step_number, double t
     // Receive rigid body data for all track shoes
     if (m_rank == TERRAIN_NODE_RANK) {
         MPI_Status status;
-        MPI_Recv(all_states.data(), 13 * m_num_objects, MPI_DOUBLE, MBS_NODE_RANK, step_number, MPI_COMM_WORLD, &status);
+        MPI_Recv(all_states.data(), 13 * m_num_objects, MPI_DOUBLE, MBS_NODE_RANK, step_number, MPI_COMM_WORLD,
+                 &status);
 
         // Unpack rigid body data
         start_idx = 0;
@@ -351,8 +352,7 @@ void ChVehicleCosimTerrainNode::SynchronizeWheeledMesh(int step_number, double t
             // Receive mesh state data
             MPI_Status status;
             double* vert_data = new double[2 * 3 * nv];
-            MPI_Recv(vert_data, 2 * 3 * nv, MPI_DOUBLE, TIRE_NODE_RANK(i), step_number, MPI_COMM_WORLD,
-                     &status);
+            MPI_Recv(vert_data, 2 * 3 * nv, MPI_DOUBLE, TIRE_NODE_RANK(i), step_number, MPI_COMM_WORLD, &status);
 
             for (unsigned int iv = 0; iv < nv; iv++) {
                 unsigned int offset = 3 * iv;

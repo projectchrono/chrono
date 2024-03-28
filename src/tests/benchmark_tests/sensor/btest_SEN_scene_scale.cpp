@@ -72,12 +72,12 @@ int main(int argc, char* argv[]) {
     cam_body->SetFixed(true);
     sys.Add(cam_body);
     auto cam = std::make_shared<ChCameraSensor>(
-        cam_body,                                                           // body camera is attached to
-        10.0f,                                                              // update rate in Hz
+        cam_body,                                                              // body camera is attached to
+        10.0f,                                                                 // update rate in Hz
         chrono::ChFrame<double>({-8, 0, 1}, QuatFromAngleAxis(0, {0, 1, 0})),  // offset pose
-        1280,                                                               // image width
-        720,                                                                // image height
-        (float)CH_PI / 3                                                  // FOV
+        1280,                                                                  // image width
+        720,                                                                   // image height
+        (float)CH_PI / 3                                                       // FOV
     );
     cam->SetName("Camera Sensor");
     if (vis)
@@ -97,7 +97,7 @@ int main(int argc, char* argv[]) {
         while (curr_item_cnt < target_item_cnt) {
             if (obj_type == 2) {
                 // cylinder
-                auto cyl = std::make_shared<ChBodyEasyCylinder>(ChAxis::Y,              //
+                auto cyl = std::make_shared<ChBodyEasyCylinder>(ChAxis::Y,                        //
                                                                 randf() + .05, 2 * randf() + .1,  //
                                                                 1000,                             //
                                                                 true, false);

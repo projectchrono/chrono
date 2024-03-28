@@ -25,7 +25,6 @@ namespace chrono {
 /// given the teeth pressure angle.
 
 class ChApi ChLinkLockGear : public ChLinkLock {
-
   protected:
     double tau;       ///< transmission coeff.
     double alpha;     ///< inclination of action line
@@ -157,7 +156,7 @@ class ChApi ChLinkLockGear : public ChLinkLock {
     virtual void ArchiveIn(ChArchiveIn& archive_in) override;
 };
 
-CH_CLASS_VERSION(ChLinkLockGear,0)
+CH_CLASS_VERSION(ChLinkLockGear, 0)
 
 }  // end namespace chrono
 

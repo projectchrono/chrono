@@ -43,7 +43,6 @@ rot   = chrono.QuatFromAngleX(angle)
 # Create the ground body
 # ----------------------
 ground = chrono.ChBody()
-ground.SetIdentifier(-1)
 ground.SetFixed(True)
 ground.EnableCollision(False)
 sys.Add(ground)
@@ -63,7 +62,6 @@ ground.AddVisualShape(cyl_2, seg.GetFrame())
 # ---------------------------
 shaft_1 = chrono.ChBody()
 sys.AddBody(shaft_1)
-shaft_1.SetIdentifier(1)
 shaft_1.SetFixed(False)
 shaft_1.EnableCollision(False)
 shaft_1.SetMass(1)
@@ -88,7 +86,6 @@ shaft_1.AddVisualShape(cyl_2, chrono.ChFramed(chrono.ChVector3d(0, 0, hl), chron
 
 shaft_2 = chrono.ChBody()
 sys.AddBody(shaft_2)
-shaft_2.SetIdentifier(1)
 shaft_2.SetFixed(False)
 shaft_2.EnableCollision(False)
 shaft_2.SetMass(1)

@@ -26,7 +26,7 @@
 #include "chrono/collision/ChCollisionModel.h"
 #include "chrono/core/ChFrame.h"
 #include "chrono/core/ChMatrix.h"
-#include "chrono/solver/ChKblockGeneric.h"
+#include "chrono/solver/ChKRMBlock.h"
 #include "chrono/solver/ChSystemDescriptor.h"
 #include "chrono/physics/ChContactContainer.h"
 #include "chrono/physics/ChContactTuple.h"
@@ -235,7 +235,7 @@ class ChContactSMC : public ChContactTuple<Ta, Tb> {
 
   private:
     struct ChContactJacobian {
-        ChKblockGeneric m_KRM;        ///< sum of scaled K and R, with pointers to sparse variables
+        ChKRMBlock m_KRM;        ///< sum of scaled K and R, with pointers to sparse variables
         ChMatrixDynamic<double> m_K;  ///< K = dQ/dx
         ChMatrixDynamic<double> m_R;  ///< R = dQ/dv
     };
@@ -279,7 +279,7 @@ class ChContactSMC : public ChContactTuple<Ta, Tb> {
     ChVector3d GetContactTorqueAbs() const { return m_torque; }
 
     /// Access the proxy to the Jacobian.
-    const ChKblockGeneric* GetJacobianKRM() const { return m_Jac ? &(m_Jac->m_KRM) : NULL; }
+    const ChKRMBlock* GetJacobianKRM() const { return m_Jac ? &(m_Jac->m_KRM) : NULL; }
     const ChMatrixDynamic<double>* GetJacobianK() const { return m_Jac ? &(m_Jac->m_K) : NULL; }
     const ChMatrixDynamic<double>* GetJacobianR() const { return m_Jac ? &(m_Jac->m_R) : NULL; }
 
@@ -413,7 +413,7 @@ class ChContactSMC : public ChContactTuple<Ta, Tb> {
         m_Jac->m_KRM.SetVariables(vars);
         m_Jac->m_K.setZero(ndof_w, ndof_w);
         m_Jac->m_R.setZero(ndof_w, ndof_w);
-        assert(m_Jac->m_KRM.Get_K().cols() == ndof_w);
+        assert(m_Jac->m_KRM.GetMatrix().cols() == ndof_w);
     }
 
     /// Calculate Jacobian of generalized contact forces.
@@ -503,20 +503,20 @@ class ChContactSMC : public ChContactTuple<Ta, Tb> {
     }
 
     /// Inject Jacobian blocks into the system descriptor.
-    /// Tell to a system descriptor that there are item(s) of type ChKblock in this object
+    /// Tell to a system descriptor that there are item(s) of type ChKRMBlock in this object
     /// (for further passing it to a solver)
     virtual void ContInjectKRMmatrices(ChSystemDescriptor& mdescriptor) override {
         if (m_Jac)
-            mdescriptor.InsertKblock(&m_Jac->m_KRM);
+            mdescriptor.InsertKRMBlock(&m_Jac->m_KRM);
     }
 
     /// Compute Jacobian of contact forces.
     virtual void ContKRMmatricesLoad(double Kfactor, double Rfactor) override {
         if (m_Jac) {
-            m_Jac->m_KRM.Get_K().setZero();
+            m_Jac->m_KRM.GetMatrix().setZero();
 
-            m_Jac->m_KRM.Get_K() += m_Jac->m_K * Kfactor;
-            m_Jac->m_KRM.Get_K() += m_Jac->m_R * Rfactor;
+            m_Jac->m_KRM.GetMatrix() += m_Jac->m_K * Kfactor;
+            m_Jac->m_KRM.GetMatrix() += m_Jac->m_R * Rfactor;
         }
     }
 };

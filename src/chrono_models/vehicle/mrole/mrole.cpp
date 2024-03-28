@@ -46,9 +46,9 @@ mrole::mrole()
       m_brake_locking(false),
       m_brake_type(BrakeType::SIMPLE),
       m_driveType(DrivelineTypeWV::AWD),
-m_engineType(EngineModelType::SHAFTS),
-m_transmissionType(TransmissionModelType::AUTOMATIC_SHAFTS),
- m_tireType(TireModelType::RIGID),
+      m_engineType(EngineModelType::SHAFTS),
+      m_transmissionType(TransmissionModelType::AUTOMATIC_SHAFTS),
+      m_tireType(TireModelType::RIGID),
       m_tire_collision_type(ChTire::CollisionType::SINGLE_POINT),
       m_tire_step_size(-1),
       m_initFwdVel(0),
@@ -66,9 +66,9 @@ mrole::mrole(ChSystem* system)
       m_brake_locking(false),
       m_brake_type(BrakeType::SIMPLE),
       m_driveType(DrivelineTypeWV::AWD),
-m_engineType(EngineModelType::SHAFTS),
-m_transmissionType(TransmissionModelType::AUTOMATIC_SHAFTS),
-m_tireType(TireModelType::RIGID),
+      m_engineType(EngineModelType::SHAFTS),
+      m_transmissionType(TransmissionModelType::AUTOMATIC_SHAFTS),
+      m_tireType(TireModelType::RIGID),
       m_tire_collision_type(ChTire::CollisionType::SINGLE_POINT),
       m_tire_step_size(-1),
       m_initFwdVel(0),
@@ -101,7 +101,7 @@ void mrole::Initialize() {
     if (m_apply_drag) {
         m_vehicle->GetChassis()->SetAerodynamicDrag(m_Cd, m_area, m_air_density);
     }
-    
+
     // Create and initialize the powertrain system
     std::shared_ptr<ChEngine> engine;
     std::shared_ptr<ChTransmission> transmission;
@@ -133,7 +133,6 @@ void mrole::Initialize() {
         m_vehicle->InitializePowertrain(powertrain);
     }
 
- 
     // Create the tires and set parameters depending on type.
     switch (m_tireType) {
         case TireModelType::RIGID:

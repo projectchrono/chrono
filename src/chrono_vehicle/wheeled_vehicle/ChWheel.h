@@ -75,11 +75,11 @@ class CH_VEHICLE_API ChWheel : public ChPart {
     /// after initialization and has effect only if the derived object has defined some collision shapes.
     void EnableCollision(bool state) { m_spindle->EnableCollision(state); }
 
-    /// Synchronize the wheel subsystem. 
+    /// Synchronize the wheel subsystem.
     /// This version queries the forces from the attached tire and applies them to the associated suspension.
     void Synchronize();
 
-    /// Synchronize the wheel subsystem. 
+    /// Synchronize the wheel subsystem.
     /// This version uses the provided forces as external applied tire/terrain forces.
     void Synchronize(const TerrainForce& tire_force);
 
@@ -125,14 +125,14 @@ class CH_VEHICLE_API ChWheel : public ChPart {
     virtual double GetWheelMass() const = 0;
     virtual const ChVector3d& GetWheelInertia() const = 0;
 
-    std::shared_ptr<ChBody> m_spindle;             ///< associated suspension spindle body
-    std::shared_ptr<ChTire> m_tire;                ///< attached tire subsystem
-    VehicleSide m_side;                            ///< wheel mounted on left/right side
-    double m_offset;                               ///< offset from spindle center
+    std::shared_ptr<ChBody> m_spindle;  ///< associated suspension spindle body
+    std::shared_ptr<ChTire> m_tire;     ///< attached tire subsystem
+    VehicleSide m_side;                 ///< wheel mounted on left/right side
+    double m_offset;                    ///< offset from spindle center
 
-    std::string m_vis_mesh_file;                           ///< visualization mesh file (may be empty)
+    std::string m_vis_mesh_file;                                 ///< visualization mesh file (may be empty)
     std::shared_ptr<ChVisualShapeTriangleMesh> m_trimesh_shape;  ///< visualization mesh asset
-    std::shared_ptr<ChVisualShape> m_cyl_shape;            ///< visualization cylinder asset
+    std::shared_ptr<ChVisualShape> m_cyl_shape;                  ///< visualization cylinder asset
 
     std::shared_ptr<ChLoadBodyForce> m_spindle_terrain_force;    ///< terrain force loads on the spindle
     std::shared_ptr<ChLoadBodyTorque> m_spindle_terrain_torque;  ///< terrain torque loads on the spindle

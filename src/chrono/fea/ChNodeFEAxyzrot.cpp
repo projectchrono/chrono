@@ -169,43 +169,43 @@ void ChNodeFEAxyzrot::NodeIntLoadLumpedMass_Md(const unsigned int off,
 }
 
 void ChNodeFEAxyzrot::NodeIntToDescriptor(const unsigned int off_v, const ChStateDelta& v, const ChVectorDynamic<>& R) {
-    variables.Get_qb() = v.segment(off_v, 6);
-    variables.Get_fb() = R.segment(off_v, 6);
+    variables.State() = v.segment(off_v, 6);
+    variables.Force() = R.segment(off_v, 6);
 }
 
 void ChNodeFEAxyzrot::NodeIntFromDescriptor(const unsigned int off_v, ChStateDelta& v) {
-    v.segment(off_v, 6) = variables.Get_qb();
+    v.segment(off_v, 6) = variables.State();
 }
 
 // -----------------------------------------------------------------------------
 
-void ChNodeFEAxyzrot::InjectVariables(ChSystemDescriptor& mdescriptor) {
-    mdescriptor.InsertVariables(&variables);
+void ChNodeFEAxyzrot::InjectVariables(ChSystemDescriptor& descriptor) {
+    descriptor.InsertVariables(&variables);
 }
 
 void ChNodeFEAxyzrot::VariablesFbReset() {
-    variables.Get_fb().setZero();
+    variables.Force().setZero();
 }
 
 void ChNodeFEAxyzrot::VariablesFbLoadForces(double factor) {
     ChVector3d gyro = Vcross(this->GetAngVelLocal(), variables.GetBodyInertia() * this->GetAngVelLocal());
 
-    variables.Get_fb().segment(0, 3) = factor * Force.eigen();
-    variables.Get_fb().segment(3, 3) = factor * (Torque - gyro).eigen();
+    variables.Force().segment(0, 3) = factor * Force.eigen();
+    variables.Force().segment(3, 3) = factor * (Torque - gyro).eigen();
 }
 
 void ChNodeFEAxyzrot::VariablesQbLoadSpeed() {
     // set current speed in 'qb', it can be used by the solver when working in incremental mode
-    variables.Get_qb().segment(0, 3) = this->GetCoordsysDt().pos.eigen();
-    variables.Get_qb().segment(3, 3) = this->GetAngVelLocal().eigen();
+    variables.State().segment(0, 3) = this->GetCoordsysDt().pos.eigen();
+    variables.State().segment(3, 3) = this->GetAngVelLocal().eigen();
 }
 
 void ChNodeFEAxyzrot::VariablesQbSetSpeed(double step) {
     ChCoordsys<> old_coord_dt = this->GetCoordsysDt();
 
     // from 'qb' vector, sets body speed, and updates auxiliary data
-    this->SetPosDt(this->variables.Get_qb().segment(0, 3));
-    this->SetAngVelLocal(this->variables.Get_qb().segment(3, 3));
+    this->SetPosDt(this->variables.State().segment(0, 3));
+    this->SetAngVelLocal(this->variables.State().segment(3, 3));
 
     // apply limits (if in speed clamping mode) to speeds.
     // ClampSpeed();
@@ -218,7 +218,7 @@ void ChNodeFEAxyzrot::VariablesQbSetSpeed(double step) {
 }
 
 void ChNodeFEAxyzrot::VariablesFbIncrementMq() {
-    variables.Compute_inc_Mb_v(variables.Get_fb(), variables.Get_qb());
+    variables.AddMassTimesVector(variables.Force(), variables.State());
 }
 
 void ChNodeFEAxyzrot::VariablesQbIncrementPosition(double step) {
@@ -228,8 +228,8 @@ void ChNodeFEAxyzrot::VariablesQbIncrementPosition(double step) {
     // Updates position with incremental action of speed contained in the
     // 'qb' vector:  pos' = pos + dt * speed   , like in an Euler step.
 
-    ChVector3d newspeed(variables.Get_qb().segment(0, 3));
-    ChVector3d newwel(variables.Get_qb().segment(3, 3));
+    ChVector3d newspeed(variables.State().segment(0, 3));
+    ChVector3d newwel(variables.State().segment(3, 3));
 
     // ADVANCE POSITION: pos' = pos + dt * vel
     this->SetPos(this->GetPos() + newspeed * step);

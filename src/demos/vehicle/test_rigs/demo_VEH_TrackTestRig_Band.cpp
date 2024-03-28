@@ -30,11 +30,11 @@
 #include "chrono_thirdparty/filesystem/path.h"
 
 #ifdef CHRONO_MUMPS
-#include "chrono_mumps/ChSolverMumps.h"
+    #include "chrono_mumps/ChSolverMumps.h"
 #endif
 
 #ifdef CHRONO_PARDISO_MKL
-#include "chrono_pardisomkl/ChSolverPardisoMKL.h"
+    #include "chrono_pardisomkl/ChSolverPardisoMKL.h"
 #endif
 
 using namespace chrono;
@@ -110,7 +110,7 @@ class MyContactReporter : public ChContactContainer::ReportContactCallback {
         auto faceB = dynamic_cast<fea::ChContactTriangleXYZ*>(modB);
 
         if (bodyA && bodyB) {
-            cout << "  Body-Body:  " << bodyA->GetNameString() << "  " << bodyB->GetNameString() << endl;
+            cout << "  Body-Body:  " << bodyA->GetName() << "  " << bodyB->GetName() << endl;
             m_num_contacts_bb++;
             return true;
         } else if (vertexA && vertexB) {
@@ -352,7 +352,7 @@ int main(int argc, char* argv[]) {
         rig->Advance(step_size);
 
         // Update visualization app
-        vis->Synchronize(rig->GetChTime(), { 0, rig->GetThrottleInput(), 0 });
+        vis->Synchronize(rig->GetChTime(), {0, rig->GetThrottleInput(), 0});
         vis->Advance(step_size);
 
         // Parse all contacts in system

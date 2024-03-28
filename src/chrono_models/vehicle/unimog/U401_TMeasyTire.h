@@ -33,7 +33,7 @@ namespace unimog {
 
 /// TMeasy tire model for the HMMWV.
 class CH_MODELS_API U401_TMeasyTire : public ChTMeasyTire {
-   public:
+  public:
     U401_TMeasyTire(const std::string& name);
     ~U401_TMeasyTire() {}
 
@@ -48,7 +48,7 @@ class CH_MODELS_API U401_TMeasyTire : public ChTMeasyTire {
 
     void GenerateCharacteristicPlots(const std::string& dirname);
 
-   private:
+  private:
     static const double m_mass;
     static const ChVector3d m_inertia;
 

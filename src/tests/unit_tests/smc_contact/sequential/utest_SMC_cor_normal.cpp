@@ -66,8 +66,8 @@ class CorNormalTest : public ::testing::TestWithParam<std::tuple<ChSystemSMC::Co
         ChVector3d spos(0, srad * 1.25, 0);
         ChVector3d init_v(0, -1, 0);
 
-        body1 = AddSphere(0, sys, mat, srad, smass, spos, init_v);
-        body2 = AddSphere(1, sys, mat, srad, smass, spos * -1, init_v * -1);
+        body1 = AddSphere(sys, mat, srad, smass, spos, init_v);
+        body2 = AddSphere(sys, mat, srad, smass, spos * -1, init_v * -1);
 
         // Calculate motion parameters prior to collision
         rel_vm_in = (body2->GetPosDt() - body1->GetPosDt()).Length();

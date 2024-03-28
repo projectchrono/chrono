@@ -79,7 +79,7 @@ class CH_MODELS_API UAZBUS_SAELeafspringAxle : public ChSAELeafspringAxle {
     virtual std::shared_ptr<ChLinkRSDA::TorqueFunctor> getLatTorqueFunctorB() const override {
         return m_latRotSpringCBB;
     }
- 
+
     virtual std::shared_ptr<ChLinkRSDA::TorqueFunctor> getVertTorqueFunctorA() const override {
         return m_vertRotSpringCBA;
     }

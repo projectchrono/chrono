@@ -45,7 +45,7 @@
 #include "chrono_multicore/solver/ChIterativeSolverMulticore.h"
 
 #ifdef CHRONO_OPENGL
-#include "chrono_opengl/ChVisualSystemOpenGL.h"
+    #include "chrono_opengl/ChVisualSystemOpenGL.h"
 #endif
 
 #include "chrono_thirdparty/filesystem/path.h"
@@ -248,7 +248,8 @@ void TimingOutput(chrono::ChSystem* mSys, std::ostream* ofile = NULL);
 // =============================================================================
 
 int main(int argc, char* argv[]) {
-    std::cout << "Copyright (c) 2017 projectchrono.org\n"<< "Chrono version: " << CHRONO_VERSION << std::endl;
+    std::cout << "Copyright (c) 2017 projectchrono.org\n"
+              << "Chrono version: " << CHRONO_VERSION << std::endl;
 
     // ------------------------
     // Convert input parameters
@@ -384,7 +385,7 @@ int main(int argc, char* argv[]) {
         vis.AttachSystem(sys);
         vis.SetWindowTitle("HMMWV granular terrain");
         vis.SetWindowSize(1280, 720);
-        vis.SetRenderMode(opengl::WIREFRAME);
+        vis.SetRenderMode(opengl::SOLID);
         vis.Initialize();
         vis.AddCamera(ChVector3d(-horizontal_pos, -5, 0), ChVector3d(-horizontal_pos, 0, 0));
         vis.SetCameraVertical(CameraVerticalDir::Z);

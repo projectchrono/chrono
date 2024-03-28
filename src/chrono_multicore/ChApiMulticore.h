@@ -23,30 +23,30 @@
 // link the library to your code, and the symbols will be imported.
 
 #if defined(CH_API_COMPILE_MULTICORE)
-#define CH_MULTICORE_API ChApiEXPORT
+    #define CH_MULTICORE_API ChApiEXPORT
 #else
-#define CH_MULTICORE_API ChApiIMPORT
+    #define CH_MULTICORE_API ChApiIMPORT
 #endif
 
 // Macros for specifying type alignment
 #if (defined __GNUC__) || (defined __INTEL_COMPILER)
-#define CHRONO_ALIGN_16 __attribute__((aligned(16)))
+    #define CHRONO_ALIGN_16 __attribute__((aligned(16)))
 #elif defined _MSC_VER
-#define CHRONO_ALIGN_16 __declspec(align(16))
+    #define CHRONO_ALIGN_16 __declspec(align(16))
 #else
-#define CHRONO_ALIGN_16
+    #define CHRONO_ALIGN_16
 #endif
 
 #if defined _MSC_VER
-#define fmax fmax
-#define fmin fmin
+    #define fmax fmax
+    #define fmin fmin
 #endif
 
 #if defined(WIN32) || defined(WIN64)
-#ifndef WIN32_LEAN_AND_MEAN
-#define WIN32_LEAN_AND_MEAN
-#endif
-#define ELPP_WINSOCK2
+    #ifndef WIN32_LEAN_AND_MEAN
+        #define WIN32_LEAN_AND_MEAN
+    #endif
+    #define ELPP_WINSOCK2
 #endif
 
 /**

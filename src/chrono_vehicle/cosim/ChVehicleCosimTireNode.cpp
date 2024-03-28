@@ -30,7 +30,7 @@
 #endif
 
 #ifdef CHRONO_MUMPS
-#include "chrono_mumps/ChSolverMumps.h"
+    #include "chrono_mumps/ChSolverMumps.h"
 #endif
 
 #include "chrono_vehicle/utils/ChUtilsJSON.h"

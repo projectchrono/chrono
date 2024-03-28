@@ -98,8 +98,7 @@ class CH_MODELS_API M113 {
     void SetRoadWheelVisualizationType(VisualizationType vis) { m_vehicle->SetRoadWheelVisualizationType(vis); }
     void SetTrackShoeVisualizationType(VisualizationType vis) { m_vehicle->SetTrackShoeVisualizationType(vis); }
 
-    void Synchronize(double time,
-                     const DriverInputs& driver_inputs);
+    void Synchronize(double time, const DriverInputs& driver_inputs);
     void Synchronize(double time,
                      const DriverInputs& driver_inputs,
                      const TerrainForces& shoe_forces_left,

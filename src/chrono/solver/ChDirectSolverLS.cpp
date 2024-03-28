@@ -71,7 +71,7 @@ bool ChDirectSolverLS::Setup(ChSystemDescriptor& sysd) {
 
     if (call_learner) {
         ChSparsityPatternLearner sparsity_pattern(m_dim, m_dim);
-        sysd.ConvertToMatrixForm(&sparsity_pattern, nullptr);
+        sysd.BuildSystemMatrix(&sparsity_pattern, nullptr);
         sparsity_pattern.Apply(m_mat);
         m_force_update = false;
     } else if (call_reserve) {
@@ -81,7 +81,7 @@ bool ChDirectSolverLS::Setup(ChSystemDescriptor& sysd) {
     }
 
     // Let the system descriptor load the current matrix
-    sysd.ConvertToMatrixForm(&m_mat, nullptr);
+    sysd.BuildSystemMatrix(&m_mat, nullptr);
 
     // Allow the matrix to be compressed
     m_mat.makeCompressed();
@@ -121,7 +121,7 @@ bool ChDirectSolverLS::Setup(ChSystemDescriptor& sysd) {
 double ChDirectSolverLS::Solve(ChSystemDescriptor& sysd) {
     // Assemble the problem right-hand side vector
     m_timer_solve_assembly.start();
-    sysd.ConvertToMatrixForm(nullptr, &m_rhs);
+    sysd.BuildSystemMatrix(nullptr, &m_rhs);
     m_sol.resize(m_rhs.size());
     m_timer_solve_assembly.stop();
 

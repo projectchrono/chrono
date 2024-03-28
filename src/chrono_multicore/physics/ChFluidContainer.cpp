@@ -645,17 +645,19 @@ void ChFluidContainer::CalculateContactForces() {
     // contact_forces
 }
 
-real3 ChFluidContainer::GetBodyContactForce(uint body_id) {
+real3 ChFluidContainer::GetBodyContactForce(std::shared_ptr<ChBody> body) {
     if (data_manager->cd_data->num_rigid_fluid_contacts <= 0) {
         return real3(0);
     }
+    auto body_id = body->GetIndex();
     return real3(contact_forces[body_id * 6 + 0], contact_forces[body_id * 6 + 1], contact_forces[body_id * 6 + 2]);
 }
 
-real3 ChFluidContainer::GetBodyContactTorque(uint body_id) {
+real3 ChFluidContainer::GetBodyContactTorque(std::shared_ptr<ChBody> body) {
     if (data_manager->cd_data->num_rigid_fluid_contacts <= 0) {
         return real3(0);
     }
+    auto body_id = body->GetIndex();
     return real3(contact_forces[body_id * 6 + 3], contact_forces[body_id * 6 + 4], contact_forces[body_id * 6 + 5]);
 }
 

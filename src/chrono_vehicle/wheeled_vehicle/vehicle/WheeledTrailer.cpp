@@ -33,7 +33,8 @@ WheeledTrailer::WheeledTrailer(ChSystem* system, const std::string& filename, bo
 
 void WheeledTrailer::Create(const std::string& filename, bool create_tires) {
     // Open and parse the input file
-    Document d; ReadFileJSON(filename, d);
+    Document d;
+    ReadFileJSON(filename, d);
     if (d.IsNull())
         return;
 
@@ -66,7 +67,6 @@ void WheeledTrailer::Create(const std::string& filename, bool create_tires) {
     m_suspLocations.resize(m_num_axles);
 
     m_wheelSeparations.resize(m_num_axles, 0.0);
-
 
     // -----------------------------------------------
     // Create the (rear) chassis and connector systems

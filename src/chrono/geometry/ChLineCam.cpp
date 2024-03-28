@@ -16,7 +16,6 @@
 
 namespace chrono {
 
-
 // Register into the object factory, to enable run-time dynamic creation and persistence
 CH_FACTORY_REGISTER(ChLineCam)
 
@@ -159,8 +158,7 @@ ChVector3d ChLineCam::EvaluateCamPoint(double par, double& g, double& q) const {
     }
 
     if (negative) {
-        if ((type == CamType::FLAT) || (type == CamType::SLIDEFOLLOWER) ||
-            (type == CamType::ECCENTRICFOLLOWER))
+        if ((type == CamType::FLAT) || (type == CamType::SLIDEFOLLOWER) || (type == CamType::ECCENTRICFOLLOWER))
             f += CH_PI;  // polar 180
 
         if ((type == CamType::ROTATEFOLLOWER) || (type == CamType::FLATOSCILLATE)) {
@@ -216,7 +214,7 @@ void ChLineCam::ArchiveOut(ChArchiveOut& archive_out) {
 
 void ChLineCam::ArchiveIn(ChArchiveIn& archive_in) {
     // version number
-    /*int version =*/ archive_in.VersionRead<ChLineCam>();
+    /*int version =*/archive_in.VersionRead<ChLineCam>();
     // deserialize parent class
     ChLine::ArchiveIn(archive_in);
     // stream in all member data:
@@ -236,6 +234,5 @@ void ChLineCam::ArchiveIn(ChArchiveIn& archive_in) {
     archive_in >> CHNVP(internal);
     archive_in >> CHNVP(center);
 }
-
 
 }  // end namespace chrono

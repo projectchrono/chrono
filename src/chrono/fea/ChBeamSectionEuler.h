@@ -201,7 +201,7 @@ class ChApi ChBeamSectionEulerSimple : public ChBeamSectionEuler {
         : E(0.01e9),     // default E stiffness: (almost rubber)
           density(1000)  // default density: water
     {
-        SetShearModulusFromPoisson(0.3);            // default G (low poisson ratio)
+        SetShearModulusFromPoisson(0.3);      // default G (low poisson ratio)
         SetAsRectangularSection(0.01, 0.01);  // defaults Area, Ixx, Iyy, Ks_y, Ks_z, J
     }
 

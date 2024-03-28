@@ -478,7 +478,7 @@ int drawAllCOGs(ChVisualSystemIrrlicht* vis, double scale) {
 
     for (auto& body : vis->GetSystem(0).GetBodies()) {
         irr::video::SColor mcol;
-        const ChFrame<>& mframe_cog = body->GetFrame_COG_to_abs();
+        const ChFrame<>& mframe_cog = body->GetFrameCOMToAbs();
         const ChFrame<>& mframe_ref = body->GetFrameRefToAbs();
 
         ChVector3d p0 = mframe_cog.GetPos();

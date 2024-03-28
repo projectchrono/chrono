@@ -65,12 +65,11 @@ class RollingGravityTest : public ::testing::TestWithParam<ChSystemSMC::ContactF
         sys->SetNumThreads(2);
 
         // Add the wall to the system
-        int id = -1;
         double wmass = 10.0;
         ChVector3d wsize(4, 1, 4);
         ChVector3d wpos(0, -wsize.y() / 2, 0);
 
-        auto wall = AddWall(id, sys, mat, wsize, wmass, wpos, ChVector3d(0, 0, 0), true);
+        auto wall = AddWall(sys, mat, wsize, wmass, wpos, ChVector3d(0, 0, 0), true);
 
         // Add the sphere to the system
         double srad = 0.5;
@@ -78,7 +77,7 @@ class RollingGravityTest : public ::testing::TestWithParam<ChSystemSMC::ContactF
         ChVector3d spos(0, srad + 1e-2, 0);
         ChVector3d init_v(0, -0.1, 0);
 
-        body = AddSphere(++id, sys, mat, srad, smass, spos, init_v);
+        body = AddSphere(sys, mat, srad, smass, spos, init_v);
 
         // Let the sphere settle on the plate before giving it a push
         double t_end = 1;

@@ -37,8 +37,8 @@ namespace gclass {
 class CH_MODELS_API G500_Chassis : public ChRigidChassis {
   public:
     G500_Chassis(const std::string& name,
-                  bool fixed = false,
-                  CollisionType chassis_collision_type = CollisionType::NONE);
+                 bool fixed = false,
+                 CollisionType chassis_collision_type = CollisionType::NONE);
     ~G500_Chassis() {}
 
     /// Get the location (in the local frame of this chassis) of the connection to a rear chassis.

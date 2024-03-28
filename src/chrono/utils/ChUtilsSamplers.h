@@ -443,12 +443,11 @@ class ChPDSampler : public ChSampler<T> {
 /// distance (padding_factor * diam). This significantly improves computational efficiency of the sampling but at the
 /// cost of discarding the PD uniform distribution properties in the direction orthogonal to the layers.
 template <typename T>
-std::vector<ChVector3<T>> ChPDLayerSamplerBox(
-    ChVector3<T> center,      ///< Center of axis-aligned box to fill
-    ChVector3<T> hdims,       ///< Half-dimensions along the x, y, and z axes
-    T diam,                   ///< Particle diameter
-    T padding_factor = 1.02,  ///< Multiplier on particle diameter for spacing
-    bool verbose = false      ///< Output progress during generation
+std::vector<ChVector3<T>> ChPDLayerSamplerBox(ChVector3<T> center,      ///< Center of axis-aligned box to fill
+                                              ChVector3<T> hdims,       ///< Half-dimensions along the x, y, and z axes
+                                              T diam,                   ///< Particle diameter
+                                              T padding_factor = 1.02,  ///< Multiplier on particle diameter for spacing
+                                              bool verbose = false      ///< Output progress during generation
 ) {
     T fill_bottom = center.z() - hdims.z();
     T fill_top = center.z() + hdims.z();

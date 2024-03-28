@@ -122,4 +122,3 @@ class CH_MODELS_API U401_ToeBarPushPipeAxle : public ChToeBarPushPipeAxle {
 }  // end namespace chrono
 
 #endif
-

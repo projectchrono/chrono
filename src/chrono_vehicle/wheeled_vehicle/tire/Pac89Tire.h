@@ -19,7 +19,6 @@
 #ifndef PAC89_TIRE_H
 #define PAC89_TIRE_H
 
-
 #include "chrono_vehicle/wheeled_vehicle/tire/ChPac89Tire.h"
 #include "chrono_vehicle/ChApiVehicle.h"
 

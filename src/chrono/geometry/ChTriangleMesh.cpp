@@ -18,7 +18,6 @@
 
 namespace chrono {
 
-
 void ChTriangleMesh::Transform(const ChVector3d displ, const ChQuaternion<> mquat) {
     this->Transform(displ, ChMatrix33<>(mquat));
 }
@@ -46,6 +45,5 @@ void ChTriangleMesh::ArchiveIn(ChArchiveIn& archive_in) {
     ChGeometry::ArchiveIn(archive_in);
     // stream in all member data:
 }
-
 
 }  // end namespace chrono

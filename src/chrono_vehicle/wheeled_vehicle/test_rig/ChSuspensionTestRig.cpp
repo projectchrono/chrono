@@ -501,7 +501,7 @@ void ChSuspensionTestRig::PlotOutput(const std::string& out_dir, const std::stri
         std::string lsR = "set style line 2 lt rgb 'dark-red' lw 2";
 
         {
-            postprocess::ChGnuPlot gplot(std::string(out_dir + "/plot_actuators.gpl").c_str());
+            postprocess::ChGnuPlot gplot(out_dir + "/plot_actuators.gpl");
 
             gplot.SetCommand("set terminal wxt size 800, 1200");
             gplot.SetCommand("set multiplot layout 2,1");
@@ -529,7 +529,7 @@ void ChSuspensionTestRig::PlotOutput(const std::string& out_dir, const std::stri
         }
 
         {
-            postprocess::ChGnuPlot gplot(std::string(out_dir + "/plot_wheels.gpl").c_str());
+            postprocess::ChGnuPlot gplot(out_dir + "/plot_wheels.gpl");
 
             gplot.SetCommand("set terminal wxt size 800, 1200");
             gplot.SetCommand("set multiplot layout 2,1");
@@ -541,15 +541,15 @@ void ChSuspensionTestRig::PlotOutput(const std::string& out_dir, const std::stri
 
             gplot.SetLabelX("time [s]");
             gplot.SetLabelY("camber angle [deg]");
-            gplot.Plot(outfileL.c_str(), 1, 12, "left", " with lines ls 1");
-            gplot.Plot(outfileR.c_str(), 1, 12, "right", " with lines ls 2");
+            gplot.Plot(outfileL, 1, 12, "left", " with lines ls 1");
+            gplot.Plot(outfileR, 1, 12, "right", " with lines ls 2");
 
             gplot.FlushPlots();
 
             gplot.SetLabelX("wheel travel [m]");
             gplot.SetLabelY("camber angle [deg]");
-            gplot.Plot(outfileL.c_str(), 11, 12, "left", " with lines ls 1");
-            gplot.Plot(outfileR.c_str(), 11, 12, "right", " with lines ls 2");
+            gplot.Plot(outfileL, 11, 12, "left", " with lines ls 1");
+            gplot.Plot(outfileR, 11, 12, "right", " with lines ls 2");
 
             gplot.FlushPlots();
 
@@ -558,7 +558,7 @@ void ChSuspensionTestRig::PlotOutput(const std::string& out_dir, const std::stri
 
         auto num_tsda = m_plot_data[ia].num_tsda;
         if (num_tsda > 0) {
-            postprocess::ChGnuPlot gplot(std::string(out_dir + "/plot_tsdas.gpl").c_str());
+            postprocess::ChGnuPlot gplot(out_dir + "/plot_tsdas.gpl");
 
             gplot.SetCommand("set terminal wxt size 1200, 1200");
             gplot.SetCommand("set multiplot layout 3," + std::to_string(num_tsda) + " columnsfirst ");
@@ -597,7 +597,7 @@ void ChSuspensionTestRig::PlotOutput(const std::string& out_dir, const std::stri
 
         auto num_rsda = m_plot_data[ia].num_rsda;
         if (num_rsda > 0) {
-            postprocess::ChGnuPlot gplot(std::string(out_dir + "/plot_rsdas.gpl").c_str());
+            postprocess::ChGnuPlot gplot(out_dir + "/plot_rsdas.gpl");
 
             gplot.SetCommand("set terminal wxt size 1200, 1200");
             gplot.SetCommand("set multiplot layout 3," + std::to_string(num_rsda) + " columnsfirst ");
@@ -709,14 +709,14 @@ void ChSuspensionTestRigPlatform::InitializeRig() {
         auto func_R = chrono_types::make_shared<ChFunctionSetpoint>();
 
         auto linact_L = chrono_types::make_shared<ChLinkMotorLinearPosition>();
-        linact_L->SetNameString("L_post_linActuator");
+        linact_L->SetName("L_post_linActuator");
         linact_L->SetMotionFunction(func_L);
         ////linact_L->Initialize(post_L, m_vehicle->GetChassisBody(), ChFrame<>(pos_postL, QuatFromAngleY(CH_PI_2)));
         linact_L->Initialize(post_L, m_vehicle->GetChassisBody(), ChFrame<>(pos_postL, QUNIT));
         sys->AddLink(linact_L);
 
         auto linact_R = chrono_types::make_shared<ChLinkMotorLinearPosition>();
-        linact_R->SetNameString("R_post_linActuator");
+        linact_R->SetName("R_post_linActuator");
         linact_R->SetMotionFunction(func_R);
         ////linact_R->Initialize(post_R, m_vehicle->GetChassisBody(), ChFrame<>(pos_postR, QuatFromAngleY(CH_PI_2)));
         linact_R->Initialize(post_R, m_vehicle->GetChassisBody(), ChFrame<>(pos_postR, QUNIT));
@@ -840,17 +840,16 @@ void ChSuspensionTestRigPushrod::InitializeRig() {
 
         auto linact_L = chrono_types::make_shared<ChLinkMotorLinearPosition>();
         linact_L->SetGuideConstraint(ChLinkMotorLinear::GuideConstraint::FREE);
-        linact_L->SetNameString("L_rod_linActuator");
+        linact_L->SetName("L_rod_linActuator");
         linact_L->SetMotionFunction(func_L);
         ////linact_L->Initialize(suspension->GetSpindle(LEFT), m_vehicle->GetChassisBody(),
         ////                     ChFrame<>(pos_spindleL, QuatFromAngleY(CH_PI_2)));
-        linact_L->Initialize(suspension->GetSpindle(LEFT), m_vehicle->GetChassisBody(),
-                             ChFrame<>(pos_spindleL, QUNIT));
+        linact_L->Initialize(suspension->GetSpindle(LEFT), m_vehicle->GetChassisBody(), ChFrame<>(pos_spindleL, QUNIT));
         sys->AddLink(linact_L);
 
         auto linact_R = chrono_types::make_shared<ChLinkMotorLinearPosition>();
         linact_R->SetGuideConstraint(ChLinkMotorLinear::GuideConstraint::FREE);
-        linact_R->SetNameString("R_rod_linActuator");
+        linact_R->SetName("R_rod_linActuator");
         linact_R->SetMotionFunction(func_R);
         ////linact_R->Initialize(suspension->GetSpindle(RIGHT), m_vehicle->GetChassisBody(),
         ////                     ChFrame<>(pos_spindleR, QuatFromAngleY(CH_PI_2)));

@@ -407,7 +407,7 @@ int main(int argc, char* argv[]) {
         ref_X.AddPoint(1.00, 1 - 1.71);
     }
 
-    //Visualization of the FEM mesh.
+    // Visualization of the FEM mesh.
     // This will automatically update a triangle mesh (a ChVisualShapeTriangleMesh
     // asset that is internally managed) by setting  proper
     // coordinates and vertex colors as in the FEM elements.
@@ -502,7 +502,7 @@ int main(int argc, char* argv[]) {
     // Outputs results in a GNUPLOT plot:
 
     std::string gplfilename = out_dir + "/shell_benchmark.gpl";
-    ChGnuPlot mplot(gplfilename.c_str());
+    ChGnuPlot mplot(gplfilename);
     mplot.SetGrid(false, 1, ChColor(0.8f, 0.8f, 0.8f));
     mplot.SetLabelX("Torque T/T0");
     mplot.SetLabelY("Tip displacement [m]");

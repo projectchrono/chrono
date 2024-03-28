@@ -201,7 +201,7 @@ class CH_VEHICLE_API ChTMsimpleTire : public ChForceElementTire {
 
     VehicleSide m_measured_side;
 
-    struct TMsimpleCoeff  {
+    struct TMsimpleCoeff {
         double pn;      ///< Nominal vertical force [N]
         double pn_max;  ///< Maximum vertical force [N]
 

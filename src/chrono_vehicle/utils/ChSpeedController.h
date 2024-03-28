@@ -98,7 +98,7 @@ class CH_VEHICLE_API ChSpeedController {
     double m_erri;  ///< integral of error
 
     utils::ChWriterCSV* m_csv;  ///< ChWriterCSV object for data collection
-    bool m_collect;            ///< flag indicating whether or not data is being collected
+    bool m_collect;             ///< flag indicating whether or not data is being collected
 };
 
 /// @} vehicle_utils

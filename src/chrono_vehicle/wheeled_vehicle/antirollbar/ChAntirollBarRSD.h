@@ -46,7 +46,7 @@ namespace vehicle {
 class CH_VEHICLE_API ChAntirollBarRSD : public ChAntirollBar {
   public:
     ChAntirollBarRSD(const std::string& name  ///< [in] name of the subsystem
-                     );
+    );
 
     virtual ~ChAntirollBarRSD();
 

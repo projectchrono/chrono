@@ -250,7 +250,6 @@ void ANCFshell<N>::SimulateVis() {
     vis->AddTypicalLights();
     vis->AddCamera(ChVector3d(-0.2, 0.2, 0.2), ChVector3d(0, 0, 0));
 
-
     while (vis->Run()) {
         vis->BeginScene();
         vis->Render();

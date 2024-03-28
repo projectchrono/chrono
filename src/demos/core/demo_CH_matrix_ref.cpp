@@ -17,7 +17,7 @@
 //
 // =============================================================================
 
-//#define EIGEN_NO_MALLOC 
+//#define EIGEN_NO_MALLOC
 
 #include <iostream>
 #include <vector>
@@ -30,7 +30,7 @@ using namespace chrono;
 class BaseClass {
   public:
     virtual ~BaseClass() {}
-    //virtual ChMatrixConstRef GetRotMat() const = 0;
+    // virtual ChMatrixConstRef GetRotMat() const = 0;
     virtual ChMatrixRef GetRotMat() = 0;
 };
 
@@ -40,7 +40,7 @@ class DerivedClass1 : public BaseClass {
         m_A.resize(2, 3);
         m_A.setRandom();
     }
-    //virtual ChMatrixConstRef GetRotMat() const override { m_A; }
+    // virtual ChMatrixConstRef GetRotMat() const override { m_A; }
     virtual ChMatrixRef GetRotMat() override { return m_A; }
 
   private:
@@ -50,7 +50,7 @@ class DerivedClass1 : public BaseClass {
 class DerivedClass2 : public BaseClass {
   public:
     DerivedClass2() { m_A.setRandom(); }
-    //virtual ChMatrixConstRef GetRotMat() const override { return m_A; }
+    // virtual ChMatrixConstRef GetRotMat() const override { return m_A; }
     virtual ChMatrixRef GetRotMat() override { return m_A; }
 
   private:

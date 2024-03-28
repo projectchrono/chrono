@@ -19,8 +19,7 @@
 #include "chrono_pardisoproject/ChPardisoProjectEngine.h"
 #include "chrono/solver/ChDirectSolverLS.h"
 
-
-namespace chrono{
+namespace chrono {
 
 /// @addtogroup pardisoproject_module
 /// @{
@@ -53,7 +52,8 @@ See ChSystemDescriptor for more information about the problem formulation and th
 */
 class ChApiPardisoProject ChSolverPardisoProject : public ChDirectSolverLS {
   public:
-    ChSolverPardisoProject(int num_threads = 0, 
+    ChSolverPardisoProject(
+        int num_threads = 0,
         ChPardisoProjectEngine::parproj_SYM symmetry = ChPardisoProjectEngine::parproj_SYM::UNSYMMETRIC);
     ~ChSolverPardisoProject() {}
     virtual Type GetType() const override { return Type::PARDISO_PROJECT; }
@@ -78,7 +78,6 @@ class ChApiPardisoProject ChSolverPardisoProject : public ChDirectSolverLS {
     virtual void PrintErrorMessage() override;
 
     ChPardisoProjectEngine m_engine;
-    
 };
 
 /// @} pardisoproject_module

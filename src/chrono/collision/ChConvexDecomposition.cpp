@@ -24,7 +24,7 @@ namespace chrono {
 //  (to be optimized for performance; in future it is better to use hash lookup)
 //
 
-int GetIndex(ChVector3d vertex, std::vector<ChVector3d >& vertexOUT, double tol) {
+int GetIndex(ChVector3d vertex, std::vector<ChVector3d>& vertexOUT, double tol) {
     // Suboptimal: search vertexes with same position and reuse, (in future: adopt hash map..)
     for (unsigned int iv = 0; iv < vertexOUT.size(); iv++) {
         if (vertex.Equals(vertexOUT[iv], tol)) {
@@ -36,10 +36,10 @@ int GetIndex(ChVector3d vertex, std::vector<ChVector3d >& vertexOUT, double tol)
     return ((int)vertexOUT.size() - 1);
 }
 
-void FuseMesh(std::vector<ChVector3d >& vertexIN,
-              std::vector<ChVector3i >& triangleIN,
-              std::vector<ChVector3d >& vertexOUT,
-              std::vector<ChVector3i >& triangleOUT,
+void FuseMesh(std::vector<ChVector3d>& vertexIN,
+              std::vector<ChVector3i>& triangleIN,
+              std::vector<ChVector3d>& vertexOUT,
+              std::vector<ChVector3i>& triangleOUT,
               double tol = 0.0) {
     vertexOUT.clear();
     triangleOUT.clear();
@@ -80,7 +80,7 @@ bool ChConvexDecomposition::WriteConvexHullsAsChullsFile(std::ostream& mstream) 
             << "# convex decomposition (.chulls format: only vertexes)\n";
 
     for (unsigned int ih = 0; ih < this->GetHullCount(); ih++) {
-        std::vector<ChVector3d > aconvexhull;
+        std::vector<ChVector3d> aconvexhull;
 
         if (!this->GetConvexHullResult(ih, aconvexhull))
             return false;
@@ -180,8 +180,7 @@ unsigned int ChConvexDecompositionHACD::GetHullCount() {
     return (unsigned int)this->myHACD->GetNClusters();
 }
 
-bool ChConvexDecompositionHACD::GetConvexHullResult(unsigned int hullIndex,
-                                                    std::vector<ChVector3d >& convexhull) {
+bool ChConvexDecompositionHACD::GetConvexHullResult(unsigned int hullIndex, std::vector<ChVector3d>& convexhull) {
     if (hullIndex > myHACD->GetNClusters())
         return false;
 
@@ -355,8 +354,8 @@ int ChConvexDecompositionHACDv2::ComputeConvexDecomposition() {
 
     // Preprocess: fuse repeated vertices...
 
-    std::vector<ChVector3d > points_FUSED;
-    std::vector<ChVector3i > triangles_FUSED;
+    std::vector<ChVector3d> points_FUSED;
+    std::vector<ChVector3i> triangles_FUSED;
     FuseMesh(this->points, this->triangles, points_FUSED, triangles_FUSED, this->fuse_tol);
 
     // Convert to HACD format
@@ -396,8 +395,7 @@ unsigned int ChConvexDecompositionHACDv2::GetHullCount() {
     return this->gHACD->getHullCount();
 }
 
-bool ChConvexDecompositionHACDv2::GetConvexHullResult(unsigned int hullIndex,
-                                                      std::vector<ChVector3d >& convexhull) {
+bool ChConvexDecompositionHACDv2::GetConvexHullResult(unsigned int hullIndex, std::vector<ChVector3d>& convexhull) {
     if (hullIndex > this->gHACD->getHullCount())
         return false;
 

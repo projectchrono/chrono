@@ -30,7 +30,6 @@
 
 #include "chrono_thirdparty/filesystem/path.h"
 
-
 namespace chrono {
 namespace vehicle {
 
@@ -64,9 +63,7 @@ ChVehicleGeometry::CylinderShape::CylinderShape(const ChVector3d& pos,
     m_rot = rot.GetQuaternion() * QuatFromAngleY(-CH_PI_2);
 }
 
-ChVehicleGeometry::LineShape::LineShape(const ChVector3d& pos,
-                                        const ChQuaternion<>& rot,
-                                        std::shared_ptr<ChLine> line)
+ChVehicleGeometry::LineShape::LineShape(const ChVector3d& pos, const ChQuaternion<>& rot, std::shared_ptr<ChLine> line)
     : m_pos(pos), m_rot(rot), m_line(line) {}
 
 ChVehicleGeometry::ConvexHullsShape::ConvexHullsShape(const std::string& filename, int matID) : m_matID(matID) {
@@ -146,8 +143,8 @@ void ChVehicleGeometry::CreateVisualizationAssets(std::shared_ptr<ChBody> body,
     }
 
     if (vis == VisualizationType::MESH && m_has_mesh) {
-        auto trimesh = ChTriangleMeshConnected::CreateFromWavefrontFile(vehicle::GetDataFile(m_vis_mesh_file),
-                                                                                  true, true);
+        auto trimesh =
+            ChTriangleMeshConnected::CreateFromWavefrontFile(vehicle::GetDataFile(m_vis_mesh_file), true, true);
         auto trimesh_shape = chrono_types::make_shared<ChVisualShapeTriangleMesh>();
         trimesh_shape->SetMesh(trimesh);
         trimesh_shape->SetName(filesystem::path(m_vis_mesh_file).stem());

@@ -18,8 +18,8 @@
 #define CHFILTERVISUALIZE_H
 
 #ifdef USE_SENSOR_GLFW
-#include <GL/glew.h>
-#include <GLFW/glfw3.h>
+    #include <GL/glew.h>
+    #include <GLFW/glfw3.h>
 #endif
 
 #include "chrono_sensor/filters/ChFilter.h"
@@ -76,12 +76,16 @@ class CH_SENSOR_API ChFilterVisualize : public ChFilter {
     std::shared_ptr<SensorDeviceR8Buffer> m_bufferR8;
     std::shared_ptr<SensorDeviceRGBA8Buffer> m_bufferRGBA8;
     std::shared_ptr<SensorDeviceSemanticBuffer> m_bufferSemantic;
+    std::shared_ptr<SensorDeviceDepthBuffer> m_bufferDepth;
+
     std::shared_ptr<SensorDeviceDIBuffer> m_bufferDI;
     std::shared_ptr<SensorDeviceRadarBuffer> m_bufferRadar;
 
     std::shared_ptr<SensorHostR8Buffer> m_hostR8;
     std::shared_ptr<SensorHostRGBA8Buffer> m_hostRGBA8;
     std::shared_ptr<SensorHostSemanticBuffer> m_hostSemantic;
+    std::shared_ptr<SensorHostDepthBuffer> m_hostDepth;
+
     std::shared_ptr<SensorHostDIBuffer> m_hostDI;
     std::shared_ptr<SensorHostRadarBuffer> m_hostRadar;
 
@@ -90,7 +94,7 @@ class CH_SENSOR_API ChFilterVisualize : public ChFilter {
 #ifdef USE_SENSOR_GLFW
     std::unique_ptr<GLFWwindow, DestroyglfwWin> m_window;  ///< pointer to the window
 #endif
-    unsigned int m_gl_tex_id = 0;                          ///< reference data for the GL context and texture
+    unsigned int m_gl_tex_id = 0;  ///< reference data for the GL context and texture
 
     /// Helper function for when new window is created
     static void OnNewWindow();

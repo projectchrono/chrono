@@ -19,7 +19,7 @@
 
 namespace chrono {
 
-/// Base class for all types of constraints that act like mechanical joints ('links') in 3D space.
+/// Base class for all types of constraints in the 3D space.
 class ChApi ChLinkBase : public ChPhysicsItem {
   public:
     ChLinkBase() : disabled(false), valid(true), broken(false) {}

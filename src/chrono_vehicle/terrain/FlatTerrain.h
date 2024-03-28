@@ -36,7 +36,7 @@ class CH_VEHICLE_API FlatTerrain : public ChTerrain {
   public:
     FlatTerrain(double height,         ///< [in] terrain height
                 float friction = 0.8f  ///< [in] terrain coefficient of friction
-                );
+    );
 
     ~FlatTerrain() {}
 

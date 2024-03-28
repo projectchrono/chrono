@@ -565,8 +565,8 @@ enum OutputInformation {
     OUT_TESTRIG = 1 << 3       ///< test-rig specific information
 };
 
-/// Identifiers for specific component bodies.
-enum BodyID {
+/// Tags for specific component bodies.
+enum TrackedVehicleBodyTag {
     CHASSIS_BODY = -99990,
     SPROCKET_BODY = -99991,
     IDLER_BODY = -99992,

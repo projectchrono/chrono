@@ -23,7 +23,7 @@ CH_UPCASTING(ChShaft, ChPhysicsItem)
 CH_UPCASTING(ChShaft, ChLoadable)
 
 ChShaft::ChShaft()
-    : torque(0),
+    : load(0),
       pos(0),
       pos_dt(0),
       pos_dtdt(0),
@@ -31,7 +31,6 @@ ChShaft::ChShaft()
       max_speed(10.0f),
       sleep_time(0.6f),
       sleep_minspeed(0.1f),
-      sleep_minwvel(0.04f),
       sleep_starttime(0),
       fixed(false),
       limitspeed(false),
@@ -41,7 +40,7 @@ ChShaft::ChShaft()
 }
 
 ChShaft::ChShaft(const ChShaft& other) : ChPhysicsItem(other) {
-    torque = other.torque;
+    load = other.load;
     system = other.system;
     pos = other.pos;
     pos_dt = other.pos_dt;
@@ -58,7 +57,6 @@ ChShaft::ChShaft(const ChShaft& other) : ChPhysicsItem(other) {
     sleep_time = other.sleep_time;
     sleep_starttime = other.sleep_starttime;
     sleep_minspeed = other.sleep_minspeed;
-    sleep_minwvel = other.sleep_minwvel;
 }
 
 void ChShaft::SetInertia(double newJ) {
@@ -67,6 +65,11 @@ void ChShaft::SetInertia(double newJ) {
         return;
     inertia = newJ;
     variables.SetInertia(newJ);
+}
+
+void ChShaft::SetFixed(bool fixed) {
+    this->fixed = fixed;
+    variables.SetDisabled(fixed);
 }
 
 void ChShaft::IntStateGather(const unsigned int off_x,  // offset in x state vector
@@ -105,7 +108,7 @@ void ChShaft::IntLoadResidual_F(const unsigned int off,  // offset in R residual
                                 const double c           // a scaling factor
 ) {
     // add applied forces to 'fb' vector
-    R(off) += torque * c;
+    R(off) += load * c;
 }
 
 void ChShaft::IntLoadResidual_Mv(const unsigned int off,      // offset in R residual
@@ -126,46 +129,46 @@ void ChShaft::IntToDescriptor(const unsigned int off_v,  // offset in v, R
                               const unsigned int off_L,  // offset in L, Qc
                               const ChVectorDynamic<>& L,
                               const ChVectorDynamic<>& Qc) {
-    variables.Get_qb()(0, 0) = v(off_v);
-    variables.Get_fb()(0, 0) = R(off_v);
+    variables.State()(0, 0) = v(off_v);
+    variables.Force()(0, 0) = R(off_v);
 }
 
 void ChShaft::IntFromDescriptor(const unsigned int off_v,  // offset in v
                                 ChStateDelta& v,
                                 const unsigned int off_L,  // offset in L
                                 ChVectorDynamic<>& L) {
-    v(off_v) = variables.Get_qb()(0, 0);
+    v(off_v) = variables.State()(0, 0);
 }
 
-void ChShaft::InjectVariables(ChSystemDescriptor& mdescriptor) {
+void ChShaft::InjectVariables(ChSystemDescriptor& descriptor) {
     variables.SetDisabled(!IsActive());
 
-    mdescriptor.InsertVariables(&variables);
+    descriptor.InsertVariables(&variables);
 }
 
 void ChShaft::VariablesFbReset() {
-    variables.Get_fb().setZero();
+    variables.Force().setZero();
 }
 
 void ChShaft::VariablesFbLoadForces(double factor) {
-    // add applied torques to 'fb' vector
-    variables.Get_fb()(0) += torque * factor;
+    // add applied loads to 'fb' vector
+    variables.Force()(0) += load * factor;
 }
 
 void ChShaft::VariablesFbIncrementMq() {
-    variables.Compute_inc_Mb_v(variables.Get_fb(), variables.Get_qb());
+    variables.AddMassTimesVector(variables.Force(), variables.State());
 }
 
 void ChShaft::VariablesQbLoadSpeed() {
     // set current speed in 'qb', it can be used by the solver when working in incremental mode
-    variables.Get_qb()(0) = pos_dt;
+    variables.State()(0) = pos_dt;
 }
 
 void ChShaft::VariablesQbSetSpeed(double step) {
     double old_dt = pos_dt;
 
     // from 'qb' vector, sets body speed, and updates auxiliary data
-    pos_dt = variables.Get_qb()(0);
+    pos_dt = variables.State()(0);
 
     // apply limits (if in speed clamping mode) to speeds.
     ClampSpeed();
@@ -183,7 +186,7 @@ void ChShaft::VariablesQbIncrementPosition(double dt_step) {
     // Updates position with incremental action of speed contained in the
     // 'qb' vector:  pos' = pos + dt * speed   , like in an Euler step.
 
-    double newspeed = variables.Get_qb()(0);
+    double newspeed = variables.State()(0);
 
     // ADVANCE POSITION: pos' = pos + dt * vel
     pos = pos + newspeed * dt_step;
@@ -195,7 +198,7 @@ void ChShaft::ForceToRest() {
 }
 
 void ChShaft::ClampSpeed() {
-    if (GetLimitSpeed()) {
+    if (limitspeed) {
         if (pos_dt > max_speed)
             pos_dt = max_speed;
         if (pos_dt < -max_speed)
@@ -224,8 +227,6 @@ void ChShaft::Update(double mytime, bool update_assets) {
     // Update parent class too
     ChPhysicsItem::Update(mytime, update_assets);
 
-    // Class update
-
     // TrySleeping();    // See if the body can fall asleep; if so, put it to sleeping
     ClampSpeed();  // Apply limits (if in speed clamping mode) to speeds.
 }
@@ -238,7 +239,7 @@ void ChShaft::ArchiveOut(ChArchiveOut& archive_out) {
     ChPhysicsItem::ArchiveOut(archive_out);
 
     // serialize all member data:
-    archive_out << CHNVP(torque);
+    archive_out << CHNVP(load);
     archive_out << CHNVP(pos);
     archive_out << CHNVP(pos_dt);
     archive_out << CHNVP(pos_dtdt);
@@ -249,8 +250,6 @@ void ChShaft::ArchiveOut(ChArchiveOut& archive_out) {
     archive_out << CHNVP(sleep_time);
     archive_out << CHNVP(sleep_starttime);
     archive_out << CHNVP(sleep_minspeed);
-    archive_out << CHNVP(sleep_minwvel);
-    archive_out << CHNVP(sleeping);
     archive_out << CHNVP(use_sleeping);
 }
 
@@ -262,7 +261,7 @@ void ChShaft::ArchiveIn(ChArchiveIn& archive_in) {
     ChPhysicsItem::ArchiveIn(archive_in);
 
     // deserialize all member data:
-    archive_in >> CHNVP(torque);
+    archive_in >> CHNVP(load);
     archive_in >> CHNVP(pos);
     archive_in >> CHNVP(pos_dt);
     archive_in >> CHNVP(pos_dtdt);
@@ -273,8 +272,6 @@ void ChShaft::ArchiveIn(ChArchiveIn& archive_in) {
     archive_in >> CHNVP(sleep_time);
     archive_in >> CHNVP(sleep_starttime);
     archive_in >> CHNVP(sleep_minspeed);
-    archive_in >> CHNVP(sleep_minwvel);
-    archive_in >> CHNVP(sleeping);
     archive_in >> CHNVP(use_sleeping);
 }
 

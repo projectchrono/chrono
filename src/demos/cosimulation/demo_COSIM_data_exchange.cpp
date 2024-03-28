@@ -19,8 +19,6 @@
 //
 // =============================================================================
 
-
-
 #include "chrono_cosimulation/ChCosimulation.h"
 
 using namespace chrono;
@@ -76,7 +74,7 @@ int main(int argc, char* argv[]) {
             std::cout << data_in << std::endl;
         }
     } catch (std::exception exception) {
-        std::cerr << " ERRROR with socket system:\n"<< exception.what() << std::endl;
+        std::cerr << " ERRROR with socket system:\n" << exception.what() << std::endl;
     }
 
     return 0;

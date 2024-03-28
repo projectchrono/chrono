@@ -82,7 +82,11 @@ bool LineLineIntersect(const ChVector3d& p1,
 // Calculate distance between a point p and a line identified
 // with segment dA,dB. Returns distance. Also, the mu value reference
 // tells if the nearest projection of point on line falls into segment (for mu 0...1)
-double PointLineDistance(const ChVector3d& p, const ChVector3d& dA, const ChVector3d& dB, double& mu, bool& is_insegment) {
+double PointLineDistance(const ChVector3d& p,
+                         const ChVector3d& dA,
+                         const ChVector3d& dB,
+                         double& mu,
+                         bool& is_insegment) {
     mu = -1.0;
     is_insegment = false;
     double mdist = 10e34;

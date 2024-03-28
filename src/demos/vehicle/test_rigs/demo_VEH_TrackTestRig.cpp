@@ -63,10 +63,10 @@ enum class DriverMode {
     DATAFILE,    // inputs from data file
     ROADPROFILE  // inputs to follow road profile
 };
-std::string driver_file("M113/test_rig/TTR_inputs.dat");   // used for mode=DATAFILE
+std::string driver_file("M113/test_rig/TTR_inputs.dat");  // used for mode=DATAFILE
 ////std::string driver_file("M113/test_rig/TTR_inputs2.dat");  // used for mode=DATAFILE
-std::string road_file("M113/test_rig/TTR_road.dat");       // used for mode=ROADPROFILE
-double road_speed = 10;                                    // used for mode=ROADPROFILE
+std::string road_file("M113/test_rig/TTR_road.dat");  // used for mode=ROADPROFILE
+double road_speed = 10;                               // used for mode=ROADPROFILE
 DriverMode driver_mode = DriverMode::ROADPROFILE;
 
 // Contact method
@@ -178,7 +178,8 @@ int main(int argc, char* argv[]) {
             break;
         }
         case DriverMode::ROADPROFILE: {
-            auto road_driver = chrono_types::make_shared<ChTrackTestRigRoadDriver>(vehicle::GetDataFile(road_file), road_speed);
+            auto road_driver =
+                chrono_types::make_shared<ChTrackTestRigRoadDriver>(vehicle::GetDataFile(road_file), road_speed);
             driver = road_driver;
             break;
         }

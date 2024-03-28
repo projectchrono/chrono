@@ -314,7 +314,7 @@ ChMatrix33<> MBTireModel::Spring2::CalculateJacobianBlock(double Kfactor, double
 //   d[f1;f2]/d[n1;n2]
 // where f1, f2 are the nodal forces and n1, n2 are the states of the 2 nodes.
 void MBTireModel::GridSpring2::CalculateJacobian(double Kfactor, double Rfactor) {
-    ChMatrixRef K = KRM.Get_K();
+    ChMatrixRef K = KRM.GetMatrix();
 
     ////std::cout << "Grid spring2 " << inode1 << "-" << inode2;
     ////std::cout << "  K size: " << K.rows() << "x" << K.cols() << std::endl;
@@ -402,7 +402,7 @@ ChMatrixNM<double, 6, 6> MBTireModel::GridSpring2::CalculateJacobianFD(double Kf
 //    wheel state (6)
 //    node2 state (3)
 void MBTireModel::EdgeSpring2::CalculateJacobian(bool full_jac, double Kfactor, double Rfactor) {
-    ChMatrixRef K = KRM.Get_K();
+    ChMatrixRef K = KRM.GetMatrix();
 
     ////std::cout << "Edge spring2 " << inode1 << "-" << inode2;
     ////std::cout << "  K size: " << K.rows() << "x" << K.cols() << std::endl;
@@ -661,7 +661,7 @@ ChMatrixNM<double, 6, 9> MBTireModel::Spring3::CalculateJacobianBlockJ2(double K
 //   d[f_p;f_c;f_n]/d[n_p;n_c;n_n]
 // where f_p, f_c, and f_n are the nodal forces and n_p, n_c, and n_n are the states of the 3 nodes.
 void MBTireModel::GridSpring3::CalculateJacobian(double Kfactor, double Rfactor) {
-    ChMatrixRef K = KRM.Get_K();
+    ChMatrixRef K = KRM.GetMatrix();
 
     ////std::cout << "Grid spring3 " << inode_p << "-" << inode_c << "-" << inode_n;
     ////std::cout << "  K size: " << K.rows() << "x" << K.cols() << std::endl;
@@ -787,7 +787,7 @@ ChMatrixNM<double, 9, 9> MBTireModel::GridSpring3::CalculateJacobianFD(double Kf
 //    node_c state (3)
 //    node_n state (3)
 void MBTireModel::EdgeSpring3::CalculateJacobian(bool full_jac, double Kfactor, double Rfactor) {
-    ChMatrixRef K = KRM.Get_K();
+    ChMatrixRef K = KRM.GetMatrix();
 
     ////std::cout << "Edge spring3 " << inode_p << "-" << inode_c << "-" << inode_n;
     ////std::cout << "  K size: " << K.rows() << "x" << K.cols() << std::endl;
@@ -1422,21 +1422,21 @@ void MBTireModel::InjectVariables(ChSystemDescriptor& descriptor) {
         node->InjectVariables(descriptor);
 }
 
-void MBTireModel::InjectKRMmatrices(ChSystemDescriptor& descriptor) {
+void MBTireModel::InjectKRMMatrices(ChSystemDescriptor& descriptor) {
     if (!m_stiff)
         return;
 
     for (auto& spring : m_grid_lin_springs)
-        descriptor.InsertKblock(&spring.KRM);
+        descriptor.InsertKRMBlock(&spring.KRM);
     for (auto& spring : m_edge_lin_springs)
-        descriptor.InsertKblock(&spring.KRM);
+        descriptor.InsertKRMBlock(&spring.KRM);
     for (auto& spring : m_grid_rot_springs)
-        descriptor.InsertKblock(&spring.KRM);
+        descriptor.InsertKRMBlock(&spring.KRM);
     for (auto& spring : m_edge_rot_springs)
-        descriptor.InsertKblock(&spring.KRM);
+        descriptor.InsertKRMBlock(&spring.KRM);
 }
 
-void MBTireModel::KRMmatricesLoad(double Kfactor, double Rfactor, double Mfactor) {
+void MBTireModel::LoadKRMMatrices(double Kfactor, double Rfactor, double Mfactor) {
     if (!m_stiff)
         return;
 

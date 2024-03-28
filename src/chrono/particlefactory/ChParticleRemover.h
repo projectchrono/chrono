@@ -27,7 +27,8 @@ class ChParticleRemoverBox : public ChParticleProcessor {
   public:
     ChParticleRemoverBox() {
         this->SetEventTrigger(std::shared_ptr<ChParticleEventTriggerBox>(new ChParticleEventTriggerBox));
-        this->SetParticleEventProcessor(std::shared_ptr<ChParticleProcessEventRemove>(new ChParticleProcessEventRemove));
+        this->SetParticleEventProcessor(
+            std::shared_ptr<ChParticleProcessEventRemove>(new ChParticleProcessEventRemove));
     }
 
     /// Set the dimensions and position of the trigger box.

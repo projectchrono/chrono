@@ -129,7 +129,7 @@ collide with any objects of family=4:
 ~~~{.cpp}
 // default collision family is 0. Change it:
 body_b->GetCollisionModel()->SetFamily(2);
-body_b->GetCollisionModel()->SetFamilyMaskNoCollisionWithFamily(4);
+body_b->GetCollisionModel()->DisallowCollisionsWith(4);
 ~~~
 
 Currently, Chrono allows up to 15 different collision families that can be involved in a simulation.
@@ -189,6 +189,6 @@ Please refer to [demo_MBS_callbackNSC.cpp](https://github.com/projectchrono/chro
 
 # Examples
 For further guidance, see:
-- [demo_bricks.cpp](@ref tutorial_demo_bricks)
-- [demo_collision.cpp](@ref tutorial_demo_collision)
-- [demo_friction.cpp](@ref tutorial_demo_friction)
+- [demo_MBS_bricks](https://github.com/projectchrono/chrono/blob/main/src/demos/mbs/demo_MBS_bricks.cpp)
+- [demo_MBS_collisionNSC](https://github.com/projectchrono/chrono/blob/main/src/demos/mbs/demo_MBS_collisionNSC.cpp)
+- [demo_MBS_friction](https://github.com/projectchrono/chrono/blob/main/src/demos/mbs/demo_MBS_friction.cpp)

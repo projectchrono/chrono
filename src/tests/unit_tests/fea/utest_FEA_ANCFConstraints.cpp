@@ -274,8 +274,10 @@ int main(int argc, char* argv[]) {
         ChVector3d tip = Body_2->TransformPointLocalToParent(ChVector3d(0.25, 0, 0));
         printf("Body_2 tip:      %12.4e  %12.4e  %12.4e\n", tip.x(), tip.y(), tip.z());
 
-        printf("Node position:   %12.4e  %12.4e  %12.4e\n", Node_1->GetPos().x(), Node_1->GetPos().y(), Node_1->GetPos().z());
-        printf("Direction of node:  %12.4e  %12.4e  %12.4e\n", Node_1->GetSlope1().x(), Node_1->GetSlope1().y(), Node_1->GetSlope1().z());
+        printf("Node position:   %12.4e  %12.4e  %12.4e\n", Node_1->GetPos().x(), Node_1->GetPos().y(),
+               Node_1->GetPos().z());
+        printf("Direction of node:  %12.4e  %12.4e  %12.4e\n", Node_1->GetSlope1().x(), Node_1->GetSlope1().y(),
+               Node_1->GetSlope1().z());
 
         // Get direction of constraint (in body local frame) and convert to global frame
         ChVector3d dirB = Body_2->TransformDirectionLocalToParent(constraint_dir->GetDirection());

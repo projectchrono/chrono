@@ -24,9 +24,9 @@
 // link the library to your code, and the symbols will be imported.
 
 #if defined(CH_API_COMPILE_PARDISOPROJECT)
-#define ChApiPardisoProject ChApiEXPORT
+    #define ChApiPardisoProject ChApiEXPORT
 #else
-#define ChApiPardisoProject ChApiIMPORT
+    #define ChApiPardisoProject ChApiIMPORT
 #endif
 
 /**

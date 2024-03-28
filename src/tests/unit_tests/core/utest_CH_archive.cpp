@@ -101,13 +101,13 @@ void assemble_pendulum(ChSystemNSC& system) {
     auto floor = chrono_types::make_shared<ChBody>();
     floor->SetFixed(true);
     floor->SetName("floor");
-    floor->SetIdentifier(100);
+    floor->SetTag(100);
     system.Add(floor);
 
     auto moving_body = chrono_types::make_shared<ChBody>();
     moving_body->SetPos(ChVector3d(1.0, -1.0, 1.0));
     moving_body->SetName("moving_body");
-    moving_body->SetIdentifier(101);
+    moving_body->SetTag(101);
     system.Add(moving_body);
 
     auto link = chrono_types::make_shared<ChLinkMateRevolute>();
@@ -140,8 +140,7 @@ void assemble_gear_and_pulleys(ChSystemNSC& sys) {
     mbody_truss->SetPos(ChVector3d(0, 0, 3));
 
     // ...the first gear
-    auto mbody_gearA =
-        chrono_types::make_shared<ChBodyEasyCylinder>(ChAxis::Y, radA, 0.5, 1000, true, false, mat);
+    auto mbody_gearA = chrono_types::make_shared<ChBodyEasyCylinder>(ChAxis::Y, radA, 0.5, 1000, true, false, mat);
     // auto mbody_gearA = chrono_types::make_shared<ChBodyEasyBox>(20, 10, 2, 1000, true, false, mat);
     sys.Add(mbody_gearA);
     mbody_gearA->SetPos(ChVector3d(0, 0, -1));
@@ -156,8 +155,7 @@ void assemble_gear_and_pulleys(ChSystemNSC& sys) {
 
     // ...the second gear
     double interaxis12 = radA + radB;
-    auto mbody_gearB =
-        chrono_types::make_shared<ChBodyEasyCylinder>(ChAxis::Y, radB, 0.4, 1000, true, false, mat);
+    auto mbody_gearB = chrono_types::make_shared<ChBodyEasyCylinder>(ChAxis::Y, radB, 0.4, 1000, true, false, mat);
     sys.Add(mbody_gearB);
     mbody_gearB->SetPos(ChVector3d(interaxis12, 0, -1));
     mbody_gearB->SetRot(QuatFromAngleAxis(CH_PI / 2, VECT_X));
@@ -184,7 +182,7 @@ void assemble_pendulum_visual(ChSystemNSC& system) {
     auto floor = chrono_types::make_shared<ChBody>();
     floor->SetFixed(true);
     floor->SetName("floor");
-    floor->SetIdentifier(100);
+    floor->SetTag(100);
     system.Add(floor);
 
     auto mat = chrono_types::make_shared<ChContactMaterialNSC>();
@@ -201,7 +199,7 @@ void assemble_pendulum_visual(ChSystemNSC& system) {
     // auto moving_body = chrono_types::make_shared<ChBody>();
     moving_body->SetPos(ChVector3d(1.0, -1.0, 1.0));
     moving_body->SetName("moving_body");
-    moving_body->SetIdentifier(101);
+    moving_body->SetTag(101);
     system.Add(moving_body);
 
     // auto link = chrono_types::make_shared<ChLinkMateRevolute>();
@@ -321,13 +319,13 @@ TEST(ChArchiveJSON, Pendulum) {
         auto floor = chrono_types::make_shared<ChBody>();
         floor->SetFixed(true);
         floor->SetName("floor");
-        floor->SetIdentifier(100);
+        floor->SetTag(100);
         system.Add(floor);
 
         auto moving_body = chrono_types::make_shared<ChBody>();
         moving_body->SetPos(ChVector3d(1.0, -1.0, 1.0));
         moving_body->SetName("moving_body");
-        moving_body->SetIdentifier(101);
+        moving_body->SetTag(101);
         system.Add(moving_body);
 
         std::ofstream mfileo("ChArchiveJSON_Pendulum.json");
@@ -475,7 +473,7 @@ TEST(ChArchiveJSON, nullpointers) {
 //         // Create shaft A, with applied torque
 //         auto shaftA = chrono_types::make_shared<ChShaft>();
 //         shaftA->SetInertia(0.5);
-//         shaftA->SetAppliedTorque(10);
+//         shaftA->SetAppliedLoad(10);
 //         system.Add(shaftA);
 //
 //         // Create shaft B
@@ -485,7 +483,7 @@ TEST(ChArchiveJSON, nullpointers) {
 //
 //         // Create shaft C, that will be fixed (to be used as truss of epicycloidal reducer)
 //         auto shaftC = chrono_types::make_shared<ChShaft>();
-//         shaftC->SetShaftFixed(true);
+//         shaftC->SetFixed(true);
 //         system.Add(shaftC);
 //
 //         // Create a ChShaftsPlanetary, that represents a simplified model
@@ -505,7 +503,7 @@ TEST(ChArchiveJSON, nullpointers) {
 //         // Now, let's make a shaft D, that is fixed, and used for the right side
 //         // of a clutch (so the clutch will act as a brake).
 //         auto shaftD = chrono_types::make_shared<ChShaft>();
-//         shaftD->SetShaftFixed(true);
+//         shaftD->SetFixed(true);
 //         system.Add(shaftD);
 //
 //         // Make the brake. It is, in fact a clutch between shafts B and D, where

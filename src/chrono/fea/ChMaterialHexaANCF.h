@@ -50,7 +50,7 @@ class ChApi ChMaterialHexaANCF {
     /// Calculate the matrix form of 6x6 stiffness tensor
     void Calc_D(const ChVector3d& E, const ChVector3d& nu, const ChVector3d& G);
 
-    double m_rho;                  ///< density
+    double m_rho;     ///< density
     ChMatrix66d m_D;  ///< matrix of elastic coefficients
 
   public:

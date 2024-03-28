@@ -32,16 +32,16 @@ namespace fea {
 /// @{
 
 /// Laminated thick shell with geometrically exact kinematics, with 4 nodes.
-/// It generalizes the Reissner thick shell theory (in fact each layer requires 
+/// It generalizes the Reissner thick shell theory (in fact each layer requires
 /// a ChMaterialShellReissner) by using the Chroscielewski 6-dof field shell theory
 /// as discussed in:
 ///
-/// Wojciech Witkowski, "4-Node combined shell element with semi-EAS-ANS strain interpolations 
+/// Wojciech Witkowski, "4-Node combined shell element with semi-EAS-ANS strain interpolations
 /// in 6-parameter shell theories with drilling degrees of freedom", Comp.Mech 2009.
-/// 
+///
 /// This specific implementation is based on the paper:
 ///
-/// Marco Morandini, Pierangelo Masarati, "Implementation and validation of 
+/// Marco Morandini, Pierangelo Masarati, "Implementation and validation of
 /// a 4-node shell finite element", IDETC/CIE 2014.
 ///
 /// The node numbering is in ccw fashion as in the following scheme:
@@ -80,7 +80,7 @@ class ChApi ChElementShellReissner4 : public ChElementShell, public ChLoadableUV
               double thickness,                                  ///< layer thickness
               double theta,                                      ///< fiber angle
               std::shared_ptr<ChMaterialShellReissner> material  ///< layer material
-              );
+        );
 
         /// Initial setup for this layer
         void SetupInitial();
@@ -144,7 +144,7 @@ class ChApi ChElementShellReissner4 : public ChElementShell, public ChLoadableUV
     void AddLayer(double thickness,                                  ///< layer thickness
                   double theta,                                      ///< fiber angle (radians)
                   std::shared_ptr<ChMaterialShellReissner> material  ///< layer material
-                  );
+    );
 
     /// Impose the reference z level of shell element as centered along the total thickness.
     /// This is the default behavior each time you call AddLayer();
@@ -162,8 +162,8 @@ class ChApi ChElementShellReissner4 : public ChElementShell, public ChLoadableUV
     const Layer& GetLayer(size_t i) const { return m_layers[i]; }
 
     /// Set the structural damping: this is the Rayleigh "alpha"
-	/// ***OBSOLETE*** create a ChDampingReissnerRayleigh object and add to layer material to have the same effect
-    ///void SetAlphaDamp(double a) { m_Alpha = a; } 
+    /// ***OBSOLETE*** create a ChDampingReissnerRayleigh object and add to layer material to have the same effect
+    /// void SetAlphaDamp(double a) { m_Alpha = a; }
 
     /// Get the element length in the X direction.
     double GetLengthX() const { return m_lenX; }
@@ -213,9 +213,9 @@ class ChApi ChElementShellReissner4 : public ChElementShell, public ChLoadableUV
     std::vector<Layer> m_layers;     ///< element layers
     std::vector<double> m_layers_z;  ///< layer separation z values (not scaled, default centered tot thickness)
 
-    double tot_thickness;                         ///< total element thickness
-    double m_lenX;                                ///< element length in X direction
-    double m_lenY;                                ///< element length in Y direction
+    double tot_thickness;  ///< total element thickness
+    double m_lenX;         ///< element length in X direction
+    double m_lenY;         ///< element length in Y direction
 
     ChMatrixNM<double, 24, 24> m_MassMatrix;      ///< mass matrix
     ChMatrixNM<double, 24, 24> m_JacobianMatrix;  ///< Jacobian matrix (Kfactor*[K] + Rfactor*[R])
@@ -374,7 +374,7 @@ class ChApi ChElementShellReissner4 : public ChElementShell, public ChLoadableUV
     ChVectorN<double, 12> epsilon;
 
     // Reference constitutive law tangent matrices
-    //ChMatrixNM<double, 12, 12> DRef[NUMIP];
+    // ChMatrixNM<double, 12, 12> DRef[NUMIP];
 
     // stress
     ChVectorN<double, 12> stress_i[NUMIP];
@@ -420,14 +420,9 @@ class ChApi ChElementShellReissner4 : public ChElementShell, public ChLoadableUV
                                              ChVector3d& u_displ,
                                              ChVector3d& u_rotaz) override;
 
-    virtual void EvaluateSectionFrame(const double u,
-                                      const double v,
-                                      ChVector3d& point,
-                                      ChQuaternion<>& rot) override;
+    virtual void EvaluateSectionFrame(const double u, const double v, ChVector3d& point, ChQuaternion<>& rot) override;
 
-    virtual void EvaluateSectionPoint(const double u,
-                                      const double v,
-                                      ChVector3d& point) override;
+    virtual void EvaluateSectionPoint(const double u, const double v, ChVector3d& point) override;
 
     // Internal computations
     // ---------------------
@@ -461,7 +456,11 @@ class ChApi ChElementShellReissner4 : public ChElementShell, public ChLoadableUV
     virtual void LoadableGetStateBlockVelLevel(int block_offset, ChStateDelta& mD) override;
 
     /// Increment all DOFs using a delta.
-    virtual void LoadableStateIncrement(const unsigned int off_x, ChState& x_new, const ChState& x, const unsigned int off_v, const ChStateDelta& Dv) override;
+    virtual void LoadableStateIncrement(const unsigned int off_x,
+                                        ChState& x_new,
+                                        const ChState& x,
+                                        const unsigned int off_v,
+                                        const ChStateDelta& Dv) override;
 
     /// Number of coordinates in the interpolated field, ex=3 for a
     /// tetrahedron finite element or a cable, = 1 for a thermal problem, etc.
@@ -471,7 +470,9 @@ class ChApi ChElementShellReissner4 : public ChElementShell, public ChLoadableUV
     virtual unsigned int GetNumSubBlocks() override { return 4; }
 
     /// Get the offset of the specified sub-block of DOFs in global vector.
-    virtual unsigned int GetSubBlockOffset(unsigned int nblock) override { return m_nodes[nblock]->NodeGetOffsetVelLevel(); }
+    virtual unsigned int GetSubBlockOffset(unsigned int nblock) override {
+        return m_nodes[nblock]->NodeGetOffsetVelLevel();
+    }
 
     /// Get the size of the specified sub-block of DOFs in global vector.
     virtual unsigned int GetSubBlockSize(unsigned int nblock) override { return 6; }

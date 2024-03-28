@@ -82,8 +82,6 @@ class CH_MODELS_API Gator_TMeasyTire_Rear : public ChTMeasyTire {
     std::shared_ptr<ChVisualShapeTriangleMesh> m_trimesh_shape;
 };
 
-
-
 /// @} vehicle_models_gator
 
 }  // end namespace gator

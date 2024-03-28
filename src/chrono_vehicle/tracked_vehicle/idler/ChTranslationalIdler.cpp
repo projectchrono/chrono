@@ -54,7 +54,7 @@ void ChTranslationalIdler::Initialize(std::shared_ptr<ChChassis> chassis,
     idler_to_abs.ConcatenatePreTransformation(chassis->GetBody()->GetFrameRefToAbs());
 
     // Transform all points and directions to absolute frame.
-    std::vector<ChVector3d > points(NUM_POINTS);
+    std::vector<ChVector3d> points(NUM_POINTS);
 
     for (int i = 0; i < NUM_POINTS; i++) {
         ChVector3d rel_pos = GetLocation(static_cast<PointId>(i));
@@ -63,7 +63,7 @@ void ChTranslationalIdler::Initialize(std::shared_ptr<ChChassis> chassis,
 
     // Create and initialize the carrier body.
     m_carrier = chrono_types::make_shared<ChBody>();
-    m_carrier->SetNameString(m_name + "_carrier");
+    m_carrier->SetName(m_name + "_carrier");
     m_carrier->SetPos(points[CARRIER]);
     m_carrier->SetRot(idler_to_abs.GetRot());
     m_carrier->SetMass(GetCarrierMass());
@@ -79,15 +79,15 @@ void ChTranslationalIdler::Initialize(std::shared_ptr<ChChassis> chassis,
     // The axis of translation is pitched by the specified angle from the x axis
     // of the idler reference frame.
     m_prismatic = chrono_types::make_shared<ChLinkLockPrismatic>();
-    m_prismatic->SetNameString(m_name + "_prismatic");
-    m_prismatic->Initialize(chassis->GetBody(), m_carrier,
-                            ChFrame<>(points[CARRIER_CHASSIS],
-                                      idler_to_abs.GetRot() * QuatFromAngleY(CH_PI_2 + GetPrismaticPitchAngle())));
+    m_prismatic->SetName(m_name + "_prismatic");
+    m_prismatic->Initialize(
+        chassis->GetBody(), m_carrier,
+        ChFrame<>(points[CARRIER_CHASSIS], idler_to_abs.GetRot() * QuatFromAngleY(CH_PI_2 + GetPrismaticPitchAngle())));
     chassis->GetSystem()->AddLink(m_prismatic);
 
     // Create and initialize the tensioner force element.
     m_tensioner = chrono_types::make_shared<ChLinkTSDA>();
-    m_tensioner->SetNameString(m_name + "_tensioner");
+    m_tensioner->SetName(m_name + "_tensioner");
     m_tensioner->Initialize(chassis->GetBody(), m_carrier, false, points[TSDA_CHASSIS], points[TSDA_CARRIER]);
     m_tensioner->RegisterForceFunctor(GetTensionerForceCallback());
     m_tensioner->SetRestLength(GetTensionerFreeLength());
@@ -107,8 +107,8 @@ void ChTranslationalIdler::UpdateInertiaProperties() {
 
     // Calculate COM and inertia expressed in global frame
     utils::CompositeInertia composite;
-    composite.AddComponent(m_carrier->GetFrame_COG_to_abs(), m_carrier->GetMass(), m_carrier->GetInertia());
-    composite.AddComponent(m_idler_wheel->GetBody()->GetFrame_COG_to_abs(), m_idler_wheel->GetBody()->GetMass(),
+    composite.AddComponent(m_carrier->GetFrameCOMToAbs(), m_carrier->GetMass(), m_carrier->GetInertia());
+    composite.AddComponent(m_idler_wheel->GetBody()->GetFrameCOMToAbs(), m_idler_wheel->GetBody()->GetMass(),
                            m_idler_wheel->GetBody()->GetInertia());
 
     // Express COM and inertia in subsystem reference frame

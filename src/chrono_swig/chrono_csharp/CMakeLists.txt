@@ -104,9 +104,9 @@ function(add_csharp_postbuild_command target_name glob_dir binary_dir)
         add_custom_command(
             TARGET ${target_name} POST_BUILD
             COMMAND ${CMAKE_COMMAND} -E echo "Removing duplicate .cs files from ${target_name} (Unix-like)"
-            COMMAND for f in "${binary_dir}"/*.cs; do (
-                if [ -f "${glob_dir}"/$(basename "$f") ]; then (
-                    ${CMAKE_COMMAND} -E remove "${glob_dir}"/$(basename "$f")
+            COMMAND for f in \"${binary_dir}\"/*.cs; do (
+                if [ -f \"${glob_dir}\"/$(basename \"$f\") ]; then (
+                    ${CMAKE_COMMAND} -E remove \"${glob_dir}\"/$(basename \"$f\")
                 )
             ) done
             COMMENT "Removed all detected duplicate .cs files wrapped from ${target_name}"

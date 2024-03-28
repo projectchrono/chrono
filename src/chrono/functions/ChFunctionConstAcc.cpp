@@ -127,7 +127,7 @@ void ChFunctionConstAcc::SetAccelerationPoints(double acceleration1_end, double 
     if (acceleration1_end > acceleration2_start)
         throw std::invalid_argument("First acceleration ramp must end before starting the second.");
 
-    if (acceleration1_end < 0 || acceleration2_start<0 || acceleration1_end > 1 || acceleration2_start > 1)
+    if (acceleration1_end < 0 || acceleration2_start < 0 || acceleration1_end > 1 || acceleration2_start > 1)
         throw std::invalid_argument("Acceleration starts and ends should be between 0 and 1.");
 
     m_accel1_end = 0.0;

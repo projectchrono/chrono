@@ -21,9 +21,9 @@
 // code, and the symbols will be imported.
 
 #if defined(CH_API_COMPILE_MODELS)
-#define CH_MODELS_API ChApiEXPORT
+    #define CH_MODELS_API ChApiEXPORT
 #else
-#define CH_MODELS_API ChApiIMPORT
+    #define CH_MODELS_API ChApiIMPORT
 #endif
 
 /**
@@ -33,7 +33,7 @@
        @defgroup vehicle_models Vehicle models
        @brief Collection of concrete ground vehicle models
        @{
-         @defgroup vehicle_models_hmmwv HMMWV 
+         @defgroup vehicle_models_hmmwv HMMWV
          @defgroup vehicle_models_feda FED-alpha vehicle
          @defgroup vehicle_models_sedan Passenger car
          @defgroup vehicle_models_citybus City bus

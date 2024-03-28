@@ -115,7 +115,7 @@ class CH_MODELS_API BMW_E90 {
 
 /// @} vehicle_models_BMW_E90
 
-}  // end namespace BMW_E90
+}  // namespace bmw
 }  // end namespace vehicle
 }  // end namespace chrono
 

@@ -354,22 +354,22 @@ void ChLinkMarkers::ConstraintsFbLoadForces(double factor) {
         ChVector3d m_abs_force = m_body2->GetRotMat() * (marker2->GetRotMat() * C_force);
 
         auto w2_abs = m_body2->AppliedForceParentToWrenchParent(m_abs_force, marker1->GetAbsCoordsys().pos);
-        m_body2->Variables().Get_fb().segment(0, 3) -= factor * w2_abs.force.eigen();
-        m_body2->Variables().Get_fb().segment(3, 3) -=
+        m_body2->Variables().Force().segment(0, 3) -= factor * w2_abs.force.eigen();
+        m_body2->Variables().Force().segment(3, 3) -=
             factor * m_body2->TransformDirectionParentToLocal(w2_abs.torque).eigen();
 
         auto w1_abs = m_body1->AppliedForceParentToWrenchParent(m_abs_force, marker1->GetAbsCoordsys().pos);
-        m_body1->Variables().Get_fb().segment(0, 3) += factor * w1_abs.force.eigen();
-        m_body1->Variables().Get_fb().segment(3, 3) +=
+        m_body1->Variables().Force().segment(0, 3) += factor * w1_abs.force.eigen();
+        m_body1->Variables().Force().segment(3, 3) +=
             factor * m_body1->TransformDirectionParentToLocal(w1_abs.torque).eigen();
     }
 
     if (Vnotnull(C_torque)) {
         ChVector3d m_abs_torque = m_body2->GetRotMat() * (marker2->GetRotMat() * C_torque);
         // load torques in 'fb' vector accumulator of body variables (torques in local coords)
-        m_body1->Variables().Get_fb().segment(3, 3) +=
+        m_body1->Variables().Force().segment(3, 3) +=
             factor * m_body1->TransformDirectionParentToLocal(m_abs_torque).eigen();
-        m_body2->Variables().Get_fb().segment(3, 3) -=
+        m_body2->Variables().Force().segment(3, 3) -=
             factor * m_body2->TransformDirectionParentToLocal(m_abs_torque).eigen();
     }
 }

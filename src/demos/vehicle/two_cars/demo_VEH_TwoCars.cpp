@@ -111,8 +111,8 @@ int main(int argc, char* argv[]) {
     hmmwv_2.SetTireVisualizationType(VisualizationType::PRIMITIVES);
 
     std::vector<ChDataDriver::Entry> driver_data_2;
-    driver_data_2.push_back({0.0,  0.0, 0.0, 0.0, 0.0});
-    driver_data_2.push_back({0.5,  0.0, 0.0, 0.0, 0.0});
+    driver_data_2.push_back({0.0, 0.0, 0.0, 0.0, 0.0});
+    driver_data_2.push_back({0.5, 0.0, 0.0, 0.0, 0.0});
     driver_data_2.push_back({0.7, -0.3, 0.7, 0.0, 0.0});
     driver_data_2.push_back({1.0, -0.3, 0.7, 0.0, 0.0});
     driver_data_2.push_back({3.0, -0.5, 0.1, 0.0, 0.0});

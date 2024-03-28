@@ -19,7 +19,6 @@
 
 namespace chrono {
 
-
 // Register into the object factory, to enable run-time dynamic creation and persistence
 CH_FACTORY_REGISTER(ChCylinder)
 
@@ -90,6 +89,5 @@ void ChCylinder::ArchiveIn(ChArchiveIn& archive_in) {
     archive_in >> CHNVP(r);
     archive_in >> CHNVP(h);
 }
-
 
 }  // end namespace chrono

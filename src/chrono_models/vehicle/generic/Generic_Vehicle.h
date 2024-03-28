@@ -81,7 +81,7 @@ class CH_MODELS_API Generic_Vehicle : public ChWheeledVehicle {
     void CreateAndInitializePowertrain(EngineModelType engine_type, TransmissionModelType transmission_type);
 
     /// Log debugging information (shock forces and lengths, constraints, etc.).
-    void DebugLog(int what);      
+    void DebugLog(int what);
 
   private:
     std::shared_ptr<ChSuspension> ConstructSuspension(const std::string& name,

@@ -34,7 +34,6 @@ CH_SENSOR_API ChFilterVisualize::~ChFilterVisualize() {
 }
 
 CH_SENSOR_API void ChFilterVisualize::Apply() {
-
 #ifdef USE_SENSOR_GLFW
     if (!m_window && !m_window_disabled) {
         CreateGlfwWindow(Name());
@@ -54,6 +53,10 @@ CH_SENSOR_API void ChFilterVisualize::Apply() {
         } else if (m_bufferSemantic) {
             cudaMemcpyAsync(m_hostSemantic->Buffer.get(), m_bufferSemantic->Buffer.get(),
                             m_hostSemantic->Width * m_hostSemantic->Height * sizeof(PixelSemantic),
+                            cudaMemcpyDeviceToHost, m_cuda_stream);
+        } else if(m_bufferDepth) {
+             cudaMemcpyAsync(m_hostDepth->Buffer.get(), m_bufferDepth->Buffer.get(),
+                            m_hostDepth->Width * m_hostDepth->Height * sizeof(PixelDepth),
                             cudaMemcpyDeviceToHost, m_cuda_stream);
         } else if (m_bufferDI) {
             cudaMemcpyAsync(m_hostDI->Buffer.get(), m_bufferDI->Buffer.get(),
@@ -101,6 +104,9 @@ CH_SENSOR_API void ChFilterVisualize::Apply() {
         } else if (m_bufferSemantic) {
             glTexImage2D(GL_TEXTURE_2D, 0, GL_RG16, m_hostSemantic->Width, m_hostSemantic->Height, 0, GL_RG,
                          GL_UNSIGNED_SHORT, m_hostSemantic->Buffer.get());
+        } else if(m_bufferDepth) {
+             glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB32F, m_hostDepth->Width, m_hostDepth->Height, 0, GL_RED, GL_FLOAT,
+                         m_hostDepth->Buffer.get());
         } else if (m_bufferDI) {
             glTexImage2D(GL_TEXTURE_2D, 0, GL_RG32F, m_hostDI->Width, m_hostDI->Height, 0, GL_RG, GL_FLOAT,
                          m_hostDI->Buffer.get());
@@ -155,6 +161,7 @@ CH_SENSOR_API void ChFilterVisualize::Initialize(std::shared_ptr<ChSensor> pSens
     m_bufferSemantic = std::dynamic_pointer_cast<SensorDeviceSemanticBuffer>(bufferInOut);
     m_bufferDI = std::dynamic_pointer_cast<SensorDeviceDIBuffer>(bufferInOut);
     m_bufferRadar = std::dynamic_pointer_cast<SensorDeviceRadarBuffer>(bufferInOut);
+    m_bufferDepth = std::dynamic_pointer_cast<SensorDeviceDepthBuffer>(bufferInOut);
 
     if (m_bufferR8) {
         m_hostR8 = chrono_types::make_shared<SensorHostR8Buffer>();
@@ -179,6 +186,16 @@ CH_SENSOR_API void ChFilterVisualize::Initialize(std::shared_ptr<ChSensor> pSens
         m_hostSemantic->Buffer = std::move(b);
         m_hostSemantic->Width = m_bufferSemantic->Width;
         m_hostSemantic->Height = m_bufferSemantic->Height;
+
+    } else if (m_bufferDepth) {
+        m_hostDepth = chrono_types::make_shared<SensorHostDepthBuffer>();
+         std::shared_ptr<PixelDepth[]> b(
+            cudaHostMallocHelper<PixelDepth>(m_bufferDepth->Width * m_bufferDepth->Height),
+            cudaHostFreeHelper<PixelDepth>);
+        m_hostDepth->Buffer = std::move(b);
+        m_hostDepth->Width = m_bufferDepth->Width;
+        m_hostDepth->Height = m_bufferDepth->Height;
+
     } else if (m_bufferDI) {
         m_hostDI = chrono_types::make_shared<SensorHostDIBuffer>();
         std::shared_ptr<PixelDI[]> b(cudaHostMallocHelper<PixelDI>(m_bufferDI->Width * m_bufferDI->Height),

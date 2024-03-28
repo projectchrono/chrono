@@ -89,8 +89,8 @@ void ChLinkBeamIGAFrame::UpdateNodes() {
 }
 
 int ChLinkBeamIGAFrame::Initialize(std::vector<std::shared_ptr<fea::ChElementBeamIGA>>& melements,
-                                    std::shared_ptr<ChBodyFrame> body,
-                                    ChVector3d* pos) {
+                                   std::shared_ptr<ChBodyFrame> body,
+                                   ChVector3d* pos) {
     assert(body);
 
     m_beams = melements;
@@ -127,23 +127,23 @@ void ChLinkBeamIGAFrame::IntStateScatterReactions(const unsigned int off_L, cons
 }
 
 void ChLinkBeamIGAFrame::IntLoadResidual_CqL(const unsigned int off_L,    // offset in L multipliers
-                                              ChVectorDynamic<>& R,        // result: the R residual, R += c*Cq'*L
-                                              const ChVectorDynamic<>& L,  // the L vector
-                                              const double c               // a scaling factor
+                                             ChVectorDynamic<>& R,        // result: the R residual, R += c*Cq'*L
+                                             const ChVectorDynamic<>& L,  // the L vector
+                                             const double c               // a scaling factor
 ) {
     if (!IsActive())
         return;
 
-    // constraint1.MultiplyTandAdd(R, L(off_L + 0) * c);
-    constraint2.MultiplyTandAdd(R, L(off_L + 0) * c);
-    constraint3.MultiplyTandAdd(R, L(off_L + 1) * c);
+    // constraint1.AddJacobianTransposedTimesScalarInto(R, L(off_L + 0) * c);
+    constraint2.AddJacobianTransposedTimesScalarInto(R, L(off_L + 0) * c);
+    constraint3.AddJacobianTransposedTimesScalarInto(R, L(off_L + 1) * c);
 }
 
 void ChLinkBeamIGAFrame::IntLoadConstraint_C(const unsigned int off_L,  // offset in Qc residual
-                                              ChVectorDynamic<>& Qc,     // result: the Qc residual, Qc += c*C
-                                              const double c,            // a scaling factor
-                                              bool do_clamp,             // apply clamping to c*C?
-                                              double recovery_clamp      // value for min/max clamping of c*C
+                                             ChVectorDynamic<>& Qc,     // result: the Qc residual, Qc += c*C
+                                             const double c,            // a scaling factor
+                                             bool do_clamp,             // apply clamping to c*C?
+                                             double recovery_clamp      // value for min/max clamping of c*C
 ) {
     if (!IsActive())
         return;
@@ -176,50 +176,50 @@ void ChLinkBeamIGAFrame::IntLoadConstraint_C(const unsigned int off_L,  // offse
 }
 
 void ChLinkBeamIGAFrame::IntToDescriptor(const unsigned int off_v,
-                                          const ChStateDelta& v,
-                                          const ChVectorDynamic<>& R,
-                                          const unsigned int off_L,
-                                          const ChVectorDynamic<>& L,
-                                          const ChVectorDynamic<>& Qc) {
+                                         const ChStateDelta& v,
+                                         const ChVectorDynamic<>& R,
+                                         const unsigned int off_L,
+                                         const ChVectorDynamic<>& L,
+                                         const ChVectorDynamic<>& Qc) {
     if (!IsActive())
         return;
 
-    // constraint1.Set_l_i(L(off_L + 0));
-    constraint2.Set_l_i(L(off_L + 0));
-    constraint3.Set_l_i(L(off_L + 1));
+    // constraint1.SetLagrangeMultiplier(L(off_L + 0));
+    constraint2.SetLagrangeMultiplier(L(off_L + 0));
+    constraint3.SetLagrangeMultiplier(L(off_L + 1));
 
-    // constraint1.Set_b_i(Qc(off_L + 0));
-    constraint2.Set_b_i(Qc(off_L + 0));
-    constraint3.Set_b_i(Qc(off_L + 1));
+    // constraint1.SetRightHandSide(Qc(off_L + 0));
+    constraint2.SetRightHandSide(Qc(off_L + 0));
+    constraint3.SetRightHandSide(Qc(off_L + 1));
 }
 
 void ChLinkBeamIGAFrame::IntFromDescriptor(const unsigned int off_v,
-                                            ChStateDelta& v,
-                                            const unsigned int off_L,
-                                            ChVectorDynamic<>& L) {
+                                           ChStateDelta& v,
+                                           const unsigned int off_L,
+                                           ChVectorDynamic<>& L) {
     if (!IsActive())
         return;
 
-    // L(off_L + 0) = constraint1.Get_l_i();
-    L(off_L + 0) = constraint2.Get_l_i();
-    L(off_L + 1) = constraint3.Get_l_i();
+    // L(off_L + 0) = constraint1.GetLagrangeMultiplier();
+    L(off_L + 0) = constraint2.GetLagrangeMultiplier();
+    L(off_L + 1) = constraint3.GetLagrangeMultiplier();
 }
 
 // SOLVER INTERFACES
 
-void ChLinkBeamIGAFrame::InjectConstraints(ChSystemDescriptor& mdescriptor) {
+void ChLinkBeamIGAFrame::InjectConstraints(ChSystemDescriptor& descriptor) {
     // if (!IsActive())
     //	return;
 
-    // mdescriptor.InsertConstraint(&constraint1);
-    mdescriptor.InsertConstraint(&constraint2);
-    mdescriptor.InsertConstraint(&constraint3);
+    // descriptor.InsertConstraint(&constraint1);
+    descriptor.InsertConstraint(&constraint2);
+    descriptor.InsertConstraint(&constraint3);
 }
 
 void ChLinkBeamIGAFrame::ConstraintsBiReset() {
-    // constraint1.Set_b_i(0.);
-    constraint2.Set_b_i(0.);
-    constraint3.Set_b_i(0.);
+    // constraint1.SetRightHandSide(0.);
+    constraint2.SetRightHandSide(0.);
+    constraint3.SetRightHandSide(0.);
 }
 
 void ChLinkBeamIGAFrame::ConstraintsBiLoad_C(double factor, double recovery_clamp, bool do_clamp) {
@@ -238,9 +238,9 @@ void ChLinkBeamIGAFrame::ConstraintsBiLoad_C(double factor, double recovery_clam
 
     ChVector3d res = Arw.transpose() * (splinepoint - m_body->TransformPointLocalToParent(m_csys.pos));
 
-    // constraint1.Set_b_i(constraint1.Get_b_i() + factor * res.x());
-    constraint2.Set_b_i(constraint2.Get_b_i() + factor * res.y());
-    constraint3.Set_b_i(constraint3.Get_b_i() + factor * res.z());
+    // constraint1.SetRightHandSide(constraint1.GetRightHandSide() + factor * res.x());
+    constraint2.SetRightHandSide(constraint2.GetRightHandSide() + factor * res.y());
+    constraint3.SetRightHandSide(constraint3.GetRightHandSide() + factor * res.z());
 }
 
 void ChLinkBeamIGAFrame::ConstraintsBiLoad_Ct(double factor) {
@@ -250,7 +250,7 @@ void ChLinkBeamIGAFrame::ConstraintsBiLoad_Ct(double factor) {
     // nothing
 }
 
-void ChLinkBeamIGAFrame::ConstraintsLoadJacobians() {
+void ChLinkBeamIGAFrame::LoadConstraintJacobians() {
     // compute jacobians
     ChMatrix33<> Aro(m_csys.rot);
     ChMatrix33<> Aow(m_body->GetRot());
@@ -273,8 +273,8 @@ void ChLinkBeamIGAFrame::ConstraintsLoadJacobians() {
 
     ChVectorDynamic<> N((int)this->m_nodes.size());
     ChBasisToolsBSpline::BasisEvaluate(this->order, nspan, this->tau,
-                                                 this->m_beams[this->active_element]->GetKnotSequence(),
-                                                 N);  ///< here return  in N
+                                       this->m_beams[this->active_element]->GetKnotSequence(),
+                                       N);  ///< here return  in N
 
     ChMatrix33<> ArwT_N;
     for (int i = 0; i < this->m_nodes.size(); ++i) {
@@ -293,9 +293,9 @@ void ChLinkBeamIGAFrame::ConstraintsLoadJacobians() {
 
 void ChLinkBeamIGAFrame::ConstraintsFetch_react(double factor) {
     // From constraints to react vector:
-    // m_react.x() = constraint1.Get_l_i() * factor;
-    m_react.y() = constraint2.Get_l_i() * factor;
-    m_react.z() = constraint3.Get_l_i() * factor;
+    // m_react.x() = constraint1.GetLagrangeMultiplier() * factor;
+    m_react.y() = constraint2.GetLagrangeMultiplier() * factor;
+    m_react.z() = constraint3.GetLagrangeMultiplier() * factor;
 }
 
 // FILE I/O

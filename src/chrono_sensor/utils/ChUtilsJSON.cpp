@@ -138,7 +138,8 @@ std::shared_ptr<ChCameraSensor> ReadCameraSensorJSON(const std::string& filename
     assert(d.HasMember("Template"));
     std::string subtype = d["Template"].GetString();
     if (subtype.compare("Camera") != 0) {
-        throw std::invalid_argument("ChUtilsJSON::ReadCameraSensorJSON: Sensor type of " + subtype + " must be Camera.");
+        throw std::invalid_argument("ChUtilsJSON::ReadCameraSensorJSON: Sensor type of " + subtype +
+                                    " must be Camera.");
     }
 
     // Read sensor properties
@@ -238,7 +239,7 @@ std::shared_ptr<ChAccelerometerSensor> ReadAccelerometerSensorJSON(const std::st
     std::string subtype = d["Template"].GetString();
     if (subtype.compare("Accelerometer") != 0) {
         throw std::invalid_argument("ChUtilsJSON::ReadAccelerometerSensorJSON: Sensor type of " + subtype +
-                          " must be Accelerometer.");
+                                    " must be Accelerometer.");
     }
 
     // Read sensor properties
@@ -279,7 +280,8 @@ std::shared_ptr<ChGyroscopeSensor> ReadGyroscopeSensorJSON(const std::string& fi
     assert(d.HasMember("Template"));
     std::string subtype = d["Template"].GetString();
     if (subtype.compare("Gyroscope") != 0) {
-        throw std::invalid_argument("ChUtilsJSON::ReadGyroscopeSensorJSON: Sensor type of " + subtype + " must be Gyroscope.");
+        throw std::invalid_argument("ChUtilsJSON::ReadGyroscopeSensorJSON: Sensor type of " + subtype +
+                                    " must be Gyroscope.");
     }
 
     // Read sensor properties
@@ -321,7 +323,7 @@ std::shared_ptr<ChMagnetometerSensor> ReadMagnetometerSensorJSON(const std::stri
     std::string subtype = d["Template"].GetString();
     if (subtype.compare("Magnetometer") != 0) {
         throw std::invalid_argument("ChUtilsJSON::ReadMagnetometerSensorJSON: Sensor type of " + subtype +
-                          " must be Magnetometer.");
+                                    " must be Magnetometer.");
     }
 
     // Read sensor properties

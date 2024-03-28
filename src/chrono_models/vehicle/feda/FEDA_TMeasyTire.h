@@ -32,7 +32,7 @@ namespace feda {
 
 /// TMeasy tire model for the FED Alpha.
 class CH_MODELS_API FEDA_TMeasyTire : public ChTMeasyTire {
-   public:
+  public:
     FEDA_TMeasyTire(const std::string& name);
     ~FEDA_TMeasyTire() {}
 
@@ -47,7 +47,7 @@ class CH_MODELS_API FEDA_TMeasyTire : public ChTMeasyTire {
 
     void GenerateCharacteristicPlots(const std::string& dirname);
 
-   private:
+  private:
     static const double m_mass;
     static const ChVector3d m_inertia;
 
@@ -65,5 +65,3 @@ class CH_MODELS_API FEDA_TMeasyTire : public ChTMeasyTire {
 }  // end namespace chrono
 
 #endif
-
-

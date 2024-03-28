@@ -110,7 +110,7 @@ void ChChaseCamera::Zoom(int val) {
             SetState(Chase);
         return;
     }
-        
+
     if (m_state == Chase || m_state == Follow) {
         if (val < 0 && m_mult > m_minMult)
             m_mult /= 1.01;
@@ -127,7 +127,6 @@ void ChChaseCamera::Zoom(int val) {
         else
             m_mult -= 0.01;
     }
-
 }
 
 void ChChaseCamera::Raise(int val) {
@@ -212,7 +211,7 @@ ChVector3d ChChaseCamera::GetTargetPos() const {
         return m_chassis->GetFrameRefToAbs().TransformPointLocalToParent(m_driverCsys.pos);
     }
 
-    if(m_state == Free) {
+    if (m_state == Free) {
         ChMatrix33<> rot(m_angle, m_up);
         return m_loc + rot.GetAxisX() * 1.0;
     }

@@ -25,11 +25,8 @@ class ChSystem;
 
 /// Base class for joints between two ChBodyFrame objects.
 ///
-/// Links (joints) are objects which can be created to constrain two rigid bodies
-/// (i.e. objects from the ChBody class) in 3D space.
-///
-/// Note that there are many specializations of this base class. In fact, this base
-/// ChLink class does basically nothing, unless it is specialized by some child class.
+/// ChLink objects can constrain the motion in the 3D space of ChBodyFrame objects, most often rigid bodies
+/// (ChBody and derived).
 class ChApi ChLink : public ChLinkBase {
   public:
     ChLink() : m_body1(NULL), m_body2(NULL), react_force(VNULL), react_torque(VNULL) {}

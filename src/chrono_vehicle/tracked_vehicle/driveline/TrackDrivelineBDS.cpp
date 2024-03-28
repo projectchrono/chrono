@@ -13,7 +13,7 @@
 // =============================================================================
 //
 // Track driveline model template based on ChShaft objects using data from file
-// (JSON format). 
+// (JSON format).
 //
 // =============================================================================
 
@@ -28,7 +28,8 @@ namespace vehicle {
 // -----------------------------------------------------------------------------
 // -----------------------------------------------------------------------------
 TrackDrivelineBDS::TrackDrivelineBDS(const std::string& filename) : ChTrackDrivelineBDS("") {
-    Document d; ReadFileJSON(filename, d);
+    Document d;
+    ReadFileJSON(filename, d);
     if (d.IsNull())
         return;
 

@@ -53,20 +53,19 @@ class ChApi ChContinuumMaterial {
 
 class ChApi ChContinuumElastic : public ChContinuumMaterial {
   private:
-    double m_E;                              ///< Young Modulus
-    double m_poisson;                        ///< Poisson ratio
-    double m_lamefirst;                      ///< Lame's first parameter
+    double m_E;                            ///< Young Modulus
+    double m_poisson;                      ///< Poisson ratio
+    double m_lamefirst;                    ///< Lame's first parameter
     ChMatrixDynamic<> StressStrainMatrix;  ///< Elasticity (stiffness) matrix :   = [E] ε
 
     double m_rayl_damping_alpha;  ///< Rayleigh damping coeff, M proportional
     double m_rayl_damping_beta;   ///< Rayleigh damping coeff, K proportional
 
   public:
-
     ChContinuumElastic(double young = 10000000, double poisson = 0.4, double density = 1000);
-    
+
     ChContinuumElastic(const ChContinuumElastic& other);
-    
+
     virtual ~ChContinuumElastic() {}
 
     /// Set the Young elastic modulus, in Pa (N/m^2), as the ratio of the uniaxial

@@ -24,7 +24,11 @@ ChVisualShapeBarrel::ChVisualShapeBarrel() {
     SetMutable(false);
 }
 
-ChVisualShapeBarrel::ChVisualShapeBarrel(double Y_low, double Y_high, double axis_vert, double axis_hor, double R_offset)
+ChVisualShapeBarrel::ChVisualShapeBarrel(double Y_low,
+                                         double Y_high,
+                                         double axis_vert,
+                                         double axis_hor,
+                                         double R_offset)
     : Hlow(Y_low), Hsup(Y_high), Rvert(axis_vert / 2), Rhor(axis_hor / 2), Roffset(R_offset) {
     SetMutable(false);
 }

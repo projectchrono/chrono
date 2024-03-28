@@ -39,7 +39,7 @@ const ChVector3d Sedan_TMsimpleTire::m_inertia(0.156, 0.679, 0.156);
 // -----------------------------------------------------------------------------
 Sedan_TMsimpleTire::Sedan_TMsimpleTire(const std::string& name) : ChTMsimpleTire(name) {
     SetTMsimpleParams();
-    if(GetName().compare("FL") == 0) {
+    if (GetName().compare("FL") == 0) {
         WritePlots("sedan.plt", "sedan");
     }
 }
@@ -96,4 +96,3 @@ void Sedan_TMsimpleTire::RemoveVisualizationAssets() {
 }  // end namespace sedan
 }  // end namespace vehicle
 }  // end namespace chrono
-

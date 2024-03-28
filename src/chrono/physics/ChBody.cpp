@@ -43,7 +43,6 @@ ChBody::ChBody()
       Xtorque(VNULL),
       Force_acc(VNULL),
       Torque_acc(VNULL) {
-
     marklist.clear();
     forcelist.clear();
 
@@ -66,7 +65,6 @@ ChBody::ChBody(const ChBody& other) : ChPhysicsItem(other), ChBodyFrame(other) {
     is_sleeping = other.is_sleeping;
     allow_sleeping = other.allow_sleeping;
     candidate_sleeping = other.candidate_sleeping;
-
 
     variables = other.variables;
     variables.SetUserData((void*)this);
@@ -220,56 +218,56 @@ void ChBody::IntToDescriptor(const unsigned int off_v,
                              const unsigned int off_L,
                              const ChVectorDynamic<>& L,
                              const ChVectorDynamic<>& Qc) {
-    variables.Get_qb() = v.segment(off_v, 6);
-    variables.Get_fb() = R.segment(off_v, 6);
+    variables.State() = v.segment(off_v, 6);
+    variables.Force() = R.segment(off_v, 6);
 }
 
 void ChBody::IntFromDescriptor(const unsigned int off_v,  // offset in v
                                ChStateDelta& v,
                                const unsigned int off_L,  // offset in L
                                ChVectorDynamic<>& L) {
-    v.segment(off_v, 6) = variables.Get_qb();
+    v.segment(off_v, 6) = variables.State();
 }
 
 ////
 
-void ChBody::InjectVariables(ChSystemDescriptor& mdescriptor) {
+void ChBody::InjectVariables(ChSystemDescriptor& descriptor) {
     variables.SetDisabled(!IsActive());
 
-    mdescriptor.InsertVariables(&variables);
+    descriptor.InsertVariables(&variables);
 }
 
 void ChBody::VariablesFbReset() {
-    variables.Get_fb().setZero();
+    variables.Force().setZero();
 }
 
 void ChBody::VariablesFbLoadForces(double factor) {
     // add applied forces to 'fb' vector
-    variables.Get_fb().segment(0, 3) += factor * Xforce.eigen();
+    variables.Force().segment(0, 3) += factor * Xforce.eigen();
 
     // add applied torques to 'fb' vector, including gyroscopic torque
     if (!IsUsingGyroTorque())
-        variables.Get_fb().segment(3, 3) += factor * Xtorque.eigen();
+        variables.Force().segment(3, 3) += factor * Xtorque.eigen();
     else
-        variables.Get_fb().segment(3, 3) += factor * (Xtorque - gyro).eigen();
+        variables.Force().segment(3, 3) += factor * (Xtorque - gyro).eigen();
 }
 
 void ChBody::VariablesFbIncrementMq() {
-    variables.Compute_inc_Mb_v(variables.Get_fb(), variables.Get_qb());
+    variables.AddMassTimesVector(variables.Force(), variables.State());
 }
 
 void ChBody::VariablesQbLoadSpeed() {
     // set current speed in 'qb', it can be used by the solver when working in incremental mode
-    variables.Get_qb().segment(0, 3) = GetCoordsysDt().pos.eigen();
-    variables.Get_qb().segment(3, 3) = GetAngVelLocal().eigen();
+    variables.State().segment(0, 3) = GetCoordsysDt().pos.eigen();
+    variables.State().segment(3, 3) = GetAngVelLocal().eigen();
 }
 
 void ChBody::VariablesQbSetSpeed(double step) {
     ChCoordsys<> old_coord_dt = GetCoordsysDt();
 
     // from 'qb' vector, sets body speed, and updates auxiliary data
-    SetPosDt(variables.Get_qb().segment(0, 3));
-    SetAngVelLocal(variables.Get_qb().segment(3, 3));
+    SetPosDt(variables.State().segment(0, 3));
+    SetAngVelLocal(variables.State().segment(3, 3));
 
     // apply limits (if in speed clamping mode) to speeds.
     ClampSpeed();
@@ -291,8 +289,8 @@ void ChBody::VariablesQbIncrementPosition(double dt_step) {
     // Updates position with incremental action of speed contained in the
     // 'qb' vector:  pos' = pos + dt * speed   , like in an Euler step.
 
-    ChVector3d newspeed(variables.Get_qb().segment(0, 3));
-    ChVector3d newwel(variables.Get_qb().segment(3, 3));
+    ChVector3d newspeed(variables.State().segment(0, 3));
+    ChVector3d newwel(variables.State().segment(3, 3));
 
     // ADVANCE POSITION: pos' = pos + dt * vel
     SetPos(GetPos() + newspeed * dt_step);
@@ -317,7 +315,7 @@ void ChBody::ForceToRest() {
 
 ////
 void ChBody::ClampSpeed() {
-    if (GetLimitSpeed()) {
+    if (limit_speed) {
         double w = 2.0 * GetRotDt().Length();
         if (w > max_wvel)
             GetRotDt() *= max_wvel / w;
@@ -413,7 +411,7 @@ bool ChBody::TrySleeping() {
         if ((GetPosDt().LengthInf() < sleep_minspeed) && (2.0 * GetRotDt().LengthInf() < sleep_minwvel)) {
             if ((GetChTime() - sleep_starttime) > sleep_time) {
                 candidate_sleeping = true;
-                return true;                           // could go to sleep!
+                return true;  // could go to sleep!
             }
         } else {
             sleep_starttime = float(GetChTime());
@@ -502,7 +500,7 @@ void ChBody::RemoveAllMarkers() {
 
 std::shared_ptr<ChMarker> ChBody::SearchMarker(const std::string& name) const {
     auto marker = std::find_if(std::begin(marklist), std::end(marklist),
-                               [name](std::shared_ptr<ChMarker> marker) { return marker->GetNameString() == name; });
+                               [name](std::shared_ptr<ChMarker> marker) { return marker->GetName() == name; });
     return (marker != std::end(marklist)) ? *marker : nullptr;
 }
 
@@ -514,7 +512,7 @@ std::shared_ptr<ChMarker> ChBody::SearchMarker(int id) const {
 
 std::shared_ptr<ChForce> ChBody::SearchForce(const std::string& name) const {
     auto force = std::find_if(std::begin(forcelist), std::end(forcelist),
-                              [name](std::shared_ptr<ChForce> force) { return force->GetNameString() == name; });
+                              [name](std::shared_ptr<ChForce> force) { return force->GetName() == name; });
     return (force != std::end(forcelist)) ? *force : nullptr;
 }
 
@@ -597,10 +595,6 @@ bool ChBody::IsFixed() const {
 
 void ChBody::SetLimitSpeed(bool state) {
     limit_speed = state;
-}
-
-bool ChBody::GetLimitSpeed() const {
-    return limit_speed;
 }
 
 void ChBody::SetUseGyroTorque(bool state) {

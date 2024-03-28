@@ -32,7 +32,7 @@ namespace man {
 
 /// TMeasy tire model for the U401.
 class CH_MODELS_API MAN_5t_TMsimpleTire : public ChTMsimpleTire {
-   public:
+  public:
     MAN_5t_TMsimpleTire(const std::string& name);
     ~MAN_5t_TMsimpleTire() {}
 
@@ -47,7 +47,7 @@ class CH_MODELS_API MAN_5t_TMsimpleTire : public ChTMsimpleTire {
 
     void GenerateCharacteristicPlots(const std::string& dirname);
 
-   private:
+  private:
     static const double m_mass;
     static const ChVector3d m_inertia;
 
@@ -60,9 +60,8 @@ class CH_MODELS_API MAN_5t_TMsimpleTire : public ChTMsimpleTire {
 
 /// @} vehicle_models_man
 
-}  // namespace hmmwv
+}  // namespace man
 }  // end namespace vehicle
 }  // end namespace chrono
 
 #endif
-

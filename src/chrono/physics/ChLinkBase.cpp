@@ -18,7 +18,7 @@
 namespace chrono {
 
 // Register into the object factory, to enable run-time dynamic creation and persistence
-//CH_FACTORY_REGISTER(ChLinkBase)   // NO! Abstract class!
+// CH_FACTORY_REGISTER(ChLinkBase)   // NO! Abstract class!
 
 ChLinkBase::ChLinkBase(const ChLinkBase& other) : ChPhysicsItem(other) {
     disabled = other.disabled;
@@ -41,7 +41,7 @@ void ChLinkBase::ArchiveOut(ChArchiveOut& archive_out) {
 
 void ChLinkBase::ArchiveIn(ChArchiveIn& archive_in) {
     // version number
-    /*int version =*/ archive_in.VersionRead<ChLinkBase>();
+    /*int version =*/archive_in.VersionRead<ChLinkBase>();
 
     // deserialize parent class
     ChPhysicsItem::ArchiveIn(archive_in);

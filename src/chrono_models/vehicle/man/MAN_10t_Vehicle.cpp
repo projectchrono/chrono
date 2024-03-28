@@ -224,7 +224,7 @@ void MAN_10t_Vehicle::DebugLog(int what) {
                      m_axles[axle]->m_suspension->ReportSuspensionForce(static_cast<VehicleSide>(side))) {
                     std::cout << axlePosition << " " << (side == LEFT ? "Left " : "Right") << " ";
                     std::cout << forceTSDA.name << std::string(10 - std::max(0, (int)forceTSDA.name.size()), ' ')
-                             << " Length: " << forceTSDA.length << " m, Force: " << forceTSDA.force << " N\n";
+                              << " Length: " << forceTSDA.length << " m, Force: " << forceTSDA.force << " N\n";
                 }
             }
         }

@@ -40,10 +40,7 @@ class ChSystemGpuMesh_impl;
 class CH_GPU_API ChSystemGpu {
   public:
     /// Construct system with given sphere radius, density, big domain dimensions and center.
-    ChSystemGpu(float sphere_rad,
-                float density,
-                const ChVector3f& boxDims,
-                ChVector3f O = ChVector3f(0));
+    ChSystemGpu(float sphere_rad, float density, const ChVector3f& boxDims, ChVector3f O = ChVector3f(0));
 
     /// Construct system with a checkpoint file.
     ChSystemGpu(const std::string& checkpoint);
@@ -186,11 +183,7 @@ class CH_GPU_API ChSystemGpu {
     void SetVerbosity(CHGPU_VERBOSITY level);
 
     /// Create an axis-aligned sphere boundary condition.
-    size_t CreateBCSphere(const ChVector3f& center,
-                          float radius,
-                          bool outward_normal,
-                          bool track_forces,
-                          float mass);
+    size_t CreateBCSphere(const ChVector3f& center, float radius, bool outward_normal, bool track_forces, float mass);
 
     // void UpdateBCSpherePosition(size_t sphere_bc_id, ChVector3d position);
 
@@ -350,7 +343,6 @@ class CH_GPU_API ChSystemGpu {
     /// Get current estimated RTF (real time factor).
     float GetRTF() const { return m_RTF; }
 
-
   protected:
     /// Protected default constructor.  Derived class must create m_sys.
     ChSystemGpu() : m_sys(nullptr) {}
@@ -396,7 +388,7 @@ class CH_GPU_API ChSystemGpu {
     /// Set gravitational acceleration as a float3 vector.
     void SetGravitationalAcceleration(const float3 g);
 
-    ChTimer m_timer; 
+    ChTimer m_timer;
     float m_RTF;  // real-time factor
 };
 
@@ -406,10 +398,7 @@ class CH_GPU_API ChSystemGpu {
 class CH_GPU_API ChSystemGpuMesh : public ChSystemGpu {
   public:
     /// Construct system with given sphere radius, density, big domain dimensions and center.
-    ChSystemGpuMesh(float sphere_rad,
-                    float density,
-                    const ChVector3f& boxDims,
-                    ChVector3f O = ChVector3f(0));
+    ChSystemGpuMesh(float sphere_rad, float density, const ChVector3f& boxDims, ChVector3f O = ChVector3f(0));
 
     /// Construct system with a checkpoint file.
     ChSystemGpuMesh(const std::string& checkpoint);
@@ -528,9 +517,9 @@ class CH_GPU_API ChSystemGpuMesh : public ChSystemGpu {
     /// Set triangle meshes in underlying GPU system.
     void SetMeshes();
 
-    CHGPU_MESH_VERBOSITY mesh_verbosity;                                       ///< mesh operations verbosity level
+    CHGPU_MESH_VERBOSITY mesh_verbosity;                             ///< mesh operations verbosity level
     std::vector<std::shared_ptr<ChTriangleMeshConnected>> m_meshes;  ///< list of meshes used in cosimulation
-    std::vector<float> m_mesh_masses;                                          ///< associated mesh masses
+    std::vector<float> m_mesh_masses;                                ///< associated mesh masses
     bool use_mesh_normals =
         false;  ///< true: use mesh normals in file to correct mesh orientation; false: do nothing, implicitly use RHR
 

@@ -34,7 +34,7 @@
 %template(ChWrenchf) chrono::ChWrench<float>; 
 
 
-// This is needed because a std::vector<ChVector3<> might be used somewhere,
+// This is needed because a std::vector<ChVector3d might be used somewhere,
 // and we want to use it via python or C#
 %template(vector_ChVector3d) std::vector< chrono::ChVector3<double> >;
 %template(vector_ChVector3f) std::vector< chrono::ChVector3<float> >;

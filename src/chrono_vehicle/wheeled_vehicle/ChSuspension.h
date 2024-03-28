@@ -163,11 +163,11 @@ class CH_VEHICLE_API ChSuspension : public ChPart {
     /// Construct a suspension subsystem with given name.
     ChSuspension(const std::string& name);
 
-    ChVector3d m_rel_loc;                                ///< location relative to chassis
-    std::shared_ptr<ChBody> m_spindle[2];                ///< handles to spindle bodies
-    std::shared_ptr<ChShaft> m_axle[2];                  ///< handles to axle shafts
+    ChVector3d m_rel_loc;                                       ///< location relative to chassis
+    std::shared_ptr<ChBody> m_spindle[2];                       ///< handles to spindle bodies
+    std::shared_ptr<ChShaft> m_axle[2];                         ///< handles to axle shafts
     std::shared_ptr<ChShaftBodyRotation> m_axle_to_spindle[2];  ///< handles to spindle-shaft connectors
-    std::shared_ptr<ChLinkLockRevolute> m_revolute[2];   ///< handles to spindle revolute joints
+    std::shared_ptr<ChLinkLockRevolute> m_revolute[2];          ///< handles to spindle revolute joints
 
   private:
     std::shared_ptr<ChVisualShape> m_spindle_shapes[2];

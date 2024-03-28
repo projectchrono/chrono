@@ -105,12 +105,11 @@ void ChVisualShape::ArchiveOut(ChArchiveOut& archive_out) {
 
 void ChVisualShape::ArchiveIn(ChArchiveIn& archive_in) {
     // version number
-    /*int version =*/ archive_in.VersionRead<ChVisualShape>();
+    /*int version =*/archive_in.VersionRead<ChVisualShape>();
     // stream in all member data:
     archive_in >> CHNVP(visible);
     archive_in >> CHNVP(is_mutable);
     archive_in >> CHNVP(material_list);
-
 }
 
 }  // namespace chrono

@@ -56,7 +56,7 @@ class CH_VEHICLE_API ChVehicleCosimCuriosityNode : public ChVehicleCosimWheeledM
   private:
     /// Initialize the rover MBS and any associated subsystems.
     virtual void InitializeMBS(const ChVector2d& terrain_size,  ///< terrain length x width
-                               double terrain_height             ///< initial terrain height
+                               double terrain_height            ///< initial terrain height
                                ) override;
 
     /// Apply tire info (mass, radius, width).

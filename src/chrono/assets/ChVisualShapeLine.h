@@ -54,9 +54,9 @@ class ChApi ChVisualShapeLine : public ChVisualShape {
 
   protected:
     std::shared_ptr<ChLine> gline;  ///< underlying line geometry
-    std::string name;                         ///< asset name
-    unsigned int npoints;                     ///< number of points evaluated when rendering
-    double thickness;                         ///< thickness of line when rendering (for rendering engines that support it)
+    std::string name;               ///< asset name
+    unsigned int npoints;           ///< number of points evaluated when rendering
+    double thickness;               ///< thickness of line when rendering (for rendering engines that support it)
 };
 
 /// @} chrono_assets

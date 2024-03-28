@@ -20,7 +20,6 @@ namespace ChronoDemo
             double out_step = 2000 * time_step;
 
             // Parameters for the falling ball
-            int ballId = 100;
             double radius = 1;
             double mass = 1000;
             ChVector3d pos = new ChVector3d(0, 2, 0);
@@ -28,7 +27,6 @@ namespace ChronoDemo
             ChVector3d init_vel = new ChVector3d(0, 0, 0);
 
             // Parameters for the containing bin
-            int binId = 200;
             double width = 2;
             double length = 2;
             ////double height = 1;
@@ -57,15 +55,14 @@ namespace ChronoDemo
             // Create the falling ball
             ChBody ball = new ChBody();
 
-            ball.SetIdentifier(ballId);
             ball.SetMass(mass);
-            // TODO: cannot use operator between double and ChVectorD
-            //ChVectorD onev = new ChVectorD(1, 1, 1);
+            // TODO: cannot use operator between double and ChVector3d
+            //ChVector3d onev = new ChVector3d(1, 1, 1);
             //ball.SetInertiaXX(0.4 * mass * radius * radius * onev);
             ball.SetPos(pos);
             ball.SetRot(rot);
             ball.SetLinVel(init_vel);
-            // ball.SetWvel_par(new ChVectorD(0,0,3));
+            // ball.SetWvel_par(new ChVector3d(0,0,3));
             ball.SetFixed(false);
 
             ChCollisionShapeSphere sphere_coll = new ChCollisionShapeSphere(material, radius);
@@ -82,7 +79,6 @@ namespace ChronoDemo
             // Create container
             ChBody bin = new ChBody();
 
-            bin.SetIdentifier(binId);
             bin.SetMass(1);
             bin.SetPos(new ChVector3d(0, 0, 0));
             bin.SetRot(new ChQuaterniond(1, 0, 0, 0));

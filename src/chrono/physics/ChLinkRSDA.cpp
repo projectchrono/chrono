@@ -209,10 +209,12 @@ void ChLinkRSDA::IntLoadResidual_F(const unsigned int off, ChVectorDynamic<>& R,
 
     // Load torques in 'R' vector accumulator (torques in local coords)
     if (m_body1->Variables().IsActive()) {
-        R.segment(m_body1->Variables().GetOffset() + 3, 3) -= c * m_body1->TransformDirectionParentToLocal(torque).eigen();
+        R.segment(m_body1->Variables().GetOffset() + 3, 3) -=
+            c * m_body1->TransformDirectionParentToLocal(torque).eigen();
     }
     if (m_body2->Variables().IsActive()) {
-        R.segment(m_body2->Variables().GetOffset() + 3, 3) += c * m_body2->TransformDirectionParentToLocal(torque).eigen();
+        R.segment(m_body2->Variables().GetOffset() + 3, 3) +=
+            c * m_body2->TransformDirectionParentToLocal(torque).eigen();
     }
 }
 
@@ -224,8 +226,8 @@ void ChLinkRSDA::ConstraintsFbLoadForces(double factor) {
     ChVector3d torque = m_torque * m_axis;
 
     // Load torques in 'fb' vector accumulator of body variables (torques in local coords)
-    m_body1->Variables().Get_fb().segment(3, 3) -= factor * m_body1->TransformDirectionParentToLocal(torque).eigen();
-    m_body2->Variables().Get_fb().segment(3, 3) += factor * m_body2->TransformDirectionParentToLocal(torque).eigen();
+    m_body1->Variables().Force().segment(3, 3) -= factor * m_body1->TransformDirectionParentToLocal(torque).eigen();
+    m_body2->Variables().Force().segment(3, 3) += factor * m_body2->TransformDirectionParentToLocal(torque).eigen();
 }
 
 void ChLinkRSDA::ArchiveOut(ChArchiveOut& archive_out) {

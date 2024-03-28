@@ -51,9 +51,7 @@ ChLinkUniversal::ChLinkUniversal(const ChLinkUniversal& other) : ChLink(other) {
 // -----------------------------------------------------------------------------
 // Link initialization functions
 // -----------------------------------------------------------------------------
-void ChLinkUniversal::Initialize(std::shared_ptr<ChBody> body1,
-                                 std::shared_ptr<ChBody> body2,
-                                 const ChFrame<>& frame) {
+void ChLinkUniversal::Initialize(std::shared_ptr<ChBody> body1, std::shared_ptr<ChBody> body2, const ChFrame<>& frame) {
     m_body1 = body1.get();
     m_body2 = body2.get();
 
@@ -256,14 +254,14 @@ void ChLinkUniversal::IntLoadResidual_CqL(const unsigned int off_L,    ///< offs
                                           ChVectorDynamic<>& R,        ///< result: the R residual, R += c*Cq'*L
                                           const ChVectorDynamic<>& L,  ///< the L vector
                                           const double c               ///< a scaling factor
-                                          ) {
+) {
     if (!IsActive())
         return;
 
-    m_cnstr_x.MultiplyTandAdd(R, L(off_L + 0) * c);
-    m_cnstr_y.MultiplyTandAdd(R, L(off_L + 1) * c);
-    m_cnstr_z.MultiplyTandAdd(R, L(off_L + 2) * c);
-    m_cnstr_dot.MultiplyTandAdd(R, L(off_L + 3) * c);
+    m_cnstr_x.AddJacobianTransposedTimesScalarInto(R, L(off_L + 0) * c);
+    m_cnstr_y.AddJacobianTransposedTimesScalarInto(R, L(off_L + 1) * c);
+    m_cnstr_z.AddJacobianTransposedTimesScalarInto(R, L(off_L + 2) * c);
+    m_cnstr_dot.AddJacobianTransposedTimesScalarInto(R, L(off_L + 3) * c);
 }
 
 void ChLinkUniversal::IntLoadConstraint_C(const unsigned int off_L,  ///< offset in Qc residual
@@ -271,7 +269,7 @@ void ChLinkUniversal::IntLoadConstraint_C(const unsigned int off_L,  ///< offset
                                           const double c,            ///< a scaling factor
                                           bool do_clamp,             ///< apply clamping to c*C?
                                           double recovery_clamp      ///< value for min/max clamping of c*C
-                                          ) {
+) {
     if (!IsActive())
         return;
 
@@ -301,15 +299,15 @@ void ChLinkUniversal::IntToDescriptor(const unsigned int off_v,
     if (!IsActive())
         return;
 
-    m_cnstr_x.Set_l_i(L(off_L + 0));
-    m_cnstr_y.Set_l_i(L(off_L + 1));
-    m_cnstr_z.Set_l_i(L(off_L + 2));
-    m_cnstr_dot.Set_l_i(L(off_L + 3));
+    m_cnstr_x.SetLagrangeMultiplier(L(off_L + 0));
+    m_cnstr_y.SetLagrangeMultiplier(L(off_L + 1));
+    m_cnstr_z.SetLagrangeMultiplier(L(off_L + 2));
+    m_cnstr_dot.SetLagrangeMultiplier(L(off_L + 3));
 
-    m_cnstr_x.Set_b_i(Qc(off_L + 0));
-    m_cnstr_y.Set_b_i(Qc(off_L + 1));
-    m_cnstr_z.Set_b_i(Qc(off_L + 2));
-    m_cnstr_dot.Set_b_i(Qc(off_L + 3));
+    m_cnstr_x.SetRightHandSide(Qc(off_L + 0));
+    m_cnstr_y.SetRightHandSide(Qc(off_L + 1));
+    m_cnstr_z.SetRightHandSide(Qc(off_L + 2));
+    m_cnstr_dot.SetRightHandSide(Qc(off_L + 3));
 }
 
 void ChLinkUniversal::IntFromDescriptor(const unsigned int off_v,
@@ -319,10 +317,10 @@ void ChLinkUniversal::IntFromDescriptor(const unsigned int off_v,
     if (!IsActive())
         return;
 
-    L(off_L + 0) = m_cnstr_x.Get_l_i();
-    L(off_L + 1) = m_cnstr_y.Get_l_i();
-    L(off_L + 2) = m_cnstr_z.Get_l_i();
-    L(off_L + 3) = m_cnstr_dot.Get_l_i();
+    L(off_L + 0) = m_cnstr_x.GetLagrangeMultiplier();
+    L(off_L + 1) = m_cnstr_y.GetLagrangeMultiplier();
+    L(off_L + 2) = m_cnstr_z.GetLagrangeMultiplier();
+    L(off_L + 3) = m_cnstr_dot.GetLagrangeMultiplier();
 }
 
 // -----------------------------------------------------------------------------
@@ -339,10 +337,10 @@ void ChLinkUniversal::InjectConstraints(ChSystemDescriptor& descriptor) {
 }
 
 void ChLinkUniversal::ConstraintsBiReset() {
-    m_cnstr_x.Set_b_i(0.0);
-    m_cnstr_y.Set_b_i(0.0);
-    m_cnstr_z.Set_b_i(0.0);
-    m_cnstr_dot.Set_b_i(0.0);
+    m_cnstr_x.SetRightHandSide(0.0);
+    m_cnstr_y.SetRightHandSide(0.0);
+    m_cnstr_z.SetRightHandSide(0.0);
+    m_cnstr_dot.SetRightHandSide(0.0);
 }
 
 void ChLinkUniversal::ConstraintsBiLoad_C(double factor, double recovery_clamp, bool do_clamp) {
@@ -361,21 +359,21 @@ void ChLinkUniversal::ConstraintsBiLoad_C(double factor, double recovery_clamp, 
         cnstr_dot_violation = std::min(std::max(cnstr_dot_violation, -recovery_clamp), recovery_clamp);
     }
 
-    m_cnstr_x.Set_b_i(m_cnstr_x.Get_b_i() + cnstr_x_violation);
-    m_cnstr_y.Set_b_i(m_cnstr_y.Get_b_i() + cnstr_y_violation);
-    m_cnstr_z.Set_b_i(m_cnstr_z.Get_b_i() + cnstr_z_violation);
-    m_cnstr_dot.Set_b_i(m_cnstr_dot.Get_b_i() + cnstr_dot_violation);
+    m_cnstr_x.SetRightHandSide(m_cnstr_x.GetRightHandSide() + cnstr_x_violation);
+    m_cnstr_y.SetRightHandSide(m_cnstr_y.GetRightHandSide() + cnstr_y_violation);
+    m_cnstr_z.SetRightHandSide(m_cnstr_z.GetRightHandSide() + cnstr_z_violation);
+    m_cnstr_dot.SetRightHandSide(m_cnstr_dot.GetRightHandSide() + cnstr_dot_violation);
 }
 
-void ChLinkUniversal::ConstraintsLoadJacobians() {
+void ChLinkUniversal::LoadConstraintJacobians() {
     // Nothing to do here. Jacobians were loaded in Update().
 }
 
 void ChLinkUniversal::ConstraintsFetch_react(double factor) {
     // Extract the Lagrange multipliers for the 3 spherical constraints and for
     // the dot constraint.
-    ChVector3d lam_sph(m_cnstr_x.Get_l_i(), m_cnstr_y.Get_l_i(), m_cnstr_z.Get_l_i());
-    double lam_dot = m_cnstr_dot.Get_l_i();
+    ChVector3d lam_sph(m_cnstr_x.GetLagrangeMultiplier(), m_cnstr_y.GetLagrangeMultiplier(), m_cnstr_z.GetLagrangeMultiplier());
+    double lam_dot = m_cnstr_dot.GetLagrangeMultiplier();
 
     // Note that the Lagrange multipliers must be multiplied by 'factor' to
     // convert from reaction impulses to reaction forces.
@@ -418,7 +416,7 @@ void ChLinkUniversal::ArchiveOut(ChArchiveOut& archive_out) {
 /// Method to allow de serialization of transient data from archives.
 void ChLinkUniversal::ArchiveIn(ChArchiveIn& archive_in) {
     // version number
-    /*int version =*/ archive_in.VersionRead<ChLinkUniversal>();
+    /*int version =*/archive_in.VersionRead<ChLinkUniversal>();
 
     // deserialize parent class
     ChLink::ArchiveIn(archive_in);

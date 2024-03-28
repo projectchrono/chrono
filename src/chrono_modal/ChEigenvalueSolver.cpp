@@ -85,16 +85,10 @@ void placeMatrix(Eigen::SparseMatrix<double, Eigen::ColMajor, int>& HCQ,
                  const ChSparseMatrix& H,
                  int row_start,
                  int col_start) {
-    // int insertion = 0;
-
     for (int k = 0; k < H.outerSize(); ++k)
         for (ChSparseMatrix::InnerIterator it(H, k); it; ++it) {
             HCQ.coeffRef(it.row() + row_start, it.col() + col_start) = it.value();
-
-            // HCQ.coeffRef(it.row()+row_start,it.col()+col_start) = it.value();
         }
-
-    // std::cout << "Requested " << insertion << " insertions" << std::endl;
 }
 
 bool ChGeneralizedEigenvalueSolverKrylovSchur::Solve(
@@ -115,7 +109,7 @@ bool ChGeneralizedEigenvalueSolverKrylovSchur::Solve(
     // Scale constraints matrix
     double scaling = 0;
     if (settings.scaleCq) {
-        // std::cout << "Scaling Cq" << std::endl;
+        // std::cout << "Scaling Cq\n";
         scaling = K.diagonal().mean();
         for (int k = 0; k < Cq.outerSize(); ++k)
             for (ChSparseMatrix::InnerIterator it(Cq, k); it; ++it) {
@@ -215,7 +209,14 @@ bool ChGeneralizedEigenvalueSolverKrylovSchur::Solve(
     for (int i = 0; i < settings.n_modes; i++) {
         V.col(i) =
             eigen_vectors.col(i).head(n_vars);  // store only displacement part of eigenvector, no constraint part
-        V.col(i).normalize();                   // check if necessary or already normalized
+
+        // normalize w.r.t. mass matrix
+        double gen_mass = V.col(i).real().transpose() * M * V.col(i).real();
+        if (gen_mass > 0)
+            V.col(i) *= pow(1.0 / gen_mass, 0.5);
+        else
+            V.col(i).normalize();
+
         eig(i) = eigen_values(i);
         freq(i) = (1.0 / CH_2PI) * sqrt(-eig(i).real());
     }
@@ -308,7 +309,14 @@ bool ChGeneralizedEigenvalueSolverLanczos::Solve(
     for (int i = 0; i < settings.n_modes; i++) {
         V.col(i) =
             eigen_vectors.col(i).head(n_vars);  // store only displacement part of eigenvector, no constraint part
-        V.col(i).normalize();                   // check if necessary or already normalized
+
+        // normalize w.r.t. mass matrix
+        double gen_mass = V.col(i).real().transpose() * M * V.col(i).real();
+        if (gen_mass > 0)
+            V.col(i) *= pow(1.0 / gen_mass, 0.5);
+        else
+            V.col(i).normalize();
+
         eig(i) = eigen_values(i);
         freq(i) = (1.0 / CH_2PI) * sqrt(-eig(i).real());
     }
@@ -377,6 +385,8 @@ int ChModalSolveUndamped::Solve(
             V.conservativeResize(M.rows(), V.cols() + i_nodes_notoverlap);
             eig.conservativeResize(eig.size() + i_nodes_notoverlap);
             freq.conservativeResize(freq.size() + i_nodes_notoverlap);
+            // TODO: seems a bug in below three lines
+            // because we might have i_nodes_notoverlap < nmodes_out_i when there are overlap modes
             V.rightCols(i_nodes_notoverlap) = V_i;
             eig.tail(i_nodes_notoverlap) = eig_i;
             freq.tail(i_nodes_notoverlap) = freq_i;
@@ -476,7 +486,14 @@ bool ChQuadraticEigenvalueSolverNullspaceDirect::Solve(
         auto mvhns = Cq_null_space * mv;
 
         V.col(i) = mvhns;
-        V.col(i).normalize();  // check if necessary or already normalized
+
+        // normalize w.r.t. mass matrix
+        double gen_mass = V.col(i).real().transpose() * M * V.col(i).real();
+        if (gen_mass > 0)
+            V.col(i) *= pow(1.0 / gen_mass, 0.5);
+        else
+            V.col(i).normalize();
+
         eig(i) = all_eigen_values_and_vectors.at(i_half).eigen_val;
         freq(i) = (1.0 / CH_2PI) * (std::abs(eig(i)));  // undamped freq.
         damping_ratio(i) = -eig(i).real() / std::abs(eig(i));
@@ -703,8 +720,15 @@ bool ChQuadraticEigenvalueSolverKrylovSchur::Solve(
             i;  // because the n.of eigenvalues is double (conjugate pairs), so just use the 2nd half after sorting
 
         V.col(i) = all_eigen_values_and_vectors.at(i_half).eigen_vect.head(
-            n_vars);           // store only displacement part of eigenvector, no speed part, no constraint part
-        V.col(i).normalize();  // check if necessary or already normalized
+            n_vars);  // store only displacement part of eigenvector, no speed part, no constraint part
+
+        // normalize w.r.t. mass matrix
+        double gen_mass = V.col(i).real().transpose() * M * V.col(i).real();
+        if (gen_mass > 0)
+            V.col(i) *= pow(1.0 / gen_mass, 0.5);
+        else
+            V.col(i).normalize();
+
         eig(i) = all_eigen_values_and_vectors.at(i_half).eigen_val;
         freq(i) = (1.0 / CH_2PI) * (std::abs(eig(i)));  // undamped freq.
         damping_ratio(i) = -eig(i).real() / std::abs(eig(i));
@@ -788,6 +812,8 @@ int ChModalSolveDamped::Solve(
             eig.conservativeResize(eig.size() + i_nodes_notoverlap);
             freq.conservativeResize(freq.size() + i_nodes_notoverlap);
             damp_ratios.conservativeResize(damp_ratios.size() + i_nodes_notoverlap);
+            // TODO: seems a bug in below three lines
+            // because we might have i_nodes_notoverlap < nmodes_out_i when there are overlap modes
             V.rightCols(i_nodes_notoverlap) = V_i;
             eig.tail(i_nodes_notoverlap) = eig_i;
             freq.tail(i_nodes_notoverlap) = freq_i;

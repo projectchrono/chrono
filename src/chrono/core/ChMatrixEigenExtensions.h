@@ -66,7 +66,7 @@ friend const CwiseBinaryOp<internal::scalar_sum_op<Scalar>, const ConstantReturn
 void ArchiveOut(chrono::ChArchiveOut& archive_out) {
     // suggested: use versioning
     archive_out.VersionWrite<chrono::ChMatrix_dense_version_tag>();  // btw use the ChMatrixDynamic version tag also for
-                                                                  // all other templates.
+                                                                     // all other templates.
 
     // stream out all member data
 
@@ -106,8 +106,9 @@ void ArchiveOut(chrono::ChArchiveOut& archive_out) {
 
 void ArchiveIn(chrono::ChArchiveIn& archive_in) {
     // suggested: use versioning
-    /*int version =*/archive_in.VersionRead<chrono::ChMatrix_dense_version_tag>();  // btw use the ChMatrixDynamic version
-                                                                                  // tag also for all other templates.
+    /*int version =*/archive_in
+        .VersionRead<chrono::ChMatrix_dense_version_tag>();  // btw use the ChMatrixDynamic version
+                                                             // tag also for all other templates.
 
     // stream in all member data
     size_t m_row;

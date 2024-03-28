@@ -139,7 +139,7 @@ int main(int argc, char* argv[]) {
 
     // Monitor internal contacts for the left sprocket, left idler, and first shoe on the left track.
     ////m113.GetVehicle().MonitorContacts(TrackedCollisionFlag::SPROCKET_LEFT | TrackedCollisionFlag::SHOES_LEFT |
-    ///TrackedCollisionFlag::IDLER_LEFT);
+    /// TrackedCollisionFlag::IDLER_LEFT);
 
     // Collect contact information
     ////m113.GetVehicle().SetContactCollection(true);

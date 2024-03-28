@@ -25,10 +25,6 @@ namespace chrono {
 
 /// Mask structure for N scalar constraint equations between two bodies.
 class ChApi ChLinkMask {
-  protected:
-    std::vector<ChConstraintTwoBodies*> constraints;  ///< array of pointers to 'n' scalar constraints
-    unsigned int nconstr;                             ///< number of scalar constraint equations.
-
   public:
     /// Build a link mask with no constraints.
     ChLinkMask();
@@ -91,6 +87,10 @@ class ChApi ChLinkMask {
 
     /// Method to allow de-serialization of transient data from archives.
     virtual void ArchiveIn(ChArchiveIn& archive_in);
+
+  protected:
+    std::vector<ChConstraintTwoBodies*> constraints;  ///< array of pointers to 'n' scalar constraints
+    unsigned int nconstr;                             ///< number of scalar constraint equations.
 };
 
 CH_CLASS_VERSION(ChLinkMask, 0)
@@ -100,20 +100,18 @@ CH_CLASS_VERSION(ChLinkMask, 0)
 /// Specialized ChLinkMask class, for constraint equations of the ChLinkLock link.
 class ChApi ChLinkMaskLF : public ChLinkMask {
   public:
-    /// Create a ChLinkMaskLF which has 7 scalar constraints of
-    /// class ChConstraintTwoBodies(). This is useful in case it must
-    /// be used for the ChLinkLock link.
+    /// Create a ChLinkMaskLF which has 7 scalar constraints of class ChConstraintTwoBodies().
+    /// This is useful in case it must be used for the ChLinkLock link.
     ChLinkMaskLF();
     ChLinkMaskLF(const ChLinkMaskLF& other) : ChLinkMask(other) {}
 
     /// Assignment operator.
     ChLinkMaskLF& operator=(const ChLinkMaskLF& other);
 
-    /// Set all mask data at once
+    /// Set all mask data at once.
     void SetLockMask(bool x, bool y, bool z, bool e0, bool e1, bool e2, bool e3);
 
-    /// Obtain the reference to specific scalar constraint data
-    /// in the collection of this link mask.
+    /// Obtain the reference to specific scalar constraint data in the collection of this link mask.
     ChConstraintTwoBodies& Constr_X() { return *constraints[0]; }
     ChConstraintTwoBodies& Constr_Y() { return *constraints[1]; }
     ChConstraintTwoBodies& Constr_Z() { return *constraints[2]; }

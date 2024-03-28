@@ -78,11 +78,11 @@ class CH_VEHICLE_API ChIdler : public ChPart {
     ChIdler(const std::string& name);
 
     virtual void ExportComponentList(rapidjson::Document& jsonDocument) const override;
-    
+
     GuidePinType m_type;                          ///< type of the track shoe matching this road wheel
     ChVector3d m_rel_loc;                         ///< idler subsystem location relative to chassis
     std::shared_ptr<ChTrackWheel> m_idler_wheel;  ///< idler-wheel subsystem
-    ChTrackAssembly* m_track;                    ///< containing track assembly
+    ChTrackAssembly* m_track;                     ///< containing track assembly
 
     friend class ChTrackAssembly;
 };

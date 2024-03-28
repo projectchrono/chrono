@@ -88,7 +88,7 @@ bool load_validation_data(const std::string& filename, ChMatrixDynamic<>& data) 
 
 class ANCFBrickTest {
   public:
-    static const int NSF = 32;  ///< number of shape functions
+    static const int NSF = 32;  // number of shape functions
 
     ANCFBrickTest(bool useContInt);
 
@@ -1337,14 +1337,13 @@ bool ANCFBrickTest::AxialDisplacementCheck(int msglvl) {
 
         // Compute F=F(u), the load at U. The load is a 6-row vector, i.e.
         // a wrench: forceX, forceY, forceZ, torqueX, torqueY, torqueZ.
-        virtual void ComputeF(
-            const double U,              ///< normalized position along the brick u axis [-1...1]
-            const double V,              ///< normalized position along the brick v axis [-1...1]
-            const double W,              ///< normalized position along the brick w axis [-1...1]
-            ChVectorDynamic<>& F,        ///< Load at UVW
-            ChVectorDynamic<>* state_x,  ///< if != 0, update state (pos. part) to this, then evaluate F
-            ChVectorDynamic<>* state_w   ///< if != 0, update state (speed part) to this, then evaluate F
-            ) override {
+        virtual void ComputeF(double U,                    // normalized position along the brick u axis [-1...1]
+                              double V,                    // normalized position along the brick v axis [-1...1]
+                              double W,                    // normalized position along the brick w axis [-1...1]
+                              ChVectorDynamic<>& F,        // Load at UVW
+                              ChVectorDynamic<>* state_x,  // if != 0, update state (pos. part) to this, then evaluate F
+                              ChVectorDynamic<>* state_w  // if != 0, update state (speed part) to this, then evaluate F
+                              ) override {
             assert(auxsystem);
 
             F.setZero();
@@ -1364,10 +1363,11 @@ bool ANCFBrickTest::AxialDisplacementCheck(int msglvl) {
     // The ChLoad is a 'manager' for your ChLoader.
     // It is created using templates, that is instancing a ChLoad<my_loader_class>()
 
-    std::shared_ptr<ChLoad<MyLoaderTimeDependentTipLoad>> mload(new ChLoad<MyLoaderTimeDependentTipLoad>(elementlast));
-    mload->loader.auxsystem = system;             // initialize auxiliary data of the loader, if needed
-    mload->loader.SetApplication(1.0, 0.0, 0.0);  // specify application point
-    loadcontainer->Add(mload);                    // add the load to the load container.
+    auto loader = chrono_types::make_shared<MyLoaderTimeDependentTipLoad>(elementlast);
+    loader->auxsystem = system;             // initialize auxiliary data of the loader, if needed
+    loader->SetApplication(1.0, 0.0, 0.0);  // specify application point
+    auto load = chrono_types::make_shared<ChLoad>(loader);
+    loadcontainer->Add(load);  // add the load to the load container.
 
     // Find the static solution for the system (final axial displacement)
     system->DoStaticLinear();
@@ -1385,8 +1385,7 @@ bool ANCFBrickTest::AxialDisplacementCheck(int msglvl) {
     double Percent_Error = (Displacement_Model - Displacement_Theory) / Displacement_Theory * 100;
 
     bool passed_displacement = abs(Percent_Error) < 2.0;
-    bool passed_angles = (abs(Tip_Angles.x() * CH_RAD_TO_DEG) < 0.01) &&
-                         (abs(Tip_Angles.y() * CH_RAD_TO_DEG) < 0.01) &&
+    bool passed_angles = (abs(Tip_Angles.x() * CH_RAD_TO_DEG) < 0.01) && (abs(Tip_Angles.y() * CH_RAD_TO_DEG) < 0.01) &&
                          (abs(Tip_Angles.z() * CH_RAD_TO_DEG) < 0.01);
     bool passed_tests = passed_displacement && passed_angles;
 
@@ -1395,8 +1394,7 @@ bool ANCFBrickTest::AxialDisplacementCheck(int msglvl) {
         std::cout << "Axial Pull Test - ANCF Tip Displacement: " << Displacement_Model << "m" << std::endl;
         std::cout << "Axial Pull Test - Analytical Tip Displacement: " << Displacement_Theory << "m" << std::endl;
         std::cout << "Axial Pull Test - ANCF Tip Angles: (" << Tip_Angles.x() * CH_RAD_TO_DEG << ", "
-                  << Tip_Angles.y() * CH_RAD_TO_DEG << ", " << Tip_Angles.z() * CH_RAD_TO_DEG << ")deg"
-                  << std::endl;
+                  << Tip_Angles.y() * CH_RAD_TO_DEG << ", " << Tip_Angles.z() * CH_RAD_TO_DEG << ")deg" << std::endl;
     }
     if (msglvl >= 1) {
         std::cout << "Axial Pull Test - Tip Displacement Check (Percent Error less than 2%) = " << Percent_Error << "%";
@@ -1533,14 +1531,13 @@ bool ANCFBrickTest::CantileverTipLoadCheck(int msglvl) {
 
         // Compute F=F(u), the load at U. The load is a 6-row vector, i.e.
         // a wrench: forceX, forceY, forceZ, torqueX, torqueY, torqueZ.
-        virtual void ComputeF(
-            const double U,              ///< normalized position along the brick u axis [-1...1]
-            const double V,              ///< normalized position along the brick v axis [-1...1]
-            const double W,              ///< normalized position along the brick w axis [-1...1]
-            ChVectorDynamic<>& F,        ///< Load at U
-            ChVectorDynamic<>* state_x,  ///< if != 0, update state (pos. part) to this, then evaluate F
-            ChVectorDynamic<>* state_w   ///< if != 0, update state (speed part) to this, then evaluate F
-            ) override {
+        virtual void ComputeF(double U,                    // normalized position along the brick u axis [-1...1]
+                              double V,                    // normalized position along the brick v axis [-1...1]
+                              double W,                    // normalized position along the brick w axis [-1...1]
+                              ChVectorDynamic<>& F,        // Load at U
+                              ChVectorDynamic<>* state_x,  // if != 0, update state (pos. part) to this, then evaluate F
+                              ChVectorDynamic<>* state_w  // if != 0, update state (speed part) to this, then evaluate F
+                              ) override {
             assert(auxsystem);
 
             F.setZero();
@@ -1560,10 +1557,11 @@ bool ANCFBrickTest::CantileverTipLoadCheck(int msglvl) {
     // The ChLoad is a 'manager' for your ChLoader.
     // It is created using templates, that is instancing a ChLoad<my_loader_class>()
 
-    std::shared_ptr<ChLoad<MyLoaderTimeDependentTipLoad>> mload(new ChLoad<MyLoaderTimeDependentTipLoad>(elementlast));
-    mload->loader.auxsystem = system;             // initialize auxiliary data of the loader, if needed
-    mload->loader.SetApplication(1.0, 0.0, 0.0);  // specify application point
-    loadcontainer->Add(mload);                    // add the load to the load container.
+    auto loader = chrono_types::make_shared<MyLoaderTimeDependentTipLoad>(elementlast);
+    loader->auxsystem = system;             // initialize auxiliary data of the loader, if needed
+    loader->SetApplication(1.0, 0.0, 0.0);  // specify application point
+    auto load = chrono_types::make_shared<ChLoad>(loader);
+    loadcontainer->Add(load);  // add the load to the load container.
 
     // Find the static solution for the system (final displacement)
     // system->DoStaticLinear();
@@ -1584,8 +1582,7 @@ bool ANCFBrickTest::CantileverTipLoadCheck(int msglvl) {
 
     bool passed_displacement = abs(Percent_Error) < 5.0;
     // check the off-axis angles which should be zeros
-    bool passed_angles =
-        (abs(Tip_Angles.x() * CH_RAD_TO_DEG) < 0.01) && (abs(Tip_Angles.z() * CH_RAD_TO_DEG) < 0.01);
+    bool passed_angles = (abs(Tip_Angles.x() * CH_RAD_TO_DEG) < 0.01) && (abs(Tip_Angles.z() * CH_RAD_TO_DEG) < 0.01);
     bool passed_tests = passed_displacement && passed_angles;
 
     if (msglvl >= 2) {
@@ -1594,8 +1591,7 @@ bool ANCFBrickTest::CantileverTipLoadCheck(int msglvl) {
         std::cout << "Cantilever Beam (Tip Load) - Analytical Tip Displacement: " << Displacement_Theory << "m"
                   << std::endl;
         std::cout << "Cantilever Beam (Tip Load) - ANCF Tip Angles: (" << Tip_Angles.x() * CH_RAD_TO_DEG << ", "
-                  << Tip_Angles.y() * CH_RAD_TO_DEG << ", " << Tip_Angles.z() * CH_RAD_TO_DEG << ")deg"
-                  << std::endl;
+                  << Tip_Angles.y() * CH_RAD_TO_DEG << ", " << Tip_Angles.z() * CH_RAD_TO_DEG << ")deg" << std::endl;
     }
     if (msglvl >= 1) {
         std::cout << "Cantilever Beam (Tip Load) - Tip Displacement Check (Percent Error less than 5%) = "
@@ -1740,8 +1736,7 @@ bool ANCFBrickTest::CantileverGravityCheck(int msglvl) {
 
     bool passed_displacement = abs(Percent_Error) < 5.0;
     // check the off-axis angles which should be zeros
-    bool passed_angles =
-        (abs(Tip_Angles.x() * CH_RAD_TO_DEG) < 0.001) && (abs(Tip_Angles.z() * CH_RAD_TO_DEG) < 0.001);
+    bool passed_angles = (abs(Tip_Angles.x() * CH_RAD_TO_DEG) < 0.001) && (abs(Tip_Angles.z() * CH_RAD_TO_DEG) < 0.001);
     bool passed_tests = passed_displacement && passed_angles;
 
     if (msglvl >= 2) {
@@ -1751,8 +1746,7 @@ bool ANCFBrickTest::CantileverGravityCheck(int msglvl) {
         std::cout << "Cantilever Beam (Gravity Load) - Analytical Tip Displacement: " << Displacement_Theory << "m"
                   << std::endl;
         std::cout << "Cantilever Beam (Gravity Load) - ANCF Tip Angles: (" << Tip_Angles.x() * CH_RAD_TO_DEG << ", "
-                  << Tip_Angles.y() * CH_RAD_TO_DEG << ", " << Tip_Angles.z() * CH_RAD_TO_DEG << ")deg"
-                  << std::endl;
+                  << Tip_Angles.y() * CH_RAD_TO_DEG << ", " << Tip_Angles.z() * CH_RAD_TO_DEG << ")deg" << std::endl;
     }
     if (msglvl >= 1) {
         std::cout << "Cantilever Beam (Gravity Load) - Tip Displacement Check (Percent Error less than 5%) = "
@@ -1893,14 +1887,13 @@ bool ANCFBrickTest::AxialTwistCheck(int msglvl) {
 
         // Compute F=F(u), the load at U. The load is a 6-row vector, i.e.
         // a wrench: forceX, forceY, forceZ, torqueX, torqueY, torqueZ.
-        virtual void ComputeF(
-            const double U,              ///< normalized position along the brick u axis [-1...1]
-            const double V,              ///< normalized position along the brick v axis [-1...1]
-            const double W,              ///< normalized position along the brick w axis [-1...1]
-            ChVectorDynamic<>& F,        ///< Load at U
-            ChVectorDynamic<>* state_x,  ///< if != 0, update state (pos. part) to this, then evaluate F
-            ChVectorDynamic<>* state_w   ///< if != 0, update state (speed part) to this, then evaluate F
-            ) override {
+        virtual void ComputeF(double U,                    // normalized position along the brick u axis [-1...1]
+                              double V,                    // normalized position along the brick v axis [-1...1]
+                              double W,                    // normalized position along the brick w axis [-1...1]
+                              ChVectorDynamic<>& F,        // Load at U
+                              ChVectorDynamic<>* state_x,  // if != 0, update state (pos. part) to this, then evaluate F
+                              ChVectorDynamic<>* state_w  // if != 0, update state (speed part) to this, then evaluate F
+                              ) override {
             assert(auxsystem);
 
             F.setZero();
@@ -1920,10 +1913,11 @@ bool ANCFBrickTest::AxialTwistCheck(int msglvl) {
     // The ChLoad is a 'manager' for your ChLoader.
     // It is created using templates, that is instancing a ChLoad<my_loader_class>()
 
-    std::shared_ptr<ChLoad<MyLoaderTimeDependentTipLoad>> mload(new ChLoad<MyLoaderTimeDependentTipLoad>(elementlast));
-    mload->loader.auxsystem = system;             // initialize auxiliary data of the loader, if needed
-    mload->loader.SetApplication(1.0, 0.0, 0.0);  // specify application point
-    loadcontainer->Add(mload);                    // add the load to the load container.
+    auto loader = chrono_types::make_shared<MyLoaderTimeDependentTipLoad>(elementlast);
+    loader->auxsystem = system;             // initialize auxiliary data of the loader, if needed
+    loader->SetApplication(1.0, 0.0, 0.0);  // specify application point
+    auto load = chrono_types::make_shared<ChLoad>(loader);
+    loadcontainer->Add(load);  // add the load to the load container.
 
     // Find the static solution for the system (final twist angle)
     system->DoStaticLinear();
@@ -1942,8 +1936,7 @@ bool ANCFBrickTest::AxialTwistCheck(int msglvl) {
 
     bool passed_twist = abs(Percent_Error) < 2.0;
     // check the off-axis angles which should be zeros
-    bool passed_angles =
-        (abs(Tip_Angles.y() * CH_RAD_TO_DEG) < 0.001) && (abs(Tip_Angles.z() * CH_RAD_TO_DEG) < 0.001);
+    bool passed_angles = (abs(Tip_Angles.y() * CH_RAD_TO_DEG) < 0.001) && (abs(Tip_Angles.z() * CH_RAD_TO_DEG) < 0.001);
     bool passed_tests = passed_twist && passed_angles;
 
     if (msglvl >= 2) {
@@ -1952,8 +1945,7 @@ bool ANCFBrickTest::AxialTwistCheck(int msglvl) {
                   << std::endl;
         std::cout << "Axial Twist - Analytical Twist Angle: " << Angle_Theory * CH_RAD_TO_DEG << "deg" << std::endl;
         std::cout << "Axial Twist - ANCF Tip Angles: (" << Tip_Angles.x() * CH_RAD_TO_DEG << ", "
-                  << Tip_Angles.y() * CH_RAD_TO_DEG << ", " << Tip_Angles.z() * CH_RAD_TO_DEG << ")deg"
-                  << std::endl;
+                  << Tip_Angles.y() * CH_RAD_TO_DEG << ", " << Tip_Angles.z() * CH_RAD_TO_DEG << ")deg" << std::endl;
     }
     if (msglvl >= 1) {
         std::cout << "Axial Twist - Twist Angle Check (Percent Error less than 2%) = " << Percent_Error << "%";

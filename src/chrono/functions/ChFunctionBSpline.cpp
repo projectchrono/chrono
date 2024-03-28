@@ -30,8 +30,7 @@ ChFunctionBSpline::ChFunctionBSpline(int p,                             // order
         throw std::invalid_argument("ChFunctionBSpline::Setup() requires size(cpoints) >= order + 1.");
 
     if (knots && knots->size() != (cpoints.size() + p) + 1)
-        throw std::invalid_argument(
-            "ChFunctionBSpline::Setup() requires size(knots) = size(cpoints) + order + 1.");
+        throw std::invalid_argument("ChFunctionBSpline::Setup() requires size(knots) = size(cpoints) + order + 1.");
 
     Setup(p, cpoints, knots);
 }
@@ -51,8 +50,7 @@ ChFunctionBSpline::ChFunctionBSpline(
         throw std::invalid_argument("ChFunctionBSpline::Setup() requires size(cpoints) >= order + 1.");
 
     if (knots && knots->size() != (x_interp.size() + p) + 1)
-        throw std::invalid_argument(
-            "ChFunctionBSpline::Setup() requires size(knots) = size(x_interp) + order + 1.");
+        throw std::invalid_argument("ChFunctionBSpline::Setup() requires size(knots) = size(x_interp) + order + 1.");
 
     ApplyInterpolationConstraints(p, x_interp, y_dN_interp, der_order, knots);
 }

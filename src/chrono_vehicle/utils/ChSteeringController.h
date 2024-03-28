@@ -120,7 +120,7 @@ class CH_VEHICLE_API ChSteeringController {
     double m_erri;  ///< integral of error
 
     utils::ChWriterCSV* m_csv;  ///< ChWriterCSV object for data collection
-    bool m_collect;            ///< flag indicating whether or not data is being collected
+    bool m_collect;             ///< flag indicating whether or not data is being collected
 };
 
 // --------------------------------------------------------------------------------------------------------------------
@@ -307,10 +307,10 @@ class CH_VEHICLE_API ChPathSteeringControllerSR : public ChSteeringController {
     double m_delta_max;  ///< max. allowed average turn angle of the steered wheels (bycicle model of the vehicle)
     double m_umin;       ///< threshold where the controller gets active
 
-    size_t m_idx_curr;              ///< current interval index
-    std::vector<ChVector3d > S_l;   ///< course definition points
-    std::vector<ChVector3d > R_l;   ///< direction vector: S_l[i+1] = S_l[i] + R_l[i]
-    std::vector<ChVector3d > R_lu;  ///< R_l with unit length, precalculated to avoid redundant calculations
+    size_t m_idx_curr;             ///< current interval index
+    std::vector<ChVector3d> S_l;   ///< course definition points
+    std::vector<ChVector3d> R_l;   ///< direction vector: S_l[i+1] = S_l[i] + R_l[i]
+    std::vector<ChVector3d> R_lu;  ///< R_l with unit length, precalculated to avoid redundant calculations
 };
 
 // --------------------------------------------------------------------------------------------------------------------

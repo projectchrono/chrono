@@ -191,7 +191,7 @@ int main(int argc, char* argv[]) {
     for (int i = 0; i < 6; ++i)
         glyphs_points->SetGlyphPoint(i,                                // i-th glyph
                                      ChVector3d(1 + i * 0.2, 2, 0.2),  // the position
-                                     ChColor(0.3f, i * 0.1f, 0)          // the vector color
+                                     ChColor(0.3f, i * 0.1f, 0)        // the vector color
         );
     body->AddVisualShape(glyphs_points);
 
@@ -201,8 +201,8 @@ int main(int argc, char* argv[]) {
 
     auto glyphs_coords = chrono_types::make_shared<ChGlyphs>();
     for (int i = 0; i < 6; ++i)
-        glyphs_coords->SetGlyphCoordsys(i,                                                      // i-th glyph
-                                        ChCoordsys<>(ChVector3d(1 + i * 0.2, 2, 0.5),           // the position
+        glyphs_coords->SetGlyphCoordsys(i,                                                    // i-th glyph
+                                        ChCoordsys<>(ChVector3d(1 + i * 0.2, 2, 0.5),         // the position
                                                      QuatFromAngleX(i * 20 * CH_DEG_TO_RAD))  // the rotation
         );
     body->AddVisualShape(glyphs_coords);
@@ -243,10 +243,10 @@ int main(int argc, char* argv[]) {
     auto glyphs_tensors = chrono_types::make_shared<ChGlyphs>();
     for (int i = 0; i < 6; ++i)
         glyphs_tensors->SetGlyphTensor(
-            i,                                         // i-th glyph
-            ChVector3d(1 + i * 0.2, 2, 1.2),           // the position
+            i,                                       // i-th glyph
+            ChVector3d(1 + i * 0.2, 2, 1.2),         // the position
             QuatFromAngleZ(i * 20 * CH_DEG_TO_RAD),  // the rotation (local basis of the tensor)
-            ChVector3d(0.2, 0.05 + i * 0.05, 0.04)     // the eigenvalues, aka the ellipsoids lengths
+            ChVector3d(0.2, 0.05 + i * 0.05, 0.04)   // the eigenvalues, aka the ellipsoids lengths
         );
     glyphs_vectors->glyph_eigenvalues_type = ChGlyphs::eCh_GlyphEigenvalues::PROPERTY;
     glyphs_vectors->glyph_eigenvalues_prop = "eigenvalues";
@@ -256,7 +256,7 @@ int main(int argc, char* argv[]) {
     // ==Asset== Attach a line or a path (will be drawn as a line in 3D)
     auto line = chrono_types::make_shared<ChVisualShapeLine>();
     auto my_arc = chrono_types::make_shared<ChLineArc>(ChCoordsys<>(ChVector3d(1, 2, 1.6)), 0.5, 0, CH_PI,
-                                                                 true);  // origin, rad, angle start&end
+                                                       true);  // origin, rad, angle start&end
     line->SetLineGeometry(my_arc);
     line->SetColor(ChColor(1.0f, 0.3f, 0));
     line->SetThickness(10.0);

@@ -37,7 +37,7 @@ namespace vehicle {
 class CH_VEHICLE_API ChTrackDrivelineBDS : public ChDrivelineTV {
   public:
     ChTrackDrivelineBDS(const std::string& name  ///< [in] name of the subsystem
-                        );
+    );
 
     virtual ~ChTrackDrivelineBDS();
 

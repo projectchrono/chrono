@@ -23,7 +23,10 @@ namespace chrono {
 /// Chrono wrappers for high-resolution timers.
 class ChTimer {
   public:
-    ChTimer() {}
+    ChTimer() {
+        m_start = std::chrono::high_resolution_clock::now();
+        m_total = std::chrono::duration<double>(0);
+    }
 
     /// Start the timer.
     void start() { m_start = std::chrono::high_resolution_clock::now(); }
@@ -49,29 +52,29 @@ class ChTimer {
         return std::chrono::duration_cast<std::chrono::microseconds>(m_total).count();
     }
 
+    /// Return the time in seconds.
+    /// Use start()..stop() before calling this.
+    double GetTimeSeconds() const { return m_total.count(); }
+
     /// Return the time in m,illiseconds since start().
     /// This function does not require a call to stop().
     unsigned long long GetTimeMillisecondsIntermediate() const {
-        auto now = std::chrono::high_resolution_clock::now();
-        return std::chrono::duration_cast<std::chrono::milliseconds>(now - m_start).count();
+        auto duration = std::chrono::high_resolution_clock::now() - m_start;
+        return std::chrono::duration_cast<std::chrono::milliseconds>(duration).count();
     }
 
     /// Return the time in microseconds since start().
     /// This function does not require a call to stop().
     unsigned long long GetTimeMicrosecondsIntermediate() const {
-        auto now = std::chrono::high_resolution_clock::now();
-        return std::chrono::duration_cast<std::chrono::microseconds>(now - m_start).count();
+        auto duration = std::chrono::high_resolution_clock::now() - m_start;
+        return std::chrono::duration_cast<std::chrono::microseconds>(duration).count();
     }
-
-    /// Return the time in seconds.
-    /// Use start()..stop() before calling this.
-    double GetTimeSeconds() const { return m_total.count(); }
 
     /// Return the time in seconds since start().
     /// This function does not require a call to stop().
     double GetTimeSecondsIntermediate() const {
-        std::chrono::duration<double> int_time = std::chrono::high_resolution_clock::now() - m_start;
-        return int_time.count();
+        auto duration = std::chrono::high_resolution_clock::now() - m_start;
+        return duration.count();
     }
 
     /// Get the last timer value, in seconds.

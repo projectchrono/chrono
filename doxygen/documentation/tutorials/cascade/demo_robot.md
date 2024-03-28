@@ -1,6 +1,10 @@
 Load a STEP file and simulate a robot (demo_CAS_robot.cpp)  {#tutorial_demo_robot}
 ==========================
 
+<div class="ce-warning">
+This demos is obsolete and should undergo deep interventions to be updated to latest Chrono version.
+</div>
+
 
 Tutorial that teaches how to use the 
 [CASCADE module](group__cascade__module.html)
@@ -216,12 +220,12 @@ Print the contained shapes, showing the assembly hierarchy:
 
 	// In most CADs the Y axis is horizontal, but we want it vertical.
 	// So define a root transformation for rotating all the imported objects.
-	ChQuaternion<> rotation1;
-	rotation1.Q_from_AngAxis(-CH_PI/2, VECT_X); // 1: rotate 90° on X axis 
-	ChQuaternion<> rotation2;
-	rotation2.Q_from_AngAxis(CH_PI, VECT_Y);	 // 2: rotate 180° on vertical Y axis
-	ChQuaternion<> tot_rotation = rotation2 % rotation1;  // rotate on 1 then on 2, using quaternion product
-	ChFrameMoving<> root_frame( ChVector3<>(0,0,0), tot_rotation); 
+	ChQuaterniond rotation1;
+	rotation1.QuatFromAngleAxis(-CH_PI/2, VECT_X); // 1: rotate 90° on X axis 
+	ChQuaterniond rotation2;
+	rotation2.QuatFromAngleAxis(CH_PI, VECT_Y);	 // 2: rotate 180° on vertical Y axis
+	ChQuaterniond tot_rotation = rotation2 % rotation1;  // rotate on 1 then on 2, using quaternion product
+	ChFrameMoving<> root_frame( ChVector3d(0,0,0), tot_rotation); 
 ~~~
 
 
@@ -390,99 +394,99 @@ Important! In the STEP file, some subassemblies have multiple instances of the m
 ~~~{.cpp}
 	TopoDS_Shape shape_marker;
 
-	ChFrame<> frame_marker_base_turret;
+	ChFramed frame_marker_base_turret;
 	if (mydoc.GetNamedShape(shape_marker, "Assem10/Assem8/marker#1" ))
 		ChCascadeDoc::FromCascadeToChrono(shape_marker.Location(), frame_marker_base_turret);
 	else std::cout << "Warning. Desired marker not found in document \n";
 		// Transform the abs coordinates of the marker because everything was rotated/moved by 'root_frame' :
 	frame_marker_base_turret %= root_frame;
 
-	ChSharedPtr<ChLinkLockRevolute>  my_link1(new ChLinkLockRevolute);
+	auto my_link1 = chrono_types::make_shared<ChLinkLockRevolute>();
 	ChSharedBodyPtr mb1 = mrigidBody_base->GetBody();
 	ChSharedBodyPtr mb2 = mrigidBody_turret->GetBody();
-	my_link1->Initialize(mb1, mb2, frame_marker_base_turret.GetCoord() );
+	my_link1->Initialize(mb1, mb2, frame_marker_base_turret);
 	my_system.AddLink(my_link1);
 
 
-	ChFrame<> frame_marker_turret_bicep;
+	ChFramed frame_marker_turret_bicep;
 	if (mydoc.GetNamedShape(shape_marker, "Assem10/Assem4/marker#2" ))
 		ChCascadeDoc::FromCascadeToChrono(shape_marker.Location(), frame_marker_turret_bicep);
 	else std::cout << "Warning. Desired marker not found in document \n";
 	frame_marker_turret_bicep %= root_frame;
 
-	ChSharedPtr<ChLinkLockRevolute>  my_link2(new ChLinkLockRevolute);
+	auto my_link2 = chrono_types::make_shared<ChLinkLockRevolute>();
 	mb1 = mrigidBody_turret->GetBody();
 	mb2 = mrigidBody_bicep->GetBody();
-	my_link2->Initialize(mb1, mb2, frame_marker_turret_bicep.GetCoord() );
+	my_link2->Initialize(mb1, mb2, frame_marker_turret_bicep);
 	my_system.AddLink(my_link2);
 
 
-	ChFrame<> frame_marker_bicep_elbow;
+	ChFramed frame_marker_bicep_elbow;
 	if (mydoc.GetNamedShape(shape_marker, "Assem10/Assem1/marker#2" ))
 		ChCascadeDoc::FromCascadeToChrono(shape_marker.Location(), frame_marker_bicep_elbow);
 	else std::cout << "Warning. Desired marker not found in document \n";
 	frame_marker_bicep_elbow %= root_frame;
 
-	ChSharedPtr<ChLinkLockRevolute>  my_link3(new ChLinkLockRevolute);
+	auto my_link3 = chrono_types::make_shared<ChLinkLockRevolute>();
 	mb1 = mrigidBody_bicep->GetBody();
 	mb2 = mrigidBody_elbow->GetBody();
-	my_link3->Initialize(mb1, mb2, frame_marker_bicep_elbow.GetCoord() );
+	my_link3->Initialize(mb1, mb2, frame_marker_bicep_elbow);
 	my_system.AddLink(my_link3);
 	
 
-	ChFrame<> frame_marker_elbow_forearm;
+	ChFramed frame_marker_elbow_forearm;
 	if (mydoc.GetNamedShape(shape_marker, "Assem10/Assem5/marker#2" ))
 		ChCascadeDoc::FromCascadeToChrono(shape_marker.Location(), frame_marker_elbow_forearm);
 	else std::cout << "Warning. Desired marker not found in document \n";
 	frame_marker_elbow_forearm %= root_frame;
 	
-	ChSharedPtr<ChLinkLockRevolute>  my_link4(new ChLinkLockRevolute);
+	auto my_link4 = chrono_types::make_shared<ChLinkLockRevolute>();
 	mb1 = mrigidBody_elbow->GetBody();
 	mb2 = mrigidBody_forearm->GetBody();
-	my_link4->Initialize(mb1, mb2, frame_marker_elbow_forearm.GetCoord() );
+	my_link4->Initialize(mb1, mb2, frame_marker_elbow_forearm);
 	my_system.AddLink(my_link4);
 
 
-	ChFrame<> frame_marker_forearm_wrist;
+	ChFramed frame_marker_forearm_wrist;
 	if (mydoc.GetNamedShape(shape_marker, "Assem10/Assem7/marker#2" ))
 		ChCascadeDoc::FromCascadeToChrono(shape_marker.Location(), frame_marker_forearm_wrist);
 	else std::cout << "Warning. Desired marker not found in document \n";
 	frame_marker_forearm_wrist %= root_frame;
 
-	ChSharedPtr<ChLinkLockRevolute>  my_link5(new ChLinkLockRevolute);
+	auto my_link5 = chrono_types::make_shared<ChLinkLockRevolute>();
 	mb1 = mrigidBody_forearm->GetBody();
 	mb2 = mrigidBody_wrist->GetBody();
-	my_link5->Initialize(mb1, mb2, frame_marker_forearm_wrist.GetCoord() );
+	my_link5->Initialize(mb1, mb2, frame_marker_forearm_wrist);
 	my_system.AddLink(my_link5);
 
 
-	ChFrame<> frame_marker_wrist_hand;
+	ChFramed frame_marker_wrist_hand;
 	if (mydoc.GetNamedShape(shape_marker, "Assem10/Assem6/marker#2" ))
 		ChCascadeDoc::FromCascadeToChrono(shape_marker.Location(), frame_marker_wrist_hand);
 	else std::cout << "Warning. Desired marker not found in document \n";
 	frame_marker_wrist_hand %= root_frame;
 
-	ChSharedPtr<ChLinkLockRevolute>  my_link6(new ChLinkLockRevolute);
+	auto my_link6 = chrono_types::make_shared<ChLinkLockRevolute>();
 	mb1 = mrigidBody_wrist->GetBody();
 	mb2 = mrigidBody_hand->GetBody();
-	my_link6->Initialize(mb1, mb2, frame_marker_wrist_hand.GetCoord() );
+	my_link6->Initialize(mb1, mb2, frame_marker_wrist_hand);
 	my_system.AddLink(my_link6);
 
 
-	ChFrame<> frame_marker_turret_cylinder;
+	ChFramed frame_marker_turret_cylinder;
 	if (mydoc.GetNamedShape(shape_marker, "Assem10/Assem4/marker#3" ))
 		ChCascadeDoc::FromCascadeToChrono(shape_marker.Location(), frame_marker_turret_cylinder);
 	else std::cout << "Warning. Desired marker not found in document \n";
 	frame_marker_turret_cylinder %= root_frame;
 
-	ChSharedPtr<ChLinkLockRevolute>  my_link7(new ChLinkLockRevolute);
+	auto my_link7 = chrono_types::make_shared<ChLinkLockRevolute>();
 	mb1 = mrigidBody_turret->GetBody();
 	mb2 = mrigidBody_cylinder->GetBody();
-	my_link7->Initialize(mb1, mb2, frame_marker_turret_cylinder.GetCoord() );
+	my_link7->Initialize(mb1, mb2, frame_marker_turret_cylinder);
 	my_system.AddLink(my_link7);
 
 
-	ChFrame<> frame_marker_cylinder_rod;
+	ChFramed frame_marker_cylinder_rod;
 	if (mydoc.GetNamedShape(shape_marker, "Assem10/Assem3/marker#2" ))
 		ChCascadeDoc::FromCascadeToChrono(shape_marker.Location(), frame_marker_cylinder_rod);
 	else std::cout << "Warning. Desired marker not found in document \n";
@@ -491,11 +495,11 @@ Important! In the STEP file, some subassemblies have multiple instances of the m
 	ChSharedPtr<ChLinkLockCylindrical>  my_link8(new ChLinkLockCylindrical);
 	mb1 = mrigidBody_cylinder->GetBody();
 	mb2 = mrigidBody_rod->GetBody();
-	my_link8->Initialize(mb1, mb2, frame_marker_cylinder_rod.GetCoord() );
+	my_link8->Initialize(mb1, mb2, frame_marker_cylinder_rod);
 	my_system.AddLink(my_link8);
 
 
-	ChFrame<> frame_marker_rod_bicep;
+	ChFramed frame_marker_rod_bicep;
 	if (mydoc.GetNamedShape(shape_marker, "Assem10/Assem2/marker#2" ))
 		ChCascadeDoc::FromCascadeToChrono(shape_marker.Location(), frame_marker_rod_bicep);
 	else std::cout << "Warning. Desired marker not found in document \n";
@@ -504,7 +508,7 @@ Important! In the STEP file, some subassemblies have multiple instances of the m
 	ChSharedPtr<ChLinkLockCylindrical>  my_link9(new ChLinkLockCylindrical);
 	mb1 = mrigidBody_rod->GetBody();
 	mb2 = mrigidBody_bicep->GetBody();
-	my_link9->Initialize(mb1, mb2, frame_marker_rod_bicep.GetCoord() );
+	my_link9->Initialize(mb1, mb2, frame_marker_rod_bicep);
 	my_system.AddLink(my_link9);
 ~~~
 
@@ -520,11 +524,11 @@ This is a very simple way of performing the IK (Inverse Kinematics) of a robot, 
 	mrigidBody_hand->GetBody()->AddMarker(my_marker_hand);
 	mrigidBody_base->GetBody()->AddMarker(my_marker_move);
 
-	ChQuaternion<> rot_on_x; rot_on_x.Q_from_AngAxis(CH_PI/2, VECT_X);
-	ChFrame<> frame_marker_move = ChFrame<>(VNULL, rot_on_x) >> frame_marker_wrist_hand ;
+	ChQuaterniond rot_on_x; rot_on_x.QuatFromAngleAxis(CH_PI/2, VECT_X);
+	ChFramed frame_marker_move = ChFramed(VNULL, rot_on_x) >> frame_marker_wrist_hand ;
 
-	my_marker_hand->Impose_Abs_Coord( frame_marker_wrist_hand.GetCoord() );
-	my_marker_move->Impose_Abs_Coord( frame_marker_move.GetCoord() );
+	my_marker_hand->ImposeAbsoluteTransform( frame_marker_wrist_hand);
+	my_marker_move->ImposeAbsoluteTransform( frame_marker_move);
 
 	ChSharedPtr<ChLinkLockLock>  my_link_teacher(new ChLinkLockLock);
 	my_link_teacher->Initialize(my_marker_hand, my_marker_move);
@@ -577,9 +581,9 @@ Set motions for Z and Y coordinates of the 'my_link_teacher' marker, so that the
 	ChBodySceneNode* mfloor = (ChBodySceneNode*)addChBodySceneNode_easyBox(
 											&my_system, application.GetSceneManager(),
 											1000.0,
-											ChVector3<>(0,-0.6,0),
+											ChVector3d(0,-0.6,0),
 											ChQuaternion<>(1,0,0,0), 
-											ChVector3<>(20,1,20) );
+											ChVector3d(20,1,20) );
 	mfloor->GetBody()->SetFixed(true);
 	mfloor->GetBody()->EnableCollision(true);
 	video::ITexture* cubeMap = application.GetVideoDriver()->getTexture("../data/blu.png");

@@ -15,8 +15,8 @@
 #ifndef CHLOADCONTACTSURFACEMESH_H
 #define CHLOADCONTACTSURFACEMESH_H
 
-#include "chrono/physics/ChLoadsXYZnode.h"
-#include "chrono/fea/ChLoadsXYZROTnode.h"
+#include "chrono/physics/ChLoadsNodeXYZ.h"
+#include "chrono/fea/ChLoadsNodeXYZRot.h"
 #include "chrono/fea/ChContactSurfaceMesh.h"
 
 namespace chrono {
@@ -28,8 +28,8 @@ namespace fea {
 /// Class for applying loads to a contact mesh as a cluster of forces on the nodes of the underlying finite elements.
 /// Useful for cosimulation: one can pass this object's vertex & faces to an external software (e.g., CFD) that in turn
 /// will perform collision detection with its entities, compute forces, send forces back to Chrono via this object.
-/// Note that this is based on a cluster of ChLoadXYZnode, but the class itself could bypass all methods of
-/// ChLoadXYZnode and directly implement a more efficient LoadIntLoadResidual_F.
+/// Note that this is based on a cluster of ChLoadNodeXYZ, but the class itself could bypass all methods of
+/// ChLoadNodeXYZ and directly implement a more efficient LoadIntLoadResidual_F.
 class ChApi ChLoadContactSurfaceMesh : public ChLoadBase {
   public:
     ChLoadContactSurfaceMesh(std::shared_ptr<ChContactSurfaceMesh> contact_mesh);
@@ -46,8 +46,8 @@ class ChApi ChLoadContactSurfaceMesh : public ChLoadBase {
     /// are given as indexes to the three vertexes in that vector (similar to Wavefront OBJ meshes) Note, indexes are
     /// 0-based. These vectors can be later sent to another computing node that computes, say, CFD forces on the mesh.
     void OutputSimpleMesh(
-        std::vector<ChVector3d>& vert_pos,     ///< array of vertexes (absolute xyz positions)
-        std::vector<ChVector3d>& vert_vel,     ///< array of vertexes (absolute xyz velocities, might be useful)
+        std::vector<ChVector3d>& vert_pos,  ///< array of vertexes (absolute xyz positions)
+        std::vector<ChVector3d>& vert_vel,  ///< array of vertexes (absolute xyz velocities, might be useful)
         std::vector<ChVector3i>& triangles  ///< array of triangles (indexes to vertexes, ccw)
     );
 
@@ -68,7 +68,7 @@ class ChApi ChLoadContactSurfaceMesh : public ChLoadBase {
     /// Access the list of applied forces, so you can add new ones by using push_back(),
     /// remove them, count them, etc.
     /// Note that if you add nodes, these should belong to the referenced mesh.
-    std::vector<std::shared_ptr<ChLoadXYZnode>>& GetForces() { return m_forces; }
+    std::vector<std::shared_ptr<ChLoadNodeXYZ>>& GetForces() { return m_forces; }
 
   private:
     // ChLoadBase interface
@@ -82,18 +82,15 @@ class ChApi ChLoadContactSurfaceMesh : public ChLoadBase {
     // simple.. field is x y z, hardcoded return val:
     virtual int LoadGetNumFieldCoords() override { return 3; }
 
-    /// Compute Q, the generalized load.
+    /// Compute the generalized load(s).
     virtual void ComputeQ(ChState* state_x,      ///< state position to evaluate Q
                           ChStateDelta* state_w  ///< state speed to evaluate Q
                           ) override;
 
-    /// Compute jacobians.
-    /// Not needed when forces are constant, btw.
-    virtual void ComputeJacobian(ChState* state_x,       ///< state position to evaluate jacobians
-                                 ChStateDelta* state_w,  ///< state speed to evaluate jacobians
-                                 ChMatrixRef mK,         ///< result dQ/dx
-                                 ChMatrixRef mR,         ///< result dQ/dv
-                                 ChMatrixRef mM          ///< result dQ/da
+    /// Compute the K=-dQ/dx, R=-dQ/dv, M=-dQ/da Jacobians.
+    /// Load the Jacobian matrices K, R, M in the structure 'm_jacobians'.
+    virtual void ComputeJacobian(ChState* state_x,      ///< state position to evaluate jacobians
+                                 ChStateDelta* state_w  ///< state speed to evaluate jacobians
                                  ) override;
 
     virtual bool IsStiff() override { return false; }
@@ -102,12 +99,12 @@ class ChApi ChLoadContactSurfaceMesh : public ChLoadBase {
     virtual void LoadIntLoadResidual_F(ChVectorDynamic<>& R, double c) override;
     virtual void LoadIntLoadResidual_Mv(ChVectorDynamic<>& R, const ChVectorDynamic<>& w, double c) override {}
     virtual void LoadIntLoadLumpedMass_Md(ChVectorDynamic<>& Md, double& err, double c) override {}
-    virtual void InjectKRMmatrices(ChSystemDescriptor& mdescriptor) override;
-    virtual void KRMmatricesLoad(double Kfactor, double Rfactor, double Mfactor) override;
+    virtual void InjectKRMMatrices(ChSystemDescriptor& descriptor) override;
+    virtual void LoadKRMMatrices(double Kfactor, double Rfactor, double Mfactor) override;
 
     std::shared_ptr<ChContactSurfaceMesh> m_contact_mesh;
-    std::vector<std::shared_ptr<ChLoadXYZnode>> m_forces;
-    std::vector<std::shared_ptr<ChLoadXYZROTnodeForceAbsolute>> m_forces_rot;
+    std::vector<std::shared_ptr<ChLoadNodeXYZ>> m_forces;
+    std::vector<std::shared_ptr<ChLoadNodeXYZRotForceAbs>> m_forces_rot;
 };
 
 /// @} chrono_fea

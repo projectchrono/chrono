@@ -63,7 +63,7 @@ class ChApi ChTimestepper {
                          ) = 0;
 
     /// Access the lagrangian multipliers, if any.
-    virtual ChVectorDynamic<>& get_L() { return L; }
+    virtual ChVectorDynamic<>& GetLagrangeMultipliers() { return L; }
 
     /// Set the integrable object.
     virtual void SetIntegrable(ChIntegrable* intgr) { integrable = intgr; }
@@ -114,10 +114,10 @@ class ChApi ChTimestepperIorder : public ChTimestepper {
     virtual ~ChTimestepperIorder() {}
 
     /// Access the state at current time
-    virtual ChState& get_Y() { return Y; }
+    virtual ChState& GetState() { return Y; }
 
     /// Access the derivative of state at current time
-    virtual ChStateDelta& get_dYdt() { return dYdt; }
+    virtual ChStateDelta& GetStateDt() { return dYdt; }
 
     /// Set the integrable object
     virtual void SetIntegrable(ChIntegrable* intgr) {
@@ -144,13 +144,13 @@ class ChApi ChTimestepperIIorder : public ChTimestepper {
     virtual ~ChTimestepperIIorder() {}
 
     /// Access the state, position part, at current time
-    virtual ChState& get_X() { return X; }
+    virtual ChState& GetStatePos() { return X; }
 
     /// Access the state, speed part, at current time
-    virtual ChStateDelta& get_V() { return V; }
+    virtual ChStateDelta& GetStateVel() { return V; }
 
     /// Access the acceleration, at current time
-    virtual ChStateDelta& get_A() { return A; }
+    virtual ChStateDelta& GetStateAcc() { return A; }
 
     /// Set the integrable object
     virtual void SetIntegrable(ChIntegrableIIorder* intgr) {
@@ -233,10 +233,10 @@ class ChApi ChImplicitTimestepper {};
 /// a linear system must be solved.
 class ChApi ChImplicitIterativeTimestepper : public ChImplicitTimestepper {
   protected:
-    unsigned int maxiters;    ///< maximum number of iterations
-    double reltol;   ///< relative tolerance
-    double abstolS;  ///< absolute tolerance (states)
-    double abstolL;  ///< absolute tolerance (Lagrange multipliers)
+    unsigned int maxiters;  ///< maximum number of iterations
+    double reltol;          ///< relative tolerance
+    double abstolS;         ///< absolute tolerance (states)
+    double abstolL;         ///< absolute tolerance (Lagrange multipliers)
 
     unsigned int numiters;   ///< number of iterations
     unsigned int numsetups;  ///< number of calls to the solver's Setup function

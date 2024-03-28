@@ -21,7 +21,7 @@
 
 #include "chrono/physics/ChPhysicsItem.h"
 #include "chrono/solver/ChVariablesGenericDiagonalMass.h"
-#include "chrono/solver/ChKblockGeneric.h"
+#include "chrono/solver/ChKRMBlock.h"
 
 namespace chrono {
 
@@ -86,7 +86,7 @@ class ChApi ChExternalDynamics : public ChPhysicsItem {
 
     // Interface to solver
     virtual void InjectVariables(ChSystemDescriptor& descriptor) override;
-    virtual void InjectKRMmatrices(ChSystemDescriptor& descriptor) override;
+    virtual void InjectKRMMatrices(ChSystemDescriptor& descriptor) override;
 
     virtual void IntStateGather(const unsigned int off_x,
                                 ChState& x,
@@ -121,7 +121,7 @@ class ChApi ChExternalDynamics : public ChPhysicsItem {
                                    const unsigned int off_L,
                                    ChVectorDynamic<>& L) override;
 
-    virtual void KRMmatricesLoad(double Kfactor, double Rfactor, double Mfactor) override;
+    virtual void LoadKRMMatrices(double Kfactor, double Rfactor, double Mfactor) override;
 
     // Interface to the solver (old style)
     virtual void VariablesFbReset() override;
@@ -143,7 +143,7 @@ class ChApi ChExternalDynamics : public ChPhysicsItem {
     ChVectorDynamic<> m_rhs;  ///< generalized forcing terms (ODE RHS)
     ChMatrixDynamic<> m_jac;  ///< Jacobian of ODE right-hand side w.r.t. ODE states
 
-    ChKblockGeneric m_KRM;  ///< linear combination of K, R, M for the variables associated with item
+    ChKRMBlock m_KRM;  ///< linear combination of K, R, M for the variables associated with item
 
     static const double m_FD_delta;  ///< perturbation for finite-difference Jacobian approximation
 };

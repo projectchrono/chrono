@@ -27,7 +27,8 @@ namespace vehicle {
 
 ChassisConnectorArticulated::ChassisConnectorArticulated(const std::string& filename)
     : ChChassisConnectorArticulated("") {
-    Document d; ReadFileJSON(filename, d);
+    Document d;
+    ReadFileJSON(filename, d);
     if (d.IsNull())
         return;
 

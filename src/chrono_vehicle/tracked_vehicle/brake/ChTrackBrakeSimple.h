@@ -35,7 +35,7 @@ namespace vehicle {
 class CH_VEHICLE_API ChTrackBrakeSimple : public ChTrackBrake {
   public:
     ChTrackBrakeSimple(const std::string& name  ///< [in] name of the subsystem
-                       );
+    );
 
     virtual ~ChTrackBrakeSimple();
 

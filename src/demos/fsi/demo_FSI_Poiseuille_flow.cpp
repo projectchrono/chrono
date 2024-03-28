@@ -51,7 +51,6 @@ double t_end = 10.0;
 void CreateSolidPhase(ChSystemSMC& sysMBS, ChSystemFsi& sysFSI) {
     // General setting of ground body
     auto ground = chrono_types::make_shared<ChBody>();
-    ground->SetIdentifier(-1);
     ground->SetFixed(true);
     ground->EnableCollision(false);
     sysMBS.AddBody(ground);

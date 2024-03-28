@@ -33,7 +33,8 @@ namespace vehicle {
 // Constructors for FEATire
 // -----------------------------------------------------------------------------
 FEATire::FEATire(const std::string& filename) : ChFEATire("") {
-    Document d; ReadFileJSON(filename, d);
+    Document d;
+    ReadFileJSON(filename, d);
     if (d.IsNull())
         return;
 
@@ -56,7 +57,7 @@ void FEATire::ProcessJSON(const rapidjson::Document& d) {
     assert(d.HasMember("Name"));
 
     SetName(d["Name"].GetString());
-    
+
     // Read geometric dimensions
     m_tire_radius = d["Tire Radius"].GetDouble();
     m_rim_radius = d["Rim Radius"].GetDouble();

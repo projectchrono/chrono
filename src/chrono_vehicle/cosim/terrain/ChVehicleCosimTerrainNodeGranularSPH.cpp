@@ -51,8 +51,8 @@ using namespace rapidjson;
 namespace chrono {
 namespace vehicle {
 
-// Obstacle bodies have identifier larger than this value
-static const int body_id_obstacles = 100000;
+// All obstacle bodies have this tag
+static constexpr int tag_obstacles = 100;
 
 // -----------------------------------------------------------------------------
 // Construction of the terrain node:
@@ -198,7 +198,6 @@ void ChVehicleCosimTerrainNodeGranularSPH::Construct() {
     //// TODO
     // Add all rigid obstacles
     // (ATTENTION: BCE markers for moving objects must be created after the SPH particles and after fixed BCE markers!)
-    int id = body_id_obstacles;
     for (auto& b : m_obstacles) {
         auto mat = b.m_contact_mat.CreateMaterial(m_system->GetContactMethod());
         auto trimesh = chrono_types::make_shared<ChTriangleMeshConnected>();
@@ -209,8 +208,8 @@ void ChVehicleCosimTerrainNodeGranularSPH::Construct() {
         trimesh->ComputeMassProperties(true, mass, baricenter, inertia);
 
         auto body = std::shared_ptr<ChBody>(m_system->NewBody());
-        body->SetNameString("obstacle");
-        body->SetIdentifier(id++);
+        body->SetName("obstacle");
+        body->SetTag(tag_obstacles);
         body->SetPos(b.m_init_pos);
         body->SetRot(b.m_init_rot);
         body->SetMass(mass * b.m_density);
@@ -262,7 +261,7 @@ void ChVehicleCosimTerrainNodeGranularSPH::CreateRigidProxy(unsigned int i) {
 
     // Create wheel proxy body
     auto body = chrono_types::make_shared<ChBody>();
-    body->SetIdentifier(0);
+    body->SetTag(0);
     body->SetMass(m_load_mass[i]);
     body->SetFixed(true);  // proxy body always fixed
     body->EnableCollision(false);
@@ -411,7 +410,7 @@ void ChVehicleCosimTerrainNodeGranularSPH::OutputVisualizationData(int frame) {
         filename = OutputFilename(m_node_out_dir + "/visualization", "vis", "dat", frame, 5);
         // Include only obstacle bodies
         utils::WriteVisualizationAssets(
-            m_system, filename, [](const ChBody& b) -> bool { return b.GetIdentifier() >= body_id_obstacles; }, true);
+            m_system, filename, [](const ChBody& b) -> bool { return b.GetTag() == tag_obstacles; }, true);
     }
 }
 

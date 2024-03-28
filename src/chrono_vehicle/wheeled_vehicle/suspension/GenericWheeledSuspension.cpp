@@ -54,12 +54,10 @@ ChGenericWheeledSuspension::BodyIdentifier ReadBodyIdentifierJSON(const Value& a
         side = a[1].GetString();
         if (side == "Left") {
             vehicleSide = VehicleSide::LEFT;
-        }
-        else if (side == "Right") {
+        } else if (side == "Right") {
             vehicleSide = VehicleSide::RIGHT;
         }
-    }
-    else if (a.IsString()) {
+    } else if (a.IsString()) {
         name = a.GetString();
     }
     if (name.compare("Chassis") == 0) {

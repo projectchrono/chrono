@@ -15,18 +15,18 @@
 #include "chrono_multicore/solver/ChSolverMulticore.h"
 
 #if BLAZE_MAJOR_VERSION == 2
-#include <blaze/math/SparseRow.h>
+    #include <blaze/math/SparseRow.h>
 #endif
 #include <blaze/math/CompressedMatrix.h>
 
 using namespace chrono;
 
 uint ChSolverMulticoreJacobi::Solve(ChSchurProduct& SchurProduct,
-                                   ChProjectConstraints& Project,
-                                   const uint max_iter,
-                                   const uint size,
-                                   const DynamicVector<real>& r,
-                                   DynamicVector<real>& gamma) {
+                                    ChProjectConstraints& Project,
+                                    const uint max_iter,
+                                    const uint size,
+                                    const DynamicVector<real>& r,
+                                    DynamicVector<real>& gamma) {
     if (size == 0) {
         return 0;
     }

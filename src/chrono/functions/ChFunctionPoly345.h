@@ -27,7 +27,7 @@ namespace chrono {
 /// where:
 /// - `w` is the ramp width
 /// - `h` is the ramp height
-/// 
+///
 /// First and second derivatives at the start and end points are zero.
 class ChApi ChFunctionPoly345 : public ChFunction {
   private:

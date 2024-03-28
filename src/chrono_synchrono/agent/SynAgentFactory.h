@@ -27,7 +27,6 @@
 
 #include "chrono_synchrono/agent/SynAgent.h"
 
-
 namespace chrono {
 namespace synchrono {
 
@@ -35,7 +34,6 @@ namespace synchrono {
 /// @{
 
 // TODO: Look into ChArchive related files
-
 
 /// Generates SynTerrain's from JSON files
 /// Used to improve generality in Agent classes

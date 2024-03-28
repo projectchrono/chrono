@@ -74,7 +74,7 @@ ChSystemMulticore::~ChSystemMulticore() {
     delete data_manager;
 }
 
-bool ChSystemMulticore::Integrate_Y() {
+bool ChSystemMulticore::AdvanceDynamics() {
     ResetTimers();
     timer_step.start();  // time elapsed for step (for RTF calculation)
 
@@ -116,7 +116,7 @@ bool ChSystemMulticore::Integrate_Y() {
     std::vector<ChConstraint*>& mconstraints = descriptor->GetConstraints();
     for (int index = 0; index < (signed)data_manager->num_bilaterals; index++) {
         int cntr = data_manager->host_data.bilateral_mapping[index];
-        mconstraints[cntr]->Set_l_i(data_manager->host_data.gamma[data_manager->num_unilaterals + index]);
+        mconstraints[cntr]->SetLagrangeMultiplier(data_manager->host_data.gamma[data_manager->num_unilaterals + index]);
     }
 
     // Update the constraint reactions.
@@ -139,12 +139,12 @@ bool ChSystemMulticore::Integrate_Y() {
     for (int i = 0; i < assembly.bodylist.size(); i++) {
         if (data_manager->host_data.active_rigid[i] != 0) {
             auto& body = assembly.bodylist[i];
-            body->Variables().Get_qb()(0) = velocities[i * 6 + 0];
-            body->Variables().Get_qb()(1) = velocities[i * 6 + 1];
-            body->Variables().Get_qb()(2) = velocities[i * 6 + 2];
-            body->Variables().Get_qb()(3) = velocities[i * 6 + 3];
-            body->Variables().Get_qb()(4) = velocities[i * 6 + 4];
-            body->Variables().Get_qb()(5) = velocities[i * 6 + 5];
+            body->Variables().State()(0) = velocities[i * 6 + 0];
+            body->Variables().State()(1) = velocities[i * 6 + 1];
+            body->Variables().State()(2) = velocities[i * 6 + 2];
+            body->Variables().State()(3) = velocities[i * 6 + 3];
+            body->Variables().State()(4) = velocities[i * 6 + 4];
+            body->Variables().State()(5) = velocities[i * 6 + 5];
 
             body->VariablesQbIncrementPosition(this->GetStep());
             body->VariablesQbSetSpeed(this->GetStep());
@@ -163,7 +163,7 @@ bool ChSystemMulticore::Integrate_Y() {
     for (int i = 0; i < (signed)data_manager->num_shafts; i++) {
         if (data_manager->host_data.shaft_active[i] != 0) {
             auto& shaft = assembly.shaftlist[i];
-            shaft->Variables().Get_qb()(0) = velocities[offset + i];
+            shaft->Variables().State()(0) = velocities[offset + i];
             shaft->VariablesQbIncrementPosition(GetStep());
             shaft->VariablesQbSetSpeed(GetStep());
             shaft->Update(ch_time);
@@ -172,7 +172,7 @@ bool ChSystemMulticore::Integrate_Y() {
 
     offset += data_manager->num_shafts;
     for (int i = 0; i < (signed)data_manager->num_linmotors; i++) {
-        linmotorlist[i]->Variables().Get_qb()(0) = velocities[offset + i];
+        linmotorlist[i]->Variables().State()(0) = velocities[offset + i];
         linmotorlist[i]->VariablesQbIncrementPosition(GetStep());
         linmotorlist[i]->VariablesQbSetSpeed(GetStep());
         linmotorlist[i]->Update(ch_time, true);
@@ -180,7 +180,7 @@ bool ChSystemMulticore::Integrate_Y() {
 
     offset += data_manager->num_linmotors;
     for (int i = 0; i < (signed)data_manager->num_rotmotors; i++) {
-        rotmotorlist[i]->Variables().Get_qb()(0) = velocities[offset + i];
+        rotmotorlist[i]->Variables().State()(0) = velocities[offset + i];
         rotmotorlist[i]->VariablesQbIncrementPosition(GetStep());
         rotmotorlist[i]->VariablesQbSetSpeed(GetStep());
         rotmotorlist[i]->Update(ch_time, true);
@@ -206,7 +206,7 @@ bool ChSystemMulticore::Integrate_Y() {
 }
 
 // Add the specified body to the system.
-// A unique identifier is assigned to each body for indexing purposes. 
+// A unique identifier is assigned to each body for indexing purposes.
 // Space is allocated in system-wide vectors for data corresponding to the body.
 void ChSystemMulticore::AddBody(std::shared_ptr<ChBody> body) {
     // This is only need because bilaterals need to know what bodies to
@@ -276,9 +276,7 @@ void ChSystemMulticore::AddOtherPhysicsItem(std::shared_ptr<ChPhysicsItem> newit
     ////}
 }
 
-//
 // Reset forces for all variables
-//
 void ChSystemMulticore::ClearForceVariables() {
 #pragma omp parallel for
     for (int i = 0; i < (signed)data_manager->num_rigid_bodies; i++) {
@@ -299,7 +297,6 @@ void ChSystemMulticore::ClearForceVariables() {
     }
 }
 
-//
 // Update all items in the system. The following order of operations is important:
 // 1. Clear the force vectors by calling VariablesFbReset for all objects
 // 2. Compute link constraint forces
@@ -309,7 +306,6 @@ void ChSystemMulticore::ClearForceVariables() {
 // 6. Update motor links with states (these introduce state variables)
 // 7. Update 3DOF onjects (these introduce state variables)
 // 8. Process bilateral constraints
-//
 void ChSystemMulticore::Update() {
     // Clear the forces for all variables
     ClearForceVariables();
@@ -334,10 +330,8 @@ void ChSystemMulticore::Update() {
     UpdateBilaterals();
 }
 
-//
 // Update all bodies in the system and populate system-wide state and force
 // vectors. Note that visualization assets are not updated.
-//
 void ChSystemMulticore::UpdateRigidBodies() {
     custom_vector<real3>& position = data_manager->host_data.pos_rigid;
     custom_vector<quaternion>& rotation = data_manager->host_data.rot_rigid;
@@ -352,8 +346,8 @@ void ChSystemMulticore::UpdateRigidBodies() {
         body->VariablesFbLoadForces(GetStep());
         body->VariablesQbLoadSpeed();
 
-        ChVectorRef body_qb = body->Variables().Get_qb();
-        ChVectorRef body_fb = body->Variables().Get_fb();
+        ChVectorRef body_qb = body->Variables().State();
+        ChVectorRef body_fb = body->Variables().Force();
         ChVector3d& body_pos = body->GetPos();
         ChQuaternion<>& body_rot = body->GetRot();
 
@@ -386,10 +380,8 @@ void ChSystemMulticore::UpdateRigidBodies() {
     }
 }
 
-//
 // Update all shaft elements in the system and populate system-wide state and
 // force vectors. Note that visualization assets are not updated.
-//
 void ChSystemMulticore::UpdateShafts() {
     real* shaft_rot = data_manager->host_data.shaft_rot.data();
     real* shaft_inr = data_manager->host_data.shaft_inr.data();
@@ -408,45 +400,39 @@ void ChSystemMulticore::UpdateShafts() {
         shaft_inr[i] = shaft->Variables().GetInvInertia();
         shaft_active[i] = shaft->IsActive();
 
-        data_manager->host_data.v[offset + i] = shaft->Variables().Get_qb()(0);
-        data_manager->host_data.hf[offset + i] = shaft->Variables().Get_fb()(0);
+        data_manager->host_data.v[offset + i] = shaft->Variables().State()(0);
+        data_manager->host_data.hf[offset + i] = shaft->Variables().Force()(0);
     }
 }
 
-//
 // Update all motor links that introduce *exactly* one variable.
 // TODO: extend this to links with more than one variable.
-//
 void ChSystemMulticore::UpdateMotorLinks() {
     uint offset = data_manager->num_rigid_bodies * 6 + data_manager->num_shafts;
     for (uint i = 0; i < data_manager->num_linmotors; i++) {
         linmotorlist[i]->Update(ch_time, false);
         linmotorlist[i]->VariablesFbLoadForces(GetStep());
         linmotorlist[i]->VariablesQbLoadSpeed();
-        data_manager->host_data.v[offset + i] = linmotorlist[i]->Variables().Get_qb()(0);
-        data_manager->host_data.hf[offset + i] = linmotorlist[i]->Variables().Get_fb()(0);
+        data_manager->host_data.v[offset + i] = linmotorlist[i]->Variables().State()(0);
+        data_manager->host_data.hf[offset + i] = linmotorlist[i]->Variables().Force()(0);
     }
     offset += data_manager->num_linmotors;
     for (uint i = 0; i < data_manager->num_rotmotors; i++) {
         rotmotorlist[i]->Update(ch_time, false);
         rotmotorlist[i]->VariablesFbLoadForces(GetStep());
         rotmotorlist[i]->VariablesQbLoadSpeed();
-        data_manager->host_data.v[offset + i] = rotmotorlist[i]->Variables().Get_qb()(0);
-        data_manager->host_data.hf[offset + i] = rotmotorlist[i]->Variables().Get_fb()(0);
+        data_manager->host_data.v[offset + i] = rotmotorlist[i]->Variables().State()(0);
+        data_manager->host_data.hf[offset + i] = rotmotorlist[i]->Variables().Force()(0);
     }
 }
 
-//
 // Update all fluid nodes
-//
 void ChSystemMulticore::Update3DOFBodies() {
     data_manager->node_container->Update3DOF(ch_time);
 }
 
-//
 // Update all links in the system and set the type of the associated constraints
 // to BODY_BODY. Note that visualization assets are not updated.
-//
 void ChSystemMulticore::UpdateLinks() {
     double oostep = 1 / GetStep();
     real clamp_speed = data_manager->settings.solver.bilateral_clamp_speed;
@@ -460,7 +446,7 @@ void ChSystemMulticore::UpdateLinks() {
         link->ConstraintsBiLoad_C(oostep, clamp_speed, clamp);
         link->ConstraintsBiLoad_Ct(1);
         link->ConstraintsFbLoadForces(GetStep());
-        link->ConstraintsLoadJacobians();
+        link->LoadConstraintJacobians();
 
         link->InjectConstraints(*descriptor);
 
@@ -469,11 +455,9 @@ void ChSystemMulticore::UpdateLinks() {
     }
 }
 
-//
 // This utility function returns the type of constraints associated with the
 // specified physics item. Return UNKNOWN if the item has no associated
 // bilateral constraints or if it is unsupported.
-//
 BilateralType GetBilateralType(ChPhysicsItem* item) {
     if (item->GetNumConstraintsBilateral() == 0)
         return BilateralType::UNKNOWN;
@@ -503,7 +487,6 @@ BilateralType GetBilateralType(ChPhysicsItem* item) {
 // - no support for any items that introduce additional state variables
 // - only include constraints from items of supported type (see GetBilateralType above)
 // - visualization assets are not updated
-//
 void ChSystemMulticore::UpdateOtherPhysics() {
     double oostep = 1 / GetStep();
     real clamp_speed = data_manager->settings.solver.bilateral_clamp_speed;
@@ -517,7 +500,7 @@ void ChSystemMulticore::UpdateOtherPhysics() {
         item->ConstraintsBiLoad_C(oostep, clamp_speed, clamp);
         item->ConstraintsBiLoad_Ct(1);
         item->ConstraintsFbLoadForces(GetStep());
-        item->ConstraintsLoadJacobians();
+        item->LoadConstraintJacobians();
         item->VariablesFbLoadForces(GetStep());
         item->VariablesQbLoadSpeed();
 
@@ -533,10 +516,8 @@ void ChSystemMulticore::UpdateOtherPhysics() {
     }
 }
 
-//
 // Collect indexes of all active bilateral constraints and calculate number of
 // non-zero entries in the constraint Jacobian.
-//
 void ChSystemMulticore::UpdateBilaterals() {
     data_manager->nnz_bilaterals = 0;
     std::vector<ChConstraint*>& mconstraints = descriptor->GetConstraints();
@@ -583,7 +564,7 @@ void ChSystemMulticore::Setup() {
                             data_manager->num_fluid_bodies * 3;
 
     // Set variables that are stored in the ChSystem class
-    assembly.m_num_bodies_active = data_manager->num_rigid_bodies; 
+    assembly.m_num_bodies_active = data_manager->num_rigid_bodies;
     assembly.m_num_links_active = 0;
     assembly.m_num_otherphysicsitems_active = 0;
     m_num_coords_pos = 0;
@@ -655,7 +636,7 @@ double ChSystemMulticore::CalculateConstraintViolation(std::vector<double>& cvec
 
     for (int index = 0; index < (signed)data_manager->num_bilaterals; index++) {
         int cntr = data_manager->host_data.bilateral_mapping[index];
-        cvec[index] = mconstraints[cntr]->Compute_c_i();
+        cvec[index] = mconstraints[cntr]->ComputeResidual();
         double abs_c = std::abs(cvec[index]);
         if (abs_c > max_c)
             max_c = abs_c;
@@ -667,7 +648,6 @@ double ChSystemMulticore::CalculateConstraintViolation(std::vector<double>& cvec
 void ChSystemMulticore::PrintStepStats() {
     data_manager->system_timer.PrintReport();
 }
-
 
 unsigned int ChSystemMulticore::GetNumContacts() {
     if (!data_manager->cd_data)

@@ -23,7 +23,6 @@
 #include "chrono_vehicle/tracked_vehicle/track_shoe/ChTrackShoeSinglePin.h"
 #include "chrono_vehicle/tracked_vehicle/ChTrackAssembly.h"
 
-
 namespace chrono {
 namespace vehicle {
 
@@ -136,7 +135,8 @@ void SprocketSinglePinContactCB::OnCustomCollision(ChSystem* system) {
     // Return now if collision disabled on sprocket or track shoes.
     if (m_track->GetNumTrackShoes() == 0)
         return;
-    if (!m_sprocket->GetGearBody()->IsCollisionEnabled() || !m_track->GetTrackShoe(0)->GetShoeBody()->IsCollisionEnabled())
+    if (!m_sprocket->GetGearBody()->IsCollisionEnabled() ||
+        !m_track->GetTrackShoe(0)->GetShoeBody()->IsCollisionEnabled())
         return;
 
     // Sprocket gear center location, expressed in global frame
@@ -314,8 +314,7 @@ void SprocketSinglePinContactCB::CheckPinSprocket(std::shared_ptr<ChTrackShoeSin
 
 // -----------------------------------------------------------------------------
 // -----------------------------------------------------------------------------
-ChSprocketSinglePin::ChSprocketSinglePin(const std::string& name) : ChSprocket(name) {
-}
+ChSprocketSinglePin::ChSprocketSinglePin(const std::string& name) : ChSprocket(name) {}
 
 // -----------------------------------------------------------------------------
 // -----------------------------------------------------------------------------

@@ -77,8 +77,8 @@ class ChApi ChElementTetraCorot_10 : public ChElementTetrahedron,
     void ShapeFunctions(ShapeVector& N, double r, double s, double t);
 
     /// Fills the D vector (displacement) with the current field values at the nodes of the element, with proper
-    /// ordering. If the D vector has not the size of this->GetNumCoordsPosLevel(), it will be resized. For corotational elements,
-    /// field is assumed in local reference!
+    /// ordering. If the D vector has not the size of this->GetNumCoordsPosLevel(), it will be resized. For corotational
+    /// elements, field is assumed in local reference!
     virtual void GetStateBlock(ChVectorDynamic<>& mD) override;
 
     /// Approximation!! not the exact volume
@@ -176,7 +176,9 @@ class ChApi ChElementTetraCorot_10 : public ChElementTetrahedron,
     virtual unsigned int GetNumSubBlocks() override { return 10; }
 
     /// Get the offset of the specified sub-block of DOFs in global vector.
-    virtual unsigned int GetSubBlockOffset(unsigned int nblock) override { return nodes[nblock]->NodeGetOffsetVelLevel(); }
+    virtual unsigned int GetSubBlockOffset(unsigned int nblock) override {
+        return nodes[nblock]->NodeGetOffsetVelLevel();
+    }
 
     /// Get the size of the specified sub-block of DOFs in global vector.
     virtual unsigned int GetSubBlockSize(unsigned int nblock) override { return 3; }

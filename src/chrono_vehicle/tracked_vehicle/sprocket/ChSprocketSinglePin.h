@@ -35,7 +35,7 @@ namespace vehicle {
 class CH_VEHICLE_API ChSprocketSinglePin : public ChSprocket {
   public:
     ChSprocketSinglePin(const std::string& name  ///< [in] name of the subsystem
-                        );
+    );
 
     virtual ~ChSprocketSinglePin() {}
 

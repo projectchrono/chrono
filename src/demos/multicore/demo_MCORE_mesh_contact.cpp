@@ -167,8 +167,8 @@ int main(int argc, char* argv[]) {
         }
     }
 
-    auto trimesh = ChTriangleMeshConnected::CreateFromWavefrontFile(
-        GetChronoDataFile("vehicle/hmmwv/hmmwv_tire_coarse.obj"));
+    auto trimesh =
+        ChTriangleMeshConnected::CreateFromWavefrontFile(GetChronoDataFile("vehicle/hmmwv/hmmwv_tire_coarse.obj"));
 
     auto object_ct_shape = chrono_types::make_shared<ChCollisionShapeTriangleMesh>(object_mat, trimesh, false, false,
                                                                                    mesh_swept_sphere_radius);

@@ -33,6 +33,7 @@ class SYN_API SynSimulationMessage : public SynMessage {
     ///
     ///@param source_key the id of the source to which the message is sent from
     ///@param destination_key the id of the destination to which the message is sent to
+    ///@param quit_sim quit the simulation
     SynSimulationMessage(AgentKey source_key = AgentKey(),
                          AgentKey destination_key = AgentKey(),
                          bool quit_sim = false);

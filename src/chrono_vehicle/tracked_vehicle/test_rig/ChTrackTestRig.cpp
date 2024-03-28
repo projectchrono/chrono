@@ -42,7 +42,7 @@
 #include "chrono_thirdparty/rapidjson/stringbuffer.h"
 
 #ifdef CHRONO_POSTPROCESS
-#include "chrono_postprocess/ChGnuPlot.h"
+    #include "chrono_postprocess/ChGnuPlot.h"
 #endif
 
 using namespace rapidjson;
@@ -86,7 +86,8 @@ ChTrackTestRig::ChTrackTestRig(const std::string& filename,
       m_next_plot_output_time(0),
       m_csv(nullptr) {
     // Open and parse the input file (track assembly JSON specification file)
-    Document d; ReadFileJSON(filename, d);
+    Document d;
+    ReadFileJSON(filename, d);
     if (d.IsNull())
         return;
 
@@ -193,7 +194,7 @@ void ChTrackTestRig::Create(bool create_track, bool detracking_control) {
         AddPostVisualization(post, m_chassis->GetBody(), ChColor(0.1f, 0.8f, 0.15f));
 
         auto linact = chrono_types::make_shared<ChLinkMotorLinearPosition>();
-        linact->SetNameString("post_actuator");
+        linact->SetName("post_actuator");
         linact->SetMotionFunction(chrono_types::make_shared<ChFunctionSetpoint>());
         linact->Initialize(m_chassis->GetBody(), post, ChFrame<>(ChVector3d(post_pos), QuatFromAngleX(CH_PI)));
         m_system->AddLink(linact);
@@ -223,9 +224,11 @@ void ChTrackTestRig::Initialize() {
     m_track->SetTrackShoeVisualizationType(m_vis_shoe);
 
     // Set collisions
-    m_track->GetIdlerWheel()->EnableCollision((m_collide_flags & static_cast<int>(TrackedCollisionFlag::IDLER_LEFT)) != 0);
+    m_track->GetIdlerWheel()->EnableCollision((m_collide_flags & static_cast<int>(TrackedCollisionFlag::IDLER_LEFT)) !=
+                                              0);
 
-    m_track->GetSprocket()->EnableCollision((m_collide_flags & static_cast<int>(TrackedCollisionFlag::SPROCKET_LEFT)) != 0);
+    m_track->GetSprocket()->EnableCollision((m_collide_flags & static_cast<int>(TrackedCollisionFlag::SPROCKET_LEFT)) !=
+                                            0);
 
     bool collide_wheels = (m_collide_flags & static_cast<int>(TrackedCollisionFlag::WHEELS_LEFT)) != 0;
     for (size_t i = 0; i < m_track->GetNumTrackSuspensions(); ++i)
@@ -318,7 +321,7 @@ void ChTrackTestRig::Advance(double step) {
     m_driver->Synchronize(time);
 
     // Apply a torque to the sprocket's shaft
-    m_track->GetSprocket()->GetAxle()->SetAppliedTorque(-m_max_torque * m_throttle_input);
+    m_track->GetSprocket()->GetAxle()->SetAppliedLoad(-m_max_torque * m_throttle_input);
 
     // Update post displacements
     for (int i = 0; i < m_post.size(); i++) {
@@ -379,7 +382,7 @@ void ChTrackTestRig::AddPostVisualization(std::shared_ptr<ChBody> post,
 
     // Piston (on post body)
     ChVehicleGeometry::AddVisualizationCylinder(post,                                   //
-                                                ChVector3d(0, 0, -m_post_height),        //
+                                                ChVector3d(0, 0, -m_post_height),       //
                                                 ChVector3d(0, 0, -15 * m_post_height),  //
                                                 m_post_radius / 6.0,                    //
                                                 mat);
@@ -441,20 +444,20 @@ void ChTrackTestRig::PlotOutput(const std::string& out_dir, const std::string& o
 
 #ifdef CHRONO_POSTPROCESS
     std::string gplfile = out_dir + "/tmp.gpl";
-    postprocess::ChGnuPlot mplot(gplfile.c_str());
+    postprocess::ChGnuPlot mplot(gplfile);
 
     std::string title = "Suspension test rig - Wheel positions";
     mplot.OutputWindow(0);
-    mplot.SetTitle(title.c_str());
+    mplot.SetTitle(title);
     mplot.SetLabelX("time [s]");
     mplot.SetLabelY("wheel z [m]");
     mplot.SetCommand("set format y '%4.1e'");
     mplot.SetCommand("set terminal wxt size 800, 600");
-    mplot.Plot(out_file.c_str(), 1, 4, "sprocket", " with lines lw 2");
-    mplot.Plot(out_file.c_str(), 1, 7, "idler", " with lines lw 2");
+    mplot.Plot(out_file, 1, 4, "sprocket", " with lines lw 2");
+    mplot.Plot(out_file, 1, 7, "idler", " with lines lw 2");
     for (int i = 0; i < m_track->GetNumTrackSuspensions(); i++) {
         std::string label = "wheel #" + std::to_string(i);
-        mplot.Plot(out_file.c_str(), 1, 7 + 3 * i + 3, label.c_str(), " with lines lw 2");
+        mplot.Plot(out_file, 1, 7 + 3 * i + 3, label, " with lines lw 2");
     }
 
     //// TODO: spring and shock forces

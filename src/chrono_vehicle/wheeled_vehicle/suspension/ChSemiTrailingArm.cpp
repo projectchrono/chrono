@@ -105,7 +105,7 @@ void ChSemiTrailingArm::InitializeSide(VehicleSide side,
 
     // Create and initialize spindle body (same orientation as the chassis)
     m_spindle[side] = chrono_types::make_shared<ChBody>();
-    m_spindle[side]->SetNameString(m_name + "_spindle" + suffix);
+    m_spindle[side]->SetName(m_name + "_spindle" + suffix);
     m_spindle[side]->SetPos(points[SPINDLE]);
     m_spindle[side]->SetRot(spindleRot);
     m_spindle[side]->SetAngVelLocal(ChVector3d(0, ang_vel, 0));
@@ -130,7 +130,7 @@ void ChSemiTrailingArm::InitializeSide(VehicleSide side,
     rot.SetFromDirectionAxes(u, v, w);
 
     m_arm[side] = chrono_types::make_shared<ChBody>();
-    m_arm[side]->SetNameString(m_name + "_arm" + suffix);
+    m_arm[side]->SetName(m_name + "_arm" + suffix);
     m_arm[side]->SetPos(points[TA_CM]);
     m_arm[side]->SetRot(rot);
     m_arm[side]->SetMass(getArmMass());
@@ -139,7 +139,7 @@ void ChSemiTrailingArm::InitializeSide(VehicleSide side,
 
     // Create and initialize the revolute joint between arm and spindle.
     m_revolute[side] = chrono_types::make_shared<ChLinkLockRevolute>();
-    m_revolute[side]->SetNameString(m_name + "_revolute" + suffix);
+    m_revolute[side]->SetName(m_name + "_revolute" + suffix);
     m_revolute[side]->Initialize(m_spindle[side], m_arm[side],
                                  ChFrame<>(points[SPINDLE], spindleRot * QuatFromAngleX(CH_PI_2)));
     chassis->GetSystem()->AddLink(m_revolute[side]);
@@ -162,14 +162,14 @@ void ChSemiTrailingArm::InitializeSide(VehicleSide side,
 
     // Create and initialize the spring/damper
     m_shock[side] = chrono_types::make_shared<ChLinkTSDA>();
-    m_shock[side]->SetNameString(m_name + "_shock" + suffix);
+    m_shock[side]->SetName(m_name + "_shock" + suffix);
     m_shock[side]->Initialize(chassis->GetBody(), m_arm[side], false, points[SHOCK_C], points[SHOCK_A]);
     m_shock[side]->SetRestLength(getShockRestLength());
     m_shock[side]->RegisterForceFunctor(getShockForceFunctor());
     chassis->GetSystem()->AddLink(m_shock[side]);
 
     m_spring[side] = chrono_types::make_shared<ChLinkTSDA>();
-    m_spring[side]->SetNameString(m_name + "_spring" + suffix);
+    m_spring[side]->SetName(m_name + "_spring" + suffix);
     m_spring[side]->Initialize(chassis->GetBody(), m_arm[side], false, points[SPRING_C], points[SPRING_A]);
     m_spring[side]->SetRestLength(getSpringRestLength());
     m_spring[side]->RegisterForceFunctor(getSpringForceFunctor());
@@ -178,13 +178,13 @@ void ChSemiTrailingArm::InitializeSide(VehicleSide side,
     // Create and initialize the axle shaft and its connection to the spindle. Note that the
     // spindle rotates about the Y axis.
     m_axle[side] = chrono_types::make_shared<ChShaft>();
-    m_axle[side]->SetNameString(m_name + "_axle" + suffix);
+    m_axle[side]->SetName(m_name + "_axle" + suffix);
     m_axle[side]->SetInertia(getAxleInertia());
     m_axle[side]->SetPosDt(-ang_vel);
     chassis->GetSystem()->AddShaft(m_axle[side]);
 
     m_axle_to_spindle[side] = chrono_types::make_shared<ChShaftBodyRotation>();
-    m_axle_to_spindle[side]->SetNameString(m_name + "_axle_to_spindle" + suffix);
+    m_axle_to_spindle[side]->SetName(m_name + "_axle_to_spindle" + suffix);
     m_axle_to_spindle[side]->Initialize(m_axle[side], m_spindle[side], ChVector3d(0, -1, 0));
     chassis->GetSystem()->Add(m_axle_to_spindle[side]);
 }
@@ -201,10 +201,10 @@ void ChSemiTrailingArm::UpdateInertiaProperties() {
     ChMatrix33<> inertiaArm(getArmInertia());
 
     utils::CompositeInertia composite;
-    composite.AddComponent(m_spindle[LEFT]->GetFrame_COG_to_abs(), getSpindleMass(), inertiaSpindle);
-    composite.AddComponent(m_spindle[RIGHT]->GetFrame_COG_to_abs(), getSpindleMass(), inertiaSpindle);
-    composite.AddComponent(m_arm[LEFT]->GetFrame_COG_to_abs(), getArmMass(), inertiaArm);
-    composite.AddComponent(m_arm[RIGHT]->GetFrame_COG_to_abs(), getArmMass(), inertiaArm);
+    composite.AddComponent(m_spindle[LEFT]->GetFrameCOMToAbs(), getSpindleMass(), inertiaSpindle);
+    composite.AddComponent(m_spindle[RIGHT]->GetFrameCOMToAbs(), getSpindleMass(), inertiaSpindle);
+    composite.AddComponent(m_arm[LEFT]->GetFrameCOMToAbs(), getArmMass(), inertiaArm);
+    composite.AddComponent(m_arm[RIGHT]->GetFrameCOMToAbs(), getArmMass(), inertiaArm);
 
     // Express COM and inertia in subsystem reference frame
     m_com.GetPos() = m_xform.TransformPointParentToLocal(composite.GetCOM());

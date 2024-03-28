@@ -52,7 +52,6 @@ FmuComponent::FmuComponent(fmi2String instanceName,
     // Cart is moving along X axis, Pendulum rotates along Z axis
 
     auto cart = chrono_types::make_shared<ChBodyEasyBox>(0.2, 0.1, 0.1, 750, true, false);
-    cart->SetIdentifier(10);
     cart->SetMass(cart_mass);
     sys.Add(cart);
 

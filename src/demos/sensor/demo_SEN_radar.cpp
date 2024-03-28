@@ -127,22 +127,20 @@ int main(int argc, char* argv[]) {
     sys.Add(floor);
     floor->GetVisualModel()->GetShapes()[0].first->AddMaterial(green);
 
-
-    auto box = chrono_types::make_shared<ChBodyEasyBox>(1,1,1, 1000, true, false);
-    box->SetPos({4,3,2});
+    auto box = chrono_types::make_shared<ChBodyEasyBox>(1, 1, 1, 1000, true, false);
+    box->SetPos({4, 3, 2});
     box->SetFixed(true);
     sys.Add(box);
     box->GetVisualModel()->GetShapes()[0].first->AddMaterial(green);
 
-
-    auto box1 = chrono_types::make_shared<ChBodyEasyBox>(1,1,1, 1000, true, false);
-    box1->SetPos({4,-3,2});
+    auto box1 = chrono_types::make_shared<ChBodyEasyBox>(1, 1, 1, 1000, true, false);
+    box1->SetPos({4, -3, 2});
     box1->SetFixed(true);
     sys.Add(box1);
     box1->GetVisualModel()->GetShapes()[0].first->AddMaterial(green);
 
-    auto box2 = chrono_types::make_shared<ChBodyEasyBox>(1,1,1, 1000, true, false);
-    box2->SetPos({4,0,2});
+    auto box2 = chrono_types::make_shared<ChBodyEasyBox>(1, 1, 1, 1000, true, false);
+    box2->SetPos({4, 0, 2});
     box2->SetFixed(true);
     box2->GetVisualModel()->GetShapes()[0].first->AddMaterial(green);
     sys.Add(box2);
@@ -150,34 +148,34 @@ int main(int argc, char* argv[]) {
     // -------------------------------------------
     // add a few box bodies to be sense by a radar
     // -------------------------------------------
-//    auto floor = chrono_types::make_shared<ChBodyEasyBox>(1, 1, 1, 1000, true, false);
-//    floor->SetPos({0, 0, -1});
-//    floor->SetFixed(true);
-//    sys.Add(floor);
-//    floor->GetVisualModel()->GetShapes()[0].first->AddMaterial(green);
+    //    auto floor = chrono_types::make_shared<ChBodyEasyBox>(1, 1, 1, 1000, true, false);
+    //    floor->SetPos({0, 0, -1});
+    //    floor->SetFixed(true);
+    //    sys.Add(floor);
+    //    floor->GetVisualModel()->GetShapes()[0].first->AddMaterial(green);
 
-//
-//    for (int i = 0; i < 10; i++) {
-//        float x = rand() % 50;
-//        float y = 1;
-//        float z = 0;
-//        auto box_body = chrono_types::make_shared<ChBodyEasyBox>(0.5, 0.5, 0.5, 1000, true, false);
-//        box_body->SetPos({5 + x, y, z});
-//        box_body->SetPosDt({-0.5, 0, 0});
-//        sys.Add(box_body);
-//        box_body->GetVisualModel()->GetShapes()[0].first->AddMaterial(red);
-//    }
-//
-//    for (int i = 0; i < 10; i++) {
-//        float x = rand() % 50;
-//        float y = -1;
-//        float z = 0;
-//        auto box_body = chrono_types::make_shared<ChBodyEasyBox>(0.5, 0.5, 0.5, 1000, true, false);
-//        box_body->SetPos({10 - x, y, z});
-//        box_body->SetPosDt({0.5, 0, 0});
-//        sys.Add(box_body);
-//        box_body->GetVisualModel()->GetShapes()[0].first->AddMaterial(red);
-//    }
+    //
+    //    for (int i = 0; i < 10; i++) {
+    //        float x = rand() % 50;
+    //        float y = 1;
+    //        float z = 0;
+    //        auto box_body = chrono_types::make_shared<ChBodyEasyBox>(0.5, 0.5, 0.5, 1000, true, false);
+    //        box_body->SetPos({5 + x, y, z});
+    //        box_body->SetPosDt({-0.5, 0, 0});
+    //        sys.Add(box_body);
+    //        box_body->GetVisualModel()->GetShapes()[0].first->AddMaterial(red);
+    //    }
+    //
+    //    for (int i = 0; i < 10; i++) {
+    //        float x = rand() % 50;
+    //        float y = -1;
+    //        float z = 0;
+    //        auto box_body = chrono_types::make_shared<ChBodyEasyBox>(0.5, 0.5, 0.5, 1000, true, false);
+    //        box_body->SetPos({10 - x, y, z});
+    //        box_body->SetPosDt({0.5, 0, 0});
+    //        sys.Add(box_body);
+    //        box_body->GetVisualModel()->GetShapes()[0].first->AddMaterial(red);
+    //    }
 
     // -----------------------
     // Create a sensor manager
@@ -192,8 +190,7 @@ int main(int argc, char* argv[]) {
     auto offset_pose = chrono::ChFrame<double>({0, 0, 1}, QuatFromAngleZ(0));
 
     auto radar = chrono_types::make_shared<ChRadarSensor>(floor, update_rate, offset_pose, horizontal_samples,
-                                                          vertical_samples, horizontal_fov, vertical_fov,
-                                                          max_distance);
+                                                          vertical_samples, horizontal_fov, vertical_fov, max_distance);
     radar->SetName("Radar Sensor");
     radar->SetLag(lag);
     radar->SetCollectionWindow(collection_time);

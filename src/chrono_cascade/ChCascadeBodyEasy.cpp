@@ -250,8 +250,7 @@ void ChCascadeBodyEasyProfile::UpdateCollisionAndVisualizationShapes() {
         EnableCollision(false);
 }
 
-const TopoDS_Wire ChCascadeBodyEasyProfile::FromChronoPathToCascadeWire(
-    std::shared_ptr<::chrono::ChLinePath> profile) {
+const TopoDS_Wire ChCascadeBodyEasyProfile::FromChronoPathToCascadeWire(std::shared_ptr<::chrono::ChLinePath> profile) {
     BRepBuilderAPI_MakeWire mwirebuilder;
     for (size_t i = 0; i < profile->GetSubLinesCount(); ++i) {
         if (auto msegment = std::dynamic_pointer_cast<::chrono::ChLineSegment>(profile->GetSubLineN(i))) {
@@ -269,7 +268,8 @@ const TopoDS_Wire ChCascadeBodyEasyProfile::FromChronoPathToCascadeWire(
 
         } else if (auto marc = std::dynamic_pointer_cast<::chrono::ChLineArc>(profile->GetSubLineN(i))) {
             if ((marc->origin.rot.e1() != 0) || (marc->origin.rot.e2() != 0))
-                throw std::runtime_error("Error! ChCascadeBodyEasyProfile: a sub arc of ChLinePath not parallel to XY plane!");
+                throw std::runtime_error(
+                    "Error! ChCascadeBodyEasyProfile: a sub arc of ChLinePath not parallel to XY plane!");
 
             gp_Circ aCirc(
                 gp_Ax2(gp_Pnt(marc->origin.pos.x(), marc->origin.pos.y(), marc->origin.pos.z()), gp_Dir(0., 0., 1.)),

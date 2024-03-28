@@ -146,11 +146,9 @@ std::shared_ptr<ChBody> create_mecanum_wheel(ChSystemNSC& sys,
 
         // approximate mass & inertia to a cylinder:
         roller->SetMass(  //
-            ChCylinder::GetVolume(roller_elliptical_rad_Hor + Roffset, 2 * half_length_roller) *
-            roller_density);
+            ChCylinder::GetVolume(roller_elliptical_rad_Hor + Roffset, 2 * half_length_roller) * roller_density);
         roller->SetInertia(  //
-            ChCylinder::GetGyration(roller_elliptical_rad_Hor + Roffset, 2 * half_length_roller) *
-            roller_density);
+            ChCylinder::GetGyration(roller_elliptical_rad_Hor + Roffset, 2 * half_length_roller) * roller_density);
 
         // add collision shape
         auto shape = chrono_types::make_shared<ChCollisionShapeBarrel>(wheel_mat,                                 //
@@ -192,7 +190,7 @@ int main(int argc, char* argv[]) {
     double roller_angle = CH_PI / 4;
 
     // Create the robot truss, as a circular platform
-    auto platform = chrono_types::make_shared<ChBodyEasyCylinder>(ChAxis::Y,       //
+    auto platform = chrono_types::make_shared<ChBodyEasyCylinder>(ChAxis::Y,                 //
                                                                   platform_radius * 0.7, 2,  // radius, height
                                                                   1000,                      // density
                                                                   true,                      // visualize
@@ -216,13 +214,13 @@ int main(int argc, char* argv[]) {
     auto spindle_A = create_mecanum_wheel(sys,
                                           ftot_wA.GetCoordsys().pos,  // wheel position
                                           ftot_wA.GetCoordsys().rot,  // wheel alignment
-                                          wheel_radius,            // wheel radius
-                                          2.2,                     // wheel width
-                                          8,                       // n. of rollers
-                                          roller_angle,            // angle of rollers
-                                          0.65,                    // max rad. of roller
-                                          1000,                    // density of roller
-                                          1000);                   // density of the spindle
+                                          wheel_radius,               // wheel radius
+                                          2.2,                        // wheel width
+                                          8,                          // n. of rollers
+                                          roller_angle,               // angle of rollers
+                                          0.65,                       // max rad. of roller
+                                          1000,                       // density of roller
+                                          1000);                      // density of the spindle
 
     auto link_shaftA = chrono_types::make_shared<ChLinkMotorRotationSpeed>();
     link_shaftA->Initialize(spindle_A, platform, (f1 >> f2_wA));
@@ -232,13 +230,13 @@ int main(int argc, char* argv[]) {
     auto spindle_B = create_mecanum_wheel(sys,
                                           ftot_wB.GetCoordsys().pos,  // wheel position
                                           ftot_wB.GetCoordsys().rot,  // wheel alignment
-                                          wheel_radius,            // wheel radius
-                                          2.2,                     // wheel width
-                                          8,                       // n. of rollers
-                                          roller_angle,            // angle of rollers
-                                          0.65,                    // max rad. of roller
-                                          1000,                    // density of roller
-                                          1000);                   // density of the spindle
+                                          wheel_radius,               // wheel radius
+                                          2.2,                        // wheel width
+                                          8,                          // n. of rollers
+                                          roller_angle,               // angle of rollers
+                                          0.65,                       // max rad. of roller
+                                          1000,                       // density of roller
+                                          1000);                      // density of the spindle
 
     auto link_shaftB = chrono_types::make_shared<ChLinkMotorRotationSpeed>();
     link_shaftB->Initialize(spindle_B, platform, (f1 >> f2_wB));
@@ -248,13 +246,13 @@ int main(int argc, char* argv[]) {
     auto spindle_C = create_mecanum_wheel(sys,
                                           ftot_wC.GetCoordsys().pos,  // wheel position
                                           ftot_wC.GetCoordsys().rot,  // wheel alignment
-                                          wheel_radius,            // wheel radius
-                                          2.2,                     // wheel width
-                                          8,                       // n. of rollers
-                                          roller_angle,            // angle of rollers
-                                          0.65,                    // max rad. of roller
-                                          1000,                    // density of roller
-                                          1000);                   // density of the spindle
+                                          wheel_radius,               // wheel radius
+                                          2.2,                        // wheel width
+                                          8,                          // n. of rollers
+                                          roller_angle,               // angle of rollers
+                                          0.65,                       // max rad. of roller
+                                          1000,                       // density of roller
+                                          1000);                      // density of the spindle
 
     auto link_shaftC = chrono_types::make_shared<ChLinkMotorRotationSpeed>();
     link_shaftC->Initialize(spindle_C, platform, (f1 >> f2_wC));

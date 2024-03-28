@@ -237,7 +237,6 @@ class ChApi ChSocketFramework {
     ~ChSocketFramework();
 };
 
-
 /*
   Liyang Yu, Jan 9th, 2004, version 0.0
 

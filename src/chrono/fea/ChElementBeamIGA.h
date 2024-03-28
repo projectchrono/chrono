@@ -178,7 +178,7 @@ class ChApi ChElementBeamIGA : public ChElementBeam, public ChLoadableU, public 
         ChVectorDynamic<> N((int)nodes.size());
 
         ChBasisToolsBSpline::BasisEvaluate(this->order, nspan, u, knots,
-                                                     N);  ///< here return  in N
+                                           N);  ///< here return  in N
 
         point = VNULL;
         for (int i = 0; i < nodes.size(); ++i) {
@@ -282,7 +282,9 @@ class ChApi ChElementBeamIGA : public ChElementBeam, public ChLoadableU, public 
     virtual unsigned int GetNumSubBlocks() override { return (unsigned int)nodes.size(); }
 
     /// Get the offset of the specified sub-block of DOFs in global vector.
-    virtual unsigned int GetSubBlockOffset(unsigned int nblock) override { return nodes[nblock]->NodeGetOffsetVelLevel(); }
+    virtual unsigned int GetSubBlockOffset(unsigned int nblock) override {
+        return nodes[nblock]->NodeGetOffsetVelLevel();
+    }
 
     /// Get the size of the specified sub-block of DOFs in global vector.
     virtual unsigned int GetSubBlockSize(unsigned int nblock) override { return 6; }

@@ -21,44 +21,11 @@
 
 namespace chrono {
 
-/// Class for links which connect two 'markers'. The markers are two ChMarker objects each belonging to the two linked
-/// ChBody parts. Many specialized classes are based on this ChLinkMarkers class, for example the family of ChLinkLock
-/// classes. ChLinkMarkers class allows an optional force vector and torque vector to be set between the two connected
-/// markers.
+/// Class for links which connect two 'markers'.
+/// The markers are two ChMarker objects each belonging to the two linked ChBody parts. Many specialized classes are
+/// based on this ChLinkMarkers class, for example the family of ChLinkLock classes. ChLinkMarkers class allows an
+/// optional force vector and torque vector to be set between the two connected markers.
 class ChApi ChLinkMarkers : public ChLink {
-  protected:
-    // Protected constructors.
-    ChLinkMarkers();
-    ChLinkMarkers(const ChLinkMarkers& other);
-
-    ChMarker* marker1;  ///< secondary coordsys
-    ChMarker* marker2;  ///< main coordsys
-
-    ChCoordsysd relM;       ///< relative marker position 2-1
-    ChCoordsysd relM_dt;    ///< relative marker speed
-    ChCoordsysd relM_dtdt;  ///< relative marker acceleration
-
-    double relAngle;        ///< relative angle of rotation
-    ChVector3d relAxis;     ///< relative axis of rotation
-    ChVector3d relRotaxis;  ///< relative rotaion vector =angle*axis
-    ChVector3d relWvel;     ///< relative angular speed
-    ChVector3d relWacc;     ///< relative angular acceleration
-    double dist;            ///< the distance between the two origins of markers,
-    double dist_dt;         ///< the speed between the two  origins of markers
-
-    ChVector3d C_force;     ///< internal force  applied by springs/dampers/actuators
-    ChVector3d C_torque;    ///< internal torque applied by springs/dampers/actuators
-
-    // Cached intermediate variables.
-    // These are calculated in UpdateRelMarkerCoords and may be reused in UpdateState.
-    ChVector3d PQw;
-    ChVector3d PQw_dt;
-    ChVector3d PQw_dtdt;
-    ChQuaternion<> q_AD;
-    ChQuaternion<> q_BC;
-    ChQuaternion<> q_8;
-    ChVector3d q_4;
-
   public:
     virtual ~ChLinkMarkers() {}
 
@@ -73,7 +40,7 @@ class ChApi ChLinkMarkers : public ChLink {
 
     /// Get the link frame 1, relative to body 1.
     /// For this class link frame 1 is actually marker 1.
-    virtual ChFrame<> GetFrame1Rel() const override {return *marker1; }
+    virtual ChFrame<> GetFrame1Rel() const override { return *marker1; }
 
     /// Get the link frame 2, relative to body 2.
     /// For this class link frame 2 is actually marker 2.
@@ -92,21 +59,21 @@ class ChApi ChLinkMarkers : public ChLink {
 
     /// Relative rotation angle of marker 1 respect to marker 2.
     double GetRelAngle() const { return relAngle; }
-    
+
     /// Relative finite rotation axis of marker 1 respect to marker 2.
     const ChVector3d& GetRelAxis() const { return relAxis; }
-    
+
     const ChVector3d& GetRelAngleAxis() const { return relRotaxis; }
-    
+
     /// Relative angular speed of marker 1 respect to marker 2.
     const ChVector3d& GetRelativeAngVel() const { return relWvel; }
-    
+
     /// Relative angular acceleration of marker 1 respect to marker 2.
     const ChVector3d& GetRelativeAngAcc() const { return relWacc; }
-    
+
     /// Relative 'polar' distance of marker 1 respect to marker 2.
     double GetDistance() const { return dist; }
-    
+
     /// Relative speed of marker 1 respect to marker 2, along the polar distance vector.
     double GetDistanceDt() const { return dist_dt; }
 
@@ -151,8 +118,6 @@ class ChApi ChLinkMarkers : public ChLink {
     /// For a ChLinkMarkers, this returns the absolute coordinate system of the main marker2.
     virtual ChFrame<> GetVisualModelFrame(unsigned int nclone = 0) override { return marker2->GetAbsFrame(); }
 
-    // UPDATING FUNCTIONS
-
     /// Updates auxiliary quantities for all relative degrees of freedom of the two markers.
     virtual void UpdateRelMarkerCoords();
 
@@ -164,14 +129,10 @@ class ChApi ChLinkMarkers : public ChLink {
     /// Complete link update: UpdateTime -> UpdateRelMarkerCoords -> UpdateForces.
     virtual void Update(double mytime, bool update_assets = true) override;
 
-    // STATE FUNCTIONS
-
     /// Adds force to residual R, as R*= F*c
     /// NOTE: here the off offset in R is NOT used because add F at the TWO offsets of the two connected bodies,
     /// so it is assumed that offsets for Body1 and Body2 variables have been already set properly!
     virtual void IntLoadResidual_F(const unsigned int off, ChVectorDynamic<>& R, const double c) override;
-
-    // SOLVER INTERFACE
 
     /// Overrides the empty behaviour of the parent ChLink implementation, which
     /// does not consider any user-imposed force between the two bodies.
@@ -183,13 +144,44 @@ class ChApi ChLinkMarkers : public ChLink {
     /// and their application point is the origin of marker1 (the SLAVE marker).
     virtual void ConstraintsFbLoadForces(double factor = 1) override;
 
-    // SERIALIZATION
-
     /// Method to allow serialization of transient data to archives.
     virtual void ArchiveOut(ChArchiveOut& archive_out) override;
 
     /// Method to allow deserialization of transient data from archives.
     virtual void ArchiveIn(ChArchiveIn& archive_in) override;
+
+  protected:
+    // Protected constructors.
+    ChLinkMarkers();
+    ChLinkMarkers(const ChLinkMarkers& other);
+
+    ChMarker* marker1;  ///< secondary coordsys
+    ChMarker* marker2;  ///< main coordsys
+
+    ChCoordsysd relM;       ///< relative marker position 2-1
+    ChCoordsysd relM_dt;    ///< relative marker speed
+    ChCoordsysd relM_dtdt;  ///< relative marker acceleration
+
+    double relAngle;        ///< relative angle of rotation
+    ChVector3d relAxis;     ///< relative axis of rotation
+    ChVector3d relRotaxis;  ///< relative rotaion vector =angle*axis
+    ChVector3d relWvel;     ///< relative angular speed
+    ChVector3d relWacc;     ///< relative angular acceleration
+    double dist;            ///< the distance between the two origins of markers,
+    double dist_dt;         ///< the speed between the two  origins of markers
+
+    ChVector3d C_force;   ///< internal force  applied by springs/dampers/actuators
+    ChVector3d C_torque;  ///< internal torque applied by springs/dampers/actuators
+
+    // Cached intermediate variables.
+    // These are calculated in UpdateRelMarkerCoords and may be reused in UpdateState.
+    ChVector3d PQw;
+    ChVector3d PQw_dt;
+    ChVector3d PQw_dtdt;
+    ChQuaternion<> q_AD;
+    ChQuaternion<> q_BC;
+    ChQuaternion<> q_8;
+    ChVector3d q_4;
 };
 
 CH_CLASS_VERSION(ChLinkMarkers, 0)

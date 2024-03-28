@@ -24,9 +24,9 @@ namespace chrono {
 
 class ChApi ChLinkLockClearance : public ChLinkLockLock {
   protected:
-    double clearance;           ///< distance offset
-    double c_friction;          ///< friction coeff.
-    double c_restitution;       ///< restitution coeff.
+    double clearance;      ///< distance offset
+    double c_friction;     ///< friction coeff.
+    double c_restitution;  ///< restitution coeff.
 
     double diameter;  ///< radius of shaft (in case of circular shaft)
 
@@ -57,15 +57,15 @@ class ChApi ChLinkLockClearance : public ChLinkLockLock {
     double GetDiameter() const { return diameter; }
     void SetDiameter(double mset) { diameter = mset; }
 
-    double GetEccentricity() const;  // distance between the two shafts
-    double GetAxisAngularLocation() const;         // phase of center of shaft, respect to hole
-    double GetRotationAngle() const;     // rotation of shafti in hole (relative)
-    ChVector3d GetContactPosAbs() const;   // absolute contact point
-    ChVector3d GetContactNormalAbs() const;   // absolute normal to contact
-    ChVector3d GetContactForceAbs() const;   // absolute force in contact
-    double GetContactForceNormal() const;        // normal part of force
-    double GetContactForceTangential() const;        // tangent part of force
-    double GetContactSpeedTangential() const;        // tangent part of speed
+    double GetEccentricity() const;            // distance between the two shafts
+    double GetAxisAngularLocation() const;     // phase of center of shaft, respect to hole
+    double GetRotationAngle() const;           // rotation of shafti in hole (relative)
+    ChVector3d GetContactPosAbs() const;       // absolute contact point
+    ChVector3d GetContactNormalAbs() const;    // absolute normal to contact
+    ChVector3d GetContactForceAbs() const;     // absolute force in contact
+    double GetContactForceNormal() const;      // normal part of force
+    double GetContactForceTangential() const;  // tangent part of force
+    double GetContactSpeedTangential() const;  // tangent part of speed
 
     /// Method to allow serialization of transient data to archives.
     virtual void ArchiveOut(ChArchiveOut& archive_out) override;

@@ -135,8 +135,8 @@ bool ChTrackAssemblyDoublePin::Assemble(std::shared_ptr<ChBodyAuxRef> chassis) {
         as = angle - sign * 0.07;
         ac = angle + sign * 0.2;
         ps = p2 + sign * Vrot(ChVector2d(shoe_length / 2, 0), as);
-        pc = ps + sign * Vrot(ChVector2d(shoe_length / 2, 0), as) +
-             sign * Vrot(ChVector2d(connector_length / 2, 0), ac);
+        pc =
+            ps + sign * Vrot(ChVector2d(shoe_length / 2, 0), as) + sign * Vrot(ChVector2d(connector_length / 2, 0), ac);
         CreateTrackShoe(chassis, index, ps, pc, as, ac);
         p2 = pc + sign * Vrot(ChVector2d(connector_length / 2, 0), ac);
         index++;
@@ -156,7 +156,7 @@ bool ChTrackAssemblyDoublePin::Assemble(std::shared_ptr<ChBodyAuxRef> chassis) {
     ////while (-sign * (idler_pos.x() - p2.x() + shoe_pitch) > 0 && index < num_shoes) {
     while (sign * (p2.x() - idler_pos.x()) > shoe_pitch && index < num_shoes) {
         ps = p2 + sign * Vrot(ChVector2d(shoe_length / 2, 0), angle);
-        pc = ps + sign * Vrot(ChVector2d((shoe_length + connector_length)/ 2, 0), angle);
+        pc = ps + sign * Vrot(ChVector2d((shoe_length + connector_length) / 2, 0), angle);
         CreateTrackShoe(chassis, index, ps, pc, angle, angle);
         p2 = pc + sign * Vrot(ChVector2d(connector_length / 2, 0), angle);
         ++index;

@@ -19,7 +19,7 @@
 #include "chrono_models/robot/copters/Copter.h"
 
 #ifndef LITTLE_HEXY_H
-#define LITTLE_HEXY_H
+    #define LITTLE_HEXY_H
 
 namespace chrono {
 namespace copter {
@@ -61,7 +61,7 @@ class CH_MODELS_API Little_Hexy : public Copter<6> {
     /// Use a negative delta to decrease all.
     void Throttle(double delta);
 
-	/// Get the name of the Wavefront file with chassis visualization mesh.
+    /// Get the name of the Wavefront file with chassis visualization mesh.
     /// An empty string is returned if no mesh was specified.
     virtual const std::string& GetChassisMeshFilename() const override { return chassis_mesh_path; }
 

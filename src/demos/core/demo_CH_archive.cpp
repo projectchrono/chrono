@@ -448,7 +448,7 @@ void my_deserialization_example(ChArchiveIn& archive_in) {
     streamConsole << m_matr_NM;
     streamConsole << m_vect;
     streamConsole << m_quat;
-    streamConsole << m_string.c_str() << std::endl;
+    streamConsole << m_string << std::endl;
 
     // TODO: can offer specialization of operator << for the following cases
     archiveConsole << CHNVP(m_stlvector);

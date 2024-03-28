@@ -78,8 +78,8 @@ class ChApi ChElementTetraCorot_4 : public ChElementTetrahedron,
     void ShapeFunctions(ShapeVector& N, double r, double s, double t);
 
     /// Fills the D vector (displacement) with the current field values at the nodes of the element, with proper
-    /// ordering. If the D vector has not the size of this->GetNumCoordsPosLevel(), it will be resized.For corotational elements,
-    /// field is assumed in local reference!
+    /// ordering. If the D vector has not the size of this->GetNumCoordsPosLevel(), it will be resized.For corotational
+    /// elements, field is assumed in local reference!
     virtual void GetStateBlock(ChVectorDynamic<>& mD) override;
 
     double ComputeVolume();
@@ -161,7 +161,9 @@ class ChApi ChElementTetraCorot_4 : public ChElementTetrahedron,
     virtual unsigned int GetNumSubBlocks() override { return 4; }
 
     /// Get the offset of the specified sub-block of DOFs in global vector.
-    virtual unsigned int GetSubBlockOffset(unsigned int nblock) override { return nodes[nblock]->NodeGetOffsetVelLevel(); }
+    virtual unsigned int GetSubBlockOffset(unsigned int nblock) override {
+        return nodes[nblock]->NodeGetOffsetVelLevel();
+    }
 
     /// Get the size of the specified sub-block of DOFs in global vector.
     virtual unsigned int GetSubBlockSize(unsigned int nblock) override { return 3; }
@@ -251,8 +253,8 @@ class ChApi ChElementTetraCorot_4_P : public ChElementGeneric, public ChElementC
     virtual void ShapeFunctions(ShapeVector& N, double z0, double z1, double z2);
 
     /// Fills the D vector with the current field values at the nodes of the element, with proper ordering. If the D
-    /// vector has not the size of this->GetNumCoordsPosLevel(), it will be resized. For corotational elements, field is assumed in
-    /// local reference!
+    /// vector has not the size of this->GetNumCoordsPosLevel(), it will be resized. For corotational elements, field is
+    /// assumed in local reference!
     virtual void GetStateBlock(ChVectorDynamic<>& D) override;
 
     double ComputeVolume();
@@ -326,7 +328,9 @@ class ChApi ChElementTetraCorot_4_P : public ChElementGeneric, public ChElementC
     virtual unsigned int GetNumSubBlocks() override { return 4; }
 
     /// Get the offset of the specified sub-block of DOFs in global vector.
-    virtual unsigned int GetSubBlockOffset(unsigned int nblock) override { return nodes[nblock]->NodeGetOffsetVelLevel(); }
+    virtual unsigned int GetSubBlockOffset(unsigned int nblock) override {
+        return nodes[nblock]->NodeGetOffsetVelLevel();
+    }
 
     /// Get the size of the specified sub-block of DOFs in global vector.
     virtual unsigned int GetSubBlockSize(unsigned int nblock) override { return 1; }

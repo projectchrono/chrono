@@ -123,13 +123,13 @@ link_motor.SetMotorFunction(chrono.ChFunctionConst(1.0*chrono.CH_2PI))  # 1.0 Hz
 my_system.Add(link_motor)
 ~~~
 
-The ```Initialize()``` function requires two bodies and a ```ChFrameD``` object 
+The ```Initialize()``` function requires two bodies and a ```ChFramed``` object 
 that represents the position and rotation of the constraint; we'll use the frame of my_marker.
 In this case the ChLinkMotorRotationSpeed constraint assumes that the Z axis of the 
 frame is used for the rotation axis.
 
 
-Although you could create a ```ChFrameD``` from scratch, by typing 
+Although you could create a ```ChFramed``` from scratch, by typing 
 the rotation and xyz position values, here it was smarter to use the 
 frame of the my_marker object that was created in SolidWorks 
 and fetched in the previous paragraph.
@@ -172,7 +172,7 @@ modify, or take inspiration from.
 If you want to change the viewpoint of the camera for the POVray postprocessing system, look in ```run_test_modified.py``` for the following statement and modify the x y z coordinates of the viewpoint to your needs. The parameters of ```SetCamera()``` are the vector with the position of the observer viewpoint, the vector with the position of the aim point, and finally the degrees of the lens angle (ex. 30° for tele lenses, 50° for a wide lenses, etc.):
 
 ~~~{.py}
-pov_exporter.SetCamera(chrono.ChVectorD(0.4,0.6,0.9), chrono.ChVectorD(0.2,0,0), 30)
+pov_exporter.SetCamera(chrono.ChVector3d(0.4,0.6,0.9), chrono.ChVector3d(0.2,0,0), 30)
 ~~~
 
 ##Change material of shape visualization {#manual_sw_material}
@@ -283,8 +283,8 @@ if not my_rod :
 
 ~~~{.py}
 my_movingcamera = chrono.ChCamera()
-my_movingcamera.SetPosition(chrono.ChVectorD(0,-0.1,-0.700))
-my_movingcamera.SetAimPoint(chrono.ChVectorD(0,-0.1,0))
+my_movingcamera.SetPosition(chrono.ChVector3d(0,-0.1,-0.700))
+my_movingcamera.SetAimPoint(chrono.ChVector3d(0,-0.1,0))
 my_rod.GetAssets().push_back(my_movingcamera)
 ~~~
 

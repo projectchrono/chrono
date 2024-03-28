@@ -177,8 +177,7 @@ void CreateShapes(ChSystemSMC& sys) {
         s->GetCollisionModel()->DisallowCollisionsWith(1);
         sys.Add(s);
 
-        auto b =
-            chrono_types::make_shared<ChBodyEasyBox>(1.0 * scale, 1.5 * scale, 1.25 * scale, 1, mat);
+        auto b = chrono_types::make_shared<ChBodyEasyBox>(1.0 * scale, 1.5 * scale, 1.25 * scale, 1, mat);
         b->SetPos(points[3 * i + 1]);
         b->SetRot(ChQuaternion<>(ChRandom::Get(), ChRandom::Get(), ChRandom::Get(), ChRandom::Get()).GetNormalized());
         b->GetVisualShape(0)->SetColor(ChColor(0, 0.4f, 0));

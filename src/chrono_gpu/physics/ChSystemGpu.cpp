@@ -370,19 +370,14 @@ size_t ChSystemGpu::CreateBCPlane(const ChVector3f& pos, const ChVector3f& norma
 }
 
 // customized plate for angle of repose test, plate has a limited width in y direction, and can move in y direction
-size_t ChSystemGpu::CreateCustomizedPlate(const ChVector3f& pos_center,
-                                          const ChVector3f& normal,
-                                          float hdim_y) {
+size_t ChSystemGpu::CreateCustomizedPlate(const ChVector3f& pos_center, const ChVector3f& normal, float hdim_y) {
     float plate_pos[3] = {pos_center.x(), pos_center.y(), pos_center.z()};
     float plate_nrm[3] = {normal.x(), normal.y(), normal.z()};
 
     return m_sys->CreateCustomizedPlate(plate_pos, plate_nrm, hdim_y);
 }
 
-size_t ChSystemGpu::CreateBCCylinderZ(const ChVector3f& center,
-                                      float radius,
-                                      bool outward_normal,
-                                      bool track_forces) {
+size_t ChSystemGpu::CreateBCCylinderZ(const ChVector3f& center, float radius, bool outward_normal, bool track_forces) {
     float cyl_center[3] = {center.x(), center.y(), center.z()};
     return m_sys->CreateBCCylinderZ(cyl_center, radius, outward_normal, track_forces);
 }
@@ -1331,13 +1326,12 @@ double ChSystemGpu::AdvanceSimulation(float duration) {
     m_timer.start();
 
     float dt = m_sys->AdvanceSimulation(duration);
-    
+
     m_timer.stop();
     m_RTF = m_timer() / dt;
 
     return dt;
 }
-
 
 // -----------------------------------------------------------------------------
 

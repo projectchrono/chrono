@@ -20,7 +20,7 @@ namespace chrono {
 // CH_FACTORY_REGISTER(ChLinkMotor)  NO! ABSTRACT!
 
 ChLinkMotor::ChLinkMotor() {
-	m_func = chrono_types::make_shared<ChFunctionConst>(0); // defaults to no motion.
+    m_func = chrono_types::make_shared<ChFunctionConst>(0);  // defaults to no motion.
 }
 
 ChLinkMotor::ChLinkMotor(const ChLinkMotor& other) : ChLinkMateGeneric(other) {
@@ -47,7 +47,7 @@ void ChLinkMotor::ArchiveOut(ChArchiveOut& archive_out) {
 
 void ChLinkMotor::ArchiveIn(ChArchiveIn& archive_in) {
     // version number
-    /*int version =*/ archive_in.VersionRead<ChLinkMotor>();
+    /*int version =*/archive_in.VersionRead<ChLinkMotor>();
 
     // deserialize parent class
     ChLinkMateGeneric::ArchiveIn(archive_in);

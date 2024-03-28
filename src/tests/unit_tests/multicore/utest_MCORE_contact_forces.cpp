@@ -153,7 +153,7 @@ ContactForceTest::ContactForceTest() : sys(nullptr) {
     ////std::cout << "Total weight = " << total_weight << std::endl;
 
     // Create container box
-    ground = utils::CreateBoxContainer(sys, 0, material, ChVector3d(20, 20, 2 * radius), 0.1);
+    ground = utils::CreateBoxContainer(sys, material, ChVector3d(20, 20, 2 * radius), 0.1);
 }
 
 TEST_P(ContactForceTest, simulate) {

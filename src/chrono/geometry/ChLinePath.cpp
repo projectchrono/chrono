@@ -16,7 +16,6 @@
 
 namespace chrono {
 
-
 // Register into the object factory, to enable run-time dynamic creation and persistence
 CH_FACTORY_REGISTER(ChLinePath)
 
@@ -58,7 +57,7 @@ ChVector3d ChLinePath::Evaluate(double parU) const {
         uA = end_times[i - 1];
 
     double local_U = (u - uA) / durations[i];
-    
+
     return lines[i]->Evaluate(local_U);
 }
 
@@ -154,7 +153,7 @@ void ChLinePath::ArchiveOut(ChArchiveOut& archive_out) {
 
 void ChLinePath::ArchiveIn(ChArchiveIn& archive_in) {
     // version number
-    /*int version =*/ archive_in.VersionRead<ChLinePath>();
+    /*int version =*/archive_in.VersionRead<ChLinePath>();
     // deserialize parent class
     ChLine::ArchiveIn(archive_in);
     // stream in all member data:
@@ -162,6 +161,5 @@ void ChLinePath::ArchiveIn(ChArchiveIn& archive_in) {
     archive_in >> CHNVP(end_times);
     archive_in >> CHNVP(durations);
 }
-
 
 }  // end namespace chrono

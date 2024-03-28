@@ -77,9 +77,9 @@ ChApi ChQuaterniond QuatDtFromAngleAxis(const ChQuaterniond& quat, double angle_
 /// Convert from a rotation acceleration and an axis to a quaternion second derivative.
 /// The rotation axis is assumed to be represented in absolute coordinates.
 ChApi ChQuaterniond QuatDt2FromAngleAxis(double angle_dtdt,
-                                          const ChVector3d& axis,
-                                          const ChQuaterniond& q,
-                                          const ChQuaterniond& q_dt);
+                                         const ChVector3d& axis,
+                                         const ChQuaterniond& q,
+                                         const ChQuaterniond& q_dt);
 
 /// Convert from a rotation about X axis to a quaternion.
 ChApi ChQuaterniond QuatFromAngleX(double angle);

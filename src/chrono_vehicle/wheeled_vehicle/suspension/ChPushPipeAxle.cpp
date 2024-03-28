@@ -105,7 +105,7 @@ void ChPushPipeAxle::Initialize(std::shared_ptr<ChChassis> chassis,
 
     // Create and initialize the axle body.
     m_axleTube = chrono_types::make_shared<ChBody>();
-    m_axleTube->SetNameString(m_name + "_axleTube");
+    m_axleTube->SetName(m_name + "_axleTube");
     m_axleTube->SetPos(axleCOM);
     m_axleTube->SetRot(chassis->GetBody()->GetFrameRefToAbs().GetRot());
     m_axleTube->SetMass(getAxleTubeMass());
@@ -113,7 +113,7 @@ void ChPushPipeAxle::Initialize(std::shared_ptr<ChChassis> chassis,
     chassis->GetBody()->GetSystem()->AddBody(m_axleTube);
 
     m_axleTubeGuideLong = chrono_types::make_shared<ChLinkLockSpherical>();
-    m_axleTubeGuideLong->SetNameString(m_name + "_sphereAxleTube");
+    m_axleTubeGuideLong->SetName(m_name + "_sphereAxleTube");
     ChVector3d spPos = suspension_to_abs.TransformPointLocalToParent(getLocation(AXLE_C));
     m_axleTubeGuideLong->Initialize(m_axleTube, chassis->GetBody(), ChFrame<>(spPos, QUNIT));
     chassis->GetBody()->GetSystem()->AddLink(m_axleTubeGuideLong);
@@ -122,7 +122,7 @@ void ChPushPipeAxle::Initialize(std::shared_ptr<ChChassis> chassis,
     ChVector3d panCom_local = 0.5 * (getLocation(PANHARD_A) + getLocation(PANHARD_C));
     ChVector3d panCom = suspension_to_abs.TransformPointLocalToParent(panCom_local);
     m_panhardRod = chrono_types::make_shared<ChBody>();
-    m_panhardRod->SetNameString(m_name + "_panhardRod");
+    m_panhardRod->SetName(m_name + "_panhardRod");
     m_panhardRod->SetPos(panCom);
     m_panhardRod->SetRot(chassis->GetBody()->GetFrameRefToAbs().GetRot());
     m_panhardRod->SetMass(getPanhardRodMass());
@@ -132,14 +132,14 @@ void ChPushPipeAxle::Initialize(std::shared_ptr<ChChassis> chassis,
     // fix panhard rod body to the axleTube
     ChVector3d panAxl = suspension_to_abs.TransformPointLocalToParent(getLocation(PANHARD_A));
     m_panhardRod2Axle = chrono_types::make_shared<ChLinkLockSpherical>();
-    m_panhardRod2Axle->SetNameString(m_name + "_panhardRod2Axle");
+    m_panhardRod2Axle->SetName(m_name + "_panhardRod2Axle");
     m_panhardRod2Axle->Initialize(m_panhardRod, m_axleTube, ChFrame<>(panAxl, QUNIT));
     chassis->GetBody()->GetSystem()->AddLink(m_panhardRod2Axle);
 
     // fix panhard rod body to the chassis body
     ChVector3d panCh = suspension_to_abs.TransformPointLocalToParent(getLocation(PANHARD_C));
     m_panhardRod2Chassis = chrono_types::make_shared<ChLinkLockSpherical>();
-    m_panhardRod2Chassis->SetNameString(m_name + "_panhardRod2Chassis");
+    m_panhardRod2Chassis->SetName(m_name + "_panhardRod2Chassis");
     m_panhardRod2Chassis->Initialize(m_panhardRod, chassis->GetBody(), ChFrame<>(panCh, QUNIT));
     chassis->GetBody()->GetSystem()->AddLink(m_panhardRod2Chassis);
 
@@ -183,7 +183,7 @@ void ChPushPipeAxle::InitializeSide(VehicleSide side,
 
     // Create and initialize spindle body (same orientation as the chassis)
     m_spindle[side] = chrono_types::make_shared<ChBody>();
-    m_spindle[side]->SetNameString(m_name + "_spindle" + suffix);
+    m_spindle[side]->SetName(m_name + "_spindle" + suffix);
     m_spindle[side]->SetPos(points[SPINDLE]);
     m_spindle[side]->SetRot(spindleRot);
     m_spindle[side]->SetAngVelLocal(ChVector3d(0, ang_vel, 0));
@@ -193,14 +193,14 @@ void ChPushPipeAxle::InitializeSide(VehicleSide side,
 
     // Create and initialize the revolute joint between axle tube and spindle.
     m_revolute[side] = chrono_types::make_shared<ChLinkLockRevolute>();
-    m_revolute[side]->SetNameString(m_name + "_revolute" + suffix);
+    m_revolute[side]->SetName(m_name + "_revolute" + suffix);
     m_revolute[side]->Initialize(m_spindle[side], m_axleTube,
                                  ChFrame<>(points[SPINDLE], spindleRot * QuatFromAngleX(CH_PI_2)));
     chassis->GetSystem()->AddLink(m_revolute[side]);
 
     // Create and initialize the shock damper
     m_shock[side] = chrono_types::make_shared<ChLinkTSDA>();
-    m_shock[side]->SetNameString(m_name + "_shock" + suffix);
+    m_shock[side]->SetName(m_name + "_shock" + suffix);
     m_shock[side]->Initialize(chassis, m_axleTube, false, points[SHOCK_C], points[SHOCK_A]);
     m_shock[side]->SetRestLength(getShockRestLength());
     m_shock[side]->RegisterForceFunctor(getShockForceFunctor());
@@ -208,7 +208,7 @@ void ChPushPipeAxle::InitializeSide(VehicleSide side,
 
     // Create and initialize the spring
     m_spring[side] = chrono_types::make_shared<ChLinkTSDA>();
-    m_spring[side]->SetNameString(m_name + "_spring" + suffix);
+    m_spring[side]->SetName(m_name + "_spring" + suffix);
     m_spring[side]->Initialize(scbeam, m_axleTube, false, points[SPRING_C], points[SPRING_A]);
     m_spring[side]->SetRestLength(getSpringRestLength());
     m_spring[side]->RegisterForceFunctor(getSpringForceFunctor());
@@ -217,13 +217,13 @@ void ChPushPipeAxle::InitializeSide(VehicleSide side,
     // Create and initialize the axle shaft and its connection to the spindle.
     // Note that the spindle rotates about the Y axis.
     m_axle[side] = chrono_types::make_shared<ChShaft>();
-    m_axle[side]->SetNameString(m_name + "_axle" + suffix);
+    m_axle[side]->SetName(m_name + "_axle" + suffix);
     m_axle[side]->SetInertia(getAxleInertia());
     m_axle[side]->SetPosDt(-ang_vel);
     chassis->GetSystem()->AddShaft(m_axle[side]);
 
     m_axle_to_spindle[side] = chrono_types::make_shared<ChShaftBodyRotation>();
-    m_axle_to_spindle[side]->SetNameString(m_name + "_axle_to_spindle" + suffix);
+    m_axle_to_spindle[side]->SetName(m_name + "_axle_to_spindle" + suffix);
     m_axle_to_spindle[side]->Initialize(m_axle[side], m_spindle[side], ChVector3d(0, -1, 0));
     chassis->GetSystem()->Add(m_axle_to_spindle[side]);
 }
@@ -239,9 +239,9 @@ void ChPushPipeAxle::UpdateInertiaProperties() {
     ChMatrix33<> inertiaSpindle(getSpindleInertia());
 
     utils::CompositeInertia composite;
-    composite.AddComponent(m_spindle[LEFT]->GetFrame_COG_to_abs(), getSpindleMass(), inertiaSpindle);
-    composite.AddComponent(m_spindle[RIGHT]->GetFrame_COG_to_abs(), getSpindleMass(), inertiaSpindle);
-    composite.AddComponent(m_axleTube->GetFrame_COG_to_abs(), getAxleTubeMass(), ChMatrix33<>(getAxleInertia()));
+    composite.AddComponent(m_spindle[LEFT]->GetFrameCOMToAbs(), getSpindleMass(), inertiaSpindle);
+    composite.AddComponent(m_spindle[RIGHT]->GetFrameCOMToAbs(), getSpindleMass(), inertiaSpindle);
+    composite.AddComponent(m_axleTube->GetFrameCOMToAbs(), getAxleTubeMass(), ChMatrix33<>(getAxleInertia()));
 
     // Express COM and inertia in subsystem reference frame
     m_com.GetPos() = m_xform.TransformPointParentToLocal(composite.GetCOM());

@@ -81,7 +81,6 @@ class ChApi ChCollisionModelMulticore : public ChCollisionModelImpl {
     friend class ChCollisionSystemChronoMulticore;
     friend class ChContactContainerMulticoreNSC;
     friend class ChContactContainerMulticoreSMC;
-    
 };
 
 /// @} collision_mc

@@ -136,8 +136,8 @@ class ChApi ChContactContainerSMC : public ChContactContainer {
     // STATE FUNCTIONS
 
     virtual void IntLoadResidual_F(const unsigned int off, ChVectorDynamic<>& R, const double c) override;
-    virtual void KRMmatricesLoad(double Kfactor, double Rfactor, double Mfactor) override;
-    virtual void InjectKRMmatrices(ChSystemDescriptor& mdescriptor) override;
+    virtual void LoadKRMMatrices(double Kfactor, double Rfactor, double Mfactor) override;
+    virtual void InjectKRMMatrices(ChSystemDescriptor& descriptor) override;
 
     // SOLVER INTERFACE
 

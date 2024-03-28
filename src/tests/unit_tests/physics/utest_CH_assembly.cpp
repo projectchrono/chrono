@@ -47,8 +47,8 @@ TEST(FullAssembly, Assemble) {
     ChVector3d inertiaXX(0.04, 0.1, 0.1);  // mass moments of inertia of pendulum (centroidal frame)
     double g = 9.80665;                    // gravitational acceleration
 
-    ChVector3d jointLoc(1, 2, 3);                                    // absolute location of revolute joint
-    double jointAngle = -CH_PI_4;                                  // joint rotation angle (about global X axis)
+    ChVector3d jointLoc(1, 2, 3);                          // absolute location of revolute joint
+    double jointAngle = -CH_PI_4;                          // joint rotation angle (about global X axis)
     ChQuaternion<> jointRot = QuatFromAngleX(jointAngle);  // orientation of revolute joint
 
     // Create the mechanical system
@@ -64,7 +64,6 @@ TEST(FullAssembly, Assemble) {
     // Create the ground body
     auto ground = chrono_types::make_shared<ChBody>();
     sys.AddBody(ground);
-    ground->SetIdentifier(0);
     ground->SetFixed(true);
 
     // Create the pendulum body in an initial configuration at rest, with an
@@ -73,7 +72,6 @@ TEST(FullAssembly, Assemble) {
     // The pendulum CG is assumed to be at half its length.
     auto pendulum = chrono_types::make_shared<ChBody>();
     sys.AddBody(pendulum);
-    pendulum->SetIdentifier(1);
     pendulum->SetPos(jointLoc + jointRot.Rotate(ChVector3d(length / 2, 0, 0)));
     pendulum->SetRot(jointRot);
     pendulum->SetMass(mass);

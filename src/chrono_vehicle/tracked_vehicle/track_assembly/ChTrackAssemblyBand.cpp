@@ -109,7 +109,7 @@ bool ChTrackAssemblyBand::FindAssemblyPoints(std::shared_ptr<ChBodyAuxRef> chass
     // Start building the path around the sprocket, idler, and wheels
 
     int Current_Circle = 0;
-    
+
     // Tangent points (start and end) between consecutive circles
     std::vector<std::pair<ChVector2d, ChVector2d>> TangentPoints(CirclePosAll.size());
 
@@ -290,9 +290,10 @@ bool ChTrackAssemblyBand::FindAssemblyPoints(std::shared_ptr<ChBodyAuxRef> chass
     Arcs(0, 2) = EndingAngle;
 
     for (int i = 1; i < CircleRadius.size(); i++) {
-        StartingAngle =
-            std::atan2(TangentPoints[i - 1].second.y() - CirclePos[i].y(), TangentPoints[i - 1].second.x() - CirclePos[i].x());
-        EndingAngle = std::atan2(TangentPoints[i].first.y() - CirclePos[i].y(), TangentPoints[i].first.x() - CirclePos[i].x());
+        StartingAngle = std::atan2(TangentPoints[i - 1].second.y() - CirclePos[i].y(),
+                                   TangentPoints[i - 1].second.x() - CirclePos[i].x());
+        EndingAngle =
+            std::atan2(TangentPoints[i].first.y() - CirclePos[i].y(), TangentPoints[i].first.x() - CirclePos[i].x());
 
         if (StartingAngle < 0) {
             StartingAngle += CH_2PI;
@@ -369,7 +370,7 @@ bool ChTrackAssemblyBand::FindAssemblyPoints(std::shared_ptr<ChBodyAuxRef> chass
         }
 
         shoe_points[0] = ChVector2d(std::cos(StartingAngle) * ScaledCircleRadius[0] + CirclePos[0].x(),
-                                     std::sin(StartingAngle) * ScaledCircleRadius[0] + CirclePos[0].y());
+                                    std::sin(StartingAngle) * ScaledCircleRadius[0] + CirclePos[0].y());
 
         int shoelinktype = 0;
         int CurrentFeature = 0;
@@ -524,16 +525,12 @@ void ChTrackAssemblyBand::FindCircleTangentPoints(ChVector2d Circle1Pos,
     double beta = std::asin((r2 - r1) / std::sqrt(std::pow(x2 - x1, 2) + std::pow(y2 - y1, 2)));
     double gamma = std::atan2((y2 - y1), (x2 - x1));
 
-    Tan1Pnt1 =
-        ChVector2d(x1 + r1 * std::cos(gamma + (CH_PI_2 + beta)), y1 + r1 * std::sin(gamma + (CH_PI_2 + beta)));
-    Tan1Pnt2 =
-        ChVector2d(x2 + r2 * std::cos(gamma + (CH_PI_2 + beta)), y2 + r2 * std::sin(gamma + (CH_PI_2 + beta)));
+    Tan1Pnt1 = ChVector2d(x1 + r1 * std::cos(gamma + (CH_PI_2 + beta)), y1 + r1 * std::sin(gamma + (CH_PI_2 + beta)));
+    Tan1Pnt2 = ChVector2d(x2 + r2 * std::cos(gamma + (CH_PI_2 + beta)), y2 + r2 * std::sin(gamma + (CH_PI_2 + beta)));
 
     // Pick the external tangent on the other side of the circle
-    Tan2Pnt1 =
-        ChVector2d(x1 + r1 * std::cos(gamma - (CH_PI_2 + beta)), y1 + r1 * std::sin(gamma - (CH_PI_2 + beta)));
-    Tan2Pnt2 =
-        ChVector2d(x2 + r2 * std::cos(gamma - (CH_PI_2 + beta)), y2 + r2 * std::sin(gamma - (CH_PI_2 + beta)));
+    Tan2Pnt1 = ChVector2d(x1 + r1 * std::cos(gamma - (CH_PI_2 + beta)), y1 + r1 * std::sin(gamma - (CH_PI_2 + beta)));
+    Tan2Pnt2 = ChVector2d(x2 + r2 * std::cos(gamma - (CH_PI_2 + beta)), y2 + r2 * std::sin(gamma - (CH_PI_2 + beta)));
 }
 
 void ChTrackAssemblyBand::CheckCircleCircle(bool& found,

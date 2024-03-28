@@ -53,11 +53,11 @@ void ChSolverMulticoreAPGD::UpdateR() {
 }
 
 uint ChSolverMulticoreAPGD::Solve(ChSchurProduct& SchurProduct,
-                                 ChProjectConstraints& Project,
-                                 const uint max_iter,
-                                 const uint size,
-                                 const DynamicVector<real>& r,
-                                 DynamicVector<real>& gamma) {
+                                  ChProjectConstraints& Project,
+                                  const uint max_iter,
+                                  const uint size,
+                                  const DynamicVector<real>& r,
+                                  DynamicVector<real>& gamma) {
     if (size == 0) {
         return 0;
     }

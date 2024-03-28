@@ -32,7 +32,6 @@ sys = chrono.ChSystemNSC()
 # Create ground body
 ground = chrono.ChBody()
 sys.AddBody(ground)
-ground.SetIdentifier(-1)
 ground.SetFixed(True)
 ground.EnableCollision(False)
 
@@ -43,7 +42,6 @@ ground.AddVisualShape(cyl_rev)
 # Create a pendulum body
 pend = chrono.ChBody()
 sys.AddBody(pend)
-pend.SetIdentifier(1)
 pend.SetFixed(False)
 pend.EnableCollision(False)
 pend.SetMass(1)

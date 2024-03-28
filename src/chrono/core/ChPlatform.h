@@ -18,11 +18,11 @@
 // Functionality for API import/export symbols, in a platform independent way.
 // When building the DLL, use the ChApiEXPORT macro. When using the DLL, use the ChApiIMPORT macro.
 #if ((defined _WIN32) || (defined(__MINGW32__) || defined(__CYGWIN__))) && !defined(CH_STATIC)
-#define ChApiEXPORT __declspec(dllexport)
-#define ChApiIMPORT __declspec(dllimport)
+    #define ChApiEXPORT __declspec(dllexport)
+    #define ChApiIMPORT __declspec(dllimport)
 #else
-#define ChApiEXPORT
-#define ChApiIMPORT
+    #define ChApiEXPORT
+    #define ChApiIMPORT
 #endif
 
 // Define a CH_DEPRECATED macro which generates a warning at compile time.
@@ -35,17 +35,17 @@
 // When building the Chrono libraries, define CH_IGNORE_DEPRECATED to stop issuing these warnings.
 
 #if defined(CH_IGNORE_DEPRECATED)
-#define CH_DEPRECATED(msg)
+    #define CH_DEPRECATED(msg)
 #else
-#if __cplusplus >= 201402L
-#define CH_DEPRECATED(msg) [[deprecated(msg)]]
-#elif defined(__GNUC__)
-#define CH_DEPRECATED(msg) __attribute__((deprecated(msg)))
-#elif defined(_MSC_VER)
-#define CH_DEPRECATED(msg) __declspec(deprecated(msg))
-#else
-#define CH_DEPRECATED(msg)
-#endif
+    #if __cplusplus >= 201402L
+        #define CH_DEPRECATED(msg) [[deprecated(msg)]]
+    #elif defined(__GNUC__)
+        #define CH_DEPRECATED(msg) __attribute__((deprecated(msg)))
+    #elif defined(_MSC_VER)
+        #define CH_DEPRECATED(msg) __declspec(deprecated(msg))
+    #else
+        #define CH_DEPRECATED(msg)
+    #endif
 #endif
 
 #endif

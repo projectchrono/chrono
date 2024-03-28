@@ -62,6 +62,6 @@ const ChVector3d CityBus_RotaryArm::getDirection(DirectionId which) {
     }
 }
 
-}  // end namespace chrono
+}  // namespace citybus
 }  // end namespace vehicle
 }  // end namespace chrono

@@ -127,7 +127,7 @@ void ChLinkLockScrew::ArchiveOut(ChArchiveOut& archive_out) {
 /// Method to allow de serialization of transient data from archives.
 void ChLinkLockScrew::ArchiveIn(ChArchiveIn& archive_in) {
     // version number
-    /*int version =*/ archive_in.VersionRead<ChLinkLockScrew>();
+    /*int version =*/archive_in.VersionRead<ChLinkLockScrew>();
 
     // deserialize parent class
     ChLinkLock::ArchiveIn(archive_in);

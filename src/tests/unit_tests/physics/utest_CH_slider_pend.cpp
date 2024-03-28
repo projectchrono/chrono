@@ -205,14 +205,12 @@ ChronoModel::ChronoModel() {
     // ----------------------
     m_ground = chrono_types::make_shared<ChBody>();
     m_system->AddBody(m_ground);
-    m_ground->SetIdentifier(-1);
     m_ground->SetFixed(true);
 
     // Create the slider body
     // ----------------------
     m_slider = chrono_types::make_shared<ChBody>();
     m_system->AddBody(m_slider);
-    m_slider->SetIdentifier(1);
     m_slider->SetMass(m1);
     m_slider->SetInertiaXX(ChVector3d(1, 1, 1));
     m_slider->SetPos(ChVector3d(0, 0, 0));
@@ -221,7 +219,6 @@ ChronoModel::ChronoModel() {
     // ------------------------
     m_pend = chrono_types::make_shared<ChBody>();
     m_system->AddBody(m_pend);
-    m_pend->SetIdentifier(2);
     m_pend->SetMass(m2);
     m_pend->SetInertiaXX(ChVector3d(1, 1, J2));
     m_pend->SetPos(ChVector3d(l2 / 2, 0, 0));
@@ -327,8 +324,8 @@ bool test_EULER(double step, int num_steps, const utils::Data& ref_data, double 
     // Validate states (x and y for pendulum body).
     utils::DataVector norms_state;
     bool check_state = utils::Validate(model.GetData(), ref_data, utils::RMS_NORM, tol_state, norms_state);
-    std::cout << "  validate states: " << (check_state ? "Passed" : "Failed") << "  (tolerance = " << tol_state
-        << ")" << std::endl;
+    std::cout << "  validate states: " << (check_state ? "Passed" : "Failed") << "  (tolerance = " << tol_state << ")"
+              << std::endl;
     for (size_t col = 0; col < norms_state.size(); col++)
         std::cout << "    " << norms_state[col] << std::endl;
 
@@ -336,7 +333,7 @@ bool test_EULER(double step, int num_steps, const utils::Data& ref_data, double 
     utils::DataVector norms_cnstr;
     bool check_cnstr = utils::Validate(model.GetCnstrData(), utils::RMS_NORM, tol_cnstr, norms_cnstr);
     std::cout << "  validate constraints: " << (check_cnstr ? "Passed" : "Failed") << "  (tolerance = " << tol_cnstr
-        << ")" << std::endl;
+              << ")" << std::endl;
     for (size_t col = 0; col < norms_cnstr.size(); col++)
         std::cout << "    " << norms_cnstr[col] << std::endl;
 
@@ -369,8 +366,8 @@ bool test_HHT(double step, int num_steps, const utils::Data& ref_data, double to
     // Validate states (x and y for pendulum body).
     utils::DataVector norms_state;
     bool check_state = utils::Validate(model.GetData(), ref_data, utils::RMS_NORM, tol_state, norms_state);
-    std::cout << "  validate states: " << (check_state ? "Passed" : "Failed") << "  (tolerance = " << tol_state
-              << ")" << std::endl;
+    std::cout << "  validate states: " << (check_state ? "Passed" : "Failed") << "  (tolerance = " << tol_state << ")"
+              << std::endl;
     for (size_t col = 0; col < norms_state.size(); col++)
         std::cout << "    " << norms_state[col] << std::endl;
 

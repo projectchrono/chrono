@@ -33,9 +33,9 @@ ChLinkNodeFace::ChLinkNodeFace(const ChLinkNodeFace& other) : ChLinkBase(other) 
 }
 
 int ChLinkNodeFace::Initialize(std::shared_ptr<ChNodeFEAxyz> anodeA,
-                                   std::shared_ptr<ChNodeFEAxyz> anodeB1,
-                                   std::shared_ptr<ChNodeFEAxyz> anodeB2,
-                                   std::shared_ptr<ChNodeFEAxyz> anodeB3) {
+                               std::shared_ptr<ChNodeFEAxyz> anodeB1,
+                               std::shared_ptr<ChNodeFEAxyz> anodeB2,
+                               std::shared_ptr<ChNodeFEAxyz> anodeB3) {
     assert(anodeA && anodeB1 && anodeB2 && anodeB3);
 
     m_node = anodeA;
@@ -55,7 +55,7 @@ int ChLinkNodeFace::Initialize(std::shared_ptr<ChNodeFEAxyz> anodeA,
     bool is_into;
     ChVector3d p_projected;
     this->d = utils::PointTriangleDistance(m_node->pos, m_triangle.node1->pos, m_triangle.node2->pos,
-                                                      m_triangle.node3->pos, s2, s3, is_into, p_projected);
+                                           m_triangle.node3->pos, s2, s3, is_into, p_projected);
 
     // double s1 = 1 - s2 - s3;
 
@@ -85,23 +85,23 @@ void ChLinkNodeFace::IntStateScatterReactions(const unsigned int off_L, const Ch
 }
 
 void ChLinkNodeFace::IntLoadResidual_CqL(const unsigned int off_L,    // offset in L multipliers
-                                             ChVectorDynamic<>& R,        // result: the R residual, R += c*Cq'*L
-                                             const ChVectorDynamic<>& L,  // the L vector
-                                             const double c               // a scaling factor
+                                         ChVectorDynamic<>& R,        // result: the R residual, R += c*Cq'*L
+                                         const ChVectorDynamic<>& L,  // the L vector
+                                         const double c               // a scaling factor
 ) {
     if (!IsActive())
         return;
 
-    constraint1.MultiplyTandAdd(R, L(off_L + 0) * c);
-    constraint2.MultiplyTandAdd(R, L(off_L + 1) * c);
-    constraint3.MultiplyTandAdd(R, L(off_L + 2) * c);
+    constraint1.AddJacobianTransposedTimesScalarInto(R, L(off_L + 0) * c);
+    constraint2.AddJacobianTransposedTimesScalarInto(R, L(off_L + 1) * c);
+    constraint3.AddJacobianTransposedTimesScalarInto(R, L(off_L + 2) * c);
 }
 
 void ChLinkNodeFace::IntLoadConstraint_C(const unsigned int off_L,  // offset in Qc residual
-                                             ChVectorDynamic<>& Qc,     // result: the Qc residual, Qc += c*C
-                                             const double c,            // a scaling factor
-                                             bool do_clamp,             // apply clamping to c*C?
-                                             double recovery_clamp      // value for min/max clamping of c*C
+                                         ChVectorDynamic<>& Qc,     // result: the Qc residual, Qc += c*C
+                                         const double c,            // a scaling factor
+                                         bool do_clamp,             // apply clamping to c*C?
+                                         double recovery_clamp      // value for min/max clamping of c*C
 ) {
     if (!IsActive())
         return;
@@ -112,13 +112,12 @@ void ChLinkNodeFace::IntLoadConstraint_C(const unsigned int off_L,  // offset in
     // If an offset d is desired, along normal N, this becomes:
     //  C = A - s1*B1 - s2*B2 - s3*B3 - d*N
 
-    ChVector3d N =
-        Vcross(m_triangle.node2->pos - m_triangle.node1->pos, m_triangle.node3->pos - m_triangle.node1->pos);
+    ChVector3d N = Vcross(m_triangle.node2->pos - m_triangle.node1->pos, m_triangle.node3->pos - m_triangle.node1->pos);
     N.Normalize();
     double s1 = 1 - s2 - s3;
 
-    ChVector3d res = m_node->GetPos() - s1 * m_triangle.node1->pos - s2 * m_triangle.node2->pos -
-                     s3 * m_triangle.node3->pos - N * d;
+    ChVector3d res =
+        m_node->GetPos() - s1 * m_triangle.node1->pos - s2 * m_triangle.node2->pos - s3 * m_triangle.node3->pos - N * d;
 
     ChVector3d cres = res * c;
 
@@ -133,50 +132,50 @@ void ChLinkNodeFace::IntLoadConstraint_C(const unsigned int off_L,  // offset in
 }
 
 void ChLinkNodeFace::IntToDescriptor(const unsigned int off_v,
-                                         const ChStateDelta& v,
-                                         const ChVectorDynamic<>& R,
-                                         const unsigned int off_L,
-                                         const ChVectorDynamic<>& L,
-                                         const ChVectorDynamic<>& Qc) {
+                                     const ChStateDelta& v,
+                                     const ChVectorDynamic<>& R,
+                                     const unsigned int off_L,
+                                     const ChVectorDynamic<>& L,
+                                     const ChVectorDynamic<>& Qc) {
     if (!IsActive())
         return;
 
-    constraint1.Set_l_i(L(off_L + 0));
-    constraint2.Set_l_i(L(off_L + 1));
-    constraint3.Set_l_i(L(off_L + 2));
+    constraint1.SetLagrangeMultiplier(L(off_L + 0));
+    constraint2.SetLagrangeMultiplier(L(off_L + 1));
+    constraint3.SetLagrangeMultiplier(L(off_L + 2));
 
-    constraint1.Set_b_i(Qc(off_L + 0));
-    constraint2.Set_b_i(Qc(off_L + 1));
-    constraint3.Set_b_i(Qc(off_L + 2));
+    constraint1.SetRightHandSide(Qc(off_L + 0));
+    constraint2.SetRightHandSide(Qc(off_L + 1));
+    constraint3.SetRightHandSide(Qc(off_L + 2));
 }
 
 void ChLinkNodeFace::IntFromDescriptor(const unsigned int off_v,
-                                           ChStateDelta& v,
-                                           const unsigned int off_L,
-                                           ChVectorDynamic<>& L) {
+                                       ChStateDelta& v,
+                                       const unsigned int off_L,
+                                       ChVectorDynamic<>& L) {
     if (!IsActive())
         return;
 
-    L(off_L + 0) = constraint1.Get_l_i();
-    L(off_L + 1) = constraint2.Get_l_i();
-    L(off_L + 2) = constraint3.Get_l_i();
+    L(off_L + 0) = constraint1.GetLagrangeMultiplier();
+    L(off_L + 1) = constraint2.GetLagrangeMultiplier();
+    L(off_L + 2) = constraint3.GetLagrangeMultiplier();
 }
 
 // SOLVER INTERFACES
 
-void ChLinkNodeFace::InjectConstraints(ChSystemDescriptor& mdescriptor) {
+void ChLinkNodeFace::InjectConstraints(ChSystemDescriptor& descriptor) {
     if (!IsActive())
         return;
 
-    mdescriptor.InsertConstraint(&constraint1);
-    mdescriptor.InsertConstraint(&constraint2);
-    mdescriptor.InsertConstraint(&constraint3);
+    descriptor.InsertConstraint(&constraint1);
+    descriptor.InsertConstraint(&constraint2);
+    descriptor.InsertConstraint(&constraint3);
 }
 
 void ChLinkNodeFace::ConstraintsBiReset() {
-    constraint1.Set_b_i(0.);
-    constraint2.Set_b_i(0.);
-    constraint3.Set_b_i(0.);
+    constraint1.SetRightHandSide(0.);
+    constraint2.SetRightHandSide(0.);
+    constraint3.SetRightHandSide(0.);
 }
 
 //// OBSOLETE will be removed in favor of IntLoadConstraint_C
@@ -187,17 +186,16 @@ void ChLinkNodeFace::ConstraintsBiLoad_C(double factor, double recovery_clamp, b
     // If an offset d is desired, along normal N, this becomes:
     //  C = A - s1*B1 - s2*B2 - s3*B3 - d*N
 
-    ChVector3d N =
-        Vcross(m_triangle.node2->pos - m_triangle.node1->pos, m_triangle.node3->pos - m_triangle.node1->pos);
+    ChVector3d N = Vcross(m_triangle.node2->pos - m_triangle.node1->pos, m_triangle.node3->pos - m_triangle.node1->pos);
     N.Normalize();
     double s1 = 1 - s2 - s3;
 
-    ChVector3d res = m_node->GetPos() - s1 * m_triangle.node1->pos - s2 * m_triangle.node2->pos -
-                     s3 * m_triangle.node3->pos - N * d;
+    ChVector3d res =
+        m_node->GetPos() - s1 * m_triangle.node1->pos - s2 * m_triangle.node2->pos - s3 * m_triangle.node3->pos - N * d;
 
-    constraint1.Set_b_i(constraint1.Get_b_i() + factor * res.x());
-    constraint2.Set_b_i(constraint2.Get_b_i() + factor * res.y());
-    constraint3.Set_b_i(constraint3.Get_b_i() + factor * res.z());
+    constraint1.SetRightHandSide(constraint1.GetRightHandSide() + factor * res.x());
+    constraint2.SetRightHandSide(constraint2.GetRightHandSide() + factor * res.y());
+    constraint3.SetRightHandSide(constraint3.GetRightHandSide() + factor * res.z());
 }
 
 //// OBSOLETE will be removed in favor of Int... functions
@@ -212,7 +210,7 @@ int mysgn(double val) {
     return (0 < val) - (val < 0);
 }
 
-void ChLinkNodeFace::ConstraintsLoadJacobians() {
+void ChLinkNodeFace::LoadConstraintJacobians() {
     double s1 = 1 - s2 - s3;
 
     // compute jacobians
@@ -345,9 +343,9 @@ void ChLinkNodeFace::ConstraintsLoadJacobians() {
 //// OBSOLETE will be removed in favor of Int... functions
 void ChLinkNodeFace::ConstraintsFetch_react(double factor) {
     // From constraints to react vector:
-    react.x() = constraint1.Get_l_i() * factor;
-    react.y() = constraint2.Get_l_i() * factor;
-    react.z() = constraint3.Get_l_i() * factor;
+    react.x() = constraint1.GetLagrangeMultiplier() * factor;
+    react.y() = constraint2.GetLagrangeMultiplier() * factor;
+    react.z() = constraint3.GetLagrangeMultiplier() * factor;
 }
 
 // FILE I/O
@@ -378,9 +376,9 @@ ChLinkNodeFaceRot::ChLinkNodeFaceRot(const ChLinkNodeFaceRot& other) : ChLinkBas
 }
 
 int ChLinkNodeFaceRot::Initialize(std::shared_ptr<ChNodeFEAxyz> nodeA,
-                                      std::shared_ptr<ChNodeFEAxyzrot> nodeB1,
-                                      std::shared_ptr<ChNodeFEAxyzrot> nodeB2,
-                                      std::shared_ptr<ChNodeFEAxyzrot> nodeB3) {
+                                  std::shared_ptr<ChNodeFEAxyzrot> nodeB1,
+                                  std::shared_ptr<ChNodeFEAxyzrot> nodeB2,
+                                  std::shared_ptr<ChNodeFEAxyzrot> nodeB3) {
     assert(nodeA && nodeB1 && nodeB2 && nodeB3);
 
     m_node = nodeA;
@@ -430,23 +428,23 @@ void ChLinkNodeFaceRot::IntStateScatterReactions(const unsigned int off_L, const
 }
 
 void ChLinkNodeFaceRot::IntLoadResidual_CqL(const unsigned int off_L,    // offset in L multipliers
-                                                ChVectorDynamic<>& R,        // result: the R residual, R += c*Cq'*L
-                                                const ChVectorDynamic<>& L,  // the L vector
-                                                const double c               // a scaling factor
+                                            ChVectorDynamic<>& R,        // result: the R residual, R += c*Cq'*L
+                                            const ChVectorDynamic<>& L,  // the L vector
+                                            const double c               // a scaling factor
 ) {
     if (!IsActive())
         return;
 
-    constraint1.MultiplyTandAdd(R, L(off_L + 0) * c);
-    constraint2.MultiplyTandAdd(R, L(off_L + 1) * c);
-    constraint3.MultiplyTandAdd(R, L(off_L + 2) * c);
+    constraint1.AddJacobianTransposedTimesScalarInto(R, L(off_L + 0) * c);
+    constraint2.AddJacobianTransposedTimesScalarInto(R, L(off_L + 1) * c);
+    constraint3.AddJacobianTransposedTimesScalarInto(R, L(off_L + 2) * c);
 }
 
 void ChLinkNodeFaceRot::IntLoadConstraint_C(const unsigned int off_L,  // offset in Qc residual
-                                                ChVectorDynamic<>& Qc,     // result: the Qc residual, Qc += c*C
-                                                const double c,            // a scaling factor
-                                                bool do_clamp,             // apply clamping to c*C?
-                                                double recovery_clamp      // value for min/max clamping of c*C
+                                            ChVectorDynamic<>& Qc,     // result: the Qc residual, Qc += c*C
+                                            const double c,            // a scaling factor
+                                            bool do_clamp,             // apply clamping to c*C?
+                                            double recovery_clamp      // value for min/max clamping of c*C
 ) {
     if (!IsActive())
         return;
@@ -478,50 +476,50 @@ void ChLinkNodeFaceRot::IntLoadConstraint_C(const unsigned int off_L,  // offset
 }
 
 void ChLinkNodeFaceRot::IntToDescriptor(const unsigned int off_v,
-                                            const ChStateDelta& v,
-                                            const ChVectorDynamic<>& R,
-                                            const unsigned int off_L,
-                                            const ChVectorDynamic<>& L,
-                                            const ChVectorDynamic<>& Qc) {
+                                        const ChStateDelta& v,
+                                        const ChVectorDynamic<>& R,
+                                        const unsigned int off_L,
+                                        const ChVectorDynamic<>& L,
+                                        const ChVectorDynamic<>& Qc) {
     if (!IsActive())
         return;
 
-    constraint1.Set_l_i(L(off_L + 0));
-    constraint2.Set_l_i(L(off_L + 1));
-    constraint3.Set_l_i(L(off_L + 2));
+    constraint1.SetLagrangeMultiplier(L(off_L + 0));
+    constraint2.SetLagrangeMultiplier(L(off_L + 1));
+    constraint3.SetLagrangeMultiplier(L(off_L + 2));
 
-    constraint1.Set_b_i(Qc(off_L + 0));
-    constraint2.Set_b_i(Qc(off_L + 1));
-    constraint3.Set_b_i(Qc(off_L + 2));
+    constraint1.SetRightHandSide(Qc(off_L + 0));
+    constraint2.SetRightHandSide(Qc(off_L + 1));
+    constraint3.SetRightHandSide(Qc(off_L + 2));
 }
 
 void ChLinkNodeFaceRot::IntFromDescriptor(const unsigned int off_v,
-                                              ChStateDelta& v,
-                                              const unsigned int off_L,
-                                              ChVectorDynamic<>& L) {
+                                          ChStateDelta& v,
+                                          const unsigned int off_L,
+                                          ChVectorDynamic<>& L) {
     if (!IsActive())
         return;
 
-    L(off_L + 0) = constraint1.Get_l_i();
-    L(off_L + 1) = constraint2.Get_l_i();
-    L(off_L + 2) = constraint3.Get_l_i();
+    L(off_L + 0) = constraint1.GetLagrangeMultiplier();
+    L(off_L + 1) = constraint2.GetLagrangeMultiplier();
+    L(off_L + 2) = constraint3.GetLagrangeMultiplier();
 }
 
 // SOLVER INTERFACES
 
-void ChLinkNodeFaceRot::InjectConstraints(ChSystemDescriptor& mdescriptor) {
+void ChLinkNodeFaceRot::InjectConstraints(ChSystemDescriptor& descriptor) {
     // if (!IsActive())
     //	return;
 
-    mdescriptor.InsertConstraint(&constraint1);
-    mdescriptor.InsertConstraint(&constraint2);
-    mdescriptor.InsertConstraint(&constraint3);
+    descriptor.InsertConstraint(&constraint1);
+    descriptor.InsertConstraint(&constraint2);
+    descriptor.InsertConstraint(&constraint3);
 }
 
 void ChLinkNodeFaceRot::ConstraintsBiReset() {
-    constraint1.Set_b_i(0.);
-    constraint2.Set_b_i(0.);
-    constraint3.Set_b_i(0.);
+    constraint1.SetRightHandSide(0.);
+    constraint2.SetRightHandSide(0.);
+    constraint3.SetRightHandSide(0.);
 }
 
 //// OBSOLETE will be removed in favor of IntLoadConstraint_C
@@ -540,9 +538,9 @@ void ChLinkNodeFaceRot::ConstraintsBiLoad_C(double factor, double recovery_clamp
     ChVector3d res = m_node->GetPos() - s1 * m_triangle.node1->GetPos() - s2 * m_triangle.node2->GetPos() -
                      s3 * m_triangle.node3->GetPos() - N * d;
 
-    constraint1.Set_b_i(constraint1.Get_b_i() + factor * res.x());
-    constraint2.Set_b_i(constraint2.Get_b_i() + factor * res.y());
-    constraint3.Set_b_i(constraint3.Get_b_i() + factor * res.z());
+    constraint1.SetRightHandSide(constraint1.GetRightHandSide() + factor * res.x());
+    constraint2.SetRightHandSide(constraint2.GetRightHandSide() + factor * res.y());
+    constraint3.SetRightHandSide(constraint3.GetRightHandSide() + factor * res.z());
 }
 
 //// OBSOLETE will be removed in favor of Int... functions
@@ -553,7 +551,7 @@ void ChLinkNodeFaceRot::ConstraintsBiLoad_Ct(double factor) {
     // nothing
 }
 
-void ChLinkNodeFaceRot::ConstraintsLoadJacobians() {
+void ChLinkNodeFaceRot::LoadConstraintJacobians() {
     double s1 = 1 - s2 - s3;
 
     // compute jacobians
@@ -686,9 +684,9 @@ void ChLinkNodeFaceRot::ConstraintsLoadJacobians() {
 //// OBSOLETE will be removed in favor of Int... functions
 void ChLinkNodeFaceRot::ConstraintsFetch_react(double factor) {
     // From constraints to react vector:
-    react.x() = constraint1.Get_l_i() * factor;
-    react.y() = constraint2.Get_l_i() * factor;
-    react.z() = constraint3.Get_l_i() * factor;
+    react.x() = constraint1.GetLagrangeMultiplier() * factor;
+    react.y() = constraint2.GetLagrangeMultiplier() * factor;
+    react.z() = constraint3.GetLagrangeMultiplier() * factor;
 }
 
 // FILE I/O

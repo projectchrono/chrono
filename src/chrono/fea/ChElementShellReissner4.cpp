@@ -949,9 +949,9 @@ void ChElementShellReissner4::ComputeInternalForces(ChVectorDynamic<>& Fi) {
         for (size_t il = 0; il < this->m_layers.size(); ++il) {
             if (m_layers[il].GetMaterial()->GetDamping()) {
                 // compute layer stresses (per-unit-length forces and torques), and accumulate  [C]*[B_i]*v
-                m_layers[il].GetMaterial()->GetDamping()->ComputeStress(l_n1, l_n2, l_m1, l_m2, eps_dt_1, eps_dt_2,
-                                                                        k_dt_1, k_dt_2, m_layers_z[il],
-                                                                        m_layers_z[il + 1], m_layers[il].GetFiberAngle());
+                m_layers[il].GetMaterial()->GetDamping()->ComputeStress(
+                    l_n1, l_n2, l_m1, l_m2, eps_dt_1, eps_dt_2, k_dt_1, k_dt_2, m_layers_z[il], m_layers_z[il + 1],
+                    m_layers[il].GetFiberAngle());
                 n1 += l_n1;
                 n2 += l_n2;
                 m1 += l_m1;
@@ -999,7 +999,8 @@ void ChElementShellReissner4::ComputeInternalJacobians(double Kfactor, double Rf
             m_layers[il].GetMaterial()->ComputeStiffnessMatrix(
                 l_C, eps_tilde_1_i[i], eps_tilde_2_i[i], k_tilde_1_i[i], k_tilde_2_i[i], m_layers_z[il],
                 m_layers_z[il + 1],
-                m_layers[il].GetFiberAngle());  // ***TODO*** use the total epsilon including the 'hat' component from EAS
+                m_layers[il]
+                    .GetFiberAngle());  // ***TODO*** use the total epsilon including the 'hat' component from EAS
             C += l_C;
         }
 
@@ -1044,7 +1045,7 @@ void ChElementShellReissner4::ComputeInternalJacobians(double Kfactor, double Rf
             if (m_layers[il].GetMaterial()->GetDamping()) {
                 m_layers[il].GetMaterial()->GetDamping()->ComputeDampingMatrix(
                     l_C, VNULL, VNULL, VNULL, VNULL,  //// TODO  should be more general: eps_dt_tilde_1_i[i],
-                                                      //eps_dt_tilde_2_i[i], k_dt_tilde_1_i[i], k_dt_tilde_2_i[i],
+                                                      // eps_dt_tilde_2_i[i], k_dt_tilde_1_i[i], k_dt_tilde_2_i[i],
                     m_layers_z[il], m_layers_z[il + 1], m_layers[il].GetFiberAngle());
                 C += l_C;
             }

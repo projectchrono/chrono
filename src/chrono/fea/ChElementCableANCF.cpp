@@ -204,7 +204,7 @@ void ChElementCableANCF::ComputeInternalJacobians(double Kfactor, double Rfactor
         // 1)
         // Integrate   ((strainD'*strainD)+(strain*Sd'*Sd))
 
-        class CableANCF_StiffnessAxial : public ChIntegrable1D<ChMatrixNM<double, 12, 12>> {
+        class CableANCF_StiffnessAxial : public ChIntegrand1D<ChMatrixNM<double, 12, 12>> {
           public:
             ChElementCableANCF* element;
             ChMatrixNM<double, 4, 3>* d;
@@ -252,7 +252,7 @@ void ChElementCableANCF::ComputeInternalJacobians(double Kfactor, double Rfactor
         // 2)
         // Integrate   (k_e'*k_e)
 
-        class CableANCF_StiffnessCurv : public ChIntegrable1D<ChMatrixNM<double, 12, 12>> {
+        class CableANCF_StiffnessCurv : public ChIntegrand1D<ChMatrixNM<double, 12, 12>> {
           public:
             ChElementCableANCF* element;
             ChMatrixNM<double, 4, 3>* d;
@@ -426,9 +426,9 @@ void ChElementCableANCF::ComputeKRMmatricesGlobal(ChMatrixRef H, double Kfactor,
 // Computes the internal forces and set values in the Fi vector.
 // (e.g. the actual position of nodes is not in relaxed reference position).
 void ChElementCableANCF::ComputeInternalForces(ChVectorDynamic<>& Fi) {
-    ComputeInternalForces_Impl(m_nodes[0]->GetPos(), m_nodes[0]->GetSlope1(), m_nodes[1]->GetPos(), m_nodes[1]->GetSlope1(),
-                               m_nodes[0]->GetPosDt(), m_nodes[0]->GetSlope1Dt(), m_nodes[1]->GetPosDt(),
-                               m_nodes[1]->GetSlope1Dt(), Fi);
+    ComputeInternalForces_Impl(m_nodes[0]->GetPos(), m_nodes[0]->GetSlope1(), m_nodes[1]->GetPos(),
+                               m_nodes[1]->GetSlope1(), m_nodes[0]->GetPosDt(), m_nodes[0]->GetSlope1Dt(),
+                               m_nodes[1]->GetPosDt(), m_nodes[1]->GetSlope1Dt(), Fi);
 }
 
 // Worker function for computing the internal forces.
@@ -483,7 +483,7 @@ void ChElementCableANCF::ComputeInternalForces_Impl(const ChVector3d& pA,
     // 1)
     // Integrate   (strainD'*strain)
 
-    class CableANCF_ForceAxial : public ChIntegrable1D<ChVectorN<double, 12>> {
+    class CableANCF_ForceAxial : public ChIntegrand1D<ChVectorN<double, 12>> {
       public:
         ChElementCableANCF* element;
         ChMatrixNM<double, 4, 3>* d;  // this is an external matrix, use pointer
@@ -539,7 +539,7 @@ void ChElementCableANCF::ComputeInternalForces_Impl(const ChVector3d& pA,
     // 2)
     // Integrate   (k_e'*k_e)
 
-    class CableANCF_ForceCurv : public ChIntegrable1D<ChVectorN<double, 12>> {
+    class CableANCF_ForceCurv : public ChIntegrand1D<ChVectorN<double, 12>> {
       public:
         ChElementCableANCF* element;
         ChMatrixNM<double, 4, 3>* d;  // this is an external matrix, use pointer

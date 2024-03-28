@@ -44,7 +44,7 @@ class ChApi ChShaftsGear : public ChShaftsCouple {
     /// Get the transmission ratio t, as in w2=t*w1, or t=w2/w1.
     double GetTransmissionRatio() const { return ratio; }
 
-    /// Enable phase drift avoidance (default: true). 
+    /// Enable phase drift avoidance (default: true).
     /// If true, phasing is always tracked and the constraint is satisfied also at the position level.
     /// If false, microslipping can accumulate (as in friction wheels).
     void AvoidPhaseDrift(bool avoid) { avoid_phase_drift = avoid; }
@@ -103,10 +103,11 @@ class ChApi ChShaftsGear : public ChShaftsCouple {
                                    const unsigned int off_L,
                                    ChVectorDynamic<>& L) override;
 
-    virtual void InjectConstraints(ChSystemDescriptor& mdescriptor) override;
+    virtual void InjectConstraints(ChSystemDescriptor& descriptor) override;
+    virtual void LoadConstraintJacobians() override;
+
     virtual void ConstraintsBiReset() override;
     virtual void ConstraintsBiLoad_C(double factor = 1, double recovery_clamp = 0.1, bool do_clamp = false) override;
-    virtual void ConstraintsLoadJacobians() override;
     virtual void ConstraintsFetch_react(double factor = 1) override;
 };
 

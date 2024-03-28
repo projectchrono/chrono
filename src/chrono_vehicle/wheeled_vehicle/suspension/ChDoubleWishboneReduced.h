@@ -54,7 +54,7 @@ namespace vehicle {
 class CH_VEHICLE_API ChDoubleWishboneReduced : public ChSuspension {
   public:
     ChDoubleWishboneReduced(const std::string& name  ///< [in] name of the subsystem
-                            );
+    );
 
     virtual ~ChDoubleWishboneReduced();
 

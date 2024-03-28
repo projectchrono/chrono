@@ -38,13 +38,13 @@ TEST(LinearAlgebraTest, create_assign) {
     ASSERT_DOUBLE_EQ(Ms.maxCoeff(), 0.1);
     ASSERT_DOUBLE_EQ(Ms.minCoeff(), 0.1);
 
-    Md1.setRandom();         // initialize with random numbers
+    Md1.setRandom();  // initialize with random numbers
     double e32 = Md1(3, 2);
     Md1.transposeInPlace();  // transpose the matrix in place
     ASSERT_DOUBLE_EQ(Md1(2, 3), e32);
 
-    Md1.resize(2, 2);        // resize
-    Md1.setZero();           // set all elements to zero
+    Md1.resize(2, 2);  // resize
+    Md1.setZero();     // set all elements to zero
     ASSERT_DOUBLE_EQ(Md1.maxCoeff(), 0.0);
     ASSERT_DOUBLE_EQ(Md1.minCoeff(), 0.0);
 
@@ -272,7 +272,7 @@ TEST(LinearAlgebra, slicing) {
     // Cases with potential aliasing
     // NOTE: no aliasing when SliceVector is implemented as a function. Aliasing possible if switching to a macro!
     v2 = SliceVector(v2, idx).eval();
-    
+
     ASSERT_TRUE(v2.size() == idx.size());
     for (int i = 0; i < idx.size(); i++) {
         ASSERT_TRUE(v2(i) == w2(i));

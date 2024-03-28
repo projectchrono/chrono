@@ -54,7 +54,7 @@ namespace vehicle {
 class CH_VEHICLE_API ChSemiTrailingArm : public ChSuspension {
   public:
     ChSemiTrailingArm(const std::string& name  ///< [in] name of the subsystem
-                      );
+    );
 
     virtual ~ChSemiTrailingArm();
 

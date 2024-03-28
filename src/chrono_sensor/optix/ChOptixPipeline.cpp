@@ -91,6 +91,14 @@ void ChOptixPipeline::Cleanup() {
         OPTIX_ERROR_CHECK(optixModuleDestroy(m_miss_module));
         m_miss_module = 0;
     }
+
+    #ifdef USE_SENSOR_NVDB
+    if (m_nvdb_vol_intersection_module) {
+        OPTIX_ERROR_CHECK(optixModuleDestroy(m_nvdb_vol_intersection_module));
+        m_nvdb_vol_intersection_module = 0;
+    }
+    #endif
+
     // === optix program groups ===
     // raygen groups
     if (m_camera_raygen_group) {
@@ -104,6 +112,11 @@ void ChOptixPipeline::Cleanup() {
     if (m_segmentation_raygen_group) {
         OPTIX_ERROR_CHECK(optixProgramGroupDestroy(m_segmentation_raygen_group));
         m_segmentation_raygen_group = 0;
+    }
+
+    if (m_depthCamera_raygen_group) {
+        OPTIX_ERROR_CHECK(optixProgramGroupDestroy(m_depthCamera_raygen_group));
+        m_depthCamera_raygen_group = 0;
     }
     // if (m_segmentation_fov_lens_raygen_group) {
     //     OPTIX_ERROR_CHECK(optixProgramGroupDestroy(m_segmentation_fov_lens_raygen_group));
@@ -147,6 +160,14 @@ void ChOptixPipeline::Cleanup() {
         OPTIX_ERROR_CHECK(optixProgramGroupDestroy(m_hit_mesh_group));
         m_hit_mesh_group = 0;
     }
+
+    #ifdef USE_SENSOR_NVDB
+    if (m_nvdb_vol_group) {
+        OPTIX_ERROR_CHECK(optixProgramGroupDestroy(m_nvdb_vol_group));
+        m_nvdb_vol_group = 0;
+    }
+    #endif
+
     // clean up environment map data if it exists
     // clear out and free texture samplers
     if (md_miss_img_texture) {
@@ -247,6 +268,12 @@ void ChOptixPipeline::CompileBaseShaders() {
                       m_pipeline_compile_options);
     GetShaderFromFile(m_context, m_cyl_intersection_module, "cylinder", module_compile_options,
                       m_pipeline_compile_options);
+
+    #ifdef USE_SENSOR_NVDB
+    GetShaderFromFile(m_context, m_nvdb_vol_intersection_module, "nvdb_vol_intersect", module_compile_options,
+                      m_pipeline_compile_options);
+    #endif
+
     // material shaders
     GetShaderFromFile(m_context, m_material_shading_module, "material_shaders", module_compile_options,
                       m_pipeline_compile_options);
@@ -316,18 +343,37 @@ void ChOptixPipeline::AssembleBaseProgramGroups() {
     // mesh shading
     CreateOptixProgramGroup(m_hit_mesh_group, OPTIX_PROGRAM_GROUP_KIND_HITGROUP, nullptr, nullptr,
                             m_material_shading_module, "__closesthit__material_shader");
+
+    #ifdef USE_SENSOR_NVDB
+    // NanoVDB Voulume intersection and shading
+    CreateOptixProgramGroup(m_nvdb_vol_group, OPTIX_PROGRAM_GROUP_KIND_HITGROUP, m_nvdb_vol_intersection_module,
+                            "__intersection__nvdb_vol_intersect", m_material_shading_module,
+                            "__closesthit__material_shader");
+    #endif
+
     // miss shading
     CreateOptixProgramGroup(m_miss_group, OPTIX_PROGRAM_GROUP_KIND_MISS, nullptr, nullptr, m_miss_module,
                             "__miss__shader");
+
+    // radar raygen
+    CreateOptixProgramGroup(m_radar_raygen_group, OPTIX_PROGRAM_GROUP_KIND_RAYGEN, nullptr, nullptr,
+                            m_radar_raygen_module, "__raygen__radar");
+                            
     // camera pinhole raygen
     CreateOptixProgramGroup(m_camera_raygen_group, OPTIX_PROGRAM_GROUP_KIND_RAYGEN, nullptr, nullptr,
                             m_camera_raygen_module, "__raygen__camera");
     // // camera fov lens raygen
     // CreateOptixProgramGroup(m_camera_fov_lens_raygen_group, OPTIX_PROGRAM_GROUP_KIND_RAYGEN, nullptr, nullptr,
     //                         m_camera_raygen_module, "__raygen__camera_fov_lens");
+    
+
+    CreateOptixProgramGroup(m_depthCamera_raygen_group, OPTIX_PROGRAM_GROUP_KIND_RAYGEN, nullptr, nullptr,
+                            m_camera_raygen_module, "__raygen__depthcamera");
+
     // segmentation pinhole raygen
     CreateOptixProgramGroup(m_segmentation_raygen_group, OPTIX_PROGRAM_GROUP_KIND_RAYGEN, nullptr, nullptr,
                             m_camera_raygen_module, "__raygen__segmentation");
+    
     // // segmentation fov lens raygen
     // CreateOptixProgramGroup(m_segmentation_fov_lens_raygen_group, OPTIX_PROGRAM_GROUP_KIND_RAYGEN, nullptr, nullptr,
     //                         m_camera_raygen_module, "__raygen__segmentation_fov_lens");
@@ -337,9 +383,7 @@ void ChOptixPipeline::AssembleBaseProgramGroups() {
     // lidar multi raygen
     CreateOptixProgramGroup(m_lidar_multi_raygen_group, OPTIX_PROGRAM_GROUP_KIND_RAYGEN, nullptr, nullptr,
                             m_lidar_raygen_module, "__raygen__lidar_multi");
-    // radar raygen
-    CreateOptixProgramGroup(m_radar_raygen_group, OPTIX_PROGRAM_GROUP_KIND_RAYGEN, nullptr, nullptr,
-                            m_radar_raygen_module, "__raygen__radar");
+    
 }
 
 void ChOptixPipeline::CreateBaseSBT() {
@@ -407,7 +451,6 @@ void ChOptixPipeline::SpawnPipeline(PipelineType type) {
     raygen_record->data.pos1 = {0.f, 0.f, 0.f};       // default value
     raygen_record->data.rot1 = {1.f, 0.f, 0.f, 0.f};  // default value
     m_raygen_records.push_back(raygen_record);
-
     // add raygen program group first
     switch (type) {
         case PipelineType::CAMERA: {
@@ -444,6 +487,16 @@ void ChOptixPipeline::SpawnPipeline(PipelineType type) {
             break;
         }
 
+        case PipelineType::DEPTH_CAMERA: {
+            program_groups.push_back(m_depthCamera_raygen_group);
+            OPTIX_ERROR_CHECK(optixSbtRecordPackHeader(m_depthCamera_raygen_group, raygen_record.get()));
+            raygen_record->data.specific.depthCamera.hFOV = 3.14f / 4;   // default value
+            raygen_record->data.specific.depthCamera.frame_buffer = {};  // default value
+            raygen_record->data.specific.depthCamera.lens_model = PINHOLE;     // default value
+            raygen_record->data.specific.depthCamera.lens_parameters = {};
+            break;
+        }
+
             // case PipelineType::SEGMENTATION_FOV_LENS: {
             //     program_groups.push_back(m_segmentation_fov_lens_raygen_group);
             //     OPTIX_ERROR_CHECK(optixSbtRecordPackHeader(m_segmentation_fov_lens_raygen_group,
@@ -458,7 +511,7 @@ void ChOptixPipeline::SpawnPipeline(PipelineType type) {
             raygen_record->data.specific.lidar.frame_buffer = {};                         // default value
             raygen_record->data.specific.lidar.max_vert_angle = 1.f;                      // default value
             raygen_record->data.specific.lidar.min_vert_angle = -1.f;                     // default value
-            raygen_record->data.specific.lidar.hFOV = (float)CH_2PI;                    // default value
+            raygen_record->data.specific.lidar.hFOV = (float)CH_2PI;                      // default value
             raygen_record->data.specific.lidar.beam_shape = LidarBeamShape::RECTANGULAR;  // default value
             raygen_record->data.specific.lidar.sample_radius = 1;                         // default value
             raygen_record->data.specific.lidar.horiz_div_angle = 0.f;                     // default value
@@ -474,7 +527,7 @@ void ChOptixPipeline::SpawnPipeline(PipelineType type) {
             raygen_record->data.specific.lidar.frame_buffer = {};                         // default value
             raygen_record->data.specific.lidar.max_vert_angle = 1.f;                      // default value
             raygen_record->data.specific.lidar.min_vert_angle = -1.f;                     // default value
-            raygen_record->data.specific.lidar.hFOV = (float)CH_2PI;                    // default value
+            raygen_record->data.specific.lidar.hFOV = (float)CH_2PI;                      // default value
             raygen_record->data.specific.lidar.beam_shape = LidarBeamShape::RECTANGULAR;  // default value
             raygen_record->data.specific.lidar.sample_radius = 1;                         // default value
             raygen_record->data.specific.lidar.horiz_div_angle = 0.f;                     // default value
@@ -487,11 +540,11 @@ void ChOptixPipeline::SpawnPipeline(PipelineType type) {
         case PipelineType::RADAR: {
             program_groups.push_back(m_radar_raygen_group);
             OPTIX_ERROR_CHECK(optixSbtRecordPackHeader(m_radar_raygen_group, raygen_record.get()));
-            raygen_record->data.specific.radar.frame_buffer = {};      // default value
-            raygen_record->data.specific.radar.vFOV = (float)CH_PI;  // default value
-            raygen_record->data.specific.radar.hFOV = (float)CH_PI;  // default value
-            raygen_record->data.specific.radar.max_distance = 200.f;   // default value
-            raygen_record->data.specific.radar.clip_near = 0.f;        // default value
+            raygen_record->data.specific.radar.frame_buffer = {};     // default value
+            raygen_record->data.specific.radar.vFOV = (float)CH_PI;   // default value
+            raygen_record->data.specific.radar.hFOV = (float)CH_PI;   // default value
+            raygen_record->data.specific.radar.max_distance = 200.f;  // default value
+            raygen_record->data.specific.radar.clip_near = 0.f;       // default value
             break;
         }
         default:
@@ -503,7 +556,10 @@ void ChOptixPipeline::SpawnPipeline(PipelineType type) {
     program_groups.push_back(m_hit_cyl_group);
     program_groups.push_back(m_hit_mesh_group);
     program_groups.push_back(m_miss_group);
-
+    #ifdef USE_SENSOR_NVDB
+    program_groups.push_back(m_nvdb_vol_group);
+    #endif
+    
     OptixPipelineLinkOptions pipeline_link_options = {m_trace_depth};
 
     char log[2048];
@@ -616,6 +672,7 @@ CUdeviceptr ChOptixPipeline::GetMaterialPool() {
         md_material_pool = {};
     }
 
+    
     // allocate memory for new pool
     CUDA_ERROR_CHECK(
         cudaMalloc(reinterpret_cast<void**>(&md_material_pool), sizeof(MaterialParameters) * m_material_pool.size()));
@@ -631,18 +688,21 @@ unsigned int ChOptixPipeline::GetMaterial(std::shared_ptr<ChVisualMaterial> mat)
         MaterialParameters material;
         material.Kd = {mat->GetDiffuseColor().R, mat->GetDiffuseColor().G, mat->GetDiffuseColor().B};
         material.Ks = {mat->GetSpecularColor().R, mat->GetSpecularColor().G, mat->GetSpecularColor().B};
+        material.Ke = {mat->GetEmissiveColor().R, mat->GetEmissiveColor().G, mat->GetEmissiveColor().B};
         material.fresnel_exp = mat->GetFresnelExp();
         material.fresnel_min = mat->GetFresnelMin();
         material.fresnel_max = mat->GetFresnelMax();
         material.transparency = mat->GetOpacity();
         material.roughness = mat->GetRoughness();
         material.metallic = mat->GetMetallic();
+        material.anisotropy = mat->GetAnisotropy();
         material.use_specular_workflow = mat->GetUseSpecularWorkflow();
         material.lidar_intensity = 1.f;    // TODO: allow setting of this in the visual material chrono-side
         material.radar_backscatter = 1.f;  // TODO: allow setting of this in the visual material chrono-side
         material.kn_tex = 0;               // explicitely null as default
         material.kd_tex = 0;               // explicitely null as default
         material.ks_tex = 0;               // explicitely null as default
+        material.ke_tex = 0;               // explicitely null as default
         material.metallic_tex = 0;         // explicitely null as default
         material.roughness_tex = 0;        // explicitely null as default
         material.opacity_tex = 0;          // explicitely null as default
@@ -650,7 +710,19 @@ unsigned int ChOptixPipeline::GetMaterial(std::shared_ptr<ChVisualMaterial> mat)
         material.class_id = mat->GetClassID();
         material.instance_id = mat->GetInstanceID();
 
+        material.use_hapke = mat->GetUseHapke();
+        material.w = mat->GetHapkeW();
+        material.b = mat->GetHapkeB();
+        material.c = mat->GetHapkeC();
+        material.B_s0 = mat->GetHapkeBs0();
+        material.h_s = mat->GetHapkeHs();
+        material.phi = mat->GetHapkePhi();
+        material.theta_p = mat->GetHapkeRoughness();
+
         material.tex_scale = {mat->GetTextureScale().x(), mat->GetTextureScale().y()};
+        material.emissive_power = mat->GetEmissivePower();
+
+      
 
         // normal texture
         if (mat->GetNormalMapTexture() != "") {
@@ -667,6 +739,7 @@ unsigned int ChOptixPipeline::GetMaterial(std::shared_ptr<ChVisualMaterial> mat)
             cudaArray_t d_img_array;
             CreateDeviceTexture(material.ks_tex, d_img_array, mat->GetKsTexture());
         }
+        
         // metalic texture
         if (mat->GetMetallicTexture() != "") {
             cudaArray_t d_img_array;
@@ -696,6 +769,7 @@ unsigned int ChOptixPipeline::GetMaterial(std::shared_ptr<ChVisualMaterial> mat)
             MaterialParameters material;
             material.Kd = {.5f, .5f, .5f};
             material.Ks = {.2f, .2f, .2f};
+            material.Ke = {.0f, .0f, .0f};
             material.fresnel_exp = 5.f;
             material.fresnel_min = 0.f;
             material.fresnel_max = 1.f;
@@ -707,18 +781,31 @@ unsigned int ChOptixPipeline::GetMaterial(std::shared_ptr<ChVisualMaterial> mat)
             material.kd_tex = 0;
             material.ks_tex = 0;
             material.kn_tex = 0;
+            material.ke_tex = 0;
             material.roughness_tex = 0;
             material.metallic_tex = 0;
             material.opacity_tex = 0;
             material.weight_tex = 0;
             material.use_specular_workflow = 0;
+            material.use_hapke = 0;
+            material.w = 0.0f;
+            material.b = 0.0f;
+            material.c = 0.0f;
+            material.B_s0 = 0.0f;
+            material.h_s = 0.0f;
+            material.phi = 0.0f;
             material.class_id = 0;
             material.instance_id = 0;
             material.tex_scale = {1.f, 1.f};
+            material.emissive_power = 0.f;
+            material.pad = {0.f, 0.f, 0.f};
 
             m_material_pool.push_back(material);
             m_default_material_id = static_cast<unsigned int>(m_material_pool.size() - 1);
             m_default_material_inst = true;
+            
+           
+
         }
 
         return m_default_material_id;
@@ -980,6 +1067,31 @@ unsigned int ChOptixPipeline::GetRigidMeshMaterial(CUdeviceptr& d_vertices,
     return static_cast<unsigned int>(m_material_records.size() - 1);
 }
 
+unsigned int ChOptixPipeline::GetNVDBMaterial(std::vector<std::shared_ptr<ChVisualMaterial>> mat_list) {
+    unsigned int material_id;
+    // if (mat) {
+    //     material_id = GetMaterial(mat);
+    // } else {
+    //     material_id = GetMaterial();
+    // }
+    if (mat_list.size() > 0) {
+        material_id = GetMaterial(mat_list[0]);
+        for (int i = 1; i < mat_list.size(); i++) {
+            GetMaterial(mat_list[i]);
+        }
+    } else {
+        material_id = GetMaterial();
+    }
+    // record when hit by any ray type
+    Record<MaterialRecordParameters> mat_record;
+    OPTIX_ERROR_CHECK(optixSbtRecordPackHeader(m_nvdb_vol_group, &mat_record));
+    mat_record.data.material_pool_id = material_id;
+    mat_record.data.num_blended_materials = mat_list.size();
+    m_material_records.push_back(mat_record);
+
+    return static_cast<unsigned int>(m_material_records.size() - 1);
+}
+
 unsigned int ChOptixPipeline::GetDeformableMeshMaterial(CUdeviceptr& d_vertices,
                                                         CUdeviceptr& d_indices,
                                                         std::shared_ptr<ChVisualShapeTriangleMesh> mesh_shape,
@@ -1039,9 +1151,8 @@ void ChOptixPipeline::UpdateDeformableMeshes() {
 
 void ChOptixPipeline::UpdateObjectVelocity() {
     for (int i = 0; i < m_bodies.size(); i++) {
-        m_material_records[i].data.translational_velocity = {(float)m_bodies[i]->GetPosDt().x(),
-                                                             (float)m_bodies[i]->GetPosDt().y(),
-                                                             (float)m_bodies[i]->GetPosDt().z()};
+        m_material_records[i].data.translational_velocity = {
+            (float)m_bodies[i]->GetPosDt().x(), (float)m_bodies[i]->GetPosDt().y(), (float)m_bodies[i]->GetPosDt().z()};
         m_material_records[i].data.angular_velocity = {(float)m_bodies[i]->GetAngVelParent().x(),
                                                        (float)m_bodies[i]->GetAngVelParent().y(),
                                                        (float)m_bodies[i]->GetAngVelParent().z()};

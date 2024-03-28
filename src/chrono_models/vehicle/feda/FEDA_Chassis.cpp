@@ -65,8 +65,7 @@ FEDA_Chassis::FEDA_Chassis(const std::string& name, bool fixed, CollisionType ch
 
     //// TODO:
     //// A more appropriate contact shape from primitives
-    ChVehicleGeometry::BoxShape box1(ChVector3d(0.0, 0.0, 0.1), ChQuaternion<>(1, 0, 0, 0),
-                                          ChVector3d(1.0, 0.5, 0.2));
+    ChVehicleGeometry::BoxShape box1(ChVector3d(0.0, 0.0, 0.1), ChQuaternion<>(1, 0, 0, 0), ChVector3d(1.0, 0.5, 0.2));
 
     m_geometry.m_has_primitives = true;
     m_geometry.m_vis_boxes.push_back(box1);
@@ -81,7 +80,7 @@ FEDA_Chassis::FEDA_Chassis(const std::string& name, bool fixed, CollisionType ch
             m_geometry.m_coll_boxes.push_back(box1);
             break;
         case CollisionType::MESH: {
-            ChVehicleGeometry::TrimeshShape mesh(ChVector3d(0,0,0), "feda/meshes/feda_chassis_coll_mesh.obj", 0.1, 0);
+            ChVehicleGeometry::TrimeshShape mesh(ChVector3d(0, 0, 0), "feda/meshes/feda_chassis_coll_mesh.obj", 0.1, 0);
             m_geometry.m_coll_meshes.push_back(mesh);
             break;
         }

@@ -90,7 +90,7 @@ void ChBalancer::InitializeSide(VehicleSide side,
 
     // Create beam body
     m_beam[side] = chrono_types::make_shared<ChBody>();
-    m_beam[side]->SetNameString(m_name + "_balancer" + suffix);
+    m_beam[side]->SetName(m_name + "_balancer" + suffix);
     m_beam[side]->SetPos(points[BEAM]);
     m_beam[side]->SetRot(chassisRot);
     m_beam[side]->SetMass(GetBalancerBeamMass());
@@ -120,8 +120,8 @@ void ChBalancer::UpdateInertiaProperties() {
 
     // Calculate COM and inertia expressed in global frame
     utils::CompositeInertia composite;
-    composite.AddComponent(m_beam[LEFT]->GetFrame_COG_to_abs(), m_beam[LEFT]->GetMass(), m_beam[LEFT]->GetInertia());
-    composite.AddComponent(m_beam[RIGHT]->GetFrame_COG_to_abs(), m_beam[RIGHT]->GetMass(), m_beam[RIGHT]->GetInertia());
+    composite.AddComponent(m_beam[LEFT]->GetFrameCOMToAbs(), m_beam[LEFT]->GetMass(), m_beam[LEFT]->GetInertia());
+    composite.AddComponent(m_beam[RIGHT]->GetFrameCOMToAbs(), m_beam[RIGHT]->GetMass(), m_beam[RIGHT]->GetInertia());
 
     // Express COM and inertia in subsystem reference frame
     m_com.GetPos() = m_xform.TransformPointParentToLocal(composite.GetCOM());

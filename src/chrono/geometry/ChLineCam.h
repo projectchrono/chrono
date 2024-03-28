@@ -30,13 +30,7 @@ namespace chrono {
 class ChApi ChLineCam : public ChLine {
   public:
     /// Cam types.
-    enum class CamType {
-        SLIDEFOLLOWER,
-        ROTATEFOLLOWER,
-        ECCENTRICFOLLOWER,
-        FLAT,
-        FLATOSCILLATE
-    };
+    enum class CamType { SLIDEFOLLOWER, ROTATEFOLLOWER, ECCENTRICFOLLOWER, FLAT, FLATOSCILLATE };
 
     ChLineCam();
     ChLineCam(const ChLineCam& source);

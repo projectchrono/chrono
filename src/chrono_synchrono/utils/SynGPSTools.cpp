@@ -31,7 +31,7 @@ namespace chrono {
 namespace synchrono {
 
 SynGPSTools::SynGPSTools(const GPScoord& origin, std::shared_ptr<ChTerrain> terrain)
-    : m_terrain(terrain) , m_origin(origin) {
+    : m_terrain(terrain), m_origin(origin) {
     // Store origin info in radians, from degree-based GPScoord
     m_lat_origin = origin.lat_rad();
     m_lon_origin = origin.lon_rad();
@@ -66,7 +66,7 @@ std::shared_ptr<ChBezierCurve> SynGPSTools::CurveFromGPS(const std::string& file
     std::string line;
     try {
         ifile.exceptions(std::ios::failbit | std::ios::badbit | std::ios::eofbit);
-        ifile.open(filename.c_str());
+        ifile.open(filename);
     } catch (std::exception&) {
         throw std::invalid_argument("Cannot open input file");
     }

@@ -49,7 +49,7 @@ ChTire::ChTire(const std::string& name)
 void ChTire::Initialize(std::shared_ptr<ChWheel> wheel) {
     m_wheel = wheel;
 
-    //// RADU TODO 
+    //// RADU TODO
     //// Properly account for offset in adjusting inertia.
     //// This requires changing the spindle to a ChBodyAuxRef.
     wheel->GetSpindle()->SetMass(wheel->GetSpindle()->GetMass() + GetAddedMass());
@@ -63,8 +63,7 @@ void ChTire::Initialize(std::shared_ptr<ChWheel> wheel) {
 // Calculate kinematics quantities (slip angle, longitudinal slip, camber angle,
 // and toe-in angle) using the given state of the associated wheel.
 // -----------------------------------------------------------------------------
-void ChTire::CalculateKinematics(const WheelState& wheel_state, 
-                                 const ChCoordsys<>& tire_frame) {
+void ChTire::CalculateKinematics(const WheelState& wheel_state, const ChCoordsys<>& tire_frame) {
     // Wheel normal (expressed in global frame)
     ChVector3d wheel_normal = wheel_state.rot.GetAxisY();
 
@@ -92,13 +91,12 @@ void ChTire::CalculateKinematics(const WheelState& wheel_state,
 
 // Add visualization mesh: use one of the two provided OBJ files, depending on the side on which the tire is mounted.
 std::shared_ptr<ChVisualShapeTriangleMesh> ChTire::AddVisualizationMesh(const std::string& mesh_file_left,
-                                                                  const std::string& mesh_file_right) {
+                                                                        const std::string& mesh_file_right) {
     bool left = (m_wheel->GetSide() == VehicleSide::LEFT);
     ChQuaternion<> rot = left ? QuatFromAngleZ(0) : QuatFromAngleZ(CH_PI);
     m_vis_mesh_file = left ? mesh_file_left : mesh_file_right;
 
-    auto trimesh =
-        ChTriangleMeshConnected::CreateFromWavefrontFile(vehicle::GetDataFile(m_vis_mesh_file), true, true);
+    auto trimesh = ChTriangleMeshConnected::CreateFromWavefrontFile(vehicle::GetDataFile(m_vis_mesh_file), true, true);
 
     auto trimesh_shape = chrono_types::make_shared<ChVisualShapeTriangleMesh>();
     trimesh_shape->SetMesh(trimesh);
@@ -126,16 +124,16 @@ std::shared_ptr<ChVisualShapeTriangleMesh> ChTire::AddVisualizationMesh(const st
 // solution would require an iterative calculation of the contact point.
 // -----------------------------------------------------------------------------
 bool ChTire::DiscTerrainCollision(
-    CollisionType method,                // [in] tire-terrain collision detection method
-    const ChTerrain& terrain,            // [in] reference to terrain system
-    const ChVector3d& disc_center,       // [in] global location of the disc center
-    const ChVector3d& disc_normal,       // [in] disc normal, expressed in the global frame
-    double disc_radius,                  // [in] disc radius
-    double width,                        // [in] tire width
+    CollisionType method,             // [in] tire-terrain collision detection method
+    const ChTerrain& terrain,         // [in] reference to terrain system
+    const ChVector3d& disc_center,    // [in] global location of the disc center
+    const ChVector3d& disc_normal,    // [in] disc normal, expressed in the global frame
+    double disc_radius,               // [in] disc radius
+    double width,                     // [in] tire width
     const ChFunctionInterp& areaDep,  // [in] lookup table to calculate depth from intersection area
-    ChCoordsys<>& contact,               // [out] contact coordinate system (relative to the global frame)
-    double& depth,                       // [out] penetration depth (positive if contact occurred)
-    float& mu                            // [out] coefficient of friction at contact
+    ChCoordsys<>& contact,            // [out] contact coordinate system (relative to the global frame)
+    double& depth,                    // [out] penetration depth (positive if contact occurred)
+    float& mu                         // [out] coefficient of friction at contact
 ) {
     switch (method) {
         default:
@@ -323,15 +321,15 @@ void ChTire::ConstructAreaDepthTable(double disc_radius, ChFunctionInterp& areaD
 }
 
 bool ChTire::DiscTerrainCollisionEnvelope(
-    const ChTerrain& terrain,            // [in] reference to terrain system
-    const ChVector3d& disc_center,       // [in] global location of the disc center
-    const ChVector3d& disc_normal,       // [in] disc normal, expressed in the global frame
-    double disc_radius,                  // [in] disc radius
-    double width,                        // [in] tire width
+    const ChTerrain& terrain,         // [in] reference to terrain system
+    const ChVector3d& disc_center,    // [in] global location of the disc center
+    const ChVector3d& disc_normal,    // [in] disc normal, expressed in the global frame
+    double disc_radius,               // [in] disc radius
+    double width,                     // [in] tire width
     const ChFunctionInterp& areaDep,  // [in] lookup table to calculate depth from intersection area
-    ChCoordsys<>& contact,               // [out] contact coordinate system (relative to the global frame)
-    double& depth,                       // [out] penetration depth (positive if contact occurred)
-    float& mu                            // [out] coefficient of friction at contact
+    ChCoordsys<>& contact,            // [out] contact coordinate system (relative to the global frame)
+    double& depth,                    // [out] penetration depth (positive if contact occurred)
+    float& mu                         // [out] coefficient of friction at contact
 ) {
     // Vertical offset for terrain queries (above terrain by a disc radius)
     auto voffset = disc_radius * ChWorldFrame::Vertical();

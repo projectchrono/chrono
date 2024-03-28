@@ -219,7 +219,7 @@ class ChApiParsers ChParserOpenSim {
 
 /// @} chrono_utils
 
-}  // end namespace utils
+}  // namespace parsers
 }  // end namespace chrono
 
 #endif
