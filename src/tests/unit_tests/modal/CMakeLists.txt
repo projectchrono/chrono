@@ -3,8 +3,13 @@
 
 message(STATUS "Unit tests for Chrono joints...")
 
-set(TEST_PROGRAMS
+set(TESTS
     utest_MOD_eigensolve
+)
+
+# Tests that REQUIRE Chrono::MKL
+set(TESTS_MKL
+    utest_MOD_reduction_beam
 )
 
 #--------------------------------------------------------------
@@ -22,10 +27,18 @@ set(COMPILER_FLAGS "${CH_CXX_FLAGS}")
 set(LINKER_FLAGS "${CH_LINKERFLAG_EXE}")
 set(LIBRARIES ChronoEngine ChronoEngine_modal)
 
+if(ENABLE_MODULE_PARDISO_MKL)
+    include_directories(${CH_MKL_INCLUDES})
+    set(COMPILER_FLAGS "${COMPILER_FLAGS} ${CH_MKL_CXX_FLAGS}")
+    set(LINKER_FLAGS "${LINKER_FLAGS} ${CH_MKL_LINK_FLAGS}")
+    list(APPEND LIBRARIES "ChronoEngine_pardisomkl")
+    set(TESTS ${TESTS} ${TESTS_MKL})
+endif()
+
 #--------------------------------------------------------------
 # Add executables
 
-foreach(PROGRAM ${TEST_PROGRAMS})
+foreach(PROGRAM ${TESTS})
   message(STATUS "...${PROGRAM}")
   
   add_executable(${PROGRAM}  "${PROGRAM}.cpp")
