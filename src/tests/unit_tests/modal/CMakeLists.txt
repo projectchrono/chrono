@@ -10,6 +10,7 @@ set(TESTS
 # Tests that REQUIRE Chrono::MKL
 set(TESTS_MKL
     utest_MOD_reduction_beam
+	utest_MOD_curved_beam
 )
 
 #--------------------------------------------------------------
