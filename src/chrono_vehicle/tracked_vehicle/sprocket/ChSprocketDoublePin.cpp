@@ -186,10 +186,12 @@ void SprocketDoublePinContactCB::OnCustomCollision(ChSystem* system) {
             case DoublePinTrackShoeType::ONE_CONNECTOR: {
                 // The collision shape frames are offset in the Y direction from the connector body frame.
                 ChFrame<> frame_left = *shoe->m_connector_L;
-                frame_left.GetPos() += frame_left.GetRotMat() * ChVector3d(0, shoe->GetShoeWidth() / 2, 0);
+                frame_left.SetPos(frame_left.GetPos() +
+                                  frame_left.GetRotMat() * ChVector3d(0, shoe->GetShoeWidth() / 2, 0));
                 CheckConnectorSprocket(shoe->m_connector_L, frame_left, shoe->GetSprocketContactMaterial(), locS_abs);
                 ChFrame<> frame_right = *shoe->m_connector_L;
-                frame_right.GetPos() -= frame_right.GetRotMat() * ChVector3d(0, shoe->GetShoeWidth() / 2, 0);
+                frame_right.SetPos(frame_right.GetPos() -
+                                   frame_right.GetRotMat() * ChVector3d(0, shoe->GetShoeWidth() / 2, 0));
                 CheckConnectorSprocket(shoe->m_connector_L, frame_right, shoe->GetSprocketContactMaterial(), locS_abs);
             } break;
         }

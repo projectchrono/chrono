@@ -126,8 +126,8 @@ void ChRigidSuspension::UpdateInertiaProperties() {
     composite.AddComponent(m_spindle[RIGHT]->GetFrameCOMToAbs(), getSpindleMass(), inertiaSpindle);
 
     // Express COM and inertia in subsystem reference frame
-    m_com.GetPos() = m_xform.TransformPointParentToLocal(composite.GetCOM());
-    m_com.GetRot() = QUNIT;
+    m_com.SetPos(m_xform.TransformPointParentToLocal(composite.GetCOM()));
+    m_com.SetRot(QUNIT);
 
     m_inertia = m_xform.GetRotMat().transpose() * composite.GetInertia() * m_xform.GetRotMat();
 }

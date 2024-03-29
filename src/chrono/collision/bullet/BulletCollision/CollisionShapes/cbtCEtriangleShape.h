@@ -35,12 +35,12 @@ software.
 
 class cbtCEtriangleShape : public cbtConvexInternalShape {
   private:
-    chrono::ChVector3d* p1;
-    chrono::ChVector3d* p2;
-    chrono::ChVector3d* p3;
-    chrono::ChVector3d* e1;
-    chrono::ChVector3d* e2;
-    chrono::ChVector3d* e3;
+    const chrono::ChVector3d* p1;
+    const chrono::ChVector3d* p2;
+    const chrono::ChVector3d* p3;
+    const chrono::ChVector3d* e1;
+    const chrono::ChVector3d* e2;
+    const chrono::ChVector3d* e3;
     bool owns_vertex_1;
     bool owns_vertex_2;
     bool owns_vertex_3;
@@ -50,12 +50,12 @@ class cbtCEtriangleShape : public cbtConvexInternalShape {
     double sphereswept_rad;
 
   public:
-    cbtCEtriangleShape(chrono::ChVector3d* mp1,
-                       chrono::ChVector3d* mp2,
-                       chrono::ChVector3d* mp3,
-                       chrono::ChVector3d* me1,
-                       chrono::ChVector3d* me2,
-                       chrono::ChVector3d* me3,
+    cbtCEtriangleShape(const chrono::ChVector3d* mp1,
+                       const chrono::ChVector3d* mp2,
+                       const chrono::ChVector3d* mp3,
+                       const chrono::ChVector3d* me1,
+                       const chrono::ChVector3d* me2,
+                       const chrono::ChVector3d* me3,
                        bool mowns_vertex_1,
                        bool mowns_vertex_2,
                        bool mowns_vertex_3,
@@ -79,14 +79,14 @@ class cbtCEtriangleShape : public cbtConvexInternalShape {
     virtual void getAabb(const cbtTransform& t, cbtVector3& aabbMin, cbtVector3& aabbMax) const;
 
     /// access vertex points  of triangle
-    chrono::ChVector3d* get_p1() const { return p1; }
-    chrono::ChVector3d* get_p2() const { return p2; }
-    chrono::ChVector3d* get_p3() const { return p3; }
+    const chrono::ChVector3d* get_p1() const { return p1; }
+    const chrono::ChVector3d* get_p2() const { return p2; }
+    const chrono::ChVector3d* get_p3() const { return p3; }
 
     /// access points of neighbouring triangles at edges, if any (if no neighbour, is null ptr)
-    chrono::ChVector3d* get_e1() const { return e1; }
-    chrono::ChVector3d* get_e2() const { return e2; }
-    chrono::ChVector3d* get_e3() const { return e3; }
+    const chrono::ChVector3d* get_e1() const { return e1; }
+    const chrono::ChVector3d* get_e2() const { return e2; }
+    const chrono::ChVector3d* get_e3() const { return e3; }
 
     /// tell if the representative triangle owns the vertex
     bool owns_v1() const { return owns_vertex_1; }

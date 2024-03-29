@@ -189,8 +189,8 @@ void ChPitmanArm::UpdateInertiaProperties() {
     composite.AddComponent(m_arm->GetFrameCOMToAbs(), m_arm->GetMass(), m_arm->GetInertia());
 
     // Express COM and inertia in subsystem reference frame
-    m_com.GetPos() = m_xform.TransformPointParentToLocal(composite.GetCOM());
-    m_com.GetRot() = m_xform.GetRot();
+    m_com.SetPos(m_xform.TransformPointParentToLocal(composite.GetCOM()));
+    m_com.SetRot(m_xform.GetRot());
 
     m_inertia = m_xform.GetRotMat().transpose() * composite.GetInertia() * m_xform.GetRotMat();
 }

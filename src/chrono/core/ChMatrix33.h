@@ -113,13 +113,13 @@ class ChMatrix33 : public Eigen::Matrix<Real, 3, 3, Eigen::RowMajor> {
                       const ChVector3<Real>& x_sugg = ChVector3<Real>(1, 0, 0)  ///< suggested X axis
     );
 
-    /// Return the versor of X axis.
+    /// Return the unit vector along the X axis.
     ChVector3<Real> GetAxisX() const;
 
-    /// Return the versor of Y axis.
+    /// Return the unit vector along the Y axis.
     ChVector3<Real> GetAxisY() const;
 
-    /// Return the versor of Z axis.
+    /// Return the unit vector along the Z axis.
     ChVector3<Real> GetAxisZ() const;
 
     /// Return the corresponding unit quaternion.
@@ -145,9 +145,6 @@ class ChMatrix33 : public Eigen::Matrix<Real, 3, 3, Eigen::RowMajor> {
     /// Return the Rodrigues parameters.
     /// Assumes that this is a rotation matrix.
     ChVector3<Real> GetRodriguesParameters() const;
-
-    /// Assuming this matrix is a rotation matrix, get Ax vector.
-    ChVector3<Real> GetAx() const;
 
     /// Compute eigenvectors and eigenvalues.
     /// Note: only for self-adjoint matrices (e.g. inertia tensors).
@@ -621,13 +618,6 @@ inline ChVector3<Real> ChMatrix33<Real>::GetAxisZ() const {
     Z.y() = (*this)(1, 2);
     Z.z() = (*this)(2, 2);
     return Z;
-}
-
-template <typename Real>
-inline ChVector3<Real> ChMatrix33<Real>::GetAx() const {
-    return ChVector3<Real>(0.5 * ((*this)(2, 1) - (*this)(1, 2)),  //
-                           0.5 * ((*this)(0, 2) - (*this)(2, 0)),  //
-                           0.5 * ((*this)(1, 0) - (*this)(0, 1)));
 }
 
 template <typename Real>

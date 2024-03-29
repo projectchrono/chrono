@@ -348,8 +348,8 @@ void ChSystemMulticore::UpdateRigidBodies() {
 
         ChVectorRef body_qb = body->Variables().State();
         ChVectorRef body_fb = body->Variables().Force();
-        ChVector3d& body_pos = body->GetPos();
-        ChQuaternion<>& body_rot = body->GetRot();
+        const ChVector3d& body_pos = body->GetPos();
+        const ChQuaternion<>& body_rot = body->GetRot();
 
         data_manager->host_data.v[i * 6 + 0] = body_qb(0);
         data_manager->host_data.v[i * 6 + 1] = body_qb(1);
