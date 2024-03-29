@@ -224,8 +224,8 @@ class MBTireModel : public ChPhysicsItem {
     // Get normal and elemental area for the node with current ring and division indices.
     void CalcNormal(int ir, int id, ChVector3d& normal, double& area);
 
-    unsigned int m_dofs;    // total degrees of freedom
-    unsigned int m_dofs_w;  // total degrees of freedom, derivative (Lie algebra)
+    unsigned int m_dofs;    // total degrees of freedom (position level)
+    unsigned int m_dofs_w;  // total degrees of freedom (velocity level)
 
     int m_num_rings;      // number of rings
     int m_num_divs;       // number of nodes per ring
@@ -333,6 +333,7 @@ class MBTireModel : public ChPhysicsItem {
         virtual void CalculateJacobian(double Kfactor, double Rfactor) override;
         virtual void CalculateJacobianFD(double Kfactor, double Rfactor) override;
 
+        ChVector3d local_pos;
         ChVector3d force_wheel;
         ChVector3d torque_wheel;
     };
@@ -353,6 +354,7 @@ class MBTireModel : public ChPhysicsItem {
         virtual void CalculateJacobian(double Kfactor) override;
         virtual void CalculateJacobianFD(double Kfactor) override;
 
+        ChVector3d local_pos;
         ChVector3d force_wheel;
         ChVector3d torque_wheel;
     };

@@ -406,10 +406,10 @@ void MBTireModel::EdgeSpring2::CalculateForce() {
 //    wheel state (6)
 //    node2 state (3)
 void MBTireModel::EdgeSpring2::CalculateJacobian(double Kfactor, double Rfactor) {
-    ChMatrixRef K = KRM.GetMatrix();
+    ChMatrixRef J = KRM.GetMatrix();
 
     ////std::cout << "Edge spring2 " << inode1 << "-" << inode2;
-    ////std::cout << "  K size: " << K.rows() << "x" << K.cols() << std::endl;
+    ////std::cout << "  J size: " << J.rows() << "x" << J.cols() << std::endl;
 
     auto A = CalculateJacobianBlock(Kfactor, Rfactor);
 
@@ -447,20 +447,134 @@ void MBTireModel::EdgeSpring2::CalculateJacobian(double Kfactor, double Rfactor)
 
     Jac_Af_m *= 2;
 
-    K.block(0, 0, 3, 3) = -A;
-    K.block(0, 3, 3, 4) = -A * Jac_Af_m;
-    K.block(0, 7, 3, 3) = A;
+    J.block(0, 0, 3, 3) = -A;
+    J.block(0, 3, 3, 4) = -A * Jac_Af_m;
+    J.block(0, 7, 3, 3) = A;
 
-    K.block(3, 0, 3, 3) = A;
-    K.block(3, 3, 3, 3) = A * Jac_Af_m;
-    K.block(3, 6, 3, 4) = -A;
+    J.block(3, 0, 3, 3) = A;
+    J.block(3, 3, 3, 3) = A * Jac_Af_m;
+    J.block(3, 6, 3, 4) = -A;
+
+    /*
+    CalculateJacobianFD(Kfactor, Rfactor);
+    std::cout << "Edge spring2 " << inode1 << "-" << inode2 << std::endl << "-------" << std::endl;
+    std::cout << J << std::endl;
+    std::cout << "-------\n";
+    std::cout << J_fd << std::endl;
+    std::cout << "-------\n";
+    std::cout << "err_2   = " << (J_fd - J).norm()                                                    //
+              << "  " << (J_fd - J).norm() / J.norm() << "\n";                                        //
+    std::cout << "err_1   = " << (J_fd - J).lpNorm<1>()                                               //
+              << "  " << (J_fd - J).lpNorm<1>() / J.lpNorm<1>() << "\n";                              //
+    std::cout << "err_inf = " << (J_fd - J).lpNorm<Eigen::Infinity>()                                 //
+              << "  " << (J_fd - J).lpNorm<Eigen::Infinity>() / J.lpNorm<Eigen::Infinity>() << "\n";  //
+    std::cout << "=======" << std::endl;
+    */
 }
 
 void MBTireModel::EdgeSpring2::CalculateJacobianFD(double Kfactor, double Rfactor) {
     ChMatrixNM<double, 9, 9> K;
     ChMatrixNM<double, 9, 9> R;
 
+    K.setZero();
+    R.setZero();
+
     //// TODO: approximate K and R
+
+    ChVector3d posW = wheel->GetPos();
+    ChQuaterniond rotW = wheel->GetRot();
+    ChVector3d velW = wheel->GetPosDt();
+    ChVector3d omgW = wheel->GetAngVelParent();
+
+    ChVector3d pos2 = node2->GetPos();
+    ChVector3d vel2 = node2->GetPosDt();
+
+    CalculateForce();
+    auto force_wheel_0 = force_wheel;
+    auto torque_wheel_0 = torque_wheel;
+    auto force2_0 = force2;
+
+    // wheel states (columns 0...5 in K)
+    // we must "bake in" the velocity transform: perturb at velocity level and let the body increment state.
+    // for position states (first 3 wheel states), this is the same as directly perturbing posW components.
+    ChState wheel_state(7, nullptr);
+    wheel_state.segment(0, 3) = posW.eigen();
+    wheel_state.segment(3, 4) = rotW.eigen();
+    ChState wheel_state_perturbed(7, nullptr);
+    ChStateDelta state_delta(6, nullptr);
+    state_delta.setZero(6, nullptr);
+
+    for (int i = 0; i < 6; i++) {
+        state_delta(i) += FD_step;
+        wheel->LoadableStateIncrement(0, wheel_state_perturbed, wheel_state, 0, state_delta);
+        wheel->SetPos(ChVector3d(wheel_state_perturbed.segment(0,3)));
+        wheel->SetRot(ChQuaterniond(wheel_state_perturbed.segment(3, 4)));
+        node1->SetPos(wheel->TransformPointLocalToParent(local_pos));
+
+        CalculateForce();
+        K.col(0 + i).segment(0, 3) = (force_wheel.eigen() - force_wheel_0.eigen()) / FD_step;
+        K.col(0 + i).segment(3, 3) = (torque_wheel.eigen() - torque_wheel_0.eigen()) / FD_step;
+        K.col(0 + i).segment(6, 3) = (force2.eigen() - force2_0.eigen()) / FD_step;
+
+        state_delta(i) -= FD_step;
+        wheel->LoadableStateIncrement(0, wheel_state_perturbed, wheel_state, 0, state_delta);
+        wheel->SetPos(ChVector3d(wheel_state_perturbed.segment(0, 3)));
+        wheel->SetRot(ChQuaterniond(wheel_state_perturbed.segment(3, 4)));
+        node1->SetPos(wheel->TransformPointLocalToParent(local_pos));
+    }
+
+    // wheel state derivatives (columns 0,1,2 in R)
+    for (int i = 0; i < 3; i++) {
+        velW[i] += FD_step;
+        wheel->SetPosDt(velW);
+        node1->SetPosDt(wheel->PointSpeedLocalToParent(local_pos));
+
+        CalculateForce();
+        R.col(0 + i).segment(0, 3) = (force_wheel.eigen() - force_wheel_0.eigen()) / FD_step;
+        R.col(0 + i).segment(3, 3) = (torque_wheel.eigen() - torque_wheel_0.eigen()) / FD_step;
+        R.col(0 + i).segment(6, 3) = (force2.eigen() - force2_0.eigen()) / FD_step;
+        
+        velW[i] -= FD_step;
+        wheel->SetPosDt(velW);
+        node1->SetPosDt(wheel->PointSpeedLocalToParent(local_pos));
+    }
+
+    // wheel state derivatives (columns 3,4,5 in R)
+    for (int i = 0; i < 3; i++) {
+        omgW[i] += FD_step;
+        wheel->SetAngVelLocal(omgW);
+        node1->SetPosDt(wheel->PointSpeedLocalToParent(local_pos));
+
+        CalculateForce();
+        R.col(3 + i).segment(0, 3) = (force_wheel.eigen() - force_wheel_0.eigen()) / FD_step;
+        R.col(3 + i).segment(3, 3) = (torque_wheel.eigen() - torque_wheel_0.eigen()) / FD_step;
+        R.col(3 + i).segment(6, 3) = (force2.eigen() - force2_0.eigen()) / FD_step;
+        
+        omgW[i] -= FD_step;
+        wheel->SetAngVelLocal(omgW);
+        node1->SetPosDt(wheel->PointSpeedLocalToParent(local_pos));
+    }
+
+    // node2 states and state derivatives (columms 6,7,8 in K and R)
+    for (int i = 0; i < 3; i++) {
+        pos2[i] += FD_step;
+        node2->SetPos(pos2);
+        CalculateForce();
+        K.col(6 + i).segment(0, 3) = (force_wheel.eigen() - force_wheel_0.eigen()) / FD_step;
+        K.col(6 + i).segment(3, 3) = (torque_wheel.eigen() - torque_wheel_0.eigen()) / FD_step;
+        K.col(6 + i).segment(6, 3) = (force2.eigen() - force2_0.eigen()) / FD_step;
+        pos2[i] -= FD_step;
+        node2->SetPos(pos2);
+
+        vel2[i] += FD_step;
+        node2->SetPosDt(vel2);
+        CalculateForce();
+        R.col(6 + i).segment(0, 3) = (force_wheel.eigen() - force_wheel_0.eigen()) / FD_step;
+        R.col(6 + i).segment(3, 3) = (torque_wheel.eigen() - torque_wheel_0.eigen()) / FD_step;
+        R.col(6 + i).segment(6, 3) = (force2.eigen() - force2_0.eigen()) / FD_step;
+        vel2[i] -= FD_step;
+        node2->SetPosDt(vel2);
+    }
 
     J_fd = Kfactor * K + Rfactor * R;
 }
@@ -775,10 +889,10 @@ void MBTireModel::EdgeSpring3::CalculateForce() {
 //    node_c state (3)
 //    node_n state (3)
 void MBTireModel::EdgeSpring3::CalculateJacobian(double Kfactor) {
-    ChMatrixRef K = KRM.GetMatrix();
+    ChMatrixRef J = KRM.GetMatrix();
 
     ////std::cout << "Edge spring3 " << inode_p << "-" << inode_c << "-" << inode_n;
-    ////std::cout << "  K size: " << K.rows() << "x" << K.cols() << std::endl;
+    ////std::cout << "  J size: " << J.rows() << "x" << J.cols() << std::endl;
 
     auto J1 = CalculateJacobianBlockJ1(Kfactor);
     auto J2 = CalculateJacobianBlockJ2(Kfactor);
@@ -841,9 +955,9 @@ void MBTireModel::EdgeSpring3::CalculateJacobian(double Kfactor) {
     Jn_new.block(0, 3, 3, 4) = J1_quat.bottomRows(3) + J2_quat.bottomRows(3);
     Jn_new.block(0, 7, 3, 6) = J1.bottomRows(3).rightCols(6) + J2.bottomRows(3).rightCols(6);
 
-    K.block(0, 0, 3, 13) = -Jp;
-    K.block(3, 0, 3, 13) = Jp + Jn;
-    K.block(6, 0, 3, 13) = -Jn;
+    J.block(0, 0, 3, 13) = -Jp;
+    J.block(3, 0, 3, 13) = Jp + Jn;
+    J.block(6, 0, 3, 13) = -Jn;
 }
 
 
@@ -965,6 +1079,8 @@ void MBTireModel::Construct() {
             spring.k = m_kR;
             spring.c = m_cR;
 
+            spring.local_pos = m_wheel->TransformPointParentToLocal(m_rim_nodes[inode1]->GetPos());
+
             spring.Initialize(m_stiff);
             m_edge_lin_springs.push_back(spring);
         }
@@ -1000,6 +1116,8 @@ void MBTireModel::Construct() {
             spring.wheel = m_wheel.get();
             spring.k = m_kR;
             spring.c = m_cR;
+
+            spring.local_pos = m_wheel->TransformPointParentToLocal(m_rim_nodes[inode1]->GetPos());
 
             spring.Initialize(m_stiff);
             m_edge_lin_springs.push_back(spring);
@@ -1053,6 +1171,8 @@ void MBTireModel::Construct() {
             spring.k = m_kB;
             spring.c = m_cB;
 
+            spring.local_pos = m_wheel->TransformPointParentToLocal(m_rim_nodes[inode_p]->GetPos());
+
             spring.Initialize(m_stiff);
             m_edge_rot_springs.push_back(spring);
         }
@@ -1096,6 +1216,8 @@ void MBTireModel::Construct() {
             spring.t0 = -t0;
             spring.k = m_kB;
             spring.c = m_cB;
+
+            spring.local_pos = m_wheel->TransformPointParentToLocal(m_rim_nodes[inode_p]->GetPos());
 
             spring.Initialize(m_stiff);
             m_edge_rot_springs.push_back(spring);
