@@ -324,6 +324,8 @@ class ChFrame {
     ChCoordsys<Real> m_csys;  ///< position and rotation, as vector + quaternion
     ChMatrix33<Real> m_rmat;  ///< 3x3 orthogonal rotation matrix
 
+    friend class FmuChronoComponentBase;
+
   public:
     EIGEN_MAKE_ALIGNED_OPERATOR_NEW
 };

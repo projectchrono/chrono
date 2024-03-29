@@ -461,6 +461,8 @@ class ChFrameMoving : public ChFrame<Real> {
   protected:
     ChCoordsys<Real> m_csys_dt;    ///< rotation and position velocity, as vector + quaternion
     ChCoordsys<Real> m_csys_dtdt;  ///< rotation and position acceleration, as vector + quaternion
+
+    friend class FmuChronoComponentBase;
 };
 
 CH_CLASS_VERSION(ChFrameMoving<double>, 0)

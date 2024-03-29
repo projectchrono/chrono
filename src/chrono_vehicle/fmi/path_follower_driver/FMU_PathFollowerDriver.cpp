@@ -174,8 +174,8 @@ void FmuComponent::CreateDriver() {
 }
 
 void FmuComponent::SynchronizeDriver(double time) {
-    // Set the rotation matrix of the reference frame
-    ref_frame.GetRotMat().SetFromQuaternion(ref_frame.GetRot());
+    // Force a re-evaluation of the rotation matrix of the reference frame
+    ref_frame.SetRot(ref_frame.GetRot());
 }
 
 void FmuComponent::CalculateDriverOutputs() {

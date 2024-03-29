@@ -118,7 +118,7 @@ class FmuChronoComponentBase : public FmuComponentBase {
                              const std::string& description,
                              FmuVariable::CausalityType causality = FmuVariable::CausalityType::local,
                              FmuVariable::VariabilityType variability = FmuVariable::VariabilityType::continuous) {
-        AddFmuCsysVariable(s.GetCoordsys(), name, unit_name, description, causality, variability);
+        AddFmuCsysVariable(s.m_csys, name, unit_name, description, causality, variability);
     }
 
     /// Add FMU variables corresponding to the specified ChFrameMoving.
@@ -133,10 +133,10 @@ class FmuChronoComponentBase : public FmuComponentBase {
         const std::string& description,
         FmuVariable::CausalityType causality = FmuVariable::CausalityType::local,
         FmuVariable::VariabilityType variability = FmuVariable::VariabilityType::continuous) {
-        AddFmuCsysVariable(s.GetCoordsys(), name, unit_name, description, causality, variability);
-        AddFmuVecVariable(s.GetPosDt(), name + ".pos_dt", unit_name_dt, description + " position derivative", causality,
-                          variability);
-        AddFmuQuatVariable(s.GetRotDt(), name + ".rot_dt", "1", description + " orientation derivative", causality,
+        AddFmuCsysVariable(s.m_csys, name, unit_name, description, causality, variability);
+        AddFmuVecVariable(s.m_csys_dt.pos, name + ".pos_dt", unit_name_dt, description + " position derivative",
+                          causality, variability);
+        AddFmuQuatVariable(s.m_csys_dt.rot, name + ".rot_dt", "1", description + " orientation derivative", causality,
                            variability);
     }
 };
