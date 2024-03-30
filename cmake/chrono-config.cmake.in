@@ -9,7 +9,7 @@
 # In the call to find_package(), the following Chrono components can be
 # requested (case insensitive): 
 #   Cascade, Cosimulation, CSharp, FSI, GPU, Irrlicht, OpenGL, VSG, Matlab,
-#   Modal, Multicore, PardisoMKL, PardisoProject, Parsers, Postprocess, Sensor,
+#   Modal, Multicore, PardisoMKL, Parsers, Postprocess, Sensor,
 #   Synchrono, Vehicle, VehicleCosim.
 # A component can be requested either as required or optional
 # (see the CMake documentation for find_package).
@@ -165,7 +165,6 @@ set(Chrono_VEHICLE_AVAILABLE        @ENABLE_MODULE_VEHICLE@)
 set(Chrono_FSI_AVAILABLE            @ENABLE_MODULE_FSI@)
 set(Chrono_GPU_AVAILABLE            @ENABLE_MODULE_GPU@)
 set(Chrono_SENSOR_AVAILABLE         @ENABLE_MODULE_SENSOR@)
-set(Chrono_PARDISOPROJECT_AVAILABLE @ENABLE_MODULE_PARDISO_PROJECT@)
 set(Chrono_SYNCHRONO_AVAILABLE      @ENABLE_MODULE_SYNCHRONO@)
 set(Chrono_MODAL_AVAILABLE          @ENABLE_MODULE_MODAL@)
 set(Chrono_VSG_AVAILABLE            @ENABLE_MODULE_VSG@)
@@ -546,14 +545,6 @@ foreach(COMPONENT ${Chrono_FIND_COMPONENTS})
       list(APPEND CHRONO_LIBRARIES "@CH_MATLABLIB@")
       if (NOT CHRONO_STATIC)
         list(APPEND CHRONO_DLL_NAMES "ChronoEngine_matlab.dll")
-      endif()
-
-    elseif(${COMPONENT_UPPER} MATCHES "PARDISOPROJECT")
-
-      list(PREPEND CHRONO_LIB_NAMES "ChronoEngine_pardisoproject")
-      list(APPEND CHRONO_LIBRARIES "@PARDISOPROJECT_LIBRARIES@")
-      if (NOT CHRONO_STATIC)
-        list(APPEND CHRONO_DLL_NAMES "ChronoEngine_pardisoproject.dll")
       endif()
 
     elseif(${COMPONENT_UPPER} MATCHES "CSHARP")
