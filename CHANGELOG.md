@@ -1394,6 +1394,10 @@ In some instances, the reader is directed to the "Notes" section for more detail
 |                                   | addTriangle                   | rename: AddTriangle                              |
 |                                   | getNumTriangles               | rename: GetNumTriangles                          |
 |                                   | getTriangle                   | rename: GetTriangle                              |
+| ChTimer                           |                               | see Notes                                        |
+|                                   | GetTimeMicrosecondsIntermediate | remove                                         |
+|                                   | GetTimeMillisecondsIntermediate | remove                                         |
+|                                   | GetTimeSecondsIntermediate      | remove                                         |
 | ChTriangleMeshConnected           |                               |                                                  |
 |                                   | addTriangle                   | rename: AddTriangle                              |
 |                                   | getCoordsVertices             | rename: GetCoordsVertices                        |
@@ -1624,6 +1628,9 @@ In some instances, the reader is directed to the "Notes" section for more detail
 
 + `ChKblock::Build_K` (now `ChKRMBlock::PasteInto`) reversed the meaning of the last argument (was `add`, now `overwrite`) in accordance to the signature of `PasteMatrix`;
   Also `ChVariable::Build_M` (now `PasteMassInto`) is not taking the position in which the mass should be placed but the offset with respect to the `ChVariable::offset`
+
++ The `ChTimer` class was refactored so that `GetTimeMicroseconds`, `GetTimeMilliseconds`, and `GetTimeSeconds` return either an intermediate time (if the timer was started but not stopped; in this case the timer keeps running) or the timer value when the timer was stopped.
+  The old functions `GetTimeMicrosecondsIntermediate`, `GetTimeMillisecondsIntermediate`, and `GetTimeSecondsIntermediate` were obsoleted.
 
 ## [Added] Chrono::Sensor features and updates
 

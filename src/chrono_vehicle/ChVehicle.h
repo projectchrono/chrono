@@ -155,9 +155,9 @@ class CH_VEHICLE_API ChVehicle {
     ChVector3d GetDriverPos() const { return m_chassis->GetDriverPos(); }
 
     /// Enable/disable soft real-time (default: false).
-    /// If enabled, a spinning timer is used to maintain simulation time in sync with real time (if simulation is
-    /// faster).
-    void EnableRealtime(bool val) { m_realtime_force = val; }
+    /// If enabled, a spinning timer is used to maintain simulation time in sync with real time. This function should be
+    /// called right before the main simulation loop, since it starts the embedded ChTimer.
+    void EnableRealtime(bool val);
 
     /// Get current estimated RTF (real time factor).
     /// Note that the "true" RTF is returned, even if soft real-time is enforced.
