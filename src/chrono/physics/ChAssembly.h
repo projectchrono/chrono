@@ -318,7 +318,7 @@ class ChApi ChAssembly : public ChPhysicsItem {
     /// Swap the contents of the two provided ChAssembly objects.
     /// Implemented as a friend (as opposed to a member function) so classes with a ChAssembly member can use ADL when
     /// implementing their own swap.
-    friend void swap(ChAssembly& first, ChAssembly& second);
+    friend ChApi void swap(ChAssembly& first, ChAssembly& second);
 
   protected:
     virtual void SetupInitial() override;
