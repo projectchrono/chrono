@@ -57,6 +57,7 @@ int n_elements = 8;
 double step_size = 0.05;
 
 unsigned int num_modes = 12;
+bool USE_GRAVITY = true;
 
 // static stuff for GUI:
 bool SWITCH_EXAMPLE = false;
@@ -87,6 +88,7 @@ void MakeAndRunDemoCantilever(ChSystem& sys,
     // You must add finite elements, bodies and constraints into this assembly in order
     // to compute the modal frequencies etc.; objects not added into this won't be counted.
     auto modal_assembly = chrono_types::make_shared<ChModalAssembly>();
+    modal_assembly->SetModalAutomaticGravity(USE_GRAVITY);
     sys.Add(modal_assembly);
 
     // Specify the modal reduction method used:
@@ -106,8 +108,8 @@ void MakeAndRunDemoCantilever(ChSystem& sys,
     auto mesh_boundary = chrono_types::make_shared<ChMesh>();
     modal_assembly->Add(mesh_boundary);  // NOTE: MESH FOR BOUNDARY NODES: USE assembly->Add()
 
-    mesh_internal->SetAutomaticGravity(false);
-    mesh_boundary->SetAutomaticGravity(false);
+    mesh_internal->SetAutomaticGravity(USE_GRAVITY);
+    mesh_boundary->SetAutomaticGravity(USE_GRAVITY);
 
     // BEAMS:
 
@@ -246,9 +248,16 @@ void MakeAndRunDemoCantilever(ChSystem& sys,
         my_node_internal->SetTorque(ChVector3d(0, 2, 0));
     }
 
+    // set gravity
+    if (USE_GRAVITY)
+        sys.SetGravitationalAcceleration(ChVector3d(0, 0, -9.81));  // -Z axis
+    else
+        sys.SetGravitationalAcceleration(ChVector3d(0, 0, 0));
+
     // Just for later reference, dump  M,R,K,Cq matrices. Ex. for comparison with Matlab eigs()
     sys.Setup();
     sys.Update();
+
     modal_assembly->WriteSubassemblyMatrices(true, true, true, true, out_dir + "/dump");
 
     if (do_modal_reduction) {
@@ -264,7 +273,7 @@ void MakeAndRunDemoCantilever(ChSystem& sys,
         // OPTIONAL
 
         // Just for later reference, dump reduced M,R,K,Cq matrices. Ex. for comparison with Matlab eigs()
-        modal_assembly->WriteSubassemblyMatrices(true, true, true, true, (out_dir + "/dump_reduced").c_str());
+        modal_assembly->WriteSubassemblyMatrices(true, true, true, true, out_dir + "/dump_reduced");
 
     } else {
         // Otherwise we perform a conventional modal analysis on the full ChModalAssembly.
