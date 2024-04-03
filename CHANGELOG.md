@@ -334,6 +334,7 @@ In some instances, the reader is directed to the "Notes" section for more detail
 |                                   | SetId                         | remove                                           |
 |                                   | SetMaxSpeed                   | rename: SetMaxLinVel                             |
 |                                   | SetMaxWvel                    | rename: SetMaxAngVel                             |
+|                                   | SetNoGyroTorque               | rename: SetUseGyroTorque                         |
 |                                   | SetNoSpeedNoAcceleration      | rename: ForceToRest                              |
 |                                   | SetSleepMinSpeed              | rename: SetSleepMinLinVel                        |
 |                                   | SetSleepMinWvel               | rename: SetSleepMinAngVel                        |
@@ -627,7 +628,7 @@ In some instances, the reader is directed to the "Notes" section for more detail
 |                                   | Get_fa                        | rename: GetFirstOperandFunction                  |
 |                                   | Get_fb                        | rename: GetSecondOperandFunction                 |
 |                                   | Get_optype                    | rename: GetOperationType                         |
-|                                   | Set_fa                        | rename: SetFirstFunction                         |
+|                                   | Set_fa                        | rename: SetFirstOperandFunction                  |
 |                                   | Set_fb                        | rename: SetSecondOperandFunction                 |
 |                                   | Set_optype                    | rename: SetOperationType                         |
 | ChFunction_Oscilloscope           |                               | remove                                           |
