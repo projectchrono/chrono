@@ -3,7 +3,6 @@ set(COMPONENT_SOURCES FMU_WheeledVehicle.h FMU_WheeledVehicle.cpp)
 set(COMPONENT_CHRONO_DEPENDENCIES ChronoEngine ChronoEngine_vehicle ChronoEngine_irrlicht ChronoEngine_vehicle_irrlicht)
 set(COMPONENT_DLL_DEPENDENCIES ${CH_IRRLICHT_DLL})
 set(COMPONENT_RESOURCES_DIR ${CMAKE_SOURCE_DIR}/data/vehicle/fmi/wheeled_vehicle)
-set(FMU_HOST_SOURCES FmuHost.cpp)
 
 #--------------------------------------------------------------
 
@@ -13,6 +12,8 @@ set(COMPILER_FLAGS "${CH_CXX_FLAGS}")
 set(LINKER_FLAGS "${CH_LINKERFLAG_EXE}")
 list(APPEND LIBS "ChronoEngine")
 list(APPEND LIBS ChronoEngine_vehicle)
+
+include_directories(${FMU_TOOLS_DIR})
 
 if(ENABLE_MODULE_IRRLICHT)
   include_directories(${CH_IRRLICHT_INCLUDES})
@@ -28,7 +29,6 @@ message(STATUS "   FetchContent(fmu_tools)")
 set(FMU_MODEL_IDENTIFIER ${COMPONENT_NAME} CACHE INTERNAL "")
 set(FMU_RESOURCES_DIRECTORY ${COMPONENT_RESOURCES_DIR} CACHE INTERNAL "")
 set(BUILD_FMU_HOST OFF CACHE INTERNAL "")
-set(USE_EXTERNAL_FMU_COMPONENT_SOURCES ON CACHE INTERNAL "")
 set(USE_CUSTOM_TYPESPLATFORM OFF CACHE INTERNAL "")
 
 set(FMU_MAIN_DIRECTORY ${VEHICLE_FMU_COMPONENT_MAIN_DIR})
@@ -36,7 +36,7 @@ set(FMU_MSG_PREFIX "   - ")
 
 FetchContent_Declare(
     ${FMU_MODEL_IDENTIFIER}
-    SOURCE_DIR ${FMU_TOOLS_DIR}
+    SOURCE_DIR ${FMU_TOOLS_DIR}/${FMU_TOOLS_SUBDIR}
 )
 
 FetchContent_MakeAvailable(${FMU_MODEL_IDENTIFIER})
@@ -58,17 +58,6 @@ target_sources(${FMU_MODEL_IDENTIFIER} PRIVATE ${COMPONENT_SOURCES})
 
 set_target_properties(${FMU_MODEL_IDENTIFIER} PROPERTIES FOLDER demos COMPILE_FLAGS "${COMPILER_FLAGS}" LINK_FLAGS "${LINKER_FLAGS}")
 target_link_libraries(${FMU_MODEL_IDENTIFIER} ${LIBS})  
-
-# set target binary output directory 
-set_target_properties(${FMU_MODEL_IDENTIFIER}
-                      PROPERTIES RUNTIME_OUTPUT_DIRECTORY_RELEASE ${FMU_RUNTIME_OUTPUT_DIRECTORY}
-                                 RUNTIME_OUTPUT_DIRECTORY_DEBUG ${FMU_RUNTIME_OUTPUT_DIRECTORY})
-
-#---------------------------------------------------------------
-
-if(BUILD_FMU_HOST)
-  target_sources(fmu_host_${FMU_MODEL_IDENTIFIER} PRIVATE ${FMU_HOST_SOURCES})
-endif()
 
 #---------------------------------------------------------------
 
