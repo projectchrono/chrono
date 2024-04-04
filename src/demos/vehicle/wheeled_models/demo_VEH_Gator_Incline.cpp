@@ -72,9 +72,6 @@ VisualizationType tire_vis_type = VisualizationType::MESH;
 // Simulation step sizes
 double step_size = 2e-3;
 
-// Time interval between two render frames
-double render_step_size = 1.0 / 50;  // FPS = 50
-
 // =============================================================================
 
 int main(int argc, char* argv[]) {
@@ -195,9 +192,6 @@ int main(int argc, char* argv[]) {
     gator.GetVehicle().LogSubsystemTypes();
     std::cout << "\nVehicle mass: " << gator.GetVehicle().GetMass() << std::endl;
 
-    // Number of simulation steps between miscellaneous events
-    int render_steps = (int)std::ceil(render_step_size / step_size);
-
     // Initialize simulation frame counters
     int step_number = 0;
 
@@ -206,11 +200,9 @@ int main(int argc, char* argv[]) {
         double time = gator.GetSystem()->GetChTime();
 
         // Render scene
-        if (step_number % render_steps == 0) {
-            vis->BeginScene();
-            vis->Render();
-            vis->EndScene();
-        }
+        vis->BeginScene();
+        vis->Render();
+        vis->EndScene();
 
         // Get driver inputs
         DriverInputs driver_inputs = driver.GetInputs();
