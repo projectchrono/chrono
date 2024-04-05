@@ -29,7 +29,7 @@
 
 // fmu_tools
 // #include "rapidxml_ext.hpp"
-#include "FMI2/FmuToolsExport.h"
+#include "fmi2/FmuToolsExport.h"
 
 namespace chrono {
 

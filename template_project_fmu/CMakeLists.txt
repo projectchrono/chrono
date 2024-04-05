@@ -58,7 +58,7 @@ set(FMU_MSG_PREFIX "   ")
 
 FetchContent_Declare(
     ${FMU_MODEL_IDENTIFIER}
-    SOURCE_DIR ${CHRONO_FMU_TOOLS_DIR}/FMI2
+    SOURCE_DIR ${CHRONO_FMU_TOOLS_DIR}/fmi2
 )
 
 FetchContent_MakeAvailable(${FMU_MODEL_IDENTIFIER})

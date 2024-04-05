@@ -14,7 +14,6 @@
 
 #include "chrono/physics/ChBodyEasy.h"
 
-// #define FMI2_FUNCTION_PREFIX MyModel_
 #include "FmuComponentChrono.h"
 
 using namespace chrono;

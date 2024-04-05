@@ -17,7 +17,6 @@
 //
 // =============================================================================
 
-// #define FMI2_FUNCTION_PREFIX MyModel_
 #include <cassert>
 #include <map>
 #include <algorithm>

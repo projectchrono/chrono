@@ -46,7 +46,6 @@
     #include "chrono_irrlicht/ChVisualSystemIrrlicht.h"
 #endif
 
-// #define FMI2_FUNCTION_PREFIX MyModel_
 #include "chrono_fmi/ChFmuToolsExport.h"
 
 class FmuComponent : public chrono::FmuChronoComponentBase {

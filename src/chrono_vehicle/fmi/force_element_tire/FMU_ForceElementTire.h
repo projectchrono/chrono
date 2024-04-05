@@ -42,7 +42,6 @@
 #include "chrono_vehicle/utils/ChSpeedController.h"
 #include "chrono_vehicle/utils/ChSteeringController.h"
 
-// #define FMI2_FUNCTION_PREFIX MyModel_
 #include "chrono_fmi/ChFmuToolsExport.h"
 
 class FmuComponent : public chrono::FmuChronoComponentBase {

@@ -18,7 +18,6 @@
 #include "chrono/physics/ChBody.h"
 #include "chrono/physics/ChLoadsBody.h"
 
-// #define FMI2_FUNCTION_PREFIX MyModel_
 #include "chrono_fmi/ChFmuToolsExport.h"
 
 #ifdef CHRONO_IRRLICHT

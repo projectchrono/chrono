@@ -21,7 +21,7 @@
 #include "chrono/core/ChFrameMoving.h"
 
 // fmu_tools
-#include "FMI2/FmuToolsImport.hpp"
+#include "fmi2/FmuToolsImport.hpp"
 
 namespace chrono {
 

@@ -18,7 +18,6 @@
 #include "chrono/physics/ChHydraulicActuator.h"
 #include "chrono/functions/ChFunction.h"
 
-// #define FMI2_FUNCTION_PREFIX MyModel_
 #include "chrono_fmi/ChFmuToolsExport.h"
 
 class FmuComponent : public chrono::FmuChronoComponentBase {
