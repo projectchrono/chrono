@@ -66,6 +66,7 @@ class FmuChronoComponentBase : public FmuComponentBase {
                {"logStatusFatal", true},
                {"logAll", true}},
               {"logStatusWarning", "logStatusDiscard", "logStatusError", "logStatusFatal", "logStatusPending"}) {}
+
     virtual ~FmuChronoComponentBase() {}
 
     /// Add FMU variables corresponding to the specified ChVector3d.
@@ -147,16 +148,16 @@ class FmuChronoComponentBase : public FmuComponentBase {
 
 // -----------------------------------------------------------------------------
 
-#define ADD_BVAL_AS_FMU_GETSET(returnType, codeGet, codeSet)                                          \
-    _fmucomp->AddFmuVariable(                                                                         \
-        std::make_pair(std::function<fmi2##returnType(void)>([&bVal]() -> fmi2##returnType codeGet),  \
-                       std::function<void(fmi2##returnType)>([&bVal](fmi2##returnType val) codeSet)), \
-        current_parent_fullname + bVal.name(), FmuVariable::Type::returnType, "", "",                 \
+#define ADD_BVAL_AS_FMU_GETSET(returnType, codeGet, codeSet)                                         \
+    _fmucomp->AddFmuVariable(                                                                        \
+        std::make_pair(std::function<fmi2##returnType(void)>([bVal]() -> fmi2##returnType codeGet),  \
+                       std::function<void(fmi2##returnType)>([bVal](fmi2##returnType val) codeSet)), \
+        getCurrentVarName(bVal.name()), FmuVariable::Type::returnType, "", "",                       \
         CausalityType_conv.at(bVal.GetCausality()), VariabilityType_conv.at(bVal.GetVariability()));
 
-#define ADD_BVAL_AS_FMU_POINTER(returnType)                                                                         \
-    _fmucomp->AddFmuVariable(&(bVal.value()), current_parent_fullname + bVal.name(), FmuVariable::Type::returnType, \
-                             "", "", CausalityType_conv.at(bVal.GetCausality()),                                    \
+#define ADD_BVAL_AS_FMU_POINTER(returnType)                                                                          \
+    _fmucomp->AddFmuVariable(&(bVal.value()), getCurrentVarName(bVal.name()), FmuVariable::Type::returnType, "", "", \
+                             CausalityType_conv.at(bVal.GetCausality()),                                             \
                              VariabilityType_conv.at(bVal.GetVariability()));
 
 const std::unordered_map<chrono::ChVariabilityType, FmuVariable::VariabilityType> VariabilityType_conv = {
@@ -194,7 +195,7 @@ class ChOutputFMU : public ChArchiveOut {
 
     virtual void out(ChNameValue<bool> bVal) {
         ADD_BVAL_AS_FMU_GETSET(
-            Boolean, { return static_cast<int>(bVal.value()); }, { bVal.value() = val; })
+            Boolean, { return static_cast<fmi2Boolean>(bVal.value()); }, { bVal.value() = val; })
 
         ++nitems.top();
     }
@@ -210,7 +211,7 @@ class ChOutputFMU : public ChArchiveOut {
     }
     virtual void out(ChNameValue<float> bVal) {
         ADD_BVAL_AS_FMU_GETSET(
-            Real, { return static_cast<double>(bVal.value()); }, { bVal.value() = static_cast<float>(val); })
+            Real, { return static_cast<fmi2Real>(bVal.value()); }, { bVal.value() = static_cast<float>(val); })
 
         ++nitems.top();
     }
@@ -253,6 +254,7 @@ class ChOutputFMU : public ChArchiveOut {
 
         ++tablevel;
         nitems.push(0);
+        // signaling that, from now on, serialized variables are part of an array
         is_array.push_back(true);
     }
     virtual void out_array_between(ChValue& bVal, size_t msize) {}
@@ -307,28 +309,21 @@ class ChOutputFMU : public ChArchiveOut {
     }
 
   protected:
-    void pushLevelName(const std::string& newLevelName) {
-        parent_names.push_back(is_array.back() ? ("[" + newLevelName + "]") : newLevelName);
-        updateCurrentParentFullname();
-    }
+    void pushLevelName(const std::string& newLevelName) { parent_names.push_back(newLevelName); }
 
-    void popLevelName() {
-        parent_names.pop_back();
-        updateCurrentParentFullname();
-    }
+    void popLevelName() { parent_names.pop_back(); }
 
-    void updateCurrentParentFullname() {
-        current_parent_fullname = "";
-        for (size_t i = 0; i < parent_names.size(); ++i) {
-            current_parent_fullname += parent_names[i];
+    std::string getCurrentVarName(std::string bVal_name) {
+        std::string current_fullname = "";
+        if (parent_names.size() > 0)
+            current_fullname = parent_names[0];
 
-            // add a dot separator to separate from the following, except if:
-            // - there is no following name
-            // - the current
-            if (i < is_array.size() - 1 && !is_array.at(i + 1)) {
-                current_parent_fullname += ".";
-            }
+        for (size_t i = 1; i < parent_names.size(); ++i) {
+            current_fullname += is_array.at(i) ? ("[" + parent_names[i] + "]") : "." + parent_names[i];
         }
+        current_fullname += (is_array.back() ? ("[" + bVal_name + "]") : "." + bVal_name);
+
+        return current_fullname;
     }
 
     int tablevel;
@@ -336,7 +331,6 @@ class ChOutputFMU : public ChArchiveOut {
     std::stack<int> nitems;
     std::deque<bool> is_array;
     std::deque<std::string> parent_names;
-    std::string current_parent_fullname;
 };
 
 }  // end namespace chrono
