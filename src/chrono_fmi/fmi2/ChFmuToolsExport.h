@@ -11,6 +11,10 @@
 // =============================================================================
 // Authors: Dario Mangoni, Radu Serban
 // =============================================================================
+//
+// Chrono wrappers to fmu_tools FMU export classes for FMI standard 2.0.
+//
+// =============================================================================
 
 #ifndef CH_FMU_TOOLS_EXPORT_H
 #define CH_FMU_TOOLS_EXPORT_H

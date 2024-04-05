@@ -17,7 +17,7 @@
 #include "chrono/physics/ChSystemNSC.h"
 #include "chrono/core/ChRealtimeStep.h"
 
-#include "chrono_fmi/ChFmuToolsExport.h"
+#include "chrono_fmi/fmi2/ChFmuToolsExport.h"
 
 #ifdef CHRONO_IRRLICHT
     #include "chrono_irrlicht/ChVisualSystemIrrlicht.h"

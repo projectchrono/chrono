@@ -29,7 +29,7 @@
 
 #include "chrono_thirdparty/filesystem/path.h"
 
-#include "chrono_fmi/ChFmuToolsImport.h"
+#include "chrono_fmi/fmi2/ChFmuToolsImport.h"
 
 using namespace chrono;
 using namespace chrono::vehicle;

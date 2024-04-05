@@ -41,18 +41,6 @@ set(FMU_TOOLS_DIR "${CMAKE_SOURCE_DIR}/src/chrono_thirdparty/fmu_tools" CACHE PA
 include_directories(${FMU_TOOLS_DIR})
 
 # -------------------------------------------------
-# Set target FMI version (2.0 or 3.0)
-
-set(FMI_VERSION "2.0" CACHE STRING "Select target FMI version (2.0 or 3.0)")
-set_property(CACHE FMI_VERSION PROPERTY STRINGS "2.0" "3.0")
-
-if(FMI_VERSION STREQUAL "2.0")
-  set(FMU_TOOLS_SUBDIR "fmi2" CACHE INTERNAL "")
-else()
-  set(FMU_TOOLS_SUBDIR "fmi3" CACHE INTERNAL "")
-endif()
-
-# -------------------------------------------------
 # Set Architecture and Operating System Flags
 # -------------------------------------------------
 set(UNKNOWN_TARGET_SYSTEM FALSE)

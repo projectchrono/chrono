@@ -46,7 +46,7 @@
     #include "chrono_irrlicht/ChVisualSystemIrrlicht.h"
 #endif
 
-#include "chrono_fmi/ChFmuToolsExport.h"
+#include "chrono_fmi/fmi2/ChFmuToolsExport.h"
 
 class FmuComponent : public chrono::FmuChronoComponentBase {
   public:
