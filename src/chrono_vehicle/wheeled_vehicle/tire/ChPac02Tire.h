@@ -86,23 +86,17 @@ class CH_VEHICLE_API ChPac02Tire : public ChForceElementTire {
 
     // retrieve the road friction value the tire 'sees'
     double GetMuRoad() { return m_states.mu_road; }
-    
+
     // experimental for tire sound support
     double GetLongitudinalGripSaturation();
     double GetLateralGripSaturation();
-    
+
   protected:
     double CalcMx(double Fy, double Fz, double gamma);  // get overturning couple
     double CalcMy(double Fx, double Fz, double gamma);  // get rolling resistance moment
-    void CalcFxyMz(double& Fx,
-                   double& Fy,
-                   double& Mz,
-                   double kappa,
-                   double alpha,
-                   double Fz,
-                   double gamma);
-    double CalcSigmaK(double Fz);   // relaxation length longitudinal
-    double CalcSigmaA(double Fz);   // relaxation length lateral
+    void CalcFxyMz(double& Fx, double& Fy, double& Mz, double kappa, double alpha, double Fz, double gamma);
+    double CalcSigmaK(double Fz);  // relaxation length longitudinal
+    double CalcSigmaA(double Fz);  // relaxation length lateral
     void CombinedCoulombForces(double& fx, double& fy, double fz);
 
     // TIR file (ADAMS compatible) loader routines
@@ -123,7 +117,7 @@ class CH_VEHICLE_API ChPac02Tire : public ChForceElementTire {
     // returns false, if section could not be found
     bool FindSectionStart(const std::string& sectName, FILE* fp);
 
-    ChFunction_Recorder m_bott_map;
+    ChFunctionInterp m_bott_map;
 
     /// Set the parameters in the Pac02 model.
     virtual void SetMFParams() = 0;
@@ -142,9 +136,9 @@ class CH_VEHICLE_API ChPac02Tire : public ChForceElementTire {
     bool m_tire_conditions_found = false;
     bool m_vertical_table_found = false;
     bool m_bottoming_table_found = false;
-    
+
     bool m_use_friction_ellipsis = true;
-    
+
     double m_g = 9.81;  // gravitational constant on earth m/s
 
     unsigned int m_use_mode;
@@ -398,7 +392,7 @@ class CH_VEHICLE_API ChPac02Tire : public ChForceElementTire {
         double dpi;              // normalized inflation pressure
         double brx{0};           // bristle deformation x
         double bry{0};           // bristle deformation y
-        ChVector<> disc_normal;  //(temporary for debug)
+        ChVector3d disc_normal;  //(temporary for debug)
     };
 
     TireStates m_states;

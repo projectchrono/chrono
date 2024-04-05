@@ -27,13 +27,14 @@ namespace chrono {
 namespace vehicle {
 
 TranslationalIdler::TranslationalIdler(const std::string& filename) : ChTranslationalIdler("") {
-    Document d; ReadFileJSON(filename, d);
+    Document d;
+    ReadFileJSON(filename, d);
     if (d.IsNull())
         return;
 
     Create(d);
 
-    GetLog() << "Loaded JSON: " << filename.c_str() << "\n";
+    std::cout << "Loaded JSONL " << filename << std::endl;
 }
 
 TranslationalIdler::TranslationalIdler(const rapidjson::Document& d) : ChTranslationalIdler("") {

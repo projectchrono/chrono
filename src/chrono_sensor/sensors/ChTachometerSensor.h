@@ -26,8 +26,7 @@
 namespace chrono {
 namespace sensor {
 
-
-enum Axis {X, Y, Z};
+enum Axis { X, Y, Z };
 
 /// @addtogroup sensor_sensors
 /// @{
@@ -40,7 +39,10 @@ class CH_SENSOR_API ChTachometerSensor : public ChDynamicSensor {
     /// @param update Rate at which the sensor should update.
     /// @param offsetPose Relative position and orientation of sensor relative to parent body
     /// @param axis Axis of rotation to measure (X,Y,Z)
-    ChTachometerSensor(std::shared_ptr<chrono::ChBody> parent, float update, chrono::ChFrame<double> offsetPose, Axis axis);
+    ChTachometerSensor(std::shared_ptr<chrono::ChBody> parent,
+                       float update,
+                       chrono::ChFrame<double> offsetPose,
+                       Axis axis);
     /// Class destructor
     ~ChTachometerSensor() {}
     virtual void PushKeyFrame();
@@ -48,7 +50,7 @@ class CH_SENSOR_API ChTachometerSensor : public ChDynamicSensor {
 
   private:
     /// Variable for communicating the sensor's keyframes from the ChSystem into the data generation filter
-    std::vector<ChVector<double>> m_keyframes;   
+    std::vector<ChVector3d> m_keyframes;
     friend class ChFilterTachometerUpdate;
     Axis m_axis;
 };

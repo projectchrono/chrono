@@ -41,7 +41,6 @@ class CH_MODELS_API MAN_10t_Chassis : public ChRigidChassis {
                     CollisionType chassis_collision_type = CollisionType::NONE);
     ~MAN_10t_Chassis() {}
 
-
     /// Get the local driver position and orientation.
     /// This is a coordinate system relative to the chassis reference frame.
     virtual ChCoordsys<> GetLocalDriverCoordsys() const override { return m_driverCsys; }
@@ -54,9 +53,9 @@ class CH_MODELS_API MAN_10t_Chassis : public ChRigidChassis {
     ChMatrix33<> m_body_inertia;
 
     static const double m_body_mass;
-    static const ChVector<> m_body_inertiaXX;
-    static const ChVector<> m_body_inertiaXY;
-    static const ChVector<> m_body_COM_loc;
+    static const ChVector3d m_body_inertiaXX;
+    static const ChVector3d m_body_inertiaXY;
+    static const ChVector3d m_body_COM_loc;
     static const ChCoordsys<> m_driverCsys;
 };
 

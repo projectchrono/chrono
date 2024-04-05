@@ -33,7 +33,7 @@ namespace unimog {
 
 /// UAZ vehicle system.
 class CH_MODELS_API U401_Vehicle : public ChWheeledVehicle {
-   public:
+  public:
     U401_Vehicle(const bool fixed,
                  BrakeType brake_type,
                  SteeringTypeWV steering_model,
@@ -48,11 +48,11 @@ class CH_MODELS_API U401_Vehicle : public ChWheeledVehicle {
 
     ~U401_Vehicle();
 
-    virtual int GetNumberAxles() const override { return 2; }
+    virtual unsigned int GetNumberAxles() const override { return 2; }
 
     virtual double GetWheelbase() const override { return 2.3; }
     virtual double GetMinTurningRadius() const override { return 5.8; }
-    virtual double GetMaxSteeringAngle() const override { return 27 * CH_C_DEG_TO_RAD; }
+    virtual double GetMaxSteeringAngle() const override { return 27 * CH_DEG_TO_RAD; }
 
     void SetInitWheelAngVel(const std::vector<double>& omega) {
         assert(omega.size() == 4);
@@ -73,7 +73,7 @@ class CH_MODELS_API U401_Vehicle : public ChWheeledVehicle {
     void LogHardpointLocations();  /// suspension hardpoints at design
     void DebugLog(int what);       /// shock forces and lengths, constraints, etc.
 
-   private:
+  private:
     void Create(bool fixed, BrakeType brake_type, SteeringTypeWV steering_model, CollisionType chassis_collision_type);
 
     std::vector<double> m_omega;

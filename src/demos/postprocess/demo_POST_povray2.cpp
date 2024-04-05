@@ -29,7 +29,7 @@ using namespace chrono;
 using namespace chrono::postprocess;
 
 int main(int argc, char* argv[]) {
-    GetLog() << "Copyright (c) 2017 projectchrono.org\nChrono version: " << CHRONO_VERSION << "\n\n";
+    std::cout << "Copyright (c) 2017 projectchrono.org\nChrono version: " << CHRONO_VERSION << std::endl;
 
     // Create output directory
     std::string out_dir = GetChronoOutputPath() + "POVRAY_2";
@@ -47,18 +47,18 @@ int main(int argc, char* argv[]) {
     // Create the ChParticleClones, populate it with some random particles, and add it to physical system
     auto particles = chrono_types::make_shared<ChParticleCloud>();
     particles->SetMass(0.01);
-    particles->SetInertiaXX(ChVector<>((2.0 / 5) * (0.005 * 0.005) * 0.01));
+    particles->SetInertiaXX(ChVector3d((2.0 / 5) * (0.005 * 0.005) * 0.01));
 
-    auto particle_mat = chrono_types::make_shared<ChMaterialSurfaceNSC>();
+    auto particle_mat = chrono_types::make_shared<ChContactMaterialNSC>();
 
     auto particle_ct_shape = chrono_types::make_shared<ChCollisionShapeSphere>(particle_mat, 0.005);
     particles->AddCollisionShape(particle_ct_shape);
-    particles->SetCollide(true);
+    particles->EnableCollision(true);
 
     for (int ix = 0; ix < 5; ix++)
         for (int iy = 0; iy < 5; iy++)
             for (int iz = 0; iz < 3; iz++)
-                particles->AddParticle(ChCoordsys<>(ChVector<>(ix / 100.0, 0.1 + iy / 100.0, iz / 100.0)));
+                particles->AddParticle(ChCoordsys<>(ChVector3d(ix / 100.0, 0.1 + iy / 100.0, iz / 100.0)));
 
     auto particle_vis_shape = chrono_types::make_shared<ChVisualShapeSphere>(0.005);
     particles->AddVisualShape(particle_vis_shape);
@@ -67,12 +67,12 @@ int main(int argc, char* argv[]) {
 
     // Create the floor body
     auto floor = chrono_types::make_shared<ChBody>();
-    floor->SetBodyFixed(true);
+    floor->SetFixed(true);
 
-    auto floor_ct_mat = chrono_types::make_shared<ChMaterialSurfaceNSC>();
+    auto floor_ct_mat = chrono_types::make_shared<ChContactMaterialNSC>();
     auto floor_ct_shape = chrono_types::make_shared<ChCollisionShapeBox>(floor_ct_mat, 0.2, 0.04, 0.2);
     floor->AddCollisionShape(floor_ct_shape);
-    floor->SetCollide(true);
+    floor->EnableCollision(true);
 
     auto floor_vis_shape = chrono_types::make_shared<ChVisualShapeBox>(0.2, 0.04, 0.2);
     floor_vis_shape->SetColor(ChColor(0.5f, 0.5f, 0.5f));
@@ -84,13 +84,13 @@ int main(int argc, char* argv[]) {
     for (int ix = 0; ix < 2; ix++) {
         for (int iz = 0; iz < 4; iz++) {
             auto body = chrono_types::make_shared<ChBody>();
-            body->SetPos(ChVector<>(0.05 + ix * 0.021, 0.04, 0 + iz * 0.021));
+            body->SetPos(ChVector3d(0.05 + ix * 0.021, 0.04, 0 + iz * 0.021));
             body->SetMass(0.02);
-            body->SetInertiaXX(ChVector<>((2.0 / 5.0) * (0.01 * 0.01) * 0.02));
+            body->SetInertiaXX(ChVector3d((2.0 / 5.0) * (0.01 * 0.01) * 0.02));
 
             auto body_ct_shape = chrono_types::make_shared<ChCollisionShapeBox>(floor_ct_mat, 0.02, 0.02, 0.02);
             floor->AddCollisionShape(body_ct_shape);
-            body->SetCollide(true);
+            body->EnableCollision(true);
 
             auto body_vis_shape = chrono_types::make_shared<ChVisualShapeBox>(0.02, 0.02, 0.02);
             body->AddVisualShape(body_vis_shape);
@@ -104,8 +104,8 @@ int main(int argc, char* argv[]) {
     pov_exporter.SetTemplateFile(GetChronoDataFile("POVRay_chrono_template.pov"));
     pov_exporter.SetBasePath(out_dir);
 
-    pov_exporter.SetCamera(ChVector<>(0.2, 0.3, 0.5), ChVector<>(0, 0, 0), 35);
-    pov_exporter.SetLight(ChVector<>(-2, 2, -1), ChColor(1.0f, 1.0f, 1.0f), true);
+    pov_exporter.SetCamera(ChVector3d(0.2, 0.3, 0.5), ChVector3d(0, 0, 0), 35);
+    pov_exporter.SetLight(ChVector3d(-2, 2, -1), ChColor(1.0f, 1.0f, 1.0f), true);
     pov_exporter.SetPictureSize(640, 480);
     pov_exporter.SetAmbientLight(ChColor(0.8f, 0.8f, 0.8f));
 
@@ -125,7 +125,8 @@ int main(int argc, char* argv[]) {
 
     pov_exporter.ExportScript();
 
-    sys.SetSolverMaxIterations(50);
+    sys.SetSolverType(ChSolver::Type::PSOR);
+    sys.GetSolver()->AsIterative()->SetMaxIterations(50);
 
     while (sys.GetChTime() < 0.7) {
         sys.DoStepDynamics(0.005);

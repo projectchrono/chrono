@@ -35,7 +35,7 @@ GenericWheeledSuspension::GenericWheeledSuspension(const std::string& filename) 
 
     Create(d);
 
-    GetLog() << "Loaded JSON: " << filename.c_str() << "\n";
+    std::cout << "Loaded JSONL " << filename << std::endl;
 }
 
 GenericWheeledSuspension::GenericWheeledSuspension(const rapidjson::Document& d) : ChGenericWheeledSuspension("") {
@@ -54,12 +54,10 @@ ChGenericWheeledSuspension::BodyIdentifier ReadBodyIdentifierJSON(const Value& a
         side = a[1].GetString();
         if (side == "Left") {
             vehicleSide = VehicleSide::LEFT;
-        }
-        else if (side == "Right") {
+        } else if (side == "Right") {
             vehicleSide = VehicleSide::RIGHT;
         }
-    }
-    else if (a.IsString()) {
+    } else if (a.IsString()) {
         name = a.GetString();
     }
     if (name.compare("Chassis") == 0) {
@@ -89,12 +87,12 @@ void GenericWheeledSuspension::Create(const rapidjson::Document& d) {
 
     // Read camber and toe data
     if (d.HasMember("Camber Angle (deg)")) {
-        m_camberAngle = d["Camber Angle (deg)"].GetDouble() * CH_C_DEG_TO_RAD;
+        m_camberAngle = d["Camber Angle (deg)"].GetDouble() * CH_DEG_TO_RAD;
     } else {
         m_camberAngle = 0;
     }
     if (d.HasMember("Toe Angle (deg)")) {
-        m_toeAngle = d["Toe Angle (deg)"].GetDouble() * CH_C_DEG_TO_RAD;
+        m_toeAngle = d["Toe Angle (deg)"].GetDouble() * CH_DEG_TO_RAD;
     } else {
         m_toeAngle = 0;
     }

@@ -45,9 +45,9 @@ namespace vehicle {
 class TestRigTerrain : public ChTerrain {
   public:
     TestRigTerrain(int naxles, const std::vector<double>& x);
-    virtual double GetHeight(const ChVector<>& loc) const override;
-    virtual ChVector<> GetNormal(const ChVector<>& loc) const override;
-    virtual float GetCoefficientFriction(const ChVector<>& loc) const override;
+    virtual double GetHeight(const ChVector3d& loc) const override;
+    virtual ChVector3d GetNormal(const ChVector3d& loc) const override;
+    virtual float GetCoefficientFriction(const ChVector3d& loc) const override;
     int m_naxles;
     std::vector<double> m_x;
     std::vector<double> m_height_L;
@@ -59,7 +59,7 @@ TestRigTerrain::TestRigTerrain(int naxles, const std::vector<double>& x) : m_nax
     m_height_R.resize(naxles, -1000);
 }
 
-double TestRigTerrain::GetHeight(const ChVector<>& loc) const {
+double TestRigTerrain::GetHeight(const ChVector3d& loc) const {
     double min_delta = 1000;
     int axle = 0;
     for (int ia = 0; ia < m_naxles; ia++) {
@@ -72,11 +72,11 @@ double TestRigTerrain::GetHeight(const ChVector<>& loc) const {
     return (loc.y() < 0) ? m_height_R[axle] : m_height_L[axle];
 }
 
-ChVector<> TestRigTerrain::GetNormal(const ChVector<>& loc) const {
-    return ChVector<>(0, 0, 1);
+ChVector3d TestRigTerrain::GetNormal(const ChVector3d& loc) const {
+    return ChVector3d(0, 0, 1);
 }
 
-float TestRigTerrain::GetCoefficientFriction(const ChVector<>& loc) const {
+float TestRigTerrain::GetCoefficientFriction(const ChVector3d& loc) const {
     return 0.8f;
 }
 
@@ -193,25 +193,25 @@ void ChSuspensionTestRig::IncludeSteeringMechanism(int index) {
 }
 
 void ChSuspensionTestRig::Initialize() {
-    for (auto ia : m_axle_index) {
-        if (ia < 0 || ia >= m_vehicle->GetNumberAxles()) {
-            throw ChException("Incorrect axle index " + std::to_string(ia) + " for the given vehicle");
+    for (int ia : m_axle_index) {
+        if (ia < 0 || ia >= (int)m_vehicle->GetNumberAxles()) {
+            throw std::runtime_error("Incorrect axle index " + std::to_string(ia) + " for the given vehicle");
         }
         for (const auto& wheel : m_vehicle->GetAxle(ia)->GetWheels()) {
             if (!wheel->GetTire()) {
-                throw ChException("No tires attached to axle " + std::to_string(ia) + " for the given vehicle");
+                throw std::runtime_error("No tires attached to axle " + std::to_string(ia) + " for the given vehicle");
             }
         }
     }
 
     for (auto is : m_steering_index) {
         if (is < 0 || is >= (int)m_vehicle->GetSteerings().size()) {
-            throw ChException("Incorrect steering index " + std::to_string(is) + " for the given vehicle");
+            throw std::runtime_error("Incorrect steering index " + std::to_string(is) + " for the given vehicle");
         }
     }
 
     if (!m_driver) {
-        throw ChException("No driver system provided");
+        throw std::runtime_error("No driver system provided");
     }
 
     // Initialize visualization for all vehicle subsystems
@@ -299,7 +299,7 @@ void ChSuspensionTestRig::SetDriver(std::shared_ptr<ChSuspensionTestRigDriver> d
 
 // -----------------------------------------------------------------------------
 
-const ChVector<>& ChSuspensionTestRig::GetSpindlePos(int axle, VehicleSide side) const {
+const ChVector3d& ChSuspensionTestRig::GetSpindlePos(int axle, VehicleSide side) const {
     return m_vehicle->GetSpindlePos(m_axle_index[axle], side);
 }
 
@@ -307,11 +307,11 @@ ChQuaternion<> ChSuspensionTestRig::GetSpindleRot(int axle, VehicleSide side) co
     return m_vehicle->GetSpindleRot(m_axle_index[axle], side);
 }
 
-const ChVector<>& ChSuspensionTestRig::GetSpindleLinVel(int axle, VehicleSide side) const {
+const ChVector3d& ChSuspensionTestRig::GetSpindleLinVel(int axle, VehicleSide side) const {
     return m_vehicle->GetSpindleLinVel(m_axle_index[axle], side);
 }
 
-ChVector<> ChSuspensionTestRig::GetSpindleAngVel(int axle, VehicleSide side) const {
+ChVector3d ChSuspensionTestRig::GetSpindleAngVel(int axle, VehicleSide side) const {
     return m_vehicle->GetSpindleAngVel(m_axle_index[axle], side);
 }
 
@@ -397,24 +397,20 @@ void ChSuspensionTestRig::Advance(double step) {
 // Log constraint violations
 // -----------------------------------------------------------------------------
 void ChSuspensionTestRig::LogConstraintViolations() {
-    GetLog().SetNumFormat("%16.4e");
-
     // Report constraint violations for the suspension joints
     for (auto ia : m_axle_index) {
         const auto& axle = m_vehicle->GetAxle(ia);
-        GetLog() << "\n---- LEFT side suspension constraint violations\n\n";
+        std::cout << "\n---- LEFT side suspension constraint violations\n\n";
         axle->m_suspension->LogConstraintViolations(LEFT);
-        GetLog() << "\n---- RIGHT side suspension constraint violations\n\n";
+        std::cout << "\n---- RIGHT side suspension constraint violations\n\n";
         axle->m_suspension->LogConstraintViolations(RIGHT);
     }
 
     // Report constraint violations for the steering joints
     for (auto is : m_steering_index) {
-        GetLog() << "\n---- STEERING constrain violations\n\n";
+        std::cout << "\n---- STEERING constrain violations\n\n";
         m_vehicle->GetSteering(is)->LogConstraintViolations();
     }
-
-    GetLog().SetNumFormat("%g");
 }
 
 // -----------------------------------------------------------------------------
@@ -436,8 +432,8 @@ void ChSuspensionTestRig::SetPlotOutput(double output_step) {
         auto trq = axle->m_suspension->ReportSuspensionTorque(LEFT);
 
         PlotData pd;
-        pd.csvL.set_delim(" ");
-        pd.csvR.set_delim(" ");
+        pd.csvL.SetDelimiter(" ");
+        pd.csvR.SetDelimiter(" ");
         pd.num_tsda = (int)frc.size();
         pd.num_rsda = (int)trq.size();
 
@@ -461,8 +457,8 @@ void ChSuspensionTestRig::CollectPlotData(double time) {
         auto trqR = axle->m_suspension->ReportSuspensionTorque(RIGHT);
 
         // Tire camber angle (flip sign of reported camber angle on the left to get common definition)
-        double gammaL = -axle->m_wheels[0]->GetTire()->GetCamberAngle() * CH_C_RAD_TO_DEG;
-        double gammaR = axle->m_wheels[1]->GetTire()->GetCamberAngle() * CH_C_RAD_TO_DEG;
+        double gammaL = -axle->m_wheels[0]->GetTire()->GetCamberAngle() * CH_RAD_TO_DEG;
+        double gammaR = axle->m_wheels[1]->GetTire()->GetCamberAngle() * CH_RAD_TO_DEG;
 
         csvL << time;                                                                          // 1
         csvL << m_left_inputs[ia] << GetActuatorDisp(ia, LEFT) << GetActuatorForce(ia, LEFT);  // 2 3 4
@@ -497,15 +493,15 @@ void ChSuspensionTestRig::PlotOutput(const std::string& out_dir, const std::stri
     for (int ia = 0; ia < m_naxles; ia++) {
         std::string outfileL = prefix + std::to_string(ia) + "_L.txt";
         std::string outfileR = prefix + std::to_string(ia) + "_R.txt";
-        m_plot_data[ia].csvL.write_to_file(outfileL);
-        m_plot_data[ia].csvR.write_to_file(outfileR);
+        m_plot_data[ia].csvL.WriteToFile(outfileL);
+        m_plot_data[ia].csvR.WriteToFile(outfileR);
 
 #ifdef CHRONO_POSTPROCESS
         std::string lsL = "set style line 1 lt rgb 'dark-green' lw 2";
         std::string lsR = "set style line 2 lt rgb 'dark-red' lw 2";
 
         {
-            postprocess::ChGnuPlot gplot(std::string(out_dir + "/plot_actuators.gpl").c_str());
+            postprocess::ChGnuPlot gplot(out_dir + "/plot_actuators.gpl");
 
             gplot.SetCommand("set terminal wxt size 800, 1200");
             gplot.SetCommand("set multiplot layout 2,1");
@@ -533,7 +529,7 @@ void ChSuspensionTestRig::PlotOutput(const std::string& out_dir, const std::stri
         }
 
         {
-            postprocess::ChGnuPlot gplot(std::string(out_dir + "/plot_wheels.gpl").c_str());
+            postprocess::ChGnuPlot gplot(out_dir + "/plot_wheels.gpl");
 
             gplot.SetCommand("set terminal wxt size 800, 1200");
             gplot.SetCommand("set multiplot layout 2,1");
@@ -545,15 +541,15 @@ void ChSuspensionTestRig::PlotOutput(const std::string& out_dir, const std::stri
 
             gplot.SetLabelX("time [s]");
             gplot.SetLabelY("camber angle [deg]");
-            gplot.Plot(outfileL.c_str(), 1, 12, "left", " with lines ls 1");
-            gplot.Plot(outfileR.c_str(), 1, 12, "right", " with lines ls 2");
+            gplot.Plot(outfileL, 1, 12, "left", " with lines ls 1");
+            gplot.Plot(outfileR, 1, 12, "right", " with lines ls 2");
 
             gplot.FlushPlots();
 
             gplot.SetLabelX("wheel travel [m]");
             gplot.SetLabelY("camber angle [deg]");
-            gplot.Plot(outfileL.c_str(), 11, 12, "left", " with lines ls 1");
-            gplot.Plot(outfileR.c_str(), 11, 12, "right", " with lines ls 2");
+            gplot.Plot(outfileL, 11, 12, "left", " with lines ls 1");
+            gplot.Plot(outfileR, 11, 12, "right", " with lines ls 2");
 
             gplot.FlushPlots();
 
@@ -562,7 +558,7 @@ void ChSuspensionTestRig::PlotOutput(const std::string& out_dir, const std::stri
 
         auto num_tsda = m_plot_data[ia].num_tsda;
         if (num_tsda > 0) {
-            postprocess::ChGnuPlot gplot(std::string(out_dir + "/plot_tsdas.gpl").c_str());
+            postprocess::ChGnuPlot gplot(out_dir + "/plot_tsdas.gpl");
 
             gplot.SetCommand("set terminal wxt size 1200, 1200");
             gplot.SetCommand("set multiplot layout 3," + std::to_string(num_tsda) + " columnsfirst ");
@@ -601,7 +597,7 @@ void ChSuspensionTestRig::PlotOutput(const std::string& out_dir, const std::stri
 
         auto num_rsda = m_plot_data[ia].num_rsda;
         if (num_rsda > 0) {
-            postprocess::ChGnuPlot gplot(std::string(out_dir + "/plot_rsdas.gpl").c_str());
+            postprocess::ChGnuPlot gplot(out_dir + "/plot_rsdas.gpl");
 
             gplot.SetCommand("set terminal wxt size 1200, 1200");
             gplot.SetCommand("set multiplot layout 3," + std::to_string(num_rsda) + " columnsfirst ");
@@ -683,45 +679,47 @@ void ChSuspensionTestRigPlatform::InitializeRig() {
         auto ct_shape = chrono_types::make_shared<ChCollisionShapeCylinder>(post_mat, m_post_radius, m_post_height);
 
         // Create the left post body (green)
-        ChVector<> pos_spindleL = suspension->GetSpindlePos(LEFT);
-        ChVector<> pos_postL = pos_spindleL - ChVector<>(0, 0, tire_radius);
+        ChVector3d pos_spindleL = suspension->GetSpindlePos(LEFT);
+        ChVector3d pos_postL = pos_spindleL - ChVector3d(0, 0, tire_radius);
 
         auto post_L = chrono_types::make_shared<ChBody>();
         post_L->SetPos(pos_postL);
         post_L->SetMass(100);
-        post_L->SetCollide(true);
+        post_L->EnableCollision(true);
         sys->Add(post_L);
         AddPostVisualization(post_L, ChColor(0.1f, 0.8f, 0.15f));
 
-        post_L->AddCollisionShape(ct_shape, ChFrame<>(ChVector<>(0, 0, -m_post_height / 2), QUNIT));
+        post_L->AddCollisionShape(ct_shape, ChFrame<>(ChVector3d(0, 0, -m_post_height / 2), QUNIT));
 
         // Create the right post body (red)
-        ChVector<> pos_spindleR = suspension->GetSpindlePos(RIGHT);
-        ChVector<> pos_postR = pos_spindleR - ChVector<>(0, 0, tire_radius);
+        ChVector3d pos_spindleR = suspension->GetSpindlePos(RIGHT);
+        ChVector3d pos_postR = pos_spindleR - ChVector3d(0, 0, tire_radius);
 
         auto post_R = chrono_types::make_shared<ChBody>();
         post_R->SetPos(pos_postR);
         post_R->SetMass(100);
-        post_R->SetCollide(true);
+        post_R->EnableCollision(true);
         sys->Add(post_R);
         AddPostVisualization(post_R, ChColor(0.8f, 0.1f, 0.1f));
 
-        post_R->AddCollisionShape(ct_shape, ChFrame<>(ChVector<>(0, 0, -m_post_height / 2), QUNIT));
+        post_R->AddCollisionShape(ct_shape, ChFrame<>(ChVector3d(0, 0, -m_post_height / 2), QUNIT));
 
         // Create and initialize actuators
-        auto func_L = chrono_types::make_shared<ChFunction_Setpoint>();
-        auto func_R = chrono_types::make_shared<ChFunction_Setpoint>();
+        auto func_L = chrono_types::make_shared<ChFunctionSetpoint>();
+        auto func_R = chrono_types::make_shared<ChFunctionSetpoint>();
 
         auto linact_L = chrono_types::make_shared<ChLinkMotorLinearPosition>();
-        linact_L->SetNameString("L_post_linActuator");
+        linact_L->SetName("L_post_linActuator");
         linact_L->SetMotionFunction(func_L);
-        linact_L->Initialize(post_L, m_vehicle->GetChassisBody(), ChFrame<>(pos_postL, Q_from_AngY(CH_C_PI_2)));
+        ////linact_L->Initialize(post_L, m_vehicle->GetChassisBody(), ChFrame<>(pos_postL, QuatFromAngleY(CH_PI_2)));
+        linact_L->Initialize(post_L, m_vehicle->GetChassisBody(), ChFrame<>(pos_postL, QUNIT));
         sys->AddLink(linact_L);
 
         auto linact_R = chrono_types::make_shared<ChLinkMotorLinearPosition>();
-        linact_R->SetNameString("R_post_linActuator");
+        linact_R->SetName("R_post_linActuator");
         linact_R->SetMotionFunction(func_R);
-        linact_R->Initialize(post_R, m_vehicle->GetChassisBody(), ChFrame<>(pos_postR, Q_from_AngY(CH_C_PI_2)));
+        ////linact_R->Initialize(post_R, m_vehicle->GetChassisBody(), ChFrame<>(pos_postR, QuatFromAngleY(CH_PI_2)));
+        linact_R->Initialize(post_R, m_vehicle->GetChassisBody(), ChFrame<>(pos_postR, QUNIT));
         sys->AddLink(linact_R);
 
         // Cache bodies and actuators
@@ -738,22 +736,22 @@ void ChSuspensionTestRigPlatform::AddPostVisualization(std::shared_ptr<ChBody> p
     mat->SetDiffuseColor({color.R, color.G, color.B});
 
     ChVehicleGeometry::AddVisualizationCylinder(post,                              //
-                                                ChVector<>(0, 0, 0),               //
-                                                ChVector<>(0, 0, -m_post_height),  //
+                                                ChVector3d(0, 0, 0),               //
+                                                ChVector3d(0, 0, -m_post_height),  //
                                                 m_post_radius,                     //
                                                 mat);
 
     // Piston (on post body)
     ChVehicleGeometry::AddVisualizationCylinder(post,                                     //
-                                                ChVector<>(0, 0, -m_post_height),         //
-                                                ChVector<>(0, 0, -10.0 * m_post_height),  //
+                                                ChVector3d(0, 0, -m_post_height),         //
+                                                ChVector3d(0, 0, -10.0 * m_post_height),  //
                                                 m_post_radius / 6.0,                      //
                                                 mat);
 
     // Post sleeve (on chassis/ground body)
     ChVehicleGeometry::AddVisualizationCylinder(m_vehicle->GetChassisBody(),                            //
-                                                post->GetPos() - ChVector<>(0, 0, 8 * m_post_height),   //
-                                                post->GetPos() - ChVector<>(0, 0, 16 * m_post_height),  //
+                                                post->GetPos() - ChVector3d(0, 0, 8 * m_post_height),   //
+                                                post->GetPos() - ChVector3d(0, 0, 16 * m_post_height),  //
                                                 m_post_radius / 4.0,                                    //
                                                 mat);
 }
@@ -772,8 +770,8 @@ void ChSuspensionTestRigPlatform::UpdateActuators(std::vector<double> displ_left
                                                   std::vector<double> displ_right,
                                                   std::vector<double> displ_speed_right) {
     for (int ia = 0; ia < m_naxles; ia++) {
-        auto func_L = std::static_pointer_cast<ChFunction_Setpoint>(m_linact_L[ia]->GetMotionFunction());
-        auto func_R = std::static_pointer_cast<ChFunction_Setpoint>(m_linact_R[ia]->GetMotionFunction());
+        auto func_L = std::static_pointer_cast<ChFunctionSetpoint>(m_linact_L[ia]->GetMotionFunction());
+        auto func_R = std::static_pointer_cast<ChFunctionSetpoint>(m_linact_R[ia]->GetMotionFunction());
 
         // Flip signs (because of motor definition) so that positive input represents upward motion
         func_L->SetSetpointAndDerivatives(-displ_left[ia], -displ_speed_left[ia], 0.0);
@@ -783,15 +781,15 @@ void ChSuspensionTestRigPlatform::UpdateActuators(std::vector<double> displ_left
 
 double ChSuspensionTestRigPlatform::GetActuatorDisp(int axle, VehicleSide side) {
     double time = m_vehicle->GetChTime();
-    auto displ = (side == LEFT) ? m_linact_L[axle]->GetMotionFunction()->Get_y(time)
-                                : m_linact_R[axle]->GetMotionFunction()->Get_y(time);
+    auto displ = (side == LEFT) ? m_linact_L[axle]->GetMotionFunction()->GetVal(time)
+                                : m_linact_R[axle]->GetMotionFunction()->GetVal(time);
 
     // Flip sign (because of motor definition) so that positive input represents upward motion
     return -displ;
 }
 
 double ChSuspensionTestRigPlatform::GetActuatorForce(int axle, VehicleSide side) {
-    return (side == LEFT) ? m_linact_L[axle]->Get_react_force().x() : m_linact_R[axle]->Get_react_force().x();
+    return (side == LEFT) ? m_linact_L[axle]->GetMotorForce() : m_linact_R[axle]->GetMotorForce();
 }
 
 double ChSuspensionTestRigPlatform::GetRideHeight(int axle) const {
@@ -834,38 +832,41 @@ void ChSuspensionTestRigPushrod::InitializeRig() {
         // These connect the spindle centers with ground points directly below the spindles at the initial
         // configuration. To enforce this, the order of connected bodies is important (motor master frame must be
         // aligned with chassis frame).
-        auto func_L = chrono_types::make_shared<ChFunction_Setpoint>();
-        auto func_R = chrono_types::make_shared<ChFunction_Setpoint>();
+        auto func_L = chrono_types::make_shared<ChFunctionSetpoint>();
+        auto func_R = chrono_types::make_shared<ChFunctionSetpoint>();
 
         const auto& pos_spindleL = suspension->GetSpindle(LEFT)->GetPos();
         const auto& pos_spindleR = suspension->GetSpindle(RIGHT)->GetPos();
 
         auto linact_L = chrono_types::make_shared<ChLinkMotorLinearPosition>();
         linact_L->SetGuideConstraint(ChLinkMotorLinear::GuideConstraint::FREE);
-        linact_L->SetNameString("L_rod_linActuator");
+        linact_L->SetName("L_rod_linActuator");
         linact_L->SetMotionFunction(func_L);
-        linact_L->Initialize(suspension->GetSpindle(LEFT), m_vehicle->GetChassisBody(),
-                             ChFrame<>(pos_spindleL, Q_from_AngY(CH_C_PI_2)));
+        ////linact_L->Initialize(suspension->GetSpindle(LEFT), m_vehicle->GetChassisBody(),
+        ////                     ChFrame<>(pos_spindleL, QuatFromAngleY(CH_PI_2)));
+        linact_L->Initialize(suspension->GetSpindle(LEFT), m_vehicle->GetChassisBody(), ChFrame<>(pos_spindleL, QUNIT));
         sys->AddLink(linact_L);
 
         auto linact_R = chrono_types::make_shared<ChLinkMotorLinearPosition>();
         linact_R->SetGuideConstraint(ChLinkMotorLinear::GuideConstraint::FREE);
-        linact_R->SetNameString("R_rod_linActuator");
+        linact_R->SetName("R_rod_linActuator");
         linact_R->SetMotionFunction(func_R);
+        ////linact_R->Initialize(suspension->GetSpindle(RIGHT), m_vehicle->GetChassisBody(),
+        ////                     ChFrame<>(pos_spindleR, QuatFromAngleY(CH_PI_2)));
         linact_R->Initialize(suspension->GetSpindle(RIGHT), m_vehicle->GetChassisBody(),
-                             ChFrame<>(pos_spindleR, Q_from_AngY(CH_C_PI_2)));
+                             ChFrame<>(pos_spindleR, QUNIT));
         sys->AddLink(linact_R);
 
         // Create the two rod bodies (used only for visualization)
         auto rod_L = chrono_types::make_shared<ChBody>();
         rod_L->SetPos(pos_spindleL);
-        rod_L->SetBodyFixed(true);
+        rod_L->SetFixed(true);
         sys->Add(rod_L);
         AddRodVisualization(rod_L, ChColor(0.1f, 0.8f, 0.15f));
 
         auto rod_R = chrono_types::make_shared<ChBody>();
         rod_R->SetPos(pos_spindleR);
-        rod_R->SetBodyFixed(true);
+        rod_R->SetFixed(true);
         sys->Add(rod_R);
         AddRodVisualization(rod_R, ChColor(0.8f, 0.1f, 0.1f));
 
@@ -879,8 +880,8 @@ void ChSuspensionTestRigPushrod::InitializeRig() {
 
 void ChSuspensionTestRigPushrod::AddRodVisualization(std::shared_ptr<ChBody> rod, const ChColor& color) {
     auto cyl = ChVehicleGeometry::AddVisualizationCylinder(rod,                              //
-                                                           ChVector<>(0, 0, 0),              //
-                                                           ChVector<>(0, 0, -m_rod_length),  //
+                                                           ChVector3d(0, 0, 0),              //
+                                                           ChVector3d(0, 0, -m_rod_length),  //
                                                            m_rod_radius);
     cyl->SetColor(color);
 }
@@ -901,8 +902,8 @@ void ChSuspensionTestRigPushrod::UpdateActuators(std::vector<double> displ_left,
                                                  std::vector<double> displ_right,
                                                  std::vector<double> displ_speed_right) {
     for (int ia = 0; ia < m_naxles; ia++) {
-        auto func_L = std::static_pointer_cast<ChFunction_Setpoint>(m_linact_L[ia]->GetMotionFunction());
-        auto func_R = std::static_pointer_cast<ChFunction_Setpoint>(m_linact_R[ia]->GetMotionFunction());
+        auto func_L = std::static_pointer_cast<ChFunctionSetpoint>(m_linact_L[ia]->GetMotionFunction());
+        auto func_R = std::static_pointer_cast<ChFunctionSetpoint>(m_linact_R[ia]->GetMotionFunction());
 
         // Flip signs (because of motor definition) so that positive input represents upward motion
         func_L->SetSetpointAndDerivatives(-displ_left[ia], -displ_speed_left[ia], 0.0);
@@ -917,15 +918,15 @@ void ChSuspensionTestRigPushrod::UpdateActuators(std::vector<double> displ_left,
 
 double ChSuspensionTestRigPushrod::GetActuatorDisp(int axle, VehicleSide side) {
     double time = m_vehicle->GetChTime();
-    auto displ = (side == LEFT) ? m_linact_L[axle]->GetMotionFunction()->Get_y(time)
-                                : m_linact_R[axle]->GetMotionFunction()->Get_y(time);
+    auto displ = (side == LEFT) ? m_linact_L[axle]->GetMotionFunction()->GetVal(time)
+                                : m_linact_R[axle]->GetMotionFunction()->GetVal(time);
 
     // Flip sign (because of motor definition) so that positive input represents upward motion
     return -displ;
 }
 
 double ChSuspensionTestRigPushrod::GetActuatorForce(int axle, VehicleSide side) {
-    return (side == LEFT) ? m_linact_L[axle]->Get_react_force().x() : m_linact_R[axle]->Get_react_force().x();
+    return (side == LEFT) ? m_linact_L[axle]->GetMotorForce() : m_linact_R[axle]->GetMotorForce();
 }
 
 double ChSuspensionTestRigPushrod::GetRideHeight(int axle) const {

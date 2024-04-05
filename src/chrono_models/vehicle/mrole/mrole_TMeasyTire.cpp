@@ -33,7 +33,7 @@ namespace mrole {
 const std::string mrole_TMeasyTire::m_meshFile = "mrole/meshes/mrole_tire.obj";
 
 const double mrole_TMeasyTire::m_mass = 105.0;
-const ChVector<> mrole_TMeasyTire::m_inertia(21.72, 38.74, 21.72);
+const ChVector3d mrole_TMeasyTire::m_inertia(21.72, 38.74, 21.72);
 
 // -----------------------------------------------------------------------------
 // Static variables offroad soil
@@ -42,7 +42,7 @@ const ChVector<> mrole_TMeasyTire::m_inertia(21.72, 38.74, 21.72);
 const std::string mrole_TMeasyTireSoil::m_meshFile = "mrole/meshes/mrole_tire.obj";
 
 const double mrole_TMeasyTireSoil::m_mass = 105.0;
-const ChVector<> mrole_TMeasyTireSoil::m_inertia(21.72, 38.74, 21.72);
+const ChVector3d mrole_TMeasyTireSoil::m_inertia(21.72, 38.74, 21.72);
 
 // -----------------------------------------------------------------------------
 // Static variables offroad sand
@@ -51,7 +51,7 @@ const ChVector<> mrole_TMeasyTireSoil::m_inertia(21.72, 38.74, 21.72);
 const std::string mrole_TMeasyTireSand::m_meshFile = "mrole/meshes/mrole_tire.obj";
 
 const double mrole_TMeasyTireSand::m_mass = 105.0;
-const ChVector<> mrole_TMeasyTireSand::m_inertia(21.72, 38.74, 21.72);
+const ChVector3d mrole_TMeasyTireSand::m_inertia(21.72, 38.74, 21.72);
 
 // -----------------------------------------------------------------------------
 // -----------------------------------------------------------------------------

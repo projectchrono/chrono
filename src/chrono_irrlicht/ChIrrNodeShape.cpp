@@ -10,7 +10,7 @@
 //
 // =============================================================================
 
-#include "chrono/core/ChVector.h"
+#include "chrono/core/ChVector3.h"
 
 #include "chrono_irrlicht/ChIrrNodeShape.h"
 #include "chrono_irrlicht/ChIrrTools.h"
@@ -72,9 +72,9 @@ void ChIrrNodeShape::Update() {
     m_initial_update = false;
 }
 
-static video::S3DVertex ToIrrlichtVertex(const ChVector<>& pos,
-                                         const ChVector<>& nrm,
-                                         const ChVector2<>& uv,
+static video::S3DVertex ToIrrlichtVertex(const ChVector3d& pos,
+                                         const ChVector3d& nrm,
+                                         const ChVector2d& uv,
                                          const ChColor& col) {
     video::S3DVertex vertex;
     vertex.Pos = core::vector3df((f32)pos.x(), (f32)pos.y(), (f32)pos.z());
@@ -84,9 +84,9 @@ static video::S3DVertex ToIrrlichtVertex(const ChVector<>& pos,
     return vertex;
 }
 
-static video::S3DVertex ToIrrlichtVertex(const ChVector<>& pos,
-                                         const ChVector<>& nrm,
-                                         const ChVector2<>& uv,
+static video::S3DVertex ToIrrlichtVertex(const ChVector3d& pos,
+                                         const ChVector3d& nrm,
+                                         const ChVector2d& uv,
                                          const video::SColor& col) {
     video::S3DVertex vertex;
     vertex.Pos = core::vector3df((f32)pos.x(), (f32)pos.y(), (f32)pos.z());
@@ -118,15 +118,15 @@ void ChIrrNodeShape::UpdateTriangleMesh_col(std::shared_ptr<ChVisualShapeTriangl
     if (nbuffers == 0)
         return;
 
-    const auto& vertices = mesh->getCoordsVertices();
-    const auto& normals = mesh->getCoordsNormals();
-    const auto& uvs = mesh->getCoordsUV();
-    const auto& colors = mesh->getCoordsColors();
+    const auto& vertices = mesh->GetCoordsVertices();
+    const auto& normals = mesh->GetCoordsNormals();
+    const auto& uvs = mesh->GetCoordsUV();
+    const auto& colors = mesh->GetCoordsColors();
 
-    const auto& v_indices = mesh->getIndicesVertexes();
-    const auto& n_indices = mesh->getIndicesNormals();
-    const auto& uv_indices = mesh->getIndicesUV();
-    const auto& c_indices = mesh->getIndicesColors();
+    const auto& v_indices = mesh->GetIndicesVertexes();
+    const auto& n_indices = mesh->GetIndicesNormals();
+    const auto& uv_indices = mesh->GetIndicesUV();
+    const auto& c_indices = mesh->GetIndicesColors();
 
     unsigned int ntriangles = (unsigned int)v_indices.size();
     unsigned int nvertexes = ntriangles * 3;
@@ -147,10 +147,10 @@ void ChIrrNodeShape::UpdateTriangleMesh_col(std::shared_ptr<ChVisualShapeTriangl
     irr_vertices.set_used(nvertexes);
 
     // Set the Irrlicht vertex and index buffers for the mesh buffer
-    ChVector<> t[3];    // positions of trianlge vertices
-    ChVector<> n[3];    // normals at the triangle vertices
-    ChVector2<> uv[3];  // UV coordinates at the triangle vertices
-    ChColor col[3];     // color coordinates at the triangle vertices
+    ChVector3d t[3];   // positions of trianlge vertices
+    ChVector3d n[3];   // normals at the triangle vertices
+    ChVector2d uv[3];  // UV coordinates at the triangle vertices
+    ChColor col[3];    // color coordinates at the triangle vertices
 
     auto default_color = trianglemesh->GetColor();
 
@@ -227,14 +227,14 @@ void ChIrrNodeShape::UpdateTriangleMesh_mat(std::shared_ptr<ChVisualShapeTriangl
     if (nbuffers == 0)
         return;
 
-    const auto& vertices = mesh->getCoordsVertices();
-    const auto& normals = mesh->getCoordsNormals();
-    const auto& uvs = mesh->getCoordsUV();
+    const auto& vertices = mesh->GetCoordsVertices();
+    const auto& normals = mesh->GetCoordsNormals();
+    const auto& uvs = mesh->GetCoordsUV();
 
-    const auto& v_indices = mesh->getIndicesVertexes();
-    const auto& n_indices = mesh->getIndicesNormals();
-    const auto& uv_indices = mesh->getIndicesUV();
-    const auto& m_indices = mesh->getIndicesMaterials();
+    const auto& v_indices = mesh->GetIndicesVertexes();
+    const auto& n_indices = mesh->GetIndicesNormals();
+    const auto& uv_indices = mesh->GetIndicesUV();
+    const auto& m_indices = mesh->GetIndicesMaterials();
 
     unsigned int ntriangles_all = (unsigned int)v_indices.size();
 
@@ -270,9 +270,9 @@ void ChIrrNodeShape::UpdateTriangleMesh_mat(std::shared_ptr<ChVisualShapeTriangl
         core::map<video::S3DVertex, int> vertex_map;
 
         // Set the Irrlicht vertex and index buffers for this mesh buffer
-        ChVector<> t[3];    // positions of trianlge vertices
-        ChVector<> n[3];    // normals at the triangle vertices
-        ChVector2<> uv[3];  // UV coordinates at the triangle vertices
+        ChVector3d t[3];   // positions of trianlge vertices
+        ChVector3d n[3];   // normals at the triangle vertices
+        ChVector2d uv[3];  // UV coordinates at the triangle vertices
         unsigned int num_added_tri = 0;
         for (unsigned int itri = 0; itri < ntriangles_all; itri++) {
             if (!m_indices.empty() && m_indices[itri] != i)
@@ -365,21 +365,21 @@ void ChIrrNodeShape::UpdateTriangleMeshFixedConnectivity(std::shared_ptr<ChVisua
 
     // Access Chrono triangle mesh
     const auto& mesh = trianglemesh->GetMesh();
-    std::vector<ChVector<>>& vertices = mesh->getCoordsVertices();
-    std::vector<ChVector<>>& normals = mesh->getCoordsNormals();
-    std::vector<ChVector2<>>& uvs = mesh->getCoordsUV();
-    std::vector<ChColor>& colors = mesh->getCoordsColors();
-    std::vector<ChVector<int>>& idx_vertices = mesh->getIndicesVertexes();
+    std::vector<ChVector3d>& vertices = mesh->GetCoordsVertices();
+    std::vector<ChVector3d>& normals = mesh->GetCoordsNormals();
+    std::vector<ChVector2d>& uvs = mesh->GetCoordsUV();
+    std::vector<ChColor>& colors = mesh->GetCoordsColors();
+    std::vector<ChVector3i>& idx_vertices = mesh->GetIndicesVertexes();
 
-    unsigned int ntriangles = (unsigned int)mesh->getIndicesVertexes().size();
-    unsigned int nvertices = (unsigned int)mesh->getCoordsVertices().size();
-    unsigned int nuvs = (unsigned int)mesh->getCoordsUV().size();
-    unsigned int ncolors = (unsigned int)mesh->getCoordsColors().size();
+    unsigned int ntriangles = (unsigned int)mesh->GetIndicesVertexes().size();
+    unsigned int nvertices = (unsigned int)mesh->GetCoordsVertices().size();
+    unsigned int nuvs = (unsigned int)mesh->GetCoordsUV().size();
+    unsigned int ncolors = (unsigned int)mesh->GetCoordsColors().size();
 
     bool has_colors = (ncolors > 0);
     bool has_uvs = (nuvs > 0);
 
-    assert(mesh->getCoordsNormals().size() == mesh->getCoordsVertices().size());
+    assert(mesh->GetCoordsNormals().size() == mesh->GetCoordsVertices().size());
     assert(ncolors == 0 || ncolors == nvertices);
     assert(nuvs == 0 || nuvs == nvertices);
 
@@ -490,7 +490,7 @@ void ChIrrNodeShape::UpdateGlyphs(std::shared_ptr<ChGlyphs> glyphs) {
         int itri = 0;
 
         for (unsigned int ig = 0; ig < glyphs->points.size(); ++ig) {
-            ChVector<> t1 = glyphs->points[ig];
+            ChVector3d t1 = glyphs->points[ig];
             ChColor mcol = (*glyphs->colors)[ig];
             video::SColor clr(255, (u32)(mcol.R * 255), (u32)(mcol.G * 255), (u32)(mcol.B * 255));
 
@@ -543,8 +543,8 @@ void ChIrrNodeShape::UpdateGlyphs(std::shared_ptr<ChGlyphs> glyphs) {
     if (glyphs->GetDrawMode() == ChGlyphs::GLYPH_VECTOR) {
         int itri = 0;
         for (unsigned int ig = 0; ig < glyphs->points.size(); ++ig) {
-            ChVector<> t1 = glyphs->points[ig];
-            ChVector<> t2 = (*glyphs->vectors)[ig] + t1;
+            ChVector3d t1 = glyphs->points[ig];
+            ChVector3d t2 = (*glyphs->vectors)[ig] + t1;
             ChColor mcol = (*glyphs->colors)[ig];
             video::SColor clr(255, (u32)(mcol.R * 255), (u32)(mcol.G * 255), (u32)(mcol.B * 255));
 
@@ -570,11 +570,11 @@ void ChIrrNodeShape::UpdateGlyphs(std::shared_ptr<ChGlyphs> glyphs) {
         int itri = 0;
 
         for (unsigned int ig = 0; ig < glyphs->points.size(); ++ig) {
-            ChVector<> t1 = glyphs->points[ig];
-            ChVector<> t2;
+            ChVector3d t1 = glyphs->points[ig];
+            ChVector3d t2;
 
             // X axis - create a  small line (a degenerate triangle) per each vector
-            t2 = (*glyphs->rotations)[ig].Rotate(ChVector<>(1, 0, 0) * glyphs->GetGlyphsSize()) + t1;
+            t2 = (*glyphs->rotations)[ig].Rotate(ChVector3d(1, 0, 0) * glyphs->GetGlyphsSize()) + t1;
 
             irrmesh->getVertexBuffer()[0 + ig * 9] =
                 video::S3DVertex((f32)t1.x(), (f32)t1.y(), (f32)t1.z(), 1, 0, 0, video::SColor(255, 255, 0, 0), 0, 0);
@@ -590,7 +590,7 @@ void ChIrrNodeShape::UpdateGlyphs(std::shared_ptr<ChGlyphs> glyphs) {
             ++itri;
 
             // Y axis
-            t2 = (*glyphs->rotations)[ig].Rotate(ChVector<>(0, 1, 0) * glyphs->GetGlyphsSize()) + t1;
+            t2 = (*glyphs->rotations)[ig].Rotate(ChVector3d(0, 1, 0) * glyphs->GetGlyphsSize()) + t1;
 
             irrmesh->getVertexBuffer()[3 + ig * 9] =
                 video::S3DVertex((f32)t1.x(), (f32)t1.y(), (f32)t1.z(), 1, 0, 0, video::SColor(255, 0, 255, 0), 0, 0);
@@ -606,7 +606,7 @@ void ChIrrNodeShape::UpdateGlyphs(std::shared_ptr<ChGlyphs> glyphs) {
             ++itri;
 
             // Z axis
-            t2 = (*glyphs->rotations)[ig].Rotate(ChVector<>(0, 0, 1) * glyphs->GetGlyphsSize()) + t1;
+            t2 = (*glyphs->rotations)[ig].Rotate(ChVector3d(0, 0, 1) * glyphs->GetGlyphsSize()) + t1;
 
             irrmesh->getVertexBuffer()[6 + ig * 9] =
                 video::S3DVertex((f32)t1.x(), (f32)t1.y(), (f32)t1.z(), 1, 0, 0, video::SColor(255, 0, 0, 255), 0, 0);
@@ -646,7 +646,7 @@ void ChIrrNodeShape::UpdateGlyphs(std::shared_ptr<ChGlyphs> glyphs) {
 }
 
 void ChIrrNodeShape::UpdateSurface(std::shared_ptr<ChVisualShapeSurface> surface) {
-    std::shared_ptr<geometry::ChSurface> msurface = surface->GetSurfaceGeometry();
+    std::shared_ptr<ChSurface> msurface = surface->GetSurfaceGeometry();
 
     // Set color.
     auto vis = std::static_pointer_cast<ChVisualShape>(m_shape);
@@ -665,8 +665,8 @@ void ChIrrNodeShape::UpdateSurface(std::shared_ptr<ChVisualShapeSurface> surface
     scene::CDynamicMeshBuffer* irrmesh = (scene::CDynamicMeshBuffer*)amesh->getMeshBuffer(0);
 
     if (!surface->IsWireframe()) {
-        auto sections_u = surface->GetResolutionU() * 4;  //***TEST***
-        auto sections_v = surface->GetResolutionV() * 4;  //***TEST***
+        auto sections_u = surface->GetResolutionU() * 4;  //// TEST
+        auto sections_v = surface->GetResolutionV() * 4;  //// TEST
         auto nvertexes = (sections_u + 1) * (sections_v + 1);
         auto ntriangles = (sections_u) * (sections_v)*2;
 
@@ -687,10 +687,10 @@ void ChIrrNodeShape::UpdateSurface(std::shared_ptr<ChVisualShapeSurface> surface
             for (auto iu = 0; iu <= sections_u; ++iu) {
                 double mU = 1.0 * ((double)iu / (double)(sections_u));  // u abscissa
 
-                ChVector<> P = msurface->Evaluate(mU, mV);
+                ChVector3d P = msurface->Evaluate(mU, mV);
                 ////P = vis->Pos + vis->Rot * P;
 
-                ChVector<> N = msurface->GetNormal(mU, mV);
+                ChVector3d N = msurface->GetNormal(mU, mV);
                 ////N = vis->Rot * N;
 
                 // create two triangles per uv increment
@@ -722,8 +722,8 @@ void ChIrrNodeShape::UpdateSurface(std::shared_ptr<ChVisualShapeSurface> surface
         meshnode->setMaterialFlag(video::EMF_BACK_FACE_CULLING, false);
         meshnode->setMaterialFlag(video::EMF_COLOR_MATERIAL, true);
     } else {                  // if wirewrame u v isolines
-        auto isolines_u = 4;  //***TEST***
-        auto isolines_v = 3;  //***TEST***
+        auto isolines_u = 4;  //// TEST
+        auto isolines_v = 3;  //// TEST
         auto sections_u = surface->GetResolutionU() * isolines_u;
         auto sections_v = surface->GetResolutionV() * isolines_v;
 
@@ -747,7 +747,7 @@ void ChIrrNodeShape::UpdateSurface(std::shared_ptr<ChVisualShapeSurface> surface
             for (auto iu = 0; iu <= sections_u; ++iu) {
                 double mU = 1.0 * ((double)iu / (double)(sections_u));  // u abscissa
 
-                ChVector<> P = msurface->Evaluate(mU, mV);
+                ChVector3d P = msurface->Evaluate(mU, mV);
                 ////P = vis->Pos + vis->Rot * P;
 
                 irrmesh->getVertexBuffer()[iu + iv * (sections_u + 1)] =
@@ -768,7 +768,7 @@ void ChIrrNodeShape::UpdateSurface(std::shared_ptr<ChVisualShapeSurface> surface
             for (auto iv = 0; iv <= sections_v; ++iv) {
                 double mV = 1.0 * ((double)iv / (double)(sections_v));  // v abscissa
 
-                ChVector<> P = msurface->Evaluate(mU, mV);
+                ChVector3d P = msurface->Evaluate(mU, mV);
                 ////P = vis->Pos + vis->Rot * P;
 
                 irrmesh->getVertexBuffer()[iv + iu * (sections_v + 1) + stride] =
@@ -795,7 +795,7 @@ void ChIrrNodeShape::UpdateSurface(std::shared_ptr<ChVisualShapeSurface> surface
     }
 }
 
-void ChIrrNodeShape::UpdateLine(std::shared_ptr<geometry::ChLine> line, unsigned int nvertexes) {
+void ChIrrNodeShape::UpdateLine(std::shared_ptr<ChLine> line, unsigned int nvertexes) {
     unsigned int ntriangles = nvertexes - 1;
 
     // Set color.
@@ -826,19 +826,19 @@ void ChIrrNodeShape::UpdateLine(std::shared_ptr<geometry::ChLine> line, unsigned
 
     int itri = 0;
 
-    ChVector<> t1 = line->Evaluate(0);
+    ChVector3d t1 = line->Evaluate(0);
     ////t1 = vis->Pos + vis->Rot * t1;
 
     irrmesh->getVertexBuffer()[0] = video::S3DVertex((f32)t1.x(), (f32)t1.y(), (f32)t1.z(), 1, 0, 0, clr, 0, 0);
 
     double maxU = 1;
-    if (auto mline_path = std::dynamic_pointer_cast<geometry::ChLinePath>(line))
+    if (auto mline_path = std::dynamic_pointer_cast<ChLinePath>(line))
         maxU = mline_path->GetPathDuration();
 
     for (unsigned int ig = 0; ig < ntriangles; ++ig) {
         double mU = maxU * ((double)ig / (double)(ntriangles - 1));  // abscissa
 
-        ChVector<> t2 = line->Evaluate(mU);
+        ChVector3d t2 = line->Evaluate(mU);
         ////t2 = vis->Pos + vis->Rot * t2;
 
         // create a  small line (a degenerate triangle) per each vector

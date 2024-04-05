@@ -18,7 +18,7 @@
 #include <vector>
 
 #include "chrono/collision/ChCollisionShape.h"
-#include "chrono/core/ChVector.h"
+#include "chrono/core/ChVector3.h"
 
 namespace chrono {
 
@@ -31,28 +31,28 @@ namespace chrono {
 class ChApi ChCollisionShapeConvexHull : public ChCollisionShape {
   public:
     ChCollisionShapeConvexHull();
-    ChCollisionShapeConvexHull(std::shared_ptr<ChMaterialSurface> material,  ///< surface contact material
-                               const std::vector<ChVector<>>& points         ///< list of hull points
+    ChCollisionShapeConvexHull(std::shared_ptr<ChContactMaterial> material,  ///< surface contact material
+                               const std::vector<ChVector3d>& points         ///< list of hull points
     );
 
     ~ChCollisionShapeConvexHull() {}
 
     /// Access the list of vertices of thje convex hull.
-    const std::vector<ChVector<>>& GetPoints() { return points; }
+    const std::vector<ChVector3d>& GetPoints() { return points; }
 
     /// Method to allow serialization of transient data to archives.
-    virtual void ArchiveOut(ChArchiveOut& marchive) override;
+    virtual void ArchiveOut(ChArchiveOut& archive_out) override;
 
     /// Method to allow de-serialization of transient data from archives.
-    virtual void ArchiveIn(ChArchiveIn& marchive) override;
+    virtual void ArchiveIn(ChArchiveIn& archive_in) override;
 
     /// Create convex hull collsion shapes from the specified data file.
     /// All shapes are assigned the same contact material.
-    static std::vector<std::shared_ptr<ChCollisionShapeConvexHull>> Read(std::shared_ptr<ChMaterialSurface> material,
+    static std::vector<std::shared_ptr<ChCollisionShapeConvexHull>> Read(std::shared_ptr<ChContactMaterial> material,
                                                                          const std::string& filename);
 
   private:
-    std::vector<ChVector<>> points;
+    std::vector<ChVector3d> points;
 };
 
 /// @} chrono_collision

@@ -35,24 +35,24 @@ namespace gclass {
 class CH_MODELS_API G500_Vehicle : public ChWheeledVehicle {
   public:
     G500_Vehicle(const bool fixed,
-                   BrakeType brake_type,
-                   SteeringTypeWV steering_model,
-                   ChContactMethod contact_method = ChContactMethod::NSC,
-                   CollisionType chassis_collision_type = CollisionType::NONE);
+                 BrakeType brake_type,
+                 SteeringTypeWV steering_model,
+                 ChContactMethod contact_method = ChContactMethod::NSC,
+                 CollisionType chassis_collision_type = CollisionType::NONE);
 
     G500_Vehicle(ChSystem* system,
-                   const bool fixed,
-                   BrakeType brake_type,
-                   SteeringTypeWV steering_model,
-                   CollisionType chassis_collision_type = CollisionType::NONE);
+                 const bool fixed,
+                 BrakeType brake_type,
+                 SteeringTypeWV steering_model,
+                 CollisionType chassis_collision_type = CollisionType::NONE);
 
     ~G500_Vehicle();
 
-    virtual int GetNumberAxles() const override { return 2; }
+    virtual unsigned int GetNumberAxles() const override { return 2; }
 
     virtual double GetWheelbase() const override { return 2.3; }
     virtual double GetMinTurningRadius() const override { return 5.8; }
-    virtual double GetMaxSteeringAngle() const override { return 27 * CH_C_DEG_TO_RAD; }
+    virtual double GetMaxSteeringAngle() const override { return 27 * CH_DEG_TO_RAD; }
 
     void SetInitWheelAngVel(const std::vector<double>& omega) {
         assert(omega.size() == 4);

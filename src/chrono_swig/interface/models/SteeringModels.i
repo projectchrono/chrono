@@ -34,6 +34,8 @@
 #include "chrono_models/vehicle/artcar/ARTcar_PitmanArm.h"
 
 #include "chrono_models/vehicle/feda/FEDA_PitmanArm.h"
+
+#include "chrono_models/vehicle/bmw/BMW_E90_Steering.h"
 %}
 
 %shared_ptr(chrono::vehicle::hmmwv::HMMWV_PitmanArm)
@@ -52,6 +54,8 @@
 %shared_ptr(chrono::vehicle::gator::Gator_RackPinion)
 
 %shared_ptr(chrono::vehicle::feda::FEDA_PitmanArm)
+
+%shared_ptr(chrono::vehicle::bmw::BMW_E90_Steering)
 
 /* Parse the header file to generate wrappers */
 %import "chrono_swig/interface/vehicle/ChSteering.i"
@@ -74,3 +78,5 @@
 %include "../../../chrono_models/vehicle/artcar/ARTcar_PitmanArm.h"
 
 %include "../../../chrono_models/vehicle/feda/FEDA_PitmanArm.h"
+
+%include "../../../chrono_models/vehicle/bmw/BMW_E90_Steering.h"

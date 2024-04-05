@@ -30,45 +30,43 @@ using namespace chrono;
 using namespace chrono::irrlicht;
 
 int main(int argc, char* argv[]) {
-    GetLog() << "Copyright (c) 2017 projectchrono.org\nChrono version: " << CHRONO_VERSION << "\n\n";
+    std::cout << "Copyright (c) 2017 projectchrono.org\nChrono version: " << CHRONO_VERSION << std::endl;
 
     ChSystemNSC sys;
-    sys.Set_G_acc(ChVector<>(1, -1, 1));
+    sys.SetGravitationalAcceleration(ChVector3d(1, -1, 1));
 
     // Create the ground body
     // ----------------------
 
     auto ground = chrono_types::make_shared<ChBody>();
     sys.AddBody(ground);
-    ground->SetIdentifier(-1);
-    ground->SetBodyFixed(true);
-    ground->SetCollide(false);
+    ground->SetFixed(true);
+    ground->EnableCollision(false);
 
     auto cyl = chrono_types::make_shared<ChVisualShapeCylinder>(0.04, 0.4);
-    ground->AddVisualShape(cyl, ChFrame<>(ChVector<>(0, 0, 1), QUNIT));
+    ground->AddVisualShape(cyl, ChFrame<>(ChVector3d(0, 0, 1), QUNIT));
 
     // Create a pendulum body
     // ----------------------
 
     auto pend = chrono_types::make_shared<ChBody>();
     sys.AddBody(pend);
-    pend->SetIdentifier(1);
-    pend->SetBodyFixed(false);
-    pend->SetCollide(false);
+    pend->SetFixed(false);
+    pend->EnableCollision(false);
     pend->SetMass(1);
-    pend->SetInertiaXX(ChVector<>(0.2, 1, 1));
+    pend->SetInertiaXX(ChVector3d(0.2, 1, 1));
 
     // Initial position of the pendulum (horizontal, pointing towards positive X).
-    pend->SetPos(ChVector<>(1.5, 0, 1));
+    pend->SetPos(ChVector3d(1.5, 0, 1));
 
     // Attach visualization assets.
     auto cyl_p = chrono_types::make_shared<ChVisualShapeCylinder>(0.2, 1.92);
     cyl_p->SetColor(ChColor(0.6f, 0, 0));
-    pend->AddVisualShape(cyl_p, ChFrame<>(VNULL, Q_from_AngY(CH_C_PI_2)));
+    pend->AddVisualShape(cyl_p, ChFrame<>(VNULL, QuatFromAngleY(CH_PI_2)));
 
     auto sph_p = chrono_types::make_shared<ChVisualShapeSphere>(0.04);
     sph_p->SetColor(ChColor(0.6f, 0, 0));
-    pend->AddVisualShape(sph_p, ChFrame<>(ChVector<>(-1, 0, 0), QUNIT));
+    pend->AddVisualShape(sph_p, ChFrame<>(ChVector3d(-1, 0, 0), QUNIT));
 
     // Create a revolute-spherical joint to connect pendulum to ground.
     auto rev_sph = chrono_types::make_shared<ChLinkRevoluteSpherical>();
@@ -76,11 +74,11 @@ int main(int argc, char* argv[]) {
 
     // Initialize the pendulum specifying a coordinate sys (expressed in the
     // absolute frame) and a distance.
-    rev_sph->Initialize(ground, pend, ChCoordsys<>(ChVector<>(0, 0, 1), ChQuaternion<>(1, 0, 0, 0)), 0.5);
+    rev_sph->Initialize(ground, pend, ChCoordsys<>(ChVector3d(0, 0, 1), ChQuaternion<>(1, 0, 0, 0)), 0.5);
 
     // Alternatively, the joint can be initialized by specifying a point and a
     // direction on the first body and a point on the second body.
-    // rev_sph->Initialize(ground, pend, false, ChVector<>(0, 0, 1), ChVector<>(0, 0, 1), ChVector<>(0.5, 0, 1));
+    // rev_sph->Initialize(ground, pend, false, ChVector3d(0, 0, 1), ChVector3d(0, 0, 1), ChVector3d(0.5, 0, 1));
 
     // Create the Irrlicht application
     // -------------------------------
@@ -92,11 +90,13 @@ int main(int argc, char* argv[]) {
     vis->Initialize();
     vis->AddLogo();
     vis->AddSkyBox();
-    vis->AddCamera(ChVector<>(0, 3, 6));
+    vis->AddCamera(ChVector3d(0, 3, 6));
     vis->AddTypicalLights();
 
+    vis->EnableLinkFrameDrawing(true);
+
     // Cache for point trajectory plot
-    std::vector<ChVector<> > trajectory;
+    std::vector<ChVector3d> trajectory;
 
     // Simulation loop
     while (vis->Run()) {

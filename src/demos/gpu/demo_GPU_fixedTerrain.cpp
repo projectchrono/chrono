@@ -50,15 +50,15 @@ int main(int argc, char* argv[]) {
     }
 
     ChSystemGpu gpu_sys(params.sphere_radius, params.sphere_density,
-                        ChVector<float>(params.box_X, params.box_Y, params.box_Z));
+                        ChVector3f(params.box_X, params.box_Y, params.box_Z));
 
     // Add spherically-decomposed underlying terrain.
     std::string objfilename(GetChronoDataFile("models/fixedterrain.obj"));
 
-    ChVector<float> scaling(params.box_X / 2, params.box_Y / 2, params.box_Z);
-    ChVector<float> offset(0, 0, -params.box_Z / 2);
+    ChVector3f scaling(params.box_X / 2, params.box_Y / 2, params.box_Z);
+    ChVector3f offset(0, 0, -params.box_Z / 2);
 
-    std::vector<ChVector<float>> terrain_points =
+    std::vector<ChVector3f> terrain_points =
         MeshSphericalDecomposition<float>(objfilename, scaling, offset, params.sphere_radius);
 
     // Add loose granular material
@@ -73,15 +73,15 @@ int main(int argc, char* argv[]) {
     const float fill_height = layers * 2.f * params.sphere_radius;
     float fill_top = std::min(fill_bottom + fill_height, params.box_Z / 2.f - 2.f * params.sphere_radius);
 
-    ChVector<float> fill_center(0.f, 0.f, (fill_bottom + fill_top) / 2.f);
-    ChVector<float> fill_hdims(params.box_X / 2.f - boundary_padding - 2.f * params.sphere_radius,
-                               params.box_Y / 2.f - boundary_padding - 2.f * params.sphere_radius,
-                               (fill_top - fill_bottom) / 2.f);
-    std::vector<ChVector<float>> material_points =
-        utils::PDLayerSampler_BOX<float>(fill_center, fill_hdims, 2.f * params.sphere_radius);
+    ChVector3f fill_center(0.f, 0.f, (fill_bottom + fill_top) / 2.f);
+    ChVector3f fill_hdims(params.box_X / 2.f - boundary_padding - 2.f * params.sphere_radius,
+                          params.box_Y / 2.f - boundary_padding - 2.f * params.sphere_radius,
+                          (fill_top - fill_bottom) / 2.f);
+    std::vector<ChVector3f> material_points =
+        utils::ChPDLayerSamplerBox<float>(fill_center, fill_hdims, 2.f * params.sphere_radius);
 
     // Vectors of all particle positions and fixities
-    std::vector<ChVector<float>> body_points;
+    std::vector<ChVector3f> body_points;
     std::vector<bool> fixed;
 
     body_points.insert(body_points.end(), terrain_points.begin(), terrain_points.end());
@@ -96,23 +96,23 @@ int main(int argc, char* argv[]) {
 
     // Add internal planes to prevent leaking
     {
-        ChVector<float> plane_pos(-(float)(params.box_X / 2 - boundary_padding), 0, 0);
-        ChVector<float> plane_normal(1, 0, 0);
+        ChVector3f plane_pos(-(float)(params.box_X / 2 - boundary_padding), 0, 0);
+        ChVector3f plane_normal(1, 0, 0);
         gpu_sys.CreateBCPlane(plane_pos, plane_normal, false);
     }
     {
-        ChVector<float> plane_pos((float)(params.box_X / 2 - boundary_padding), 0, 0);
-        ChVector<float> plane_normal(-1, 0, 0);
+        ChVector3f plane_pos((float)(params.box_X / 2 - boundary_padding), 0, 0);
+        ChVector3f plane_normal(-1, 0, 0);
         gpu_sys.CreateBCPlane(plane_pos, plane_normal, false);
     }
     {
-        ChVector<float> plane_pos(0, -(float)(params.box_Y / 2 - boundary_padding), 0);
-        ChVector<float> plane_normal(0, 1, 0);
+        ChVector3f plane_pos(0, -(float)(params.box_Y / 2 - boundary_padding), 0);
+        ChVector3f plane_normal(0, 1, 0);
         gpu_sys.CreateBCPlane(plane_pos, plane_normal, false);
     }
     {
-        ChVector<float> plane_pos(0, (float)(params.box_Y / 2 - boundary_padding), 0);
-        ChVector<float> plane_normal(0, -1, 0);
+        ChVector3f plane_pos(0, (float)(params.box_Y / 2 - boundary_padding), 0);
+        ChVector3f plane_normal(0, -1, 0);
         gpu_sys.CreateBCPlane(plane_pos, plane_normal, false);
     }
 
@@ -133,7 +133,7 @@ int main(int argc, char* argv[]) {
     gpu_sys.SetCohesionRatio(params.cohesion_ratio);
     gpu_sys.SetAdhesionRatio_SPH2WALL(params.adhesion_ratio_s2w);
 
-    gpu_sys.SetGravitationalAcceleration(ChVector<float>(params.grav_X, params.grav_Y, params.grav_Z));
+    gpu_sys.SetGravitationalAcceleration(ChVector3f(params.grav_X, params.grav_Y, params.grav_Z));
 
     gpu_sys.SetFixedStepSize(params.step_size);
     gpu_sys.SetFrictionMode(params.friction_mode);

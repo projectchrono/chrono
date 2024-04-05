@@ -29,21 +29,21 @@ except:
 # Chreate Chrono system
 system = chrono.ChSystemNSC()
 system.SetCollisionSystemType(chrono.ChCollisionSystem.Type_BULLET)
-system.Set_G_acc(chrono.ChVectorD(0, 0, -9.81))
+system.SetGravitationalAcceleration(chrono.ChVector3d(0, 0, -9.81))
 chrono.ChCollisionModel.SetDefaultSuggestedEnvelope(0.0025)
 chrono.ChCollisionModel.SetDefaultSuggestedMargin(0.0025)
 
 # Create ground body
-ground_mat = chrono.ChMaterialSurfaceNSC()
+ground_mat = chrono.ChContactMaterialNSC()
 ground = chrono.ChBodyEasyBox(20, 20, 1, 1000, True, True, ground_mat)
-ground.SetPos(chrono.ChVectorD(0, 0, -1))
-ground.SetBodyFixed(True)
+ground.SetPos(chrono.ChVector3d(0, 0, -1))
+ground.SetFixed(True)
 ground.GetVisualShape(0).SetTexture(chrono.GetChronoDataFile("textures/concrete.jpg"))
 system.Add(ground)
 
 # Create Turtlebot Robot
-robot = turtlebot.TurtleBot(system, chrono.ChVectorD(
-    0, 0, -0.45), chrono.ChQuaternionD(1, 0, 0, 0))
+robot = turtlebot.TurtleBot(system, chrono.ChVector3d(
+    0, 0, -0.45), chrono.ChQuaterniond(1, 0, 0, 0))
 robot.Initialize()
 
 # Create run-time visualization
@@ -55,9 +55,9 @@ vis.SetWindowTitle('Turtlebot Robot - Rigid terrain')
 vis.Initialize()
 vis.AddLogo(chrono.GetChronoDataFile('logo_pychrono_alpha.png'))
 vis.AddSkyBox()
-vis.AddCamera(chrono.ChVectorD(0, 1.5, 0.2), chrono.ChVectorD(0, 0, 0.2))
+vis.AddCamera(chrono.ChVector3d(0, 1.5, 0.2), chrono.ChVector3d(0, 0, 0.2))
 vis.AddTypicalLights()
-vis.AddLightWithShadow(chrono.ChVectorD(1.5, -2.5, 5.5), chrono.ChVectorD(0, 0, 0.5), 3, 4, 10, 40, 512)
+vis.AddLightWithShadow(chrono.ChVector3d(1.5, -2.5, 5.5), chrono.ChVector3d(0, 0, 0.5), 3, 4, 10, 40, 512)
 
 ####vis.EnableShadows()
 

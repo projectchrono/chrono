@@ -14,8 +14,6 @@
 
 #include "chrono/solver/ChSolverAPGD.h"
 
-#include "chrono/core/ChStream.h"
-
 #include <iostream>
 #include <sstream>
 #include <string>
@@ -29,32 +27,32 @@ CH_FACTORY_REGISTER(ChSolverAPGD)
 
 ChSolverAPGD::ChSolverAPGD() : nc(0), residual(0.0) {}
 
-void ChSolverAPGD::ShurBvectorCompute(ChSystemDescriptor& sysd) {
-    // ***TO DO*** move the following thirty lines in a short function ChSystemDescriptor::ShurBvectorCompute() ?
+void ChSolverAPGD::SchurBvectorCompute(ChSystemDescriptor& sysd) {
+    // ***TO DO*** move the following thirty lines in a short function ChSystemDescriptor::SchurBvectorCompute() ?
 
-    // Compute the b_shur vector in the Shur complement equation N*l = b_shur
+    // Compute the b_schur vector in the Schur complement equation N*l = b_schur
     // with
-    //   N_shur  = D'* (M^-1) * D
-    //   b_shur  = - c + D'*(M^-1)*k = b_i + D'*(M^-1)*k
-    // but flipping the sign of lambdas,  b_shur = - b_i - D'*(M^-1)*k
+    //   N_schur  = D'* (M^-1) * D
+    //   b_schur  = - c + D'*(M^-1)*k = b_i + D'*(M^-1)*k
+    // but flipping the sign of lambdas,  b_schur = - b_i - D'*(M^-1)*k
     // Do this in three steps:
 
     // Put (M^-1)*k    in  q  sparse vector of each variable..
-    for (unsigned int iv = 0; iv < sysd.GetVariablesList().size(); iv++)
-        if (sysd.GetVariablesList()[iv]->IsActive())
-            sysd.GetVariablesList()[iv]->Compute_invMb_v(sysd.GetVariablesList()[iv]->Get_qb(),
-                                                         sysd.GetVariablesList()[iv]->Get_fb());  // q = [M]'*fb
+    for (unsigned int iv = 0; iv < sysd.GetVariables().size(); iv++)
+        if (sysd.GetVariables()[iv]->IsActive())
+            sysd.GetVariables()[iv]->ComputeMassInverseTimesVector(sysd.GetVariables()[iv]->State(),
+                                                     sysd.GetVariables()[iv]->Force());  // q = [M]'*fb
 
-    // ...and now do  b_shur = - D'*q = - D'*(M^-1)*k ..
+    // ...and now do  b_schur = - D'*q = - D'*(M^-1)*k ..
     r.setZero();
     int s_i = 0;
-    for (unsigned int ic = 0; ic < sysd.GetConstraintsList().size(); ic++)
-        if (sysd.GetConstraintsList()[ic]->IsActive()) {
-            r(s_i, 0) = sysd.GetConstraintsList()[ic]->Compute_Cq_q();
+    for (unsigned int ic = 0; ic < sysd.GetConstraints().size(); ic++)
+        if (sysd.GetConstraints()[ic]->IsActive()) {
+            r(s_i, 0) = sysd.GetConstraints()[ic]->ComputeJacobianTimesState();
             ++s_i;
         }
 
-    // ..and finally do   b_shur = b_shur - c
+    // ..and finally do   b_schur = b_schur - c
     sysd.BuildBiVector(tmp);  // b_i   =   -c   = phi/h
     r += tmp;
 }
@@ -63,18 +61,18 @@ double ChSolverAPGD::Res4(ChSystemDescriptor& sysd) {
     // Project the gradient (for rollback strategy)
     // g_proj = (l-project_orthogonal(l - gdiff*g, fric))/gdiff;
     double gdiff = 1.0 / (nc * nc);
-    sysd.ShurComplementProduct(tmp, gammaNew);  // tmp = N * gammaNew
-    tmp = gammaNew - gdiff * (tmp + r);         // Note: no aliasing issues here
-    sysd.ConstraintsProject(tmp);               // tmp = ProjectionOperator(gammaNew - gdiff * g)
-    tmp = (gammaNew - tmp) / gdiff;             // Note: no aliasing issues here
+    sysd.SchurComplementProduct(tmp, gammaNew);  // tmp = N * gammaNew
+    tmp = gammaNew - gdiff * (tmp + r);          // Note: no aliasing issues here
+    sysd.ConstraintsProject(tmp);                // tmp = ProjectionOperator(gammaNew - gdiff * g)
+    tmp = (gammaNew - tmp) / gdiff;              // Note: no aliasing issues here
 
     return tmp.norm();
 }
 
 double ChSolverAPGD::Solve(ChSystemDescriptor& sysd) {
     bool verbose = false;
-    const std::vector<ChConstraint*>& mconstraints = sysd.GetConstraintsList();
-    const std::vector<ChVariables*>& mvariables = sysd.GetVariablesList();
+    const std::vector<ChConstraint*>& mconstraints = sysd.GetConstraints();
+    const std::vector<ChVariables*>& mvariables = sysd.GetVariables();
     if (verbose)
         std::cout << "Number of constraints: " << mconstraints.size()
                   << "\nNumber of variables  : " << mvariables.size() << std::endl;
@@ -106,10 +104,10 @@ double ChSolverAPGD::Solve(ChSystemDescriptor& sysd) {
     obj1 = 0.0;
     obj2 = 0.0;
 
-    // Compute the b_shur vector in the Shur complement equation N*l = b_shur
-    ShurBvectorCompute(sysd);
+    // Compute the b_schur vector in the Schur complement equation N*l = b_schur
+    SchurBvectorCompute(sysd);
 
-    // If no constraints, return now. Variables contain M^-1 * f after call to ShurBvectorCompute.
+    // If no constraints, return now. Variables contain M^-1 * f after call to SchurBvectorCompute.
     // This early exit is needed, else we get division by zero and a potential infinite loop.
     if (nc == 0) {
         return 0;
@@ -124,10 +122,10 @@ double ChSolverAPGD::Solve(ChSystemDescriptor& sysd) {
     if (m_warm_start) {
         for (unsigned int ic = 0; ic < mconstraints.size(); ic++)
             if (mconstraints[ic]->IsActive())
-                mconstraints[ic]->Increment_q(mconstraints[ic]->Get_l_i());
+                mconstraints[ic]->IncrementState(mconstraints[ic]->GetLagrangeMultiplier());
     } else {
         for (unsigned int ic = 0; ic < mconstraints.size(); ic++)
-            mconstraints[ic]->Set_l_i(0.);
+            mconstraints[ic]->SetLagrangeMultiplier(0.);
     }
     sysd.FromConstraintsToVector(gamma);
 
@@ -143,7 +141,7 @@ double ChSolverAPGD::Solve(ChSystemDescriptor& sysd) {
     // (5) L_k = norm(N * (gamma_0 - gamma_hat_0)) / norm(gamma_0 - gamma_hat_0)
     tmp = gamma - gamma_hat;
     L = tmp.norm();
-    sysd.ShurComplementProduct(yNew, tmp, nullptr);  // yNew = N * tmp = N * (gamma - gamma_hat)
+    sysd.SchurComplementProduct(yNew, tmp, nullptr);  // yNew = N * tmp = N * (gamma - gamma_hat)
     L = yNew.norm() / L;
     yNew.setZero();  //// RADU  is this really necessary here?
 
@@ -157,16 +155,16 @@ double ChSolverAPGD::Solve(ChSystemDescriptor& sysd) {
     for (m_iterations = 0; m_iterations < m_max_iterations; m_iterations++) {
         // (8) g = N * y_k - r
         // (9) gamma_(k+1) = ProjectionOperator(y_k - t_k * g)
-        sysd.ShurComplementProduct(g, y);  // g = N * y
+        sysd.SchurComplementProduct(g, y);  // g = N * y
         gammaNew = y - t * (g + r);
         sysd.ConstraintsProject(gammaNew);
 
         // (10) while 0.5 * gamma_(k+1)' * N * gamma_(k+1) - gamma_(k+1)' * r >=
         //            0.5 * y_k' * N * y_k - y_k' * r + g' * (gamma_(k+1) - y_k) + 0.5 * L_k * norm(gamma_(k+1) - y_k)^2
-        sysd.ShurComplementProduct(tmp, gammaNew);  // tmp = N * gammaNew;
+        sysd.SchurComplementProduct(tmp, gammaNew);  // tmp = N * gammaNew;
         obj1 = gammaNew.dot(0.5 * tmp + r);
 
-        sysd.ShurComplementProduct(tmp, y);  // tmp = N * y;
+        sysd.SchurComplementProduct(tmp, y);  // tmp = N * y;
         obj2 = y.dot(0.5 * tmp + r) + (gammaNew - y).dot(g + 0.5 * L * (gammaNew - y));
 
         while (obj1 >= obj2) {
@@ -181,10 +179,10 @@ double ChSolverAPGD::Solve(ChSystemDescriptor& sysd) {
             sysd.ConstraintsProject(gammaNew);
 
             // Update obj1 and obj2
-            sysd.ShurComplementProduct(tmp, gammaNew);  // tmp = N * gammaNew;
+            sysd.SchurComplementProduct(tmp, gammaNew);  // tmp = N * gammaNew;
             obj1 = gammaNew.dot(0.5 * tmp + r);
 
-            sysd.ShurComplementProduct(tmp, y);  // tmp = N * y;
+            sysd.SchurComplementProduct(tmp, y);  // tmp = N * y;
             obj2 = y.dot(0.5 * tmp + r) + (gammaNew - y).dot(g + 0.5 * L * (gammaNew - y));
         }  // (14) endwhile
 
@@ -206,8 +204,8 @@ double ChSolverAPGD::Solve(ChSystemDescriptor& sysd) {
         }                          // (22) endif
 
         if (residual < m_tolerance) {  // (23) if r < Tau
-            break;                         // (24) break
-        }                                  // (25) endif
+            break;                     // (24) break
+        }                              // (25) endif
 
         if (g.dot(gammaNew - gamma) > 0) {  // (26) if g' * (gamma_(k+1) - gamma_k) > 0
             yNew = gammaNew;                // (27) y_(k+1) = gamma_(k+1)
@@ -245,7 +243,7 @@ double ChSolverAPGD::Solve(ChSystemDescriptor& sysd) {
     // ... + (M^-1)*D*l     (this increment and also stores 'qb' in the ChVariable items)
     for (size_t ic = 0; ic < mconstraints.size(); ic++) {
         if (mconstraints[ic]->IsActive())
-            mconstraints[ic]->Increment_q(mconstraints[ic]->Get_l_i());
+            mconstraints[ic]->IncrementState(mconstraints[ic]->GetLagrangeMultiplier());
     }
 
     return residual;
@@ -262,6 +260,5 @@ void ChSolverAPGD::Dump_Lambda(std::vector<double>& temp) {
         temp.push_back(gamma_hat(i));
     }
 }
-
 
 }  // end namespace chrono

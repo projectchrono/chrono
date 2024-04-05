@@ -61,9 +61,9 @@ int main(int argc, char* argv[]) {
 
     // Chrono system
     ChSystemNSC system;
-    system.Set_G_acc(ChVector<>(0, 0, -9.81));
+    system.SetGravitationalAcceleration(ChVector3d(0, 0, -9.81));
     system.SetSolverType(ChSolver::Type::BARZILAIBORWEIN);
-    system.SetSolverMaxIterations(150);
+    system.GetSolver()->AsIterative()->SetMaxIterations(150);
     system.SetMaxPenetrationRecoverySpeed(4.0);
 
     int rank_group = rank % 3;

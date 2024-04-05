@@ -2,8 +2,6 @@
 
 #include "chrono_synchrono/utils/SynLog.h"
 
-#include "chrono/core/ChException.h"
-
 #include <fastdds/dds/topic/Topic.hpp>
 #include <fastdds/dds/topic/TypeSupport.hpp>
 #include <fastdds/dds/domain/DomainParticipant.hpp>
@@ -30,18 +28,18 @@ SynDDSTopic::SynDDSTopic(const std::string& topic_name,
 void SynDDSTopic::Initialize(DomainParticipant* participant) {
     if (!participant) {
         std::string str = "SynDDSTopic: Participant is NULL";
-        throw ChException(str);
+        throw std::runtime_error(str);
     }
 
     if (!RegisterType(participant)) {
         std::string str = "Failed to register topic " + m_topic_name;
-        throw ChException(str);
+        throw std::runtime_error(str);
     }
 
     m_dds_topic = participant->create_topic(GetFullTopicName(), m_type_name, TOPIC_QOS_DEFAULT);
     if (!m_dds_topic) {
         std::string str = "Failed to create topic " + m_topic_name;
-        throw ChException(str);
+        throw std::runtime_error(str);
     }
 }
 

@@ -7,7 +7,7 @@ set(DEMOS "")
 if(ENABLE_MODULE_IRRLICHT)
    set(DEMOS ${DEMOS}
        demo_MOD_analysis
-       demo_MOD_assembly
+       demo_MOD_modal_assembly
    )
 endif()
 
@@ -38,12 +38,6 @@ endif()
 if(ENABLE_MODULE_MATLAB)
   include_directories(${CH_MATLABINC})
   list(APPEND LIBS "ChronoEngine_matlab")
-endif()
-
-if(ENABLE_MODULE_PARDISO_PROJECT)
-  include_directories(${CH_PARDISOPROJECT_INCLUDES})
-  list(APPEND LIBS "ChronoEngine_pardisoproject")
-  list(APPEND LIBS ${PARDISOPROJECT_LIBRARIES})
 endif()
 
 if(ENABLE_MODULE_POSTPROCESS)

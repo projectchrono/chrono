@@ -28,34 +28,34 @@ namespace fea {
 /// The direction D represents a derivative vector to be used in ANCF elements.
 class ChApi ChNodeFEAxyzD : public ChNodeFEAxyz {
   public:
-    ChNodeFEAxyzD(ChVector<> initial_pos = VNULL, ChVector<> initial_dir = VECT_X);
+    ChNodeFEAxyzD(ChVector3d initial_pos = VNULL, ChVector3d initial_dir = VECT_X);
     ChNodeFEAxyzD(const ChNodeFEAxyzD& other);
-    ~ChNodeFEAxyzD();
+    virtual ~ChNodeFEAxyzD();
 
     ChNodeFEAxyzD& operator=(const ChNodeFEAxyzD& other);
 
     /// Set the derivative vector.
-    void SetD(const ChVector<>& d) { D = d; }
+    void SetSlope1(const ChVector3d& d) { D = d; }
+
     /// Get the derivative vector.
-    const ChVector<>& GetD() const { return D; }
+    const ChVector3d& GetSlope1() const { return D; }
 
     /// Set the speed of the derivative vector.
-    void SetD_dt(const ChVector<>& dt) { D_dt = dt; }
+    void SetSlope1Dt(const ChVector3d& dt) { D_dt = dt; }
+
     /// Get the speed of the derivative vector.
-    const ChVector<>& GetD_dt() const { return D_dt; }
+    const ChVector3d& GetSlope1Dt() const { return D_dt; }
 
     /// Set the acceleration of the derivative vector.
-    void SetD_dtdt(const ChVector<>& dtt) { D_dtdt = dtt; }
-    /// Get the  acceleration of the derivative vector.
-    const ChVector<>& GetD_dtdt() const { return D_dtdt; }
+    void SetSlope1Dt2(const ChVector3d& dtt) { D_dtdt = dtt; }
 
-    ChVariables& Variables_D() { return *variables_D; }
+    /// Get the  acceleration of the derivative vector.
+    const ChVector3d& GetSlope1Dt2() const { return D_dtdt; }
+
+    ChVariables& VariablesSlope1() { return *variables_D; }
 
     /// Reset to no speed and acceleration.
-    virtual void SetNoSpeedNoAcceleration() override;
-
-    /// Get mass of the node.
-    ChVectorDynamic<>& GetMassDiagonalD() { return variables_D->GetMassDiagonal(); }
+    virtual void ForceToRest() override;
 
     /// Fix/release this node.
     /// If fixed, its state variables are not changed by the solver.
@@ -66,22 +66,32 @@ class ChApi ChNodeFEAxyzD : public ChNodeFEAxyz {
 
     /// Fix/release the derivative vector states.
     /// If fixed, these states are not changed by the solver.
-    void SetFixedD(bool fixed);
+    void SetSlope1Fixed(bool fixed);
 
     /// Return true if the derivative vector states are fixed.
-    bool IsFixedD() const;
+    bool IsSlope1Fixed() const;
 
     /// Get the number of degrees of freedom.
-    virtual int GetNdofX() const override { return 6; }
+    virtual unsigned int GetNumCoordsPosLevel() const override { return 6; }
 
     /// Get the number of degrees of freedom, derivative.
-    virtual int GetNdofW() const override { return 6; }
+    virtual unsigned int GetNumCoordsVelLevel() const override { return 6; }
 
     /// Get the actual number of active degrees of freedom.
-    virtual int GetNdofX_active() const override { return m_dof_actual; }
+    virtual unsigned int GetNumCoordsPosLevelActive() const override { return m_dof_actual; }
 
     /// Get the actual number of active degrees of freedom, derivative.
-    virtual int GetNdofW_active() const override { return m_dof_actual; }
+    virtual unsigned int GetNumCoordsVelLevelActive() const override { return m_dof_actual; }
+
+    /// Method to allow serialization of transient data to archives.
+    virtual void ArchiveOut(ChArchiveOut& archive) override;
+
+    /// Method to allow de-serialization of transient data from archives.
+    virtual void ArchiveIn(ChArchiveIn& archive) override;
+
+  public:
+    /// Initial setup. Set number of degrees of freedom for this node.
+    virtual void SetupInitial(ChSystem* system) override;
 
     // Functions for interfacing to the state bookkeeping
 
@@ -134,16 +144,16 @@ class ChApi ChNodeFEAxyzD : public ChNodeFEAxyz {
     // INTERFACE to ChLoadable
 
     /// Gets the number of DOFs affected by this element (position part).
-    virtual int LoadableGet_ndof_x() override { return m_dof_actual; }
+    virtual unsigned int GetLoadableNumCoordsPosLevel() override { return m_dof_actual; }
 
     /// Gets the number of DOFs affected by this element (speed part).
-    virtual int LoadableGet_ndof_w() override { return m_dof_actual; }
+    virtual unsigned int GetLoadableNumCoordsVelLevel() override { return m_dof_actual; }
 
     /// Gets all the DOFs packed in a single vector (position part).
-    virtual void LoadableGetStateBlock_x(int block_offset, ChState& S) override;
+    virtual void LoadableGetStateBlockPosLevel(int block_offset, ChState& S) override;
 
     /// Gets all the DOFs packed in a single vector (speed part).
-    virtual void LoadableGetStateBlock_w(int block_offset, ChStateDelta& S) override;
+    virtual void LoadableGetStateBlockVelLevel(int block_offset, ChStateDelta& S) override;
 
     /// Increment all DOFs using a delta.
     virtual void LoadableStateIncrement(const unsigned int off_x,
@@ -153,10 +163,10 @@ class ChApi ChNodeFEAxyzD : public ChNodeFEAxyz {
                                         const ChStateDelta& Dv) override;
 
     /// Number of coordinates in the interpolated field.
-    virtual int Get_field_ncoords() override { return m_dof_actual; }
+    virtual unsigned int GetNumFieldCoords() override { return m_dof_actual; }
 
     /// Get the size of the i-th sub-block of DOFs in global vector.
-    virtual unsigned int GetSubBlockSize(int nblock) override { return m_dof_actual; }
+    virtual unsigned int GetSubBlockSize(unsigned int nblock) override { return m_dof_actual; }
 
     /// Get the pointers to the contained ChVariables, appending to the mvars vector.
     virtual void LoadableGetVariables(std::vector<ChVariables*>& vars) override;
@@ -174,22 +184,16 @@ class ChApi ChNodeFEAxyzD : public ChNodeFEAxyz {
         ChVectorDynamic<>* state_w   ///< if != 0, update state (speed part) to this, then evaluate Q
         ) override;
 
-    // SERIALIZATION
-
-    virtual void ArchiveOut(ChArchiveOut& archive) override;
-    virtual void ArchiveIn(ChArchiveIn& archive) override;
+    unsigned int m_dof_actual;  ///< actual number of degrees of freedom
 
   protected:
-    /// Initial setup. Set number of degrees of freedom for this node.
-    virtual void SetupInitial(ChSystem* system) override;
+    /// Get mass of the node (corresponding to the slope derivative).
+    ChVectorDynamic<>& GetMassDiagonalSlope1() { return variables_D->GetMassDiagonal(); }
 
-    int m_dof_actual;  ///< actual number of degrees of freedom
-
-  private:
     ChVariablesGenericDiagonalMass* variables_D;  ///< derivative vector
-    ChVector<> D;
-    ChVector<> D_dt;
-    ChVector<> D_dtdt;
+    ChVector3d D;
+    ChVector3d D_dt;
+    ChVector3d D_dtdt;
 };
 
 /// @} fea_nodes

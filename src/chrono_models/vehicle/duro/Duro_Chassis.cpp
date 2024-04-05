@@ -31,11 +31,11 @@ namespace duro {
 // Static variables
 // -----------------------------------------------------------------------------
 const double Duro_Chassis::m_body_mass = 4900;
-const ChVector<> Duro_Chassis::m_body_inertiaXX(2629, 13484, 13502);
-const ChVector<> Duro_Chassis::m_body_inertiaXY(0, 0, 0);
-const ChVector<> Duro_Chassis::m_body_COM_loc(-2.2529, 0, 0.6586);
-const ChVector<> Duro_Chassis::m_connector_rear_loc(-3.88 - 1.37, 0, -0.3);
-const ChCoordsys<> Duro_Chassis::m_driverCsys(ChVector<>(-0.52, 0.7, 1.4), ChQuaternion<>(1, 0, 0, 0));
+const ChVector3d Duro_Chassis::m_body_inertiaXX(2629, 13484, 13502);
+const ChVector3d Duro_Chassis::m_body_inertiaXY(0, 0, 0);
+const ChVector3d Duro_Chassis::m_body_COM_loc(-2.2529, 0, 0.6586);
+const ChVector3d Duro_Chassis::m_connector_rear_loc(-3.88 - 1.37, 0, -0.3);
+const ChCoordsys<> Duro_Chassis::m_driverCsys(ChVector3d(-0.52, 0.7, 1.4), ChQuaternion<>(1, 0, 0, 0));
 
 // -----------------------------------------------------------------------------
 // -----------------------------------------------------------------------------
@@ -60,8 +60,8 @@ Duro_Chassis::Duro_Chassis(const std::string& name, bool fixed, CollisionType ch
 
     //// TODO:
     //// A more appropriate contact shape from primitives
-    ChVehicleGeometry::BoxShape box1(ChVector<>(0.0, 0.0, 0.1), ChQuaternion<>(1, 0, 0, 0), ChVector<>(2.0, 1.0, 0.2));
-    ChVehicleGeometry::BoxShape box2(ChVector<>(0.0, 0.0, 0.3), ChQuaternion<>(1, 0, 0, 0), ChVector<>(1.0, 0.5, 0.2));
+    ChVehicleGeometry::BoxShape box1(ChVector3d(0.0, 0.0, 0.1), ChQuaternion<>(1, 0, 0, 0), ChVector3d(2.0, 1.0, 0.2));
+    ChVehicleGeometry::BoxShape box2(ChVector3d(0.0, 0.0, 0.3), ChQuaternion<>(1, 0, 0, 0), ChVector3d(1.0, 0.5, 0.2));
 
     m_geometry.m_has_primitives = true;
     m_geometry.m_vis_boxes.push_back(box1);

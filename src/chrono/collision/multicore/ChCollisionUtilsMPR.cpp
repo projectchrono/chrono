@@ -20,7 +20,7 @@
 #include "chrono/collision/ChCollisionModel.h"
 
 namespace chrono {
-namespace ch_utils {
+namespace mc_utils {
 
 real3 SupportVertNoMargin(const chrono::ConvexBase* Shape, const real3& nv, const real& envelope) {
     real3 localSupport;
@@ -214,5 +214,5 @@ void FindTriIndex(const real3& P, const uvec4& T, const real3* pos_node, int& fa
     }
 }
 
-}  // end namespace ch_utils
+}  // end namespace mc_utils
 }  // end namespace chrono

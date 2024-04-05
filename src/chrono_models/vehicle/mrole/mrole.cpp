@@ -46,13 +46,13 @@ mrole::mrole()
       m_brake_locking(false),
       m_brake_type(BrakeType::SIMPLE),
       m_driveType(DrivelineTypeWV::AWD),
-m_engineType(EngineModelType::SHAFTS),
-m_transmissionType(TransmissionModelType::AUTOMATIC_SHAFTS),
- m_tireType(TireModelType::RIGID),
+      m_engineType(EngineModelType::SHAFTS),
+      m_transmissionType(TransmissionModelType::AUTOMATIC_SHAFTS),
+      m_tireType(TireModelType::RIGID),
       m_tire_collision_type(ChTire::CollisionType::SINGLE_POINT),
       m_tire_step_size(-1),
       m_initFwdVel(0),
-      m_initPos(ChCoordsys<>(ChVector<>(0, 0, 1), QUNIT)),
+      m_initPos(ChCoordsys<>(ChVector3d(0, 0, 1), QUNIT)),
       m_initOmega({0, 0, 0, 0}),
       m_ctis(CTIS::ROAD),
       m_apply_drag(false) {}
@@ -66,13 +66,13 @@ mrole::mrole(ChSystem* system)
       m_brake_locking(false),
       m_brake_type(BrakeType::SIMPLE),
       m_driveType(DrivelineTypeWV::AWD),
-m_engineType(EngineModelType::SHAFTS),
-m_transmissionType(TransmissionModelType::AUTOMATIC_SHAFTS),
-m_tireType(TireModelType::RIGID),
+      m_engineType(EngineModelType::SHAFTS),
+      m_transmissionType(TransmissionModelType::AUTOMATIC_SHAFTS),
+      m_tireType(TireModelType::RIGID),
       m_tire_collision_type(ChTire::CollisionType::SINGLE_POINT),
       m_tire_step_size(-1),
       m_initFwdVel(0),
-      m_initPos(ChCoordsys<>(ChVector<>(0, 0, 1), QUNIT)),
+      m_initPos(ChCoordsys<>(ChVector3d(0, 0, 1), QUNIT)),
       m_initOmega({0, 0, 0, 0}),
       m_ctis(CTIS::ROAD),
       m_apply_drag(false) {}
@@ -101,7 +101,7 @@ void mrole::Initialize() {
     if (m_apply_drag) {
         m_vehicle->GetChassis()->SetAerodynamicDrag(m_Cd, m_area, m_air_density);
     }
-    
+
     // Create and initialize the powertrain system
     std::shared_ptr<ChEngine> engine;
     std::shared_ptr<ChTransmission> transmission;
@@ -124,6 +124,8 @@ void mrole::Initialize() {
         case TransmissionModelType::AUTOMATIC_SIMPLE_MAP:
             transmission = chrono_types::make_shared<mrole_AutomaticTransmissionSimpleMap>("Transmission");
             break;
+        default:
+            break;
     }
 
     if (engine && transmission) {
@@ -131,7 +133,6 @@ void mrole::Initialize() {
         m_vehicle->InitializePowertrain(powertrain);
     }
 
- 
     // Create the tires and set parameters depending on type.
     switch (m_tireType) {
         case TireModelType::RIGID:

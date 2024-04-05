@@ -22,6 +22,7 @@
 
 #include "chrono_sensor/sensors/ChOptixSensor.h"
 
+
 namespace chrono {
 namespace sensor {
 
@@ -68,14 +69,15 @@ class CH_SENSOR_API ChCameraSensor : public ChOptixSensor {
     CameraLensModelType GetLensModelType() const { return m_lens_model_type; }
 
     /// returns the lens model parameters
-    /// @return LensParams struct of lens parameters. Will default to zeros for any terms not used. These are coverted for the inverse model
+    /// @return LensParams struct of lens parameters. Will default to zeros for any terms not used. These are coverted
+    /// for the inverse model
     LensParams GetLensParameters() const { return m_lens_parameters; }
 
-    /// Sets the parameters for a radial lens distortion model
-    /// Parameters should be given for the forward model
-    /// The backward distortion model will the used and calculated from the forward parameters given
+    /// @briefSets the parameters for a radial lens distortion model.
+    /// Parameters should be given for the forward model.
+    /// The backward distortion model will the used and calculated from the forward parameters given.
     /// @param params the set of 3 radial parameters (k1,k2,k3)
-    void SetRadialLensParameters(ChVector<float> params);
+    void SetRadialLensParameters(ChVector3f params);
 
     /// returns if the cemera requesting global illumination
     /// @return True if it does request
@@ -95,8 +97,20 @@ class CH_SENSOR_API ChCameraSensor : public ChOptixSensor {
     /// @return True if it does request
     bool GetUseFog() { return m_use_fog; }
 
+    /// returns the  3x3 Intrinsic Matrix(K) of the camera
+    /// @return 3x3 ChMatrix33<flaot> Intrinsic Matrix(K) of the camera
+    ChMatrix33<float> GetCameraIntrinsicMatrix();
+
+    /// returns the camera distortion coefficients k1, k2, k3
+    /// @return ChVector3f of the camera distortion coefficients k1, k2, k3
+    ChVector3f GetCameraDistortionCoefficients() { return m_distortion_params; }
+
+
     /// calculate the parameters for the inverse polynomial model
-    static LensParams CalcInvRadialModel(ChVector<float> params);
+    static LensParams CalcInvRadialModel(ChVector3f params);
+
+
+
 
   private:
     float m_hFOV;                           ///< the horizontal field of view of the sensor
@@ -105,7 +119,10 @@ class CH_SENSOR_API ChCameraSensor : public ChOptixSensor {
     bool m_use_gi;                          ///< to hold reference to whether user what to use GI or not
     float m_gamma;                          ///< holds the camera's gamma value
     bool m_use_fog;                         ///< holds whether the camera follows the scene fog model
-    LensParams m_lens_parameters;      ///< lens parameters when applicable
+    LensParams m_lens_parameters;           ///< lens parameters when applicable
+    float m_width; // width of the image formed
+    float m_height; // height of the image formed
+    ChVector3f m_distortion_params = {0.f, 0.f, 0.f};
 };
 
 /// @} sensor_sensors

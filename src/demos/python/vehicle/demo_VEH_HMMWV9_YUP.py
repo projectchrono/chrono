@@ -35,7 +35,7 @@ def main():
     hmmwv.SetContactMethod(chrono.ChContactMethod_NSC)
     hmmwv.SetChassisCollisionType(veh.CollisionType_NONE)
     hmmwv.SetChassisFixed(False) 
-    hmmwv.SetInitPosition(chrono.ChCoordsysD(initLoc, chrono.Q_from_AngY(initYaw)))
+    hmmwv.SetInitPosition(chrono.ChCoordsysd(initLoc, chrono.QuatFromAngleY(initYaw)))
     hmmwv.SetEngineType(veh.EngineModelType_SIMPLE)
     hmmwv.SetTransmissionType(veh.TransmissionModelType_AUTOMATIC_SIMPLE_MAP)
     hmmwv.SetDriveType(veh.DrivelineTypeWV_AWD)
@@ -54,10 +54,10 @@ def main():
     # Create the terrain
 
     terrain = veh.RigidTerrain(hmmwv.GetSystem())
-    patch_mat = chrono.ChMaterialSurfaceNSC()
+    patch_mat = chrono.ChContactMaterialNSC()
     patch_mat.SetFriction(0.9)
     patch = terrain.AddPatch(patch_mat, 
-                             chrono.ChCoordsysD(chrono.VNULL, chrono.Q_from_AngX(-m.pi / 2)), 
+                             chrono.ChCoordsysd(chrono.VNULL, chrono.QuatFromAngleX(-m.pi / 2)), 
                              200.0, 100.0)
     patch.SetTexture(veh.GetDataFile("terrain/textures/tile4.jpg"), 200, 200)
     patch.SetColor(chrono.ChColor(0.8, 0.8, 0.5))
@@ -68,10 +68,10 @@ def main():
     vis.SetCameraVertical(chrono.CameraVerticalDir_Y)
     vis.SetWindowTitle('HMMWV-9 YUP world frame')
     vis.SetWindowSize(1280, 1024)
-    vis.SetChaseCamera(chrono.ChVectorD(0.0, 0.0, 0.75), 6.0, 0.5)
+    vis.SetChaseCamera(chrono.ChVector3d(0.0, 0.0, 0.75), 6.0, 0.5)
     vis.Initialize()
     vis.AddLogo(chrono.GetChronoDataFile('logo_pychrono_alpha.png'))
-    vis.AddLightDirectional()
+    vis.AddLightDirectional(-60, 300)
     vis.AddSkyBox()
     vis.AttachVehicle(hmmwv.GetVehicle())
 
@@ -119,7 +119,7 @@ def main():
 veh.SetDataPath(chrono.GetChronoDataPath() + 'vehicle/')
 
 # Initial vehicle location and orientation
-initLoc = chrono.ChVectorD(0, 1, 10)
+initLoc = chrono.ChVector3d(0, 1, 10)
 initYaw = 0
 
 # Visualization type for vehicle parts (PRIMITIVES, MESH, or NONE)

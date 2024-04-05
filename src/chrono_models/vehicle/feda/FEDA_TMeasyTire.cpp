@@ -34,7 +34,7 @@ const std::string FEDA_TMeasyTire::m_meshFile_left = "feda/meshes/feda_tire_fine
 const std::string FEDA_TMeasyTire::m_meshFile_right = "feda/meshes/feda_tire_fine.obj";
 
 const double FEDA_TMeasyTire::m_mass = 56.1;
-const ChVector<> FEDA_TMeasyTire::m_inertia(10.5, 16.8, 10.5);
+const ChVector3d FEDA_TMeasyTire::m_inertia(10.5, 16.8, 10.5);
 
 // -----------------------------------------------------------------------------
 // -----------------------------------------------------------------------------
@@ -57,7 +57,7 @@ void FEDA_TMeasyTire::SetTMeasyParams() {
     m_par.mu_0 = 0.8;
     m_par.pn = 10837;
     m_par.pn_max = 37929.5;
-    SetVerticalStiffness(defl,frc);
+    SetVerticalStiffness(defl, frc);
     m_par.dz = 6188;
     m_par.dfx0_pn = 89324.1244;
     m_par.dfx0_p2n = 170911.0652;

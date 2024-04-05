@@ -48,7 +48,6 @@ using namespace chrono::sensor;
 
 using namespace chrono;
 using namespace chrono::vehicle;
-using namespace chrono::geometry;
 using namespace chrono::synchrono;
 
 // =============================================================================
@@ -64,7 +63,7 @@ VisualizationType tire_vis_type = VisualizationType::MESH;
 ChContactMethod contact_method = ChContactMethod::SMC;
 
 // Point on chassis tracked by the camera
-ChVector<> trackPoint(0.0, 0.0, 1.75);
+ChVector3d trackPoint(0.0, 0.0, 1.75);
 
 // Simulation step sizes
 double step_size = 5e-4;
@@ -195,8 +194,8 @@ int main(int argc, char* argv[]) {
     auto loc = vehicle.GetPos();
 
     // Make node_ids >= 4 start the other direction on the highway, going in a straight line
-    auto curve_pts = node_id < 4 ? std::vector<ChVector<>>({loc, loc + ChVector<>(0, 140, 0)})   //
-                                 : std::vector<ChVector<>>({loc, loc - ChVector<>(0, 140, 0)});  //
+    auto curve_pts = node_id < 4 ? std::vector<ChVector3d>({loc, loc + ChVector3d(0, 140, 0)})   //
+                                 : std::vector<ChVector3d>({loc, loc - ChVector3d(0, 140, 0)});  //
     auto path = chrono_types::make_shared<ChBezierCurve>(curve_pts);
 
     // Make node_id 2 slower so the passing looks nice, other parameters are normal car-following settings
@@ -217,7 +216,7 @@ int main(int argc, char* argv[]) {
         driver = acc_driver;
     } else {
         // If we are node_id 0 we know about a second lane's worth of points and will change lanes to it
-        std::vector<ChVector<>> curve_pts2 = {ChVector<>({6.4, -70, 0.2}), ChVector<>(6.4, 70, 0.2)};
+        std::vector<ChVector3d> curve_pts2 = {ChVector3d({6.4, -70, 0.2}), ChVector3d(6.4, 70, 0.2)};
         auto path2 = chrono_types::make_shared<ChBezierCurve>(curve_pts2);
 
         // Different driver (ChMultiPathFollowerACCDriver) needed in order to change lanes
@@ -252,7 +251,7 @@ int main(int argc, char* argv[]) {
     const bool use_sensor_vis = cli.HasValueInVector<int>("sens", node_id);
 
     std::shared_ptr<ChCameraSensor> intersection_camera;
-    ChVector<double> camera_loc(cam_x, cam_y, 15);
+    ChVector3d camera_loc(cam_x, cam_y, 15);
 
     ChSensorManager sensor_manager(vehicle.GetSystem());
     if (use_sensor_vis) {
@@ -260,13 +259,13 @@ int main(int argc, char* argv[]) {
         sensor_manager.scene->AddPointLight({-100, 100, 100}, {1, 1, 1}, 6000);
 
         auto origin = chrono_types::make_shared<ChBody>();
-        origin->SetBodyFixed(true);
+        origin->SetFixed(true);
         vehicle.GetSystem()->AddBody(origin);
 
         // Rotations to get a nice angle
         ChQuaternion<> rotation = QUNIT;
-        ChQuaternion<> qA = Q_from_AngAxis(30 * CH_C_DEG_TO_RAD, VECT_Y);
-        ChQuaternion<> qB = Q_from_AngAxis(135 * CH_C_DEG_TO_RAD, VECT_Z);
+        ChQuaternion<> qA = QuatFromAngleAxis(30 * CH_DEG_TO_RAD, VECT_Y);
+        ChQuaternion<> qB = QuatFromAngleAxis(135 * CH_DEG_TO_RAD, VECT_Z);
         rotation = rotation >> qA >> qB;
 
         intersection_camera = chrono_types::make_shared<chrono::sensor::ChCameraSensor>(
@@ -275,7 +274,7 @@ int main(int argc, char* argv[]) {
             chrono::ChFrame<double>(camera_loc, rotation),  // offset pose
             cam_res_width,                                  // image width
             cam_res_height,                                 // image height
-            (float)CH_C_PI / 3,                             // FOV
+            (float)CH_PI / 3,                               // FOV
             1,                                              // samples per pixel for antialiasing
             CameraLensModelType::PINHOLE);                  // camera type
 
@@ -341,10 +340,10 @@ int main(int argc, char* argv[]) {
         sensor_manager.Update();
         if (use_sensor_vis) {
             // Move the camera parallel to the vehicle as it goes down the road
-            camera_loc += ChVector<>(0, step_size * 7, 0);
+            camera_loc += ChVector3d(0, step_size * 7, 0);
             ChQuaternion<> rotation = QUNIT;
-            ChQuaternion<> qA = Q_from_AngAxis(30 * CH_C_DEG_TO_RAD, VECT_Y);
-            ChQuaternion<> qB = Q_from_AngAxis(135 * CH_C_DEG_TO_RAD, VECT_Z);
+            ChQuaternion<> qA = QuatFromAngleAxis(30 * CH_DEG_TO_RAD, VECT_Y);
+            ChQuaternion<> qB = QuatFromAngleAxis(135 * CH_DEG_TO_RAD, VECT_Z);
             rotation = rotation >> qA >> qB;
             intersection_camera->SetOffsetPose(chrono::ChFrame<double>(camera_loc, rotation));
         }
@@ -394,7 +393,7 @@ ChCoordsys<> GetVehicleConfig(int node_id,
                               std::string& tire,
                               std::string& zombie,
                               double& cam_distance) {
-    ChVector<> initLoc;
+    ChVector3d initLoc;
     ChQuaternion<> initRot;
     switch (node_id) {
         case 0:
@@ -403,8 +402,8 @@ ChCoordsys<> GetVehicleConfig(int node_id,
             transmission = vehicle::GetDataFile("sedan/powertrain/Sedan_AutomaticTransmissionSimpleMap.json");
             tire = vehicle::GetDataFile("sedan/tire/Sedan_TMeasyTire.json");
             zombie = synchrono::GetDataFile("vehicle/Sedan.json");
-            initLoc = ChVector<>(2.8, -70, 0.2);
-            initRot = Q_from_AngZ(90 * CH_C_DEG_TO_RAD);
+            initLoc = ChVector3d(2.8, -70, 0.2);
+            initRot = QuatFromAngleZ(90 * CH_DEG_TO_RAD);
             cam_distance = 6.0;
             break;
         case 1:
@@ -413,8 +412,8 @@ ChCoordsys<> GetVehicleConfig(int node_id,
             transmission = vehicle::GetDataFile("sedan/powertrain/Sedan_AutomaticTransmissionSimpleMap.json");
             tire = vehicle::GetDataFile("sedan/tire/Sedan_TMeasyTire.json");
             zombie = synchrono::GetDataFile("vehicle/Sedan.json");
-            initLoc = ChVector<>(2.8, -40, 0.2);
-            initRot = Q_from_AngZ(90 * CH_C_DEG_TO_RAD);
+            initLoc = ChVector3d(2.8, -40, 0.2);
+            initRot = QuatFromAngleZ(90 * CH_DEG_TO_RAD);
             cam_distance = 6.0;
             break;
         case 2:
@@ -423,8 +422,8 @@ ChCoordsys<> GetVehicleConfig(int node_id,
             transmission = vehicle::GetDataFile("citybus/powertrain/CityBus_AutomaticTransmissionSimpleMap.json");
             tire = vehicle::GetDataFile("citybus/tire/CityBus_TMeasyTire.json");
             zombie = synchrono::GetDataFile("vehicle/CityBus.json");
-            initLoc = ChVector<>(6.4, 0, 0.2);
-            initRot = Q_from_AngZ(90 * CH_C_DEG_TO_RAD);
+            initLoc = ChVector3d(6.4, 0, 0.2);
+            initRot = QuatFromAngleZ(90 * CH_DEG_TO_RAD);
             cam_distance = 14.0;
             break;
         default:
@@ -434,7 +433,7 @@ ChCoordsys<> GetVehicleConfig(int node_id,
                 transmission = vehicle::GetDataFile("sedan/powertrain/Sedan_AutomaticTransmissionSimpleMap.json");
                 tire = vehicle::GetDataFile("sedan/tire/Sedan_TMeasyTire.json");
                 zombie = synchrono::GetDataFile("vehicle/Sedan.json");
-                initLoc = ChVector<>(-2.8, 70.0 - (node_id - 4.0) * 30, 0.2);
+                initLoc = ChVector3d(-2.8, 70.0 - (node_id - 4.0) * 30, 0.2);
                 cam_distance = 6.0;
             } else {
                 vehicle = vehicle::GetDataFile("citybus/vehicle/CityBus_Vehicle.json");
@@ -442,10 +441,10 @@ ChCoordsys<> GetVehicleConfig(int node_id,
                 transmission = vehicle::GetDataFile("citybus/powertrain/CityBus_AutomaticTransmissionSimpleMap.json");
                 tire = vehicle::GetDataFile("citybus/tire/CityBus_TMeasyTire.json");
                 zombie = synchrono::GetDataFile("vehicle/CityBus.json");
-                initLoc = ChVector<>(-6.4, 70.0 - (node_id - 4.0) * 30, 0.2);
+                initLoc = ChVector3d(-6.4, 70.0 - (node_id - 4.0) * 30, 0.2);
                 cam_distance = 14.0;
             }
-            initRot = Q_from_AngZ(-90 * CH_C_DEG_TO_RAD);
+            initRot = QuatFromAngleZ(-90 * CH_DEG_TO_RAD);
     }
 
     return ChCoordsys<>(initLoc, initRot);

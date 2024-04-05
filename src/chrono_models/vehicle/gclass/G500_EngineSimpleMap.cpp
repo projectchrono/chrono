@@ -25,7 +25,7 @@ namespace chrono {
 namespace vehicle {
 namespace gclass {
 
-const double rpm2rads = CH_C_PI / 30;
+const double rpm2rads = CH_PI / 30;
 
 G500_EngineSimpleMap::G500_EngineSimpleMap(const std::string& name) : ChEngineSimpleMap(name) {}
 
@@ -33,7 +33,7 @@ double G500_EngineSimpleMap::GetMaxEngineSpeed() {
     return 5900 * rpm2rads;
 }
 
-void G500_EngineSimpleMap::SetEngineTorqueMaps(ChFunction_Recorder& map0, ChFunction_Recorder& mapF) {
+void G500_EngineSimpleMap::SetEngineTorqueMaps(ChFunctionInterp& map0, ChFunctionInterp& mapF) {
     // Mercedes 4.0 litre V8 (M 176) 310kW
     map0.AddPoint(-10.0, 0.0);
     map0.AddPoint(10.0, 0.0);
@@ -61,7 +61,6 @@ void G500_EngineSimpleMap::SetEngineTorqueMaps(ChFunction_Recorder& map0, ChFunc
     mapF.AddPoint(rpm2rads * 5950.0, -200.0);
 }
 
-}  // namespace uaz
+}  // namespace gclass
 }  // end namespace vehicle
 }  // end namespace chrono
-

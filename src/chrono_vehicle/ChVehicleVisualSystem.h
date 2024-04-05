@@ -41,7 +41,7 @@ class CH_VEHICLE_API ChVehicleVisualSystem : virtual public ChVisualSystem {
     virtual void AttachVehicle(vehicle::ChVehicle* vehicle);
 
     /// Set parameters for the underlying chase camera.
-    void SetChaseCamera(const ChVector<>& ptOnChassis,  ///< tracked point on chassis body (in vehicle reference frame)
+    void SetChaseCamera(const ChVector3d& ptOnChassis,  ///< tracked point on chassis body (in vehicle reference frame)
                         double chaseDist,               ///< chase distance (behind tracked point)
                         double chaseHeight              ///< chase height (above tracked point)
     );
@@ -51,7 +51,7 @@ class CH_VEHICLE_API ChVehicleVisualSystem : virtual public ChVisualSystem {
     void SetChaseCameraState(utils::ChChaseCamera::State state);
     /// Set camera position.
     /// Note that this forces the chase-cam in Track mode.
-    void SetChaseCameraPosition(const ChVector<>& pos);
+    void SetChaseCameraPosition(const ChVector3d& pos);
     /// Set camera angle.
     void SetChaseCameraAngle(double angle);
     /// Set camera zoom multipliers.
@@ -63,8 +63,9 @@ class CH_VEHICLE_API ChVehicleVisualSystem : virtual public ChVisualSystem {
     /// Advance (optional) dynamics of the visualization system.
     virtual void Advance(double step) {}
 
-    /// Return the RTF calculated by the associated vehicle.
-    virtual double GetSimulationRTF() const override;
+    /// Return the step RTF calculated by the associated vehicle (step time / simulated time).
+    /// See ChVehicle::GetStepRTF
+    double GetStepRTF() const;
 
     const ChVehicle& GetVehicle() const { return *m_vehicle; }
     const utils::ChChaseCamera& GetChaseCamera() const { return *m_camera; }
@@ -78,11 +79,11 @@ class CH_VEHICLE_API ChVehicleVisualSystem : virtual public ChVisualSystem {
 
     std::unique_ptr<utils::ChChaseCamera> m_camera;  ///< chase camera
     double m_stepsize;                               ///< integration step size for chase-cam dynamics
-    ChVector<> m_camera_point;                       ///< point on tracked body
+    ChVector3d m_camera_point;                       ///< point on tracked body
     double m_camera_dist;                            ///< camera chase distance
     double m_camera_height;                          ///< camera chase height
     utils::ChChaseCamera::State m_camera_state;      ///< initial camera state
-    ChVector<> m_camera_pos;                         ///< initial camera position
+    ChVector3d m_camera_pos;                         ///< initial camera position
     double m_camera_angle;                           ///< initial camera angle;
     double m_camera_minMult;                         ///< initial camera minimum multiplier
     double m_camera_maxMult;                         ///< initial camera maximum multiplier

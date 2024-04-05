@@ -21,7 +21,7 @@
 #define CH_TRACK_BRAKE_SIMPLE_H
 
 #include "chrono/physics/ChSystem.h"
-#include "chrono/physics/ChLinkBrake.h"
+#include "chrono/physics/ChLinkLockBrake.h"
 
 #include "chrono_vehicle/tracked_vehicle/ChTrackBrake.h"
 
@@ -35,7 +35,7 @@ namespace vehicle {
 class CH_VEHICLE_API ChTrackBrakeSimple : public ChTrackBrake {
   public:
     ChTrackBrakeSimple(const std::string& name  ///< [in] name of the subsystem
-                       );
+    );
 
     virtual ~ChTrackBrakeSimple();
 
@@ -58,14 +58,14 @@ class CH_VEHICLE_API ChTrackBrakeSimple : public ChTrackBrake {
     virtual double GetBrakeTorque() override { return m_braking * GetMaxBrakingTorque(); }
 
     /// Get the current brake angular speed (between disc and caliper) [rad/s].
-    double GetBrakeSpeed() { return m_brake->GetRelWvel().Length(); }
+    double GetBrakeSpeed() { return m_brake->GetRelativeAngVel().Length(); }
 
   protected:
     /// Get the max braking torque (for braking = 1)
     virtual double GetMaxBrakingTorque() = 0;
 
     double m_braking;
-    std::shared_ptr<ChLinkBrake> m_brake;
+    std::shared_ptr<ChLinkLockBrake> m_brake;
 };
 
 /// @} vehicle_tracked_brake

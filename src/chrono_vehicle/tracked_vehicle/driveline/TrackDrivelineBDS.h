@@ -13,7 +13,7 @@
 // =============================================================================
 //
 // Track driveline model template based on ChShaft objects using data from file
-// (JSON format). 
+// (JSON format).
 //
 // =============================================================================
 

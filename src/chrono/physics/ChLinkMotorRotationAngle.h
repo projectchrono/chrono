@@ -30,7 +30,6 @@ namespace chrono {
 /// control assumption  is a good approximation of what you simulate (e.g., very good and reactive controllers).
 /// By default it is initialized with linear ramp: df/dt= 1.
 /// Use SetAngleFunction() to change to other motion functions.
-
 class ChApi ChLinkMotorRotationAngle : public ChLinkMotorRotation {
   public:
     ChLinkMotorRotationAngle();
@@ -59,30 +58,22 @@ class ChApi ChLinkMotorRotationAngle : public ChLinkMotorRotation {
     /// Get the current actuator reaction torque [Nm]
     virtual double GetMotorTorque() const override { return -this->react_torque.z(); }
 
-    void Update(double mytime, bool update_assets) override;
-
-    //
-    // STATE FUNCTIONS
-    //
-    virtual void IntLoadConstraint_Ct(const unsigned int off, ChVectorDynamic<>& Qc, const double c) override;
-
-    //
-    // SOLVER INTERFACE (OLD)
-    //
-    virtual void ConstraintsBiLoad_Ct(double factor = 1) override;
-
-    /// Add the current stiffness K matrix in encapsulated ChKblock item(s), if any.
-    /// The K matrices are load with scaling values Kfactor.
-    virtual void KRMmatricesLoad(double Kfactor, double Rfactor, double Mfactor) override;
+    /// Add the current stiffness K matrix in encapsulated ChKRMBlock item(s), if any.
+    /// The K matrix is loaded with scaling value Kfactor.
+    virtual void LoadKRMMatrices(double Kfactor, double Rfactor, double Mfactor) override;
 
     /// Method to allow serialization of transient data to archives.
-    virtual void ArchiveOut(ChArchiveOut& marchive) override;
+    virtual void ArchiveOut(ChArchiveOut& archive_out) override;
 
     /// Method to allow deserialization of transient data from archives.
-    virtual void ArchiveIn(ChArchiveIn& marchive) override;
+    virtual void ArchiveIn(ChArchiveIn& archive_in) override;
 
   private:
     double rot_offset;
+
+    virtual void Update(double mytime, bool update_assets) override;
+    virtual void IntLoadConstraint_Ct(const unsigned int off, ChVectorDynamic<>& Qc, const double c) override;
+    virtual void ConstraintsBiLoad_Ct(double factor = 1) override;
 };
 
 CH_CLASS_VERSION(ChLinkMotorRotationAngle, 0)

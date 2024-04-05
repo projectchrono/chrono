@@ -51,50 +51,48 @@ class MySpringTorque : public ChLinkRSDA::TorqueFunctor {
 // =============================================================================
 
 int main(int argc, char* argv[]) {
-    GetLog() << "Copyright (c) 2017 projectchrono.org\nChrono version: " << CHRONO_VERSION << "\n\n";
+    std::cout << "Copyright (c) 2017 projectchrono.org\nChrono version: " << CHRONO_VERSION << std::endl;
 
     ChSystemNSC sys;
-    sys.Set_G_acc(ChVector<>(0, 0, 0));
+    sys.SetGravitationalAcceleration(ChVector3d(0, 0, 0));
 
     // ChQuaternion<> rev_rot = QUNIT;
-    ChQuaternion<> rev_rot = Q_from_AngX(CH_C_PI / 6.0);
-    // ChQuaternion<> rev_rot = Q_from_AngX(CH_C_PI / 2.0);
+    ChQuaternion<> rev_rot = QuatFromAngleX(CH_PI / 6.0);
+    // ChQuaternion<> rev_rot = QuatFromAngleX(CH_PI / 2.0);
 
-    ChVector<> rev_dir = rev_rot.GetZaxis();
+    ChVector3d rev_dir = rev_rot.GetAxisZ();
 
-    ChVector<> rev_pos(+1, 0, 0);
+    ChVector3d rev_pos(+1, 0, 0);
 
     // Create ground body
     auto ground = chrono_types::make_shared<ChBody>();
     sys.AddBody(ground);
-    ground->SetIdentifier(-1);
-    ground->SetBodyFixed(true);
-    ground->SetCollide(false);
+    ground->SetFixed(true);
+    ground->EnableCollision(false);
 
     // Visualization for revolute joint
-    geometry::ChLineSegment seg(rev_pos + 0.2 * rev_dir, rev_pos - 0.2 * rev_dir);
+    ChLineSegment seg(rev_pos + 0.2 * rev_dir, rev_pos - 0.2 * rev_dir);
     auto cyl_rev = chrono_types::make_shared<ChVisualShapeCylinder>(0.1, seg.GetLength());
     ground->AddVisualShape(cyl_rev, seg.GetFrame());
 
     // Offset from joint to body COM
-    ChVector<> offset(1.5, 0, 0);
+    ChVector3d offset(1.5, 0, 0);
 
     // Consistent initial velocities
     double omega = 5.0;
-    ChVector<> ang_vel = omega * rev_dir;
-    ChVector<> lin_vel = Vcross(ang_vel, offset);
+    ChVector3d ang_vel = omega * rev_dir;
+    ChVector3d lin_vel = Vcross(ang_vel, offset);
 
     // Create pendulum body
     auto body = chrono_types::make_shared<ChBody>();
     sys.AddBody(body);
     body->SetPos(rev_pos + offset);
-    body->SetPos_dt(lin_vel);
-    body->SetWvel_par(ang_vel);
-    body->SetIdentifier(1);
-    body->SetBodyFixed(false);
-    body->SetCollide(false);
+    body->SetPosDt(lin_vel);
+    body->SetAngVelParent(ang_vel);
+    body->SetFixed(false);
+    body->EnableCollision(false);
     body->SetMass(1);
-    body->SetInertiaXX(ChVector<>(1, 1, 1));
+    body->SetInertiaXX(ChVector3d(1, 1, 1));
 
     // Attach visualization assets
     auto sph = chrono_types::make_shared<ChVisualShapeSphere>(0.3);
@@ -103,22 +101,22 @@ int main(int argc, char* argv[]) {
 
     auto cyl = chrono_types::make_shared<ChVisualShapeCylinder>(0.1, 1.5);
     cyl->SetColor(ChColor(0.7f, 0.8f, 0.8f));
-    body->AddVisualShape(cyl, ChFrame<>(ChVector<>(-0.75, 0, 0), Q_from_AngY(CH_C_PI_2)));
+    body->AddVisualShape(cyl, ChFrame<>(ChVector3d(-0.75, 0, 0), QuatFromAngleY(CH_PI_2)));
 
     // Create revolute joint between body and ground
     auto rev = chrono_types::make_shared<ChLinkLockRevolute>();
-    rev->Initialize(body, ground, ChCoordsys<>(rev_pos, rev_rot));
+    rev->Initialize(body, ground, ChFrame<>(rev_pos, rev_rot));
     sys.AddLink(rev);
 
     // Create the rotational spring between body and ground
     double spring_coef = 40;
     double damping_coef = 2;
-    double rest_angle = CH_C_PI / 6;
+    double rest_angle = CH_PI / 6;
 
     auto torque_functor = chrono_types::make_shared<MySpringTorque>(spring_coef, damping_coef);
     auto spring = chrono_types::make_shared<ChLinkRSDA>();
     spring->SetRestAngle(rest_angle);
-    spring->Initialize(body, ground, ChCoordsys<>(rev_pos, rev_rot));
+    spring->Initialize(body, ground, ChFrame<>(rev_pos, rev_rot));
     spring->AddVisualShape(chrono_types::make_shared<ChVisualShapeRotSpring>(0.5, 100));
     spring->RegisterTorqueFunctor(torque_functor);
     sys.AddLink(spring);
@@ -131,15 +129,13 @@ int main(int argc, char* argv[]) {
     vis->Initialize();
     vis->AddLogo();
     vis->AddSkyBox();
-    vis->AddCamera(ChVector<>(3, 1, 3));
+    vis->AddCamera(ChVector3d(3, 1, 3));
     vis->AddTypicalLights();
     vis->EnableBodyFrameDrawing(true);
     vis->EnableLinkFrameDrawing(true);
 
     // Simulation loop
     int frame = 0;
-
-    GetLog().SetNumFormat("%10.3f");
 
     while (vis->Run()) {
         vis->BeginScene();
@@ -149,14 +145,14 @@ int main(int argc, char* argv[]) {
         sys.DoStepDynamics(1e-3);
 
         if (frame % 50 == 0) {
-            GetLog() << sys.GetChTime() << "\n";
-            GetLog() << "Body position" << body->GetPos() << "\n";
-            GetLog() << "Body lin. vel." << body->GetPos_dt() << "\n";
-            GetLog() << "Body absolute ang. vel." << body->GetWvel_par() << "\n";
-            GetLog() << "Body local ang. vel." << body->GetWvel_loc() << "\n";
-            GetLog() << "Rot. spring-damper  " << spring->GetAngle() << "  " << spring->GetVelocity() << "  "
-                     << spring->GetTorque() << "\n";
-            GetLog() << "---------------\n\n";
+            std::cout << sys.GetChTime() << "\n";
+            std::cout << "Body position" << body->GetPos() << "\n";
+            std::cout << "Body lin. vel." << body->GetPosDt() << "\n";
+            std::cout << "Body absolute ang. vel." << body->GetAngVelParent() << "\n";
+            std::cout << "Body local ang. vel." << body->GetAngVelLocal() << "\n";
+            std::cout << "Rot. spring-damper  " << spring->GetAngle() << "  " << spring->GetVelocity() << "  "
+                      << spring->GetTorque() << "\n";
+            std::cout << "---------------\n\n";
         }
 
         frame++;

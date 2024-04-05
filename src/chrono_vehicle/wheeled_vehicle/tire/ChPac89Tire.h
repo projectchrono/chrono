@@ -75,7 +75,7 @@ class CH_VEHICLE_API ChPac89Tire : public ChForceElementTire {
 
     /// Get the camber angle used in Pac89 (expressed in radians).
     /// The reported value will be similar to that reported by ChTire::GetCamberAngle.
-    double GetCamberAngle_internal() { return m_gamma * CH_C_DEG_TO_RAD; }
+    double GetCamberAngle_internal() { return m_gamma * CH_DEG_TO_RAD; }
 
   protected:
     /// Set the parameters in the Pac89 model.
@@ -178,7 +178,7 @@ class CH_VEHICLE_API ChPac89Tire : public ChForceElementTire {
         double R_eff;            // Effective Radius
         double brx{0};           // bristle deformation x
         double bry{0};           // bristle deformation y
-        ChVector<> disc_normal;  //(temporary for debug)
+        ChVector3d disc_normal;  //(temporary for debug)
     };
 
     TireStates m_states;

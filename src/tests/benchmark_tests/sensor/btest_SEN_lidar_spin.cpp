@@ -36,13 +36,12 @@
 #include "chrono_sensor/filters/ChFilterLidarNoise.h"
 
 using namespace chrono;
-using namespace chrono::geometry;
 using namespace chrono::sensor;
 
 float end_time = 100.0f;
 
 int main(int argc, char* argv[]) {
-    GetLog() << "Copyright (c) 2019 projectchrono.org\nChrono version: " << CHRONO_VERSION << "\n\n";
+    std::cout << "Copyright (c) 2019 projectchrono.org\nChrono version: " << CHRONO_VERSION << std::endl;
 
     // -----------------
     // Create the system
@@ -55,12 +54,12 @@ int main(int argc, char* argv[]) {
 
     auto floor = std::make_shared<ChBodyEasyBox>(100, 100, .01, 1000, true, false);
     floor->SetPos({0, 0, 0});
-    floor->SetBodyFixed(true);
+    floor->SetFixed(true);
     sys.Add(floor);
 
     auto cart = std::make_shared<ChBodyEasyBox>(1, 1, 1, 1000, false, false);
     cart->SetPos({0, 0, 1});
-    cart->SetBodyFixed(true);
+    cart->SetFixed(true);
     sys.Add(cart);
 
     // create alternating walls on left and right
@@ -68,16 +67,16 @@ int main(int argc, char* argv[]) {
     int walls = 1000;
     float wall_size = .5;
     for (int i = 0; i < walls; i++) {
-        auto wall_body = std::make_shared<ChBodyEasyCylinder>(geometry::ChAxis::Y, wall_size, 1, 1000, true, true);
+        auto wall_body = std::make_shared<ChBodyEasyCylinder>(ChAxis::Y, wall_size, 1, 1000, true, true);
         wall_body->SetPos({4 * i * wall_size, 4, wall_size / 2});
-        wall_body->SetRot(Q_from_AngX(CH_C_PI / 2));
-        wall_body->SetBodyFixed(true);
+        wall_body->SetRot(QuatFromAngleX(CH_PI / 2));
+        wall_body->SetFixed(true);
         sys.Add(wall_body);
 
-        auto wall_body1 = std::make_shared<ChBodyEasyCylinder>(geometry::ChAxis::Y, wall_size, 1, 1000, true, true);
+        auto wall_body1 = std::make_shared<ChBodyEasyCylinder>(ChAxis::Y, wall_size, 1, 1000, true, true);
         wall_body1->SetPos({4 * i * wall_size, -4, wall_size / 2});
-        wall_body1->SetRot(Q_from_AngX(CH_C_PI / 2));
-        wall_body1->SetBodyFixed(true);
+        wall_body1->SetRot(QuatFromAngleX(CH_PI / 2));
+        wall_body1->SetFixed(true);
         sys.Add(wall_body1);
     }
 
@@ -93,13 +92,13 @@ int main(int argc, char* argv[]) {
     // ------------------------------------------------
 
     auto lidar1 = std::make_shared<ChLidarSensor>(
-        cart,                                                              // body lidar is attached to
-        1.0f,                                                              // scanning rate in Hz
-        chrono::ChFrame<double>({0, 0, 0}, Q_from_AngAxis(0, {0, 1, 0})),  // offset pose
-        1000,                                                              // number of horizontal samples
-        10,                                                                // number of vertical channels
-        2 * (float)CH_C_PI,                                                // horizontal field of view
-        0.1f, -0.1f, 100.0f, LidarBeamShape::RECTANGULAR                   // vertical field of view
+        cart,                                                                 // body lidar is attached to
+        1.0f,                                                                 // scanning rate in Hz
+        chrono::ChFrame<double>({0, 0, 0}, QuatFromAngleAxis(0, {0, 1, 0})),  // offset pose
+        1000,                                                                 // number of horizontal samples
+        10,                                                                   // number of vertical channels
+        2 * (float)CH_PI,                                                     // horizontal field of view
+        0.1f, -0.1f, 100.0f, LidarBeamShape::RECTANGULAR                      // vertical field of view
     );
     lidar1->SetName("Lidar Sensor");
     lidar1->SetLag(1);
@@ -109,12 +108,12 @@ int main(int argc, char* argv[]) {
     manager->AddSensor(lidar1);
 
     auto camera = std::make_shared<ChCameraSensor>(
-        cart,                                                              // body lidar is attached to
-        10.0f,                                                             // scanning rate in Hz
-        chrono::ChFrame<double>({0, 0, 0}, Q_from_AngAxis(0, {0, 1, 0})),  // offset pose
-        1280,                                                              // number of horizontal samples
-        720,                                                               // number of vertical channels
-        (float)CH_C_PI / 4                                                 // horizontal field of view
+        cart,                                                                 // body lidar is attached to
+        10.0f,                                                                // scanning rate in Hz
+        chrono::ChFrame<double>({0, 0, 0}, QuatFromAngleAxis(0, {0, 1, 0})),  // offset pose
+        1280,                                                                 // number of horizontal samples
+        720,                                                                  // number of vertical channels
+        (float)CH_PI / 4                                                      // horizontal field of view
     );
     camera->SetName("Camera Sensor");
     camera->SetLag(0);
@@ -126,7 +125,7 @@ int main(int argc, char* argv[]) {
 
     while (sys.GetChTime() < end_time) {
         // move the cart
-        cart->SetPos(cart->GetPos() + ChVector<>({speed * step_size, 0, 0}));
+        cart->SetPos(cart->GetPos() + ChVector3d({speed * step_size, 0, 0}));
 
         manager->Update();
         sys.DoStepDynamics(step_size);

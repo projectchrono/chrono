@@ -33,7 +33,7 @@ using namespace chrono::vehicle;
 using namespace chrono::vehicle::sedan;
 
 int main(int argc, char* argv[]) {
-    GetLog() << "Copyright (c) 2017 projectchrono.org\nChrono version: " << CHRONO_VERSION << "\n\n";
+    std::cout << "Copyright (c) 2017 projectchrono.org\nChrono version: " << CHRONO_VERSION << std::endl;
 
     // --------------
     // Create systems
@@ -44,7 +44,7 @@ int main(int argc, char* argv[]) {
     sedan.SetContactMethod(ChContactMethod::SMC);
     sedan.SetChassisCollisionType(CollisionType::NONE);
     sedan.SetChassisFixed(false);
-    sedan.SetInitPosition(ChCoordsys<>(ChVector<>(-30, -30, 1.0), Q_from_AngZ(CH_C_PI / 4)));
+    sedan.SetInitPosition(ChCoordsys<>(ChVector3d(-30, -30, 1.0), QuatFromAngleZ(CH_PI / 4)));
     sedan.SetTireType(TireModelType::TMEASY);
     sedan.Initialize();
 
@@ -75,7 +75,7 @@ int main(int argc, char* argv[]) {
     // Create the vehicle Irrlicht interface
     auto vis = chrono_types::make_shared<ChWheeledVehicleVisualSystemIrrlicht>();
     vis->SetWindowTitle("Sedan AI Demo");
-    vis->SetChaseCamera(ChVector<>(0.0, 0.0, 1.75), 6.0, 0.5);
+    vis->SetChaseCamera(ChVector3d(0.0, 0.0, 1.75), 6.0, 0.5);
     vis->Initialize();
     vis->AddLightDirectional();
     vis->AddSkyBox();

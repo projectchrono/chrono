@@ -36,7 +36,7 @@ class CH_MODELS_API MTV_Solid3LinkAxle1 : public ChSolidThreeLinkAxle {
     ~MTV_Solid3LinkAxle1() {}
 
   protected:
-    virtual const ChVector<> getLocation(PointId which) override;
+    virtual const ChVector3d getLocation(PointId which) override;
 
     virtual double getAxleTubeMass() const override { return m_axleTubeMass; }
     virtual double getSpindleMass() const override { return m_spindleMass; }
@@ -47,12 +47,12 @@ class CH_MODELS_API MTV_Solid3LinkAxle1 : public ChSolidThreeLinkAxle {
     virtual double getSpindleRadius() const override { return m_spindleRadius; }
     virtual double getSpindleWidth() const override { return m_spindleWidth; }
 
-    virtual const ChVector<> getAxleTubeCOM() const override { return ChVector<>(0, 0, 0); }
+    virtual const ChVector3d getAxleTubeCOM() const override { return ChVector3d(0, 0, 0); }
 
-    virtual const ChVector<>& getAxleTubeInertia() const override { return m_axleTubeInertia; }
-    virtual const ChVector<>& getSpindleInertia() const override { return m_spindleInertia; }
-    virtual const ChVector<>& getTriangleInertia() const override { return m_triangleInertia; }
-    virtual const ChVector<>& getLinkInertia() const override { return m_linkInertia; }
+    virtual const ChVector3d& getAxleTubeInertia() const override { return m_axleTubeInertia; }
+    virtual const ChVector3d& getSpindleInertia() const override { return m_spindleInertia; }
+    virtual const ChVector3d& getTriangleInertia() const override { return m_triangleInertia; }
+    virtual const ChVector3d& getLinkInertia() const override { return m_linkInertia; }
 
     virtual double getAxleInertia() const override { return m_axleShaftInertia; }
 
@@ -77,10 +77,10 @@ class CH_MODELS_API MTV_Solid3LinkAxle1 : public ChSolidThreeLinkAxle {
     static const double m_spindleRadius;
     static const double m_spindleWidth;
 
-    static const ChVector<> m_axleTubeInertia;
-    static const ChVector<> m_spindleInertia;
-    static const ChVector<> m_triangleInertia;
-    static const ChVector<> m_linkInertia;
+    static const ChVector3d m_axleTubeInertia;
+    static const ChVector3d m_spindleInertia;
+    static const ChVector3d m_triangleInertia;
+    static const ChVector3d m_linkInertia;
 
     static const double m_springCoefficient;
     static const double m_springRestLength;

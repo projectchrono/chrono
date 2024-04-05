@@ -52,11 +52,11 @@ class CH_MODELS_API Gator_SingleWishbone : public ChSingleWishbone {
     virtual double getCARadius() const override { return m_CARadius; }
     virtual double getUprightRadius() const override { return m_uprightRadius; }
 
-    virtual const ChVector<>& getSpindleInertia() const override { return m_spindleInertia; }
-    virtual const ChVector<>& getCAInertiaMoments() const override { return m_CAInertiaMoments; }
-    virtual const ChVector<>& getCAInertiaProducts() const override { return m_CAInertiaProducts; }
-    virtual const ChVector<>& getUprightInertiaMoments() const override { return m_uprightInertiaMoments; }
-    virtual const ChVector<>& getUprightInertiaProducts() const override { return m_uprightInertiaProducts; }
+    virtual const ChVector3d& getSpindleInertia() const override { return m_spindleInertia; }
+    virtual const ChVector3d& getCAInertiaMoments() const override { return m_CAInertiaMoments; }
+    virtual const ChVector3d& getCAInertiaProducts() const override { return m_CAInertiaProducts; }
+    virtual const ChVector3d& getUprightInertiaMoments() const override { return m_uprightInertiaMoments; }
+    virtual const ChVector3d& getUprightInertiaProducts() const override { return m_uprightInertiaProducts; }
 
     virtual double getAxleInertia() const override { return m_axleInertia; }
 
@@ -64,7 +64,7 @@ class CH_MODELS_API Gator_SingleWishbone : public ChSingleWishbone {
     virtual std::shared_ptr<ChLinkTSDA::ForceFunctor> getShockForceFunctor() const override { return m_shockForceCB; }
 
   private:
-    virtual const ChVector<> getLocation(PointId which) override;
+    virtual const ChVector3d getLocation(PointId which) override;
 
     std::shared_ptr<ChLinkTSDA::ForceFunctor> m_shockForceCB;
 
@@ -77,11 +77,11 @@ class CH_MODELS_API Gator_SingleWishbone : public ChSingleWishbone {
     static const double m_uprightRadius;
     static const double m_CARadius;
 
-    static const ChVector<> m_spindleInertia;
-    static const ChVector<> m_CAInertiaMoments;
-    static const ChVector<> m_CAInertiaProducts;
-    static const ChVector<> m_uprightInertiaMoments;
-    static const ChVector<> m_uprightInertiaProducts;
+    static const ChVector3d m_spindleInertia;
+    static const ChVector3d m_CAInertiaMoments;
+    static const ChVector3d m_CAInertiaProducts;
+    static const ChVector3d m_uprightInertiaMoments;
+    static const ChVector3d m_uprightInertiaProducts;
 
     static const double m_axleInertia;
 

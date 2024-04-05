@@ -17,7 +17,7 @@
 // The global reference frame has Z up.
 // =============================================================================
 
-// Run benchamrk tests for a number of threads between MIN and MAX (inclusive) 
+// Run benchamrk tests for a number of threads between MIN and MAX (inclusive)
 // in increments of STEP.
 #define TEST_MIN_THREADS 1
 #define TEST_MAX_THREADS 16
@@ -64,7 +64,7 @@ SettlingSMC::SettlingSMC() : m_system(new ChSystemMulticoreSMC), m_step(1e-3) {
     real tolerance = 1e-3;
 
     // Set gravitational acceleration
-    m_system->Set_G_acc(ChVector<>(0, 0, -gravity));
+    m_system->SetGravitationalAcceleration(ChVector3d(0, 0, -gravity));
 
     // Set solver parameters
     m_system->GetSettings()->solver.max_iteration_bilateral = max_iteration;
@@ -82,26 +82,26 @@ SettlingSMC::SettlingSMC() : m_system(new ChSystemMulticoreSMC), m_step(1e-3) {
     float mu = 0.4f;
     float cr = 0.4f;
     // Create a common material
-    auto mat = chrono_types::make_shared<ChMaterialSurfaceSMC>();
+    auto mat = chrono_types::make_shared<ChContactMaterialSMC>();
     mat->SetYoungModulus(Y);
     mat->SetFriction(mu);
     mat->SetRestitution(cr);
     mat->SetAdhesion(0);
 
     // Container half-dimensions
-    ChVector<> hdim(2, 2, 0.5);
+    ChVector3d hdim(2, 2, 0.5);
 
     // Create a bin consisting of five boxes attached to the ground.
     auto bin = chrono_types::make_shared<ChBody>();
     bin->SetMass(1);
-    bin->SetPos(ChVector<>(0, 0, 0));
-    bin->SetCollide(true);
-    bin->SetBodyFixed(true);
+    bin->SetPos(ChVector3d(0, 0, 0));
+    bin->EnableCollision(true);
+    bin->SetFixed(true);
 
     utils::AddBoxContainer(bin, mat,                                      //
-                           ChFrame<>(ChVector<>(0, 0, hdim.z()), QUNIT),  //
+                           ChFrame<>(ChVector3d(0, 0, hdim.z()), QUNIT),  //
                            hdim * 2, 0.2,                                 //
-                           ChVector<int>(2, 2, -1));
+                           ChVector3i(2, 2, -1));
 
     m_system->AddBody(bin);
 
@@ -112,22 +112,22 @@ SettlingSMC::SettlingSMC() : m_system(new ChSystemMulticoreSMC), m_step(1e-3) {
 
     // Create a particle generator and a mixture entirely made out of spheres
     double r = 1.01 * radius;
-    utils::PDSampler<double> sampler(2 * r);
-    utils::Generator gen(m_system);
-    std::shared_ptr<utils::MixtureIngredient> m1 = gen.AddMixtureIngredient(utils::MixtureType::SPHERE, 1.0);
-    m1->setDefaultMaterial(mat);
-    m1->setDefaultDensity(rho);
-    m1->setDefaultSize(radius);
+    utils::ChPDSampler<double> sampler(2 * r);
+    utils::ChGenerator gen(m_system);
+    std::shared_ptr<utils::ChMixtureIngredient> m1 = gen.AddMixtureIngredient(utils::MixtureType::SPHERE, 1.0);
+    m1->SetDefaultMaterial(mat);
+    m1->SetDefaultDensity(rho);
+    m1->SetDefaultSize(radius);
 
     // Create particles in layers until reaching the desired number of particles
-    ChVector<> range(hdim.x() - r, hdim.y() - r, 0);
-    ChVector<> center(0, 0, 2 * r);
+    ChVector3d range(hdim.x() - r, hdim.y() - r, 0);
+    ChVector3d center(0, 0, 2 * r);
     for (int il = 0; il < num_layers; il++) {
         gen.CreateObjectsBox(sampler, center, range);
         center.z() += 2 * r;
     }
 
-    m_num_particles = gen.getTotalNumBodies();
+    m_num_particles = gen.GetTotalNumBodies();
 }
 
 // Run settling simulation with visualization
@@ -139,7 +139,7 @@ void SettlingSMC::SimulateVis() {
     vis.SetWindowSize(1280, 720);
     vis.SetRenderMode(opengl::WIREFRAME);
     vis.Initialize();
-    vis.AddCamera(ChVector<>(0, -6, 0), ChVector<>(0, 0, 0));
+    vis.AddCamera(ChVector3d(0, -6, 0), ChVector3d(0, 0, 0));
     vis.SetCameraVertical(CameraVerticalDir::Z);
 
     while (vis.Run()) {
@@ -152,7 +152,7 @@ void SettlingSMC::SimulateVis() {
 // =============================================================================
 
 #define NUM_SKIP_STEPS 500  // number of steps for hot start
-#define NUM_SIM_STEPS 500   // number of simulation steps for benchmarking
+#define NUM_SIM_STEPS 500  // number of simulation steps for benchmarking
 
 using TEST_NAME = chrono::utils::ChBenchmarkFixture<SettlingSMC, 0>;
 BENCHMARK_DEFINE_F(TEST_NAME, Settle)(benchmark::State& st) {

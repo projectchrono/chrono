@@ -1,7 +1,7 @@
 %{
 
 /* Includes the header in the wrapper code */
-#include "chrono/physics/ChLimit.h"
+#include "chrono/physics/ChLinkLimit.h"
 
 %}
  
@@ -11,7 +11,7 @@
 
 
 /* Parse the header file to generate wrappers */
-%include "../../../chrono/physics/ChLimit.h"  
+%include "../../../chrono/physics/ChLinkLimit.h"  
 
 
 

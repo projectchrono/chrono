@@ -9,26 +9,28 @@ Chrono Core User Manual {#manual_core}
 * @subpage modularity
 
 * @subpage mathematical_objects
-	* [Linear algebra](@ref linear_algebra)
+	* [Linear Algebra](@ref linear_algebra)
 	* [ChFunction objects](@ref ChFunction_objects)
 	* [Quadrature](@ref quadrature)
 
-* @subpage shared_pointers
-
-* @subpage coordinate_transformations
-	* [Vectors](@ref manual_ChVector)
+* @subpage coordinate_systems
+	* [Vectors](@ref manual_ChVector3)
 	* [Quaternions](@ref manual_ChQuaternion)
-	* [Rotation matrices](@ref manual_ChMatrix33)
+	* [Rotation Matrices](@ref manual_ChMatrix33)
 	* [ChCoordsys](@ref manual_ChCoordsys)
 	* [ChFrame](@ref manual_ChFrame)
 	* [ChFrameMoving](@ref manual_ChFrameMoving)
+	* [ChMarker](@ref manual_ChMarker)
 
 * @subpage rigid_bodies
-	* [ChBody](@ref manual_ChBody)
-	* [ChBodyAuxRef](@ref manual_ChBodyAuxRef)
-	* [Other bodies](@ref manual_otherbodies)
 
-* @subpage markers
+* @subpage links
+
+* @subpage motors
+	* [3D rotational motors](@ref rotational_motors)
+	* [3D linear motors](@ref linear_motors)
+	* [3D driveline motors](@ref driveline_motors)
+	* [1D motors](@ref shaft_motors)
 
 * @subpage loads
 
@@ -40,14 +42,6 @@ Chrono Core User Manual {#manual_core}
 	* [Collision Callbacks](@ref collision_callbacks)
 
 * @subpage visualization_system
-
-* @subpage links
-
-* @subpage motors
-	* [3D rotational motors](@ref rotational_motors)
-	* [3D linear motors](@ref linear_motors)
-	* [1D motors](@ref shaft_motors)
-	* [How to control motors](@ref how_to_control_motors)
 
 * @subpage manual_fea
 	* [List of nodes](@ref manual_fea_nodes)

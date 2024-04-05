@@ -26,7 +26,7 @@
 #include <cmath>
 
 #ifdef __EMSCRIPTEN__
-#include <emscripten.h>
+    #include <emscripten.h>
 #endif
 
 #include "chrono/physics/ChSystemNSC.h"
@@ -81,8 +81,8 @@ class MyController {
     double m_Ki_pend;
     double m_Kd_pend;
 
-    double m_x_cart;   // reference cart x location
-    double m_a_pend;   // reference pendulum angle
+    double m_x_cart;  // reference cart x location
+    double m_a_pend;  // reference pendulum angle
 
     double m_e_cart;   // error in cart x location
     double m_ed_cart;  // derivative of error in cart x location
@@ -92,7 +92,7 @@ class MyController {
     double m_ed_pend;  // derivative of error in pendulum angle
     double m_ei_pend;  // integral of error in pendulum angle
 
-    double m_force;    // controller output force (horizontal force on cart body)
+    double m_force;  // controller output force (horizontal force on cart body)
 };
 
 MyController::MyController(std::shared_ptr<ChBody> cart, std::shared_ptr<ChBody> pend)
@@ -107,11 +107,11 @@ MyController::MyController(std::shared_ptr<ChBody> cart, std::shared_ptr<ChBody>
 
     // Initialize errors
     m_e_cart = 0;
-    m_ed_cart = m_cart->GetPos_dt().x();
+    m_ed_cart = m_cart->GetPosDt().x();
     m_ei_cart = 0;
 
     m_e_pend = 0;
-    m_ed_pend = m_pend->GetWvel_loc().z();
+    m_ed_pend = m_pend->GetAngVelLocal().z();
     m_ei_pend = 0;
 }
 
@@ -140,7 +140,7 @@ double MyController::GetCurrentCartLocation() {
 }
 
 double MyController::GetCurrentPendAngle() {
-    ChVector<> dir = m_pend->TransformDirectionLocalToParent(ChVector<>(0, 1, 0));
+    ChVector3d dir = m_pend->TransformDirectionLocalToParent(ChVector3d(0, 1, 0));
     return atan2(-dir.x(), dir.y());
 }
 
@@ -150,8 +150,8 @@ void MyController::Advance(double step) {
     double e_pend = GetCurrentPendAngle() - m_a_pend;
 
     // Calculate current error derivatives
-    m_ed_cart = m_cart->GetPos_dt().x();
-    m_ed_pend = m_pend->GetWvel_loc().z();
+    m_ed_cart = m_cart->GetPosDt().x();
+    m_ed_pend = m_pend->GetAngVelLocal().z();
 
     // Calculate current error integrals (trapezoidal rule)
     m_ei_cart += (m_e_cart + e_cart) * step / 2;
@@ -171,15 +171,15 @@ void MyController::Advance(double step) {
 // =============================================================================
 
 int main(int argc, char* argv[]) {
-    GetLog() << "Copyright (c) 2017 projectchrono.org\nChrono version: " << CHRONO_VERSION << "\n\n";
+    std::cout << "Copyright (c) 2017 projectchrono.org\nChrono version: " << CHRONO_VERSION << std::endl;
 
     // Problem parameters
     // ------------------
-    double mass_cart = 1.0;    // mass of the cart
-    double mass_pend = 0.5;    // mass of the pendulum
-    double hlen_pend = 0.5;    // half-length of the pendulum
-    double r_pend = 0.02;      // radius of pendulum (visualization only)
-    double J_pend = 0.5;       // pendulum moment of inertia (Z component)
+    double mass_cart = 1.0;  // mass of the cart
+    double mass_pend = 0.5;  // mass of the pendulum
+    double hlen_pend = 0.5;  // half-length of the pendulum
+    double r_pend = 0.02;    // radius of pendulum (visualization only)
+    double J_pend = 0.5;     // pendulum moment of inertia (Z component)
 
     double travel_dist = 2;
     double switch_period = 20;
@@ -192,52 +192,49 @@ int main(int argc, char* argv[]) {
     // ----------------------
     auto ground = chrono_types::make_shared<ChBody>();
     sys.AddBody(ground);
-    ground->SetIdentifier(-1);
-    ground->SetBodyFixed(true);
+    ground->SetFixed(true);
 
     // Attach visualization assets
     auto sphere1_g = chrono_types::make_shared<ChVisualShapeSphere>(0.02);
-    ground->AddVisualShape(sphere1_g, ChFrame<>(ChVector<>(+travel_dist, 0, 0), QUNIT));
+    ground->AddVisualShape(sphere1_g, ChFrame<>(ChVector3d(+travel_dist, 0, 0), QUNIT));
 
     auto sphere2_g = chrono_types::make_shared<ChVisualShapeSphere>(0.02);
-    ground->AddVisualShape(sphere2_g, ChFrame<>(ChVector<>(-travel_dist, 0, 0), QUNIT));
+    ground->AddVisualShape(sphere2_g, ChFrame<>(ChVector3d(-travel_dist, 0, 0), QUNIT));
 
     // Create the cart body
     // --------------------
     auto cart = chrono_types::make_shared<ChBody>();
     sys.AddBody(cart);
-    cart->SetIdentifier(1);
     cart->SetMass(mass_cart);
-    cart->SetInertiaXX(ChVector<>(1, 1, 1));
-    cart->SetPos(ChVector<>(0, 0, 0));
+    cart->SetInertiaXX(ChVector3d(1, 1, 1));
+    cart->SetPos(ChVector3d(0, 0, 0));
 
     // Attach visualization assets.
     auto box_c = chrono_types::make_shared<ChVisualShapeBox>(0.2, 0.2, 0.2);
-    cart->AddVisualShape(box_c, ChFrame<>(ChVector<>(0, -0.1, 0), QUNIT));
+    cart->AddVisualShape(box_c, ChFrame<>(ChVector3d(0, -0.1, 0), QUNIT));
 
     // Create the pendulum body
     // ------------------------
     auto pend = chrono_types::make_shared<ChBody>();
     sys.AddBody(pend);
-    pend->SetIdentifier(2);
     pend->SetMass(mass_pend);
-    pend->SetInertiaXX(ChVector<>(1, 1, J_pend));
-    pend->SetPos(ChVector<>(0, hlen_pend, 0));
+    pend->SetInertiaXX(ChVector3d(1, 1, J_pend));
+    pend->SetPos(ChVector3d(0, hlen_pend, 0));
 
     // Attach visualization assets.
     auto cyl_p = chrono_types::make_shared<ChVisualShapeCylinder>(r_pend, 2 * hlen_pend);
-    pend->AddVisualShape(cyl_p, ChFrame<>(VNULL, Q_from_AngX(CH_C_PI_2)));
+    pend->AddVisualShape(cyl_p, ChFrame<>(VNULL, QuatFromAngleX(CH_PI_2)));
 
     // Translational joint ground-cart
     // -------------------------------
     auto prismatic = chrono_types::make_shared<ChLinkLockPrismatic>();
-    prismatic->Initialize(ground, cart, ChCoordsys<>(ChVector<>(0, 0, 0), Q_from_AngY(CH_C_PI_2)));
+    prismatic->Initialize(ground, cart, ChFrame<>(ChVector3d(0, 0, 0), QuatFromAngleY(CH_PI_2)));
     sys.AddLink(prismatic);
 
     // Revolute joint cart-pendulum
     // ----------------------------
     auto revolute = chrono_types::make_shared<ChLinkLockRevolute>();
-    revolute->Initialize(cart, pend, ChCoordsys<>(ChVector<>(0, 0, 0), QUNIT));
+    revolute->Initialize(cart, pend, ChFrame<>(ChVector3d(0, 0, 0), QUNIT));
     sys.AddLink(revolute);
 
     // Create the PID controller
@@ -261,7 +258,7 @@ int main(int argc, char* argv[]) {
     vis.SetWindowSize(1280, 720);
     vis.SetRenderMode(opengl::WIREFRAME);
     vis.Initialize();
-    vis.AddCamera(ChVector<>(0, 0, 5), ChVector<>(0, 0, 0));
+    vis.AddCamera(ChVector3d(0, 0, 5), ChVector3d(0, 0, 0));
     vis.SetCameraVertical(CameraVerticalDir::Y);
 
     // Simulation loop
@@ -282,7 +279,7 @@ int main(int argc, char* argv[]) {
         }
 
         // Apply controller force on cart body
-        cart_load->SetForce(ChVector<>(controller.GetForce(), 0, 0), true);
+        cart_load->SetForce(ChVector3d(controller.GetForce(), 0, 0), true);
 
         // Advance sys and controller states
         sys.DoStepDynamics(time_step);

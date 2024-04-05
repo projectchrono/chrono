@@ -134,7 +134,7 @@ class CH_VEHICLE_API ChSAEToeBarLeafspringAxle : public ChSuspension {
         std::shared_ptr<ChChassis> chassis,        ///< [in] associated chassis subsystem
         std::shared_ptr<ChSubchassis> subchassis,  ///< [in] associated subchassis subsystem (may be null)
         std::shared_ptr<ChSteering> steering,      ///< [in] associated steering subsystem (may be null)
-        const ChVector<>& location,                ///< [in] location relative to the chassis frame
+        const ChVector3d& location,                ///< [in] location relative to the chassis frame
         double left_ang_vel = 0,                   ///< [in] initial angular velocity of left wheel
         double right_ang_vel = 0                   ///< [in] initial angular velocity of right wheel
         ) override;
@@ -183,7 +183,7 @@ class CH_VEHICLE_API ChSAEToeBarLeafspringAxle : public ChSuspension {
     /// Log current constraint violations.
     virtual void LogConstraintViolations(VehicleSide side) override;
 
-    void LogHardpointLocations(const ChVector<>& ref, bool inches = false);
+    void LogHardpointLocations(const ChVector3d& ref, bool inches = false);
 
   protected:
     /// Identifiers for the various hardpoints.
@@ -212,7 +212,7 @@ class CH_VEHICLE_API ChSAEToeBarLeafspringAxle : public ChSuspension {
 
     /// Return the location of the specified hardpoint.
     /// The returned location must be expressed in the suspension reference frame.
-    virtual const ChVector<> getLocation(PointId which) = 0;
+    virtual const ChVector3d getLocation(PointId which) = 0;
 
     /// Return the camber angle, in radians (default: 0).
     virtual double getCamberAngle() const { return 0; }
@@ -222,7 +222,7 @@ class CH_VEHICLE_API ChSAEToeBarLeafspringAxle : public ChSuspension {
     virtual double getToeAngle() const { return 0; }
 
     /// Return the center of mass of the axle tube.
-    virtual const ChVector<> getAxleTubeCOM() const = 0;
+    virtual const ChVector3d getAxleTubeCOM() const = 0;
 
     /// Return the mass of the axle tube body.
     virtual double getAxleTubeMass() const = 0;
@@ -254,24 +254,24 @@ class CH_VEHICLE_API ChSAEToeBarLeafspringAxle : public ChSuspension {
     virtual double getDraglinkRadius() const = 0;
 
     /// Return the moments of inertia of the axle tube body.
-    virtual const ChVector<>& getAxleTubeInertia() const = 0;
+    virtual const ChVector3d& getAxleTubeInertia() const = 0;
     /// Return the moments of inertia of the spindle body.
-    virtual const ChVector<>& getSpindleInertia() const = 0;
+    virtual const ChVector3d& getSpindleInertia() const = 0;
     /// Return the moments of inertia of the knuckle body.
-    virtual const ChVector<>& getKnuckleInertia() const = 0;
+    virtual const ChVector3d& getKnuckleInertia() const = 0;
     /// Return the moments of inertia of the tierod body.
-    virtual const ChVector<>& getTierodInertia() const = 0;
+    virtual const ChVector3d& getTierodInertia() const = 0;
     /// Return the moments of inertia of the draglink body.
-    virtual const ChVector<>& getDraglinkInertia() const = 0;
+    virtual const ChVector3d& getDraglinkInertia() const = 0;
 
     /// Return the moments of inertia of the frontleaf body.
-    virtual const ChVector<>& getFrontLeafInertia() const = 0;
+    virtual const ChVector3d& getFrontLeafInertia() const = 0;
     /// Return the moments of inertia of the frontleaf body.
-    virtual const ChVector<>& getRearLeafInertia() const = 0;
+    virtual const ChVector3d& getRearLeafInertia() const = 0;
     /// Return the moments of inertia of the half leafclamp body.
-    virtual const ChVector<>& getClampInertia() const = 0;
+    virtual const ChVector3d& getClampInertia() const = 0;
     /// Return the moments of inertia of the shackle body.
-    virtual const ChVector<>& getShackleInertia() const = 0;
+    virtual const ChVector3d& getShackleInertia() const = 0;
 
     /// Return the inertia of the axle shaft.
     virtual double getAxleInertia() const = 0;
@@ -316,11 +316,11 @@ class CH_VEHICLE_API ChSAEToeBarLeafspringAxle : public ChSuspension {
     std::shared_ptr<ChBody> m_draglink;    ///< draglink body
     std::shared_ptr<ChBody> m_knuckle[2];  ///< knuckle bodies (L/R)
 
-    std::shared_ptr<ChLinkLockSpherical> m_sphericalTierod;        ///< knuckle-tierod spherical joint (left)
-    std::shared_ptr<ChLinkLockSpherical> m_sphericalDraglink;      ///< draglink-chassis spherical joint (left)
-    std::shared_ptr<ChLinkUniversal> m_universalDraglink;          ///< draglink-bellCrank universal joint (left)
-    std::shared_ptr<ChLinkUniversal> m_universalTierod;            ///< knuckle-tierod universal joint (right)
-    std::shared_ptr<ChLinkLockRevolute> m_revoluteKingpin[2];      ///< knuckle-axle tube revolute joints (L/R)
+    std::shared_ptr<ChLinkLockSpherical> m_sphericalTierod;    ///< knuckle-tierod spherical joint (left)
+    std::shared_ptr<ChLinkLockSpherical> m_sphericalDraglink;  ///< draglink-chassis spherical joint (left)
+    std::shared_ptr<ChLinkUniversal> m_universalDraglink;      ///< draglink-bellCrank universal joint (left)
+    std::shared_ptr<ChLinkUniversal> m_universalTierod;        ///< knuckle-tierod universal joint (right)
+    std::shared_ptr<ChLinkLockRevolute> m_revoluteKingpin[2];  ///< knuckle-axle tube revolute joints (L/R)
 
     std::shared_ptr<ChLinkTSDA> m_shock[2];   ///< spring links (L/R)
     std::shared_ptr<ChLinkTSDA> m_spring[2];  ///< shock links (L/R)
@@ -351,35 +351,35 @@ class CH_VEHICLE_API ChSAEToeBarLeafspringAxle : public ChSuspension {
 
   private:
     // Hardpoint absolute locations
-    std::vector<ChVector<>> m_pointsL;
-    std::vector<ChVector<>> m_pointsR;
+    std::vector<ChVector3d> m_pointsL;
+    std::vector<ChVector3d> m_pointsR;
 
     // Points for axle tube visualization
-    ChVector<> m_axleOuterL;
-    ChVector<> m_axleOuterR;
+    ChVector3d m_axleOuterL;
+    ChVector3d m_axleOuterR;
 
     // Points for tierod visualization
-    ChVector<> m_tierodOuterL;
-    ChVector<> m_tierodOuterR;
+    ChVector3d m_tierodOuterL;
+    ChVector3d m_tierodOuterR;
 
     // Left or right knuckle is actuated by draglink?
     bool m_left_knuckle_steers;
 
     void InitializeSide(VehicleSide side,
                         std::shared_ptr<ChChassis> chassis,
-                        const std::vector<ChVector<>>& points,
+                        const std::vector<ChVector3d>& points,
                         double ang_vel);
 
     static void AddVisualizationLink(std::shared_ptr<ChBody> body,
-                                     const ChVector<> pt_1,
-                                     const ChVector<> pt_2,
+                                     const ChVector3d pt_1,
+                                     const ChVector3d pt_2,
                                      double radius,
                                      const ChColor& color);
 
     static void AddVisualizationKnuckle(std::shared_ptr<ChBody> knuckle,
-                                        const ChVector<> pt_U,
-                                        const ChVector<> pt_L,
-                                        const ChVector<> pt_T,
+                                        const ChVector3d pt_U,
+                                        const ChVector3d pt_L,
+                                        const ChVector3d pt_T,
                                         double radius);
 
     virtual void ExportComponentList(rapidjson::Document& jsonDocument) const override;

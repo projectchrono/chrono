@@ -48,12 +48,12 @@ const double U401_ToeBarPushPipeAxle::m_panhardRodRadius = 0.04;
 
 const double U401_ToeBarPushPipeAxle::m_portalOffset = 0.05;
 
-const ChVector<> U401_ToeBarPushPipeAxle::m_axleTubeInertia(22.21, 0.0775, 22.21);
-const ChVector<> U401_ToeBarPushPipeAxle::m_panhardRodInertia(0.1, 0.02, 0.1);
-const ChVector<> U401_ToeBarPushPipeAxle::m_spindleInertia(0.04117, 0.07352, 0.04117);
-const ChVector<> U401_ToeBarPushPipeAxle::m_knuckleInertia(0.1, 0.1, 0.1);
-const ChVector<> U401_ToeBarPushPipeAxle::m_tierodInertia(1.0, 0.1, 1.0);
-const ChVector<> U401_ToeBarPushPipeAxle::m_draglinkInertia(0.1, 1.0, 0.1);
+const ChVector3d U401_ToeBarPushPipeAxle::m_axleTubeInertia(22.21, 0.0775, 22.21);
+const ChVector3d U401_ToeBarPushPipeAxle::m_panhardRodInertia(0.1, 0.02, 0.1);
+const ChVector3d U401_ToeBarPushPipeAxle::m_spindleInertia(0.04117, 0.07352, 0.04117);
+const ChVector3d U401_ToeBarPushPipeAxle::m_knuckleInertia(0.1, 0.1, 0.1);
+const ChVector3d U401_ToeBarPushPipeAxle::m_tierodInertia(1.0, 0.1, 1.0);
+const ChVector3d U401_ToeBarPushPipeAxle::m_draglinkInertia(0.1, 1.0, 0.1);
 
 const double U401_ToeBarPushPipeAxle::m_springDesignLength = 0.32;
 const double U401_ToeBarPushPipeAxle::m_springCoefficient = 94748.2022504578;
@@ -84,7 +84,7 @@ class U401_FPPSpringForceFront : public ChLinkTSDA::ForceFunctor {
     double m_min_length;
     double m_max_length;
 
-    ChFunction_Recorder m_bump;
+    ChFunctionInterp m_bump;
 };
 
 U401_FPPSpringForceFront::U401_FPPSpringForceFront(double spring_constant, double min_length, double max_length)
@@ -103,10 +103,10 @@ U401_FPPSpringForceFront::U401_FPPSpringForceFront(double spring_constant, doubl
 }
 
 double U401_FPPSpringForceFront::evaluate(double time,
-                                             double rest_length,
-                                             double length,
-                                             double vel,
-                                             const ChLinkTSDA& link) {
+                                          double rest_length,
+                                          double length,
+                                          double vel,
+                                          const ChLinkTSDA& link) {
     double force = 0;
 
     double defl_spring = rest_length - length;
@@ -121,7 +121,7 @@ double U401_FPPSpringForceFront::evaluate(double time,
         defl_rebound = length - m_max_length;
     }
 
-    force = defl_spring * m_spring_constant + m_bump.Get_y(defl_bump) - m_bump.Get_y(defl_rebound);
+    force = defl_spring * m_spring_constant + m_bump.GetVal(defl_bump) - m_bump.GetVal(defl_rebound);
 
     return force;
 }
@@ -132,9 +132,9 @@ double U401_FPPSpringForceFront::evaluate(double time,
 class U401_FPPShockForceFront : public ChLinkTSDA::ForceFunctor {
   public:
     U401_FPPShockForceFront(double compression_slope,
-                               double compression_degressivity,
-                               double expansion_slope,
-                               double expansion_degressivity);
+                            double compression_degressivity,
+                            double expansion_slope,
+                            double expansion_degressivity);
 
     virtual double evaluate(double time,
                             double rest_length,
@@ -150,19 +150,19 @@ class U401_FPPShockForceFront : public ChLinkTSDA::ForceFunctor {
 };
 
 U401_FPPShockForceFront::U401_FPPShockForceFront(double compression_slope,
-                                                       double compression_degressivity,
-                                                       double expansion_slope,
-                                                       double expansion_degressivity)
+                                                 double compression_degressivity,
+                                                 double expansion_slope,
+                                                 double expansion_degressivity)
     : m_slope_compr(compression_slope),
       m_degres_compr(compression_degressivity),
       m_slope_expand(expansion_slope),
       m_degres_expand(expansion_degressivity) {}
 
 double U401_FPPShockForceFront::evaluate(double time,
-                                            double rest_length,
-                                            double length,
-                                            double vel,
-                                            const ChLinkTSDA& link) {
+                                         double rest_length,
+                                         double length,
+                                         double vel,
+                                         const ChLinkTSDA& link) {
     // Simple model of a degressive damping characteristic
     double force = 0;
 
@@ -177,8 +177,8 @@ double U401_FPPShockForceFront::evaluate(double time,
 }
 
 U401_ToeBarPushPipeAxle::U401_ToeBarPushPipeAxle(const std::string& name) : ChToeBarPushPipeAxle(name) {
-    m_springForceCB = chrono_types::make_shared<U401_FPPSpringForceFront>(m_springCoefficient, m_springMinLength,
-                                                                             m_springMaxLength);
+    m_springForceCB =
+        chrono_types::make_shared<U401_FPPSpringForceFront>(m_springCoefficient, m_springMinLength, m_springMaxLength);
 
     m_shockForceCB = chrono_types::make_shared<U401_FPPShockForceFront>(
         m_damperCoefficient, m_damperDegressivityCompression, m_damperCoefficient, m_damperDegressivityExpansion);
@@ -189,42 +189,41 @@ U401_ToeBarPushPipeAxle::U401_ToeBarPushPipeAxle(const std::string& name) : ChTo
 // -----------------------------------------------------------------------------
 U401_ToeBarPushPipeAxle::~U401_ToeBarPushPipeAxle() {}
 
-const ChVector<> U401_ToeBarPushPipeAxle::getLocation(PointId which) {
+const ChVector3d U401_ToeBarPushPipeAxle::getLocation(PointId which) {
     switch (which) {
         case SPRING_A:
-            return ChVector<>(0.18, 0.4242, 0.124);
+            return ChVector3d(0.18, 0.4242, 0.124);
         case SPRING_C:
-            return ChVector<>(0.18, 0.4242, 0.468);
+            return ChVector3d(0.18, 0.4242, 0.468);
         case SHOCK_A:
-            return ChVector<>(-0.1, 0.4242, 0.124);
+            return ChVector3d(-0.1, 0.4242, 0.124);
         case SHOCK_C:
-            return ChVector<>(-0.1, 0.4242, 0.468);
+            return ChVector3d(-0.1, 0.4242, 0.468);
         case SPINDLE:
-            return ChVector<>(0.0, 0.635, 0.0);
+            return ChVector3d(0.0, 0.635, 0.0);
         case KNUCKLE_CM:
-            return ChVector<>(0.0, 0.635 - 0.07, 0.0);
+            return ChVector3d(0.0, 0.635 - 0.07, 0.0);
         case KNUCKLE_L:
-            return ChVector<>(0.0, 0.635 - 0.07 + 0.0098058067569092, -0.1);
+            return ChVector3d(0.0, 0.635 - 0.07 + 0.0098058067569092, -0.1);
         case KNUCKLE_U:
-            return ChVector<>(0.0, 0.635 - 0.07 - 0.0098058067569092, 0.1);
+            return ChVector3d(0.0, 0.635 - 0.07 - 0.0098058067569092, 0.1);
         case KNUCKLE_DRL:
-            return ChVector<>(0.0, 0.635 - 0.2, 0.2);
+            return ChVector3d(0.0, 0.635 - 0.2, 0.2);
         case TIEROD_K:
-            return ChVector<>(-0.190568826619798, 0.635 - 0.07 - 0.060692028477827, 0.1);
+            return ChVector3d(-0.190568826619798, 0.635 - 0.07 - 0.060692028477827, 0.1);
         case DRAGLINK_C:
-            return ChVector<>(0.6, 0.635 - 0.2, 0.2);
+            return ChVector3d(0.6, 0.635 - 0.2, 0.2);
         case AXLE_C:
-            return ChVector<>(-0.662, 0.1, 0.181);
+            return ChVector3d(-0.662, 0.1, 0.181);
         case PANHARD_A:
-            return ChVector<>(0.1, 0.45, m_portalOffset);
+            return ChVector3d(0.1, 0.45, m_portalOffset);
         case PANHARD_C:
-            return ChVector<>(0.1, -0.45, m_portalOffset);
+            return ChVector3d(0.1, -0.45, m_portalOffset);
         default:
-            return ChVector<>(0, 0, 0);
+            return ChVector3d(0, 0, 0);
     }
 }
 
 }  // namespace unimog
 }  // end namespace vehicle
 }  // end namespace chrono
-

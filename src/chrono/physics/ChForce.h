@@ -22,9 +22,8 @@
 #include <iostream>
 #include <string>
 
-#include "chrono/core/ChLog.h"
-#include "chrono/core/ChMath.h"
-#include "chrono/motion_functions/ChFunction.h"
+#include "chrono/core/ChFrame.h"
+#include "chrono/functions/ChFunction.h"
 #include "chrono/physics/ChObject.h"
 
 namespace chrono {
@@ -78,23 +77,23 @@ class ChApi ChForce : public ChObj {
     ReferenceFrame GetFrame() const { return frame; }
 
     /// Gets the application point, in absolute coordinates.
-    ChVector<> GetVpoint() const { return vpoint; }
+    ChVector3d GetVpoint() const { return vpoint; }
     /// Gets the application point, in rigid body coordinates.
-    ChVector<> GetVrelpoint() const { return vrelpoint; }
+    ChVector3d GetVrelpoint() const { return vrelpoint; }
 
     /// Sets the application point, in absolute coordinates.
-    void SetVpoint(ChVector<> mypoint);
+    void SetVpoint(ChVector3d mypoint);
     /// Sets the application point, in rigid body coordinates.
-    void SetVrelpoint(ChVector<> myrelpoint);
+    void SetVrelpoint(ChVector3d myrelpoint);
 
     /// Gets the force (or torque) direction, in absolute coordinates.
-    ChVector<> GetDir() const { return vdir; }
+    ChVector3d GetDir() const { return vdir; }
     /// Gets the force (or torque) direction, in rigid body coordinates.
-    ChVector<> GetRelDir() const { return vreldir; }
+    ChVector3d GetRelDir() const { return vreldir; }
     /// Sets the force (or torque) direction, in absolute coordinates.
-    void SetDir(ChVector<> newf);
+    void SetDir(ChVector3d newf);
     /// Sets the force (or torque) direction, in rigid body coordinates.
-    void SetRelDir(ChVector<> newf);
+    void SetRelDir(ChVector3d newf);
 
     /// Sets force (or torque) modulus.
     void SetMforce(double newf);
@@ -126,9 +125,9 @@ class ChApi ChForce : public ChObj {
     std::shared_ptr<ChFunction> GetF_z() const { return f_z; }
 
     /// Gets the instant force vector -or torque vector- in absolute coordinates.
-    ChVector<> GetForce() const { return force; }
+    ChVector3d GetForce() const { return force; }
     /// Gets the instant force vector -or torque vector- in rigid body coordinates.
-    ChVector<> GetRelForce() const { return relforce; }
+    ChVector3d GetRelForce() const { return relforce; }
     /// Gets the instant force vector -or torque vector- modulus.
     double GetForceMod() const { return force.Length(); }
 
@@ -136,7 +135,7 @@ class ChApi ChForce : public ChObj {
     const ChVectorN<double, 7>& GetQf() const { return Qf; }
     /// Gets force-torque applied to rigid body, as force vector (in absol.coords)
     /// and torque vector (in body coords).
-    void GetBodyForceTorque(ChVector<>& body_force, ChVector<>& body_torque) const;
+    void GetBodyForceTorque(ChVector3d& body_force, ChVector3d& body_torque) const;
 
     //
     // UPDATING
@@ -151,10 +150,10 @@ class ChApi ChForce : public ChObj {
     //
 
     /// Method to allow serialization of transient data to archives.
-    virtual void ArchiveOut(ChArchiveOut& marchive) override;
+    virtual void ArchiveOut(ChArchiveOut& archive_out) override;
 
     /// Method to allow deserialization of transient data from archives.
-    virtual void ArchiveIn(ChArchiveIn& marchive) override;
+    virtual void ArchiveIn(ChArchiveIn& archive_in) override;
 
   private:
     CH_ENUM_MAPPER_BEGIN(ForceType);
@@ -179,13 +178,13 @@ class ChApi ChForce : public ChObj {
     ReferenceFrame frame;  ///< fix position in body csys or world csys
     AlignmentFrame align;  ///< fix direction in body csys or world csys
 
-    ChVector<> vpoint;     ///< absolute point of application
-    ChVector<> vrelpoint;  ///< relative point of application
+    ChVector3d vpoint;     ///< absolute point of application
+    ChVector3d vrelpoint;  ///< relative point of application
 
     std::shared_ptr<ChFunction> move_x;  ///< motion x (abs or rel, depends on 'frame')
     std::shared_ptr<ChFunction> move_y;  ///< motion y  ""
     std::shared_ptr<ChFunction> move_z;  ///< motion z  ""
-    ChVector<> restpos;                  ///< t=0 position (abs or rel, depends on 'frame')
+    ChVector3d restpos;                  ///< t=0 position (abs or rel, depends on 'frame')
 
     std::shared_ptr<ChFunction> f_x;  ///< fv strengh x (abs or rel, see 'align')
     std::shared_ptr<ChFunction> f_y;  ///< fv strengh y  ""
@@ -194,13 +193,16 @@ class ChApi ChForce : public ChObj {
     double mforce;                       ///< fm scalar force strenght
     std::shared_ptr<ChFunction> modula;  ///< scalar force fm modulation
 
-    ChVector<> vdir;     ///< force/torque abs.direction
-    ChVector<> vreldir;  ///< force/torque rel direction
+    ChVector3d vdir;     ///< force/torque abs.direction
+    ChVector3d vreldir;  ///< force/torque rel direction
 
-    ChVector<> force;     ///< TOTAL force vect (abs.coord) = fm*vdir +fx+fy+fz
-    ChVector<> relforce;  ///< TOTAL force vect (rel.coord) = fm*vdir +fx+fy+fz
+    ChVector3d force;     ///< TOTAL force vect (abs.coord) = fm*vdir +fx+fy+fz
+    ChVector3d relforce;  ///< TOTAL force vect (rel.coord) = fm*vdir +fx+fy+fz
 
     ChVectorN<double, 7> Qf;  ///< Lagrangian force
+
+  public:
+    EIGEN_MAKE_ALIGNED_OPERATOR_NEW
 };
 
 CH_CLASS_VERSION(ChForce, 0)

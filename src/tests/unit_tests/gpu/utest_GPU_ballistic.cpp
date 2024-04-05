@@ -29,24 +29,24 @@ using namespace chrono::gpu;
 TEST(gpuBallistic, check) {
     float radius = 0.5f;
     float density = 7800.0f;
-    ChSystemGpuMesh gpu_sys(radius, density, ChVector<float>(20.0f, 20.0f, 10.0f));
+    ChSystemGpuMesh gpu_sys(radius, density, ChVector3f(20.0f, 20.0f, 10.0f));
 
     // Load in the mesh
-    gpu_sys.AddMesh(GetChronoDataPath() + "testing/gpu/one_facet.obj", ChVector<float>(0),
-                    ChMatrix33<float>(ChVector<float>(1)), 100.0f);
+    gpu_sys.AddMesh(GetChronoDataPath() + "testing/gpu/one_facet.obj", ChVector3f(0), ChMatrix33<float>(ChVector3f(1)),
+                    100.0f);
     gpu_sys.EnableMeshCollision(true);
 
     // Initialize sphere, with high initial velocity
     float z0 = 4.0f;
     float v0 = 1e4f;
-    std::vector<ChVector<float>> body_point = {ChVector<float>(1.0f, -1.0f, z0)};
-    std::vector<ChVector<float>> velocity = {ChVector<float>(0.0f, 0.0f, -v0)};
+    std::vector<ChVector3f> body_point = {ChVector3f(1.0f, -1.0f, z0)};
+    std::vector<ChVector3f> velocity = {ChVector3f(0.0f, 0.0f, -v0)};
     gpu_sys.SetParticles(body_point, velocity);
 
     gpu_sys.SetPsiFactors(32, 16);
 
     float g = 980.0f;
-    gpu_sys.SetGravitationalAcceleration(ChVector<>(0, 0, -g));
+    gpu_sys.SetGravitationalAcceleration(ChVector3d(0, 0, -g));
 
     // Set normal force model
     gpu_sys.SetKn_SPH2SPH(1e11);

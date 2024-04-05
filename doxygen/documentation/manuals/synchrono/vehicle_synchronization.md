@@ -13,7 +13,7 @@ To allow for time and space coherence between agents, state passing is performed
 
 <img src="http://www.projectchrono.org/assets/manual/synchrono_vehicle_synchronization.png" alt="DDS System" width=60%>
 
-Wheeled and tracked vehicles will distribute individual state and description information through SynChrono. State data describes the current position and orientation of specific components of the vehicles. During the initial handshake of SynChrono, description messages are sent that describe how to reconstruct the vehicle as a zombie. See the [Wheeled Vehicle Synchronization](#wheeled-vehicle-synchronization) or the [Tracked Vehicle Synchronization](#tracked-vehicle-synchronization) sections for a detailed description about the exact data types.
+Wheeled and tracked vehicles will distribute individual state and description information through SynChrono. State data describes the current position and orientation of specific components of the vehicles. During the initial handshake of SynChrono, description messages are sent that describe how to reconstruct the vehicle as a zombie. See the [Wheeled Vehicle Synchronization](#veh_sync_wheeled) or the [Tracked Vehicle Synchronization](#veh_sync_tracked) sections for a detailed description about the exact data types.
 
 ### Limitations {#veh_sync_limitations}
 

@@ -97,9 +97,9 @@ void ChExternalDynamics::InjectVariables(ChSystemDescriptor& descriptor) {
     descriptor.InsertVariables(m_variables);
 }
 
-void ChExternalDynamics::InjectKRMmatrices(ChSystemDescriptor& descriptor) {
+void ChExternalDynamics::InjectKRMMatrices(ChSystemDescriptor& descriptor) {
     if (IsStiff()) {
-        descriptor.InsertKblock(&m_KRM);
+        descriptor.InsertKRMBlock(&m_KRM);
     }
 }
 
@@ -169,8 +169,7 @@ void ChExternalDynamics::IntLoadResidual_Mv(const unsigned int off,      // offs
 void ChExternalDynamics::IntLoadLumpedMass_Md(const unsigned int off,
                                               ChVectorDynamic<>& Md,
                                               double& err,
-                                              const double c  
-) {
+                                              const double c) {
     if (!IsActive())
         return;
 
@@ -186,8 +185,8 @@ void ChExternalDynamics::IntToDescriptor(const unsigned int off_v,  // offset in
     if (!IsActive())
         return;
 
-    m_variables->Get_qb() = v.segment(off_v, m_nstates);
-    m_variables->Get_fb() = R.segment(off_v, m_nstates);
+    m_variables->State() = v.segment(off_v, m_nstates);
+    m_variables->Force() = R.segment(off_v, m_nstates);
 }
 
 void ChExternalDynamics::IntFromDescriptor(const unsigned int off_v,  // offset in v
@@ -197,38 +196,38 @@ void ChExternalDynamics::IntFromDescriptor(const unsigned int off_v,  // offset 
     if (!IsActive())
         return;
 
-    v.segment(off_v, m_nstates) = m_variables->Get_qb();
+    v.segment(off_v, m_nstates) = m_variables->State();
 }
 
 // -----------------------------------------------------------------------------
 
-void ChExternalDynamics::KRMmatricesLoad(double Kfactor, double Rfactor, double Mfactor) {
+void ChExternalDynamics::LoadKRMMatrices(double Kfactor, double Rfactor, double Mfactor) {
     if (IsStiff()) {
         // Recall to flip sign to load R = -dQ/dv (K is zero here)
-        m_KRM.Get_K() = Mfactor * ChMatrixDynamic<>::Identity(m_nstates, m_nstates) - Rfactor * m_jac;
+        m_KRM.GetMatrix() = Mfactor * ChMatrixDynamic<>::Identity(m_nstates, m_nstates) - Rfactor * m_jac;
     }
 }
 
 // -----------------------------------------------------------------------------
 
 void ChExternalDynamics::VariablesFbReset() {
-    m_variables->Get_fb().setZero();
+    m_variables->Force().setZero();
 }
 
 void ChExternalDynamics::VariablesFbLoadForces(double factor) {
-    m_variables->Get_fb() = m_rhs;
+    m_variables->Force() = m_rhs;
 }
 
 void ChExternalDynamics::VariablesQbLoadSpeed() {
-    m_variables->Get_qb() = m_states;
+    m_variables->State() = m_states;
 }
 
 void ChExternalDynamics::VariablesQbSetSpeed(double step) {
-    m_states = m_variables->Get_qb();
+    m_states = m_variables->State();
 }
 
 void ChExternalDynamics::VariablesFbIncrementMq() {
-    m_variables->Compute_inc_Mb_v(m_variables->Get_fb(), m_variables->Get_qb());
+    m_variables->AddMassTimesVector(m_variables->Force(), m_variables->State());
 }
 
 void ChExternalDynamics::VariablesQbIncrementPosition(double dt_step) {

@@ -26,7 +26,7 @@ namespace gpu {
 
 // -----------------------------------------------------------------------------
 
-ChSystemGpu::ChSystemGpu(float sphere_rad, float density, const ChVector<float>& boxDims, ChVector<float> O) {
+ChSystemGpu::ChSystemGpu(float sphere_rad, float density, const ChVector3f& boxDims, ChVector3f O) {
     m_sys = new ChSystemGpu_impl(sphere_rad, density, make_float3(boxDims.x(), boxDims.y(), boxDims.z()),
                                  make_float3(O.x(), O.y(), O.z()));
 }
@@ -36,7 +36,7 @@ ChSystemGpu::ChSystemGpu(const std::string& checkpoint) {
     ReadCheckpointFile(checkpoint, true);
 }
 
-ChSystemGpuMesh::ChSystemGpuMesh(float sphere_rad, float density, const ChVector<float>& boxDims, ChVector<float> O)
+ChSystemGpuMesh::ChSystemGpuMesh(float sphere_rad, float density, const ChVector3f& boxDims, ChVector3f O)
     : mesh_verbosity(CHGPU_MESH_VERBOSITY::QUIET) {
     m_sys = new ChSystemGpuMesh_impl(sphere_rad, density, make_float3(boxDims.x(), boxDims.y(), boxDims.z()),
                                      make_float3(O.x(), O.y(), O.z()));
@@ -55,7 +55,7 @@ ChSystemGpuMesh::~ChSystemGpuMesh() {}
 
 // -----------------------------------------------------------------------------
 
-void ChSystemGpu::SetGravitationalAcceleration(const ChVector<float>& g) {
+void ChSystemGpu::SetGravitationalAcceleration(const ChVector3f& g) {
     m_sys->X_accGrav = (float)g.x();
     m_sys->Y_accGrav = (float)g.y();
     m_sys->Z_accGrav = (float)g.z();
@@ -71,7 +71,7 @@ void ChSystemGpu::SetBDFixed(bool fixed) {
     m_sys->BD_is_fixed = fixed;
 }
 
-void ChSystemGpu::SetBDCenter(const ChVector<float>& O) {
+void ChSystemGpu::SetBDCenter(const ChVector3f& O) {
     m_sys->user_coord_O_X = O.x();
     m_sys->user_coord_O_Y = O.y();
     m_sys->user_coord_O_Z = O.z();
@@ -325,7 +325,7 @@ void ChSystemGpuMesh::SetMeshVerbosity(CHGPU_MESH_VERBOSITY level) {
 
 // -----------------------------------------------------------------------------
 
-size_t ChSystemGpu::CreateBCSphere(const ChVector<float>& center,
+size_t ChSystemGpu::CreateBCSphere(const ChVector3f& center,
                                    float radius,
                                    bool outward_normal,
                                    bool track_forces,
@@ -334,25 +334,25 @@ size_t ChSystemGpu::CreateBCSphere(const ChVector<float>& center,
     return m_sys->CreateBCSphere(sph_center, radius, outward_normal, track_forces, sphere_mass);
 }
 
-void ChSystemGpu::SetBCSpherePosition(size_t sphere_bc_id, const ChVector<float>& pos) {
+void ChSystemGpu::SetBCSpherePosition(size_t sphere_bc_id, const ChVector3f& pos) {
     m_sys->SetBCSpherePosition(sphere_bc_id, make_float3(pos.x(), pos.y(), pos.z()));
 }
 
-ChVector<float> ChSystemGpu::GetBCSpherePosition(size_t sphere_bc_id) const {
+ChVector3f ChSystemGpu::GetBCSpherePosition(size_t sphere_bc_id) const {
     float3 pos = m_sys->GetBCSpherePosition(sphere_bc_id);
-    return ChVector<float>(pos.x, pos.y, pos.z);
+    return ChVector3f(pos.x, pos.y, pos.z);
 }
 
-void ChSystemGpu::SetBCSphereVelocity(size_t sphere_bc_id, const ChVector<float>& velo) {
+void ChSystemGpu::SetBCSphereVelocity(size_t sphere_bc_id, const ChVector3f& velo) {
     m_sys->SetBCSphereVelocity(sphere_bc_id, make_float3(velo.x(), velo.y(), velo.z()));
 }
 
-ChVector<float> ChSystemGpu::GetBCSphereVelocity(size_t sphere_bc_id) const {
+ChVector3f ChSystemGpu::GetBCSphereVelocity(size_t sphere_bc_id) const {
     float3 velo = m_sys->GetBCSphereVelocity(sphere_bc_id);
-    return ChVector<float>(velo.x, velo.y, velo.z);
+    return ChVector3f(velo.x, velo.y, velo.z);
 }
 
-size_t ChSystemGpu::CreateBCConeZ(const ChVector<float>& tip,
+size_t ChSystemGpu::CreateBCConeZ(const ChVector3f& tip,
                                   float slope,
                                   float hmax,
                                   float hmin,
@@ -362,7 +362,7 @@ size_t ChSystemGpu::CreateBCConeZ(const ChVector<float>& tip,
     return m_sys->CreateBCConeZ(cone_tip, slope, hmax, hmin, outward_normal, track_forces);
 }
 
-size_t ChSystemGpu::CreateBCPlane(const ChVector<float>& pos, const ChVector<float>& normal, bool track_forces) {
+size_t ChSystemGpu::CreateBCPlane(const ChVector3f& pos, const ChVector3f& normal, bool track_forces) {
     float plane_pos[3] = {pos.x(), pos.y(), pos.z()};
     float plane_nrm[3] = {normal.x(), normal.y(), normal.z()};
 
@@ -370,19 +370,14 @@ size_t ChSystemGpu::CreateBCPlane(const ChVector<float>& pos, const ChVector<flo
 }
 
 // customized plate for angle of repose test, plate has a limited width in y direction, and can move in y direction
-size_t ChSystemGpu::CreateCustomizedPlate(const ChVector<float>& pos_center,
-                                          const ChVector<float>& normal,
-                                          float hdim_y) {
+size_t ChSystemGpu::CreateCustomizedPlate(const ChVector3f& pos_center, const ChVector3f& normal, float hdim_y) {
     float plate_pos[3] = {pos_center.x(), pos_center.y(), pos_center.z()};
     float plate_nrm[3] = {normal.x(), normal.y(), normal.z()};
 
     return m_sys->CreateCustomizedPlate(plate_pos, plate_nrm, hdim_y);
 }
 
-size_t ChSystemGpu::CreateBCCylinderZ(const ChVector<float>& center,
-                                      float radius,
-                                      bool outward_normal,
-                                      bool track_forces) {
+size_t ChSystemGpu::CreateBCCylinderZ(const ChVector3f& center, float radius, bool outward_normal, bool track_forces) {
     float cyl_center[3] = {center.x(), center.y(), center.z()};
     return m_sys->CreateBCCylinderZ(cyl_center, radius, outward_normal, track_forces);
 }
@@ -409,26 +404,26 @@ unsigned int ChSystemGpu::GetNumSDs() const {
     return m_sys->nSDs;
 }
 
-ChVector<float> ChSystemGpu::GetBCPlanePosition(size_t plane_id) const {
+ChVector3f ChSystemGpu::GetBCPlanePosition(size_t plane_id) const {
     // todo: throw an error if BC not a plane type
     float3 pos = m_sys->GetBCPlanePosition(plane_id);
-    return ChVector<float>(pos.x, pos.y, pos.z);
+    return ChVector3f(pos.x, pos.y, pos.z);
 }
 
-void ChSystemGpu::SetBCPlaneRotation(size_t plane_id, ChVector<double> center, ChVector<double> omega) {
+void ChSystemGpu::SetBCPlaneRotation(size_t plane_id, ChVector3d center, ChVector3d omega) {
     double3 rotation_center = make_double3(center.x(), center.y(), center.z());
     double3 rotation_omega = make_double3(omega.x(), omega.y(), omega.z());
     m_sys->SetBCPlaneRotation(plane_id, rotation_center, rotation_omega);
 }
 
-bool ChSystemGpu::GetBCReactionForces(size_t BC_id, ChVector<float>& force) const {
+bool ChSystemGpu::GetBCReactionForces(size_t BC_id, ChVector3f& force) const {
     float3 frc;
     bool ret = m_sys->GetBCReactionForces(BC_id, frc);
-    force = ChVector<float>(frc.x, frc.y, frc.z);
+    force = ChVector3f(frc.x, frc.y, frc.z);
     return ret;
 }
 
-int ChSystemGpu::GetNumContacts() const {
+unsigned int ChSystemGpu::GetNumContacts() const {
     return m_sys->GetNumContacts();
 }
 
@@ -444,37 +439,37 @@ float ChSystemGpu::GetParticleRadius() const {
     return m_sys->sphere_radius_UU;
 }
 
-ChVector<float> ChSystemGpu::GetParticlePosition(int nSphere) const {
+ChVector3f ChSystemGpu::GetParticlePosition(int nSphere) const {
     float3 pos = m_sys->GetParticlePosition(nSphere);
-    return ChVector<float>(pos.x, pos.y, pos.z);
+    return ChVector3f(pos.x, pos.y, pos.z);
 }
 
-void ChSystemGpu::SetParticlePosition(int nSphere, const ChVector<double> pos) {
+void ChSystemGpu::SetParticlePosition(int nSphere, const ChVector3d pos) {
     double3 position = make_double3(pos.x(), pos.y(), pos.z());
     m_sys->SetParticlePosition(nSphere, position);
 }
 
-ChVector<float> ChSystemGpu::GetParticleVelocity(int nSphere) const {
+ChVector3f ChSystemGpu::GetParticleVelocity(int nSphere) const {
     float3 vel = m_sys->GetParticleLinVelocity(nSphere);
-    return ChVector<float>(vel.x, vel.y, vel.z);
+    return ChVector3f(vel.x, vel.y, vel.z);
 }
 
-void ChSystemGpu::SetParticleVelocity(int nSphere, const ChVector<double> velo) {
+void ChSystemGpu::SetParticleVelocity(int nSphere, const ChVector3d velo) {
     double3 velocity = make_double3(velo.x(), velo.y(), velo.z());
     m_sys->SetParticleVelocity(nSphere, velocity);
 }
 
-ChVector<float> ChSystemGpu::GetParticleAngVelocity(int nSphere) const {
+ChVector3f ChSystemGpu::GetParticleAngVelocity(int nSphere) const {
     if (m_sys->gran_params->friction_mode == CHGPU_FRICTION_MODE::FRICTIONLESS)
-        return ChVector<float>(0);
+        return ChVector3f(0);
 
     float3 omega = m_sys->GetParticleAngVelocity(nSphere);
-    return ChVector<float>(omega.x, omega.y, omega.z);
+    return ChVector3f(omega.x, omega.y, omega.z);
 }
 
-ChVector<float> ChSystemGpu::GetParticleLinAcc(int nSphere) const {
+ChVector3f ChSystemGpu::GetParticleLinAcc(int nSphere) const {
     float3 acc = m_sys->GetParticleLinAcc(nSphere);
-    return ChVector<float>(acc.x, acc.y, acc.z);
+    return ChVector3f(acc.x, acc.y, acc.z);
 }
 
 bool ChSystemGpu::IsFixed(int nSphere) const {
@@ -509,7 +504,7 @@ size_t ChSystemGpu::EstimateMemUsage() const {
 
 // -----------------------------------------------------------------------------
 
-unsigned int ChSystemGpuMesh::AddMesh(std::shared_ptr<geometry::ChTriangleMeshConnected> mesh, float mass) {
+unsigned int ChSystemGpuMesh::AddMesh(std::shared_ptr<ChTriangleMeshConnected> mesh, float mass) {
     unsigned int id = static_cast<unsigned int>(m_meshes.size());
     m_meshes.push_back(mesh);
     m_mesh_masses.push_back(mass);
@@ -518,14 +513,14 @@ unsigned int ChSystemGpuMesh::AddMesh(std::shared_ptr<geometry::ChTriangleMeshCo
 }
 
 unsigned int ChSystemGpuMesh::AddMesh(const std::string& filename,
-                                      const ChVector<float>& translation,
+                                      const ChVector3f& translation,
                                       const ChMatrix33<float>& rotscale,
                                       float mass) {
-    auto mesh = chrono_types::make_shared<geometry::ChTriangleMeshConnected>();
+    auto mesh = chrono_types::make_shared<ChTriangleMeshConnected>();
     bool flag = mesh->LoadWavefrontMesh(filename, true, false);
     if (!flag)
         CHGPU_ERROR("ERROR! Mesh %s failed to load in!\n", filename.c_str());
-    if (mesh->getNumTriangles() == 0)
+    if (mesh->GetNumTriangles() == 0)
         printf("WARNING: Mesh %s has no triangles!\n", filename.c_str());
     mesh->Transform(translation, rotscale.cast<double>());
 
@@ -537,7 +532,7 @@ unsigned int ChSystemGpuMesh::AddMesh(const std::string& filename,
 }
 
 std::vector<unsigned int> ChSystemGpuMesh::AddMeshes(const std::vector<std::string>& objfilenames,
-                                                     const std::vector<ChVector<float>>& translations,
+                                                     const std::vector<ChVector3f>& translations,
                                                      const std::vector<ChMatrix33<float>>& rotscales,
                                                      const std::vector<float>& masses) {
     unsigned int size = (unsigned int)objfilenames.size();
@@ -557,7 +552,7 @@ std::vector<unsigned int> ChSystemGpuMesh::AddMeshes(const std::vector<std::stri
 void ChSystemGpuMesh::SetMeshes() {
     int nTriangles = 0;
     for (const auto& mesh : m_meshes)
-        nTriangles += mesh->getNumTriangles();
+        nTriangles += mesh->GetNumTriangles();
 
     ChSystemGpuMesh_impl* sys_trimesh = static_cast<ChSystemGpuMesh_impl*>(m_sys);
     ChSystemGpuMesh_impl::TriangleSoup* pMeshSoup = sys_trimesh->getMeshSoup();
@@ -579,8 +574,8 @@ void ChSystemGpuMesh::SetMeshes() {
     unsigned int tri_i = 0;
     // for each obj file data set
     for (const auto& mesh : m_meshes) {
-        for (int i = 0; i < mesh->getNumTriangles(); i++) {
-            geometry::ChTriangle tri = mesh->getTriangle(i);
+        for (unsigned int i = 0; i < mesh->GetNumTriangles(); i++) {
+            ChTriangle tri = mesh->GetTriangle(i);
 
             pMeshSoup->node1[tri_i] = make_float3((float)tri.p1.x(), (float)tri.p1.y(), (float)tri.p1.z());
             pMeshSoup->node2[tri_i] = make_float3((float)tri.p2.x(), (float)tri.p2.y(), (float)tri.p2.z());
@@ -591,12 +586,12 @@ void ChSystemGpuMesh::SetMeshes() {
             // If we wish to correct surface orientation based on given vertex normals, rather than using RHR...
             if (use_mesh_normals) {
                 int normal_i = mesh->m_face_n_indices.at(i).x();  // normals at each vertex of this triangle
-                ChVector<double> normal = mesh->m_normals.at(normal_i);
+                ChVector3d normal = mesh->m_normals.at(normal_i);
 
                 // Generate normal using RHR from nodes 1, 2, and 3
-                ChVector<double> AB = tri.p2 - tri.p1;
-                ChVector<double> AC = tri.p3 - tri.p1;
-                ChVector<double> cross;
+                ChVector3d AB = tri.p2 - tri.p1;
+                ChVector3d AC = tri.p3 - tri.p1;
+                ChVector3d cross;
                 cross.Cross(AB, AC);
 
                 // If the normal created by a RHR traversal is not correct, switch two vertices
@@ -645,10 +640,10 @@ void ChSystemGpuMesh::SetMeshes() {
 }
 
 void ChSystemGpuMesh::ApplyMeshMotion(unsigned int mesh_id,
-                                      const ChVector<>& pos,
+                                      const ChVector3d& pos,
                                       const ChQuaternion<>& rot,
-                                      const ChVector<>& lin_vel,
-                                      const ChVector<>& ang_vel) {
+                                      const ChVector3d& lin_vel,
+                                      const ChVector3d& ang_vel) {
     ChSystemGpuMesh_impl* sys_trimesh = static_cast<ChSystemGpuMesh_impl*>(m_sys);
     sys_trimesh->ApplyMeshMotion(mesh_id, pos.data(), rot.data(), lin_vel.data(), ang_vel.data());
 }
@@ -667,7 +662,7 @@ void ChSystemGpuMesh::EnableMeshCollision(bool val) {
 
 // -----------------------------------------------------------------------------
 
-static void convertChVector2Float3Vec(const std::vector<ChVector<float>>& points, std::vector<float3>& pointsFloat3) {
+static void convertChVector2Float3Vec(const std::vector<ChVector3f>& points, std::vector<float3>& pointsFloat3) {
     size_t nPoints = points.size();
     pointsFloat3.resize(nPoints);
     for (size_t index = 0; index < nPoints; index++) {
@@ -678,9 +673,9 @@ static void convertChVector2Float3Vec(const std::vector<ChVector<float>>& points
 }
 
 // Initialize particle positions, velocity and angular velocity in user units
-void ChSystemGpu::SetParticles(const std::vector<ChVector<float>>& points,
-                               const std::vector<ChVector<float>>& vels,
-                               const std::vector<ChVector<float>>& ang_vel) {
+void ChSystemGpu::SetParticles(const std::vector<ChVector3f>& points,
+                               const std::vector<ChVector3f>& vels,
+                               const std::vector<ChVector3f>& ang_vel) {
     std::vector<float3> pointsFloat3;
     std::vector<float3> velsFloat3;
     std::vector<float3> angVelsFloat3;
@@ -1331,13 +1326,12 @@ double ChSystemGpu::AdvanceSimulation(float duration) {
     m_timer.start();
 
     float dt = m_sys->AdvanceSimulation(duration);
-    
+
     m_timer.stop();
     m_RTF = m_timer() / dt;
 
     return dt;
 }
-
 
 // -----------------------------------------------------------------------------
 
@@ -1628,8 +1622,8 @@ void ChSystemGpuMesh::WriteMesh(const std::string& outfilename, unsigned int i) 
     const auto& mmesh = m_meshes.at(i);
 
     // Writing vertices
-    ostream << "POINTS " << mmesh->getCoordsVertices().size() << " float" << std::endl;
-    for (auto& v : mmesh->getCoordsVertices()) {
+    ostream << "POINTS " << mmesh->GetCoordsVertices().size() << " float" << std::endl;
+    for (auto& v : mmesh->GetCoordsVertices()) {
         float3 point = make_float3(v.x(), v.y(), v.z());
         sys_trimesh->ApplyFrameTransform(point, sys_trimesh->tri_params->fam_frame_broad[i].pos,
                                          sys_trimesh->tri_params->fam_frame_broad[i].rot_mat);
@@ -1638,15 +1632,15 @@ void ChSystemGpuMesh::WriteMesh(const std::string& outfilename, unsigned int i) 
 
     // Writing faces
     ostream << "\n\n";
-    ostream << "CELLS " << mmesh->getIndicesVertexes().size() << " " << 4 * mmesh->getIndicesVertexes().size()
+    ostream << "CELLS " << mmesh->GetIndicesVertexes().size() << " " << 4 * mmesh->GetIndicesVertexes().size()
             << std::endl;
-    for (auto& f : mmesh->getIndicesVertexes())
+    for (auto& f : mmesh->GetIndicesVertexes())
         ostream << "3 " << f.x() << " " << f.y() << " " << f.z() << std::endl;
 
     // Writing face types. Type 5 is generally triangles
     ostream << "\n\n";
-    ostream << "CELL_TYPES " << mmesh->getIndicesVertexes().size() << std::endl;
-    auto nfaces = mmesh->getIndicesVertexes().size();
+    ostream << "CELL_TYPES " << mmesh->GetIndicesVertexes().size() << std::endl;
+    auto nfaces = mmesh->GetIndicesVertexes().size();
     for (size_t j = 0; j < nfaces; j++)
         ostream << "5 " << std::endl;
 
@@ -1659,15 +1653,15 @@ void ChSystemGpu::getNeighbors(unsigned int ID, std::vector<unsigned int>& neigh
 }
 
 /// Get rolling friction torque between body i and j, return 0 if not in contact
-ChVector<float> ChSystemGpu::getRollingFrictionTorque(unsigned int i, unsigned int j) {
+ChVector3f ChSystemGpu::getRollingFrictionTorque(unsigned int i, unsigned int j) {
     float3 m_roll = m_sys->getRollingFrictionTorque(i, j);
-    return ChVector<float>(m_roll.x, m_roll.y, m_roll.z);
+    return ChVector3f(m_roll.x, m_roll.y, m_roll.z);
 }
 
 /// Get v_rot for rolling friction
-ChVector<float> ChSystemGpu::getRollingVrot(unsigned int i, unsigned int j) {
+ChVector3f ChSystemGpu::getRollingVrot(unsigned int i, unsigned int j) {
     float3 vrot = m_sys->getRollingVrot(i, j);
-    return ChVector<float>(vrot.x, vrot.y, vrot.z);
+    return ChVector3f(vrot.x, vrot.y, vrot.z);
 }
 
 /// get contact char time
@@ -1676,15 +1670,15 @@ float ChSystemGpu::getRollingCharContactTime(unsigned int i, unsigned int j) {
 }
 
 /// Get tangential friction force between body i and j, return 0 if not in contact
-ChVector<float> ChSystemGpu::getSlidingFrictionForce(unsigned int i, unsigned int j) {
+ChVector3f ChSystemGpu::getSlidingFrictionForce(unsigned int i, unsigned int j) {
     float3 fr = m_sys->getSlidingFrictionForce(i, j);
-    return ChVector<float>(fr.x, fr.y, fr.z);
+    return ChVector3f(fr.x, fr.y, fr.z);
 }
 
 /// Get normal friction force between body i and j, return 0 if not in contact
-ChVector<float> ChSystemGpu::getNormalForce(unsigned int i, unsigned int j) {
+ChVector3f ChSystemGpu::getNormalForce(unsigned int i, unsigned int j) {
     float3 N = m_sys->getNormalForce(i, j);
-    return ChVector<float>(N.x, N.y, N.z);
+    return ChVector3f(N.x, N.y, N.z);
 }
 
 void ChSystemGpuMesh::WriteMeshes(const std::string& outfilename) const {
@@ -1722,9 +1716,9 @@ void ChSystemGpuMesh::WriteMeshes(const std::string& outfilename) const {
     // Prescan the V and F: to write all meshes to one file, we need vertex number offset info
     unsigned int mesh_num = 0;
     for (const auto& mmesh : m_meshes) {
-        vertexOffset[mesh_num + 1] = (unsigned int)mmesh->getCoordsVertices().size();
-        total_v += mmesh->getCoordsVertices().size();
-        total_f += mmesh->getIndicesVertexes().size();
+        vertexOffset[mesh_num + 1] = (unsigned int)mmesh->GetCoordsVertices().size();
+        total_v += mmesh->GetCoordsVertices().size();
+        total_f += mmesh->GetIndicesVertexes().size();
         mesh_num++;
     }
     for (unsigned int i = 1; i < m_meshes.size(); i++)
@@ -1734,7 +1728,7 @@ void ChSystemGpuMesh::WriteMeshes(const std::string& outfilename) const {
     ostream << "POINTS " << total_v << " float" << std::endl;
     mesh_num = 0;
     for (const auto& mmesh : m_meshes) {
-        for (auto& v : mmesh->getCoordsVertices()) {
+        for (auto& v : mmesh->GetCoordsVertices()) {
             float3 point = make_float3(v.x(), v.y(), v.z());
             sys_trimesh->ApplyFrameTransform(point, sys_trimesh->tri_params->fam_frame_broad[mesh_num].pos,
                                              sys_trimesh->tri_params->fam_frame_broad[mesh_num].rot_mat);
@@ -1748,7 +1742,7 @@ void ChSystemGpuMesh::WriteMeshes(const std::string& outfilename) const {
     ostream << "CELLS " << total_f << " " << 4 * total_f << std::endl;
     mesh_num = 0;
     for (const auto& mmesh : m_meshes) {
-        for (auto& f : mmesh->getIndicesVertexes()) {
+        for (auto& f : mmesh->GetIndicesVertexes()) {
             ostream << "3 " << f.x() + vertexOffset[mesh_num] << " " << f.y() + vertexOffset[mesh_num] << " "
                     << f.z() + vertexOffset[mesh_num] << std::endl;
         }
@@ -1759,7 +1753,7 @@ void ChSystemGpuMesh::WriteMeshes(const std::string& outfilename) const {
     ostream << "\n\n";
     ostream << "CELL_TYPES " << total_f << std::endl;
     for (const auto& mmesh : m_meshes) {
-        auto nfaces = mmesh->getIndicesVertexes().size();
+        auto nfaces = mmesh->GetIndicesVertexes().size();
         for (size_t j = 0; j < nfaces; j++)
             ostream << "5 " << std::endl;
     }
@@ -1769,30 +1763,30 @@ void ChSystemGpuMesh::WriteMeshes(const std::string& outfilename) const {
 
 // -----------------------------------------------------------------------------
 
-void ChSystemGpuMesh::CollectMeshContactForces(std::vector<ChVector<>>& forces, std::vector<ChVector<>>& torques) {
+void ChSystemGpuMesh::CollectMeshContactForces(std::vector<ChVector3d>& forces, std::vector<ChVector3d>& torques) {
     ChSystemGpuMesh_impl* sys_trimesh = static_cast<ChSystemGpuMesh_impl*>(m_sys);
-    unsigned int nmeshes = sys_trimesh->meshSoup->numTriangleFamilies;
+    unsigned int m_num_meshes = sys_trimesh->meshSoup->numTriangleFamilies;
     double force_factor = sys_trimesh->FORCE_SU2UU;
     double torque_factor = sys_trimesh->TORQUE_SU2UU;
 
-    forces.resize(nmeshes);
-    torques.resize(nmeshes);
+    forces.resize(m_num_meshes);
+    torques.resize(m_num_meshes);
 
     // Pull directly from unified memory
-    for (unsigned int i = 0; i < nmeshes; i++) {
+    for (unsigned int i = 0; i < m_num_meshes; i++) {
         double fx = sys_trimesh->meshSoup->generalizedForcesPerFamily[6 * i + 0];
         double fy = sys_trimesh->meshSoup->generalizedForcesPerFamily[6 * i + 1];
         double fz = sys_trimesh->meshSoup->generalizedForcesPerFamily[6 * i + 2];
-        forces[i] = ChVector<>(fx, fy, fz) * force_factor;  // Divide by C_F to go from SU to UU
+        forces[i] = ChVector3d(fx, fy, fz) * force_factor;  // Divide by C_F to go from SU to UU
 
         double tx = sys_trimesh->meshSoup->generalizedForcesPerFamily[6 * i + 3];
         double ty = sys_trimesh->meshSoup->generalizedForcesPerFamily[6 * i + 4];
         double tz = sys_trimesh->meshSoup->generalizedForcesPerFamily[6 * i + 5];
-        torques[i] = ChVector<>(tx, ty, tz) * torque_factor;  // Divide by C_TAU to go from SU to UU
+        torques[i] = ChVector3d(tx, ty, tz) * torque_factor;  // Divide by C_TAU to go from SU to UU
     }
 }
 
-void ChSystemGpuMesh::CollectMeshContactForces(int mesh, ChVector<>& force, ChVector<>& torque) {
+void ChSystemGpuMesh::CollectMeshContactForces(int mesh, ChVector3d& force, ChVector3d& torque) {
     ChSystemGpuMesh_impl* sys_trimesh = static_cast<ChSystemGpuMesh_impl*>(m_sys);
     double force_factor = sys_trimesh->FORCE_SU2UU;
     double torque_factor = sys_trimesh->TORQUE_SU2UU;
@@ -1800,12 +1794,12 @@ void ChSystemGpuMesh::CollectMeshContactForces(int mesh, ChVector<>& force, ChVe
     double fx = sys_trimesh->meshSoup->generalizedForcesPerFamily[6 * mesh + 0];
     double fy = sys_trimesh->meshSoup->generalizedForcesPerFamily[6 * mesh + 1];
     double fz = sys_trimesh->meshSoup->generalizedForcesPerFamily[6 * mesh + 2];
-    force = ChVector<>(fx, fy, fz) * force_factor;  // Divide by C_F to go from SU to UU
+    force = ChVector3d(fx, fy, fz) * force_factor;  // Divide by C_F to go from SU to UU
 
     double tx = sys_trimesh->meshSoup->generalizedForcesPerFamily[6 * mesh + 3];
     double ty = sys_trimesh->meshSoup->generalizedForcesPerFamily[6 * mesh + 4];
     double tz = sys_trimesh->meshSoup->generalizedForcesPerFamily[6 * mesh + 5];
-    torque = ChVector<>(tx, ty, tz) * torque_factor;  // Divide by C_TAU to go from SU to UU
+    torque = ChVector3d(tx, ty, tz) * torque_factor;  // Divide by C_TAU to go from SU to UU
 }
 
 // -----------------------------------------------------------------------------

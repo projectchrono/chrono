@@ -40,8 +40,8 @@ class CH_VEHICLE_API EngineSimpleMap : public ChEngineSimpleMap {
     virtual double GetMaxEngineSpeed() override { return m_max_engine_speed; }
 
     /// Set the maps for engine characteristics
-    virtual void SetEngineTorqueMaps(ChFunction_Recorder& map0,  ///< [out] engine map at zero throttle
-                                     ChFunction_Recorder& mapF   ///< [out] engine map at full throttle
+    virtual void SetEngineTorqueMaps(ChFunctionInterp& map0,  ///< [out] engine map at zero throttle
+                                     ChFunctionInterp& mapF   ///< [out] engine map at full throttle
                                      ) override;
 
   private:

@@ -20,6 +20,8 @@
 #include <sstream>
 #include <iomanip>
 
+#include "chrono/utils/ChUtils.h"
+
 #include "chrono_vsg/ChVisualSystemVSG.h"
 #include "chrono_vsg/utils/ChConversionsVSG.h"
 #include "chrono_vsg/utils/ChUtilsVSG.h"
@@ -32,7 +34,7 @@ using namespace std;
 // -----------------------------------------------------------------------------
 
 class GuiComponentWrapper {
-   public:
+  public:
     GuiComponentWrapper(std::shared_ptr<ChGuiComponentVSG> component, ChVisualSystemVSG* app)
         : m_component(component), m_app(app) {}
 
@@ -44,52 +46,46 @@ class GuiComponentWrapper {
         return false;
     }
 
-   private:
+  private:
     std::shared_ptr<ChGuiComponentVSG> m_component;
     ChVisualSystemVSG* m_app;
 };
 
 class ChBaseGuiComponentVSG : public ChGuiComponentVSG {
-   public:
+  public:
     ChBaseGuiComponentVSG(ChVisualSystemVSG* app) : m_app(app) {}
 
     // Example here taken from the Dear imgui comments (mostly)
     virtual void render() override {
-        char label[64];
-        int nstr = sizeof(label) - 1;
         ImGui::SetNextWindowSize(ImVec2(0.0f, 0.0f));
         ////ImGui::SetNextWindowPos(ImVec2(5.0f, 5.0f));
         ImGui::Begin("Simulation");
 
         if (ImGui::BeginTable("SimTable", 2, ImGuiTableFlags_BordersOuter | ImGuiTableFlags_SizingFixedFit,
                               ImVec2(0.0f, 0.0f))) {
-            snprintf(label, nstr, "%8.3f s", m_app->GetSimulationTime());
             ImGui::TableNextColumn();
-            ImGui::Text("Model Time:");
+            ImGui::TextUnformatted("Model Time:");
             ImGui::TableNextColumn();
-            ImGui::Text(label);
+            ImGui::Text("%8.3f s", m_app->GetSimulationTime());
 
             ImGui::TableNextRow();
             double current_time = double(clock()) / double(CLOCKS_PER_SEC);
-            snprintf(label, nstr, "%8.3f s", current_time - m_app->m_start_time);
             ImGui::TableNextColumn();
-            ImGui::Text("Wall Clock Time:");
+            ImGui::TextUnformatted("Wall Clock Time:");
             ImGui::TableNextColumn();
-            ImGui::Text(label);
+            ImGui::Text("%8.3f s", current_time - m_app->m_start_time);
 
             ImGui::TableNextRow();
             ImGui::TableNextColumn();
-            ImGui::Text("Real Time Factor:");
+            ImGui::TextUnformatted("Real Time Factor:");
             ImGui::TableNextColumn();
-            snprintf(label, nstr, "%8.3f", m_app->GetSimulationRTF());
-            ImGui::Text(label);
+            ImGui::Text("%8.3f", m_app->GetSimulationRTF());
 
             ImGui::TableNextRow();
             ImGui::TableNextColumn();
-            ImGui::Text("Rendering FPS:");
+            ImGui::TextUnformatted("Rendering FPS:");
             ImGui::TableNextColumn();
-            snprintf(label, nstr, "%8.3f", m_app->GetRenderingFPS());
-            ImGui::Text(label);
+            ImGui::Text("%8.3f", m_app->GetRenderingFPS());
 
             ImGui::EndTable();
         }
@@ -98,7 +94,7 @@ class ChBaseGuiComponentVSG : public ChGuiComponentVSG {
 
         if (ImGui::BeginTable("Frames", 2, ImGuiTableFlags_BordersOuter | ImGuiTableFlags_SizingFixedFit,
                               ImVec2(0.0f, 0.0f))) {
-            ImGui::Text("COG:");
+            ImGui::TextUnformatted("COG:");
             ImGui::TableNextColumn();
             static bool bCOG_frame_active = false;
             if (ImGui::Checkbox("COG", &bCOG_frame_active))
@@ -111,7 +107,7 @@ class ChBaseGuiComponentVSG : public ChGuiComponentVSG {
             m_app->m_cog_frame_scale = cog_frame_scale;
 
             ImGui::TableNextRow();
-            ImGui::Text("Joint:");
+            ImGui::TextUnformatted("Joint:");
             ImGui::TableNextColumn();
             static bool bJoint_frame_active = false;
             if (ImGui::Checkbox("Joint", &bJoint_frame_active))
@@ -138,13 +134,10 @@ class ChBaseGuiComponentVSG : public ChGuiComponentVSG {
 };
 
 class ChCameraGuiComponentVSG : public ChGuiComponentVSG {
-   public:
+  public:
     ChCameraGuiComponentVSG(ChVisualSystemVSG* app) : m_app(app) { m_visible = false; }
 
     virtual void render() override {
-        char label[64];
-        int nstr = sizeof(label) - 1;
-
         auto p = m_app->GetCameraPosition();
         auto t = m_app->GetCameraTarget();
 
@@ -155,23 +148,19 @@ class ChCameraGuiComponentVSG : public ChGuiComponentVSG {
         if (ImGui::BeginTable("Location", 4, ImGuiTableFlags_BordersOuter | ImGuiTableFlags_SizingFixedFit,
                               ImVec2(0.0f, 0.0f))) {
             ImGui::TableNextColumn();
-            snprintf(label, nstr, "Location");
-            ImGui::Text(label);
+            ImGui::TextUnformatted("Location");
             for (int i = 0; i < 3; i++) {
                 ImGui::TableNextColumn();
-                snprintf(label, nstr, " %5.1f", p[i]);
-                ImGui::Text(label);
+                ImGui::Text(" %5.1f", p[i]);
             }
 
             ImGui::TableNextRow();
 
             ImGui::TableNextColumn();
-            snprintf(label, nstr, "Look-at");
-            ImGui::Text(label);
+            ImGui::TextUnformatted("Look-at");
             for (int i = 0; i < 3; i++) {
                 ImGui::TableNextColumn();
-                snprintf(label, nstr, " %5.1f", t[i]);
-                ImGui::Text(label);
+                ImGui::Text(" %5.1f", t[i]);
             }
 
             ImGui::EndTable();
@@ -184,7 +173,7 @@ class ChCameraGuiComponentVSG : public ChGuiComponentVSG {
 };
 
 class ChColorbarGuiComponentVSG : public ChGuiComponentVSG {
-   public:
+  public:
     ChColorbarGuiComponentVSG(const std::string& title, double min_val, double max_val)
         : m_title(title), m_min_val(min_val), m_max_val(max_val) {}
 
@@ -247,7 +236,7 @@ class ChColorbarGuiComponentVSG : public ChGuiComponentVSG {
         ImGui::End();
     }
 
-   private:
+  private:
     std::string m_title;
     double m_min_val;
     double m_max_val;
@@ -256,19 +245,19 @@ class ChColorbarGuiComponentVSG : public ChGuiComponentVSG {
 // -----------------------------------------------------------------------------
 
 class EventHandlerWrapper : public vsg::Inherit<vsg::Visitor, EventHandlerWrapper> {
-   public:
+  public:
     EventHandlerWrapper(std::shared_ptr<ChEventHandlerVSG> component, ChVisualSystemVSG* app)
         : m_component(component), m_app(app) {}
 
     void apply(vsg::KeyPressEvent& keyPress) override { m_component->process(keyPress); }
 
-   private:
+  private:
     std::shared_ptr<ChEventHandlerVSG> m_component;
     ChVisualSystemVSG* m_app;
 };
 
 class ChBaseEventHandlerVSG : public ChEventHandlerVSG {
-   public:
+  public:
     ChBaseEventHandlerVSG(ChVisualSystemVSG* app) : m_app(app) {}
 
     virtual void process(vsg::KeyPressEvent& keyPress) override {
@@ -292,7 +281,7 @@ class ChBaseEventHandlerVSG : public ChEventHandlerVSG {
 // Note: since VSG v.1.0.8 VertexIndexDraw is used instead of BindVertexBuffers!
 template <int N>
 class FindVec3BufferData : public vsg::Visitor {
-   public:
+  public:
     FindVec3BufferData() : m_buffer(nullptr) {}
     void apply(vsg::Object& object) override { object.traverse(*this); }
     void apply(vsg::BindVertexBuffers& bvd) override {
@@ -321,7 +310,7 @@ class FindVec3BufferData : public vsg::Visitor {
 // Note: since VSG v.1.0.8 VertexIndexDraw is used instead of BindVertexBuffers!
 template <int N>
 class FindVec4BufferData : public vsg::Visitor {
-   public:
+  public:
     FindVec4BufferData() : m_buffer(nullptr) {}
     void apply(vsg::Object& object) override { object.traverse(*this); }
     void apply(vsg::BindVertexBuffers& bvd) override {
@@ -420,7 +409,7 @@ ChVisualSystemVSG::ChVisualSystemVSG(int num_divs)
       m_old_time(0),
       m_current_time(0),
       m_fps(0),
-      m_verbose(true) {
+      m_verbose(false) {
     m_windowTitle = string("Window Title");
     m_clearColor = ChColor(0, 0, 0);
     m_skyboxPath = string("vsg/textures/chrono_skybox.ktx2");
@@ -449,12 +438,12 @@ ChVisualSystemVSG::ChVisualSystemVSG(int num_divs)
 
     // make some default settings
     SetWindowTitle("VSG: Vehicle Demo");
-    SetWindowSize(ChVector2<int>(800, 600));
-    SetWindowPosition(ChVector2<int>(50, 50));
+    SetWindowSize(ChVector2i(800, 600));
+    SetWindowPosition(ChVector2i(50, 50));
     SetUseSkyBox(true);
     SetCameraAngleDeg(40);
     SetLightIntensity(1.0);
-    SetLightDirection(1.5 * CH_C_PI_2, CH_C_PI_4);
+    SetLightDirection(1.5 * CH_PI_2, CH_PI_4);
 #ifdef __APPLE__
     SetGuiFontSize(20.0);
 #else
@@ -466,22 +455,22 @@ ChVisualSystemVSG::~ChVisualSystemVSG() {}
 
 void ChVisualSystemVSG::SetOutputScreen(int screenNum) {
     if (m_initialized) {
-        GetLog() << "Function '" << __func__ << "' must be used before initialization!\n";
+        std::cerr << "Function ChVisualSystemVSG::SetOutputScreen must be used before initialization!" << std::endl;
         return;
     }
     int maxNum = vsg::Device::maxNumDevices();
-    GetLog() << "Screens found: " << maxNum << "\n";
+    std::cout << "Screens found: " << maxNum << std::endl;
     if (screenNum >= 0 && screenNum < maxNum) {
         m_screen_num = screenNum;
     } else {
-        GetLog() << "Screen #" << screenNum << " cannot be used on this computer!\n";
-        exit(1);
+        std::cerr << "Screen #" << screenNum << " cannot be used on this computer!" << std::endl;
+        throw std::runtime_error("Screen #" + std::to_string(screenNum) + " cannot be used on this computer!");
     }
 }
 
 void ChVisualSystemVSG::SetFullscreen(bool yesno) {
     if (m_initialized) {
-        GetLog() << "Function '" << __func__ << "' must be used before initialization!\n";
+        std::cerr << "Function ChVisualSystemVSG::SetFullscreen must be used before initialization!" << std::endl;
         return;
     }
     m_use_fullscreen = yesno;
@@ -523,15 +512,15 @@ void ChVisualSystemVSG::Quit() {
 
 void ChVisualSystemVSG::SetGuiFontSize(float theSize) {
     if (m_initialized) {
-        GetLog() << "Function '" << __func__ << "' must be used before initialization!\n";
+        std::cerr << "Function ChVisualSystemVSG::SetGuiFontSize must be used before initialization!" << std::endl;
         return;
     }
     m_guiFontSize = theSize;
 }
 
-void ChVisualSystemVSG::SetWindowSize(const ChVector2<int>& size) {
+void ChVisualSystemVSG::SetWindowSize(const ChVector2i& size) {
     if (m_initialized) {
-        GetLog() << "Function '" << __func__ << "' must be used before initialization!\n";
+        std::cerr << "Function ChVisualSystemVSG::SetGuiFontSize must be used before initialization!" << std::endl;
         return;
     }
     m_windowWidth = size[0];
@@ -540,16 +529,16 @@ void ChVisualSystemVSG::SetWindowSize(const ChVector2<int>& size) {
 
 void ChVisualSystemVSG::SetWindowSize(int width, int height) {
     if (m_initialized) {
-        GetLog() << "Function '" << __func__ << "' must be used before initialization!\n";
+        std::cerr << "Function ChVisualSystemVSG::SetWindowSize must be used before initialization!" << std::endl;
         return;
     }
     m_windowWidth = width;
     m_windowHeight = height;
 }
 
-void ChVisualSystemVSG::SetWindowPosition(const ChVector2<int>& pos) {
+void ChVisualSystemVSG::SetWindowPosition(const ChVector2i& pos) {
     if (m_initialized) {
-        GetLog() << "Function '" << __func__ << "' must be used before initialization!\n";
+        std::cerr << "Function ChVisualSystemVSG::SetWindowPosition must be used before initialization!" << std::endl;
         return;
     }
     m_windowX = pos[0];
@@ -558,7 +547,7 @@ void ChVisualSystemVSG::SetWindowPosition(const ChVector2<int>& pos) {
 
 void ChVisualSystemVSG::SetWindowPosition(int from_left, int from_top) {
     if (m_initialized) {
-        GetLog() << "Function '" << __func__ << "' must be used before initialization!\n";
+        std::cerr << "Function ChVisualSystemVSG::SetWindowPosition must be used before initialization!" << std::endl;
         return;
     }
     m_windowX = from_left;
@@ -567,7 +556,7 @@ void ChVisualSystemVSG::SetWindowPosition(int from_left, int from_top) {
 
 void ChVisualSystemVSG::SetWindowTitle(const std::string& title) {
     if (m_initialized) {
-        GetLog() << "Function '" << __func__ << "' must be used before initialization!\n";
+        std::cerr << "Function ChVisualSystemVSG::SetWindowTitle must be used before initialization!" << std::endl;
         return;
     }
     m_windowTitle = title;
@@ -575,7 +564,7 @@ void ChVisualSystemVSG::SetWindowTitle(const std::string& title) {
 
 void ChVisualSystemVSG::SetClearColor(const ChColor& color) {
     if (m_initialized) {
-        GetLog() << "Function '" << __func__ << "' must be used before initialization!\n";
+        std::cerr << "Function ChVisualSystemVSG::SetClearColor must be used before initialization!" << std::endl;
         return;
     }
     m_clearColor = color;
@@ -583,35 +572,37 @@ void ChVisualSystemVSG::SetClearColor(const ChColor& color) {
 
 void ChVisualSystemVSG::SetUseSkyBox(bool yesno) {
     if (m_initialized) {
-        GetLog() << "Function '" << __func__ << "' must be used before initialization!\n";
+        std::cerr << "Function ChVisualSystemVSG::SetUseSkyBox must be used before initialization!" << std::endl;
         return;
     }
     m_useSkybox = yesno;
 }
 
-int ChVisualSystemVSG::AddCamera(const ChVector<>& pos, ChVector<> targ) {
+int ChVisualSystemVSG::AddCamera(const ChVector3d& pos, ChVector3d targ) {
     if (m_initialized) {
-        GetLog() << "Function '" << __func__ << "' must be used before initialization!\n";
-        return -1;
+        std::cerr << "Function ChVisualSystemVSG::AddCamera must be used before initialization!" << std::endl;
+        return 1;
     }
 
-    ChVector<> test = pos - targ;
+    ChVector3d test = pos - targ;
     if (test.Length() == 0.0) {
-        GetLog() << "Function '" << __func__ << "' Camera Pos and Target cannot be identical!\n";
-        GetLog() << "  pos    = { " << pos.x() << " ; " << pos.y() << " ; " << pos.z() << " }\n";
-        GetLog() << "  target = { " << targ.x() << " ; " << targ.y() << " ; " << targ.z() << " }\n";
-        exit(42);
+        std::cerr << "Function ChVisualSystemVSG::AddCamera Camera Pos and Target cannot be identical!" << std::endl;
+        std::cerr << "  pos    = { " << pos.x() << " ; " << pos.y() << " ; " << pos.z() << " }" << std::endl;
+        std::cerr << "  target = { " << targ.x() << " ; " << targ.y() << " ; " << targ.z() << " }" << std::endl;
+        throw std::runtime_error("Function ChVisualSystemVSG::AddCamera Camera Pos and Target cannot be identical!");
     }
     if (m_yup) {
         if (pos.x() == 0.0 && pos.z() == 0.0) {
-            GetLog() << "Function '" << __func__ << "' Line of sight is parallel to upvector! -> Corrected!!\n";
+            std::cout << "Function ChVisualSystemVSG::AddCamera Line of sight is parallel to upvector! -> Corrected!!"
+                      << std::endl;
             m_vsg_cameraEye = vsg::dvec3(pos.x() + 1.0, pos.y(), pos.z() + 1.0);
         } else {
             m_vsg_cameraEye = vsg::dvec3(pos.x(), pos.y(), pos.z());
         }
     } else {
         if (pos.x() == 0.0 && pos.y() == 0.0) {
-            GetLog() << "Function '" << __func__ << "' Line of sight is parallel to upvector! -> Corrected!!\n";
+            std::cout << "Function ChVisualSystemVSG::AddCamera Line of sight is parallel to upvector! -> Corrected!!"
+                      << std::endl;
             m_vsg_cameraEye = vsg::dvec3(pos.x() + 1.0, pos.y() + 1.0, pos.z());
         } else {
             m_vsg_cameraEye = vsg::dvec3(pos.x(), pos.y(), pos.z());
@@ -622,35 +613,35 @@ int ChVisualSystemVSG::AddCamera(const ChVector<>& pos, ChVector<> targ) {
     return 0;
 }
 
-void ChVisualSystemVSG::SetCameraPosition(int id, const ChVector<>& pos) {
+void ChVisualSystemVSG::SetCameraPosition(int id, const ChVector3d& pos) {
     m_lookAt->eye = vsg::dvec3(pos.x(), pos.y(), pos.z());
 }
 
-void ChVisualSystemVSG::SetCameraTarget(int id, const ChVector<>& target) {
+void ChVisualSystemVSG::SetCameraTarget(int id, const ChVector3d& target) {
     m_lookAt->center = vsg::dvec3(target.x(), target.y(), target.z());
 }
 
-void ChVisualSystemVSG::SetCameraPosition(const ChVector<>& pos) {
+void ChVisualSystemVSG::SetCameraPosition(const ChVector3d& pos) {
     m_lookAt->eye = vsg::dvec3(pos.x(), pos.y(), pos.z());
 }
 
-void ChVisualSystemVSG::SetCameraTarget(const ChVector<>& target) {
+void ChVisualSystemVSG::SetCameraTarget(const ChVector3d& target) {
     m_lookAt->center = vsg::dvec3(target.x(), target.y(), target.z());
 }
 
-ChVector<> ChVisualSystemVSG::GetCameraPosition() const {
+ChVector3d ChVisualSystemVSG::GetCameraPosition() const {
     const auto& p = m_lookAt->eye;
-    return ChVector<>(p.x, p.y, p.z);
+    return ChVector3d(p.x, p.y, p.z);
 }
 
-ChVector<> ChVisualSystemVSG::GetCameraTarget() const {
+ChVector3d ChVisualSystemVSG::GetCameraTarget() const {
     const auto& p = m_lookAt->center;
-    return ChVector<>(p.x, p.y, p.z);
+    return ChVector3d(p.x, p.y, p.z);
 }
 
 void ChVisualSystemVSG::SetCameraVertical(CameraVerticalDir upDir) {
     if (m_initialized) {
-        GetLog() << "Function '" << __func__ << "' must be used before initialization!\n";
+        std::cerr << "Function ChVisualSystemVSG::SetCameraVertical must be used before initialization!" << std::endl;
         return;
     }
     switch (upDir) {
@@ -671,11 +662,11 @@ void ChVisualSystemVSG::SetLightIntensity(float intensity) {
 
 void ChVisualSystemVSG::SetLightDirection(double azimuth, double elevation) {
     if (m_initialized) {
-        GetLog() << "Function '" << __func__ << "' must be used before initialization!\n";
+        std::cerr << "Function ChVisualSystemVSG::SetLightDirection must be used before initialization!" << std::endl;
         return;
     }
-    m_azimuth = ChClamp(azimuth, -CH_C_PI, CH_C_PI);
-    m_elevation = ChClamp(elevation, 0.0, CH_C_PI_2);
+    m_azimuth = ChClamp(azimuth, -CH_PI, CH_PI);
+    m_elevation = ChClamp(elevation, 0.0, CH_PI_2);
 }
 
 void ChVisualSystemVSG::Initialize() {
@@ -751,7 +742,7 @@ void ChVisualSystemVSG::Initialize() {
         auto overheadLight = vsg::DirectionalLight::create();
         overheadLight->name = "head light";
         overheadLight->color.set(1.0f, 1.0f, 1.0f);
-        overheadLight->intensity = 0.2;
+        overheadLight->intensity = 0.2f;
         if (m_yup)
             overheadLight->direction.set(-ce * ca, -se, -ce * sa);
         else
@@ -783,33 +774,33 @@ void ChVisualSystemVSG::Initialize() {
     const auto& prop = m_window->getOrCreatePhysicalDevice()->getProperties();
 
     if (m_verbose) {
-        GetLog() << "****************************************************\n";
-        GetLog() << "* Chrono::VSG Vulkan Scene Graph 3D-Visualization\n";
-        GetLog() << "* GPU Name: " << prop.deviceName << "\n";
+        std::cout << "****************************************************" << std::endl;
+        std::cout << "* Chrono::VSG Vulkan Scene Graph 3D-Visualization" << std::endl;
+        std::cout << "* GPU Name: " << prop.deviceName << std::endl;
         switch (prop.deviceType) {
             default:
             case VK_PHYSICAL_DEVICE_TYPE_OTHER:
-                GetLog() << "* GPU Type: VK_PHYSICAL_DEVICE_TYPE_OTHER\n";
+                std::cout << "* GPU Type: VK_PHYSICAL_DEVICE_TYPE_OTHER" << std::endl;
                 break;
             case VK_PHYSICAL_DEVICE_TYPE_INTEGRATED_GPU:
-                GetLog() << "* GPU Type: VK_PHYSICAL_DEVICE_TYPE_INTEGRATED_GPU\n";
+                std::cout << "* GPU Type: VK_PHYSICAL_DEVICE_TYPE_INTEGRATED_GPU" << std::endl;
                 break;
             case VK_PHYSICAL_DEVICE_TYPE_DISCRETE_GPU:
-                GetLog() << "* GPU Type: VK_PHYSICAL_DEVICE_TYPE_DISCRETE_GPU\n";
+                std::cout << "* GPU Type: VK_PHYSICAL_DEVICE_TYPE_DISCRETE_GPU" << std::endl;
                 break;
             case VK_PHYSICAL_DEVICE_TYPE_VIRTUAL_GPU:
-                GetLog() << "* GPU Type: VK_PHYSICAL_DEVICE_TYPE_VIRTUAL_GPU\n";
+                std::cout << "* GPU Type: VK_PHYSICAL_DEVICE_TYPE_VIRTUAL_GPU" << std::endl;
                 break;
             case VK_PHYSICAL_DEVICE_TYPE_CPU:
-                GetLog() << "* GPU Type: VK_PHYSICAL_DEVICE_TYPE_CPU\n";
+                std::cout << "* GPU Type: VK_PHYSICAL_DEVICE_TYPE_CPU" << std::endl;
                 break;
         }
-        GetLog() << "* Vulkan Version: " << VK_VERSION_MAJOR(VK_HEADER_VERSION_COMPLETE) << "."
-                 << VK_VERSION_MINOR(VK_HEADER_VERSION_COMPLETE) << "."
-                 << VK_API_VERSION_PATCH(VK_HEADER_VERSION_COMPLETE) << "\n";
-        GetLog() << "* Vulkan Scene Graph Version: " << VSG_VERSION_STRING << "\n";
-        GetLog() << "* Graphic Output Possible on: " << vsg::Device::maxNumDevices() << " Screens.\n";
-        GetLog() << "****************************************************\n";
+        std::cout << "* Vulkan Version: " << VK_VERSION_MAJOR(VK_HEADER_VERSION_COMPLETE) << "."
+                  << VK_VERSION_MINOR(VK_HEADER_VERSION_COMPLETE) << "."
+                  << VK_API_VERSION_PATCH(VK_HEADER_VERSION_COMPLETE) << std::endl;
+        std::cout << "* Vulkan Scene Graph Version: " << VSG_VERSION_STRING << std::endl;
+        std::cout << "* Graphic Output Possible on: " << vsg::Device::maxNumDevices() << " Screens." << std::endl;
+        std::cout << "****************************************************" << std::endl;
     }
 
     m_window->clearColor() = VkClearColorValue{{m_clearColor.R, m_clearColor.G, m_clearColor.B, 1}};
@@ -864,7 +855,7 @@ void ChVisualSystemVSG::Initialize() {
 #ifdef __APPLE__
     } else {
         // ignore loadable ttf font
-        GetLog() << "App runs with standard resolution on the Mac. Font size setting ignored.\n";
+        std::cout << "App runs with standard resolution on the Mac. Font size setting ignored." << std::endl;
     }
 #endif
 
@@ -980,7 +971,7 @@ void ChVisualSystemVSG::Render() {
     for (auto& def_mesh : m_def_meshes) {
         if (def_mesh.dynamic_vertices) {
             const auto& new_vertices =
-                def_mesh.mesh_soup ? def_mesh.trimesh->getFaceVertices() : def_mesh.trimesh->getCoordsVertices();
+                def_mesh.mesh_soup ? def_mesh.trimesh->getFaceVertices() : def_mesh.trimesh->GetCoordsVertices();
             assert(def_mesh.vertices->size() == new_vertices.size());
             size_t k = 0;
             for (auto& v : *def_mesh.vertices)
@@ -1000,7 +991,7 @@ void ChVisualSystemVSG::Render() {
 
         if (def_mesh.dynamic_colors) {
             const auto& new_colors =
-                def_mesh.mesh_soup ? def_mesh.trimesh->getFaceColors() : def_mesh.trimesh->getCoordsColors();
+                def_mesh.mesh_soup ? def_mesh.trimesh->getFaceColors() : def_mesh.trimesh->GetCoordsColors();
             assert(def_mesh.colors->size() == new_colors.size());
             size_t k = 0;
             for (auto& c : *def_mesh.colors)
@@ -1082,14 +1073,14 @@ void ChVisualSystemVSG::WriteImageToFile(const string& filename) {
 // -----------------------------------------------------------------------------
 
 // Utility function for creating a frame with its X axis defined by 2 points.
-ChFrame<> PointPointFrame(const ChVector<>& P1, const ChVector<>& P2, double& dist) {
-    ChVector<> dir = P2 - P1;
+ChFrame<> PointPointFrame(const ChVector3d& P1, const ChVector3d& P2, double& dist) {
+    ChVector3d dir = P2 - P1;
     dist = dir.Length();
     dir.Normalize();
-    ChVector<> mx, my, mz;
-    dir.DirToDxDyDz(my, mz, mx);
+    ChVector3d mx, my, mz;
+    dir.GetDirectionAxesAsX(my, mz, mx);
     ChMatrix33<> R_CS;
-    R_CS.Set_A_axis(mx, my, mz);
+    R_CS.SetFromDirectionAxes(mx, my, mz);
 
     return ChFrame<>(0.5 * (P2 + P1), R_CS);
 }
@@ -1138,7 +1129,7 @@ void ChVisualSystemVSG::PopulateGroup(vsg::ref_ptr<vsg::Group> group,
             double rad = cylinder->GetRadius();
             double height = cylinder->GetHeight();
             auto transform = vsg::MatrixTransform::create();
-            transform->matrix = vsg::dmat4CH(X_SM, ChVector<>(rad, rad, height));
+            transform->matrix = vsg::dmat4CH(X_SM, ChVector3d(rad, rad, height));
             auto grp = m_shapeBuilder->CreatePbrShape(ShapeBuilder::ShapeType::CYLINDER_SHAPE, material, transform,
                                                       m_wireframe);
             group->addChild(grp);
@@ -1146,7 +1137,7 @@ void ChVisualSystemVSG::PopulateGroup(vsg::ref_ptr<vsg::Group> group,
             double rad = capsule->GetRadius();
             double height = capsule->GetHeight();
             auto transform = vsg::MatrixTransform::create();
-            transform->matrix = vsg::dmat4CH(X_SM, ChVector<>(rad, rad, rad / 2 + height / 4));
+            transform->matrix = vsg::dmat4CH(X_SM, ChVector3d(rad, rad, rad / 2 + height / 4));
             auto grp = m_shapeBuilder->CreatePbrShape(ShapeBuilder::ShapeType::CAPSULE_SHAPE, material, transform,
                                                       m_wireframe);
             group->addChild(grp);
@@ -1156,7 +1147,7 @@ void ChVisualSystemVSG::PopulateGroup(vsg::ref_ptr<vsg::Group> group,
             double rad = cone->GetRadius();
             double height = cone->GetHeight();
             auto transform = vsg::MatrixTransform::create();
-            transform->matrix = vsg::dmat4CH(X_SM, ChVector<>(rad, rad, height));
+            transform->matrix = vsg::dmat4CH(X_SM, ChVector3d(rad, rad, height));
             auto grp =
                 m_shapeBuilder->CreatePbrShape(ShapeBuilder::ShapeType::CONE_SHAPE, material, transform, m_wireframe);
             group->addChild(grp);
@@ -1183,7 +1174,7 @@ void ChVisualSystemVSG::PopulateGroup(vsg::ref_ptr<vsg::Group> group,
             size_t objHashValue = m_stringHash(objFilename);
             auto grp = vsg::Group::create();
             auto transform = vsg::MatrixTransform::create();
-            transform->matrix = vsg::dmat4CH(ChFrame<>(X_SM.GetPos(), X_SM.GetRot() * Q_from_AngX(-CH_C_PI_2)), scale);
+            transform->matrix = vsg::dmat4CH(ChFrame<>(X_SM.GetPos(), X_SM.GetRot() * QuatFromAngleX(-CH_PI_2)), scale);
             grp->addChild(transform);
             // needed, when BindAll() is called after Initialization
             // vsg::observer_ptr<vsg::Viewer> observer_viewer(m_viewer);
@@ -1272,7 +1263,7 @@ void ChVisualSystemVSG::BindMesh(const std::shared_ptr<fea::ChMesh>& mesh) {
         if (!trimesh)
             continue;
 
-        if (trimesh->GetMesh()->getNumVertices() == 0)
+        if (trimesh->GetMesh()->GetNumVertices() == 0)
             continue;
 
         DeformableMesh def_mesh;
@@ -1285,10 +1276,9 @@ void ChVisualSystemVSG::BindMesh(const std::shared_ptr<fea::ChMesh>& mesh) {
         m_deformableScene->addChild(child);
 
         def_mesh.mesh_soup = true;
-        auto n_vertices = 3 * trimesh->GetMesh()->getNumTriangles();  // expected
 
         def_mesh.vertices = vsg::visit<FindVec3BufferData<0>>(child).getBufferData();
-        assert(def_mesh.vertices->size() == n_vertices);
+        assert(def_mesh.vertices->size() == 3 * trimesh->GetMesh()->GetNumTriangles());
         def_mesh.vertices->properties.dataVariance = vsg::DYNAMIC_DATA;
         def_mesh.dynamic_vertices = true;
 
@@ -1316,19 +1306,19 @@ void ChVisualSystemVSG::BindMesh(const std::shared_ptr<fea::ChMesh>& mesh) {
 
 void ChVisualSystemVSG::BindParticleCloud(const std::shared_ptr<ChParticleCloud>& pcloud) {
     const auto& vis_model = pcloud->GetVisualModel();
-    auto num_particles = pcloud->GetNparticles();
+    auto num_particles = pcloud->GetNumParticles();
 
     if (!vis_model)
         return;
 
     // Search for an appropriate rendering shape
-    typedef geometry::ChGeometry::Type ShapeType;
+    typedef ChGeometry::Type ShapeType;
     auto shape = vis_model->GetShape(0);
     ShapeType shape_type = ShapeType::NONE;
-    ChVector<> shape_size(0);
+    ChVector3d shape_size(0);
     if (auto sph = std::dynamic_pointer_cast<ChVisualShapeSphere>(shape)) {
         shape_type = ShapeType::SPHERE;
-        shape_size = ChVector<>(2 * sph->GetRadius());
+        shape_size = ChVector3d(2 * sph->GetRadius());
     } else if (auto ell = std::dynamic_pointer_cast<ChVisualShapeEllipsoid>(shape)) {
         shape_type = ShapeType::ELLIPSOID;
         shape_size = ell->GetAxes();
@@ -1339,17 +1329,17 @@ void ChVisualSystemVSG::BindParticleCloud(const std::shared_ptr<ChParticleCloud>
         double rad = cap->GetRadius();
         double height = cap->GetHeight();
         shape_type = ShapeType::CAPSULE;
-        shape_size = ChVector<>(2 * rad, 2 * rad, height);
+        shape_size = ChVector3d(2 * rad, 2 * rad, height);
     } else if (auto cyl = std::dynamic_pointer_cast<ChVisualShapeCylinder>(shape)) {
         double rad = cyl->GetRadius();
         double height = cyl->GetHeight();
         shape_type = ShapeType::CYLINDER;
-        shape_size = ChVector<>(2 * rad, 2 * rad, height);
+        shape_size = ChVector3d(2 * rad, 2 * rad, height);
     } else if (auto cone = std::dynamic_pointer_cast<ChVisualShapeCone>(shape)) {
         double rad = cone->GetRadius();
         double height = cone->GetHeight();
         shape_type = ShapeType::CONE;
-        shape_size = ChVector<>(2 * rad, 2 * rad, height);
+        shape_size = ChVector3d(2 * rad, 2 * rad, height);
     }
 
     if (shape_type == ShapeType::NONE)
@@ -1482,7 +1472,7 @@ void ChVisualSystemVSG::BindTSDA(const std::shared_ptr<ChLinkTSDA>& tsda) {
                 shape->GetMaterials().empty() ? ChVisualMaterial::Default() : shape->GetMaterial(0);
 
             auto transform = vsg::MatrixTransform::create();
-            transform->matrix = vsg::dmat4CH(X, ChVector<>(0, length, 0));
+            transform->matrix = vsg::dmat4CH(X, ChVector3d(0, length, 0));
             m_linkScene->addChild(m_shapeBuilder->CreateUnitSegment(tsda, shape_instance, material, transform));
         } else if (auto sprshape = std::dynamic_pointer_cast<ChVisualShapeSpring>(shape)) {
             double rad = sprshape->GetRadius();
@@ -1492,7 +1482,7 @@ void ChVisualSystemVSG::BindTSDA(const std::shared_ptr<ChLinkTSDA>& tsda) {
                 shape->GetMaterials().empty() ? ChVisualMaterial::Default() : shape->GetMaterial(0);
 
             auto transform = vsg::MatrixTransform::create();
-            transform->matrix = vsg::dmat4CH(X, ChVector<>(rad, length, rad));
+            transform->matrix = vsg::dmat4CH(X, ChVector3d(rad, length, rad));
             m_linkScene->addChild(
                 m_shapeBuilder->CreateSpringShape(tsda, shape_instance, material, transform, sprshape));
         }
@@ -1514,7 +1504,7 @@ void ChVisualSystemVSG::BindLinkDistance(const std::shared_ptr<ChLinkDistance>& 
                 shape->GetMaterials().empty() ? ChVisualMaterial::Default() : shape->GetMaterial(0);
 
             auto transform = vsg::MatrixTransform::create();
-            transform->matrix = vsg::dmat4CH(X, ChVector<>(0, length, 0));
+            transform->matrix = vsg::dmat4CH(X, ChVector3d(0, length, 0));
             m_linkScene->addChild(m_shapeBuilder->CreateUnitSegment(dist, shape_instance, material, transform));
         }
     }
@@ -1522,7 +1512,7 @@ void ChVisualSystemVSG::BindLinkDistance(const std::shared_ptr<ChLinkDistance>& 
 
 void ChVisualSystemVSG::BindBodyFrame(const std::shared_ptr<ChBody>& body) {
     auto cog_transform = vsg::MatrixTransform::create();
-    cog_transform->matrix = vsg::dmat4CH(body->GetFrame_COG_to_abs(), m_cog_frame_scale);
+    cog_transform->matrix = vsg::dmat4CH(body->GetFrameCOMToAbs(), m_cog_frame_scale);
     vsg::Mask mask = m_show_cog_frames;
     auto cog_node = m_shapeBuilder->createFrameSymbol(cog_transform, 1.0f);
     cog_node->setValue("Body", body);
@@ -1537,8 +1527,8 @@ void ChVisualSystemVSG::BindLinkFrame(const std::shared_ptr<ChLinkBase>& link) {
         frameA = *link_markers->GetMarker1() >> *link_markers->GetBody1();
         frameB = *link_markers->GetMarker2() >> *link_markers->GetBody2();
     } else if (auto link_mate = std::dynamic_pointer_cast<ChLinkMateGeneric>(link)) {
-        frameA = link_mate->GetFrame1() >> *link_mate->GetBody1();
-        frameB = link_mate->GetFrame2() >> *link_mate->GetBody2();
+        frameA = link_mate->GetFrame1Rel() >> *link_mate->GetBody1();
+        frameB = link_mate->GetFrame2Rel() >> *link_mate->GetBody2();
     }
 
     auto joint_transform = vsg::MatrixTransform::create();
@@ -1582,13 +1572,13 @@ void ChVisualSystemVSG::BindItem(std::shared_ptr<ChPhysicsItem> item) {
 void ChVisualSystemVSG::BindAll() {
     for (auto sys : m_systems) {
         // Bind visual models associated with bodies in the system
-        for (const auto& body : sys->GetAssembly().Get_bodylist()) {
+        for (const auto& body : sys->GetAssembly().GetBodies()) {
             BindBodyFrame(body);
             BindBody(body);
         }
 
         // Bind visual models associated with links in the system
-        for (const auto& link : sys->Get_linklist()) {
+        for (const auto& link : sys->GetLinks()) {
             BindLinkFrame(link);
             if (const auto& tsda = std::dynamic_pointer_cast<ChLinkTSDA>(link))
                 BindTSDA(tsda);
@@ -1597,12 +1587,12 @@ void ChVisualSystemVSG::BindAll() {
         }
 
         // Bind visual models associated with FEA meshes
-        for (const auto& mesh : sys->GetAssembly().Get_meshlist()) {
+        for (const auto& mesh : sys->GetAssembly().GetMeshes()) {
             BindMesh(mesh);
         }
 
         // Bind visual models associated with other physics items in the system
-        for (const auto& item : sys->Get_otherphysicslist()) {
+        for (const auto& item : sys->GetOtherPhysicsItems()) {
             if (const auto& pcloud = std::dynamic_pointer_cast<ChParticleCloud>(item))
                 BindParticleCloud(pcloud);
             else if (const auto& loadcont = std::dynamic_pointer_cast<ChLoadContainer>(item))
@@ -1624,7 +1614,7 @@ void ChVisualSystemVSG::UpdateFromMBS() {
             if (!child.node->getValue("Transform", transform))
                 continue;
 
-            transform->matrix = vsg::dmat4CH(body->GetFrame_COG_to_abs(), m_cog_frame_scale);
+            transform->matrix = vsg::dmat4CH(body->GetFrameCOMToAbs(), m_cog_frame_scale);
         }
     }
 
@@ -1644,8 +1634,8 @@ void ChVisualSystemVSG::UpdateFromMBS() {
                 frameA = *link_markers->GetMarker1() >> *link_markers->GetBody1();
                 frameB = *link_markers->GetMarker2() >> *link_markers->GetBody2();
             } else if (auto link_mate = std::dynamic_pointer_cast<ChLinkMateGeneric>(link)) {
-                frameA = link_mate->GetFrame1() >> *link_mate->GetBody1();
-                frameB = link_mate->GetFrame2() >> *link_mate->GetBody2();
+                frameA = link_mate->GetFrame1Rel() >> *link_mate->GetBody1();
+                frameB = link_mate->GetFrame2Rel() >> *link_mate->GetBody2();
             }
 
             transform->matrix = vsg::dmat4CH(frameB, m_joint_frame_scale);
@@ -1684,18 +1674,18 @@ void ChVisualSystemVSG::UpdateFromMBS() {
             if (auto segshape = std::dynamic_pointer_cast<ChVisualShapeSegment>(shape)) {
                 double length;
                 auto X = PointPointFrame(tsda->GetPoint1Abs(), tsda->GetPoint2Abs(), length);
-                transform->matrix = vsg::dmat4CH(X, ChVector<>(0, length, 0));
+                transform->matrix = vsg::dmat4CH(X, ChVector3d(0, length, 0));
             } else if (auto sprshape = std::dynamic_pointer_cast<ChVisualShapeSpring>(shape)) {
                 double rad = sprshape->GetRadius();
                 double length;
                 auto X = PointPointFrame(tsda->GetPoint1Abs(), tsda->GetPoint2Abs(), length);
-                transform->matrix = vsg::dmat4CH(X, ChVector<>(rad, length, rad));
+                transform->matrix = vsg::dmat4CH(X, ChVector3d(rad, length, rad));
             }
         } else if (auto dist = std::dynamic_pointer_cast<ChLinkDistance>(link)) {
             if (auto segshape = std::dynamic_pointer_cast<ChVisualShapeSegment>(shape)) {
                 double length;
                 auto X = PointPointFrame(dist->GetEndPoint1Abs(), dist->GetEndPoint2Abs(), length);
-                transform->matrix = vsg::dmat4CH(X, ChVector<>(0, length, 0));
+                transform->matrix = vsg::dmat4CH(X, ChVector3d(0, length, 0));
             }
         }
     }

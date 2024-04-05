@@ -18,7 +18,7 @@ set(CMAKE_RUNTIME_OUTPUT_DIRECTORY "${CMAKE_BINARY_DIR}")
 add_subdirectory(core)
 #add_subdirectory(irrlicht)
 add_subdirectory(mbs)
-#add_subdirectory(vehicle)
+add_subdirectory(vehicle)
 
 # Add custom command to copy all collected DLLs
 add_DLL_copy_command("${ALL_DLL_NAMES}" "${ALL_DEPENDENCY_DLLS}")

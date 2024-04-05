@@ -55,7 +55,7 @@ class CH_OPENGL_API ChOpenGLParticleCB {
 
     /// Callback for selecting particles to be rendered.
     /// Return 'true' to render the particle at the specified location.
-    virtual bool Render(const ChVector<>& pos) const = 0;
+    virtual bool Render(const ChVector3d& pos) const = 0;
 };
 
 /// OpenGL-based Chrono run-time visualization system.
@@ -76,7 +76,7 @@ class CH_OPENGL_API ChVisualSystemOpenGL : virtual public ChVisualSystem {
     void SetCameraVertical(CameraVerticalDir vert);
 
     /// Set camera vertical direction (default (0,0,1)).
-    void SetCameraVertical(const ChVector<>& up);
+    void SetCameraVertical(const ChVector3d& up);
 
     /// Set camera scale and clip distances. 
     void SetCameraProperties(float scale = 0.5f,            ///< zoom level (default 0.5)
@@ -109,19 +109,19 @@ class CH_OPENGL_API ChVisualSystemOpenGL : virtual public ChVisualSystem {
     virtual void Initialize() override;
 
     /// Add a camera to the 3d scene.
-    virtual int AddCamera(const ChVector<>& pos, ChVector<> targ = VNULL) override;
+    virtual int AddCamera(const ChVector3d& pos, ChVector3d targ = VNULL) override;
 
     /// Set the location of the specified camera.
-    virtual void SetCameraPosition(int id, const ChVector<>& pos) override;
+    virtual void SetCameraPosition(int id, const ChVector3d& pos) override;
 
     /// Set the target (look-at) point of the specified camera.
-    virtual void SetCameraTarget(int id, const ChVector<>& target) override;
+    virtual void SetCameraTarget(int id, const ChVector3d& target) override;
 
     /// Set the location of the current (active) camera.
-    virtual void SetCameraPosition(const ChVector<>& pos) override;
+    virtual void SetCameraPosition(const ChVector3d& pos) override;
 
     /// Set the target (look-at) point of the current (active) camera.
-    virtual void SetCameraTarget(const ChVector<>& target) override;
+    virtual void SetCameraTarget(const ChVector3d& target) override;
 
     /// Attach a custom event receiver to the application.
     void AddUserEventReceiver(std::shared_ptr<ChOpenGLEventCB> receiver) { user_receivers.push_back(receiver); }
@@ -209,9 +209,9 @@ class CH_OPENGL_API ChVisualSystemOpenGL : virtual public ChVisualSystem {
     RenderMode m_particle_render_mode;  ///< render mode for particles
     float m_particle_radius;            ///< render radius for particles
 
-    ChVector<> m_camera_pos;   ///< camera position
-    ChVector<> m_camera_targ;  ///< camera look-at point
-    ChVector<> m_camera_up;    ///< camera vertical
+    ChVector3d m_camera_pos;   ///< camera position
+    ChVector3d m_camera_targ;  ///< camera look-at point
+    ChVector3d m_camera_up;    ///< camera vertical
     float m_camera_scale;      ///< camera move scale
     float m_camera_near;       ///< camera near clip distance
     float m_camera_far;        ///< camera far clip distance

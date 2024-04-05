@@ -36,16 +36,16 @@
 #include <cmath>
 #include <algorithm>
 
-#include "chrono/core/ChMathematics.h"
 #include "chrono/physics/ChBodyEasy.h"
 #include "chrono/physics/ChSystemNSC.h"
 #include "chrono/solver/ChIterativeSolverLS.h"
+#include "chrono/utils/ChConstants.h"
 #include "chrono/utils/ChUtilsInputOutput.h"
 #include "chrono/utils/ChUtilsValidation.h"
 
 #include "chrono/fea/ChElementShellANCF_3423.h"
-#include "chrono/fea/ChLinkDirFrame.h"
-#include "chrono/fea/ChLinkPointFrame.h"
+#include "chrono/fea/ChLinkNodeSlopeFrame.h"
+#include "chrono/fea/ChLinkNodeFrame.h"
 #include "chrono/fea/ChMesh.h"
 
 #ifdef CHRONO_PARDISO_MKL
@@ -103,7 +103,7 @@ int main(int argc, char* argv[]) {
     int TotalNumNodes = (numDiv_x + 1) * (numDiv_y + 1);
 
     // Element dimensions (uniform grid)
-    double dx = CH_C_PI / 2 / numDiv_x * cylRadius;
+    double dx = CH_PI / 2 / numDiv_x * cylRadius;
     double dy = plate_lenght_y / numDiv_y;
     double dz = plate_lenght_z / numDiv_z;
 
@@ -113,18 +113,18 @@ int main(int argc, char* argv[]) {
     // Create and add the nodes
     for (int i = 0; i < TotalNumNodes; i++) {
         // Node location
-        double loc_x = cylRadius * sin((i % (numDiv_x + 1)) * (CH_C_PI / 2) / numDiv_x);
+        double loc_x = cylRadius * sin((i % (numDiv_x + 1)) * (CH_PI / 2) / numDiv_x);
         double loc_y = (i / (numDiv_x + 1)) % (numDiv_y + 1) * dy;
-        double loc_z = cylRadius * (1 - cos((i % (numDiv_x + 1)) * (CH_C_PI / 2) / numDiv_x));
+        double loc_z = cylRadius * (1 - cos((i % (numDiv_x + 1)) * (CH_PI / 2) / numDiv_x));
 
         // Node direction
-        double dir_x = -sin(CH_C_PI / 2 / numDiv_x * (i % (numDiv_x + 1)));
+        double dir_x = -sin(CH_PI / 2 / numDiv_x * (i % (numDiv_x + 1)));
         double dir_y = 0;
-        double dir_z = cos(CH_C_PI / 2 / numDiv_x * (i % (numDiv_x + 1)));
+        double dir_z = cos(CH_PI / 2 / numDiv_x * (i % (numDiv_x + 1)));
 
         // Create the node
         auto node =
-            chrono_types::make_shared<ChNodeFEAxyzD>(ChVector<>(loc_x, loc_y, loc_z), ChVector<>(dir_x, dir_y, dir_z));
+            chrono_types::make_shared<ChNodeFEAxyzD>(ChVector3d(loc_x, loc_y, loc_z), ChVector3d(dir_x, dir_y, dir_z));
 
         node->SetMass(0);
 
@@ -143,9 +143,9 @@ int main(int argc, char* argv[]) {
     // Create an orthotropic material.
     // All layers for all elements share the same material.
     double rho = 500;
-    ChVector<> E(2e8, 1e8, 1e8);
-    ChVector<> nu(0.3, 0.3, 0.3);
-    ChVector<> G(3.84615E+07, 3.84615E+07, 3.84615E+07);
+    ChVector3d E(2e8, 1e8, 1e8);
+    ChVector3d nu(0.3, 0.3, 0.3);
+    ChVector3d G(3.84615E+07, 3.84615E+07, 3.84615E+07);
     auto mat = chrono_types::make_shared<ChMaterialShellANCF>(rho, E, nu, G);
 
     // Create the elements
@@ -168,8 +168,8 @@ int main(int argc, char* argv[]) {
 
         // Add two layers, each of the same thickness and using the same material.
         // Use a fiber angle of 20 degrees for the first layer and -20 degrees for the second layer.
-        element->AddLayer(dz, 20 * CH_C_DEG_TO_RAD, mat);
-        element->AddLayer(dz, -20 * CH_C_DEG_TO_RAD, mat);
+        element->AddLayer(dz, 20 * CH_DEG_TO_RAD, mat);
+        element->AddLayer(dz, -20 * CH_DEG_TO_RAD, mat);
 
         // Set other element properties
         element->SetAlphaDamp(0.25);  // Structural damping for this element
@@ -213,7 +213,7 @@ int main(int argc, char* argv[]) {
     sys.SetTimestepperType(ChTimestepper::Type::HHT);
     auto mystepper = std::static_pointer_cast<ChTimestepperHHT>(sys.GetTimestepper());
     mystepper->SetAlpha(0.0);
-    mystepper->SetMaxiters(100);
+    mystepper->SetMaxIters(100);
     mystepper->SetAbsTolerances(1e-08);
     mystepper->SetVerbose(true);
 
@@ -221,10 +221,10 @@ int main(int argc, char* argv[]) {
     m_data.resize(4);
     for (size_t col = 0; col < 4; col++)
         m_data[col].resize(num_steps);
-    utils::CSV_writer csv(" ");
+    utils::ChWriterCSV csv(" ");
     std::ifstream file2("UT_ANCFShellLam.txt");*/
 
-    ChVector<> mforce(0, 0, -10);
+    ChVector3d mforce(0, 0, -10);
 
     std::cout << "test_ANCFShell_Ort" << std::endl;
 
@@ -250,7 +250,7 @@ int main(int argc, char* argv[]) {
         m_data[2][it] = nodetip->pos.x();
         m_data[3][it] = nodetip->pos.y();
         csv << m_data[0][it] << m_data[1][it] << m_data[2][it] << m_data[3][it] << std::endl;
-        csv.write_to_file("UT_ANCFShellLam.txt");*/
+        csv.WriteToFile("UT_ANCFShellLam.txt");*/
     }
 
     std::cout << "Maximum error = " << max_err << std::endl;

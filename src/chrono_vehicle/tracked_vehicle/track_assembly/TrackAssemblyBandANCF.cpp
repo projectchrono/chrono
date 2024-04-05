@@ -65,7 +65,7 @@ void TrackAssemblyBandANCF::ReadSprocket(const std::string& filename, int output
         m_sprocket->SetOutput(output == +1);
     }
 
-    GetLog() << "  Loaded JSON: " << filename.c_str() << "\n";
+    std::cout << "  Loaded JSONL " << filename << std::endl;
 }
 
 // -----------------------------------------------------------------------------
@@ -96,7 +96,7 @@ void TrackAssemblyBandANCF::ReadTrackShoes(const std::string& filename, int num_
         m_shoes[0]->SetOutput(output == +1);
     }
 
-    GetLog() << "  Loaded JSON: " << filename.c_str() << "\n";
+    std::cout << "  Loaded JSONL " << filename << std::endl;
 }
 
 // -----------------------------------------------------------------------------
@@ -109,7 +109,7 @@ TrackAssemblyBandANCF::TrackAssemblyBandANCF(const std::string& filename) : ChTr
 
     Create(d);
 
-    GetLog() << "Loaded JSON: " << filename.c_str() << "\n";
+    std::cout << "Loaded JSONL " << filename << std::endl;
 }
 
 TrackAssemblyBandANCF::TrackAssemblyBandANCF(const rapidjson::Document& d) : ChTrackAssemblyBandANCF("", LEFT) {
@@ -208,18 +208,18 @@ void TrackAssemblyBandANCF::Create(const rapidjson::Document& d) {
     assert(d["Layer Materials"].HasMember("Rubber"));
 
     double rho_steel = d["Layer Materials"]["Steel"]["Density"].GetDouble();
-    ChVector<> E_steel = ReadVectorJSON(d["Layer Materials"]["Steel"]["E"]);
-    ChVector<> nu_steel = ReadVectorJSON(d["Layer Materials"]["Steel"]["nu"]);
-    ChVector<> G_steel = ReadVectorJSON(d["Layer Materials"]["Steel"]["G"]);
+    ChVector3d E_steel = ReadVectorJSON(d["Layer Materials"]["Steel"]["E"]);
+    ChVector3d nu_steel = ReadVectorJSON(d["Layer Materials"]["Steel"]["nu"]);
+    ChVector3d G_steel = ReadVectorJSON(d["Layer Materials"]["Steel"]["G"]);
     SetRubberLayerMaterial(rho_steel, E_steel, nu_steel, G_steel);
 
     double rho_rubber = d["Layer Materials"]["Rubber"]["Density"].GetDouble();
-    ChVector<> E_rubber = ReadVectorJSON(d["Layer Materials"]["Rubber"]["E"]);
-    ChVector<> nu_rubber = ReadVectorJSON(d["Layer Materials"]["Rubber"]["nu"]);
-    ChVector<> G_rubber = ReadVectorJSON(d["Layer Materials"]["Rubber"]["G"]);
+    ChVector3d E_rubber = ReadVectorJSON(d["Layer Materials"]["Rubber"]["E"]);
+    ChVector3d nu_rubber = ReadVectorJSON(d["Layer Materials"]["Rubber"]["nu"]);
+    ChVector3d G_rubber = ReadVectorJSON(d["Layer Materials"]["Rubber"]["G"]);
     SetRubberLayerMaterial(rho_rubber, E_rubber, nu_rubber, G_rubber);
 
-    ChVector<> ply_angles = ReadVectorJSON(d["Layer Materials"]["Ply Angles"]);
+    ChVector3d ply_angles = ReadVectorJSON(d["Layer Materials"]["Ply Angles"]);
     SetLayerFiberAngles(ply_angles[0], ply_angles[1], ply_angles[2]);
 
     double alpha = d["Layer Materials"]["Structural Damping Coefficient"].GetDouble();

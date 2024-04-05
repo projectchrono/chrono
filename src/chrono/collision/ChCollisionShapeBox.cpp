@@ -20,40 +20,40 @@ namespace chrono {
 CH_FACTORY_REGISTER(ChCollisionShapeBox)
 CH_UPCASTING(ChCollisionShapeBox, ChCollisionShape)
 
-ChCollisionShapeBox::ChCollisionShapeBox(): ChCollisionShape(Type::BOX) {}
+ChCollisionShapeBox::ChCollisionShapeBox() : ChCollisionShape(Type::BOX) {}
 
-ChCollisionShapeBox::ChCollisionShapeBox(std::shared_ptr<ChMaterialSurface> material,
+ChCollisionShapeBox::ChCollisionShapeBox(std::shared_ptr<ChContactMaterial> material,
                                          double length_x,
                                          double length_y,
                                          double length_z)
     : ChCollisionShape(Type::BOX, material) {
-    gbox.SetLengths(ChVector<>(length_x, length_y, length_z));
+    gbox.SetLengths(ChVector3d(length_x, length_y, length_z));
 }
 
-ChCollisionShapeBox::ChCollisionShapeBox(std::shared_ptr<ChMaterialSurface> material, const ChVector<>& lengths)
+ChCollisionShapeBox::ChCollisionShapeBox(std::shared_ptr<ChContactMaterial> material, const ChVector3d& lengths)
     : ChCollisionShape(Type::BOX, material) {
     gbox.SetLengths(lengths);
 }
 
-ChCollisionShapeBox::ChCollisionShapeBox(std::shared_ptr<ChMaterialSurface> material, const geometry::ChBox& box)
+ChCollisionShapeBox::ChCollisionShapeBox(std::shared_ptr<ChContactMaterial> material, const ChBox& box)
     : ChCollisionShape(Type::BOX, material), gbox(box) {}
 
-void ChCollisionShapeBox::ArchiveOut(ChArchiveOut& marchive) {
+void ChCollisionShapeBox::ArchiveOut(ChArchiveOut& archive_out) {
     // version number
-    marchive.VersionWrite<ChCollisionShapeBox>();
+    archive_out.VersionWrite<ChCollisionShapeBox>();
     // serialize parent class
-    ChCollisionShape::ArchiveOut(marchive);
+    ChCollisionShape::ArchiveOut(archive_out);
     // serialize all member data:
-    marchive << CHNVP(gbox);
+    archive_out << CHNVP(gbox);
 }
 
-void ChCollisionShapeBox::ArchiveIn(ChArchiveIn& marchive) {
+void ChCollisionShapeBox::ArchiveIn(ChArchiveIn& archive_in) {
     // version number
-    /*int version =*/marchive.VersionRead<ChCollisionShapeBox>();
+    /*int version =*/archive_in.VersionRead<ChCollisionShapeBox>();
     // deserialize parent class
-    ChCollisionShape::ArchiveIn(marchive);
+    ChCollisionShape::ArchiveIn(archive_in);
     // stream in all member data:
-    marchive >> CHNVP(gbox);
+    archive_in >> CHNVP(gbox);
 }
 
 }  // end namespace chrono

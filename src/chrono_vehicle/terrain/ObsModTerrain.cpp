@@ -27,7 +27,6 @@
 #include "chrono_vehicle/terrain/ObsModTerrain.h"
 #include "chrono_vehicle/ChWorldFrame.h"
 
-
 namespace chrono {
 namespace vehicle {
 
@@ -57,7 +56,7 @@ ObsModTerrain::ObsModTerrain(ChSystem* system,
     m_Q = ChMatrixDynamic<>::Zero(m_nx, m_ny);
     double ramp_angle = 0.0;
     double ramp_length = 1.0;
-    GetLog() << "m_aa = " << m_aa << "\n";
+
     if ((m_aa > 175.0) && (m_aa < 185.0)) {
         // flat terrain
         ramp_length = 1.0;
@@ -69,7 +68,7 @@ ObsModTerrain::ObsModTerrain(ChSystem* system,
         // m_Q is already set up
     } else if (aa <= 175.0) {
         // mound obstacle
-        ramp_angle = CH_C_DEG_TO_RAD * abs(m_aa - 180.0);
+        ramp_angle = CH_DEG_TO_RAD * abs(m_aa - 180.0);
         ramp_length = m_obsheight / tan(ramp_angle);
         m_x[0] = m_xmin;
         m_x[1] = m_x[0] + ramp_length;
@@ -77,7 +76,6 @@ ObsModTerrain::ObsModTerrain(ChSystem* system,
         m_x[3] = m_xmin + m_obslength;
         if (2.0 * ramp_length > m_obslength) {
             m_obslength = 0.1 + 2.0 * ramp_length;
-            GetLog() << "Impossible configuration: obs length adjusted to " << m_obslength << " m\n";
             m_x[0] = m_xmin;
             m_x[1] = m_x[0] + ramp_length;
             m_x[2] = m_xmin + m_obslength - ramp_length;
@@ -90,11 +88,10 @@ ObsModTerrain::ObsModTerrain(ChSystem* system,
         m_Q(1, 2) = m_obsheight;
     } else {
         // trench obstacle
-        ramp_angle = CH_C_DEG_TO_RAD * abs(m_aa - 180.0);
+        ramp_angle = CH_DEG_TO_RAD * abs(m_aa - 180.0);
         ramp_length = m_obsheight / tan(ramp_angle);
         if (m_obslength <= 0.0) {
             m_obslength = 0.1;
-            GetLog() << "Impossible configuration: obs length adjusted to " << m_obslength << " m\n";
         }
         m_x[0] = m_xmin;
         m_x[1] = m_x[0] + ramp_length;
@@ -110,9 +107,9 @@ ObsModTerrain::ObsModTerrain(ChSystem* system,
     // ground body, carries the graphic assets
     m_ground = chrono_types::make_shared<ChBody>();
     m_ground->SetName("ground");
-    m_ground->SetPos(ChVector<>(0, 0, 0));
-    m_ground->SetBodyFixed(true);
-    m_ground->SetCollide(false);
+    m_ground->SetPos(ChVector3d(0, 0, 0));
+    m_ground->SetFixed(true);
+    m_ground->EnableCollision(false);
 
     m_ground->AddVisualModel(chrono_types::make_shared<ChVisualModel>());
 
@@ -124,8 +121,8 @@ double ObsModTerrain::GetEffLength() {
            std::hypot(m_x[3] - m_x[2], m_Q(3, 1) - m_Q(2, 1));
 }
 
-double ObsModTerrain::GetHeight(const ChVector<>& loc) const {
-    ChVector<> loc_ISO = ChWorldFrame::ToISO(loc);
+double ObsModTerrain::GetHeight(const ChVector3d& loc) const {
+    ChVector3d loc_ISO = ChWorldFrame::ToISO(loc);
     if ((loc_ISO.x() > m_xmin && loc_ISO.x() < m_xmax) && (loc_ISO.y() > m_ymin && loc_ISO.y() < m_ymax)) {
         // interpolation needed
         int ix1 = -1;
@@ -138,7 +135,7 @@ double ObsModTerrain::GetHeight(const ChVector<>& loc) const {
             }
         }
         if (ix1 == -1) {
-            GetLog() << "x intervall?\n";
+            std::cerr << "x intervall?\n";
         }
         int jy1 = -1;
         int jy2 = -1;
@@ -150,7 +147,7 @@ double ObsModTerrain::GetHeight(const ChVector<>& loc) const {
             }
         }
         if (jy1 == -1) {
-            GetLog() << "y intervall?\n";
+            std::cerr << "y intervall?\n";
         }
         double x = loc_ISO.x();
         double y = loc_ISO.y();
@@ -161,40 +158,37 @@ double ObsModTerrain::GetHeight(const ChVector<>& loc) const {
     }
 }
 
-ChVector<> ObsModTerrain::GetNormal(const ChVector<>& loc) const {
-    ChVector<> loc_ISO = ChWorldFrame::ToISO(loc);
+ChVector3d ObsModTerrain::GetNormal(const ChVector3d& loc) const {
+    ChVector3d loc_ISO = ChWorldFrame::ToISO(loc);
     // to avoid 'jumping' of the normal vector, we take this smoothing approach
     const double delta = 0.05;
     double z0, zfront, zleft;
     z0 = GetHeight(loc);
-    zfront = GetHeight(ChWorldFrame::FromISO(loc_ISO + ChVector<>(delta, 0, 0)));
-    zleft = GetHeight(ChWorldFrame::FromISO(loc_ISO + ChVector<>(0, delta, 0)));
-    ChVector<> p0(loc_ISO.x(), loc_ISO.y(), z0);
-    ChVector<> pfront(loc_ISO.x() + delta, loc_ISO.y(), zfront);
-    ChVector<> pleft(loc_ISO.x(), loc_ISO.y() + delta, zleft);
-    ChVector<> normal_ISO;
-    ChVector<> r1, r2;
+    zfront = GetHeight(ChWorldFrame::FromISO(loc_ISO + ChVector3d(delta, 0, 0)));
+    zleft = GetHeight(ChWorldFrame::FromISO(loc_ISO + ChVector3d(0, delta, 0)));
+    ChVector3d p0(loc_ISO.x(), loc_ISO.y(), z0);
+    ChVector3d pfront(loc_ISO.x() + delta, loc_ISO.y(), zfront);
+    ChVector3d pleft(loc_ISO.x(), loc_ISO.y() + delta, zleft);
+    ChVector3d normal_ISO;
+    ChVector3d r1, r2;
     r1 = pfront - p0;
     r2 = pleft - p0;
     normal_ISO = Vcross(r1, r2);
     if (normal_ISO.z() <= 0.0) {
-        GetLog() << "Fatal: wrong surface normal!\n";
-        exit(99);
+        std::cerr << "Fatal: wrong surface normal!" << std::endl;
+        throw std::runtime_error("Fatal: wrong surface normal!");
     }
-    ChVector<> normal = ChWorldFrame::FromISO(normal_ISO);
+    ChVector3d normal = ChWorldFrame::FromISO(normal_ISO);
     normal.Normalize();
 
     return normal;
 }
 
-float ObsModTerrain::GetCoefficientFriction(const ChVector<>& loc) const {
+float ObsModTerrain::GetCoefficientFriction(const ChVector3d& loc) const {
     return m_friction_fun ? (*m_friction_fun)(loc) : m_friction;
 }
 
 void ObsModTerrain::Initialize(ObsModTerrain::VisualisationType vType) {
-    GetLog() << "Init Terrain:\n";
-    GetLog() << "Testhright 1 =  " << GetHeight(ChVector<>(0, 0, 0)) << "\n";
-    GetLog() << "Testheight 2 =  " << GetHeight(ChVector<>(m_x[1], m_y[1], 0)) << "\n";
     switch (vType) {
         case ObsModTerrain::VisualisationType::NONE:
             break;
@@ -207,30 +201,29 @@ void ObsModTerrain::Initialize(ObsModTerrain::VisualisationType vType) {
 }
 
 void ObsModTerrain::GenerateMesh() {
-    m_mesh = chrono_types::make_shared<geometry::ChTriangleMeshConnected>();
-    auto& coords = m_mesh->getCoordsVertices();
-    auto& indices = m_mesh->getIndicesVertexes();
-    auto& normals = m_mesh->getCoordsNormals();
-    auto& normidx = m_mesh->getIndicesNormals();
+    m_mesh = chrono_types::make_shared<ChTriangleMeshConnected>();
+    auto& coords = m_mesh->GetCoordsVertices();
+    auto& indices = m_mesh->GetIndicesVertexes();
+    auto& normals = m_mesh->GetCoordsNormals();
+    auto& normidx = m_mesh->GetIndicesNormals();
 
-    GetLog() << "***Q " << m_Q << "\n";
     for (size_t i = 0; i < m_nx; i++) {
         double x = m_x[i];
         for (size_t j = 0; j < m_y.size(); j++) {
             double y = m_y[j];
             double z = m_Q(i, j);
-            coords.push_back(ChWorldFrame::FromISO(ChVector<>(x, y, z)));
-            normals.push_back(ChWorldFrame::FromISO(GetNormal(ChVector<>(x, y, z))));
+            coords.push_back(ChWorldFrame::FromISO(ChVector3d(x, y, z)));
+            normals.push_back(ChWorldFrame::FromISO(GetNormal(ChVector3d(x, y, z))));
         }
     }
     // Define the faces
     for (int i = 0; i < m_nx - 1; i++) {
         int ofs = (int)m_y.size() * i;
         for (int j = 0; j < m_y.size() - 1; j++) {
-            indices.push_back(ChVector<int>(j + ofs, j + (int)m_y.size() + ofs, j + 1 + ofs));
-            indices.push_back(ChVector<int>(j + 1 + ofs, j + (int)m_y.size() + ofs, j + 1 + (int)m_y.size() + ofs));
-            normidx.push_back(ChVector<int>(j + ofs, j + (int)m_y.size() + ofs, j + 1 + ofs));
-            normidx.push_back(ChVector<int>(j + 1 + ofs, j + (int)m_y.size() + ofs, j + 1 + (int)m_y.size() + ofs));
+            indices.push_back(ChVector3i(j + ofs, j + (int)m_y.size() + ofs, j + 1 + ofs));
+            indices.push_back(ChVector3i(j + 1 + ofs, j + (int)m_y.size() + ofs, j + 1 + (int)m_y.size() + ofs));
+            normidx.push_back(ChVector3i(j + ofs, j + (int)m_y.size() + ofs, j + 1 + ofs));
+            normidx.push_back(ChVector3i(j + 1 + ofs, j + (int)m_y.size() + ofs, j + 1 + (int)m_y.size() + ofs));
         }
     }
     auto vmesh = chrono_types::make_shared<ChVisualShapeTriangleMesh>();
@@ -241,7 +234,7 @@ void ObsModTerrain::GenerateMesh() {
     m_ground->AddVisualShape(vmesh);
 }
 
-void ObsModTerrain::EnableCollisionMesh(std::shared_ptr<ChMaterialSurface> material,
+void ObsModTerrain::EnableCollisionMesh(std::shared_ptr<ChContactMaterial> material,
                                         double length,
                                         double sweep_sphere_radius) {
     m_material = material;
@@ -253,7 +246,7 @@ void ObsModTerrain::EnableCollisionMesh(std::shared_ptr<ChMaterialSurface> mater
 void ObsModTerrain::SetupCollision() {
     GenerateMesh();
 
-    m_ground->SetCollide(true);
+    m_ground->EnableCollision(true);
 
     auto ct_shape =
         chrono_types::make_shared<ChCollisionShapeTriangleMesh>(m_material, m_mesh, true, false, m_sweep_sphere_radius);
@@ -261,7 +254,7 @@ void ObsModTerrain::SetupCollision() {
 
     if (m_start_length > 0) {
         double thickness = 1;
-        ChVector<> loc(-m_start_length / 2, 0, m_height - thickness / 2);
+        ChVector3d loc(-m_start_length / 2, 0, m_height - thickness / 2);
         auto ct_box = chrono_types::make_shared<ChCollisionShapeBox>(m_material, m_start_length, m_width, thickness);
         m_ground->AddCollisionShape(ct_box, ChFrame<>(loc, QUNIT));
 
@@ -270,7 +263,7 @@ void ObsModTerrain::SetupCollision() {
 
         // we also need an end plate here
         double end_length = 10.0;
-        ChVector<> loc2(GetXObstacleEnd() + end_length / 2, 0, m_height - thickness / 2);
+        ChVector3d loc2(GetXObstacleEnd() + end_length / 2, 0, m_height - thickness / 2);
         auto ct_box2 = chrono_types::make_shared<ChCollisionShapeBox>(m_material, end_length, m_width, thickness);
         m_ground->AddCollisionShape(ct_box2, ChFrame<>(loc2, QUNIT));
 

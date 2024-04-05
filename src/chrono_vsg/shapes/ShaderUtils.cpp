@@ -252,7 +252,8 @@ vsg::ref_ptr<vsg::StateGroup> createPbrStateGroup(vsg::ref_ptr<const vsg::Option
             pbrMat->value().diffuseFactor.set(1.0, 1.0, 1.0, pbrMat->value().alphaMask);
             pbrMat->value().baseColorFactor.set(1.0, 1.0, 1.0, pbrMat->value().alphaMask);
         } else {
-            GetLog() << __func__ << ": could not read diffuse texture file <" << material->GetKdTexture() << ">!\n";
+            std::cerr << "createPbrStateGroup: could not read diffuse texture file <" << material->GetKdTexture()
+                      << std::endl;
         }
     }
 
@@ -270,7 +271,8 @@ vsg::ref_ptr<vsg::StateGroup> createPbrStateGroup(vsg::ref_ptr<const vsg::Option
 
             graphicsPipelineConfig->assignTexture("emissiveMap", image, sampler);
         } else {
-            GetLog() << __func__ << ": could not read emissive texture file <" << material->GetKeTexture() << ">!\n";
+            std::cerr << "createPbrStateGroup: could not read emissive texture file <" << material->GetKeTexture()
+                      << std::endl;
         }
     }
 
@@ -288,7 +290,8 @@ vsg::ref_ptr<vsg::StateGroup> createPbrStateGroup(vsg::ref_ptr<const vsg::Option
 
             graphicsPipelineConfig->assignTexture("specularMap", image, sampler);
         } else {
-            GetLog() << __func__ << ": could not read specular texture file <" << material->GetKsTexture() << ">!\n";
+            std::cerr << "createPbrStateGroup: could not read specular texture file <" << material->GetKsTexture()
+                      << std::endl;
         }
     }
 
@@ -306,8 +309,8 @@ vsg::ref_ptr<vsg::StateGroup> createPbrStateGroup(vsg::ref_ptr<const vsg::Option
 
             graphicsPipelineConfig->assignTexture("opacityMap", image, sampler);
         } else {
-            GetLog() << __func__ << ": could not read opacity texture file <" << material->GetOpacityTexture()
-                     << ">!\n";
+            std::cerr << "createPbrStateGroup: could not read opacity texture file <" << material->GetOpacityTexture()
+                      << std::endl;
         }
     }
 
@@ -325,7 +328,8 @@ vsg::ref_ptr<vsg::StateGroup> createPbrStateGroup(vsg::ref_ptr<const vsg::Option
 
             graphicsPipelineConfig->assignTexture("normalMap", image, sampler);
         } else {
-            GetLog() << __func__ << ": could not read normal map file <" << material->GetNormalMapTexture() << ">!\n";
+            std::cerr << "createPbrStateGroup: could not read normal map file <" << material->GetNormalMapTexture()
+                      << std::endl;
         }
     }
 
@@ -343,8 +347,8 @@ vsg::ref_ptr<vsg::StateGroup> createPbrStateGroup(vsg::ref_ptr<const vsg::Option
 
             graphicsPipelineConfig->assignTexture("aoMap", image, sampler);
         } else {
-            GetLog() << __func__ << ": could not read ambient occlusion map file <"
-                     << material->GetAmbientOcclusionTexture() << ">!\n";
+            std::cerr << "createPbrStateGroup: could not read ambient occlusion map file <"
+                      << material->GetAmbientOcclusionTexture() << std::endl;
         }
     }
 
@@ -397,7 +401,6 @@ vsg::ref_ptr<vsg::StateGroup> createPbrStateGroup(vsg::ref_ptr<const vsg::Option
         }
          */
     }
-         
 
     /*
     graphicsPipelineConfig->colorBlendState->attachments = vsg::ColorBlendState::ColorBlendAttachments{

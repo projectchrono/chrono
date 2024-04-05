@@ -15,7 +15,7 @@
 #ifndef CH_CAMERA_H
 #define CH_CAMERA_H
 
-#include "chrono/core/ChVector.h"
+#include "chrono/core/ChVector3.h"
 
 namespace chrono {
 
@@ -33,24 +33,24 @@ class ChApi ChCamera {
 
     /// Sets the position of the observer (eye point).
     /// Expressed in the local coordinate system.
-    void SetPosition(const ChVector<>& pos) { position = pos; }
+    void SetPosition(const ChVector3d& pos) { position = pos; }
     /// Gets the position of the observer (eye point).
     /// Expressed in the local coordinate system.
-    const ChVector<>& GetPosition() const { return position; }
+    const ChVector3d& GetPosition() const { return position; }
 
     /// Sets the position of the target point (aim point).
     /// Expressed in the local coordinate system.
-    void SetAimPoint(const ChVector<>& point) { aimpoint = point; }
+    void SetAimPoint(const ChVector3d& point) { aimpoint = point; }
     /// Gets the position of the target point (aim point).
     /// Expressed in the local coordinate system.
-    const ChVector<>& GetAimPoint() const { return aimpoint; }
+    const ChVector3d& GetAimPoint() const { return aimpoint; }
 
     /// Sets the position of the 'up' direction of the camera (default is vertical, VECT_Y).
     /// Expressed in the local coordinate system.
-    void SetUpVector(const ChVector<>& up) { upvector = up.GetNormalized(); }
+    void SetUpVector(const ChVector3d& up) { upvector = up.GetNormalized(); }
     /// Gets the position of the 'up' direction of the camera (default is vertical, VECT_Y).
     /// Expressed in the local coordinate system.
-    const ChVector<>& GetUpVector() const { return upvector; }
+    const ChVector3d& GetUpVector() const { return upvector; }
 
     /// Sets the opening angle of the lenses, in degrees, on horizontal direction.
     /// E.g., 60=wide angle, 30=tele, etc.
@@ -88,9 +88,9 @@ class ChApi ChCamera {
     virtual void ArchiveIn(ChArchiveIn& archive);
 
   private:
-    ChVector<> position;
-    ChVector<> aimpoint;
-    ChVector<> upvector;
+    ChVector3d position;
+    ChVector3d aimpoint;
+    ChVector3d upvector;
     double angle;
     double fov;
     double hvratio;

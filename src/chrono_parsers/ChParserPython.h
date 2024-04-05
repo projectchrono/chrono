@@ -15,7 +15,6 @@
 
 #include "chrono_parsers/ChApiParsers.h"
 
-#include "chrono/core/ChLog.h"
 #include "chrono/physics/ChSystemNSC.h"
 
 namespace chrono {

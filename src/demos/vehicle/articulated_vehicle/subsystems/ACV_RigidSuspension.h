@@ -32,14 +32,14 @@ class ACV_RigidSuspension : public chrono::vehicle::ChRigidSuspension {
     ACV_RigidSuspension(const std::string& name);
     ~ACV_RigidSuspension() {}
 
-    virtual const chrono::ChVector<> getLocation(PointId which) override;
+    virtual const chrono::ChVector3d getLocation(PointId which) override;
 
     virtual double getSpindleMass() const override { return m_spindleMass; }
 
     virtual double getSpindleRadius() const override { return m_spindleRadius; }
     virtual double getSpindleWidth() const override { return m_spindleWidth; }
 
-    virtual const chrono::ChVector<>& getSpindleInertia() const override { return m_spindleInertia; }
+    virtual const chrono::ChVector3d& getSpindleInertia() const override { return m_spindleInertia; }
 
     virtual double getAxleInertia() const override { return m_axleInertia; }
 
@@ -49,7 +49,7 @@ class ACV_RigidSuspension : public chrono::vehicle::ChRigidSuspension {
     static const double m_spindleRadius;
     static const double m_spindleWidth;
 
-    static const chrono::ChVector<> m_spindleInertia;
+    static const chrono::ChVector3d m_spindleInertia;
 
     static const double m_axleInertia;
 };

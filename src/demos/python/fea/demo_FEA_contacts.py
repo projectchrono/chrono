@@ -42,8 +42,8 @@ sphere_swept_thickness = 0.002
 # It is a SMC (penalty) material that we will assign to
 # all surfaces that might generate contacts.
 
-mysurfmaterial = chrono.ChMaterialSurfaceSMC()
-mysurfmaterial.SetYoungModulus(6e4)
+mysurfmaterial = chrono.ChContactMaterialSMC()
+mysurfmaterial.SetYoungModulus(1e5)
 mysurfmaterial.SetFriction(0.3)
 mysurfmaterial.SetRestitution(0.2)
 mysurfmaterial.SetAdhesion(0)
@@ -58,15 +58,15 @@ mmeshbox.LoadWavefrontMesh(chrono.GetChronoDataFile("models/cube.obj"), True, Tr
 if (do_mesh_collision_floor) :
     # floor as a triangle mesh surface:
     mfloor = chrono.chronoChBody()
-    mfloor.SetPos(chrono.ChVectorD(0, -1, 0))
-    mfloor.SetBodyFixed(True)
+    mfloor.SetPos(chrono.ChVector3d(0, -1, 0))
+    mfloor.SetFixed(True)
     sys.Add(mfloor)
     
     mfloor.GetCollisionModel().Clear()
     mfloor_ct_shape = chrono.ChCollisionShapeTriangleMesh(mysurfmaterial, mmeshbox, False, False, sphere_swept_thickness)
     mfloor.GetCollisionModel().AddShape(mfloor_ct_shape)
     mfloor.GetCollisionModel().Build()
-    mfloor.SetCollide(True)
+    mfloor.EnableCollision(True)
     
     masset_meshbox = chrono.ChVisualShapeTriangleMesh()
     masset_meshbox.SetMesh(mmeshbox)
@@ -80,7 +80,7 @@ else :
     # floor as a simple collision primitive:
     
     mfloor = chrono.ChBodyEasyBox(2, 0.1, 2, 2700, True, True, mysurfmaterial)
-    mfloor.SetBodyFixed(True)
+    mfloor.SetFixed(True)
     mfloor.GetVisualShape(0).SetTexture(chrono.GetChronoDataFile("textures/concrete.jpg"))
     sys.Add(mfloor)
 
@@ -88,11 +88,11 @@ else :
 # two falling objects:
 
 mcube = chrono.ChBodyEasyBox(0.1, 0.1, 0.1, 2700, True, True, mysurfmaterial)
-mcube.SetPos(chrono.ChVectorD(0.6, 0.5, 0.6))
+mcube.SetPos(chrono.ChVector3d(0.6, 0.5, 0.6))
 sys.Add(mcube)
 
 msphere = chrono.ChBodyEasySphere(0.1, 2700, True, True, mysurfmaterial)
-msphere.SetPos(chrono.ChVectorD(0.8, 0.5, 0.6))
+msphere.SetPos(chrono.ChVector3d(0.8, 0.5, 0.6))
 sys.Add(msphere)
 
 #
@@ -108,20 +108,20 @@ mesh = fea.ChMesh()
 # Create a material, that must be assigned to each solid element in the mesh,
 # and set its parameters
 mmaterial = fea.ChContinuumElastic()
-mmaterial.Set_E(0.01e9)  # rubber 0.01e9, steel 200e9
-mmaterial.Set_v(0.3)
-mmaterial.Set_RayleighDampingK(0.003)
-mmaterial.Set_density(1000)
+mmaterial.SetYoungModulus(0.01e9)  # rubber 0.01e9, steel 200e9
+mmaterial.SetPoissonRatio(0.3)
+mmaterial.SetRayleighDampingBeta(0.003)
+mmaterial.SetDensity(1000)
 
 
 for i in range(4) :
     try :
-        cdown = chrono.ChCoordsysD(chrono.ChVectorD(0, -0.4, 0))
-        crot = chrono.ChCoordsysD(chrono.VNULL, chrono.Q_from_AngAxis(chrono.CH_C_2PI * chrono.ChRandom(), 
-                                                                     chrono.VECT_Y) * chrono.Q_from_AngAxis(chrono.CH_C_PI_2, chrono.VECT_X))
-        cydisp = chrono.ChCoordsysD(chrono.ChVectorD(-0.3, 0.1 + i * 0.1, -0.3))
+        cdown = chrono.ChCoordsysd(chrono.ChVector3d(0, -0.4, 0))
+        crot = chrono.ChCoordsysd(chrono.VNULL, chrono.QuatFromAngleAxis(chrono.CH_2PI * chrono.ChRandom.Get(), chrono.VECT_Y) * 
+                                                chrono.QuatFromAngleAxis(chrono.CH_PI_2, chrono.VECT_X))
+        cydisp = chrono.ChCoordsysd(chrono.ChVector3d(-0.3, 0.1 + i * 0.1, -0.3))
         ctot = cydisp.TransformLocalToParent(crot.TransformLocalToParent(cdown))
-        mrot = chrono.ChMatrix33D(ctot.rot)
+        mrot = chrono.ChMatrix33d(ctot.rot)
         fea.ChMeshFileLoader.FromTetGenFile(mesh, chrono.GetChronoDataFile("fea/beam.node"),
                                      chrono.GetChronoDataFile("fea/beam.ele"), mmaterial, ctot.pos, mrot)
     except :
@@ -155,15 +155,15 @@ my_mesh_beams = fea.ChMesh()
 msection_cable2 = fea.ChBeamSectionCable()
 msection_cable2.SetDiameter(0.05)
 msection_cable2.SetYoungModulus(0.01e9)
-msection_cable2.SetBeamRaleyghDamping(0.05)
+msection_cable2.SetRayleighDamping(0.05)
 
 builder = fea.ChBuilderCableANCF()
 
 builder.BuildBeam(my_mesh_beams,             # the mesh where to put the created nodes and elements
   msection_cable2,           # the ChBeamSectionCable to use for the ChElementCableANCF elements
   10,                        # the number of ChElementCableANCF to create
-  chrono.ChVectorD(0, 0.1, -0.1),  # the 'A' poin space (beginning of beam)
-  chrono.ChVectorD(0.5, 0.13, -0.1))  # the 'B' poin space (end of beam)
+  chrono.ChVector3d(0, 0.1, -0.1),  # the 'A' poin space (beginning of beam)
+  chrono.ChVector3d(0.5, 0.13, -0.1))  # the 'B' poin space (end of beam)
 
 # Create the contact surface(s).
 # In this case it is a ChContactSurfaceNodeCloud, so just pass
@@ -221,7 +221,7 @@ vis.SetWindowTitle('FEA contacts')
 vis.Initialize()
 vis.AddLogo(chrono.GetChronoDataFile('logo_pychrono_alpha.png'))
 vis.AddSkyBox()
-vis.AddCamera(chrono.ChVectorD(0, 0.6, -1))
+vis.AddCamera(chrono.ChVector3d(0, 0.6, -1))
 vis.AddTypicalLights()
 
 vis.EnableContactDrawing(chronoirr.ContactsDrawMode_CONTACT_DISTANCES)
@@ -235,12 +235,12 @@ solver.SetTolerance(1e-12)
 solver.EnableDiagonalPreconditioner(True)
 solver.EnableWarmStart(True)  # Enable for better convergence when using Euler implicit linearized
 
-sys.SetSolverForceTolerance(1e-10)
+sys.GetSolver().AsIterative().SetTolerance(1e-10)
 
 # Simulation loop
 while vis.Run():
     vis.BeginScene()
     vis.Render()
     vis.EndScene()
-    sys.DoStepDynamics(0.001)
+    sys.DoStepDynamics(0.0005)
 

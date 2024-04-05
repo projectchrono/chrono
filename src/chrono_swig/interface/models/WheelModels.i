@@ -18,6 +18,8 @@
 #include "chrono_models/vehicle/gator/Gator_Wheel.h"
 #include "chrono_models/vehicle/artcar/ARTcar_Wheel.h"
 #include "chrono_models/vehicle/feda/FEDA_Wheel.h"
+#include "chrono_models/vehicle/bmw/BMW_E90_FrontWheel.h"
+#include "chrono_models/vehicle/bmw/BMW_E90_RearWheel.h"
 %}
 
 
@@ -47,6 +49,9 @@
 
 %shared_ptr(chrono::vehicle::feda::FEDA_Wheel)
 
+%shared_ptr(chrono::vehicle::bmw::BMW_E90_FrontWheel)
+%shared_ptr(chrono::vehicle::bmw::BMW_E90_RearWheel)
+
 %import "../../../chrono_vehicle/wheeled_vehicle/ChWheel.h"
 
 // Model:
@@ -59,3 +64,5 @@
 %include "../../../chrono_models/vehicle/gator/Gator_Wheel.h"
 %include "../../../chrono_models/vehicle/artcar/ARTcar_Wheel.h"
 %include "../../../chrono_models/vehicle/feda/FEDA_Wheel.h"
+%include "../../../chrono_models/vehicle/bmw/BMW_E90_FrontWheel.h"
+%include "../../../chrono_models/vehicle/bmw/BMW_E90_RearWheel.h"

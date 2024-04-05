@@ -26,8 +26,6 @@
 
 namespace chrono {
 
-using namespace geometry;
-
 Ch3DOFContainer::Ch3DOFContainer()
     : data_manager(nullptr),
       kernel_radius(.04),
@@ -69,10 +67,10 @@ void Ch3DOFContainer::SetPos(const int& i, const real3& mpos) {
     data_manager->host_data.pos_3dof[i] = mpos;
 }
 
-real3 Ch3DOFContainer::GetPos_dt(int i) {
+real3 Ch3DOFContainer::GetPosDt(int i) {
     return data_manager->host_data.vel_3dof[i];
 }
-void Ch3DOFContainer::SetPos_dt(const int& i, const real3& mposdt) {
+void Ch3DOFContainer::SetPosDt(const int& i, const real3& mposdt) {
     data_manager->host_data.vel_3dof[i] = mposdt;
 }
 
@@ -84,7 +82,7 @@ void Ch3DOFContainer::Setup3DOF(int start_constraint) {
             num_rigid_fluid_contacts = data_manager->cd_data->num_rigid_fluid_contacts;
         } else {
             num_fluid_contacts = 0;
-            num_rigid_fluid_contacts = 0;        
+            num_rigid_fluid_contacts = 0;
         }
         num_fluid_bodies = data_manager->num_fluid_bodies;
         num_rigid_bodies = data_manager->num_rigid_bodies;

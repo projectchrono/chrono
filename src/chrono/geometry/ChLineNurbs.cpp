@@ -15,23 +15,22 @@
 #include "chrono/geometry/ChLineNurbs.h"
 
 namespace chrono {
-namespace geometry {
 
 // Register into the object factory, to enable run-time dynamic creation and persistence
 CH_FACTORY_REGISTER(ChLineNurbs)
 
 ChLineNurbs::ChLineNurbs() {
-    std::vector<ChVector<> > mpoints = {ChVector<>(-1, 0, 0), ChVector<>(1, 0, 0)};
-    this->SetupData(1, mpoints);
+    std::vector<ChVector3d> mpoints = {ChVector3d(-1, 0, 0), ChVector3d(1, 0, 0)};
+    this->Setup(1, mpoints);
 }
 
 ChLineNurbs::ChLineNurbs(
-    int morder,                         ///< order p: 1= linear, 2=quadratic, etc.
-    std::vector<ChVector<> >& mpoints,  ///< control points, size n. Required: at least n >= p+1
-    ChVectorDynamic<>* mknots,          ///< knots, size k. Required k=n+p+1. If not provided, initialized to uniform.
-    ChVectorDynamic<>* weights          ///< weights, size w. Required w=n. If not provided, all weights as 1.
+    int morder,                        ///< order p: 1= linear, 2=quadratic, etc.
+    std::vector<ChVector3d>& mpoints,  ///< control points, size n. Required: at least n >= p+1
+    ChVectorDynamic<>* mknots,         ///< knots, size k. Required k=n+p+1. If not provided, initialized to uniform.
+    ChVectorDynamic<>* weights         ///< weights, size w. Required w=n. If not provided, all weights as 1.
 ) {
-    this->SetupData(morder, mpoints, mknots, weights);
+    this->Setup(morder, mpoints, mknots, weights);
 }
 
 ChLineNurbs::ChLineNurbs(const ChLineNurbs& source) : ChLine(source) {
@@ -41,15 +40,15 @@ ChLineNurbs::ChLineNurbs(const ChLineNurbs& source) : ChLine(source) {
     this->weights = source.weights;
 }
 
-ChVector<> ChLineNurbs::Evaluate(double parU) const {
+ChVector3d ChLineNurbs::Evaluate(double parU) const {
     double u = ComputeKnotUfromU(parU);
 
     ChVectorDynamic<> mR(this->p + 1);
     ChBasisToolsNurbs::BasisEvaluate(this->p, u, this->weights, this->knots, mR);
 
-    int spanU = ChBasisToolsBspline::FindSpan(this->p, u, this->knots);
+    int spanU = ChBasisToolsBSpline::FindSpan(this->p, u, this->knots);
 
-    ChVector<> pos = VNULL;
+    ChVector3d pos = VNULL;
     int uind = spanU - p;
     for (int i = 0; i <= this->p; i++) {
         pos += points[uind + i] * mR(i);
@@ -58,16 +57,16 @@ ChVector<> ChLineNurbs::Evaluate(double parU) const {
     return pos;
 }
 
-ChVector<> ChLineNurbs::GetTangent(double parU) const {
+ChVector3d ChLineNurbs::GetTangent(double parU) const {
     double u = ComputeKnotUfromU(parU);
 
     ChVectorDynamic<> mR(this->p + 1);
     ChVectorDynamic<> mdR(this->p + 1);
     ChBasisToolsNurbs::BasisEvaluateDeriv(this->p, u, this->weights, this->knots, mR, mdR);
 
-    int spanU = ChBasisToolsBspline::FindSpan(this->p, u, this->knots);
+    int spanU = ChBasisToolsBSpline::FindSpan(this->p, u, this->knots);
 
-    ChVector<> dir = VNULL;
+    ChVector3d dir = VNULL;
     int uind = spanU - p;
     for (int i = 0; i <= this->p; i++) {
         dir += points[uind + i] * mdR(i);
@@ -76,23 +75,23 @@ ChVector<> ChLineNurbs::GetTangent(double parU) const {
     return dir;
 }
 
-void ChLineNurbs::SetupData(
-    int morder,                         ///< order p: 1= linear, 2=quadratic, etc.
-    std::vector<ChVector<> >& mpoints,  ///< control points, size n. Required: at least n >= p+1
-    ChVectorDynamic<>* mknots,          ///< knots, size k. Required k=n+p+1. If not provided, initialized to uniform.
-    ChVectorDynamic<>* weights          ///< weights, size w. Required w=n. If not provided, all weights as 1.
+void ChLineNurbs::Setup(
+    int morder,                        ///< order p: 1= linear, 2=quadratic, etc.
+    std::vector<ChVector3d>& mpoints,  ///< control points, size n. Required: at least n >= p+1
+    ChVectorDynamic<>* mknots,         ///< knots, size k. Required k=n+p+1. If not provided, initialized to uniform.
+    ChVectorDynamic<>* weights         ///< weights, size w. Required w=n. If not provided, all weights as 1.
 ) {
     if (morder < 1)
-        throw ChException("ChLineNurbs::SetupData requires order >= 1.");
+        throw std::invalid_argument("ChLineNurbs::Setup requires order >= 1.");
 
     if (mpoints.size() < morder + 1)
-        throw ChException("ChLineNurbs::SetupData requires at least order+1 control points.");
+        throw std::invalid_argument("ChLineNurbs::Setup requires at least order+1 control points.");
 
     if (mknots && (size_t)mknots->size() != (mpoints.size() + morder + 1))
-        throw ChException("ChLineNurbs::SetupData: knots must have size=n_points+order+1");
+        throw std::invalid_argument("ChLineNurbs::Setup knots must have size=n_points+order+1");
 
     if (weights && (size_t)weights->size() != mpoints.size())
-        throw ChException("ChLineNurbs::SetupData: weights must have size=n_points");
+        throw std::invalid_argument("ChLineNurbs::Setup weights must have size=n_points");
 
     this->p = morder;
     this->points = mpoints;
@@ -102,7 +101,7 @@ void ChLineNurbs::SetupData(
         this->knots = *mknots;
     else {
         this->knots.setZero(n + p + 1);
-        ChBasisToolsBspline::ComputeKnotUniformMultipleEnds(this->knots, p);
+        ChBasisToolsBSpline::ComputeKnotUniformMultipleEnds(this->knots, p);
     }
 
     if (weights)
@@ -111,29 +110,28 @@ void ChLineNurbs::SetupData(
         this->weights.setConstant(n, 1.0);
 }
 
-void ChLineNurbs::ArchiveOut(ChArchiveOut& marchive) {
+void ChLineNurbs::ArchiveOut(ChArchiveOut& archive_out) {
     // version number
-    marchive.VersionWrite<ChLineNurbs>();
+    archive_out.VersionWrite<ChLineNurbs>();
     // serialize parent class
-    ChLine::ArchiveOut(marchive);
+    ChLine::ArchiveOut(archive_out);
     // serialize all member data:
-    marchive << CHNVP(points);
-    ////marchive << CHNVP(weights); //**TODO MATRIX DESERIALIZATION
-    ////marchive << CHNVP(knots); //**TODO MATRIX DESERIALIZATION
-    marchive << CHNVP(p);
+    archive_out << CHNVP(points);
+    ////archive_out << CHNVP(weights); //**TODO MATRIX DESERIALIZATION
+    ////archive_out << CHNVP(knots); //**TODO MATRIX DESERIALIZATION
+    archive_out << CHNVP(p);
 }
 
-void ChLineNurbs::ArchiveIn(ChArchiveIn& marchive) {
+void ChLineNurbs::ArchiveIn(ChArchiveIn& archive_in) {
     // version number
-    /*int version =*/ marchive.VersionRead<ChLineNurbs>();
+    /*int version =*/archive_in.VersionRead<ChLineNurbs>();
     // deserialize parent class
-    ChLine::ArchiveIn(marchive);
+    ChLine::ArchiveIn(archive_in);
     // stream in all member data:
-    marchive >> CHNVP(points);
-    ////marchive >> CHNVP(weights); //**TODO MATRIX DESERIALIZATION
-    ////marchive >> CHNVP(knots); //**TODO MATRIX DESERIALIZATION
-    marchive >> CHNVP(p);
+    archive_in >> CHNVP(points);
+    ////archive_in >> CHNVP(weights); //**TODO MATRIX DESERIALIZATION
+    ////archive_in >> CHNVP(knots); //**TODO MATRIX DESERIALIZATION
+    archive_in >> CHNVP(p);
 }
 
-}  // end namespace geometry
 }  // end namespace chrono

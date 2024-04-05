@@ -36,6 +36,6 @@ G500_BrakeSimpleFront::G500_BrakeSimpleFront(const std::string& name) : ChBrakeS
 
 G500_BrakeSimpleRear::G500_BrakeSimpleRear(const std::string& name) : ChBrakeSimple(name) {}
 
-}  // end namespace uaz
+}  // namespace gclass
 }  // end namespace vehicle
 }  // end namespace chrono

@@ -28,26 +28,26 @@ ChVisualShapeSphere::ChVisualShapeSphere(double radius) {
     SetMutable(false);
 }
 
-ChVisualShapeSphere::ChVisualShapeSphere(const geometry::ChSphere& sphere) : gsphere(sphere) {
+ChVisualShapeSphere::ChVisualShapeSphere(const ChSphere& sphere) : gsphere(sphere) {
     SetMutable(false);
 }
 
-void ChVisualShapeSphere::ArchiveOut(ChArchiveOut& marchive) {
+void ChVisualShapeSphere::ArchiveOut(ChArchiveOut& archive_out) {
     // version number
-    marchive.VersionWrite<ChVisualShapeSphere>();
+    archive_out.VersionWrite<ChVisualShapeSphere>();
     // serialize parent class
-    ChVisualShape::ArchiveOut(marchive);
+    ChVisualShape::ArchiveOut(archive_out);
     // serialize all member data:
-    marchive << CHNVP(gsphere);
+    archive_out << CHNVP(gsphere);
 }
 
-void ChVisualShapeSphere::ArchiveIn(ChArchiveIn& marchive) {
+void ChVisualShapeSphere::ArchiveIn(ChArchiveIn& archive_in) {
     // version number
-    /*int version =*/ marchive.VersionRead<ChVisualShapeSphere>();
+    /*int version =*/archive_in.VersionRead<ChVisualShapeSphere>();
     // deserialize parent class
-    ChVisualShape::ArchiveIn(marchive);
+    ChVisualShape::ArchiveIn(archive_in);
     // stream in all member data:
-    marchive >> CHNVP(gsphere);
+    archive_in >> CHNVP(gsphere);
 }
 
 }  // end namespace chrono

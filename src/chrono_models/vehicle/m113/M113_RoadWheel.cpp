@@ -33,7 +33,7 @@ namespace m113 {
 // Static variables
 // -----------------------------------------------------------------------------
 const double M113_RoadWheel::m_wheel_mass = 35.56;
-const ChVector<> M113_RoadWheel::m_wheel_inertia(1.14, 2.16, 1.14);
+const ChVector3d M113_RoadWheel::m_wheel_inertia(1.14, 2.16, 1.14);
 const double M113_RoadWheel::m_wheel_radius = 0.305;
 const double M113_RoadWheel::m_wheel_width = 0.181;
 const double M113_RoadWheel::m_wheel_gap = 0.051;
@@ -57,7 +57,7 @@ void M113_RoadWheel::CreateContactMaterial(ChContactMethod contact_method) {
 // -----------------------------------------------------------------------------
 void M113_RoadWheel::AddVisualizationAssets(VisualizationType vis) {
     if (vis == VisualizationType::MESH) {
-        auto trimesh = geometry::ChTriangleMeshConnected::CreateFromWavefrontFile(GetMeshFile(), false, false);
+        auto trimesh = ChTriangleMeshConnected::CreateFromWavefrontFile(GetMeshFile(), false, false);
         auto trimesh_shape = chrono_types::make_shared<ChVisualShapeTriangleMesh>();
         trimesh_shape->SetMesh(trimesh);
         trimesh_shape->SetName(filesystem::path(GetMeshFile()).stem());

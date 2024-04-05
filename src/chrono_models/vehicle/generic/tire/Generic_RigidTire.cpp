@@ -33,7 +33,7 @@ const double Generic_RigidTire::m_radius = 0.467;
 const double Generic_RigidTire::m_width = 0.254;
 
 const double Generic_RigidTire::m_mass = 37.6;
-const ChVector<> Generic_RigidTire::m_inertia(3.84, 6.69, 3.84);
+const ChVector3d Generic_RigidTire::m_inertia(3.84, 6.69, 3.84);
 
 const std::string Generic_RigidTire::m_meshFile_left = "generic/tire/generic_tire_coarse.obj";
 const std::string Generic_RigidTire::m_meshFile_right = "generic/tire/generic_tire_coarse.obj";

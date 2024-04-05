@@ -34,12 +34,12 @@ class ChApi ChVisualShapeTriangleMesh : public ChVisualShape {
     ChVisualShapeTriangleMesh();
     ~ChVisualShapeTriangleMesh() {}
 
-    std::shared_ptr<geometry::ChTriangleMeshConnected> GetMesh() { return trimesh; }
+    std::shared_ptr<ChTriangleMeshConnected> GetMesh() { return trimesh; }
 
-    /// Associate the mesh asset with a triangle mesh geometry.  
-    /// Optionally, if `load_materials` is set to `true` and if the provided trimesh was loaded from a Wavefront OBJ file, 
-    /// associated material files are searched for and visualization materials loaded.
-    void SetMesh(std::shared_ptr<geometry::ChTriangleMeshConnected> mesh, bool load_materials = true);
+    /// Associate the mesh asset with a triangle mesh geometry.
+    /// Optionally, if `load_materials` is set to `true` and if the provided trimesh was loaded from a Wavefront OBJ
+    /// file, associated material files are searched for and visualization materials loaded.
+    void SetMesh(std::shared_ptr<ChTriangleMeshConnected> mesh, bool load_materials = true);
 
     bool IsWireframe() const { return wireframe; }
     void SetWireframe(bool mw) { wireframe = mw; }
@@ -50,8 +50,8 @@ class ChApi ChVisualShapeTriangleMesh : public ChVisualShape {
     const std::string& GetName() const { return name; }
     void SetName(const std::string& mname) { name = mname; }
 
-    const ChVector<>& GetScale() const { return scale; }
-    void SetScale(const ChVector<>& mscale) { scale = mscale; }
+    const ChVector3d& GetScale() const { return scale; }
+    void SetScale(const ChVector3d& mscale) { scale = mscale; }
 
     void SetFixedConnectivity() { fixed_connectivity = true; }
     bool FixedConnectivity() const { return fixed_connectivity; }
@@ -59,19 +59,19 @@ class ChApi ChVisualShapeTriangleMesh : public ChVisualShape {
     const std::vector<int>& GetModifiedVertices() const { return modified_vertices; }
 
     /// Method to allow serialization of transient data to archives.
-    virtual void ArchiveOut(ChArchiveOut& marchive) override;
+    virtual void ArchiveOut(ChArchiveOut& archive_out) override;
 
     /// Method to allow de-serialization of transient data from archives.
-    virtual void ArchiveIn(ChArchiveIn& marchive) override;
+    virtual void ArchiveIn(ChArchiveIn& archive_in) override;
 
   private:
-    std::shared_ptr<geometry::ChTriangleMeshConnected> trimesh;
+    std::shared_ptr<ChTriangleMeshConnected> trimesh;
 
     bool wireframe;
     bool backface_cull;
 
     std::string name;
-    ChVector<> scale;
+    ChVector3d scale;
 
     bool fixed_connectivity;
     std::vector<int> modified_vertices;

@@ -27,12 +27,12 @@ software.
 
 using namespace chrono;
 
-cbtCEtriangleShape::cbtCEtriangleShape(ChVector<>* mp1,
-                                       ChVector<>* mp2,
-                                       ChVector<>* mp3,
-                                       ChVector<>* me1,
-                                       ChVector<>* me2,
-                                       ChVector<>* me3,
+cbtCEtriangleShape::cbtCEtriangleShape(const ChVector3d* mp1,
+                                       const ChVector3d* mp2,
+                                       const ChVector3d* mp3,
+                                       const ChVector3d* me1,
+                                       const ChVector3d* me2,
+                                       const ChVector3d* me3,
                                        bool mowns_vertex_1,
                                        bool mowns_vertex_2,
                                        bool mowns_vertex_3,
@@ -80,7 +80,7 @@ cbtVector3 cbtCEtriangleShape::localGetSupportingVertexWithoutMargin(const cbtVe
         supVec = vtx;
     }
 
-    return supVec;  //+ vec0.normalized()*this->sphereswept_rad; //***TODO*** add the sphereswept_rad layer (but gives
+    return supVec;  //+ vec0.normalized()*this->sphereswept_rad; //// TODO  add the sphereswept_rad layer (but gives
                     //seldom jittering.. why?)
 }
 
@@ -91,14 +91,14 @@ void cbtCEtriangleShape::batchedUnitVectorGetSupportingVertexWithoutMargin(const
 }
 
 void cbtCEtriangleShape::calculateLocalInertia(cbtScalar mass, cbtVector3& inertia) const {
-    //***TO DO***
+    //// TODO 
     // as an approximation, take the inertia of an average radius sphere
 
     cbtTransform ident;
     ident.setIdentity();
 
     cbtVector3 halfExtents;
-    double radius = ChMax((*p2 - *p1).Length(), (*p3 - *p1).Length());
+    double radius = std::max((*p2 - *p1).Length(), (*p3 - *p1).Length());
     halfExtents.setValue((cbtScalar)(radius), (cbtScalar)(radius), (cbtScalar)(radius));
 
     cbtScalar margin = CONVEX_DISTANCE_MARGIN;
@@ -130,13 +130,13 @@ void cbtCEtriangleShape::getAabb(const cbtTransform& t, cbtVector3& aabbMin, cbt
     cbtVector3 vsphereswept((cbtScalar)this->sphereswept_rad, (cbtScalar)this->sphereswept_rad,
                             (cbtScalar)this->sphereswept_rad);
 
-    aabbMin = cbtVector3((cbtScalar)ChMin(ChMin(p1_w.x(), p2_w.x()), p3_w.x()),
-                         (cbtScalar)ChMin(ChMin(p1_w.y(), p2_w.y()), p3_w.y()),
-                         (cbtScalar)ChMin(ChMin(p1_w.z(), p2_w.z()), p3_w.z())) -
+    aabbMin = cbtVector3((cbtScalar)std::min(std::min(p1_w.x(), p2_w.x()), p3_w.x()),
+                         (cbtScalar)std::min(std::min(p1_w.y(), p2_w.y()), p3_w.y()),
+                         (cbtScalar)std::min(std::min(p1_w.z(), p2_w.z()), p3_w.z())) -
               venvelope - vsphereswept;
 
-    aabbMax = cbtVector3((cbtScalar)ChMax(ChMax(p1_w.x(), p2_w.x()), p3_w.x()),
-                         (cbtScalar)ChMax(ChMax(p1_w.y(), p2_w.y()), p3_w.y()),
-                         (cbtScalar)ChMax(ChMax(p1_w.z(), p2_w.z()), p3_w.z())) +
+    aabbMax = cbtVector3((cbtScalar)std::max(std::max(p1_w.x(), p2_w.x()), p3_w.x()),
+                         (cbtScalar)std::max(std::max(p1_w.y(), p2_w.y()), p3_w.y()),
+                         (cbtScalar)std::max(std::max(p1_w.z(), p2_w.z()), p3_w.z())) +
               venvelope + vsphereswept;
 }

@@ -23,9 +23,9 @@
 // Note: For header-only classes, do NOT put SYN_API in front of the class definition
 
 #if defined(SYN_API_COMPILE)
-#define SYN_API ChApiEXPORT
+    #define SYN_API ChApiEXPORT
 #else
-#define SYN_API ChApiIMPORT
+    #define SYN_API ChApiIMPORT
 #endif
 
 /**

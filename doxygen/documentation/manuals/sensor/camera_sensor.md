@@ -9,7 +9,7 @@ In Chrono:Sensor:ChCameraSensor, the synthetic data is generated via GPU-based r
 
 ~~~{.cpp}
 chrono::ChFrame<double> offset_pose({10, 2, .5},                           // Position
-                                     Q_from_AngAxis(CH_C_PI, {0, 0, 1}));  // Rotation
+                                     QuatFromAngleAxis(CH_PI, {0, 0, 1}));  // Rotation
 
 auto Camera = chrono_types::make_shared<ChCameraSensor>(
                     parent_body,                // body camera is attached to
@@ -76,7 +76,7 @@ Any number of filters can be append to the list and modify the final result. The
 The position and rotation of the camera can be easily changed using `SetOffsetPose` during simulation
 ~~~{.cpp}
 Camera->SetOffsetPose(chrono::ChFrame<double>({8, 2, .5},    // Position
-                      Q_from_AngAxis(CH_C_PI, {0, 0, 1})));  // Rotation
+                      QuatFromAngleAxis(CH_PI, {0, 0, 1})));  // Rotation
 ~~~
 
 ## Data access

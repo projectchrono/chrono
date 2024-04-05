@@ -33,7 +33,7 @@ using namespace chrono::particlefactory;
 using namespace chrono::irrlicht;
 
 int main(int argc, char* argv[]) {
-    GetLog() << "Copyright (c) 2017 projectchrono.org\nChrono version: " << CHRONO_VERSION << "\n\n";
+    std::cout << "Copyright (c) 2017 projectchrono.org\nChrono version: " << CHRONO_VERSION << std::endl;
 
     // Create a Chrono system and set the associated collision system
     ChSystemNSC sys;
@@ -47,14 +47,14 @@ int main(int argc, char* argv[]) {
     vis->AddLogo();
     vis->AddSkyBox();
     vis->AddTypicalLights();
-    vis->AddCamera(ChVector<>(0, 7, -10));
+    vis->AddCamera(ChVector3d(0, 7, -10));
 
     // Create the floor:
-    auto floor_mat = chrono_types::make_shared<ChMaterialSurfaceNSC>();
+    auto floor_mat = chrono_types::make_shared<ChContactMaterialNSC>();
 
     auto floorBody = chrono_types::make_shared<ChBodyEasyBox>(20, 1, 20, 1000, true, true, floor_mat);
-    floorBody->SetPos(ChVector<>(0, -5, 0));
-    floorBody->SetBodyFixed(true);
+    floorBody->SetPos(ChVector3d(0, -5, 0));
+    floorBody->SetFixed(true);
     floorBody->GetVisualShape(0)->SetTexture(GetChronoDataFile("textures/concrete.jpg"));
 
     sys.Add(floorBody);
@@ -84,7 +84,7 @@ int main(int argc, char* argv[]) {
     // ---Initialize the randomizer for positions
     auto emitter_positions = chrono_types::make_shared<ChRandomParticlePositionRectangleOutlet>();
     emitter_positions->Outlet() =
-        ChCoordsys<>(ChVector<>(0, 3, 0), Q_from_AngAxis(CH_C_PI_2, VECT_X));  // center and alignment of the outlet
+        ChCoordsys<>(ChVector3d(0, 3, 0), QuatFromAngleX(CH_PI_2));  // center and alignment of the outlet
     emitter_positions->OutletWidth() = 3.0;
     emitter_positions->OutletHeight() = 4.5;
     emitter.SetParticlePositioner(emitter_positions);
@@ -106,8 +106,8 @@ int main(int argc, char* argv[]) {
     auto mcreator_plastic = chrono_types::make_shared<ChRandomShapeCreatorBoxes>();
     mcreator_plastic->SetXsizeDistribution(
         chrono_types::make_shared<ChZhangDistribution>(0.5, 0.2));  // Zhang parameters: average val, min val.
-    mcreator_plastic->SetSizeRatioZDistribution(chrono_types::make_shared<ChMinMaxDistribution>(0.2, 1.0));
-    mcreator_plastic->SetSizeRatioYZDistribution(chrono_types::make_shared<ChMinMaxDistribution>(0.4, 1.0));
+    mcreator_plastic->SetSizeRatioZDistribution(chrono_types::make_shared<ChUniformDistribution>(0.2, 1.0));
+    mcreator_plastic->SetSizeRatioYZDistribution(chrono_types::make_shared<ChUniformDistribution>(0.4, 1.0));
     mcreator_plastic->SetDensityDistribution(chrono_types::make_shared<ChConstantDistribution>(1000));
 
     // Optional: define a callback to be exectuted at each creation of a box particle:
@@ -117,7 +117,7 @@ int main(int argc, char* argv[]) {
         virtual void OnAddBody(std::shared_ptr<ChBody> mbody,
                                ChCoordsys<> mcoords,
                                ChRandomShapeCreator& mcreator) override {
-            mbody->GetVisualShape(0)->SetColor(ChColor(0.0f, 1.0f, (float)ChRandom()));
+            mbody->GetVisualShape(0)->SetColor(ChColor(0.0f, 1.0f, (float)ChRandom::Get()));
         }
     };
     auto callback_plastic = chrono_types::make_shared<MyCreator_plastic>();
@@ -144,7 +144,7 @@ int main(int argc, char* argv[]) {
                 coll->Add(mbody->GetCollisionModel());
 
             // Disable gyroscopic forces for increased integrator stabilty
-            mbody->SetNoGyroTorque(true);
+            mbody->SetUseGyroTorque(false);
         }
         ChVisualSystem* vis;
         ChCollisionSystem* coll;
@@ -166,14 +166,14 @@ int main(int argc, char* argv[]) {
 
     ChParticleRemoverBox remover;
     remover.SetRemoveOutside(true);
-    remover.SetBox(ChVector<>(5, 20, 5), ChFrame<>());
+    remover.SetBox(ChVector3d(5, 20, 5), ChFrame<>());
 
     // Test also a ChParticleProcessor configured as a
     // counter of particles that flow into a rectangle:
     //  -create the trigger:
     auto rectangleflow = chrono_types::make_shared<ChParticleEventFlowInRectangle>(8, 8);
     rectangleflow->rectangle_csys =
-        ChCoordsys<>(ChVector<>(0, 2, 0), Q_from_AngAxis(-CH_C_PI_2, VECT_X));  // center and alignment of rectangle
+        ChCoordsys<>(ChVector3d(0, 2, 0), QuatFromAngleX(-CH_PI_2));  // center and alignment of rectangle
     rectangleflow->margin = 1;
     //  -create the counter:
     auto counter = chrono_types::make_shared<ChParticleProcessEventCount>();
@@ -187,7 +187,7 @@ int main(int argc, char* argv[]) {
 
     // Modify some setting of the physical system for the simulation, if you want
     sys.SetSolverType(ChSolver::Type::PSOR);
-    sys.SetSolverMaxIterations(40);
+    sys.GetSolver()->AsIterative()->SetMaxIterations(40);
 
     // Simulation loop
     double timestep = 0.02;
@@ -204,7 +204,7 @@ int main(int argc, char* argv[]) {
 
         // Use the processor to count particle flow in the rectangle section:
         processor_flowcount.ProcessParticles(sys);
-        GetLog() << "Particles being flown across rectangle:" << counter->counter << "\n";
+        std::cout << "Particles being flown across rectangle:" << counter->counter << "\n";
 
         sys.DoStepDynamics(timestep);
     }

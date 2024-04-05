@@ -1,0 +1,13 @@
+{
+  "Name": "Wheel",
+  "Type": "Wheel",
+  "Template": "Wheel",
+
+  "Mass": 18.8,
+  "Inertia": [ 0.4634, 0.6243, 0.4634 ],
+
+  "Visualization": {
+    "Radius": 0.268,
+    "Width": 0.22
+  }
+}

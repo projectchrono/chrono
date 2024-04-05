@@ -33,7 +33,7 @@ namespace marder {
 // Static variables
 // -----------------------------------------------------------------------------
 const double Marder_RoadWheel::m_wheel_mass = 35.56;
-const ChVector<> Marder_RoadWheel::m_wheel_inertia(1.14, 2.16, 1.14);
+const ChVector3d Marder_RoadWheel::m_wheel_inertia(1.14, 2.16, 1.14);
 const double Marder_RoadWheel::m_wheel_radius = 0.350;
 const double Marder_RoadWheel::m_wheel_width = 0.220;
 const double Marder_RoadWheel::m_wheel_gap = 0.051;
@@ -57,7 +57,7 @@ void Marder_RoadWheel::CreateContactMaterial(ChContactMethod contact_method) {
 // -----------------------------------------------------------------------------
 void Marder_RoadWheel::AddVisualizationAssets(VisualizationType vis) {
     if (vis == VisualizationType::MESH) {
-        auto trimesh = geometry::ChTriangleMeshConnected::CreateFromWavefrontFile(GetMeshFile(), false, false);
+        auto trimesh = ChTriangleMeshConnected::CreateFromWavefrontFile(GetMeshFile(), false, false);
         auto trimesh_shape = chrono_types::make_shared<ChVisualShapeTriangleMesh>();
         trimesh_shape->SetMesh(trimesh);
         trimesh_shape->SetName(filesystem::path(GetMeshFile()).stem());

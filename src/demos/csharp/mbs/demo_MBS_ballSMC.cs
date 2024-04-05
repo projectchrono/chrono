@@ -23,6 +23,8 @@ namespace ChronoDemo
     {
         static void Main(string[] args)
         {
+            Console.WriteLine("Copyright (c) 2017 projectchrono.org");
+            Console.WriteLine("Chrono version: " + CHRONO_VERSION);
 
             ChCollisionSystem.Type coll_type = ChCollisionSystem.Type.BULLET;
 
@@ -35,15 +37,13 @@ namespace ChronoDemo
             double out_step = 2000 * time_step;
 
             // Parameters for the falling ball
-            int ballId = 100;
             double radius = 1;
             double mass = 1000;
-            ChVectorD pos = new ChVectorD(0, 2, 0);
-            ChQuaternionD rot = new ChQuaternionD(1, 0, 0, 0);
-            ChVectorD init_vel = new ChVectorD(0, 0, 0);
+            ChVector3d pos = new ChVector3d(0, 2, 0);
+            ChQuaterniond rot = new ChQuaterniond(1, 0, 0, 0);
+            ChVector3d init_vel = new ChVector3d(0, 0, 0);
 
             // Parameters for the containing bin
-            int binId = 200;
             double width = 2;
             double length = 2;
             ////double height = 1;
@@ -52,7 +52,7 @@ namespace ChronoDemo
             // Create the system
             ChSystemSMC sys = new ChSystemSMC();
 
-            sys.Set_G_acc(new ChVectorD(0, gravity, 0));
+            sys.SetGravitationalAcceleration(new ChVector3d(0, gravity, 0));
             sys.SetCollisionSystemType(coll_type);
 
             // The following two lines are optional, since they are the default options. They are added for future reference,
@@ -64,7 +64,7 @@ namespace ChronoDemo
             ChCollisionInfo.SetDefaultEffectiveCurvatureRadius(1);
 
             // Create a material (will be used by both objects)
-            ChMaterialSurfaceSMC material = new ChMaterialSurfaceSMC();
+            ChContactMaterialSMC material = new ChContactMaterialSMC();
             material.SetRestitution(0.1f);
             material.SetFriction(0.4f);
             material.SetAdhesion(0);  // Magnitude of the adhesion in Constant adhesion model
@@ -72,20 +72,19 @@ namespace ChronoDemo
             // Create the falling ball
             ChBody ball = new ChBody();
 
-            ball.SetIdentifier(ballId);
             ball.SetMass(mass);
-            // TODO: cannot use operator between double and ChVectorD
-            //ChVectorD onev = new ChVectorD(1, 1, 1);
+            // TODO: cannot use operator between double and ChVector3d
+            //ChVector3d onev = new ChVector3d(1, 1, 1);
             //ball.SetInertiaXX(0.4 * mass * radius * radius * onev);
             ball.SetPos(pos);
             ball.SetRot(rot);
-            ball.SetPos_dt(init_vel);
-            // ball.SetWvel_par(new ChVectorD(0,0,3));
-            ball.SetBodyFixed(false);
+            ball.SetLinVel(init_vel);
+            // ball.SetWvel_par(new ChVector3d(0,0,3));
+            ball.SetFixed(false);
 
             ChCollisionShapeSphere sphere_coll = new ChCollisionShapeSphere(material, radius);
-            ball.AddCollisionShape(sphere_coll, new ChFrameD());
-            ball.SetCollide(true);
+            ball.AddCollisionShape(sphere_coll, new ChFramed());
+            ball.EnableCollision(true);
 
             ChVisualShapeSphere sphere_vis = new ChVisualShapeSphere(radius);
             sphere_vis.SetTexture(chrono.GetChronoDataFile("textures/bluewhite.png"));
@@ -97,15 +96,14 @@ namespace ChronoDemo
             // Create container
             ChBody bin = new ChBody();
 
-            bin.SetIdentifier(binId);
             bin.SetMass(1);
-            bin.SetPos(new ChVectorD(0, 0, 0));
-            bin.SetRot(new ChQuaternionD(1, 0, 0, 0));
-            bin.SetBodyFixed(true);
+            bin.SetPos(new ChVector3d(0, 0, 0));
+            bin.SetRot(new ChQuaterniond(1, 0, 0, 0));
+            bin.SetFixed(true);
 
             ChCollisionShapeBox box_coll = new ChCollisionShapeBox(material, width * 2, thickness * 2, length * 2);
-            bin.AddCollisionShape(box_coll, new ChFrameD());
-            bin.SetCollide(true);
+            bin.AddCollisionShape(box_coll, new ChFramed());
+            bin.EnableCollision(true);
 
             ChVisualShapeBox box_vis = new ChVisualShapeBox(width * 2, thickness * 2, length * 2);
             box_vis.SetColor(new ChColor(0.8f, 0.2f, 0.2f));
@@ -123,10 +121,11 @@ namespace ChronoDemo
             vis.AddLogo();
             vis.AddSkyBox();
             vis.AddTypicalLights();
-            vis.AddCamera(new ChVectorD(0, 3, -6));
+            vis.AddCamera(new ChVector3d(0, 3, -6));
             vis.AttachSystem(sys);
-            vis.AddGrid(0.2, 0.2, 20, 20, new ChCoordsysD(new ChVectorD(0, 0.11, 0), chrono.Q_from_AngX(chrono.CH_C_PI_2)),
-                                new ChColor(0.1f, 0.1f, 0.1f));
+            vis.AddGrid(0.2, 0.2, 20, 20,
+                        new ChCoordsysd(new ChVector3d(0, 0.11, 0), chrono.QuatFromAngleX(chrono.CH_PI_2)),
+                        new ChColor(0.1f, 0.1f, 0.1f));
 
             // The soft-real-time cycle
             double time = 0.0;
@@ -136,7 +135,7 @@ namespace ChronoDemo
             {
                 vis.BeginScene();
                 vis.Render();
-                vis.RenderFrame(new ChFrameD(chrono.CastToChBodyFrame(ball).GetCoord()), 1.2 * radius);
+                vis.RenderFrame(new ChFramed(chrono.CastToChBodyFrame(ball).GetCoordsys()), 1.2 * radius);
                 vis.EndScene();
 
                 while (time < out_time)

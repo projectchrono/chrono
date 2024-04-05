@@ -31,10 +31,10 @@ namespace gator {
 // Static variables
 // -----------------------------------------------------------------------------
 const double Gator_Chassis::m_body_mass = 800;
-const ChVector<> Gator_Chassis::m_body_inertiaXX(107.7, 350.8, 457.7);
-const ChVector<> Gator_Chassis::m_body_inertiaXY(0, 0, 0);
-const ChVector<> Gator_Chassis::m_body_COM_loc(-0.184, 0, 0.359);
-const ChCoordsys<> Gator_Chassis::m_driverCsys(ChVector<>(0.3, 0.25, 1.2), ChQuaternion<>(1, 0, 0, 0));
+const ChVector3d Gator_Chassis::m_body_inertiaXX(107.7, 350.8, 457.7);
+const ChVector3d Gator_Chassis::m_body_inertiaXY(0, 0, 0);
+const ChVector3d Gator_Chassis::m_body_COM_loc(-0.184, 0, 0.359);
+const ChCoordsys<> Gator_Chassis::m_driverCsys(ChVector3d(0.3, 0.25, 1.2), ChQuaternion<>(1, 0, 0, 0));
 
 // -----------------------------------------------------------------------------
 // -----------------------------------------------------------------------------
@@ -57,7 +57,7 @@ Gator_Chassis::Gator_Chassis(const std::string& name, bool fixed, CollisionType 
 
     //// TODO:
     //// A more appropriate contact shape from primitives
-    ChVehicleGeometry::BoxShape box1(ChVector<>(0.0, 0.0, 0.1), ChQuaternion<>(1, 0, 0, 0), ChVector<>(1.0, 0.5, 0.2));
+    ChVehicleGeometry::BoxShape box1(ChVector3d(0.0, 0.0, 0.1), ChQuaternion<>(1, 0, 0, 0), ChVector3d(1.0, 0.5, 0.2));
 
     m_geometry.m_has_primitives = true;
     m_geometry.m_vis_boxes.push_back(box1);

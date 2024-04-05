@@ -33,7 +33,7 @@
 
 #include "chrono/fea/ChElementBeamANCF_3333.h"
 #include "chrono/fea/ChMesh.h"
-#include "chrono/fea/ChLinkPointFrame.h"
+#include "chrono/fea/ChLinkNodeFrame.h"
 #include "chrono/assets/ChVisualShapeFEA.h"
 
 #ifdef CHRONO_IRRLICHT
@@ -48,14 +48,10 @@
     #include "chrono_mumps/ChSolverMumps.h"
 #endif
 
-#ifdef CHRONO_PARDISOPROJECT
-    #include "chrono_pardisoproject/ChSolverPardisoProject.h"
-#endif
-
 using namespace chrono;
 using namespace chrono::fea;
 
-enum class SolverType { MINRES, SparseLU, SparseQR, MKL, MUMPS, PARDISO_PROJECT };
+enum class SolverType { MINRES, SparseLU, SparseQR, PARDISO_MKL, MUMPS };
 
 // =============================================================================
 
@@ -77,7 +73,7 @@ class ANCFBeamTest {
 
     void SimulateVis();
 
-    ChVector<> GetBeamEndPointPos() { return m_nodeEndPoint->GetPos(); }
+    ChVector3d GetBeamEndPointPos() { return m_nodeEndPoint->GetPos(); }
 
     void RunTimingTest(ChMatrixNM<double, 4, 19>& timing_stats, const std::string& test_name);
 
@@ -94,14 +90,14 @@ ANCFBeamTest::ANCFBeamTest(int num_elements, SolverType solver_type, int NumThre
     m_NumElements = num_elements;
     m_NumThreads = NumThreads;
     m_system = new ChSystemSMC();
-    m_system->Set_G_acc(ChVector<>(0, 0, -9.80665));
+    m_system->SetGravitationalAcceleration(ChVector3d(0, 0, -9.80665));
     m_system->SetNumThreads(NumThreads, 1, NumThreads);
 
     // Set solver parameters
 #ifndef CHRONO_PARDISO_MKL
-    if (solver_type == SolverType::MKL) {
+    if (solver_type == SolverType::PARDISO_MKL) {
         solver_type = SolverType::SparseLU;
-        std::cout << "WARNING! Chrono::MKL not enabled. Forcing use of SparseLU solver" << std::endl;
+        std::cout << "WARNING! Chrono::PardisoMKL not enabled. Forcing use of SparseLU solver" << std::endl;
     }
 #endif
 
@@ -109,13 +105,6 @@ ANCFBeamTest::ANCFBeamTest(int num_elements, SolverType solver_type, int NumThre
     if (solver_type == SolverType::MUMPS) {
         solver_type = SolverType::SparseLU;
         std::cout << "WARNING! Chrono::MUMPS not enabled. Forcing use of SparseLU solver" << std::endl;
-    }
-#endif
-
-#ifndef CHRONO_PARDISOPROJECT
-    if (solver_type == SolverType::PARDISO_PROJECT) {
-        solver_type = SolverType::SparseLU;
-        std::cout << "WARNING! Chrono::PARDISO_PROJECT not enabled. Forcing use of SparseLU solver" << std::endl;
     }
 #endif
 
@@ -127,10 +116,10 @@ ANCFBeamTest::ANCFBeamTest(int num_elements, SolverType solver_type, int NumThre
             solver->SetTolerance(1e-10);
             solver->EnableDiagonalPreconditioner(true);
             solver->SetVerbose(false);
-            m_system->SetSolverForceTolerance(1e-10);
+            solver->SetTolerance(1e-12);
             break;
         }
-        case SolverType::MKL: {
+        case SolverType::PARDISO_MKL: {
 #ifdef CHRONO_PARDISO_MKL
             auto solver = chrono_types::make_shared<ChSolverPardisoMKL>(NumThreads);
             solver->UseSparsityPatternLearner(false);
@@ -143,16 +132,6 @@ ANCFBeamTest::ANCFBeamTest(int num_elements, SolverType solver_type, int NumThre
         case SolverType::MUMPS: {
 #ifdef CHRONO_MUMPS
             auto solver = chrono_types::make_shared<ChSolverMumps>(NumThreads);
-            solver->UseSparsityPatternLearner(false);
-            solver->LockSparsityPattern(true);
-            solver->SetVerbose(false);
-            m_system->SetSolver(solver);
-#endif
-            break;
-        }
-        case SolverType::PARDISO_PROJECT: {
-#ifdef CHRONO_PARDISOPROJECT
-            auto solver = chrono_types::make_shared<ChSolverPardisoProject>(NumThreads);
             solver->UseSparsityPatternLearner(false);
             solver->LockSparsityPattern(true);
             solver->SetVerbose(false);
@@ -182,7 +161,7 @@ ANCFBeamTest::ANCFBeamTest(int num_elements, SolverType solver_type, int NumThre
     m_system->SetTimestepperType(ChTimestepper::Type::HHT);
     auto integrator = std::static_pointer_cast<ChTimestepperHHT>(m_system->GetTimestepper());
     integrator->SetAlpha(-0.2);
-    integrator->SetMaxiters(100);
+    integrator->SetMaxIters(100);
     integrator->SetAbsTolerances(1e-5);
     integrator->SetVerbose(false);
     integrator->SetModifiedNewton(true);
@@ -226,28 +205,28 @@ ANCFBeamTest::ANCFBeamTest(int num_elements, SolverType solver_type, int NumThre
     double dx = length / (num_nodes - 1);
 
     // Setup beam cross section gradients to initially align with the global y and z directions
-    ChVector<> dir1(0, 1, 0);
-    ChVector<> dir2(0, 0, 1);
+    ChVector3d dir1(0, 1, 0);
+    ChVector3d dir2(0, 0, 1);
 
     // Create a grounded body to connect the 3D pendulum to
     auto grounded = chrono_types::make_shared<ChBody>();
-    grounded->SetBodyFixed(true);
+    grounded->SetFixed(true);
     m_system->Add(grounded);
 
     // Create the first node and fix only its position to ground (Spherical Joint constraint)
-    auto nodeA = chrono_types::make_shared<ChNodeFEAxyzDD>(ChVector<>(0, 0, 0.0), dir1, dir2);
+    auto nodeA = chrono_types::make_shared<ChNodeFEAxyzDD>(ChVector3d(0, 0, 0.0), dir1, dir2);
     mesh->AddNode(nodeA);
-    auto pos_constraint = chrono_types::make_shared<ChLinkPointFrame>();
+    auto pos_constraint = chrono_types::make_shared<ChLinkNodeFrame>();
     pos_constraint->Initialize(nodeA, grounded);  // body to be connected to
     m_system->Add(pos_constraint);
 
     for (int i = 1; i <= num_elements; i++) {
-        auto nodeC = chrono_types::make_shared<ChNodeFEAxyzDD>(ChVector<>(dx * (2 * i - 1), 0, 0), dir1, dir2);
-        nodeC->SetPos_dt(ChVector<>(0, omega_z * (dx * (2 * i - 1)), 0));
+        auto nodeC = chrono_types::make_shared<ChNodeFEAxyzDD>(ChVector3d(dx * (2 * i - 1), 0, 0), dir1, dir2);
+        nodeC->SetPosDt(ChVector3d(0, omega_z * (dx * (2 * i - 1)), 0));
         mesh->AddNode(nodeC);
 
-        auto nodeB = chrono_types::make_shared<ChNodeFEAxyzDD>(ChVector<>(dx * (2 * i), 0, 0), dir1, dir2);
-        nodeB->SetPos_dt(ChVector<>(0, omega_z * (dx * (2 * i)), 0));
+        auto nodeB = chrono_types::make_shared<ChNodeFEAxyzDD>(ChVector3d(dx * (2 * i), 0, 0), dir1, dir2);
+        nodeB->SetPosDt(ChVector3d(0, omega_z * (dx * (2 * i)), 0));
         mesh->AddNode(nodeB);
 
         auto element = chrono_types::make_shared<ChElementBeamANCF_3333>();
@@ -280,16 +259,16 @@ void ANCFBeamTest::SimulateVis() {
     vis->AddLogo();
     vis->AddSkyBox();
     vis->AddTypicalLights();
-    vis->AddCamera(ChVector<>(-0.4, 0.4, 0.4), ChVector<>(0, 0, 0));
+    vis->AddCamera(ChVector3d(-0.4, 0.4, 0.4), ChVector3d(0, 0, 0));
 
     while (vis->Run()) {
         std::cout << "Time(s): " << this->m_system->GetChTime() << "  Tip Pos(m): " << this->GetBeamEndPointPos()
                   << std::endl;
         vis->BeginScene();
         vis->Render();
-        irrlicht::tools::drawSegment(vis.get(), ChVector<>(0), ChVector<>(1, 0, 0), ChColor(1, 0, 0));
-        irrlicht::tools::drawSegment(vis.get(), ChVector<>(0), ChVector<>(0, 1, 0), ChColor(0, 1, 0));
-        irrlicht::tools::drawSegment(vis.get(), ChVector<>(0), ChVector<>(0, 0, 1), ChColor(0, 0, 1));
+        irrlicht::tools::drawSegment(vis.get(), ChVector3d(0), ChVector3d(1, 0, 0), ChColor(1, 0, 0));
+        irrlicht::tools::drawSegment(vis.get(), ChVector3d(0), ChVector3d(0, 1, 0), ChColor(0, 1, 0));
+        irrlicht::tools::drawSegment(vis.get(), ChVector3d(0), ChVector3d(0, 0, 1), ChColor(0, 0, 1));
         ExecuteStep();
         vis->EndScene();
     }
@@ -327,7 +306,7 @@ void ANCFBeamTest::RunTimingTest(ChMatrixNM<double, 4, 19>& timing_stats, const 
 
     // Time the requested number of steps, collecting timing information (systems is not restarted between collections)
     auto LS = std::dynamic_pointer_cast<ChDirectSolverLS>(GetSystem()->GetSolver());
-    auto MeshList = GetSystem()->Get_meshlist();
+    auto MeshList = GetSystem()->GetMeshes();
     for (int r = 0; r < REPEATS; r++) {
         for (int i = 0; i < NUM_SIM_STEPS; i++) {
             for (auto& Mesh : MeshList) {
@@ -390,16 +369,12 @@ void ANCFBeamTest::RunTimingTest(ChMatrixNM<double, 4, 19>& timing_stats, const 
             std::cout << "MINRES";
             ;
             break;
-        case SolverType::MKL:
-            std::cout << "MKL";
+        case SolverType::PARDISO_MKL:
+            std::cout << "PARDISO_MKL";
             ;
             break;
         case SolverType::MUMPS:
             std::cout << "MUMPS";
-            ;
-            break;
-        case SolverType::PARDISO_PROJECT:
-            std::cout << "PARDISO_PROJECT";
             ;
             break;
         case SolverType::SparseLU:
@@ -459,15 +434,11 @@ int main(int argc, char* argv[]) {
         // Setup the vector containing the specific linear solvers to test
         std::vector<SolverType> Solver = {SolverType::MINRES, SolverType::SparseLU, SolverType::SparseQR};
 #ifdef CHRONO_PARDISO_MKL
-        Solver.push_back(SolverType::MKL);
+        Solver.push_back(SolverType::PARDISO_MKL);
 #endif
 
 #ifdef CHRONO_MUMPS
         Solver.push_back(SolverType::MUMPS);
-#endif
-
-#ifdef CHRONO_PARDISOPROJECT
-        Solver.push_back(SolverType::PARDISO_PROJECT);
 #endif
 
         // Set the limit on the number of OpenMP threads to test up to.

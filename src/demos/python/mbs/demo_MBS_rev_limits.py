@@ -32,9 +32,8 @@ sys = chrono.ChSystemNSC()
 # Create ground body
 ground = chrono.ChBody()
 sys.AddBody(ground)
-ground.SetIdentifier(-1)
-ground.SetBodyFixed(True)
-ground.SetCollide(False)
+ground.SetFixed(True)
+ground.EnableCollision(False)
 
 # Visualization for revolute joint
 cyl_rev = chrono.ChVisualShapeCylinder(0.04, 0.4)
@@ -43,19 +42,18 @@ ground.AddVisualShape(cyl_rev)
 # Create a pendulum body
 pend = chrono.ChBody()
 sys.AddBody(pend)
-pend.SetIdentifier(1)
-pend.SetBodyFixed(False)
-pend.SetCollide(False)
+pend.SetFixed(False)
+pend.EnableCollision(False)
 pend.SetMass(1)
-pend.SetInertiaXX(chrono.ChVectorD(0.2, 1, 1))
+pend.SetInertiaXX(chrono.ChVector3d(0.2, 1, 1))
 
 # Initial position of the pendulum (horizontal, pointing towards positive X).
-pend.SetPos(chrono.ChVectorD(1.5, 0, 0))
+pend.SetPos(chrono.ChVector3d(1.5, 0, 0))
 
 # Attach visualization assets.
 cyl_p = chrono.ChVisualShapeCylinder(0.2, 2.92)
 cyl_p.SetColor(chrono.ChColor(0.6, 0, 0))
-pend.AddVisualShape(cyl_p, chrono.ChFrameD(chrono.VNULL, chrono.Q_from_AngY(chrono.CH_C_PI_2)))
+pend.AddVisualShape(cyl_p, chrono.ChFramed(chrono.VNULL, chrono.QuatFromAngleY(chrono.CH_PI_2)))
 
 # Create a revolute joint to connect pendulum to ground
 rev = chrono.ChLinkLockRevolute()
@@ -64,12 +62,12 @@ sys.AddLink(rev)
 # Add limits to the Z rotation of the revolute joint
 min_angle = 0
 max_angle = 0.75 * m.pi
-rev.GetLimit_Rz().SetActive(True)
-rev.GetLimit_Rz().SetMin(min_angle)
-rev.GetLimit_Rz().SetMax(max_angle)
+rev.LimitRz().SetActive(True)
+rev.LimitRz().SetMin(min_angle)
+rev.LimitRz().SetMax(max_angle)
 
 # Initialize the joint specifying a coordinate sys (expressed in the absolute frame).
-rev.Initialize(ground, pend, chrono.ChCoordsysD(chrono.VNULL, chrono.QUNIT))
+rev.Initialize(ground, pend, chrono.ChFramed(chrono.VNULL, chrono.QUNIT))
 
 # Create the Irrlicht application
 vis = irr.ChVisualSystemIrrlicht()
@@ -79,13 +77,13 @@ vis.SetWindowTitle('Limits on LinkLockRevolute demo')
 vis.Initialize()
 vis.AddLogo(chrono.GetChronoDataFile('logo_pychrono_alpha.png'))
 vis.AddSkyBox()
-vis.AddCamera(chrono.ChVectorD(-2, 1.5, 5))
+vis.AddCamera(chrono.ChVector3d(-2, 1.5, 5))
 vis.AddTypicalLights()
 
 # Points for drawing line segments
-p0 = chrono.ChVectorD(0, 0, 0)
-p1 = chrono.ChVectorD(m.cos(min_angle), -m.sin(min_angle), 0)
-p2 = chrono.ChVectorD(m.cos(max_angle), -m.sin(max_angle), 0)
+p0 = chrono.ChVector3d(0, 0, 0)
+p1 = chrono.ChVector3d(m.cos(min_angle), -m.sin(min_angle), 0)
+p2 = chrono.ChVector3d(m.cos(max_angle), -m.sin(max_angle), 0)
 
 # Simulation loop
 while vis.Run():

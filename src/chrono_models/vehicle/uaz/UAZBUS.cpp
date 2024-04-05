@@ -37,11 +37,11 @@ UAZBUS::UAZBUS()
       m_engineType(EngineModelType::SIMPLE_MAP),
       m_transmissionType(TransmissionModelType::AUTOMATIC_SIMPLE_MAP),
       m_brake_locking(false),
-      m_brake_type(BrakeType::SIMPLE),
+      m_brake_type(BrakeType::SHAFTS),
       m_tireType(TireModelType::RIGID),
       m_tire_step_size(-1),
       m_steeringType(SteeringTypeWV::PITMAN_ARM),
-      m_initPos(ChCoordsys<>(ChVector<>(0, 0, 1), QUNIT)),
+      m_initPos(ChCoordsys<>(ChVector3d(0, 0, 1), QUNIT)),
       m_initFwdVel(0),
       m_initOmega({0, 0, 0, 0}),
       m_apply_drag(false) {}
@@ -55,11 +55,11 @@ UAZBUS::UAZBUS(ChSystem* system)
       m_engineType(EngineModelType::SIMPLE_MAP),
       m_transmissionType(TransmissionModelType::AUTOMATIC_SIMPLE_MAP),
       m_brake_locking(false),
-      m_brake_type(BrakeType::SIMPLE),
+      m_brake_type(BrakeType::SHAFTS),
       m_tireType(TireModelType::RIGID),
       m_tire_step_size(-1),
       m_steeringType(SteeringTypeWV::PITMAN_ARM),
-      m_initPos(ChCoordsys<>(ChVector<>(0, 0, 1), QUNIT)),
+      m_initPos(ChCoordsys<>(ChVector3d(0, 0, 1), QUNIT)),
       m_initFwdVel(0),
       m_initOmega({0, 0, 0, 0}),
       m_apply_drag(false) {}
@@ -114,6 +114,8 @@ void UAZBUS::Initialize() {
         case TransmissionModelType::AUTOMATIC_SIMPLE_MAP:
             transmission = chrono_types::make_shared<UAZBUS_AutomaticTransmissionSimpleMap>("Transmission");
             break;
+        default:
+            break;
     }
 
     if (engine && transmission) {
@@ -143,7 +145,7 @@ void UAZBUS::Initialize() {
         }
 
         default:
-            GetLog() << "Unsupported Tire Model Type! Switching to TMeasy.\n";
+            std::cout << "Unsupported Tire Model Type! Switching to TMeasy.\n";
         case TireModelType::TMEASY: {
             auto tire_FL = chrono_types::make_shared<UAZBUS_TMeasyTireFront>("FL");
             auto tire_FR = chrono_types::make_shared<UAZBUS_TMeasyTireFront>("FR");

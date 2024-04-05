@@ -20,6 +20,7 @@
 
 #include "chrono/physics/ChSystemNSC.h"
 #include "chrono/core/ChRealtimeStep.h"
+#include "chrono/core/ChRandom.h"
 #include "chrono/collision/ChConvexDecomposition.h"
 
 #include "chrono_irrlicht/ChVisualSystemIrrlicht.h"
@@ -29,7 +30,6 @@
 
 // Use the namespaces of Chrono
 using namespace chrono;
-using namespace chrono::geometry;
 using namespace chrono::irrlicht;
 
 // Use the main namespace of Irrlicht
@@ -101,8 +101,8 @@ void DecomposeModel(ChVisualSystemIrrlicht* vis) {
         ChTriangleMeshSoup chmesh_hull;
         mydecompositionHACDv2.GetConvexHullResult(j, chmesh_hull);
 
-        video::SColor clr(255, 20 + (int)(140. * ChRandom()), 20 + (int)(140. * ChRandom()),
-                          20 + (int)(140. * ChRandom()));
+        video::SColor clr(255, 20 + (int)(140. * ChRandom::Get()), 20 + (int)(140. * ChRandom::Get()),
+                          20 + (int)(140. * ChRandom::Get()));
 
         // Convert the j-th convex hull from a ChTriangleMesh to an Irrlicht mesh.
         fillIrlichtMeshFromChTrimesh(mmesh, &chmesh_hull, clr);
@@ -135,9 +135,9 @@ void SaveHullsWavefront(ChVisualSystemIrrlicht* vis, const std::string& filename
     // file using the .obj fileformat.
 
     try {
-        ChStreamOutAsciiFile decomposed_objfile(filename);
+        std::ofstream decomposed_objfile(filename);
         mydecompositionHACDv2.WriteConvexHullsAsWavefrontObj(decomposed_objfile);
-    } catch (const ChException&) {
+    } catch (std::exception) {
         vis->GetGUIEnvironment()->addMessageBox(L"Save file error", L"Impossible to write into file.");
     }
 }
@@ -147,9 +147,9 @@ void SaveHullsChulls(ChVisualSystemIrrlicht* vis, const std::string& filename) {
     // file using the .obj fileformat.
 
     try {
-        ChStreamOutAsciiFile decomposed_objfile(filename);
+        std::ofstream decomposed_objfile(filename);
         mydecompositionHACDv2.WriteConvexHullsAsChullsFile(decomposed_objfile);
-    } catch (const ChException&) {
+    } catch (std::exception) {
         vis->GetGUIEnvironment()->addMessageBox(L"Save file error", L"Impossible to write into file.");
     }
 }
@@ -374,7 +374,7 @@ class MyEventReceiver : public IEventReceiver {
 //
 
 int main(int argc, char* argv[]) {
-    GetLog() << "Copyright (c) 2017 projectchrono.org\nChrono version: " << CHRONO_VERSION << "\n\n";
+    std::cout << "Copyright (c) 2017 projectchrono.org\nChrono version: " << CHRONO_VERSION << std::endl;
 
     // 1- Create a ChronoENGINE physical system: all bodies and constraints
     //    will be handled by this ChSystemNSC object.
@@ -400,9 +400,9 @@ int main(int argc, char* argv[]) {
     vis->Initialize();
     vis->AddLogo();
     vis->AddSkyBox();
-    vis->AddCamera(ChVector<>(0, 1.5, -2));
-    vis->AddLight(ChVector<>(30, 100, 30), 200, ChColor(0.7f, 0.7f, 0.7f));
-    vis->AddLight(ChVector<>(30, -80, -30), 130, ChColor(0.7f, 0.8f, 0.8f));
+    vis->AddCamera(ChVector3d(0, 1.5, -2));
+    vis->AddLight(ChVector3d(30, 100, 30), 200, ChColor(0.7f, 0.7f, 0.7f));
+    vis->AddLight(ChVector3d(30, -80, -30), 130, ChColor(0.7f, 0.8f, 0.8f));
 
     // Create a custom event receiver for a GUI
     MyEventReceiver receiver(vis.get());

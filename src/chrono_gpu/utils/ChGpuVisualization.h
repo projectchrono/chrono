@@ -57,10 +57,10 @@ class CH_GPU_API ChGpuVisualization {
     void SetSize(int width, int height);
 
     /// Add a camera initially at the specified position and target (look at) point.
-    void AddCamera(const ChVector<>& pos, const ChVector<>& target);
+    void AddCamera(const ChVector3d& pos, const ChVector3d& target);
 
     /// Set camera position and target (look at) point.
-    void UpdateCamera(const ChVector<>& pos, const ChVector<>& target);
+    void UpdateCamera(const ChVector3d& pos, const ChVector3d& target);
 
     /// Set camera up vector (default: Z).
     virtual void SetCameraVertical(CameraVerticalDir up);

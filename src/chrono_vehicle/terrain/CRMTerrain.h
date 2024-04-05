@@ -53,7 +53,7 @@ class CH_VEHICLE_API CRMTerrain : public ChTerrain {
 
     /// Add a rigid obstacle.
     /// A rigid body with visualization and collision geometry read from the Wavefront OBJ file is created
-    /// at the specified position and with the specified orientation. BCE markers are created with the 
+    /// at the specified position and with the specified orientation. BCE markers are created with the
     /// separation value specified at construction.
     /// Must be called before Initialize().
     void AddRigidObstacle(const std::string& obj_file,                      ///< Wavefront OBJ file name
@@ -61,7 +61,7 @@ class CH_VEHICLE_API CRMTerrain : public ChTerrain {
                           double density,                                   ///< material density
                           const ChContactMaterialData& cmat,                ///< contact material properties
                           const ChFrame<>& pos,                             ///< obstacle position in absolute frame
-                          const ChVector<>& interior_point = ChVector<>(0)  ///< point inside obstacle volume
+                          const ChVector3d& interior_point = ChVector3d(0)  ///< point inside obstacle volume
     );
 
     /// Construct a CRM terrain object using information from the specified files.
@@ -70,7 +70,7 @@ class CH_VEHICLE_API CRMTerrain : public ChTerrain {
     /// terrain patch translated and rotated aboutn the vertical.
     void Construct(const std::string& sph_file,            ///< filename with SPH grid particle positions
                    const std::string& bce_file,            ///< filename with BCE grid marker positions
-                   const ChVector<>& pos = ChVector<>(0),  ///< patch center
+                   const ChVector3d& pos = ChVector3d(0),  ///< patch center
                    double yaw_angle = 0                    ///< patch yaw rotation
     );
 
@@ -79,7 +79,7 @@ class CH_VEHICLE_API CRMTerrain : public ChTerrain {
                    double width,                           ///< patch width (Y direction)
                    double depth,                           ///< patch depth (Z direction)
                    int bce_layers = 3,                     ///< number of BCE layers
-                   const ChVector<>& pos = ChVector<>(0),  ///< patch center
+                   const ChVector3d& pos = ChVector3d(0),  ///< patch center
                    double yaw_angle = 0,                   ///< patch yaw rotation
                    bool side_walls = true                  ///< create side boundaries
     );
@@ -97,10 +97,10 @@ class CH_VEHICLE_API CRMTerrain : public ChTerrain {
     void Construct(const std::string& heightmap_file,      ///< filename for the heightmap image
                    double length,                          ///< patch length (X direction)
                    double width,                           ///< patch width (Y direction)
-                   const ChVector2<>& height_range,        ///< height range (black to white level)
+                   const ChVector2d& height_range,         ///< height range (black to white level)
                    double depth,                           ///< soil depth
                    int bce_layers = 3,                     ///< number of BCE layers
-                   const ChVector<>& pos = ChVector<>(0),  ///< patch center
+                   const ChVector3d& pos = ChVector3d(0),  ///< patch center
                    double yaw_angle = 0,                   ///< patch yaw rotation
                    bool side_walls = true                  ///< create side boundaries
     );
@@ -113,21 +113,21 @@ class CH_VEHICLE_API CRMTerrain : public ChTerrain {
     std::shared_ptr<ChBody> GetGroundBody() const { return m_ground; }
 
     /// Get the AABB of terrain SPH particles.
-    const geometry::ChAABB& GetBoundingBox() const { return m_aabb; }
+    const ChAABB& GetBoundingBox() const { return m_aabb; }
 
     /// Save the set of SPH and BCE grid locations to the files in the specified output directory.
     void SaveMarkers(const std::string& out_dir) const;
 
     //// TODO - anything needed here?
     virtual void Synchronize(double time) override {}
-    virtual double GetHeight(const ChVector<>& loc) const override { return 0.0; }
-    virtual chrono::ChVector<> GetNormal(const ChVector<>& loc) const override { return ChWorldFrame::Vertical(); }
-    virtual float GetCoefficientFriction(const ChVector<>& loc) const override { return 0.0f; }
+    virtual double GetHeight(const ChVector3d& loc) const override { return 0.0; }
+    virtual chrono::ChVector3d GetNormal(const ChVector3d& loc) const override { return ChWorldFrame::Vertical(); }
+    virtual float GetCoefficientFriction(const ChVector3d& loc) const override { return 0.0f; }
 
   private:
     /// Hash function for a 3D integer grid coordinate.
     struct CoordHash {
-        std::size_t operator()(const ChVector<int>& p) const {
+        std::size_t operator()(const ChVector3i& p) const {
             size_t h1 = std::hash<int>()(p.x());
             size_t h2 = std::hash<int>()(p.y());
             size_t h3 = std::hash<int>()(p.z());
@@ -136,19 +136,19 @@ class CH_VEHICLE_API CRMTerrain : public ChTerrain {
         }
     };
 
-    typedef std::unordered_set<ChVector<int>, CoordHash> Points;
+    typedef std::unordered_set<ChVector3i, CoordHash> Points;
 
     /// Specification of a rigid obstacle.
     struct RigidObstacle {
-        std::shared_ptr<ChBody> body;                                ///< associated body
-        double density;                                              ///< material density
-        ChContactMaterialData cmat;                                  ///< contact material properties
-        std::shared_ptr<geometry::ChTriangleMeshConnected> trimesh;  ///< geometry
-        std::vector<ChVector<>> point_cloud;                         ///< point cloud for BCE markers
-        ChVector<> point;                                            ///< location of an interior point
-        Points bce;                                                  ///< BCE marker grid locations
-        ChVector<> oobb_center;                                      ///< center of bounding box
-        ChVector<> oobb_dims;                                        ///< dimensions of bounding box
+        std::shared_ptr<ChBody> body;                      ///< associated body
+        double density;                                    ///< material density
+        ChContactMaterialData cmat;                        ///< contact material properties
+        std::shared_ptr<ChTriangleMeshConnected> trimesh;  ///< geometry
+        std::vector<ChVector3d> point_cloud;               ///< point cloud for BCE markers
+        ChVector3d point;                                  ///< location of an interior point
+        Points bce;                                        ///< BCE marker grid locations
+        ChVector3d oobb_center;                            ///< center of bounding box
+        ChVector3d oobb_dims;                              ///< dimensions of bounding box
     };
 
     /// Complete construction of the CRMTerrain.
@@ -171,9 +171,9 @@ class CH_VEHICLE_API CRMTerrain : public ChTerrain {
     bool m_initialized;                      ///< set to 'true' once terrain is initialized
     Points m_sph;                            ///< SPH particle grid locations
     Points m_bce;                            ///< BCE marker grid locations
-    ChVector<> m_offset;                     ///< patch offset
+    ChVector3d m_offset;                     ///< patch offset
     double m_angle;                          ///< patch rotation about vertical
-    geometry::ChAABB m_aabb;                 ///< particle AABB
+    ChAABB m_aabb;                           ///< particle AABB
     std::vector<RigidObstacle> m_obstacles;  ///< list of rigid obstacles
     bool m_verbose;                          ///< if true, write information to standard output
 };

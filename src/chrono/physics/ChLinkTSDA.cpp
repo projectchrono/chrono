@@ -47,7 +47,7 @@ ChLinkTSDA::ChLinkTSDA(const ChLinkTSDA& other) : ChLink(other) {
     m_nstates = other.m_nstates;
     m_states = other.m_states;
     if (other.m_variables) {
-        m_variables = new ChVariablesGenericDiagonalMass(other.m_variables->Get_ndof());
+        m_variables = new ChVariablesGenericDiagonalMass(other.m_variables->GetDOF());
         (*m_variables) = (*other.m_variables);
     }
 }
@@ -74,13 +74,13 @@ void ChLinkTSDA::RegisterODE(ODE* functor) {
 
 void ChLinkTSDA::Initialize(std::shared_ptr<ChBody> body1,
                             std::shared_ptr<ChBody> body2,
-                            bool pos_are_relative,
-                            ChVector<> loc1,
-                            ChVector<> loc2) {
-    Body1 = (ChBodyFrame*)body1.get();
-    Body2 = (ChBodyFrame*)body2.get();
+                            bool local,
+                            const ChVector3d& loc1,
+                            const ChVector3d& loc2) {
+    m_body1 = (ChBodyFrame*)body1.get();
+    m_body2 = (ChBodyFrame*)body2.get();
 
-    if (pos_are_relative) {
+    if (local) {
         m_loc1 = loc1;
         m_loc2 = loc2;
         m_aloc1 = body1->TransformPointLocalToParent(loc1);
@@ -114,14 +114,14 @@ void ChLinkTSDA::ComputeQ(double time,                  // current time
 ) {
     // Extract states and state derivatives for the two connected bodies
     ChFrameMoving<> bframe1;
-    bframe1.SetCoord(state_x.segment(0, 7));
-    bframe1.SetPos_dt(state_w.segment(0, 3));
-    bframe1.SetWvel_loc(state_w.segment(3, 3));
+    bframe1.SetCoordsys(state_x.segment(0, 7));
+    bframe1.SetPosDt(state_w.segment(0, 3));
+    bframe1.SetAngVelLocal(state_w.segment(3, 3));
 
     ChFrameMoving<> bframe2;
-    bframe2.SetCoord(state_x.segment(7, 7));
-    bframe2.SetPos_dt(state_w.segment(6, 3));
-    bframe2.SetWvel_loc(state_w.segment(9, 3));
+    bframe2.SetCoordsys(state_x.segment(7, 7));
+    bframe2.SetPosDt(state_w.segment(6, 3));
+    bframe2.SetAngVelLocal(state_w.segment(9, 3));
 
     // Extract internal ODE states
     if (m_variables) {
@@ -132,10 +132,10 @@ void ChLinkTSDA::ComputeQ(double time,                  // current time
     m_aloc1 = bframe1.TransformPointLocalToParent(m_loc1);
     m_aloc2 = bframe2.TransformPointLocalToParent(m_loc2);
 
-    ChVector<> avel1 = bframe1.PointSpeedLocalToParent(m_loc1);
-    ChVector<> avel2 = bframe2.PointSpeedLocalToParent(m_loc2);
+    ChVector3d avel1 = bframe1.PointSpeedLocalToParent(m_loc1);
+    ChVector3d avel2 = bframe2.PointSpeedLocalToParent(m_loc2);
 
-    ChVector<> dir = (m_aloc1 - m_aloc2).GetNormalized();
+    ChVector3d dir = (m_aloc1 - m_aloc2).GetNormalized();
     m_length = (m_aloc1 - m_aloc2).Length();
     m_length_dt = Vdot(dir, avel1 - avel2);
 
@@ -145,16 +145,16 @@ void ChLinkTSDA::ComputeQ(double time,                  // current time
     } else {
         m_force = m_f - m_k * (m_length - m_rest_length) - m_r * m_length_dt;
     }
-    ChVector<> Cforce = m_force * dir;
+    ChVector3d Cforce = m_force * dir;
 
     // Load forcing terms acting on body1 (applied force is Cforce).
-    auto atorque1 = Vcross(m_aloc1 - bframe1.coord.pos, Cforce);        // applied torque (absolute frame)
+    auto atorque1 = Vcross(m_aloc1 - bframe1.GetPos(), Cforce);         // applied torque (absolute frame)
     auto ltorque1 = bframe1.TransformDirectionParentToLocal(atorque1);  // applied torque (local frame)
     Qforce.segment(0, 3) = Cforce.eigen();
     Qforce.segment(3, 3) = ltorque1.eigen();
 
     // Load forcing terms acting on body2 (applied force is -Cforce).
-    auto atorque2 = Vcross(m_aloc2 - bframe2.coord.pos, -Cforce);       // applied torque (absolute frame)
+    auto atorque2 = Vcross(m_aloc2 - bframe2.GetPos(), -Cforce);        // applied torque (absolute frame)
     auto ltorque2 = bframe2.TransformDirectionParentToLocal(atorque2);  // applied torque (local frame)
     Qforce.segment(6, 3) = -Cforce.eigen();
     Qforce.segment(9, 3) = ltorque2.eigen();
@@ -172,8 +172,8 @@ void ChLinkTSDA::CreateJacobianMatrices() {
 
     // Collect all variables associated with this element
     std::vector<ChVariables*> variables_list;
-    static_cast<ChBody*>(Body1)->LoadableGetVariables(variables_list);
-    static_cast<ChBody*>(Body2)->LoadableGetVariables(variables_list);
+    static_cast<ChBody*>(m_body1)->LoadableGetVariables(variables_list);
+    static_cast<ChBody*>(m_body2)->LoadableGetVariables(variables_list);
     if (m_variables) {
         variables_list.push_back(m_variables);
     }
@@ -205,8 +205,8 @@ void ChLinkTSDA::ComputeJacobians(double time,                 // current time
 
     for (int i = 0; i < 12; i++) {
         state_delta(i) += m_FD_delta;
-        static_cast<ChBody*>(Body1)->LoadableStateIncrement(0, state_x_perturbed, state_x, 0, state_delta);
-        static_cast<ChBody*>(Body2)->LoadableStateIncrement(7, state_x_perturbed, state_x, 6, state_delta);
+        static_cast<ChBody*>(m_body1)->LoadableStateIncrement(0, state_x_perturbed, state_x, 0, state_delta);
+        static_cast<ChBody*>(m_body2)->LoadableStateIncrement(7, state_x_perturbed, state_x, 6, state_delta);
         ComputeQ(time, state_x_perturbed, state_w, Qforce1);
         state_delta(i) -= m_FD_delta;
         Jcolumn = (Qforce1 - m_Qforce) * (1 / m_FD_delta);
@@ -255,11 +255,11 @@ void ChLinkTSDA::Update(double time, bool update_assets) {
     ChState state_x(14 + m_nstates, nullptr);
     ChStateDelta state_w(12 + m_nstates, nullptr);
 
-    static_cast<ChBody*>(Body1)->LoadableGetStateBlock_x(0, state_x);
-    static_cast<ChBody*>(Body2)->LoadableGetStateBlock_x(7, state_x);
+    static_cast<ChBody*>(m_body1)->LoadableGetStateBlockPosLevel(0, state_x);
+    static_cast<ChBody*>(m_body2)->LoadableGetStateBlockPosLevel(7, state_x);
 
-    static_cast<ChBody*>(Body1)->LoadableGetStateBlock_w(0, state_w);
-    static_cast<ChBody*>(Body2)->LoadableGetStateBlock_w(6, state_w);
+    static_cast<ChBody*>(m_body1)->LoadableGetStateBlockVelLevel(0, state_w);
+    static_cast<ChBody*>(m_body2)->LoadableGetStateBlockVelLevel(6, state_w);
 
     if (m_variables) {
         state_x.segment(14, m_nstates).setZero();
@@ -281,6 +281,12 @@ void ChLinkTSDA::Update(double time, bool update_assets) {
 
     // Update assets
     ChPhysicsItem::Update(ChTime, update_assets);
+
+    // TODO: DARIOM double check if correct
+    ChVector3d dir = (m_aloc1 - m_aloc2).GetNormalized();
+    react_force = -m_force * dir;
+    ;
+    react_torque = VNULL;
 }
 
 // -----------------------------------------------------------------------------
@@ -295,9 +301,9 @@ void ChLinkTSDA::InjectVariables(ChSystemDescriptor& descriptor) {
     }
 }
 
-void ChLinkTSDA::InjectKRMmatrices(ChSystemDescriptor& descriptor) {
+void ChLinkTSDA::InjectKRMMatrices(ChSystemDescriptor& descriptor) {
     if (m_jacobians) {
-        descriptor.InsertKblock(&m_jacobians->m_KRM);
+        descriptor.InsertKRMBlock(&m_jacobians->m_KRM);
     }
 }
 
@@ -358,13 +364,13 @@ void ChLinkTSDA::IntLoadResidual_F(const unsigned int off,  // offset in R resid
         return;
 
     // Add forces to connected bodies (from the current vector of forcing terms)
-    if (Body1->Variables().IsActive()) {
-        R.segment(Body1->Variables().GetOffset() + 0, 3) += c * m_Qforce.segment(0, 3);
-        R.segment(Body1->Variables().GetOffset() + 3, 3) += c * m_Qforce.segment(3, 3);
+    if (m_body1->Variables().IsActive()) {
+        R.segment(m_body1->Variables().GetOffset() + 0, 3) += c * m_Qforce.segment(0, 3);
+        R.segment(m_body1->Variables().GetOffset() + 3, 3) += c * m_Qforce.segment(3, 3);
     }
-    if (Body2->Variables().IsActive()) {
-        R.segment(Body2->Variables().GetOffset() + 0, 3) += c * m_Qforce.segment(6, 3);
-        R.segment(Body2->Variables().GetOffset() + 3, 3) += c * m_Qforce.segment(9, 3);
+    if (m_body2->Variables().IsActive()) {
+        R.segment(m_body2->Variables().GetOffset() + 0, 3) += c * m_Qforce.segment(6, 3);
+        R.segment(m_body2->Variables().GetOffset() + 3, 3) += c * m_Qforce.segment(9, 3);
     }
 
     // Add forcing term for internal variables
@@ -386,11 +392,7 @@ void ChLinkTSDA::IntLoadResidual_Mv(const unsigned int off,      // offset in R 
     }
 }
 
-void ChLinkTSDA::IntLoadLumpedMass_Md(const unsigned int off,
-                                      ChVectorDynamic<>& Md,
-                                      double& err,
-                                      const double c
-) {
+void ChLinkTSDA::IntLoadLumpedMass_Md(const unsigned int off, ChVectorDynamic<>& Md, double& err, const double c) {
     if (!IsActive())
         return;
 
@@ -409,8 +411,8 @@ void ChLinkTSDA::IntToDescriptor(const unsigned int off_v,  // offset in v, R
         return;
 
     if (m_variables) {
-        m_variables->Get_qb() = v.segment(off_v, m_nstates);
-        m_variables->Get_fb() = R.segment(off_v, m_nstates);
+        m_variables->State() = v.segment(off_v, m_nstates);
+        m_variables->Force() = R.segment(off_v, m_nstates);
     }
 }
 
@@ -422,16 +424,16 @@ void ChLinkTSDA::IntFromDescriptor(const unsigned int off_v,  // offset in v
         return;
 
     if (m_variables) {
-        v.segment(off_v, m_nstates) = m_variables->Get_qb();
+        v.segment(off_v, m_nstates) = m_variables->State();
     }
 }
 
 // -----------------------------------------------------------------------------
 
-void ChLinkTSDA::KRMmatricesLoad(double Kfactor, double Rfactor, double Mfactor) {
+void ChLinkTSDA::LoadKRMMatrices(double Kfactor, double Rfactor, double Mfactor) {
     if (m_jacobians) {
         // Recall to flip sign to load K = -dQ/dx and R = -dQ/dv
-        m_jacobians->m_KRM.Get_K() = -Kfactor * m_jacobians->m_K - Rfactor * m_jacobians->m_R;
+        m_jacobians->m_KRM.GetMatrix() = -Kfactor * m_jacobians->m_K - Rfactor * m_jacobians->m_R;
     }
 }
 
@@ -439,31 +441,31 @@ void ChLinkTSDA::KRMmatricesLoad(double Kfactor, double Rfactor, double Mfactor)
 
 void ChLinkTSDA::VariablesFbReset() {
     if (m_variables) {
-        m_variables->Get_fb().setZero();
+        m_variables->Force().setZero();
     }
 }
 
 void ChLinkTSDA::VariablesFbLoadForces(double factor) {
     if (m_variables) {
-        m_variables->Get_fb() = m_Qforce.segment(12, m_nstates);
+        m_variables->Force() = m_Qforce.segment(12, m_nstates);
     }
 }
 
 void ChLinkTSDA::VariablesQbLoadSpeed() {
     if (m_variables) {
-        m_variables->Get_qb() = m_states;
+        m_variables->State() = m_states;
     }
 }
 
 void ChLinkTSDA::VariablesQbSetSpeed(double step) {
     if (m_variables) {
-        m_states = m_variables->Get_qb();
+        m_states = m_variables->State();
     }
 }
 
 void ChLinkTSDA::VariablesFbIncrementMq() {
     if (m_variables) {
-        m_variables->Compute_inc_Mb_v(m_variables->Get_fb(), m_variables->Get_qb());
+        m_variables->AddMassTimesVector(m_variables->Force(), m_variables->State());
     }
 }
 
@@ -477,35 +479,35 @@ void ChLinkTSDA::ConstraintsFbLoadForces(double factor) {
         return;
 
     // Add forces to connected bodies (from the current vector of forcing terms)
-    Body1->Variables().Get_fb().segment(0, 3) += factor * m_Qforce.segment(0, 3);
-    Body1->Variables().Get_fb().segment(3, 3) += factor * m_Qforce.segment(3, 3);
+    m_body1->Variables().Force().segment(0, 3) += factor * m_Qforce.segment(0, 3);
+    m_body1->Variables().Force().segment(3, 3) += factor * m_Qforce.segment(3, 3);
 
-    Body2->Variables().Get_fb().segment(0, 3) += factor * m_Qforce.segment(6, 3);
-    Body2->Variables().Get_fb().segment(3, 3) += factor * m_Qforce.segment(9, 3);
+    m_body2->Variables().Force().segment(0, 3) += factor * m_Qforce.segment(6, 3);
+    m_body2->Variables().Force().segment(3, 3) += factor * m_Qforce.segment(9, 3);
 }
 
 // -----------------------------------------------------------------------------
 
-void ChLinkTSDA::ArchiveOut(ChArchiveOut& marchive) {
+void ChLinkTSDA::ArchiveOut(ChArchiveOut& archive_out) {
     // version number
-    marchive.VersionWrite<ChLinkTSDA>();
+    archive_out.VersionWrite<ChLinkTSDA>();
 
     // serialize parent class
-    ChLink::ArchiveOut(marchive);
+    ChLink::ArchiveOut(archive_out);
 
     // serialize all member data:
-    marchive << CHNVP(m_rest_length);
+    archive_out << CHNVP(m_rest_length);
 }
 
-void ChLinkTSDA::ArchiveIn(ChArchiveIn& marchive) {
+void ChLinkTSDA::ArchiveIn(ChArchiveIn& archive_in) {
     // version number
-    /*int version =*/ marchive.VersionRead<ChLinkTSDA>();
+    /*int version =*/archive_in.VersionRead<ChLinkTSDA>();
 
     // deserialize parent class
-    ChLink::ArchiveIn(marchive);
+    ChLink::ArchiveIn(archive_in);
 
     // deserialize all member data:
-    marchive >> CHNVP(m_rest_length);
+    archive_in >> CHNVP(m_rest_length);
 }
 
 }  // end namespace chrono

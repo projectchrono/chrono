@@ -21,6 +21,7 @@
 #include "chrono/physics/ChBodyEasy.h"
 #include "chrono/physics/ChFeeder.h"
 #include "chrono/core/ChRealtimeStep.h"
+#include "chrono/core/ChRandom.h"
 
 #include "chrono_irrlicht/ChVisualSystemIrrlicht.h"
 
@@ -52,10 +53,10 @@ void create_debris(ChVisualSystemIrrlicht& vis, ChSystem& sys, double dt, double
     double exact_particles_dt = dt * particles_second;
     double particles_dt = floor(exact_particles_dt);
     double remaind = exact_particles_dt - particles_dt;
-    if (remaind > ChRandom())
+    if (remaind > ChRandom::Get())
         particles_dt += 1;
 
-    auto item_mat = chrono_types::make_shared<ChMaterialSurfaceNSC>();
+    auto item_mat = chrono_types::make_shared<ChContactMaterialNSC>();
     item_mat->SetFriction(0.3f);
 
     for (int i = 0; i < particles_dt; i++) {
@@ -74,7 +75,7 @@ void create_debris(ChVisualSystemIrrlicht& vis, ChSystem& sys, double dt, double
 
         // position on staggered array for a non-intersecating cascade of items
         rigidBody->SetPos(
-            ChVector<>(((particlelist.size() % 3) / 3.0 - 0.5) * xnozzlesize, ynozzle + particlelist.size() * 0.005,
+            ChVector3d(((particlelist.size() % 3) / 3.0 - 0.5) * xnozzlesize, ynozzle + particlelist.size() * 0.005,
                        ((((particlelist.size() - particlelist.size() % 3) % 5) / (5.0)) - 0.5) * xnozzlesize));
 
         rigidBody->GetVisualShape(0)->SetColor(ChColor(0.3f, 0.6f, 0.6f));
@@ -89,7 +90,7 @@ void create_debris(ChVisualSystemIrrlicht& vis, ChSystem& sys, double dt, double
 }
 
 int main(int argc, char* argv[]) {
-    GetLog() << "Copyright (c) 2017 projectchrono.org\nChrono version: " << CHRONO_VERSION << "\n\n";
+    std::cout << "Copyright (c) 2017 projectchrono.org\nChrono version: " << CHRONO_VERSION << std::endl;
 
     // Create a ChronoENGINE physical system
     ChSystemNSC sys;
@@ -99,7 +100,7 @@ int main(int argc, char* argv[]) {
     ChCollisionModel::SetDefaultSuggestedMargin(0.002);
     sys.SetCollisionSystemType(ChCollisionSystem::Type::BULLET);
 
-    auto bowl_mat = chrono_types::make_shared<ChMaterialSurfaceNSC>();
+    auto bowl_mat = chrono_types::make_shared<ChContactMaterialNSC>();
     bowl_mat->SetFriction(0.2f);
 
     // Create the feeder bowl. Whatever object with collision can be used.
@@ -114,8 +115,8 @@ int main(int argc, char* argv[]) {
         bowl_mat,                                     // surface contact material
         0.002  // radius of 'inflating' of mesh (for more robust collision detection)
     );
-    feeder_bowl->SetBodyFixed(true);
-    feeder_bowl->SetFrame_REF_to_abs(ChFrame<>(ChVector<>(0, -0.1, 0)));
+    feeder_bowl->SetFixed(true);
+    feeder_bowl->SetFrameRefToAbs(ChFrame<>(ChVector3d(0, -0.1, 0)));
     sys.Add(feeder_bowl);
 
     // Create the vibration-like effect for the bowl.
@@ -134,7 +135,7 @@ int main(int argc, char* argv[]) {
     // axis:
     feeder->SetFeederVibration(
         ChFrame<>(
-            ChVector<>(0, -0.1, 0)),  // this is the coordinate frame respect to whom we assume the virtual vibration
+            ChVector3d(0, -0.1, 0)),  // this is the coordinate frame respect to whom we assume the virtual vibration
         0, 1, 0,                      // virtual vibration mode: x,y,z components. No need to normalize.
         0, 1, 0                       // virtual vibration mode: Rx,Ry,Rz rotation components. No need to normalize.
     );
@@ -147,8 +148,8 @@ int main(int argc, char* argv[]) {
     vis->Initialize();
     vis->AddLogo();
     vis->AddSkyBox();
-    vis->AddCamera(ChVector<>(0.6, 0.5, -0.7), ChVector<>(0.0, 0.0, 0.0));
-    vis->AddLight(ChVector<>(2.5, 1.4, -2.0), 6);
+    vis->AddCamera(ChVector3d(0.6, 0.5, -0.7), ChVector3d(0.0, 0.0, 0.0));
+    vis->AddLight(ChVector3d(2.5, 1.4, -2.0), 6);
 
     // Simulation loop
     ChRealtimeStepTimer realtime_timer;

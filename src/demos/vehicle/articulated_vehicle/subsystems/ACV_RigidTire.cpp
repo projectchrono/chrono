@@ -25,7 +25,7 @@ using namespace chrono::vehicle;
 const double ACV_RigidTire::m_radius = 0.42;
 const double ACV_RigidTire::m_width = 0.3;
 const double ACV_RigidTire::m_mass = 35.0;
-const ChVector<> ACV_RigidTire::m_inertia(3.0, 6.0, 3.0);
+const ChVector3d ACV_RigidTire::m_inertia(3.0, 6.0, 3.0);
 
 ACV_RigidTire::ACV_RigidTire(const std::string& name) : ChRigidTire(name) {}
 

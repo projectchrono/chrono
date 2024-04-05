@@ -40,6 +40,7 @@
 #include "chrono/physics/ChSystem.h"
 
 #include "chrono/core/ChBezierCurve.h"
+#include "chrono/utils/ChUtils.h"
 
 #include "chrono_vehicle/ChApiVehicle.h"
 #include "chrono_vehicle/ChTerrain.h"
@@ -78,10 +79,10 @@ class CH_VEHICLE_API CRGTerrain : public ChTerrain {
     ~CRGTerrain();
 
     /// Get the terrain height below the specified location.
-    virtual double GetHeight(const ChVector<>& loc) const override;
+    virtual double GetHeight(const ChVector3d& loc) const override;
 
     /// Get the terrain normal at the point below the specified location.
-    virtual ChVector<> GetNormal(const ChVector<>& loc) const override;
+    virtual ChVector3d GetNormal(const ChVector3d& loc) const override;
 
     /// Get the terrain coefficient of friction at the point below the specified location.
     /// This coefficient of friction value may be used by certain tire models to modify
@@ -90,7 +91,7 @@ class CH_VEHICLE_API CRGTerrain : public ChTerrain {
     /// For CRGTerrain, this function defers to the user-provided functor object
     /// of type ChTerrain::FrictionFunctor, if one was specified.
     /// Otherwise, it returns the constant value specified at construction.
-    virtual float GetCoefficientFriction(const ChVector<>& loc) const override;
+    virtual float GetCoefficientFriction(const ChVector3d& loc) const override;
 
     /// Get the road center line as a Bezier curve.
     std::shared_ptr<ChBezierCurve> GetRoadCenterLine();
@@ -102,7 +103,7 @@ class CH_VEHICLE_API CRGTerrain : public ChTerrain {
     std::shared_ptr<ChBezierCurve> GetRoadBoundaryRight() const { return m_road_right; }
 
     /// Get the road mesh.
-    std::shared_ptr<geometry::ChTriangleMeshConnected> GetMesh() const { return m_mesh; }
+    std::shared_ptr<ChTriangleMeshConnected> GetMesh() const { return m_mesh; }
 
     /// Is the road a round course (closed loop)?
     bool IsPathClosed() { return m_isClosed; }
@@ -149,13 +150,13 @@ class CH_VEHICLE_API CRGTerrain : public ChTerrain {
     void GenerateCurves();
     void SetRoadsidePosts();
 
-    double m_post_distance; // 0 means no posts
+    double m_post_distance;  // 0 means no posts
     std::string m_diffuse_texture_filename;
-    bool m_use_diffuseTexture; // if set, use a textured mesh
+    bool m_use_diffuseTexture;  // if set, use a textured mesh
     std::string m_normal_texture_filename;
-    bool m_use_normalTexture; // if set, use a textured mesh
+    bool m_use_normalTexture;  // if set, use a textured mesh
     std::string m_rough_texture_filename;
-    bool m_use_roughTexture; // if set, use a textured mesh
+    bool m_use_roughTexture;  // if set, use a textured mesh
 
     std::shared_ptr<ChBody> m_ground;  ///< ground body
     bool m_use_vis_mesh;               ///< mesh or boundary visual asset?
@@ -165,9 +166,9 @@ class CH_VEHICLE_API CRGTerrain : public ChTerrain {
     std::string m_curve_left_name;
     std::string m_curve_right_name;
 
-    std::shared_ptr<geometry::ChTriangleMeshConnected> m_mesh;  ///< mesh for visualization/export
-    std::shared_ptr<ChBezierCurve> m_road_left;                 ///< curve for left road boundary
-    std::shared_ptr<ChBezierCurve> m_road_right;                ///< curve for right road boundary
+    std::shared_ptr<ChTriangleMeshConnected> m_mesh;  ///< mesh for visualization/export
+    std::shared_ptr<ChBezierCurve> m_road_left;       ///< curve for left road boundary
+    std::shared_ptr<ChBezierCurve> m_road_right;      ///< curve for right road boundary
 
     bool m_isClosed;  ///< closed road profile?
 

@@ -79,7 +79,7 @@ class CH_VEHICLE_API ChRigidPanhardAxle : public ChSuspension {
         std::shared_ptr<ChChassis> chassis,        ///< [in] associated chassis subsystem
         std::shared_ptr<ChSubchassis> subchassis,  ///< [in] associated subchassis subsystem (may be null)
         std::shared_ptr<ChSteering> steering,      ///< [in] associated steering subsystem (may be null)
-        const ChVector<>& location,                ///< [in] location relative to the chassis frame
+        const ChVector3d& location,                ///< [in] location relative to the chassis frame
         double left_ang_vel = 0,                   ///< [in] initial angular velocity of left wheel
         double right_ang_vel = 0                   ///< [in] initial angular velocity of right wheel
         ) override;
@@ -131,12 +131,12 @@ class CH_VEHICLE_API ChRigidPanhardAxle : public ChSuspension {
     virtual double getARBRadius() const = 0;
 
     /// Return the moments of inertia of the Panhard rod body.
-    virtual const ChVector<>& getPanhardRodInertia() const = 0;
+    virtual const ChVector3d& getPanhardRodInertia() const = 0;
 
     /// Log current constraint violations.
     virtual void LogConstraintViolations(VehicleSide side) override;
 
-    void LogHardpointLocations(const ChVector<>& ref, bool inches = false);
+    void LogHardpointLocations(const ChVector3d& ref, bool inches = false);
 
   protected:
     /// Identifiers for the various hardpoints.
@@ -158,7 +158,7 @@ class CH_VEHICLE_API ChRigidPanhardAxle : public ChSuspension {
 
     /// Return the location of the specified hardpoint.
     /// The returned location must be expressed in the suspension reference frame.
-    virtual const ChVector<> getLocation(PointId which) = 0;
+    virtual const ChVector3d getLocation(PointId which) = 0;
 
     /// Return the camber angle, in radians (default: 0).
     virtual double getCamberAngle() const { return 0; }
@@ -168,7 +168,7 @@ class CH_VEHICLE_API ChRigidPanhardAxle : public ChSuspension {
     virtual double getToeAngle() const { return 0; }
 
     /// Return the center of mass of the axle tube.
-    virtual const ChVector<> getAxleTubeCOM() const = 0;
+    virtual const ChVector3d getAxleTubeCOM() const = 0;
 
     /// Return the mass of the axle tube body.
     virtual double getAxleTubeMass() const = 0;
@@ -181,11 +181,11 @@ class CH_VEHICLE_API ChRigidPanhardAxle : public ChSuspension {
     virtual double getAxleTubeRadius() const = 0;
 
     /// Return the moments of inertia of the axle tube body.
-    virtual const ChVector<>& getAxleTubeInertia() const = 0;
+    virtual const ChVector3d& getAxleTubeInertia() const = 0;
     /// Return the moments of inertia of the spindle body.
-    virtual const ChVector<>& getSpindleInertia() const = 0;
+    virtual const ChVector3d& getSpindleInertia() const = 0;
     /// Return the inertia of the ARB bodies.
-    virtual const ChVector<>& getARBInertia() const = 0;
+    virtual const ChVector3d& getARBInertia() const = 0;
 
     /// Return the inertia of the axle shaft.
     virtual double getAxleInertia() const = 0;
@@ -206,7 +206,7 @@ class CH_VEHICLE_API ChRigidPanhardAxle : public ChSuspension {
     std::shared_ptr<ChBody> m_panhardRodBody;  ///< handles to the panhard rod body
     std::shared_ptr<ChBody> m_arb[2];          ///< handles to the antiroll bar bodies
 
-    std::shared_ptr<ChLinkLockPlanePlane> m_axleTubeGuide;  ///< allows translation Y,Z and rotation X
+    std::shared_ptr<ChLinkLockPlanar> m_axleTubeGuide;  ///< allows translation Y,Z and rotation X
     std::shared_ptr<ChVehicleJoint> m_sphPanhardAxle;
     std::shared_ptr<ChVehicleJoint> m_sphPanhardChassis;
     std::shared_ptr<ChVehicleJoint> m_revARBChassis;
@@ -218,35 +218,35 @@ class CH_VEHICLE_API ChRigidPanhardAxle : public ChSuspension {
 
   private:
     // Hardpoint absolute locations
-    std::vector<ChVector<>> m_pointsL;
-    std::vector<ChVector<>> m_pointsR;
+    std::vector<ChVector3d> m_pointsL;
+    std::vector<ChVector3d> m_pointsR;
 
     // Points for axle tube visualization
-    ChVector<> m_axleOuterL;
-    ChVector<> m_axleOuterR;
+    ChVector3d m_axleOuterL;
+    ChVector3d m_axleOuterR;
 
     // Points for tierod visualization
-    ChVector<> m_tierodOuterL;
-    ChVector<> m_tierodOuterR;
+    ChVector3d m_tierodOuterL;
+    ChVector3d m_tierodOuterR;
 
     // Points for Panhard rod visualization
-    ChVector<> m_panrodOuterA;
-    ChVector<> m_panrodOuterC;
+    ChVector3d m_panrodOuterA;
+    ChVector3d m_panrodOuterC;
 
     // Points for antiroll bar visualization
-    ChVector<> m_ptARBAxle[2];
-    ChVector<> m_ptARBChassis[2];
-    ChVector<> m_ptARBCenter;
+    ChVector3d m_ptARBAxle[2];
+    ChVector3d m_ptARBChassis[2];
+    ChVector3d m_ptARBCenter;
 
     void InitializeSide(VehicleSide side,
                         std::shared_ptr<ChChassis> chassis,
                         std::shared_ptr<ChBody> scbeam,
-                        const std::vector<ChVector<>>& points,
+                        const std::vector<ChVector3d>& points,
                         double ang_vel);
 
     static void AddVisualizationLink(std::shared_ptr<ChBody> body,
-                                     const ChVector<> pt_1,
-                                     const ChVector<> pt_2,
+                                     const ChVector3d pt_1,
+                                     const ChVector3d pt_2,
                                      double radius,
                                      const ChColor& color);
 

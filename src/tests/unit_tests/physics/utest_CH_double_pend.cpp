@@ -56,7 +56,7 @@ class ODEModel {
     double m_phi2;
     double m_phi1d;
     double m_phi2d;
-    
+
     double m_phi1dd;
     double m_phi2dd;
 
@@ -105,7 +105,8 @@ void ODEModel::CalcAcceleration() {
     double M12 = 0.5 * m2 * l1 * l2 * cos(m_phi2 - m_phi1);
     double M22 = 0.25 * m2 * l2 * l2 + J2;
     double det = M11 * M22 - M12 * M12;
-    double f1 = -0.5 * m1 * l1 * g * cos(m_phi1) - m2 * l1 * g * cos(m_phi1) + 0.5 * m2 * l1 * l2 * m_phi2d * m_phi2d * sin(m_phi2 - m_phi1);
+    double f1 = -0.5 * m1 * l1 * g * cos(m_phi1) - m2 * l1 * g * cos(m_phi1) +
+                0.5 * m2 * l1 * l2 * m_phi2d * m_phi2d * sin(m_phi2 - m_phi1);
     double f2 = -0.5 * m2 * l2 * g * cos(m_phi2) - 0.5 * m2 * l1 * l2 * m_phi1d * m_phi1d * sin(m_phi2 - m_phi1);
     m_phi1dd = (M22 * f1 - M12 * f2) / det;
     m_phi2dd = (M11 * f2 - M12 * f1) / det;
@@ -114,13 +115,13 @@ void ODEModel::CalcAcceleration() {
 void ODEModel::WriteData(double step, const std::string& filename) {
     assert(m_data.size() == 5);
 
-    utils::CSV_writer csv(" ");
+    utils::ChWriterCSV csv(" ");
 
     for (size_t it = 0; it < m_data[0].size(); ++it) {
         csv << m_data[0][it] << m_data[1][it] << m_data[2][it] << m_data[3][it] << m_data[4][it] << std::endl;
     }
 
-    csv.write_to_file(filename);
+    csv.WriteToFile(filename);
 }
 
 // =============================================================================
@@ -186,59 +187,56 @@ ChronoModel::ChronoModel() {
     // Create the Chrono physical system
     // ---------------------------------
     m_system = chrono_types::make_shared<ChSystemNSC>();
-    m_system->Set_G_acc(ChVector<>(0, -g, 0));
+    m_system->SetGravitationalAcceleration(ChVector3d(0, -g, 0));
 
     // Create the ground body
     // ----------------------
     m_ground = chrono_types::make_shared<ChBody>();
     m_system->AddBody(m_ground);
-    m_ground->SetIdentifier(-1);
-    m_ground->SetBodyFixed(true);
+    m_ground->SetFixed(true);
 
     // Create the first pendulum body
     // ------------------------------
     m_pend1 = chrono_types::make_shared<ChBody>();
     m_system->AddBody(m_pend1);
-    m_pend1->SetIdentifier(1);
     m_pend1->SetMass(m1);
-    m_pend1->SetInertiaXX(ChVector<>(1, 1, J1));
-    m_pend1->SetPos(ChVector<>(l1 / 2, 0, 0));
+    m_pend1->SetInertiaXX(ChVector3d(1, 1, J1));
+    m_pend1->SetPos(ChVector3d(l1 / 2, 0, 0));
 
     // Create the second pendulum body
     // -------------------------------
     m_pend2 = chrono_types::make_shared<ChBody>();
     m_system->AddBody(m_pend2);
-    m_pend2->SetIdentifier(2);
     m_pend2->SetMass(m2);
-    m_pend2->SetInertiaXX(ChVector<>(1, 1, J2));
-    m_pend2->SetPos(ChVector<>(l1 + l2 / 2, 0, 0));
+    m_pend2->SetInertiaXX(ChVector3d(1, 1, J2));
+    m_pend2->SetPos(ChVector3d(l1 + l2 / 2, 0, 0));
 }
 
 ChronoModelL::ChronoModelL() {
     // Revolute joint ground-pendulum
     // ------------------------------
     m_revolute1 = chrono_types::make_shared<ChLinkLockRevolute>();
-    m_revolute1->Initialize(m_ground, m_pend1, ChCoordsys<>(ChVector<>(0, 0, 0), QUNIT));
+    m_revolute1->Initialize(m_ground, m_pend1, ChFrame<>(ChVector3d(0, 0, 0), QUNIT));
     m_system->AddLink(m_revolute1);
 
     // Revolute joint pendulum-pendulum
     // --------------------------------
     m_revolute2 = chrono_types::make_shared<ChLinkLockRevolute>();
-    m_revolute2->Initialize(m_pend1, m_pend2, ChCoordsys<>(ChVector<>(l1, 0, 0), QUNIT));
+    m_revolute2->Initialize(m_pend1, m_pend2, ChFrame<>(ChVector3d(l1, 0, 0), QUNIT));
     m_system->AddLink(m_revolute2);
 }
 
 ChronoModelM::ChronoModelM() {
     // Revolute joint ground-pendulum
     // ------------------------------
-    m_revolute1 = chrono_types::make_shared<ChLinkMateGeneric>(true, true, true, true, true, false);
-    m_revolute1->Initialize(m_ground, m_pend1, ChFrame<>(ChVector<>(0, 0, 0)));
+    m_revolute1 = chrono_types::make_shared<ChLinkMateRevolute>();
+    m_revolute1->Initialize(m_ground, m_pend1, ChFrame<>(ChVector3d(0, 0, 0)));
     m_system->AddLink(m_revolute1);
 
     // Revolute joint pendulum-pendulum
     // --------------------------------
-    m_revolute2 = chrono_types::make_shared<ChLinkMateGeneric>(true, true, true, true, true, false);
-    m_revolute2->Initialize(m_pend1, m_pend2, ChFrame<>(ChVector<>(l1, 0, 0), QUNIT));
+    m_revolute2 = chrono_types::make_shared<ChLinkMateRevolute>();
+    m_revolute2->Initialize(m_pend1, m_pend2, ChFrame<>(ChVector3d(l1, 0, 0), QUNIT));
     m_system->AddLink(m_revolute2);
 }
 
@@ -255,8 +253,8 @@ void ChronoModel::Simulate(double step, int num_steps) {
         m_data[0][it] = m_system->GetChTime();
         m_data[1][it] = m_pend2->GetPos().x();
         m_data[2][it] = m_pend2->GetPos().y();
-        m_data[3][it] = m_pend2->GetPos_dt().x();
-        m_data[4][it] = m_pend2->GetPos_dt().y();
+        m_data[3][it] = m_pend2->GetPosDt().x();
+        m_data[4][it] = m_pend2->GetPosDt().y();
 
         // Save current constraint violations.
         m_cnstr_data[0][it] = m_system->GetChTime();
@@ -275,13 +273,13 @@ void ChronoModel::Simulate(double step, int num_steps) {
 void ChronoModel::WriteData(double step, const std::string& filename) {
     assert(m_data.size() == 5);
 
-    utils::CSV_writer csv(" ");
+    utils::ChWriterCSV csv(" ");
 
     for (size_t it = 0; it < m_data[0].size(); ++it) {
         csv << m_data[0][it] << m_data[1][it] << m_data[2][it] << m_data[3][it] << m_data[4][it] << std::endl;
     }
 
-    csv.write_to_file(filename);
+    csv.WriteToFile(filename);
 }
 
 // =============================================================================
@@ -308,8 +306,8 @@ bool test_EULER(double step, int num_steps, const utils::Data& ref_data, double 
     // Validate states (x and y for pendulum body).
     utils::DataVector norms_state;
     bool check_state = utils::Validate(model.GetData(), ref_data, utils::RMS_NORM, tol_state, norms_state);
-    std::cout << "  validate states: " << (check_state ? "Passed" : "Failed") << "  (tolerance = " << tol_state
-        << ")" << std::endl;
+    std::cout << "  validate states: " << (check_state ? "Passed" : "Failed") << "  (tolerance = " << tol_state << ")"
+              << std::endl;
     for (size_t col = 0; col < norms_state.size(); col++)
         std::cout << "    " << norms_state[col] << std::endl;
 
@@ -317,7 +315,7 @@ bool test_EULER(double step, int num_steps, const utils::Data& ref_data, double 
     utils::DataVector norms_cnstr;
     bool check_cnstr = utils::Validate(model.GetCnstrData(), utils::RMS_NORM, tol_cnstr, norms_cnstr);
     std::cout << "  validate constraints: " << (check_cnstr ? "Passed" : "Failed") << "  (tolerance = " << tol_cnstr
-        << ")" << std::endl;
+              << ")" << std::endl;
     for (size_t col = 0; col < norms_cnstr.size(); col++)
         std::cout << "    " << norms_cnstr[col] << std::endl;
 
@@ -336,7 +334,7 @@ bool test_HHT(double step, int num_steps, const utils::Data& ref_data, double to
     system->SetTimestepperType(ChTimestepper::Type::HHT);
     auto integrator = std::static_pointer_cast<ChTimestepperHHT>(system->GetTimestepper());
     integrator->SetAlpha(0);
-    integrator->SetMaxiters(20);
+    integrator->SetMaxIters(20);
     integrator->SetAbsTolerances(1e-6);
 
     // Set verbose solver and integrator (for debugging).
@@ -350,8 +348,8 @@ bool test_HHT(double step, int num_steps, const utils::Data& ref_data, double to
     // Validate states (x and y for pendulum body).
     utils::DataVector norms_state;
     bool check_state = utils::Validate(model.GetData(), ref_data, utils::RMS_NORM, tol_state, norms_state);
-    std::cout << "  validate states: " << (check_state ? "Passed" : "Failed") << "  (tolerance = " << tol_state
-        << ")" << std::endl;
+    std::cout << "  validate states: " << (check_state ? "Passed" : "Failed") << "  (tolerance = " << tol_state << ")"
+              << std::endl;
     for (size_t col = 0; col < norms_state.size(); col++)
         std::cout << "    " << norms_state[col] << std::endl;
 
@@ -359,7 +357,7 @@ bool test_HHT(double step, int num_steps, const utils::Data& ref_data, double to
     utils::DataVector norms_cnstr;
     bool check_cnstr = utils::Validate(model.GetCnstrData(), utils::RMS_NORM, tol_cnstr, norms_cnstr);
     std::cout << "  validate constraints: " << (check_cnstr ? "Passed" : "Failed") << "  (tolerance = " << tol_cnstr
-        << ")" << std::endl;
+              << ")" << std::endl;
     for (size_t col = 0; col < norms_cnstr.size(); col++)
         std::cout << "    " << norms_cnstr[col] << std::endl;
 

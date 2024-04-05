@@ -69,26 +69,25 @@ class MySpringForce : public ChLinkTSDA::ForceFunctor {
 // =============================================================================
 
 int main(int argc, char* argv[]) {
-    GetLog() << "Copyright (c) 2017 projectchrono.org\nChrono version: " << CHRONO_VERSION << "\n\n";
+    std::cout << "Copyright (c) 2017 projectchrono.org\nChrono version: " << CHRONO_VERSION << std::endl;
 
     ChSystemNSC sys;
-    sys.Set_G_acc(ChVector<>(0, 0, 0));
+    sys.SetGravitationalAcceleration(ChVector3d(0, 0, 0));
 
     // Create the ground body with two visualization spheres
     // -----------------------------------------------------
 
     auto ground = chrono_types::make_shared<ChBody>();
     sys.AddBody(ground);
-    ground->SetIdentifier(-1);
-    ground->SetBodyFixed(true);
-    ground->SetCollide(false);
+    ground->SetFixed(true);
+    ground->EnableCollision(false);
 
     {
         auto sph_1 = chrono_types::make_shared<ChVisualShapeSphere>(0.1);
-        ground->AddVisualShape(sph_1, ChFrame<>(ChVector<>(-1, 0, 0), QUNIT));
+        ground->AddVisualShape(sph_1, ChFrame<>(ChVector3d(-1, 0, 0), QUNIT));
 
         auto sph_2 = chrono_types::make_shared<ChVisualShapeSphere>(0.1);
-        ground->AddVisualShape(sph_2, ChFrame<>(ChVector<>(+1, 0, 0), QUNIT));
+        ground->AddVisualShape(sph_2, ChFrame<>(ChVector3d(+1, 0, 0), QUNIT));
     }
 
     // Create a body suspended through a ChLinkTSDA (default linear)
@@ -96,12 +95,11 @@ int main(int argc, char* argv[]) {
 
     auto body_1 = chrono_types::make_shared<ChBody>();
     sys.AddBody(body_1);
-    body_1->SetPos(ChVector<>(-1, -3, 0));
-    body_1->SetIdentifier(1);
-    body_1->SetBodyFixed(false);
-    body_1->SetCollide(false);
+    body_1->SetPos(ChVector3d(-1, -3, 0));
+    body_1->SetFixed(false);
+    body_1->EnableCollision(false);
     body_1->SetMass(1);
-    body_1->SetInertiaXX(ChVector<>(1, 1, 1));
+    body_1->SetInertiaXX(ChVector3d(1, 1, 1));
 
     // Attach a visualization asset.
     auto box_1 = chrono_types::make_shared<ChVisualShapeBox>(1, 1, 1);
@@ -111,7 +109,7 @@ int main(int argc, char* argv[]) {
     // Create the spring between body_1 and ground. The spring end points are
     // specified in the body relative frames.
     auto spring_1 = chrono_types::make_shared<ChLinkTSDA>();
-    spring_1->Initialize(body_1, ground, true, ChVector<>(0, 0, 0), ChVector<>(-1, 0, 0));
+    spring_1->Initialize(body_1, ground, true, ChVector3d(0, 0, 0), ChVector3d(-1, 0, 0));
     spring_1->SetRestLength(rest_length);
     spring_1->SetSpringCoefficient(spring_coef);
     spring_1->SetDampingCoefficient(damping_coef);
@@ -125,12 +123,11 @@ int main(int argc, char* argv[]) {
 
     auto body_2 = chrono_types::make_shared<ChBody>();
     sys.AddBody(body_2);
-    body_2->SetPos(ChVector<>(1, -3, 0));
-    body_2->SetIdentifier(1);
-    body_2->SetBodyFixed(false);
-    body_2->SetCollide(false);
+    body_2->SetPos(ChVector3d(1, -3, 0));
+    body_2->SetFixed(false);
+    body_2->EnableCollision(false);
     body_2->SetMass(1);
-    body_2->SetInertiaXX(ChVector<>(1, 1, 1));
+    body_2->SetInertiaXX(ChVector3d(1, 1, 1));
 
     // Attach a visualization asset.
     auto box_2 = chrono_types::make_shared<ChVisualShapeBox>(1, 1, 1);
@@ -142,7 +139,7 @@ int main(int argc, char* argv[]) {
     auto force = chrono_types::make_shared<MySpringForce>();
 
     auto spring_2 = chrono_types::make_shared<ChLinkTSDA>();
-    spring_2->Initialize(body_2, ground, true, ChVector<>(0, 0, 0), ChVector<>(1, 0, 0));
+    spring_2->Initialize(body_2, ground, true, ChVector3d(0, 0, 0), ChVector3d(1, 0, 0));
     spring_2->SetRestLength(rest_length);
     spring_2->RegisterForceFunctor(force);
     sys.AddLink(spring_2);
@@ -173,7 +170,7 @@ int main(int argc, char* argv[]) {
             vis_irr->Initialize();
             vis_irr->AddLogo();
             vis_irr->AddSkyBox();
-            vis_irr->AddCamera(ChVector<>(0, 0, 6));
+            vis_irr->AddCamera(ChVector3d(0, 0, 6));
             vis_irr->AddTypicalLights();
 
             vis = vis_irr;
@@ -186,14 +183,15 @@ int main(int argc, char* argv[]) {
             auto vis_vsg = chrono_types::make_shared<ChVisualSystemVSG>();
             vis_vsg->AttachSystem(&sys);
             vis_vsg->SetCameraVertical(CameraVerticalDir::Y);
-            vis_vsg->SetWindowSize(ChVector2<int>(800, 600));
-            vis_vsg->SetWindowPosition(ChVector2<int>(100, 300));
+            vis_vsg->SetWindowSize(ChVector2i(800, 600));
+            vis_vsg->SetWindowPosition(ChVector2i(100, 300));
             vis_vsg->SetWindowTitle("Chrono VSG Springs");
             vis_vsg->SetUseSkyBox(true);
-            vis_vsg->AddCamera(ChVector<>(0, 0, 12));
+            vis_vsg->AddCamera(ChVector3d(0, 0, 12));
             vis_vsg->SetCameraAngleDeg(40);
             vis_vsg->SetLightIntensity(1.0f);
-            vis_vsg->SetLightDirection(1.5 * CH_C_PI_2, CH_C_PI_4);
+            vis_vsg->SetLightDirection(1.5 * CH_PI_2, CH_PI_4);
+            vis_vsg->SetShadows(true);
             vis_vsg->Initialize();
 
             vis = vis_vsg;
@@ -213,11 +211,11 @@ int main(int argc, char* argv[]) {
         vis->EndScene();
 
         if (frame % 50 == 0) {
-            GetLog() << sys.GetChTime() << "  " << spring_1->GetLength() << "  " << spring_1->GetVelocity() << "  "
-                     << spring_1->GetForce() << "\n";
+            std::cout << sys.GetChTime() << "  " << spring_1->GetLength() << "  " << spring_1->GetVelocity() << "  "
+                      << spring_1->GetForce() << "\n";
 
-            GetLog() << "            " << spring_2->GetLength() << "  " << spring_2->GetVelocity() << "  "
-                     << spring_2->GetForce() << "\n\n";
+            std::cout << "            " << spring_2->GetLength() << "  " << spring_2->GetVelocity() << "  "
+                      << spring_2->GetForce() << "\n\n";
         }
 
         sys.DoStepDynamics(timestep);

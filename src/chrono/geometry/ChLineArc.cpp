@@ -15,7 +15,6 @@
 #include "chrono/geometry/ChLineArc.h"
 
 namespace chrono {
-namespace geometry {
 
 // Register into the object factory, to enable run-time dynamic creation and persistence
 CH_FACTORY_REGISTER(ChLineArc)
@@ -35,46 +34,45 @@ ChLineArc::ChLineArc(const ChLineArc& source) : ChLine(source) {
     counterclockwise = source.counterclockwise;
 }
 
-ChVector<> ChLineArc::Evaluate(double parU) const {
+ChVector3d ChLineArc::Evaluate(double parU) const {
     double ang1 = this->angle1;
     double ang2 = this->angle2;
     if (this->counterclockwise) {
         if (ang2 < ang1)
-            ang2 += CH_C_2PI;
+            ang2 += CH_2PI;
     } else {
         if (ang2 > ang1)
-            ang2 -= CH_C_2PI;
+            ang2 -= CH_2PI;
     }
     double mangle = ang1 * (1 - parU) + ang2 * (parU);
-    ChVector<> localP(radius * cos(mangle), radius * sin(mangle), 0);
+    ChVector3d localP(radius * cos(mangle), radius * sin(mangle), 0);
     return localP >> origin;  // transform to absolute coordinates
 }
 
-void ChLineArc::ArchiveOut(ChArchiveOut& marchive) {
+void ChLineArc::ArchiveOut(ChArchiveOut& archive_out) {
     // version number
-    marchive.VersionWrite<ChLineArc>();
+    archive_out.VersionWrite<ChLineArc>();
     // serialize parent class
-    ChLine::ArchiveOut(marchive);
+    ChLine::ArchiveOut(archive_out);
     // serialize all member data:
-    marchive << CHNVP(origin);
-    marchive << CHNVP(radius);
-    marchive << CHNVP(angle1);
-    marchive << CHNVP(angle2);
-    marchive << CHNVP(counterclockwise);
+    archive_out << CHNVP(origin);
+    archive_out << CHNVP(radius);
+    archive_out << CHNVP(angle1);
+    archive_out << CHNVP(angle2);
+    archive_out << CHNVP(counterclockwise);
 }
 
-void ChLineArc::ArchiveIn(ChArchiveIn& marchive) {
+void ChLineArc::ArchiveIn(ChArchiveIn& archive_in) {
     // version number
-    /*int version =*/ marchive.VersionRead<ChLineArc>();
+    /*int version =*/archive_in.VersionRead<ChLineArc>();
     // deserialize parent class
-    ChLine::ArchiveIn(marchive);
+    ChLine::ArchiveIn(archive_in);
     // stream in all member data:
-    marchive >> CHNVP(origin);
-    marchive >> CHNVP(radius);
-    marchive >> CHNVP(angle1);
-    marchive >> CHNVP(angle2);
-    marchive >> CHNVP(counterclockwise);
+    archive_in >> CHNVP(origin);
+    archive_in >> CHNVP(radius);
+    archive_in >> CHNVP(angle1);
+    archive_in >> CHNVP(angle2);
+    archive_in >> CHNVP(counterclockwise);
 }
 
-}  // end namespace geometry
 }  // end namespace chrono

@@ -1,24 +1,14 @@
-//////////////////////////////////////////////////
+// =====================================================================================
 //  
-//   ChModulePostprocess.i
+// ChModulePostprocess.i
+// Create the Python and C# wrappers for the Chrono::Postprocess module.
 //
-//   SWIG configuration file.
-//   This is processed by SWIG to create the C::E
-//   wrapper for Python.
+// ATTENTION: 
+// Must be included from another SWIG interface file which defines the module.
 //
-///////////////////////////////////////////////////
-
-
-
-// Define the module to be used in Python when typing 
-//  'import postprocess'
-
-
-%module(directors="1") postprocess
-
+// =====================================================================================
 
 // Turn on the documentation of members, for more intuitive IDE typing
-
 %feature("autodoc", "1");
 %feature("flatnested", "1");
 
@@ -80,12 +70,12 @@ using namespace chrono::postprocess;
 %include "typemaps.i"
 %include "cpointer.i"
 
-// This is to enable references to double,int,etc. types in function parameters
+#ifdef SWIGPYTHON  // --------------------------------------------------------------------- PYTHON
+// Enable references to double, int, and float types in function parameters
 %pointer_class(int,int_ptr);
 %pointer_class(double,double_ptr);
 %pointer_class(float,float_ptr);
-
-
+#endif             // --------------------------------------------------------------------- PYTHON
 
 //
 // For each class, keep updated the  A, B, C sections: 
@@ -138,11 +128,23 @@ using namespace chrono::postprocess;
 // in the .i file, before the %include of the .h, even if already forwarded in .h
 
 //  core/  classes
+#ifdef SWIGPYTHON  // --------------------------------------------------------------------- PYTHON
 %import(module = "pychrono.core")  "chrono_swig/interface/core/ChClassFactory.i"
 %import(module = "pychrono.core")  "chrono_swig/interface/core/ChVisualShape.i"
 %import(module = "pychrono.core")  "chrono_swig/interface/core/ChColor.i"
 %import(module = "pychrono.core")  "chrono_swig/interface/core/ChSystem.i"
 %import(module = "pychrono.core")  "chrono_swig/interface/core/ChVisualShape.i"
+#endif             // --------------------------------------------------------------------- PYTHON
+
+#ifdef SWIGCSHARP  // --------------------------------------------------------------------- CSHARP
+%import  "chrono_swig/interface/core/ChClassFactory.i"
+%import  "chrono_swig/interface/core/ChVisualShape.i"
+%import  "chrono_swig/interface/core/ChColor.i"
+%import  "chrono_swig/interface/core/ChSystem.i"
+%import  "chrono_swig/interface/core/ChVisualShape.i"
+%import  "chrono_swig/interface/core/ChFunction.i"
+#endif             // --------------------------------------------------------------------- CSHARP
+
 
 %include "ChPostProcessBase.i"
 %include "ChPovRay.i"

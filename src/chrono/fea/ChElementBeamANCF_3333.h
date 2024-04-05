@@ -22,7 +22,7 @@
 // Dynamics Eccomas thematic Conference, Madrid(2005).
 //
 // The "Pre-Integration" style calculation is based on modifications
-// to Liu, Cheng, Qiang Tian, and Haiyan Hu. "Dynamics of a large scale rigid–flexible multibody system composed of
+// to Liu, Cheng, Qiang Tian, and Haiyan Hu. "Dynamics of a large scale rigidï¿½flexible multibody system composed of
 // composite laminated plates." Multibody System Dynamics 26, no. 3 (2011): 283-305.
 //
 // A report covering the detailed mathematics and implementation both of these generalized internal force calculations
@@ -101,19 +101,23 @@ class ChApi ChElementBeamANCF_3333 : public ChElementANCF,
     ~ChElementBeamANCF_3333() {}
 
     /// Get the number of nodes used by this element.
-    virtual int GetNnodes() override { return 3; }
+    virtual unsigned int GetNumNodes() override { return 3; }
 
     /// Get the number of coordinates in the field used by the referenced nodes.
-    virtual int GetNdofs() override { return 3 * 9; }
+    virtual unsigned int GetNumCoordsPosLevel() override { return 3 * 9; }
 
     /// Get the number of active coordinates in the field used by the referenced nodes.
-    virtual int GetNdofs_active() override { return m_element_dof; }
+    virtual unsigned int GetNumCoordsPosLevelActive() override { return m_element_dof; }
 
     /// Get the number of coordinates from the n-th node used by this element.
-    virtual int GetNodeNdofs(int n) override { return m_nodes[n]->GetNdofX(); }
+    virtual unsigned int GetNodeNumCoordsPosLevel(unsigned int n) override {
+        return m_nodes[n]->GetNumCoordsPosLevel();
+    }
 
     /// Get the number of active coordinates from the n-th node used by this element.
-    virtual int GetNodeNdofs_active(int n) override { return m_nodes[n]->GetNdofX_active(); }
+    virtual unsigned int GetNodeNumCoordsPosLevelActive(unsigned int n) override {
+        return m_nodes[n]->GetNumCoordsPosLevelActive();
+    }
 
     /// Specify the nodes of this element.
     void SetNodes(std::shared_ptr<ChNodeFEAxyzDD> nodeA,
@@ -130,7 +134,7 @@ class ChApi ChElementBeamANCF_3333 : public ChElementANCF,
     std::shared_ptr<ChMaterialBeamANCF> GetMaterial() const { return m_material; }
 
     /// Access the n-th node of this element.
-    virtual std::shared_ptr<ChNodeFEAbase> GetNodeN(int n) override { return m_nodes[n]; }
+    virtual std::shared_ptr<ChNodeFEAbase> GetNode(unsigned int n) override { return m_nodes[n]; }
 
     /// Get a handle to the first node of this element.
     std::shared_ptr<ChNodeFEAxyzDD> GetNodeA() const { return m_nodes[0]; }
@@ -179,7 +183,7 @@ class ChApi ChElementBeamANCF_3333 : public ChElementANCF,
     // -------------------------------------
 
     /// Fill the D vector (column matrix) with the current field values at the nodes of the element, with proper
-    /// ordering. If the D vector has not the size of this->GetNdofs(), it will be resized.
+    /// ordering. If the D vector has not the size of this->GetNumCoordsPosLevel(), it will be resized.
     ///  {Pos_a Dv_a Dw_a  Pos_b Dv_b Dw_b  Pos_c Dv_c Dw_c}
     virtual void GetStateBlock(ChVectorDynamic<>& mD) override;
 
@@ -205,51 +209,49 @@ class ChApi ChElementBeamANCF_3333 : public ChElementANCF,
                                           double Mfactor = 0) override;
 
     /// Compute the generalized force vector due to gravity using the efficient ANCF specific method
-    virtual void ComputeGravityForces(ChVectorDynamic<>& Fg, const ChVector<>& G_acc) override;
+    virtual void ComputeGravityForces(ChVectorDynamic<>& Fg, const ChVector3d& G_acc) override;
 
     // Interface to ChElementBeam base class (and similar methods)
     // --------------------------------------
 
     // Dummy method definition - Does not translate to an ANCF continuum mechanics based beam element
-    virtual void EvaluateSectionStrain(const double, chrono::ChVector<double>&) override {}
+    virtual void EvaluateSectionStrain(const double, chrono::ChVector3d&) override {}
 
     // Dummy method definition - Does not translate to an ANCF continuum mechanics based beam element
-    virtual void EvaluateSectionForceTorque(const double,
-                                            chrono::ChVector<double>&,
-                                            chrono::ChVector<double>&) override {}
+    virtual void EvaluateSectionForceTorque(const double, chrono::ChVector3d&, chrono::ChVector3d&) override {}
 
     /// Gets the xyz displacement of a point on the beam line,
     /// and the rotation RxRyRz of section plane, at abscissa '(xi,0,0)'.
     /// xi = -1 at node A and xi = 1 at node B
-    virtual void EvaluateSectionDisplacement(const double xi, ChVector<>& u_displ, ChVector<>& u_rotaz) override {}
+    virtual void EvaluateSectionDisplacement(const double xi, ChVector3d& u_displ, ChVector3d& u_rotaz) override {}
 
     /// Gets the absolute xyz position of a point on the beam line,
     /// and the absolute rotation of section plane, at abscissa '(xi,0,0)'.
     /// xi = -1 at node A and xi = 1 at node B
-    virtual void EvaluateSectionFrame(const double xi, ChVector<>& point, ChQuaternion<>& rot) override;
+    virtual void EvaluateSectionFrame(const double xi, ChVector3d& point, ChQuaternion<>& rot) override;
 
     /// Gets the absolute xyz position of a point on the beam line specified in normalized coordinates
     /// xi = -1 at node A and xi = 1 at node B
-    void EvaluateSectionPoint(const double xi, ChVector<>& point);
+    void EvaluateSectionPoint(const double xi, ChVector3d& point);
 
     /// Gets the absolute xyz velocity of a point on the beam line specified in normalized coordinates
     /// xi = -1 at node A and xi = 1 at node B
-    void EvaluateSectionVel(const double xi, ChVector<>& Result);
+    void EvaluateSectionVel(const double xi, ChVector3d& Result);
 
     // Functions for ChLoadable interface
     // ----------------------------------
 
     /// Gets the number of DOFs affected by this element (position part).
-    virtual int LoadableGet_ndof_x() override { return 3 * 9; }
+    virtual unsigned int GetLoadableNumCoordsPosLevel() override { return 3 * 9; }
 
     /// Gets the number of DOFs affected by this element (velocity part).
-    virtual int LoadableGet_ndof_w() override { return 3 * 9; }
+    virtual unsigned int GetLoadableNumCoordsVelLevel() override { return 3 * 9; }
 
     /// Gets all the DOFs packed in a single vector (position part).
-    virtual void LoadableGetStateBlock_x(int block_offset, ChState& mD) override;
+    virtual void LoadableGetStateBlockPosLevel(int block_offset, ChState& mD) override;
 
     /// Gets all the DOFs packed in a single vector (velocity part).
-    virtual void LoadableGetStateBlock_w(int block_offset, ChStateDelta& mD) override;
+    virtual void LoadableGetStateBlockVelLevel(int block_offset, ChStateDelta& mD) override;
 
     /// Increment all DOFs using a delta.
     virtual void LoadableStateIncrement(const unsigned int off_x,
@@ -260,19 +262,21 @@ class ChApi ChElementBeamANCF_3333 : public ChElementANCF,
 
     /// Number of coordinates in the interpolated field, ex=3 for a
     /// tetrahedron finite element or a cable, = 1 for a thermal problem, etc.
-    virtual int Get_field_ncoords() override { return 9; }
+    virtual unsigned int GetNumFieldCoords() override { return 9; }
 
     /// Tell the number of DOFs blocks (ex. =1 for a body, =4 for a tetrahedron, etc.)
-    virtual int GetSubBlocks() override { return 3; }
+    virtual unsigned int GetNumSubBlocks() override { return 3; }
 
     /// Get the offset of the i-th sub-block of DOFs in global vector.
-    virtual unsigned int GetSubBlockOffset(int nblock) override { return m_nodes[nblock]->NodeGetOffsetW(); }
+    virtual unsigned int GetSubBlockOffset(unsigned int nblock) override {
+        return m_nodes[nblock]->NodeGetOffsetVelLevel();
+    }
 
     /// Get the size of the i-th sub-block of DOFs in global vector.
-    virtual unsigned int GetSubBlockSize(int nblock) override { return 9; }
+    virtual unsigned int GetSubBlockSize(unsigned int nblock) override { return 9; }
 
     /// Check if the specified sub-block of DOFs is active.
-    virtual bool IsSubBlockActive(int nblock) const override { return !m_nodes[nblock]->IsFixed(); }
+    virtual bool IsSubBlockActive(unsigned int nblock) const override { return !m_nodes[nblock]->IsFixed(); }
 
     /// Get the pointers to the contained ChVariables, appending to the mvars vector.
     virtual void LoadableGetVariables(std::vector<ChVariables*>& mvars) override;
@@ -313,7 +317,7 @@ class ChApi ChElementBeamANCF_3333 : public ChElementANCF,
 
     /// Gets the tangent to the beam axis at the parametric coordinate xi.
     /// xi = -1 at node A and xi = 1 at node B
-    ChVector<> ComputeTangent(const double xi);
+    ChVector3d ComputeTangent(const double xi);
 
   private:
     /// Initial setup. This is used to precompute matrices that do not change during the simulation, such as the local
@@ -380,10 +384,10 @@ class ChApi ChElementBeamANCF_3333 : public ChElementANCF,
     void CalcCoordMatrix(Matrix3xN& ebar);
 
     /// Calculate the current 3Nx1 vector of nodal coordinate time derivatives.
-    void CalcCoordDerivVector(Vector3N& edot);
+    void CalcCoordDtVector(Vector3N& edot);
 
     /// Calculate the current 3xN matrix of nodal coordinate time derivatives.
-    void CalcCoordDerivMatrix(Matrix3xN& ebardot);
+    void CalcCoordDtMatrix(Matrix3xN& ebardot);
 
     /// Calculate the current Nx6 matrix of the transpose of the nodal coordinates and nodal coordinate time
     /// derivatives.

@@ -38,16 +38,16 @@ class ChApi ChElementHexaCorot_20 : public ChElementHexahedron,
     ChElementHexaCorot_20();
     ~ChElementHexaCorot_20();
 
-    virtual int GetNnodes() override { return 20; }
-    virtual int GetNdofs() override { return 20 * 3; }
-    virtual int GetNodeNdofs(int n) override { return 3; }
+    virtual unsigned int GetNumNodes() override { return 20; }
+    virtual unsigned int GetNumCoordsPosLevel() override { return 20 * 3; }
+    virtual unsigned int GetNodeNumCoordsPosLevel(unsigned int n) override { return 3; }
 
     double GetVolume() { return Volume; }
 
-    virtual std::shared_ptr<ChNodeFEAbase> GetNodeN(int n) override { return nodes[n]; }
+    virtual std::shared_ptr<ChNodeFEAbase> GetNode(unsigned int n) override { return nodes[n]; }
 
     /// Return the specified hexahedron node (0 <= n <= 7).
-    virtual std::shared_ptr<ChNodeFEAxyz> GetHexahedronNode(int n) override { return nodes[n]; }
+    virtual std::shared_ptr<ChNodeFEAxyz> GetHexahedronNode(unsigned int n) override { return nodes[n]; }
 
     virtual void SetNodes(std::shared_ptr<ChNodeFEAxyz> nodeA,
                           std::shared_ptr<ChNodeFEAxyz> nodeB,
@@ -91,14 +91,14 @@ class ChApi ChElementHexaCorot_20 : public ChElementHexahedron,
     void ShapeFunctions(ShapeVector& N, double r, double s, double t);
 
     /// Fills the D vector (displacement) with the current field values at the nodes of the element, with proper
-    /// ordering. If the D vector has not the size of this->GetNdofs(), it will be resized. For corotational elements,
-    /// field is assumed in local reference!
+    /// ordering. If the D vector has not the size of this->GetNumCoordsPosLevel(), it will be resized. For corotational
+    /// elements, field is assumed in local reference!
     virtual void GetStateBlock(ChVectorDynamic<>& mD) override;
 
     /// Puts inside 'Jacobian' and 'J1' the Jacobian matrix and the shape functions derivatives matrix of the element
     /// The vector "coord" contains the natural coordinates of the integration point
     /// in case of hexahedral elements natural coords vary in the classical range -1 ... +1
-    virtual void ComputeJacobian(ChMatrixDynamic<>& Jacobian, ChMatrixDynamic<>& J1, ChVector<> coord);
+    virtual void ComputeJacobian(ChMatrixDynamic<>& Jacobian, ChMatrixDynamic<>& J1, ChVector3d coord);
 
     /// Computes the matrix of partial derivatives and puts data in "MatrB"
     ///	evaluated at natural coordinates zeta1,...,zeta4 . Also computes determinant of jacobian.
@@ -162,16 +162,16 @@ class ChApi ChElementHexaCorot_20 : public ChElementHexahedron,
     //
 
     /// Gets the number of DOFs affected by this element (position part)
-    virtual int LoadableGet_ndof_x() override { return 20 * 3; }
+    virtual unsigned int GetLoadableNumCoordsPosLevel() override { return 20 * 3; }
 
     /// Gets the number of DOFs affected by this element (speed part)
-    virtual int LoadableGet_ndof_w() override { return 20 * 3; }
+    virtual unsigned int GetLoadableNumCoordsVelLevel() override { return 20 * 3; }
 
     /// Gets all the DOFs packed in a single vector (position part)
-    virtual void LoadableGetStateBlock_x(int block_offset, ChState& mD) override;
+    virtual void LoadableGetStateBlockPosLevel(int block_offset, ChState& mD) override;
 
     /// Gets all the DOFs packed in a single vector (speed part)
-    virtual void LoadableGetStateBlock_w(int block_offset, ChStateDelta& mD) override;
+    virtual void LoadableGetStateBlockVelLevel(int block_offset, ChStateDelta& mD) override;
 
     /// Increment all DOFs using a delta.
     virtual void LoadableStateIncrement(const unsigned int off_x,
@@ -181,19 +181,21 @@ class ChApi ChElementHexaCorot_20 : public ChElementHexahedron,
                                         const ChStateDelta& Dv) override;
 
     /// Number of coordinates in the interpolated field: here the {x,y,z} displacement
-    virtual int Get_field_ncoords() override { return 3; }
+    virtual unsigned int GetNumFieldCoords() override { return 3; }
 
     /// Get the number of DOFs sub-blocks.
-    virtual int GetSubBlocks() override { return 20; }
+    virtual unsigned int GetNumSubBlocks() override { return 20; }
 
     /// Get the offset of the specified sub-block of DOFs in global vector.
-    virtual unsigned int GetSubBlockOffset(int nblock) override { return nodes[nblock]->NodeGetOffsetW(); }
+    virtual unsigned int GetSubBlockOffset(unsigned int nblock) override {
+        return nodes[nblock]->NodeGetOffsetVelLevel();
+    }
 
     /// Get the size of the specified sub-block of DOFs in global vector.
-    virtual unsigned int GetSubBlockSize(int nblock) override { return 3; }
+    virtual unsigned int GetSubBlockSize(unsigned int nblock) override { return 3; }
 
     /// Check if the specified sub-block of DOFs is active.
-    virtual bool IsSubBlockActive(int nblock) const override { return !nodes[nblock]->IsFixed(); }
+    virtual bool IsSubBlockActive(unsigned int nblock) const override { return !nodes[nblock]->IsFixed(); }
 
     /// Get the pointers to the contained ChVariables, appending to the mvars vector.
     virtual void LoadableGetVariables(std::vector<ChVariables*>& mvars) override;
@@ -213,7 +215,7 @@ class ChApi ChElementHexaCorot_20 : public ChElementHexahedron,
                            ) override;
 
     /// This is needed so that it can be accessed by ChLoaderVolumeGravity
-    virtual double GetDensity() override { return this->Material->Get_density(); }
+    virtual double GetDensity() override { return this->Material->GetDensity(); }
 
   private:
     virtual void SetupInitial(ChSystem* system) override { ComputeStiffnessMatrix(); }

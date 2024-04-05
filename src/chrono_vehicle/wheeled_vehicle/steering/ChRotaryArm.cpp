@@ -40,7 +40,7 @@ ChRotaryArm::~ChRotaryArm() {
 
 // -----------------------------------------------------------------------------
 void ChRotaryArm::Initialize(std::shared_ptr<ChChassis> chassis,
-                             const ChVector<>& location,
+                             const ChVector3d& location,
                              const ChQuaternion<>& rotation) {
     ChSteering::Initialize(chassis, location, rotation);
 
@@ -52,35 +52,35 @@ void ChRotaryArm::Initialize(std::shared_ptr<ChChassis> chassis,
 
     // Chassis orientation (expressed in absolute frame)
     // Recall that the suspension reference frame is aligned with the chassis.
-    ChQuaternion<> chassisRot = chassisBody->GetFrame_REF_to_abs().GetRot();
+    ChQuaternion<> chassisRot = chassisBody->GetFrameRefToAbs().GetRot();
 
     // Express the steering reference frame in the absolute coordinate system.
     ChFrame<> steering_to_abs(location, rotation);
-    steering_to_abs.ConcatenatePreTransformation(chassisBody->GetFrame_REF_to_abs());
+    steering_to_abs.ConcatenatePreTransformation(chassisBody->GetFrameRefToAbs());
 
     // Transform all points and directions to absolute frame.
-    std::vector<ChVector<>> points(NUM_POINTS);
-    std::vector<ChVector<>> dirs(NUM_DIRS);
+    std::vector<ChVector3d> points(NUM_POINTS);
+    std::vector<ChVector3d> dirs(NUM_DIRS);
 
     for (int i = 0; i < NUM_POINTS; i++) {
-        ChVector<> rel_pos = getLocation(static_cast<PointId>(i));
+        ChVector3d rel_pos = getLocation(static_cast<PointId>(i));
         points[i] = steering_to_abs.TransformPointLocalToParent(rel_pos);
     }
 
     for (int i = 0; i < NUM_DIRS; i++) {
-        ChVector<> rel_dir = getDirection(static_cast<DirectionId>(i));
+        ChVector3d rel_dir = getDirection(static_cast<DirectionId>(i));
         dirs[i] = steering_to_abs.TransformDirectionLocalToParent(rel_dir);
     }
 
     // Unit vectors for orientation matrices.
-    ChVector<> u;
-    ChVector<> v;
-    ChVector<> w;
+    ChVector3d u;
+    ChVector3d v;
+    ChVector3d w;
     ChMatrix33<> rot;
 
     // Create and initialize the Pitman arm body
     m_link = chrono_types::make_shared<ChBody>();
-    m_link->SetNameString(m_name + "_arm");
+    m_link->SetName(m_name + "_arm");
     m_link->SetPos(0.5 * (points[ARM_L] + points[ARM_C]));
     m_link->SetRot(steering_to_abs.GetRot());
     m_link->SetMass(getPitmanArmMass());
@@ -107,19 +107,19 @@ void ChRotaryArm::Initialize(std::shared_ptr<ChChassis> chassis,
     v = Vcross(dirs[REV_AXIS], u);
     v.Normalize();
     u = Vcross(v, dirs[REV_AXIS]);
-    rot.Set_A_axis(u, v, dirs[REV_AXIS]);
+    rot.SetFromDirectionAxes(u, v, dirs[REV_AXIS]);
 
     m_revolute = chrono_types::make_shared<ChLinkMotorRotationAngle>();
-    m_revolute->SetNameString(m_name + "_revolute");
-    m_revolute->Initialize(chassisBody, m_link, ChFrame<>(points[ARM_C], rot.Get_A_quaternion()));
-    auto motor_fun = chrono_types::make_shared<ChFunction_Setpoint>();
+    m_revolute->SetName(m_name + "_revolute");
+    m_revolute->Initialize(chassisBody, m_link, ChFrame<>(points[ARM_C], rot.GetQuaternion()));
+    auto motor_fun = chrono_types::make_shared<ChFunctionSetpoint>();
     m_revolute->SetAngleFunction(motor_fun);
     sys->AddLink(m_revolute);
 }
 
 // -----------------------------------------------------------------------------
 void ChRotaryArm::Synchronize(double time, const DriverInputs& driver_inputs) {
-    auto fun = std::static_pointer_cast<ChFunction_Setpoint>(m_revolute->GetAngleFunction());
+    auto fun = std::static_pointer_cast<ChFunctionSetpoint>(m_revolute->GetAngleFunction());
     fun->SetSetpoint(getMaxAngle() * driver_inputs.m_steering, time);
 }
 
@@ -130,7 +130,7 @@ void ChRotaryArm::InitializeInertiaProperties() {
 }
 
 void ChRotaryArm::UpdateInertiaProperties() {
-    m_parent->GetTransform().TransformLocalToParent(m_rel_xform, m_xform);
+    m_xform = m_parent->GetTransform().TransformLocalToParent(m_rel_xform);
 }
 
 // -----------------------------------------------------------------------------
@@ -151,12 +151,12 @@ void ChRotaryArm::LogConstraintViolations() {
     // Revolute joint
     ////{
     ////    ChVectorDynamic<> C = m_revolute->GetConstraintViolation();
-    ////    GetLog() << "Revolute              ";
-    ////    GetLog() << "  " << C(0) << "  ";
-    ////    GetLog() << "  " << C(1) << "  ";
-    ////    GetLog() << "  " << C(2) << "  ";
-    ////    GetLog() << "  " << C(3) << "  ";
-    ////    GetLog() << "  " << C(4) << "\n";
+    ////    std::cout << "Revolute              ";
+    ////    std::cout << "  " << C(0) << "  ";
+    ////    std::cout << "  " << C(1) << "  ";
+    ////    std::cout << "  " << C(2) << "  ";
+    ////    std::cout << "  " << C(3) << "  ";
+    ////    std::cout << "  " << C(4) << "\n";
     ////}
 }
 

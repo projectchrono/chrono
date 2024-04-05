@@ -6,18 +6,17 @@
 #include "chrono_synchrono/flatbuffer/message/SynSimulationMessage.h"
 
 #ifdef CHRONO_FASTDDS
-#undef ALIVE
+    #undef ALIVE
 
-#include "chrono_synchrono/communication/dds/SynDDSCommunicator.h"
-#include "chrono_synchrono/communication/dds/SynDDSListener.h"
-#include "chrono_synchrono/communication/dds/idl/SynDDSMessage.h"
-#include "chrono_synchrono/communication/dds/idl/SynDDSMessagePubSubTypes.h"
-#include "chrono_synchrono/communication/dds/SynDDSTopic.h"
+    #include "chrono_synchrono/communication/dds/SynDDSCommunicator.h"
+    #include "chrono_synchrono/communication/dds/SynDDSListener.h"
+    #include "chrono_synchrono/communication/dds/idl/SynDDSMessage.h"
+    #include "chrono_synchrono/communication/dds/idl/SynDDSMessagePubSubTypes.h"
+    #include "chrono_synchrono/communication/dds/SynDDSTopic.h"
 #endif
 
 namespace chrono {
 namespace synchrono {
-
 
 #ifdef CHRONO_FASTDDS
 
@@ -36,15 +35,15 @@ void RegisterParticipant(std::shared_ptr<SynCommunicator> communicator, const st
         SynLog() << "Adding Participant: " << participant_name << "\n";
 
         auto callback = std::bind(&ProcessMessage, communicator, std::placeholders::_1);
-        dds_communicator->CreateSubscriber(SynDDSTopic::RemovePrefix(participant_name, dds_communicator->m_prefix), new SynDDSMessagePubSubType(),
-                                           callback, new SynDDSMessage(), true, true);
+        dds_communicator->CreateSubscriber(SynDDSTopic::RemovePrefix(participant_name, dds_communicator->m_prefix),
+                                           new SynDDSMessagePubSubType(), callback, new SynDDSMessage(), true, true);
     }
 }
 
 #endif
 
 SynChronoManager::SynChronoManager(int node_id, int num_nodes, std::shared_ptr<SynCommunicator> communicator)
-        : m_is_ok(true),
+    : m_is_ok(true),
       m_initialized(false),
       m_node_id(node_id),
       m_num_nodes(num_nodes),
@@ -87,7 +86,7 @@ bool SynChronoManager::AddAgent(std::shared_ptr<SynAgent> agent) {
     if (auto dds_communicator = std::dynamic_pointer_cast<SynDDSCommunicator>(m_communicator)) {
         // Create the topic that state information will be passed on
         // and add the topic to the communicator
-        auto topic_name =  m_node_key.GetKeyString();
+        auto topic_name = m_node_key.GetKeyString();
         dds_communicator->CreatePublisher(topic_name, new SynDDSMessagePubSubType(), true);
     }
 #endif
@@ -327,7 +326,7 @@ void SynChronoManager::CreateAgentsFromDescriptions() {
                 }
                 it = messages.erase(it);
 
-            } catch (const ChException&) {
+            } catch (const std::exception&) {
                 ++it;
             }
         }

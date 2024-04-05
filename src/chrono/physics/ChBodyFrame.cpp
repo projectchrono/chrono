@@ -16,34 +16,29 @@
 
 namespace chrono {
 
-void ChBodyFrame::To_abs_forcetorque(const ChVector<>& force,
-                                     const ChVector<>& appl_point,
-                                     bool local,
-                                     ChVector<>& resultforce,
-                                     ChVector<>& resulttorque) {
-    if (local) {
-        resultforce = TransformDirectionLocalToParent(force);
-        resulttorque = Vcross(TransformDirectionLocalToParent(appl_point), resultforce);
-    } else {
-        resultforce = force;
-        resulttorque = Vcross(Vsub(appl_point, coord.pos), force);
-    }
+ChWrenchd ChBodyFrame::AppliedForceLocalToWrenchParent(const ChVector3d& force, const ChVector3d& appl_point) {
+    auto force_abs = TransformDirectionLocalToParent(force);
+    return {force_abs, Vcross(TransformDirectionLocalToParent(appl_point), force_abs)};
 }
 
-void ChBodyFrame::ArchiveOut(ChArchiveOut& marchive) {
+ChWrenchd ChBodyFrame::AppliedForceParentToWrenchParent(const ChVector3d& force, const ChVector3d& appl_point) {
+    return {force, Vcross(appl_point - GetPos(), force)};
+}
+
+void ChBodyFrame::ArchiveOut(ChArchiveOut& archive_out) {
     // version number
-    marchive.VersionWrite<ChBodyFrame>();
+    archive_out.VersionWrite<ChBodyFrame>();
 
     // serialize parent class
-    ChFrameMoving<double>::ArchiveOut(marchive);
+    ChFrameMoving<double>::ArchiveOut(archive_out);
 }
 
-void ChBodyFrame::ArchiveIn(ChArchiveIn& marchive) {
+void ChBodyFrame::ArchiveIn(ChArchiveIn& archive_in) {
     // version number
-    /*int version =*/ marchive.VersionRead<ChBodyFrame>();
+    /*int version =*/archive_in.VersionRead<ChBodyFrame>();
 
     // deserialize parent class
-    ChFrameMoving<double>::ArchiveIn(marchive);
+    ChFrameMoving<double>::ArchiveIn(archive_in);
 }
 
 }  // end namespace chrono

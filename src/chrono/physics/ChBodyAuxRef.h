@@ -19,23 +19,14 @@
 
 namespace chrono {
 
-/// Class for rigid bodies with an auxiliary reference frame.
-/// Unlike ChBody, where the COG frame is used as the reference frame, the
-/// auxiliary reference frame of a ChBodyAuxRef can be different from its
-/// COG frame.  This specialization is provided for situations where it is more
-/// convenient to specify collision shapes, visualization assets, and marker
-/// positions with respect to a reference frame other than the COG frame.
-/// Note that, because of the auxiliary reference, this type of rigid bodies
-/// can be slightly less efficient than the base ChBody object.
+/// Class for Rigid Bodies with an auxiliary Reference Frame.
+///
+/// An auxiliary reference frame is added to the base ChBody class thus offering the flexibility of placing
+/// collision and visual shapes, as well as ChMarkers, in a different position with respect to the Center of Mass.
 ///
 /// Additional information can be found in the @ref rigid_bodies manual page.
 
 class ChApi ChBodyAuxRef : public ChBody {
-
-  private:
-    ChFrameMoving<> auxref_to_cog;  ///< auxiliary REF location, relative to COG
-    ChFrameMoving<> auxref_to_abs;  ///< auxiliary REF location, relative to abs coords (needs Update() )
-
   public:
     ChBodyAuxRef() : ChBody() {}
     ChBodyAuxRef(const ChBodyAuxRef& other);
@@ -46,46 +37,46 @@ class ChApi ChBodyAuxRef : public ChBody {
 
     /// Set the auxiliary reference frame with respect to the absolute frame.
     /// This moves the entire body; the body COG is rigidly moved as well.
-    void SetFrame_REF_to_abs(const ChFrame<>& mfra);
+    void SetFrameRefToAbs(const ChFrame<>& frame);
 
     /// Get the auxiliary reference frame with respect to the absolute frame.
-    /// Note that, in general, this is different from GetFrame_COG_to_abs().
-    virtual const ChFrameMoving<>& GetFrame_REF_to_abs() const override { return auxref_to_abs; }
+    /// Note that, in general, this is different from GetFrameCOMToAbs().
+    virtual const ChFrameMoving<>& GetFrameRefToAbs() const override { return ref_to_abs; }
 
     /// Set the COG frame with respect to the auxiliary reference frame.
     /// Note that this also moves the body absolute COG (the REF is fixed).
     /// The position of contained ChMarker objects, if any, is not changed with respect
     /// to the reference.
-    void SetFrame_COG_to_REF(const ChFrame<>& mloc);
+    void SetFrameCOMToRef(const ChFrame<>& frame);
 
     /// Get the COG frame with respect to the auxiliary reference frame.
-    ChFrame<> GetFrame_COG_to_REF() const { return auxref_to_cog.GetInverse(); }
+    ChFrame<> GetFrameCOMToRef() const { return ref_to_com.GetInverse(); }
 
     /// Set the auxiliary reference frame with respect to the COG frame.
     /// Note that this does not move the body absolute COG (the COG is fixed).
-    void SetFrame_REF_to_COG(const ChFrame<>& mloc) { auxref_to_cog = mloc; }
+    void SetFrameRefToCOM(const ChFrame<>& frame) { ref_to_com = frame; }
 
     /// Get the auxiliary reference frame with respect to the COG frame.
-    const ChFrame<>& GetFrame_REF_to_COG() const { return auxref_to_cog; }
+    const ChFrame<>& GetFrameRefToCOM() const { return ref_to_com; }
 
     /// Update all auxiliary data of the rigid body and of
     /// its children (markers, forces..)
     virtual void Update(bool update_assets = true) override;
 
-    //
     // SERIALIZATION
-    //
 
     /// Method to allow serialization of transient data to archives.
-    virtual void ArchiveOut(ChArchiveOut& marchive) override;
+    virtual void ArchiveOut(ChArchiveOut& archive_out) override;
 
     /// Method to allow deserialization of transient data from archives.
-    virtual void ArchiveIn(ChArchiveIn& marchive) override;
+    virtual void ArchiveIn(ChArchiveIn& archive_in) override;
+
+  private:
+    ChFrameMoving<> ref_to_com;  ///< auxiliary REF location, relative to COM
+    ChFrameMoving<> ref_to_abs;  ///< auxiliary REF location, relative to abs coords
 };
 
-
-CH_CLASS_VERSION(ChBodyAuxRef,0)
-
+CH_CLASS_VERSION(ChBodyAuxRef, 0)
 
 }  // end namespace chrono
 

@@ -28,7 +28,7 @@ The dynamics of a "typical" Chrono system (for example one using `Chrono::Vehicl
 
 Each node steps forward in time, at the same constant timestep. Some nodes may move through their timesteps in less real-world time than the others, simply because they have more processing power, a simpler system, or for any other range of reasons. However after a certain number of timesteps have elapsed in simulation, called the heartbeat, all nodes will synchronize their current state. Between heartbeats, the zombie agents in a node's `ChSystem` are not updated, and will remain static until a heartbeat is reached and updated state information for them is applied to the `ChSystem`.
 
-Next we explain what exactly is communicated at each heartbeat ([State Information](#State-Information)), how this data is formatted ([FlatBuffers](#FlatBuffers)) and how the data is communicated between nodes ([Communication Types](#Communication-Types)).
+Next we explain what exactly is communicated at each heartbeat ([State Information](#syn_state_info)), how this data is formatted ([FlatBuffers](#syn_flatbuffers)) and how the data is communicated between nodes ([Communication Types](#syn_communication)).
 
 ### State Information {#syn_state_info}
 

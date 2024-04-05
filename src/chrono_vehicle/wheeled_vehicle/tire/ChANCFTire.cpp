@@ -30,14 +30,15 @@ using namespace chrono::fea;
 ChANCFTire::ChANCFTire(const std::string& name) : ChDeformableTire(name) {}
 
 void ChANCFTire::CreatePressureLoad() {
-    // Create a pressure load for each element in the mesh.  
+    // Create a pressure load for each element in the mesh.
     // Set a negative pressure (i.e. internal pressure, acting opposite to the surface normal)
     for (const auto& element : m_mesh->GetElements()) {
         if (auto loadable = std::dynamic_pointer_cast<ChLoadableUV>(element)) {
-            auto load = chrono_types::make_shared<ChLoad<ChLoaderPressure>>(loadable);
-            load->loader.SetPressure(-m_pressure);
-            load->loader.SetStiff(false);          //// TODO:  user control?
-            load->loader.SetIntegrationPoints(2);  //// TODO:  user control?
+            auto loader = chrono_types::make_shared<ChLoaderPressure>(loadable);
+            loader->SetPressure(-m_pressure);
+            loader->SetStiff(false);          //// TODO:  user control?
+            loader->SetIntegrationPoints(2);  //// TODO:  user control?
+            auto load = chrono_types::make_shared<ChLoad>(loader);
             m_load_container->Add(load);
         }
     }
@@ -68,13 +69,13 @@ void ChANCFTire::CreateRimConnections(std::shared_ptr<ChBody> wheel) {
 
     for (size_t in = 0; in < nodes.size(); ++in) {
         auto node = std::dynamic_pointer_cast<ChNodeFEAxyzD>(nodes[in]);
-        m_connections[in] = chrono_types::make_shared<ChLinkPointFrame>();
+        m_connections[in] = chrono_types::make_shared<ChLinkNodeFrame>();
         m_connections[in]->Initialize(node, wheel);
         wheel->GetSystem()->Add(m_connections[in]);
 
-        m_connectionsD[in] = chrono_types::make_shared<ChLinkDirFrame>();
+        m_connectionsD[in] = chrono_types::make_shared<ChLinkNodeSlopeFrame>();
         m_connectionsD[in]->Initialize(node, wheel);
-        m_connectionsD[in]->SetDirectionInAbsoluteCoords(node->GetD());
+        m_connectionsD[in]->SetDirectionInAbsoluteCoords(node->GetSlope1());
         wheel->GetSystem()->Add(m_connectionsD[in]);
     }
 }
@@ -103,8 +104,8 @@ std::vector<std::shared_ptr<fea::ChNodeFEAbase>> ChANCFTire::CreateMeshANCF4(con
     // The nodes are first created in the wheel local frame, assuming Y as the tire axis,
     // and are then transformed to the global frame.
     for (int i = 0; i < div_circumference; i++) {
-        double phi = (CH_C_2PI * i) / div_circumference;
-        ChVector<> nrm(-std::sin(phi), 0, std::cos(phi));
+        double phi = (CH_2PI * i) / div_circumference;
+        ChVector3d nrm(-std::sin(phi), 0, std::cos(phi));
 
         for (int j = 0; j <= div_width; j++) {
             double t_prf = double(j) / div_width;
@@ -118,18 +119,18 @@ std::vector<std::shared_ptr<fea::ChNodeFEAbase>> ChANCFTire::CreateMeshANCF4(con
             double y = y_prf;
             double z = (rim_radius + x_prf) * std::sin(phi);
             // Node position in global frame (actual coordinate values)
-            ChVector<> loc = wheel_frame.TransformPointLocalToParent(ChVector<>(x, y, z));
+            ChVector3d loc = wheel_frame.TransformPointLocalToParent(ChVector3d(x, y, z));
 
             // Node direction
-            ChVector<> tan_prf(std::cos(phi) * xp_prf, yp_prf, std::sin(phi) * xp_prf);
-            ChVector<> nrm_prf = Vcross(tan_prf, nrm).GetNormalized();
-            ChVector<> dir = wheel_frame.TransformDirectionLocalToParent(nrm_prf);
+            ChVector3d tan_prf(std::cos(phi) * xp_prf, yp_prf, std::sin(phi) * xp_prf);
+            ChVector3d nrm_prf = Vcross(tan_prf, nrm).GetNormalized();
+            ChVector3d dir = wheel_frame.TransformDirectionLocalToParent(nrm_prf);
 
             auto node = chrono_types::make_shared<ChNodeFEAxyzD>(loc, dir);
 
             // Node velocity
-            ChVector<> vel = wheel_frame.PointSpeedLocalToParent(ChVector<>(x, y, z));
-            node->SetPos_dt(vel);
+            ChVector3d vel = wheel_frame.PointSpeedLocalToParent(ChVector3d(x, y, z));
+            node->SetPosDt(vel);
             node->SetMass(0);
             mesh->AddNode(node);
         }
@@ -174,15 +175,15 @@ std::vector<std::shared_ptr<fea::ChNodeFEAbase>> ChANCFTire::CreateMeshANCF4(con
             int s2 = b2 - sidewall.num_divs;
             if (j < b1 || j >= b2) {  // Bead section
                 for (int im = 0; im < bead.num_layers; im++) {
-                    element->AddLayer(bead.thickness[im], CH_C_DEG_TO_RAD * bead.angle[im], bead.mat[im]);
+                    element->AddLayer(bead.thickness[im], CH_DEG_TO_RAD * bead.angle[im], bead.mat[im]);
                 }
             } else if (j < s1 || j >= s2) {  // Sidewall section
                 for (int im = 0; im < sidewall.num_layers; im++) {
-                    element->AddLayer(sidewall.thickness[im], CH_C_DEG_TO_RAD * sidewall.angle[im], sidewall.mat[im]);
+                    element->AddLayer(sidewall.thickness[im], CH_DEG_TO_RAD * sidewall.angle[im], sidewall.mat[im]);
                 }
             } else {  // Tread section
                 for (int im = 0; im < tread.num_layers; im++) {
-                    element->AddLayer(tread.thickness[im], CH_C_DEG_TO_RAD * tread.angle[im], tread.mat[im]);
+                    element->AddLayer(tread.thickness[im], CH_DEG_TO_RAD * tread.angle[im], tread.mat[im]);
                 }
             }
 
@@ -231,14 +232,14 @@ std::vector<std::shared_ptr<fea::ChNodeFEAbase>> ChANCFTire::CreateMeshANCF8(con
     // Create the mesh nodes.
     // The nodes are first created in the wheel local frame, assuming Y as the tire axis,
     // and are then transformed to the global frame.
-    double dphi = CH_C_2PI / (2 * div_circumference);
+    double dphi = CH_2PI / (2 * div_circumference);
     double dt = 1.0 / (2 * div_width);
 
-    ChVector<> curv(0, 0, 0);
+    ChVector3d curv(0, 0, 0);
 
     for (int i = 0; i < 2 * div_circumference; i++) {
         double phi = i * dphi;
-        ChVector<> nrm(-std::sin(phi), 0, std::cos(phi));
+        ChVector3d nrm(-std::sin(phi), 0, std::cos(phi));
 
         for (int j = 0; j <= 2 * div_width; j++) {
             double t_prf = j * dt;
@@ -252,18 +253,18 @@ std::vector<std::shared_ptr<fea::ChNodeFEAbase>> ChANCFTire::CreateMeshANCF8(con
             double y = y_prf;
             double z = (rim_radius + x_prf) * std::sin(phi);
             // Node position in global frame (actual coordinate values)
-            ChVector<> loc = wheel_frame.TransformPointLocalToParent(ChVector<>(x, y, z));
+            ChVector3d loc = wheel_frame.TransformPointLocalToParent(ChVector3d(x, y, z));
 
             // Node direction
-            ChVector<> tan_prf(std::cos(phi) * xp_prf, yp_prf, std::sin(phi) * xp_prf);
-            ChVector<> nrm_prf = Vcross(tan_prf, nrm).GetNormalized();
-            ChVector<> dir = wheel_frame.TransformDirectionLocalToParent(nrm_prf);
+            ChVector3d tan_prf(std::cos(phi) * xp_prf, yp_prf, std::sin(phi) * xp_prf);
+            ChVector3d nrm_prf = Vcross(tan_prf, nrm).GetNormalized();
+            ChVector3d dir = wheel_frame.TransformDirectionLocalToParent(nrm_prf);
 
             auto node = chrono_types::make_shared<ChNodeFEAxyzDD>(loc, dir, curv);
 
             // Node velocity
-            ChVector<> vel = wheel_frame.PointSpeedLocalToParent(ChVector<>(x, y, z));
-            node->SetPos_dt(vel);
+            ChVector3d vel = wheel_frame.PointSpeedLocalToParent(ChVector3d(x, y, z));
+            node->SetPosDt(vel);
             node->SetMass(0);
             mesh->AddNode(node);
         }
@@ -339,15 +340,15 @@ std::vector<std::shared_ptr<fea::ChNodeFEAbase>> ChANCFTire::CreateMeshANCF8(con
             if (j < b1 || j >= b2) {
                 // Bead section
                 for (int k = 0; k < bead.num_layers; k++)
-                    element->AddLayer(bead.thickness[k], CH_C_DEG_TO_RAD * bead.angle[k], bead.mat[k]);
+                    element->AddLayer(bead.thickness[k], CH_DEG_TO_RAD * bead.angle[k], bead.mat[k]);
             } else if (j < s1 || j >= s2) {
                 // Sidewall section
                 for (int k = 0; k < sidewall.num_layers; k++)
-                    element->AddLayer(sidewall.thickness[k], CH_C_DEG_TO_RAD * sidewall.angle[k], sidewall.mat[k]);
+                    element->AddLayer(sidewall.thickness[k], CH_DEG_TO_RAD * sidewall.angle[k], sidewall.mat[k]);
             } else {
                 // Tread section
                 for (int k = 0; k < tread.num_layers; k++)
-                    element->AddLayer(tread.thickness[k], CH_C_DEG_TO_RAD * tread.angle[k], tread.mat[k]);
+                    element->AddLayer(tread.thickness[k], CH_DEG_TO_RAD * tread.angle[k], tread.mat[k]);
             }
 
             // Set other element properties

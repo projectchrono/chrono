@@ -22,32 +22,32 @@ CH_UPCASTING(ChCollisionShapePoint, ChCollisionShape)
 
 ChCollisionShapePoint::ChCollisionShapePoint() : ChCollisionShape(Type::POINT), radius(0.01) {}
 
-ChCollisionShapePoint::ChCollisionShapePoint(std::shared_ptr<ChMaterialSurface> material,
-                                             const ChVector<>& point,
+ChCollisionShapePoint::ChCollisionShapePoint(std::shared_ptr<ChContactMaterial> material,
+                                             const ChVector3d& point,
                                              double radius)
     : ChCollisionShape(Type::POINT, material) {
     this->point = point;
     this->radius = radius;
 }
 
-void ChCollisionShapePoint::ArchiveOut(ChArchiveOut& marchive) {
+void ChCollisionShapePoint::ArchiveOut(ChArchiveOut& archive_out) {
     // version number
-    marchive.VersionWrite<ChCollisionShapePoint>();
+    archive_out.VersionWrite<ChCollisionShapePoint>();
     // serialize parent class
-    ChCollisionShape::ArchiveOut(marchive);
+    ChCollisionShape::ArchiveOut(archive_out);
     // serialize all member data:
-    marchive << CHNVP(point);
-    marchive << CHNVP(radius);
+    archive_out << CHNVP(point);
+    archive_out << CHNVP(radius);
 }
 
-void ChCollisionShapePoint::ArchiveIn(ChArchiveIn& marchive) {
+void ChCollisionShapePoint::ArchiveIn(ChArchiveIn& archive_in) {
     // version number
-    /*int version =*/marchive.VersionRead<ChCollisionShapePoint>();
+    /*int version =*/archive_in.VersionRead<ChCollisionShapePoint>();
     // deserialize parent class
-    ChCollisionShape::ArchiveIn(marchive);
+    ChCollisionShape::ArchiveIn(archive_in);
     // stream in all member data:
-    marchive >> CHNVP(point);
-    marchive >> CHNVP(radius);
+    archive_in >> CHNVP(point);
+    archive_in >> CHNVP(radius);
 }
 
 }  // end namespace chrono

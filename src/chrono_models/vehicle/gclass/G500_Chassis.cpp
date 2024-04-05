@@ -31,11 +31,11 @@ namespace gclass {
 // Static variables
 // -----------------------------------------------------------------------------
 const double G500_Chassis::m_body_mass = 2354.0;
-const ChVector<> G500_Chassis::m_body_inertiaXX(785.0, 2612.0, 2761.0);
-const ChVector<> G500_Chassis::m_body_inertiaXY(0, 0, 0);
-const ChVector<> G500_Chassis::m_body_COM_loc(-1.65, 0.0, 0.3);
-const ChVector<> G500_Chassis::m_connector_rear_loc(-3.95, 0, -0.05);
-const ChCoordsys<> G500_Chassis::m_driverCsys(ChVector<>(-1.1, 0.7, 0.5), ChQuaternion<>(1, 0, 0, 0));
+const ChVector3d G500_Chassis::m_body_inertiaXX(785.0, 2612.0, 2761.0);
+const ChVector3d G500_Chassis::m_body_inertiaXY(0, 0, 0);
+const ChVector3d G500_Chassis::m_body_COM_loc(-1.65, 0.0, 0.3);
+const ChVector3d G500_Chassis::m_connector_rear_loc(-3.95, 0, -0.05);
+const ChCoordsys<> G500_Chassis::m_driverCsys(ChVector3d(-1.1, 0.7, 0.5), ChQuaternion<>(1, 0, 0, 0));
 
 // -----------------------------------------------------------------------------
 // -----------------------------------------------------------------------------
@@ -58,7 +58,7 @@ G500_Chassis::G500_Chassis(const std::string& name, bool fixed, CollisionType ch
 
     //// TODO:
     //// A more appropriate contact shape from primitives
-    ChVehicleGeometry::BoxShape box1(ChVector<>(-1.0, 0.0, 0.1), ChQuaternion<>(1, 0, 0, 0), ChVector<>(1.6, 1.0, 0.2));
+    ChVehicleGeometry::BoxShape box1(ChVector3d(-1.0, 0.0, 0.1), ChQuaternion<>(1, 0, 0, 0), ChVector3d(1.6, 1.0, 0.2));
 
     m_geometry.m_has_primitives = true;
     m_geometry.m_vis_boxes.push_back(box1);
@@ -82,6 +82,6 @@ G500_Chassis::G500_Chassis(const std::string& name, bool fixed, CollisionType ch
     }
 }
 
-}  // end namespace uaz
+}  // namespace gclass
 }  // end namespace vehicle
 }  // end namespace chrono

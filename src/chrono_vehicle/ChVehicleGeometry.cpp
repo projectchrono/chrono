@@ -30,70 +30,67 @@
 
 #include "chrono_thirdparty/filesystem/path.h"
 
-
 namespace chrono {
 namespace vehicle {
 
 ChVehicleGeometry::ChVehicleGeometry()
     : m_has_primitives(false), m_has_obj(false), m_has_mesh(false), m_has_collision(false), m_has_colors(false) {}
 
-ChVehicleGeometry::BoxShape::BoxShape(const ChVector<>& pos,
+ChVehicleGeometry::BoxShape::BoxShape(const ChVector3d& pos,
                                       const ChQuaternion<>& rot,
-                                      const ChVector<>& dims,
+                                      const ChVector3d& dims,
                                       int matID)
     : m_pos(pos), m_rot(rot), m_dims(dims), m_matID(matID) {}
 
-ChVehicleGeometry::SphereShape::SphereShape(const ChVector<>& pos, double radius, int matID)
+ChVehicleGeometry::SphereShape::SphereShape(const ChVector3d& pos, double radius, int matID)
     : m_pos(pos), m_radius(radius), m_matID(matID) {}
 
-ChVehicleGeometry::CylinderShape::CylinderShape(const ChVector<>& pos,
+ChVehicleGeometry::CylinderShape::CylinderShape(const ChVector3d& pos,
                                                 const ChQuaternion<>& rot,
                                                 double radius,
                                                 double length,
                                                 int matID)
     : m_pos(pos), m_rot(rot), m_radius(radius), m_length(length), m_matID(matID) {}
 
-ChVehicleGeometry::CylinderShape::CylinderShape(const ChVector<>& pos,
-                                                const ChVector<>& axis,
+ChVehicleGeometry::CylinderShape::CylinderShape(const ChVector3d& pos,
+                                                const ChVector3d& axis,
                                                 double radius,
                                                 double length,
                                                 int matID)
     : m_pos(pos), m_radius(radius), m_length(length), m_matID(matID) {
     ChMatrix33<> rot;
-    rot.Set_A_Xdir(axis);
-    m_rot = rot.Get_A_quaternion() * Q_from_AngY(-CH_C_PI_2);
+    rot.SetFromAxisX(axis);
+    m_rot = rot.GetQuaternion() * QuatFromAngleY(-CH_PI_2);
 }
 
-ChVehicleGeometry::LineShape::LineShape(const ChVector<>& pos,
-                                        const ChQuaternion<>& rot,
-                                        std::shared_ptr<geometry::ChLine> line)
+ChVehicleGeometry::LineShape::LineShape(const ChVector3d& pos, const ChQuaternion<>& rot, std::shared_ptr<ChLine> line)
     : m_pos(pos), m_rot(rot), m_line(line) {}
 
 ChVehicleGeometry::ConvexHullsShape::ConvexHullsShape(const std::string& filename, int matID) : m_matID(matID) {
-    geometry::ChTriangleMeshConnected mesh;
+    ChTriangleMeshConnected mesh;
     utils::LoadConvexHulls(vehicle::GetDataFile(filename), mesh, m_hulls);
 }
 
-ChVehicleGeometry::TrimeshShape::TrimeshShape(const ChVector<>& pos,
+ChVehicleGeometry::TrimeshShape::TrimeshShape(const ChVector3d& pos,
                                               const std::string& filename,
                                               double radius,
                                               int matID)
     : m_radius(radius), m_pos(pos), m_matID(matID) {
-    m_trimesh = geometry::ChTriangleMeshConnected::CreateFromWavefrontFile(vehicle::GetDataFile(filename), true, false);
+    m_trimesh = ChTriangleMeshConnected::CreateFromWavefrontFile(vehicle::GetDataFile(filename), true, false);
 }
 
-ChVehicleGeometry::TrimeshShape::TrimeshShape(const ChVector<>& pos,
-                                              std::shared_ptr<geometry::ChTriangleMeshConnected> trimesh,
+ChVehicleGeometry::TrimeshShape::TrimeshShape(const ChVector3d& pos,
+                                              std::shared_ptr<ChTriangleMeshConnected> trimesh,
                                               double radius,
                                               int matID)
     : m_trimesh(trimesh), m_radius(radius), m_pos(pos), m_matID(matID) {}
 
 std::shared_ptr<ChVisualShape> ChVehicleGeometry::AddVisualizationCylinder(std::shared_ptr<ChBody> body,
-                                                                           const ChVector<>& p1,
-                                                                           const ChVector<>& p2,
+                                                                           const ChVector3d& p1,
+                                                                           const ChVector3d& p2,
                                                                            double radius,
                                                                            ChVisualMaterialSharedPtr mat) {
-    geometry::ChLineSegment seg(p1, p2);
+    ChLineSegment seg(p1, p2);
     auto cyl = chrono_types::make_shared<ChVisualShapeCylinder>(radius, seg.GetLength());
     if (mat)
         cyl->AddMaterial(mat);
@@ -146,8 +143,8 @@ void ChVehicleGeometry::CreateVisualizationAssets(std::shared_ptr<ChBody> body,
     }
 
     if (vis == VisualizationType::MESH && m_has_mesh) {
-        auto trimesh = geometry::ChTriangleMeshConnected::CreateFromWavefrontFile(vehicle::GetDataFile(m_vis_mesh_file),
-                                                                                  true, true);
+        auto trimesh =
+            ChTriangleMeshConnected::CreateFromWavefrontFile(vehicle::GetDataFile(m_vis_mesh_file), true, true);
         auto trimesh_shape = chrono_types::make_shared<ChVisualShapeTriangleMesh>();
         trimesh_shape->SetMesh(trimesh);
         trimesh_shape->SetName(filesystem::path(m_vis_mesh_file).stem());
@@ -203,12 +200,12 @@ void ChVehicleGeometry::CreateVisualizationAssets(std::shared_ptr<ChBody> body,
 void ChVehicleGeometry::CreateCollisionShapes(std::shared_ptr<ChBody> body,
                                               int collision_family,
                                               ChContactMethod contact_method) {
-    std::vector<std::shared_ptr<ChMaterialSurface>> materials;
+    std::vector<std::shared_ptr<ChContactMaterial>> materials;
     for (const auto& minfo : m_materials) {
         materials.push_back(minfo.CreateMaterial(contact_method));
     }
 
-    body->SetCollide(true);
+    body->EnableCollision(true);
 
     for (auto& sphere : m_coll_spheres) {
         assert(materials[sphere.m_matID]);
@@ -247,9 +244,9 @@ void ChVehicleGeometry::CreateCollisionShapes(std::shared_ptr<ChBody> body,
     body->GetCollisionModel()->SetFamily(collision_family);
 }
 
-geometry::ChAABB ChVehicleGeometry::CalculateAABB() {
-    ChVector<> amin(+std::numeric_limits<double>::max());
-    ChVector<> amax(-std::numeric_limits<double>::max());
+ChAABB ChVehicleGeometry::CalculateAABB() {
+    ChVector3d amin(+std::numeric_limits<double>::max());
+    ChVector3d amax(-std::numeric_limits<double>::max());
 
     for (const auto& box : m_coll_boxes) {
         ChMatrix33<> A(box.m_rot);
@@ -266,11 +263,11 @@ geometry::ChAABB ChVehicleGeometry::CalculateAABB() {
     }
 
     for (const auto& cyl : m_coll_cylinders) {
-        auto axis = cyl.m_rot.GetYaxis();
+        auto axis = cyl.m_rot.GetAxisY();
         auto p1 = cyl.m_pos - (cyl.m_length / 2) * axis;
         auto p2 = cyl.m_pos + (cyl.m_length / 2) * axis;
-        auto e2 = ChVector<>(1.0) - axis * axis;
-        ChVector<> e(std::sqrt(e2.x()), std::sqrt(e2.y()), std::sqrt(e2.z()));
+        auto e2 = ChVector3d(1.0) - axis * axis;
+        ChVector3d e(std::sqrt(e2.x()), std::sqrt(e2.y()), std::sqrt(e2.z()));
 
         amin = Vmin(amin, p1 - cyl.m_radius * e);
         amax = Vmax(amax, p2 + cyl.m_radius * e);
@@ -291,7 +288,7 @@ geometry::ChAABB ChVehicleGeometry::CalculateAABB() {
         amax = Vmax(amax, bbox.max);
     }
 
-    return geometry::ChAABB(amin, amax);
+    return ChAABB(amin, amax);
 }
 
 // -----------------------------------------------------------------------------

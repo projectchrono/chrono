@@ -32,7 +32,7 @@ class ChRealtimeStepTimer : public ChTimer {
     /// the last call to Spin) is small than the integration step size, this function will spin in place until real time
     /// catches up with the simulation time, thus providing soft real-time capabilities.
     void Spin(double step) {
-        while (GetTimeSecondsIntermediate() < step) {
+        while (GetTimeSeconds() < step) {
         }
         reset();
         start();

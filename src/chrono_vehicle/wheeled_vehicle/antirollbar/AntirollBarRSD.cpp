@@ -27,13 +27,14 @@ namespace vehicle {
 // -----------------------------------------------------------------------------
 // -----------------------------------------------------------------------------
 AntirollBarRSD::AntirollBarRSD(const std::string& filename) : ChAntirollBarRSD("") {
-    Document d; ReadFileJSON(filename, d);
+    Document d;
+    ReadFileJSON(filename, d);
     if (d.IsNull())
         return;
 
     Create(d);
 
-    GetLog() << "Loaded JSON: " << filename.c_str() << "\n";
+    std::cout << "Loaded JSONL " << filename << std::endl;
 }
 
 AntirollBarRSD::AntirollBarRSD(const rapidjson::Document& d) : ChAntirollBarRSD("") {

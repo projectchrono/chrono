@@ -17,26 +17,26 @@
 namespace chrono {
 
 // Register into the object factory, to enable run-time dynamic creation and persistence
-//CH_FACTORY_REGISTER(ChContactContainer) // NO, abstract class!
+// CH_FACTORY_REGISTER(ChContactContainer) // NO, abstract class!
 
 ChContactContainer::ChContactContainer(const ChContactContainer& other) : ChPhysicsItem(other) {
     add_contact_callback = other.add_contact_callback;
     report_contact_callback = other.report_contact_callback;
 }
 
-void ChContactContainer::ArchiveOut(ChArchiveOut& marchive) {
+void ChContactContainer::ArchiveOut(ChArchiveOut& archive_out) {
     // version number
-    marchive.VersionWrite<ChContactContainer>();
+    archive_out.VersionWrite<ChContactContainer>();
     // serialize parent class
-    ChPhysicsItem::ArchiveOut(marchive);
+    ChPhysicsItem::ArchiveOut(archive_out);
     // serialize all member data:
 }
 
-void ChContactContainer::ArchiveIn(ChArchiveIn& marchive) {
+void ChContactContainer::ArchiveIn(ChArchiveIn& archive_in) {
     // version number
-    /*int version =*/ marchive.VersionRead<ChContactContainer>();
+    /*int version =*/archive_in.VersionRead<ChContactContainer>();
     // deserialize parent class
-    ChPhysicsItem::ArchiveIn(marchive);
+    ChPhysicsItem::ArchiveIn(archive_in);
     // stream in all member data:
 }
 

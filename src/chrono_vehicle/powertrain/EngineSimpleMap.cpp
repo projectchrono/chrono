@@ -31,7 +31,7 @@ EngineSimpleMap::EngineSimpleMap(const std::string& filename) : ChEngineSimpleMa
 
     Create(d);
 
-    GetLog() << "Loaded JSON: " << filename.c_str() << "\n";
+    std::cout << "Loaded JSONL " << filename << std::endl;
 }
 
 EngineSimpleMap::EngineSimpleMap(const rapidjson::Document& d) : ChEngineSimpleMap("") {
@@ -43,15 +43,15 @@ void EngineSimpleMap::Create(const rapidjson::Document& d) {
     ChPart::Create(d);
 
     // Read engine data
-    m_max_engine_speed = CH_C_RPM_TO_RPS * d["Maximal Engine Speed RPM"].GetDouble();
+    m_max_engine_speed = CH_RPM_TO_RAD_S * d["Maximal Engine Speed RPM"].GetDouble();
 
     m_engine_map_full.Read(d["Map Full Throttle"]);
     m_engine_map_zero.Read(d["Map Zero Throttle"]);
 }
 
-void EngineSimpleMap::SetEngineTorqueMaps(ChFunction_Recorder& map0, ChFunction_Recorder& mapF) {
-    m_engine_map_zero.Set(map0, CH_C_RPM_TO_RPS, 1.0);
-    m_engine_map_full.Set(mapF, CH_C_RPM_TO_RPS, 1.0);
+void EngineSimpleMap::SetEngineTorqueMaps(ChFunctionInterp& map0, ChFunctionInterp& mapF) {
+    m_engine_map_zero.Set(map0, CH_RPM_TO_RAD_S, 1.0);
+    m_engine_map_full.Set(mapF, CH_RPM_TO_RAD_S, 1.0);
 }
 
 }  // end namespace vehicle

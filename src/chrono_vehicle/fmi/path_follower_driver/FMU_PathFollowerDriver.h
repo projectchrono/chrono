@@ -51,7 +51,13 @@
 
 class FmuComponent : public chrono::FmuChronoComponentBase {
   public:
-    FmuComponent(fmi2String _instanceName, fmi2Type _fmuType, fmi2String _fmuGUID);
+    FmuComponent(fmi2String instanceName,
+                 fmi2Type fmuType,
+                 fmi2String fmuGUID,
+                 fmi2String fmuResourceLocation,
+                 const fmi2CallbackFunctions* functions,
+                 fmi2Boolean visible,
+                 fmi2Boolean loggingOn);
     ~FmuComponent() {}
 
     /// Advance dynamics.
@@ -100,7 +106,7 @@ class FmuComponent : public chrono::FmuChronoComponentBase {
     double target_speed;                ///< current target speed (FMU input)
     chrono::ChFrameMoving<> ref_frame;  ///< vehicle reference frame (FMU input)
 
-    chrono::ChVector<> init_loc;  ///< location of first path point (FMU constant output)
+    chrono::ChVector3d init_loc;  ///< location of first path point (FMU constant output)
     double init_yaw;              ///< orientation of first path segment (FMU constant output)
 
     // Vehicle driver commands (FMU countinuous outputs)
@@ -108,17 +114,23 @@ class FmuComponent : public chrono::FmuChronoComponentBase {
     double throttle;  ///< throttle command, in [0,1]
     double braking;   ///< braking command, in [0,1]
 
-    fmi2Boolean vis;                     ///< enable/disable run-time visualization
-    chrono::ChSystemSMC sys;             ///< containing system (visualization use only)
-    chrono::geometry::ChAABB path_aabb;  ///< path axis-aligned bounding box
-    int iballS;                          ///< ID for sentinel visualization shape
-    int iballT;                          ///< ID for target visualization shape
+    fmi2Boolean vis;           ///< enable/disable run-time visualization
+    chrono::ChSystemSMC sys;   ///< containing system (visualization use only)
+    chrono::ChAABB path_aabb;  ///< path axis-aligned bounding box
+    int iballS;                ///< ID for sentinel visualization shape
+    int iballT;                ///< ID for target visualization shape
 #ifdef CHRONO_IRRLICHT
     std::shared_ptr<chrono::irrlicht::ChVisualSystemIrrlicht> vis_sys;
 #endif
 };
 
 // Create an instance of this FMU
-FmuComponentBase* fmi2Instantiate_getPointer(fmi2String instanceName, fmi2Type fmuType, fmi2String fmuGUID) {
-    return new FmuComponent(instanceName, fmuType, fmuGUID);
+FmuComponentBase* fmi2Instantiate_getPointer(fmi2String instanceName,
+                                             fmi2Type fmuType,
+                                             fmi2String fmuGUID,
+                                             fmi2String fmuResourceLocation,
+                                             const fmi2CallbackFunctions* functions,
+                                             fmi2Boolean visible,
+                                             fmi2Boolean loggingOn) {
+    return new FmuComponent(instanceName, fmuType, fmuGUID, fmuResourceLocation, functions, visible, loggingOn);
 }

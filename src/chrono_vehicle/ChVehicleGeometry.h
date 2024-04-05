@@ -46,26 +46,26 @@ class CH_VEHICLE_API ChVehicleGeometry {
 
     /// Box shape for visualization and/or collision.
     struct CH_VEHICLE_API BoxShape {
-        BoxShape(const ChVector<>& pos, const ChQuaternion<>& rot, const ChVector<>& dims, int matID = -1);
-        ChVector<> m_pos;      ///< center position relative to body
+        BoxShape(const ChVector3d& pos, const ChQuaternion<>& rot, const ChVector3d& dims, int matID = -1);
+        ChVector3d m_pos;      ///< center position relative to body
         ChQuaternion<> m_rot;  ///< orientation relative to body
-        ChVector<> m_dims;     ///< box dimensions
+        ChVector3d m_dims;     ///< box dimensions
         int m_matID;           ///< index in contact material list
     };
 
     /// Sphere shape for visualization and/or collision.
     struct CH_VEHICLE_API SphereShape {
-        SphereShape(const ChVector<>& pos, double radius, int matID = -1);
-        ChVector<> m_pos;  ///< center position relative to body
+        SphereShape(const ChVector3d& pos, double radius, int matID = -1);
+        ChVector3d m_pos;  ///< center position relative to body
         double m_radius;   ///< sphere radius
         int m_matID;       ///< index in contact material list
     };
 
     /// Cylinder shape for visualization and/or collision.
     struct CH_VEHICLE_API CylinderShape {
-        CylinderShape(const ChVector<>& pos, const ChVector<>& axis, double radius, double length, int matID = -1);
-        CylinderShape(const ChVector<>& pos, const ChQuaternion<>& rot, double radius, double length, int matID = -1);
-        ChVector<> m_pos;      ///< center position relative to body
+        CylinderShape(const ChVector3d& pos, const ChVector3d& axis, double radius, double length, int matID = -1);
+        CylinderShape(const ChVector3d& pos, const ChQuaternion<>& rot, double radius, double length, int matID = -1);
+        ChVector3d m_pos;      ///< center position relative to body
         ChQuaternion<> m_rot;  ///< orientation relative to body
         double m_radius;       ///< cylinder radius
         double m_length;       ///< cylinder length
@@ -74,30 +74,30 @@ class CH_VEHICLE_API ChVehicleGeometry {
 
     /// Line shape for visualization.
     struct CH_VEHICLE_API LineShape {
-        LineShape(const ChVector<>& pos, const ChQuaternion<>& rot, std::shared_ptr<geometry::ChLine> line);
-        ChVector<> m_pos;                          ///< position relative to body
-        ChQuaternion<> m_rot;                      ///< orientation relative to body
-        std::shared_ptr<geometry::ChLine> m_line;  ///< line data
+        LineShape(const ChVector3d& pos, const ChQuaternion<>& rot, std::shared_ptr<ChLine> line);
+        ChVector3d m_pos;                ///< position relative to body
+        ChQuaternion<> m_rot;            ///< orientation relative to body
+        std::shared_ptr<ChLine> m_line;  ///< line data
     };
 
     /// Convex hulls shape for collision.
     struct CH_VEHICLE_API ConvexHullsShape {
         ConvexHullsShape(const std::string& filename, int matID = -1);
-        std::vector<std::vector<ChVector<>>> m_hulls;  ///< convex hulls in group
+        std::vector<std::vector<ChVector3d>> m_hulls;  ///< convex hulls in group
         int m_matID;                                   ///< index in contact material list
     };
 
     /// Tri-mesh shape for collision.
     struct CH_VEHICLE_API TrimeshShape {
-        TrimeshShape(const ChVector<>& pos, const std::string& filename, double radius, int matID = -1);
-        TrimeshShape(const ChVector<>& pos,
-                     std::shared_ptr<geometry::ChTriangleMeshConnected> trimesh,
+        TrimeshShape(const ChVector3d& pos, const std::string& filename, double radius, int matID = -1);
+        TrimeshShape(const ChVector3d& pos,
+                     std::shared_ptr<ChTriangleMeshConnected> trimesh,
                      double radius,
                      int matID = -1);
-        std::shared_ptr<geometry::ChTriangleMeshConnected> m_trimesh;  ///< triangular mesh
-        double m_radius;                                               ///< radius of sweeping sphere
-        ChVector<> m_pos;                                              ///< position relative to body
-        int m_matID;                                                   ///< index in contact material list
+        std::shared_ptr<ChTriangleMeshConnected> m_trimesh;  ///< triangular mesh
+        double m_radius;                                     ///< radius of sweeping sphere
+        ChVector3d m_pos;                                    ///< position relative to body
+        int m_matID;                                         ///< index in contact material list
     };
 
     bool m_has_collision;                            ///< true if body has a collision model
@@ -134,13 +134,13 @@ class CH_VEHICLE_API ChVehicleGeometry {
     /// Utility function for adding a cylinder visualization shape defined by the end points and a radius.
     /// This function adds the visualization shape to the body's visual model and returns the shape.
     static std::shared_ptr<ChVisualShape> AddVisualizationCylinder(std::shared_ptr<ChBody> body,
-                                                                   const ChVector<>& p1,
-                                                                   const ChVector<>& p2,
+                                                                   const ChVector3d& p1,
+                                                                   const ChVector3d& p2,
                                                                    double radius,
                                                                    ChVisualMaterialSharedPtr mat = nullptr);
 
     /// Calculate axis-aligned bounding box of all collision shapes.
-    geometry::ChAABB CalculateAABB();
+    ChAABB CalculateAABB();
 };
 
 /// Utility class defining visualization geometry for a vehicle TSDA.

@@ -16,9 +16,10 @@
 
 #include "chrono/solver/ChNlsolver.h"
 #include "chrono/core/ChMatrix.h"
-#include "chrono/core/ChMathematics.h"
 
 namespace chrono {
+
+static const double FD_STEP = 1e-7;
 
 void ChNonlinearSolver::JacobianCompute(void (*m_func)(ChVectorRef mx, ChVectorRef res, void* my_data),
                                         ChVectorRef mx,
@@ -27,7 +28,7 @@ void ChNonlinearSolver::JacobianCompute(void (*m_func)(ChVectorRef mx, ChVectorR
                                         ChMatrixRef mJ,
                                         double diff_step) {
     if (diff_step <= 0)
-        diff_step = BDF_STEP_LOW;
+        diff_step = FD_STEP;
 
     ChVectorDynamic<> dres = res;
     ChVectorDynamic<> dx = mx;
@@ -73,7 +74,7 @@ double ChNonlinearSolver::NewtonRaphson(void (*m_func)(ChVectorRef mx, ChVectorR
         if (m_jacob)
             (*m_jacob)(mx, jac, my_data);
         else {
-            ChNonlinearSolver::JacobianCompute(m_func, mx, res, my_data, jac, BDF_STEP_LOW);
+            ChNonlinearSolver::JacobianCompute(m_func, mx, res, my_data, jac, FD_STEP);
         }
 
         // solve jac * delta = res

@@ -20,66 +20,69 @@
 
 namespace chrono {
 
-/// Chrono wrappers for high-resolution timers.
+/// Chrono wrappers for the high-resolution timer.
 class ChTimer {
   public:
-    ChTimer() {}
+    ChTimer() : m_running(false), m_total(0) {}
 
     /// Start the timer.
-    void start() { m_start = std::chrono::high_resolution_clock::now(); }
+    void start() {
+        m_running = true;
+        m_start = std::chrono::high_resolution_clock::now();
+    }
 
     /// Stop the timer.
+    /// The current duration from the last time the timer was stopped is added to the accumulated time.
+    /// Call reset() to zero out the accumulated time. 
     void stop() {
-        m_end = std::chrono::high_resolution_clock::now();
-        m_total += m_end - m_start;
+        if (m_running) {
+            m_running = false;
+            m_total += std::chrono::high_resolution_clock::now() - m_start;
+        }
     }
 
     /// Reset the total accumulated time (when repeating multiple start/stop).
     void reset() { m_total = std::chrono::duration<double>(0); }
 
     /// Return the time in milliseconds.
-    /// Use start()..stop() before calling this function.
+    /// If the timer was started but not stopped, this function returns the intermediate value and the timer keeps running.
+    /// Otherwise, it returns the total accumulated time when the timer was last stopped.
     unsigned long long GetTimeMilliseconds() const {
+        if (m_running) {
+            auto now = std::chrono::high_resolution_clock::now();
+            return std::chrono::duration_cast<std::chrono::microseconds>(now - m_start).count();
+        }
         return std::chrono::duration_cast<std::chrono::milliseconds>(m_total).count();
     }
 
     /// Return the time in microseconds.
-    /// Use start()..stop() before calling this.
+    /// If the timer was started but not stopped, this function returns the intermediate value and the timer keeps
+    /// running. Otherwise, it returns the timer value when it was stopped.
     unsigned long long GetTimeMicroseconds() const {
+        if (m_running) {
+            auto now = std::chrono::high_resolution_clock::now();
+            return std::chrono::duration_cast<std::chrono::microseconds>(now - m_start).count();
+        }
         return std::chrono::duration_cast<std::chrono::microseconds>(m_total).count();
     }
 
-    /// Return the time in m,illiseconds since start().
-    /// This function does not require a call to stop().
-    unsigned long long GetTimeMillisecondsIntermediate() const {
-        auto now = std::chrono::high_resolution_clock::now();
-        return std::chrono::duration_cast<std::chrono::milliseconds>(now - m_start).count();
-    }
-
-    /// Return the time in microseconds since start().
-    /// This function does not require a call to stop().
-    unsigned long long GetTimeMicrosecondsIntermediate() const {
-        auto now = std::chrono::high_resolution_clock::now();
-        return std::chrono::duration_cast<std::chrono::microseconds>(now - m_start).count();
-    }
-
     /// Return the time in seconds.
-    /// Use start()..stop() before calling this.
-    double GetTimeSeconds() const { return m_total.count(); }
-
-    /// Return the time in seconds since start().
-    /// This function does not require a call to stop().
-    double GetTimeSecondsIntermediate() const {
-        std::chrono::duration<double> int_time = std::chrono::high_resolution_clock::now() - m_start;
-        return int_time.count();
+    /// If the timer was started but not stopped, this function returns the intermediate value and the timer keeps
+    /// running. Otherwise, it returns the timer value when it was stopped.
+    double GetTimeSeconds() const {
+        if (m_running) {
+            std::chrono::duration<double> int_time = std::chrono::high_resolution_clock::now() - m_start;
+            return int_time.count();
+        }
+        return m_total.count();
     }
 
     /// Get the last timer value, in seconds.
     double operator()() const { return GetTimeSeconds(); }
 
   private:
+    bool m_running;
     std::chrono::high_resolution_clock::time_point m_start;
-    std::chrono::high_resolution_clock::time_point m_end;
     std::chrono::duration<double> m_total;
 };
 

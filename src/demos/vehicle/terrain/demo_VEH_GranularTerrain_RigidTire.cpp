@@ -30,7 +30,7 @@ using namespace chrono;
 using namespace chrono::vehicle;
 
 int main(int argc, char* argv[]) {
-    GetLog() << "Copyright (c) 2017 projectchrono.org\nChrono version: " << CHRONO_VERSION << "\n\n";
+    std::cout << "Copyright (c) 2017 projectchrono.org\nChrono version: " << CHRONO_VERSION << std::endl;
 
     // Simulation parameters
     double time_step = 5e-3;  // Integration time step (s)
@@ -38,7 +38,7 @@ int main(int argc, char* argv[]) {
     double time_end = 10;     // Final simulation time (s)
 
     // Terrain parameters
-    ChVector<> center(0, 0, 0);   // Center of initial patch
+    ChVector3d center(0, 0, 0);   // Center of initial patch
     double hdimX = 1.5;           // Length of patch
     double hdimY = 0.75;          // Width of patch
     unsigned int num_layers = 8;  // Requested number of layers
@@ -51,17 +51,17 @@ int main(int argc, char* argv[]) {
     double coh = 20;              // Cohesion pressure (kPa)
 
     // Convert terrain parameters
-    double slope_g = slope * CH_C_DEG_TO_RAD;  // Slope (rad)
-    double r_g = radius / 1000;                // Particle radius (m)
-    double rho_g = rho;                        // Granular material density (kg/m3)
-    double mu_g = mu;                          // Coefficient of friction
-    double area = CH_C_PI * r_g * r_g;         // Particle cross-area (m2)
-    double coh_force = area * (coh * 1e3);     // Cohesion force (N)
-    double coh_g = coh_force * time_step;      // Cohesion impulse (Ns)
+    double slope_g = slope * CH_DEG_TO_RAD;  // Slope (rad)
+    double r_g = radius / 1000;              // Particle radius (m)
+    double rho_g = rho;                      // Granular material density (kg/m3)
+    double mu_g = mu;                        // Coefficient of friction
+    double area = CH_PI * r_g * r_g;         // Particle cross-area (m2)
+    double coh_force = area * (coh * 1e3);   // Cohesion force (N)
+    double coh_g = coh_force * time_step;    // Cohesion impulse (Ns)
 
     // Tire parameters
-    double tire_rad = 0.8;           // Radius (m)
-    double tire_ang_vel = CH_C_2PI;  // Tire angular velocity (rad/s)
+    double tire_rad = 0.8;         // Radius (m)
+    double tire_ang_vel = CH_2PI;  // Tire angular velocity (rad/s)
 
     // Collision envelope (10% of particle radius)
     double envelope = 0.1 * r_g;
@@ -75,12 +75,12 @@ int main(int argc, char* argv[]) {
     // ----------------------------------
 
     // Prepare rotated acceleration vector
-    ChVector<> gravity(0, 0, -9.81);
-    ChVector<> gravityR = ChMatrix33<>(slope_g, ChVector<>(0, 1, 0)) * gravity;
+    ChVector3d gravity(0, 0, -9.81);
+    ChVector3d gravityR = ChMatrix33<>(slope_g, ChVector3d(0, 1, 0)) * gravity;
 
     ChSystemMulticoreNSC* sys = new ChSystemMulticoreNSC();
     sys->SetCollisionSystemType(ChCollisionSystem::Type::BULLET);
-    sys->Set_G_acc(gravity);
+    sys->SetGravitationalAcceleration(gravity);
 
     // Set number of threads
     sys->SetNumThreads(4);
@@ -110,7 +110,7 @@ int main(int argc, char* argv[]) {
     // ------------------
 
     GranularTerrain terrain(sys);
-    auto mat = std::static_pointer_cast<ChMaterialSurfaceNSC>(terrain.GetContactMaterial());
+    auto mat = std::static_pointer_cast<ChContactMaterialNSC>(terrain.GetContactMaterial());
     mat->SetFriction((float)mu_g);
     mat->SetCohesion((float)coh_g);
     terrain.SetContactMaterial(mat);
@@ -125,7 +125,7 @@ int main(int argc, char* argv[]) {
 
     terrain.Initialize(center, 2 * hdimX, 2 * hdimY, num_layers, r_g, rho_g);
     uint actual_num_particles = terrain.GetNumParticles();
-    double terrain_height = terrain.GetHeight(ChVector<>(0, 0, 0));
+    double terrain_height = terrain.GetHeight(ChVector3d(0, 0, 0));
 
     std::cout << "Number of particles: " << actual_num_particles << std::endl;
     std::cout << "Terrain height:      " << terrain_height << std::endl;
@@ -134,34 +134,34 @@ int main(int argc, char* argv[]) {
     // Create the tire
     // ---------------
 
-    ChVector<> tire_center(terrain.GetPatchRear() + tire_rad, (terrain.GetPatchLeft() + terrain.GetPatchRight()) / 2,
+    ChVector3d tire_center(terrain.GetPatchRear() + tire_rad, (terrain.GetPatchLeft() + terrain.GetPatchRight()) / 2,
                            terrain_height + 1.01 * tire_rad);
     auto body = chrono_types::make_shared<ChBody>();
     body->SetMass(500);
-    body->SetInertiaXX(ChVector<>(20, 20, 20));
+    body->SetInertiaXX(ChVector3d(20, 20, 20));
     body->SetPos(tire_center);
-    body->SetRot(Q_from_AngZ(CH_C_PI_2));
+    body->SetRot(QuatFromAngleZ(CH_PI_2));
     sys->AddBody(body);
 
-    auto trimesh = geometry::ChTriangleMeshConnected::CreateFromWavefrontFile(
-        GetChronoDataFile("models/tractor_wheel/tractor_wheel.obj"));
+    auto trimesh =
+        ChTriangleMeshConnected::CreateFromWavefrontFile(GetChronoDataFile("models/tractor_wheel/tractor_wheel.obj"));
 
     auto trimesh_shape = chrono_types::make_shared<ChVisualShapeTriangleMesh>();
     trimesh_shape->SetMesh(trimesh);
     body->AddVisualShape(trimesh_shape);
 
-    auto body_mat = chrono_types::make_shared<ChMaterialSurfaceNSC>();
+    auto body_mat = chrono_types::make_shared<ChContactMaterialNSC>();
 
     auto ct_shape = chrono_types::make_shared<ChCollisionShapeTriangleMesh>(body_mat, trimesh, false, false, 0.01);
     body->AddCollisionShape(ct_shape);
-    ////utils::AddSphereGeometry(body.get(), body_mat, tire_rad, ChVector<>(0, 0, 0));
+    ////utils::AddSphereGeometry(body.get(), body_mat, tire_rad, ChVector3d(0, 0, 0));
 
-    body->SetCollide(true);
+    body->EnableCollision(true);
 
     auto motor = chrono_types::make_shared<ChLinkMotorRotationAngle>();
     motor->SetSpindleConstraint(ChLinkMotorRotation::SpindleConstraint::OLDHAM);
-    motor->SetAngleFunction(chrono_types::make_shared<ChFunction_Ramp>(0, -tire_ang_vel));
-    motor->Initialize(body, terrain.GetGroundBody(), ChFrame<>(tire_center, Q_from_AngX(CH_C_PI_2)));
+    motor->SetAngleFunction(chrono_types::make_shared<ChFunctionRamp>(0, -tire_ang_vel));
+    motor->Initialize(body, terrain.GetGroundBody(), ChFrame<>(tire_center, QuatFromAngleX(CH_PI_2)));
     sys->Add(motor);
 
     std::cout << "Tire location: " << tire_center.x() << " " << tire_center.y() << " " << tire_center.z() << std::endl;
@@ -180,7 +180,7 @@ int main(int argc, char* argv[]) {
     vis.SetWindowSize(1280, 720);
     vis.SetRenderMode(opengl::SOLID);
     vis.Initialize();
-    vis.AddCamera(center - ChVector<>(0, 3, 0), center);
+    vis.AddCamera(center - ChVector3d(0, 3, 0), center);
     vis.SetCameraVertical(CameraVerticalDir::Z);
 
     // ---------------
@@ -195,7 +195,7 @@ int main(int argc, char* argv[]) {
         if (!is_pitched && time > time_pitch) {
             std::cout << time << "    Pitch: " << gravityR.x() << " " << gravityR.y() << " " << gravityR.z()
                       << std::endl;
-            sys->Set_G_acc(gravityR);
+            sys->SetGravitationalAcceleration(gravityR);
             is_pitched = true;
         }
 
@@ -213,14 +213,14 @@ int main(int argc, char* argv[]) {
         if (vis.Run()) {
             switch (cam_type) {
                 case FRONT: {
-                    ChVector<> cam_loc(terrain.GetPatchFront(), -3, 0);
-                    ChVector<> cam_point(terrain.GetPatchFront(), 0, 0);
+                    ChVector3d cam_loc(terrain.GetPatchFront(), -3, 0);
+                    ChVector3d cam_point(terrain.GetPatchFront(), 0, 0);
                     vis.UpdateCamera(cam_loc, cam_point);
                     break;
                 }
                 case TRACK: {
-                    ChVector<> cam_point = body->GetPos();
-                    ChVector<> cam_loc = cam_point + ChVector<>(-3 * tire_rad, -1, 0.6);
+                    ChVector3d cam_point = body->GetPos();
+                    ChVector3d cam_loc = cam_point + ChVector3d(-3 * tire_rad, -1, 0.6);
                     vis.UpdateCamera(cam_loc, cam_point);
                     break;
                 }

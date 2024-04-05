@@ -88,9 +88,9 @@ int main(int argc, char* argv[]) {
     ChSystemFsi& sysFSI = terrain.GetSystemFSI();
 
     // Set SPH parameters and soil material properties
-    const ChVector<> gravity(0, 0, -9.81);
-    sysFSI.Set_G_acc(gravity);
-    sys.Set_G_acc(gravity);
+    const ChVector3d gravity(0, 0, -9.81);
+    sysFSI.SetGravitationalAcceleration(gravity);
+    sys.SetGravitationalAcceleration(gravity);
 
     ChSystemFsi::ElasticMaterialProperties mat_props;
     mat_props.Young_modulus = youngs_modulus;
@@ -102,9 +102,9 @@ int main(int argc, char* argv[]) {
     mat_props.mu_fric_s = friction;
     mat_props.mu_fric_2 = friction;
     mat_props.average_diam = 0.005;
-    mat_props.friction_angle = CH_C_PI / 10;  // default
-    mat_props.dilation_angle = CH_C_PI / 10;  // default
-    mat_props.cohesion_coeff = 0;             // default
+    mat_props.friction_angle = CH_PI / 10;  // default
+    mat_props.dilation_angle = CH_PI / 10;  // default
+    mat_props.cohesion_coeff = 0;           // default
     mat_props.kernel_threshold = 0.8;
 
     sysFSI.SetElasticSPH(mat_props);
@@ -118,7 +118,7 @@ int main(int argc, char* argv[]) {
 
     // Add obstacles
     terrain.AddRigidObstacle(GetChronoDataFile("models/sphere.obj"), 0.25, 5000, ChContactMaterialData(),
-                             ChFrame<>(ChVector<>(0, 0, 0.35)));
+                             ChFrame<>(ChVector3d(0, 0, 0.35)));
 
     // Terrain constructed from height map
     terrain.Construct(vehicle::GetDataFile("terrain/height_maps/bump64.bmp"),  // height map image file
@@ -126,7 +126,7 @@ int main(int argc, char* argv[]) {
                       {0, 0.3},                                                // height range
                       0.3,                                                     // depth
                       3,                                                       // number of BCE layers
-                      ChVector<>(0, 0, 0),                                     // patch center
+                      ChVector3d(0, 0, 0),                                     // patch center
                       0.0,                                                     // patch yaw rotation
                       false                                                    // side walls?
     );
@@ -135,7 +135,7 @@ int main(int argc, char* argv[]) {
     ////terrain.Construct(2, 1,                 // length (X) and width (Y)
     ////                  0.3,                  // depth
     ////                  3,                    // number of BCE layers
-    ////                  ChVector<>(0, 0, 0),  // patch center
+    ////                  ChVector3d(0, 0, 0),  // patch center
     ////                  0.0,                  // patch yaw rotation
     ////                  true                  // side walls?
     ////);
@@ -172,7 +172,7 @@ int main(int argc, char* argv[]) {
 
         visFSI->SetTitle("CRM deformable terrain");
         visFSI->SetSize(1280, 720);
-        visFSI->AddCamera(ChVector<>(2, 1, 0.5), ChVector<>(0, 0, 0));
+        visFSI->AddCamera(ChVector3d(2, 1, 0.5), ChVector3d(0, 0, 0));
         visFSI->SetCameraMoveScale(0.2f);
         visFSI->EnableFluidMarkers(run_time_vis_terrain_sph);
         visFSI->EnableBoundaryMarkers(run_time_vis_terrain_bce);

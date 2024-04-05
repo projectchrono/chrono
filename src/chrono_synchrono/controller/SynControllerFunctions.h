@@ -27,7 +27,7 @@
 #include "chrono_synchrono/flatbuffer/message/SynApproachMessage.h"
 
 #ifdef SENSOR
-#include "chrono_sensor/sensors/ChLidarSensor.h"
+    #include "chrono_sensor/sensors/ChLidarSensor.h"
 #endif
 
 namespace chrono {
@@ -39,20 +39,20 @@ namespace synchrono {
 /// @param p point that the distance is computed from
 /// @param l1 one end of the line
 /// @param l2 other end of the line
-double DistanceToLine(ChVector<> p, ChVector<> l1, ChVector<> l2);
+double DistanceToLine(ChVector3d p, ChVector3d l1, ChVector3d l2);
 
 /// @brief front, back and width define a box, check if pos is inside that box
 /// @param pos vector position to be checked against the box
 /// @param front vector position, line between this and back divides the box into two rectangles
 /// @param back vector defining the back center of the box rectangle
 /// @param width i.e. box_area = width * (front - back).length
-bool IsInsideBox(ChVector<> pos, ChVector<> front, ChVector<> back, double width);
+bool IsInsideBox(ChVector3d pos, ChVector3d front, ChVector3d back, double width);
 
 /// @brief Checks if pos is inside the (assumed convex) quadrilateral defined by vectors for each vertex
-bool IsInsideQuad(ChVector<> pos, ChVector<> sp1, ChVector<> sp2, ChVector<> cp3, ChVector<> cp4);
+bool IsInsideQuad(ChVector3d pos, ChVector3d sp1, ChVector3d sp2, ChVector3d cp3, ChVector3d cp4);
 
 /// @brief Compute barycentric coordinates (u, v, w) for point p with respect to triangle (a, b, c)
-void Barycentric(ChVector<> p, ChVector<> a, ChVector<> b, ChVector<> c, double& u, double& v, double& w);
+void Barycentric(ChVector3d p, ChVector3d a, ChVector3d b, ChVector3d c, double& u, double& v, double& w);
 
 /// @brief update inside_box, dist and current_* variables based on info from a MAP message
 /// @param synmsg must be castable to type SynMAPMessage
@@ -64,7 +64,7 @@ void Barycentric(ChVector<> p, ChVector<> a, ChVector<> b, ChVector<> c, double&
 /// @param[in,out] current_intersection if we're in a box, which intersection that belonged to
 /// @param[in,out] dist if vehicle is in box, how far is the vehicle from the box's stopping point (front of the box)
 void UpdateLaneInfoFromMAP(std::shared_ptr<SynMessage> synmsg,
-                           ChVector<> veh_pos,
+                           ChVector3d veh_pos,
                            const int& rank,
                            bool& inside_box,
                            int& current_lane,
@@ -74,14 +74,14 @@ void UpdateLaneInfoFromMAP(std::shared_ptr<SynMessage> synmsg,
 
 /// @brief update current_lane, inside_box and dist based on info from an Approach Message
 void UpdateInsideBoxFromApproachMessage(std::shared_ptr<SynApproachMessage> app_msg,
-                                        ChVector<> veh_pos,
+                                        ChVector3d veh_pos,
                                         int& current_lane,
                                         bool& inside_box,
                                         double& dist);
 
 /// @brief calls UpdateInsideBoxFromApproachMessage
 void UpdateInsideBoxFromMessage(std::shared_ptr<SynMessage> synmsg,
-                                ChVector<> veh_pos,
+                                ChVector3d veh_pos,
                                 int& current_lane,
                                 bool& inside_box,
                                 double& dist);

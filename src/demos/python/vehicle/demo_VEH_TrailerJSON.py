@@ -28,7 +28,7 @@ def main() :
 
     # Create the vehicle system
     vehicle = veh.WheeledVehicle(vehicle_file, chrono.ChContactMethod_NSC)
-    vehicle.Initialize(chrono.ChCoordsysD(initLoc, initRot))
+    vehicle.Initialize(chrono.ChCoordsysd(initLoc, initRot))
     #vehicle.GetChassis().SetFixed(True)
     vehicle.SetChassisVisualizationType(veh.VisualizationType_MESH)
     vehicle.SetSuspensionVisualizationType(veh.VisualizationType_PRIMITIVES)
@@ -146,10 +146,10 @@ trailer_tire_file = veh.GetDataFile('ultra_tow/UT_TMeasyTire.json')
 rigidterrain_file = veh.GetDataFile('terrain/RigidPlane.json')
 
 # Initial vehicle position
-initLoc = chrono.ChVectorD(0, 0, 0.5)
+initLoc = chrono.ChVector3d(0, 0, 0.5)
 
 # Initial vehicle orientation
-initRot = chrono.ChQuaternionD(1, 0, 0, 0)
+initRot = chrono.ChQuaterniond(1, 0, 0, 0)
 
 # Rigid terrain dimensions
 terrainHeight = 0
@@ -163,7 +163,7 @@ step_size = 2e-3
 render_step_size = 1.0 / 50  # FPS = 50
 
 # Point on chassis tracked by the camera (Irrlicht only)
-trackPoint = chrono.ChVectorD(0.0, 0.0, 1.75)
+trackPoint = chrono.ChVector3d(0.0, 0.0, 1.75)
 
 
 main()

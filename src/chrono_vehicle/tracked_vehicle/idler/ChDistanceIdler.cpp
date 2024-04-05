@@ -44,7 +44,7 @@ class DistanceIdlerFunction : public ChFunction {
 
     virtual DistanceIdlerFunction* Clone() const override { return new DistanceIdlerFunction(*this); }
 
-    virtual double Get_y(double x) const override {
+    virtual double GetVal(double x) const override {
         if (x < m_time)
             return m_init_val + (m_final_val - m_init_val) * (x / m_time);
         return m_final_val;
@@ -69,23 +69,23 @@ ChDistanceIdler::~ChDistanceIdler() {
 }
 
 void ChDistanceIdler::Initialize(std::shared_ptr<ChChassis> chassis,
-                                 const ChVector<>& location,
+                                 const ChVector3d& location,
                                  ChTrackAssembly* track) {
     // Express the idler reference frame in the absolute coordinate system
     ChFrame<> idler_to_abs(location);
-    idler_to_abs.ConcatenatePreTransformation(chassis->GetBody()->GetFrame_REF_to_abs());
+    idler_to_abs.ConcatenatePreTransformation(chassis->GetBody()->GetFrameRefToAbs());
 
     // Transform all points and directions to absolute frame
     m_points.resize(NUM_POINTS);
 
     for (int i = 0; i < NUM_POINTS; i++) {
-        ChVector<> rel_pos = GetLocation(static_cast<PointId>(i));
+        ChVector3d rel_pos = GetLocation(static_cast<PointId>(i));
         m_points[i] = idler_to_abs.TransformPointLocalToParent(rel_pos);
     }
 
     // Create and initialize the carrier body
     m_carrier = chrono_types::make_shared<ChBody>();
-    m_carrier->SetNameString(m_name + "_carrier");
+    m_carrier->SetName(m_name + "_carrier");
     m_carrier->SetPos(m_points[CARRIER]);
     m_carrier->SetRot(idler_to_abs.GetRot());
     m_carrier->SetMass(GetCarrierMass());
@@ -94,9 +94,9 @@ void ChDistanceIdler::Initialize(std::shared_ptr<ChChassis> chassis,
 
     // Create and initialize the revolute joint between carrier and chassis
     m_revolute = chrono_types::make_shared<ChLinkLockRevolute>();
-    m_revolute->SetNameString(m_name + "_carrier_pin");
+    m_revolute->SetName(m_name + "_carrier_pin");
     m_revolute->Initialize(chassis->GetBody(), m_carrier,
-                           ChCoordsys<>(m_points[CARRIER_CHASSIS], idler_to_abs.GetRot() * Q_from_AngX(CH_C_PI_2)));
+                           ChFrame<>(m_points[CARRIER_CHASSIS], idler_to_abs.GetRot() * QuatFromAngleX(CH_PI_2)));
     chassis->GetSystem()->AddLink(m_revolute);
 
     // Linear actuator function
@@ -109,10 +109,10 @@ void ChDistanceIdler::Initialize(std::shared_ptr<ChChassis> chassis,
     // Connect the idler wheel carrier to the arm of the last suspension subsystem.
     // Attach a ramp function to extend the tensioner to desired distance.
     auto arm = track->GetTrackSuspensions().back()->GetCarrierBody();
-    m_tensioner = chrono_types::make_shared<ChLinkLinActuator>();
-    m_tensioner->SetNameString(m_name + "_tensioner");
+    m_tensioner = chrono_types::make_shared<ChLinkLockLinActuator>();
+    m_tensioner->SetName(m_name + "_tensioner");
     m_tensioner->SetActuatorFunction(motfun);
-    m_tensioner->Initialize(arm, m_carrier, false, ChCoordsys<>(m_points[MOTOR_ARM]), ChCoordsys<>(m_points[MOTOR_CARRIER]));
+    m_tensioner->Initialize(arm, m_carrier, false, ChFrame<>(m_points[MOTOR_ARM]), ChFrame<>(m_points[MOTOR_CARRIER]));
     chassis->GetSystem()->AddLink(m_tensioner);
 
     // Invoke the base class implementation. This initializes the associated idler wheel.
@@ -125,19 +125,19 @@ void ChDistanceIdler::InitializeInertiaProperties() {
 }
 
 void ChDistanceIdler::UpdateInertiaProperties() {
-    m_parent->GetTransform().TransformLocalToParent(ChFrame<>(m_rel_loc, QUNIT), m_xform);
+    m_xform = m_parent->GetTransform().TransformLocalToParent(ChFrame<>(m_rel_loc, QUNIT));
 
     // Calculate COM and inertia expressed in global frame
     utils::CompositeInertia composite;
-    composite.AddComponent(m_carrier->GetFrame_COG_to_abs(), m_carrier->GetMass(), m_carrier->GetInertia());
-    composite.AddComponent(m_idler_wheel->GetBody()->GetFrame_COG_to_abs(), m_idler_wheel->GetBody()->GetMass(),
+    composite.AddComponent(m_carrier->GetFrameCOMToAbs(), m_carrier->GetMass(), m_carrier->GetInertia());
+    composite.AddComponent(m_idler_wheel->GetBody()->GetFrameCOMToAbs(), m_idler_wheel->GetBody()->GetMass(),
                            m_idler_wheel->GetBody()->GetInertia());
 
     // Express COM and inertia in subsystem reference frame
-    m_com.coord.pos = m_xform.TransformPointParentToLocal(composite.GetCOM());
-    m_com.coord.rot = QUNIT;
+    m_com.SetPos(m_xform.TransformPointParentToLocal(composite.GetCOM()));
+    m_com.SetRot(QUNIT);
 
-    m_inertia = m_xform.GetA().transpose() * composite.GetInertia() * m_xform.GetA();
+    m_inertia = m_xform.GetRotMat().transpose() * composite.GetInertia() * m_xform.GetRotMat();
 }
 
 // -----------------------------------------------------------------------------
@@ -158,8 +158,8 @@ void ChDistanceIdler::AddVisualizationAssets(VisualizationType vis) {
     // Carrier-chassis revolute joint
     {
         auto cyl = ChVehicleGeometry::AddVisualizationCylinder(m_carrier,                                    //
-                                                               ChVector<>(pR.x(), pC.y() - radius, pR.z()),  //
-                                                               ChVector<>(pR.x(), pC.y() + radius, pR.z()),  //
+                                                               ChVector3d(pR.x(), pC.y() - radius, pR.z()),  //
+                                                               ChVector3d(pR.x(), pC.y() + radius, pR.z()),  //
                                                                3 * radius);
         cyl->SetColor(carrier_col);
     }
@@ -167,24 +167,24 @@ void ChDistanceIdler::AddVisualizationAssets(VisualizationType vis) {
     // Carrier-wheel revolute joint
     {
         auto cyl = ChVehicleGeometry::AddVisualizationCylinder(m_carrier,                                    //
-                                                               ChVector<>(pW.x(), pC.y() - radius, pW.z()),  //
-                                                               ChVector<>(pW.x(), pC.y() + radius, pW.z()),  //
+                                                               ChVector3d(pW.x(), pC.y() - radius, pW.z()),  //
+                                                               ChVector3d(pW.x(), pC.y() + radius, pW.z()),  //
                                                                2 * radius);
         cyl->SetColor(carrier_col);
     }
 
     {
         auto cyl = ChVehicleGeometry::AddVisualizationCylinder(m_carrier,                           //
-                                                               ChVector<>(pR.x(), pC.y(), pR.z()),  //
-                                                               ChVector<>(pW.x(), pC.y(), pW.z()),  //
+                                                               ChVector3d(pR.x(), pC.y(), pR.z()),  //
+                                                               ChVector3d(pW.x(), pC.y(), pW.z()),  //
                                                                radius);
         cyl->SetColor(carrier_col);
     }
 
     {
         auto cyl = ChVehicleGeometry::AddVisualizationCylinder(m_carrier,                           //
-                                                               ChVector<>(pW.x(), pC.y(), pW.z()),  //
-                                                               ChVector<>(pM.x(), pC.y(), pM.z()),  //
+                                                               ChVector3d(pW.x(), pC.y(), pW.z()),  //
+                                                               ChVector3d(pM.x(), pC.y(), pM.z()),  //
                                                                radius);
         cyl->SetColor(carrier_col);
     }
@@ -203,12 +203,12 @@ void ChDistanceIdler::RemoveVisualizationAssets() {
 // -----------------------------------------------------------------------------
 void ChDistanceIdler::LogConstraintViolations() {
     ChVectorDynamic<> C = m_revolute->GetConstraintViolation();
-    GetLog() << "  Carrier-chassis revolute\n";
-    GetLog() << "  " << C(0) << "  ";
-    GetLog() << "  " << C(1) << "  ";
-    GetLog() << "  " << C(2) << "  ";
-    GetLog() << "  " << C(3) << "  ";
-    GetLog() << "  " << C(4) << "\n";
+    std::cout << "  Carrier-chassis revolute\n";
+    std::cout << "  " << C(0) << "  ";
+    std::cout << "  " << C(1) << "  ";
+    std::cout << "  " << C(2) << "  ";
+    std::cout << "  " << C(3) << "  ";
+    std::cout << "  " << C(4) << "\n";
 
     m_idler_wheel->LogConstraintViolations();
 }

@@ -24,36 +24,40 @@ ChVisualShapeBarrel::ChVisualShapeBarrel() {
     SetMutable(false);
 }
 
-ChVisualShapeBarrel::ChVisualShapeBarrel(double Y_low, double Y_high, double axis_vert, double axis_hor, double R_offset)
+ChVisualShapeBarrel::ChVisualShapeBarrel(double Y_low,
+                                         double Y_high,
+                                         double axis_vert,
+                                         double axis_hor,
+                                         double R_offset)
     : Hlow(Y_low), Hsup(Y_high), Rvert(axis_vert / 2), Rhor(axis_hor / 2), Roffset(R_offset) {
     SetMutable(false);
 }
 
-void ChVisualShapeBarrel::ArchiveOut(ChArchiveOut& marchive) {
+void ChVisualShapeBarrel::ArchiveOut(ChArchiveOut& archive_out) {
     // version number
-    marchive.VersionWrite<ChVisualShapeBarrel>();
+    archive_out.VersionWrite<ChVisualShapeBarrel>();
     // serialize parent class
-    ChVisualShape::ArchiveOut(marchive);
+    ChVisualShape::ArchiveOut(archive_out);
     // serialize all member data:
-    marchive << CHNVP(Hlow);
-    marchive << CHNVP(Hsup);
-    marchive << CHNVP(Rvert);
-    marchive << CHNVP(Rhor);
-    marchive << CHNVP(Roffset);
+    archive_out << CHNVP(Hlow);
+    archive_out << CHNVP(Hsup);
+    archive_out << CHNVP(Rvert);
+    archive_out << CHNVP(Rhor);
+    archive_out << CHNVP(Roffset);
 }
 
 /// Method to allow de serialization of transient data from archives.
-void ChVisualShapeBarrel::ArchiveIn(ChArchiveIn& marchive) {
+void ChVisualShapeBarrel::ArchiveIn(ChArchiveIn& archive_in) {
     // version number
-    /*int version =*/marchive.VersionRead<ChVisualShapeBarrel>();
+    /*int version =*/archive_in.VersionRead<ChVisualShapeBarrel>();
     // deserialize parent class
-    ChVisualShape::ArchiveIn(marchive);
+    ChVisualShape::ArchiveIn(archive_in);
     // stream in all member data:
-    marchive >> CHNVP(Hlow);
-    marchive >> CHNVP(Hsup);
-    marchive >> CHNVP(Rvert);
-    marchive >> CHNVP(Rhor);
-    marchive >> CHNVP(Roffset);
+    archive_in >> CHNVP(Hlow);
+    archive_in >> CHNVP(Hsup);
+    archive_in >> CHNVP(Rvert);
+    archive_in >> CHNVP(Rhor);
+    archive_in >> CHNVP(Roffset);
 }
 
 }  // end namespace chrono

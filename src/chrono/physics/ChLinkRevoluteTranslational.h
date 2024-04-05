@@ -27,7 +27,6 @@ namespace chrono {
 /// orthogonal directions on the second body (the translational side),
 /// and a distance.
 class ChApi ChLinkRevoluteTranslational : public ChLink {
-
   public:
     ChLinkRevoluteTranslational();
     ChLinkRevoluteTranslational(const ChLinkRevoluteTranslational& other);
@@ -37,43 +36,46 @@ class ChApi ChLinkRevoluteTranslational : public ChLink {
     virtual ChLinkRevoluteTranslational* Clone() const override { return new ChLinkRevoluteTranslational(*this); }
 
     /// Get the number of (bilateral) constraints introduced by this joint.
-    virtual int GetDOC_c() override { return 4; }
-
-    /// Get the point on Body1 (revolute side), expressed in Body1 coordinate system.
-    const ChVector<>& GetPoint1Rel() const { return m_p1; }
-    /// Get the direction of the revolute joint, expressed in Body1 coordinate system.
-    const ChVector<>& GetDirZ1Rel() const { return m_z1; }
-    /// Get the point on Body2 (spherical side), expressed in Body2 coordinate system.
-    const ChVector<>& GetPoint2Rel() const { return m_p2; }
-    /// Get the first direction of the translational joint, expressed in Body2 coordinate system.
-    /// The translational axis is orthogonal to the direction.
-    const ChVector<>& GetDirX2Rel() const { return m_x2; }
-    /// Get the second direction of the translational joint, expressed in Body2 coordinate system.
-    /// The translational axis is orthogonal to the direction.
-    const ChVector<>& GetDirY2Rel() const { return m_y2; }
+    virtual unsigned int GetNumConstraintsBilateral() override { return 4; }
 
     /// Get the imposed distance (length of massless connector).
     double GetImposedDistance() const { return m_dist; }
+
     /// Get the current distance between the two points.
     double GetCurrentDistance() const { return m_cur_dist; }
 
-    /// Get the point on Body1 (revolute side), expressed in absolute coordinate system.
-    ChVector<> GetPoint1Abs() const { return Body1->TransformPointLocalToParent(m_p1); }
+    /// Get the point on m_body1 (revolute side), expressed in absolute coordinate system.
+    ChVector3d GetPoint1Abs() const { return m_body1->TransformPointLocalToParent(m_p1); }
+
     /// Get the direction of the revolute joint, expressed in absolute coordinate system.
-    ChVector<> GetDirZ1Abs() const { return Body1->TransformDirectionLocalToParent(m_z1); }
-    /// Get the point on Body2 (translational side), expressed in absolute coordinate system.
-    ChVector<> GetPoint2Abs() const { return Body2->TransformPointLocalToParent(m_p2); }
+    ChVector3d GetDirZ1Abs() const { return m_body1->TransformDirectionLocalToParent(m_z1); }
+
+    /// Get the point on m_body2 (translational side), expressed in absolute coordinate system.
+    ChVector3d GetPoint2Abs() const { return m_body2->TransformPointLocalToParent(m_p2); }
+
     /// Get the first direction of the translational joint, expressed in absolute coordinate system.
     /// The translational axis is orthogonal to the direction.
-    ChVector<> GetDirX2Abs() const { return Body2->TransformDirectionLocalToParent(m_x2); }
+    ChVector3d GetDirX2Abs() const { return m_body2->TransformDirectionLocalToParent(m_x2); }
+
     /// Get the second direction of the translational joint, expressed in absolute coordinate system.
     /// The translational axis is orthogonal to the direction.
-    ChVector<> GetDirY2Abs() const { return Body2->TransformDirectionLocalToParent(m_y2); }
+    ChVector3d GetDirY2Abs() const { return m_body2->TransformDirectionLocalToParent(m_y2); }
 
-    /// Get the link coordinate system, expressed relative to Body2 (translational side).
-    /// This represents the 'main' reference of the link: reaction forces
-    /// and reaction torques are reported in this coordinate system.
-    virtual ChCoordsys<> GetLinkRelativeCoords() override;
+    /// Get the link frame 1, relative to body 1.
+    /// This frame, defined on body 1 (the revolute side), is centered at the revolute joint location, has its X axis
+    /// along the joint connector, and its Z axis aligned with the revolute axis.
+    virtual ChFrame<> GetFrame1Rel() const override;
+
+    /// Get the link frame 2, relative to body 2.
+    virtual ChFrame<> GetFrame2Rel() const override;
+
+    /// Get the reaction force and torque on the 1st body, expressed in the link frame 1.
+    /// NOT YET IMPLEMENTED!
+    virtual ChWrenchd GetReaction1() const override;
+
+    /// Get the reaction force and torque on the 2nd body, expressed in the link frame 2.
+    /// NOT YET IMPLEMENTED!
+    virtual ChWrenchd GetReaction2() const override;
 
     /// Get the joint violation (residuals of the constraint equations)
     virtual ChVectorDynamic<> GetConstraintViolation() const override { return m_C; }
@@ -101,27 +103,51 @@ class ChApi ChLinkRevoluteTranslational : public ChLink {
     void Initialize(std::shared_ptr<ChBody> body1,  ///< first frame (revolute side)
                     std::shared_ptr<ChBody> body2,  ///< second frame (spherical side)
                     bool local,                     ///< true if data given in body local frames
-                    const ChVector<>& p1,           ///< point on first frame (revolute side)
-                    const ChVector<>& dirZ1,        ///< direction of revolute on first frame
-                    const ChVector<>& p2,           ///< point on second frame (translational side)
-                    const ChVector<>& dirX2,        ///< first direction of translational joint
-                    const ChVector<>& dirY2,        ///< second direction of translational joint
+                    const ChVector3d& p1,           ///< point on first frame (revolute side)
+                    const ChVector3d& dirZ1,        ///< direction of revolute on first frame
+                    const ChVector3d& p2,           ///< point on second frame (translational side)
+                    const ChVector3d& dirX2,        ///< first direction of translational joint
+                    const ChVector3d& dirY2,        ///< second direction of translational joint
                     bool auto_distance = true,      ///< true if imposed distance equal to distance between axes
                     double distance = 0             ///< imposed distance (used only if auto_distance = false)
     );
-
-    //
-    // UPDATING FUNCTIONS
-    //
 
     /// Perform the update of this joint at the specified time: compute jacobians,
     /// constraint violations, etc. and cache in internal structures
     virtual void Update(double time, bool update_assets = true) override;
 
-    //
-    // STATE FUNCTIONS
-    //
-    // (override/implement interfaces for global state vectors, see ChPhysicsItem for comments.)
+    /// Method to allow serialization of transient data to archives.
+    virtual void ArchiveOut(ChArchiveOut& archive_out) override;
+
+    /// Method to allow deserialization of transient data from archives.
+    virtual void ArchiveIn(ChArchiveIn& archive_in) override;
+
+  private:
+    ChVector3d m_p1;  ///< point on first frame (in local frame)
+    ChVector3d m_p2;  ///< point on second frame (in local frame)
+    ChVector3d m_z1;  ///< direction of revolute on first frame (in local frame)
+    ChVector3d m_x2;  ///< first direction of translational on second frame (in local frame)
+    ChVector3d m_y2;  ///< first direction of translational on second frame (in local frame)
+    double m_dist;    ///< imposed distance between rotational and translation axes
+
+    double m_cur_par1;  ///< actual value of par1 constraint
+    double m_cur_par2;  ///< actual value of par2 constraint
+    double m_cur_dot;   ///< actual value of dot constraint
+    double m_cur_dist;  ///< actual distance between pos1 and pos2
+
+    ChConstraintTwoBodies m_cnstr_par1;  ///< constraint: z1 perpendicualr to x2
+    ChConstraintTwoBodies m_cnstr_par2;  ///< constraint: z1 perpendicular to y2
+    ChConstraintTwoBodies m_cnstr_dot;   ///< constraint: d12 perpendicular to z1
+    ChConstraintTwoBodies m_cnstr_dist;  ///< constraint: distance between axes
+
+    ChVectorN<double, 4> m_C;  ///< current constraint violations
+
+    // Note that the order of the Lagrange multipliers corresponds to the following
+    // order of the constraints: par1, par2, dot, dist.
+    double m_multipliers[4];  ///< Lagrange multipliers
+
+    // Solver and integrator interface functions
+
     virtual void IntStateGatherReactions(const unsigned int off_L, ChVectorDynamic<>& L) override;
     virtual void IntStateScatterReactions(const unsigned int off_L, const ChVectorDynamic<>& L) override;
     virtual void IntLoadResidual_CqL(const unsigned int off_L,
@@ -144,64 +170,17 @@ class ChApi ChLinkRevoluteTranslational : public ChLink {
                                    const unsigned int off_L,
                                    ChVectorDynamic<>& L) override;
 
-    //
-    // SOLVER INTERFACE
-    //
-
     virtual void InjectConstraints(ChSystemDescriptor& descriptor) override;
     virtual void ConstraintsBiReset() override;
     virtual void ConstraintsBiLoad_C(double factor = 1, double recovery_clamp = 0.1, bool do_clamp = false) override;
-    virtual void ConstraintsLoadJacobians() override;
+    virtual void LoadConstraintJacobians() override;
     virtual void ConstraintsFetch_react(double factor = 1) override;
-
-    //
-    // EXTRA REACTION FORCE & TORQUE FUNCTIONS
-    //
-
-    ChVector<> Get_react_force_body1();
-    ChVector<> Get_react_torque_body1();
-    ChVector<> Get_react_force_body2();
-    ChVector<> Get_react_torque_body2();
-
-    //
-    // SERIALIZATION
-    //
-
-    /// Method to allow serialization of transient data to archives.
-    virtual void ArchiveOut(ChArchiveOut& marchive) override;
-
-    /// Method to allow deserialization of transient data from archives.
-    virtual void ArchiveIn(ChArchiveIn& marchive) override;
-
-  private:
-    ChVector<> m_p1;  ///< point on first frame (in local frame)
-    ChVector<> m_p2;  ///< point on second frame (in local frame)
-    ChVector<> m_z1;  ///< direction of revolute on first frame (in local frame)
-    ChVector<> m_x2;  ///< first direction of translational on second frame (in local frame)
-    ChVector<> m_y2;  ///< first direction of translational on second frame (in local frame)
-    double m_dist;    ///< imposed distance between rotational and translation axes
-
-    double m_cur_par1;  ///< actual value of par1 constraint
-    double m_cur_par2;  ///< actual value of par2 constraint
-    double m_cur_dot;   ///< actual value of dot constraint
-    double m_cur_dist;  ///< actual distance between pos1 and pos2
-
-    ChConstraintTwoBodies m_cnstr_par1;  ///< constraint: z1 perpendicualr to x2
-    ChConstraintTwoBodies m_cnstr_par2;  ///< constraint: z1 perpendicular to y2
-    ChConstraintTwoBodies m_cnstr_dot;   ///< constraint: d12 perpendicular to z1
-    ChConstraintTwoBodies m_cnstr_dist;  ///< constraint: distance between axes
-
-    ChVectorN<double, 4> m_C;  ///< current constraint violations
-
-    // Note that the order of the Lagrange multipliers corresponds to the following
-    // order of the constraints: par1, par2, dot, dist.
-    double m_multipliers[4];  ///< Lagrange multipliers
 
   public:
     EIGEN_MAKE_ALIGNED_OPERATOR_NEW
 };
 
-CH_CLASS_VERSION(ChLinkRevoluteTranslational,0)
+CH_CLASS_VERSION(ChLinkRevoluteTranslational, 0)
 
 }  // end namespace chrono
 

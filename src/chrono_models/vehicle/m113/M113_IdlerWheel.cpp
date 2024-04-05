@@ -33,7 +33,7 @@ namespace m113 {
 // Static variables
 // -----------------------------------------------------------------------------
 const double M113_IdlerWheel::m_wheel_mass = 25.76;
-const ChVector<> M113_IdlerWheel::m_wheel_inertia(0.618, 1.12, 0.618);
+const ChVector3d M113_IdlerWheel::m_wheel_inertia(0.618, 1.12, 0.618);
 const double M113_IdlerWheel::m_wheel_radius = 0.255;
 const double M113_IdlerWheel::m_wheel_width = 0.181;
 const double M113_IdlerWheel::m_wheel_gap = 0.051;
@@ -55,7 +55,7 @@ void M113_IdlerWheel::CreateContactMaterial(ChContactMethod contact_method) {
 
 void M113_IdlerWheel::AddVisualizationAssets(VisualizationType vis) {
     if (vis == VisualizationType::MESH) {
-        auto trimesh = geometry::ChTriangleMeshConnected::CreateFromWavefrontFile(GetMeshFile(), false, false);
+        auto trimesh = ChTriangleMeshConnected::CreateFromWavefrontFile(GetMeshFile(), false, false);
         auto trimesh_shape = chrono_types::make_shared<ChVisualShapeTriangleMesh>();
         trimesh_shape->SetMesh(trimesh);
         trimesh_shape->SetName(filesystem::path(GetMeshFile()).stem());

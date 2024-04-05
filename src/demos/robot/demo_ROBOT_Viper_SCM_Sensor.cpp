@@ -28,6 +28,7 @@
 #include "chrono_vehicle/terrain/SCMTerrain.h"
 
 #include "chrono_sensor/sensors/ChLidarSensor.h"
+#include "chrono_sensor/sensors/ChCameraSensor.h"
 #include "chrono_sensor/ChSensorManager.h"
 #include "chrono_sensor/filters/ChFilterAccess.h"
 #include "chrono_sensor/filters/ChFilterPCfromDepth.h"
@@ -55,7 +56,6 @@ using namespace chrono::vsg3d;
 
 using namespace chrono;
 using namespace chrono::irrlicht;
-using namespace chrono::geometry;
 using namespace chrono::viper;
 using namespace chrono::sensor;
 
@@ -86,7 +86,7 @@ ChVisualSystem::Type vis_type = ChVisualSystem::Type::VSG;
 // Note that the location is given in the SCM reference frame.
 class MySoilParams : public vehicle::SCMTerrain::SoilParametersCallback {
   public:
-    virtual void Set(const ChVector<>& loc,
+    virtual void Set(const ChVector3d& loc,
                      double& Bekker_Kphi,
                      double& Bekker_Kc,
                      double& Bekker_n,
@@ -110,7 +110,7 @@ class MySoilParams : public vehicle::SCMTerrain::SoilParametersCallback {
 bool use_custom_mat = false;
 
 // Return customized wheel material parameters
-std::shared_ptr<ChMaterialSurface> CustomWheelMaterial(ChContactMethod contact_method) {
+std::shared_ptr<ChContactMaterial> CustomWheelMaterial(ChContactMethod contact_method) {
     float mu = 0.4f;   // coefficient of friction
     float cr = 0.1f;   // coefficient of restitution
     float Y = 2e7f;    // Young's modulus
@@ -122,13 +122,13 @@ std::shared_ptr<ChMaterialSurface> CustomWheelMaterial(ChContactMethod contact_m
 
     switch (contact_method) {
         case ChContactMethod::NSC: {
-            auto matNSC = chrono_types::make_shared<ChMaterialSurfaceNSC>();
+            auto matNSC = chrono_types::make_shared<ChContactMaterialNSC>();
             matNSC->SetFriction(mu);
             matNSC->SetRestitution(cr);
             return matNSC;
         }
         case ChContactMethod::SMC: {
-            auto matSMC = chrono_types::make_shared<ChMaterialSurfaceSMC>();
+            auto matSMC = chrono_types::make_shared<ChContactMaterialSMC>();
             matSMC->SetFriction(mu);
             matSMC->SetRestitution(cr);
             matSMC->SetYoungModulus(Y);
@@ -140,12 +140,12 @@ std::shared_ptr<ChMaterialSurface> CustomWheelMaterial(ChContactMethod contact_m
             return matSMC;
         }
         default:
-            return std::shared_ptr<ChMaterialSurface>();
+            return std::shared_ptr<ChContactMaterial>();
     }
 }
 
 int main(int argc, char* argv[]) {
-    GetLog() << "Copyright (c) 2017 projectchrono.org\nChrono version: " << CHRONO_VERSION << "\n\n";
+    std::cout << "Copyright (c) 2017 projectchrono.org\nChrono version: " << CHRONO_VERSION << std::endl;
 
     // Global parameter for moving patch size:
     double wheel_range = 0.5;
@@ -154,7 +154,7 @@ int main(int argc, char* argv[]) {
     // Create a Chrono physical system and associated collision system
     ChSystemNSC sys;
     sys.SetCollisionSystemType(ChCollisionSystem::Type::BULLET);
-    sys.Set_G_acc(ChVector<>(0, 0, -9.81));
+    sys.SetGravitationalAcceleration(ChVector3d(0, 0, -9.81));
 
     // Initialize output
     if (output) {
@@ -163,7 +163,7 @@ int main(int argc, char* argv[]) {
             return 1;
         }
     }
-    utils::CSV_writer csv(" ");
+    utils::ChWriterCSV csv(" ");
 
     // Create the rover
     auto driver = chrono_types::make_shared<ViperDCMotorControl>();
@@ -174,7 +174,7 @@ int main(int argc, char* argv[]) {
     if (use_custom_mat)
         viper.SetWheelContactMaterial(CustomWheelMaterial(ChContactMethod::NSC));
 
-    viper.Initialize(ChFrame<>(ChVector<>(-5, 0, -0.2), QUNIT));
+    viper.Initialize(ChFrame<>(ChVector3d(-5, 0, -0.2), QUNIT));
 
     // Get wheels and bodies to set up SCM patches
     auto Wheel_1 = viper.GetWheel(ViperWheelID::V_LF)->GetBody();
@@ -185,7 +185,17 @@ int main(int argc, char* argv[]) {
 
     // Obstacles
     std::vector<std::shared_ptr<ChBodyAuxRef>> rocks;
-    std::shared_ptr<ChMaterialSurface> rockSufaceMaterial = ChMaterialSurface::DefaultMaterial(sys.GetContactMethod());
+    std::shared_ptr<ChContactMaterial> rockSufaceMaterial = ChContactMaterial::DefaultMaterial(sys.GetContactMethod());
+
+    // rock material
+    auto rock_vis_mat = chrono_types::make_shared<ChVisualMaterial>();
+    rock_vis_mat->SetAmbientColor({1,1,1}); //0.65f,0.65f,0.65f
+    rock_vis_mat->SetDiffuseColor({1,1,1});
+    rock_vis_mat->SetSpecularColor({1,1,1});
+    rock_vis_mat->SetUseSpecularWorkflow(true);
+    rock_vis_mat->SetRoughness(1.0f);
+    rock_vis_mat->SetUseHapke(true);
+    rock_vis_mat->SetHapkeParameters(0.32357f, 0.23955f, 0.30452f, 1.80238f, 0.07145f, 0.3f,23.4f*(CH_PI/180));
 
     // Add pre-defined 20 rocks
     for (int i = 0; i < 20; i++) {
@@ -201,84 +211,93 @@ int main(int argc, char* argv[]) {
 
         double scale_ratio = 0.15;
         auto rock_mmesh = ChTriangleMeshConnected::CreateFromWavefrontFile(rock_obj_path, false, true);
-        rock_mmesh->Transform(ChVector<>(0, 0, 0), ChMatrix33<>(scale_ratio));  // scale to a different size
+        rock_mmesh->Transform(ChVector3d(0, 0, 0), ChMatrix33<>(scale_ratio));  // scale to a different size
         rock_mmesh->RepairDuplicateVertexes(1e-9);                              // if meshes are not watertight
 
         // compute mass inertia from mesh
         double mmass;
-        ChVector<> mcog;
+        ChVector3d mcog;
         ChMatrix33<> minertia;
         double mdensity = 8000;  // paramsH->bodyDensity;
         rock_mmesh->ComputeMassProperties(true, mmass, mcog, minertia);
         ChMatrix33<> principal_inertia_rot;
-        ChVector<> principal_I;
+        ChVector3d principal_I;
         ChInertiaUtils::PrincipalInertia(minertia, principal_I, principal_inertia_rot);
 
         // set the abs orientation, position and velocity
         auto rock_Body = chrono_types::make_shared<ChBodyAuxRef>();
-        ChQuaternion<> rock_rot = Q_from_AngX(CH_C_PI / 2);
-        ChVector<> rock_pos;
+        ChQuaternion<> rock_rot = QuatFromAngleX(CH_PI / 2);
+        ChVector3d rock_pos;
 
         // predefined customized location
         if (i == 0)
-            rock_pos = ChVector<>(1.0, -0.5, 0.0);
+            rock_pos = ChVector3d(1.0, -0.5, 0.0);
         else if (i == 1)
-            rock_pos = ChVector<>(-0.5, -0.5, 0.0);
+            rock_pos = ChVector3d(-0.5, -0.5, 0.0);
         else if (i == 2)
-            rock_pos = ChVector<>(2.4, 0.4, 0.0);
+            rock_pos = ChVector3d(2.4, 0.4, 0.0);
         else if (i == 3)
-            rock_pos = ChVector<>(0.6, 1.0, 0.0);
+            rock_pos = ChVector3d(0.6, 1.0, 0.0);
         else if (i == 4)
-            rock_pos = ChVector<>(5.5, 1.2, 0.0);
+            rock_pos = ChVector3d(5.5, 1.2, 0.0);
         else if (i == 5)
-            rock_pos = ChVector<>(1.2, 2.1, 0.0);
+            rock_pos = ChVector3d(1.2, 2.1, 0.0);
         else if (i == 6)
-            rock_pos = ChVector<>(-0.3, -2.1, 0.0);
+            rock_pos = ChVector3d(-0.3, -2.1, 0.0);
         else if (i == 7)
-            rock_pos = ChVector<>(0.4, 2.5, 0.0);
+            rock_pos = ChVector3d(0.4, 2.5, 0.0);
         else if (i == 8)
-            rock_pos = ChVector<>(4.2, 1.4, 0.0);
+            rock_pos = ChVector3d(4.2, 1.4, 0.0);
         else if (i == 9)
-            rock_pos = ChVector<>(5.0, 2.4, 0.0);
+            rock_pos = ChVector3d(5.0, 2.4, 0.0);
         else if (i == 10)
-            rock_pos = ChVector<>(0.6, -1.2, 0.0);
+            rock_pos = ChVector3d(0.6, -1.2, 0.0);
         else if (i == 11)
-            rock_pos = ChVector<>(4.8, -1.2, 0.0);
+            rock_pos = ChVector3d(4.8, -1.2, 0.0);
         else if (i == 12)
-            rock_pos = ChVector<>(2.5, 2.2, 0.0);
+            rock_pos = ChVector3d(2.5, 2.2, 0.0);
         else if (i == 13)
-            rock_pos = ChVector<>(4.7, -2.2, 0.0);
+            rock_pos = ChVector3d(4.7, -2.2, 0.0);
         else if (i == 14)
-            rock_pos = ChVector<>(-1.7, 1.5, 0.0);
+            rock_pos = ChVector3d(-1.7, 1.5, 0.0);
         else if (i == 15)
-            rock_pos = ChVector<>(-2.0, -1.1, 0.0);
+            rock_pos = ChVector3d(-2.0, -1.1, 0.0);
         else if (i == 16)
-            rock_pos = ChVector<>(-5.0, -2.1, 0.0);
+            rock_pos = ChVector3d(-5.0, -2.1, 0.0);
         else if (i == 17)
-            rock_pos = ChVector<>(1.5, -0.8, 0.0);
+            rock_pos = ChVector3d(1.5, -0.8, 0.0);
         else if (i == 18)
-            rock_pos = ChVector<>(-2.6, 1.6, 0.0);
+            rock_pos = ChVector3d(-2.6, 1.6, 0.0);
         else if (i == 19)
-            rock_pos = ChVector<>(-2.0, 1.8, 0.0);
+            rock_pos = ChVector3d(-2.0, 1.8, 0.0);
 
-        rock_Body->SetFrame_COG_to_REF(ChFrame<>(mcog, principal_inertia_rot));
+        rock_Body->SetFrameCOMToRef(ChFrame<>(mcog, principal_inertia_rot));
 
         rock_Body->SetMass(mmass * mdensity);  // mmass * mdensity
         rock_Body->SetInertiaXX(mdensity * principal_I);
 
-        rock_Body->SetFrame_REF_to_abs(ChFrame<>(ChVector<>(rock_pos), ChQuaternion<>(rock_rot)));
+        rock_Body->SetFrameRefToAbs(ChFrame<>(ChVector3d(rock_pos), ChQuaternion<>(rock_rot)));
         sys.Add(rock_Body);
 
-        rock_Body->SetBodyFixed(false);
+        rock_Body->SetFixed(false);
 
         auto rock_ct_shape = chrono_types::make_shared<ChCollisionShapeTriangleMesh>(rockSufaceMaterial, rock_mmesh,
-                                                                                      false, false, 0.005);
+                                                                                     false, false, 0.005);
         rock_Body->AddCollisionShape(rock_ct_shape);
-        rock_Body->SetCollide(true);
+        rock_Body->EnableCollision(true);
 
         auto rock_mesh = chrono_types::make_shared<ChVisualShapeTriangleMesh>();
         rock_mesh->SetMesh(rock_mmesh);
         rock_mesh->SetBackfaceCull(true);
+
+        if(rock_mesh->GetNumMaterials() == 0){
+            rock_mesh->AddMaterial(rock_vis_mat);
+        }
+        else{
+            rock_mesh->GetMaterials()[0] = rock_vis_mat;
+        }
+        
+
         rock_Body->AddVisualShape(rock_mesh);
 
         rocks.push_back(rock_Body);
@@ -295,13 +314,37 @@ int main(int argc, char* argv[]) {
     // Note that SCMTerrain uses a default ISO reference frame (Z up). Since the mechanism is modeled here in
     // a Y-up global frame, we rotate the terrain plane by -90 degrees about the X axis.
     // Note: Irrlicht uses a Y-up frame
-    terrain.SetPlane(ChCoordsys<>(ChVector<>(0, 0, -0.5)));
+    terrain.SetPlane(ChCoordsys<>(ChVector3d(0, 0, -0.5)));
 
     // Use a regular grid:
     double length = 15;
     double width = 15;
     terrain.Initialize(length, width, mesh_resolution);
 
+    // Add hapke material to the terrain
+    auto lunar_material = chrono_types::make_shared<ChVisualMaterial>();
+    lunar_material->SetAmbientColor({0.0, 0.0, 0.0}); //0.65f,0.65f,0.65f
+    lunar_material->SetDiffuseColor({0.7, 0.7, 0.7});
+    lunar_material->SetSpecularColor({1.0, 1.0, 1.0});
+    lunar_material->SetUseSpecularWorkflow(true);
+    lunar_material->SetRoughness(0.8f);
+    lunar_material->SetAnisotropy(1.f);
+    lunar_material->SetUseHapke(true);
+    lunar_material->SetHapkeParameters(0.32357f, 0.23955f, 0.30452f, 1.80238f, 0.07145f, 0.3f,23.4f*(CH_PI/180));
+    lunar_material->SetClassID(30000);
+    lunar_material->SetInstanceID(20000);
+    auto mesh = terrain.GetMesh();
+
+  
+
+    {
+        if(mesh->GetNumMaterials() == 0){
+            mesh->AddMaterial(lunar_material);
+        }
+        else{
+            mesh->GetMaterials()[0] = lunar_material;
+        }
+    }
     // Set the soil terramechanical parameters
     if (var_params) {
         // Here we use the soil callback defined at the beginning of the code
@@ -333,13 +376,13 @@ int main(int argc, char* argv[]) {
     // We need to add a moving patch under every wheel
     // Or we can define a large moving patch at the pos of the rover body
     if (enable_moving_patch) {
-        terrain.AddMovingPatch(Wheel_1, ChVector<>(0, 0, 0), ChVector<>(0.5, 2 * wheel_range, 2 * wheel_range));
-        terrain.AddMovingPatch(Wheel_2, ChVector<>(0, 0, 0), ChVector<>(0.5, 2 * wheel_range, 2 * wheel_range));
-        terrain.AddMovingPatch(Wheel_3, ChVector<>(0, 0, 0), ChVector<>(0.5, 2 * wheel_range, 2 * wheel_range));
-        terrain.AddMovingPatch(Wheel_4, ChVector<>(0, 0, 0), ChVector<>(0.5, 2 * wheel_range, 2 * wheel_range));
+        terrain.AddMovingPatch(Wheel_1, ChVector3d(0, 0, 0), ChVector3d(0.5, 2 * wheel_range, 2 * wheel_range));
+        terrain.AddMovingPatch(Wheel_2, ChVector3d(0, 0, 0), ChVector3d(0.5, 2 * wheel_range, 2 * wheel_range));
+        terrain.AddMovingPatch(Wheel_3, ChVector3d(0, 0, 0), ChVector3d(0.5, 2 * wheel_range, 2 * wheel_range));
+        terrain.AddMovingPatch(Wheel_4, ChVector3d(0, 0, 0), ChVector3d(0.5, 2 * wheel_range, 2 * wheel_range));
 
         for (int i = 0; i < 20; i++) {
-            terrain.AddMovingPatch(rocks[i], ChVector<>(0, 0, 0), ChVector<>(0.5, 0.5, 0.5));
+            terrain.AddMovingPatch(rocks[i], ChVector3d(0, 0, 0), ChVector3d(0.5, 0.5, 0.5));
         }
     }
 
@@ -370,9 +413,9 @@ int main(int argc, char* argv[]) {
             vis_irr->Initialize();
             vis_irr->AddLogo();
             vis_irr->AddSkyBox();
-            vis_irr->AddCamera(ChVector<>(1.0, 2.0, 1.4), ChVector<>(0, 0, wheel_range));
+            vis_irr->AddCamera(ChVector3d(1.0, 2.0, 1.4), ChVector3d(0, 0, wheel_range));
             vis_irr->AddTypicalLights();
-            vis_irr->AddLightWithShadow(ChVector<>(-5.0, -0.5, 8.0), ChVector<>(-1, 0, 0), 100, 1, 35, 85, 512,
+            vis_irr->AddLightWithShadow(ChVector3d(-5.0, -0.5, 8.0), ChVector3d(-1, 0, 0), 100, 1, 35, 85, 512,
                                         ChColor(0.8f, 0.8f, 0.8f));
             vis_irr->EnableShadows();
 
@@ -387,7 +430,7 @@ int main(int argc, char* argv[]) {
             vis_vsg->AttachSystem(&sys);
             vis_vsg->SetWindowSize(800, 600);
             vis_vsg->SetWindowTitle("Viper Rover on SCM");
-            vis_vsg->AddCamera(ChVector<>(1.0, 2.0, 1.4), ChVector<>(0, 0, wheel_range));
+            vis_vsg->AddCamera(ChVector3d(1.0, 2.0, 1.4), ChVector3d(0, 0, wheel_range));
             vis_vsg->Initialize();
 
             vis = vis_vsg;
@@ -398,23 +441,30 @@ int main(int argc, char* argv[]) {
 
     //
     // SENSOR SIMULATION
-    //
 
+    //
     // Create a sensor manager
     auto manager = chrono_types::make_shared<ChSensorManager>(&sys);
-    manager->scene->AddPointLight({100, 100, 100}, {0.4f, 0.4f, 0.4f}, 500);
+    manager->scene->AddPointLight({-10, 0, 50}, {1.f,1.f,1.f}, 1000);
     manager->SetVerbose(false);
+    Background b;
+    // b.mode = BackgroundMode::SOLID_COLOR;
+    // b.color_horizon = ChVector3f(0.f, 0.f, 0.f);
+    // b.color_zenith = ChVector3f(0.f, 0.f, 0.f);
+    b.mode = BackgroundMode::ENVIRONMENT_MAP;
+    b.env_tex = GetChronoDataFile("sensor/textures/starmap_2020_4k.hdr");
+    manager->scene->SetBackground(b);
 
     // Create a lidar and add it to the sensor manager
-    auto offset_pose = chrono::ChFrame<double>({1.5, 0, 0.4}, Q_from_AngAxis(0, {0, 0, 1}));
+    auto offset_pose = chrono::ChFrame<double>({1.5, 0, 0.4}, QuatFromAngleZ(0));
 
     auto lidar = chrono_types::make_shared<ChLidarSensor>(viper.GetChassis()->GetBody(),  // body lidar is attached to
                                                           50,                             // scanning rate in Hz
                                                           offset_pose,                    // offset pose
-                                                          480,                   // number of horizontal samples
-                                                          300,                   // number of vertical channels
-                                                          (float)(2 * CH_C_PI),  // horizontal field of view
-                                                          (float)CH_C_PI / 12, (float)-CH_C_PI / 3,
+                                                          480,                 // number of horizontal samples
+                                                          300,                 // number of vertical channels
+                                                          (float)(2 * CH_PI),  // horizontal field of view
+                                                          (float)CH_PI / 12, (float)-CH_PI / 3,
                                                           140.0f  // vertical field of view
     );
     lidar->SetName("Lidar Sensor 1");
@@ -438,17 +488,33 @@ int main(int argc, char* argv[]) {
 
     // Create a radar and attach to rover chassis
     auto radar = chrono_types::make_shared<ChRadarSensor>(viper.GetChassis()->GetBody(), 50, offset_pose, 240, 120,
-                                                          (float)(CH_C_PI / 1.5), float(CH_C_PI / 5), 100.f);
+                                                          (float)(CH_PI / 1.5), float(CH_PI / 5), 100.f);
     radar->SetName("Radar Sensor");
     radar->SetLag(0.f);
     radar->SetCollectionWindow(0.02f);
 
     radar->PushFilter(chrono_types::make_shared<ChFilterRadarXYZReturn>("Front Radar"));
     radar->PushFilter(chrono_types::make_shared<ChFilterRadarXYZVisualize>(960, 480, 0.2, "Front Radar"));
+    
+    
+    // Add camera
+    auto cam = chrono_types::make_shared<ChCameraSensor>(viper.GetChassis()->GetBody(),  // body lidar is attached to
+                                                         50,                             // scanning rate in Hz
+                                                         offset_pose,                    // offset pose
+                                                         960,                            // image width
+                                                         480,                            // image height
+                                                         CH_PI / 3                   // FOV
+                                                        );
+    cam->SetName("Camera Sensor");
+    cam->SetLag(0.f);
+    cam->SetCollectionWindow(0.02f);
+    cam->PushFilter(chrono_types::make_shared<ChFilterVisualize>(960, 480, "Camera Image"));
 
-    // add lidar and radar to the sensor manager
+
+    // add lidar, radar and camera to the sensor manager
     manager->AddSensor(lidar);
     manager->AddSensor(radar);
+    manager->AddSensor(cam);
 
     while (vis->Run()) {
 #if defined(CHRONO_IRRLICHT) || defined(CHRONO_VSG)
@@ -475,7 +541,7 @@ int main(int argc, char* argv[]) {
     }
 
     if (output) {
-        csv.write_to_file(out_dir + "/output.dat");
+        csv.WriteToFile(out_dir + "/output.dat");
     }
 
     return 0;

@@ -26,27 +26,27 @@ CH_UPCASTING(ChCollisionShapeConvexHull, ChCollisionShape)
 
 ChCollisionShapeConvexHull::ChCollisionShapeConvexHull() : ChCollisionShape(Type::CONVEXHULL) {}
 
-ChCollisionShapeConvexHull::ChCollisionShapeConvexHull(std::shared_ptr<ChMaterialSurface> material,
-                                                       const std::vector<ChVector<>>& points)
+ChCollisionShapeConvexHull::ChCollisionShapeConvexHull(std::shared_ptr<ChContactMaterial> material,
+                                                       const std::vector<ChVector3d>& points)
     : ChCollisionShape(Type::CONVEXHULL, material) {
     this->points = points;
 }
 
 std::vector<std::shared_ptr<ChCollisionShapeConvexHull>> ChCollisionShapeConvexHull::Read(
-    std::shared_ptr<ChMaterialSurface> material,
+    std::shared_ptr<ChContactMaterial> material,
     const std::string& filename) {
     // Open input file stream
     std::ifstream ifile;
     std::string line;
     try {
-        ifile.open(filename.c_str());
+        ifile.open(filename);
     } catch (const std::exception&) {
-        std::cout << "ChCollisionShapeConvexHull::Read - cannot open input file " << filename << std::endl;
-        throw ChException("Cannot open input file");
+        std::cerr << "ChCollisionShapeConvexHull::Read - cannot open input file " << filename << std::endl;
+        throw std::invalid_argument("Cannot open input file");
     }
 
     std::vector<std::shared_ptr<ChCollisionShapeConvexHull>> hulls;
-    std::vector<ChVector<double>> points;
+    std::vector<ChVector3d> points;
 
     while (std::getline(ifile, line)) {
         if (line.size() == 0 || line[0] == '#')
@@ -59,7 +59,7 @@ std::vector<std::shared_ptr<ChCollisionShapeConvexHull>> ChCollisionShapeConvexH
         }
 
         std::istringstream iss(line);
-        ChVector<> p;
+        ChVector3d p;
         iss >> p.x() >> p.y() >> p.z();
         points.push_back(p);
     }
@@ -70,22 +70,22 @@ std::vector<std::shared_ptr<ChCollisionShapeConvexHull>> ChCollisionShapeConvexH
     return hulls;
 }
 
-void ChCollisionShapeConvexHull::ArchiveOut(ChArchiveOut& marchive) {
+void ChCollisionShapeConvexHull::ArchiveOut(ChArchiveOut& archive_out) {
     // version number
-    marchive.VersionWrite<ChCollisionShapeConvexHull>();
+    archive_out.VersionWrite<ChCollisionShapeConvexHull>();
     // serialize parent class
-    ChCollisionShape::ArchiveOut(marchive);
+    ChCollisionShape::ArchiveOut(archive_out);
     // serialize all member data:
-    marchive << CHNVP(points);
+    archive_out << CHNVP(points);
 }
 
-void ChCollisionShapeConvexHull::ArchiveIn(ChArchiveIn& marchive) {
+void ChCollisionShapeConvexHull::ArchiveIn(ChArchiveIn& archive_in) {
     // version number
-    /*int version =*/marchive.VersionRead<ChCollisionShapeConvexHull>();
+    /*int version =*/archive_in.VersionRead<ChCollisionShapeConvexHull>();
     // deserialize parent class
-    ChCollisionShape::ArchiveIn(marchive);
+    ChCollisionShape::ArchiveIn(archive_in);
     // stream in all member data:
-    marchive >> CHNVP(points);
+    archive_in >> CHNVP(points);
 }
 
 }  // end namespace chrono

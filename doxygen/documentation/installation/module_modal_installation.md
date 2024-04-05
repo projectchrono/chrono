@@ -28,7 +28,7 @@ The new **modal module** provides functionalities to do modal analysis and modal
 	- Damping factors for the modes are output too, indicating stability or instability. 
 
 - **modal reduction** of the subassembly. Example of a scenario where this is useful: you have a tower modeled with thousands of finite elements, but you are just interested in the small oscillations of its tip, because you will mount a windmill on its tip. If you simulate thousands of finite elements just for this purpose, you waste CPU time, hence a modal reduction of the tower will discard all the DOFs of the finite elements and represent the overall behaviour of the tower using just few modal shapes (ex. fore aft bending, lateral bending, etc.), with extreme CPU performance at the cost of a small reduction of fidelity.
-	- Bodies and FEA nodes can be added to the subassebly as *internal*  or *boundary* interface nodes. Later one can call `ChModalAssembly::SwitchModalReductionON(int n_modes)` to replace the complexity of the internal nodes with few `n_modes` modal coordinates.
+	- Bodies and FEA nodes can be added to the subassebly as *internal*  or *boundary* interface nodes. Later one can call `ChModalAssembly::DoModalReduction(int n_modes)` to replace the complexity of the internal nodes with few `n_modes` modal coordinates.
 	- Boundary interface nodes can be connected to the rest of the multibody system as usual, using constraints, forces, etc.
 	- Internal constraints can be used between internal nodes. Their effect too will be condensed in the modal reduction.
 	- *NOTE: at the moment only linear dynamics is supported for the subassembly, in the sense that the subassembly cannot withstand large rotations, ex. in a helicopter blade. Future developments will address this*

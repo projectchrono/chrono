@@ -23,7 +23,6 @@
 
 #include <vector>
 
-#include "chrono/core/ChStream.h"
 #include "chrono/utils/ChUtilsInputOutput.h"
 
 #include "chrono_vehicle/ChConfigVehicle.h"
@@ -63,7 +62,7 @@ class Vehicle_Model {
     virtual std::string VehicleJSON() const = 0;
     virtual std::string EngineJSON() const = 0;
     virtual std::string TransmissionJSON() const = 0;
-    virtual ChVector<> CameraPoint() const = 0;
+    virtual ChVector3d CameraPoint() const = 0;
     virtual double CameraDistance() const = 0;
 };
 
@@ -83,7 +82,7 @@ class M113_SinglePin : public Vehicle_Model {
         return "M113/powertrain/M113_AutomaticTransmissionSimpleMap.json";
         ////return "M113/powertrain/M113_AutomaticTransmissionShafts.json";
     }
-    virtual ChVector<> CameraPoint() const override { return ChVector<>(0, 0, 0); }
+    virtual ChVector3d CameraPoint() const override { return ChVector3d(0, 0, 0); }
     virtual double CameraDistance() const override { return 6.0; }
 };
 
@@ -103,7 +102,7 @@ class M113_DoublePin : public Vehicle_Model {
         return "M113/powertrain/M113_AutomaticTransmissionSimpleMap.json";
         ////return "M113/powertrain/M113_AutomaticTransmissionShafts.json";
     }
-    virtual ChVector<> CameraPoint() const override { return ChVector<>(0, 0, 0); }
+    virtual ChVector3d CameraPoint() const override { return ChVector3d(0, 0, 0); }
     virtual double CameraDistance() const override { return 6.0; }
 };
 
@@ -123,7 +122,7 @@ class M113_RS_SinglePin : public Vehicle_Model {
         return "M113_RS/powertrain/M113_AutomaticTransmissionSimpleMap.json";
         ////return "M113_RS/powertrain/M113_AutomaticTransmissionShafts.json";
     }
-    virtual ChVector<> CameraPoint() const override { return ChVector<>(4, 0, 0); }
+    virtual ChVector3d CameraPoint() const override { return ChVector3d(4, 0, 0); }
     virtual double CameraDistance() const override { return 6.0; }
 };
 
@@ -139,7 +138,7 @@ class Marder_SinglePin : public Vehicle_Model {
     virtual std::string TransmissionJSON() const override {
         return "Marder/powertrain/Marder_AutomaticTransmissionSimpleMap.json";
     }
-    virtual ChVector<> CameraPoint() const override { return ChVector<>(0, 0, 0); }
+    virtual ChVector3d CameraPoint() const override { return ChVector3d(0, 0, 0); }
     virtual double CameraDistance() const override { return 8.0; }
 };
 
@@ -157,7 +156,7 @@ auto vehicle_model = Marder_SinglePin();
 std::string rigidterrain_file("terrain/RigidPlane.json");
 
 // Initial vehicle position
-ChVector<> initLoc(0, 0, 0.9);
+ChVector3d initLoc(0, 0, 0.9);
 
 // Initial vehicle orientation
 ChQuaternion<> initRot(1, 0, 0, 0);
@@ -191,7 +190,7 @@ bool verbose_integrator = false;
 double render_step_size = 1.0 / 120;  // FPS = 120
 
 // Point on chassis tracked by the camera
-ChVector<> trackPoint(0.0, 0.0, 0.0);
+ChVector3d trackPoint(0.0, 0.0, 0.0);
 
 // =============================================================================
 
@@ -217,7 +216,7 @@ void ReportConstraintViolation(ChSystem& sys, double threshold = 1e-3) {
     Eigen::Index imax = 0;
     double vmax = 0;
     std::string nmax = "";
-    for (auto joint : sys.Get_linklist()) {
+    for (auto joint : sys.GetLinks()) {
         if (joint->GetConstraintViolation().size() == 0)
             continue;
         Eigen::Index cimax;
@@ -225,7 +224,7 @@ void ReportConstraintViolation(ChSystem& sys, double threshold = 1e-3) {
         if (cmax > vmax) {
             vmax = cmax;
             imax = cimax;
-            nmax = joint->GetNameString();
+            nmax = joint->GetName();
         }
     }
     if (vmax > threshold)
@@ -258,7 +257,7 @@ bool ReportTrackFailure(ChTrackedVehicle& veh, double threshold = 1e-2) {
 // =============================================================================
 
 int main(int argc, char* argv[]) {
-    GetLog() << "Copyright (c) 2017 projectchrono.org\nChrono version: " << CHRONO_VERSION << "\n\n";
+    std::cout << "Copyright (c) 2017 projectchrono.org\nChrono version: " << CHRONO_VERSION << std::endl;
 
     // Create the vehicle system
     cout << "VEHICLE: " << vehicle_model.ModelName() << endl;
@@ -361,7 +360,7 @@ int main(int argc, char* argv[]) {
         }
         case DriverMode::PATH: {
             auto path =
-                chrono::vehicle::StraightLinePath(chrono::ChVector<>(0, 0, 0.02), chrono::ChVector<>(500, 0, 0.02), 50);
+                chrono::vehicle::StraightLinePath(chrono::ChVector3d(0, 0, 0.02), chrono::ChVector3d(500, 0, 0.02), 50);
             auto path_driver = std::make_shared<ChPathFollowerDriver>(vehicle, path, "my_path", target_speed);
             path_driver->GetSteeringController().SetLookAheadDistance(5.0);
             path_driver->GetSteeringController().SetGains(0.5, 0, 0);

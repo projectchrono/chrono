@@ -37,7 +37,7 @@ def main():
     mmesh.LoadWavefrontMesh(chrono.GetChronoDataFile(
         "vehicle/hmmwv/hmmwv_chassis.obj"), False, True)
     # scale to a different size
-    mmesh.Transform(chrono.ChVectorD(0, 0, 0), chrono.ChMatrix33D(2))
+    mmesh.Transform(chrono.ChVector3d(0, 0, 0), chrono.ChMatrix33d(2))
 
     trimesh_shape = chrono.ChVisualShapeTriangleMesh()
     trimesh_shape.SetMesh(mmesh)
@@ -45,9 +45,9 @@ def main():
     trimesh_shape.SetMutable(False)
 
     mesh_body = chrono.ChBody()
-    mesh_body.SetPos(chrono.ChVectorD(0, 0, 0))
+    mesh_body.SetPos(chrono.ChVector3d(0, 0, 0))
     mesh_body.AddVisualShape(trimesh_shape)
-    mesh_body.SetBodyFixed(True)
+    mesh_body.SetFixed(True)
     mphysicalSystem.Add(mesh_body)
 
     # -----------------------
@@ -56,16 +56,17 @@ def main():
     manager = sens.ChSensorManager(mphysicalSystem)
 
     intensity = 1.0
-    manager.scene.AddPointLight(chrono.ChVectorF(2, 2.5, 100), chrono.ChColor(intensity, intensity, intensity), 500.0)
-    manager.scene.AddPointLight(chrono.ChVectorF(9, 2.5, 100), chrono.ChColor(intensity, intensity, intensity), 500.0)
-    manager.scene.AddPointLight(chrono.ChVectorF(16, 2.5, 100), chrono.ChColor(intensity, intensity, intensity), 500.0)
-    manager.scene.AddPointLight(chrono.ChVectorF(23, 2.5, 100), chrono.ChColor(intensity, intensity, intensity), 500.0)
+    manager.scene.AddPointLight(chrono.ChVector3f(2, 2.5, 100), chrono.ChColor(intensity, intensity, intensity), 500.0)
+    manager.scene.AddPointLight(chrono.ChVector3f(9, 2.5, 100), chrono.ChColor(intensity, intensity, intensity), 500.0)
+    manager.scene.AddPointLight(chrono.ChVector3f(16, 2.5, 100), chrono.ChColor(intensity, intensity, intensity), 500.0)
+    manager.scene.AddPointLight(chrono.ChVector3f(23, 2.5, 100), chrono.ChColor(intensity, intensity, intensity), 500.0)
+    manager.scene.AddAreaLight(chrono.ChVector3f(0, 0, 4), chrono.ChColor(intensity, intensity, intensity), 500.0, chrono.ChVector3f(1,0,0), chrono.ChVector3f(0,-1,0))
 
     # ------------------------------------------------
     # Create a camera and add it to the sensor manager
     # ------------------------------------------------
-    offset_pose = chrono.ChFrameD(
-        chrono.ChVectorD(-5, 0, 2), chrono.Q_from_AngAxis(2, chrono.ChVectorD(0, 1, 0)))
+    offset_pose = chrono.ChFramed(
+        chrono.ChVector3d(-5, 0, 2), chrono.QuatFromAngleAxis(2, chrono.ChVector3d(0, 1, 0)))
     cam = sens.ChCameraSensor(
         mesh_body,              # body camera is attached to
         update_rate,            # update rate in Hz
@@ -133,10 +134,10 @@ def main():
     t1 = time.time()
 
     while (ch_time < end_time):
-        cam.SetOffsetPose(chrono.ChFrameD(
-            chrono.ChVectorD(-orbit_radius * math.cos(ch_time * orbit_rate), -
+        cam.SetOffsetPose(chrono.ChFramed(
+            chrono.ChVector3d(-orbit_radius * math.cos(ch_time * orbit_rate), -
                              orbit_radius * math.sin(ch_time * orbit_rate), 1),
-            chrono.Q_from_AngAxis(ch_time * orbit_rate, chrono.ChVectorD(0, 0, 1))))
+            chrono.QuatFromAngleAxis(ch_time * orbit_rate, chrono.ChVector3d(0, 0, 1))))
 
         # Access the RGBA8 buffer from the camera
         rgba8_buffer = cam.GetMostRecentRGBA8Buffer()

@@ -39,7 +39,7 @@ struct SensorBuffer {
     /// Default constructor that intializes all zero values
     SensorBuffer() : TimeStamp(0), Width(0), Height(0), LaunchedCount(0) {}
     /// Constructor based on height, width, and time
-    SensorBuffer(unsigned int w, unsigned int h, float t) : TimeStamp(t) , Width(w), Height(h), LaunchedCount(0) {}
+    SensorBuffer(unsigned int w, unsigned int h, float t) : TimeStamp(t), Width(w), Height(h), LaunchedCount(0) {}
 
     virtual ~SensorBuffer() {}
 
@@ -160,6 +160,19 @@ using SensorDeviceSemanticBuffer = SensorBufferT<DeviceSemanticBufferPtr>;
 /// pointer to an semantic image on the host that has been moved for safety and can be given to the user
 using UserSemanticBufferPtr = std::shared_ptr<SensorHostSemanticBuffer>;
 
+
+struct PixelDepth {
+    float depth;  // depth value
+};
+
+using SensorHostDepthBuffer = SensorBufferT<std::shared_ptr<PixelDepth[]>>;
+
+using DeviceDepthBufferPtr = std::shared_ptr<PixelDepth[]>;
+
+using SensorDeviceDepthBuffer = SensorBufferT<DeviceDepthBufferPtr>;
+
+using UserDepthBufferPtr = std::shared_ptr<SensorHostDepthBuffer>;
+
 //=====================================
 // Range Radar Data Formats and Buffers
 //=====================================
@@ -182,7 +195,7 @@ using SensorDeviceRadarBuffer = RadarBufferT<DeviceRadarBufferPtr>;
 /// pointer to a radar buffer on the host that has been moved for safety and can be given to the user
 using UserRadarBufferPtr = std::shared_ptr<SensorHostRadarBuffer>;
 
-struct RadarXYZReturn{
+struct RadarXYZReturn {
     float x;
     float y;
     float z;

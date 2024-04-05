@@ -42,7 +42,6 @@
 #include "chrono_sensor/sensors/Sensor.h"
 
 using namespace chrono;
-using namespace chrono::geometry;
 using namespace chrono::sensor;
 
 // -----------------------------------------------------------------------------
@@ -68,9 +67,9 @@ unsigned int horizontal_samples = 4500;
 unsigned int vertical_samples = 32;
 
 // Horizontal and vertical field of view (radians)
-float horizontal_fov = (float)(2 * CH_C_PI);  // 360 degree scan
-float max_vert_angle = (float)CH_C_PI / 12;   // 15 degrees up
-float min_vert_angle = (float)-CH_C_PI / 6;   // 30 degrees down
+float horizontal_fov = (float)(2 * CH_PI);  // 360 degree scan
+float max_vert_angle = (float)CH_PI / 12;   // 15 degrees up
+float min_vert_angle = (float)-CH_PI / 6;   // 30 degrees down
 
 // Lag time
 float lag = 0.f;
@@ -98,7 +97,7 @@ bool vis = true;
 const std::string out_dir = "SENSOR_OUTPUT/LIDAR_DEMO/";
 
 int main(int argc, char* argv[]) {
-    GetLog() << "Copyright (c) 2019 projectchrono.org\nChrono version: " << CHRONO_VERSION << "\n\n";
+    std::cout << "Copyright (c) 2019 projectchrono.org\nChrono version: " << CHRONO_VERSION << std::endl;
 
     // -----------------
     // Create the system
@@ -110,7 +109,7 @@ int main(int argc, char* argv[]) {
     // ----------------------------------
     auto mmesh = ChTriangleMeshConnected::CreateFromWavefrontFile(GetChronoDataFile("vehicle/hmmwv/hmmwv_chassis.obj"),
                                                                   false, true);
-    mmesh->Transform(ChVector<>(0, 0, 0), ChMatrix33<>(1));  // scale to a different size
+    mmesh->Transform(ChVector3d(0, 0, 0), ChMatrix33<>(1));  // scale to a different size
 
     auto trimesh_shape = chrono_types::make_shared<ChVisualShapeTriangleMesh>();
     trimesh_shape->SetMesh(mmesh);
@@ -119,8 +118,8 @@ int main(int argc, char* argv[]) {
 
     auto mesh_body = chrono_types::make_shared<ChBody>();
     mesh_body->SetPos({0, 0, 0});
-    mesh_body->AddVisualShape(trimesh_shape,ChFrame<>());
-    mesh_body->SetBodyFixed(true);
+    mesh_body->AddVisualShape(trimesh_shape, ChFrame<>());
+    mesh_body->SetFixed(true);
     // sys.Add(mesh_body);
 
     // --------------------------------------------
@@ -128,17 +127,17 @@ int main(int argc, char* argv[]) {
     // --------------------------------------------
     auto box_body = chrono_types::make_shared<ChBodyEasyBox>(100, 100, 1, 1000, true, false);
     box_body->SetPos({0, 0, -1});
-    box_body->SetBodyFixed(true);
+    box_body->SetFixed(true);
     sys.Add(box_body);
 
     auto box_body_1 = chrono_types::make_shared<ChBodyEasyBox>(100, 1, 100, 1000, true, false);
     box_body_1->SetPos({0, -10, -3});
-    box_body_1->SetBodyFixed(true);
+    box_body_1->SetFixed(true);
     sys.Add(box_body_1);
 
     auto box_body_2 = chrono_types::make_shared<ChBodyEasyBox>(100, 1, 100, 1000, true, false);
     box_body_2->SetPos({0, 10, -3});
-    box_body_2->SetBodyFixed(true);
+    box_body_2->SetFixed(true);
     sys.Add(box_body_2);
 
     // -----------------------
@@ -150,7 +149,7 @@ int main(int argc, char* argv[]) {
     // -----------------------------------------------
     // Create a lidar and add it to the sensor manager
     // -----------------------------------------------
-    auto offset_pose = chrono::ChFrame<double>({-4, 0, 1}, Q_from_AngAxis(0, {0, 1, 0}));
+    auto offset_pose = chrono::ChFrame<double>({-4, 0, 1}, QuatFromAngleAxis(0, {0, 1, 0}));
 
     auto lidar =
         chrono_types::make_shared<ChLidarSensor>(box_body,                               // body lidar is attached to
@@ -296,12 +295,12 @@ int main(int argc, char* argv[]) {
     std::chrono::high_resolution_clock::time_point t1 = std::chrono::high_resolution_clock::now();
 
     while (ch_time < end_time) {
-        mesh_body->SetRot(Q_from_AngAxis(ch_time * orbit_rate, {0, 0, 1}));
+        mesh_body->SetRot(QuatFromAngleAxis(ch_time * orbit_rate, {0, 0, 1}));
         // Access the DI buffer from the ideal lidar
         // di_ideal_ptr =
         // lidar->GetMostRecentBuffer<UserDIBufferPtr>();
         // if (di_ideal_ptr->Buffer) {
-        //     std::cout << "DI buffer recieved from
+        //     std::cout << "DI buffer received from
         //     ideal lidar model." << std::endl;
         //     std::cout << "\tLidar resolution: " <<
         //     di_ideal_ptr->Width << "x" <<
@@ -310,7 +309,7 @@ int main(int argc, char* argv[]) {
         //     di_ideal_ptr->Buffer[0].range << ", "
         //               <<
         //               di_ideal_ptr->Buffer[0].intensity
-        //               << "]" << std::endl
+        //               << "]\n"
         //               << std::endl;
         // }
 

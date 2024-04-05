@@ -716,7 +716,6 @@ add_subdirectory(chrono_fmi)
 add_subdirectory(chrono_cascade)
 add_subdirectory(chrono_modal)
 add_subdirectory(chrono_postprocess)
-add_subdirectory(chrono_pardisoproject)
 add_subdirectory(chrono_cosimulation)
 add_subdirectory(chrono_multicore)
 add_subdirectory(chrono_opengl)
@@ -769,10 +768,6 @@ install(DIRECTORY ${CMAKE_SOURCE_DIR}/src/chrono_thirdparty/rapidxml
         FILES_MATCHING PATTERN "*.h" PATTERN "*.cuh" PATTERN "*.hpp" PATTERN "*.inl")
 
 install(DIRECTORY ${CMAKE_SOURCE_DIR}/src/chrono_thirdparty/tinyobjloader
-        DESTINATION include/chrono_thirdparty
-        FILES_MATCHING PATTERN "*.h" PATTERN "*.cuh" PATTERN "*.hpp" PATTERN "*.inl")
-
-install(DIRECTORY ${CMAKE_SOURCE_DIR}/src/chrono_thirdparty/yafel
         DESTINATION include/chrono_thirdparty
         FILES_MATCHING PATTERN "*.h" PATTERN "*.cuh" PATTERN "*.hpp" PATTERN "*.inl")
 
@@ -882,12 +877,6 @@ if(ENABLE_MODULE_POSTPROCESS)
   set(CHRONO_POSTPROCESS "#define CHRONO_POSTPROCESS")
 else()
   set(CHRONO_POSTPROCESS "#undef CHRONO_POSTPROCESS")
-endif()
-
-if(ENABLE_MODULE_PARDISO_PROJECT)
-  set(CHRONO_PARDISOPROJECT "#define CHRONO_PARDISOPROJECT")
-else()
-  set(CHRONO_PARDISOPROJECT "#undef CHRONO_PARDISOPROJECT")
 endif()
 
 if(ENABLE_MODULE_PYTHON)

@@ -19,34 +19,58 @@
 namespace chrono {
 
 // Register into the object factory, to enable run-time dynamic creation and persistence
-CH_FACTORY_REGISTER(ChShaftsTorque)
+// CH_FACTORY_REGISTER(ChShaftsTorque)  // NO! Abstract class
 
-ChShaftsTorque::ChShaftsTorque(const ChShaftsTorque& other) : ChShaftsTorqueBase(other) {}
+ChShaftsTorque::ChShaftsTorque() : torque(0) {}
 
-double ChShaftsTorque::ComputeTorque() {
-    // Simply return the user-specified torque
-    return torque;
+ChShaftsTorque::ChShaftsTorque(const ChShaftsTorque& other) : ChShaftsCouple(other) {
+    torque = other.torque;
 }
 
-void ChShaftsTorque::ArchiveOut(ChArchiveOut& marchive) {
+void ChShaftsTorque::Update(double mytime, bool update_assets) {
+    // Inherit time changes of parent class
+    ChShaftsCouple::Update(mytime, update_assets);
+
+    // update class data
+    torque = ComputeTorque();
+}
+
+void ChShaftsTorque::IntLoadResidual_F(const unsigned int off,  // offset in R residual
+                                       ChVectorDynamic<>& R,    // result: the R residual, R += c*F
+                                       const double c           // a scaling factor
+) {
+    if (shaft1->IsActive())
+        R(shaft1->GetOffset_w()) += torque * c;
+    if (shaft2->IsActive())
+        R(shaft2->GetOffset_w()) += -torque * c;
+}
+
+void ChShaftsTorque::VariablesFbLoadForces(double factor) {
+    // add applied torques to 'fb' vector
+    shaft1->Variables().Force()(0) += torque * factor;
+    shaft2->Variables().Force()(0) += -torque * factor;
+}
+
+void ChShaftsTorque::ArchiveOut(ChArchiveOut& archive_out) {
     // version number
-    marchive.VersionWrite<ChShaftsTorque>();
+    archive_out.VersionWrite<ChShaftsTorque>();
 
     // serialize parent class
-    ChShaftsTorqueBase::ArchiveOut(marchive);
+    ChShaftsCouple::ArchiveOut(archive_out);
 
     // serialize all member data:
+    archive_out << CHNVP(torque);
 }
 
-/// Method to allow de serialization of transient data from archives.
-void ChShaftsTorque::ArchiveIn(ChArchiveIn& marchive) {
+void ChShaftsTorque::ArchiveIn(ChArchiveIn& archive_in) {
     // version number
-    /*int version =*/ marchive.VersionRead<ChShaftsTorque>();
+    /*int version =*/archive_in.VersionRead<ChShaftsTorque>();
 
     // deserialize parent class:
-    ChShaftsTorqueBase::ArchiveIn(marchive);
+    ChShaftsCouple::ArchiveIn(archive_in);
 
     // deserialize all member data:
+    archive_in >> CHNVP(torque);
 }
 
 }  // end namespace chrono

@@ -40,7 +40,7 @@ Python module(s) and start creating Chrono objects as in the following:
 import pychrono as chrono
 
 my_systemA = chrono.ChSystem()
-my_vect1   = chrono.ChVectorD()
+my_vect1   = chrono.ChVector3d()
 ...
 ~~~~~~~~~~~~~~~
 
@@ -77,7 +77,7 @@ chrono.ChClassFoo...
 -   Let's create a 3D vector object:
 
 ~~~~~~~~~~~~~~~{.py}
-my_vect1 = chrono.ChVectorD()
+my_vect1 = chrono.ChVector3d()
 ~~~~~~~~~~~~~~~
 
 (Note that in this way all PyChrono classes are prefixed by the *chrono*
@@ -96,7 +96,7 @@ my_vect1.z=3
     built by passing the 3 coordinates for quick initialization:
 
 ~~~~~~~~~~~~~{.py}
-my_vect2 = chrono.ChVectorD(3,4,5)
+my_vect2 = chrono.ChVector3d(3,4,5)
 ~~~~~~~~~~~~~
 
 -   Most operator-overloading features that are available in C++ for the
@@ -119,22 +119,22 @@ print ('vector length =', my_len)
     example let's play with quaternions and vectors:
 
 ~~~~~~~~~~~~~{.py}
-my_quat = chrono.ChQuaternionD(1,2,3,4)
+my_quat = chrono.ChQuaterniond(1,2,3,4)
 my_qconjugate = ~my_quat
 print ('quat. conjugate  =', my_qconjugate)
 print ('quat. dot product=', my_qconjugate ^ my_quat)
 print ('quat. product=',     my_qconjugate % my_quat)
-my_vec = chrono.ChVectorD(1,2,3)
+my_vec = chrono.ChVector3d(1,2,3)
 my_vec_rot = my_quat.Rotate(my_vec)
 ~~~~~~~~~~~~~
-PyChrono linear algebra (ChMatrixDynamicD and ChVectorDynamicD) are interfaced with Python lists, this allows to use any third-party package to perform linear algebra operation. In the following example we use NumPy:
+PyChrono linear algebra (ChMatrixDynamicd and ChVectorDynamicd) are interfaced with Python lists, this allows to use any third-party package to perform linear algebra operation. In the following example we use NumPy:
 ~~~~~~~~~~~~~{.py}
 mlist = [[1,2,3,4], [5,6,7,8], [9,10,11,12], [13,14,15,16]]
-ma = chrono.ChMatrixDynamicD() 
+ma = chrono.ChMatrixDynamicd() 
 ma.SetMatr(mlist)   # Create a Matrix from a list. Size is adjusted automatically.
 npmat = np.asarray(ma.GetMatr()) # Create a 2D npy array from the list extracted from ChMatrixDynamic
 w, v = LA.eig(npmat)  # get eigenvalues and eigenvectors using numpy
-mb = chrono.ChMatrixDynamicD(4,4)
+mb = chrono.ChMatrixDynamicd(4,4)
 prod = v * npmat  
 mb.SetMatr(v.tolist())    
 ~~~~~~~~~~~~~

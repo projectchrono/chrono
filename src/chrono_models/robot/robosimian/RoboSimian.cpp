@@ -22,7 +22,7 @@
 #include "chrono/assets/ChTexture.h"
 #include "chrono/assets/ChVisualShapeTriangleMesh.h"
 
-#include "chrono/motion_functions/ChFunction_Setpoint.h"
+#include "chrono/functions/ChFunctionSetpoint.h"
 
 #include "chrono/physics/ChLinkMotorRotationAngle.h"
 #include "chrono/physics/ChLinkMotorRotationSpeed.h"
@@ -40,89 +40,89 @@ namespace robosimian {
 //     mesh_name, offset, color, mass, com, inertia_xx, inertia_xy, shapes
 
 const Link FtsLink("robosim_fts",
-                   ChVector<>(0, 0, 0),
+                   ChVector3d(0, 0, 0),
                    ChColor(1.0f, 0.0f, 0.0f),
                    0.0,
-                   ChVector<>(0, 0, 0),
-                   ChVector<>(0, 0, 0),
-                   ChVector<>(0, 0, 0),
+                   ChVector3d(0, 0, 0),
+                   ChVector3d(0, 0, 0),
+                   ChVector3d(0, 0, 0),
                    {});
 
 const Link PitchLink("robosim_pitch_link",
-                     ChVector<>(0, 0, 0),
+                     ChVector3d(0, 0, 0),
                      ChColor(0.4f, 0.7f, 0.4f),
                      0.428770,
-                     ChVector<>(-0.050402, 0.012816, 0.000000),
-                     ChVector<>(0.000670, 0.000955, 0.000726),
-                     ChVector<>(0.000062, 0.000000, 0.000000),
-                     {CylinderShape(ChVector<>(-0.07, 0, 0), Q_from_AngY(CH_C_PI_2), 0.055, 0.07)});
+                     ChVector3d(-0.050402, 0.012816, 0.000000),
+                     ChVector3d(0.000670, 0.000955, 0.000726),
+                     ChVector3d(0.000062, 0.000000, 0.000000),
+                     {CylinderShape(ChVector3d(-0.07, 0, 0), QuatFromAngleY(CH_PI_2), 0.055, 0.07)});
 
 const Link RollLink("robosim_roll_link",
-                    ChVector<>(0, 0, 0),
+                    ChVector3d(0, 0, 0),
                     ChColor(0.7f, 0.4f, 0.4f),
                     4.078540,
-                    ChVector<>(0.066970, -0.090099, -0.000084),
-                    ChVector<>(0.010580, 0.025014, 0.031182),
-                    ChVector<>(-0.008765, -0.000002, 0.000007),
-                    {CylinderShape(ChVector<>(0.065, -0.12, 0), Q_from_AngY(CH_C_PI_2), 0.055, 0.24),
-                     CylinderShape(ChVector<>(0.0, -0.035, 0), QUNIT, 0.055, 0.075)});
+                    ChVector3d(0.066970, -0.090099, -0.000084),
+                    ChVector3d(0.010580, 0.025014, 0.031182),
+                    ChVector3d(-0.008765, -0.000002, 0.000007),
+                    {CylinderShape(ChVector3d(0.065, -0.12, 0), QuatFromAngleY(CH_PI_2), 0.055, 0.24),
+                     CylinderShape(ChVector3d(0.0, -0.035, 0), QUNIT, 0.055, 0.075)});
 
 const Link RollLinkLast("robosim_roll_link",
-                        ChVector<>(0, 0, 0),
+                        ChVector3d(0, 0, 0),
                         ChColor(0.7f, 0.4f, 0.4f),
                         4.078540,
-                        ChVector<>(0.066970, -0.090099, -0.000084),
-                        ChVector<>(0.010580, 0.025014, 0.031182),
-                        ChVector<>(-0.008765, -0.000002, 0.000007),
-                        {CylinderShape(ChVector<>(0.105, -0.12, 0), Q_from_AngY(CH_C_PI_2), 0.055, 0.32),
-                         CylinderShape(ChVector<>(0.0, -0.035, 0), QUNIT, 0.055, 0.075)});
+                        ChVector3d(0.066970, -0.090099, -0.000084),
+                        ChVector3d(0.010580, 0.025014, 0.031182),
+                        ChVector3d(-0.008765, -0.000002, 0.000007),
+                        {CylinderShape(ChVector3d(0.105, -0.12, 0), QuatFromAngleY(CH_PI_2), 0.055, 0.32),
+                         CylinderShape(ChVector3d(0.0, -0.035, 0), QUNIT, 0.055, 0.075)});
 
 const Link RollLinkLastWheel("robosim_roll_link_w_wheel",
-                             ChVector<>(0, 0, 0),
+                             ChVector3d(0, 0, 0),
                              ChColor(0.7f, 0.4f, 0.4f),
                              4.078540,
-                             ChVector<>(0.066970, -0.090099, -0.000084),
-                             ChVector<>(0.010580, 0.025014, 0.031182),
-                             ChVector<>(-0.008765, -0.000002, 0.000007),
-                             {CylinderShape(ChVector<>(0.105, -0.12, 0), Q_from_AngY(CH_C_PI_2), 0.055, 0.32),
-                              CylinderShape(ChVector<>(0.0, -0.035, 0), Q_from_AngX(CH_C_PI_2), 0.055, 0.075),
-                              CylinderShape(ChVector<>(0.0, -0.19, 0), Q_from_AngX(CH_C_PI_2), 0.080, 0.0375)});
+                             ChVector3d(0.066970, -0.090099, -0.000084),
+                             ChVector3d(0.010580, 0.025014, 0.031182),
+                             ChVector3d(-0.008765, -0.000002, 0.000007),
+                             {CylinderShape(ChVector3d(0.105, -0.12, 0), QuatFromAngleY(CH_PI_2), 0.055, 0.32),
+                              CylinderShape(ChVector3d(0.0, -0.035, 0), QuatFromAngleX(CH_PI_2), 0.055, 0.075),
+                              CylinderShape(ChVector3d(0.0, -0.19, 0), QuatFromAngleX(CH_PI_2), 0.080, 0.0375)});
 
 const Link FtAdapterLink("robosim_ft_adapter",
-                         ChVector<>(0, 0, 0),
+                         ChVector3d(0, 0, 0),
                          ChColor(0.4f, 0.4f, 0.4f),
                          0.253735,
-                         ChVector<>(-0.00531, -0.00060, -0.001873),
-                         ChVector<>(0.00042, 0.00024, 0.00023),
-                         ChVector<>(0, 0, 0),
+                         ChVector3d(-0.00531, -0.00060, -0.001873),
+                         ChVector3d(0.00042, 0.00024, 0.00023),
+                         ChVector3d(0, 0, 0),
                          {});
 
 const Link FtLink("robosim_force_torque_sensor",
-                  ChVector<>(0, 0, 0),
+                  ChVector3d(0, 0, 0),
                   ChColor(0.4f, 0.4f, 0.4f),
                   0.195418,
-                  ChVector<>(-0.000135, 0.000118, 0.000084),
-                  ChVector<>(0.000086, 0.000056, 0.000057),
-                  ChVector<>(0, 0, 0),
+                  ChVector3d(-0.000135, 0.000118, 0.000084),
+                  ChVector3d(0.000086, 0.000056, 0.000057),
+                  ChVector3d(0, 0, 0),
                   {});
 
 const Link WheelMountLink("robosim_wheel_mount",
-                          ChVector<>(0.12024, 0, 0),
+                          ChVector3d(0.12024, 0, 0),
                           ChColor(0.4f, 0.7f, 0.4f),
                           3.1775,
-                          ChVector<>(-0.005260, 0.042308, 0.000088),
-                          ChVector<>(0.010977, 0.005330, 0.011405),
-                          ChVector<>(0.000702, 0.000026, -0.000028),
-                          {CylinderShape(ChVector<>(0.12024, 0.02, 0), Q_from_AngX(CH_C_PI_2), 0.0545, 0.175)});
+                          ChVector3d(-0.005260, 0.042308, 0.000088),
+                          ChVector3d(0.010977, 0.005330, 0.011405),
+                          ChVector3d(0.000702, 0.000026, -0.000028),
+                          {CylinderShape(ChVector3d(0.12024, 0.02, 0), QuatFromAngleX(CH_PI_2), 0.0545, 0.175)});
 
 const Link WheelLink("robosim_wheel",
-                     ChVector<>(0, 0, 0),
+                     ChVector3d(0, 0, 0),
                      ChColor(0.6f, 0.6f, 0.6f),
                      1.499326,
-                     ChVector<>(0.0, 0.0, -0.000229),
-                     ChVector<>(0.006378, 0.006377, 0.009155),
-                     ChVector<>(0, 0, 0),
-                     {CylinderShape(ChVector<>(0, 0, 0), QUNIT, 0.12, 0.123)});
+                     ChVector3d(0.0, 0.0, -0.000229),
+                     ChVector3d(0.006378, 0.006377, 0.009155),
+                     ChVector3d(0, 0, 0),
+                     {CylinderShape(ChVector3d(0, 0, 0), QUNIT, 0.12, 0.123)});
 
 // List of links for front and rear legs
 //     name, link, body included?
@@ -164,64 +164,66 @@ const int num_joints = 10;
 
 const JointData joints[] = {
 
-    {"joint1", "link0", "link1", false, ChVector<>(0.17203, 0.00000, 0.00000), ChVector<>(3.14159, 0.00000, 0.00000),
-     ChVector<>(1, 0, 0)},
+    {"joint1", "link0", "link1", false, ChVector3d(0.17203, 0.00000, 0.00000), ChVector3d(3.14159, 0.00000, 0.00000),
+     ChVector3d(1, 0, 0)},
 
-    {"joint2", "link1", "link2", false, ChVector<>(0.00000, 0.00000, 0.00000), ChVector<>(0.00000, 0.00000, 0.00000),
-     ChVector<>(0, -1, 0)},
+    {"joint2", "link1", "link2", false, ChVector3d(0.00000, 0.00000, 0.00000), ChVector3d(0.00000, 0.00000, 0.00000),
+     ChVector3d(0, -1, 0)},
 
-    {"joint3", "link2", "link3", false, ChVector<>(0.28650, -0.11700, 0.00000), ChVector<>(0.00000, 0.00000, 0.00000),
-     ChVector<>(1, 0, 0)},
+    {"joint3", "link2", "link3", false, ChVector3d(0.28650, -0.11700, 0.00000), ChVector3d(0.00000, 0.00000, 0.00000),
+     ChVector3d(1, 0, 0)},
 
-    {"joint4", "link3", "link4", false, ChVector<>(0.00000, 0.00000, 0.00000), ChVector<>(0.00000, 0.00000, 0.00000),
-     ChVector<>(0, -1, 0)},
+    {"joint4", "link3", "link4", false, ChVector3d(0.00000, 0.00000, 0.00000), ChVector3d(0.00000, 0.00000, 0.00000),
+     ChVector3d(0, -1, 0)},
 
-    {"joint5", "link4", "link5", false, ChVector<>(0.28650, -0.11700, 0.00000), ChVector<>(0.00000, 0.00000, 0.00000),
-     ChVector<>(1, 0, 0)},
+    {"joint5", "link4", "link5", false, ChVector3d(0.28650, -0.11700, 0.00000), ChVector3d(0.00000, 0.00000, 0.00000),
+     ChVector3d(1, 0, 0)},
 
-    {"joint6", "link5", "link6", false, ChVector<>(0.00000, 0.00000, 0.00000), ChVector<>(0.00000, 0.00000, 0.00000),
-     ChVector<>(0, -1, 0)},
+    {"joint6", "link5", "link6", false, ChVector3d(0.00000, 0.00000, 0.00000), ChVector3d(0.00000, 0.00000, 0.00000),
+     ChVector3d(0, -1, 0)},
 
-    {"ftadapter_joint", "link6", "ftadapter_link", true, ChVector<>(0.20739, -0.12100, 0.00000),
-     ChVector<>(0.00000, 0.00000, 0.00000), ChVector<>(1, 0, 0)},
+    {"ftadapter_joint", "link6", "ftadapter_link", true, ChVector3d(0.20739, -0.12100, 0.00000),
+     ChVector3d(0.00000, 0.00000, 0.00000), ChVector3d(1, 0, 0)},
 
-    {"ft_joint", "ftadapter_link", "ft_link", true, ChVector<>(0.0263755, 0.00000, 0.00000),
-     ChVector<>(0.00000, 0.00000, 0.00000), ChVector<>(1, 0, 0)},
+    {"ft_joint", "ftadapter_link", "ft_link", true, ChVector3d(0.0263755, 0.00000, 0.00000),
+     ChVector3d(0.00000, 0.00000, 0.00000), ChVector3d(1, 0, 0)},
 
-    {"joint7", "link6", "link7", false, ChVector<>(0.19250, -0.11700, 0.00000), ChVector<>(0.00000, 0.00000, 0.00000),
-     ChVector<>(1, 0, 0)},
+    {"joint7", "link6", "link7", false, ChVector3d(0.19250, -0.11700, 0.00000), ChVector3d(0.00000, 0.00000, 0.00000),
+     ChVector3d(1, 0, 0)},
 
-    {"joint8", "link7", "link8", false, ChVector<>(0.12024, 0.17200, 0.00000), ChVector<>(-1.57000, 0.00000, 0.00000),
-     ChVector<>(0, 0, 1)}
+    {"joint8", "link7", "link8", false, ChVector3d(0.12024, 0.17200, 0.00000), ChVector3d(-1.57000, 0.00000, 0.00000),
+     ChVector3d(0, 0, 1)}
 
 };
+
+constexpr int Robosimian_body_tag = 100;
 
 // =============================================================================
 
 // Convert a triplet (roll-pitch-yaw) to a quaternion
-ChQuaternion<> rpy2quat(const ChVector<>& rpy) {
-    return Q_from_AngZ(rpy.z()) * Q_from_AngY(rpy.y()) * Q_from_AngX(rpy.x());
+ChQuaternion<> rpy2quat(const ChVector3d& rpy) {
+    return QuatFromAngleZ(rpy.z()) * QuatFromAngleY(rpy.y()) * QuatFromAngleX(rpy.x());
 }
 
 // =============================================================================
 
 // Calculate a coordinate system with the Z direction along 'axis' (given in 'base').
 // Implicit assumption: 'axis' is always along X, Y, or Z.
-ChCoordsys<> calcJointFrame(const ChFrame<>& base, const ChVector<>& axis) {
-    ChVector<> u;
-    ChVector<> v;
-    ChVector<> w = axis;
+ChFrame<> calcJointFrame(const ChFrame<>& base, const ChVector3d& axis) {
+    ChVector3d u;
+    ChVector3d v;
+    ChVector3d w = axis;
     if (std::abs(axis.x()) > 0.5) {
-        v = ChVector<>(0, 1, 0);
+        v = ChVector3d(0, 1, 0);
         u = Vcross(v, w);
     } else {
-        u = ChVector<>(1, 0, 0);
+        u = ChVector3d(1, 0, 0);
         v = Vcross(w, u);
     }
     ChMatrix33<> A;
-    A.Set_A_axis(u, v, w);
-    ChMatrix33<> B = base.GetA() * A;
-    return ChCoordsys<>(base.GetPos(), B.Get_A_quaternion());
+    A.SetFromDirectionAxes(u, v, w);
+    ChMatrix33<> B = base.GetRotMat() * A;
+    return ChFrame<>(base.GetPos(), B.GetQuaternion());
 }
 
 // =============================================================================
@@ -230,15 +232,15 @@ ChCoordsys<> calcJointFrame(const ChFrame<>& base, const ChVector<>& axis) {
 // It is assumed that the centroidal frame is parallel with the reference frame.
 class InertiaConverter {
   public:
-    InertiaConverter(double mass, const ChVector<>& com, const ChVector<>& inertia_xx, const ChVector<>& inertia_xy) {
+    InertiaConverter(double mass, const ChVector3d& com, const ChVector3d& inertia_xx, const ChVector3d& inertia_xy) {
         // Inertia matrix (wrt reference frame)
         ChMatrix33<> J(inertia_xx, inertia_xy);
 
         // Convert inertia to centroidal frame (parallel-axis theorem, no rotation)
-        ChVector<> diag(com.y() * com.y() + com.z() * com.z(),  //
+        ChVector3d diag(com.y() * com.y() + com.z() * com.z(),  //
                         com.x() * com.x() + com.z() * com.z(),  //
                         com.x() * com.x() + com.y() * com.y());
-        ChVector<> off_diag(-com.x() * com.y(),  //
+        ChVector3d off_diag(-com.x() * com.y(),  //
                             -com.x() * com.z(),  //
                             -com.y() * com.z());
         ChMatrix33<> offset(diag, off_diag);
@@ -265,8 +267,8 @@ class InertiaConverter {
         */
     }
 
-    ChVector<> m_inertia_xx;  ///< moments of inertia (centroidal)
-    ChVector<> m_inertia_xy;  ///< products of inertia (centroidal)
+    ChVector3d m_inertia_xx;  ///< moments of inertia (centroidal)
+    ChVector3d m_inertia_xy;  ///< products of inertia (centroidal)
 };
 
 // =============================================================================
@@ -277,13 +279,13 @@ class ContactManager : public ChContactContainer::ReportContactCallback {
     void Process(RoboSimian* robot);
 
   private:
-    virtual bool OnReportContact(const ChVector<>& pA,
-                                 const ChVector<>& pB,
+    virtual bool OnReportContact(const ChVector3d& pA,
+                                 const ChVector3d& pB,
                                  const ChMatrix33<>& plane_coord,
                                  const double& distance,
                                  const double& eff_radius,
-                                 const ChVector<>& react_forces,
-                                 const ChVector<>& react_torques,
+                                 const ChVector3d& react_forces,
+                                 const ChVector3d& react_torques,
                                  ChContactable* modA,
                                  ChContactable* modB) override;
 
@@ -300,13 +302,13 @@ void ContactManager::Process(RoboSimian* robot) {
     std::cout << "  total actual contacts: " << m_num_contacts << std::endl << std::endl;
 }
 
-bool ContactManager::OnReportContact(const ChVector<>& pA,
-                                     const ChVector<>& pB,
+bool ContactManager::OnReportContact(const ChVector3d& pA,
+                                     const ChVector3d& pB,
                                      const ChMatrix33<>& plane_coord,
                                      const double& distance,
                                      const double& eff_radius,
-                                     const ChVector<>& react_forces,
-                                     const ChVector<>& react_torques,
+                                     const ChVector3d& react_forces,
+                                     const ChVector3d& react_torques,
                                      ChContactable* modA,
                                      ChContactable* modB) {
     // Only report contacts with negative penetration (i.e. actual contacts).
@@ -317,13 +319,13 @@ bool ContactManager::OnReportContact(const ChVector<>& pA,
     auto bodyB = dynamic_cast<ChBodyAuxRef*>(modB);
 
     // Filter robot bodies based on their IDs.
-    bool a = (bodyA && bodyA->GetId() < 100);
-    bool b = (bodyB && bodyB->GetId() < 100);
+    bool a = (bodyA && bodyA->GetTag() == Robosimian_body_tag);
+    bool b = (bodyB && bodyB->GetTag() == Robosimian_body_tag);
 
     if (!a && !b)
         return true;
 
-    std::cout << "   " << (a ? bodyA->GetNameString() : "other") << " - " << (b ? bodyB->GetNameString() : "other")
+    std::cout << "   " << (a ? bodyA->GetName() : "other") << " - " << (b ? bodyB->GetName() : "other")
               << std::endl;
 
     m_num_contacts++;
@@ -349,10 +351,9 @@ class ContactMaterial : public ChContactContainer::AddContactCallback {
         m_robot->GetSystem()->GetContactContainer()->RegisterAddContactCallback(shared_this);
     }
 
-    virtual void OnAddContact(const ChCollisionInfo& contactinfo,
-                              ChMaterialComposite* const material) override {
+    virtual void OnAddContact(const ChCollisionInfo& contactinfo, ChContactMaterialComposite* const material) override {
         //// TODO: currently, only NSC multicore systems support user override of composite materials.
-        auto mat = static_cast<ChMaterialCompositeNSC* const>(material);
+        auto mat = static_cast<ChContactMaterialCompositeNSC* const>(material);
 
         // Contactables in current collision pair
         auto contactableA = contactinfo.modelA->GetContactable();
@@ -402,12 +403,11 @@ RoboSimian::RoboSimian(ChContactMethod contact_method, bool has_sled, bool fixed
       m_root("results") {
     m_system = (contact_method == ChContactMethod::NSC) ? static_cast<ChSystem*>(new ChSystemNSC)
                                                         : static_cast<ChSystem*>(new ChSystemSMC);
-    m_system->Set_G_acc(ChVector<>(0, 0, -9.81));
+    m_system->SetGravitationalAcceleration(ChVector3d(0, 0, -9.81));
 
-    // Integration and Solver settings
-    m_system->SetSolverMaxIterations(150);
-    m_system->SetMaxPenetrationRecoverySpeed(4.0);
+    // Solver settings
     m_system->SetSolverType(ChSolver::Type::BARZILAIBORWEIN);
+    m_system->GetSolver()->AsIterative()->SetMaxIterations(150);
 
     Create(has_sled, fixed);
 
@@ -442,7 +442,7 @@ RoboSimian::~RoboSimian() {
     delete m_material_override;
 }
 
-std::shared_ptr<ChMaterialSurface> DefaultContactMaterial(ChContactMethod contact_method) {
+std::shared_ptr<ChContactMaterial> DefaultContactMaterial(ChContactMethod contact_method) {
     float mu = 0.8f;   // coefficient of friction
     float cr = 0.0f;   // coefficient of restitution
     float Y = 2e7f;    // Young's modulus
@@ -454,13 +454,13 @@ std::shared_ptr<ChMaterialSurface> DefaultContactMaterial(ChContactMethod contac
 
     switch (contact_method) {
         case ChContactMethod::NSC: {
-            auto matNSC = chrono_types::make_shared<ChMaterialSurfaceNSC>();
+            auto matNSC = chrono_types::make_shared<ChContactMaterialNSC>();
             matNSC->SetFriction(mu);
             matNSC->SetRestitution(cr);
             return matNSC;
         }
         case ChContactMethod::SMC: {
-            auto matSMC = chrono_types::make_shared<ChMaterialSurfaceSMC>();
+            auto matSMC = chrono_types::make_shared<ChContactMaterialSMC>();
             matSMC->SetFriction(mu);
             matSMC->SetRestitution(cr);
             matSMC->SetYoungModulus(Y);
@@ -472,7 +472,7 @@ std::shared_ptr<ChMaterialSurface> DefaultContactMaterial(ChContactMethod contac
             return matSMC;
         }
         default:
-            return std::shared_ptr<ChMaterialSurface>();
+            return std::shared_ptr<ChContactMaterial>();
     }
 }
 
@@ -522,21 +522,21 @@ void RoboSimian::Initialize(const ChCoordsys<>& pos) {
     m_chassis->Initialize(pos);
 
     if (m_sled)
-        m_sled->Initialize(m_chassis->m_body, ChVector<>(0.0, 0.0, 0.21), ChVector<>(1.570796, 0, 0));
+        m_sled->Initialize(m_chassis->m_body, ChVector3d(0.0, 0.0, 0.21), ChVector3d(1.570796, 0, 0));
 
-    m_limbs[FR]->Initialize(m_chassis->m_body, ChVector<>(+0.29326, +0.20940, 0.03650),
-                            ChVector<>(0.00000, -1.57080, -0.26180), CollisionFamily::LIMB_FR, m_wheel_mode);
-    m_limbs[RR]->Initialize(m_chassis->m_body, ChVector<>(-0.29326, +0.20940, 0.03650),
-                            ChVector<>(0.00000, -1.57080, +0.26180), CollisionFamily::LIMB_RR, m_wheel_mode);
-    m_limbs[RL]->Initialize(m_chassis->m_body, ChVector<>(-0.29326, -0.20940, 0.03650),
-                            ChVector<>(0.00000, -1.57080, 2.87979), CollisionFamily::LIMB_RL, m_wheel_mode);
-    m_limbs[FL]->Initialize(m_chassis->m_body, ChVector<>(+0.29326, -0.20940, 0.03650),
-                            ChVector<>(0.00000, -1.57080, 3.40339), CollisionFamily::LIMB_FL, m_wheel_mode);
+    m_limbs[FR]->Initialize(m_chassis->m_body, ChVector3d(+0.29326, +0.20940, 0.03650),
+                            ChVector3d(0.00000, -1.57080, -0.26180), CollisionFamily::LIMB_FR, m_wheel_mode);
+    m_limbs[RR]->Initialize(m_chassis->m_body, ChVector3d(-0.29326, +0.20940, 0.03650),
+                            ChVector3d(0.00000, -1.57080, +0.26180), CollisionFamily::LIMB_RR, m_wheel_mode);
+    m_limbs[RL]->Initialize(m_chassis->m_body, ChVector3d(-0.29326, -0.20940, 0.03650),
+                            ChVector3d(0.00000, -1.57080, 2.87979), CollisionFamily::LIMB_RL, m_wheel_mode);
+    m_limbs[FL]->Initialize(m_chassis->m_body, ChVector3d(+0.29326, -0.20940, 0.03650),
+                            ChVector3d(0.00000, -1.57080, 3.40339), CollisionFamily::LIMB_FL, m_wheel_mode);
 
-    ////m_wheel_left->Initialize(m_chassis->m_body, ChVector<>(-0.42943, -0.19252, 0.06380),
-    ////                         ChVector<>(0.00000, +1.57080, -1.57080));
-    ////m_wheel_right->Initialize(m_chassis->m_body, ChVector<>(-0.42943, +0.19252, 0.06380),
-    ////                          ChVector<>(0.00000, -1.57080, -1.57080));
+    ////m_wheel_left->Initialize(m_chassis->m_body, ChVector3d(-0.42943, -0.19252, 0.06380),
+    ////                         ChVector3d(0.00000, +1.57080, -1.57080));
+    ////m_wheel_right->Initialize(m_chassis->m_body, ChVector3d(-0.42943, +0.19252, 0.06380),
+    ////                          ChVector3d(0.00000, -1.57080, -1.57080));
 
     // Create output files
     for (int i = 0; i < 4; i++) {
@@ -546,11 +546,11 @@ void RoboSimian::Initialize(const ChCoordsys<>& pos) {
     }
 }
 
-void RoboSimian::SetCollide(int flags) {
-    m_chassis->SetCollide((flags & static_cast<int>(CollisionFlags::CHASSIS)) != 0);
+void RoboSimian::EnableCollision(int flags) {
+    m_chassis->EnableCollision((flags & static_cast<int>(CollisionFlags::CHASSIS)) != 0);
 
     if (m_sled)
-        m_sled->SetCollide((flags & static_cast<int>(CollisionFlags::SLED)) != 0);
+        m_sled->EnableCollision((flags & static_cast<int>(CollisionFlags::SLED)) != 0);
 
     for (auto limb : m_limbs) {
         limb->SetCollideLinks((flags & static_cast<int>(CollisionFlags::LIMBS)) != 0);
@@ -629,7 +629,7 @@ void RoboSimian::DoStepDynamics(double step) {
     m_system->DoStepDynamics(step);
 }
 
-void RoboSimian::Translate(const ChVector<>& shift) {
+void RoboSimian::Translate(const ChVector3d& shift) {
     m_chassis->Translate(shift);
     if (m_sled)
         m_sled->Translate(shift);
@@ -702,17 +702,17 @@ RS_Driver::RS_Driver(const std::string& filename_start,
                      bool repeat)
     : m_repeat(repeat), m_time_pose(0), m_time_hold(0), m_offset(0), m_phase(POSE), m_callback(nullptr) {
     assert(!filename_cycle.empty());
-    m_ifs_cycle.open(filename_cycle.c_str());
+    m_ifs_cycle.open(filename_cycle);
 
     if (!filename_start.empty()) {
-        m_ifs_start.open(filename_start.c_str());
+        m_ifs_start.open(filename_start);
         m_ifs = &m_ifs_start;
     } else {
         m_ifs = &m_ifs_cycle;
     }
 
     if (!filename_stop.empty()) {
-        m_ifs_stop.open(filename_stop.c_str());
+        m_ifs_stop.open(filename_stop);
     }
 
     LoadDataLine(m_time_1, m_actuations_1);
@@ -859,10 +859,10 @@ void RS_DriverCallback::OnPhaseChange(RS_Driver::Phase old_phase, RS_Driver::Pha
 
 // =============================================================================
 
-RS_Part::RS_Part(const std::string& name, std::shared_ptr<ChMaterialSurface> mat, ChSystem* system)
+RS_Part::RS_Part(const std::string& name, std::shared_ptr<ChContactMaterial> mat, ChSystem* system)
     : m_name(name), m_mat(mat) {
     m_body = chrono_types::make_shared<ChBodyAuxRef>();
-    m_body->SetNameString(name + "_body");
+    m_body->SetName(name + "_body");
 }
 
 void RS_Part::SetVisualizationType(VisualizationType vis) {
@@ -878,7 +878,7 @@ void RS_Part::AddVisualizationAssets(VisualizationType vis) {
 
     if (vis == VisualizationType::MESH) {
         auto vis_mesh_file = GetChronoDataFile("robot/robosimian/obj/" + m_mesh_name + ".obj");
-        auto trimesh = geometry::ChTriangleMeshConnected::CreateFromWavefrontFile(vis_mesh_file, true, false);
+        auto trimesh = ChTriangleMeshConnected::CreateFromWavefrontFile(vis_mesh_file, true, false);
         //// HACK: a trimesh visual asset ignores transforms! Explicitly offset vertices.
         auto trimesh_shape = chrono_types::make_shared<ChVisualShapeTriangleMesh>();
         trimesh_shape->SetMesh(trimesh);
@@ -910,7 +910,7 @@ void RS_Part::AddVisualizationAssets(VisualizationType vis) {
 
     for (const auto& mesh : m_meshes) {
         auto vis_mesh_file = GetChronoDataFile("robot/robosimian/obj/" + mesh.m_name + ".obj");
-        auto trimesh = geometry::ChTriangleMeshConnected::CreateFromWavefrontFile(vis_mesh_file, true, false);
+        auto trimesh = ChTriangleMeshConnected::CreateFromWavefrontFile(vis_mesh_file, true, false);
         auto trimesh_shape = chrono_types::make_shared<ChVisualShapeTriangleMesh>();
         trimesh_shape->SetMesh(trimesh);
         trimesh_shape->SetName(mesh.m_name);
@@ -936,23 +936,22 @@ void RS_Part::AddCollisionShapes() {
     }
     for (const auto& mesh : m_meshes) {
         auto vis_mesh_file = GetChronoDataFile("robot/robosimian/obj/" + mesh.m_name + ".obj");
-        auto trimesh = geometry::ChTriangleMeshConnected::CreateFromWavefrontFile(vis_mesh_file, false, false);
+        auto trimesh = ChTriangleMeshConnected::CreateFromWavefrontFile(vis_mesh_file, false, false);
         switch (mesh.m_type) {
             case MeshShape::Type::CONVEX_HULL: {
-                auto shape = chrono_types::make_shared<ChCollisionShapeConvexHull>(
-                    m_mat, trimesh->getCoordsVertices());
+                auto shape = chrono_types::make_shared<ChCollisionShapeConvexHull>(m_mat, trimesh->GetCoordsVertices());
                 m_body->AddCollisionShape(shape, ChFrame<>(mesh.m_pos, mesh.m_rot));
                 break;
             }
             case MeshShape::Type::TRIANGLE_SOUP: {
-                auto shape = chrono_types::make_shared<ChCollisionShapeTriangleMesh>(m_mat, trimesh, false,
-                                                                                                false, 0.002);
+                auto shape =
+                    chrono_types::make_shared<ChCollisionShapeTriangleMesh>(m_mat, trimesh, false, false, 0.002);
                 m_body->AddCollisionShape(shape, ChFrame<>(mesh.m_pos, mesh.m_rot));
                 break;
             }
             case MeshShape::Type::NODE_CLOUD: {
                 auto shape = chrono_types::make_shared<ChCollisionShapeSphere>(m_mat, 0.002);
-                for (const auto& v : trimesh->getCoordsVertices()) {
+                for (const auto& v : trimesh->GetCoordsVertices()) {
                     m_body->AddCollisionShape(shape, ChFrame<>(v, QUNIT));
                 }
                 break;
@@ -963,173 +962,173 @@ void RS_Part::AddCollisionShapes() {
 
 // =============================================================================
 
-RS_Chassis::RS_Chassis(const std::string& name, bool fixed, std::shared_ptr<ChMaterialSurface> mat, ChSystem* system)
+RS_Chassis::RS_Chassis(const std::string& name, bool fixed, std::shared_ptr<ChContactMaterial> mat, ChSystem* system)
     : RS_Part(name, mat, system), m_collide(false) {
     double mass = 46.658335;
-    ChVector<> com(0.040288, -0.001937, -0.073574);
-    ChVector<> inertia_xx(1.272134, 2.568776, 3.086984);
-    ChVector<> inertia_xy(0.008890, -0.13942, 0.000325);
+    ChVector3d com(0.040288, -0.001937, -0.073574);
+    ChVector3d inertia_xx(1.272134, 2.568776, 3.086984);
+    ChVector3d inertia_xy(0.008890, -0.13942, 0.000325);
 
-    m_body->SetIdentifier(0);
+    m_body->SetTag(Robosimian_body_tag);
     m_body->SetMass(mass);
-    m_body->SetFrame_COG_to_REF(ChFrame<>(com, ChQuaternion<>(1, 0, 0, 0)));
+    m_body->SetFrameCOMToRef(ChFrame<>(com, ChQuaternion<>(1, 0, 0, 0)));
     m_body->SetInertiaXX(inertia_xx);
     m_body->SetInertiaXY(inertia_xy);
-    m_body->SetBodyFixed(fixed);
+    m_body->SetFixed(fixed);
     system->Add(m_body);
 
     // Create the set of primitive shapes
-    m_boxes.push_back(BoxShape(VNULL, QUNIT, ChVector<>(0.257, 0.50, 0.238)));
-    m_boxes.push_back(BoxShape(VNULL, QUNIT, ChVector<>(0.93, 0.230, 0.238)));
+    m_boxes.push_back(BoxShape(VNULL, QUNIT, ChVector3d(0.257, 0.50, 0.238)));
+    m_boxes.push_back(BoxShape(VNULL, QUNIT, ChVector3d(0.93, 0.230, 0.238)));
     m_boxes.push_back(
-        BoxShape(ChVector<>(+0.25393, +0.075769, 0), Q_from_AngZ(-0.38153), ChVector<>(0.36257, 0.23, 0.238)));
+        BoxShape(ChVector3d(+0.25393, +0.075769, 0), QuatFromAngleZ(-0.38153), ChVector3d(0.36257, 0.23, 0.238)));
     m_boxes.push_back(
-        BoxShape(ChVector<>(-0.25393, +0.075769, 0), Q_from_AngZ(+0.38153), ChVector<>(0.36257, 0.23, 0.238)));
+        BoxShape(ChVector3d(-0.25393, +0.075769, 0), QuatFromAngleZ(+0.38153), ChVector3d(0.36257, 0.23, 0.238)));
     m_boxes.push_back(
-        BoxShape(ChVector<>(+0.25393, -0.075769, 0), Q_from_AngZ(+0.38153), ChVector<>(0.36257, 0.23, 0.238)));
+        BoxShape(ChVector3d(+0.25393, -0.075769, 0), QuatFromAngleZ(+0.38153), ChVector3d(0.36257, 0.23, 0.238)));
     m_boxes.push_back(
-        BoxShape(ChVector<>(-0.25393, -0.075769, 0), Q_from_AngZ(-0.38153), ChVector<>(0.36257, 0.23, 0.238)));
+        BoxShape(ChVector3d(-0.25393, -0.075769, 0), QuatFromAngleZ(-0.38153), ChVector3d(0.36257, 0.23, 0.238)));
 
-    m_cylinders.push_back(CylinderShape(ChVector<>(0.417050, 0, -0.158640),
-                                        Q_from_AngZ(CH_C_PI_2) * Q_from_AngX(CH_C_PI_2 - 0.383972), 0.05, 0.144));
+    m_cylinders.push_back(CylinderShape(ChVector3d(0.417050, 0, -0.158640),
+                                        QuatFromAngleZ(CH_PI_2) * QuatFromAngleX(CH_PI_2 - 0.383972), 0.05, 0.144));
 
     // Geometry for link0 (all limbs); these links are fixed to the chassis
     m_cylinders.push_back(
-        CylinderShape(ChVector<>(+0.29326, +0.20940, 0.03650 - 0.025), Q_from_AngX(CH_C_PI_2), 0.05, 0.145));
+        CylinderShape(ChVector3d(+0.29326, +0.20940, 0.03650 - 0.025), QuatFromAngleX(CH_PI_2), 0.05, 0.145));
     m_cylinders.push_back(
-        CylinderShape(ChVector<>(-0.29326, +0.20940, 0.03650 - 0.025), Q_from_AngX(CH_C_PI_2), 0.05, 0.145));
+        CylinderShape(ChVector3d(-0.29326, +0.20940, 0.03650 - 0.025), QuatFromAngleX(CH_PI_2), 0.05, 0.145));
     m_cylinders.push_back(
-        CylinderShape(ChVector<>(-0.29326, -0.20940, 0.03650 - 0.025), Q_from_AngX(CH_C_PI_2), 0.05, 0.145));
+        CylinderShape(ChVector3d(-0.29326, -0.20940, 0.03650 - 0.025), QuatFromAngleX(CH_PI_2), 0.05, 0.145));
     m_cylinders.push_back(
-        CylinderShape(ChVector<>(+0.29326, -0.20940, 0.03650 - 0.025), Q_from_AngX(CH_C_PI_2), 0.05, 0.145));
+        CylinderShape(ChVector3d(+0.29326, -0.20940, 0.03650 - 0.025), QuatFromAngleX(CH_PI_2), 0.05, 0.145));
 
     // Set the name of the visualization mesh
     m_mesh_name = "robosim_chassis";
-    m_offset = ChVector<>(0, 0, 0);
+    m_offset = ChVector3d(0, 0, 0);
     m_color = ChColor(0.4f, 0.4f, 0.7f);
 }
 
 void RS_Chassis::Initialize(const ChCoordsys<>& pos) {
-    m_body->SetFrame_REF_to_abs(ChFrame<>(pos));
+    m_body->SetFrameRefToAbs(ChFrame<>(pos));
 
     AddCollisionShapes();
 
     m_body->GetCollisionModel()->SetFamily(CollisionFamily::CHASSIS);
-    m_body->GetCollisionModel()->SetFamilyMaskNoCollisionWithFamily(CollisionFamily::LIMB_FR);
-    m_body->GetCollisionModel()->SetFamilyMaskNoCollisionWithFamily(CollisionFamily::LIMB_RR);
-    m_body->GetCollisionModel()->SetFamilyMaskNoCollisionWithFamily(CollisionFamily::LIMB_RL);
-    m_body->GetCollisionModel()->SetFamilyMaskNoCollisionWithFamily(CollisionFamily::LIMB_FL);
-    m_body->GetCollisionModel()->SetFamilyMaskNoCollisionWithFamily(CollisionFamily::SLED);
+    m_body->GetCollisionModel()->DisallowCollisionsWith(CollisionFamily::LIMB_FR);
+    m_body->GetCollisionModel()->DisallowCollisionsWith(CollisionFamily::LIMB_RR);
+    m_body->GetCollisionModel()->DisallowCollisionsWith(CollisionFamily::LIMB_RL);
+    m_body->GetCollisionModel()->DisallowCollisionsWith(CollisionFamily::LIMB_FL);
+    m_body->GetCollisionModel()->DisallowCollisionsWith(CollisionFamily::SLED);
 
     // Note: call this AFTER setting the collision family (required for Chrono::Multicore)
-    m_body->SetCollide(m_collide);
+    m_body->EnableCollision(m_collide);
 }
 
-void RS_Chassis::SetCollide(bool state) {
+void RS_Chassis::EnableCollision(bool state) {
     m_collide = state;
-    m_body->SetCollide(state);
+    m_body->EnableCollision(state);
 }
 
-void RS_Chassis::Translate(const ChVector<>& shift) {
+void RS_Chassis::Translate(const ChVector3d& shift) {
     m_body->SetPos(m_body->GetPos() + shift);
 }
 
 // =============================================================================
 
-RS_Sled::RS_Sled(const std::string& name, std::shared_ptr<ChMaterialSurface> mat, ChSystem* system)
+RS_Sled::RS_Sled(const std::string& name, std::shared_ptr<ChContactMaterial> mat, ChSystem* system)
     : RS_Part(name, mat, system), m_collide(true) {
     double mass = 2.768775;
-    ChVector<> com(0.000000, 0.000000, 0.146762);
-    ChVector<> inertia_xx(0.034856, 0.082427, 0.105853);
-    ChVector<> inertia_xy(0.000007, -0.000002, 0);
+    ChVector3d com(0.000000, 0.000000, 0.146762);
+    ChVector3d inertia_xx(0.034856, 0.082427, 0.105853);
+    ChVector3d inertia_xy(0.000007, -0.000002, 0);
 
-    m_body->SetIdentifier(1);
+    m_body->SetTag(Robosimian_body_tag);
     m_body->SetMass(mass);
-    m_body->SetFrame_COG_to_REF(ChFrame<>(com, ChQuaternion<>(1, 0, 0, 0)));
+    m_body->SetFrameCOMToRef(ChFrame<>(com, ChQuaternion<>(1, 0, 0, 0)));
     m_body->SetInertiaXX(inertia_xx);
     m_body->SetInertiaXY(inertia_xy);
     system->Add(m_body);
 
-    m_meshes.push_back(MeshShape(ChVector<>(0, 0, 0), QUNIT, "robosim_sled_coll", MeshShape::Type::CONVEX_HULL));
+    m_meshes.push_back(MeshShape(ChVector3d(0, 0, 0), QUNIT, "robosim_sled_coll", MeshShape::Type::CONVEX_HULL));
 
     m_mesh_name = "robosim_sled";
-    m_offset = ChVector<>(0, 0, 0);
+    m_offset = ChVector3d(0, 0, 0);
     m_color = ChColor(0.7f, 0.7f, 0.7f);
 }
 
-void RS_Sled::Initialize(std::shared_ptr<ChBodyAuxRef> chassis, const ChVector<>& xyz, const ChVector<>& rpy) {
-    const ChFrame<>& X_GP = chassis->GetFrame_REF_to_abs();  // global -> parent
-    ChFrame<> X_PC(xyz, rpy2quat(rpy));                      // parent -> child
-    ChFrame<> X_GC = X_GP * X_PC;                            // global -> child
-    m_body->SetFrame_REF_to_abs(X_GC);
+void RS_Sled::Initialize(std::shared_ptr<ChBodyAuxRef> chassis, const ChVector3d& xyz, const ChVector3d& rpy) {
+    const ChFrame<>& X_GP = chassis->GetFrameRefToAbs();  // global -> parent
+    ChFrame<> X_PC(xyz, rpy2quat(rpy));                   // parent -> child
+    ChFrame<> X_GC = X_GP * X_PC;                         // global -> child
+    m_body->SetFrameRefToAbs(X_GC);
 
     AddCollisionShapes();
 
     m_body->GetCollisionModel()->SetFamily(CollisionFamily::SLED);
-    m_body->GetCollisionModel()->SetFamilyMaskNoCollisionWithFamily(CollisionFamily::LIMB_FR);
-    m_body->GetCollisionModel()->SetFamilyMaskNoCollisionWithFamily(CollisionFamily::LIMB_RR);
-    m_body->GetCollisionModel()->SetFamilyMaskNoCollisionWithFamily(CollisionFamily::LIMB_RL);
-    m_body->GetCollisionModel()->SetFamilyMaskNoCollisionWithFamily(CollisionFamily::LIMB_FL);
+    m_body->GetCollisionModel()->DisallowCollisionsWith(CollisionFamily::LIMB_FR);
+    m_body->GetCollisionModel()->DisallowCollisionsWith(CollisionFamily::LIMB_RR);
+    m_body->GetCollisionModel()->DisallowCollisionsWith(CollisionFamily::LIMB_RL);
+    m_body->GetCollisionModel()->DisallowCollisionsWith(CollisionFamily::LIMB_FL);
 
     // Note: call this AFTER setting the collision family (required for Chrono::Multicore)
-    m_body->SetCollide(m_collide);
+    m_body->EnableCollision(m_collide);
 
     // Add joint (weld)
     auto joint = chrono_types::make_shared<ChLinkLockLock>();
-    joint->Initialize(chassis, m_body, calcJointFrame(X_GC, ChVector<>(1, 0, 0)));
+    joint->Initialize(chassis, m_body, calcJointFrame(X_GC, ChVector3d(1, 0, 0)));
     chassis->GetSystem()->AddLink(joint);
 }
 
-void RS_Sled::SetCollide(bool state) {
+void RS_Sled::EnableCollision(bool state) {
     m_collide = state;
-    m_body->SetCollide(state);
+    m_body->EnableCollision(state);
 }
 
-void RS_Sled::Translate(const ChVector<>& shift) {
+void RS_Sled::Translate(const ChVector3d& shift) {
     m_body->SetPos(m_body->GetPos() + shift);
 }
 
 // =============================================================================
 
-RS_WheelDD::RS_WheelDD(const std::string& name, int id, std::shared_ptr<ChMaterialSurface> mat, ChSystem* system)
+RS_WheelDD::RS_WheelDD(const std::string& name, int id, std::shared_ptr<ChContactMaterial> mat, ChSystem* system)
     : RS_Part(name, mat, system) {
     double mass = 3.492500;
-    ChVector<> com(0, 0, 0);
-    ChVector<> inertia_xx(0.01, 0.01, 0.02);
-    ChVector<> inertia_xy(0, 0, 0);
+    ChVector3d com(0, 0, 0);
+    ChVector3d inertia_xx(0.01, 0.01, 0.02);
+    ChVector3d inertia_xy(0, 0, 0);
 
-    m_body->SetIdentifier(id);
+    m_body->SetTag(Robosimian_body_tag);
     m_body->SetMass(mass);
-    m_body->SetFrame_COG_to_REF(ChFrame<>(com, ChQuaternion<>(1, 0, 0, 0)));
+    m_body->SetFrameCOMToRef(ChFrame<>(com, ChQuaternion<>(1, 0, 0, 0)));
     m_body->SetInertiaXX(inertia_xx);
     m_body->SetInertiaXY(inertia_xy);
     system->Add(m_body);
 
-    m_cylinders.push_back(CylinderShape(ChVector<>(0, 0, 0), Q_from_AngX(CH_C_PI_2), 0.074, 0.038));
+    m_cylinders.push_back(CylinderShape(ChVector3d(0, 0, 0), QuatFromAngleX(CH_PI_2), 0.074, 0.038));
 
     m_mesh_name = "robosim_dd_wheel";
-    m_offset = ChVector<>(0, 0, 0);
+    m_offset = ChVector3d(0, 0, 0);
     m_color = ChColor(0.3f, 0.3f, 0.3f);
 }
 
-void RS_WheelDD::Initialize(std::shared_ptr<ChBodyAuxRef> chassis, const ChVector<>& xyz, const ChVector<>& rpy) {
-    const ChFrame<>& X_GP = chassis->GetFrame_REF_to_abs();  // global -> parent
-    ChFrame<> X_PC(xyz, rpy2quat(rpy));                      // parent -> child
-    ChFrame<> X_GC = X_GP * X_PC;                            // global -> child
-    m_body->SetFrame_REF_to_abs(X_GC);
+void RS_WheelDD::Initialize(std::shared_ptr<ChBodyAuxRef> chassis, const ChVector3d& xyz, const ChVector3d& rpy) {
+    const ChFrame<>& X_GP = chassis->GetFrameRefToAbs();  // global -> parent
+    ChFrame<> X_PC(xyz, rpy2quat(rpy));                   // parent -> child
+    ChFrame<> X_GC = X_GP * X_PC;                         // global -> child
+    m_body->SetFrameRefToAbs(X_GC);
 
     AddCollisionShapes();
 
     m_body->GetCollisionModel()->SetFamily(CollisionFamily::WHEEL_DD);
-    m_body->GetCollisionModel()->SetFamilyMaskNoCollisionWithFamily(CollisionFamily::CHASSIS);
-    m_body->GetCollisionModel()->SetFamilyMaskNoCollisionWithFamily(CollisionFamily::SLED);
+    m_body->GetCollisionModel()->DisallowCollisionsWith(CollisionFamily::CHASSIS);
+    m_body->GetCollisionModel()->DisallowCollisionsWith(CollisionFamily::SLED);
 
     // Note: call this AFTER setting the collision family (required for Chrono::Multicore)
-    m_body->SetCollide(true);
+    m_body->EnableCollision(true);
 
     // Add joint
     auto joint = chrono_types::make_shared<ChLinkLockRevolute>();
-    joint->Initialize(chassis, m_body, calcJointFrame(X_GC, ChVector<>(0, 0, 1)));
+    joint->Initialize(chassis, m_body, calcJointFrame(X_GC, ChVector3d(0, 0, 1)));
     chassis->GetSystem()->AddLink(joint);
 }
 
@@ -1138,8 +1137,8 @@ void RS_WheelDD::Initialize(std::shared_ptr<ChBodyAuxRef> chassis, const ChVecto
 RS_Limb::RS_Limb(const std::string& name,
                  LimbID id,
                  const LinkData data[],
-                 std::shared_ptr<ChMaterialSurface> wheel_mat,
-                 std::shared_ptr<ChMaterialSurface> link_mat,
+                 std::shared_ptr<ChContactMaterial> wheel_mat,
+                 std::shared_ptr<ChContactMaterial> link_mat,
                  ChSystem* system)
     : m_name(name), m_collide_links(false), m_collide_wheel(true) {
     for (int i = 0; i < num_links; i++) {
@@ -1153,13 +1152,13 @@ RS_Limb::RS_Limb(const std::string& name,
         }
 
         double mass = data[i].link.m_mass;
-        ChVector<> com = data[i].link.m_com;
-        ChVector<> inertia_xx = data[i].link.m_inertia_xx;
-        ChVector<> inertia_xy = data[i].link.m_inertia_xy;
+        ChVector3d com = data[i].link.m_com;
+        ChVector3d inertia_xx = data[i].link.m_inertia_xx;
+        ChVector3d inertia_xy = data[i].link.m_inertia_xy;
 
-        link->m_body->SetIdentifier(4 + 4 * id + i);
+        link->m_body->SetTag(Robosimian_body_tag);
         link->m_body->SetMass(mass);
-        link->m_body->SetFrame_COG_to_REF(ChFrame<>(com, ChQuaternion<>(1, 0, 0, 0)));
+        link->m_body->SetFrameCOMToRef(ChFrame<>(com, ChQuaternion<>(1, 0, 0, 0)));
         link->m_body->SetInertiaXX(inertia_xx);
         link->m_body->SetInertiaXY(inertia_xy);
 
@@ -1181,17 +1180,17 @@ RS_Limb::RS_Limb(const std::string& name,
 }
 
 void RS_Limb::Initialize(std::shared_ptr<ChBodyAuxRef> chassis,
-                         const ChVector<>& xyz,
-                         const ChVector<>& rpy,
+                         const ChVector3d& xyz,
+                         const ChVector3d& rpy,
                          CollisionFamily::Enum collision_family,
                          ActuationMode wheel_mode) {
     // Set absolute position of link0
     auto parent_body = chassis;                               // parent body
     auto child_body = m_links.find("link0")->second->m_body;  // child body
-    ChFrame<> X_GP = parent_body->GetFrame_REF_to_abs();      // global -> parent
+    ChFrame<> X_GP = parent_body->GetFrameRefToAbs();         // global -> parent
     ChFrame<> X_PC(xyz, rpy2quat(rpy));                       // parent -> child
     ChFrame<> X_GC = X_GP * X_PC;                             // global -> child
-    child_body->SetFrame_REF_to_abs(X_GC);
+    child_body->SetFrameRefToAbs(X_GC);
 
     // Traverse chain (base-to-tip)
     //   set absolute position of the child body
@@ -1202,10 +1201,10 @@ void RS_Limb::Initialize(std::shared_ptr<ChBodyAuxRef> chassis,
         auto child = m_links.find(joints[i].linkB)->second;        // child part
         parent_body = parent->m_body;                              // parent body
         child_body = child->m_body;                                // child body
-        X_GP = parent_body->GetFrame_REF_to_abs();                 // global -> parent
+        X_GP = parent_body->GetFrameRefToAbs();                    // global -> parent
         X_PC = ChFrame<>(joints[i].xyz, rpy2quat(joints[i].rpy));  // parent -> child
         X_GC = X_GP * X_PC;                                        // global -> child
-        child_body->SetFrame_REF_to_abs(X_GC);
+        child_body->SetFrameRefToAbs(X_GC);
 
         // First joint connects directly to chassis
         if (i == 0)
@@ -1217,19 +1216,19 @@ void RS_Limb::Initialize(std::shared_ptr<ChBodyAuxRef> chassis,
         if (child_body->GetCollisionModel()) {
             // Place all links from this limb in the same collision family
             child_body->GetCollisionModel()->SetFamily(collision_family);
-            child_body->GetCollisionModel()->SetFamilyMaskNoCollisionWithFamily(collision_family);
+            child_body->GetCollisionModel()->DisallowCollisionsWith(collision_family);
         }
 
         // Note: call this AFTER setting the collision family (required for Chrono::Multicore)
         if (child == m_wheel)
-            child_body->SetCollide(m_collide_wheel);
+            child_body->EnableCollision(m_collide_wheel);
         else
-            child_body->SetCollide(m_collide_links);
+            child_body->EnableCollision(m_collide_links);
 
         // Weld joints
         if (joints[i].fixed) {
             auto joint = chrono_types::make_shared<ChLinkLockLock>();
-            joint->SetNameString(m_name + "_" + joints[i].name);
+            joint->SetName(m_name + "_" + joints[i].name);
             joint->Initialize(parent_body, child_body, calcJointFrame(X_GC, joints[i].axis));
             chassis->GetSystem()->AddLink(joint);
             m_joints.insert(std::make_pair(joints[i].name, joint));
@@ -1238,9 +1237,9 @@ void RS_Limb::Initialize(std::shared_ptr<ChBodyAuxRef> chassis,
 
         // Actuated joints (except the wheel motor joint)
         if (joints[i].name.compare("joint8") != 0) {
-            auto motor_fun = chrono_types::make_shared<ChFunction_Setpoint>();
+            auto motor_fun = chrono_types::make_shared<ChFunctionSetpoint>();
             auto joint = chrono_types::make_shared<ChLinkMotorRotationAngle>();
-            joint->SetNameString(m_name + "_" + joints[i].name);
+            joint->SetName(m_name + "_" + joints[i].name);
             joint->Initialize(parent_body, child_body, ChFrame<>(calcJointFrame(X_GC, joints[i].axis)));
             joint->SetAngleFunction(motor_fun);
             chassis->GetSystem()->AddLink(joint);
@@ -1251,9 +1250,9 @@ void RS_Limb::Initialize(std::shared_ptr<ChBodyAuxRef> chassis,
 
         // Wheel motor joint
         if (wheel_mode == ActuationMode::SPEED) {
-            auto motor_fun = chrono_types::make_shared<ChFunction_Setpoint>();
+            auto motor_fun = chrono_types::make_shared<ChFunctionSetpoint>();
             auto joint = chrono_types::make_shared<ChLinkMotorRotationSpeed>();
-            joint->SetNameString(m_name + "_" + joints[i].name);
+            joint->SetName(m_name + "_" + joints[i].name);
             joint->Initialize(parent_body, child_body, ChFrame<>(calcJointFrame(X_GC, joints[i].axis)));
             joint->SetSpeedFunction(motor_fun);
             chassis->GetSystem()->AddLink(joint);
@@ -1261,9 +1260,9 @@ void RS_Limb::Initialize(std::shared_ptr<ChBodyAuxRef> chassis,
             m_motors.insert(std::make_pair(joints[i].name, joint));
             m_wheel_motor = joint;
         } else {
-            auto motor_fun = chrono_types::make_shared<ChFunction_Setpoint>();
+            auto motor_fun = chrono_types::make_shared<ChFunctionSetpoint>();
             auto joint = chrono_types::make_shared<ChLinkMotorRotationAngle>();
-            joint->SetNameString(m_name + "_" + joints[i].name);
+            joint->SetName(m_name + "_" + joints[i].name);
             joint->Initialize(parent_body, child_body, ChFrame<>(calcJointFrame(X_GC, joints[i].axis)));
             joint->SetAngleFunction(motor_fun);
             chassis->GetSystem()->AddLink(joint);
@@ -1294,7 +1293,7 @@ void RS_Limb::Activate(const std::string& motor_name, double time, double val) {
     }
 
     // Note: currently hard-coded for angle motor
-    auto fun = std::static_pointer_cast<ChFunction_Setpoint>(itr->second->GetMotorFunction());
+    auto fun = std::static_pointer_cast<ChFunctionSetpoint>(itr->second->GetMotorFunction());
     fun->SetSetpoint(-val, time);
 }
 
@@ -1305,7 +1304,7 @@ double RS_Limb::GetMotorAngle(const std::string& motor_name) const {
         return 0;
     }
 
-    return itr->second->GetMotorRot();
+    return itr->second->GetMotorAngle();
 }
 
 double RS_Limb::GetMotorOmega(const std::string& motor_name) const {
@@ -1315,7 +1314,7 @@ double RS_Limb::GetMotorOmega(const std::string& motor_name) const {
         return 0;
     }
 
-    return itr->second->GetMotorRot_dt();
+    return itr->second->GetMotorAngleDt();
 }
 
 double RS_Limb::GetMotorTorque(const std::string& motor_name) const {
@@ -1332,7 +1331,7 @@ static std::string motor_names[] = {"joint1", "joint2", "joint3", "joint4", "joi
 
 void RS_Limb::Activate(double time, const std::array<double, 8>& vals) {
     for (int i = 0; i < 8; i++) {
-        auto fun = std::static_pointer_cast<ChFunction_Setpoint>(m_motors[motor_names[i]]->GetMotorFunction());
+        auto fun = std::static_pointer_cast<ChFunctionSetpoint>(m_motors[motor_names[i]]->GetMotorFunction());
         fun->SetSetpoint(-vals[i], time);
     }
 }
@@ -1341,7 +1340,7 @@ std::array<double, 8> RS_Limb::GetMotorAngles() {
     std::array<double, 8> result;
 
     for (int i = 0; i < 8; i++) {
-        result[i] = m_motors[motor_names[i]]->GetMotorRot();
+        result[i] = m_motors[motor_names[i]]->GetMotorAngle();
     }
 
     return result;
@@ -1351,7 +1350,7 @@ std::array<double, 8> RS_Limb::GetMotorOmegas() {
     std::array<double, 8> result;
 
     for (int i = 0; i < 8; i++) {
-        result[i] = m_motors[motor_names[i]]->GetMotorRot_dt();
+        result[i] = m_motors[motor_names[i]]->GetMotorAngleDt();
     }
 
     return result;
@@ -1369,10 +1368,10 @@ std::array<double, 8> RS_Limb::GetMotorTorques() {
 
 void RS_Limb::GetMotorActuations(std::array<double, 8>& angles, std::array<double, 8>& speeds) {
     for (int i = 0; i < 8; i++) {
-        auto fun = std::static_pointer_cast<ChFunction_Setpoint>(m_motors[motor_names[i]]->GetMotorFunction());
-        // Note: the time passed as argument here does not matter for a Chfunction_Setpoint
-        angles[i] = fun->Get_y(0);
-        speeds[i] = fun->Get_y_dx(0);
+        auto fun = std::static_pointer_cast<ChFunctionSetpoint>(m_motors[motor_names[i]]->GetMotorFunction());
+        // Note: the time passed as argument here does not matter for a ChfunctionSetpoint
+        angles[i] = fun->GetVal(0);
+        speeds[i] = fun->GetDer(0);
     }
 }
 
@@ -1380,16 +1379,16 @@ void RS_Limb::SetCollideLinks(bool state) {
     m_collide_links = state;
     for (auto link : m_links) {
         if (link.second != m_wheel)
-            link.second->m_body->SetCollide(state);
+            link.second->m_body->EnableCollision(state);
     }
 }
 
 void RS_Limb::SetCollideWheel(bool state) {
     m_collide_wheel = state;
-    m_wheel->m_body->SetCollide(state);
+    m_wheel->m_body->EnableCollision(state);
 }
 
-void RS_Limb::Translate(const ChVector<>& shift) {
+void RS_Limb::Translate(const ChVector3d& shift) {
     for (auto link : m_links) {
         link.second->m_body->SetPos(link.second->m_body->GetPos() + shift);
     }

@@ -31,13 +31,14 @@ namespace vehicle {
 // -----------------------------------------------------------------------------
 // -----------------------------------------------------------------------------
 Wheel::Wheel(const std::string& filename) : ChWheel(""), m_radius(0), m_width(0) {
-    Document d; ReadFileJSON(filename, d);
+    Document d;
+    ReadFileJSON(filename, d);
     if (d.IsNull())
         return;
 
     Create(d);
 
-    GetLog() << "Loaded JSON: " << filename.c_str() << "\n";
+    std::cout << "Loaded JSONL " << filename << std::endl;
 }
 
 Wheel::Wheel(const rapidjson::Document& d) : ChWheel(""), m_radius(0), m_width(0) {

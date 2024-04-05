@@ -120,7 +120,7 @@ bool RTSCamera::OnEvent(const SEvent& event) {
                 MousePos.Y = event.MouseInput.Y / (f32)ssize.Height;
                 break;
             case EMIE_MOUSE_WHEEL:
-                currentZoom -= event.MouseInput.Wheel * 0.05f * zoomSpeed;  //***ALEX
+                currentZoom -= event.MouseInput.Wheel * 0.05f * zoomSpeed;  //// TODO: ALEX
 
                 if (currentZoom <= targetMinDistance)
                     atMinDistance = true;

@@ -14,6 +14,8 @@
 #define CHAPICE_H
 
 #include <cstddef>
+#include <cassert>
+#include <iostream>
 
 #include "chrono/ChVersion.h"
 #include "chrono/core/ChPlatform.h"
@@ -24,9 +26,9 @@
 // link the library to your code, and the symbols will be imported.
 
 #if defined(CH_API_COMPILE)
-#define ChApi ChApiEXPORT
+    #define ChApi ChApiEXPORT
 #else
-#define ChApi ChApiIMPORT
+    #define ChApi ChApiIMPORT
 #endif
 
 #endif

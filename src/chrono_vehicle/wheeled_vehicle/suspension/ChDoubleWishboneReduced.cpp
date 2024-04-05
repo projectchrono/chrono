@@ -57,7 +57,7 @@ ChDoubleWishboneReduced::~ChDoubleWishboneReduced() {
 void ChDoubleWishboneReduced::Initialize(std::shared_ptr<ChChassis> chassis,
                                          std::shared_ptr<ChSubchassis> subchassis,
                                          std::shared_ptr<ChSteering> steering,
-                                         const ChVector<>& location,
+                                         const ChVector3d& location,
                                          double left_ang_vel,
                                          double right_ang_vel) {
     ChSuspension::Initialize(chassis, subchassis, steering, location, left_ang_vel, right_ang_vel);
@@ -67,16 +67,16 @@ void ChDoubleWishboneReduced::Initialize(std::shared_ptr<ChChassis> chassis,
 
     // Express the suspension reference frame in the absolute coordinate system.
     ChFrame<> suspension_to_abs(location);
-    suspension_to_abs.ConcatenatePreTransformation(chassis->GetBody()->GetFrame_REF_to_abs());
+    suspension_to_abs.ConcatenatePreTransformation(chassis->GetBody()->GetFrameRefToAbs());
 
     // Transform all hardpoints to absolute frame.
     m_pointsL.resize(NUM_POINTS);
     m_pointsR.resize(NUM_POINTS);
     for (int i = 0; i < NUM_POINTS; i++) {
-        ChVector<> rel_pos = getLocation(static_cast<PointId>(i));
-        m_pointsL[i] = suspension_to_abs.TransformLocalToParent(rel_pos);
+        ChVector3d rel_pos = getLocation(static_cast<PointId>(i));
+        m_pointsL[i] = suspension_to_abs.TransformPointLocalToParent(rel_pos);
         rel_pos.y() = -rel_pos.y();
-        m_pointsR[i] = suspension_to_abs.TransformLocalToParent(rel_pos);
+        m_pointsR[i] = suspension_to_abs.TransformPointLocalToParent(rel_pos);
     }
 
     // Initialize left and right sides.
@@ -88,31 +88,31 @@ void ChDoubleWishboneReduced::Initialize(std::shared_ptr<ChChassis> chassis,
 void ChDoubleWishboneReduced::InitializeSide(VehicleSide side,
                                              std::shared_ptr<ChBodyAuxRef> chassis,
                                              std::shared_ptr<ChBody> tierod_body,
-                                             const std::vector<ChVector<> >& points,
+                                             const std::vector<ChVector3d>& points,
                                              double ang_vel) {
     std::string suffix = (side == LEFT) ? "_L" : "_R";
 
     // Chassis orientation (expressed in absolute frame)
     // Recall that the suspension reference frame is aligned with the chassis.
-    ChQuaternion<> chassisRot = chassis->GetFrame_REF_to_abs().GetRot();
+    ChQuaternion<> chassisRot = chassis->GetFrameRefToAbs().GetRot();
 
     // Spindle orientation (based on camber and toe angles)
     double sign = (side == LEFT) ? -1 : +1;
-    auto spindleRot = chassisRot * Q_from_AngZ(sign * getToeAngle()) * Q_from_AngX(sign * getCamberAngle());
+    auto spindleRot = chassisRot * QuatFromAngleZ(sign * getToeAngle()) * QuatFromAngleX(sign * getCamberAngle());
 
     // Create and initialize spindle body
     m_spindle[side] = chrono_types::make_shared<ChBody>();
-    m_spindle[side]->SetNameString(m_name + "_spindle" + suffix);
+    m_spindle[side]->SetName(m_name + "_spindle" + suffix);
     m_spindle[side]->SetPos(points[SPINDLE]);
     m_spindle[side]->SetRot(spindleRot);
-    m_spindle[side]->SetWvel_loc(ChVector<>(0, ang_vel, 0));
+    m_spindle[side]->SetAngVelLocal(ChVector3d(0, ang_vel, 0));
     m_spindle[side]->SetMass(getSpindleMass());
     m_spindle[side]->SetInertiaXX(getSpindleInertia());
     chassis->GetSystem()->AddBody(m_spindle[side]);
 
     // Create and initialize upright body (same orientation as the chassis)
     m_upright[side] = chrono_types::make_shared<ChBody>();
-    m_upright[side]->SetNameString(m_name + "_upright" + suffix);
+    m_upright[side]->SetName(m_name + "_upright" + suffix);
     m_upright[side]->SetPos(points[UPRIGHT]);
     m_upright[side]->SetRot(chassisRot);
     m_upright[side]->SetMass(getUprightMass());
@@ -120,40 +120,40 @@ void ChDoubleWishboneReduced::InitializeSide(VehicleSide side,
     chassis->GetSystem()->AddBody(m_upright[side]);
 
     // Create and initialize joints
-    ChCoordsys<> rev_csys(points[SPINDLE], spindleRot * Q_from_AngAxis(CH_C_PI / 2.0, VECT_X));
     m_revolute[side] = chrono_types::make_shared<ChLinkLockRevolute>();
-    m_revolute[side]->SetNameString(m_name + "_revolute" + suffix);
-    m_revolute[side]->Initialize(m_spindle[side], m_upright[side], rev_csys);
+    m_revolute[side]->SetName(m_name + "_revolute" + suffix);
+    m_revolute[side]->Initialize(m_spindle[side], m_upright[side],
+                                 ChFrame<>(points[SPINDLE], spindleRot * QuatFromAngleX(CH_PI_2)));
     chassis->GetSystem()->AddLink(m_revolute[side]);
 
     m_distUCA_F[side] = chrono_types::make_shared<ChLinkDistance>();
-    m_distUCA_F[side]->SetNameString(m_name + "_distUCA_F" + suffix);
+    m_distUCA_F[side]->SetName(m_name + "_distUCA_F" + suffix);
     m_distUCA_F[side]->Initialize(chassis, m_upright[side], false, points[UCA_F], points[UCA_U]);
     chassis->GetSystem()->AddLink(m_distUCA_F[side]);
 
     m_distUCA_B[side] = chrono_types::make_shared<ChLinkDistance>();
-    m_distUCA_B[side]->SetNameString(m_name + "_distUCA_B" + suffix);
+    m_distUCA_B[side]->SetName(m_name + "_distUCA_B" + suffix);
     m_distUCA_B[side]->Initialize(chassis, m_upright[side], false, points[UCA_B], points[UCA_U]);
     chassis->GetSystem()->AddLink(m_distUCA_B[side]);
 
     m_distLCA_F[side] = chrono_types::make_shared<ChLinkDistance>();
-    m_distLCA_F[side]->SetNameString(m_name + "_distLCA_F" + suffix);
+    m_distLCA_F[side]->SetName(m_name + "_distLCA_F" + suffix);
     m_distLCA_F[side]->Initialize(chassis, m_upright[side], false, points[LCA_F], points[LCA_U]);
     chassis->GetSystem()->AddLink(m_distLCA_F[side]);
 
     m_distLCA_B[side] = chrono_types::make_shared<ChLinkDistance>();
-    m_distLCA_B[side]->SetNameString(m_name + "_distLCA_B" + suffix);
+    m_distLCA_B[side]->SetName(m_name + "_distLCA_B" + suffix);
     m_distLCA_B[side]->Initialize(chassis, m_upright[side], false, points[LCA_B], points[LCA_U]);
     chassis->GetSystem()->AddLink(m_distLCA_B[side]);
 
     m_distTierod[side] = chrono_types::make_shared<ChLinkDistance>();
-    m_distTierod[side]->SetNameString(m_name + "_distTierod" + suffix);
+    m_distTierod[side]->SetName(m_name + "_distTierod" + suffix);
     m_distTierod[side]->Initialize(tierod_body, m_upright[side], false, points[TIEROD_C], points[TIEROD_U]);
     chassis->GetSystem()->AddLink(m_distTierod[side]);
 
     // Create and initialize the spring/damper
     m_shock[side] = chrono_types::make_shared<ChLinkTSDA>();
-    m_shock[side]->SetNameString(m_name + "_shock" + suffix);
+    m_shock[side]->SetName(m_name + "_shock" + suffix);
     m_shock[side]->Initialize(chassis, m_upright[side], false, points[SHOCK_C], points[SHOCK_U]);
     m_shock[side]->SetRestLength(getSpringRestLength());
     m_shock[side]->RegisterForceFunctor(getShockForceFunctor());
@@ -162,14 +162,14 @@ void ChDoubleWishboneReduced::InitializeSide(VehicleSide side,
     // Create and initialize the axle shaft and its connection to the spindle.
     // Note that the spindle rotates about the Y axis.
     m_axle[side] = chrono_types::make_shared<ChShaft>();
-    m_axle[side]->SetNameString(m_name + "_axle" + suffix);
+    m_axle[side]->SetName(m_name + "_axle" + suffix);
     m_axle[side]->SetInertia(getAxleInertia());
-    m_axle[side]->SetPos_dt(-ang_vel);
+    m_axle[side]->SetPosDt(-ang_vel);
     chassis->GetSystem()->AddShaft(m_axle[side]);
 
-    m_axle_to_spindle[side] = chrono_types::make_shared<ChShaftsBody>();
-    m_axle_to_spindle[side]->SetNameString(m_name + "_axle_to_spindle" + suffix);
-    m_axle_to_spindle[side]->Initialize(m_axle[side], m_spindle[side], ChVector<>(0, -1, 0));
+    m_axle_to_spindle[side] = chrono_types::make_shared<ChShaftBodyRotation>();
+    m_axle_to_spindle[side]->SetName(m_name + "_axle_to_spindle" + suffix);
+    m_axle_to_spindle[side]->Initialize(m_axle[side], m_spindle[side], ChVector3d(0, -1, 0));
     chassis->GetSystem()->Add(m_axle_to_spindle[side]);
 }
 
@@ -178,23 +178,23 @@ void ChDoubleWishboneReduced::InitializeInertiaProperties() {
 }
 
 void ChDoubleWishboneReduced::UpdateInertiaProperties() {
-    m_parent->GetTransform().TransformLocalToParent(ChFrame<>(m_rel_loc, QUNIT), m_xform);
+    m_xform = m_parent->GetTransform().TransformLocalToParent(ChFrame<>(m_rel_loc, QUNIT));
 
     // Calculate COM and inertia expressed in global frame
     ChMatrix33<> inertiaSpindle(getSpindleInertia());
     ChMatrix33<> inertiaUpright(getUprightInertia());
 
     utils::CompositeInertia composite;
-    composite.AddComponent(m_spindle[LEFT]->GetFrame_COG_to_abs(), getSpindleMass(), inertiaSpindle);
-    composite.AddComponent(m_spindle[RIGHT]->GetFrame_COG_to_abs(), getSpindleMass(), inertiaSpindle);
-    composite.AddComponent(m_upright[LEFT]->GetFrame_COG_to_abs(), getUprightMass(), inertiaUpright);
-    composite.AddComponent(m_upright[RIGHT]->GetFrame_COG_to_abs(), getUprightMass(), inertiaUpright);
+    composite.AddComponent(m_spindle[LEFT]->GetFrameCOMToAbs(), getSpindleMass(), inertiaSpindle);
+    composite.AddComponent(m_spindle[RIGHT]->GetFrameCOMToAbs(), getSpindleMass(), inertiaSpindle);
+    composite.AddComponent(m_upright[LEFT]->GetFrameCOMToAbs(), getUprightMass(), inertiaUpright);
+    composite.AddComponent(m_upright[RIGHT]->GetFrameCOMToAbs(), getUprightMass(), inertiaUpright);
 
     // Express COM and inertia in subsystem reference frame
-    m_com.coord.pos = m_xform.TransformPointParentToLocal(composite.GetCOM());
-    m_com.coord.rot = QUNIT;
+    m_com.SetPos(m_xform.TransformPointParentToLocal(composite.GetCOM()));
+    m_com.SetRot(QUNIT);
 
-    m_inertia = m_xform.GetA().transpose() * composite.GetInertia() * m_xform.GetA();
+    m_inertia = m_xform.GetRotMat().transpose() * composite.GetInertia() * m_xform.GetRotMat();
 }
 
 // -----------------------------------------------------------------------------
@@ -220,7 +220,7 @@ std::vector<ChSuspension::ForceTSDA> ChDoubleWishboneReduced::ReportSuspensionFo
 // -----------------------------------------------------------------------------
 void ChDoubleWishboneReduced::AddVisualizationAssets(VisualizationType vis) {
     ChSuspension::AddVisualizationAssets(vis);
-    
+
     if (vis == VisualizationType::NONE)
         return;
 
@@ -279,18 +279,18 @@ void ChDoubleWishboneReduced::RemoveVisualizationAssets() {
 // -----------------------------------------------------------------------------
 // -----------------------------------------------------------------------------
 void ChDoubleWishboneReduced::AddVisualizationUpright(std::shared_ptr<ChBody> upright,
-                                                      const ChVector<> pt_C,
-                                                      const ChVector<> pt_U,
-                                                      const ChVector<> pt_L,
-                                                      const ChVector<> pt_T,
+                                                      const ChVector3d pt_C,
+                                                      const ChVector3d pt_U,
+                                                      const ChVector3d pt_L,
+                                                      const ChVector3d pt_T,
                                                       double radius) {
     static const double threshold2 = 1e-6;
 
     // Express hardpoint locations in body frame.
-    ChVector<> p_C = upright->TransformPointParentToLocal(pt_C);
-    ChVector<> p_U = upright->TransformPointParentToLocal(pt_U);
-    ChVector<> p_L = upright->TransformPointParentToLocal(pt_L);
-    ChVector<> p_T = upright->TransformPointParentToLocal(pt_T);
+    ChVector3d p_C = upright->TransformPointParentToLocal(pt_C);
+    ChVector3d p_U = upright->TransformPointParentToLocal(pt_U);
+    ChVector3d p_L = upright->TransformPointParentToLocal(pt_L);
+    ChVector3d p_T = upright->TransformPointParentToLocal(pt_T);
 
     if ((p_L - p_C).Length2() > threshold2) {
         ChVehicleGeometry::AddVisualizationCylinder(upright, p_L, p_C, radius);
@@ -311,29 +311,29 @@ void ChDoubleWishboneReduced::LogConstraintViolations(VehicleSide side) {
     // Revolute joint
     {
         ChVectorDynamic<> C = m_revolute[side]->GetConstraintViolation();
-        GetLog() << "Spindle revolute      ";
-        GetLog() << "  " << C(0) << "  ";
-        GetLog() << "  " << C(1) << "  ";
-        GetLog() << "  " << C(2) << "  ";
-        GetLog() << "  " << C(3) << "  ";
-        GetLog() << "  " << C(4) << "\n";
+        std::cout << "Spindle revolute      ";
+        std::cout << "  " << C(0) << "  ";
+        std::cout << "  " << C(1) << "  ";
+        std::cout << "  " << C(2) << "  ";
+        std::cout << "  " << C(3) << "  ";
+        std::cout << "  " << C(4) << "\n";
     }
 
     // Distance constraints
-    GetLog() << "UCA front distance    ";
-    GetLog() << "  " << m_distUCA_F[side]->GetCurrentDistance() - m_distUCA_F[side]->GetImposedDistance() << "\n";
+    std::cout << "UCA front distance    ";
+    std::cout << "  " << m_distUCA_F[side]->GetCurrentDistance() - m_distUCA_F[side]->GetImposedDistance() << "\n";
 
-    GetLog() << "UCA back distance     ";
-    GetLog() << "  " << m_distUCA_B[side]->GetCurrentDistance() - m_distUCA_B[side]->GetImposedDistance() << "\n";
+    std::cout << "UCA back distance     ";
+    std::cout << "  " << m_distUCA_B[side]->GetCurrentDistance() - m_distUCA_B[side]->GetImposedDistance() << "\n";
 
-    GetLog() << "LCA front distance    ";
-    GetLog() << "  " << m_distLCA_F[side]->GetCurrentDistance() - m_distLCA_F[side]->GetImposedDistance() << "\n";
+    std::cout << "LCA front distance    ";
+    std::cout << "  " << m_distLCA_F[side]->GetCurrentDistance() - m_distLCA_F[side]->GetImposedDistance() << "\n";
 
-    GetLog() << "LCA back distance     ";
-    GetLog() << "  " << m_distLCA_B[side]->GetCurrentDistance() - m_distLCA_B[side]->GetImposedDistance() << "\n";
+    std::cout << "LCA back distance     ";
+    std::cout << "  " << m_distLCA_B[side]->GetCurrentDistance() - m_distLCA_B[side]->GetImposedDistance() << "\n";
 
-    GetLog() << "Tierod distance       ";
-    GetLog() << "  " << m_distTierod[side]->GetCurrentDistance() - m_distTierod[side]->GetImposedDistance() << "\n";
+    std::cout << "Tierod distance       ";
+    std::cout << "  " << m_distTierod[side]->GetCurrentDistance() - m_distTierod[side]->GetImposedDistance() << "\n";
 }
 
 // -----------------------------------------------------------------------------

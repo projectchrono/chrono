@@ -20,7 +20,7 @@
 #include "chrono/collision/multicore/ChCollisionUtils.h"
 
 #include "chrono/collision/ChCollisionModel.h"
-#include "chrono/core/ChMathematics.h"
+#include "chrono/utils/ChConstants.h"
 
 #include "chrono/collision/bullet/BulletCollision/CollisionShapes/cbtBoxShape.h"
 #include "chrono/collision/bullet/BulletCollision/CollisionShapes/cbtCollisionMargin.h"
@@ -34,7 +34,7 @@
 #include "unit_testing.h"
 
 using namespace chrono;
-using namespace chrono::ch_utils;
+using namespace chrono::mc_utils;
 
 real envelope = 0;
 
@@ -147,7 +147,7 @@ TEST(ChNarrowphaseMPR, sphere_sphere) {
 
         d = Dot(n, p2 - p1);
         // std::cout << n << p1 << p2 << d << std::endl;
-        real3 n_check = real3(sin(CH_C_PI / 4.0), -sin(CH_C_PI / 4.0), 0);
+        real3 n_check = real3(sin(CH_PI / 4.0), -sin(CH_PI / 4.0), 0);
         Assert_near(n, n_check, precision);
         Assert_near(p1, real3(1, 1, 0) + n_check * 1, precision);
         Assert_near(p2, real3(2, 0, 0) - n_check * 1, precision);
@@ -198,7 +198,7 @@ TEST(ChNarrowphaseMPR, ellipsoid_ellipsoid) {
         ChNarrowphase::MPRCollision(shapeA, shapeB, envelope, n, p1, p2, d);
         d = Dot(n, p2 - p1);
 
-        real3 n_check = real3(sin(CH_C_PI / 4.0), -sin(CH_C_PI / 4.0), 0);
+        real3 n_check = real3(sin(CH_PI / 4.0), -sin(CH_PI / 4.0), 0);
         Assert_near(n, n_check, precision);
         Assert_near(p1, real3(1, 1, 0) + n_check * 1, precision);
         Assert_near(p2, real3(2, 0, 0) - n_check * 1, precision);
@@ -401,7 +401,7 @@ TEST(ChNarrowphaseMPR, cylinder_sphere) {
     // Cylinder position and orientation fixed for all tests.
     // Aligned with X axis and shifted by its half-length in the X direction.
     real3 c_pos(c_hlen, 0, 0);
-    quaternion c_rot = FromChQuaternion(Q_from_AngY(CH_C_PI_2));
+    quaternion c_rot = FromChQuaternion(QuatFromAngleY(CH_PI_2));
 
     real3 norm;
     real depth;
@@ -557,7 +557,7 @@ TEST(ChNarrowphaseMPR, roundedcyl_sphere) {
     // Rounded cylinder position and orientation fixed for all tests.
     // Aligned with X axis and shifted by its half-length in the X direction.
     real3 c_pos(c_hlen, 0, 0);
-    quaternion c_rot = FromChQuaternion(Q_from_AngY(CH_C_PI_2));
+    quaternion c_rot = FromChQuaternion(QuatFromAngleY(CH_PI_2));
 
     real3 norm;
     real depth;

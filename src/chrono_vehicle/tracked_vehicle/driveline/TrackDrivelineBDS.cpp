@@ -13,7 +13,7 @@
 // =============================================================================
 //
 // Track driveline model template based on ChShaft objects using data from file
-// (JSON format). 
+// (JSON format).
 //
 // =============================================================================
 
@@ -28,13 +28,14 @@ namespace vehicle {
 // -----------------------------------------------------------------------------
 // -----------------------------------------------------------------------------
 TrackDrivelineBDS::TrackDrivelineBDS(const std::string& filename) : ChTrackDrivelineBDS("") {
-    Document d; ReadFileJSON(filename, d);
+    Document d;
+    ReadFileJSON(filename, d);
     if (d.IsNull())
         return;
 
     Create(d);
 
-    GetLog() << "Loaded JSON: " << filename.c_str() << "\n";
+    std::cout << "Loaded JSONL " << filename << std::endl;
 }
 
 TrackDrivelineBDS::TrackDrivelineBDS(const rapidjson::Document& d) : ChTrackDrivelineBDS("") {
@@ -47,8 +48,8 @@ void TrackDrivelineBDS::Create(const rapidjson::Document& d) {
 
     // The direction of the motor block is along the X axis, while the directions of
     // the axles is along the Y axis (relative to the chassis coordinate frame).
-    SetMotorBlockDirection(ChVector<>(1, 0, 0));
-    SetAxleDirection(ChVector<>(0, 1, 0));
+    SetMotorBlockDirection(ChVector3d(1, 0, 0));
+    SetAxleDirection(ChVector3d(0, 1, 0));
 
     m_driveshaft_inertia = d["Driveshaft Inertia"].GetDouble();
     m_differentialbox_inertia = d["Differential Box Inertia"].GetDouble();

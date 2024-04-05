@@ -32,7 +32,7 @@ namespace feda {
 
 /// TMeasy tire model for the Fed Alpha.
 class CH_MODELS_API FEDA_TMsimpleTire : public ChTMsimpleTire {
-   public:
+  public:
     FEDA_TMsimpleTire(const std::string& name);
     ~FEDA_TMsimpleTire() {}
 
@@ -40,18 +40,18 @@ class CH_MODELS_API FEDA_TMsimpleTire : public ChTMsimpleTire {
 
     virtual void SetTMsimpleParams() override;
     virtual double GetTireMass() const override { return m_mass; }
-    virtual ChVector<> GetTireInertia() const override { return m_inertia; }
+    virtual ChVector3d GetTireInertia() const override { return m_inertia; }
 
     virtual void AddVisualizationAssets(VisualizationType vis) override;
     virtual void RemoveVisualizationAssets() override final;
 
     void GenerateCharacteristicPlots(const std::string& dirname);
 
-   private:
+  private:
     static const double m_mass;
-    static const ChVector<> m_inertia;
+    static const ChVector3d m_inertia;
 
-    ChFunction_Recorder m_stiffnessMap;
+    ChFunctionInterp m_stiffnessMap;
 
     static const std::string m_meshFile_left;
     static const std::string m_meshFile_right;
@@ -65,4 +65,3 @@ class CH_MODELS_API FEDA_TMsimpleTire : public ChTMsimpleTire {
 }  // end namespace chrono
 
 #endif
-

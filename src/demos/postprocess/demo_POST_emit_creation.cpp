@@ -35,7 +35,7 @@ using namespace chrono::irrlicht;
 using namespace chrono::postprocess;
 
 int main(int argc, char* argv[]) {
-    GetLog() << "Copyright (c) 2017 projectchrono.org\nChrono version: " << CHRONO_VERSION << "\n\n";
+    std::cout << "Copyright (c) 2017 projectchrono.org\nChrono version: " << CHRONO_VERSION << std::endl;
 
     // Create a Chrono system and set the associated collision system
     ChSystemNSC sys;
@@ -49,7 +49,7 @@ int main(int argc, char* argv[]) {
     vis->AddLogo();
     vis->AddSkyBox();
     vis->AddTypicalLights();
-    vis->AddCamera(ChVector<>(0, 4, -6), ChVector<>(0, -2, 0));
+    vis->AddCamera(ChVector3d(0, 4, -6), ChVector3d(0, -2, 0));
 
     // Create an exporter to POVray !!
     ChPovRay pov_exporter = ChPovRay(&sys);
@@ -89,22 +89,22 @@ int main(int argc, char* argv[]) {
     // CREATE THE SYSTEM OBJECTS
 
     // Create the floor:
-    auto floor_mat = chrono_types::make_shared<ChMaterialSurfaceNSC>();
+    auto floor_mat = chrono_types::make_shared<ChContactMaterialNSC>();
 
     auto floor_body = chrono_types::make_shared<ChBodyEasyBox>(20, 1, 20, 1000, true, true, floor_mat);
-    floor_body->SetPos(ChVector<>(0, -5, 0));
-    floor_body->SetBodyFixed(true);
-    floor_body->GetVisualShape(0)->SetColor(ChColor(0.0f, 1.0f, (float)ChRandom()));
+    floor_body->SetPos(ChVector3d(0, -5, 0));
+    floor_body->SetFixed(true);
+    floor_body->GetVisualShape(0)->SetColor(ChColor(0.0f, 1.0f, (float)ChRandom::Get()));
 
     auto shape1 = chrono_types::make_shared<ChCollisionShapeBox>(floor_mat, 20, 1, 20);
     auto shape2 = chrono_types::make_shared<ChCollisionShapeBox>(floor_mat, 2, 24, 40);
     auto shape3 = chrono_types::make_shared<ChCollisionShapeBox>(floor_mat, 20, 24, 2);
 
     floor_body->AddCollisionShape(shape1);
-    floor_body->AddCollisionShape(shape2, ChFrame<>(ChVector<>(-5, 0, 0), QUNIT));
-    floor_body->AddCollisionShape(shape2, ChFrame<>(ChVector<>(5, 0, 0), QUNIT));
-    floor_body->AddCollisionShape(shape3, ChFrame<>(ChVector<>(0, 0, -5), QUNIT));
-    floor_body->AddCollisionShape(shape3, ChFrame<>(ChVector<>(0, 0, 5), QUNIT));
+    floor_body->AddCollisionShape(shape2, ChFrame<>(ChVector3d(-5, 0, 0), QUNIT));
+    floor_body->AddCollisionShape(shape2, ChFrame<>(ChVector3d(5, 0, 0), QUNIT));
+    floor_body->AddCollisionShape(shape3, ChFrame<>(ChVector3d(0, 0, -5), QUNIT));
+    floor_body->AddCollisionShape(shape3, ChFrame<>(ChVector3d(0, 0, 5), QUNIT));
 
     // Custom rendering in POVray:
     pov_exporter.SetCustomCommands(floor_body,
@@ -139,7 +139,7 @@ int main(int argc, char* argv[]) {
     // ---Initialize the randomizer for positions
     auto emitter_positions = chrono_types::make_shared<ChRandomParticlePositionRectangleOutlet>();
     emitter_positions->Outlet() =
-        ChCoordsys<>(ChVector<>(0, 0, 0), Q_from_AngAxis(CH_C_PI_2, VECT_X));  // center and alignment of the outlet
+        ChCoordsys<>(ChVector3d(0, 0, 0), QuatFromAngleX(CH_PI_2));  // center and alignment of the outlet
     emitter_positions->OutletWidth() = 3.0;
     emitter_positions->OutletHeight() = 3.0;
     emitter.SetParticlePositioner(emitter_positions);
@@ -194,8 +194,8 @@ int main(int argc, char* argv[]) {
     auto creator_boxes = chrono_types::make_shared<ChRandomShapeCreatorBoxes>();
     creator_boxes->SetXsizeDistribution(
         chrono_types::make_shared<ChZhangDistribution>(0.20, 0.09));  // Zhang parameters: average val, min val.
-    creator_boxes->SetSizeRatioZDistribution(chrono_types::make_shared<ChMinMaxDistribution>(0.8, 1.0));
-    creator_boxes->SetSizeRatioYZDistribution(chrono_types::make_shared<ChMinMaxDistribution>(0.2, 0.3));
+    creator_boxes->SetSizeRatioZDistribution(chrono_types::make_shared<ChUniformDistribution>(0.8, 1.0));
+    creator_boxes->SetSizeRatioYZDistribution(chrono_types::make_shared<ChUniformDistribution>(0.2, 0.3));
     creator_boxes->SetDensityDistribution(chrono_types::make_shared<ChConstantDistribution>(1000));
 
     // Optional: define a callback to be exectuted at each creation of a box particle:
@@ -205,7 +205,7 @@ int main(int argc, char* argv[]) {
                                ChCoordsys<> coords,
                                ChRandomShapeCreator& creator) override {
             // Quick randomization of POV colors, without using the ChRandomShapeCreatorFromFamilies
-            double icol = ChRandom();
+            double icol = ChRandom::Get();
             if (icol < 0.3)
                 pov->SetCustomCommands(body, " texture {pigment{ color rgb<0.8,0.3,0.3>} }  \n");
             else if (icol < 0.8)
@@ -259,10 +259,10 @@ int main(int argc, char* argv[]) {
     // Create a ChRandomShapeCreator object (ex. here for sphere particles)
 
     auto creator_shavings = chrono_types::make_shared<ChRandomShapeCreatorShavings>();
-    creator_shavings->SetDiameterDistribution(chrono_types::make_shared<ChMinMaxDistribution>(0.06, 0.1));
-    creator_shavings->SetLengthRatioDistribution(chrono_types::make_shared<ChMinMaxDistribution>(3, 6));
-    creator_shavings->SetTwistDistributionU(chrono_types::make_shared<ChMinMaxDistribution>(5, 9));
-    creator_shavings->SetTwistDistributionV(chrono_types::make_shared<ChMinMaxDistribution>(2, 3));
+    creator_shavings->SetDiameterDistribution(chrono_types::make_shared<ChUniformDistribution>(0.06, 0.1));
+    creator_shavings->SetLengthRatioDistribution(chrono_types::make_shared<ChUniformDistribution>(3, 6));
+    creator_shavings->SetTwistDistributionU(chrono_types::make_shared<ChUniformDistribution>(5, 9));
+    creator_shavings->SetTwistDistributionV(chrono_types::make_shared<ChUniformDistribution>(2, 3));
     creator_shavings->SetDensityDistribution(chrono_types::make_shared<ChConstantDistribution>(1600));
 
     // Optional: define a callback to be exectuted at each creation of a sphere particle:
@@ -272,7 +272,7 @@ int main(int argc, char* argv[]) {
         virtual void OnAddBody(std::shared_ptr<ChBody> body,
                                ChCoordsys<> coords,
                                ChRandomShapeCreator& creator) override {
-            float scale = (float)ChRandom();
+            float scale = (float)ChRandom::Get();
             body->GetVisualShape(0)->SetColor(ChColor(0.3f + scale * 0.6f, 0.2f + scale * 0.7f, 0.2f + scale * 0.7f));
         }
     };
@@ -315,7 +315,7 @@ int main(int argc, char* argv[]) {
             pov->Add(body);
 
             // Other stuff, ex. disable gyroscopic forces for increased integrator stabilty
-            body->SetNoGyroTorque(true);
+            body->SetUseGyroTorque(false);
         }
 
         ChVisualSystem* vis;
@@ -343,7 +343,7 @@ int main(int argc, char* argv[]) {
 
     // Modify some setting of the physical system for the simulation, if you want
     sys.SetSolverType(ChSolver::Type::BARZILAIBORWEIN);
-    sys.SetSolverMaxIterations(30);
+    sys.GetSolver()->AsIterative()->SetMaxIterations(30);
 
     // Simulation loop
     double timestep = 0.02;

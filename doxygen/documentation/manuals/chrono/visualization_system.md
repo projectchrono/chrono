@@ -16,7 +16,7 @@ The simplest way to add a visual shape (@ref chrono::ChVisualShape "ChVisualShap
     auto visshape = chrono_types::make_shared<ChVisualShapeBox>(20, 1, 20);
     visshape->SetColor(ChColor(0.2f, 0.3f, 1.0f));
 
-    body->AddVisualShape(visshape, ChFrame<>(ChVector<>(0, -1, 0), QUNIT));
+    body->AddVisualShape(visshape, ChFramed(ChVector3d(0, -1, 0), QUNIT));
 ~~~
 In which we assume that `body` is of a type inheriting from @ref chrono::ChPhysicsItem "ChPhysicsItem" e.g. @ref chrono::ChBody "ChBody".
 
@@ -46,7 +46,7 @@ Please mind that, when attached to \ref chrono::ChBodyAuxRef "ChBodyAuxRef" the 
 
 <h4>ChVisualShape and ChVisualMaterial</h4>
 
-Visual shapes inherits either from @ref chrono::ChVisualShape "ChVisualShape" or @ref chrono::ChVisualShapeFEA "ChVisualShapeFEA" and usually have names prefixed with ```ChVisualShape____```. They usually holds also a @ref chrono::geometry::ChGeometry "geometry::ChGeometry" object to describe their shape, together with one or more @ref chrono::ChVisualMaterial "ChVisualMaterial"s, defining any appearance property of the asset.
+Visual shapes inherits either from @ref chrono::ChVisualShape "ChVisualShape" or @ref chrono::ChVisualShapeFEA "ChVisualShapeFEA" and usually have names prefixed with ```ChVisualShape____```. They usually holds also a @ref chrono::ChGeometry "ChGeometry" object to describe their shape, together with one or more @ref chrono::ChVisualMaterial "ChVisualMaterial"s, defining any appearance property of the asset.
 
 If no @ref chrono::ChVisualMaterial "ChVisualMaterial" has been explicitely added to the @ref chrono::ChVisualShape "ChVisualShape" it will get added automatically whenever the user sets a non-default value for any property of the shape. Multiple materials are usually used in combination with meshes like @ref chrono::ChVisualShapeModelFile "ChVisualShapeModelFile" where multiple materials might be listed in the input OBJ file.
 
@@ -65,7 +65,7 @@ To conclude, a more pedantic way to achieve the very same effect of the example 
     visshape->SetMaterial(0, vismat);
 
     auto vismodel = chrono_types::make_shared<ChVisualModel>(20, 1, 20);
-    vismodel->AddShape(visshape, ChFrame<>(ChVector<>(0, -1, 0), QUNIT));
+    vismodel->AddShape(visshape, ChFramed(ChVector3d(0, -1, 0), QUNIT));
 
     body->AddVisualModel(vismodel);
 ~~~

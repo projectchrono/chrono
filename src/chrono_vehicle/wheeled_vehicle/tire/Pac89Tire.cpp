@@ -30,13 +30,14 @@ namespace vehicle {
 // -----------------------------------------------------------------------------
 // -----------------------------------------------------------------------------
 Pac89Tire::Pac89Tire(const std::string& filename) : ChPac89Tire(""), m_mass(0), m_normalDamping(0), m_has_mesh(false) {
-    Document d; ReadFileJSON(filename, d);
+    Document d;
+    ReadFileJSON(filename, d);
     if (d.IsNull())
         return;
 
     Create(d);
 
-    GetLog() << "Loaded JSON: " << filename.c_str() << "\n";
+    std::cout << "Loaded JSONL " << filename << std::endl;
 }
 
 Pac89Tire::Pac89Tire(const rapidjson::Document& d) : ChPac89Tire(""), m_mass(0), m_normalDamping(0), m_has_mesh(false) {
@@ -85,7 +86,6 @@ void Pac89Tire::Create(const rapidjson::Document& d) {  // Invoke base class met
         m_PacCoeff.A11 = d["Lateral Coefficients"]["a11"].GetDouble();
         m_PacCoeff.A12 = d["Lateral Coefficients"]["a12"].GetDouble();
         m_PacCoeff.A13 = d["Lateral Coefficients"]["a13"].GetDouble();
-        GetLog() << "A0 = " << m_PacCoeff.A0 << "\n";
     }
     if (d.HasMember("Longitudinal Coefficients")) {
         m_PacCoeff.B0 = d["Longitudinal Coefficients"]["b0"].GetDouble();

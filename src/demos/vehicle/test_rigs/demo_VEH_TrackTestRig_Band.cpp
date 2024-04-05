@@ -30,11 +30,11 @@
 #include "chrono_thirdparty/filesystem/path.h"
 
 #ifdef CHRONO_MUMPS
-#include "chrono_mumps/ChSolverMumps.h"
+    #include "chrono_mumps/ChSolverMumps.h"
 #endif
 
 #ifdef CHRONO_PARDISO_MKL
-#include "chrono_pardisomkl/ChSolverPardisoMKL.h"
+    #include "chrono_pardisomkl/ChSolverPardisoMKL.h"
 #endif
 
 using namespace chrono;
@@ -91,13 +91,13 @@ class MyContactReporter : public ChContactContainer::ReportContactCallback {
     }
 
   private:
-    virtual bool OnReportContact(const ChVector<>& pA,
-                                 const ChVector<>& pB,
+    virtual bool OnReportContact(const ChVector3d& pA,
+                                 const ChVector3d& pB,
                                  const ChMatrix33<>& plane_coord,
                                  const double& distance,
                                  const double& eff_radius,
-                                 const ChVector<>& react_forces,
-                                 const ChVector<>& react_torques,
+                                 const ChVector3d& react_forces,
+                                 const ChVector3d& react_torques,
                                  ChContactable* modA,
                                  ChContactable* modB) override {
         m_num_contacts++;
@@ -110,7 +110,7 @@ class MyContactReporter : public ChContactContainer::ReportContactCallback {
         auto faceB = dynamic_cast<fea::ChContactTriangleXYZ*>(modB);
 
         if (bodyA && bodyB) {
-            cout << "  Body-Body:  " << bodyA->GetNameString() << "  " << bodyB->GetNameString() << endl;
+            cout << "  Body-Body:  " << bodyA->GetName() << "  " << bodyB->GetName() << endl;
             m_num_contacts_bb++;
             return true;
         } else if (vertexA && vertexB) {
@@ -131,7 +131,7 @@ class MyContactReporter : public ChContactContainer::ReportContactCallback {
 // =============================================================================
 
 int main(int argc, char* argv[]) {
-    GetLog() << "Copyright (c) 2017 projectchrono.org\nChrono version: " << CHRONO_VERSION << "\n\n";
+    std::cout << "Copyright (c) 2017 projectchrono.org\nChrono version: " << CHRONO_VERSION << std::endl;
 
     // -------------------------
     // Create the track test rig
@@ -184,16 +184,16 @@ int main(int argc, char* argv[]) {
     // Create the vehicle Irrlicht application
     // ---------------------------------------
 
-    ////ChVector<> target_point = rig->GetPostPosition();
-    ////ChVector<> target_point = rig->GetTrackAssembly()->GetIdler()->GetWheelBody()->GetPos();
-    ChVector<> target_point = rig->GetTrackAssembly()->GetSprocket()->GetGearBody()->GetPos();
+    ////ChVector3d target_point = rig->GetPostPosition();
+    ////ChVector3d target_point = rig->GetTrackAssembly()->GetIdler()->GetWheelBody()->GetPos();
+    ChVector3d target_point = rig->GetTrackAssembly()->GetSprocket()->GetGearBody()->GetPos();
 
     auto vis = chrono_types::make_shared<ChVehicleVisualSystemIrrlicht>();
     vis->SetWindowTitle("Continuous Band Track Test Rig");
-    vis->SetChaseCamera(ChVector<>(0.0, 0.0, 0.0), 3.0, 0.0);
-    vis->SetChaseCameraPosition(target_point + ChVector<>(-2, 3, 0));
+    vis->SetChaseCamera(ChVector3d(0.0, 0.0, 0.0), 3.0, 0.0);
+    vis->SetChaseCameraPosition(target_point + ChVector3d(-2, 3, 0));
     vis->SetChaseCameraState(utils::ChChaseCamera::Free);
-    vis->SetChaseCameraAngle(-CH_C_PI_2);
+    vis->SetChaseCameraAngle(-CH_PI_2);
     vis->SetChaseCameraMultipliers(1e-4, 10);
 
     // -----------------------------------
@@ -223,7 +223,7 @@ int main(int argc, char* argv[]) {
     rig->SetMaxTorque(6000);
 
     // Disable gravity in this simulation
-    ////rig->GetSystem()->Set_G_acc(ChVector<>(0, 0, 0));
+    ////rig->GetSystem()->SetGravitationalAcceleration(ChVector3d(0, 0, 0));
 
     // Visualization settings
     rig->SetSprocketVisualizationType(VisualizationType::PRIMITIVES);
@@ -234,9 +234,9 @@ int main(int argc, char* argv[]) {
     rig->SetTrackShoeVisualizationType(VisualizationType::PRIMITIVES);
 
     // Control internal collisions and contact monitoring
-    ////rig->SetCollide(TrackedCollisionFlag::NONE);
-    ////rig->SetCollide(TrackedCollisionFlag::SPROCKET_LEFT | TrackedCollisionFlag::SHOES_LEFT);
-    ////rig->GetTrackAssembly()->GetSprocket()->GetGearBody()->SetCollide(false);
+    ////rig->EnableCollision(TrackedCollisionFlag::NONE);
+    ////rig->EnableCollision(TrackedCollisionFlag::SPROCKET_LEFT | TrackedCollisionFlag::SHOES_LEFT);
+    ////rig->GetTrackAssembly()->GetSprocket()->GetGearBody()->EnableCollision(false);
 
     rig->Initialize();
 
@@ -291,7 +291,7 @@ int main(int argc, char* argv[]) {
     rig->GetSystem()->SetTimestepperType(ChTimestepper::Type::HHT);
     auto integrator = std::static_pointer_cast<ChTimestepperHHT>(rig->GetSystem()->GetTimestepper());
     integrator->SetAlpha(-0.2);
-    integrator->SetMaxiters(50);
+    integrator->SetMaxIters(50);
     integrator->SetAbsTolerances(1e-2, 1e2);
     integrator->SetStepControl(false);
     integrator->SetModifiedNewton(true);
@@ -302,9 +302,9 @@ int main(int argc, char* argv[]) {
     // -----------------
 
     auto sys = rig->GetSystem();
-    cout << "Number of bodies:        " << sys->Get_bodylist().size() << endl;
-    cout << "Number of physics items: " << sys->Get_otherphysicslist().size() << endl;
-    cout << "Number of FEA meshes:    " << sys->Get_meshlist().size() << endl;
+    cout << "Number of bodies:        " << sys->GetBodies().size() << endl;
+    cout << "Number of physics items: " << sys->GetOtherPhysicsItems().size() << endl;
+    cout << "Number of FEA meshes:    " << sys->GetMeshes().size() << endl;
 
     // -----------------
     // Initialize output
@@ -330,11 +330,11 @@ int main(int argc, char* argv[]) {
 
         // Debugging output
         if (dbg_output) {
-            const ChFrameMoving<>& c_ref = rig->GetChassisBody()->GetFrame_REF_to_abs();
-            const ChVector<>& i_pos_abs = rig->GetTrackAssembly()->GetIdler()->GetWheelBody()->GetPos();
-            const ChVector<>& s_pos_abs = rig->GetTrackAssembly()->GetSprocket()->GetGearBody()->GetPos();
-            ChVector<> i_pos_rel = c_ref.TransformPointParentToLocal(i_pos_abs);
-            ChVector<> s_pos_rel = c_ref.TransformPointParentToLocal(s_pos_abs);
+            const ChFrameMoving<>& c_ref = rig->GetChassisBody()->GetFrameRefToAbs();
+            const ChVector3d& i_pos_abs = rig->GetTrackAssembly()->GetIdler()->GetWheelBody()->GetPos();
+            const ChVector3d& s_pos_abs = rig->GetTrackAssembly()->GetSprocket()->GetGearBody()->GetPos();
+            ChVector3d i_pos_rel = c_ref.TransformPointParentToLocal(i_pos_abs);
+            ChVector3d s_pos_rel = c_ref.TransformPointParentToLocal(s_pos_abs);
             cout << "Time: " << time << endl;
             cout << "      idler:    " << i_pos_rel.x() << "  " << i_pos_rel.y() << "  " << i_pos_rel.z() << endl;
             cout << "      sprocket: " << s_pos_rel.x() << "  " << s_pos_rel.y() << "  " << s_pos_rel.z() << endl;
@@ -352,7 +352,7 @@ int main(int argc, char* argv[]) {
         rig->Advance(step_size);
 
         // Update visualization app
-        vis->Synchronize(rig->GetChTime(), { 0, rig->GetThrottleInput(), 0 });
+        vis->Synchronize(rig->GetChTime(), {0, rig->GetThrottleInput(), 0});
         vis->Advance(step_size);
 
         // Parse all contacts in system

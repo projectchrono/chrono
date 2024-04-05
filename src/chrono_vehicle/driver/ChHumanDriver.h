@@ -15,10 +15,10 @@
 // A driver model that combines a path steering controller and a speed controller.
 // The controller adjusts the steering input to follow the prescribed path.
 // The output also adjusts throttle and braking inputs in order to maintain a
-// varying speed that depends on the curvature of the road. 
+// varying speed that depends on the curvature of the road.
 //
 // This implementation is based on the following paper:
-// BEST, M.C., 2012. A simple realistic driver model. 
+// BEST, M.C., 2012. A simple realistic driver model.
 // Presented at: AVEC `12, The 11th International Symposium on Advanced Vehicle Control,
 // 9th-12th September 2012, Seoul, Korea.
 //
@@ -35,8 +35,10 @@
 
 #include "chrono_vehicle/ChDriver.h"
 #include "chrono_vehicle/ChVehicle.h"
+
 #include "chrono/geometry/ChLineBezier.h"
 #include "chrono/utils/ChFilters.h"
+#include "chrono/utils/ChUtils.h"
 
 namespace chrono {
 namespace vehicle {
@@ -94,9 +96,9 @@ class CH_VEHICLE_API ChHumanDriver : public ChDriver {
 
     void SetSpeedRange(double u0 = 10.0, double umax = 30.0);
 
-    ChVector<> GetTargetLocation() { return m_target; }
+    ChVector3d GetTargetLocation() { return m_target; }
 
-    ChVector<> GetSentinelLocation() { return m_sentinel; }
+    ChVector3d GetSentinelLocation() { return m_sentinel; }
 
     double GetTraveledDistance() { return m_distance; }
 
@@ -122,16 +124,16 @@ class CH_VEHICLE_API ChHumanDriver : public ChDriver {
     double m_u0;
     double m_umax;
     double m_uthres;
-    ChVector<> m_target;
-    ChVector<> m_sentinel;
+    ChVector3d m_target;
+    ChVector3d m_sentinel;
     size_t m_idx_curr;
     size_t m_i_curr;
     size_t m_j_curr;
-    std::vector<ChVector<> > m_S_l;   ///< course definition points
-    std::vector<ChVector<> > m_R_l;   ///< direction vector: S_l[i+1] = S_l[i] + R_l[i]
-    std::vector<ChVector<> > m_R_lu;  ///< R_l with unit length, precalculated to avoid redundant calculations
-    std::vector<ChVector<> > m_Li;    ///< left road border
-    std::vector<ChVector<> > m_Rj;    ///< right road border
+    std::vector<ChVector3d> m_S_l;   ///< course definition points
+    std::vector<ChVector3d> m_R_l;   ///< direction vector: S_l[i+1] = S_l[i] + R_l[i]
+    std::vector<ChVector3d> m_R_lu;  ///< R_l with unit length, precalculated to avoid redundant calculations
+    std::vector<ChVector3d> m_Li;    ///< left road border
+    std::vector<ChVector3d> m_Rj;    ///< right road border
     double m_delta;
     double m_delta_max;
     double m_L;
@@ -139,7 +141,7 @@ class CH_VEHICLE_API ChHumanDriver : public ChDriver {
     double m_distance;
     double m_travel_time;
     utils::ChFilterI m_UIntegrator;
-    utils::ChButterworth_Lowpass m_acc_filter;
+    utils::ChButterworthLowpass m_acc_filter;
     double m_speed_max;
     double m_speed_min;
     double m_left_acc;

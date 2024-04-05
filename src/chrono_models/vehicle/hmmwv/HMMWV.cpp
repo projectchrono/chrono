@@ -61,7 +61,7 @@ HMMWV::HMMWV()
       m_tire_collision_type(ChTire::CollisionType::SINGLE_POINT),
       m_tire_step_size(-1),
       m_initFwdVel(0),
-      m_initPos(ChCoordsys<>(ChVector<>(0, 0, 1), QUNIT)),
+      m_initPos(ChCoordsys<>(ChVector3d(0, 0, 1), QUNIT)),
       m_initOmega({0, 0, 0, 0}),
       m_apply_drag(false) {}
 
@@ -82,7 +82,7 @@ HMMWV::HMMWV(ChSystem* system)
       m_tire_collision_type(ChTire::CollisionType::SINGLE_POINT),
       m_tire_step_size(-1),
       m_initFwdVel(0),
-      m_initPos(ChCoordsys<>(ChVector<>(0, 0, 1), QUNIT)),
+      m_initPos(ChCoordsys<>(ChVector3d(0, 0, 1), QUNIT)),
       m_initOmega({0, 0, 0, 0}),
       m_apply_drag(false) {}
 
@@ -133,6 +133,8 @@ void HMMWV::Initialize() {
             break;
         case TransmissionModelType::AUTOMATIC_SIMPLE_MAP:
             transmission = chrono_types::make_shared<HMMWV_AutomaticTransmissionSimpleMap>("Transmission");
+            break;
+        default:
             break;
     }
 
@@ -192,9 +194,9 @@ void HMMWV::Initialize() {
 
             break;
         }
-            
+
         default:
-            GetLog() << "Unsupported Tire Model Type!, Switching to TMsimple.\n";
+            std::cout << "Unsupported Tire Model Type!, Switching to TMsimple.\n";
         case TireModelType::TMSIMPLE: {
             auto tire_FL = chrono_types::make_shared<HMMWV_TMsimpleTire>("FL");
             auto tire_FR = chrono_types::make_shared<HMMWV_TMsimpleTire>("FR");
@@ -242,7 +244,7 @@ void HMMWV::Initialize() {
 
             break;
         }
-            
+
         case TireModelType::ANCF: {
             auto tire_FL = chrono_types::make_shared<HMMWV_ANCFTire>("FL");
             auto tire_FR = chrono_types::make_shared<HMMWV_ANCFTire>("FR");

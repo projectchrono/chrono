@@ -25,7 +25,13 @@
 
 class FmuComponent : public chrono::FmuChronoComponentBase {
   public:
-    FmuComponent(fmi2String _instanceName, fmi2Type _fmuType, fmi2String _fmuGUID);
+    FmuComponent(fmi2String instanceName,
+                 fmi2Type fmuType,
+                 fmi2String fmuGUID,
+                 fmi2String fmuResourceLocation,
+                 const fmi2CallbackFunctions* functions,
+                 fmi2Boolean visible,
+                 fmi2Boolean loggingOn);
 
     virtual ~FmuComponent() {}
 
@@ -63,6 +69,12 @@ class FmuComponent : public chrono::FmuChronoComponentBase {
 };
 
 // FMU_ACTION:: implement the following functions
-FmuComponentBase* fmi2Instantiate_getPointer(fmi2String instanceName, fmi2Type fmuType, fmi2String fmuGUID) {
-    return new FmuComponent(instanceName, fmuType, fmuGUID);
+FmuComponentBase* fmi2Instantiate_getPointer(fmi2String instanceName,
+                                             fmi2Type fmuType,
+                                             fmi2String fmuGUID,
+                                             fmi2String fmuResourceLocation,
+                                             const fmi2CallbackFunctions* functions,
+                                             fmi2Boolean visible,
+                                             fmi2Boolean loggingOn) {
+    return new FmuComponent(instanceName, fmuType, fmuGUID, fmuResourceLocation, functions, visible, loggingOn);
 }

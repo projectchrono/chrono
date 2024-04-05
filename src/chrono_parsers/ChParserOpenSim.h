@@ -111,7 +111,7 @@ class ChApiParsers ChParserOpenSim {
     );
 
     /// Enable collision between bodies in this model (default: false).
-    void SetCollide(bool val) { m_collide = val; }
+    void EnableCollision(bool val) { m_collide = val; }
 
     /// Set collision families (to disable collision between a body and its parent).
     /// Note: automaticaly enables collision.
@@ -177,11 +177,11 @@ class ChApiParsers ChParserOpenSim {
         return std::vector<T>(beg, end);
     }
 
-    // Convert a space-delimited string into a ChVector
+    // Convert a space-delimited string into a ChVector3
     template <typename T>
-    static inline ChVector<T> strToChVector(const char* string) {
+    static inline ChVector3<T> strToChVector3(const char* string) {
         auto elems = strToSTLVector<T>(string);
-        return ChVector<T>(elems.at(0), elems.at(1), elems.at(2));
+        return ChVector3<T>(elems.at(0), elems.at(1), elems.at(2));
     }
 
     static inline std::string stringStripCStr(const char* c_str) {
@@ -219,7 +219,7 @@ class ChApiParsers ChParserOpenSim {
 
 /// @} chrono_utils
 
-}  // end namespace utils
+}  // namespace parsers
 }  // end namespace chrono
 
 #endif

@@ -23,11 +23,11 @@ namespace chrono {
 CH_FACTORY_REGISTER(ChVisualShapeTriangleMesh)
 
 ChVisualShapeTriangleMesh::ChVisualShapeTriangleMesh()
-    : name(""), scale(ChVector<>(1)), wireframe(false), backface_cull(false), fixed_connectivity(false) {
-    trimesh = chrono_types::make_shared<geometry::ChTriangleMeshConnected>();
+    : name(""), scale(ChVector3d(1)), wireframe(false), backface_cull(false), fixed_connectivity(false) {
+    trimesh = chrono_types::make_shared<ChTriangleMeshConnected>();
 };
 
-void ChVisualShapeTriangleMesh::SetMesh(std::shared_ptr<geometry::ChTriangleMeshConnected> mesh, bool load_materials) {
+void ChVisualShapeTriangleMesh::SetMesh(std::shared_ptr<ChTriangleMeshConnected> mesh, bool load_materials) {
     trimesh = mesh;
 
     // Try to read material information form an MTL file
@@ -84,7 +84,7 @@ void ChVisualShapeTriangleMesh::SetMesh(std::shared_ptr<geometry::ChTriangleMesh
             }
 
             if (materials[i].specular_texname != "") {
-                mat->SetKsTexture(mtl_base + "/" +  materials[i].specular_texname);
+                mat->SetKsTexture(mtl_base + "/" + materials[i].specular_texname);
                 mat->SetUseSpecularWorkflow(true);
             }
             // set normal map when called "bump_texname"
@@ -132,30 +132,30 @@ void ChVisualShapeTriangleMesh::SetMesh(std::shared_ptr<geometry::ChTriangleMesh
     }
 }
 
-void ChVisualShapeTriangleMesh::ArchiveOut(ChArchiveOut& marchive) {
+void ChVisualShapeTriangleMesh::ArchiveOut(ChArchiveOut& archive_out) {
     // version number
-    marchive.VersionWrite<ChVisualShapeTriangleMesh>();
+    archive_out.VersionWrite<ChVisualShapeTriangleMesh>();
     // serialize parent class
-    ChVisualShape::ArchiveOut(marchive);
+    ChVisualShape::ArchiveOut(archive_out);
     // serialize all member data:
-    marchive << CHNVP(trimesh);
-    marchive << CHNVP(wireframe);
-    marchive << CHNVP(backface_cull);
-    marchive << CHNVP(name);
-    marchive << CHNVP(scale);
+    archive_out << CHNVP(trimesh);
+    archive_out << CHNVP(wireframe);
+    archive_out << CHNVP(backface_cull);
+    archive_out << CHNVP(name);
+    archive_out << CHNVP(scale);
 }
 
-void ChVisualShapeTriangleMesh::ArchiveIn(ChArchiveIn& marchive) {
+void ChVisualShapeTriangleMesh::ArchiveIn(ChArchiveIn& archive_in) {
     // version number
-    /*int version =*/marchive.VersionRead<ChVisualShapeTriangleMesh>();
+    /*int version =*/archive_in.VersionRead<ChVisualShapeTriangleMesh>();
     // deserialize parent class
-    ChVisualShape::ArchiveIn(marchive);
+    ChVisualShape::ArchiveIn(archive_in);
     // stream in all member data:
-    marchive >> CHNVP(trimesh);
-    marchive >> CHNVP(wireframe);
-    marchive >> CHNVP(backface_cull);
-    marchive >> CHNVP(name);
-    marchive >> CHNVP(scale);
+    archive_in >> CHNVP(trimesh);
+    archive_in >> CHNVP(wireframe);
+    archive_in >> CHNVP(backface_cull);
+    archive_in >> CHNVP(name);
+    archive_in >> CHNVP(scale);
 }
 
 }  // end namespace chrono

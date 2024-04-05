@@ -33,7 +33,7 @@ const double G500_RigidTire::m_radius = 0.372;
 const double G500_RigidTire::m_width = 0.228;
 
 const double G500_RigidTire::m_mass = 37.6;
-const ChVector<> G500_RigidTire::m_inertia(3.84, 6.69, 3.84);
+const ChVector3d G500_RigidTire::m_inertia(3.84, 6.69, 3.84);
 
 const std::string G500_RigidTire::m_meshFile = "gclass/gd250_tire_fine.obj";
 
@@ -69,6 +69,6 @@ void G500_RigidTire::RemoveVisualizationAssets() {
     ChRigidTire::RemoveVisualizationAssets();
 }
 
-}  // end namespace uaz
+}  // namespace gclass
 }  // end namespace vehicle
 }  // end namespace chrono

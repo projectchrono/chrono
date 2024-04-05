@@ -89,6 +89,7 @@ class ChApiPostProcess ChBlender : public ChPostProcessBase {
     /// The path can be absolute, or relative to the .exe current path.
     /// Note that the directory must be already existing.
     /// At the execution of ExportScript() it will create files & directories like
+    /// <pre>
     ///    base_path
     ///       exported.assets.py
     ///       anim
@@ -100,6 +101,7 @@ class ChApiPostProcess ChBlender : public ChPostProcessBase {
     ///          state00001.py
     ///          state00001.dat
     ///          ....
+    /// </pre>
     void SetBasePath(const std::string& mpath) { base_path = mpath; }
 
     /// Set transformation from Chrono frame to Blender
@@ -125,10 +127,10 @@ class ChApiPostProcess ChBlender : public ChPostProcessBase {
     };
 
     /// Set the default camera position and aim point - will write this in the output .assets.py file.
-    void SetCamera(ChVector<> location, ChVector<> aim, double angle, bool ortho = false);
+    void SetCamera(ChVector3d location, ChVector3d aim, double angle, bool ortho = false);
 
     /// Set the default light position and color - will write this in the output .assets.py file.
-    void SetLight(ChVector<> location, ChColor color, bool cast_shadow);
+    void SetLight(ChVector3d location, ChColor color, bool cast_shadow);
 
     /// Set the background color - will write this in the output .assets.py file.
     void SetBackground(ChColor color) { background = color; }
@@ -137,7 +139,7 @@ class ChApiPostProcess ChBlender : public ChPostProcessBase {
     /// If setting true, you can also set the size of the symbol, in meters.
     void SetShowCOGs(bool show, double msize = 0.04);
 
-    /// Turn on/off the display of the reference coordsystems of rigid bodies, particle in particle clouds, etc..
+    /// Turn on/off the display of the reference coordsystems of rigid bodies, particle in particle clouds, etc.
     /// If setting true, you can also set the size of the symbol, in meters.
     void SetShowItemsFrames(bool show, double msize = 0.05);
 
@@ -186,8 +188,8 @@ class ChApiPostProcess ChBlender : public ChPostProcessBase {
     );
 
     /// Set thickness for wireframe mode of meshes.
-    /// If a ChVisualShapeTriangleMesh asset was set as SetWireframe(true), it will be rendered in Blender as a cage of thin
-    /// cylinders. This setting sets how thick the tubes.
+    /// If a ChVisualShapeTriangleMesh asset was set as SetWireframe(true), it will be rendered in Blender as a cage of
+    /// thin cylinders. This setting sets how thick the tubes.
     void SetWireframeThickness(const double wft) { wireframe_thickness = wft; }
     double GetWireframeThickness() const { return wireframe_thickness; }
 
@@ -236,28 +238,22 @@ class ChApiPostProcess ChBlender : public ChPostProcessBase {
     /// Se the rank of this process. This is useful when doing parallel simulations on multiple computing
     /// nodes, each with its own ChBlender exporter, each generating .py files in different directories, and later
     /// you want to load all them in a single Blender project: this is possible tanks to the "Merge" mode
-    /// in the Blender plugin, but there is the risk that identifiers such as "shape_149372748349" may 
-    /// be duplicated in different processes, causing conflicts after loading in Blender. To fix this, 
-    /// for example, you set rank as 1 and 2 on two processes, so the IDs will become shape_1_149372748349 shape_2_149372748349,
-    /// avoiding potential conflicts. Setting to -1 will disable the .._n_... prefix (default)
-    void SetRank(int mrank) {
-        this->rank = mrank;
-    }
+    /// in the Blender plugin, but there is the risk that identifiers such as "shape_149372748349" may
+    /// be duplicated in different processes, causing conflicts after loading in Blender. To fix this,
+    /// for example, you set rank as 1 and 2 on two processes, so the IDs will become shape_1_149372748349
+    /// shape_2_149372748349, avoiding potential conflicts. Setting to -1 will disable the .._n_... prefix (default)
+    void SetRank(int mrank) { this->rank = mrank; }
 
   private:
     void UpdateRenderList();
-    void ExportAssets(ChStreamOutAsciiFile& assets_file, ChStreamOutAsciiFile& state_file);
-    void ExportShapes(ChStreamOutAsciiFile& assets_file,
-                      ChStreamOutAsciiFile& state_file,
-                      std::shared_ptr<ChPhysicsItem> item);
-    void ExportMaterials(ChStreamOutAsciiFile& mfile,
+    void ExportAssets(std::ofstream& assets_file, std::ofstream& state_file);
+    void ExportShapes(std::ofstream& assets_file, std::ofstream& state_file, std::shared_ptr<ChPhysicsItem> item);
+    void ExportMaterials(std::ofstream& mfile,
                          std::unordered_map<size_t, std::shared_ptr<ChVisualMaterial>>& m_materials,
                          const std::vector<std::shared_ptr<ChVisualMaterial>>& materials,
                          bool per_frame,
                          std::shared_ptr<ChVisualShape> mshape);
-    void ExportItemState(ChStreamOutAsciiFile& state_file,
-                         std::shared_ptr<ChPhysicsItem> item,
-                         const ChFrame<>& parentframe);
+    void ExportItemState(std::ofstream& state_file, std::shared_ptr<ChPhysicsItem> item, const ChFrame<>& parentframe);
 
     const std::string unique_bl_id(size_t mpointer) const;
 
@@ -289,14 +285,14 @@ class ChApiPostProcess ChBlender : public ChPostProcessBase {
     ChFrame<> blender_frame;
 
     bool camera_add_default;
-    ChVector<> camera_location;
-    ChVector<> camera_aim;
-    ChVector<> camera_up;
+    ChVector3d camera_location;
+    ChVector3d camera_aim;
+    ChVector3d camera_up;
     double camera_angle;
     bool camera_orthographic;
     bool camera_found_in_assets;
 
-    ChVector<> def_light_location;
+    ChVector3d def_light_location;
     ChColor def_light_color;
     bool def_light_cast_shadows;
 

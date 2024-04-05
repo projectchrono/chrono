@@ -44,25 +44,18 @@ class ChApi ChLinkMotorRotationTorque : public ChLinkMotorRotation {
     std::shared_ptr<ChFunction> GetTorqueFunction() const { return GetMotorFunction(); }
 
     /// Get the current actuator reaction torque.
-    virtual double GetMotorTorque() const override { return m_func->Get_y(GetChTime()); }
-
-    void Update(double mytime, bool update_assets) override;
-
-    //
-    // STATE FUNCTIONS
-    //
-    virtual void IntLoadResidual_F(const unsigned int off, ChVectorDynamic<>& R, const double c) override;
-
-    //
-    // SOLVER INTERFACE (OLD)
-    //
-    virtual void ConstraintsFbLoadForces(double factor = 1) override;
+    virtual double GetMotorTorque() const override { return m_func->GetVal(GetChTime()); }
 
     /// Method to allow serialization of transient data to archives.
-    virtual void ArchiveOut(ChArchiveOut& marchive) override;
+    virtual void ArchiveOut(ChArchiveOut& archive_out) override;
 
     /// Method to allow deserialization of transient data from archives.
-    virtual void ArchiveIn(ChArchiveIn& marchive) override;
+    virtual void ArchiveIn(ChArchiveIn& archive_in) override;
+
+  private:
+    virtual void Update(double mytime, bool update_assets) override;
+    virtual void IntLoadResidual_F(const unsigned int off, ChVectorDynamic<>& R, const double c) override;
+    virtual void ConstraintsFbLoadForces(double factor = 1) override;
 };
 
 CH_CLASS_VERSION(ChLinkMotorRotationTorque, 0)

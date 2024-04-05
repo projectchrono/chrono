@@ -83,7 +83,7 @@ void Duro_Vehicle::Create(bool fixed,
 
     switch (brake_type) {
         case BrakeType::SIMPLE:
-            GetLog() << "Buggy simple brake changed to shafts brake!\n";
+            std::cout << "Buggy simple brake changed to shafts brake!\n";
         case BrakeType::SHAFTS:
             m_axles[0]->m_brake_left = chrono_types::make_shared<Duro_BrakeShafts>("Brake_FL");
             m_axles[0]->m_brake_right = chrono_types::make_shared<Duro_BrakeShafts>("Brake_FR");
@@ -106,150 +106,149 @@ void Duro_Vehicle::Initialize(const ChCoordsys<>& chassisPos, double chassisFwdV
 
     // Initialize the steering subsystem (specify the steering subsystem's frame relative to the chassis reference
     // frame).
-    ChVector<> offset = ChVector<>(0, 0, 0);
-    ChQuaternion<> rotation = Q_from_AngAxis(0, ChVector<>(0, 1, 0));
+    ChVector3d offset = ChVector3d(0, 0, 0);
+    ChQuaternion<> rotation = QuatFromAngleY(0);
     m_steerings[0]->Initialize(m_chassis, offset, rotation);
 
     // Initialize the axle subsystems.
-    m_axles[0]->Initialize(m_chassis, nullptr, m_steerings[0], ChVector<>(0, 0, 0), ChVector<>(0), 0.0, m_omega[0],
+    m_axles[0]->Initialize(m_chassis, nullptr, m_steerings[0], ChVector3d(0, 0, 0), ChVector3d(0), 0.0, m_omega[0],
                            m_omega[1]);
-    m_axles[1]->Initialize(m_chassis, nullptr, nullptr, ChVector<>(-3.88, 0, 0), ChVector<>(0), 0.0, m_omega[2],
+    m_axles[1]->Initialize(m_chassis, nullptr, nullptr, ChVector3d(-3.88, 0, 0), ChVector3d(0), 0.0, m_omega[2],
                            m_omega[3]);
 
     // special roll stabilizer mechanism *********************************************************
     auto frontsusp = std::static_pointer_cast<ChToeBarDeDionAxle>(m_axles[0]->m_suspension);
     auto rearsusp = std::static_pointer_cast<ChDeDionAxle>(m_axles[1]->m_suspension);
 
-    ChVector<> p1L = frontsusp->GetConnectorLocation(LEFT);  // lower front rod
-    ChVector<> p2L = p1L + ChVector<>(0, 0, 0.2);            // upper front rod
-    ChVector<> p5L = rearsusp->GetConnectorLocation(LEFT);   // lower rear rod
-    ChVector<> p4L = p5L + ChVector<>(0, 0, 0.2);            // upper rear rod
-    ChVector<> p3L = (p2L + p4L) / 2;                        // beam pivot point
+    ChVector3d p1L = frontsusp->GetConnectorLocation(LEFT);  // lower front rod
+    ChVector3d p2L = p1L + ChVector3d(0, 0, 0.2);            // upper front rod
+    ChVector3d p5L = rearsusp->GetConnectorLocation(LEFT);   // lower rear rod
+    ChVector3d p4L = p5L + ChVector3d(0, 0, 0.2);            // upper rear rod
+    ChVector3d p3L = (p2L + p4L) / 2;                        // beam pivot point
 
-    ChVector<> p1R = frontsusp->GetConnectorLocation(RIGHT);  // lower front rod
-    ChVector<> p2R = p1R + ChVector<>(0, 0, 0.2);             // upper front rod
-    ChVector<> p5R = rearsusp->GetConnectorLocation(RIGHT);   // lower rear rod
-    ChVector<> p4R = p5R + ChVector<>(0, 0, 0.2);             // upper rear rod
-    ChVector<> p3R = (p2R + p4R) / 2;                         // beam pivot point
+    ChVector3d p1R = frontsusp->GetConnectorLocation(RIGHT);  // lower front rod
+    ChVector3d p2R = p1R + ChVector3d(0, 0, 0.2);             // upper front rod
+    ChVector3d p5R = rearsusp->GetConnectorLocation(RIGHT);   // lower rear rod
+    ChVector3d p4R = p5R + ChVector3d(0, 0, 0.2);             // upper rear rod
+    ChVector3d p3R = (p2R + p4R) / 2;                         // beam pivot point
 
     std::shared_ptr<ChBody> rockerArmL = chrono_types::make_shared<ChBody>();
-    rockerArmL->SetNameString("rockerL");
+    rockerArmL->SetName("rockerL");
     rockerArmL->SetPos(p3L);
-    rockerArmL->SetRot(m_chassis->GetBody()->GetFrame_REF_to_abs().GetRot());
+    rockerArmL->SetRot(m_chassis->GetBody()->GetFrameRefToAbs().GetRot());
     rockerArmL->SetMass(25);
-    rockerArmL->SetInertiaXX(ChVector<>(0.05, 0.1, 0.1));
+    rockerArmL->SetInertiaXX(ChVector3d(0.05, 0.1, 0.1));
     m_chassis->GetBody()->GetSystem()->AddBody(rockerArmL);
 
-    ChCoordsys<> rocker_csysL(
-        p3L, m_chassis->GetBody()->GetFrame_REF_to_abs().GetRot() * Q_from_AngAxis(CH_C_PI / 2.0, VECT_X));
     auto rockerPivL = chrono_types::make_shared<ChLinkLockRevolute>();
-    rockerPivL->SetNameString("rockerPivotL");
-    rockerPivL->Initialize(rockerArmL, m_chassis->GetBody(), rocker_csysL);
+    rockerPivL->SetName("rockerPivotL");
+    rockerPivL->Initialize(rockerArmL, m_chassis->GetBody(),
+                           ChFrame<>(p3L, m_chassis->GetBody()->GetFrameRefToAbs().GetRot() * QuatFromAngleX(CH_PI_2)));
     m_chassis->GetSystem()->AddLink(rockerPivL);
 
     AddVisualizationLink(rockerArmL, p2L, p4L, 0.03, ChColor(0.8f, 0.2f, 0.2f));
-    AddVisualizationLink(rockerArmL, p3L + ChVector<>(0, 0.05, 0), p3L - ChVector<>(0, 0.05, 0), 0.02,
+    AddVisualizationLink(rockerArmL, p3L + ChVector3d(0, 0.05, 0), p3L - ChVector3d(0, 0.05, 0), 0.02,
                          ChColor(0.8f, 0.2f, 0.2f));
 
     std::shared_ptr<ChBody> rockerArmR = chrono_types::make_shared<ChBody>();
-    rockerArmR->SetNameString("rockerR");
+    rockerArmR->SetName("rockerR");
     rockerArmR->SetPos(p3R);
-    rockerArmR->SetRot(m_chassis->GetBody()->GetFrame_REF_to_abs().GetRot());
+    rockerArmR->SetRot(m_chassis->GetBody()->GetFrameRefToAbs().GetRot());
     rockerArmR->SetMass(25);
-    rockerArmR->SetInertiaXX(ChVector<>(0.05, 0.1, 0.1));
+    rockerArmR->SetInertiaXX(ChVector3d(0.05, 0.1, 0.1));
     m_chassis->GetBody()->GetSystem()->AddBody(rockerArmR);
 
-    ChCoordsys<> rocker_csysR(
-        p3R, m_chassis->GetBody()->GetFrame_REF_to_abs().GetRot() * Q_from_AngAxis(CH_C_PI / 2.0, VECT_X));
     auto rockerPivR = chrono_types::make_shared<ChLinkLockRevolute>();
-    rockerPivR->SetNameString("rockerPivotR");
-    rockerPivR->Initialize(rockerArmR, m_chassis->GetBody(), rocker_csysR);
+    rockerPivR->SetName("rockerPivotR");
+    rockerPivR->Initialize(rockerArmR, m_chassis->GetBody(),
+                           ChFrame<>(p3R, m_chassis->GetBody()->GetFrameRefToAbs().GetRot() * QuatFromAngleX(CH_PI_2)));
     m_chassis->GetSystem()->AddLink(rockerPivR);
 
     AddVisualizationLink(rockerArmR, p2R, p4R, 0.03, ChColor(0.8f, 0.2f, 0.2f));
-    AddVisualizationLink(rockerArmR, p3R + ChVector<>(0, 0.05, 0), p3R - ChVector<>(0, 0.05, 0), 0.02,
+    AddVisualizationLink(rockerArmR, p3R + ChVector3d(0, 0.05, 0), p3R - ChVector3d(0, 0.05, 0), 0.02,
                          ChColor(0.8f, 0.2f, 0.2f));
 
     std::shared_ptr<ChBody> frontRodL = chrono_types::make_shared<ChBody>();
-    frontRodL->SetNameString("frontRodL");
+    frontRodL->SetName("frontRodL");
     frontRodL->SetPos((p1L + p2L) / 2);
-    frontRodL->SetRot(m_chassis->GetBody()->GetFrame_REF_to_abs().GetRot());
+    frontRodL->SetRot(m_chassis->GetBody()->GetFrameRefToAbs().GetRot());
     frontRodL->SetMass(10);
-    frontRodL->SetInertiaXX(ChVector<>(0.04, 0.04, 0.01));
+    frontRodL->SetInertiaXX(ChVector3d(0.04, 0.04, 0.01));
     m_chassis->GetBody()->GetSystem()->AddBody(frontRodL);
 
     AddVisualizationLink(frontRodL, p1L, p2L, 0.03, ChColor(0.8f, 0.8f, 0.2f));
 
     std::shared_ptr<ChLinkLockSpherical> sphFrontSusL = chrono_types::make_shared<ChLinkLockSpherical>();
-    sphFrontSusL->SetNameString("sphFrontSusL");
-    sphFrontSusL->Initialize(frontsusp->GetConnectorBody(), frontRodL, ChCoordsys<>(p1L, QUNIT));
+    sphFrontSusL->SetName("sphFrontSusL");
+    sphFrontSusL->Initialize(frontsusp->GetConnectorBody(), frontRodL, ChFrame<>(p1L, QUNIT));
     m_chassis->GetSystem()->AddLink(sphFrontSusL);
 
     std::shared_ptr<ChLinkLockSpherical> sphFrontArmL = chrono_types::make_shared<ChLinkLockSpherical>();
-    sphFrontArmL->SetNameString("sphFrontArmL");
-    sphFrontArmL->Initialize(rockerArmL, frontRodL, ChCoordsys<>(p2L, QUNIT));
+    sphFrontArmL->SetName("sphFrontArmL");
+    sphFrontArmL->Initialize(rockerArmL, frontRodL, ChFrame<>(p2L, QUNIT));
     m_chassis->GetSystem()->AddLink(sphFrontArmL);
 
     std::shared_ptr<ChBody> frontRodR = chrono_types::make_shared<ChBody>();
-    frontRodR->SetNameString("frontRodR");
+    frontRodR->SetName("frontRodR");
     frontRodR->SetPos((p1R + p2R) / 2);
-    frontRodR->SetRot(m_chassis->GetBody()->GetFrame_REF_to_abs().GetRot());
+    frontRodR->SetRot(m_chassis->GetBody()->GetFrameRefToAbs().GetRot());
     frontRodR->SetMass(10);
-    frontRodR->SetInertiaXX(ChVector<>(0.04, 0.04, 0.01));
+    frontRodR->SetInertiaXX(ChVector3d(0.04, 0.04, 0.01));
     m_chassis->GetBody()->GetSystem()->AddBody(frontRodR);
 
     AddVisualizationLink(frontRodR, p1R, p2R, 0.03, ChColor(0.8f, 0.8f, 0.2f));
 
     std::shared_ptr<ChLinkLockSpherical> sphFrontSusR = chrono_types::make_shared<ChLinkLockSpherical>();
-    sphFrontSusR->SetNameString("sphFrontSusR");
-    sphFrontSusR->Initialize(frontsusp->GetConnectorBody(), frontRodR, ChCoordsys<>(p1R, QUNIT));
+    sphFrontSusR->SetName("sphFrontSusR");
+    sphFrontSusR->Initialize(frontsusp->GetConnectorBody(), frontRodR, ChFrame<>(p1R, QUNIT));
     m_chassis->GetSystem()->AddLink(sphFrontSusR);
 
     std::shared_ptr<ChLinkLockSpherical> sphFrontArmR = chrono_types::make_shared<ChLinkLockSpherical>();
-    sphFrontArmR->SetNameString("sphFrontArmR");
-    sphFrontArmR->Initialize(rockerArmR, frontRodR, ChCoordsys<>(p2R, QUNIT));
+    sphFrontArmR->SetName("sphFrontArmR");
+    sphFrontArmR->Initialize(rockerArmR, frontRodR, ChFrame<>(p2R, QUNIT));
     m_chassis->GetSystem()->AddLink(sphFrontArmR);
 
     std::shared_ptr<ChBody> rearRodL = chrono_types::make_shared<ChBody>();
-    rearRodL->SetNameString("rearRodL");
+    rearRodL->SetName("rearRodL");
     rearRodL->SetPos((p4L + p5L) / 2);
-    rearRodL->SetRot(m_chassis->GetBody()->GetFrame_REF_to_abs().GetRot());
+    rearRodL->SetRot(m_chassis->GetBody()->GetFrameRefToAbs().GetRot());
     rearRodL->SetMass(10);
-    rearRodL->SetInertiaXX(ChVector<>(0.04, 0.04, 0.01));
+    rearRodL->SetInertiaXX(ChVector3d(0.04, 0.04, 0.01));
     m_chassis->GetBody()->GetSystem()->AddBody(rearRodL);
 
     AddVisualizationLink(rearRodL, p4L, p5L, 0.03, ChColor(0.8f, 0.8f, 0.2f));
 
     std::shared_ptr<ChBody> rearRodR = chrono_types::make_shared<ChBody>();
-    rearRodR->SetNameString("rearRodR");
+    rearRodR->SetName("rearRodR");
     rearRodR->SetPos((p4R + p5R) / 2);
-    rearRodR->SetRot(m_chassis->GetBody()->GetFrame_REF_to_abs().GetRot());
+    rearRodR->SetRot(m_chassis->GetBody()->GetFrameRefToAbs().GetRot());
     rearRodR->SetMass(10);
-    rearRodR->SetInertiaXX(ChVector<>(0.04, 0.04, 0.01));
+    rearRodR->SetInertiaXX(ChVector3d(0.04, 0.04, 0.01));
     m_chassis->GetBody()->GetSystem()->AddBody(rearRodR);
 
     AddVisualizationLink(rearRodR, p4R, p5R, 0.03, ChColor(0.8f, 0.8f, 0.2f));
 
     std::shared_ptr<ChLinkLockSpherical> sphRearSusL = chrono_types::make_shared<ChLinkLockSpherical>();
-    sphRearSusL->SetNameString("sphRearSusL");
-    sphRearSusL->Initialize(rearsusp->GetConnectorBody(), rearRodL, ChCoordsys<>(p5L, QUNIT));
+    sphRearSusL->SetName("sphRearSusL");
+    sphRearSusL->Initialize(rearsusp->GetConnectorBody(), rearRodL, ChFrame<>(p5L, QUNIT));
     m_chassis->GetSystem()->AddLink(sphRearSusL);
 
     std::shared_ptr<ChLinkLockSpherical> sphRearSusR = chrono_types::make_shared<ChLinkLockSpherical>();
-    sphRearSusR->SetNameString("sphRearSusR");
-    sphRearSusR->Initialize(rearsusp->GetConnectorBody(), rearRodR, ChCoordsys<>(p5R, QUNIT));
+    sphRearSusR->SetName("sphRearSusR");
+    sphRearSusR->Initialize(rearsusp->GetConnectorBody(), rearRodR, ChFrame<>(p5R, QUNIT));
     m_chassis->GetSystem()->AddLink(sphRearSusR);
 
     std::shared_ptr<ChLinkLockSpherical> sphRearArmL = chrono_types::make_shared<ChLinkLockSpherical>();
-    sphRearArmL->SetNameString("sphRearArmL");
-    sphRearArmL->Initialize(rockerArmL, rearRodL, ChCoordsys<>(p4L, QUNIT));
+    sphRearArmL->SetName("sphRearArmL");
+    sphRearArmL->Initialize(rockerArmL, rearRodL, ChFrame<>(p4L, QUNIT));
     m_chassis->GetSystem()->AddLink(sphRearArmL);
 
     std::shared_ptr<ChLinkLockSpherical> sphRearArmR = chrono_types::make_shared<ChLinkLockSpherical>();
-    sphRearArmR->SetNameString("sphRearArmR");
-    sphRearArmR->Initialize(rockerArmR, rearRodR, ChCoordsys<>(p4R, QUNIT));
+    sphRearArmR->SetName("sphRearArmR");
+    sphRearArmR->Initialize(rockerArmR, rearRodR, ChFrame<>(p4R, QUNIT));
     m_chassis->GetSystem()->AddLink(sphRearArmR);
-    //******************** end roll stabilizer def *************************************
+
+    /************** end roll stabilizer def ********************************/
 
     // Initialize the driveline subsystem
     std::vector<int> driven_susp_indexes(m_driveline->GetNumDrivenAxles());
@@ -294,18 +293,14 @@ double Duro_Vehicle::GetShockVelocity(int axle, VehicleSide side) const {
 // subsystems (display in inches)
 // -----------------------------------------------------------------------------
 void Duro_Vehicle::LogHardpointLocations() {
-    GetLog().SetNumFormat("%7.3f");
-
-    GetLog() << "\n---- FRONT suspension hardpoint locations (LEFT side)\n";
+    std::cout << "\n---- FRONT suspension hardpoint locations (LEFT side)\n";
     std::static_pointer_cast<ChToeBarDeDionAxle>(m_axles[0]->m_suspension)
-        ->LogHardpointLocations(ChVector<>(0, 0, 0), false);
+        ->LogHardpointLocations(ChVector3d(0, 0, 0), false);
 
-    GetLog() << "\n---- REAR suspension hardpoint locations (LEFT side)\n";
-    std::static_pointer_cast<ChDeDionAxle>(m_axles[1]->m_suspension)->LogHardpointLocations(ChVector<>(0, 0, 0), false);
+    std::cout << "\n---- REAR suspension hardpoint locations (LEFT side)\n";
+    std::static_pointer_cast<ChDeDionAxle>(m_axles[1]->m_suspension)->LogHardpointLocations(ChVector3d(0, 0, 0), false);
 
-    GetLog() << "\n\n";
-
-    GetLog().SetNumFormat("%g");
+    std::cout << "\n\n";
 }
 
 // -----------------------------------------------------------------------------
@@ -316,45 +311,41 @@ void Duro_Vehicle::LogHardpointLocations() {
 // Lengths are reported in inches, velocities in inches/s, and forces in lbf
 // -----------------------------------------------------------------------------
 void Duro_Vehicle::DebugLog(int what) {
-    GetLog().SetNumFormat("%10.2f");
-
     if (what & OUT_SPRINGS) {
-        GetLog() << "\n---- Spring (front-left, front-right, rear-left, rear-right)\n";
-        GetLog() << "Length [m]       " << GetSpringLength(0, LEFT) << "  " << GetSpringLength(0, RIGHT) << "  "
-                 << GetSpringLength(1, LEFT) << "  " << GetSpringLength(1, RIGHT) << "\n";
-        GetLog() << "Deformation [m]  " << GetSpringDeformation(0, LEFT) << "  " << GetSpringDeformation(0, RIGHT)
-                 << "  " << GetSpringDeformation(1, LEFT) << "  " << GetSpringDeformation(1, RIGHT) << "\n";
-        GetLog() << "Force [N]         " << GetSpringForce(0, LEFT) << "  " << GetSpringForce(0, RIGHT) << "  "
-                 << GetSpringForce(1, LEFT) << "  " << GetSpringForce(1, RIGHT) << "\n";
+        std::cout << "\n---- Spring (front-left, front-right, rear-left, rear-right)\n";
+        std::cout << "Length [m]       " << GetSpringLength(0, LEFT) << "  " << GetSpringLength(0, RIGHT) << "  "
+                  << GetSpringLength(1, LEFT) << "  " << GetSpringLength(1, RIGHT) << "\n";
+        std::cout << "Deformation [m]  " << GetSpringDeformation(0, LEFT) << "  " << GetSpringDeformation(0, RIGHT)
+                  << "  " << GetSpringDeformation(1, LEFT) << "  " << GetSpringDeformation(1, RIGHT) << "\n";
+        std::cout << "Force [N]         " << GetSpringForce(0, LEFT) << "  " << GetSpringForce(0, RIGHT) << "  "
+                  << GetSpringForce(1, LEFT) << "  " << GetSpringForce(1, RIGHT) << "\n";
     }
 
     if (what & OUT_SHOCKS) {
-        GetLog() << "\n---- Shock (front-left, front-right, rear-left, rear-right)\n";
-        GetLog() << "Length [m]       " << GetShockLength(0, LEFT) << "  " << GetShockLength(0, RIGHT) << "  "
-                 << GetShockLength(1, LEFT) << "  " << GetShockLength(1, RIGHT) << "\n";
-        GetLog() << "Velocity [m/s]   " << GetShockVelocity(0, LEFT) << "  " << GetShockVelocity(0, RIGHT) << "  "
-                 << GetShockVelocity(1, LEFT) << "  " << GetShockVelocity(1, RIGHT) << "\n";
-        GetLog() << "Force [N]         " << GetShockForce(0, LEFT) << "  " << GetShockForce(0, RIGHT) << "  "
-                 << GetShockForce(1, LEFT) << "  " << GetShockForce(1, RIGHT) << "\n";
+        std::cout << "\n---- Shock (front-left, front-right, rear-left, rear-right)\n";
+        std::cout << "Length [m]       " << GetShockLength(0, LEFT) << "  " << GetShockLength(0, RIGHT) << "  "
+                  << GetShockLength(1, LEFT) << "  " << GetShockLength(1, RIGHT) << "\n";
+        std::cout << "Velocity [m/s]   " << GetShockVelocity(0, LEFT) << "  " << GetShockVelocity(0, RIGHT) << "  "
+                  << GetShockVelocity(1, LEFT) << "  " << GetShockVelocity(1, RIGHT) << "\n";
+        std::cout << "Force [N]         " << GetShockForce(0, LEFT) << "  " << GetShockForce(0, RIGHT) << "  "
+                  << GetShockForce(1, LEFT) << "  " << GetShockForce(1, RIGHT) << "\n";
     }
 
     if (what & OUT_CONSTRAINTS) {
         // Report constraint violations for all joints
         LogConstraintViolations();
     }
-
-    GetLog().SetNumFormat("%g");
 }
 
 // -----------------------------------------------------------------------------
 void Duro_Vehicle::AddVisualizationLink(std::shared_ptr<ChBody> body,
-                                        const ChVector<> pt_1,
-                                        const ChVector<> pt_2,
+                                        const ChVector3d pt_1,
+                                        const ChVector3d pt_2,
                                         double radius,
                                         const ChColor& color) {
     // Express hardpoint locations in body frame.
-    ChVector<> p_1 = body->TransformPointParentToLocal(pt_1);
-    ChVector<> p_2 = body->TransformPointParentToLocal(pt_2);
+    ChVector3d p_1 = body->TransformPointParentToLocal(pt_1);
+    ChVector3d p_2 = body->TransformPointParentToLocal(pt_2);
 
     auto cyl = ChVehicleGeometry::AddVisualizationCylinder(body, p_1, p_2, radius);
     cyl->SetColor(color);

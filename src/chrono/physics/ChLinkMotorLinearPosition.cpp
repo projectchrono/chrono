@@ -20,8 +20,11 @@ namespace chrono {
 CH_FACTORY_REGISTER(ChLinkMotorLinearPosition)
 
 ChLinkMotorLinearPosition::ChLinkMotorLinearPosition() {
-    // default motion function: ramp with initial value y(0) = 0 and slope dy/dt = 1
-    m_func = chrono_types::make_shared<ChFunction_Ramp>(0.0, 1.0);
+    this->c_z = true;
+    SetupLinkMask();
+
+    // default motion function
+    m_func = chrono_types::make_shared<ChFunctionConst>(0.0);
 
     pos_offset = 0;
 }
@@ -39,14 +42,15 @@ void ChLinkMotorLinearPosition::Update(double mytime, bool update_assets) {
 
     // Add the time-dependent term in residual C as
     //   C = d_error - d_setpoint - d_offset
-    // with d_error = x_pos_A- x_pos_B, and d_setpoint = x(t)
-    C(0) = this->mpos - m_func->Get_y(mytime) - this->pos_offset;
+    // with d_error = z_pos_1 - z_pos_2, and d_setpoint = z(t)
+
+    C(m_actuated_idx) = this->mpos - m_func->GetVal(mytime) - this->pos_offset;
 }
 
 void ChLinkMotorLinearPosition::IntLoadConstraint_Ct(const unsigned int off_L, ChVectorDynamic<>& Qc, const double c) {
-    double mCt = -m_func->Get_y_dx(this->GetChTime());
-    if (mask.Constr_N(0).IsActive()) {
-        Qc(off_L + 0) += c * mCt;
+    double mCt = -m_func->GetDer(this->GetChTime());
+    if (mask.GetConstraint(m_actuated_idx).IsActive()) {
+        Qc(off_L + m_actuated_idx) += c * mCt;
     }
 }
 
@@ -54,33 +58,33 @@ void ChLinkMotorLinearPosition::ConstraintsBiLoad_Ct(double factor) {
     if (!this->IsActive())
         return;
 
-    double mCt = -m_func->Get_y_dx(this->GetChTime());
-    if (mask.Constr_N(0).IsActive()) {
-        mask.Constr_N(0).Set_b_i(mask.Constr_N(0).Get_b_i() + factor * mCt);
+    double mCt = -m_func->GetDer(this->GetChTime());
+    if (mask.GetConstraint(m_actuated_idx).IsActive()) {
+        mask.GetConstraint(m_actuated_idx).SetRightHandSide(mask.GetConstraint(m_actuated_idx).GetRightHandSide() + factor * mCt);
     }
 }
 
-void ChLinkMotorLinearPosition::ArchiveOut(ChArchiveOut& marchive) {
+void ChLinkMotorLinearPosition::ArchiveOut(ChArchiveOut& archive_out) {
     // version number
-    marchive.VersionWrite<ChLinkMotorLinearPosition>();
+    archive_out.VersionWrite<ChLinkMotorLinearPosition>();
 
     // serialize parent class
-    ChLinkMotorLinear::ArchiveOut(marchive);
+    ChLinkMotorLinear::ArchiveOut(archive_out);
 
     // serialize all member data:
-    marchive << CHNVP(pos_offset);
+    archive_out << CHNVP(pos_offset);
 }
 
 /// Method to allow de serialization of transient data from archives.
-void ChLinkMotorLinearPosition::ArchiveIn(ChArchiveIn& marchive) {
+void ChLinkMotorLinearPosition::ArchiveIn(ChArchiveIn& archive_in) {
     // version number
-    /*int version =*/ marchive.VersionRead<ChLinkMotorLinearPosition>();
+    /*int version =*/archive_in.VersionRead<ChLinkMotorLinearPosition>();
 
     // deserialize parent class
-    ChLinkMotorLinear::ArchiveIn(marchive);
+    ChLinkMotorLinear::ArchiveIn(archive_in);
 
     // deserialize all member data:
-    marchive >> CHNVP(pos_offset);
+    archive_in >> CHNVP(pos_offset);
 }
 
 }  // end namespace chrono

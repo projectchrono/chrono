@@ -56,7 +56,7 @@ void ChElementTetraCorot_4::ShapeFunctions(ShapeVector& N, double r, double s, d
 }
 
 void ChElementTetraCorot_4::GetStateBlock(ChVectorDynamic<>& mD) {
-    mD.setZero(this->GetNdofs());
+    mD.setZero(this->GetNumCoordsPosLevel());
     mD.segment(0, 3) = (A.transpose() * nodes[0]->pos - nodes[0]->GetX0()).eigen();
     mD.segment(3, 3) = (A.transpose() * nodes[1]->pos - nodes[1]->GetX0()).eigen();
     mD.segment(6, 3) = (A.transpose() * nodes[2]->pos - nodes[2]->GetX0()).eigen();
@@ -64,7 +64,7 @@ void ChElementTetraCorot_4::GetStateBlock(ChVectorDynamic<>& mD) {
 }
 
 double ChElementTetraCorot_4::ComputeVolume() {
-    ChVector<> B1, C1, D1;
+    ChVector3d B1, C1, D1;
     B1.Sub(nodes[1]->pos, nodes[0]->pos);
     C1.Sub(nodes[2]->pos, nodes[0]->pos);
     D1.Sub(nodes[3]->pos, nodes[0]->pos);
@@ -126,7 +126,7 @@ void ChElementTetraCorot_4::ComputeStiffnessMatrix() {
     MatrB(69) = mM(14);
     MatrB(71) = mM(12);
 
-    StiffnessMatrix = Volume * MatrB.transpose() * Material->Get_StressStrainMatrix() * MatrB;
+    StiffnessMatrix = Volume * MatrB.transpose() * Material->GetStressStrainMatrix() * MatrB;
 
     // ***TEST*** SYMMETRIZE TO AVOID ROUNDOFF ASYMMETRY
     for (int row = 0; row < StiffnessMatrix.rows() - 1; ++row)
@@ -146,7 +146,8 @@ void ChElementTetraCorot_4::ComputeStiffnessMatrix() {
             }
         }
     if (max_err > 1e-10)
-        GetLog() << "NONSYMMETRIC local stiffness matrix! err " << max_err << " at " << err_r << "," << err_c << "\n";
+        std::cerr << "NONSYMMETRIC local stiffness matrix! err " << max_err << " at " << err_r << "," << err_c
+                  << std::endl;
 }
 
 void ChElementTetraCorot_4::SetupInitial(ChSystem* system) {
@@ -178,8 +179,6 @@ void ChElementTetraCorot_4::UpdateRotation() {
     double det = ChPolarDecomposition<>::Compute(F, this->A, S, 1E-6);
     if (det < 0)
         this->A *= -1.0;
-
-    // GetLog() << "FEM rotation: \n" << A << "\n" ;
 }
 
 void ChElementTetraCorot_4::ComputeKRMmatricesGlobal(ChMatrixRef H, double Kfactor, double Rfactor, double Mfactor) {
@@ -192,12 +191,12 @@ void ChElementTetraCorot_4::ComputeKRMmatricesGlobal(ChMatrixRef H, double Kfact
     ChMatrixCorotation::ComputeCK(StiffnessMatrix, this->A, 4, CK);
     ChMatrixCorotation::ComputeKCt(CK, this->A, 4, CKCt);
 
-    // ***TEST*** SYMMETRIZE TO AVOID ROUNDOFF ASYMMETRY
+    //// TEST SYMMETRIZE TO AVOID ROUNDOFF ASYMMETRY
     for (int row = 0; row < CKCt.rows() - 1; ++row)
         for (int col = row + 1; col < CKCt.cols(); ++col)
             CKCt(row, col) = CKCt(col, row);
 
-    //***DEBUG***
+    //// DEBUG
     double max_err = 0;
     int err_r = -1;
     int err_c = -1;
@@ -210,8 +209,11 @@ void ChElementTetraCorot_4::ComputeKRMmatricesGlobal(ChMatrixRef H, double Kfact
                 err_c = col;
             }
         }
+
     if (max_err > 1e-10)
-        GetLog() << "NONSYMMETRIC local stiffness matrix! err " << max_err << " at " << err_r << "," << err_c << "\n";
+        std::cerr << "NONSYMMETRIC local stiffness matrix! err " << max_err << " at " << err_r << "," << err_c
+                  << std::endl;
+
     max_err = 0;
     err_r = -1;
     err_c = -1;
@@ -227,23 +229,24 @@ void ChElementTetraCorot_4::ComputeKRMmatricesGlobal(ChMatrixRef H, double Kfact
             if (CKCt(row, col) > maxval)
                 maxval = CKCt(row, col);
         }
+
     if (max_err > 1e-10)
-        GetLog() << "NONSYMMETRIC corotated matrix! err " << max_err << " at " << err_r << "," << err_c
-                 << ",   maxval=" << maxval << "\n";
+        std::cerr << "NONSYMMETRIC corotated matrix! err " << max_err << " at " << err_r << "," << err_c
+                  << ",   maxval=" << maxval << std::endl;
 
     // For K stiffness matrix and R damping matrix:
-    double mkfactor = Kfactor + Rfactor * this->GetMaterial()->Get_RayleighDampingK();
+    double mkfactor = Kfactor + Rfactor * this->GetMaterial()->GetRayleighDampingBeta();
     H = mkfactor * CKCt;
 
     // For M mass matrix:
     if (Mfactor) {
-        double lumped_node_mass = (this->GetVolume() * this->Material->Get_density()) / 4.0;
+        double lumped_node_mass = (this->GetVolume() * this->Material->GetDensity()) / 4.0;
         for (int id = 0; id < 12; id++) {
-            double amfactor = Mfactor + Rfactor * this->GetMaterial()->Get_RayleighDampingM();
+            double amfactor = Mfactor + Rfactor * this->GetMaterial()->GetRayleighDampingAlpha();
             H(id, id) += amfactor * lumped_node_mass;
         }
     }
-    //***TO DO*** better per-node lumping, or 12x12 consistent mass matrix.
+    //// TODO  better per-node lumping, or 12x12 consistent mass matrix.
 }
 
 void ChElementTetraCorot_4::ComputeInternalForces(ChVectorDynamic<>& Fi) {
@@ -260,13 +263,13 @@ void ChElementTetraCorot_4::ComputeInternalForces(ChVectorDynamic<>& Fi) {
     displ.segment(3, 3) = (A.transpose() * nodes[1]->pos_dt).eigen();
     displ.segment(6, 3) = (A.transpose() * nodes[2]->pos_dt).eigen();
     displ.segment(9, 3) = (A.transpose() * nodes[3]->pos_dt).eigen();
-    ChMatrixDynamic<> FiR_local = Material->Get_RayleighDampingK() * StiffnessMatrix * displ;
+    ChMatrixDynamic<> FiR_local = Material->GetRayleighDampingBeta() * StiffnessMatrix * displ;
 
-    double lumped_node_mass = (this->GetVolume() * this->Material->Get_density()) / 4.0;
-    displ *= lumped_node_mass * this->Material->Get_RayleighDampingM();
+    double lumped_node_mass = (this->GetVolume() * this->Material->GetDensity()) / 4.0;
+    displ *= lumped_node_mass * this->Material->GetRayleighDampingAlpha();
     FiR_local += displ;
 
-    //***TO DO*** better per-node lumping, or 12x12 consistent mass matrix.
+    //// TODO  better per-node lumping, or 12x12 consistent mass matrix.
 
     FiK_local += FiR_local;
     FiK_local *= -1.0;
@@ -285,29 +288,29 @@ ChStrainTensor<> ChElementTetraCorot_4::GetStrain() {
 }
 
 ChStressTensor<> ChElementTetraCorot_4::GetStress() {
-    ChStressTensor<> mstress = this->Material->Get_StressStrainMatrix() * this->GetStrain();
+    ChStressTensor<> mstress = this->Material->GetStressStrainMatrix() * this->GetStrain();
     return mstress;
 }
 
 void ChElementTetraCorot_4::ComputeNodalMass() {
-    nodes[0]->m_TotalMass += this->GetVolume() * this->Material->Get_density() / 4.0;
-    nodes[1]->m_TotalMass += this->GetVolume() * this->Material->Get_density() / 4.0;
-    nodes[2]->m_TotalMass += this->GetVolume() * this->Material->Get_density() / 4.0;
-    nodes[3]->m_TotalMass += this->GetVolume() * this->Material->Get_density() / 4.0;
+    nodes[0]->m_TotalMass += this->GetVolume() * this->Material->GetDensity() / 4.0;
+    nodes[1]->m_TotalMass += this->GetVolume() * this->Material->GetDensity() / 4.0;
+    nodes[2]->m_TotalMass += this->GetVolume() * this->Material->GetDensity() / 4.0;
+    nodes[3]->m_TotalMass += this->GetVolume() * this->Material->GetDensity() / 4.0;
 }
 
-void ChElementTetraCorot_4::LoadableGetStateBlock_x(int block_offset, ChState& mD) {
+void ChElementTetraCorot_4::LoadableGetStateBlockPosLevel(int block_offset, ChState& mD) {
     mD.segment(block_offset + 0, 3) = nodes[0]->GetPos().eigen();
     mD.segment(block_offset + 3, 3) = nodes[1]->GetPos().eigen();
     mD.segment(block_offset + 6, 3) = nodes[2]->GetPos().eigen();
     mD.segment(block_offset + 9, 3) = nodes[3]->GetPos().eigen();
 }
 
-void ChElementTetraCorot_4::LoadableGetStateBlock_w(int block_offset, ChStateDelta& mD) {
-    mD.segment(block_offset + 0, 3) = nodes[0]->GetPos_dt().eigen();
-    mD.segment(block_offset + 3, 3) = nodes[1]->GetPos_dt().eigen();
-    mD.segment(block_offset + 6, 3) = nodes[2]->GetPos_dt().eigen();
-    mD.segment(block_offset + 9, 3) = nodes[3]->GetPos_dt().eigen();
+void ChElementTetraCorot_4::LoadableGetStateBlockVelLevel(int block_offset, ChStateDelta& mD) {
+    mD.segment(block_offset + 0, 3) = nodes[0]->GetPosDt().eigen();
+    mD.segment(block_offset + 3, 3) = nodes[1]->GetPosDt().eigen();
+    mD.segment(block_offset + 6, 3) = nodes[2]->GetPosDt().eigen();
+    mD.segment(block_offset + 9, 3) = nodes[3]->GetPosDt().eigen();
 }
 
 void ChElementTetraCorot_4::LoadableStateIncrement(const unsigned int off_x,
@@ -392,16 +395,16 @@ void ChElementTetraCorot_4_P::ShapeFunctions(ShapeVector& N, double z0, double z
     N(3) = 1.0 - z0 - z1 - z2;
 }
 
-void ChElementTetraCorot_4_P::GetStateBlock(ChVectorDynamic<>& mD) {
-    mD.setZero(this->GetNdofs());
-    mD(0) = nodes[0]->GetP();
-    mD(1) = nodes[1]->GetP();
-    mD(2) = nodes[2]->GetP();
-    mD(3) = nodes[3]->GetP();
+void ChElementTetraCorot_4_P::GetStateBlock(ChVectorDynamic<>& D) {
+    D.setZero(this->GetNumCoordsPosLevel());
+    D(0) = nodes[0]->GetFieldVal();
+    D(1) = nodes[1]->GetFieldVal();
+    D(2) = nodes[2]->GetFieldVal();
+    D(3) = nodes[3]->GetFieldVal();
 }
 
 double ChElementTetraCorot_4_P::ComputeVolume() {
-    ChVector<> B1, C1, D1;
+    ChVector3d B1, C1, D1;
     B1.Sub(nodes[1]->GetPos(), nodes[0]->GetPos());
     C1.Sub(nodes[2]->GetPos(), nodes[0]->GetPos());
     D1.Sub(nodes[3]->GetPos(), nodes[0]->GetPos());
@@ -439,7 +442,7 @@ void ChElementTetraCorot_4_P::ComputeStiffnessMatrix() {
     MatrB(2, 2) = mM(10);
     MatrB(2, 3) = mM(14);
 
-    StiffnessMatrix = Volume * MatrB.transpose() * Material->Get_ConstitutiveMatrix() * MatrB;
+    StiffnessMatrix = Volume * MatrB.transpose() * Material->GetConstitutiveMatrix() * MatrB;
 }
 
 void ChElementTetraCorot_4_P::SetupInitial(ChSystem* system) {
@@ -488,7 +491,7 @@ void ChElementTetraCorot_4_P::ComputeKRMmatricesGlobal(ChMatrixRef H, double Kfa
                 H(id, id) += Rfactor * lumped_node_c;
             }
         }
-    //***TO DO*** better per-node lumping, or 4x4 consistent c integration as per mass matrices.
+    //// TODO  better per-node lumping, or 4x4 consistent c integration as per mass matrices.
 
     // For M mass matrix: NONE in Poisson equation c dT/dt + div [C] grad T = f
 }
@@ -503,7 +506,7 @@ void ChElementTetraCorot_4_P::ComputeInternalForces(ChVectorDynamic<>& Fi) {
     // [local Internal Forces] = [Klocal] * P
     ChVectorDynamic<> FiK_local = StiffnessMatrix * displ;
 
-    //***TO DO*** derivative terms? + [Rlocal] * P_dt ???? ***NO because Poisson  rho dP/dt + div [C] grad P = 0
+    //// TODO  derivative terms? + [Rlocal] * P_dt ???? ***NO because Poisson  rho dP/dt + div [C] grad P = 0
 
     FiK_local *= -1.0;
 
@@ -520,18 +523,18 @@ ChVectorN<double, 3> ChElementTetraCorot_4_P::GetPgradient() {
     return MatrB * displ;
 }
 
-void ChElementTetraCorot_4_P::LoadableGetStateBlock_x(int block_offset, ChState& mD) {
-    mD(block_offset) = this->nodes[0]->GetP();
-    mD(block_offset + 1) = this->nodes[1]->GetP();
-    mD(block_offset + 2) = this->nodes[2]->GetP();
-    mD(block_offset + 3) = this->nodes[3]->GetP();
+void ChElementTetraCorot_4_P::LoadableGetStateBlockPosLevel(int block_offset, ChState& mD) {
+    mD(block_offset + 0) = this->nodes[0]->GetFieldVal();
+    mD(block_offset + 1) = this->nodes[1]->GetFieldVal();
+    mD(block_offset + 2) = this->nodes[2]->GetFieldVal();
+    mD(block_offset + 3) = this->nodes[3]->GetFieldVal();
 }
 
-void ChElementTetraCorot_4_P::LoadableGetStateBlock_w(int block_offset, ChStateDelta& mD) {
-    mD(block_offset) = this->nodes[0]->GetP_dt();
-    mD(block_offset + 1) = this->nodes[1]->GetP_dt();
-    mD(block_offset + 2) = this->nodes[2]->GetP_dt();
-    mD(block_offset + 3) = this->nodes[3]->GetP_dt();
+void ChElementTetraCorot_4_P::LoadableGetStateBlockVelLevel(int block_offset, ChStateDelta& mD) {
+    mD(block_offset + 0) = this->nodes[0]->GetFieldValDt();
+    mD(block_offset + 1) = this->nodes[1]->GetFieldValDt();
+    mD(block_offset + 2) = this->nodes[2]->GetFieldValDt();
+    mD(block_offset + 3) = this->nodes[3]->GetFieldValDt();
 }
 
 void ChElementTetraCorot_4_P::LoadableStateIncrement(const unsigned int off_x,

@@ -24,7 +24,7 @@
 
 #include "chrono/physics/ChShaft.h"
 #include "chrono/physics/ChShaftsGearbox.h"
-#include "chrono/physics/ChShaftsBody.h"
+#include "chrono/physics/ChShaftBodyConstraint.h"
 #include "chrono/physics/ChShaftsTorqueConverter.h"
 
 namespace chrono {
@@ -66,7 +66,7 @@ class CH_VEHICLE_API ChAutomaticTransmissionShafts : public ChAutomaticTransmiss
     }
 
     /// Return the torque converter output shaft speed.
-    virtual double GetTorqueConverterOutputSpeed() const override { return m_shaft_ingear->GetPos_dt(); }
+    virtual double GetTorqueConverterOutputSpeed() const override { return m_shaft_ingear->GetPosDt(); }
 
     /// Use this to define the gear shift latency, in seconds.
     void SetGearShiftLatency(double ml) { m_gear_shift_latency = ml; }
@@ -102,11 +102,11 @@ class CH_VEHICLE_API ChAutomaticTransmissionShafts : public ChAutomaticTransmiss
 
     /// Set the capacity factor map.
     /// Specify the capacity factor as a function of the speed ratio.
-    virtual void SetTorqueConverterCapacityFactorMap(std::shared_ptr<ChFunction_Recorder>& map) = 0;
+    virtual void SetTorqueConverterCapacityFactorMap(std::shared_ptr<ChFunctionInterp>& map) = 0;
 
     /// Set the torque ratio map.
     /// Specify torque ratio as a function of the speed ratio.
-    virtual void SetTorqeConverterTorqueRatioMap(std::shared_ptr<ChFunction_Recorder>& map) = 0;
+    virtual void SetTorqeConverterTorqueRatioMap(std::shared_ptr<ChFunctionInterp>& map) = 0;
 
   private:
     /// Initialize this transmission system by attaching it to an existing vehicle chassis and connecting the provided
@@ -134,7 +134,7 @@ class CH_VEHICLE_API ChAutomaticTransmissionShafts : public ChAutomaticTransmiss
     std::shared_ptr<ChShaft> m_driveshaft;  ///< shaft connection to driveline
 
     std::shared_ptr<ChShaft> m_transmissionblock;
-    std::shared_ptr<ChShaftsBody> m_transmissionblock_to_body;
+    std::shared_ptr<ChShaftBodyRotation> m_transmissionblock_to_body;
     std::shared_ptr<ChShaftsTorqueConverter> m_torqueconverter;
     std::shared_ptr<ChShaft> m_shaft_ingear;
     std::shared_ptr<ChShaftsGearbox> m_gears;

@@ -38,7 +38,7 @@ MultiLink::MultiLink(const std::string& filename) : ChMultiLink(""), m_springFor
 
     Create(d);
 
-    GetLog() << "Loaded JSON: " << filename.c_str() << "\n";
+    std::cout << "Loaded JSONL " << filename << std::endl;
 }
 
 MultiLink::MultiLink(const rapidjson::Document& d) : ChMultiLink(""), m_springForceCB(NULL), m_shockForceCB(NULL) {
@@ -56,12 +56,12 @@ void MultiLink::Create(const rapidjson::Document& d) {
     ChPart::Create(d);
 
     if (d.HasMember("Camber Angle (deg)"))
-        m_camber_angle = d["Camber Angle (deg)"].GetDouble() * CH_C_DEG_TO_RAD;
+        m_camber_angle = d["Camber Angle (deg)"].GetDouble() * CH_DEG_TO_RAD;
     else
         m_camber_angle = 0;
 
     if (d.HasMember("Toe Angle (deg)"))
-        m_toe_angle = d["Toe Angle (deg)"].GetDouble() * CH_C_DEG_TO_RAD;
+        m_toe_angle = d["Toe Angle (deg)"].GetDouble() * CH_DEG_TO_RAD;
     else
         m_toe_angle = 0;
 
@@ -139,7 +139,7 @@ void MultiLink::Create(const rapidjson::Document& d) {
     } else {
         m_tierodMass = 0;
         m_tierodRadius = 0;
-        m_tierodInertia = ChVector<>(0);
+        m_tierodInertia = ChVector3d(0);
         m_use_tierod_bodies = false;
     }
 

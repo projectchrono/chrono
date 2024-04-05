@@ -50,14 +50,13 @@ class settings_container;
 
 /// Base class for Chrono::Multicore systems.
 class CH_MULTICORE_API ChSystemMulticore : public ChSystem {
-
   public:
     ChSystemMulticore();
     ChSystemMulticore(const ChSystemMulticore& other);
     virtual ~ChSystemMulticore();
 
-    virtual bool Integrate_Y() override;
-    virtual void AddBody(std::shared_ptr<ChBody> newbody) override;
+    virtual bool AdvanceDynamics() override;
+    virtual void AddBody(std::shared_ptr<ChBody> body) override;
     virtual void AddShaft(std::shared_ptr<ChShaft> shaft) override;
     virtual void AddLink(std::shared_ptr<ChLinkBase> link) override;
     virtual void AddOtherPhysicsItem(std::shared_ptr<ChPhysicsItem> newitem) override;
@@ -80,13 +79,38 @@ class CH_MULTICORE_API ChSystemMulticore : public ChSystem {
 
     /// Change the default composition laws for contact surface materials
     /// (coefficient of friction, cohesion, compliance, etc.).
-    virtual void SetMaterialCompositionStrategy(std::unique_ptr<ChMaterialCompositionStrategy>&& strategy) override;
+    virtual void SetMaterialCompositionStrategy(
+        std::unique_ptr<ChContactMaterialCompositionStrategy>&& strategy) override;
 
     virtual void PrintStepStats();
-    unsigned int GetNumBodies();
-    unsigned int GetNumShafts();
-    unsigned int GetNumContacts();
-    unsigned int GetNumBilaterals();
+
+    /// Get the total number of bodies added to the system, including fixed and sleeping bodies.
+    virtual unsigned int GetNumBodies() const override {
+        return data_manager->num_rigid_bodies + data_manager->num_fluid_bodies;
+    }
+
+    /// Get the number of shafts.
+    virtual unsigned int GetNumShafts() const override { return data_manager->num_shafts; }
+
+    /// Gets the number of contacts.
+    virtual unsigned int GetNumContacts() override;
+
+    /// Get the number of scalar constraints in the system.
+    virtual unsigned int GetNumConstraints() override {
+        return GetNumConstraintsBilateral() + GetNumConstraintsUnilateral();
+    }
+
+    /// Get the number of bilateral scalar constraints.
+    virtual unsigned int GetNumConstraintsBilateral() override {
+        return data_manager->num_bilaterals;
+        ;
+    }
+
+    /// Get the number of unilateral scalar constraints.
+    virtual unsigned int GetNumConstraintsUnilateral() override {
+        return data_manager->num_unilaterals;
+        ;
+    }
 
     /// Return the time (in seconds) spent for computing the time step.
     virtual double GetTimerStep() const override;
@@ -122,33 +146,23 @@ class CH_MULTICORE_API ChSystemMulticore : public ChSystem {
     /// This resultant force includes all external applied loads acting on the body (from gravity, loads, springs,
     /// etc). However, this does *not* include any constraint forces. In particular, contact forces are not included if
     /// using the NSC formulation, but are included when using the SMC formulation.
-    virtual ChVector<> GetBodyAppliedForce(ChBody* body) override;
+    virtual ChVector3d GetBodyAppliedForce(ChBody* body) override;
 
     /// Return the resultant applied torque on the specified body.
     /// This resultant torque includes all external applied loads acting on the body (from gravity, loads, springs,
     /// etc). However, this does *not* include any constraint forces. In particular, contact torques are not included if
     /// using the NSC formulation, but are included when using the SMC formulation.
-    virtual ChVector<> GetBodyAppliedTorque(ChBody* body) override;
-
-    /// Get the contact force on the body with specified id.
-    /// Note that ComputeContactForces must be called prior to calling this function
-    /// at any time where reporting of contact forces is desired.
-    virtual real3 GetBodyContactForce(uint body_id) const = 0;
-
-    /// Get the contact torque on the body with specified id.
-    /// Note that ComputeContactForces must be called prior to calling this function
-    /// at any time where reporting of contact torques is desired.
-    virtual real3 GetBodyContactTorque(uint body_id) const = 0;
+    virtual ChVector3d GetBodyAppliedTorque(ChBody* body) override;
 
     /// Get the contact force on the specified body.
     /// Note that ComputeContactForces must be called prior to calling this function
     /// at any time where reporting of contact forces is desired.
-    real3 GetBodyContactForce(std::shared_ptr<ChBody> body) const { return GetBodyContactForce(body->GetId()); }
+    virtual real3 GetBodyContactForce(std::shared_ptr<ChBody> body) const = 0;
 
     /// Get the contact torque on the specified body.
     /// Note that ComputeContactForces must be called prior to calling this function
     /// at any time where reporting of contact torques is desired.
-    real3 GetBodyContactTorque(std::shared_ptr<ChBody> body) const { return GetBodyContactTorque(body->GetId()); }
+    virtual real3 GetBodyContactTorque(std::shared_ptr<ChBody> body) const = 0;
 
     settings_container* GetSettings();
 
@@ -196,7 +210,6 @@ class CH_MULTICORE_API ChSystemMulticore : public ChSystem {
 
 /// Multicore system using non-smooth contact (complementarity-based) method.
 class CH_MULTICORE_API ChSystemMulticoreNSC : public ChSystemMulticore {
-
   public:
     ChSystemMulticoreNSC();
     ChSystemMulticoreNSC(const ChSystemMulticoreNSC& other);
@@ -216,13 +229,9 @@ class CH_MULTICORE_API ChSystemMulticoreNSC : public ChSystemMulticore {
     virtual void SetContactContainer(std::shared_ptr<ChContactContainer> container) override;
 
     void CalculateContactForces() override;
-    real CalculateKineticEnergy();
-    real CalculateDualObjective();
 
-    virtual real3 GetBodyContactForce(uint body_id) const override;
-    virtual real3 GetBodyContactTorque(uint body_id) const override;
-    using ChSystemMulticore::GetBodyContactForce;
-    using ChSystemMulticore::GetBodyContactTorque;
+    virtual real3 GetBodyContactForce(std::shared_ptr<ChBody> body) const override;
+    virtual real3 GetBodyContactTorque(std::shared_ptr<ChBody> body) const override;
 
     virtual void AssembleSystem();
     virtual void SolveSystem();
@@ -232,7 +241,6 @@ class CH_MULTICORE_API ChSystemMulticoreNSC : public ChSystemMulticore {
 
 /// Multicore system using smooth contact (penalty-based) method.
 class CH_MULTICORE_API ChSystemMulticoreSMC : public ChSystemMulticore {
-
   public:
     ChSystemMulticoreSMC();
     ChSystemMulticoreSMC(const ChSystemMulticoreSMC& other);
@@ -248,10 +256,8 @@ class CH_MULTICORE_API ChSystemMulticoreSMC : public ChSystemMulticore {
     virtual void SetCollisionSystemType(ChCollisionSystem::Type type) override;
     virtual void SetContactContainer(std::shared_ptr<ChContactContainer> container) override;
 
-    virtual real3 GetBodyContactForce(uint body_id) const override;
-    virtual real3 GetBodyContactTorque(uint body_id) const override;
-    using ChSystemMulticore::GetBodyContactForce;
-    using ChSystemMulticore::GetBodyContactTorque;
+    virtual real3 GetBodyContactForce(std::shared_ptr<ChBody> body) const override;
+    virtual real3 GetBodyContactTorque(std::shared_ptr<ChBody> body) const override;
 
     virtual void PrintStepStats() override;
 

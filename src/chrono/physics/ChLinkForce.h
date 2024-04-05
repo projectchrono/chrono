@@ -18,12 +18,20 @@
 #include <cfloat>
 #include <cmath>
 
-#include "chrono/core/ChMath.h"
-#include "chrono/motion_functions/ChFunction.h"
+#include "chrono/core/ChFrame.h"
+#include "chrono/functions/ChFunction.h"
 
 namespace chrono {
 
 /// Class for forces in link joints of type ChLinkLock.
+/// Force is applied to specific degrees of freedom of the ChLinkLock through ChLinkLock::Force functions.
+/// The resulting force (or torque) is computed as the sum of actuator, spring force and a damping force.
+/// Each term consists of a constant part (set through SetActuatorForce, SetSpringCoefficient, SetDampingCoefficient)
+/// and an optional modulation part (set through SetActuatorModulation, SetSpringModulation, SetDamperModulation).
+/// The resulting actuation force, the spring and damping coefficient are given as the constant part multiplied by the
+/// value of the modulation function at the current time.
+/// The final force is obtained as the sum of all the contributions:
+/// `    F(x, x_dt, t) = F_act_const * F_act_modulation - K_const * K_modulation * x - R_const * R_modulation * x_dt`
 class ChApi ChLinkForce {
   public:
     ChLinkForce();
@@ -36,36 +44,39 @@ class ChApi ChLinkForce {
     bool IsActive() const { return m_active; }
     void SetActive(bool val) { m_active = val; }
 
-    double GetF() const { return m_F; }
-    void SetF(double F) { m_F = F; }
+    /// Get the force or torque applied to the link.
+    double GetActuatorForceTorque() const { return m_F; }
 
-    double GetK() const { return m_K; }
-    void SetK(double K) { m_K = K; }
+    /// Set the force or torque applied to the link.
+    void SetActuatorForceTorque(double F) { m_F = F; }
 
-    double GetR() const { return m_R; }
-    void SetR(double R) { m_R = R; }
+    double GetSpringCoefficient() const { return m_K; }
+    void SetSpringCoefficient(double K) { m_K = K; }
 
-    std::shared_ptr<ChFunction> GetModulationF() const { return m_F_modul; }
-    std::shared_ptr<ChFunction> GetModulationK() const { return m_K_modul; }
-    std::shared_ptr<ChFunction> GetModulationR() const { return m_R_modul; }
+    double GetDampingCoefficient() const { return m_R; }
+    void SetDampingCoefficient(double R) { m_R = R; }
 
-    void SetModulationF(std::shared_ptr<ChFunction> funct) { m_F_modul = funct; }
-    void SetModulationK(std::shared_ptr<ChFunction> funct) { m_K_modul = funct; }
-    void SetModulationR(std::shared_ptr<ChFunction> funct) { m_R_modul = funct; }
+    std::shared_ptr<ChFunction> GetActuatorModulation() const { return m_F_modul; }
+    std::shared_ptr<ChFunction> GetSpringModulation() const { return m_K_modul; }
+    std::shared_ptr<ChFunction> GetDamperModulation() const { return m_R_modul; }
 
-    double GetFcurrent(double x, double x_dt, double t) const;
-    double GetKcurrent(double x, double x_dt, double t) const;
-    double GetRcurrent(double x, double x_dt, double t) const;
+    void SetActuatorModulation(std::shared_ptr<ChFunction> funct) { m_F_modul = funct; }
+    void SetSpringModulation(std::shared_ptr<ChFunction> funct) { m_K_modul = funct; }
+    void SetDamperModulation(std::shared_ptr<ChFunction> funct) { m_R_modul = funct; }
+
+    double GetCurrentActuatorForceTorque(double x, double x_dt, double t) const;
+    double GetCurrentSpringCoefficient(double x, double x_dt, double t) const;
+    double GetCurrentDampingCoefficient(double x, double x_dt, double t) const;
 
     // This is the most important function: it is called to evaluate
     // the internal force at instant t, position x and speed x_dt
-    double GetForce(double x, double x_dt, double t) const;
+    double GetForceTorque(double x, double x_dt, double t) const;
 
     /// Method to allow serialization of transient data to archives.
-    void ArchiveOut(ChArchiveOut& marchive);
+    void ArchiveOut(ChArchiveOut& archive_out);
 
     /// Method to allow de-serialization of transient data from archives.
-    void ArchiveIn(ChArchiveIn& marchive);
+    void ArchiveIn(ChArchiveIn& archive_in);
 
   private:
     bool m_active;  ///< true/false

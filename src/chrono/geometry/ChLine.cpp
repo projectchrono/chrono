@@ -22,7 +22,6 @@
 #include "chrono/geometry/ChLine.h"
 
 namespace chrono {
-namespace geometry {
 
 // Register into the object factory, to enable run-time dynamic creation and persistence
 // CH_FACTORY_REGISTER(ChLine)  // NO! Abstract class!
@@ -32,7 +31,7 @@ ChLine::ChLine(const ChLine& source) {
     complexityU = source.complexityU;
 }
 
-ChVector<> ChLine::GetTangent(double parU) const {
+ChVector3d ChLine::GetTangent(double parU) const {
     double bdf = 10e-9;
     double uA = 0, uB = 0;
 
@@ -50,7 +49,7 @@ ChVector<> ChLine::GetTangent(double parU) const {
     return (vB - vA) * (1 / bdf);
 }
 
-bool ChLine::FindNearestLinePoint(ChVector<>& point, double& resU, double approxU, double tol) const {
+bool ChLine::FindNearestLinePoint(ChVector3d& point, double& resU, double approxU, double tol) const {
     double mu;
     int points = 20;
     bool closed = false;
@@ -60,10 +59,10 @@ bool ChLine::FindNearestLinePoint(ChVector<>& point, double& resU, double approx
     int iters = 0;
     int maxiters = 11;
 
-    ChVector<> vres, vp1, vp2;
+    ChVector3d vres, vp1, vp2;
 
-    points = this->Get_complexity();
-    closed = this->Get_closed();
+    points = this->GetComplexity();
+    closed = this->IsClosed();
 
     points = points * 4;  // double sampling along line.
 
@@ -162,17 +161,17 @@ double ChLine::CurveCurveDist(ChLine* compline, int samples) const {
     // distances this<->compare_line
     for (par = 0; par < 1; par = par + 1 / ((double)samples)) {
         double mpos;
-        ChVector<> ptB = compline->Evaluate(par);
+        ChVector3d ptB = compline->Evaluate(par);
         this->FindNearestLinePoint(ptB, mpos, 0, 0.00002);
-        ChVector<> ptA = this->Evaluate(mpos);
+        ChVector3d ptA = this->Evaluate(mpos);
         mres += Vlength(Vsub(ptA, ptB));
     }
     // ..and viceversa
     for (par = 0; par < 1; par = par + 1 / ((double)samples)) {
         double mpos;
-        ChVector<> ptB = this->Evaluate(par);
+        ChVector3d ptB = this->Evaluate(par);
         compline->FindNearestLinePoint(ptB, mpos, 0, 0.00002);
-        ChVector<> ptA = compline->Evaluate(mpos);
+        ChVector3d ptA = compline->Evaluate(mpos);
         mres += Vlength(Vsub(ptA, ptB));
     }
 
@@ -186,9 +185,9 @@ double ChLine::CurveCurveDistMax(ChLine* compline, int samples) const {
     // distances this<->compare_line
     for (par = 0; par < 1; par = par + 1 / ((double)samples)) {
         double mpos;
-        ChVector<> ptB = compline->Evaluate(par);
+        ChVector3d ptB = compline->Evaluate(par);
         this->FindNearestLinePoint(ptB, mpos, 0, 0.00002);
-        ChVector<> ptA = this->Evaluate(mpos);
+        ChVector3d ptA = this->Evaluate(mpos);
         mdis = Vlength(Vsub(ptA, ptB));
         if (mres < mdis)
             mres = mdis;
@@ -196,9 +195,9 @@ double ChLine::CurveCurveDistMax(ChLine* compline, int samples) const {
     // ..and viceversa
     for (par = 0; par < 1; par = par + 1 / ((double)samples)) {
         double mpos;
-        ChVector<> ptB = this->Evaluate(par);
+        ChVector3d ptB = this->Evaluate(par);
         compline->FindNearestLinePoint(ptB, mpos, 0, 0.00002);
-        ChVector<> ptA = compline->Evaluate(mpos);
+        ChVector3d ptA = compline->Evaluate(mpos);
         mdis = Vlength(Vsub(ptA, ptB));
         if (mres < mdis)
             mres = mdis;
@@ -213,9 +212,9 @@ double ChLine::CurveSegmentDist(ChLine* complinesegm, int samples) const {
     // distances this<->compare_line
     for (par = 0; par < 1; par = par + 1 / ((double)samples)) {
         double mpos;
-        ChVector<> ptB = complinesegm->Evaluate(par);
+        ChVector3d ptB = complinesegm->Evaluate(par);
         this->FindNearestLinePoint(ptB, mpos, 0, 0.00002);
-        ChVector<> ptA = this->Evaluate(mpos);
+        ChVector3d ptA = this->Evaluate(mpos);
         mres += Vlength(Vsub(ptA, ptB));
     }
     return (mres / samples);
@@ -228,9 +227,9 @@ double ChLine::CurveSegmentDistMax(ChLine* complinesegm, int samples) const {
     // distances this<->compare_line
     for (par = 0; par < 1; par = par + 1 / ((double)samples)) {
         double mpos;
-        ChVector<> ptB = complinesegm->Evaluate(par);
+        ChVector3d ptB = complinesegm->Evaluate(par);
         this->FindNearestLinePoint(ptB, mpos, 0, 0.00002);
-        ChVector<> ptA = this->Evaluate(mpos);
+        ChVector3d ptA = this->Evaluate(mpos);
         mdis = Vlength(Vsub(ptA, ptB));
         if (mres < mdis)
             mres = mdis;
@@ -243,15 +242,15 @@ double ChLine::Length(int sampling) const {
     double par, step;
 
     if (!closed)
-        step = 1 / ((double)(Get_complexity() - 1));
+        step = 1 / ((double)(GetComplexity() - 1));
     else
-        step = 1 / ((double)(Get_complexity()));
+        step = 1 / ((double)(GetComplexity()));
 
     if (sampling > 1)
         step = step / (double)sampling;
 
-    ChVector<> pA = this->Evaluate(0.0);
-    ChVector<> pB;
+    ChVector3d pA = this->Evaluate(0.0);
+    ChVector3d pB;
     for (par = 0; par <= 1.000000001; par = par + step) {
         pB = this->Evaluate(par);
         mres += Vlength(Vsub(pA, pB));
@@ -260,57 +259,24 @@ double ChLine::Length(int sampling) const {
     return mres;
 }
 
-// Draw into the current graph viewport of a ChFile_ps file
-
-bool ChLine::DrawPostscript(ChFile_ps* mfle, int markpoints, int bezier_interpolate) {
-    ChVector2<> mp1;
-
-    mfle->GrSave();
-    mfle->ClipRectangle(mfle->Get_G_p(), mfle->Get_Gs_p(), ChFile_ps::Space::PAGE);
-    // start a line, move cursor to beginning
-    mfle->StartLine();
-    auto mv1 = this->Evaluate(0.0);
-    mp1.x() = mv1.x();
-    mp1.y() = mv1.y();
-    mp1 = mfle->To_page_from_graph(mp1);
-    mfle->MoveTo(mp1);
-    double maxpoints = this->Get_complexity() * 10;
-    // add points into line
-    for (int i = 1; i <= maxpoints; i++) {
-        mv1 = this->Evaluate(i / (double)maxpoints);
-        mp1.x() = mv1.x();
-        mp1.y() = mv1.y();
-        mp1 = mfle->To_page_from_graph(mp1);
-        mfle->AddLinePoint(mp1);
-    }
-    if (this->Get_closed())
-        mfle->CloseLine();  // if periodic curve, close it
-
-    mfle->PaintStroke();  // draw it!
-    mfle->GrRestore();    // restore old modes, with old clipping
-
-    return true;
-}
-
-void ChLine::ArchiveOut(ChArchiveOut& marchive) {
+void ChLine::ArchiveOut(ChArchiveOut& archive_out) {
     // version number
-    marchive.VersionWrite<ChLine>();
+    archive_out.VersionWrite<ChLine>();
     // serialize parent class
-    ChGeometry::ArchiveOut(marchive);
+    ChGeometry::ArchiveOut(archive_out);
     // serialize all member data:
-    marchive << CHNVP(closed);
-    marchive << CHNVP(complexityU);
+    archive_out << CHNVP(closed);
+    archive_out << CHNVP(complexityU);
 }
 
-void ChLine::ArchiveIn(ChArchiveIn& marchive) {
+void ChLine::ArchiveIn(ChArchiveIn& archive_in) {
     // version number
-    /*int version =*/ marchive.VersionRead<ChLine>();
+    /*int version =*/archive_in.VersionRead<ChLine>();
     // deserialize parent class
-    ChGeometry::ArchiveIn(marchive);
+    ChGeometry::ArchiveIn(archive_in);
     // stream in all member data:
-    marchive >> CHNVP(closed);
-    marchive >> CHNVP(complexityU);
+    archive_in >> CHNVP(closed);
+    archive_in >> CHNVP(complexityU);
 }
 
-}  // end namespace geometry
 }  // end namespace chrono

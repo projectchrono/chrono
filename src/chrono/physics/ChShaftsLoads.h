@@ -12,22 +12,22 @@
 // Authors: Alessandro Tasora
 // =============================================================================
 
-#ifndef CHSHAFTSLOADS_H
-#define CHSHAFTSLOADS_H
+#ifndef CH_SHAFTS_LOADS_H
+#define CH_SHAFTS_LOADS_H
 
 #include "chrono/physics/ChShaft.h"
 #include "chrono/physics/ChLoad.h"
 
 namespace chrono {
 
-/// Base class for defining loads between a couple of two one-degree-of-freedom
-/// parts; i.e., shafts that can be used to build 1D models of powertrains.
-
+/// Base class for defining loads between a couple of two one-degree-of-freedom parts.
 class ChApi ChShaftsLoad : public ChLoadCustomMultiple {
   public:
-    ChShaftsLoad(std::shared_ptr<ChShaft> shaftA,  ///< shaft A
-                 std::shared_ptr<ChShaft> shaftB   ///< shaft B
+    ChShaftsLoad(std::shared_ptr<ChShaft> shaft1,  ///< shaft A
+                 std::shared_ptr<ChShaft> shaft2   ///< shaft B
     );
+
+    virtual ~ChShaftsLoad() {}
 
     /// Compute the torque between the two shafts, given relative rotation and velocity.
     /// Torque is assumed applied to shaft B, and its opposite to A.
@@ -35,15 +35,14 @@ class ChApi ChShaftsLoad : public ChLoadCustomMultiple {
     virtual void ComputeShaftShaftTorque(const double rel_rot, const double rel_rot_dt, double& result_torque) = 0;
 
     // Optional: inherited classes could implement this to avoid the
-    // default numerical computation of jacobians:
+    // default numerical computation of Jacobians:
     //   virtual void ComputeJacobian(...) // see ChLoad
 
-    /// For diagnosis purposes, this can return the actual last computed value of
-    /// the applied torque, assumed applied to body B
+    /// Return the actual last computed value of the applied torque, assumed applied to 2ns shaft.
     double GetTorque() const { return torque; }
 
-    std::shared_ptr<ChShaft> GetShaftA() const;
-    std::shared_ptr<ChShaft> GetShaftB() const;
+    std::shared_ptr<ChShaft> GetShaft1() const;
+    std::shared_ptr<ChShaft> GetShaft2() const;
 
   protected:
     double torque;  ///< store computed values here
@@ -58,118 +57,108 @@ class ChApi ChShaftsLoad : public ChLoadCustomMultiple {
 
 CH_CLASS_VERSION(ChShaftsLoad, 0)
 
-/// Class for defining a torsional spring-damper between two 1D parts;
-/// i.e., shafts that can be used to build 1D models of powertrains. This is
-/// more efficient than simulating power trains modeled with full 3D ChBody
-/// objects.
-/// This supersedes the old ChShaftsTorsionSpring (which cannot handle
-/// extremely stiff spring values)
-
+/// Class for defining a torsional spring-damper between two 1D parts.
+/// This supersedes the old ChShaftsTorsionSpring (which cannot handle extremely stiff spring values).
 class ChApi ChShaftsTorsionSpringDamper : public ChShaftsLoad {
   public:
-    ChShaftsTorsionSpringDamper(std::shared_ptr<ChShaft> mbodyA,  ///< shaft A
-                                std::shared_ptr<ChShaft> mbodyB,  ///< shaft B
-                                const double mstiffness,          ///< torsional stiffness
-                                const double mdamping             ///< torsional damping
+    ChShaftsTorsionSpringDamper(std::shared_ptr<ChShaft> shaft1,  ///< first shaft
+                                std::shared_ptr<ChShaft> shaft2,  ///< second shaft
+                                const double stiffness,           ///< torsional stiffness
+                                const double damping              ///< torsional damping
     );
 
     /// "Virtual" copy constructor (covariant return type).
     virtual ChShaftsTorsionSpringDamper* Clone() const override { return new ChShaftsTorsionSpringDamper(*this); }
 
-    /// Set torsional stiffness, es. [Nm/rad]
-    void SetTorsionalStiffness(const double mstiffness) { stiffness = mstiffness; }
-    double GetTorsionalStiffness() const { return stiffness; }
+    /// Set torsional stiffness.
+    void SetTorsionalStiffness(const double stiffness) { m_stiffness = stiffness; }
 
-    /// Set torsional damping, es [Nm s/rad]
-    void SetTorsionalDamping(const double mdamping) { damping = mdamping; }
-    double GetTorsionalDamping() const { return damping; }
+    double GetTorsionalStiffness() const { return m_stiffness; }
 
-    /// Set the phase shaftA-shaftB for zero torsion of the spring (default = 0 [rad])
-    void SetRestPhase(const double mphase) { rest_phase = mphase; }
-    double GetRestPhase() const { return rest_phase; }
+    /// Set torsional damping.
+    void SetTorsionalDamping(const double damping) { m_damping = damping; }
+
+    double GetTorsionalDamping() const { return m_damping; }
+
+    /// Set the phase shaft1-shaft2 for zero torsion of the spring (default = 0).
+    void SetRestPhase(const double phase) { m_rest_phase = phase; }
+
+    double GetRestPhase() const { return m_rest_phase; }
 
   protected:
-    double stiffness;
-    double damping;
-    double rest_phase;
+    double m_stiffness;
+    double m_damping;
+    double m_rest_phase;
 
     virtual bool IsStiff() override { return true; }
 
-    /// Implement the computation of the torque between the two shafts,
-    /// given relative rotation and velocity.
-    /// Torque is assumed applied to shaft B, and it's opposite to A.
+    /// Implement the computation of the torque between the two shafts, given relative rotation and velocity.
+    /// Torque is assumed applied to shaft B, and opposite to A.
     virtual void ComputeShaftShaftTorque(const double rel_rot, const double rel_rot_dt, double& result_torque) override;
 };
 
-/// Elastic gear coupling between two shafts
-
+/// Elastic gear coupling between two shafts.
 class ChApi ChShaftsElasticGear : public ChLoadCustomMultiple {
   public:
     ChShaftsElasticGear(
-        std::shared_ptr<ChShaft> mbodyA,  ///< shaft A
-        std::shared_ptr<ChShaft> mbodyB,  ///< shaft B
-        const double mstiffness,          ///< normal stiffness at teeth contact, tangent direction to primitive
-        const double mdamping,            ///< normal damping at teeth contact, tangent direction to primitive
-        const double mRa,                 ///< primitive radius of the gear on shaft A (the radius of B is not needed)
-        const double mratio = -1          ///< transmission ratio (negative for outer gear, positive for inner gears)
+        std::shared_ptr<ChShaft> shaft1,  ///< first shaft
+        std::shared_ptr<ChShaft> shaft2,  ///< second shaft
+        const double stiffness,           ///< normal stiffness at teeth contact, tangent direction to primitive
+        const double damping,             ///< normal damping at teeth contact, tangent direction to primitive
+        const double Ra,                  ///< primitive radius of the gear on shaft A (the radius of B is not needed)
+        const double ratio = -1           ///< transmission ratio (negative for outer gear, positive for inner gears)
     );
 
     /// "Virtual" copy constructor (covariant return type).
     virtual ChShaftsElasticGear* Clone() const override { return new ChShaftsElasticGear(*this); }
 
-    /// Set teeth stiffness, at contact point, in tangent direction to the two primitives. Es. [N/m]
-    void SetTeethStiffness(const double mstiffness) { stiffness = mstiffness; }
-    double GetTeethStiffness() const { return stiffness; }
+    /// Set teeth stiffness, at contact point, in tangent direction to the two primitives.
+    void SetTeethStiffness(const double stiffness) { m_stiffness = stiffness; }
 
-    /// Set teeth damping, at contact point, in tangent direction to the two primitives. Es. [Ns/m]
-    void SetTeethDamping(const double mdamping) { damping = mdamping; }
-    double GetTeethDamping() const { return damping; }
+    double GetTeethStiffness() const { return m_stiffness; }
 
-    /// Set the phase shaftA-tau*shaftB for zero compression of the spring (default = 0 [rad])
-    void SetRestPhase(const double mphase) { rest_phase = mphase; }
-    double GetRestPhase() const { return rest_phase; }
+    /// Set teeth damping, at contact point, in tangent direction to the two primitives.
+    void SetTeethDamping(const double damping) { m_damping = damping; }
+
+    double GetTeethDamping() const { return m_damping; }
+
+    /// Set the phase shaft1-tau*shaft2 for zero compression of the spring (default = 0).
+    void SetRestPhase(const double phase) { m_rest_phase = phase; }
+
+    double GetRestPhase() const { return m_rest_phase; }
 
     /// Set the transmission ratio t, as in w2=t*w1, or t=w2/w1 , or  t*w1 - w2 = 0.
-    /// For example, t=1 for a rigid joint; t=-0.5 for representing
-    /// a couple of spur gears with teeth z1=20 & z2=40; t=0.1 for
-    /// a gear with inner teeth (or epicycloidal reducer), etc.
-    /// Differently from the ideal ChShaftsGear constraint, this model includes
-    /// elasticity, so at least the radius of one of the two gear wheels is needed, namely Ra.
-    void SetTransmissionRatioAndRadiusA(double mt, double mRa) {
-        ratio = mt;
-        Ra = mRa;
-    }
+    /// For example, t=1 for a rigid joint; t=-0.5 for representing a couple of spur gears with teeth z1=20 & z2=40;
+    /// t=0.1 for a gear with inner teeth (or epicycloidal reducer), etc. Differently from the ideal ChShaftsGear
+    /// constraint, this model includes elasticity, so at least the radius of one of the two gear wheels is needed,
+    /// namely Ra.
+    void SetTransmissionRatioAndRadiusA(double ratio, double Ra);
 
     /// Set the transmission ratio t, as in w2=t*w1, using the two primitive radii Ra and Rb.
     /// It will be computed as t=Ra/Rb by default, otherwise t=-Ra/Rb if the bigger wheel has inner teeth.
-    void SetTransmissionRatioFromRadii(double mRa, double mRb, bool minternal = false) {
-        Ra = mRa;
-        ratio = fabs(mRa / mRb);
-        if (minternal)
-            ratio = -ratio;
-    }
+    void SetTransmissionRatioFromRadii(double Ra, double Rb, bool internal = false);
 
-    /// Get the transmission ratio t, as in w2=t*w1, or t=w2/w1
-    double GetTransmissionRatio() const { return ratio; }
+    /// Get the transmission ratio t, as in w2=t*w1, or t=w2/w1.
+    double GetTransmissionRatio() const { return m_ratio; }
 
-    /// Get the primitive radius of the gear wheel of shaftA
-    double GetGearRadiusA() const { return Ra; }
+    /// Get the primitive radius of the gear wheel of shaft1.
+    double GetGearRadius1() const { return m_Ra; }
 
-    /// Get the primitive radius of the gear wheel of shaftB
-    double GetGearRadiusB() const { return Ra * fabs(1.0 / ratio); }
+    /// Get the primitive radius of the gear wheel of shaft2.
+    double GetGearRadius2() const { return m_Ra * fabs(1.0 / m_ratio); }
 
     /// Get the last computed contact force, for diagnostics.
     /// The force is assumed tangent to the primitives of the gear wheels,
     /// it can be positive or negative depending on clock/counterclock effect.
-    double GetContactForce() const { return contact_force; }
+    double GetContactForce() const { return m_contact_force; }
 
   protected:
-    double stiffness;
-    double damping;
-    double rest_phase;
-    double Ra;
-    double ratio;
-    double contact_force;
+    double m_stiffness;
+    double m_damping;
+    double m_rest_phase;
+    double m_Ra;
+    double m_ratio;
+    double m_contact_force;
 
     virtual bool IsStiff() override { return true; }
 

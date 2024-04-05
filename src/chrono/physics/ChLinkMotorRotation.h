@@ -36,49 +36,50 @@ class ChApi ChLinkMotorRotation : public ChLinkMotor {
 
     /// Sets which movements (of frame 1 respect to frame 2) are constrained.
     /// By default, acts as bearing, like a revolute joint.
-    /// Note that the Z direction is the motorized one, and is never affected by
+    /// Note that the Z direction is the actuated one, and is never affected by
     /// this option.
     void SetSpindleConstraint(const SpindleConstraint mconstraint);
 
     /// Sets which movements (of frame 1 respect to frame 2) are constrained.
     /// By default, acts as bearing, like a revolute joint.
-    /// Note that the Z direction is the motorized one, and is never affected by
+    /// Note that the Z direction is the actuated one, and is never affected by
     /// this option.
     void SetSpindleConstraint(bool mc_x, bool mc_y, bool mc_z, bool mc_rx, bool mc_ry);
 
-    /// Get the current actuator rotation [rad], including error etc.
-    /// This rotation keeps track of multiple turns, so it is not limited in periodic -PI..+PI,
-    /// and rotation accumulates indefinitely. Use GetMotorRotTurns() and GetMotorRotPeriodic() otherwise.
-    virtual double GetMotorRot() const { return mrot; }
+    /// Get the motor rotation angle [rad].
+    /// The value takes into account also multiple turns, so it is not limited to any angle range.
+    /// Refer to GetMotorAngleWrapped() to get the angle in the range [-PI..+PI].
+    virtual double GetMotorAngle() const { return mrot; }
 
-    /// In case of multi-turns, gets the current actuator number of (integer) rotations,
-    virtual int GetMotorRotTurns() const { return int(mrot / CH_C_2PI); }
+    /// Get the number of complete turns of the motor.
+    virtual int GetMotorNumTurns() const { return std::floor(mrot / CH_2PI); }
 
-    /// In case of multi-turns, gets the current actuator rotation angle [rad], in periodic -PI..+PI.
-    virtual double GetMotorRotPeriodic() const { return fmod(mrot, CH_C_2PI); }
+    /// Get the motor rotation angle [rad] in the range [-PI..+PI].
+    /// To retrieve the complete angle value, use GetMotorAngle().
+    virtual double GetMotorAngleWrapped() const { return fmod(mrot, CH_2PI); }
 
-    /// Get the current actuator speed [rad/s], including error etc.
-    virtual double GetMotorRot_dt() const { return mrot_dt; }
+    /// Get the current actuator speed [rad/s].
+    virtual double GetMotorAngleDt() const { return mrot_dt; }
 
-    /// Get the current actuator acceleration [rad/s^2], including error etc.
-    virtual double GetMotorRot_dtdt() const { return mrot_dtdt; }
+    /// Get the current actuator acceleration [rad/s^2].
+    virtual double GetMotorAngleDt2() const { return mrot_dtdt; }
 
     /// Get the current actuator reaction torque [Nm]
     virtual double GetMotorTorque() const = 0;
 
-    void Update(double mytime, bool update_assets) override;
-
     /// Method to allow serialization of transient data to archives.
-    virtual void ArchiveOut(ChArchiveOut& marchive) override;
+    virtual void ArchiveOut(ChArchiveOut& archive_out) override;
 
     /// Method to allow deserialization of transient data from archives.
-    virtual void ArchiveIn(ChArchiveIn& marchive) override;
+    virtual void ArchiveIn(ChArchiveIn& archive_in) override;
 
   protected:
     // aux data for optimization
     double mrot;
     double mrot_dt;
     double mrot_dtdt;
+
+    virtual void Update(double mytime, bool update_assets) override;
 };
 
 CH_CLASS_VERSION(ChLinkMotorRotation, 0)

@@ -53,7 +53,7 @@ class CH_VEHICLE_API ChWheeledTrailer {
     void SetName(const std::string& name) { m_name = name; }
 
     /// Return the number of axles for this trailer.
-    virtual int GetNumberAxles() const = 0;
+    virtual unsigned int GetNumberAxles() const = 0;
 
     /// Get the name of the trailer system template.
     virtual std::string GetTemplateName() const { return "WheeledTrailer"; }
@@ -91,11 +91,10 @@ class CH_VEHICLE_API ChWheeledTrailer {
     /// Initialize the given tire and attach it to the specified wheel.
     /// Optionally, specify tire visualization mode and tire-terrain collision detection method.
     /// This function should be called only after trailer initialization.
-    void InitializeTire(
-        std::shared_ptr<ChTire> tire,
-        std::shared_ptr<ChWheel> wheel,
-        VisualizationType tire_vis = VisualizationType::PRIMITIVES,
-        ChTire::CollisionType tire_coll = ChTire::CollisionType::SINGLE_POINT);
+    void InitializeTire(std::shared_ptr<ChTire> tire,
+                        std::shared_ptr<ChWheel> wheel,
+                        VisualizationType tire_vis = VisualizationType::PRIMITIVES,
+                        ChTire::CollisionType tire_coll = ChTire::CollisionType::SINGLE_POINT);
 
     /// Update the state of this trailer at the current time.
     /// The trailer system is provided the current driver inputs and a reference to the terrain system.

@@ -1,7 +1,7 @@
 Demo Engine {#tutorial_chrono_solidworks_demo_engine}
 ==========================
 
-This is an important introductory tutorial about how to use the SolidWorks CAD as a preprocessing tool, thanks to the [Chrono::SolidWorks](@ref tutorial_install_chrono_solidworks) add-in. 
+This is an important introductory tutorial about how to use the SolidWorks CAD as a preprocessing tool, thanks to the [Chrono::SolidWorks](@ref chrono_solidworks_installation) add-in. 
 
 You will learn how to model a 3D assembly using SolidWorks, how to export it as a .py file containing the Chrono::Engine system description, how to run a Python simulation of the exported system using [PyChrono](@ref pychrono_introduction), and how to render the simulation using POVray.
 
@@ -11,7 +11,7 @@ Please follow all steps of the tutorial, once you understood all these steps, yo
 # Prerequisites:
 
 + you must have a [SolidWorks](http://www.solidworks.com) CAD license.
-+ the [Chrono::SolidWorks](@ref tutorial_install_chrono_solidworks) add-in must be installed in SolidWorks.
++ the [Chrono::SolidWorks](@ref chrono_solidworks_installation) add-in must be installed in SolidWorks.
 Optionally, for the last steps of the tutorial (rendering the animation) these tools must be installed: 
 + the [PyChrono](@ref pychrono_introduction) python module must be installed in your Python environment, 
 + the [POVray](http://www.povray.org) rendering software must be installed; not mandatory if you want to use the Irrlicht realtime visualization;

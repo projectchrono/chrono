@@ -1,3 +1,11 @@
+#ifdef SWIGCSHARP  // --------------------------------------------------------------------- CSHARP
+
+%csmethodmodifiers chrono::ChGeometry::GetType "public virtual new"
+
+#endif             // --------------------------------------------------------------------- CSHARP
+
+
+
 %{
 
 /* Includes the header in the wrapper code */
@@ -17,7 +25,7 @@
 #include "chrono/geometry/ChLinePath.h"
 #include "chrono/geometry/ChLinePoly.h"
 #include "chrono/geometry/ChLineBezier.h"
-#include "chrono/geometry/ChLineBspline.h"
+#include "chrono/geometry/ChLineBSpline.h"
 #include "chrono/geometry/ChLineCam.h"
 #include "chrono/geometry/ChSurface.h"
 #include "chrono/geometry/ChSurfaceNurbs.h"
@@ -31,39 +39,41 @@
 
 
 using namespace chrono;
-using namespace geometry;
 
 %}
 
-%shared_ptr(chrono::geometry::ChGeometry)
-%shared_ptr(chrono::geometry::ChLine)
-%shared_ptr(chrono::geometry::ChVolume)
-%shared_ptr(chrono::geometry::ChSurface)
-%shared_ptr(chrono::geometry::ChBox)
-%shared_ptr(chrono::geometry::ChSphere)
-%shared_ptr(chrono::geometry::ChCylinder)
-%shared_ptr(chrono::geometry::ChCapsule)
-%shared_ptr(chrono::geometry::ChCone)
-%shared_ptr(chrono::geometry::ChEllipsoid)
-%shared_ptr(chrono::geometry::ChLineArc)
-%shared_ptr(chrono::geometry::ChLineSegment)
-%shared_ptr(chrono::geometry::ChLineNurbs)
-%shared_ptr(chrono::geometry::ChLinePath)
-%shared_ptr(chrono::geometry::ChLinePoly)
-%shared_ptr(chrono::geometry::ChLineBezier)
-%shared_ptr(chrono::geometry::ChLineBspline)
-%shared_ptr(chrono::geometry::ChLineCam)
-%shared_ptr(chrono::geometry::ChTriangle)
-%shared_ptr(chrono::geometry::ChTriangleMesh)
-%shared_ptr(chrono::geometry::ChTriangleMeshSoup)
-%shared_ptr(chrono::geometry::ChTriangleMeshConnected)
-%shared_ptr(chrono::geometry::ChSurface)
-%shared_ptr(chrono::geometry::ChSurfaceNurbs)
-%shared_ptr(chrono::geometry::ChRoundedCylinder)
-%shared_ptr(chrono::geometry::ChRoundedBox)
+%shared_ptr(chrono::ChGeometry)
+%shared_ptr(chrono::ChLine)
+%shared_ptr(chrono::ChVolume)
+%shared_ptr(chrono::ChSurface)
+%shared_ptr(chrono::ChBox)
+%shared_ptr(chrono::ChSphere)
+%shared_ptr(chrono::ChCylinder)
+%shared_ptr(chrono::ChCapsule)
+%shared_ptr(chrono::ChCone)
+%shared_ptr(chrono::ChEllipsoid)
+%shared_ptr(chrono::ChLineArc)
+%shared_ptr(chrono::ChLineSegment)
+%shared_ptr(chrono::ChLineNurbs)
+%shared_ptr(chrono::ChLinePath)
+%shared_ptr(chrono::ChLinePoly)
+%shared_ptr(chrono::ChLineBezier)
+%shared_ptr(chrono::ChLineBSpline)
+%shared_ptr(chrono::ChLineCam)
+%shared_ptr(chrono::ChTriangle)
+%shared_ptr(chrono::ChTriangleMesh)
+%shared_ptr(chrono::ChTriangleMeshSoup)
+%shared_ptr(chrono::ChTriangleMeshConnected)
+%shared_ptr(chrono::ChSurface)
+%shared_ptr(chrono::ChSurfaceNurbs)
+%shared_ptr(chrono::ChRoundedCylinder)
+%shared_ptr(chrono::ChRoundedBox)
  
-//%feature("director") chrono::geometry::ChGeometry;
-//%ignore chrono::geometry::ChGeometry::Clone;
+//%feature("director") chrono::ChGeometry;
+//%ignore chrono::ChGeometry::Clone;
+
+%template(ChTriangleMeshConnected_list) std::vector<chrono::ChTriangleMeshConnected>;
+
 
 /* Parse the header file(s) to generate wrappers */
 %include "../../../chrono/geometry/ChGeometry.h"
@@ -82,7 +92,7 @@ using namespace geometry;
 %include "../../../chrono/geometry/ChLinePath.h"
 %include "../../../chrono/geometry/ChLinePoly.h"
 %include "../../../chrono/geometry/ChLineBezier.h"
-%include "../../../chrono/geometry/ChLineBspline.h"
+%include "../../../chrono/geometry/ChLineBSpline.h"
 %include "../../../chrono/geometry/ChLineCam.h"
 %include "../../../chrono/geometry/ChTriangle.h"
 %include "../../../chrono/geometry/ChTriangleMesh.h"

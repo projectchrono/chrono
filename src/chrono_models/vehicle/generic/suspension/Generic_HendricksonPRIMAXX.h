@@ -42,8 +42,8 @@ class CH_MODELS_API Generic_HendricksonPRIMAXX : public ChHendricksonPRIMAXX {
     Generic_HendricksonPRIMAXX(const std::string& name);
     ~Generic_HendricksonPRIMAXX();
 
-    virtual const ChVector<> getAxlehousingCOM() const override { return m_axlehousingCOM; }
-    virtual const ChVector<> getTransversebeamCOM() const override { return m_transversebeamCOM; }
+    virtual const ChVector3d getAxlehousingCOM() const override { return m_axlehousingCOM; }
+    virtual const ChVector3d getTransversebeamCOM() const override { return m_transversebeamCOM; }
 
     virtual double getAxlehousingMass() const override { return m_axlehousingMass; }
     virtual double getKnuckleMass() const override { return m_knuckleMass; }
@@ -60,12 +60,12 @@ class CH_MODELS_API Generic_HendricksonPRIMAXX : public ChHendricksonPRIMAXX {
     virtual double getLowerbeamRadius() const override { return m_lowerbeamRadius; }
     virtual double getTransversebeamRadius() const override { return m_transversebeamRadius; }
 
-    virtual const ChVector<>& getAxlehousingInertia() const override { return m_axlehousingInertia; }
-    virtual const ChVector<>& getKnuckleInertia() const override { return m_knuckleInertia; }
-    virtual const ChVector<>& getSpindleInertia() const override { return m_spindleInertia; }
-    virtual const ChVector<>& getTorquerodInertia() const override { return m_torquerodInertia; }
-    virtual const ChVector<>& getLowerbeamInertia() const override { return m_lowerbeamInertia; }
-    virtual const ChVector<>& getTransversebeamInertia() const override { return m_transversebeamInertia; }
+    virtual const ChVector3d& getAxlehousingInertia() const override { return m_axlehousingInertia; }
+    virtual const ChVector3d& getKnuckleInertia() const override { return m_knuckleInertia; }
+    virtual const ChVector3d& getSpindleInertia() const override { return m_spindleInertia; }
+    virtual const ChVector3d& getTorquerodInertia() const override { return m_torquerodInertia; }
+    virtual const ChVector3d& getLowerbeamInertia() const override { return m_lowerbeamInertia; }
+    virtual const ChVector3d& getTransversebeamInertia() const override { return m_transversebeamInertia; }
 
     virtual double getAxleInertia() const override { return m_axleInertia; }
 
@@ -80,8 +80,8 @@ class CH_MODELS_API Generic_HendricksonPRIMAXX : public ChHendricksonPRIMAXX {
     }
 
   private:
-    virtual const ChVector<> getLocation(PointId which) override;
-    virtual const ChVector<> getDirection(DirectionId which) override;
+    virtual const ChVector3d getLocation(PointId which) override;
+    virtual const ChVector3d getDirection(DirectionId which) override;
 
     std::shared_ptr<ChLinkTSDA::ForceFunctor> m_shockAHForceCB;
     std::shared_ptr<ChLinkTSDA::ForceFunctor> m_shockLBForceCB;
@@ -101,15 +101,15 @@ class CH_MODELS_API Generic_HendricksonPRIMAXX : public ChHendricksonPRIMAXX {
     static const double m_lowerbeamRadius;
     static const double m_transversebeamRadius;
 
-    static const ChVector<> m_axlehousingCOM;
-    static const ChVector<> m_transversebeamCOM;
+    static const ChVector3d m_axlehousingCOM;
+    static const ChVector3d m_transversebeamCOM;
 
-    static const ChVector<> m_axlehousingInertia;
-    static const ChVector<> m_knuckleInertia;
-    static const ChVector<> m_spindleInertia;
-    static const ChVector<> m_torquerodInertia;
-    static const ChVector<> m_lowerbeamInertia;
-    static const ChVector<> m_transversebeamInertia;
+    static const ChVector3d m_axlehousingInertia;
+    static const ChVector3d m_knuckleInertia;
+    static const ChVector3d m_spindleInertia;
+    static const ChVector3d m_torquerodInertia;
+    static const ChVector3d m_lowerbeamInertia;
+    static const ChVector3d m_transversebeamInertia;
 
     static const double m_axleInertia;
 

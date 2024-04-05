@@ -17,7 +17,7 @@
 // =============================================================================
 
 #include "gtest/gtest.h"
-#include "chrono/core/ChVector.h"
+#include "chrono/core/ChVector3.h"
 
 using namespace chrono;
 
@@ -25,38 +25,38 @@ const double ABS_ERR_D = 1e-15;
 const float ABS_ERR_F = 1e-6f;
 
 TEST(ChVectorTest, normalize) {
-    ChVector<> ad(1.1, -2.2, 3.3);
+    ChVector3d ad(1.1, -2.2, 3.3);
     ASSERT_NEAR(ad.GetNormalized().Length(), 1.0, ABS_ERR_D);
     ASSERT_TRUE(ad.Normalize());
     ASSERT_NEAR(ad.Length(), 1.0, ABS_ERR_D);
 
-    ChVector<> bd(0.0);
+    ChVector3d bd(0.0);
     ASSERT_FALSE(bd.Normalize());
 
-    ChVector<float> af(1.1f, -2.2f, 3.3f);
+    ChVector3f af(1.1f, -2.2f, 3.3f);
     ASSERT_NEAR(af.GetNormalized().Length(), 1.0f, ABS_ERR_F);
     ASSERT_TRUE(af.Normalize());
     ASSERT_NEAR(af.Length(), 1.0f, ABS_ERR_F);
 
-    ChVector<float> bf(0.0f);
+    ChVector3f bf(0.0f);
     ASSERT_FALSE(bf.Normalize());
 }
 
 TEST(ChVectorTest, dot) {
-    ChVector<> ad(1.1, -2.2, 3.3);
+    ChVector3d ad(1.1, -2.2, 3.3);
     ASSERT_NEAR(ad.Dot(ad), ad.Length2(), ABS_ERR_D);
     ASSERT_NEAR(ad.Dot(-ad), -ad.Length2(), ABS_ERR_D);
     ASSERT_NEAR(ad.Dot(ad.GetOrthogonalVector()), 0.0, ABS_ERR_D);
 
-    ChVector<float> af(1.1f, -2.2f, 3.3f);
+    ChVector3f af(1.1f, -2.2f, 3.3f);
     ASSERT_NEAR(af.Dot(af), af.Length2(), ABS_ERR_F);
     ASSERT_NEAR(af.Dot(-af), -af.Length2(), ABS_ERR_F);
     ASSERT_NEAR(af.Dot(af.GetOrthogonalVector()), 0.0f, ABS_ERR_F);
 }
 
 TEST(ChVectorTest, cross) {
-    ChVector<> ad(1.1, -2.2, 3.3);
-    ChVector<> bd(-0.5, 0.6, 0.7);
+    ChVector3d ad(1.1, -2.2, 3.3);
+    ChVector3d bd(-0.5, 0.6, 0.7);
     auto cd = ad.Cross(bd);
     ASSERT_NEAR(cd.Dot(ad), 0.0, ABS_ERR_D);
     ASSERT_NEAR(cd.Dot(bd), 0.0, ABS_ERR_D);
@@ -74,8 +74,8 @@ TEST(ChVectorTest, cross) {
     auto pd = ad.GetOrthogonalVector();
     ASSERT_NEAR(ad.Cross(pd).Length(), ad.Length() * pd.Length(), ABS_ERR_D);
 
-    ChVector<float> af(1.1f, -2.2f, 3.3f);
-    ChVector<float> bf(-0.5f, 0.6f, 0.7f);
+    ChVector3f af(1.1f, -2.2f, 3.3f);
+    ChVector3f bf(-0.5f, 0.6f, 0.7f);
     auto cf = af.Cross(bf);
     ASSERT_NEAR(cf.Dot(af), 0.0f, ABS_ERR_F);
     ASSERT_NEAR(cf.Dot(bf), 0.0f, ABS_ERR_F);

@@ -19,7 +19,7 @@
 #ifndef CH_TERRAIN_H
 #define CH_TERRAIN_H
 
-#include "chrono/core/ChVector.h"
+#include "chrono/core/ChVector3.h"
 
 #include "chrono_vehicle/ChApiVehicle.h"
 
@@ -43,19 +43,19 @@ class CH_VEHICLE_API ChTerrain {
     virtual void Advance(double step) {}
 
     /// Get the terrain height below the specified location.
-    virtual double GetHeight(const ChVector<>& loc) const;
+    virtual double GetHeight(const ChVector3d& loc) const;
 
     /// Get the terrain normal at the point below the specified location.
-    virtual ChVector<> GetNormal(const ChVector<>& loc) const;
+    virtual ChVector3d GetNormal(const ChVector3d& loc) const;
 
     /// Get the terrain coefficient of friction at the point below the specified location.
     /// This coefficient of friction value may be used by certain tire models to modify
     /// the tire characteristics, but it will have no effect on the interaction of the terrain
     /// with other objects (including tire models that do not explicitly use it).
-    virtual float GetCoefficientFriction(const ChVector<>& loc) const;
+    virtual float GetCoefficientFriction(const ChVector3d& loc) const;
 
     /// Get all terrain characteristics at the point below the specified location.
-    virtual void GetProperties(const ChVector<>& loc, double& height, ChVector<>& normal, float& friction) const;
+    virtual void GetProperties(const ChVector3d& loc, double& height, ChVector3d& normal, float& friction) const;
 
     /// Class to be used as a functor interface for location-dependent terrain height.
     class CH_VEHICLE_API HeightFunctor {
@@ -63,7 +63,7 @@ class CH_VEHICLE_API ChTerrain {
         virtual ~HeightFunctor() {}
 
         /// Return the terrain height below the given location.
-        virtual double operator()(const ChVector<>& loc) = 0;
+        virtual double operator()(const ChVector3d& loc) = 0;
     };
 
     /// Class to be used as a functor interface for location-dependent terrain normal.
@@ -72,7 +72,7 @@ class CH_VEHICLE_API ChTerrain {
         virtual ~NormalFunctor() {}
 
         /// Return the terrain normal below the given location.
-        virtual ChVector<> operator()(const ChVector<>& loc) = 0;
+        virtual ChVector3d operator()(const ChVector3d& loc) = 0;
     };
 
     /// Class to be used as a functor interface for location-dependent coefficient of friction.
@@ -81,7 +81,7 @@ class CH_VEHICLE_API ChTerrain {
         virtual ~FrictionFunctor() {}
 
         /// Return the coefficient of friction below the given location.
-        virtual float operator()(const ChVector<>& loc) = 0;
+        virtual float operator()(const ChVector3d& loc) = 0;
     };
 
     /// Specify the functor object to provide the terrain height at given locations.

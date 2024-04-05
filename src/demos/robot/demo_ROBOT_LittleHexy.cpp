@@ -96,19 +96,19 @@ class MyEventReceiver : public IEventReceiver {
 };
 
 int main(int argc, char* argv[]) {
-    GetLog() << "Copyright (c) 2017 projectchrono.org\nChrono version: " << CHRONO_VERSION << "\n\n";
+    std::cout << "Copyright (c) 2017 projectchrono.org\nChrono version: " << CHRONO_VERSION << std::endl;
 
     // Create a ChronoENGINE physical system
     ChSystemNSC sys;
-    sys.Set_G_acc(ChVector<>(0, 0, -9.81));
+    sys.SetGravitationalAcceleration(ChVector3d(0, 0, -9.81));
 
     Little_Hexy myhexy(sys, VNULL);
     myhexy.AddVisualizationAssets();
-    auto mymat = chrono_types::make_shared<ChMaterialSurfaceNSC>();
+    auto mymat = chrono_types::make_shared<ChContactMaterialNSC>();
     myhexy.AddCollisionShapes(mymat);
 
     // Create the ground for the collision
-    auto ground_mat = chrono_types::make_shared<ChMaterialSurfaceNSC>();
+    auto ground_mat = chrono_types::make_shared<ChContactMaterialNSC>();
     ground_mat->SetFriction(0.5);
 
     auto ground = chrono_types::make_shared<ChBodyEasyBox>(200, 200, 1,  // size
@@ -116,8 +116,8 @@ int main(int argc, char* argv[]) {
                                                            true,         // visualize
                                                            true,         // collide
                                                            ground_mat);  // contact material
-    ground->SetPos(ChVector<>(0, 0, -3));
-    ground->SetBodyFixed(true);
+    ground->SetPos(ChVector3d(0, 0, -3));
+    ground->SetFixed(true);
     ground->GetVisualShape(0)->SetTexture(GetChronoDataFile("textures/concrete.jpg"), 100, 100);
     sys.Add(ground);
 
@@ -130,7 +130,7 @@ int main(int argc, char* argv[]) {
     vis->Initialize();
     vis->AddLogo();
     vis->AddSkyBox();
-    vis->AddCamera(ChVector<>(5, 5, 2));
+    vis->AddCamera(ChVector3d(5, 5, 2));
     vis->AddTypicalLights();
 
     // create text with info
@@ -148,7 +148,7 @@ int main(int argc, char* argv[]) {
     sys.SetTimestepperType(ChTimestepper::Type::EULER_IMPLICIT_PROJECTED);
 
     sys.SetSolverType(ChSolver::Type::PSOR);
-    sys.SetSolverMaxIterations(30);
+    sys.GetSolver()->AsIterative()->SetMaxIterations(30);
 
     // Simulation loop
 
@@ -159,8 +159,8 @@ int main(int argc, char* argv[]) {
     myhexy.ControlAbsolute(control);
 
     while (vis->Run()) {
-        ChVector<float> pos = myhexy.GetChassis()->GetPos();
-        vis->UpdateCamera(pos + ChVector<>(1,-1,1), pos);
+        ChVector3f pos = myhexy.GetChassis()->GetPos();
+        vis->UpdateCamera(pos + ChVector3d(1, -1, 1), pos);
 
         vis->BeginScene();
         vis->Render();

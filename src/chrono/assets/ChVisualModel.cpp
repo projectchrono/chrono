@@ -50,21 +50,18 @@ void ChVisualModel::Update(ChPhysicsItem* owner, const ChFrame<>& frame) {
     }
 }
 
+void ChVisualModel::ArchiveOut(ChArchiveOut& archive_out) {
+    archive_out.VersionWrite<ChVisualModel>();
 
-void ChVisualModel::ArchiveOut(ChArchiveOut& marchive) {
-    marchive.VersionWrite<ChVisualModel>();
-
-    marchive << CHNVP(m_shapes);
-    //marchive << CHNVP(m_shapesFEA); // TODO: DARIOM enable archive
-
+    archive_out << CHNVP(m_shapes);
+    // archive_out << CHNVP(m_shapesFEA); // TODO: DARIOM enable archive
 }
 
-void ChVisualModel::ArchiveIn(ChArchiveIn& marchive) {
-    /*int version =*/marchive.VersionRead<ChVisualModel>();
+void ChVisualModel::ArchiveIn(ChArchiveIn& archive_in) {
+    /*int version =*/archive_in.VersionRead<ChVisualModel>();
 
-    marchive >> CHNVP(m_shapes);
-    //marchive >> CHNVP(m_shapesFEA); // TODO: DARIOM enable archive
-
+    archive_in >> CHNVP(m_shapes);
+    // archive_in >> CHNVP(m_shapesFEA); // TODO: DARIOM enable archive
 }
 
 // -----------------------------------------------------------------------------

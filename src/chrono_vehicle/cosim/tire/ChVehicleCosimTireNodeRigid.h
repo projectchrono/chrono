@@ -54,7 +54,7 @@ class CH_VEHICLE_API ChVehicleCosimTireNodeRigid : public ChVehicleCosimTireNode
     virtual InterfaceType GetInterfaceType() const override { return InterfaceType::BODY; }
 
     /// Initialize the tire by attaching it to the provided ChWheel.
-    virtual void InitializeTire(std::shared_ptr<ChWheel> wheel, const ChVector<>& init_loc) override;
+    virtual void InitializeTire(std::shared_ptr<ChWheel> wheel, const ChVector3d& init_loc) override;
 
     /// Apply the spindle state (received from MBS node).
     virtual void ApplySpindleState(const BodyState& spindle_state) override;
@@ -70,9 +70,9 @@ class CH_VEHICLE_API ChVehicleCosimTireNodeRigid : public ChVehicleCosimTireNode
 
   private:
     /// Write mesh vertex positions and velocities.
-    void WriteTireStateInformation(utils::CSV_writer& csv);
+    void WriteTireStateInformation(utils::ChWriterCSV& csv);
     /// Write mesh connectivity and strain information.
-    void WriteTireMeshInformation(utils::CSV_writer& csv);
+    void WriteTireMeshInformation(utils::ChWriterCSV& csv);
 
     std::shared_ptr<ChRigidTire> m_tire_rgd;               ///< rigid tire
     std::vector<std::vector<unsigned int>> m_adjElements;  ///< list of neighboring elements for each mesh vertex

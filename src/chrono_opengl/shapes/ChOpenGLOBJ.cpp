@@ -33,7 +33,7 @@ bool ChOpenGLOBJ::Initialize(std::string filename, ChOpenGLMaterial mat, ChOpenG
 
     std::ifstream ifs(filename);
 
-    std::ifstream in(filename.c_str(), std::ios::in);
+    std::ifstream in(filename, std::ios::in);
     if (!in) {
         std::cout << "Cannot open file [" << filename << "]" << std::endl;
     }

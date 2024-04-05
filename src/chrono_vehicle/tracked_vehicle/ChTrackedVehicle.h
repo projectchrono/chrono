@@ -70,9 +70,7 @@ class CH_VEHICLE_API ChTrackedVehicle : public ChVehicle {
 
     /// Get the complete states for all track shoes of the specified track assembly.
     /// It is assumed that the vector of body states was properly sized.
-    void GetTrackShoeStates(VehicleSide side, BodyStates& states) const {
-        m_tracks[side]->GetTrackShoeStates(states);
-    }
+    void GetTrackShoeStates(VehicleSide side, BodyStates& states) const { m_tracks[side]->GetTrackShoeStates(states); }
 
     /// Set visualization type for the sprocket subsystem.
     void SetSprocketVisualizationType(VisualizationType vis);
@@ -115,7 +113,7 @@ class CH_VEHICLE_API ChTrackedVehicle : public ChVehicle {
     /// track shoes. To override these default settings, this function must be called
     /// called after the call to Initialize(). The 'flags' argument can be any of the
     /// TrackedCollisionFlag enums, or a combination thereof (using bit-wise operators).
-    void SetCollide(int flags);
+    void EnableCollision(int flags);
 
     /// Enable/disable collision between the chassis and all other vehicle
     /// subsystems. This only controls collisions between the chassis and the
@@ -148,7 +146,7 @@ class CH_VEHICLE_API ChTrackedVehicle : public ChVehicle {
 
     /// Return estimated resistive torque on the specified sprocket.
     /// This torque is available only if monitoring of contacts for that sprocket is enabled.
-    ChVector<> GetSprocketResistiveTorque(VehicleSide side) const {
+    ChVector3d GetSprocketResistiveTorque(VehicleSide side) const {
         return m_contact_manager->GetSprocketResistiveTorque(side);
     }
 

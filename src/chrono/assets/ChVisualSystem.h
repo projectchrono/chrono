@@ -37,7 +37,8 @@ class ChApi ChVisualSystem {
         IRRLICHT,  ///< Irrlicht
         VSG,       ///< Vulkan Scene Graph
         OpenGL,    ///< OpenGL
-        OptiX      ///< OptiX
+        OptiX,     ///< OptiX
+        NONE
     };
 
     virtual ~ChVisualSystem();
@@ -60,10 +61,13 @@ class ChApi ChVisualSystem {
     /// occur after the visualization system was attached to the Chrono system.
     virtual void BindItem(std::shared_ptr<ChPhysicsItem> item) {}
 
+    /// Remove the visual assets for the specified physics item from this visualization system.
+    virtual void UnbindItem(std::shared_ptr<ChPhysicsItem> item) {}
+
     /// Add a camera to the 3D scene.
     /// Return an ID which can be used later to modify camera location and/or target points.
     /// A concrete visualization system may or may not support multiuple cameras.
-    virtual int AddCamera(const ChVector<>& pos, ChVector<> targ = VNULL) { return -1; }
+    virtual int AddCamera(const ChVector3d& pos, ChVector3d targ = VNULL) { return -1; }
 
     /// Add a grid with specified parameters in the x-y plane of the given frame.
     virtual void AddGrid(double x_step,                           ///< grid cell size in X direction
@@ -75,28 +79,28 @@ class ChApi ChVisualSystem {
     ) {}
 
     /// Set the location of the specified camera.
-    virtual void SetCameraPosition(int id, const ChVector<>& pos) {}
+    virtual void SetCameraPosition(int id, const ChVector3d& pos) {}
 
     /// Set the target (look-at) point of the specified camera.
-    virtual void SetCameraTarget(int id, const ChVector<>& target) {}
+    virtual void SetCameraTarget(int id, const ChVector3d& target) {}
 
     /// Set the location of the current (active) camera.
-    virtual void SetCameraPosition(const ChVector<>& pos) {}
+    virtual void SetCameraPosition(const ChVector3d& pos) {}
 
     /// Set the target (look-at) point of the current (active) camera.
-    virtual void SetCameraTarget(const ChVector<>& target) {}
+    virtual void SetCameraTarget(const ChVector3d& target) {}
 
     /// Get the location of the current (active) camera.
-    virtual ChVector<> GetCameraPosition() const { return VNULL; }
+    virtual ChVector3d GetCameraPosition() const { return VNULL; }
 
     /// Get the target (look-at) point of the current (active) camera.
-    virtual ChVector<> GetCameraTarget() const { return VNULL; }
+    virtual ChVector3d GetCameraTarget() const { return VNULL; }
 
     /// Update the location and/or target points of the specified camera.
-    void UpdateCamera(int id, const ChVector<>& pos, ChVector<> target);
+    void UpdateCamera(int id, const ChVector3d& pos, ChVector3d target);
 
     //// Update the location and/or target point of the current (active) camera.
-    void UpdateCamera(const ChVector<>& pos, ChVector<> target);
+    void UpdateCamera(const ChVector3d& pos, ChVector3d target);
 
     /// Add a visual model not associated with a physical item.
     /// Return an ID which can be used later to modify the position of this visual model.
@@ -140,8 +144,9 @@ class ChApi ChVisualSystem {
     /// Perform any necessary operations ar the end of each rendering frame.
     virtual void EndScene() = 0;
 
-    /// Return the simulation real-time factor (simlation time / simulated time).
+    /// Return the simulation real-time factor (simulation time / simulated time).
     /// The default value returned by this base class is the RTF value from the first associated system (if any).
+    /// See ChSystem::GetRTF
     virtual double GetSimulationRTF() const;
 
     /// Return the current simulated time.

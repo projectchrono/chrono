@@ -134,9 +134,9 @@ class SYN_API SynChronoManager {
     // --------------------------------------------------------------------------------------------------------------
 
     bool m_is_ok;
-    bool m_initialized;       ///< Has the Initialize function been called?
-    int m_node_id;            ///< The node id assigned to this manager (provided by user code)
-    int m_num_nodes;          ///< The number of nodes in the SynChrono world (provided by user code)
+    bool m_initialized;  ///< Has the Initialize function been called?
+    int m_node_id;       ///< The node id assigned to this manager (provided by user code)
+    int m_num_nodes;     ///< The number of nodes in the SynChrono world (provided by user code)
     AgentKey m_node_key;
 
     double m_heartbeat;  ///< Rate at which synchronization between nodes occurs
@@ -152,7 +152,7 @@ class SYN_API SynChronoManager {
     double m_time_communication;  ///< cummulative time for communication
     double m_time_msg_process;    ///< cumulative time for processing received messages
 
-    int m_num_managed_agents = 0;  ///< Number of agents managed by this node
+    int m_num_managed_agents = 0;                                    ///< Number of agents managed by this node
     std::map<AgentKey, std::shared_ptr<SynAgent>> m_agents;          ///< Agents in the SynChrono world on this node
     std::map<AgentKey, std::shared_ptr<SynAgent>> m_zombies;         ///< Agents in the SynChrono world not on this node
     std::map<std::shared_ptr<SynAgent>, SynMessageList> m_messages;  ///< Messages associated with each agent

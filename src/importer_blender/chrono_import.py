@@ -130,10 +130,10 @@ def create_chrono_path( nameID,
     my_list_materials.append(mat)
     
     return gpencil
-    
-    
 
-def make_bsdf_material(nameID, colorRGB, metallic=0, specular=0, specular_tint=(1,0,0,0), roughness=0.5, index_refraction=1.450, transmission=0, emissionRGB=(0,0,0,1), emission_strength=1, bump_map=0, bump_height=1.0):
+
+
+def make_bsdf_material4(nameID, colorRGB, metallic=0, specular=0, specular_tint=(1,0,0,0), roughness=0.5, index_refraction=1.450, transmission=0, emissionRGB=(0,0,0,1), emission_strength=1, bump_map=0, bump_height=1.0):
     new_mat = bpy.data.materials.new(name=nameID)
 
     new_mat.use_nodes = True
@@ -210,6 +210,88 @@ def make_bsdf_material(nameID, colorRGB, metallic=0, specular=0, specular_tint=(
     
     return new_mat
     
+
+def make_bsdf_material3(nameID, colorRGB, metallic=0, specular=0, specular_tint=0, roughness=0.5, index_refraction=1.450, transmission=0, emissionRGB=(0,0,0,1), emission_strength=1, bump_map=0, bump_height=1.0):
+    new_mat = bpy.data.materials.new(name=nameID)
+
+    new_mat.use_nodes = True
+
+    if new_mat.node_tree:
+        new_mat.node_tree.links.clear()
+        new_mat.node_tree.nodes.clear()
+        
+    nodes = new_mat.node_tree.nodes
+    links = new_mat.node_tree.links
+    output = nodes.new(type='ShaderNodeOutputMaterial')
+    shader = nodes.new(type='ShaderNodeBsdfPrincipled')
+    
+    if type(colorRGB) == tuple:
+        nodes["Principled BSDF"].inputs[0].default_value = colorRGB
+    if type(colorRGB) == str:
+        if os.path.exists(colorRGB):
+            texturenode = nodes.new(type="ShaderNodeTexImage")
+            texturenode.image = bpy.data.images.load(colorRGB)
+            links.new(texturenode.outputs[0], nodes["Principled BSDF"].inputs[0])
+            
+    if type(metallic) == float or type(metallic) == int:
+        nodes["Principled BSDF"].inputs[6].default_value = metallic
+    if type(metallic) == str:
+        if os.path.exists(metallic):
+            texturenode = nodes.new(type="ShaderNodeTexImage")
+            texturenode.image = bpy.data.images.load(metallic)
+            links.new(texturenode.outputs[0], nodes["Principled BSDF"].inputs[6])
+            
+    nodes["Principled BSDF"].inputs[7].default_value = specular
+    nodes["Principled BSDF"].inputs[8].default_value = specular_tint
+
+    if type(roughness) == float or type(roughness) == int:
+        nodes["Principled BSDF"].inputs[9].default_value = roughness
+    if type(roughness) == str:
+        if os.path.exists(roughness):
+            texturenode = nodes.new(type="ShaderNodeTexImage")
+            texturenode.image = bpy.data.images.load(roughness)
+            links.new(texturenode.outputs[0], nodes["Principled BSDF"].inputs[9])
+    
+    nodes["Principled BSDF"].inputs[16].default_value = index_refraction
+
+    if type(transmission) == float or type(transmission) == int:
+        nodes["Principled BSDF"].inputs[17].default_value = transmission
+    if type(transmission) == str:
+        if os.path.exists(transmission):
+            texturenode = nodes.new(type="ShaderNodeTexImage")
+            texturenode.image = bpy.data.images.load(transmission)
+            links.new(texturenode.outputs[0], nodes["Principled BSDF"].inputs[17])
+    
+    if type(emissionRGB) == tuple:
+        nodes["Principled BSDF"].inputs[19].default_value = emissionRGB
+    if type(emissionRGB) == str:
+        if os.path.exists(emissionRGB):
+            texturenode = nodes.new(type="ShaderNodeTexImage")
+            texturenode.image = bpy.data.images.load(emissionRGB)
+            links.new(texturenode.outputs[0], nodes["Principled BSDF"].inputs[19])
+            
+    nodes["Principled BSDF"].inputs[20].default_value = emission_strength
+    
+    if type(bump_map) == str:
+        if os.path.exists(bump_map):
+            texturenode = nodes.new(type="ShaderNodeTexImage")
+            texturenode.image = bpy.data.images.load(bump_map)
+            bumpnode = nodes.new(type="ShaderNodeBump")
+            bumpnode.inputs[0].default_value= bump_height
+            links.new(texturenode.outputs[0], bumpnode.inputs[2])
+            links.new(bumpnode.outputs[0], nodes["Principled BSDF"].inputs[22])
+    
+    links.new(shader.outputs[0], output.inputs[0])
+    
+    return new_mat
+    
+# switch between different versions
+if bpy.app.version < (4, 0, 0):
+    make_bsdf_material = make_bsdf_material3
+else:
+    make_bsdf_material = make_bsdf_material4
+
+
 
 # helper to add scalar attributes as arrays of floats to: faces (mdomain='FACE') or vertexes (mdomain='POINT') of meshes
 def add_mesh_data_floats(mesh_object, attribute_scalars, attribute_name='myval', mdomain='FACE'):

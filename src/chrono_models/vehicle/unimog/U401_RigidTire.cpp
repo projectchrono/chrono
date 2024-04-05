@@ -33,7 +33,7 @@ const double U401_RigidTire::m_radius = 0.4375;
 const double U401_RigidTire::m_width = 0.184;
 
 const double U401_RigidTire::m_mass = 28.0;
-const ChVector<> U401_RigidTire::m_inertia(1.65, 2.90, 1.65);
+const ChVector3d U401_RigidTire::m_inertia(1.65, 2.90, 1.65);
 
 const std::string U401_RigidTire::m_meshFile = "unimog/U401_Tire.obj";
 

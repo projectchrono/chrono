@@ -25,89 +25,38 @@ ChGaussIntegrationRule::~ChGaussIntegrationRule() {}
 // The vector is resized according to the number of points required.
 // Note: the coordinates used are local (area coordinates L1=A1/Atot).
 void ChGaussIntegrationRule::SetIntOnTriangle(int nPoints, std::vector<ChGaussPoint*>* GpVector) {
+    if (nPoints != 1) {
+        std::cerr << "SetIntOnTriangle: unsupported number of integration points: " << nPoints << std::endl;
+        return;
+    }
+
     double weight;
-    ChVector<> coord;
+    ChVector3d coord;
     std::vector<double> c, w;
 
     // Resize the vector containing Gauss Points
     (*GpVector).resize(nPoints);
 
-    switch (nPoints) {
-        case 1:
-
-            coord.x() = 0.0;
-            coord.y() = 0.0;
-            coord.z() = 0.0;
-            weight = 4.0;
-            (*GpVector)[0] = new ChGaussPoint(1, &coord, weight);
-            break;
-
-        //  case 4:
-
-        // c.resize(2);
-        // w.resize(2);
-        //      c[0] = -0.577350269189626;
-        //      c[1] =  0.577350269189626;
-
-        //      w[0] = 1.0;
-        //      w[1] = 1.0;
-
-        //      for ( i = 0; i < 2; i++ ) {
-        //          for ( j = 0; j < 2; j++ ) {
-        //                  coord.x() = c[ i ];
-        //			coord.y() = c[ j ];
-        //                  weight = w[ i ] * w[ j ];
-        //			//ChGaussPoint* my_gp = new ChGaussPoint( 4 *i + 2 *j + k , &coord, weight);
-        //                  ( * GpVector ) [ 2 * i + j ] = new ChGaussPoint( 2 * i + j + 1 , &coord, weight);
-        //          }
-        //      }
-
-        // break;
-
-        //  case 9:
-
-        // c.resize(3);
-        // w.resize(3);
-        //      c[0] = -0.774596669241483;
-        //      c[1] =  0.0;
-        //      c[2] =  0.774596669241483;
-
-        //      w[0] =  0.555555555555555;
-        //      w[1] =  0.888888888888888;
-        //      w[2] =  0.555555555555555;
-
-        //      for ( i = 0; i < 3; i++ ) {
-        //          for ( j = 0; j < 3; j++ ) {
-        //                  coord.x() = c[ i ];
-        //			coord.y() = c[ j ];
-        //                  weight = w[ i ] * w[ j ];
-        //                  ( * GpVector ) [ 3 * i + j ] = new ChGaussPoint( 3 * i + j + 1, &coord, weight);
-        //          }
-        //      }
-
-        //      break;
-
-        default:
-            GetLog() << "SetIntOnCube: unsupported number of integration points: " << nPoints;
-
-    }  //__end of Switch
-}  //__end of Set On Triangle
+    coord.x() = 0.0;
+    coord.y() = 0.0;
+    coord.z() = 0.0;
+    weight = 4.0;
+    (*GpVector)[0] = new ChGaussPoint(1, &coord, weight);
+}
 
 // Create and assign at the 'GpVector' pointer the vector of the Gauss Integration Points
 // The vector is resized according to the number of points required
 void ChGaussIntegrationRule::SetIntOnSquare(int nPoints, std::vector<ChGaussPoint*>* GpVector) {
     int i, j;
     double weight;
-    ChVector<> coord;
+    ChVector3d coord;
     std::vector<double> c, w;
 
     // Resize the vector containing Gauss Points
-    // GpVector = new std::vector<ChGaussPoint> [ nPoints ];
     (*GpVector).resize(nPoints);
 
     switch (nPoints) {
         case 1:
-
             coord.x() = 0.0;
             coord.y() = 0.0;
             weight = 4.0;
@@ -115,7 +64,6 @@ void ChGaussIntegrationRule::SetIntOnSquare(int nPoints, std::vector<ChGaussPoin
             break;
 
         case 4:
-
             c.resize(2);
             w.resize(2);
             c[0] = -0.577350269189626;
@@ -137,7 +85,6 @@ void ChGaussIntegrationRule::SetIntOnSquare(int nPoints, std::vector<ChGaussPoin
             break;
 
         case 9:
-
             c.resize(3);
             w.resize(3);
             c[0] = -0.774596669241483;
@@ -160,7 +107,6 @@ void ChGaussIntegrationRule::SetIntOnSquare(int nPoints, std::vector<ChGaussPoin
             break;
 
         case 16:
-
             c.resize(4);
             w.resize(4);
             c[0] = -0.861136311594053;
@@ -185,26 +131,24 @@ void ChGaussIntegrationRule::SetIntOnSquare(int nPoints, std::vector<ChGaussPoin
             break;
 
         default:
-            GetLog() << "SetIntOnCube: unsupported number of integration points: " << nPoints;
-
-    }  //__end of Switch
-}  //__end of Set On Square
+            std::cerr << "SetIntOnSquare: unsupported number of integration points: " << nPoints << std::endl;
+            break;
+    }
+}
 
 // Create and assign at the 'GpVector' pointer the vector of the Gauss Integration Points
 // The vector is resized according to the number of points required
 void ChGaussIntegrationRule::SetIntOnCube(int nPoints, std::vector<ChGaussPoint*>* GpVector) {
     int i, j, k;
     double weight;
-    ChVector<> coord;
+    ChVector3d coord;
     std::vector<double> c, w;
 
     // Resize the vector containing Gauss Points
-    // GpVector = new std::vector<ChGaussPoint> [ nPoints ];
     (*GpVector).resize(nPoints);
 
     switch (nPoints) {
         case 1:
-
             coord.x() = 0.0;
             coord.y() = 0.0;
             coord.z() = 0.0;
@@ -213,7 +157,6 @@ void ChGaussIntegrationRule::SetIntOnCube(int nPoints, std::vector<ChGaussPoint*
             break;
 
         case 8:
-
             c.resize(2);
             w.resize(2);
             c[0] = -0.577350269189626;
@@ -238,7 +181,6 @@ void ChGaussIntegrationRule::SetIntOnCube(int nPoints, std::vector<ChGaussPoint*
             break;
 
         case 27:
-
             c.resize(3);
             w.resize(3);
             c[0] = -0.774596669241483;
@@ -264,7 +206,6 @@ void ChGaussIntegrationRule::SetIntOnCube(int nPoints, std::vector<ChGaussPoint*
             break;
 
         case 64:
-
             c.resize(4);
             w.resize(4);
             c[0] = -0.861136311594053;
@@ -292,10 +233,10 @@ void ChGaussIntegrationRule::SetIntOnCube(int nPoints, std::vector<ChGaussPoint*
             break;
 
         default:
-            GetLog() << "SetIntOnCube: unsupported number of integration points: " << nPoints;
-
-    }  //__end of Switch
-}  //__end of Set On Cube
+            std::cerr << "SetIntOnCube: unsupported number of integration points: " << nPoints << std::endl;
+            break;
+    }
+}
 
 }  // end namespace fea
 }  // end namespace chrono

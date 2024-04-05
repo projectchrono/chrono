@@ -26,7 +26,7 @@
 #include "chrono/physics/ChLink.h"
 #include "chrono/physics/ChBody.h"
 #include "chrono/solver/ChVariablesGenericDiagonalMass.h"
-#include "chrono/solver/ChKblockGeneric.h"
+#include "chrono/solver/ChKRMBlock.h"
 
 #include "chrono_thirdparty/rapidjson/document.h"
 
@@ -83,17 +83,23 @@ class ChApi ChLinkTSDA : public ChLink {
     /// Get current force (in the direction of the force element).
     double GetForce() const { return m_force; }
 
-    /// Get the endpoint location on 1st body (expressed in body coordinate system)
-    const ChVector<>& GetPoint1Rel() const { return m_loc1; }
+    /// Get the endpoint location on 1st body (expressed in body 1 coordinate system)
+    const ChVector3d& GetPoint1Rel() const { return m_loc1; }
 
     /// Get the endpoint location on 1st body (expressed in absolute coordinate system)
-    const ChVector<>& GetPoint1Abs() const { return m_aloc1; }
+    const ChVector3d& GetPoint1Abs() const { return m_aloc1; }
 
-    /// Get the endpoint location on 2nd body (expressed in body coordinate system)
-    const ChVector<>& GetPoint2Rel() const { return m_loc2; }
+    /// Get the endpoint location on 2nd body (expressed in body 2 coordinate system)
+    const ChVector3d& GetPoint2Rel() const { return m_loc2; }
 
     /// Get the endpoint location on 1st body (expressed in absolute coordinate system)
-    const ChVector<>& GetPoint2Abs() const { return m_aloc2; }
+    const ChVector3d& GetPoint2Abs() const { return m_aloc2; }
+
+    /// Get the link frame 1, relative to body 1.
+    virtual ChFrame<> GetFrame1Rel() const override { return ChFramed(m_loc1); }
+
+    /// Get the link frame 2, relative to body 2.
+    virtual ChFrame<> GetFrame2Rel() const override { return ChFramed(m_loc2); }
 
     /// Get the value of the spring coefficient.
     /// Meaningful only if no force functor is provided.
@@ -141,7 +147,7 @@ class ChApi ChLinkTSDA : public ChLink {
         virtual ~ODE() {}
 
         /// Specify number of states (dimension of y).
-        virtual int GetNumStates() const = 0;
+        virtual unsigned int GetNumStates() const = 0;
 
         /// Set initial conditions.
         /// Must load y0 = y(0).
@@ -179,26 +185,26 @@ class ChApi ChLinkTSDA : public ChLink {
     /// rest length is calculated from the initial configuration.
     void Initialize(std::shared_ptr<ChBody> body1,  ///< first body to link
                     std::shared_ptr<ChBody> body2,  ///< second body to link
-                    bool pos_are_relative,          ///< if true, point locations are relative to bodies
-                    ChVector<> loc1,                ///< point on 1st body (rel. or abs., see flag above)
-                    ChVector<> loc2                 ///< point on 2nd body (rel. or abs., see flag above)
+                    bool local,                     ///< if true, point locations are relative to bodies
+                    const ChVector3d& loc1,         ///< point on 1st body (rel. or abs., see flag above)
+                    const ChVector3d& loc2          ///< point on 2nd body (rel. or abs., see flag above)
     );
 
     /// Method to allow serialization of transient data to archives.
-    virtual void ArchiveOut(ChArchiveOut& marchive) override;
+    virtual void ArchiveOut(ChArchiveOut& archive_out) override;
 
     /// Method to allow deserialization of transient data from archives.
-    virtual void ArchiveIn(ChArchiveIn& marchive) override;
+    virtual void ArchiveIn(ChArchiveIn& archive_in) override;
 
   private:
     virtual void Update(double mytime, bool update_assets = true) override;
 
-    virtual int GetDOF() override { return m_nstates; }
+    virtual unsigned int GetNumCoordsPosLevel() override { return m_nstates; }
 
     // Interface to solver
     ChVariables& Variables() { return *m_variables; }
     virtual void InjectVariables(ChSystemDescriptor& descriptor) override;
-    virtual void InjectKRMmatrices(ChSystemDescriptor& descriptor) override;
+    virtual void InjectKRMMatrices(ChSystemDescriptor& descriptor) override;
 
     virtual void IntStateGather(const unsigned int off_x,
                                 ChState& x,
@@ -233,7 +239,7 @@ class ChApi ChLinkTSDA : public ChLink {
                                    const unsigned int off_L,
                                    ChVectorDynamic<>& L) override;
 
-    virtual void KRMmatricesLoad(double Kfactor, double Rfactor, double Mfactor) override;
+    virtual void LoadKRMMatrices(double Kfactor, double Rfactor, double Mfactor) override;
 
     // Interface to the solver (old style)
     virtual void VariablesFbReset() override;
@@ -253,7 +259,7 @@ class ChApi ChLinkTSDA : public ChLink {
     /// CalculateJac, that will be used to override the bottom-right (nstates x nstates) block of R.
     class SpringJacobians {
       public:
-        ChKblockGeneric m_KRM;  ///< linear combination of K, R, M for the variables associated with this link
+        ChKRMBlock m_KRM;  ///< linear combination of K, R, M for the variables associated with this link
         ChMatrixDynamic<> m_J;  ///< Jacobian of ODE right-hand side with respect to ODE states (contributes to R term)
         ChMatrixDynamic<> m_K;  ///< K contribution from this link
         ChMatrixDynamic<> m_R;  ///< R contribution from this link
@@ -276,10 +282,10 @@ class ChApi ChLinkTSDA : public ChLink {
                           const ChStateDelta& state_w  ///< state speed to evaluate jacobians
     );
 
-    ChVector<> m_loc1;        ///< location of end point on body1 (relative to body1)
-    ChVector<> m_loc2;        ///< location of end point on body2 (relative to body1)
-    ChVector<> m_aloc1;       ///< location of end point on body1 (absolute)
-    ChVector<> m_aloc2;       ///< location of end point on body2 (absolute)
+    ChVector3d m_loc1;        ///< location of end point on body1 (relative to body1)
+    ChVector3d m_loc2;        ///< location of end point on body2 (relative to body1)
+    ChVector3d m_aloc1;       ///< location of end point on body1 (absolute)
+    ChVector3d m_aloc2;       ///< location of end point on body2 (absolute)
     bool m_auto_rest_length;  ///< if true, rest length set at initialization
     double m_rest_length;     ///< undeformed length
     double m_length;          ///< current length

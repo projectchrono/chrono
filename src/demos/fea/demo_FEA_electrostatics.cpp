@@ -25,7 +25,7 @@
 #include "chrono/fea/ChElementHexaCorot_8.h"
 #include "chrono/fea/ChElementTetraCorot_10.h"
 #include "chrono/fea/ChElementTetraCorot_4.h"
-#include "chrono/fea/ChLinkPointFrame.h"
+#include "chrono/fea/ChLinkNodeFrame.h"
 #include "chrono/fea/ChMesh.h"
 #include "chrono/fea/ChMeshFileLoader.h"
 #include "chrono/fea/ChNodeFEAxyzP.h"
@@ -41,7 +41,7 @@ using namespace chrono::fea;
 using namespace chrono::irrlicht;
 
 int main(int argc, char* argv[]) {
-    GetLog() << "Copyright (c) 2017 projectchrono.org\nChrono version: " << CHRONO_VERSION << "\n\n";
+    std::cout << "Copyright (c) 2017 projectchrono.org\nChrono version: " << CHRONO_VERSION << std::endl;
 
     // Create a Chrono::Engine physical system
     ChSystemSMC sys;
@@ -70,8 +70,8 @@ int main(int argc, char* argv[]) {
     try {
         ChMeshFileLoader::FromAbaqusFile(my_mesh, GetChronoDataFile("fea/electrostatics.INP").c_str(), mmaterial,
                                          node_sets);
-    } catch (const ChException &myerr) {
-        GetLog() << myerr.what();
+    } catch (std::exception myerr) {
+        std::cerr << myerr.what() << std::endl;
         return 1;
     }
 
@@ -84,7 +84,7 @@ int main(int argc, char* argv[]) {
     for (unsigned int inode = 0; inode < node_sets.at(nboundary).size(); ++inode) {
         if (auto mnode = std::dynamic_pointer_cast<ChNodeFEAxyzP>(node_sets[nboundary][inode])) {
             mnode->SetFixed(true);
-            mnode->SetP(0);  // field: potential [V]
+            mnode->SetFieldVal(0);  // field: potential [V]
         }
     }
     // Impose potential on all nodes of 2nd nodeset (see *NSET section in .imp file)
@@ -92,7 +92,7 @@ int main(int argc, char* argv[]) {
     for (unsigned int inode = 0; inode < node_sets.at(nboundary).size(); ++inode) {
         if (auto mnode = std::dynamic_pointer_cast<ChNodeFEAxyzP>(node_sets[nboundary][inode])) {
             mnode->SetFixed(true);
-            mnode->SetP(21);  // field: potential [V]
+            mnode->SetFieldVal(21);  // field: potential [V]
         }
     }
 
@@ -106,10 +106,10 @@ int main(int argc, char* argv[]) {
     // Such triangle mesh can be rendered by Irrlicht or POVray or whatever
     // postprocessor that can handle a colored ChVisualShapeTriangleMesh).
 
-    // This will paint the colored mesh with temperature scale (NODE_P is the scalar field of the Poisson problem)
+    // Paint the colored mesh with temperature scale (NODE_FIELD_VALUE is the scalar field of the Poisson problem)
 
     auto mvisualizemesh = chrono_types::make_shared<ChVisualShapeFEA>(my_mesh);
-    mvisualizemesh->SetFEMdataType(ChVisualShapeFEA::DataType::NODE_P);  // plot V, potential field
+    mvisualizemesh->SetFEMdataType(ChVisualShapeFEA::DataType::NODE_FIELD_VALUE);  // plot V, potential field
     mvisualizemesh->SetColorscaleMinMax(-0.1, 24);
     my_mesh->AddVisualShapeFEA(mvisualizemesh);
 
@@ -137,9 +137,9 @@ int main(int argc, char* argv[]) {
     vis->Initialize();
     vis->AddLogo();
     vis->AddSkyBox();
-    vis->AddLight(ChVector<>(20, 20, 20), 90, ChColor(0.5f, 0.5f, 0.5f));
-    vis->AddLight(ChVector<>(-20, 20, -20), 90, ChColor(0.7f, 0.8f, 0.8f));
-    vis->AddCamera(ChVector<>(0., 0.2, -0.3));
+    vis->AddLight(ChVector3d(20, 20, 20), 90, ChColor(0.5f, 0.5f, 0.5f));
+    vis->AddLight(ChVector3d(-20, 20, -20), 90, ChColor(0.7f, 0.8f, 0.8f));
+    vis->AddCamera(ChVector3d(0., 0.2, -0.3));
 
     // SIMULATION LOOP
 
@@ -150,8 +150,6 @@ int main(int argc, char* argv[]) {
     solver->EnableDiagonalPreconditioner(true);
     solver->SetVerbose(true);
 
-    sys.SetSolverForceTolerance(1e-20);
-
     // In electrostatics, you have only a single linear (non transient) solution
     sys.DoStaticLinear();
 
@@ -161,14 +159,16 @@ int main(int argc, char* argv[]) {
         vis->EndScene();
     }
 
-    // Print some node potentials V..
-    for (unsigned int inode = 0; inode < my_mesh->GetNnodes(); ++inode) {
+    // Print some node potentials V
+    /*
+    for (unsigned int inode = 0; inode < my_mesh->GetNumNodes(); ++inode) {
         if (auto mnode = std::dynamic_pointer_cast<ChNodeFEAxyzP>(my_mesh->GetNode(inode))) {
-            if (mnode->GetP() < 6.2) {
-                // GetLog() << "Node at y=" << mnode->GetPos().y << " has V=" << mnode->GetP() << "\n";
+            if (mnode->GetFieldVal() < 6.2) {
+                std::cout << "Node at y=" << mnode->GetPos().y << " has V=" << mnode->GetFieldVal() << std::endl;
             }
         }
     }
+    */
 
     return 0;
 }

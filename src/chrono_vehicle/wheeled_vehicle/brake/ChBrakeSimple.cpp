@@ -24,9 +24,8 @@
 namespace chrono {
 namespace vehicle {
 
-ChBrakeSimple::ChBrakeSimple(const std::string& name)
-    : ChBrake(name), m_modulation(0), m_locked(false) {
-    m_brake = chrono_types::make_shared<ChLinkBrake>();
+ChBrakeSimple::ChBrakeSimple(const std::string& name) : ChBrake(name), m_modulation(0), m_locked(false) {
+    m_brake = chrono_types::make_shared<ChLinkLockBrake>();
 }
 
 ChBrakeSimple::~ChBrakeSimple() {
@@ -54,14 +53,14 @@ void ChBrakeSimple::Initialize(std::shared_ptr<ChChassis> chassis,
     auto mb1 = std::dynamic_pointer_cast<ChBody>(mbf1);
     auto mb2 = std::dynamic_pointer_cast<ChBody>(mbf2);
 
-    m_brake->Initialize(mb1, mb2, true, m_hub->GetMarker1()->GetCoord(), m_hub->GetMarker2()->GetCoord());
+    m_brake->Initialize(mb1, mb2, true, *m_hub->GetMarker1(), *m_hub->GetMarker2());
     m_hub->GetSystem()->AddLink(m_brake);
 }
 
 void ChBrakeSimple::Synchronize(double modulation) {
     m_modulation = modulation;
-    m_brake->Set_brake_torque(modulation * GetMaxBrakingTorque());
-    
+    m_brake->SetBrakeTorque(modulation * GetMaxBrakingTorque());
+
     // If braking input is large enough, lock the brake
     if (!m_can_lock)
         return;

@@ -17,8 +17,6 @@
 
 namespace chrono {
 
-using namespace geometry;
-
 ChContactContainerMulticoreSMC::ChContactContainerMulticoreSMC(ChMulticoreDataManager* dc)
     : ChContactContainerMulticore(dc) {}
 
@@ -46,8 +44,8 @@ void ChContactContainerMulticoreSMC::EndAddContact() {
 }
 
 void ChContactContainerMulticoreSMC::AddContact(const ChCollisionInfo& cinfo,
-                                                std::shared_ptr<ChMaterialSurface> mat1,
-                                                std::shared_ptr<ChMaterialSurface> mat2) {
+                                                std::shared_ptr<ChContactMaterial> mat1,
+                                                std::shared_ptr<ChContactMaterial> mat2) {
     assert(cinfo.modelA->GetContactable());
     assert(cinfo.modelB->GetContactable());
 
@@ -66,8 +64,8 @@ void ChContactContainerMulticoreSMC::AddContact(const ChCollisionInfo& cinfo,
 
     if (mmboA && mmboB) {
         // Geometric information for added contact.
-        int b1 = ((ChBody*)(cinfo.modelA->GetPhysicsItem()))->GetId();
-        int b2 = ((ChBody*)(cinfo.modelB->GetPhysicsItem()))->GetId();
+        int b1 = ((ChBody*)(cinfo.modelA->GetPhysicsItem()))->GetIndex();
+        int b2 = ((ChBody*)(cinfo.modelB->GetPhysicsItem()))->GetIndex();
         cd_data->norm_rigid_rigid.push_back(real3(cinfo.vN.x(), cinfo.vN.y(), cinfo.vN.z()));
         cd_data->cpta_rigid_rigid.push_back(real3(cinfo.vpA.x(), cinfo.vpA.y(), cinfo.vpA.z()));
         cd_data->cptb_rigid_rigid.push_back(real3(cinfo.vpB.x(), cinfo.vpB.y(), cinfo.vpB.z()));
@@ -76,9 +74,9 @@ void ChContactContainerMulticoreSMC::AddContact(const ChCollisionInfo& cinfo,
         cd_data->bids_rigid_rigid.push_back(vec2(b1, b2));
 
         // Composite material for added contact
-        ChMaterialCompositeSMC cmat(data_manager->composition_strategy.get(),
-                                    std::static_pointer_cast<ChMaterialSurfaceSMC>(mat1),
-                                    std::static_pointer_cast<ChMaterialSurfaceSMC>(mat2));
+        ChContactMaterialCompositeSMC cmat(data_manager->composition_strategy.get(),
+                                           std::static_pointer_cast<ChContactMaterialSMC>(mat1),
+                                           std::static_pointer_cast<ChContactMaterialSMC>(mat2));
 
         // Load composite material properties in global data structure
         data_manager->host_data.fric_rigid_rigid.push_back(real3(cmat.mu_eff, cmat.muRoll_eff, cmat.muSpin_eff));
@@ -116,8 +114,8 @@ void ChContactContainerMulticoreSMC::AddContact(const ChCollisionInfo& cinfo) {
         cd_data->cptb_rigid_rigid.push_back(real3(cinfo.vpB.x(), cinfo.vpB.y(), cinfo.vpB.z()));
         cd_data->dpth_rigid_rigid.push_back(cinfo.distance);
         cd_data->erad_rigid_rigid.push_back(cinfo.eff_radius);
-        cd_data->bids_rigid_rigid.push_back(vec2(((ChBody*)(cinfo.modelA->GetPhysicsItem()))->GetId(),
-                                                 ((ChBody*)(cinfo.modelB->GetPhysicsItem()))->GetId()));
+        cd_data->bids_rigid_rigid.push_back(vec2(((ChBody*)(cinfo.modelA->GetPhysicsItem()))->GetIndex(),
+                                                 ((ChBody*)(cinfo.modelB->GetPhysicsItem()))->GetIndex()));
         cd_data->num_rigid_contacts++;
     }
 }
@@ -139,11 +137,11 @@ void ChContactContainerMulticoreSMC::AddContact(int index, int b1, int s1, int b
     auto shape2 = modelB->m_shapes[s2_index].get();
 
     // Contact materials of the two colliding shapes
-    auto mat1 = std::static_pointer_cast<ChMaterialSurfaceSMC>(shape1->GetMaterial());
-    auto mat2 = std::static_pointer_cast<ChMaterialSurfaceSMC>(shape2->GetMaterial());
+    auto mat1 = std::static_pointer_cast<ChContactMaterialSMC>(shape1->GetMaterial());
+    auto mat2 = std::static_pointer_cast<ChContactMaterialSMC>(shape2->GetMaterial());
 
     // Composite material
-    ChMaterialCompositeSMC cmat(data_manager->composition_strategy.get(), mat1, mat2);
+    ChContactMaterialCompositeSMC cmat(data_manager->composition_strategy.get(), mat1, mat2);
 
     // Allow user to override composite material
     if (data_manager->add_contact_callback) {
@@ -157,9 +155,9 @@ void ChContactContainerMulticoreSMC::AddContact(int index, int b1, int s1, int b
         cinfo.modelB = blist[b2]->GetCollisionModel().get();
         cinfo.shapeA = shape1;
         cinfo.shapeB = shape2;
-        cinfo.vN = ChVector<>(vN.x, vN.y, vN.z);
-        cinfo.vpA = ChVector<>(vpA.x, vpA.y, vpA.z);
-        cinfo.vpB = ChVector<>(vpB.x, vpB.y, vpB.z);
+        cinfo.vN = ChVector3d(vN.x, vN.y, vN.z);
+        cinfo.vpA = ChVector3d(vpA.x, vpA.y, vpA.z);
+        cinfo.vpB = ChVector3d(vpB.x, vpB.y, vpB.z);
         cinfo.distance = cd_data->dpth_rigid_rigid[index];
         cinfo.eff_radius = cd_data->erad_rigid_rigid[index];
 

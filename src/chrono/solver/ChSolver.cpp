@@ -31,7 +31,6 @@ class ChSolver_Type_enum_mapper : public ChSolver {
     CH_ENUM_VAL(Type::SPARSE_LU);
     CH_ENUM_VAL(Type::SPARSE_QR);
     CH_ENUM_VAL(Type::PARDISO_MKL);
-    CH_ENUM_VAL(Type::PARDISO_PROJECT);
     CH_ENUM_VAL(Type::MUMPS);
     CH_ENUM_VAL(Type::GMRES);
     CH_ENUM_VAL(Type::MINRES);
@@ -46,26 +45,26 @@ void ChSolver::EnableWrite(bool val, const std::string& frame, const std::string
     frame_id = frame;
 }
 
-void ChSolver::ArchiveOut(ChArchiveOut& marchive) {
+void ChSolver::ArchiveOut(ChArchiveOut& archive_out) {
     // version number
-    marchive.VersionWrite<ChSolver>();
+    archive_out.VersionWrite<ChSolver>();
     // solver type:
     ChSolver_Type_enum_mapper::Type_mapper typemapper;
     Type type = GetType();
-    marchive << CHNVP(typemapper(type), "solver_type");
+    archive_out << CHNVP(typemapper(type), "solver_type");
     // serialize all member data:
-    marchive << CHNVP(verbose);
+    archive_out << CHNVP(verbose);
 }
 
-void ChSolver::ArchiveIn(ChArchiveIn& marchive) {
+void ChSolver::ArchiveIn(ChArchiveIn& archive_in) {
     // version number
-    /*int version =*/marchive.VersionRead<ChSolver>();
+    /*int version =*/archive_in.VersionRead<ChSolver>();
     // solver type:
     ChSolver_Type_enum_mapper::Type_mapper typemapper;
     Type type = GetType();
-    marchive >> CHNVP(typemapper(type), "solver_type");
+    archive_in >> CHNVP(typemapper(type), "solver_type");
     // stream in all member data:
-    marchive >> CHNVP(verbose);
+    archive_in >> CHNVP(verbose);
 }
 
 }  // end namespace chrono

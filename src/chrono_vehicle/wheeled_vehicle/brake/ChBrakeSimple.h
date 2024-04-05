@@ -22,7 +22,7 @@
 #ifndef CH_BRAKESIMPLE_H
 #define CH_BRAKESIMPLE_H
 
-#include "chrono/physics/ChLinkBrake.h"
+#include "chrono/physics/ChLinkLockBrake.h"
 
 #include "chrono_vehicle/wheeled_vehicle/ChBrake.h"
 
@@ -63,14 +63,14 @@ class CH_VEHICLE_API ChBrakeSimple : public ChBrake {
     virtual double GetBrakeTorque() override { return m_modulation * GetMaxBrakingTorque(); }
 
     /// Get the current brake angular speed, relative between disc and caliper [rad/s]
-    double GetBrakeSpeed() { return m_brake->GetRelWvel().Length(); }
+    double GetBrakeSpeed() { return m_brake->GetRelativeAngVel().Length(); }
 
   protected:
     /// Get the max braking torque (for modulation =1)
     virtual double GetMaxBrakingTorque() = 0;
 
     double m_modulation;                        ///< current braking input
-    std::shared_ptr<ChLinkBrake> m_brake;       ///< underlying brake component
+    std::shared_ptr<ChLinkLockBrake> m_brake;   ///< underlying brake component
     std::shared_ptr<ChLinkLockRevolute> m_hub;  ///< associated spindle revolute joint
     bool m_locked;                              ///< is brake locked?
 };

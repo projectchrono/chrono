@@ -23,6 +23,9 @@
 
 namespace chrono {
 
+class ChIterativeSolver;
+class ChDirectSolverLS;
+
 /// @addtogroup chrono_solver
 /// @{
 
@@ -34,7 +37,7 @@ class ChApi ChSolver {
     /// Available types of solvers.
     enum class Type {
         // Iterative VI solvers
-        PSOR = 0,         ///< Projected SOR (Successive Over-Relaxation)
+        PSOR,             ///< Projected SOR (Successive Over-Relaxation)
         PSSOR,            ///< Projected symmetric SOR
         PJACOBI,          ///< Projected Jacobi
         PMINRES,          ///< Projected MINRES
@@ -42,11 +45,10 @@ class ChApi ChSolver {
         APGD,             ///< Accelerated Projected Gradient Descent
         ADMM,             ///< Alternating Direction Method of Multipliers
         // Direct linear solvers
-        SPARSE_LU,        ///< Sparse supernodal LU factorization
-        SPARSE_QR,        ///< Sparse left-looking rank-revealing QR factorization
-        PARDISO_MKL,      ///< Pardiso MKL (super-nodal sparse direct solver)
-        PARDISO_PROJECT,  ///< Pardiso (from PardisoProject) (super-nodal sparse direct solver)
-        MUMPS,            ///< Mumps (MUltifrontal Massively Parallel sparse direct Solver)
+        SPARSE_LU,    ///< Sparse supernodal LU factorization
+        SPARSE_QR,    ///< Sparse left-looking rank-revealing QR factorization
+        PARDISO_MKL,  ///< Pardiso MKL (super-nodal sparse direct solver)
+        MUMPS,        ///< Mumps (MUltifrontal Massively Parallel sparse direct Solver)
         // Iterative linear solvers
         GMRES,     ///< Generalized Minimal RESidual Algorithm
         MINRES,    ///< MINimum RESidual method
@@ -59,6 +61,18 @@ class ChApi ChSolver {
 
     /// Return type of the solver.
     virtual Type GetType() const { return Type::CUSTOM; }
+
+    /// Return true if iterative solver.
+    virtual bool IsIterative() const = 0;
+
+    /// Return true if direct solver.
+    virtual bool IsDirect() const = 0;
+
+    /// Downcast to ChIterativeSolver.
+    virtual ChIterativeSolver* AsIterative() { return nullptr; }
+
+    /// Downcast to ChDirectSolver.
+    virtual ChDirectSolverLS* AsDirect() { return nullptr; }
 
     /// Indicate whether or not the Solve() phase requires an up-to-date problem matrix.
     /// Typically, direct solvers only need the matrix for the Setup() phase. However, iterative solvers likely require
@@ -84,10 +98,10 @@ class ChApi ChSolver {
     void EnableWrite(bool val, const std::string& frame, const std::string& out_dir = ".");
 
     /// Method to allow serialization of transient data to archives.
-    virtual void ArchiveOut(ChArchiveOut& marchive);
+    virtual void ArchiveOut(ChArchiveOut& archive_out);
 
     /// Method to allow de-serialization of transient data from archives.
-    virtual void ArchiveIn(ChArchiveIn& marchive);
+    virtual void ArchiveIn(ChArchiveIn& archive_in);
 
   protected:
     ChSolver() : verbose(false) {}

@@ -31,11 +31,11 @@ namespace gclass {
 // -----------------------------------------------------------------------------
 
 const double G500_TMeasyTireFront::m_mass = 37.6;
-const ChVector<> G500_TMeasyTireFront::m_inertia(3.84, 6.69, 3.84);
+const ChVector3d G500_TMeasyTireFront::m_inertia(3.84, 6.69, 3.84);
 const std::string G500_TMeasyTireFront::m_meshFile = "gclass/gd250_tire.obj";
 
 const double G500_TMeasyTireRear::m_mass = 37.6;
-const ChVector<> G500_TMeasyTireRear::m_inertia(3.84, 6.69, 3.84);
+const ChVector3d G500_TMeasyTireRear::m_inertia(3.84, 6.69, 3.84);
 const std::string G500_TMeasyTireRear::m_meshFile = "gclass/gd250_tire.obj";
 
 // -----------------------------------------------------------------------------
@@ -47,7 +47,7 @@ G500_TMeasyTireFront::G500_TMeasyTireFront(const std::string& name) : ChTMeasyTi
 void G500_TMeasyTireFront::SetTMeasyParams() {
     // Tire Size = 37 x 12.5 x 16.5 Load Range D
     // Tire Load 3850 lbs at 50 psi (Goodyear Military Tire Brochure 6th Edition)
-    
+
     unsigned int li = 121;  // UAZ data
     const double in2m = 0.0254;
     double w = 0.225;
@@ -55,7 +55,7 @@ void G500_TMeasyTireFront::SetTMeasyParams() {
     double rimdia = 16.0 * in2m;
     double pres_li = 590000;
     double pres_use = 220000;
-    
+
     GuessTruck80Par(li,       // tire load index []
                     w,        // tire width [m]
                     r,        // aspect ratio []
@@ -95,7 +95,7 @@ G500_TMeasyTireRear::G500_TMeasyTireRear(const std::string& name) : ChTMeasyTire
 void G500_TMeasyTireRear::SetTMeasyParams() {
     // Tire Size = 37 x 12.5 x 16.5 Load Range D
     // Tire Load 3850 lbs at 50 psi (Goodyear Military Tire Brochure 6th Edition)
-    
+
     unsigned int li = 121;  // UAZ data
     const double in2m = 0.0254;
     double w = 0.225;
@@ -134,6 +134,6 @@ void G500_TMeasyTireRear::RemoveVisualizationAssets() {
     ChTMeasyTire::RemoveVisualizationAssets();
 }
 
-}  // end namespace uaz
+}  // namespace gclass
 }  // end namespace vehicle
 }  // end namespace chrono

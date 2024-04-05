@@ -31,11 +31,11 @@ namespace man {
 // Static variables
 // -----------------------------------------------------------------------------
 const double MAN_10t_Chassis::m_body_mass = 7085 + 1200 + 2500;
-// const ChVector<> MAN_10t_Chassis::m_body_inertiaXX(222.8, 944.1, 1053.5);
-const ChVector<> MAN_10t_Chassis::m_body_inertiaXX(5238, 43361, 44746);
-const ChVector<> MAN_10t_Chassis::m_body_inertiaXY(0, 0, 0);
-const ChVector<> MAN_10t_Chassis::m_body_COM_loc(-2.248, 0, 0.744);
-const ChCoordsys<> MAN_10t_Chassis::m_driverCsys(ChVector<>(0.0, 0.5, 1.2), ChQuaternion<>(1, 0, 0, 0));
+// const ChVector3d MAN_10t_Chassis::m_body_inertiaXX(222.8, 944.1, 1053.5);
+const ChVector3d MAN_10t_Chassis::m_body_inertiaXX(5238, 43361, 44746);
+const ChVector3d MAN_10t_Chassis::m_body_inertiaXY(0, 0, 0);
+const ChVector3d MAN_10t_Chassis::m_body_COM_loc(-2.248, 0, 0.744);
+const ChCoordsys<> MAN_10t_Chassis::m_driverCsys(ChVector3d(0.0, 0.5, 1.2), ChQuaternion<>(1, 0, 0, 0));
 
 // -----------------------------------------------------------------------------
 // -----------------------------------------------------------------------------
@@ -58,7 +58,7 @@ MAN_10t_Chassis::MAN_10t_Chassis(const std::string& name, bool fixed, CollisionT
 
     //// TODO:
     //// A more appropriate contact shape from primitives
-    ChVehicleGeometry::BoxShape box1(ChVector<>(0.0, 0.0, 0.1), ChQuaternion<>(1, 0, 0, 0), ChVector<>(1.0, 0.5, 0.2));
+    ChVehicleGeometry::BoxShape box1(ChVector3d(0.0, 0.0, 0.1), ChQuaternion<>(1, 0, 0, 0), ChVector3d(1.0, 0.5, 0.2));
 
     m_geometry.m_has_primitives = true;
     m_geometry.m_vis_boxes.push_back(box1);

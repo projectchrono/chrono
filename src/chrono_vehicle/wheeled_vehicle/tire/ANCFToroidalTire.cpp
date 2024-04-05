@@ -35,7 +35,7 @@ ANCFToroidalTire::ANCFToroidalTire(const std::string& name)
       m_default_pressure(320.0e3),
       m_alpha(0.15) {
     // default contact material
-    m_mat = chrono_types::make_shared<ChMaterialSurfaceSMC>();
+    m_mat = chrono_types::make_shared<ChContactMaterialSMC>();
 }
 
 void ANCFToroidalTire::CreateMesh(const ChFrameMoving<>& wheel_frame, VehicleSide side) {
@@ -46,20 +46,20 @@ void ANCFToroidalTire::CreateMesh(const ChFrameMoving<>& wheel_frame, VehicleSid
     // The nodes are first created in the wheel local frame, assuming Y as the tire axis,
     // and are then transformed to the global frame.
     for (int i = 0; i < m_div_circumference; i++) {
-        double phi = (CH_C_2PI * i) / m_div_circumference;
+        double phi = (CH_2PI * i) / m_div_circumference;
 
         for (int j = 0; j <= m_div_width; j++) {
-            double theta = -CH_C_PI_2 + (CH_C_PI * j) / m_div_width;
+            double theta = -CH_PI_2 + (CH_PI * j) / m_div_width;
 
             double x = (m_rim_radius + m_height * cos(theta)) * cos(phi);
             double y = m_height * sin(theta);
             double z = (m_rim_radius + m_height * cos(theta)) * sin(phi);
-            ChVector<> loc = wheel_frame.TransformPointLocalToParent(ChVector<>(x, y, z));
+            ChVector3d loc = wheel_frame.TransformPointLocalToParent(ChVector3d(x, y, z));
 
             double nx = cos(theta) * cos(phi);
             double ny = sin(theta);
             double nz = cos(theta) * sin(phi);
-            ChVector<> dir = wheel_frame.TransformDirectionLocalToParent(ChVector<>(nx, ny, nz));
+            ChVector3d dir = wheel_frame.TransformDirectionLocalToParent(ChVector3d(nx, ny, nz));
 
             auto node = chrono_types::make_shared<ChNodeFEAxyzD>(loc, dir);
             node->SetMass(0);
@@ -97,14 +97,14 @@ void ANCFToroidalTire::CreateMesh(const ChFrameMoving<>& wheel_frame, VehicleSid
             // Element dimensions
             double dx =
                 0.5 * ((node1->GetPos() - node0->GetPos()).Length() + (node3->GetPos() - node2->GetPos()).Length());
-            double dy = 
+            double dy =
                 0.5 * ((node2->GetPos() - node1->GetPos()).Length() + (node3->GetPos() - node0->GetPos()).Length());
 
             // Set element dimensions
             element->SetDimensions(dx, dy);
 
             // Add a single layers with a fiber angle of 0 degrees.
-            element->AddLayer(dz, 0 * CH_C_DEG_TO_RAD, mat);
+            element->AddLayer(dz, 0 * CH_DEG_TO_RAD, mat);
 
             // Set other element properties
             element->SetAlphaDamp(m_alpha);

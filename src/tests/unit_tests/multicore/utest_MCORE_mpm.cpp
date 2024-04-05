@@ -72,7 +72,8 @@ int main(int argc, char* argv[]) {
     {
         printf("N\n");
         WeakEqual(N(point_a - NodeLocation(5, 5, 4, bin_edge, min_bounding_point), inv_bin_edge), 0);
-        WeakEqual(N(point_a - NodeLocation(7, 7, 7, bin_edge, min_bounding_point), inv_bin_edge), 0.1822061256, C_EPSILON);
+        WeakEqual(N(point_a - NodeLocation(7, 7, 7, bin_edge, min_bounding_point), inv_bin_edge), 0.1822061256,
+                  C_EPSILON);
     }
     {  // Each node should have 125 surrounding nodes
         int ind = 0;
@@ -81,7 +82,7 @@ int main(int argc, char* argv[]) {
         LOOPOVERNODES(real3 p = point_a - current_node_location;
                       // printf("[%d %d %d][%d %d] N:%f\n", i, j, k, current_node, ind, N(p, inv_bin_edge));  //
                       ind++;  //
-                      )
+        )
         WeakEqual(ind, 125);
     }
 
@@ -111,9 +112,10 @@ int main(int argc, char* argv[]) {
         Mat33 RD = Rotational_Derivative(FE, FP);
 
         // Print(RD, "RD");
-        WeakEqual(RD, Mat33(-0.4388320607360907121829996, -2.5644905725011524211254255, 2.6523953516380869288582289,
-                            3.3403002881859262807040523, -0.3555579545919572703738254, -0.1151537247848418710205465,
-                            -1.6067063031830095543028847, 0.5767590099191256536315109, -0.3543936405970238290308316),
+        WeakEqual(RD,
+                  Mat33(-0.4388320607360907121829996, -2.5644905725011524211254255, 2.6523953516380869288582289,
+                        3.3403002881859262807040523, -0.3555579545919572703738254, -0.1151537247848418710205465,
+                        -1.6067063031830095543028847, 0.5767590099191256536315109, -0.3543936405970238290308316),
                   1e-6);
     }
     {
@@ -133,8 +135,8 @@ int main(int argc, char* argv[]) {
 
         Mat33 RD2 = Rotational_Derivative(FE, FP);
 
-//        Print(RD1,"RD1");
-//        Print(RD2,"RD2");
+        //        Print(RD1,"RD1");
+        //        Print(RD2,"RD2");
 
         WeakEqual(RD1, RD2, 1e-6);
     }

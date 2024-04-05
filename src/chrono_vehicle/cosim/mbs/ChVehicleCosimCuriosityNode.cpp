@@ -78,13 +78,13 @@ class CuriosityDBPDriver : public CuriosityDriver {
     virtual DriveMotorType GetDriveMotorType() const override { return DriveMotorType::SPEED; }
 
     virtual void Update(double time) override {
-        double driving = m_func->Get_y(time);
+        double driving = m_func->GetVal(time);
         double steering = 0;
         for (int i = 0; i < 6; i++) {
             drive_speeds[i] = driving;
         }
         for (int i = 0; i < 4; i++) {
-            steer_angles[i] = steering;        
+            steer_angles[i] = steering;
         }
     }
 
@@ -99,9 +99,9 @@ ChVehicleCosimCuriosityNode::ChVehicleCosimCuriosityNode() : ChVehicleCosimWheel
 
 ChVehicleCosimCuriosityNode::~ChVehicleCosimCuriosityNode() {}
 
-void ChVehicleCosimCuriosityNode::InitializeMBS(const ChVector2<>& terrain_size, double terrain_height) {
+void ChVehicleCosimCuriosityNode::InitializeMBS(const ChVector2d& terrain_size, double terrain_height) {
     // Initialize vehicle
-    ChFrame<> init_pos(m_init_loc + ChVector<>(0, 0, terrain_height), Q_from_AngZ(m_init_yaw));
+    ChFrame<> init_pos(m_init_loc + ChVector3d(0, 0, terrain_height), QuatFromAngleZ(m_init_yaw));
 
     m_curiosity->SetDriver(m_driver);
     m_curiosity->SetWheelVisualization(false);
@@ -135,8 +135,8 @@ void ChVehicleCosimCuriosityNode::InitializeMBS(const ChVector2<>& terrain_size,
         auto vsys_vsg = chrono_types::make_shared<vsg3d::ChVisualSystemVSG>();
         vsys_vsg->AttachSystem(m_system);
         vsys_vsg->SetWindowTitle("Curiosity Rover Node");
-        vsys_vsg->SetWindowSize(ChVector2<int>(1280, 720));
-        vsys_vsg->SetWindowPosition(ChVector2<int>(100, 300));
+        vsys_vsg->SetWindowSize(ChVector2i(1280, 720));
+        vsys_vsg->SetWindowPosition(ChVector2i(100, 300));
         vsys_vsg->AddCamera(m_cam_pos, m_cam_target);
         vsys_vsg->AddGrid(1.0, 1.0, (int)(terrain_size.x() / 1.0), (int)(terrain_size.y() / 1.0), CSYSNORM,
                           ChColor(0.1f, 0.3f, 0.1f));
@@ -161,7 +161,7 @@ void ChVehicleCosimCuriosityNode::InitializeMBS(const ChVector2<>& terrain_size,
     }
 }
 
-void ChVehicleCosimCuriosityNode::ApplyTireInfo(const std::vector<ChVector<>>& tire_info) {
+void ChVehicleCosimCuriosityNode::ApplyTireInfo(const std::vector<ChVector3d>& tire_info) {
     //// TODO
 }
 
@@ -191,8 +191,8 @@ std::shared_ptr<ChBody> ChVehicleCosimCuriosityNode::GetChassisBody() const {
 }
 
 void ChVehicleCosimCuriosityNode::OnInitializeDBPRig(std::shared_ptr<ChFunction> func) {
-    // Overwrite any driver attached to the underlying Curiosity rover with a custom driver which imposes zero steering and
-    // wheel angular speeds as returned by the provided motor function.
+    // Overwrite any driver attached to the underlying Curiosity rover with a custom driver which imposes zero steering
+    // and wheel angular speeds as returned by the provided motor function.
     m_curiosity->SetDriver(chrono_types::make_shared<CuriosityDBPDriver>(func));
 }
 
@@ -230,7 +230,7 @@ void ChVehicleCosimCuriosityNode::OnOutputData(int frame) {
     if (m_outf.is_open()) {
         std::string del("  ");
 
-        const ChVector<>& pos = m_curiosity->GetChassis()->GetPos();
+        const ChVector3d& pos = m_curiosity->GetChassis()->GetPos();
 
         m_outf << m_system->GetChTime() << del;
         // Body states
@@ -246,18 +246,18 @@ void ChVehicleCosimCuriosityNode::OnOutputData(int frame) {
     }
 
     // Create and write frame output file.
-    utils::CSV_writer csv(" ");
+    utils::ChWriterCSV csv(" ");
     csv << m_system->GetChTime() << endl;  // current time
     WriteBodyInformation(csv);             // vehicle body states
 
     std::string filename = OutputFilename(m_node_out_dir + "/simulation", "data", "dat", frame + 1, 5);
-    csv.write_to_file(filename);
+    csv.WriteToFile(filename);
 
     if (m_verbose)
         cout << "[Vehicle node] write output file ==> " << filename << endl;
 }
 
-void ChVehicleCosimCuriosityNode::WriteBodyInformation(utils::CSV_writer& csv) {
+void ChVehicleCosimCuriosityNode::WriteBodyInformation(utils::ChWriterCSV& csv) {
     // Write number of bodies
     csv << 1 + 6 << endl;
 

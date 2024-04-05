@@ -39,11 +39,11 @@
 #endif
 
 #ifdef CHRONO_PARDISO_MKL
-#include "chrono_pardisomkl/ChSolverPardisoMKL.h"
+    #include "chrono_pardisomkl/ChSolverPardisoMKL.h"
 #endif
 
 #ifdef CHRONO_MUMPS
-#include "chrono_mumps/ChSolverMumps.h"
+    #include "chrono_mumps/ChSolverMumps.h"
 #endif
 
 using namespace chrono;
@@ -64,9 +64,9 @@ class FEAcontactTest : public utils::ChBenchmarkTest {
     FEAcontactTest(SolverType solver_type);
 
   private:
-    void CreateFloor(std::shared_ptr<ChMaterialSurfaceSMC> cmat);
-    void CreateBeams(std::shared_ptr<ChMaterialSurfaceSMC> cmat);
-    void CreateCables(std::shared_ptr<ChMaterialSurfaceSMC> cmat);
+    void CreateFloor(std::shared_ptr<ChContactMaterialSMC> cmat);
+    void CreateBeams(std::shared_ptr<ChContactMaterialSMC> cmat);
+    void CreateCables(std::shared_ptr<ChContactMaterialSMC> cmat);
 
     ChSystemSMC* m_system;
 };
@@ -113,9 +113,8 @@ FEAcontactTest::FEAcontactTest(SolverType solver_type) {
             solver->SetTolerance(1e-10);
             solver->EnableDiagonalPreconditioner(true);
             solver->SetVerbose(false);
+            solver->SetTolerance(1e-12);
 
-            m_system->SetSolverForceTolerance(1e-10);
-            
             m_system->SetTimestepperType(ChTimestepper::Type::EULER_IMPLICIT_LINEARIZED);
         }
         case SolverType::MKL: {
@@ -143,7 +142,7 @@ FEAcontactTest::FEAcontactTest(SolverType solver_type) {
     ChCollisionInfo::SetDefaultEffectiveCurvatureRadius(1);
     ChCollisionModel::SetDefaultSuggestedMargin(0.006);
 
-    auto cmat = chrono_types::make_shared<ChMaterialSurfaceSMC>();
+    auto cmat = chrono_types::make_shared<ChContactMaterialSMC>();
     cmat->SetYoungModulus(6e4);
     cmat->SetFriction(0.3f);
     cmat->SetRestitution(0.2f);
@@ -154,29 +153,29 @@ FEAcontactTest::FEAcontactTest(SolverType solver_type) {
     CreateCables(cmat);
 }
 
-void FEAcontactTest::CreateFloor(std::shared_ptr<ChMaterialSurfaceSMC> cmat) {
+void FEAcontactTest::CreateFloor(std::shared_ptr<ChContactMaterialSMC> cmat) {
     auto mfloor = chrono_types::make_shared<ChBodyEasyBox>(2, 0.1, 2, 2700, true, true, cmat);
-    mfloor->SetBodyFixed(true);
+    mfloor->SetFixed(true);
     mfloor->GetVisualShape(0)->SetTexture(GetChronoDataFile("textures/concrete.jpg"));
     m_system->Add(mfloor);
 }
 
-void FEAcontactTest::CreateBeams(std::shared_ptr<ChMaterialSurfaceSMC> cmat) {
+void FEAcontactTest::CreateBeams(std::shared_ptr<ChContactMaterialSMC> cmat) {
     auto mesh = chrono_types::make_shared<ChMesh>();
     m_system->Add(mesh);
 
     auto emat = chrono_types::make_shared<ChContinuumElastic>();
-    emat->Set_E(0.01e9);
-    emat->Set_v(0.3);
-    emat->Set_RayleighDampingK(0.003);
-    emat->Set_density(1000);
+    emat->SetYoungModulus(0.01e9);
+    emat->SetPoissonRatio(0.3);
+    emat->SetRayleighDampingBeta(0.003);
+    emat->SetDensity(1000);
 
     double angles[4] = {0.15, 0.3, 0.0, 0.7};
 
     for (int i = 0; i < 4; ++i) {
-        ChCoordsys<> cdown(ChVector<>(0, -0.4, 0));
-        ChCoordsys<> crot(VNULL, Q_from_AngAxis(CH_C_2PI * angles[i], VECT_Y) * Q_from_AngAxis(CH_C_PI_2, VECT_X));
-        ChCoordsys<> cydisp(ChVector<>(0.0, 0.1 + i * 0.1, -0.3));
+        ChCoordsys<> cdown(ChVector3d(0, -0.4, 0));
+        ChCoordsys<> crot(VNULL, QuatFromAngleY(CH_2PI * angles[i]) * QuatFromAngleX(CH_PI_2));
+        ChCoordsys<> cydisp(ChVector3d(0.0, 0.1 + i * 0.1, -0.3));
         ChCoordsys<> ctot = cdown >> crot >> cydisp;
         ChMeshFileLoader::FromTetGenFile(mesh, GetChronoDataFile("fea/beam.node").c_str(),
                                          GetChronoDataFile("fea/beam.ele").c_str(), emat, ctot.pos,
@@ -194,18 +193,18 @@ void FEAcontactTest::CreateBeams(std::shared_ptr<ChMaterialSurfaceSMC> cmat) {
     mesh->AddVisualShapeFEA(vis_speed);
 }
 
-void FEAcontactTest::CreateCables(std::shared_ptr<ChMaterialSurfaceSMC> cmat) {
+void FEAcontactTest::CreateCables(std::shared_ptr<ChContactMaterialSMC> cmat) {
     auto mesh = chrono_types::make_shared<ChMesh>();
     m_system->Add(mesh);
 
     auto section = chrono_types::make_shared<ChBeamSectionCable>();
     section->SetDiameter(0.05);
     section->SetYoungModulus(0.01e9);
-    section->SetBeamRaleyghDamping(0.05);
+    section->SetRayleighDamping(0.05);
 
     ChBuilderCableANCF builder;
 
-    builder.BuildBeam(mesh, section, 10, ChVector<>(0, 0.1, -0.5), ChVector<>(0.5, 0.5, -0.5));
+    builder.BuildBeam(mesh, section, 10, ChVector3d(0, 0.1, -0.5), ChVector3d(0.5, 0.5, -0.5));
 
     auto cloud = chrono_types::make_shared<ChContactSurfaceNodeCloud>(cmat);
     mesh->AddContactSurface(cloud);
@@ -236,7 +235,7 @@ void FEAcontactTest::SimulateVis() {
     vis->AddLogo();
     vis->AddSkyBox();
     vis->AddTypicalLights();
-    vis->AddCamera(ChVector<>(0, 0.6, -1.0), ChVector<>(0, 0, 0));
+    vis->AddCamera(ChVector3d(0, 0.6, -1.0), ChVector3d(0, 0, 0));
 
     while (vis->Run()) {
         vis->BeginScene();

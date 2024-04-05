@@ -33,8 +33,6 @@ Additional Chrono functionalities are provided through optional _modules_, condi
 
 -   [Pardiso MKL module](@ref module_mkl_installation)
 
--   [Pardiso Project module](@ref module_pardisoproject_installation)
-
 -   [PARSERS module](@ref module_parsers_installation)
 
 -   [POSTPROCESS module](@ref module_postprocess_installation)
@@ -77,6 +75,6 @@ Full instructions can be found in: [Linking to Chrono](@ref tutorial_install_pro
 
 ### Chrono::Solidworks add-in
 
-An add-in to enable the export of models from SolidWorks to Chrono
+An add-in to simulate Solidworks models using the Chrono library
 
-- @subpage tutorial_install_chrono_solidworks
+- @subpage chrono_solidworks_installation

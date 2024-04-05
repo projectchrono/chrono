@@ -35,7 +35,6 @@ using namespace chrono::vsg3d;
 #endif
 
 using namespace chrono;
-using namespace chrono::geometry;
 using namespace chrono::cascade;
 
 ChVisualSystem::Type vis_type = ChVisualSystem::Type::IRRLICHT;
@@ -44,6 +43,7 @@ int main(int argc, char* argv[]) {
     // Create a ChronoENGINE physical system: all bodies and constraints
     // will be handled by this ChSystemNSC object.
     ChSystemNSC sys;
+    sys.SetCollisionSystemType(ChCollisionSystem::Type::BULLET);
 
     // Collision tolerances.
     // note: for 2D-2D contact problems, only the margin tolerance is used (that acts outward as the envelope)
@@ -51,12 +51,12 @@ int main(int argc, char* argv[]) {
     ChCollisionModel::SetDefaultSuggestedMargin(0.1);
 
     // Contact material (shared among all collision shapes)
-    auto material = chrono_types::make_shared<ChMaterialSurfaceNSC>();
+    auto material = chrono_types::make_shared<ChContactMaterialNSC>();
     material->SetFriction(0.05f);
 
     // Create the truss:
     auto mfloor = chrono_types::make_shared<ChBody>();
-    mfloor->SetBodyFixed(true);
+    mfloor->SetFixed(true);
     sys.Add(mfloor);
 
     //
@@ -69,12 +69,12 @@ int main(int argc, char* argv[]) {
     double Ri = 0.5;
     double wi = 0.1;
     double Li = 0.55;
-    ChVector<> geneva_center(-0, 0, 0);
+    ChVector3d geneva_center(-0, 0, 0);
     // compute aux data:
-    double beta = (CH_C_2PI / (double)nstations);  // angle width of station
-    double gamma = 2 * (CH_C_PI_2 - beta / 2);
+    double beta = (CH_2PI / (double)nstations);  // angle width of station
+    double gamma = 2 * (CH_PI_2 - beta / 2);
     double B = R * tan(beta / 2);
-    ChVector<> crank_center = ChVector<>(B, R, 0) + geneva_center;
+    ChVector3d crank_center = ChVector3d(B, R, 0) + geneva_center;
 
     // Create a ChLinePath geometry that represents the 2D shape of the Geneva wheel.
     // It can be made of ChLineArc or ChLineSegment sub-lines. These must be added in clockwise
@@ -83,13 +83,13 @@ int main(int argc, char* argv[]) {
 
     for (int i = 0; i < nstations; ++i) {
         double alpha = -i * beta;  // phase of current station
-        ChVector<> p1(-B + Ri, R, 0);
-        ChVector<> p2(-wi / 2, R, 0);
-        ChVector<> p3(-wi / 2, R - Li, 0);
-        ChVector<> p4(wi / 2, R - Li, 0);
-        ChVector<> p5(wi / 2, R, 0);
-        ChVector<> p6(B - Ri, R, 0);
-        ChVector<> p7(B, R, 0);
+        ChVector3d p1(-B + Ri, R, 0);
+        ChVector3d p2(-wi / 2, R, 0);
+        ChVector3d p3(-wi / 2, R - Li, 0);
+        ChVector3d p4(wi / 2, R - Li, 0);
+        ChVector3d p5(wi / 2, R, 0);
+        ChVector3d p6(B - Ri, R, 0);
+        ChVector3d p7(B, R, 0);
         ChMatrix33<> mm(alpha, VECT_Z);
         p1 = mm * p1;
         p2 = mm * p2;
@@ -100,7 +100,7 @@ int main(int argc, char* argv[]) {
         p7 = mm * p7;
         ChLineSegment mseg1(p1, p2);
         ChLineSegment mseg2(p2, p3);
-        ChLineArc mseg3(ChCoordsys<>((p3 + p4) * 0.5), wi / 2, alpha + CH_C_PI, alpha + CH_C_2PI, true);
+        ChLineArc mseg3(ChCoordsys<>((p3 + p4) * 0.5), wi / 2, alpha + CH_PI, alpha + CH_2PI, true);
         ChLineSegment mseg4(p4, p5);
         ChLineSegment mseg5(p5, p6);
         mpathwheel->AddSubLine(mseg1);
@@ -108,8 +108,8 @@ int main(int argc, char* argv[]) {
         mpathwheel->AddSubLine(mseg3);
         mpathwheel->AddSubLine(mseg4);
         mpathwheel->AddSubLine(mseg5);
-        double a1 = alpha + CH_C_PI;
-        double a2 = alpha + CH_C_PI + gamma;
+        double a1 = alpha + CH_PI;
+        double a2 = alpha + CH_PI + gamma;
         ChLineArc marc0(ChCoordsys<>(p7), Ri, a1, a2, true);  // ccw arc because concave
         mpathwheel->AddSubLine(marc0);
     }
@@ -123,24 +123,24 @@ int main(int argc, char* argv[]) {
     // Might throw exception if some wire path not on XY plane, or not closed.
 
     auto mgenevawheel = chrono_types::make_shared<ChCascadeBodyEasyProfile>(
-        std::vector<std::shared_ptr<::chrono::geometry::ChLinePath>>{mpathwheel},  // wire(s) containing the face
-        std::vector<std::shared_ptr<::chrono::geometry::ChLinePath>>{},            // wire(s) telling holes (empty here)
-        0.05,                                                                      // the thickness
-        1000,                                                                      // the density
-        chrono_types::make_shared<ChCascadeTriangulate>(0.01, false, 0.2),         // finer than default
-        true,                                                                      // enable 2D collision
-        material                                                                   // contact material
+        std::vector<std::shared_ptr<::chrono::ChLinePath>>{mpathwheel},     // wire(s) containing the face
+        std::vector<std::shared_ptr<::chrono::ChLinePath>>{},               // wire(s) telling holes (empty here)
+        0.05,                                                               // the thickness
+        1000,                                                               // the density
+        chrono_types::make_shared<ChCascadeTriangulate>(0.01, false, 0.2),  // finer than default
+        true,                                                               // enable 2D collision
+        material                                                            // contact material
     );
-    mgenevawheel->SetFrame_REF_to_abs(ChFrame<>(geneva_center));
-    mgenevawheel->SetWvel_loc(ChVector<>(0, 0, -0.08));
+    mgenevawheel->SetFrameRefToAbs(ChFrame<>(geneva_center));
+    mgenevawheel->SetAngVelLocal(ChVector3d(0, 0, -0.08));
     sys.Add(mgenevawheel);
 
     // Do you need an additional profile at a different Z depht?
     // If so, use the AddProfile() function. It also updates the mass, COG position, collision shapes, etc.
     // Might throw exception if path not on XY plane, or not closed.
     auto mpathcam = chrono_types::make_shared<ChLinePath>();
-    auto mcamline1 = chrono_types::make_shared<ChLineArc>(ChCoordsys<>(ChVector<>(0, 0, -0.10)), R * 0.3, 1.5,
-                                                          CH_C_PI);  // CH_C_2PI, 2.5);
+    auto mcamline1 = chrono_types::make_shared<ChLineArc>(ChCoordsys<>(ChVector3d(0, 0, -0.10)), R * 0.3, 1.5,
+                                                          CH_PI);  // CH_2PI, 2.5);
     auto mcamline2 = chrono_types::make_shared<ChLineSegment>(mcamline1->GetEndB(), mcamline1->GetEndA());
     mpathcam->AddSubLine(mcamline1);
     mpathcam->AddSubLine(mcamline2);
@@ -154,7 +154,7 @@ int main(int argc, char* argv[]) {
 
     // Revolute constraint
     auto mrevolute = chrono_types::make_shared<ChLinkLockRevolute>();
-    mrevolute->Initialize(mgenevawheel, mfloor, ChCoordsys<>(geneva_center));
+    mrevolute->Initialize(mgenevawheel, mfloor, ChFrame<>(geneva_center));
     sys.Add(mrevolute);
 
     //
@@ -163,22 +163,22 @@ int main(int argc, char* argv[]) {
 
     // Create a ChLinePath geometry, and insert sub-paths in clockwise order:
     auto mpathcrankpin = chrono_types::make_shared<ChLinePath>();
-    ChLineArc mpin(ChCoordsys<>(ChVector<>(-B, 0, 0)), wi / 2 - 0.005, CH_C_2PI, 0);
+    ChLineArc mpin(ChCoordsys<>(ChVector3d(-B, 0, 0)), wi / 2 - 0.005, CH_2PI, 0);
     mpathcrankpin->AddSubLine(mpin);
 
     auto mpathcrankstopper = chrono_types::make_shared<ChLinePath>();
-    ChLineArc mstopperarc(ChCoordsys<>(ChVector<>(0, 0, 0)), Ri - 0.003, CH_C_PI - gamma / 2, -CH_C_PI + gamma / 2);
-    ChLineSegment mstopperve1(mstopperarc.GetEndB(), ChVector<>(0, 0, 0));
-    ChLineSegment mstopperve2(ChVector<>(0, 0, 0), mstopperarc.GetEndA());
+    ChLineArc mstopperarc(ChCoordsys<>(ChVector3d(0, 0, 0)), Ri - 0.003, CH_PI - gamma / 2, -CH_PI + gamma / 2);
+    ChLineSegment mstopperve1(mstopperarc.GetEndB(), ChVector3d(0, 0, 0));
+    ChLineSegment mstopperve2(ChVector3d(0, 0, 0), mstopperarc.GetEndA());
     mpathcrankstopper->AddSubLine(mstopperarc);
     mpathcrankstopper->AddSubLine(mstopperve1);
     mpathcrankstopper->AddSubLine(mstopperve2);
 
     // Use the ChCascadeBodyEasyProfile to define a 2D profile, again:
     auto mcrank = chrono_types::make_shared<ChCascadeBodyEasyProfile>(
-        std::vector<std::shared_ptr<::chrono::geometry::ChLinePath>>{mpathcrankstopper,
-                                                                     mpathcrankpin},  // wire(s) containing the face
-        std::vector<std::shared_ptr<::chrono::geometry::ChLinePath>>{},     // wire(s) telling holes (empty here)
+        std::vector<std::shared_ptr<::chrono::ChLinePath>>{mpathcrankstopper,
+                                                           mpathcrankpin},  // wire(s) containing the face
+        std::vector<std::shared_ptr<::chrono::ChLinePath>>{},               // wire(s) telling holes (empty here)
         0.05,                                                               // the thickness
         1000,                                                               // the density
         chrono_types::make_shared<ChCascadeTriangulate>(0.01, false, 0.2),  // finer than default
@@ -190,7 +190,7 @@ int main(int argc, char* argv[]) {
     // If so, use the AddProfile() function. It also updates the mass, COG position, collision shapes, etc.
     // Might throw exception if path not on XY plane, or not closed.
     auto mpathbackplate = chrono_types::make_shared<ChLinePath>();
-    auto mbackplate = chrono_types::make_shared<ChLineArc>(ChCoordsys<>(ChVector<>(0, 0, 0.06)), Ri * 1.3, CH_C_2PI, 0);
+    auto mbackplate = chrono_types::make_shared<ChLineArc>(ChCoordsys<>(ChVector3d(0, 0, 0.06)), Ri * 1.3, CH_2PI, 0);
     mpathbackplate->AddSubLine(mbackplate);
     mcrank->AddProfile({mpathbackplate},  // wire(s) containing the face
                        {},                // wire(s) telling holes (empty here)
@@ -200,7 +200,7 @@ int main(int argc, char* argv[]) {
                        material                                                            // contact material
     );
 
-    mcrank->SetFrame_REF_to_abs(
+    mcrank->SetFrameRefToAbs(
         ChFrame<>(crank_center));  // the REF is the coordinate where the path has been defined, the COG maybe elsewhere
     sys.Add(mcrank);
 
@@ -211,7 +211,7 @@ int main(int argc, char* argv[]) {
     // Add a motor between crank and truss
     auto my_motor = chrono_types::make_shared<ChLinkMotorRotationSpeed>();
     my_motor->Initialize(mcrank, mfloor, ChFrame<>(crank_center));
-    my_motor->SetSpeedFunction(chrono_types::make_shared<ChFunction_Const>(CH_C_PI / 8.0));
+    my_motor->SetSpeedFunction(chrono_types::make_shared<ChFunctionConst>(CH_PI / 8.0));
     sys.AddLink(my_motor);
 
     //
@@ -222,9 +222,9 @@ int main(int argc, char* argv[]) {
 
     auto mfollowerwire = chrono_types::make_shared<ChLinePath>();
     double Z_layer_2 = -0.10;
-    ChLineSegment msfoll1(ChVector<>(-0.1, R * 0.3 + 0.1, Z_layer_2), ChVector<>(-0.1, R * 0.3, Z_layer_2));
-    ChLineSegment msfoll2(msfoll1.GetEndB(), ChVector<>(-2 * R, R * 0.3, Z_layer_2));
-    ChLineSegment msfoll3(msfoll2.GetEndB(), ChVector<>(-2 * R, R * 0.3 + 0.1, Z_layer_2));
+    ChLineSegment msfoll1(ChVector3d(-0.1, R * 0.3 + 0.1, Z_layer_2), ChVector3d(-0.1, R * 0.3, Z_layer_2));
+    ChLineSegment msfoll2(msfoll1.GetEndB(), ChVector3d(-2 * R, R * 0.3, Z_layer_2));
+    ChLineSegment msfoll3(msfoll2.GetEndB(), ChVector3d(-2 * R, R * 0.3 + 0.1, Z_layer_2));
     ChLineSegment msfoll4(msfoll3.GetEndB(), msfoll1.GetEndA());
 
     mfollowerwire->AddSubLine(msfoll1);
@@ -233,8 +233,8 @@ int main(int argc, char* argv[]) {
     mfollowerwire->AddSubLine(msfoll4);
 
     auto mfollower = chrono_types::make_shared<ChCascadeBodyEasyProfile>(
-        std::vector<std::shared_ptr<::chrono::geometry::ChLinePath>>{mfollowerwire},  // wire(s) containing the face
-        std::vector<std::shared_ptr<::chrono::geometry::ChLinePath>>{},     // wire(s) telling holes (empty here)
+        std::vector<std::shared_ptr<::chrono::ChLinePath>>{mfollowerwire},  // wire(s) containing the face
+        std::vector<std::shared_ptr<::chrono::ChLinePath>>{},               // wire(s) telling holes (empty here)
         0.09,                                                               // the thickness
         1000,                                                               // the density
         chrono_types::make_shared<ChCascadeTriangulate>(0.01, false, 0.2),  // finer than default
@@ -245,7 +245,7 @@ int main(int argc, char* argv[]) {
 
     // Revolute constraint
     auto mrevolute2 = chrono_types::make_shared<ChLinkLockRevolute>();
-    mrevolute2->Initialize(mfollower, mfloor, ChCoordsys<>(ChVector<>(-1.4 * R, R * 0.3 + 0.05, Z_layer_2)));
+    mrevolute2->Initialize(mfollower, mfloor, ChFrame<>(ChVector3d(-1.4 * R, R * 0.3 + 0.05, Z_layer_2)));
     sys.Add(mrevolute2);
 
     // Create the run-time visualization system
@@ -260,10 +260,10 @@ int main(int argc, char* argv[]) {
             vis_irr->Initialize();
             vis_irr->AddLogo();
             vis_irr->AddSkyBox();
-            vis_irr->AddCamera(ChVector<>(0.2, 0.2, -2.3));
+            vis_irr->AddCamera(ChVector3d(0.2, 0.2, -2.3));
             vis_irr->AddTypicalLights();
-            vis_irr->AddLightWithShadow(ChVector<>(1.5, 5.5, -3.5), ChVector<>(0, 0, 0), 8.2, 2.2, 8.2, 40, 512,
-                                    ChColor(0.8f, 0.8f, 0.8f));
+            vis_irr->AddLightWithShadow(ChVector3d(1.5, 5.5, -3.5), ChVector3d(0, 0, 0), 8.2, 2.2, 8.2, 40, 512,
+                                        ChColor(0.8f, 0.8f, 0.8f));
             vis_irr->EnableShadows();
 
             vis = vis_irr;
@@ -276,7 +276,7 @@ int main(int argc, char* argv[]) {
             vis_vsg->AttachSystem(&sys);
             vis_vsg->SetWindowSize(1024, 768);
             vis_vsg->SetWindowTitle("Use 2D profiles with OpenCASCADE for mass, inertia, meshing");
-            vis_vsg->AddCamera(ChVector<>(0.2, 0.2, -4.3));
+            vis_vsg->AddCamera(ChVector3d(0.2, 0.2, -4.3));
             vis_vsg->Initialize();
 
             vis = vis_vsg;

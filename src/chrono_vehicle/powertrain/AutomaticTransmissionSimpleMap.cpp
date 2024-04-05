@@ -33,7 +33,7 @@ AutomaticTransmissionSimpleMap::AutomaticTransmissionSimpleMap(const std::string
 
     Create(d);
 
-    GetLog() << "Loaded JSON: " << filename.c_str() << "\n";
+    std::cout << "Loaded JSONL " << filename << std::endl;
 }
 
 AutomaticTransmissionSimpleMap::AutomaticTransmissionSimpleMap(const rapidjson::Document& d)
@@ -63,7 +63,7 @@ void AutomaticTransmissionSimpleMap::SetGearRatios(std::vector<double>& fwd, dou
 }
 
 void AutomaticTransmissionSimpleMap::SetShiftPoints(std::vector<std::pair<double, double>>& shift_bands) {
-    m_shift_bands.Set(shift_bands, CH_C_RPM_TO_RPS, CH_C_RPM_TO_RPS);
+    m_shift_bands.Set(shift_bands, CH_RPM_TO_RAD_S, CH_RPM_TO_RAD_S);
 }
 
 }  // end namespace vehicle

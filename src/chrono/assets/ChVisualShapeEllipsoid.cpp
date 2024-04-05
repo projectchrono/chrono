@@ -22,35 +22,35 @@ ChVisualShapeEllipsoid::ChVisualShapeEllipsoid() {
 }
 
 ChVisualShapeEllipsoid::ChVisualShapeEllipsoid(double axis_x, double axis_y, double axis_z) {
-    gellipsoid.rad = ChVector<>(axis_x / 2, axis_y / 2, axis_z / 2);
+    gellipsoid.rad = ChVector3d(axis_x / 2, axis_y / 2, axis_z / 2);
     SetMutable(false);
 }
 
-ChVisualShapeEllipsoid::ChVisualShapeEllipsoid(const ChVector<>& axes) {
+ChVisualShapeEllipsoid::ChVisualShapeEllipsoid(const ChVector3d& axes) {
     gellipsoid.rad = axes / 2;
     SetMutable(false);
 }
 
-ChVisualShapeEllipsoid::ChVisualShapeEllipsoid(const geometry::ChEllipsoid& ellipsoid) : gellipsoid(ellipsoid) {
+ChVisualShapeEllipsoid::ChVisualShapeEllipsoid(const ChEllipsoid& ellipsoid) : gellipsoid(ellipsoid) {
     SetMutable(false);
 }
 
-void ChVisualShapeEllipsoid::ArchiveOut(ChArchiveOut& marchive) {
+void ChVisualShapeEllipsoid::ArchiveOut(ChArchiveOut& archive_out) {
     // version number
-    marchive.VersionWrite<ChVisualShapeEllipsoid>();
+    archive_out.VersionWrite<ChVisualShapeEllipsoid>();
     // serialize parent class
-    ChVisualShape::ArchiveOut(marchive);
+    ChVisualShape::ArchiveOut(archive_out);
     // serialize all member data:
-    marchive << CHNVP(gellipsoid);
+    archive_out << CHNVP(gellipsoid);
 }
 
-void ChVisualShapeEllipsoid::ArchiveIn(ChArchiveIn& marchive) {
+void ChVisualShapeEllipsoid::ArchiveIn(ChArchiveIn& archive_in) {
     // version number
-    /*int version =*/marchive.VersionRead<ChVisualShapeEllipsoid>();
+    /*int version =*/archive_in.VersionRead<ChVisualShapeEllipsoid>();
     // deserialize parent class
-    ChVisualShape::ArchiveIn(marchive);
+    ChVisualShape::ArchiveIn(archive_in);
     // stream in all member data:
-    marchive >> CHNVP(gellipsoid);
+    archive_in >> CHNVP(gellipsoid);
 }
 
 }  // end namespace chrono

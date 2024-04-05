@@ -9,7 +9,7 @@ The tool allows to:
 - export entire *Assemblies*, nested *SubAssemblies* and *Parts*, together with their material and appearance properties;
 - export *Mates* of the *Standard* type plus *Mehcanical>Hinge*;
 - specify *collision shapes*, both through primitives or by automatic generating a contact mesh shape from the objects;
-- add [Chrono motors](#ref motors), together with their control functions;
+- add [Chrono motors](@ref motors), together with their control functions;
 
 The SolidWorks model can be exported to:
 - **Python**: can be run by PyChrono (also directly from SolidWorks) or parsed through the [Chrono::Parsers](@ref manual_parsers) module (still, in this case, PyChrono needs to be installed);
@@ -63,7 +63,7 @@ Please be aware that this action cannot be undone by just clicking *Undo*.
 
 ## Adding Motors
 
-Chrono motors can be added directly to the SolidWorks model by placing a *Coordinate System* (in *Assembly* tab > *Reference Geometry*). This will act as a placeholder where a proper @ref ChLinkMotor "ChLinkMotor" will be later placed during the export phase.
+Chrono motors can be added directly to the SolidWorks model by placing a *Coordinate System* (in *Assembly* tab > *Reference Geometry*). This will act as a placeholder where a proper @ref chrono::ChLinkMotor "ChLinkMotor" will be later placed during the export phase.
 
 To add a Chrono motor:
 1. expand the Chrono::SolidWorks add-in by clicking on it;

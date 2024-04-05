@@ -24,6 +24,7 @@
 #include "chrono/physics/ChSystemNSC.h"
 #include "chrono/physics/ChSystemSMC.h"
 #include "chrono/utils/ChUtilsInputOutput.h"
+#include "chrono/utils/ChUtils.h"
 
 #include "chrono_fsi/ChSystemFsi.h"
 
@@ -57,7 +58,7 @@ using std::endl;
 ChVisualSystem::Type vis_type = ChVisualSystem::Type::VSG;
 
 // CRM terrain patch type
-enum class PatchType {RECTANGULAR, MARKER_DATA, HEIGHT_MAP};
+enum class PatchType { RECTANGULAR, MARKER_DATA, HEIGHT_MAP };
 PatchType patch_type = PatchType::HEIGHT_MAP;
 
 // ===================================================================================================================
@@ -105,9 +106,9 @@ int main(int argc, char* argv[]) {
     ChSystemFsi& sysFSI = terrain.GetSystemFSI();
 
     // Set SPH parameters and soil material properties
-    const ChVector<> gravity(0, 0, -9.81);
-    sysFSI.Set_G_acc(gravity);
-    sys.Set_G_acc(gravity);
+    const ChVector3d gravity(0, 0, -9.81);
+    sysFSI.SetGravitationalAcceleration(gravity);
+    sys.SetGravitationalAcceleration(gravity);
 
     ChSystemFsi::ElasticMaterialProperties mat_props;
     mat_props.Young_modulus = youngs_modulus;
@@ -119,16 +120,16 @@ int main(int argc, char* argv[]) {
     mat_props.mu_fric_s = friction;
     mat_props.mu_fric_2 = friction;
     mat_props.average_diam = 0.005;
-    mat_props.friction_angle = CH_C_PI / 10;  // default
-    mat_props.dilation_angle = CH_C_PI / 10;  // default
-    mat_props.cohesion_coeff = 0;             // default
+    mat_props.friction_angle = CH_PI / 10;  // default
+    mat_props.dilation_angle = CH_PI / 10;  // default
+    mat_props.cohesion_coeff = 0;           // default
     mat_props.kernel_threshold = 0.8;
 
     sysFSI.SetElasticSPH(mat_props);
     sysFSI.SetDensity(density);
     sysFSI.SetCohesionForce(cohesion);
 
-    sysFSI.SetActiveDomain(ChVector<>(active_box_hdim));
+    sysFSI.SetActiveDomain(ChVector3d(active_box_hdim));
     sysFSI.SetDiscreType(false, false);
     sysFSI.SetWallBC(BceVersion::ORIGINAL);
     sysFSI.SetSPHMethod(FluidDynamics::WCSPH);
@@ -144,7 +145,7 @@ int main(int argc, char* argv[]) {
             terrain.Construct(10.0, 3.0,            // length X width
                               0.25,                 // depth
                               3,                    // number BCE layers
-                              ChVector<>(5, 0, 0),  // patch center
+                              ChVector3d(5, 0, 0),  // patch center
                               0.0,                  // patch orientation angle
                               true                  // create side boundaries
             );
@@ -162,7 +163,7 @@ int main(int argc, char* argv[]) {
                               {0, 0.3},                                                // height range
                               0.25,                                                    // depth
                               3,                                                       // number of BCE layers
-                              ChVector<>(5, 0, 0),                                     // patch center
+                              ChVector3d(5, 0, 0),                                     // patch center
                               0.0,                                                     // patch yaw rotation
                               false                                                    // side walls?
             );
@@ -171,7 +172,7 @@ int main(int argc, char* argv[]) {
 
     // Create vehicle
     cout << "Create vehicle..." << endl;
-    ChVector<> veh_init_pos(3.0, 0, 0.25);
+    ChVector3d veh_init_pos(3.0, 0, 0.25);
     auto vehicle = CreateVehicle(sys, ChCoordsys<>(veh_init_pos, QUNIT));
 
     // Create the wheel BCE markers
@@ -185,7 +186,7 @@ int main(int argc, char* argv[]) {
     cout << "  Bndry BCE markers: " << sysFSI.GetNumBoundaryMarkers() << endl;
     cout << "  AABB:              " << aabb.min << "   " << aabb.max << endl;
 
-    // Set maximum vehicle X location (based on CRM patch size) 
+    // Set maximum vehicle X location (based on CRM patch size)
     double x_max = aabb.max.x() - 3.0;
 
     // Create driver
@@ -225,7 +226,7 @@ int main(int argc, char* argv[]) {
 
         visFSI->SetTitle("Wheeled vehicle on CRM deformable terrain");
         visFSI->SetSize(1280, 720);
-        visFSI->AddCamera(ChVector<>(0, 8, 1.5), ChVector<>(0, -1, 0));
+        visFSI->AddCamera(ChVector3d(0, 8, 1.5), ChVector3d(0, -1, 0));
         visFSI->SetCameraMoveScale(0.2f);
         visFSI->EnableFluidMarkers(visualization_sph);
         visFSI->EnableBoundaryMarkers(visualization_bndry_bce);
@@ -269,8 +270,8 @@ int main(int argc, char* argv[]) {
         // Run-time visualization
         if (visualization && frame % render_steps == 0) {
             if (chase_cam) {
-                ChVector<> cam_loc = veh_loc + ChVector<>(-6, 6, 1.5);
-                ChVector<> cam_point = veh_loc;
+                ChVector3d cam_loc = veh_loc + ChVector3d(-6, 6, 1.5);
+                ChVector3d cam_point = veh_loc;
                 visFSI->UpdateCamera(cam_loc, cam_point);
             }
             if (!visFSI->Render())
@@ -345,14 +346,14 @@ std::shared_ptr<ChBezierCurve> CreatePath(const std::string& path_file) {
     assert(numCols == 3);
 
     // Read path points
-    std::vector<ChVector<>> points;
+    std::vector<ChVector3d> points;
 
     for (size_t i = 0; i < numPoints; i++) {
         double x, y, z;
         std::getline(ifile, line);
         std::istringstream jss(line);
         jss >> x >> y >> z;
-        points.push_back(ChVector<>(x, y, z));
+        points.push_back(ChVector3d(x, y, z));
     }
 
     // Include point beyond CRM patch
@@ -374,9 +375,9 @@ void CreateWheelBCEMarkers(std::shared_ptr<WheeledVehicle> vehicle, ChSystemFsi&
     // Create BCE markers for a tire
     std::string tire_coll_obj = "Polaris/meshes/Polaris_tire_collision.obj";
 
-    geometry::ChTriangleMeshConnected trimesh;
+    ChTriangleMeshConnected trimesh;
     trimesh.LoadWavefrontMesh(vehicle::GetDataFile(tire_coll_obj));
-    std::vector<ChVector<>> point_cloud;
+    std::vector<ChVector3d> point_cloud;
     sysFSI.CreateMeshPoints(trimesh, sysFSI.GetInitialSpacing(), point_cloud);
 
     // Create and initialize the tires

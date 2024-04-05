@@ -45,12 +45,12 @@ ChQuaternion<> ChSuspension::GetSpindleRot(VehicleSide side) const {
 }
 
 void ChSuspension::ApplyAxleTorque(VehicleSide side, double torque) {
-    m_axle[side]->SetAppliedTorque(torque);
+    m_axle[side]->SetAppliedLoad(torque);
 }
 
 void ChSuspension::Synchronize() {
-    m_spindle[LEFT]->Empty_forces_accumulators();
-    m_spindle[RIGHT]->Empty_forces_accumulators();
+    m_spindle[LEFT]->EmptyAccumulators();
+    m_spindle[RIGHT]->EmptyAccumulators();
 }
 
 void ChSuspension::AddVisualizationAssets(VisualizationType vis) {
@@ -72,8 +72,8 @@ void ChSuspension::RemoveVisualizationAssets() {
 
 void ChSuspension::AddVisualizationSpindle(VehicleSide side, double radius, double width) {
     m_spindle_shapes[side] = ChVehicleGeometry::AddVisualizationCylinder(m_spindle[side],               //
-                                                                         ChVector<>(0, width / 2, 0),   //
-                                                                         ChVector<>(0, -width / 2, 0),  //
+                                                                         ChVector3d(0, width / 2, 0),   //
+                                                                         ChVector3d(0, -width / 2, 0),  //
                                                                          radius);
 }
 
@@ -85,7 +85,7 @@ void ChSuspension::ApplyParkingBrake(bool brake) {
 void ChSuspension::Initialize(std::shared_ptr<ChChassis> chassis,
                               std::shared_ptr<ChSubchassis> subchassis,
                               std::shared_ptr<ChSteering> steering,
-                              const ChVector<>& location,
+                              const ChVector3d& location,
                               double left_ang_vel,
                               double right_ang_vel) {
     // Mark as initialized

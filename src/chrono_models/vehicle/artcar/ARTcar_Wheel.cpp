@@ -33,13 +33,13 @@ namespace artcar {
 // Static variables
 // -----------------------------------------------------------------------------
 
-static const double in2m = 0.0254; 
+static const double in2m = 0.0254;
 static const double lb2kg = 0.453592;
 
 const double ARTcar_Wheel::m_mass = .07;
-const ChVector<> ARTcar_Wheel::m_inertia(.00007, 0.000136, .00007);
+const ChVector3d ARTcar_Wheel::m_inertia(.00007, 0.000136, .00007);
 
-const double ARTcar_Wheel::m_radius = .103/2;
+const double ARTcar_Wheel::m_radius = .103 / 2;
 const double ARTcar_Wheel::m_width = .0855;
 
 const std::string ARTcar_WheelLeft::m_meshName = "wheel_L_POV_geom";
@@ -61,7 +61,7 @@ ARTcar_WheelRight::ARTcar_WheelRight(const std::string& name) : ARTcar_Wheel(nam
 // -----------------------------------------------------------------------------
 void ARTcar_Wheel::AddVisualizationAssets(VisualizationType vis) {
     if (vis == VisualizationType::MESH) {
-        auto trimesh = geometry::ChTriangleMeshConnected::CreateFromWavefrontFile(GetMeshFile(), false, false);
+        auto trimesh = ChTriangleMeshConnected::CreateFromWavefrontFile(GetMeshFile(), false, false);
         m_trimesh_shape = chrono_types::make_shared<ChVisualShapeTriangleMesh>();
         m_trimesh_shape->SetMesh(trimesh);
         m_trimesh_shape->SetName(GetMeshName());

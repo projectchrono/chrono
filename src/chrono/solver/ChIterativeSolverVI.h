@@ -22,7 +22,7 @@ namespace chrono {
 
 /// @addtogroup chrono_solver
 /// @{
-    
+
 /** \class ChIterativeSolverVI
 \brief Base class for iterative solvers aimed at solving complementarity problems arising from QP optimization problems.
 
@@ -91,12 +91,16 @@ class ChApi ChIterativeSolverVI : public ChIterativeSolver, public ChSolverVI {
     const std::vector<double>& GetDeltalambdaHistory() const { return dlambda_history; }
 
     /// Method to allow serialization of transient data to archives.
-    virtual void ArchiveOut(ChArchiveOut& marchive) override;
+    virtual void ArchiveOut(ChArchiveOut& archive_out) override;
 
     /// Method to allow de-serialization of transient data from archives.
-    virtual void ArchiveIn(ChArchiveIn& marchive) override;
+    virtual void ArchiveIn(ChArchiveIn& archive_in) override;
 
   protected:
+    virtual bool IsIterative() const override { return true; }
+    virtual bool IsDirect() const override { return false; }
+    virtual ChIterativeSolver* AsIterative() override { return this; }
+
     /// This method MUST be called by all iterative methods INSIDE their iteration loops
     /// (at the end). If history recording is enabled, this function will store the
     /// current values as passed as arguments.

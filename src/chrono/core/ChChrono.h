@@ -54,7 +54,7 @@
 namespace chrono {
 /// Namespace for FEA classes.
 namespace fea {}
-}
+}  // namespace chrono
 
 /// @} chrono
 

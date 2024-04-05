@@ -33,13 +33,14 @@ namespace vehicle {
 // Constructors for FEATire
 // -----------------------------------------------------------------------------
 FEATire::FEATire(const std::string& filename) : ChFEATire("") {
-    Document d; ReadFileJSON(filename, d);
+    Document d;
+    ReadFileJSON(filename, d);
     if (d.IsNull())
         return;
 
     ProcessJSON(d);
 
-    GetLog() << "Loaded JSON: " << filename.c_str() << "\n";
+    std::cout << "Loaded JSONL " << filename << std::endl;
 }
 
 FEATire::FEATire(const rapidjson::Document& d) : ChFEATire("") {
@@ -56,7 +57,7 @@ void FEATire::ProcessJSON(const rapidjson::Document& d) {
     assert(d.HasMember("Name"));
 
     SetName(d["Name"].GetString());
-    
+
     // Read geometric dimensions
     m_tire_radius = d["Tire Radius"].GetDouble();
     m_rim_radius = d["Rim Radius"].GetDouble();
@@ -73,10 +74,10 @@ void FEATire::ProcessJSON(const rapidjson::Document& d) {
     double density = d["Continuum Material"]["Density"].GetDouble();
 
     m_material = chrono_types::make_shared<ChContinuumElastic>();
-    m_material->Set_E(E);
-    m_material->Set_v(nu);
-    m_material->Set_RayleighDampingK(rd);
-    m_material->Set_density(density);
+    m_material->SetYoungModulus(E);
+    m_material->SetPoissonRatio(nu);
+    m_material->SetRayleighDampingBeta(rd);
+    m_material->SetDensity(density);
 
     // Default tire pressure
     m_default_pressure = d["Default Pressure"].GetDouble();
@@ -93,15 +94,15 @@ void FEATire::CreateMesh(const ChFrameMoving<>& wheel_frame, VehicleSide side) {
     ////    Currently, we assume that the INP file contains a tire with rotation axis along X
     ChMeshFileLoader::FromAbaqusFile(m_mesh, GetDataFile(m_input_file).c_str(), m_material, m_node_sets,
                                      wheel_frame.GetPos(),
-                                     wheel_frame.GetA() * ChMatrix33<>(CH_C_PI_2, ChVector<>(0, 0, 1)));
+                                     wheel_frame.GetRotMat() * ChMatrix33<>(CH_PI_2, ChVector3d(0, 0, 1)));
 
-    for (unsigned int i = 0; i < m_mesh->GetNnodes(); i++) {
+    for (unsigned int i = 0; i < m_mesh->GetNumNodes(); i++) {
         auto node = std::dynamic_pointer_cast<ChNodeFEAxyz>(m_mesh->GetNode(i));
         // Node position (expressed in wheel frame)
-        ChVector<> loc = wheel_frame.TransformPointParentToLocal(node->GetPos());
+        ChVector3d loc = wheel_frame.TransformPointParentToLocal(node->GetPos());
         // Node velocity (expressed in absolute frame)
-        ChVector<> vel = wheel_frame.PointSpeedLocalToParent(loc);
-        node->SetPos_dt(vel);
+        ChVector3d vel = wheel_frame.PointSpeedLocalToParent(loc);
+        node->SetPosDt(vel);
     }
 }
 
@@ -114,7 +115,7 @@ std::vector<std::shared_ptr<fea::ChNodeFEAbase>> FEATire::GetConnectedNodes() co
 }
 
 void FEATire::CreateContactMaterial() {
-    m_contact_mat = chrono_types::make_shared<ChMaterialSurfaceSMC>();
+    m_contact_mat = chrono_types::make_shared<ChContactMaterialSMC>();
     m_contact_mat->SetFriction(m_mat_info.mu);
     m_contact_mat->SetRestitution(m_mat_info.cr);
     m_contact_mat->SetYoungModulus(m_mat_info.Y);

@@ -20,27 +20,25 @@
 
 namespace chrono {
 
-using namespace geometry;
-
 // Register into the object factory, to enable run-time dynamic creation and persistence
-//CH_FACTORY_REGISTER(ChIndexedNodes) // NO! abstract class!
+// CH_FACTORY_REGISTER(ChIndexedNodes) // NO! abstract class!
 
-void ChIndexedNodes::ArchiveOut(ChArchiveOut& marchive) {
+void ChIndexedNodes::ArchiveOut(ChArchiveOut& archive_out) {
     // class version number
-    marchive.VersionWrite<ChIndexedNodes>();
+    archive_out.VersionWrite<ChIndexedNodes>();
 
     // serialize parent class too
-    ChPhysicsItem::ArchiveOut(marchive);
+    ChPhysicsItem::ArchiveOut(archive_out);
 
     // stream out all member data
 }
 
-void ChIndexedNodes::ArchiveIn(ChArchiveIn& marchive) {
+void ChIndexedNodes::ArchiveIn(ChArchiveIn& archive_in) {
     // class version number
-    /*int version =*/ marchive.VersionRead<ChIndexedNodes>();
+    /*int version =*/archive_in.VersionRead<ChIndexedNodes>();
 
     // deserialize parent class too
-    ChPhysicsItem::ArchiveIn(marchive);
+    ChPhysicsItem::ArchiveIn(archive_in);
 
     // stream in all member data
 }

@@ -84,43 +84,42 @@ void ChLinkMotorRotation::Update(double mytime, bool update_assets) {
     ChLinkMotor::Update(mytime, update_assets);
 
     // compute aux data for future reference (istantaneous pos speed accel)
-    ChFrameMoving<> aframe1 = ChFrameMoving<>(this->frame1) >> (ChFrameMoving<>)(*this->Body1);
-    ChFrameMoving<> aframe2 = ChFrameMoving<>(this->frame2) >> (ChFrameMoving<>)(*this->Body2);
-    ChFrameMoving<> aframe12;
-    aframe2.TransformParentToLocal(aframe1, aframe12);
+    ChFrameMoving<> aframe1 = ChFrameMoving<>(this->frame1) >> (ChFrameMoving<>)(*this->m_body1);
+    ChFrameMoving<> aframe2 = ChFrameMoving<>(this->frame2) >> (ChFrameMoving<>)(*this->m_body2);
+    ChFrameMoving<> aframe12 = aframe2.TransformParentToLocal(aframe1);
 
     // multi-turn rotation code
     double last_totrot = this->mrot;
-    double last_rot = remainder(last_totrot, CH_C_2PI);
+    double last_rot = remainder(last_totrot, CH_2PI);
     double last_turns = last_totrot - last_rot;
-    double new_rot = remainder(aframe12.GetRot().Q_to_Rotv().z(), CH_C_2PI);
+    double new_rot = remainder(aframe12.GetRot().GetRotVec().z(), CH_2PI);
     this->mrot = last_turns + new_rot;
-    if (fabs(new_rot + CH_C_2PI - last_rot) < fabs(new_rot - last_rot))
-        this->mrot = last_turns + new_rot + CH_C_2PI;
-    if (fabs(new_rot - CH_C_2PI - last_rot) < fabs(new_rot - last_rot))
-        this->mrot = last_turns + new_rot - CH_C_2PI;
+    if (fabs(new_rot + CH_2PI - last_rot) < fabs(new_rot - last_rot))
+        this->mrot = last_turns + new_rot + CH_2PI;
+    if (fabs(new_rot - CH_2PI - last_rot) < fabs(new_rot - last_rot))
+        this->mrot = last_turns + new_rot - CH_2PI;
 
-    this->mrot_dt = aframe12.GetWvel_loc().z();
-    this->mrot_dtdt = aframe12.GetWacc_loc().z();
+    this->mrot_dt = aframe12.GetAngVelLocal().z();
+    this->mrot_dtdt = aframe12.GetAngAccLocal().z();
 }
 
-void ChLinkMotorRotation::ArchiveOut(ChArchiveOut& marchive) {
+void ChLinkMotorRotation::ArchiveOut(ChArchiveOut& archive_out) {
     // version number
-    marchive.VersionWrite<ChLinkMotorRotation>();
+    archive_out.VersionWrite<ChLinkMotorRotation>();
 
     // serialize parent class
-    ChLinkMotor::ArchiveOut(marchive);
+    ChLinkMotor::ArchiveOut(archive_out);
 
     // serialize all member data:
 }
 
 /// Method to allow de serialization of transient data from archives.
-void ChLinkMotorRotation::ArchiveIn(ChArchiveIn& marchive) {
+void ChLinkMotorRotation::ArchiveIn(ChArchiveIn& archive_in) {
     // version number
-    /*int version =*/ marchive.VersionRead<ChLinkMotorRotation>();
+    /*int version =*/archive_in.VersionRead<ChLinkMotorRotation>();
 
     // deserialize parent class
-    ChLinkMotor::ArchiveIn(marchive);
+    ChLinkMotor::ArchiveIn(archive_in);
 
     // deserialize all member data:
 }

@@ -4,7 +4,7 @@
 #include "chrono/physics/ChLinkLock.h"
 
 %}
- 
+
 
 %shared_ptr(chrono::ChLinkLock)
 %shared_ptr(chrono::ChLinkLockRevolute)
@@ -14,7 +14,7 @@
 %shared_ptr(chrono::ChLinkLockPrismatic)
 %shared_ptr(chrono::ChLinkLockPointPlane)
 %shared_ptr(chrono::ChLinkLockPointLine)
-%shared_ptr(chrono::ChLinkLockPlanePlane)
+%shared_ptr(chrono::ChLinkLockPlanar)
 %shared_ptr(chrono::ChLinkLockOldham)
 %shared_ptr(chrono::ChLinkLockFree)
 %shared_ptr(chrono::ChLinkLockAlign)

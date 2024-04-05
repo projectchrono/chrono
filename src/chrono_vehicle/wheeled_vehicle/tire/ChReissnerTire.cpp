@@ -36,10 +36,11 @@ void ChReissnerTire::CreatePressureLoad() {
     // Set a negative pressure (i.e. internal pressure, acting opposite to the surface normal)
     for (const auto& element : m_mesh->GetElements()) {
         if (auto loadable = std::dynamic_pointer_cast<ChLoadableUV>(element)) {
-            auto load = chrono_types::make_shared<ChLoad<ChLoaderPressure>>(loadable);
-            load->loader.SetPressure(-m_pressure);
-            load->loader.SetStiff(false);          //// TODO:  user control?
-            load->loader.SetIntegrationPoints(2);  //// TODO:  user control?
+            auto loader = chrono_types::make_shared<ChLoaderPressure>(loadable);
+            loader->SetPressure(-m_pressure);
+            loader->SetStiff(false);          //// TODO:  user control?
+            loader->SetIntegrationPoints(2);  //// TODO:  user control?
+            auto load = chrono_types::make_shared<ChLoad>(loader);
             m_load_container->Add(load);
         }
     }
@@ -77,7 +78,6 @@ void ChReissnerTire::CreateRimConnections(std::shared_ptr<ChBody> wheel) {
         m_connectionsF[in]->Initialize(node, wheel);
         wheel->GetSystem()->Add(m_connectionsF[in]);
     }
-
 }
 
 }  // end namespace vehicle

@@ -27,36 +27,36 @@ namespace chrono {
 class ChApi ChCollisionShapeRoundedBox : public ChCollisionShape {
   public:
     ChCollisionShapeRoundedBox();
-    ChCollisionShapeRoundedBox(std::shared_ptr<ChMaterialSurface> material,
+    ChCollisionShapeRoundedBox(std::shared_ptr<ChContactMaterial> material,
                                double length_x,
                                double length_y,
                                double length_z,
                                double sradius);
-    ChCollisionShapeRoundedBox(std::shared_ptr<ChMaterialSurface> material, const ChVector<>& lengths, double sradius);
-    ChCollisionShapeRoundedBox(std::shared_ptr<ChMaterialSurface> material, const geometry::ChRoundedBox& box);
+    ChCollisionShapeRoundedBox(std::shared_ptr<ChContactMaterial> material, const ChVector3d& lengths, double sradius);
+    ChCollisionShapeRoundedBox(std::shared_ptr<ChContactMaterial> material, const ChRoundedBox& box);
 
     ~ChCollisionShapeRoundedBox() {}
 
     /// Access the rounded box geometry.
-    geometry::ChRoundedBox& GetGeometry() { return gbox; }
+    ChRoundedBox& GetGeometry() { return gbox; }
 
     /// Get the box half-lengths.
-    const ChVector<>& GetHalflengths() const { return gbox.GetHalflengths(); }
+    const ChVector3d& GetHalflengths() const { return gbox.GetHalflengths(); }
 
     /// Get the box dimensions.
-    ChVector<> GetLengths() const { return gbox.GetLengths(); }
+    ChVector3d GetLengths() const { return gbox.GetLengths(); }
 
     /// Get the radius of the sweeping sphere.
     double GetSRadius() const { return gbox.GetSphereRadius(); }
 
     /// Method to allow serialization of transient data to archives.
-    virtual void ArchiveOut(ChArchiveOut& marchive) override;
+    virtual void ArchiveOut(ChArchiveOut& archive_out) override;
 
     /// Method to allow de-serialization of transient data from archives.
-    virtual void ArchiveIn(ChArchiveIn& marchive) override;
+    virtual void ArchiveIn(ChArchiveIn& archive_in) override;
 
   private:
-    geometry::ChRoundedBox gbox;
+    ChRoundedBox gbox;
 };
 
 /// @} chrono_collision

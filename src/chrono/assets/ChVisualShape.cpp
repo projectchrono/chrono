@@ -94,23 +94,22 @@ std::string ChVisualShape::GetTexture() const {
     return material_list[0]->GetKdTexture();
 }
 
-void ChVisualShape::ArchiveOut(ChArchiveOut& marchive) {
+void ChVisualShape::ArchiveOut(ChArchiveOut& archive_out) {
     // version number
-    marchive.VersionWrite<ChVisualShape>();
+    archive_out.VersionWrite<ChVisualShape>();
     // serialize all member data:
-    marchive << CHNVP(visible);
-    marchive << CHNVP(is_mutable);
-    marchive << CHNVP(material_list);
+    archive_out << CHNVP(visible);
+    archive_out << CHNVP(is_mutable);
+    archive_out << CHNVP(material_list);
 }
 
-void ChVisualShape::ArchiveIn(ChArchiveIn& marchive) {
+void ChVisualShape::ArchiveIn(ChArchiveIn& archive_in) {
     // version number
-    /*int version =*/ marchive.VersionRead<ChVisualShape>();
+    /*int version =*/archive_in.VersionRead<ChVisualShape>();
     // stream in all member data:
-    marchive >> CHNVP(visible);
-    marchive >> CHNVP(is_mutable);
-    marchive >> CHNVP(material_list);
-
+    archive_in >> CHNVP(visible);
+    archive_in >> CHNVP(is_mutable);
+    archive_in >> CHNVP(material_list);
 }
 
 }  // namespace chrono

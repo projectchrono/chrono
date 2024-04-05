@@ -101,7 +101,7 @@ class CH_VEHICLE_API ChVehicle {
 
     /// Get the current vehicle reference frame.
     /// This is the same as the reference frame of the chassis.
-    const ChFrameMoving<>& GetRefFrame() const { return GetChassisBody()->GetFrame_REF_to_abs(); }
+    const ChFrameMoving<>& GetRefFrame() const { return GetChassisBody()->GetFrameRefToAbs(); }
 
     /// Get the current vehicle transform relative to the global frame.
     /// This is the same as the global transform of the main chassis.
@@ -109,7 +109,7 @@ class CH_VEHICLE_API ChVehicle {
 
     /// Get the vehicle global location.
     /// This is the global location of the main chassis reference frame origin.
-    const ChVector<>& GetPos() const { return m_chassis->GetPos(); }
+    const ChVector3d& GetPos() const { return m_chassis->GetPos(); }
 
     /// Get the vehicle orientation.
     /// This is the main chassis orientation, returned as a quaternion representing a rotation with respect to the
@@ -139,29 +139,40 @@ class CH_VEHICLE_API ChVehicle {
     /// Get the global position of the specified point.
     /// The point is assumed to be given relative to the main chassis reference frame.
     /// The returned location is expressed in the global reference frame.
-    ChVector<> GetPointLocation(const ChVector<>& locpos) const { return m_chassis->GetPointLocation(locpos); }
+    ChVector3d GetPointLocation(const ChVector3d& locpos) const { return m_chassis->GetPointLocation(locpos); }
 
     /// Get the global velocity of the specified point.
     /// The point is assumed to be given relative to the main chassis reference frame.
     /// The returned velocity is expressed in the global reference frame.
-    ChVector<> GetPointVelocity(const ChVector<>& locpos) const { return m_chassis->GetPointVelocity(locpos); }
+    ChVector3d GetPointVelocity(const ChVector3d& locpos) const { return m_chassis->GetPointVelocity(locpos); }
 
     /// Get the acceleration at the specified point.
     /// The point is assumed to be given relative to the main chassis reference frame.
     /// The returned acceleration is expressed in the chassis reference frame.
-    ChVector<> GetPointAcceleration(const ChVector<>& locpos) const { return m_chassis->GetPointAcceleration(locpos); }
+    ChVector3d GetPointAcceleration(const ChVector3d& locpos) const { return m_chassis->GetPointAcceleration(locpos); }
 
     /// Get the global location of the driver.
-    ChVector<> GetDriverPos() const { return m_chassis->GetDriverPos(); }
+    ChVector3d GetDriverPos() const { return m_chassis->GetDriverPos(); }
 
     /// Enable/disable soft real-time (default: false).
-    /// If enabled, a spinning timer is used to maintain simulation time in sync with real time (if simulation is
-    /// faster).
-    void EnableRealtime(bool val) { m_realtime_force = val; }
+    /// If enabled, a spinning timer is used to maintain simulation time in sync with real time. This function should be
+    /// called right before the main simulation loop, since it starts the embedded ChTimer.
+    void EnableRealtime(bool val);
 
     /// Get current estimated RTF (real time factor).
     /// Note that the "true" RTF is returned, even if soft real-time is enforced.
-    double GetRTF() const;
+    /// This represents the real time factor for advancing the dynamic state of the system only and as such does not
+    /// take into account any other operations performed during a step (e.g., run-time visualization). During each call
+    /// to Advance(), this value is calculated as T/step_size, where T includes the time spent in system setup,
+    /// collision detection, and integration.
+    double GetRTF() const { return m_system->GetRTF(); }
+
+    /// Get current estimated step RTF (real time factor).
+    /// Unlike the value returned by GetRTF(), this represents the real time factor for all calculations performed
+    /// during a simulation step, including any other operations in addition to advancing the dynamic state of the
+    /// system (run-time visualization, I/O, etc.). This RTF value is calculated as T/step_size, where T represents the
+    /// time from the previous call to Advance().
+    double GetStepRTF() const { return m_RTF; }
 
     /// Change the default collision detection system.
     /// Note that this function should be called *before* initialization of the vehicle system in order to create

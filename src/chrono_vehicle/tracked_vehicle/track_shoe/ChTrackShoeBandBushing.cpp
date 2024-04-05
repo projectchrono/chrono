@@ -25,7 +25,6 @@
 #include "chrono_vehicle/ChSubsysDefs.h"
 #include "chrono_vehicle/tracked_vehicle/track_shoe/ChTrackShoeBandBushing.h"
 
-
 namespace chrono {
 namespace vehicle {
 
@@ -36,7 +35,7 @@ ChTrackShoeBandBushing::~ChTrackShoeBandBushing() {}
 
 // -----------------------------------------------------------------------------
 void ChTrackShoeBandBushing::Initialize(std::shared_ptr<ChBodyAuxRef> chassis,
-                                        const ChVector<>& location,
+                                        const ChVector3d& location,
                                         const ChQuaternion<>& rotation) {
     // Initialize base class (create tread body)
     ChTrackShoeBand::Initialize(chassis, location, rotation);
@@ -47,21 +46,21 @@ void ChTrackShoeBandBushing::Initialize(std::shared_ptr<ChBodyAuxRef> chassis,
     m_seg_inertia = GetWebInertia();  //// TODO - properly distribute web inertia
 
     // Express the tread body location and orientation in global frame.
-    ChVector<> loc = chassis->TransformPointLocalToParent(location);
+    ChVector3d loc = chassis->TransformPointLocalToParent(location);
     ChQuaternion<> rot = chassis->GetRot() * rotation;
-    ChVector<> xdir = rot.GetXaxis();
+    ChVector3d xdir = rot.GetAxisX();
 
     // Create the required number of web segment bodies
     auto web_mat = m_body_matinfo.CreateMaterial(chassis->GetSystem()->GetContactMethod());
-    ChVector<> seg_loc = loc + (0.5 * GetToothBaseLength()) * xdir;
-    for (int is = 0; is < GetNumWebSegments(); is++) {
+    ChVector3d seg_loc = loc + (0.5 * GetToothBaseLength()) * xdir;
+    for (unsigned int is = 0; is < GetNumWebSegments(); is++) {
         m_web_segments.push_back(chrono_types::make_shared<ChBody>());
-        m_web_segments[is]->SetNameString(m_name + "_web_" + std::to_string(is));
+        m_web_segments[is]->SetName(m_name + "_web_" + std::to_string(is));
         m_web_segments[is]->SetPos(seg_loc + ((2 * is + 1) * m_seg_length / 2) * xdir);
         m_web_segments[is]->SetRot(rot);
         m_web_segments[is]->SetMass(m_seg_mass);
         m_web_segments[is]->SetInertiaXX(m_seg_inertia);
-        m_web_segments[is]->SetCollide(true);
+        m_web_segments[is]->EnableCollision(true);
         chassis->GetSystem()->AddBody(m_web_segments[is]);
 
         // Add contact geometry
@@ -82,7 +81,7 @@ void ChTrackShoeBandBushing::Initialize(std::shared_ptr<ChBodyAuxRef> chassis,
     m_shoe->SetPos(chassis->TransformPointLocalToParent(component_pos[0].pos));
     m_shoe->SetRot(chassis->GetRot() * component_pos[0].rot);
 
-    for (int is = 0; is < GetNumWebSegments(); is++) {
+    for (unsigned int is = 0; is < GetNumWebSegments(); is++) {
         m_web_segments[is]->SetPos(chassis->TransformPointLocalToParent(component_pos[is + 1].pos));
         m_web_segments[is]->SetRot(chassis->GetRot() * component_pos[is + 1].rot);
     }
@@ -93,32 +92,32 @@ void ChTrackShoeBandBushing::InitializeInertiaProperties() {
 }
 
 void ChTrackShoeBandBushing::UpdateInertiaProperties() {
-    m_xform = m_shoe->GetFrame_REF_to_abs();
+    m_xform = m_shoe->GetFrameRefToAbs();
 
     // Calculate COM and inertia expressed in global frame
     utils::CompositeInertia composite;
-    composite.AddComponent(m_shoe->GetFrame_COG_to_abs(), m_shoe->GetMass(), m_shoe->GetInertia());
-    for (int is = 0; is < GetNumWebSegments(); is++) {
-        composite.AddComponent(m_web_segments[is]->GetFrame_COG_to_abs(), m_web_segments[is]->GetMass(),
+    composite.AddComponent(m_shoe->GetFrameCOMToAbs(), m_shoe->GetMass(), m_shoe->GetInertia());
+    for (unsigned int is = 0; is < GetNumWebSegments(); is++) {
+        composite.AddComponent(m_web_segments[is]->GetFrameCOMToAbs(), m_web_segments[is]->GetMass(),
                                m_web_segments[is]->GetInertia());
     }
 
     // Express COM and inertia in subsystem reference frame
-    m_com.coord.pos = m_xform.TransformPointParentToLocal(composite.GetCOM());
-    m_com.coord.rot = QUNIT;
+    m_com.SetPos(m_xform.TransformPointParentToLocal(composite.GetCOM()));
+    m_com.SetRot(QUNIT);
 
-    m_inertia = m_xform.GetA().transpose() * composite.GetInertia() * m_xform.GetA();
+    m_inertia = m_xform.GetRotMat().transpose() * composite.GetInertia() * m_xform.GetRotMat();
 }
 
 // -----------------------------------------------------------------------------
 void ChTrackShoeBandBushing::AddWebContact(std::shared_ptr<ChBody> segment,
-                                           std::shared_ptr<ChMaterialSurface> web_mat) {
+                                           std::shared_ptr<ChContactMaterial> web_mat) {
     auto shape =
         chrono_types::make_shared<ChCollisionShapeBox>(web_mat, m_seg_length, GetBeltWidth(), GetWebThickness());
     segment->AddCollisionShape(shape);
 
     segment->GetCollisionModel()->SetFamily(TrackedCollisionFamily::SHOES);
-    segment->GetCollisionModel()->SetFamilyMaskNoCollisionWithFamily(TrackedCollisionFamily::SHOES);
+    segment->GetCollisionModel()->DisallowCollisionsWith(TrackedCollisionFamily::SHOES);
 }
 
 // -----------------------------------------------------------------------------
@@ -144,8 +143,8 @@ void ChTrackShoeBandBushing::AddWebVisualization(std::shared_ptr<ChBody> segment
 
     double radius = GetWebThickness() / 4;
     ChVehicleGeometry::AddVisualizationCylinder(segment,                                                            //
-                                                ChVector<>(m_seg_length / 2, -GetBeltWidth() / 2 - 2 * radius, 0),  //
-                                                ChVector<>(m_seg_length / 2, +GetBeltWidth() / 2 + 2 * radius, 0),  //
+                                                ChVector3d(m_seg_length / 2, -GetBeltWidth() / 2 - 2 * radius, 0),  //
+                                                ChVector3d(m_seg_length / 2, +GetBeltWidth() / 2 + 2 * radius, 0),  //
                                                 radius);
 }
 
@@ -156,26 +155,26 @@ void ChTrackShoeBandBushing::Connect(std::shared_ptr<ChTrackShoe> next,
                                      bool ccw) {
     int index = 0;
 
-    auto z2y = Q_from_AngX(CH_C_PI_2);
+    auto z2y = QuatFromAngleX(CH_PI_2);
 
     // Connect tread body to the first web segment.
     {
-        ChVector<> loc = m_shoe->TransformPointLocalToParent(ChVector<>(GetToothBaseLength() / 2, 0, 0));
+        ChVector3d loc = m_shoe->TransformPointLocalToParent(ChVector3d(GetToothBaseLength() / 2, 0, 0));
         ChQuaternion<> rot = m_shoe->GetRot() * z2y;
         auto bushing = chrono_types::make_shared<ChVehicleJoint>(
             ChVehicleJoint::Type::REVOLUTE, m_name + "_bushing_" + std::to_string(index++), m_web_segments[0], m_shoe,
-            ChCoordsys<>(loc, rot), GetBushingData());
+            ChFrame<>(loc, rot), GetBushingData());
         chassis->AddJoint(bushing);
         m_web_bushings.push_back(bushing->GetAsBushing());
     }
 
     // Connect the web segments to each other.
     for (size_t is = 0; is < GetNumWebSegments() - 1; is++) {
-        ChVector<> loc = m_web_segments[is]->TransformPointLocalToParent(ChVector<>(m_seg_length / 2, 0, 0));
+        ChVector3d loc = m_web_segments[is]->TransformPointLocalToParent(ChVector3d(m_seg_length / 2, 0, 0));
         ChQuaternion<> rot = m_web_segments[is]->GetRot() * z2y;
         auto bushing = chrono_types::make_shared<ChVehicleJoint>(
             ChVehicleJoint::Type::REVOLUTE, m_name + "_bushing_" + std::to_string(index++), m_web_segments[is + 1],
-            m_web_segments[is], ChCoordsys<>(loc, rot), GetBushingData());
+            m_web_segments[is], ChFrame<>(loc, rot), GetBushingData());
         chassis->AddJoint(bushing);
         m_web_bushings.push_back(bushing->GetAsBushing());
     }
@@ -183,17 +182,17 @@ void ChTrackShoeBandBushing::Connect(std::shared_ptr<ChTrackShoe> next,
     {
         // Connect the last web segment to the tread body from the next track shoe.
         int is = GetNumWebSegments() - 1;
-        ChVector<> loc = m_web_segments[is]->TransformPointLocalToParent(ChVector<>(m_seg_length / 2, 0, 0));
+        ChVector3d loc = m_web_segments[is]->TransformPointLocalToParent(ChVector3d(m_seg_length / 2, 0, 0));
         ChQuaternion<> rot = m_web_segments[is]->GetRot() * z2y;
         auto bushing = chrono_types::make_shared<ChVehicleJoint>(
             ChVehicleJoint::Type::REVOLUTE, m_name + "_bushing_" + std::to_string(index++), next->GetShoeBody(),
-            m_web_segments[is], ChCoordsys<>(loc, rot), GetBushingData());
+            m_web_segments[is], ChFrame<>(loc, rot), GetBushingData());
         chassis->AddJoint(bushing);
         m_web_bushings.push_back(bushing->GetAsBushing());
     }
 }
 
-ChVector<> ChTrackShoeBandBushing::GetTension() const {
+ChVector3d ChTrackShoeBandBushing::GetTension() const {
     return m_web_bushings[0]->GetForce();
 }
 

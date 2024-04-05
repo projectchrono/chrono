@@ -30,9 +30,9 @@
 
 #include <algorithm>
 
-#include "chrono/core/ChMathematics.h"
 #include "chrono/assets/ChVisualShapeLine.h"
 #include "chrono/geometry/ChLineBezier.h"
+#include "chrono/utils/ChUtils.h"
 #include "chrono/utils/ChUtilsInputOutput.h"
 
 #include "chrono_vehicle/ChWorldFrame.h"
@@ -123,72 +123,72 @@ ChHumanDriver::ChHumanDriver(const std::string& filename,
 
     if (d.HasMember("Preview Time")) {
         m_Tp = d["Preview Time"].GetDouble();
-        GetLog() << "Preview Time read from JSON file. Tp = " << m_Tp << " secs\n";
+        std::cout << "Preview Time read from JSON file. Tp = " << m_Tp << " secs\n";
     } else {
-        GetLog() << "Caution: I am using the default value for Preview Time Tp = " << m_Tp << " secs\n";
+        std::cout << "Caution: I am using the default value for Preview Time Tp = " << m_Tp << " secs\n";
     }
 
     if (d.HasMember("Speed Range")) {
         if (d["Speed Range"].HasMember("MinSpeed")) {
             m_u0 = d["Speed Range"]["MinSpeed"].GetDouble();
-            GetLog() << "Minimal speed U0 read from JSON file. U0 = " << m_u0 << " m/s\n";
+            std::cout << "Minimal speed U0 read from JSON file. U0 = " << m_u0 << " m/s\n";
         } else {
-            GetLog() << "Caution: I am using the default value for U0 = " << m_u0 << " m/s\n";
+            std::cout << "Caution: I am using the default value for U0 = " << m_u0 << " m/s\n";
         }
         if (d["Speed Range"].HasMember("MaxSpeed")) {
             m_umax = d["Speed Range"]["MaxSpeed"].GetDouble();
-            GetLog() << "Minimal speed Umax read from JSON file. Umax = " << m_umax << " m/s\n";
+            std::cout << "Minimal speed Umax read from JSON file. Umax = " << m_umax << " m/s\n";
         } else {
-            GetLog() << "Caution: I am using the default value for Umax = " << m_umax << " m/s\n";
+            std::cout << "Caution: I am using the default value for Umax = " << m_umax << " m/s\n";
         }
     } else {
-        GetLog() << "Caution: I am using the default values for U0 = " << m_u0 << " m/s  and  Umax = " << m_umax
-                 << " m/s\n";
+        std::cout << "Caution: I am using the default values for U0 = " << m_u0 << " m/s  and  Umax = " << m_umax
+                  << " m/s\n";
     }
 
     if (d.HasMember("Lateral Gains")) {
         if (d["Lateral Gains"].HasMember("Klat")) {
             m_Klat = d["Lateral Gains"]["Klat"].GetDouble();
-            GetLog() << "Lateral gain Klat read from JSON file. Klat = " << m_Klat << "\n";
+            std::cout << "Lateral gain Klat read from JSON file. Klat = " << m_Klat << "\n";
         } else {
-            GetLog() << "Caution: I am using the default value for Klat = " << m_Klat << "\n";
+            std::cout << "Caution: I am using the default value for Klat = " << m_Klat << "\n";
         }
         if (d["Lateral Gains"].HasMember("Kug")) {
             m_Kug = d["Lateral Gains"]["Kug"].GetDouble();
-            GetLog() << "Lateral gain Kug read from JSON file. Kug = " << m_Kug << " deg/g\n";
+            std::cout << "Lateral gain Kug read from JSON file. Kug = " << m_Kug << " deg/g\n";
         } else {
-            GetLog() << "Caution: I am using the default value for Kug = " << m_Kug << " deg/g\n";
+            std::cout << "Caution: I am using the default value for Kug = " << m_Kug << " deg/g\n";
         }
     } else {
-        GetLog() << "Caution: I am using the default values for Klat= " << m_Klat << "  and  Kug = " << m_Kug
-                 << " deg/g\n";
+        std::cout << "Caution: I am using the default values for Klat= " << m_Klat << "  and  Kug = " << m_Kug
+                  << " deg/g\n";
     }
 
     if (d.HasMember("Longitudinal Gains")) {
         if (d["Longitudinal Gains"].HasMember("Klong")) {
             m_Klong = d["Longitudinal Gains"]["Klong"].GetDouble();
-            GetLog() << "Longitudinal gain Klong read from JSON file. Klong = " << m_Klong << " m/s\n";
+            std::cout << "Longitudinal gain Klong read from JSON file. Klong = " << m_Klong << " m/s\n";
         } else {
-            GetLog() << "Caution: I am using the default value for Klong = " << m_Klong << " \n";
+            std::cout << "Caution: I am using the default value for Klong = " << m_Klong << " \n";
         }
         if (d["Longitudinal Gains"].HasMember("Kplus")) {
             m_Kplus = d["Longitudinal Gains"]["Kplus"].GetDouble();
-            GetLog() << "Longitudinal gain Kplus read from JSON file. Kplus = " << m_Kplus << " m/s\n";
+            std::cout << "Longitudinal gain Kplus read from JSON file. Kplus = " << m_Kplus << " m/s\n";
         } else {
-            GetLog() << "Caution: I am using the default value for Kplus = " << m_Kplus << " \n";
+            std::cout << "Caution: I am using the default value for Kplus = " << m_Kplus << " \n";
         }
         if (d["Longitudinal Gains"].HasMember("Kminus")) {
             m_Kminus = d["Longitudinal Gains"]["Kminus"].GetDouble();
-            GetLog() << "Longitudinal gain Kminus read from JSON file. Kminus = " << m_Kminus << " m/s\n";
+            std::cout << "Longitudinal gain Kminus read from JSON file. Kminus = " << m_Kminus << " m/s\n";
         } else {
-            GetLog() << "Caution: I am using the default value for Kminus = " << m_Kminus << " \n";
+            std::cout << "Caution: I am using the default value for Kminus = " << m_Kminus << " \n";
         }
     } else {
-        GetLog() << "Caution: I am using the default values for Klong= " << m_Klong << "  ,  Kplus = " << m_Kplus
-                 << "  ,  Kminus = " << m_Kminus << " \n";
+        std::cout << "Caution: I am using the default values for Klong= " << m_Klong << "  ,  Kplus = " << m_Kplus
+                  << "  ,  Kminus = " << m_Kminus << " \n";
     }
 
-    GetLog() << "Loaded JSON: " << filename.c_str() << "\n";
+    std::cout << "Loaded JSONL " << filename << std::endl;
 
     Create();
 }
@@ -196,12 +196,12 @@ ChHumanDriver::ChHumanDriver(const std::string& filename,
 void ChHumanDriver::Create() {
     // Create a fixed body to carry a visualization asset for the path
     auto road = chrono_types::make_shared<ChBody>();
-    road->SetBodyFixed(true);
+    road->SetFixed(true);
     m_vehicle.GetSystem()->AddBody(road);
 
-    auto num_points = static_cast<unsigned int>(m_path->getNumPoints());
+    auto num_points = static_cast<unsigned int>(m_path->GetNumPoints());
     auto path_asset = chrono_types::make_shared<ChVisualShapeLine>();
-    path_asset->SetLineGeometry(chrono_types::make_shared<geometry::ChLineBezier>(m_path));
+    path_asset->SetLineGeometry(chrono_types::make_shared<ChLineBezier>(m_path));
     path_asset->SetColor(ChColor(0.8f, 0.8f, 0.0f));
     path_asset->SetName(m_pathName);
     path_asset->SetNumRenderPoints(std::max<unsigned int>(2 * num_points, 400));
@@ -218,9 +218,9 @@ void ChHumanDriver::Advance(double step) {  // distance in front of the vehicle.
         m_run_once = false;
     }
 
-    auto& chassis_frame = m_vehicle.GetChassisBody()->GetFrame_REF_to_abs();  // chassis ref-to-world frame
-    auto& chassis_rot = chassis_frame.GetRot();                               // chassis ref-to-world rotation
-    double u = m_vehicle.GetSpeed();                                          // vehicle speed
+    auto& chassis_frame = m_vehicle.GetChassisBody()->GetFrameRefToAbs();  // chassis ref-to-world frame
+    auto& chassis_rot = chassis_frame.GetRot();                            // chassis ref-to-world rotation
+    double u = m_vehicle.GetSpeed();                                       // vehicle speed
 
     m_distance = m_UIntegrator.Filter(u);
     m_travel_time += step;
@@ -231,7 +231,7 @@ void ChHumanDriver::Advance(double step) {  // distance in front of the vehicle.
         m_speed_min = u;
     }
 
-    double acc = m_acc_filter.Filter(m_vehicle.GetPointAcceleration(ChVector<>(0, 0, 0)).y());
+    double acc = m_acc_filter.Filter(m_vehicle.GetPointAcceleration(ChVector3d(0, 0, 0)).y());
     if (acc > m_left_acc) {
         m_left_acc = acc;
     }
@@ -240,12 +240,12 @@ void ChHumanDriver::Advance(double step) {  // distance in front of the vehicle.
     }
 
     // Calculate unit vector pointing to the yaw center
-    ChVector<> n_g = chassis_rot.GetYaxis();  // vehicle left direction (ISO frame)
+    ChVector3d n_g = chassis_rot.GetAxisY();  // vehicle left direction (ISO frame)
     ChWorldFrame::Project(n_g);               // projected onto horizontal plane (world frame)
     n_g.Normalize();                          // normalized
 
     // Calculate unit vector in the vehicle forward direction
-    ChVector<> t_g = chassis_rot.GetXaxis();  // vehicle forward direction (ISO frame)
+    ChVector3d t_g = chassis_rot.GetAxisX();  // vehicle forward direction (ISO frame)
     ChWorldFrame::Project(t_g);               // projected onto horizontal plane (world frame)
     t_g.Normalize();                          // normalized
 
@@ -256,13 +256,13 @@ void ChHumanDriver::Advance(double step) {  // distance in front of the vehicle.
         m_sentinel = chassis_frame.TransformPointLocalToParent(factor * ChWorldFrame::Forward());
     } else {
         // m_Kug is in [°/g]
-        R = (m_L + CH_C_DEG_TO_RAD * m_Kug * ut * ut / g) / m_delta;
+        R = (m_L + CH_DEG_TO_RAD * m_Kug * ut * ut / g) / m_delta;
         double theta = ut * m_Tp / R;
         ChMatrix33<> RM(theta, ChWorldFrame::Vertical());
         m_sentinel = chassis_frame.TransformPointLocalToParent(factor * ChWorldFrame::Forward()) + R * (n_g - RM * n_g);
     }
 
-    ChVector<> Pt = m_sentinel - m_S_l[m_idx_curr];
+    ChVector3d Pt = m_sentinel - m_S_l[m_idx_curr];
     double rt = m_R_l[m_idx_curr].Length();
 
     double t = std::abs(Pt.Dot(m_R_lu[m_idx_curr]));
@@ -293,7 +293,7 @@ void ChHumanDriver::Advance(double step) {  // distance in front of the vehicle.
     m_i_curr = m_idx_curr;
     m_j_curr = m_idx_curr;
 
-    ChVector<> n_lu = m_R_lu[m_idx_curr] % ChWorldFrame::Vertical();  // cross product
+    ChVector3d n_lu = m_R_lu[m_idx_curr] % ChWorldFrame::Vertical();  // cross product
 
     double err = Pt.Dot(n_lu);
 
@@ -304,18 +304,18 @@ void ChHumanDriver::Advance(double step) {  // distance in front of the vehicle.
     m_steering = m_delta / m_delta_max;
 
     // define field of view angle of the driver +-10 deg
-    const double ny = 10.0 * CH_C_DEG_TO_RAD;
+    const double ny = 10.0 * CH_DEG_TO_RAD;
     // which speed to choose?
     // search intervalls for longitudinal controller
     double d_long = 0;
     bool i_restrict = false;
     bool j_restrict = false;
-    ChVector<> Li_G;
-    ChVector<> Lip_G;
-    ChVector<> Rj_G;
-    ChVector<> Rjp_G;
-    ChVector<> r_rv = t_g + tan(ny) * n_g;
-    ChVector<> r_lv = t_g - tan(ny) * n_g;
+    ChVector3d Li_G;
+    ChVector3d Lip_G;
+    ChVector3d Rj_G;
+    ChVector3d Rjp_G;
+    ChVector3d r_rv = t_g + tan(ny) * n_g;
+    ChVector3d r_lv = t_g - tan(ny) * n_g;
     while (!i_restrict && !j_restrict) {
         size_t i_next = GetNextI();
         size_t j_next = GetNextJ();
@@ -369,7 +369,7 @@ void ChHumanDriver::Advance(double step) {  // distance in front of the vehicle.
 
 void ChHumanDriver::Initialize() {
     // Information about the drive course and the road borders
-    size_t np = m_path->getNumPoints();
+    size_t np = m_path->GetNumPoints();
     m_S_l.resize(np);
     m_R_l.resize(np);
     m_R_lu.resize(np);
@@ -379,7 +379,7 @@ void ChHumanDriver::Initialize() {
 
     if (m_path->IsClosed()) {
         for (size_t i = 0; i < np; i++) {
-            m_S_l[i] = m_path->getPoint(i);
+            m_S_l[i] = m_path->GetPoint(i);
         }
         for (size_t i = 0; i < np - 1; i++) {
             m_R_l[i] = m_S_l[i + 1] - m_S_l[i];
@@ -396,7 +396,7 @@ void ChHumanDriver::Initialize() {
         m_Rj[np - 1] = m_S_l[np - 1] - 0.5 * m_road_width * m_R_lu[np - 1].Cross(ChWorldFrame::Vertical());
     } else {
         for (size_t i = 0; i < np; i++) {
-            m_S_l[i] = m_path->getPoint(i);
+            m_S_l[i] = m_path->GetPoint(i);
         }
         for (size_t i = 0; i < np - 1; i++) {
             m_R_l[i] = m_S_l[i + 1] - m_S_l[i];

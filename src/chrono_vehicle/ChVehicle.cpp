@@ -33,7 +33,6 @@
     #include "chrono_vehicle/output/ChVehicleOutputHDF5.h"
 #endif
 
-
 namespace chrono {
 namespace vehicle {
 
@@ -57,19 +56,11 @@ ChVehicle::ChVehicle(const std::string& name, ChContactMethod contact_method)
     m_system = (contact_method == ChContactMethod::NSC) ? static_cast<ChSystem*>(new ChSystemNSC)
                                                         : static_cast<ChSystem*>(new ChSystemSMC);
 
-    m_system->Set_G_acc(-9.81 * ChWorldFrame::Vertical());
+    m_system->SetGravitationalAcceleration(-9.81 * ChWorldFrame::Vertical());
 
-    // Integration and Solver settings
-    switch (contact_method) {
-        case ChContactMethod::NSC:
-            m_system->SetSolverType(ChSolver::Type::BARZILAIBORWEIN);
-            break;
-        default:
-            break;
-    }
-
-    m_system->SetSolverMaxIterations(150);
-    m_system->SetMaxPenetrationRecoverySpeed(4.0);
+    // Set default solver for vehicle simulations
+    m_system->SetSolverType(ChSolver::Type::BARZILAIBORWEIN);
+    m_system->GetSolver()->AsIterative()->SetMaxIterations(150);
 }
 
 // Constructor for a ChVehicle using the specified Chrono ChSystem.
@@ -95,12 +86,20 @@ ChVehicle::~ChVehicle() {
 }
 
 // -----------------------------------------------------------------------------
-// Change the default collision system type
-// -----------------------------------------------------------------------------
 
 void ChVehicle::SetCollisionSystemType(ChCollisionSystem::Type collsys_type) {
     if (m_ownsSystem)
         m_system->SetCollisionSystemType(collsys_type);
+}
+
+void ChVehicle::EnableRealtime(bool val) {
+    m_realtime_force = val;
+    m_realtime_timer.stop();
+    if (m_realtime_force) {
+        // ensure the embedded timer is restarted when this function is called
+        m_realtime_timer.reset();
+        m_realtime_timer.start();
+    }
 }
 
 // -----------------------------------------------------------------------------
@@ -129,9 +128,7 @@ void ChVehicle::SetOutput(ChVehicleOutput::Type type,
     }
 }
 
-void ChVehicle::SetOutput(ChVehicleOutput::Type type,
-                          std::ostream& out_stream,
-                          double output_step) {
+void ChVehicle::SetOutput(ChVehicleOutput::Type type, std::ostream& out_stream, double output_step) {
     m_output = true;
     m_output_step = output_step;
 
@@ -156,6 +153,7 @@ void ChVehicle::Initialize(const ChCoordsys<>& chassisPos, double chassisFwdVel)
     // Calculate total vehicle mass and inertia properties at initial configuration
     InitializeInertiaProperties();
     UpdateInertiaProperties();
+    m_initialized = true;
 }
 
 void ChVehicle::InitializePowertrain(std::shared_ptr<ChPowertrainAssembly> powertrain) {
@@ -196,14 +194,6 @@ void ChVehicle::Advance(double step) {
     m_sim_timer.start();
 }
 
-double ChVehicle::GetRTF() const {
-    if (m_ownsSystem)
-        return m_RTF;
-    if (m_system)
-        return m_system->GetRTF();
-    return 0;
-}
-
 // -----------------------------------------------------------------------------
 
 std::shared_ptr<ChEngine> ChVehicle::GetEngine() const {
@@ -226,9 +216,9 @@ void ChVehicle::SetChassisRearVisualizationType(VisualizationType vis) {
 }
 
 void ChVehicle::SetChassisCollide(bool state) {
-    m_chassis->SetCollide(state);
+    m_chassis->EnableCollision(state);
     for (auto& c : m_chassis_rear)
-        c->SetCollide(state);
+        c->EnableCollision(state);
 }
 
 void ChVehicle::SetChassisOutput(bool state) {

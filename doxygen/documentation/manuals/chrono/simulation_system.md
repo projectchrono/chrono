@@ -2,8 +2,7 @@
 Simulation system      {#simulation_system}
 =================
 
-The Chrono system contains all other objects being simulated, e.g.: 
-[bodies](@ref rigid_bodies), [links](@ref links), etc.
+The Chrono system contains all other objects being simulated, like [bodies](@ref rigid_bodies), [links](@ref links), etc.
 The system is the cornerstone of a Chrono simulation.
 
 \tableofcontents
@@ -16,21 +15,12 @@ See @ref chrono::ChSystem "ChSystem" for API details.
 
 Note that ChSystem is an abstract class: you must instantiate one of its specializations. In detail you can use of these sublclasses:
 
-- A @ref chrono::ChSystemNSC "ChSystemNSC" for **Non Smooth Contacts** (NSC); in case of contacts a complementarity solver will take care of them using non smooth dynamics; this is very efficient even with large time steps.
-
-- A @ref chrono::ChSystemSMC "ChSystemSMC" for **SMooth Contacts** (SMC); with this system contacts are handled using penalty methods, i.e. contacts are deformable; 
+- @ref chrono::ChSystemNSC "ChSystemNSC" for **Non Smooth Contacts** (NSC): in case of contacts a complementarity solver will take care of them using non-smooth dynamics; this is very efficient even with large time steps.
+- @ref chrono::ChSystemSMC "ChSystemSMC" for **SMooth Contacts** (SMC): contacts are handled using penalty methods, i.e. contacts are deformable; 
 
 If there are no contacts or collisions in your system, it is indifferent to use ChSystemNSC or ChSystemSMC.
 
-
-Example:
-The following picture shows how mechanisms turn into a database of bodies 
-and links in a ChSystem:
-
-![](http://www.projectchrono.org/assets/manual/pic_database.png)
-
 - A @ref chrono::ChSystem "ChSystem" contains all items that participate in a simulation: bodies, constraints, numerical integrator type, integration tolerances, etc.
-
 - Use the ```Add()```, ```Remove()``` functions to add elements to a system object
 
 Recommended way of dealing with system objects:
@@ -38,29 +28,26 @@ Recommended way of dealing with system objects:
 - Create a @ref chrono::ChSystemNSC "ChSystemNSC" or a @ref chrono::ChSystemSMC "ChSystemSMC"
 - Add [body](@ref rigid_bodies) objects into it, see @ref chrono::ChBody "ChBody"
 - Add [link](@ref links) objects into it, see @ref chrono::ChLink "ChLink"
-- Adjust parameters for the time integration
-- Run a dynamics simulation
+- Adjust parameters for the time integration and solver
+- Run a dynamic simulation
 
 Refer to [demo_MBS_crank](https://github.com/projectchrono/chrono/blob/main/src/demos/mbs/demo_MBS_crank.cpp) for a basic example.
 
 
-The default simulation settings are good for real-time 
-fast simulations with low requirements in terms of precision 
-and with similar sizes and inertia attributes. 
+In most cases there are three parameters to adjust:
 
-Several system settings may be adjusted to simulate more challenging scenarios.
-In most cases there are three areas to adjust:
+- **time stepper**: the time integration algorithm and its stepsize (when calling @ref chrono::ChSystem::DoStepDynamics() "DoStepDynamics()")
+- **solver**; the algorithm that computes accelerations and reaction forces at each time step; setting a proper number of max iterations is crucial for iterative solvers
+  e.g. `my_system.GetSolver()->AsIterative()->SetMaxIterations(400);`
 
-- The **time stepper**; i.e., the time integration algorithm
-- The **solver**; i.e., the algorithm that computes accelerations and reaction forces at each time step
-- Other settings, for instance, the collision detection tolerances
+- **collision parameters**
 
 A primer on tuning these parameters is provided below.
 
 
 # Time steppers {#time_steppers}
 
-Time steppers, also known as _time integrators_, are used to advance the simulation. They perform numerical integration; i.e., they advance the state of the system in time.
+Time steppers, also known as _time integrators_, are used to advance the simulation. They perform numerical integration and they advance the state of the system in time.
 
 Technical and theoretical details on time integration are explained in several PDF documents 
 available on the [white papers page](http://projectchrono.org/whitepapers/). For example the
@@ -68,8 +55,8 @@ available on the [white papers page](http://projectchrono.org/whitepapers/). For
 implicit integrators are implemented in Chrono.
 
 Time steppers can be changed in two ways:
+- Using the ```my_system.SetTimestepper(...)``` function, to plug in a custom time-stepper, which is user-defined **[PREFERRED]**
 - Using the ```my_system.SetTimestepperType(...)``` function, to choose a ready-to-use, pre-packaged time-stepper 
-- Using the ```my_system.SetTimestepper(...)``` function, to plug in a custom time-stepper, which is user-defined
 
 Example: changing the time stepper to an implicit numerical integrator
 
@@ -122,8 +109,8 @@ the unknown accelerations and unknown reaction forces at each time step of the s
 the biggest computational bottleneck of the entire simulation.
 
 Solvers can be changed in two ways:
+- Using the ```my_system.SetSolver(...)``` function, to plug in a custom time-stepper, which is user-defined **[PREFERRED]**
 - Using the ```my_system.SetSolverType(...)``` function, to choose a ready-to-use, pre-packaged option 
-- Using the ```my_system.SetSolver(...)``` function, to plug in a custom time-stepper, which is user-defined
 
   
 Example: 
@@ -160,8 +147,8 @@ We recommend using one of the following iterative solvers:
 While using iterative solvers it is **highly recommended**, especially in case of systems with links/constraints, to increase the number of iterations until the links do not get violated anymore. This is done by:
 
 ~~~{.cpp}
-// Change the max iterations for the solver
-my_system.SetSolverMaxIterations(200);
+// Change the max iterations for the iterative
+my_system.GetSolver()->AsIterative()->SetMaxIterations(400);
 ~~~
 
 Depending on the type of solver used, there may be different parameters to adjust.

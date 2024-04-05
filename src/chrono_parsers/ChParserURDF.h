@@ -25,7 +25,7 @@
 #include "chrono/physics/ChBodyAuxRef.h"
 #include "chrono/physics/ChLinkBase.h"
 #include "chrono/physics/ChLinkMotor.h"
-#include "chrono/physics/ChMaterialSurface.h"
+#include "chrono/physics/ChContactMaterial.h"
 
 #include <urdf_parser/urdf_parser.h>
 
@@ -142,13 +142,13 @@ class ChApiParsers ChParserURDF {
         virtual void Process(const tinyxml2::XMLElement& element, ChSystem& system) = 0;
     };
 
-    /// Scan the URDF XML for all objects of the specified key and execute the Process() function of the provided callback object.
-    /// Only direct children of the "robot" element in the input URDF are processed. 
+    /// Scan the URDF XML for all objects of the specified key and execute the Process() function of the provided
+    /// callback object. Only direct children of the "robot" element in the input URDF are processed.
     void CustomProcess(const std::string& key, std::shared_ptr<CustomProcessor> callback);
 
   private:
     ChColor toChColor(const urdf::Color& color);
-    ChVector<> toChVector(const urdf::Vector3& vec);
+    ChVector3d toChVector(const urdf::Vector3& vec);
     ChQuaternion<> toChQuaternion(const urdf::Rotation& rot);
     ChFrame<> toChFrame(const urdf::Pose& pose);
     std::shared_ptr<ChVisualShape> toChVisualShape(const urdf::GeometrySharedPtr geometry);

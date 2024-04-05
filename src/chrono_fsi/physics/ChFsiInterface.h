@@ -42,8 +42,7 @@ namespace fsi {
 class ChFsiInterface : public ChFsiGeneral {
   public:
     /// Constructor of the FSI interface class.
-    ChFsiInterface(ChSystemFsi_impl& fsi,
-                   std::shared_ptr<SimParams> params);
+    ChFsiInterface(ChSystemFsi_impl& fsi, std::shared_ptr<SimParams> params);
 
     /// Destructor of the FSI interface class.
     ~ChFsiInterface();

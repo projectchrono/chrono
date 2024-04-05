@@ -31,7 +31,7 @@ namespace duro {
 // -----------------------------------------------------------------------------
 
 const double Duro_Wheel::m_mass = 25.0;
-const ChVector<> Duro_Wheel::m_inertia(0.94, 1.59, 0.94);
+const ChVector3d Duro_Wheel::m_inertia(0.94, 1.59, 0.94);
 
 const double Duro_Wheel::m_radius = 0.254;
 const double Duro_Wheel::m_width = 0.2286;

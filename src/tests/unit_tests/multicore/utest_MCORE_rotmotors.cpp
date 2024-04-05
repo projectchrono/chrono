@@ -33,7 +33,7 @@
 
 using namespace chrono;
 
-enum MotorType {ANGLE, SPEED};
+enum MotorType { ANGLE, SPEED };
 struct Options {
     MotorType mot_type;
     double speed;
@@ -45,12 +45,12 @@ class RotMotors : public ::testing::TestWithParam<Options> {
         opts = GetParam();
 
         system = new ChSystemMulticoreNSC();
-        system->Set_G_acc(ChVector<>(0, 0, -9.81));
+        system->SetGravitationalAcceleration(ChVector3d(0, 0, -9.81));
         system->GetSettings()->solver.tolerance = 1e-5;
         system->ChangeSolverType(SolverType::BB);
 
         auto ground = chrono_types::make_shared<ChBody>();
-        ground->SetBodyFixed(true);
+        ground->SetFixed(true);
         system->AddBody(ground);
 
         auto body = chrono_types::make_shared<ChBody>();
@@ -58,21 +58,21 @@ class RotMotors : public ::testing::TestWithParam<Options> {
 
         switch (opts.mot_type) {
             case MotorType::ANGLE: {
-                auto motor_fun = chrono_types::make_shared<ChFunction_Ramp>(0.0, opts.speed);
+                auto motor_fun = chrono_types::make_shared<ChFunctionRamp>(0.0, opts.speed);
                 auto motorA = chrono_types::make_shared<ChLinkMotorRotationAngle>();
                 motorA->SetAngleFunction(motor_fun);
                 motor = motorA;
                 break;
             }
             case MotorType::SPEED: {
-                auto motor_fun = chrono_types::make_shared<ChFunction_Const>(opts.speed);
+                auto motor_fun = chrono_types::make_shared<ChFunctionConst>(opts.speed);
                 auto motorS = chrono_types::make_shared<ChLinkMotorRotationSpeed>();
                 motorS->SetSpeedFunction(motor_fun);
                 motor = motorS;
                 break;
             }
         }
-        motor->Initialize(ground, body, ChFrame<>(ChVector<>(0, 0, 0), QUNIT));
+        motor->Initialize(ground, body, ChFrame<>(ChVector3d(0, 0, 0), QUNIT));
         system->AddLink(motor);
     }
 
@@ -85,7 +85,7 @@ TEST_P(RotMotors, simulate) {
     while (system->GetChTime() < 2) {
         system->DoStepDynamics(1e-3);
         if (system->GetChTime() > 0.1) {
-            ASSERT_NEAR(motor->GetMotorRot_dt(), opts.speed, 1e-6);
+            ASSERT_NEAR(motor->GetMotorAngleDt(), opts.speed, 1e-6);
         }
     }
 }

@@ -30,9 +30,9 @@
 #include "chrono/fea/ChContactSurfaceMesh.h"
 #include "chrono/fea/ChContactSurfaceNodeCloud.h"
 #include "chrono/fea/ChElementShellANCF_3423.h"
-#include "chrono/fea/ChLinkDirFrame.h"
-#include "chrono/fea/ChLinkPointFrame.h"
-#include "chrono/fea/ChLinkPointFrame.h"
+#include "chrono/fea/ChLinkNodeSlopeFrame.h"
+#include "chrono/fea/ChLinkNodeFrame.h"
+#include "chrono/fea/ChLinkNodeFrame.h"
 #include "chrono/fea/ChLoadContactSurfaceMesh.h"
 #include "chrono/fea/ChMesh.h"
 #include "chrono/fea/ChMeshFileLoader.h"
@@ -51,7 +51,6 @@
 #include <functional>
 
 using namespace chrono;
-using namespace chrono::geometry;
 using namespace chrono::fea;
 using namespace chrono::irrlicht;
 
@@ -66,7 +65,7 @@ int scaleFactor = 35;
 double dz = 0.01;
 
 int main(int argc, char* argv[]) {
-    GetLog() << "Copyright (c) 2017 projectchrono.org\nChrono version: " << CHRONO_VERSION << "\n\n";
+    std::cout << "Copyright (c) 2017 projectchrono.org\nChrono version: " << CHRONO_VERSION << std::endl;
 
     ChSystemSMC sys;
 
@@ -80,22 +79,22 @@ int main(int argc, char* argv[]) {
 
     // Create the surface material.
     // It is a SMC (penalty) material that we will be assigned to all surfaces that might generate contacts.
-    auto mysurfmaterial = chrono_types::make_shared<ChMaterialSurfaceSMC>();
+    auto mysurfmaterial = chrono_types::make_shared<ChContactMaterialSMC>();
     mysurfmaterial->SetYoungModulus(6e4f);
     mysurfmaterial->SetFriction(0.3f);
     mysurfmaterial->SetRestitution(0.5f);
     mysurfmaterial->SetAdhesion(0);
 
-    GetLog() << "-----------------------------------------------------------\n";
-    GetLog() << "-----------------------------------------------------------\n";
-    GetLog() << " 		ANCF Shell Contact   \n";
-    GetLog() << "-----------------------------------------------------------\n\n";
-    GetLog() << "-----------------------------------------------------------\n\n";
+    std::cout << "-----------------------------------------------------------\n";
+    std::cout << "-----------------------------------------------------------\n";
+    std::cout << " 		ANCF Shell Contact   \n";
+    std::cout << "-----------------------------------------------------------\n\n";
+    std::cout << "-----------------------------------------------------------\n\n";
 
     // Adding the ground
     if (true) {
         auto mfloor = chrono_types::make_shared<ChBodyEasyBox>(3, 3, 0.2, 8000, true, true, mysurfmaterial);
-        mfloor->SetBodyFixed(true);
+        mfloor->SetFixed(true);
         mfloor->GetVisualShape(0)->SetTexture(GetChronoDataFile("textures/concrete.jpg"));
         sys.Add(mfloor);
     }
@@ -104,7 +103,7 @@ int main(int argc, char* argv[]) {
     auto material = chrono_types::make_shared<ChMaterialShellANCF>(1000, 1e8, 0.3);
     auto my_mesh = chrono_types::make_shared<ChMesh>();
 
-    ChVector<> Center(-0.5, -0.5, 0.5);
+    ChVector3d Center(-0.5, -0.5, 0.5);
     ChMatrix33<> rot_transform(0);
     rot_transform(0, 0) = 1;
     rot_transform(1, 1) = -1;
@@ -115,8 +114,8 @@ int main(int argc, char* argv[]) {
     try {
         ChMeshFileLoader::ANCFShellFromGMFFile(my_mesh, GetChronoDataFile("fea/Plate.mesh").c_str(), material,
                                                NODE_AVE_AREA, BC_NODES, Center, rot_transform, 0.8, false, false);
-    } catch (ChException myerr) {
-        GetLog() << myerr.what();
+    } catch (std::exception myerr) {
+        std::cerr << myerr.what() << std::endl;
         return 0;
     }
 
@@ -128,14 +127,14 @@ int main(int argc, char* argv[]) {
     ////my_mesh->AddContactSurface(mcontactcloud);
     ////mcontactcloud->AddAllNodes(sphere_swept_thickness);
 
-    ////auto TotalNumNodes = my_mesh->GetNnodes();
-    auto TotalNumElements = my_mesh->GetNelements();
+    ////auto TotalNumNodes = my_mesh->GetNumNodes();
+    auto TotalNumElements = my_mesh->GetNumElements();
 
     for (unsigned int ele = 0; ele < TotalNumElements; ele++) {
         auto element = chrono_types::make_shared<ChElementShellANCF_3423>();
         element = std::dynamic_pointer_cast<ChElementShellANCF_3423>(my_mesh->GetElement(ele));
         // Add a single layers with a fiber angle of 0 degrees.
-        element->AddLayer(dz, 0 * CH_C_DEG_TO_RAD, material);
+        element->AddLayer(dz, 0 * CH_DEG_TO_RAD, material);
         // Set other element properties
         element->SetAlphaDamp(0.08);  // Structural damping for this element
     }
@@ -143,7 +142,7 @@ int main(int argc, char* argv[]) {
     // Switch off mesh class gravity
 
     my_mesh->SetAutomaticGravity(addGravity);
-    sys.Set_G_acc(ChVector<>(0, 0, -9.8));
+    sys.SetGravitationalAcceleration(ChVector3d(0, 0, -9.8));
 
     // Add the mesh to the system
     sys.Add(my_mesh);
@@ -182,7 +181,7 @@ int main(int argc, char* argv[]) {
     vsys->AddLogo();
     vsys->AddSkyBox();
     vsys->AddTypicalLights();
-    vsys->AddCamera(ChVector<>(0.25, -0.25, 0.5), ChVector<>(0, -0.5, 0.0));
+    vsys->AddCamera(ChVector3d(0.25, -0.25, 0.5), ChVector3d(0, -0.5, 0.0));
     vsys->EnableContactDrawing(ContactsDrawMode::CONTACT_DISTANCES);
     vsys->EnableShadows();
 
@@ -207,7 +206,7 @@ int main(int argc, char* argv[]) {
     sys.SetTimestepperType(ChTimestepper::Type::HHT);
     auto mystepper = std::dynamic_pointer_cast<ChTimestepperHHT>(sys.GetTimestepper());
     mystepper->SetAlpha(-0.2);
-    mystepper->SetMaxiters(200);
+    mystepper->SetMaxIters(200);
     mystepper->SetAbsTolerances(1e-04);
     mystepper->SetVerbose(false);
     ////sys.SetTimestepperType(ChTimestepper::Type::EULER_IMPLICIT_LINEARIZED);  // fast, less precise
@@ -218,7 +217,7 @@ int main(int argc, char* argv[]) {
         vsys->EndScene();
 
         ////std::cout << "Time t = " << sys.GetChTime() << "s \t";
-        ////std::cout << "n contacts: " << sys.GetNcontacts() << "\t";
+        ////std::cout << "n contacts: " << sys.GetNumContacts() << "\t";
         ////std::cout << "pos.y = " << sampleNode->pos.y - y0 << "vs. " << -0.5 * 9.8 * pow(sys.GetChTime(), 2)
         ////          << "\n";
         sys.DoStepDynamics(time_step);

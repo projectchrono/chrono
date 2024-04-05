@@ -28,12 +28,12 @@ void ChVisualSystem::AttachSystem(ChSystem* sys) {
     sys->visual_system = this;
 }
 
-void ChVisualSystem::UpdateCamera(int id, const ChVector<>& pos, ChVector<> target) {
+void ChVisualSystem::UpdateCamera(int id, const ChVector3d& pos, ChVector3d target) {
     SetCameraPosition(id, pos);
     SetCameraTarget(id, target);
 }
 
-void ChVisualSystem::UpdateCamera(const ChVector<>& pos, ChVector<> target) {
+void ChVisualSystem::UpdateCamera(const ChVector3d& pos, ChVector3d target) {
     SetCameraPosition(pos);
     SetCameraTarget(target);
 }

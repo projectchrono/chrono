@@ -38,10 +38,10 @@ using namespace chrono::vehicle;
 // =============================================================================
 
 // Initial front_side position
-ChVector<> initLoc(10, 0, 0.5);
+ChVector3d initLoc(10, 0, 0.5);
 
 // Initial front_side orientation
-ChQuaternion<> initRot = Q_from_AngZ(CH_C_PI / 3);
+ChQuaternion<> initRot = QuatFromAngleZ(CH_PI / 3);
 
 // Type of tire model (RIGID, RIGID_MESH, or FIALA)
 TireModelType tire_model = TireModelType::RIGID;
@@ -58,12 +58,12 @@ double step_size = 3e-3;
 double render_step_size = 1.0 / 50;  // FPS = 50
 
 // Point on chassis tracked by the camera
-ChVector<> trackPoint(0.0, 0.0, 1.75);
+ChVector3d trackPoint(0.0, 0.0, 1.75);
 
 // =============================================================================
 
 int main(int argc, char* argv[]) {
-    GetLog() << "Copyright (c) 2017 projectchrono.org\nChrono version: " << CHRONO_VERSION << "\n\n";
+    std::cout << "Copyright (c) 2017 projectchrono.org\nChrono version: " << CHRONO_VERSION << std::endl;
 
     // Create the vehicle
     ACV_Vehicle vehicle(false, ChContactMethod::NSC);
@@ -77,15 +77,15 @@ int main(int argc, char* argv[]) {
     // Create a collsion system and associate it with the underlying Chrono system
     vehicle.GetSystem()->SetCollisionSystemType(ChCollisionSystem::Type::BULLET);
 
-    //vehicle.GetSystem()->Set_G_acc(ChVector<>(0, 0, 0));
+    // vehicle.GetSystem()->SetGravitationalAcceleration(ChVector3d(0, 0, 0));
 
     // Create the terrain
     RigidTerrain terrain(vehicle.GetSystem());
-    auto patch_mat = chrono_types::make_shared<ChMaterialSurfaceNSC>();
+    auto patch_mat = chrono_types::make_shared<ChContactMaterialNSC>();
     patch_mat->SetFriction(0.9f);
     patch_mat->SetRestitution(0.01f);
     auto patch =
-        terrain.AddPatch(patch_mat, ChCoordsys<>(ChVector<>(0, 0, terrainHeight), QUNIT), terrainLength, terrainWidth);
+        terrain.AddPatch(patch_mat, ChCoordsys<>(ChVector3d(0, 0, terrainHeight), QUNIT), terrainLength, terrainWidth);
     patch->SetColor(ChColor(0.5f, 0.5f, 1));
     patch->SetTexture(vehicle::GetDataFile("terrain/textures/tile4.jpg"), 200, 200);
     terrain.Initialize();

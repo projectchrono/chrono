@@ -217,7 +217,7 @@ bool ChIterativeSolverLS::Setup(ChSystemDescriptor& sysd) {
 
 double ChIterativeSolverLS::Solve(ChSystemDescriptor& sysd) {
     // Assemble the problem right-hand side vector
-    sysd.ConvertToMatrixForm(nullptr, &m_rhs);
+    sysd.BuildSystemMatrix(nullptr, &m_rhs);
 
     // Let the concrete solver compute the solution (in m_sol)
     bool result = SolveProblem();

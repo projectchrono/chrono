@@ -62,10 +62,10 @@ class ChApi ChElementShellANCF_3423 : public ChElementANCF,
     class Layer {
       public:
         /// Return the layer thickness.
-        double Get_thickness() const { return m_thickness; }
+        double GetThickness() const { return m_thickness; }
 
         /// Return the fiber angle.
-        double Get_theta() const { return m_theta; }
+        double GetFiberAngle() const { return m_theta; }
 
         /// Return the layer material.
         std::shared_ptr<ChMaterialShellANCF> GetMaterial() const { return m_material; }
@@ -79,7 +79,7 @@ class ChApi ChElementShellANCF_3423 : public ChElementANCF,
         );
 
         double Get_detJ0C() const { return m_detJ0C; }
-        const ChMatrixNM<double, 6, 6>& Get_T0() const { return m_T0; }
+        const ChMatrix66d& Get_T0() const { return m_T0; }
 
         /// Initial setup for this layer: calculate T0 and detJ0 at the element center.
         void SetupInitial();
@@ -90,7 +90,7 @@ class ChApi ChElementShellANCF_3423 : public ChElementANCF,
         double m_theta;                                   ///< fiber angle
 
         double m_detJ0C;
-        ChMatrixNM<double, 6, 6> m_T0;
+        ChMatrix66d m_T0;
 
       public:
         EIGEN_MAKE_ALIGNED_OPERATOR_NEW
@@ -101,19 +101,23 @@ class ChApi ChElementShellANCF_3423 : public ChElementANCF,
     };
 
     /// Get the number of nodes used by this element.
-    virtual int GetNnodes() override { return 4; }
+    virtual unsigned int GetNumNodes() override { return 4; }
 
     /// Get the number of coordinates in the field used by the referenced nodes.
-    virtual int GetNdofs() override { return 4 * 6; }
+    virtual unsigned int GetNumCoordsPosLevel() override { return 4 * 6; }
 
     /// Get the number of active coordinates in the field used by the referenced nodes.
-    virtual int GetNdofs_active() override { return m_element_dof; }
+    virtual unsigned int GetNumCoordsPosLevelActive() override { return m_element_dof; }
 
     /// Get the number of coordinates from the n-th node used by this element.
-    virtual int GetNodeNdofs(int n) override { return m_nodes[n]->GetNdofX(); }
+    virtual unsigned int GetNodeNumCoordsPosLevel(unsigned int n) override {
+        return m_nodes[n]->GetNumCoordsPosLevel();
+    }
 
     /// Get the number of active coordinates from the n-th node used by this element.
-    virtual int GetNodeNdofs_active(int n) override { return m_nodes[n]->GetNdofX_active(); }
+    virtual unsigned int GetNodeNumCoordsPosLevelActive(unsigned int n) override {
+        return m_nodes[n]->GetNumCoordsPosLevelActive();
+    }
 
     /// Specify the nodes of this element.
     void SetNodes(std::shared_ptr<ChNodeFEAxyzD> nodeA,
@@ -128,7 +132,7 @@ class ChApi ChElementShellANCF_3423 : public ChElementANCF,
     }
 
     /// Access the n-th node of this element.
-    virtual std::shared_ptr<ChNodeFEAbase> GetNodeN(int n) override { return m_nodes[n]; }
+    virtual std::shared_ptr<ChNodeFEAbase> GetNode(unsigned int n) override { return m_nodes[n]; }
 
     /// Get a handle to the first node of this element.
     std::shared_ptr<ChNodeFEAxyzD> GetNodeA() const { return m_nodes[0]; }
@@ -191,7 +195,7 @@ class ChApi ChElementShellANCF_3423 : public ChElementANCF,
 
     /// Return a struct with 6-component strain and stress vectors evaluated at a
     /// given quadrature point and layer number.
-    ChStrainStress3D EvaluateSectionStrainStress(const ChVector<>& loc, int layer_id);
+    ChStrainStress3D EvaluateSectionStrainStress(const ChVector3d& loc, int layer_id);
     void EvaluateDeflection(double& defVec);
 
   public:
@@ -199,7 +203,7 @@ class ChApi ChElementShellANCF_3423 : public ChElementANCF,
     // -------------------------------------
 
     /// Fill the D vector with the current field values at the nodes of the element, with proper ordering.
-    /// If the D vector has not the size of this->GetNdofs(), it will be resized.
+    /// If the D vector has not the size of this->GetNumCoordsPosLevel(), it will be resized.
     ///  {x_a y_a z_a Dx_a Dx_a Dx_a x_b y_b z_b Dx_b Dy_b Dz_b}
     virtual void GetStateBlock(ChVectorDynamic<>& mD) override;
 
@@ -218,7 +222,7 @@ class ChApi ChElementShellANCF_3423 : public ChElementANCF,
     virtual void ComputeNodalMass() override;
 
     /// Compute the generalized force vector due to gravity using the efficient ANCF specific method
-    virtual void ComputeGravityForces(ChVectorDynamic<>& Fg, const ChVector<>& G_acc) override;
+    virtual void ComputeGravityForces(ChVectorDynamic<>& Fg, const ChVector3d& G_acc) override;
 
     /// Computes the internal forces.
     /// (E.g. the actual position of nodes is not in relaxed reference position) and set values in the Fi vector.
@@ -232,12 +236,12 @@ class ChApi ChElementShellANCF_3423 : public ChElementANCF,
 
     virtual void EvaluateSectionDisplacement(const double u,
                                              const double v,
-                                             ChVector<>& u_displ,
-                                             ChVector<>& u_rotaz) override;
+                                             ChVector3d& u_displ,
+                                             ChVector3d& u_rotaz) override;
 
-    virtual void EvaluateSectionFrame(const double u, const double v, ChVector<>& point, ChQuaternion<>& rot) override;
+    virtual void EvaluateSectionFrame(const double u, const double v, ChVector3d& point, ChQuaternion<>& rot) override;
 
-    virtual void EvaluateSectionPoint(const double u, const double v, ChVector<>& point) override;
+    virtual void EvaluateSectionPoint(const double u, const double v, ChVector3d& point) override;
 
     // Internal computations
     // ---------------------
@@ -286,22 +290,22 @@ class ChApi ChElementShellANCF_3423 : public ChElementANCF,
     void CalcCoordMatrix(ChMatrixNM<double, 8, 3>& d);
 
     // Calculate the current 24x1 matrix of nodal coordinate derivatives.
-    void CalcCoordDerivMatrix(ChVectorN<double, 24>& dt);
+    void CalcCoordDtMatrix(ChVectorN<double, 24>& dt);
 
     // Functions for ChLoadable interface
     // ----------------------------------
 
     /// Gets the number of DOFs affected by this element (position part).
-    virtual int LoadableGet_ndof_x() override { return 4 * 6; }
+    virtual unsigned int GetLoadableNumCoordsPosLevel() override { return 4 * 6; }
 
     /// Gets the number of DOFs affected by this element (velocity part).
-    virtual int LoadableGet_ndof_w() override { return 4 * 6; }
+    virtual unsigned int GetLoadableNumCoordsVelLevel() override { return 4 * 6; }
 
     /// Gets all the DOFs packed in a single vector (position part).
-    virtual void LoadableGetStateBlock_x(int block_offset, ChState& mD) override;
+    virtual void LoadableGetStateBlockPosLevel(int block_offset, ChState& mD) override;
 
     /// Gets all the DOFs packed in a single vector (velocity part).
-    virtual void LoadableGetStateBlock_w(int block_offset, ChStateDelta& mD) override;
+    virtual void LoadableGetStateBlockVelLevel(int block_offset, ChStateDelta& mD) override;
 
     /// Increment all DOFs using a delta.
     virtual void LoadableStateIncrement(const unsigned int off_x,
@@ -312,21 +316,23 @@ class ChApi ChElementShellANCF_3423 : public ChElementANCF,
 
     /// Number of coordinates in the interpolated field, ex=3 for a
     /// tetrahedron finite element or a cable, = 1 for a thermal problem, etc.
-    virtual int Get_field_ncoords() override { return 6; }
+    virtual unsigned int GetNumFieldCoords() override { return 6; }
 
     /// Get the number of DOFs sub-blocks.
-    virtual int GetSubBlocks() override { return 4; }
+    virtual unsigned int GetNumSubBlocks() override { return 4; }
 
     /// Get the offset of the specified sub-block of DOFs in global vector.
-    virtual unsigned int GetSubBlockOffset(int nblock) override { return m_nodes[nblock]->NodeGetOffsetW(); }
+    virtual unsigned int GetSubBlockOffset(unsigned int nblock) override {
+        return m_nodes[nblock]->NodeGetOffsetVelLevel();
+    }
 
     /// Get the size of the specified sub-block of DOFs in global vector.
-    virtual unsigned int GetSubBlockSize(int nblock) override { return 6; }
+    virtual unsigned int GetSubBlockSize(unsigned int nblock) override { return 6; }
 
     /// Check if the specified sub-block of DOFs is active.
-    virtual bool IsSubBlockActive(int nblock) const override { return !m_nodes[nblock]->IsFixed(); }
+    virtual bool IsSubBlockActive(unsigned int nblock) const override { return !m_nodes[nblock]->IsFixed(); }
 
-    virtual void EvaluateSectionVelNorm(double U, double V, ChVector<>& Result) override;
+    virtual void EvaluateSectionVelNorm(double U, double V, ChVector3d& Result) override;
 
     /// Get the pointers to the contained ChVariables, appending to the mvars vector.
     virtual void LoadableGetVariables(std::vector<ChVariables*>& mvars) override;
@@ -368,7 +374,7 @@ class ChApi ChElementShellANCF_3423 : public ChElementANCF,
 
     /// Gets the normal to the surface at the parametric coordinate U,V.
     /// Each coordinate ranging in -1..+1.
-    virtual ChVector<> ComputeNormal(const double U, const double V) override;
+    virtual ChVector3d ComputeNormal(const double U, const double V) override;
 
   private:
     /// Initial setup. This is used to precompute matrices that do not change during the simulation, such as the local

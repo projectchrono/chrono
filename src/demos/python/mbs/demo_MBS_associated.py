@@ -37,31 +37,31 @@ chrono.ChCollisionModel.SetDefaultSuggestedMargin(0.005)
 
 # Create a fixed rigid body
 
-phi   = 40 * chrono.CH_C_DEG_TO_RAD;
+phi   = 40 * chrono.CH_DEG_TO_RAD;
 rad_sph = 0.1
-alpha = 45 * chrono.CH_C_DEG_TO_RAD
-beta  = alpha - 0 * chrono.CH_C_DEG_TO_RAD
+alpha = 45 * chrono.CH_DEG_TO_RAD
+beta  = alpha - 0 * chrono.CH_DEG_TO_RAD
 thick = 0.2
 fixed_L = True
 
 friction= math.tan(phi)
 print(friction)
-brick_material = chrono.ChMaterialSurfaceNSC()
+brick_material = chrono.ChContactMaterialNSC()
 brick_material.SetFriction(friction)
 brick_material.SetDampingF(0.00000)
 brick_material.SetCompliance (1e-9)
 brick_material.SetComplianceT(1e-9)
 
-L_material = chrono.ChMaterialSurfaceNSC()
+L_material = chrono.ChContactMaterialNSC()
 L_material.SetFriction(0)
 
 
-S0 = chrono.ChVectorD(0,0,0)
-Sr = chrono.ChVectorD( rad_sph * math.sin(alpha), -rad_sph * math.cos(alpha), 0)
-Sl = chrono.ChVectorD(-rad_sph * math.sin(beta),   rad_sph * math.cos(beta), 0)
-Dr = chrono.ChVectorD(  math.cos(alpha),  math.sin(alpha), 0)
-Dl = chrono.ChVectorD(  math.cos(beta),   math.sin(beta), 0)
-Dz = chrono.ChVectorD(0,0, thick)
+S0 = chrono.ChVector3d(0,0,0)
+Sr = chrono.ChVector3d( rad_sph * math.sin(alpha), -rad_sph * math.cos(alpha), 0)
+Sl = chrono.ChVector3d(-rad_sph * math.sin(beta),   rad_sph * math.cos(beta), 0)
+Dr = chrono.ChVector3d(  math.cos(alpha),  math.sin(alpha), 0)
+Dl = chrono.ChVector3d(  math.cos(beta),   math.sin(beta), 0)
+Dz = chrono.ChVector3d(0,0, thick)
 
 
 
@@ -74,38 +74,38 @@ else:
     S2 = Sl - Dl * 0.2;
     S3 = Sr + Dr * 0.2;
     S4 = Sr - Dr * 0.2;
-    Dzz = chrono.ChVectorD(0,0, (thick*0.6))
-    pointsS = chrono.vector_ChVectorD([S1+Dzz, S2+Dzz, S3+Dzz, S4+Dzz, S1-Dzz, S2-Dzz, S3-Dzz, S4-Dzz])
+    Dzz = chrono.ChVector3d(0,0, (thick*0.6))
+    pointsS = chrono.vector_ChVector3d([S1+Dzz, S2+Dzz, S3+Dzz, S4+Dzz, S1-Dzz, S2-Dzz, S3-Dzz, S4-Dzz])
 
     mbodyS = chrono.ChBodyEasyConvexHullAuxRef(pointsS, 1000,True,True,brick_material)
     sys.Add(mbodyS)
 
 L1 = Sl + Dl * 0.5;
 L2 = Sl - Dl * 0.5;
-L3 = chrono.ChVectorD(-2,   L2.y, 0);
-L4 = chrono.ChVectorD(-2,   L1.y, 0);
-pointsL = chrono.vector_ChVectorD([L1+Dz, L2+Dz, L3+Dz, L4+Dz, L1-Dz, L2-Dz, L3-Dz, L4-Dz])
+L3 = chrono.ChVector3d(-2,   L2.y, 0);
+L4 = chrono.ChVector3d(-2,   L1.y, 0);
+pointsL = chrono.vector_ChVector3d([L1+Dz, L2+Dz, L3+Dz, L4+Dz, L1-Dz, L2-Dz, L3-Dz, L4-Dz])
 
 mbodyL = chrono.ChBodyEasyConvexHullAuxRef(pointsL, 1000,True,True,L_material)
-mbodyL.SetBodyFixed(fixed_L)
+mbodyL.SetFixed(fixed_L)
 sys.Add(mbodyL)
 
 
 R1 = Sr + Dr * 0.5;
 R2 = Sr - Dr * 0.5;
-R3 = chrono.ChVectorD(1,   R2.y, 0);
-R4 = chrono.ChVectorD(1,   R1.y, 0);
-pointsR = chrono.vector_ChVectorD([R1+Dz, R2+Dz, R3+Dz, R4+Dz, R1-Dz, R2-Dz, R3-Dz, R4-Dz])
+R3 = chrono.ChVector3d(1,   R2.y, 0);
+R4 = chrono.ChVector3d(1,   R1.y, 0);
+pointsR = chrono.vector_ChVector3d([R1+Dz, R2+Dz, R3+Dz, R4+Dz, R1-Dz, R2-Dz, R3-Dz, R4-Dz])
 
 mbodyR = chrono.ChBodyEasyConvexHullAuxRef(pointsR, 1000,True,True,brick_material)
-mbodyR.SetBodyFixed(True)
+mbodyR.SetFixed(True)
 sys.Add(mbodyR)
 
 
 if not(fixed_L):
     mbodyG = chrono.ChBodyEasyBox(1,0.5 , thick*2.2, 1000,True,True,brick_material)
-    mbodyG.SetPos( chrono.ChVectorD(-1, L2.y-0.5/2, 0 ) )
-    mbodyG.SetBodyFixed(True)
+    mbodyG.SetPos( chrono.ChVector3d(-1, L2.y-0.5/2, 0 ) )
+    mbodyG.SetFixed(True)
     sys.Add(mbodyG)
 
 
@@ -121,7 +121,7 @@ vis.SetWindowTitle('Test')
 vis.Initialize()
 vis.AddLogo(chrono.GetChronoDataFile('logo_pychrono_alpha.png'))
 vis.AddSkyBox()
-vis.AddCamera(chrono.ChVectorD(0.6,0.6,0.8))
+vis.AddCamera(chrono.ChVector3d(0.6,0.6,0.8))
 vis.AddTypicalLights()
 
 

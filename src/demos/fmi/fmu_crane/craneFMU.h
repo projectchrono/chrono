@@ -27,7 +27,13 @@
 
 class FmuComponent : public chrono::FmuChronoComponentBase {
   public:
-    FmuComponent(fmi2String _instanceName, fmi2Type _fmuType, fmi2String _fmuGUID);
+    FmuComponent(fmi2String instanceName,
+                 fmi2Type fmuType,
+                 fmi2String fmuGUID,
+                 fmi2String fmuResourceLocation,
+                 const fmi2CallbackFunctions* functions,
+                 fmi2Boolean visible,
+                 fmi2Boolean loggingOn);
     virtual ~FmuComponent() {}
 
     /// Advance dynamics
@@ -63,22 +69,28 @@ class FmuComponent : public chrono::FmuChronoComponentBase {
     double pend_mass = 100;
     double pend_length = 0.3;
 
-    double init_crane_angle = chrono::CH_C_PI / 6;  // Initial crane angle (default value)
-    double init_F;                                  // initial load
+    double init_crane_angle = chrono::CH_PI / 6;  // Initial crane angle (default value)
+    double init_F;                                // initial load
 
     double s;   // actuator length (FMU output)
     double sd;  // actuator length rate (FMU output)
     double F;   // actuator force (FMU input)
 
     // Mount points
-    chrono::ChVector<> m_point_ground;
-    chrono::ChVector<> m_point_crane;
+    chrono::ChVector3d m_point_ground;
+    chrono::ChVector3d m_point_crane;
 
     std::shared_ptr<chrono::ChBody> m_crane;
     std::shared_ptr<chrono::ChLoadBodyForce> m_external_load;
 };
 
 // Create an instance of this FMU
-FmuComponentBase* fmi2Instantiate_getPointer(fmi2String instanceName, fmi2Type fmuType, fmi2String fmuGUID) {
-    return new FmuComponent(instanceName, fmuType, fmuGUID);
+FmuComponentBase* fmi2Instantiate_getPointer(fmi2String instanceName,
+                                             fmi2Type fmuType,
+                                             fmi2String fmuGUID,
+                                             fmi2String fmuResourceLocation,
+                                             const fmi2CallbackFunctions* functions,
+                                             fmi2Boolean visible,
+                                             fmi2Boolean loggingOn) {
+    return new FmuComponent(instanceName, fmuType, fmuGUID, fmuResourceLocation, functions, visible, loggingOn);
 }

@@ -17,35 +17,33 @@
 #include "chrono/geometry/ChTriangleMesh.h"
 
 namespace chrono {
-namespace geometry {
 
-void ChTriangleMesh::Transform(const ChVector<> displ, const ChQuaternion<> mquat) {
+void ChTriangleMesh::Transform(const ChVector3d displ, const ChQuaternion<> mquat) {
     this->Transform(displ, ChMatrix33<>(mquat));
 }
 
 ChAABB ChTriangleMesh::GetBoundingBox() const {
     ChAABB bbox;
-    for (int i = 0; i < getNumTriangles(); i++) {
-        getTriangle(i).InflateBoundingBox(bbox);
+    for (unsigned int i = 0; i < GetNumTriangles(); i++) {
+        GetTriangle(i).InflateBoundingBox(bbox);
     }
     return bbox;
 }
 
-void ChTriangleMesh::ArchiveOut(ChArchiveOut& marchive) {
+void ChTriangleMesh::ArchiveOut(ChArchiveOut& archive_out) {
     // version number
-    marchive.VersionWrite<ChTriangleMesh>();
+    archive_out.VersionWrite<ChTriangleMesh>();
     // serialize parent class
-    ChGeometry::ArchiveOut(marchive);
+    ChGeometry::ArchiveOut(archive_out);
     // serialize all member data:
 }
 
-void ChTriangleMesh::ArchiveIn(ChArchiveIn& marchive) {
+void ChTriangleMesh::ArchiveIn(ChArchiveIn& archive_in) {
     // version number
-    /*int version =*/marchive.VersionRead<ChTriangleMesh>();
+    /*int version =*/archive_in.VersionRead<ChTriangleMesh>();
     // deserialize parent class
-    ChGeometry::ArchiveIn(marchive);
+    ChGeometry::ArchiveIn(archive_in);
     // stream in all member data:
 }
 
-}  // end namespace geometry
 }  // end namespace chrono

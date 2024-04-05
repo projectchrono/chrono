@@ -23,7 +23,7 @@
 
 #include <string>
 
-#include "chrono/core/ChVector.h"
+#include "chrono/core/ChVector3.h"
 #include "chrono/assets/ChTexture.h"
 #include "chrono/assets/ChColor.h"
 
@@ -43,6 +43,7 @@ class ChApi ChVisualMaterial {
     void SetDiffuseColor(const ChColor& rgb);
     void SetSpecularColor(const ChColor& rgb);
     void SetEmissiveColor(const ChColor& rgb);
+    void SetEmissivePower(const float& power);
 
     void SetSpecularExponent(float exponent);
     void SetOpacity(float o);
@@ -67,10 +68,23 @@ class ChApi ChVisualMaterial {
     void SetFresnelMin(float min);
     void SetRoughness(float r);
     void SetMetallic(float m);
+    void SetAnisotropy(float a);
     void SetUseSpecularWorkflow(bool s) { use_specular_workflow = s; }
+    /// @brief Enable or disable the use of the Hapke material model. We implement the modern hapke model descried in  https://doi.org/10.1002/2013JE004580
+    void SetUseHapke(bool h) {use_hapke = h;}
 
     void SetClassID(unsigned short int id) { class_id = id; }
     void SetInstanceID(unsigned short int id) { instance_id = id; }
+
+    /// @brief  Set the Hapke material parameters. Note that in our implementation, we ignore the impact of coherent backscatter. 
+    /// @param w  single scattering albedo
+    /// @param b  shape controlling parameter for the amplitude of backward and forward scatter of particles
+    /// @param c  weighting factor that controls the contribution of backward and forward scatter.
+    /// @param B_s0 Amplitude of the opposition effect caused by shadow hiding
+    /// @param h_s  Angular width of the opposition effect caused by shadow hiding.
+    /// @param phi Fillig factor of the regolith
+    /// @param theta_p Effective value of the photometric roughness which controls the surface roughness
+    void SetHapkeParameters(float w, float b, float c, float B_s0, float h_s, float phi, float theta_p);
 
     // Accessor functions
 
@@ -78,6 +92,7 @@ class ChApi ChVisualMaterial {
     const ChColor& GetDiffuseColor() const { return Kd; }
     const ChColor& GetSpecularColor() const { return Ks; }
     const ChColor& GetEmissiveColor() const { return Ke; }
+    const float& GetEmissivePower() const {return emissive_power;}
     float GetSpecularExponent() const { return Ns; }
     float GetOpacity() const { return d; }
     int GetIllumination() const { return illum; }
@@ -93,22 +108,32 @@ class ChApi ChVisualMaterial {
     const std::string& GetDisplacementTexture() const { return disp_texture.GetFilename(); }
     const std::string& GetAmbientOcclusionTexture() const { return ao_texture.GetFilename(); }
 
-    const ChVector2<float>& GetTextureScale() const;
+    const ChVector2f& GetTextureScale() const;
 
     float GetFresnelExp() const { return fresnel_exp; }
     float GetFresnelMax() const { return fresnel_max; }
     float GetFresnelMin() const { return fresnel_min; }
     float GetRoughness() const { return roughness; }
     float GetMetallic() const { return metallic; }
+    float GetAnisotropy() const {return anisotropy; }
     bool GetUseSpecularWorkflow() const { return use_specular_workflow; }
+    bool GetUseHapke() const {return use_hapke;}
+    float GetHapkeW() const {return hapke_w;}
+    float GetHapkeB() const {return hapke_b;}
+    float GetHapkeC() const {return hapke_c;}
+    float GetHapkeBs0() const {return hapke_B_s0;}
+    float GetHapkeHs() const {return hapke_h_s;}
+    float GetHapkePhi() const {return hapke_phi;}
+    float GetHapkeRoughness() const {return hapke_theta_p;}
+
     unsigned short int GetClassID() const { return class_id; }
     unsigned short int GetInstanceID() const { return instance_id; }
 
     /// Method to allow serialization of transient data to archives.
-    virtual void ArchiveOut(ChArchiveOut& marchive);
+    virtual void ArchiveOut(ChArchiveOut& archive_out);
 
     /// Method to allow deserialization of transient data from archives.
-    virtual void ArchiveIn(ChArchiveIn& marchive);
+    virtual void ArchiveIn(ChArchiveIn& archive_in);
 
     /// Create a default material.
     static std::shared_ptr<ChVisualMaterial> Default();
@@ -118,6 +143,8 @@ class ChApi ChVisualMaterial {
     ChColor Kd;  ///< diffuse color
     ChColor Ks;  ///< specular color
     ChColor Ke;  ///< emissive color
+
+    float emissive_power;
 
     float fresnel_max;
     float fresnel_min;
@@ -129,8 +156,10 @@ class ChApi ChVisualMaterial {
 
     float roughness;
     float metallic;
+    float anisotropy;
 
     bool use_specular_workflow;
+    bool use_hapke;
 
     ChTexture kd_texture;         ///< diffuse texture map
     ChTexture ks_texture;         ///< specular texture map
@@ -145,6 +174,17 @@ class ChApi ChVisualMaterial {
 
     unsigned short int class_id;
     unsigned short int instance_id;
+
+
+    // Hapke material parameters
+    float hapke_w; // single scattering albedo
+    float hapke_b; // shape controlling parameter for the amplitude of backward and forward scatter of particles
+    float hapke_c; // weighting factor that controls the contribution of backward and forward scatter.
+    float hapke_B_s0;
+    float hapke_h_s;
+    float hapke_phi;
+    float hapke_theta_p;
+    
 };
 
 typedef std::shared_ptr<ChVisualMaterial> ChVisualMaterialSharedPtr;

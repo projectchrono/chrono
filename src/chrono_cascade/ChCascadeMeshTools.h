@@ -18,7 +18,6 @@
 #include "chrono_cascade/ChApiCASCADE.h"
 #include "chrono_cascade/ChCascadeTriangulate.h"
 
-#include "chrono/core/ChStream.h"
 #include "chrono/geometry/ChTriangleMeshConnected.h"
 
 class TopoDS_Face;
@@ -39,22 +38,21 @@ class ChApiCASCADE ChCascadeMeshTools {
     /// This function can be used to convert a OpenCASCADE face into a triangle mesh.
     /// The face must be already mshed (ex because you called fillTriangleMeshFromCascade before).
     static void fillTriangleMeshFromCascadeFace(
-        geometry::ChTriangleMeshConnected& mesh,  ///< Mesh that will be filled with triangles
-        const TopoDS_Face& F                      ///< OpenCASCADE face to be meshed
+        ChTriangleMeshConnected& mesh,  ///< Mesh that will be filled with triangles
+        const TopoDS_Face& F            ///< OpenCASCADE face to be meshed
     );
 
     /// This function can be used to convert a OpenCASCADE shape into a
     /// Chrono ChTriangleMesh triangle mesh.
-    static void fillTriangleMeshFromCascade(
-        geometry::ChTriangleMeshConnected& mesh,  ///< Mesh that will be filled with triangles
-        const TopoDS_Shape& shape,                ///< OpenCASCADE face to be meshed
-        const ChCascadeTriangulate& tolerances    ///< tesselation tolerances
+    static void fillTriangleMeshFromCascade(ChTriangleMeshConnected& mesh,  ///< Mesh that will be filled with triangles
+                                            const TopoDS_Shape& shape,      ///< OpenCASCADE face to be meshed
+                                            const ChCascadeTriangulate& tolerances  ///< tesselation tolerances
     );
 
     /// This function can be used to convert a OpenCASCADE shape into a
     /// 'obj' file format. The file 'objfile' must be already opened, and empty.
     /// Also normals are saved.
-    static void fillObjFileFromCascade(ChStreamOutAscii& objfile,  ///< the .obj file will be written here
+    static void fillObjFileFromCascade(std::ofstream& objfile,     ///< the .obj file will be written here
                                        const TopoDS_Shape& shape,  ///< OpenCASCADE face to be output as 'obj' file
                                        const ChCascadeTriangulate& tolerances  ///< tesselation tolerances
     );

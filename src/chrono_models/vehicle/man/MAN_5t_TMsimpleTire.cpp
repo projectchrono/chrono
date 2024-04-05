@@ -34,7 +34,7 @@ const std::string MAN_5t_TMsimpleTire::m_meshFile_left = "MAN_Kat1/meshes/MAN_ti
 const std::string MAN_5t_TMsimpleTire::m_meshFile_right = "MAN_Kat1/meshes/MAN_tire.obj";
 
 const double MAN_5t_TMsimpleTire::m_mass = 104.0;
-const ChVector<> MAN_5t_TMsimpleTire::m_inertia(17.8651, 31.6623, 17.8651);
+const ChVector3d MAN_5t_TMsimpleTire::m_inertia(17.8651, 31.6623, 17.8651);
 
 // -----------------------------------------------------------------------------
 // -----------------------------------------------------------------------------
@@ -86,9 +86,6 @@ void MAN_5t_TMsimpleTire::RemoveVisualizationAssets() {
     ChTMsimpleTire::RemoveVisualizationAssets();
 }
 
-}  // namespace unimog
+}  // namespace man
 }  // end namespace vehicle
 }  // end namespace chrono
-
-
-

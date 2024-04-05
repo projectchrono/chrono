@@ -17,12 +17,13 @@
 
 #include <memory>
 
-#include "chrono/core/ChMathematics.h"
-#include "chrono/core/ChVector.h"
+#include "chrono/core/ChRandom.h"
+#include "chrono/core/ChVector3.h"
 #include "chrono/core/ChMatrix.h"
-#include "chrono/core/ChDistribution.h"
 #include "chrono/geometry/ChSurface.h"
 #include "chrono/geometry/ChVolume.h"
+#include "chrono/geometry/ChBox.h"
+#include "chrono/geometry/ChLine.h"
 
 namespace chrono {
 namespace particlefactory {
@@ -38,7 +39,7 @@ class ChRandomParticlePosition {
     /// Function that creates a random position each
     /// time it is called.
     /// Note: it must be implemented by children classes!
-    virtual ChVector<> RandomPosition() { return VNULL; }
+    virtual ChVector3d RandomPosition() { return VNULL; }
 };
 
 /// Class for generator of random particle positions
@@ -54,9 +55,10 @@ class ChRandomParticlePositionRectangleOutlet : public ChRandomParticlePosition 
 
     /// Function that creates a random position each
     /// time it is called.
-    virtual ChVector<> RandomPosition() override {
-        ChVector<> localp = ChVector<>(ChRandom() * width - 0.5 * width, ChRandom() * height - 0.5 * height, 0);
-        return outlet.TransformLocalToParent(localp);
+    virtual ChVector3d RandomPosition() override {
+        ChVector3d localp =
+            ChVector3d(ChRandom::Get() * width - 0.5 * width, ChRandom::Get() * height - 0.5 * height, 0);
+        return outlet.TransformPointLocalToParent(localp);
     }
     /// Access the coordinate system of the rectangular outlet.
     /// The outlet width is on the X direction of this csys, and the
@@ -79,23 +81,19 @@ class ChRandomParticlePositionRectangleOutlet : public ChRandomParticlePosition 
 /// scattered over a parametric surface
 class ChRandomParticlePositionOnGeometry : public ChRandomParticlePosition {
   public:
-    ChRandomParticlePositionOnGeometry() {
-        m_geometry = chrono_types::make_shared<geometry::ChBox>(ChVector<>(0.1, 0.1, 0.1));
-    }
+    ChRandomParticlePositionOnGeometry() { m_geometry = chrono_types::make_shared<ChBox>(ChVector3d(0.1, 0.1, 0.1)); }
 
     /// Function that creates a random position each
     /// time it is called.
-    virtual ChVector<> RandomPosition() override {
-        ChVector<> pos = m_frame.GetPos();
+    virtual ChVector3d RandomPosition() override {
+        ChVector3d pos = m_frame.GetPos();
 
-        if (auto mline = std::dynamic_pointer_cast<geometry::ChLine>(m_geometry)) {
-            pos = mline->Evaluate(ChRandom());
-        }
-        else if (auto msurface = std::dynamic_pointer_cast<geometry::ChSurface>(m_geometry)) {
-            pos = msurface->Evaluate(ChRandom(), ChRandom());
-        }
-        else if (auto mvolume = std::dynamic_pointer_cast<geometry::ChVolume>(m_geometry)) {
-            pos = mvolume->Evaluate(ChRandom(), ChRandom(), ChRandom());
+        if (auto mline = std::dynamic_pointer_cast<ChLine>(m_geometry)) {
+            pos = mline->Evaluate(ChRandom::Get());
+        } else if (auto msurface = std::dynamic_pointer_cast<ChSurface>(m_geometry)) {
+            pos = msurface->Evaluate(ChRandom::Get(), ChRandom::Get());
+        } else if (auto mvolume = std::dynamic_pointer_cast<ChVolume>(m_geometry)) {
+            pos = mvolume->Evaluate(ChRandom::Get(), ChRandom::Get(), ChRandom::Get());
         }
 
         m_frame.SetPos(pos);
@@ -105,13 +103,13 @@ class ChRandomParticlePositionOnGeometry : public ChRandomParticlePosition {
     /// Set the parametric surface used for this outlet.
     /// The surface will be sampled uniformly over its U,V parametric coordinates. In cas of lines, oly U is used, in
     /// case of parametric volumes, U,V,W.
-    void SetGeometry(std::shared_ptr<geometry::ChGeometry> geometry, const ChFrame<>& frame) {
+    void SetGeometry(std::shared_ptr<ChGeometry> geometry, const ChFrame<>& frame) {
         m_geometry = geometry;
         m_frame = frame;
     }
 
   private:
-    std::shared_ptr<geometry::ChGeometry> m_geometry;
+    std::shared_ptr<ChGeometry> m_geometry;
     ChFrame<> m_frame;
 };
 

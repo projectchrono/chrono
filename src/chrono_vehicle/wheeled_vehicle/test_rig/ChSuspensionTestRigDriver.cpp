@@ -23,7 +23,7 @@
 #include <sstream>
 #include <fstream>
 
-#include "chrono/core/ChMathematics.h"
+#include "chrono/utils/ChUtils.h"
 #include "chrono_vehicle/wheeled_vehicle/test_rig/ChSuspensionTestRigDriver.h"
 
 namespace chrono {
@@ -51,7 +51,7 @@ void ChSuspensionTestRigDriver::Initialize(int naxles) {
 bool ChSuspensionTestRigDriver::LogInit(const std::string& filename) {
     m_log_filename = filename;
 
-    std::ofstream ofile(filename.c_str(), std::ios::out);
+    std::ofstream ofile(filename, std::ios::out);
     if (!ofile)
         return false;
 
@@ -65,7 +65,7 @@ bool ChSuspensionTestRigDriver::Log(double time) {
     if (m_log_filename.empty())
         return false;
 
-    std::ofstream ofile(m_log_filename.c_str(), std::ios::app);
+    std::ofstream ofile(m_log_filename, std::ios::app);
     if (!ofile)
         return false;
 

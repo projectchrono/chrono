@@ -25,7 +25,7 @@ namespace vehicle {
 ChTrackShoeSegmented::ChTrackShoeSegmented(const std::string& name) : ChTrackShoe(name) {}
 
 void ChTrackShoeSegmented::Initialize(std::shared_ptr<ChBodyAuxRef> chassis,
-                                      const ChVector<>& location,
+                                      const ChVector3d& location,
                                       const ChQuaternion<>& rotation) {
     ChTrackShoe::Initialize(chassis, location, rotation);
 

@@ -105,22 +105,22 @@ namespace vehicle {
 void ReadFileJSON(const std::string& filename, Document& d) {
     std::ifstream ifs(filename);
     if (!ifs.good()) {
-        GetLog() << "ERROR: Could not open JSON file: " << filename << "\n";
+        std::cerr << "ERROR: Could not open JSON file: " << filename << std::endl;
     } else {
         IStreamWrapper isw(ifs);
         d.ParseStream<ParseFlag::kParseCommentsFlag>(isw);
         if (d.IsNull()) {
-            GetLog() << "ERROR: Invalid JSON file: " << filename << "\n";
+            std::cerr << "ERROR: Invalid JSON file: " << filename << std::endl;
         }
     }
 }
 
 // -----------------------------------------------------------------------------
 
-ChVector<> ReadVectorJSON(const Value& a) {
+ChVector3d ReadVectorJSON(const Value& a) {
     assert(a.IsArray());
     assert(a.Size() == 3);
-    return ChVector<>(a[0u].GetDouble(), a[1u].GetDouble(), a[2u].GetDouble());
+    return ChVector3d(a[0u].GetDouble(), a[1u].GetDouble(), a[2u].GetDouble());
 }
 
 ChQuaternion<> ReadQuaternionJSON(const Value& a) {
@@ -233,17 +233,17 @@ ChVehicleGeometry ReadVehicleGeometryJSON(const rapidjson::Value& d) {
             assert(matID >= 0 && matID < num_mats);
 
             if (type.compare("SPHERE") == 0) {
-                ChVector<> pos = ReadVectorJSON(shape["Location"]);
+                ChVector3d pos = ReadVectorJSON(shape["Location"]);
                 double radius = shape["Radius"].GetDouble();
                 geometry.m_coll_spheres.push_back(ChVehicleGeometry::SphereShape(pos, radius, matID));
             } else if (type.compare("BOX") == 0) {
-                ChVector<> pos = ReadVectorJSON(shape["Location"]);
+                ChVector3d pos = ReadVectorJSON(shape["Location"]);
                 ChQuaternion<> rot = ReadQuaternionJSON(shape["Orientation"]);
-                ChVector<> dims = ReadVectorJSON(shape["Dimensions"]);
+                ChVector3d dims = ReadVectorJSON(shape["Dimensions"]);
                 geometry.m_coll_boxes.push_back(ChVehicleGeometry::BoxShape(pos, rot, dims, matID));
             } else if (type.compare("CYLINDER") == 0) {
-                ChVector<> pos = ReadVectorJSON(shape["Location"]);
-                ChVector<> axis = ReadVectorJSON(shape["Axis"]);
+                ChVector3d pos = ReadVectorJSON(shape["Location"]);
+                ChVector3d axis = ReadVectorJSON(shape["Axis"]);
                 double radius = shape["Radius"].GetDouble();
                 double length = shape["Length"].GetDouble();
                 geometry.m_coll_cylinders.push_back(ChVehicleGeometry::CylinderShape(pos, axis, radius, length, matID));
@@ -252,7 +252,7 @@ ChVehicleGeometry ReadVehicleGeometryJSON(const rapidjson::Value& d) {
                 geometry.m_coll_hulls.push_back(ChVehicleGeometry::ConvexHullsShape(filename, matID));
             } else if (type.compare("MESH") == 0) {
                 std::string filename = shape["Filename"].GetString();
-                ChVector<> pos = ReadVectorJSON(shape["Location"]);
+                ChVector3d pos = ReadVectorJSON(shape["Location"]);
                 double radius = shape["Contact Radius"].GetDouble();
                 geometry.m_coll_meshes.push_back(ChVehicleGeometry::TrimeshShape(pos, filename, radius, matID));
             }
@@ -274,17 +274,17 @@ ChVehicleGeometry ReadVehicleGeometryJSON(const rapidjson::Value& d) {
                 const Value& shape = d["Visualization"]["Primitives"][i];
                 std::string type = shape["Type"].GetString();
                 if (type.compare("SPHERE") == 0) {
-                    ChVector<> pos = ReadVectorJSON(shape["Location"]);
+                    ChVector3d pos = ReadVectorJSON(shape["Location"]);
                     double radius = shape["Radius"].GetDouble();
                     geometry.m_vis_spheres.push_back(ChVehicleGeometry::SphereShape(pos, radius));
                 } else if (type.compare("BOX") == 0) {
-                    ChVector<> pos = ReadVectorJSON(shape["Location"]);
+                    ChVector3d pos = ReadVectorJSON(shape["Location"]);
                     ChQuaternion<> rot = ReadQuaternionJSON(shape["Orientation"]);
-                    ChVector<> dims = ReadVectorJSON(shape["Dimensions"]);
+                    ChVector3d dims = ReadVectorJSON(shape["Dimensions"]);
                     geometry.m_vis_boxes.push_back(ChVehicleGeometry::BoxShape(pos, rot, dims));
                 } else if (type.compare("CYLINDER") == 0) {
-                    ChVector<> pos = ReadVectorJSON(shape["Location"]);
-                    ChVector<> axis = ReadVectorJSON(shape["Axis"]);
+                    ChVector3d pos = ReadVectorJSON(shape["Location"]);
+                    ChVector3d axis = ReadVectorJSON(shape["Axis"]);
                     double radius = shape["Radius"].GetDouble();
                     double length = shape["Length"].GetDouble();
                     geometry.m_vis_cylinders.push_back(ChVehicleGeometry::CylinderShape(pos, axis, radius, length));
@@ -391,7 +391,12 @@ std::shared_ptr<ChLinkTSDA::ForceFunctor> ReadTSDAFunctorJSON(const rapidjson::V
 
             double k = tsda["Spring Coefficient"].GetDouble();
 
-            return chrono_types::make_shared<LinearSpringForce>(k, preload);
+            auto forceCB = chrono_types::make_shared<LinearSpringForce>(k, preload);
+            if (tsda.HasMember("Minimum Length") && tsda.HasMember("Maximum Length")) {
+                forceCB->enable_stops(tsda["Minimum Length"].GetDouble(), tsda["Maximum Length"].GetDouble());
+            }
+
+            return forceCB;
         }
 
         case FunctorType::NonlinearSpring: {
@@ -449,7 +454,12 @@ std::shared_ptr<ChLinkTSDA::ForceFunctor> ReadTSDAFunctorJSON(const rapidjson::V
             double k = tsda["Spring Coefficient"].GetDouble();
             double c = tsda["Damping Coefficient"].GetDouble();
 
-            return chrono_types::make_shared<LinearSpringDamperForce>(k, c, preload);
+            auto forceCB = chrono_types::make_shared<LinearSpringDamperForce>(k, c, preload);
+            if (tsda.HasMember("Minimum Length") && tsda.HasMember("Maximum Length")) {
+                forceCB->enable_stops(tsda["Minimum Length"].GetDouble(), tsda["Maximum Length"].GetDouble());
+            }
+
+            return forceCB;
         }
 
         case FunctorType::NonlinearSpringDamper: {
@@ -655,7 +665,7 @@ std::shared_ptr<ChChassis> ReadChassisJSON(const std::string& filename, JSONCons
     }
 
     if (!chassis)
-        throw ChException("Chassis type not supported in ReadChassisJSON.");
+        throw std::invalid_argument("Chassis type not supported in ReadChassisJSON.");
 
     return chassis;
 }
@@ -685,7 +695,7 @@ std::shared_ptr<ChChassisRear> ReadChassisRearJSON(const std::string& filename, 
     }
 
     if (!chassis)
-        throw ChException("Chassis type not supported in ReadChassisRearJSON.");
+        throw std::invalid_argument("Chassis type not supported in ReadChassisRearJSON.");
 
     return chassis;
 }
@@ -719,7 +729,7 @@ std::shared_ptr<ChChassisConnector> ReadChassisConnectorJSON(const std::string& 
     }
 
     if (!connector)
-        throw ChException("Chassis type not supported in ReadChassisConnectorJSON.");
+        throw std::invalid_argument("Chassis type not supported in ReadChassisConnectorJSON.");
 
     return connector;
 }
@@ -753,7 +763,7 @@ std::shared_ptr<ChEngine> ReadEngineJSON(const std::string& filename, JSONConstr
     }
 
     if (!engine)
-        throw ChException("Engine type not supported in ReadEngineJSON.");
+        throw std::invalid_argument("Engine type not supported in ReadEngineJSON.");
 
     return engine;
 }
@@ -787,7 +797,7 @@ std::shared_ptr<ChTransmission> ReadTransmissionJSON(const std::string& filename
     }
 
     if (!transmission)
-        throw ChException("Transmission type not supported in ReadTransmissionJSON.");
+        throw std::invalid_argument("Transmission type not supported in ReadTransmissionJSON.");
 
     return transmission;
 }
@@ -859,7 +869,7 @@ std::shared_ptr<ChSuspension> ReadSuspensionJSON(const std::string& filename, JS
     }
 
     if (!suspension)
-        throw ChException("Suspension type not supported in ReadSuspensionJSON.");
+        throw std::invalid_argument("Suspension type not supported in ReadSuspensionJSON.");
 
     return suspension;
 }
@@ -893,7 +903,7 @@ std::shared_ptr<ChSteering> ReadSteeringJSON(const std::string& filename, JSONCo
     }
 
     if (!steering)
-        throw ChException("Steering type not supported in ReadSteeringJSON.");
+        throw std::invalid_argument("Steering type not supported in ReadSteeringJSON.");
 
     return steering;
 }
@@ -929,7 +939,7 @@ std::shared_ptr<ChDrivelineWV> ReadDrivelineWVJSON(const std::string& filename, 
     }
 
     if (!driveline)
-        throw ChException("Driveline type not supported in ReadDrivelineWVJSON.");
+        throw std::invalid_argument("Driveline type not supported in ReadDrivelineWVJSON.");
 
     return driveline;
 }
@@ -959,7 +969,7 @@ std::shared_ptr<ChAntirollBar> ReadAntirollbarJSON(const std::string& filename, 
     }
 
     if (!antirollbar)
-        throw ChException("AntirollBar type not supported in ReadAntirollbarJSON.");
+        throw std::invalid_argument("AntirollBar type not supported in ReadAntirollbarJSON.");
 
     return antirollbar;
 }
@@ -989,7 +999,7 @@ std::shared_ptr<ChWheel> ReadWheelJSON(const std::string& filename, JSONConstruc
     }
 
     if (!wheel)
-        throw ChException("Wheel type not supported in ReadWheelJSON.");
+        throw std::invalid_argument("Wheel type not supported in ReadWheelJSON.");
 
     return wheel;
 }
@@ -1019,7 +1029,7 @@ std::shared_ptr<ChSubchassis> ReadSubchassisJSON(const std::string& filename, JS
     }
 
     if (!chassis)
-        throw ChException("Subchassis type not supported in ReadSubchassisJSON.");
+        throw std::invalid_argument("Subchassis type not supported in ReadSubchassisJSON.");
 
     return chassis;
 }
@@ -1051,7 +1061,7 @@ std::shared_ptr<ChBrake> ReadBrakeJSON(const std::string& filename, JSONConstruc
     }
 
     if (!brake)
-        throw ChException("Brake type not supported in ReadBrakeJSON.");
+        throw std::invalid_argument("Brake type not supported in ReadBrakeJSON.");
 
     return brake;
 }
@@ -1097,7 +1107,7 @@ std::shared_ptr<ChTire> ReadTireJSON(const std::string& filename, JSONConstructo
     }
 
     if (!tire)
-        throw ChException("Tire type not supported in ReadTireJSON.");
+        throw std::invalid_argument("Tire type not supported in ReadTireJSON.");
 
     return tire;
 }
@@ -1135,7 +1145,7 @@ std::shared_ptr<ChTrackAssembly> ReadTrackAssemblyJSON(const std::string& filena
     }
 
     if (!track)
-        throw ChException("TrackAssembly type not supported in ReadTrackAssemblyJSON.");
+        throw std::invalid_argument("TrackAssembly type not supported in ReadTrackAssemblyJSON.");
 
     return track;
 }
@@ -1167,7 +1177,7 @@ std::shared_ptr<ChDrivelineTV> ReadDrivelineTVJSON(const std::string& filename, 
     }
 
     if (!driveline)
-        throw ChException("Driveline type not supported in ReadTrackDrivelineJSON.");
+        throw std::invalid_argument("Driveline type not supported in ReadTrackDrivelineJSON.");
 
     return driveline;
 }
@@ -1199,7 +1209,7 @@ std::shared_ptr<ChTrackBrake> ReadTrackBrakeJSON(const std::string& filename, JS
     }
 
     if (!brake)
-        throw ChException("Brake type not supported in ReadTrackBrakeJSON.");
+        throw std::invalid_argument("Brake type not supported in ReadTrackBrakeJSON.");
 
     return brake;
 }
@@ -1231,7 +1241,7 @@ std::shared_ptr<ChIdler> ReadIdlerJSON(const std::string& filename, JSONConstruc
     }
 
     if (!idler)
-        throw ChException("Idler type not supported in ReadIdlerJSON.");
+        throw std::invalid_argument("Idler type not supported in ReadIdlerJSON.");
 
     return idler;
 }
@@ -1263,7 +1273,7 @@ std::shared_ptr<ChTrackSuspension> ReadTrackSuspensionJSON(const std::string& fi
     }
 
     if (!suspension)
-        throw ChException("Suspension type not supported in ReadTrackSuspensionJSON.");
+        throw std::invalid_argument("Suspension type not supported in ReadTrackSuspensionJSON.");
 
     return suspension;
 }
@@ -1295,7 +1305,7 @@ std::shared_ptr<ChTrackWheel> ReadTrackWheelJSON(const std::string& filename, JS
     }
 
     if (!wheel)
-        throw ChException("Road-wheel type not supported in ReadTrackWheelJSON.");
+        throw std::invalid_argument("Road-wheel type not supported in ReadTrackWheelJSON.");
 
     return wheel;
 }
@@ -1311,7 +1321,7 @@ void ChMapData::Read(const rapidjson::Value& a) {
     }
 }
 
-void ChMapData::Set(ChFunction_Recorder& map, double x_factor, double y_factor) const {
+void ChMapData::Set(ChFunctionInterp& map, double x_factor, double y_factor) const {
     for (unsigned int i = 0; i < m_n; i++) {
         map.AddPoint(x_factor * m_x[i], y_factor * m_y[i]);
     }

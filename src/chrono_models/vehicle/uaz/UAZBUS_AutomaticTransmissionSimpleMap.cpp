@@ -24,7 +24,7 @@ namespace chrono {
 namespace vehicle {
 namespace uaz {
 
-const double rpm2rads = CH_C_PI / 30;
+const double rpm2rads = CH_PI / 30;
 
 UAZBUS_AutomaticTransmissionSimpleMap::UAZBUS_AutomaticTransmissionSimpleMap(const std::string& name)
     : ChAutomaticTransmissionSimpleMap(name) {}

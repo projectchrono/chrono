@@ -42,7 +42,7 @@
 #include "chrono_thirdparty/rapidjson/stringbuffer.h"
 
 #ifdef CHRONO_POSTPROCESS
-#include "chrono_postprocess/ChGnuPlot.h"
+    #include "chrono_postprocess/ChGnuPlot.h"
 #endif
 
 using namespace rapidjson;
@@ -86,7 +86,8 @@ ChTrackTestRig::ChTrackTestRig(const std::string& filename,
       m_next_plot_output_time(0),
       m_csv(nullptr) {
     // Open and parse the input file (track assembly JSON specification file)
-    Document d; ReadFileJSON(filename, d);
+    Document d;
+    ReadFileJSON(filename, d);
     if (d.IsNull())
         return;
 
@@ -104,7 +105,7 @@ ChTrackTestRig::ChTrackTestRig(const std::string& filename,
     } else if (subtype.compare("TrackAssemblyDoublePin") == 0) {
         m_track = chrono_types::make_shared<TrackAssemblyDoublePin>(d);
     }
-    GetLog() << "Loaded JSON: " << filename.c_str() << "\n";
+    std::cout << "Loaded JSONL " << filename << std::endl;
 
     Create(create_track, detracking_control);
     m_contact_manager = chrono_types::make_shared<ChTrackContactManager>();
@@ -156,7 +157,7 @@ void ChTrackTestRig::Create(bool create_track, bool detracking_control) {
         m_track->GetSprocket()->DisableLateralContact();
 
     // Initialize the track assembly subsystem
-    m_track->Initialize(m_chassis, ChVector<>(0, 0, 0), create_track);
+    m_track->Initialize(m_chassis, ChVector3d(0, 0, 0), create_track);
 
     // Create and initialize the shaker post body
     auto num_wheels = m_track->GetNumTrackSuspensions();
@@ -184,18 +185,18 @@ void ChTrackTestRig::Create(bool create_track, bool detracking_control) {
         auto post = chrono_types::make_shared<ChBody>();
         post->SetPos(post_pos);
         post->SetMass(100);
-        post->SetCollide(true);
+        post->EnableCollision(true);
         m_system->Add(post);
 
         auto ct_shape = chrono_types::make_shared<ChCollisionShapeCylinder>(post_mat, m_post_radius, m_post_height);
-        post->AddCollisionShape(ct_shape, ChFrame<>(ChVector<>(0, 0, -m_post_height / 2), QUNIT));
+        post->AddCollisionShape(ct_shape, ChFrame<>(ChVector3d(0, 0, -m_post_height / 2), QUNIT));
 
         AddPostVisualization(post, m_chassis->GetBody(), ChColor(0.1f, 0.8f, 0.15f));
 
         auto linact = chrono_types::make_shared<ChLinkMotorLinearPosition>();
-        linact->SetNameString("post_actuator");
-        linact->SetMotionFunction(chrono_types::make_shared<ChFunction_Setpoint>());
-        linact->Initialize(m_chassis->GetBody(), post, ChFrame<>(ChVector<>(post_pos), Q_from_AngY(CH_C_PI_2)));
+        linact->SetName("post_actuator");
+        linact->SetMotionFunction(chrono_types::make_shared<ChFunctionSetpoint>());
+        linact->Initialize(m_chassis->GetBody(), post, ChFrame<>(ChVector3d(post_pos), QuatFromAngleX(CH_PI)));
         m_system->AddLink(linact);
 
         m_post.push_back(post);
@@ -205,7 +206,7 @@ void ChTrackTestRig::Create(bool create_track, bool detracking_control) {
 
 void ChTrackTestRig::Initialize() {
     if (!m_driver) {
-        throw ChException("No driver system provided");
+        throw std::runtime_error("No driver system provided");
     }
 
     // Calculate post displacement offset (if any) to set reference position at specified ride height
@@ -223,17 +224,19 @@ void ChTrackTestRig::Initialize() {
     m_track->SetTrackShoeVisualizationType(m_vis_shoe);
 
     // Set collisions
-    m_track->GetIdlerWheel()->SetCollide((m_collide_flags & static_cast<int>(TrackedCollisionFlag::IDLER_LEFT)) != 0);
+    m_track->GetIdlerWheel()->EnableCollision((m_collide_flags & static_cast<int>(TrackedCollisionFlag::IDLER_LEFT)) !=
+                                              0);
 
-    m_track->GetSprocket()->SetCollide((m_collide_flags & static_cast<int>(TrackedCollisionFlag::SPROCKET_LEFT)) != 0);
+    m_track->GetSprocket()->EnableCollision((m_collide_flags & static_cast<int>(TrackedCollisionFlag::SPROCKET_LEFT)) !=
+                                            0);
 
     bool collide_wheels = (m_collide_flags & static_cast<int>(TrackedCollisionFlag::WHEELS_LEFT)) != 0;
     for (size_t i = 0; i < m_track->GetNumTrackSuspensions(); ++i)
-        m_track->GetRoadWheel(i)->SetCollide(collide_wheels);
+        m_track->GetRoadWheel(i)->EnableCollision(collide_wheels);
 
     bool collide_shoes = (m_collide_flags & static_cast<int>(TrackedCollisionFlag::SHOES_LEFT)) != 0;
     for (size_t i = 0; i < m_track->GetNumTrackShoes(); ++i)
-        m_track->GetTrackShoe(i)->SetCollide(collide_shoes);
+        m_track->GetTrackShoe(i)->EnableCollision(collide_shoes);
 
     // Post locations (in X direction)
     auto idler_x = m_track->GetIdlerWheel()->GetBody()->GetPos().x();
@@ -261,18 +264,18 @@ void ChTrackTestRig::SetDriver(std::shared_ptr<ChTrackTestRigDriver> driver) {
 
 void ChTrackTestRig::SetPostCollide(bool flag) {
     for (auto& p : m_post)
-        p->SetCollide(flag);
+        p->EnableCollision(flag);
 }
 
 // -----------------------------------------------------------------------------
 
 double ChTrackTestRig::GetActuatorDisp(int index) {
     double time = GetSystem()->GetChTime();
-    return m_post_linact[index]->GetMotionFunction()->Get_y(time);
+    return m_post_linact[index]->GetMotionFunction()->GetVal(time);
 }
 
 double ChTrackTestRig::GetActuatorForce(int index) {
-    return m_post_linact[index]->Get_react_force().x();
+    return m_post_linact[index]->GetMotorForce();
 }
 
 double ChTrackTestRig::GetActuatorMarkerDist(int index) {
@@ -318,11 +321,11 @@ void ChTrackTestRig::Advance(double step) {
     m_driver->Synchronize(time);
 
     // Apply a torque to the sprocket's shaft
-    m_track->GetSprocket()->GetAxle()->SetAppliedTorque(-m_max_torque * m_throttle_input);
+    m_track->GetSprocket()->GetAxle()->SetAppliedLoad(-m_max_torque * m_throttle_input);
 
     // Update post displacements
     for (int i = 0; i < m_post.size(); i++) {
-        auto func = std::static_pointer_cast<ChFunction_Setpoint>(m_post_linact[i]->GetMotionFunction());
+        auto func = std::static_pointer_cast<ChFunctionSetpoint>(m_post_linact[i]->GetMotionFunction());
         func->SetSetpointAndDerivatives(displ[i], displ_speed[i], 0.0);
     }
 
@@ -359,11 +362,7 @@ void ChTrackTestRig::LogDriverInputs() {
 // Log constraint violations
 // -----------------------------------------------------------------------------
 void ChTrackTestRig::LogConstraintViolations() {
-    GetLog().SetNumFormat("%16.4e");
-
     //// TODO
-
-    GetLog().SetNumFormat("%g");
 }
 
 // -----------------------------------------------------------------------------
@@ -376,22 +375,22 @@ void ChTrackTestRig::AddPostVisualization(std::shared_ptr<ChBody> post,
 
     // Platform (on post body)
     ChVehicleGeometry::AddVisualizationCylinder(post,                              //
-                                                ChVector<>(0, 0, 0),               //
-                                                ChVector<>(0, 0, -m_post_height),  //
+                                                ChVector3d(0, 0, 0),               //
+                                                ChVector3d(0, 0, -m_post_height),  //
                                                 m_post_radius,                     //
                                                 mat);
 
     // Piston (on post body)
     ChVehicleGeometry::AddVisualizationCylinder(post,                                   //
-                                                ChVector<>(0, 0, -m_post_height),        //
-                                                ChVector<>(0, 0, -15 * m_post_height),  //
+                                                ChVector3d(0, 0, -m_post_height),       //
+                                                ChVector3d(0, 0, -15 * m_post_height),  //
                                                 m_post_radius / 6.0,                    //
                                                 mat);
 
     // Post sleeve (on chassis/ground body)
     ChVehicleGeometry::AddVisualizationCylinder(chassis,                                                //
-                                                post->GetPos() - ChVector<>(0, 0, 8 * m_post_height),   //
-                                                post->GetPos() - ChVector<>(0, 0, 16 * m_post_height),  //
+                                                post->GetPos() - ChVector3d(0, 0, 8 * m_post_height),   //
+                                                post->GetPos() - ChVector3d(0, 0, 16 * m_post_height),  //
                                                 m_post_radius / 4.0,                                    //
                                                 mat);
 }
@@ -413,17 +412,17 @@ void ChTrackTestRig::Output(int frame, ChVehicleOutput& database) const {
 void ChTrackTestRig::SetPlotOutput(double output_step) {
     m_plot_output = true;
     m_plot_output_step = output_step;
-    m_csv = new utils::CSV_writer(" ");
+    m_csv = new utils::ChWriterCSV(" ");
 }
 
 void ChTrackTestRig::CollectPlotData(double time) {
     *m_csv << time;
 
-    ////const ChFrameMoving<>& c_ref = GetChassisBody()->GetFrame_REF_to_abs();
-    ////const ChVector<>& i_pos_abs = m_track->GetIdler()->GetWheelBody()->GetPos();
-    ////const ChVector<>& s_pos_abs = m_track->GetSprocket()->GetGearBody()->GetPos();
-    ////ChVector<> i_pos_rel = c_ref.TransformPointParentToLocal(i_pos_abs);
-    ////ChVector<> s_pos_rel = c_ref.TransformPointParentToLocal(s_pos_abs);
+    ////const ChFrameMoving<>& c_ref = GetChassisBody()->GetFrameRefToAbs();
+    ////const ChVector3d& i_pos_abs = m_track->GetIdler()->GetWheelBody()->GetPos();
+    ////const ChVector3d& s_pos_abs = m_track->GetSprocket()->GetGearBody()->GetPos();
+    ////ChVector3d i_pos_rel = c_ref.TransformPointParentToLocal(i_pos_abs);
+    ////ChVector3d s_pos_rel = c_ref.TransformPointParentToLocal(s_pos_abs);
 
     *m_csv << m_track->GetSprocket()->GetGearBody()->GetPos();
     *m_csv << m_track->GetIdler()->GetWheelBody()->GetPos();
@@ -441,24 +440,24 @@ void ChTrackTestRig::PlotOutput(const std::string& out_dir, const std::string& o
         return;
 
     std::string out_file = out_dir + "/" + out_name + ".txt";
-    m_csv->write_to_file(out_file);
+    m_csv->WriteToFile(out_file);
 
 #ifdef CHRONO_POSTPROCESS
     std::string gplfile = out_dir + "/tmp.gpl";
-    postprocess::ChGnuPlot mplot(gplfile.c_str());
+    postprocess::ChGnuPlot mplot(gplfile);
 
     std::string title = "Suspension test rig - Wheel positions";
     mplot.OutputWindow(0);
-    mplot.SetTitle(title.c_str());
+    mplot.SetTitle(title);
     mplot.SetLabelX("time [s]");
     mplot.SetLabelY("wheel z [m]");
     mplot.SetCommand("set format y '%4.1e'");
     mplot.SetCommand("set terminal wxt size 800, 600");
-    mplot.Plot(out_file.c_str(), 1, 4, "sprocket", " with lines lw 2");
-    mplot.Plot(out_file.c_str(), 1, 7, "idler", " with lines lw 2");
+    mplot.Plot(out_file, 1, 4, "sprocket", " with lines lw 2");
+    mplot.Plot(out_file, 1, 7, "idler", " with lines lw 2");
     for (int i = 0; i < m_track->GetNumTrackSuspensions(); i++) {
         std::string label = "wheel #" + std::to_string(i);
-        mplot.Plot(out_file.c_str(), 1, 7 + 3 * i + 3, label.c_str(), " with lines lw 2");
+        mplot.Plot(out_file, 1, 7 + 3 * i + 3, label, " with lines lw 2");
     }
 
     //// TODO: spring and shock forces

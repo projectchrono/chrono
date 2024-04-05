@@ -60,10 +60,13 @@ class ChApi ChCollisionSystem {
     /// initialization, but can also be called later if further modifications to collision models occur.
     virtual void BindAll();
 
-    /// Process the collision shapes...
+    /// Process the collision models associated with the specified Chrono physics item.
     /// This function must be called if a new physics item is added to the system or if changes to its collision model
     /// occur after the collision system was initialized.
     virtual void BindItem(std::shared_ptr<ChPhysicsItem> item);
+
+    /// Remove any collision models associated with the specified physics item from the collision engine.
+    void UnbindItem(std::shared_ptr<ChPhysicsItem> item);
 
     /// Clears all data instanced by this algorithm if any.
     virtual void Clear() = 0;
@@ -85,7 +88,7 @@ class ChApi ChCollisionSystem {
     virtual void PostProcess() {}
 
     /// Return an AABB bounding all collision shapes in the system
-    virtual geometry::ChAABB GetBoundingBox() const = 0;
+    virtual ChAABB GetBoundingBox() const = 0;
 
     /// Return the time (in seconds) for broadphase collision detection.
     virtual double GetTimerCollisionBroad() const = 0;
@@ -168,18 +171,18 @@ class ChApi ChCollisionSystem {
     /// Recover results from RayHit() raycasting.
     struct ChRayhitResult {
         bool hit;                    ///< if true, there was an hit
-        ChVector<> abs_hitPoint;     ///< hit point in absolute space coordinates
-        ChVector<> abs_hitNormal;    ///< normal to surface in absolute space coordinates
+        ChVector3d abs_hitPoint;     ///< hit point in absolute space coordinates
+        ChVector3d abs_hitNormal;    ///< normal to surface in absolute space coordinates
         double dist_factor;          ///< from 0 .. 1 means the distance of hit point along the segment
         ChCollisionModel* hitModel;  ///< pointer to intersected model
     };
 
     /// Perform a ray-hit test with the collision models.
-    virtual bool RayHit(const ChVector<>& from, const ChVector<>& to, ChRayhitResult& result) const = 0;
+    virtual bool RayHit(const ChVector3d& from, const ChVector3d& to, ChRayhitResult& result) const = 0;
 
     /// Perform a ray-hit test with the specified collision model.
-    virtual bool RayHit(const ChVector<>& from,
-                        const ChVector<>& to,
+    virtual bool RayHit(const ChVector3d& from,
+                        const ChVector3d& to,
                         ChCollisionModel* model,
                         ChRayhitResult& result) const = 0;
 
@@ -189,7 +192,7 @@ class ChApi ChCollisionSystem {
         virtual ~VisualizationCallback() {}
 
         /// Method for rendering a line of specified color between the two given points.
-        virtual void DrawLine(const ChVector<>& from, const ChVector<>& to, const ChColor& color) = 0;
+        virtual void DrawLine(const ChVector3d& from, const ChVector3d& to, const ChColor& color) = 0;
 
         /// Set scaling factor for normal vectors (default 1.0).
         virtual double GetNormalScale() const { return 1.0; }
@@ -216,10 +219,10 @@ class ChApi ChCollisionSystem {
     virtual void Visualize(int flags) {}
 
     /// Method to allow serialization of transient data to archives.
-    virtual void ArchiveOut(ChArchiveOut& marchive);
+    virtual void ArchiveOut(ChArchiveOut& archive_out);
 
     /// Method to allow de-serialization of transient data from archives.
-    virtual void ArchiveIn(ChArchiveIn& marchive);
+    virtual void ArchiveIn(ChArchiveIn& archive_in);
 
     /// Set associated Chrono system
     void SetSystem(ChSystem* sys) { m_system = sys; }

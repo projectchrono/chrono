@@ -36,8 +36,8 @@ import os
 veh.SetDataPath(chrono.GetChronoDataPath() + 'vehicle/')
 
 # Initial vehicle location and orientation
-initLoc = chrono.ChVectorD(0, 0, 0.4)
-initRot = chrono.ChQuaternionD(1, 0, 0, 0)
+initLoc = chrono.ChVector3d(0, 0, 0.4)
+initRot = chrono.ChQuaterniond(1, 0, 0, 0)
 
 # Visualization type for vehicle parts (PRIMITIVES, MESH, or NONE)
 chassis_vis_type = veh.VisualizationType_MESH
@@ -50,7 +50,7 @@ tire_vis_type = veh.VisualizationType_MESH
 tire_model = veh.TireModelType_PAC02
 
 # Poon chassis tracked by the camera
-trackPoint = chrono.ChVectorD(0.0, 0.0, 1.75)
+trackPoint = chrono.ChVector3d(0.0, 0.0, 1.75)
 
 # Simulation step sizes
 step_size = 1e-3
@@ -79,7 +79,7 @@ print( "Copyright (c) 2017 projectchrono.org\n")
 uaz = veh.UAZBUS()
 uaz.SetContactMethod(chrono.ChContactMethod_NSC)
 uaz.SetChassisFixed(False)
-uaz.SetInitPosition(chrono.ChCoordsysD(initLoc, initRot))
+uaz.SetInitPosition(chrono.ChCoordsysd(initLoc, initRot))
 uaz.SetTireType(tire_model)
 uaz.SetTireStepSize(tire_step_size)
 uaz.SetInitFwdVel(0.0)
@@ -116,7 +116,7 @@ uaz.GetSystem().SetCollisionSystemType(chrono.ChCollisionSystem.Type_BULLET)
 # ------------------
 
 terrain = veh.RigidTerrain(uaz.GetSystem())
-patch_mat = chrono.ChMaterialSurfaceNSC()
+patch_mat = chrono.ChContactMaterialNSC()
 patch_mat.SetFriction(0.9)
 patch_mat.SetRestitution(0.01)
 patch = terrain.AddPatch(patch_mat, 
@@ -194,8 +194,8 @@ while vis.Run() :
 
     # Test for validity of kingpin angles (max.allowed by UAZ: 27deg)
     suspF = veh.CastToChToeBarLeafspringAxle(uaz.GetVehicle().GetSuspension(0))
-    leftAngle = suspF.GetKingpinAngleLeft() * 180.0 / chrono.CH_C_PI
-    rightAngle = suspF.GetKingpinAngleRight() * 180.0 / chrono.CH_C_PI
+    leftAngle = suspF.GetKingpinAngleLeft() * 180.0 / chrono.CH_PI
+    rightAngle = suspF.GetKingpinAngleRight() * 180.0 / chrono.CH_PI
     if abs(leftAngle) > maxKingpinAngle :
         maxKingpinAngle = abs(leftAngle)
     if abs(rightAngle) > maxKingpinAngle :

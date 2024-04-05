@@ -20,7 +20,9 @@
 #include "chrono/geometry/ChTriangleMesh.h"
 
 namespace chrono {
-namespace geometry {
+
+/// @addtogroup chrono_geometry
+/// @{
 
 /// A basic triangle mesh: just a list of triangles (no edge connectivity info).
 class ChApi ChTriangleMeshSoup : public ChTriangleMesh {
@@ -45,39 +47,39 @@ class ChApi ChTriangleMeshSoup : public ChTriangleMesh {
     ////virtual ChTriangle& Triangle(int index) { return m_triangles[index]; }
 
     /// Add a triangle to this triangle mesh, by specifying the three coordinates
-    virtual void addTriangle(const ChVector<>& vertex0, const ChVector<>& vertex1, const ChVector<>& vertex2) override;
+    virtual void AddTriangle(const ChVector3d& vertex0, const ChVector3d& vertex1, const ChVector3d& vertex2) override;
 
     /// Add a triangle to this triangle mesh, by specifying a ChTriangle
-    virtual void addTriangle(const ChTriangle& atriangle) override { m_triangles.push_back(atriangle); }
+    virtual void AddTriangle(const ChTriangle& atriangle) override { m_triangles.push_back(atriangle); }
 
     /// Get the number of triangles already added to this mesh
-    virtual int getNumTriangles() const override { return (int)m_triangles.size(); }
+    virtual unsigned int GetNumTriangles() const override { return (unsigned int)m_triangles.size(); }
 
     /// Access the n-th triangle in mesh
-    virtual ChTriangle getTriangle(int index) const override { return m_triangles[index]; }
+    virtual ChTriangle GetTriangle(unsigned int index) const override { return m_triangles[index]; }
 
     /// Get the list of triangles.
-    std::vector<ChTriangle>& getTriangles() { return m_triangles; }
+    std::vector<ChTriangle>& GetTriangles() { return m_triangles; }
 
     /// Clear all data
     virtual void Clear() override { this->m_triangles.clear(); }
 
     /// Transform all vertexes, by displacing and rotating (rotation  via matrix, so also scaling if needed)
-    virtual void Transform(const ChVector<> displ, const ChMatrix33<> rotscale) override;
+    virtual void Transform(const ChVector3d displ, const ChMatrix33<> rotscale) override;
 
     /// Get the class type as an enum.
-    virtual Type GetClassType() const override { return Type::TRIANGLEMESH_SOUP; }
+    virtual Type GetType() const override { return Type::TRIANGLEMESH_SOUP; }
 
     /// Method to allow serialization of transient data to archives.
-    virtual void ArchiveOut(ChArchiveOut& marchive) override;
+    virtual void ArchiveOut(ChArchiveOut& archive_out) override;
 
     /// Method to allow de-serialization of transient data from archives.
-    virtual void ArchiveIn(ChArchiveIn& marchive) override;
+    virtual void ArchiveIn(ChArchiveIn& archive_in) override;
 };
 
-}  // end namespace geometry
+/// @} chrono_geometry
 
-CH_CLASS_VERSION(geometry::ChTriangleMeshSoup, 0)
+CH_CLASS_VERSION(ChTriangleMeshSoup, 0)
 
 }  // end namespace chrono
 

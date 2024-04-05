@@ -20,7 +20,7 @@
 #include <climits>
 
 #include "chrono/utils/ChUtilsGenerators.h"
-#include "chrono/core/ChVector.h"
+#include "chrono/core/ChVector3.h"
 
 #include "chrono_gpu/physics/ChSystemGpu_impl.h"
 #include "chrono_gpu/physics/ChGpuBoundaryConditions.h"
@@ -1342,7 +1342,7 @@ float ChSystemGpu_impl::ComputeTotalKE() {
     v2_UU *= VEL_SU2UU * VEL_SU2UU;
     float w2_UU = computeArray3SquaredSum(sphere_Omega_X, sphere_Omega_Y, sphere_Omega_Z, nSpheres);
     w2_UU /= TIME_SU2UU * TIME_SU2UU;
-    float m = (4. / 3.) * CH_C_PI * sphere_radius_UU * sphere_radius_UU * sphere_radius_UU * sphere_density_UU;
+    float m = (4. / 3.) * CH_PI * sphere_radius_UU * sphere_radius_UU * sphere_radius_UU * sphere_density_UU;
 
     // Then, KE = 0.5 * m * sum(v^2) + 0.2 * m * r^2 * sum(w^2)
     return 0.5 * m * v2_UU + 0.2 * m * sphere_radius_UU * sphere_radius_UU * w2_UU;
@@ -1387,7 +1387,7 @@ bool ChSystemGpu_impl::IsFixed(int nSphere) const {
 }
 
 // Return number of particle-particle contacts
-int ChSystemGpu_impl::GetNumContacts() const {
+unsigned int ChSystemGpu_impl::GetNumContacts() const {
     auto contact_itr = contact_partners_map.begin();
     int total_nc = 0;
 
@@ -1486,8 +1486,7 @@ void ChSystemGpu_impl::combineMaterialSurface() {
 // Convert unit parameters from UU to SU
 void ChSystemGpu_impl::switchToSimUnits() {
     // Compute sphere mass, highest system stiffness, and gravity magnitude
-    double massSphere =
-        (4. / 3.) * CH_C_PI * sphere_radius_UU * sphere_radius_UU * sphere_radius_UU * sphere_density_UU;
+    double massSphere = (4. / 3.) * CH_PI * sphere_radius_UU * sphere_radius_UU * sphere_radius_UU * sphere_density_UU;
     double K_star = get_max_K();
 
     double magGravAcc = sqrt(X_accGrav * X_accGrav + Y_accGrav * Y_accGrav + Z_accGrav * Z_accGrav);

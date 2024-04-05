@@ -51,9 +51,8 @@ void runBallDrop(ChSystemGpuMesh& gpu_sys, ChGpuSimulationParameters& params) {
     // Add a ball mesh to the GPU system
     float ball_radius = 20.f;
     float ball_density = params.sphere_density;
-    float ball_mass = 4.0f * (float)CH_C_PI * ball_radius * ball_radius * ball_radius * ball_density / 3.f;
-    gpu_sys.AddMesh(GetChronoDataFile("models/sphere.obj"), ChVector<float>(0), ChMatrix33<float>(ball_radius),
-                    ball_mass);
+    float ball_mass = 4.0f * (float)CH_PI * ball_radius * ball_radius * ball_radius * ball_density / 3.f;
+    gpu_sys.AddMesh(GetChronoDataFile("models/sphere.obj"), ChVector3f(0), ChMatrix33<float>(ball_radius), ball_mass);
 
     // One more thing: we need to manually enable mesh in this run, because we disabled it in the settling phase,
     // let's overload that option.
@@ -66,14 +65,14 @@ void runBallDrop(ChSystemGpuMesh& gpu_sys, ChGpuSimulationParameters& params) {
     ChSystemSMC sys_ball;
     sys_ball.SetContactForceModel(ChSystemSMC::ContactForceModel::Hooke);
     sys_ball.SetTimestepperType(ChTimestepper::Type::EULER_IMPLICIT);
-    sys_ball.Set_G_acc(ChVector<>(0, 0, -980));
+    sys_ball.SetGravitationalAcceleration(ChVector3d(0, 0, -980));
 
     double inertia = 2.0 / 5.0 * ball_mass * ball_radius * ball_radius;
-    ChVector<> ball_initial_pos(0, 0, params.box_Z / 4.0 + ball_radius + 2 * params.sphere_radius);
+    ChVector3d ball_initial_pos(0, 0, params.box_Z / 4.0 + ball_radius + 2 * params.sphere_radius);
 
     auto ball_body = chrono_types::make_shared<ChBody>();
     ball_body->SetMass(ball_mass);
-    ball_body->SetInertiaXX(ChVector<>(inertia, inertia, inertia));
+    ball_body->SetInertiaXX(ChVector3d(inertia, inertia, inertia));
     ball_body->SetPos(ball_initial_pos);
     auto sph = chrono_types::make_shared<ChVisualShapeSphere>(ball_radius);
     ball_body->AddVisualShape(sph);
@@ -82,7 +81,7 @@ void runBallDrop(ChSystemGpuMesh& gpu_sys, ChGpuSimulationParameters& params) {
     ChGpuVisualization gpu_vis(&gpu_sys);
     if (render) {
         gpu_vis.SetTitle("Chrono::Gpu ball cosim demo");
-        gpu_vis.AddCamera(ChVector<>(0, -200, 100), ChVector<>(0, 0, 0));
+        gpu_vis.AddCamera(ChVector3d(0, -200, 100), ChVector3d(0, 0, 0));
         gpu_vis.SetCameraMoveScale(1.0f);
         gpu_vis.Initialize();
     }
@@ -104,16 +103,16 @@ void runBallDrop(ChSystemGpuMesh& gpu_sys, ChGpuSimulationParameters& params) {
 
     clock_t start = std::clock();
     for (double t = 0; t < (double)params.time_end; t += iteration_step, curr_step++) {
-        gpu_sys.ApplyMeshMotion(0, ball_body->GetPos(), ball_body->GetRot(), ball_body->GetPos_dt(),
-                                ball_body->GetWvel_par());
+        gpu_sys.ApplyMeshMotion(0, ball_body->GetPos(), ball_body->GetRot(), ball_body->GetPosDt(),
+                                ball_body->GetAngVelParent());
 
-        ChVector<> ball_force;
-        ChVector<> ball_torque;
+        ChVector3d ball_force;
+        ChVector3d ball_torque;
         gpu_sys.CollectMeshContactForces(0, ball_force, ball_torque);
 
-        ball_body->Empty_forces_accumulators();
-        ball_body->Accumulate_force(ball_force, ball_body->GetPos(), false);
-        ball_body->Accumulate_torque(ball_torque, false);
+        ball_body->EmptyAccumulators();
+        ball_body->AccumulateForce(ball_force, ball_body->GetPos(), false);
+        ball_body->AccumulateTorque(ball_torque, false);
 
         if (curr_step % out_steps == 0) {
             std::cout << "Output frame " << currframe + 1 << " of " << total_frames << std::endl;
@@ -185,7 +184,7 @@ int main(int argc, char* argv[]) {
 
     // run_mode = CHGPU_RUN_MODE::FRICTIONLESS, this is a newly started run. We have to set all simulation params.
     ChSystemGpuMesh gpu_sys(params.sphere_radius, params.sphere_density,
-                            ChVector<float>(params.box_X, params.box_Y, params.box_Z));
+                            ChVector3f(params.box_X, params.box_Y, params.box_Z));
 
     printf(
         "Now run_mode == FRICTIONLESS, this run is particle settling phase.\n"
@@ -198,13 +197,13 @@ int main(int argc, char* argv[]) {
     double fill_bottom = -params.box_Z / 2.0;
     double fill_top = params.box_Z / 4.0;
 
-    chrono::utils::PDSampler<float> sampler(2.4f * params.sphere_radius);
-    // chrono::utils::HCPSampler<float> sampler(2.05 * params.sphere_radius);
+    chrono::utils::ChPDSampler<float> sampler(2.4f * params.sphere_radius);
+    // chrono::utils::ChHCPSampler<float> sampler(2.05 * params.sphere_radius);
 
     // leave a 4cm margin at edges of sampling
-    ChVector<> hdims(params.box_X / 2 - 4.0, params.box_Y / 2 - 4.0, 0);
-    ChVector<> center(0, 0, fill_bottom + 2.0 * params.sphere_radius);
-    std::vector<ChVector<float>> body_points;
+    ChVector3d hdims(params.box_X / 2 - 4.0, params.box_Y / 2 - 4.0, 0);
+    ChVector3d center(0, 0, fill_bottom + 2.0 * params.sphere_radius);
+    std::vector<ChVector3f> body_points;
 
     // Shift up for bottom of box
     center.z() += 3 * params.sphere_radius;
@@ -239,7 +238,7 @@ int main(int argc, char* argv[]) {
     gpu_sys.SetAdhesionRatio_SPH2MESH(params.adhesion_ratio_s2m);
     gpu_sys.SetAdhesionRatio_SPH2WALL(params.adhesion_ratio_s2w);
 
-    gpu_sys.SetGravitationalAcceleration(ChVector<float>(params.grav_X, params.grav_Y, params.grav_Z));
+    gpu_sys.SetGravitationalAcceleration(ChVector3f(params.grav_X, params.grav_Y, params.grav_Z));
 
     gpu_sys.SetFixedStepSize(params.step_size);
     gpu_sys.SetFrictionMode(CHGPU_FRICTION_MODE::MULTI_STEP);
@@ -266,7 +265,7 @@ int main(int argc, char* argv[]) {
         double3 pos = {0, 0, 0};
 
         double t0 = 0.5;
-        double freq = CH_C_PI / 4;
+        double freq = CH_PI / 4;
 
         if (t > t0) {
             pos.x = 0.1 * params.box_X * std::sin((t - t0) * freq);

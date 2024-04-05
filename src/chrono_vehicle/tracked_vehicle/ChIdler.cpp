@@ -28,7 +28,7 @@ namespace vehicle {
 
 ChIdler::ChIdler(const std::string& name) : ChPart(name), m_track(nullptr) {}
 
-void ChIdler::Initialize(std::shared_ptr<ChChassis> chassis, const ChVector<>& location, ChTrackAssembly* track) {
+void ChIdler::Initialize(std::shared_ptr<ChChassis> chassis, const ChVector3d& location, ChTrackAssembly* track) {
     m_parent = chassis;
     m_rel_loc = location;
     m_track = track;
@@ -37,7 +37,7 @@ void ChIdler::Initialize(std::shared_ptr<ChChassis> chassis, const ChVector<>& l
 
     // Set collision flags for the idler wheel body
     m_idler_wheel->GetBody()->GetCollisionModel()->SetFamily(TrackedCollisionFamily::IDLERS);
-    m_idler_wheel->GetBody()->GetCollisionModel()->SetFamilyMaskNoCollisionWithFamily(TrackedCollisionFamily::WHEELS);
+    m_idler_wheel->GetBody()->GetCollisionModel()->DisallowCollisionsWith(TrackedCollisionFamily::WHEELS);
 
     // Mark as initialized
     m_initialized = true;

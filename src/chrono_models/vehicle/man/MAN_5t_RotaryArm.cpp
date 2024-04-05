@@ -30,10 +30,10 @@ const double MAN_5t_RotaryArm::m_pitmanArmMass = 1.605;
 
 const double MAN_5t_RotaryArm::m_pitmanArmRadius = 0.02;
 
-const double MAN_5t_RotaryArm::m_maxAngle = 39.0 * (CH_C_PI / 180);
+const double MAN_5t_RotaryArm::m_maxAngle = 39.0 * (CH_PI / 180);
 
-const ChVector<> MAN_5t_RotaryArm::m_pitmanArmInertiaMoments(0.00638, 0.00756, 0.00150);
-const ChVector<> MAN_5t_RotaryArm::m_pitmanArmInertiaProducts(0.0, 0.0, 0.0);
+const ChVector3d MAN_5t_RotaryArm::m_pitmanArmInertiaMoments(0.00638, 0.00756, 0.00150);
+const ChVector3d MAN_5t_RotaryArm::m_pitmanArmInertiaProducts(0.0, 0.0, 0.0);
 
 // -----------------------------------------------------------------------------
 // -----------------------------------------------------------------------------
@@ -42,23 +42,23 @@ MAN_5t_RotaryArm::MAN_5t_RotaryArm(const std::string& name) : ChRotaryArm(name) 
 // -----------------------------------------------------------------------------
 // Implementations of the getLocation() and getDirection() virtual methods.
 // -----------------------------------------------------------------------------
-const ChVector<> MAN_5t_RotaryArm::getLocation(PointId which) {
+const ChVector3d MAN_5t_RotaryArm::getLocation(PointId which) {
     switch (which) {
         case ARM_L:
-            return ChVector<>(0.741, -0.217, 0.089);
+            return ChVector3d(0.741, -0.217, 0.089);
         case ARM_C:
-            return ChVector<>(0.850, -0.028, 0.166);
+            return ChVector3d(0.850, -0.028, 0.166);
         default:
-            return ChVector<>(0, 0, 0);
+            return ChVector3d(0, 0, 0);
     }
 }
 
-const ChVector<> MAN_5t_RotaryArm::getDirection(DirectionId which) {
+const ChVector3d MAN_5t_RotaryArm::getDirection(DirectionId which) {
     switch (which) {
         case REV_AXIS:
-            return ChVector<>(0, 0, 1);
+            return ChVector3d(0, 0, 1);
         default:
-            return ChVector<>(0, 0, 1);
+            return ChVector3d(0, 0, 1);
     }
 }
 

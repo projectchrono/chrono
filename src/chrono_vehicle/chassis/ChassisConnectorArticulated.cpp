@@ -27,13 +27,15 @@ namespace vehicle {
 
 ChassisConnectorArticulated::ChassisConnectorArticulated(const std::string& filename)
     : ChChassisConnectorArticulated("") {
-    Document d; ReadFileJSON(filename, d);
+    Document d;
+    ReadFileJSON(filename, d);
     if (d.IsNull())
         return;
 
     Create(d);
 
-    GetLog() << "Loaded JSON: " << filename.c_str() << "\n";
+    std::cout << "Loaded JSONL " << filename << std::endl;
+    std::cout << "Loaded JSONL " << filename << std::endl;
 }
 
 ChassisConnectorArticulated::ChassisConnectorArticulated(const rapidjson::Document& d)
@@ -46,7 +48,7 @@ void ChassisConnectorArticulated::Create(const rapidjson::Document& d) {
     ChPart::Create(d);
 
     // Read maximum steering angle (assumed to be given in degrees)
-    m_maxangle = d["Maximum Steering Angle (deg)"].GetDouble() * CH_C_DEG_TO_RAD;
+    m_maxangle = d["Maximum Steering Angle (deg)"].GetDouble() * CH_DEG_TO_RAD;
 }
 
 }  // end namespace vehicle

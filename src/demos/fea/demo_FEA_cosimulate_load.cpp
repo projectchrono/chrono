@@ -12,7 +12,7 @@
 // Authors: Alessandro Tasora
 // =============================================================================
 //
-// FEA force-displacement co-simulation 
+// FEA force-displacement co-simulation
 //   - loading an Abaqus tetrahedron mesh
 //   - apply a load to the mesh using an external tool, e.g. CFD.
 //     (here simulated as a function in this .cpp file)
@@ -42,10 +42,10 @@ using namespace chrono::irrlicht;
 // In a real cosimulation scenario, this procedure could even reside
 // on a different computing node and manage inputs/outputs via MPI or such.
 
-void PerformExternalCosimulation(const std::vector<ChVector<>>& input_vert_pos,
-                                 const std::vector<ChVector<>>& input_vert_vel,
-                                 const std::vector<ChVector<int>>& input_triangles,
-                                 std::vector<ChVector<>>& vert_output_forces,
+void PerformExternalCosimulation(const std::vector<ChVector3d>& input_vert_pos,
+                                 const std::vector<ChVector3d>& input_vert_vel,
+                                 const std::vector<ChVector3i>& input_triangles,
+                                 std::vector<ChVector3d>& vert_output_forces,
                                  std::vector<int>& vert_output_indexes) {
     vert_output_forces.clear();
     vert_output_indexes.clear();
@@ -57,7 +57,7 @@ void PerformExternalCosimulation(const std::vector<ChVector<>>& input_vert_pos,
         if (input_vert_pos[iv].y() < 0) {
             double yforce = -ky * input_vert_pos[iv].y() - ry * input_vert_vel[iv].y();
             if (yforce > 0) {
-                vert_output_forces.push_back(ChVector<>(0, yforce, 0));
+                vert_output_forces.push_back(ChVector3d(0, yforce, 0));
                 vert_output_indexes.push_back(iv);
             }
         }
@@ -71,10 +71,10 @@ void PerformExternalCosimulation(const std::vector<ChVector<>>& input_vert_pos,
 // Also plot forces as vectors.
 // Mostly for debugging.
 void draw_affected_triangles(ChVisualSystemIrrlicht& vis,
-                             std::vector<ChVector<>>& vert_pos,
-                             std::vector<ChVector<int>>& triangles,
+                             std::vector<ChVector3d>& vert_pos,
+                             std::vector<ChVector3i>& triangles,
                              std::vector<int>& vert_indexes,
-                             std::vector<ChVector<>>& vert_forces,
+                             std::vector<ChVector3d>& vert_forces,
                              double forcescale = 0.01) {
     for (int it = 0; it < triangles.size(); ++it) {
         bool vert_hit = false;
@@ -84,26 +84,26 @@ void draw_affected_triangles(ChVisualSystemIrrlicht& vis,
                 vert_hit = true;
         }
         if (vert_hit == true) {
-            std::vector<chrono::ChVector<>> fourpoints = {vert_pos[triangles[it].x()], vert_pos[triangles[it].y()],
+            std::vector<chrono::ChVector3d> fourpoints = {vert_pos[triangles[it].x()], vert_pos[triangles[it].y()],
                                                           vert_pos[triangles[it].z()], vert_pos[triangles[it].x()]};
             tools::drawPolyline(&vis, fourpoints, ChColor(0.94f, 0.78f, 0.00f), true);
         }
     }
     if (forcescale > 0)
         for (int io = 0; io < vert_indexes.size(); ++io) {
-            std::vector<chrono::ChVector<>> forceline = {vert_pos[vert_indexes[io]],
+            std::vector<chrono::ChVector3d> forceline = {vert_pos[vert_indexes[io]],
                                                          vert_pos[vert_indexes[io]] + vert_forces[io] * forcescale};
             tools::drawPolyline(&vis, forceline, ChColor(0.94f, 0.00f, 0.00f), true);
         }
 }
 
 int main(int argc, char* argv[]) {
-    GetLog() << "Copyright (c) 2017 projectchrono.org\nChrono version: " << CHRONO_VERSION << "\n\n";
+    std::cout << "Copyright (c) 2017 projectchrono.org\nChrono version: " << CHRONO_VERSION << std::endl;
 
     // Global parameter for tire:
     double tire_rad = 0.8;
-    ChVector<> tire_center(0, 0.02 + tire_rad, 0.5);
-    ChMatrix33<> tire_alignment(Q_from_AngAxis(CH_C_PI, VECT_Y));  // create rotated 180° on y
+    ChVector3d tire_center(0, 0.02 + tire_rad, 0.5);
+    ChMatrix33<> tire_alignment(QuatFromAngleY(CH_PI));  // create rotated 180 deg on y
 
     // Create a Chrono physical system and the associated collision system
     ChSystemSMC sys;
@@ -112,7 +112,7 @@ int main(int argc, char* argv[]) {
     // CREATE A FINITE ELEMENT MESH
 
     // Create the surface material
-    auto mysurfmaterial = chrono_types::make_shared<ChMaterialSurfaceSMC>();
+    auto mysurfmaterial = chrono_types::make_shared<ChContactMaterialSMC>();
     mysurfmaterial->SetYoungModulus(10e4);
     mysurfmaterial->SetFriction(0.3f);
     mysurfmaterial->SetRestitution(0.2f);
@@ -125,10 +125,10 @@ int main(int argc, char* argv[]) {
     // Create a material, that must be assigned to each solid element in the mesh,
     // and set its parameters
     auto mmaterial = chrono_types::make_shared<ChContinuumElastic>();
-    mmaterial->Set_E(0.003e9);  // rubber 0.01e9, steel 200e9
-    mmaterial->Set_v(0.4);
-    mmaterial->Set_RayleighDampingK(0.004);
-    mmaterial->Set_density(1000);
+    mmaterial->SetYoungModulus(0.003e9);  // rubber 0.01e9, steel 200e9
+    mmaterial->SetPoissonRatio(0.4);
+    mmaterial->SetRayleighDampingBeta(0.004);
+    mmaterial->SetDensity(1000);
 
     // Load an ABAQUS .INP tetrahedron mesh file from disk, defining a tetrahedron mesh.
     // Note that not all features of INP files are supported. Also, quadratic tetrahedrons are promoted to linear.
@@ -139,8 +139,8 @@ int main(int argc, char* argv[]) {
         ChMeshFileLoader::FromAbaqusFile(my_mesh,
                                          GetChronoDataFile("models/tractor_wheel/tractor_wheel_coarse.INP").c_str(),
                                          mmaterial, node_sets, tire_center, tire_alignment);
-    } catch (const ChException& myerr) {
-        GetLog() << myerr.what();
+    } catch (std::exception myerr) {
+        std::cerr << myerr.what() << std::endl;
         return 0;
     }
 
@@ -180,12 +180,12 @@ int main(int argc, char* argv[]) {
     auto mrigidbody = chrono_types::make_shared<ChBody>();
     sys.Add(mrigidbody);
     mrigidbody->SetMass(200);
-    mrigidbody->SetInertiaXX(ChVector<>(20, 20, 20));
-    mrigidbody->SetPos(tire_center + ChVector<>(-1, 0, 0));
+    mrigidbody->SetInertiaXX(ChVector3d(20, 20, 20));
+    mrigidbody->SetPos(tire_center + ChVector3d(-1, 0, 0));
 
-    auto mesh = geometry::ChTriangleMeshConnected::CreateFromWavefrontFile(
+    auto mesh = ChTriangleMeshConnected::CreateFromWavefrontFile(
         GetChronoDataFile("models/tractor_wheel/tractor_wheel_fine.obj"));
-    mesh->Transform(VNULL, Q_from_AngAxis(CH_C_PI, VECT_Y));
+    mesh->Transform(VNULL, QuatFromAngleY(CH_PI));
     auto mesh_asset = chrono_types::make_shared<ChVisualShapeTriangleMesh>();
     mesh_asset->SetMesh(mesh);
     mrigidbody->AddVisualShape(mesh_asset);
@@ -203,9 +203,9 @@ int main(int argc, char* argv[]) {
     vis->AddLogo();
     vis->AddSkyBox();
     vis->AddTypicalLights();
-    vis->AddLightWithShadow(ChVector<>(1.5, 5.5, -2.5), ChVector<>(0, 0, 0), 3, 2.2, 7.2, 40, 512,
+    vis->AddLightWithShadow(ChVector3d(1.5, 5.5, -2.5), ChVector3d(0, 0, 0), 3, 2.2, 7.2, 40, 512,
                             ChColor(0.8f, 0.8f, 1.0f));
-    vis->AddCamera(ChVector<>(1.0, 1.4, -1.2), ChVector<>(0, tire_rad, 0));
+    vis->AddCamera(ChVector3d(1.0, 1.4, -1.2), ChVector3d(0, tire_rad, 0));
 
     vis->EnableShadows();
 
@@ -220,8 +220,6 @@ int main(int argc, char* argv[]) {
     solver->SetTolerance(1e-10);
     solver->EnableDiagonalPreconditioner(true);
     solver->EnableWarmStart(true);  // Enable for better convergence if using Euler implicit linearized
-
-    sys.SetSolverForceTolerance(1e-10);
 
     // Change type of integrator:
     sys.SetTimestepperType(ChTimestepper::Type::EULER_IMPLICIT_LINEARIZED);  // fast, less precise
@@ -241,10 +239,10 @@ int main(int argc, char* argv[]) {
         // then A <-- B receives the computed forces to be applied at nodes.
         // In this example, to keep things simple, B is just a simple local function
 
-        std::vector<ChVector<>> vert_pos;
-        std::vector<ChVector<>> vert_vel;
-        std::vector<ChVector<int>> triangles;
-        std::vector<ChVector<>> vert_forces;
+        std::vector<ChVector3d> vert_pos;
+        std::vector<ChVector3d> vert_vel;
+        std::vector<ChVector3i> triangles;
+        std::vector<ChVector3d> vert_forces;
         std::vector<int> vert_indexes;
 
         mmeshload->OutputSimpleMesh(vert_pos, vert_vel, triangles);
@@ -278,8 +276,8 @@ int main(int argc, char* argv[]) {
         // End of cosimulation block
         // -------------------------------------------------------------------------
 
-        tools::drawGrid(vis.get(), 0.1, 0.1, 20, 20, ChCoordsys<>(VNULL, CH_C_PI_2, VECT_X),
-                        ChColor(0.40f, 0.40f, 0.40f), true);
+        tools::drawGrid(vis.get(), 0.1, 0.1, 20, 20, ChCoordsys<>(VNULL, CH_PI_2, VECT_X), ChColor(0.40f, 0.40f, 0.40f),
+                        true);
 
         vis->EndScene();
     }

@@ -42,29 +42,27 @@ std::string ForceModel_name(ChSystemSMC::ContactForceModel f) {
     }
 }
 
-std::shared_ptr<ChBody> AddSphere(int id,
-                                  ChSystem* sys,
-                                  std::shared_ptr<ChMaterialSurfaceSMC> mat,
+std::shared_ptr<ChBody> AddSphere(ChSystem* sys,
+                                  std::shared_ptr<ChContactMaterialSMC> mat,
                                   double radius,
                                   double mass,
-                                  ChVector<> pos,
-                                  ChVector<> init_v) {
+                                  ChVector3d pos,
+                                  ChVector3d init_v) {
     // Shared parameters for the falling ball
-    ChVector<> inertia(0.4 * mass * radius * radius * ChVector<>(1, 1, 1));
+    ChVector3d inertia(0.4 * mass * radius * radius * ChVector3d(1, 1, 1));
     ChQuaternion<> rot(1, 0, 0, 0);
-    ChVector<> init_w(0, 0, 0);
+    ChVector3d init_w(0, 0, 0);
 
     // Create a spherical body. Set body parameters and sphere collision model
     auto body = chrono_types::make_shared<ChBody>();
-    body->SetIdentifier(id);
     body->SetMass(mass);
     body->SetPos(pos);
     body->SetRot(rot);
-    body->SetPos_dt(init_v);
-    body->SetWvel_par(init_w);
+    body->SetPosDt(init_v);
+    body->SetAngVelParent(init_w);
     body->SetInertiaXX(inertia);
-    body->SetBodyFixed(false);
-    body->SetCollide(true);
+    body->SetFixed(false);
+    body->EnableCollision(true);
 
     utils::AddSphereGeometry(body.get(), mat, radius);
 
@@ -73,30 +71,28 @@ std::shared_ptr<ChBody> AddSphere(int id,
     return body;
 }
 
-std::shared_ptr<ChBody> AddWall(int id,
-                                ChSystem* sys,
-                                std::shared_ptr<ChMaterialSurfaceSMC> mat,
-                                ChVector<> size,
+std::shared_ptr<ChBody> AddWall(ChSystem* sys,
+                                std::shared_ptr<ChContactMaterialSMC> mat,
+                                ChVector3d size,
                                 double mass,
-                                ChVector<> pos,
-                                ChVector<> init_v,
+                                ChVector3d pos,
+                                ChVector3d init_v,
                                 bool wall) {
     // Set parameters for the containing bin
-    ChVector<> inertia((1.0 / 12.0) * mass * (pow(size.y(), 2) + pow(size.z(), 2)),
+    ChVector3d inertia((1.0 / 12.0) * mass * (pow(size.y(), 2) + pow(size.z(), 2)),
                        (1.0 / 12.0) * mass * (pow(size.x(), 2) + pow(size.z(), 2)),
                        (1.0 / 12.0) * mass * (pow(size.x(), 2) + pow(size.y(), 2)));
     ChQuaternion<> rot(1, 0, 0, 0);
 
     // Create container. Set body parameters and container collision model
     auto body = chrono_types::make_shared<ChBody>();
-    body->SetIdentifier(id);
     body->SetMass(mass);
     body->SetPos(pos);
     body->SetRot(rot);
-    body->SetPos_dt(init_v);
+    body->SetPosDt(init_v);
     body->SetInertiaXX(inertia);
-    body->SetBodyFixed(wall);
-    body->SetCollide(true);
+    body->SetFixed(wall);
+    body->EnableCollision(true);
 
     utils::AddBoxGeometry(body.get(), mat, size);
 
@@ -108,15 +104,15 @@ std::shared_ptr<ChBody> AddWall(int id,
 #ifdef SMC_SEQUENTIAL
 void SetSimParameters(
     ChSystemSMC* sys,
-    const ChVector<>& gravity,
+    const ChVector3d& gravity,
     ChSystemSMC::ContactForceModel fmodel,
     ChSystemSMC::TangentialDisplacementModel tmodel = ChSystemSMC::TangentialDisplacementModel::MultiStep) {
     // Set solver settings and collision detection parameters
     sys->SetCollisionSystemType(ChCollisionSystem::Type::BULLET);
-    sys->Set_G_acc(gravity);
+    sys->SetGravitationalAcceleration(gravity);
 
-    sys->SetMaxiter(100);
-    sys->SetSolverTolerance(1e-3);
+    if (sys->GetSolver()->IsIterative())
+        sys->GetSolver()->AsIterative()->SetTolerance(1e-3);
 
     sys->SetContactForceModel(fmodel);
     sys->SetTangentialDisplacementModel(tmodel);
@@ -127,12 +123,12 @@ void SetSimParameters(
 #ifdef SMC_MULTICORE
 void SetSimParameters(
     ChSystemMulticoreSMC* sys,
-    const ChVector<>& gravity,
+    const ChVector3d& gravity,
     ChSystemSMC::ContactForceModel fmodel,
     ChSystemSMC::TangentialDisplacementModel tmodel = ChSystemSMC::TangentialDisplacementModel::MultiStep) {
     // Set solver settings and collision detection parameters
     sys->SetCollisionSystemType(ChCollisionSystem::Type::MULTICORE);
-    sys->Set_G_acc(gravity);
+    sys->SetGravitationalAcceleration(gravity);
 
     sys->GetSettings()->solver.max_iteration_bilateral = 100;
     sys->GetSettings()->solver.tolerance = 1e-3;
@@ -147,10 +143,10 @@ void SetSimParameters(
 #endif
 
 bool CalcKE(ChSystem* sys, const double& threshold) {
-    const std::shared_ptr<ChBody> body = sys->Get_bodylist().at(1);
+    const std::shared_ptr<ChBody> body = sys->GetBodies().at(1);
 
-    ChVector<> eng_trn = 0.5 * body->GetMass() * body->GetPos_dt() * body->GetPos_dt();
-    ChVector<> eng_rot = 0.5 * body->GetInertiaXX() * body->GetWvel_par() * body->GetWvel_par();
+    ChVector3d eng_trn = 0.5 * body->GetMass() * body->GetPosDt() * body->GetPosDt();
+    ChVector3d eng_rot = 0.5 * body->GetInertiaXX() * body->GetAngVelParent() * body->GetAngVelParent();
 
     double KE_trn = eng_trn.x() + eng_trn.y() + eng_trn.z();
     double KE_rot = eng_rot.x() + eng_rot.y() + eng_rot.z();
@@ -166,16 +162,16 @@ bool CalcAverageKE(ChSystem* sys, const double& threshold) {
     double KE_trn = 0;
     double KE_rot = 0;
 
-    for (auto body : sys->Get_bodylist()) {
-        ChVector<> eng_trn = 0.5 * body->GetMass() * body->GetPos_dt() * body->GetPos_dt();
-        ChVector<> eng_rot = 0.5 * body->GetInertiaXX() * body->GetWvel_par() * body->GetWvel_par();
+    for (auto body : sys->GetBodies()) {
+        ChVector3d eng_trn = 0.5 * body->GetMass() * body->GetPosDt() * body->GetPosDt();
+        ChVector3d eng_rot = 0.5 * body->GetInertiaXX() * body->GetAngVelParent() * body->GetAngVelParent();
 
         KE_trn += eng_trn.x() + eng_trn.y() + eng_trn.z();
         KE_rot += eng_rot.x() + eng_rot.y() + eng_rot.z();
     }
 
-    double KE_trn_avg = KE_trn / sys->Get_bodylist().size();
-    double KE_rot_avg = KE_rot / sys->Get_bodylist().size();
+    double KE_trn_avg = KE_trn / sys->GetBodies().size();
+    double KE_rot_avg = KE_rot / sys->GetBodies().size();
     double KE_tot_avg = KE_trn_avg + KE_rot_avg;
 
     // Return true if the calc falls below the given threshold

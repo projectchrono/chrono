@@ -34,7 +34,7 @@ std::vector<std::shared_ptr<ChBody> > mspheres;
 void create_items(ChSystem& sys) {
     // Create some spheres in a vertical stack
 
-    auto material = chrono_types::make_shared<ChMaterialSurfaceNSC>();
+    auto material = chrono_types::make_shared<ChContactMaterialNSC>();
     material->SetFriction(0.4f);
     material->SetCompliance(0.001f / 1200);               // as 1/K, in m/N. es: 1mm/1200N
     material->SetComplianceT(material->GetCompliance());  // use tangential compliance as normal compliance
@@ -50,16 +50,16 @@ void create_items(ChSystem& sys) {
     double dens = 1000;
 
     if (do_stack) {
-        int nbodies = 15;
+        int num_bodies = 15;
 
         double totmass = 0;
         double level = 0;
         double sphrad_base = 0.2;
         double oddfactor = 100;
 
-        for (int bi = 0; bi < nbodies; bi++) {
+        for (int bi = 0; bi < num_bodies; bi++) {
             double sphrad = sphrad_base;
-            if (do_oddmass && bi == (nbodies - 1))
+            if (do_oddmass && bi == (num_bodies - 1))
                 sphrad = sphrad * pow(oddfactor, 1. / 3.);
 
             std::shared_ptr<ChBody> rigidBody;
@@ -70,7 +70,7 @@ void create_items(ChSystem& sys) {
                                                                         true,       // visualization?
                                                                         true,       // collision?
                                                                         material);  // contact material
-                rigidBody->SetPos(ChVector<>(0.5, sphrad + level, 0.7));
+                rigidBody->SetPos(ChVector3d(0.5, sphrad + level, 0.7));
                 rigidBody->GetVisualShape(0)->SetTexture(GetChronoDataFile("textures/bluewhite.png"));
 
                 sys.Add(rigidBody);
@@ -80,7 +80,7 @@ void create_items(ChSystem& sys) {
                                                                      true,                    // visualization?
                                                                      true,                    // collision?
                                                                      material);               // contact material
-                rigidBody->SetPos(ChVector<>(0.5, sphrad + level, 0.7));
+                rigidBody->SetPos(ChVector3d(0.5, sphrad + level, 0.7));
                 rigidBody->GetVisualShape(0)->SetTexture(GetChronoDataFile("textures/cubetexture_bluewhite.png"));
 
                 sys.Add(rigidBody);
@@ -92,7 +92,8 @@ void create_items(ChSystem& sys) {
             totmass += rigidBody->GetMass();
         }
 
-        GetLog() << "Expected contact force at bottom F=" << (totmass * sys.Get_G_acc().y()) << "\n";
+        std::cout << "Expected contact force at bottom F=" << (totmass * sys.GetGravitationalAcceleration().y())
+                  << "\n";
     }
 
     if (do_wall) {
@@ -104,7 +105,7 @@ void create_items(ChSystem& sys) {
                                                                               true,             // visualization?
                                                                               true,             // collision?
                                                                               material);        // contact material
-                    rigidWall->SetPos(ChVector<>(-0.8 + ui * 0.4 + 0.2 * (bi % 2), 0.10 + bi * 0.2, -0.5 + ai * 0.6));
+                    rigidWall->SetPos(ChVector3d(-0.8 + ui * 0.4 + 0.2 * (bi % 2), 0.10 + bi * 0.2, -0.5 + ai * 0.6));
                     rigidWall->GetVisualShape(0)->SetTexture(GetChronoDataFile("textures/cubetexture_bluewhite.png"));
 
                     sys.Add(rigidWall);
@@ -122,13 +123,14 @@ void create_items(ChSystem& sys) {
                                                                       true,            // visualization?
                                                                       true,            // collision?
                                                                       material);       // contact material
-        rigidHeavy->SetPos(ChVector<>(0.5, sphrad + 0.6, -1));
+        rigidHeavy->SetPos(ChVector3d(0.5, sphrad + 0.6, -1));
         rigidHeavy->GetVisualShape(0)->SetTexture(GetChronoDataFile("textures/pinkwhite.png"));
 
         sys.Add(rigidHeavy);
 
-        GetLog() << "Expected contact deformation at side sphere="
-                 << (rigidHeavy->GetMass() * sys.Get_G_acc().y()) * material->GetCompliance() << "\n";
+        std::cout << "Expected contact deformation at side sphere="
+                  << (rigidHeavy->GetMass() * sys.GetGravitationalAcceleration().y()) * material->GetCompliance()
+                  << "\n";
     }
 
     // Create the floor using a fixed rigid body of 'box' type:
@@ -138,8 +140,8 @@ void create_items(ChSystem& sys) {
                                                                true,       // visualization?
                                                                true,       // collision?
                                                                material);  // contact material
-    rigidFloor->SetPos(ChVector<>(0, -2, 0));
-    rigidFloor->SetBodyFixed(true);
+    rigidFloor->SetPos(ChVector3d(0, -2, 0));
+    rigidFloor->SetFixed(true);
     rigidFloor->GetVisualShape(0)->SetTexture(GetChronoDataFile("textures/concrete.jpg"));
 
     sys.Add(rigidFloor);
@@ -152,7 +154,7 @@ void create_items(ChSystem& sys) {
 void align_spheres() {
     for (unsigned int i = 0; i < mspheres.size(); ++i) {
         std::shared_ptr<ChBody> body = mspheres[i];
-        ChVector<> mpos = body->GetPos();
+        ChVector3d mpos = body->GetPos();
         mpos.x() = 0.5;
         mpos.z() = 0.7;
         body->SetPos(mpos);
@@ -161,7 +163,7 @@ void align_spheres() {
 }
 
 int main(int argc, char* argv[]) {
-    GetLog() << "Copyright (c) 2017 projectchrono.org\nChrono version: " << CHRONO_VERSION << "\n\n";
+    std::cout << "Copyright (c) 2017 projectchrono.org\nChrono version: " << CHRONO_VERSION << std::endl;
 
     // Create a ChronoENGINE physical system
     ChSystemNSC sys;
@@ -178,13 +180,13 @@ int main(int argc, char* argv[]) {
     vis->Initialize();
     vis->AddLogo();
     vis->AddSkyBox();
-    vis->AddCamera(ChVector<>(1, 2, 6), ChVector<>(0, 2, 0));
+    vis->AddCamera(ChVector3d(1, 2, 6), ChVector3d(0, 2, 0));
     vis->AddTypicalLights();
 
     // Modify some setting of the physical system for the simulation, if you want
 
     sys.SetSolverType(ChSolver::Type::BARZILAIBORWEIN);
-    sys.SetSolverMaxIterations(60);
+    sys.GetSolver()->AsIterative()->SetMaxIterations(60);
 
     // When using compliance, exp. for large compliances, the max. penetration recovery speed
     // also affects reaction forces, thus it must be deactivated (or used as a very large value)

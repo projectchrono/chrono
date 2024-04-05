@@ -30,13 +30,13 @@ namespace utils {
 // -----------------------------------------------------------------------------
 
 // Return twice the signed area of the triangle {p1,p2,p3}
-double SignedArea(const ChVector2<>& p1, const ChVector2<>& p2, const ChVector2<>& p3) {
+double SignedArea(const ChVector2d& p1, const ChVector2d& p2, const ChVector2d& p3) {
     return (p2.y() - p1.y()) * (p3.x() - p2.x()) - (p2.x() - p1.x()) * (p3.y() - p2.y());
 }
 
 // Utility function to decide relative orientation of 3 points.
 // Returns 0 for colinear points, +1 for clock-wise, -1 for counterclock-wise.
-int Orientation(const ChVector2<>& p1, const ChVector2<>& p2, const ChVector2<>& p3) {
+int Orientation(const ChVector2d& p1, const ChVector2d& p2, const ChVector2d& p3) {
     static double eps = 1e-10;
     double val = SignedArea(p1, p2, p3);
 
@@ -46,7 +46,7 @@ int Orientation(const ChVector2<>& p1, const ChVector2<>& p2, const ChVector2<>&
 }
 
 // Return true if point p2 is between points p1 and p3 (the 3 points are assumed collinear).
-bool InBetween(const ChVector2<>& p1, const ChVector2<>& p2, const ChVector2<>& p3) {
+bool InBetween(const ChVector2d& p1, const ChVector2d& p2, const ChVector2d& p3) {
     bool a = (p2.x() >= p1.x() && p2.x() <= p3.x()) || (p2.x() <= p1.x() && p2.x() >= p3.x());
     bool b = (p2.y() >= p1.y() && p2.y() <= p3.y()) || (p2.y() <= p1.y() && p2.y() >= p3.y());
     return a && b;
@@ -54,7 +54,7 @@ bool InBetween(const ChVector2<>& p1, const ChVector2<>& p2, const ChVector2<>& 
 
 // -----------------------------------------------------------------------------
 
-ChConvexHull2D::ChConvexHull2D(std::vector<ChVector2<>>& points, Method method) : m_perimeter(0), m_area(0) {
+ChConvexHull2D::ChConvexHull2D(std::vector<ChVector2d>& points, Method method) : m_perimeter(0), m_area(0) {
     size_t n = points.size();
 
     // Special cases (low number of points)
@@ -92,7 +92,7 @@ ChConvexHull2D::ChConvexHull2D(std::vector<ChVector2<>>& points, Method method) 
 
 // -----------------------------------------------------------------------------
 
-void ChConvexHull2D::ComputeJarvis(const std::vector<ChVector2<>>& points, size_t n) {
+void ChConvexHull2D::ComputeJarvis(const std::vector<ChVector2d>& points, size_t n) {
     // Keep track of points already added to the convex hull.
     std::vector<bool> added(points.size(), false);
 
@@ -111,7 +111,7 @@ void ChConvexHull2D::ComputeJarvis(const std::vector<ChVector2<>>& points, size_
     size_t crt = first;
     do {
         // Initialize next candidate.
-        // Attention: important to consider all points, so must start at 0, 
+        // Attention: important to consider all points, so must start at 0,
         //            but skip crt and any other point that was already added.
         size_t next = 0;
         while (next == crt || added[next])
@@ -139,7 +139,7 @@ void ChConvexHull2D::ComputeJarvis(const std::vector<ChVector2<>>& points, size_
         m_hull.push_back(points[next]);
         added[next] = true;
         m_perimeter += (points[next] - points[crt]).Length();
-        m_area += SignedArea(points[next], points[crt], ChVector2<>(0, 0));
+        m_area += SignedArea(points[next], points[crt], ChVector2d(0, 0));
 
         // Safety check to prevent inifinite loop.
         //// TODO: are there still some corner cases not properly treated?
@@ -156,17 +156,17 @@ void ChConvexHull2D::ComputeJarvis(const std::vector<ChVector2<>>& points, size_
 
 // Utility struct for comparing points according to polar order.
 struct PolarOrder {
-    PolarOrder(const ChVector2<> pivot) : m_pivot(pivot) {}
-    bool operator()(ChVector2<> a, ChVector2<> b) {
+    PolarOrder(const ChVector2d pivot) : m_pivot(pivot) {}
+    bool operator()(ChVector2d a, ChVector2d b) {
         int order = Orientation(m_pivot, a, b);
         if (order == 0)
             return (a - m_pivot).Length2() < (b - m_pivot).Length2();
         return (order == -1);
     }
-    ChVector2<> m_pivot;
+    ChVector2d m_pivot;
 };
 
-void ChConvexHull2D::ComputeGraham(std::vector<ChVector2<>>& points, size_t n) {
+void ChConvexHull2D::ComputeGraham(std::vector<ChVector2d>& points, size_t n) {
     // Find point with lowest y. Ties are broken for lowest x.
     size_t first = 0;
     for (size_t i = 1; i < points.size(); i++) {
@@ -178,7 +178,7 @@ void ChConvexHull2D::ComputeGraham(std::vector<ChVector2<>>& points, size_t n) {
     }
 
     // Swap this point in first position
-    ChVector2<> tmp = points[0];
+    ChVector2d tmp = points[0];
     points[0] = points[first];
     points[first] = tmp;
 

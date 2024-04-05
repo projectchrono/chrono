@@ -23,7 +23,7 @@
 
 #include "chrono/core/ChCoordsys.h"
 #include "chrono/physics/ChSystem.h"
-#include "chrono/physics/ChMaterialSurface.h"
+#include "chrono/physics/ChContactMaterial.h"
 
 #include "chrono_vehicle/wheeled_vehicle/ChWheeledVehicle.h"
 
@@ -65,11 +65,11 @@ class CH_MODELS_API Generic_Vehicle : public ChWheeledVehicle {
 
     ~Generic_Vehicle() {}
 
-    virtual int GetNumberAxles() const override { return 2; }
+    virtual unsigned int GetNumberAxles() const override { return 2; }
 
     virtual double GetWheelbase() const override { return 3.378; }
     virtual double GetMinTurningRadius() const override { return 8.0; }
-    virtual double GetMaxSteeringAngle() const override { return 25 * CH_C_DEG_TO_RAD; }
+    virtual double GetMaxSteeringAngle() const override { return 25 * CH_DEG_TO_RAD; }
 
     /// Initialize the vehicle at the specified location and with specified orientation.
     virtual void Initialize(const ChCoordsys<>& chassisPos, double chassisFwdVel = 0) override;
@@ -81,7 +81,7 @@ class CH_MODELS_API Generic_Vehicle : public ChWheeledVehicle {
     void CreateAndInitializePowertrain(EngineModelType engine_type, TransmissionModelType transmission_type);
 
     /// Log debugging information (shock forces and lengths, constraints, etc.).
-    void DebugLog(int what);      
+    void DebugLog(int what);
 
   private:
     std::shared_ptr<ChSuspension> ConstructSuspension(const std::string& name,

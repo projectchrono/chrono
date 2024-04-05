@@ -19,97 +19,88 @@
 
 namespace chrono {
 
-/// Base class for defining constraints between a couple of two one-degree-of-freedom
-/// parts; i.e., shafts that can be used to build 1D models of powertrains.
-
+/// Base class for defining constraints between a couple of two one-degree-of-freedom parts.
 class ChApi ChShaftsCouple : public ChPhysicsItem {
-
-  protected:
-    ChShaft* shaft1;  ///< first shaft
-    ChShaft* shaft2;  ///< second shaft
-
   public:
     ChShaftsCouple() : shaft1(nullptr), shaft2(nullptr) {}
     ChShaftsCouple(const ChShaftsCouple& other) : ChPhysicsItem(other) {}
-    ~ChShaftsCouple() {}
+    virtual ~ChShaftsCouple() {}
 
     /// "Virtual" copy constructor (covariant return type).
     virtual ChShaftsCouple* Clone() const override { return new ChShaftsCouple(*this); }
 
-    /// Get the number of scalar variables affected by constraints in this link
-    virtual int GetNumCoords() { return 2; }
+    /// Get the number of scalar variables affected by constraints in this couple.
+    virtual unsigned int GetNumAffectedCoords() { return 2; }
 
-    /// Use this function after gear creation, to initialize it, given two shafts to join.
-    /// Each shaft must belong to the same ChSystem.
-    /// Derived classes might overload this (here, basically it only sets the two pointers)
-    virtual bool Initialize(std::shared_ptr<ChShaft> mshaft1,  ///< first  shaft to join
-                            std::shared_ptr<ChShaft>
-                                mshaft2  ///< second shaft to join
-                            ) {
-        ChShaft* mm1 = mshaft1.get();
-        ChShaft* mm2 = mshaft2.get();
-        assert(mm1 && mm2);
-        assert(mm1 != mm2);
-        assert(mm1->GetSystem() == mm2->GetSystem());
-        shaft1 = mm1;
-        shaft2 = mm2;
+    /// Initialize this shafts couple, given two shafts to join.
+    /// Both shafts must belong to the same ChSystem.
+    virtual bool Initialize(std::shared_ptr<ChShaft> shaft_1,  ///< first  shaft to join
+                            std::shared_ptr<ChShaft> shaft_2   ///< second shaft to join
+    ) {
+        shaft1 = shaft_1.get();
+        shaft2 = shaft_2.get();
+
+        assert(shaft1 && shaft2);
+        assert(shaft1 != shaft2);
+        assert(shaft1->GetSystem() == shaft2->GetSystem());
+
         SetSystem(shaft1->GetSystem());
         return true;
     }
 
-    /// Get the first (input) shaft
-    ChShaft* GetShaft1() { return shaft1; }
-    /// Get the second (output) shaft
-    ChShaft* GetShaft2() { return shaft2; }
+    /// Get the first (input) shaft.
+    ChShaft* GetShaft1() const { return shaft1; }
 
-    /// Get the reaction torque exchanged between the two shafts,
-    /// considered as applied to the 1st axis.
-    /// Children classes might overload this.
-    virtual double GetTorqueReactionOn1() const { return 0; }
+    /// Get the second (output) shaft.
+    ChShaft* GetShaft2() const { return shaft2; }
 
-    /// Get the reaction torque exchanged between the two shafts,
-    /// considered as applied to the 2nd axis.
-    /// Children classes might overload this.
-    virtual double GetTorqueReactionOn2() const { return 0; }
+    /// Get the reaction (torque or force) exchanged between the two shafts, considered as applied to the 1st axis.
+    virtual double GetReaction1() const { return 0; }
 
-    /// Get the actual relative angle in terms of phase of shaft 1 respect to 2.
-    double GetRelativeRotation() const { return (this->shaft1->GetPos() - this->shaft2->GetPos()); }
-    /// Get the actual relative speed in terms of speed of shaft 1 respect to 2.
-    double GetRelativeRotation_dt() const { return (this->shaft1->GetPos_dt() - this->shaft2->GetPos_dt()); }
-    /// Get the actual relative acceleration in terms of speed of shaft 1 respect to 2.
-    double GetRelativeRotation_dtdt() const { return (this->shaft1->GetPos_dtdt() - this->shaft2->GetPos_dtdt()); }
+    /// Get the reaction (torque or force) exchanged between the two shafts, considered as applied to the 2nd axis.
+    virtual double GetReaction2() const { return 0; }
 
-    //
-    // SERIALIZATION
-    //
+    /// Get the actual relative position (angle or displacement) in terms of phase of shaft 1 with respect to 2.
+    double GetRelativePos() const { return (shaft1->GetPos() - shaft2->GetPos()); }
 
-    virtual void ArchiveOut(ChArchiveOut& marchive) override {
+    /// Get the actual relative speed (angle or displacement) of shaft 1 with respect to 2.
+    double GetRelativePosDt() const { return (shaft1->GetPosDt() - shaft2->GetPosDt()); }
+
+    /// Get the actual relative acceleration (angle or displacement) of shaft 1 with respect to 2.
+    double GetRelativePosDt2() const { return (shaft1->GetPosDt2() - shaft2->GetPosDt2()); }
+
+    /// Method to allow serialization of transient data to archives.
+    virtual void ArchiveOut(ChArchiveOut& archive_out) override {
         // version number
-        marchive.VersionWrite<ChShaftsCouple>();
+        archive_out.VersionWrite<ChShaftsCouple>();
 
         // serialize parent class
-        ChPhysicsItem::ArchiveOut(marchive);
+        ChPhysicsItem::ArchiveOut(archive_out);
 
         // serialize all member data:
-        marchive << CHNVP(shaft1);  //***TODO*** serialize, with shared ptr
-        marchive << CHNVP(shaft2);  //***TODO*** serialize, with shared ptr
+        archive_out << CHNVP(shaft1);  //// TODO  serialize, with shared ptr
+        archive_out << CHNVP(shaft2);  //// TODO  serialize, with shared ptr
     }
 
     /// Method to allow de serialization of transient data from archives.
-    virtual void ArchiveIn(ChArchiveIn& marchive) override {
+    virtual void ArchiveIn(ChArchiveIn& archive_in) override {
         // version number
-        /*int version =*/ marchive.VersionRead<ChShaftsCouple>();
+        /*int version =*/archive_in.VersionRead<ChShaftsCouple>();
 
         // deserialize parent class:
-        ChPhysicsItem::ArchiveIn(marchive);
+        ChPhysicsItem::ArchiveIn(archive_in);
 
         // deserialize all member data:
-        marchive >> CHNVP(shaft1);  //***TODO*** serialize, with shared ptr
-        marchive >> CHNVP(shaft2);  //***TODO*** serialize, with shared ptr
+        archive_in >> CHNVP(shaft1);  //// TODO  serialize, with shared ptr
+        archive_in >> CHNVP(shaft2);  //// TODO  serialize, with shared ptr
     }
+
+  protected:
+    ChShaft* shaft1;  ///< first shaft
+    ChShaft* shaft2;  ///< second shaft
 };
 
-CH_CLASS_VERSION(ChShaftsCouple,0)
+CH_CLASS_VERSION(ChShaftsCouple, 0)
 
 }  // end namespace chrono
 

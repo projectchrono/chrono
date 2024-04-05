@@ -19,22 +19,20 @@
 
 namespace chrono {
 
-/// Class for loads applied to a single ChLoadable object.
-/// Loads can be forces, torques, pressures, thermal loads, etc. depending
-/// on the loaded ChLoadable object. For example if the load references
-/// a ChBody, the load is a wrench (force+torque), for a tetrahedron FE it is a force, etc.
-/// Objects of this class must be capable of computing the generalized load Q from
-/// the load F.
-
+/// Loads applied to a single ChLoadable object.
+/// Loads can be forces, torques, pressures, thermal loads, etc. depending on the loaded ChLoadable object. For example,
+/// if the load references a ChBody the load is a wrench (force+torque), for a tetrahedron FE it is a force, etc.
+/// Objects of this class must be capable of computing the generalized load Q from the load F.
 class ChLoader {
   public:
     ChVectorDynamic<> Q;
 
     virtual ~ChLoader() {}
 
-    virtual void ComputeQ(ChVectorDynamic<>* state_x,  ///< if != 0, update state (pos. part) to this, then evaluate Q
-                          ChVectorDynamic<>* state_w   ///< if != 0, update state (speed part) to this, then evaluate Q
-                          ) = 0;
+    virtual void ComputeQ(
+        ChVectorDynamic<>* state_x,  ///< if not null, update state (pos. part) to this, then evaluate Q
+        ChVectorDynamic<>* state_w   ///< if not null, update state (speed part) to this, then evaluate Q
+        ) = 0;
 
     virtual std::shared_ptr<ChLoadable> GetLoadable() = 0;
 

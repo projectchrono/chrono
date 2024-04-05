@@ -65,7 +65,7 @@ class CH_MODELS_API CuriosityPart {
   public:
     CuriosityPart(const std::string& name,                 ///< part name
                   const ChFrame<>& rel_pos,                ///< position relative to chassis frame
-                  std::shared_ptr<ChMaterialSurface> mat,  ///< contact material
+                  std::shared_ptr<ChContactMaterial> mat,  ///< contact material
                   bool collide                             ///< enable collision?
     );
     virtual ~CuriosityPart() {}
@@ -80,34 +80,34 @@ class CH_MODELS_API CuriosityPart {
     void SetVisualize(bool state) { m_visualize = state; }
 
     /// Enable/disable collision.
-    void SetCollide(bool state) { m_collide = state; }
+    void EnableCollision(bool state) { m_collide = state; }
 
     /// Return the ChBody of the corresponding Curiosity part.
     std::shared_ptr<ChBodyAuxRef> GetBody() const { return m_body; }
 
     /// Return the position of the Curiosity part.
     /// This is the absolute location of the part reference frame.
-    const ChVector<>& GetPos() const { return m_body->GetFrame_REF_to_abs().GetPos(); }
+    const ChVector3d& GetPos() const { return m_body->GetFrameRefToAbs().GetPos(); }
 
     /// Return the rotation of the Curiosity part.
     /// This is the orientation wrt the global frame of the part reference frame.
-    const ChQuaternion<>& GetRot() const { return m_body->GetFrame_REF_to_abs().GetRot(); }
+    const ChQuaternion<>& GetRot() const { return m_body->GetFrameRefToAbs().GetRot(); }
 
     /// Return the linear velocity of the Curiopsity part.
     /// This is the absolute linear velocity of the part reference frame.
-    const ChVector<>& GetLinVel() const { return m_body->GetFrame_REF_to_abs().GetPos_dt(); }
+    const ChVector3d& GetLinVel() const { return m_body->GetFrameRefToAbs().GetPosDt(); }
 
     /// Return the angular velocity of the Curiosity part.
     /// This is the absolute angular velocity of the part reference frame.
-    const ChVector<> GetAngVel() const { return m_body->GetFrame_REF_to_abs().GetWvel_par(); }
+    const ChVector3d GetAngVel() const { return m_body->GetFrameRefToAbs().GetAngVelParent(); }
 
     /// Return the linear acceleration of the Curiosity part.
     /// This is the absolute linear acceleration of the part reference frame.
-    const ChVector<>& GetLinAcc() const { return m_body->GetFrame_REF_to_abs().GetPos_dtdt(); }
+    const ChVector3d& GetLinAcc() const { return m_body->GetFrameRefToAbs().GetPosDt2(); }
 
     /// Return the angular acceleratino of the Curiosity part.
     /// This is the absolute angular acceleratin of the part reference frame.
-    const ChVector<> GetAngAcc() const { return m_body->GetFrame_REF_to_abs().GetWacc_par(); }
+    const ChVector3d GetAngAcc() const { return m_body->GetFrameRefToAbs().GetAngAccParent(); }
 
     /// Initialize the rover part by attaching it to the specified chassis body.
     virtual void Initialize(std::shared_ptr<ChBodyAuxRef> chassis);
@@ -121,7 +121,7 @@ class CH_MODELS_API CuriosityPart {
 
     std::string m_name;                        ///< subsystem name
     std::shared_ptr<ChBodyAuxRef> m_body;      ///< rigid body
-    std::shared_ptr<ChMaterialSurface> m_mat;  ///< contact material
+    std::shared_ptr<ChContactMaterial> m_mat;  ///< contact material
 
     std::string m_mesh_name;  ///< visualization mesh name
     ChFrame<> m_mesh_xform;   ///< mesh transform (translate, rotate, scale)
@@ -129,7 +129,7 @@ class CH_MODELS_API CuriosityPart {
 
     ChFrame<> m_pos;       ///< relative position wrt the chassis
     double m_mass;         ///< mass
-    ChVector<> m_inertia;  ///< principal moments of inertia
+    ChVector3d m_inertia;  ///< principal moments of inertia
     ChFrame<> m_cog;       ///< COG frame (relative to body frame)
 
     bool m_visualize;  ///< part visualization flag
@@ -143,7 +143,7 @@ class CH_MODELS_API CuriosityChassis : public CuriosityPart {
   public:
     CuriosityChassis(const std::string& name,                ///< part name
                      CuriosityChassisType chassis_type,      ///< chassis type
-                     std::shared_ptr<ChMaterialSurface> mat  ///< contact material
+                     std::shared_ptr<ChContactMaterial> mat  ///< contact material
     );
     ~CuriosityChassis() {}
 
@@ -159,7 +159,7 @@ class CH_MODELS_API CuriosityWheel : public CuriosityPart {
   public:
     CuriosityWheel(const std::string& name,                 ///< part name
                    const ChFrame<>& rel_pos,                ///< position relative to chassis frame
-                   std::shared_ptr<ChMaterialSurface> mat,  ///< contact material
+                   std::shared_ptr<ChContactMaterial> mat,  ///< contact material
                    CuriosityWheelType wheel_type            ///< wheel type
     );
     ~CuriosityWheel() {}
@@ -172,7 +172,7 @@ class CH_MODELS_API CuriosityRocker : public CuriosityPart {
   public:
     CuriosityRocker(const std::string& name,                 ///< part name
                     const ChFrame<>& rel_pos,                ///< position relative to chassis frame
-                    std::shared_ptr<ChMaterialSurface> mat,  ///< contact material
+                    std::shared_ptr<ChContactMaterial> mat,  ///< contact material
                     int side                                 ///< rover side (0: L, 1: R)
     );
     ~CuriosityRocker() {}
@@ -183,7 +183,7 @@ class CH_MODELS_API CuriosityBogie : public CuriosityPart {
   public:
     CuriosityBogie(const std::string& name,                 ///< part name
                    const ChFrame<>& rel_pos,                ///< position relative to chassis frame
-                   std::shared_ptr<ChMaterialSurface> mat,  ///< contact material
+                   std::shared_ptr<ChContactMaterial> mat,  ///< contact material
                    int side                                 ///< rover side (0: L, 1: R)
     );
     ~CuriosityBogie() {}
@@ -194,7 +194,7 @@ class CH_MODELS_API CuriosityUpright : public CuriosityPart {
   public:
     CuriosityUpright(const std::string& name,                ///< part name
                      const ChFrame<>& rel_pos,               ///< position relative to chassis frame
-                     std::shared_ptr<ChMaterialSurface> mat  ///< contact material
+                     std::shared_ptr<ChContactMaterial> mat  ///< contact material
     );
     ~CuriosityUpright() {}
 };
@@ -204,7 +204,7 @@ class CH_MODELS_API CuriosityDifferentialBar : public CuriosityPart {
   public:
     CuriosityDifferentialBar(const std::string& name,                ///< part name
                              const ChFrame<>& rel_pos,               ///< position relative to chassis frame
-                             std::shared_ptr<ChMaterialSurface> mat  ///< contact material
+                             std::shared_ptr<ChContactMaterial> mat  ///< contact material
     );
     ~CuriosityDifferentialBar() {}
 };
@@ -214,7 +214,7 @@ class CH_MODELS_API CuriosityDifferentialLink : public CuriosityPart {
   public:
     CuriosityDifferentialLink(const std::string& name,                 ///< part name
                               const ChFrame<>& rel_pos,                ///< position relative to chassis frame
-                              std::shared_ptr<ChMaterialSurface> mat,  ///< contact material
+                              std::shared_ptr<ChContactMaterial> mat,  ///< contact material
                               int side                                 ///< rover side (0: L, 1: R)
     );
     ~CuriosityDifferentialLink() {}
@@ -241,7 +241,7 @@ class CH_MODELS_API Curiosity {
     void SetDriver(std::shared_ptr<CuriosityDriver> driver);
 
     /// Set wheel contact material.
-    void SetWheelContactMaterial(std::shared_ptr<ChMaterialSurface> mat);
+    void SetWheelContactMaterial(std::shared_ptr<ChContactMaterial> mat);
 
     /// Fix the chassis to ground.
     /// This function can only be invoked after the call to Initialize().
@@ -280,34 +280,34 @@ class CH_MODELS_API Curiosity {
     std::shared_ptr<ChShaft> GetDriveshaft(CuriosityWheelID id) const { return m_drive_shafts[id]; }
 
     /// Get chassis position.
-    ChVector<> GetChassisPos() const { return m_chassis->GetPos(); }
+    ChVector3d GetChassisPos() const { return m_chassis->GetPos(); }
 
     /// Get chassis orientation.
     ChQuaternion<> GetChassisRot() const { return m_chassis->GetRot(); }
 
     /// Get chassis linear velocity.
-    ChVector<> GetChassisVel() const { return m_chassis->GetLinVel(); }
+    ChVector3d GetChassisVel() const { return m_chassis->GetLinVel(); }
 
     /// Get chassis linear acceleration.
-    ChVector<> GetChassisAcc() const { return m_chassis->GetLinAcc(); }
+    ChVector3d GetChassisAcc() const { return m_chassis->GetLinAcc(); }
 
     /// Get wheel speed.
-    ChVector<> GetWheelLinVel(CuriosityWheelID id) const { return m_wheels[id]->GetLinVel(); }
+    ChVector3d GetWheelLinVel(CuriosityWheelID id) const { return m_wheels[id]->GetLinVel(); }
 
     /// Get wheel angular velocity.
-    ChVector<> GetWheelAngVel(CuriosityWheelID id) const { return m_wheels[id]->GetAngVel(); }
+    ChVector3d GetWheelAngVel(CuriosityWheelID id) const { return m_wheels[id]->GetAngVel(); }
 
     /// Get wheel contact force.
-    ChVector<> GetWheelContactForce(CuriosityWheelID id) const;
+    ChVector3d GetWheelContactForce(CuriosityWheelID id) const;
 
     /// Get wheel contact torque.
-    ChVector<> GetWheelContactTorque(CuriosityWheelID id) const;
+    ChVector3d GetWheelContactTorque(CuriosityWheelID id) const;
 
     /// Get wheel total applied force.
-    ChVector<> GetWheelAppliedForce(CuriosityWheelID id) const;
+    ChVector3d GetWheelAppliedForce(CuriosityWheelID id) const;
 
     /// Get wheel total applied torque.
-    ChVector<> GetWheelAppliedTorque(CuriosityWheelID id) const;
+    ChVector3d GetWheelAppliedTorque(CuriosityWheelID id) const;
 
     /// Get wheel tractive torque - if DC control is set to off.
     double GetWheelTracTorque(CuriosityWheelID id) const;
@@ -319,13 +319,11 @@ class CH_MODELS_API Curiosity {
     double GetWheelMass() const;
 
     /// Get drive motor function.
-    std::shared_ptr<ChFunction_Setpoint> GetDriveMotorFunc(CuriosityWheelID id) const {
-        return m_drive_motor_funcs[id];
-    }
+    std::shared_ptr<ChFunctionSetpoint> GetDriveMotorFunc(CuriosityWheelID id) const { return m_drive_motor_funcs[id]; }
     /// Get rocker steer motor function (side: 0 for left and 1 for right).
-    std::shared_ptr<ChFunction_Const> GetRockerSteerMotorFunc(int side) const { return m_rocker_motor_funcs[side]; }
+    std::shared_ptr<ChFunctionConst> GetRockerSteerMotorFunc(int side) const { return m_rocker_motor_funcs[side]; }
     /// Get bogie steer motor function (side: 0 for left and 1 for right).
-    std::shared_ptr<ChFunction_Const> GetBogieSteerMotorFunc(int side) const { return m_bogie_motor_funcs[side]; }
+    std::shared_ptr<ChFunctionConst> GetBogieSteerMotorFunc(int side) const { return m_bogie_motor_funcs[side]; }
 
     /// Get drive motor.
     std::shared_ptr<ChLinkMotorRotation> GetDriveMotor(CuriosityWheelID id) const { return m_drive_motors[id]; }
@@ -355,20 +353,20 @@ class CH_MODELS_API Curiosity {
     std::array<std::shared_ptr<ChLinkLockRevolute>, 2> m_rocker_joints;  ///< joints connecting suspension rockers (L/R)
     std::array<std::shared_ptr<ChLinkLockRevolute>, 2> m_bogie_joints;   ///< joints connecting suspension bogies (L/R)
 
-    std::array<std::shared_ptr<ChLinkMotorRotation>, 2> m_rocker_motors;    ///< rocker steering motors
-    std::array<std::shared_ptr<ChLinkMotorRotation>, 2> m_bogie_motors;     ///< bogie steering motors
-    std::array<std::shared_ptr<ChFunction_Const>, 2> m_rocker_motor_funcs;  ///< rocker steering motor functions
-    std::array<std::shared_ptr<ChFunction_Const>, 2> m_bogie_motor_funcs;   ///< bogie steering motor functions
+    std::array<std::shared_ptr<ChLinkMotorRotation>, 2> m_rocker_motors;   ///< rocker steering motors
+    std::array<std::shared_ptr<ChLinkMotorRotation>, 2> m_bogie_motors;    ///< bogie steering motors
+    std::array<std::shared_ptr<ChFunctionConst>, 2> m_rocker_motor_funcs;  ///< rocker steering motor functions
+    std::array<std::shared_ptr<ChFunctionConst>, 2> m_bogie_motor_funcs;   ///< bogie steering motor functions
 
-    std::array<std::shared_ptr<ChLinkMotorRotation>, 6> m_drive_motors;       ///< drive motors
-    std::array<std::shared_ptr<ChFunction_Setpoint>, 6> m_drive_motor_funcs;  ///< drive motor functions
+    std::array<std::shared_ptr<ChLinkMotorRotation>, 6> m_drive_motors;      ///< drive motors
+    std::array<std::shared_ptr<ChFunctionSetpoint>, 6> m_drive_motor_funcs;  ///< drive motor functions
 
     std::array<std::shared_ptr<ChShaft>, 6> m_drive_shafts;  ///< power shafts for torque-controlled drive mode
 
     std::shared_ptr<CuriosityDriver> m_driver;  ///< rover driver system
 
-    std::shared_ptr<ChMaterialSurface> m_default_material;  ///< common contact material for all non-wheel parts
-    std::shared_ptr<ChMaterialSurface> m_wheel_material;    ///< wheel contact material (shared across limbs)
+    std::shared_ptr<ChContactMaterial> m_default_material;  ///< common contact material for all non-wheel parts
+    std::shared_ptr<ChContactMaterial> m_wheel_material;    ///< wheel contact material (shared across limbs)
 
     friend class CuriosityDCMotorControl;
 };

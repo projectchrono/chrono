@@ -29,13 +29,6 @@ set(FEA_DEMOS ${FEA_DEMOS}
 )
 endif()
 
-# Add demos that require Irrlicht and Matlab
-if(ENABLE_MODULE_IRRLICHT AND ENABLE_MODULE_PARDISO_PROJECT)
-set(FEA_DEMOS ${FEA_DEMOS}
-    demo_FEA_cablesPARPROJ
-)
-endif()
-
 # Add demos that require Irrlicht and MKL
 if(ENABLE_MODULE_IRRLICHT AND ENABLE_MODULE_PARDISO_MKL)
 set(FEA_DEMOS ${FEA_DEMOS}
@@ -51,7 +44,7 @@ set(FEA_DEMOS ${FEA_DEMOS}
     demo_FEA_contactsANCF_SMC
     demo_FEA_hexaANCF_3813_9
     demo_FEA_beamsIGA
-    demo_FEA_beamsANCF_3333
+    demo_FEA_beamsANCF
 )
 endif()
 
@@ -103,12 +96,6 @@ endif()
 if(ENABLE_MODULE_MATLAB)
   include_directories(${CH_MATLABINC})
   list(APPEND LIBS "ChronoEngine_matlab")
-endif()
-
-if(ENABLE_MODULE_PARDISO_PROJECT)
-  include_directories(${CH_PARDISOPROJECT_INCLUDES})
-  list(APPEND LIBS "ChronoEngine_pardisoproject")
-  list(APPEND LIBS ${PARDISOPROJECT_LIBRARIES})
 endif()
 
 if(ENABLE_MODULE_POSTPROCESS)

@@ -18,7 +18,8 @@
 #include <vector>
 
 #include "chrono/core/ChApiCE.h"
-#include "chrono/core/ChVector.h"
+#include "chrono/core/ChVector3.h"
+#include "chrono/utils/ChUtils.h"
 #include "chrono/geometry/ChTriangleMeshConnected.h"
 #include "chrono/collision/bullet/LinearMath/cbtVector3.h"
 #include "chrono/collision/bullet/LinearMath/cbtMinMax.h"
@@ -119,7 +120,7 @@ ChApi bool IntersectSegmentCylinder(const cbtVector3& sC,  ///< segment center p
 class ChApi ChConvexHullLibraryWrapper {
   public:
     ChConvexHullLibraryWrapper();
-    void ComputeHull(const std::vector<ChVector<> >& points, geometry::ChTriangleMeshConnected& vshape);
+    void ComputeHull(const std::vector<ChVector3d>& points, ChTriangleMeshConnected& vshape);
 };
 
 }  // namespace bt_utils

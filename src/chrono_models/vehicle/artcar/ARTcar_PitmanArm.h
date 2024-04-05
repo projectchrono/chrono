@@ -9,7 +9,7 @@
 // http://projectchrono.org/license-chrono.txt.
 //
 // =============================================================================
-// Authors: Radu Serban, Jayne Henry 
+// Authors: Radu Serban, Jayne Henry
 // =============================================================================
 //
 // ARTcar Pitman arm steering model.
@@ -45,15 +45,15 @@ class CH_MODELS_API ARTcar_PitmanArm : public chrono::vehicle::ChPitmanArm {
     virtual double getSteeringLinkRadius() const override { return m_steeringLinkRadius; }
     virtual double getPitmanArmRadius() const override { return m_pitmanArmRadius; }
 
-    virtual const ChVector<>& getSteeringLinkInertiaMoments() const override { return m_steeringLinkInertiaMoments; }
-    virtual const ChVector<>& getSteeringLinkInertiaProducts() const override { return m_steeringLinkInertiaProducts; }
-    virtual const ChVector<>& getPitmanArmInertiaMoments() const override { return m_pitmanArmInertiaMoments; }
-    virtual const ChVector<>& getPitmanArmInertiaProducts() const override { return m_pitmanArmInertiaProducts; }
+    virtual const ChVector3d& getSteeringLinkInertiaMoments() const override { return m_steeringLinkInertiaMoments; }
+    virtual const ChVector3d& getSteeringLinkInertiaProducts() const override { return m_steeringLinkInertiaProducts; }
+    virtual const ChVector3d& getPitmanArmInertiaMoments() const override { return m_pitmanArmInertiaMoments; }
+    virtual const ChVector3d& getPitmanArmInertiaProducts() const override { return m_pitmanArmInertiaProducts; }
 
     virtual double getMaxAngle() const override { return m_maxAngle; }
 
-    virtual const ChVector<> getLocation(PointId which) override;
-    virtual const ChVector<> getDirection(DirectionId which) override;
+    virtual const ChVector3d getLocation(PointId which) override;
+    virtual const ChVector3d getDirection(DirectionId which) override;
 
   private:
     static const double m_steeringLinkMass;
@@ -64,10 +64,10 @@ class CH_MODELS_API ARTcar_PitmanArm : public chrono::vehicle::ChPitmanArm {
 
     static const double m_maxAngle;
 
-    static const ChVector<> m_steeringLinkInertiaMoments;
-    static const ChVector<> m_steeringLinkInertiaProducts;
-    static const ChVector<> m_pitmanArmInertiaMoments;
-    static const ChVector<> m_pitmanArmInertiaProducts;
+    static const ChVector3d m_steeringLinkInertiaMoments;
+    static const ChVector3d m_steeringLinkInertiaProducts;
+    static const ChVector3d m_pitmanArmInertiaMoments;
+    static const ChVector3d m_pitmanArmInertiaProducts;
 };
 
 /// @} vehicle_models_artcar

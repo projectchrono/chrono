@@ -3,7 +3,7 @@ cmake_policy(SET CMP0091 NEW)
 
 project(template_project_fmu)
 
-set(FMU_TOOLS_DIR "${CMAKE_SOURCE_DIR}/../../fmu_tools/" CACHE PATH "Path to fmu_tools.")
+set(FMU_TOOLS_DIR "${CMAKE_SOURCE_DIR}/../src/chrono_thirdparty/fmu_tools/" CACHE PATH "Path to fmu_tools.")
 
 #########################
 # Importing Chrono

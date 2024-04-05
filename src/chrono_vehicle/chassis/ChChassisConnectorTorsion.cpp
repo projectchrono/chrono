@@ -38,21 +38,21 @@ void ChChassisConnectorTorsion::Initialize(std::shared_ptr<ChChassis> front, std
 
     // Express the connector reference frame in the absolute coordinate system
     ChFrame<> to_abs(rear->GetLocalPosFrontConnector());
-    to_abs.ConcatenatePreTransformation(rear->GetBody()->GetFrame_REF_to_abs());
+    to_abs.ConcatenatePreTransformation(rear->GetBody()->GetFrameRefToAbs());
 
-    ChQuaternion<> chassisRot = rear->GetBody()->GetFrame_REF_to_abs().GetRot();
-    ChCoordsys<> rev_csys(to_abs.GetPos(), chassisRot * Q_from_AngY(CH_C_PI / 2.0));
+    ChQuaternion<> chassisRot = rear->GetBody()->GetFrameRefToAbs().GetRot();
+    ChFrame<> rev_frame(to_abs.GetPos(), chassisRot * QuatFromAngleY(CH_PI / 2.0));
 
     // Create the revolute joint connection
     m_joint = chrono_types::make_shared<ChLinkLockRevolute>();
-    m_joint->SetNameString(m_name + " joint");
-    m_joint->Initialize(front->GetBody(), rear->GetBody(), rev_csys);
+    m_joint->SetName(m_name + " joint");
+    m_joint->Initialize(front->GetBody(), rear->GetBody(), rev_frame);
     rear->GetBody()->GetSystem()->AddLink(m_joint);
 
     // Create the rotational spring-damper (as a model of chassis torsional stiffness)
     m_spring = chrono_types::make_shared<ChLinkRSDA>();
-    m_spring->SetNameString(m_name + " torsionSpring");
-    m_spring->Initialize(front->GetBody(), rear->GetBody(), rev_csys);
+    m_spring->SetName(m_name + " torsionSpring");
+    m_spring->Initialize(front->GetBody(), rear->GetBody(), rev_frame);
     double K = GetTorsionStiffness();
     double C = K / 100;  // damping should not be zero
     auto cb = chrono_types::make_shared<LinearSpringDamperTorque>(K, C, 0);

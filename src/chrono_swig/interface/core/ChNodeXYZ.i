@@ -7,18 +7,18 @@
 // Ensure that these functions are not marked as 'overrides' in the generated C# code.
 
 %csmethodmodifiers chrono::ChNodeXYZ::Variables "public"
-%csmethodmodifiers chrono::ChNodeXYZ::LoadableGet_ndof_x "public"
-%csmethodmodifiers chrono::ChNodeXYZ::LoadableGet_ndof_w "public"
+%csmethodmodifiers chrono::ChNodeXYZ::GetLoadableNumCoordsPosLevel "public"
+%csmethodmodifiers chrono::ChNodeXYZ::GetLoadableNumCoordsVelLevel "public"
 %csmethodmodifiers chrono::ChNodeXYZ::LoadableGetVariables "public"
 %csmethodmodifiers chrono::ChNodeXYZ::LoadableStateIncrement "public"
-%csmethodmodifiers chrono::ChNodeXYZ::LoadableGetStateBlock_x "public"
-%csmethodmodifiers chrono::ChNodeXYZ::LoadableGetStateBlock_w "public"
+%csmethodmodifiers chrono::ChNodeXYZ::LoadableGetStateBlockPosLevel "public"
+%csmethodmodifiers chrono::ChNodeXYZ::LoadableGetStateBlockVelLevel "public"
 %csmethodmodifiers chrono::ChNodeXYZ::ComputeNF "public"
 %csmethodmodifiers chrono::ChNodeXYZ::GetDensity "public"
-%csmethodmodifiers chrono::ChNodeXYZ::Get_field_ncoords "public"
+%csmethodmodifiers chrono::ChNodeXYZ::GetNumFieldCoords "public"
 %csmethodmodifiers chrono::ChNodeXYZ::GetSubBlockOffset "public"
 %csmethodmodifiers chrono::ChNodeXYZ::GetSubBlockSize "public"
-%csmethodmodifiers chrono::ChNodeXYZ::GetSubBlocks "public"
+%csmethodmodifiers chrono::ChNodeXYZ::GetNumSubBlocks "public"
 %csmethodmodifiers chrono::ChNodeXYZ::IsSubBlockActive "public"
 
 //// RADU:  Do we actually want to wrap methods of ChLoadable?

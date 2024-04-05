@@ -20,13 +20,15 @@
 #include "chrono/geometry/ChLine.h"
 
 namespace chrono {
-namespace geometry {
+
+/// @addtogroup chrono_geometry
+/// @{
 
 /// Geometric object representing a polygonal line in 3D space, controlled by control points.
 class ChApi ChLinePoly : public ChLine {
   private:
-    std::vector<ChVector<> > points;  ///< control points
-    int degree;                       ///< polynomial degree
+    std::vector<ChVector3d> points;  ///< control points
+    int degree;                      ///< polynomial degree
 
   public:
     ChLinePoly(int mnumpoints = 1);
@@ -37,43 +39,39 @@ class ChApi ChLinePoly : public ChLine {
     virtual ChLinePoly* Clone() const override { return new ChLinePoly(*this); }
 
     /// Get the class type as an enum.
-    virtual Type GetClassType() const override { return Type::LINE_POLY; }
+    virtual Type GetType() const override { return Type::LINE_POLY; }
 
-    virtual int Get_complexity() const override { return (int)points.size(); }
-    virtual void Set_complexity(int mc) override{};
+    virtual int GetComplexity() const override { return (int)points.size(); }
+    virtual void SetComplexity(int mc) override{};
 
     /// Return a point on the line, given parametric coordinate U (in [0,1]).
-    virtual ChVector<> Evaluate(double U) const override;
+    virtual ChVector3d Evaluate(double U) const override;
 
     /// Returns curve length. sampling does not matter
     virtual double Length(int sampling) const override;
 
-    /// Draw into the current graph viewport of a ChFile_ps file
-    virtual bool DrawPostscript(ChFile_ps* mfle, int markpoints, int bezier_interpolate) override;
-
     /// Gets the number of control points
-    size_t Get_numpoints() const;
+    size_t GetNumPoints() const;
 
-    /// Get the degree of the curve (1= linear,
-    /// 2= quadric, 3= cubic, etc.)
-    int Get_degree() const;
+    /// Get the degree of the curve (1= linear, 2= quadric, 3= cubic, etc.)
+    int GetDegree() const;
 
-    /// Get the n-th control point
-    ChVector<> Get_point(size_t mnum) const;
+    /// Get the n-th control point.
+    ChVector3d GetPoint(size_t mnum) const;
 
     /// Set the n-th control point
-    bool Set_point(int mnum, ChVector<> mpoint);
+    bool SetPoint(int mnum, const ChVector3d& mpoint);
 
     /// Method to allow serialization of transient data to archives.
-    virtual void ArchiveOut(ChArchiveOut& marchive) override;
+    virtual void ArchiveOut(ChArchiveOut& archive_out) override;
 
     /// Method to allow de-serialization of transient data from archives.
-    virtual void ArchiveIn(ChArchiveIn& marchive) override;
+    virtual void ArchiveIn(ChArchiveIn& archive_in) override;
 };
 
-}  // end namespace geometry
+/// @} chrono_geometry
 
-CH_CLASS_VERSION(geometry::ChLinePoly, 0)
+CH_CLASS_VERSION(ChLinePoly, 0)
 
 }  // end namespace chrono
 

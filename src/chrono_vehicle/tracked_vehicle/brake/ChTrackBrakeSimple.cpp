@@ -25,7 +25,7 @@ namespace chrono {
 namespace vehicle {
 
 ChTrackBrakeSimple::ChTrackBrakeSimple(const std::string& name) : ChTrackBrake(name), m_braking(0) {
-    m_brake = chrono_types::make_shared<ChLinkBrake>();
+    m_brake = chrono_types::make_shared<ChLinkLockBrake>();
 }
 
 ChTrackBrakeSimple::~ChTrackBrakeSimple() {
@@ -45,20 +45,20 @@ void ChTrackBrakeSimple::Initialize(std::shared_ptr<ChChassis> chassis, std::sha
     // Note that we wrap raw pointers in local shared_ptr.  For this, we must provide
     // custom empty deleters (to prevent deleting the objects when the local shared_ptr
     // go out of scope).
-    std::shared_ptr<ChBodyFrame> mbf1(hub->GetBody1(), [](ChBodyFrame*){});
-    std::shared_ptr<ChBodyFrame> mbf2(hub->GetBody2(), [](ChBodyFrame*){});
+    std::shared_ptr<ChBodyFrame> mbf1(hub->GetBody1(), [](ChBodyFrame*) {});
+    std::shared_ptr<ChBodyFrame> mbf2(hub->GetBody2(), [](ChBodyFrame*) {});
 
     // Downcast to ChBody shared_ptr
     auto mb1 = std::dynamic_pointer_cast<ChBody>(mbf1);
     auto mb2 = std::dynamic_pointer_cast<ChBody>(mbf2);
 
-    m_brake->Initialize(mb1, mb2, true, hub->GetMarker1()->GetCoord(), hub->GetMarker2()->GetCoord());
+    m_brake->Initialize(mb1, mb2, true, *hub->GetMarker1(), *hub->GetMarker2());
     sys->AddLink(m_brake);
 }
 
 void ChTrackBrakeSimple::Synchronize(double braking) {
     m_braking = braking;
-    m_brake->Set_brake_torque(braking * GetMaxBrakingTorque());
+    m_brake->SetBrakeTorque(braking * GetMaxBrakingTorque());
 }
 
 }  // end namespace vehicle

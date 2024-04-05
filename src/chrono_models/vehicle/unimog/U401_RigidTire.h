@@ -32,16 +32,16 @@ namespace unimog {
 
 /// Rigid tire model for the U401 vehicle.
 class CH_MODELS_API U401_RigidTire : public ChRigidTire {
-   public:
+  public:
     U401_RigidTire(const std::string& name, bool use_mesh = false);
     ~U401_RigidTire() {}
 
     virtual double GetRadius() const override { return m_radius; }
     virtual double GetWidth() const override { return m_width; }
     virtual double GetTireMass() const override { return m_mass; }
-    virtual ChVector<> GetTireInertia() const override { return m_inertia; }
+    virtual ChVector3d GetTireInertia() const override { return m_inertia; }
 
-   private:
+  private:
     virtual void CreateContactMaterial(ChContactMethod contact_method) override;
     virtual void AddVisualizationAssets(VisualizationType vis) override;
     virtual void RemoveVisualizationAssets() override final;
@@ -49,7 +49,7 @@ class CH_MODELS_API U401_RigidTire : public ChRigidTire {
     static const double m_radius;
     static const double m_width;
     static const double m_mass;
-    static const ChVector<> m_inertia;
+    static const ChVector3d m_inertia;
 
     static const std::string m_meshFile;
     std::shared_ptr<ChVisualShapeTriangleMesh> m_trimesh_shape;

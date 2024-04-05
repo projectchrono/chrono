@@ -22,7 +22,7 @@ CH_UPCASTING(ChCollisionShapeCylindricalShell, ChCollisionShape)
 
 ChCollisionShapeCylindricalShell::ChCollisionShapeCylindricalShell() : ChCollisionShape(Type::CYLSHELL) {}
 
-ChCollisionShapeCylindricalShell::ChCollisionShapeCylindricalShell(std::shared_ptr<ChMaterialSurface> material,
+ChCollisionShapeCylindricalShell::ChCollisionShapeCylindricalShell(std::shared_ptr<ChContactMaterial> material,
                                                                    double radius,
                                                                    double height)
     : ChCollisionShape(Type::CYLSHELL, material) {
@@ -30,26 +30,26 @@ ChCollisionShapeCylindricalShell::ChCollisionShapeCylindricalShell(std::shared_p
     gcylinder.h = height;
 }
 
-ChCollisionShapeCylindricalShell::ChCollisionShapeCylindricalShell(std::shared_ptr<ChMaterialSurface> material,
-                                                                   const geometry::ChCylinder& cyl)
+ChCollisionShapeCylindricalShell::ChCollisionShapeCylindricalShell(std::shared_ptr<ChContactMaterial> material,
+                                                                   const ChCylinder& cyl)
     : ChCollisionShape(Type::CYLINDER, material), gcylinder(cyl) {}
 
-void ChCollisionShapeCylindricalShell::ArchiveOut(ChArchiveOut& marchive) {
+void ChCollisionShapeCylindricalShell::ArchiveOut(ChArchiveOut& archive_out) {
     // version number
-    marchive.VersionWrite<ChCollisionShapeCylindricalShell>();
+    archive_out.VersionWrite<ChCollisionShapeCylindricalShell>();
     // serialize parent class
-    ChCollisionShape::ArchiveOut(marchive);
+    ChCollisionShape::ArchiveOut(archive_out);
     // serialize all member data:
-    marchive << CHNVP(gcylinder);
+    archive_out << CHNVP(gcylinder);
 }
 
-void ChCollisionShapeCylindricalShell::ArchiveIn(ChArchiveIn& marchive) {
+void ChCollisionShapeCylindricalShell::ArchiveIn(ChArchiveIn& archive_in) {
     // version number
-    /*int version =*/marchive.VersionRead<ChCollisionShapeCylindricalShell>();
+    /*int version =*/archive_in.VersionRead<ChCollisionShapeCylindricalShell>();
     // deserialize parent class
-    ChCollisionShape::ArchiveIn(marchive);
+    ChCollisionShape::ArchiveIn(archive_in);
     // stream in all member data:
-    marchive >> CHNVP(gcylinder);
+    archive_in >> CHNVP(gcylinder);
 }
 
 }  // end namespace chrono

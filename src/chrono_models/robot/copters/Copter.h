@@ -20,11 +20,12 @@
 #include "chrono/physics/ChForce.h"
 #include "chrono/physics/ChLinkMotorRotationSpeed.h"
 #include "chrono/assets/ChVisualShapeTriangleMesh.h"
+#include "chrono/utils/ChUtils.h"
 
 #include "chrono_models/ChApiModels.h"
 
 #ifndef COPTER_H
-#define COPTER_H
+    #define COPTER_H
 
 namespace chrono {
 /// Namespace with classes for the Copter models.
@@ -39,8 +40,8 @@ template <int nop>
 class Copter {
   public:
     Copter(ChSystem& sys,                 ///< containing physical system
-           const ChVector<>& cpos,        ///< chassis position
-           std::vector<ChVector<>> ppos,  ///< propeller relative position
+           const ChVector3d& cpos,        ///< chassis position
+           std::vector<ChVector3d> ppos,  ///< propeller relative position
            const bool clockwise[],        ///< rotation direction ofr each propeller
            bool are_prop_pos_rel = true,  ///< if false, propeller axes position has to be given in the abs frame
            bool z_up = false              ///< orientation of vertical axis
@@ -54,7 +55,7 @@ class Copter {
     /// Set the propeller properties.
     /// Coefficient as eq 6.29 of "Aerodynamics, Aeronautics, and Flight Mechanics" by McCormick.
     void SetPropellerData(double mass,               ///< propeller mass
-                          const ChVector<>& inerXX,  ///< propeller diagonal inertia (axis assumed principal)
+                          const ChVector3d& inerXX,  ///< propeller diagonal inertia (axis assumed principal)
                           double diam,               ///< propeller diameter
                           double thrust_coeff,       ///< propeller thrust coefficient
                           double power_coeff,        ///< propeller power coefficient
@@ -127,22 +128,23 @@ class Copter {
     /// Set ground air temperature.
     void SetGroundTemperature(double temp) { Temp0 = temp; }
 
-	/// Get the number of propellers.
+    /// Get the number of propellers.
     int GetNumProps() const { return nop; }
 
-	/// Get the propellers bodies.
+    /// Get the propellers bodies.
     std::vector<std::shared_ptr<ChBody>> GetProps() const { return props; }
 
-	/// Get the name of the Wavefront file with chassis visualization mesh.
+    /// Get the name of the Wavefront file with chassis visualization mesh.
     /// An empty string is returned if no mesh was specified.
     virtual const std::string& GetChassisMeshFilename() const { return chassis_mesh_path; }
 
-	/// Get the name of the Wavefront file with propeller visualization mesh.
+    /// Get the name of the Wavefront file with propeller visualization mesh.
     /// An empty string is returned if no mesh was specified.
     virtual const std::string& GetPropellerMeshFilename() const { return propeller_mesh_path; }
 
-	/// Rotates the whole copter given a 3x3 rotation matrix.
+    /// Rotates the whole copter given a 3x3 rotation matrix.
     void RotateCopter(ChMatrix33<>& A);
+
   private:
     // Would need to be modified for special condition (e.g. Mars atmosphere)
     // This model holds below 11 km altitude.
@@ -167,11 +169,11 @@ class Copter {
     double Temp = 298;                                  ///< Air Temperature [K]
     double Altitude0 = 0;                               ///< Initial Altitude [m]
     double h0 = 0;                                      ///< Initial Altitude in simulation [m]
-    ChVector<> up;                                      ///< Vertical axis
+    ChVector3d up;                                      ///< Vertical axis
     std::vector<std::shared_ptr<ChForce>> thrusts;      ///< Thrust Forces
     std::vector<std::shared_ptr<ChForce>> backtorques;  ///< Propeller Resistance torques
     std::vector<std::shared_ptr<ChLinkMotorRotationSpeed>> motors;  ///< Propeller Motors
-    std::vector<std::shared_ptr<ChFunction_Const>> speeds;          ///< Propeller Motors Speed Functions
+    std::vector<std::shared_ptr<ChFunctionConst>> speeds;           ///< Propeller Motors Speed Functions
     double Cd = 0;                                                  ///< Drag coefficient
     std::shared_ptr<ChForce> lin_drag;                              ///< Linear drag
     double Surf = 0;                                                ///< Drag Surface
@@ -179,8 +181,8 @@ class Copter {
 
 template <int nop>
 Copter<nop>::Copter(ChSystem& sys,
-                    const ChVector<>& cpos,
-                    std::vector<ChVector<>> ppos,
+                    const ChVector3d& cpos,
+                    std::vector<ChVector3d> ppos,
                     const bool clockwise[],
                     bool are_prop_pos_rel,
                     bool z_up) {
@@ -190,8 +192,8 @@ Copter<nop>::Copter(ChSystem& sys,
     chassis->SetPos(cpos);
     // placeholder Data.
     chassis->SetMass(10);
-    chassis->SetInertiaXX(ChVector<>(1, 1, 1));
-    chassis->SetBodyFixed(false);
+    chassis->SetInertiaXX(ChVector3d(1, 1, 1));
+    chassis->SetFixed(false);
     sys.AddBody(chassis);
     h0 = chassis->GetPos() ^ up;
     // 26.4 inch propellers
@@ -205,8 +207,8 @@ Copter<nop>::Copter(ChSystem& sys,
         }
         // Data from little hexy, page 132.
         prop->SetMass(1);
-        prop->SetInertiaXX(ChVector<>(0.2, 0.2, 0.2));
-        prop->SetBodyFixed(false);
+        prop->SetInertiaXX(ChVector3d(0.2, 0.2, 0.2));
+        prop->SetFixed(false);
         sys.AddBody(prop);
 
         auto propmot = chrono_types::make_shared<ChLinkMotorRotationSpeed>();
@@ -217,13 +219,13 @@ Copter<nop>::Copter(ChSystem& sys,
         if (clockwise[p]) {
             motor_rot = Q_FLIP_AROUND_X * motor_rot;
         };
-        
+
         if (are_prop_pos_rel) {
-            propmot->Initialize(prop, chassis, ChFrame<>(cpos + ppos[p], motor_rot)); 
+            propmot->Initialize(prop, chassis, ChFrame<>(cpos + ppos[p], motor_rot));
         } else {
             propmot->Initialize(prop, chassis, ChFrame<>(ppos[p], motor_rot));
         }
-        auto speed = chrono_types::make_shared<ChFunction_Const>(0);
+        auto speed = chrono_types::make_shared<ChFunctionConst>(0);
         propmot->SetSpeedFunction(speed);
         sys.AddLink(propmot);
 
@@ -245,7 +247,7 @@ Copter<nop>::Copter(ChSystem& sys,
         backtorque->SetMode(ChForce::TORQUE);
         backtorque->SetMforce(0);
         // Resistance Torque direction opposed to omega
-        ChVector<> tdir = (clockwise[p]) ? up : -up;
+        ChVector3d tdir = (clockwise[p]) ? up : -up;
         backtorque->SetRelDir(tdir);
         backtorques.push_back(backtorque);
     }
@@ -259,7 +261,7 @@ Copter<nop>::Copter(ChSystem& sys,
 
 template <int nop>
 void Copter<nop>::SetPropellerData(double mass,
-                                   const ChVector<>& inerXX,
+                                   const ChVector3d& inerXX,
                                    double diam,
                                    double thrust_coeff,
                                    double power_coeff,
@@ -279,7 +281,7 @@ void Copter<nop>::AddVisualizationAssets(const std::string& chassismesh,
                                          const std::string& propellermesh,
                                          const ChFrame<>& cor_m1,
                                          const ChFrame<>& cor_m2) {
-    auto trimesh = geometry::ChTriangleMeshConnected::CreateFromWavefrontFile(chassismesh, true, true);
+    auto trimesh = ChTriangleMeshConnected::CreateFromWavefrontFile(chassismesh, true, true);
     auto trimesh_shape = chrono_types::make_shared<ChVisualShapeTriangleMesh>();
     trimesh_shape->SetMesh(trimesh);
     trimesh_shape->SetMutable(false);
@@ -287,7 +289,7 @@ void Copter<nop>::AddVisualizationAssets(const std::string& chassismesh,
     chassis->AddVisualShape(trimesh_shape, cor_m1);
 
     for (auto propeller : props) {
-        auto prop_trimesh = geometry::ChTriangleMeshConnected::CreateFromWavefrontFile(propellermesh, true, true);
+        auto prop_trimesh = ChTriangleMeshConnected::CreateFromWavefrontFile(propellermesh, true, true);
         auto trimesh_prop_shape = chrono_types::make_shared<ChVisualShapeTriangleMesh>();
         trimesh_prop_shape->SetMesh(prop_trimesh);
         trimesh_prop_shape->SetMutable(false);
@@ -301,7 +303,7 @@ template <int nop>
 void Copter<nop>::ControlIncremental(double inputs[nop]) {
     for (int i = 0; i < nop; i++) {
         u_p[i] = ChClamp(u_p[i] + inputs[i], -1.0, 1.0);
-        speeds[i]->Set_yconst(u_p[i] * rps_max * CH_C_2PI);
+        speeds[i]->SetConstant(u_p[i] * rps_max * CH_2PI);
     }
 }
 
@@ -310,7 +312,7 @@ template <int nop>
 void Copter<nop>::ControlAbsolute(double inputs[nop]) {
     for (int i = 0; i < nop; i++) {
         u_p[i] = ChClamp<double>(inputs[i], -1, 1);
-        speeds[i]->Set_yconst(u_p[i] * rps_max * CH_C_2PI);
+        speeds[i]->SetConstant(u_p[i] * rps_max * CH_2PI);
     }
 }
 
@@ -319,13 +321,13 @@ template <int nop>
 void Copter<nop>::Update(double timestep) {
     // update propeller forces/torques
     for (int i = 0; i < nop; i++) {
-        double rps = motors[i]->GetMotorRot_dt() / CH_C_2PI;
+        double rps = motors[i]->GetMotorAngleDt() / CH_2PI;
         thrusts[i]->SetMforce(Ct * rho * pow(rps, 2) * pow(Dp, 4));
-        backtorques[i]->SetMforce((1 / CH_C_2PI) * Cp * rho * pow(rps, 2) * pow(Dp, 5));
+        backtorques[i]->SetMforce((1 / CH_2PI) * Cp * rho * pow(rps, 2) * pow(Dp, 5));
     }
     // update linear drag / drag torque
-    lin_drag->SetMforce(0.5 * Cd * Surf * rho * chassis->GetPos_dt().Length2());
-    lin_drag->SetDir(-chassis->GetPos_dt());
+    lin_drag->SetMforce(0.5 * Cd * Surf * rho * chassis->GetPosDt().Length2());
+    lin_drag->SetDir(-chassis->GetPosDt());
     // update pressure, temperature, altitude:
     UpdateAirData();
 }
@@ -341,12 +343,12 @@ void Copter<nop>::UpdateAirData() {
 
 template <int nop>
 void Copter<nop>::RotateCopter(ChMatrix33<>& A) {
-    ChMatrix33<> mrot = this->GetChassis()->GetA() * A.transpose();
+    ChMatrix33<> mrot = this->GetChassis()->GetRotMat() * A.transpose();
     this->GetChassis()->SetRot(mrot);
     for (auto prop : this->GetProps()) {
-        ChMatrix33<> proprot = prop->GetA() * A.transpose();
+        ChMatrix33<> proprot = prop->GetRotMat() * A.transpose();
         prop->SetRot(proprot);
-        ChVector<> deltap = A * (prop->GetPos() - this->GetChassis()->GetPos());
+        ChVector3d deltap = A * (prop->GetPos() - this->GetChassis()->GetPos());
         prop->SetPos(prop->GetPos() + deltap);
     }
 }

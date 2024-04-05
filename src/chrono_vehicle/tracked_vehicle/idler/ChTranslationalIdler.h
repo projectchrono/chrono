@@ -58,7 +58,7 @@ class CH_VEHICLE_API ChTranslationalIdler : public ChIdler {
 
     /// Return a handle to the carrier body to which the idler wheel is connected.
     virtual std::shared_ptr<ChBody> GetCarrierBody() const override { return m_carrier; }
-        
+
     /// Get the tensioner force element.
     std::shared_ptr<ChLinkTSDA> GetTensioner() const { return m_tensioner; }
 
@@ -68,9 +68,9 @@ class CH_VEHICLE_API ChTranslationalIdler : public ChIdler {
     /// reference frame is always aligned with the chassis reference frame. A derived idler subsystem template class
     /// must extend this default implementation and specify contact geometry for the idler wheel.
     virtual void Initialize(std::shared_ptr<ChChassis> chassis,  ///< [in] associated chassis
-                            const ChVector<>& location,          ///< [in] location relative to the chassis frame
+                            const ChVector3d& location,          ///< [in] location relative to the chassis frame
                             ChTrackAssembly* track               ///< [in] containing track assembly
-    ) override;
+                            ) override;
 
     /// Add visualization assets for the idler subsystem.
     /// This default implementation adds assets to the carrier body.
@@ -99,12 +99,12 @@ class CH_VEHICLE_API ChTranslationalIdler : public ChIdler {
 
     /// Return the location of the specified hardpoint.
     /// The returned location must be expressed in the idler subsystem reference frame.
-    virtual const ChVector<> GetLocation(PointId which) = 0;
+    virtual const ChVector3d GetLocation(PointId which) = 0;
 
     /// Return the mass of the carrier body.
     virtual double GetCarrierMass() const = 0;
     /// Return the moments of inertia of the carrier body.
-    virtual const ChVector<>& GetCarrierInertia() = 0;
+    virtual const ChVector3d& GetCarrierInertia() = 0;
     /// Return a visualization radius for the carrier body.
     virtual double GetCarrierVisRadius() const = 0;
 
@@ -127,9 +127,9 @@ class CH_VEHICLE_API ChTranslationalIdler : public ChIdler {
 
   private:
     // Points for carrier visualization
-    ChVector<> m_pW;
-    ChVector<> m_pC;
-    ChVector<> m_pT;
+    ChVector3d m_pW;
+    ChVector3d m_pC;
+    ChVector3d m_pT;
 };
 
 /// @} vehicle_tracked_idler

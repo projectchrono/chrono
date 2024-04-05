@@ -27,13 +27,14 @@ namespace vehicle {
 // -----------------------------------------------------------------------------
 // -----------------------------------------------------------------------------
 PitmanArm::PitmanArm(const std::string& filename) : ChPitmanArm("") {
-    Document d; ReadFileJSON(filename, d);
+    Document d;
+    ReadFileJSON(filename, d);
     if (d.IsNull())
         return;
 
     Create(d);
 
-    GetLog() << "Loaded JSON: " << filename.c_str() << "\n";
+    std::cout << "Loaded JSONL " << filename << std::endl;
 }
 
 PitmanArm::PitmanArm(const rapidjson::Document& d) : ChPitmanArm("") {
@@ -68,7 +69,7 @@ void PitmanArm::Create(const rapidjson::Document& d) {
     // Read data for the revolute joint (Pitman arm - chassis)
     m_points[REV] = ReadVectorJSON(d["Revolute Joint"]["Location"]);
     m_dirs[REV_AXIS] = ReadVectorJSON(d["Revolute Joint"]["Direction"]);
-    m_maxAngle = d["Revolute Joint"]["Maximum Angle (deg)"].GetDouble() * CH_C_DEG_TO_RAD;
+    m_maxAngle = d["Revolute Joint"]["Maximum Angle (deg)"].GetDouble() * CH_DEG_TO_RAD;
 
     // Read data for the universal joint (Pitman arm - steering link)
     m_points[UNIV] = ReadVectorJSON(d["Universal Joint"]["Location"]);

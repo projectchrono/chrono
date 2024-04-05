@@ -37,7 +37,7 @@ class CH_MODELS_API U401_ToeBarPushPipeAxle : public ChToeBarPushPipeAxle {
     ~U401_ToeBarPushPipeAxle();
 
   protected:
-    virtual const ChVector<> getLocation(PointId which) override;
+    virtual const ChVector3d getLocation(PointId which) override;
 
     virtual double getCamberAngle() const override { return 0; }
     virtual double getToeAngle() const override { return 0; }
@@ -58,14 +58,14 @@ class CH_MODELS_API U401_ToeBarPushPipeAxle : public ChToeBarPushPipeAxle {
     virtual double getPortalOffset() const override { return m_portalOffset; }
     virtual double getPanhardRodRadius() const override { return m_panhardRodRadius; }
 
-    virtual const ChVector<> getAxleTubeCOM() const override { return ChVector<>(0, 0, 0); }
+    virtual const ChVector3d getAxleTubeCOM() const override { return ChVector3d(0, 0, 0); }
 
-    virtual const ChVector<>& getAxleTubeInertia() const override { return m_axleTubeInertia; }
-    virtual const ChVector<>& getSpindleInertia() const override { return m_spindleInertia; }
-    virtual const ChVector<>& getKnuckleInertia() const override { return m_knuckleInertia; }
-    virtual const ChVector<>& getTierodInertia() const override { return m_tierodInertia; }
-    virtual const ChVector<>& getDraglinkInertia() const override { return m_draglinkInertia; }
-    virtual const ChVector<>& getPanhardRodInertia() const override { return m_panhardRodInertia; }
+    virtual const ChVector3d& getAxleTubeInertia() const override { return m_axleTubeInertia; }
+    virtual const ChVector3d& getSpindleInertia() const override { return m_spindleInertia; }
+    virtual const ChVector3d& getKnuckleInertia() const override { return m_knuckleInertia; }
+    virtual const ChVector3d& getTierodInertia() const override { return m_tierodInertia; }
+    virtual const ChVector3d& getDraglinkInertia() const override { return m_draglinkInertia; }
+    virtual const ChVector3d& getPanhardRodInertia() const override { return m_panhardRodInertia; }
 
     virtual double getAxleInertia() const override { return m_axleShaftInertia; }
 
@@ -97,12 +97,12 @@ class CH_MODELS_API U401_ToeBarPushPipeAxle : public ChToeBarPushPipeAxle {
     static const double m_portalOffset;
     static const double m_panhardRodRadius;
 
-    static const ChVector<> m_axleTubeInertia;
-    static const ChVector<> m_panhardRodInertia;
-    static const ChVector<> m_spindleInertia;
-    static const ChVector<> m_knuckleInertia;
-    static const ChVector<> m_tierodInertia;
-    static const ChVector<> m_draglinkInertia;
+    static const ChVector3d m_axleTubeInertia;
+    static const ChVector3d m_panhardRodInertia;
+    static const ChVector3d m_spindleInertia;
+    static const ChVector3d m_knuckleInertia;
+    static const ChVector3d m_tierodInertia;
+    static const ChVector3d m_draglinkInertia;
 
     static const double m_springCoefficient;
     static const double m_springRestLength;
@@ -122,4 +122,3 @@ class CH_MODELS_API U401_ToeBarPushPipeAxle : public ChToeBarPushPipeAxle {
 }  // end namespace chrono
 
 #endif
-

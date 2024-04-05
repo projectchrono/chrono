@@ -23,7 +23,10 @@ ChLinkMotorLinearSpeed::ChLinkMotorLinearSpeed() {
     variable.GetMass()(0, 0) = 1.0;
     variable.GetInvMass()(0, 0) = 1.0;
 
-    m_func = chrono_types::make_shared<ChFunction_Const>(1.0);
+    this->c_z = true;
+    SetupLinkMask();
+
+    m_func = chrono_types::make_shared<ChFunctionConst>(0.0);
 
     pos_offset = 0;
 
@@ -49,17 +52,17 @@ void ChLinkMotorLinearSpeed::Update(double mytime, bool update_assets) {
 
     // Add the time-dependent term in residual C as
     //   C = d_error - d_setpoint - d_offset
-    // with d_error = x_pos_A- x_pos_B, and d_setpoint = x(t)
+    // with d_error = z_pos_1 - z_pos_2, and d_setpoint = x(t)
     if (this->avoid_position_drift)
-        C(0) = this->mpos - aux_dt - this->pos_offset;
+        C(m_actuated_idx) = this->mpos - aux_dt - this->pos_offset;
     else
-        C(0) = 0.0;
+        C(m_actuated_idx) = 0.0;
 }
 
 void ChLinkMotorLinearSpeed::IntLoadConstraint_Ct(const unsigned int off_L, ChVectorDynamic<>& Qc, const double c) {
-    double mCt = -m_func->Get_y(this->GetChTime());
-    if (mask.Constr_N(0).IsActive()) {
-        Qc(off_L + 0) += c * mCt;
+    double mCt = -m_func->GetVal(this->GetChTime());
+    if (mask.GetConstraint(m_actuated_idx).IsActive()) {
+        Qc(off_L + m_actuated_idx) += c * mCt;
     }
 }
 
@@ -67,9 +70,9 @@ void ChLinkMotorLinearSpeed::ConstraintsBiLoad_Ct(double factor) {
     if (!this->IsActive())
         return;
 
-    double mCt = -m_func->Get_y(this->GetChTime());
-    if (mask.Constr_N(0).IsActive()) {
-        mask.Constr_N(0).Set_b_i(mask.Constr_N(0).Get_b_i() + factor * mCt);
+    double mCt = -m_func->GetVal(this->GetChTime());
+    if (mask.GetConstraint(m_actuated_idx).IsActive()) {
+        mask.GetConstraint(m_actuated_idx).SetRightHandSide(mask.GetConstraint(m_actuated_idx).GetRightHandSide() + factor * mCt);
     }
 }
 
@@ -111,7 +114,7 @@ void ChLinkMotorLinearSpeed::IntLoadResidual_F(const unsigned int off,  // offse
                                                ChVectorDynamic<>& R,    // result: the R residual, R += c*F
                                                const double c           // a scaling factor
 ) {
-    double imposed_speed = m_func->Get_y(this->GetChTime());
+    double imposed_speed = m_func->GetVal(this->GetChTime());
     R(off) += imposed_speed * c;
 }
 
@@ -126,8 +129,7 @@ void ChLinkMotorLinearSpeed::IntLoadResidual_Mv(const unsigned int off,      // 
 void ChLinkMotorLinearSpeed::IntLoadLumpedMass_Md(const unsigned int off,
                                                   ChVectorDynamic<>& Md,
                                                   double& err,
-                                                  const double c 
-) {
+                                                  const double c) {
     Md(off) += c * 1.0;
 }
 
@@ -140,8 +142,8 @@ void ChLinkMotorLinearSpeed::IntToDescriptor(const unsigned int off_v,  // offse
     // inherit parent
     ChLinkMotorLinear::IntToDescriptor(off_v, v, R, off_L, L, Qc);
 
-    this->variable.Get_qb()(0, 0) = v(off_v);
-    this->variable.Get_fb()(0, 0) = R(off_v);
+    this->variable.State()(0, 0) = v(off_v);
+    this->variable.Force()(0, 0) = R(off_v);
 }
 
 void ChLinkMotorLinearSpeed::IntFromDescriptor(const unsigned int off_v,  // offset in v
@@ -151,64 +153,64 @@ void ChLinkMotorLinearSpeed::IntFromDescriptor(const unsigned int off_v,  // off
     // inherit parent
     ChLinkMotorLinear::IntFromDescriptor(off_v, v, off_L, L);
 
-    v(off_v) = this->variable.Get_qb()(0, 0);
+    v(off_v) = this->variable.State()(0, 0);
 }
 
 ////
-void ChLinkMotorLinearSpeed::InjectVariables(ChSystemDescriptor& mdescriptor) {
+void ChLinkMotorLinearSpeed::InjectVariables(ChSystemDescriptor& descriptor) {
     variable.SetDisabled(!IsActive());
 
-    mdescriptor.InsertVariables(&variable);
+    descriptor.InsertVariables(&variable);
 }
 
 void ChLinkMotorLinearSpeed::VariablesFbReset() {
-    variable.Get_fb().setZero();
+    variable.Force().setZero();
 }
 
 void ChLinkMotorLinearSpeed::VariablesFbLoadForces(double factor) {
-    double imposed_speed = m_func->Get_y(this->GetChTime());
-    variable.Get_fb()(0) += imposed_speed * factor;
+    double imposed_speed = m_func->GetVal(this->GetChTime());
+    variable.Force()(0) += imposed_speed * factor;
 }
 
 void ChLinkMotorLinearSpeed::VariablesFbIncrementMq() {
-    variable.Compute_inc_Mb_v(variable.Get_fb(), variable.Get_qb());
+    variable.AddMassTimesVector(variable.Force(), variable.State());
 }
 
 void ChLinkMotorLinearSpeed::VariablesQbLoadSpeed() {
     // set current speed in 'qb', it can be used by the solver when working in incremental mode
-    variable.Get_qb()(0) = aux_dt;
+    variable.State()(0) = aux_dt;
 }
 
 void ChLinkMotorLinearSpeed::VariablesQbSetSpeed(double step) {
     // from 'qb' vector, sets body speed, and updates auxiliary data
-    aux_dt = variable.Get_qb()(0);
+    aux_dt = variable.State()(0);
 
     // Compute accel. by BDF (approximate by differentiation); not needed
 }
 
-void ChLinkMotorLinearSpeed::ArchiveOut(ChArchiveOut& marchive) {
+void ChLinkMotorLinearSpeed::ArchiveOut(ChArchiveOut& archive_out) {
     // version number
-    marchive.VersionWrite<ChLinkMotorLinearSpeed>();
+    archive_out.VersionWrite<ChLinkMotorLinearSpeed>();
 
     // serialize parent class
-    ChLinkMotorLinear::ArchiveOut(marchive);
+    ChLinkMotorLinear::ArchiveOut(archive_out);
 
     // serialize all member data:
-    marchive << CHNVP(pos_offset);
-    marchive << CHNVP(avoid_position_drift);
+    archive_out << CHNVP(pos_offset);
+    archive_out << CHNVP(avoid_position_drift);
 }
 
 /// Method to allow de serialization of transient data from archives.
-void ChLinkMotorLinearSpeed::ArchiveIn(ChArchiveIn& marchive) {
+void ChLinkMotorLinearSpeed::ArchiveIn(ChArchiveIn& archive_in) {
     // version number
-    /*int version =*/ marchive.VersionRead<ChLinkMotorLinearSpeed>();
+    /*int version =*/archive_in.VersionRead<ChLinkMotorLinearSpeed>();
 
     // deserialize parent class
-    ChLinkMotorLinear::ArchiveIn(marchive);
+    ChLinkMotorLinear::ArchiveIn(archive_in);
 
     // deserialize all member data:
-    marchive >> CHNVP(pos_offset);
-    marchive >> CHNVP(avoid_position_drift);
+    archive_in >> CHNVP(pos_offset);
+    archive_in >> CHNVP(avoid_position_drift);
 }
 
 }  // end namespace chrono

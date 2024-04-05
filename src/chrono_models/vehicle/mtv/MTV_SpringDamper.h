@@ -44,7 +44,7 @@ class MTV_SpringForceRear : public ChLinkTSDA::ForceFunctor {
     double m_min_length;
     double m_max_length;
 
-    ChFunction_Recorder m_bump;
+    ChFunctionInterp m_bump;
 };
 
 /// MTV rear shock functor class - implements a nonlinear damper

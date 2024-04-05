@@ -32,7 +32,7 @@ using namespace chrono;
 
 namespace chrono {
 class ChContactMethod;
-class ChMaterialSurface;
+class ChContactMaterial;
 class ChCollisionModel;
 }
 

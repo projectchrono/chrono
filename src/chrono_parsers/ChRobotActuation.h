@@ -13,7 +13,7 @@
 // =============================================================================
 //
 // Utility class which provides actuations for a set of motors, based on data
-// files. 
+// files.
 //
 // =============================================================================
 
@@ -139,7 +139,6 @@ class ChApiParsers ChRobotActuation {
 };
 
 /// @} parsers_module
-
 
 }  // namespace parsers
 }  // namespace chrono

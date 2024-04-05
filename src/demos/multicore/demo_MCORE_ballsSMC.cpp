@@ -41,7 +41,7 @@
 using namespace chrono;
 
 // Tilt angle (about global Y axis) of the container.
-double tilt_angle = 1 * CH_C_PI / 20;
+double tilt_angle = 1 * CH_PI / 20;
 
 // Number of balls: (2 * count_X + 1) * (2 * count_Y + 1)
 int count_X = 2;
@@ -55,31 +55,29 @@ float cr = 0.4f;
 // -----------------------------------------------------------------------------
 // Create a bin consisting of five boxes attached to the ground.
 // -----------------------------------------------------------------------------
-void AddContainer(ChSystemMulticoreSMC* sys) {
-    // IDs for the two bodies
-    int binId = -200;
-
+std::shared_ptr<ChBody> AddContainer(ChSystemMulticoreSMC* sys) {
     // Create a common material
-    auto mat = chrono_types::make_shared<ChMaterialSurfaceSMC>();
+    auto mat = chrono_types::make_shared<ChContactMaterialSMC>();
     mat->SetYoungModulus(Y);
     mat->SetFriction(mu);
     mat->SetRestitution(cr);
 
     // Create the containing bin (4 x 4 x 1)
     auto bin = chrono_types::make_shared<ChBody>();
-    bin->SetIdentifier(binId);
     bin->SetMass(1);
-    bin->SetPos(ChVector<>(0, 0, 0));
-    bin->SetRot(Q_from_AngY(tilt_angle));
-    bin->SetCollide(true);
-    bin->SetBodyFixed(true);
+    bin->SetPos(ChVector3d(0, 0, 0));
+    bin->SetRot(QuatFromAngleY(tilt_angle));
+    bin->EnableCollision(true);
+    bin->SetFixed(true);
 
     utils::AddBoxContainer(bin, mat,                                 //
-                           ChFrame<>(ChVector<>(0, 0, 0.5), QUNIT),  //
-                           ChVector<>(4, 4, 1), 0.2,                 //
-                           ChVector<int>(2, 2, -1));
+                           ChFrame<>(ChVector3d(0, 0, 0.5), QUNIT),  //
+                           ChVector3d(4, 4, 1), 0.2,                 //
+                           ChVector3i(2, 2, -1));
 
     sys->AddBody(bin);
+
+    return bin;
 }
 
 // -----------------------------------------------------------------------------
@@ -87,30 +85,28 @@ void AddContainer(ChSystemMulticoreSMC* sys) {
 // -----------------------------------------------------------------------------
 void AddFallingBalls(ChSystemMulticore* sys) {
     // Common material
-    auto ballMat = chrono_types::make_shared<ChMaterialSurfaceSMC>();
+    auto ballMat = chrono_types::make_shared<ChContactMaterialSMC>();
     ballMat->SetYoungModulus(Y);
     ballMat->SetFriction(mu);
     ballMat->SetRestitution(cr);
     ballMat->SetAdhesion(0);  // Magnitude of the adhesion in Constant adhesion model
 
     // Create the falling balls
-    int ballId = 0;
     double mass = 1;
     double radius = 0.15;
-    ChVector<> inertia = (2.0 / 5.0) * mass * radius * radius * ChVector<>(1, 1, 1);
+    ChVector3d inertia = (2.0 / 5.0) * mass * radius * radius * ChVector3d(1, 1, 1);
 
     for (int ix = -count_X; ix <= count_X; ix++) {
         for (int iy = -count_Y; iy <= count_Y; iy++) {
-            ChVector<> pos(0.4 * ix, 0.4 * iy, 1);
+            ChVector3d pos(0.4 * ix, 0.4 * iy, 1);
 
             auto ball = chrono_types::make_shared<ChBody>();
-            ball->SetIdentifier(ballId++);
             ball->SetMass(mass);
             ball->SetInertiaXX(inertia);
             ball->SetPos(pos);
             ball->SetRot(ChQuaternion<>(1, 0, 0, 0));
-            ball->SetBodyFixed(false);
-            ball->SetCollide(true);
+            ball->SetFixed(false);
+            ball->EnableCollision(true);
 
             utils::AddSphereGeometry(ball.get(), ballMat, radius);
 
@@ -123,7 +119,7 @@ void AddFallingBalls(ChSystemMulticore* sys) {
 // Create the system, specify simulation parameters, and run simulation loop.
 // -----------------------------------------------------------------------------
 int main(int argc, char* argv[]) {
-    GetLog() << "Copyright (c) 2017 projectchrono.org\nChrono version: " << CHRONO_VERSION << "\n\n";
+    std::cout << "Copyright (c) 2017 projectchrono.org\nChrono version: " << CHRONO_VERSION << std::endl;
 
     // Simulation parameters
     // ---------------------
@@ -144,7 +140,7 @@ int main(int argc, char* argv[]) {
     sys.SetNumThreads(8);
 
     // Set gravitational acceleration
-    sys.Set_G_acc(ChVector<>(0, 0, -gravity));
+    sys.SetGravitationalAcceleration(ChVector3d(0, 0, -gravity));
 
     // Set solver parameters
     sys.GetSettings()->solver.max_iteration_bilateral = max_iteration;
@@ -160,7 +156,7 @@ int main(int argc, char* argv[]) {
 
     // Create the fixed and moving bodies
     // ----------------------------------
-    AddContainer(&sys);
+    auto container = AddContainer(&sys);
     AddFallingBalls(&sys);
 
     // Perform the simulation
@@ -173,7 +169,7 @@ int main(int argc, char* argv[]) {
     vis.SetWindowSize(1280, 720);
     vis.SetRenderMode(opengl::WIREFRAME);
     vis.Initialize();
-    vis.AddCamera(ChVector<>(0, -6, 0), ChVector<>(0, 0, 0));
+    vis.AddCamera(ChVector3d(0, -6, 0), ChVector3d(0, 0, 0));
     vis.SetCameraVertical(CameraVerticalDir::Z);
 
     while (true) {
@@ -181,7 +177,7 @@ int main(int argc, char* argv[]) {
             sys.DoStepDynamics(time_step);
             vis.Render();
             // Print cumulative contact force on container bin.
-            real3 frc = sys.GetBodyContactForce(0);
+            real3 frc = sys.GetBodyContactForce(container);
             std::cout << frc.x << "  " << frc.y << "  " << frc.z << std::endl;
         } else {
             break;

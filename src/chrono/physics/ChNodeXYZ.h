@@ -26,53 +26,55 @@ namespace chrono {
 class ChApi ChNodeXYZ : public virtual ChNodeBase, public ChLoadableUVW {
   public:
     ChNodeXYZ();
-    ChNodeXYZ(const ChVector<>& initial_pos);
+    ChNodeXYZ(const ChVector3d& initial_pos);
     ChNodeXYZ(const ChNodeXYZ& other);
     virtual ~ChNodeXYZ() {}
 
     ChNodeXYZ& operator=(const ChNodeXYZ& other);
 
-    // FUNCTIONS
-
     // Access the xyz 'variables' of the node
     virtual ChVariablesNode& Variables() = 0;
 
     // Position of the node - in absolute csys.
-    const ChVector<>& GetPos() const { return pos; }
+    const ChVector3d& GetPos() const { return pos; }
+
     // Position of the node - in absolute csys.
-    void SetPos(const ChVector<>& mpos) { pos = mpos; }
+    void SetPos(const ChVector3d& mpos) { pos = mpos; }
 
     // Velocity of the node - in absolute csys.
-    const ChVector<>& GetPos_dt() const { return pos_dt; }
+    const ChVector3d& GetPosDt() const { return pos_dt; }
+
     // Velocity of the node - in absolute csys.
-    void SetPos_dt(const ChVector<>& mposdt) { pos_dt = mposdt; }
+    void SetPosDt(const ChVector3d& mposdt) { pos_dt = mposdt; }
 
     // Acceleration of the node - in absolute csys.
-    const ChVector<>& GetPos_dtdt() const { return pos_dtdt; }
+    const ChVector3d& GetPosDt2() const { return pos_dtdt; }
+
     // Acceleration of the node - in absolute csys.
-    void SetPos_dtdt(const ChVector<>& mposdtdt) { pos_dtdt = mposdtdt; }
+    void SetPosDt2(const ChVector3d& mposdtdt) { pos_dtdt = mposdtdt; }
 
     // Get mass of the node. To be implemented in children classes
     virtual double GetMass() const = 0;
+
     // Set mass of the node. To be implemented in children classes
     virtual void SetMass(double mm) = 0;
 
     /// Get the number of degrees of freedom
-    virtual int GetNdofX() const override { return 3; }
+    virtual unsigned int GetNumCoordsPosLevel() const override { return 3; }
 
     // INTERFACE to ChLoadable
 
     /// Gets the number of DOFs affected by this element (position part)
-    virtual int LoadableGet_ndof_x() override { return 3; }
+    virtual unsigned int GetLoadableNumCoordsPosLevel() override { return 3; }
 
     /// Gets the number of DOFs affected by this element (speed part)
-    virtual int LoadableGet_ndof_w() override { return 3; }
+    virtual unsigned int GetLoadableNumCoordsVelLevel() override { return 3; }
 
     /// Gets all the DOFs packed in a single vector (position part)
-    virtual void LoadableGetStateBlock_x(int block_offset, ChState& mD) override;
+    virtual void LoadableGetStateBlockPosLevel(int block_offset, ChState& mD) override;
 
     /// Gets all the DOFs packed in a single vector (speed part)
-    virtual void LoadableGetStateBlock_w(int block_offset, ChStateDelta& mD) override;
+    virtual void LoadableGetStateBlockVelLevel(int block_offset, ChStateDelta& mD) override;
 
     /// Increment all DOFs using a delta.
     virtual void LoadableStateIncrement(const unsigned int off_x,
@@ -83,19 +85,19 @@ class ChApi ChNodeXYZ : public virtual ChNodeBase, public ChLoadableUVW {
 
     /// Number of coordinates in the interpolated field, ex=3 for a
     /// tetrahedron finite element or a cable, etc. Here is 6: xyz displ + xyz rots
-    virtual int Get_field_ncoords() override { return 3; }
+    virtual unsigned int GetNumFieldCoords() override { return 3; }
 
     /// Get the number of DOFs sub-blocks.
-    virtual int GetSubBlocks() override { return 1; }
+    virtual unsigned int GetNumSubBlocks() override { return 1; }
 
     /// Get the offset of the specified sub-block of DOFs in global vector.
-    virtual unsigned int GetSubBlockOffset(int nblock) override { return NodeGetOffsetW(); }
+    virtual unsigned int GetSubBlockOffset(unsigned int nblock) override { return NodeGetOffsetVelLevel(); }
 
     /// Get the size of the specified sub-block of DOFs in global vector.
-    virtual unsigned int GetSubBlockSize(int nblock) override { return 3; }
+    virtual unsigned int GetSubBlockSize(unsigned int nblock) override { return 3; }
 
     /// Check if the specified sub-block of DOFs is active.
-    virtual bool IsSubBlockActive(int nblock) const override { return true; }
+    virtual bool IsSubBlockActive(unsigned int nblock) const override { return true; }
 
     /// Get the pointers to the contained ChVariables, appending to the mvars vector.
     virtual void LoadableGetVariables(std::vector<ChVariables*>& mvars) override;
@@ -119,13 +121,13 @@ class ChApi ChNodeXYZ : public virtual ChNodeBase, public ChLoadableUVW {
     virtual double GetDensity() override { return 1; }
 
     // SERIALIZATION
-    virtual void ArchiveOut(ChArchiveOut& marchive) override;
-    virtual void ArchiveIn(ChArchiveIn& marchive) override;
+    virtual void ArchiveOut(ChArchiveOut& archive_out) override;
+    virtual void ArchiveIn(ChArchiveIn& archive_in) override;
 
     // DATA
-    ChVector<> pos;
-    ChVector<> pos_dt;
-    ChVector<> pos_dtdt;
+    ChVector3d pos;
+    ChVector3d pos_dt;
+    ChVector3d pos_dtdt;
 };
 
 CH_CLASS_VERSION(ChNodeXYZ, 0)

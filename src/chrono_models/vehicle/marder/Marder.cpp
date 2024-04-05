@@ -55,7 +55,7 @@ Marder::Marder()
       m_engineType(EngineModelType::SHAFTS),
       m_transmissionType(TransmissionModelType::AUTOMATIC_SHAFTS),
       m_initFwdVel(0),
-      m_initPos(ChCoordsys<>(ChVector<>(0, 0, 1), QUNIT)),
+      m_initPos(ChCoordsys<>(ChVector3d(0, 0, 1), QUNIT)),
       m_apply_drag(false) {}
 
 Marder::Marder(ChSystem* system)
@@ -75,7 +75,7 @@ Marder::Marder(ChSystem* system)
       m_engineType(EngineModelType::SHAFTS),
       m_transmissionType(TransmissionModelType::AUTOMATIC_SHAFTS),
       m_initFwdVel(0),
-      m_initPos(ChCoordsys<>(ChVector<>(0, 0, 1), QUNIT)),
+      m_initPos(ChCoordsys<>(ChVector3d(0, 0, 1), QUNIT)),
       m_apply_drag(false) {}
 
 Marder::~Marder() {
@@ -137,6 +137,8 @@ void Marder::Initialize() {
             case TransmissionModelType::AUTOMATIC_SIMPLE_MAP:
                 transmission = chrono_types::make_shared<Marder_AutomaticTransmissionSimpleMap>("Transmission");
                 break;
+            default:
+                break;
         }
     }
 
@@ -151,8 +153,7 @@ void Marder::Initialize() {
 
 // -----------------------------------------------------------------------------
 
-void Marder::Synchronize(double time,
-                         const DriverInputs& driver_inputs) {
+void Marder::Synchronize(double time, const DriverInputs& driver_inputs) {
     m_vehicle->Synchronize(time, driver_inputs);
 }
 

@@ -23,7 +23,7 @@ namespace chrono {
 namespace vehicle {
 namespace fmtv {
 
-const double rpm2rads = CH_C_PI / 30;
+const double rpm2rads = CH_PI / 30;
 
 FMTV_EngineSimpleMap::FMTV_EngineSimpleMap(const std::string& name) : ChEngineSimpleMap(name) {}
 
@@ -31,7 +31,7 @@ double FMTV_EngineSimpleMap::GetMaxEngineSpeed() {
     return 2700 * rpm2rads;
 }
 
-void FMTV_EngineSimpleMap::SetEngineTorqueMaps(ChFunction_Recorder& map0, ChFunction_Recorder& mapF) {
+void FMTV_EngineSimpleMap::SetEngineTorqueMaps(ChFunctionInterp& map0, ChFunctionInterp& mapF) {
     map0.AddPoint(-10.472, 0.000);
     map0.AddPoint(83.776, -20.0);
     map0.AddPoint(104.720, -20.0);

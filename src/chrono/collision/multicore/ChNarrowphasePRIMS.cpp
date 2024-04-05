@@ -21,7 +21,7 @@
 
 namespace chrono {
 
-using namespace chrono::ch_utils;
+using namespace chrono::mc_utils;
 
 // Fictitious radius of curvature for collision with a corner or an edge.
 static real edge_radius = 0.1;

@@ -16,7 +16,7 @@
 #define CH_COMPOSITE_INERTIA_H
 
 #include "chrono/core/ChApiCE.h"
-#include "chrono/core/ChVector.h"
+#include "chrono/core/ChVector3.h"
 #include "chrono/core/ChMatrix33.h"
 #include "chrono/core/ChFrame.h"
 
@@ -44,7 +44,7 @@ class ChApi CompositeInertia {
     double GetMass() const { return m_mass; }
 
     /// Get the location of the COM.
-    const ChVector<>& GetCOM() const { return m_com; }
+    const ChVector3d& GetCOM() const { return m_com; }
 
     /// Get the inertia tensor w.r.t. a centroidal frame.
     /// The return 3x3 symmetric matrix represents the inertia tensor with respect to a
@@ -61,15 +61,15 @@ class ChApi CompositeInertia {
                       double mass,                  ///< mass of sub-component
                       const ChMatrix33<>& inertia,  ///< sub-component inertia tensor w.r.t. its centroidal frame
                       bool is_void = false          ///< indicate if sub-component represents a material void
-                      );
+    );
 
     /// Utility function for calculating an inertia shift matrix from a given vector.
     /// This matrix is used when applying the parallel axis theorem.
-    static ChMatrix33<> InertiaShiftMatrix(const ChVector<>& v);
+    static ChMatrix33<> InertiaShiftMatrix(const ChVector3d& v);
 
   private:
     ChMatrix33<> m_inertia;  ///< inertia tensor w.r.t reference frame
-    ChVector<> m_com;        ///< location of COM (relative to reference frame)
+    ChVector3d m_com;        ///< location of COM (relative to reference frame)
     double m_mass;           ///< mass of composite body
 };
 

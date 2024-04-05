@@ -64,10 +64,11 @@ class ChApi ChElementBeamTaperedTimoshenkoFPM : public ChElementBeamTaperedTimos
         return this->tapered_section_fpm;
     }
 
-    /// Computes the shape function matrix 'Nx' and strain-displacement relation matrix 'Bx' at dimensionless abscissa 'eta'.
-    /// Note, eta=-1 at node1, eta=+1 at node2.
-    void ShapeFunctionsTimoshenkoFPM(ShapeFunctionGroupFPM& NB,  ///< shape function matrix 'Nx' and strain-displacement relation matrix 'Bx' are stored here.
-                                                    double eta   ///< abscissa 'eta'. eta=-1 at node1, eta=+1 at node2.
+    /// Computes the shape function matrix 'Nx' and strain-displacement relation matrix 'Bx' at dimensionless abscissa
+    /// 'eta'. Note, eta=-1 at node1, eta=+1 at node2.
+    void ShapeFunctionsTimoshenkoFPM(ShapeFunctionGroupFPM& NB,  ///< shape function matrix 'Nx' and strain-displacement
+                                                                 ///< relation matrix 'Bx' are stored here.
+                                     double eta                  ///< abscissa 'eta'. eta=-1 at node1, eta=+1 at node2.
     );
 
     /// Set the order of Gauss quadrature, as default it is four.
@@ -114,23 +115,23 @@ class ChApi ChElementBeamTaperedTimoshenkoFPM : public ChElementBeamTaperedTimos
     /// and the rotation RxRyRz of section plane, at abscyssa 'eta'.
     /// Note, eta=-1 at node1, eta=+1 at node2.
     /// Results are not corotated.
-    virtual void EvaluateSectionDisplacement(const double eta, ChVector<>& u_displ, ChVector<>& u_rotaz) override;
+    virtual void EvaluateSectionDisplacement(const double eta, ChVector3d& u_displ, ChVector3d& u_rotaz) override;
 
     /// Gets the force (traction x, shear y, shear z) and the
     /// torque (torsion on x, bending on y, on bending on z) at a section along
     /// the beam line, at abscissa 'eta'.
     /// Note, eta=-1 at node1, eta=+1 at node2.
     /// Results are not corotated, and are expressed in the reference system of beam.
-    virtual void EvaluateSectionForceTorque(const double eta, ChVector<>& Fforce, ChVector<>& Mtorque) override;
+    virtual void EvaluateSectionForceTorque(const double eta, ChVector3d& Fforce, ChVector3d& Mtorque) override;
 
     /* To be completed: Created to be consistent with base class implementation*/
     // strain_v = Bx * displ
-    virtual void EvaluateSectionStrain(const double eta, ChVector<>& StrainV) override {}
-    
+    virtual void EvaluateSectionStrain(const double eta, ChVector3d& StrainV) override {}
+
     /// Gets the strains(traction along x, shear along y, along shear z, torsion about x, bending about y, on bending
     /// about z) at a section along the beam line, at abscissa 'eta'. It's evaluated at the elastic center. Note, eta=-1
     /// at node1, eta=+1 at node2. Results are not corotated, and are expressed in the reference system of beam.
-    virtual void EvaluateSectionStrain(const double eta, ChVector<>& StrainV_trans, ChVector<>& StrainV_rot) override;
+    virtual void EvaluateSectionStrain(const double eta, ChVector3d& StrainV_trans, ChVector3d& StrainV_rot) override;
 
     /// Evaluate N'*F , where N is some type of shape function
     /// evaluated at U coordinates of the line, each ranging in -1..+1

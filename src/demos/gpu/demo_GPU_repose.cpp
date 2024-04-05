@@ -54,12 +54,12 @@ int main(int argc, char* argv[]) {
 
     // Setup simulation
     ChSystemGpuMesh gpu_sys(params.sphere_radius, params.sphere_density,
-                            ChVector<float>(params.box_X, params.box_Y, params.box_Z));
+                            ChVector3f(params.box_X, params.box_Y, params.box_Z));
 
     // Insert the funnel
     float funnel_bottom = 0.f;
-    gpu_sys.AddMesh(GetChronoDataFile("models/funnel.obj"), ChVector<float>(0, 0, funnel_bottom),
-                    ChMatrix33<float>(0.15f), 1e10);
+    gpu_sys.AddMesh(GetChronoDataFile("models/funnel.obj"), ChVector3f(0, 0, funnel_bottom), ChMatrix33<float>(0.15f),
+                    1e10);
     gpu_sys.EnableMeshCollision(true);
 
     gpu_sys.SetKn_SPH2SPH(params.normalStiffS2S);
@@ -95,7 +95,7 @@ int main(int argc, char* argv[]) {
     // to greatly increase the repose angle.
     gpu_sys.SetCohesionRatio(params.cohesion_ratio);
     gpu_sys.SetAdhesionRatio_SPH2WALL(params.adhesion_ratio_s2w);
-    gpu_sys.SetGravitationalAcceleration(ChVector<float>(params.grav_X, params.grav_Y, params.grav_Z));
+    gpu_sys.SetGravitationalAcceleration(ChVector3f(params.grav_X, params.grav_Y, params.grav_Z));
     gpu_sys.SetParticleOutputMode(params.write_mode);
 
     gpu_sys.SetBDFixed(true);
@@ -104,18 +104,18 @@ int main(int argc, char* argv[]) {
     float fill_epsilon = 2.02f;
     // padding at top of fill
     float spacing = fill_epsilon * params.sphere_radius;
-    chrono::utils::PDSampler<float> sampler(spacing);
-    chrono::utils::HCPSampler<float> HCPsampler(spacing);
+    chrono::utils::ChPDSampler<float> sampler(spacing);
+    chrono::utils::ChHCPSampler<float> HCPsampler(spacing);
 
     // Create column of material
-    std::vector<ChVector<float>> material_points;
+    std::vector<ChVector3f> material_points;
 
     float fill_width = 5.f;
     float fill_height = 2.f * fill_width;
     float fill_bottom = funnel_bottom + fill_width + spacing;
 
     // add granular material particles layer by layer
-    ChVector<float> center(0, 0, fill_bottom + params.sphere_radius);
+    ChVector3f center(0, 0, fill_bottom + params.sphere_radius);
     // fill up each layer
     while (center.z() + params.sphere_radius < fill_bottom + fill_height) {
         auto points = sampler.SampleCylinderZ(center, fill_width, 0);
@@ -124,12 +124,12 @@ int main(int argc, char* argv[]) {
     }
 
     // Fixed (ground) points on the bottom for roughness
-    ChVector<> bottom_center(0, 0, funnel_bottom - 10.f);
-    std::vector<ChVector<float>> roughness_points = HCPsampler.SampleBox(
+    ChVector3d bottom_center(0, 0, funnel_bottom - 10.f);
+    std::vector<ChVector3f> roughness_points = HCPsampler.SampleBox(
         bottom_center,
-        ChVector<float>(params.box_X / 2.f - params.sphere_radius, params.box_Y / 2.f - params.sphere_radius, 0.f));
+        ChVector3f(params.box_X / 2.f - params.sphere_radius, params.box_Y / 2.f - params.sphere_radius, 0.f));
 
-    std::vector<ChVector<float>> body_points;
+    std::vector<ChVector3f> body_points;
     std::vector<bool> body_points_fixed;
     body_points.insert(body_points.end(), roughness_points.begin(), roughness_points.end());
     body_points_fixed.insert(body_points_fixed.end(), roughness_points.size(), true);
@@ -155,7 +155,7 @@ int main(int argc, char* argv[]) {
     ChGpuVisualization gpu_vis(&gpu_sys);
     if (render) {
         gpu_vis.SetTitle("Chrono::Gpu repose demo");
-        gpu_vis.AddCamera(ChVector<>(0, -30, -10), ChVector<>(0, 0, -20));
+        gpu_vis.AddCamera(ChVector3d(0, -30, -10), ChVector3d(0, 0, -20));
         gpu_vis.SetCameraMoveScale(1.0f);
         gpu_vis.Initialize();
     }

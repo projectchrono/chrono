@@ -112,21 +112,21 @@ int main(int argc, char* argv[]) {
     // Vehicle Initialization
     // ----------------------
     // Calculate initial position and paths for each vehicle
-    ChVector<> offset(-size_x / 2 + 5, 0, 0);
+    ChVector3d offset(-size_x / 2 + 5, 0, 0);
 
-    ChVector<> initLoc;
+    ChVector3d initLoc;
     ChQuaternion<> initRot;
-    std::vector<ChVector<>> curve_pts;
+    std::vector<ChVector3d> curve_pts;
     if (node_id % 2 == 0) {
         // Start even vehicles in a row on the south side, driving north
-        initLoc = offset + ChVector<>(0, 2.0 * (node_id + 1), 0.5);
-        initRot = Q_from_AngZ(0);
-        curve_pts = {initLoc, initLoc + ChVector<>(100, 0, 0)};
+        initLoc = offset + ChVector3d(0, 2.0 * (node_id + 1), 0.5);
+        initRot = QuatFromAngleZ(0);
+        curve_pts = {initLoc, initLoc + ChVector3d(100, 0, 0)};
     } else {
         // Start odd vehicles staggered going up the west edge, driving east
-        initLoc = offset + ChVector<>(2.0 * (node_id - 1), -5.0 - 2.0 * (node_id - 1), 0.5);
-        initRot = Q_from_AngZ(CH_C_PI / 2);
-        curve_pts = {initLoc, initLoc + ChVector<>(0, 100, 0)};
+        initLoc = offset + ChVector3d(2.0 * (node_id - 1), -5.0 - 2.0 * (node_id - 1), 0.5);
+        initRot = QuatFromAngleZ(CH_PI / 2);
+        curve_pts = {initLoc, initLoc + ChVector3d(0, 100, 0)};
     }
 
     // Create the HMMWV
@@ -149,7 +149,8 @@ int main(int argc, char* argv[]) {
 
     // Solver settings.
     hmmwv.GetSystem()->SetNumThreads(std::min(8, ChOMP::GetNumProcs()));
-    hmmwv.GetSystem()->SetSolverMaxIterations(50);
+    hmmwv.GetSystem()->SetSolverType(ChSolver::Type::BARZILAIBORWEIN);
+    hmmwv.GetSystem()->GetSolver()->AsIterative()->SetMaxIterations(50);
 
     // Add vehicle as an agent
     auto vehicle_agent = chrono_types::make_shared<SynWheeledVehicleAgent>(&hmmwv.GetVehicle());
@@ -179,7 +180,7 @@ int main(int argc, char* argv[]) {
 
     // The physics do not change when you add a moving patch, you just make it much easier for the SCM
     // implementation to do its job by restricting where it has to look for contacts
-    terrain->AddMovingPatch(hmmwv.GetVehicle().GetChassisBody(), ChVector<>(0, 0, 0), ChVector<>(5, 3, 1));
+    terrain->AddMovingPatch(hmmwv.GetVehicle().GetChassisBody(), ChVector3d(0, 0, 0), ChVector3d(5, 3, 1));
 
     if (flat_patch) {
         terrain->Initialize(size_x, size_y, 1 / dpu);
@@ -210,7 +211,7 @@ int main(int argc, char* argv[]) {
 
     // Reasonable defaults for the underlying PID
     driver.GetSpeedController().SetGains(0.4, 0, 0);
-    driver.GetSteeringController().SetGains(0.4, 0.1, 0.2);
+    driver.GetSteeringController().SetGains(0.4, 0.1, 0);
     driver.GetSteeringController().SetLookAheadDistance(5);
 
     // Initialzie the SynChrono manager
@@ -225,7 +226,7 @@ int main(int argc, char* argv[]) {
     if (cli.HasValueInVector<int>("irr", node_id)) {
         app = chrono_types::make_shared<ChWheeledVehicleVisualSystemIrrlicht>();
         app->SetWindowTitle("SynChrono SCM Demo");
-        app->SetChaseCamera(ChVector<>(0.0, 0.0, 1.75), 16.0, 0.5);
+        app->SetChaseCamera(ChVector3d(0.0, 0.0, 1.75), 16.0, 0.5);
         app->Initialize();
         app->AddTypicalLights();
         app->AttachVehicle(&hmmwv.GetVehicle());
@@ -245,23 +246,23 @@ int main(int argc, char* argv[]) {
 
         // Give the camera a fixed place to live
         auto origin = chrono_types::make_shared<ChBody>();
-        origin->SetBodyFixed(true);
+        origin->SetFixed(true);
         hmmwv.GetSystem()->AddBody(origin);
 
         // Happens to be a reasonable-looking height
-        ChVector<> camera_loc(cam_x, cam_y, 25);
+        ChVector3d camera_loc(cam_x, cam_y, 25);
 
         // Rotations to get a nice angle
         ChQuaternion<> rotation = QUNIT;
         const bool USE_ISO_VIEW = true;
         if (USE_ISO_VIEW) {
-            ChQuaternion<> qA = Q_from_AngAxis(35 * CH_C_DEG_TO_RAD, VECT_Y);
-            ChQuaternion<> qB = Q_from_AngAxis(135 * CH_C_DEG_TO_RAD, VECT_Z);
+            ChQuaternion<> qA = QuatFromAngleAxis(35 * CH_DEG_TO_RAD, VECT_Y);
+            ChQuaternion<> qB = QuatFromAngleAxis(135 * CH_DEG_TO_RAD, VECT_Z);
             rotation = rotation >> qA >> qB;
         } else {
             // Top down view
-            ChQuaternion<> qA = Q_from_AngAxis(90 * CH_C_DEG_TO_RAD, VECT_Y);
-            ChQuaternion<> qB = Q_from_AngAxis(180 * CH_C_DEG_TO_RAD, VECT_Z);
+            ChQuaternion<> qA = QuatFromAngleAxis(90 * CH_DEG_TO_RAD, VECT_Y);
+            ChQuaternion<> qB = QuatFromAngleAxis(180 * CH_DEG_TO_RAD, VECT_Z);
             rotation = rotation >> qA >> qB;
         }
 
@@ -271,7 +272,7 @@ int main(int argc, char* argv[]) {
             chrono::ChFrame<double>(camera_loc, rotation),  // offset pose
             cam_res_width,                                  // image width
             cam_res_height,                                 // image height
-            (float)CH_C_PI / 3                              // FOV
+            (float)CH_PI / 3                                // FOV
         );
 
         overhead_camera->SetName("Overhead Cam");
@@ -354,7 +355,7 @@ int main(int argc, char* argv[]) {
         // realtime_timer.Spin(step_size);
 
         if (step_number % 100 == 0 && node_id == 1) {
-            SynLog() << timer.GetTimeSecondsIntermediate() / time << "\n";
+            SynLog() << timer.GetTimeSeconds() / time << "\n";
         }
     }
     syn_manager.QuitSimulation();

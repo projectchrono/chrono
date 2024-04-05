@@ -16,8 +16,8 @@ set(DEMOS
 
 if(ENABLE_MODULE_IRRLICHT)
    set(DEMOS ${DEMOS}
-       demo_VEH_Controller
        demo_VEH_Controller_AIDriver
+       demo_VEH_Controller_ExternalDriver
   )
 endif()
 
@@ -47,13 +47,34 @@ if(ENABLE_MODULE_SENSOR)
     list(APPEND LIBS "ChronoEngine_sensor")
 endif()
 
+if (ENABLE_MODULE_SENSOR)
+    list(APPEND LIBS "ChronoEngine_sensor")
+endif()
+
+#--------------------------------------------------------------
+# STB files
+
+set(STB_FILES
+   ${CMAKE_SOURCE_DIR}/src/chrono_thirdparty/stb/stb_image.h
+   ${CMAKE_SOURCE_DIR}/src/chrono_thirdparty/stb/stb_image.cpp
+   ${CMAKE_SOURCE_DIR}/src/chrono_thirdparty/stb/stb_image_write.h
+   ${CMAKE_SOURCE_DIR}/src/chrono_thirdparty/stb/stb_image_write.cpp
+)
+
 #--------------------------------------------------------------
 # Create the executables
 
 foreach(PROGRAM ${DEMOS})
     message(STATUS "...add ${PROGRAM}")
 
-    add_executable(${PROGRAM} ${PROGRAM}.cpp)
+    if(PROGRAM STREQUAL "demo_VEH_Controller_ExternalDriver")
+      set(EXTRA ${STB_FILES})
+      source_group("stb" FILES ${STB_FILES})
+    else()
+      set(EXTRA "")
+    endif()
+
+    add_executable(${PROGRAM} ${PROGRAM}.cpp ${EXTRA})
     source_group("" FILES ${PROGRAM}.cpp)
 
     set_target_properties(${PROGRAM} PROPERTIES COMPILE_FLAGS "${COMPILER_FLAGS}" LINK_FLAGS "${LINKER_FLAGS}")

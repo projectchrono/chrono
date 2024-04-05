@@ -24,19 +24,16 @@ namespace chrono {
 /// from ChConstraintTwoTuplesRollingN
 class ChApi ChConstraintTwoTuplesRollingNall {};
 
-/// This class is inherited from ChConstraintTwoTuples,
-/// It is used to represent the normal reaction between two objects,
-/// each represented by a tuple of ChVariables objects,
-/// ONLY when also two ChConstraintTwoTuplesFrictionT objects are
-/// used to represent friction. (If these two tangent constraint
-/// are not used, for frictionless case, please use a simple ChConstraintTwo
-/// with the CONSTRAINT_UNILATERAL mode.)
-/// Differently from an unilateral constraint, this does not enforce
-/// projection on positive constraint, since it will be up to the 'companion'
-/// ChConstraintTwoTuplesFrictionT objects to call a projection on the cone, by
-/// modifying all the three components (normal, u, v) at once.
-/// Templates Ta and Tb are of ChVariableTupleCarrier_Nvars classes
-
+/// Normal reaction between two objects, each represented by a tuple of ChVariables objects.
+/// Used ONLY when also two ChConstraintTwoTuplesFrictionT objects are used to represent friction. If these two tangent
+/// constraint are not used, for frictionless case, use a simple ChConstraintTwo with the ChConstraint::Mode::UNILATERAL
+/// mode.
+///
+/// Differently from an unilateral constraint, this does not enforce projection on positive constraint, since it will be
+/// up to the 'companion' ChConstraintTwoTuplesFrictionT objects to call a projection on the cone, by modifying all the
+/// three components (normal, u, v) at once.
+///
+/// Templates Ta and Tb are of ChVariableTupleCarrier_Nvars classes.
 template <class Ta, class Tb>
 class ChApi ChConstraintTwoTuplesRollingN : public ChConstraintTwoTuples<Ta, Tb>,
                                             public ChConstraintTwoTuplesRollingNall {
@@ -49,13 +46,11 @@ class ChApi ChConstraintTwoTuplesRollingN : public ChConstraintTwoTuples<Ta, Tb>
     ChConstraintTwoTuplesContactN<Ta, Tb>* constraint_N;  ///< the pointer to N  component
 
   public:
-    /// Default constructor
     ChConstraintTwoTuplesRollingN()
         : rollingfriction(0), spinningfriction(0), constraint_U(NULL), constraint_V(NULL), constraint_N(NULL) {
-        this->mode = CONSTRAINT_FRIC;
+        this->mode = ChConstraint::Mode::FRICTION;
     }
 
-    /// Copy constructor
     ChConstraintTwoTuplesRollingN(const ChConstraintTwoTuplesRollingN& other) : ChConstraintTwoTuples<Ta, Tb>(other) {
         rollingfriction = other.rollingfriction;
         spinningfriction = other.spinningfriction;
@@ -127,10 +122,10 @@ class ChApi ChConstraintTwoTuplesRollingN : public ChConstraintTwoTuples<Ta, Tb>
         // Anitescu-Tasora projection on rolling-friction cone generator and polar cone
         // (contractive, but performs correction on three components: normal,u,v)
 
-        double f_n = constraint_N->Get_l_i();
-        double t_n = this->Get_l_i();
-        double t_u = constraint_U->Get_l_i();
-        double t_v = constraint_V->Get_l_i();
+        double f_n = constraint_N->GetLagrangeMultiplier();
+        double t_n = this->GetLagrangeMultiplier();
+        double t_u = constraint_U->GetLagrangeMultiplier();
+        double t_v = constraint_V->GetLagrangeMultiplier();
         double t_tang = sqrt(t_v * t_v + t_u * t_u);
         double t_sptang = fabs(t_n);  // = sqrt(t_n*t_n);
 
@@ -143,8 +138,8 @@ class ChApi ChConstraintTwoTuplesRollingN : public ChConstraintTwoTuples<Ta, Tb>
             } else {
                 // inside lower cone? reset  normal,u,v to zero!
                 if ((t_sptang < -(1.0 / spinningfriction) * f_n) || (fabs(f_n) < 10e-15)) {
-                    constraint_N->Set_l_i(0);
-                    this->Set_l_i(0);
+                    constraint_N->SetLagrangeMultiplier(0);
+                    this->SetLagrangeMultiplier(0);
                 } else {
                     // remaining case: project orthogonally to generator segment of upper cone (CAN BE simplified)
                     double f_n_proj = (t_sptang * spinningfriction + f_n) / (spinningfriction * spinningfriction + 1);
@@ -152,8 +147,8 @@ class ChApi ChConstraintTwoTuplesRollingN : public ChConstraintTwoTuples<Ta, Tb>
                     double tproj_div_t = t_tang_proj / t_sptang;
                     double t_n_proj = tproj_div_t * t_n;
 
-                    constraint_N->Set_l_i(f_n_proj);
-                    this->Set_l_i(t_n_proj);
+                    constraint_N->SetLagrangeMultiplier(f_n_proj);
+                    this->SetLagrangeMultiplier(t_n_proj);
                 }
             }
         }
@@ -162,10 +157,10 @@ class ChApi ChConstraintTwoTuplesRollingN : public ChConstraintTwoTuples<Ta, Tb>
 
         // shortcut
         if (!rollingfriction) {
-            constraint_U->Set_l_i(0);
-            constraint_V->Set_l_i(0);
+            constraint_U->SetLagrangeMultiplier(0);
+            constraint_V->SetLagrangeMultiplier(0);
             if (f_n < 0)
-                constraint_N->Set_l_i(0);
+                constraint_N->SetLagrangeMultiplier(0);
             return;
         }
 
@@ -179,9 +174,9 @@ class ChApi ChConstraintTwoTuplesRollingN : public ChConstraintTwoTuples<Ta, Tb>
             double t_u_proj = 0;
             double t_v_proj = 0;
 
-            constraint_N->Set_l_i(f_n_proj);
-            constraint_U->Set_l_i(t_u_proj);
-            constraint_V->Set_l_i(t_v_proj);
+            constraint_N->SetLagrangeMultiplier(f_n_proj);
+            constraint_U->SetLagrangeMultiplier(t_u_proj);
+            constraint_V->SetLagrangeMultiplier(t_v_proj);
 
             return;
         }
@@ -193,9 +188,9 @@ class ChApi ChConstraintTwoTuplesRollingN : public ChConstraintTwoTuples<Ta, Tb>
         double t_u_proj = tproj_div_t * t_u;
         double t_v_proj = tproj_div_t * t_v;
 
-        constraint_N->Set_l_i(f_n_proj);
-        constraint_U->Set_l_i(t_u_proj);
-        constraint_V->Set_l_i(t_v_proj);
+        constraint_N->SetLagrangeMultiplier(f_n_proj);
+        constraint_U->SetLagrangeMultiplier(t_u_proj);
+        constraint_V->SetLagrangeMultiplier(t_v_proj);
     }
 };
 

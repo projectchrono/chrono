@@ -27,7 +27,7 @@
 #include <mpi.h>
 
 #include "chrono/core/ChTimer.h"
-#include "chrono/core/ChVector.h"
+#include "chrono/core/ChVector3.h"
 #include "chrono/core/ChQuaternion.h"
 
 #include "chrono_vehicle/ChApiVehicle.h"
@@ -154,11 +154,11 @@ class CH_VEHICLE_API ChVehicleCosimBaseNode {
     void EnableRuntimeVisualization(double render_fps = 100, bool save_img = false);
 
     /// Set camera location and target point.
-    void SetCameraPosition(const ChVector<>& cam_pos, const ChVector<>& cam_target = VNULL);
+    void SetCameraPosition(const ChVector3d& cam_pos, const ChVector3d& cam_target = VNULL);
 
     /// Enable/disable tracking of objects (default: true).
     void SetCameraTracking(bool track) { m_track = track; }
- 
+
     /// Enable Blender postprocessing (default: false).
     /// If enabled, output will be generated in dir_name/[NodeName]suffix/ (see SetOutDir).
     void EnablePostprocessVisualization(double render_fps = 100);
@@ -219,15 +219,15 @@ class CH_VEHICLE_API ChVehicleCosimBaseNode {
   protected:
     /// Mesh state information (sent to terrain node)
     struct MeshState {
-        std::vector<ChVector<>> vpos;  ///< vertex positions (in absolute frame)
-        std::vector<ChVector<>> vvel;  ///< vertex velocities (in absolute frame)
+        std::vector<ChVector3d> vpos;  ///< vertex positions (in absolute frame)
+        std::vector<ChVector3d> vvel;  ///< vertex velocities (in absolute frame)
     };
 
     /// Mesh contact information (received from terrain node)
     struct MeshContact {
         int nv;                          ///< number of vertices in contact
         std::vector<int> vidx;           ///< indices of vertices experiencing contact forces
-        std::vector<ChVector<>> vforce;  ///< contact forces on mesh vertices
+        std::vector<ChVector3d> vforce;  ///< contact forces on mesh vertices
     };
 
   protected:
@@ -272,16 +272,16 @@ class CH_VEHICLE_API ChVehicleCosimBaseNode {
 
     // Camera settings
     bool m_track;             ///< track objects
-    ChVector<> m_cam_pos;     ///< camera location
-    ChVector<> m_cam_target;  ///< camera target (lookat) point
+    ChVector3d m_cam_pos;     ///< camera location
+    ChVector3d m_cam_target;  ///< camera target (lookat) point
 
     unsigned int m_num_wheeled_mbs_nodes;
     unsigned int m_num_tracked_mbs_nodes;
     unsigned int m_num_terrain_nodes;
     unsigned int m_num_tire_nodes;
 
-    ChTimer m_timer;  ///< timer for integration cost
-    double m_cum_sim_time;    ///< cumulative integration cost
+    ChTimer m_timer;        ///< timer for integration cost
+    double m_cum_sim_time;  ///< cumulative integration cost
 
     bool m_verbose;  ///< verbose messages during simulation?
 

@@ -37,7 +37,7 @@ RigidPinnedAxle::RigidPinnedAxle(const std::string& filename) : ChRigidPinnedAxl
 
     Create(d);
 
-    GetLog() << "Loaded JSON: " << filename.c_str() << "\n";
+    std::cout << "Loaded JSONL " << filename << std::endl;
 }
 
 RigidPinnedAxle::RigidPinnedAxle(const rapidjson::Document& d) : ChRigidPinnedAxle("") {

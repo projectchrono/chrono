@@ -69,7 +69,7 @@ Each sensor has a filter graph which users can extend to customize the computati
 auto cam = Sensor::CreateFromJSON(
   GetChronoDataFile("sensor/json/generic/Camera.json"),   // path to json file
   my_body,                                                // body to which the sensor is attached
-  ChFrame<>({-5, 0, 0}, Q_from_AngZ(0)));                 // attachment pose for the sensor
+  ChFramed(ChVector3d(-5, 0, 0), QUNIT));                 // attachment pose for the sensor
 
   // add camera to the manager
   manager->AddSensor(cam);

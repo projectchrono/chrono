@@ -65,14 +65,14 @@ class CH_MODELS_API Generic_SolidAxle : public ChSolidAxle {
     virtual double getDraglinkRadius() const override { return m_draglinkRadius; }
     virtual double getBellCrankRadius() const override { return m_bellCrankRadius; }
 
-    virtual const ChVector<>& getAxleTubeInertia() const override { return m_axleTubeInertia; }
-    virtual const ChVector<>& getSpindleInertia() const override { return m_spindleInertia; }
-    virtual const ChVector<>& getULInertia() const override { return m_ULInertia; }
-    virtual const ChVector<>& getLLInertia() const override { return m_LLInertia; }
-    virtual const ChVector<>& getKnuckleInertia() const override { return m_knuckleInertia; }
-    virtual const ChVector<>& getTierodInertia() const override { return m_tierodInertia; }
-    virtual const ChVector<>& getDraglinkInertia() const override { return m_draglinkInertia; }
-    virtual const ChVector<>& getBellCrankInertia() const override { return m_bellCrankInertia; }
+    virtual const ChVector3d& getAxleTubeInertia() const override { return m_axleTubeInertia; }
+    virtual const ChVector3d& getSpindleInertia() const override { return m_spindleInertia; }
+    virtual const ChVector3d& getULInertia() const override { return m_ULInertia; }
+    virtual const ChVector3d& getLLInertia() const override { return m_LLInertia; }
+    virtual const ChVector3d& getKnuckleInertia() const override { return m_knuckleInertia; }
+    virtual const ChVector3d& getTierodInertia() const override { return m_tierodInertia; }
+    virtual const ChVector3d& getDraglinkInertia() const override { return m_draglinkInertia; }
+    virtual const ChVector3d& getBellCrankInertia() const override { return m_bellCrankInertia; }
 
     virtual double getAxleInertia() const override { return m_axleInertia; }
 
@@ -80,10 +80,10 @@ class CH_MODELS_API Generic_SolidAxle : public ChSolidAxle {
     virtual std::shared_ptr<ChLinkTSDA::ForceFunctor> getSpringForceFunctor() const override { return m_springForceCB; }
     virtual std::shared_ptr<ChLinkTSDA::ForceFunctor> getShockForceFunctor() const override { return m_shockForceCB; }
 
-    virtual const ChVector<> getAxleTubeCOM() const override { return m_axleTubeCOM; }
+    virtual const ChVector3d getAxleTubeCOM() const override { return m_axleTubeCOM; }
 
   private:
-    virtual const ChVector<> getLocation(PointId which) override;
+    virtual const ChVector3d getLocation(PointId which) override;
 
     std::shared_ptr<ChLinkTSDA::ForceFunctor> m_springForceCB;
     std::shared_ptr<ChLinkTSDA::ForceFunctor> m_shockForceCB;
@@ -107,16 +107,16 @@ class CH_MODELS_API Generic_SolidAxle : public ChSolidAxle {
     static const double m_draglinkRadius;
     static const double m_bellCrankRadius;
 
-    static const ChVector<> m_axleTubeCOM;
+    static const ChVector3d m_axleTubeCOM;
 
-    static const ChVector<> m_axleTubeInertia;
-    static const ChVector<> m_spindleInertia;
-    static const ChVector<> m_ULInertia;
-    static const ChVector<> m_LLInertia;
-    static const ChVector<> m_knuckleInertia;
-    static const ChVector<> m_tierodInertia;
-    static const ChVector<> m_draglinkInertia;
-    static const ChVector<> m_bellCrankInertia;
+    static const ChVector3d m_axleTubeInertia;
+    static const ChVector3d m_spindleInertia;
+    static const ChVector3d m_ULInertia;
+    static const ChVector3d m_LLInertia;
+    static const ChVector3d m_knuckleInertia;
+    static const ChVector3d m_tierodInertia;
+    static const ChVector3d m_draglinkInertia;
+    static const ChVector3d m_bellCrankInertia;
 
     static const double m_axleInertia;
 

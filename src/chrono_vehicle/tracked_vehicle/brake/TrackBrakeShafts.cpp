@@ -28,13 +28,14 @@ namespace vehicle {
 // -----------------------------------------------------------------------------
 // -----------------------------------------------------------------------------
 TrackBrakeShafts::TrackBrakeShafts(const std::string& filename) : ChTrackBrakeShafts("") {
-    Document d; ReadFileJSON(filename, d);
+    Document d;
+    ReadFileJSON(filename, d);
     if (d.IsNull())
         return;
 
     Create(d);
 
-    GetLog() << "Loaded JSON: " << filename.c_str() << "\n";
+    std::cout << "Loaded JSONL " << filename << std::endl;
 }
 
 TrackBrakeShafts::TrackBrakeShafts(const rapidjson::Document& d) : ChTrackBrakeShafts("") {

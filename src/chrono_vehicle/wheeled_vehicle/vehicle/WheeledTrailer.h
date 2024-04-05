@@ -36,7 +36,7 @@ class CH_VEHICLE_API WheeledTrailer : public ChWheeledTrailer {
 
     ~WheeledTrailer() {}
 
-    virtual int GetNumberAxles() const override { return m_num_axles; }
+    virtual unsigned int GetNumberAxles() const override { return m_num_axles; }
 
     virtual void Initialize(std::shared_ptr<ChChassis> frontChassis) override;
 
@@ -44,9 +44,9 @@ class CH_VEHICLE_API WheeledTrailer : public ChWheeledTrailer {
     void Create(const std::string& filename, bool create_tires);
 
   private:
-    int m_num_axles;                           // number of axles for this vehicle
-    std::vector<ChVector<> > m_suspLocations;  // locations of the suspensions relative to chassis
-    std::vector<double> m_wheelSeparations;    // wheel separations for each axle
+    int m_num_axles;                          // number of axles for this vehicle
+    std::vector<ChVector3d> m_suspLocations;  // locations of the suspensions relative to chassis
+    std::vector<double> m_wheelSeparations;   // wheel separations for each axle
 };
 
 /// @} vehicle_wheeled

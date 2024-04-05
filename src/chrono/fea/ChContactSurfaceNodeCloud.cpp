@@ -30,14 +30,14 @@ ChContactNodeXYZ::ChContactNodeXYZ(ChNodeFEAxyz* node, ChContactSurface* contact
     m_container = contact_surface;
 }
 
-void ChContactNodeXYZ::ContactForceLoadResidual_F(const ChVector<>& F,
-                                                  const ChVector<>& T,
-                                                  const ChVector<>& abs_point,
+void ChContactNodeXYZ::ContactForceLoadResidual_F(const ChVector3d& F,
+                                                  const ChVector3d& T,
+                                                  const ChVector3d& abs_point,
                                                   ChVectorDynamic<>& R) {
-    R.segment(m_node->NodeGetOffsetW(), 3) += F.eigen();
+    R.segment(m_node->NodeGetOffsetVelLevel(), 3) += F.eigen();
 }
 
-void ChContactNodeXYZ::ComputeJacobianForContactPart(const ChVector<>& abs_point,
+void ChContactNodeXYZ::ComputeJacobianForContactPart(const ChVector3d& abs_point,
                                                      ChMatrix33<>& contact_plane,
                                                      type_constraint_tuple& jacobian_tuple_N,
                                                      type_constraint_tuple& jacobian_tuple_U,
@@ -63,21 +63,21 @@ ChContactNodeXYZsphere::ChContactNodeXYZsphere(ChNodeFEAxyz* node, ChContactSurf
     : ChContactNodeXYZ(node, contact_surface) {}
 
 // -----------------------------------------------------------------------------
-//  ChContactNodeXYZROT
+//  ChContactNodeXYZRot
 
-ChContactNodeXYZROT::ChContactNodeXYZROT(ChNodeFEAxyzrot* node, ChContactSurface* contact_surface) {
+ChContactNodeXYZRot::ChContactNodeXYZRot(ChNodeFEAxyzrot* node, ChContactSurface* contact_surface) {
     m_node = node;
     m_container = contact_surface;
 }
 
-void ChContactNodeXYZROT::ContactForceLoadResidual_F(const ChVector<>& F,
-                                                     const ChVector<>& T,
-                                                     const ChVector<>& abs_point,
+void ChContactNodeXYZRot::ContactForceLoadResidual_F(const ChVector3d& F,
+                                                     const ChVector3d& T,
+                                                     const ChVector3d& abs_point,
                                                      ChVectorDynamic<>& R) {
-    R.segment(m_node->NodeGetOffsetW(), 3) += F.eigen();
+    R.segment(m_node->NodeGetOffsetVelLevel(), 3) += F.eigen();
 }
 
-void ChContactNodeXYZROT::ComputeJacobianForContactPart(const ChVector<>& abs_point,
+void ChContactNodeXYZRot::ComputeJacobianForContactPart(const ChVector3d& abs_point,
                                                         ChMatrix33<>& contact_plane,
                                                         type_constraint_tuple& jacobian_tuple_N,
                                                         type_constraint_tuple& jacobian_tuple_U,
@@ -92,20 +92,20 @@ void ChContactNodeXYZROT::ComputeJacobianForContactPart(const ChVector<>& abs_po
     jacobian_tuple_V.Get_Cq().segment(0, 3) = Jx1.row(2);
 }
 
-ChPhysicsItem* ChContactNodeXYZROT::GetPhysicsItem() {
+ChPhysicsItem* ChContactNodeXYZRot::GetPhysicsItem() {
     return m_container->GetPhysicsItem();
 }
 
 // -----------------------------------------------------------------------------
-//  ChContactNodeXYZROTsphere
+//  ChContactNodeXYZRotSphere
 
-ChContactNodeXYZROTsphere::ChContactNodeXYZROTsphere(ChNodeFEAxyzrot* node, ChContactSurface* contact_surface)
-    : ChContactNodeXYZROT(node, contact_surface) {}
+ChContactNodeXYZRotSphere::ChContactNodeXYZRotSphere(ChNodeFEAxyzrot* node, ChContactSurface* contact_surface)
+    : ChContactNodeXYZRot(node, contact_surface) {}
 
 // -----------------------------------------------------------------------------
 //  ChContactSurfaceNodeCloud
 
-ChContactSurfaceNodeCloud::ChContactSurfaceNodeCloud(std::shared_ptr<ChMaterialSurface> material, ChMesh* mesh)
+ChContactSurfaceNodeCloud::ChContactSurfaceNodeCloud(std::shared_ptr<ChContactMaterial> material, ChMesh* mesh)
     : ChContactSurface(material, mesh) {}
 
 void ChContactSurfaceNodeCloud::AddNode(std::shared_ptr<ChNodeFEAxyz> node, const double point_radius) {
@@ -123,7 +123,7 @@ void ChContactSurfaceNodeCloud::AddNode(std::shared_ptr<ChNodeFEAxyzrot> node, c
     if (!node)
         return;
 
-    auto contact_node = chrono_types::make_shared<ChContactNodeXYZROTsphere>(node.get(), this);
+    auto contact_node = chrono_types::make_shared<ChContactNodeXYZRotSphere>(node.get(), this);
     auto point_shape = chrono_types::make_shared<ChCollisionShapePoint>(m_material, VNULL, point_radius);
     contact_node->AddCollisionShape(point_shape);
 
@@ -138,7 +138,7 @@ void ChContactSurfaceNodeCloud::AddAllNodes(const double point_radius) {
     if (!mesh)
         return;
 
-    for (unsigned int i = 0; i < mesh->GetNnodes(); ++i)
+    for (unsigned int i = 0; i < mesh->GetNumNodes(); ++i)
         if (auto nodeFEA = std::dynamic_pointer_cast<ChNodeFEAxyz>(mesh->GetNode(i)))
             this->AddNode(nodeFEA, point_radius);
         else if (auto nodeFEArot = std::dynamic_pointer_cast<ChNodeFEAxyzrot>(mesh->GetNode(i)))

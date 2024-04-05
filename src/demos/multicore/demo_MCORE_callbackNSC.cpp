@@ -37,13 +37,13 @@ class ContactReporter : public ChContactContainer::ReportContactCallback {
     ContactReporter(std::shared_ptr<ChBody> obj1, std::shared_ptr<ChBody> obj2) : m_obj1(obj1), m_obj2(obj2) {}
 
   private:
-    virtual bool OnReportContact(const ChVector<>& pA,
-                                 const ChVector<>& pB,
+    virtual bool OnReportContact(const ChVector3d& pA,
+                                 const ChVector3d& pB,
                                  const ChMatrix33<>& plane_coord,
                                  const double& distance,
                                  const double& eff_radius,
-                                 const ChVector<>& cforce,
-                                 const ChVector<>& ctorque,
+                                 const ChVector3d& cforce,
+                                 const ChVector3d& ctorque,
                                  ChContactable* modA,
                                  ChContactable* modB) override {
         // Check if contact involves obj1
@@ -60,7 +60,7 @@ class ContactReporter : public ChContactContainer::ReportContactCallback {
             printf("  B contact on Obj 2 at pos: %7.3f  %7.3f  %7.3f", pB.x(), pB.y(), pB.z());
         }
 
-        const ChVector<>& nrm = plane_coord.Get_A_Xaxis();
+        const ChVector3d& nrm = plane_coord.GetAxisX();
         printf("  nrm: %7.3f, %7.3f  %7.3f", nrm.x(), nrm.y(), nrm.z());
         printf("  frc: %7.3f  %7.3f  %7.3f", cforce.x(), cforce.y(), cforce.z());
         printf("  trq: %7.3f, %7.3f  %7.3f", ctorque.x(), ctorque.y(), ctorque.z());
@@ -78,9 +78,9 @@ class ContactReporter : public ChContactContainer::ReportContactCallback {
 // -----------------------------------------------------------------------------
 class ContactMaterial : public ChContactContainer::AddContactCallback {
   public:
-    virtual void OnAddContact(const ChCollisionInfo& contactinfo, ChMaterialComposite* const material) override {
+    virtual void OnAddContact(const ChCollisionInfo& contactinfo, ChContactMaterialComposite* const material) override {
         // Downcast to appropriate composite material type
-        auto mat = static_cast<ChMaterialCompositeNSC* const>(material);
+        auto mat = static_cast<ChContactMaterialCompositeNSC* const>(material);
 
         // Set different friction for left/right halfs
         float friction = (contactinfo.vpA.z() > 0) ? 0.8f : 0.3f;
@@ -97,7 +97,7 @@ int main(int argc, char* argv[]) {
 
     // Create the sys
     ChSystemMulticoreNSC sys;
-    sys.Set_G_acc(ChVector<>(0, -10, 0));
+    sys.SetGravitationalAcceleration(ChVector3d(0, -10, 0));
     sys.SetCollisionSystemType(ChCollisionSystem::Type::MULTICORE);
 
     sys.GetSettings()->solver.solver_mode = SolverMode::SLIDING;
@@ -107,38 +107,37 @@ int main(int argc, char* argv[]) {
     sys.ChangeSolverType(SolverType::BB);
 
     // Create a contact material, shared among all bodies
-    auto material = chrono_types::make_shared<ChMaterialSurfaceNSC>();
+    auto material = chrono_types::make_shared<ChContactMaterialNSC>();
     material->SetFriction(friction);
 
     // Add bodies
     auto container = chrono_types::make_shared<ChBody>();
     sys.Add(container);
-    container->SetPos(ChVector<>(0, 0, 0));
-    container->SetBodyFixed(true);
-    container->SetIdentifier(-1);
+    container->SetPos(ChVector3d(0, 0, 0));
+    container->SetFixed(true);
 
-    container->SetCollide(true);
-    utils::AddBoxGeometry(container.get(), material, ChVector<>(8, 1, 8), ChVector<>(0, -0.5, 0));
+    container->EnableCollision(true);
+    utils::AddBoxGeometry(container.get(), material, ChVector3d(8, 1, 8), ChVector3d(0, -0.5, 0));
 
     auto obj1 = chrono_types::make_shared<ChBody>();
     obj1->SetMass(10);
-    obj1->SetInertiaXX(ChVector<>(1, 1, 1));
-    obj1->SetPos(ChVector<>(-1, 0.21, -1));
-    obj1->SetPos_dt(ChVector<>(5, 0, 0));
+    obj1->SetInertiaXX(ChVector3d(1, 1, 1));
+    obj1->SetPos(ChVector3d(-1, 0.21, -1));
+    obj1->SetPosDt(ChVector3d(5, 0, 0));
 
-    obj1->SetCollide(true);
-    utils::AddCapsuleGeometry(obj1.get(), material, 0.2, 0.4, ChVector<>(0), Q_from_AngZ(CH_C_PI_2));
+    obj1->EnableCollision(true);
+    utils::AddCapsuleGeometry(obj1.get(), material, 0.2, 0.4, ChVector3d(0), QuatFromAngleZ(CH_PI_2));
 
     sys.AddBody(obj1);
 
     auto obj2 = chrono_types::make_shared<ChBody>();
     obj2->SetMass(10);
-    obj2->SetInertiaXX(ChVector<>(1, 1, 1));
-    obj2->SetPos(ChVector<>(-1, 0.21, +1));
-    obj2->SetPos_dt(ChVector<>(5, 0, 0));
+    obj2->SetInertiaXX(ChVector3d(1, 1, 1));
+    obj2->SetPos(ChVector3d(-1, 0.21, +1));
+    obj2->SetPosDt(ChVector3d(5, 0, 0));
 
-    obj2->SetCollide(true);
-    utils::AddCapsuleGeometry(obj2.get(), material, 0.2, 0.4, ChVector<>(0), Q_from_AngZ(CH_C_PI_2));
+    obj2->EnableCollision(true);
+    utils::AddCapsuleGeometry(obj2.get(), material, 0.2, 0.4, ChVector3d(0), QuatFromAngleZ(CH_PI_2));
 
     sys.AddBody(obj2);
 
@@ -149,7 +148,7 @@ int main(int argc, char* argv[]) {
     vis.SetWindowSize(1280, 720);
     vis.SetRenderMode(opengl::WIREFRAME);
     vis.Initialize();
-    vis.AddCamera(ChVector<>(4, 4, -5), ChVector<>(0, 0, 0));
+    vis.AddCamera(ChVector3d(4, 4, -5), ChVector3d(0, 0, 0));
     vis.SetCameraVertical(CameraVerticalDir::Y);
 
     // Callback for contact reporting
@@ -165,9 +164,9 @@ int main(int argc, char* argv[]) {
         vis.Render();
 
         // Process contacts
-        std::cout << sys.GetChTime() << "  " << sys.GetNcontacts() << std::endl;
+        std::cout << sys.GetChTime() << "  " << sys.GetNumContacts() << std::endl;
 
-        if (sys.GetNcontacts() > 0) {
+        if (sys.GetNumContacts() > 0) {
             // Force calculation of cumulative contact forces for all bodies in sys
             // (required for an NSC sys before invoking GetContactForce/GetContactTorque)
             sys.CalculateContactForces();
@@ -175,12 +174,12 @@ int main(int argc, char* argv[]) {
             sys.GetContactContainer()->ReportAllContacts(creporter);
 
             // Cumulative contact force and torque on objects (as applied to COM)
-            ChVector<> frc1 = obj1->GetContactForce();
-            ChVector<> trq1 = obj1->GetContactTorque();
+            ChVector3d frc1 = obj1->GetContactForce();
+            ChVector3d trq1 = obj1->GetContactTorque();
             printf("  Obj 1 contact force at COM: %7.3f  %7.3f  %7.3f", frc1.x(), frc1.y(), frc1.z());
             printf("  contact torque at COM: %7.3f  %7.3f  %7.3f\n", trq1.x(), trq1.y(), trq1.z());
-            ChVector<> frc2 = obj2->GetContactForce();
-            ChVector<> trq2 = obj2->GetContactTorque();
+            ChVector3d frc2 = obj2->GetContactForce();
+            ChVector3d trq2 = obj2->GetContactTorque();
             printf("  Obj 2 contact force at COM: %7.3f  %7.3f  %7.3f", frc2.x(), frc2.y(), frc2.z());
             printf("  contact torque at COM: %7.3f  %7.3f  %7.3f\n", trq2.x(), trq2.y(), trq2.z());
         }

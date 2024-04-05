@@ -70,7 +70,7 @@ ChDeDionAxle::~ChDeDionAxle() {
 void ChDeDionAxle::Initialize(std::shared_ptr<ChChassis> chassis,
                               std::shared_ptr<ChSubchassis> subchassis,
                               std::shared_ptr<ChSteering> steering,
-                              const ChVector<>& location,
+                              const ChVector3d& location,
                               double left_ang_vel,
                               double right_ang_vel) {
     ChSuspension::Initialize(chassis, subchassis, steering, location, left_ang_vel, right_ang_vel);
@@ -79,30 +79,30 @@ void ChDeDionAxle::Initialize(std::shared_ptr<ChChassis> chassis,
     m_rel_loc = location;
 
     // Unit vectors for orientation matrices.
-    ChVector<> u;
-    ChVector<> v;
-    ChVector<> w;
+    ChVector3d u;
+    ChVector3d v;
+    ChVector3d w;
     ChMatrix33<> rot;
 
     // Express the suspension reference frame in the absolute coordinate system.
     ChFrame<> suspension_to_abs(location);
-    suspension_to_abs.ConcatenatePreTransformation(chassis->GetBody()->GetFrame_REF_to_abs());
+    suspension_to_abs.ConcatenatePreTransformation(chassis->GetBody()->GetFrameRefToAbs());
 
     // Transform the location of the axle body COM to absolute frame.
-    ChVector<> axleCOM_local = getAxleTubeCOM();
-    ChVector<> axleCOM = suspension_to_abs.TransformLocalToParent(axleCOM_local);
+    ChVector3d axleCOM_local = getAxleTubeCOM();
+    ChVector3d axleCOM = suspension_to_abs.TransformPointLocalToParent(axleCOM_local);
 
     // Calculate end points on the axle body, expressed in the absolute frame
     // (for visualization)
-    ////ChVector<> midpoint_local = 0.0;
-    ////ChVector<> outer_local(axleCOM_local.x(), midpoint_local.y(),
+    ////ChVector3d midpoint_local = 0.0;
+    ////ChVector3d outer_local(axleCOM_local.x(), midpoint_local.y(),
     /// axleCOM_local.z());
-    ChVector<> outer_local(getLocation(SPINDLE));
+    ChVector3d outer_local(getLocation(SPINDLE));
     m_axleOuterL = suspension_to_abs.TransformPointLocalToParent(outer_local);
     outer_local.y() = -outer_local.y();
     m_axleOuterR = suspension_to_abs.TransformPointLocalToParent(outer_local);
 
-    ChVector<> conn_local(getLocation(STABI_CON));
+    ChVector3d conn_local(getLocation(STABI_CON));
     m_stabiConnectorL = suspension_to_abs.TransformPointLocalToParent(conn_local);
     conn_local.y() = -conn_local.y();
     m_stabiConnectorR = suspension_to_abs.TransformPointLocalToParent(conn_local);
@@ -118,93 +118,96 @@ void ChDeDionAxle::Initialize(std::shared_ptr<ChChassis> chassis,
 
     // Create and initialize the axle body.
     m_axleTube = chrono_types::make_shared<ChBody>();
-    m_axleTube->SetNameString(m_name + "_axleTube");
+    m_axleTube->SetName(m_name + "_axleTube");
     m_axleTube->SetPos(axleCOM);
-    m_axleTube->SetRot(chassis->GetBody()->GetFrame_REF_to_abs().GetRot());
+    m_axleTube->SetRot(chassis->GetBody()->GetFrameRefToAbs().GetRot());
     m_axleTube->SetMass(getAxleTubeMass());
     m_axleTube->SetInertiaXX(getAxleTubeInertia());
     chassis->GetBody()->GetSystem()->AddBody(m_axleTube);
 
     m_axleTubeGuideLong = chrono_types::make_shared<ChLinkLockSpherical>();
-    m_axleTubeGuideLong->SetNameString(m_name + "_sphereAxleTube");
-    ChVector<> spPos = suspension_to_abs.TransformLocalToParent(getLocation(AXLE_C));
-    m_axleTubeGuideLong->Initialize(m_axleTube, chassis->GetBody(), ChCoordsys<>(spPos, QUNIT));
+    m_axleTubeGuideLong->SetName(m_name + "_sphereAxleTube");
+    ChVector3d spPos = suspension_to_abs.TransformPointLocalToParent(getLocation(AXLE_C));
+    m_axleTubeGuideLong->Initialize(m_axleTube, chassis->GetBody(), ChFrame<>(spPos, QUNIT));
     chassis->GetSystem()->AddLink(m_axleTubeGuideLong);
 
     // Watt lateral guiding mechanism
-    ChVector<> cntrPos =
-        suspension_to_abs.TransformLocalToParent((getLocation(WATT_CNT_LE) + getLocation(WATT_CNT_RI) / 2.0));
+    ChVector3d cntrPos =
+        suspension_to_abs.TransformPointLocalToParent((getLocation(WATT_CNT_LE) + getLocation(WATT_CNT_RI) / 2.0));
     m_wattCenterLinkBody = chrono_types::make_shared<ChBody>();
-    m_wattCenterLinkBody->SetNameString(m_name + "_wattCenterBody");
+    m_wattCenterLinkBody->SetName(m_name + "_wattCenterBody");
     m_wattCenterLinkBody->SetPos(cntrPos);
-    m_wattCenterLinkBody->SetRot(chassis->GetBody()->GetFrame_REF_to_abs().GetRot());
+    m_wattCenterLinkBody->SetRot(chassis->GetBody()->GetFrameRefToAbs().GetRot());
     m_wattCenterLinkBody->SetMass(getWattCenterMass());
     m_wattCenterLinkBody->SetInertiaXX(getWattCenterInertia());
     chassis->GetBody()->GetSystem()->AddBody(m_wattCenterLinkBody);
 
-    ChVector<> lftPos =
-        suspension_to_abs.TransformLocalToParent((getLocation(WATT_LE_CH) + getLocation(WATT_CNT_LE)) / 2.0);
+    ChVector3d lftPos =
+        suspension_to_abs.TransformPointLocalToParent((getLocation(WATT_LE_CH) + getLocation(WATT_CNT_LE)) / 2.0);
     m_wattLeftLinkBody = chrono_types::make_shared<ChBody>();
-    m_wattLeftLinkBody->SetNameString(m_name + "_wattLeftBody");
+    m_wattLeftLinkBody->SetName(m_name + "_wattLeftBody");
     m_wattLeftLinkBody->SetPos(lftPos);
-    m_wattLeftLinkBody->SetRot(chassis->GetBody()->GetFrame_REF_to_abs().GetRot());
+    m_wattLeftLinkBody->SetRot(chassis->GetBody()->GetFrameRefToAbs().GetRot());
     m_wattLeftLinkBody->SetMass(getWattSideMass());
     m_wattLeftLinkBody->SetInertiaXX(getWattSideInertia());
     chassis->GetBody()->GetSystem()->AddBody(m_wattLeftLinkBody);
 
-    ChVector<> rghtPos =
-        suspension_to_abs.TransformLocalToParent((getLocation(WATT_RI_CH) + getLocation(WATT_CNT_RI)) / 2.0);
+    ChVector3d rghtPos =
+        suspension_to_abs.TransformPointLocalToParent((getLocation(WATT_RI_CH) + getLocation(WATT_CNT_RI)) / 2.0);
     m_wattRightLinkBody = chrono_types::make_shared<ChBody>();
-    m_wattRightLinkBody->SetNameString(m_name + "_wattRightBody");
+    m_wattRightLinkBody->SetName(m_name + "_wattRightBody");
     m_wattRightLinkBody->SetPos(rghtPos);
-    m_wattRightLinkBody->SetRot(chassis->GetBody()->GetFrame_REF_to_abs().GetRot());
+    m_wattRightLinkBody->SetRot(chassis->GetBody()->GetFrameRefToAbs().GetRot());
     m_wattRightLinkBody->SetMass(getWattSideMass());
     m_wattRightLinkBody->SetInertiaXX(getWattSideInertia());
     chassis->GetBody()->GetSystem()->AddBody(m_wattRightLinkBody);
 
     // link the Watt center link to the axle tube
-    ChCoordsys<> watt_rev_csys(cntrPos, Q_from_AngAxis(CH_C_PI / 2.0, VECT_Y));
     m_wattCenterRev = chrono_types::make_shared<ChLinkLockRevolute>();
-    m_wattCenterRev->SetNameString(m_name + "_wattCenterPivot");
-    m_wattCenterRev->Initialize(m_wattCenterLinkBody, m_axleTube, watt_rev_csys);
+    m_wattCenterRev->SetName(m_name + "_wattCenterPivot");
+    m_wattCenterRev->Initialize(m_wattCenterLinkBody, m_axleTube, ChFrame<>(cntrPos, QuatFromAngleY(CH_PI_2)));
     chassis->GetSystem()->AddLink(m_wattCenterRev);
 
     // link the Watt left link to the center link
-    ChCoordsys<> lft1Mpos(suspension_to_abs.TransformLocalToParent(getLocation(WATT_CNT_LE)), QUNIT);
     m_wattLeftToCenterSph = chrono_types::make_shared<ChLinkLockSpherical>();
-    m_wattLeftToCenterSph->SetNameString(m_name + "_wattLeft2CenterSph");
-    m_wattLeftToCenterSph->Initialize(m_wattLeftLinkBody, m_wattCenterLinkBody, lft1Mpos);
+    m_wattLeftToCenterSph->SetName(m_name + "_wattLeft2CenterSph");
+    m_wattLeftToCenterSph->Initialize(
+        m_wattLeftLinkBody, m_wattCenterLinkBody,
+        ChFrame<>(suspension_to_abs.TransformPointLocalToParent(getLocation(WATT_CNT_LE)), QUNIT));
     chassis->GetSystem()->AddLink(m_wattLeftToCenterSph);
 
     // link the Watt left link to the axle tube
-    ChCoordsys<> lft2Mpos(suspension_to_abs.TransformLocalToParent(getLocation(WATT_LE_CH)), QUNIT);
     m_wattLeftToAxleTubeSph = chrono_types::make_shared<ChLinkLockSpherical>();
-    m_wattLeftToAxleTubeSph->SetNameString(m_name + "_wattLeft2ChassisSph");
-    m_wattLeftToAxleTubeSph->Initialize(m_wattLeftLinkBody, chassis->GetBody(), lft2Mpos);
+    m_wattLeftToAxleTubeSph->SetName(m_name + "_wattLeft2ChassisSph");
+    m_wattLeftToAxleTubeSph->Initialize(
+        m_wattLeftLinkBody, chassis->GetBody(),
+        ChFrame<>(suspension_to_abs.TransformPointLocalToParent(getLocation(WATT_LE_CH)), QUNIT));
     chassis->GetSystem()->AddLink(m_wattLeftToAxleTubeSph);
 
     // link the Watt right link to the center link
-    ChCoordsys<> rght1Mpos(suspension_to_abs.TransformLocalToParent(getLocation(WATT_CNT_RI)), QUNIT);
     m_wattRightToCenterSph = chrono_types::make_shared<ChLinkLockSpherical>();
-    m_wattRightToCenterSph->SetNameString(m_name + "_wattRight2CenterSph");
-    m_wattRightToCenterSph->Initialize(m_wattRightLinkBody, m_wattCenterLinkBody, rght1Mpos);
+    m_wattRightToCenterSph->SetName(m_name + "_wattRight2CenterSph");
+    m_wattRightToCenterSph->Initialize(
+        m_wattRightLinkBody, m_wattCenterLinkBody,
+        ChFrame<>(suspension_to_abs.TransformPointLocalToParent(getLocation(WATT_CNT_RI)), QUNIT));
     chassis->GetSystem()->AddLink(m_wattRightToCenterSph);
 
     // link the Watt right link to the axle tube
-    ChCoordsys<> rght2Mpos(suspension_to_abs.TransformLocalToParent(getLocation(WATT_RI_CH)), QUNIT);
     m_wattRightToAxleTubeSph = chrono_types::make_shared<ChLinkLockSpherical>();
-    m_wattRightToAxleTubeSph->SetNameString(m_name + "_wattRight2ChassisSph");
-    m_wattRightToAxleTubeSph->Initialize(m_wattRightLinkBody, chassis->GetBody(), rght2Mpos);
+    m_wattRightToAxleTubeSph->SetName(m_name + "_wattRight2ChassisSph");
+    m_wattRightToAxleTubeSph->Initialize(
+        m_wattRightLinkBody, chassis->GetBody(),
+        ChFrame<>(suspension_to_abs.TransformPointLocalToParent(getLocation(WATT_RI_CH)), QUNIT));
     chassis->GetSystem()->AddLink(m_wattRightToAxleTubeSph);
 
     // Transform all hardpoints to absolute frame.
     m_pointsL.resize(NUM_POINTS);
     m_pointsR.resize(NUM_POINTS);
     for (int i = 0; i < NUM_POINTS; i++) {
-        ChVector<> rel_pos = getLocation(static_cast<PointId>(i));
-        m_pointsL[i] = suspension_to_abs.TransformLocalToParent(rel_pos);
+        ChVector3d rel_pos = getLocation(static_cast<PointId>(i));
+        m_pointsL[i] = suspension_to_abs.TransformPointLocalToParent(rel_pos);
         rel_pos.y() = -rel_pos.y();
-        m_pointsR[i] = suspension_to_abs.TransformLocalToParent(rel_pos);
+        m_pointsR[i] = suspension_to_abs.TransformPointLocalToParent(rel_pos);
     }
 
     // Initialize left and right sides.
@@ -217,44 +220,44 @@ void ChDeDionAxle::Initialize(std::shared_ptr<ChChassis> chassis,
 void ChDeDionAxle::InitializeSide(VehicleSide side,
                                   std::shared_ptr<ChBodyAuxRef> chassis,
                                   std::shared_ptr<ChBody> scbeam,
-                                  const std::vector<ChVector<>>& points,
+                                  const std::vector<ChVector3d>& points,
                                   double ang_vel) {
     std::string suffix = (side == LEFT) ? "_L" : "_R";
 
     // Unit vectors for orientation matrices.
-    ChVector<> u;
-    ChVector<> v;
-    ChVector<> w;
+    ChVector3d u;
+    ChVector3d v;
+    ChVector3d w;
     ChMatrix33<> rot;
 
     // Chassis orientation (expressed in absolute frame)
     // Recall that the suspension reference frame is aligned with the chassis.
-    ChQuaternion<> chassisRot = chassis->GetFrame_REF_to_abs().GetRot();
+    ChQuaternion<> chassisRot = chassis->GetFrameRefToAbs().GetRot();
 
     // Spindle orientation (based on camber and toe angles)
     double sign = (side == LEFT) ? -1 : +1;
-    auto spindleRot = chassisRot * Q_from_AngZ(sign * getToeAngle()) * Q_from_AngX(sign * getCamberAngle());
+    auto spindleRot = chassisRot * QuatFromAngleZ(sign * getToeAngle()) * QuatFromAngleX(sign * getCamberAngle());
 
     // Create and initialize spindle body (same orientation as the chassis)
     m_spindle[side] = chrono_types::make_shared<ChBody>();
-    m_spindle[side]->SetNameString(m_name + "_spindle" + suffix);
+    m_spindle[side]->SetName(m_name + "_spindle" + suffix);
     m_spindle[side]->SetPos(points[SPINDLE]);
     m_spindle[side]->SetRot(spindleRot);
-    m_spindle[side]->SetWvel_loc(ChVector<>(0, ang_vel, 0));
+    m_spindle[side]->SetAngVelLocal(ChVector3d(0, ang_vel, 0));
     m_spindle[side]->SetMass(getSpindleMass());
     m_spindle[side]->SetInertiaXX(getSpindleInertia());
     chassis->GetSystem()->AddBody(m_spindle[side]);
 
     // Create and initialize the revolute joint between axle tube and spindle.
-    ChCoordsys<> rev_csys(points[SPINDLE], spindleRot * Q_from_AngAxis(CH_C_PI / 2.0, VECT_X));
     m_revolute[side] = chrono_types::make_shared<ChLinkLockRevolute>();
-    m_revolute[side]->SetNameString(m_name + "_revolute" + suffix);
-    m_revolute[side]->Initialize(m_spindle[side], m_axleTube, rev_csys);
+    m_revolute[side]->SetName(m_name + "_revolute" + suffix);
+    m_revolute[side]->Initialize(m_spindle[side], m_axleTube,
+                                 ChFrame<>(points[SPINDLE], spindleRot * QuatFromAngleX(CH_PI_2)));
     chassis->GetSystem()->AddLink(m_revolute[side]);
 
     // Create and initialize the shock damper
     m_shock[side] = chrono_types::make_shared<ChLinkTSDA>();
-    m_shock[side]->SetNameString(m_name + "_shock" + suffix);
+    m_shock[side]->SetName(m_name + "_shock" + suffix);
     m_shock[side]->Initialize(chassis, m_axleTube, false, points[SHOCK_C], points[SHOCK_A]);
     m_shock[side]->SetRestLength(getShockRestLength());
     m_shock[side]->RegisterForceFunctor(getShockForceFunctor());
@@ -262,7 +265,7 @@ void ChDeDionAxle::InitializeSide(VehicleSide side,
 
     // Create and initialize the spring
     m_spring[side] = chrono_types::make_shared<ChLinkTSDA>();
-    m_spring[side]->SetNameString(m_name + "_spring" + suffix);
+    m_spring[side]->SetName(m_name + "_spring" + suffix);
     m_spring[side]->Initialize(scbeam, m_axleTube, false, points[SPRING_C], points[SPRING_A]);
     m_spring[side]->SetRestLength(getSpringRestLength());
     m_spring[side]->RegisterForceFunctor(getSpringForceFunctor());
@@ -271,18 +274,18 @@ void ChDeDionAxle::InitializeSide(VehicleSide side,
     // Create and initialize the axle shaft and its connection to the spindle.
     // Note that the spindle rotates about the Y axis.
     m_axle[side] = chrono_types::make_shared<ChShaft>();
-    m_axle[side]->SetNameString(m_name + "_axle" + suffix);
+    m_axle[side]->SetName(m_name + "_axle" + suffix);
     m_axle[side]->SetInertia(getAxleInertia());
-    m_axle[side]->SetPos_dt(-ang_vel);
+    m_axle[side]->SetPosDt(-ang_vel);
     chassis->GetSystem()->AddShaft(m_axle[side]);
 
-    m_axle_to_spindle[side] = chrono_types::make_shared<ChShaftsBody>();
-    m_axle_to_spindle[side]->SetNameString(m_name + "_axle_to_spindle" + suffix);
-    m_axle_to_spindle[side]->Initialize(m_axle[side], m_spindle[side], ChVector<>(0, -1, 0));
+    m_axle_to_spindle[side] = chrono_types::make_shared<ChShaftBodyRotation>();
+    m_axle_to_spindle[side]->SetName(m_name + "_axle_to_spindle" + suffix);
+    m_axle_to_spindle[side]->Initialize(m_axle[side], m_spindle[side], ChVector3d(0, -1, 0));
     chassis->GetSystem()->Add(m_axle_to_spindle[side]);
 }
 
-const ChVector<> ChDeDionAxle::GetConnectorLocation(VehicleSide side) {
+const ChVector3d ChDeDionAxle::GetConnectorLocation(VehicleSide side) {
     if (side == RIGHT) {
         return m_stabiConnectorR;
     } else {
@@ -295,7 +298,7 @@ void ChDeDionAxle::InitializeInertiaProperties() {
 }
 
 void ChDeDionAxle::UpdateInertiaProperties() {
-    m_parent->GetTransform().TransformLocalToParent(ChFrame<>(m_rel_loc, QUNIT), m_xform);
+    m_xform = m_parent->GetTransform().TransformLocalToParent(ChFrame<>(m_rel_loc, QUNIT));
 
     // Calculate COM and inertia expressed in global frame
     ChMatrix33<> inertiaSpindle(getSpindleInertia());
@@ -303,20 +306,20 @@ void ChDeDionAxle::UpdateInertiaProperties() {
     ChMatrix33<> inertiaWattSide(getWattSideInertia());
 
     utils::CompositeInertia composite;
-    composite.AddComponent(m_spindle[LEFT]->GetFrame_COG_to_abs(), getSpindleMass(), inertiaSpindle);
-    composite.AddComponent(m_spindle[RIGHT]->GetFrame_COG_to_abs(), getSpindleMass(), inertiaSpindle);
-    composite.AddComponent(m_axleTube->GetFrame_COG_to_abs(), getAxleTubeMass(), ChMatrix33<>(getAxleInertia()));
-    composite.AddComponent(m_wattCenterLinkBody->GetFrame_COG_to_abs(), getWattCenterMass(),
+    composite.AddComponent(m_spindle[LEFT]->GetFrameCOMToAbs(), getSpindleMass(), inertiaSpindle);
+    composite.AddComponent(m_spindle[RIGHT]->GetFrameCOMToAbs(), getSpindleMass(), inertiaSpindle);
+    composite.AddComponent(m_axleTube->GetFrameCOMToAbs(), getAxleTubeMass(), ChMatrix33<>(getAxleInertia()));
+    composite.AddComponent(m_wattCenterLinkBody->GetFrameCOMToAbs(), getWattCenterMass(),
                            ChMatrix33<>(inertiaWattCenter));
-    composite.AddComponent(m_wattLeftLinkBody->GetFrame_COG_to_abs(), getWattSideMass(), ChMatrix33<>(inertiaWattSide));
-    composite.AddComponent(m_wattRightLinkBody->GetFrame_COG_to_abs(), getWattSideMass(),
+    composite.AddComponent(m_wattLeftLinkBody->GetFrameCOMToAbs(), getWattSideMass(), ChMatrix33<>(inertiaWattSide));
+    composite.AddComponent(m_wattRightLinkBody->GetFrameCOMToAbs(), getWattSideMass(),
                            ChMatrix33<>(inertiaWattSide));
 
     // Express COM and inertia in subsystem reference frame
-    m_com.coord.pos = m_xform.TransformPointParentToLocal(composite.GetCOM());
-    m_com.coord.rot = QUNIT;
+    m_com.SetPos(m_xform.TransformPointParentToLocal(composite.GetCOM()));
+    m_com.SetRot(QUNIT);
 
-    m_inertia = m_xform.GetA().transpose() * composite.GetInertia() * m_xform.GetA();
+    m_inertia = m_xform.GetRotMat().transpose() * composite.GetInertia() * m_xform.GetRotMat();
 }
 
 // -----------------------------------------------------------------------------
@@ -342,13 +345,13 @@ std::vector<ChSuspension::ForceTSDA> ChDeDionAxle::ReportSuspensionForce(Vehicle
 
 // -----------------------------------------------------------------------------
 // -----------------------------------------------------------------------------
-void ChDeDionAxle::LogHardpointLocations(const ChVector<>& ref, bool inches) {
+void ChDeDionAxle::LogHardpointLocations(const ChVector3d& ref, bool inches) {
     double unit = inches ? 1 / 0.0254 : 1.0;
 
     for (int i = 0; i < NUM_POINTS; i++) {
-        ChVector<> pos = ref + unit * getLocation(static_cast<PointId>(i));
+        ChVector3d pos = ref + unit * getLocation(static_cast<PointId>(i));
 
-        GetLog() << "   " << m_pointNames[i].c_str() << "  " << pos.x() << "  " << pos.y() << "  " << pos.z() << "\n";
+        std::cout << "   " << m_pointNames[i] << "  " << pos.x() << "  " << pos.y() << "  " << pos.z() << "\n";
     }
 }
 
@@ -358,10 +361,10 @@ void ChDeDionAxle::LogConstraintViolations(VehicleSide side) {
     {
         /*
       ChVectorDynamic<> C = m_axleTubeGuideLat->GetConstraintViolation();
-      GetLog() << "Axle tube prismatic       ";
-      GetLog() << "  " << C(0) << "  ";
-      GetLog() << "  " << C(1) << "  ";
-      GetLog() << "  " << C(2) << "\n";
+      std::cout << "Axle tube prismatic       ";
+      std::cout << "  " << C(0) << "  ";
+      std::cout << "  " << C(1) << "  ";
+      std::cout << "  " << C(2) << "\n";
          */
     }
 }
@@ -409,13 +412,13 @@ void ChDeDionAxle::RemoveVisualizationAssets() {
 // -----------------------------------------------------------------------------
 // -----------------------------------------------------------------------------
 void ChDeDionAxle::AddVisualizationLink(std::shared_ptr<ChBody> body,
-                                        const ChVector<> pt_1,
-                                        const ChVector<> pt_2,
+                                        const ChVector3d pt_1,
+                                        const ChVector3d pt_2,
                                         double radius,
                                         const ChColor& color) {
     // Express hardpoint locations in body frame.
-    ChVector<> p_1 = body->TransformPointParentToLocal(pt_1);
-    ChVector<> p_2 = body->TransformPointParentToLocal(pt_2);
+    ChVector3d p_1 = body->TransformPointParentToLocal(pt_1);
+    ChVector3d p_2 = body->TransformPointParentToLocal(pt_2);
 
     auto cyl = ChVehicleGeometry::AddVisualizationCylinder(body, p_1, p_2, radius);
     cyl->SetColor(color);

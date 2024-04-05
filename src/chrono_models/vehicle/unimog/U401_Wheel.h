@@ -36,20 +36,20 @@ namespace unimog {
 
 /// HMMWV wheel (can be used on any axle, left or right).
 class CH_MODELS_API U401_Wheel : public ChWheel {
-   public:
+  public:
     U401_Wheel(const std::string& name);
     ~U401_Wheel() {}
 
     virtual double GetWheelMass() const override { return m_mass; }
-    virtual const ChVector<>& GetWheelInertia() const override { return m_inertia; }
+    virtual const ChVector3d& GetWheelInertia() const override { return m_inertia; }
     virtual double GetRadius() const override { return m_radius; }
     virtual double GetWidth() const override { return m_width; }
 
-   protected:
+  protected:
     static const double m_radius;
     static const double m_width;
     static const double m_mass;
-    static const ChVector<> m_inertia;
+    static const ChVector3d m_inertia;
 };
 
 /// @} vehicle_models_unimog

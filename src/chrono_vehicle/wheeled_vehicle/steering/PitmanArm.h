@@ -43,21 +43,21 @@ class CH_VEHICLE_API PitmanArm : public ChPitmanArm {
     virtual double getSteeringLinkRadius() const override { return m_steeringLinkRadius; }
     virtual double getPitmanArmRadius() const override { return m_pitmanArmRadius; }
 
-    virtual const ChVector<>& getSteeringLinkInertiaMoments() const override { return m_steeringLinkInertiaMoments; }
-    virtual const ChVector<>& getSteeringLinkInertiaProducts() const override { return m_steeringLinkInertiaProducts; }
-    virtual const ChVector<>& getPitmanArmInertiaMoments() const override { return m_pitmanArmInertiaMoments; }
-    virtual const ChVector<>& getPitmanArmInertiaProducts() const override { return m_pitmanArmInertiaProducts; }
+    virtual const ChVector3d& getSteeringLinkInertiaMoments() const override { return m_steeringLinkInertiaMoments; }
+    virtual const ChVector3d& getSteeringLinkInertiaProducts() const override { return m_steeringLinkInertiaProducts; }
+    virtual const ChVector3d& getPitmanArmInertiaMoments() const override { return m_pitmanArmInertiaMoments; }
+    virtual const ChVector3d& getPitmanArmInertiaProducts() const override { return m_pitmanArmInertiaProducts; }
 
     virtual double getMaxAngle() const override { return m_maxAngle; }
 
-    virtual const ChVector<> getLocation(PointId which) override { return m_points[which]; }
-    virtual const ChVector<> getDirection(DirectionId which) override { return m_dirs[which]; }
+    virtual const ChVector3d getLocation(PointId which) override { return m_points[which]; }
+    virtual const ChVector3d getDirection(DirectionId which) override { return m_dirs[which]; }
 
   private:
     virtual void Create(const rapidjson::Document& d) override;
 
-    ChVector<> m_points[NUM_POINTS];
-    ChVector<> m_dirs[NUM_DIRS];
+    ChVector3d m_points[NUM_POINTS];
+    ChVector3d m_dirs[NUM_DIRS];
 
     double m_steeringLinkMass;
     double m_pitmanArmMass;
@@ -67,10 +67,10 @@ class CH_VEHICLE_API PitmanArm : public ChPitmanArm {
 
     double m_maxAngle;
 
-    ChVector<> m_steeringLinkInertiaMoments;
-    ChVector<> m_steeringLinkInertiaProducts;
-    ChVector<> m_pitmanArmInertiaMoments;
-    ChVector<> m_pitmanArmInertiaProducts;
+    ChVector3d m_steeringLinkInertiaMoments;
+    ChVector3d m_steeringLinkInertiaProducts;
+    ChVector3d m_pitmanArmInertiaMoments;
+    ChVector3d m_pitmanArmInertiaProducts;
 };
 
 /// @} vehicle_wheeled_steering

@@ -27,13 +27,14 @@ namespace vehicle {
 // -----------------------------------------------------------------------------
 // -----------------------------------------------------------------------------
 RackPinion::RackPinion(const std::string& filename) : ChRackPinion("") {
-    Document d; ReadFileJSON(filename, d);
+    Document d;
+    ReadFileJSON(filename, d);
     if (d.IsNull())
         return;
 
     Create(d);
 
-    GetLog() << "Loaded JSON: " << filename.c_str() << "\n";
+    std::cout << "Loaded JSONL " << filename << std::endl;
 }
 
 RackPinion::RackPinion(const rapidjson::Document& d) : ChRackPinion("") {
@@ -53,7 +54,7 @@ void RackPinion::Create(const rapidjson::Document& d) {
 
     // Pinion radius
     m_pinionRadius = d["Pinion"]["Radius"].GetDouble();
-    m_maxAngle = d["Pinion"]["Maximum Angle (deg)"].GetDouble() * CH_C_DEG_TO_RAD;
+    m_maxAngle = d["Pinion"]["Maximum Angle (deg)"].GetDouble() * CH_DEG_TO_RAD;
 }
 
 }  // end namespace vehicle

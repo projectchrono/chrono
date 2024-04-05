@@ -37,19 +37,19 @@ void ChChassisConnectorArticulated::Initialize(std::shared_ptr<ChChassis> front,
 
     // Express the connector reference frame in the absolute coordinate system
     ChFrame<> to_abs(rear->GetLocalPosFrontConnector());
-    to_abs.ConcatenatePreTransformation(rear->GetBody()->GetFrame_REF_to_abs());
+    to_abs.ConcatenatePreTransformation(rear->GetBody()->GetFrameRefToAbs());
 
     // Create the connection
     m_motor = chrono_types::make_shared<ChLinkMotorRotationAngle>();
-    m_motor->SetNameString(m_name + " motor");
-    m_motor->SetAngleFunction(chrono_types::make_shared<ChFunction_Const>());
+    m_motor->SetName(m_name + " motor");
+    m_motor->SetAngleFunction(chrono_types::make_shared<ChFunctionConst>());
     m_motor->Initialize(rear->GetBody(), front->GetBody(), to_abs);
     rear->GetBody()->GetSystem()->AddLink(m_motor);
 }
 
 void ChChassisConnectorArticulated::Synchronize(double time, const DriverInputs& driver_inputs) {
-    auto fun = std::static_pointer_cast<ChFunction_Const>(m_motor->GetAngleFunction());
-    fun->Set_yconst(-GetMaxSteeringAngle() * driver_inputs.m_steering);
+    auto fun = std::static_pointer_cast<ChFunctionConst>(m_motor->GetAngleFunction());
+    fun->SetConstant(-GetMaxSteeringAngle() * driver_inputs.m_steering);
 }
 
 }  // end namespace vehicle

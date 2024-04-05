@@ -37,11 +37,11 @@ class ChCollisionPair {
     }
 
     /// Constructor for case of contact point correctly estimated
-    ChCollisionPair(geometry::ChGeometry* mgeo1,
-                    geometry::ChGeometry* mgeo2,
-                    const ChVector<>& mp1,
-                    const ChVector<>& mp2,
-                    const ChVector<float>& mnormal,
+    ChCollisionPair(ChGeometry* mgeo1,
+                    ChGeometry* mgeo2,
+                    const ChVector3d& mp1,
+                    const ChVector3d& mp2,
+                    const ChVector3f& mnormal,
                     float* mreaction_cache = 0)
 
     {
@@ -49,7 +49,7 @@ class ChCollisionPair {
     }
 
     /// Constructor for case of just intersection
-    ChCollisionPair(geometry::ChGeometry* mgeo1, geometry::ChGeometry* mgeo2) {
+    ChCollisionPair(ChGeometry* mgeo1, ChGeometry* mgeo2) {
         geo1 = mgeo1;
         geo2 = mgeo2;
         p1 = p2 = VNULL;
@@ -59,11 +59,11 @@ class ChCollisionPair {
     }
 
     /// Set all data at once (better: use the custom constructor)
-    void Set(geometry::ChGeometry* mgeo1,
-             geometry::ChGeometry* mgeo2,
-             const ChVector<>& mp1,
-             const ChVector<>& mp2,
-             const ChVector<float>& mnormal,
+    void Set(ChGeometry* mgeo1,
+             ChGeometry* mgeo2,
+             const ChVector3d& mp1,
+             const ChVector3d& mp2,
+             const ChVector3f& mnormal,
              float* mreaction_cache = 0) {
         geo1 = mgeo1;
         geo2 = mgeo2;
@@ -79,11 +79,11 @@ class ChCollisionPair {
     /// Swap geometries, that is
     /// geo1 becomes geo2 and viceversa; normal and so on are updates as well.
     void SwapGeometries() {
-        geometry::ChGeometry* gtemp;
+        ChGeometry* gtemp;
         gtemp = geo1;
         geo1 = geo2;
         geo2 = gtemp;
-        ChVector<> vtemp;
+        ChVector3d vtemp;
         vtemp = p1;
         p1 = p2;
         p2 = vtemp;
@@ -129,14 +129,14 @@ class ChCollisionPair {
 
     // DATA
 
-    geometry::ChGeometry* geo1;  ///< pointer to 1st geometry which generated this collision pair
-    geometry::ChGeometry* geo2;  ///< pointer to 2nd geometry which generated this collision pair
+    ChGeometry* geo1;  ///< pointer to 1st geometry which generated this collision pair
+    ChGeometry* geo2;  ///< pointer to 2nd geometry which generated this collision pair
 
-    ChVector<> p1;  ///< max penetration point on geo1, after refining, in abs space
-    ChVector<> p2;  ///< max penetration point on geo2, after refining, in abs space
+    ChVector3d p1;  ///< max penetration point on geo1, after refining, in abs space
+    ChVector3d p2;  ///< max penetration point on geo2, after refining, in abs space
 
-    ChVector<float> normal;  ///< normal, on surface of master reference (geo1)
-    double norm_dist;        ///< penetration distance (negative if going inside) after refining
+    ChVector3f normal;  ///< normal, on surface of master reference (geo1)
+    double norm_dist;   ///< penetration distance (negative if going inside) after refining
 
     bool just_intersection;  ///< if true, only reports that two geometries are intersection, but no info is reliable
     /// about normal, p1 or p2.

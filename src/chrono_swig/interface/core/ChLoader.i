@@ -9,6 +9,21 @@
 
 %}
 
+%feature("director") chrono::ChLoader;
+%feature("director") chrono::ChLoaderU;
+%feature("director") chrono::ChLoaderUdistributed;
+%feature("director") chrono::ChLoaderUatomic;
+%feature("director") chrono::ChLoaderUV;
+%feature("director") chrono::ChLoaderUVdistributed;
+%feature("director") chrono::ChLoaderUVatomic;
+%feature("director") chrono::ChLoaderForceOnSurface;
+%feature("director") chrono::ChLoaderPressure;
+%feature("director") chrono::ChLoaderUVW;
+%feature("director") chrono::ChLoaderUVWdistributed;
+%feature("director") chrono::ChLoaderUVWatomic;
+%feature("director") chrono::ChLoaderGravity;
+%feature("director") chrono::ChLoaderNodeXYZ;
+
 //TODO: remove ignore once ref is wrapped 
 %shared_ptr(chrono::ChLoader)
 %shared_ptr(chrono::ChLoaderU)
@@ -23,13 +38,14 @@
 %shared_ptr(chrono::ChLoaderUVWdistributed)
 %shared_ptr(chrono::ChLoaderUVWatomic)
 %shared_ptr(chrono::ChLoaderGravity)
-%shared_ptr(chrono::ChLoaderXYZnode)
+%shared_ptr(chrono::ChLoaderNodeXYZ)
 
 
 
 // Tell SWIG about parent class in Python
 //%import "ChPhysicsItem.i"
 //%import "ChObject.i"
+
 
 /* Parse the header file to generate wrappers */
 

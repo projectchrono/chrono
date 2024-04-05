@@ -22,7 +22,7 @@
 #include <vector>
 
 #include "chrono/core/ChCoordsys.h"
-#include "chrono/physics/ChMaterialSurface.h"
+#include "chrono/physics/ChContactMaterial.h"
 #include "chrono/physics/ChSystem.h"
 
 #include "chrono_vehicle/wheeled_vehicle/ChWheeledVehicle.h"
@@ -30,7 +30,7 @@
 #include "chrono_models/ChApiModels.h"
 #include "chrono_models/vehicle/ChVehicleModelDefs.h"
 
-#include "chrono_models/vehicle/uaz/UAZBUS_BrakeSimple.h"
+#include "chrono_models/vehicle/uaz/UAZBUS_BrakeShafts.h"
 #include "chrono_models/vehicle/uaz/UAZBUS_Chassis.h"
 #include "chrono_models/vehicle/uaz/UAZBUS_Driveline4WD.h"
 #include "chrono_models/vehicle/uaz/UAZBUS_SAELeafspringAxle.h"
@@ -60,11 +60,11 @@ class CH_MODELS_API UAZBUS_SAEVehicle : public ChWheeledVehicle {
 
     ~UAZBUS_SAEVehicle();
 
-    virtual int GetNumberAxles() const override { return 2; }
+    virtual unsigned int GetNumberAxles() const override { return 2; }
 
     virtual double GetWheelbase() const override { return 2.3; }
     virtual double GetMinTurningRadius() const override { return 5.8; }
-    virtual double GetMaxSteeringAngle() const override { return 27 * CH_C_DEG_TO_RAD; }
+    virtual double GetMaxSteeringAngle() const override { return 27 * CH_DEG_TO_RAD; }
 
     void SetInitWheelAngVel(const std::vector<double>& omega) {
         assert(omega.size() == 4);

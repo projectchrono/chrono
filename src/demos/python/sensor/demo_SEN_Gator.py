@@ -38,8 +38,8 @@ veh.SetDataPath(chrono.GetChronoDataPath() + 'vehicle/')
 
 print(chrono.GetChronoDataPath() + 'vehicle/')
 # Initial vehicle location and orientation
-initLoc = chrono.ChVectorD(0, 0, 0.4)
-initRot = chrono.ChQuaternionD(1, 0, 0, 0)
+initLoc = chrono.ChVector3d(0, 0, 0.4)
+initRot = chrono.ChQuaterniond(1, 0, 0, 0)
 
 # Visualization type for vehicle parts (PRIMITIVES, MESH, or NONE)
 chassis_vis_type = veh.VisualizationType_MESH
@@ -49,7 +49,7 @@ wheel_vis_type = veh.VisualizationType_NONE
 tire_vis_type = veh.VisualizationType_MESH
 
 # Poon chassis tracked by the camera
-trackPoint = chrono.ChVectorD(0.0, 0.0, 1.75)
+trackPoint = chrono.ChVector3d(0.0, 0.0, 1.75)
 
 # Simulation step sizes
 step_size = 1e-3
@@ -99,7 +99,7 @@ print( "Copyright (c) 2017 projectchrono.org\n")
 gator = veh.Gator()
 gator.SetContactMethod(chrono.ChContactMethod_NSC)
 gator.SetChassisFixed(False)
-gator.SetInitPosition(chrono.ChCoordsysD(initLoc, initRot))
+gator.SetInitPosition(chrono.ChCoordsysd(initLoc, initRot))
 gator.SetBrakeType(veh.BrakeType_SHAFTS)
 gator.SetTireType(veh.TireModelType_TMEASY)
 gator.SetTireStepSize(tire_step_size)
@@ -126,7 +126,7 @@ gator.GetSystem().SetCollisionSystemType(chrono.ChCollisionSystem.Type_BULLET)
 # ------------------
 
 terrain = veh.RigidTerrain(gator.GetSystem())
-patch_mat = chrono.ChMaterialSurfaceNSC()
+patch_mat = chrono.ChContactMaterialNSC()
 patch_mat.SetFriction(0.9)
 patch_mat.SetRestitution(0.01)
 patch = terrain.AddPatch(patch_mat, chrono.CSYSNORM, 600, 600)
@@ -167,15 +167,15 @@ driver.Initialize()
 # -----------------------
 manager = sens.ChSensorManager(gator.GetSystem())
 intensity = 1.0
-manager.scene.AddPointLight(chrono.ChVectorF(2, 2.5, 100), chrono.ChColor(intensity, intensity, intensity), 500.0)
-manager.scene.AddPointLight(chrono.ChVectorF(9, 2.5, 100), chrono.ChColor(intensity, intensity, intensity), 500.0)
-manager.scene.AddPointLight(chrono.ChVectorF(16, 2.5, 100), chrono.ChColor(intensity, intensity, intensity), 500.0)
-manager.scene.AddPointLight(chrono.ChVectorF(23, 2.5, 100), chrono.ChColor(intensity, intensity, intensity), 500.0)
+manager.scene.AddPointLight(chrono.ChVector3f(2, 2.5, 100), chrono.ChColor(intensity, intensity, intensity), 500.0)
+manager.scene.AddPointLight(chrono.ChVector3f(9, 2.5, 100), chrono.ChColor(intensity, intensity, intensity), 500.0)
+manager.scene.AddPointLight(chrono.ChVector3f(16, 2.5, 100), chrono.ChColor(intensity, intensity, intensity), 500.0)
+manager.scene.AddPointLight(chrono.ChVector3f(23, 2.5, 100), chrono.ChColor(intensity, intensity, intensity), 500.0)
 
 # ------------------------------------------------
 # Create two camera and add it to the sensor manager
 # ------------------------------------------------
-offset_pose = chrono.ChFrameD(chrono.ChVectorD(.1, 0, 1.45), chrono.Q_from_AngAxis(.2, chrono.ChVectorD(0, 1, 0)))
+offset_pose = chrono.ChFramed(chrono.ChVector3d(.1, 0, 1.45), chrono.QuatFromAngleAxis(.2, chrono.ChVector3d(0, 1, 0)))
 cam = sens.ChCameraSensor(
     gator.GetChassisBody(),
     update_rate,
@@ -192,7 +192,7 @@ if vis:
 
 manager.AddSensor(cam)
 
-offset_pose1 = chrono.ChFrameD(chrono.ChVectorD(-8, 0, 3), chrono.Q_from_AngAxis(.2, chrono.ChVectorD(0, 1, 0)))
+offset_pose1 = chrono.ChFramed(chrono.ChVector3d(-8, 0, 3), chrono.QuatFromAngleAxis(.2, chrono.ChVector3d(0, 1, 0)))
 cam1 = sens.ChCameraSensor(
     gator.GetChassisBody(),
     update_rate,
@@ -208,6 +208,28 @@ if vis:
     cam1.PushFilter(sens.ChFilterVisualize(image_width, image_height, "Before Grayscale Filter"))
 
 manager.AddSensor(cam1)
+
+
+# ------------------------------------------------------
+# Create a depth camera and add it to the sensor manager
+# ------------------------------------------------------
+depth_cam = sens.ChDepthCamera(
+    gator.GetChassisBody(),              # body camera is attached to
+    update_rate,            # update rate in Hz
+    offset_pose,            # offset pose
+    image_width,            # image width
+    image_height,           # image height
+    fov                    # camera's horizontal field of view
+)
+
+depth_cam.SetName("Depth Camera Sensor")
+depth_cam.SetLag(lag)
+depth_cam.SetCollectionWindow(exposure_time)
+
+if vis:
+    depth_cam.PushFilter(sens.ChFilterVisualize(
+        image_width, image_height, "Depth Map"))
+    manager.AddSensor(depth_cam)
 
 # ---------------
 # Simulation loop
@@ -234,9 +256,9 @@ while vis.Run() :
     vis.Synchronize(time, driver_inputs)
 
     # Update sensor manager
-    cam1.SetOffsetPose(chrono.ChFrameD(
-        chrono.ChVectorD(-orbit_radius * math.cos(time * orbit_rate), -orbit_radius * math.sin(time * orbit_rate), 1),
-        chrono.Q_from_AngAxis(time * orbit_rate, chrono.ChVectorD(0, 0, 1))))
+    cam1.SetOffsetPose(chrono.ChFramed(
+        chrono.ChVector3d(-orbit_radius * math.cos(time * orbit_rate), -orbit_radius * math.sin(time * orbit_rate), 1),
+        chrono.QuatFromAngleAxis(time * orbit_rate, chrono.ChVector3d(0, 0, 1))))
     manager.Update()
 
     # Advance simulation for one timestep for all modules

@@ -24,7 +24,7 @@
 
 #include "chrono/physics/ChSystemSMC.h"
 #ifdef CHRONO_COLLISION
-    #include "chrono/collision/ChCollisionSystemChrono.h"
+    #include "chrono/collision/multicore/ChCollisionSystemMulticore.h"
 #endif
 
 #include "chrono_vehicle/ChConfigVehicle.h"
@@ -169,14 +169,16 @@ int main(int argc, char* argv[]) {
     // Create the Chrono system
     // ------------------------
     ChSystemSMC sys;
-    sys.Set_G_acc(ChVector<>(0, 0, -9.81));
+    sys.SetGravitationalAcceleration(ChVector3d(0, 0, -9.81));
     sys.SetNumThreads(nthreads, nthreads, 1);
     if (chrono_collsys) {
 #ifdef CHRONO_COLLISION
-        auto collsys = chrono_types::make_shared<collision::ChCollisionSystemChrono>();
-        collsys->SetBroadphaseGridResolution(ChVector<int>(2, 2, 1));
+        auto collsys = chrono_types::make_shared<ChCollisionSystemMulticore>();
+        collsys->SetBroadphaseGridResolution(ChVector3i(2, 2, 1));
         sys.SetCollisionSystem(collsys);
 #endif
+    } else {
+        sys.SetCollisionSystemType(ChCollisionSystem::Type::BULLET);
     }
 
     // ----------------------
@@ -185,32 +187,32 @@ int main(int argc, char* argv[]) {
     // Calculate initial position and paths for each vehicle
     double pathLength = 1.5 * target_speed * end_time;
 
-    ChVector<> init_loc;
+    ChVector3d init_loc;
     ChQuaternion<> init_rot;
     std::shared_ptr<ChBezierCurve> path;
     if (parallel_tracks) {
         if (node_id % 2 == 0) {
             // Start even vehicles in a row on the south side, driving north
-            init_loc = ChVector<>(0, 3.0 * (node_id + 1), 0.5);
-            init_rot = Q_from_AngZ(0);
-            path = StraightLinePath(init_loc, init_loc + ChVector<>(pathLength, 0, 0));
+            init_loc = ChVector3d(0, 3.0 * (node_id + 1), 0.5);
+            init_rot = QuatFromAngleZ(0);
+            path = StraightLinePath(init_loc, init_loc + ChVector3d(pathLength, 0, 0));
         } else {
             // Start odd vehicles in a row on the north side, driving south
-            init_loc = ChVector<>(20.0, 3.0 * (node_id - 1), 0.5);
-            init_rot = Q_from_AngZ(CH_C_PI);
-            path = StraightLinePath(init_loc, init_loc - ChVector<>(pathLength, 0, 0));
+            init_loc = ChVector3d(20.0, 3.0 * (node_id - 1), 0.5);
+            init_rot = QuatFromAngleZ(CH_PI);
+            path = StraightLinePath(init_loc, init_loc - ChVector3d(pathLength, 0, 0));
         }
     } else {
         if (node_id % 2 == 0) {
             // Start even vehicles in a row on the south side, driving north
-            init_loc = ChVector<>(0, 2.0 * (node_id + 1), 0.5);
-            init_rot = Q_from_AngZ(0);
-            path = StraightLinePath(init_loc, init_loc + ChVector<>(pathLength, 0, 0));
+            init_loc = ChVector3d(0, 2.0 * (node_id + 1), 0.5);
+            init_rot = QuatFromAngleZ(0);
+            path = StraightLinePath(init_loc, init_loc + ChVector3d(pathLength, 0, 0));
         } else {
             // Start odd vehicles staggered going up the west edge, driving east
-            init_loc = ChVector<>(2.0 * (node_id - 1), -5.0 - 2.0 * (node_id - 1), 0.5);
-            init_rot = Q_from_AngZ(CH_C_PI / 2);
-            path = StraightLinePath(init_loc, init_loc + ChVector<>(0, pathLength, 0));
+            init_loc = ChVector3d(2.0 * (node_id - 1), -5.0 - 2.0 * (node_id - 1), 0.5);
+            init_rot = QuatFromAngleZ(CH_PI / 2);
+            path = StraightLinePath(init_loc, init_loc + ChVector3d(0, pathLength, 0));
         }
     }
 
@@ -219,7 +221,7 @@ int main(int argc, char* argv[]) {
     hmmwv.SetChassisFixed(false);
     hmmwv.SetInitPosition(ChCoordsys<>(init_loc, init_rot));
     hmmwv.SetEngineType(EngineModelType::SHAFTS);
-    hmmwv.SetTransmissionType(TransmissionModelType::SHAFTS);
+    hmmwv.SetTransmissionType(TransmissionModelType::AUTOMATIC_SHAFTS);
     hmmwv.SetDriveType(DrivelineTypeWV::AWD);
     hmmwv.SetTireType(TireModelType::RIGID);
     hmmwv.SetTireStepSize(step_size);
@@ -242,7 +244,7 @@ int main(int argc, char* argv[]) {
     // -----------------------------------------------------------
     // Set tire contact material, contact model, and visualization
     // -----------------------------------------------------------
-    auto wheel_material = chrono_types::make_shared<ChMaterialSurfaceSMC>();
+    auto wheel_material = chrono_types::make_shared<ChContactMaterialSMC>();
     wheel_material->SetFriction(0.8f);
     wheel_material->SetYoungModulus(1.0e6f);
     wheel_material->SetRestitution(0.1f);
@@ -294,12 +296,12 @@ int main(int argc, char* argv[]) {
     if (wheel_patches) {
         // Optionally, enable moving patch feature (multiple patches around each wheel)
         for (auto& axle : hmmwv.GetVehicle().GetAxles()) {
-            terrain.AddMovingPatch(axle->m_wheels[0]->GetSpindle(), ChVector<>(0, 0, 0), ChVector<>(1, 0.5, 1));
-            terrain.AddMovingPatch(axle->m_wheels[1]->GetSpindle(), ChVector<>(0, 0, 0), ChVector<>(1, 0.5, 1));
+            terrain.AddMovingPatch(axle->m_wheels[0]->GetSpindle(), ChVector3d(0, 0, 0), ChVector3d(1, 0.5, 1));
+            terrain.AddMovingPatch(axle->m_wheels[1]->GetSpindle(), ChVector3d(0, 0, 0), ChVector3d(1, 0.5, 1));
         }
     } else {
         // Optionally, enable moving patch feature (single patch around vehicle chassis)
-        terrain.AddMovingPatch(hmmwv.GetChassisBody(), ChVector<>(0, 0, 0), ChVector<>(5, 3, 1));
+        terrain.AddMovingPatch(hmmwv.GetChassisBody(), ChVector3d(0, 0, 0), ChVector3d(5, 3, 1));
     }
 
     terrain.SetPlotType(vehicle::SCMTerrain::PLOT_SINKAGE, 0, 0.1);
@@ -324,7 +326,7 @@ int main(int argc, char* argv[]) {
         vis = chrono_types::make_shared<ChWheeledVehicleVisualSystemIrrlicht>();
         vis->AttachVehicle(&hmmwv.GetVehicle());
         vis->SetWindowTitle("SynChrono SCM test");
-        vis->SetChaseCamera(ChVector<>(0.0, 0.0, 1.75), 6.0, 0.5);
+        vis->SetChaseCamera(ChVector3d(0.0, 0.0, 1.75), 6.0, 0.5);
         vis->Initialize();
         vis->AddTypicalLights();
     }
@@ -344,7 +346,8 @@ int main(int argc, char* argv[]) {
     hmmwv.GetVehicle().EnableRealtime(false);
 
     // Solver settings
-    sys.SetSolverMaxIterations(50);
+    sys.SetSolverType(ChSolver::Type::BARZILAIBORWEIN);
+    sys.GetSolver()->AsIterative()->SetMaxIterations(50);
 
     // Initialize simulation frame counters
     int step_number = 0;
@@ -371,7 +374,7 @@ int main(int argc, char* argv[]) {
                 MPI_Gather(&rtf, 1, MPI_DOUBLE, all_rtf, 1, MPI_DOUBLE, 0, MPI_COMM_WORLD);
                 if (node_id == 0) {
                     std::string fname = "stats_" + std::to_string(num_nodes) + "_" + std::to_string(nthreads) + ".out";
-                    std::ofstream ofile(fname.c_str(), std::ios_base::app);
+                    std::ofstream ofile(fname, std::ios_base::app);
                     for (int i = 0; i < num_nodes; i++)
                         ofile << all_rtf[i] << "  ";
                     ofile << endl;

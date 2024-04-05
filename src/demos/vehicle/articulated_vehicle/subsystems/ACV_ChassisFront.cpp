@@ -25,11 +25,11 @@ using namespace chrono::vehicle;
 // Static variables
 // -----------------------------------------------------------------------------
 const double ACV_ChassisFront::m_body_mass = 2000;
-const ChVector<> ACV_ChassisFront::m_body_inertiaXX(100, 400, 500);
-const ChVector<> ACV_ChassisFront::m_body_inertiaXY(0, 0, 0);
-const ChVector<> ACV_ChassisFront::m_body_COM_loc(0, 0, 0.4);
-const ChVector<> ACV_ChassisFront::m_connector_loc(-1.0, 0, 0.1);
-const ChCoordsys<> ACV_ChassisFront::m_driverCsys(ChVector<>(0.0, 0.5, 1.2), ChQuaternion<>(1, 0, 0, 0));
+const ChVector3d ACV_ChassisFront::m_body_inertiaXX(100, 400, 500);
+const ChVector3d ACV_ChassisFront::m_body_inertiaXY(0, 0, 0);
+const ChVector3d ACV_ChassisFront::m_body_COM_loc(0, 0, 0.4);
+const ChVector3d ACV_ChassisFront::m_connector_loc(-1.0, 0, 0.1);
+const ChCoordsys<> ACV_ChassisFront::m_driverCsys(ChVector3d(0.0, 0.5, 1.2), ChQuaternion<>(1, 0, 0, 0));
 
 // -----------------------------------------------------------------------------
 // -----------------------------------------------------------------------------
@@ -46,8 +46,8 @@ ACV_ChassisFront::ACV_ChassisFront(const std::string& name, bool fixed) : ChRigi
     m_body_inertia(2, 1) = m_body_inertiaXY.z();
 
     // Visualization primitives
-    ChVehicleGeometry::BoxShape box(ChVector<>(-0.25, 0.0, 0.1), ChQuaternion<>(1, 0, 0, 0), ChVector<>(1.5, 1.0, 0.2));
-    ChVehicleGeometry::CylinderShape cyl(ChVector<>(0.5, 0, 0), ChVector<>(0, 1, 0), 0.05, 2);
+    ChVehicleGeometry::BoxShape box(ChVector3d(-0.25, 0.0, 0.1), ChQuaternion<>(1, 0, 0, 0), ChVector3d(1.5, 1.0, 0.2));
+    ChVehicleGeometry::CylinderShape cyl(ChVector3d(0.5, 0, 0), ChVector3d(0, 1, 0), 0.05, 2);
 
     m_geometry.m_has_primitives = true;
     m_geometry.m_vis_boxes.push_back(box);

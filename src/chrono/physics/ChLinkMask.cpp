@@ -21,10 +21,10 @@ CH_FACTORY_REGISTER(ChLinkMask)
 
 ChLinkMask::ChLinkMask() : nconstr(0) {}
 
-ChLinkMask::ChLinkMask(int mnconstr) {
+ChLinkMask::ChLinkMask(unsigned int mnconstr) {
     nconstr = mnconstr;
     constraints.resize(nconstr);
-    for (int i = 0; i < nconstr; i++) {
+    for (unsigned int i = 0; i < nconstr; i++) {
         constraints[i] = new ChConstraintTwoBodies;
     }
 }
@@ -32,13 +32,13 @@ ChLinkMask::ChLinkMask(int mnconstr) {
 ChLinkMask::ChLinkMask(const ChLinkMask& other) {
     nconstr = other.nconstr;
     constraints.resize(other.nconstr);
-    for (int i = 0; i < nconstr; i++) {
+    for (unsigned int i = 0; i < nconstr; i++) {
         constraints[i] = other.constraints[i]->Clone();
     }
 }
 
 ChLinkMask::~ChLinkMask() {
-    for (int i = 0; i < nconstr; i++) {
+    for (unsigned int i = 0; i < nconstr; i++) {
         if (constraints[i]) {
             delete constraints[i];
         }
@@ -51,16 +51,16 @@ ChLinkMask& ChLinkMask::operator=(const ChLinkMask& other) {
 
     nconstr = other.nconstr;
     constraints.resize(nconstr);
-    for (int i = 0; i < nconstr; i++) {
+    for (unsigned int i = 0; i < nconstr; i++) {
         constraints[i] = other.constraints[i]->Clone();
     }
 
     return *this;
 }
 
-void ChLinkMask::ResetNconstr(int newnconstr) {
+void ChLinkMask::SetNumConstraints(unsigned int newnconstr) {
     if (nconstr != newnconstr) {
-        for (int i = 0; i < nconstr; i++)
+        for (unsigned int i = 0; i < nconstr; i++)
             if (constraints[i]) {
                 delete constraints[i];
                 constraints[i] = nullptr;
@@ -70,7 +70,7 @@ void ChLinkMask::ResetNconstr(int newnconstr) {
 
         constraints.resize(nconstr);
 
-        for (int i = 0; i < nconstr; i++) {
+        for (unsigned int i = 0; i < nconstr; i++) {
             constraints[i] = new ChConstraintTwoBodies;
         }
     }
@@ -82,96 +82,65 @@ void ChLinkMask::AddConstraint(ChConstraintTwoBodies* aconstr) {
 }
 
 void ChLinkMask::SetTwoBodiesVariables(ChVariables* var1, ChVariables* var2) {
-    for (int i = 0; i < nconstr; i++)
+    for (unsigned int i = 0; i < nconstr; i++)
         constraints[i]->SetVariables(var1, var2);
+}
+
+ChConstraintTwoBodies& ChLinkMask::GetConstraint(unsigned int i) {
+    assert((i >= 0) && (i < nconstr));
+    return *constraints[i];
 }
 
 bool ChLinkMask::IsEqual(ChLinkMask& mask2) {
     if (nconstr != mask2.nconstr)
         return false;
-    for (int j = 0; j < nconstr; j++) {
-        if (!(Constr_N(j) == mask2.Constr_N(j)))
+    for (unsigned int j = 0; j < nconstr; j++) {
+        if (!(GetConstraint(j) == mask2.GetConstraint(j)))
             return false;
     }
     return true;
 }
 
-int ChLinkMask::GetMaskDoc() {
-    int tot = 0;
-    for (int j = 0; j < nconstr; j++) {
-        if (Constr_N(j).IsActive())
+unsigned int ChLinkMask::GetNumConstraintsActive() {
+    unsigned int tot = 0;
+    for (unsigned int j = 0; j < nconstr; j++) {
+        if (GetConstraint(j).IsActive())
             tot++;
     }
     return tot;
 }
 
-int ChLinkMask::GetMaskDoc_d() {
-    int cnt = 0;
-    for (int i = 0; i < nconstr; i++) {
-        if (Constr_N(i).IsActive() && Constr_N(i).IsUnilateral())
+unsigned int ChLinkMask::GetNumConstraintsUnilateralActive() {
+    unsigned int cnt = 0;
+    for (unsigned int i = 0; i < nconstr; i++) {
+        if (GetConstraint(i).IsActive() && GetConstraint(i).IsUnilateral())
             cnt++;
     }
     return cnt;
 }
 
-int ChLinkMask::GetMaskDoc_c() {
-    return (GetMaskDoc() - GetMaskDoc_d());
+unsigned int ChLinkMask::GetNumConstraintsBilateralActive() {
+    return (GetNumConstraintsActive() - GetNumConstraintsUnilateralActive());
 }
 
-ChConstraintTwoBodies* ChLinkMask::GetActiveConstrByNum(int mnum) {
-    int cnt = 0;
-    for (int i = 0; i < nconstr; i++) {
-        if (Constr_N(i).IsActive()) {
+ChConstraintTwoBodies* ChLinkMask::GetActiveConstraint(unsigned int mnum) {
+    unsigned int cnt = 0;
+    for (unsigned int i = 0; i < nconstr; i++) {
+        if (GetConstraint(i).IsActive()) {
             if (cnt == mnum)
-                return &Constr_N(i);
+                return &GetConstraint(i);
             cnt++;
         }
     }
     return NULL;
 }
 
-int ChLinkMask::SetActiveRedundantByArray(int* mvector, int mcount) {
-    int cnt;
+unsigned int ChLinkMask::SetAllDisabled(bool mdis) {
+    unsigned int cnt = 0;
 
-    ChLinkMask newmask = *this;
-    for (int elem = 0; elem < mcount; elem++) {
-        cnt = 0;
-        for (int i = 0; i < nconstr; i++) {
-            if (constraints[i]->IsActive()) {
-                if (cnt == mvector[elem])
-                    newmask.constraints[i]->SetRedundant(true);
-                cnt++;
-            }
-        }
-    }
-
-    // Replace the mask with updated one.
-    for (int i = 0; i < nconstr; i++) {
-        delete constraints[i];
-        constraints[i] = newmask.constraints[i]->Clone();
-    }
-
-    return mcount;
-}
-
-// set lock =ON for constraints which were disabled because redundant
-int ChLinkMask::RestoreRedundant() {
-    int tot = 0;
-    for (int j = 0; j < nconstr; j++) {
-        if (Constr_N(j).IsRedundant()) {
-            Constr_N(j).SetRedundant(false);
-            tot++;
-        }
-    }
-    return tot;
-}
-
-int ChLinkMask::SetAllDisabled(bool mdis) {
-    int cnt = 0;
-
-    for (int i = 0; i < nconstr; i++) {
-        if (Constr_N(i).IsDisabled() != mdis) {
-            Constr_N(i).SetDisabled(mdis);
+    for (unsigned int i = 0; i < nconstr; i++) {
+        if (GetConstraint(i).IsDisabled() != mdis) {
+            GetConstraint(i).SetDisabled(mdis);
             cnt++;
         }
     }
@@ -179,12 +148,12 @@ int ChLinkMask::SetAllDisabled(bool mdis) {
     return cnt;
 }
 
-int ChLinkMask::SetAllBroken(bool mdis) {
-    int cnt = 0;
+unsigned int ChLinkMask::SetAllBroken(bool mdis) {
+    unsigned int cnt = 0;
 
-    for (int i = 0; i < nconstr; i++) {
-        if (Constr_N(i).IsBroken() != mdis) {
-            Constr_N(i).SetBroken(mdis);
+    for (unsigned int i = 0; i < nconstr; i++) {
+        if (GetConstraint(i).IsBroken() != mdis) {
+            GetConstraint(i).SetBroken(mdis);
             cnt++;
         }
     }
@@ -192,17 +161,16 @@ int ChLinkMask::SetAllBroken(bool mdis) {
     return cnt;
 }
 
-void ChLinkMask::ArchiveOut(ChArchiveOut& marchive) {
-    marchive.VersionWrite<ChLinkMask>();
+void ChLinkMask::ArchiveOut(ChArchiveOut& archive_out) {
+    archive_out.VersionWrite<ChLinkMask>();
 
-    marchive << CHNVP(constraints);
+    archive_out << CHNVP(constraints);
 }
 
-void ChLinkMask::ArchiveIn(ChArchiveIn& marchive) {
-    /*int version =*/ marchive.VersionRead<ChLinkMask>();
+void ChLinkMask::ArchiveIn(ChArchiveIn& archive_in) {
+    /*int version =*/archive_in.VersionRead<ChLinkMask>();
 
-    marchive >> CHNVP(constraints);
-
+    archive_in >> CHNVP(constraints);
 }
 
 // -----------------------------------------------------------------------------
@@ -213,7 +181,7 @@ void ChLinkMask::ArchiveIn(ChArchiveIn& marchive) {
 CH_FACTORY_REGISTER(ChLinkMaskLF)
 
 ChLinkMaskLF::ChLinkMaskLF() {
-    ResetNconstr(7);  // the LF formulation uses 7 constraint flags
+    SetNumConstraints(7);  // the LF formulation uses 7 constraint flags
 }
 
 ChLinkMaskLF& ChLinkMaskLF::operator=(const ChLinkMaskLF& other) {
@@ -223,50 +191,49 @@ ChLinkMaskLF& ChLinkMaskLF::operator=(const ChLinkMaskLF& other) {
 
 void ChLinkMaskLF::SetLockMask(bool x, bool y, bool z, bool e0, bool e1, bool e2, bool e3) {
     if (x)
-        Constr_X().SetMode(CONSTRAINT_LOCK);
+        Constr_X().SetMode(ChConstraint::Mode::LOCK);
     else
-        Constr_X().SetMode(CONSTRAINT_FREE);
+        Constr_X().SetMode(ChConstraint::Mode::FREE);
 
     if (y)
-        Constr_Y().SetMode(CONSTRAINT_LOCK);
+        Constr_Y().SetMode(ChConstraint::Mode::LOCK);
     else
-        Constr_Y().SetMode(CONSTRAINT_FREE);
+        Constr_Y().SetMode(ChConstraint::Mode::FREE);
 
     if (z)
-        Constr_Z().SetMode(CONSTRAINT_LOCK);
+        Constr_Z().SetMode(ChConstraint::Mode::LOCK);
     else
-        Constr_Z().SetMode(CONSTRAINT_FREE);
+        Constr_Z().SetMode(ChConstraint::Mode::FREE);
 
     if (e0)
-        Constr_E0().SetMode(CONSTRAINT_LOCK);
+        Constr_E0().SetMode(ChConstraint::Mode::LOCK);
     else
-        Constr_E0().SetMode(CONSTRAINT_FREE);
+        Constr_E0().SetMode(ChConstraint::Mode::FREE);
 
     if (e1)
-        Constr_E1().SetMode(CONSTRAINT_LOCK);
+        Constr_E1().SetMode(ChConstraint::Mode::LOCK);
     else
-        Constr_E1().SetMode(CONSTRAINT_FREE);
+        Constr_E1().SetMode(ChConstraint::Mode::FREE);
 
     if (e2)
-        Constr_E2().SetMode(CONSTRAINT_LOCK);
+        Constr_E2().SetMode(ChConstraint::Mode::LOCK);
     else
-        Constr_E2().SetMode(CONSTRAINT_FREE);
+        Constr_E2().SetMode(ChConstraint::Mode::FREE);
 
     if (e3)
-        Constr_E3().SetMode(CONSTRAINT_LOCK);
+        Constr_E3().SetMode(ChConstraint::Mode::LOCK);
     else
-        Constr_E3().SetMode(CONSTRAINT_FREE);
+        Constr_E3().SetMode(ChConstraint::Mode::FREE);
 }
 
-void ChLinkMaskLF::ArchiveOut(ChArchiveOut& marchive) {
-    marchive.VersionWrite<ChLinkMaskLF>();
-    ChLinkMask::ArchiveOut(marchive);
+void ChLinkMaskLF::ArchiveOut(ChArchiveOut& archive_out) {
+    archive_out.VersionWrite<ChLinkMaskLF>();
+    ChLinkMask::ArchiveOut(archive_out);
 }
 
-void ChLinkMaskLF::ArchiveIn(ChArchiveIn& marchive) {
-    /*int version =*/ marchive.VersionRead<ChLinkMaskLF>();
-    ChLinkMask::ArchiveIn(marchive);
+void ChLinkMaskLF::ArchiveIn(ChArchiveIn& archive_in) {
+    /*int version =*/archive_in.VersionRead<ChLinkMaskLF>();
+    ChLinkMask::ArchiveIn(archive_in);
 }
-
 
 }  // end namespace chrono

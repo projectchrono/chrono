@@ -34,18 +34,18 @@ using namespace chrono::irrlicht;
 using namespace chrono::vehicle;
 
 int main(int argc, char* argv[]) {
-    GetLog() << "Copyright (c) 2017 projectchrono.org\nChrono version: " << CHRONO_VERSION << "\n\n";
+    std::cout << "Copyright (c) 2017 projectchrono.org\nChrono version: " << CHRONO_VERSION << std::endl;
 
     // Global parameter for tire:
     double tire_rad = 0.5;
-    ChVector<> tire_center(0, tire_rad, 0);
+    ChVector3d tire_center(0, tire_rad, 0);
 
     // Create a Chrono physical system
     ChSystemSMC sys;
     sys.SetCollisionSystemType(ChCollisionSystem::Type::BULLET);
 
     std::shared_ptr<ChBody> mtruss(new ChBody);
-    mtruss->SetBodyFixed(true);
+    mtruss->SetFixed(true);
     sys.Add(mtruss);
 
     // CREATE A DEFORMABLE TIRE
@@ -54,9 +54,9 @@ int main(int argc, char* argv[]) {
     auto mrim = chrono_types::make_shared<ChBody>();
     sys.Add(mrim);
     mrim->SetMass(80);
-    mrim->SetInertiaXX(ChVector<>(1, 1, 1));
-    mrim->SetPos(tire_center + ChVector<>(0, 0.2, 0));
-    mrim->SetRot(Q_from_AngAxis(CH_C_PI_2, VECT_Z));
+    mrim->SetInertiaXX(ChVector3d(1, 1, 1));
+    mrim->SetPos(tire_center + ChVector3d(0, 0.2, 0));
+    mrim->SetRot(QuatFromAngleZ(CH_PI_2));
 
     // The wheel object:
     auto wheel = chrono_types::make_shared<Wheel>(vehicle::GetDataFile("hmmwv/wheel/HMMWV_Wheel.json"));
@@ -78,8 +78,8 @@ int main(int argc, char* argv[]) {
     // The motor that rotates the rim:
     auto motor = chrono_types::make_shared<ChLinkMotorRotationAngle>();
     motor->SetSpindleConstraint(ChLinkMotorRotation::SpindleConstraint::OLDHAM);
-    motor->SetAngleFunction(chrono_types::make_shared<ChFunction_Ramp>(0, CH_C_PI / 4.0));
-    motor->Initialize(mrim, mtruss, ChFrame<>(tire_center, Q_from_AngAxis(CH_C_PI_2, VECT_Y)));
+    motor->SetAngleFunction(chrono_types::make_shared<ChFunctionRamp>(0, CH_PI / 4.0));
+    motor->Initialize(mrim, mtruss, ChFrame<>(tire_center, QuatFromAngleY(CH_PI_2)));
     sys.Add(motor);
 
     // THE DEFORMABLE TERRAIN
@@ -90,7 +90,7 @@ int main(int argc, char* argv[]) {
     // Displace/rotate the terrain reference plane.
     // Note that SCMTerrain uses a default ISO reference frame (Z up). Since the mechanism is modeled here in
     // a Y-up global frame, we rotate the terrain plane by -90 degrees about the X axis.
-    mterrain.SetPlane(ChCoordsys<>(ChVector<>(0, 0.2, 0.3), Q_from_AngX(-CH_C_PI_2)));
+    mterrain.SetPlane(ChCoordsys<>(ChVector3d(0, 0.2, 0.3), QuatFromAngleX(-CH_PI_2)));
 
     // Initialize the geometry of the soil: use either a regular grid:
     mterrain.Initialize(1.5, 6, 0.075);
@@ -132,16 +132,16 @@ int main(int argc, char* argv[]) {
     vis->Initialize();
     vis->AddLogo();
     vis->AddSkyBox();
-    vis->AddCamera(ChVector<>(1.0, 1.4, -1.2), ChVector<>(0, tire_rad, 0));
+    vis->AddCamera(ChVector3d(1.0, 1.4, -1.2), ChVector3d(0, tire_rad, 0));
     vis->AddLightDirectional();
-    vis->AddLightWithShadow(ChVector<>(1.5, 5.5, -2.5), ChVector<>(0, 0, 0), 3, 2.2, 7.2, 40, 512,
+    vis->AddLightWithShadow(ChVector3d(1.5, 5.5, -2.5), ChVector3d(0, 0, 0), 3, 2.2, 7.2, 40, 512,
                             ChColor(0.8f, 0.8f, 1.0f));
     vis->EnableShadows();
 
     // THE SOFT-REAL-TIME CYCLE
 
     // change the solver to PardisoMKL:
-    GetLog() << "Using PardisoMKL solver\n";
+    std::cout << "Using PardisoMKL solver\n";
     auto mkl_solver = chrono_types::make_shared<ChSolverPardisoMKL>();
     mkl_solver->LockSparsityPattern(true);
     sys.SetSolver(mkl_solver);
@@ -150,7 +150,7 @@ int main(int argc, char* argv[]) {
     sys.SetTimestepperType(ChTimestepper::Type::HHT);
     auto integrator = std::static_pointer_cast<ChTimestepperHHT>(sys.GetTimestepper());
     integrator->SetAlpha(-0.2);
-    integrator->SetMaxiters(8);
+    integrator->SetMaxIters(8);
     integrator->SetAbsTolerances(1e-1, 10);
     integrator->SetModifiedNewton(false);
     integrator->SetVerbose(true);

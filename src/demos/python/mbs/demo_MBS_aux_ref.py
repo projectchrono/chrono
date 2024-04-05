@@ -40,98 +40,94 @@ import math
 
 sys = chrono.ChSystemNSC()
 
-sys.Set_G_acc(chrono.ChVectorD(0, -9.81, 0))
+sys.SetGravitationalAcceleration(chrono.ChVector3d(0, -9.81, 0))
 
 # Create the ground body with two visualization cylinders
 
 ground = chrono.ChBody()
 sys.Add(ground)
-ground.SetIdentifier(-1)
-ground.SetBodyFixed(True)
-ground.SetCollide(False)
+ground.SetFixed(True)
+ground.EnableCollision(False)
 
 cyl_1 = chrono.ChVisualShapeCylinder(0.2, 0.4)
-ground.AddVisualShape(cyl_1, chrono.ChFrameD(chrono.ChVectorD(0, 0, +1)))
+ground.AddVisualShape(cyl_1, chrono.ChFramed(chrono.ChVector3d(0, 0, +1)))
 
 cyl_2 = chrono.ChVisualShapeCylinder(0.2, 0.4)
-ground.AddVisualShape(cyl_2, chrono.ChFrameD(chrono.ChVectorD(0, 0, -1)))
+ground.AddVisualShape(cyl_2, chrono.ChFramed(chrono.ChVector3d(0, 0, -1)))
 
 
 # Create a pendulum modeled using ChBody
 
 pend_1 =  chrono.ChBody()
 sys.AddBody(pend_1)
-pend_1.SetIdentifier(1)
-pend_1.SetBodyFixed(False)
-pend_1.SetCollide(False)
+pend_1.SetFixed(False)
+pend_1.EnableCollision(False)
 pend_1.SetMass(1)
-pend_1.SetInertiaXX(chrono.ChVectorD(0.2, 1, 1))
+pend_1.SetInertiaXX(chrono.ChVector3d(0.2, 1, 1))
 
 # Attach a visualization asset. Note that the cylinder is defined with
 # respect to the centroidal reference frame (which is the body reference
 # frame for a ChBody)
 cyl_1 = chrono.ChVisualShapeCylinder(0.2, 2)
 cyl_1.SetColor(chrono.ChColor(0.6, 0, 0))
-pend_1.AddVisualShape(cyl_1, chrono.ChFrameD(chrono.VNULL, chrono.Q_from_AngY(chrono.CH_C_PI_2)))
+pend_1.AddVisualShape(cyl_1, chrono.ChFramed(chrono.VNULL, chrono.QuatFromAngleY(chrono.CH_PI_2)))
 
 
 # Specify the intial position of the pendulum (horizontal, pointing towards
 # positive X). In this case, we set the absolute position of its center of 
 # mass
-pend_1.SetPos(chrono.ChVectorD(1, 0, 1))
+pend_1.SetPos(chrono.ChVector3d(1, 0, 1))
 
 # Create a revolute joint to connect pendulum to ground. We specify the link
 # coordinate frame in the absolute frame.
 rev_1 = chrono.ChLinkLockRevolute()
-rev_1.Initialize(ground, pend_1, chrono.ChCoordsysD(chrono.ChVectorD(0, 0, 1), chrono.ChQuaternionD(1, 0, 0, 0)))
+rev_1.Initialize(ground, pend_1, chrono.ChFramed(chrono.ChVector3d(0, 0, 1), chrono.ChQuaterniond(1, 0, 0, 0)))
 sys.AddLink(rev_1)
 
 # Create a pendulum modeled using ChBodyAuxRef
 pend_2 = chrono.ChBodyAuxRef()
 sys.Add(pend_2)
-pend_2.SetIdentifier(2)
-pend_2.SetBodyFixed(False)
-pend_2.SetCollide(False)
+pend_2.SetFixed(False)
+pend_2.EnableCollision(False)
 pend_2.SetMass(1)
-pend_2.SetInertiaXX(chrono.ChVectorD(0.2, 1, 1))
+pend_2.SetInertiaXX(chrono.ChVector3d(0.2, 1, 1))
 # NOTE: the inertia tensor must still be expressed in the centroidal frame!
 
 # Attach a visualizationn asset. Note that now the cylinder is defined with
 # respect to the body reference frame.
 cyl_2 = chrono.ChVisualShapeCylinder(0.2, 2)
 cyl_2.SetColor(chrono.ChColor(0, 0, 0.6))
-pend_2.AddVisualShape(cyl_2, chrono.ChFrameD(chrono.ChVectorD(1, 0, 0), chrono.Q_from_AngY(chrono.CH_C_PI_2)))
+pend_2.AddVisualShape(cyl_2, chrono.ChFramed(chrono.ChVector3d(1, 0, 0), chrono.QuatFromAngleY(chrono.CH_PI_2)))
 
 
 # In this case, we must specify the centroidal frame, relative to the body
 # reference frame
-pend_2.SetFrame_COG_to_REF(chrono.ChFrameD(chrono.ChVectorD(1, 0, 0), chrono.ChQuaternionD(1, 0, 0, 0)))
+pend_2.SetFrameCOMToRef(chrono.ChFramed(chrono.ChVector3d(1, 0, 0), chrono.ChQuaterniond(1, 0, 0, 0)))
 
 # Specify the initial position of the pendulum (horizontal, pointing towards
 # positive X).  Here, we want to specify the position of the body reference
 # frame (relative to the absolute frame). Recall that the body reference
 # frame is located at the pin.
-pend_2.SetFrame_REF_to_abs(chrono.ChFrameD(chrono.ChVectorD(0, 0, -1)))
+pend_2.SetFrameRefToAbs(chrono.ChFramed(chrono.ChVector3d(0, 0, -1)))
 
 
 # Note: Beware of using the method SetPos() to specify the initial position
 # (as we did for the first pendulum)!  SetPos() specifies the position of the
-# centroidal frame.  So one could use it (instead of SetFrame_REF_to_abs) but
-# using:
+# centroidal frame.  So one could use it (instead of SetFrameRefToAbs):
 #   pend_2->SetPos(ChVector<>(1, 0, -1));
 # However, this defeats the goal of specifying the body through the desired
 # body reference frame.
 # Alternatively, one could use SetPos() and pass it the position of the body
 # reference frame; i.e.
 #   pend_2->SetPos(ChVector<>(0, 0, -1));
-# provided we do this BEFORE the call to SetFrame_COG_to_REF().
+# provided we do this BEFORE the call to SetFrameCOMToRef().
 #
 # This also applies to SetRot().
 #
 # Create a revolute joint to connect pendulum to ground. We specify the link
 # coordinate frame in the absolute frame.
 rev_2 = chrono.ChLinkLockRevolute()
-rev_2.Initialize(ground, pend_2, chrono.ChCoordsysD(chrono.ChVectorD(0, 0, -2), chrono.ChQuaternionD(1, 0, 0, 0)))
+rev_2.Initialize(ground, pend_2, chrono.ChFramed(chrono.ChVector3d(0, 0, -2), chrono.ChQuaterniond(1, 0, 0, 0)))
 sys.AddLink(rev_2)
 
 # Create the Irrlicht visualization
@@ -142,7 +138,7 @@ vis.SetWindowTitle('ChBodyAuxRef demo')
 vis.Initialize()
 vis.AddLogo(chrono.GetChronoDataFile('logo_pychrono_alpha.png'))
 vis.AddSkyBox()
-vis.AddCamera(chrono.ChVectorD(0, 3, 6))
+vis.AddCamera(chrono.ChVector3d(0, 3, 6))
 vis.AddTypicalLights()
 
 # Simulation Loop
@@ -159,28 +155,26 @@ while vis.Run():
         # the centroidal frame for both pendulums:
         pos_1 = pend_1.GetPos()
         pos_2 = pend_2.GetPos()
-        chrono.GetLog() << "t = "<< sys.GetChTime() << "\n"
-        chrono.GetLog() << "     " << pos_1.x << "  " << pos_1.y << "\n"
-        chrono.GetLog() << "     " << pos_2.x << "  " << pos_2.y << "\n"
-        frame_2 = pend_2.GetFrame_REF_to_abs()
+        print("t = ", sys.GetChTime())
+        print("     ", pos_1.x, "  ", pos_1.y)
+        print("     ", pos_2.x, "  ", pos_2.y)
+        frame_2 = pend_2.GetFrameRefToAbs()
         pos_2 = frame_2.GetPos()
 
 
-        #OK, what about velocities? Here again, GetPos_dt() returns the linear
+        #OK, what about velocities? Here again, GetPosDt() returns the linear
         # velocity of the body COG (expressed in the global frame) for both
         # pendulums
-        lin_vel_1 = pend_1.GetPos_dt()
-        lin_vel_2 = pend_2.GetPos_dt()
+        lin_vel_1 = pend_1.GetPosDt()
+        lin_vel_2 = pend_2.GetPosDt()
 
-        chrono.GetLog() << "     " << lin_vel_1.x << "  " << lin_vel_1.y << "\n"
-        chrono.GetLog() << "     " << lin_vel_2.y << "  " << lin_vel_2.y << "\n"
+        print("     ", lin_vel_1.x, "  ", lin_vel_1.y)
+        print("     ", lin_vel_2.y, "  ", lin_vel_2.y)
 
         # To obtain the absolute linear velocity of the body reference frame, 
-        # we use again GetPos_dt(), but this time for the reference frame,
-        # using GetFrame_REF_to_abs() similarly for what we did for positions:
-        lin_vel_2 = pend_2.GetFrame_REF_to_abs().GetPos_dt()
-        chrono.GetLog() << "    " << lin_vel_2.x << "  " << lin_vel_2.y << "\n"
+        # we use again GetPosDt(), but this time for the reference frame,
+        # using GetFrameRefToAbs() similarly for what we did for positions:
+        lin_vel_2 = pend_2.GetFrameRefToAbs().GetPosDt()
+        print("    ", lin_vel_2.x, "  ", lin_vel_2.y)
 
         log_info = False
-
-

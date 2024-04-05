@@ -28,13 +28,14 @@ namespace vehicle {
 // -----------------------------------------------------------------------------
 // -----------------------------------------------------------------------------
 ShaftsDriveline4WD::ShaftsDriveline4WD(const std::string& filename) : ChShaftsDriveline4WD("") {
-    Document d; ReadFileJSON(filename, d);
+    Document d;
+    ReadFileJSON(filename, d);
     if (d.IsNull())
         return;
 
     Create(d);
 
-    GetLog() << "Loaded JSON: " << filename.c_str() << "\n";
+    std::cout << "Loaded JSONL " << filename << std::endl;
 }
 
 ShaftsDriveline4WD::ShaftsDriveline4WD(const rapidjson::Document& d) : ChShaftsDriveline4WD("") {

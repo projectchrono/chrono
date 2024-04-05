@@ -85,8 +85,7 @@ class CH_MODELS_API Marder {
     void SetRoadWheelVisualizationType(VisualizationType vis) { m_vehicle->SetRoadWheelVisualizationType(vis); }
     void SetTrackShoeVisualizationType(VisualizationType vis) { m_vehicle->SetTrackShoeVisualizationType(vis); }
 
-    void Synchronize(double time,
-                     const DriverInputs& driver_inputs);
+    void Synchronize(double time, const DriverInputs& driver_inputs);
     void Synchronize(double time,
                      const DriverInputs& driver_inputs,
                      const TerrainForces& shoe_forces_left,

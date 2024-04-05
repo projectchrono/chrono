@@ -20,7 +20,7 @@
 namespace chrono {
 namespace fea {
 
-ChNodeFEAcurv::ChNodeFEAcurv(const ChVector<>& rxx, const ChVector<>& ryy, const ChVector<>& rzz)
+ChNodeFEAcurv::ChNodeFEAcurv(const ChVector3d& rxx, const ChVector3d& ryy, const ChVector3d& rzz)
     : m_rxx(rxx),
       m_ryy(ryy),
       m_rzz(rzz),
@@ -87,7 +87,7 @@ void ChNodeFEAcurv::Relax() {
     m_rzz_dtdt = VNULL;
 }
 
-void ChNodeFEAcurv::SetNoSpeedNoAcceleration() {
+void ChNodeFEAcurv::ForceToRest() {
     m_rxx_dt = VNULL;
     m_ryy_dt = VNULL;
     m_rzz_dt = VNULL;
@@ -157,10 +157,10 @@ void ChNodeFEAcurv::NodeIntStateIncrement(const unsigned int off_x,
 }
 
 void ChNodeFEAcurv::NodeIntStateGetIncrement(const unsigned int off_x,
-                                          const ChState& x_new,
-                                          const ChState& x,
-                                          const unsigned int off_v,
-                                          ChStateDelta& Dv) {
+                                             const ChState& x_new,
+                                             const ChState& x,
+                                             const unsigned int off_v,
+                                             ChStateDelta& Dv) {
     for (int i = 0; i < 9; i++) {
         Dv(off_v + i) = x_new(off_x + i) - x(off_x + i);
     }
@@ -189,22 +189,22 @@ void ChNodeFEAcurv::NodeIntLoadLumpedMass_Md(const unsigned int off,
 }
 
 void ChNodeFEAcurv::NodeIntToDescriptor(const unsigned int off_v, const ChStateDelta& v, const ChVectorDynamic<>& R) {
-    m_variables->Get_qb().segment(0, 9) = v.segment(off_v, 9);
-    m_variables->Get_fb().segment(0, 9) = R.segment(off_v, 9);
+    m_variables->State().segment(0, 9) = v.segment(off_v, 9);
+    m_variables->Force().segment(0, 9) = R.segment(off_v, 9);
 }
 
 void ChNodeFEAcurv::NodeIntFromDescriptor(const unsigned int off_v, ChStateDelta& v) {
-    v.segment(off_v, 9) = m_variables->Get_qb().segment(0, 9);
+    v.segment(off_v, 9) = m_variables->State().segment(0, 9);
 }
 
 // -----------------------------------------------------------------------------
 
-void ChNodeFEAcurv::InjectVariables(ChSystemDescriptor& mdescriptor) {
-    mdescriptor.InsertVariables(m_variables);
+void ChNodeFEAcurv::InjectVariables(ChSystemDescriptor& descriptor) {
+    descriptor.InsertVariables(m_variables);
 }
 
 void ChNodeFEAcurv::VariablesFbReset() {
-    m_variables->Get_fb().setZero();
+    m_variables->Force().setZero();
 }
 
 void ChNodeFEAcurv::VariablesFbLoadForces(double factor) {
@@ -212,19 +212,19 @@ void ChNodeFEAcurv::VariablesFbLoadForces(double factor) {
 }
 
 void ChNodeFEAcurv::VariablesQbLoadSpeed() {
-    m_variables->Get_qb().segment(0, 3) = m_rxx_dt.eigen();
-    m_variables->Get_qb().segment(3, 3) = m_ryy_dt.eigen();
-    m_variables->Get_qb().segment(6, 3) = m_rzz_dt.eigen();
+    m_variables->State().segment(0, 3) = m_rxx_dt.eigen();
+    m_variables->State().segment(3, 3) = m_ryy_dt.eigen();
+    m_variables->State().segment(6, 3) = m_rzz_dt.eigen();
 }
 
 void ChNodeFEAcurv::VariablesQbSetSpeed(double step) {
-    ChVector<> old_rxx_dt = m_rxx_dt;
-    ChVector<> old_ryy_dt = m_ryy_dt;
-    ChVector<> old_rzz_dt = m_rzz_dt;
+    ChVector3d old_rxx_dt = m_rxx_dt;
+    ChVector3d old_ryy_dt = m_ryy_dt;
+    ChVector3d old_rzz_dt = m_rzz_dt;
 
-    m_rxx_dt = m_variables->Get_qb().segment(0, 3);
-    m_ryy_dt = m_variables->Get_qb().segment(3, 3);
-    m_rzz_dt = m_variables->Get_qb().segment(6, 3);
+    m_rxx_dt = m_variables->State().segment(0, 3);
+    m_ryy_dt = m_variables->State().segment(3, 3);
+    m_rzz_dt = m_variables->State().segment(6, 3);
 
     if (step) {
         m_rxx_dtdt = (m_rxx_dt - old_rxx_dt) / step;
@@ -234,13 +234,13 @@ void ChNodeFEAcurv::VariablesQbSetSpeed(double step) {
 }
 
 void ChNodeFEAcurv::VariablesFbIncrementMq() {
-    m_variables->Compute_inc_Mb_v(m_variables->Get_fb(), m_variables->Get_qb());
+    m_variables->AddMassTimesVector(m_variables->Force(), m_variables->State());
 }
 
 void ChNodeFEAcurv::VariablesQbIncrementPosition(double step) {
-    ChVector<> new_rxx_dt(m_variables->Get_qb().segment(0, 3));
-    ChVector<> new_ryy_dt(m_variables->Get_qb().segment(3, 3));
-    ChVector<> new_rzz_dt(m_variables->Get_qb().segment(6, 3));
+    ChVector3d new_rxx_dt(m_variables->State().segment(0, 3));
+    ChVector3d new_ryy_dt(m_variables->State().segment(3, 3));
+    ChVector3d new_rzz_dt(m_variables->State().segment(6, 3));
     m_rxx = m_rxx + new_rxx_dt * step;
     m_ryy = m_ryy + new_ryy_dt * step;
     m_rzz = m_rzz + new_rzz_dt * step;
@@ -248,40 +248,40 @@ void ChNodeFEAcurv::VariablesQbIncrementPosition(double step) {
 
 // -----------------------------------------------------------------------------
 
-void ChNodeFEAcurv::ArchiveOut(ChArchiveOut& marchive) {
+void ChNodeFEAcurv::ArchiveOut(ChArchiveOut& archive_out) {
     // version number
-    marchive.VersionWrite<ChNodeFEAcurv>();
+    archive_out.VersionWrite<ChNodeFEAcurv>();
     // serialize parent class
-    ChNodeFEAbase::ArchiveOut(marchive);
+    ChNodeFEAbase::ArchiveOut(archive_out);
 
     // serialize all member data:
-    marchive << CHNVP(m_rxx);
-    marchive << CHNVP(m_ryy);
-    marchive << CHNVP(m_rzz);
-    marchive << CHNVP(m_rxx_dt);
-    marchive << CHNVP(m_ryy_dt);
-    marchive << CHNVP(m_rzz_dt);
-    marchive << CHNVP(m_rxx_dtdt);
-    marchive << CHNVP(m_ryy_dtdt);
-    marchive << CHNVP(m_rzz_dtdt);
+    archive_out << CHNVP(m_rxx);
+    archive_out << CHNVP(m_ryy);
+    archive_out << CHNVP(m_rzz);
+    archive_out << CHNVP(m_rxx_dt);
+    archive_out << CHNVP(m_ryy_dt);
+    archive_out << CHNVP(m_rzz_dt);
+    archive_out << CHNVP(m_rxx_dtdt);
+    archive_out << CHNVP(m_ryy_dtdt);
+    archive_out << CHNVP(m_rzz_dtdt);
 }
 
-void ChNodeFEAcurv::ArchiveIn(ChArchiveIn& marchive) {
+void ChNodeFEAcurv::ArchiveIn(ChArchiveIn& archive_in) {
     // version number
-    /*int version =*/ marchive.VersionRead<ChNodeFEAcurv>();
+    /*int version =*/archive_in.VersionRead<ChNodeFEAcurv>();
     // deserialize parent class
-    ChNodeFEAbase::ArchiveIn(marchive);
+    ChNodeFEAbase::ArchiveIn(archive_in);
 
     // stream in all member data:
-    marchive >> CHNVP(m_rxx);
-    marchive >> CHNVP(m_ryy);
-    marchive >> CHNVP(m_rzz);
-    marchive >> CHNVP(m_rxx_dt);
-    marchive >> CHNVP(m_ryy_dt);
-    marchive >> CHNVP(m_rzz_dt);
-    marchive >> CHNVP(m_rxx_dtdt);
-    marchive >> CHNVP(m_ryy_dtdt);
-    marchive >> CHNVP(m_rzz_dtdt);
+    archive_in >> CHNVP(m_rxx);
+    archive_in >> CHNVP(m_ryy);
+    archive_in >> CHNVP(m_rzz);
+    archive_in >> CHNVP(m_rxx_dt);
+    archive_in >> CHNVP(m_ryy_dt);
+    archive_in >> CHNVP(m_rzz_dt);
+    archive_in >> CHNVP(m_rxx_dtdt);
+    archive_in >> CHNVP(m_ryy_dtdt);
+    archive_in >> CHNVP(m_rzz_dtdt);
 }
 
 }  // end namespace fea

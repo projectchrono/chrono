@@ -30,15 +30,12 @@ ChShaftsClutch::ChShaftsClutch(const ChShaftsClutch& other) : ChShaftsCouple(oth
     torque_react = other.torque_react;
 }
 
-bool ChShaftsClutch::Initialize(std::shared_ptr<ChShaft> mshaft1, std::shared_ptr<ChShaft> mshaft2) {
+bool ChShaftsClutch::Initialize(std::shared_ptr<ChShaft> shaft_1, std::shared_ptr<ChShaft> shaft_2) {
     // parent class initialization
-    if (!ChShaftsCouple::Initialize(mshaft1, mshaft2))
+    if (!ChShaftsCouple::Initialize(shaft_1, shaft_2))
         return false;
 
-    ChShaft* mm1 = mshaft1.get();
-    ChShaft* mm2 = mshaft2.get();
-
-    constraint.SetVariables(&mm1->Variables(), &mm2->Variables());
+    constraint.SetVariables(&shaft_1->Variables(), &shaft_2->Variables());
 
     SetSystem(shaft1->GetSystem());
 
@@ -58,8 +55,6 @@ void ChShaftsClutch::SetTorqueLimit(double ml, double mu) {
     maxT = mu;
 }
 
-//// STATE BOOKKEEPING FUNCTIONS
-
 void ChShaftsClutch::IntStateGatherReactions(const unsigned int off_L, ChVectorDynamic<>& L) {
     L(off_L) = torque_react;
 }
@@ -72,11 +67,11 @@ void ChShaftsClutch::IntLoadResidual_CqL(const unsigned int off_L,    // offset 
                                          ChVectorDynamic<>& R,        // result: the R residual, R += c*Cq'*L
                                          const ChVectorDynamic<>& L,  // the L vector
                                          const double c               // a scaling factor
-                                         ) {
+) {
     if (!active)
         return;
 
-    constraint.MultiplyTandAdd(R, L(off_L) * c);
+    constraint.AddJacobianTransposedTimesScalarInto(R, L(off_L) * c);
 }
 
 void ChShaftsClutch::IntLoadConstraint_C(const unsigned int off_L,  // offset in Qc residual
@@ -84,7 +79,7 @@ void ChShaftsClutch::IntLoadConstraint_C(const unsigned int off_L,  // offset in
                                          const double c,            // a scaling factor
                                          bool do_clamp,             // apply clamping to c*C?
                                          double recovery_clamp      // value for min/max clamping of c*C
-                                         ) {
+) {
     if (!active)
         return;
 
@@ -93,7 +88,7 @@ void ChShaftsClutch::IntLoadConstraint_C(const unsigned int off_L,  // offset in
     double cnstr_violation = c * res;
 
     if (do_clamp) {
-        cnstr_violation = ChMin(ChMax(cnstr_violation, -recovery_clamp), recovery_clamp);
+        cnstr_violation = std::min(std::max(cnstr_violation, -recovery_clamp), recovery_clamp);
     }
 
     Qc(off_L) += cnstr_violation;
@@ -103,7 +98,7 @@ void ChShaftsClutch::IntLoadResidual_F(const unsigned int off, ChVectorDynamic<>
     if (!active)
         return;
 
-    double dt = system->GetStep(); //// TODO: check this if ever using variable-step integrators
+    double dt = system->GetStep();  //// TODO: check this if ever using variable-step integrators
     constraint.SetBoxedMinMax(dt * minT * modulation, dt * maxT * modulation);
 }
 
@@ -116,8 +111,8 @@ void ChShaftsClutch::IntToDescriptor(const unsigned int off_v,  // offset in v, 
     if (!active)
         return;
 
-    constraint.Set_l_i(L(off_L));
-    constraint.Set_b_i(Qc(off_L));
+    constraint.SetLagrangeMultiplier(L(off_L));
+    constraint.SetRightHandSide(Qc(off_L));
 }
 
 void ChShaftsClutch::IntFromDescriptor(const unsigned int off_v,  // offset in v
@@ -127,20 +122,18 @@ void ChShaftsClutch::IntFromDescriptor(const unsigned int off_v,  // offset in v
     if (!active)
         return;
 
-    L(off_L) = constraint.Get_l_i();
+    L(off_L) = constraint.GetLagrangeMultiplier();
 }
 
-// SOLVER INTERFACES
-
-void ChShaftsClutch::InjectConstraints(ChSystemDescriptor& mdescriptor) {
+void ChShaftsClutch::InjectConstraints(ChSystemDescriptor& descriptor) {
     if (!active)
         return;
 
-    mdescriptor.InsertConstraint(&constraint);
+    descriptor.InsertConstraint(&constraint);
 }
 
 void ChShaftsClutch::ConstraintsBiReset() {
-    constraint.Set_b_i(0.);
+    constraint.SetRightHandSide(0.);
 }
 
 void ChShaftsClutch::ConstraintsBiLoad_C(double factor, double recovery_clamp, bool do_clamp) {
@@ -149,7 +142,7 @@ void ChShaftsClutch::ConstraintsBiLoad_C(double factor, double recovery_clamp, b
 
     double res = 0;  // no residual
 
-    constraint.Set_b_i(constraint.Get_b_i() + factor * res);
+    constraint.SetRightHandSide(constraint.GetRightHandSide() + factor * res);
 }
 
 void ChShaftsClutch::ConstraintsBiLoad_Ct(double factor) {
@@ -165,45 +158,41 @@ void ChShaftsClutch::ConstraintsFbLoadForces(double factor) {
     constraint.SetBoxedMinMax(m_dt * minT * modulation, m_dt * maxT * modulation);
 }
 
-void ChShaftsClutch::ConstraintsLoadJacobians() {
+void ChShaftsClutch::LoadConstraintJacobians() {
     constraint.Get_Cq_a()(0) = 1.0;
     constraint.Get_Cq_b()(0) = -1.0;
 }
 
 void ChShaftsClutch::ConstraintsFetch_react(double factor) {
     // From constraints to react vector:
-    torque_react = constraint.Get_l_i() * factor;
+    torque_react = constraint.GetLagrangeMultiplier() * factor;
 }
 
-//////// FILE I/O
-
-void ChShaftsClutch::ArchiveOut(ChArchiveOut& marchive) {
+void ChShaftsClutch::ArchiveOut(ChArchiveOut& archive_out) {
     // version number
-    marchive.VersionWrite<ChShaftsClutch>();
+    archive_out.VersionWrite<ChShaftsClutch>();
 
     // serialize parent class
-    ChShaftsCouple::ArchiveOut(marchive);
+    ChShaftsCouple::ArchiveOut(archive_out);
 
     // serialize all member data:
-    marchive << CHNVP(maxT);
-    marchive << CHNVP(minT);
-    marchive << CHNVP(modulation);
+    archive_out << CHNVP(maxT);
+    archive_out << CHNVP(minT);
+    archive_out << CHNVP(modulation);
 }
 
-/// Method to allow de serialization of transient data from archives.
-void ChShaftsClutch::ArchiveIn(ChArchiveIn& marchive) {
+void ChShaftsClutch::ArchiveIn(ChArchiveIn& archive_in) {
     // version number
-    /*int version =*/ marchive.VersionRead<ChShaftsClutch>();
+    /*int version =*/archive_in.VersionRead<ChShaftsClutch>();
 
     // deserialize parent class:
-    ChShaftsCouple::ArchiveIn(marchive);
+    ChShaftsCouple::ArchiveIn(archive_in);
 
     // deserialize all member data:
-    marchive >> CHNVP(maxT);
-    marchive >> CHNVP(minT);
-    marchive >> CHNVP(modulation);
+    archive_in >> CHNVP(maxT);
+    archive_in >> CHNVP(minT);
+    archive_in >> CHNVP(modulation);
     constraint.SetVariables(&shaft1->Variables(), &shaft2->Variables());
-
 }
 
 }  // end namespace chrono

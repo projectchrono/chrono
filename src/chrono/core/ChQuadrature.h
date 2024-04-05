@@ -22,14 +22,14 @@
 
 namespace chrono {
 
-/// Class to store polynomial roots and weights for the Gauss-Legendre
-/// quadrature. It is automatically managed by ChQuadrature.
+/// Polynomial roots and weights for the Gauss-Legendre quadrature.
+/// These quadrature tables are automatically managed by ChQuadrature.
 class ChApi ChQuadratureTables {
   public:
     ChQuadratureTables(int order_from = 1, int order_to = 10);
 
-    std::vector<std::vector<double> > Weight;
-    std::vector<std::vector<double> > Lroots;
+    std::vector<std::vector<double>> Weight;
+    std::vector<std::vector<double>> Lroots;
 
     void PrintTables();
 
@@ -37,100 +37,81 @@ class ChApi ChQuadratureTables {
     void glege_roots(ChMatrixDynamic<>& lcoef, int N, int ntable);
 };
 
-
-
-/// Class to store polynomial roots and weights for quadrature 
-/// over a triangle. Assumes 2 natural 'area' coordinates u v,
-/// the 3rd assumed 1-u-v.
-/// D. A. Dunavant, High degree efficient symmetrical Gaussian quadrature rules for the triangle, Int. J. Num.
-/// Meth. Engng, 21(1985):1129-1148.
+/// Polynomial roots and weights for quadrature over a triangle.
+/// Assumes 2 natural 'area' coordinates u and v, with the 3rd assumed to be 1-u-v.
+/// D. A. Dunavant, "High degree efficient symmetrical Gaussian quadrature rules for the triangle",
+/// Int. J. Num. Meth. Engng, 21(1985):1129-1148.
 class ChApi ChQuadratureTablesTriangle {
   public:
     ChQuadratureTablesTriangle();
 
-    std::vector<std::vector<double> > Weight;
-    std::vector<std::vector<double> > LrootsU;
-    std::vector<std::vector<double> > LrootsV;
+    std::vector<std::vector<double>> Weight;
+    std::vector<std::vector<double>> LrootsU;
+    std::vector<std::vector<double>> LrootsV;
 };
 
-/// Class to store polynomial roots and weights for quadrature 
-/// over a tetrahedron. Assumes 3 natural 'volume' coordinates u v w,
-/// the 4th assumed 1-u-v-w
+/// Polynomial roots and weights for quadrature over a tetrahedron.
+/// Assumes 3 natural 'volume' coordinates u, v, and w, with the 4th assumed to be 1-u-v-w.
 class ChApi ChQuadratureTablesTetrahedron {
   public:
     ChQuadratureTablesTetrahedron();
 
-    std::vector<std::vector<double> > Weight;
-    std::vector<std::vector<double> > LrootsU;
-    std::vector<std::vector<double> > LrootsV;
-    std::vector<std::vector<double> > LrootsW;
+    std::vector<std::vector<double>> Weight;
+    std::vector<std::vector<double>> LrootsU;
+    std::vector<std::vector<double>> LrootsV;
+    std::vector<std::vector<double>> LrootsW;
 };
 
+// -----------------------------------------------------------------------------
 
-/// Base class for 1D integrand T=f(x) to be used in ChQuadrature.
-/// Since the class is templated, the computed valued can be either
-/// a simple 'double' or a more complex object, like ChMatrixNM<..>.
-/// You must inherit your custom class from this base class, and
-/// implement your own Evaluate() method, for example:
-///
-/// class MySine : public ChIntegrable1D<double>
-/// {
-///  public:
-///		void Evaluate (double& result, const double x)  { result = sin(x); }
-/// };
-///
+/// Base class for 1D integrand T = f(x) to be used in ChQuadrature.
+/// The class is templated so that the computed valued can be either a scalar or a more complex object (e.g., a matrix).
 template <class T = double>
-class ChIntegrable1D {
+class ChIntegrand1D {
   public:
-    virtual ~ChIntegrable1D() {}
+    virtual ~ChIntegrand1D() {}
 
-    /// Evaluate the function at point x , that is
-    /// result T = f(x)
+    /// Evaluate the function at point x, that is result T = f(x).
     virtual void Evaluate(T& result, const double x) = 0;
 };
 
-/// As ChIntegrable1D, but for 2D integrand T=f(x,y)
-/// to be used in ChQuadrature.
+/// Base class for 2D integrand T = f(x,y) to be used in ChQuadrature.
 template <class T = double>
-class ChIntegrable2D {
+class ChIntegrand2D {
   public:
-    virtual ~ChIntegrable2D() {}
+    virtual ~ChIntegrand2D() {}
 
-    /// Evaluate the function at point x,y , that is
-    /// result T = f(x,y)
+    /// Evaluate the function at point x,y , that is result T = f(x,y).
     virtual void Evaluate(T& result, const double x, const double y) = 0;
 };
 
-/// As ChIntegrable1D, but for 3D integrand T=f(x,y,z)
-/// to be used in ChQuadrature.
+/// Base class for 3D integrand T = f(x,y,z) to be used in ChQuadrature.
 template <class T = double>
-class ChIntegrable3D {
+class ChIntegrand3D {
   public:
-    virtual ~ChIntegrable3D() {}
+    virtual ~ChIntegrand3D() {}
 
-    /// Evaluate the function at point x,y,z , that is
-    /// result T = f(x,y,z)
+    /// Evaluate the function at point x,y,z , that is result T = f(x,y,z)
     virtual void Evaluate(T& result, const double x, const double y, const double z) = 0;
 };
 
-/// Class to perform Gauss-Legendre quadrature, in 1D, 2D, 3D.
-/// It integrates a function on a nD domain using the Gauss quadrature; this is mostly
-/// useful in the case that the integrand is polynomial, because the result is exact
-/// if the order of quadrature is greater or equal to the degree of the polynomial.
-/// Integrate() functions are static; no need to allocate an instance of this class.
+// -----------------------------------------------------------------------------
 
+/// Gauss-Legendre quadrature in 1D, 2D, or 3D.
+/// This class provides methods to integrate a function (the integrand) on a domain using the Gauss quadrature.
+/// This method is most useful for polynomial integrands, in which case the result is exact if the order of quadrature
+/// is greater or equal to the degree of the polynomial.
 class ChApi ChQuadrature {
   public:
-    /// Integrate the integrand T = f(x) over the 1D interval [xA, xB],
-    /// with desired order of quadrature. Best if integrand is polynomial.
-    /// For order in 1..10, precomputed polynomial coefficients are used for max speed.
+    /// Integrate the integrand T = f(x) over the 1D interval [xA, xB], with specified order of quadrature.
+    /// Best if integrand is polynomial. For order in 1..10, precomputed polynomial coefficients are used.
     template <class T>
-    static void Integrate1D(T& result,                     ///< result is returned here
-                            ChIntegrable1D<T>& integrand,  ///< this is the integrand
-                            const double a,                ///< min limit for x domain
-                            const double b,                ///< min limit for x domain
-                            const int order)               ///< order of integration
-    {
+    static void Integrate1D(T& result,                    ///< result is returned here
+                            ChIntegrand1D<T>& integrand,  ///< this is the integrand
+                            const double x_min,           ///< min limit for x domain
+                            const double x_max,           ///< min limit for x domain
+                            const int order               ///< order of integration
+    ) {
         ChQuadratureTables* mtables = 0;
         std::vector<double>* lroots;
         std::vector<double>* weight;
@@ -149,8 +130,8 @@ class ChApi ChQuadrature {
             static_tables = false;
         }
 
-        double c1 = (b - a) / 2;
-        double c2 = (b + a) / 2;
+        double c1 = (x_max - x_min) / 2;
+        double c2 = (x_max + x_min) / 2;
 
         result *= 0;  // as result = 0, but works also for matrices.
         T val;        // temporary value for loop
@@ -166,18 +147,17 @@ class ChApi ChQuadrature {
             delete mtables;
     }
 
-    /// Integrate the integrand T = f(x,y) over the 2D interval [xA, xB][yA, yB],
-    /// with desired order of quadrature. Best if integrand is polynomial.
-    /// For order in 1..10, precomputed polynomial coefficients are used for max speed.
+    /// Integrate the integrand T = f(x,y) over the 2D interval [xA, xB][yA, yB], with desired order of quadrature.
+    /// Best if integrand is polynomial. For order in 1..10, precomputed polynomial coefficients are used.
     template <class T>
-    static void Integrate2D(T& result,                     ///< result is returned here
-                            ChIntegrable2D<T>& integrand,  ///< this is the integrand
-                            const double Xa,               ///< min limit for x domain
-                            const double Xb,               ///< min limit for x domain
-                            const double Ya,               ///< min limit for y domain
-                            const double Yb,               ///< min limit for y domain
-                            const int order)               ///< order of integration
-    {
+    static void Integrate2D(T& result,                    ///< result is returned here
+                            ChIntegrand2D<T>& integrand,  ///< this is the integrand
+                            const double x_min,           ///< min limit for x domain
+                            const double x_max,           ///< min limit for x domain
+                            const double y_min,           ///< min limit for y domain
+                            const double y_max,           ///< min limit for y domain
+                            const int order               ///< order of integration
+    ) {
         ChQuadratureTables* mtables = 0;
         std::vector<double>* lroots;
         std::vector<double>* weight;
@@ -196,10 +176,10 @@ class ChApi ChQuadrature {
             static_tables = false;
         }
 
-        double Xc1 = (Xb - Xa) / 2;
-        double Xc2 = (Xb + Xa) / 2;
-        double Yc1 = (Yb - Ya) / 2;
-        double Yc2 = (Yb + Ya) / 2;
+        double Xc1 = (x_max - x_min) / 2;
+        double Xc2 = (x_max + x_min) / 2;
+        double Yc1 = (y_max - y_min) / 2;
+        double Yc2 = (y_max + y_min) / 2;
 
         result *= 0;  // as result = 0, but works also for matrices.
         T val;        // temporary value for loop
@@ -216,20 +196,19 @@ class ChApi ChQuadrature {
             delete mtables;
     }
 
-    /// Integrate the integrand T = f(x,y,z) over the 3D interval [xA, xB][yA, yB][zA, zB],
-    /// with desired order of quadrature. Best if integrand is polynomial.
-    /// For order in 1..10, precomputed polynomial coefficients are used for max speed.
+    /// Integrate the integrand T = f(x,y,z) over the 3D interval [xA, xB][yA, yB][zA, zB], with desired order of
+    /// quadrature. Best if integrand is polynomial. For order in 1..10, precomputed polynomial coefficients are used.
     template <class T>
-    static void Integrate3D(T& result,                     ///< result is returned here
-                            ChIntegrable3D<T>& integrand,  ///< this is the integrand
-                            const double Xa,               ///< min limit for x domain
-                            const double Xb,               ///< min limit for x domain
-                            const double Ya,               ///< min limit for y domain
-                            const double Yb,               ///< min limit for y domain
-                            const double Za,               ///< min limit for z domain
-                            const double Zb,               ///< min limit for z domain
-                            const int order)               ///< order of integration
-    {
+    static void Integrate3D(T& result,                    ///< result is returned here
+                            ChIntegrand3D<T>& integrand,  ///< this is the integrand
+                            const double x_min,           ///< min limit for x domain
+                            const double x_max,           ///< min limit for x domain
+                            const double y_min,           ///< min limit for y domain
+                            const double y_max,           ///< min limit for y domain
+                            const double z_min,           ///< min limit for z domain
+                            const double z_max,           ///< min limit for z domain
+                            const int order               ///< order of integration
+    ) {
         ChQuadratureTables* mtables = 0;
         std::vector<double>* lroots;
         std::vector<double>* weight;
@@ -248,12 +227,12 @@ class ChApi ChQuadrature {
             static_tables = false;
         }
 
-        double Xc1 = (Xb - Xa) / 2;
-        double Xc2 = (Xb + Xa) / 2;
-        double Yc1 = (Yb - Ya) / 2;
-        double Yc2 = (Yb + Ya) / 2;
-        double Zc1 = (Zb - Za) / 2;
-        double Zc2 = (Zb + Za) / 2;
+        double Xc1 = (x_max - x_min) / 2;
+        double Xc2 = (x_max + x_min) / 2;
+        double Yc1 = (y_max - y_min) / 2;
+        double Yc2 = (y_max + y_min) / 2;
+        double Zc1 = (z_max - z_min) / 2;
+        double Zc2 = (z_max + z_min) / 2;
 
         result *= 0;  // as result = 0, but works also for matrices.
         T val;        // temporary value for loop
@@ -272,18 +251,16 @@ class ChApi ChQuadrature {
             delete mtables;
     }
 
-
-    /// Special case of 2D integration: integrate the integrand T = f(u,v) over a triangle,
-    /// with desired order of quadrature. Best if integrand is polynomial.
-    /// Two triangle coordinates are assumed to be 'area' coordinates u,v in [0...1]. The third is assumed 1-u-v.  
-    /// For order in 1..5. Use precomputed polynomial coefficients for max speed.
+    /// Integrate the 2D integrand T = f(u,v) over a triangle, with desired order of quadrature.
+    /// Best if integrand is polynomial. Two triangle coordinates are assumed to be 'area' coordinates u and v in
+    /// [0...1], with the 3rd assumed to be 1-u-v.   For order between 1 and 5, use precomputed polynomial coefficients.
     template <class T>
-    static void Integrate2Dtriangle(T& result,                     ///< result is returned here
-                            ChIntegrable2D<T>& integrand,  ///< this is the integrand
-                            const int order)               ///< order of integration
-    {
-        if ((unsigned int)order > GetStaticTablesTriangle()->Weight.size()) 
-            throw ChException("Too high order of quadrature for triangle. Use lower order.");
+    static void Integrate2Dtriangle(T& result,                    ///< result is returned here
+                                    ChIntegrand2D<T>& integrand,  ///< this is the integrand
+                                    const int order               ///< order of integration
+    ) {
+        if ((unsigned int)order > GetStaticTablesTriangle()->Weight.size())
+            throw std::invalid_argument("Too high order of quadrature for triangle. Use lower order.");
 
         ChQuadratureTablesTriangle* mtables = GetStaticTablesTriangle();
         std::vector<double>* lrootsU = &mtables->LrootsU[order - 1];
@@ -294,24 +271,23 @@ class ChApi ChQuadrature {
         T val;        // temporary value for loop
 
         for (unsigned int i = 0; i < weight->size(); i++) {
-                integrand.Evaluate(val, lrootsU->at(i), lrootsV->at(i));
-                val *= weight->at(i) * 0.5; // the 1/2 coefficient is not in the table
-                result += val;
+            integrand.Evaluate(val, lrootsU->at(i), lrootsV->at(i));
+            val *= weight->at(i) * 0.5;  // the 1/2 coefficient is not in the table
+            result += val;
         }
     }
 
-
-    /// Special case of 3D integration: integrate the integrand T = f(u,v,w) over a tetrahedron,
-    /// with desired order of quadrature. Best if integrand is polynomial.
-    /// Three tetrahedron coordinates are assumed to be 'volume' coordinates u,v,w in [0...1]. The 4th is assumed 1-u-v-w.  
-    /// For order in 1..5. Use precomputed polynomial coefficients for max speed.
+    /// Integrate the 3D integrand T = f(u,v,w) over a tetrahedron, with desired order of quadrature.
+    /// Best if integrand is polynomial. Three tetrahedron coordinates are assumed to be 'volume' coordinates u, v, and
+    /// w in [0...1], with the 4th assumed to be1-u-v-w.   For order between 1 and 5 use precomputed polynomial
+    /// coefficients.
     template <class T>
-    static void Integrate3Dtetrahedron(T& result,          ///< result is returned here
-                            ChIntegrable3D<T>& integrand,  ///< this is the integrand
-                            const int order)               ///< order of integration
-    {
-        if ((unsigned int)order > GetStaticTablesTetrahedron()->Weight.size()) 
-            throw ChException("Too high order of quadrature for tetrahedron. Use lower order.");
+    static void Integrate3Dtetrahedron(T& result,                    ///< result is returned here
+                                       ChIntegrand3D<T>& integrand,  ///< this is the integrand
+                                       const int order               ///< order of integration
+    ) {
+        if ((unsigned int)order > GetStaticTablesTetrahedron()->Weight.size())
+            throw std::invalid_argument("Too high order of quadrature for tetrahedron. Use lower order.");
 
         ChQuadratureTablesTetrahedron* mtables = GetStaticTablesTetrahedron();
         std::vector<double>* lrootsU = &mtables->LrootsU[order - 1];
@@ -323,23 +299,20 @@ class ChApi ChQuadrature {
         T val;        // temporary value for loop
 
         for (unsigned int i = 0; i < weight->size(); i++) {
-                integrand.Evaluate(val, lrootsU->at(i), lrootsV->at(i), lrootsW->at(i));
-                val *= weight->at(i) *(1./6.); // the 1/6 coefficient is not in the table
-                result += val;
+            integrand.Evaluate(val, lrootsU->at(i), lrootsV->at(i), lrootsW->at(i));
+            val *= weight->at(i) * (1. / 6.);  // the 1/6 coefficient is not in the table
+            result += val;
         }
     }
 
-
-    /// Access a statically-allocated set of tables, from 0 to a 10th order,
-    /// with precomputed tables.
+    /// Access a statically-allocated set of tables, from 0 to 10th order, with precomputed tables.
     static ChQuadratureTables* GetStaticTables();
 
-    /// Access a statically-allocated set of tables for tetrahedron quadrature,
-    /// with 5 precomputed tables. 
+    /// Access a statically-allocated set of tables for tetrahedron quadrature, with 5 precomputed tables.
     static ChQuadratureTablesTriangle* GetStaticTablesTriangle();
 
-    /// Access a statically-allocated set of tables for tetrahedron quadrature,
-    /// with 5 precomputed tables. Use Dunavant theory.
+    /// Access a statically-allocated set of tables for tetrahedron quadrature, with 5 precomputed tables.
+    /// Use Dunavant theory.
     static ChQuadratureTablesTetrahedron* GetStaticTablesTetrahedron();
 };
 

@@ -22,7 +22,7 @@
 // Dynamics Eccomas thematic Conference, Madrid(2005).
 //
 // The "Pre-Integration" style calculation is based on modifications
-// to Liu, Cheng, Qiang Tian, and Haiyan Hu. "Dynamics of a large scale rigid–flexible multibody system composed of
+// to Liu, Cheng, Qiang Tian, and Haiyan Hu. "Dynamics of a large scale rigidï¿½flexible multibody system composed of
 // composite laminated plates." Multibody System Dynamics 26, no. 3 (2011): 283-305.
 //
 // A report covering the detailed mathematics and implementation both of these generalized internal force calculations
@@ -84,29 +84,29 @@ void ChElementShellANCF_3833::SetNodes(std::shared_ptr<ChNodeFEAxyzDD> nodeA,
 
     std::vector<ChVariables*> mvars;
     mvars.push_back(&m_nodes[0]->Variables());
-    mvars.push_back(&m_nodes[0]->Variables_D());
-    mvars.push_back(&m_nodes[0]->Variables_DD());
+    mvars.push_back(&m_nodes[0]->VariablesSlope1());
+    mvars.push_back(&m_nodes[0]->VariablesSlope2());
     mvars.push_back(&m_nodes[1]->Variables());
-    mvars.push_back(&m_nodes[1]->Variables_D());
-    mvars.push_back(&m_nodes[1]->Variables_DD());
+    mvars.push_back(&m_nodes[1]->VariablesSlope1());
+    mvars.push_back(&m_nodes[1]->VariablesSlope2());
     mvars.push_back(&m_nodes[2]->Variables());
-    mvars.push_back(&m_nodes[2]->Variables_D());
-    mvars.push_back(&m_nodes[2]->Variables_DD());
+    mvars.push_back(&m_nodes[2]->VariablesSlope1());
+    mvars.push_back(&m_nodes[2]->VariablesSlope2());
     mvars.push_back(&m_nodes[3]->Variables());
-    mvars.push_back(&m_nodes[3]->Variables_D());
-    mvars.push_back(&m_nodes[3]->Variables_DD());
+    mvars.push_back(&m_nodes[3]->VariablesSlope1());
+    mvars.push_back(&m_nodes[3]->VariablesSlope2());
     mvars.push_back(&m_nodes[4]->Variables());
-    mvars.push_back(&m_nodes[4]->Variables_D());
-    mvars.push_back(&m_nodes[4]->Variables_DD());
+    mvars.push_back(&m_nodes[4]->VariablesSlope1());
+    mvars.push_back(&m_nodes[4]->VariablesSlope2());
     mvars.push_back(&m_nodes[5]->Variables());
-    mvars.push_back(&m_nodes[5]->Variables_D());
-    mvars.push_back(&m_nodes[5]->Variables_DD());
+    mvars.push_back(&m_nodes[5]->VariablesSlope1());
+    mvars.push_back(&m_nodes[5]->VariablesSlope2());
     mvars.push_back(&m_nodes[6]->Variables());
-    mvars.push_back(&m_nodes[6]->Variables_D());
-    mvars.push_back(&m_nodes[6]->Variables_DD());
+    mvars.push_back(&m_nodes[6]->VariablesSlope1());
+    mvars.push_back(&m_nodes[6]->VariablesSlope2());
     mvars.push_back(&m_nodes[7]->Variables());
-    mvars.push_back(&m_nodes[7]->Variables_D());
-    mvars.push_back(&m_nodes[7]->Variables_DD());
+    mvars.push_back(&m_nodes[7]->VariablesSlope1());
+    mvars.push_back(&m_nodes[7]->VariablesSlope2());
 
     Kmatr.SetVariables(mvars);
 
@@ -236,8 +236,8 @@ ChMatrix33<> ChElementShellANCF_3833::GetPK2Stress(const double layer,
                                                    const double layer_zeta) {
     MatrixNx3c Sxi_D;  // Matrix of normalized shape function derivatives
     double layer_midsurface_offset =
-        -m_thicknessZ / 2 + m_layer_zoffsets[layer] + m_layers[layer].Get_thickness() / 2 + m_midsurfoffset;
-    Calc_Sxi_D(Sxi_D, xi, eta, layer_zeta, m_layers[layer].Get_thickness(), layer_midsurface_offset);
+        -m_thicknessZ / 2 + m_layer_zoffsets[layer] + m_layers[layer].GetThickness() / 2 + m_midsurfoffset;
+    Calc_Sxi_D(Sxi_D, xi, eta, layer_zeta, m_layers[layer].GetThickness(), layer_midsurface_offset);
 
     ChMatrix33<double> J_0xi;  // Element Jacobian between the reference configuration and normalized configuration
     J_0xi.noalias() = m_ebar0 * Sxi_D;
@@ -262,7 +262,7 @@ ChMatrix33<> ChElementShellANCF_3833::GetPK2Stress(const double layer,
 
     if (m_damping_enabled) {
         Matrix3xN ebardot;  // Element coordinate time derivatives in matrix form
-        CalcCoordDerivMatrix(ebardot);
+        CalcCoordDtMatrix(ebardot);
 
         // Calculate the time derivative of the Deformation Gradient at the current point
         ChMatrixNM_col<double, 3, 3> Fdot = ebardot * Sxi_D;
@@ -282,7 +282,7 @@ ChMatrix33<> ChElementShellANCF_3833::GetPK2Stress(const double layer,
     // this element compared to what is used in ChMaterialShellANCF
 
     ChMatrixNM<double, 6, 6> D = m_layers[layer].GetMaterial()->Get_E_eps();
-    RotateReorderStiffnessMatrix(D, m_layers[layer].Get_theta());
+    RotateReorderStiffnessMatrix(D, m_layers[layer].GetFiberAngle());
 
     ChVectorN<double, 6> sigmaPK2 = D * epsilon_combined;  // 2nd Piola Kirchhoff Stress tensor in Voigt notation
 
@@ -310,8 +310,8 @@ double ChElementShellANCF_3833::GetVonMissesStress(const double layer,
                                                    const double layer_zeta) {
     MatrixNx3c Sxi_D;  // Matrix of normalized shape function derivatives
     double layer_midsurface_offset =
-        -m_thicknessZ / 2 + m_layer_zoffsets[layer] + m_layers[layer].Get_thickness() / 2 + m_midsurfoffset;
-    Calc_Sxi_D(Sxi_D, xi, eta, layer_zeta, m_layers[layer].Get_thickness(), layer_midsurface_offset);
+        -m_thicknessZ / 2 + m_layer_zoffsets[layer] + m_layers[layer].GetThickness() / 2 + m_midsurfoffset;
+    Calc_Sxi_D(Sxi_D, xi, eta, layer_zeta, m_layers[layer].GetThickness(), layer_midsurface_offset);
 
     ChMatrix33<double> J_0xi;  // Element Jacobian between the reference configuration and normalized configuration
     J_0xi.noalias() = m_ebar0 * Sxi_D;
@@ -336,7 +336,7 @@ double ChElementShellANCF_3833::GetVonMissesStress(const double layer,
 
     if (m_damping_enabled) {
         Matrix3xN ebardot;  // Element coordinate time derivatives in matrix form
-        CalcCoordDerivMatrix(ebardot);
+        CalcCoordDtMatrix(ebardot);
 
         // Calculate the time derivative of the Deformation Gradient at the current point
         ChMatrixNM_col<double, 3, 3> Fdot = ebardot * Sxi_D;
@@ -356,7 +356,7 @@ double ChElementShellANCF_3833::GetVonMissesStress(const double layer,
     // this element compared to what is used in ChMaterialShellANCF
 
     ChMatrixNM<double, 6, 6> D = m_layers[layer].GetMaterial()->Get_E_eps();
-    RotateReorderStiffnessMatrix(D, m_layers[layer].Get_theta());
+    RotateReorderStiffnessMatrix(D, m_layers[layer].GetFiberAngle());
 
     ChVectorN<double, 6> sigmaPK2 = D * epsilon_combined;  // 2nd Piola Kirchhoff Stress tensor in Voigt notation
 
@@ -390,17 +390,17 @@ double ChElementShellANCF_3833::GetVonMissesStress(const double layer,
 void ChElementShellANCF_3833::SetupInitial(ChSystem* system) {
     m_element_dof = 0;
     for (int i = 0; i < 8; i++) {
-        m_element_dof += m_nodes[i]->GetNdofX();
+        m_element_dof += m_nodes[i]->GetNumCoordsPosLevel();
     }
-    
+
     m_full_dof = (m_element_dof == 8 * 9);
 
     if (!m_full_dof) {
         m_mapping_dof.resize(m_element_dof);
-        int dof = 0;
+        unsigned int dof = 0;
         for (int i = 0; i < 8; i++) {
-            int node_dof = m_nodes[i]->GetNdofX();
-            for (int j = 0; j < node_dof; j++)
+            unsigned int node_dof = m_nodes[i]->GetNumCoordsPosLevel();
+            for (unsigned int j = 0; j < node_dof; j++)
                 m_mapping_dof(dof++) = i * 9 + j;
         }
     }
@@ -420,29 +420,29 @@ void ChElementShellANCF_3833::SetupInitial(ChSystem* system) {
 
 void ChElementShellANCF_3833::GetStateBlock(ChVectorDynamic<>& mD) {
     mD.segment(0, 3) = m_nodes[0]->GetPos().eigen();
-    mD.segment(3, 3) = m_nodes[0]->GetD().eigen();
-    mD.segment(6, 3) = m_nodes[0]->GetDD().eigen();
+    mD.segment(3, 3) = m_nodes[0]->GetSlope1().eigen();
+    mD.segment(6, 3) = m_nodes[0]->GetSlope2().eigen();
     mD.segment(9, 3) = m_nodes[1]->GetPos().eigen();
-    mD.segment(12, 3) = m_nodes[1]->GetD().eigen();
-    mD.segment(15, 3) = m_nodes[1]->GetDD().eigen();
+    mD.segment(12, 3) = m_nodes[1]->GetSlope1().eigen();
+    mD.segment(15, 3) = m_nodes[1]->GetSlope2().eigen();
     mD.segment(18, 3) = m_nodes[2]->GetPos().eigen();
-    mD.segment(21, 3) = m_nodes[2]->GetD().eigen();
-    mD.segment(24, 3) = m_nodes[2]->GetDD().eigen();
+    mD.segment(21, 3) = m_nodes[2]->GetSlope1().eigen();
+    mD.segment(24, 3) = m_nodes[2]->GetSlope2().eigen();
     mD.segment(27, 3) = m_nodes[3]->GetPos().eigen();
-    mD.segment(30, 3) = m_nodes[3]->GetD().eigen();
-    mD.segment(33, 3) = m_nodes[3]->GetDD().eigen();
+    mD.segment(30, 3) = m_nodes[3]->GetSlope1().eigen();
+    mD.segment(33, 3) = m_nodes[3]->GetSlope2().eigen();
     mD.segment(36, 3) = m_nodes[4]->GetPos().eigen();
-    mD.segment(39, 3) = m_nodes[4]->GetD().eigen();
-    mD.segment(42, 3) = m_nodes[4]->GetDD().eigen();
+    mD.segment(39, 3) = m_nodes[4]->GetSlope1().eigen();
+    mD.segment(42, 3) = m_nodes[4]->GetSlope2().eigen();
     mD.segment(45, 3) = m_nodes[5]->GetPos().eigen();
-    mD.segment(48, 3) = m_nodes[5]->GetD().eigen();
-    mD.segment(51, 3) = m_nodes[5]->GetDD().eigen();
+    mD.segment(48, 3) = m_nodes[5]->GetSlope1().eigen();
+    mD.segment(51, 3) = m_nodes[5]->GetSlope2().eigen();
     mD.segment(54, 3) = m_nodes[6]->GetPos().eigen();
-    mD.segment(57, 3) = m_nodes[6]->GetD().eigen();
-    mD.segment(60, 3) = m_nodes[6]->GetDD().eigen();
+    mD.segment(57, 3) = m_nodes[6]->GetSlope1().eigen();
+    mD.segment(60, 3) = m_nodes[6]->GetSlope2().eigen();
     mD.segment(63, 3) = m_nodes[7]->GetPos().eigen();
-    mD.segment(66, 3) = m_nodes[7]->GetD().eigen();
-    mD.segment(69, 3) = m_nodes[7]->GetDD().eigen();
+    mD.segment(66, 3) = m_nodes[7]->GetSlope1().eigen();
+    mD.segment(69, 3) = m_nodes[7]->GetSlope2().eigen();
 }
 
 // State update.
@@ -498,7 +498,7 @@ void ChElementShellANCF_3833::ComputeNodalMass() {
 // Compute the generalized internal force vector for the current nodal coordinates and set the value in the Fi vector.
 
 void ChElementShellANCF_3833::ComputeInternalForces(ChVectorDynamic<>& Fi) {
-    assert(Fi.size() == GetNdofs());
+    assert(Fi.size() == GetNumCoordsPosLevel());
 
     if (m_method == IntFrcMethod::ContInt) {
         if (m_damping_enabled) {  // If linear Kelvin-Voigt viscoelastic material model is enabled
@@ -515,7 +515,7 @@ void ChElementShellANCF_3833::ComputeInternalForces(ChVectorDynamic<>& Fi) {
 //   H = Mfactor * [M] + Kfactor * [K] + Rfactor * [R]
 
 void ChElementShellANCF_3833::ComputeKRMmatricesGlobal(ChMatrixRef H, double Kfactor, double Rfactor, double Mfactor) {
-    assert((H.rows() == GetNdofs()) && (H.cols() == GetNdofs()));
+    assert((H.rows() == GetNumCoordsPosLevel()) && (H.cols() == GetNumCoordsPosLevel()));
 
     if (m_method == IntFrcMethod::ContInt) {
         if (m_damping_enabled) {  // If linear Kelvin-Voigt viscoelastic material model is enabled
@@ -546,8 +546,8 @@ void ChElementShellANCF_3833::ComputeKRMmatricesGlobal(ChMatrixRef H, double Kfa
 }
 
 // Compute the generalized force vector due to gravity using the efficient ANCF specific method
-void ChElementShellANCF_3833::ComputeGravityForces(ChVectorDynamic<>& Fg, const ChVector<>& G_acc) {
-    assert(Fg.size() == GetNdofs());
+void ChElementShellANCF_3833::ComputeGravityForces(ChVectorDynamic<>& Fg, const ChVector3d& G_acc) {
+    assert(Fg.size() == GetNumCoordsPosLevel());
 
     // Calculate and add the generalized force due to gravity to the generalized internal force vector for the element.
     // The generalized force due to gravity could be computed once prior to the start of the simulation if gravity was
@@ -565,7 +565,7 @@ void ChElementShellANCF_3833::ComputeGravityForces(ChVectorDynamic<>& Fg, const 
 
 void ChElementShellANCF_3833::EvaluateSectionFrame(const double xi,
                                                    const double eta,
-                                                   ChVector<>& point,
+                                                   ChVector3d& point,
                                                    ChQuaternion<>& rot) {
     VectorN Sxi_compact;
     Calc_Sxi_compact(Sxi_compact, xi, eta, 0, m_thicknessZ, m_midsurfoffset);
@@ -582,20 +582,20 @@ void ChElementShellANCF_3833::EvaluateSectionFrame(const double xi,
 
     // Since ANCF does not use rotations, calculate an approximate
     // rotation based off the position vector gradients
-    ChVector<double> MidsurfaceX = e_bar * Sxi_xi_compact * 2 / m_lenX;
-    ChVector<double> MidsurfaceY = e_bar * Sxi_eta_compact * 2 / m_lenY;
+    ChVector3d MidsurfaceX = e_bar * Sxi_xi_compact * 2 / m_lenX;
+    ChVector3d MidsurfaceY = e_bar * Sxi_eta_compact * 2 / m_lenY;
 
     // Since the position vector gradients are not in general orthogonal,
     // set the Dx direction tangent to the shell xi axis and
     // compute the Dy and Dz directions by using a
     // Gram-Schmidt orthonormalization, guided by the shell eta axis
     ChMatrix33<> msect;
-    msect.Set_A_Xdir(MidsurfaceX, MidsurfaceY);
+    msect.SetFromAxisX(MidsurfaceX, MidsurfaceY);
 
-    rot = msect.Get_A_quaternion();
+    rot = msect.GetQuaternion();
 }
 
-void ChElementShellANCF_3833::EvaluateSectionPoint(const double xi, const double eta, ChVector<>& point) {
+void ChElementShellANCF_3833::EvaluateSectionPoint(const double xi, const double eta, ChVector3d& point) {
     VectorN Sxi_compact;
     Calc_Sxi_compact(Sxi_compact, xi, eta, 0, m_thicknessZ, m_midsurfoffset);
 
@@ -606,12 +606,12 @@ void ChElementShellANCF_3833::EvaluateSectionPoint(const double xi, const double
     point = e_bar * Sxi_compact;
 }
 
-void ChElementShellANCF_3833::EvaluateSectionVelNorm(const double xi, const double eta, ChVector<>& Result) {
+void ChElementShellANCF_3833::EvaluateSectionVelNorm(const double xi, const double eta, ChVector3d& Result) {
     VectorN Sxi_compact;
     Calc_Sxi_compact(Sxi_compact, xi, eta, 0, m_thicknessZ, m_midsurfoffset);
 
     Matrix3xN e_bardot;
-    CalcCoordDerivMatrix(e_bardot);
+    CalcCoordDtMatrix(e_bardot);
 
     // rdot = S*edot written in compact form
     Result = e_bardot * Sxi_compact;
@@ -623,74 +623,74 @@ void ChElementShellANCF_3833::EvaluateSectionVelNorm(const double xi, const doub
 
 // Gets all the DOFs packed in a single vector (position part).
 
-void ChElementShellANCF_3833::LoadableGetStateBlock_x(int block_offset, ChState& mD) {
+void ChElementShellANCF_3833::LoadableGetStateBlockPosLevel(int block_offset, ChState& mD) {
     mD.segment(block_offset + 0, 3) = m_nodes[0]->GetPos().eigen();
-    mD.segment(block_offset + 3, 3) = m_nodes[0]->GetD().eigen();
-    mD.segment(block_offset + 6, 3) = m_nodes[0]->GetDD().eigen();
+    mD.segment(block_offset + 3, 3) = m_nodes[0]->GetSlope1().eigen();
+    mD.segment(block_offset + 6, 3) = m_nodes[0]->GetSlope2().eigen();
 
     mD.segment(block_offset + 9, 3) = m_nodes[1]->GetPos().eigen();
-    mD.segment(block_offset + 12, 3) = m_nodes[1]->GetD().eigen();
-    mD.segment(block_offset + 15, 3) = m_nodes[1]->GetDD().eigen();
+    mD.segment(block_offset + 12, 3) = m_nodes[1]->GetSlope1().eigen();
+    mD.segment(block_offset + 15, 3) = m_nodes[1]->GetSlope2().eigen();
 
     mD.segment(block_offset + 18, 3) = m_nodes[2]->GetPos().eigen();
-    mD.segment(block_offset + 21, 3) = m_nodes[2]->GetD().eigen();
-    mD.segment(block_offset + 24, 3) = m_nodes[2]->GetDD().eigen();
+    mD.segment(block_offset + 21, 3) = m_nodes[2]->GetSlope1().eigen();
+    mD.segment(block_offset + 24, 3) = m_nodes[2]->GetSlope2().eigen();
 
     mD.segment(block_offset + 27, 3) = m_nodes[3]->GetPos().eigen();
-    mD.segment(block_offset + 30, 3) = m_nodes[3]->GetD().eigen();
-    mD.segment(block_offset + 33, 3) = m_nodes[3]->GetDD().eigen();
+    mD.segment(block_offset + 30, 3) = m_nodes[3]->GetSlope1().eigen();
+    mD.segment(block_offset + 33, 3) = m_nodes[3]->GetSlope2().eigen();
 
     mD.segment(block_offset + 36, 3) = m_nodes[4]->GetPos().eigen();
-    mD.segment(block_offset + 39, 3) = m_nodes[4]->GetD().eigen();
-    mD.segment(block_offset + 42, 3) = m_nodes[4]->GetDD().eigen();
+    mD.segment(block_offset + 39, 3) = m_nodes[4]->GetSlope1().eigen();
+    mD.segment(block_offset + 42, 3) = m_nodes[4]->GetSlope2().eigen();
 
     mD.segment(block_offset + 45, 3) = m_nodes[5]->GetPos().eigen();
-    mD.segment(block_offset + 48, 3) = m_nodes[5]->GetD().eigen();
-    mD.segment(block_offset + 51, 3) = m_nodes[5]->GetDD().eigen();
+    mD.segment(block_offset + 48, 3) = m_nodes[5]->GetSlope1().eigen();
+    mD.segment(block_offset + 51, 3) = m_nodes[5]->GetSlope2().eigen();
 
     mD.segment(block_offset + 54, 3) = m_nodes[6]->GetPos().eigen();
-    mD.segment(block_offset + 57, 3) = m_nodes[6]->GetD().eigen();
-    mD.segment(block_offset + 60, 3) = m_nodes[6]->GetDD().eigen();
+    mD.segment(block_offset + 57, 3) = m_nodes[6]->GetSlope1().eigen();
+    mD.segment(block_offset + 60, 3) = m_nodes[6]->GetSlope2().eigen();
 
     mD.segment(block_offset + 63, 3) = m_nodes[7]->GetPos().eigen();
-    mD.segment(block_offset + 66, 3) = m_nodes[7]->GetD().eigen();
-    mD.segment(block_offset + 69, 3) = m_nodes[7]->GetDD().eigen();
+    mD.segment(block_offset + 66, 3) = m_nodes[7]->GetSlope1().eigen();
+    mD.segment(block_offset + 69, 3) = m_nodes[7]->GetSlope2().eigen();
 }
 
 // Gets all the DOFs packed in a single vector (velocity part).
 
-void ChElementShellANCF_3833::LoadableGetStateBlock_w(int block_offset, ChStateDelta& mD) {
-    mD.segment(block_offset + 0, 3) = m_nodes[0]->GetPos_dt().eigen();
-    mD.segment(block_offset + 3, 3) = m_nodes[0]->GetD_dt().eigen();
-    mD.segment(block_offset + 6, 3) = m_nodes[0]->GetDD_dt().eigen();
+void ChElementShellANCF_3833::LoadableGetStateBlockVelLevel(int block_offset, ChStateDelta& mD) {
+    mD.segment(block_offset + 0, 3) = m_nodes[0]->GetPosDt().eigen();
+    mD.segment(block_offset + 3, 3) = m_nodes[0]->GetSlope1Dt().eigen();
+    mD.segment(block_offset + 6, 3) = m_nodes[0]->GetSlope2Dt().eigen();
 
-    mD.segment(block_offset + 9, 3) = m_nodes[1]->GetPos_dt().eigen();
-    mD.segment(block_offset + 12, 3) = m_nodes[1]->GetD_dt().eigen();
-    mD.segment(block_offset + 15, 3) = m_nodes[1]->GetDD_dt().eigen();
+    mD.segment(block_offset + 9, 3) = m_nodes[1]->GetPosDt().eigen();
+    mD.segment(block_offset + 12, 3) = m_nodes[1]->GetSlope1Dt().eigen();
+    mD.segment(block_offset + 15, 3) = m_nodes[1]->GetSlope2Dt().eigen();
 
-    mD.segment(block_offset + 18, 3) = m_nodes[2]->GetPos_dt().eigen();
-    mD.segment(block_offset + 21, 3) = m_nodes[2]->GetD_dt().eigen();
-    mD.segment(block_offset + 24, 3) = m_nodes[2]->GetDD_dt().eigen();
+    mD.segment(block_offset + 18, 3) = m_nodes[2]->GetPosDt().eigen();
+    mD.segment(block_offset + 21, 3) = m_nodes[2]->GetSlope1Dt().eigen();
+    mD.segment(block_offset + 24, 3) = m_nodes[2]->GetSlope2Dt().eigen();
 
-    mD.segment(block_offset + 27, 3) = m_nodes[3]->GetPos_dt().eigen();
-    mD.segment(block_offset + 30, 3) = m_nodes[3]->GetD_dt().eigen();
-    mD.segment(block_offset + 33, 3) = m_nodes[3]->GetDD_dt().eigen();
+    mD.segment(block_offset + 27, 3) = m_nodes[3]->GetPosDt().eigen();
+    mD.segment(block_offset + 30, 3) = m_nodes[3]->GetSlope1Dt().eigen();
+    mD.segment(block_offset + 33, 3) = m_nodes[3]->GetSlope2Dt().eigen();
 
-    mD.segment(block_offset + 36, 3) = m_nodes[4]->GetPos_dt().eigen();
-    mD.segment(block_offset + 39, 3) = m_nodes[4]->GetD_dt().eigen();
-    mD.segment(block_offset + 42, 3) = m_nodes[4]->GetDD_dt().eigen();
+    mD.segment(block_offset + 36, 3) = m_nodes[4]->GetPosDt().eigen();
+    mD.segment(block_offset + 39, 3) = m_nodes[4]->GetSlope1Dt().eigen();
+    mD.segment(block_offset + 42, 3) = m_nodes[4]->GetSlope2Dt().eigen();
 
-    mD.segment(block_offset + 45, 3) = m_nodes[5]->GetPos_dt().eigen();
-    mD.segment(block_offset + 48, 3) = m_nodes[5]->GetD_dt().eigen();
-    mD.segment(block_offset + 51, 3) = m_nodes[5]->GetDD_dt().eigen();
+    mD.segment(block_offset + 45, 3) = m_nodes[5]->GetPosDt().eigen();
+    mD.segment(block_offset + 48, 3) = m_nodes[5]->GetSlope1Dt().eigen();
+    mD.segment(block_offset + 51, 3) = m_nodes[5]->GetSlope2Dt().eigen();
 
-    mD.segment(block_offset + 54, 3) = m_nodes[6]->GetPos_dt().eigen();
-    mD.segment(block_offset + 57, 3) = m_nodes[6]->GetD_dt().eigen();
-    mD.segment(block_offset + 60, 3) = m_nodes[6]->GetDD_dt().eigen();
+    mD.segment(block_offset + 54, 3) = m_nodes[6]->GetPosDt().eigen();
+    mD.segment(block_offset + 57, 3) = m_nodes[6]->GetSlope1Dt().eigen();
+    mD.segment(block_offset + 60, 3) = m_nodes[6]->GetSlope2Dt().eigen();
 
-    mD.segment(block_offset + 63, 3) = m_nodes[7]->GetPos_dt().eigen();
-    mD.segment(block_offset + 66, 3) = m_nodes[7]->GetD_dt().eigen();
-    mD.segment(block_offset + 69, 3) = m_nodes[7]->GetDD_dt().eigen();
+    mD.segment(block_offset + 63, 3) = m_nodes[7]->GetPosDt().eigen();
+    mD.segment(block_offset + 66, 3) = m_nodes[7]->GetSlope1Dt().eigen();
+    mD.segment(block_offset + 69, 3) = m_nodes[7]->GetSlope2Dt().eigen();
 }
 
 /// Increment all DOFs using a delta.
@@ -710,8 +710,8 @@ void ChElementShellANCF_3833::LoadableStateIncrement(const unsigned int off_x,
 void ChElementShellANCF_3833::LoadableGetVariables(std::vector<ChVariables*>& mvars) {
     for (int i = 0; i < m_nodes.size(); ++i) {
         mvars.push_back(&m_nodes[i]->Variables());
-        mvars.push_back(&m_nodes[i]->Variables_D());
-        mvars.push_back(&m_nodes[i]->Variables_DD());
+        mvars.push_back(&m_nodes[i]->VariablesSlope1());
+        mvars.push_back(&m_nodes[i]->VariablesSlope2());
     }
 }
 
@@ -857,8 +857,8 @@ void ChElementShellANCF_3833::ComputeNF(
 double ChElementShellANCF_3833::GetDensity() {
     double tot_density = 0;
     for (int kl = 0; kl < m_numLayers; kl++) {
-        double rho = m_layers[kl].GetMaterial()->Get_rho();
-        double layerthick = m_layers[kl].Get_thickness();
+        double rho = m_layers[kl].GetMaterial()->GetDensity();
+        double layerthick = m_layers[kl].GetThickness();
         tot_density += rho * layerthick;
     }
     return tot_density / m_thicknessZ;
@@ -866,7 +866,7 @@ double ChElementShellANCF_3833::GetDensity() {
 
 // Calculate normal to the midsurface at coordinates (xi, eta).
 
-ChVector<> ChElementShellANCF_3833::ComputeNormal(const double xi, const double eta) {
+ChVector3d ChElementShellANCF_3833::ComputeNormal(const double xi, const double eta) {
     VectorN Sxi_zeta_compact;
     Calc_Sxi_zeta_compact(Sxi_zeta_compact, xi, eta, 0, m_thicknessZ, m_midsurfoffset);
 
@@ -874,7 +874,7 @@ ChVector<> ChElementShellANCF_3833::ComputeNormal(const double xi, const double 
     CalcCoordMatrix(e_bar);
 
     // Calculate the position vector gradient with respect to zeta at the current point (whose length may not equal 1)
-    ChVector<> r_zeta = e_bar * Sxi_zeta_compact;
+    ChVector3d r_zeta = e_bar * Sxi_zeta_compact;
 
     return r_zeta.GetNormalized();
 }
@@ -905,11 +905,11 @@ void ChElementShellANCF_3833::ComputeMassMatrixAndGravityForce() {
     m_GravForceScale.setZero();
 
     for (size_t kl = 0; kl < m_numLayers; kl++) {
-        double rho = m_layers[kl].GetMaterial()->Get_rho();  // Density of the material for the current layer
-        double thickness = m_layers[kl].Get_thickness();
+        double rho = m_layers[kl].GetMaterial()->GetDensity();  // Density of the material for the current layer
+        double thickness = m_layers[kl].GetThickness();
         double zoffset = m_layer_zoffsets[kl];
         double layer_midsurface_offset =
-            -m_thicknessZ / 2 + m_layer_zoffsets[kl] + m_layers[kl].Get_thickness() / 2 + m_midsurfoffset;
+            -m_thicknessZ / 2 + m_layer_zoffsets[kl] + m_layers[kl].GetThickness() / 2 + m_midsurfoffset;
 
         // Sum the contribution to the mass matrix and generalized force due to gravity at the current point
         for (unsigned int it_xi = 0; it_xi < GQTable->Lroots[GQ_idx_xi_eta].size(); it_xi++) {
@@ -967,7 +967,7 @@ void ChElementShellANCF_3833::PrecomputeInternalForceMatricesWeightsContInt() {
     ChMatrixNM<double, NSF, 3> SD_precompute_D;
 
     for (size_t kl = 0; kl < m_numLayers; kl++) {
-        double thickness = m_layers[kl].Get_thickness();
+        double thickness = m_layers[kl].GetThickness();
         double layer_midsurface_offset = -m_thicknessZ / 2 + m_layer_zoffsets[kl] + thickness / 2 + m_midsurfoffset;
 
         for (unsigned int it_xi = 0; it_xi < GQTable->Lroots[GQ_idx_xi_eta].size(); it_xi++) {
@@ -1019,9 +1019,9 @@ void ChElementShellANCF_3833::PrecomputeInternalForceMatricesWeightsPreInt() {
     m_O1.setZero();
 
     for (size_t kl = 0; kl < m_numLayers; kl++) {
-        double thickness = m_layers[kl].Get_thickness();
+        double thickness = m_layers[kl].GetThickness();
         double layer_midsurface_offset =
-            -m_thicknessZ / 2 + m_layer_zoffsets[kl] + m_layers[kl].Get_thickness() / 2 + m_midsurfoffset;
+            -m_thicknessZ / 2 + m_layer_zoffsets[kl] + m_layers[kl].GetThickness() / 2 + m_midsurfoffset;
 
         // =============================================================================
         // Get the stiffness tensor in 6x6 matrix form for the current layer and rotate it in the midsurface according
@@ -1030,7 +1030,7 @@ void ChElementShellANCF_3833::PrecomputeInternalForceMatricesWeightsPreInt() {
         // =============================================================================
 
         ChMatrixNM<double, 6, 6> D = m_layers[kl].GetMaterial()->Get_E_eps();
-        RotateReorderStiffnessMatrix(D, m_layers[kl].Get_theta());
+        RotateReorderStiffnessMatrix(D, m_layers[kl].GetFiberAngle());
 
         // =============================================================================
         // Pull the required entries from the 4th order stiffness tensor that are needed for K3.  Note that D is written
@@ -1274,7 +1274,7 @@ void ChElementShellANCF_3833::ComputeInternalForcesContIntDamping(ChVectorDynami
         // =============================================================================
 
         ChMatrixNM<double, 6, 6> D = m_layers[kl].GetMaterial()->Get_E_eps();
-        RotateReorderStiffnessMatrix(D, m_layers[kl].Get_theta());
+        RotateReorderStiffnessMatrix(D, m_layers[kl].GetFiberAngle());
 
         // =============================================================================
         // Calculate the 2nd Piola-Kirchoff stresses in Voigt notation across all the Gauss quadrature points in the
@@ -1388,7 +1388,8 @@ void ChElementShellANCF_3833::ComputeInternalForcesContIntNoDamping(ChVectorDyna
         //      [F13  F23  F33 ]
         // =============================================================================
 
-        ChMatrixNM_col<double, 3 * NIP, 3> FC = m_SD.block<NSF, 3 * NIP>(0, 3 * kl * NIP).transpose() * e_bar.transpose();
+        ChMatrixNM_col<double, 3 * NIP, 3> FC =
+            m_SD.block<NSF, 3 * NIP>(0, 3 * kl * NIP).transpose() * e_bar.transpose();
 
         // =============================================================================
         // Calculate each individual value of the Green-Lagrange strain component by component across all the
@@ -1444,7 +1445,7 @@ void ChElementShellANCF_3833::ComputeInternalForcesContIntNoDamping(ChVectorDyna
         // =============================================================================
 
         ChMatrixNM<double, 6, 6> D = m_layers[kl].GetMaterial()->Get_E_eps();
-        RotateReorderStiffnessMatrix(D, m_layers[kl].Get_theta());
+        RotateReorderStiffnessMatrix(D, m_layers[kl].GetFiberAngle());
 
         // =============================================================================
         // Calculate the 2nd Piola-Kirchoff stresses in Voigt notation across all the Gauss quadrature points in the
@@ -1542,7 +1543,7 @@ void ChElementShellANCF_3833::ComputeInternalForcesContIntPreInt(ChVectorDynamic
     Matrix3xN ebardot;
 
     CalcCoordMatrix(ebar);
-    CalcCoordDerivMatrix(ebardot);
+    CalcCoordDtMatrix(ebardot);
 
     // Calculate PI1 which is a combined form of the nodal coordinates.  It is calculated in matrix form and then later
     // reshaped into vector format (through a simple reinterpretation of the data)
@@ -1708,8 +1709,9 @@ void ChElementShellANCF_3833::ComputeInternalJacobianContIntDamping(ChMatrixRef&
         //            [kGQ*(Kfactor+alpha*Rfactor)*F13+alpha*Rfactor*F13dot ... similar for F23 & F33 blocks]
         // =============================================================================
 
-        ChMatrixNM_col<double, 3 * NIP, 3> FCscaled = (Kfactor + m_Alpha * Rfactor) * FC.template block<3 * NIP, 3>(0, 0) +
-                                                   (m_Alpha * Kfactor) * FC.template block<3 * NIP, 3>(0, 3);
+        ChMatrixNM_col<double, 3 * NIP, 3> FCscaled =
+            (Kfactor + m_Alpha * Rfactor) * FC.template block<3 * NIP, 3>(0, 0) +
+            (m_Alpha * Kfactor) * FC.template block<3 * NIP, 3>(0, 3);
 
         for (auto i = 0; i < 3; i++) {
             FCscaled.template block<NIP, 1>(0, i).array() *= m_kGQ.block<NIP, 1>(kl * NIP, 0).array();
@@ -1814,7 +1816,7 @@ void ChElementShellANCF_3833::ComputeInternalJacobianContIntDamping(ChMatrixRef&
         // =============================================================================
 
         ChMatrixNM<double, 6, 6> D = m_layers[kl].GetMaterial()->Get_E_eps();
-        RotateReorderStiffnessMatrix(D, m_layers[kl].Get_theta());
+        RotateReorderStiffnessMatrix(D, m_layers[kl].GetFiberAngle());
 
         // =============================================================================
         // Multiply the scaled and combined partial derivative block matrix by the stiffness matrix for each individual
@@ -2077,7 +2079,8 @@ void ChElementShellANCF_3833::ComputeInternalJacobianContIntNoDamping(ChMatrixRe
         // FC = [F12  F22  F32 ]
         //      [F13  F23  F33 ]
         // =============================================================================
-        ChMatrixNM_col<double, 3 * NIP, 3> FC = m_SD.block<NSF, 3 * NIP>(0, 3 * NIP * kl).transpose() * e_bar.transpose();
+        ChMatrixNM_col<double, 3 * NIP, 3> FC =
+            m_SD.block<NSF, 3 * NIP>(0, 3 * NIP * kl).transpose() * e_bar.transpose();
 
         //==============================================================================
         //==============================================================================
@@ -2266,7 +2269,7 @@ void ChElementShellANCF_3833::ComputeInternalJacobianContIntNoDamping(ChMatrixRe
         // =============================================================================
 
         ChMatrixNM<double, 6, 6> D = m_layers[kl].GetMaterial()->Get_E_eps();
-        RotateReorderStiffnessMatrix(D, m_layers[kl].Get_theta());
+        RotateReorderStiffnessMatrix(D, m_layers[kl].GetFiberAngle());
 
         // =============================================================================
         // Multiply the scaled and combined partial derivative block matrix by the stiffness matrix for each individual
@@ -2463,7 +2466,7 @@ void ChElementShellANCF_3833::ComputeInternalJacobianPreInt(ChMatrixRef& H, doub
     Matrix3xN e_bar_dot;
 
     CalcCoordMatrix(e_bar);
-    CalcCoordDerivMatrix(e_bar_dot);
+    CalcCoordDtMatrix(e_bar_dot);
 
     // Build the [9 x NSF^2] matrix containing the combined scaled nodal coordinates and their time derivatives.
     Matrix3xN temp = (Kfactor + m_Alpha * Rfactor) * e_bar + (m_Alpha * Kfactor) * e_bar_dot;
@@ -2728,196 +2731,196 @@ void ChElementShellANCF_3833::Calc_Sxi_D(MatrixNx3c& Sxi_D,
 
 void ChElementShellANCF_3833::CalcCoordVector(Vector3N& e) {
     e.segment(0, 3) = m_nodes[0]->GetPos().eigen();
-    e.segment(3, 3) = m_nodes[0]->GetD().eigen();
-    e.segment(6, 3) = m_nodes[0]->GetDD().eigen();
+    e.segment(3, 3) = m_nodes[0]->GetSlope1().eigen();
+    e.segment(6, 3) = m_nodes[0]->GetSlope2().eigen();
 
     e.segment(9, 3) = m_nodes[1]->GetPos().eigen();
-    e.segment(12, 3) = m_nodes[1]->GetD().eigen();
-    e.segment(15, 3) = m_nodes[1]->GetDD().eigen();
+    e.segment(12, 3) = m_nodes[1]->GetSlope1().eigen();
+    e.segment(15, 3) = m_nodes[1]->GetSlope2().eigen();
 
     e.segment(18, 3) = m_nodes[2]->GetPos().eigen();
-    e.segment(21, 3) = m_nodes[2]->GetD().eigen();
-    e.segment(24, 3) = m_nodes[2]->GetDD().eigen();
+    e.segment(21, 3) = m_nodes[2]->GetSlope1().eigen();
+    e.segment(24, 3) = m_nodes[2]->GetSlope2().eigen();
 
     e.segment(27, 3) = m_nodes[3]->GetPos().eigen();
-    e.segment(30, 3) = m_nodes[3]->GetD().eigen();
-    e.segment(33, 3) = m_nodes[3]->GetDD().eigen();
+    e.segment(30, 3) = m_nodes[3]->GetSlope1().eigen();
+    e.segment(33, 3) = m_nodes[3]->GetSlope2().eigen();
 
     e.segment(36, 3) = m_nodes[4]->GetPos().eigen();
-    e.segment(39, 3) = m_nodes[4]->GetD().eigen();
-    e.segment(42, 3) = m_nodes[4]->GetDD().eigen();
+    e.segment(39, 3) = m_nodes[4]->GetSlope1().eigen();
+    e.segment(42, 3) = m_nodes[4]->GetSlope2().eigen();
 
     e.segment(45, 3) = m_nodes[5]->GetPos().eigen();
-    e.segment(48, 3) = m_nodes[5]->GetD().eigen();
-    e.segment(51, 3) = m_nodes[5]->GetDD().eigen();
+    e.segment(48, 3) = m_nodes[5]->GetSlope1().eigen();
+    e.segment(51, 3) = m_nodes[5]->GetSlope2().eigen();
 
     e.segment(54, 3) = m_nodes[6]->GetPos().eigen();
-    e.segment(57, 3) = m_nodes[6]->GetD().eigen();
-    e.segment(60, 3) = m_nodes[6]->GetDD().eigen();
+    e.segment(57, 3) = m_nodes[6]->GetSlope1().eigen();
+    e.segment(60, 3) = m_nodes[6]->GetSlope2().eigen();
 
     e.segment(63, 3) = m_nodes[7]->GetPos().eigen();
-    e.segment(66, 3) = m_nodes[7]->GetD().eigen();
-    e.segment(69, 3) = m_nodes[7]->GetDD().eigen();
+    e.segment(66, 3) = m_nodes[7]->GetSlope1().eigen();
+    e.segment(69, 3) = m_nodes[7]->GetSlope2().eigen();
 }
 
 void ChElementShellANCF_3833::CalcCoordMatrix(Matrix3xN& ebar) {
     ebar.col(0) = m_nodes[0]->GetPos().eigen();
-    ebar.col(1) = m_nodes[0]->GetD().eigen();
-    ebar.col(2) = m_nodes[0]->GetDD().eigen();
+    ebar.col(1) = m_nodes[0]->GetSlope1().eigen();
+    ebar.col(2) = m_nodes[0]->GetSlope2().eigen();
 
     ebar.col(3) = m_nodes[1]->GetPos().eigen();
-    ebar.col(4) = m_nodes[1]->GetD().eigen();
-    ebar.col(5) = m_nodes[1]->GetDD().eigen();
+    ebar.col(4) = m_nodes[1]->GetSlope1().eigen();
+    ebar.col(5) = m_nodes[1]->GetSlope2().eigen();
 
     ebar.col(6) = m_nodes[2]->GetPos().eigen();
-    ebar.col(7) = m_nodes[2]->GetD().eigen();
-    ebar.col(8) = m_nodes[2]->GetDD().eigen();
+    ebar.col(7) = m_nodes[2]->GetSlope1().eigen();
+    ebar.col(8) = m_nodes[2]->GetSlope2().eigen();
 
     ebar.col(9) = m_nodes[3]->GetPos().eigen();
-    ebar.col(10) = m_nodes[3]->GetD().eigen();
-    ebar.col(11) = m_nodes[3]->GetDD().eigen();
+    ebar.col(10) = m_nodes[3]->GetSlope1().eigen();
+    ebar.col(11) = m_nodes[3]->GetSlope2().eigen();
 
     ebar.col(12) = m_nodes[4]->GetPos().eigen();
-    ebar.col(13) = m_nodes[4]->GetD().eigen();
-    ebar.col(14) = m_nodes[4]->GetDD().eigen();
+    ebar.col(13) = m_nodes[4]->GetSlope1().eigen();
+    ebar.col(14) = m_nodes[4]->GetSlope2().eigen();
 
     ebar.col(15) = m_nodes[5]->GetPos().eigen();
-    ebar.col(16) = m_nodes[5]->GetD().eigen();
-    ebar.col(17) = m_nodes[5]->GetDD().eigen();
+    ebar.col(16) = m_nodes[5]->GetSlope1().eigen();
+    ebar.col(17) = m_nodes[5]->GetSlope2().eigen();
 
     ebar.col(18) = m_nodes[6]->GetPos().eigen();
-    ebar.col(19) = m_nodes[6]->GetD().eigen();
-    ebar.col(20) = m_nodes[6]->GetDD().eigen();
+    ebar.col(19) = m_nodes[6]->GetSlope1().eigen();
+    ebar.col(20) = m_nodes[6]->GetSlope2().eigen();
 
     ebar.col(21) = m_nodes[7]->GetPos().eigen();
-    ebar.col(22) = m_nodes[7]->GetD().eigen();
-    ebar.col(23) = m_nodes[7]->GetDD().eigen();
+    ebar.col(22) = m_nodes[7]->GetSlope1().eigen();
+    ebar.col(23) = m_nodes[7]->GetSlope2().eigen();
 }
 
-void ChElementShellANCF_3833::CalcCoordDerivVector(Vector3N& edot) {
-    edot.segment(0, 3) = m_nodes[0]->GetPos_dt().eigen();
-    edot.segment(3, 3) = m_nodes[0]->GetD_dt().eigen();
-    edot.segment(6, 3) = m_nodes[0]->GetDD_dt().eigen();
+void ChElementShellANCF_3833::CalcCoordDtVector(Vector3N& edot) {
+    edot.segment(0, 3) = m_nodes[0]->GetPosDt().eigen();
+    edot.segment(3, 3) = m_nodes[0]->GetSlope1Dt().eigen();
+    edot.segment(6, 3) = m_nodes[0]->GetSlope2Dt().eigen();
 
-    edot.segment(9, 3) = m_nodes[1]->GetPos_dt().eigen();
-    edot.segment(12, 3) = m_nodes[1]->GetD_dt().eigen();
-    edot.segment(15, 3) = m_nodes[1]->GetDD_dt().eigen();
+    edot.segment(9, 3) = m_nodes[1]->GetPosDt().eigen();
+    edot.segment(12, 3) = m_nodes[1]->GetSlope1Dt().eigen();
+    edot.segment(15, 3) = m_nodes[1]->GetSlope2Dt().eigen();
 
-    edot.segment(18, 3) = m_nodes[2]->GetPos_dt().eigen();
-    edot.segment(21, 3) = m_nodes[2]->GetD_dt().eigen();
-    edot.segment(24, 3) = m_nodes[2]->GetDD_dt().eigen();
+    edot.segment(18, 3) = m_nodes[2]->GetPosDt().eigen();
+    edot.segment(21, 3) = m_nodes[2]->GetSlope1Dt().eigen();
+    edot.segment(24, 3) = m_nodes[2]->GetSlope2Dt().eigen();
 
-    edot.segment(27, 3) = m_nodes[3]->GetPos_dt().eigen();
-    edot.segment(30, 3) = m_nodes[3]->GetD_dt().eigen();
-    edot.segment(33, 3) = m_nodes[3]->GetDD_dt().eigen();
+    edot.segment(27, 3) = m_nodes[3]->GetPosDt().eigen();
+    edot.segment(30, 3) = m_nodes[3]->GetSlope1Dt().eigen();
+    edot.segment(33, 3) = m_nodes[3]->GetSlope2Dt().eigen();
 
-    edot.segment(36, 3) = m_nodes[4]->GetPos_dt().eigen();
-    edot.segment(39, 3) = m_nodes[4]->GetD_dt().eigen();
-    edot.segment(42, 3) = m_nodes[4]->GetDD_dt().eigen();
+    edot.segment(36, 3) = m_nodes[4]->GetPosDt().eigen();
+    edot.segment(39, 3) = m_nodes[4]->GetSlope1Dt().eigen();
+    edot.segment(42, 3) = m_nodes[4]->GetSlope2Dt().eigen();
 
-    edot.segment(45, 3) = m_nodes[5]->GetPos_dt().eigen();
-    edot.segment(48, 3) = m_nodes[5]->GetD_dt().eigen();
-    edot.segment(51, 3) = m_nodes[5]->GetDD_dt().eigen();
+    edot.segment(45, 3) = m_nodes[5]->GetPosDt().eigen();
+    edot.segment(48, 3) = m_nodes[5]->GetSlope1Dt().eigen();
+    edot.segment(51, 3) = m_nodes[5]->GetSlope2Dt().eigen();
 
-    edot.segment(54, 3) = m_nodes[6]->GetPos_dt().eigen();
-    edot.segment(57, 3) = m_nodes[6]->GetD_dt().eigen();
-    edot.segment(60, 3) = m_nodes[6]->GetDD_dt().eigen();
+    edot.segment(54, 3) = m_nodes[6]->GetPosDt().eigen();
+    edot.segment(57, 3) = m_nodes[6]->GetSlope1Dt().eigen();
+    edot.segment(60, 3) = m_nodes[6]->GetSlope2Dt().eigen();
 
-    edot.segment(63, 3) = m_nodes[7]->GetPos_dt().eigen();
-    edot.segment(66, 3) = m_nodes[7]->GetD_dt().eigen();
-    edot.segment(69, 3) = m_nodes[7]->GetDD_dt().eigen();
+    edot.segment(63, 3) = m_nodes[7]->GetPosDt().eigen();
+    edot.segment(66, 3) = m_nodes[7]->GetSlope1Dt().eigen();
+    edot.segment(69, 3) = m_nodes[7]->GetSlope2Dt().eigen();
 }
 
-void ChElementShellANCF_3833::CalcCoordDerivMatrix(Matrix3xN& ebardot) {
-    ebardot.col(0) = m_nodes[0]->GetPos_dt().eigen();
-    ebardot.col(1) = m_nodes[0]->GetD_dt().eigen();
-    ebardot.col(2) = m_nodes[0]->GetDD_dt().eigen();
+void ChElementShellANCF_3833::CalcCoordDtMatrix(Matrix3xN& ebardot) {
+    ebardot.col(0) = m_nodes[0]->GetPosDt().eigen();
+    ebardot.col(1) = m_nodes[0]->GetSlope1Dt().eigen();
+    ebardot.col(2) = m_nodes[0]->GetSlope2Dt().eigen();
 
-    ebardot.col(3) = m_nodes[1]->GetPos_dt().eigen();
-    ebardot.col(4) = m_nodes[1]->GetD_dt().eigen();
-    ebardot.col(5) = m_nodes[1]->GetDD_dt().eigen();
+    ebardot.col(3) = m_nodes[1]->GetPosDt().eigen();
+    ebardot.col(4) = m_nodes[1]->GetSlope1Dt().eigen();
+    ebardot.col(5) = m_nodes[1]->GetSlope2Dt().eigen();
 
-    ebardot.col(6) = m_nodes[2]->GetPos_dt().eigen();
-    ebardot.col(7) = m_nodes[2]->GetD_dt().eigen();
-    ebardot.col(8) = m_nodes[2]->GetDD_dt().eigen();
+    ebardot.col(6) = m_nodes[2]->GetPosDt().eigen();
+    ebardot.col(7) = m_nodes[2]->GetSlope1Dt().eigen();
+    ebardot.col(8) = m_nodes[2]->GetSlope2Dt().eigen();
 
-    ebardot.col(9) = m_nodes[3]->GetPos_dt().eigen();
-    ebardot.col(10) = m_nodes[3]->GetD_dt().eigen();
-    ebardot.col(11) = m_nodes[3]->GetDD_dt().eigen();
+    ebardot.col(9) = m_nodes[3]->GetPosDt().eigen();
+    ebardot.col(10) = m_nodes[3]->GetSlope1Dt().eigen();
+    ebardot.col(11) = m_nodes[3]->GetSlope2Dt().eigen();
 
-    ebardot.col(12) = m_nodes[4]->GetPos_dt().eigen();
-    ebardot.col(13) = m_nodes[4]->GetD_dt().eigen();
-    ebardot.col(14) = m_nodes[4]->GetDD_dt().eigen();
+    ebardot.col(12) = m_nodes[4]->GetPosDt().eigen();
+    ebardot.col(13) = m_nodes[4]->GetSlope1Dt().eigen();
+    ebardot.col(14) = m_nodes[4]->GetSlope2Dt().eigen();
 
-    ebardot.col(15) = m_nodes[5]->GetPos_dt().eigen();
-    ebardot.col(16) = m_nodes[5]->GetD_dt().eigen();
-    ebardot.col(17) = m_nodes[5]->GetDD_dt().eigen();
+    ebardot.col(15) = m_nodes[5]->GetPosDt().eigen();
+    ebardot.col(16) = m_nodes[5]->GetSlope1Dt().eigen();
+    ebardot.col(17) = m_nodes[5]->GetSlope2Dt().eigen();
 
-    ebardot.col(18) = m_nodes[6]->GetPos_dt().eigen();
-    ebardot.col(19) = m_nodes[6]->GetD_dt().eigen();
-    ebardot.col(20) = m_nodes[6]->GetDD_dt().eigen();
+    ebardot.col(18) = m_nodes[6]->GetPosDt().eigen();
+    ebardot.col(19) = m_nodes[6]->GetSlope1Dt().eigen();
+    ebardot.col(20) = m_nodes[6]->GetSlope2Dt().eigen();
 
-    ebardot.col(21) = m_nodes[7]->GetPos_dt().eigen();
-    ebardot.col(22) = m_nodes[7]->GetD_dt().eigen();
-    ebardot.col(23) = m_nodes[7]->GetDD_dt().eigen();
+    ebardot.col(21) = m_nodes[7]->GetPosDt().eigen();
+    ebardot.col(22) = m_nodes[7]->GetSlope1Dt().eigen();
+    ebardot.col(23) = m_nodes[7]->GetSlope2Dt().eigen();
 }
 
 void ChElementShellANCF_3833::CalcCombinedCoordMatrix(MatrixNx6& ebar_ebardot) {
     ebar_ebardot.template block<1, 3>(0, 0) = m_nodes[0]->GetPos().eigen();
-    ebar_ebardot.template block<1, 3>(0, 3) = m_nodes[0]->GetPos_dt().eigen();
-    ebar_ebardot.template block<1, 3>(1, 0) = m_nodes[0]->GetD().eigen();
-    ebar_ebardot.template block<1, 3>(1, 3) = m_nodes[0]->GetD_dt().eigen();
-    ebar_ebardot.template block<1, 3>(2, 0) = m_nodes[0]->GetDD().eigen();
-    ebar_ebardot.template block<1, 3>(2, 3) = m_nodes[0]->GetDD_dt().eigen();
+    ebar_ebardot.template block<1, 3>(0, 3) = m_nodes[0]->GetPosDt().eigen();
+    ebar_ebardot.template block<1, 3>(1, 0) = m_nodes[0]->GetSlope1().eigen();
+    ebar_ebardot.template block<1, 3>(1, 3) = m_nodes[0]->GetSlope1Dt().eigen();
+    ebar_ebardot.template block<1, 3>(2, 0) = m_nodes[0]->GetSlope2().eigen();
+    ebar_ebardot.template block<1, 3>(2, 3) = m_nodes[0]->GetSlope2Dt().eigen();
 
     ebar_ebardot.template block<1, 3>(3, 0) = m_nodes[1]->GetPos().eigen();
-    ebar_ebardot.template block<1, 3>(3, 3) = m_nodes[1]->GetPos_dt().eigen();
-    ebar_ebardot.template block<1, 3>(4, 0) = m_nodes[1]->GetD().eigen();
-    ebar_ebardot.template block<1, 3>(4, 3) = m_nodes[1]->GetD_dt().eigen();
-    ebar_ebardot.template block<1, 3>(5, 0) = m_nodes[1]->GetDD().eigen();
-    ebar_ebardot.template block<1, 3>(5, 3) = m_nodes[1]->GetDD_dt().eigen();
+    ebar_ebardot.template block<1, 3>(3, 3) = m_nodes[1]->GetPosDt().eigen();
+    ebar_ebardot.template block<1, 3>(4, 0) = m_nodes[1]->GetSlope1().eigen();
+    ebar_ebardot.template block<1, 3>(4, 3) = m_nodes[1]->GetSlope1Dt().eigen();
+    ebar_ebardot.template block<1, 3>(5, 0) = m_nodes[1]->GetSlope2().eigen();
+    ebar_ebardot.template block<1, 3>(5, 3) = m_nodes[1]->GetSlope2Dt().eigen();
 
     ebar_ebardot.template block<1, 3>(6, 0) = m_nodes[2]->GetPos().eigen();
-    ebar_ebardot.template block<1, 3>(6, 3) = m_nodes[2]->GetPos_dt().eigen();
-    ebar_ebardot.template block<1, 3>(7, 0) = m_nodes[2]->GetD().eigen();
-    ebar_ebardot.template block<1, 3>(7, 3) = m_nodes[2]->GetD_dt().eigen();
-    ebar_ebardot.template block<1, 3>(8, 0) = m_nodes[2]->GetDD().eigen();
-    ebar_ebardot.template block<1, 3>(8, 3) = m_nodes[2]->GetDD_dt().eigen();
+    ebar_ebardot.template block<1, 3>(6, 3) = m_nodes[2]->GetPosDt().eigen();
+    ebar_ebardot.template block<1, 3>(7, 0) = m_nodes[2]->GetSlope1().eigen();
+    ebar_ebardot.template block<1, 3>(7, 3) = m_nodes[2]->GetSlope1Dt().eigen();
+    ebar_ebardot.template block<1, 3>(8, 0) = m_nodes[2]->GetSlope2().eigen();
+    ebar_ebardot.template block<1, 3>(8, 3) = m_nodes[2]->GetSlope2Dt().eigen();
 
     ebar_ebardot.template block<1, 3>(9, 0) = m_nodes[3]->GetPos().eigen();
-    ebar_ebardot.template block<1, 3>(9, 3) = m_nodes[3]->GetPos_dt().eigen();
-    ebar_ebardot.template block<1, 3>(10, 0) = m_nodes[3]->GetD().eigen();
-    ebar_ebardot.template block<1, 3>(10, 3) = m_nodes[3]->GetD_dt().eigen();
-    ebar_ebardot.template block<1, 3>(11, 0) = m_nodes[3]->GetDD().eigen();
-    ebar_ebardot.template block<1, 3>(11, 3) = m_nodes[3]->GetDD_dt().eigen();
+    ebar_ebardot.template block<1, 3>(9, 3) = m_nodes[3]->GetPosDt().eigen();
+    ebar_ebardot.template block<1, 3>(10, 0) = m_nodes[3]->GetSlope1().eigen();
+    ebar_ebardot.template block<1, 3>(10, 3) = m_nodes[3]->GetSlope1Dt().eigen();
+    ebar_ebardot.template block<1, 3>(11, 0) = m_nodes[3]->GetSlope2().eigen();
+    ebar_ebardot.template block<1, 3>(11, 3) = m_nodes[3]->GetSlope2Dt().eigen();
 
     ebar_ebardot.template block<1, 3>(12, 0) = m_nodes[4]->GetPos().eigen();
-    ebar_ebardot.template block<1, 3>(12, 3) = m_nodes[4]->GetPos_dt().eigen();
-    ebar_ebardot.template block<1, 3>(13, 0) = m_nodes[4]->GetD().eigen();
-    ebar_ebardot.template block<1, 3>(13, 3) = m_nodes[4]->GetD_dt().eigen();
-    ebar_ebardot.template block<1, 3>(14, 0) = m_nodes[4]->GetDD().eigen();
-    ebar_ebardot.template block<1, 3>(14, 3) = m_nodes[4]->GetDD_dt().eigen();
+    ebar_ebardot.template block<1, 3>(12, 3) = m_nodes[4]->GetPosDt().eigen();
+    ebar_ebardot.template block<1, 3>(13, 0) = m_nodes[4]->GetSlope1().eigen();
+    ebar_ebardot.template block<1, 3>(13, 3) = m_nodes[4]->GetSlope1Dt().eigen();
+    ebar_ebardot.template block<1, 3>(14, 0) = m_nodes[4]->GetSlope2().eigen();
+    ebar_ebardot.template block<1, 3>(14, 3) = m_nodes[4]->GetSlope2Dt().eigen();
 
     ebar_ebardot.template block<1, 3>(15, 0) = m_nodes[5]->GetPos().eigen();
-    ebar_ebardot.template block<1, 3>(15, 3) = m_nodes[5]->GetPos_dt().eigen();
-    ebar_ebardot.template block<1, 3>(16, 0) = m_nodes[5]->GetD().eigen();
-    ebar_ebardot.template block<1, 3>(16, 3) = m_nodes[5]->GetD_dt().eigen();
-    ebar_ebardot.template block<1, 3>(17, 0) = m_nodes[5]->GetDD().eigen();
-    ebar_ebardot.template block<1, 3>(17, 3) = m_nodes[5]->GetDD_dt().eigen();
+    ebar_ebardot.template block<1, 3>(15, 3) = m_nodes[5]->GetPosDt().eigen();
+    ebar_ebardot.template block<1, 3>(16, 0) = m_nodes[5]->GetSlope1().eigen();
+    ebar_ebardot.template block<1, 3>(16, 3) = m_nodes[5]->GetSlope1Dt().eigen();
+    ebar_ebardot.template block<1, 3>(17, 0) = m_nodes[5]->GetSlope2().eigen();
+    ebar_ebardot.template block<1, 3>(17, 3) = m_nodes[5]->GetSlope2Dt().eigen();
 
     ebar_ebardot.template block<1, 3>(18, 0) = m_nodes[6]->GetPos().eigen();
-    ebar_ebardot.template block<1, 3>(18, 3) = m_nodes[6]->GetPos_dt().eigen();
-    ebar_ebardot.template block<1, 3>(19, 0) = m_nodes[6]->GetD().eigen();
-    ebar_ebardot.template block<1, 3>(19, 3) = m_nodes[6]->GetD_dt().eigen();
-    ebar_ebardot.template block<1, 3>(20, 0) = m_nodes[6]->GetDD().eigen();
-    ebar_ebardot.template block<1, 3>(20, 3) = m_nodes[6]->GetDD_dt().eigen();
+    ebar_ebardot.template block<1, 3>(18, 3) = m_nodes[6]->GetPosDt().eigen();
+    ebar_ebardot.template block<1, 3>(19, 0) = m_nodes[6]->GetSlope1().eigen();
+    ebar_ebardot.template block<1, 3>(19, 3) = m_nodes[6]->GetSlope1Dt().eigen();
+    ebar_ebardot.template block<1, 3>(20, 0) = m_nodes[6]->GetSlope2().eigen();
+    ebar_ebardot.template block<1, 3>(20, 3) = m_nodes[6]->GetSlope2Dt().eigen();
 
     ebar_ebardot.template block<1, 3>(21, 0) = m_nodes[7]->GetPos().eigen();
-    ebar_ebardot.template block<1, 3>(21, 3) = m_nodes[7]->GetPos_dt().eigen();
-    ebar_ebardot.template block<1, 3>(22, 0) = m_nodes[7]->GetD().eigen();
-    ebar_ebardot.template block<1, 3>(22, 3) = m_nodes[7]->GetD_dt().eigen();
-    ebar_ebardot.template block<1, 3>(23, 0) = m_nodes[7]->GetDD().eigen();
-    ebar_ebardot.template block<1, 3>(23, 3) = m_nodes[7]->GetDD_dt().eigen();
+    ebar_ebardot.template block<1, 3>(21, 3) = m_nodes[7]->GetPosDt().eigen();
+    ebar_ebardot.template block<1, 3>(22, 0) = m_nodes[7]->GetSlope1().eigen();
+    ebar_ebardot.template block<1, 3>(22, 3) = m_nodes[7]->GetSlope1Dt().eigen();
+    ebar_ebardot.template block<1, 3>(23, 0) = m_nodes[7]->GetSlope2().eigen();
+    ebar_ebardot.template block<1, 3>(23, 3) = m_nodes[7]->GetSlope2Dt().eigen();
 }
 
 // Calculate the 3x3 Element Jacobian at the given point (xi,eta,zeta) in the element
@@ -2943,7 +2946,7 @@ double ChElementShellANCF_3833::Calc_det_J_0xi(double xi, double eta, double zet
     return (J_0xi.determinant());
 }
 
-void ChElementShellANCF_3833::RotateReorderStiffnessMatrix(ChMatrixNM<double, 6, 6>& D, double theta) {
+void ChElementShellANCF_3833::RotateReorderStiffnessMatrix(ChMatrix66d& D, double theta) {
     // Reorder the stiffness matrix from the order assumed in ChMaterialShellANCF.h
     //  E = [E11,E22,2*E12,E33,2*E13,2*E23]
     // to the order assumed in this element formulation

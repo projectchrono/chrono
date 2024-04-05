@@ -27,17 +27,17 @@
 #include <cstdio>
 #include <cmath>
 
-#include "chrono/core/ChMathematics.h"
-#include "chrono/core/ChVector.h"
+#include "chrono/core/ChVector3.h"
 #include "chrono/physics/ChLoadContainer.h"
 #include "chrono/physics/ChSystemNSC.h"
 #include "chrono/solver/ChIterativeSolverLS.h"
 #include "chrono/timestepper/ChTimestepper.h"
+#include "chrono/utils/ChConstants.h"
 #include "chrono/utils/ChUtilsInputOutput.h"
 #include "chrono/utils/ChUtilsValidation.h"
 #include "chrono/fea/ChElementCableANCF.h"
-#include "chrono/fea/ChLinkDirFrame.h"
-#include "chrono/fea/ChLinkPointFrame.h"
+#include "chrono/fea/ChLinkNodeSlopeFrame.h"
+#include "chrono/fea/ChLinkNodeFrame.h"
 #include "chrono/fea/ChLoadsBeam.h"
 #include "chrono/fea/ChMesh.h"
 
@@ -82,20 +82,20 @@ int main(int argc, char* argv[]) {
     double rho = 0.0;
 
     auto msection_cable = chrono_types::make_shared<ChBeamSectionCable>();
-    diam = sqrt(1e-6 / CH_C_PI) * 2.0 * f_const;
+    diam = sqrt(1e-6 / CH_PI) * 2.0 * f_const;
     msection_cable->SetDiameter(diam);
     msection_cable->SetYoungModulus(1e9 / pow(f_const, 4));
-    msection_cable->SetI(CH_C_PI / 4.0 * pow(diam / 2, 4));
+    msection_cable->SetInertia(CH_PI / 4.0 * pow(diam / 2, 4));
     rho = 8000 / pow(f_const, 2);
     msection_cable->SetDensity(rho);
 
     // Create the nodes
-    auto hnodeancf1 = chrono_types::make_shared<ChNodeFEAxyzD>(ChVector<>(0, 0, 0.0), ChVector<>(1, 0, 0));
-    auto hnodeancf2 = chrono_types::make_shared<ChNodeFEAxyzD>(ChVector<>(beam_length / 4, 0, 0), ChVector<>(1, 0, 0));
-    auto hnodeancf3 = chrono_types::make_shared<ChNodeFEAxyzD>(ChVector<>(beam_length / 2, 0, 0), ChVector<>(1, 0, 0));
+    auto hnodeancf1 = chrono_types::make_shared<ChNodeFEAxyzD>(ChVector3d(0, 0, 0.0), ChVector3d(1, 0, 0));
+    auto hnodeancf2 = chrono_types::make_shared<ChNodeFEAxyzD>(ChVector3d(beam_length / 4, 0, 0), ChVector3d(1, 0, 0));
+    auto hnodeancf3 = chrono_types::make_shared<ChNodeFEAxyzD>(ChVector3d(beam_length / 2, 0, 0), ChVector3d(1, 0, 0));
     auto hnodeancf4 =
-        chrono_types::make_shared<ChNodeFEAxyzD>(ChVector<>(3.0 * beam_length / 4, 0, 0), ChVector<>(1, 0, 0));
-    auto hnodeancf5 = chrono_types::make_shared<ChNodeFEAxyzD>(ChVector<>(beam_length, 0, 0), ChVector<>(1, 0, 0));
+        chrono_types::make_shared<ChNodeFEAxyzD>(ChVector3d(3.0 * beam_length / 4, 0, 0), ChVector3d(1, 0, 0));
+    auto hnodeancf5 = chrono_types::make_shared<ChNodeFEAxyzD>(ChVector3d(beam_length, 0, 0), ChVector3d(1, 0, 0));
 
     my_mesh->AddNode(hnodeancf1);
     my_mesh->AddNode(hnodeancf2);
@@ -132,9 +132,9 @@ int main(int argc, char* argv[]) {
     my_mesh->AddElement(belementancf4);
 
     auto mtruss = chrono_types::make_shared<ChBody>();
-    mtruss->SetBodyFixed(true);
+    mtruss->SetFixed(true);
 
-    auto constraint_hinge = chrono_types::make_shared<ChLinkPointFrame>();
+    auto constraint_hinge = chrono_types::make_shared<ChLinkNodeFrame>();
     constraint_hinge->Initialize(hnodeancf1, mtruss);
     sys.Add(constraint_hinge);
 
@@ -142,11 +142,11 @@ int main(int argc, char* argv[]) {
     sys.Add(my_mesh);
 
     // Set Angular velocity initial condition
-    hnodeancf1->SetPos_dt(ChVector<>(0, 0, -Ang_VelY * beam_length / NElem * 0.0));
-    hnodeancf2->SetPos_dt(ChVector<>(0, 0, -Ang_VelY * beam_length / NElem * 1.0));
-    hnodeancf3->SetPos_dt(ChVector<>(0, 0, -Ang_VelY * beam_length / NElem * 2.0));
-    hnodeancf4->SetPos_dt(ChVector<>(0, 0, -Ang_VelY * beam_length / NElem * 3.0));
-    hnodeancf5->SetPos_dt(ChVector<>(0, 0, -Ang_VelY * beam_length / NElem * 4.0));
+    hnodeancf1->SetPosDt(ChVector3d(0, 0, -Ang_VelY * beam_length / NElem * 0.0));
+    hnodeancf2->SetPosDt(ChVector3d(0, 0, -Ang_VelY * beam_length / NElem * 1.0));
+    hnodeancf3->SetPosDt(ChVector3d(0, 0, -Ang_VelY * beam_length / NElem * 2.0));
+    hnodeancf4->SetPosDt(ChVector3d(0, 0, -Ang_VelY * beam_length / NElem * 3.0));
+    hnodeancf5->SetPosDt(ChVector3d(0, 0, -Ang_VelY * beam_length / NElem * 4.0));
 
     // Change solver settings
     auto solver = chrono_types::make_shared<ChSolverMINRES>();
@@ -157,8 +157,6 @@ int main(int argc, char* argv[]) {
     solver->EnableWarmStart(true);  // IMPORTANT for convergence when using EULER_IMPLICIT_LINEARIZED
     solver->SetVerbose(false);
 
-    sys.SetSolverForceTolerance(1e-14);
-
     // Change type of integrator:
     sys.SetTimestepperType(ChTimestepper::Type::EULER_IMPLICIT_LINEARIZED);  // fast, less precise
     //  sys.SetTimestepperType(chrono::ChTimestepper::Type::HHT);  // precise,slower, might iterate each step
@@ -166,12 +164,12 @@ int main(int argc, char* argv[]) {
     // if later you want to change integrator settings:
     if (auto mystepper = std::dynamic_pointer_cast<ChTimestepperHHT>(sys.GetTimestepper())) {
         mystepper->SetAlpha(0.0);
-        mystepper->SetMaxiters(60);
+        mystepper->SetMaxIters(60);
         mystepper->SetAbsTolerances(1e-14);
     }
 
     /* m_data.resize(7);
-     utils::CSV_writer csv(" ");
+     utils::ChWriterCSV csv(" ");
      std::ifstream file2("UT_ANCFBeam.txt");
 
      for (size_t col = 0; col < 7; col++)
@@ -184,7 +182,7 @@ int main(int argc, char* argv[]) {
         double AbsVal = std::abs(hnodeancf3->GetPos().y() - FileInputMat(it, 4));
         double AbsVal2 = std::abs(hnodeancf5->GetPos().z() - FileInputMat(it, 6));
 
-        if (ChMax(AbsVal, AbsVal2) > precision) {
+        if (std::max(AbsVal, AbsVal2) > precision) {
             std::cout << "Unit test check failed \n";
             std::cout << "  y position: " << hnodeancf3->GetPos().y() << "  (reference: " << FileInputMat(it, 4)
                       << "  diff: " << AbsVal << ")\n";
@@ -197,9 +195,9 @@ int main(int argc, char* argv[]) {
     /*
     // This code snippet creates the benchmark file.
     m_data[0][it] = sys.GetChTime();
-    m_data[1][it] = hnodeancf1->GetD().x(),
-    m_data[2][it] = hnodeancf1->GetD().y();
-    m_data[3][it] = hnodeancf1->GetD().z();
+    m_data[1][it] = hnodeancf1->GetSlope1().x(),
+    m_data[2][it] = hnodeancf1->GetSlope1().y();
+    m_data[3][it] = hnodeancf1->GetSlope1().z();
     m_data[4][it] = hnodeancf3->GetPos().y();
     m_data[5][it] = hnodeancf5->GetPos().x();
     m_data[6][it] = hnodeancf5->GetPos().z();
@@ -207,7 +205,7 @@ int main(int argc, char* argv[]) {
     m_data[6][it] << std::endl;
     // Advance system state
     std::cout << "Time t = " << sys.GetChTime() << "s \n";
-    csv.write_to_file("UT_ANCFBeam.txt"); */
+    csv.WriteToFile("UT_ANCFBeam.txt"); */
 
     return 0;
 }

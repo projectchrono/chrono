@@ -49,31 +49,31 @@ print( "Copyright (c) 2022 projectchrono.org")
 sys = chrono.ChSystemNSC()
 sys.SetCollisionSystemType(chrono.ChCollisionSystem.Type_BULLET)
 
-mat = chrono.ChMaterialSurfaceNSC()
+mat = chrono.ChContactMaterialNSC()
 
 ground = chrono.ChBodyEasyBox(10, 3, 10, 100, True, True, mat)
-ground.SetBodyFixed(True);
-ground.SetPos(chrono.ChVectorD(0, 0, 0))
+ground.SetFixed(True);
+ground.SetPos(chrono.ChVector3d(0, 0, 0))
 sys.AddBody(ground)
 
 cyl = chrono.ChBodyEasyCylinder(chrono.ChAxis_Y, 0.5, 1.0, 100, True, True, mat)
-cyl.SetPos(chrono.ChVectorD(0, 3, 0))
+cyl.SetPos(chrono.ChVector3d(0, 3, 0))
 sys.AddBody(cyl)
 
 box = chrono.ChBodyEasyBox(0.5, 0.5, 0.5, 100, True, True, mat)
-box.SetPos(chrono.ChVectorD(0.2, 2, 0))
+box.SetPos(chrono.ChVector3d(0.2, 2, 0))
 sys.AddBody(box)
 
 sphere = chrono.ChBodyEasySphere(0.25, 100.0, True, True, mat)
-sphere.SetPos(chrono.ChVectorD(-0.2, 2, 0.75))
+sphere.SetPos(chrono.ChVector3d(-0.2, 2, 0.75))
 sys.AddBody(sphere)
 
-ellipse = chrono.ChBodyEasyEllipsoid(chrono.ChVectorD(0.2, 0.4, 0.6), 100, True, True, mat)
-ellipse.SetPos(chrono.ChVectorD(0.2, 2, -1.0))
+ellipse = chrono.ChBodyEasyEllipsoid(chrono.ChVector3d(0.2, 0.4, 0.6), 100, True, True, mat)
+ellipse.SetPos(chrono.ChVector3d(0.2, 2, -1.0))
 sys.AddBody(ellipse)
 
 mesh = chrono.ChBodyEasyMesh(chrono.GetChronoDataFile("models/cube.obj"), 100, True, True, True, mat, 0.05)
-mesh.SetPos(chrono.ChVectorD(2.0, 3.5, -2.0))
+mesh.SetPos(chrono.ChVector3d(2.0, 3.5, -2.0))
 sys.AddBody(mesh)
 
 # Create the Irrlicht visualization
@@ -84,7 +84,7 @@ vis.SetWindowTitle('Collision visualization demo')
 vis.Initialize()
 vis.AddLogo(chrono.GetChronoDataFile('logo_pychrono_alpha.png'))
 vis.AddSkyBox()
-vis.AddCamera(chrono.ChVectorD(0, 8 , 6))
+vis.AddCamera(chrono.ChVector3d(0, 8 , 6))
 vis.AddTypicalLights()
 
 # Create collision shape drawer
@@ -103,5 +103,5 @@ while vis.Run():
     vis.EndScene()
     sys.DoStepDynamics(1e-3)
 
-    print(sys.GetChTime(), "  ", sys.GetNcontacts())
+    print(sys.GetChTime(), "  ", sys.GetNumContacts())
     sys.GetCollisionSystem().Visualize(chrono.ChCollisionSystem.VIS_Shapes)

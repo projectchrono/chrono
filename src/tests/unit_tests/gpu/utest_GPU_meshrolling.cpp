@@ -39,21 +39,21 @@ TEST(gpuMeshRolling, check) {
     float mu_s = 0.2f;
     float mu_r = 0.0008f;
 
-    ChSystemGpuMesh gpu_sys(radius, density, ChVector<float>(20.f, 20.f, 10.f));
+    ChSystemGpuMesh gpu_sys(radius, density, ChVector3f(20.f, 20.f, 10.f));
 
     // Load in the mesh
     float mass = 100.f;
     float inertia = (2.0f / 5) * mass * 0.5f * 0.5f;
-    gpu_sys.AddMesh(GetChronoDataPath() + "testing/gpu/one_facet.obj", ChVector<float>(0),
-                    ChMatrix33<float>(ChVector<float>(1)), mass);
+    gpu_sys.AddMesh(GetChronoDataPath() + "testing/gpu/one_facet.obj", ChVector3f(0), ChMatrix33<float>(ChVector3f(1)),
+                    mass);
     gpu_sys.EnableMeshCollision(true);
 
     // assign initial condition for the sphere
     float penetration = pow(mass * abs(-g) / (1e11f), 2.f / 3.f);
     float settled_pos = radius - penetration;
 
-    std::vector<ChVector<float>> body_point = {ChVector<float>(1.f, -1.f, 0.5f)};
-    std::vector<ChVector<float>> velocity = {ChVector<float>(1.f, 0.f, 0.f)};
+    std::vector<ChVector3f> body_point = {ChVector3f(1.f, -1.f, 0.5f)};
+    std::vector<ChVector3f> velocity = {ChVector3f(1.f, 0.f, 0.f)};
     gpu_sys.SetParticles(body_point, velocity);
 
     gpu_sys.SetPsiFactors(32, 16);
@@ -85,7 +85,7 @@ TEST(gpuMeshRolling, check) {
     gpu_sys.SetRollingCoeff_SPH2MESH(mu_r);
 
     // set gravity
-    gpu_sys.SetGravitationalAcceleration(ChVector<>(0.f, 0.f, -g));
+    gpu_sys.SetGravitationalAcceleration(ChVector3d(0.f, 0.f, -g));
 
     float step_size = 1e-4f;
     float curr_time = 0;
@@ -125,7 +125,7 @@ TEST(gpuMeshRolling, check) {
     ASSERT_TRUE(settled);
 
     // check position x, y ,z components
-    ChVector<> end_pos = gpu_sys.GetParticlePosition(0);
+    ChVector3d end_pos = gpu_sys.GetParticlePosition(0);
     ASSERT_TRUE(end_pos.x() > 1.0f);
     ASSERT_NEAR(end_pos.y(), -1.0f, precision_pos);
     ASSERT_NEAR(end_pos.z(), settled_pos, precision_pos);

@@ -16,7 +16,7 @@
 #define CH_COLLISION_SHAPE
 
 #include "chrono/core/ChApiCE.h"
-#include "chrono/physics/ChMaterialSurface.h"
+#include "chrono/physics/ChContactMaterial.h"
 
 namespace chrono {
 
@@ -51,23 +51,23 @@ class ChApi ChCollisionShape {
     };
 
     ChCollisionShape(Type type = Type::UNKNOWN_SHAPE);
-    ChCollisionShape(Type type, std::shared_ptr<ChMaterialSurface> material);
+    ChCollisionShape(Type type, std::shared_ptr<ChContactMaterial> material);
     virtual ~ChCollisionShape() {}
 
     Type GetType() const { return m_type; }
 
-    std::shared_ptr<ChMaterialSurface> GetMaterial() const { return m_material; }
+    std::shared_ptr<ChContactMaterial> GetMaterial() const { return m_material; }
     ChContactMethod GetContactMethod() const { return m_material->GetContactMethod(); }
 
     /// Method to allow serialization of transient data to archives.
-    virtual void ArchiveOut(ChArchiveOut& marchive);
+    virtual void ArchiveOut(ChArchiveOut& archive_out);
 
     /// Method to allow de-serialization of transient data from archives.
-    virtual void ArchiveIn(ChArchiveIn& marchive);
+    virtual void ArchiveIn(ChArchiveIn& archive_in);
 
   protected:
     Type m_type;                                    ///< type of collision shape
-    std::shared_ptr<ChMaterialSurface> m_material;  ///< surface contact material
+    std::shared_ptr<ChContactMaterial> m_material;  ///< surface contact material
 
     friend class ChCollisionModel;
 };

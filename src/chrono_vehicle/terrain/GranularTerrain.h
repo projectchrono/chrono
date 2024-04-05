@@ -29,8 +29,8 @@
 #define GRANULAR_TERRAIN_H
 
 #include "chrono/physics/ChBody.h"
-#include "chrono/physics/ChMaterialSurfaceNSC.h"
-#include "chrono/physics/ChMaterialSurfaceSMC.h"
+#include "chrono/physics/ChContactMaterialNSC.h"
+#include "chrono/physics/ChContactMaterialSMC.h"
 
 #include "chrono_vehicle/ChApiVehicle.h"
 #include "chrono_vehicle/ChTerrain.h"
@@ -50,15 +50,15 @@ class CH_VEHICLE_API GranularTerrain : public ChTerrain {
     /// Construct a default GranularTerrain.
     /// The user is responsible for calling various Set methods before Initialize.
     GranularTerrain(ChSystem* system  ///< [in] pointer to the containing multibody system
-                    );
+    );
 
     ~GranularTerrain();
 
     /// Set contact material (must be consistent with the containing system).
-    void SetContactMaterial(std::shared_ptr<ChMaterialSurface> material) { m_material = material; }
+    void SetContactMaterial(std::shared_ptr<ChContactMaterial> material) { m_material = material; }
 
     /// Get the current contact material.
-    std::shared_ptr<ChMaterialSurface> GetContactMaterial() const { return m_material; }
+    std::shared_ptr<ChContactMaterial> GetContactMaterial() const { return m_material; }
 
     /// Set outward collision envelope.
     /// This value is used for the internal custom collision detection for imposing
@@ -77,18 +77,14 @@ class CH_VEHICLE_API GranularTerrain : public ChTerrain {
     /// Enable creation of particles fixed to bottom container.
     void EnableRoughSurface(int num_spheres_x,  ///< number of fixed spheres in X direction
                             int num_spheres_y   ///< number of fixed spheres in Y direction
-                            );
+    );
 
     /// Enable moving patch and set parameters.
     void EnableMovingPatch(std::shared_ptr<ChBody> body,              ///< monitored body
                            double buffer_distance,                    ///< look-ahead distance
                            double shift_distance,                     ///< chunk size of relocated particles
-                           const ChVector<>& init_vel = ChVector<>()  ///< initial particle velocity
-                           );
-
-    /// Set start value for body identifiers of generated particles (default: 1000000).
-    /// It is assumed that all bodies with a larger identifier are granular material particles.
-    void SetStartIdentifier(int id) { m_start_id = id; }
+                           const ChVector3d& init_vel = ChVector3d()  ///< initial particle velocity
+    );
 
     /// Enable/disable visualization of boundaries (default: false).
     void EnableVisualization(bool val) { m_vis_enabled = val; }
@@ -103,14 +99,14 @@ class CH_VEHICLE_API GranularTerrain : public ChTerrain {
     /// minimum value (see SetMinNumParticles).
     /// The initial particle locations are obtained with Poisson Disk sampling, using the
     /// given minimum separation distance.
-    void Initialize(const ChVector<>& center,                  ///< [in] center of bottom
+    void Initialize(const ChVector3d& center,                  ///< [in] center of bottom
                     double length,                             ///< [in] patch dimension in X direction
                     double width,                              ///< [in] patch dimension in Y direction
                     unsigned int num_layers,                   ///< [in] number of layers
                     double radius,                             ///< [in] particle radius
                     double density,                            ///< [in] particle density
-                    const ChVector<>& init_vel = ChVector<>()  ///< [in] particle initial velocity
-                    );
+                    const ChVector3d& init_vel = ChVector3d()  ///< [in] particle initial velocity
+    );
 
     /// Update the state of the terrain system at the specified time.
     virtual void Synchronize(double time) override;
@@ -134,10 +130,10 @@ class CH_VEHICLE_API GranularTerrain : public ChTerrain {
 
     /// Get the terrain height below the specified location.
     /// This function returns the highest point over all granular particles.
-    virtual double GetHeight(const ChVector<>& loc) const override;
+    virtual double GetHeight(const ChVector3d& loc) const override;
 
     /// Get the terrain normal at the point below the specified location.
-    virtual chrono::ChVector<> GetNormal(const ChVector<>& loc) const override;
+    virtual chrono::ChVector3d GetNormal(const ChVector3d& loc) const override;
 
     /// Get the terrain coefficient of friction at the point below the specified location.
     /// This coefficient of friction value may be used by certain tire models to modify
@@ -146,12 +142,11 @@ class CH_VEHICLE_API GranularTerrain : public ChTerrain {
     /// For GranularTerrain, this function defers to the user-provided functor object of type
     /// ChTerrain::FrictionFunctor, if one was specified.
     /// Otherwise, it returns the constant value specified through SetContactFrictionCoefficient.
-    virtual float GetCoefficientFriction(const ChVector<>& loc) const override;
+    virtual float GetCoefficientFriction(const ChVector3d& loc) const override;
 
   private:
     unsigned int m_min_num_particles;  ///< requested minimum number of particles
     unsigned int m_num_particles;      ///< actual number of particles
-    int m_start_id;                    ///< start body identifier for particles
     double m_radius;                   ///< particle radius
 
     // Patch dimensions
@@ -171,7 +166,7 @@ class CH_VEHICLE_API GranularTerrain : public ChTerrain {
     std::shared_ptr<ChBody> m_body;  ///< tracked body
     double m_buffer_distance;        ///< minimum distance to front boundary
     double m_shift_distance;         ///< size (X direction) of relocated volume
-    ChVector<> m_init_part_vel;      ///< initial particle velocity
+    ChVector3d m_init_part_vel;      ///< initial particle velocity
 
     // Rough surface (ground-fixed spheres)
     bool m_rough_surface;  ///< rough surface feature enabled?
@@ -186,7 +181,7 @@ class CH_VEHICLE_API GranularTerrain : public ChTerrain {
     bool m_vis_enabled;                ///< boundary visualization enabled?
     std::shared_ptr<ChBody> m_ground;  ///< ground body
 
-    std::shared_ptr<ChMaterialSurface> m_material;  ///< contact material properties
+    std::shared_ptr<ChContactMaterial> m_material;  ///< contact material properties
 
     std::shared_ptr<ChSystem::CustomCollisionCallback> m_collision_callback;  ///< custom collision callback
 

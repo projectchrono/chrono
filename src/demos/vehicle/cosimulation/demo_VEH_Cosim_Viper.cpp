@@ -34,7 +34,7 @@
 
 #include "chrono_vehicle/cosim/mbs/ChVehicleCosimViperNode.h"
 #include "chrono_vehicle/cosim/tire/ChVehicleCosimTireNodeRigid.h"
-    #include "chrono_vehicle/cosim/terrain/ChVehicleCosimTerrainNodeRigid.h"
+#include "chrono_vehicle/cosim/terrain/ChVehicleCosimTerrainNodeRigid.h"
 #include "chrono_vehicle/cosim/terrain/ChVehicleCosimTerrainNodeSCM.h"
 #ifdef CHRONO_MULTICORE
     #include "chrono_vehicle/cosim/terrain/ChVehicleCosimTerrainNodeGranularOMP.h"
@@ -60,7 +60,7 @@ bool GetProblemSpecs(int argc,
                      char** argv,
                      int rank,
                      std::string& terrain_specfile,
-                     ChVector2<>& init_loc,
+                     ChVector2d& init_loc,
                      double& terrain_length,
                      double& terrain_width,
                      int& nthreads_tire,
@@ -102,7 +102,7 @@ class MyDriver : public ViperDriver {
         if (eff_time < 4)
             steering = 0;
         else
-            steering = 0.4 * std::sin(CH_C_2PI * (eff_time - 4) / 30);
+            steering = 0.4 * std::sin(CH_2PI * (eff_time - 4) / 30);
 
         for (int i = 0; i < 4; i++) {
             drive_speeds[i] = driving;
@@ -116,15 +116,15 @@ class MyDriver : public ViperDriver {
 
 // =============================================================================
 
-ChVehicleCosimTerrainNodeChrono::RigidObstacle CreateObstacle(const ChVector<>& pos) {
+ChVehicleCosimTerrainNodeChrono::RigidObstacle CreateObstacle(const ChVector3d& pos) {
     ChVehicleCosimTerrainNodeChrono::RigidObstacle o;
     o.m_mesh_filename = "vehicle/hmmwv/hmmwv_tire_coarse_closed.obj";
     o.m_density = 1000;
     o.m_init_pos = pos;
-    o.m_init_rot = Q_from_AngX(CH_C_PI_2);
+    o.m_init_rot = QuatFromAngleX(CH_PI_2);
     o.m_contact_mat = ChContactMaterialData();
-    o.m_oobb_center = ChVector<>(0, 0, 0);
-    o.m_oobb_dims = ChVector<>(1, 0.3, 1);
+    o.m_oobb_center = ChVector3d(0, 0, 0);
+    o.m_oobb_dims = ChVector3d(1, 0.3, 1);
     return o;
 }
 
@@ -160,7 +160,7 @@ int main(int argc, char** argv) {
 
     // Parse command line arguments
     std::string terrain_specfile;
-    ChVector2<> init_loc(0, 0);
+    ChVector2d init_loc(0, 0);
     double terrain_length = -1;
     double terrain_width = -1;
     int nthreads_tire = 1;
@@ -201,9 +201,11 @@ int main(int argc, char** argv) {
     if (terrain_width < 0)
         terrain_width = size.y();
 
-    std::cout << "-------------------" << std::endl;
-    std::cout << "Dimensions: " << terrain_length << "  " << terrain_width << std::endl;
-    std::cout << "-------------------" << std::endl;
+    if (rank == 0) {
+        std::cout << "-------------------" << std::endl;
+        std::cout << "Dimensions: " << terrain_length << "  " << terrain_width << std::endl;
+        std::cout << "-------------------" << std::endl;
+    }
 
     // Do not create obstacles if a DBP rig is attached
     if (use_DBP_rig) {
@@ -281,7 +283,7 @@ int main(int argc, char** argv) {
         viper->SetDriver(driver);
         viper->SetIntegratorType(ChTimestepper::Type::EULER_IMPLICIT_LINEARIZED, ChSolver::Type::BARZILAIBORWEIN);
         viper->SetVerbose(verbose);
-        viper->SetInitialLocation(ChVector<>(init_loc.x(), init_loc.y(), 0.5));
+        viper->SetInitialLocation(ChVector3d(init_loc.x(), init_loc.y(), 0.5));
         viper->SetInitialYaw(0);
         viper->SetStepSize(step_size);
         viper->SetNumThreads(1);
@@ -290,7 +292,7 @@ int main(int argc, char** argv) {
             viper->EnableRuntimeVisualization(render_fps);
         if (renderPP)
             viper->EnablePostprocessVisualization(render_fps);
-        viper->SetCameraPosition(ChVector<>(terrain_length / 2, 0, 2));
+        viper->SetCameraPosition(ChVector3d(terrain_length / 2, 0, 2));
 
         if (verbose)
             cout << "[Viper node  ] output directory: " << viper->GetOutDirName() << endl;
@@ -330,10 +332,10 @@ int main(int argc, char** argv) {
                     terrain->EnableRuntimeVisualization(render_fps);
                 if (renderPP)
                     terrain->EnablePostprocessVisualization(render_fps);
-                terrain->SetCameraPosition(ChVector<>(terrain_length / 2, 0, 2));
+                terrain->SetCameraPosition(ChVector3d(terrain_length / 2, 0, 2));
                 if (add_obstacles) {
-                    terrain->AddRigidObstacle(CreateObstacle(ChVector<>(1, 1, 0.5)));
-                    terrain->AddRigidObstacle(CreateObstacle(ChVector<>(-1, -1, 0.5)));
+                    terrain->AddRigidObstacle(CreateObstacle(ChVector3d(1, 1, 0.5)));
+                    terrain->AddRigidObstacle(CreateObstacle(ChVector3d(-1, -1, 0.5)));
                 }
                 if (verbose)
                     cout << "[Terrain node] output directory: " << terrain->GetOutDirName() << endl;
@@ -353,10 +355,10 @@ int main(int argc, char** argv) {
                     terrain->EnableRuntimeVisualization(render_fps);
                 if (renderPP)
                     terrain->EnablePostprocessVisualization(render_fps);
-                terrain->SetCameraPosition(ChVector<>(terrain_length / 2, 0, 2));
+                terrain->SetCameraPosition(ChVector3d(terrain_length / 2, 0, 2));
                 if (add_obstacles) {
-                    terrain->AddRigidObstacle(CreateObstacle(ChVector<>(1, 1, 0.5)));
-                    terrain->AddRigidObstacle(CreateObstacle(ChVector<>(-1, -1, 0.5)));
+                    terrain->AddRigidObstacle(CreateObstacle(ChVector3d(1, 1, 0.5)));
+                    terrain->AddRigidObstacle(CreateObstacle(ChVector3d(-1, -1, 0.5)));
                 }
                 if (verbose)
                     cout << "[Terrain node] output directory: " << terrain->GetOutDirName() << endl;
@@ -379,10 +381,10 @@ int main(int argc, char** argv) {
                     terrain->EnableRuntimeVisualization(render_fps);
                 if (renderPP)
                     terrain->EnablePostprocessVisualization(render_fps);
-                terrain->SetCameraPosition(ChVector<>(terrain_length / 2, 0, 2));
+                terrain->SetCameraPosition(ChVector3d(terrain_length / 2, 0, 2));
                 if (add_obstacles) {
-                    terrain->AddRigidObstacle(CreateObstacle(ChVector<>(1, 1, 0.5)));
-                    terrain->AddRigidObstacle(CreateObstacle(ChVector<>(-1, -1, 0.5)));
+                    terrain->AddRigidObstacle(CreateObstacle(ChVector3d(1, 1, 0.5)));
+                    terrain->AddRigidObstacle(CreateObstacle(ChVector3d(-1, -1, 0.5)));
                 }
                 if (verbose)
                     cout << "[Terrain node] output directory: " << terrain->GetOutDirName() << endl;
@@ -409,10 +411,10 @@ int main(int argc, char** argv) {
                     terrain->EnableRuntimeVisualization(render_fps);
                 if (renderPP)
                     terrain->EnablePostprocessVisualization(render_fps);
-                terrain->SetCameraPosition(ChVector<>(terrain_length / 2, 0, 2));
+                terrain->SetCameraPosition(ChVector3d(terrain_length / 2, 0, 2));
                 if (add_obstacles) {
-                    terrain->AddRigidObstacle(CreateObstacle(ChVector<>(1, 1, 0.5)));
-                    terrain->AddRigidObstacle(CreateObstacle(ChVector<>(-1, -1, 0.5)));
+                    terrain->AddRigidObstacle(CreateObstacle(ChVector3d(1, 1, 0.5)));
+                    terrain->AddRigidObstacle(CreateObstacle(ChVector3d(-1, -1, 0.5)));
                 }
                 if (verbose)
                     cout << "[Terrain node] output directory: " << terrain->GetOutDirName() << endl;
@@ -439,10 +441,10 @@ int main(int argc, char** argv) {
                     terrain->EnableRuntimeVisualization(render_fps);
                 if (renderPP)
                     terrain->EnablePostprocessVisualization(render_fps);
-                terrain->SetCameraPosition(ChVector<>(terrain_length / 2, 0, 2));
+                terrain->SetCameraPosition(ChVector3d(terrain_length / 2, 0, 2));
                 if (add_obstacles) {
-                    terrain->AddRigidObstacle(CreateObstacle(ChVector<>(1, 1, 0.5)));
-                    terrain->AddRigidObstacle(CreateObstacle(ChVector<>(-1, -1, 0.5)));
+                    terrain->AddRigidObstacle(CreateObstacle(ChVector3d(1, 1, 0.5)));
+                    terrain->AddRigidObstacle(CreateObstacle(ChVector3d(-1, -1, 0.5)));
                 }
                 if (verbose)
                     cout << "[Terrain node] output directory: " << terrain->GetOutDirName() << endl;
@@ -503,7 +505,7 @@ bool GetProblemSpecs(int argc,
                      char** argv,
                      int rank,
                      std::string& terrain_specfile,
-                     ChVector2<>& init_loc,
+                     ChVector2d& init_loc,
                      double& terrain_length,
                      double& terrain_width,
                      int& nthreads_tire,

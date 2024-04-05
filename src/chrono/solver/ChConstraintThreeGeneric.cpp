@@ -66,21 +66,21 @@ void ChConstraintThreeGeneric::SetVariables(ChVariables* mvariables_a,
     variables_b = mvariables_b;
     variables_c = mvariables_c;
 
-    if (variables_a->Get_ndof() > 0) {
-        Cq_a.resize(variables_a->Get_ndof());
-        Eq_a.resize(variables_a->Get_ndof());
+    if (variables_a->GetDOF() > 0) {
+        Cq_a.resize(variables_a->GetDOF());
+        Eq_a.resize(variables_a->GetDOF());
         Cq_a.setZero();
     }
 
-    if (variables_b->Get_ndof() > 0) {
-        Cq_b.resize(variables_b->Get_ndof());
-        Eq_b.resize(variables_b->Get_ndof());
+    if (variables_b->GetDOF() > 0) {
+        Cq_b.resize(variables_b->GetDOF());
+        Eq_b.resize(variables_b->GetDOF());
         Cq_b.setZero();
     }
 
-    if (variables_c->Get_ndof() > 0) {
-        Cq_c.resize(variables_c->Get_ndof());
-        Eq_c.resize(variables_c->Get_ndof());
+    if (variables_c->GetDOF() > 0) {
+        Cq_c.resize(variables_c->GetDOF());
+        Eq_c.resize(variables_c->GetDOF());
         Cq_c.setZero();
     }
 }
@@ -88,26 +88,26 @@ void ChConstraintThreeGeneric::SetVariables(ChVariables* mvariables_a,
 void ChConstraintThreeGeneric::Update_auxiliary() {
     // 1- Assuming jacobians are already computed, now compute
     //   the matrices [Eq_a]=[invM_a]*[Cq_a]' and [Eq_b]
-    if (variables_a->IsActive() && variables_a->Get_ndof() > 0) {
-        variables_a->Compute_invMb_v(Eq_a, Cq_a.transpose());
+    if (variables_a->IsActive() && variables_a->GetDOF() > 0) {
+        variables_a->ComputeMassInverseTimesVector(Eq_a, Cq_a.transpose());
     }
-    if (variables_b->IsActive() && variables_b->Get_ndof() > 0) {
-        variables_b->Compute_invMb_v(Eq_b, Cq_b.transpose());
+    if (variables_b->IsActive() && variables_b->GetDOF() > 0) {
+        variables_b->ComputeMassInverseTimesVector(Eq_b, Cq_b.transpose());
     }
-    if (variables_c->IsActive() && variables_c->Get_ndof() > 0) {
-        variables_c->Compute_invMb_v(Eq_c, Cq_c.transpose());
+    if (variables_c->IsActive() && variables_c->GetDOF() > 0) {
+        variables_c->ComputeMassInverseTimesVector(Eq_c, Cq_c.transpose());
     }
 
     // 2- Compute g_i = [Cq_i]*[invM_i]*[Cq_i]' + cfm_i
     ChMatrixDynamic<double> res(1, 1);
     g_i = 0;
-    if (variables_a->IsActive() && variables_a->Get_ndof() > 0) {
+    if (variables_a->IsActive() && variables_a->GetDOF() > 0) {
         g_i += Cq_a * Eq_a;
     }
-    if (variables_b->IsActive() && variables_b->Get_ndof() > 0) {
+    if (variables_b->IsActive() && variables_b->GetDOF() > 0) {
         g_i += Cq_b * Eq_b;
     }
-    if (variables_c->IsActive() && variables_c->Get_ndof() > 0) {
+    if (variables_c->IsActive() && variables_c->GetDOF() > 0) {
         g_i += Cq_c * Eq_c;
     }
 
@@ -116,39 +116,39 @@ void ChConstraintThreeGeneric::Update_auxiliary() {
         g_i += cfm_i;
 }
 
-double ChConstraintThreeGeneric::Compute_Cq_q() {
+double ChConstraintThreeGeneric::ComputeJacobianTimesState() {
     double ret = 0;
 
     if (variables_a->IsActive()) {
-        ret += Cq_a * variables_a->Get_qb();
+        ret += Cq_a * variables_a->State();
     }
 
     if (variables_b->IsActive()) {
-        ret += Cq_b * variables_b->Get_qb();
+        ret += Cq_b * variables_b->State();
     }
 
     if (variables_c->IsActive()) {
-        ret += Cq_c * variables_c->Get_qb();
+        ret += Cq_c * variables_c->State();
     }
 
     return ret;
 }
 
-void ChConstraintThreeGeneric::Increment_q(const double deltal) {
+void ChConstraintThreeGeneric::IncrementState(double deltal) {
     if (variables_a->IsActive()) {
-        variables_a->Get_qb() += Eq_a * deltal;
+        variables_a->State() += Eq_a * deltal;
     }
 
     if (variables_b->IsActive()) {
-        variables_b->Get_qb() += Eq_b * deltal;
+        variables_b->State() += Eq_b * deltal;
     }
 
     if (variables_c->IsActive()) {
-        variables_c->Get_qb() += Eq_c * deltal;
+        variables_c->State() += Eq_c * deltal;
     }
 }
 
-void ChConstraintThreeGeneric::MultiplyAndAdd(double& result, const ChVectorDynamic<double>& vect) const {
+void ChConstraintThreeGeneric::AddJacobianTimesVectorInto(double& result, ChVectorConstRef vect) const {
     if (variables_a->IsActive()) {
         result += Cq_a * vect.segment(variables_a->GetOffset(), Cq_a.size());
     }
@@ -162,7 +162,7 @@ void ChConstraintThreeGeneric::MultiplyAndAdd(double& result, const ChVectorDyna
     }
 }
 
-void ChConstraintThreeGeneric::MultiplyTandAdd(ChVectorDynamic<double>& result, double l) {
+void ChConstraintThreeGeneric::AddJacobianTransposedTimesScalarInto(ChVectorRef result, double l) const {
     if (variables_a->IsActive()) {
         result.segment(variables_a->GetOffset(), Cq_a.size()) += Cq_a.transpose() * l;
     }
@@ -176,30 +176,30 @@ void ChConstraintThreeGeneric::MultiplyTandAdd(ChVectorDynamic<double>& result, 
     }
 }
 
-void ChConstraintThreeGeneric::Build_Cq(ChSparseMatrix& storage, int insrow) {
+void ChConstraintThreeGeneric::PasteJacobianInto(ChSparseMatrix& mat, unsigned int start_row, unsigned int start_col) const {
     if (variables_a->IsActive())
-        PasteMatrix(storage, Cq_a, insrow, variables_a->GetOffset());
+        PasteMatrix(mat, Cq_a, start_row, variables_a->GetOffset() + start_col);
     if (variables_b->IsActive())
-        PasteMatrix(storage, Cq_b, insrow, variables_b->GetOffset());
+        PasteMatrix(mat, Cq_b, start_row, variables_b->GetOffset() + start_col);
     if (variables_c->IsActive())
-        PasteMatrix(storage, Cq_c, insrow, variables_c->GetOffset());
+        PasteMatrix(mat, Cq_c, start_row, variables_c->GetOffset() + start_col);
 }
 
-void ChConstraintThreeGeneric::Build_CqT(ChSparseMatrix& storage, int inscol) {
+void ChConstraintThreeGeneric::PasteJacobianTransposedInto(ChSparseMatrix& mat, unsigned int start_row, unsigned int start_col) const {
     if (variables_a->IsActive())
-        PasteMatrix(storage, Cq_a.transpose(), variables_a->GetOffset(), inscol);
+        PasteMatrix(mat, Cq_a.transpose(), variables_a->GetOffset() + start_row, start_col);
     if (variables_b->IsActive())
-        PasteMatrix(storage, Cq_b.transpose(), variables_b->GetOffset(), inscol);
+        PasteMatrix(mat, Cq_b.transpose(), variables_b->GetOffset() + start_row, start_col);
     if (variables_c->IsActive())
-        PasteMatrix(storage, Cq_c.transpose(), variables_c->GetOffset(), inscol);
+        PasteMatrix(mat, Cq_c.transpose(), variables_c->GetOffset() + start_row, start_col);
 }
 
-void ChConstraintThreeGeneric::ArchiveOut(ChArchiveOut& marchive) {
+void ChConstraintThreeGeneric::ArchiveOut(ChArchiveOut& archive_out) {
     // version number
-    marchive.VersionWrite<ChConstraintThreeGeneric>();
+    archive_out.VersionWrite<ChConstraintThreeGeneric>();
 
     // serialize the parent class data too
-    ChConstraintThree::ArchiveOut(marchive);
+    ChConstraintThree::ArchiveOut(archive_out);
 
     // serialize all member data:
     // NOTHING INTERESTING TO SERIALIZE (the Cq jacobians are not so
@@ -209,12 +209,12 @@ void ChConstraintThreeGeneric::ArchiveOut(ChArchiveOut& marchive) {
     // mstream << Cq_b;
 }
 
-void ChConstraintThreeGeneric::ArchiveIn(ChArchiveIn& marchive) {
+void ChConstraintThreeGeneric::ArchiveIn(ChArchiveIn& archive_in) {
     // version number
-    /*int version =*/ marchive.VersionRead<ChConstraintThreeGeneric>();
+    /*int version =*/archive_in.VersionRead<ChConstraintThreeGeneric>();
 
     // deserialize the parent class data too
-    ChConstraintThree::ArchiveIn(marchive);
+    ChConstraintThree::ArchiveIn(archive_in);
 
     // deserialize all member data:
     // NOTHING INTERESTING TO SERIALIZE (the Cq jacobians are not so

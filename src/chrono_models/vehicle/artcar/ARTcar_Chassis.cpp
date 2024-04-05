@@ -37,10 +37,10 @@ static const double in2m = 0.0254;
 static const double lb2kg = 0.453592;
 
 const double ARTcar_Chassis::m_body_mass = 4.96866766;
-const ChVector<> ARTcar_Chassis::m_body_inertiaXX(0.05389410, 0.24738708, 0.28435979);
-const ChVector<> ARTcar_Chassis::m_body_inertiaXY(-0.00027434, -0.00228453, -0.00294115);
-const ChVector<> ARTcar_Chassis::m_body_COM_loc(-.1336, -.0014, -.048);
-const ChCoordsys<> ARTcar_Chassis::m_driverCsys(ChVector<>(0.0, 0.0, 0.0), ChQuaternion<>(1, 0, 0, 0));
+const ChVector3d ARTcar_Chassis::m_body_inertiaXX(0.05389410, 0.24738708, 0.28435979);
+const ChVector3d ARTcar_Chassis::m_body_inertiaXY(-0.00027434, -0.00228453, -0.00294115);
+const ChVector3d ARTcar_Chassis::m_body_COM_loc(-.1336, -.0014, -.048);
+const ChCoordsys<> ARTcar_Chassis::m_driverCsys(ChVector3d(0.0, 0.0, 0.0), ChQuaternion<>(1, 0, 0, 0));
 
 // -----------------------------------------------------------------------------
 // -----------------------------------------------------------------------------
@@ -59,13 +59,13 @@ ARTcar_Chassis::ARTcar_Chassis(const std::string& name, bool fixed, CollisionTyp
 
     //// TODO:
     //// A more appropriate contact shape from primitives
-    ChVehicleGeometry::BoxShape box1(ChVector<>(-.13, 0, -.0368), ChQuaternion<>(1, 0, 0, 0),
-                                     ChVector<>(.38, .15, .01));
+    ChVehicleGeometry::BoxShape box1(ChVector3d(-.13, 0, -.0368), ChQuaternion<>(1, 0, 0, 0),
+                                     ChVector3d(.38, .15, .01));
 
     m_geometry.m_has_primitives = true;
     m_geometry.m_vis_boxes.push_back(box1);
 
-    m_geometry.m_has_mesh = false; 
+    m_geometry.m_has_mesh = false;
 
     m_geometry.m_has_collision = (chassis_collision_type != CollisionType::NONE);
     switch (chassis_collision_type) {

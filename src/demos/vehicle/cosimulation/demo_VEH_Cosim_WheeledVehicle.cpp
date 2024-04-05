@@ -114,7 +114,7 @@ class MyDriver : public ChDriver {
         if (eff_time < 2)
             m_steering = 0;
         else
-            m_steering = 0.6 * std::sin(CH_C_2PI * (eff_time - 2) / 6);
+            m_steering = 0.6 * std::sin(CH_2PI * (eff_time - 2) / 6);
     }
 
   private:
@@ -171,11 +171,11 @@ int main(int argc, char** argv) {
 
     double terrain_length = 40;
     double terrain_width = 20;
-    ChVector<> init_loc(-terrain_length / 2 + 5, -terrain_width / 2 + 2, 0.5);
+    ChVector3d init_loc(-terrain_length / 2 + 5, -terrain_width / 2 + 2, 0.5);
     if (use_DBP_rig) {
         terrain_length = 20;
         terrain_width = 5;
-        init_loc = ChVector<>(-5, 0, 0.5);
+        init_loc = ChVector3d(-5, 0, 0.5);
     }
 
     // Prepare output directory.
@@ -236,13 +236,13 @@ int main(int argc, char** argv) {
             vehicle->EnableRuntimeVisualization(render_fps, writeRT);
         if (renderPP)
             vehicle->EnablePostprocessVisualization(render_fps);
-        vehicle->SetCameraPosition(ChVector<>(terrain_length / 2, 0, 2));
+        vehicle->SetCameraPosition(ChVector3d(terrain_length / 2, 0, 2));
         if (verbose)
             cout << "[Vehicle node] output directory: " << vehicle->GetOutDirName() << endl;
 
         node = vehicle;
-    } 
-    
+    }
+
     // TERRAIN node
     if (rank == TERRAIN_NODE_RANK) {
         if (verbose)
@@ -264,7 +264,7 @@ int main(int argc, char** argv) {
                     terrain->EnableRuntimeVisualization(render_fps);
                 if (renderPP)
                     terrain->EnablePostprocessVisualization(render_fps);
-                terrain->SetCameraPosition(ChVector<>(terrain_length / 2, 0, 2));
+                terrain->SetCameraPosition(ChVector3d(terrain_length / 2, 0, 2));
                 if (verbose)
                     cout << "[Terrain node] output directory: " << terrain->GetOutDirName() << endl;
 
@@ -283,7 +283,7 @@ int main(int argc, char** argv) {
                     terrain->EnableRuntimeVisualization(render_fps, writeRT);
                 if (renderPP)
                     terrain->EnablePostprocessVisualization(render_fps);
-                terrain->SetCameraPosition(ChVector<>(terrain_length / 2, 0, 2));
+                terrain->SetCameraPosition(ChVector3d(terrain_length / 2, 0, 2));
                 if (verbose)
                     cout << "[Terrain node] output directory: " << terrain->GetOutDirName() << endl;
 
@@ -302,7 +302,7 @@ int main(int argc, char** argv) {
                     terrain->EnableRuntimeVisualization(render_fps, writeRT);
                 if (renderPP)
                     terrain->EnablePostprocessVisualization(render_fps);
-                terrain->SetCameraPosition(ChVector<>(0, 2 * terrain_width, 1.0));
+                terrain->SetCameraPosition(ChVector3d(0, 2 * terrain_width, 1.0));
                 if (verbose)
                     cout << "[Terrain node] output directory: " << terrain->GetOutDirName() << endl;
 
@@ -323,7 +323,7 @@ int main(int argc, char** argv) {
         tire->SetStepSize(step_size);
         tire->SetNumThreads(1);
         tire->SetOutDir(out_dir, suffix);
-        tire->SetCameraPosition(ChVector<>(terrain_length / 2, 0, 2));
+        tire->SetCameraPosition(ChVector3d(terrain_length / 2, 0, 2));
         node = tire;
     }
 
