@@ -57,7 +57,7 @@ int n_elements = 8;
 double step_size = 0.05;
 
 unsigned int num_modes = 12;
-bool USE_GRAVITY = true;
+bool USE_GRAVITY = false;
 
 // static stuff for GUI:
 bool SWITCH_EXAMPLE = false;
