@@ -10,8 +10,8 @@ endif()
 #--------------------------------------------------------------
 
 set(DEMOS
-demo_VEH_FMI_WheeledVehicle_a
-demo_VEH_FMI_WheeledVehicle_b
+demo_VEH_FMI2_WheeledVehicle_a
+demo_VEH_FMI2_WheeledVehicle_b
 )
 
 #--------------------------------------------------------------
@@ -40,5 +40,5 @@ foreach(PROGRAM ${DEMOS})
   ###add_dependencies(${PROGRAM} ${CHRONO_VEHICLE_FMU})
 endforeach()
 
-add_dependencies(demo_VEH_FMI_WheeledVehicle_a FMU_WheeledVehicle FMU_PathFollowerDriver)
-add_dependencies(demo_VEH_FMI_WheeledVehicle_b FMU_WheeledVehicle FMU_PathFollowerDriver FMU_ForceElementTire)
+add_dependencies(demo_VEH_FMI2_WheeledVehicle_a FMU2_WheeledVehicle FMU2_PathFollowerDriver)
+add_dependencies(demo_VEH_FMI2_WheeledVehicle_b FMU2_WheeledVehicle FMU2_PathFollowerDriver FMU2_ForceElementTire)

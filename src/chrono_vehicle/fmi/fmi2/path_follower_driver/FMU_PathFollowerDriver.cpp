@@ -208,7 +208,7 @@ void FmuComponent::_exitInitializationMode() {
         vis_sys->SetLogLevel(irr::ELL_NONE);
         vis_sys->AttachSystem(&sys);
         vis_sys->SetWindowSize(800, 600);
-        vis_sys->SetWindowTitle("Path-follower Driver FMU");
+        vis_sys->SetWindowTitle("Path-follower Driver FMU (FMI 2.0)");
         vis_sys->SetCameraVertical(CameraVerticalDir::Z);
         vis_sys->AddGrid(spacing, spacing, grid_x, grid_y, ChCoordsys<>(grid_pos, grid_rot),
                          ChColor(0.31f, 0.43f, 0.43f));

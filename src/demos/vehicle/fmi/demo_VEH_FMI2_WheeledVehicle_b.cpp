@@ -36,9 +36,9 @@ using namespace chrono::vehicle;
 
 // -----------------------------------------------------------------------------
 
-std::string VEHICLE_FMU_MODEL_IDENTIFIER = "FMU_WheeledVehicle";
-std::string TIRE_FMU_MODEL_IDENTIFIER = "FMU_ForceElementTire";
-std::string DRIVER_FMU_MODEL_IDENTIFIER = "FMU_PathFollowerDriver";
+std::string VEHICLE_FMU_MODEL_IDENTIFIER = "FMU2_WheeledVehicle";
+std::string TIRE_FMU_MODEL_IDENTIFIER = "FMU2_ForceElementTire";
+std::string DRIVER_FMU_MODEL_IDENTIFIER = "FMU2_PathFollowerDriver";
 
 std::string VEHICLE_FMU_DIR = CHRONO_VEHICLE_FMU_DIR + VEHICLE_FMU_MODEL_IDENTIFIER + std::string("/");
 std::string TIRE_FMU_DIR = CHRONO_VEHICLE_FMU_DIR + TIRE_FMU_MODEL_IDENTIFIER + std::string("/");

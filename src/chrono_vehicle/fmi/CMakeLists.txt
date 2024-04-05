@@ -13,7 +13,9 @@ configure_file(${CMAKE_CURRENT_SOURCE_DIR}/ChConfigVehicleFMI.h.in
                ${PROJECT_BINARY_DIR}/chrono_vehicle/ChConfigVehicleFMI.h)  
 
 # Create all FMUs
-message(STATUS "Add Chrono::Vehicle FMUs...")
-add_subdirectory(wheeled_vehicle)
-add_subdirectory(force_element_tire)
-add_subdirectory(path_follower_driver)
+
+message(STATUS "Add Chrono::Vehicle FMI 2.0 FMUs...")
+add_subdirectory(fmi2)
+
+##message(STATUS "Add Chrono::Vehicle FMI 3.0 FMUs...")
+##add_subdirectory(fmi3)

@@ -40,8 +40,8 @@ using namespace chrono::vehicle;
 
 // -----------------------------------------------------------------------------
 
-std::string VEHICLE_FMU_MODEL_IDENTIFIER = "FMU_WheeledVehicle";
-std::string DRIVER_FMU_MODEL_IDENTIFIER = "FMU_PathFollowerDriver";
+std::string VEHICLE_FMU_MODEL_IDENTIFIER = "FMU2_WheeledVehicle";
+std::string DRIVER_FMU_MODEL_IDENTIFIER = "FMU2_PathFollowerDriver";
 
 std::string VEHICLE_FMU_DIR = CHRONO_VEHICLE_FMU_DIR + VEHICLE_FMU_MODEL_IDENTIFIER + std::string("/");
 std::string DRIVER_FMU_DIR = CHRONO_VEHICLE_FMU_DIR + DRIVER_FMU_MODEL_IDENTIFIER + std::string("/");

@@ -251,7 +251,7 @@ void FmuComponent::_exitInitializationMode() {
 
         vis_sys = chrono_types::make_shared<ChWheeledVehicleVisualSystemIrrlicht>();
         vis_sys->SetLogLevel(irr::ELL_NONE);
-        vis_sys->SetWindowTitle("Wheeled Vehicle FMU");
+        vis_sys->SetWindowTitle("Wheeled Vehicle FMU (FMI 2.0)");
         vis_sys->SetChaseCamera(ChVector3d(0.0, 0.0, 1.75), 6.0, 0.5);
         vis_sys->AddGrid(0.5, 0.5, 400, 400, ChCoordsys<>(init_loc, QuatFromAngleZ(init_yaw)),
                          ChColor(0.31f, 0.43f, 0.43f));

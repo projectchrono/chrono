@@ -1,8 +1,12 @@
-set(COMPONENT_NAME "FMU_ForceElementTire")
-set(COMPONENT_SOURCES FMU_ForceElementTire.h FMU_ForceElementTire.cpp)
-set(COMPONENT_CHRONO_DEPENDENCIES ChronoEngine ChronoEngine_vehicle)
-set(COMPONENT_RESOURCES_DIR ${CMAKE_SOURCE_DIR}/data/vehicle/fmi/handling_tire)
-set(COMPONENT_DLL_DEPENDENCIES "")
+set(COMPONENT_NAME "FMU2_PathFollowerDriver")
+set(COMPONENT_SOURCES FMU_PathFollowerDriver.h FMU_PathFollowerDriver.cpp)
+set(COMPONENT_CHRONO_DEPENDENCIES ChronoEngine ChronoEngine_vehicle ChronoEngine_irrlicht)
+set(COMPONENT_RESOURCES_DIR ${CMAKE_SOURCE_DIR}/data/vehicle/fmi/path_follower)
+if(${CMAKE_SYSTEM_NAME} MATCHES "Windows")
+  set(COMPONENT_DLL_DEPENDENCIES "${CH_IRRLICHT_DLL}")
+else()
+  set(COMPONENT_DLL_DEPENDENCIES "")
+endif()
 
 #--------------------------------------------------------------
 
@@ -14,6 +18,12 @@ list(APPEND LIBS ChronoEngine)
 list(APPEND LIBS ChronoEngine_vehicle)
 
 include_directories(${FMU_TOOLS_DIR})
+
+if(ENABLE_MODULE_IRRLICHT)
+  include_directories(${CH_IRRLICHT_INCLUDES})
+  set(COMPILER_FLAGS "${COMPILER_FLAGS} ${CH_IRRLICHT_CXX_FLAGS}")
+  list(APPEND LIBS ChronoEngine_irrlicht)
+endif()
 
 #==============================================================
 
@@ -30,7 +40,7 @@ set(FMU_MSG_PREFIX "   - ")
 
 FetchContent_Declare(
     ${FMU_MODEL_IDENTIFIER}
-    SOURCE_DIR ${FMU_TOOLS_DIR}/${FMU_TOOLS_SUBDIR}
+    SOURCE_DIR ${FMU_TOOLS_DIR}/fmi2
 )
 
 FetchContent_MakeAvailable(${FMU_MODEL_IDENTIFIER})
