@@ -50,7 +50,7 @@ rotation2 = chrono.ChQuaterniond()
 rotation2.SetFromAngleAxis(CH_PI, chrono.ChVector3d(0, 1, 0))  # 2: rotate 180° on vertical Y axis
 tot_rotation = chrono.ChQuaterniond()
 tot_rotation = rotation2 * rotation1     # rotate on 1 then on 2, using quaternion product
-root_frame = chrono.ChFrameMovingD(chrono.ChVector3d(0, 0, 0), tot_rotation)
+root_frame = chrono.ChFrameMovingd(chrono.ChVector3d(0, 0, 0), tot_rotation)
 
 # Retrieve some sub shapes from the loaded model, using
 # the GetNamedShape() function, that can use path/subpath/subsubpath/part

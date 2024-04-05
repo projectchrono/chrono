@@ -102,17 +102,16 @@ def AddContainer(sys):
     rotatingBody.EnableCollision(True)
 
     # Contact material for mixer body
-    rot_mat = chrono.ChContactMaterialSMC()
+    mixer_mat = chrono.ChContactMaterialSMC()
 
-    hsize = chrono.ChVector3d(5, 2.75, 0.5)
+    rotatingBody = chrono.ChBodyEasyBox(14, 6, 1,  # x,y,z size
+                                        4000,      # density
+                                        True,      # visualization?
+                                        True,      # collision?
+                                        mixer_mat) # contact material
+    rotatingBody.SetPos(chrono.ChVector3d(0, -1.6, 0))
+    sys.Add(rotatingBody)
 
-    rotatingBody_ct_shape = chrono.ChCollisionShapeBox(rot_mat, hsize.x, hsize.y, hsize.z)
-    rotatingBody.AddCollisionShape(rotatingBody_ct_shape)
-
-    box = chrono.ChVisualShapeBox(hsize * 2.0)
-    rotatingBody.AddVisualShape(box)
-
-    sys.AddBody(rotatingBody)
 
     # A motor between the two
     my_motor = chrono.ChLinkMotorRotationSpeed()
