@@ -53,7 +53,9 @@ message(STATUS "\nFetch fmu_tools...")
 include(FetchContent)
 
 set(FMU_MODEL_IDENTIFIER "FmuComponentChrono" CACHE STRING "Set the FMU model identifier (name).")
+set(FMU_RESOURCES_DIRECTORY "${CMAKE_CURRENT_SOURCE_DIR}/fmu_resources" CACHE PATH "Path to FMU resources directory.")
 set(BUILD_TESTING ON CACHE BOOL "Enable testing.")
+set(BUILD_FMU_HOST ON CACHE BOOL "Build fmi_host executable to run FMUs.")
 set(FMU_MSG_PREFIX "   ")
 
 FetchContent_Declare(
