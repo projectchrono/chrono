@@ -1,13 +1,15 @@
-MESSAGE(STATUS "-------------- FetchContent(fmu_tools) for FmuComponentChrono1 --------------")
+message(STATUS "-------------- FmuComponentChrono1 --------------")
 
-set(FMU_MODEL_IDENTIFIER "FmuComponentChrono1" CACHE INTERNAL "FMU Model Identifier: should fulfill operating system and C-function naming standards.")
+message(STATUS "\nFetch fmu_tools...")
+
+set(FMU_MODEL_IDENTIFIER "FmuComponentChrono1" CACHE INTERNAL "Set the FMU model identifier (name).")
 set(BUILD_FMU_HOST OFF CACHE INTERNAL "Enable fmu_host.")
-set(USE_EXTERNAL_FMU_COMPONENT_SOURCES ON CACHE INTERNAL "")
 set(USE_CUSTOM_TYPESPLATFORM OFF CACHE INTERNAL "")
+set(FMU_MSG_PREFIX "   ")
 
 FetchContent_Declare(
     ${FMU_MODEL_IDENTIFIER}
-    SOURCE_DIR ${FMU_TOOLS_DIR}
+    SOURCE_DIR ${CHRONO_FMU_TOOLS_DIR}/fmi2
 )
 
 FetchContent_MakeAvailable(${FMU_MODEL_IDENTIFIER})
@@ -23,14 +25,19 @@ MARK_AS_ADVANCED(FETCHCONTENT_UPDATES_DISCONNECTED_${FMU_MODEL_IDENTIFIER_UPPERC
 set(CMAKE_RUNTIME_OUTPUT_DIRECTORY_RELEASE ${FMU_RUNTIME_OUTPUT_DIRECTORY})
 set(CMAKE_RUNTIME_OUTPUT_DIRECTORY_DEBUG ${FMU_RUNTIME_OUTPUT_DIRECTORY})
 
-MESSAGE(STATUS "---------------------------------------------------------")
+# =========
+# Build FMU
+# =========
+
+message(STATUS "\nConfigure FMU...")
 
 # tell upper level to copy DLLS into the FMU-specific folder
 list(APPEND FMU_RUNTIME_OUTPUT_DIRECTORIES ${FMU_RUNTIME_OUTPUT_DIRECTORY})
 set(FMU_RUNTIME_OUTPUT_DIRECTORIES ${FMU_RUNTIME_OUTPUT_DIRECTORIES} PARENT_SCOPE)
 
-# add FMU target
-target_sources(${FMU_MODEL_IDENTIFIER} PRIVATE FmuComponentChrono1.h FmuComponentChrono1.cpp) ## FMU_ACTION: put your source code here
+# Append FMU sources toi automatically generated target
+target_sources(${FMU_MODEL_IDENTIFIER} PRIVATE FmuComponentChrono1.h FmuComponentChrono1.cpp)
+
 target_compile_definitions(${FMU_MODEL_IDENTIFIER} PUBLIC "CHRONO_DATA_DIR=\"${CHRONO_DATA_DIR}\"") 
 target_compile_options(${FMU_MODEL_IDENTIFIER} PUBLIC ${CHRONO_CXX_FLAGS})
 target_link_options(${FMU_MODEL_IDENTIFIER} PUBLIC ${CHRONO_LINKER_FLAGS})

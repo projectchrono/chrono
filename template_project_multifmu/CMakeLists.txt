@@ -3,16 +3,16 @@ cmake_policy(SET CMP0091 NEW)
 
 project(template_project_multifmu)
 
-set(FMU_TOOLS_DIR "${CMAKE_SOURCE_DIR}/../src/chrono_thirdparty/fmu_tools/" CACHE PATH "Path to fmu_tools.")
 set(BUILD_TESTING ON CACHE BOOL "Enable testing.")
 
-#########################
-# Importing Chrono
-#########################
+# ===========
+# Find Chrono
+# ===========
 
 LIST(APPEND CMAKE_PREFIX_PATH "${CMAKE_INSTALL_PREFIX}/../chrono/lib")
 find_package(Chrono
-             OPTIONAL_COMPONENTS Irrlicht
+             COMPONENTS FMI                 # required Chrono module
+             OPTIONAL_COMPONENTS Irrlicht   # optional Chrono module
              CONFIG)
 
 if (NOT Chrono_FOUND)
@@ -20,14 +20,15 @@ if (NOT Chrono_FOUND)
   return()
 endif()
 
-if(APPLE)
-    set(CMAKE_MACOSX_BUNDLE ON)
-endif()
-
 if (NOT CHRONO_STATIC)
   message(NOTICE "It is highly recommended to compile Chrono in static mode as suggested by FMI reference.")
 endif()
 
+if(APPLE)
+    set(CMAKE_MACOSX_BUNDLE ON)
+endif()
+
+set(CMAKE_CXX_STANDARD ${CHRONO_CXX_STANDARD})
 include_directories(${CHRONO_INCLUDE_DIRS})
 
 if(${CMAKE_SYSTEM_NAME} MATCHES "Windows")
@@ -56,9 +57,9 @@ if (BUILD_TESTING)
   enable_testing()
 endif()
 
-###############################################
+# ============================================
 # Copy required DLLs into FMU-specific folders
-###############################################
+# ============================================
 
 # all subprojects should add their FMU_RUNTIME_OUTPUT_DIRECTORY to FMU_RUNTIME_OUTPUT_DIRECTORIES
 set(FMU_RUNTIME_OUTPUT_DIRECTORIES)
@@ -66,11 +67,6 @@ include(FetchContent)
 
 add_subdirectory(FmuComponentChrono1)
 add_subdirectory(FmuComponentChrono2)
-
-
-###############################################
-# Copy required DLLs into FMU-specific folders
-###############################################
 
 add_custom_target(COPY_DLLS_FMU)
 add_dependencies(COPY_DLLS_FMU COPY_DLLS)

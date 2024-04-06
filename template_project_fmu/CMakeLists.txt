@@ -3,15 +3,15 @@ cmake_policy(SET CMP0091 NEW)
 
 project(template_project_fmu)
 
-set(FMU_TOOLS_DIR "${CMAKE_SOURCE_DIR}/../src/chrono_thirdparty/fmu_tools/" CACHE PATH "Path to fmu_tools.")
+# ===========
+# Find Chrono
+# ===========
 
-#########################
-# Importing Chrono
-#########################
+list(APPEND CMAKE_PREFIX_PATH "${CMAKE_INSTALL_PREFIX}/../chrono/lib")
 
-LIST(APPEND CMAKE_PREFIX_PATH "${CMAKE_INSTALL_PREFIX}/../chrono/lib")
 find_package(Chrono
-             OPTIONAL_COMPONENTS Irrlicht
+             COMPONENTS FMI                 # required Chrono module
+             OPTIONAL_COMPONENTS Irrlicht   # optional Chrono module
              CONFIG)
 
 if (NOT Chrono_FOUND)
@@ -19,14 +19,15 @@ if (NOT Chrono_FOUND)
   return()
 endif()
 
-if(APPLE)
-    set(CMAKE_MACOSX_BUNDLE ON)
-endif()
-
 if (NOT CHRONO_STATIC)
   message(NOTICE "It is highly recommended to compile Chrono in static mode as suggested by FMI reference.")
 endif()
 
+if(APPLE)
+    set(CMAKE_MACOSX_BUNDLE ON)
+endif()
+
+set(CMAKE_CXX_STANDARD ${CHRONO_CXX_STANDARD})
 include_directories(${CHRONO_INCLUDE_DIRS})
 
 if(${CMAKE_SYSTEM_NAME} MATCHES "Windows")
@@ -44,26 +45,28 @@ if(MSVC)
 endif()
 
 
-#########################
-# Fetching fmu_tools
-#########################
+# ===============
+# Fetch fmu_tools
+# ===============
 
-MESSAGE(STATUS "-------------- FetchContent(fmu_tools) --------------")
-
-set(FMU_MODEL_IDENTIFIER "FmuComponentChrono" CACHE STRING "FMU Model Identifier: should fulfill operating system and C-function naming standards.")
-set(BUILD_TESTING ON CACHE BOOL "Enable testing.")
-set(USE_EXTERNAL_FMU_COMPONENT_SOURCES ON CACHE INTERNAL "")
-
+message(STATUS "\nFetch fmu_tools...")
 include(FetchContent)
+
+set(FMU_MODEL_IDENTIFIER "FmuComponentChrono" CACHE STRING "Set the FMU model identifier (name).")
+set(FMU_RESOURCES_DIRECTORY "${CMAKE_CURRENT_SOURCE_DIR}/fmu_resources" CACHE PATH "Path to FMU resources directory.")
+set(BUILD_TESTING ON CACHE BOOL "Enable testing.")
+set(BUILD_FMU_HOST ON CACHE BOOL "Build fmi_host executable to run FMUs.")
+set(FMU_MSG_PREFIX "   ")
+
 FetchContent_Declare(
     ${FMU_MODEL_IDENTIFIER}
-    SOURCE_DIR ${FMU_TOOLS_DIR}
+    SOURCE_DIR ${CHRONO_FMU_TOOLS_DIR}/fmi2
 )
 
 FetchContent_MakeAvailable(${FMU_MODEL_IDENTIFIER})
 
-# MESSAGE(STATUS "FMI_PLATFORM: ${FMI_PLATFORM}")
-# MESSAGE(STATUS "FMU_RUNTIME_OUTPUT_DIRECTORY: ${FMU_RUNTIME_OUTPUT_DIRECTORY}")
+##message(STATUS "FMI_PLATFORM: ${FMI_PLATFORM}")
+##message(STATUS "FMU_RUNTIME_OUTPUT_DIRECTORY: ${FMU_RUNTIME_OUTPUT_DIRECTORY}")
 
 MARK_AS_ADVANCED(FETCHCONTENT_BASE_DIR)
 MARK_AS_ADVANCED(FETCHCONTENT_FULLY_DISCONNECTED)
@@ -74,21 +77,27 @@ MARK_AS_ADVANCED(FETCHCONTENT_UPDATES_DISCONNECTED_${FMU_MODEL_IDENTIFIER})
 
 set(CMAKE_RUNTIME_OUTPUT_DIRECTORY_RELEASE ${FMU_RUNTIME_OUTPUT_DIRECTORY})
 set(CMAKE_RUNTIME_OUTPUT_DIRECTORY_DEBUG ${FMU_RUNTIME_OUTPUT_DIRECTORY})
+
+# =======================================
+# Add command to copy DLLs (windows only)
+# =======================================
+
+message(STATUS "")
 add_DLL_copy_command()
 
-MESSAGE(STATUS "---------------------------------------------------------")
+# =========
+# Build FMU
+# =========
 
-target_sources(${FMU_MODEL_IDENTIFIER} PRIVATE FmuComponentChrono.h FmuComponentChrono.cpp) ## FMU_ACTION: put your source code here
+message(STATUS "\nConfigure FMU...")
+
+# Append FMU sources toi automatically generated target
+target_sources(${FMU_MODEL_IDENTIFIER} PRIVATE FmuComponentChrono.h FmuComponentChrono.cpp)
+
 target_compile_definitions(${FMU_MODEL_IDENTIFIER} PUBLIC "CHRONO_DATA_DIR=\"${CHRONO_DATA_DIR}\"") 
 target_compile_options(${FMU_MODEL_IDENTIFIER} PUBLIC ${CHRONO_CXX_FLAGS})
 target_link_options(${FMU_MODEL_IDENTIFIER} PUBLIC ${CHRONO_LINKER_FLAGS})
 target_link_libraries(${FMU_MODEL_IDENTIFIER} ${CHRONO_LIBRARIES})
-
-
-IF (NOT EXISTS "${CMAKE_SOURCE_DIR}/fmu_host.cpp")
-  file(COPY_FILE "${FMU_TOOLS_DIR}/fmu_host.cpp" "${CMAKE_SOURCE_DIR}/fmu_host.cpp")
-endif()
-target_sources(fmu_host_${FMU_MODEL_IDENTIFIER} PRIVATE fmu_host.cpp)
 
 add_dependencies(${FMU_MODEL_IDENTIFIER} COPY_DLLS)
 

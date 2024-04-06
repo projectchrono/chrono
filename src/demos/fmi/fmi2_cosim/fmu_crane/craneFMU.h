@@ -15,11 +15,14 @@
 #pragma once
 
 #include "chrono/physics/ChSystemSMC.h"
-#include "chrono/physics/ChHydraulicActuator.h"
-#include "chrono/functions/ChFunction.h"
+#include "chrono/physics/ChBody.h"
+#include "chrono/physics/ChLoadsBody.h"
 
-// #define FMI2_FUNCTION_PREFIX MyModel_
-#include "chrono_fmi/ChFmuToolsExport.h"
+#include "chrono_fmi/fmi2/ChFmuToolsExport.h"
+
+#ifdef CHRONO_IRRLICHT
+    #include "chrono_irrlicht/ChVisualSystemIrrlicht.h"
+#endif
 
 class FmuComponent : public chrono::FmuChronoComponentBase {
   public:
@@ -47,24 +50,37 @@ class FmuComponent : public chrono::FmuChronoComponentBase {
     virtual bool is_cosimulation_available() const override { return true; }
     virtual bool is_modelexchange_available() const override { return false; }
 
-    void CalculateActuatorForce();
-    void CalculatePistonPressures();
-    void CalculateValvePosition();
+    void ProcessActuatorForce();
+    void CalculateActuatorLength();
 
     chrono::ChSystemSMC sys;
 
-    double s;       // actuator length (FMU input)
-    double sd;      // actuator length rate (FMU input)
-    double F;       // actuator force (FMU output)
-    double Uref;    // input signal (FMU input)
-    double init_F;  // initial load (FMU initialization input)
+#ifdef CHRONO_IRRLICHT
+    std::shared_ptr<chrono::irrlicht::ChVisualSystemIrrlicht> vissys;
+#endif
 
-    double p1;  // piston pressure 1
-    double p2;  // piston pressure 2
-    double U;   // valve position
+    // Enable/disable run-time visualization
+    fmi2Boolean vis = false;
 
-    std::shared_ptr<chrono::ChHydraulicActuator2> m_actuator;
-    std::shared_ptr<chrono::ChFunctionSetpoint> m_actuation;
+    // Body properties (with default values)
+    double crane_mass = 500;
+    double crane_length = 1.0;
+    double pend_mass = 100;
+    double pend_length = 0.3;
+
+    double init_crane_angle = chrono::CH_PI / 6;  // Initial crane angle (default value)
+    double init_F;                                // initial load
+
+    double s;   // actuator length (FMU output)
+    double sd;  // actuator length rate (FMU output)
+    double F;   // actuator force (FMU input)
+
+    // Mount points
+    chrono::ChVector3d m_point_ground;
+    chrono::ChVector3d m_point_crane;
+
+    std::shared_ptr<chrono::ChBody> m_crane;
+    std::shared_ptr<chrono::ChLoadBodyForce> m_external_load;
 };
 
 // Create an instance of this FMU

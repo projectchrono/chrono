@@ -11,6 +11,10 @@
 // =============================================================================
 // Authors: Radu Serban
 // =============================================================================
+//
+// Chrono wrappers to fmu_tools FMU import classes for FMI standard 2.0.
+//
+// =============================================================================
 
 #ifndef CH_FMU_TOOLS_IMPORT_H
 #define CH_FMU_TOOLS_IMPORT_H
@@ -21,7 +25,7 @@
 #include "chrono/core/ChFrameMoving.h"
 
 // fmu_tools
-#include "FmuToolsImport.hpp"
+#include "fmi2/FmuToolsImport.hpp"
 
 namespace chrono {
 

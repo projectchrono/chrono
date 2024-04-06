@@ -751,12 +751,12 @@ class _wrap_pair {
   public:
     _wrap_pair(std::pair<T, Tv>& apair) { _wpair = &apair; }
     void ArchiveOut(ChArchiveOut& archive_out) {
-        archive_out << CHNVP(_wpair->first, "1");
-        archive_out << CHNVP(_wpair->second, "2");
+        archive_out << CHNVP(_wpair->first, "first");
+        archive_out << CHNVP(_wpair->second, "second");
     }
     void ArchiveIn(ChArchiveIn& archive_in) {
-        archive_in >> CHNVP(_wpair->first, "1");
-        archive_in >> CHNVP(_wpair->second, "2");
+        archive_in >> CHNVP(_wpair->first, "first");
+        archive_in >> CHNVP(_wpair->second, "second");
     }
 
   private:

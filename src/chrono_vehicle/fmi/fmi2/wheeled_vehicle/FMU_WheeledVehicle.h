@@ -37,8 +37,7 @@
 #include "chrono_vehicle/ChConfigVehicle.h"
 #include "chrono_vehicle/wheeled_vehicle/vehicle/WheeledVehicle.h"
 
-// #define FMI2_FUNCTION_PREFIX MyModel_
-#include "chrono_fmi/ChFmuToolsExport.h"
+#include "chrono_fmi/fmi2/ChFmuToolsExport.h"
 
 #ifdef CHRONO_IRRLICHT
     #include "chrono_vehicle/wheeled_vehicle/ChWheeledVehicleVisualSystemIrrlicht.h"

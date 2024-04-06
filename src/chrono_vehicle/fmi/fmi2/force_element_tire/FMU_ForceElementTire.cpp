@@ -21,7 +21,6 @@
 
 #include "chrono_vehicle/utils/ChUtilsJSON.h"
 
-// #define FMI2_FUNCTION_PREFIX MyModel_
 #include "FMU_ForceElementTire.h"
 
 using namespace chrono;

@@ -35,10 +35,12 @@ void ChArchiveOut::out_version(int mver, const std::type_index mtypeid) {
     if (use_versions) {
         std::string class_name = ChClassFactory::IsClassRegistered(mtypeid) ? ChClassFactory::GetClassTagName(mtypeid)
                                                                             : std::string(mtypeid.name());
-        // to avoid troubles in xml archives
-        std::replace(class_name.begin(), class_name.end(), '<', '[');
-        std::replace(class_name.begin(), class_name.end(), '>', ']');
+        // avoid issues with XML format
+        std::replace(class_name.begin(), class_name.end(), '<', '_');
+        std::replace(class_name.begin(), class_name.end(), '>', '_');
         std::replace(class_name.begin(), class_name.end(), ' ', '_');
+        // avoid issues with FMU variable naming format
+        std::replace(class_name.begin(), class_name.end(), ':', '_');
         this->out(ChNameValue<int>(("_version_" + class_name).c_str(), mver));
     }
 }
@@ -54,10 +56,12 @@ int ChArchiveIn::in_version(const std::type_index mtypeid) {
     int mver;
     std::string class_name = ChClassFactory::IsClassRegistered(mtypeid) ? ChClassFactory::GetClassTagName(mtypeid)
                                                                         : std::string(mtypeid.name());
-    // to avoid troubles in xml archives
-    std::replace(class_name.begin(), class_name.end(), '<', '[');
-    std::replace(class_name.begin(), class_name.end(), '>', ']');
+    // avoid issues with XML format
+    std::replace(class_name.begin(), class_name.end(), '<', '_');
+    std::replace(class_name.begin(), class_name.end(), '>', '_');
     std::replace(class_name.begin(), class_name.end(), ' ', '_');
+    // avoid issues with FMU variable naming format
+    std::replace(class_name.begin(), class_name.end(), ':', '_');
     this->in(ChNameValue<int>(("_version_" + class_name).c_str(), mver));
     return mver;
 }
