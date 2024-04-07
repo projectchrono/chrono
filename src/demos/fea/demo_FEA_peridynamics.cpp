@@ -70,7 +70,7 @@ int main(int argc, char* argv[]) {
     auto mfloorBody = chrono_types::make_shared<ChBodyEasyBox>(20,1,20,1000,true,true,mat);
     mphysicalSystem.Add(mfloorBody);
     mfloorBody->SetBodyFixed(true);
-    mfloorBody->SetPos(ChVector<>(0, -5, 0));
+    mfloorBody->SetPos(ChVector<>(0, -5.5, 0));
 
     mfloorBody->GetVisualShape(0)->SetTexture(GetChronoDataFile("textures/concrete.jpg").c_str());
 
@@ -158,19 +158,12 @@ int main(int argc, char* argv[]) {
 
     //--------------NEW PERIDYNAMIC STUFF
 
-    // Create peridynamic matter
-    auto mymattersprings = chrono_types::make_shared<ChMatterPeriSprings>();
-    mymattersprings->k = 3000;
-    mphysicalSystem.Add(mymattersprings);
+    // Create peridynamic matter - a very simple one
+    auto mymattersprings = chrono_types::make_shared<ChMatterPeriSpringsBreakable>();
+    mymattersprings->k = 60000; // stiffness of bounds
+    mymattersprings->r = 800; // damping of bounds
+    mymattersprings->max_stretch = 0.12;
 
-    // Use the FillBox easy way to create the set of nodes in the Peridynamics matter
-    mymattersprings->FillBox(ChVector<>(4, 2, 4),                          // size of box
-                      4.0 / 25.0,                                   // resolution step
-                      1000,                                         // initial density
-                      ChCoordsys<>(ChVector<>(0, -3.9, 0), QUNIT),  // position & rotation of box
-                      false,                                         // do a centered cubic lattice initial arrangement
-                      1.6);                                         // set the horizon radius (as multiples of step)
-                      
     // IMPORTANT!
     // This takes care of the interaction between the particles of the Peridynamics material
     auto my_peri_proximity = chrono_types::make_shared<ChProximityContainerPeri>();
@@ -178,9 +171,15 @@ int main(int argc, char* argv[]) {
 
     my_peri_proximity->AddMatter(mymattersprings);
 
-
-    my_peri_proximity->SetupInitialBonds();
-
+    // Use the FillBox easy way to create the set of nodes in the Peridynamics matter
+    my_peri_proximity->FillBox(
+                      mymattersprings,
+                      ChVector<>(4, 2, 4),                          // size of box
+                      4.0 / 15.0,                                   // resolution step
+                      1000,                                         // initial density
+                      ChCoordsys<>(ChVector<>(0, -3.4, 0), QUNIT),  // position & rotation of box
+                      false,                                         // do a centered cubic lattice initial arrangement
+                      1.6);                                         // set the horizon radius (as multiples of step)
 
 
     // Create the Irrlicht visualization system
@@ -211,6 +210,8 @@ int main(int argc, char* argv[]) {
         
         if(true)
         for  (auto& myiter : mphysicalSystem.Get_otherphysicslist()) {
+
+            // OLD --
 
             if (auto myimatter = std::dynamic_pointer_cast<ChMatterPeridynamics>(myiter)) {
                 
@@ -289,9 +290,12 @@ int main(int argc, char* argv[]) {
                 }
             }
 
-            if (auto mysmatter = std::dynamic_pointer_cast<ChMatterPeriSprings>(myiter)) {
-                for (const auto& mnodedata : mysmatter->GetMapOfNodes()) {
-                    auto mnode = mnodedata.second.node;
+            // NEW----
+
+            if (auto myperi = std::dynamic_pointer_cast<ChProximityContainerPeri>(myiter)) {
+
+                // show nodes
+                for (const auto& mnode : myperi->GetNodes()) {
 
                     ChVector<> mv = mnode->GetPos();
                     float rad = (float)mnode->GetHorizonRadius();
@@ -300,8 +304,13 @@ int main(int argc, char* argv[]) {
                     // draw points
                     if (true) {
                         core::position2d<s32> spos = vsys->GetSceneManager()->getSceneCollisionManager()->getScreenCoordinatesFrom3DPosition(mpos);
+                        irr::video::SMaterial mattransp;
+                        mattransp.ZBuffer = false;
+                        mattransp.Lighting = false;
+                        vsys->GetVideoDriver()->setMaterial(mattransp);
                         vsys->GetVideoDriver()->draw2DRectangle(
-                            (mnode->is_boundary ? video::SColor(200, 0, 0, 230) :  video::SColor(100, 200, 200, 230)) ,
+                            //(mnode->is_boundary ? video::SColor(200, 0, 0, 230) :  video::SColor(100, 200, 200, 230)) ,
+                            (mnode->is_colliding ? video::SColor(200, 0, 0, 230) : video::SColor(100, 200, 200, 230)),
                             core::rect<s32>(spos.X - 2, spos.Y - 2, spos.X + 2, spos.Y + 2));
                     }
 
@@ -314,60 +323,40 @@ int main(int argc, char* argv[]) {
                             (irr::f32)mv.x() + msize, (irr::f32)mv.y() + msize, (irr::f32)mv.z() + msize),
                             video::SColor(300, 200, 200, 230));
                     }
-                    /*
-                    // draw strain diagonal
-                    if (false) {
-                        double strain_scale = 100000;
-                        irrlicht::tools::drawSegment(vsys.get(), mnode->GetPos(),
-                            mnode->GetPos() + (VECT_X * mnode->p_strain.XX() * strain_scale), ChColor(1, 0, 0), false);
-                        irrlicht::tools::drawSegment(vsys.get(), mnode->GetPos(),
-                            mnode->GetPos() + (VECT_Y * mnode->p_strain.YY() * strain_scale), ChColor(0, 1, 0), false);
-                        irrlicht::tools::drawSegment(vsys.get(), mnode->GetPos(),
-                            mnode->GetPos() + (VECT_Z * mnode->p_strain.ZZ() * strain_scale), ChColor(0, 0, 1), false);
-                    }
-
-                    // draw stress diagonal
-                    if (false) {
-                        double stress_scale =0.00001;
-                        irrlicht::tools::drawSegment(vsys.get(), mnode->GetPos(),
-                        mnode->GetPos()+(VECT_X*mnode->e_stress.XX()* stress_scale), ChColor(1, 0, 0),false);
-                        irrlicht::tools::drawSegment(vsys.get(), mnode->GetPos(),
-                        mnode->GetPos()+(VECT_Y*mnode->e_stress.YY()* stress_scale), ChColor(0, 1, 0),false);
-                        irrlicht::tools::drawSegment(vsys.get(), mnode->GetPos(),
-                        mnode->GetPos()+(VECT_Z*mnode->e_stress.ZZ()* stress_scale), ChColor(0, 0, 1),false);
-                    }
-
-                    // draw strain invariants
-                    if (false) {
-                        double stress_scale = 0.00001;
-                        irrlicht::tools::drawSegment(
-                            vsys.get(), mnode->GetPos(),
-                            mnode->GetPos() + (VECT_X * mnode->e_stress.GetEquivalentVonMises() * stress_scale),
-                            ChColor(1, 1, 1), false);
-                    }
-
-                    // draw strain principal axes
-                    if (true) {
-                            double stress_scale = 0.00001;
-                            double s1, s2, s3;
-                            ChVector<> v1, v2, v3;
-                            mnode->e_stress.ComputeEigenvectors(s1, s2, s3, v1, v2, v3);
-                            irrlicht::tools::drawSegment(vsys.get(), mnode->GetPos(),
-                            mnode->GetPos()+(v1*s1* stress_scale), ChColor(1, 0, 0),false);
-                            irrlicht::tools::drawSegment(vsys.get(), mnode->GetPos(),
-                            mnode->GetPos()+(v2*s2* stress_scale), ChColor(0, 1, 0),false);
-                            irrlicht::tools::drawSegment(vsys.get(), mnode->GetPos(),
-                            mnode->GetPos()+(v3*s3* stress_scale), ChColor(0, 0, 1),false);
-                    }
-                    */
-                    // GetLog() << "Mass i="<< ip << "   m=" << mnode->GetMass() << "\n";
-                    // irrlicht::tools::drawSegment(vsys.get(), mnode->GetPos(),
-                    // mnode->GetPos()+(mnode->UserForce * 0.1), ChColor(0, 0, 0),false);
                 }
 
+                // show materials
+                for (const auto& mmaterial : myperi->GetMaterials()) {
+
+                    if (auto mysmatter = std::dynamic_pointer_cast<ChMatterPeriSprings>(mmaterial)) {
+                        // draw the material as bonds
+                        for (const auto& mbounddata : mysmatter->GetMapOfBounds()) {
+                            auto mnodeA = mbounddata.second.nodeA;
+                            auto mnodeB = mbounddata.second.nodeB;
+
+                            if (false)
+                                irrlicht::tools::drawSegment(vsys.get(), mnodeA->GetPos(), mnodeB->GetPos(), ChColor(0, 0, 0), true);
+                        }
+                    }
+                    if (auto mysmatter = std::dynamic_pointer_cast<ChMatterPeriSpringsBreakable>(mmaterial)) {
+                        // draw the material as bonds
+                        for (const auto& mbounddata : mysmatter->GetMapOfBounds()) {
+                            auto mnodeA = mbounddata.second.nodeA;
+                            auto mnodeB = mbounddata.second.nodeB;
+
+                            if (true) {
+                                if (mbounddata.second.broken)
+                                    irrlicht::tools::drawSegment(vsys.get(), mnodeA->GetPos(), mnodeB->GetPos(), ChColor(1, 0, 0), true);
+                                else
+                                    irrlicht::tools::drawSegment(vsys.get(), mnodeA->GetPos(), mnodeB->GetPos(), ChColor(0, 0.5, 1), true);
+                            }
+                        }
+                    }
+
+                }
             }
 
-        }
+        } // end loop on physics items for visualization tricks
         
         vsys->EndScene();
         

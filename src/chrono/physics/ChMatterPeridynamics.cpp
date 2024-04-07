@@ -45,7 +45,7 @@ ChNodePeridynamics::ChNodePeridynamics(const ChNodePeridynamics& other) : ChNode
     pos_ref = other.pos_ref;
     UserForce = other.UserForce;
     h_rad = other.h_rad;
-    SetCollisionRadius(other.coll_rad);
+    coll_rad = other.coll_rad;
     SetMass(other.GetMass());
     volume = other.volume;
     density = other.density;
@@ -789,7 +789,7 @@ void ChMatterPeridynamics::ArchiveIn(ChArchiveIn& marchive) {
 
 
 ChNodePeri::ChNodePeri()
-    : pos_ref(VNULL), UserForce(VNULL), volume(0.01), h_rad(0.1), coll_rad(0.001) {
+    : pos_ref(VNULL), UserForce(VNULL), volume(0.01), h_rad(0.2), coll_rad(0.0006) {
 
     SetMass(0.01);
 }

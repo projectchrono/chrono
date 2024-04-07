@@ -27,6 +27,7 @@ namespace chrono {
 
 // Forward references (for parent hierarchy pointer)
 class ChSystem;
+class ChProximityContainerPeri;
 
 namespace fea {
 
@@ -35,6 +36,7 @@ namespace fea {
 
 // Forward
 class ChMatterPeridynamics;
+
 
 /// Class for a single node in the Peridynamics   cluster
 class ChApi ChNodePeridynamics : public ChNodeXYZ, public ChContactable_1vars<3> {
@@ -572,19 +574,21 @@ struct std::hash<::std::pair<T1,T2>>
 
 /// Base class for assigning material properties (elasticity, viscosity etc) to a cluster
 /// of peridynamics nodes.
-class ChApi ChMatterPeriBase : public ChPhysicsItem {
+class ChApi ChMatterPeriBase { 
 public:
     virtual ~ChMatterPeriBase() {
     }
-    virtual bool AddProximity(
-        ChNodePeri* nodeA,   
-        ChNodePeri* nodeB) = 0;  
+
+    // -------
+    // IMPORTANT FUNCTIONS. 
+    // Inherit your material from ChMatterPeri and implement at least
+    // the function ComputeForces(). In some materials you may need to implement all three.
 
     /// CONSTITUTIVE MODEL - INTERFACE TO IMPLEMENT: (optionally) 
-    /// Base behaviour: resets the ChNodePeri::F vector of each ChNodePeri to zero. 
+    /// Base behaviour in ChMatterPeri: resets the ChNodePeri::F vector of each ChNodePeri to zero. 
     virtual void ComputeForcesReset() = 0;
 
-    /// CONSTITUTIVE MODEL - INTERFACE TO IMPLEMENT: 
+    /// CONSTITUTIVE MODEL - INTERFACE TO IMPLEMENT:  ***IMPORTANT***
     /// Add the forces caused by this material to the ChNodePeri::F vector of each ChNodePeri.
     /// Child class can use the containers  this->nodes and this->bounds to compute F, assuming
     /// bounds have been updated with latest collision detection.
@@ -594,8 +598,34 @@ public:
     /// Changes the state of nodes, from elastic to non elastic, etc., and/or the state of bonds
     /// ex. from not broken into broken, etc. depending on the evolution of the system.
     /// This also adds/removes collision models 
-    /// The base behavior is: do nothing. 
+    /// The base behavior in ChMatterPeri is: do nothing. 
     virtual void ComputeStates() = 0;
+
+    // -------
+    // Not so important functions - these are already implemented in  ChMatterPeri 
+    // with default implementations that should work for all materials.
+        
+    /// Override/inherit only if really needed. There is a default implementation
+    /// in ChMatterPeri that takes care of allocating a ChMatterDataPerNode in the map.
+    virtual std::shared_ptr<ChNodePeri> AddNode(std::shared_ptr<ChNodePeri> mnode, double horizon) = 0;
+
+    /// Override/inherit only if really needed. 
+    virtual bool RemoveNode(std::shared_ptr<ChNodePeri> mnode) = 0;
+
+    /// Override/inherit only if really needed. There is a default implementation
+    /// in ChMatterPeri that takes care of allocating a ChMatterDataPerBound in the map.
+    virtual bool AddProximity(
+        ChNodePeri* nodeA,   
+        ChNodePeri* nodeB) = 0;  
+
+    // Get the owner container that handles peridynamic nodes
+    ChProximityContainerPeri* GetContainer() const { return container; }
+    // Set the owner container that handles peridynamic nodes
+    void SetContainer(ChProximityContainerPeri* mc) { container = mc; }
+
+protected:
+    ChProximityContainerPeri* container = 0;
+
 };
 
 /// Sub-base templated class for assigning material properties (elasticity, viscosity etc) to a cluster
@@ -632,7 +662,7 @@ class  ChMatterPeri : public ChMatterPeriBase {
 
 
     /// Get the number of scalar coordinates (variables), if any, in this item.
-    virtual int GetDOF() override { return 3 * GetNnodes(); }
+//    virtual int GetDOF() override { return 3 * GetNnodes(); }
 
     /// Get the number of nodes.
     unsigned int GetNnodes() const { return (unsigned int)nodes.size(); }
@@ -650,7 +680,7 @@ class  ChMatterPeri : public ChMatterPeriBase {
     }
 
     /// Add a  node to the particle cluster
-    std::shared_ptr<ChNodePeri> AddNode(std::shared_ptr<ChNodePeri> mnode, double horizon) {
+    virtual std::shared_ptr<ChNodePeri> AddNode(std::shared_ptr<ChNodePeri> mnode, double horizon) override {
         T_per_node node_data;
         node_data.node = mnode;
 
@@ -661,20 +691,9 @@ class  ChMatterPeri : public ChMatterPeriBase {
 
         return (mnode);
     }
-    /// Create and add a new node to the particle cluster, passing a
-    /// vector as initial position.
-    std::shared_ptr<ChNodePeri> AddNode(ChVector<double> initial_state, double horizon) {
-        // create a node
-        auto mnode = chrono_types::make_shared<ChNodePeri>();
-
-        mnode->SetPos(initial_state);
-        mnode->SetPosReference(initial_state);
-       
-        return AddNode(mnode, horizon);
-    }
 
     /// Remove a node from the particle cluster
-    bool RemoveNode(std::shared_ptr<ChNodePeri> mnode) {
+    virtual bool RemoveNode(std::shared_ptr<ChNodePeri> mnode) override {
         this->nodes.erase(mnode.get());
         return true;
     }
@@ -709,6 +728,9 @@ class  ChMatterPeri : public ChMatterPeriBase {
         if ((anodeA->GetPos() - anodeB->GetPos()).Length() > (anodeA->GetHorizonRadius()))
             return false;
 
+        if ((this->GetContainer()->GetChTime()>0.01) && anodeA->is_boundary && anodeB->is_boundary && anodeA->is_elastic && anodeB->is_elastic)
+            return false;
+
         // add bound to container using ptr of two nodes as unique key
         this->bounds[std::pair<ChNodePeri*, ChNodePeri*>(anodeA, anodeB)].Initialize(anodeA, anodeB);
         
@@ -741,12 +763,12 @@ class  ChMatterPeri : public ChMatterPeriBase {
                     mnode->GetCollisionModel()->SetEnvelope(ChMax(0.0, aabb_rad - coll_rad));
                 }
                 // add to system
-                GetSystem()->GetCollisionSystem()->Add(mnode->GetCollisionModel());
+                container->GetSystem()->GetCollisionSystem()->Add(mnode->GetCollisionModel());
                 mnode->is_colliding = true; // prevents other material adding twice
             }
             // remove collision model from system if not yet removed
             if (mnode->is_colliding && !mnode->IsRequiringCollision()) {
-                GetSystem()->GetCollisionSystem()->Remove(mnode->GetCollisionModel());
+                container->GetSystem()->GetCollisionSystem()->Remove(mnode->GetCollisionModel());
                 mnode->is_colliding = false; // prevents other material adding twice
             }
 
@@ -777,303 +799,6 @@ class  ChMatterPeri : public ChMatterPeriBase {
     /// Set the material surface for 'boundary contact'.
     std::shared_ptr<ChMaterialSurface>& GetMaterialSurface() { return matsurface; }
 
-    //
-    // STATE FUNCTIONS
-    //
-
-    // Override/implement interfaces for global state vectors, see ChPhysicsItem for comments.
-
-    virtual void IntStateGather(const unsigned int off_x,
-                                ChState& x,
-                                const unsigned int off_v,
-                                ChStateDelta& v,
-                                double& T) {
-        unsigned int j = 0;
-        for (auto& nodedata : nodes) {
-            x.segment(off_x + 3 * j, 3) = nodedata.second.node->pos.eigen();
-            v.segment(off_v + 3 * j, 3) = nodedata.second.node->pos_dt.eigen();
-            ++j;
-        }
-        T = GetChTime();
-    }
-    virtual void IntStateScatter(const unsigned int off_x,
-                                 const ChState& x,
-                                 const unsigned int off_v,
-                                 const ChStateDelta& v,
-                                 const double T,
-                                 bool full_update) {
-        unsigned int j = 0;
-        for (auto& nodedata : nodes) {
-            nodedata.second.node->pos = x.segment(off_x + 3 * j, 3);
-            nodedata.second.node->pos_dt = v.segment(off_v + 3 * j, 3);
-            ++j;
-        }
-        SetChTime(T);
-        Update(T, full_update);
-    }
-    virtual void IntStateGatherAcceleration(const unsigned int off_a, ChStateDelta& a) {
-        unsigned int j = 0;
-        for (auto& nodedata : nodes) {
-            a.segment(off_a + 3 * j, 3) = nodedata.second.node->pos_dtdt.eigen();
-            ++j;
-        }
-    }
-    virtual void IntStateScatterAcceleration(const unsigned int off_a, const ChStateDelta& a) {
-        unsigned int j = 0;
-        for (auto& nodedata : nodes) {
-            nodedata.second.node->SetPos_dtdt(a.segment(off_a + 3 * j, 3));
-            ++j;
-        }
-    }
-    virtual void IntLoadResidual_F(const unsigned int off, ChVectorDynamic<>& R, const double c)  {
-        
-        // assume nodedata.second.node->F already computed via 
-        // ComputeForcesReset() and ComputeForces(), called by ChProximityPeri
-
-        unsigned int j = 0;
-        for (auto& nodedata : nodes) {
-            // add gravity
-            ChVector<> Gforce = GetSystem()->Get_G_acc() * nodedata.second.node->GetMass();
-            ChVector<> TotForce = nodedata.second.node->F + nodedata.second.node->UserForce + Gforce;
-
-            R.segment(off + 3 * j, 3) += c * TotForce.eigen();
-            ++j;
-        }
-    }
-    virtual void IntLoadResidual_Mv(const unsigned int off,
-                                    ChVectorDynamic<>& R,
-                                    const ChVectorDynamic<>& w,
-                                    const double c) {
-        unsigned int j = 0;
-        for (auto& nodedata : nodes) {
-            R(off + 3 * j) += c * nodedata.second.node->GetMass() * w(off + 3 * j);
-            R(off + 3 * j + 1) += c * nodedata.second.node->GetMass() * w(off + 3 * j + 1);
-            R(off + 3 * j + 2) += c * nodedata.second.node->GetMass() * w(off + 3 * j + 2);
-            ++j;
-        }
-    }
-    virtual void IntToDescriptor(const unsigned int off_v,
-                                 const ChStateDelta& v,
-                                 const ChVectorDynamic<>& R,
-                                 const unsigned int off_L,
-                                 const ChVectorDynamic<>& L,
-                                 const ChVectorDynamic<>& Qc) {
-        unsigned int j = 0;
-        for (auto& nodedata : nodes) {
-            nodedata.second.node->variables.Get_qb() = v.segment(off_v + 3 * j, 3);
-            nodedata.second.node->variables.Get_fb() = R.segment(off_v + 3 * j, 3);
-            ++j;
-        }
-    }
-    virtual void IntFromDescriptor(const unsigned int off_v,
-                                   ChStateDelta& v,
-                                   const unsigned int off_L,
-                                   ChVectorDynamic<>& L) {
-        unsigned int j = 0;
-        for (auto& nodedata : nodes) {
-            v.segment(off_v + 3 * j, 3) = nodedata.second.node->variables.Get_qb();
-            ++j;
-        }
-    }
-
-    //
-    // SOLVER INTERFACE
-    //
-
-    // Override/implement system functions of ChPhysicsItem (to assemble/manage data for system solver))
-
-    virtual void VariablesFbReset() {
-        // OBSOLETE
-        for (auto& nodedata : nodes) {
-            nodedata.second.node->variables.Get_fb().setZero();
-        }
-    }
-    virtual void VariablesFbLoadForces(double factor = 1) {
-        
-        // assume nodedata.second.node->F already computed via 
-        // ComputeForcesReset() and ComputeForces(), called by ChProximityPeri
-
-        for (auto& nodedata : nodes) {
-            // add gravity
-            ChVector<> Gforce = GetSystem()->Get_G_acc() * nodedata.second.node->GetMass();
-            ChVector<> TotForce = nodedata.second.node->F + nodedata.second.node->UserForce + Gforce;
-
-            nodedata.second.node->variables.Get_fb() += factor * TotForce.eigen();
-        }
-    }
-    virtual void VariablesQbLoadSpeed() {
-        // OBSOLETE
-        for (auto& nodedata : nodes) {
-            // set current speed in 'qb', it can be used by the solver when working in incremental mode
-            nodedata.second.node->variables.Get_qb() = nodedata.second.node->GetPos_dt().eigen();
-        }
-    }
-    virtual void VariablesFbIncrementMq() {
-        // OBSOLETE
-        for (auto& nodedata : nodes) {
-            nodedata.second.node->variables.Compute_inc_Mb_v(nodedata.second.node->variables.Get_fb(), nodedata.second.node->variables.Get_qb());
-        }
-    }
-    virtual void VariablesQbSetSpeed(double step = 0) {
-        // OBSOLETE
-        for (auto& nodedata : nodes) {
-            ChVector<> old_pos_dt = nodedata.second.node->GetPos_dt();
-
-            // from 'qb' vector, sets body speed, and updates auxiliary data
-            nodedata.second.node->SetPos_dt(nodedata.second.node->variables.Get_qb());
-
-            // Compute accel. by BDF (approximate by differentiation);
-            if (step) {
-                nodedata.second.node->SetPos_dtdt((nodedata.second.node->GetPos_dt() - old_pos_dt) / step);
-            }
-        }
-    }
-    virtual void VariablesQbIncrementPosition(double step) {
-        // OBSOLETE
-        // if (!IsActive())
-        //	return;
-
-        // TODO PLASTIC FLOW
-
-        for (auto& nodedata : nodes) {
-            // Updates position with incremental action of speed contained in the
-            // 'qb' vector:  pos' = pos + dt * speed   , like in an Eulero step.
-
-            ChVector<> newspeed(nodedata.second.node->variables.Get_qb());
-
-            // ADVANCE POSITION: pos' = pos + dt * vel
-            nodedata.second.node->SetPos(nodedata.second.node->GetPos() + newspeed * step);
-        }
-    }
-    virtual void InjectVariables(ChSystemDescriptor& mdescriptor) {
-        // variables.SetDisabled(!IsActive());
-        for (auto& nodedata : nodes) {
-            mdescriptor.InsertVariables(&(nodedata.second.node->variables));
-        }
-    }
-
-    // Other functions
-
-    /// Set no speed and no accelerations (but does not change the position).
-    void SetNoSpeedNoAcceleration()  {
-        for (auto& nodedata : nodes) {
-            nodedata.second.node->SetPos_dt(VNULL);
-            nodedata.second.node->SetPos_dtdt(VNULL);
-        }
-    }
-
-    /// Synchronize coll.models coordinates and bounding boxes to the positions of the particles.
-    virtual void SyncCollisionModels() {
-        for (auto& nodedata : nodes) {
-            if (nodedata.second.node->GetCollisionModel())
-                nodedata.second.node->GetCollisionModel()->SyncPosition();
-        }
-    }
-
-    /// Add node collision models (if any) to the provided collision system.
-    virtual void AddCollisionModelsToSystem(ChCollisionSystem* coll_sys) const {
-        /*
-        for (auto& nodedata : nodes) {
-            if (nodedata.second.node->GetCollisionModel())
-                coll_sys->Add(nodedata.second.node->GetCollisionModel());
-        }
-        */
-    }
-
-    /// Remove the nodes collision models (if any) from the provided collision system.
-    virtual void RemoveCollisionModelsFromSystem(ChCollisionSystem* coll_sys) const {
-        /*
-        for (auto& nodedata : nodes) {
-            if (nodedata.second.node->GetCollisionModel())
-                coll_sys->Remove(nodedata.second.node->GetCollisionModel());
-        }
-        */
-    }
-
-
-
-    /// Initialize the material as a prismatic region filled with nodes,
-    /// initially well ordered as a lattice. This is a helper function
-    /// so that you avoid to create all nodes one by one with many calls
-    /// to AddNode() .
-    void FillBox(
-        const ChVector<> size,         ///< x,y,z sizes of the box to fill (better if integer multiples of spacing)
-        const double spacing,          ///< the spacing between two near nodes
-        const double initial_density,  ///< density of the material inside the box, for initialization of node's masses
-        const ChCoordsys<> boxcoords = CSYSNORM,  ///< position and rotation of the box
-        const bool do_centeredcube = false,  ///< if false, array is simply cubic, if true is centered cubes (highest regularity)
-        const double horizon_sfactor = 2.2,  ///< the radius of horizon of the particle is 'spacing' multiplied this value
-        const double randomness = 0.0       ///< randomness of the initial distribution lattice, 0...1
-        )  
-        {
-            int samples_x = (int)(size.x() / spacing);
-            int samples_y = (int)(size.y() / spacing);
-            int samples_z = (int)(size.z() / spacing);
-            int totsamples = 0;
-
-            double mrandomness = randomness;
-            if (do_centeredcube)
-                mrandomness = randomness * 0.5;
-
-            double horizon = horizon_sfactor * spacing;
-
-            for (int ix = 0; ix < samples_x; ix++)
-                for (int iy = 0; iy < samples_y; iy++)
-                    for (int iz = 0; iz < samples_z; iz++) {
-                        ChVector<> pos(ix * spacing - 0.5 * size.x(), iy * spacing - 0.5 * size.y(), iz * spacing - 0.5 * size.z());
-                        pos += ChVector<>(mrandomness * ChRandom() * spacing, mrandomness * ChRandom() * spacing,
-                                          mrandomness * ChRandom() * spacing);
-                        auto newp = AddNode(boxcoords.TransformLocalToParent(pos), horizon);
-                        newp->is_elastic = true;
-                        newp->is_requiring_bonds = true;
-                        if ((ix == 0) || (ix == samples_x - 1) || (iy == 0) || (iy == samples_y - 1) || (iz == 0) || (iz == samples_z - 1)) {
-                            newp->is_boundary = true;
-                        }
-
-                        totsamples++;
-
-                        if (do_centeredcube && !((ix == samples_x - 1) || (iy == samples_y - 1) || (iz == samples_z - 1))) {
-                            ChVector<> pos2 = pos + 0.5 * ChVector<>(spacing, spacing, spacing);
-                            pos2 += ChVector<>(mrandomness * ChRandom() * spacing, mrandomness * ChRandom() * spacing,
-                                               mrandomness * ChRandom() * spacing);
-                            newp = AddNode(boxcoords.TransformLocalToParent(pos2), horizon);
-                            newp->is_elastic = true;
-                            newp->is_requiring_bonds = true;
-                            totsamples++;
-                        }
-                    }
-
-            double mtotvol = size.x() * size.y() * size.z();
-            double mtotmass = mtotvol * initial_density;
-            double nodemass = mtotmass / (double)totsamples;
-
-            for (auto& mnodedata : this->nodes) {
-                // downcasting
-                std::shared_ptr<ChNodePeri> mnode(mnodedata.second.node);
-                assert(mnode);
-
-                // mnode->SetCollisionRadius(spacing * 0.1);
-                mnode->SetMass(nodemass);
-            }
-        }
-
-
-    //
-    // UPDATE FUNCTIONS
-    //
-
-    /// Update all auxiliary data.
-    virtual void Update(double mytime, bool update_assets = true)  {
-        // Inherit time changes of parent class
-        ChPhysicsItem::Update(mytime, update_assets);
-
-        // Forces not updated here. The function ComputeForces() will be called 
-        // by the Update(...) function of the ChProximityContainerPeri, for all materials.
-    }
-    /// Update all auxiliary data.
-    virtual void Update(bool update_assets = true) {
-        ChMatterPeri::Update(GetChTime(), update_assets);
-    }
 
     //
     // STREAMING
@@ -1085,7 +810,7 @@ class  ChMatterPeri : public ChMatterPeriBase {
         marchive.VersionWrite<ChMatterPeri>();
 
         // serialize the parent class data too
-        ChPhysicsItem::ArchiveOut(marchive);
+        //ChMatterPeriBase::ArchiveOut(marchive);
 
         // serialize all member data:
         //***TODO
@@ -1097,7 +822,7 @@ class  ChMatterPeri : public ChMatterPeriBase {
         /*int version =*/ marchive.VersionRead<ChMatterPeri>();
 
         // deserialize the parent class data too
-        ChPhysicsItem::ArchiveIn(marchive);
+        //ChMatterPeriBase::ArchiveIn(marchive);
 
         // deserialize all member data:
         //***TODO
@@ -1105,13 +830,16 @@ class  ChMatterPeri : public ChMatterPeriBase {
 };
 
 
+
 /// The simplest peridynamic material: a bond-based material based on a 
 /// network of springs, each with the same stiffness k regardless of length, etc. 
 /// Just for didactical purposes - do not use it for serious applications.
+/// Also use a damping coefficient r. 
 
 class ChApi ChMatterPeriSprings : public ChMatterPeri<> {
 public:
     double k = 100;
+    double r = 10;
 
     ChMatterPeriSprings() {};
 
@@ -1121,13 +849,61 @@ public:
         // loop on bounds
         for (auto& bound : this->bounds) {
             ChMatterDataPerBound& mbound = bound.second;
-            ChVector<> old_dist = mbound.nodeB->GetPosReference() - mbound.nodeA->GetPosReference();
-            ChVector<>     dist = mbound.nodeB->GetPos() - mbound.nodeA->GetPos();
-            ChVector force_val = (dist.Length() - old_dist.Length()) * this->k;
-            mbound.nodeB->F += -dist.GetNormalized() * force_val;
-            mbound.nodeA->F += dist.GetNormalized() * force_val;
+            ChVector<> old_vdist = mbound.nodeB->GetPosReference() - mbound.nodeA->GetPosReference();
+            ChVector<>     vdist = mbound.nodeB->GetPos() - mbound.nodeA->GetPos();
+            ChVector<>     vdir = vdist.GetNormalized();
+            double         vel = Vdot(vdir, mbound.nodeB->GetPos_dt() - mbound.nodeA->GetPos_dt());
+            ChVector force_val = (vdist.Length() - old_vdist.Length()) * this->k  + vel * this->r;
+            mbound.nodeB->F += -vdir * force_val;
+            mbound.nodeA->F += vdir * force_val;
         }
     };
+};
+
+
+class  ChApi ChMatterDataPerBoundBreakable : public ChMatterDataPerBound { 
+public: 
+    bool broken = false;
+};
+
+class ChApi ChMatterPeriSpringsBreakable : public ChMatterPeri<ChMatterDataPerNode, ChMatterDataPerBoundBreakable> {
+public:
+    double k = 100;
+    double r = 10;
+    double max_stretch = 0.08;
+
+    ChMatterPeriSpringsBreakable() {};
+
+    // Implement the function that adds the peridynamic force to each node, as a 
+    // summation of all the effects of neighbouring nodes.
+    virtual void ComputeForces() {
+        // loop on bounds
+        for (auto& bound : this->bounds) {
+            ChMatterDataPerBoundBreakable& mbound = bound.second;
+            if (!mbound.broken) {
+                ChVector<> old_vdist = mbound.nodeB->GetPosReference() - mbound.nodeA->GetPosReference();
+                ChVector<>     vdist = mbound.nodeB->GetPos() - mbound.nodeA->GetPos();
+                ChVector<>     vdir = vdist.GetNormalized();
+                double         vel = Vdot(vdir, mbound.nodeB->GetPos_dt() - mbound.nodeA->GetPos_dt());
+                ChVector force_val = (vdist.Length() - old_vdist.Length()) * this->k + vel * this->r;
+                mbound.nodeB->F += -vdir * force_val;
+                mbound.nodeA->F += vdir * force_val;
+
+                double stretch = (vdist.Length() - old_vdist.Length()) / old_vdist.Length();
+                if (stretch > max_stretch) {
+                    mbound.broken = true;
+                    // the following will propagate the fracture geometry so that broken parts can collide
+                    mbound.nodeA->is_boundary = true; 
+                    mbound.nodeB->is_boundary = true;
+                }
+            }
+            else {
+                if ((mbound.nodeB->GetPos() - mbound.nodeA->GetPos()).Length() > mbound.nodeA->GetHorizonRadius())
+                    bounds.erase(bound.first);
+            }
+
+        }
+    }
 };
 
 
