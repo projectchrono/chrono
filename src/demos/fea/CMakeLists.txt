@@ -19,6 +19,7 @@ set(FEA_DEMOS ${FEA_DEMOS}
     demo_FEA_cosimulate_load
     demo_FEA_loads_dynamics
     demo_FEA_truss
+	demo_FEA_peridynamics
 )
 endif()
 
