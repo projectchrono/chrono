@@ -41,6 +41,11 @@ set(FMU_TOOLS_DIR "${CMAKE_SOURCE_DIR}/src/chrono_thirdparty/fmu_tools" CACHE PA
 include_directories(${FMU_TOOLS_DIR})
 
 # -------------------------------------------------
+# Enable testing of generated FMUs
+
+set(FMU_TESTING OFF CACHE BOOL "Enable testing")
+
+# -------------------------------------------------
 # Set Architecture and Operating System Flags
 # -------------------------------------------------
 set(UNKNOWN_TARGET_SYSTEM FALSE)
