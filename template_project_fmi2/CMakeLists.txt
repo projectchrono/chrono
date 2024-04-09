@@ -38,10 +38,30 @@ endif()
 if(MSVC)
     add_definitions("-D_CRT_SECURE_NO_DEPRECATE")  # avoids deprecation warnings
     add_definitions("-D_SCL_SECURE_NO_DEPRECATE")  # avoids deprecation warnings
-    add_definitions( "-DNOMINMAX" )                # do not use MSVC's min/max macros
+    add_definitions("-DNOMINMAX")                  # do not use MSVC's min/max macros
     add_compile_options(/wd4275)                   # disable warnings triggered by Irrlicht
     add_compile_options(/wd4251)                   # class needs to have dll-interface
 endif()
+
+
+# ======================================
+# Prepare some resource file on the fly.
+# Users can completely remove the following code block
+# and just set FMU_RESOURCES_DIRECTORY to point to their own resource folder.
+# ======================================
+file(COPY ${CHRONO_DATA_DIR}/skybox/sky_lf.jpg
+          ${CHRONO_DATA_DIR}/skybox/sky_dn.jpg
+          ${CHRONO_DATA_DIR}/skybox/sky_up.jpg
+     DESTINATION ${FMU_RESOURCES_DIRECTORY}/data/skybox)
+
+file(COPY ${CHRONO_DATA_DIR}/fonts/arial80.bmp
+     DESTINATION ${FMU_RESOURCES_DIRECTORY}/data/fonts)
+
+file(COPY ${CHRONO_DATA_DIR}/textures/blue.png
+     DESTINATION ${FMU_RESOURCES_DIRECTORY}/data/textures)
+
+file(COPY ${CHRONO_DATA_DIR}/logo_chronoengine_alpha.png
+     DESTINATION ${FMU_RESOURCES_DIRECTORY}/data)
 
 
 # ===============
@@ -89,21 +109,6 @@ target_compile_options(${FMU_MODEL_IDENTIFIER} PUBLIC ${CHRONO_CXX_FLAGS})
 target_link_options(${FMU_MODEL_IDENTIFIER} PUBLIC ${CHRONO_LINKER_FLAGS})
 target_link_libraries(${FMU_MODEL_IDENTIFIER} ${CHRONO_LIBRARIES})
 
-
-# copy resources to the FMU directory
-file(COPY ${CHRONO_DATA_DIR}/skybox/sky_lf.jpg
-          ${CHRONO_DATA_DIR}/skybox/sky_dn.jpg
-          ${CHRONO_DATA_DIR}/skybox/sky_up.jpg
-     DESTINATION ${FMU_RESOURCES_DIRECTORY}/data/skybox)
-
-file(COPY ${CHRONO_DATA_DIR}/fonts/arial80.bmp
-     DESTINATION ${FMU_RESOURCES_DIRECTORY}/data/fonts)
-
-file(COPY ${CHRONO_DATA_DIR}/textures/blue.png
-     DESTINATION ${FMU_RESOURCES_DIRECTORY}/data/textures)
-
-file(COPY ${CHRONO_DATA_DIR}/logo_chronoengine_alpha.png
-     DESTINATION ${FMU_RESOURCES_DIRECTORY}/data)
 
 # Enable testing
 if(TESTING_ENABLED)
