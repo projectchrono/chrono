@@ -33,8 +33,6 @@ Additional Chrono functionalities are provided through optional _modules_, condi
 
 -   [Pardiso MKL module](@ref module_mkl_installation)
 
--   [Pardiso Project module](@ref module_pardisoproject_installation)
-
 -   [PARSERS module](@ref module_parsers_installation)
 
 -   [POSTPROCESS module](@ref module_postprocess_installation)

@@ -1325,9 +1325,9 @@ void cbtCollisionWorld::debugDrawObject(const cbtTransform& worldTransform, cons
 			case CE_TRIANGLE_SHAPE_PROXYTYPE:	// ***CHRONO***
 			{
 				const cbtCEtriangleShape* triShape = static_cast<const cbtCEtriangleShape*>(shape);
-				chrono::ChVector3d* v1 = triShape->get_p1();
-				chrono::ChVector3d* v2 = triShape->get_p2();
-				chrono::ChVector3d* v3 = triShape->get_p3();
+				auto v1 = triShape->get_p1();
+				auto v2 = triShape->get_p2();
+				auto v3 = triShape->get_p3();
 				auto origin = worldTransform.getOrigin();
 				auto vt1 = origin + worldTransform.getBasis() *  cbtVector3((cbtScalar)v1->x(), (cbtScalar)v1->y(), (cbtScalar)v1->z());
 				auto vt2 = origin + worldTransform.getBasis() *  cbtVector3((cbtScalar)v2->x(), (cbtScalar)v2->y(), (cbtScalar)v2->z());

@@ -137,26 +137,20 @@ class ChFrame {
         return *this;
     }
 
-    // FUNCTIONS
-
     /// Return both current rotation and translation as a ChCoordsys object.
-    ChCoordsys<Real>& GetCoordsys() { return m_csys; }
     const ChCoordsys<Real>& GetCoordsys() const { return m_csys; }
 
-    /// Return the current translation as a 3d vector.
-    ChVector3<Real>& GetPos() { return m_csys.pos; }
+    /// Return the current translation vector.
     const ChVector3<Real>& GetPos() const { return m_csys.pos; }
 
-    /// Return the current rotation as a quaternion.
-    ChQuaternion<Real>& GetRot() { return m_csys.rot; }
+    /// Return the current rotation quaternion.
     const ChQuaternion<Real>& GetRot() const { return m_csys.rot; }
 
-    /// Return the current rotation as a 3x3 matrix.
-    ChMatrix33<Real>& GetRotMat() { return m_rmat; }
+    /// Return the current 3x3 rotation matrix.
     const ChMatrix33<Real>& GetRotMat() const { return m_rmat; }
 
     /// Get axis of finite rotation, in parent space.
-    ChVector3<Real> GetRotAxis() {
+    ChVector3<Real> GetRotAxis() const {
         ChVector3<Real> vtmp;
         Real angle;
         m_csys.rot.GetAngleAxis(angle, vtmp);
@@ -164,14 +158,12 @@ class ChFrame {
     }
 
     /// Get angle of rotation about axis of finite rotation.
-    Real GetRotAngle() {
+    Real GetRotAngle() const {
         ChVector3<Real> vtmp;
         Real angle;
         m_csys.rot.GetAngleAxis(angle, vtmp);
         return angle;
     }
-
-    // SET-FUNCTIONS
 
     /// Impose both translation and rotation as a single ChCoordsys.
     /// Note: the quaternion part must be already normalized.
@@ -202,8 +194,8 @@ class ChFrame {
         m_rmat = R;
     }
 
-    /// Impose the translation
-    void SetPos(const ChVector3<Real>& mpos) { m_csys.pos = mpos; }
+    /// Impose the translation vector.
+    void SetPos(const ChVector3<Real>& pos) { m_csys.pos = pos; }
 
     // FUNCTIONS TO TRANSFORM THE FRAME ITSELF
 
@@ -332,6 +324,8 @@ class ChFrame {
     ChCoordsys<Real> m_csys;  ///< position and rotation, as vector + quaternion
     ChMatrix33<Real> m_rmat;  ///< 3x3 orthogonal rotation matrix
 
+    friend class FmuChronoComponentBase;
+
   public:
     EIGEN_MAKE_ALIGNED_OPERATOR_NEW
 };
@@ -434,9 +428,7 @@ ChVector3<Real> operator*(const ChFrame<Real>& Fa, const ChVector3<Real>& vb) {
 /// The effect is like applying the translation vector_A to frame_B and get frame_C.
 template <class Real>
 ChFrame<Real> operator*(const ChVector3<Real>& va, const ChFrame<Real>& Fb) {
-    ChFrame<Real> res(Fb);
-    res.GetPos() += va;
-    return res;
+    return ChFrame<Real>(Fb.GetPos() + va, Fb.GetRot());
 }
 
 /// The '>>' operator that transforms 'mixed' types:
@@ -464,9 +456,7 @@ ChVector3<Real> operator>>(const ChVector3<Real>& va, const ChFrame<Real>& Fb) {
 /// The effect is like applying the translation vector_B to frame_A and get frame_C.
 template <class Real>
 ChFrame<Real> operator>>(const ChFrame<Real>& Fa, const ChVector3<Real>& vb) {
-    ChFrame<Real> res(Fa);
-    res.GetPos() += vb;
-    return res;
+    return ChFrame<Real>(Fa.GetPos() + vb, Fa.GetRot());
 }
 
 // Mixing with ChQuaternion

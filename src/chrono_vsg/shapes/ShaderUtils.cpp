@@ -57,6 +57,7 @@ vsg::ref_ptr<vsg::ShaderSet> createPbrShaderSet(vsg::ref_ptr<const vsg::Options>
                                                 std::shared_ptr<ChVisualMaterial> material) {
 #define VIEW_DESCRIPTOR_SET 0
 #define MATERIAL_DESCRIPTOR_SET 1
+#define CUSTOM_DESCRIPTOR_SET 2
 
     // vsg::info("Local pbr_ShaderSet(", options, ")");
     bool use_embedded_shaders = true;
@@ -114,6 +115,8 @@ vsg::ref_ptr<vsg::ShaderSet> createPbrShaderSet(vsg::ref_ptr<const vsg::Options>
                                     vsg::ubvec4Array2D::create(1, 1, vsg::Data::Properties{VK_FORMAT_R8G8B8A8_UNORM}));
     shaderSet->addDescriptorBinding("PbrData", "", MATERIAL_DESCRIPTOR_SET, 10, VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER, 1,
                                     VK_SHADER_STAGE_FRAGMENT_BIT, vsg::PbrMaterialValue::create());
+    shaderSet->addDescriptorBinding("TexScale", "", CUSTOM_DESCRIPTOR_SET, 0, VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER, 1,
+                                    VK_SHADER_STAGE_VERTEX_BIT, vsg::vec2Value::create());
     shaderSet->addDescriptorBinding("lightData", "", VIEW_DESCRIPTOR_SET, 0, VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER, 1,
                                     VK_SHADER_STAGE_VERTEX_BIT | VK_SHADER_STAGE_FRAGMENT_BIT,
                                     vsg::vec4Array::create(64));
@@ -217,6 +220,9 @@ vsg::ref_ptr<vsg::StateGroup> createPbrStateGroup(vsg::ref_ptr<const vsg::Option
     vsg::DescriptorSetLayoutBindings descriptorBindings;
 
     auto theScale = material->GetTextureScale();
+    auto texScale = vsg::vec2Value::create();
+    texScale->value().set(material->GetTextureScale().x(), material->GetTextureScale().y());
+    graphicsPipelineConfig->assignDescriptor("TexScale", texScale);
     auto pbrMat = createPbrMaterialFromChronoMaterial(material);
     graphicsPipelineConfig->assignDescriptor("PbrData", pbrMat);
 

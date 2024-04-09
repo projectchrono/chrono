@@ -86,12 +86,20 @@ ChVehicle::~ChVehicle() {
 }
 
 // -----------------------------------------------------------------------------
-// Change the default collision system type
-// -----------------------------------------------------------------------------
 
 void ChVehicle::SetCollisionSystemType(ChCollisionSystem::Type collsys_type) {
     if (m_ownsSystem)
         m_system->SetCollisionSystemType(collsys_type);
+}
+
+void ChVehicle::EnableRealtime(bool val) {
+    m_realtime_force = val;
+    m_realtime_timer.stop();
+    if (m_realtime_force) {
+        // ensure the embedded timer is restarted when this function is called
+        m_realtime_timer.reset();
+        m_realtime_timer.start();
+    }
 }
 
 // -----------------------------------------------------------------------------
@@ -184,14 +192,6 @@ void ChVehicle::Advance(double step) {
     }
     m_sim_timer.reset();
     m_sim_timer.start();
-}
-
-double ChVehicle::GetRTF() const {
-    if (m_ownsSystem)
-        return m_RTF;
-    if (m_system)
-        return m_system->GetRTF();
-    return 0;
 }
 
 // -----------------------------------------------------------------------------

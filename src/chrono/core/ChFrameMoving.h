@@ -143,36 +143,28 @@ class ChFrameMoving : public ChFrame<Real> {
         return *this;
     }
 
-    // GET-FUNCTIONS
-
     /// Return both rotation and translation velocities as a ChCoordsys object.
-    ChCoordsys<Real>& GetCoordsysDt() { return m_csys_dt; }
     const ChCoordsys<Real>& GetCoordsysDt() const { return m_csys_dt; }
 
     /// Return both rotation and translation accelerations as a ChCoordsys object.
-    ChCoordsys<Real>& GetCoordsysDt2() { return m_csys_dtdt; }
     const ChCoordsys<Real>& GetCoordsysDt2() const { return m_csys_dtdt; }
 
     /// Return the linear velocity.
-    ChVector3<Real>& GetPosDt() { return m_csys_dt.pos; }
     const ChVector3<Real>& GetPosDt() const { return m_csys_dt.pos; }
 
     /// Return the linear velocity.
     const ChVector3<Real>& GetLinVel() const { return m_csys_dt.pos; }
 
     /// Return the linear acceleration.
-    ChVector3<Real>& GetPosDt2() { return m_csys_dtdt.pos; }
     const ChVector3<Real>& GetPosDt2() const { return m_csys_dtdt.pos; }
 
     /// Return the linear acceleration.
     const ChVector3<Real>& GetLinAcc() const { return m_csys_dtdt.pos; }
 
     /// Return the rotation velocity as a quaternion.
-    ChQuaternion<Real>& GetRotDt() { return m_csys_dt.rot; }
     const ChQuaternion<Real>& GetRotDt() const { return m_csys_dt.rot; }
 
     /// Return the rotation acceleration as a quaternion.
-    ChQuaternion<Real>& GetRotDt2() { return m_csys_dtdt.rot; }
     const ChQuaternion<Real>& GetRotDt2() const { return m_csys_dtdt.rot; }
 
     /// Compute the angular velocity (expressed in local coords).
@@ -198,8 +190,6 @@ class ChFrameMoving : public ChFrame<Real> {
         ChGwMatrix34<> Gw(this->m_csys.rot);
         return Gw * m_csys_dtdt.rot;
     }
-
-    // SET-FUNCTIONS
 
     /// Set both linear and rotation velocities as a single ChCoordsys derivative.
     virtual void SetCoordsysDt(const ChCoordsys<Real>& csys_dt) { m_csys_dt = csys_dt; }
@@ -471,6 +461,8 @@ class ChFrameMoving : public ChFrame<Real> {
   protected:
     ChCoordsys<Real> m_csys_dt;    ///< rotation and position velocity, as vector + quaternion
     ChCoordsys<Real> m_csys_dtdt;  ///< rotation and position acceleration, as vector + quaternion
+
+    friend class FmuChronoComponentBase;
 };
 
 CH_CLASS_VERSION(ChFrameMoving<double>, 0)

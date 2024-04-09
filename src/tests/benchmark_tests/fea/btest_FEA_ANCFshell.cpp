@@ -42,14 +42,10 @@
     #include "chrono_mumps/ChSolverMumps.h"
 #endif
 
-#ifdef CHRONO_PARDISOPROJECT
-    #include "chrono_pardisoproject/ChSolverPardisoProject.h"
-#endif
-
 using namespace chrono;
 using namespace chrono::fea;
 
-enum class SolverType { MINRES, MKL, MUMPS, PARDISO_PROJECT, SparseQR };
+enum class SolverType { MINRES, PARDISO_MKL, MUMPS, SparseQR };
 
 template <int N>
 class ANCFshell : public utils::ChBenchmarkTest {
@@ -82,19 +78,13 @@ class ANCFshell_SparseQR : public ANCFshell<N> {
 template <int N>
 class ANCFshell_MKL : public ANCFshell<N> {
   public:
-    ANCFshell_MKL() : ANCFshell<N>(SolverType::MKL) {}
+    ANCFshell_MKL() : ANCFshell<N>(SolverType::PARDISO_MKL) {}
 };
 
 template <int N>
 class ANCFshell_MUMPS : public ANCFshell<N> {
   public:
     ANCFshell_MUMPS() : ANCFshell<N>(SolverType::MUMPS) {}
-};
-
-template <int N>
-class ANCFshell_PARDISOPROJECT : public ANCFshell<N> {
-  public:
-    ANCFshell_PARDISOPROJECT() : ANCFshell<N>(SolverType::PARDISO_PROJECT) {}
 };
 
 template <int N>
@@ -105,9 +95,9 @@ ANCFshell<N>::ANCFshell(SolverType solver_type) {
 
     // Set solver parameters
 #ifndef CHRONO_PARDISO_MKL
-    if (solver_type == SolverType::MKL) {
+    if (solver_type == SolverType::PARDISO_MKL) {
         solver_type = SolverType::MINRES;
-        std::cout << "WARNING! Chrono::MKL not enabled. Forcing use of MINRES solver" << std::endl;
+        std::cout << "WARNING! Chrono::PardisoMKL not enabled. Forcing use of MINRES solver" << std::endl;
     }
 #endif
 
@@ -115,13 +105,6 @@ ANCFshell<N>::ANCFshell(SolverType solver_type) {
     if (solver_type == SolverType::MUMPS) {
         solver_type = SolverType::MINRES;
         std::cout << "WARNING! Chrono::MUMPS not enabled. Forcing use of MINRES solver" << std::endl;
-    }
-#endif
-
-#ifndef CHRONO_PARDISOPROJECT
-    if (solver_type == SolverType::PARDISO_PROJECT) {
-        solver_type = SolverType::MINRES;
-        std::cout << "WARNING! Chrono::PARDISO_PROJECT not enabled. Forcing use of MINRES solver" << std::endl;
     }
 #endif
 
@@ -136,7 +119,7 @@ ANCFshell<N>::ANCFshell(SolverType solver_type) {
             solver->SetTolerance(1e-12);
             break;
         }
-        case SolverType::MKL: {
+        case SolverType::PARDISO_MKL: {
 #ifdef CHRONO_PARDISO_MKL
             auto solver = chrono_types::make_shared<ChSolverPardisoMKL>(4);
             solver->UseSparsityPatternLearner(false);
@@ -149,16 +132,6 @@ ANCFshell<N>::ANCFshell(SolverType solver_type) {
         case SolverType::MUMPS: {
 #ifdef CHRONO_MUMPS
             auto solver = chrono_types::make_shared<ChSolverMumps>(4);
-            solver->UseSparsityPatternLearner(false);
-            solver->LockSparsityPattern(true);
-            solver->SetVerbose(false);
-            m_system->SetSolver(solver);
-#endif
-            break;
-        }
-        case SolverType::PARDISO_PROJECT: {
-#ifdef CHRONO_PARDISOPROJECT
-            auto solver = chrono_types::make_shared<ChSolverPardisoProject>();
             solver->UseSparsityPatternLearner(false);
             solver->LockSparsityPattern(true);
             solver->SetVerbose(false);
@@ -289,13 +262,6 @@ CH_BM_SIMULATION_LOOP(ANCFshell08_MUMPS, ANCFshell_MUMPS<8>, NUM_SKIP_STEPS, NUM
 CH_BM_SIMULATION_LOOP(ANCFshell16_MUMPS, ANCFshell_MUMPS<16>, NUM_SKIP_STEPS, NUM_SIM_STEPS, 10);
 CH_BM_SIMULATION_LOOP(ANCFshell32_MUMPS, ANCFshell_MUMPS<32>, NUM_SKIP_STEPS, NUM_SIM_STEPS, 10);
 CH_BM_SIMULATION_LOOP(ANCFshell64_MUMPS, ANCFshell_MUMPS<64>, NUM_SKIP_STEPS, NUM_SIM_STEPS, 10);
-#endif
-
-#ifdef CHRONO_PARDISOPROJECT
-CH_BM_SIMULATION_LOOP(ANCFshell08_PARDISOPROJECT, ANCFshell_PARDISOPROJECT<8>, NUM_SKIP_STEPS, NUM_SIM_STEPS, 10);
-CH_BM_SIMULATION_LOOP(ANCFshell16_PARDISOPROJECT, ANCFshell_PARDISOPROJECT<16>, NUM_SKIP_STEPS, NUM_SIM_STEPS, 10);
-CH_BM_SIMULATION_LOOP(ANCFshell32_PARDISOPROJECT, ANCFshell_PARDISOPROJECT<32>, NUM_SKIP_STEPS, NUM_SIM_STEPS, 10);
-CH_BM_SIMULATION_LOOP(ANCFshell64_PARDISOPROJECT, ANCFshell_PARDISOPROJECT<64>, NUM_SKIP_STEPS, NUM_SIM_STEPS, 10);
 #endif
 
 // =============================================================================

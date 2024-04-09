@@ -89,7 +89,7 @@ double ChSolverADMM::_SolveBasic(ChSystemDescriptor& sysd) {
 
         m_timer_convert.stop();
         if (verbose)
-            std::cout << " Time for BuildSystemMatrix: << " << m_timer_convert.GetTimeSecondsIntermediate() << "s"
+            std::cout << " Time for BuildSystemMatrix: << " << m_timer_convert.GetTimeSeconds() << "s"
                       << std::endl;
 
         // v = H\k
@@ -264,7 +264,7 @@ double ChSolverADMM::_SolveBasic(ChSystemDescriptor& sysd) {
 
     m_timer_convert.stop();
     if (verbose)
-        std::cout << " Time for BuildSystemMatrix: << " << m_timer_convert.GetTimeSecondsIntermediate() << "s"
+        std::cout << " Time for BuildSystemMatrix: << " << m_timer_convert.GetTimeSeconds() << "s"
                   << std::endl;
 
     m_timer_factorize.start();
@@ -273,7 +273,7 @@ double ChSolverADMM::_SolveBasic(ChSystemDescriptor& sysd) {
 
     m_timer_factorize.stop();
     if (verbose)
-        std::cout << " Time for factorize : << " << m_timer_factorize.GetTimeSecondsIntermediate() << "s" << std::endl;
+        std::cout << " Time for factorize : << " << m_timer_factorize.GetTimeSeconds() << "s" << std::endl;
 
     /*
     res_story.r_prim=zeros(1,1);
@@ -306,7 +306,7 @@ double ChSolverADMM::_SolveBasic(ChSystemDescriptor& sysd) {
 
         m_timer_solve.stop();
         if (verbose)
-            std::cout << " Time for solve : << " << m_timer_solve.GetTimeSecondsIntermediate() << "s" << std::endl;
+            std::cout << " Time for solve : << " << m_timer_solve.GetTimeSeconds() << "s" << std::endl;
 
         // x = dA\B;      // A* x = B  with x = [v, -l]
         l = -LS_solver->x().block(nv, 0, nc, 1);
@@ -439,7 +439,7 @@ double ChSolverADMM::_SolveBasic(ChSystemDescriptor& sysd) {
 
                 m_timer_refactorize.stop();
                 if (verbose)
-                    std::cout << " Time for re-factorize : << " << m_timer_refactorize.GetTimeSecondsIntermediate()
+                    std::cout << " Time for re-factorize : << " << m_timer_refactorize.GetTimeSeconds()
                               << "s" << std::endl;
             }
 
@@ -498,7 +498,7 @@ double ChSolverADMM::_SolveFast(ChSystemDescriptor& sysd) {
 
         m_timer_convert.stop();
         if (verbose)
-            std::cout << " Time for BuildSystemMatrix: << " << m_timer_convert.GetTimeSecondsIntermediate() << "s"
+            std::cout << " Time for BuildSystemMatrix: << " << m_timer_convert.GetTimeSeconds() << "s"
                       << std::endl;
 
         // v = H\k
@@ -675,7 +675,7 @@ double ChSolverADMM::_SolveFast(ChSystemDescriptor& sysd) {
 
     m_timer_convert.stop();
     if (verbose)
-        std::cout << " Time for BuildSystemMatrix: << " << m_timer_convert.GetTimeSecondsIntermediate() << "s"
+        std::cout << " Time for BuildSystemMatrix: << " << m_timer_convert.GetTimeSeconds() << "s"
                   << std::endl;
 
     m_timer_factorize.start();
@@ -684,7 +684,7 @@ double ChSolverADMM::_SolveFast(ChSystemDescriptor& sysd) {
 
     m_timer_factorize.stop();
     if (verbose)
-        std::cout << " Time for factorize : << " << m_timer_factorize.GetTimeSecondsIntermediate() << "s" << std::endl;
+        std::cout << " Time for factorize : << " << m_timer_factorize.GetTimeSeconds() << "s" << std::endl;
 
     /*
     res_story.r_prim=zeros(1,1);
@@ -724,7 +724,7 @@ double ChSolverADMM::_SolveFast(ChSystemDescriptor& sysd) {
 
         m_timer_solve.stop();
         if (verbose)
-            std::cout << " Time for solve : << " << m_timer_solve.GetTimeSecondsIntermediate() << "s" << std::endl;
+            std::cout << " Time for solve : << " << m_timer_solve.GetTimeSeconds() << "s" << std::endl;
 
         // x = dA\B;      // A* x = B  with x = [v, -l]
         l = -LS_solver->x().block(nv, 0, nc, 1);
@@ -868,7 +868,7 @@ double ChSolverADMM::_SolveFast(ChSystemDescriptor& sysd) {
 
                 m_timer_refactorize.stop();
                 if (verbose)
-                    std::cout << " Time for re-factorize : << " << m_timer_refactorize.GetTimeSecondsIntermediate()
+                    std::cout << " Time for re-factorize : << " << m_timer_refactorize.GetTimeSeconds()
                               << "s" << std::endl;
             }
 

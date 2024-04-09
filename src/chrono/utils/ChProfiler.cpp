@@ -38,7 +38,7 @@ static ChTimer gProfileClock;
     #define mymin(a, b) (a > b ? a : b)
 
 inline void Profile_Get_Ticks(unsigned long int* ticks) {
-    *ticks = (unsigned long)gProfileClock.GetTimeMicrosecondsIntermediate();
+    *ticks = (unsigned long)gProfileClock.GetTimeMicroseconds();
 }
 
 inline float Profile_Get_Tick_Rate(void) {

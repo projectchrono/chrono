@@ -24,12 +24,12 @@ ChCollisionShapeMeshTriangle::ChCollisionShapeMeshTriangle() : ChCollisionShape(
 
 ChCollisionShapeMeshTriangle::ChCollisionShapeMeshTriangle(
     std::shared_ptr<ChContactMaterial> material,  // contact material
-    ChVector3d* V1,                               // vertex1 coords
-    ChVector3d* V2,                               // vertex2 coords
-    ChVector3d* V3,                               // vertex3 coords
-    ChVector3d* eP1,                              // neighboring vertex at edge1 if any
-    ChVector3d* eP2,                              // neighboring vertex at edge2 if any
-    ChVector3d* eP3,                              // neighboring vertex at edge3 if any
+    const ChVector3d* V1,                         // vertex1 coords
+    const ChVector3d* V2,                         // vertex2 coords
+    const ChVector3d* V3,                         // vertex3 coords
+    const ChVector3d* eP1,                        // neighboring vertex at edge1 if any
+    const ChVector3d* eP2,                        // neighboring vertex at edge2 if any
+    const ChVector3d* eP3,                        // neighboring vertex at edge3 if any
     bool ownsV1,                                  // vertex1 owned by this triangle (otherwise, owned by neighbor)
     bool ownsV2,                                  // vertex2 owned by this triangle (otherwise, owned by neighbor)
     bool ownsV3,                                  // vertex3 owned by this triangle (otherwise, owned by neighbor)

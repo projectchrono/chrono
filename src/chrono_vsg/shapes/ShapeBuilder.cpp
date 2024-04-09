@@ -52,13 +52,6 @@ vsg::ref_ptr<vsg::Group> ShapeBuilder::CreatePbrShape(vsg::ref_ptr<vsg::vec3Arra
                                                       bool wireframe) {
     const uint32_t instanceCount = 1;
 
-    // apply texture scaling
-    for (size_t i = 0; i < texcoords->size(); i++) {
-        vsg::vec2 tx = texcoords->at(i);
-        tx = vsg::vec2(tx.x * material->GetTextureScale().x(), tx.y * material->GetTextureScale().y());
-        texcoords->set(i, tx);
-    }
-
     auto colors =
         vsg::vec4Array::create(vertices->size(), vsg::vec4CH(material->GetDiffuseColor(), material->GetOpacity()));
     auto scenegraph = vsg::Group::create();
@@ -439,9 +432,7 @@ vsg::ref_ptr<vsg::Group> ShapeBuilder::CreateTrimeshPbrMatShape(std::shared_ptr<
         for (size_t k = 0; k < nVert; k++) {
             vsg_vertices->set(k, vsg::vec3CH(tmp_vertices[k]));
             vsg_normals->set(k, vsg::vec3CH(tmp_normals[k]));
-            // apply texture scale
-            vsg_texcoords->set(k, vsg::vec2(tmp_texcoords[k].x() * chronoMat->GetTextureScale().x(),
-                                            (1.0 - tmp_texcoords[k].y()) * chronoMat->GetTextureScale().y()));
+            vsg_texcoords->set(k, vsg::vec2(tmp_texcoords[k].x(), (1.0 - tmp_texcoords[k].y())));
             vsg_indices->set(k, (unsigned int)k);
         }
         auto colors = vsg::vec4Array::create(vsg_vertices->size(), vsg::vec4{1.0f, 1.0f, 1.0f, 1.0f});

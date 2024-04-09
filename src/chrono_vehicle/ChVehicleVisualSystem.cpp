@@ -59,10 +59,10 @@ void ChVehicleVisualSystem::AttachVehicle(ChVehicle* vehicle) {
     m_camera->SetMultLimits(m_camera_minMult, m_camera_maxMult);
 }
 
-double ChVehicleVisualSystem::GetSimulationRTF() const {
+double ChVehicleVisualSystem::GetStepRTF() const {
     if (!m_vehicle)
         return 0;
-    return m_vehicle->GetRTF();
+    return m_vehicle->GetStepRTF();
 }
 
 void ChVehicleVisualSystem::Synchronize(double time, const DriverInputs& driver_inputs) {

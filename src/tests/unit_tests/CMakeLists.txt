@@ -87,11 +87,3 @@ IF(ENABLE_MODULE_FSI)
   endif()
 ENDIF()
 
-IF(ENABLE_MODULE_PARDISO_PROJECT)
-  option(BUILD_TESTING_PARDISO_PROJECT "Build unit tests for Pardiso Project module" TRUE)
-  mark_as_advanced(FORCE BUILD_TESTING_PARDISO_PROJECT)
-  if(BUILD_TESTING_PARDISO_PROJECT)
-    ADD_SUBDIRECTORY(pardisoproject)
-  endif()
-ENDIF()
-

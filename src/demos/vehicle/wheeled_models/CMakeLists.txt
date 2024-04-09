@@ -12,6 +12,7 @@ endif()
 
 set(DEMOS
     demo_VEH_HMMWV_Rollover
+    demo_VEH_Gator_Incline
     demo_VEH_WheeledGeneric
     demo_VEH_WheeledGenericSet
     demo_VEH_Wheeled
@@ -20,7 +21,6 @@ set(DEMOS
 
 if(ENABLE_MODULE_IRRLICHT)
    set(DEMOS ${DEMOS}
-       demo_VEH_Gator_Incline
        demo_VEH_HMMWV9_YUP
        demo_VEH_Sedan_Lockable_Diff
    )

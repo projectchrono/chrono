@@ -70,11 +70,6 @@ bool SetChronoSolver(chrono::ChSystem& sys,
         slvr_type = chrono::ChSolver::Type::SPARSE_QR;
         cout << prefix << "Chrono::PardisoMKL not enabled. Setting solver to SPARSE_QR" << endl;
 #endif
-    } else if (slvr_type == chrono::ChSolver::Type::PARDISO_PROJECT) {
-#ifndef CHRONO_PARDISOPROJECT
-        slvr_type = chrono::ChSolver::Type::SPARSE_QR;
-        cout << prefix << "Chrono::PardisoProject not enabled. Setting solver to SPARSE_QR" << endl;
-#endif
     } else if (slvr_type == chrono::ChSolver::Type::MUMPS) {
 #ifndef CHRONO_MUMPS
         slvr_type = chrono::ChSolver::Type::SPARSE_QR;
@@ -87,12 +82,6 @@ bool SetChronoSolver(chrono::ChSystem& sys,
         auto solver = chrono_types::make_shared<chrono::ChSolverPardisoMKL>();
         solver->LockSparsityPattern(true);
         sys.SetSolver(solver);
-#endif
-    } else if (slvr_type == chrono::ChSolver::Type::PARDISO_PROJECT) {
-#ifdef CHRONO_PARDISOPROJECT
-        auto solver = chrono_types::make_shared<chrono::ChSolverPardisoProject>();
-        solver->LockSparsityPattern(true);
-        sys->SetSolver(solver);
 #endif
     } else if (slvr_type == chrono::ChSolver::Type::MUMPS) {
 #ifdef CHRONO_MUMPS

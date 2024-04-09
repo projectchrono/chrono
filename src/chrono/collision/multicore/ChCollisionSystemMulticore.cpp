@@ -257,8 +257,8 @@ void ChCollisionSystemMulticore::PreProcess() {
     for (int i = 0; i < m_num_bodies; i++) {
         const auto& body = blist[i];
 
-        ChVector3d& body_pos = body->GetPos();
-        ChQuaternion<>& body_rot = body->GetRot();
+        const ChVector3d& body_pos = body->GetPos();
+        const ChQuaternion<>& body_rot = body->GetRot();
 
         position[i] = real3(body_pos.x(), body_pos.y(), body_pos.z());
         rotation[i] = quaternion(body_rot.e0(), body_rot.e1(), body_rot.e2(), body_rot.e3());

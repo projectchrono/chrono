@@ -82,7 +82,7 @@ if (DBG_SCRIPT)
   message("CH_PYTHONLIB:   ${CH_PYTHONLIB}")
 endif()
 
-# Let some variables be visible also from outside this directory, using the PARENT_SCOPE trick
+# Let some variables be visible also from outside this directory
 set(CH_PYTHONDIR  "${CH_PYTHONDIR}"  PARENT_SCOPE)
 set(CH_PYTHONINC  "${CH_PYTHONINC}"  PARENT_SCOPE)
 set(CH_PYTHONLIB  "${CH_PYTHONLIB}"  PARENT_SCOPE)

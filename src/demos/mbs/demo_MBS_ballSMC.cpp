@@ -18,6 +18,7 @@
 
 #include "chrono/physics/ChSystemSMC.h"
 #include "chrono/physics/ChContactContainerSMC.h"
+#include "chrono/core/ChRealtimeStep.h"
 
 #include "chrono/assets/ChVisualSystem.h"
 #ifdef CHRONO_IRRLICHT
@@ -175,6 +176,7 @@ int main(int argc, char* argv[]) {
     double time = 0.0;
     double out_time = 0.0;
 
+    ChRealtimeStepTimer rt_timer;
     while (vis->Run()) {
         vis->BeginScene();
         vis->Render();
@@ -183,6 +185,7 @@ int main(int argc, char* argv[]) {
 
         while (time < out_time) {
             sys.DoStepDynamics(time_step);
+            rt_timer.Spin(time_step);
             time += time_step;
         }
         out_time += out_step;

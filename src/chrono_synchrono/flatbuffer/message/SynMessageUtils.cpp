@@ -52,11 +52,10 @@ SynPose::SynPose(const SynFlatBuffers::Pose* pose) {
     m_frame = ChFrameMoving<>({pose->pos()->x(), pose->pos()->y(), pose->pos()->z()},
                               {pose->rot()->e0(), pose->rot()->e1(), pose->rot()->e2(), pose->rot()->e3()});
 
-    m_frame.GetPosDt() = {pose->pos_dt()->x(), pose->pos_dt()->y(), pose->pos_dt()->z()};
-    m_frame.GetRotDt() = {pose->rot_dt()->e0(), pose->rot_dt()->e1(), pose->rot_dt()->e2(), pose->rot_dt()->e3()};
-    m_frame.GetPosDt2() = {pose->pos_dtdt()->x(), pose->pos_dtdt()->y(), pose->pos_dtdt()->z()};
-    m_frame.GetRotDt2() = {pose->rot_dtdt()->e0(), pose->rot_dtdt()->e1(), pose->rot_dtdt()->e2(),
-                           pose->rot_dtdt()->e3()};
+    m_frame.SetPosDt({pose->pos_dt()->x(), pose->pos_dt()->y(), pose->pos_dt()->z()});
+    m_frame.SetRotDt({pose->rot_dt()->e0(), pose->rot_dt()->e1(), pose->rot_dt()->e2(), pose->rot_dt()->e3()});
+    m_frame.SetPosDt2({pose->pos_dtdt()->x(), pose->pos_dtdt()->y(), pose->pos_dtdt()->z()});
+    m_frame.SetRotDt2({pose->rot_dtdt()->e0(), pose->rot_dtdt()->e1(), pose->rot_dtdt()->e2(), pose->rot_dtdt()->e3()});
 }
 
 flatbuffers::Offset<SynFlatBuffers::Pose> SynPose::ToFlatBuffers(flatbuffers::FlatBufferBuilder& builder) const {

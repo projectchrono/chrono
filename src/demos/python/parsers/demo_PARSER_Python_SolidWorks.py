@@ -16,7 +16,7 @@ import pychrono.irrlicht as chronoirr
 
 import errno
 import os
-import importlib
+import importlib.util
 
 enable_povray_export = False
 

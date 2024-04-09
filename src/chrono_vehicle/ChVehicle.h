@@ -155,13 +155,24 @@ class CH_VEHICLE_API ChVehicle {
     ChVector3d GetDriverPos() const { return m_chassis->GetDriverPos(); }
 
     /// Enable/disable soft real-time (default: false).
-    /// If enabled, a spinning timer is used to maintain simulation time in sync with real time (if simulation is
-    /// faster).
-    void EnableRealtime(bool val) { m_realtime_force = val; }
+    /// If enabled, a spinning timer is used to maintain simulation time in sync with real time. This function should be
+    /// called right before the main simulation loop, since it starts the embedded ChTimer.
+    void EnableRealtime(bool val);
 
     /// Get current estimated RTF (real time factor).
     /// Note that the "true" RTF is returned, even if soft real-time is enforced.
-    double GetRTF() const;
+    /// This represents the real time factor for advancing the dynamic state of the system only and as such does not
+    /// take into account any other operations performed during a step (e.g., run-time visualization). During each call
+    /// to Advance(), this value is calculated as T/step_size, where T includes the time spent in system setup,
+    /// collision detection, and integration.
+    double GetRTF() const { return m_system->GetRTF(); }
+
+    /// Get current estimated step RTF (real time factor).
+    /// Unlike the value returned by GetRTF(), this represents the real time factor for all calculations performed
+    /// during a simulation step, including any other operations in addition to advancing the dynamic state of the
+    /// system (run-time visualization, I/O, etc.). This RTF value is calculated as T/step_size, where T represents the
+    /// time from the previous call to Advance().
+    double GetStepRTF() const { return m_RTF; }
 
     /// Change the default collision detection system.
     /// Note that this function should be called *before* initialization of the vehicle system in order to create
