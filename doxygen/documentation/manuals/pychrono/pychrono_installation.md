@@ -61,6 +61,10 @@ To install a PyChrono conda module, do the following:
    ``` 
    conda install -c conda-forge pythonocc-core=7.4.1
    ```
+   - Gnuplot, for graphing data: 
+   ``` 
+   conda install conda-forge::gnuplot
+   ```
    - For Chrono::Sensor support:
      - Requires NVIDIA graphics driver 515.xx +
      - Install CUDA 11.7:
