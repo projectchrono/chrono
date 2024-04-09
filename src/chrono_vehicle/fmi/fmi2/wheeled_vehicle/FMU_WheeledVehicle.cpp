@@ -48,7 +48,6 @@ FmuComponent::FmuComponent(fmi2String instanceName,
     init_yaw = 0;
 
     system_SMC = 1;
-    vis = 0;
     step_size = 1e-3;
 
     // Get default JSON files from the FMU resources directory
@@ -64,9 +63,8 @@ FmuComponent::FmuComponent(fmi2String instanceName,
     wheel_data[2].identifier = "RL";
     wheel_data[3].identifier = "RR";
 
-    // Set configuration flags for this FMU
-    AddFmuVariable(&vis, "vis", FmuVariable::Type::Boolean, "1", "enable visualization",         //
-                   FmuVariable::CausalityType::parameter, FmuVariable::VariabilityType::fixed);  //
+    if (visible)
+        vis_sys = chrono_types::make_shared<ChWheeledVehicleVisualSystemIrrlicht>();
 
     // Set FIXED PARAMETERS for this FMU
     AddFmuVariable(&data_path, "data_path", FmuVariable::Type::String, "1", "vehicle data path",  //
@@ -137,7 +135,7 @@ FmuComponent::FmuComponent(fmi2String instanceName,
 
 void FmuComponent::CreateVehicle() {
     std::cout << "Create vehicle FMU" << std::endl;
-    std::cout << " Data path:         " << data_path << std::endl;    
+    std::cout << " Data path:         " << data_path << std::endl;
     std::cout << " Vehicle JSON:      " << vehicle_JSON << std::endl;
     std::cout << " Engine JSON:       " << engine_JSON << std::endl;
     std::cout << " Transmission JSON: " << transmission_JSON << std::endl;
@@ -212,7 +210,7 @@ void FmuComponent::SynchronizeVehicle(double time) {
         wheel_data[iw].wheel->Synchronize(wheel_data[iw].load);
     }
 
-    if (vis) {
+    if (vis_sys) {
 #ifdef CHRONO_IRRLICHT
         vis_sys->Synchronize(time, driver_inputs);
 #endif
@@ -245,11 +243,10 @@ void FmuComponent::_exitInitializationMode() {
     ConfigureSystem();
 
     // Initialize runtime visualization (if requested and if available)
-    if (vis) {
+    if (vis_sys) {
 #ifdef CHRONO_IRRLICHT
         std::cout << " Enable run-time visualization" << std::endl;
 
-        vis_sys = chrono_types::make_shared<ChWheeledVehicleVisualSystemIrrlicht>();
         vis_sys->SetLogLevel(irr::ELL_NONE);
         vis_sys->SetWindowTitle("Wheeled Vehicle FMU (FMI 2.0)");
         vis_sys->SetChaseCamera(ChVector3d(0.0, 0.0, 1.75), 6.0, 0.5);
@@ -272,7 +269,7 @@ fmi2Status FmuComponent::_doStep(fmi2Real currentCommunicationPoint,
                               std::min(communicationStepSize, step_size));
         vehicle->Advance(h);
 
-        if (vis) {
+        if (vis_sys) {
 #ifdef CHRONO_IRRLICHT
             auto status = vis_sys->Run();
             if (!status)

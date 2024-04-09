@@ -85,16 +85,19 @@ FmuComponent::FmuComponent(fmi2String instanceName, fmi2Type fmuType,
                  FmuVariable::VariabilityType::fixed);
 
 #ifdef CHRONO_IRRLICHT
-  vis = chrono_types::make_shared<irrlicht::ChVisualSystemIrrlicht>();
-  vis->AttachSystem(&sys);
-  vis->SetWindowSize(800, 600);
-  vis->SetWindowTitle("CartPendulumFMU");
-  vis->Initialize();
-  vis->AddLogo();
-  vis->AddSkyBox();
-  vis->AddCamera(ChVector3d(-0.5, -0.5, -1.0));
-  vis->AddTypicalLights();
+  if (visible == fmi2True){
+    vis = chrono_types::make_shared<irrlicht::ChVisualSystemIrrlicht>();
+    vis->AttachSystem(&sys);
+    vis->SetWindowSize(800, 600);
+    vis->SetWindowTitle("CartPendulumFMU");
+    vis->Initialize();
+    vis->AddLogo();
+    vis->AddSkyBox();
+    vis->AddCamera(ChVector3d(-0.5, -0.5, -1.0));
+    vis->AddTypicalLights();
+  }
 #endif
+
 };
 
 void FmuComponent::_preModelDescriptionExport() { _exitInitializationMode(); }
@@ -145,7 +148,8 @@ void FmuComponent::_exitInitializationMode() {
   sys.DoAssembly(AssemblyLevel::FULL);
 
 #ifdef CHRONO_IRRLICHT
-  vis->BindAll();
+  if (vis)
+    vis->BindAll();
 #endif
 
   ChOutputFMU archive_fmu(*this);

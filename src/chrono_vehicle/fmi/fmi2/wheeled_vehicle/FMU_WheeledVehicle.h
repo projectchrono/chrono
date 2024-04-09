@@ -105,7 +105,6 @@ class FmuComponent : public chrono::FmuChronoComponentBase {
     std::string engine_JSON;        ///< JSON engine specification file
     std::string transmission_JSON;  ///< JSON transmission specification file
     fmi2Boolean system_SMC;         ///< use SMC contact formulation (NSC otherwise)
-    fmi2Boolean vis;                ///< enable/disable run-time visualization
     chrono::ChVector3d init_loc;    ///< initial vehicle location
     double init_yaw;                ///< initial vehicle orientation
     chrono::ChVector3d g_acc;       ///< gravitational acceleration

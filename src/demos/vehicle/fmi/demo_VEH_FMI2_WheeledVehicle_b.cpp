@@ -61,7 +61,8 @@ void CreateVehicleFMU(FmuChronoUnit& vehicle_fmu,
                       double step_size,
                       double start_time,
                       double stop_time,
-                      const std::vector<std::string>& logCategories) {
+                      const std::vector<std::string>& logCategories,
+                      bool visible) {
     try {
         vehicle_fmu.Load(VEHICLE_FMU_FILENAME, VEHICLE_UNPACK_DIR);
     } catch (std::exception& e) {
@@ -71,7 +72,7 @@ void CreateVehicleFMU(FmuChronoUnit& vehicle_fmu,
     std::cout << "Vehicle FMU platform: " << vehicle_fmu.GetTypesPlatform() << std::endl;
 
     // Instantiate FMU
-    vehicle_fmu.Instantiate("WheeledVehicleFmuComponent");
+    vehicle_fmu.Instantiate("WheeledVehicleFmuComponent", false, visible);
 
     // Set debug logging
     vehicle_fmu.SetDebugLogging(fmi2True, logCategories);
@@ -103,7 +104,8 @@ void CreateDriverFMU(FmuChronoUnit& driver_fmu,
                      double step_size,
                      double start_time,
                      double stop_time,
-                     const std::vector<std::string>& logCategories) {
+                     const std::vector<std::string>& logCategories,
+                     bool visible) {
     try {
         driver_fmu.Load(DRIVER_FMU_FILENAME, DRIVER_UNPACK_DIR);
     } catch (std::exception& e) {
@@ -113,7 +115,7 @@ void CreateDriverFMU(FmuChronoUnit& driver_fmu,
     std::cout << "Driver FMU platform: " << driver_fmu.GetTypesPlatform() << "\n";
 
     // Instantiate FMU
-    driver_fmu.Instantiate("DriverFmuComponent");
+    driver_fmu.Instantiate("DriverFmuComponent", false, visible);
 
     // Set debug logging
     driver_fmu.SetDebugLogging(fmi2True, logCategories);
@@ -206,7 +208,7 @@ int main(int argc, char* argv[]) {
 
     FmuChronoUnit vehicle_fmu;
     try {
-        CreateVehicleFMU(vehicle_fmu, step_size, start_time, stop_time, logCategories);
+        CreateVehicleFMU(vehicle_fmu, step_size, start_time, stop_time, logCategories, vis_vehicle);
     } catch (std::exception& e) {
         std::cout << "ERROR loading vehicle FMU: " << e.what() << "\n";
         return 1;
@@ -214,7 +216,7 @@ int main(int argc, char* argv[]) {
 
     FmuChronoUnit driver_fmu;
     try {
-        CreateDriverFMU(driver_fmu, step_size, start_time, stop_time, logCategories);
+        CreateDriverFMU(driver_fmu, step_size, start_time, stop_time, logCategories, vis_driver);
     } catch (std::exception& e) {
         std::cout << "ERROR loading driver FMU: " << e.what() << "\n";
         return 1;
@@ -235,10 +237,7 @@ int main(int argc, char* argv[]) {
     // -----------------------
 
     driver_fmu.EnterInitializationMode();
-    {
-        // Optionally, enable run-time visualization for the driver FMU
-        driver_fmu.SetVariable("vis", vis_driver);
-    }
+
     driver_fmu.ExitInitializationMode();
 
     vehicle_fmu.EnterInitializationMode();
@@ -250,9 +249,6 @@ int main(int argc, char* argv[]) {
         driver_fmu.GetVariable("init_yaw", init_yaw, FmuVariable::Type::Real);
         vehicle_fmu.SetVecVariable("init_loc", init_loc);
         vehicle_fmu.SetVariable("init_yaw", init_yaw, FmuVariable::Type::Real);
-
-        // Optionally, enable run-time visualization for the vehicle FMU
-        vehicle_fmu.SetVariable("vis", vis_vehicle);
     }
     vehicle_fmu.ExitInitializationMode();
 

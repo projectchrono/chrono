@@ -59,9 +59,6 @@ class FmuComponent : public chrono::FmuChronoComponentBase {
     std::shared_ptr<chrono::irrlicht::ChVisualSystemIrrlicht> vissys;
 #endif
 
-    // Enable/disable run-time visualization
-    fmi2Boolean vis = false;
-
     // Body properties (with default values)
     double crane_mass = 500;
     double crane_length = 1.0;

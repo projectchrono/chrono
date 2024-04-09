@@ -51,8 +51,8 @@ void CreateCraneFMU(FmuChronoUnit& crane_fmu,
     std::cout << "Crane FMU version:  " << crane_fmu.GetVersion() << "\n";
     std::cout << "Crane FMU platform: " << crane_fmu.GetTypesPlatform() << "\n";
 
-    // Instantiate FMU
-    crane_fmu.Instantiate("CraneFmuComponent");
+    // Instantiate FMU: enable visualization
+    crane_fmu.Instantiate("CraneFmuComponent", false, true);
 
     // Set debug logging
     crane_fmu.SetDebugLogging(fmi2True, logCategories);
@@ -154,9 +154,6 @@ int main(int argc, char* argv[]) {
 
         std::cout << "Crane initial load: " << init_F << std::endl;
         std::cout << "Crane initial actuator length: " << s << std::endl;
-
-        // Optionally, enable run-time visualization for the crane FMU
-        crane_fmu.SetVariable("vis", true, FmuVariable::Type::Boolean);
     }
     crane_fmu.ExitInitializationMode();
     actuator_fmu.ExitInitializationMode();

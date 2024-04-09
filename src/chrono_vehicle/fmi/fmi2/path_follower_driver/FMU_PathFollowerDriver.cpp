@@ -50,7 +50,6 @@ FmuComponent::FmuComponent(fmi2String instanceName,
     target_speed = 0;
 
     step_size = 1e-3;
-    vis = 0;
 
     look_ahead_dist = 5.0;
     Kp_steering = 0.8;
@@ -69,9 +68,8 @@ FmuComponent::FmuComponent(fmi2String instanceName,
     auto resources_dir = std::string(fmuResourceLocation).erase(0, 8);
     path_file = resources_dir + "/ISO_double_lane_change.txt";
 
-    // Set configuration flags for this FMU
-    AddFmuVariable(&vis, "vis", FmuVariable::Type::Boolean, "1", "enable visualization",         //
-                   FmuVariable::CausalityType::parameter, FmuVariable::VariabilityType::fixed);  //
+    if (visible)
+        vis_sys = chrono_types::make_shared<irrlicht::ChVisualSystemIrrlicht>();
 
     // Set FIXED PARAMETERS for this FMU
     //// TODO: units for gains
@@ -192,7 +190,7 @@ void FmuComponent::_exitInitializationMode() {
     CreateDriver();
 
     // Initialize runtime visualization (if requested and if available)
-    if (vis) {
+    if (vis_sys) {
 #ifdef CHRONO_IRRLICHT
         std::cout << " Enable run-time visualization" << std::endl;
 
@@ -204,7 +202,6 @@ void FmuComponent::_exitInitializationMode() {
         auto grid_rot = QuatFromAngleZ(init_yaw);
 
         // Create run-time visualization system
-        vis_sys = chrono_types::make_shared<irrlicht::ChVisualSystemIrrlicht>();
         vis_sys->SetLogLevel(irr::ELL_NONE);
         vis_sys->AttachSystem(&sys);
         vis_sys->SetWindowSize(800, 600);
@@ -259,7 +256,7 @@ fmi2Status FmuComponent::_doStep(fmi2Real currentCommunicationPoint,
         ChClampValue(out_steering, -1.0, 1.0);
         steering = out_steering;
 
-        if (vis) {
+        if (vis_sys) {
 #ifdef CHRONO_IRRLICHT
             // Update system and all visual assets
             sys.Update(true);

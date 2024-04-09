@@ -38,10 +38,6 @@ FmuComponent::FmuComponent(fmi2String instanceName,
     // Set initial values for FMU input variables
     F = 0;
 
-    // Set configuration flags for this FMU
-    AddFmuVariable(&vis, "vis", FmuVariable::Type::Boolean, "1", "enable visualization",         //
-                   FmuVariable::CausalityType::parameter, FmuVariable::VariabilityType::fixed);  //
-
     // Set FIXED PARAMETERS for this FMU
     AddFmuVariable(&crane_mass, "crane_mass", FmuVariable::Type::Real, "kg", "crane mass",                   //
                    FmuVariable::CausalityType::parameter, FmuVariable::VariabilityType::fixed);              //
@@ -63,6 +59,11 @@ FmuComponent::FmuComponent(fmi2String instanceName,
                    FmuVariable::CausalityType::output, FmuVariable::VariabilityType::continuous);  //
     AddFmuVariable(&F, "F", FmuVariable::Type::Real, "N", "actuator force",                        //
                    FmuVariable::CausalityType::input, FmuVariable::VariabilityType::continuous);   //
+
+#ifdef CHRONO_IRRLICHT
+    if (visible == fmi2True)
+        vissys = chrono_types::make_shared<irrlicht::ChVisualSystemIrrlicht>();
+#endif
 
     // Hardcoded mount points
     m_point_ground = ChVector3d(std::sqrt(3.0) / 2, 0, 0);
@@ -184,10 +185,9 @@ void FmuComponent::_enterInitializationMode() {}
 
 void FmuComponent::_exitInitializationMode() {
     // Initialize runtime visualization (if requested and if available)
-    if (vis) {
+    if (vissys) {
 #ifdef CHRONO_IRRLICHT
         sendToLog("Enable run-time visualization", fmi2Status::fmi2OK, "logAll");
-        vissys = chrono_types::make_shared<irrlicht::ChVisualSystemIrrlicht>();
         vissys->AttachSystem(&sys);
         vissys->SetWindowSize(800, 600);
         vissys->SetWindowTitle("Hydraulic crane");
@@ -210,14 +210,14 @@ fmi2Status FmuComponent::_doStep(fmi2Real currentCommunicationPoint,
         fmi2Real step_size = std::min((currentCommunicationPoint + communicationStepSize - m_time),
                                       std::min(communicationStepSize, m_stepSize));
 
-        if (vis) {
 #ifdef CHRONO_IRRLICHT
+        if (vissys) {
             vissys->Run();
             vissys->BeginScene(true, true, ChColor(0.33f, 0.6f, 0.78f));
             vissys->Render();
             vissys->EndScene();
-#endif
         }
+#endif
 
         sys.DoStepDynamics(step_size);
         sendToLog("time: " + std::to_string(m_time) + "\n", fmi2Status::fmi2OK, "logAll");
