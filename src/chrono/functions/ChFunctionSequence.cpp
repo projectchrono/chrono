@@ -147,7 +147,7 @@ bool ChFunctionSequence::RemoveFunct(int index) {
     if (m_functions.size() == 0)
         return false;
     if ((index == -1) || (index > m_functions.size())) {
-        m_functions.erase(m_functions.end());
+        m_functions.pop_back();
         return true;
     }
     if (index == 0) {
