@@ -50,11 +50,11 @@ file( STRINGS ${THRUST_INCLUDE_DIR}/thrust/version.h
   REGEX "#define THRUST_VERSION[ \t]+([0-9x]+)"
   )
 string( REGEX REPLACE
-  "#define THRUST_VERSION[ \t]+"
-  ""
+  "#define THRUST_VERSION[ \t]+([0-9x]+)(.*)"
+  "\\1"
   version
   "${version}"
-  )
+)
 
 math(EXPR major "${version} / 100000")
 math(EXPR minor "(${version} / 100) % 1000")

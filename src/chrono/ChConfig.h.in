@@ -76,9 +76,6 @@
 // If module SENSOR was enabled, define CHRONO_SENSOR
 @CHRONO_SENSOR@
 
-// If module PARDISOPROJECT was enabled, define CHRONO_PARDISOPROJECT
-@CHRONO_PARDISOPROJECT@
-
 // If module MODAL was enabled, define CHRONO_MODAL
 @CHRONO_MODAL@
 

@@ -22,6 +22,7 @@
 #include "chrono/physics/ChSystemSMC.h"
 #include "chrono/solver/ChIterativeSolverLS.h"
 #include "chrono/timestepper/ChTimestepper.h"
+#include "chrono/utils/ChUtils.h"
 
 #include "chrono/fea/ChElementShellBST.h"
 #include "chrono/fea/ChLinkNodeFrame.h"
@@ -49,6 +50,18 @@ const std::string out_dir = GetChronoOutputPath() + "FEA_SHELLS";
 
 int main(int argc, char* argv[]) {
     std::cout << "Copyright (c) 2017 projectchrono.org\nChrono version: " << CHRONO_VERSION << std::endl;
+
+    // Select demo
+    std::cout << "Demo options:" << std::endl;
+    std::cout << "1  : single BSTshell element" << std::endl;
+    std::cout << "2  : rectangular mesh of BSTshell elements" << std::endl;
+    std::cout << "3  : mesh of BSTshell elements intialized from OBJ file" << std::endl;
+    std::cout << "\nSelect option (1, 2, or 3): ";
+
+    int demo = 1;
+    std::cin >> demo;
+    std::cout << std::endl;
+    ChClampValue(demo, 1, 3);
 
     // Create (if needed) output directory
     if (!filesystem::create_directory(filesystem::path(out_dir))) {
@@ -78,14 +91,10 @@ int main(int argc, char* argv[]) {
 
     ChVector3d load_force;
 
-    //
     // BENCHMARK 1
-    //
     // Add a single BST element:
-    //
 
-    if (false)  // set as 'true' to execute this
-    {
+    if (demo == 1) {
         // Create a material
 
         double density = 0.1;
@@ -140,6 +149,7 @@ int main(int argc, char* argv[]) {
                   << "e0: " << element->e0 << "\n";
 
         node1->SetPos(node1->GetPos() + ChVector3d(0.1, 0, 0));
+        node1->SetFixed(true);
 
         sys.Update();
         ChVectorDynamic<double> Fi(element->GetNumCoordsPosLevel());
@@ -164,17 +174,13 @@ int main(int argc, char* argv[]) {
         // system("pause");
     }
 
-    //
     // BENCHMARK 2
-    //
     // Add a rectangular mesh of BST elements:
-    //
 
     std::shared_ptr<ChNodeFEAxyz> nodemonitor;
     std::shared_ptr<ChElementShellBST> elementmonitor;
 
-    if (true)  // set as 'true' to execute this
-    {
+    if (demo == 2) {
         // Create a material
 
         double density = 100;
@@ -271,13 +277,10 @@ int main(int argc, char* argv[]) {
         */
     }
 
-    //
     // BENCHMARK 3
-    //
     // Load and create shells from a .obj file containing a triangle mesh surface
-    //
 
-    if (false) {
+    if (demo == 3) {
         double density = 100;
         double E = 6e5;
         double nu = 0.0;

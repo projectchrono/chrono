@@ -5,6 +5,7 @@
 
 #define VIEW_DESCRIPTOR_SET 0
 #define MATERIAL_DESCRIPTOR_SET 1
+#define CUSTOM_DESCRIPTOR_SET 2
 
 layout(push_constant) uniform PushConstants {
     mat4 projection;
@@ -20,6 +21,10 @@ layout(location = 1) in vec3 vsg_Normal;
 layout(location = 2) in vec2 vsg_TexCoord0;
 layout(location = 3) in vec4 vsg_Color;
 
+layout(set = CUSTOM_DESCRIPTOR_SET, binding = 0) uniform TexScale
+{
+    vec2 fkt;
+} texScale;
 
 #ifdef VSG_BILLBOARD
 layout(location = 4) in vec4 vsg_position_scaleDistance;
@@ -106,5 +111,7 @@ void main()
     normalDir = (mv * normal).xyz;
 
     vertexColor = vsg_Color;
-    texCoord0 = vsg_TexCoord0;
+    //texCoord0 = vsg_TexCoord0;
+    texCoord0.s = vsg_TexCoord0.s * texScale.fkt.s;
+    texCoord0.t = vsg_TexCoord0.t * texScale.fkt.t;
 }

@@ -1500,8 +1500,9 @@ void ChAssembly::ShowHierarchy(std::ostream& outstream, int level) const {
 
     outstream << "\n" << mtabs << "List of the " << (int)linklist.size() << " added links:" << std::endl;
     for (auto& link : linklist) {
+        auto& rlink = *link.get();
         outstream << mtabs << "  LINK:       " << link->GetIdentifier() << " " << link->GetName() << " ["
-                  << typeid(*link.get()).name() << "]" << std::endl;
+                  << typeid(rlink).name() << "]" << std::endl;
         if (auto malink = std::dynamic_pointer_cast<ChLinkMarkers>(link)) {
             if (malink->GetMarker1())
                 outstream << mtabs << "    marker1:  " << malink->GetMarker1()->GetIdentifier() << " "

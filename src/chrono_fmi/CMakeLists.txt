@@ -16,7 +16,7 @@ MESSAGE(STATUS "\n==== Chrono FMI module ====\n")
 # -------------------------------------------------
 
 if (BUILD_SHARED_LIBS)
-  message(NOTICE "For FMI support, Chrono must be configured and built in static mode (as suggested by FMI reference). Disable 'BUILD_SHARED_LIBS'.")
+  message(NOTICE "For FMI support, Chrono must be configured and built in static mode. Disable 'BUILD_SHARED_LIBS'.")
   message(NOTICE "Chrono FMI module disabled.")
   set(ENABLE_MODULE_FMI OFF CACHE BOOL "Enable the Chrono::FMI module" FORCE)
   return()
@@ -31,7 +31,19 @@ if(MSVC)
   endif()
 endif()
 
-set(FMU_TOOLS_DIR "${CMAKE_SOURCE_DIR}/src/chrono_thirdparty/fmu_tools/" CACHE INTERNAL "Path to fmu_tools.")
+# -------------------------------------------------
+# Allow user to point to a different location of fmu_tools.
+# FMU_TOOLS_DIR must point to the *top-level* directory of the fmu_tools distribution.
+# Default: Chrono submodule in src/chrono_thirdparty/
+
+set(FMU_TOOLS_DIR "${CMAKE_SOURCE_DIR}/src/chrono_thirdparty/fmu_tools" CACHE PATH "Path to top-level fmu_tools directory")
+
+include_directories(${FMU_TOOLS_DIR})
+
+# -------------------------------------------------
+# Enable testing of generated FMUs
+
+set(FMU_TESTING OFF CACHE BOOL "Enable testing")
 
 # -------------------------------------------------
 # Set Architecture and Operating System Flags
@@ -67,6 +79,7 @@ endif()
 
 set(FMI_PLATFORM "${FMI_PLATFORM}" PARENT_SCOPE)
 
+message(STATUS "FMI target version:   ${FMI_VERSION}")
 message(STATUS "FMI platform:         ${FMI_PLATFORM}")
 message(STATUS "FMU Tools directory:  ${FMU_TOOLS_DIR}")
 

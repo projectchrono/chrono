@@ -504,7 +504,9 @@ In some instances, the reader is directed to the "Notes" section for more detail
 |                                   | GetCoord                      | rename: GetCoordsys                              |
 |                                   | operator%=                    | remove                                           |
 |                                   | SetCoord                      | rename: SetCoordsys                              |
-| ChFrameMoving                     |                               |                                                  | 
+|                                   | TransformLocalToParent        | see Notes                                        |
+|                                   | TransformParentToLocal        | see Notes                                        |
+| ChFrameMoving                     |                               |                                                  |
 |                                   | Compute_Adt                   | rename: ComputeRotMatDt                          |
 |                                   | Compute_Adtdt                 | rename: ComputeRotMatDt2                         |
 |                                   | GetA_dt                       | rename: GetRotMatDt                              |
@@ -548,6 +550,7 @@ In some instances, the reader is directed to the "Notes" section for more detail
 |                                   | Get_Cv                        | rename: GetVelocityCoeff                         |
 |                                   | Get_Type                      | rename: GetType                                  |
 |                                   | Get_weight                    | rename: GetWeight                                |
+|                                   | Get_y                         | rename: GetVal                                   |
 |                                   | Get_y_dN                      | rename: GetDerN                                  |
 |                                   | Get_y_dx                      | rename: GetDer                                   |
 |                                   | Get_y_dxdx                    | rename: GetDer2                                  |
@@ -565,7 +568,6 @@ In some instances, the reader is directed to the "Notes" section for more detail
 |                                   | Get_Control_Points_Abscissae  | rename: GetControlPointsAbscissae                |
 |                                   | Get_Knots                     | rename: GetKnots                                 |
 |                                   | Get_Order                     | rename: GetOrder                                 |
-|                                   | Get_y                         | rename: GetVal                                   |
 |                                   | Recompute_Constrained         | rename: ApplyInterpolationConstraints            |
 |                                   | Setup_Data                    | rename: Setup                                    |
 | ChFunction_ConstAcc               |                               | rename: ChFunctionConstAcc                       |
@@ -1067,6 +1069,23 @@ In some instances, the reader is directed to the "Notes" section for more detail
 | ChMaterialCompositeSMC            |                               | rename: ChContactMaterialCompositeSMC            |
 | ChMaterialCompositionStrategy     |                               | rename: ChContactMaterialCompositionStrategy     |
 | ChMatrix33                        |                               |                                                  |
+|                                   | Get_A_Cardano                 | rename: GetFromCardanAnglesZXY                   |
+|                                   | Get_A_Eulero                  | rename: GetFromEulerAnglesZXZ                    |
+|                                   | Get_A_Hpb                     | rename: GetFromCardanAnglesZYX                   |
+|                                   | Get_A_quaternion              | rename: GetFromQuaternion                        |
+|                                   | Get_A_Rodriguez               | rename: GetFromRodriguesParameters               |
+|                                   | Get_A_Rxyz                    | rename: GetFromCardanAnglesXYZ                   |
+|                                   | Get_A_Xaxis()                 | rename: GetAxisX()                               |
+|                                   | Get_A_Yaxis()                 | rename: GetAxisY()                               |
+|                                   | Get_A_Zaxis()                 | rename: GetAxisZ()                               |
+|                                   | GetAx()                       | remove                                           |
+|                                   | Set_A_axis                    | rename: SetFromDirectionAxes                     |
+|                                   | Set_A_Cardano                 | rename: SetFromCardanAnglesZXY                   |
+|                                   | Set_A_Eulero                  | rename: SetFromEulerAnglesZXZ                    |
+|                                   | Set_A_Hpb                     | rename: SetFromCardanAnglesZYX                   |
+|                                   | Set_A_quaternion              | rename: SetFromQuaternion                        |
+|                                   | Set_A_Rodriguez               | rename: SetFromRodriguesParameters               |
+|                                   | Set_A_Rxyz                    | rename: SetFromCardanAnglesXYZ                   |
 |                                   | Set_A_Xdir                    | rename: SetFromAxisX                             |
 | ChMesh                            |                               |                                                  |
 |                                   | GetNcontactSurfaces           | rename: GetNumContactSurfaces                    |
@@ -1375,6 +1394,10 @@ In some instances, the reader is directed to the "Notes" section for more detail
 |                                   | addTriangle                   | rename: AddTriangle                              |
 |                                   | getNumTriangles               | rename: GetNumTriangles                          |
 |                                   | getTriangle                   | rename: GetTriangle                              |
+| ChTimer                           |                               | see Notes                                        |
+|                                   | GetTimeMicrosecondsIntermediate | remove                                         |
+|                                   | GetTimeMillisecondsIntermediate | remove                                         |
+|                                   | GetTimeSecondsIntermediate      | remove                                         |
 | ChTriangleMeshConnected           |                               |                                                  |
 |                                   | addTriangle                   | rename: AddTriangle                              |
 |                                   | getCoordsVertices             | rename: GetCoordsVertices                        |
@@ -1477,6 +1500,13 @@ In some instances, the reader is directed to the "Notes" section for more detail
 
 **Notes**
 
++ The code for `ChFunction` classes was moved from `src/chrono/motion_functions/` to `src/chrono/functions/`. As such, include headers should be changed to something like:
+  ```cpp
+  #include "chrono/functions/ChFunctionSine.h"
+  ```
+
++ The `chrono::geometry` namespace was removed. All geometry classes are now in the `chrono` namespace.
+
 + Chrono object identifiers were made read-only so that uniqueness can be guaranteed. 
   - These integer identifiers are read-only and can be cached by the user (e.g., for searching in a ChAssembly).
     Identifiers are generated automatically in incremental order based on the order in which objects are created.
@@ -1522,6 +1552,9 @@ In some instances, the reader is directed to the "Notes" section for more detail
   | Qdtdt_from_AngAxis       | QuatDt2FromAngleAxis          |
   | Quat_to_Angle            | RodriguezFromQuat             |
   | Quat_to_Angle            | AngleSetFromQuat              |
+
++ For consistency, functions for transforming a `ChFrame` or a `ChCoordsys` from one reference to another (`TransformFromLocalToParent` and `TransformFromParentToLocal`) were modified so that they return the transformed object (previously, the returned object was pased as an argument).
+  For clarity, we removed functions such as `ChFrame::TransformLocalToParent(const ChVector<>& local)` to express a 3D vector given in local coordinates to the parent frame. Use instead `ChFrame::TransformPointLocalToParent`.
 
 + `ChLinkMate` and derived classes have been rewritten so that:
   - for links with a single DOF, the relevant axis is Z, in line with `ChLinkLock` formulation (e.g., a `ChLinkMatePrismatic` allows translation along the Z axis of the link frame, a ChLinkMateRevolute allows rotation about the Z axis of the link frame, etc.).
@@ -1595,6 +1628,9 @@ In some instances, the reader is directed to the "Notes" section for more detail
 
 + `ChKblock::Build_K` (now `ChKRMBlock::PasteInto`) reversed the meaning of the last argument (was `add`, now `overwrite`) in accordance to the signature of `PasteMatrix`;
   Also `ChVariable::Build_M` (now `PasteMassInto`) is not taking the position in which the mass should be placed but the offset with respect to the `ChVariable::offset`
+
++ The `ChTimer` class was refactored so that `GetTimeMicroseconds`, `GetTimeMilliseconds`, and `GetTimeSeconds` return either an intermediate time (if the timer was started but not stopped; in this case the timer keeps running) or the timer value when the timer was stopped.
+  The old functions `GetTimeMicrosecondsIntermediate`, `GetTimeMillisecondsIntermediate`, and `GetTimeSecondsIntermediate` were obsoleted.
 
 ## [Added] Chrono::Sensor features and updates
 

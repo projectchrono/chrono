@@ -25,18 +25,29 @@
 #include "chrono_vehicle/terrain/RigidTerrain.h"
 #include "chrono_vehicle/driver/ChPathFollowerDriver.h"
 #include "chrono_vehicle/utils/ChVehiclePath.h"
-#include "chrono_vehicle/wheeled_vehicle/ChWheeledVehicleVisualSystemIrrlicht.h"
 
 #include "chrono_models/vehicle/gator/Gator.h"
 
 #include "chrono_thirdparty/filesystem/path.h"
 
-using namespace chrono;
+#ifdef CHRONO_IRRLICHT
+    #include "chrono_vehicle/wheeled_vehicle/ChWheeledVehicleVisualSystemIrrlicht.h"
 using namespace chrono::irrlicht;
+#endif
+
+#ifdef CHRONO_VSG
+    #include "chrono_vehicle/wheeled_vehicle/ChWheeledVehicleVisualSystemVSG.h"
+using namespace chrono::vsg3d;
+#endif
+
+using namespace chrono;
 using namespace chrono::vehicle;
 using namespace chrono::vehicle::gator;
 
 // =============================================================================
+
+// Run-time visualization system (IRRLICHT or VSG)
+ChVisualSystem::Type vis_type = ChVisualSystem::Type::VSG;
 
 // Initial vehicle location and orientation (m)
 ChVector3d initLoc(-40, 0, 0.5);
@@ -59,7 +70,7 @@ VisualizationType wheel_vis_type = VisualizationType::NONE;
 VisualizationType tire_vis_type = VisualizationType::MESH;
 
 // Simulation step sizes
-double step_size = 1e-3;
+double step_size = 2e-3;
 
 // =============================================================================
 
@@ -72,7 +83,7 @@ int main(int argc, char* argv[]) {
 
     // Create the Gator vehicle, set parameters, and initialize
     Gator gator;
-    gator.SetContactMethod(ChContactMethod::NSC);
+    gator.SetContactMethod(ChContactMethod::SMC);
     gator.SetChassisCollisionType(CollisionType::NONE);
     gator.SetChassisFixed(false);
     gator.SetInitPosition(ChCoordsys<>(initLoc, initRot));
@@ -101,20 +112,14 @@ int main(int argc, char* argv[]) {
     minfo.Y = 2e7f;
     auto patch_mat = minfo.CreateMaterial(ChContactMethod::NSC);
 
-    auto patch1 = terrain.AddPatch(patch_mat, ChCoordsys<>(ChVector3d(-25, 0, 0), QUNIT), 50.0, 20.0);
-    patch1->SetTexture(vehicle::GetDataFile("terrain/textures/tile4.jpg"), 200, 40);
-    patch1->SetColor(ChColor(0.8f, 0.8f, 0.5f));
+    auto patch1 = terrain.AddPatch(patch_mat, ChCoordsys<>(ChVector3d(-25, 0, 0), QUNIT), 200.0, 100.0);
+    patch1->SetTexture(vehicle::GetDataFile("terrain/textures/tile4.jpg"), 100, 50);
 
     double s = std::sin(slope);
     double c = std::cos(slope);
     auto patch2 =
         terrain.AddPatch(patch_mat, ChCoordsys<>(ChVector3d(100 * c, 0, 100 * s), QuatFromAngleY(-slope)), 200.0, 20.0);
-    patch2->SetTexture(vehicle::GetDataFile("terrain/textures/tile4.jpg"), 200, 40);
-    patch2->SetColor(ChColor(0.8f, 0.5f, 0.8f));
-
-    auto patch3 = terrain.AddPatch(patch_mat, ChCoordsys<>(ChVector3d(200 * c + 25, 0, 200 * s), QUNIT), 50.0, 20.0);
-    patch3->SetTexture(vehicle::GetDataFile("terrain/textures/tile4.jpg"), 200, 40);
-    patch3->SetColor(ChColor(0.8f, 0.8f, 0.5f));
+    patch2->SetTexture(vehicle::GetDataFile("terrain/textures/tile4.jpg"), 100, 10);
 
     terrain.Initialize();
 
@@ -126,15 +131,59 @@ int main(int argc, char* argv[]) {
     driver.GetSpeedController().SetGains(0.6, 0.4, 0.4);
     driver.Initialize();
 
-    // Create the vehicle Irrlicht interface
-    auto vis = chrono_types::make_shared<ChWheeledVehicleVisualSystemIrrlicht>();
-    vis->SetWindowTitle("Gator Acceleration");
-    vis->SetChaseCamera(ChVector3d(0.0, 0.0, 2.0), 5.0, 0.05);
-    vis->Initialize();
-    vis->AddLightDirectional();
-    vis->AddSkyBox();
-    vis->AddLogo();
-    vis->AttachVehicle(&gator.GetVehicle());
+    // ------------------------------------------------------------------------------
+    // Create the vehicle run-time visualization interface and the interactive driver
+    // ------------------------------------------------------------------------------
+
+#ifndef CHRONO_IRRLICHT
+    if (vis_type == ChVisualSystem::Type::IRRLICHT)
+        vis_type = ChVisualSystem::Type::VSG;
+#endif
+#ifndef CHRONO_VSG
+    if (vis_type == ChVisualSystem::Type::VSG)
+        vis_type = ChVisualSystem::Type::IRRLICHT;
+#endif
+
+    std::shared_ptr<ChVehicleVisualSystem> vis;
+    switch (vis_type) {
+        case ChVisualSystem::Type::IRRLICHT: {
+#ifdef CHRONO_IRRLICHT
+            // Create the vehicle Irrlicht interface
+            auto vis_irr = chrono_types::make_shared<ChWheeledVehicleVisualSystemIrrlicht>();
+            vis_irr->SetWindowTitle("Gator Incline Stop");
+            vis_irr->SetChaseCamera(ChVector3d(0.0, 0.0, 2.0), 5.0, 0.05);
+            vis_irr->Initialize();
+            vis_irr->AddLightDirectional();
+            vis_irr->AddSkyBox();
+            vis_irr->AddLogo();
+            vis_irr->AttachVehicle(&gator.GetVehicle());
+
+            vis = vis_irr;
+#endif
+            break;
+        }
+        default:
+        case ChVisualSystem::Type::VSG: {
+#ifdef CHRONO_VSG
+            // Create the vehicle VSG interface
+            auto vis_vsg = chrono_types::make_shared<ChWheeledVehicleVisualSystemVSG>();
+            vis_vsg->SetWindowTitle("Gator Incline Stop");
+            vis_vsg->AttachVehicle(&gator.GetVehicle());
+            vis_vsg->SetChaseCamera(ChVector3d(0.0, 0.0, 2.0), 9.0, 0.05);
+            vis_vsg->SetWindowSize(ChVector2i(1200, 900));
+            vis_vsg->SetWindowPosition(ChVector2i(100, 300));
+            vis_vsg->SetUseSkyBox(true);
+            vis_vsg->SetCameraAngleDeg(40);
+            vis_vsg->SetLightIntensity(1.0f);
+            vis_vsg->SetLightDirection(1.5 * CH_PI_2, CH_PI_4);
+            vis_vsg->SetShadows(true);
+            vis_vsg->Initialize();
+
+            vis = vis_vsg;
+#endif
+            break;
+        }
+    }
 
     // ---------------
     // Simulation loop

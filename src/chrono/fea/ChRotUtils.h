@@ -249,7 +249,9 @@ ChVector3d VecRot(const ChMatrix33<>& Phi) {
 
     cosphi = (Phi.trace() - 1.) / 2.;
     if (cosphi > 0.) {
-        unit = Phi.GetAx();
+        unit[0] = 0.5 * (Phi(2, 1) - Phi(1, 2));
+        unit[1] = 0.5 * (Phi(0, 2) - Phi(2, 0));
+        unit[2] = 0.5 * (Phi(1, 0) - Phi(0, 1));
         sinphi = unit.Length();
         double phi = atan2(sinphi, cosphi);
         CoeffA(ChVector3d(phi, 0., 0.), ChVector3d(phi, 0., 0.), &a);

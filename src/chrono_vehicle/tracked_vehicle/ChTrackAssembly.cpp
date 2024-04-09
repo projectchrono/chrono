@@ -153,8 +153,8 @@ void ChTrackAssembly::UpdateInertiaProperties() {
     for (size_t i = 0; i < GetNumTrackShoes(); ++i)
         GetTrackShoe(i)->AddInertiaProperties(com, inertia);
 
-    m_com.GetPos() = GetTransform().TransformPointParentToLocal(com / GetMass());
-    m_com.GetRot() = GetTransform().GetRot();
+    m_com.SetPos(GetTransform().TransformPointParentToLocal(com / GetMass()));
+    m_com.SetRot(GetTransform().GetRot());
 
     const ChMatrix33<>& A = GetTransform().GetRotMat();
     m_inertia = A.transpose() * (inertia - utils::CompositeInertia::InertiaShiftMatrix(com)) * A;

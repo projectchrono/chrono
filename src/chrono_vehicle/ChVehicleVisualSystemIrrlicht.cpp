@@ -387,14 +387,14 @@ void ChVehicleVisualSystemIrrlicht::renderStats() {
     renderTextBox(msg, m_HUD_x + 190, m_HUD_y + 125, 170, 15);
 
     // Display current simulation time.
-    snprintf(msg, sizeof(msg), "Time %.2f", m_vehicle->GetChTime());
-    renderTextBox(msg, m_HUD_x + 190, m_HUD_y + 150, 170, 15, irr::video::SColor(255, 250, 0, 0));
+    snprintf(msg, sizeof(msg), "Simulation time %.2f", m_vehicle->GetChTime());
+    renderTextBox(msg, m_HUD_x + 190, m_HUD_y + 150, 170, 15, irr::video::SColor(255, 220, 30, 0));
 
-    // Display estimated RTF
-    if (m_vehicle->GetRTF() > 0) {
-        snprintf(msg, sizeof(msg), "RTF %3.2f", GetSimulationRTF());
-        renderTextBox(msg, m_HUD_x + 190, m_HUD_y + 170, 170, 15, irr::video::SColor(255, 250, 0, 0));
-    }
+    // Display estimated RTF values
+    snprintf(msg, sizeof(msg), "RTF %3.2f (simulation)", GetSimulationRTF());
+    renderTextBox(msg, m_HUD_x + 190, m_HUD_y + 170, 170, 15, irr::video::SColor(255, 220, 30, 0));
+    snprintf(msg, sizeof(msg), "RTF %3.2f (step)", GetStepRTF());
+    renderTextBox(msg, m_HUD_x + 190, m_HUD_y + 190, 170, 15, irr::video::SColor(255, 220, 30, 0));
 
     // Allow derived classes to display additional information (e.g. driveline)
     renderOtherStats(m_HUD_x, m_HUD_y + 200);

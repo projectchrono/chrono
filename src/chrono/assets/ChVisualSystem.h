@@ -144,8 +144,9 @@ class ChApi ChVisualSystem {
     /// Perform any necessary operations ar the end of each rendering frame.
     virtual void EndScene() = 0;
 
-    /// Return the simulation real-time factor (simlation time / simulated time).
+    /// Return the simulation real-time factor (simulation time / simulated time).
     /// The default value returned by this base class is the RTF value from the first associated system (if any).
+    /// See ChSystem::GetRTF
     virtual double GetSimulationRTF() const;
 
     /// Return the current simulated time.

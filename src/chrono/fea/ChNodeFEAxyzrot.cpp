@@ -52,10 +52,10 @@ ChNodeFEAxyzrot& ChNodeFEAxyzrot::operator=(const ChNodeFEAxyzrot& other) {
 }
 
 void ChNodeFEAxyzrot::ForceToRest() {
-    this->GetPosDt() = VNULL;
-    this->GetRotDt2() = QNULL;
-    this->GetPosDt2() = VNULL;
-    this->GetRotDt2() = QNULL;
+    SetPosDt(VNULL);
+    SetRotDt(QNULL);
+    SetPosDt2(VNULL);
+    SetRotDt2(QNULL);
 }
 
 void ChNodeFEAxyzrot::SetFixed(bool fixed) {

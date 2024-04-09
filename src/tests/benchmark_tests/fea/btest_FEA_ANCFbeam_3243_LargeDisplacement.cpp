@@ -48,14 +48,10 @@
     #include "chrono_mumps/ChSolverMumps.h"
 #endif
 
-#ifdef CHRONO_PARDISOPROJECT
-    #include "chrono_pardisoproject/ChSolverPardisoProject.h"
-#endif
-
 using namespace chrono;
 using namespace chrono::fea;
 
-enum class SolverType { MINRES, SparseLU, SparseQR, MKL, MUMPS, PARDISO_PROJECT };
+enum class SolverType { MINRES, SparseLU, SparseQR, PARDISO_MKL, MUMPS };
 
 // =============================================================================
 
@@ -99,9 +95,9 @@ ANCFBeamTest::ANCFBeamTest(int num_elements, SolverType solver_type, int NumThre
 
     // Set solver parameters
 #ifndef CHRONO_PARDISO_MKL
-    if (solver_type == SolverType::MKL) {
+    if (solver_type == SolverType::PARDISO_MKL) {
         solver_type = SolverType::SparseLU;
-        std::cout << "WARNING! Chrono::MKL not enabled. Forcing use of SparseLU solver" << std::endl;
+        std::cout << "WARNING! Chrono::PardisoMKL not enabled. Forcing use of SparseLU solver" << std::endl;
     }
 #endif
 
@@ -109,13 +105,6 @@ ANCFBeamTest::ANCFBeamTest(int num_elements, SolverType solver_type, int NumThre
     if (solver_type == SolverType::MUMPS) {
         solver_type = SolverType::SparseLU;
         std::cout << "WARNING! Chrono::MUMPS not enabled. Forcing use of SparseLU solver" << std::endl;
-    }
-#endif
-
-#ifndef CHRONO_PARDISOPROJECT
-    if (solver_type == SolverType::PARDISO_PROJECT) {
-        solver_type = SolverType::SparseLU;
-        std::cout << "WARNING! Chrono::PARDISO_PROJECT not enabled. Forcing use of SparseLU solver" << std::endl;
     }
 #endif
 
@@ -130,7 +119,7 @@ ANCFBeamTest::ANCFBeamTest(int num_elements, SolverType solver_type, int NumThre
             solver->SetTolerance(1e-12);
             break;
         }
-        case SolverType::MKL: {
+        case SolverType::PARDISO_MKL: {
 #ifdef CHRONO_PARDISO_MKL
             auto solver = chrono_types::make_shared<ChSolverPardisoMKL>(NumThreads);
             solver->UseSparsityPatternLearner(false);
@@ -143,16 +132,6 @@ ANCFBeamTest::ANCFBeamTest(int num_elements, SolverType solver_type, int NumThre
         case SolverType::MUMPS: {
 #ifdef CHRONO_MUMPS
             auto solver = chrono_types::make_shared<ChSolverMumps>(NumThreads);
-            solver->UseSparsityPatternLearner(false);
-            solver->LockSparsityPattern(true);
-            solver->SetVerbose(false);
-            m_system->SetSolver(solver);
-#endif
-            break;
-        }
-        case SolverType::PARDISO_PROJECT: {
-#ifdef CHRONO_PARDISOPROJECT
-            auto solver = chrono_types::make_shared<ChSolverPardisoProject>(NumThreads);
             solver->UseSparsityPatternLearner(false);
             solver->LockSparsityPattern(true);
             solver->SetVerbose(false);
@@ -387,16 +366,12 @@ void ANCFBeamTest::RunTimingTest(ChMatrixNM<double, 4, 19>& timing_stats, const 
             std::cout << "MINRES";
             ;
             break;
-        case SolverType::MKL:
-            std::cout << "MKL";
+        case SolverType::PARDISO_MKL:
+            std::cout << "PARDISO_MKL";
             ;
             break;
         case SolverType::MUMPS:
             std::cout << "MUMPS";
-            ;
-            break;
-        case SolverType::PARDISO_PROJECT:
-            std::cout << "PARDISO_PROJECT";
             ;
             break;
         case SolverType::SparseLU:
@@ -456,15 +431,11 @@ int main(int argc, char* argv[]) {
         // Setup the vector containing the specific linear solvers to test
         std::vector<SolverType> Solver = {SolverType::MINRES, SolverType::SparseLU, SolverType::SparseQR};
 #ifdef CHRONO_PARDISO_MKL
-        Solver.push_back(SolverType::MKL);
+        Solver.push_back(SolverType::PARDISO_MKL);
 #endif
 
 #ifdef CHRONO_MUMPS
         Solver.push_back(SolverType::MUMPS);
-#endif
-
-#ifdef CHRONO_PARDISOPROJECT
-        Solver.push_back(SolverType::PARDISO_PROJECT);
 #endif
 
         // Set the limit on the number of OpenMP threads to test up to.

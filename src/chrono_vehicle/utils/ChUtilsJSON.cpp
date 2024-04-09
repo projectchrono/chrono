@@ -391,7 +391,12 @@ std::shared_ptr<ChLinkTSDA::ForceFunctor> ReadTSDAFunctorJSON(const rapidjson::V
 
             double k = tsda["Spring Coefficient"].GetDouble();
 
-            return chrono_types::make_shared<LinearSpringForce>(k, preload);
+            auto forceCB = chrono_types::make_shared<LinearSpringForce>(k, preload);
+            if (tsda.HasMember("Minimum Length") && tsda.HasMember("Maximum Length")) {
+                forceCB->enable_stops(tsda["Minimum Length"].GetDouble(), tsda["Maximum Length"].GetDouble());
+            }
+
+            return forceCB;
         }
 
         case FunctorType::NonlinearSpring: {
@@ -449,7 +454,12 @@ std::shared_ptr<ChLinkTSDA::ForceFunctor> ReadTSDAFunctorJSON(const rapidjson::V
             double k = tsda["Spring Coefficient"].GetDouble();
             double c = tsda["Damping Coefficient"].GetDouble();
 
-            return chrono_types::make_shared<LinearSpringDamperForce>(k, c, preload);
+            auto forceCB = chrono_types::make_shared<LinearSpringDamperForce>(k, c, preload);
+            if (tsda.HasMember("Minimum Length") && tsda.HasMember("Maximum Length")) {
+                forceCB->enable_stops(tsda["Minimum Length"].GetDouble(), tsda["Maximum Length"].GetDouble());
+            }
+
+            return forceCB;
         }
 
         case FunctorType::NonlinearSpringDamper: {

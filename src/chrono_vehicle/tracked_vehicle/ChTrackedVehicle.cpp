@@ -369,8 +369,8 @@ void ChTrackedVehicle::UpdateInertiaProperties() {
     m_tracks[1]->AddInertiaProperties(com, inertia);
 
     // 3. Express vehicle COM frame relative to vehicle reference frame
-    m_com.GetPos() = GetTransform().TransformPointParentToLocal(com / GetMass());
-    m_com.GetRot() = GetTransform().GetRot();
+    m_com.SetPos(GetTransform().TransformPointParentToLocal(com / GetMass()));
+    m_com.SetRot(GetTransform().GetRot());
 
     // 4. Express inertia relative to vehicle COM frame
     //    Notes: - vehicle COM frame aligned with vehicle frame

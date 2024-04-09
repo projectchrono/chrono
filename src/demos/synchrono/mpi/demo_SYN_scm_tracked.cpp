@@ -359,7 +359,7 @@ int main(int argc, char* argv[]) {
         step_number++;
 
         if ((int)step_number % 100 == 0 && node_id == 1) {
-            SynLog() << timer.GetTimeSecondsIntermediate() / time << "\n";
+            SynLog() << timer.GetTimeSeconds() / time << "\n";
         }
     }
     syn_manager.QuitSimulation();

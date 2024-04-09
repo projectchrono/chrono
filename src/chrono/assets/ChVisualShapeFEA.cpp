@@ -116,18 +116,22 @@ double ChVisualShapeFEA::ComputeScalarOutput(std::shared_ptr<ChNodeFEAxyz> mnode
             if (auto mytetra = std::dynamic_pointer_cast<ChElementTetraCorot_4>(melement)) {
                 return mytetra->GetStrain().GetEquivalentVonMises();
             }
+            break;
         case DataType::ELEM_STRESS_VONMISES:
             if (auto mytetra = std::dynamic_pointer_cast<ChElementTetraCorot_4>(melement)) {
                 return mytetra->GetStress().GetEquivalentVonMises();
             }
+            break;
         case DataType::ELEM_STRAIN_HYDROSTATIC:
             if (auto mytetra = std::dynamic_pointer_cast<ChElementTetraCorot_4>(melement)) {
                 return mytetra->GetStrain().GetEquivalentMeanHydrostatic();
             }
+            break;
         case DataType::ELEM_STRESS_HYDROSTATIC:
             if (auto mytetra = std::dynamic_pointer_cast<ChElementTetraCorot_4>(melement)) {
                 return mytetra->GetStress().GetEquivalentMeanHydrostatic();
             }
+            break;
         default:
             return 1e30;
     }
@@ -600,15 +604,11 @@ void ChVisualShapeFEA::UpdateBuffers_Shell(std::shared_ptr<fea::ChElementBase> e
                 shell->EvaluateSectionPoint(u, v, P);  // compute abs. pos and rot of section plane
 
                 ChColor mcol(1, 1, 1);
-                ChVector3d vresult;
-                double sresult = 0;
-                switch (fem_data_type) {
-                    case DataType::NODE_SPEED_NORM:
-                        shell->EvaluateSectionVelNorm(u, v, vresult);
-                        sresult = vresult.Length();
-                        break;
+                if (fem_data_type == DataType::NODE_SPEED_NORM) {
+                    ChVector3d vresult;
+                    shell->EvaluateSectionVelNorm(u, v, vresult);
+                    mcol = ComputeFalseColor(vresult.Length());
                 }
-                mcol = ComputeFalseColor(sresult);
 
                 trianglemesh.GetCoordsVertices()[i_verts] = P;
                 ++i_verts;
@@ -677,15 +677,11 @@ void ChVisualShapeFEA::UpdateBuffers_Shell(std::shared_ptr<fea::ChElementBase> e
                 shell->EvaluateSectionPoint(u, v, P);
 
                 ChColor mcol(1, 1, 1);
-                ChVector3d vresult;
-                double sresult = 0;
-                switch (fem_data_type) {
-                    case DataType::NODE_SPEED_NORM:
-                        shell->EvaluateSectionVelNorm(u, v, vresult);
-                        sresult = vresult.Length();
-                        break;
+                if (fem_data_type == DataType::NODE_SPEED_NORM) {
+                    ChVector3d vresult;
+                    shell->EvaluateSectionVelNorm(u, v, vresult);
+                    mcol = ComputeFalseColor(vresult.Length());
                 }
-                mcol = ComputeFalseColor(sresult);
 
                 trianglemesh.GetCoordsVertices()[i_verts] = P;
                 ++i_verts;
@@ -1021,6 +1017,8 @@ void ChVisualShapeFEA::Update(ChPhysicsItem* updater, const ChFrame<>& frame) {
     m_glyphs_shape->SetZbufferHide(zbuffer_hide);
 
     switch (fem_glyph) {
+        case GlyphType::NONE:
+            break;
         case GlyphType::NODE_DOT_POS:
             m_glyphs_shape->SetDrawMode(ChGlyphs::GLYPH_POINT);
             for (unsigned int inode = 0; inode < FEMmesh->GetNumNodes(); ++inode) {
@@ -1213,7 +1211,6 @@ void ChVisualShapeFEA::Update(ChPhysicsItem* updater, const ChFrame<>& frame) {
                         m_glyphs_shape->GetNumberOfGlyphs();
                     }
                 }
-                // other...
             }
         }
 }

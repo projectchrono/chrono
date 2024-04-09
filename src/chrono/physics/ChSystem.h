@@ -503,6 +503,10 @@ class ChApi ChSystem : public ChIntegrableIIorder {
     double GetTimerCollisionNarrow() const;
 
     /// Get current estimated RTF (real time factor).
+    /// This represents the real time factor for advancing the dynamic state of the system only and as such does not
+    /// take into account any other operations performed during a step (e.g., run-time visualization). During each call
+    /// to DoStepDynamics(), this value is calculated as T/step_size, where T includes the time spent in system setup,
+    /// collision detection, and integration.
     double GetRTF() const { return m_RTF; }
 
     /// Set (overwrite) the RTF value for this system (if calculated externally).

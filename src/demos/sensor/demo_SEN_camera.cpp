@@ -419,7 +419,6 @@ int main(int argc, char* argv[]) {
         depth_ptr = depth->GetMostRecentBuffer<UserDepthBufferPtr>();
         if (depth_ptr->Buffer) {
             // Print max depth values
-            float min_depth = depth_ptr->Buffer[0].depth;
             float max_depth = depth_ptr->Buffer[0].depth;
             for (int i = 0; i < depth_ptr->Height * depth_ptr->Width; i++) {
                 max_depth = std::max(max_depth, depth_ptr->Buffer[i].depth);

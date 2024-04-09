@@ -40,12 +40,6 @@ if(ENABLE_MODULE_MATLAB)
   list(APPEND LIBS "ChronoEngine_matlab")
 endif()
 
-if(ENABLE_MODULE_PARDISO_PROJECT)
-  include_directories(${CH_PARDISOPROJECT_INCLUDES})
-  list(APPEND LIBS "ChronoEngine_pardisoproject")
-  list(APPEND LIBS ${PARDISOPROJECT_LIBRARIES})
-endif()
-
 if(ENABLE_MODULE_POSTPROCESS)
   list(APPEND LIBS "ChronoEngine_postprocess")
 endif()

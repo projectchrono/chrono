@@ -257,13 +257,24 @@ void ChVehicleGuiComponentVSG::render() {
 
     ImGui::Spacing();
 
+    if (ImGui::BeginTable("RTFTable", 2, ImGuiTableFlags_BordersOuter | ImGuiTableFlags_SizingFixedFit,
+                          ImVec2(0.0f, 0.0f))) {
+        ImGui::TableNextColumn();
+        ImGui::TextUnformatted("RTF step:");
+        ImGui::TableNextColumn();
+        ImGui::Text("%8.2f", m_app->GetStepRTF());
+        ImGui::EndTable();
+    }
+
+    ImGui::Spacing();
+
     if (ImGui::BeginTable("VehTable", 2, ImGuiTableFlags_BordersOuter | ImGuiTableFlags_SizingFixedFit,
                           ImVec2(0.0f, 0.0f))) {
         ImGui::TableNextRow();
         ImGui::TableNextColumn();
         ImGui::TextUnformatted("Vehicle Speed:");
         ImGui::TableNextColumn();
-        ImGui::Text("%8.3f m/s", m_app->GetVehicle().GetSpeed());
+        ImGui::Text("%8.2f m/s", m_app->GetVehicle().GetSpeed());
         ImGui::TableNextRow();
         ImGui::TableNextColumn();
         ImGui::TextUnformatted("Steering:");

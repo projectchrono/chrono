@@ -63,8 +63,9 @@ class CH_VEHICLE_API ChVehicleVisualSystem : virtual public ChVisualSystem {
     /// Advance (optional) dynamics of the visualization system.
     virtual void Advance(double step) {}
 
-    /// Return the RTF calculated by the associated vehicle.
-    virtual double GetSimulationRTF() const override;
+    /// Return the step RTF calculated by the associated vehicle (step time / simulated time).
+    /// See ChVehicle::GetStepRTF
+    double GetStepRTF() const;
 
     const ChVehicle& GetVehicle() const { return *m_vehicle; }
     const utils::ChChaseCamera& GetChaseCamera() const { return *m_camera; }

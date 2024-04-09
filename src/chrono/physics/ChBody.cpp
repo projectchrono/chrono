@@ -313,16 +313,15 @@ void ChBody::ForceToRest() {
     SetRotDt2(QNULL);
 }
 
-////
 void ChBody::ClampSpeed() {
     if (limit_speed) {
         double w = 2.0 * GetRotDt().Length();
         if (w > max_wvel)
-            GetRotDt() *= max_wvel / w;
+            SetRotDt(GetRotDt() * (max_wvel / w));
 
         double v = GetPosDt().Length();
         if (v > max_speed)
-            GetPosDt() *= max_speed / v;
+            SetPosDt(GetPosDt() * (max_speed / v));
     }
 }
 
