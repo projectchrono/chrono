@@ -36,7 +36,7 @@ int main(int argc, char* argv[]) {
     std::cout << "FMU version:  " << my_fmu._fmi2GetVersion() << "\n";
     std::cout << "FMU platform: " << my_fmu._fmi2GetTypesPlatform() << "\n";
 
-    my_fmu.Instantiate("FmuComponent");
+    my_fmu.Instantiate("FmuComponent", false, true);
 
     std::vector<std::string> categoriesVector = {"logAll"};
     my_fmu.SetDebugLogging(fmi2True, categoriesVector);

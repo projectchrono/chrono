@@ -44,26 +44,6 @@ if(MSVC)
 endif()
 
 
-# ======================================
-# Prepare some resource file on the fly.
-# Users can completely remove the following code block
-# and just set FMU_RESOURCES_DIRECTORY to point to their own resource folder.
-# ======================================
-file(COPY ${CHRONO_DATA_DIR}/skybox/sky_lf.jpg
-          ${CHRONO_DATA_DIR}/skybox/sky_dn.jpg
-          ${CHRONO_DATA_DIR}/skybox/sky_up.jpg
-     DESTINATION ${FMU_RESOURCES_DIRECTORY}/data/skybox)
-
-file(COPY ${CHRONO_DATA_DIR}/fonts/arial80.bmp
-     DESTINATION ${FMU_RESOURCES_DIRECTORY}/data/fonts)
-
-file(COPY ${CHRONO_DATA_DIR}/textures/blue.png
-     DESTINATION ${FMU_RESOURCES_DIRECTORY}/data/textures)
-
-file(COPY ${CHRONO_DATA_DIR}/logo_chronoengine_alpha.png
-     DESTINATION ${FMU_RESOURCES_DIRECTORY}/data)
-
-
 # ===============
 # Fetch fmu_tools
 # ===============

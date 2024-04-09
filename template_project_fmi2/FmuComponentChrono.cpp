@@ -28,7 +28,7 @@ FmuComponent::FmuComponent(fmi2String instanceName, fmi2Type fmuType,
                              loggingOn) {
   initializeType(fmuType);
 
-  SetChronoDataPath(std::string(m_resources_location) + "/data/");
+  SetChronoDataPath(std::string(m_resources_location));
 
   auto x_tt_funpair = MAKE_GETSET_PAIR(
       fmi2Real, { return this->sys.SearchBody("cart")->GetPosDt2().x(); }, {});
@@ -119,6 +119,7 @@ void FmuComponent::_exitInitializationMode() {
   cart->SetPos(VNULL);
   cart->SetRot(QUNIT);
   cart->SetMass(cart_mass);
+  cart->GetVisualShape(0)->SetTexture(GetChronoDataFile("textures/blue.png"));
   sys.Add(cart);
 
   double rotZ = 15 * CH_DEG_TO_RAD;
@@ -130,6 +131,7 @@ void FmuComponent::_exitInitializationMode() {
   pendulum->SetPos(ChVector3d(pendulum_length / 2.0 * sin(rotZ),
                               pendulum_length / 2.0 * cos(rotZ), 0.0));
   pendulum->SetInertiaXX(ChVector3d(0.01, 0.01, 0.01));
+  pendulum->GetVisualShape(0)->SetColor(ChColor(0.8f, 0.8f, 0.0f));
   sys.Add(pendulum);
 
   auto cart_prism = chrono_types::make_shared<ChLinkLockPrismatic>();
