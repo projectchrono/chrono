@@ -28,7 +28,7 @@ FmuComponent::FmuComponent(fmi2String instanceName, fmi2Type fmuType,
                              loggingOn) {
   initializeType(fmuType);
 
-  SetChronoDataPath(CHRONO_DATA_DIR);
+  SetChronoDataPath(std::string(m_resources_location) + "/data/");
 
   auto x_tt_funpair = MAKE_GETSET_PAIR(
       fmi2Real, { return this->sys.SearchBody("cart")->GetPosDt2().x(); }, {});

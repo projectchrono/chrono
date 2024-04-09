@@ -89,6 +89,22 @@ target_compile_options(${FMU_MODEL_IDENTIFIER} PUBLIC ${CHRONO_CXX_FLAGS})
 target_link_options(${FMU_MODEL_IDENTIFIER} PUBLIC ${CHRONO_LINKER_FLAGS})
 target_link_libraries(${FMU_MODEL_IDENTIFIER} ${CHRONO_LIBRARIES})
 
+
+# copy resources to the FMU directory
+file(COPY ${CHRONO_DATA_DIR}/skybox/sky_lf.jpg
+          ${CHRONO_DATA_DIR}/skybox/sky_dn.jpg
+          ${CHRONO_DATA_DIR}/skybox/sky_up.jpg
+     DESTINATION ${FMU_RESOURCES_DIRECTORY}/data/skybox)
+
+file(COPY ${CHRONO_DATA_DIR}/fonts/arial80.bmp
+     DESTINATION ${FMU_RESOURCES_DIRECTORY}/data/fonts)
+
+file(COPY ${CHRONO_DATA_DIR}/textures/blue.png
+     DESTINATION ${FMU_RESOURCES_DIRECTORY}/data/textures)
+
+file(COPY ${CHRONO_DATA_DIR}/logo_chronoengine_alpha.png
+     DESTINATION ${FMU_RESOURCES_DIRECTORY}/data)
+
 # Enable testing
 if(TESTING_ENABLED)
   enable_testing()
