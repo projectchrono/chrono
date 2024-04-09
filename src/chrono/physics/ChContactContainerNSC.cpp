@@ -180,11 +180,11 @@ void _OptimalContactInsert(std::list<Tcont*>& contactlist,            // contact
 ) {
     if (lastcontact != contactlist.end()) {
         // reuse old contacts
-        (*lastcontact)->Reset(objA, objB, cinfo, cmat);
+        (*lastcontact)->Reset(objA, objB, cinfo, cmat, container->GetMinBounceSpeed());
         lastcontact++;
     } else {
         // add new contact
-        Tcont* mc = new Tcont(container, objA, objB, cinfo, cmat);
+        Tcont* mc = new Tcont(container, objA, objB, cinfo, cmat, container->GetMinBounceSpeed());
         contactlist.push_back(mc);
         lastcontact = contactlist.end();
     }

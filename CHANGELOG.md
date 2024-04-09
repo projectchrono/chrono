@@ -1369,6 +1369,9 @@ In some instances, the reader is directed to the "Notes" section for more detail
 |                                   | SetSolverTolerance            | remove (see Notes)                               |
 |                                   | SetStep                       | remove                                           |
 |                                   | SetUseSleeping                | rename: SetSleepingAllowed                       |
+| ChSystemSMC                       |                               |                                                  |
+|                                   | GetStiffContact               | rename: IsContactStiff                           |
+|                                   | SetStiffContact               | rename: SetContactStiff                          |
 | ChSystemDescriptor                |                               |                                                  |
 |                                   | ConvertToMatrixForm           | rename: BuildSystemMatrix                        |
 |                                   | GetConstraintsList            | rename: GetConstraints                           |

@@ -36,8 +36,6 @@
 
 namespace chrono {
 
-class ChContactContainerSMC;
-
 /// Default implementation of the SMC normal and tangential force calculation.
 class ChDefaultContactForceTorqueSMC : public ChSystemSMC::ChContactForceTorqueSMC {
   public:
@@ -90,7 +88,7 @@ class ChDefaultContactForceTorqueSMC : public ChSystemSMC::ChContactForceTorqueS
         double gn = 0;
         double gt = 0;
 
-        double eps = std::numeric_limits<double>::epsilon();
+        constexpr double eps = std::numeric_limits<double>::epsilon();
 
         switch (contact_model) {
             case ChSystemSMC::Flores:
@@ -240,8 +238,6 @@ class ChContactSMC : public ChContactTuple<Ta, Tb> {
         ChMatrixDynamic<double> m_R;  ///< R = dQ/dv
     };
 
-    ChContactContainerSMC* container;  ///< associated contact container
-
     ChVector3d m_force;        ///< contact force on objB
     ChVector3d m_torque;       ///< contact torque on objB
     ChContactJacobian* m_Jac;  ///< contact Jacobian data
@@ -249,15 +245,13 @@ class ChContactSMC : public ChContactTuple<Ta, Tb> {
   public:
     ChContactSMC() : m_Jac(NULL) {}
 
-    ChContactSMC(ChContactContainerSMC* contact_container,  ///< contact container
-                 Ta* obj_A,                                 ///< contactable object A
-                 Tb* obj_B,                                 ///< contactable object B
-                 const ChCollisionInfo& cinfo,              ///< data for the collision pair
-                 const ChContactMaterialCompositeSMC& mat   ///< composite material
+    ChContactSMC(ChContactContainer* contact_container,    ///< contact container
+                 Ta* obj_A,                                ///< contactable object A
+                 Tb* obj_B,                                ///< contactable object B
+                 const ChCollisionInfo& cinfo,             ///< data for the collision pair
+                 const ChContactMaterialCompositeSMC& mat  ///< composite material
                  )
-        : ChContactTuple<Ta, Tb>(obj_A, obj_B), container(contact_container), m_Jac(NULL) {
-        assert(contact_container);
-
+        : ChContactTuple<Ta, Tb>(contact_container, obj_A, obj_B), m_Jac(NULL) {
         Reset(obj_A, obj_B, cinfo, mat);
     }
 
@@ -307,7 +301,7 @@ class ChContactSMC : public ChContactTuple<Ta, Tb> {
         m_torque = wrench.torque;
 
         // Set up and compute Jacobian matrices.
-        if (static_cast<ChSystemSMC*>(this->container->GetSystem())->GetStiffContact()) {
+        if (static_cast<ChSystemSMC*>(this->container->GetSystem())->IsContactStiff()) {
             CreateJacobians();
             CalculateJacobians(mat);
         }
