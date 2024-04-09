@@ -122,8 +122,8 @@ int main(int argc, char* argv[]) {
 
     // Cylinder
 
-    Real cyl_radius = 0.25;
-    Real cyl_height = 0.4;
+    Real cyl_radius = Real(0.25);
+    Real cyl_height = Real(0.4);
     bool cyl_capped = true;
 
     bce.clear();
@@ -168,9 +168,9 @@ int main(int argc, char* argv[]) {
 
     // Cylindrical annulus
 
-    Real ca_radius_inner = 0.2;
-    Real ca_radius_outer = 0.4;
-    Real ca_height = 0.2;
+    Real ca_radius_inner = Real(0.2);
+    Real ca_radius_outer = Real(0.4);
+    Real ca_height = Real(0.2);
 
     bce.clear();
     sysFSI.CreateBCE_cylinder_annulus(ca_radius_inner, ca_radius_outer, ca_height, true, bce);
@@ -194,8 +194,8 @@ int main(int argc, char* argv[]) {
 
     // Cone
 
-    Real cone_radius = 0.25;
-    Real cone_height = 0.2;
+    Real cone_radius = Real(0.25);
+    Real cone_height = Real(0.2);
     bool cone_capped = false;
 
     bce.clear();
