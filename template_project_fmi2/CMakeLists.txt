@@ -28,7 +28,6 @@ if(APPLE)
 endif()
 
 set(CMAKE_CXX_STANDARD ${CHRONO_CXX_STANDARD})
-include_directories(${CHRONO_INCLUDE_DIRS})
 
 if(${CMAKE_SYSTEM_NAME} MATCHES "Windows")
   if(MSVC AND ${MSVC_VERSION} GREATER_EQUAL 1915)
@@ -54,6 +53,7 @@ include(FetchContent)
 
 set(FMU_MODEL_IDENTIFIER "FmuComponentChrono" CACHE STRING "Set the FMU model identifier (name).")
 set(FMU_RESOURCES_DIRECTORY "${CMAKE_CURRENT_SOURCE_DIR}/fmu_resources" CACHE PATH "Path to FMU resources directory.")
+set(FMU_DEPENDENCIES "${CHRONO_DEPENDENCY_DLLS}")
 set(BUILD_TESTING ON CACHE BOOL "Enable testing.")
 set(BUILD_FMU_HOST ON CACHE BOOL "Build fmi_host executable to run FMUs.")
 set(FMU_MSG_PREFIX "   ")
@@ -65,9 +65,6 @@ FetchContent_Declare(
 
 FetchContent_MakeAvailable(${FMU_MODEL_IDENTIFIER})
 
-##message(STATUS "FMI_PLATFORM: ${FMI_PLATFORM}")
-##message(STATUS "FMU_RUNTIME_OUTPUT_DIRECTORY: ${FMU_RUNTIME_OUTPUT_DIRECTORY}")
-
 MARK_AS_ADVANCED(FETCHCONTENT_BASE_DIR)
 MARK_AS_ADVANCED(FETCHCONTENT_FULLY_DISCONNECTED)
 MARK_AS_ADVANCED(FETCHCONTENT_QUIET)
@@ -78,13 +75,6 @@ MARK_AS_ADVANCED(FETCHCONTENT_UPDATES_DISCONNECTED_${FMU_MODEL_IDENTIFIER})
 set(CMAKE_RUNTIME_OUTPUT_DIRECTORY_RELEASE ${FMU_RUNTIME_OUTPUT_DIRECTORY})
 set(CMAKE_RUNTIME_OUTPUT_DIRECTORY_DEBUG ${FMU_RUNTIME_OUTPUT_DIRECTORY})
 
-# =======================================
-# Add command to copy DLLs (windows only)
-# =======================================
-
-message(STATUS "")
-add_DLL_copy_command()
-
 # =========
 # Build FMU
 # =========
@@ -93,15 +83,42 @@ message(STATUS "\nConfigure FMU...")
 
 # Append FMU sources toi automatically generated target
 target_sources(${FMU_MODEL_IDENTIFIER} PRIVATE FmuComponentChrono.h FmuComponentChrono.cpp)
-
+target_include_directories(${FMU_MODEL_IDENTIFIER} PUBLIC ${CHRONO_INCLUDE_DIRS})
 target_compile_definitions(${FMU_MODEL_IDENTIFIER} PUBLIC "CHRONO_DATA_DIR=\"${CHRONO_DATA_DIR}\"") 
 target_compile_options(${FMU_MODEL_IDENTIFIER} PUBLIC ${CHRONO_CXX_FLAGS})
 target_link_options(${FMU_MODEL_IDENTIFIER} PUBLIC ${CHRONO_LINKER_FLAGS})
 target_link_libraries(${FMU_MODEL_IDENTIFIER} ${CHRONO_LIBRARIES})
 
-add_dependencies(${FMU_MODEL_IDENTIFIER} COPY_DLLS)
-
 # Enable testing
 if(TESTING_ENABLED)
   enable_testing()
 endif()
+
+# =========================
+# Build driver for the FMU
+# =========================
+
+message(STATUS "...add driver for ${FMU_MODEL_IDENTIFIER}")
+
+set(DEMO demo_${FMU_MODEL_IDENTIFIER})
+set(DEMO_SOURCES demo_FmuComponentChrono.cpp)
+source_group("" FILES ${DEMO_SOURCES})
+
+add_executable(${DEMO} ${DEMO_SOURCES})
+
+target_include_directories(${DEMO} PRIVATE "${CMAKE_SOURCES_DIR}")
+target_compile_definitions(${DEMO} PUBLIC FMU_UNPACK_DIRECTORY="${FMU_DIRECTORY}/tmp_unpack")
+target_compile_definitions(${DEMO} PUBLIC FMU_DIRECTORY="${FMU_DIRECTORY}")
+target_compile_definitions(${DEMO} PUBLIC FMU_FILENAME="${FMU_FILENAME}")
+target_compile_definitions(${DEMO} PUBLIC FMU_OS_SUFFIX="${FMI_PLATFORM}")
+target_compile_definitions(${DEMO} PUBLIC SHARED_LIBRARY_SUFFIX="${CMAKE_SHARED_LIBRARY_SUFFIX}")
+target_include_directories(${DEMO} PUBLIC ${CHRONO_INCLUDE_DIRS})
+
+
+if (CMAKE_CXX_COMPILER_ID STREQUAL "GNU" AND CMAKE_CXX_COMPILER_VERSION VERSION_GREATER "6.0")
+    target_link_options(${DEMO} PRIVATE "LINKER:-as-needed")
+    target_link_libraries(${DEMO} PRIVATE stdc++fs)
+    target_link_libraries(${DEMO} PRIVATE ${CMAKE_DL_LIBS})
+endif()
+
+add_dependencies(${DEMO} ${FMU_MODEL_IDENTIFIER})
