@@ -58,8 +58,6 @@ int main(int argc, char* argv[]) {
                                 fmi2False,  // use stop time
                                 stop_time);
 
-
-
     my_fmu.EnterInitializationMode();
     // alternatively, with native interface: my_fmu._fmi2EnterInitializationMode(my_fmu.component);
 
