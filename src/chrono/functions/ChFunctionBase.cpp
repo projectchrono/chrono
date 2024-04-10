@@ -146,25 +146,24 @@ void ChFunction::ArchiveIn(ChArchiveIn& archive_in) {
     /*int version =*/archive_in.VersionRead<ChFunction>();
 }
 
-int ChFunction::OutputToASCIIFile(std::ostream& outfile, double xmin, double xmax, int samples, char delimiter) {
+void ChFunction::OutputToASCIIFile(std::ostream& outfile, double xmin, double xmax, int samples, char delimiter) {
     if (samples <= 1)
-        throw std::invalid_argument("Too short range or too long sampling period: no points can be saved");
+        throw std::invalid_argument("Not enough samples requested");
     if (xmax <= xmin)
         throw std::invalid_argument("Cannot save ChFunction if Xmax < Xmin");
 
     outfile << std::setprecision(8) << std::defaultfloat;
 
-    double period = (xmax - xmin) / ((double)samples - 1);
+    double dx = (xmax - xmin) / (samples - 1);
 
-    double mX = xmin;
-    for (int cnt = 1; cnt <= samples; cnt++) {
-        outfile << mX;
+    double x = xmin;
+    for (int i = 1; i <= samples; i++) {
+        outfile << x;
         outfile << delimiter;
-        outfile << this->GetVal(mX);
+        outfile << this->GetVal(x);
         outfile << std::endl;
-        mX += period;
+        x += dx;
     }
-    return 1;
 }
 
 ChMatrixDynamic<> ChFunction::SampleUpToDerN(double xmin, double xmax, double step, int derN) {

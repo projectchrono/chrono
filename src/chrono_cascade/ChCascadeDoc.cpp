@@ -136,8 +136,7 @@ static bool recurse_CascadeDoc(TDF_Label label,
     // If it is a reference, Recurse all children of reference
     if (isref) {
         TDF_LabelSequence refchild_labels;
-        Standard_Boolean refis_assembly;
-        refis_assembly = shapeTool->GetComponents(reflabel, refchild_labels, 0);
+        shapeTool->GetComponents(reflabel, refchild_labels, 0);
         for (Standard_Integer j = 1; j <= refchild_labels.Length(); j++) {
             TDF_Label clabel = refchild_labels.Value(j);
             recurse_CascadeDoc(clabel, shapeTool, absloc, (level + 1), mcallback);

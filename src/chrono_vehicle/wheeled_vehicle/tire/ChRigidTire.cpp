@@ -82,8 +82,8 @@ void ChRigidTire::Synchronize(double time, const ChTerrain& terrain) {
     ChCoordsys<> tire_frame;
     double depth;
     float mu;
-    bool contact = ChTire::DiscTerrainCollision1pt(terrain, wheel_state.pos, wheel_state.rot.GetAxisY(), GetRadius(),
-                                                   tire_frame, depth, mu);
+    ChTire::DiscTerrainCollision1pt(terrain, wheel_state.pos, wheel_state.rot.GetAxisY(), GetRadius(), tire_frame,
+                                    depth, mu);
 
     // Calculate tire kinematics
     CalculateKinematics(wheel_state, tire_frame);

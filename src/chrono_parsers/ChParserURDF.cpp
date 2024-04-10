@@ -726,6 +726,8 @@ void ChParserURDF::PrintModelJoints() {
             case urdf::Joint::CONTINUOUS:
                 cout << "continous ";
                 break;
+            case urdf::Joint::UNKNOWN:
+                break;
         }
         cout << "Joint: " << std::left << std::setw(25) << joint->name;
         cout << "Link: " << std::left << std::setw(25) << link->name;

@@ -1404,6 +1404,8 @@ void ChVisualSystemVSG::BindParticleCloud(const std::shared_ptr<ChParticleCloud>
         case ShapeType::CONE:
             m_particleScene->addChild(m_vsgBuilder->createCone(geomInfo, stateInfo));
             break;
+        default:
+            break;
     }
 
     m_clouds.push_back(cloud);

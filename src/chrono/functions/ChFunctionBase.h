@@ -129,11 +129,7 @@ class ChApi ChFunction {
     /// Store X-Y pairs to an ASCII File.
     /// Values are separated by \a delimiter (default=',').
     /// The function is sampled \a samples times, from \a xmin to \a xmax.
-    virtual int OutputToASCIIFile(std::ostream& file,
-                                  double xmin = 0,
-                                  double xmax = 1,
-                                  int samples = 200,
-                                  char delimiter = ',');
+    virtual void OutputToASCIIFile(std::ostream& file, double xmin, double xmax, int samples, char delimiter);
 
     /// Sample function on given interval [\a xmin, \a xmax], up to \a derN derivative (0 being the function ouput
     /// itself). Store interval x=[xmin:step:xmax] and function evaluations as columns into matrix.

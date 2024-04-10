@@ -127,8 +127,6 @@ void ChFialaTire::Advance(double step) {
     if (!m_data.in_contact)
         return;
 
-    const double vnum = 0.01;
-
     // smoothing interval for My
     const double vx_min = 0.125;
     const double vx_max = 0.5;
