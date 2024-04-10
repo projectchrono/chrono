@@ -116,7 +116,7 @@ class ChApi ChLinkMarkers : public ChLink {
 
     /// Get the reference frame (expressed in and relative to the absolute frame) of the visual model.
     /// For a ChLinkMarkers, this returns the absolute coordinate system of the main marker2.
-    virtual ChFrame<> GetVisualModelFrame(unsigned int nclone = 0) override { return marker2->GetAbsFrame(); }
+    virtual ChFrame<> GetVisualModelFrame(unsigned int nclone = 0) const override { return marker2->GetAbsFrame(); }
 
     /// Updates auxiliary quantities for all relative degrees of freedom of the two markers.
     virtual void UpdateRelMarkerCoords();

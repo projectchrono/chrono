@@ -74,7 +74,7 @@ class ChApi ChIndexedParticles : public ChPhysicsItem {
 
     /// Get the reference frame (expressed in and relative to the absolute frame) of the visual model.
     /// For a ChIndexedParticles, this returns the frame of the corresponding particle.
-    virtual ChFrame<> GetVisualModelFrame(unsigned int nclone = 0) override;
+    virtual ChFrame<> GetVisualModelFrame(unsigned int nclone = 0) const override;
 
     virtual unsigned int GetNumVisualModelClones() const override { return (unsigned int)GetNumParticles(); }
 

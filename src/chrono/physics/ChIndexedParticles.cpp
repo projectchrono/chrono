@@ -38,7 +38,7 @@ ChParticleBase& ChParticleBase::operator=(const ChParticleBase& other) {
 
 /// Base class for particle clusters
 
-ChFrame<> ChIndexedParticles::GetVisualModelFrame(unsigned int nclone) {
+ChFrame<> ChIndexedParticles::GetVisualModelFrame(unsigned int nclone) const {
     ChFrame<> res;
     res = GetParticle(nclone);
     return res;
