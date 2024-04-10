@@ -61,7 +61,7 @@ CH_SENSOR_API ChMagnetometerSensor::ChMagnetometerSensor(std::shared_ptr<chrono:
                                                          chrono::ChFrame<double> offsetPose,
                                                          std::shared_ptr<ChNoiseModel> noise_model,
                                                          ChVector3d gps_reference)
-    : ChDynamicSensor(parent, updateRate, offsetPose) {
+    : ChDynamicSensor(parent, updateRate, offsetPose), m_gps_reference(gps_reference) {
     m_filters.push_front(chrono_types::make_shared<ChFilterMagnetometerUpdate>(noise_model, gps_reference));
 }
 

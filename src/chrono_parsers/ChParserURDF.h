@@ -57,6 +57,9 @@ class ChApiParsers ChParserURDF {
     /// Construct a Chrono parser for the specified URDF file.
     ChParserURDF(const std::string& filename);
 
+    /// Get access to the URDF filename.
+    const std::string& GetFilename() const { return m_filename; }
+
     /// Get access to the raw XML string in the provided URDF file.
     const std::string& GetXMLstring() const { return m_xml_string; }
 
@@ -139,12 +142,14 @@ class ChApiParsers ChParserURDF {
         virtual ~CustomProcessor() {}
 
         /// Callback function for user processing of specific XML elements.
-        virtual void Process(const tinyxml2::XMLElement& element, ChSystem& system) = 0;
+        virtual void Process(tinyxml2::XMLElement& element, ChSystem& system) = 0;
     };
 
     /// Scan the URDF XML for all objects of the specified key and execute the Process() function of the provided
-    /// callback object. Only direct children of the "robot" element in the input URDF are processed.
-    void CustomProcess(const std::string& key, std::shared_ptr<CustomProcessor> callback);
+    /// callback object. Only direct children of the "robot" element in the input URDF are processed. The XML document
+    /// may be augmented as the processed XML document is returned.
+    std::shared_ptr<tinyxml2::XMLDocument> CustomProcess(const std::string& key,
+                                                         std::shared_ptr<CustomProcessor> callback);
 
   private:
     ChColor toChColor(const urdf::Color& color);
@@ -163,6 +168,11 @@ class ChApiParsers ChParserURDF {
 
     /// Attach collision assets to a Chrono body.
     void attachCollision(std::shared_ptr<ChBody> body, urdf::LinkConstSharedPtr link, const ChFrame<>& ref_frame);
+
+    /// Resolve a filename to be an absolute filename. If resolving fails, the passed filename is returned.
+    /// The package:// scheme is only supported if ROS 2 is found on the system. The URI file:// prefix will be removed,
+    /// if present, as this is not supported in Chrono.
+    std::string resolveFilename(const std::string& filename);
 
     std::string m_filename;                                   ///< URDF file name
     std::string m_filepath;                                   ///< path of URDF file
