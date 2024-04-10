@@ -80,6 +80,20 @@ int main(int argc, char* argv[]) {
         readStatus = my_fmu.GetVariable("theta", theta, FmuVariable::Type::Real);
         std::cout << "theta: " << theta << std::endl;
 
+        double vis_x = 0;
+        readStatus = my_fmu.GetVariable("VISUALIZER[0].frame.pos.x", vis_x, FmuVariable::Type::Real);
+        std::cout << "VISUALIZER[0].frame.pos.x: " << vis_x << std::endl;
+
+        // avoid using std::string since it would take ownership of the string and delete it when out of scope
+        const char* vis_type;
+        readStatus = my_fmu.GetVariable("VISUALIZER[0].shape.type", vis_type, FmuVariable::Type::String);
+        std::cout << "VISUALIZER[0].shape.type: " << vis_type << std::endl;
+
+        // avoid using std::string since it would take ownership of the string and delete it when out of scope
+        const char* vis_owner;
+        readStatus = my_fmu.GetVariable("VISUALIZER[0].shape.owner", vis_owner, FmuVariable::Type::String);
+        std::cout << "VISUALIZER[0].shape.owner: " << vis_owner << std::endl;
+
         time += dt;
     }
 

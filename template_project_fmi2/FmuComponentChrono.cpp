@@ -12,10 +12,12 @@
 // External project template for building a Chrono co-simulation FMU.
 // =============================================================================
 
+
 #include "chrono/physics/ChBodyEasy.h"
 #include "chrono/physics/ChLinkMate.h"
 
 #include "FmuComponentChrono.h"
+
 
 using namespace chrono;
 
@@ -28,6 +30,14 @@ FmuComponent::FmuComponent(fmi2String instanceName,
                            fmi2Boolean loggingOn)
     : FmuChronoComponentBase(instanceName, fmuType, fmuGUID, fmuResourceLocation, functions, visible, loggingOn) {
     initializeType(fmuType);
+
+    // the number of visualizers could be varying in general so it is not set to
+    // constant however, in case there is the certainty that the visualizers are
+    // not going to change after the initialization, it is possible to set it to a
+    // constant value but moving the call after the initialization
+    AddFmuVariable(&visualizers_counter, "VISUALIZER COUNTER", FmuVariable::Type::Integer, "",
+                   "Total number of visualizers", FmuVariable::CausalityType::output,
+                   FmuVariable::VariabilityType::tunable);
 
     SetChronoDataPath(std::string(m_resources_location));
 
@@ -137,8 +147,12 @@ void FmuComponent::_exitInitializationMode() {
         vis->BindAll();
 #endif
 
-    ChOutputFMU archive_fmu(*this);
-    archive_fmu << CHNVP(sys);
+    // add all the variables to the serializer
+    variables_serializer << CHNVP(sys);
+
+    // (re)add the visualization shapes with custom serialization
+    AddFmuVisualShapes(*cart);
+    AddFmuVisualShapes(*pendulum, "pendulum");
 };
 
 fmi2Status FmuComponent::_doStep(fmi2Real currentCommunicationPoint,
@@ -159,8 +173,13 @@ fmi2Status FmuComponent::_doStep(fmi2Real currentCommunicationPoint,
 
         sys.DoStepDynamics(step_size);
         sendToLog("Step at time: " + std::to_string(m_time) + " with timestep: " + std::to_string(step_size) +
-                      "ms succeeded.\n",
+                      "s succeeded.\n",
                   fmi2Status::fmi2OK, "logAll");
+
+        // flag visualizer frames as not updated
+        for (auto& frame : visualizer_frames) {
+            std::get<3>(frame.second) = false;
+        }
 
         m_time += step_size;
 
