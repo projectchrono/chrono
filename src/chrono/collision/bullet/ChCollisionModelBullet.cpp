@@ -97,7 +97,7 @@ void ChCollisionModelBullet::Populate() {
     auto safe_margin = GetSafeMargin();
     auto full_margin = GetSuggestedFullMargin();
 
-    for (const auto& shape_instance : model->GetShapes()) {
+    for (const auto& shape_instance : model->GetShapeInstances()) {
         const auto& shape = shape_instance.first;
         const auto& frame = shape_instance.second;
 

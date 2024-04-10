@@ -376,7 +376,7 @@ void ChBlender::ExportShapes(std::ofstream& assets_file,
         return;
 
     // In a second pass, export shape geometry
-    for (const auto& shape_instance : item->GetVisualModel()->GetShapes()) {
+    for (const auto& shape_instance : item->GetVisualModel()->GetShapeInstances()) {
         const auto& shape = shape_instance.first;
 
         std::ofstream* mfile;
@@ -999,7 +999,7 @@ void ChBlender::ExportItemState(std::ofstream& state_file,
 
     bool has_stored_assets = false;
     bool has_stored_cameras = false;
-    for (const auto& shape_instance : vis_model->GetShapes()) {
+    for (const auto& shape_instance : vis_model->GetShapeInstances()) {
         const auto& shape = shape_instance.first;
         if (m_blender_shapes.find((size_t)shape.get()) != m_blender_shapes.end()) {
             has_stored_assets = true;
@@ -1035,7 +1035,7 @@ void ChBlender::ExportItemState(std::ofstream& state_file,
         // List visual shapes to use as children of the Blender object (parent)
 
         state_file << "[" << std::endl;
-        for (const auto& shape_instance : vis_model->GetShapes()) {
+        for (const auto& shape_instance : vis_model->GetShapeInstances()) {
             const auto& shape = shape_instance.first;
 
             // Process only "known" shapes (i.e., shapes that were included in the assets file)

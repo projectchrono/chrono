@@ -353,6 +353,8 @@ In some instances, the reader is directed to the "Notes" section for more detail
 | ChButterworth_Lowpass             |                               | rename: ChButterworthLowpass                     |
 | ChCollisionModel                  |                               |                                                  |
 |                                   | GetFamilyMaskDoesCollisionWithFamily | rename: CollidesWith                      |
+|                                   | GetShape                      | rename: GetShapeInstance                         |
+|                                   | GetShapes                     | rename: GetShapeInstances                        |
 |                                   | SetFamilyMaskDoCollisionWithFamily   | rename: AllowCollisionsWith               | 
 |                                   | SetFamilyMaskNoCollisionWithFamily   | rename: DisallowCollisionsWith            |
 | ChConstraint                      |                               |                                                  |
@@ -1437,6 +1439,8 @@ In some instances, the reader is directed to the "Notes" section for more detail
 |                                   | MultiplyAndAdd                | rename: AddMassTimesVectorInto                   |
 | ChVector                          |                               | rename: ChVector3                                |
 |                                   | DirToDxDyDz                   | rename: GetDirectionAxesAsX                      |
+| ChVisualModel                     |                               |                                                  |
+|                                   | GetShapes                     | rename: GetShapeInstances                        |
 | ChVolume                          |                               |                                                  |
 |                                   | Get_closed_U                  | rename: IsClosedU                                |
 |                                   | Get_closed_V                  | rename: IsClosedV                                |

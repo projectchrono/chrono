@@ -1090,7 +1090,7 @@ ChFrame<> PointPointFrame(const ChVector3d& P1, const ChVector3d& P2, double& di
 void ChVisualSystemVSG::PopulateGroup(vsg::ref_ptr<vsg::Group> group,
                                       std::shared_ptr<ChVisualModel> model,
                                       std::shared_ptr<ChPhysicsItem> phitem) {
-    for (const auto& shape_instance : model->GetShapes()) {
+    for (const auto& shape_instance : model->GetShapeInstances()) {
         const auto& shape = shape_instance.first;
         const auto& X_SM = shape_instance.second;
 
@@ -1254,7 +1254,7 @@ void ChVisualSystemVSG::BindMesh(const std::shared_ptr<fea::ChMesh>& mesh) {
         shapeFEA->Update(mesh.get(), ChFrame<>());
     }
 
-    for (auto& shape_instance : vis_model->GetShapes()) {
+    for (auto& shape_instance : vis_model->GetShapeInstances()) {
         auto& shape = shape_instance.first;
 
         //// RADU TODO: process glyphs
@@ -1417,7 +1417,7 @@ void ChVisualSystemVSG::BindLoadContainer(const std::shared_ptr<ChLoadContainer>
     if (!vis_model)
         return;
 
-    const auto& shape_instance = vis_model->GetShapes().at(0);
+    const auto& shape_instance = vis_model->GetShapeInstances().at(0);
     auto& shape = shape_instance.first;
     auto trimesh = std::dynamic_pointer_cast<ChVisualShapeTriangleMesh>(shape);
     if (!trimesh)
@@ -1465,7 +1465,7 @@ void ChVisualSystemVSG::BindTSDA(const std::shared_ptr<ChLinkTSDA>& tsda) {
     if (!vis_model)
         return;
 
-    for (auto& shape_instance : vis_model->GetShapes()) {
+    for (auto& shape_instance : vis_model->GetShapeInstances()) {
         auto& shape = shape_instance.first;
         if (auto segshape = std::dynamic_pointer_cast<ChVisualShapeSegment>(shape)) {
             double length;
@@ -1497,7 +1497,7 @@ void ChVisualSystemVSG::BindLinkDistance(const std::shared_ptr<ChLinkDistance>& 
     if (!vis_model)
         return;
 
-    for (auto& shape_instance : vis_model->GetShapes()) {
+    for (auto& shape_instance : vis_model->GetShapeInstances()) {
         auto& shape = shape_instance.first;
         if (auto segshape = std::dynamic_pointer_cast<ChVisualShapeSegment>(shape)) {
             double length;

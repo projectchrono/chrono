@@ -168,10 +168,10 @@ class ChApi ChCollisionModel {
     unsigned int GetNumShapes() const { return (unsigned int)m_shape_instances.size(); }
 
     /// Get the list of collision shapes in this model.
-    const std::vector<ShapeInstance>& GetShapes() const { return m_shape_instances; }
+    const std::vector<ShapeInstance>& GetShapeInstances() const { return m_shape_instances; }
 
     /// Get the collision shape with specified index.
-    const ShapeInstance& GetShape(int index) const { return m_shape_instances[index]; }
+    const ShapeInstance& GetShapeInstance(int index) const { return m_shape_instances[index]; }
 
     /// Set the contact material for all collision shapes in the model (all shapes will share the material).
     /// This function is useful in adjusting contact material properties for objects imported from outside (e.g., from

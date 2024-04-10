@@ -93,7 +93,7 @@ bool WriteCheckpoint(ChSystem* system, const std::string& filename) {
 
         // Loop over each shape and write its data on a separate line.
         // If we encounter an unsupported type, return false.
-        for (const auto& s : body->GetCollisionModel()->GetShapes()) {
+        for (const auto& s : body->GetCollisionModel()->GetShapeInstances()) {
             const auto& shape = s.first;
             const auto& frame = s.second;
 
@@ -449,7 +449,7 @@ void WriteVisualizationAssets(ChSystem* system,
             continue;
 
         // Loop over visual shapes -- write information for supported types.
-        for (auto& shape_instance : body->GetVisualModel()->GetShapes()) {
+        for (auto& shape_instance : body->GetVisualModel()->GetShapeInstances()) {
             auto& shape = shape_instance.first;
             auto X_GS = body->GetFrameRefToAbs() * shape_instance.second;
             auto& pos = X_GS.GetPos();
@@ -567,7 +567,7 @@ void WriteVisualizationAssets(ChSystem* system,
             continue;
         if (!link->GetVisualModel())
             continue;
-        for (auto& shape_instance : link->GetVisualModel()->GetShapes()) {
+        for (auto& shape_instance : link->GetVisualModel()->GetShapeInstances()) {
             auto& shape = shape_instance.first;
             if (std::dynamic_pointer_cast<ChVisualShapeSegment>(shape)) {
                 csv << SEGMENT << link->GetPoint1Abs() << link->GetPoint2Abs() << std::endl;

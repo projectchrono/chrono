@@ -844,7 +844,7 @@ static void SetVisualMaterial(ISceneNode* node, std::shared_ptr<ChVisualShape> s
 void ChVisualSystemIrrlicht::PopulateIrrNode(ISceneNode* node,
                                              std::shared_ptr<ChVisualModel> model,
                                              const ChFrame<>& parent_frame) {
-    for (const auto& shape_instance : model->GetShapes()) {
+    for (const auto& shape_instance : model->GetShapeInstances()) {
         auto& shape = shape_instance.first;
         auto& shape_frame = shape_instance.second;
         core::matrix4CH shape_m4(shape_frame);

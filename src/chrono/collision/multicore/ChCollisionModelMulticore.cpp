@@ -48,7 +48,7 @@ ChCollisionModelMulticore::~ChCollisionModelMulticore() {
 }
 
 void ChCollisionModelMulticore::Populate() {
-    for (const auto& shape_instance : model->GetShapes()) {
+    for (const auto& shape_instance : model->GetShapeInstances()) {
         const auto& shape = shape_instance.first;
         const auto& material = shape->GetMaterial();
 

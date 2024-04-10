@@ -108,7 +108,7 @@ int main(int argc, char* argv[]) {
                 vis_mat->SetAmbientColor({0.f, 0.f, 0.f});
                 vis_mat->SetDiffuseColor({(float)ChRandom::Get(), (float)ChRandom::Get(), (float)ChRandom::Get()});
                 vis_mat->SetSpecularColor({.2f, .2f, .2f});
-                cyl->GetVisualModel()->GetShapes()[0].first->AddMaterial(vis_mat);
+                cyl->GetVisualModel()->GetShapeInstances()[0].first->AddMaterial(vis_mat);
 
                 sys.Add(cyl);
                 curr_item_cnt++;
@@ -122,7 +122,7 @@ int main(int argc, char* argv[]) {
                 vis_mat->SetAmbientColor({0.f, 0.f, 0.f});
                 vis_mat->SetDiffuseColor({(float)ChRandom::Get(), (float)ChRandom::Get(), (float)ChRandom::Get()});
                 vis_mat->SetSpecularColor({.2f, .2f, .2f});
-                sphere->GetVisualModel()->GetShapes()[0].first->AddMaterial(vis_mat);
+                sphere->GetVisualModel()->GetShapeInstances()[0].first->AddMaterial(vis_mat);
 
                 sys.Add(sphere);
                 curr_item_cnt++;
@@ -136,7 +136,7 @@ int main(int argc, char* argv[]) {
                 vis_mat->SetAmbientColor({0.f, 0.f, 0.f});
                 vis_mat->SetDiffuseColor({(float)ChRandom::Get(), (float)ChRandom::Get(), (float)ChRandom::Get()});
                 vis_mat->SetSpecularColor({.2f, .2f, .2f});
-                box->GetVisualModel()->GetShapes()[0].first->AddMaterial(vis_mat);
+                box->GetVisualModel()->GetShapeInstances()[0].first->AddMaterial(vis_mat);
 
                 sys.Add(box);
                 curr_item_cnt++;

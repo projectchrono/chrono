@@ -108,7 +108,7 @@ int main(int argc, char* argv[]) {
         vis_mat->SetSpecularColor({1, 1, 1});
         vis_mat->SetRoughness(0);
         vis_mat->SetMetallic(0.9f);
-        top_mirror->GetVisualModel()->GetShapes()[0].first->AddMaterial(vis_mat);
+        top_mirror->GetVisualModel()->GetShapeInstances()[0].first->AddMaterial(vis_mat);
     }
 
     auto bottom_mirror = chrono_types::make_shared<ChBodyEasyBox>(10, 10, .1,       // x,y,z size
@@ -124,7 +124,7 @@ int main(int argc, char* argv[]) {
         vis_mat->SetSpecularColor({1, 1, 1});
         vis_mat->SetRoughness(0);
         vis_mat->SetMetallic(0.9f);
-        bottom_mirror->GetVisualModel()->GetShapes()[0].first->AddMaterial(vis_mat);
+        bottom_mirror->GetVisualModel()->GetShapeInstances()[0].first->AddMaterial(vis_mat);
     }
 
     // add a mesh
@@ -183,7 +183,7 @@ int main(int argc, char* argv[]) {
         vis_mat->SetSpecularColor({.2f, .2f, .2f});
         vis_mat->SetKdTexture(GetChronoDataFile("textures/redwhite.png"));
         vis_mat->SetNormalMapTexture(GetChronoDataFile("sensor/textures/FaceNormal.jpg"));
-        texbox->GetVisualModel()->GetShapes()[0].first->AddMaterial(vis_mat);
+        texbox->GetVisualModel()->GetShapeInstances()[0].first->AddMaterial(vis_mat);
     }
 
     auto texsphere = chrono_types::make_shared<ChBodyEasySphere>(.6,                // size
@@ -198,7 +198,7 @@ int main(int argc, char* argv[]) {
         vis_mat->SetSpecularColor({.2f, .2f, .2f});
         vis_mat->SetKdTexture(GetChronoDataFile("textures/redwhite.png"));
         vis_mat->SetNormalMapTexture(GetChronoDataFile("sensor/textures/FaceNormal.jpg"));
-        texsphere->GetVisualModel()->GetShapes()[0].first->AddMaterial(vis_mat);
+        texsphere->GetVisualModel()->GetShapeInstances()[0].first->AddMaterial(vis_mat);
     }
 
     auto texcyl = chrono_types::make_shared<ChBodyEasyCylinder>(ChAxis::Y,         //
@@ -214,7 +214,7 @@ int main(int argc, char* argv[]) {
         vis_mat->SetSpecularColor({.2f, .2f, .2f});
         vis_mat->SetKdTexture(GetChronoDataFile("textures/redwhite.png"));
         vis_mat->SetNormalMapTexture(GetChronoDataFile("sensor/textures/FaceNormal.jpg"));
-        texcyl->GetVisualModel()->GetShapes()[0].first->AddMaterial(vis_mat);
+        texcyl->GetVisualModel()->GetShapeInstances()[0].first->AddMaterial(vis_mat);
     }
 
     for (int i = 0; i < num_bodies; i++) {
@@ -232,7 +232,7 @@ int main(int argc, char* argv[]) {
             auto vis_mat = chrono_types::make_shared<ChVisualMaterial>();
             vis_mat->SetDiffuseColor({(float)ChRandom::Get(), (float)ChRandom::Get(), (float)ChRandom::Get()});
             vis_mat->SetSpecularColor({.2f, .2f, .2f});
-            box->GetVisualModel()->GetShapes()[0].first->AddMaterial(vis_mat);
+            box->GetVisualModel()->GetShapeInstances()[0].first->AddMaterial(vis_mat);
         }
 
         if (!imu_parent) {
@@ -253,7 +253,7 @@ int main(int argc, char* argv[]) {
             auto vis_mat = chrono_types::make_shared<ChVisualMaterial>();
             vis_mat->SetDiffuseColor({(float)ChRandom::Get(), (float)ChRandom::Get(), (float)ChRandom::Get()});
             vis_mat->SetSpecularColor({.2f, .2f, .2f});
-            cyl->GetVisualModel()->GetShapes()[0].first->AddMaterial(vis_mat);
+            cyl->GetVisualModel()->GetShapeInstances()[0].first->AddMaterial(vis_mat);
         }
 
         auto sphere = chrono_types::make_shared<ChBodyEasySphere>((float)ChRandom::Get() / 2.0 + 0.1,  // radius
@@ -270,7 +270,7 @@ int main(int argc, char* argv[]) {
             vis_mat->SetAmbientColor({0.f, 0.f, 0.f});
             vis_mat->SetDiffuseColor({(float)ChRandom::Get(), (float)ChRandom::Get(), (float)ChRandom::Get()});
             vis_mat->SetSpecularColor({.2f, .2f, .2f});
-            sphere->GetVisualModel()->GetShapes()[0].first->AddMaterial(vis_mat);
+            sphere->GetVisualModel()->GetShapeInstances()[0].first->AddMaterial(vis_mat);
         }
 
         auto mesh_body = chrono_types::make_shared<ChBodyAuxRef>();

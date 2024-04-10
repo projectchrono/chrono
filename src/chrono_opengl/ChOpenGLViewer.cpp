@@ -305,7 +305,7 @@ void ChOpenGLViewer::DrawVisualModel(std::shared_ptr<ChPhysicsItem> item) {
     // Get the visual model reference frame
     const ChFrame<>& X_AM = item->GetVisualModelFrame();
 
-    for (auto& shape_instance : item->GetVisualModel()->GetShapes()) {
+    for (auto& shape_instance : item->GetVisualModel()->GetShapeInstances()) {
         const auto& shape = shape_instance.first;
         const auto& X_SM = shape_instance.second;
 
