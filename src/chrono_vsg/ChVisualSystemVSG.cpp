@@ -956,7 +956,7 @@ void ChVisualSystemVSG::Render() {
         if (cloud.dynamic_positions) {
             unsigned int k = 0;
             for (auto& p : *cloud.positions)
-                p = vsg::vec3CH(cloud.pcloud->GetParticle(k++).GetPos());
+                p = vsg::vec3CH(cloud.pcloud->Particle(k++).GetPos());
             cloud.positions->dirty();
         }
         if (cloud.dynamic_colors) {
@@ -1377,7 +1377,7 @@ void ChVisualSystemVSG::BindParticleCloud(const std::shared_ptr<ChParticleCloud>
     cloud.positions = vsg::vec3Array::create(num_particles);
     geomInfo.positions = cloud.positions;
     for (unsigned int k = 0; k < num_particles; k++)
-        cloud.positions->set(k, vsg::vec3CH(pcloud->GetParticle(k).GetPos()));
+        cloud.positions->set(k, vsg::vec3CH(pcloud->Particle(k).GetPos()));
     if (cloud.dynamic_positions) {
         cloud.positions->properties.dataVariance = vsg::DYNAMIC_DATA;
     }

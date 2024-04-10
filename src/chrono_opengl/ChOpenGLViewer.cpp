@@ -626,7 +626,7 @@ void ChOpenGLViewer::RenderParticles() {
 
                 size_t n = 0;
                 for (int i = 0; i < pcloud->GetNumParticles(); i++) {
-                    const auto& pos = pcloud->GetParticle(i).GetPos();
+                    const auto& pos = pcloud->Particle(i).GetPos();
                     if (!m_vis->particle_selector || m_vis->particle_selector->Render(pos)) {
                         particle_data[num_particles + n++] = glm::vec3(pos.x(), pos.y(), pos.z());
                     }

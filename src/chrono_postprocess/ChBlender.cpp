@@ -1093,7 +1093,7 @@ void ChBlender::ExportItemState(std::ofstream& state_file,
             state_file << " [";
             for (unsigned int m = 0; m < particleclones->GetNumParticles(); ++m) {
                 // Get the current coordinate frame of the i-th particle
-                ChCoordsys<> partframe = particleclones->GetParticle(m).GetCoordsys();
+                ChCoordsys<> partframe = particleclones->Particle(m).GetCoordsys();
                 state_file << "[(" << partframe.pos.x() << "," << partframe.pos.y() << "," << partframe.pos.z() << "),";
                 state_file << "(" << partframe.rot.e0() << "," << partframe.rot.e1() << "," << partframe.rot.e2() << ","
                            << partframe.rot.e3() << ")], " << std::endl;

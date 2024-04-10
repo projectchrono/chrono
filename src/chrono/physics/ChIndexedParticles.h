@@ -55,7 +55,10 @@ class ChApi ChIndexedParticles : public ChPhysicsItem {
     virtual size_t GetNumParticles() const = 0;
 
     /// Access the N-th particle.
-    virtual ChParticleBase& GetParticle(unsigned int n) = 0;
+    virtual ChParticleBase& Particle(unsigned int n) = 0;
+
+    /// Access the N-th particle.
+    virtual const ChParticleBase& Particle(unsigned int n) const = 0;
 
     /// Resize the particle cluster.
     /// Also clear the state of previously created particles, if any.

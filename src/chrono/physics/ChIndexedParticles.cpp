@@ -40,7 +40,7 @@ ChParticleBase& ChParticleBase::operator=(const ChParticleBase& other) {
 
 ChFrame<> ChIndexedParticles::GetVisualModelFrame(unsigned int nclone) const {
     ChFrame<> res;
-    res = GetParticle(nclone);
+    res = Particle(nclone);
     return res;
 }
 

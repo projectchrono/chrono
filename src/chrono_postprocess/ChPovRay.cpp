@@ -850,7 +850,7 @@ void ChPovRay::ExportData(const std::string& filename) {
                 for (unsigned int m = 0; m < clones->GetNumParticles(); ++m) {
                     // Get the current coordinate frame of the i-th particle
                     ChCoordsys<> assetcsys = CSYSNORM;
-                    assetcsys = clones->GetParticle(m).GetCoordsys();
+                    assetcsys = clones->Particle(m).GetCoordsys();
 
                     data_file << assetcsys.pos.x() << ", ";
                     data_file << assetcsys.pos.y() << ", ";

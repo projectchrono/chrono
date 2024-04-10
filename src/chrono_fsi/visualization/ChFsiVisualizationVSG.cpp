@@ -208,28 +208,28 @@ bool ChFsiVisualizationVSG::Render() {
 
         if (m_sph_markers) {
             for (unsigned int i = 0; i < m_systemFSI->GetNumFluidMarkers(); i++) {
-                m_sph_cloud->GetParticle(i).SetPos(ChVector3d(posH[p + i].x, posH[p + i].y, posH[p + i].z));
+                m_sph_cloud->Particle(i).SetPos(ChVector3d(posH[p + i].x, posH[p + i].y, posH[p + i].z));
             }
         }
         p += m_systemFSI->GetNumFluidMarkers();
 
         if (m_bndry_bce_markers) {
             for (unsigned int i = 0; i < m_systemFSI->GetNumBoundaryMarkers(); i++) {
-                m_bndry_bce_cloud->GetParticle(i).SetPos(ChVector3d(posH[p + i].x, posH[p + i].y, posH[p + i].z));
+                m_bndry_bce_cloud->Particle(i).SetPos(ChVector3d(posH[p + i].x, posH[p + i].y, posH[p + i].z));
             }
         }
         p += m_systemFSI->GetNumBoundaryMarkers();
 
         if (m_rigid_bce_markers) {
             for (unsigned int i = 0; i < m_systemFSI->GetNumRigidBodyMarkers(); i++) {
-                m_rigid_bce_cloud->GetParticle(i).SetPos(ChVector3d(posH[p + i].x, posH[p + i].y, posH[p + i].z));
+                m_rigid_bce_cloud->Particle(i).SetPos(ChVector3d(posH[p + i].x, posH[p + i].y, posH[p + i].z));
             }
         }
         p += m_systemFSI->GetNumRigidBodyMarkers();
 
         if (m_flex_bce_markers) {
             for (unsigned int i = 0; i < m_systemFSI->GetNumFlexBodyMarkers(); i++) {
-                m_flex_bce_cloud->GetParticle(i).SetPos(ChVector3d(posH[p + i].x, posH[p + i].y, posH[p + i].z));
+                m_flex_bce_cloud->Particle(i).SetPos(ChVector3d(posH[p + i].x, posH[p + i].y, posH[p + i].z));
             }
         }
 

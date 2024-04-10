@@ -696,6 +696,7 @@ In some instances, the reader is directed to the "Notes" section for more detail
 |                                   | SetMaxiters                   | rename: SetMaxIters                              |
 | ChIndexedParticles                |                               |                                                  |
 |                                   | GetNparticles                 | rename: GetNumParticles                          |
+|                                   | GetParticle                   | rename: Particle                                 |
 | ChIntegrable                      |                               |                                                  |
 |                                   | GetNconstr                    | rename: GetNumConstraints                        |
 |                                   | GetNcoords_dy                 | remove: split in GetNumCoordsVelLevel/Acc        |
