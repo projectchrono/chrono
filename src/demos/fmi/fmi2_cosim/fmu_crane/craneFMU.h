@@ -56,7 +56,7 @@ class FmuComponent : public chrono::FmuChronoComponentBase {
     chrono::ChSystemSMC sys;
 
 #ifdef CHRONO_IRRLICHT
-    std::shared_ptr<chrono::irrlicht::ChVisualSystemIrrlicht> vissys;
+    std::shared_ptr<chrono::irrlicht::ChVisualSystemIrrlicht> vis_sys;
 #endif
 
     // Body properties (with default values)

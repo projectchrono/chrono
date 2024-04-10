@@ -202,8 +202,11 @@ int main(int argc, char* argv[]) {
         actuator_fmu.GetVariable("U", U, FmuVariable::Type::Real);
 
         // ----------- Advance FMUs
-        crane_fmu.DoStep(time, dt, fmi2True);
-        actuator_fmu.DoStep(time, dt, fmi2True);
+        auto status_crane = crane_fmu.DoStep(time, dt, fmi2True);
+        auto status_actuator = actuator_fmu.DoStep(time, dt, fmi2True);
+
+        if (status_crane == fmi2Discard || status_actuator == fmi2Discard)
+            break;
 
         // Save output
         ////std::cout << time << s << sd << Uref << U << p1 << p2 << F << std::endl;
