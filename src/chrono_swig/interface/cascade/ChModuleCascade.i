@@ -84,14 +84,6 @@ using namespace chrono::cascade;
 %pointer_class(double,double_ptr);
 %pointer_class(float,float_ptr);
 
-
-
-//
-// For each class, keep updated the  A, B, C sections: 
-// 
-
-
-//
 // A- ENABLE SHARED POINTERS
 //
 // Note that this must be done for almost all objects (not only those that are
@@ -124,14 +116,14 @@ using namespace chrono::cascade;
 %shared_ptr(chrono::cascade::ChVisualShapeCascade)
 %shared_ptr(chrono::cascade::ChCascadeTriangulate)
 
-//
 // TEMPLATES
-//
 
 %template(vector_ChLinePath) std::vector< std::shared_ptr<::chrono::ChLinePath> >;
 
+// Ignore nested callback class ScanShapesCallback
 
-//
+%ignore chrono::cascade::ChCascadeDoc::ScanShapesCallback;
+
 // B- INCLUDE HEADERS
 //
 //
@@ -179,7 +171,6 @@ using namespace chrono::cascade;
 %include "../../../chrono/physics/ChContactMaterialSMC.h"
 
 
-//
 // C- DOWNCASTING OF SHARED POINTERS
 // 
 // This is not automatic in Python + SWIG, except if one uses the 
@@ -193,29 +184,4 @@ using namespace chrono::cascade;
 //  myvis = chrono.CastToChVisualizationShared(myasset)
 //  print ('Could be cast to visualization object?', !myvis.IsNull())
 
-//%DefSharedPtrDynamicDowncast(ChSolver,ChSolverPardisoMKL) 
-
-
-//
-// ADDITIONAL C++ FUNCTIONS / CLASSES THAT ARE USED ONLY FOR PYTHON WRAPPER
-//
-
-/*
-%inline %{
-
-
-%}
-*/
-
-
-//
-// ADD PYTHON CODE
-//
-
-/*
-%pythoncode %{
-
-%}
-*/
-
-
+%DefSharedPtrDynamicDowncast2NS(chrono,chrono::cascade,ChBodyAuxRef,ChCascadeBodyEasy) 

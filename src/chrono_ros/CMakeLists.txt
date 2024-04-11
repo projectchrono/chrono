@@ -26,7 +26,10 @@ set(CMAKE_CXX_STANDARD 17)
 #-----------------------------------------------------------------------------
 
 find_package(ROS2 QUIET)
-if (NOT ROS2_FOUND)
+if(ROS2_FOUND)
+  message(STATUS "Found ROS 2.")
+  message(STATUS "  ROS 2 distro is \"$ENV{ROS_DISTRO}\"")
+else()
   message(SEND_ERROR "Chrono::ROS requires ROS 2, but ROS 2 was not found.")
   return()
 endif()

@@ -50,7 +50,10 @@ if (ROS2_FOUND)
   if (ament_index_cpp_FOUND)
     set(HAVE_ROS TRUE)
     message(STATUS "Found ROS 2.")
+    message(STATUS "  ROS 2 distro is \"$ENV{ROS_DISTRO}\"")
   endif()
+else()
+  message(STATUS "Package ROS2 NOT found. ROS support disabled.")
 endif()
 
 #-----------------------------------------------------------------------------

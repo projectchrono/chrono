@@ -94,6 +94,8 @@ std::shared_ptr<ChCollisionModel> GetCollisionModel()                           
 %template(ChForceList) std::vector< std::shared_ptr<chrono::ChForce> >;
 %template(ChMarkerList) std::vector< std::shared_ptr<chrono::ChMarker> >;
  
+%shared_ptr(chrono::ChContactable) 
+%shared_ptr(chrono::ChContactable_1vars<6>)
 %shared_ptr(chrono::ChBody)
 
 // Forward ref
