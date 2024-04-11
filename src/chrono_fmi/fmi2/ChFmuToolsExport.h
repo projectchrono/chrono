@@ -86,7 +86,7 @@ class ChOutputFMU : public ChArchiveOut {
         is_array.pop_back();
     };
 
-    virtual void out(ChNameValue<bool> bVal) {
+    virtual void out(ChNameValue<bool> bVal) override {
         ADD_BVAL_AS_FMU_GETSET(
             Boolean, { return static_cast<fmi2Boolean>(bVal.value()); }, { bVal.value() = val; })
 
@@ -97,52 +97,50 @@ class ChOutputFMU : public ChArchiveOut {
 
         ++nitems.top();
     }
-    virtual void out(ChNameValue<double> bVal) {
+    virtual void out(ChNameValue<double> bVal) override {
         ADD_BVAL_AS_FMU_POINTER(Real)
 
         ++nitems.top();
     }
-    virtual void out(ChNameValue<float> bVal) {
+    virtual void out(ChNameValue<float> bVal) override {
         ADD_BVAL_AS_FMU_GETSET(
             Real, { return static_cast<fmi2Real>(bVal.value()); }, { bVal.value() = static_cast<float>(val); })
 
         ++nitems.top();
     }
-    virtual void out(ChNameValue<char> bVal) {
+    virtual void out(ChNameValue<char> bVal) override {
         ADD_BVAL_AS_FMU_GETSET(
             Integer, { return static_cast<fmi2Integer>(bVal.value()); }, { bVal.value() = val; })
 
         ++nitems.top();
     }
-    virtual void out(ChNameValue<unsigned int> bVal) {
+    virtual void out(ChNameValue<unsigned int> bVal) override {
         ADD_BVAL_AS_FMU_GETSET(
             Integer, { return static_cast<fmi2Integer>(bVal.value()); }, { bVal.value() = val; })
 
         ++nitems.top();
     }
-    virtual void out(ChNameValue<const char*> bVal) {
-        // TODO
+
+    virtual void out(ChNameValue<std::string> bVal) override {
+        ADD_BVAL_AS_FMU_POINTER(String)
 
         ++nitems.top();
     }
-    virtual void out(ChNameValue<std::string> bVal) {
-        // TODO
+    virtual void out(ChNameValue<unsigned long> bVal) override {
+        ADD_BVAL_AS_FMU_GETSET(
+            Integer, { return static_cast<fmi2Integer>(bVal.value()); }, { bVal.value() = val; })
 
         ++nitems.top();
     }
-    virtual void out(ChNameValue<unsigned long> bVal) {
-        // TODO
+    virtual void out(ChNameValue<unsigned long long> bVal) override {
+        ADD_BVAL_AS_FMU_GETSET(
+            Integer, { return static_cast<fmi2Integer>(bVal.value()); }, { bVal.value() = val; })
 
         ++nitems.top();
     }
-    virtual void out(ChNameValue<unsigned long long> bVal) {
-        // TODO
+    virtual void out(ChNameValue<ChEnumMapperBase> bVal) override { ++nitems.top(); }
 
-        ++nitems.top();
-    }
-    virtual void out(ChNameValue<ChEnumMapperBase> bVal) { ++nitems.top(); }
-
-    virtual void out_array_pre(ChValue& bVal, size_t msize) {
+    virtual void out_array_pre(ChValue& bVal, size_t msize) override {
         pushLevelName(bVal.name());
 
         ++tablevel;
@@ -150,9 +148,9 @@ class ChOutputFMU : public ChArchiveOut {
         // signaling that, from now on, serialized variables are part of an array
         is_array.push_back(true);
     }
-    virtual void out_array_between(ChValue& bVal, size_t msize) {}
+    virtual void out_array_between(ChValue& bVal, size_t msize) override {}
 
-    virtual void out_array_end(ChValue& bVal, size_t msize) {
+    virtual void out_array_end(ChValue& bVal, size_t msize) override {
         --tablevel;
         nitems.pop();
         is_array.pop_back();
@@ -161,7 +159,7 @@ class ChOutputFMU : public ChArchiveOut {
     }
 
     // for custom c++ objects:
-    virtual void out(ChValue& bVal, bool tracked, size_t obj_ID) {
+    virtual void out(ChValue& bVal, bool tracked, size_t obj_ID) override {
         pushLevelName(bVal.name());
 
         ++tablevel;
@@ -178,7 +176,7 @@ class ChOutputFMU : public ChArchiveOut {
         popLevelName();
     }
 
-    virtual void out_ref(ChValue& bVal, bool already_inserted, size_t obj_ID, size_t ext_ID) {
+    virtual void out_ref(ChValue& bVal, bool already_inserted, size_t obj_ID, size_t ext_ID) override {
         pushLevelName(bVal.name());
 
         ++tablevel;

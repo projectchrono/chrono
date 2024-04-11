@@ -81,6 +81,9 @@ FmuComponent::FmuComponent(fmi2String instanceName,
     AddFmuVariable(&pendulum_mass, "pendulum_mass", FmuVariable::Type::Real, "kg", "cart mass",
                    FmuVariable::CausalityType::parameter, FmuVariable::VariabilityType::fixed);
 
+    AddFmuVariable(&experiment_name, "experiment_name", FmuVariable::Type::String, "", "experiment name",
+                   FmuVariable::CausalityType::input, FmuVariable::VariabilityType::discrete);
+
 #ifdef CHRONO_IRRLICHT
     if (visible == fmi2True) {
         vis = chrono_types::make_shared<irrlicht::ChVisualSystemIrrlicht>();
