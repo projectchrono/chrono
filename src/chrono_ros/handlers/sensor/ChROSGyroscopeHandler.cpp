@@ -79,10 +79,10 @@ std::array<double, 9> ChROSGyroscopeHandler::CalculateCovariance(const GyroData&
 
     // Update the running average
     for (int i = 0; i < 3; i++) 
-        m_running_average[i] += (imu_data_array[i] - m_running_average[i]) / (m_tick_count + 1);
+        m_running_average[i] += (imu_data_array[i] - m_running_average[i]) / (GetTickCount() + 1);
 
     // Calculate and return the covariance
-    auto count = (m_tick_count > 1 ? m_tick_count - 1 : 1);  // Avoid divide by zero (if only one tick, count = 1)
+    auto count = (GetTickCount() > 1 ? GetTickCount() - 1 : 1);  // Avoid divide by zero (if only one tick, count = 1)
     return ChROSSensorHandlerUtilities::CalculateCovariance(imu_data_array, m_running_average, count);
 }
 

@@ -79,11 +79,11 @@ std::array<double, 9> ChROSMagnetometerHandler::CalculateCovariance(const Magnet
     std::array<double, 3> imu_data_array = {imu_data.X, imu_data.Y, imu_data.Z};
 
     // Update the running average
-    for (int i = 0; i < 3; i++) 
-        m_running_average[i] += (imu_data_array[i] - m_running_average[i]) / (m_tick_count + 1);
+    for (int i = 0; i < 3; i++)
+        m_running_average[i] += (imu_data_array[i] - m_running_average[i]) / (GetTickCount() + 1);
 
     // Calculate and return the covariance
-    auto count = (m_tick_count > 1 ? m_tick_count - 1 : 1);  // Avoid divide by zero (if only one tick, count = 1)
+    auto count = (GetTickCount() > 1 ? GetTickCount() - 1 : 1);  // Avoid divide by zero (if only one tick, count = 1)
     return ChROSSensorHandlerUtilities::CalculateCovariance(imu_data_array, m_running_average, count);
 }
 

@@ -83,10 +83,10 @@ std::array<double, 9> ChROSGPSHandler::CalculateCovariance(const GPSData& gps_da
 
     // Update the running average
     for (int i = 0; i < 3; i++) 
-        m_running_average[i] += (enu_data_array[i] - m_running_average[i]) / (m_tick_count + 1);
+        m_running_average[i] += (enu_data_array[i] - m_running_average[i]) / (GetTickCount() + 1);
 
     // Calculate and return the covariance
-    auto count = (m_tick_count > 1 ? m_tick_count - 1 : 1);  // Avoid divide by zero (if only one tick, count = 1)
+    auto count = (GetTickCount() > 1 ? GetTickCount() - 1 : 1);  // Avoid divide by zero (if only one tick, count = 1)
     return ChROSSensorHandlerUtilities::CalculateCovariance(enu_data_array, m_running_average, count);
 }
 
