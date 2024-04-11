@@ -101,41 +101,62 @@ vsg::ref_ptr<vsg::Group> ShapeBuilder::CreatePbrShape(ShapeType shape_type,
     vsg::ref_ptr<vsg::vec2Array> texcoords;
     vsg::ref_ptr<vsg::ushortArray> indices;
 
+    // Important:
+    // the unique texcoords cannot be used directly to allow individual scaling
+    // a copy is taken therefore
     switch (shape_type) {
         case ShapeType::BOX_SHAPE:
             vertices = m_box_data->vertices;
             normals = m_box_data->normals;
-            texcoords = m_box_data->texcoords;
+            texcoords = vsg::vec2Array::create(m_box_data->texcoords->size());
+            for (size_t i = 0; i < m_box_data->texcoords->size(); i++) {
+                texcoords->set(i, m_box_data->texcoords->at(i));
+            }
             indices = m_box_data->indices;
             break;
         case ShapeType::DIE_SHAPE:
             vertices = m_die_data->vertices;
             normals = m_die_data->normals;
-            texcoords = m_die_data->texcoords;
+            texcoords = vsg::vec2Array::create(m_die_data->texcoords->size());
+            for (size_t i = 0; i < m_die_data->texcoords->size(); i++) {
+                texcoords->set(i, m_die_data->texcoords->at(i));
+            }
             indices = m_die_data->indices;
             break;
         case ShapeType::SPHERE_SHAPE:
             vertices = m_sphere_data->vertices;
             normals = m_sphere_data->normals;
-            texcoords = m_sphere_data->texcoords;
+            texcoords = vsg::vec2Array::create(m_sphere_data->texcoords->size());
+            for (size_t i = 0; i < m_sphere_data->texcoords->size(); i++) {
+                texcoords->set(i, m_sphere_data->texcoords->at(i));
+            }
             indices = m_sphere_data->indices;
             break;
         case ShapeType::CYLINDER_SHAPE:
             vertices = m_cylinder_data->vertices;
             normals = m_cylinder_data->normals;
-            texcoords = m_cylinder_data->texcoords;
+            texcoords = vsg::vec2Array::create(m_cylinder_data->texcoords->size());
+            for (size_t i = 0; i < m_cylinder_data->texcoords->size(); i++) {
+                texcoords->set(i, m_cylinder_data->texcoords->at(i));
+            }
             indices = m_cylinder_data->indices;
             break;
         case ShapeType::CAPSULE_SHAPE:
             vertices = m_capsule_data->vertices;
             normals = m_capsule_data->normals;
-            texcoords = m_capsule_data->texcoords;
+            texcoords = vsg::vec2Array::create(m_capsule_data->texcoords->size());
+            for (size_t i = 0; i < m_capsule_data->texcoords->size(); i++) {
+                texcoords->set(i, m_capsule_data->texcoords->at(i));
+            }
             indices = m_capsule_data->indices;
             break;
         case ShapeType::CONE_SHAPE:
             vertices = m_cone_data->vertices;
             normals = m_cone_data->normals;
-            texcoords = m_cone_data->texcoords;
+            texcoords = vsg::vec2Array::create(m_cone_data->texcoords->size());
+            for (size_t i = 0; i < m_cone_data->texcoords->size(); i++) {
+                texcoords->set(i, m_cone_data->texcoords->at(i));
+            }
             indices = m_cone_data->indices;
             break;
     }
@@ -239,7 +260,7 @@ vsg::ref_ptr<vsg::Group> ShapeBuilder::CreateTrimeshColShape(std::shared_ptr<ChV
         vsg_vertices->set(k, vsg::vec3CH(tmp_vertices[k]));
         vsg_normals->set(k, vsg::vec3CH(tmp_normals[k]));
         // seems to work with v-coordinate flipped on VSG
-        vsg_texcoords->set(k, vsg::vec2(tmp_texcoords[k].x(), 1 - tmp_texcoords[k].y()));
+        vsg_texcoords->set(k, vsg::vec2(tmp_texcoords[k].x(), tmp_texcoords[k].y()));
         vsg_colors->set(k, vsg::vec4CH(tmp_colors[k]));
         vsg_indices->set(k, (unsigned int)k);
     }
@@ -315,7 +336,7 @@ vsg::ref_ptr<vsg::Group> ShapeBuilder::CreateTrimeshColAvgShape(std::shared_ptr<
         vsg_vertices->set(k, vsg::vec3CH(vertices[k]));
         vsg_normals->set(k, normals_ok ? vsg::vec3CH(normals[k]) : vsg::vec3CH(avg_normals[k]));
         // seems to work with v-coordinate flipped on VSG (??)
-        vsg_texcoords->set(k, texcoords_ok ? vsg::vec2(uvs[k].x(), 1 - uvs[k].y()) : vsg::vec2CH({0, 0}));
+        vsg_texcoords->set(k, texcoords_ok ? vsg::vec2(uvs[k].x(), uvs[k].y()) : vsg::vec2CH({0, 0}));
         vsg_colors->set(k, colors_ok ? vsg::vec4CH(colors[k]) : vsg::vec4CH(default_color));
     }
     size_t kk = 0;

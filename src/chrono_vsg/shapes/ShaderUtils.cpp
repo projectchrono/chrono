@@ -243,7 +243,7 @@ vsg::ref_ptr<vsg::StateGroup> createPbrStateGroup(vsg::ref_ptr<const vsg::Option
             sampler->maxLod =
                 static_cast<uint32_t>(std::floor(std::log2(std::max(image->width(), image->height())))) + 1;
             sampler->addressModeU = VK_SAMPLER_ADDRESS_MODE_REPEAT;
-            sampler->addressModeV = VK_SAMPLER_ADDRESS_MODE_REPEAT;
+            sampler->addressModeV = VK_SAMPLER_ADDRESS_MODE_MIRRORED_REPEAT;
 
             if (sharedObjects)
                 sharedObjects->share(sampler);
@@ -264,7 +264,7 @@ vsg::ref_ptr<vsg::StateGroup> createPbrStateGroup(vsg::ref_ptr<const vsg::Option
             sampler->maxLod =
                 static_cast<uint32_t>(std::floor(std::log2(std::max(image->width(), image->height())))) + 1;
             sampler->addressModeU = VK_SAMPLER_ADDRESS_MODE_REPEAT;
-            sampler->addressModeV = VK_SAMPLER_ADDRESS_MODE_REPEAT;
+            sampler->addressModeV = VK_SAMPLER_ADDRESS_MODE_MIRRORED_REPEAT;
 
             if (sharedObjects)
                 sharedObjects->share(sampler);
@@ -283,7 +283,7 @@ vsg::ref_ptr<vsg::StateGroup> createPbrStateGroup(vsg::ref_ptr<const vsg::Option
             sampler->maxLod =
                 static_cast<uint32_t>(std::floor(std::log2(std::max(image->width(), image->height())))) + 1;
             sampler->addressModeU = VK_SAMPLER_ADDRESS_MODE_REPEAT;
-            sampler->addressModeV = VK_SAMPLER_ADDRESS_MODE_REPEAT;
+            sampler->addressModeV = VK_SAMPLER_ADDRESS_MODE_MIRRORED_REPEAT;
 
             if (sharedObjects)
                 sharedObjects->share(sampler);
@@ -302,7 +302,7 @@ vsg::ref_ptr<vsg::StateGroup> createPbrStateGroup(vsg::ref_ptr<const vsg::Option
             sampler->maxLod =
                 static_cast<uint32_t>(std::floor(std::log2(std::max(image->width(), image->height())))) + 1;
             sampler->addressModeU = VK_SAMPLER_ADDRESS_MODE_REPEAT;
-            sampler->addressModeV = VK_SAMPLER_ADDRESS_MODE_REPEAT;
+            sampler->addressModeV = VK_SAMPLER_ADDRESS_MODE_MIRRORED_REPEAT;
 
             if (sharedObjects)
                 sharedObjects->share(sampler);
@@ -321,7 +321,7 @@ vsg::ref_ptr<vsg::StateGroup> createPbrStateGroup(vsg::ref_ptr<const vsg::Option
             sampler->maxLod =
                 static_cast<uint32_t>(std::floor(std::log2(std::max(image->width(), image->height())))) + 1;
             sampler->addressModeU = VK_SAMPLER_ADDRESS_MODE_REPEAT;
-            sampler->addressModeV = VK_SAMPLER_ADDRESS_MODE_REPEAT;
+            sampler->addressModeV = VK_SAMPLER_ADDRESS_MODE_MIRRORED_REPEAT;
 
             if (sharedObjects)
                 sharedObjects->share(sampler);
@@ -340,7 +340,7 @@ vsg::ref_ptr<vsg::StateGroup> createPbrStateGroup(vsg::ref_ptr<const vsg::Option
             sampler->maxLod =
                 static_cast<uint32_t>(std::floor(std::log2(std::max(image->width(), image->height())))) + 1;
             sampler->addressModeU = VK_SAMPLER_ADDRESS_MODE_REPEAT;
-            sampler->addressModeV = VK_SAMPLER_ADDRESS_MODE_REPEAT;
+            sampler->addressModeV = VK_SAMPLER_ADDRESS_MODE_MIRRORED_REPEAT;
 
             if (sharedObjects)
                 sharedObjects->share(sampler);
