@@ -336,11 +336,11 @@ class FmuChronoComponentBase : public FmuComponentBase {
     /// Add FMU variables corresponding to the visual shapes attached to the specified ChPhysicsItem.
     /// Variables with the following names are created for each visual shape:
     /// - VISUALIZER[i].frame.pos.[x|y|z]: position from global to shape local frame in global reference frame
-    /// - VISUALIZER[i].frame.pos.[x|y|z]: position from global to shape local frame in global reference frame
     /// - VISUALIZER[i].frame.rot.[e0|e1|e2|e3]]: rotation from shape local to global frame
     /// - VISUALIZER[i].shape.type [fmi2String]: one of the supported_shape_types
     /// - VISUALIZER[i].owner [fmi2String]: owner of the shape, either custom_pi_name or from ChPhysicsItem::GetName()
-    /// - VISUALIZER[i].shape.<shape-specific variables>
+    /// - VISUALIZER[i].owner_id [fmi2String]: id of the owner ChPhysicsItem
+    /// - VISUALIZER[i].shape.<shape-specific variables>: depends on the shape type
     /// Variables are of fmi2Real type if not otherwise specified.
     void AddFmuVisualShapes(ChPhysicsItem& pi, std::string custom_pi_name = "");
 
