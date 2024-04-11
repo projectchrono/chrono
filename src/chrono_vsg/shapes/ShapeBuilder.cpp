@@ -432,7 +432,8 @@ vsg::ref_ptr<vsg::Group> ShapeBuilder::CreateTrimeshPbrMatShape(std::shared_ptr<
         for (size_t k = 0; k < nVert; k++) {
             vsg_vertices->set(k, vsg::vec3CH(tmp_vertices[k]));
             vsg_normals->set(k, vsg::vec3CH(tmp_normals[k]));
-            vsg_texcoords->set(k, vsg::vec2(tmp_texcoords[k].x(), (1.0 - tmp_texcoords[k].y())));
+            vsg_texcoords->set(k, vsg::vec2(tmp_texcoords[k].x(),
+                                            (1.0 - tmp_texcoords[k].y())));
             vsg_indices->set(k, (unsigned int)k);
         }
         auto colors = vsg::vec4Array::create(vsg_vertices->size(), vsg::vec4{1.0f, 1.0f, 1.0f, 1.0f});
