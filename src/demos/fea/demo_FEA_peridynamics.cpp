@@ -70,99 +70,33 @@ int main(int argc, char* argv[]) {
     auto mfloorBody = chrono_types::make_shared<ChBodyEasyBox>(20,1,20,1000,true,true,mat);
     mphysicalSystem.Add(mfloorBody);
     mfloorBody->SetBodyFixed(true);
-    mfloorBody->SetPos(ChVector<>(0, -5.5, 0));
+    mfloorBody->SetPos(ChVector<>(0, -7.5, 0));
 
     mfloorBody->GetVisualShape(0)->SetTexture(GetChronoDataFile("textures/concrete.jpg").c_str());
 
 
     // CREATE A SPHERE PRESSING THE MATERIAL:
-    auto msphere = chrono_types::make_shared<ChBodyEasySphere>(2, 1000, true,true, mat);
+    auto msphere = chrono_types::make_shared<ChBodyEasySphere>(0.7, 13000, true,true, mat);
     mphysicalSystem.Add(msphere);
     msphere->SetPos(ChVector<>(0, -0.5, 0));
+    msphere->SetPos_dt(ChVector<>(0, -16.5, 0));
 
    
 
     // CREATE THE PERIDYNAMIC CONTINUUM
 
-    if (false) {
-        // Create elastoplastic matter
-        auto mymatter = chrono_types::make_shared<ChMatterPeridynamics>();
-
-        // Use the FillBox easy way to create the set of nodes in the Peridynamics matter
-        mymatter->FillBox(ChVector<>(4, 2, 4),                          // size of box
-            4.0 / 25.0,                                   // resolution step
-            1000,                                         // initial density
-            ChCoordsys<>(ChVector<>(0, -3.9, 0), QUNIT),  // position & rotation of box
-            false,                                         // do a centered cubic lattice initial arrangement
-            2.1);                                         // set the horizon radius (as multiples of step)
-
-        GetLog() << "Added " << mymatter->GetNnodes() << " nodes \n";
-
-        // Set some material properties of the Peridynamics matter
-
-        auto mmaterial = chrono_types::make_shared<ChContinuumDruckerPrager>();
-        mymatter->ReplaceMaterial(mmaterial);
-        mmaterial->Set_v(0.35);
-        mmaterial->Set_E(50000.0);
-        mmaterial->Set_elastic_yeld(0);
-        mmaterial->Set_alpha(30 * CH_C_DEG_TO_RAD);
-        // mmaterial->Set_from_MohrCoulomb(30 * CH_C_DEG_TO_RAD, 1000);
-        mmaterial->Set_dilatancy(30 * CH_C_DEG_TO_RAD);
-        mmaterial->Set_flow_rate(50000000.0);
-        mmaterial->Set_hardening_limit(mmaterial->Get_elastic_yeld());
-        mmaterial->Set_hardening_speed(100000000);
-
-        /*
-            auto mmaterial = chrono_types::make_shared<ChContinuumPlasticVonMises>();
-            mymatter->ReplaceMaterial(mmaterial);
-            mmaterial->Set_v(0.38);
-            mmaterial->Set_E(60000.0);
-            mmaterial->Set_elastic_yeld(0.06);
-            mmaterial->Set_flow_rate(300);
-        */
-
-        mymatter->SetViscosity(5000);
-
-        // Add the matter to the physical system
-        mymatter->SetCollide(true);
-        mphysicalSystem.Add(mymatter);
-
-        // Join some nodes of Peridynamics matter to a ChBody
-        /*
-        auto mnodes = mymatter;
-        for (int ij = 0; ij < 120; ij++)
-        {
-            auto myjointnodebody = chrono_types::make_shared<ChLinkPointFrame>();
-            myjointnodebody->Initialize(mnodes,
-                                        ij,
-                                        mfloorBody);
-            mphysicalSystem.Add(myjointnodebody);
-        }
-        */
-
-        // IMPORTANT!
-        // This takes care of the interaction between the particles of the Peridynamics material
-        auto my_sph_proximity = chrono_types::make_shared<ChProximityContainerPeridynamics>();
-        mphysicalSystem.Add(my_sph_proximity);
-
-
-
-
-
-        // This will setup the elastic vs. proximal state of nodes.
-        // Important: do this as last thing before running the while() loop, otherwise
-        // if you add other collision objects after this, they will be collision-transparent.
-        mymatter->SetupInitialBonds();
-    }
-
-
-    //--------------NEW PERIDYNAMIC STUFF
 
     // Create peridynamic matter - a very simple one
+
     auto mymattersprings = chrono_types::make_shared<ChMatterPeriSpringsBreakable>();
-    mymattersprings->k = 60000; // stiffness of bounds
-    mymattersprings->r = 800; // damping of bounds
-    mymattersprings->max_stretch = 0.12;
+    mymattersprings->k = 260000; // stiffness of bounds
+    mymattersprings->r = 1800; // damping of bounds
+    mymattersprings->max_stretch = 0.08;
+/*
+    auto mymattersprings = chrono_types::make_shared<ChMatterPeriSprings>();
+    mymattersprings->k = 1630000; // stiffness of bounds
+    mymattersprings->r = 1800; // damping of bounds
+*/
 
     // IMPORTANT!
     // This takes care of the interaction between the particles of the Peridynamics material
@@ -173,13 +107,20 @@ int main(int argc, char* argv[]) {
 
     // Use the FillBox easy way to create the set of nodes in the Peridynamics matter
     my_peri_proximity->FillBox(
-                      mymattersprings,
-                      ChVector<>(4, 2, 4),                          // size of box
-                      4.0 / 15.0,                                   // resolution step
-                      1000,                                         // initial density
-                      ChCoordsys<>(ChVector<>(0, -3.4, 0), QUNIT),  // position & rotation of box
-                      false,                                         // do a centered cubic lattice initial arrangement
-                      1.6);                                         // set the horizon radius (as multiples of step)
+        mymattersprings,
+        ChVector<>(6, 1.5, 6),                          // size of box
+        4.0 / 22.0,                                   // resolution step
+        1000,                                         // initial density
+        ChCoordsys<>(ChVector<>(0, -3.4, 0), QUNIT),  // position & rotation of box
+        false,                                         // do a centered cubic lattice initial arrangement
+        1.6,                                          // set the horizon radius (as multiples of step) 
+        0.4);                                         // set the collision radius (as multiples of step) for interface particles
+
+    // Just for testing, fix some nodes
+    for (const auto& node : my_peri_proximity->GetNodes()) {
+        if (node->GetPos().z() < -2.70 || node->GetPos().z() > 2.50 || node->GetPos().x() < -2.70 || node->GetPos().x() > 2.50)
+            node->SetFixed(true);
+    }
 
 
     // Create the Irrlicht visualization system
@@ -202,7 +143,7 @@ int main(int argc, char* argv[]) {
     //
     // THE SOFT-REAL-TIME CYCLE
     //
-    double timestep = 0.002;
+    double timestep = 0.0005;
 
     while (vsys->Run()) {
         vsys->BeginScene();
@@ -212,7 +153,7 @@ int main(int argc, char* argv[]) {
         for  (auto& myiter : mphysicalSystem.Get_otherphysicslist()) {
 
             // OLD --
-
+            /*
             if (auto myimatter = std::dynamic_pointer_cast<ChMatterPeridynamics>(myiter)) {
                 
                 for (unsigned int ip = 0; ip < myimatter->GetNnodes(); ip++) {
@@ -288,7 +229,7 @@ int main(int argc, char* argv[]) {
                     // irrlicht::tools::drawSegment(vsys.get(), mnode->GetPos(),
                     // mnode->GetPos()+(mnode->UserForce * 0.1), ChColor(0, 0, 0),false);
                 }
-            }
+            }*/
 
             // NEW----
 
@@ -314,7 +255,7 @@ int main(int argc, char* argv[]) {
                             core::rect<s32>(spos.X - 2, spos.Y - 2, spos.X + 2, spos.Y + 2));
                     }
 
-                    // draw aabb of nodes 
+                    // draw horizon of nodes 
                     if (false) {
                         double msize = rad;
                         vsys->GetVideoDriver()->setTransform(video::ETS_WORLD, core::matrix4());
@@ -347,8 +288,8 @@ int main(int argc, char* argv[]) {
                             if (true) {
                                 if (mbounddata.second.broken)
                                     irrlicht::tools::drawSegment(vsys.get(), mnodeA->GetPos(), mnodeB->GetPos(), ChColor(1, 0, 0), true);
-                                else
-                                    irrlicht::tools::drawSegment(vsys.get(), mnodeA->GetPos(), mnodeB->GetPos(), ChColor(0, 0.5, 1), true);
+                                //else
+                                 //   irrlicht::tools::drawSegment(vsys.get(), mnodeA->GetPos(), mnodeB->GetPos(), ChColor(0, 0.5, 1), true);
                             }
                         }
                     }
