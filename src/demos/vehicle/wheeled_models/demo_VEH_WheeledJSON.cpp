@@ -320,9 +320,6 @@ double initYaw = 20 * CH_DEG_TO_RAD;
 // Simulation step size
 double step_size = 2e-3;
 
-// Output directory
-const std::string out_dir = GetChronoOutputPath() + "WHEELED_JSON";
-
 // =============================================================================
 
 int main(int argc, char* argv[]) {
@@ -475,7 +472,8 @@ int main(int argc, char* argv[]) {
     }
 
     // Initialize output directories
-    std::string veh_dir = out_dir + "/" + vehicle_model->ModelName();
+    const std::string out_dir = GetChronoOutputPath() + "WHEELED_JSON";
+    const std::string veh_dir = out_dir + "/" + vehicle_model->ModelName();
     if (!filesystem::create_directory(filesystem::path(out_dir))) {
         std::cout << "Error creating directory " << out_dir << std::endl;
         return 1;

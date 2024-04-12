@@ -49,11 +49,6 @@ double duration_sim = 10;            // Duration of actual locomotion simulation
 double output_fps = 100;
 double render_fps = 60;
 
-// Output directories
-const std::string out_dir = GetChronoOutputPath() + "ROBOSIMIAN_SCM";
-const std::string pov_dir = out_dir + "/POVRAY";
-const std::string img_dir = out_dir + "/IMG";
-
 // =============================================================================
 
 bool GetProblemSpecs(int argc,
@@ -267,6 +262,31 @@ int main(int argc, char* argv[]) {
     my_sys.SetGravitationalAcceleration(ChVector3d(0, 0, -9.8));
     ////my_sys.SetGravitationalAcceleration(ChVector3d(0, 0, 0));
 
+    // -----------------------------
+    // Initialize output directories
+    // -----------------------------
+
+    const std::string out_dir = GetChronoOutputPath() + "ROBOSIMIAN_SCM";
+    const std::string pov_dir = out_dir + "/POVRAY";
+    const std::string img_dir = out_dir + "/IMG";
+
+    if (!filesystem::create_directory(filesystem::path(out_dir))) {
+        cout << "Error creating directory " << out_dir << endl;
+        return 1;
+    }
+    if (povray_output) {
+        if (!filesystem::create_directory(filesystem::path(pov_dir))) {
+            cout << "Error creating directory " << pov_dir << endl;
+            return 1;
+        }
+    }
+    if (image_output) {
+        if (!filesystem::create_directory(filesystem::path(img_dir))) {
+            cout << "Error creating directory " << img_dir << endl;
+            return 1;
+        }
+    }
+
     // -----------------------
     // Create RoboSimian robot
     // -----------------------
@@ -399,27 +419,6 @@ int main(int argc, char* argv[]) {
         vis->AddLight(ChVector3d(100, -100, 80), 190, ChColor(0.7f, 0.8f, 0.8f));
         ////vis->AddLightWithShadow(ChVector3d(10.0, -6.0, 3.0), ChVector3d(0, 0, 0), 3, -10, 10, 40, 512);
         ////vis->EnableShadows();
-    }
-
-    // -----------------------------
-    // Initialize output directories
-    // -----------------------------
-
-    if (!filesystem::create_directory(filesystem::path(out_dir))) {
-        cout << "Error creating directory " << out_dir << endl;
-        return 1;
-    }
-    if (povray_output) {
-        if (!filesystem::create_directory(filesystem::path(pov_dir))) {
-            cout << "Error creating directory " << pov_dir << endl;
-            return 1;
-        }
-    }
-    if (image_output) {
-        if (!filesystem::create_directory(filesystem::path(img_dir))) {
-            cout << "Error creating directory " << img_dir << endl;
-            return 1;
-        }
     }
 
     // ---------------------------------

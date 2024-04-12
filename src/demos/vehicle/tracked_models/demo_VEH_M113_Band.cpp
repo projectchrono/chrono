@@ -98,22 +98,45 @@ bool vtk_output = false;
 double img_FPS = 50;
 double vtk_FPS = 50;
 
-// Output directories
-const std::string out_dir = GetChronoOutputPath() + "M113_BAND";
-const std::string img_dir = out_dir + "/IMG";
-const std::string vtk_dir = out_dir + "/VTK";
-
 // =============================================================================
 
 // Forward declarations
 void AddFixedObstacles(ChSystem* system);
-void WriteVehicleVTK(int frame, ChTrackedVehicle& vehicle);
-void WriteMeshVTK(int frame, std::shared_ptr<fea::ChMesh> meshL, std::shared_ptr<fea::ChMesh> meshR);
+void WriteVehicleVTK(const std::string& vtk_dir, int frame, ChTrackedVehicle& vehicle);
+void WriteMeshVTK(const std::string& vtk_dir,
+                  int frame,
+                  std::shared_ptr<fea::ChMesh> meshL,
+                  std::shared_ptr<fea::ChMesh> meshR);
 
 // =============================================================================
 
 int main(int argc, char* argv[]) {
     std::cout << "Copyright (c) 2017 projectchrono.org\nChrono version: " << CHRONO_VERSION << std::endl;
+
+    // -----------------
+    // Initialize output
+    // -----------------
+    const std::string out_dir = GetChronoOutputPath() + "M113_BAND";
+    const std::string img_dir = out_dir + "/IMG";
+    const std::string vtk_dir = out_dir + "/VTK";
+
+    if (!filesystem::create_directory(filesystem::path(out_dir))) {
+        cout << "Error creating directory " << out_dir << endl;
+        return 1;
+    }
+
+    if (img_output) {
+        if (!filesystem::create_directory(filesystem::path(img_dir))) {
+            cout << "Error creating directory " << img_dir << endl;
+            return 1;
+        }
+    }
+    if (vtk_output) {
+        if (!filesystem::create_directory(filesystem::path(vtk_dir))) {
+            cout << "Error creating directory " << vtk_dir << endl;
+            return 1;
+        }
+    }
 
     // --------------------------
     // Construct the M113 vehicle
@@ -294,28 +317,6 @@ int main(int argc, char* argv[]) {
         }
     }
 
-    // -----------------
-    // Initialize output
-    // -----------------
-
-    if (!filesystem::create_directory(filesystem::path(out_dir))) {
-        cout << "Error creating directory " << out_dir << endl;
-        return 1;
-    }
-
-    if (img_output) {
-        if (!filesystem::create_directory(filesystem::path(img_dir))) {
-            cout << "Error creating directory " << img_dir << endl;
-            return 1;
-        }
-    }
-    if (vtk_output) {
-        if (!filesystem::create_directory(filesystem::path(vtk_dir))) {
-            cout << "Error creating directory " << vtk_dir << endl;
-            return 1;
-        }
-    }
-
     // Setup chassis position output with column headers
     chrono::utils::ChWriterCSV csv("\t");
     csv.Stream().setf(std::ios::scientific | std::ios::showpos);
@@ -485,9 +486,9 @@ int main(int argc, char* argv[]) {
         }
 
         if (vtk_output && step_number % vtk_steps == 0) {
-            WriteVehicleVTK(vtk_frame, vehicle);
+            WriteVehicleVTK(vtk_dir, vtk_frame, vehicle);
             if (shoe_type == TrackShoeType::BAND_ANCF)
-                WriteMeshVTK(vtk_frame, meshL, meshR);
+                WriteMeshVTK(vtk_dir, vtk_frame, meshL, meshR);
             vtk_frame++;
         }
 
@@ -571,7 +572,7 @@ void AddFixedObstacles(ChSystem* system) {
 
 // =============================================================================
 
-void WriteMeshVTK(int frame, std::shared_ptr<fea::ChMesh> meshL, std::shared_ptr<fea::ChMesh> meshR) {
+void WriteMeshVTK(const std::string& vtk_dir, int frame, std::shared_ptr<fea::ChMesh> meshL, std::shared_ptr<fea::ChMesh> meshR) {
     static bool generate_connectivity = true;
     if (generate_connectivity) {
         fea::ChMeshExporter::WriteMesh(meshL, vtk_dir + "/meshL_connectivity.out");
@@ -584,7 +585,7 @@ void WriteMeshVTK(int frame, std::shared_ptr<fea::ChMesh> meshL, std::shared_ptr
     fea::ChMeshExporter::WriteFrame(meshR, vtk_dir + "/meshR_connectivity.out", filenameR);
 }
 
-void WriteVehicleVTK(int frame, ChTrackedVehicle& vehicle) {
+void WriteVehicleVTK(const std::string& vtk_dir, int frame, ChTrackedVehicle& vehicle) {
     {
         chrono::utils::ChWriterCSV csv(",");
         auto num_shoes_L = vehicle.GetTrackAssembly(VehicleSide::LEFT)->GetNumTrackShoes();

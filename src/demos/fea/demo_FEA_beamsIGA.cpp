@@ -47,8 +47,6 @@ using namespace chrono;
 using namespace chrono::fea;
 using namespace chrono::irrlicht;
 
-const std::string out_dir = GetChronoOutputPath() + "FEA_BEAMS_IGA";
-
 //
 // Example A: Low  level approach, creating single elements and nodes:
 //
@@ -330,7 +328,7 @@ void MakeAndRunDemo2(ChSystem& sys, std::shared_ptr<ChVisualSystemIrrlicht> vis)
 // Plasticity in IGA beams.
 //
 
-void MakeAndRunDemo3(ChSystem& sys, std::shared_ptr<ChVisualSystemIrrlicht> vis) {
+void MakeAndRunDemo3(ChSystem& sys, std::shared_ptr<ChVisualSystemIrrlicht> vis, const std::string& out_dir) {
     // Create a mesh, that is a container for groups
     // of elements and their referenced nodes.
     // Remember to add it to the system.
@@ -454,7 +452,7 @@ void MakeAndRunDemo3(ChSystem& sys, std::shared_ptr<ChVisualSystemIrrlicht> vis)
 // with a motor, up to resonance.
 //
 
-void MakeAndRunDemo4(ChSystem& sys, std::shared_ptr<ChVisualSystemIrrlicht> vis) {
+void MakeAndRunDemo4(ChSystem& sys, std::shared_ptr<ChVisualSystemIrrlicht> vis, const std::string& out_dir) {
     // Create a mesh, that is a container for groups
     // of elements and their referenced nodes.
     // Remember to add it to the system.
@@ -610,6 +608,7 @@ int main(int argc, char* argv[]) {
     std::cout << "Copyright (c) 2017 projectchrono.org\nChrono version: " << CHRONO_VERSION << std::endl;
 
     // Initialize output
+    const std::string out_dir = GetChronoOutputPath() + "FEA_BEAMS_IGA";
     if (!filesystem::create_directory(filesystem::path(out_dir))) {
         std::cout << "Error creating directory " << out_dir << std::endl;
         return 1;
@@ -664,10 +663,10 @@ int main(int argc, char* argv[]) {
             MakeAndRunDemo2(sys, vis);
             break;
         case 3:
-            MakeAndRunDemo3(sys, vis);
+            MakeAndRunDemo3(sys, vis, out_dir);
             break;
         case 4:
-            MakeAndRunDemo4(sys, vis);
+            MakeAndRunDemo4(sys, vis, out_dir);
             break;
     }
 

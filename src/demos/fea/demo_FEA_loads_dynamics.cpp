@@ -39,8 +39,6 @@ using namespace chrono;
 using namespace fea;
 using namespace chrono::irrlicht;
 
-const std::string out_dir = GetChronoOutputPath() + "FEA_LOADS";  // Output directory
-
 int main(int argc, char* argv[]) {
     std::cout << "Copyright (c) 2017 projectchrono.org\nChrono version: " << CHRONO_VERSION << std::endl;
 
@@ -64,6 +62,7 @@ int main(int argc, char* argv[]) {
     ChClampValue(load_option, 1, 7);
 
     // Create (if needed) output directory
+    const std::string out_dir = GetChronoOutputPath() + "FEA_LOADS";
     if (!filesystem::create_directory(filesystem::path(out_dir))) {
         std::cout << "Error creating directory " << out_dir << std::endl;
         return 1;

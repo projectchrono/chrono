@@ -53,7 +53,6 @@ using namespace chrono;
 // -----------------------------------------------------------------------------
 
 ChVisualSystem::Type vis_type = ChVisualSystem::Type::VSG;
-std::string out_dir = GetChronoOutputPath() + "DEMO_HYDRAULIC_CRANE";
 
 // -----------------------------------------------------------------------------
 
@@ -61,6 +60,7 @@ int main(int argc, char* argv[]) {
     std::cout << "Copyright (c) 2023 projectchrono.org\nChrono version: " << CHRONO_VERSION << std::endl;
 
     // Create (if needed) output directory
+    std::string out_dir = GetChronoOutputPath() + "DEMO_HYDRAULIC_CRANE";
     if (!filesystem::create_directory(filesystem::path(out_dir))) {
         std::cout << "Error creating directory " << out_dir << std::endl;
         return 1;

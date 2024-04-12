@@ -47,7 +47,6 @@ ChVisualSystem::Type vis_type = ChVisualSystem::Type::VSG;
 
 bool output = false;
 bool blender_output = false;
-const std::string out_dir = GetChronoOutputPath() + "SCM_DEF_SOIL";
 
 // Type of tire (controls both contact and visualization)
 enum class TireType { CYLINDRICAL, LUGGED };
@@ -136,6 +135,7 @@ int main(int argc, char* argv[]) {
     sys.Add(mtruss);
 
     // Initialize output
+    const std::string out_dir = GetChronoOutputPath() + "SCM_DEF_SOIL";
     if (output || blender_output) {
         if (!filesystem::create_directory(filesystem::path(out_dir))) {
             std::cout << "Error creating directory " << out_dir << std::endl;
