@@ -40,6 +40,8 @@ FmuComponent::FmuComponent(fmi2String instanceName,
     // Set initial/default values for FMU variables
     step_size = 1e-3;
 
+    out_path = ".";
+
     // Get default JSON file from FMU resources
     auto resources_dir = std::string(fmuResourceLocation).erase(0, 8);
     tire_JSON = resources_dir + "/TMeasyTire.json";
@@ -50,6 +52,10 @@ FmuComponent::FmuComponent(fmi2String instanceName,
 
     AddFmuVariable(&step_size, "step_size", FmuVariable::Type::Real, "s", "integration step size",  //
                    FmuVariable::CausalityType::parameter, FmuVariable::VariabilityType::fixed);     //
+
+    // Set FIXED PARAMETERS for this FMU (I/O)
+    AddFmuVariable(&out_path, "out_path", FmuVariable::Type::String, "1", "output directory",    //
+                   FmuVariable::CausalityType::parameter, FmuVariable::VariabilityType::fixed);  //
 
     // Set CONTINOUS INPUTS for this FMU (wheel state)
     AddFmuVecVariable(wheel_state.pos, "wheel_state.pos", "m", "wheel position",                      //

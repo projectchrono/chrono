@@ -108,6 +108,11 @@ class FmuComponent : public chrono::FmuChronoComponentBase {
     chrono::ChVector3d init_loc;  ///< location of first path point (FMU constant output)
     double init_yaw;              ///< orientation of first path segment (FMU constant output)
 
+    // FMU I/O parameters
+    std::string out_path;  ///< output directory
+    bool save_img;         ///< enable/disable saving of visualization snapshots
+    double fps;            ///< snapshot saving frequency (in FPS)
+
     // Vehicle driver commands (FMU countinuous outputs)
     double steering;  ///< steering command, in [-1,1]
     double throttle;  ///< throttle command, in [0,1]
@@ -117,6 +122,8 @@ class FmuComponent : public chrono::FmuChronoComponentBase {
     chrono::ChAABB path_aabb;  ///< path axis-aligned bounding box
     int iballS;                ///< ID for sentinel visualization shape
     int iballT;                ///< ID for target visualization shape
+    int render_frame;          ///< counter for rendered frames
+
 #ifdef CHRONO_IRRLICHT
     std::shared_ptr<chrono::irrlicht::ChVisualSystemIrrlicht> vis_sys;
 #endif

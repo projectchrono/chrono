@@ -92,6 +92,9 @@ class FmuComponent : public chrono::FmuChronoComponentBase {
     LocalTerrain terrain;                             ///< associated terrain object
     chrono::ChSystemSMC sys;                          ///< containing system
 
+    // FMU I/O parameters
+    std::string out_path;  ///< output directory
+
     // FMU parameters
     std::string tire_JSON;  ///< JSON tire specification file
     double step_size;       ///< integration step size
