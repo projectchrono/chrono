@@ -43,6 +43,7 @@ constexpr bool RUN_ORIGIN = true;
 constexpr bool RUN_MODAL = true;
 constexpr bool USE_HERTING = false;
 constexpr bool USE_LINEAR_INERTIAL_TERM = true;
+constexpr bool USE_GRAVITY = false;
 
 void MakeAndRunDemo_CurvedBeam(bool do_modal_reduction) {
     // Create a Chrono::Engine physical system
@@ -119,6 +120,7 @@ void MakeAndRunDemo_CurvedBeam(bool do_modal_reduction) {
         else
             mmodal_assembly->SetReductionType(chrono::modal::ChModalAssembly::ReductionType::CRAIG_BAMPTON);
 
+        mmodal_assembly->SetModalAutomaticGravity(USE_GRAVITY);
         sys.Add(mmodal_assembly);
 
         // Initialize mesh
@@ -126,8 +128,8 @@ void MakeAndRunDemo_CurvedBeam(bool do_modal_reduction) {
         mmodal_assembly->AddInternalMesh(mesh_internal);
         auto mesh_boundary = chrono_types::make_shared<ChMesh>();
         mmodal_assembly->AddMesh(mesh_boundary);
-        mesh_internal->SetAutomaticGravity(false);
-        mesh_boundary->SetAutomaticGravity(false);
+        mesh_internal->SetAutomaticGravity(USE_GRAVITY);
+        mesh_boundary->SetAutomaticGravity(USE_GRAVITY);
 
         // Build nodes
         auto mbeam_nodes = std::vector<std::shared_ptr<ChNodeFEAxyzrot>>(mn_ele + 1);
@@ -201,8 +203,11 @@ void MakeAndRunDemo_CurvedBeam(bool do_modal_reduction) {
         modal_assembly_list.back()->GetMeshes().front()->GetNodes().back());
     ChVector3d tip_pos_x0 = tip_node->GetPos();
 
-    // Gravity is zero
-    sys.SetGravitationalAcceleration(ChVector3d(0, 0, 0));
+    // set gravity
+    if (USE_GRAVITY)
+        sys.SetGravitationalAcceleration(ChVector3d(0, 0, -9.81));  // -Z axis
+    else
+        sys.SetGravitationalAcceleration(ChVector3d(0, 0, 0));
 
     // Set linear solver
 #ifdef CHRONO_PARDISO_MKL
@@ -225,7 +230,7 @@ void MakeAndRunDemo_CurvedBeam(bool do_modal_reduction) {
 
         for (int i_part = 0; i_part < n_parts; i_part++) {
             auto damping_beam = ChModalDampingReductionR(*modal_assembly_list.at(i_part));
-            // modal_assembly_list.at(i_part)->verbose = true;
+            // modal_assembly_list.at(i_part)->SetVerbose(true);
             modal_assembly_list.at(i_part)->DoModalReduction(modes_settings, damping_beam);
             modal_assembly_list.at(i_part)->WriteSubassemblyMatrices(
                 true, true, true, true, (out_dir + "/modal_assembly_" + std::to_string(i_part)).c_str());

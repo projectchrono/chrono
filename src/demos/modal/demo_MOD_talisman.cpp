@@ -55,6 +55,7 @@ constexpr bool USE_HERTING = false;
 constexpr bool DO_DYNAMICS = true;
 
 constexpr bool USE_LINEAR_INERTIAL_TERM = true;
+constexpr bool USE_GRAVITY = false;
 
 bool VISUALIZATION = false;
 
@@ -117,6 +118,7 @@ void MakeAndRunDemo_SlewingBeam(bool do_modal_reduction, ChMatrixDynamic<>& mdef
         modal_assembly->SetReductionType(chrono::modal::ChModalAssembly::ReductionType::HERTING);
     else
         modal_assembly->SetReductionType(chrono::modal::ChModalAssembly::ReductionType::CRAIG_BAMPTON);
+    modal_assembly->SetModalAutomaticGravity(USE_GRAVITY);
     sys.Add(modal_assembly);
 
     // Initialize mesh
@@ -124,8 +126,8 @@ void MakeAndRunDemo_SlewingBeam(bool do_modal_reduction, ChMatrixDynamic<>& mdef
     modal_assembly->AddInternalMesh(mesh_internal);
     auto mesh_boundary = chrono_types::make_shared<ChMesh>();
     modal_assembly->AddMesh(mesh_boundary);
-    mesh_internal->SetAutomaticGravity(false);
-    mesh_boundary->SetAutomaticGravity(false);
+    mesh_internal->SetAutomaticGravity(USE_GRAVITY);
+    mesh_boundary->SetAutomaticGravity(USE_GRAVITY);
 
     std::vector<std::shared_ptr<ChNodeFEAxyzrot>> root_node_list;  // A0,B0,C0,D0
     auto BuildNode_Root = [&](const ChVector3d& mpos) {
@@ -292,8 +294,11 @@ void MakeAndRunDemo_SlewingBeam(bool do_modal_reduction, ChMatrixDynamic<>& mdef
         all_beam_elements.push_back(std::dynamic_pointer_cast<ChElementBeamEuler>(ele));
     std::cout << "There are " << all_beam_elements.size() << " elements\n";
 
-    // gravity is zero
-    sys.SetGravitationalAcceleration(ChVector3d(0, 0, 0));
+    // set gravity
+    if (USE_GRAVITY)
+        sys.SetGravitationalAcceleration(ChVector3d(0, 0, -9.81));  // -Z axis
+    else
+        sys.SetGravitationalAcceleration(ChVector3d(0, 0, 0));
 
     if (VISUALIZATION) {
         // VISUALIZATION ASSETS:
@@ -346,7 +351,7 @@ void MakeAndRunDemo_SlewingBeam(bool do_modal_reduction, ChMatrixDynamic<>& mdef
         auto modes_settings = ChModalSolveUndamped(12, 1e-5, 500, 1e-10, false, eigen_solver);
 
         auto damping_beam = ChModalDampingReductionR(*modal_assembly);
-        // modal_assembly->verbose = true;
+        // modal_assembly->SetVerbose(true);
         modal_assembly->DoModalReduction(modes_settings, damping_beam);
         modal_assembly->WriteSubassemblyMatrices(true, true, true, true, (out_dir + "/modal_assembly"));
     }
