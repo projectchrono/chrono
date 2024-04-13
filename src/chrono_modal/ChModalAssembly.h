@@ -226,6 +226,9 @@ class ChApiModal ChModalAssembly : public ChAssembly {
     void AddInternalBody(std::shared_ptr<ChBody> body);
 
     /// Attach an internal link to this modal assembly.
+    ///  - AddInternalLink(): to link "boundary nodes" with "internal nodes", or "internal nodes" with "internal nodes",
+    ///  which will be reduced;
+    ///  - AddLink(): to link "boundary nodes" with "boundary nodes", which will be computed and updated in full state.
     void AddInternalLink(std::shared_ptr<ChLinkBase> link);
 
     /// Attach an internal mesh to this modal assembly.
@@ -577,14 +580,18 @@ class ChApiModal ChModalAssembly : public ChAssembly {
                                              ///< will be eventually transformed to the modal forces and applied on the
                                              ///< reduced modal assembly.
 
+    Eigen::SparseQR<Eigen::SparseMatrix<double>, Eigen::COLAMDOrdering<int>> m_solver_invKIIc;
+
     ChKRMBlock modal_Hblock;
-    ChMatrixDynamic<> modal_Cq;  // corresponding to boundary and modal lagrange multipliers
     ChMatrixDynamic<> modal_M;  // tangent mass matrix in the modal reduced state
     ChMatrixDynamic<> modal_K;  // tangent stiffness matrix in the modal reduced state
     ChMatrixDynamic<> modal_R;  // tangent damping matrix in the modal reduced state
+    // ChMatrixDynamic<> modal_Cq;  // corresponding to boundary and modal lagrange multipliers
     ChMatrixDynamic<> Psi;            // mode transformation matrix.
     ChMatrixDynamic<> Psi_S;          // static mode transformation matrix - corresponding to internal DOFs.
     ChMatrixDynamic<> Psi_D;          // dynamic mode transformation matrix - corresponding to internal DOFs.
+    ChMatrixDynamic<> Psi_S_LambdaI;  // static mode transformation matrix - corresponding to internal Lagrange multipliers.
+    ChMatrixDynamic<> Psi_D_LambdaI;  // dynamic mode transformation matrix - corresponding to internal Lagrange multipliers.
 
     ChFrameMoving<> floating_frame_F0;  ///< floating frame of reference F in the initial undeformed configuration
     ChFrameMoving<> floating_frame_F;   ///< floating frame of reference F in the deformed configuration
@@ -627,7 +634,7 @@ class ChApiModal ChModalAssembly : public ChAssembly {
     ChMatrixDynamic<> M_red;
     ChMatrixDynamic<> K_red;
     ChMatrixDynamic<> R_red;
-    ChMatrixDynamic<> Cq_red;
+    // ChMatrixDynamic<> Cq_red;
 
     ChMatrixDynamic<> Km_sup;  ///< linear material stiffness matrix of the reduced superelement
     ChMatrixDynamic<> Kg_sup;  ///< nonlinear geometrical stiffness matrix of the reduced superelement due to the

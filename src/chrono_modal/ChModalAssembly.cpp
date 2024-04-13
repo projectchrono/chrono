@@ -19,6 +19,8 @@
 #include "chrono/fea/ChNodeFEAxyz.h"
 #include "chrono/fea/ChNodeFEAxyzrot.h"
 
+#include <unsupported/Eigen/SparseExtra>  //TODO: remove after debug
+
 namespace chrono {
 
 using namespace fea;
@@ -242,9 +244,9 @@ void ChModalAssembly::DoModalReduction(ChSparseMatrix& full_M,
         std::ofstream fileR("dump_modal_R.dat");
         fileR << std::setprecision(12) << std::scientific;
         StreamOut(modal_R, fileR);
-        std::ofstream fileCq("dump_modal_Cq.dat");
-        fileCq << std::setprecision(12) << std::scientific;
-        StreamOut(modal_Cq, fileCq);
+        // std::ofstream fileCq("dump_modal_Cq.dat");
+        // fileCq << std::setprecision(12) << std::scientific;
+        // StreamOut(modal_Cq, fileCq);
 
         std::ofstream fileM_red("dump_reduced_M.dat");
         fileM_red << std::setprecision(12) << std::scientific;
@@ -255,9 +257,9 @@ void ChModalAssembly::DoModalReduction(ChSparseMatrix& full_M,
         std::ofstream fileR_red("dump_reduced_R.dat");
         fileR_red << std::setprecision(12) << std::scientific;
         StreamOut(R_red, fileR_red);
-        std::ofstream fileCq_red("dump_reduced_Cq.dat");
-        fileCq_red << std::setprecision(12) << std::scientific;
-        StreamOut(Cq_red, fileCq_red);
+        // std::ofstream fileCq_red("dump_reduced_Cq.dat");
+        // fileCq_red << std::setprecision(12) << std::scientific;
+        // StreamOut(Cq_red, fileCq_red);
     }
 }
 
@@ -590,6 +592,41 @@ void ChModalAssembly::ComputeLocalFullKMCqMatrix(ChSparseMatrix& full_M,
 void ChModalAssembly::ApplyHertingTransformation(const ChModalDamping& damping_model) {
     assert(m_modal_eigvect.cols() >= 6);  // at least six rigid-body modes are required.
 
+    // It is forbidden to call AddLink() to connect internal bodies/nodes, thus Cq_BI should be zero.
+    ChSparseMatrix Cq_BI_loc =
+        full_Cq_loc.block(0, m_num_coords_vel_boundary, m_num_constr_boundary, m_num_coords_vel_internal);
+    if (Cq_BI_loc.nonZeros())
+        throw std::runtime_error(
+            "Error: it is forbidden to use AddLink() to connect internal bodies/nodes in ChModalAssembly().");
+
+    // extended K R M matrices with constraints in local frame
+    Eigen::SparseMatrix<double> K_c_loc;
+    Eigen::SparseMatrix<double> M_c_loc;
+    Eigen::SparseMatrix<double> R_c_loc;
+    if (m_num_constr_internal) {
+        ChSparseMatrix Cq_I_loc = full_Cq_loc.bottomRows(m_num_constr_internal);
+        util_sparse_assembly_2x2symm(K_c_loc, full_K_loc, Cq_I_loc);
+
+        Eigen::SparseMatrix<double> temp_zero(Cq_I_loc.rows(), Cq_I_loc.cols());
+        util_sparse_assembly_2x2symm(M_c_loc, full_M_loc, temp_zero);
+        util_sparse_assembly_2x2symm(R_c_loc, full_R_loc, temp_zero);
+    } else {
+        K_c_loc = full_K_loc;
+        M_c_loc = full_M_loc;
+        R_c_loc = full_R_loc;
+    }
+    K_c_loc.makeCompressed();
+    M_c_loc.makeCompressed();
+    R_c_loc.makeCompressed();
+
+    //Eigen::saveMarket(M_c_loc, "C:/work/matlab/TestModalAssembly/data/M_c_loc.dat");
+    //Eigen::saveMarket(K_c_loc, "C:/work/matlab/TestModalAssembly/data/K_c_loc.dat");
+    //ChMatrixDynamic<> Uloc(m_num_coords_vel_boundary + m_num_coords_vel_internal + m_num_constr_internal, 6);
+    //Uloc.setZero();
+    //Uloc.block(0, 0, m_num_coords_vel_boundary, 6) = Uloc_B;
+    //Uloc.block(m_num_coords_vel_boundary, 0, m_num_coords_vel_internal, 6) = Uloc_I;
+    //Eigen::saveMarket(Uloc, "C:/work/matlab/TestModalAssembly/data/Uloc.dat");
+
     // K_IIc = [  K_II   Cq_II' ]
     //         [ Cq_II     0    ]
     ChSparseMatrix K_II_loc = full_K_loc.block(m_num_coords_vel_boundary, m_num_coords_vel_boundary,
@@ -611,13 +648,13 @@ void ChModalAssembly::ApplyHertingTransformation(const ChModalDamping& damping_m
     ChSparseMatrix Cq_IB_loc =
         full_Cq_loc.block(m_num_constr_boundary, 0, m_num_constr_internal, m_num_coords_vel_boundary);
     Psi_S.setZero(m_num_coords_vel_internal, m_num_coords_vel_boundary);
-    ChMatrixDynamic<> Psi_S_C(m_num_coords_vel_internal + m_num_constr_internal, m_num_coords_vel_boundary);
-    ChMatrixDynamic<> Psi_S_LambdaI(m_num_constr_internal, m_num_coords_vel_boundary);
+    Psi_S_LambdaI.setZero(m_num_constr_internal, m_num_coords_vel_boundary);
+    // ChMatrixDynamic<> Psi_S_C(m_num_coords_vel_internal + m_num_constr_internal, m_num_coords_vel_boundary);
 
     // avoid computing K_IIc^{-1}, effectively do n times a linear solve:
-    Eigen::SparseQR<Eigen::SparseMatrix<double>, Eigen::COLAMDOrdering<int>> solver;
-    solver.analyzePattern(K_IIc_loc);
-    solver.factorize(K_IIc_loc);
+    // Eigen::SparseQR<Eigen::SparseMatrix<double>, Eigen::COLAMDOrdering<int>> solver;
+    m_solver_invKIIc.analyzePattern(K_IIc_loc);
+    m_solver_invKIIc.factorize(K_IIc_loc);
     ChSparseMatrix K_IB_loc =
         full_K_loc.block(m_num_coords_vel_boundary, 0, m_num_coords_vel_internal, m_num_coords_vel_boundary);
     for (unsigned int i = 0; i < m_num_coords_vel_boundary; ++i) {
@@ -627,10 +664,10 @@ void ChModalAssembly::ApplyHertingTransformation(const ChModalDamping& damping_m
         else
             rhs << K_IB_loc.col(i).toDense();
 
-        ChVectorDynamic<> x = solver.solve(rhs.sparseView());
+        ChVectorDynamic<> x = m_solver_invKIIc.solve(rhs.sparseView());
 
         Psi_S.col(i) = -x.head(m_num_coords_vel_internal);
-        Psi_S_C.col(i) = -x;
+        // Psi_S_C.col(i) = -x;
         if (m_num_constr_internal)
             Psi_S_LambdaI.col(i) = -x.tail(m_num_constr_internal);
     }
@@ -663,9 +700,9 @@ void ChModalAssembly::ApplyHertingTransformation(const ChModalDamping& damping_m
         // but use K_IIc instead of K_II anyway, to reuse K_IIc already factored before)
         //
         // Psi_D_C = {Psi_D; Psi_D_LambdaI} = - K_IIc^{-1} * {(M_IB * V_B + M_II * V_I) ; 0}
-        Psi_D.setZero(m_num_coords_vel_internal, this->m_num_coords_modal);
-        ChMatrixDynamic<> Psi_D_C(m_num_coords_vel_internal + m_num_constr_internal, this->m_num_coords_modal);
-        ChMatrixDynamic<> Psi_D_LambdaI(m_num_constr_internal, this->m_num_coords_modal);
+        Psi_D.setZero(m_num_coords_vel_internal, m_num_coords_modal);
+        Psi_D_LambdaI.setZero(m_num_constr_internal, m_num_coords_modal);
+        // ChMatrixDynamic<> Psi_D_C(m_num_coords_vel_internal + m_num_constr_internal, m_num_coords_modal);
 
         ChSparseMatrix M_II_loc = full_M_loc.block(m_num_coords_vel_boundary, m_num_coords_vel_boundary,
                                                    m_num_coords_vel_internal, m_num_coords_vel_internal);
@@ -679,35 +716,40 @@ void ChModalAssembly::ApplyHertingTransformation(const ChModalDamping& damping_m
             else
                 rhs << rhs_top.col(i);
 
-            ChVectorDynamic<> x = solver.solve(rhs.sparseView());
+            ChVectorDynamic<> x = m_solver_invKIIc.solve(rhs.sparseView());
 
             Psi_D.col(i) = -x.head(m_num_coords_vel_internal);
-            Psi_D_C.col(i) = -x;
+            // Psi_D_C.col(i) = -x;
             if (m_num_constr_internal)
                 Psi_D_LambdaI.col(i) = -x.tail(m_num_constr_internal);
         }
 
-        // Psi = [ I     0    ]
-        //       [Psi_S  Psi_D]
+        // Psi = [ I               0             ]
+        //       [ Psi_S           Psi_D         ]
+        //       [ Psi_S_LambdaI   Psi_D_LambdaI ]
         Psi.setZero(m_num_coords_vel_boundary + m_num_coords_vel_internal + m_num_constr_internal,
                     m_num_coords_vel_boundary + m_num_coords_modal);
         //***TODO*** maybe prefer sparse Psi matrix, especially for upper blocks...
-
-        Psi << Eigen::MatrixXd::Identity(m_num_coords_vel_boundary, m_num_coords_vel_boundary),
-            Eigen::MatrixXd::Zero(m_num_coords_vel_boundary, m_num_coords_modal), Psi_S, Psi_D;
+        if (m_num_constr_internal)
+            Psi << Eigen::MatrixXd::Identity(m_num_coords_vel_boundary, m_num_coords_vel_boundary),
+                Eigen::MatrixXd::Zero(m_num_coords_vel_boundary, m_num_coords_modal), Psi_S, Psi_D, Psi_S_LambdaI,
+                Psi_D_LambdaI;
+        else
+            Psi << Eigen::MatrixXd::Identity(m_num_coords_vel_boundary, m_num_coords_vel_boundary),
+                Eigen::MatrixXd::Zero(m_num_coords_vel_boundary, m_num_coords_modal), Psi_S, Psi_D;
 
         // Modal reduction on the local M K matrices.
         // Now we assume there is no prestress in the initial configuration,
         // so only material mass and stiffness matrices are used here.
-        this->M_red = Psi.transpose() * full_M_loc * Psi;
-        this->K_red = Psi.transpose() * full_K_loc * Psi;
+        this->M_red = Psi.transpose() * M_c_loc * Psi;
+        this->K_red = Psi.transpose() * K_c_loc * Psi;
         // set the off-diagonal blocks to zero to improve the numerical stability.
         this->K_red.block(0, m_num_coords_vel_boundary, m_num_coords_vel_boundary, m_num_coords_modal).setZero();
         this->K_red.block(m_num_coords_vel_boundary, 0, m_num_coords_modal, m_num_coords_vel_boundary).setZero();
 
-        // Maybe also have a reduced Cq matrix......
-        ChSparseMatrix Cq_B_loc = full_Cq_loc.topRows(m_num_constr_boundary);
-        this->Cq_red = Cq_B_loc * Psi;
+        // We do not have a reduced Cq matrix......
+        // ChSparseMatrix Cq_B_loc = full_Cq_loc.topRows(m_num_constr_boundary);
+        // this->Cq_red = Cq_B_loc * Psi;
 
         // temporarily set reduced damping matrix from the original local matrix
         // todo: develop a more reasonable damping model
@@ -718,7 +760,7 @@ void ChModalAssembly::ApplyHertingTransformation(const ChModalDamping& damping_m
             // todo: maybe the Cq_red is necessary for specifying the suitable modal damping ratios.
             // ChModalDampingNone damping_model;
             // damping_model.ComputeR(*this, this->M_red, this->K_red, Psi, this->R_red);
-            this->R_red = Psi.transpose() * full_R_loc * Psi;
+            this->R_red = Psi.transpose() * R_c_loc * Psi;
             // set the off-diagonal blocks to zero to improve the numerical stability.
             this->R_red.block(0, m_num_coords_vel_boundary, m_num_coords_vel_boundary, m_num_coords_modal).setZero();
             this->R_red.block(m_num_coords_vel_boundary, 0, m_num_coords_modal, m_num_coords_vel_boundary).setZero();
@@ -766,6 +808,33 @@ void ChModalAssembly::ApplyHertingTransformation(const ChModalDamping& damping_m
 }
 
 void ChModalAssembly::ApplyCraigBamptonTransformation(const ChModalDamping& damping_model) {
+    // It is forbidden to call AddLink() to connect internal bodies/nodes, thus Cq_BI should be zero.
+    ChSparseMatrix Cq_BI_loc =
+        full_Cq_loc.block(0, m_num_coords_vel_boundary, m_num_constr_boundary, m_num_coords_vel_internal);
+    if (Cq_BI_loc.nonZeros())
+        throw std::runtime_error(
+            "Error: it is forbidden to use AddLink() to connect internal bodies/nodes in ChModalAssembly().");
+
+    // extended K R M matrices with constraints in local frame
+    Eigen::SparseMatrix<double> K_c_loc;
+    Eigen::SparseMatrix<double> M_c_loc;
+    Eigen::SparseMatrix<double> R_c_loc;
+    if (m_num_constr_internal) {
+        ChSparseMatrix Cq_I_loc = full_Cq_loc.bottomRows(m_num_constr_internal);
+        util_sparse_assembly_2x2symm(K_c_loc, full_K_loc, Cq_I_loc);
+
+        Eigen::SparseMatrix<double> temp_zero(Cq_I_loc.rows(), Cq_I_loc.cols());
+        util_sparse_assembly_2x2symm(M_c_loc, full_M_loc, temp_zero);
+        util_sparse_assembly_2x2symm(R_c_loc, full_R_loc, temp_zero);
+    } else {
+        K_c_loc = full_K_loc;
+        M_c_loc = full_M_loc;
+        R_c_loc = full_R_loc;
+    }
+    K_c_loc.makeCompressed();
+    M_c_loc.makeCompressed();
+    R_c_loc.makeCompressed();
+
     // K_IIc = [  K_II   Cq_II' ]
     //         [ Cq_II     0    ]
     ChSparseMatrix K_II_loc = full_K_loc.block(m_num_coords_vel_boundary, m_num_coords_vel_boundary,
@@ -787,13 +856,13 @@ void ChModalAssembly::ApplyCraigBamptonTransformation(const ChModalDamping& damp
     ChSparseMatrix Cq_IB_loc =
         full_Cq_loc.block(m_num_constr_boundary, 0, m_num_constr_internal, m_num_coords_vel_boundary);
     Psi_S.setZero(m_num_coords_vel_internal, m_num_coords_vel_boundary);
-    ChMatrixDynamic<> Psi_S_C(m_num_coords_vel_internal + m_num_constr_internal, m_num_coords_vel_boundary);
-    ChMatrixDynamic<> Psi_S_LambdaI(m_num_constr_internal, m_num_coords_vel_boundary);
+    Psi_S_LambdaI.setZero(m_num_constr_internal, m_num_coords_vel_boundary);
+    // ChMatrixDynamic<> Psi_S_C(m_num_coords_vel_internal + m_num_constr_internal, m_num_coords_vel_boundary);
 
     // avoid computing K_IIc^{-1}, effectively do n times a linear solve:
-    Eigen::SparseQR<Eigen::SparseMatrix<double>, Eigen::COLAMDOrdering<int>> solver;
-    solver.analyzePattern(K_IIc_loc);
-    solver.factorize(K_IIc_loc);
+    // Eigen::SparseQR<Eigen::SparseMatrix<double>, Eigen::COLAMDOrdering<int>> solver;
+    m_solver_invKIIc.analyzePattern(K_IIc_loc);
+    m_solver_invKIIc.factorize(K_IIc_loc);
     ChSparseMatrix K_IB_loc =
         full_K_loc.block(m_num_coords_vel_boundary, 0, m_num_coords_vel_internal, m_num_coords_vel_boundary);
     for (unsigned int i = 0; i < m_num_coords_vel_boundary; ++i) {
@@ -803,10 +872,10 @@ void ChModalAssembly::ApplyCraigBamptonTransformation(const ChModalDamping& damp
         else
             rhs << K_IB_loc.col(i).toDense();
 
-        ChVectorDynamic<> x = solver.solve(rhs.sparseView());
+        ChVectorDynamic<> x = m_solver_invKIIc.solve(rhs.sparseView());
 
         Psi_S.col(i) = -x.head(m_num_coords_vel_internal);
-        Psi_S_C.col(i) = -x;
+        // Psi_S_C.col(i) = -x;
         if (m_num_constr_internal)
             Psi_S_LambdaI.col(i) = -x.tail(m_num_constr_internal);
     }
@@ -832,9 +901,9 @@ void ChModalAssembly::ApplyCraigBamptonTransformation(const ChModalDamping& damp
         // but use K_IIc instead of K_II anyway, to reuse K_IIc already factored before)
         //
         // Psi_D_C = {Psi_D; Psi_D_LambdaI} = - K_IIc^{-1} * {(M_II * V_I) ; 0}
-        Psi_D.setZero(m_num_coords_vel_internal, this->m_num_coords_modal);
-        ChMatrixDynamic<> Psi_D_C(m_num_coords_vel_internal + m_num_constr_internal, this->m_num_coords_modal);
-        ChMatrixDynamic<> Psi_D_LambdaI(m_num_constr_internal, this->m_num_coords_modal);
+        Psi_D.setZero(m_num_coords_vel_internal, m_num_coords_modal);
+        Psi_D_LambdaI.setZero(m_num_constr_internal, m_num_coords_modal);
+        // ChMatrixDynamic<> Psi_D_C(m_num_coords_vel_internal + m_num_constr_internal, m_num_coords_modal);
 
         ChSparseMatrix M_II_loc = full_M_loc.block(m_num_coords_vel_boundary, m_num_coords_vel_boundary,
                                                    m_num_coords_vel_internal, m_num_coords_vel_internal);
@@ -846,33 +915,38 @@ void ChModalAssembly::ApplyCraigBamptonTransformation(const ChModalDamping& damp
             else
                 rhs << rhs_top.col(i);
 
-            ChVectorDynamic<> x = solver.solve(rhs.sparseView());
+            ChVectorDynamic<> x = m_solver_invKIIc.solve(rhs.sparseView());
 
             Psi_D.col(i) = -x.head(m_num_coords_vel_internal);
-            Psi_D_C.col(i) = -x;
+            // Psi_D_C.col(i) = -x;
             if (m_num_constr_internal)
                 Psi_D_LambdaI.col(i) = -x.tail(m_num_constr_internal);
         }
 
-        // Psi = [ I     0    ]
-        //       [Psi_S  Psi_D]
+        // Psi = [ I               0             ]
+        //       [ Psi_S           Psi_D         ]
+        //       [ Psi_S_LambdaI   Psi_D_LambdaI ]
         Psi.setZero(m_num_coords_vel_boundary + m_num_coords_vel_internal + m_num_constr_internal,
                     m_num_coords_vel_boundary + m_num_coords_modal);
         //***TODO*** maybe prefer sparse Psi matrix, especially for upper blocks...
-
-        Psi << Eigen::MatrixXd::Identity(m_num_coords_vel_boundary, m_num_coords_vel_boundary),
-            Eigen::MatrixXd::Zero(m_num_coords_vel_boundary, m_num_coords_modal), Psi_S, Psi_D;
+        if (m_num_constr_internal)
+            Psi << Eigen::MatrixXd::Identity(m_num_coords_vel_boundary, m_num_coords_vel_boundary),
+                Eigen::MatrixXd::Zero(m_num_coords_vel_boundary, m_num_coords_modal), Psi_S, Psi_D, Psi_S_LambdaI,
+                Psi_D_LambdaI;
+        else
+            Psi << Eigen::MatrixXd::Identity(m_num_coords_vel_boundary, m_num_coords_vel_boundary),
+                Eigen::MatrixXd::Zero(m_num_coords_vel_boundary, m_num_coords_modal), Psi_S, Psi_D;
 
         // Modal reduction of the M K matrices.
-        this->M_red = Psi.transpose() * full_M_loc * Psi;
-        this->K_red = Psi.transpose() * full_K_loc * Psi;
+        this->M_red = Psi.transpose() * M_c_loc * Psi;
+        this->K_red = Psi.transpose() * K_c_loc * Psi;
         // set the off-diagonal blocks to zero to improve the numerical stability.
         this->K_red.block(0, m_num_coords_vel_boundary, m_num_coords_vel_boundary, m_num_coords_modal).setZero();
         this->K_red.block(m_num_coords_vel_boundary, 0, m_num_coords_modal, m_num_coords_vel_boundary).setZero();
 
-        // Maybe also have a reduced Cq matrix......
-        ChSparseMatrix Cq_B_loc = full_Cq_loc.topRows(m_num_constr_boundary);
-        this->Cq_red = Cq_B_loc * Psi;
+        // We do not have a reduced Cq matrix......
+        // ChSparseMatrix Cq_B_loc = full_Cq_loc.topRows(m_num_constr_boundary);
+        // this->Cq_red = Cq_B_loc * Psi;
 
         // temporarily set reduced damping matrix from the original local matrix
         // todo: develop a more reasonable damping model
@@ -883,7 +957,7 @@ void ChModalAssembly::ApplyCraigBamptonTransformation(const ChModalDamping& damp
             // todo: maybe the Cq_red is necessary for specifying the suitable modal damping ratios.
             // ChModalDampingNone damping_model;
             // damping_model.ComputeR(*this, this->M_red, this->K_red, Psi, this->R_red);
-            this->R_red = Psi.transpose() * full_R_loc * Psi;
+            this->R_red = Psi.transpose() * R_c_loc * Psi;
             // set the off-diagonal blocks to zero to improve the numerical stability.
             this->R_red.block(0, m_num_coords_vel_boundary, m_num_coords_vel_boundary, m_num_coords_modal).setZero();
             this->R_red.block(m_num_coords_vel_boundary, 0, m_num_coords_modal, m_num_coords_vel_boundary).setZero();
@@ -1100,9 +1174,8 @@ void ChModalAssembly::ComputeModalKRMmatrix() {
     // modal damping matrix
     this->modal_R = Rm_sup + Ri_sup;
 
-    // modal constraint Jacobian matrix
-    // todo: check the formulas, the below code might be wrong.
-    this->modal_Cq = Cq_red * P_W.transpose();
+    // We do not have a reduced Cq matrix
+    // this->modal_Cq = 0;
 }
 
 void ChModalAssembly::SetupModalData(unsigned int nmodes_reduction) {
@@ -1128,7 +1201,7 @@ void ChModalAssembly::SetupModalData(unsigned int nmodes_reduction) {
     M_red.setZero(m_num_coords_vel_boundary + m_num_coords_modal, m_num_coords_vel_boundary + m_num_coords_modal);
     K_red.setZero(m_num_coords_vel_boundary + m_num_coords_modal, m_num_coords_vel_boundary + m_num_coords_modal);
     R_red.setZero(m_num_coords_vel_boundary + m_num_coords_modal, m_num_coords_vel_boundary + m_num_coords_modal);
-    Cq_red.setZero(m_num_constr_boundary, m_num_coords_vel_boundary + m_num_coords_modal);
+    // Cq_red.setZero(m_num_constr_boundary, m_num_coords_vel_boundary + m_num_coords_modal);
 
     Km_sup.setZero(m_num_coords_vel_boundary + m_num_coords_modal, m_num_coords_vel_boundary + m_num_coords_modal);
     Kg_sup.setZero(m_num_coords_vel_boundary + m_num_coords_modal, m_num_coords_vel_boundary + m_num_coords_modal);
@@ -1328,7 +1401,8 @@ void ChModalAssembly::SetInternalStateWithModes(bool full_update) {
     unsigned int num_coords_pos_bou_mod = m_num_coords_pos_boundary + m_num_coords_modal;
     unsigned int num_coords_vel_bou_mod = m_num_coords_vel_boundary + m_num_coords_modal;
 
-    if (this->Psi.rows() != num_coords_vel_bou_int || this->Psi.cols() != num_coords_vel_bou_mod)
+    if (this->Psi.rows() != (num_coords_vel_bou_int + m_num_constr_internal) ||
+        this->Psi.cols() != num_coords_vel_bou_mod)
         return;
 
     double fooT;
@@ -2251,8 +2325,7 @@ void ChModalAssembly::IntStateGatherReactions(const unsigned int off_L, ChVector
                 item->IntStateGatherReactions(displ_L + item->GetOffset_L(), L);
         }
     } else {
-        // todo:
-        //  there might be reactions in the reduced modal assembly due to the existance of this->modal_Cq
+        // there is no internal Lagrange multiplier in the reduced state
     }
 }
 
@@ -2278,9 +2351,59 @@ void ChModalAssembly::IntStateScatterReactions(const unsigned int off_L, const C
             if (link->IsActive())
                 link->IntStateScatterReactions(displ_L + link->GetOffset_L(), L);
         }
-    } else {
-        // todo:
-        //  there might be reactions in the reduced modal assembly due to the existance of this->modal_Cq
+    } else if (m_internal_nodes_update && m_num_constr_internal) {
+        unsigned int num_coords_vel_bou_int = m_num_coords_vel_boundary + m_num_coords_vel_internal;
+        unsigned int num_coords_vel_bou_mod = m_num_coords_vel_boundary + m_num_coords_modal;
+
+        if (this->Psi.rows() != (num_coords_vel_bou_int + m_num_constr_internal) ||
+            this->Psi.cols() != num_coords_vel_bou_mod)
+            return;
+
+        ChStateDelta u_locred(num_coords_vel_bou_mod, nullptr);
+        ChStateDelta e_locred(num_coords_vel_bou_mod, nullptr);
+        ChStateDelta edt_locred(num_coords_vel_bou_mod, nullptr);
+        this->GetLocalDeformations(u_locred, e_locred, edt_locred);
+
+        // the new Lagrange multipliers of internal constraints
+        ChVectorDynamic<> Lambda_internal(m_num_constr_internal);  // =[Lambda_I]
+        Lambda_internal = Psi_S_LambdaI * e_locred.segment(0, m_num_coords_vel_boundary) +
+                          Psi_D_LambdaI * e_locred.segment(m_num_coords_vel_boundary, m_num_coords_modal);
+
+         if (!this->full_forces_internal.isZero()) {
+             ChVectorDynamic<> floc_C(m_num_coords_vel_internal + m_num_constr_internal);
+             floc_C.setZero();
+             floc_C.head(m_num_coords_vel_internal) = L_I.transpose() * this->full_forces_internal;
+             ChVectorDynamic<> static_defl_reaction = m_solver_invKIIc.solve(floc_C.sparseView());
+             //ChVectorDynamic<> static_reaction = static_defl_reaction.tail(m_num_constr_internal);
+             Lambda_internal += static_defl_reaction.tail(m_num_constr_internal);
+         }
+
+        Lambda_internal *= -1.0;  // flip the sign
+
+        bool needs_temporary_bou_int = m_is_model_reduced;
+        if (needs_temporary_bou_int)
+            m_is_model_reduced = false;
+
+        // scatter the Lagrange multipliers for the internal links and update them
+        int displ_L = 0 - this->offset_L - m_num_constr_boundary;  // do not declare as "unsigned int"!
+        for (auto& body : internal_bodylist) {
+            if (body->IsActive())
+                body->IntStateScatterReactions(displ_L + body->GetOffset_L(), Lambda_internal);
+        }
+        for (auto& mesh : internal_meshlist) {
+            mesh->IntStateScatterReactions(displ_L + mesh->GetOffset_L(), Lambda_internal);
+        }
+        for (auto& item : internal_otherphysicslist) {
+            if (item->IsActive())
+                item->IntStateScatterReactions(displ_L + item->GetOffset_L(), Lambda_internal);
+        }
+        for (auto& link : internal_linklist) {
+            if (link->IsActive())
+                link->IntStateScatterReactions(displ_L + link->GetOffset_L(), Lambda_internal);
+        }
+
+        if (needs_temporary_bou_int)
+            m_is_model_reduced = true;
     }
 }
 
@@ -2638,8 +2761,7 @@ void ChModalAssembly::IntLoadResidual_CqL(const unsigned int off_L,    ///< offs
                 item->IntLoadResidual_CqL(displ_L + item->GetOffset_L(), R, L, c);
         }
     } else {
-        // todo:
-        // there might be residual CqL in the reduced modal assembly
+        // there is no internal Lagrange multiplier in the reduced state
     }
 }
 
@@ -2814,8 +2936,7 @@ void ChModalAssembly::InjectConstraints(ChSystemDescriptor& descriptor) {
             item->InjectConstraints(descriptor);
         }
     } else {
-        // todo:
-        // there might be constraints for the reduced modal assembly: this->modal_Cq
+        // there is no internal Lagrange multiplier in the reduced state
     }
 }
 
@@ -2836,8 +2957,7 @@ void ChModalAssembly::LoadConstraintJacobians() {
             item->LoadConstraintJacobians();
         }
     } else {
-        // todo:
-        // there might be constraints for the reduced modal assembly: this->modal_Cq
+        // there is no internal Lagrange multiplier in the reduced state
     }
 }
 
