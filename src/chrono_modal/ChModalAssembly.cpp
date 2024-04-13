@@ -1419,12 +1419,14 @@ void ChModalAssembly::SetInternalStateWithModes(bool full_update) {
     ChStateDelta edt_locred(num_coords_vel_bou_mod, nullptr);
     this->GetLocalDeformations(u_locred, e_locred, edt_locred);
 
+    // the local deformation of internal bodies and nodes
     ChStateDelta Dx_internal_loc;  // =[delta_qI^bar]
     Dx_internal_loc.setZero(m_num_coords_vel_internal, nullptr);
     Dx_internal_loc.segment(0, m_num_coords_vel_internal) =
         Psi_S * e_locred.segment(0, m_num_coords_vel_boundary) +
         Psi_D * e_locred.segment(m_num_coords_vel_boundary, m_num_coords_modal);
 
+    // the new configuration of both boundary and internal containers
     ChState assembly_x_new;  // =[qB_new; qI_new]
     assembly_x_new.setZero(num_coords_pos_bou_int, nullptr);
     assembly_x_new.head(m_num_coords_pos_boundary) = x_mod.head(m_num_coords_pos_boundary);
@@ -1447,6 +1449,7 @@ void ChModalAssembly::SetInternalStateWithModes(bool full_update) {
         assembly_x_new.segment(offset_x + 3, 4) = quat_int.eigen();
     }
 
+    // the new velocity of both boundary and internal containers
     ChStateDelta assembly_v_new;  // =[qB_dt; qI_dt]
     assembly_v_new.setZero(num_coords_vel_bou_int, nullptr);
     assembly_v_new.segment(0, m_num_coords_vel_boundary) = v_mod.segment(0, m_num_coords_vel_boundary);
@@ -1454,7 +1457,7 @@ void ChModalAssembly::SetInternalStateWithModes(bool full_update) {
         L_I * (Psi_S * (L_B.transpose() * v_mod.segment(0, m_num_coords_vel_boundary)) +
                Psi_D * v_mod.segment(m_num_coords_vel_boundary, m_num_coords_modal));
 
-    bool needs_temporary_bou_int = this->m_is_model_reduced;
+    bool needs_temporary_bou_int = m_is_model_reduced;
     if (needs_temporary_bou_int)
         m_is_model_reduced = false;
 
@@ -2414,7 +2417,7 @@ void ChModalAssembly::IntStateIncrement(const unsigned int off_x,
                                         const ChStateDelta& Dv) {
     ChAssembly::IntStateIncrement(off_x, x_new, x, off_v, Dv);  // parent
 
-    if (m_is_model_reduced == false) {
+    if (!m_is_model_reduced) {
         unsigned int displ_x = off_x - this->offset_x;
         unsigned int displ_v = off_v - this->offset_w;
 
@@ -2437,9 +2440,9 @@ void ChModalAssembly::IntStateIncrement(const unsigned int off_x,
                 item->IntStateIncrement(displ_x + item->GetOffset_x(), x_new, x, displ_v + item->GetOffset_w(), Dv);
         }
     } else {
-        x_new.segment(off_x + this->m_num_coords_pos_boundary, this->m_num_coords_modal) =
-            x.segment(off_x + this->m_num_coords_pos_boundary, this->m_num_coords_modal) +
-            Dv.segment(off_v + m_num_coords_vel_boundary, this->m_num_coords_modal);
+        x_new.segment(off_x + m_num_coords_pos_boundary, m_num_coords_modal) =
+            x.segment(off_x + m_num_coords_pos_boundary, m_num_coords_modal) +
+            Dv.segment(off_v + m_num_coords_vel_boundary, m_num_coords_modal);
     }
 }
 
@@ -2453,7 +2456,7 @@ void ChModalAssembly::IntStateGetIncrement(const unsigned int off_x,
     unsigned int displ_x = off_x - this->offset_x;
     unsigned int displ_v = off_v - this->offset_w;
 
-    if (m_is_model_reduced == false) {
+    if (!m_is_model_reduced) {
         for (auto& body : internal_bodylist) {
             if (body->IsActive())
                 body->IntStateGetIncrement(displ_x + body->GetOffset_x(), x_new, x, displ_v + body->GetOffset_w(), Dv);
@@ -2473,9 +2476,9 @@ void ChModalAssembly::IntStateGetIncrement(const unsigned int off_x,
                 item->IntStateGetIncrement(displ_x + item->GetOffset_x(), x_new, x, displ_v + item->GetOffset_w(), Dv);
         }
     } else {
-        Dv.segment(off_v + m_num_coords_vel_boundary, this->m_num_coords_modal) =
-            x_new.segment(off_x + this->m_num_coords_pos_boundary, this->m_num_coords_modal) -
-            x.segment(off_x + this->m_num_coords_pos_boundary, this->m_num_coords_modal);
+        Dv.segment(off_v + m_num_coords_vel_boundary, m_num_coords_modal) =
+            x_new.segment(off_x + m_num_coords_pos_boundary, m_num_coords_modal) -
+            x.segment(off_x + m_num_coords_pos_boundary, m_num_coords_modal);
     }
 }
 
@@ -2487,7 +2490,7 @@ void ChModalAssembly::IntLoadResidual_F(const unsigned int off,  ///< offset in 
 
     unsigned int displ_v = off - this->offset_w;
 
-    if (m_is_model_reduced == false) {
+    if (!m_is_model_reduced) {
         for (auto& body : internal_bodylist) {
             if (body->IsActive())
                 body->IntLoadResidual_F(displ_v + body->GetOffset_w(), R, c);
@@ -2504,8 +2507,8 @@ void ChModalAssembly::IntLoadResidual_F(const unsigned int off,  ///< offset in 
                 item->IntLoadResidual_F(displ_v + item->GetOffset_w(), R, c);
         }
     } else {
-        unsigned int num_coords_pos_bou_mod = this->m_num_coords_pos_boundary + this->m_num_coords_modal;
-        unsigned int num_coords_vel_bou_mod = this->m_num_coords_vel_boundary + this->m_num_coords_modal;
+        unsigned int num_coords_pos_bou_mod = m_num_coords_pos_boundary + m_num_coords_modal;
+        unsigned int num_coords_vel_bou_mod = m_num_coords_vel_boundary + m_num_coords_modal;
 
         // 1-
         // Add elastic forces from current modal deformations
@@ -2515,7 +2518,7 @@ void ChModalAssembly::IntLoadResidual_F(const unsigned int off,  ///< offset in 
         this->GetLocalDeformations(u_locred, e_locred, edt_locred);
 
         // note: - sign
-        R.segment(off, this->m_num_coords_vel_boundary + this->m_num_coords_modal) -=
+        R.segment(off, m_num_coords_vel_boundary + m_num_coords_modal) -=
             c * (P_W * P_perp_0.transpose() * (this->K_red * e_locred + this->R_red * edt_locred));
 
         // 2-
@@ -2559,7 +2562,7 @@ void ChModalAssembly::IntLoadResidual_F(const unsigned int off,  ///< offset in 
             }
 
             // note: - sign
-            R.segment(off, m_num_coords_vel_boundary + this->m_num_coords_modal) -= c * g_quad;
+            R.segment(off, m_num_coords_vel_boundary + m_num_coords_modal) -= c * g_quad;
         }
 
         // 3-
@@ -2666,11 +2669,11 @@ void ChModalAssembly::IntLoadResidual_F(const unsigned int off,  ///< offset in 
         // Add the collected forces of internal items (bodies, nodes) on the generalized coordinates
         if (!this->full_forces_internal.isZero()) {
             ChVectorDynamic<> f_reduced;
-            f_reduced.setZero(m_num_coords_vel_boundary + this->m_num_coords_modal);
+            f_reduced.setZero(m_num_coords_vel_boundary + m_num_coords_modal);
             f_reduced.head(m_num_coords_vel_boundary) =
                 L_B * Psi_S.transpose() * L_I.transpose() * this->full_forces_internal;
             f_reduced.tail(m_num_coords_modal) = Psi_D.transpose() * L_I.transpose() * this->full_forces_internal;
-            R.segment(off, m_num_coords_vel_boundary + this->m_num_coords_modal) += c * f_reduced;
+            R.segment(off, m_num_coords_vel_boundary + m_num_coords_modal) += c * f_reduced;
         }
 
         // todo: add gyroscopic torques for internal bodies and internal meshes
@@ -2682,7 +2685,7 @@ void ChModalAssembly::IntLoadResidual_Mv(const unsigned int off,      ///< offse
                                          const ChVectorDynamic<>& w,  ///< the w vector
                                          const double c               ///< a scaling factor
 ) {
-    if (m_is_model_reduced == false) {
+    if (!m_is_model_reduced) {
         ChAssembly::IntLoadResidual_Mv(off, R, w, c);  // parent
         unsigned int displ_v = off - this->offset_w;
 
@@ -2702,15 +2705,15 @@ void ChModalAssembly::IntLoadResidual_Mv(const unsigned int off,      ///< offse
                 item->IntLoadResidual_Mv(displ_v + item->GetOffset_w(), R, w, c);
         }
     } else {
-        ChVectorDynamic<> w_modal = w.segment(off, m_num_coords_vel_boundary + this->m_num_coords_modal);
-        R.segment(off, m_num_coords_vel_boundary + this->m_num_coords_modal) += c * (this->modal_M * w_modal);
+        ChVectorDynamic<> w_modal = w.segment(off, m_num_coords_vel_boundary + m_num_coords_modal);
+        R.segment(off, m_num_coords_vel_boundary + m_num_coords_modal) += c * (this->modal_M * w_modal);
     }
 }
 
 void ChModalAssembly::IntLoadLumpedMass_Md(const unsigned int off, ChVectorDynamic<>& Md, double& err, const double c) {
     unsigned int displ_v = off - this->offset_w;
 
-    if (m_is_model_reduced == false) {
+    if (!m_is_model_reduced) {
         ChAssembly::IntLoadLumpedMass_Md(off, Md, err, c);  // parent
 
         for (auto& body : internal_bodylist) {
@@ -2728,7 +2731,7 @@ void ChModalAssembly::IntLoadLumpedMass_Md(const unsigned int off, ChVectorDynam
             item->IntLoadLumpedMass_Md(displ_v + item->GetOffset_w(), Md, err, c);
         }
     } else {
-        Md.segment(off, m_num_coords_vel_boundary + this->m_num_coords_modal) += c * this->modal_M.diagonal();
+        Md.segment(off, m_num_coords_vel_boundary + m_num_coords_modal) += c * this->modal_M.diagonal();
 
         // lumping should not be used when modal reduced assembly has full, nondiagonal modal_M
         err += (Md.sum() - Md.diagonal().sum());
@@ -2744,7 +2747,7 @@ void ChModalAssembly::IntLoadResidual_CqL(const unsigned int off_L,    ///< offs
 
     unsigned int displ_L = off_L - this->offset_L;
 
-    if (m_is_model_reduced == false) {
+    if (!m_is_model_reduced) {
         for (auto& body : internal_bodylist) {
             if (body->IsActive())
                 body->IntLoadResidual_CqL(displ_L + body->GetOffset_L(), R, L, c);
@@ -2775,7 +2778,7 @@ void ChModalAssembly::IntLoadConstraint_C(const unsigned int off_L,  ///< offset
 
     unsigned int displ_L = off_L - this->offset_L;
 
-    if (m_is_model_reduced == false) {
+    if (!m_is_model_reduced) {
         for (auto& body : internal_bodylist) {
             if (body->IsActive())
                 body->IntLoadConstraint_C(displ_L + body->GetOffset_L(), Qc, c, do_clamp, recovery_clamp);
@@ -2805,7 +2808,7 @@ void ChModalAssembly::IntLoadConstraint_Ct(const unsigned int off_L,  ///< offse
 
     unsigned int displ_L = off_L - this->offset_L;
 
-    if (m_is_model_reduced == false) {
+    if (!m_is_model_reduced) {
         for (auto& body : internal_bodylist) {
             if (body->IsActive())
                 body->IntLoadConstraint_Ct(displ_L + body->GetOffset_L(), Qc, c);
@@ -2838,7 +2841,7 @@ void ChModalAssembly::IntToDescriptor(const unsigned int off_v,
     unsigned int displ_L = off_L - this->offset_L;
     unsigned int displ_v = off_v - this->offset_w;
 
-    if (m_is_model_reduced == false) {
+    if (!m_is_model_reduced) {
         for (auto& body : internal_bodylist) {
             if (body->IsActive())
                 body->IntToDescriptor(displ_v + body->GetOffset_w(), v, R, displ_L + body->GetOffset_L(), L, Qc);
@@ -2858,8 +2861,8 @@ void ChModalAssembly::IntToDescriptor(const unsigned int off_v,
                 item->IntToDescriptor(displ_v + item->GetOffset_w(), v, R, displ_L + item->GetOffset_L(), L, Qc);
         }
     } else {
-        this->modal_variables->State() = v.segment(off_v + m_num_coords_vel_boundary, this->m_num_coords_modal);
-        this->modal_variables->Force() = R.segment(off_v + m_num_coords_vel_boundary, this->m_num_coords_modal);
+        this->modal_variables->State() = v.segment(off_v + m_num_coords_vel_boundary, m_num_coords_modal);
+        this->modal_variables->Force() = R.segment(off_v + m_num_coords_vel_boundary, m_num_coords_modal);
     }
 }
 
@@ -2872,7 +2875,7 @@ void ChModalAssembly::IntFromDescriptor(const unsigned int off_v,
     unsigned int displ_L = off_L - this->offset_L;
     unsigned int displ_v = off_v - this->offset_w;
 
-    if (m_is_model_reduced == false) {
+    if (!m_is_model_reduced) {
         for (auto& body : internal_bodylist) {
             if (body->IsActive())
                 body->IntFromDescriptor(displ_v + body->GetOffset_w(), v, displ_L + body->GetOffset_L(), L);
@@ -2892,7 +2895,7 @@ void ChModalAssembly::IntFromDescriptor(const unsigned int off_v,
                 item->IntFromDescriptor(displ_v + item->GetOffset_w(), v, displ_L + item->GetOffset_L(), L);
         }
     } else {
-        v.segment(off_v + m_num_coords_vel_boundary, this->m_num_coords_modal) = this->modal_variables->State();
+        v.segment(off_v + m_num_coords_vel_boundary, m_num_coords_modal) = this->modal_variables->State();
     }
 }
 
@@ -2901,7 +2904,7 @@ void ChModalAssembly::IntFromDescriptor(const unsigned int off_v,
 void ChModalAssembly::InjectVariables(ChSystemDescriptor& descriptor) {
     ChAssembly::InjectVariables(descriptor);  // parent
 
-    if (m_is_model_reduced == false) {
+    if (!m_is_model_reduced) {
         for (auto& body : internal_bodylist) {
             body->InjectVariables(descriptor);
         }
@@ -2922,7 +2925,7 @@ void ChModalAssembly::InjectVariables(ChSystemDescriptor& descriptor) {
 void ChModalAssembly::InjectConstraints(ChSystemDescriptor& descriptor) {
     ChAssembly::InjectConstraints(descriptor);  // parent
 
-    if (m_is_model_reduced == false) {
+    if (!m_is_model_reduced) {
         for (auto& body : internal_bodylist) {
             body->InjectConstraints(descriptor);
         }
@@ -2983,7 +2986,7 @@ void ChModalAssembly::InjectKRMMatrices(ChSystemDescriptor& descriptor) {
 }
 
 void ChModalAssembly::LoadKRMMatrices(double Kfactor, double Rfactor, double Mfactor) {
-    if (m_is_model_reduced == false) {
+    if (!m_is_model_reduced) {
         ChAssembly::LoadKRMMatrices(Kfactor, Rfactor, Mfactor);  // parent
 
         for (auto& body : internal_bodylist) {
