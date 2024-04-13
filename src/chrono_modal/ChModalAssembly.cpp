@@ -2025,7 +2025,7 @@ void ChModalAssembly::GetLocalDeformations(ChStateDelta& u_locred, ChStateDelta&
         v_mod.setZero(num_coords_vel_bou_mod, nullptr);
         this->IntStateGather(0, x_mod, 0, v_mod, fooT);
 
-        u_locred.tail(m_num_coords_modal) = modal_q;
+        u_locred.tail(m_num_coords_modal) = x_mod.segment(m_num_coords_pos_boundary, m_num_coords_modal);
         for (unsigned int i_bou = 0; i_bou < m_num_coords_vel_boundary / 6; i_bou++) {
             // Computed with respect to the initial configuration
             u_locred.segment(6 * i_bou, 3) =
