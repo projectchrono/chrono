@@ -32,7 +32,7 @@ namespace modal {
 /// to allow connecting this modal assembly to external joints and forces.
 ///
 /// =============================================================================
-/// The modal reduction procedure has been inspired by the research paper:
+/// The development of this modal reduction procedure has been inspired by the research paper:
 /// Sonneville, V., Scapolan, M., Shan, M. et al. Modal reduction procedures for flexible multibody dynamics. Multibody
 /// Syst Dyn 51, 377–418 (2021).
 
@@ -569,26 +569,25 @@ class ChApiModal ChModalAssembly : public ChAssembly {
 
     // MODAL:
     ChVariablesGenericDiagonalMass* modal_variables;
-    ChVectorDynamic<> modal_q;
-    ChVectorDynamic<> modal_q_dt;
-    ChVectorDynamic<> modal_q_dtdt;
+    ChVectorDynamic<> modal_q;       ///< modal coordinates
+    ChVectorDynamic<> modal_q_dt;    ///< modal velocites
+    ChVectorDynamic<> modal_q_dtdt;  ///< modal accelerations
 
     ChVectorDynamic<> full_forces_internal;  ///< collect all external forces imposed on the internal nodes. This force
                                              ///< will be eventually transformed to the modal forces and applied on the
                                              ///< reduced modal assembly.
 
     ChKRMBlock modal_Hblock;
-    ChMatrixDynamic<> modal_M;   // corresponding to boundary and modal accelerations
-    ChMatrixDynamic<> modal_K;   // corresponding to boundary and modal coordinates
-    ChMatrixDynamic<> modal_R;   // corresponding to boundary and modal velocites
     ChMatrixDynamic<> modal_Cq;  // corresponding to boundary and modal lagrange multipliers
-    ChMatrixDynamic<>
-        Psi;  // mode transformation matrix. TODO: maybe prefer sparse Psi matrix, especially for upper blocks...
-    ChMatrixDynamic<> Psi_S;  // static mode transformation matrix in the mode acceleration method
-    ChMatrixDynamic<> Psi_D;  // dynamic mode transformation matrix in the mode acceleration method
+    ChMatrixDynamic<> modal_M;  // tangent mass matrix in the modal reduced state
+    ChMatrixDynamic<> modal_K;  // tangent stiffness matrix in the modal reduced state
+    ChMatrixDynamic<> modal_R;  // tangent damping matrix in the modal reduced state
+    ChMatrixDynamic<> Psi;            // mode transformation matrix.
+    ChMatrixDynamic<> Psi_S;          // static mode transformation matrix - corresponding to internal DOFs.
+    ChMatrixDynamic<> Psi_D;          // dynamic mode transformation matrix - corresponding to internal DOFs.
 
-    ChFrameMoving<> floating_frame_F0;  ///< floating frame of reference F at the initial undeformed configuration
-    ChFrameMoving<> floating_frame_F;   ///< floating frame of reference F at the deformed configuration
+    ChFrameMoving<> floating_frame_F0;  ///< floating frame of reference F in the initial undeformed configuration
+    ChFrameMoving<> floating_frame_F;   ///< floating frame of reference F in the deformed configuration
     // ChFrameMoving<> floating_frame_F_old;
     ChFrameMoving<> cog_frame;  ///< center of mass frame of reference
     bool is_initialized = false;
@@ -641,7 +640,7 @@ class ChApiModal ChModalAssembly : public ChAssembly {
     ChMatrixDynamic<> Ri_sup;  ///< inertial damping (including gyroscopic damping) matrix of the reduced superelement
     ChMatrixDynamic<> Ki_sup;  ///< inertial stiffness matrix of the reduced superelement
 
-    ChVectorDynamic<> res_CF;  ///< residual of the constraint equations on floating frame F
+    ChVectorDynamic<> res_CF;  ///< residual of the constraint equations on the floating frame F
 
     // Results of eigenvalue analysis like ComputeModes() or ComputeModesDamped():
     ChMatrixDynamic<std::complex<double>> m_modal_eigvect;  // eigenvectors
@@ -651,7 +650,8 @@ class ChApiModal ChModalAssembly : public ChAssembly {
 
     bool m_verbose = false;  ///< output m_verbose info
 
-    ReductionType m_modal_reduction_type = ReductionType::CRAIG_BAMPTON;  ///< methods for modal reduction
+    ReductionType m_modal_reduction_type =
+        ReductionType::CRAIG_BAMPTON;  ///< methods for modal reduction, Craig-Bampton as default
 
     bool m_use_linear_inertial_term = true;  // for internal test
 
