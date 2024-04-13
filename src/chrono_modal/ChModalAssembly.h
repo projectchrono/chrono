@@ -68,9 +68,9 @@ class ChApiModal ChModalAssembly : public ChAssembly {
 
     /// Compute the undamped modes from M and K matrices. Later you can fetch results via GetEigenVectors()
     /// etc.
-    bool ComputeModesExternalData(ChSparseMatrix& full_M,
-                                  ChSparseMatrix& full_K,
-                                  ChSparseMatrix& full_Cq,
+    bool ComputeModesExternalData(const ChSparseMatrix& full_M,
+                                  const ChSparseMatrix& full_K,
+                                  const ChSparseMatrix& full_Cq,
                                   const ChModalSolveUndamped& n_modes_settings);
 
     /// Compute the damped modes for the entire modal assembly.

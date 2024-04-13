@@ -1207,9 +1207,9 @@ bool ChModalAssembly::ComputeModes(const ChModalSolveUndamped& n_modes_settings)
     return true;
 }
 
-bool ChModalAssembly::ComputeModesExternalData(ChSparseMatrix& full_M,
-                                               ChSparseMatrix& full_K,
-                                               ChSparseMatrix& full_Cq,
+bool ChModalAssembly::ComputeModesExternalData(const ChSparseMatrix& full_M,
+                                               const ChSparseMatrix& full_K,
+                                               const ChSparseMatrix& full_Cq,
                                                const ChModalSolveUndamped& n_modes_settings) {
     // SOLVE EIGENVALUE
     // for undamped system (use generalized constrained eigen solver)
