@@ -305,7 +305,7 @@ void ChOpenGLViewer::DrawVisualModel(std::shared_ptr<ChPhysicsItem> item) {
     // Get the visual model reference frame
     const ChFrame<>& X_AM = item->GetVisualModelFrame();
 
-    for (auto& shape_instance : item->GetVisualModel()->GetShapes()) {
+    for (auto& shape_instance : item->GetVisualModel()->GetShapeInstances()) {
         const auto& shape = shape_instance.first;
         const auto& X_SM = shape_instance.second;
 
@@ -626,7 +626,7 @@ void ChOpenGLViewer::RenderParticles() {
 
                 size_t n = 0;
                 for (int i = 0; i < pcloud->GetNumParticles(); i++) {
-                    const auto& pos = pcloud->GetParticle(i).GetPos();
+                    const auto& pos = pcloud->Particle(i).GetPos();
                     if (!m_vis->particle_selector || m_vis->particle_selector->Render(pos)) {
                         particle_data[num_particles + n++] = glm::vec3(pos.x(), pos.y(), pos.z());
                     }

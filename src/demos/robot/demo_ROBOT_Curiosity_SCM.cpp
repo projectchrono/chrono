@@ -76,7 +76,6 @@ double time_step = 5e-4;
 
 // Enable/disable output
 bool output = false;
-const std::string out_dir = GetChronoOutputPath() + "CURIOSITY_SCM";
 
 // -----------------------------------------------------------------------------
 
@@ -244,6 +243,7 @@ int main(int argc, char* argv[]) {
     }
 
     // Initialize output
+    const std::string out_dir = GetChronoOutputPath() + "CURIOSITY_SCM";
     if (output) {
         if (!filesystem::create_directory(filesystem::path(out_dir))) {
             std::cout << "Error creating directory " << out_dir << std::endl;

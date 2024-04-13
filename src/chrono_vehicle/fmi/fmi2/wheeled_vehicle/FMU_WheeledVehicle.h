@@ -99,6 +99,11 @@ class FmuComponent : public chrono::FmuChronoComponentBase {
     std::shared_ptr<chrono::vehicle::ChWheeledVehicleVisualSystemIrrlicht> vis_sys;
 #endif
 
+    // FMU I/O parameters
+    std::string out_path;  ///< output directory
+    bool save_img;         ///< enable/disable saving of visualization snapshots
+    double fps;            ///< snapshot saving frequency (in FPS)
+
     // FMU parameters
     std::string data_path;          ///< path to vehicle data
     std::string vehicle_JSON;       ///< JSON vehicle specification file
@@ -116,6 +121,8 @@ class FmuComponent : public chrono::FmuChronoComponentBase {
     chrono::ChFrameMoving<> ref_frame;            ///< vehicle reference frame (output)
 
     //// TODO - more outputs
+
+    int render_frame;  ///< counter for rendered frames
 };
 
 // Create an instance of this FMU

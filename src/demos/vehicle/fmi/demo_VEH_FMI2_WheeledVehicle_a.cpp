@@ -57,11 +57,14 @@ std::string DRIVER_UNPACK_DIR =
 // -----------------------------------------------------------------------------
 
 void CreateVehicleFMU(FmuChronoUnit& vehicle_fmu,
+                      const std::string& instance_name,
                       double step_size,
                       double start_time,
                       double stop_time,
                       const std::vector<std::string>& logCategories,
-                      bool visible) {
+                      const std::string& out_path,
+                      bool visible,
+                      double fps) {
     try {
         vehicle_fmu.Load(VEHICLE_FMU_FILENAME, VEHICLE_UNPACK_DIR);
     } catch (std::exception& e) {
@@ -71,7 +74,7 @@ void CreateVehicleFMU(FmuChronoUnit& vehicle_fmu,
     std::cout << "Vehicle FMU platform: " << vehicle_fmu.GetTypesPlatform() << std::endl;
 
     // Instantiate FMU
-    vehicle_fmu.Instantiate("WheeledVehicleFmuComponent", false, visible);
+    vehicle_fmu.Instantiate(instance_name, false, visible);
 
     // Set debug logging
     vehicle_fmu.SetDebugLogging(fmi2True, logCategories);
@@ -80,6 +83,10 @@ void CreateVehicleFMU(FmuChronoUnit& vehicle_fmu,
     vehicle_fmu.SetupExperiment(fmi2False, 0.0,         // define tolerance
                                 start_time,             // start time
                                 fmi2False, stop_time);  // use stop time
+
+    // Set I/O fixed parameters
+    vehicle_fmu.SetVariable("out_path", out_path);
+    vehicle_fmu.SetVariable("fps", fps, FmuVariable::Type::Real);
 
     // Set fixed parameters - use vehicle JSON files from the Chrono::Vehicle data directory
     std::string data_path = "../data/vehicle/";
@@ -100,11 +107,14 @@ void CreateVehicleFMU(FmuChronoUnit& vehicle_fmu,
 // -----------------------------------------------------------------------------
 
 void CreateDriverFMU(FmuChronoUnit& driver_fmu,
+                     const std::string& instance_name,
                      double step_size,
                      double start_time,
                      double stop_time,
                      const std::vector<std::string>& logCategories,
-                     bool visible) {
+                     const std::string& out_path,
+                     bool visible,
+                     double fps) {
     try {
         driver_fmu.Load(DRIVER_FMU_FILENAME, DRIVER_UNPACK_DIR);
     } catch (std::exception& e) {
@@ -114,7 +124,7 @@ void CreateDriverFMU(FmuChronoUnit& driver_fmu,
     std::cout << "Driver FMU platform: " << driver_fmu.GetTypesPlatform() << "\n";
 
     // Instantiate FMU
-    driver_fmu.Instantiate("DriverFmuComponent", false, visible);
+    driver_fmu.Instantiate(instance_name, false, visible);
 
     // Set debug logging
     driver_fmu.SetDebugLogging(fmi2True, logCategories);
@@ -123,6 +133,10 @@ void CreateDriverFMU(FmuChronoUnit& driver_fmu,
     driver_fmu.SetupExperiment(fmi2False, 0.0,         // define tolerance
                                start_time,             // start time
                                fmi2False, stop_time);  // use stop time
+
+    // Set I/O fixed parameters
+    driver_fmu.SetVariable("out_path", out_path);
+    driver_fmu.SetVariable("fps", fps, FmuVariable::Type::Real);
 
     // Set fixed parameters
     std::string path_file = vehicle::GetDataFile("paths/ISO_double_lane_change.txt");
@@ -222,22 +236,39 @@ void AdvanceTires(double step_size, std::array<WheelTire, 4>& wt) {
 // -----------------------------------------------------------------------------
 
 int main(int argc, char* argv[]) {
-    // Create (if needed) output directory
+    // Names of FMU instances
+    std::string vehicle_instance_name = "WheeledVehicleFmuComponent";
+    std::string driver_instance_name = "DriverFmuComponent";
+
+    // Create (if needed) output directories
     std::string out_dir = GetChronoOutputPath() + "./DEMO_WHEELEDVEHICLE_FMI_COSIM_A";
+    std::string vehicle_out_dir = out_dir + "/" + vehicle_instance_name;
+    std::string driver_out_dir = out_dir + "/" + driver_instance_name;
 
     if (!filesystem::create_directory(filesystem::path(out_dir))) {
         std::cout << "Error creating directory " << out_dir << std::endl;
+        return 1;
+    }
+    if (!filesystem::create_directory(filesystem::path(vehicle_out_dir))) {
+        std::cout << "Error creating directory " << vehicle_out_dir << std::endl;
+        return 1;
+    }
+    if (!filesystem::create_directory(filesystem::path(driver_out_dir))) {
+        std::cout << "Error creating directory " << driver_out_dir << std::endl;
         return 1;
     }
 
     std::vector<std::string> logCategories = {"logAll"};
 
     double start_time = 0;
-    double stop_time = 20;
+    double stop_time = 16;
     double step_size = 1e-3;
 
-    bool vis_vehicle = true;
-    bool vis_driver = true;
+    bool vehicle_visible = true;
+    bool driver_visible = true;
+
+    double fps = 60;
+    bool save_img = false;
 
     // Create the 2 FMUs
     ////std::cout << "Vehicle FMU dir: >" << VEHICLE_FMU_DIR << "<" << std::endl;
@@ -250,13 +281,15 @@ int main(int argc, char* argv[]) {
     FmuChronoUnit vehicle_fmu;
     FmuChronoUnit driver_fmu;
     try {
-        CreateVehicleFMU(vehicle_fmu, step_size, start_time, stop_time, logCategories, vis_vehicle);
+        CreateVehicleFMU(vehicle_fmu, vehicle_instance_name, step_size, start_time, stop_time, logCategories,
+                         vehicle_out_dir, vehicle_visible, fps);
     } catch (std::exception& e) {
         std::cout << "ERROR loading vehicle FMU: " << e.what() << "\n";
         return 1;
     }
     try {
-        CreateDriverFMU(driver_fmu, step_size, start_time, stop_time, logCategories, vis_driver);
+        CreateDriverFMU(driver_fmu, driver_instance_name, step_size, start_time, stop_time, logCategories,
+                        driver_out_dir, driver_visible, fps);
     } catch (std::exception& e) {
         std::cout << "ERROR loading driver FMU: " << e.what() << "\n";
         return 1;
@@ -264,7 +297,6 @@ int main(int argc, char* argv[]) {
 
     // Initialize FMUs
     driver_fmu.EnterInitializationMode();
-
     driver_fmu.ExitInitializationMode();
 
     vehicle_fmu.EnterInitializationMode();
@@ -286,6 +318,10 @@ int main(int argc, char* argv[]) {
     ChSystemSMC sys;
     std::array<WheelTire, 4> wt;
     CreateTires(sys, wt);
+
+    // Enable/disable saving snapshots
+    vehicle_fmu.SetVariable("save_img", save_img);
+    driver_fmu.SetVariable("save_img", save_img);
 
     // Simulation loop
     double time = 0;

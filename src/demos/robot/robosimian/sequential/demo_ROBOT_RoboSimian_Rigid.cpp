@@ -52,11 +52,6 @@ double duration_sim = 10;            // Duration of actual locomotion simulation
 double output_fps = 100;
 double render_fps = 60;
 
-// Output directories
-const std::string out_dir = GetChronoOutputPath() + "ROBOSIMIAN_RIGID";
-const std::string pov_dir = out_dir + "/POVRAY";
-const std::string img_dir = out_dir + "/IMG";
-
 // POV-Ray and/or IMG output
 bool data_output = true;
 bool povray_output = false;
@@ -199,14 +194,38 @@ int main(int argc, char* argv[]) {
     my_sys->SetGravitationalAcceleration(ChVector3d(0, 0, -9.8));
     ////my_sys->SetGravitationalAcceleration(ChVector3d(0, 0, 0));
 
+    // -----------------------------
+    // Initialize output directories
+    // -----------------------------
+
+    const std::string out_dir = GetChronoOutputPath() + "ROBOSIMIAN_RIGID";
+    const std::string pov_dir = out_dir + "/POVRAY";
+    const std::string img_dir = out_dir + "/IMG";
+
+    if (!filesystem::create_directory(filesystem::path(out_dir))) {
+        std::cout << "Error creating directory " << out_dir << std::endl;
+        return 1;
+    }
+    if (povray_output) {
+        if (!filesystem::create_directory(filesystem::path(pov_dir))) {
+            std::cout << "Error creating directory " << pov_dir << std::endl;
+            return 1;
+        }
+    }
+    if (image_output) {
+        if (!filesystem::create_directory(filesystem::path(img_dir))) {
+            std::cout << "Error creating directory " << img_dir << std::endl;
+            return 1;
+        }
+    }
+
     // -----------------------
     // Create RoboSimian robot
     // -----------------------
 
     robosimian::RoboSimian robot(my_sys, true, true);
 
-    // Set output directory
-
+    // Set output directories
     robot.SetOutputDirectory(out_dir);
 
     // Set actuation mode for wheel motors
@@ -304,27 +323,6 @@ int main(int argc, char* argv[]) {
     vis->AddLight(ChVector3d(100, -100, 80), 190, ChColor(0.7f, 0.8f, 0.8f));
     ////vis->AddLightWithShadow(ChVector3d(10.0, -6.0, 3.0), ChVector3d(0, 0, 0), 3, -10, 10, 40, 512);
     ////vis->EnableShadows();
-
-    // -----------------------------
-    // Initialize output directories
-    // -----------------------------
-
-    if (!filesystem::create_directory(filesystem::path(out_dir))) {
-        std::cout << "Error creating directory " << out_dir << std::endl;
-        return 1;
-    }
-    if (povray_output) {
-        if (!filesystem::create_directory(filesystem::path(pov_dir))) {
-            std::cout << "Error creating directory " << pov_dir << std::endl;
-            return 1;
-        }
-    }
-    if (image_output) {
-        if (!filesystem::create_directory(filesystem::path(img_dir))) {
-            std::cout << "Error creating directory " << img_dir << std::endl;
-            return 1;
-        }
-    }
 
     // ---------------------------------
     // Run simulation for specified time

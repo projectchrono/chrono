@@ -25,8 +25,6 @@
 
 namespace chrono {
 
-class ChContactContainerNSC;
-
 /// Class for non-smooth contact between two generic ChContactable objects.
 /// Ta and Tb are of ChContactable sub classes.
 
@@ -37,8 +35,6 @@ class ChContactNSC : public ChContactTuple<Ta, Tb> {
     typedef typename ChContactTuple<Ta, Tb>::typecarr_b typecarr_b;
 
   protected:
-    ChContactContainerNSC* container;  ///< associated contact container
-
     float* reactions_cache;  ///< N,U,V reactions which might be stored in a persistent contact manifold
 
     /// The three scalar constraints, to be fed into the system solver.
@@ -54,34 +50,36 @@ class ChContactNSC : public ChContactTuple<Ta, Tb> {
     double restitution;
     double dampingf;
 
+    double min_rebounce_speed;
+
   public:
     ChContactNSC() {
         Nx.SetTangentialConstraintU(&Tu);
         Nx.SetTangentialConstraintV(&Tv);
     }
 
-    ChContactNSC(ChContactContainerNSC* contact_container,  ///< contact container
+    ChContactNSC(ChContactContainer* contact_container,     ///< contact container
                  Ta* obj_A,                                 ///< contactable object A
                  Tb* obj_B,                                 ///< contactable object B
                  const ChCollisionInfo& cinfo,              ///< data for the collision pair
-                 const ChContactMaterialCompositeNSC& mat   ///< composite material
+                 const ChContactMaterialCompositeNSC& mat,  ///< composite material
+                 double min_speed                           ///< minimum speed for rebounce
                  )
-        : ChContactTuple<Ta, Tb>(obj_A, obj_B), container(contact_container) {
-        assert(contact_container);
-
+        : ChContactTuple<Ta, Tb>(contact_container, obj_A, obj_B) {
         Nx.SetTangentialConstraintU(&Tu);
         Nx.SetTangentialConstraintV(&Tv);
 
-        Reset(obj_A, obj_B, cinfo, mat);
+        Reset(obj_A, obj_B, cinfo, mat, min_speed);
     }
 
     ~ChContactNSC() {}
 
     /// Reinitialize this contact for reuse.
-    virtual void Reset(Ta* obj_A,                                ///< contactable object A
-                       Tb* obj_B,                                ///< contactable object B
-                       const ChCollisionInfo& cinfo,             ///< data for the collision pair
-                       const ChContactMaterialCompositeNSC& mat  ///< composite material
+    virtual void Reset(Ta* obj_A,                                 ///< contactable object A
+                       Tb* obj_B,                                 ///< contactable object B
+                       const ChCollisionInfo& cinfo,              ///< data for the collision pair
+                       const ChContactMaterialCompositeNSC& mat,  ///< composite material
+                       double min_speed                           ///< minimum speed for rebounce
     ) {
         // Reset geometric information
         this->Reset_cinfo(obj_A, obj_B, cinfo);
@@ -103,6 +101,8 @@ class ChContactNSC : public ChContactTuple<Ta, Tb> {
         this->complianceT = mat.complianceT;
 
         this->reactions_cache = cinfo.reaction_cache;
+
+        this->min_rebounce_speed = min_speed;
 
         // COMPUTE JACOBIANS
 
@@ -189,7 +189,7 @@ class ChContactNSC : public ChContactTuple<Ta, Tb> {
                 double h = this->container->GetSystem()->GetStep();  // = 1.0 / c;  // not all steppers have c = 1/h
 
                 double neg_rebounce_speed = Vrel_cplane.x() * this->restitution;
-                if (neg_rebounce_speed < -this->container->GetMinBounceSpeed())
+                if (neg_rebounce_speed < -min_rebounce_speed)
                     if (this->norm_dist + neg_rebounce_speed * h < 0) {
                         // CASE: BOUNCE
                         bounced = true;
@@ -286,7 +286,7 @@ class ChContactNSC : public ChContactTuple<Ta, Tb> {
                 double h = 1.0 / factor;  // inverse timestep is factor
 
                 double neg_rebounce_speed = Vrel_cplane.x() * this->restitution;
-                if (neg_rebounce_speed < -this->container->GetMinBounceSpeed())
+                if (neg_rebounce_speed < -min_rebounce_speed)
                     if (this->norm_dist + neg_rebounce_speed * h < 0) {
                         // CASE: BOUNCE
                         bounced = true;

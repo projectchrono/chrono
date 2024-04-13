@@ -12,13 +12,6 @@
 // Authors: Alessandro Tasora
 // =============================================================================
 
-#include <memory.h>
-#include <cfloat>
-#include <cmath>
-#include <cstdio>
-#include <cstdlib>
-#include <cstring>
-
 #include "chrono/geometry/ChVolume.h"
 
 namespace chrono {

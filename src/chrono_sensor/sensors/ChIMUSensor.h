@@ -104,9 +104,14 @@ class CH_SENSOR_API ChMagnetometerSensor : public ChDynamicSensor {
     virtual void PushKeyFrame();
     virtual void ClearKeyFrames();
 
+    /// Get the GPS reference location
+    const ChVector3d GetGPSReference() const { return m_gps_reference; }
+
   private:
     std::vector<ChFrame<double>> m_keyframes;
     friend class ChFilterMagnetometerUpdate;
+
+    const ChVector3d m_gps_reference;  ///< reference location in GPS coordinates (longitude, latitude, altitude)
 };
 /// @} sensor_sensors
 

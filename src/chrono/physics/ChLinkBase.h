@@ -75,7 +75,7 @@ class ChApi ChLinkBase : public ChPhysicsItem {
 
     /// Get the reference frame (expressed in and relative to the absolute frame) of the visual model.
     /// For a ChLink, the default implementation returns the link coordinate frame 1.
-    virtual ChFrame<> GetVisualModelFrame(unsigned int nclone = 0) override { return GetFrame1Abs(); }
+    virtual ChFrame<> GetVisualModelFrame(unsigned int nclone = 0) const override { return GetFrame1Abs(); }
 
     /// Method to allow serialization of transient data to archives.
     virtual void ArchiveOut(ChArchiveOut& archive_out) override;

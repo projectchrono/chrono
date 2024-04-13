@@ -37,7 +37,6 @@ using namespace chrono::vehicle::sedan;
 // =============================================================================
 
 const double step_size = 1e-3;
-const std::string out_dir = GetChronoOutputPath() + "SEDAN";
 
 // =============================================================================
 
@@ -110,6 +109,7 @@ int main(int argc, char* argv[]) {
     vis->AttachVehicle(&sedan.GetVehicle());
 
     // Initialize output
+    const std::string out_dir = GetChronoOutputPath() + "SEDAN";
     if (!filesystem::create_directory(filesystem::path(out_dir))) {
         std::cout << "Error creating directory " << out_dir << std::endl;
         return 1;

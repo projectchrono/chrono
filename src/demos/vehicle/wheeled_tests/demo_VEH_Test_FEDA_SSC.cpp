@@ -117,10 +117,6 @@ double tire_step_size = 1e-3;
 // Time interval between two render frames
 double render_step_size = 1.0 / 50;  // FPS = 50
 
-// Output directories
-const std::string out_dir = GetChronoOutputPath() + "FEDA";
-const std::string pov_dir = out_dir + "/POVRAY";
-
 // Debug logging
 bool debug_output = false;
 double debug_step_size = 1.0 / 1;  // FPS = 1
@@ -264,6 +260,9 @@ int main(int argc, char* argv[]) {
     // -----------------
     // Initialize output
     // -----------------
+
+    const std::string out_dir = GetChronoOutputPath() + "FEDA";
+    const std::string pov_dir = out_dir + "/POVRAY";
 
     if (!filesystem::create_directory(filesystem::path(out_dir))) {
         std::cout << "Error creating directory " << out_dir << std::endl;

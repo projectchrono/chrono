@@ -543,7 +543,7 @@ void ChOptixEngine::ConstructScene() {
     // iterate through all bodies in Chrono and add a subnode for each body in Chrono
     for (auto body : m_system->GetBodies()) {
         if (body->GetVisualModel()) {
-            for (auto& shape_instance : body->GetVisualModel()->GetShapes()) {
+            for (auto& shape_instance : body->GetVisualModel()->GetShapeInstances()) {
                 const auto& shape = shape_instance.first;
                 const auto& shape_frame = shape_instance.second;
                 // check if the asset is a ChVisualShape
@@ -600,7 +600,7 @@ void ChOptixEngine::ConstructScene() {
     // // Assumption made here that other physics items don't have a transform -> not always true!!!
     for (auto item : m_system->GetOtherPhysicsItems()) {
         if (item->GetVisualModel()) {
-            for (auto& shape_instance : item->GetVisualModel()->GetShapes()) {
+            for (auto& shape_instance : item->GetVisualModel()->GetShapeInstances()) {
                 const auto& shape = shape_instance.first;
                 const auto& shape_frame = shape_instance.second;
 

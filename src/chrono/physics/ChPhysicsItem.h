@@ -81,7 +81,7 @@ class ChApi ChPhysicsItem : public ChObj {
     /// Get the reference frame (expressed in and relative to the absolute frame) of the visual model.
     /// If the visual model is cloned (for example for a physics item modeling a particle system), this function returns
     /// the coordinate system of the specified clone.
-    virtual ChFrame<> GetVisualModelFrame(unsigned int nclone = 0) { return ChFrame<>(); }
+    virtual ChFrame<> GetVisualModelFrame(unsigned int nclone = 0) const { return ChFrame<>(); }
 
     /// Return the number of clones of the visual model associated with this physics item.
     /// If the visual model is cloned (for example for a physics item modeling a particle system), this function should

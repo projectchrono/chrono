@@ -96,7 +96,7 @@ int main(int argc, char* argv[]) {
     system.UseMaterialProperties(use_mat_properties);
     system.SetContactForceModel(force_model);
     system.SetTangentialDisplacementModel(tdispl_model);
-    system.SetStiffContact(stiff_contact);
+    system.SetContactStiff(stiff_contact);
 
     system.SetGravitationalAcceleration(ChVector3d(0, 0, gravity));
 

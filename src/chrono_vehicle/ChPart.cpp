@@ -167,7 +167,7 @@ void ChPart::ExportComponentList(rapidjson::Document& jsonDocument) const {
 rapidjson::Value VisualModel2Val(std::shared_ptr<ChVisualModel> model, rapidjson::Document::AllocatorType& allocator) {
     rapidjson::Value jsonArray(rapidjson::kArrayType);
 
-    for (const auto& item : model->GetShapes()) {
+    for (const auto& item : model->GetShapeInstances()) {
         const auto& shape = item.first;   // visual shape
         const auto& frame = item.second;  // shape position in model
 

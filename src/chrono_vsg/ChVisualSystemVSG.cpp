@@ -956,7 +956,7 @@ void ChVisualSystemVSG::Render() {
         if (cloud.dynamic_positions) {
             unsigned int k = 0;
             for (auto& p : *cloud.positions)
-                p = vsg::vec3CH(cloud.pcloud->GetParticle(k++).GetPos());
+                p = vsg::vec3CH(cloud.pcloud->Particle(k++).GetPos());
             cloud.positions->dirty();
         }
         if (cloud.dynamic_colors) {
@@ -1090,7 +1090,7 @@ ChFrame<> PointPointFrame(const ChVector3d& P1, const ChVector3d& P2, double& di
 void ChVisualSystemVSG::PopulateGroup(vsg::ref_ptr<vsg::Group> group,
                                       std::shared_ptr<ChVisualModel> model,
                                       std::shared_ptr<ChPhysicsItem> phitem) {
-    for (const auto& shape_instance : model->GetShapes()) {
+    for (const auto& shape_instance : model->GetShapeInstances()) {
         const auto& shape = shape_instance.first;
         const auto& X_SM = shape_instance.second;
 
@@ -1254,7 +1254,7 @@ void ChVisualSystemVSG::BindMesh(const std::shared_ptr<fea::ChMesh>& mesh) {
         shapeFEA->Update(mesh.get(), ChFrame<>());
     }
 
-    for (auto& shape_instance : vis_model->GetShapes()) {
+    for (auto& shape_instance : vis_model->GetShapeInstances()) {
         auto& shape = shape_instance.first;
 
         //// RADU TODO: process glyphs
@@ -1377,7 +1377,7 @@ void ChVisualSystemVSG::BindParticleCloud(const std::shared_ptr<ChParticleCloud>
     cloud.positions = vsg::vec3Array::create(num_particles);
     geomInfo.positions = cloud.positions;
     for (unsigned int k = 0; k < num_particles; k++)
-        cloud.positions->set(k, vsg::vec3CH(pcloud->GetParticle(k).GetPos()));
+        cloud.positions->set(k, vsg::vec3CH(pcloud->Particle(k).GetPos()));
     if (cloud.dynamic_positions) {
         cloud.positions->properties.dataVariance = vsg::DYNAMIC_DATA;
     }
@@ -1404,6 +1404,8 @@ void ChVisualSystemVSG::BindParticleCloud(const std::shared_ptr<ChParticleCloud>
         case ShapeType::CONE:
             m_particleScene->addChild(m_vsgBuilder->createCone(geomInfo, stateInfo));
             break;
+        default:
+            break;
     }
 
     m_clouds.push_back(cloud);
@@ -1415,7 +1417,7 @@ void ChVisualSystemVSG::BindLoadContainer(const std::shared_ptr<ChLoadContainer>
     if (!vis_model)
         return;
 
-    const auto& shape_instance = vis_model->GetShapes().at(0);
+    const auto& shape_instance = vis_model->GetShapeInstances().at(0);
     auto& shape = shape_instance.first;
     auto trimesh = std::dynamic_pointer_cast<ChVisualShapeTriangleMesh>(shape);
     if (!trimesh)
@@ -1463,7 +1465,7 @@ void ChVisualSystemVSG::BindTSDA(const std::shared_ptr<ChLinkTSDA>& tsda) {
     if (!vis_model)
         return;
 
-    for (auto& shape_instance : vis_model->GetShapes()) {
+    for (auto& shape_instance : vis_model->GetShapeInstances()) {
         auto& shape = shape_instance.first;
         if (auto segshape = std::dynamic_pointer_cast<ChVisualShapeSegment>(shape)) {
             double length;
@@ -1495,7 +1497,7 @@ void ChVisualSystemVSG::BindLinkDistance(const std::shared_ptr<ChLinkDistance>& 
     if (!vis_model)
         return;
 
-    for (auto& shape_instance : vis_model->GetShapes()) {
+    for (auto& shape_instance : vis_model->GetShapeInstances()) {
         auto& shape = shape_instance.first;
         if (auto segshape = std::dynamic_pointer_cast<ChVisualShapeSegment>(shape)) {
             double length;

@@ -121,7 +121,7 @@ bool ChGpuVisualization::Render() {
 
     if (m_vsys->Run()) {
         for (unsigned int i = 0; i < m_systemGPU->GetNumParticles(); i++) {
-            m_particles->GetParticle(i).SetPos(m_systemGPU->GetParticlePosition(i));
+            m_particles->Particle(i).SetPos(m_systemGPU->GetParticlePosition(i));
         }
         m_vsys->Render();
         return true;

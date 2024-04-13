@@ -74,9 +74,6 @@ TerrainType terrain_type = TerrainType::RIGID;
 // Read from JSON specification file?
 bool use_JSON = false;
 
-// Output directory
-const std::string out_dir = GetChronoOutputPath() + "TIRE_TEST_RIG";
-
 bool gnuplot_output = true;
 bool blender_output = true;
 
@@ -257,6 +254,7 @@ int main() {
     }
 
     // Initialize output
+    const std::string out_dir = GetChronoOutputPath() + "TIRE_TEST_RIG";
     if (!filesystem::create_directory(filesystem::path(out_dir))) {
         std::cout << "Error creating directory " << out_dir << std::endl;
         return 1;

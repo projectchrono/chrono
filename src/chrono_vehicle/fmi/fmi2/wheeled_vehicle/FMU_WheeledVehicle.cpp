@@ -20,6 +20,7 @@
 #include <cassert>
 #include <map>
 #include <algorithm>
+#include <iomanip>
 
 #include "chrono/solver/ChIterativeSolverLS.h"
 #include "chrono_vehicle/ChVehicleModelData.h"
@@ -37,7 +38,7 @@ FmuComponent::FmuComponent(fmi2String instanceName,
                            const fmi2CallbackFunctions* functions,
                            fmi2Boolean visible,
                            fmi2Boolean loggingOn)
-    : FmuChronoComponentBase(instanceName, fmuType, fmuGUID, fmuResourceLocation, functions, visible, loggingOn) {
+    : FmuChronoComponentBase(instanceName, fmuType, fmuGUID, fmuResourceLocation, functions, visible, loggingOn), render_frame(0) {
     // Initialize FMU type
     initializeType(fmuType);
 
@@ -49,6 +50,10 @@ FmuComponent::FmuComponent(fmi2String instanceName,
 
     system_SMC = 1;
     step_size = 1e-3;
+
+    out_path = ".";
+    save_img = false;
+    fps = 60;
 
     // Get default JSON files from the FMU resources directory
     auto resources_dir = std::string(fmuResourceLocation).erase(0, 8);
@@ -91,6 +96,12 @@ FmuComponent::FmuComponent(fmi2String instanceName,
     AddFmuVariable(&step_size, "step_size", FmuVariable::Type::Real, "s", "integration step size",  //
                    FmuVariable::CausalityType::parameter, FmuVariable::VariabilityType::fixed);     //
 
+    // Set FIXED PARAMETERS for this FMU (I/O)
+    AddFmuVariable(&out_path, "out_path", FmuVariable::Type::String, "1", "output directory",    //
+                   FmuVariable::CausalityType::parameter, FmuVariable::VariabilityType::fixed);  //
+    AddFmuVariable(&fps, "fps", FmuVariable::Type::Real, "1", "rendering frequency",             //
+                   FmuVariable::CausalityType::parameter, FmuVariable::VariabilityType::fixed);  //
+
     // Set CONTINOUS INPUTS for this FMU (driver inputs)
     AddFmuVariable(&driver_inputs.m_steering, "steering", FmuVariable::Type::Real, "1", "steering input",  //
                    FmuVariable::CausalityType::input, FmuVariable::VariabilityType::continuous);           //
@@ -100,6 +111,10 @@ FmuComponent::FmuComponent(fmi2String instanceName,
                    FmuVariable::CausalityType::input, FmuVariable::VariabilityType::continuous);           //
     AddFmuVariable(&driver_inputs.m_clutch, "clutch", FmuVariable::Type::Real, "1", "clutch input",        //
                    FmuVariable::CausalityType::input, FmuVariable::VariabilityType::continuous);           //
+
+    // Set DISCRETE INPUTS for this FMU (I/O)
+    AddFmuVariable((int*)(&save_img), "save_img", FmuVariable::Type::Boolean, "1", "trigger saving images",  //
+                   FmuVariable::CausalityType::input, FmuVariable::VariabilityType::discrete);               //
 
     // Set CONTINUOUS OUTPUTS for this FMU (vehicle reference frame)
     AddFmuFrameMovingVariable(ref_frame, "ref_frame", "m", "m/s", "reference frame",                          //
@@ -248,9 +263,11 @@ void FmuComponent::_exitInitializationMode() {
         std::cout << " Enable run-time visualization" << std::endl;
 
         vis_sys->SetLogLevel(irr::ELL_NONE);
+        vis_sys->SetJPEGQuality(100);
         vis_sys->SetWindowTitle("Wheeled Vehicle FMU (FMI 2.0)");
+        vis_sys->SetWindowSize(800, 800);
         vis_sys->SetChaseCamera(ChVector3d(0.0, 0.0, 1.75), 6.0, 0.5);
-        vis_sys->AddGrid(0.5, 0.5, 400, 400, ChCoordsys<>(init_loc, QuatFromAngleZ(init_yaw)),
+        vis_sys->AddGrid(0.5, 0.5, 2000, 400, ChCoordsys<>(init_loc, QuatFromAngleZ(init_yaw)),
                          ChColor(0.31f, 0.43f, 0.43f));
         vis_sys->Initialize();
         vis_sys->AddLightDirectional();
@@ -278,6 +295,13 @@ fmi2Status FmuComponent::_doStep(fmi2Real currentCommunicationPoint,
             vis_sys->Render();
             vis_sys->RenderFrame(ref_frame);
             vis_sys->EndScene();
+
+            if (save_img && m_time >= render_frame / fps) {
+                std::ostringstream filename;
+                filename << out_path << "/img_" << std::setw(4) << std::setfill('0') << render_frame + 1 << ".bmp";
+                vis_sys->WriteImageToFile(filename.str());
+                render_frame++;
+            }
 
             vis_sys->Advance(h);
 #endif

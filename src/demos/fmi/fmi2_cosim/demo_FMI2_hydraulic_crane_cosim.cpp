@@ -33,8 +33,10 @@ using namespace chrono;
 
 // -----------------------------------------------------------------------------
 
-std::string actuator_unpack_directory = ACTUATOR_FMU_DIRECTORY + std::string("/tmp_unpack/");
-std::string crane_unpack_directory = CRANE_FMU_DIRECTORY + std::string("/tmp_unpack/");
+std::string actuator_unpack_directory =
+    DEMO_FMU_MAIN_DIR + std::string("/tmp_unpack_") + ACTUATOR_FMU_MODEL_IDENTIFIER + std::string("/");
+std::string crane_unpack_directory =
+    DEMO_FMU_MAIN_DIR + std::string("/tmp_unpack_") + CRANE_FMU_MODEL_IDENTIFIER + std::string("/");
 
 // -----------------------------------------------------------------------------
 
@@ -44,7 +46,7 @@ void CreateCraneFMU(FmuChronoUnit& crane_fmu,
                     const std::vector<std::string>& logCategories) {
     try {
         crane_fmu.Load(CRANE_FMU_FILENAME, crane_unpack_directory);
-        // crane_fmu.Load(CRANE_FMU_FILENAME); // will go in TEMP/_fmu_temp
+        ////crane_fmu.Load(CRANE_FMU_FILENAME); // will go in TEMP/_fmu_temp
     } catch (std::exception& e) {
         throw e;
     }
@@ -84,7 +86,7 @@ void CreateActuatorFMU(FmuChronoUnit& actuator_fmu,
                        const std::vector<std::string>& logCategories) {
     try {
         actuator_fmu.Load(ACTUATOR_FMU_FILENAME, actuator_unpack_directory);
-        // actuator_fmu.Load(ACTUATOR_FMU_FILENAME); // will go in TEMP/_fmu_temp
+        ////actuator_fmu.Load(ACTUATOR_FMU_FILENAME); // will go in TEMP/_fmu_temp
     } catch (std::exception& e) {
         throw e;
     }
@@ -202,8 +204,11 @@ int main(int argc, char* argv[]) {
         actuator_fmu.GetVariable("U", U, FmuVariable::Type::Real);
 
         // ----------- Advance FMUs
-        crane_fmu.DoStep(time, dt, fmi2True);
-        actuator_fmu.DoStep(time, dt, fmi2True);
+        auto status_crane = crane_fmu.DoStep(time, dt, fmi2True);
+        auto status_actuator = actuator_fmu.DoStep(time, dt, fmi2True);
+
+        if (status_crane == fmi2Discard || status_actuator == fmi2Discard)
+            break;
 
         // Save output
         ////std::cout << time << s << sd << Uref << U << p1 << p2 << F << std::endl;

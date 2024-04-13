@@ -66,6 +66,7 @@ class FmuComponent : public chrono::FmuChronoComponentBase {
     double pendulum_length = 0.5;
     double pendulum_mass = 1.0;
     double cart_mass = 1.0;
+    std::string experiment_name;
 };
 
 // FMU_ACTION:: implement the following functions

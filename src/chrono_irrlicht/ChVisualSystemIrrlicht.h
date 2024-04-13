@@ -317,6 +317,10 @@ class ChApiIrr ChVisualSystemIrrlicht : virtual public ChVisualSystem {
     /// Return a fixed-size font for rendering GUI.
     irr::gui::IGUIFont* GetMonospaceFont() const { return m_monospace_font; }
 
+    /// Set the JPEG quality level (between 0 and 100) for saved snapshots (default: 0).
+    /// A value of 0 sets the quality to 75%.
+    void SetJPEGQuality(unsigned int quality) { m_quality = (irr::u32)quality; }
+
     /// Create a snapshot of the last rendered frame and save it to the provided file.
     /// The file extension determines the image format.
     virtual void WriteImageToFile(const std::string& filename) override;
@@ -398,6 +402,7 @@ class ChApiIrr ChVisualSystemIrrlicht : virtual public ChVisualSystem {
     bool m_use_effects;                                ///< flag to enable/disable effects
     bool m_modal;                                      ///< visualize modal analysis
     bool m_utility_flag = false;                       ///< utility flag that may be accessed from outside
+    irr::u32 m_quality;                                ///< JPEG quality level (for saved snapshots)
 
     // shared meshes
     irr::scene::IAnimatedMesh* sphereMesh;

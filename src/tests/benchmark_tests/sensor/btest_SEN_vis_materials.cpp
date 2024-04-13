@@ -65,7 +65,7 @@ int main(int argc, char* argv[]) {
             color->SetRoughness(1 - (float)j / y_dim);
             color->SetUseSpecularWorkflow(false);
 
-            sphere1->GetVisualModel()->GetShapes()[0].first->AddMaterial(color);
+            sphere1->GetVisualModel()->GetShapeInstances()[0].first->AddMaterial(color);
 
             sys.Add(sphere1);
         }

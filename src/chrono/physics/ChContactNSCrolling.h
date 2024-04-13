@@ -52,30 +52,32 @@ class ChContactNSCrolling : public ChContactNSC<Ta, Tb> {
         Rx.SetNormalConstraint(&this->Nx);
     }
 
-    ChContactNSCrolling(ChContactContainerNSC* contact_container,  ///< contact container
+    ChContactNSCrolling(ChContactContainer* contact_container,     ///< contact container
                         Ta* obj_A,                                 ///< contactable object A
                         Tb* obj_B,                                 ///< contactable object B
                         const ChCollisionInfo& cinfo,              ///< data for the collision pair
-                        const ChContactMaterialCompositeNSC& mat   ///< composite material
+                        const ChContactMaterialCompositeNSC& mat,  ///< composite material
+                        double min_speed                           ///< minimum speed for rebounce
                         )
-        : ChContactNSC<Ta, Tb>(contact_container, obj_A, obj_B, cinfo, mat) {
+        : ChContactNSC<Ta, Tb>(contact_container, obj_A, obj_B, cinfo, mat, min_speed) {
         Rx.SetRollingConstraintU(&this->Ru);
         Rx.SetRollingConstraintV(&this->Rv);
         Rx.SetNormalConstraint(&this->Nx);
 
-        Reset(obj_A, obj_B, cinfo, mat);
+        Reset(obj_A, obj_B, cinfo, mat, min_speed);
     }
 
     virtual ~ChContactNSCrolling() {}
 
     /// Reinitialize this contact for reuse.
-    virtual void Reset(Ta* obj_A,                                ///< contactable object A
-                       Tb* obj_B,                                ///< contactable object B
-                       const ChCollisionInfo& cinfo,             ///< data for the collision pair
-                       const ChContactMaterialCompositeNSC& mat  ///< composite material
+    virtual void Reset(Ta* obj_A,                                 ///< contactable object A
+                       Tb* obj_B,                                 ///< contactable object B
+                       const ChCollisionInfo& cinfo,              ///< data for the collision pair
+                       const ChContactMaterialCompositeNSC& mat,  ///< composite material
+                       double min_speed                           ///< minimum speed for rebounce
                        ) override {
         // Invoke base class method to reset normal and sliding constraints
-        ChContactNSC<Ta, Tb>::Reset(obj_A, obj_B, cinfo, mat);
+        ChContactNSC<Ta, Tb>::Reset(obj_A, obj_B, cinfo, mat, min_speed);
 
         Rx.Get_tuple_a().SetVariables(*this->objA);
         Rx.Get_tuple_b().SetVariables(*this->objB);

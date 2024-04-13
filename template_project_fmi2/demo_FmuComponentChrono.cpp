@@ -80,6 +80,27 @@ int main(int argc, char* argv[]) {
         readStatus = my_fmu.GetVariable("theta", theta, FmuVariable::Type::Real);
         std::cout << "theta: " << theta << std::endl;
 
+        double vis_x = 0;
+        readStatus = my_fmu.GetVariable("VISUALIZER[0].frame.pos.x", vis_x, FmuVariable::Type::Real);
+        std::cout << "VISUALIZER[0].frame.pos.x: " << vis_x << std::endl;
+
+        const char* vis_type;
+        readStatus = my_fmu.GetVariable("VISUALIZER[0].shape.type", vis_type, FmuVariable::Type::String);
+        std::cout << "VISUALIZER[0].shape.type: " << vis_type << std::endl;
+
+        std::string vis_owner;
+        readStatus = my_fmu.GetVariable("VISUALIZER[0].shape.owner", vis_owner);
+        std::cout << "VISUALIZER[0].shape.owner: " << vis_owner << std::endl;
+
+        fmi2Status writeStatus;
+        std::string exp_name_write = "CartPendulumFMU" + std::to_string(i);
+        writeStatus = my_fmu.SetVariable("experiment_name", exp_name_write);
+
+        std::string exp_name;
+        readStatus = my_fmu.GetVariable("experiment_name", exp_name);
+        std::cout << "experiment_name: " << exp_name << std::endl;
+
+
         time += dt;
     }
 

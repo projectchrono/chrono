@@ -84,11 +84,6 @@ ChSolver::Type solver_type = ChSolver::Type::PARDISO_MKL;
 // Time interval between two render frames
 double render_step_size = 1.0 / 50;  // FPS = 50
 
-// Output directories
-const std::string out_dir = GetChronoOutputPath() + "M113_BAND_JSON";
-const std::string pov_dir = out_dir + "/POVRAY";
-const std::string img_dir = out_dir + "/IMG";
-
 // Verbose level
 bool verbose_solver = false;
 bool verbose_integrator = false;
@@ -236,6 +231,10 @@ int main(int argc, char* argv[]) {
     // -----------------
     // Initialize output
     // -----------------
+
+    const std::string out_dir = GetChronoOutputPath() + "M113_BAND_JSON";
+    const std::string pov_dir = out_dir + "/POVRAY";
+    const std::string img_dir = out_dir + "/IMG";
 
     if (!filesystem::create_directory(filesystem::path(out_dir))) {
         cout << "Error creating directory " << out_dir << endl;

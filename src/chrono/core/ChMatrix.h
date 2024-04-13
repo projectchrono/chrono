@@ -226,6 +226,7 @@ inline void PasteMatrix(ChSparseMatrix& matrTo,
 
 /// Utility function for slicing a vector based on an array of indices.
 /// Return a new vector which only contains the elements with specified indices.
+#ifndef SWIG
 template <typename T = double>
 ChVectorDynamic<T> SliceVector(ChVectorConstRef v, ChArrayConstRef<int> indices) {
 #if EIGEN_VERSION_AT_LEAST(3, 4, 0)
@@ -234,6 +235,7 @@ ChVectorDynamic<T> SliceVector(ChVectorConstRef v, ChArrayConstRef<int> indices)
     return indices.unaryExpr(v);
 #endif
 }
+#endif
 
 // -----------------------------------------------------------------------------
 

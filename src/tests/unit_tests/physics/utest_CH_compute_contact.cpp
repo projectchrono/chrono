@@ -60,7 +60,7 @@ ContactForceTest::ContactForceTest() {
             sys->UseMaterialProperties(use_mat_properties);
             sys->SetContactForceModel(force_model);
             sys->SetTangentialDisplacementModel(tdispl_model);
-            sys->SetStiffContact(stiff_contact);
+            sys->SetContactStiff(stiff_contact);
             system = sys;
 
             float young_modulus = 2e4f;

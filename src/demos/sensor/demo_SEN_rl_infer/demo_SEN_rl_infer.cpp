@@ -240,7 +240,7 @@ int main(int argc, char* argv[]) {
         vis_mat->SetAmbientColor({0, 0, 0});
         vis_mat->SetDiffuseColor({.2, .2, .9});
         vis_mat->SetSpecularColor({.9, .9, .9});
-        box->GetVisualModel()->GetShapes()[0].first->AddMaterial(vis_mat);
+        box->GetVisualModel()->GetShapeInstances()[0].first->AddMaterial(vis_mat);
 
         my_hmmwv.GetSystem()->Add(box);
     }

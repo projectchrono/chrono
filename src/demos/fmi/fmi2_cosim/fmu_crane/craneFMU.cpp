@@ -62,7 +62,7 @@ FmuComponent::FmuComponent(fmi2String instanceName,
 
 #ifdef CHRONO_IRRLICHT
     if (visible == fmi2True)
-        vissys = chrono_types::make_shared<irrlicht::ChVisualSystemIrrlicht>();
+        vis_sys = chrono_types::make_shared<irrlicht::ChVisualSystemIrrlicht>();
 #endif
 
     // Hardcoded mount points
@@ -185,16 +185,16 @@ void FmuComponent::_enterInitializationMode() {}
 
 void FmuComponent::_exitInitializationMode() {
     // Initialize runtime visualization (if requested and if available)
-    if (vissys) {
+    if (vis_sys) {
 #ifdef CHRONO_IRRLICHT
         sendToLog("Enable run-time visualization", fmi2Status::fmi2OK, "logAll");
-        vissys->AttachSystem(&sys);
-        vissys->SetWindowSize(800, 600);
-        vissys->SetWindowTitle("Hydraulic crane");
-        vissys->SetCameraVertical(CameraVerticalDir::Z);
-        vissys->Initialize();
-        vissys->AddCamera(ChVector3d(0.5, -1, 0.5), ChVector3d(0.5, 0, 0.5));
-        vissys->AddTypicalLights();
+        vis_sys->AttachSystem(&sys);
+        vis_sys->SetWindowSize(800, 600);
+        vis_sys->SetWindowTitle("Hydraulic crane");
+        vis_sys->SetCameraVertical(CameraVerticalDir::Z);
+        vis_sys->Initialize();
+        vis_sys->AddCamera(ChVector3d(0.5, -1, 0.5), ChVector3d(0.5, 0, 0.5));
+        vis_sys->AddTypicalLights();
 #else
         sendToLog("Run-time visualization not available", fmi2Status::fmi2OK, "logAll");
 #endif
@@ -211,11 +211,13 @@ fmi2Status FmuComponent::_doStep(fmi2Real currentCommunicationPoint,
                                       std::min(communicationStepSize, m_stepSize));
 
 #ifdef CHRONO_IRRLICHT
-        if (vissys) {
-            vissys->Run();
-            vissys->BeginScene(true, true, ChColor(0.33f, 0.6f, 0.78f));
-            vissys->Render();
-            vissys->EndScene();
+        if (vis_sys) {
+            auto status = vis_sys->Run();
+            if (!status)
+                return fmi2Discard;
+            vis_sys->BeginScene(true, true, ChColor(0.33f, 0.6f, 0.78f));
+            vis_sys->Render();
+            vis_sys->EndScene();
         }
 #endif
 

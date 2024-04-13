@@ -55,7 +55,10 @@ class ChApi ChIndexedParticles : public ChPhysicsItem {
     virtual size_t GetNumParticles() const = 0;
 
     /// Access the N-th particle.
-    virtual ChParticleBase& GetParticle(unsigned int n) = 0;
+    virtual ChParticleBase& Particle(unsigned int n) = 0;
+
+    /// Access the N-th particle.
+    virtual const ChParticleBase& Particle(unsigned int n) const = 0;
 
     /// Resize the particle cluster.
     /// Also clear the state of previously created particles, if any.
@@ -74,7 +77,7 @@ class ChApi ChIndexedParticles : public ChPhysicsItem {
 
     /// Get the reference frame (expressed in and relative to the absolute frame) of the visual model.
     /// For a ChIndexedParticles, this returns the frame of the corresponding particle.
-    virtual ChFrame<> GetVisualModelFrame(unsigned int nclone = 0) override;
+    virtual ChFrame<> GetVisualModelFrame(unsigned int nclone = 0) const override;
 
     virtual unsigned int GetNumVisualModelClones() const override { return (unsigned int)GetNumParticles(); }
 

@@ -80,10 +80,6 @@ double render_step_size = 1.0 / 120;  // FPS = 50
 // Point on chassis tracked by the camera
 ChVector3d trackPoint(-2.0, 0.0, 0.0);
 
-// Output directories
-const std::string out_dir = GetChronoOutputPath() + "M113_DEF_SOIL";
-const std::string img_dir = out_dir + "/IMG";
-
 // Visualization output
 bool img_output = false;
 
@@ -257,6 +253,8 @@ int main(int argc, char* argv[]) {
     // -----------------
     // Initialize output
     // -----------------
+    const std::string out_dir = GetChronoOutputPath() + "M113_DEF_SOIL";
+    const std::string img_dir = out_dir + "/IMG";
 
     if (!filesystem::create_directory(filesystem::path(out_dir))) {
         std::cout << "Error creating directory " << out_dir << std::endl;

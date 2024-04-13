@@ -701,15 +701,16 @@ void ChSystemGpu_impl::resetBCForces() {
 
 // Copy constant sphere data to device, this should run at start
 void ChSystemGpu_impl::copyConstSphereDataToDevice() {
-    gran_params->max_x_pos_unsigned = ((int64_t)gran_params->SD_size_X_SU * gran_params->nSDs_X);
-    gran_params->max_y_pos_unsigned = ((int64_t)gran_params->SD_size_Y_SU * gran_params->nSDs_Y);
-    gran_params->max_z_pos_unsigned = ((int64_t)gran_params->SD_size_Z_SU * gran_params->nSDs_Z);
+    gran_params->max_x_pos = ((int64_t)gran_params->SD_size_X_SU * gran_params->nSDs_X);
+    gran_params->max_y_pos = ((int64_t)gran_params->SD_size_Y_SU * gran_params->nSDs_Y);
+    gran_params->max_z_pos = ((int64_t)gran_params->SD_size_Z_SU * gran_params->nSDs_Z);
 
-    INFO_PRINTF("max pos is is %llu, %llu, %llu\n", gran_params->max_x_pos_unsigned, gran_params->max_y_pos_unsigned,
-                gran_params->max_z_pos_unsigned);
+    INFO_PRINTF("max pos is is %lld, %lld, %lld\n",     //
+                (long long int)gran_params->max_x_pos,  //
+                (long long int)gran_params->max_y_pos,  //
+                (long long int)gran_params->max_z_pos);
 
-    int64_t true_max_pos = std::max(std::max(gran_params->max_x_pos_unsigned, gran_params->max_y_pos_unsigned),
-                                    gran_params->max_z_pos_unsigned);
+    int64_t true_max_pos = std::max(std::max(gran_params->max_x_pos, gran_params->max_y_pos), gran_params->max_z_pos);
 
     // if (true_max_pos >= INT_MAX) {
     //     printf("WARNING! Max possible position is greater than INT_MAX!!!\n");
@@ -967,9 +968,8 @@ void ChSystemGpu_impl::setBCOffset(const BC_type& bc_type,
                 params_SU.sphere_params.sphere_angularVelo.z += ang_acc.z * stepSize_SU;
 
                 new_pos = params_SU.sphere_params.sphere_center;
-
-                break;
             }
+            break;
         }
 
         case BC_type::CONE: {
@@ -986,6 +986,7 @@ void ChSystemGpu_impl::setBCOffset(const BC_type& bc_type,
                 convertToPosSU<int64_t, float>((float)(params_UU.cone_params.hmax + offset_UU.z));
             params_SU.cone_params.hmin =
                 convertToPosSU<int64_t, float>((float)(params_UU.cone_params.hmin + offset_UU.z));
+
             break;
         }
         case BC_type::PLANE: {

@@ -50,5 +50,63 @@ void GPS2Cartesian(ChVector3d& coords, ChVector3d& ref) {
     coords = chrono::ChVector3d({x, y, z});
 }
 
+void Cartesian2ENU(ChVector3d& coords, ChVector3d& ref) {
+    // convert from cartesian to gps coordinates assuming a sphere
+    double lat = ref.y();
+    double lon = ref.x();
+    double alt = ref.z();
+
+    double x = coords.x();
+    double y = coords.y();
+    double z = coords.z();
+
+    double clat = cos(lat * chrono::CH_PI / 180.0);
+    double slat = sin(lat * chrono::CH_PI / 180.0);
+    double clon = cos(lon * chrono::CH_PI / 180.0);
+    double slon = sin(lon * chrono::CH_PI / 180.0);
+
+    double dx = x - ref.x();
+    double dy = y - ref.y();
+    double dz = z - ref.z();
+
+    coords.x() = -slon * dx + clon * dy;
+    coords.y() = -slat * clon * dx - slat * slon * dy + clat * dz;
+    coords.z() = clat * clon * dx + clat * slon * dy + slat * dz;
+}
+
+void ENU2Cartesian(ChVector3d& coords, ChVector3d& ref) {
+    // convert from cartesian to gps coordinates assuming a sphere
+    double lat = ref.y();
+    double lon = ref.x();
+    double alt = ref.z();
+
+    double x = coords.x();
+    double y = coords.y();
+    double z = coords.z();
+
+    double clat = cos(lat * chrono::CH_PI / 180.0);
+    double slat = sin(lat * chrono::CH_PI / 180.0);
+    double clon = cos(lon * chrono::CH_PI / 180.0);
+    double slon = sin(lon * chrono::CH_PI / 180.0);
+
+    double dx = -slon * x - slat * clon * y + clat * clon * z;
+    double dy = clon * x - slat * slon * y + clat * slon * z;
+    double dz = clat * y + slat * z;
+
+    coords.x() = dx + ref.x();
+    coords.y() = dy + ref.y();
+    coords.z() = dz + ref.z();
+}
+
+void GPS2ENU(ChVector3d& coords, ChVector3d& ref) {
+    GPS2Cartesian(coords, ref);
+    Cartesian2ENU(coords, ref);
+}
+
+void ENU2GPS(ChVector3d& coords, ChVector3d& ref) {
+    ENU2Cartesian(coords, ref);
+    Cartesian2GPS(coords, ref);
+}
+
 }  // namespace sensor
 }  // namespace chrono

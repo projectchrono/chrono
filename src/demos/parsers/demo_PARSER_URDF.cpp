@@ -54,8 +54,8 @@ int main(int argc, char* argv[]) {
     // Create a "floor" body
     auto floor = chrono_types::make_shared<ChBody>();
     floor->SetFixed(true);
-    auto floor_box = chrono_types::make_shared<ChVisualShapeBox>(3, 2, 0.1);
-    floor_box->SetTexture(GetChronoDataFile("textures/checker2.png"));
+    auto floor_box = chrono_types::make_shared<ChVisualShapeBox>(3, 3, 0.1);
+    floor_box->SetTexture(GetChronoDataFile("textures/checker2.png"), 1, 1);
     floor->AddVisualShape(floor_box);
     sys.AddBody(floor);
 
@@ -91,7 +91,7 @@ int main(int argc, char* argv[]) {
     // Optional custom processing
     std::cout << "\nCustom processing example - scan elements \"link\"\n" << std::endl;
     class MyCustomProcessor : public ChParserURDF::CustomProcessor {
-        virtual void Process(const tinyxml2::XMLElement& element, ChSystem& system) override {
+        virtual void Process(tinyxml2::XMLElement& element, ChSystem& system) override {
             std::cout << "Process element: " << element.Name() << std::endl;
             if (element.FirstChildElement()) {
                 std::cout << "   First child name: " << element.FirstChildElement()->Name() << std::endl;

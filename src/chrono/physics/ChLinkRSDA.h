@@ -120,7 +120,7 @@ class ChApi ChLinkRSDA : public ChLink {
 
     /// Get the reference frame (expressed in and relative to the absolute frame) of the visual model.
     /// Return the coordinate system on body1.
-    virtual ChFrame<> GetVisualModelFrame(unsigned int nclone = 0) override;
+    virtual ChFrame<> GetVisualModelFrame(unsigned int nclone = 0) const override;
 
     /// Initialize the rotational spring by specifying the two bodies to be connected and an RSDA frame specified in the
     /// absolute frame. The RSDA is constructed such that it acts on the Z axis of the joint frame. Unless

@@ -50,7 +50,6 @@ using namespace chrono::viper;
 ChVisualSystem::Type vis_type = ChVisualSystem::Type::VSG;
 
 bool output = false;
-const std::string out_dir = GetChronoOutputPath() + "SCM_DEF_SOIL";
 
 // SCM grid spacing
 double mesh_resolution = 0.02;
@@ -148,6 +147,7 @@ int main(int argc, char* argv[]) {
     sys.SetGravitationalAcceleration(ChVector3d(0, 0, -9.81));
 
     // Initialize output
+    const std::string out_dir = GetChronoOutputPath() + "SCM_DEF_SOIL";
     if (output) {
         if (!filesystem::create_directory(filesystem::path(out_dir))) {
             std::cout << "Error creating directory " << out_dir << std::endl;

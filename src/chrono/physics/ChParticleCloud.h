@@ -192,7 +192,13 @@ class ChApi ChParticleCloud : public ChIndexedParticles {
     const ChVector3d& GetParticleVel(unsigned int n) const { return particles[n]->GetPosDt(); }
 
     /// Access the N-th particle.
-    ChParticleBase& GetParticle(unsigned int n) override {
+    ChParticleBase& Particle(unsigned int n) override {
+        assert(n < particles.size());
+        return *particles[n];
+    }
+
+    /// Access the N-th particle.
+    const ChParticleBase& Particle(unsigned int n) const override {
         assert(n < particles.size());
         return *particles[n];
     }

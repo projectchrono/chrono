@@ -12,13 +12,6 @@
 // Authors: Alessandro Tasora
 // =============================================================================
 
-#include <memory.h>
-#include <cfloat>
-#include <cmath>
-#include <cstdio>
-#include <cstdlib>
-#include <cstring>
-
 #include "chrono/geometry/ChSurface.h"
 
 namespace chrono {
@@ -26,8 +19,8 @@ namespace chrono {
 // Register into the object factory, to enable run-time dynamic creation and persistence
 // CH_FACTORY_REGISTER(ChSurface) // NO! abstract class
 
-ChSurface::ChSurface(const ChSurface& source) {
-    wireframe = source.wireframe;
+ChSurface::ChSurface(const ChSurface& other) : ChGeometry(other) {
+    wireframe = other.wireframe;
 }
 
 ChVector3d ChSurface::GetNormal(double parU, double parV) const {

@@ -98,8 +98,10 @@ class ChApi ChSystemSMC : public ChSystem {
 
     /// Declare the contact forces as stiff.
     /// If true, this enables calculation of contact force Jacobians.
-    void SetStiffContact(bool val) { m_stiff_contact = val; }
-    bool GetStiffContact() const { return m_stiff_contact; }
+    void SetContactStiff(bool val) { m_stiff_contact = val; }
+
+    /// Return true if contact forces were declared as stiff.
+    bool IsContactStiff() const { return m_stiff_contact; }
 
     /// Slip velocity threshold.
     /// No tangential contact forces are generated if the magnitude of the tangential
