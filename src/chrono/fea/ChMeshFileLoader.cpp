@@ -751,7 +751,7 @@ void ChMeshFileLoader::BSTShellFromObjFile(
             medge0 = std::pair<int, int>(medge0.second, medge0.first);
         if (medge1.first > medge1.second)
             medge1 = std::pair<int, int>(medge1.second, medge1.first);
-        if (medge0.first > medge0.second)
+        if (medge2.first > medge2.second)
             medge2 = std::pair<int, int>(medge2.second, medge2.first);
         std::shared_ptr<ChNodeFEAxyz> node3 = nullptr;
         std::shared_ptr<ChNodeFEAxyz> node4 = nullptr;
