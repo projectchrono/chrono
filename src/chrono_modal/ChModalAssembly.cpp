@@ -339,30 +339,34 @@ void ChModalAssembly::ComputeMassCenterFrame() {
     mass_weighted_radius += mesh_mass * mesh_cog;
     inertial_total += mesh_inertia;
 
-    ChVector3d cog_x;
     if (mass_total) {
-        cog_x = mass_weighted_radius / mass_total;
-
+        ChVector3d cog_x = mass_weighted_radius / mass_total;
         this->cog_frame.SetPos(cog_x);
 
         // The inertia tensor about cog, but still aligned with the absolute frame
         ChMatrix33<> inertia_cog = inertial_total - mass_total * (cog_x.Length2() * ChMatrix33<>(1.0) -
                                                                   cog_x.eigen() * cog_x.eigen().transpose());
         Eigen::EigenSolver<Eigen::MatrixXd> es(inertia_cog);
-        ChVector3d prin_inertia = es.eigenvalues().real();  // principal moments of inertia
+        ChVector3d prin_inertia = es.eigenvalues().real();  // principal moments of inertia: Jxx, Jyy, Jzz
         ChMatrix33<> prin_axis = es.eigenvectors().real();  // principal axes of inertia
-        ChQuaternion qrot = prin_axis.GetQuaternion();
 
-        this->cog_frame.SetRot(qrot);
+        // the eigenvectors might do not comply with the right-hand rule of coordinate system,
+        // thus we do it manually to construct the proper rotation matrix
+        ChVector3d axis_X = prin_axis.col(0).normalized();
+        ChVector3d axis_Y = prin_axis.col(1).normalized();
+        ChVector3d axis_Z = Vcross(axis_X, axis_Y);
+        ChMatrix33<> prin_axis_righthand(axis_X, axis_Y, axis_Z);
+
+        ChQuaternion cog_qrot = prin_axis_righthand.GetQuaternion().GetNormalized();
+        this->cog_frame.SetRot(cog_qrot);
 
     } else {
         // place at the position of the first boundary body/node of this modal assembly
-        cog_x = this->m_full_state_x0.segment(0, 3);
-
+        ChVector3d cog_x = m_full_state_x0.segment(0, 3);
         this->cog_frame.SetPos(cog_x);
 
-        ChQuaternion q_axis = this->m_full_state_x0.segment(3, 4);
-        this->cog_frame.SetRot(q_axis);
+        ChQuaternion cog_qrot = m_full_state_x0.segment(3, 4);
+        this->cog_frame.SetRot(cog_qrot);
 
         std::cout << "Info: the center of mass is specified at the first boundary body/node of the modal assembly. "
                   << std::endl;
