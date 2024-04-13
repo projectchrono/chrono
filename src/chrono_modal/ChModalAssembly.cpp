@@ -1462,8 +1462,8 @@ void ChModalAssembly::SetInternalStateWithModes(bool full_update) {
         m_is_model_reduced = false;
 
     // scatter to internal nodes only and update them
-    unsigned int displ_x = 0 - this->offset_x;
-    unsigned int displ_v = 0 - this->offset_w;
+    int displ_x = 0 - this->offset_x;  // do not decalre as "unsigned int"!
+    int displ_v = 0 - this->offset_w;
     double T = this->GetChTime();
     for (auto& body : internal_bodylist) {
         if (body->IsActive())
