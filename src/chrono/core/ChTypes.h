@@ -16,6 +16,7 @@
 #define CHTYPES_H
 
 #include <memory>
+#include <type_traits>
 
 /// Namespace for custom make_shared implementation.
 namespace chrono_types {
