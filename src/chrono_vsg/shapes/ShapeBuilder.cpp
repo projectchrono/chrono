@@ -834,9 +834,9 @@ ShapeBuilder::BoxShapeData::BoxShapeData() {
                                       {1, 0, 0},  {1, 0, 0},  {1, 0, 0},  {1, 0, 0},  {0, 0, -1}, {0, 0, -1},
                                       {0, 0, -1}, {0, 0, -1}, {0, 0, 1},  {0, 0, 1},  {0, 0, 1},  {0, 0, 1}});
 
-    texcoords = vsg::vec2Array::create({{0, 0}, {1, 0}, {1, 1}, {0, 1}, {0, 0}, {1, 0}, {1, 1}, {0, 1},
-                                        {0, 0}, {1, 0}, {1, 1}, {0, 1}, {0, 0}, {1, 0}, {1, 1}, {0, 1},
-                                        {0, 0}, {1, 0}, {1, 1}, {0, 1}, {0, 0}, {1, 0}, {1, 1}, {0, 1}});
+    texcoords = vsg::vec2Array::create({{0, 1}, {1, 1}, {1, 0}, {0, 0}, {0, 1}, {1, 1}, {1, 0}, {0, 0},
+                                        {0, 1}, {1, 1}, {1, 0}, {0, 0}, {0, 1}, {1, 1}, {1, 0}, {0, 0},
+                                        {0, 1}, {1, 1}, {1, 0}, {0, 0}, {0, 1}, {1, 1}, {1, 0}, {0, 0}});
 
     indices = vsg::ushortArray::create({0,  1,  2,  0,  2,  3,  4,  5,  6,  4,  6,  7,  8,  9,  10, 8,  10, 11,
                                         12, 13, 14, 12, 14, 15, 16, 17, 18, 16, 18, 19, 20, 21, 22, 20, 22, 23});
@@ -897,9 +897,7 @@ ShapeBuilder::SphereShapeData::SphereShapeData(int num_divs) {
             vertices->set(v, vsg::vec3CH(vertex));
             normals->set(v, vsg::vec3CH(vertex.GetNormalized()));
 
-            double utex = 1 - phi / CH_2PI;
-            double vtex = theta / CH_PI;
-            ChVector2d t(utex, vtex);
+            ChVector2d t(phi / CH_2PI, theta / CH_PI);
             texcoords->set(v, vsg::vec2CH(t));
 
             v++;
@@ -970,15 +968,15 @@ ShapeBuilder::CylinderShapeData::CylinderShapeData(int num_divs) {
         double y = -r * sin(phi);
         double utex = 1 - phi / CH_2PI;
 
-        // bottom vertices
-        vertices->set(v, vsg::vec3(x, y, -h));
-        normals->set(v, vsg::vec3(x, y, 0));
-        texcoords->set(v, vsg::vec2(utex, 0));
-
         // top vertices
         vertices->set(nPhi + 1 + v, vsg::vec3(x, y, +h));
         normals->set(nPhi + 1 + v, vsg::vec3(x, y, 0));
-        texcoords->set(nPhi + 1 + v, vsg::vec2(utex, 1));
+        texcoords->set(nPhi + 1 + v, vsg::vec2(utex, 0));
+
+        // bottom vertices
+        vertices->set(v, vsg::vec3(x, y, -h));
+        normals->set(v, vsg::vec3(x, y, 0));
+        texcoords->set(v, vsg::vec2(utex, h / (CH_PI * r)));
 
         v++;
     }
@@ -1007,8 +1005,8 @@ ShapeBuilder::CylinderShapeData::CylinderShapeData(int num_divs) {
         auto phi = iPhi * dPhi;
         double x = r * cos(phi);
         double y = -r * sin(phi);
-        double utex = (cos(phi) + 1) / 2;
-        double vtex = (sin(phi) + 1) / 2;
+        double utex = (sin(phi) + 1) / CH_2PI;
+        double vtex = (cos(phi) + 1) / CH_2PI;
 
         // bottom vertices
         vertices->set(v, vsg::vec3(x, y, -h));
@@ -1094,19 +1092,19 @@ ShapeBuilder::ConeShapeData::ConeShapeData(int num_divs) {
         auto phi = iPhi * dPhi;
         double x = r * cos(phi);
         double y = -r * sin(phi);
-        double utex = 1 - phi / CH_2PI;
+        double utex = 1 - (iPhi * 1.0) / nPhi;
 
         auto normal = ChVector3d(x, y, r * r / h).GetNormalized();
 
         // bottom vertices
         vertices->set(v, vsg::vec3(x, y, 0));
         normals->set(v, vsg::vec3CH(normal));
-        texcoords->set(v, vsg::vec2(utex, 0));
+        texcoords->set(v, vsg::vec2(utex, 1));
 
         // top vertices (all at cone apex)
         vertices->set(nPhi + 1 + v, vsg::vec3(0, 0, h));
         normals->set(nPhi + 1 + v, vsg::vec3CH(normal));
-        texcoords->set(nPhi + 1 + v, vsg::vec2(utex, 1));
+        texcoords->set(nPhi + 1 + v, vsg::vec2(utex, 0));
 
         v++;
     }
@@ -1130,8 +1128,8 @@ ShapeBuilder::ConeShapeData::ConeShapeData(int num_divs) {
         auto phi = iPhi * dPhi;
         double x = r * cos(phi);
         double y = -r * sin(phi);
-        double utex = (cos(phi) + 1) / 2;
-        double vtex = (sin(phi) + 1) / 2;
+        double utex = (sin(phi) + 1) / CH_2PI;
+        double vtex = (cos(phi) + 1) / CH_2PI;
 
         // bottom vertices
         vertices->set(v, vsg::vec3(x, y, 0));
@@ -1202,15 +1200,15 @@ ShapeBuilder::CapsuleShapeData::CapsuleShapeData(int num_divs) {
         double y = -r * sin(phi);
         double utex = 1 - phi / CH_2PI;
 
-        // bottom vertices
-        vertices->set(v, vsg::vec3(x, y, -h));
-        normals->set(v, vsg::vec3(x, y, 0));
-        texcoords->set(v, vsg::vec2(utex, 0));
-
         // top vertices
         vertices->set(nPhi + 1 + v, vsg::vec3(x, y, +h));
         normals->set(nPhi + 1 + v, vsg::vec3(x, y, 0));
-        texcoords->set(nPhi + 1 + v, vsg::vec2(utex, 1));
+        texcoords->set(nPhi + 1 + v, vsg::vec2(utex, 0));
+
+        // bottom vertices
+        vertices->set(v, vsg::vec3(x, y, -h));
+        normals->set(v, vsg::vec3(x, y, 0));
+        texcoords->set(v, vsg::vec2(utex, 1));
 
         v++;
     }
@@ -1248,8 +1246,8 @@ ShapeBuilder::CapsuleShapeData::CapsuleShapeData(int num_divs) {
             vertices->set(v, vsg::vec3CH(vertex + ChVector3d(0, 0, h)));
             normals->set(v, vsg::vec3CH(vertex.GetNormalized()));
 
-            double utex = 1 - phi / CH_2PI;
-            double vtex = theta / CH_PI;
+            double utex = phi / CH_2PI;
+            double vtex = 1 - theta / CH_PI;
             ChVector2d t(utex, vtex);
             texcoords->set(v, vsg::vec2CH(t));
 
@@ -1295,8 +1293,8 @@ ShapeBuilder::CapsuleShapeData::CapsuleShapeData(int num_divs) {
             vertices->set(v, vsg::vec3CH(vertex + ChVector3d(0, 0, -h)));
             normals->set(v, vsg::vec3CH(vertex.GetNormalized()));
 
-            double utex = 1 - phi / CH_2PI;
-            double vtex = theta / CH_PI;
+            double utex = phi / CH_2PI;
+            double vtex = 1 - theta / CH_PI;
             ChVector2d t(utex, vtex);
             texcoords->set(v, vsg::vec2CH(t));
 

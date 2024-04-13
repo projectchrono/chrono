@@ -73,7 +73,7 @@ std::shared_ptr<ChBody> CreateTerrain(ChSystem& sys, double length, double width
     ground->AddCollisionShape(ct_shape);
 
     auto box = chrono_types::make_shared<ChVisualShapeBox>(length, width, 0.2);
-    box->SetTexture(GetChronoDataFile("textures/checker2.png"), (float)length, (float)width);
+    box->SetTexture(GetChronoDataFile("textures/checker2.png"), 4, 1);
     ground->AddVisualShape(box);
 
     sys.AddBody(ground);
