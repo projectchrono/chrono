@@ -118,14 +118,14 @@ bool ChGeneralizedEigenvalueSolverKrylovSchur::Solve(
     int n_constr = Cq.rows();
 
     // Scale constraints matrix
-    double scaling = 0;
+    double scaling = 1.0;
     if (settings.scaleCq) {
         // std::cout << "Scaling Cq\n";
         scaling = K.diagonal().mean();
-        for (int k = 0; k < Cq.outerSize(); ++k)
-            for (ChSparseMatrix::InnerIterator it(Cq, k); it; ++it) {
-                it.valueRef() *= scaling;
-            }
+        //for (int k = 0; k < Cq.outerSize(); ++k)
+        //    for (ChSparseMatrix::InnerIterator it(Cq, k); it; ++it) {
+        //        it.valueRef() *= scaling;
+        //    }
     }
 
     // A  =  [ -K   -Cq' ]
@@ -133,8 +133,8 @@ bool ChGeneralizedEigenvalueSolverKrylovSchur::Solve(
     Eigen::SparseMatrix<double> A(n_vars + n_constr, n_vars + n_constr);
     A.setZero();
     placeMatrix(A, -K, 0, 0);
-    placeMatrix(A, -Cq.transpose(), 0, n_vars);
-    placeMatrix(A, -Cq, n_vars, 0);
+    placeMatrix(A, -Cq.transpose() * scaling, 0, n_vars);
+    placeMatrix(A, -Cq * scaling, n_vars, 0);
     A.makeCompressed();
 
     // B  =  [  M     0  ]
@@ -425,13 +425,24 @@ bool ChGeneralizedEigenvalueSolverLanczos::Solve(
     int n_vars = M.rows();
     int n_constr = Cq.rows();
 
+    // Scale constraints matrix
+    double scaling = 1.0;
+    if (settings.scaleCq) {
+        // std::cout << "Scaling Cq\n";
+        scaling = K.diagonal().mean();
+        //for (int k = 0; k < Cq.outerSize(); ++k)
+        //    for (ChSparseMatrix::InnerIterator it(Cq, k); it; ++it) {
+        //        it.valueRef() *= scaling;
+        //    }
+    }
+
     // A  =  [ -K   -Cq' ]
     //       [ -Cq    0  ]
     Eigen::SparseMatrix<double> A(n_vars + n_constr, n_vars + n_constr);
     A.setZero();
     placeMatrix(A, -K, 0, 0);
-    placeMatrix(A, -Cq.transpose(), 0, n_vars);
-    placeMatrix(A, -Cq, n_vars, 0);
+    placeMatrix(A, -Cq.transpose() * scaling, 0, n_vars);
+    placeMatrix(A, -Cq * scaling, n_vars, 0);
     A.makeCompressed();
 
     // B  =  [  M     0  ]
