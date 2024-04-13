@@ -1,5 +1,4 @@
-set(LIBRARIES ChronoEngine ChronoEngine_parsers)
-include_directories( ${CH_INCLUDES} ${CH_PARSERS_INCLUDES} )
+message(STATUS "Unit test programs for Parsers module...")
 
 set(TESTS "")
 
@@ -15,7 +14,26 @@ if(HAVE_ROS)
   add_definitions(-DHAVE_ROS)
 endif()
 
-message(STATUS "Unit test programs for Parsers module...")
+#--------------------------------------------------------------
+
+# A hack to set the working directory in which to execute the CTest
+# runs.  This is needed for tests that need to access the Chrono data
+# directory (since we use a relative path to it)
+if(${CMAKE_SYSTEM_NAME} MATCHES "Windows")
+  set(MY_WORKING_DIR "${EXECUTABLE_OUTPUT_PATH}/Release")
+else()
+  set(MY_WORKING_DIR ${EXECUTABLE_OUTPUT_PATH})
+endif()
+
+#--------------------------------------------------------------
+
+include_directories( ${CH_INCLUDES} ${CH_PARSERS_INCLUDES} )
+set(COMPILER_FLAGS "${CH_CXX_FLAGS}")
+set(LINKER_FLAGS "${CH_LINKERFLAG_EXE}")
+set(LIBRARIES ChronoEngine ChronoEngine_parsers)
+
+#--------------------------------------------------------------
+# Add executables
 
 foreach(PROGRAM ${TESTS})
     message(STATUS "...add ${PROGRAM}")
@@ -34,7 +52,5 @@ foreach(PROGRAM ${TESTS})
     install(TARGETS ${PROGRAM} DESTINATION ${CH_INSTALL_DEMO})
     add_test(${PROGRAM} ${PROJECT_BINARY_DIR}/bin/${PROGRAM})
 
-    # Update the working dir for tests, so that they can find the Chrono data
-    set_tests_properties(${PROGRAM} PROPERTIES WORKING_DIRECTORY "${PROJECT_BINARY_DIR}/bin"
-    )
+    set_tests_properties(${PROGRAM} PROPERTIES WORKING_DIRECTORY ${MY_WORKING_DIR})
 endforeach(PROGRAM)
