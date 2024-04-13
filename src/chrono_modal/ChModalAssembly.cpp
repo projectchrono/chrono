@@ -604,7 +604,8 @@ void ChModalAssembly::ApplyHertingTransformation(const ChModalDamping& damping_m
     Eigen::SparseMatrix<double> M_c_loc;
     Eigen::SparseMatrix<double> R_c_loc;
     if (m_num_constr_internal) {
-        ChSparseMatrix Cq_I_loc = full_Cq_loc.bottomRows(m_num_constr_internal);
+        m_scaling_factor_CqI = full_K_loc.diagonal().mean();
+        ChSparseMatrix Cq_I_loc = full_Cq_loc.bottomRows(m_num_constr_internal) * m_scaling_factor_CqI;
         util_sparse_assembly_2x2symm(K_c_loc, full_K_loc, Cq_I_loc);
 
         Eigen::SparseMatrix<double> temp_zero(Cq_I_loc.rows(), Cq_I_loc.cols());
@@ -619,13 +620,13 @@ void ChModalAssembly::ApplyHertingTransformation(const ChModalDamping& damping_m
     M_c_loc.makeCompressed();
     R_c_loc.makeCompressed();
 
-    //Eigen::saveMarket(M_c_loc, "C:/work/matlab/TestModalAssembly/data/M_c_loc.dat");
-    //Eigen::saveMarket(K_c_loc, "C:/work/matlab/TestModalAssembly/data/K_c_loc.dat");
-    //ChMatrixDynamic<> Uloc(m_num_coords_vel_boundary + m_num_coords_vel_internal + m_num_constr_internal, 6);
-    //Uloc.setZero();
-    //Uloc.block(0, 0, m_num_coords_vel_boundary, 6) = Uloc_B;
-    //Uloc.block(m_num_coords_vel_boundary, 0, m_num_coords_vel_internal, 6) = Uloc_I;
-    //Eigen::saveMarket(Uloc, "C:/work/matlab/TestModalAssembly/data/Uloc.dat");
+    // Eigen::saveMarket(M_c_loc, "C:/work/matlab/TestModalAssembly/data/M_c_loc.dat");
+    // Eigen::saveMarket(K_c_loc, "C:/work/matlab/TestModalAssembly/data/K_c_loc.dat");
+    // ChMatrixDynamic<> Uloc(m_num_coords_vel_boundary + m_num_coords_vel_internal + m_num_constr_internal, 6);
+    // Uloc.setZero();
+    // Uloc.block(0, 0, m_num_coords_vel_boundary, 6) = Uloc_B;
+    // Uloc.block(m_num_coords_vel_boundary, 0, m_num_coords_vel_internal, 6) = Uloc_I;
+    // Eigen::saveMarket(Uloc, "C:/work/matlab/TestModalAssembly/data/Uloc.dat");
 
     // K_IIc = [  K_II   Cq_II' ]
     //         [ Cq_II     0    ]
@@ -635,7 +636,8 @@ void ChModalAssembly::ApplyHertingTransformation(const ChModalDamping& damping_m
     Eigen::SparseMatrix<double> K_IIc_loc;
     if (m_num_constr_internal) {
         ChSparseMatrix Cq_II_loc = full_Cq_loc.block(m_num_constr_boundary, m_num_coords_vel_boundary,
-                                                     m_num_constr_internal, m_num_coords_vel_internal);
+                                                     m_num_constr_internal, m_num_coords_vel_internal) *
+                                   m_scaling_factor_CqI;
         util_sparse_assembly_2x2symm(K_IIc_loc, K_II_loc, Cq_II_loc);
     } else
         K_IIc_loc = K_II_loc;
@@ -646,7 +648,8 @@ void ChModalAssembly::ApplyHertingTransformation(const ChModalDamping& damping_m
     //
     // Psi_S_C = {Psi_S; Psi_S_LambdaI} = - K_IIc^{-1} * {K_IB ; Cq_IB}
     ChSparseMatrix Cq_IB_loc =
-        full_Cq_loc.block(m_num_constr_boundary, 0, m_num_constr_internal, m_num_coords_vel_boundary);
+        full_Cq_loc.block(m_num_constr_boundary, 0, m_num_constr_internal, m_num_coords_vel_boundary) *
+        m_scaling_factor_CqI;
     Psi_S.setZero(m_num_coords_vel_internal, m_num_coords_vel_boundary);
     Psi_S_LambdaI.setZero(m_num_constr_internal, m_num_coords_vel_boundary);
     // ChMatrixDynamic<> Psi_S_C(m_num_coords_vel_internal + m_num_constr_internal, m_num_coords_vel_boundary);
@@ -820,7 +823,8 @@ void ChModalAssembly::ApplyCraigBamptonTransformation(const ChModalDamping& damp
     Eigen::SparseMatrix<double> M_c_loc;
     Eigen::SparseMatrix<double> R_c_loc;
     if (m_num_constr_internal) {
-        ChSparseMatrix Cq_I_loc = full_Cq_loc.bottomRows(m_num_constr_internal);
+        m_scaling_factor_CqI = full_K_loc.diagonal().mean();
+        ChSparseMatrix Cq_I_loc = full_Cq_loc.bottomRows(m_num_constr_internal) * m_scaling_factor_CqI;
         util_sparse_assembly_2x2symm(K_c_loc, full_K_loc, Cq_I_loc);
 
         Eigen::SparseMatrix<double> temp_zero(Cq_I_loc.rows(), Cq_I_loc.cols());
@@ -843,7 +847,8 @@ void ChModalAssembly::ApplyCraigBamptonTransformation(const ChModalDamping& damp
     Eigen::SparseMatrix<double> K_IIc_loc;
     if (m_num_constr_internal) {
         ChSparseMatrix Cq_II_loc = full_Cq_loc.block(m_num_constr_boundary, m_num_coords_vel_boundary,
-                                                     m_num_constr_internal, m_num_coords_vel_internal);
+                                                     m_num_constr_internal, m_num_coords_vel_internal) *
+                                   m_scaling_factor_CqI;
         util_sparse_assembly_2x2symm(K_IIc_loc, K_II_loc, Cq_II_loc);
     } else
         K_IIc_loc = K_II_loc;
@@ -854,7 +859,8 @@ void ChModalAssembly::ApplyCraigBamptonTransformation(const ChModalDamping& damp
     //
     // Psi_S_C = {Psi_S; Psi_S_LambdaI} = - K_IIc^{-1} * {K_IB ; Cq_IB}
     ChSparseMatrix Cq_IB_loc =
-        full_Cq_loc.block(m_num_constr_boundary, 0, m_num_constr_internal, m_num_coords_vel_boundary);
+        full_Cq_loc.block(m_num_constr_boundary, 0, m_num_constr_internal, m_num_coords_vel_boundary) *
+        m_scaling_factor_CqI;
     Psi_S.setZero(m_num_coords_vel_internal, m_num_coords_vel_boundary);
     Psi_S_LambdaI.setZero(m_num_constr_internal, m_num_coords_vel_boundary);
     // ChMatrixDynamic<> Psi_S_C(m_num_coords_vel_internal + m_num_constr_internal, m_num_coords_vel_boundary);
@@ -2372,16 +2378,16 @@ void ChModalAssembly::IntStateScatterReactions(const unsigned int off_L, const C
         Lambda_internal = Psi_S_LambdaI * e_locred.segment(0, m_num_coords_vel_boundary) +
                           Psi_D_LambdaI * e_locred.segment(m_num_coords_vel_boundary, m_num_coords_modal);
 
-         if (!this->full_forces_internal.isZero()) {
-             ChVectorDynamic<> floc_C(m_num_coords_vel_internal + m_num_constr_internal);
-             floc_C.setZero();
-             floc_C.head(m_num_coords_vel_internal) = L_I.transpose() * this->full_forces_internal;
-             ChVectorDynamic<> static_defl_reaction = m_solver_invKIIc.solve(floc_C.sparseView());
-             //ChVectorDynamic<> static_reaction = static_defl_reaction.tail(m_num_constr_internal);
-             Lambda_internal += static_defl_reaction.tail(m_num_constr_internal);
-         }
+        if (!this->full_forces_internal.isZero()) {
+            ChVectorDynamic<> floc_C(m_num_coords_vel_internal + m_num_constr_internal);
+            floc_C.setZero();
+            floc_C.head(m_num_coords_vel_internal) = L_I.transpose() * this->full_forces_internal;
+            ChVectorDynamic<> static_defl_reaction = m_solver_invKIIc.solve(floc_C.sparseView());
+            // ChVectorDynamic<> static_reaction = static_defl_reaction.tail(m_num_constr_internal);
+            Lambda_internal += static_defl_reaction.tail(m_num_constr_internal);
+        }
 
-        Lambda_internal *= -1.0;  // flip the sign
+        Lambda_internal *= -m_scaling_factor_CqI;  // flip the sign, and scale back
 
         bool needs_temporary_bou_int = m_is_model_reduced;
         if (needs_temporary_bou_int)

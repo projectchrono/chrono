@@ -587,11 +587,13 @@ class ChApiModal ChModalAssembly : public ChAssembly {
     ChMatrixDynamic<> modal_K;  // tangent stiffness matrix in the modal reduced state
     ChMatrixDynamic<> modal_R;  // tangent damping matrix in the modal reduced state
     // ChMatrixDynamic<> modal_Cq;  // corresponding to boundary and modal lagrange multipliers
-    ChMatrixDynamic<> Psi;            // mode transformation matrix.
-    ChMatrixDynamic<> Psi_S;          // static mode transformation matrix - corresponding to internal DOFs.
-    ChMatrixDynamic<> Psi_D;          // dynamic mode transformation matrix - corresponding to internal DOFs.
-    ChMatrixDynamic<> Psi_S_LambdaI;  // static mode transformation matrix - corresponding to internal Lagrange multipliers.
-    ChMatrixDynamic<> Psi_D_LambdaI;  // dynamic mode transformation matrix - corresponding to internal Lagrange multipliers.
+    ChMatrixDynamic<> Psi;    // mode transformation matrix.
+    ChMatrixDynamic<> Psi_S;  // static mode transformation matrix - corresponding to internal DOFs.
+    ChMatrixDynamic<> Psi_D;  // dynamic mode transformation matrix - corresponding to internal DOFs.
+    ChMatrixDynamic<>
+        Psi_S_LambdaI;  // static mode transformation matrix - corresponding to internal Lagrange multipliers.
+    ChMatrixDynamic<>
+        Psi_D_LambdaI;  // dynamic mode transformation matrix - corresponding to internal Lagrange multipliers.
 
     ChFrameMoving<> floating_frame_F0;  ///< floating frame of reference F in the initial undeformed configuration
     ChFrameMoving<> floating_frame_F;   ///< floating frame of reference F in the deformed configuration
@@ -663,6 +665,8 @@ class ChApiModal ChModalAssembly : public ChAssembly {
     bool m_use_linear_inertial_term = true;  // for internal test
 
     bool m_modal_automatic_gravity = true;  ///< switch of the gravity load in modal reduced state
+
+    double m_scaling_factor_CqI = 1.0;  ///< scaling factor on the internal part of Cq
 
     // Statistics:
 
