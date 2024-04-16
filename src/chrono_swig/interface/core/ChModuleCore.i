@@ -255,6 +255,8 @@ using namespace chrono::fea;
 %shared_ptr(chrono::ChLinkLockTrajectory)
 %shared_ptr(chrono::ChLinkLockPointSpline)
 %shared_ptr(chrono::ChLinkMotionImposed)
+%shared_ptr(chrono::ChLinkBushing)
+
 
 %shared_ptr(chrono::ChGeometry)
 %shared_ptr(chrono::ChLine)
@@ -413,6 +415,8 @@ using namespace chrono::fea;
 %include "ChShaft.i"
 %include "ChShaftMotor.i"
 %include "ChLinkMotor.i"
+%include "ChLinkBushing.i"
+
 
 
 // Utils
@@ -553,6 +557,7 @@ using namespace chrono::fea;
 %DefSharedPtrDynamicDowncast(chrono, ChPhysicsItem, ChLinkMotorRotationSpeed)
 %DefSharedPtrDynamicDowncast(chrono, ChPhysicsItem, ChLinkMotorRotationTorque)
 %DefSharedPtrDynamicDowncast(chrono, ChPhysicsItem, ChLoadContainer)
+%DefSharedPtrDynamicDowncast(chrono, ChPhysicsItem, ChLinkBushing)
 
 %DefSharedPtrDynamicDowncast(chrono, ChLink, ChLinkMarkers)
 %DefSharedPtrDynamicDowncast(chrono, ChLink, ChLinkLock)
@@ -587,7 +592,7 @@ using namespace chrono::fea;
 %DefSharedPtrDynamicDowncast(chrono, ChLink, ChLinkTSDA)
 %DefSharedPtrDynamicDowncast(chrono, ChLink, ChLinkLockPointSpline) 
 %DefSharedPtrDynamicDowncast(chrono, ChLink, ChLinkLockTrajectory)
-
+%DefSharedPtrDynamicDowncast(chrono, ChLink, ChLinkBushing)
 
 %DefSharedPtrDynamicDowncast(chrono, ChPhysicsItem, ChShaft)
 %DefSharedPtrDynamicDowncast(chrono, ChPhysicsItem, ChShaftBodyRotation)
