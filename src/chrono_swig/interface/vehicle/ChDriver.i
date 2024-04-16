@@ -117,7 +117,7 @@
 %include "dimension2d.h"
 %template(dimension2du) irr::core::dimension2d<irr::u32>;
 
-%DefSharedPtrDynamicDowncast(chrono::vehicle,ChInteractiveDriver, ChInteractiveDriverIRR)
+%DefSharedPtrDynamicCast(chrono::vehicle,ChInteractiveDriver, ChInteractiveDriverIRR)
 
 #endif
 

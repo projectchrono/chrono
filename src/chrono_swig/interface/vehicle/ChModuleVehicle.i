@@ -24,8 +24,8 @@
 }
 
 
-// For optional downcasting of polimorphic objects:
-%include "../chrono_downcast.i" 
+// For optional casting of polimorphic objects:
+%include "../chrono_cast.i" 
 
 // For supporting shared pointers:
 %include <std_shared_ptr.i>
@@ -408,61 +408,61 @@ Before adding a shared_ptr, mark as shared ptr all its inheritance tree in the m
 #endif
 
 //
-// C- DOWNCASTING OF SHARED POINTERS
+// C- CASTING OF SHARED POINTERS
 //
 
-%DefSharedPtrDynamicDowncast(chrono::vehicle,ChSuspension, ChDoubleWishbone)
-%DefSharedPtrDynamicDowncast(chrono::vehicle,ChSuspension, ChMacPhersonStrut)
-%DefSharedPtrDynamicDowncast(chrono::vehicle,ChSuspension, ChLeafspringAxle)
-%DefSharedPtrDynamicDowncast(chrono::vehicle,ChSuspension, ChHendricksonPRIMAXX)
-%DefSharedPtrDynamicDowncast(chrono::vehicle,ChSuspension, ChDoubleWishboneReduced)
-%DefSharedPtrDynamicDowncast(chrono::vehicle,ChSuspension, ChMultiLink)
-%DefSharedPtrDynamicDowncast(chrono::vehicle,ChSuspension, ChRigidPinnedAxle)
-%DefSharedPtrDynamicDowncast(chrono::vehicle,ChSuspension, ChSemiTrailingArm)
-%DefSharedPtrDynamicDowncast(chrono::vehicle,ChSuspension, ChRigidSuspension)
-%DefSharedPtrDynamicDowncast(chrono::vehicle,ChSuspension, ChSolidAxle)
-%DefSharedPtrDynamicDowncast(chrono::vehicle,ChSuspension, ChThreeLinkIRS)
-%DefSharedPtrDynamicDowncast(chrono::vehicle,ChSuspension, ChToeBarLeafspringAxle)
-%DefSharedPtrDynamicDowncast(chrono::vehicle,ChSuspension, ChSolidBellcrankThreeLinkAxle)
-%DefSharedPtrDynamicDowncast(chrono::vehicle,ChSuspension, ChSolidThreeLinkAxle)
-%DefSharedPtrDynamicDowncast(chrono::vehicle,ChSuspension, ChSingleWishbone)
+%DefSharedPtrDynamicCast(chrono::vehicle,ChSuspension, ChDoubleWishbone)
+%DefSharedPtrDynamicCast(chrono::vehicle,ChSuspension, ChMacPhersonStrut)
+%DefSharedPtrDynamicCast(chrono::vehicle,ChSuspension, ChLeafspringAxle)
+%DefSharedPtrDynamicCast(chrono::vehicle,ChSuspension, ChHendricksonPRIMAXX)
+%DefSharedPtrDynamicCast(chrono::vehicle,ChSuspension, ChDoubleWishboneReduced)
+%DefSharedPtrDynamicCast(chrono::vehicle,ChSuspension, ChMultiLink)
+%DefSharedPtrDynamicCast(chrono::vehicle,ChSuspension, ChRigidPinnedAxle)
+%DefSharedPtrDynamicCast(chrono::vehicle,ChSuspension, ChSemiTrailingArm)
+%DefSharedPtrDynamicCast(chrono::vehicle,ChSuspension, ChRigidSuspension)
+%DefSharedPtrDynamicCast(chrono::vehicle,ChSuspension, ChSolidAxle)
+%DefSharedPtrDynamicCast(chrono::vehicle,ChSuspension, ChThreeLinkIRS)
+%DefSharedPtrDynamicCast(chrono::vehicle,ChSuspension, ChToeBarLeafspringAxle)
+%DefSharedPtrDynamicCast(chrono::vehicle,ChSuspension, ChSolidBellcrankThreeLinkAxle)
+%DefSharedPtrDynamicCast(chrono::vehicle,ChSuspension, ChSolidThreeLinkAxle)
+%DefSharedPtrDynamicCast(chrono::vehicle,ChSuspension, ChSingleWishbone)
 
 
-%DefSharedPtrDynamicDowncast(chrono::vehicle,ChSteering, ChPitmanArm)
-%DefSharedPtrDynamicDowncast(chrono::vehicle,ChSteering, ChPitmanArmShafts)
-%DefSharedPtrDynamicDowncast(chrono::vehicle,ChSteering, ChRackPinion)
-%DefSharedPtrDynamicDowncast(chrono::vehicle,ChSteering, ChRotaryArm)
+%DefSharedPtrDynamicCast(chrono::vehicle,ChSteering, ChPitmanArm)
+%DefSharedPtrDynamicCast(chrono::vehicle,ChSteering, ChPitmanArmShafts)
+%DefSharedPtrDynamicCast(chrono::vehicle,ChSteering, ChRackPinion)
+%DefSharedPtrDynamicCast(chrono::vehicle,ChSteering, ChRotaryArm)
 
-%DefSharedPtrDynamicDowncast(chrono::vehicle,ChChassis, ChRigidChassis)
-%DefSharedPtrDynamicDowncast(chrono::vehicle,ChChassisRear, ChRigidChassisRear)
+%DefSharedPtrDynamicCast(chrono::vehicle,ChChassis, ChRigidChassis)
+%DefSharedPtrDynamicCast(chrono::vehicle,ChChassisRear, ChRigidChassisRear)
 
-%DefSharedPtrDynamicDowncast(chrono::vehicle,ChChassisConnector, ChChassisConnectorArticulated)
-%DefSharedPtrDynamicDowncast(chrono::vehicle,ChChassisConnector, ChChassisConnectorHitch)
-%DefSharedPtrDynamicDowncast(chrono::vehicle,ChChassisConnector, ChChassisConnectorTorsion)
+%DefSharedPtrDynamicCast(chrono::vehicle,ChChassisConnector, ChChassisConnectorArticulated)
+%DefSharedPtrDynamicCast(chrono::vehicle,ChChassisConnector, ChChassisConnectorHitch)
+%DefSharedPtrDynamicCast(chrono::vehicle,ChChassisConnector, ChChassisConnectorTorsion)
 
-%DefSharedPtrDynamicDowncast(chrono::vehicle,ChSubchassis, ChBalancer)
+%DefSharedPtrDynamicCast(chrono::vehicle,ChSubchassis, ChBalancer)
 
-%DefSharedPtrDynamicDowncast(chrono::vehicle,ChTire, ChTMeasyTire)
-%DefSharedPtrDynamicDowncast(chrono::vehicle,ChTire, ChRigidTire)
-%DefSharedPtrDynamicDowncast(chrono::vehicle,ChTire, ChReissnerTire)
-%DefSharedPtrDynamicDowncast(chrono::vehicle,ChTire, ChPac89Tire)
-%DefSharedPtrDynamicDowncast(chrono::vehicle,ChTire, ChPac02Tire)
-%DefSharedPtrDynamicDowncast(chrono::vehicle,ChTire, ChFialaTire)
+%DefSharedPtrDynamicCast(chrono::vehicle,ChTire, ChTMeasyTire)
+%DefSharedPtrDynamicCast(chrono::vehicle,ChTire, ChRigidTire)
+%DefSharedPtrDynamicCast(chrono::vehicle,ChTire, ChReissnerTire)
+%DefSharedPtrDynamicCast(chrono::vehicle,ChTire, ChPac89Tire)
+%DefSharedPtrDynamicCast(chrono::vehicle,ChTire, ChPac02Tire)
+%DefSharedPtrDynamicCast(chrono::vehicle,ChTire, ChFialaTire)
 
-%DefSharedPtrDynamicDowncast(chrono::vehicle,ChEngine, ChEngineSimple)
-%DefSharedPtrDynamicDowncast(chrono::vehicle,ChEngine, ChEngineSimpleMap)
-%DefSharedPtrDynamicDowncast(chrono::vehicle,ChEngine, ChEngineShafts)
-%DefSharedPtrDynamicDowncast(chrono::vehicle,ChEngine, EngineSimple)
-%DefSharedPtrDynamicDowncast(chrono::vehicle,ChEngine, EngineSimpleMap)
-%DefSharedPtrDynamicDowncast(chrono::vehicle,ChEngine, EngineShafts)
+%DefSharedPtrDynamicCast(chrono::vehicle,ChEngine, ChEngineSimple)
+%DefSharedPtrDynamicCast(chrono::vehicle,ChEngine, ChEngineSimpleMap)
+%DefSharedPtrDynamicCast(chrono::vehicle,ChEngine, ChEngineShafts)
+%DefSharedPtrDynamicCast(chrono::vehicle,ChEngine, EngineSimple)
+%DefSharedPtrDynamicCast(chrono::vehicle,ChEngine, EngineSimpleMap)
+%DefSharedPtrDynamicCast(chrono::vehicle,ChEngine, EngineShafts)
 
-%DefSharedPtrDynamicDowncast(chrono::vehicle,ChTransmission, ChAutomaticTransmissionSimpleMap)
-%DefSharedPtrDynamicDowncast(chrono::vehicle,ChTransmission, ChAutomaticTransmissionShafts)
-%DefSharedPtrDynamicDowncast(chrono::vehicle,ChTransmission, AutomaticTransmissionSimpleMap)
-%DefSharedPtrDynamicDowncast(chrono::vehicle,ChTransmission, AutomaticTransmissionShafts)
+%DefSharedPtrDynamicCast(chrono::vehicle,ChTransmission, ChAutomaticTransmissionSimpleMap)
+%DefSharedPtrDynamicCast(chrono::vehicle,ChTransmission, ChAutomaticTransmissionShafts)
+%DefSharedPtrDynamicCast(chrono::vehicle,ChTransmission, AutomaticTransmissionSimpleMap)
+%DefSharedPtrDynamicCast(chrono::vehicle,ChTransmission, AutomaticTransmissionShafts)
 
-%DefSharedPtrDynamicDowncast(chrono::vehicle,ChDriveline, ChDrivelineWV)
-%DefSharedPtrDynamicDowncast(chrono::vehicle,ChDriveline, ChShaftsDriveline2WD)
-%DefSharedPtrDynamicDowncast(chrono::vehicle,ChDriveline, ChShaftsDriveline4WD)
-%DefSharedPtrDynamicDowncast(chrono::vehicle,ChDriveline, ChSimpleDriveline)
-%DefSharedPtrDynamicDowncast(chrono::vehicle,ChDriveline, ChSimpleDrivelineXWD)
+%DefSharedPtrDynamicCast(chrono::vehicle,ChDriveline, ChDrivelineWV)
+%DefSharedPtrDynamicCast(chrono::vehicle,ChDriveline, ChShaftsDriveline2WD)
+%DefSharedPtrDynamicCast(chrono::vehicle,ChDriveline, ChShaftsDriveline4WD)
+%DefSharedPtrDynamicCast(chrono::vehicle,ChDriveline, ChSimpleDriveline)
+%DefSharedPtrDynamicCast(chrono::vehicle,ChDriveline, ChSimpleDrivelineXWD)

@@ -21,18 +21,18 @@ using namespace chrono;
 %include "../../../chrono/physics/ChContactMaterialNSC.h"  
 %include "../../../chrono/physics/ChContactMaterialSMC.h"  
 
-// DOWNCASTING OF SHARED POINTERS
+// CASTING OF SHARED POINTERS
 // 
 // This is not automatic in Python + SWIG. To address this issue, we provide the following
 // Python-side functions to perform casting manually, using the macro 
-// %DefSharedPtrDynamicDowncast(base,derived). 
+// %DefSharedPtrDynamicCast(base,derived). 
 // Do not specify the "chrono::" namespace before base or derived!
 // Later, in python, you can do the following (assuming 'mat' is a ChContactMaterial)
 //    matSMC = chrono.CastToChContactMaterialSMC(mat)
 //    matSMC.SetYoungsModulus(1e7)
 
-%DefSharedPtrDynamicDowncast(chrono,ChContactMaterial,ChContactMaterialNSC)
-%DefSharedPtrDynamicDowncast(chrono,ChContactMaterial,ChContactMaterialSMC)
+%DefSharedPtrDynamicCast(chrono,ChContactMaterial,ChContactMaterialNSC)
+%DefSharedPtrDynamicCast(chrono,ChContactMaterial,ChContactMaterialSMC)
 
-%DefSharedPtrDynamicDowncast(chrono,ChContactMaterialComposite,ChContactMaterialCompositeSMC)
-%DefSharedPtrDynamicDowncast(chrono,ChContactMaterialComposite,ChContactMaterialCompositeNSC)
+%DefSharedPtrDynamicCast(chrono,ChContactMaterialComposite,ChContactMaterialCompositeSMC)
+%DefSharedPtrDynamicCast(chrono,ChContactMaterialComposite,ChContactMaterialCompositeNSC)

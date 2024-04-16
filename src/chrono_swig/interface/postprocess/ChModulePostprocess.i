@@ -25,8 +25,8 @@
 }
 
 
-// For optional downcasting of polimorphic objects:
-%include "../chrono_downcast.i" 
+// For optional casting of polimorphic objects:
+%include "../chrono_cast.i" 
 
 // For supporting shared pointers:
 %include <std_shared_ptr.i>
@@ -153,32 +153,32 @@ using namespace chrono::postprocess;
 
 
 //
-// C- DOWNCASTING OF SHARED POINTERS
+// C- CASTING OF SHARED POINTERS
 // 
 // This is not automatic in Python + SWIG, except if one uses the 
 // %downcast_output_sharedptr(...) macro, as above, but this causes
 // a lot of code bloat. 
 // Alternatively, in the following we create a set of Python-side
 // functions to perform casting by hand, thank to the macro 
-// %DefSharedPtrDynamicDowncast(base,derived). 
+// %DefSharedPtrDynamicCast(base,derived). 
 // Do not specify the "chrono::" namespace before base or derived!
 // Later, in python, you can do the following:
 //  myvis = chrono.CastToChVisualizationShared(myasset)
 //  print ('Could be cast to visualization object?', !myvis.IsNull())
 
-%DefSharedPtrDynamicDowncast(chrono,ChVisualShape,ChVisualShapeBox)
-%DefSharedPtrDynamicDowncast(chrono,ChVisualShape,ChVisualShapeModelFile)
-%DefSharedPtrDynamicDowncast(chrono,ChVisualShape,ChVisualShapeSphere)
-%DefSharedPtrDynamicDowncast(chrono,ChVisualShape,ChVisualShapeCylinder)
-%DefSharedPtrDynamicDowncast(chrono,ChVisualShape,ChVisualShapeLine)
-%DefSharedPtrDynamicDowncast(chrono,ChVisualShape,ChVisualShapeSurface)
-%DefSharedPtrDynamicDowncast(chrono,ChVisualShape,ChVisualShapePath)
-%DefSharedPtrDynamicDowncast(chrono,ChVisualShape,ChVisualShapeTriangleMesh)
-%DefSharedPtrDynamicDowncast(chrono,ChVisualShape,ChVisualShapeEllipsoid)
-%DefSharedPtrDynamicDowncast(chrono,ChVisualShape,ChVisualShapePointPoint)
-%DefSharedPtrDynamicDowncast(chrono,ChVisualShape,ChVisualShapeSegment)
-%DefSharedPtrDynamicDowncast(chrono,ChVisualShape,ChVisualShapeSpring)
-%DefSharedPtrDynamicDowncast(chrono,ChVisualShape,ChVisualShapeRotSpring)
+%DefSharedPtrDynamicCast(chrono,ChVisualShape,ChVisualShapeBox)
+%DefSharedPtrDynamicCast(chrono,ChVisualShape,ChVisualShapeModelFile)
+%DefSharedPtrDynamicCast(chrono,ChVisualShape,ChVisualShapeSphere)
+%DefSharedPtrDynamicCast(chrono,ChVisualShape,ChVisualShapeCylinder)
+%DefSharedPtrDynamicCast(chrono,ChVisualShape,ChVisualShapeLine)
+%DefSharedPtrDynamicCast(chrono,ChVisualShape,ChVisualShapeSurface)
+%DefSharedPtrDynamicCast(chrono,ChVisualShape,ChVisualShapePath)
+%DefSharedPtrDynamicCast(chrono,ChVisualShape,ChVisualShapeTriangleMesh)
+%DefSharedPtrDynamicCast(chrono,ChVisualShape,ChVisualShapeEllipsoid)
+%DefSharedPtrDynamicCast(chrono,ChVisualShape,ChVisualShapePointPoint)
+%DefSharedPtrDynamicCast(chrono,ChVisualShape,ChVisualShapeSegment)
+%DefSharedPtrDynamicCast(chrono,ChVisualShape,ChVisualShapeSpring)
+%DefSharedPtrDynamicCast(chrono,ChVisualShape,ChVisualShapeRotSpring)
 
 //
 // ADDITIONAL C++ FUNCTIONS / CLASSES THAT ARE USED ONLY FOR PYTHON WRAPPER

@@ -34,8 +34,8 @@
 }
 
 
-// For optional downcasting of polimorphic objects:
-%include "../chrono_downcast.i" 
+// For optional casting of polimorphic objects:
+%include "../chrono_cast.i" 
 
 // For supporting shared pointers:
 %include <std_shared_ptr.i>
@@ -462,65 +462,65 @@ using namespace chrono::fea;
 %include "../../../chrono/fea/ChLoadsBeam.h"
 
 //
-// C- DOWNCASTING OF SHARED POINTERS
+// C- CASTING OF SHARED POINTERS
 // 
 // This is not automatic in Python + SWIG, except if one uses the 
 // %downcast_output_sharedptr(...) macro, as above, but this causes
 // a lot of code bloat. 
 // Alternatively, in the following we create a set of Python-side
 // functions to perform casting by hand, thank to the macro 
-// %DefSharedPtrDynamicDowncast(base,derived). 
+// %DefSharedPtrDynamicCast(base,derived). 
 // Do not specify the "chrono::" namespace before base or derived!
 // Later, in python, you can do the following:
 //  myvis = chrono.CastToChVisualizationShared(myasset)
 //  print ('Could be cast to visualization object?', !myvis.IsNull())
 
-%DefSharedPtrDynamicDowncast2NS(chrono,chrono::fea,ChPhysicsItem,ChMesh)
-%DefSharedPtrDynamicDowncast(chrono::fea,ChElasticityCosserat,ChElasticityCosseratSimple)
-%DefSharedPtrDynamicDowncast(chrono::fea,ChElasticityCosserat,ChElasticityCosseratGeneric)
-%DefSharedPtrDynamicDowncast(chrono::fea,ChElasticityCosserat,ChElasticityCosseratAdvanced)
-%DefSharedPtrDynamicDowncast(chrono::fea,ChElasticityCosserat,ChElasticityCosseratMesh)
-%DefSharedPtrDynamicDowncast(chrono::fea,ChPlasticityCosserat,ChPlasticityCosseratLumped)
-%DefSharedPtrDynamicDowncast(chrono::fea,ChInertiaCosserat,ChInertiaCosseratSimple)
-%DefSharedPtrDynamicDowncast(chrono::fea,ChInertiaCosserat,ChInertiaCosseratAdvanced)
-%DefSharedPtrDynamicDowncast(chrono::fea,ChInertiaCosserat,ChInertiaCosseratMassref)
-%DefSharedPtrDynamicDowncast(chrono::fea,ChDampingCosserat,ChDampingCosseratLinear)
-%DefSharedPtrDynamicDowncast(chrono::fea,ChDampingCosserat,ChDampingCosseratRayleigh)
-%DefSharedPtrDynamicDowncast(chrono::fea,ChElasticityReissner,ChElasticityReissnerIsothropic)
-%DefSharedPtrDynamicDowncast(chrono::fea,ChElasticityReissner,ChElasticityReissnerOrthotropic)
-%DefSharedPtrDynamicDowncast(chrono::fea,ChElasticityReissner,ChElasticityReissnerGeneric)
-%DefSharedPtrDynamicDowncast(chrono::fea,ChElasticityKirchhoff,ChElasticityKirchhoffIsothropic)
-%DefSharedPtrDynamicDowncast(chrono::fea,ChElasticityKirchhoff,ChElasticityKirchhoffOrthotropic)
-%DefSharedPtrDynamicDowncast(chrono::fea,ChElasticityKirchhoff,ChElasticityKirchhoffGeneric)
-%DefSharedPtrDynamicDowncast(chrono::fea,ChElementBase,ChElementBar)
-%DefSharedPtrDynamicDowncast(chrono::fea,ChElementBase,ChElementSpring)
-%DefSharedPtrDynamicDowncast(chrono::fea,ChElementBase,ChElementTetraCorot_4)
-%DefSharedPtrDynamicDowncast(chrono::fea,ChElementBase,ChElementTetraCorot_4_P)
-%DefSharedPtrDynamicDowncast(chrono::fea,ChElementBase,ChElementTetraCorot_10)
-%DefSharedPtrDynamicDowncast(chrono::fea,ChElementBase,ChElementHexaCorot_8)
-%DefSharedPtrDynamicDowncast(chrono::fea,ChElementBase,ChElementHexaCorot_20)
-%DefSharedPtrDynamicDowncast(chrono::fea,ChElementBase,ChElementBeamEuler)
-%DefSharedPtrDynamicDowncast(chrono::fea,ChElementBase,ChElementBeamANCF_3243)
-%DefSharedPtrDynamicDowncast(chrono::fea,ChElementBase,ChElementBeamANCF_3333)
-%DefSharedPtrDynamicDowncast(chrono::fea,ChElementBase,ChElementBeamIGA)
-%DefSharedPtrDynamicDowncast(chrono::fea,ChElementBase,ChElementCableANCF)
-%DefSharedPtrDynamicDowncast(chrono::fea,ChElementBase,ChElementShellReissner4)
-%DefSharedPtrDynamicDowncast(chrono::fea,ChElementBase,ChElementShellANCF_3423)
-%DefSharedPtrDynamicDowncast(chrono::fea,ChElementBase,ChElementShellANCF_3833)
-%DefSharedPtrDynamicDowncast(chrono::fea,ChElementBase,ChElementHexaANCF_3813)
-%DefSharedPtrDynamicDowncast(chrono::fea,ChElementBase,ChElementHexaANCF_3813_9)
-%DefSharedPtrDynamicDowncast2NS(chrono,chrono::fea,ChNodeBase,ChNodeFEAbase)
-%DefSharedPtrDynamicDowncast(chrono::fea,ChNodeFEAbase,ChNodeFEAxyz)
-%DefSharedPtrDynamicDowncast(chrono::fea,ChNodeFEAbase,ChNodeFEAxyzP)
-%DefSharedPtrDynamicDowncast(chrono::fea,ChNodeFEAbase,ChNodeFEAxyzD)
-%DefSharedPtrDynamicDowncast(chrono::fea,ChNodeFEAbase,ChNodeFEAxyzDD)
-%DefSharedPtrDynamicDowncast(chrono::fea,ChNodeFEAbase,ChNodeFEAxyzDDD)
-%DefSharedPtrDynamicDowncast(chrono::fea,ChNodeFEAbase,ChNodeFEAxyzrot)
-%DefSharedPtrDynamicDowncast2NS(chrono,chrono::fea,ChContactable,ChContactTriangleXYZ)
-%DefSharedPtrDynamicDowncast2NS(chrono,chrono::fea,ChContactable,ChContactTriangleXYZRot)
-%DefSharedPtrDynamicDowncast2NS(chrono,chrono::fea,ChContactable,ChContactNodeXYZ)
-%DefSharedPtrDynamicDowncast2NS(chrono,chrono::fea,ChContactable,ChContactNodeXYZRot)
-//%DefSharedPtrDynamicDowncast2NS(chrono,chrono::fea,ChContactable,ChNodeMeshless)
+%DefSharedPtrDynamicCast2NS(chrono,chrono::fea,ChPhysicsItem,ChMesh)
+%DefSharedPtrDynamicCast(chrono::fea,ChElasticityCosserat,ChElasticityCosseratSimple)
+%DefSharedPtrDynamicCast(chrono::fea,ChElasticityCosserat,ChElasticityCosseratGeneric)
+%DefSharedPtrDynamicCast(chrono::fea,ChElasticityCosserat,ChElasticityCosseratAdvanced)
+%DefSharedPtrDynamicCast(chrono::fea,ChElasticityCosserat,ChElasticityCosseratMesh)
+%DefSharedPtrDynamicCast(chrono::fea,ChPlasticityCosserat,ChPlasticityCosseratLumped)
+%DefSharedPtrDynamicCast(chrono::fea,ChInertiaCosserat,ChInertiaCosseratSimple)
+%DefSharedPtrDynamicCast(chrono::fea,ChInertiaCosserat,ChInertiaCosseratAdvanced)
+%DefSharedPtrDynamicCast(chrono::fea,ChInertiaCosserat,ChInertiaCosseratMassref)
+%DefSharedPtrDynamicCast(chrono::fea,ChDampingCosserat,ChDampingCosseratLinear)
+%DefSharedPtrDynamicCast(chrono::fea,ChDampingCosserat,ChDampingCosseratRayleigh)
+%DefSharedPtrDynamicCast(chrono::fea,ChElasticityReissner,ChElasticityReissnerIsothropic)
+%DefSharedPtrDynamicCast(chrono::fea,ChElasticityReissner,ChElasticityReissnerOrthotropic)
+%DefSharedPtrDynamicCast(chrono::fea,ChElasticityReissner,ChElasticityReissnerGeneric)
+%DefSharedPtrDynamicCast(chrono::fea,ChElasticityKirchhoff,ChElasticityKirchhoffIsothropic)
+%DefSharedPtrDynamicCast(chrono::fea,ChElasticityKirchhoff,ChElasticityKirchhoffOrthotropic)
+%DefSharedPtrDynamicCast(chrono::fea,ChElasticityKirchhoff,ChElasticityKirchhoffGeneric)
+%DefSharedPtrDynamicCast(chrono::fea,ChElementBase,ChElementBar)
+%DefSharedPtrDynamicCast(chrono::fea,ChElementBase,ChElementSpring)
+%DefSharedPtrDynamicCast(chrono::fea,ChElementBase,ChElementTetraCorot_4)
+%DefSharedPtrDynamicCast(chrono::fea,ChElementBase,ChElementTetraCorot_4_P)
+%DefSharedPtrDynamicCast(chrono::fea,ChElementBase,ChElementTetraCorot_10)
+%DefSharedPtrDynamicCast(chrono::fea,ChElementBase,ChElementHexaCorot_8)
+%DefSharedPtrDynamicCast(chrono::fea,ChElementBase,ChElementHexaCorot_20)
+%DefSharedPtrDynamicCast(chrono::fea,ChElementBase,ChElementBeamEuler)
+%DefSharedPtrDynamicCast(chrono::fea,ChElementBase,ChElementBeamANCF_3243)
+%DefSharedPtrDynamicCast(chrono::fea,ChElementBase,ChElementBeamANCF_3333)
+%DefSharedPtrDynamicCast(chrono::fea,ChElementBase,ChElementBeamIGA)
+%DefSharedPtrDynamicCast(chrono::fea,ChElementBase,ChElementCableANCF)
+%DefSharedPtrDynamicCast(chrono::fea,ChElementBase,ChElementShellReissner4)
+%DefSharedPtrDynamicCast(chrono::fea,ChElementBase,ChElementShellANCF_3423)
+%DefSharedPtrDynamicCast(chrono::fea,ChElementBase,ChElementShellANCF_3833)
+%DefSharedPtrDynamicCast(chrono::fea,ChElementBase,ChElementHexaANCF_3813)
+%DefSharedPtrDynamicCast(chrono::fea,ChElementBase,ChElementHexaANCF_3813_9)
+%DefSharedPtrDynamicCast2NS(chrono,chrono::fea,ChNodeBase,ChNodeFEAbase)
+%DefSharedPtrDynamicCast(chrono::fea,ChNodeFEAbase,ChNodeFEAxyz)
+%DefSharedPtrDynamicCast(chrono::fea,ChNodeFEAbase,ChNodeFEAxyzP)
+%DefSharedPtrDynamicCast(chrono::fea,ChNodeFEAbase,ChNodeFEAxyzD)
+%DefSharedPtrDynamicCast(chrono::fea,ChNodeFEAbase,ChNodeFEAxyzDD)
+%DefSharedPtrDynamicCast(chrono::fea,ChNodeFEAbase,ChNodeFEAxyzDDD)
+%DefSharedPtrDynamicCast(chrono::fea,ChNodeFEAbase,ChNodeFEAxyzrot)
+%DefSharedPtrDynamicCast2NS(chrono,chrono::fea,ChContactable,ChContactTriangleXYZ)
+%DefSharedPtrDynamicCast2NS(chrono,chrono::fea,ChContactable,ChContactTriangleXYZRot)
+%DefSharedPtrDynamicCast2NS(chrono,chrono::fea,ChContactable,ChContactNodeXYZ)
+%DefSharedPtrDynamicCast2NS(chrono,chrono::fea,ChContactable,ChContactNodeXYZRot)
+//%DefSharedPtrDynamicCast2NS(chrono,chrono::fea,ChContactable,ChNodeMeshless)
 
 //
 // ADDITIONAL C++ FUNCTIONS / CLASSES THAT ARE USED ONLY FOR PYTHON WRAPPER
