@@ -66,8 +66,7 @@ endif()
 message(STATUS "  OpenCASCADE include directory: ${OpenCASCADE_INCLUDE_DIR}")
 message(STATUS "  OpenCASCADE binary directory:  ${OpenCASCADE_BINARY_DIR}")
 message(STATUS "  OpenCASCADE library directory: ${OpenCASCADE_LIBRARY_DIR}")
-message(STATUS "  OpenCASCADE C flags:           ${OpenCASCADE_C_FLAGS}")
-message(STATUS "  OpenCASCADE C++ flags:         ${OpenCASCADE_CXX_FLAGS}")
+##message(STATUS "  OpenCASCADE C++ flags:         ${OpenCASCADE_CXX_FLAGS}")
 message(STATUS "  OpenCASCADE linker flags:      ${OpenCASCADE_LINKER_FLAGS}")
 message(STATUS "  OpenCASCADE libraries:         ${OpenCASCADE_LIBRARIES}")
 
@@ -75,7 +74,7 @@ message(STATUS "  OpenCASCADE libraries:         ${OpenCASCADE_LIBRARIES}")
 
 set(OpenCASCADE_INCLUDE_DIR "${OpenCASCADE_INCLUDE_DIR}" PARENT_SCOPE)
 set(OpenCASCADE_BINARY_DIR "${OpenCASCADE_BINARY_DIR}" PARENT_SCOPE)
-set(OpenCASCADE_CXX_FLAGS "${OpenCASCADE_CXX_FLAGS}" PARENT_SCOPE)
+##set(OpenCASCADE_CXX_FLAGS "${OpenCASCADE_CXX_FLAGS}" PARENT_SCOPE)
 set(OpenCASCADE_LINKER_FLAGS "${OpenCASCADE_LINKER_FLAGS}" PARENT_SCOPE)
 set(OpenCASCADE_LIBRARIES "${OpenCASCADE_LIBRARIES}" PARENT_SCOPE)
 
@@ -83,7 +82,6 @@ set(OpenCASCADE_LIBRARIES "${OpenCASCADE_LIBRARIES}" PARENT_SCOPE)
 # Add the ChronoEngine_cascade library
 
 include_directories(${OpenCASCADE_INCLUDE_DIR})
-set(CXX_FLAGS "${CH_CXX_FLAGS} ${OpenCASCADE_CXX_FLAGS}")
 set(LIBRARIES "ChronoEngine")
 
 if(ENABLE_MODULE_IRRLICHT)

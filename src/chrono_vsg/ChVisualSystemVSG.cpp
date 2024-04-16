@@ -1968,9 +1968,7 @@ void ChVisualSystemVSG::exportScreenImage() {
         }
     }
 
-    if (vsg::write(imageData, m_imageFilename, m_options)) {
-        std::cout << "Written color buffer to " << m_imageFilename << std::endl;
-    } else {
+    if (!vsg::write(imageData, m_imageFilename, m_options)) {
         std::cout << "Failed to write color buffer to " << m_imageFilename << std::endl;
     }
 }

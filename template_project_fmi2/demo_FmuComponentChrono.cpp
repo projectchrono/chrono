@@ -100,7 +100,6 @@ int main(int argc, char* argv[]) {
         readStatus = my_fmu.GetVariable("experiment_name", exp_name);
         std::cout << "experiment_name: " << exp_name << std::endl;
 
-
         time += dt;
     }
 

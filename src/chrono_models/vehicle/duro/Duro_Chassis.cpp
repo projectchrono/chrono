@@ -38,7 +38,7 @@ const ChVector3d Duro_Chassis::m_connector_rear_loc(-3.88 - 1.37, 0, -0.3);
 const ChCoordsys<> Duro_Chassis::m_driverCsys(ChVector3d(-0.52, 0.7, 1.4), ChQuaternion<>(1, 0, 0, 0));
 
 // -----------------------------------------------------------------------------
-// -----------------------------------------------------------------------------
+
 Duro_Chassis::Duro_Chassis(const std::string& name, bool fixed, CollisionType chassis_collision_type)
     : ChRigidChassis(name, fixed) {
     // In this model, we use a single contact material.
@@ -67,8 +67,8 @@ Duro_Chassis::Duro_Chassis(const std::string& name, bool fixed, CollisionType ch
     m_geometry.m_vis_boxes.push_back(box1);
     m_geometry.m_vis_boxes.push_back(box2);
 
-    m_geometry.m_has_mesh = true;
-    m_geometry.m_vis_mesh_file = "Duro/Duro_chassis.obj";
+    ////m_geometry.m_has_mesh = true;
+    ////m_geometry.m_vis_mesh_file = "Duro/Duro_chassis.obj";
 
     m_geometry.m_has_collision = (chassis_collision_type != CollisionType::NONE);
     switch (chassis_collision_type) {
@@ -76,11 +76,11 @@ Duro_Chassis::Duro_Chassis(const std::string& name, bool fixed, CollisionType ch
             box1.m_matID = 0;
             m_geometry.m_coll_boxes.push_back(box1);
             break;
-        case CollisionType::HULLS: {
-            ChVehicleGeometry::ConvexHullsShape hull("Duro/Duro_chassis_simple.obj", 0);
-            m_geometry.m_coll_hulls.push_back(hull);
-            break;
-        }
+        ////case CollisionType::HULLS: {
+        ////    ChVehicleGeometry::ConvexHullsShape hull("Duro/Duro_chassis_simple.obj", 0);
+        ////    m_geometry.m_coll_hulls.push_back(hull);
+        ////    break;
+        ////}
         default:
             break;
     }

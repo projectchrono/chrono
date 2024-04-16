@@ -12,12 +12,10 @@
 // External project template for building a Chrono co-simulation FMU.
 // =============================================================================
 
-
 #include "chrono/physics/ChBodyEasy.h"
 #include "chrono/physics/ChLinkMate.h"
 
 #include "FmuComponentChrono.h"
-
 
 using namespace chrono;
 
@@ -153,9 +151,12 @@ void FmuComponent::_exitInitializationMode() {
     // add all the variables to the serializer
     variables_serializer << CHNVP(sys);
 
-    // (re)add the visualization shapes with custom serialization
-    AddFmuVisualShapes(*cart);
-    AddFmuVisualShapes(*pendulum, "pendulum");
+    //// (re)add the visualization shapes with custom serialization
+    // AddFmuVisualShapes(*cart);
+    // AddFmuVisualShapes(*pendulum, "pendulum");
+
+    // it is also possible to parse automatically an entire ChAssembly
+    AddFmuVisualShapes(sys.GetAssembly());
 };
 
 fmi2Status FmuComponent::_doStep(fmi2Real currentCommunicationPoint,

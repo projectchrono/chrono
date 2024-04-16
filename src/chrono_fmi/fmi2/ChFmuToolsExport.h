@@ -342,13 +342,11 @@ class FmuChronoComponentBase : public FmuComponentBase {
     /// - VISUALIZER[i].owner_id [fmi2String]: id of the owner ChPhysicsItem
     /// - VISUALIZER[i].shape.<shape-specific variables>: depends on the shape type
     /// Variables are of fmi2Real type if not otherwise specified.
-    void AddFmuVisualShapes(ChPhysicsItem& pi, std::string custom_pi_name = "");
+    void AddFmuVisualShapes(const ChPhysicsItem& pi, std::string custom_pi_name = "");
 
-    /// Clear all visual shapes added with AddFmuVisualShapes.
-    void ClearFmuVisualShapes() {
-        visualizer_frames.clear();
-        visualizers_counter = 0;
-    }
+    /// Add FMU variables corresponding to the visual shapes attached to the specified ChAssembly.
+    /// Refer to the AddFmuVisualShapes(ChPhysicsItem) function for details on the variables created.
+    void AddFmuVisualShapes(const ChAssembly& ass);
 
   protected:
     /// add variables to the FMU component by leveraging the serialization mechanism
@@ -365,13 +363,16 @@ class FmuChronoComponentBase : public FmuComponentBase {
     /// - ChPhysicsItem to which they are bounded
     /// - (constant) ChFrame local to the shape
     /// - flag to tell if the frame has been already updated in the current step
-    std::unordered_map<int, VisTuple> visualizer_frames;
+    std::unordered_map<fmi2Integer, VisTuple> visualizer_frames;
 
     /// total number of visualizers (not unsigned to keep compatibility with FMU standard types)
-    int visualizers_counter = 0;
+    fmi2Integer visualizers_counter = 0;
 };
 
-void FmuChronoComponentBase::AddFmuVisualShapes(ChPhysicsItem& pi, std::string custom_pi_name) {
+void FmuChronoComponentBase::AddFmuVisualShapes(const ChPhysicsItem& pi, std::string custom_pi_name) {
+    if (!pi.GetVisualModel())
+        return;
+
     for (auto& shape_inst : pi.GetVisualModel()->GetShapeInstances()) {
         // variables referring to visualizers will start with VISUALIZER[<counter>]
         // and will be split in .shape and .frame
@@ -397,7 +398,7 @@ void FmuChronoComponentBase::AddFmuVisualShapes(ChPhysicsItem& pi, std::string c
 
         // TODO: check if needed: the following functions must be binded to a fixed counter value, not to
         // this->visualizers_counter
-        int visualizer_counter_current = visualizers_counter;
+        fmi2Integer visualizer_counter_current = visualizers_counter;
 
         // POS X
         std::function<fmi2Real(void)> pos_x_getter = [update_frame, visualizer_counter_current, this]() -> fmi2Real {
@@ -505,7 +506,7 @@ void FmuChronoComponentBase::AddFmuVisualShapes(ChPhysicsItem& pi, std::string c
         AddFmuVariable(const_cast<std::string*>(&(*shape_type)), shape_name + ".type", FmuVariable::Type::String, "",
                        "shape type", FmuVariable::CausalityType::output, FmuVariable::VariabilityType::constant);
 
-        static std::list<int> intbuf;
+        static std::list<fmi2Integer> intbuf;
         intbuf.push_back(pi.GetIdentifier());
         AddFmuVariable(&intbuf.back(), shape_name + ".owner_id", FmuVariable::Type::Integer, "", "shape owner id",
                        FmuVariable::CausalityType::output, FmuVariable::VariabilityType::constant);
@@ -532,6 +533,29 @@ void FmuChronoComponentBase::AddFmuVisualShapes(ChPhysicsItem& pi, std::string c
         variables_serializer << CHNVP(*shape.get(), shape_name);
 
         ++visualizers_counter;
+    }
+}
+
+void FmuChronoComponentBase::AddFmuVisualShapes(const ChAssembly& ass) {
+    for (const auto& body : ass.GetBodies()) {
+        AddFmuVisualShapes(*body.get());
+    }
+
+    for (const auto& link : ass.GetLinks()) {
+        AddFmuVisualShapes(*link.get());
+    }
+
+    for (const auto& shaft : ass.GetShafts()) {
+        AddFmuVisualShapes(*shaft.get());
+    }
+
+    for (const auto& mesh : ass.GetMeshes()) {
+        AddFmuVisualShapes(*mesh.get());
+    }
+
+    for (const auto& pi : ass.GetOtherPhysicsItems()) {
+        auto ass = std::dynamic_pointer_cast<ChAssembly>(pi);
+        ass ? AddFmuVisualShapes(*ass.get()) : AddFmuVisualShapes(*pi.get());
     }
 }
 

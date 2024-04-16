@@ -69,7 +69,7 @@ using namespace irr::scene; // This is inserted for the extend functions that us
     // Includes for interactive driver
     %include "../../../chrono_vehicle/driver/ChInteractiveDriverIRR.h"
     %include "../../../chrono_vehicle/wheeled_vehicle/test_rig/ChSuspensionTestRigInteractiveDriverIRR.h"
-    %DefSharedPtrDynamicDowncast(chrono::vehicle,ChInteractiveDriver, ChInteractiveDriverIRR)
+    %DefSharedPtrDynamicCast(chrono::vehicle,ChInteractiveDriver, ChInteractiveDriverIRR)
 
     %include "../../../chrono_vehicle/tracked_vehicle/ChTrackedVehicleVisualSystemIrrlicht.h"
     %include "../../../chrono_vehicle/wheeled_vehicle/ChWheeledVehicleVisualSystemIrrlicht.h"
@@ -148,10 +148,10 @@ using namespace irr::scene; // This is inserted for the extend functions that us
     %include "../../../chrono_vehicle/ChVehicleVisualSystemIrrlicht.h"
     %include "../../../chrono_vehicle/tracked_vehicle/ChTrackedVehicleVisualSystemIrrlicht.h"
     %include "../../../chrono_vehicle/wheeled_vehicle/ChWheeledVehicleVisualSystemIrrlicht.h"
-    //%DefSharedPtrDynamicDowncast2NS(chrono::irrlicht, chrono::vehicle, ChVisualSystemIrrlicht, ChVehicleVisualSystemIrrlicht)
-    //%DefSharedPtrDynamicDowncast(chrono::vehicle, ChVehicleVisualSystem, ChVehicleVisualSystemIrrlicht)
-    %DefSharedPtrDynamicDowncast(chrono::vehicle, ChVehicleVisualSystem, ChTrackedVehicleVisualSystemIrrlicht)
-    %DefSharedPtrDynamicDowncast(chrono::vehicle, ChVehicleVisualSystem, ChWheeledVehicleVisualSystemIrrlicht)
-    //%DefSharedPtrDynamicDowncast(chrono::vehicle, ChVehicleVisualSystemIrrlicht, ChTrackedVehicleVisualSystemIrrlicht)
-    //%DefSharedPtrDynamicDowncast(chrono::vehicle, ChVehicleVisualSystemIrrlicht, ChWheeledVehicleVisualSystemIrrlicht)
+    //%DefSharedPtrDynamicCast2NS(chrono::irrlicht, chrono::vehicle, ChVisualSystemIrrlicht, ChVehicleVisualSystemIrrlicht)
+    //%DefSharedPtrDynamicCast(chrono::vehicle, ChVehicleVisualSystem, ChVehicleVisualSystemIrrlicht)
+    %DefSharedPtrDynamicCast(chrono::vehicle, ChVehicleVisualSystem, ChTrackedVehicleVisualSystemIrrlicht)
+    %DefSharedPtrDynamicCast(chrono::vehicle, ChVehicleVisualSystem, ChWheeledVehicleVisualSystemIrrlicht)
+    //%DefSharedPtrDynamicCast(chrono::vehicle, ChVehicleVisualSystemIrrlicht, ChTrackedVehicleVisualSystemIrrlicht)
+    //%DefSharedPtrDynamicCast(chrono::vehicle, ChVehicleVisualSystemIrrlicht, ChWheeledVehicleVisualSystemIrrlicht)
 #endif
