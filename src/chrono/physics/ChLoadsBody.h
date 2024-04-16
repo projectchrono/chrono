@@ -483,8 +483,8 @@ class ChApi ChLoadBodyBodyBushingGeneric : public ChLoadBodyBody {
         std::shared_ptr<ChBody> bodyA,     ///< body A
         std::shared_ptr<ChBody> bodyB,     ///< body B
         const ChFrame<>& abs_application,  ///< create the bushing here, in abs. coordinates.
-        ChMatrixConstRef stiffness66,      ///< stiffness as a 6x6 matrix, local in the abs_application frame
-        ChMatrixConstRef damping66         ///< damping as a 6x6 matrix, local in the abs_application frame
+        const ChMatrix66d& stiffness66,    ///< stiffness as a 6x6 matrix, local in the abs_application frame
+        const ChMatrix66d& damping66       ///< damping as a 6x6 matrix, local in the abs_application frame
     );
 
     /// "Virtual" copy constructor (covariant return type).
@@ -492,12 +492,12 @@ class ChApi ChLoadBodyBodyBushingGeneric : public ChLoadBodyBody {
 
     /// Set a generic 6x6 stiffness matrix, expressed in local
     /// coordinate system of loc_application_B.
-    void SetStiffnessMatrix(ChMatrixConstRef mstiffness) { stiffness = mstiffness; }
+    void SetStiffnessMatrix(const ChMatrix66d& mstiffness) { stiffness = mstiffness; }
     const ChMatrix66d& GetStiffnessMatrix() const { return stiffness; }
 
     /// Set a generic 6x6 damping matrix, expressed in local
     /// coordinate system of loc_application_B.
-    void SetDampingMatrix(ChMatrixConstRef mdamping) { damping = mdamping; }
+    void SetDampingMatrix(const ChMatrix66d& mdamping) { damping = mdamping; }
     const ChMatrix66d& GetDampingMatrix() const { return damping; }
 
     /// Set the initial pre-load of the bushing, applied to loc_application_A,
