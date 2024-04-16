@@ -26,6 +26,7 @@
 #include "chrono/physics/ChLoadsBody.h"
 #include "chrono/physics/ChLoadContainer.h"
 #include "chrono/solver/ChIterativeSolverLS.h"
+#include "chrono/utils/ChUtils.h"
 
 #include "chrono_irrlicht/ChVisualSystemIrrlicht.h"
 
@@ -48,12 +49,38 @@ using namespace chrono::irrlicht;
 // 5 - ChLoadBodyBodyBushingGeneric
 //     No stiffness and damping in one rotational direction
 
-int example = 1;
-
 // -----------------------------------------------------------------------------
 
 int main(int argc, char* argv[]) {
     std::cout << "Copyright (c) 2017 projectchrono.org\nChrono version: " << CHRONO_VERSION << std::endl;
+
+    // Select example
+    std::cout << "Options:" << std::endl;
+    std::cout << "1  : ChLoadBodyBodyBushingGeneric" << std::endl;
+    std::cout << "     This type of bushing requires two 6x6 matrices for generic stiffness and damping,\n"
+                 "     for both translation and rotation. Optionally, it also supports initial\n"
+                 "     pre-displacement and pre-stress"
+              << std::endl;
+    std::cout << "2  : ChLoadBodyBodyBushingMate" << std::endl;
+    std::cout << "     This type of bushing is like a simplified version of ChLoadBodyBodyBushingGeneric,\n"
+                 "     it adds compliance to both translation and rotation, using three x y z and three\n"
+                 "     Rx Ry Rz stiffness values."
+              << std::endl;
+    std::cout << "3  : ChLoadBodyBodyBushingPlastic" << std::endl;
+    std::cout << "     A special type of ChLoadBodyBodyBushingSpherical that also provides plastic deformation\n"
+                 "     with a plastic yeld."
+              << std::endl;
+    std::cout << "4  : ChLinkBushing" << std::endl;
+    std::cout << "     The ChLinkBushing is inherited from the ChLink classes. Differently from the previous example,\n"
+                 "     it does NOT support stiffness matrices, so it should NOT be used for very stiff problems."
+              << std::endl;
+    std::cout << "5  : ChLoadBodyBodyBushingGeneric" << std::endl;
+    std::cout << "     No stiffness and damping in one rotational direction" << std::endl;
+    std::cout << "\nSelect option (1-5): ";
+    int example = 1;
+    std::cin >> example;
+    std::cout << std::endl;
+    ChClampValue(example, 1, 5);
 
     // Create the sys
     ChSystemNSC sys;
