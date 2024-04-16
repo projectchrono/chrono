@@ -372,6 +372,10 @@ class FmuChronoComponentBase : public FmuComponentBase {
 };
 
 void FmuChronoComponentBase::AddFmuVisualShapes(ChPhysicsItem& pi, std::string custom_pi_name) {
+
+    if (!pi.GetVisualModel())
+        return;
+
     for (auto& shape_inst : pi.GetVisualModel()->GetShapeInstances()) {
         // variables referring to visualizers will start with VISUALIZER[<counter>]
         // and will be split in .shape and .frame
