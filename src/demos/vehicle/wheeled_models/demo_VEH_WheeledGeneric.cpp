@@ -93,8 +93,8 @@ double output_step_size = 1.0 / 1;  // once a second
 // Point on chassis tracked by the camera (Irrlicht only)
 ChVector3d trackPoint(0.0, 0.0, 1.75);
 
-// Simulation length (Povray only)
-double tend = 20.0;
+// End time (used only if no run-time visualization)
+double t_end = 20;
 
 // Enable debug logging
 bool debug_log = false;
@@ -234,13 +234,19 @@ int main(int argc, char* argv[]) {
 
     vehicle.EnableRealtime(true);
 
-    while (vis->Run()) {
+    while (true) {
         double time = vehicle.GetSystem()->GetChTime();
 
-        // Render scene
-        vis->BeginScene();
-        vis->Render();
-        vis->EndScene();
+        if (vis) {
+            // Render scene
+            if (!vis->Run())
+                break;
+            vis->BeginScene();
+            vis->Render();
+            vis->EndScene();
+        } else if (time > t_end) {
+            break;
+        }
 
         if (debug_log) {
             // Number of simulation steps between two output frames
@@ -260,13 +266,15 @@ int main(int argc, char* argv[]) {
         driver->Synchronize(time);
         terrain.Synchronize(time);
         vehicle.Synchronize(time, driver_inputs, terrain);
-        vis->Synchronize(time, driver_inputs);
+        if (vis)
+            vis->Synchronize(time, driver_inputs);
 
         // Advance simulation for one timestep for all modules
         driver->Advance(step_size);
         terrain.Advance(step_size);
         vehicle.Advance(step_size);
-        vis->Advance(step_size);
+        if (vis)
+            vis->Advance(step_size);
 
         // Increment frame number
         step_number++;

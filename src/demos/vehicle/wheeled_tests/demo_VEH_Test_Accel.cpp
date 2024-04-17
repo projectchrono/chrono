@@ -72,6 +72,9 @@ bool include_aero_drag = false;
 // Simulation step sizes
 double step_size = 1e-3;
 
+// End simulation time
+double t_end = 100;
+
 // Output
 bool output = false;
 
@@ -288,7 +291,7 @@ int main(int argc, char* argv[]) {
         last_speed = speed;
 
         // End simulation
-        if (time >= 100)
+        if (time >= t_end)
             break;
 
         // Render scene
@@ -322,13 +325,15 @@ int main(int argc, char* argv[]) {
         driver.Synchronize(time);
         terrain->Synchronize(time);
         vehicle_model->Synchronize(time, driver_inputs, *terrain);
-        vis->Synchronize(time, driver_inputs);
+        if (vis)
+            vis->Synchronize(time, driver_inputs);
 
         // Advance simulation for one timestep for all modules
         driver.Advance(step_size);
         terrain->Advance(step_size);
         vehicle_model->Advance(step_size);
-        vis->Advance(step_size);
+        if (vis)
+            vis->Advance(step_size);
     }
 
     if (output)

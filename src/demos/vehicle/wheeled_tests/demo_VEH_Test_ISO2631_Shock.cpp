@@ -277,7 +277,7 @@ int main(int argc, char* argv[]) {
     double xstart = 100.0;  // start logging when the vehicle crosses this x position
     double xend = 160.0;    // end logging here, this also the end of our world
 
-    if (vis_type == ChVisualSystem::Type::NONE) {
+    if (!vis || vis_type == ChVisualSystem::Type::NONE) {
         double v_pos;
         while ((v_pos = vehicle.GetSpindlePos(0, LEFT).x()) < xend) {
             // Driver inputs
