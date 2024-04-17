@@ -63,6 +63,9 @@ auto vis_type = ChVisualSystem::Type::VSG;
 // Simulation step size
 double step_size = 2e-3;
 
+// End time (used only if no run-time visualization)
+double t_end = 20;
+
 // =============================================================================
 
 void AddObstacle(ChSystem* sys);
@@ -171,13 +174,20 @@ int main(int argc, char* argv[]) {
 
     // Simulation loop
     hmmwv.GetVehicle().EnableRealtime(true);
-    while (vis->Run()) {
+
+    while (true) {
         double time = hmmwv.GetSystem()->GetChTime();
 
-        // Render scene
-        vis->BeginScene();
-        vis->Render();
-        vis->EndScene();
+        if (vis) {
+            // Render scene
+            if (!vis->Run())
+                break;
+            vis->BeginScene();
+            vis->Render();
+            vis->EndScene();
+        } else if (time > t_end) {
+            break;
+        }
 
         // Set driver inputs
         DriverInputs driver_inputs = {0, 0.5, 0};
@@ -194,12 +204,14 @@ int main(int argc, char* argv[]) {
         // Update modules (process inputs from other modules)
         terrain.Synchronize(time);
         hmmwv.Synchronize(time, driver_inputs, terrain);
-        vis->Synchronize(time, driver_inputs);
+        if (vis)
+            vis->Synchronize(time, driver_inputs);
 
         // Advance simulation for one timestep for all modules
         terrain.Advance(step_size);
         hmmwv.Advance(step_size);
-        vis->Advance(step_size);
+        if (vis)
+            vis->Advance(step_size);
     }
 
     return 0;
