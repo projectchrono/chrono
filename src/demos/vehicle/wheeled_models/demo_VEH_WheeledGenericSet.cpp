@@ -47,12 +47,12 @@ using namespace chrono::vehicle::generic;
 
 ////std::vector<SuspensionTypeWV> suspension_types_front = {SuspensionTypeWV::DOUBLE_WISHBONE,
 ////                                                        SuspensionTypeWV::MACPHERSON_STRUT};
-////
+std::vector<SuspensionTypeWV> suspension_types_front = {SuspensionTypeWV::DOUBLE_WISHBONE,
+                                                        SuspensionTypeWV::MACPHERSON_STRUT};
+
+////std::vector<SuspensionTypeWV> suspension_types_rear = {SuspensionTypeWV::RIGID_SUSPENSION};
 std::vector<SuspensionTypeWV> suspension_types_rear = {SuspensionTypeWV::DOUBLE_WISHBONE_REDUCED,
                                                        SuspensionTypeWV::MULTI_LINK};
-
-std::vector<SuspensionTypeWV> suspension_types_front = {SuspensionTypeWV::DOUBLE_WISHBONE};
-////std::vector<SuspensionTypeWV> suspension_types_rear = {SuspensionTypeWV::RIGID_SUSPENSION};
 
 SteeringTypeWV steering_type = SteeringTypeWV::PITMAN_ARM;
 BrakeType brake_type = BrakeType::SHAFTS;
@@ -70,6 +70,9 @@ ChVisualSystem::Type vis_type = ChVisualSystem::Type::VSG;
 
 // Simulation step size
 double step_size = 1e-3;
+
+// Rendering frequency (FPS)
+double fps = 30;
 
 // End time (used only if no run-time visualization)
 double t_end = 20;
@@ -267,6 +270,8 @@ int main(int argc, char* argv[]) {
     // Simulation loop
     // ---------------
 
+    int render_frame = 0;
+
     for (auto& vehicle : vehicles)
         vehicle.EnableRealtime(true);
 
@@ -286,9 +291,12 @@ int main(int argc, char* argv[]) {
             // Render scene
             if (!vis->Run())
                 break;
-            vis->BeginScene();
-            vis->Render();
-            vis->EndScene();
+            if (time > render_frame / fps) {
+                vis->BeginScene();
+                vis->Render();
+                vis->EndScene();
+                render_frame++;
+            }
         } else if (time > t_end) {
             break;
         }
