@@ -105,7 +105,7 @@ int main(int argc, char* argv[]) {
 
     // Create a TF handler that will publish the transform of the box relative to the floor
     auto tf_handler = chrono_types::make_shared<ChROSTFHandler>(100);
-    tf_handler->AddTransform(floor, box);
+    tf_handler->AddTransform(floor, floor->GetName(), box, box->GetName());
     ros_manager->RegisterHandler(tf_handler);
 
     // Create a custom handler

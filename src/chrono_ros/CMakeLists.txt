@@ -187,7 +187,7 @@ if (ENABLE_MODULE_SENSOR)
 	list(APPEND CH_ROS_LIBRARIES ChronoEngine_sensor)
 endif()
 
-if (ENABLE_MODULE_PARSERS)
+if (ENABLE_MODULE_PARSERS AND HAVE_URDF)
 	list(APPEND CH_ROS_LIBRARIES ChronoEngine_parsers)
   target_compile_definitions(ChronoEngine_ros PUBLIC -DCHRONO_PARSERS_URDF)
 endif()
