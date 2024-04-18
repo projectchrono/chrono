@@ -42,12 +42,12 @@
 
 bl_info = {
     "name": "Chrono import",
-    "blender": (2, 80, 0),
+    "blender": (4, 0, 1),
     "category": "Import-Export",
     "location": "File > Import-Export",
     "description": "Import ProjectChrono simulations",
     "author": "Alessandro Tasora",
-    "version": (0, 0, 3),
+    "version": (0, 0, 5),
     "wiki_url": "https://api.projectchrono.org/development/introduction_chrono_blender.html",
     "doc_url": "https://api.projectchrono.org/development/introduction_chrono_blender.html",
 }
@@ -585,7 +585,7 @@ def update_meshsetting_falsecolor_material(new_object, meshsetting, propname):
             mat = selected_prop.mat
             mat.node_tree.nodes['Map Range'].inputs[1].default_value = selected_prop.min
             mat.node_tree.nodes['Map Range'].inputs[2].default_value = selected_prop.max
-            ramp = mat.node_tree.nodes['ColorRamp']
+            ramp = mat.node_tree.nodes['Color Ramp']
             colormap = colormaps[selected_prop.colorm]
             for i in range(0,len(ramp.color_ramp.elements)-2):
                 ramp.color_ramp.elements.remove(ramp.color_ramp.elements[1]) # leave start-end. Also, clear() doe not exist
@@ -628,7 +628,7 @@ def update_glyphsetting_material(new_object, meshsetting, propname):
             if mat.node_tree.nodes.get('Map Range'):
                 mat.node_tree.nodes['Map Range'].inputs[1].default_value = selected_prop.min
                 mat.node_tree.nodes['Map Range'].inputs[2].default_value = selected_prop.max
-                ramp = mat.node_tree.nodes['ColorRamp']
+                ramp = mat.node_tree.nodes['Color Ramp']
                 colormap=[]
                 if meshsetting.color_type == 'CONST':
                     colormap = [[0,(meshsetting.const_color.r,meshsetting.const_color.g,meshsetting.const_color.b,1)],[1,(meshsetting.const_color.r,meshsetting.const_color.g,meshsetting.const_color.b,1)]]
@@ -807,7 +807,7 @@ def make_chrono_glyphs_objects(mname,mpos,mrot,
         chasset = masset.copy() 
         chasset.data = masset.data.copy() # full copy?
         
-        chrono_frame_objects.objects.link(chasset)
+        chrono_frame_assets.objects.link(chasset)
         
         while len(chasset.data.materials) < 1:
             chasset.data.materials.append(None)
@@ -819,7 +819,7 @@ def make_chrono_glyphs_objects(mname,mpos,mrot,
                 
     else:        # for multiple assets, geometry nodes must use a collection instance, so wrap them
         chcollection = bpy.data.collections.new(mname+'_glyph_instance')
-        chrono_frame_objects.children.link(chcollection)
+        chrono_frame_assets.children.link(chcollection)
         
         chassets_group = bpy.data.objects.new("glyph_assets_group", empty_mesh)  
         chcollection.objects.link(chassets_group)
@@ -882,10 +882,23 @@ def make_chrono_glyphs_objects(mname,mpos,mrot,
     
     chobject.modifiers.new(name="Chrono clones", type='NODES')
     node_group = bpy.data.node_groups.new('GeometryNodes', 'GeometryNodeTree')
-    inNode = node_group.nodes.new('NodeGroupInput')
-    node_group.outputs.new('NodeSocketGeometry', 'Geometry')
-    outNode = node_group.nodes.new('NodeGroupOutput')
-    node_group.inputs.new('NodeSocketGeometry', 'Geometry')
+    #inNode = node_group.nodes.new('NodeGroupInput')
+    #node_group.outputs.new('NodeSocketGeometry', 'Geometry')
+    #outNode = node_group.nodes.new('NodeGroupOutput')
+    #node_group.inputs.new('NodeSocketGeometry', 'Geometry')
+
+    node_group.interface.new_socket(
+        name='NodeGroupOutput',
+        in_out='OUTPUT',
+        socket_type='NodeSocketGeometry'
+    )
+    node_group.interface.new_socket(
+        name='NodeGroupInput',
+        in_out='INPUT',
+        socket_type='NodeSocketGeometry'
+    )
+    inNode= node_group.nodes.new(type='NodeGroupInput')
+    outNode= node_group.nodes.new(type='NodeGroupOutput')
 
     if len(masset_list) == 1:
         node_objinfo = node_group.nodes.new('GeometryNodeObjectInfo') 
@@ -897,8 +910,8 @@ def make_chrono_glyphs_objects(mname,mpos,mrot,
 
     node_onpoints = node_group.nodes.new('GeometryNodeInstanceOnPoints')
 
-    node_group.links.new(inNode.outputs['Geometry'], node_onpoints.inputs['Points'])
-    node_group.links.new(node_onpoints.outputs['Instances'], outNode.inputs['Geometry'])
+    node_group.links.new(inNode.outputs['NodeGroupInput'], node_onpoints.inputs['Points'])
+    node_group.links.new(node_onpoints.outputs['Instances'], outNode.inputs['NodeGroupOutput'])
     node_group.links.new(node_objinfo.outputs['Geometry'], node_onpoints.inputs['Instance'])
 
     # optional rotation 
@@ -1303,7 +1316,7 @@ def update_camera_coordinates(mname,mpos,mrot):
     cameraasset.location = mpos
 
  
-    
+
 #
 # On file selected: 
 #
@@ -2187,7 +2200,7 @@ def unregister():
 
     # sidebar UI:
     
-
+register()
 
 # The following is executed all times one runs this chrono_import.py script in Blender
 # scripting editor: it effectively register the add-on "by hand".
