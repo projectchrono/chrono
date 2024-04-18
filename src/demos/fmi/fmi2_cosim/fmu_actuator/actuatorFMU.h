@@ -62,6 +62,8 @@ class FmuComponent : public chrono::FmuChronoComponentBase {
     double p2;  // piston pressure 2
     double U;   // valve position
 
+    bool have_s0;
+
     std::shared_ptr<chrono::ChHydraulicActuator2> m_actuator;
     std::shared_ptr<chrono::ChFunctionSetpoint> m_actuation;
 };
