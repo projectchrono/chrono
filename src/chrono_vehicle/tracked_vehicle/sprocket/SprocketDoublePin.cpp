@@ -62,7 +62,7 @@ void SprocketDoublePin::Create(const rapidjson::Document& d) {
 
     // Read profile information
     assert(d.HasMember("Profile"));
-    m_gear_RT = d["Profile"]["Addenum Radius"].GetDouble();
+    m_gear_RT = d["Profile"]["Addendum Radius"].GetDouble();
     m_gear_R = d["Profile"]["Arc Radius"].GetDouble();
     m_gear_RA = d["Profile"]["Assembly Radius"].GetDouble();
     m_gear_C = d["Profile"]["Arc Center Height"].GetDouble();

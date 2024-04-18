@@ -5,10 +5,7 @@ endif()
 #--------------------------------------------------------------
 # List of all Parsers demos
 
-# Add demos that can work with either Irrlicht or VSG,
-# or no run-time visualization
-set(DEMOS
-)
+set(DEMOS "")
 
 # Add demos that can only work with Irrlicht
 if(ENABLE_MODULE_IRRLICHT)

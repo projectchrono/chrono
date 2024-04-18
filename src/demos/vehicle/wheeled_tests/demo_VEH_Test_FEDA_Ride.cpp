@@ -302,7 +302,7 @@ int main(int argc, char* argv[]) {
 
     chrono::utils::ChISO2631_Vibration_SeatCushionLogger cushion(step_size);
 
-    while (vis->Run()) {
+    while (true) {
         double time = my_feda.GetSystem()->GetChTime();
         ChVector3d xpos = my_feda.GetVehicle().GetPos();
         ChVector3d sacc = my_feda.GetVehicle().GetPointAcceleration(ChVector3d(-1.0, 1.0, 0.5));
@@ -314,37 +314,45 @@ int main(int argc, char* argv[]) {
         // Driver inputs
         DriverInputs driver_inputs = driver.GetInputs();
 
-        // Update sentinel and target location markers for the path-follower controller.
-        vis->UpdateVisualModel(sentinelID, ChFrame<>(driver.GetSentinelLocation()));
-        vis->UpdateVisualModel(targetID, ChFrame<>(driver.GetTargetLocation()));
+        if (vis) {
+            if (!vis->Run())
+                break;
 
-        // Render scene and output images
-        if (sim_frame % render_steps == 0) {
-            vis->BeginScene();
-            vis->Render();
-            vis->EndScene();
+            // Update sentinel and target location markers for the path-follower controller.
+            vis->UpdateVisualModel(sentinelID, ChFrame<>(driver.GetSentinelLocation()));
+            vis->UpdateVisualModel(targetID, ChFrame<>(driver.GetTargetLocation()));
 
-            if (output_images) {
-                char filename[200];
-                int nstr = sizeof(filename) - 1;
-                snprintf(filename, nstr, "%s/image_%05d.bmp", out_dir.c_str(), render_frame);
-                vis->WriteImageToFile(filename);
+            // Render scene and output images
+            if (sim_frame % render_steps == 0) {
+                vis->BeginScene();
+                vis->Render();
+                vis->EndScene();
+
+                if (output_images) {
+                    char filename[200];
+                    int nstr = sizeof(filename) - 1;
+                    snprintf(filename, nstr, "%s/image_%05d.bmp", out_dir.c_str(), render_frame);
+                    vis->WriteImageToFile(filename);
+                }
+
+                render_frame++;
             }
-
-            render_frame++;
         }
 
         // Update modules (process inputs from other modules)
         driver.Synchronize(time);
         terrain.Synchronize(time);
         my_feda.Synchronize(time, driver_inputs, terrain);
-        vis->Synchronize(time, driver_inputs);
+        if (vis)
+            vis->Synchronize(time, driver_inputs);
 
         // Advance simulation for one timestep for all modules
         driver.Advance(step_size);
         terrain.Advance(step_size);
         my_feda.Advance(step_size);
-        vis->Advance(step_size);
+        if (vis)
+            vis->Advance(step_size);
+
         sys.DoStepDynamics(step_size);
 
         // Increment simulation frame number
