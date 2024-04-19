@@ -112,12 +112,20 @@ class ChApiModal ChModalAssembly : public ChAssembly {
     /// Get the residual of constraint equations on the floating frame F.
     /// The configuration of the floating frame F is determined by the six constraint equations using a Newton-Raphson
     /// iteration. The residual of constraint equations is an indicator to check the convergence of the modal method.
-    const ChVectorDynamic<>& GetConstraintsResidualF() { return this->res_CF; }
+    const ChVectorDynamic<>& GetConstraintsResidualF() { return this->m_res_CF; }
 
     /// Set verbose output.
     void SetVerbose(bool verbose) { this->m_verbose = verbose; }
 
-    /// A rigorous mathematical manipulation can be employed to derive the inertial forces and the consequent inertial
+    /// Set whether the static correction is used. By default, it is false.
+    /// When some external forces are imposed on the internal bodies and nodes, the static correction is important to
+    /// obtain a reasonable accurary of the elastic deformation and internal forces of finite elements, and
+    /// reaction forces of constriants in the modal assembly. In this case, it is strongly recommended to set true.
+    void SetUseStaticCorrection(bool flag) { this->m_num_coords_static_correction = flag ? 1 : 0; }
+
+    ///  Get the flag whether the static correction is used.
+    bool GetUsetStaticCorrection() { return static_cast<bool>(this->m_num_coords_static_correction); }
+
     /// A rigorous mathematical manipulation can be employed to derive the inertial forces and the consequent inertial
     /// damping matrix, or a linear assumption is applied to obtain quite concise expressions.
     /// True: default option, the linear assumption is used.
@@ -537,6 +545,13 @@ class ChApiModal ChModalAssembly : public ChAssembly {
     /// Recover the local M,K,Cq matrices, which are requried in the modal analysis.
     void ComputeLocalFullKMCqMatrix(ChSparseMatrix& full_M, ChSparseMatrix& full_K, ChSparseMatrix& full_Cq);
 
+    /// Prepare sub-block matrices of M K R Cq in local frame of F
+    void PartitionLocalSystemMatrices();
+
+    /// Update the static correction mode when SetUseStaticCorrection(true)
+    /// in case of external forces imposed on the internal bodies and nodes
+    void UpdateStaticCorrectionMode();
+
     void ComputeInertialKRMmatrix();
     void ComputeStiffnessMatrix();
     void ComputeDampingMatrix();
@@ -545,10 +560,7 @@ class ChApiModal ChModalAssembly : public ChAssembly {
     void ComputeModalKRMmatrix();
 
     /// [INTERNAL USE ONLY]
-    void ApplyHertingTransformation(const ChModalDamping& damping_model = ChModalDampingNone());
-
-    /// [INTERNAL USE ONLY]
-    void ApplyCraigBamptonTransformation(const ChModalDamping& damping_model = ChModalDampingNone());
+    void ApplyModeAccelerationTransformation(const ChModalDamping& damping_model = ChModalDampingNone());
 
     /// Computes the increment of the modal assembly (the increment of the current configuration respect
     /// to the initial "undeformed" configuration), and also gets the current speed.
@@ -578,9 +590,9 @@ class ChApiModal ChModalAssembly : public ChAssembly {
     ChVectorDynamic<> modal_q_dt;    ///< modal velocites
     ChVectorDynamic<> modal_q_dtdt;  ///< modal accelerations
 
-    ChVectorDynamic<> full_forces_internal;  ///< collect all external forces imposed on the internal nodes. This force
-                                             ///< will be eventually transformed to the modal forces and applied on the
-                                             ///< reduced modal assembly.
+    ChVectorDynamic<> m_full_forces_internal;  ///< collect all external forces imposed on the internal nodes. This
+                                               ///< force will be eventually transformed to the modal forces and applied
+                                               ///< on the reduced modal assembly.
 
     Eigen::SparseQR<Eigen::SparseMatrix<double>, Eigen::COLAMDOrdering<int>> m_solver_invKIIc;
 
@@ -588,14 +600,15 @@ class ChApiModal ChModalAssembly : public ChAssembly {
     ChMatrixDynamic<> modal_M;  // tangent mass matrix in the modal reduced state
     ChMatrixDynamic<> modal_K;  // tangent stiffness matrix in the modal reduced state
     ChMatrixDynamic<> modal_R;  // tangent damping matrix in the modal reduced state
-    // ChMatrixDynamic<> modal_Cq;  // corresponding to boundary and modal lagrange multipliers
     ChMatrixDynamic<> Psi;      // mode transformation matrix.
     ChMatrixDynamic<> Psi_S;    // static mode transformation matrix - corresponding to internal DOFs.
     ChMatrixDynamic<> Psi_D;    // dynamic mode transformation matrix - corresponding to internal DOFs.
+    ChMatrixDynamic<> Psi_Cor;  // static correction mode - corresponding to internal DOFs.
     ChMatrixDynamic<>
         Psi_S_LambdaI;  // static mode transformation matrix - corresponding to internal Lagrange multipliers.
     ChMatrixDynamic<>
         Psi_D_LambdaI;  // dynamic mode transformation matrix - corresponding to internal Lagrange multipliers.
+    ChMatrixDynamic<> Psi_Cor_LambdaI;  // static correction mode - corresponding to internal Lagrange multipliers.
 
     ChFrameMoving<> floating_frame_F0;  ///< floating frame of reference F in the initial undeformed configuration
     ChFrameMoving<> floating_frame_F;   ///< floating frame of reference F in the deformed configuration
@@ -634,24 +647,45 @@ class ChApiModal ChModalAssembly : public ChAssembly {
     ChSparseMatrix full_R_loc;
     ChSparseMatrix full_Cq_loc;
 
+    // the extended K M R matrices for modal assembly with constraints
+    ChSparseMatrix full_K_loc_ext;  //=[Kloc, CqIloc^T; CqIloc, 0]
+    ChSparseMatrix full_M_loc_ext;  //=[Mloc, 0; 0, 0]
+    ChSparseMatrix full_R_loc_ext;  //=[Rloc, 0; 0, 0]
+
+    // cache the partitioned M K block matrices for the sake of the computation of M_red, K_red
+    ChSparseMatrix M_BB_loc;
+    ChSparseMatrix M_BI_loc;
+    ChSparseMatrix M_IB_loc;
+    ChSparseMatrix M_II_loc;
+    ChSparseMatrix K_BB_loc;
+    ChSparseMatrix K_BI_loc;
+    ChSparseMatrix K_IB_loc;
+    ChSparseMatrix K_II_loc;
+    ChSparseMatrix R_II_loc;  // for test. todo: remove
+    ChSparseMatrix Cq_IB_loc;
+    ChSparseMatrix Cq_II_loc;
+    ChSparseMatrix Cq_I_loc;
+
+    ChSparseMatrix MBI_PsiST_MII;  // an intermediate matrix frequently used when SetUseStaticCorrection(true)
+
     // reduced system matrices in the local floating frame of reference F
-    // ChMatrixDynamic<> Cq_red;
     ChMatrixDynamic<> M_red;  //=Psi^T * full_M_loc_ext * Psi
     ChMatrixDynamic<> K_red;  //=Psi^T * full_K_loc_ext * Psi
     ChMatrixDynamic<> R_red;  //=Psi^T * full_R_loc_ext * Psi
 
-    ChMatrixDynamic<> Km_sup;  ///< linear material stiffness matrix of the reduced superelement
-    ChMatrixDynamic<> Kg_sup;  ///< nonlinear geometrical stiffness matrix of the reduced superelement due to the
+    ChMatrixDynamic<> Km_mod;  ///< linear material stiffness matrix of the reduced superelement
+    ChMatrixDynamic<> Kg_mod;  ///< nonlinear geometrical stiffness matrix of the reduced superelement due to the
                                ///< internal forces at boundary nodes B
 
-    ChMatrixDynamic<> Rm_sup;  ///< linear material damping matrix of the reduced superelement
+    ChMatrixDynamic<> Rm_mod;  ///< linear material damping matrix of the reduced superelement
 
     // linearzed inertial system matrices of the reduced superelement
-    ChMatrixDynamic<> M_sup;   ///< tangent mass matrix of the reduced superelement
-    ChMatrixDynamic<> Ri_sup;  ///< inertial damping (including gyroscopic damping) matrix of the reduced superelement
-    ChMatrixDynamic<> Ki_sup;  ///< inertial stiffness matrix of the reduced superelement
+    ChMatrixDynamic<> M_mod;   ///< tangent mass matrix of the reduced superelement
+    ChMatrixDynamic<> Ri_mod;  ///< inertial damping (including gyroscopic damping) matrix of the reduced superelement
+    ChMatrixDynamic<> Ki_mod;  ///< inertial stiffness matrix of the reduced superelement
 
-    ChVectorDynamic<> res_CF;  ///< residual of the constraint equations on the floating frame F
+    ChVectorDynamic<> m_res_CF;  ///< residual of the six constraint equations on the floating frame F
+    double m_tol_CF = 0;         // tolerance of the Newton-Raphson iteration in searching for the floating frame F
 
     // Results of eigenvalue analysis like ComputeModes() or ComputeModesDamped():
     ChMatrixDynamic<std::complex<double>> m_modal_eigvect;  // eigenvectors
@@ -668,7 +702,8 @@ class ChApiModal ChModalAssembly : public ChAssembly {
 
     bool m_modal_automatic_gravity = true;  ///< switch of the gravity load in modal reduced state
 
-    double m_scaling_factor_CqI = 1.0;  ///< scaling factor on the internal part of Cq
+    double m_scaling_factor_CqI =
+        1.0;  // scaling factor on the internal part of Cq, to improve the numerical stability.
 
     // Statistics:
 
@@ -710,6 +745,9 @@ class ChApiModal ChModalAssembly : public ChAssembly {
     // MODES: represent the motion of the modal assembly (internal, boundary nodes)
     unsigned int
         m_num_coords_modal;  // number of scalar coordinates at modal level (position and velocity level are the same)
+
+    unsigned int m_num_coords_static_correction = 0;  // number of the static correction mode. If
+                                                      // SetUseStaticCorrection(true), =1; else =0.
 
     bool m_is_model_reduced;  ///< flag to indicate whether in the modal "reduced" state.
 

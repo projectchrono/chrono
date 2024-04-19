@@ -43,7 +43,7 @@ ChModalAssembly::ChModalAssembly(const ChModalAssembly& other) : ChAssembly(othe
     modal_q_dt = other.modal_q_dt;
     modal_q_dtdt = other.modal_q_dtdt;
 
-    full_forces_internal = other.full_forces_internal;
+    m_full_forces_internal = other.m_full_forces_internal;
 
     //// TODO:  deep copy of the object lists (internal_bodylist, internal_linklist, internal_meshlist,
     /// internal_otherphysicslist)
@@ -93,10 +93,9 @@ void ChModalAssembly::Clear() {
 // Assembly a sparse matrix by bordering square H with rectangular Cq.
 //    HCQ = [ H  Cq' ]
 //          [ Cq  0  ]
-void util_sparse_assembly_2x2symm(
-    Eigen::SparseMatrix<double, Eigen::ColMajor, int>& HCQ,  ///< resulting square sparse matrix (column major)
-    const ChSparseMatrix& H,                                 ///< square sparse H matrix, n_v x n_v
-    const ChSparseMatrix& Cq)                                ///< rectangular  sparse Cq  n_c x n_v
+void util_sparse_assembly_2x2symm(ChSparseMatrix& HCQ,       ///< resulting square sparse matrix (column major)
+                                  const ChSparseMatrix& H,   ///< square sparse H matrix, n_v x n_v
+                                  const ChSparseMatrix& Cq)  ///< rectangular  sparse Cq  n_c x n_v
 {
     unsigned int n_v = H.rows();
     unsigned int n_c = Cq.rows();
@@ -133,6 +132,23 @@ void util_sparse_assembly_2x2symm(
     */
 }
 
+void util_convert_to_colmajor(
+    Eigen::SparseMatrix<double, Eigen::ColMajor, int>& H_col,  ///< resulting sparse matrix (column major)
+    const ChSparseMatrix& H)                                   ///< input sparse matrix (row major)
+{
+    H_col.resize(H.rows(), H.cols());
+    H_col.reserve(H.nonZeros());
+    H_col.setZero();
+
+    for (unsigned int k = 0; k < H.outerSize(); ++k)
+        for (ChSparseMatrix::InnerIterator it(H, k); it; ++it) {
+            H_col.insert(it.row(), it.col()) = it.value();
+        }
+
+    // This seems necessary in Release mode
+    H_col.makeCompressed();
+}
+
 //---------------------------------------------------------------------------------------
 void ChModalAssembly::DoModalReduction(ChSparseMatrix& full_M,
                                        ChSparseMatrix& full_K,
@@ -162,8 +178,12 @@ void ChModalAssembly::DoModalReduction(ChSparseMatrix& full_M,
     // through rotating back to the local frame of F
     this->ComputeLocalFullKMCqMatrix(full_M, full_K, full_Cq);
 
+    // prepare sub-block matrices of M K R
+    this->PartitionLocalSystemMatrices();
+
+    //// start of modal reduction transformation
+    // 1) compute eigenvalue and eigenvectors
     if (m_modal_reduction_type == ReductionType::HERTING) {
-        // 1) compute eigenvalue and eigenvectors
         unsigned int expected_eigs = 0;
         for (auto freq_span : n_modes_settings.freq_spans)
             expected_eigs += freq_span.nmodes;
@@ -176,53 +196,34 @@ void ChModalAssembly::DoModalReduction(ChSparseMatrix& full_M,
         } else
             this->ComputeModesExternalData(this->full_M_loc, this->full_K_loc, this->full_Cq_loc, n_modes_settings);
 
-        // 2) bound ChVariables etc. to the modal coordinates, resize matrices, set as modal mode
-        this->FlagModelAsReduced();
-        this->SetupModalData(m_modal_eigvect.cols());
-
-        if (this->m_verbose) {
-            std::cout << "*** Herting reduction is used." << std::endl;
-            for (unsigned int i = 0; i < m_modal_eigvals.size(); ++i)
-                std::cout << " Damped mode n." << i << "  frequency [Hz]: " << m_modal_freq(i) << std::endl;
-        }
-
-        // 3) compute the transforamtion matrices, also the local rigid-body modes
-        this->UpdateTransformationMatrix();
-
-        // 4) do the HERTING reduction as in Sonneville2021
-        this->ApplyHertingTransformation(damping_model);
-
     } else if (m_modal_reduction_type == ReductionType::CRAIG_BAMPTON) {
-        // 1) retrieve the local M,K,Cq matrices sliced for internal nodes, and then compute eigenvalue and eigenvectors
-        ChSparseMatrix full_M_II_loc = this->full_M_loc.block(m_num_coords_vel_boundary, m_num_coords_vel_boundary,
-                                                              m_num_coords_vel_internal, m_num_coords_vel_internal);
-        ChSparseMatrix full_K_II_loc = this->full_K_loc.block(m_num_coords_vel_boundary, m_num_coords_vel_boundary,
-                                                              m_num_coords_vel_internal, m_num_coords_vel_internal);
-        ChSparseMatrix full_Cq_II_loc = this->full_Cq_loc.block(m_num_constr_boundary, m_num_coords_vel_boundary,
-                                                                m_num_constr_internal, m_num_coords_vel_internal);
-
-        this->ComputeModesExternalData(full_M_II_loc, full_K_II_loc, full_Cq_II_loc, n_modes_settings);
-
-        // 2) bound ChVariables etc. to the modal coordinates, resize matrices, set as modal mode
-        this->FlagModelAsReduced();
-        this->SetupModalData(m_modal_eigvect.cols());
-
-        if (this->m_verbose) {
-            std::cout << "*** Craig Bampton reduction is used." << std::endl;
-            for (unsigned int i = 0; i < m_modal_eigvals.size(); ++i)
-                std::cout << " Damped mode n." << i << "  frequency [Hz]: " << m_modal_freq(i) << std::endl;
-        }
-
-        // 3) compute the transforamtion matrices, also the local rigid-body modes
-        this->UpdateTransformationMatrix();
-
-        // 4) do the Craig-Bampton reduction
-        this->ApplyCraigBamptonTransformation(damping_model);
+        this->ComputeModesExternalData(this->M_II_loc, this->K_II_loc, this->Cq_II_loc, n_modes_settings);
 
     } else {
         std::cout << "*** The modal reduction type is specified incorrectly..." << std::endl;
         assert(0);
     }
+
+    if (this->m_verbose) {
+        if (m_modal_reduction_type == ReductionType::HERTING)
+            std::cout << "*** Herting reduction is used." << std::endl;
+        else
+            std::cout << "*** Craig-Bamption reduction is used." << std::endl;
+
+        for (unsigned int i = 0; i < m_modal_eigvals.size(); ++i)
+            std::cout << " Damped mode n." << i << "  frequency [Hz]: " << m_modal_freq(i) << std::endl;
+    }
+
+    // 2) bound ChVariables etc. to the modal coordinates, resize matrices, set as modal mode
+    this->FlagModelAsReduced();
+    this->SetupModalData(m_modal_eigvect.cols());
+
+    // 3) compute the transforamtion matrices, also the local rigid-body modes
+    this->UpdateTransformationMatrix();
+
+    // 4) do the Mode Acceleration reduction as in Sonneville2021
+    this->ApplyModeAccelerationTransformation(damping_model);
+    //// end of modal reduction transformation
 
     // initialize the projection matrices
     this->ComputeProjectionMatrix();
@@ -386,7 +387,7 @@ void ChModalAssembly::UpdateFloatingFrameOfReference() {
 
     unsigned int num_coords_vel_bou_mod = m_num_coords_vel_boundary + m_num_coords_modal;
 
-    auto ComputeResidual_ConstrF = [&](ChVectorDynamic<>& mConstr_F) {
+    auto ComputeConstraintResidualF = [&](ChVectorDynamic<>& mConstr_F) {
         this->UpdateTransformationMatrix();
         this->ComputeProjectionMatrix();
 
@@ -399,14 +400,16 @@ void ChModalAssembly::UpdateFloatingFrameOfReference() {
         mConstr_F = this->U_locred_0.transpose() * this->M_red * e_locred;  // of size 6*1, expected to be zero
     };
 
+    if (!m_tol_CF)
+        m_tol_CF = 1.e-8 * this->M_red.norm();  // compute only once
+
     unsigned int ite_count = 0;
     unsigned int NR_limit = 10;
-    double tol = 1.e-6 * this->M_red.norm();
     bool converged_flag_F = false;
 
     while (!converged_flag_F && ite_count < NR_limit) {
         ChVectorDynamic<> constr_F(6);
-        ComputeResidual_ConstrF(constr_F);
+        ComputeConstraintResidualF(constr_F);
 
         // Jacobian of the constraint vector C_F w.r.t. the floating frame F
         ChMatrixDynamic<> jac_F;
@@ -425,7 +428,7 @@ void ChModalAssembly::UpdateFloatingFrameOfReference() {
         this->floating_frame_F.SetPos(pos_F);
         this->floating_frame_F.SetRot(rot_F);
 
-        if (constr_F.norm() < tol)
+        if (constr_F.norm() < m_tol_CF)
             converged_flag_F = true;
 
         ite_count++;
@@ -451,7 +454,7 @@ void ChModalAssembly::UpdateFloatingFrameOfReference() {
     this->UpdateTransformationMatrix();
     this->ComputeProjectionMatrix();
 
-    ComputeResidual_ConstrF(res_CF);
+    ComputeConstraintResidualF(m_res_CF);
 
     if (this->m_verbose) {
         ChVector3d pos_F = this->floating_frame_F.GetPos();
@@ -589,81 +592,111 @@ void ChModalAssembly::ComputeLocalFullKMCqMatrix(ChSparseMatrix& full_M,
     full_R_loc.makeCompressed();
 }
 
-void ChModalAssembly::ApplyHertingTransformation(const ChModalDamping& damping_model) {
-    assert(m_modal_eigvect.cols() >= 6);  // at least six rigid-body modes are required.
+void ChModalAssembly::PartitionLocalSystemMatrices() {
+    // mass matrix
+    M_BB_loc = this->full_M_loc.block(0, 0, m_num_coords_vel_boundary, m_num_coords_vel_boundary);
+    M_BI_loc =
+        this->full_M_loc.block(0, m_num_coords_vel_boundary, m_num_coords_vel_boundary, m_num_coords_vel_internal);
+    M_IB_loc =
+        this->full_M_loc.block(m_num_coords_vel_boundary, 0, m_num_coords_vel_internal, m_num_coords_vel_boundary);
+    M_II_loc = this->full_M_loc.block(m_num_coords_vel_boundary, m_num_coords_vel_boundary, m_num_coords_vel_internal,
+                                      m_num_coords_vel_internal);
+    M_BB_loc.makeCompressed();
+    M_BI_loc.makeCompressed();
+    M_IB_loc.makeCompressed();
+    M_II_loc.makeCompressed();
 
-    // It is forbidden to call AddLink() to connect internal bodies/nodes, thus Cq_BI should be zero.
-    ChSparseMatrix Cq_BI_loc =
-        full_Cq_loc.block(0, m_num_coords_vel_boundary, m_num_constr_boundary, m_num_coords_vel_internal);
-    if (Cq_BI_loc.nonZeros())
-        throw std::runtime_error(
-            "Error: it is forbidden to use AddLink() to connect internal bodies/nodes in ChModalAssembly().");
+    // stiffness matrix
+    K_BB_loc = this->full_K_loc.block(0, 0, m_num_coords_vel_boundary, m_num_coords_vel_boundary);
+    K_BI_loc =
+        this->full_K_loc.block(0, m_num_coords_vel_boundary, m_num_coords_vel_boundary, m_num_coords_vel_internal);
+    K_IB_loc =
+        this->full_K_loc.block(m_num_coords_vel_boundary, 0, m_num_coords_vel_internal, m_num_coords_vel_boundary);
+    K_II_loc = this->full_K_loc.block(m_num_coords_vel_boundary, m_num_coords_vel_boundary, m_num_coords_vel_internal,
+                                      m_num_coords_vel_internal);
+    K_BB_loc.makeCompressed();
+    K_BI_loc.makeCompressed();
+    K_IB_loc.makeCompressed();
+    K_II_loc.makeCompressed();
+
+    // for test. todo: remove
+    // damping matrix
+    R_II_loc = this->full_R_loc.block(m_num_coords_vel_boundary, m_num_coords_vel_boundary, m_num_coords_vel_internal,
+                                      m_num_coords_vel_internal);
+    R_II_loc.makeCompressed();
+
+    // constraint matrix
+    if (m_num_constr_internal) {
+        Cq_I_loc = this->full_Cq_loc.bottomRows(m_num_constr_internal);
+        Cq_IB_loc = this->full_Cq_loc.block(m_num_constr_boundary, 0, m_num_constr_internal, m_num_coords_vel_boundary);
+        Cq_II_loc = this->full_Cq_loc.block(m_num_constr_boundary, m_num_coords_vel_boundary, m_num_constr_internal,
+                                            m_num_coords_vel_internal);
+        Cq_I_loc.makeCompressed();
+        Cq_IB_loc.makeCompressed();
+        Cq_II_loc.makeCompressed();
+    }
 
     // extended K R M matrices with constraints in local frame
-    Eigen::SparseMatrix<double> K_c_loc;
-    Eigen::SparseMatrix<double> M_c_loc;
-    Eigen::SparseMatrix<double> R_c_loc;
     if (m_num_constr_internal) {
+        // scale Cq as preconditioning
         m_scaling_factor_CqI = full_K_loc.diagonal().mean();
-        ChSparseMatrix Cq_I_loc = full_Cq_loc.bottomRows(m_num_constr_internal) * m_scaling_factor_CqI;
-        util_sparse_assembly_2x2symm(K_c_loc, full_K_loc, Cq_I_loc);
+        util_sparse_assembly_2x2symm(full_K_loc_ext, full_K_loc, Cq_I_loc * m_scaling_factor_CqI);
 
-        Eigen::SparseMatrix<double> temp_zero(Cq_I_loc.rows(), Cq_I_loc.cols());
-        util_sparse_assembly_2x2symm(M_c_loc, full_M_loc, temp_zero);
-        util_sparse_assembly_2x2symm(R_c_loc, full_R_loc, temp_zero);
+        ChSparseMatrix temp_zero(Cq_I_loc.rows(), Cq_I_loc.cols());
+        temp_zero.setZero();
+        util_sparse_assembly_2x2symm(full_M_loc_ext, full_M_loc, temp_zero);
+        util_sparse_assembly_2x2symm(full_R_loc_ext, full_R_loc, temp_zero);
     } else {
-        K_c_loc = full_K_loc;
-        M_c_loc = full_M_loc;
-        R_c_loc = full_R_loc;
+        full_K_loc_ext = full_K_loc;
+        full_M_loc_ext = full_M_loc;
+        full_R_loc_ext = full_R_loc;
     }
-    K_c_loc.makeCompressed();
-    M_c_loc.makeCompressed();
-    R_c_loc.makeCompressed();
+    full_K_loc_ext.makeCompressed();
+    full_M_loc_ext.makeCompressed();
+    full_R_loc_ext.makeCompressed();
+}
 
-    // Eigen::saveMarket(M_c_loc, "C:/work/matlab/TestModalAssembly/data/M_c_loc.dat");
-    // Eigen::saveMarket(K_c_loc, "C:/work/matlab/TestModalAssembly/data/K_c_loc.dat");
-    // ChMatrixDynamic<> Uloc(m_num_coords_vel_boundary + m_num_coords_vel_internal + m_num_constr_internal, 6);
-    // Uloc.setZero();
-    // Uloc.block(0, 0, m_num_coords_vel_boundary, 6) = Uloc_B;
-    // Uloc.block(m_num_coords_vel_boundary, 0, m_num_coords_vel_internal, 6) = Uloc_I;
-    // Eigen::saveMarket(Uloc, "C:/work/matlab/TestModalAssembly/data/Uloc.dat");
+void ChModalAssembly::ApplyModeAccelerationTransformation(const ChModalDamping& damping_model) {
+    assert(m_modal_eigvect.cols() >= 6);  // at least six rigid-body modes are required.
 
-    // K_IIc = [  K_II   Cq_II' ]
-    //         [ Cq_II     0    ]
-    ChSparseMatrix K_II_loc = full_K_loc.block(m_num_coords_vel_boundary, m_num_coords_vel_boundary,
-                                               m_num_coords_vel_internal, m_num_coords_vel_internal);
+    if (m_num_constr_boundary) {
+        // It is forbidden to call AddLink() to connect internal bodies/nodes, thus Cq_BI should be zero.
+        ChSparseMatrix Cq_BI_loc =
+            full_Cq_loc.block(0, m_num_coords_vel_boundary, m_num_constr_boundary, m_num_coords_vel_internal);
+        if (Cq_BI_loc.nonZeros())
+            throw std::runtime_error(
+                "Error: it is forbidden to use AddLink() to connect internal bodies/nodes in ChModalAssembly().");
+    }
 
-    Eigen::SparseMatrix<double> K_IIc_loc;
+    Eigen::SparseMatrix<double, Eigen::ColMajor, int> K_II_col;
     if (m_num_constr_internal) {
-        ChSparseMatrix Cq_II_loc = full_Cq_loc.block(m_num_constr_boundary, m_num_coords_vel_boundary,
-                                                     m_num_constr_internal, m_num_coords_vel_internal) *
-                                   m_scaling_factor_CqI;
-        util_sparse_assembly_2x2symm(K_IIc_loc, K_II_loc, Cq_II_loc);
-    } else
-        K_IIc_loc = K_II_loc;
-    K_IIc_loc.makeCompressed();
+        // K_IIc = [  K_II   Cq_II' ]
+        //         [ Cq_II     0    ]
 
-    // Matrix of static modes (constrained, so use K_IIc instead of K_II,
-    // the original unconstrained HERTING reduction is Psi_S = - K_II^{-1} * K_IB
-    //
-    // Psi_S_C = {Psi_S; Psi_S_LambdaI} = - K_IIc^{-1} * {K_IB ; Cq_IB}
-    ChSparseMatrix Cq_IB_loc =
-        full_Cq_loc.block(m_num_constr_boundary, 0, m_num_constr_internal, m_num_coords_vel_boundary) *
-        m_scaling_factor_CqI;
+        ChSparseMatrix K_IIc_loc;
+        util_sparse_assembly_2x2symm(K_IIc_loc, K_II_loc, Cq_II_loc * m_scaling_factor_CqI);
+        util_convert_to_colmajor(K_II_col, K_IIc_loc);
+
+    } else {
+        util_convert_to_colmajor(K_II_col, K_II_loc);
+    }
+    // avoid computing K_IIc^{-1}, effectively do n times a linear solve:
+    m_solver_invKIIc.analyzePattern(K_II_col);
+    m_solver_invKIIc.factorize(K_II_col);
+
+    // 1) Matrix of static modes (constrained, so use K_IIc instead of K_II,
+    // the original unconstrained static reduction is: Psi_S = - K_II^{-1} * K_IB.
+    // for constrained subsystem:
+    // Psi_S_C = {Psi_S; Psi_S_LambdaI} = - K_IIc^{-1} * {K_IB ; Cq_IB} )
     Psi_S.setZero(m_num_coords_vel_internal, m_num_coords_vel_boundary);
-    Psi_S_LambdaI.setZero(m_num_constr_internal, m_num_coords_vel_boundary);
+    if (m_num_constr_internal)
+        Psi_S_LambdaI.setZero(m_num_constr_internal, m_num_coords_vel_boundary);
     // ChMatrixDynamic<> Psi_S_C(m_num_coords_vel_internal + m_num_constr_internal, m_num_coords_vel_boundary);
 
-    // avoid computing K_IIc^{-1}, effectively do n times a linear solve:
-    // Eigen::SparseQR<Eigen::SparseMatrix<double>, Eigen::COLAMDOrdering<int>> solver;
-    m_solver_invKIIc.analyzePattern(K_IIc_loc);
-    m_solver_invKIIc.factorize(K_IIc_loc);
-    ChSparseMatrix K_IB_loc =
-        full_K_loc.block(m_num_coords_vel_boundary, 0, m_num_coords_vel_internal, m_num_coords_vel_boundary);
     for (unsigned int i = 0; i < m_num_coords_vel_boundary; ++i) {
         ChVectorDynamic<> rhs(m_num_coords_vel_internal + m_num_constr_internal);
         if (m_num_constr_internal)
-            rhs << K_IB_loc.col(i).toDense(), Cq_IB_loc.col(i).toDense();
+            rhs << K_IB_loc.col(i).toDense(), Cq_IB_loc.col(i).toDense() * m_scaling_factor_CqI;
         else
             rhs << K_IB_loc.col(i).toDense();
 
@@ -675,313 +708,220 @@ void ChModalAssembly::ApplyHertingTransformation(const ChModalDamping& damping_m
             Psi_S_LambdaI.col(i) = -x.tail(m_num_constr_internal);
     }
 
-    ChVectorDynamic<> c_modes(m_modal_eigvect.cols());
-    c_modes.setOnes();
+    // 2) Matrix of dynamic modes (V_B and V_I already computed, reuse K_IIc already factored before.
+    // the original unconstrained dynamic reduction is:
+    //  - Herting:       Psi_D = - K_II^{-1} * (M_IB * V_B + M_II * V_I)
+    //  - Craig-Bampton: Psi_D = - K_II^{-1} * (             M_II * V_I)
+    // for constrained subsystem:
+    // Psi_D_C = {Psi_D; Psi_D_LambdaI} = - K_IIc^{-1} * {(M_IB * V_B + M_II * V_I) ; 0} ).
+    Psi_D.setZero(m_num_coords_vel_internal, m_num_coords_modal - m_num_coords_static_correction);
+    if (m_num_constr_internal)
+        Psi_D_LambdaI.setZero(m_num_constr_internal, m_num_coords_modal - m_num_coords_static_correction);
+    // ChMatrixDynamic<> Psi_D_C(m_num_coords_vel_internal + m_num_constr_internal, m_num_coords_modal -
+    // m_num_coords_static_correction);
 
-    for (unsigned int i_try = 0; i_try < 2; i_try++) {
+    if (m_modal_reduction_type == ReductionType::HERTING) {  // for Herting reduction
         // The modal shapes of the first six rigid-body modes solved from the eigensolver might be not accurate,
         // leading to potential numerical instability. Thus, we construct the rigid-body modal shapes directly.
         m_modal_eigvect.block(0, 0, m_num_coords_vel_boundary, 6) = Uloc_B;
         m_modal_eigvect.block(m_num_coords_vel_boundary, 0, m_num_coords_vel_internal, 6) = Uloc_I;
-
-        for (unsigned int i_mode = 0; i_mode < m_modal_eigvect.cols(); ++i_mode) {
-            if (c_modes(i_mode))
-                // Normalize m_modal_eigvect to improve the condition of M_red.
-                // When i_try==0, c_modes==1, it doesnot change m_modal_eigvect, but tries to obtain M_red and then find
-                // the suitable coefficents c_modes; When i_try==1, c_modes works to improve the condition of M_red for
-                // the sake of numerical stability.
-                m_modal_eigvect.col(i_mode) *= c_modes(i_mode);
-            else
-                m_modal_eigvect.col(i_mode).normalize();
-        }
-
-        ChMatrixDynamic<> V_B = m_modal_eigvect.block(0, 0, m_num_coords_vel_boundary, m_num_coords_modal).real();
-        ChMatrixDynamic<> V_I =
-            m_modal_eigvect.block(m_num_coords_vel_boundary, 0, m_num_coords_vel_internal, m_num_coords_modal).real();
-
-        // Matrix of dynamic modes (V_B and V_I already computed as constrained eigenmodes,
-        // but use K_IIc instead of K_II anyway, to reuse K_IIc already factored before)
-        //
-        // Psi_D_C = {Psi_D; Psi_D_LambdaI} = - K_IIc^{-1} * {(M_IB * V_B + M_II * V_I) ; 0}
-        Psi_D.setZero(m_num_coords_vel_internal, m_num_coords_modal);
-        Psi_D_LambdaI.setZero(m_num_constr_internal, m_num_coords_modal);
-        // ChMatrixDynamic<> Psi_D_C(m_num_coords_vel_internal + m_num_constr_internal, m_num_coords_modal);
-
-        ChSparseMatrix M_II_loc = full_M_loc.block(m_num_coords_vel_boundary, m_num_coords_vel_boundary,
-                                                   m_num_coords_vel_internal, m_num_coords_vel_internal);
-        ChSparseMatrix M_IB_loc =
-            full_M_loc.block(m_num_coords_vel_boundary, 0, m_num_coords_vel_internal, m_num_coords_vel_boundary);
-        ChMatrixDynamic<> rhs_top = M_IB_loc * V_B + M_II_loc * V_I;
-        for (unsigned int i = 0; i < m_num_coords_modal; ++i) {
-            ChVectorDynamic<> rhs(m_num_coords_vel_internal + m_num_constr_internal);
-            if (m_num_constr_internal)
-                rhs << rhs_top.col(i), Eigen::VectorXd::Zero(m_num_constr_internal);
-            else
-                rhs << rhs_top.col(i);
-
-            ChVectorDynamic<> x = m_solver_invKIIc.solve(rhs.sparseView());
-
-            Psi_D.col(i) = -x.head(m_num_coords_vel_internal);
-            // Psi_D_C.col(i) = -x;
-            if (m_num_constr_internal)
-                Psi_D_LambdaI.col(i) = -x.tail(m_num_constr_internal);
-        }
-
-        // Psi = [ I               0             ]
-        //       [ Psi_S           Psi_D         ]
-        //       [ Psi_S_LambdaI   Psi_D_LambdaI ]
-        Psi.setZero(m_num_coords_vel_boundary + m_num_coords_vel_internal + m_num_constr_internal,
-                    m_num_coords_vel_boundary + m_num_coords_modal);
-        //***TODO*** maybe prefer sparse Psi matrix, especially for upper blocks...
-        if (m_num_constr_internal)
-            Psi << Eigen::MatrixXd::Identity(m_num_coords_vel_boundary, m_num_coords_vel_boundary),
-                Eigen::MatrixXd::Zero(m_num_coords_vel_boundary, m_num_coords_modal), Psi_S, Psi_D, Psi_S_LambdaI,
-                Psi_D_LambdaI;
-        else
-            Psi << Eigen::MatrixXd::Identity(m_num_coords_vel_boundary, m_num_coords_vel_boundary),
-                Eigen::MatrixXd::Zero(m_num_coords_vel_boundary, m_num_coords_modal), Psi_S, Psi_D;
-
-        // Modal reduction on the local M K matrices.
-        // Now we assume there is no prestress in the initial configuration,
-        // so only material mass and stiffness matrices are used here.
-        this->M_red = Psi.transpose() * M_c_loc * Psi;
-        this->K_red = Psi.transpose() * K_c_loc * Psi;
-        // set the off-diagonal blocks to zero to improve the numerical stability.
-        this->K_red.block(0, m_num_coords_vel_boundary, m_num_coords_vel_boundary, m_num_coords_modal).setZero();
-        this->K_red.block(m_num_coords_vel_boundary, 0, m_num_coords_modal, m_num_coords_vel_boundary).setZero();
-
-        // We do not have a reduced Cq matrix......
-        // ChSparseMatrix Cq_B_loc = full_Cq_loc.topRows(m_num_constr_boundary);
-        // this->Cq_red = Cq_B_loc * Psi;
-
-        // temporarily set reduced damping matrix from the original local matrix
-        // todo: develop a more reasonable damping model
-        {
-            // Initialize the reduced damping matrix
-            this->R_red.setZero(this->M_red.rows(), this->M_red.cols());  // default R=0 , zero damping
-            // Modal reduction of R damping matrix: compute using user-provided damping model.
-            // todo: maybe the Cq_red is necessary for specifying the suitable modal damping ratios.
-            // ChModalDampingNone damping_model;
-            // damping_model.ComputeR(*this, this->M_red, this->K_red, Psi, this->R_red);
-            this->R_red = Psi.transpose() * R_c_loc * Psi;
-            // set the off-diagonal blocks to zero to improve the numerical stability.
-            this->R_red.block(0, m_num_coords_vel_boundary, m_num_coords_vel_boundary, m_num_coords_modal).setZero();
-            this->R_red.block(m_num_coords_vel_boundary, 0, m_num_coords_modal, m_num_coords_vel_boundary).setZero();
-        }
-
-        // Find the suitable coefficients 'c_modes' to normalize 'm_modal_eigvect' to improve the condition number of
-        // 'M_red'.
-        if (i_try < 1) {
-            double expected_mass = this->M_red.diagonal().head(m_num_coords_vel_boundary).mean();
-            for (unsigned int i_mode = 0; i_mode < m_modal_eigvect.cols(); ++i_mode)
-                c_modes(i_mode) = pow(
-                    expected_mass / this->M_red(m_num_coords_vel_boundary + i_mode, m_num_coords_vel_boundary + i_mode),
-                    0.5);
-        }
     }
+
+    ChMatrixDynamic<> rhs_dyn(m_num_coords_vel_internal, m_modal_eigvect.cols());
+    if (m_modal_reduction_type == ReductionType::HERTING) {  // for Herting reduction
+        ChMatrixDynamic<> V_B = m_modal_eigvect.topRows(m_num_coords_vel_boundary).real();
+        ChMatrixDynamic<> V_I = m_modal_eigvect.middleRows(m_num_coords_vel_boundary, m_num_coords_vel_internal).real();
+        rhs_dyn = M_IB_loc * V_B + M_II_loc * V_I;
+    } else if (m_modal_reduction_type == ReductionType::CRAIG_BAMPTON) {  // for Craig-Bampton reduction
+        ChMatrixDynamic<> V_I = m_modal_eigvect.real();
+        rhs_dyn = M_II_loc * V_I;
+    }
+
+    for (unsigned int i = 0; i < m_num_coords_modal - m_num_coords_static_correction; ++i) {
+        ChVectorDynamic<> rhs(m_num_coords_vel_internal + m_num_constr_internal);
+        if (m_num_constr_internal)
+            rhs << rhs_dyn.col(i), Eigen::VectorXd::Zero(m_num_constr_internal);
+        else
+            rhs << rhs_dyn.col(i);
+
+        ChVectorDynamic<> x = m_solver_invKIIc.solve(rhs.sparseView());
+
+        Psi_D.col(i) = -x.head(m_num_coords_vel_internal);
+        // Psi_D_C.col(i) = -x;
+        if (m_num_constr_internal)
+            Psi_D_LambdaI.col(i) = -x.tail(m_num_constr_internal);
+    }
+
+    ChMatrixDynamic<> M_SS =
+        M_BB_loc + M_BI_loc * Psi_S + Psi_S.transpose() * M_IB_loc + Psi_S.transpose() * M_II_loc * Psi_S;
+    ChMatrixDynamic<> M_DD = Psi_D.transpose() * M_II_loc * Psi_D;
+
+    // Find proper coefficients to normalize 'm_modal_eigvect' to improve the condition number of 'M_red'.
+    ChVectorDynamic<> modes_scaling_factor(m_modal_eigvect.cols());
+    modes_scaling_factor.setOnes();
+    double expected_generalized_mass = M_SS.diagonal().mean();
+    for (unsigned int i_mode = 0; i_mode < m_modal_eigvect.cols(); ++i_mode)
+        if (M_DD(i_mode, i_mode))
+            modes_scaling_factor(i_mode) = pow(expected_generalized_mass / M_DD(i_mode, i_mode), 0.5);
+
+    // Scale eigenvectors of dynamic modes, to improve the numerical stability
+    for (unsigned int i_mode = 0; i_mode < m_modal_eigvect.cols(); ++i_mode) {
+        m_modal_eigvect.col(i_mode) *= modes_scaling_factor(i_mode);
+        Psi_D.col(i_mode) *= modes_scaling_factor(i_mode);
+        if (m_num_constr_internal)
+            Psi_D_LambdaI.col(i_mode) *= modes_scaling_factor(i_mode);
+    }
+
+    // 3) Matrix of static correction mode. The external forces imposed on the internal nodes are required to compute
+    // it, here it is initialized as a unit force vector.
+    // the original unconstrained dynamic reduction is: Psi_Cor = K_II^{-1} * f_loc.
+    // for constrained subsystem:
+    // Psi_Cor_C = {Psi_Cor; Psi_Cor_LambdaI} = K_IIc^{-1} * {f_loc ; 0}
+    Psi_Cor.setZero(m_num_coords_vel_internal, m_num_coords_static_correction);
+    if (m_num_constr_internal)
+        Psi_Cor_LambdaI.setZero(m_num_constr_internal, m_num_coords_static_correction);
+    // ChMatrixDynamic<> Psi_Cor_C(m_num_coords_vel_internal + m_num_constr_internal, m_num_coords_static_correction);
+
+    if (m_num_coords_static_correction) {
+        ChVectorDynamic<> f_loc(m_num_coords_vel_internal);
+        f_loc.setOnes();  // initialization
+        ChVectorDynamic<> rhs(m_num_coords_vel_internal + m_num_constr_internal);
+        if (m_num_constr_internal)
+            rhs << f_loc, Eigen::VectorXd::Zero(m_num_constr_internal);
+        else
+            rhs << f_loc;
+
+        ChVectorDynamic<> x = m_solver_invKIIc.solve(rhs.sparseView());
+
+        Psi_Cor = x.head(m_num_coords_vel_internal);
+        // Psi_Cor_C = x;
+        if (m_num_constr_internal)
+            Psi_Cor_LambdaI = x.tail(m_num_constr_internal);
+
+        // Scale the eigenvector of the static correction mode, to improve the numerical stability
+        ChMatrixDynamic<> M_rr = Psi_Cor.transpose() * M_II_loc * Psi_Cor;
+        double static_scaling_factor = pow(expected_generalized_mass / M_rr(0, 0), 0.5);
+        Psi_Cor *= static_scaling_factor;
+        if (m_num_constr_internal)
+            Psi_Cor_LambdaI *= static_scaling_factor;
+    }
+
+    // cols =   n_B      +      n_eta     +     1                      rows:
+    // Psi  = [ I               0               0               ]      n_B
+    //        [ Psi_S           Psi_D           Psi_Cor         ]    + n_I
+    //        [ Psi_S_LambdaI   Psi_D_LambdaI   Psi_Cor_LambdaI ]    + n_LambdaI
+    Psi.setZero(m_num_coords_vel_boundary + m_num_coords_vel_internal + m_num_constr_internal,
+                m_num_coords_vel_boundary + m_num_coords_modal);
+    //***TODO*** maybe prefer sparse Psi matrix, especially for upper blocks...
+    if (m_num_constr_internal)
+        Psi << Eigen::MatrixXd::Identity(m_num_coords_vel_boundary, m_num_coords_vel_boundary),
+            Eigen::MatrixXd::Zero(m_num_coords_vel_boundary, m_num_coords_modal), Psi_S, Psi_D, Psi_Cor, Psi_S_LambdaI,
+            Psi_D_LambdaI, Psi_Cor_LambdaI;
+    else
+        Psi << Eigen::MatrixXd::Identity(m_num_coords_vel_boundary, m_num_coords_vel_boundary),
+            Eigen::MatrixXd::Zero(m_num_coords_vel_boundary, m_num_coords_modal), Psi_S, Psi_D, Psi_Cor;
+
+    // Store this matrix, which will be used in the recomputation of the static correction mode in every time step
+    MBI_PsiST_MII = M_BI_loc + Psi_S.transpose() * M_II_loc;
+    MBI_PsiST_MII.makeCompressed();
+
+    // Modal reduction transformation on the local M K matrices.
+    // Now we assume there is no prestress in the initial configuration,
+    // so only material mass and stiffness matrices are used here.
+    this->M_red.setZero(m_num_coords_vel_boundary + m_num_coords_modal, m_num_coords_vel_boundary + m_num_coords_modal);
+    this->M_red.topLeftCorner(m_num_coords_vel_boundary, m_num_coords_vel_boundary) = M_SS;
+
+    this->M_red.block(0, m_num_coords_vel_boundary, m_num_coords_vel_boundary,
+                      m_num_coords_modal - m_num_coords_static_correction) = MBI_PsiST_MII * Psi_D;
+    this->M_red.block(m_num_coords_vel_boundary, 0, m_num_coords_modal - m_num_coords_static_correction,
+                      m_num_coords_vel_boundary) = this->M_red
+                                                       .block(0, m_num_coords_vel_boundary, m_num_coords_vel_boundary,
+                                                              m_num_coords_modal - m_num_coords_static_correction)
+                                                       .transpose();  // symmetric block
+    this->M_red.block(m_num_coords_vel_boundary, m_num_coords_vel_boundary,
+                      m_num_coords_modal - m_num_coords_static_correction,
+                      m_num_coords_modal - m_num_coords_static_correction) = Psi_D.transpose() * M_II_loc * Psi_D;
+    if (m_num_coords_static_correction) {  // static correction blocks
+        this->M_red.block(0, m_num_coords_vel_boundary + m_num_coords_modal - m_num_coords_static_correction,
+                          m_num_coords_vel_boundary, m_num_coords_static_correction) = MBI_PsiST_MII * Psi_Cor;
+        this->M_red.block(m_num_coords_vel_boundary,
+                          m_num_coords_vel_boundary + m_num_coords_modal - m_num_coords_static_correction,
+                          m_num_coords_modal - m_num_coords_static_correction, m_num_coords_static_correction) =
+            Psi_D.transpose() * M_II_loc * Psi_Cor;
+
+        this->M_red.block(m_num_coords_vel_boundary + m_num_coords_modal - m_num_coords_static_correction, 0,
+                          m_num_coords_static_correction, m_num_coords_vel_boundary) =
+            this->M_red
+                .block(0, m_num_coords_vel_boundary + m_num_coords_modal - m_num_coords_static_correction,
+                       m_num_coords_vel_boundary, m_num_coords_static_correction)
+                .transpose();  // symmetric block
+
+        this->M_red.block(m_num_coords_vel_boundary + m_num_coords_modal - m_num_coords_static_correction,
+                          m_num_coords_vel_boundary, m_num_coords_static_correction,
+                          m_num_coords_modal - m_num_coords_static_correction) =
+            this->M_red
+                .block(m_num_coords_vel_boundary,
+                       m_num_coords_vel_boundary + m_num_coords_modal - m_num_coords_static_correction,
+                       m_num_coords_modal - m_num_coords_static_correction, m_num_coords_static_correction)
+                .transpose();  // symmetric block
+
+        this->M_red.bottomRightCorner(m_num_coords_static_correction, m_num_coords_static_correction) =
+            Psi_Cor.transpose() * M_II_loc * Psi_Cor;
+    }
+
+    this->K_red.setZero(m_num_coords_vel_boundary + m_num_coords_modal, m_num_coords_vel_boundary + m_num_coords_modal);
+    this->K_red.topLeftCorner(m_num_coords_vel_boundary, m_num_coords_vel_boundary) =
+        K_BB_loc + K_BI_loc * Psi_S + Psi_S.transpose() * K_IB_loc + Psi_S.transpose() * K_II_loc * Psi_S;
+    this->K_red.block(m_num_coords_vel_boundary, m_num_coords_vel_boundary,
+                      m_num_coords_modal - m_num_coords_static_correction,
+                      m_num_coords_modal - m_num_coords_static_correction) = Psi_D.transpose() * K_II_loc * Psi_D;
+    if (m_num_coords_static_correction) {  // static correction blocks
+        this->K_red.block(m_num_coords_vel_boundary,
+                          m_num_coords_vel_boundary + m_num_coords_modal - m_num_coords_static_correction,
+                          m_num_coords_modal - m_num_coords_static_correction, m_num_coords_static_correction) =
+            Psi_D.transpose() * K_II_loc * Psi_Cor;
+
+        this->K_red.block(m_num_coords_vel_boundary + m_num_coords_modal - m_num_coords_static_correction,
+                          m_num_coords_vel_boundary, m_num_coords_static_correction,
+                          m_num_coords_modal - m_num_coords_static_correction) =
+            this->K_red
+                .block(m_num_coords_vel_boundary,
+                       m_num_coords_vel_boundary + m_num_coords_modal - m_num_coords_static_correction,
+                       m_num_coords_modal - m_num_coords_static_correction, m_num_coords_static_correction)
+                .transpose();  // symmetric block
+
+        this->K_red.bottomRightCorner(m_num_coords_static_correction, m_num_coords_static_correction) =
+            Psi_Cor.transpose() * K_II_loc * Psi_Cor;
+    }
+
+    // temporarily set reduced damping matrix from the original local matrix
+    // todo: develop a more reasonable modal damping model
+    {
+        // Initialize the reduced damping matrix
+        this->R_red.setZero(this->K_red.rows(), this->K_red.cols());
+        // Modal reduction of R damping matrix: compute using user-provided damping model.
+        // ChModalDampingNone damping_model;
+        // damping_model.ComputeR(*this, this->M_red, this->K_red, Psi, this->R_red);
+        this->R_red = Psi.transpose() * full_R_loc_ext * Psi;
+        // set the off-diagonal blocks to zero to improve the numerical stability.
+        this->R_red.block(0, m_num_coords_vel_boundary, m_num_coords_vel_boundary, m_num_coords_modal).setZero();
+        this->R_red.block(m_num_coords_vel_boundary, 0, m_num_coords_modal, m_num_coords_vel_boundary).setZero();
+    }
+
+    // For strict symmetry, copy L=U because the computations above might lead to small errors because of numerical
+    // roundoff
+    for (int row = 0; row < this->M_red.rows() - 1; ++row)
+        for (int col = row + 1; col < this->M_red.cols(); ++col) {
+            this->M_red(row, col) = this->M_red(col, row);
+            this->K_red(row, col) = this->K_red(col, row);
+
+            // todo: maybe need to remove after completing the development of a proper modal damping model
+            this->R_red(row, col) = this->R_red(col, row);
+        }
 
     // Reset to zero all the atomic masses of the boundary nodes because now their mass is represented by
     // this->modal_M.
     // NOTE! this should be made more generic and future-proof by implementing a virtual method ex.
-    // RemoveMass() in all ChPhysicsItem
-    for (auto& body : bodylist) {
-        body->SetMass(0);
-        body->SetInertia(VNULL);
-    }
-    for (auto& item : this->meshlist) {
-        if (auto mesh = std::dynamic_pointer_cast<ChMesh>(item)) {
-            for (auto& node : mesh->GetNodes()) {
-                if (auto xyz = std::dynamic_pointer_cast<ChNodeFEAxyz>(node))
-                    xyz->SetMass(0);
-                if (auto xyzrot = std::dynamic_pointer_cast<ChNodeFEAxyzrot>(node)) {
-                    xyzrot->SetMass(0);
-                    xyzrot->GetInertia().setZero();
-                }
-            }
-        }
-    }
-
-    // Invalidate results of the initial eigenvalue analysis because now the DOFs are different after reduction,
-    // to avoid that one could be tempted to plot those eigenmodes, which now are not exactly the ones of the
-    // reduced assembly.
-    m_modal_damping_ratios.resize(0);
-    m_modal_eigvals.resize(0);
-    m_modal_freq.resize(0);
-    m_modal_eigvect.resize(0, 0);
-}
-
-void ChModalAssembly::ApplyCraigBamptonTransformation(const ChModalDamping& damping_model) {
-    // It is forbidden to call AddLink() to connect internal bodies/nodes, thus Cq_BI should be zero.
-    ChSparseMatrix Cq_BI_loc =
-        full_Cq_loc.block(0, m_num_coords_vel_boundary, m_num_constr_boundary, m_num_coords_vel_internal);
-    if (Cq_BI_loc.nonZeros())
-        throw std::runtime_error(
-            "Error: it is forbidden to use AddLink() to connect internal bodies/nodes in ChModalAssembly().");
-
-    // extended K R M matrices with constraints in local frame
-    Eigen::SparseMatrix<double> K_c_loc;
-    Eigen::SparseMatrix<double> M_c_loc;
-    Eigen::SparseMatrix<double> R_c_loc;
-    if (m_num_constr_internal) {
-        m_scaling_factor_CqI = full_K_loc.diagonal().mean();
-        ChSparseMatrix Cq_I_loc = full_Cq_loc.bottomRows(m_num_constr_internal) * m_scaling_factor_CqI;
-        util_sparse_assembly_2x2symm(K_c_loc, full_K_loc, Cq_I_loc);
-
-        Eigen::SparseMatrix<double> temp_zero(Cq_I_loc.rows(), Cq_I_loc.cols());
-        util_sparse_assembly_2x2symm(M_c_loc, full_M_loc, temp_zero);
-        util_sparse_assembly_2x2symm(R_c_loc, full_R_loc, temp_zero);
-    } else {
-        K_c_loc = full_K_loc;
-        M_c_loc = full_M_loc;
-        R_c_loc = full_R_loc;
-    }
-    K_c_loc.makeCompressed();
-    M_c_loc.makeCompressed();
-    R_c_loc.makeCompressed();
-
-    // K_IIc = [  K_II   Cq_II' ]
-    //         [ Cq_II     0    ]
-    ChSparseMatrix K_II_loc = full_K_loc.block(m_num_coords_vel_boundary, m_num_coords_vel_boundary,
-                                               m_num_coords_vel_internal, m_num_coords_vel_internal);
-
-    Eigen::SparseMatrix<double> K_IIc_loc;
-    if (m_num_constr_internal) {
-        ChSparseMatrix Cq_II_loc = full_Cq_loc.block(m_num_constr_boundary, m_num_coords_vel_boundary,
-                                                     m_num_constr_internal, m_num_coords_vel_internal) *
-                                   m_scaling_factor_CqI;
-        util_sparse_assembly_2x2symm(K_IIc_loc, K_II_loc, Cq_II_loc);
-    } else
-        K_IIc_loc = K_II_loc;
-    K_IIc_loc.makeCompressed();
-
-    // Matrix of static modes (constrained, so use K_IIc instead of K_II,
-    // the original unconstrained Craig-Bamption reduction is Psi_S = - K_II^{-1} * K_IB
-    //
-    // Psi_S_C = {Psi_S; Psi_S_LambdaI} = - K_IIc^{-1} * {K_IB ; Cq_IB}
-    ChSparseMatrix Cq_IB_loc =
-        full_Cq_loc.block(m_num_constr_boundary, 0, m_num_constr_internal, m_num_coords_vel_boundary) *
-        m_scaling_factor_CqI;
-    Psi_S.setZero(m_num_coords_vel_internal, m_num_coords_vel_boundary);
-    Psi_S_LambdaI.setZero(m_num_constr_internal, m_num_coords_vel_boundary);
-    // ChMatrixDynamic<> Psi_S_C(m_num_coords_vel_internal + m_num_constr_internal, m_num_coords_vel_boundary);
-
-    // avoid computing K_IIc^{-1}, effectively do n times a linear solve:
-    // Eigen::SparseQR<Eigen::SparseMatrix<double>, Eigen::COLAMDOrdering<int>> solver;
-    m_solver_invKIIc.analyzePattern(K_IIc_loc);
-    m_solver_invKIIc.factorize(K_IIc_loc);
-    ChSparseMatrix K_IB_loc =
-        full_K_loc.block(m_num_coords_vel_boundary, 0, m_num_coords_vel_internal, m_num_coords_vel_boundary);
-    for (unsigned int i = 0; i < m_num_coords_vel_boundary; ++i) {
-        ChVectorDynamic<> rhs(m_num_coords_vel_internal + m_num_constr_internal);
-        if (m_num_constr_internal)
-            rhs << K_IB_loc.col(i).toDense(), Cq_IB_loc.col(i).toDense();
-        else
-            rhs << K_IB_loc.col(i).toDense();
-
-        ChVectorDynamic<> x = m_solver_invKIIc.solve(rhs.sparseView());
-
-        Psi_S.col(i) = -x.head(m_num_coords_vel_internal);
-        // Psi_S_C.col(i) = -x;
-        if (m_num_constr_internal)
-            Psi_S_LambdaI.col(i) = -x.tail(m_num_constr_internal);
-    }
-
-    ChVectorDynamic<> c_modes(m_modal_eigvect.cols());
-    c_modes.setOnes();
-
-    for (unsigned int i_try = 0; i_try < 2; i_try++) {
-        for (unsigned int i_mode = 0; i_mode < m_modal_eigvect.cols(); ++i_mode) {
-            if (c_modes(i_mode))
-                // Normalize m_modal_eigvect to improve the condition of M_red.
-                // When i_try==0, c_modes==1, it doesnot change m_modal_eigvect, but tries to obtain M_red and then find
-                // the suitable coefficents c_modes; When i_try==1, c_modes works to improve the condition of M_red for
-                // the sake of numerical stability.
-                m_modal_eigvect.col(i_mode) *= c_modes(i_mode);
-            else
-                m_modal_eigvect.col(i_mode).normalize();
-        }
-
-        ChMatrixDynamic<> V_I = m_modal_eigvect.block(0, 0, m_num_coords_vel_internal, m_num_coords_modal).real();
-
-        // Matrix of dynamic modes (V_I already computed as constrained eigenmodes,
-        // but use K_IIc instead of K_II anyway, to reuse K_IIc already factored before)
-        //
-        // Psi_D_C = {Psi_D; Psi_D_LambdaI} = - K_IIc^{-1} * {(M_II * V_I) ; 0}
-        Psi_D.setZero(m_num_coords_vel_internal, m_num_coords_modal);
-        Psi_D_LambdaI.setZero(m_num_constr_internal, m_num_coords_modal);
-        // ChMatrixDynamic<> Psi_D_C(m_num_coords_vel_internal + m_num_constr_internal, m_num_coords_modal);
-
-        ChSparseMatrix M_II_loc = full_M_loc.block(m_num_coords_vel_boundary, m_num_coords_vel_boundary,
-                                                   m_num_coords_vel_internal, m_num_coords_vel_internal);
-        ChMatrixDynamic<> rhs_top = M_II_loc * V_I;
-        for (unsigned int i = 0; i < m_num_coords_modal; ++i) {
-            ChVectorDynamic<> rhs(m_num_coords_vel_internal + m_num_constr_internal);
-            if (m_num_constr_internal)
-                rhs << rhs_top.col(i), Eigen::VectorXd::Zero(m_num_constr_internal);
-            else
-                rhs << rhs_top.col(i);
-
-            ChVectorDynamic<> x = m_solver_invKIIc.solve(rhs.sparseView());
-
-            Psi_D.col(i) = -x.head(m_num_coords_vel_internal);
-            // Psi_D_C.col(i) = -x;
-            if (m_num_constr_internal)
-                Psi_D_LambdaI.col(i) = -x.tail(m_num_constr_internal);
-        }
-
-        // Psi = [ I               0             ]
-        //       [ Psi_S           Psi_D         ]
-        //       [ Psi_S_LambdaI   Psi_D_LambdaI ]
-        Psi.setZero(m_num_coords_vel_boundary + m_num_coords_vel_internal + m_num_constr_internal,
-                    m_num_coords_vel_boundary + m_num_coords_modal);
-        //***TODO*** maybe prefer sparse Psi matrix, especially for upper blocks...
-        if (m_num_constr_internal)
-            Psi << Eigen::MatrixXd::Identity(m_num_coords_vel_boundary, m_num_coords_vel_boundary),
-                Eigen::MatrixXd::Zero(m_num_coords_vel_boundary, m_num_coords_modal), Psi_S, Psi_D, Psi_S_LambdaI,
-                Psi_D_LambdaI;
-        else
-            Psi << Eigen::MatrixXd::Identity(m_num_coords_vel_boundary, m_num_coords_vel_boundary),
-                Eigen::MatrixXd::Zero(m_num_coords_vel_boundary, m_num_coords_modal), Psi_S, Psi_D;
-
-        // Modal reduction of the M K matrices.
-        this->M_red = Psi.transpose() * M_c_loc * Psi;
-        this->K_red = Psi.transpose() * K_c_loc * Psi;
-        // set the off-diagonal blocks to zero to improve the numerical stability.
-        this->K_red.block(0, m_num_coords_vel_boundary, m_num_coords_vel_boundary, m_num_coords_modal).setZero();
-        this->K_red.block(m_num_coords_vel_boundary, 0, m_num_coords_modal, m_num_coords_vel_boundary).setZero();
-
-        // We do not have a reduced Cq matrix......
-        // ChSparseMatrix Cq_B_loc = full_Cq_loc.topRows(m_num_constr_boundary);
-        // this->Cq_red = Cq_B_loc * Psi;
-
-        // temporarily set reduced damping matrix from the original local matrix
-        // todo: develop a more reasonable damping model
-        {
-            // Initialize the reduced damping matrix
-            this->R_red.setZero(this->M_red.rows(), this->M_red.cols());  // default R=0 , zero damping
-            // Modal reduction of R damping matrix: compute using user-provided damping model.
-            // todo: maybe the Cq_red is necessary for specifying the suitable modal damping ratios.
-            // ChModalDampingNone damping_model;
-            // damping_model.ComputeR(*this, this->M_red, this->K_red, Psi, this->R_red);
-            this->R_red = Psi.transpose() * R_c_loc * Psi;
-            // set the off-diagonal blocks to zero to improve the numerical stability.
-            this->R_red.block(0, m_num_coords_vel_boundary, m_num_coords_vel_boundary, m_num_coords_modal).setZero();
-            this->R_red.block(m_num_coords_vel_boundary, 0, m_num_coords_modal, m_num_coords_vel_boundary).setZero();
-        }
-
-        // Find the suitable coefficients 'c_modes' to normalize 'm_modal_eigvect' to improve the condition number of
-        // 'M_red'.
-        if (i_try < 1) {
-            double expected_mass = this->M_red.diagonal().head(m_num_coords_vel_boundary).mean();
-            for (unsigned int i_mode = 0; i_mode < m_modal_eigvect.cols(); ++i_mode)
-                c_modes(i_mode) = pow(
-                    expected_mass / this->M_red(m_num_coords_vel_boundary + i_mode, m_num_coords_vel_boundary + i_mode),
-                    0.5);
-        }
-    }
-
-    // Reset to zero all the atomic masses of the boundary nodes because now their mass is represented by
-    // this->modal_M NOTE! this should be made more generic and future-proof by implementing a virtual method ex.
     // RemoveMass() in all ChPhysicsItem
     for (auto& body : bodylist) {
         body->SetMass(0);
@@ -1014,8 +954,8 @@ void ChModalAssembly::ComputeInertialKRMmatrix() {
         return;
 
     // Inertial mass matrix
-    this->M_sup.setZero();
-    M_sup = P_W * M_red * P_W.transpose();
+    this->M_mod.setZero();
+    M_mod = P_W * M_red * P_W.transpose();
 
     unsigned int num_coords_vel_bou_mod = m_num_coords_vel_boundary + m_num_coords_modal;
     ChMatrixDynamic<> O_F;
@@ -1024,11 +964,11 @@ void ChModalAssembly::ComputeInertialKRMmatrix() {
         O_F.block(6 * i_bou, 6 * i_bou, 3, 3) = ChStarMatrix33<>(floating_frame_F.GetAngVelLocal());
 
     // Inertial damping matrix, also called as gyroscopic damping matrix
-    this->Ri_sup.setZero();
-    Ri_sup = P_W * (O_F * M_red) * P_W.transpose();
+    this->Ri_mod.setZero();
+    Ri_mod = P_W * (O_F * M_red) * P_W.transpose();
 
     // Inertial stiffness matrix, is zero
-    this->Ki_sup.setZero();
+    this->Ki_mod.setZero();
 
     if (!m_use_linear_inertial_term) {  // The below block of code might cause numerical instabilities in current test
         unsigned int num_coords_pos_bou_mod = m_num_coords_pos_boundary + m_num_coords_modal;
@@ -1061,9 +1001,9 @@ void ChModalAssembly::ComputeInertialKRMmatrix() {
         ChMatrixDynamic<> MVPFQ = M_red * V * P_F * Q_0;
         ChMatrixDynamic<> VrPFQ = V_rmom * P_F * Q_0;
 
-        Ri_sup += P_W * (-M_red * O_F) * P_W.transpose();
-        Ri_sup += P_W * (MVPFQ - MVPFQ.transpose()) * P_W.transpose();
-        Ri_sup += P_W * (VrPFQ.transpose() - VrPFQ) * P_W.transpose();
+        Ri_mod += P_W * (-M_red * O_F) * P_W.transpose();
+        Ri_mod += P_W * (MVPFQ - MVPFQ.transpose()) * P_W.transpose();
+        Ri_mod += P_W * (VrPFQ.transpose() - VrPFQ) * P_W.transpose();
 
         //// Leading to divergence. DO NOT use it.
         // ChMatrixDynamic<> O_B;
@@ -1076,7 +1016,7 @@ void ChModalAssembly::ComputeInertialKRMmatrix() {
         // for (unsigned int i_bou = 0; i_bou < m_num_coords_vel_boundary / 6; i_bou++) {
         //     O_thetamom.block(6 * i_bou + 3, 6 * i_bou + 3, 3, 3) = ChStarMatrix33<>(momen.segment(6 * i_bou + 3, 3));
         // }
-        // Ri_sup += -O_thetamom + O_B * M_red * P_W.transpose();
+        // Ri_mod += -O_thetamom + O_B * M_red * P_W.transpose();
 
         ///*******************************************///
         //// Inertial stiffness matrix. Harmful for numerical integration, hence useless.
@@ -1107,7 +1047,7 @@ void ChModalAssembly::ComputeInertialKRMmatrix() {
         // V_beta.block(0, 3, 3, 3) = ChStarMatrix33<>(floating_frame_F.GetRotMat().transpose() * VF_beta);
 
         // ChMatrixDynamic<> PFQPWT = P_F * Q_0 * P_W.transpose();
-        // Ki_sup = P_W * (M_red * V_acc - V_iner) * PFQPWT +
+        // Ki_mod = P_W * (M_red * V_acc - V_iner) * PFQPWT +
         //          P_W * ((O_F + O_B) * M_red + MVPFQ - MVPFQ.transpose()) * V * PFQPWT -
         //          P_W * V_rmom * (V_alpha + P_F * Q_0 * V) * PFQPWT - P_W * M_red * O_F * V * PFQPWT +
         //          P_W * Q_0.transpose() * P_F.transpose() * V_rmom.transpose() * V * PFQPWT +
@@ -1121,7 +1061,7 @@ void ChModalAssembly::ComputeStiffnessMatrix() {
 
     ChMatrixDynamic<> PTKP = P_perp_0.transpose() * K_red * P_perp_0;
     // material stiffness matrix of reduced modal assembly
-    Km_sup = P_W * PTKP * P_W.transpose();
+    Km_mod = P_W * PTKP * P_W.transpose();
 
     {  // geometric stiffness matrix of reduced modal assembly
         unsigned int num_coords_pos_bou_mod = m_num_coords_pos_boundary + m_num_coords_modal;
@@ -1151,8 +1091,8 @@ void ChModalAssembly::ComputeStiffnessMatrix() {
             V_F2.block(6 * i_bou, 3, 3, 3) = ChStarMatrix33<>(u_locred.segment(6 * i_bou, 3));
         }
 
-        Kg_sup.setZero();
-        Kg_sup = P_W * (-V_F1 + PTKP * V_F2) * P_F * Q_0 * P_W.transpose();
+        Kg_mod.setZero();
+        Kg_mod = P_W * (-V_F1 + PTKP * V_F2) * P_F * Q_0 * P_W.transpose();
     }
 }
 
@@ -1161,31 +1101,154 @@ void ChModalAssembly::ComputeDampingMatrix() {
         return;
 
     // material damping matrix of the reduced modal assembly
-    Rm_sup = P_W * (P_perp_0.transpose() * R_red * P_perp_0) * P_W.transpose();
+    Rm_mod = P_W * (P_perp_0.transpose() * R_red * P_perp_0) * P_W.transpose();
+}
+
+void ChModalAssembly::UpdateStaticCorrectionMode() {
+    if (!m_num_coords_static_correction)
+        return;
+
+    // Psi_Cor_C = {Psi_Cor; Psi_Cor_LambdaI} = K_IIc^{-1} * {f_loc ; 0}
+    Psi_Cor.setZero(m_num_coords_vel_internal, m_num_coords_static_correction);
+    if (m_num_constr_internal)
+        Psi_Cor_LambdaI.setZero(m_num_constr_internal, m_num_coords_static_correction);
+    // ChMatrixDynamic<> Psi_Cor_C(m_num_coords_vel_internal + m_num_constr_internal,
+    // m_num_coords_static_correction);
+
+    ChVectorDynamic<> f_loc(m_num_coords_vel_internal);
+    f_loc.setOnes();
+    if (!m_full_forces_internal.isZero()) {
+        f_loc = L_I.transpose() * m_full_forces_internal;
+    }
+    // else {
+    //    // todo:
+    //    // When the external forces imposed on the internal nodes disappear suddenly, or change too fast,
+    //    // there is an impusle in the system response due to the change of the static correction modal basis.
+    //    // How to optimize further?
+    // }
+    ChVectorDynamic<> rhs(m_num_coords_vel_internal + m_num_constr_internal);
+    if (m_num_constr_internal)
+        rhs << f_loc, Eigen::VectorXd::Zero(m_num_constr_internal);
+    else
+        rhs << f_loc;
+
+    ChVectorDynamic<> x = m_solver_invKIIc.solve(rhs.sparseView());
+
+    Psi_Cor = x.head(m_num_coords_vel_internal);
+    // Psi_Cor_C = x;
+    if (m_num_constr_internal)
+        Psi_Cor_LambdaI = x.tail(m_num_constr_internal);
+
+    // IMPORTANT: scale the static correction mode to improve the numerical stability
+    double expected_generalized_mass =
+        M_red.topLeftCorner(m_num_coords_vel_boundary, m_num_coords_vel_boundary).diagonal().mean();
+    ChMatrixDynamic<> M_rr = Psi_Cor.transpose() * M_II_loc * Psi_Cor;
+    double static_scaling_factor = pow(expected_generalized_mass / M_rr(0, 0), 0.5);
+    Psi_Cor *= static_scaling_factor;
+    if (m_num_constr_internal)
+        Psi_Cor_LambdaI *= static_scaling_factor;
+
+    // update Psi
+    Psi.block(m_num_coords_vel_boundary,
+              m_num_coords_vel_boundary + m_num_coords_modal - m_num_coords_static_correction,
+              m_num_coords_vel_internal, m_num_coords_static_correction) = Psi_Cor;
+    if (m_num_constr_internal)
+        Psi.bottomRightCorner(m_num_constr_internal, m_num_coords_static_correction) = Psi_Cor_LambdaI;
 }
 
 void ChModalAssembly::ComputeModalKRMmatrix() {
+    // Update the reduced M K R matrices, but only for those blocks affected by the static correction mode
+    if (m_num_coords_static_correction) {
+        // Update the blocks of reduced mass matrix corresponding to the static correction mode
+        this->M_red.block(0, m_num_coords_vel_boundary + m_num_coords_modal - m_num_coords_static_correction,
+                          m_num_coords_vel_boundary, m_num_coords_static_correction) = MBI_PsiST_MII * Psi_Cor;
+        this->M_red.block(m_num_coords_vel_boundary,
+                          m_num_coords_vel_boundary + m_num_coords_modal - m_num_coords_static_correction,
+                          m_num_coords_modal - m_num_coords_static_correction, m_num_coords_static_correction) =
+            Psi_D.transpose() * M_II_loc * Psi_Cor;
+
+        this->M_red.block(m_num_coords_vel_boundary + m_num_coords_modal - m_num_coords_static_correction, 0,
+                          m_num_coords_static_correction, m_num_coords_vel_boundary) =
+            this->M_red
+                .block(0, m_num_coords_vel_boundary + m_num_coords_modal - m_num_coords_static_correction,
+                       m_num_coords_vel_boundary, m_num_coords_static_correction)
+                .transpose();  // symmetric block
+
+        this->M_red.block(m_num_coords_vel_boundary + m_num_coords_modal - m_num_coords_static_correction,
+                          m_num_coords_vel_boundary, m_num_coords_static_correction,
+                          m_num_coords_modal - m_num_coords_static_correction) =
+            this->M_red
+                .block(m_num_coords_vel_boundary,
+                       m_num_coords_vel_boundary + m_num_coords_modal - m_num_coords_static_correction,
+                       m_num_coords_modal - m_num_coords_static_correction, m_num_coords_static_correction)
+                .transpose();  // symmetric block
+
+        this->M_red.bottomRightCorner(m_num_coords_static_correction, m_num_coords_static_correction) =
+            Psi_Cor.transpose() * M_II_loc * Psi_Cor;
+    }
+
+    if (m_num_coords_static_correction) {
+        // Update the blocks of reduced stiffness matrix corresponding to the static correction mode
+        this->K_red.block(m_num_coords_vel_boundary,
+                          m_num_coords_vel_boundary + m_num_coords_modal - m_num_coords_static_correction,
+                          m_num_coords_modal - m_num_coords_static_correction, m_num_coords_static_correction) =
+            Psi_D.transpose() * K_II_loc * Psi_Cor;
+
+        this->K_red.block(m_num_coords_vel_boundary + m_num_coords_modal - m_num_coords_static_correction,
+                          m_num_coords_vel_boundary, m_num_coords_static_correction,
+                          m_num_coords_modal - m_num_coords_static_correction) =
+            this->K_red
+                .block(m_num_coords_vel_boundary,
+                       m_num_coords_vel_boundary + m_num_coords_modal - m_num_coords_static_correction,
+                       m_num_coords_modal - m_num_coords_static_correction, m_num_coords_static_correction)
+                .transpose();  // symmetric block
+
+        this->K_red.bottomRightCorner(m_num_coords_static_correction, m_num_coords_static_correction) =
+            Psi_Cor.transpose() * K_II_loc * Psi_Cor;
+    }
+
+    if (m_num_coords_static_correction) {
+        // Update the blocks of reduced damping matrix corresponding to the static correction mode
+        this->R_red.block(m_num_coords_vel_boundary,
+                          m_num_coords_vel_boundary + m_num_coords_modal - m_num_coords_static_correction,
+                          m_num_coords_modal - m_num_coords_static_correction, m_num_coords_static_correction) =
+            Psi_D.transpose() * R_II_loc * Psi_Cor;
+
+        this->R_red.block(m_num_coords_vel_boundary + m_num_coords_modal - m_num_coords_static_correction,
+                          m_num_coords_vel_boundary, m_num_coords_static_correction,
+                          m_num_coords_modal - m_num_coords_static_correction) =
+            this->R_red
+                .block(m_num_coords_vel_boundary,
+                       m_num_coords_vel_boundary + m_num_coords_modal - m_num_coords_static_correction,
+                       m_num_coords_modal - m_num_coords_static_correction, m_num_coords_static_correction)
+                .transpose();  // symmetric block
+
+        this->R_red.bottomRightCorner(m_num_coords_static_correction, m_num_coords_static_correction) =
+            Psi_Cor.transpose() * R_II_loc * Psi_Cor;
+    }
+
     ComputeStiffnessMatrix();
     ComputeDampingMatrix();
     ComputeInertialKRMmatrix();
 
     // modal mass matrix
-    this->modal_M = M_sup;
+    this->modal_M = M_mod;
 
     // modal stiffness matrix
-    this->modal_K = Km_sup + Kg_sup;
+    this->modal_K = Km_mod + Kg_mod;
     if (!m_use_linear_inertial_term)
-        this->modal_K += Ki_sup;
+        this->modal_K += Ki_mod;
 
     // modal damping matrix
-    this->modal_R = Rm_sup + Ri_sup;
-
-    // We do not have a reduced Cq matrix
-    // this->modal_Cq = 0;
+    this->modal_R = Rm_mod + Ri_mod;
 }
 
 void ChModalAssembly::SetupModalData(unsigned int nmodes_reduction) {
-    m_num_coords_modal = nmodes_reduction;
+    // modal coordinates are composed of two parts:
+    //  - the elastic modal coordinates, \eta
+    //  - the static correction mode, \eta_cor
+    m_num_coords_modal = nmodes_reduction + m_num_coords_static_correction;
+
     this->Setup();
 
     // Initialize matrices
@@ -1207,14 +1270,13 @@ void ChModalAssembly::SetupModalData(unsigned int nmodes_reduction) {
     M_red.setZero(m_num_coords_vel_boundary + m_num_coords_modal, m_num_coords_vel_boundary + m_num_coords_modal);
     K_red.setZero(m_num_coords_vel_boundary + m_num_coords_modal, m_num_coords_vel_boundary + m_num_coords_modal);
     R_red.setZero(m_num_coords_vel_boundary + m_num_coords_modal, m_num_coords_vel_boundary + m_num_coords_modal);
-    // Cq_red.setZero(m_num_constr_boundary, m_num_coords_vel_boundary + m_num_coords_modal);
 
-    Km_sup.setZero(m_num_coords_vel_boundary + m_num_coords_modal, m_num_coords_vel_boundary + m_num_coords_modal);
-    Kg_sup.setZero(m_num_coords_vel_boundary + m_num_coords_modal, m_num_coords_vel_boundary + m_num_coords_modal);
-    Rm_sup.setZero(m_num_coords_vel_boundary + m_num_coords_modal, m_num_coords_vel_boundary + m_num_coords_modal);
-    M_sup.setZero(m_num_coords_vel_boundary + m_num_coords_modal, m_num_coords_vel_boundary + m_num_coords_modal);
-    Ri_sup.setZero(m_num_coords_vel_boundary + m_num_coords_modal, m_num_coords_vel_boundary + m_num_coords_modal);
-    Ki_sup.setZero(m_num_coords_vel_boundary + m_num_coords_modal, m_num_coords_vel_boundary + m_num_coords_modal);
+    Km_mod.setZero(m_num_coords_vel_boundary + m_num_coords_modal, m_num_coords_vel_boundary + m_num_coords_modal);
+    Kg_mod.setZero(m_num_coords_vel_boundary + m_num_coords_modal, m_num_coords_vel_boundary + m_num_coords_modal);
+    Rm_mod.setZero(m_num_coords_vel_boundary + m_num_coords_modal, m_num_coords_vel_boundary + m_num_coords_modal);
+    M_mod.setZero(m_num_coords_vel_boundary + m_num_coords_modal, m_num_coords_vel_boundary + m_num_coords_modal);
+    Ri_mod.setZero(m_num_coords_vel_boundary + m_num_coords_modal, m_num_coords_vel_boundary + m_num_coords_modal);
+    Ki_mod.setZero(m_num_coords_vel_boundary + m_num_coords_modal, m_num_coords_vel_boundary + m_num_coords_modal);
 
     if (!modal_variables || (modal_variables->GetDOF() != m_num_coords_modal)) {
         // Initialize ChVariable object used for modal variables
@@ -1256,7 +1318,7 @@ void ChModalAssembly::SetupModalData(unsigned int nmodes_reduction) {
         this->modal_q.setZero(m_num_coords_modal);
         this->modal_q_dt.setZero(m_num_coords_modal);
         this->modal_q_dtdt.setZero(m_num_coords_modal);
-        this->full_forces_internal.setZero(m_num_coords_vel_internal);
+        m_full_forces_internal.setZero(m_num_coords_vel_internal);
     }
 }
 
@@ -1418,7 +1480,7 @@ void ChModalAssembly::SetInternalStateWithModes(bool full_update) {
     v_mod.setZero(num_coords_vel_bou_mod, nullptr);
     this->IntStateGather(0, x_mod, 0, v_mod, fooT);
 
-    // Update w.r.t. the undeformed configuration
+    // Update w.r.t. the initial undeformed configuration
 
     ChStateDelta u_locred(num_coords_vel_bou_mod, nullptr);
     ChStateDelta e_locred(num_coords_vel_bou_mod, nullptr);
@@ -1430,7 +1492,11 @@ void ChModalAssembly::SetInternalStateWithModes(bool full_update) {
     Dx_internal_loc.setZero(m_num_coords_vel_internal, nullptr);
     Dx_internal_loc.segment(0, m_num_coords_vel_internal) =
         Psi_S * e_locred.segment(0, m_num_coords_vel_boundary) +
-        Psi_D * e_locred.segment(m_num_coords_vel_boundary, m_num_coords_modal);
+        Psi_D * e_locred.segment(m_num_coords_vel_boundary, m_num_coords_modal - m_num_coords_static_correction);
+    // add the contribution of the static correction mode
+    if (m_num_coords_static_correction)
+        Dx_internal_loc.segment(0, m_num_coords_vel_internal) +=
+            Psi_Cor * e_locred.tail(m_num_coords_static_correction);
 
     // the new configuration of both boundary and internal containers
     ChState assembly_x_new;  // =[qB_new; qI_new]
@@ -1461,7 +1527,11 @@ void ChModalAssembly::SetInternalStateWithModes(bool full_update) {
     assembly_v_new.segment(0, m_num_coords_vel_boundary) = v_mod.segment(0, m_num_coords_vel_boundary);
     assembly_v_new.segment(m_num_coords_vel_boundary, m_num_coords_vel_internal) =
         L_I * (Psi_S * (L_B.transpose() * v_mod.segment(0, m_num_coords_vel_boundary)) +
-               Psi_D * v_mod.segment(m_num_coords_vel_boundary, m_num_coords_modal));
+               Psi_D * v_mod.segment(m_num_coords_vel_boundary, m_num_coords_modal - m_num_coords_static_correction));
+    // add the contribution of the static correction mode
+    if (m_num_coords_static_correction)
+        assembly_v_new.segment(m_num_coords_vel_boundary, m_num_coords_vel_internal) +=
+            L_I * (Psi_Cor * v_mod.tail(m_num_coords_static_correction));
 
     bool needs_temporary_bou_int = m_is_model_reduced;
     if (needs_temporary_bou_int)
@@ -1975,7 +2045,7 @@ void ChModalAssembly::Setup() {
     }
 
     // this->custom_F_full.setZero(m_num_coords_vel_boundary + m_num_coords_vel_internal);
-    this->full_forces_internal.setZero(m_num_coords_vel_internal);
+    m_full_forces_internal.setZero(m_num_coords_vel_internal);
 
     // For the modal part:
     //
@@ -2030,7 +2100,7 @@ void ChModalAssembly::Initialize() {
     // store the initial floating frame of reference F0 in the initial configuration
     this->floating_frame_F0 = this->floating_frame_F;
 
-    this->res_CF.setZero(6);
+    this->m_res_CF.setZero(6);
 
     this->is_initialized = true;
 }
@@ -2376,18 +2446,13 @@ void ChModalAssembly::IntStateScatterReactions(const unsigned int off_L, const C
         // the new Lagrange multipliers of internal constraints
         ChVectorDynamic<> Lambda_internal(m_num_constr_internal);  // =[Lambda_I]
         Lambda_internal = Psi_S_LambdaI * e_locred.segment(0, m_num_coords_vel_boundary) +
-                          Psi_D_LambdaI * e_locred.segment(m_num_coords_vel_boundary, m_num_coords_modal);
+                          Psi_D_LambdaI * e_locred.segment(m_num_coords_vel_boundary,
+                                                           m_num_coords_modal - m_num_coords_static_correction);
+        if (m_num_coords_static_correction)
+            Lambda_internal += Psi_Cor_LambdaI * e_locred.tail(m_num_coords_static_correction);
 
-        if (!this->full_forces_internal.isZero()) {
-            ChVectorDynamic<> floc_C(m_num_coords_vel_internal + m_num_constr_internal);
-            floc_C.setZero();
-            floc_C.head(m_num_coords_vel_internal) = L_I.transpose() * this->full_forces_internal;
-            ChVectorDynamic<> static_defl_reaction = m_solver_invKIIc.solve(floc_C.sparseView());
-            // ChVectorDynamic<> static_reaction = static_defl_reaction.tail(m_num_constr_internal);
-            Lambda_internal += static_defl_reaction.tail(m_num_constr_internal);
-        }
-
-        Lambda_internal *= -m_scaling_factor_CqI;  // flip the sign, and scale back
+        // flip the sign, and scale back
+        Lambda_internal *= -m_scaling_factor_CqI;
 
         bool needs_temporary_bou_int = m_is_model_reduced;
         if (needs_temporary_bou_int)
@@ -2577,22 +2642,20 @@ void ChModalAssembly::IntLoadResidual_F(const unsigned int off,  ///< offset in 
         {
             unsigned int offset_loc = 0;
             for (unsigned int ip = 0; ip < internal_bodylist.size(); ++ip) {
-                this->full_forces_internal.segment(offset_loc, 3) =
-                    internal_bodylist[ip]->GetAccumulatedForce().eigen();
-                this->full_forces_internal.segment(offset_loc + 3, 3) =
+                m_full_forces_internal.segment(offset_loc, 3) = internal_bodylist[ip]->GetAccumulatedForce().eigen();
+                m_full_forces_internal.segment(offset_loc + 3, 3) =
                     internal_bodylist[ip]->GetAccumulatedTorque().eigen();
                 offset_loc += internal_bodylist[ip]->GetNumCoordsVelLevel();
             }
             for (unsigned int ip = 0; ip < internal_meshlist.size(); ++ip) {
                 for (auto& node : internal_meshlist[ip]->GetNodes()) {
                     if (auto xyz = std::dynamic_pointer_cast<ChNodeFEAxyz>(node)) {
-                        this->full_forces_internal.segment(offset_loc, xyz->GetNumCoordsVelLevel()) =
-                            xyz->GetForce().eigen();
+                        m_full_forces_internal.segment(offset_loc, 3) = xyz->GetForce().eigen();
                         offset_loc += xyz->GetNumCoordsVelLevel();
                     }
                     if (auto xyzrot = std::dynamic_pointer_cast<ChNodeFEAxyzrot>(node)) {
-                        this->full_forces_internal.segment(offset_loc, 3) = xyzrot->GetForce().eigen();
-                        this->full_forces_internal.segment(offset_loc + 3, 3) = xyzrot->GetTorque().eigen();
+                        m_full_forces_internal.segment(offset_loc, 3) = xyzrot->GetForce().eigen();
+                        m_full_forces_internal.segment(offset_loc + 3, 3) = xyzrot->GetTorque().eigen();
                         offset_loc += xyzrot->GetNumCoordsVelLevel();
                     }
                 }
@@ -2657,7 +2720,7 @@ void ChModalAssembly::IntLoadResidual_F(const unsigned int off,  ///< offset in 
 
             // only add the gravitational forces for internal part since it has been inherited from the parent methods
             // for the boundary part
-            this->full_forces_internal.tail(m_num_coords_vel_internal) += f_gravity.tail(m_num_coords_vel_internal);
+            m_full_forces_internal.tail(m_num_coords_vel_internal) += f_gravity.tail(m_num_coords_vel_internal);
 
             // add the gravity load for boundary bodies and nodes.
             R.segment(off, m_num_coords_vel_boundary) += c * f_gravity.head(m_num_coords_vel_boundary);
@@ -2673,12 +2736,20 @@ void ChModalAssembly::IntLoadResidual_F(const unsigned int off,  ///< offset in 
 
         // 5-
         // Add the collected forces of internal items (bodies, nodes) on the generalized coordinates
-        if (!this->full_forces_internal.isZero()) {
-            ChVectorDynamic<> f_reduced;
-            f_reduced.setZero(m_num_coords_vel_boundary + m_num_coords_modal);
-            f_reduced.head(m_num_coords_vel_boundary) =
-                L_B * Psi_S.transpose() * L_I.transpose() * this->full_forces_internal;
-            f_reduced.tail(m_num_coords_modal) = Psi_D.transpose() * L_I.transpose() * this->full_forces_internal;
+        if (!m_full_forces_internal.isZero()) {
+            // update the static correction mode
+            this->UpdateStaticCorrectionMode();
+
+            ChVectorDynamic<> full_forces_internal_loc = L_I.transpose() * m_full_forces_internal;
+
+            ChVectorDynamic<> f_reduced(m_num_coords_vel_boundary + m_num_coords_modal);
+            f_reduced.setZero();
+            f_reduced.head(m_num_coords_vel_boundary) = L_B * (Psi_S.transpose() * full_forces_internal_loc);
+            f_reduced.segment(m_num_coords_vel_boundary, m_num_coords_modal - m_num_coords_static_correction) =
+                Psi_D.transpose() * full_forces_internal_loc;
+            if (m_num_coords_static_correction)
+                f_reduced.tail(m_num_coords_static_correction) = Psi_Cor.transpose() * full_forces_internal_loc;
+
             R.segment(off, m_num_coords_vel_boundary + m_num_coords_modal) += c * f_reduced;
         }
 
@@ -3037,7 +3108,7 @@ void ChModalAssembly::ArchiveOut(ChArchiveOut& archive_out) {
     archive_out << CHNVP(modal_q, "modal_q");
     archive_out << CHNVP(modal_q_dt, "modal_q_dt");
     archive_out << CHNVP(modal_q_dtdt, "modal_q_dtdt");
-    archive_out << CHNVP(full_forces_internal, "full_forces_internal");
+    archive_out << CHNVP(m_full_forces_internal, "m_full_forces_internal");
 }
 
 void ChModalAssembly::ArchiveIn(ChArchiveIn& archive_in) {
@@ -3078,7 +3149,7 @@ void ChModalAssembly::ArchiveIn(ChArchiveIn& archive_in) {
     archive_in >> CHNVP(modal_q, "modal_q");
     archive_in >> CHNVP(modal_q_dt, "modal_q_dt");
     archive_in >> CHNVP(modal_q_dtdt, "modal_q_dtdt");
-    archive_in >> CHNVP(full_forces_internal, "full_forces_internal");
+    archive_in >> CHNVP(m_full_forces_internal, "m_full_forces_internal");
 
     // Recompute statistics, offsets, etc.
     Setup();
