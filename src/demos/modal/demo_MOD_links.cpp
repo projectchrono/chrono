@@ -235,7 +235,7 @@ void MakeAndRunDemo_Links(bool do_modal_reduction, ChMatrixDynamic<>& res) {
         auto modes_settings = ChModalSolveUndamped(13, 1e-4, 500, 1e-10, false, eigen_solver);
 
         auto damping_beam = ChModalDampingReductionR(*modal_assembly);
-         modal_assembly->SetVerbose(true);
+        // modal_assembly->SetVerbose(true);
         modal_assembly->WriteSubassemblyMatrices(true, true, true, true, out_dir + "/modal_assembly_full");
         modal_assembly->DoModalReduction(modes_settings, damping_beam);
         modal_assembly->WriteSubassemblyMatrices(true, true, true, true, out_dir + "/modal_assembly_reduced");
