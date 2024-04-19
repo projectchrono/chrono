@@ -966,7 +966,7 @@ ShapeBuilder::CylinderShapeData::CylinderShapeData(int num_divs) {
         auto phi = iPhi * dPhi;
         double x = r * cos(phi);
         double y = -r * sin(phi);
-        double utex = 1 - phi / CH_2PI;
+        double utex = 1 - phi / CH_PI;
 
         // top vertices
         vertices->set(nPhi + 1 + v, vsg::vec3(x, y, +h));
@@ -976,7 +976,7 @@ ShapeBuilder::CylinderShapeData::CylinderShapeData(int num_divs) {
         // bottom vertices
         vertices->set(v, vsg::vec3(x, y, -h));
         normals->set(v, vsg::vec3(x, y, 0));
-        texcoords->set(v, vsg::vec2(utex, h / (CH_PI * r)));
+        texcoords->set(v, vsg::vec2(utex, h / (2 * r)));
 
         v++;
     }
@@ -1005,8 +1005,8 @@ ShapeBuilder::CylinderShapeData::CylinderShapeData(int num_divs) {
         auto phi = iPhi * dPhi;
         double x = r * cos(phi);
         double y = -r * sin(phi);
-        double utex = (sin(phi) + 1) / CH_2PI;
-        double vtex = (cos(phi) + 1) / CH_2PI;
+        double utex = (sin(phi) + 1) / 2;
+        double vtex = (cos(phi) + 1) / 2;
 
         // bottom vertices
         vertices->set(v, vsg::vec3(x, y, -h));
