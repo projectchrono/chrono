@@ -323,7 +323,7 @@ int main(int argc, char* argv[]) {
     // Simulation loop
     // ---------------
 
-    if (vis_type == ChVisualSystem::Type::NONE) {
+    if (!vis || vis_type == ChVisualSystem::Type::NONE) {
         double xpos;
         while ((xpos = vehicle.GetSpindlePos(0, LEFT).x()) < xend) {
             // Driver inputs

@@ -35,8 +35,10 @@ FmuComponent::FmuComponent(fmi2String instanceName,
     // Initialize FMU type
     initializeType(fmuType);
 
-    // Set initial values for FMU input variables
+    // Set start values for FMU input and output variables
     F = 0;
+    s = 0;
+    sd = 0;
 
     // Set FIXED PARAMETERS for this FMU
     AddFmuVariable(&crane_mass, "crane_mass", FmuVariable::Type::Real, "kg", "crane mass",                   //
@@ -50,14 +52,18 @@ FmuComponent::FmuComponent(fmi2String instanceName,
     AddFmuVariable(&init_crane_angle, "crane_angle", FmuVariable::Type::Real, "rad", "initial crane angle",  //
                    FmuVariable::CausalityType::parameter, FmuVariable::VariabilityType::fixed);              //
 
-    // Set CONTINOUS INPUTS and OUTPUTS for this FMU
-    AddFmuVariable(&init_F, "init_F", FmuVariable::Type::Real, "N", "initial load",                //
-                   FmuVariable::CausalityType::output, FmuVariable::VariabilityType::continuous);  //
+    // Set FIXED CALCULATED PARAMETERS for this FMU
+    AddFmuVariable(&init_F, "init_F", FmuVariable::Type::Real, "N", "initial load",                        //
+                   FmuVariable::CausalityType::calculatedParameter, FmuVariable::VariabilityType::fixed);  //
+
+    // Set CONTINOUS OUTPUTS for this FMU
     AddFmuVariable(&s, "s", FmuVariable::Type::Real, "m", "actuator length",                       //
                    FmuVariable::CausalityType::output, FmuVariable::VariabilityType::continuous);  //
     AddFmuVariable(&sd, "sd", FmuVariable::Type::Real, "m/s", "actuator length rate",              //
                    FmuVariable::CausalityType::output, FmuVariable::VariabilityType::continuous);  //
-    AddFmuVariable(&F, "F", FmuVariable::Type::Real, "N", "actuator force",                        //
+
+    // Set CONTINOUS INPUTS for this FMU
+    AddFmuVariable(&F, "F", FmuVariable::Type::Real, "N", "actuator force",                       //
                    FmuVariable::CausalityType::input, FmuVariable::VariabilityType::continuous);   //
 
 #ifdef CHRONO_IRRLICHT
@@ -65,6 +71,45 @@ FmuComponent::FmuComponent(fmi2String instanceName,
         vis_sys = chrono_types::make_shared<irrlicht::ChVisualSystemIrrlicht>();
 #endif
 
+    // Specify functions to process input variables (at beginning of step)
+    m_preStepCallbacks.push_back([this]() { this->ProcessActuatorForce(); });
+
+    // Specify functions to calculate FMU outputs (at end of step)
+    m_postStepCallbacks.push_back([this]() { this->CalculateActuatorLength(); });
+}
+
+void FmuComponent::ProcessActuatorForce() {
+    // Set actuator force (F received from outside)
+    const auto& P1 = m_point_ground;
+    auto P2 = m_crane->TransformPointLocalToParent(m_point_crane);
+    ChVector3d dir = (P2 - P1).GetNormalized();
+    ChVector3d force = F * dir;
+    m_external_load->SetForce(force, false);
+    m_external_load->SetApplicationPoint(P2, false);
+}
+
+void FmuComponent::CalculateActuatorLength() {
+    const auto& P1 = m_point_ground;
+    const auto& V1 = VNULL;
+
+    auto P2 = this->m_crane->TransformPointLocalToParent(m_point_crane);
+    auto V2 = this->m_crane->PointSpeedLocalToParent(m_point_crane);
+
+    ChVector3d dir = (P2 - P1).GetNormalized();
+
+    s = (P2 - P1).Length();   // actuator length
+    sd = Vdot(dir, V2 - V1);  // actuator length rate
+}
+
+void FmuComponent::_preModelDescriptionExport() {
+    _exitInitializationMode();
+}
+
+void FmuComponent::_postModelDescriptionExport() {}
+
+void FmuComponent::_enterInitializationMode() {}
+
+void FmuComponent::_exitInitializationMode() {
     // Hardcoded mount points
     m_point_ground = ChVector3d(std::sqrt(3.0) / 2, 0, 0);
     m_point_crane = ChVector3d(0, 0, 0);
@@ -143,47 +188,6 @@ FmuComponent::FmuComponent(fmi2String instanceName,
     // Initialize FMU outputs (in case they are queried before the first step)
     CalculateActuatorLength();
 
-    // Specify functions to process input variables (at beginning of step)
-    m_preStepCallbacks.push_back([this]() { this->ProcessActuatorForce(); });
-
-    // Specify functions to calculate FMU outputs (at end of step)
-    m_postStepCallbacks.push_back([this]() { this->CalculateActuatorLength(); });
-}
-
-void FmuComponent::ProcessActuatorForce() {
-    // Set actuator force (F received from outside)
-    const auto& P1 = m_point_ground;
-    auto P2 = m_crane->TransformPointLocalToParent(m_point_crane);
-    ChVector3d dir = (P2 - P1).GetNormalized();
-    ChVector3d force = F * dir;
-    m_external_load->SetForce(force, false);
-    m_external_load->SetApplicationPoint(P2, false);
-}
-
-void FmuComponent::CalculateActuatorLength() {
-    const auto& P1 = m_point_ground;
-    const auto& V1 = VNULL;
-
-    auto P2 = this->m_crane->TransformPointLocalToParent(m_point_crane);
-    auto V2 = this->m_crane->PointSpeedLocalToParent(m_point_crane);
-
-    ChVector3d dir = (P2 - P1).GetNormalized();
-
-    s = (P2 - P1).Length();   // actuator length
-    sd = Vdot(dir, V2 - V1);  // actuator length rate
-}
-
-void FmuComponent::_preModelDescriptionExport() {
-    _exitInitializationMode();
-    ////ChOutputFMU archive_fmu(*this);
-    ////archive_fmu << CHNVP(sys);
-}
-
-void FmuComponent::_postModelDescriptionExport() {}
-
-void FmuComponent::_enterInitializationMode() {}
-
-void FmuComponent::_exitInitializationMode() {
     // Initialize runtime visualization (if requested and if available)
     if (vis_sys) {
 #ifdef CHRONO_IRRLICHT
@@ -206,6 +210,7 @@ void FmuComponent::_exitInitializationMode() {
 fmi2Status FmuComponent::_doStep(fmi2Real currentCommunicationPoint,
                                  fmi2Real communicationStepSize,
                                  fmi2Boolean noSetFMUStatePriorToCurrentPoint) {
+    // Advance FMU state to next communication point
     while (m_time < currentCommunicationPoint + communicationStepSize) {
         fmi2Real step_size = std::min((currentCommunicationPoint + communicationStepSize - m_time),
                                       std::min(communicationStepSize, m_stepSize));
@@ -222,7 +227,7 @@ fmi2Status FmuComponent::_doStep(fmi2Real currentCommunicationPoint,
 #endif
 
         sys.DoStepDynamics(step_size);
-        sendToLog("time: " + std::to_string(m_time) + "\n", fmi2Status::fmi2OK, "logAll");
+        ////sendToLog("time: " + std::to_string(m_time) + "\n", fmi2Status::fmi2OK, "logAll");
 
         m_time += step_size;
     }

@@ -91,16 +91,17 @@ class CH_VEHICLE_API ChTire : public ChPart {
     virtual TerrainForce ReportTireForceLocal(ChTerrain* terrain, ChCoordsys<>& tire_frame) const = 0;
 
     /// Return the tire slip angle calculated based on the current state of the associated wheel body.
-    /// The return value is in radians (positive sign = left turn, negative sign = right turn).
+    /// The return value is in radians with a positive sign for a left turn and a negative sign for a right turn.
     double GetSlipAngle() const { return m_slip_angle; }
 
     /// Return the tire longitudinal slip calculated based on the current state of the associated wheel body.
-    /// (positive sign = driving, negative sign = breaking)
+    /// A positive value corresponds to a driving wheel, while a negative sign indicates braking.
     double GetLongitudinalSlip() const { return m_longitudinal_slip; }
 
-    /// Return the tire camber angle calculated based on the current state of the associated
-    /// wheel body. The return value is in radians.
-    /// (positive sign = upper side tipping to the left, negative sign = upper side tipping to the right)
+    /// Return the tire camber angle calculated based on the current state of the associated wheel body.
+    /// Note that this is a "dynamic" or "effective" camber angle, defined as the angle of the wheel from a plane normal
+    /// to the current tire contact patch. The return value is in radians. A positive value corresponds to the upper
+    /// side tipping to the left, while a negative value indicates the upper side tipping to the right.
     double GetCamberAngle() const { return m_camber_angle; }
 
     /// Utility function for estimating the tire moments of inertia.

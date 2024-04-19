@@ -378,6 +378,21 @@ double ChWheeledVehicle::GetSpindleOmega(int axle, VehicleSide side) const {
     return m_axles[axle]->m_suspension->GetAxleSpeed(side);
 }
 
+// Note that this function cannot be a member function of ChWheel or ChTire since it requires the frames of both the
+// wheel and the chassis.
+double ChWheeledVehicle::GetSteeringAngle(int axle, VehicleSide side) const {
+    // Spindle body
+    auto spindle = m_axles[axle]->m_suspension->GetSpindle(side);
+    // Spindle body frame expressed in chassis frame
+    auto spindle_loc = m_chassis->GetBody()->TransformParentToLocal(*spindle);
+    // Use projection of the spindle_loc Y axis onto the XY plane
+    auto y_axis = spindle_loc.GetRotMat().GetAxisY();
+    // Calculate steering angle (positive for turning to the left)
+    double angle = -std::atan2(y_axis[0], y_axis[1]);
+
+    return angle;
+}
+
 // -----------------------------------------------------------------------------
 // Estimate the maximum steering angle based on a bicycle model, from the vehicle
 // minimum turning radius, the wheelbase, and the track of the front suspension.

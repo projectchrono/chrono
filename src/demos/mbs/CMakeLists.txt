@@ -1,8 +1,11 @@
+if(NOT ENABLE_MODULE_IRRLICHT AND NOT ENABLE_MODULE_VSG)
+    return()
+endif()
+
 #--------------------------------------------------------------
 # List of all MBS demos
 
-# Add demos that can work with either Irrlicht or VSG,
-# or no run-time visualization
+# Add demos that can work with either Irrlicht or VSG
 set(DEMOS
   demo_MBS_aux_ref
   demo_MBS_ballSMC

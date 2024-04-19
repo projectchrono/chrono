@@ -112,6 +112,10 @@ class CH_VEHICLE_API ChWheeledVehicle : public ChVehicle {
     /// This is the angular speed of the spindle shaft.
     double GetSpindleOmega(int axle, VehicleSide side) const;
 
+    /// Get the current steering angle of the specified wheel/spindle.
+    /// The return angle (given in radians) is positive for a turn to the left.
+    double GetSteeringAngle(int axle, VehicleSide side) const;
+
     /// Return the vehicle wheelbase.
     virtual double GetWheelbase() const = 0;
 

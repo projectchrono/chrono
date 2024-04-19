@@ -135,6 +135,14 @@ void ChTrackShoeDoublePin::Initialize(std::shared_ptr<ChBodyAuxRef> chassis,
     // Add contact geometry on shoe body
     m_geometry.CreateCollisionShapes(m_shoe, TrackedCollisionFamily::SHOES, sys->GetContactMethod());
     m_shoe->GetCollisionModel()->DisallowCollisionsWith(TrackedCollisionFamily::SHOES);
+
+    // Create collision model for connector bodies
+    // Note: even though the connector bodies only collide with the sprocket (through a custom collision detection
+    // phase) and are not included in the Chrono collision detection, a collision model is still needed in order to
+    // allow access back to the contactable (in this case the connector body) when processing contacts.
+    m_connector_L->AddCollisionModel(chrono_types::make_shared<ChCollisionModel>());
+    if (m_topology == DoublePinTrackShoeType::TWO_CONNECTORS)
+        m_connector_R->AddCollisionModel(chrono_types::make_shared<ChCollisionModel>());
 }
 
 void ChTrackShoeDoublePin::Initialize(std::shared_ptr<ChBodyAuxRef> chassis,
