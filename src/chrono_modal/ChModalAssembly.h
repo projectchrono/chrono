@@ -132,11 +132,11 @@ class ChApiModal ChModalAssembly : public ChAssembly {
     void SetFullStateWithModeOverlay(unsigned int n_mode, double phase, double amplitude);
 
     /// For displaying the deformation using internal nodes, you can use the following function. Works only if
-    /// IsReducedModelEnabled(). It sets the state of the internal nodes of this modal assembly using the current state
+    /// FlagModelAsReduced(). It sets the state of the internal nodes of this modal assembly using the current state
     /// of the modal coordinates q given the computed eigenvectors: s = V * q , then it overlays s to the state snapshot
     /// x0 stored last time one called a modal reduction. This is not necessary, but useful during animations, in fact
-    /// the internal nodes would be completely neglected if IsReducedModelEnabled() ; but calling this function one can
-    /// update their changing positions for visualization, stress recovery, etc.
+    /// the internal nodes would be completely neglected if m_internal_nodes_update == false; but calling this function
+    /// one can update their changing positions for visualization, stress recovery, etc.
     void SetInternalStateWithModes(bool full_update);
 
     /// Resets the state of this modal assembly (both boundary and internal items) to the state snapshot in the initial
@@ -152,14 +152,15 @@ class ChApiModal ChModalAssembly : public ChAssembly {
     /// If true, as by default, this modal assembly will add automatically a gravity load
     /// to all contained boundary and internal bodies/nodes (that support gravity) in the modal reduced state using the
     /// G value from the ChSystem.
-    /// In modal reduced state, this flag will overwrite mesh->SetAutomaticGravity() for both boundary and internal
-    /// meshes. In full state, this flap does NOT affect, and mesh->SetAutomaticGravity() is used for both boundary and
+    ///  - In modal reduced state, this flag will overwrite mesh->SetAutomaticGravity() for both boundary and internal
+    /// meshes.
+    ///  - In full state, this flap does NOT affect, and mesh->SetAutomaticGravity() is used for both boundary and
     /// internal meshes.
-    /// It is recommended to use the same boolean value to set the gravity to ensure a consistent setting in both full
-    /// and reduced state, for example:
-    /// modal_assembly->SetModalAutomaticGravity(USE_GRAVITY);
-    /// mesh_internal->SetAutomaticGravity(USE_GRAVITY);
-    /// mesh_boundary->SetAutomaticGravity(USE_GRAVITY);
+    /// It is recommended to use a same boolean value to ensure a consistent setting in both full and reduced state,
+    /// for example:
+    ///  - modal_assembly->SetModalAutomaticGravity(USE_GRAVITY);
+    ///  - mesh_internal->SetAutomaticGravity(USE_GRAVITY);
+    ///  - mesh_boundary->SetAutomaticGravity(USE_GRAVITY);
     void SetModalAutomaticGravity(bool gravity) { m_modal_automatic_gravity = gravity; }
 
     /// Tell if this modal assembly will add automatically a gravity load to all contained boundary and internal
@@ -228,7 +229,8 @@ class ChApiModal ChModalAssembly : public ChAssembly {
     /// Attach an internal link to this modal assembly.
     ///  - AddInternalLink(): to link "boundary nodes" with "internal nodes", or "internal nodes" with "internal nodes",
     ///  which will be reduced;
-    ///  - AddLink(): to link "boundary nodes" with "boundary nodes", which will be computed and updated in full state.
+    ///  - AddLink(): to link "boundary nodes" with "boundary nodes", which will be computed and updated in the full
+    ///  state.
     void AddInternalLink(std::shared_ptr<ChLinkBase> link);
 
     /// Attach an internal mesh to this modal assembly.
@@ -539,7 +541,7 @@ class ChApiModal ChModalAssembly : public ChAssembly {
     void ComputeStiffnessMatrix();
     void ComputeDampingMatrix();
 
-    /// Compute the modal M,R,K,Cq matrices which are tangent matrices used in the time stepper.
+    /// Compute the modal M,R,K,Cq matrices which are the tangent matrices used in the time stepper.
     void ComputeModalKRMmatrix();
 
     /// [INTERNAL USE ONLY]
@@ -587,9 +589,9 @@ class ChApiModal ChModalAssembly : public ChAssembly {
     ChMatrixDynamic<> modal_K;  // tangent stiffness matrix in the modal reduced state
     ChMatrixDynamic<> modal_R;  // tangent damping matrix in the modal reduced state
     // ChMatrixDynamic<> modal_Cq;  // corresponding to boundary and modal lagrange multipliers
-    ChMatrixDynamic<> Psi;    // mode transformation matrix.
-    ChMatrixDynamic<> Psi_S;  // static mode transformation matrix - corresponding to internal DOFs.
-    ChMatrixDynamic<> Psi_D;  // dynamic mode transformation matrix - corresponding to internal DOFs.
+    ChMatrixDynamic<> Psi;      // mode transformation matrix.
+    ChMatrixDynamic<> Psi_S;    // static mode transformation matrix - corresponding to internal DOFs.
+    ChMatrixDynamic<> Psi_D;    // dynamic mode transformation matrix - corresponding to internal DOFs.
     ChMatrixDynamic<>
         Psi_S_LambdaI;  // static mode transformation matrix - corresponding to internal Lagrange multipliers.
     ChMatrixDynamic<>
@@ -613,16 +615,16 @@ class ChApiModal ChModalAssembly : public ChAssembly {
     bool is_projection_initialized = false;
 
     // rigid-body modes in local frame F
-    ChMatrixDynamic<> Uloc_B;
-    ChMatrixDynamic<> Uloc_I;
-    ChMatrixDynamic<> Uloc_B_0;
-    ChMatrixDynamic<> Uloc_I_0;
+    ChMatrixDynamic<> Uloc_B;    // rigid-body modes of boundary part in the deformed configuration
+    ChMatrixDynamic<> Uloc_I;    // rigid-body modes of internal part in the deformed configuration
+    ChMatrixDynamic<> Uloc_B_0;  // rigid-body modes of boundary part in the initial configuration
+    ChMatrixDynamic<> Uloc_I_0;  // rigid-body modes of internal part in the initial configuration
 
     // Corotational transformation matrices
-    ChMatrixDynamic<> L_B;
-    ChMatrixDynamic<> L_I;
-    ChMatrixDynamic<> P_W;  // extended transformation matrix, = diag[L_B,I]
-    ChMatrixDynamic<> P_F;  // = diag[R_F, I]
+    ChMatrixDynamic<> L_B;  // rotation matrix for boundary nodes
+    ChMatrixDynamic<> L_I;  // rotation matrix for internal nodes
+    ChMatrixDynamic<> P_W;  // rotation matrix for boundary nodes + modal coordinates, = diag[L_B, I]
+    ChMatrixDynamic<> P_F;  // rotation matrix for floating frame F, = diag[R_F, I]
 
     ChVectorDynamic<> g_quad;  // the quadratic velocity term of the reduced modal superelement
 
@@ -633,10 +635,10 @@ class ChApiModal ChModalAssembly : public ChAssembly {
     ChSparseMatrix full_Cq_loc;
 
     // reduced system matrices in the local floating frame of reference F
-    ChMatrixDynamic<> M_red;
-    ChMatrixDynamic<> K_red;
-    ChMatrixDynamic<> R_red;
     // ChMatrixDynamic<> Cq_red;
+    ChMatrixDynamic<> M_red;  //=Psi^T * full_M_loc_ext * Psi
+    ChMatrixDynamic<> K_red;  //=Psi^T * full_K_loc_ext * Psi
+    ChMatrixDynamic<> R_red;  //=Psi^T * full_R_loc_ext * Psi
 
     ChMatrixDynamic<> Km_sup;  ///< linear material stiffness matrix of the reduced superelement
     ChMatrixDynamic<> Kg_sup;  ///< nonlinear geometrical stiffness matrix of the reduced superelement due to the
