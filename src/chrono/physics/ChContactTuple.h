@@ -32,6 +32,8 @@ class ChContactTuple {
     typedef typename Tb::type_variable_tuple_carrier typecarr_b;
 
   protected:
+    ChContactContainer* container;  ///< associated contact container
+
     Ta* objA;  ///< first ChContactable object in the pair
     Tb* objB;  ///< second ChContactable object in the pair
 
@@ -47,7 +49,9 @@ class ChContactTuple {
   public:
     ChContactTuple() {}
 
-    ChContactTuple(Ta* obj_A, Tb* obj_B) : objA(obj_A), objB(obj_B) {
+    ChContactTuple(ChContactContainer* contact_container, Ta* obj_A, Tb* obj_B)
+        : container(contact_container), objA(obj_A), objB(obj_B) {
+        assert(contact_container);
         assert(obj_A);
         assert(obj_B);
     }

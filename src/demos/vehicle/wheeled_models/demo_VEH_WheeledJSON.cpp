@@ -320,8 +320,8 @@ double initYaw = 20 * CH_DEG_TO_RAD;
 // Simulation step size
 double step_size = 2e-3;
 
-// Output directory
-const std::string out_dir = GetChronoOutputPath() + "WHEELED_JSON";
+// End time (used only if no run-time visualization)
+double t_end = 20;
 
 // =============================================================================
 
@@ -475,7 +475,8 @@ int main(int argc, char* argv[]) {
     }
 
     // Initialize output directories
-    std::string veh_dir = out_dir + "/" + vehicle_model->ModelName();
+    const std::string out_dir = GetChronoOutputPath() + "WHEELED_JSON";
+    const std::string veh_dir = out_dir + "/" + vehicle_model->ModelName();
     if (!filesystem::create_directory(filesystem::path(out_dir))) {
         std::cout << "Error creating directory " << out_dir << std::endl;
         return 1;
@@ -513,23 +514,32 @@ int main(int argc, char* argv[]) {
 
     // Simulation loop
     vehicle.EnableRealtime(true);
-    while (vis->Run()) {
-        // Render scene
-        vis->BeginScene();
-        vis->Render();
-        vis->EndScene();
+
+    while (true) {
+        double time = vehicle.GetSystem()->GetChTime();
+
+        if (vis) {
+            // Render scene
+            if (!vis->Run())
+                break;
+            vis->BeginScene();
+            vis->Render();
+            vis->EndScene();
+        } else if (time > t_end) {
+            break;
+        }
 
         // Get driver inputs
         DriverInputs driver_inputs = driver->GetInputs();
 
         // Update modules (process inputs from other modules)
-        double time = vehicle.GetSystem()->GetChTime();
         driver->Synchronize(time);
         vehicle.Synchronize(time, driver_inputs, terrain);
         if (add_trailer)
             trailer->Synchronize(time, driver_inputs, terrain);
         terrain.Synchronize(time);
-        vis->Synchronize(time, driver_inputs);
+        if (vis)
+            vis->Synchronize(time, driver_inputs);
 
         // Advance simulation for one timestep for all modules
         driver->Advance(step_size);
@@ -537,7 +547,8 @@ int main(int argc, char* argv[]) {
         if (add_trailer)
             trailer->Advance(step_size);
         terrain.Advance(step_size);
-        vis->Advance(step_size);
+        if (vis)
+            vis->Advance(step_size);
     }
 
     return 0;

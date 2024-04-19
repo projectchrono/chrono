@@ -178,7 +178,8 @@ int main(int argc, char* argv[]) {
 
         std::cout << "Now use an iterator to scan through already-added constraints:" << std::endl;
         for (auto link : sys.GetLinks()) {
-            std::cout << "   Link class: " << typeid(*link.get()).name() << std::endl;
+            auto& rlink = *link.get();
+            std::cout << "   Link class: " << typeid(rlink).name() << std::endl;
         }
         std::cout << std::endl;
 

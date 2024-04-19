@@ -153,9 +153,9 @@ class ChSystemGpu_impl {
         unsigned int nSDs_Y;  ///< Y-dimension of the big domain box in multiples of subdomains
         unsigned int nSDs_Z;  ///< Z-dimension of the big domain box in multiples of subdomains
 
-        int64_t max_x_pos_unsigned;  ///< Maximum X dimension in the big domain frame ((int64_t)SD_size_X_SU * nSDs_X)
-        int64_t max_y_pos_unsigned;  ///< Maximum Y dimension in the big domain frame ((int64_t)SD_size_Y_SU * nSDs_Y)
-        int64_t max_z_pos_unsigned;  ///< Maximum Z dimension in the big domain frame ((int64_t)SD_size_Z_SU * nSDs_Z)
+        int64_t max_x_pos;  ///< Maximum X dimension in the big domain frame ((int64_t)SD_size_X_SU * nSDs_X)
+        int64_t max_y_pos;  ///< Maximum Y dimension in the big domain frame ((int64_t)SD_size_Y_SU * nSDs_Y)
+        int64_t max_z_pos;  ///< Maximum Z dimension in the big domain frame ((int64_t)SD_size_Z_SU * nSDs_Z)
 
         float gravAcc_X_SU;  ///< X gravity in SU
         float gravAcc_Y_SU;  ///< Y gravity in SU

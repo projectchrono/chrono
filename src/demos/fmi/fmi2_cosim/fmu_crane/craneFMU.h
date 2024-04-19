@@ -56,11 +56,8 @@ class FmuComponent : public chrono::FmuChronoComponentBase {
     chrono::ChSystemSMC sys;
 
 #ifdef CHRONO_IRRLICHT
-    std::shared_ptr<chrono::irrlicht::ChVisualSystemIrrlicht> vissys;
+    std::shared_ptr<chrono::irrlicht::ChVisualSystemIrrlicht> vis_sys;
 #endif
-
-    // Enable/disable run-time visualization
-    fmi2Boolean vis = false;
 
     // Body properties (with default values)
     double crane_mass = 500;
@@ -68,7 +65,7 @@ class FmuComponent : public chrono::FmuChronoComponentBase {
     double pend_mass = 100;
     double pend_length = 0.3;
 
-    double init_crane_angle = chrono::CH_PI / 6;  // Initial crane angle (default value)
+    double init_crane_angle = chrono::CH_PI / 6;  // initial crane angle (default value)
     double init_F;                                // initial load
 
     double s;   // actuator length (FMU output)

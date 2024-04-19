@@ -26,7 +26,7 @@ CH_SENSOR_API ChGPSSensor::ChGPSSensor(std::shared_ptr<chrono::ChBody> parent,
                                        chrono::ChFrame<double> offsetPose,
                                        ChVector3d gps_reference,
                                        std::shared_ptr<ChNoiseModel> noise_model)
-    : ChDynamicSensor(parent, updateRate, offsetPose) {
+    : ChDynamicSensor(parent, updateRate, offsetPose), m_gps_reference(gps_reference) {
     m_filters.push_front(chrono_types::make_shared<ChFilterGPSUpdate>(gps_reference, noise_model));
 }
 CH_SENSOR_API ChGPSSensor::~ChGPSSensor() {}

@@ -282,6 +282,8 @@ bool ChInteractiveDriverIRR::ProcessKeyboardEvents(const SEvent& event) {
                 m_braking_target = 0;
                 m_clutch_target = 0;
                 return true;
+            default:
+                break;
         }
         if (transmission_auto) {
             switch (event.KeyInput.Key) {

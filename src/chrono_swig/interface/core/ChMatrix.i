@@ -155,9 +155,8 @@ template <typename T = double, int N, int M>
 class chrono::ChMatrixNM : public Eigen::Matrix<T, M, N, Eigen::RowMajor> {
 	public:
 		ChMatrixNM() : Eigen::Matrix<T, M, N, Eigen::RowMajor>() {}
-};
 
-%template(ChMatrix66d) chrono::ChMatrixNM<double, 6, 6>; 
+};
 
 template <typename T = double>
 class chrono::ChVectorDynamic : public Eigen::Matrix<T, Eigen::Dynamic, 1, Eigen::ColMajor> {
@@ -171,7 +170,6 @@ class chrono::ChVectorDynamic : public Eigen::Matrix<T, Eigen::Dynamic, 1, Eigen
 
 %template(ChVectorDynamicd) chrono::ChVectorDynamic<double>;
 
-// #ifdef SWIGPYCHRONO //------------------------------Python
 %extend chrono::ChVectorDynamic<double> {
     public:
         double GetItem(int i) {
@@ -199,39 +197,12 @@ class chrono::ChVectorDynamic : public Eigen::Matrix<T, Eigen::Dynamic, 1, Eigen
                 (*$self)(i) = q[i];
             }
         }
+
+        void SetZero() {
+            for (int i = 0; i < $self->rows(); i++)
+                (*$self)(i) = 0;
+        }
 };
-// #endif // -----------------------------------------Python
-
-// #ifdef SWIGCSHARP //------------------------------CSharp
-// %extend chrono::ChVectorDynamic<double> {
-//         public:
-//             double GetItem(int i) {
-//                 return (*$self)(i);
-//             }
-
-//             void SetItem(int i, double v) {
-//                 (*$self)(i) = v;
-//             }
-
-//             const int Size() {
-//                 const int r = $self->rows();
-//                 return r;
-//             }
-
-//             void GetVectorData(double* p, int len) {
-//                 for (int i = 0; i < len; i++){
-//                     p[i] =  (double)(*$self)(i);
-//                 }
-//             }
-
-//             void SetVect(int numel, double* q){
-//                 ($self)->resize(numel);
-//                 for (int i = 0; i < numel; i++){
-//                     (*$self)(i) = q[i];
-//                 }
-//             }
-//         };
-// #endif // -----------------------------------------Csharp
 
 %template(ChVectorDynamicI) chrono::ChVectorDynamic<int>;
 
@@ -261,6 +232,11 @@ class chrono::ChVectorDynamic : public Eigen::Matrix<T, Eigen::Dynamic, 1, Eigen
             for (int i = 0; i < numel; i++){
                 (*$self)(i) = q[i];
             }
+        }
+
+        void SetZero() {
+            for (int i = 0; i < $self->rows(); i++)
+                (*$self)(i) = 0;
         }
 };
 
@@ -309,17 +285,34 @@ class chrono::ChVectorDynamic : public Eigen::Matrix<T, Eigen::Dynamic, 1, Eigen
             }
         }
 
-        void SetMatr(double *mat, int ros, int col) {
-            ($self)->resize(ros, col);
-            for (int i = 0; i < ros; i++){
+        void SetMatr(double *mat, int rows, int col) {
+            ($self)->resize(rows, col);
+            for (int i = 0; i < rows; i++){
                 for (int j = 0; j < col; j++){
                     (*$self)(i, j) = mat[i*col + j];
                 }
             }
         }
+
+        void SetZero() {
+            for (int i = 0; i < $self->rows(); i++) {
+              for (int j = 0; j < $self->cols(); j++)
+                (*$self)(i,j) = 0;
+            }
+        }
 };
 
-%extend chrono::ChMatrix66<double> {
+
+// Explicitly instruct SWIG to know about the type alias. This is to ensure the '&' operator is properly mapped for ChMatrix66d& uses.
+namespace chrono {
+    template <typename T, int N, int M>
+    class ChMatrixNM;
+    typedef ChMatrixNM<double, 6, 6> ChMatrix66d;
+}
+
+%template(ChMatrix66d) chrono::ChMatrixNM<double, 6, 6>;
+
+%extend chrono::ChMatrixNM<double, 6, 6> {
     public:
         double GetItem(int i, int j) {
             return (*$self)(i, j);
@@ -330,13 +323,11 @@ class chrono::ChVectorDynamic : public Eigen::Matrix<T, Eigen::Dynamic, 1, Eigen
         }
 
         const int GetRows() {
-            const int r = $self->rows();
-            return r;
+            return 6;
         }
 
         const int GetColumns() {
-            const int c = $self->cols();
-            return c;
+            return 6;
         }
 
         void GetMatrixData(double* p, int len) {
@@ -349,13 +340,21 @@ class chrono::ChVectorDynamic : public Eigen::Matrix<T, Eigen::Dynamic, 1, Eigen
             }
         }
 
-        void SetMatr(double *mat, int ros, int col) {
-            for (int i = 0; i < ros; i++){
-                for (int j = 0; j < col; j++){
+        void SetMatr(double *mat, int rows, int col) {
+            for (int i = 0; i < 6; i++){
+                for (int j = 0; j < 6; j++){
                     (*$self)(i, j) = mat[i*col + j];
-                    }
                 }
             }
+        }
+
+        void SetZero() {
+            for (int i = 0; i < 6; i++) {
+              for (int j = 0; j < 6; j++)
+                (*$self)(i,j) = 0;
+            }
+        }
+
 };
 
 #ifdef SWIGPYTHON  // --------------------------------------------------------------------- PYTHON

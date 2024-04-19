@@ -125,24 +125,24 @@ int main(int argc, char* argv[]) {
     //    floor->SetAngVelParent(ChVector3d(-0.2,-0.4,-0.3));
     //    floor->SetPosDt(ChVector3d(0.1, 0, 0));
     sys.Add(floor);
-    floor->GetVisualModel()->GetShapes()[0].first->AddMaterial(green);
+    floor->GetVisualModel()->GetShapeInstances()[0].first->AddMaterial(green);
 
     auto box = chrono_types::make_shared<ChBodyEasyBox>(1, 1, 1, 1000, true, false);
     box->SetPos({4, 3, 2});
     box->SetFixed(true);
     sys.Add(box);
-    box->GetVisualModel()->GetShapes()[0].first->AddMaterial(green);
+    box->GetVisualModel()->GetShapeInstances()[0].first->AddMaterial(green);
 
     auto box1 = chrono_types::make_shared<ChBodyEasyBox>(1, 1, 1, 1000, true, false);
     box1->SetPos({4, -3, 2});
     box1->SetFixed(true);
     sys.Add(box1);
-    box1->GetVisualModel()->GetShapes()[0].first->AddMaterial(green);
+    box1->GetVisualModel()->GetShapeInstances()[0].first->AddMaterial(green);
 
     auto box2 = chrono_types::make_shared<ChBodyEasyBox>(1, 1, 1, 1000, true, false);
     box2->SetPos({4, 0, 2});
     box2->SetFixed(true);
-    box2->GetVisualModel()->GetShapes()[0].first->AddMaterial(green);
+    box2->GetVisualModel()->GetShapeInstances()[0].first->AddMaterial(green);
     sys.Add(box2);
 
     // -------------------------------------------
@@ -152,7 +152,7 @@ int main(int argc, char* argv[]) {
     //    floor->SetPos({0, 0, -1});
     //    floor->SetFixed(true);
     //    sys.Add(floor);
-    //    floor->GetVisualModel()->GetShapes()[0].first->AddMaterial(green);
+    //    floor->GetVisualModel()->GetShapeInstances()[0].first->AddMaterial(green);
 
     //
     //    for (int i = 0; i < 10; i++) {
@@ -163,7 +163,7 @@ int main(int argc, char* argv[]) {
     //        box_body->SetPos({5 + x, y, z});
     //        box_body->SetPosDt({-0.5, 0, 0});
     //        sys.Add(box_body);
-    //        box_body->GetVisualModel()->GetShapes()[0].first->AddMaterial(red);
+    //        box_body->GetVisualModel()->GetShapeInstances()[0].first->AddMaterial(red);
     //    }
     //
     //    for (int i = 0; i < 10; i++) {
@@ -174,7 +174,7 @@ int main(int argc, char* argv[]) {
     //        box_body->SetPos({10 - x, y, z});
     //        box_body->SetPosDt({0.5, 0, 0});
     //        sys.Add(box_body);
-    //        box_body->GetVisualModel()->GetShapes()[0].first->AddMaterial(red);
+    //        box_body->GetVisualModel()->GetShapeInstances()[0].first->AddMaterial(red);
     //    }
 
     // -----------------------

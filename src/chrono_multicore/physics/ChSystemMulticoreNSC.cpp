@@ -86,7 +86,7 @@ void ChSystemMulticoreNSC::UpdateMaterialSurfaceData(int index, ChBody* body) {
     custom_vector<float>& cohesion = data_manager->host_data.cohesion;
 
     if (body->GetCollisionModel() && body->GetCollisionModel()->GetNumShapes() > 0) {
-        auto shape = body->GetCollisionModel()->GetShape(0).first;
+        auto shape = body->GetCollisionModel()->GetShapeInstance(0).first;
         auto mat = std::static_pointer_cast<ChContactMaterialNSC>(shape->GetMaterial());
         friction[index] = mat->GetSlidingFriction();
         cohesion[index] = mat->GetCohesion();

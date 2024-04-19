@@ -22,42 +22,16 @@ namespace chrono {
 /// @addtogroup chrono_functions
 /// @{
 
-/// Function that returns Y from an externally-provided value,
-/// as a ZERO_ORDER_HOLD (zero order hold) block. This means that the Y value
-/// does NOT change if you call GetVal(double x) with different values
-/// of x, unless you keep the setpoint Y updated via multiple
-/// calls to SetSetpoint(), for example calling SetSetpoint()
-/// at each timestep in the simulation loop.
-/// Also first two derivatives (speed, accel.) will persist until
-/// next SetSetpoint() call.
-/// Function of this class are most often functions of time.
+/// Function that returns Y from an externally-provided value, as a ZERO_ORDER_HOLD (zero order hold) block.
+/// This means that the Y value does NOT change if you call GetVal(double x) with different values of x, unless you keep
+/// the setpoint Y updated via multiple calls to SetSetpoint(), for example calling SetSetpoint() at each timestep in
+/// the simulation loop. Also first two derivatives (speed, accel.) will persist until next SetSetpoint() call. Function
+/// of this class are most often functions of time.
 class ChApi ChFunctionSetpoint : public ChFunction {
-  private:
-    double Y;
-    double Y_dx;
-    double Y_dxdx;
-    double last_x;
-    double last_Y;
-    double last_Y_dx;
-
   public:
-    ChFunctionSetpoint() {
-        Y = 0;
-        Y_dx = 0;
-        Y_dxdx = 0;
-        last_x = 0;
-        last_Y = 0;
-        last_Y_dx = 0;
-    }
+    ChFunctionSetpoint();
+    ChFunctionSetpoint(const ChFunctionSetpoint& other);
 
-    ChFunctionSetpoint(const ChFunctionSetpoint& other) {
-        Y = other.Y;
-        Y_dx = other.Y_dx;
-        Y_dxdx = other.Y_dxdx;
-        last_x = other.last_x;
-        last_Y = other.last_Y;
-        last_Y_dx = other.last_Y_dx;
-    }
     virtual ~ChFunctionSetpoint() {}
 
     /// "Virtual" copy constructor (covariant return type).
@@ -91,41 +65,34 @@ class ChApi ChFunctionSetpoint : public ChFunction {
 
     /// Method to allow de-serialization of transient data from archives.
     virtual void ArchiveIn(ChArchiveIn& archive_in) override;
+
+  private:
+    double Y;
+    double Y_dx;
+    double Y_dxdx;
+    double last_x;
+    double last_Y;
+    double last_Y_dx;
 };
 
 CH_CLASS_VERSION(ChFunctionSetpoint, 0)
 
-/// Interface for functions that uses a callback to return a Y value,
-/// as a ZERO_ORDER_HOLD (zero order hold) block. This means that the Y value
-/// does NOT change if you call GetVal(double x) with different values
-/// of x, unless you keep the setpoint Y updated via multiple
-/// callback calls.
-/// Also first two derivatives (speed, accel.) will persist until
-/// next SetSetpoint() call.
-/// To use this: you must inherit from this class and you must implement
-/// the SetpointCallback() function.
-
+/// Interface for functions that uses a callback to return a Y value, as a ZERO_ORDER_HOLD (zero order hold) block.
+/// This means that the Y value does NOT change if you call GetVal(double x) with different values of x, unless you keep
+/// the setpoint Y updated via multiple callback calls. Also first two derivatives (speed, accel.) will persist until
+/// next SetSetpoint() call. Derived classes must implement the SetpointCallback() function.
 class ChApi ChFunctionSetpointCallback : public ChFunctionSetpoint {
   public:
-    ChFunctionSetpointCallback() {}
-
-    ChFunctionSetpointCallback(const ChFunctionSetpointCallback& other) {}
+    ChFunctionSetpointCallback();
+    ChFunctionSetpointCallback(const ChFunctionSetpointCallback& other);
 
     virtual ~ChFunctionSetpointCallback() {}
 
-    /// You MUST implement this in inherited classes, by returning Y as a function of x.
-    /// Set the setpoint, and compute its derivatives (speed, acceleration) automatically
-    /// by backward differentiation (only if x is called at increasing small steps).
-    /// All values will persist indefinitely until next call.
+    /// Set the setpoint, and compute its derivatives (speed, acceleration).
     virtual double SetpointCallback(double x) = 0;
 
-    /// Calling this will invoke the callback
-    virtual void Update(double x) override {
-        // invokes callback
-        double y = SetpointCallback(x);
-        // changes the setpoint and also computes derivatives by BDF
-        SetSetpoint(y, x);
-    };
+    /// Update the function by invoking the callback function SetpointCallback.
+    virtual void Update(double x) override;
 };
 
 /// @} chrono_functions

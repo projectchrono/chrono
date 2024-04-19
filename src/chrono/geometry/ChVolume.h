@@ -12,10 +12,8 @@
 // Authors: Alessandro Tasora, Radu Serban
 // =============================================================================
 
-#ifndef CHC_VOLUME_H
-#define CHC_VOLUME_H
-
-#include <cmath>
+#ifndef CH_VOLUME_H
+#define CH_VOLUME_H
 
 #include "chrono/geometry/ChGeometry.h"
 
@@ -30,7 +28,7 @@ namespace chrono {
 class ChApi ChVolume : public ChGeometry {
   public:
     ChVolume() {}
-    ChVolume(const ChVolume& source){};
+    ChVolume(const ChVolume& other) : ChGeometry(other) {}
     virtual ~ChVolume() {}
 
     /// "Virtual" copy constructor (covariant return type).
@@ -43,20 +41,21 @@ class ChApi ChVolume : public ChGeometry {
     virtual ChMatrix33<> GetGyration() const = 0;
 
     /// Return a point in the volume, given parametric coordinates U,V,W.
-    /// Parameters U V W always work in 0..1 range.
+    /// Parameters U, V, and W are always in the [0,1] range.
     /// The default implementation always returns the volume center.
     virtual ChVector3d Evaluate(double parU, double parV, double parW) const { return VNULL; }
 
-    /// Tell if the volume is closed (periodic) in parametric coordinate
+    /// Return true if the volume is closed (periodic) in the 1st parametric coordinate.
     virtual bool IsClosedU() const { return false; }
 
-    /// Tell if the volume is closed (periodic) in parametric coordinate
+    /// Return true if the volume is closed (periodic) in the 2nd parametric coordinate.
     virtual bool IslosedV() const { return false; }
 
-    /// Tell if the volume is closed (periodic) in parametric coordinate
+    /// Return true if the volume is closed (periodic) in the 3rd parametric coordinate.
     virtual bool IsClosedW() const { return false; }
 
-    /// This is a volume.
+    /// Return dimensionality of this object.
+    /// For a volume, this is always 3.
     virtual int GetManifoldDimension() const override final { return 3; }
 
     /// Method to allow serialization of transient data to archives.

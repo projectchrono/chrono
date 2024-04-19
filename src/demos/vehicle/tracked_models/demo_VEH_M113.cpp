@@ -113,10 +113,8 @@ double render_step_size = 1.0 / 120;  // FPS = 120
 // Point on chassis tracked by the camera
 ChVector3d trackPoint(0.0, 0.0, 0.0);
 
-// Output directories
-const std::string out_dir = GetChronoOutputPath() + "M113";
-const std::string pov_dir = out_dir + "/POVRAY";
-const std::string img_dir = out_dir + "/IMG";
+// End time (used only if no run-time visualization)
+double t_end = 20;
 
 // Output
 bool povray_output = false;
@@ -512,6 +510,10 @@ int main(int argc, char* argv[]) {
     // Initialize output
     // -----------------
 
+    const std::string out_dir = GetChronoOutputPath() + "M113";
+    const std::string pov_dir = out_dir + "/POVRAY";
+    const std::string img_dir = out_dir + "/IMG";
+
     if (!filesystem::create_directory(filesystem::path(out_dir))) {
         std::cout << "Error creating directory " << out_dir << std::endl;
         return 1;
@@ -574,12 +576,14 @@ int main(int argc, char* argv[]) {
     int step_number = 0;
     int render_frame = 0;
 
-    while (vis->Run()) {
+    while (true) {
+        double time = vehicle.GetChTime();
+
         // Debugging output
         if (dbg_output) {
             auto track_L = vehicle.GetTrackAssembly(LEFT);
             auto track_R = vehicle.GetTrackAssembly(RIGHT);
-            cout << "Time: " << m113.GetSystem()->GetChTime() << endl;
+            cout << "Time: " << time << endl;
             cout << "      Num. contacts: " << m113.GetSystem()->GetNumContacts() << endl;
             const ChFrameMoving<>& c_ref = m113.GetChassisBody()->GetFrameRefToAbs();
             const ChVector3d& c_pos = vehicle.GetPos();
@@ -616,41 +620,52 @@ int main(int argc, char* argv[]) {
             cout << endl;
         }
 
-        if (step_number % render_steps == 0) {
-            // Render scene
-            vis->BeginScene();
-            vis->Render();
-            vis->EndScene();
+        if (vis) {
+            if (!vis->Run())
+                break;
 
-            // Zero-pad frame numbers in file names for postprocessing
-            if (povray_output) {
-                std::ostringstream filename;
-                filename << pov_dir << "/data_" << std::setw(4) << std::setfill('0') << render_frame + 1 << ".dat";
-                chrono::utils::WriteVisualizationAssets(m113.GetSystem(), filename.str());
+             // Render scene and output post-processing data
+            if (step_number % render_steps == 0) {
+                vis->BeginScene();
+                vis->Render();
+                vis->EndScene();
+
+                // Zero-pad frame numbers in file names for postprocessing
+                if (povray_output) {
+                    std::ostringstream filename;
+                    filename << pov_dir << "/data_" << std::setw(4) << std::setfill('0') << render_frame + 1 << ".dat";
+                    chrono::utils::WriteVisualizationAssets(m113.GetSystem(), filename.str());
+                }
+
+                // Save snapshots to disk files
+                if (img_output && step_number > 200) {
+                    std::ostringstream filename;
+                    filename << img_dir << "/img_" << std::setw(4) << std::setfill('0') << render_frame + 1 << ".jpg";
+                    vis->WriteImageToFile(filename.str());
+                }
+
+                render_frame++;
             }
-            if (img_output && step_number > 200) {
-                std::ostringstream filename;
-                filename << img_dir << "/img_" << std::setw(4) << std::setfill('0') << render_frame + 1 << ".jpg";
-                vis->WriteImageToFile(filename.str());
-            }
-            render_frame++;
+        } else if (time > t_end) {
+            break;
         }
 
         // Current driver inputs
         DriverInputs driver_inputs = driver->GetInputs();
 
         // Update modules (process inputs from other modules)
-        double time = vehicle.GetChTime();
         driver->Synchronize(time);
         terrain.Synchronize(time);
         m113.Synchronize(time, driver_inputs);
-        vis->Synchronize(time, driver_inputs);
+        if (vis)
+            vis->Synchronize(time, driver_inputs);
 
         // Advance simulation for one timestep for all modules
         driver->Advance(step_size);
         terrain.Advance(step_size);
         m113.Advance(step_size);
-        vis->Advance(step_size);
+        if (vis)
+            vis->Advance(step_size);
 
         ////ReportTiming(*m113.GetSystem());
 

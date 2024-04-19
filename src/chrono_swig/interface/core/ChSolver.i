@@ -101,19 +101,19 @@ using namespace chrono;
 %include "../../../chrono/solver/ChSolverADMM.h"
 
 
-%DefSharedPtrDynamicDowncast(chrono, ChSolver, ChDirectSolverLS)
-%DefSharedPtrDynamicDowncast(chrono, ChSolver, ChIterativeSolverLS)
-%DefSharedPtrDynamicDowncast(chrono, ChSolver, ChIterativeSolverVI)
+%DefSharedPtrDynamicCast(chrono, ChSolver, ChDirectSolverLS)
+%DefSharedPtrDynamicCast(chrono, ChSolver, ChIterativeSolverLS)
+%DefSharedPtrDynamicCast(chrono, ChSolver, ChIterativeSolverVI)
 
 
-%DefSharedPtrDynamicDowncast(chrono, ChIterativeSolverVI, ChSolverADMM)
-%DefSharedPtrDynamicDowncast(chrono, ChIterativeSolverVI, ChSolverAPGD)
-%DefSharedPtrDynamicDowncast(chrono, ChIterativeSolverVI, ChSolverBB)
-%DefSharedPtrDynamicDowncast(chrono, ChIterativeSolverVI, ChSolverPSOR)
+%DefSharedPtrDynamicCast(chrono, ChIterativeSolverVI, ChSolverADMM)
+%DefSharedPtrDynamicCast(chrono, ChIterativeSolverVI, ChSolverAPGD)
+%DefSharedPtrDynamicCast(chrono, ChIterativeSolverVI, ChSolverBB)
+%DefSharedPtrDynamicCast(chrono, ChIterativeSolverVI, ChSolverPSOR)
 
-%DefSharedPtrDynamicDowncast(chrono, ChIterativeSolverLS, ChSolverGMRES)
-%DefSharedPtrDynamicDowncast(chrono, ChIterativeSolverLS, ChSolverMINRES)
-%DefSharedPtrDynamicDowncast(chrono, ChIterativeSolverLS, ChSolverBiCGSTAB)
+%DefSharedPtrDynamicCast(chrono, ChIterativeSolverLS, ChSolverGMRES)
+%DefSharedPtrDynamicCast(chrono, ChIterativeSolverLS, ChSolverMINRES)
+%DefSharedPtrDynamicCast(chrono, ChIterativeSolverLS, ChSolverBiCGSTAB)
 
-%DefSharedPtrDynamicDowncast(chrono, ChDirectSolverLS, ChSolverSparseQR)
-%DefSharedPtrDynamicDowncast(chrono, ChDirectSolverLS, ChSolverSparseLU)
+%DefSharedPtrDynamicCast(chrono, ChDirectSolverLS, ChSolverSparseQR)
+%DefSharedPtrDynamicCast(chrono, ChDirectSolverLS, ChSolverSparseLU)

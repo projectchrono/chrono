@@ -116,7 +116,7 @@ double ChLinkRSDA::GetTorque() const {
     return m_torque;
 }
 
-ChFrame<> ChLinkRSDA::GetVisualModelFrame(unsigned int nclone) {
+ChFrame<> ChLinkRSDA::GetVisualModelFrame(unsigned int nclone) const {
     return ChFrame<>(m_csys1 >> m_body1->GetCoordsys());
 }
 

@@ -117,10 +117,6 @@ double tire_step_size = 1e-3;
 // Time interval between two render frames
 double render_step_size = 1.0 / 50;  // FPS = 50
 
-// Output directories
-const std::string out_dir = GetChronoOutputPath() + "FEDA";
-const std::string pov_dir = out_dir + "/POVRAY";
-
 // Debug logging
 bool debug_output = false;
 double debug_step_size = 1.0 / 1;  // FPS = 1
@@ -265,6 +261,9 @@ int main(int argc, char* argv[]) {
     // Initialize output
     // -----------------
 
+    const std::string out_dir = GetChronoOutputPath() + "FEDA";
+    const std::string pov_dir = out_dir + "/POVRAY";
+
     if (!filesystem::create_directory(filesystem::path(out_dir))) {
         std::cout << "Error creating directory " << out_dir << std::endl;
         return 1;
@@ -396,7 +395,8 @@ int main(int argc, char* argv[]) {
     double real_accy2 = pow(real_speed, 2) / turn_radius;
 
     driver.SetDesiredSpeed(initial_speed);  // hold speed until steady state reached on the turn circle
-    while (vis->Run()) {
+
+    while (true) {
         double time = feda.GetSystem()->GetChTime();
         real_speed = feda.GetVehicle().GetSpeed();
         real_accy1 = feda.GetVehicle().GetPointAcceleration(ChVector3d(0, 0, 0)).y();
@@ -430,19 +430,24 @@ int main(int argc, char* argv[]) {
         }
 
         // Render scene and output POV-Ray data
-        if (step_number % render_steps == 0) {
-            vis->BeginScene();
-            vis->Render();
-            vis->EndScene();
+        if (vis) {
+            if (!vis->Run())
+                break;
 
-            if (povray_output) {
-                // Zero-pad frame numbers in file names for postprocessing
-                std::ostringstream filename;
-                filename << pov_dir << "/data_" << std::setw(4) << std::setfill('0') << render_frame + 1 << ".dat";
-                utils::WriteVisualizationAssets(feda.GetSystem(), filename.str());
+            if (step_number % render_steps == 0) {
+                vis->BeginScene();
+                vis->Render();
+                vis->EndScene();
+
+                if (povray_output) {
+                    // Zero-pad frame numbers in file names for postprocessing
+                    std::ostringstream filename;
+                    filename << pov_dir << "/data_" << std::setw(4) << std::setfill('0') << render_frame + 1 << ".dat";
+                    utils::WriteVisualizationAssets(feda.GetSystem(), filename.str());
+                }
+
+                render_frame++;
             }
-
-            render_frame++;
         }
 
         // Debug logging
@@ -467,13 +472,15 @@ int main(int argc, char* argv[]) {
         driver.Synchronize(time);
         terrain.Synchronize(time);
         feda.Synchronize(time, driver_inputs, terrain);
-        vis->Synchronize(time, driver_inputs);
+        if (vis)
+            vis->Synchronize(time, driver_inputs);
 
         // Advance simulation for one timestep for all modules
         driver.Advance(step_size);
         terrain.Advance(step_size);
         feda.Advance(step_size);
-        vis->Advance(step_size);
+        if (vis)
+            vis->Advance(step_size);
 
         // Increment frame number
         step_number++;

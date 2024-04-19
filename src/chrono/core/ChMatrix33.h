@@ -65,8 +65,10 @@ class ChMatrix33 : public Eigen::Matrix<Real, 3, 3, Eigen::RowMajor> {
         return *this;
     }
 
+#ifndef SWIG
     /// Allows multiplying a 3x3 matrix to other Eigen matrices.
     using Eigen::Matrix<Real, 3, 3, Eigen::RowMajor>::operator*;
+#endif
 
     /// Multiply this matrix by a 3d vector.
     ChVector3<Real> operator*(const ChVector3<Real>& v) const;

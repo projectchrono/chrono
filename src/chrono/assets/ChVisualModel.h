@@ -52,10 +52,13 @@ class ChApi ChVisualModel {
     unsigned int GetNumShapes() const { return (unsigned int)m_shapes.size(); }
 
     /// Get the visual shapes in the model.
-    const std::vector<ShapeInstance>& GetShapes() const { return m_shapes; }
+    const std::vector<ShapeInstance>& GetShapeInstances() const { return m_shapes; }
 
     /// Get the specified visual shape in the model.
     std::shared_ptr<ChVisualShape> GetShape(unsigned int i) const { return m_shapes[i].first; }
+
+    /// Get the coordinate frame of the specified visual shape in the model (relative to the model frame).
+    const ChFrame<>& GetShapeFrame(unsigned int i) const { return m_shapes[i].second; }
 
     /// Get the number of visual shapes in the model.
     unsigned int GetNumShapesFEA() const { return (unsigned int)m_shapesFEA.size(); }
@@ -65,9 +68,6 @@ class ChApi ChVisualModel {
 
     /// Get the specified FEA visualization object in the model.
     std::shared_ptr<ChVisualShapeFEA> GetShapeFEA(unsigned int i) const { return m_shapesFEA[i]; }
-
-    /// Get the coordinate frame of the specified visual shape in the model (relative to the model frame).
-    const ChFrame<>& GetShapeFrame(unsigned int i) const { return m_shapes[i].second; }
 
     /// Erase all shapes in this model.
     void Clear();

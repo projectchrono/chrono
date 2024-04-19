@@ -117,6 +117,7 @@ void ChParserOpenSim::Parse(ChSystem& system, const std::string& filename) {
     // files sitting in data/opensim/Rajagopal2015/
     // Use filesystem for path parsing, we should probably use the library more
     path filepath(filename);
+
     // Set the member path so when we load meshes we can find them
     // Strip the parent and stem to use as directory for data files
     m_datapath = filepath.parent_path().str() + "/" + filepath.stem() + "/";
@@ -132,7 +133,7 @@ void ChParserOpenSim::Parse(ChSystem& system, const std::string& filename) {
 
     // Traverse the list of bodies and parse the information for each one
     xml_node<>* bodySet = doc.first_node()->first_node("Model")->first_node("BodySet");
-    if (bodySet == NULL && bodySet->first_node("objects") != NULL) {
+    if (bodySet == NULL) {
         std::cout << "No body set detected for this model." << std::endl;
         return;
     }
@@ -835,7 +836,7 @@ void ChParserOpenSim::initShapes(rapidxml::xml_node<>* node, ChSystem& system) {
 
         // Set collision shapes
         if (body_info.body->IsCollisionEnabled()) {
-            for (auto cyl_info : body_info.cylinders) {
+            for (const auto& cyl_info : body_info.cylinders) {
                 utils::AddCylinderGeometry(body_info.body, mat, cyl_info.rad, cyl_info.hlen, cyl_info.pos, cyl_info.rot,
                                            false);
             }

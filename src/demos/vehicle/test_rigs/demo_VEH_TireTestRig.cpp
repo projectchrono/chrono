@@ -80,9 +80,6 @@ TerrainType terrain_type = TerrainType::RIGID;
 // Read from JSON specification file?
 bool use_JSON = false;
 
-// Output directory
-const std::string out_dir = GetChronoOutputPath() + "TIRE_TEST_RIG";
-
 bool gnuplot_output = false;
 bool blender_output = false;
 
@@ -273,14 +270,13 @@ int main() {
     }
 
     // Initialize output
+    const std::string out_dir = GetChronoOutputPath() + "TIRE_TEST_RIG";
     if (!filesystem::create_directory(filesystem::path(out_dir))) {
         std::cout << "Error creating directory " << out_dir << std::endl;
         return 1;
     }
 
     // Create the vehicle run-time visualization interface and the interactive driver
-    std::shared_ptr<ChVisualSystem> vis_sys;
-
 #ifndef CHRONO_IRRLICHT
     if (vis_type == ChVisualSystem::Type::IRRLICHT)
         vis_type = ChVisualSystem::Type::VSG;
@@ -290,6 +286,7 @@ int main() {
         vis_type = ChVisualSystem::Type::IRRLICHT;
 #endif
 
+    std::shared_ptr<ChVisualSystem> vis;
     switch (vis_type) {
         case ChVisualSystem::Type::IRRLICHT: {
 #ifdef CHRONO_IRRLICHT
@@ -306,7 +303,7 @@ int main() {
 
             vis_irr->GetActiveCamera()->setFOV(irr::core::PI / 4.5f);
 
-            vis_sys = vis_irr;
+            vis = vis_irr;
 #endif
             break;
         }
@@ -323,7 +320,7 @@ int main() {
             vis_vsg->SetShadows(true);
             vis_vsg->Initialize();
 
-            vis_sys = vis_vsg;
+            vis = vis_vsg;
 #endif
             break;
         }
@@ -355,7 +352,7 @@ int main() {
 
     double time_offset = 0.5;
 
-    while (vis_sys->Run()) {
+    while (vis->Run()) {
         double time = sys->GetChTime();
 
         if (time > time_offset) {
@@ -365,13 +362,13 @@ int main() {
         }
 
         auto& loc = rig.GetPos();
-        vis_sys->UpdateCamera(loc + ChVector3d(1.0, 2.5, 0.5), loc + ChVector3d(0, 0.25, -0.25));
+        vis->UpdateCamera(loc + ChVector3d(1.0, 2.5, 0.5), loc + ChVector3d(0, 0.25, -0.25));
 
-        vis_sys->BeginScene();
-        vis_sys->Render();
+        vis->BeginScene();
+        vis->Render();
         ////tools::drawAllContactPoints(vis.get(), 1.0, ContactsDrawMode::CONTACT_NORMALS);
         rig.Advance(step_size);
-        vis_sys->EndScene();
+        vis->EndScene();
 
 #ifdef CHRONO_POSTPROCESS
         if (blender_output)

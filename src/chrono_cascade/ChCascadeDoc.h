@@ -85,18 +85,20 @@ class ChApiCASCADE ChCascadeDoc {
         double& mass                  ///< get the mass
     );
 
-    class callback_CascadeDoc {
+    /// Class to be used as a callback interface for post-processing Cascade shapes.
+    class ChApiCASCADE ScanShapesCallback {
       public:
+        /// Callback function to be executed for each scanned Cascade shape.
+        /// If this function returns 'false', processing of children shapes is skipped.
         virtual bool ForShape(TopoDS_Shape& mshape,
                               TopLoc_Location& mloc,
                               char* mname,
                               int mlevel,
                               TDF_Label& mlabel) = 0;
     };
-    /// Execute a callback on all contained shapes, with user-defined callback inherited
-    /// from callback_CascadeDoc. Btw. If the callback_CascadeDoc::ForShape callback returns false, subshapes are not
-    /// processed.
-    void ScanCascadeShapes(callback_CascadeDoc& mcallback);
+
+    /// Scan all Cascade shapes and execute the provided callback for each one.
+    void ScanCascadeShapes(ScanShapesCallback& callback);
 
     /// Convert OpenCascade coordinates into Chrono coordinates
     static void FromCascadeToChrono(const TopLoc_Location& from_coord, ChFrame<>& to_coord);

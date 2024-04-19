@@ -12,8 +12,8 @@
 // Authors: Alessandro Tasora, Radu Serban
 // =============================================================================
 
-#ifndef CHC_GEOMETRY
-#define CHC_GEOMETRY
+#ifndef CH_GEOMETRY_H
+#define CH_GEOMETRY_H
 
 #include <memory>
 #include <limits>
@@ -83,7 +83,7 @@ class ChApi ChGeometry {
 
   public:
     ChGeometry() {}
-    ChGeometry(const ChGeometry& source) {}
+    ChGeometry(const ChGeometry& other) {}
     virtual ~ChGeometry() {}
 
     /// "Virtual" copy constructor.

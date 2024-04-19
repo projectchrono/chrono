@@ -63,9 +63,6 @@ std::string filename("M113/track_assembly/M113_TrackAssemblyBandANCF_Left.json")
 // Linear solver (MUMPS or PARDISO_MKL)
 ChSolver::Type solver_type = ChSolver::Type::MUMPS;
 
-// Output directories
-const std::string out_dir = GetChronoOutputPath() + "TRACKBAND_TEST_RIG";
-
 // Verbose level
 bool verbose_solver = false;
 bool verbose_integrator = false;
@@ -310,6 +307,7 @@ int main(int argc, char* argv[]) {
     // Initialize output
     // -----------------
 
+    const std::string out_dir = GetChronoOutputPath() + "TRACKBAND_TEST_RIG";
     if (!filesystem::create_directory(filesystem::path(out_dir))) {
         cout << "Error creating directory " << out_dir << endl;
         return 1;

@@ -55,7 +55,8 @@ ChVisualSystemIrrlicht::ChVisualSystemIrrlicht()
       m_win_title(""),
       m_yup(true),
       m_use_effects(false),
-      m_modal(false) {
+      m_modal(false),
+      m_quality(0) {
     // Set default device parameter values
     m_device_params.AntiAlias = true;
     m_device_params.Bits = 32;
@@ -655,7 +656,7 @@ void ChVisualSystemIrrlicht::RenderCOGFrames(double axis_length) {
 void ChVisualSystemIrrlicht::WriteImageToFile(const std::string& filename) {
     video::IImage* image = GetVideoDriver()->createScreenShot();
     if (image) {
-        GetVideoDriver()->writeImageToFile(image, filename.c_str());
+        GetVideoDriver()->writeImageToFile(image, filename.c_str(), m_quality);
         image->drop();
     }
 }
@@ -844,7 +845,7 @@ static void SetVisualMaterial(ISceneNode* node, std::shared_ptr<ChVisualShape> s
 void ChVisualSystemIrrlicht::PopulateIrrNode(ISceneNode* node,
                                              std::shared_ptr<ChVisualModel> model,
                                              const ChFrame<>& parent_frame) {
-    for (const auto& shape_instance : model->GetShapes()) {
+    for (const auto& shape_instance : model->GetShapeInstances()) {
         auto& shape = shape_instance.first;
         auto& shape_frame = shape_instance.second;
         core::matrix4CH shape_m4(shape_frame);

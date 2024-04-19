@@ -20,6 +20,7 @@
 
 #include <cassert>
 #include <algorithm>
+#include <iomanip>
 
 #include "chrono/geometry/ChLineBezier.h"
 #include "chrono/utils/ChUtils.h"
@@ -38,7 +39,8 @@ FmuComponent::FmuComponent(fmi2String instanceName,
                            const fmi2CallbackFunctions* functions,
                            fmi2Boolean visible,
                            fmi2Boolean loggingOn)
-    : FmuChronoComponentBase(instanceName, fmuType, fmuGUID, fmuResourceLocation, functions, visible, loggingOn) {
+    : FmuChronoComponentBase(instanceName, fmuType, fmuGUID, fmuResourceLocation, functions, visible, loggingOn),
+      render_frame(0) {
     // Initialize FMU type
     initializeType(fmuType);
 
@@ -50,7 +52,10 @@ FmuComponent::FmuComponent(fmi2String instanceName,
     target_speed = 0;
 
     step_size = 1e-3;
-    vis = 0;
+
+    out_path = ".";
+    save_img = false;
+    fps = 60;
 
     look_ahead_dist = 5.0;
     Kp_steering = 0.8;
@@ -69,9 +74,8 @@ FmuComponent::FmuComponent(fmi2String instanceName,
     auto resources_dir = std::string(fmuResourceLocation).erase(0, 8);
     path_file = resources_dir + "/ISO_double_lane_change.txt";
 
-    // Set configuration flags for this FMU
-    AddFmuVariable(&vis, "vis", FmuVariable::Type::Boolean, "1", "enable visualization",         //
-                   FmuVariable::CausalityType::parameter, FmuVariable::VariabilityType::fixed);  //
+    if (visible)
+        vis_sys = chrono_types::make_shared<irrlicht::ChVisualSystemIrrlicht>();
 
     // Set FIXED PARAMETERS for this FMU
     //// TODO: units for gains
@@ -107,6 +111,12 @@ FmuComponent::FmuComponent(fmi2String instanceName,
     AddFmuVariable(&step_size, "step_size", FmuVariable::Type::Real, "s", "integration step size",  //
                    FmuVariable::CausalityType::parameter, FmuVariable::VariabilityType::fixed);     //
 
+    // Set FIXED PARAMETERS for this FMU (I/O)
+    AddFmuVariable(&out_path, "out_path", FmuVariable::Type::String, "1", "output directory",    //
+                   FmuVariable::CausalityType::parameter, FmuVariable::VariabilityType::fixed);  //
+    AddFmuVariable(&fps, "fps", FmuVariable::Type::Real, "1", "rendering frequency",             //
+                   FmuVariable::CausalityType::parameter, FmuVariable::VariabilityType::fixed);  //
+
     // Set CONSTANT OUTPUT for this FMU
     AddFmuVecVariable(init_loc, "init_loc", "m", "location of first path point",                                //
                       FmuVariable::CausalityType::output, FmuVariable::VariabilityType::constant);              //
@@ -118,6 +128,10 @@ FmuComponent::FmuComponent(fmi2String instanceName,
                               FmuVariable::CausalityType::input, FmuVariable::VariabilityType::continuous);  //
     AddFmuVariable(&target_speed, "target_speed", FmuVariable::Type::Real, "m/s", "target speed",            //
                    FmuVariable::CausalityType::input, FmuVariable::VariabilityType::continuous);             //
+
+    // Set DISCRETE INPUTS for this FMU (I/O)
+    AddFmuVariable((int*)(&save_img), "save_img", FmuVariable::Type::Boolean, "1", "trigger saving images",  //
+                   FmuVariable::CausalityType::input, FmuVariable::VariabilityType::discrete);               //
 
     // Set CONTINOUS OUTPUTS for this FMU
     AddFmuVariable(&steering, "steering", FmuVariable::Type::Real, "1", "steering command",        //
@@ -192,7 +206,7 @@ void FmuComponent::_exitInitializationMode() {
     CreateDriver();
 
     // Initialize runtime visualization (if requested and if available)
-    if (vis) {
+    if (vis_sys) {
 #ifdef CHRONO_IRRLICHT
         std::cout << " Enable run-time visualization" << std::endl;
 
@@ -204,10 +218,10 @@ void FmuComponent::_exitInitializationMode() {
         auto grid_rot = QuatFromAngleZ(init_yaw);
 
         // Create run-time visualization system
-        vis_sys = chrono_types::make_shared<irrlicht::ChVisualSystemIrrlicht>();
         vis_sys->SetLogLevel(irr::ELL_NONE);
+        vis_sys->SetJPEGQuality(100);
         vis_sys->AttachSystem(&sys);
-        vis_sys->SetWindowSize(800, 600);
+        vis_sys->SetWindowSize(800, 800);
         vis_sys->SetWindowTitle("Path-follower Driver FMU (FMI 2.0)");
         vis_sys->SetCameraVertical(CameraVerticalDir::Z);
         vis_sys->AddGrid(spacing, spacing, grid_x, grid_y, ChCoordsys<>(grid_pos, grid_rot),
@@ -259,10 +273,11 @@ fmi2Status FmuComponent::_doStep(fmi2Real currentCommunicationPoint,
         ChClampValue(out_steering, -1.0, 1.0);
         steering = out_steering;
 
-        if (vis) {
+        if (vis_sys) {
 #ifdef CHRONO_IRRLICHT
             // Update system and all visual assets
             sys.Update(true);
+            sys.SetChTime(m_time);
 
             // Update camera position
             auto x_dir = ref_frame.GetRotMat().GetAxisX();
@@ -281,6 +296,13 @@ fmi2Status FmuComponent::_doStep(fmi2Real currentCommunicationPoint,
             vis_sys->Render();
             vis_sys->RenderFrame(ref_frame);
             vis_sys->EndScene();
+
+            if (save_img && m_time >= render_frame / fps) {
+                std::ostringstream filename;
+                filename << out_path << "/img_" << std::setw(4) << std::setfill('0') << render_frame + 1 << ".bmp";
+                vis_sys->WriteImageToFile(filename.str());
+                render_frame++;
+            }
 #endif
         }
         ////sendToLog("time: " + std::to_string(m_time) + "\n", fmi2Status::fmi2OK, "logAll");

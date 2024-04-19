@@ -415,13 +415,13 @@ void ChPovRay::ExportShapes(std::ofstream& assets_file, std::shared_ptr<ChPhysic
         return;
 
     // In a first pass, export materials from all visual shapes
-    for (const auto& shape_instance : item->GetVisualModel()->GetShapes()) {
+    for (const auto& shape_instance : item->GetVisualModel()->GetShapeInstances()) {
         const auto& shape = shape_instance.first;
         ExportMaterials(assets_file, shape->GetMaterials());
     }
 
     // In a second pass, export shape geometry
-    for (const auto& shape_instance : item->GetVisualModel()->GetShapes()) {
+    for (const auto& shape_instance : item->GetVisualModel()->GetShapeInstances()) {
         const auto& shape = shape_instance.first;
         const auto& shape_frame = shape_instance.second;
 
@@ -691,7 +691,7 @@ void ChPovRay::ExportObjData(std::ofstream& pov_file,
         pov_file << "union{" << std::endl;  // begin union
 
     // Scan visual shapes in the visual model
-    for (const auto& shape_instance : vis_model->GetShapes()) {
+    for (const auto& shape_instance : vis_model->GetShapeInstances()) {
         const auto& shape = shape_instance.first;
 
         // Process only "known" shapes (i.e., shapes that were included in the assets file)
@@ -850,7 +850,7 @@ void ChPovRay::ExportData(const std::string& filename) {
                 for (unsigned int m = 0; m < clones->GetNumParticles(); ++m) {
                     // Get the current coordinate frame of the i-th particle
                     ChCoordsys<> assetcsys = CSYSNORM;
-                    assetcsys = clones->GetParticle(m).GetCoordsys();
+                    assetcsys = clones->Particle(m).GetCoordsys();
 
                     data_file << assetcsys.pos.x() << ", ";
                     data_file << assetcsys.pos.y() << ", ";

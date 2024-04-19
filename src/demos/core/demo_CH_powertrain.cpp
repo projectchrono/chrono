@@ -36,12 +36,11 @@
 
 using namespace chrono;
 
-std::string out_dir = GetChronoOutputPath() + "DEMO_POWERTRAIN";
-
 int main(int argc, char* argv[]) {
     std::cout << "Copyright (c) 2017 projectchrono.org\nChrono version: " << CHRONO_VERSION << std::endl;
 
     // Create output directory
+    std::string out_dir = GetChronoOutputPath() + "DEMO_POWERTRAIN";
     if (!filesystem::create_directory(filesystem::path(out_dir))) {
         std::cout << "Error creating directory " << out_dir << std::endl;
         return 1;

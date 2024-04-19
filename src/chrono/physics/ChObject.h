@@ -58,7 +58,7 @@ class ChApi ChObj {
     void SetName(const std::string& myname) { m_name = myname; }
 
     /// Get the name of this object.
-    std::string GetName() const { return m_name; }
+    const std::string& GetName() const { return m_name; }
 
     /// Gets the simulation time of this object.
     double GetChTime() const { return ChTime; }

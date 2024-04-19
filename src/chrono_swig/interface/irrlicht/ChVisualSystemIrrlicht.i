@@ -27,4 +27,4 @@ using namespace chrono::irrlicht;
 %include "../../../chrono_irrlicht/ChIrrNodeModel.h"    
 %include "../../../chrono_irrlicht/ChVisualSystemIrrlicht.h"
 
-%DefSharedPtrDynamicDowncast2NS(chrono, chrono::irrlicht, ChVisualSystem, ChVisualSystemIrrlicht)
+%DefSharedPtrDynamicCast2NS(chrono, chrono::irrlicht, ChVisualSystem, ChVisualSystemIrrlicht)

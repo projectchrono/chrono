@@ -268,11 +268,9 @@ void cuda_image_half4_to_uchar4(void* bufIn, void* bufOut, int w, int h, CUstrea
 }
 
 void cuda_depth_to_uchar4(void* bufIn, void* bufOut, int w, int h, CUstream& stream) {
-
-
     // Set up kernel launch configuration
-    int blockSize = 256;
-    int gridSize = (w * h + blockSize * 2 - 1) / (blockSize * 2);
+    // int blockSize = 256;
+    // int gridSize = (w * h + blockSize * 2 - 1) / (blockSize * 2);
 
     /*float *d_min, *d_max;
     cudaMalloc(&d_min, sizeof(float));
@@ -281,26 +279,24 @@ void cuda_depth_to_uchar4(void* bufIn, void* bufOut, int w, int h, CUstream& str
     cudaMemcpy(d_min, &MIN, sizeof(float), cudaMemcpyHostToDevice);
     cudaMemcpy(d_max, &MAX, sizeof(float), cudaMemcpyHostToDevice);*/
 
-
     thrust::device_vector<float> bufIn_thrust((float*)bufIn, (float*)bufIn + w * h);
     thrust::device_ptr<float> buffIn_ptr = thrust::device_pointer_cast((float*)bufIn);
-    //thrust::pair<float*, float*> result = thrust::minmax_element(thrust::device, (float*)bufIn, (float*)bufIn + w * h);
+    // thrust::pair<float*, float*> result = thrust::minmax_element(thrust::device, (float*)bufIn, (float*)bufIn + w *
+    // h);
 
     thrust::pair<thrust::device_vector<float>::iterator, thrust::device_vector<float>::iterator> result =
         thrust::minmax_element(bufIn_thrust.begin(), bufIn_thrust.end());
-   
-  
-    
-    // Launch the kernel
-   // minmax_kernel_2d<<<gridSize, blockSize, blockSize * 2 * sizeof(float)>>>((float*)bufIn, d_min, d_max, w, h);
 
-    //cudaDeviceSynchronize();
+    // Launch the kernel
+    // minmax_kernel_2d<<<gridSize, blockSize, blockSize * 2 * sizeof(float)>>>((float*)bufIn, d_min, d_max, w, h);
+
+    // cudaDeviceSynchronize();
 
     const int nThreads = 512;
     int nBlocks = (w * h + nThreads - 1) / nThreads;
-  
-    depth_to_uchar4_kernel<<<nBlocks, nThreads, 0, stream>>>((float*)bufIn, (unsigned char*)bufOut, *(result.first), *(result.second), w * h);
 
+    depth_to_uchar4_kernel<<<nBlocks, nThreads, 0, stream>>>((float*)bufIn, (unsigned char*)bufOut, *(result.first),
+                                                             *(result.second), w * h);
 }
 
 }  // namespace sensor

@@ -376,7 +376,7 @@ void ChBlender::ExportShapes(std::ofstream& assets_file,
         return;
 
     // In a second pass, export shape geometry
-    for (const auto& shape_instance : item->GetVisualModel()->GetShapes()) {
+    for (const auto& shape_instance : item->GetVisualModel()->GetShapeInstances()) {
         const auto& shape = shape_instance.first;
 
         std::ofstream* mfile;
@@ -999,7 +999,7 @@ void ChBlender::ExportItemState(std::ofstream& state_file,
 
     bool has_stored_assets = false;
     bool has_stored_cameras = false;
-    for (const auto& shape_instance : vis_model->GetShapes()) {
+    for (const auto& shape_instance : vis_model->GetShapeInstances()) {
         const auto& shape = shape_instance.first;
         if (m_blender_shapes.find((size_t)shape.get()) != m_blender_shapes.end()) {
             has_stored_assets = true;
@@ -1035,7 +1035,7 @@ void ChBlender::ExportItemState(std::ofstream& state_file,
         // List visual shapes to use as children of the Blender object (parent)
 
         state_file << "[" << std::endl;
-        for (const auto& shape_instance : vis_model->GetShapes()) {
+        for (const auto& shape_instance : vis_model->GetShapeInstances()) {
             const auto& shape = shape_instance.first;
 
             // Process only "known" shapes (i.e., shapes that were included in the assets file)
@@ -1093,7 +1093,7 @@ void ChBlender::ExportItemState(std::ofstream& state_file,
             state_file << " [";
             for (unsigned int m = 0; m < particleclones->GetNumParticles(); ++m) {
                 // Get the current coordinate frame of the i-th particle
-                ChCoordsys<> partframe = particleclones->GetParticle(m).GetCoordsys();
+                ChCoordsys<> partframe = particleclones->Particle(m).GetCoordsys();
                 state_file << "[(" << partframe.pos.x() << "," << partframe.pos.y() << "," << partframe.pos.z() << "),";
                 state_file << "(" << partframe.rot.e0() << "," << partframe.rot.e1() << "," << partframe.rot.e2() << ","
                            << partframe.rot.e3() << ")], " << std::endl;

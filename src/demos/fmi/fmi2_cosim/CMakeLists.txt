@@ -32,6 +32,8 @@ target_include_directories(${PROGRAM} PUBLIC ${FMU_TOOLS_DIR})
 target_compile_definitions(${PROGRAM} PUBLIC FMU_OS_SUFFIX="${FMI_PLATFORM}")
 target_compile_definitions(${PROGRAM} PUBLIC SHARED_LIBRARY_SUFFIX="${CMAKE_SHARED_LIBRARY_SUFFIX}")
 
+target_compile_definitions(${PROGRAM} PUBLIC DEMO_FMU_MAIN_DIR="${DEMO_FMU_MAIN_DIR}")
+
 target_compile_definitions(${PROGRAM} PUBLIC CRANE_FMU_MODEL_IDENTIFIER="${CRANE_FMU_MODEL_IDENTIFIER}")
 target_compile_definitions(${PROGRAM} PUBLIC CRANE_FMU_DIRECTORY="${CRANE_FMU_DIRECTORY}")
 target_compile_definitions(${PROGRAM} PUBLIC CRANE_FMU_FILENAME="${CRANE_FMU_FILENAME}")

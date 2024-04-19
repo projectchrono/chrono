@@ -19,6 +19,14 @@ namespace chrono {
 // Register into the object factory, to enable run-time dynamic creation and persistence
 CH_FACTORY_REGISTER(ChFunctionConst)
 
+ChFunctionConst::ChFunctionConst() : m_constant(0) {}
+
+ChFunctionConst::ChFunctionConst(double y_constant) : m_constant(y_constant) {}
+
+ChFunctionConst::ChFunctionConst(const ChFunctionConst& other) : ChFunction(other) {
+    m_constant = other.m_constant;
+}
+
 void ChFunctionConst::ArchiveOut(ChArchiveOut& archive_out) {
     // version number
     archive_out.VersionWrite<ChFunctionConst>();

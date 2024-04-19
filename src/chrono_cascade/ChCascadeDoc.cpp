@@ -88,7 +88,7 @@ static bool recurse_CascadeDoc(TDF_Label label,
                                Handle(XCAFDoc_ShapeTool) & shapeTool,
                                TopLoc_Location& parentloc,
                                int level,
-                               ChCascadeDoc::callback_CascadeDoc& mcallback) {
+                               ChCascadeDoc::ScanShapesCallback& callback) {
     TDF_LabelSequence child_labels;
     Standard_Boolean is_assembly;
 
@@ -120,34 +120,33 @@ static bool recurse_CascadeDoc(TDF_Label label,
     TopoDS_Shape rShape;
     rShape = shapeTool->GetShape(label);
     if (!rShape.IsNull()) {
-        // === call the callback! ===
-        if (!mcallback.ForShape(rShape, absloc, mstring, level, label))
-            return false;  // (skip children recursion if returned false)
+        // execute the callback function
+        if (!callback.ForShape(rShape, absloc, mstring, level, label))
+            return false;  // skip children recursion
     }
 
-    // Recurse all children !!!
+    // Recurse all children
     if (is_assembly) {
         for (Standard_Integer j = 1; j <= child_labels.Length(); j++) {
             TDF_Label clabel = child_labels.Value(j);
-            recurse_CascadeDoc(clabel, shapeTool, absloc, (level + 1), mcallback);
+            recurse_CascadeDoc(clabel, shapeTool, absloc, (level + 1), callback);
         }
     }
 
-    // If it is a reference, Recurse all children of reference
+    // If it is a reference, recurse all children of reference
     if (isref) {
         TDF_LabelSequence refchild_labels;
-        Standard_Boolean refis_assembly;
-        refis_assembly = shapeTool->GetComponents(reflabel, refchild_labels, 0);
+        shapeTool->GetComponents(reflabel, refchild_labels, 0);
         for (Standard_Integer j = 1; j <= refchild_labels.Length(); j++) {
             TDF_Label clabel = refchild_labels.Value(j);
-            recurse_CascadeDoc(clabel, shapeTool, absloc, (level + 1), mcallback);
+            recurse_CascadeDoc(clabel, shapeTool, absloc, (level + 1), callback);
         }
     }
 
     return true;
 }
 
-void ChCascadeDoc::ScanCascadeShapes(callback_CascadeDoc& mcallback) {
+void ChCascadeDoc::ScanCascadeShapes(ScanShapesCallback& callback) {
     TopLoc_Location rootloc;
     rootloc.Identity();
 
@@ -157,7 +156,7 @@ void ChCascadeDoc::ScanCascadeShapes(callback_CascadeDoc& mcallback) {
     for (Standard_Integer i = 1; i <= root_labels.Length(); i++) {
         TDF_Label label = root_labels.Value(i);
         int level = 0;
-        recurse_CascadeDoc(label, shapeTool, rootloc, level, mcallback);
+        recurse_CascadeDoc(label, shapeTool, rootloc, level, callback);
     }
 }
 
@@ -176,7 +175,7 @@ bool ChCascadeDoc::Load_STEP(const char* filename) {
     return false;
 }
 
-class callback_CascadeDoc_dump : public ChCascadeDoc::callback_CascadeDoc {
+class DumpShapesCallback : public ChCascadeDoc::ScanShapesCallback {
   public:
     virtual bool ForShape(TopoDS_Shape& mshape, TopLoc_Location& mloc, char* mname, int mlevel, TDF_Label& mlabel) {
         for (int i = 0; i < mlevel; i++)
@@ -201,8 +200,8 @@ class callback_CascadeDoc_dump : public ChCascadeDoc::callback_CascadeDoc {
 };
 
 void ChCascadeDoc::Dump(std::ostream& mstream) {
-    callback_CascadeDoc_dump adumper;
-    this->ScanCascadeShapes(adumper);
+    DumpShapesCallback dump;
+    this->ScanCascadeShapes(dump);
 }
 
 int wildcard_compare(const char* wildcard, const char* string) {
@@ -240,7 +239,7 @@ int wildcard_compare(const char* wildcard, const char* string) {
     return !*wildcard;
 }
 
-class callback_CascadeDoc_getnamed : public ChCascadeDoc::callback_CascadeDoc {
+class GetNamedShapesCallback : public ChCascadeDoc::ScanShapesCallback {
   public:
     char search_string[200];
 
@@ -258,8 +257,7 @@ class callback_CascadeDoc_getnamed : public ChCascadeDoc::callback_CascadeDoc {
     int res_level;
     TDF_Label res_label;
 
-    callback_CascadeDoc_getnamed(const char* name_with_path)
-        : res_found(false), set_location_to_root(true), res_level(0) {
+    GetNamedShapesCallback(const char* name_with_path) : res_found(false), set_location_to_root(true), res_level(0) {
         aBuilder.MakeCompound(res_comp);
 
         strcpy(search_string, name_with_path);
@@ -337,15 +335,15 @@ class callback_CascadeDoc_getnamed : public ChCascadeDoc::callback_CascadeDoc {
 };
 
 bool ChCascadeDoc::GetNamedShape(TopoDS_Shape& mshape, const char* name, bool set_location_to_root, bool get_multiple) {
-    callback_CascadeDoc_getnamed aselector(name);
+    GetNamedShapesCallback selector(name);
 
-    this->ScanCascadeShapes(aselector);
+    this->ScanCascadeShapes(selector);
 
-    if (aselector.res_found) {
+    if (selector.res_found) {
         if (get_multiple)
-            mshape = aselector.res_comp;
+            mshape = selector.res_comp;
         else
-            mshape = aselector.res_shape;
+            mshape = selector.res_shape;
         return true;
     } else {
         mshape.Nullify();

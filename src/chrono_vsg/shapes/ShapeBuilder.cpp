@@ -52,6 +52,13 @@ vsg::ref_ptr<vsg::Group> ShapeBuilder::CreatePbrShape(vsg::ref_ptr<vsg::vec3Arra
                                                       bool wireframe) {
     const uint32_t instanceCount = 1;
 
+    // apply texture scaling
+    for (size_t i = 0; i < texcoords->size(); i++) {
+        vsg::vec2 tx = texcoords->at(i);
+        tx = vsg::vec2(tx.x * material->GetTextureScale().x(), tx.y * material->GetTextureScale().y());
+        texcoords->set(i, tx);
+    }
+
     auto colors =
         vsg::vec4Array::create(vertices->size(), vsg::vec4CH(material->GetDiffuseColor(), material->GetOpacity()));
     auto scenegraph = vsg::Group::create();
@@ -94,41 +101,62 @@ vsg::ref_ptr<vsg::Group> ShapeBuilder::CreatePbrShape(ShapeType shape_type,
     vsg::ref_ptr<vsg::vec2Array> texcoords;
     vsg::ref_ptr<vsg::ushortArray> indices;
 
+    // Important:
+    // the unique texcoords cannot be used directly to allow individual scaling
+    // a copy is taken therefore
     switch (shape_type) {
         case ShapeType::BOX_SHAPE:
             vertices = m_box_data->vertices;
             normals = m_box_data->normals;
-            texcoords = m_box_data->texcoords;
+            texcoords = vsg::vec2Array::create(m_box_data->texcoords->size());
+            for (size_t i = 0; i < m_box_data->texcoords->size(); i++) {
+                texcoords->set(i, m_box_data->texcoords->at(i));
+            }
             indices = m_box_data->indices;
             break;
         case ShapeType::DIE_SHAPE:
             vertices = m_die_data->vertices;
             normals = m_die_data->normals;
-            texcoords = m_die_data->texcoords;
+            texcoords = vsg::vec2Array::create(m_die_data->texcoords->size());
+            for (size_t i = 0; i < m_die_data->texcoords->size(); i++) {
+                texcoords->set(i, m_die_data->texcoords->at(i));
+            }
             indices = m_die_data->indices;
             break;
         case ShapeType::SPHERE_SHAPE:
             vertices = m_sphere_data->vertices;
             normals = m_sphere_data->normals;
-            texcoords = m_sphere_data->texcoords;
+            texcoords = vsg::vec2Array::create(m_sphere_data->texcoords->size());
+            for (size_t i = 0; i < m_sphere_data->texcoords->size(); i++) {
+                texcoords->set(i, m_sphere_data->texcoords->at(i));
+            }
             indices = m_sphere_data->indices;
             break;
         case ShapeType::CYLINDER_SHAPE:
             vertices = m_cylinder_data->vertices;
             normals = m_cylinder_data->normals;
-            texcoords = m_cylinder_data->texcoords;
+            texcoords = vsg::vec2Array::create(m_cylinder_data->texcoords->size());
+            for (size_t i = 0; i < m_cylinder_data->texcoords->size(); i++) {
+                texcoords->set(i, m_cylinder_data->texcoords->at(i));
+            }
             indices = m_cylinder_data->indices;
             break;
         case ShapeType::CAPSULE_SHAPE:
             vertices = m_capsule_data->vertices;
             normals = m_capsule_data->normals;
-            texcoords = m_capsule_data->texcoords;
+            texcoords = vsg::vec2Array::create(m_capsule_data->texcoords->size());
+            for (size_t i = 0; i < m_capsule_data->texcoords->size(); i++) {
+                texcoords->set(i, m_capsule_data->texcoords->at(i));
+            }
             indices = m_capsule_data->indices;
             break;
         case ShapeType::CONE_SHAPE:
             vertices = m_cone_data->vertices;
             normals = m_cone_data->normals;
-            texcoords = m_cone_data->texcoords;
+            texcoords = vsg::vec2Array::create(m_cone_data->texcoords->size());
+            for (size_t i = 0; i < m_cone_data->texcoords->size(); i++) {
+                texcoords->set(i, m_cone_data->texcoords->at(i));
+            }
             indices = m_cone_data->indices;
             break;
     }
@@ -232,7 +260,7 @@ vsg::ref_ptr<vsg::Group> ShapeBuilder::CreateTrimeshColShape(std::shared_ptr<ChV
         vsg_vertices->set(k, vsg::vec3CH(tmp_vertices[k]));
         vsg_normals->set(k, vsg::vec3CH(tmp_normals[k]));
         // seems to work with v-coordinate flipped on VSG
-        vsg_texcoords->set(k, vsg::vec2(tmp_texcoords[k].x(), 1 - tmp_texcoords[k].y()));
+        vsg_texcoords->set(k, vsg::vec2(tmp_texcoords[k].x(), tmp_texcoords[k].y()));
         vsg_colors->set(k, vsg::vec4CH(tmp_colors[k]));
         vsg_indices->set(k, (unsigned int)k);
     }
@@ -308,7 +336,7 @@ vsg::ref_ptr<vsg::Group> ShapeBuilder::CreateTrimeshColAvgShape(std::shared_ptr<
         vsg_vertices->set(k, vsg::vec3CH(vertices[k]));
         vsg_normals->set(k, normals_ok ? vsg::vec3CH(normals[k]) : vsg::vec3CH(avg_normals[k]));
         // seems to work with v-coordinate flipped on VSG (??)
-        vsg_texcoords->set(k, texcoords_ok ? vsg::vec2(uvs[k].x(), 1 - uvs[k].y()) : vsg::vec2CH({0, 0}));
+        vsg_texcoords->set(k, texcoords_ok ? vsg::vec2(uvs[k].x(), uvs[k].y()) : vsg::vec2CH({0, 0}));
         vsg_colors->set(k, colors_ok ? vsg::vec4CH(colors[k]) : vsg::vec4CH(default_color));
     }
     size_t kk = 0;
@@ -432,7 +460,9 @@ vsg::ref_ptr<vsg::Group> ShapeBuilder::CreateTrimeshPbrMatShape(std::shared_ptr<
         for (size_t k = 0; k < nVert; k++) {
             vsg_vertices->set(k, vsg::vec3CH(tmp_vertices[k]));
             vsg_normals->set(k, vsg::vec3CH(tmp_normals[k]));
-            vsg_texcoords->set(k, vsg::vec2(tmp_texcoords[k].x(), (1.0 - tmp_texcoords[k].y())));
+            // apply texture scale
+            vsg_texcoords->set(k, vsg::vec2(tmp_texcoords[k].x() * chronoMat->GetTextureScale().x(),
+                                            (1.0 - tmp_texcoords[k].y()) * chronoMat->GetTextureScale().y()));
             vsg_indices->set(k, (unsigned int)k);
         }
         auto colors = vsg::vec4Array::create(vsg_vertices->size(), vsg::vec4{1.0f, 1.0f, 1.0f, 1.0f});
@@ -804,9 +834,9 @@ ShapeBuilder::BoxShapeData::BoxShapeData() {
                                       {1, 0, 0},  {1, 0, 0},  {1, 0, 0},  {1, 0, 0},  {0, 0, -1}, {0, 0, -1},
                                       {0, 0, -1}, {0, 0, -1}, {0, 0, 1},  {0, 0, 1},  {0, 0, 1},  {0, 0, 1}});
 
-    texcoords = vsg::vec2Array::create({{0, 0}, {1, 0}, {1, 1}, {0, 1}, {0, 0}, {1, 0}, {1, 1}, {0, 1},
-                                        {0, 0}, {1, 0}, {1, 1}, {0, 1}, {0, 0}, {1, 0}, {1, 1}, {0, 1},
-                                        {0, 0}, {1, 0}, {1, 1}, {0, 1}, {0, 0}, {1, 0}, {1, 1}, {0, 1}});
+    texcoords = vsg::vec2Array::create({{0, 1}, {1, 1}, {1, 0}, {0, 0}, {0, 1}, {1, 1}, {1, 0}, {0, 0},
+                                        {0, 1}, {1, 1}, {1, 0}, {0, 0}, {0, 1}, {1, 1}, {1, 0}, {0, 0},
+                                        {0, 1}, {1, 1}, {1, 0}, {0, 0}, {0, 1}, {1, 1}, {1, 0}, {0, 0}});
 
     indices = vsg::ushortArray::create({0,  1,  2,  0,  2,  3,  4,  5,  6,  4,  6,  7,  8,  9,  10, 8,  10, 11,
                                         12, 13, 14, 12, 14, 15, 16, 17, 18, 16, 18, 19, 20, 21, 22, 20, 22, 23});
@@ -867,9 +897,7 @@ ShapeBuilder::SphereShapeData::SphereShapeData(int num_divs) {
             vertices->set(v, vsg::vec3CH(vertex));
             normals->set(v, vsg::vec3CH(vertex.GetNormalized()));
 
-            double utex = 1 - phi / CH_2PI;
-            double vtex = theta / CH_PI;
-            ChVector2d t(utex, vtex);
+            ChVector2d t(phi / CH_2PI, theta / CH_PI);
             texcoords->set(v, vsg::vec2CH(t));
 
             v++;
@@ -938,17 +966,17 @@ ShapeBuilder::CylinderShapeData::CylinderShapeData(int num_divs) {
         auto phi = iPhi * dPhi;
         double x = r * cos(phi);
         double y = -r * sin(phi);
-        double utex = 1 - phi / CH_2PI;
-
-        // bottom vertices
-        vertices->set(v, vsg::vec3(x, y, -h));
-        normals->set(v, vsg::vec3(x, y, 0));
-        texcoords->set(v, vsg::vec2(utex, 0));
+        double utex = 1 - phi / CH_PI;
 
         // top vertices
         vertices->set(nPhi + 1 + v, vsg::vec3(x, y, +h));
         normals->set(nPhi + 1 + v, vsg::vec3(x, y, 0));
-        texcoords->set(nPhi + 1 + v, vsg::vec2(utex, 1));
+        texcoords->set(nPhi + 1 + v, vsg::vec2(utex, 0));
+
+        // bottom vertices
+        vertices->set(v, vsg::vec3(x, y, -h));
+        normals->set(v, vsg::vec3(x, y, 0));
+        texcoords->set(v, vsg::vec2(utex, h / (2 * r)));
 
         v++;
     }
@@ -977,8 +1005,8 @@ ShapeBuilder::CylinderShapeData::CylinderShapeData(int num_divs) {
         auto phi = iPhi * dPhi;
         double x = r * cos(phi);
         double y = -r * sin(phi);
-        double utex = (cos(phi) + 1) / 2;
-        double vtex = (sin(phi) + 1) / 2;
+        double utex = (sin(phi) + 1) / 2;
+        double vtex = (cos(phi) + 1) / 2;
 
         // bottom vertices
         vertices->set(v, vsg::vec3(x, y, -h));
@@ -1064,19 +1092,19 @@ ShapeBuilder::ConeShapeData::ConeShapeData(int num_divs) {
         auto phi = iPhi * dPhi;
         double x = r * cos(phi);
         double y = -r * sin(phi);
-        double utex = 1 - phi / CH_2PI;
+        double utex = 1 - (iPhi * 1.0) / nPhi;
 
         auto normal = ChVector3d(x, y, r * r / h).GetNormalized();
 
         // bottom vertices
         vertices->set(v, vsg::vec3(x, y, 0));
         normals->set(v, vsg::vec3CH(normal));
-        texcoords->set(v, vsg::vec2(utex, 0));
+        texcoords->set(v, vsg::vec2(utex, 1));
 
         // top vertices (all at cone apex)
         vertices->set(nPhi + 1 + v, vsg::vec3(0, 0, h));
         normals->set(nPhi + 1 + v, vsg::vec3CH(normal));
-        texcoords->set(nPhi + 1 + v, vsg::vec2(utex, 1));
+        texcoords->set(nPhi + 1 + v, vsg::vec2(utex, 0));
 
         v++;
     }
@@ -1100,8 +1128,8 @@ ShapeBuilder::ConeShapeData::ConeShapeData(int num_divs) {
         auto phi = iPhi * dPhi;
         double x = r * cos(phi);
         double y = -r * sin(phi);
-        double utex = (cos(phi) + 1) / 2;
-        double vtex = (sin(phi) + 1) / 2;
+        double utex = (sin(phi) + 1) / CH_2PI;
+        double vtex = (cos(phi) + 1) / CH_2PI;
 
         // bottom vertices
         vertices->set(v, vsg::vec3(x, y, 0));
@@ -1172,15 +1200,15 @@ ShapeBuilder::CapsuleShapeData::CapsuleShapeData(int num_divs) {
         double y = -r * sin(phi);
         double utex = 1 - phi / CH_2PI;
 
-        // bottom vertices
-        vertices->set(v, vsg::vec3(x, y, -h));
-        normals->set(v, vsg::vec3(x, y, 0));
-        texcoords->set(v, vsg::vec2(utex, 0));
-
         // top vertices
         vertices->set(nPhi + 1 + v, vsg::vec3(x, y, +h));
         normals->set(nPhi + 1 + v, vsg::vec3(x, y, 0));
-        texcoords->set(nPhi + 1 + v, vsg::vec2(utex, 1));
+        texcoords->set(nPhi + 1 + v, vsg::vec2(utex, 0));
+
+        // bottom vertices
+        vertices->set(v, vsg::vec3(x, y, -h));
+        normals->set(v, vsg::vec3(x, y, 0));
+        texcoords->set(v, vsg::vec2(utex, 1));
 
         v++;
     }
@@ -1218,8 +1246,8 @@ ShapeBuilder::CapsuleShapeData::CapsuleShapeData(int num_divs) {
             vertices->set(v, vsg::vec3CH(vertex + ChVector3d(0, 0, h)));
             normals->set(v, vsg::vec3CH(vertex.GetNormalized()));
 
-            double utex = 1 - phi / CH_2PI;
-            double vtex = theta / CH_PI;
+            double utex = phi / CH_2PI;
+            double vtex = 1 - theta / CH_PI;
             ChVector2d t(utex, vtex);
             texcoords->set(v, vsg::vec2CH(t));
 
@@ -1265,8 +1293,8 @@ ShapeBuilder::CapsuleShapeData::CapsuleShapeData(int num_divs) {
             vertices->set(v, vsg::vec3CH(vertex + ChVector3d(0, 0, -h)));
             normals->set(v, vsg::vec3CH(vertex.GetNormalized()));
 
-            double utex = 1 - phi / CH_2PI;
-            double vtex = theta / CH_PI;
+            double utex = phi / CH_2PI;
+            double vtex = 1 - theta / CH_PI;
             ChVector2d t(utex, vtex);
             texcoords->set(v, vsg::vec2CH(t));
 

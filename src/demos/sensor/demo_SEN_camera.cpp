@@ -135,7 +135,7 @@ int main(int argc, char* argv[]) {
     floor->SetFixed(true);
     sys.Add(floor);
     {
-        auto shape = floor->GetVisualModel()->GetShapes()[0].first;
+        auto shape = floor->GetVisualModel()->GetShapeInstances()[0].first;
         if (shape->GetNumMaterials() == 0) {
             shape->AddMaterial(vis_mat3);
         } else {
@@ -157,7 +157,7 @@ int main(int argc, char* argv[]) {
     box_body->SetFixed(true);
     sys.Add(box_body);
     {
-        auto shape = box_body->GetVisualModel()->GetShapes()[0].first;
+        auto shape = box_body->GetVisualModel()->GetShapeInstances()[0].first;
         if (shape->GetNumMaterials() == 0) {
             shape->AddMaterial(vis_mat);
         } else {
@@ -179,7 +179,7 @@ int main(int argc, char* argv[]) {
     sphere_body->SetFixed(true);
     sys.Add(sphere_body);
     {
-        auto shape = sphere_body->GetVisualModel()->GetShapes()[0].first;
+        auto shape = sphere_body->GetVisualModel()->GetShapeInstances()[0].first;
         if (shape->GetNumMaterials() == 0) {
             shape->AddMaterial(vis_mat2);
         } else {
@@ -201,7 +201,7 @@ int main(int argc, char* argv[]) {
     cyl_body->SetFixed(true);
     sys.Add(cyl_body);
     {
-        auto shape = cyl_body->GetVisualModel()->GetShapes()[0].first;
+        auto shape = cyl_body->GetVisualModel()->GetShapeInstances()[0].first;
         if (shape->GetNumMaterials() == 0) {
             shape->AddMaterial(vis_mat4);
         } else {
@@ -419,7 +419,6 @@ int main(int argc, char* argv[]) {
         depth_ptr = depth->GetMostRecentBuffer<UserDepthBufferPtr>();
         if (depth_ptr->Buffer) {
             // Print max depth values
-            float min_depth = depth_ptr->Buffer[0].depth;
             float max_depth = depth_ptr->Buffer[0].depth;
             for (int i = 0; i < depth_ptr->Height * depth_ptr->Width; i++) {
                 max_depth = std::max(max_depth, depth_ptr->Buffer[i].depth);

@@ -18,6 +18,7 @@
 // =============================================================================
 
 #include <cmath>
+#include <iomanip>
 
 #include "chrono/ChConfig.h"
 
@@ -53,7 +54,9 @@ using namespace chrono;
 // -----------------------------------------------------------------------------
 
 ChVisualSystem::Type vis_type = ChVisualSystem::Type::VSG;
-std::string out_dir = GetChronoOutputPath() + "DEMO_HYDRAULIC_CRANE";
+
+bool save_img = false;
+double fps = 60;
 
 // -----------------------------------------------------------------------------
 
@@ -61,8 +64,14 @@ int main(int argc, char* argv[]) {
     std::cout << "Copyright (c) 2023 projectchrono.org\nChrono version: " << CHRONO_VERSION << std::endl;
 
     // Create (if needed) output directory
+    std::string out_dir = GetChronoOutputPath() + "DEMO_HYDRAULIC_CRANE";
     if (!filesystem::create_directory(filesystem::path(out_dir))) {
         std::cout << "Error creating directory " << out_dir << std::endl;
+        return 1;
+    }
+    std::string img_dir = out_dir + "/img";
+    if (!filesystem::create_directory(filesystem::path(img_dir))) {
+        std::cout << "Error creating directory " << img_dir << std::endl;
         return 1;
     }
 
@@ -181,7 +190,7 @@ int main(int argc, char* argv[]) {
             vis_vsg->AttachSystem(&sys);
             vis_vsg->SetWindowTitle("Hydraulic actuator demo");
             vis_vsg->SetCameraVertical(CameraVerticalDir::Z);
-            vis_vsg->AddCamera(ChVector3d(0.5, -2, 0.5), ChVector3d(0.5, 0, 0.5));
+            vis_vsg->AddCamera(ChVector3d(0.3, -2, 0.5), ChVector3d(0.3, 0, 0.5));
             vis_vsg->SetWindowSize(ChVector2i(800, 600));
             vis_vsg->SetWindowPosition(ChVector2i(100, 100));
             vis_vsg->SetClearColor(ChColor(0.8f, 0.85f, 0.9f));
@@ -219,9 +228,11 @@ int main(int argc, char* argv[]) {
     integrator->SetAbsTolerances(1e-4, 1e2);
 
     // Simulation loop
-    double t_end = 100;
+    double t_end = 20;
     double t_step = 5e-4;
     double t = 0;
+
+    int render_frame = 0;
 
     Eigen::IOFormat rowFmt(Eigen::StreamPrecision, Eigen::DontAlignCols, "  ", "  ", "", "", "", "");
     utils::ChWriterCSV csv(" ");
@@ -233,6 +244,13 @@ int main(int argc, char* argv[]) {
         vis->BeginScene();
         vis->Render();
         vis->EndScene();
+
+        if (save_img && t >= render_frame / fps) {
+            std::ostringstream filename;
+            filename << img_dir << "/img_" << std::setw(4) << std::setfill('0') << render_frame + 1 << ".bmp";
+            vis->WriteImageToFile(filename.str());
+            render_frame++;
+        }
 
         sys.DoStepDynamics(t_step);
         auto Uref = actuation->GetVal(t);

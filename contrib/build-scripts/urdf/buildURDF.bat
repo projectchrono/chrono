@@ -51,8 +51,7 @@ if "%~1" NEQ "" (
     set URDFDOM_HEADERS_SOURCE_DIR="download_urdf/urdfdom_headers"
 
     echo "  ... urdfdom"
-    git clone -c advice.detachedHead=false --depth 1 --branch scpeters/tinyxml2 "https://github.com/rserban/urdfdom.git" "download_urdf/urdfdom"
-    @rem git clone "https://github.com/ros/urdfdom.git" "download_urdf/urdfdom"
+    git clone "https://github.com/ros/urdfdom.git" "download_urdf/urdfdom"
     set URDFDOM_SOURCE_DIR="download_urdf/urdfdom"
 ) else (
     echo "Using provided source directories"
@@ -120,7 +119,6 @@ rmdir /S/Q build_urdfdom 2>nul
 cmake -B build_urdfdom -S %URDFDOM_SOURCE_DIR% ^
       -DCMAKE_DEBUG_POSTFIX=_d ^
       -DCMAKE_RELWITHDEBINFO_POSTFIX=_rd ^
-      -DDISABLE_TINYXML_SUPPORT:BOOL=ON ^
       -Dtinyxml2_DIR:PATH=%URDF_INSTALL_DIR%/CMake ^
       -Dconsole_bridge_DIR:PATH=%URDF_INSTALL_DIR%/CMake ^
       -Durdfdom_headers_DIR:PATH=%URDF_INSTALL_DIR%/CMake

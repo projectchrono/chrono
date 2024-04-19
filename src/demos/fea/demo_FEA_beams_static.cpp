@@ -34,9 +34,6 @@ using namespace chrono;
 using namespace chrono::fea;
 using namespace chrono::irrlicht;
 
-// Output directory
-const std::string out_dir = GetChronoOutputPath() + "BEAM_STATICS";
-
 int main(int argc, char* argv[]) {
     std::cout << "Copyright (c) 2017 projectchrono.org\nChrono version: " << CHRONO_VERSION << std::endl;
 
@@ -168,6 +165,7 @@ int main(int argc, char* argv[]) {
     sys.DoStaticNonlinear(20, true);
 
     // Output data
+    const std::string out_dir = GetChronoOutputPath() + "BEAM_STATICS";
     if (!filesystem::create_directory(filesystem::path(out_dir))) {
         std::cout << "Error creating directory " << out_dir << std::endl;
         return 1;

@@ -420,8 +420,8 @@ void ChLoadBodyBodyBushingSpherical::ComputeBodyBodyForceTorque(const ChFrameMov
 ChLoadBodyBodyBushingPlastic::ChLoadBodyBodyBushingPlastic(std::shared_ptr<ChBody> bodyA,
                                                            std::shared_ptr<ChBody> bodyB,
                                                            const ChFrame<>& abs_application,
-                                                           const ChVector3d& mstiffness,
-                                                           const ChVector3d& mdamping,
+                                                           const ChVector3d& stiffness,
+                                                           const ChVector3d& damping,
                                                            const ChVector3d& plastic_yield)
     : ChLoadBodyBodyBushingSpherical(bodyA, bodyB, abs_application, stiffness, damping),
       yield(plastic_yield),
@@ -509,8 +509,8 @@ void ChLoadBodyBodyBushingMate::ComputeBodyBodyForceTorque(const ChFrameMoving<>
 ChLoadBodyBodyBushingGeneric::ChLoadBodyBodyBushingGeneric(std::shared_ptr<ChBody> bodyA,
                                                            std::shared_ptr<ChBody> bodyB,
                                                            const ChFrame<>& abs_application,
-                                                           ChMatrixConstRef stiffness66,
-                                                           ChMatrixConstRef damping66)
+                                                           const ChMatrix66d& stiffness66,
+                                                           const ChMatrix66d& damping66)
     : ChLoadBodyBody(bodyA, bodyB, abs_application), stiffness(stiffness66), damping(damping66) {}
 
 void ChLoadBodyBodyBushingGeneric::ComputeBodyBodyForceTorque(const ChFrameMoving<>& rel_AB,

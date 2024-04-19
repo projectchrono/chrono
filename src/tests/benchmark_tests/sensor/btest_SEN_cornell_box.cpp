@@ -144,31 +144,31 @@ int main(int argc, char* argv[]) {
     // floor->SetPos({0, 0, 0});
     // floor->SetFixed(true);
     // sys.Add(floor);
-    // floor->GetVisualModel()->GetShapes()[0].first->AddMaterial(grey);
+    // floor->GetVisualModel()->GetShapeInstances()[0].first->AddMaterial(grey);
 
     // auto ceiling = chrono_types::make_shared<ChBodyEasyBox>(4, 4, .1, 1000, true, false);
     // ceiling->SetPos({0, 0, 4});
     // ceiling->SetFixed(true);
     // sys.Add(ceiling);
-    // ceiling->GetVisualModel()->GetShapes()[0].first->AddMaterial(grey);
+    // ceiling->GetVisualModel()->GetShapeInstances()[0].first->AddMaterial(grey);
 
     // auto left_wall = chrono_types::make_shared<ChBodyEasyBox>(4, .1, 4, 1000, true, false);
     // left_wall->SetPos({0, 2, 2});
     // left_wall->SetFixed(true);
     // sys.Add(left_wall);
-    // left_wall->GetVisualModel()->GetShapes()[0].first->AddMaterial(red);
+    // left_wall->GetVisualModel()->GetShapeInstances()[0].first->AddMaterial(red);
 
     // auto right_wall = chrono_types::make_shared<ChBodyEasyBox>(4, .1, 4, 1000, true, false);
     // right_wall->SetPos({0, -2, 2});
     // right_wall->SetFixed(true);
     // sys.Add(right_wall);
-    // right_wall->GetVisualModel()->GetShapes()[0].first->AddMaterial(green);
+    // right_wall->GetVisualModel()->GetShapeInstances()[0].first->AddMaterial(green);
 
     // auto back_wall = chrono_types::make_shared<ChBodyEasyBox>(.1, 4, 4, 1000, true, false);
     // back_wall->SetPos({2, 0, 2});
     // back_wall->SetFixed(true);
     // sys.Add(back_wall);
-    // back_wall->GetVisualModel()->GetShapes()[0].first->AddMaterial(grey);
+    // back_wall->GetVisualModel()->GetShapeInstances()[0].first->AddMaterial(grey);
 
     // double box1_height = 2.5;
     // auto box1 = chrono_types::make_shared<ChBodyEasyBox>(1, 1, box1_height, 1000, true, false);
@@ -176,7 +176,7 @@ int main(int argc, char* argv[]) {
     // box1->SetRot(QuatFromAngleZ(CH_PI / 3));
     // box1->SetFixed(true);
     // sys.Add(box1);
-    // box1->GetVisualModel()->GetShapes()[0].first->AddMaterial(grey);
+    // box1->GetVisualModel()->GetShapeInstances()[0].first->AddMaterial(grey);
 
     // double box2_height = 1.5;
     // auto box2 = chrono_types::make_shared<ChBodyEasyBox>(1, 1, box2_height, 1000, true, false);
@@ -184,7 +184,7 @@ int main(int argc, char* argv[]) {
     // box2->SetRot(QuatFromAngleZ(-CH_PI / 3));
     // box2->SetFixed(true);
     // sys.Add(box2);
-    // box2->GetVisualModel()->GetShapes()[0].first->AddMaterial(grey);
+    // box2->GetVisualModel()->GetShapeInstances()[0].first->AddMaterial(grey);
 
     // -----------------------
     // Create a sensor manager
