@@ -30,12 +30,14 @@
 #endif
 
 #include "chrono/physics/ChSystemNSC.h"
+#include "chrono/physics/ChSystemSMC.h"
 #include "chrono/physics/ChLoadContainer.h"
 #include "chrono/physics/ChLoadsBody.h"
 #include "chrono/core/ChRealtimeStep.h"
 #include "chrono/assets/ChVisualShapeSphere.h"
 #include "chrono/assets/ChVisualShapeBox.h"
 #include "chrono/assets/ChVisualShapeCylinder.h"
+#include "chrono/solver/ChDirectSolverLS.h"
 
 #include "chrono_opengl/ChVisualSystemOpenGL.h"
 
@@ -184,9 +186,16 @@ int main(int argc, char* argv[]) {
     double travel_dist = 2;
     double switch_period = 20;
 
+    // Solver options
+    // --------------
+
+    // use_directLS = false: use default EULER_IMPLICIT_LINEARIZED timestepper with PSOR VI solver
+    // use_directLS = true:  use EULER_IMPLICIT timestepper with SparseQR solver 
+    bool use_directLS = false;
+
     // Create the Chrono physical sys
     // ---------------------------------
-    ChSystemNSC sys;
+    ChSystemSMC sys;
 
     // Create the ground body
     // ----------------------
@@ -260,6 +269,19 @@ int main(int argc, char* argv[]) {
     vis.Initialize();
     vis.AddCamera(ChVector3d(0, 0, 5), ChVector3d(0, 0, 0));
     vis.SetCameraVertical(CameraVerticalDir::Y);
+
+    // (Optional) change solver and integrator
+    // ---------------------------------------
+
+    if (use_directLS) {
+        auto solver = chrono_types::make_shared<ChSolverSparseQR>();
+        sys.SetSolver(solver);
+        solver->UseSparsityPatternLearner(true);
+        solver->LockSparsityPattern(true);
+        solver->SetVerbose(false);
+
+        sys.SetTimestepperType(ChTimestepper::Type::EULER_IMPLICIT);
+    }
 
     // Simulation loop
     // ---------------
