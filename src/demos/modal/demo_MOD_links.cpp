@@ -50,9 +50,10 @@ constexpr double time_length = 20;
 
 constexpr bool RUN_ORIGIN = true;
 constexpr bool RUN_MODAL = true;
-constexpr bool ROTATING_BEAM = false;
-constexpr bool APPLY_FORCE = true;
-constexpr bool USE_HERTING = true;
+constexpr bool ROTATING_BEAM = true;
+constexpr bool APPLY_FORCE_BOUNDARY = false;
+constexpr bool APPLY_FORCE_INTERNAL = true;
+constexpr bool USE_HERTING = false;
 
 constexpr bool ADD_BB = true;
 constexpr bool ADD_BI = true;
@@ -118,6 +119,7 @@ void MakeAndRunDemo_Links(bool do_modal_reduction, ChMatrixDynamic<>& res) {
 
     auto modal_assembly = chrono_types::make_shared<ChModalAssembly>();
     modal_assembly->SetUseLinearInertialTerm(USE_LINEAR_INERTIAL_TERM);
+    modal_assembly->SetUseStaticCorrection(true);
     if (USE_HERTING)
         modal_assembly->SetReductionType(chrono::modal::ChModalAssembly::ReductionType::HERTING);
     else
@@ -165,8 +167,8 @@ void MakeAndRunDemo_Links(bool do_modal_reduction, ChMatrixDynamic<>& res) {
     auto mid_node = std::dynamic_pointer_cast<ChNodeFEAxyzrot>(builder.GetLastBeamNodes().at(n_elements / 2));
     auto my_body_II = chrono_types::make_shared<ChBodyEasyBox>(0.02, 0.05, 0.03, 2000);
     my_body_II->SetMass(0.2222);
-    // my_body_II->SetPos(ChVector3d(beam_L * 0.65, -0.2, beam_L * 0.01));
-    my_body_II->SetPos(mid_node->GetPos());
+    my_body_II->SetPos(ChVector3d(beam_L * 0.65, -0.2, beam_L * 0.01));
+    // my_body_II->SetPos(mid_node->GetPos());
     if (ADD_II)
         modal_assembly->AddInternal(my_body_II);
     auto my_constr_II = chrono_types::make_shared<ChLinkMateFix>();
@@ -178,8 +180,8 @@ void MakeAndRunDemo_Links(bool do_modal_reduction, ChMatrixDynamic<>& res) {
     // link: boundary - boundary
     auto my_body_BB = chrono_types::make_shared<ChBodyEasyBox>(0.05, 0.05, 0.05, 2000);
     my_body_BB->SetMass(0.3333);
-    // my_body_BB->SetPos(ChVector3d(beam_L * 1.13, 0.14, beam_L * 0.02));
-    my_body_BB->SetPos(my_tip_node->GetPos());
+    my_body_BB->SetPos(ChVector3d(beam_L * 1.13, 0.14, beam_L * 0.02));
+    // my_body_BB->SetPos(my_tip_node->GetPos());
     if (ADD_BB)
         modal_assembly->Add(my_body_BB);
     auto my_constr_BB = chrono_types::make_shared<ChLinkMateFix>();
@@ -189,15 +191,15 @@ void MakeAndRunDemo_Links(bool do_modal_reduction, ChMatrixDynamic<>& res) {
         modal_assembly->Add(my_constr_BB);
 
     // link: boundary - internal
-    auto node_int2 = std::dynamic_pointer_cast<ChNodeFEAxyzrot>(builder.GetLastBeamNodes().at(n_elements / 2 + 2));
+    auto node_int_b = std::dynamic_pointer_cast<ChNodeFEAxyzrot>(builder.GetLastBeamNodes().at(n_elements / 2 + 2));
     auto my_body_BI = chrono_types::make_shared<ChBodyEasyBox>(0.05, 0.01, 0.03, 2000);
     my_body_BI->SetMass(0.4444);
-    // my_body_BI->SetPos(ChVector3d(beam_L * 0.85, 0.06, -beam_L * 0.02));
-    my_body_BI->SetPos(node_int2->GetPos());
+    my_body_BI->SetPos(ChVector3d(beam_L * 0.85, 0.06, -beam_L * 0.02));
+    // my_body_BI->SetPos(node_int_b->GetPos());
     if (ADD_BI)
         modal_assembly->Add(my_body_BI);
     auto my_constr_BI = chrono_types::make_shared<ChLinkMateFix>();
-    my_constr_BI->Initialize(node_int2, my_body_BI);
+    my_constr_BI->Initialize(node_int_b, my_body_BI);
     my_constr_BI->SetName("Link_BI");
     if (ADD_BI)
         modal_assembly->AddInternal(my_constr_BI);
@@ -233,9 +235,10 @@ void MakeAndRunDemo_Links(bool do_modal_reduction, ChMatrixDynamic<>& res) {
         auto modes_settings = ChModalSolveUndamped(13, 1e-4, 500, 1e-10, false, eigen_solver);
 
         auto damping_beam = ChModalDampingReductionR(*modal_assembly);
-        // modal_assembly->SetVerbose(true);
-        modal_assembly->WriteSubassemblyMatrices(true, true, true, true, out_dir + "/modal_assembly");
+         modal_assembly->SetVerbose(true);
+        modal_assembly->WriteSubassemblyMatrices(true, true, true, true, out_dir + "/modal_assembly_full");
         modal_assembly->DoModalReduction(modes_settings, damping_beam);
+        modal_assembly->WriteSubassemblyMatrices(true, true, true, true, out_dir + "/modal_assembly_reduced");
     }
 
     // Do dynamics simulation
@@ -246,14 +249,14 @@ void MakeAndRunDemo_Links(bool do_modal_reduction, ChMatrixDynamic<>& res) {
     if (hht_stepper != nullptr) {
         // hht_stepper->SetVerbose(false);
         hht_stepper->SetStepControl(false);
-        // hht_stepper->SetRelTolerance(1e-4);
-        // hht_stepper->SetAbsTolerances(1e-6);
+        // hht_stepper->SetRelTolerance(1e-6);
+        // hht_stepper->SetAbsTolerances(1e-12);
         // hht_stepper->SetAlpha(-0.2);
         // hht_stepper->SetModifiedNewton(false);
-        // hht_stepper->SetMaxiters(20);
+        // hht_stepper->SetMaxIters(20);
     }
 
-    double omega = 2.0;
+    double omega = 1.0;
     double T = 15.0;
 
     int Nframes = (int)(time_length / time_step);
@@ -276,16 +279,30 @@ void MakeAndRunDemo_Links(bool do_modal_reduction, ChMatrixDynamic<>& res) {
         }
 
         // Add a force to generate vibration
-        if (APPLY_FORCE) {
-            auto node_int1 =
-                std::dynamic_pointer_cast<ChNodeFEAxyzrot>(builder.GetLastBeamNodes().at(n_elements / 2 - 1));
-
+        if (APPLY_FORCE_BOUNDARY) {
             if (sys.GetChTime() < 5.5) {
-                node_int1->SetForce(node_int1->GetRot().Rotate(ChVector3d(0, 0, 0.6)));
-                node_int1->SetTorque(ChVector3d(0, 0, 2.3));
+                my_tip_node->SetForce(my_tip_node->GetRot().Rotate(ChVector3d(0, 0, 0.3)));
+                my_tip_node->SetTorque(ChVector3d(0, 0, 1.2));
             } else {
-                node_int1->SetForce(ChVector3d(0, 0, 0));
-                node_int1->SetTorque(ChVector3d(0, 0, 0));
+                my_tip_node->SetForce(ChVector3d(0, 0, 0));
+                my_tip_node->SetTorque(ChVector3d(0, 0, 0));
+            }
+        }
+        if (APPLY_FORCE_INTERNAL) {
+            if (sys.GetChTime() < 100) {
+                double t0 = sys.GetChTime();
+                auto node_int1 =
+                    std::dynamic_pointer_cast<ChNodeFEAxyzrot>(builder.GetLastBeamNodes().at(n_elements / 2 - 1));
+                node_int1->SetForce(
+                    node_int1->GetRot().Rotate(ChVector3d(0, 0, 0.17 * sin(t0) * (1.0 + cos(3.8 * t0)))));
+                node_int1->SetTorque(ChVector3d(0, 0, 0.23 * cos(t0) * (1.3 - sin(2 * t0))));
+                // node_int1->SetForce(node_int1->GetRot().Rotate(ChVector3d(0, 0, 0.46*sin(t0))));
+                // node_int1->SetTorque(ChVector3d(0, 0, 0.79*cos(t0)));
+            } else {
+                for (auto& node_int : builder.GetLastBeamNodes()) {
+                    node_int->SetForce(ChVector3d(0, 0, 0));
+                    node_int->SetTorque(ChVector3d(0, 0, 0));
+                }
             }
         }
 
@@ -320,35 +337,33 @@ void MakeAndRunDemo_Links(bool do_modal_reduction, ChMatrixDynamic<>& res) {
             res(frame, 18) = my_constr_II->GetReaction2().torque.y();
             res(frame, 19) = my_constr_II->GetReaction2().torque.z();
         }
+
         // positions of bodies connected with links
-        // res(frame, 2) = my_body_BB->GetPos().x();
-        // res(frame, 3) = my_body_BB->GetPos().y();
-        // res(frame, 4) = my_body_BB->GetPos().z();
-        // res(frame, 5) = my_body_BB->GetRot().GetRotVec().x();
-        // res(frame, 6) = my_body_BB->GetRot().GetRotVec().y();
-        // res(frame, 7) = my_body_BB->GetRot().GetRotVec().z();
+        /*res(frame, 2) = my_body_BB->GetPos().x();
+        res(frame, 3) = my_body_BB->GetPos().y();
+        res(frame, 4) = my_body_BB->GetPos().z();
+        res(frame, 5) = my_body_BB->GetRot().GetRotVec().x();
+        res(frame, 6) = my_body_BB->GetRot().GetRotVec().y();
+        res(frame, 7) = my_body_BB->GetRot().GetRotVec().z();
 
-        // res(frame, 8) = my_body_BI->GetPos().x();
-        // res(frame, 9) = my_body_BI->GetPos().y();
-        // res(frame, 10) = my_body_BI->GetPos().z();
-        // res(frame, 11) = my_body_BI->GetRot().GetRotVec().x();
-        // res(frame, 12) = my_body_BI->GetRot().GetRotVec().y();
-        // res(frame, 13) = my_body_BI->GetRot().GetRotVec().z();
+        res(frame, 8) = my_body_BI->GetPos().x();
+        res(frame, 9) = my_body_BI->GetPos().y();
+        res(frame, 10) = my_body_BI->GetPos().z();
+        res(frame, 11) = my_body_BI->GetRot().GetRotVec().x();
+        res(frame, 12) = my_body_BI->GetRot().GetRotVec().y();
+        res(frame, 13) = my_body_BI->GetRot().GetRotVec().z();
 
-        // res(frame, 14) = my_body_II->GetPos().x();
-        // res(frame, 15) = my_body_II->GetPos().y();
-        // res(frame, 16) = my_body_II->GetPos().z();
-        // res(frame, 17) = my_body_II->GetRot().GetRotVec().x();
-        // res(frame, 18) = my_body_II->GetRot().GetRotVec().y();
-        // res(frame, 19) = my_body_II->GetRot().GetRotVec().z();
+        res(frame, 14) = my_body_II->GetPos().x();
+        res(frame, 15) = my_body_II->GetPos().y();
+        res(frame, 16) = my_body_II->GetPos().z();
+        res(frame, 17) = my_body_II->GetRot().GetRotVec().x();
+        res(frame, 18) = my_body_II->GetRot().GetRotVec().y();
+        res(frame, 19) = my_body_II->GetRot().GetRotVec().z();*/
 
         // residual of constraints
         res(frame, 20) = my_constr_BB->GetConstraintViolation().norm();
         res(frame, 21) = my_constr_BI->GetConstraintViolation().norm();
         res(frame, 22) = my_constr_II->GetConstraintViolation().norm();
-        // res.block(frame, 20, 1, 6) = my_constr_BB->GetConstraintViolation().transpose().segment(0, 6);
-        // res.block(frame, 26, 1, 6) = my_constr_BI->GetConstraintViolation().transpose().segment(0, 6);
-        // res.block(frame, 32, 1, 6) = my_constr_II->GetConstraintViolation().transpose().segment(0, 6);
 
         if (frame % itv_frame == 0) {
             std::cout << "t: " << sys.GetChTime() << "\t";
