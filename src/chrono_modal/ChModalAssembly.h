@@ -121,10 +121,11 @@ class ChApiModal ChModalAssembly : public ChAssembly {
     /// When some external forces are imposed on the internal bodies and nodes, the static correction is important to
     /// obtain a reasonable accurary of the elastic deformation and internal forces of finite elements, and
     /// reaction forces of constriants in the modal assembly. In this case, it is strongly recommended to set true.
-    void SetUseStaticCorrection(bool flag) { this->m_num_coords_static_correction = flag ? 1 : 0; }
+    /// Note: only available to SetUseStaticCorrection(true) when m_internal_nodes_update = true.
+    void SetUseStaticCorrection(bool flag);
 
     ///  Get the flag whether the static correction is used.
-    bool GetUsetStaticCorrection() { return static_cast<bool>(this->m_num_coords_static_correction); }
+    bool GetUsetStaticCorrection() { return static_cast<bool>(m_num_coords_static_correction); }
 
     /// A rigorous mathematical manipulation can be employed to derive the inertial forces and the consequent inertial
     /// damping matrix, or a linear assumption is applied to obtain quite concise expressions.
@@ -154,7 +155,7 @@ class ChApiModal ChModalAssembly : public ChAssembly {
     /// Optimization flag. Default true: when in modal reduced mode, during simulations the internal (discarded)
     /// nodes are updated anyway by superposition of modal shapes etc., for visualization or postprocessing purposes.
     /// In sake of high CPU performance, if no interest in visualization/postprocessing, one can disable this by setting
-    /// to false.
+    /// to false, then automatically set m_num_coords_static_correction = 0 to disable the static correction mode.
     void SetInternalNodesUpdate(bool flag);
 
     /// If true, as by default, this modal assembly will add automatically a gravity load

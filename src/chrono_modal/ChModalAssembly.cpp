@@ -76,6 +76,19 @@ void ChModalAssembly::FlagModelAsReduced() {
     Setup();
 }
 
+void ChModalAssembly::SetUseStaticCorrection(bool flag) {
+    if (m_internal_nodes_update)
+        m_num_coords_static_correction = flag ? 1 : 0;
+    else  // if internal nodes are not required to update
+        m_num_coords_static_correction = 0;
+}
+
+void ChModalAssembly::SetInternalNodesUpdate(bool flag) {
+    m_internal_nodes_update = flag;
+    if (!m_internal_nodes_update)
+        m_num_coords_static_correction = 0;  // disable the static correction mode
+}
+
 // Note: implement this as a friend function (instead of a member function swap(ChModalAssembly& other)) so that other
 // classes that have a ChModalAssembly member (currently only ChSystem) could use it, the same way we use std::swap
 // here.
@@ -501,8 +514,12 @@ void ChModalAssembly::UpdateTransformationMatrix() {
         ChQuaternion<> quat_bou = x_mod.segment(7 * i_bou + 3, 4);
         Uloc_B.block(6 * i_bou + 3, 3, 3, 3) = ChMatrix33<>(quat_bou.GetConjugate() * floating_frame_F.GetRot());
     }
-    //  rigid body modes of internal bodies and nodes
-    if (m_internal_nodes_update) {
+
+    //  rigid-body modes of internal bodies and nodes
+    if (m_internal_nodes_update  // if do not need to update internal nodes, Uloc_I is not required to update.
+        || (m_modal_reduction_type == ReductionType::HERTING &&
+            (!Uloc_I.nonZeros())))  // Uloc_I is used in Herting reduction transformation once
+    {
         Uloc_I.setZero(m_num_coords_vel_internal, 6);
         for (unsigned int i_int = 0; i_int < m_num_coords_vel_internal / 6; i_int++) {
             Uloc_I.block(6 * i_int, 0, 3, 3) = ChMatrix33<>(1.0);
@@ -1558,10 +1575,6 @@ void ChModalAssembly::SetFullStateReset() {
     this->IntStateScatter(0, m_full_state_x0, 0, assembly_v, fooT, true);
 
     this->Update();
-}
-
-void ChModalAssembly::SetInternalNodesUpdate(bool flag) {
-    m_internal_nodes_update = flag;
 }
 
 //---------------------------------------------------------------------------------------
