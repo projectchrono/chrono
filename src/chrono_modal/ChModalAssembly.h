@@ -50,8 +50,8 @@ class ChApiModal ChModalAssembly : public ChAssembly {
 
     /// Modal reduction methods.
     enum class ReductionType {
-        HERTING,       ///< free-free modes are used as the modal basis, more suitable for subsystems in free boundary
-                       ///< conditions, such as helicopter blades.
+        HERTING,       ///< free-free modes are used as the modal basis, more suitable for subsystems with free boundary
+                       ///< conditions, such as helicopter blades or wind turbine blades.
         CRAIG_BAMPTON  ///< clamped-clamped modes are used as the modal basis.
     };
 
@@ -93,8 +93,8 @@ class ChApiModal ChModalAssembly : public ChAssembly {
     /// - with an external FEA software, the full assembly is modeled with "boundary"+"internal" nodes.
     /// - with an external FEA software, the M mass matrix and the K stiffness matrix are saved to disk.
     /// - in Chrono, M and K and Cq constraint jacobians (if any) are load from disk and stored in ChSparseMatrix
-    /// objects
-    /// - in Chrono, only boundary nodes are added to a ChModalAssembly
+    /// objects.
+    /// - in Chrono, only boundary nodes are added to a ChModalAssembly.
     /// - in Chrono, run this function passing such M and K matrices: a modal analysis will be done on K and M
     /// Note that the size of M (and K) must be at least > m_num_coords_vel_boundary.
     void DoModalReduction(
@@ -128,9 +128,9 @@ class ChApiModal ChModalAssembly : public ChAssembly {
 
     /// A rigorous mathematical manipulation can be employed to derive the inertial forces and the consequent inertial
     /// damping matrix, or a linear assumption is applied to obtain quite concise expressions.
-    /// True: default option, the linear assumption is used.
-    /// False: rigorous deviation is used, only for internal test.
-    void SetUseLinearInertialTerm(bool flag) { this->m_use_linear_inertial_term = flag; }
+    ///  - True: default option, the linear assumption is used.
+    ///  - False: rigorous deviation is used, only for internal test.
+    void SetUseLinearInertialTerm(bool flag) { m_use_linear_inertial_term = flag; }
 
     /// For displaying modes, you can use the following function. It sets the state of this modal assembly
     /// (both boundary and internal items) using the n-th eigenvector multiplied by an "amplitude" factor * sin(phase).
@@ -186,10 +186,13 @@ class ChApiModal ChModalAssembly : public ChAssembly {
 
     /// Get the modal reduction transformation matrix 'Psi'.
     /// 'Psi' as in v_full = Psi * v_reduced,
-    /// also {v_boundary; v_internal} = Psi * {v_boundary; v_modes}
-    /// Hence Psi contains the "static modes" and the selected "dynamic modes",
-    /// as in Psi = [I, 0; Psi_s, Psi_d] where Psi_d is the matrix of the selected eigenvectors after
-    /// DoModalReduction().
+    /// also {v_boundary; v_internal} = Psi * {v_boundary; v_modes}.
+    /// Hence Psi contains the "static modes", the selected "dynamic modes" and the "static correction mode", as
+    /// Psi  = [ I               0               0               ]
+    ///        [ Psi_S           Psi_D           Psi_Cor         ]
+    ///        [ Psi_S_LambdaI   Psi_D_LambdaI   Psi_Cor_LambdaI ]
+    /// where Psi_D is the matrix of the selected eigenvectors after DoModalReduction(), Psi_Cor is the static
+    /// correction mode which depends on the external forces imposed on the internal bodies and nodes.
     const ChMatrixDynamic<>& GetModalReductionMatrix() const { return this->Psi; }
 
     /// Get the modal eigenvectors, if previously computed.
@@ -378,12 +381,11 @@ class ChApiModal ChModalAssembly : public ChAssembly {
     /// modal reduced state). Note that not all loads provide a jacobian, as this is optional in their implementation.
     void GetSubassemblyDampingMatrix(ChSparseMatrix* R);  ///< fill this system damping matrix
 
-    /// Compute the constraint Jacobian matrix of the modal assembly, i.e. the jacobian
-    /// Cq=-dC/dq where C are constraints (the lower left part of the KKT matrix).
-    /// Assumes the columns of the matrix are ordered as the ChVariable objects used in this modal assembly,
-    /// i.e. first the all the "boundary" variables then all the "internal" variables (or modal variables if switched to
-    /// modal reduced state), and assumes the rows of the matrix are ordered as the constraints used in this modal
-    /// assembly, i.e. first the boundary and then the internal.
+    /// Compute the constraint Jacobian matrix of the modal assembly, i.e. the jacobian Cq=-dC/dq where C are
+    /// constraints (the lower left part of the KKT matrix). Assumes the columns of the matrix are ordered as the
+    /// ChVariable objects used in this modal assembly, i.e. first the all the "boundary" variables then all the
+    /// "internal" variables (or modal variables if switched to modal reduced state), and assumes the rows of the matrix
+    /// are ordered as the constraints used in this modal assembly, i.e. first the boundary and then the internal.
     void GetSubassemblyConstraintJacobianMatrix(ChSparseMatrix* Cq);  ///< fill this system constraint Jacobian matrix
 
     // PHYSICS ITEM INTERFACE
@@ -548,7 +550,7 @@ class ChApiModal ChModalAssembly : public ChAssembly {
     /// Prepare sub-block matrices of M K R Cq in local frame of F
     void PartitionLocalSystemMatrices();
 
-    /// Update the static correction mode when SetUseStaticCorrection(true)
+    /// Update the static correction mode if SetUseStaticCorrection(true)
     /// in case of external forces imposed on the internal bodies and nodes
     void UpdateStaticCorrectionMode();
 
