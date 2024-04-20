@@ -20,6 +20,7 @@
 namespace chrono {
 
 using namespace fea;
+using namespace peridynamics;
 using namespace geometry;
 
 
@@ -148,7 +149,7 @@ void ChProximityContainerPeri::Update(double mytime, bool update_assets) {
 }
 
 
-void ChProximityContainerPeri::AddMatter(std::shared_ptr<fea::ChMatterPeriBase> mmatter) {
+void ChProximityContainerPeri::AddMatter(std::shared_ptr<ChMatterPeriBase> mmatter) {
         materials.push_back(mmatter);
         mmatter->SetContainer(this);
 }
@@ -196,7 +197,7 @@ void ChProximityContainerPeri::Fill(
 */
 
 void ChProximityContainerPeri::FillBox(
-        std::shared_ptr<fea::ChMatterPeriBase> mmatter, ///< matter to be used for this volume. Must be added too to this, via AddMatter(). 
+        std::shared_ptr<ChMatterPeriBase> mmatter, ///< matter to be used for this volume. Must be added too to this, via AddMatter(). 
         const ChVector<> size,         ///< x,y,z sizes of the box to fill (better if integer multiples of spacing)
         const double spacing,          ///< the spacing between two near nodes
         const double initial_density,  ///< density of the material inside the box, for initialization of node's masses

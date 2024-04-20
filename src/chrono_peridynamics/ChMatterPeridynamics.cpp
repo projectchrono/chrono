@@ -21,15 +21,16 @@
 #include "chrono_peridynamics/ChProximityContainerPeridynamics.h"
 
 namespace chrono {
-namespace fea {
 
+using namespace fea;
+using namespace peridynamics;
 using namespace geometry;
 
 // Register into the object factory, to enable run-time dynamic creation and persistence
 CH_FACTORY_REGISTER(ChMatterPeriSprings)
 
 
-ChNodePeri::ChNodePeri()
+    ChNodePeri::ChNodePeri()
     : volume(0.01), h_rad(0.2), coll_rad(0.0001) {
 
     SetMass(0.01);
@@ -66,27 +67,26 @@ void ChNodePeri::SetCollisionRadius(double mr) {
         mshape->SetSphereRadius(coll_rad, ChMax(0.0, aabb_rad - coll_rad));
 }
 
-void ChNodePeri::ContactForceLoadResidual_F(    const ChVector<>& F,
-                                                const ChVector<>& T,
-                                                const ChVector<>& abs_point,
-                                                ChVectorDynamic<>& R) {
-    R.segment(NodeGetOffsetW(),3) += F.eigen();
+void ChNodePeri::ContactForceLoadResidual_F(const ChVector<>& F,
+    const ChVector<>& T,
+    const ChVector<>& abs_point,
+    ChVectorDynamic<>& R) {
+    R.segment(NodeGetOffsetW(), 3) += F.eigen();
 }
 
-void ChNodePeri::ComputeJacobianForContactPart(    const ChVector<>& abs_point,
-                                                   ChMatrix33<>& contact_plane,
-                                                   ChContactable_1vars::type_constraint_tuple& jacobian_tuple_N,
-                                                   ChContactable_1vars::type_constraint_tuple& jacobian_tuple_U,
-                                                   ChContactable_1vars::type_constraint_tuple& jacobian_tuple_V,
-                                                   bool second) {
+void ChNodePeri::ComputeJacobianForContactPart(const ChVector<>& abs_point,
+    ChMatrix33<>& contact_plane,
+    ChContactable_1vars::type_constraint_tuple& jacobian_tuple_N,
+    ChContactable_1vars::type_constraint_tuple& jacobian_tuple_U,
+    ChContactable_1vars::type_constraint_tuple& jacobian_tuple_V,
+    bool second) {
     ChMatrix33<> Jx1 = contact_plane.transpose();
     if (!second)
         Jx1 *= -1;
 
-    jacobian_tuple_N.Get_Cq().segment(0,3) = Jx1.row(0);
-    jacobian_tuple_U.Get_Cq().segment(0,3) = Jx1.row(1);
-    jacobian_tuple_V.Get_Cq().segment(0,3) = Jx1.row(2);
+    jacobian_tuple_N.Get_Cq().segment(0, 3) = Jx1.row(0);
+    jacobian_tuple_U.Get_Cq().segment(0, 3) = Jx1.row(1);
+    jacobian_tuple_V.Get_Cq().segment(0, 3) = Jx1.row(2);
 }
 
-}  // end namespace fea
-}  // end namespace chrono
+} // end namespace chrono

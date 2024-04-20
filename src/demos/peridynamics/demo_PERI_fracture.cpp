@@ -34,12 +34,10 @@
 
 #include "chrono_postprocess/ChBlender.h"
 
-//#include <irrlicht.h>
 
 // Use the namespaces of Chrono
 
 using namespace chrono;
-using namespace fea;
 using namespace peridynamics;
 using namespace postprocess;
 
@@ -93,11 +91,7 @@ int main(int argc, char* argv[]) {
     mymattersprings->k = 260000; // stiffness of bounds
     mymattersprings->r = 300; // damping of bounds
     mymattersprings->max_stretch = 0.08;
-/*
-    auto mymattersprings = chrono_types::make_shared<ChMatterPeriSprings>();
-    mymattersprings->k = 1630000; // stiffness of bounds
-    mymattersprings->r = 1800; // damping of bounds
-*/
+
 
     // IMPORTANT!
     // This takes care of the interaction between the particles of the Peridynamics material

@@ -23,15 +23,15 @@
 
 namespace chrono {
 
-namespace fea {
+namespace peridynamics {
 
  
 /// @addtogroup chrono_fea
 /// @{
 
 // Forward declaration
-class fea::ChMatterPeriBase;
-class fea::ChNodePeri;
+class peridynamics::ChMatterPeriBase;
+class peridynamics::ChNodePeri;
 
 
 
@@ -55,17 +55,17 @@ class ChApiPeridynamics ChProximityContainerPeri : public ChProximityContainer {
 
     /// Adds a peridynamics material. Materials, each acting on cluster of ChNodePeri items, must be added to this 
     /// proximity manager before the simulation starts. 
-    void AddMatter(std::shared_ptr<fea::ChMatterPeriBase> mmatter);
+    void AddMatter(std::shared_ptr<ChMatterPeriBase> mmatter);
 
     /// Get the array of materials.
-    const std::list<std::shared_ptr<fea::ChMatterPeriBase>>& GetMaterials() const { return materials; }
+    const std::list<std::shared_ptr<ChMatterPeriBase>>& GetMaterials() const { return materials; }
 
     /// Add a node. Only nodes that are added here will be simulated. Nodes can be shared among diffferent ChMatterPeri,
     /// but not among different ChProximityContainerPeri.
-    void AddNode(std::shared_ptr<fea::ChNodePeri> m_node);
+    void AddNode(std::shared_ptr<ChNodePeri> m_node);
 
     /// Get the array of nodes.
-    const std::vector<std::shared_ptr<fea::ChNodePeri>>& GetNodes() const { return vnodes; }
+    const std::vector<std::shared_ptr<ChNodePeri>>& GetNodes() const { return vnodes; }
 
     /// Get the number of nodes.
     unsigned int GetNnodes() const { return (unsigned int)vnodes.size(); }
@@ -133,7 +133,7 @@ class ChApiPeridynamics ChProximityContainerPeri : public ChProximityContainer {
     /// Adds the nodes to this, and to the specified matter. This is a helper function
     /// so that you avoid to create all nodes one by one with many calls to AddNode().
     void FillBox(
-        std::shared_ptr<fea::ChMatterPeriBase> mmatter, ///< matter to be used for this volume. Must be added too to this, via AddMatter(). 
+        std::shared_ptr<ChMatterPeriBase> mmatter, ///< matter to be used for this volume. Must be added too to this, via AddMatter(). 
         const ChVector<> size,         ///< x,y,z sizes of the box to fill (better if integer multiples of spacing)
         const double spacing,          ///< the spacing between two near nodes
         const double initial_density,  ///< density of the material inside the box, for initialization of node's masses
@@ -396,8 +396,8 @@ private:
     virtual void SetupInitial() override;
 
 protected:
-    std::list<std::shared_ptr<fea::ChMatterPeriBase>> materials;
-    std::vector<std::shared_ptr<fea::ChNodePeri>> vnodes;
+    std::list<std::shared_ptr<ChMatterPeriBase>> materials;
+    std::vector<std::shared_ptr<ChNodePeri>> vnodes;
 
     int n_added;
     bool is_updated;

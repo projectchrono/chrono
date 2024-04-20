@@ -19,10 +19,7 @@
 
 #include "chrono_peridynamics/ChApiPeridynamics.h"
 #include "chrono/collision/ChCollisionModel.h"
-#include "chrono/physics/ChIndexedNodes.h"
-#include "chrono/physics/ChNodeXYZ.h"
 #include "chrono/fea/ChNodeFEAxyz.h"
-#include "chrono/fea/ChContinuumMaterial.h"
 #include "chrono/solver/ChVariablesNode.h"
 
 namespace chrono {
@@ -30,7 +27,7 @@ namespace chrono {
 // Forward references (for parent hierarchy pointer)
 class ChSystem;
 
-namespace fea {
+namespace peridynamics {
 
 class ChProximityContainerPeri;
 
@@ -40,7 +37,7 @@ class ChProximityContainerPeri;
 
 
 /// Class for a single node in the Peridynamics  cluster
-class ChApiPeridynamics ChNodePeri : public ChNodeFEAxyz, public ChContactable_1vars<3> {
+class ChApiPeridynamics ChNodePeri : public fea::ChNodeFEAxyz, public ChContactable_1vars<3> {
 public:
     ChNodePeri();
     ChNodePeri(const ChNodePeri& other);
@@ -582,9 +579,9 @@ protected:
 
 
 
-/// @} chrono_fea
+/// @} chrono_peridynamics
 
-}  // end namespace fea
+}  // end namespace peridynamics
 }  // end namespace chrono
 
 #endif
