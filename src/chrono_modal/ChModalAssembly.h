@@ -137,7 +137,7 @@ class ChApiModal ChModalAssembly : public ChAssembly {
     /// If you increment the phase during an animation, you will see the n-th mode oscillating on the screen.
     /// The modal shapes are animated based on the initial full state of the modal assembly.
     /// It works only in full state.
-    void SetFullStateWithModeOverlay(unsigned int n_mode, double phase, double amplitude);
+    void UpdateFullStateWithModeOverlay(unsigned int n_mode, double phase, double amplitude);
 
     /// For displaying the deformation using internal nodes, you can use the following function. Works only if
     /// FlagModelAsReduced(). It sets the state of the internal nodes of this modal assembly using the current state
@@ -145,7 +145,7 @@ class ChApiModal ChModalAssembly : public ChAssembly {
     /// x0 stored last time one called a modal reduction. This is not necessary, but useful during animations, in fact
     /// the internal nodes would be completely neglected if m_internal_nodes_update == false; but calling this function
     /// one can update their changing positions for visualization, stress recovery, etc.
-    void SetInternalStateWithModes(bool full_update);
+    void UpdateInternalStateWithModes(bool full_update);
 
     /// Resets the state of this modal assembly (both boundary and internal items) to the state snapshot in the initial
     /// configuration.

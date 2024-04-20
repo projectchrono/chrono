@@ -1417,7 +1417,7 @@ bool ChModalAssembly::ComputeModesDamped(const ChModalSolveDamped& n_modes_setti
     return true;
 }
 
-void ChModalAssembly::SetFullStateWithModeOverlay(unsigned int n_mode, double phase, double amplitude) {
+void ChModalAssembly::UpdateFullStateWithModeOverlay(unsigned int n_mode, double phase, double amplitude) {
     if (n_mode >= m_modal_eigvect.cols()) {
         Update();
         throw std::runtime_error("Error: mode " + std::to_string(n_mode) + " is beyond the " +
@@ -1460,7 +1460,7 @@ void ChModalAssembly::SetFullStateWithModeOverlay(unsigned int n_mode, double ph
     this->Update();
 }
 
-void ChModalAssembly::SetInternalStateWithModes(bool full_update) {
+void ChModalAssembly::UpdateInternalStateWithModes(bool full_update) {
     if (!m_is_model_reduced)
         return;
 
@@ -2129,7 +2129,7 @@ void ChModalAssembly::Update(bool update_assets) {
         // If in modal reduced state, the internal parts would not be updated (actually, these could even be
         // removed) However one still might want to see the internal nodes "moving" during animations,
         if (m_internal_nodes_update)
-            this->SetInternalStateWithModes(update_assets);
+            this->UpdateInternalStateWithModes(update_assets);
 
         // always update the floating frame F if possible, to improve the numerical accuracy and stability
         this->UpdateFloatingFrameOfReference();
