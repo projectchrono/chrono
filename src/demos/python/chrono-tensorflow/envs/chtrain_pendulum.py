@@ -21,8 +21,8 @@ class Model(object):
       chrono.ChCollisionModel.SetDefaultSuggestedEnvelope(0.001)
       chrono.ChCollisionModel.SetDefaultSuggestedMargin(0.001)
 
-    #rev_pend_sys.SetSolverType(chrono.ChSolver.Type_BARZILAIBORWEIN) # precise, more slow
-      self.rev_pend_sys.SetSolverMaxIterations(70)
+      #rev_pend_sys.SetSolverType(chrono.ChSolver.Type_BARZILAIBORWEIN) # precise, more slow
+      self.rev_pend_sys.GetSolver().AsIterative().SetMaxIterations(70)
 
 
 
@@ -82,9 +82,9 @@ class Model(object):
       self.cyl_base2= chrono.ChVector3d(0, self.size_rod_y/2, 0 )
 
       self.body_rod_shape = chrono.ChVisualShapeCylinder()
-      self.body_rod_shape.GetCylinderGeometry().p1= self.cyl_base1
-      self.body_rod_shape.GetCylinderGeometry().p2= self.cyl_base2
-      self.body_rod_shape.GetCylinderGeometry().rad= self.radius_rod
+      self.body_rod_shape.GetGeometry().p1= self.cyl_base1
+      self.body_rod_shape.GetGeometry().p2= self.cyl_base2
+      self.body_rod_shape.GetGeometry().rad= self.radius_rod
 
       self.body_rod.AddVisualShape(self.body_rod_shape)
       self.rev_pend_sys.Add(self.body_rod)
@@ -134,11 +134,11 @@ class Model(object):
 
       self.rod_pin = chrono.ChMarker()
       self.body_rod.AddMarker(self.rod_pin)
-      self.rod_pin.ImposeAbsoluteTransform(chrono.ChCoordsysd(chrono.ChVector3d(0,0,0)))
+      self.rod_pin.ImposeAbsoluteTransform(chrono.ChFramed(chrono.ChVector3d(0,0,0)))
 
       self.table_pin = chrono.ChMarker()
       self.body_table.AddMarker(self.table_pin)
-      self.table_pin.ImposeAbsoluteTransform(chrono.ChCoordsysd(chrono.ChVector3d(0,0,0)))
+      self.table_pin.ImposeAbsoluteTransform(chrono.ChFramed(chrono.ChVector3d(0,0,0)))
 
       self.pin_joint = chrono.ChLinkLockRevolute()
       self.pin_joint.Initialize(self.rod_pin, self.table_pin)
