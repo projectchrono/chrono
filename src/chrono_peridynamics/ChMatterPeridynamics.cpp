@@ -17,8 +17,8 @@
 
 #include "chrono/collision/bullet/ChCollisionModelBullet.h"
 #include "chrono/physics/ChSystem.h"
-#include "chrono/physics/ChMatterPeridynamics.h"
-#include "chrono/physics/ChProximityContainerPeridynamics.h"
+#include "chrono_peridynamics/ChMatterPeridynamics.h"
+#include "chrono_peridynamics/ChProximityContainerPeridynamics.h"
 
 namespace chrono {
 namespace fea {

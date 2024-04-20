@@ -17,6 +17,7 @@
 
 #include <cmath>
 
+#include "chrono_peridynamics/ChApiPeridynamics.h"
 #include "chrono/collision/ChCollisionModel.h"
 #include "chrono/physics/ChIndexedNodes.h"
 #include "chrono/physics/ChNodeXYZ.h"
@@ -39,7 +40,7 @@ class ChProximityContainerPeri;
 
 
 /// Class for a single node in the Peridynamics  cluster
-class ChApi ChNodePeri : public ChNodeFEAxyz, public ChContactable_1vars<3> {
+class ChApiPeridynamics ChNodePeri : public ChNodeFEAxyz, public ChContactable_1vars<3> {
 public:
     ChNodePeri();
     ChNodePeri(const ChNodePeri& other);
@@ -172,7 +173,7 @@ public:
         return (is_boundary || !is_elastic || is_requiring_bonds);
     }
 
-    ChVector<> F_peridyn; // placeholder for storing peridynamic forces, automatically computed
+    ChVector<> F_peridyn; // placeholder for storing peridynamics forces, automatically computed
 
     double volume;
     double h_rad;
@@ -180,14 +181,14 @@ public:
 };
 
 
-// Base properties per each peridynamic node. Can be inherited if a material requires more data.
-class  ChApi ChMatterDataPerNode {
+// Base properties per each peridynamics node. Can be inherited if a material requires more data.
+class  ChApiPeridynamics ChMatterDataPerNode {
 public:
     std::shared_ptr<ChNodePeri> node;
 };
 
-// Base properties per each peridynamic bound. Can be inherited if a material requires more data.
-class  ChApi ChMatterDataPerBound { 
+// Base properties per each peridynamics bound. Can be inherited if a material requires more data.
+class  ChApiPeridynamics ChMatterDataPerBound { 
 public: 
     ChNodePeri* nodeA = nullptr;
     ChNodePeri* nodeB = nullptr;
@@ -218,7 +219,7 @@ struct std::hash<::std::pair<T1,T2>>
 
 /// Base class for assigning material properties (elasticity, viscosity etc) to a cluster
 /// of peridynamics nodes.
-class ChApi ChMatterPeriBase { 
+class ChApiPeridynamics ChMatterPeriBase { 
 public:
     virtual ~ChMatterPeriBase() {
     }
@@ -264,9 +265,9 @@ public:
         ChNodePeri* nodeA,   
         ChNodePeri* nodeB) = 0;  
 
-    // Get the owner container that handles peridynamic nodes
+    // Get the owner container that handles peridynamics nodes
     ChProximityContainerPeri* GetContainer() const { return container; }
-    // Set the owner container that handles peridynamic nodes
+    // Set the owner container that handles peridynamics nodes
     void SetContainer(ChProximityContainerPeri* mc) { container = mc; }
 
 protected:
@@ -487,14 +488,14 @@ class  ChMatterPeri : public ChMatterPeriBase {
 /// Just for didactical purposes - do not use it for serious applications.
 /// Also use a damping coefficient r. 
 
-class ChApi ChMatterPeriSprings : public ChMatterPeri<> {
+class ChApiPeridynamics ChMatterPeriSprings : public ChMatterPeri<> {
 public:
     double k = 100;
     double r = 10;
 
     ChMatterPeriSprings() {};
 
-    // Implement the function that adds the peridynamic force to each node, as a 
+    // Implement the function that adds the peridynamics force to each node, as a 
     // summation of all the effects of neighbouring nodes.
     virtual void ComputeForces() {
         // loop on bounds
@@ -512,12 +513,12 @@ public:
 };
 
 
-class  ChApi ChMatterDataPerBoundBreakable : public ChMatterDataPerBound { 
+class  ChApiPeridynamics ChMatterDataPerBoundBreakable : public ChMatterDataPerBound { 
 public: 
     bool broken = false;
 };
 
-class ChApi ChMatterPeriSpringsBreakable : public ChMatterPeri<ChMatterDataPerNode, ChMatterDataPerBoundBreakable> {
+class ChApiPeridynamics ChMatterPeriSpringsBreakable : public ChMatterPeri<ChMatterDataPerNode, ChMatterDataPerBoundBreakable> {
 public:
     double k = 100;
     double r = 10;
@@ -525,7 +526,7 @@ public:
 
     ChMatterPeriSpringsBreakable() {};
 
-    // Implement the function that adds the peridynamic force to each node, as a 
+    // Implement the function that adds the peridynamics force to each node, as a 
     // summation of all the effects of neighbouring nodes.
     virtual void ComputeForces() {
         // loop on bounds
@@ -559,7 +560,7 @@ public:
 
 
 
-class /*ChApi*/ ChVisualPeriSpringsBreakable : public ChGlyphs {
+class /*ChApiPeridynamics*/ ChVisualPeriSpringsBreakable : public ChGlyphs {
 public:
     ChVisualPeriSpringsBreakable(std::shared_ptr<ChMatterPeriSpringsBreakable> amatter) : mmatter(amatter) { is_mutable = true; };
     virtual ~ChVisualPeriSpringsBreakable() {}

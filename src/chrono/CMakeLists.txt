@@ -137,10 +137,6 @@ set(ChronoEngine_physics_SOURCES
     physics/ChFeeder.cpp
     physics/ChExternalDynamics.cpp
     physics/ChAssembly.cpp
-    physics/ChMatterPeridynamics.cpp
-    physics/ChProximityContainerPeridynamics.cpp
-    physics/ChMatterMeshless.cpp
-    physics/ChProximityContainerMeshless.cpp
     )
 
 set(ChronoEngine_physics_HEADERS
@@ -167,10 +163,6 @@ set(ChronoEngine_physics_HEADERS
     physics/ChExternalDynamics.h
     physics/ChAssembly.h
     physics/ChInertiaUtils.h
-    physics/ChMatterPeridynamics.h
-    physics/ChProximityContainerPeridynamics.h
-    physics/ChMatterMeshless.h
-    physics/ChProximityContainerMeshless.h
     )
 
 source_group(physics FILES

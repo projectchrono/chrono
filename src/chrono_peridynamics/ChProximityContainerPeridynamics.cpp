@@ -14,8 +14,8 @@
 
 #include "chrono/physics/ChBody.h"
 #include "chrono/physics/ChSystem.h"
-#include "chrono/physics/ChMatterPeridynamics.h"
-#include "chrono/physics/ChProximityContainerPeridynamics.h"
+#include "chrono_peridynamics/ChMatterPeridynamics.h"
+#include "chrono_peridynamics/ChProximityContainerPeridynamics.h"
 
 namespace chrono {
 
@@ -88,7 +88,7 @@ void ChProximityContainerPeri::AddProximity(ChCollisionModel* modA, ChCollisionM
         return;
 
     // Report the proximity to material(s). They will manage it, for example 
-    // turning the proximity into a peridynamic bond and storing it in material data structures, etc. 
+    // turning the proximity into a peridynamics bond and storing it in material data structures, etc. 
     for (auto& mymat : this->materials) {
         mymat->AddProximity(mnA, mnB);
     }
@@ -248,8 +248,8 @@ void ChProximityContainerPeri::FillBox(
                     ChVector<> pos2 = pos + 0.5 * ChVector<>(spacing, spacing, spacing);
                     pos2 += ChVector<>(mrandomness * ChRandom() * spacing, mrandomness * ChRandom() * spacing,
                                         mrandomness * ChRandom() * spacing);
-                    ChVector<> mpos = boxcoords.TransformPointLocalToParent(pos2);
-                    auto mnode = chrono_types::make_shared<ChNodePeri>();
+                    mpos = boxcoords.TransformPointLocalToParent(pos2);
+                    mnode = chrono_types::make_shared<ChNodePeri>();
                     mnode->SetX0(mpos);
                     mnode->SetPos(mpos);
                     mnode->SetMass(nodemass);

@@ -17,6 +17,7 @@
 
 #include <list>
 
+#include "chrono_peridynamics/ChApiPeridynamics.h"
 #include "chrono/physics/ChProximityContainer.h"
 #include "chrono/utils/ChUtilsSamplers.h"
 
@@ -40,7 +41,7 @@ class fea::ChNodePeri;
 /// Such an item must be addd to the physical system if you want to use 
 /// one or more ChMatterPeri materials.
 
-class ChApi ChProximityContainerPeri : public ChProximityContainer {
+class ChApiPeridynamics ChProximityContainerPeri : public ChProximityContainer {
 
   public:
     ChProximityContainerPeri();
@@ -52,7 +53,7 @@ class ChApi ChProximityContainerPeri : public ChProximityContainer {
 
     // PERIDYNAMICS
 
-    /// Adds a peridynamic material. Materials, each acting on cluster of ChNodePeri items, must be added to this 
+    /// Adds a peridynamics material. Materials, each acting on cluster of ChNodePeri items, must be added to this 
     /// proximity manager before the simulation starts. 
     void AddMatter(std::shared_ptr<fea::ChMatterPeriBase> mmatter);
 

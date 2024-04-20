@@ -23,21 +23,25 @@
 
 #include "chrono/physics/ChSystemNSC.h"
 #include "chrono/core/ChRealtimeStep.h"
-
-#include "chrono/physics/ChMatterPeridynamics.h"
-#include "chrono/physics/ChProximityContainerPeridynamics.h"
 #include "chrono/physics/ChBodyEasy.h"
 #include "chrono/fea/ChLinkPointFrame.h"
+
+#include "chrono_peridynamics/ChMatterPeridynamics.h"
+#include "chrono_peridynamics/ChProximityContainerPeridynamics.h"
 
 #include "chrono_irrlicht/ChVisualSystemIrrlicht.h"
 #include "chrono_irrlicht/ChIrrTools.h"
 
-#include <irrlicht.h>
+#include "chrono_postprocess/ChBlender.h"
 
-// Use the namespace of Chrono
+//#include <irrlicht.h>
+
+// Use the namespaces of Chrono
 
 using namespace chrono;
 using namespace fea;
+using namespace peridynamics;
+using namespace postprocess;
 
 // Use the main namespaces of Irrlicht
 using namespace irr;
@@ -63,20 +67,17 @@ int main(int argc, char* argv[]) {
     // CREATE A FLOOR
     auto mat = chrono_types::make_shared<ChMaterialSurfaceNSC>();
     mat->SetFriction(0.4f);
-    mat->SetCompliance(0.0);
-    mat->SetComplianceT(0.0);
-    mat->SetDampingF(0.2f);
 
     auto mfloorBody = chrono_types::make_shared<ChBodyEasyBox>(20,1,20,1000,true,true,mat);
     mphysicalSystem.Add(mfloorBody);
     mfloorBody->SetBodyFixed(true);
     mfloorBody->SetPos(ChVector<>(0, -7.5, 0));
 
-    mfloorBody->GetVisualShape(0)->SetTexture(GetChronoDataFile("textures/concrete.jpg").c_str());
+    mfloorBody->GetVisualShape(0)->SetColor(ChColor(0.2, 0.2, 0.2));
 
 
     // CREATE A SPHERE PRESSING THE MATERIAL:
-    auto msphere = chrono_types::make_shared<ChBodyEasySphere>(0.7, 13000, true,true, mat);
+    auto msphere = chrono_types::make_shared<ChBodyEasySphere>(0.7, 23000, true,true, mat);
     mphysicalSystem.Add(msphere);
     msphere->SetPos(ChVector<>(0, -0.5, 0));
     msphere->SetPos_dt(ChVector<>(0, -16.5, 0));
@@ -86,11 +87,11 @@ int main(int argc, char* argv[]) {
     // CREATE THE PERIDYNAMIC CONTINUUM
 
 
-    // Create peridynamic matter - a very simple one
+    // Create peridynamics matter - a very simple one
 
     auto mymattersprings = chrono_types::make_shared<ChMatterPeriSpringsBreakable>();
     mymattersprings->k = 260000; // stiffness of bounds
-    mymattersprings->r = 1800; // damping of bounds
+    mymattersprings->r = 300; // damping of bounds
     mymattersprings->max_stretch = 0.08;
 /*
     auto mymattersprings = chrono_types::make_shared<ChMatterPeriSprings>();
@@ -108,8 +109,8 @@ int main(int argc, char* argv[]) {
     // Use the FillBox easy way to create the set of nodes in the Peridynamics matter
     my_peri_proximity->FillBox(
         mymattersprings,
-        ChVector<>(6, 1.5, 6),                          // size of box
-        4.0 / 22.0,                                   // resolution step
+        ChVector<>(3, 1.5, 3),                      // size of box
+        4.0 / 40.0,                                   // resolution step
         1000,                                         // initial density
         ChCoordsys<>(ChVector<>(0, -3.4, 0), QUNIT),  // position & rotation of box
         false,                                         // do a centered cubic lattice initial arrangement
@@ -122,6 +123,28 @@ int main(int argc, char* argv[]) {
             node->SetFixed(true);
     }
 
+    // to automate visualiazion
+    auto mglyphs_nodes = chrono_types::make_shared<ChVisualPeriSpringsBreakable>(mymattersprings);
+    my_peri_proximity->AddVisualShape(mglyphs_nodes);
+
+
+    // -----Blender postprocess
+
+    // Create an exporter to Blender
+    ChBlender blender_exporter = ChBlender(&mphysicalSystem);
+
+    // Set the path where it will save all files, a directory will be created if not existing
+    blender_exporter.SetBasePath(GetChronoOutputPath() + "BLENDER_PERI");
+
+    // Export all existing visual shapes to POV-Ray
+    blender_exporter.AddAll();
+
+    blender_exporter.SetCamera(ChVector<>(3, 4, -5), ChVector<>(0, 0.5, 0), 50);  // pos, aim, angle
+
+    blender_exporter.ExportScript();
+
+    // --------------------
+    
 
     // Create the Irrlicht visualization system
     auto vsys = chrono_types::make_shared<ChVisualSystemIrrlicht>();
@@ -143,7 +166,7 @@ int main(int argc, char* argv[]) {
     //
     // THE SOFT-REAL-TIME CYCLE
     //
-    double timestep = 0.0005;
+    double timestep = 0.00015;
 
     while (vsys->Run()) {
         vsys->BeginScene();
@@ -302,8 +325,9 @@ int main(int argc, char* argv[]) {
         vsys->EndScene();
         
         mphysicalSystem.DoStepDynamics(timestep);
-
-
+        
+        if (mphysicalSystem.GetStepcount() % 5 == 0)
+            blender_exporter.ExportData();
     }
 
 
