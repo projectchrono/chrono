@@ -87,7 +87,9 @@ void ChROSTFHandler::AddURDF(chrono::parsers::ChParserURDF& parser) {
 #endif
 
 #ifdef CHRONO_SENSOR
-void ChROSTFHandler::AddSensor(std::shared_ptr<chrono::sensor::ChSensor> sensor, const std::string& frame_id) {
+void ChROSTFHandler::AddSensor(std::shared_ptr<chrono::sensor::ChSensor> sensor,
+                               const std::string& parent_frame_id,
+                               const std::string& child_frame_id) {
     if (!sensor) {
         std::cerr << "ChROSTFHandler::AddSensor: Sensor is null" << std::endl;
         return;
@@ -95,8 +97,7 @@ void ChROSTFHandler::AddSensor(std::shared_ptr<chrono::sensor::ChSensor> sensor,
 
     auto parent = sensor->GetParent();
     auto child_frame = sensor->GetOffsetPose();
-    AddTransform(parent, child_frame, frame_id);
-        asdfasdfas
+    AddTransform(parent, parent_frame_id, child_frame, child_frame_id);
 }
 #endif
 

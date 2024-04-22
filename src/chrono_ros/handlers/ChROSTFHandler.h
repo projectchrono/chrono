@@ -89,7 +89,9 @@ class ChROSTFHandler : public ChROSHandler {
     /// AddTransform(sensor->GetParent(), sensor->GetOffsetPose(), frame_id).
     /// @param sensor The sensor
     /// @param frame_id The frame id.
-    void AddSensor(std::shared_ptr<chrono::sensor::ChSensor> sensor, const std::string& frame_id);
+    void AddSensor(std::shared_ptr<chrono::sensor::ChSensor> sensor,
+                   const std::string& parent_frame_id,
+                   const std::string& child_frame_id);
 #endif
 
   protected:
