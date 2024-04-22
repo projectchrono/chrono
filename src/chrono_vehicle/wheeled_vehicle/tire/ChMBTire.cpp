@@ -275,8 +275,10 @@ void MBTireModel::Spring2::CalculateForce() {
     force2 = -vforce;
 }
 
-// Calculate a 3x3 block used in assembling Jacobians for Spring2
-ChMatrix33<> MBTireModel::Spring2::CalculateJacobianBlock(double Kfactor, double Rfactor) {
+void MBTireModel::Spring2::CalculateJacobianBlocks(double Kfactor,
+                                                   double Rfactor,
+                                                   ChMatrixRef Kblock,
+                                                   ChMatrixRef Rblock) {
     const auto& pos1 = node1->GetPos();
     const auto& pos2 = node2->GetPos();
     const auto& vel1 = node1->GetPosDt();
@@ -297,12 +299,10 @@ ChMatrix33<> MBTireModel::Spring2::CalculateJacobianBlock(double Kfactor, double
 
     double f = k * (l - l0) + c * ld;
 
-    ChMatrix33<> A = (Kfactor * k + Rfactor * c - Kfactor * f / l) * D +  //
-                     (Kfactor * f / l) * ChMatrix33<>::Identity() +       //
-                     Kfactor * c * DD;
-
-    return A;
+    Kblock = Kfactor * ((k - f / l) * D + f / l * ChMatrix33<>::Identity() + c * DD);
+    Rblock = Rfactor * c * D;
 }
+
 
 // For a linear spring connecting two grid nodes, the Jacobian is a 6x6 matrix:
 //   d[f1;f2]/d[n1;n2]
@@ -313,11 +313,14 @@ void MBTireModel::GridSpring2::CalculateJacobian(double Kfactor, double Rfactor)
     ////std::cout << "Grid spring2 " << inode1 << "-" << inode2;
     ////std::cout << "  J size: " << J.rows() << "x" << J.cols() << std::endl;
 
-    auto A = CalculateJacobianBlock(Kfactor, Rfactor);
+    ChMatrix33<> Kblock;
+    ChMatrix33<> Rblock;
+    CalculateJacobianBlocks(Kfactor, Rfactor, Kblock, Rblock);
+    auto A = Kblock + Rblock;
 
     J.block(0, 0, 3, 3) = -A;  // block for F1 and node1
-    J.block(0, 3, 3, 3) = A;   // block for F1 and node2
-    J.block(3, 0, 3, 3) = A;   // block for F2 and node1
+    J.block(0, 3, 3, 3) =  A;   // block for F1 and node2
+    J.block(3, 0, 3, 3) =  A;   // block for F2 and node1
     J.block(3, 3, 3, 3) = -A;  // block for F2 and node2
 
     /*
@@ -405,71 +408,143 @@ void MBTireModel::EdgeSpring2::CalculateForce() {
 // Note the order of generalized forces and states is:
 //    wheel state (6)
 //    node2 state (3)
+
+ChMatrix33<> MBTireModel::EdgeSpring2::JacobianRotatedVector() {
+    const auto& pos1 = node1->GetPos();
+    ChQuaterniond q = wheel->GetRot();                             // wheel body orientation quaternion    
+    ChVector3d p = wheel->GetPos();                                // wheel body position
+    ChMatrix33 R = wheel->GetRotMat();                             // wheel body rotation matrix
+
+    // ChVector3d rp = wheel->TransformDirectionParentToLocal(pos1);  // local position of node 1
+
+    ChVector3d rp = R.transpose() * (pos1 - p);  // real local position of node 1
+    
+    ChMatrix34<> Jac_Af_q; //  [A(q)]  = [Fp(q)] * [Fm(q)]', Jac_Af_m = d (A*rp) / dq
+   
+    Jac_Af_q(0, 0) = 2 * q[0] * rp[0] + 2 * q[2] * rp[2] - 2 * q[3] * rp[1]; //2*q0*rp0 + 2*q2*rp2 - 2*q3*rp1
+    Jac_Af_q(0, 1) = 2 * q[1] * rp[0] + 2 * q[2] * rp[1] + 2 * q[3] * rp[2]; //2*q1*rp0 + 2*q2*rp1 + 2*q3*rp2
+    Jac_Af_q(0, 2) = 2 * q[0] * rp[2] + 2 * q[1] * rp[1] - 2 * q[2] * rp[0]; //2*q0*rp2 + 2*q1*rp1 - 2*q2*rp0
+    Jac_Af_q(0, 3) = 2 * q[1] * rp[2] - 2 * q[0] * rp[1] - 2 * q[3] * rp[0]; //2*q1*rp2 - 2*q0*rp1 - 2*q3*rp0
+
+    // Row 2
+    Jac_Af_q(1, 0) = 2 * q[0] * rp[1] - 2 * q[1] * rp[2] + 2 * q[3] * rp[0]; //2*q0*rp1 - 2*q1*rp2 + 2*q3*rp0
+    Jac_Af_q(1, 1) = 2 * q[2] * rp[0] - 2 * q[1] * rp[1] - 2 * q[0] * rp[2]; //2*q2*rp0 - 2*q1*rp1 - 2*q0*rp2
+    Jac_Af_q(1, 2) = 2 * q[1] * rp[0] + 2 * q[2] * rp[1] + 2 * q[3] * rp[2]; //2*q1*rp0 + 2*q2*rp1 + 2*q3*rp2
+    Jac_Af_q(1, 3) = 2 * q[0] * rp[0] + 2 * q[2] * rp[2] - 2 * q[3] * rp[1]; //2*q0*rp0 + 2*q2*rp2 - 2*q3*rp1
+
+    // Row 3
+    Jac_Af_q(2, 0) = 2 * q[0] * rp[2] + 2 * q[1] * rp[1] - 2 * q[2] * rp[0]; //2*q0*rp2 + 2*q1*rp1 - 2*q2*rp0
+    Jac_Af_q(2, 1) = 2 * q[0] * rp[1] - 2 * q[1] * rp[2] + 2 * q[3] * rp[0]; //2*q0*rp1 - 2*q1*rp2 + 2*q3*rp0
+    Jac_Af_q(2, 2) = 2 * q[3] * rp[1] - 2 * q[2] * rp[2] - 2 * q[0] * rp[0]; //2*q3*rp1 - 2*q2*rp2 - 2*q0*rp0
+    Jac_Af_q(2, 3) = 2 * q[1] * rp[0] + 2 * q[2] * rp[1] + 2 * q[3] * rp[2]; //2*q1*rp0 + 2*q2*rp1 + 2*q3*rp2
+ 
+    ChVector3d phi;
+    double angle;
+    q.GetAngleAxis(angle, phi);
+    double sinP2 = std::sin(angle / 2);
+    double cosP2 = std::cos(angle / 2);
+
+    ChMatrixNM<double, 4, 3> Jac_q_phi; //  Jac_q_phi = dq / dphi 
+    if (angle * angle > 1e-30) {
+        // the first row dq[0]/dphi
+        Jac_q_phi(0, 0) = -sinP2 / 2 * phi[0] / angle;
+        Jac_q_phi(0, 1) = -sinP2 / 2 * phi[1] / angle;
+        Jac_q_phi(0, 2) = -sinP2 / 2 * phi[2] / angle;
+        // the second row dq[1]/dphi
+        Jac_q_phi(1, 0) = sinP2 + phi[0] * phi[0] * cosP2 / (2 * angle);
+        Jac_q_phi(1, 1) = phi[0] * phi[1] * cosP2 / (2 * angle);
+        Jac_q_phi(1, 2) = phi[0] * phi[2] * cosP2 / (2 * angle);
+        //
+        Jac_q_phi(2, 0) = Jac_q_phi(1, 1);
+        Jac_q_phi(2, 1) = sinP2 + phi[1] * phi[1] * cosP2 / (2 * angle);
+        Jac_q_phi(2, 2) = phi[1] * phi[2] * cosP2 / (2 * angle);
+        //
+        Jac_q_phi(3, 0) = Jac_q_phi(1, 2);
+        Jac_q_phi(3, 1) = Jac_q_phi(2, 2);
+        Jac_q_phi(3, 2) = sinP2 + phi[2] * phi[2] * cosP2 / (2 * angle);
+    } else {
+        Jac_q_phi.setZero();
+        Jac_q_phi(1, 0) = sinP2;
+        Jac_q_phi(2, 1) = sinP2;
+        Jac_q_phi(3, 2) = sinP2;
+    }   
+
+    ChMatrix33<> Jac_Af_m = Jac_Af_q * Jac_q_phi;
+    return Jac_Af_m;
+}
+
+ChMatrix33<> MBTireModel::EdgeSpring2::JacobianRotatedVelocityVector() {
+    ChMatrix33<> Jac_dAf_m;
+
+    const auto& pos1 = node1->GetPos();
+    
+    ChVector3d p = wheel->GetPos();     // wheel body position
+    ChQuaterniond q = wheel->GetRot();  // wheel body orientation quaternion
+    ChMatrix33 R = wheel->GetRotMat();  // wheel body rotation matrix
+
+    // ChVector3d rp = wheel->TransformDirectionParentToLocal(pos1);  // local position of node 1
+
+    ChVector3d rp = R.transpose() * (pos1 - p);
+
+    // derivative of the skew matrix of the angular velocity by angular velocity
+    ChMatrix33<> DRotDomega3;
+    DRotDomega3 << 0, -1, 0, 1, 0, 0, 0, 0, 0;
+    ChMatrix33<> DRotDomega2;
+    DRotDomega2 << 0, 0, 1, 0, 0, 0, -1, 0, 0;
+    ChMatrix33<> DRotDomega1;
+    DRotDomega1 << 0, 0, 0, 0, 0, -1, 0, 1, 0;
+
+    // aasumtion that omega is in absolute coordinates
+    // dA * rp = skew_omega * F_plus * F_minus * rp (formula (37d) Chrono manual) = skew_omega * R * rp
+    // d (dA * rp)  / d omega = DRotDomega * F_plus * F_minus' *  rp
+    
+    Jac_dAf_m.block(0, 0, 3, 1) = DRotDomega1 * R * rp.eigen();
+    Jac_dAf_m.block(0, 1, 3, 1) = DRotDomega2 * R * rp.eigen();
+    Jac_dAf_m.block(0, 2, 3, 1) = DRotDomega3 * R * rp.eigen();
+    
+    return Jac_dAf_m;
+}
+
 void MBTireModel::EdgeSpring2::CalculateJacobian(double Kfactor, double Rfactor) {
     ChMatrixRef J = KRM.GetMatrix();
+    J.setZero();
 
     ////std::cout << "Edge spring2 " << inode1 << "-" << inode2;
     ////std::cout << "  J size: " << J.rows() << "x" << J.cols() << std::endl;
 
-    auto A = CalculateJacobianBlock(Kfactor, Rfactor);
+    ChMatrix33<> Kblock;
+    ChMatrix33<> Rblock;
+    CalculateJacobianBlocks(Kfactor, Rfactor, Kblock, Rblock);
+    auto A = Kblock + Rblock;
 
     //// TODO: revisit
+    auto Jac_Af_m = JacobianRotatedVector();
+    auto Jac_dAf_m = JacobianRotatedVelocityVector();
 
-    ChVector3d p = wheel->GetPos();          // wheel body position
-    ChQuaterniond q = wheel->GetRot();       // wheel body orientation quaternion
-    ChMatrix33 R = wheel->GetRotMat();       // wheel body rotation matrix
-    ChVector3d v = wheel->GetPosDt();        // wheel linear velocity
-    ChVector3d w = wheel->GetAngVelLocal();  // wheel angular velocity (in local frame)
-
-    ChVectorN<double, 4> e;   // quaternion
-    ChVectorN<double, 3> rp;  // local positon
-
-    // Jac_Af_m = 2 *
-    //       [2*e0*rp1+e2*rp3-e3*rp2, 2*e1*rp1+e2*rp2+e3*rp3, e0*rp3+e1*rp2,          e1*rp3-e0*rp2;
-    //        2*e0*rp2-e1*rp3+e3*rp1, e2*rp1-e0 *rp3,         e1*rp1+2*e2*rp2+e3*rp3, e0*rp1+e2*rp3;
-    //        2*e0*rp3+e1*rp2-e2*rp1, e0*rp2 + e3*rp1,        e3*rp2-e0*rp1,          e1*rp1+e2*rp2+2*e3*rp3];
-    ChMatrixNM<double, 3, 4> Jac_Af_m;
-
-    Jac_Af_m(0, 0) = 2 * e[0] * rp[0] + e[2] * rp[2] - e[3] * rp[1];  // 2*e0*rp1 + e2*rp3 - e3*rp2,
-    Jac_Af_m(0, 1) = 2 * e[1] * rp[0] + e[2] * rp[1] + e[3] * rp[2];  // 2*e1*rp1 + e2*rp2 + e3*rp3
-    Jac_Af_m(0, 2) = e[0] * rp[2] + e[1] * rp[1];                     // e0*rp3 + e1*rp2
-    Jac_Af_m(0, 3) = e[1] * rp[2] - e[0] * rp[1];                     // e1*rp3 - e0*rp2
-
-    Jac_Af_m(1, 0) = 2 * e[0] * rp[1] - e[1] * rp[2] + e[3] * rp[0];  // 2*e0*rp2 - e1*rp3 + e3*rp1
-    Jac_Af_m(1, 1) = e[2] * rp[0] - e[0] * rp[2];                     // e2*rp1 - e0 *rp3
-    Jac_Af_m(1, 2) = e[1] * rp[0] + 2 * e[2] * rp[1] + e[3] * rp[2];  // e1*rp1 + 2*e2*rp2 + e3*rp3
-    Jac_Af_m(1, 3) = e[0] * rp[0] + e[2] * rp[2];                     // e0 *rp1 + e2 *rp3
-
-    Jac_Af_m(2, 0) = 2 * e[0] * rp[2] + e[1] * rp[1] - e[2] * rp[0];  // 2*e0*rp3 + e1*rp2 - e2*rp1
-    Jac_Af_m(2, 1) = e[0] * rp[1] + e[3] * rp[0];                     // e0*rp2 + e3*rp1
-    Jac_Af_m(2, 2) = e[3] * rp[1] - e[0] * rp[0];                     // e3*rp2 - e0*rp1
-    Jac_Af_m(2, 3) = e[1] * rp[0] + e[2] * rp[1] + 2 * e[3] * rp[2];  // e1*rp1 + e2*rp2 + 2*e3*rp3
-
-    Jac_Af_m *= 2;
+    ChVector3d rp = wheel->TransformPointParentToLocal(node1->GetPos());
+    ChStarMatrix33<> skew_rp(rp);
 
     J.block(0, 0, 3, 3) = -A;
-    J.block(0, 3, 3, 4) = -A * Jac_Af_m;
-    J.block(0, 7, 3, 3) = A;
+    J.block(0, 3, 3, 3) = -Kblock * Jac_Af_m - Rblock * Jac_dAf_m;
+    J.block(0, 6, 3, 3) = A;  
 
-    J.block(3, 0, 3, 3) = A;
-    J.block(3, 3, 3, 3) = A * Jac_Af_m;
-    J.block(3, 6, 3, 4) = -A;
+    J.block(3, 0, 3, 9) = skew_rp * J.block(0, 0, 3, 9);  // block of torque
 
-    /*
+    J.block(6, 0, 3, 9) = -J.block(0, 0, 3, 9);           // block for F2 and node1
+
     CalculateJacobianFD(Kfactor, Rfactor);
     std::cout << "Edge spring2 " << inode1 << "-" << inode2 << std::endl << "-------" << std::endl;
-    std::cout << J << std::endl;
+    /*
+    //std::cout << J << std::endl;
     std::cout << "-------\n";
-    std::cout << J_fd << std::endl;
-    std::cout << "-------\n";
-    std::cout << "err_2   = " << (J_fd - J).norm()                                                    //
-              << "  " << (J_fd - J).norm() / J.norm() << "\n";                                        //
-    std::cout << "err_1   = " << (J_fd - J).lpNorm<1>()                                               //
-              << "  " << (J_fd - J).lpNorm<1>() / J.lpNorm<1>() << "\n";                              //
-    std::cout << "err_inf = " << (J_fd - J).lpNorm<Eigen::Infinity>()                                 //
-              << "  " << (J_fd - J).lpNorm<Eigen::Infinity>() / J.lpNorm<Eigen::Infinity>() << "\n";  //
-    std::cout << "=======" << std::endl;
+    //std::cout << J_fd << std::endl;
     */
+    std::cout << "-------\n";
+    std::cout << "err_2   = " << (J_fd - J).norm() / J.norm() << "\n";
+    std::cout << "err_1   = " << (J_fd - J).lpNorm<1>() / J.lpNorm<1>() << "\n";
+    std::cout << "err_inf = " << (J_fd - J).lpNorm<Eigen::Infinity>() / J.lpNorm<Eigen::Infinity>() << "\n";
+    std::cout << "=======" << std::endl;
+    
 }
 
 void MBTireModel::EdgeSpring2::CalculateJacobianFD(double Kfactor, double Rfactor) {
@@ -710,18 +785,12 @@ ChMatrixNM<double, 6, 9> MBTireModel::Spring3::CalculateJacobianBlockJ1(double K
         scale2 * dA3.transpose() * t.eigen() - sinA * (ChMatrix33<>::Identity() - D_nn).transpose() * dp.eigen();
     ChVectorN<double, 3> dA_dalp_46 = -dA_dalp_13 - dA_dalp_79;
 
+    ChVectorN<double, 9> dA_dalp;
+    dA_dalp.block<3, 1>(0, 0) = dA_dalp_13;
+    dA_dalp.block<3, 1>(3, 0) = dA_dalp_46;
+    dA_dalp.block<3, 1>(6, 0) = dA_dalp_79;
     ChMatrixNM<double, 6, 9> J1;
-    J1.block(0, 0, 6, 1) = dA_dalp_13[0] * B;
-    J1.block(0, 1, 6, 1) = dA_dalp_13[1] * B;
-    J1.block(0, 2, 6, 1) = dA_dalp_13[2] * B;
-
-    J1.block(0, 3, 6, 1) = dA_dalp_46[0] * B;
-    J1.block(0, 4, 6, 1) = dA_dalp_46[1] * B;
-    J1.block(0, 5, 6, 1) = dA_dalp_46[2] * B;
-
-    J1.block(0, 6, 6, 1) = dA_dalp_79[0] * B;
-    J1.block(0, 7, 6, 1) = dA_dalp_79[1] * B;
-    J1.block(0, 8, 6, 1) = dA_dalp_79[2] * B;
+    J1 = B * dA_dalp.transpose();
 
     return J1;
 }
@@ -806,9 +875,11 @@ void MBTireModel::GridSpring3::CalculateJacobian(double Kfactor) {
     /*
     CalculateJacobianFD(Kfactor);
     std::cout << "Grid spring3 " << inode_p << "-" << inode_c << "-" << inode_n << std::endl << "-------" << std::endl;
+    
     std::cout << J << std::endl;
     std::cout << "-------\n";
     std::cout << J_fd << std::endl;
+    
     std::cout << "-------\n";
     std::cout << "err_2   = " << (J_fd - J).norm()                                                    //
               << "  " << (J_fd - J).norm() / J.norm() << "\n";                                        //
@@ -888,85 +959,219 @@ void MBTireModel::EdgeSpring3::CalculateForce() {
 //    wheel state (6)
 //    node_c state (3)
 //    node_n state (3)
-void MBTireModel::EdgeSpring3::CalculateJacobian(double Kfactor) {
-    ChMatrixRef J = KRM.GetMatrix();
 
+ChMatrix33<> MBTireModel::EdgeSpring3::JacobianRotatedVector() {
+    const auto& pos_p = node_p->GetPos();
+    ChQuaterniond q = wheel->GetRot();  // wheel body orientation quaternion
+    ChVector3d p = wheel->GetPos();     // wheel body position
+    ChMatrix33 R = wheel->GetRotMat();  // wheel body rotation matrix
+
+    // ChVector3d rp = wheel->TransformDirectionParentToLocal(pos_p);  // local position of node 1
+
+    ChVector3d rp = R.transpose() * (pos_p - p);  // real local position of node 1
+
+    ChMatrix34<> Jac_Af_q;  //  [A(q)]  = [Fp(q)] * [Fm(q)]', Jac_Af_m = d (A*rp) / dq
+
+    Jac_Af_q(0, 0) = 2 * q[0] * rp[0] + 2 * q[2] * rp[2] - 2 * q[3] * rp[1];  // 2*q0*rp0 + 2*q2*rp2 - 2*q3*rp1
+    Jac_Af_q(0, 1) = 2 * q[1] * rp[0] + 2 * q[2] * rp[1] + 2 * q[3] * rp[2];  // 2*q1*rp0 + 2*q2*rp1 + 2*q3*rp2
+    Jac_Af_q(0, 2) = 2 * q[0] * rp[2] + 2 * q[1] * rp[1] - 2 * q[2] * rp[0];  // 2*q0*rp2 + 2*q1*rp1 - 2*q2*rp0
+    Jac_Af_q(0, 3) = 2 * q[1] * rp[2] - 2 * q[0] * rp[1] - 2 * q[3] * rp[0];  // 2*q1*rp2 - 2*q0*rp1 - 2*q3*rp0
+
+    // Row 2
+    Jac_Af_q(1, 0) = 2 * q[0] * rp[1] - 2 * q[1] * rp[2] + 2 * q[3] * rp[0];  // 2*q0*rp1 - 2*q1*rp2 + 2*q3*rp0
+    Jac_Af_q(1, 1) = 2 * q[2] * rp[0] - 2 * q[1] * rp[1] - 2 * q[0] * rp[2];  // 2*q2*rp0 - 2*q1*rp1 - 2*q0*rp2
+    Jac_Af_q(1, 2) = 2 * q[1] * rp[0] + 2 * q[2] * rp[1] + 2 * q[3] * rp[2];  // 2*q1*rp0 + 2*q2*rp1 + 2*q3*rp2
+    Jac_Af_q(1, 3) = 2 * q[0] * rp[0] + 2 * q[2] * rp[2] - 2 * q[3] * rp[1];  // 2*q0*rp0 + 2*q2*rp2 - 2*q3*rp1
+
+    // Row 3
+    Jac_Af_q(2, 0) = 2 * q[0] * rp[2] + 2 * q[1] * rp[1] - 2 * q[2] * rp[0];  // 2*q0*rp2 + 2*q1*rp1 - 2*q2*rp0
+    Jac_Af_q(2, 1) = 2 * q[0] * rp[1] - 2 * q[1] * rp[2] + 2 * q[3] * rp[0];  // 2*q0*rp1 - 2*q1*rp2 + 2*q3*rp0
+    Jac_Af_q(2, 2) = 2 * q[3] * rp[1] - 2 * q[2] * rp[2] - 2 * q[0] * rp[0];  // 2*q3*rp1 - 2*q2*rp2 - 2*q0*rp0
+    Jac_Af_q(2, 3) = 2 * q[1] * rp[0] + 2 * q[2] * rp[1] + 2 * q[3] * rp[2];  // 2*q1*rp0 + 2*q2*rp1 + 2*q3*rp2
+
+    ChVector3d phi;
+    double angle;
+    q.GetAngleAxis(angle, phi);
+    double sinP2 = std::sin(angle / 2);
+    double cosP2 = std::cos(angle / 2);
+
+    ChMatrixNM<double, 4, 3> Jac_q_phi;  //  Jac_q_phi = dq / dphi
+    if (angle * angle > 1e-30) {
+        // the first row dq[0]/dphi
+        Jac_q_phi(0, 0) = -sinP2 / 2 * phi[0] / angle;
+        Jac_q_phi(0, 1) = -sinP2 / 2 * phi[1] / angle;
+        Jac_q_phi(0, 2) = -sinP2 / 2 * phi[2] / angle;
+        // the second row dq[1]/dphi
+        Jac_q_phi(1, 0) = sinP2 + phi[0] * phi[0] * cosP2 / (2 * angle);
+        Jac_q_phi(1, 1) = phi[0] * phi[1] * cosP2 / (2 * angle);
+        Jac_q_phi(1, 2) = phi[0] * phi[2] * cosP2 / (2 * angle);
+        //
+        Jac_q_phi(2, 0) = Jac_q_phi(1, 1);
+        Jac_q_phi(2, 1) = sinP2 + phi[1] * phi[1] * cosP2 / (2 * angle);
+        Jac_q_phi(2, 2) = phi[1] * phi[2] * cosP2 / (2 * angle);
+        //
+        Jac_q_phi(3, 0) = Jac_q_phi(1, 2);
+        Jac_q_phi(3, 1) = Jac_q_phi(2, 2);
+        Jac_q_phi(3, 2) = sinP2 + phi[2] * phi[2] * cosP2 / (2 * angle);
+    } else {
+        Jac_q_phi.setZero();
+        Jac_q_phi(1, 0) = sinP2;
+        Jac_q_phi(2, 1) = sinP2;
+        Jac_q_phi(3, 2) = sinP2;
+    }
+
+    ChMatrix33<> Jac_Af_m = Jac_Af_q * Jac_q_phi;
+    return Jac_Af_m;
+}
+
+void MBTireModel::EdgeSpring3::CalculateJacobian(double Kfactor) {
+    //ChMatrixRef J = KRM.GetMatrix();
+
+
+    ChMatrixNM<double, 12, 12> J;
+    J.setZero();
     ////std::cout << "Edge spring3 " << inode_p << "-" << inode_c << "-" << inode_n;
     ////std::cout << "  J size: " << J.rows() << "x" << J.cols() << std::endl;
 
     auto J1 = CalculateJacobianBlockJ1(Kfactor);
     auto J2 = CalculateJacobianBlockJ2(Kfactor);
 
-    ChMatrixNM<double, 3, 9> Jp = J1.topRows(3) + J2.topRows(3);
-    ChMatrixNM<double, 3, 9> Jn = J1.bottomRows(3) + J2.bottomRows(3);
+    auto Jac_Af_m = JacobianRotatedVector();
+    
+    ChMatrixNM<double, 9, 12> TransitionMatrix;
+    TransitionMatrix.setZero();
+    TransitionMatrix.block(0, 0, 3, 3) = ChMatrix33<>::Identity();
+    TransitionMatrix.block(0, 3, 3, 3) = Jac_Af_m;
+    TransitionMatrix.block(3, 6, 3, 3) = ChMatrix33<>::Identity();
+    TransitionMatrix.block(6, 9, 3, 3) = ChMatrix33<>::Identity();
+    
+    
+    /*
+    std::cout << "TransitionMatrix " << std::endl;
+    std::cout << TransitionMatrix << std::endl;  
+    std::cout << "-------\n";
+    std::cout << J1 << std::endl;
+    std::cout << "-------\n";
+    std::cout << J2 << std::endl;
+    std::cout << "-------\n";
+    */
 
-    //// TODO: revisit
+    ChMatrixNM<double, 6, 12> J1_new = J1 * TransitionMatrix;
+    ChMatrixNM<double, 6, 12> J2_new = J2 * TransitionMatrix;
 
-    // substitution of all into matrix
-    ChVector3d p = wheel->GetPos();          // wheel body position
-    ChQuaterniond q = wheel->GetRot();       // wheel body orientation quaternion
-    ChMatrix33 R = wheel->GetRotMat();       // wheel body rotation matrix
-    ChVector3d v = wheel->GetPosDt();        // wheel linear velocity
-    ChVector3d w = wheel->GetAngVelLocal();  // wheel angular velocity (in local frame)
 
-    ChVectorN<double, 4> e;   // quaternion
-    ChVectorN<double, 3> rp;  // local positon
+    ChMatrixNM<double, 3, 12> Jp = J1_new.topRows(3) + J2_new.topRows(3);
+    ChMatrixNM<double, 3, 12> Jn = J1_new.bottomRows(3) + J2_new.bottomRows(3);
+    
+    J.block(0, 0, 3, 12) = -Jp;
 
-    // Jac_Af_m = 2 *
-    //       [2*e0*rp1+e2*rp3-e3*rp2, 2*e1*rp1+e2*rp2+e3*rp3, e0*rp3+e1*rp2,          e1*rp3-e0*rp2;
-    //        2*e0*rp2-e1*rp3+e3*rp1, e2*rp1-e0 *rp3,         e1*rp1+2*e2*rp2+e3*rp3, e0*rp1+e2*rp3;
-    //        2*e0*rp3+e1*rp2-e2*rp1, e0*rp2 + e3*rp1,        e3*rp2-e0*rp1,          e1*rp1+e2*rp2+2*e3*rp3];
-    ChMatrixNM<double, 3, 4> Jac_Af_m;
+    const auto& pos_p = node_p->GetPos();
+    ChVector3d p = wheel->GetPos();     // wheel body position
+    ChMatrix33 R = wheel->GetRotMat();  // wheel body rotation matrix
+    ChVector3d rp = R.transpose() * (pos_p - p);
+    ChStarMatrix33<> skew_rp(rp);
+    /*
+    J.block(3, 0, 3, 9) = skew_rp * J.block(0, 0, 3, 12);  // block of torque
+    */ 
 
-    Jac_Af_m(0, 0) = 2 * e[0] * rp[0] + e[2] * rp[2] - e[3] * rp[1];  // 2*e0*rp1 + e2*rp3 - e3*rp2,
-    Jac_Af_m(0, 1) = 2 * e[1] * rp[0] + e[2] * rp[1] + e[3] * rp[2];  // 2*e1*rp1 + e2*rp2 + e3*rp3
-    Jac_Af_m(0, 2) = e[0] * rp[2] + e[1] * rp[1];                     // e0*rp3 + e1*rp2
-    Jac_Af_m(0, 3) = e[1] * rp[2] - e[0] * rp[1];                     // e1*rp3 - e0*rp2
+    J.block(6, 0, 3, 12) = Jp + Jn;
+    J.block(9, 0, 3, 12) = -Jn;
+    
 
-    Jac_Af_m(1, 0) = 2 * e[0] * rp[1] - e[1] * rp[2] + e[3] * rp[0];  // 2*e0*rp2 - e1*rp3 + e3*rp1
-    Jac_Af_m(1, 1) = e[2] * rp[0] - e[0] * rp[2];                     // e2*rp1 - e0 *rp3
-    Jac_Af_m(1, 2) = e[1] * rp[0] + 2 * e[2] * rp[1] + e[3] * rp[2];  // e1*rp1 + 2*e2*rp2 + e3*rp3
-    Jac_Af_m(1, 3) = e[0] * rp[0] + e[2] * rp[2];                     // e0 *rp1 + e2 *rp3
 
-    Jac_Af_m(2, 0) = 2 * e[0] * rp[2] + e[1] * rp[1] - e[2] * rp[0];  // 2*e0*rp3 + e1*rp2 - e2*rp1
-    Jac_Af_m(2, 1) = e[0] * rp[1] + e[3] * rp[0];                     // e0*rp2 + e3*rp1
-    Jac_Af_m(2, 2) = e[3] * rp[1] - e[0] * rp[0];                     // e3*rp2 - e0*rp1
-    Jac_Af_m(2, 3) = e[1] * rp[0] + e[2] * rp[1] + 2 * e[3] * rp[2];  // e1*rp1 + e2*rp2 + 2*e3*rp3
-
-    Jac_Af_m *= 2;
-
-    ChMatrixNM<double, 6, 4> J2_quat = J2.leftCols(3) * Jac_Af_m;
-    ChMatrixNM<double, 6, 4> J1_quat;
-
-    ChMatrixNM<double, 4, 3> Jac_Af_mT = Jac_Af_m.transpose();
-    J1_quat.block(0, 0, 6, 1) = Jac_Af_mT(0, 1) * J1.col(0) + Jac_Af_mT(0, 2) * J1.col(2) + Jac_Af_mT(0, 3) * J1.col(3);
-    J1_quat.block(0, 1, 6, 1) = Jac_Af_mT(1, 1) * J1.col(0) + Jac_Af_mT(1, 2) * J1.col(2) + Jac_Af_mT(1, 3) * J1.col(3);
-    J1_quat.block(0, 2, 6, 1) = Jac_Af_mT(2, 1) * J1.col(0) + Jac_Af_mT(2, 2) * J1.col(2) + Jac_Af_mT(2, 3) * J1.col(3);
-    J1_quat.block(0, 3, 6, 1) = Jac_Af_mT(3, 1) * J1.col(0) + Jac_Af_mT(3, 2) * J1.col(2) + Jac_Af_mT(3, 3) * J1.col(3);
-
-    // insert new columns
-    ChMatrixNM<double, 3, 13> Jp_new;
-    Jp_new.block(0, 0, 3, 3) = J1.topRows(3).leftCols(3) + J2.topRows(3).leftCols(3);
-    Jp_new.block(0, 3, 3, 4) = J1_quat.topRows(3) + J2_quat.topRows(3);
-    Jp_new.block(0, 7, 3, 6) = J1.topRows(3).rightCols(6) + J2.topRows(3).rightCols(6);
-
-    ChMatrixNM<double, 3, 13> Jn_new;
-    Jn_new.block(0, 0, 3, 3) = J1.bottomRows(3).leftCols(3) + J2.bottomRows(3).leftCols(3);
-    Jn_new.block(0, 3, 3, 4) = J1_quat.bottomRows(3) + J2_quat.bottomRows(3);
-    Jn_new.block(0, 7, 3, 6) = J1.bottomRows(3).rightCols(6) + J2.bottomRows(3).rightCols(6);
-
-    J.block(0, 0, 3, 13) = -Jp;
-    J.block(3, 0, 3, 13) = Jp + Jn;
-    J.block(6, 0, 3, 13) = -Jn;
+        
+    CalculateJacobianFD(Kfactor);
+    std::cout << "Edge spring3 " << inode_p << "-" << inode_c << "-" << inode_n << std::endl << "-------" << std::endl;
+    /*
+    std::cout << J << std::endl;
+    std::cout << "-------\n";
+    std::cout << J_fd << std::endl;
+    std::cout << "-------\n";        
+    
+    std::cout << "err_2   = " << (J_fd - J).norm()                                                    
+    << "  " << (J_fd - J).norm() / J.norm() << "\n";                                        
+    std::cout << "err_1   = " << (J_fd - J).lpNorm<1>()                                               
+    << "  " << (J_fd - J).lpNorm<1>() / J.lpNorm<1>() << "\n";                              
+    std::cout << "err_inf = " << (J_fd - J).lpNorm<Eigen::Infinity>()                                 
+    << "  " << (J_fd - J).lpNorm<Eigen::Infinity>() / J.lpNorm<Eigen::Infinity>() << "\n";  
+    std::cout << "=======" << std::endl;
+    */
 }
 
 
 void MBTireModel::EdgeSpring3::CalculateJacobianFD(double Kfactor) {
-    ChMatrixNM<double, 12, 12> K;
+    ChMatrixNM<double, 12, 12> K;  // +3 due to the torque
 
-    //// TODO: approximate K
+     K.setZero();
 
-    J_fd = Kfactor * K;
+     ChVector3d posW = wheel->GetPos();
+     ChQuaterniond rotW = wheel->GetRot();
+
+     ChVector3d pos_c = node_c->GetPos();
+     ChVector3d pos_n = node_n->GetPos();
+
+     CalculateForce();
+     auto force_p_0 = force_p;
+     auto force_wheel_0 = force_wheel;
+     auto torque_wheel_0 = torque_wheel;
+     auto force_c_0 = force_c;
+     auto force_n_0 = force_n;
+
+     ChState wheel_state(7, nullptr);
+     wheel_state.segment(0, 3) = posW.eigen();
+     wheel_state.segment(3, 4) = rotW.eigen();
+     ChState wheel_state_perturbed(7, nullptr);
+     ChStateDelta state_delta(6, nullptr);
+     state_delta.setZero(6, nullptr);
+
+     // node_p states
+     for (int i = 0; i < 6; i++) {
+         state_delta(i) += FD_step;
+         wheel->LoadableStateIncrement(0, wheel_state_perturbed, wheel_state, 0, state_delta);
+         wheel->SetPos(ChVector3d(wheel_state_perturbed.segment(0, 3)));
+         wheel->SetRot(ChQuaterniond(wheel_state_perturbed.segment(3, 4)));
+         node_p->SetPos(wheel->TransformPointLocalToParent(local_pos));
+
+         CalculateForce();
+         K.col(i).segment(0, 3) = (force_p.eigen() - force_p_0.eigen()) / FD_step;
+         K.col(i).segment(3, 3) = (torque_wheel.eigen() - torque_wheel_0.eigen()) / FD_step;
+         K.col(i).segment(6, 3) = (force_c.eigen() - force_c_0.eigen()) / FD_step;
+         K.col(i).segment(9, 3) = (force_n.eigen() - force_n_0.eigen()) / FD_step;
+
+         state_delta(i) -= FD_step;
+         wheel->LoadableStateIncrement(0, wheel_state_perturbed, wheel_state, 0, state_delta);
+         wheel->SetPos(ChVector3d(wheel_state_perturbed.segment(0, 3)));
+         wheel->SetRot(ChQuaterniond(wheel_state_perturbed.segment(3, 4)));
+         node_p->SetPos(wheel->TransformPointLocalToParent(local_pos));
+     }
+
+     // node_c states
+     for (int i = 0; i < 3; i++) {
+         pos_c[i] += FD_step;
+         node_c->SetPos(pos_c);
+         CalculateForce();
+         K.col(6 + i).segment(0, 3) = (force_p.eigen() - force_p_0.eigen()) / FD_step;
+         K.col(6 + i).segment(3, 3) = (torque_wheel.eigen() - torque_wheel_0.eigen()) / FD_step;
+         K.col(6 + i).segment(6, 3) = (force_c.eigen() - force_c_0.eigen()) / FD_step;
+         K.col(6 + i).segment(9, 3) = (force_n.eigen() - force_n_0.eigen()) / FD_step;
+         pos_c[i] -= FD_step;
+         node_c->SetPos(pos_c);
+     }
+
+     // node_n states
+     for (int i = 0; i < 3; i++) {
+         pos_n[i] += FD_step;
+         node_n->SetPos(pos_n);
+         CalculateForce();
+         K.col(9 + i).segment(0, 3) = (force_p.eigen() - force_p_0.eigen()) / FD_step;
+         K.col(9 + i).segment(3, 3) = (torque_wheel.eigen() - torque_wheel_0.eigen()) / FD_step;
+         K.col(9 + i).segment(6, 3) = (force_c.eigen() - force_c_0.eigen()) / FD_step;
+         K.col(9 + i).segment(9, 3) = (force_n.eigen() - force_n_0.eigen()) / FD_step;
+         pos_n[i] -= FD_step;
+         node_n->SetPos(pos_n);
+     }
+
+     J_fd = Kfactor * K;
 }
 
 
