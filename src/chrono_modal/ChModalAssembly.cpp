@@ -2573,21 +2573,24 @@ void ChModalAssembly::IntStateScatterReactions(const unsigned int off_L, const C
             m_is_model_reduced = false;
 
         // scatter the Lagrange multipliers for the internal links and update them
-        int displ_L = 0 - this->offset_L - m_num_constr_boundary;  // do not declare as "unsigned int"!
         for (auto& body : internal_bodylist) {
             if (body->IsActive())
-                body->IntStateScatterReactions(displ_L + body->GetOffset_L(), Lambda_internal);
+                body->IntStateScatterReactions(body->GetOffset_L() - this->offset_L - m_num_constr_boundary,
+                                               Lambda_internal);
         }
         for (auto& mesh : internal_meshlist) {
-            mesh->IntStateScatterReactions(displ_L + mesh->GetOffset_L(), Lambda_internal);
+            mesh->IntStateScatterReactions(mesh->GetOffset_L() - this->offset_L - m_num_constr_boundary,
+                                           Lambda_internal);
         }
         for (auto& item : internal_otherphysicslist) {
             if (item->IsActive())
-                item->IntStateScatterReactions(displ_L + item->GetOffset_L(), Lambda_internal);
+                item->IntStateScatterReactions(item->GetOffset_L() - this->offset_L - m_num_constr_boundary,
+                                               Lambda_internal);
         }
         for (auto& link : internal_linklist) {
             if (link->IsActive())
-                link->IntStateScatterReactions(displ_L + link->GetOffset_L(), Lambda_internal);
+                link->IntStateScatterReactions(link->GetOffset_L() - this->offset_L - m_num_constr_boundary,
+                                               Lambda_internal);
         }
 
         if (needs_temporary_bou_int)
