@@ -567,7 +567,11 @@ class ChApiModal ChModalAssembly : public ChAssembly {
     /// e_locred = [qB^bar; eta]: local elastic displacement vector.
     /// edt_locred = [qB^bar_dt; eta_dt]: local elastic velocity vector.
     /// u_locred, e_locred and edt_locred are all expressed in the local floating frame of reference F.
-    void GetLocalDeformations(ChStateDelta& u_locred, ChStateDelta& e_locred, ChStateDelta& edt_locred);
+    void GetLocalDeformations(ChVectorDynamic<>& u_locred, ChVectorDynamic<>& e_locred, ChVectorDynamic<>& edt_locred);
+
+    // Internal use only. Compute P_W * H * P_W^T
+    ChMatrixDynamic<> GetCorotationalTransformation(const ChMatrixDynamic<>& H);
+
 
     virtual void SetupInitial() override;
 
@@ -625,26 +629,22 @@ class ChApiModal ChModalAssembly : public ChAssembly {
     ChState m_full_state_x;   // full state snapshot of assembly in the deformed configuration
 
     // Projection matrices
-    ChMatrixDynamic<> U_locred;      // rigid body modes of the reduced modal assembly in the deformed configuration
-    ChMatrixDynamic<> U_locred_0;    // rigid body modes of the reduced modal assembly in the initial configuration
+    ChSparseMatrix U_locred;       // rigid body modes of the reduced modal assembly in the deformed configuration
+    ChSparseMatrix U_locred_0;     // rigid body modes of the reduced modal assembly in the initial configuration
     ChMatrixDynamic<> Q_0;           // mapping matrix for the displacement of the floating frame F, is constant
     ChMatrixDynamic<> P_parallel_0;  // parallel projector, is constant
     ChMatrixDynamic<> P_perp_0;      // perpendicular projector, is constant
     bool is_projection_initialized = false;
 
     // rigid-body modes in local frame F
-    ChMatrixDynamic<> Uloc_B;    // rigid-body modes of boundary part in the deformed configuration
-    ChMatrixDynamic<> Uloc_I;    // rigid-body modes of internal part in the deformed configuration
-    ChMatrixDynamic<> Uloc_B_0;  // rigid-body modes of boundary part in the initial configuration
-    ChMatrixDynamic<> Uloc_I_0;  // rigid-body modes of internal part in the initial configuration
+    ChSparseMatrix Uloc_B;  // rigid-body modes of boundary part in the deformed configuration
+    ChSparseMatrix Uloc_I;   // rigid-body modes of internal part in the deformed configuration
 
     // Corotational transformation matrices
-    ChMatrixDynamic<> L_B;  // rotation matrix for boundary nodes
-    ChMatrixDynamic<> L_I;  // rotation matrix for internal nodes
-    ChMatrixDynamic<> P_W;  // rotation matrix for boundary nodes + modal coordinates, = diag[L_B, I]
+    //ChSparseMatrix L_B;   // rotation matrix for boundary nodes
+    //ChSparseMatrix L_I;   // rotation matrix for internal nodes
+    //ChSparseMatrix P_W;   // rotation matrix for boundary nodes + modal coordinates, = diag[L_B, I]
     ChMatrixDynamic<> P_F;  // rotation matrix for floating frame F, = diag[R_F, I]
-
-    ChVectorDynamic<> g_quad;  // the quadratic velocity term of the reduced modal superelement
 
     ChVectorDynamic<> m_full_forces_internal;  ///< collect all external forces imposed on the internal nodes. This
                                                ///< force will be eventually transformed to the modal forces and applied
