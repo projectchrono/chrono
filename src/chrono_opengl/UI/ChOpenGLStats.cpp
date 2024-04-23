@@ -15,6 +15,7 @@
 // =============================================================================
 
 #include "chrono/solver/ChIterativeSolverVI.h"
+#include "chrono/solver/ChDirectSolverLS.h"
 
 #include "chrono/ChConfig.h"
 
@@ -302,21 +303,29 @@ void ChOpenGLStatsDefault::GenerateSystem(ChSystem& sys) {
 }
 
 void ChOpenGLStatsDefault::GenerateSolver(ChSystem& sys) {
-    double iters = std::static_pointer_cast<ChIterativeSolverVI>(sys.GetSolver())->GetIterations();
-    const std::vector<double>& vhist =
-        std::static_pointer_cast<ChIterativeSolverVI>(sys.GetSolver())->GetViolationHistory();
-    const std::vector<double>& dhist =
-        std::static_pointer_cast<ChIterativeSolverVI>(sys.GetSolver())->GetDeltalambdaHistory();
-    double residual = vhist.size() > 0 ? vhist.back() : 0.0;
-    double dlambda = dhist.size() > 0 ? dhist.back() : 0.0;
-
     text.Render("SOLVER INFO", screen.LEFT, screen.TOP - screen.SPACING * 11, screen.SX, screen.SY);
-    snprintf(buffer, sizeof(buffer), "ITERS    %04d", int(iters));
-    text.Render(buffer, screen.LEFT, screen.TOP - screen.SPACING * 12, screen.SX, screen.SY);
-    snprintf(buffer, sizeof(buffer), "RESIDUAL %04f", residual);
-    text.Render(buffer, screen.LEFT, screen.TOP - screen.SPACING * 13, screen.SX, screen.SY);
-    snprintf(buffer, sizeof(buffer), "CORRECT  %04f", dlambda);
-    text.Render(buffer, screen.LEFT, screen.TOP - screen.SPACING * 14, screen.SX, screen.SY);
+
+    if (auto solverVI = std::dynamic_pointer_cast<ChIterativeSolverVI>(sys.GetSolver())) {
+        double iters = solverVI->GetIterations();
+        const std::vector<double>& vhist = solverVI->GetViolationHistory();
+        const std::vector<double>& dhist = solverVI->GetDeltalambdaHistory();
+        double residual = vhist.size() > 0 ? vhist.back() : 0.0;
+        double dlambda = dhist.size() > 0 ? dhist.back() : 0.0;
+
+        snprintf(buffer, sizeof(buffer), "ITERS    %04d", int(iters));
+        text.Render(buffer, screen.LEFT, screen.TOP - screen.SPACING * 12, screen.SX, screen.SY);
+        snprintf(buffer, sizeof(buffer), "RESIDUAL %04f", residual);
+        text.Render(buffer, screen.LEFT, screen.TOP - screen.SPACING * 13, screen.SX, screen.SY);
+        snprintf(buffer, sizeof(buffer), "CORRECT  %04f", dlambda);
+        text.Render(buffer, screen.LEFT, screen.TOP - screen.SPACING * 14, screen.SX, screen.SY);
+    } else if (auto solverD = std::dynamic_pointer_cast<ChDirectSolverLS>(sys.GetSolver())) {
+        auto num_setups = solverD->GetNumSetupCalls();
+        auto num_solves = solverD->GetNumSolveCalls();
+        snprintf(buffer, sizeof(buffer), "NUM SETUP    %04d", int(num_setups));
+        text.Render(buffer, screen.LEFT, screen.TOP - screen.SPACING * 12, screen.SX, screen.SY);
+        snprintf(buffer, sizeof(buffer), "NUM SOLVE    %04d", int(num_solves));
+        text.Render(buffer, screen.LEFT, screen.TOP - screen.SPACING * 13, screen.SX, screen.SY);
+    }
 
     text.Render("--------------------------------", screen.LEFT, screen.TOP - screen.SPACING * 15, screen.SX,
                 screen.SY);
