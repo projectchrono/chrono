@@ -559,6 +559,7 @@ class ChApiModal ChModalAssembly : public ChAssembly {
     void ComputeModalKRMmatricesGlobal(double Kfactor = 1.0, double Rfactor = 1.0, double Mfactor = 1.0);
 
     /// [INTERNAL USE ONLY]
+    /// Both Herting and Craig-Bampton reductions are implemented in this function.
     void ApplyModeAccelerationTransformation(const ChModalDamping& damping_model = ChModalDampingNone());
 
     /// Computes the increment of the modal assembly (the increment of the current configuration respect
@@ -629,8 +630,8 @@ class ChApiModal ChModalAssembly : public ChAssembly {
     ChState m_full_state_x;   // full state snapshot of assembly in the deformed configuration
 
     // Projection matrices
-    ChSparseMatrix U_locred;       // rigid body modes of the reduced modal assembly in the deformed configuration
-    ChSparseMatrix U_locred_0;     // rigid body modes of the reduced modal assembly in the initial configuration
+    ChSparseMatrix U_locred;         // rigid body modes of the reduced modal assembly in the deformed configuration
+    ChSparseMatrix U_locred_0;       // rigid body modes of the reduced modal assembly in the initial configuration
     ChMatrixDynamic<> Q_0;           // mapping matrix for the displacement of the floating frame F, is constant
     ChMatrixDynamic<> P_parallel_0;  // parallel projector, is constant
     ChMatrixDynamic<> P_perp_0;      // perpendicular projector, is constant
@@ -638,12 +639,12 @@ class ChApiModal ChModalAssembly : public ChAssembly {
 
     // rigid-body modes in local frame F
     ChSparseMatrix Uloc_B;  // rigid-body modes of boundary part in the deformed configuration
-    ChSparseMatrix Uloc_I;   // rigid-body modes of internal part in the deformed configuration
+    ChSparseMatrix Uloc_I;  // rigid-body modes of internal part in the deformed configuration
 
     // Corotational transformation matrices
-    //ChSparseMatrix L_B;   // rotation matrix for boundary nodes
-    //ChSparseMatrix L_I;   // rotation matrix for internal nodes
-    //ChSparseMatrix P_W;   // rotation matrix for boundary nodes + modal coordinates, = diag[L_B, I]
+    // ChSparseMatrix L_B;   // rotation matrix for boundary nodes
+    // ChSparseMatrix L_I;   // rotation matrix for internal nodes
+    // ChSparseMatrix P_W;   // rotation matrix for boundary nodes + modal coordinates, = diag[L_B, I]
     ChMatrixDynamic<> P_F;  // rotation matrix for floating frame F, = diag[R_F, I]
 
     ChVectorDynamic<> m_full_forces_internal;  ///< collect all external forces imposed on the internal nodes. This

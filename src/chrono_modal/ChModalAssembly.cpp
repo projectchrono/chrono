@@ -2490,6 +2490,9 @@ void ChModalAssembly::IntStateScatterAcceleration(const unsigned int off_a, cons
                 link->IntStateScatterAcceleration(displ_a + link->GetOffset_w(), a);
         }
     } else {
+        // Todo: shall we also update the acceleration of internal nodes if m_internal_nodes_update==true ?
+        // The algorithm is similar as the recovery of the internal velocity.
+
         this->modal_q_dtdt = a.segment(off_a + m_num_coords_vel_boundary, m_num_coords_modal);
     }
 }
