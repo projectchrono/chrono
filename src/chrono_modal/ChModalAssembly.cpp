@@ -1243,17 +1243,16 @@ void ChModalAssembly::ComputeModalKRMmatricesGlobal(double Kfactor, double Rfact
         V_F2.setZero(num_coords_vel_bou_mod, 6);
 
         for (unsigned int i_bou = 0; i_bou < m_num_coords_vel_boundary / 6; i_bou++) {
-            V_F1.block(6 * i_bou, 3, 3, 3) = ChStarMatrix33<>(g_loc_alpha.segment(6 * i_bou, 3));
-            V_F2.block(6 * i_bou, 3, 3, 3) = ChStarMatrix33<>(u_locred.segment(6 * i_bou, 3));
+            V_F1.block<3, 3>(6 * i_bou, 3) = ChStarMatrix33<>(g_loc_alpha.segment(6 * i_bou, 3));
+            V_F2.block<3, 3>(6 * i_bou, 3) = ChStarMatrix33<>(u_locred.segment(6 * i_bou, 3));
         }
         this->modal_K += GetCorotationalTransformation((-V_F1 + PTKP * V_F2) * P_F * Q_0);
     }
 
-    // unsigned int num_coords_vel_bou_mod = m_num_coords_vel_boundary + m_num_coords_modal;
     ChMatrixDynamic<> O_F;
     O_F.setZero(num_coords_vel_bou_mod, num_coords_vel_bou_mod);
     for (unsigned int i_bou = 0; i_bou < m_num_coords_vel_boundary / 6; i_bou++)
-        O_F.block(6 * i_bou, 6 * i_bou, 3, 3) = ChStarMatrix33<>(floating_frame_F.GetAngVelLocal());
+        O_F.block<3, 3>(6 * i_bou, 6 * i_bou) = ChStarMatrix33<>(floating_frame_F.GetAngVelLocal());
 
     // Inertial damping matrix, also known as gyroscopic damping matrix
     if (Rfactor)
