@@ -1208,10 +1208,12 @@ void ChModalAssembly::ComputeModalKRMmatricesGlobal(double Kfactor, double Rfact
     if (Mfactor)
         this->modal_M = GetCorotationalTransformation(M_red);
 
+    if (m_num_coords_static_correction || !(PTKredP.any()))  // avoid duplicate computing if possible
+        PTKredP = P_perp_0.transpose() * K_red * P_perp_0;
+
     // material stiffness matrix of reduced modal assembly
-    ChMatrixDynamic<> PTKP = P_perp_0.transpose() * K_red * P_perp_0;
     if (Kfactor)
-        this->modal_K = GetCorotationalTransformation(PTKP);
+        this->modal_K = GetCorotationalTransformation(PTKredP);
 
     // material damping matrix of the reduced modal assembly
     if (Rfactor)
@@ -1246,7 +1248,7 @@ void ChModalAssembly::ComputeModalKRMmatricesGlobal(double Kfactor, double Rfact
             V_F1.block<3, 3>(6 * i_bou, 3) = ChStarMatrix33<>(g_loc_alpha.segment(6 * i_bou, 3));
             V_F2.block<3, 3>(6 * i_bou, 3) = ChStarMatrix33<>(u_locred.segment(6 * i_bou, 3));
         }
-        this->modal_K += GetCorotationalTransformation((-V_F1 + PTKP * V_F2) * P_F * Q_0);
+        this->modal_K += GetCorotationalTransformation((-V_F1 + PTKredP * V_F2) * P_F * Q_0);
     }
 
     ChMatrixDynamic<> O_F;
@@ -1370,6 +1372,7 @@ void ChModalAssembly::SetupModalData(unsigned int nmodes_reduction) {
     P_parallel_0.setZero(m_num_coords_vel_boundary + m_num_coords_modal,
                          m_num_coords_vel_boundary + m_num_coords_modal);
     P_perp_0.setZero(m_num_coords_vel_boundary + m_num_coords_modal, m_num_coords_vel_boundary + m_num_coords_modal);
+    PTKredP.setZero(m_num_coords_vel_boundary + m_num_coords_modal, m_num_coords_vel_boundary + m_num_coords_modal);
 
     M_red.setZero(m_num_coords_vel_boundary + m_num_coords_modal, m_num_coords_vel_boundary + m_num_coords_modal);
     K_red.setZero(m_num_coords_vel_boundary + m_num_coords_modal, m_num_coords_vel_boundary + m_num_coords_modal);

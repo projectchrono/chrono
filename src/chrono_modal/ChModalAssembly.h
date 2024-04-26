@@ -682,6 +682,8 @@ class ChApiModal ChModalAssembly : public ChAssembly {
     ChSparseMatrix Cq_I_loc;
 
     ChSparseMatrix MBI_PsiST_MII;  // an intermediate matrix frequently used when SetUseStaticCorrection(true)
+    ChMatrixDynamic<> PTKredP;  // an intermediate matrix, = P_perp_0^T * K_red * P_perp_0, which needs to be recomputed
+                                // if m_num_coords_static_correction = true
 
     ReductionType m_modal_reduction_type =
         ReductionType::CRAIG_BAMPTON;  ///< methods for modal reduction, Craig-Bampton as default
