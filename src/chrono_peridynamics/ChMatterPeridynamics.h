@@ -18,173 +18,30 @@
 #include <cmath>
 
 #include "chrono_peridynamics/ChApiPeridynamics.h"
+#include "chrono_peridynamics/ChNodePeri.h"
 #include "chrono/collision/ChCollisionModel.h"
 #include "chrono/fea/ChNodeFEAxyz.h"
 #include "chrono/solver/ChVariablesNode.h"
 
 namespace chrono {
-
-// Forward references (for parent hierarchy pointer)
-class ChSystem;
-
 namespace peridynamics {
 
+// Forward declaration
 class ChProximityContainerPeri;
 
-/// @addtogroup chrono_fea
+/// @addtogroup chrono_peridynamics
 /// @{
 
 
 
-/// Class for a single node in the Peridynamics  cluster
-class ChApiPeridynamics ChNodePeri : public fea::ChNodeFEAxyz, public ChContactable_1vars<3> {
-public:
-    ChNodePeri();
-    ChNodePeri(const ChNodePeri& other);
-    ~ChNodePeri();
 
-    //ChNodePeri& operator=(const ChNodePeri& other);
-
-    //
-    // FUNCTIONS
-    //
-
-    /// Get the horizon radius (max. radius while checking surrounding particles).
-    double GetHorizonRadius() { return h_rad; }
-
-    /// Set the horizon radius (max. radius while checking surrounding particles).
-    void SetHorizonRadius(double mr);
-
-
-    /// Get collision radius (for colliding with bodies, boundaries, etc.).
-    double GetCollisionRadius() { return coll_rad; }
-    /// Set collision radius (for colliding with bodies, boundaries, etc.)
-    void SetCollisionRadius(double mr);
-
-
-    /// Access the variables of the node.
-    //virtual ChVariablesNode& Variables() override { return variables; }
-
-
-    //
-    // INTERFACE TO ChContactable
-    //
-
-    virtual ChContactable::eChContactableType GetContactableType() const override { return CONTACTABLE_3; }
-
-    /// Access variables.
-    virtual ChVariables* GetVariables1() override { return &Variables(); }
-
-    /// Tell if the object must be considered in collision detection.
-    virtual bool IsContactActive() override { return true; }
-
-    /// Get the number of DOFs affected by this object (position part).
-    virtual int ContactableGet_ndof_x() override { return 3; }
-
-    /// Get the number of DOFs affected by this object (speed part).
-    virtual int ContactableGet_ndof_w() override { return 3; }
-
-    /// Get all the DOFs packed in a single vector (position part).
-    virtual void ContactableGetStateBlock_x(ChState& x) override { x.segment(0, 3) = this->pos.eigen(); }
-
-    /// Get all the DOFs packed in a single vector (speed part).
-    virtual void ContactableGetStateBlock_w(ChStateDelta& w) override { w.segment(0, 3) = this->pos_dt.eigen(); }
-
-    /// Increment the provided state of this object by the given state-delta increment.
-    /// Compute: x_new = x + dw.
-    virtual void ContactableIncrementState(const ChState& x, const ChStateDelta& dw, ChState& x_new) override {
-        NodeIntStateIncrement(0, x_new, x, 0, dw);
-    }
-
-    /// Express the local point in absolute frame, for the given state position.
-    virtual ChVector<> GetContactPoint(const ChVector<>& loc_point, const ChState& state_x) override {
-        return state_x.segment(0, 3);
-    }
-
-    /// Get the absolute speed of a local point attached to the contactable.
-    /// The given point is assumed to be expressed in the local frame of this object.
-    /// This function must use the provided states.
-    virtual ChVector<> GetContactPointSpeed(const ChVector<>& loc_point,
-        const ChState& state_x,
-        const ChStateDelta& state_w) override {
-        return state_w.segment(0, 3);
-    }
-
-    /// Get the absolute speed of point abs_point if attached to the surface.
-    /// Easy in this case because there are no roations..
-    virtual ChVector<> GetContactPointSpeed(const ChVector<>& abs_point) override { return this->pos_dt; }
-
-    /// Return the coordinate system for the associated collision model.
-    /// ChCollisionModel might call this to get the position of the
-    /// contact model (when rigid) and sync it.
-    virtual ChCoordsys<> GetCsysForCollisionModel() override { return ChCoordsys<>(this->pos, QNULL); }
-
-    /// Apply the force, expressed in absolute reference, applied in pos, to the
-    /// coordinates of the variables. Force for example could come from a penalty model.
-    /// The force F and its application point are specified in the absolute reference frame.
-    virtual void ContactForceLoadResidual_F(const ChVector<>& F, ///< force 
-        const ChVector<>& T, ///< torque
-        const ChVector<>& abs_point,
-        ChVectorDynamic<>& R) override;
-
-    /// Apply the given force at the given point and load the generalized force array.
-    /// The force and its application point are specified in the gloabl frame.
-    /// Each object must set the entries in Q corresponding to its variables, starting at the specified offset.
-    /// If needed, the object states must be extracted from the provided state position.
-    virtual void ContactComputeQ(const ChVector<>& F, ///< force
-        const ChVector<>& T, ///< torque
-        const ChVector<>& point,
-        const ChState& state_x,
-        ChVectorDynamic<>& Q,
-        int offset) override {
-        Q.segment(offset, 3) = F.eigen();
-        Q.segment(offset + 3, 3) = VNULL.eigen();
-    }
-
-    /// Compute the jacobian(s) part(s) for this contactable item. For example,
-    /// if the contactable is a ChBody, this should update the corresponding 1x6 jacobian.
-    virtual void ComputeJacobianForContactPart(const ChVector<>& abs_point,
-        ChMatrix33<>& contact_plane,
-        ChContactable_1vars::type_constraint_tuple& jacobian_tuple_N,
-        ChContactable_1vars::type_constraint_tuple& jacobian_tuple_U,
-        ChContactable_1vars::type_constraint_tuple& jacobian_tuple_V,
-        bool second) override;
-
-    /// Used by some SMC code.
-    virtual double GetContactableMass() override { return this->GetMass(); }
-
-    /// This is only for backward compatibility. OBSOLETE
-    virtual ChPhysicsItem* GetPhysicsItem() override { return nullptr; };
-
-
-    //
-    // DATA
-    //
-    bool is_requiring_bonds = true;  // requires collision detection to initialize bounds even if elastic
-    bool is_boundary = false;        // always requires collsion detection
-    bool is_elastic = false;         // if true, once computed, bounds do not require updating via collision detection proximities
-
-    bool is_colliding = false;       // has a collision model that is already inserted in ChSystem collision engine
-
-    bool IsRequiringCollision() {
-        return (is_boundary || !is_elastic || is_requiring_bonds);
-    }
-
-    ChVector<> F_peridyn; // placeholder for storing peridynamics forces, automatically computed
-
-    double volume;
-    double h_rad;
-    double coll_rad;
-};
-
-
-// Base properties per each peridynamics node. Can be inherited if a material requires more data.
+/// Base properties per each peridynamics node. Can be inherited if a material requires more data.
 class  ChApiPeridynamics ChMatterDataPerNode {
 public:
     std::shared_ptr<ChNodePeri> node;
 };
 
-// Base properties per each peridynamics bound. Can be inherited if a material requires more data.
+/// Base properties per each peridynamics bound. Can be inherited if a material requires more data.
 class  ChApiPeridynamics ChMatterDataPerBound { 
 public: 
     ChNodePeri* nodeA = nullptr;
@@ -216,6 +73,9 @@ struct std::hash<::std::pair<T1,T2>>
 
 /// Base class for assigning material properties (elasticity, viscosity etc) to a cluster
 /// of peridynamics nodes.
+/// Do not inherit directly from this. Better inherit from ChMatterPeri, that provides
+/// some useful default functionality like activating/deactivating collision shapes.
+
 class ChApiPeridynamics ChMatterPeriBase { 
 public:
     virtual ~ChMatterPeriBase() {
@@ -271,6 +131,8 @@ protected:
     ChProximityContainerPeri* container = 0;
 
 };
+
+
 
 /// Sub-base templated class for assigning material properties (elasticity, viscosity etc) to a cluster
 /// of peridynamics nodes.
@@ -478,104 +340,6 @@ class  ChMatterPeri : public ChMatterPeriBase {
     }
 };
 
-
-
-/// The simplest peridynamic material: a bond-based material based on a 
-/// network of springs, each with the same stiffness k regardless of length, etc. 
-/// Just for didactical purposes - do not use it for serious applications.
-/// Also use a damping coefficient r. 
-
-class ChApiPeridynamics ChMatterPeriSprings : public ChMatterPeri<> {
-public:
-    double k = 100;
-    double r = 10;
-
-    ChMatterPeriSprings() {};
-
-    // Implement the function that adds the peridynamics force to each node, as a 
-    // summation of all the effects of neighbouring nodes.
-    virtual void ComputeForces() {
-        // loop on bounds
-        for (auto& bound : this->bounds) {
-            ChMatterDataPerBound& mbound = bound.second;
-            ChVector<> old_vdist = mbound.nodeB->GetX0() - mbound.nodeA->GetX0();
-            ChVector<>     vdist = mbound.nodeB->GetPos() - mbound.nodeA->GetPos();
-            ChVector<>     vdir = vdist.GetNormalized();
-            double         vel = Vdot(vdir, mbound.nodeB->GetPos_dt() - mbound.nodeA->GetPos_dt());
-            ChVector force_val = (vdist.Length() - old_vdist.Length()) * this->k  + vel * this->r;
-            mbound.nodeB->F_peridyn += -vdir * force_val;
-            mbound.nodeA->F_peridyn += vdir * force_val;
-        }
-    };
-};
-
-
-class  ChApiPeridynamics ChMatterDataPerBoundBreakable : public ChMatterDataPerBound { 
-public: 
-    bool broken = false;
-};
-
-class ChApiPeridynamics ChMatterPeriSpringsBreakable : public ChMatterPeri<ChMatterDataPerNode, ChMatterDataPerBoundBreakable> {
-public:
-    double k = 100;
-    double r = 10;
-    double max_stretch = 0.08;
-
-    ChMatterPeriSpringsBreakable() {};
-
-    // Implement the function that adds the peridynamics force to each node, as a 
-    // summation of all the effects of neighbouring nodes.
-    virtual void ComputeForces() {
-        // loop on bounds
-        for (auto& bound : this->bounds) {
-            ChMatterDataPerBoundBreakable& mbound = bound.second;
-            if (!mbound.broken) {
-                ChVector<> old_vdist = mbound.nodeB->GetX0() - mbound.nodeA->GetX0();
-                ChVector<>     vdist = mbound.nodeB->GetPos() - mbound.nodeA->GetPos();
-                ChVector<>     vdir = vdist.GetNormalized();
-                double         vel = Vdot(vdir, mbound.nodeB->GetPos_dt() - mbound.nodeA->GetPos_dt());
-                ChVector force_val = (vdist.Length() - old_vdist.Length()) * this->k + vel * this->r;
-                mbound.nodeB->F_peridyn += -vdir * force_val;
-                mbound.nodeA->F_peridyn += vdir * force_val;
-
-                double stretch = (vdist.Length() - old_vdist.Length()) / old_vdist.Length();
-                if (stretch > max_stretch) {
-                    mbound.broken = true;
-                    // the following will propagate the fracture geometry so that broken parts can collide
-                    mbound.nodeA->is_boundary = true; 
-                    mbound.nodeB->is_boundary = true;
-                }
-            }
-            else {
-                if ((mbound.nodeB->GetPos() - mbound.nodeA->GetPos()).Length() > mbound.nodeA->GetHorizonRadius())
-                    bounds.erase(bound.first);
-            }
-
-        }
-    }
-};
-
-
-
-class /*ChApiPeridynamics*/ ChVisualPeriSpringsBreakable : public ChGlyphs {
-public:
-    ChVisualPeriSpringsBreakable(std::shared_ptr<ChMatterPeriSpringsBreakable> amatter) : mmatter(amatter) { is_mutable = true; };
-    virtual ~ChVisualPeriSpringsBreakable() {}
-
-protected:
-    virtual void Update(ChPhysicsItem* updater, const ChFrame<>& frame) {
-        if (!mmatter)
-            return;
-        this->Reserve(mmatter->GetNnodes());
-        unsigned int i = 0;
-        for (const auto& anode : mmatter->GetMapOfNodes()) {
-            this->SetGlyphPoint(i, anode.second.node->GetPos());
-            ++i;
-        }
-    }
-
-    std::shared_ptr<ChMatterPeriSpringsBreakable> mmatter;
-};
 
 
 

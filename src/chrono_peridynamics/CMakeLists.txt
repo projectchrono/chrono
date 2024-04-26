@@ -17,13 +17,19 @@ MESSAGE(STATUS "\n==== Chrono Peridynamics module ====\n")
 # LIST THE FILES THAT MAKE THE PERIDYNAMICS LIBRARY
 
 SET(ChronoEngine_PERIDYNAMICS_SOURCES 
+    ChNodePeri.cpp
     ChMatterPeridynamics.cpp
+    ChMatterPeriSprings.cpp
+    ChMatterPeriBulkElastic.cpp
     ChProximityContainerPeridynamics.cpp
 )
 
 SET(ChronoEngine_PERIDYNAMICS_HEADERS
     ChApiPeridynamics.h 
+    ChNodePeri.h
     ChMatterPeridynamics.h
+    ChMatterPeriSprings.h
+    ChMatterPeriBulkElastic.h
     ChProximityContainerPeridynamics.h
 )
 

@@ -26,7 +26,8 @@
 #include "chrono/physics/ChBodyEasy.h"
 #include "chrono/fea/ChLinkPointFrame.h"
 
-#include "chrono_peridynamics/ChMatterPeridynamics.h"
+#include "chrono_peridynamics/ChMatterPeriSprings.h"
+#include "chrono_peridynamics/ChMatterPeriBulkElastic.h"
 #include "chrono_peridynamics/ChProximityContainerPeridynamics.h"
 
 #include "chrono_irrlicht/ChVisualSystemIrrlicht.h"
@@ -86,12 +87,16 @@ int main(int argc, char* argv[]) {
 
 
     // Create peridynamics matter - a very simple one
-
+    /*
     auto mymattersprings = chrono_types::make_shared<ChMatterPeriSpringsBreakable>();
     mymattersprings->k = 260000; // stiffness of bounds
     mymattersprings->r = 300; // damping of bounds
     mymattersprings->max_stretch = 0.08;
-
+    */
+    auto mymattersprings = chrono_types::make_shared<ChMatterPeriBulkElastic>();
+    mymattersprings->k_bulk = 26000; // bulk stiffness 
+    mymattersprings->r = 10; // bulk damping s
+    mymattersprings->max_stretch = 0.08;
 
     // IMPORTANT!
     // This takes care of the interaction between the particles of the Peridynamics material
@@ -104,7 +109,7 @@ int main(int argc, char* argv[]) {
     my_peri_proximity->FillBox(
         mymattersprings,
         ChVector<>(3, 1.5, 3),                      // size of box
-        4.0 / 40.0,                                   // resolution step
+        4.0 / 20.0,                                   // resolution step
         1000,                                         // initial density
         ChCoordsys<>(ChVector<>(0, -3.4, 0), QUNIT),  // position & rotation of box
         false,                                         // do a centered cubic lattice initial arrangement
@@ -117,10 +122,24 @@ int main(int argc, char* argv[]) {
             node->SetFixed(true);
     }
 
-    // to automate visualiazion
+    // to automate visualization
+    /*
     auto mglyphs_nodes = chrono_types::make_shared<ChVisualPeriSpringsBreakable>(mymattersprings);
     my_peri_proximity->AddVisualShape(mglyphs_nodes);
 
+    auto mglyphs_bounds = chrono_types::make_shared<ChVisualPeriSpringsBreakableBounds>(mymattersprings);
+    mglyphs_bounds->draw_unbroken = true;
+    mglyphs_bounds->draw_broken = true;
+    my_peri_proximity->AddVisualShape(mglyphs_bounds);
+    */
+    auto mglyphs_nodes = chrono_types::make_shared<ChVisualPeriBulkElastic>(mymattersprings);
+    my_peri_proximity->AddVisualShape(mglyphs_nodes);
+    mglyphs_nodes->SetGlyphsSize(0.04);
+
+    //auto mglyphs_bounds = chrono_types::make_shared<ChVisualPeriBulkElasticBounds>(mymattersprings);
+    //mglyphs_bounds->draw_unbroken = true;
+    //mglyphs_bounds->draw_broken = true;
+    //my_peri_proximity->AddVisualShape(mglyphs_bounds);
 
     // -----Blender postprocess
 
@@ -160,7 +179,7 @@ int main(int argc, char* argv[]) {
     //
     // THE SOFT-REAL-TIME CYCLE
     //
-    double timestep = 0.00015;
+    double timestep = 0.00010;
 
     while (vsys->Run()) {
         vsys->BeginScene();
@@ -260,7 +279,7 @@ int main(int argc, char* argv[]) {
                     core::vector3df mpos((irr::f32)mv.x(), (irr::f32)mv.y(), (irr::f32)mv.z());
 
                     // draw points
-                    if (true) {
+                    if (false) {
                         core::position2d<s32> spos = vsys->GetSceneManager()->getSceneCollisionManager()->getScreenCoordinatesFrom3DPosition(mpos);
                         irr::video::SMaterial mattransp;
                         mattransp.ZBuffer = false;

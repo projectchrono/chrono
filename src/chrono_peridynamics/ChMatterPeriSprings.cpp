@@ -15,7 +15,7 @@
 #include <cstdlib>
 #include <algorithm>
 
-#include "chrono_peridynamics/ChMatterPeridynamics.h"
+#include "chrono_peridynamics/ChMatterPeriSprings.h"
 #include "chrono_peridynamics/ChProximityContainerPeridynamics.h"
 
 namespace chrono {
@@ -25,7 +25,10 @@ using namespace peridynamics;
 using namespace geometry;
 
 // Register into the object factory, to enable run-time dynamic creation and persistence
-//CH_FACTORY_REGISTER(ChBlaBla)
+CH_FACTORY_REGISTER(ChMatterPeriSprings)
+
+// Register into the object factory, to enable run-time dynamic creation and persistence
+CH_FACTORY_REGISTER(ChMatterPeriSpringsBreakable)
 
 
 

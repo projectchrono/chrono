@@ -224,6 +224,7 @@ void ChProximityContainerPeri::FillBox(
     double mtotvol = size.x() * size.y() * size.z();
     double mtotmass = mtotvol * initial_density;
     double nodemass = mtotmass / (double)totsamples;
+    double nodevol = mtotmass / (double)totsamples;
 
     for (int ix = 0; ix < samples_x; ix++)
         for (int iy = 0; iy < samples_y; iy++)
@@ -236,6 +237,7 @@ void ChProximityContainerPeri::FillBox(
                 mnode->SetX0(mpos);
                 mnode->SetPos(mpos);
                 mnode->SetMass(nodemass);
+                mnode->volume = nodevol;
                 mnode->is_elastic = true;
                 mnode->coll_rad = collrad;
                 mnode->h_rad = horizon;
@@ -254,6 +256,7 @@ void ChProximityContainerPeri::FillBox(
                     mnode->SetX0(mpos);
                     mnode->SetPos(mpos);
                     mnode->SetMass(nodemass);
+                    mnode->volume = nodevol;
                     mnode->is_elastic = true;
                     mnode->coll_rad = collrad;
                     mnode->h_rad = horizon;

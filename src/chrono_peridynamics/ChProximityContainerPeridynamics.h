@@ -19,14 +19,16 @@
 
 #include "chrono_peridynamics/ChApiPeridynamics.h"
 #include "chrono/physics/ChProximityContainer.h"
+#include "chrono/physics/ChSystem.h"
 #include "chrono/utils/ChUtilsSamplers.h"
+
 
 namespace chrono {
 
 namespace peridynamics {
 
  
-/// @addtogroup chrono_fea
+/// @addtogroup chrono_peridynamics
 /// @{
 
 // Forward declaration
@@ -405,7 +407,7 @@ protected:
 };
 
 
-/// @} chrono_fea
+/// @} chrono_peridynamics
 
 }  // end namespace fea
 }  // end namespace chrono
