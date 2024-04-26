@@ -68,6 +68,8 @@ const std::unordered_map<chrono::ChCausalityType, FmuVariable::CausalityType> Ca
     {chrono::ChCausalityType::local, FmuVariable::CausalityType::local},
     {chrono::ChCausalityType::independent, FmuVariable::CausalityType::independent}};
 
+// -----------------------------------------------------------------------------
+
 // TODO expand serialization to have description
 
 /// Class for serializing variables to FmuComponentBase.
@@ -224,6 +226,8 @@ class ChOutputFMU : public ChArchiveOut {
     std::deque<std::string> parent_names;
 };
 
+// -----------------------------------------------------------------------------
+
 /// Extension of FmuComponentBase class for Chrono FMUs.
 class FmuChronoComponentBase : public FmuComponentBase {
   public:
@@ -265,12 +269,9 @@ class FmuChronoComponentBase : public FmuComponentBase {
                            const std::string& unit_name,
                            const std::string& description,
                            FmuVariable::CausalityType causality = FmuVariable::CausalityType::local,
-                           FmuVariable::VariabilityType variability = FmuVariable::VariabilityType::continuous) {
-        std::string comp[3] = {"x", "y", "z"};
-        for (int i = 0; i < 3; i++) {
-            AddFmuVariable(&v.data()[i], name + "." + comp[i], FmuVariable::Type::Real, unit_name,
-                           description + " (" + comp[i] + ")", causality, variability);
-        }
+                           FmuVariable::VariabilityType variability = FmuVariable::VariabilityType::continuous,
+                           FmuVariable::InitialType initial = FmuVariable::InitialType::none) {
+        addFmuVecVariable(v, name, unit_name, description, causality, variability, initial, true);
     }
 
     /// Add FMU variables corresponding to the specified ChQuaternion.
@@ -281,12 +282,9 @@ class FmuChronoComponentBase : public FmuComponentBase {
                             const std::string& unit_name,
                             const std::string& description,
                             FmuVariable::CausalityType causality = FmuVariable::CausalityType::local,
-                            FmuVariable::VariabilityType variability = FmuVariable::VariabilityType::continuous) {
-        std::string comp[4] = {"e0", "e1", "e2", "e3"};
-        for (int i = 0; i < 4; i++) {
-            AddFmuVariable(&q.data()[i], name + "." + comp[i], FmuVariable::Type::Real, unit_name,
-                           description + " (" + comp[i] + ")", causality, variability);
-        }
+                            FmuVariable::VariabilityType variability = FmuVariable::VariabilityType::continuous,
+                            FmuVariable::InitialType initial = FmuVariable::InitialType::none) {
+        addFmuQuatVariable(q, name, unit_name, description, causality, variability, initial, true);
     }
 
     /// Add FMU variables corresponding to the specified ChCoordsys.
@@ -297,9 +295,9 @@ class FmuChronoComponentBase : public FmuComponentBase {
                             const std::string& unit_name,
                             const std::string& description,
                             FmuVariable::CausalityType causality = FmuVariable::CausalityType::local,
-                            FmuVariable::VariabilityType variability = FmuVariable::VariabilityType::continuous) {
-        AddFmuVecVariable(s.pos, name + ".pos", unit_name, description + " position", causality, variability);
-        AddFmuQuatVariable(s.rot, name + ".rot", "1", description + " orientation", causality, variability);
+                            FmuVariable::VariabilityType variability = FmuVariable::VariabilityType::continuous,
+                            FmuVariable::InitialType initial = FmuVariable::InitialType::none) {
+        addFmuCsysVariable(s, name, unit_name, description, causality, variability, initial, true);
     }
 
     /// Add FMU variables corresponding to the specified ChFrame.
@@ -310,27 +308,24 @@ class FmuChronoComponentBase : public FmuComponentBase {
                              const std::string& unit_name,
                              const std::string& description,
                              FmuVariable::CausalityType causality = FmuVariable::CausalityType::local,
-                             FmuVariable::VariabilityType variability = FmuVariable::VariabilityType::continuous) {
-        AddFmuCsysVariable(s.m_csys, name, unit_name, description, causality, variability);
+                             FmuVariable::VariabilityType variability = FmuVariable::VariabilityType::continuous,
+                             FmuVariable::InitialType initial = FmuVariable::InitialType::none) {
+        addFmuCsysVariable(s.m_csys, name, unit_name, description, causality, variability, initial, true);
     }
 
     /// Add FMU variables corresponding to the specified ChFrameMoving.
     /// This function creates 7 FMU variables for the pose, one for each component of the position ChVector3d and one
     /// for each component of the rotation quaternion, all of type FmuVariable::Type::Real.  Additionally, 7 FMU
     /// variables are created to encode the position and orientation time derivatives.
-    void AddFmuFrameMovingVariable(
-        ChFrameMoving<>& s,
-        const std::string& name,
-        const std::string& unit_name,
-        const std::string& unit_name_dt,
-        const std::string& description,
-        FmuVariable::CausalityType causality = FmuVariable::CausalityType::local,
-        FmuVariable::VariabilityType variability = FmuVariable::VariabilityType::continuous) {
-        AddFmuCsysVariable(s.m_csys, name, unit_name, description, causality, variability);
-        AddFmuVecVariable(s.m_csys_dt.pos, name + ".pos_dt", unit_name_dt, description + " position derivative",
-                          causality, variability);
-        AddFmuQuatVariable(s.m_csys_dt.rot, name + ".rot_dt", "1", description + " orientation derivative", causality,
-                           variability);
+    void AddFmuFrameMovingVariable(ChFrameMoving<>& s,
+                                   const std::string& name,
+                                   const std::string& unit_name,
+                                   const std::string& unit_name_dt,
+                                   const std::string& description,
+                                   FmuVariable::CausalityType causality = FmuVariable::CausalityType::local,
+                                   FmuVariable::VariabilityType variability = FmuVariable::VariabilityType::continuous,
+                                   FmuVariable::InitialType initial = FmuVariable::InitialType::none) {
+        addFmuFrameMovingVariable(s, name, unit_name, unit_name_dt, description, causality, variability, initial, true);
     }
 
     /// Add FMU variables corresponding to the visual shapes attached to the specified ChPhysicsItem.
@@ -349,6 +344,170 @@ class FmuChronoComponentBase : public FmuComponentBase {
     void AddFmuVisualShapes(const ChAssembly& ass);
 
   protected:
+    std::unordered_set<std::string> variables_vec;     ///< list of ChVector3 "variables"
+    std::unordered_set<std::string> variables_quat;    ///< list of ChQuaternion "variables"
+    std::unordered_set<std::string> variables_csys;    ///< list of ChCoordsys "variables"
+    std::unordered_set<std::string> variables_framem;  ///< list of ChFrameMoving "variables"
+
+    void addFmuVecVariable(ChVector3d& v,
+                           const std::string& name,
+                           const std::string& unit_name,
+                           const std::string& description,
+                           FmuVariable::CausalityType causality,
+                           FmuVariable::VariabilityType variability,
+                           FmuVariable::InitialType initial,
+                           bool cache) {
+        std::string comp[3] = {"x", "y", "z"};
+        for (int i = 0; i < 3; i++) {
+            AddFmuVariable(&v.data()[i], name + "." + comp[i], FmuVariable::Type::Real, unit_name,
+                           description + " (" + comp[i] + ")", causality, variability, initial);
+        }
+
+        if (cache)
+            variables_vec.insert(name);
+    }
+
+    void addFmuQuatVariable(ChQuaternion<>& q,
+                            const std::string& name,
+                            const std::string& unit_name,
+                            const std::string& description,
+                            FmuVariable::CausalityType causality,
+                            FmuVariable::VariabilityType variability,
+                            FmuVariable::InitialType initial,
+                            bool cache) {
+        std::string comp[4] = {"e0", "e1", "e2", "e3"};
+        for (int i = 0; i < 4; i++) {
+            AddFmuVariable(&q.data()[i], name + "." + comp[i], FmuVariable::Type::Real, unit_name,
+                           description + " (" + comp[i] + ")", causality, variability, initial);
+        }
+
+        if (cache)
+            variables_quat.insert(name);
+    }
+
+    void addFmuCsysVariable(ChCoordsysd& s,
+        const std::string& name,
+        const std::string& unit_name,
+        const std::string& description,
+        FmuVariable::CausalityType causality,
+        FmuVariable::VariabilityType variability,
+                            FmuVariable::InitialType initial,
+                            bool cache) {
+        addFmuVecVariable(s.pos, name + ".pos", unit_name, description + " position", causality, variability, initial, false);
+        addFmuQuatVariable(s.rot, name + ".rot", "1", description + " orientation", causality, variability, initial, false);
+
+        if (cache)
+            variables_csys.insert(name);
+    }
+
+    void addFmuFrameMovingVariable(ChFrameMoving<>& s,
+                                   const std::string& name,
+                                   const std::string& unit_name,
+                                   const std::string& unit_name_dt,
+                                   const std::string& description,
+                                   FmuVariable::CausalityType causality,
+                                   FmuVariable::VariabilityType variability,
+                                   FmuVariable::InitialType initial,
+                                   bool cache) {
+        addFmuCsysVariable(s.m_csys, name, unit_name, description, causality, variability, initial, false);
+        addFmuVecVariable(s.m_csys_dt.pos, name + ".pos_dt", unit_name_dt, description + " position derivative",
+                          causality, variability, initial, false);
+        addFmuQuatVariable(s.m_csys_dt.rot, name + ".rot_dt", "1", description + " orientation derivative", causality,
+                           variability, initial, false);
+
+        if (cache)
+            variables_framem.insert(name);
+    }
+
+    /// Include a dependency of "variable_name" on "dependency_name".
+    /// This version accounts for variables and/or dependencies corresponding to ChVector3, ChQuaternion, ChCoordsys,
+    /// ChFrame, or ChFrameMoving types. These are expanded to the appropriate number of FMI scalar variables.
+    virtual void addDependency(const std::string& variable_name, const std::string& dependency_name) override {
+        std::vector<std::string> variables;
+        std::vector<std::string> dependencies;
+
+        // Check if variable_name corresponds to a ChVector3, ChQuaternion, ChCoordsys, or ChFrameMoving object
+        if (variables_vec.find(variable_name) != variables_vec.end()) {
+            variables.push_back(variable_name + ".x");
+            variables.push_back(variable_name + ".y");
+            variables.push_back(variable_name + ".z");
+        } else if (variables_quat.find(variable_name) != variables_quat.end()) {
+            variables.push_back(variable_name + ".e0");
+            variables.push_back(variable_name + ".e1");
+            variables.push_back(variable_name + ".e2");
+            variables.push_back(variable_name + ".e3");
+        } else if (variables_csys.find(variable_name) != variables_csys.end()) {
+            variables.push_back(variable_name + ".pos.x");
+            variables.push_back(variable_name + ".pos.y");
+            variables.push_back(variable_name + ".pos.z");
+            variables.push_back(variable_name + ".rot.e0");
+            variables.push_back(variable_name + ".rot.e1");
+            variables.push_back(variable_name + ".rot.e2");
+            variables.push_back(variable_name + ".rot.e3");
+        } else if (variables_framem.find(variable_name) != variables_framem.end()) {
+            variables.push_back(variable_name + ".pos.x");
+            variables.push_back(variable_name + ".pos.y");
+            variables.push_back(variable_name + ".pos.z");
+            variables.push_back(variable_name + ".rot.e0");
+            variables.push_back(variable_name + ".rot.e1");
+            variables.push_back(variable_name + ".rot.e2");
+            variables.push_back(variable_name + ".rot.e3");
+            variables.push_back(variable_name + ".pos_dt.x");
+            variables.push_back(variable_name + ".pos_dt.y");
+            variables.push_back(variable_name + ".pos_dt.z");
+            variables.push_back(variable_name + ".rot_dt.e0");
+            variables.push_back(variable_name + ".rot_dt.e1");
+            variables.push_back(variable_name + ".rot_dt.e2");
+            variables.push_back(variable_name + ".rot_dt.e3");
+        } else {
+            variables.push_back(variable_name);
+        }
+
+        // Check if dependency_name corresponds to a ChVector3, ChQuaternion, ChCoordsys, or ChFrameMoving object
+        if (variables_vec.find(dependency_name) != variables_vec.end()) {
+            dependencies.push_back(dependency_name + ".x");
+            dependencies.push_back(dependency_name + ".y");
+            dependencies.push_back(dependency_name + ".z");
+        } else if (variables_quat.find(dependency_name) != variables_quat.end()) {
+            dependencies.push_back(dependency_name + ".e0");
+            dependencies.push_back(dependency_name + ".e1");
+            dependencies.push_back(dependency_name + ".e2");
+            dependencies.push_back(dependency_name + ".e3");
+        } else if (variables_csys.find(dependency_name) != variables_csys.end()) {
+            dependencies.push_back(dependency_name + ".pos.x");
+            dependencies.push_back(dependency_name + ".pos.y");
+            dependencies.push_back(dependency_name + ".pos.z");
+            dependencies.push_back(dependency_name + ".rot.e0");
+            dependencies.push_back(dependency_name + ".rot.e1");
+            dependencies.push_back(dependency_name + ".rot.e2");
+            dependencies.push_back(dependency_name + ".rot.e3");
+        } else if (variables_framem.find(dependency_name) != variables_framem.end()) {
+            dependencies.push_back(dependency_name + ".pos.x");
+            dependencies.push_back(dependency_name + ".pos.y");
+            dependencies.push_back(dependency_name + ".pos.z");
+            dependencies.push_back(dependency_name + ".rot.e0");
+            dependencies.push_back(dependency_name + ".rot.e1");
+            dependencies.push_back(dependency_name + ".rot.e2");
+            dependencies.push_back(dependency_name + ".rot.e3");
+            dependencies.push_back(dependency_name + ".pos_dt.x");
+            dependencies.push_back(dependency_name + ".pos_dt.y");
+            dependencies.push_back(dependency_name + ".pos_dt.z");
+            dependencies.push_back(dependency_name + ".rot_dt.e0");
+            dependencies.push_back(dependency_name + ".rot_dt.e1");
+            dependencies.push_back(dependency_name + ".rot_dt.e2");
+            dependencies.push_back(dependency_name + ".rot_dt.e3");
+        } else {
+            dependencies.push_back(dependency_name);
+        }
+
+        // Now invoke the base class method for each combination of scalar variables and dependencies
+        for (const auto& v : variables) {
+            for (const auto& d : dependencies) {
+                FmuComponentBase::addDependency(v, d);
+            }
+        }
+    }
+
     /// add variables to the FMU component by leveraging the serialization mechanism
     chrono::ChOutputFMU variables_serializer;
 
@@ -368,6 +527,8 @@ class FmuChronoComponentBase : public FmuComponentBase {
     /// total number of visualizers (not unsigned to keep compatibility with FMU standard types)
     fmi2Integer visualizers_counter = 0;
 };
+
+// -----------------------------------------------------------------------------
 
 void FmuChronoComponentBase::AddFmuVisualShapes(const ChPhysicsItem& pi, std::string custom_pi_name) {
     if (!pi.GetVisualModel())
@@ -554,8 +715,8 @@ void FmuChronoComponentBase::AddFmuVisualShapes(const ChAssembly& ass) {
     }
 
     for (const auto& pi : ass.GetOtherPhysicsItems()) {
-        auto ass = std::dynamic_pointer_cast<ChAssembly>(pi);
-        ass ? AddFmuVisualShapes(*ass.get()) : AddFmuVisualShapes(*pi.get());
+        auto ass1 = std::dynamic_pointer_cast<ChAssembly>(pi);
+        ass1 ? AddFmuVisualShapes(*ass1.get()) : AddFmuVisualShapes(*pi.get());
     }
 }
 
