@@ -155,6 +155,7 @@ CH_SENSOR_API void ChFilterOptixRender::Initialize(std::shared_ptr<ChSensor> pSe
         m_raygen_record->data.specific.depthCamera.frame_buffer = reinterpret_cast<float*>(bufferOut->Buffer.get());
         m_raygen_record->data.specific.depthCamera.lens_model = depthCamera->GetLensModelType();
         m_raygen_record->data.specific.depthCamera.lens_parameters = depthCamera->GetLensParameters();
+        m_raygen_record->data.specific.depthCamera.max_depth = depthCamera->GetMaxDepth();
             // make_float3(cam->GetLensParameters().x(), cam->GetLensParameters().y()], cam->GetLensParameters().z());
 
         if (depthCamera->GetCollectionWindow() > 0.f) {
