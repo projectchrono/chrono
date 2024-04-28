@@ -58,9 +58,9 @@ void ChBrakeShafts::Initialize(std::shared_ptr<ChChassis> chassis,
     chassis->GetSystem()->Add(m_clutch);
 }
 
-void ChBrakeShafts::Synchronize(double modulation) {
-    m_modulation = modulation;
-    m_clutch->SetModulation(modulation);
+void ChBrakeShafts::Synchronize(double time, double braking) {
+    m_modulation = braking;
+    m_clutch->SetModulation(braking);
     //// TODO: more here?
 }
 

@@ -53,7 +53,7 @@ void ChTrackBrakeShafts::Initialize(std::shared_ptr<ChChassis> chassis, std::sha
     chassis->GetSystem()->Add(m_clutch);
 }
 
-void ChTrackBrakeShafts::Synchronize(double braking) {
+void ChTrackBrakeShafts::Synchronize(double time, double braking) {
     m_braking = braking;
     m_clutch->SetModulation(braking);
 }

@@ -48,7 +48,7 @@ void ChSuspension::ApplyAxleTorque(VehicleSide side, double torque) {
     m_axle[side]->SetAppliedLoad(torque);
 }
 
-void ChSuspension::Synchronize() {
+void ChSuspension::Synchronize(double time) {
     m_spindle[LEFT]->EmptyAccumulators();
     m_spindle[RIGHT]->EmptyAccumulators();
 }

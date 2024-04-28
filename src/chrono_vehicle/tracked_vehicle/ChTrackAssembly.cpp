@@ -227,7 +227,7 @@ void ChTrackAssembly::Synchronize(double time, double braking) {
     GetSprocket()->m_axle->SetAppliedLoad(0.0);
 
     // Apply braking input
-    m_brake->Synchronize(braking);
+    m_brake->Synchronize(time, braking);
 }
 
 void ChTrackAssembly::Synchronize(double time, double braking, const TerrainForces& shoe_forces) {
@@ -239,6 +239,10 @@ void ChTrackAssembly::Synchronize(double time, double braking, const TerrainForc
         m_shoe_terrain_forces[i]->SetApplicationPoint(shoe_forces[i].point, false);
         m_shoe_terrain_torques[i]->SetTorque(shoe_forces[i].moment, false);
     }
+}
+
+void ChTrackAssembly::Advance(double step) {
+    m_brake->Advance(step);
 }
 
 // -----------------------------------------------------------------------------

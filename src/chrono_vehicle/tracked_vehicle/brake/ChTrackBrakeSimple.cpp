@@ -56,7 +56,7 @@ void ChTrackBrakeSimple::Initialize(std::shared_ptr<ChChassis> chassis, std::sha
     sys->AddLink(m_brake);
 }
 
-void ChTrackBrakeSimple::Synchronize(double braking) {
+void ChTrackBrakeSimple::Synchronize(double time, double braking) {
     m_braking = braking;
     m_brake->SetBrakeTorque(braking * GetMaxBrakingTorque());
 }

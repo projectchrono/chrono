@@ -45,11 +45,12 @@ class CH_VEHICLE_API ChTrackBrakeShafts : public ChTrackBrake {
                             ) override;
 
     /// Update the brake subsystem for the given braking driver input.
+    /// The input value is in the range [0,1].<br>
     /// <pre>
-    ///   braking = 0 : completely free,
-    ///   braking = 1 : provide maximum braking torque
+    ///   braking = 0 indicates no braking
+    ///   braking = 1 indicates that the subsystem should provide maximum braking torque
     /// </pre>
-    virtual void Synchronize(double braking) override;
+    virtual void Synchronize(double time, double braking) override;
 
     /// Get the current brake torque.
     virtual double GetBrakeTorque() override { return m_braking * GetMaxBrakingTorque(); }

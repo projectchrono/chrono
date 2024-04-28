@@ -188,6 +188,9 @@ class CH_VEHICLE_API ChTrackAssembly : public ChPart {
                      const TerrainForces& shoe_forces  ///< [in] vector of tire force structures
     );
 
+    /// Advance the state of this track assembly by the specified time step.
+    virtual void Advance(double step);
+
     /// Enable/disable output for this subsystem.
     /// This function overrides the output setting for all components of this track assembly.
     virtual void SetOutput(bool state) override;

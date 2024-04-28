@@ -57,18 +57,18 @@ void ChBrakeSimple::Initialize(std::shared_ptr<ChChassis> chassis,
     m_hub->GetSystem()->AddLink(m_brake);
 }
 
-void ChBrakeSimple::Synchronize(double modulation) {
-    m_modulation = modulation;
-    m_brake->SetBrakeTorque(modulation * GetMaxBrakingTorque());
+void ChBrakeSimple::Synchronize(double time, double braking) {
+    m_modulation = braking;
+    m_brake->SetBrakeTorque(braking * GetMaxBrakingTorque());
 
     // If braking input is large enough, lock the brake
     if (!m_can_lock)
         return;
 
-    if (modulation > 0.99 && !m_locked) {
+    if (braking > 0.99 && !m_locked) {
         m_hub->Lock(true);
         m_locked = true;
-    } else if (modulation <= 0.99 && m_locked) {
+    } else if (braking <= 0.99 && m_locked) {
         m_hub->Lock(false);
         m_locked = false;
     }
