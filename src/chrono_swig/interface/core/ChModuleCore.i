@@ -205,6 +205,7 @@ using namespace chrono::fea;
 
 %shared_ptr(chrono::fea::ChMesh)
 
+%shared_ptr(chrono::ChCollisionShape)
 %shared_ptr(chrono::ChCollisionModel)
 
 %shared_ptr(chrono::ChCollisionSystem)
@@ -420,6 +421,8 @@ using namespace chrono::fea;
 
 
 // Utils
+// for hulls and meshing
+%include "../../../chrono/collision/ChConvexDecomposition.h"
 
 %include "../../../chrono/utils/ChConstants.h"
 %include "../../../chrono/utils/ChUtils.h"

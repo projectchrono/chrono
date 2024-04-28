@@ -69,4 +69,3 @@
 %include "../../../chrono_vehicle/powertrain/AutomaticTransmissionSimpleMap.h"
 %include "../../../chrono_vehicle/powertrain/AutomaticTransmissionShafts.h"
 
-%include "chrono_swig/interface/models/PowertrainModels.i"

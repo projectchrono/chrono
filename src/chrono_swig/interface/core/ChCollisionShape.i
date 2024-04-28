@@ -8,7 +8,7 @@
 
 %{
 #include "chrono/collision/ChCollisionShape.h"
-// #include "chrono/collision/ChCollisionShapes.h" // nothing to parse here
+#include "chrono/collision/ChCollisionShapes.h"
 #include "chrono/collision/ChCollisionShapeArc2D.h"
 #include "chrono/collision/ChCollisionShapeBarrel.h"
 #include "chrono/collision/ChCollisionShapeBox.h"
@@ -36,6 +36,7 @@ class ChContactMaterial;
 class ChCollisionModel;
 }
 
+%include "std_pair.i"
 
 %shared_ptr(chrono::ChCollisionShape)
 %shared_ptr(chrono::ChCollisionShapeArc2D)
@@ -58,7 +59,7 @@ class ChCollisionModel;
 
 // Parse the header file to generate wrappers
 %include "../../../chrono/collision/ChCollisionShape.h"
-// %include "../../../chrono/collision/ChCollisionShapes.h"  // nothing to parse here
+%include "../../../chrono/collision/ChCollisionShapes.h"
 %include "../../../chrono/collision/ChCollisionShapeArc2D.h"
 %include "../../../chrono/collision/ChCollisionShapeBarrel.h"
 %include "../../../chrono/collision/ChCollisionShapeBox.h"
@@ -78,4 +79,9 @@ class ChCollisionModel;
 %include "../../../chrono/collision/ChCollisionShapeTriangleMesh.h"
 
 
+// Define ShapeInstance as a pair of shared_ptr<ChCollisionShape> and ChFrame<>
+%template(ShapeInstance) std::pair<std::shared_ptr<chrono::ChCollisionShape>, chrono::ChFrame<double>>;
+
+// Define a vector of ShapeInstance
+%template(vector_ShapeInstance) std::vector<std::pair<std::shared_ptr<chrono::ChCollisionShape>, chrono::ChFrame<double>>>;
 
