@@ -34,8 +34,7 @@ ChassisConnectorArticulated::ChassisConnectorArticulated(const std::string& file
 
     Create(d);
 
-    std::cout << "Loaded JSONL " << filename << std::endl;
-    std::cout << "Loaded JSONL " << filename << std::endl;
+    std::cout << "Loaded JSON " << filename << std::endl;
 }
 
 ChassisConnectorArticulated::ChassisConnectorArticulated(const rapidjson::Document& d)

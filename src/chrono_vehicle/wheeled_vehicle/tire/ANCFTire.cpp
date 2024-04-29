@@ -35,7 +35,7 @@ ANCFTire::ANCFTire(const std::string& filename) : ChANCFTire(""), m_ANCF8(false)
 
     ProcessJSON(d);
 
-    std::cout << "Loaded JSONL " << filename << std::endl;
+    std::cout << "Loaded JSON " << filename << std::endl;
 }
 
 ANCFTire::ANCFTire(const rapidjson::Document& d) : ChANCFTire("") {

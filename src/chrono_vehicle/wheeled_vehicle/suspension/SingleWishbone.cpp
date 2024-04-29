@@ -36,7 +36,7 @@ SingleWishbone::SingleWishbone(const std::string& filename)
 
     Create(d);
 
-    std::cout << "Loaded JSONL " << filename << std::endl;
+    std::cout << "Loaded JSON " << filename << std::endl;
 }
 
 SingleWishbone::SingleWishbone(const rapidjson::Document& d)

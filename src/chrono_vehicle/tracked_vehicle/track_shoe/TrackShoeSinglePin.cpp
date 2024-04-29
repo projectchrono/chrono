@@ -36,7 +36,7 @@ TrackShoeSinglePin::TrackShoeSinglePin(const std::string& filename) : ChTrackSho
 
     Create(d);
 
-    std::cout << "Loaded JSONL " << filename << std::endl;
+    std::cout << "Loaded JSON " << filename << std::endl;
 }
 
 TrackShoeSinglePin::TrackShoeSinglePin(const rapidjson::Document& d) : ChTrackShoeSinglePin("") {

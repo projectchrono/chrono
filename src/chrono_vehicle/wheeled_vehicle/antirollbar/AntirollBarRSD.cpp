@@ -34,7 +34,7 @@ AntirollBarRSD::AntirollBarRSD(const std::string& filename) : ChAntirollBarRSD("
 
     Create(d);
 
-    std::cout << "Loaded JSONL " << filename << std::endl;
+    std::cout << "Loaded JSON " << filename << std::endl;
 }
 
 AntirollBarRSD::AntirollBarRSD(const rapidjson::Document& d) : ChAntirollBarRSD("") {

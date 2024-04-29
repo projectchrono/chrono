@@ -36,7 +36,7 @@ TranslationalDamperSuspension::TranslationalDamperSuspension(const std::string& 
 
     Create(d);
 
-    std::cout << "Loaded JSONL " << filename << std::endl;
+    std::cout << "Loaded JSON " << filename << std::endl;
 }
 
 TranslationalDamperSuspension::TranslationalDamperSuspension(const rapidjson::Document& d,

@@ -35,7 +35,7 @@ ShaftsDriveline4WD::ShaftsDriveline4WD(const std::string& filename) : ChShaftsDr
 
     Create(d);
 
-    std::cout << "Loaded JSONL " << filename << std::endl;
+    std::cout << "Loaded JSON " << filename << std::endl;
 }
 
 ShaftsDriveline4WD::ShaftsDriveline4WD(const rapidjson::Document& d) : ChShaftsDriveline4WD("") {

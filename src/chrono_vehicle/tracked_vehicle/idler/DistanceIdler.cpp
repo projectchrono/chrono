@@ -34,7 +34,7 @@ DistanceIdler::DistanceIdler(const std::string& filename) : ChDistanceIdler("") 
 
     Create(d);
 
-    std::cout << "Loaded JSONL " << filename << std::endl;
+    std::cout << "Loaded JSON " << filename << std::endl;
 }
 
 DistanceIdler::DistanceIdler(const rapidjson::Document& d) : ChDistanceIdler("") {

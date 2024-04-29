@@ -40,7 +40,7 @@ FEATire::FEATire(const std::string& filename) : ChFEATire("") {
 
     ProcessJSON(d);
 
-    std::cout << "Loaded JSONL " << filename << std::endl;
+    std::cout << "Loaded JSON " << filename << std::endl;
 }
 
 FEATire::FEATire(const rapidjson::Document& d) : ChFEATire("") {

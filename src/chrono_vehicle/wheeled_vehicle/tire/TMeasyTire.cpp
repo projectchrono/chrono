@@ -36,7 +36,7 @@ TMeasyTire::TMeasyTire(const std::string& filename) : ChTMeasyTire(""), m_has_me
 
     Create(d);
 
-    std::cout << "Loaded JSONL " << filename << std::endl;
+    std::cout << "Loaded JSON " << filename << std::endl;
 }
 
 TMeasyTire::TMeasyTire(const rapidjson::Document& d) : ChTMeasyTire(""), m_has_mesh(false) {

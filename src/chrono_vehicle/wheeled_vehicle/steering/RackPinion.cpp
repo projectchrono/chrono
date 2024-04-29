@@ -34,7 +34,7 @@ RackPinion::RackPinion(const std::string& filename) : ChRackPinion("") {
 
     Create(d);
 
-    std::cout << "Loaded JSONL " << filename << std::endl;
+    std::cout << "Loaded JSON " << filename << std::endl;
 }
 
 RackPinion::RackPinion(const rapidjson::Document& d) : ChRackPinion("") {

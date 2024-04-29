@@ -105,7 +105,7 @@ ChTrackTestRig::ChTrackTestRig(const std::string& filename,
     } else if (subtype.compare("TrackAssemblyDoublePin") == 0) {
         m_track = chrono_types::make_shared<TrackAssemblyDoublePin>(d);
     }
-    std::cout << "Loaded JSONL " << filename << std::endl;
+    std::cout << "Loaded JSON " << filename << std::endl;
 
     Create(create_track, detracking_control);
     m_contact_manager = chrono_types::make_shared<ChTrackContactManager>();

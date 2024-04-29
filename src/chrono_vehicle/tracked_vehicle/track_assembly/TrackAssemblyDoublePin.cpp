@@ -65,7 +65,7 @@ void TrackAssemblyDoublePin::ReadSprocket(const std::string& filename, int outpu
         m_sprocket->SetOutput(output == +1);
     }
 
-    std::cout << "  Loaded JSONL " << filename << std::endl;
+    std::cout << "  Loaded JSON " << filename << std::endl;
 }
 
 // -----------------------------------------------------------------------------
@@ -96,7 +96,7 @@ void TrackAssemblyDoublePin::ReadTrackShoes(const std::string& filename, int num
         m_shoes[0]->SetOutput(output == +1);
     }
 
-    std::cout << "  Loaded JSONL " << filename << std::endl;
+    std::cout << "  Loaded JSON " << filename << std::endl;
 }
 
 // -----------------------------------------------------------------------------
@@ -109,7 +109,7 @@ TrackAssemblyDoublePin::TrackAssemblyDoublePin(const std::string& filename) : Ch
 
     Create(d);
 
-    std::cout << "Loaded JSONL " << filename << std::endl;
+    std::cout << "Loaded JSON " << filename << std::endl;
 }
 
 TrackAssemblyDoublePin::TrackAssemblyDoublePin(const rapidjson::Document& d) : ChTrackAssemblyDoublePin("", LEFT) {

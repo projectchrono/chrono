@@ -58,7 +58,7 @@ ChAdaptiveSpeedController::ChAdaptiveSpeedController(const std::string& filename
     m_Ki = d["Gains"]["Ki"].GetDouble();
     m_Kd = d["Gains"]["Kd"].GetDouble();
 
-    std::cout << "Loaded JSONL " << filename << std::endl;
+    std::cout << "Loaded JSON " << filename << std::endl;
 }
 
 ChAdaptiveSpeedController::~ChAdaptiveSpeedController() {

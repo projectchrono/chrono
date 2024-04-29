@@ -33,7 +33,7 @@ ChassisConnectorTorsion::ChassisConnectorTorsion(const std::string& filename) : 
 
     Create(d);
 
-    std::cout << "Loaded JSONL " << filename << std::endl;
+    std::cout << "Loaded JSON " << filename << std::endl;
 }
 
 ChassisConnectorTorsion::ChassisConnectorTorsion(const rapidjson::Document& d) : ChChassisConnectorTorsion("") {

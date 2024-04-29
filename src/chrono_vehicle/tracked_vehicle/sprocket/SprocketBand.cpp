@@ -40,7 +40,7 @@ SprocketBand::SprocketBand(const std::string& filename) : ChSprocketBand(""), m_
 
     Create(d);
 
-    std::cout << "Loaded JSONL " << filename << std::endl;
+    std::cout << "Loaded JSON " << filename << std::endl;
 }
 
 SprocketBand::SprocketBand(const rapidjson::Document& d) : ChSprocketBand(""), m_has_mesh(false) {

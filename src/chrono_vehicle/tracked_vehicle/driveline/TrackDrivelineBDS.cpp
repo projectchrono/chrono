@@ -35,7 +35,7 @@ TrackDrivelineBDS::TrackDrivelineBDS(const std::string& filename) : ChTrackDrive
 
     Create(d);
 
-    std::cout << "Loaded JSONL " << filename << std::endl;
+    std::cout << "Loaded JSON " << filename << std::endl;
 }
 
 TrackDrivelineBDS::TrackDrivelineBDS(const rapidjson::Document& d) : ChTrackDrivelineBDS("") {

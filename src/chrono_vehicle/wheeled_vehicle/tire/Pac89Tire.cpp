@@ -37,7 +37,7 @@ Pac89Tire::Pac89Tire(const std::string& filename) : ChPac89Tire(""), m_mass(0), 
 
     Create(d);
 
-    std::cout << "Loaded JSONL " << filename << std::endl;
+    std::cout << "Loaded JSON " << filename << std::endl;
 }
 
 Pac89Tire::Pac89Tire(const rapidjson::Document& d) : ChPac89Tire(""), m_mass(0), m_normalDamping(0), m_has_mesh(false) {

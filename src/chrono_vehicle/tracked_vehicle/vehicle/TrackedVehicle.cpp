@@ -113,7 +113,7 @@ void TrackedVehicle::Create(const std::string& filename) {
         }
     }
 
-    std::cout << "Loaded JSONL " << filename << std::endl;
+    std::cout << "Loaded JSON " << filename << std::endl;
 }
 
 // -----------------------------------------------------------------------------

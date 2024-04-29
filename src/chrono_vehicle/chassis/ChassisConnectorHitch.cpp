@@ -33,7 +33,7 @@ ChassisConnectorHitch::ChassisConnectorHitch(const std::string& filename) : ChCh
 
     Create(d);
 
-    std::cout << "Loaded JSONL " << filename << std::endl;
+    std::cout << "Loaded JSON " << filename << std::endl;
 }
 
 ChassisConnectorHitch::ChassisConnectorHitch(const rapidjson::Document& d) : ChChassisConnectorHitch("") {

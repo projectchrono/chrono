@@ -39,7 +39,7 @@ SprocketDoublePin::SprocketDoublePin(const std::string& filename) : ChSprocketDo
 
     Create(d);
 
-    std::cout << "Loaded JSONL " << filename << std::endl;
+    std::cout << "Loaded JSON " << filename << std::endl;
 }
 
 SprocketDoublePin::SprocketDoublePin(const rapidjson::Document& d) : ChSprocketDoublePin(""), m_has_mesh(false) {

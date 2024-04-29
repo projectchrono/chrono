@@ -188,7 +188,7 @@ ChHumanDriver::ChHumanDriver(const std::string& filename,
                   << "  ,  Kminus = " << m_Kminus << " \n";
     }
 
-    std::cout << "Loaded JSONL " << filename << std::endl;
+    std::cout << "Loaded JSON " << filename << std::endl;
 
     Create();
 }
