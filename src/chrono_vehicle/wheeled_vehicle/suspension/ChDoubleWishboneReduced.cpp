@@ -38,17 +38,18 @@ namespace vehicle {
 ChDoubleWishboneReduced::ChDoubleWishboneReduced(const std::string& name) : ChSuspension(name) {}
 
 ChDoubleWishboneReduced::~ChDoubleWishboneReduced() {
+    if (!m_initialized)
+        return;
+
     auto sys = m_upright[0]->GetSystem();
-    if (sys) {
-        for (int i = 0; i < 2; i++) {
-            sys->Remove(m_upright[i]);
-            sys->Remove(m_distUCA_F[i]);
-            sys->Remove(m_distUCA_B[i]);
-            sys->Remove(m_distLCA_F[i]);
-            sys->Remove(m_distLCA_B[i]);
-            sys->Remove(m_distTierod[i]);
-            sys->Remove(m_shock[i]);
-        }
+    for (int i = 0; i < 2; i++) {
+        sys->Remove(m_upright[i]);
+        sys->Remove(m_distUCA_F[i]);
+        sys->Remove(m_distUCA_B[i]);
+        sys->Remove(m_distLCA_F[i]);
+        sys->Remove(m_distLCA_B[i]);
+        sys->Remove(m_distTierod[i]);
+        sys->Remove(m_shock[i]);
     }
 }
 

@@ -32,13 +32,14 @@ ChPitmanArm::ChPitmanArm(const std::string& name, bool vehicle_frame_inertia)
     : ChSteering(name), m_vehicle_frame_inertia(vehicle_frame_inertia) {}
 
 ChPitmanArm::~ChPitmanArm() {
+    if (!m_initialized)
+        return;
+
     auto sys = m_arm->GetSystem();
-    if (sys) {
-        sys->Remove(m_arm);
-        sys->Remove(m_revolute);
-        sys->Remove(m_revsph);
-        sys->Remove(m_universal);
-    }
+    sys->Remove(m_arm);
+    sys->Remove(m_revolute);
+    sys->Remove(m_revsph);
+    sys->Remove(m_universal);
 }
 
 // -----------------------------------------------------------------------------
