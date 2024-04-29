@@ -1196,7 +1196,7 @@ void ChModalAssembly::ComputeModalKRMmatricesGlobal(double Kfactor, double Rfact
             V_F1.block<3, 3>(6 * i_bou, 3) = ChStarMatrix33<>(g_loc_alpha.segment(6 * i_bou, 3));
             V_F2.block<3, 3>(6 * i_bou, 3) = ChStarMatrix33<>(u_locred.segment(6 * i_bou, 3));
         }
-        this->modal_K += GetCorotationalTransformation((-V_F1 + PTKredP * V_F2) * P_F * Q_0);
+        this->modal_K.noalias() += GetCorotationalTransformation((-V_F1 + PTKredP * V_F2) * P_F * Q_0);
     }
 
     ChMatrixDynamic<> O_F;
@@ -1206,7 +1206,7 @@ void ChModalAssembly::ComputeModalKRMmatricesGlobal(double Kfactor, double Rfact
 
     // Inertial damping matrix, also known as gyroscopic damping matrix
     if (Rfactor)
-        this->modal_R += GetCorotationalTransformation(O_F * M_red);
+        this->modal_R.noalias() += GetCorotationalTransformation(O_F * M_red);
 
     // Inertial stiffness matrix, is zero
 
@@ -1243,10 +1243,10 @@ void ChModalAssembly::ComputeModalKRMmatricesGlobal(double Kfactor, double Rfact
         ChMatrixDynamic<> VrPFQ = V_rmom * P_F * Q_0;
 
         if (Rfactor) {
-            // this->modal_R += P_W * (-M_red * O_F) * P_W.transpose();
-            // this->modal_R += P_W * (MVPFQ - MVPFQ.transpose()) * P_W.transpose();
-            // this->modal_R += P_W * (VrPFQ.transpose() - VrPFQ) * P_W.transpose();
-            this->modal_R +=
+            // this->modal_R.noalias() += P_W * (-M_red * O_F) * P_W.transpose();
+            // this->modal_R.noalias() += P_W * (MVPFQ - MVPFQ.transpose()) * P_W.transpose();
+            // this->modal_R.noalias() += P_W * (VrPFQ.transpose() - VrPFQ) * P_W.transpose();
+            this->modal_R.noalias() +=
                 GetCorotationalTransformation(-M_red * O_F + (MVPFQ - MVPFQ.transpose()) + (VrPFQ.transpose() - VrPFQ));
         }
 
@@ -1262,7 +1262,7 @@ void ChModalAssembly::ComputeModalKRMmatricesGlobal(double Kfactor, double Rfact
         //        O_thetamom.block(6 * i_bou + 3, 6 * i_bou + 3, 3, 3) =
         //            ChStarMatrix33<>(momen.segment(6 * i_bou + 3, 3));
         //    }
-        //    this->modal_R += -O_thetamom + O_B * M_red * P_W.transpose();
+        //    this->modal_R.noalias() += -O_thetamom + O_B * M_red * P_W.transpose();
 
         //    ///*******************************************///
         //    // Inertial stiffness matrix. Harmful for numerical integration, DO NOT use it.
@@ -1293,7 +1293,7 @@ void ChModalAssembly::ComputeModalKRMmatricesGlobal(double Kfactor, double Rfact
         //    V_beta.block(0, 3, 3, 3) = ChStarMatrix33<>(floating_frame_F.GetRotMat().transpose() * VF_beta);
 
         //    ChMatrixDynamic<> PFQPWT = P_F * Q_0 * P_W.transpose();
-        //    this->modal_K += P_W * (M_red * V_acc - V_iner) * PFQPWT +
+        //    this->modal_K.noalias() += P_W * (M_red * V_acc - V_iner) * PFQPWT +
         //                     P_W * ((O_F + O_B) * M_red + MVPFQ - MVPFQ.transpose()) * V * PFQPWT -
         //                     P_W * V_rmom * (V_alpha + P_F * Q_0 * V) * PFQPWT - P_W * M_red * O_F * V * PFQPWT +
         //                     P_W * Q_0.transpose() * P_F.transpose() * V_rmom.transpose() * V * PFQPWT +
