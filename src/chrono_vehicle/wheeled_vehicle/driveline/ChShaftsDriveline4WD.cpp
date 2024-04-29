@@ -39,6 +39,9 @@ ChShaftsDriveline4WD::~ChShaftsDriveline4WD() {
         return;
 
     auto sys = m_central_differential->GetSystem();
+    if (!sys)
+        return;
+
     sys->Remove(m_driveshaft);
     sys->Remove(m_central_differential);
     sys->Remove(m_central_clutch);

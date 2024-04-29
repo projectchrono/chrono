@@ -29,6 +29,9 @@ ChChassisConnectorHitch::~ChChassisConnectorHitch() {
         return;
 
     auto sys = m_joint->GetSystem();
+    if (!sys)
+        return;
+
     sys->Remove(m_joint);
 }
 

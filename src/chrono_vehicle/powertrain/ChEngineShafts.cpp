@@ -36,6 +36,9 @@ ChEngineShafts::~ChEngineShafts() {
         return;
 
     auto sys = m_engine->GetSystem();
+    if (!sys)
+        return;
+
     sys->Remove(m_motorblock);
     sys->Remove(m_motorblock_to_body);
     sys->Remove(m_engine);

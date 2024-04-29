@@ -41,6 +41,9 @@ ChRackPinion::~ChRackPinion() {
         return;
 
     auto sys = m_prismatic->GetSystem();
+    if (!sys)
+        return;
+
     sys->Remove(m_prismatic);
     sys->Remove(m_actuator);
 }

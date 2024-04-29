@@ -50,6 +50,9 @@ ChMacPhersonStrut::~ChMacPhersonStrut() {
         return;
 
     auto sys = m_upright[0]->GetSystem();
+    if (!sys)
+        return;
+
     for (int i = 0; i < 2; i++) {
         sys->Remove(m_upright[i]);
         sys->Remove(m_strut[i]);

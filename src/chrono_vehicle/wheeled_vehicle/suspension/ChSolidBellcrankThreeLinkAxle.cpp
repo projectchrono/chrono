@@ -51,6 +51,9 @@ ChSolidBellcrankThreeLinkAxle::~ChSolidBellcrankThreeLinkAxle() {
         return;
 
     auto sys = m_axleTube->GetSystem();
+    if (!sys)
+        return;
+
     sys->Remove(m_axleTube);
     sys->Remove(m_bellcrank);
     sys->Remove(m_draglink);

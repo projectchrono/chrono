@@ -59,6 +59,9 @@ ChDeDionAxle::~ChDeDionAxle() {
         return;
 
     auto sys = m_axleTube->GetSystem();
+    if (!sys)
+        return;
+
     sys->Remove(m_axleTube);
     for (int i = 0; i < 2; i++) {
         sys->Remove(m_shock[i]);

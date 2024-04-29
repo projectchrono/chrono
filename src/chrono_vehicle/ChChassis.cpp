@@ -41,6 +41,9 @@ ChChassis::~ChChassis() {
         return;
 
     auto sys = m_body->GetSystem();
+    if (!sys)
+        return;
+
     sys->Remove(m_body);
     sys->Remove(m_container_bushings);
     sys->Remove(m_container_external);

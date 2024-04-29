@@ -40,6 +40,9 @@ ChShaftsDriveline2WD::~ChShaftsDriveline2WD() {
         return;
 
     auto sys = m_differential->GetSystem();
+    if (!sys)
+        return;
+
     sys->Remove(m_driveshaft);
     sys->Remove(m_conicalgear);
     sys->Remove(m_differentialbox);

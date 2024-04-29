@@ -36,6 +36,9 @@ ChRotaryArm::~ChRotaryArm() {
         return;
 
     auto sys = m_revolute->GetSystem();
+    if (!sys)
+        return;
+
     sys->Remove(m_revolute);
 }
 

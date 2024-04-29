@@ -31,6 +31,9 @@ ChAutomaticTransmissionShafts::~ChAutomaticTransmissionShafts() {
         return;
 
     auto sys = m_torqueconverter->GetSystem();
+    if (!sys)
+        return;
+
     sys->Remove(m_motorshaft);
     sys->Remove(m_driveshaft);
     sys->Remove(m_transmissionblock);

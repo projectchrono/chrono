@@ -36,6 +36,9 @@ ChPitmanArm::~ChPitmanArm() {
         return;
 
     auto sys = m_arm->GetSystem();
+    if (!sys)
+        return;
+
     sys->Remove(m_arm);
     sys->Remove(m_revolute);
     sys->Remove(m_revsph);

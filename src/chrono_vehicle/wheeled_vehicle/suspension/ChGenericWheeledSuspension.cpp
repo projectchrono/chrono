@@ -46,6 +46,9 @@ ChGenericWheeledSuspension::~ChGenericWheeledSuspension() {
         return;
 
     auto sys = m_spindle[0]->GetSystem();
+    if (!sys)
+        return;
+
     for (auto& item : m_bodies)
         sys->Remove(item.second.body);
     for (auto& item : m_joints)

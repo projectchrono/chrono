@@ -42,6 +42,9 @@ ChDeformableTire::~ChDeformableTire() {
         return;
 
     auto sys = m_mesh->GetSystem();
+    if (!sys)
+        return;
+
     sys->Remove(m_mesh);
     sys->Remove(m_load_container);
     for (size_t i = 0; i < m_connections.size(); i++) {

@@ -121,11 +121,11 @@ class CH_VEHICLE_API ChVehicle {
     double GetSpeed() const { return m_chassis->GetSpeed(); }
 
     /// Get the vehicle roll rate.
-    /// The yaw rate is referenced to the chassis frame.
+    /// The roll rate is referenced to the chassis frame.
     double GetRollRate() const { return m_chassis->GetRollRate(); }
 
     /// Get the vehicle pitch rate.
-    /// The yaw rate is referenced to the chassis frame.
+    /// The pitch rate is referenced to the chassis frame.
     double GetPitchRate() const { return m_chassis->GetPitchRate(); }
 
     /// Get the vehicle yaw rate.

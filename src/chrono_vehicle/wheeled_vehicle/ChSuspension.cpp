@@ -31,6 +31,9 @@ ChSuspension::~ChSuspension() {
         return;
 
     auto sys = m_spindle[0]->GetSystem();
+    if (!sys)
+        return;
+
     sys->Remove(m_spindle[0]);
     sys->Remove(m_spindle[1]);
     sys->Remove(m_axle[0]);

@@ -28,6 +28,9 @@ ChSteering::~ChSteering() {
         return;
 
     auto sys = m_link->GetSystem();
+    if (!sys)
+        return;
+
     sys->Remove(m_link);
 }
 

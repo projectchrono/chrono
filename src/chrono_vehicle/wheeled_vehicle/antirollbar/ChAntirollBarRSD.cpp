@@ -38,6 +38,8 @@ ChAntirollBarRSD::~ChAntirollBarRSD() {
         return;
 
     auto sys = m_arm_left->GetSystem();
+    if (!sys)
+        return;
 
     sys->Remove(m_arm_left);
     sys->Remove(m_arm_right);

@@ -56,6 +56,9 @@ ChToeBarRigidPanhardAxle::~ChToeBarRigidPanhardAxle() {
         return;
 
     auto sys = m_axleTubeBody->GetSystem();
+    if (!sys)
+        return;
+
     sys->Remove(m_axleTubeBody);
     sys->Remove(m_tierodBody);
     sys->Remove(m_draglinkBody);

@@ -53,6 +53,9 @@ ChRigidPanhardAxle::~ChRigidPanhardAxle() {
         return;
 
     auto sys = m_axleTubeBody->GetSystem();
+    if (!sys)
+        return;
+
     sys->Remove(m_axleTubeBody);
     sys->Remove(m_axleTubeGuide);
     for (int i = 0; i < 2; i++) {

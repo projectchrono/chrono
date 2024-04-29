@@ -29,6 +29,9 @@ ChSubchassis::~ChSubchassis() {
         return;
 
     auto sys = m_beam[0]->GetSystem();
+    if (!sys)
+        return;
+
     sys->Remove(m_beam[0]);
     sys->Remove(m_beam[1]);
 }

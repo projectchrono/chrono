@@ -28,6 +28,9 @@ ChBrakeShafts::~ChBrakeShafts() {
         return;
 
     auto sys = m_shaft->GetSystem();
+    if (!sys)
+        return;
+
     sys->Remove(m_shaft);
     sys->Remove(m_clutch);
 }

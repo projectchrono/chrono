@@ -61,6 +61,9 @@ ChToeBarDeDionAxle::~ChToeBarDeDionAxle() {
         return;
 
     auto sys = m_axleTube->GetSystem();
+    if (!sys)
+        return;
+
     sys->Remove(m_axleTube);
     sys->Remove(m_tierod);
     sys->Remove(m_draglink);

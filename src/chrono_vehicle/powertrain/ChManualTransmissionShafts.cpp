@@ -26,6 +26,9 @@ ChManualTransmissionShafts::~ChManualTransmissionShafts() {
         return;
 
     auto sys = m_motorshaft->GetSystem();
+    if (!sys)
+        return;
+
     sys->Remove(m_motorshaft);
     sys->Remove(m_driveshaft);
     sys->Remove(m_transmissionblock);

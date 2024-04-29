@@ -81,8 +81,16 @@ ChVehicle::ChVehicle(const std::string& name, ChSystem* system)
 
 ChVehicle::~ChVehicle() {
     delete m_output_db;
-    if (m_ownsSystem)
+    if (m_ownsSystem) {
+        // Release references to the chassis, connectors, and powertrain
+        m_powertrain_assembly = nullptr;
+        m_chassis = nullptr;
+        m_chassis_rear.clear();
+        m_chassis_connectors.clear();
+
+        // Delete underlying Chrono system (this removes references to all contained physics items)
         delete m_system;
+    }
 }
 
 // -----------------------------------------------------------------------------

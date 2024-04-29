@@ -30,6 +30,9 @@ ChChassisConnectorArticulated::~ChChassisConnectorArticulated() {
         return;
 
     auto sys = m_motor->GetSystem();
+    if (!sys)
+        return;
+
     sys->Remove(m_motor);
 }
 

@@ -51,6 +51,9 @@ ChPushPipeAxle::~ChPushPipeAxle() {
         return;
 
     auto sys = m_axleTube->GetSystem();
+    if (!sys)
+        return;
+
     sys->Remove(m_axleTube);
     sys->Remove(m_panhardRod);
     for (int i = 0; i < 2; i++) {

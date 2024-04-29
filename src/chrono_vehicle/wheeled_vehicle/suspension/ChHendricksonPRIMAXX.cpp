@@ -52,6 +52,9 @@ ChHendricksonPRIMAXX::~ChHendricksonPRIMAXX() {
         return;
 
     auto sys = m_transversebeam->GetSystem();
+    if (!sys)
+        return;
+
     sys->Remove(m_transversebeam);
     sys->Remove(m_axlehousing);
 

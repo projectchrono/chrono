@@ -52,6 +52,9 @@ ChThreeLinkIRS::~ChThreeLinkIRS() {
         return;
 
     auto sys = m_arm[0]->GetSystem();
+    if (!sys)
+        return;
+
     for (int i = 0; i < 2; i++) {
         sys->Remove(m_arm[i]);
         sys->Remove(m_upper[i]);
