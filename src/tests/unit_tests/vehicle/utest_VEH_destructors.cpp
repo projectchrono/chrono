@@ -129,7 +129,7 @@ TEST(ChronoVehicle, destructors_powertrain) {
     }
     {
         chrono_types::make_shared<ManualTransmissionShafts>(
-            vehicle::GetDataFile("generic/powertrain/ManualTransmissionShafts.json"));
+            vehicle::GetDataFile("audi/json/audi_ManualTransmissionShafts.json"));
     }
 }
 

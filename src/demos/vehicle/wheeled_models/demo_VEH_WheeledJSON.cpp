@@ -136,6 +136,7 @@ class Audi_Model : public Vehicle_Model {
     virtual std::string EngineJSON() const override { return "audi/json/audi_EngineSimpleMap.json"; }
     virtual std::string TransmissionJSON() const override {
         return "audi/json/audi_AutomaticTransmissionSimpleMap.json";
+        ////return "audi/json/audi_ManualTransmissionShafts.json";
     }
     virtual double CameraDistance() const override { return 6.0; }
     virtual ChContactMethod ContactMethod() const override { return ChContactMethod::SMC; }
