@@ -642,15 +642,12 @@ class ChApiModal ChModalAssembly : public ChAssembly {
     ChSparseMatrix Uloc_I;  // rigid-body modes of internal part in the deformed configuration
 
     // Corotational transformation matrices
-    // ChSparseMatrix L_B;   // rotation matrix for boundary nodes
-    // ChSparseMatrix L_I;   // rotation matrix for internal nodes
-    // ChSparseMatrix P_W;   // rotation matrix for boundary nodes + modal coordinates, = diag[L_B, I]
-    ChMatrixDynamic<> P_F;  // rotation matrix for floating frame F, = diag[R_F, I]
+    ChMatrixDynamic<> P_F;  // rotation matrix for the floating frame F, = diag[R_F, I]
 
     ChVectorDynamic<> m_full_forces_internal;  ///< collect all external forces imposed on the internal nodes. This
                                                ///< force will be eventually transformed to the modal forces and applied
                                                ///< on the reduced modal assembly.
-                                               ///
+
     // full system matrices in the local floating frame of reference F
     ChSparseMatrix full_M_loc;
     ChSparseMatrix full_K_loc;

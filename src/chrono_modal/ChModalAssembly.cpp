@@ -426,8 +426,8 @@ void ChModalAssembly::UpdateFloatingFrameOfReference() {
         ComputeConstraintResidualF(constr_F);
 
         // Jacobian of the constraint vector C_F w.r.t. the floating frame F
-        ChMatrixDynamic<> jac_F;
-        jac_F.setZero(6, 6);
+        ChMatrixDynamic<> jac_F(6,6);
+        jac_F.setZero();
         jac_F = -this->U_locred_0.transpose() * this->M_red * this->U_locred * this->P_F.transpose();
 
         ChVectorDynamic<> delta_F(6);
@@ -488,33 +488,10 @@ void ChModalAssembly::UpdateFloatingFrameOfReference() {
     // this->floating_frame_F_old = this->floating_frame_F;
 }
 
-void ChModalAssembly::UpdateTransformationMatrix() {  // Initialize matrices
-
-    // L_B.resize(m_num_coords_vel_boundary, m_num_coords_vel_boundary);
-    // L_B.reserve(m_num_coords_vel_boundary * 2);  // n_B/6 nodes, 12 nonzeros in R_F and I33 for one node
-    // L_B.setZero();
-    // for (unsigned int i_node = 0; i_node < m_num_coords_vel_boundary / 6; i_node++) {
-    //     for (int r = 0; r < 3; ++r)
-    //         for (int c = 0; c < 3; ++c)
-    //             L_B.insert(6 * i_node + r, 6 * i_node + c) = floating_frame_F.GetRotMat()(r, c);  // R_F
-
-    //    for (int k = 0; k < 3; ++k)
-    //        L_B.insert(6 * i_node + 3 + k, 6 * i_node + 3 + k) = 1.0;  // I33
-    //}
-    // L_B.makeCompressed();
-
-    // L_I.resize(m_num_coords_vel_internal, m_num_coords_vel_internal);
-    // L_I.reserve(m_num_coords_vel_internal * 2);  // n_I/6 nodes, 12 nonzeros in R_F and I33 for one node
-    // L_I.setZero();
-    // for (unsigned int i_node = 0; i_node < m_num_coords_vel_internal / 6; i_node++) {
-    //     for (int r = 0; r < 3; ++r)
-    //         for (int c = 0; c < 3; ++c)
-    //             L_I.insert(6 * i_node + r, 6 * i_node + c) = floating_frame_F.GetRotMat()(r, c);  // R_F
-
-    //    for (int k = 0; k < 3; ++k)
-    //        L_I.insert(6 * i_node + 3 + k, 6 * i_node + 3 + k) = 1.0;  // I33
-    //}
-    // L_I.makeCompressed();
+void ChModalAssembly::UpdateTransformationMatrix() {
+    // transformation matrix for the floating frame F
+    P_F.setIdentity(6, 6);
+    P_F.topLeftCorner(3, 3) = floating_frame_F.GetRotMat();
 
     unsigned int num_coords_pos_bou_mod = m_num_coords_pos_boundary + m_num_coords_modal;
     unsigned int num_coords_vel_bou_mod = m_num_coords_vel_boundary + m_num_coords_modal;
@@ -553,10 +530,9 @@ void ChModalAssembly::UpdateTransformationMatrix() {  // Initialize matrices
     }
     Uloc_B.makeCompressed();
 
-    //  rigid-body modes of internal bodies and nodes
-    if (m_internal_nodes_update  // if do not need to update internal nodes, Uloc_I is not required to update.
-        || (m_modal_reduction_type == ReductionType::HERTING &&
-            (!Uloc_I.nonZeros())))  // Uloc_I is used in Herting reduction transformation once
+    //  rigid-body modes of internal bodies and nodes, only used in the Herting modal reduction procedure
+    if (m_modal_reduction_type == ReductionType::HERTING &&
+        (!Uloc_I.nonZeros()))  // Uloc_I is used in Herting reduction transformation once
     {
         Uloc_I.resize(m_num_coords_vel_internal, 6);
         Uloc_I.reserve(m_num_coords_vel_internal * 3);  // n_I/6 nodes, 18 nonzeros for one node
@@ -585,34 +561,6 @@ void ChModalAssembly::UpdateTransformationMatrix() {  // Initialize matrices
         }
         Uloc_I.makeCompressed();
     }
-
-    // P_W.resize(num_coords_vel_bou_mod, num_coords_vel_bou_mod);
-    // P_W.reserve(m_num_coords_vel_boundary * 2 + m_num_coords_modal);  // 2 * n_B + n_eta
-    // P_W.setZero();
-    // for (unsigned int i_node = 0; i_node < m_num_coords_vel_boundary / 6; i_node++) {
-    //     for (int r = 0; r < 3; ++r)
-    //         for (int c = 0; c < 3; ++c)
-    //             P_W.insert(6 * i_node + r, 6 * i_node + c) = floating_frame_F.GetRotMat()(r, c);  // R_F
-
-    //    for (int k = 0; k < 3; ++k)
-    //        P_W.insert(6 * i_node + 3 + k, 6 * i_node + 3 + k) = 1.0;  // I33
-    //}
-    // for (unsigned int i_mode = 0; i_mode < m_num_coords_modal; ++i_mode)
-    //    P_W.insert(m_num_coords_vel_boundary + i_mode, m_num_coords_vel_boundary + i_mode) = 1.0;
-    // P_W.makeCompressed();
-
-    P_F.setIdentity(6, 6);
-    P_F.topLeftCorner(3, 3) = floating_frame_F.GetRotMat();
-
-    // P_F.resize(6, 6);
-    // P_F.reserve(12);
-    // P_F.setZero();
-    // for (int r = 0; r < 3; ++r)
-    //     for (int c = 0; c < 3; ++c)
-    //         P_F.insert(r, c) = floating_frame_F.GetRotMat()(r, c);  // R_F
-
-    // for (int k = 0; k < 3; ++k)
-    //     P_F.insert(3 + k, 3 + k) = 1.0;  // I33
 }
 
 void ChModalAssembly::ComputeProjectionMatrix() {
