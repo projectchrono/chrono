@@ -24,37 +24,37 @@ ChVisualShapeRoundedBox::ChVisualShapeRoundedBox() {
 }
 
 ChVisualShapeRoundedBox::ChVisualShapeRoundedBox(double length_x, double length_y, double length_z, double radius) {
-    gbox.SetLengths(ChVector<>(length_x, length_y, length_z));
+    gbox.SetLengths(ChVector3d(length_x, length_y, length_z));
     gbox.SetSphereRadius(radius);
     SetMutable(false);
 }
 
-ChVisualShapeRoundedBox::ChVisualShapeRoundedBox(const ChVector<>& lengths, double radius) {
+ChVisualShapeRoundedBox::ChVisualShapeRoundedBox(const ChVector3d& lengths, double radius) {
     gbox.SetLengths(lengths);
     gbox.SetSphereRadius(radius);
     SetMutable(false);
 }
 
-ChVisualShapeRoundedBox::ChVisualShapeRoundedBox(const geometry::ChRoundedBox& box) : gbox(box) {
+ChVisualShapeRoundedBox::ChVisualShapeRoundedBox(const ChRoundedBox& box) : gbox(box) {
     SetMutable(false);
 }
 
-void ChVisualShapeRoundedBox::ArchiveOut(ChArchiveOut& marchive) {
+void ChVisualShapeRoundedBox::ArchiveOut(ChArchiveOut& archive_out) {
     // version number
-    marchive.VersionWrite<ChVisualShapeRoundedBox>();
+    archive_out.VersionWrite<ChVisualShapeRoundedBox>();
     // serialize parent class
-    ChVisualShape::ArchiveOut(marchive);
+    ChVisualShape::ArchiveOut(archive_out);
     // serialize all member data:
-    marchive << CHNVP(gbox);
+    archive_out << CHNVP(gbox);
 }
 
-void ChVisualShapeRoundedBox::ArchiveIn(ChArchiveIn& marchive) {
+void ChVisualShapeRoundedBox::ArchiveIn(ChArchiveIn& archive_in) {
     // version number
-    /*int version =*/ marchive.VersionRead<ChVisualShapeRoundedBox>();
+    /*int version =*/archive_in.VersionRead<ChVisualShapeRoundedBox>();
     // deserialize parent class
-    ChVisualShape::ArchiveIn(marchive);
+    ChVisualShape::ArchiveIn(archive_in);
     // stream in all member data:
-    marchive >> CHNVP(gbox);
+    archive_in >> CHNVP(gbox);
 }
 
 }  // end namespace chrono

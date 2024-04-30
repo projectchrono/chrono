@@ -33,14 +33,21 @@ namespace chrono {
 
 class ChSystem;
 
-/// Class for rigid bodies. A rigid body is an entity which
-/// can move in 3D space, and can be constrained to other rigid
-/// bodies using ChLink objects. Rigid bodies can contain auxiliary
-/// references (the ChMarker objects) and forces (the ChForce objects).
-/// These objects have mass and inertia properties. A shape can also
-/// be associated to the body, for collision detection.
+/// Class for Rigid Bodies
 ///
-/// Further info at the @ref rigid_bodies  manual page.
+/// A rigid body is an entity with mass and inertia properties moving in the 3D space.
+/// Optionally, an object of the ChBody class (or derived) can:
+/// - be involved in collision, if a collision model is provided (@ref collisions) and the collision is enabled;
+/// - be visualized, if a visual model is provided and a proper visualization system is available (@ref visualization_system);
+/// - be constrained by means of ChLink objects (@ref links);
+/// - be loaded by ChLoad objects (@ref loads);
+/// - be used in coordinate transformation, being itself inherited from ChFrameMoving;
+/// 
+/// Location and orientation of the ChBody refer to its Center of Mass (CoM).
+/// Since no additional frame is available, also visual and collision shapes refer to the same frame.
+/// Derived classes might offer additional frames (e.g. @ref ChBodyAuxRef).
+/// 
+/// Further info at the @ref rigid_bodies manual page.
 
 class ChApi ChBody : public ChPhysicsItem, public ChBodyFrame, public ChContactable_1vars<6>, public ChLoadableUVW {
   public:
@@ -54,84 +61,71 @@ class ChApi ChBody : public ChPhysicsItem, public ChBodyFrame, public ChContacta
 
     /// Sets the 'fixed' state of the body.
     /// If true, the body does not move with respect to the absolute reference frame.
-    void SetBodyFixed(bool state);
+    /// Its state is also removed by the system, thus reducing the global size of the system.
+    /// If this is not desired, use ChLinkMateFix or ChLinkLockLock instead.
+    void SetFixed(bool state);
 
     /// Return true if this body is fixed to ground.
-    bool GetBodyFixed() const;
+    bool IsFixed() const;
 
     /// Enable/disable the collision for this rigid body.
-    void SetCollide(bool state);
+    void EnableCollision(bool state);
 
     /// Return true if collision is enabled for this body.
-    virtual bool GetCollide() const override;
+    virtual bool IsCollisionEnabled() const override;
 
-    /// Enable the maximum linear speed limit (beyond this limit it will be clamped).
-    /// This is useful in virtual reality and real-time simulations, because
-    /// it reduces the risk of bad collision detection.
-    /// The realism is limited, but the simulation is more stable.
+    /// Enable the maximum linear speed limit (default: false).
     void SetLimitSpeed(bool state);
 
-    /// Return true if maximum linear speed is limited.
-    bool GetLimitSpeed() const;
-
-    /// Deactivate the gyroscopic torque (quadratic term).
+    /// Enable/disable the gyroscopic torque (quadratic term).
     /// This is useful in virtual reality and real-time simulations, where objects that spin too fast with non-uniform
     /// inertia tensors (e.g., thin cylinders) might cause the integration to diverge quickly. The realism is limited,
     /// but the simulation is more stable.
-    void SetNoGyroTorque(bool state);
+    /// By default the gyroscopic torque is enabled.
+    void SetUseGyroTorque(bool state);
 
-    /// Return true if gyroscopic torque is deactivated.
-    bool GetNoGyroTorque() const;
+    /// Return true if gyroscopic torque is used (default=true).
+    bool IsUsingGyroTorque() const;
 
-    /// Enable/disable option for setting bodies to "sleep".
-    /// If use sleeping = true, bodies which stay in same place for long enough time will be deactivated, for
-    /// optimization. The realism is limited, but the simulation is faster.
-    void SetUseSleeping(bool state);
+    /// Enable/disable option for setting bodies to 'sleep'.
+    /// If the sleeping is allowed, bodies which stay in same place for long enough time will be deactivated, for
+    /// optimization.
+    /// By default the sleeping is enabled.
+    void SetSleepingAllowed(bool state);
 
-    /// Return true if 'sleep' mode is activated.
-    bool GetUseSleeping() const;
+    /// Return true if 'sleep' mode is allowed for this specific body.
+    bool IsSleepingAllowed() const;
 
     /// Force the body in sleeping mode or not.
-    /// Usually, this state change is handled internally.
+    /// Usually this state change is handled internally.
     void SetSleeping(bool state);
 
     /// Return true if this body is currently in 'sleep' mode.
-    bool GetSleeping() const;
+    bool IsSleeping() const;
 
     /// Test if a body could go in sleeping state if requirements are satisfied.
     /// Return true if state could be changed from no sleep to sleep.
     bool TrySleeping();
 
-    /// Return true if the body is currently active and thereofre included into the system solver.
+    /// Return true if the body is currently active and therefore included into the system solver.
     /// A body is inactive if it is fixed to ground or in sleep mode.
     virtual bool IsActive() const override;
 
-    /// Set body id for indexing (internal use only).
-    void SetId(int id) { body_id = id; }
-
-    /// Set body id for indexing (internal use only).
-    unsigned int GetId() { return body_id; }
-
-    /// Set global body index (internal use only).
-    void SetGid(unsigned int id) { body_gid = id; }
-
-    /// Get the global body index (internal use only).
-    unsigned int GetGid() const { return body_gid; }
-
-    // FUNCTIONS
+    /// Get the unique sequential body index (internal use only).
+    unsigned int GetIndex() { return index; }
 
     /// Number of coordinates of body: 7 because uses quaternions for rotation.
-    virtual int GetDOF() override { return 7; }
+    virtual unsigned int GetNumCoordsPosLevel() override { return 7; }
 
     /// Number of coordinates of body: 6 because derivatives use angular velocity.
-    virtual int GetDOF_w() override { return 6; }
+    virtual unsigned int GetNumCoordsVelLevel() override { return 6; }
 
     /// Return a reference to the encapsulated ChVariablesBody, representing states (pos, speed, or accel.) and forces.
     /// The ChVariablesBodyOwnMass is the interface to the system solver.
     virtual ChVariables& Variables() override { return variables; }
 
     /// Set no speed and no accelerations (but does not change the position).
-    void SetNoSpeedNoAcceleration() override;
+    void ForceToRest() override;
 
     /// Add the body collision model (if any) to the provided collision system.
     virtual void AddCollisionModelsToSystem(ChCollisionSystem* coll_sys) const override;
@@ -146,25 +140,19 @@ class ChApi ChBody : public ChPhysicsItem, public ChBodyFrame, public ChContacta
     /// The mass and inertia tensor are defined with respect to this coordinate system, which is also assumed to be the
     /// default coordinates of the body. By default, a call to body.GetPos() is equivalent to
     /// body.GetFrame_COG_abs().GetPos().
-    virtual const ChFrameMoving<>& GetFrame_COG_to_abs() const { return *this; }
+    virtual const ChFrameMoving<>& GetFrameCOMToAbs() const { return *this; }
 
     /// Get the rigid body coordinate system that is used for defining the collision shapes and the ChMarker objects.
     /// For the base ChBody, this is always the same reference of the COG.
-    virtual const ChFrameMoving<>& GetFrame_REF_to_abs() const { return *this; }
+    virtual const ChFrameMoving<>& GetFrameRefToAbs() const { return *this; }
 
     /// Get the reference frame (expressed in and relative to the absolute frame) of the visual model.
     /// For a ChBody, this is the main coordinate system of the rigid body.
-    virtual ChFrame<> GetVisualModelFrame(unsigned int nclone = 0) override { return (GetFrame_REF_to_abs()); }
+    virtual ChFrame<> GetVisualModelFrame(unsigned int nclone = 0) const override { return (GetFrameRefToAbs()); }
 
     /// Get the axis-aligned bounding (AABB) box of the object.
     /// The body AABB is the AABB of its collision model (if any).
-    virtual geometry::ChAABB GetTotalAABB() override;
-
-    /// Method to deserialize only the state (position, speed).
-    virtual void StreamInstate(ChStreamInBinary& mstream) override;
-
-    /// Method to serialize only the state (position, speed).
-    virtual void StreamOutstate(ChStreamOutBinary& mstream) override;
+    virtual ChAABB GetTotalAABB() override;
 
     // DATABASE HANDLING
 
@@ -202,21 +190,12 @@ class ChApi ChBody : public ChPhysicsItem, public ChBodyFrame, public ChContacta
     /// Gets the list of children markers.
     /// NOTE: to modify this list, use the appropriate Remove..
     /// and Add.. functions.
-    const std::vector<std::shared_ptr<ChMarker>>& GetMarkerList() const { return marklist; }
+    const std::vector<std::shared_ptr<ChMarker>>& GetMarkers() const { return marklist; }
 
     /// Gets the list of children forces.
     /// NOTE: to modify this list, use the appropriate Remove..
     /// and Add.. functions.
-    const std::vector<std::shared_ptr<ChForce>>& GetForceList() const { return forcelist; }
-
-    // Point/vector transf.(NOTE! you may also use operators of ChMovingFrame)
-
-    ChVector<> Point_World2Body(const ChVector<>& mpoint);
-    ChVector<> Point_Body2World(const ChVector<>& mpoint);
-    ChVector<> Dir_World2Body(const ChVector<>& dir);
-    ChVector<> Dir_Body2World(const ChVector<>& dir);
-    ChVector<> RelPoint_AbsSpeed(const ChVector<>& mrelpoint);
-    ChVector<> RelPoint_AbsAcc(const ChVector<>& mrelpoint);
+    const std::vector<std::shared_ptr<ChForce>>& GetForces() const { return forcelist; }
 
     /// Set the body mass.
     /// Try not to mix bodies with too high/too low values of mass, for numerical stability.
@@ -252,14 +231,14 @@ class ChApi ChBody : public ChPhysicsItem, public ChBodyFrame, public ChContacta
     /// <pre>
     /// iner = [  int{y^2+z^2}dm   int{x^2+z^2}   int{x^2+y^2}dm ]
     /// </pre>
-    void SetInertiaXX(const ChVector<>& iner);
+    void SetInertiaXX(const ChVector3d& iner);
 
     /// Get the diagonal part of the inertia tensor (Ixx, Iyy, Izz values).
     /// The return 3x1 vector contains the following values:
     /// <pre>
     /// [  int{y^2+z^2}dm   int{x^2+z^2}   int{x^2+y^2}dm ]
     /// </pre>
-    ChVector<> GetInertiaXX() const;
+    ChVector3d GetInertiaXX() const;
 
     /// Set the off-diagonal part of the inertia tensor (Ixy, Ixz, Iyz values).
     /// The provided 3x1 vector should contain the products of inertia,
@@ -267,28 +246,24 @@ class ChApi ChBody : public ChPhysicsItem, public ChBodyFrame, public ChContacta
     /// <pre>
     /// iner = [ -int{xy}dm   -int{xz}dm   -int{yz}dm ]
     /// </pre>
-    void SetInertiaXY(const ChVector<>& iner);
+    void SetInertiaXY(const ChVector3d& iner);
 
     /// Get the extra-diagonal part of the inertia tensor (Ixy, Ixz, Iyz values).
     /// The return 3x1 vector contains the following values:
     /// <pre>
     /// [ -int{xy}dm   -int{xz}dm   -int{yz}dm ]
     /// </pre>
-    ChVector<> GetInertiaXY() const;
+    ChVector3d GetInertiaXY() const;
 
     /// Set the maximum linear speed (beyond this limit it will be clamped).
-    /// This is useful in virtual reality and real-time simulations, because
-    /// it reduces the risk of bad collision detection.
     /// This speed limit is active only if you set  SetLimitSpeed(true);
-    void SetMaxSpeed(float m_max_speed) { max_speed = m_max_speed; }
-    float GetMaxSpeed() const { return max_speed; }
+    void SetMaxLinVel(float m_max_speed) { max_speed = m_max_speed; }
+    float GetMaxLinVel() const { return max_speed; }
 
     /// Set the maximum angular speed (beyond this limit it will be clamped).
-    /// This is useful in virtual reality and real-time simulations, because
-    /// it reduces the risk of bad collision detection.
     /// This speed limit is active only if you set  SetLimitSpeed(true);
-    void SetMaxWvel(float m_max_wvel) { max_wvel = m_max_wvel; }
-    float GetMaxWvel() const { return max_wvel; }
+    void SetMaxAngVel(float m_max_wvel) { max_wvel = m_max_wvel; }
+    float GetMaxAngVel() const { return max_wvel; }
 
     /// Clamp the body speed to the provided limits.
     /// When this function is called, the speed of the body is clamped
@@ -302,19 +277,19 @@ class ChApi ChBody : public ChPhysicsItem, public ChBodyFrame, public ChContacta
     float GetSleepTime() const { return sleep_time; }
 
     /// Set the max linear speed to be kept for 'sleep_time' before freezing.
-    void SetSleepMinSpeed(float m_t) { sleep_minspeed = m_t; }
-    float GetSleepMinSpeed() const { return sleep_minspeed; }
+    void SetSleepMinLinVel(float m_t) { sleep_minspeed = m_t; }
+    float GetSleepMinLinVel() const { return sleep_minspeed; }
 
     /// Set the max linear speed to be kept for 'sleep_time' before freezing.
-    void SetSleepMinWvel(float m_t) { sleep_minwvel = m_t; }
-    float GetSleepMinWvel() const { return sleep_minwvel; }
+    void SetSleepMinAngVel(float m_t) { sleep_minwvel = m_t; }
+    float GetSleepMinAngVel() const { return sleep_minwvel; }
 
     /// Computes the 4x4 inertia tensor in quaternion space, if needed.
     void ComputeQInertia(ChMatrix44<>& mQInertia);
 
     /// Computes the gyroscopic torque. In fact, in sake of highest
     /// speed, the gyroscopic torque isn't automatically updated each time a
-    /// SetCoord() or SetCoord_dt() etc. is called, but only if necessary,
+    /// SetCoordsys() or SetCoordsysDt() etc. is called, but only if necessary,
     /// for each UpdateState().
     void ComputeGyro();
 
@@ -324,29 +299,29 @@ class ChApi ChBody : public ChPhysicsItem, public ChBodyFrame, public ChContacta
     /// It is the caller's responsibility to clear the force and torque accumulators at each integration step.
     /// If local = true, the provided applied force is assumed to be expressed in body coordinates.
     /// If local = false, the provided applied force is assumed to be expressed in absolute coordinates.
-    void Accumulate_force(const ChVector<>& force,       ///< applied force
-                          const ChVector<>& appl_point,  ///< application point
-                          bool local                     ///< force and point expressed in body local frame?
+    void AccumulateForce(const ChVector3d& force,       ///< applied force
+                         const ChVector3d& appl_point,  ///< application point
+                         bool local                     ///< force and point expressed in body local frame?
     );
 
     /// Add an applied torque to the body's accumulator (as an increment).
     /// It is the caller's responsibility to clear the force and torque accumulators at each integration step.
     /// If local = true, the provided applied torque is assumed to be expressed in body coordinates.
     /// If local = false, the provided applied torque is assumed to be expressed in absolute coordinates.
-    void Accumulate_torque(const ChVector<>& torque,  ///< applied torque
-                           bool local                 ///< torque expressed in body local frame?
+    void AccumulateTorque(const ChVector3d& torque,  ///< applied torque
+                          bool local                 ///< torque expressed in body local frame?
     );
 
     /// Clear the force and torque accumulators.
-    void Empty_forces_accumulators();
+    void EmptyAccumulators();
 
     /// Return the current value of the accumulator force.
     /// Note that this is a resultant force as applied to the COM and expressed in the absolute frame.
-    const ChVector<>& Get_accumulated_force() const { return Force_acc; }
+    const ChVector3d& GetAccumulatedForce() const { return Force_acc; }
 
     /// Return the current value of the accumulator torque.
     /// Note that this is a resultant torque expressed in the body local frame.
-    const ChVector<>& Get_accumulated_torque() const { return Torque_acc; }
+    const ChVector3d& GetAccumulatedTorque() const { return Torque_acc; }
 
     // UPDATE FUNCTIONS
 
@@ -368,19 +343,19 @@ class ChApi ChBody : public ChPhysicsItem, public ChBodyFrame, public ChContacta
     /// This resultant force includes all external applied loads acting on this body (from gravity, loads, springs,
     /// etc). However, this does *not* include any constraint forces. In particular, contact forces are not included if
     /// using the NSC formulation, but are included when using the SMC formulation.
-    ChVector<> GetAppliedForce();
+    ChVector3d GetAppliedForce();
 
     /// Return the resultant applied torque on the body.
     /// This resultant torque includes all external applied loads acting on this body (from gravity, loads, springs,
     /// etc). However, this does *not* include any constraint forces. In particular, contact torques are not included if
     /// using the NSC formulation, but are included when using the SMC formulation.
-    ChVector<> GetAppliedTorque();
+    ChVector3d GetAppliedTorque();
 
     /// Get the resultant contact force acting on this body.
-    ChVector<> GetContactForce();
+    ChVector3d GetContactForce();
 
     /// Get the resultant contact torque acting on this body.
-    ChVector<> GetContactTorque();
+    ChVector3d GetContactTorque();
 
     /// This is only for backward compatibility
     virtual ChPhysicsItem* GetPhysicsItem() override { return this; }
@@ -388,10 +363,10 @@ class ChApi ChBody : public ChPhysicsItem, public ChBodyFrame, public ChContacta
     // SERIALIZATION
 
     /// Method to allow serialization of transient data to archives.
-    virtual void ArchiveOut(ChArchiveOut& marchive) override;
+    virtual void ArchiveOut(ChArchiveOut& archive_out) override;
 
     /// Method to allow deserialization of transient data from archives.
-    virtual void ArchiveIn(ChArchiveIn& marchive) override;
+    virtual void ArchiveIn(ChArchiveIn& archive_in) override;
 
   public:
     // Public functions for ADVANCED use.
@@ -408,10 +383,10 @@ class ChApi ChBody : public ChPhysicsItem, public ChBodyFrame, public ChContacta
                                         const ChStateDelta& Dv) override;
 
     /// Gets all the DOFs packed in a single vector (position part)
-    virtual void LoadableGetStateBlock_x(int block_offset, ChState& mD) override;
+    virtual void LoadableGetStateBlockPosLevel(int block_offset, ChState& mD) override;
 
     /// Gets all the DOFs packed in a single vector (speed part)
-    virtual void LoadableGetStateBlock_w(int block_offset, ChStateDelta& mD) override;
+    virtual void LoadableGetStateBlockVelLevel(int block_offset, ChStateDelta& mD) override;
 
     /// Evaluate Q=N'*F, for Q generalized lagrangian load, where N is some type of matrix evaluated at point P(U,V,W)
     /// assumed in absolute coordinates, and F is a load assumed in absolute coordinates. det[J] is unused.
@@ -427,19 +402,16 @@ class ChApi ChBody : public ChPhysicsItem, public ChBodyFrame, public ChContacta
         ) override;
 
   protected:
-    unsigned int body_id;   ///< body-specific identifier, used for indexing (internal use only)
-    unsigned int body_gid;  ///< body-specific identifier, used for global indexing (internal use only)
-
     std::vector<std::shared_ptr<ChMarker>> marklist;  ///< list of markers
     std::vector<std::shared_ptr<ChForce>> forcelist;  ///< list of forces
 
-    ChVector<> gyro;  ///< gyroscopic torque, i.e. Qm = Wvel x (XInertia*Wvel)
+    ChVector3d gyro;  ///< gyroscopic torque, i.e. Qm = Wvel x (XInertia*Wvel)
 
-    ChVector<> Xforce;   ///< force  acting on body, applied to COM (in absolute coords)
-    ChVector<> Xtorque;  ///< torque acting on body  (in body local coords)
+    ChVector3d Xforce;   ///< force  acting on body, applied to COM (in absolute coords)
+    ChVector3d Xtorque;  ///< torque acting on body  (in body local coords)
 
-    ChVector<> Force_acc;   ///< force accumulator, applied to COM (in absolute coords)
-    ChVector<> Torque_acc;  ///< torque accumulator (in body local coords)
+    ChVector3d Force_acc;   ///< force accumulator, applied to COM (in absolute coords)
+    ChVector3d Torque_acc;  ///< torque accumulator (in body local coords)
 
     ChVariablesBodyOwnMass variables;  ///< interface to solver (store inertia and coordinates)
 
@@ -450,6 +422,8 @@ class ChApi ChBody : public ChPhysicsItem, public ChBodyFrame, public ChContacta
     float sleep_minspeed;
     float sleep_minwvel;
     float sleep_starttime;
+
+    unsigned int index;  ///< unique sequential body identifier, used for indexing (internal use only)
 
   private:
     // STATE FUNCTIONS
@@ -484,9 +458,9 @@ class ChApi ChBody : public ChPhysicsItem, public ChBodyFrame, public ChContacta
                                     ChVectorDynamic<>& R,
                                     const ChVectorDynamic<>& w,
                                     const double c) override;
-    virtual void IntLoadLumpedMass_Md(const unsigned int off,  
-                                      ChVectorDynamic<>& Md,  
-                                      double& err,         
+    virtual void IntLoadLumpedMass_Md(const unsigned int off,
+                                      ChVectorDynamic<>& Md,
+                                      double& err,
                                       const double c) override;
     virtual void IntToDescriptor(const unsigned int off_v,
                                  const ChStateDelta& v,
@@ -533,13 +507,12 @@ class ChApi ChBody : public ChPhysicsItem, public ChBodyFrame, public ChContacta
     /// multiplied by a 'step' factor.
     ///     pos+=qb*step
     /// If qb is a speed, this behaves like a single step of 1-st order
-    /// numerical integration (Eulero integration).
+    /// numerical integration (Euler integration).
     /// Does not automatically update markers & forces.
     virtual void VariablesQbIncrementPosition(double step) override;
 
-    /// Tell to a system descriptor that there are variables of type
-    /// ChVariables in this object (for further passing it to a solver)
-    virtual void InjectVariables(ChSystemDescriptor& mdescriptor) override;
+    /// Register with the given system descriptor any ChVariable objects associated with this item.
+    virtual void InjectVariables(ChSystemDescriptor& descriptor) override;
 
     // INTERFACE TO ChContactable
 
@@ -551,44 +524,43 @@ class ChApi ChBody : public ChPhysicsItem, public ChBodyFrame, public ChContacta
     virtual bool IsContactActive() override { return this->IsActive(); }
 
     /// Get the number of DOFs affected by this object (position part)
-    virtual int ContactableGet_ndof_x() override { return 7; }
+    virtual int GetContactableNumCoordsPosLevel() override { return 7; }
 
     /// Get the number of DOFs affected by this object (speed part)
-    virtual int ContactableGet_ndof_w() override { return 6; }
+    virtual int GetContactableNumCoordsVelLevel() override { return 6; }
 
     /// Get all the DOFs packed in a single vector (position part)
-    virtual void ContactableGetStateBlock_x(ChState& x) override;
+    virtual void ContactableGetStateBlockPosLevel(ChState& x) override;
 
     /// Get all the DOFs packed in a single vector (speed part)
-    virtual void ContactableGetStateBlock_w(ChStateDelta& w) override;
+    virtual void ContactableGetStateBlockVelLevel(ChStateDelta& w) override;
 
     /// Increment the provided state of this object by the given state-delta increment.
     /// Compute: x_new = x + dw.
     virtual void ContactableIncrementState(const ChState& x, const ChStateDelta& dw, ChState& x_new) override;
 
     /// Express the local point in absolute frame, for the given state position.
-    virtual ChVector<> GetContactPoint(const ChVector<>& loc_point, const ChState& state_x) override;
+    virtual ChVector3d GetContactPoint(const ChVector3d& loc_point, const ChState& state_x) override;
 
     /// Get the absolute speed of a local point attached to the contactable.
     /// The given point is assumed to be expressed in the local frame of this object.
     /// This function must use the provided states.
-    virtual ChVector<> GetContactPointSpeed(const ChVector<>& loc_point,
+    virtual ChVector3d GetContactPointSpeed(const ChVector3d& loc_point,
                                             const ChState& state_x,
                                             const ChStateDelta& state_w) override;
 
     /// Get the absolute speed of point abs_point if attached to the surface.
-    virtual ChVector<> GetContactPointSpeed(const ChVector<>& abs_point) override;
+    virtual ChVector3d GetContactPointSpeed(const ChVector3d& abs_point) override;
 
-    /// Return the coordinate system for the associated collision model.
-    /// ChCollisionModel might call this to get the position of the
-    /// contact model (when rigid) and sync it.
-    virtual ChCoordsys<> GetCsysForCollisionModel() override;
+    /// Return the frame of the associated collision model relative to the contactable object.
+    /// ChCollisionModel might call this to get the position of the contact model (when rigid) and sync it.
+    virtual ChFrame<> GetCollisionModelFrame() override;
 
     /// Apply the force & torque expressed in absolute reference, applied in pos, to the
     /// coordinates of the variables. Force for example could come from a penalty model.
-    virtual void ContactForceLoadResidual_F(const ChVector<>& F,
-                                            const ChVector<>& T,
-                                            const ChVector<>& abs_point,
+    virtual void ContactForceLoadResidual_F(const ChVector3d& F,
+                                            const ChVector3d& T,
+                                            const ChVector3d& abs_point,
                                             ChVectorDynamic<>& R) override;
 
     /// Compute a contiguous vector of generalized forces Q from a given force & torque at the given point.
@@ -596,16 +568,16 @@ class ChApi ChBody : public ChPhysicsItem, public ChBodyFrame, public ChContacta
     /// The force and its application point are specified in the global frame.
     /// Each object must set the entries in Q corresponding to its variables, starting at the specified offset.
     /// If needed, the object states must be extracted from the provided state position.
-    virtual void ContactComputeQ(const ChVector<>& F,
-                                   const ChVector<>& T,
-                                   const ChVector<>& point,
-                                   const ChState& state_x,
-                                   ChVectorDynamic<>& Q,
-                                   int offset) override;
+    virtual void ContactComputeQ(const ChVector3d& F,
+                                 const ChVector3d& T,
+                                 const ChVector3d& point,
+                                 const ChState& state_x,
+                                 ChVectorDynamic<>& Q,
+                                 int offset) override;
 
     /// Compute the jacobian(s) part(s) for this contactable item.
     /// For a ChBody, this updates the corresponding 1x6 jacobian.
-    virtual void ComputeJacobianForContactPart(const ChVector<>& abs_point,
+    virtual void ComputeJacobianForContactPart(const ChVector3d& abs_point,
                                                ChMatrix33<>& contact_plane,
                                                ChVariableTupleCarrier_1vars<6>::type_constraint_tuple& jacobian_tuple_N,
                                                ChVariableTupleCarrier_1vars<6>::type_constraint_tuple& jacobian_tuple_U,
@@ -615,7 +587,7 @@ class ChApi ChBody : public ChPhysicsItem, public ChBodyFrame, public ChContacta
     /// Compute the jacobian(s) part(s) for this contactable item, for rolling about N,u,v.
     /// Used only for rolling friction NSC contacts.
     virtual void ComputeJacobianForRollingContactPart(
-        const ChVector<>& abs_point,
+        const ChVector3d& abs_point,
         ChMatrix33<>& contact_plane,
         ChVariableTupleCarrier_1vars<6>::type_constraint_tuple& jacobian_tuple_N,
         ChVariableTupleCarrier_1vars<6>::type_constraint_tuple& jacobian_tuple_U,
@@ -628,51 +600,41 @@ class ChApi ChBody : public ChPhysicsItem, public ChBodyFrame, public ChContacta
     // INTERFACE to ChLoadable
 
     /// Gets the number of DOFs affected by this element (position part)
-    virtual int LoadableGet_ndof_x() override { return 7; }
+    virtual unsigned int GetLoadableNumCoordsPosLevel() override { return 7; }
 
     /// Gets the number of DOFs affected by this element (speed part)
-    virtual int LoadableGet_ndof_w() override { return 6; }
+    virtual unsigned int GetLoadableNumCoordsVelLevel() override { return 6; }
 
     /// Number of coordinates in the interpolated field. Here, 6: = xyz displ + xyz rots.
-    virtual int Get_field_ncoords() override { return 6; }
+    virtual unsigned int GetNumFieldCoords() override { return 6; }
 
     /// Tell the number of DOFs blocks.
-    virtual int GetSubBlocks() override { return 1; }
+    virtual unsigned int GetNumSubBlocks() override { return 1; }
 
     /// Get the offset of the specified sub-block of DOFs in global vector.
-    virtual unsigned int GetSubBlockOffset(int nblock) override { return GetOffset_w(); }
+    virtual unsigned int GetSubBlockOffset(unsigned int nblock) override { return GetOffset_w(); }
 
     /// Get the size of the specified sub-block of DOFs in global vector.
-    virtual unsigned int GetSubBlockSize(int nblock) override { return 6; }
+    virtual unsigned int GetSubBlockSize(unsigned int nblock) override { return 6; }
 
     /// Check if the specified sub-block of DOFs is active.
-    virtual bool IsSubBlockActive(int nblock) const override { return variables.IsActive(); }
+    virtual bool IsSubBlockActive(unsigned int nblock) const override { return variables.IsActive(); }
 
     /// This is not needed because not used in quadrature.
     virtual double GetDensity() override { return 0; }
 
-    /// Bit flags
-    enum BodyFlag {
-        LIMITSPEED = (1L << 0),    // body angular and linear speed is limited (clamped)
-        SLEEPING = (1L << 1),      // body is sleeping [internal]
-        USESLEEPING = (1L << 2),   // if body remains in same place for too long time, it will be frozen
-        NOGYROTORQUE = (1L << 3),  // do not get the gyroscopic (quadratic) term, for low-fi but stable simulation
-        COULDSLEEP = (1L << 4)     // if body remains in same place for too long time, it will be frozen
-    };
-
     bool fixed;    ///< flag indicating whether or not the body is fixed to global frame
     bool collide;  ///< flag indicating whether or not the body participates in collisions
-    int bflags;    ///< encoding for all body flags
 
-    /// Flags handling functions
-    void BFlagsSetAllOFF();
-    void BFlagsSetAllON();
-    void BFlagSetON(BodyFlag mask);
-    void BFlagSetOFF(BodyFlag mask);
-    void BFlagSet(BodyFlag mask, bool state);
-    bool BFlagGet(BodyFlag mask) const;
+    bool limit_speed;         ///< enable the clamping on body angular and linear speed
+    bool disable_gyrotorque;  ///< disable the gyroscopic (quadratic) term, help the stability of the simulation but
+                              ///< reduces the accuracy
+    bool is_sleeping;         ///< flag indicating whether or not the body is currently in sleep mode
+    bool allow_sleeping;      ///< flag indicating whether or not the body can go to sleep mode
+    bool candidate_sleeping;  ///< flag indicating whether or not the body is a candidate for sleep mode in the current
+                              ///< simulation
 
-    // Give private access
+    // Friend classes with private access
     friend class ChSystem;
     friend class ChSystemMulticore;
     friend class ChSystemMulticoreNSC;

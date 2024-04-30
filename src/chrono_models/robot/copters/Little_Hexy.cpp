@@ -25,11 +25,12 @@ namespace copter {
 
 static const bool spins[6] = {false, true, false, true, false, true};
 
-Little_Hexy::Little_Hexy(ChSystem& sys, const ChVector<>& cpos) : Copter<6>(sys, cpos, getPosVect(), spins, true, true) {
+Little_Hexy::Little_Hexy(ChSystem& sys, const ChVector3d& cpos)
+    : Copter<6>(sys, cpos, getPosVect(), spins, true, true) {
     chassis->SetMass(13.83457);
-    chassis->SetInertiaXX(ChVector<>(1.264, 1.277, 1.541));
+    chassis->SetInertiaXX(ChVector3d(1.264, 1.277, 1.541));
     this->SetPropellerData(0.126,                                     // Propeller mass
-                           ChVector<>(0.004739, 0.004739, 0.004739),  // Propeller Inertia
+                           ChVector3d(0.004739, 0.004739, 0.004739),  // Propeller Inertia
                            0.6718,                                    // Propeller Diameter [m]
                            0.0587,                                    // Propeller Thrust Coefficient
                            0.018734,                                  // Propeller Power Coefficient
@@ -45,7 +46,7 @@ void Little_Hexy::AddVisualizationAssets() {
 
 // Add collision shapes
 // The collision shape is a boundary box, anything more sophisticated is probably an overkill
-void Little_Hexy::AddCollisionShapes(std::shared_ptr<ChMaterialSurface> material) {
+void Little_Hexy::AddCollisionShapes(std::shared_ptr<ChContactMaterial> material) {
     // Legs and body boundary box
     auto box = chrono_types::make_shared<ChCollisionShapeBox>(material, 0.558, 0.558, 0.92);
     chassis->AddCollisionShape(box);
@@ -53,9 +54,9 @@ void Little_Hexy::AddCollisionShapes(std::shared_ptr<ChMaterialSurface> material
     // Arms and propellers boundary cylinder
     // propeller arm + propeller radius
     auto cyl = chrono_types::make_shared<ChCollisionShapeCylinder>(material, 0.762 + 0.6718 / 2, 0.2);
-    chassis->AddCollisionShape(cyl, ChFrame<>(ChVector<>(0, 0, 0.2783), Q_ROTATE_Y_TO_Z));
+    chassis->AddCollisionShape(cyl, ChFrame<>(ChVector3d(0, 0, 0.2783), Q_ROTATE_Y_TO_Z));
 
-    chassis->SetCollide(true);
+    chassis->EnableCollision(true);
 }
 
 void Little_Hexy::Pitch_Down(double delta) {
@@ -100,12 +101,12 @@ void Little_Hexy::Throttle(double delta) {
     this->ControlIncremental(commands);
 }
 
-std::vector<ChVector<>> Little_Hexy::getPosVect() {
-    std::vector<ChVector<>> ppos;
+std::vector<ChVector3d> Little_Hexy::getPosVect() {
+    std::vector<ChVector3d> ppos;
     for (int i = 0; i < 6; i++) {
-        double ang = CH_C_PI * (i / 3.0) + CH_C_PI / 6;
+        double ang = CH_PI * (i / 3.0) + CH_PI / 6;
         double R = 0.762;
-        ChVector<> pos(std::cos(ang) * R, std::sin(ang) * R, 0.279);
+        ChVector3d pos(std::cos(ang) * R, std::sin(ang) * R, 0.279);
         ppos.push_back(pos);
     }
     return ppos;

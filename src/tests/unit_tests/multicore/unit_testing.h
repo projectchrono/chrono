@@ -26,14 +26,14 @@
 
 #include "chrono/core/ChMatrix33.h"
 #include "chrono/core/ChQuaternion.h"
-#include "chrono/core/ChVector.h"
+#include "chrono/core/ChVector3.h"
 
 #include "chrono/multicore_math/ChMulticoreMath.h"
 #include "chrono/multicore_math/matrix.h"
 
 using namespace chrono;
 
-void Assert_eq(const ChVector<>& a, const ChVector<>& b) {
+void Assert_eq(const ChVector3d& a, const ChVector3d& b) {
     ASSERT_EQ(a.x(), b.x());
     ASSERT_EQ(a.y(), b.y());
     ASSERT_EQ(a.z(), b.z());
@@ -74,7 +74,7 @@ void Assert_eq(const Mat33& a, const Mat33& b) {
 
 // -----------------------------------------------------------------------------
 
-void Assert_near(const ChVector<>& a, const ChVector<>& b, real COMPARE_EPS = C_REAL_EPSILON) {
+void Assert_near(const ChVector3d& a, const ChVector3d& b, real COMPARE_EPS = C_REAL_EPSILON) {
     ASSERT_NEAR(a.x(), b.x(), COMPARE_EPS);
     ASSERT_NEAR(a.y(), b.y(), COMPARE_EPS);
     ASSERT_NEAR(a.z(), b.z(), COMPARE_EPS);

@@ -34,13 +34,13 @@ ChForce::ChForce()
       vreldir(VECT_X),
       force(VNULL),
       relforce(VNULL) {
-    modula = chrono_types::make_shared<ChFunction_Const>(1);
-    move_x = chrono_types::make_shared<ChFunction_Const>(0);
-    move_y = chrono_types::make_shared<ChFunction_Const>(0);
-    move_z = chrono_types::make_shared<ChFunction_Const>(0);
-    f_x = chrono_types::make_shared<ChFunction_Const>(0);
-    f_y = chrono_types::make_shared<ChFunction_Const>(0);
-    f_z = chrono_types::make_shared<ChFunction_Const>(0);
+    modula = chrono_types::make_shared<ChFunctionConst>(1);
+    move_x = chrono_types::make_shared<ChFunctionConst>(0);
+    move_y = chrono_types::make_shared<ChFunctionConst>(0);
+    move_z = chrono_types::make_shared<ChFunctionConst>(0);
+    f_x = chrono_types::make_shared<ChFunctionConst>(0);
+    f_y = chrono_types::make_shared<ChFunctionConst>(0);
+    f_z = chrono_types::make_shared<ChFunctionConst>(0);
 }
 
 ChForce::ChForce(const ChForce& other) : ChObj(other) {
@@ -74,20 +74,20 @@ ChForce::ChForce(const ChForce& other) : ChObj(other) {
 }
 
 // Impose absolute or relative positions, also setting the correct "rest position".
-void ChForce::SetVpoint(ChVector<> mypoint) {
+void ChForce::SetVpoint(ChVector3d mypoint) {
     // abs pos
     vpoint = mypoint;
     // rel pos
-    vrelpoint = GetBody()->Point_World2Body(vpoint);
+    vrelpoint = GetBody()->TransformPointParentToLocal(vpoint);
 
     // computes initial rest position.
-    ChVector<> displace = VNULL;
+    ChVector3d displace = VNULL;
     if (move_x)
-        displace.x() = move_x->Get_y(ChTime);
+        displace.x() = move_x->GetVal(ChTime);
     if (move_y)
-        displace.y() = move_y->Get_y(ChTime);
+        displace.y() = move_y->GetVal(ChTime);
     if (move_z)
-        displace.z() = move_z->Get_y(ChTime);
+        displace.z() = move_z->GetVal(ChTime);
 
     switch (frame) {
         case WORLD:
@@ -99,20 +99,20 @@ void ChForce::SetVpoint(ChVector<> mypoint) {
     }
 }
 
-void ChForce::SetVrelpoint(ChVector<> myrelpoint) {
+void ChForce::SetVrelpoint(ChVector3d myrelpoint) {
     // rel pos
     vrelpoint = myrelpoint;
     // abs pos
-    vpoint = GetBody()->Point_Body2World(vrelpoint);
+    vpoint = GetBody()->TransformPointLocalToParent(vrelpoint);
 
     // computes initial rest position.
-    ChVector<> displace = VNULL;
+    ChVector3d displace = VNULL;
     if (move_x)
-        displace.x() = move_x->Get_y(ChTime);
+        displace.x() = move_x->GetVal(ChTime);
     if (move_y)
-        displace.y() = move_y->Get_y(ChTime);
+        displace.y() = move_y->GetVal(ChTime);
     if (move_z)
-        displace.z() = move_z->Get_y(ChTime);
+        displace.z() = move_z->GetVal(ChTime);
 
     switch (frame) {
         case WORLD:
@@ -125,14 +125,14 @@ void ChForce::SetVrelpoint(ChVector<> myrelpoint) {
 }
 
 // Impose absolute force directions
-void ChForce::SetDir(ChVector<> newf) {
+void ChForce::SetDir(ChVector3d newf) {
     vdir = Vnorm(newf);
     vreldir = GetBody()->TransformDirectionParentToLocal(vdir);
     UpdateState();  // update also F
 }
 
 // Impose relative force directions
-void ChForce::SetRelDir(ChVector<> newf) {
+void ChForce::SetRelDir(ChVector3d newf) {
     vreldir = Vnorm(newf);
     vdir = GetBody()->TransformDirectionLocalToParent(vreldir);
     UpdateState();  // update also F
@@ -145,7 +145,7 @@ void ChForce::SetMforce(double newf) {
 }
 
 // Force as applied to body
-void ChForce::GetBodyForceTorque(ChVector<>& body_force, ChVector<>& body_torque) const {
+void ChForce::GetBodyForceTorque(ChVector3d& body_force, ChVector3d& body_torque) const {
     switch (mode) {
         case FORCE: {
             body_force = force;  // Fb = F.w
@@ -174,9 +174,9 @@ void ChForce::UpdateTime(double mytime) {
 void ChForce::UpdateState() {
     ChBody* my_body;
     double modforce;
-    ChVector<> vectforce;
-    ChVector<> vmotion;
-    ChVector<> xyzforce;
+    ChVector3d vectforce;
+    ChVector3d vmotion;
+    ChVector3d xyzforce;
 
     my_body = GetBody();
 
@@ -184,35 +184,35 @@ void ChForce::UpdateState() {
 
     vmotion = VNULL;
     if (move_x)
-        vmotion.x() = move_x->Get_y(ChTime);
+        vmotion.x() = move_x->GetVal(ChTime);
     if (move_y)
-        vmotion.y() = move_y->Get_y(ChTime);
+        vmotion.y() = move_y->GetVal(ChTime);
     if (move_z)
-        vmotion.z() = move_z->Get_y(ChTime);
+        vmotion.z() = move_z->GetVal(ChTime);
 
     switch (frame) {
         case WORLD:
-            vpoint = Vadd(restpos, vmotion);                // Uw
-            vrelpoint = my_body->Point_World2Body(vpoint);  // Uo1 = [A]'(Uw-Xo1)
+            vpoint = Vadd(restpos, vmotion);                           // Uw
+            vrelpoint = my_body->TransformPointParentToLocal(vpoint);  // Uo1 = [A]'(Uw-Xo1)
             break;
         case BODY:
-            vrelpoint = Vadd(restpos, vmotion);             // Uo1
-            vpoint = my_body->Point_Body2World(vrelpoint);  // Uw = Xo1+[A]Uo1
+            vrelpoint = Vadd(restpos, vmotion);                        // Uo1
+            vpoint = my_body->TransformPointLocalToParent(vrelpoint);  // Uw = Xo1+[A]Uo1
             break;
     }
 
     // ====== Update the fm force vector and add fv
 
-    modforce = mforce * modula->Get_y(ChTime);
+    modforce = mforce * modula->GetVal(ChTime);
 
     vectforce = VNULL;
     xyzforce = VNULL;
     if (f_x)
-        xyzforce.x() = f_x->Get_y(ChTime);
+        xyzforce.x() = f_x->GetVal(ChTime);
     if (f_y)
-        xyzforce.y() = f_y->Get_y(ChTime);
+        xyzforce.y() = f_y->GetVal(ChTime);
     if (f_z)
-        xyzforce.z() = f_z->Get_y(ChTime);
+        xyzforce.z() = f_z->GetVal(ChTime);
 
     switch (align) {
         case WORLD_DIR:
@@ -242,10 +242,10 @@ void ChForce::UpdateState() {
             //   Qfrot= (-[A][u][G])'f
 
             ChStarMatrix33<> Xpos(vrelpoint);
-            ChVector<> VQtemp = Xpos.transpose() * relforce; // = [u]'[A]'F,w
+            ChVector3d VQtemp = Xpos.transpose() * relforce;  // = [u]'[A]'F,w
 
-            ChGlMatrix34<> mGl(my_body->GetCoord().rot);
-            ChVectorN<double, 4> Qfrot = -mGl.transpose() * VQtemp.eigen(); // Q = - [Gl]'[u]'[A]'F,w
+            ChGlMatrix34<> mGl(my_body->GetCoordsys().rot);
+            ChVectorN<double, 4> Qfrot = -mGl.transpose() * VQtemp.eigen();  // Q = - [Gl]'[u]'[A]'F,w
 
             Qf.segment(3, 4) = Qfrot;
 
@@ -258,7 +258,7 @@ void ChForce::UpdateState() {
             Qf(2) = 0;
 
             // rot.lagangian
-            ChGlMatrix34<> mGl(my_body->GetCoord().rot);
+            ChGlMatrix34<> mGl(my_body->GetCoordsys().rot);
             ChVectorN<double, 4> Qfrot = mGl.transpose() * relforce.eigen();
 
             Qf.segment(3, 4) = Qfrot;
@@ -274,66 +274,66 @@ void ChForce::Update(double mytime) {
 
 // File  I/O
 
-void ChForce::ArchiveOut(ChArchiveOut& marchive) {
+void ChForce::ArchiveOut(ChArchiveOut& archive_out) {
     // class version number
-    marchive.VersionWrite<ChForce>();
+    archive_out.VersionWrite<ChForce>();
 
     // serialize parent class too
-    ChObj::ArchiveOut(marchive);
+    ChObj::ArchiveOut(archive_out);
 
     // stream out all member data
 
     ForceType_mapper ftypemapper;
-    marchive << CHNVP(ftypemapper(mode), "force_type");
+    archive_out << CHNVP(ftypemapper(mode), "force_type");
     ReferenceFrame_mapper refmapper;
-    marchive << CHNVP(refmapper(frame), "reference_frame_type");
+    archive_out << CHNVP(refmapper(frame), "reference_frame_type");
     AlignmentFrame_mapper alignmapper;
-    marchive << CHNVP(alignmapper(align), "alignment_frame_type");
+    archive_out << CHNVP(alignmapper(align), "alignment_frame_type");
 
-    marchive << CHNVP(vrelpoint);
-    marchive << CHNVP(vpoint);
-    marchive << CHNVP(move_x);
-    marchive << CHNVP(move_y);
-    marchive << CHNVP(move_z);
-    marchive << CHNVP(restpos);
-    marchive << CHNVP(f_x);
-    marchive << CHNVP(f_y);
-    marchive << CHNVP(f_z);
-    marchive << CHNVP(mforce);
-    marchive << CHNVP(modula, "f_time");
-    marchive << CHNVP(vreldir);
-    marchive << CHNVP(vdir);
+    archive_out << CHNVP(vrelpoint);
+    archive_out << CHNVP(vpoint);
+    archive_out << CHNVP(move_x);
+    archive_out << CHNVP(move_y);
+    archive_out << CHNVP(move_z);
+    archive_out << CHNVP(restpos);
+    archive_out << CHNVP(f_x);
+    archive_out << CHNVP(f_y);
+    archive_out << CHNVP(f_z);
+    archive_out << CHNVP(mforce);
+    archive_out << CHNVP(modula, "f_time");
+    archive_out << CHNVP(vreldir);
+    archive_out << CHNVP(vdir);
 }
 
-void ChForce::ArchiveIn(ChArchiveIn& marchive) {
+void ChForce::ArchiveIn(ChArchiveIn& archive_in) {
     // class version number
-    /*int version =*/ marchive.VersionRead<ChForce>();
+    /*int version =*/archive_in.VersionRead<ChForce>();
 
     // deserialize parent class too
-    ChObj::ArchiveIn(marchive);
+    ChObj::ArchiveIn(archive_in);
 
     // stream in all member data
 
     ForceType_mapper ftypemapper;
-    marchive >> CHNVP(ftypemapper(mode), "force_type");
+    archive_in >> CHNVP(ftypemapper(mode), "force_type");
     ReferenceFrame_mapper refmapper;
-    marchive >> CHNVP(refmapper(frame), "reference_frame_type");
+    archive_in >> CHNVP(refmapper(frame), "reference_frame_type");
     AlignmentFrame_mapper alignmapper;
-    marchive >> CHNVP(alignmapper(align), "alignment_frame_type");
+    archive_in >> CHNVP(alignmapper(align), "alignment_frame_type");
 
-    marchive >> CHNVP(vrelpoint);
-    marchive >> CHNVP(vpoint);
-    marchive >> CHNVP(move_x);
-    marchive >> CHNVP(move_y);
-    marchive >> CHNVP(move_z);
-    marchive >> CHNVP(restpos);
-    marchive >> CHNVP(f_x);
-    marchive >> CHNVP(f_y);
-    marchive >> CHNVP(f_z);
-    marchive >> CHNVP(mforce);
-    marchive >> CHNVP(modula, "f_time");
-    marchive >> CHNVP(vreldir);
-    marchive >> CHNVP(vdir);
+    archive_in >> CHNVP(vrelpoint);
+    archive_in >> CHNVP(vpoint);
+    archive_in >> CHNVP(move_x);
+    archive_in >> CHNVP(move_y);
+    archive_in >> CHNVP(move_z);
+    archive_in >> CHNVP(restpos);
+    archive_in >> CHNVP(f_x);
+    archive_in >> CHNVP(f_y);
+    archive_in >> CHNVP(f_z);
+    archive_in >> CHNVP(mforce);
+    archive_in >> CHNVP(modula, "f_time");
+    archive_in >> CHNVP(vreldir);
+    archive_in >> CHNVP(vdir);
 }
 
 }  // end namespace chrono

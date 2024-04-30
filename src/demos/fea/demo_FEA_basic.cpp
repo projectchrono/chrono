@@ -25,7 +25,7 @@
 #include "chrono/fea/ChElementHexaCorot_8.h"
 #include "chrono/fea/ChElementHexaCorot_20.h"
 #include "chrono/fea/ChMesh.h"
-#include "chrono/fea/ChLinkPointFrame.h"
+#include "chrono/fea/ChLinkNodeFrame.h"
 
 using namespace chrono;
 using namespace fea;
@@ -35,8 +35,8 @@ using namespace fea;
 // First example: SPRING ELEMENT
 // ====================================
 void test_1() {
-    GetLog() << "\n-------------------------------------------------\n";
-    GetLog() << "TEST: spring element FEM  \n\n";
+    std::cout << "\n-------------------------------------------------" << std::endl;
+    std::cout << "TEST: spring element FEM\n" << std::endl;
 
     // The physical system: it contains all physical objects.
     ChSystemSMC sys;
@@ -49,15 +49,15 @@ void test_1() {
     // nodes with x,y,z degrees of freedom, that can be used
     // for many types of FEM elements in space.
     // While creating them, also set X0 undeformed positions.
-    auto mnodeA = chrono_types::make_shared<ChNodeFEAxyz>(ChVector<>(0, 0, 0));
-    auto mnodeB = chrono_types::make_shared<ChNodeFEAxyz>(ChVector<>(0, 1, 0));
+    auto mnodeA = chrono_types::make_shared<ChNodeFEAxyz>(ChVector3d(0, 0, 0));
+    auto mnodeB = chrono_types::make_shared<ChNodeFEAxyz>(ChVector3d(0, 1, 0));
 
     // For example, you can attach local 'point masses' (FE node masses are zero by default)
     mnodeA->SetMass(0.01);
     mnodeB->SetMass(0.01);
 
     // For example, set an applied force to a node:
-    mnodeB->SetForce(ChVector<>(0, 5, 0));
+    mnodeB->SetForce(ChVector3d(0, 5, 0));
 
     // Remember to add nodes and elements to the mesh!
     my_mesh->AddNode(mnodeA);
@@ -67,7 +67,7 @@ void test_1() {
     // two 3D nodes:
     auto melementA = chrono_types::make_shared<ChElementSpring>();
     melementA->SetNodes(mnodeA, mnodeB);
-    melementA->SetSpringK(100000);
+    melementA->SetSpringCoefficient(100000);
 
     // Remember to add elements to the mesh!
     my_mesh->AddElement(melementA);
@@ -77,11 +77,11 @@ void test_1() {
 
     // Create also a truss
     auto truss = chrono_types::make_shared<ChBody>();
-    truss->SetBodyFixed(true);
+    truss->SetFixed(true);
     sys.Add(truss);
 
     // Create a constraint between a node and the truss
-    auto constraintA = chrono_types::make_shared<ChLinkPointFrame>();
+    auto constraintA = chrono_types::make_shared<ChLinkNodeFrame>();
 
     constraintA->Initialize(mnodeA,  // node to connect
                             truss);  // body to be connected to
@@ -89,7 +89,7 @@ void test_1() {
     sys.Add(constraintA);
 
     // Set no gravity
-    // sys.Set_G_acc(VNULL);
+    // sys.SetGravitationalAcceleration(VNULL);
 
     // Perform a linear static analysis
     auto solver = chrono_types::make_shared<ChSolverMINRES>();
@@ -102,11 +102,11 @@ void test_1() {
     sys.DoStaticLinear();
 
     // Output result
-    GetLog() << "poss after linear static analysis: \n";
-    GetLog() << "  nodeA->pos \n" << mnodeA->GetPos();
-    GetLog() << "  nodeB->pos \n" << mnodeB->GetPos();
-    GetLog() << "Forces after linear static analysis: \n";
-    GetLog() << "  constraintA.react \n" << constraintA->GetReactionOnBody();
+    std::cout << "poss after linear static analysis:" << std::endl;
+    std::cout << "  nodeA->pos\n" << mnodeA->GetPos();
+    std::cout << "  nodeB->pos\n" << mnodeB->GetPos();
+    std::cout << "Forces after linear static analysis:" << std::endl;
+    std::cout << "  constraintA.react\n" << constraintA->GetReactionOnBody();
 }
 
 //////////////////////////////////////////////////////////////////
@@ -115,8 +115,8 @@ void test_1() {
 // Second example: LINEAR TETRAHEDRAL ELEMENT				    //
 // ============================================================ //
 void test_2() {
-    GetLog() << "\n-------------------------------------------------\n";
-    GetLog() << "TEST: LINEAR tetrahedral element FEM  \n\n";
+    std::cout << "\n-------------------------------------------------" << std::endl;
+    std::cout << "TEST: LINEAR tetrahedral element FEM\n" << std::endl;
 
     // The physical system: it contains all physical objects.
     ChSystemSMC sys;
@@ -128,20 +128,20 @@ void test_2() {
     // Create a material, that must be assigned to each element,
     // and set its parameters
     auto mmaterial = chrono_types::make_shared<ChContinuumElastic>();
-    mmaterial->Set_E(0.01e9);  // rubber 0.01e9, steel 200e9
-    mmaterial->Set_v(0.3);
+    mmaterial->SetYoungModulus(0.01e9);  // rubber 0.01e9, steel 200e9
+    mmaterial->SetPoissonRatio(0.3);
 
     // Create some nodes. These are the classical point-like
     // nodes with x,y,z degrees of freedom, that can be used
     // for many types of FEM elements in space.
     // While creating them, also set X0 undeformed positions.
-    auto mnode1 = chrono_types::make_shared<ChNodeFEAxyz>(ChVector<>(0, 0, 0));
-    auto mnode2 = chrono_types::make_shared<ChNodeFEAxyz>(ChVector<>(0, 0, 1));
-    auto mnode3 = chrono_types::make_shared<ChNodeFEAxyz>(ChVector<>(0, 1, 0));
-    auto mnode4 = chrono_types::make_shared<ChNodeFEAxyz>(ChVector<>(1, 0, 0));
+    auto mnode1 = chrono_types::make_shared<ChNodeFEAxyz>(ChVector3d(0, 0, 0));
+    auto mnode2 = chrono_types::make_shared<ChNodeFEAxyz>(ChVector3d(0, 0, 1));
+    auto mnode3 = chrono_types::make_shared<ChNodeFEAxyz>(ChVector3d(0, 1, 0));
+    auto mnode4 = chrono_types::make_shared<ChNodeFEAxyz>(ChVector3d(1, 0, 0));
 
     // For example, set an applied force to a node:
-    mnode3->SetForce(ChVector<>(0, 10000, 0));
+    mnode3->SetForce(ChVector3d(0, 10000, 0));
 
     // Remember to add nodes and elements to the mesh!
     my_mesh->AddNode(mnode1);
@@ -163,29 +163,29 @@ void test_2() {
 
     // Create also a truss
     auto truss = chrono_types::make_shared<ChBody>();
-    truss->SetBodyFixed(true);
+    truss->SetFixed(true);
     sys.Add(truss);
 
     // Create a constraint between a node and the truss
-    auto constraint1 = chrono_types::make_shared<ChLinkPointFrame>();
-    auto constraint2 = chrono_types::make_shared<ChLinkPointFrame>();
-    auto constraint3 = chrono_types::make_shared<ChLinkPointFrame>();
+    auto constraint1 = chrono_types::make_shared<ChLinkNodeFrame>();
+    auto constraint2 = chrono_types::make_shared<ChLinkNodeFrame>();
+    auto constraint3 = chrono_types::make_shared<ChLinkNodeFrame>();
 
-    constraint1->Initialize(mnode1,   // node
-                            truss);   // body to be connected to
+    constraint1->Initialize(mnode1,  // node
+                            truss);  // body to be connected to
 
-    constraint2->Initialize(mnode2,  // node 
-                            truss);   // body to be connected to
+    constraint2->Initialize(mnode2,  // node
+                            truss);  // body to be connected to
 
     constraint3->Initialize(mnode4,  // node
-                            truss);   // body to be connected to
+                            truss);  // body to be connected to
 
     sys.Add(constraint1);
     sys.Add(constraint2);
     sys.Add(constraint3);
 
     // Set no gravity
-    // sys.Set_G_acc(VNULL);
+    // sys.SetGravitationalAcceleration(VNULL);
 
     // Perform a linear static analysis
     auto solver = chrono_types::make_shared<ChSolverMINRES>();
@@ -198,16 +198,16 @@ void test_2() {
     sys.DoStaticLinear();
 
     // Output result
-    GetLog() << "Resulting node positions:\n";
-    GetLog() << mnode1->pos << "\n";
-    GetLog() << mnode2->pos << "\n";
-    GetLog() << mnode3->pos << "\n";
-    GetLog() << mnode4->pos << "\n";
+    std::cout << "Resulting node positions:" << std::endl;
+    std::cout << mnode1->pos << std::endl;
+    std::cout << mnode2->pos << std::endl;
+    std::cout << mnode3->pos << std::endl;
+    std::cout << mnode4->pos << std::endl;
 
-    GetLog() << "Resulting constraint reactions:\n";
-    GetLog() << constraint1->GetReactionOnBody();
-    GetLog() << constraint2->GetReactionOnBody();
-    GetLog() << constraint3->GetReactionOnBody();
+    std::cout << "Resulting constraint reactions:" << std::endl;
+    std::cout << constraint1->GetReactionOnBody() << std::endl;
+    std::cout << constraint2->GetReactionOnBody() << std::endl;
+    std::cout << constraint3->GetReactionOnBody() << std::endl;
 }
 
 //////////////////////////////////////////////////////////////////
@@ -216,8 +216,8 @@ void test_2() {
 // Second example: QUADRATIC TETRAHEDRAL ELEMENT				//
 // ============================================================ //
 void test_3() {
-    GetLog() << "\n-------------------------------------------------\n";
-    GetLog() << "TEST: QUADRATIC tetrahedral element FEM  \n\n";
+    std::cout << "\n-------------------------------------------------" << std::endl;
+    std::cout << "TEST: QUADRATIC tetrahedral element FEM\n" << std::endl;
 
     // The physical system: it contains all physical objects.
     ChSystemSMC sys;
@@ -229,18 +229,19 @@ void test_3() {
     // Create a material, that must be assigned to each element,
     // and set its parameters
     auto mmaterial = chrono_types::make_shared<ChContinuumElastic>();
-    mmaterial->Set_E(207e9);
-    mmaterial->Set_v(0.3);
+    mmaterial->SetYoungModulus(207e9);
+    mmaterial->SetPoissonRatio(0.3);
 
     // Create some nodes. These are the classical point-like
     // nodes with x,y,z degrees of freedom, that can be used
     // for many types of FEM elements in space.
     // While creating them, also set X0 undeformed positions.
-    auto mnode1 = chrono_types::make_shared<ChNodeFEAxyz>(ChVector<>(0, 0, 0));
-    auto mnode2 = chrono_types::make_shared<ChNodeFEAxyz>(ChVector<>(0.001, 0, 0));
-    auto mnode3 = chrono_types::make_shared<ChNodeFEAxyz>(ChVector<>(0, 0.001, 0));
-    auto mnode4 = chrono_types::make_shared<ChNodeFEAxyz>(ChVector<>(0, 0, 0.001));
-    auto mnode5 = chrono_types::make_shared<ChNodeFEAxyz>((mnode1->pos + mnode2->pos) * 0.5);  //  nodes at mid length of edges
+    auto mnode1 = chrono_types::make_shared<ChNodeFEAxyz>(ChVector3d(0, 0, 0));
+    auto mnode2 = chrono_types::make_shared<ChNodeFEAxyz>(ChVector3d(0.001, 0, 0));
+    auto mnode3 = chrono_types::make_shared<ChNodeFEAxyz>(ChVector3d(0, 0.001, 0));
+    auto mnode4 = chrono_types::make_shared<ChNodeFEAxyz>(ChVector3d(0, 0, 0.001));
+    auto mnode5 =
+        chrono_types::make_shared<ChNodeFEAxyz>((mnode1->pos + mnode2->pos) * 0.5);  //  nodes at mid length of edges
     auto mnode6 = chrono_types::make_shared<ChNodeFEAxyz>((mnode2->pos + mnode3->pos) * 0.5);
     auto mnode7 = chrono_types::make_shared<ChNodeFEAxyz>((mnode3->pos + mnode1->pos) * 0.5);
     auto mnode8 = chrono_types::make_shared<ChNodeFEAxyz>((mnode1->pos + mnode4->pos) * 0.5);
@@ -248,7 +249,7 @@ void test_3() {
     auto mnode10 = chrono_types::make_shared<ChNodeFEAxyz>((mnode3->pos + mnode4->pos) * 0.5);
 
     // For example, set an applied force to a node:
-    mnode3->SetForce(ChVector<>(0, -1000, 0));
+    mnode3->SetForce(ChVector3d(0, -1000, 0));
 
     // Remember to add nodes and elements to the mesh!
     my_mesh->AddNode(mnode1);
@@ -277,28 +278,28 @@ void test_3() {
     // Create also a truss
     auto truss = chrono_types::make_shared<ChBody>();
     sys.Add(truss);
-    truss->SetBodyFixed(true);
+    truss->SetFixed(true);
 
     // Create a constraint between a node and the truss
-    auto constraint1 = chrono_types::make_shared<ChLinkPointFrame>();
-    auto constraint2 = chrono_types::make_shared<ChLinkPointFrame>();
-    auto constraint3 = chrono_types::make_shared<ChLinkPointFrame>();
+    auto constraint1 = chrono_types::make_shared<ChLinkNodeFrame>();
+    auto constraint2 = chrono_types::make_shared<ChLinkNodeFrame>();
+    auto constraint3 = chrono_types::make_shared<ChLinkNodeFrame>();
 
-    constraint1->Initialize(mnode1,  // node 
-                            truss);   // body to be connected to
+    constraint1->Initialize(mnode1,  // node
+                            truss);  // body to be connected to
 
-    constraint2->Initialize(mnode2,  // node 
-                            truss);   // body to be connected to
+    constraint2->Initialize(mnode2,  // node
+                            truss);  // body to be connected to
 
-    constraint3->Initialize(mnode4,  // node 
-                            truss);   // body to be connected to
+    constraint3->Initialize(mnode4,  // node
+                            truss);  // body to be connected to
 
     sys.Add(constraint1);
     sys.Add(constraint2);
     sys.Add(constraint3);
 
     // Set no gravity
-    // sys.Set_G_acc(VNULL);
+    // sys.SetGravitationalAcceleration(VNULL);
 
     // Perform a linear static analysis
     auto solver = chrono_types::make_shared<ChSolverMINRES>();
@@ -311,13 +312,13 @@ void test_3() {
     sys.DoStaticLinear();
 
     // Output result
-    // GetLog()<<melement1.GetStiffnessMatrix()<<"\n";
-    // GetLog()<<melement1.GetMatrB()<<"\n";
-    GetLog() << mnode1->GetPos() << "\n";
-    GetLog() << mnode2->GetPos() << "\n";
-    GetLog() << mnode3->GetPos() << "\n";
-    GetLog() << mnode4->GetPos() << "\n";
-    GetLog() << "node3 displ: " << mnode3->GetPos() - mnode3->GetX0() << "\n";
+    // std::cout <<melement1.GetStiffnessMatrix()<<"" << std::endl;
+    // std::cout <<melement1.GetMatrB()<<"" << std::endl;
+    std::cout << mnode1->GetPos() << std::endl;
+    std::cout << mnode2->GetPos() << std::endl;
+    std::cout << mnode3->GetPos() << std::endl;
+    std::cout << mnode4->GetPos() << std::endl;
+    std::cout << "node3 displ: " << mnode3->GetPos() - mnode3->GetX0() << std::endl;
 }
 
 //////////////////////////////////////////////////////////////////
@@ -326,8 +327,8 @@ void test_3() {
 // Second example: LINEAR HEXAHEDRAL ELEMENT					//
 // ============================================================ //
 void test_4() {
-    GetLog() << "\n-------------------------------------------------\n";
-    GetLog() << "TEST: LINEAR hexahedral element FEM  \n\n";
+    std::cout << "\n-------------------------------------------------" << std::endl;
+    std::cout << "TEST: LINEAR hexahedral element FEM\n" << std::endl;
 
     // The physical system: it contains all physical objects.
     ChSystemSMC sys;
@@ -339,8 +340,8 @@ void test_4() {
     // Create a material, that must be assigned to each element,
     // and set its parameters
     auto mmaterial = chrono_types::make_shared<ChContinuumElastic>();
-    mmaterial->Set_E(207e6);
-    mmaterial->Set_v(0.3);
+    mmaterial->SetYoungModulus(207e6);
+    mmaterial->SetPoissonRatio(0.3);
 
     // Create some nodes. These are the classical point-like
     // nodes with x,y,z degrees of freedom, that can be used
@@ -349,20 +350,20 @@ void test_4() {
     double sx = 0.01;
     double sy = 0.10;
     double sz = 0.01;
-    auto mnode1 = chrono_types::make_shared<ChNodeFEAxyz>(ChVector<>(0, 0, 0));
-    auto mnode2 = chrono_types::make_shared<ChNodeFEAxyz>(ChVector<>(0, 0, sz));
-    auto mnode3 = chrono_types::make_shared<ChNodeFEAxyz>(ChVector<>(sx, 0, sz));
-    auto mnode4 = chrono_types::make_shared<ChNodeFEAxyz>(ChVector<>(sx, 0, 0));
-    auto mnode5 = chrono_types::make_shared<ChNodeFEAxyz>(ChVector<>(0, sy, 0));
-    auto mnode6 = chrono_types::make_shared<ChNodeFEAxyz>(ChVector<>(0, sy, sz));
-    auto mnode7 = chrono_types::make_shared<ChNodeFEAxyz>(ChVector<>(sx, sy, sz));
-    auto mnode8 = chrono_types::make_shared<ChNodeFEAxyz>(ChVector<>(sx, sy, 0));
+    auto mnode1 = chrono_types::make_shared<ChNodeFEAxyz>(ChVector3d(0, 0, 0));
+    auto mnode2 = chrono_types::make_shared<ChNodeFEAxyz>(ChVector3d(0, 0, sz));
+    auto mnode3 = chrono_types::make_shared<ChNodeFEAxyz>(ChVector3d(sx, 0, sz));
+    auto mnode4 = chrono_types::make_shared<ChNodeFEAxyz>(ChVector3d(sx, 0, 0));
+    auto mnode5 = chrono_types::make_shared<ChNodeFEAxyz>(ChVector3d(0, sy, 0));
+    auto mnode6 = chrono_types::make_shared<ChNodeFEAxyz>(ChVector3d(0, sy, sz));
+    auto mnode7 = chrono_types::make_shared<ChNodeFEAxyz>(ChVector3d(sx, sy, sz));
+    auto mnode8 = chrono_types::make_shared<ChNodeFEAxyz>(ChVector3d(sx, sy, 0));
 
     // For example, set applied forces to nodes:
-    mnode5->SetForce(ChVector<>(0, -1000, 0));
-    mnode6->SetForce(ChVector<>(0, -1000, 0));
-    mnode7->SetForce(ChVector<>(0, -1000, 0));
-    mnode8->SetForce(ChVector<>(0, -1000, 0));
+    mnode5->SetForce(ChVector3d(0, -1000, 0));
+    mnode6->SetForce(ChVector3d(0, -1000, 0));
+    mnode7->SetForce(ChVector3d(0, -1000, 0));
+    mnode8->SetForce(ChVector3d(0, -1000, 0));
 
     // Remember to add nodes and elements to the mesh!
     my_mesh->AddNode(mnode1);
@@ -389,25 +390,25 @@ void test_4() {
     // Create also a truss
     auto truss = chrono_types::make_shared<ChBody>();
     sys.Add(truss);
-    truss->SetBodyFixed(true);
+    truss->SetFixed(true);
 
     // Create a constraint between a node and the truss
-    auto constraint1 = chrono_types::make_shared<ChLinkPointFrame>();
-    auto constraint2 = chrono_types::make_shared<ChLinkPointFrame>();
-    auto constraint3 = chrono_types::make_shared<ChLinkPointFrame>();
-    auto constraint4 = chrono_types::make_shared<ChLinkPointFrame>();
+    auto constraint1 = chrono_types::make_shared<ChLinkNodeFrame>();
+    auto constraint2 = chrono_types::make_shared<ChLinkNodeFrame>();
+    auto constraint3 = chrono_types::make_shared<ChLinkNodeFrame>();
+    auto constraint4 = chrono_types::make_shared<ChLinkNodeFrame>();
 
-    constraint1->Initialize(mnode1,   // node
-                            truss);   // body to be connected to
+    constraint1->Initialize(mnode1,  // node
+                            truss);  // body to be connected to
 
-    constraint2->Initialize(mnode2,   // node
-                            truss);   // body to be connected to
+    constraint2->Initialize(mnode2,  // node
+                            truss);  // body to be connected to
 
-    constraint3->Initialize(mnode3,   // node
-                            truss);   // body to be connected to
+    constraint3->Initialize(mnode3,  // node
+                            truss);  // body to be connected to
 
-    constraint4->Initialize(mnode4,   // node
-                            truss);   // body to be connected to
+    constraint4->Initialize(mnode4,  // node
+                            truss);  // body to be connected to
 
     sys.Add(constraint1);
     sys.Add(constraint2);
@@ -415,7 +416,7 @@ void test_4() {
     sys.Add(constraint4);
 
     // Set no gravity
-    // sys.Set_G_acc(VNULL);
+    // sys.SetGravitationalAcceleration(VNULL);
 
     // Perform a linear static analysis
     auto solver = chrono_types::make_shared<ChSolverMINRES>();
@@ -428,16 +429,16 @@ void test_4() {
     sys.DoStaticLinear();
 
     // Output result
-    // GetLog()<<melement1.GetStiffnessMatrix()<<"\n";
-    // GetLog()<<melement1.GetMatrB()<<"\n";
-    GetLog() << mnode1->GetPos() << "\n";
-    GetLog() << mnode2->GetPos() << "\n";
-    GetLog() << mnode3->GetPos() << "\n";
-    GetLog() << mnode4->GetPos() << "\n";
-    GetLog() << "node5 displ: " << mnode5->GetPos() - mnode5->GetX0() << "\n";
-    GetLog() << "node6 displ: " << mnode6->GetPos() - mnode6->GetX0() << "\n";
-    GetLog() << "node7 displ: " << mnode7->GetPos() - mnode7->GetX0() << "\n";
-    GetLog() << "node8 displ: " << mnode8->GetPos() - mnode8->GetX0() << "\n";
+    // std::cout <<melement1.GetStiffnessMatrix()<<"" << std::endl;
+    // std::cout <<melement1.GetMatrB()<<"" << std::endl;
+    std::cout << mnode1->GetPos() << std::endl;
+    std::cout << mnode2->GetPos() << std::endl;
+    std::cout << mnode3->GetPos() << std::endl;
+    std::cout << mnode4->GetPos() << std::endl;
+    std::cout << "node5 displ: " << mnode5->GetPos() - mnode5->GetX0() << std::endl;
+    std::cout << "node6 displ: " << mnode6->GetPos() - mnode6->GetX0() << std::endl;
+    std::cout << "node7 displ: " << mnode7->GetPos() - mnode7->GetX0() << std::endl;
+    std::cout << "node8 displ: " << mnode8->GetPos() - mnode8->GetX0() << std::endl;
 }
 
 //////////////////////////////////////////////////////////////////
@@ -446,8 +447,8 @@ void test_4() {
 // Second example: QUADRATIC HEXAHEDRAL ELEMENT					//
 // ============================================================ //
 void test_5() {
-    GetLog() << "\n-------------------------------------------------\n";
-    GetLog() << "TEST: QUADRATIC hexahedral element FEM  \n\n";
+    std::cout << "\n-------------------------------------------------" << std::endl;
+    std::cout << "TEST: QUADRATIC hexahedral element FEM\n" << std::endl;
 
     // The physical system: it contains all physical objects.
     ChSystemSMC sys;
@@ -459,8 +460,8 @@ void test_5() {
     // Create a material, that must be assigned to each element,
     // and set its parameters
     auto mmaterial = chrono_types::make_shared<ChContinuumElastic>();
-    mmaterial->Set_E(207e6);
-    mmaterial->Set_v(0.3);
+    mmaterial->SetYoungModulus(207e6);
+    mmaterial->SetPoissonRatio(0.3);
 
     // Create some nodes. These are the classical point-like
     // nodes with x,y,z degrees of freedom, that can be used
@@ -469,14 +470,14 @@ void test_5() {
     double sx = 0.01;
     double sy = 0.1;
     double sz = 0.01;
-    auto mnode1 = chrono_types::make_shared<ChNodeFEAxyz>(ChVector<>(0, 0, 0));
-    auto mnode2 = chrono_types::make_shared<ChNodeFEAxyz>(ChVector<>(0, 0, sz));
-    auto mnode3 = chrono_types::make_shared<ChNodeFEAxyz>(ChVector<>(sx, 0, sz));
-    auto mnode4 = chrono_types::make_shared<ChNodeFEAxyz>(ChVector<>(sx, 0, 0));
-    auto mnode5 = chrono_types::make_shared<ChNodeFEAxyz>(ChVector<>(0, sy, 0));
-    auto mnode6 = chrono_types::make_shared<ChNodeFEAxyz>(ChVector<>(0, sy, sz));
-    auto mnode7 = chrono_types::make_shared<ChNodeFEAxyz>(ChVector<>(sx, sy, sz));
-    auto mnode8 = chrono_types::make_shared<ChNodeFEAxyz>(ChVector<>(sx, sy, 0));
+    auto mnode1 = chrono_types::make_shared<ChNodeFEAxyz>(ChVector3d(0, 0, 0));
+    auto mnode2 = chrono_types::make_shared<ChNodeFEAxyz>(ChVector3d(0, 0, sz));
+    auto mnode3 = chrono_types::make_shared<ChNodeFEAxyz>(ChVector3d(sx, 0, sz));
+    auto mnode4 = chrono_types::make_shared<ChNodeFEAxyz>(ChVector3d(sx, 0, 0));
+    auto mnode5 = chrono_types::make_shared<ChNodeFEAxyz>(ChVector3d(0, sy, 0));
+    auto mnode6 = chrono_types::make_shared<ChNodeFEAxyz>(ChVector3d(0, sy, sz));
+    auto mnode7 = chrono_types::make_shared<ChNodeFEAxyz>(ChVector3d(sx, sy, sz));
+    auto mnode8 = chrono_types::make_shared<ChNodeFEAxyz>(ChVector3d(sx, sy, 0));
     auto mnode9 = chrono_types::make_shared<ChNodeFEAxyz>((mnode1->pos + mnode2->pos) * 0.5);  // in between front face
     auto mnode10 = chrono_types::make_shared<ChNodeFEAxyz>((mnode2->pos + mnode3->pos) * 0.5);
     auto mnode11 = chrono_types::make_shared<ChNodeFEAxyz>((mnode3->pos + mnode4->pos) * 0.5);
@@ -491,14 +492,14 @@ void test_5() {
     auto mnode20 = chrono_types::make_shared<ChNodeFEAxyz>((mnode1->pos + mnode5->pos) * 0.5);
 
     // For example, set applied forces to nodes:
-    mnode5->SetForce(ChVector<>(0, -500, 0));
-    mnode6->SetForce(ChVector<>(0, -500, 0));
-    mnode7->SetForce(ChVector<>(0, -500, 0));
-    mnode8->SetForce(ChVector<>(0, -500, 0));
-    mnode13->SetForce(ChVector<>(0, -500, 0));
-    mnode14->SetForce(ChVector<>(0, -500, 0));
-    mnode15->SetForce(ChVector<>(0, -500, 0));
-    mnode16->SetForce(ChVector<>(0, -500, 0));
+    mnode5->SetForce(ChVector3d(0, -500, 0));
+    mnode6->SetForce(ChVector3d(0, -500, 0));
+    mnode7->SetForce(ChVector3d(0, -500, 0));
+    mnode8->SetForce(ChVector3d(0, -500, 0));
+    mnode13->SetForce(ChVector3d(0, -500, 0));
+    mnode14->SetForce(ChVector3d(0, -500, 0));
+    mnode15->SetForce(ChVector3d(0, -500, 0));
+    mnode16->SetForce(ChVector3d(0, -500, 0));
 
     // Remember to add nodes and elements to the mesh!
     my_mesh->AddNode(mnode1);
@@ -542,25 +543,25 @@ void test_5() {
     // Create also a truss
     auto truss = chrono_types::make_shared<ChBody>();
     sys.Add(truss);
-    truss->SetBodyFixed(true);
+    truss->SetFixed(true);
 
     // Create a constraint between a node and the truss
-    auto constraint1 = chrono_types::make_shared<ChLinkPointFrame>();
-    auto constraint2 = chrono_types::make_shared<ChLinkPointFrame>();
-    auto constraint3 = chrono_types::make_shared<ChLinkPointFrame>();
-    auto constraint4 = chrono_types::make_shared<ChLinkPointFrame>();
+    auto constraint1 = chrono_types::make_shared<ChLinkNodeFrame>();
+    auto constraint2 = chrono_types::make_shared<ChLinkNodeFrame>();
+    auto constraint3 = chrono_types::make_shared<ChLinkNodeFrame>();
+    auto constraint4 = chrono_types::make_shared<ChLinkNodeFrame>();
 
-    constraint1->Initialize(mnode1,   // node
-                            truss);   // body to be connected to
+    constraint1->Initialize(mnode1,  // node
+                            truss);  // body to be connected to
 
-    constraint2->Initialize(mnode2,   // node
-                            truss);   // body to be connected to
+    constraint2->Initialize(mnode2,  // node
+                            truss);  // body to be connected to
 
-    constraint3->Initialize(mnode3,   // node
-                            truss);   // body to be connected to
+    constraint3->Initialize(mnode3,  // node
+                            truss);  // body to be connected to
 
-    constraint4->Initialize(mnode4,   // node
-                            truss);   // body to be connected to
+    constraint4->Initialize(mnode4,  // node
+                            truss);  // body to be connected to
 
     sys.Add(constraint1);
     sys.Add(constraint2);
@@ -568,7 +569,7 @@ void test_5() {
     sys.Add(constraint4);
 
     // Set no gravity
-    // sys.Set_G_acc(VNULL);
+    // sys.SetGravitationalAcceleration(VNULL);
 
     // Perform a linear static analysis
     auto solver = chrono_types::make_shared<ChSolverMINRES>();
@@ -581,22 +582,22 @@ void test_5() {
     sys.DoStaticLinear();
 
     // Output some results
-    GetLog() << "node5 displ: " << mnode5->GetPos() - mnode5->GetX0() << "\n";
-    GetLog() << "node6 displ: " << mnode6->GetPos() - mnode6->GetX0() << "\n";
-    GetLog() << "node7 displ: " << mnode7->GetPos() - mnode7->GetX0() << "\n";
-    GetLog() << "node8 displ: " << mnode8->GetPos() - mnode8->GetX0() << "\n";
-    GetLog() << "Element volume" << melement1->GetVolume() << "\n";
+    std::cout << "node5 displ: " << mnode5->GetPos() - mnode5->GetX0() << std::endl;
+    std::cout << "node6 displ: " << mnode6->GetPos() - mnode6->GetX0() << std::endl;
+    std::cout << "node7 displ: " << mnode7->GetPos() - mnode7->GetX0() << std::endl;
+    std::cout << "node8 displ: " << mnode8->GetPos() - mnode8->GetX0() << std::endl;
+    std::cout << "Element volume" << melement1->GetVolume() << std::endl;
 }
 
 // Do some tests in a single run, inside the main() function.
 // Results will be simply text-formatted outputs in the console..
 
 int main(int argc, char* argv[]) {
-    GetLog() << "Copyright (c) 2017 projectchrono.org\nChrono version: " << CHRONO_VERSION << "\n\n";
+    std::cout << "Copyright (c) 2017 projectchrono.org\nChrono version: " << CHRONO_VERSION << std::endl;
 
-    GetLog() << " Example: the FEM technology for finite elements \n\n\n";
+    std::cout << " Example: the FEM technology for finite elements\n" << std::endl;
 
-    //test_1(); //// NOT WORKING
+    // test_1(); //// NOT WORKING
     test_2();
     test_3();
     test_4();

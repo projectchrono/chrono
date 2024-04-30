@@ -43,25 +43,29 @@ class ChApi ChElementHexaANCF_3813 : public ChElementANCF,
     ~ChElementHexaANCF_3813() {}
 
     /// Get number of nodes of this element
-    virtual int GetNnodes() override { return 8; }
+    virtual unsigned int GetNumNodes() override { return 8; }
 
     /// Get the number of coordinates in the field used by the referenced nodes.
-    virtual int GetNdofs() override { return 8 * 3; }
+    virtual unsigned int GetNumCoordsPosLevel() override { return 8 * 3; }
 
     /// Get the number of active coordinates in the field used by the referenced nodes.
-    virtual int GetNdofs_active() override { return m_element_dof; }
+    virtual unsigned int GetNumCoordsPosLevelActive() override { return m_element_dof; }
 
     /// Get the number of coordinates from the n-th node used by this element.
-    virtual int GetNodeNdofs(int n) override { return m_nodes[n]->GetNdofX(); }
+    virtual unsigned int GetNodeNumCoordsPosLevel(unsigned int n) override {
+        return m_nodes[n]->GetNumCoordsPosLevel();
+    }
 
     /// Get the number of active coordinates from the n-th node used by this element.
-    virtual int GetNodeNdofs_active(int n) override { return m_nodes[n]->GetNdofX_active(); }
+    virtual unsigned int GetNodeNumCoordsPosLevelActive(unsigned int n) override {
+        return m_nodes[n]->GetNumCoordsPosLevelActive();
+    }
 
     /// Access the n-th node of this element.
-    virtual std::shared_ptr<ChNodeFEAbase> GetNodeN(int n) override { return m_nodes[n]; }
+    virtual std::shared_ptr<ChNodeFEAbase> GetNode(unsigned int n) override { return m_nodes[n]; }
 
     /// Return the specified hexahedron node (0 <= n <= 7).
-    virtual std::shared_ptr<ChNodeFEAxyz> GetHexahedronNode(int n) override { return m_nodes[n]; }
+    virtual std::shared_ptr<ChNodeFEAxyz> GetHexahedronNode(unsigned int n) override { return m_nodes[n]; }
 
     /// Specify the nodes of this element.
     void SetNodes(std::shared_ptr<ChNodeFEAxyz> nodeA,
@@ -81,7 +85,7 @@ class ChApi ChElementHexaANCF_3813 : public ChElementANCF,
     SetStockAlpha(double a1, double a2, double a3, double a4, double a5, double a6, double a7, double a8, double a9);
 
     /// Set some element parameters (dimensions).
-    void SetInertFlexVec(const ChVector<double>& a) { m_InertFlexVec = a; }
+    void SetInertFlexVec(const ChVector3d& a) { m_InertFlexVec = a; }
 
     int GetElemNum() const { return m_elementnumber; }
 
@@ -118,16 +122,16 @@ class ChApi ChElementHexaANCF_3813 : public ChElementANCF,
     void ShapeFunctionsDerivativeZ(ShapeVector& Nz, double x, double y, double z);
     // Functions for ChLoadable interface
     /// Gets the number of DOFs affected by this element (position part)
-    virtual int LoadableGet_ndof_x() override { return 8 * 3; }
+    virtual unsigned int GetLoadableNumCoordsPosLevel() override { return 8 * 3; }
 
     /// Gets the number of DOFs affected by this element (speed part)
-    virtual int LoadableGet_ndof_w() override { return 8 * 3; }
+    virtual unsigned int GetLoadableNumCoordsVelLevel() override { return 8 * 3; }
 
     /// Gets all the DOFs packed in a single vector (position part)
-    virtual void LoadableGetStateBlock_x(int block_offset, ChState& mD) override;
+    virtual void LoadableGetStateBlockPosLevel(int block_offset, ChState& mD) override;
 
     /// Gets all the DOFs packed in a single vector (speed part)
-    virtual void LoadableGetStateBlock_w(int block_offset, ChStateDelta& mD) override;
+    virtual void LoadableGetStateBlockVelLevel(int block_offset, ChStateDelta& mD) override;
 
     /// Increment all DOFs using a delta.
     virtual void LoadableStateIncrement(const unsigned int off_x,
@@ -137,19 +141,21 @@ class ChApi ChElementHexaANCF_3813 : public ChElementANCF,
                                         const ChStateDelta& Dv) override;
 
     /// Number of coordinates in the interpolated field: here the {x,y,z} displacement
-    virtual int Get_field_ncoords() override { return 3; }
+    virtual unsigned int GetNumFieldCoords() override { return 3; }
 
     /// Get the number of DOFs sub-blocks.
-    virtual int GetSubBlocks() override { return 8; }
+    virtual unsigned int GetNumSubBlocks() override { return 8; }
 
     /// Get the offset of the specified sub-block of DOFs in global vector.
-    virtual unsigned int GetSubBlockOffset(int nblock) override { return m_nodes[nblock]->NodeGetOffsetW(); }
+    virtual unsigned int GetSubBlockOffset(unsigned int nblock) override {
+        return m_nodes[nblock]->NodeGetOffsetVelLevel();
+    }
 
     /// Get the size of the specified sub-block of DOFs in global vector.
-    virtual unsigned int GetSubBlockSize(int nblock) override { return 3; }
+    virtual unsigned int GetSubBlockSize(unsigned int nblock) override { return 3; }
 
     /// Check if the specified sub-block of DOFs is active.
-    virtual bool IsSubBlockActive(int nblock) const override { return !m_nodes[nblock]->IsFixed(); }
+    virtual bool IsSubBlockActive(unsigned int nblock) const override { return !m_nodes[nblock]->IsFixed(); }
 
     /// Get the pointers to the contained ChVariables, appending to the mvars vector.
     virtual void LoadableGetVariables(std::vector<ChVariables*>& mvars) override;
@@ -169,7 +175,7 @@ class ChApi ChElementHexaANCF_3813 : public ChElementANCF,
                            ) override;
 
     /// This is needed so that it can be accessed by ChLoaderVolumeGravity
-    virtual double GetDensity() override { return this->m_Material->Get_density(); }
+    virtual double GetDensity() override { return this->m_Material->GetDensity(); }
 
   private:
     enum JacobianType { ANALYTICAL, NUMERICAL };
@@ -182,7 +188,7 @@ class ChApi ChElementHexaANCF_3813 : public ChElementANCF,
     ChMatrixNM<double, 24, 24> m_StiffnessMatrix;  ///< Stiffness matrix
     ChMatrixNM<double, 24, 24> m_MassMatrix;       ///< Mass matrix
     ChVectorN<double, 8> m_GravForceScale;  ///< Gravity scaling matrix used to get the generalized force due to gravity
-    ChVector<double> m_InertFlexVec;        ///< for element size (EL,EW,EH)
+    ChVector3d m_InertFlexVec;              ///< for element size (EL,EW,EH)
     // EAS
     int m_elementnumber;                         ///< Element number, for EAS
     ChMatrixNM<double, 24, 24> m_stock_jac_EAS;  ///< EAS Jacobian matrix
@@ -198,7 +204,7 @@ class ChApi ChElementHexaANCF_3813 : public ChElementANCF,
     virtual void Update() override;
 
     /// Fills the D vector with the current field values at the nodes of the element, with proper ordering.
-    /// If the D vector has not the size of this->GetNdofs(), it will be resized.
+    /// If the D vector has not the size of this->GetNumCoordsPosLevel(), it will be resized.
     ///  {x_a y_a z_a Dx_a Dx_a Dx_a x_b y_b z_b Dx_b Dy_b Dz_b}
     virtual void GetStateBlock(ChVectorDynamic<>& mD) override;
 
@@ -219,7 +225,7 @@ class ChApi ChElementHexaANCF_3813 : public ChElementANCF,
     virtual void ComputeMmatrixGlobal(ChMatrixRef M) override { M = m_MassMatrix; }
 
     /// Compute the generalized force vector due to gravity using the efficient element specific method
-    virtual void ComputeGravityForces(ChVectorDynamic<>& Fg, const ChVector<>& G_acc) override;
+    virtual void ComputeGravityForces(ChVectorDynamic<>& Fg, const ChVector3d& G_acc) override;
 
     /// Sets H as the global stiffness matrix K, scaled  by Kfactor. Optionally, also
     /// superimposes global damping matrix R, scaled by Rfactor, and global mass matrix M multiplied by Mfactor.

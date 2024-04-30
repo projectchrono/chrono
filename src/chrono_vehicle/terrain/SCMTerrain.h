@@ -29,7 +29,7 @@
 #include "chrono/fea/ChNodeFEAxyz.h"
 #include "chrono/physics/ChLoadContainer.h"
 #include "chrono/physics/ChLoadsBody.h"
-#include "chrono/physics/ChLoadsXYZnode.h"
+#include "chrono/physics/ChLoadsNodeXYZ.h"
 #include "chrono/physics/ChSystem.h"
 #include "chrono/core/ChTimer.h"
 
@@ -92,7 +92,7 @@ class CH_VEHICLE_API SCMTerrain : public ChTerrain {
 
     /// Set the plane reference.
     /// By default, the reference plane is horizontal with Z up (ISO vehicle reference frame).
-    /// To set as Y up, call SetPlane(ChCoordys(VNULL, Q_from_AngX(-CH_C_PI_2)));
+    /// To set as Y up, call SetPlane(ChCoordys(VNULL, QuatFromAngleX(-CH_PI_2)));
     void SetPlane(const ChCoordsys<>& plane);
 
     /// Get the current reference plane.
@@ -154,8 +154,8 @@ class CH_VEHICLE_API SCMTerrain : public ChTerrain {
     /// If at least one patch is defined, ray-casting is performed only for mesh nodes within the AABB of the
     /// body OOBB projection onto the SCM plane.
     void AddMovingPatch(std::shared_ptr<ChBody> body,   ///< [in] monitored body
-                        const ChVector<>& OOBB_center,  ///< [in] OOBB center, relative to body
-                        const ChVector<>& OOBB_dims     ///< [in] OOBB dimensions
+                        const ChVector3d& OOBB_center,  ///< [in] OOBB center, relative to body
+                        const ChVector3d& OOBB_dims     ///< [in] OOBB dimensions
     );
 
     /// Class to be used as a callback interface for location-dependent soil parameters.
@@ -167,7 +167,7 @@ class CH_VEHICLE_API SCMTerrain : public ChTerrain {
         /// Set the soil properties at a given (x,y) location (below the given point).
         /// Attention: the location is assumed to be provided in the SCM reference frame!
         virtual void Set(
-            const ChVector<>& loc,  ///< query location
+            const ChVector3d& loc,  ///< query location
             double& Bekker_Kphi,    ///< frictional modulus in Bekker model
             double& Bekker_Kc,      ///< cohesive modulus in Bekker model
             double& Bekker_n,       ///< exponent of sinkage in Bekker model (usually 0.6...1.8)
@@ -184,16 +184,16 @@ class CH_VEHICLE_API SCMTerrain : public ChTerrain {
     void RegisterSoilParametersCallback(std::shared_ptr<SoilParametersCallback> cb);
 
     /// Get the initial (undeformed) terrain height below the specified location.
-    double GetInitHeight(const ChVector<>& loc) const;
+    double GetInitHeight(const ChVector3d& loc) const;
 
     /// Get the initial (undeformed) terrain normal at the point below the specified location.
-    ChVector<> GetInitNormal(const ChVector<>& loc) const;
+    ChVector3d GetInitNormal(const ChVector3d& loc) const;
 
     /// Get the terrain height below the specified location.
-    virtual double GetHeight(const ChVector<>& loc) const override;
+    virtual double GetHeight(const ChVector3d& loc) const override;
 
     /// Get the terrain normal at the point below the specified location.
-    virtual ChVector<> GetNormal(const ChVector<>& loc) const override;
+    virtual ChVector3d GetNormal(const ChVector3d& loc) const override;
 
     /// Get the terrain coefficient of friction at the point below the specified location.
     /// This coefficient of friction value may be used by certain tire models to modify
@@ -202,10 +202,10 @@ class CH_VEHICLE_API SCMTerrain : public ChTerrain {
     /// For SCMTerrain, this function defers to the user-provided functor object
     /// of type ChTerrain::FrictionFunctor, if one was specified.
     /// Otherwise, it returns the constant value of 0.8.
-    virtual float GetCoefficientFriction(const ChVector<>& loc) const override;
+    virtual float GetCoefficientFriction(const ChVector3d& loc) const override;
 
     /// Get SCM information at the node closest to the specified location.
-    NodeInfo GetNodeInfo(const ChVector<>& loc) const;
+    NodeInfo GetNodeInfo(const ChVector3d& loc) const;
 
     /// Get the visualization triangular mesh.
     std::shared_ptr<ChVisualShapeTriangleMesh> GetMesh() const;
@@ -264,12 +264,12 @@ class CH_VEHICLE_API SCMTerrain : public ChTerrain {
     /// at grid points are obtained through linear interpolation (outside the mesh footprint, the height of a grid node
     /// is set to the height of the closest point on the mesh).  A visualization mesh is created from the original mesh
     /// resampled at the grid node points.
-    void Initialize(const geometry::ChTriangleMeshConnected& trimesh,  ///< [in] surface triangular mesh
-                    double delta                                       ///< [in] grid spacing
+    void Initialize(const ChTriangleMeshConnected& trimesh,  ///< [in] surface triangular mesh
+                    double delta                             ///< [in] grid spacing
     );
 
     /// Node height level at a given grid location.
-    typedef std::pair<ChVector2<int>, double> NodeLevel;
+    typedef std::pair<ChVector2i, double> NodeLevel;
 
     /// Get the heights of all modified grid nodes.
     /// If 'all_nodes = true', return modified nodes from the start of simulation.  Otherwise, return only the nodes
@@ -282,11 +282,11 @@ class CH_VEHICLE_API SCMTerrain : public ChTerrain {
     /// Return the cummulative contact force on the specified body  (due to interaction with the SCM terrain).
     /// The return value is true if the specified body experiences contact forces and false otherwise.
     /// If contact forces are applied to the body, they are reduced to the body center of mass.
-    bool GetContactForceBody(std::shared_ptr<ChBody> body, ChVector<>& force, ChVector<>& torque) const;
+    bool GetContactForceBody(std::shared_ptr<ChBody> body, ChVector3d& force, ChVector3d& torque) const;
 
     /// Return the cummulative contact force on the specified mesh node (due to interaction with the SCM terrain).
     /// The return value is true if the specified node experiences contact forces and false otherwise.
-    bool GetContactForceNode(std::shared_ptr<fea::ChNodeFEAxyz> node, ChVector<>& force) const;
+    bool GetContactForceNode(std::shared_ptr<fea::ChNodeFEAxyz> node, ChVector3d& force) const;
 
     /// Return the number of rays cast at last step.
     int GetNumRayCasts() const;
@@ -372,8 +372,8 @@ class CH_VEHICLE_API SCMLoader : public ChLoadContainer {
 
     /// Initialize the terrain system (mesh).
     /// The initial undeformed terrain profile is provided via the specified triangular mesh.
-    void Initialize(const geometry::ChTriangleMeshConnected& trimesh,  ///< [in] surface triangular mesh
-                    double delta                                       ///< [in] grid spacing
+    void Initialize(const ChTriangleMeshConnected& trimesh,  ///< [in] surface triangular mesh
+                    double delta                             ///< [in] grid spacing
     );
 
   private:
@@ -386,11 +386,11 @@ class CH_VEHICLE_API SCMLoader : public ChLoadContainer {
 
     // Moving patch parameters
     struct MovingPatchInfo {
-        std::shared_ptr<ChBody> m_body;       // tracked body
-        ChVector<> m_center;                  // OOBB center, relative to body
-        ChVector<> m_hdims;                   // OOBB half-dimensions
-        std::vector<ChVector2<int>> m_range;  // current grid nodes covered by the patch
-        ChVector<> m_ooN;                     // current inverse of SCM normal in body frame
+        std::shared_ptr<ChBody> m_body;   // tracked body
+        ChVector3d m_center;              // OOBB center, relative to body
+        ChVector3d m_hdims;               // OOBB half-dimensions
+        std::vector<ChVector2i> m_range;  // current grid nodes covered by the patch
+        ChVector3d m_ooN;                 // current inverse of SCM normal in body frame
     };
 
     // Information at contacted node
@@ -398,7 +398,7 @@ class CH_VEHICLE_API SCMLoader : public ChLoadContainer {
         double level_initial;      // initial node level (relative to SCM frame)
         double level;              // current node level (relative to SCM frame)
         double hit_level;          // ray hit level (relative to SCM frame)
-        ChVector<> normal;         // normal of undeformed terrain (in SCM frame)
+        ChVector3d normal;         // normal of undeformed terrain (in SCM frame)
         double sinkage;            // along local normal direction
         double sinkage_plastic;    // along local normal direction
         double sinkage_elastic;    // along local normal direction
@@ -410,10 +410,10 @@ class CH_VEHICLE_API SCMLoader : public ChLoadContainer {
         double massremainder;      // for bulldozing
         double step_plastic_flow;  // for bulldozing
 
-        NodeRecord() : NodeRecord(0, 0, ChVector<>(0, 0, 1)) {}
+        NodeRecord() : NodeRecord(0, 0, ChVector3d(0, 0, 1)) {}
         ~NodeRecord() {}
 
-        NodeRecord(double init_level, double level, const ChVector<>& n)
+        NodeRecord(double init_level, double level, const ChVector3d& n)
             : level_initial(init_level),
               level(level),
               hit_level(1e9),
@@ -434,47 +434,47 @@ class CH_VEHICLE_API SCMLoader : public ChLoadContainer {
     struct CoordHash {
       public:
         // 31 is just a decently-sized prime number to reduce bucket collisions
-        std::size_t operator()(const ChVector2<int>& p) const { return p.x() * 31 + p.y(); }
+        std::size_t operator()(const ChVector2i& p) const { return p.x() * 31 + p.y(); }
     };
 
     // Create visualization mesh
     void CreateVisualizationMesh(double sizeX, double sizeY);
 
     // Get the initial undeformed terrain height (relative to the SCM plane) at the specified grid node.
-    double GetInitHeight(const ChVector2<int>& loc) const;
+    double GetInitHeight(const ChVector2i& loc) const;
 
     // Get the initial undeformed terrain normal (relative to the SCM plane) at the specified grid node.
-    ChVector<> GetInitNormal(const ChVector2<int>& loc) const;
+    ChVector3d GetInitNormal(const ChVector2i& loc) const;
 
     // Get the terrain height (relative to the SCM plane) at the specified grid node.
-    double GetHeight(const ChVector2<int>& loc) const;
+    double GetHeight(const ChVector2i& loc) const;
 
     // Get the terrain normal (relative to the SCM plane) at the specified grid vertex.
-    ChVector<> GetNormal(const ChVector2<>& loc) const;
+    ChVector3d GetNormal(const ChVector2d& loc) const;
 
     // Get the initial terrain height (expressed in World frame) below the specified location.
-    double GetInitHeight(const ChVector<>& loc) const;
+    double GetInitHeight(const ChVector3d& loc) const;
 
     // Get the initial terrain normal (expressed in World frame) at the point below the specified location.
-    ChVector<> GetInitNormal(const ChVector<>& loc) const;
+    ChVector3d GetInitNormal(const ChVector3d& loc) const;
 
     // Get the terrain height (expressed in World frame) below the specified location.
-    double GetHeight(const ChVector<>& loc) const;
+    double GetHeight(const ChVector3d& loc) const;
 
     // Get the terrain normal (expressed in World frame) at the point below the specified location.
-    ChVector<> GetNormal(const ChVector<>& loc) const;
+    ChVector3d GetNormal(const ChVector3d& loc) const;
 
     // Get index of trimesh vertex corresponding to the specified grid node.
-    int GetMeshVertexIndex(const ChVector2<int>& loc);
+    int GetMeshVertexIndex(const ChVector2i& loc);
 
     // Get indices of trimesh faces incident to the specified grid vertex.
-    std::vector<int> GetMeshFaceIndices(const ChVector2<int>& loc);
+    std::vector<int> GetMeshFaceIndices(const ChVector2i& loc);
 
     // Check if the provided grid location is within the visualization mesh bounds
-    bool CheckMeshBounds(const ChVector2<int>& loc) const;
+    bool CheckMeshBounds(const ChVector2i& loc) const;
 
     // Return information at node closest to specified location.
-    SCMTerrain::NodeInfo GetNodeInfo(const ChVector<>& loc) const;
+    SCMTerrain::NodeInfo GetNodeInfo(const ChVector3d& loc) const;
 
     // Complete setup before first simulation step.
     virtual void SetupInitial() override;
@@ -495,13 +495,13 @@ class CH_VEHICLE_API SCMLoader : public ChLoadContainer {
     }
 
     // Synchronize information for a moving patch
-    void UpdateMovingPatch(MovingPatchInfo& p, const ChVector<>& Z);
+    void UpdateMovingPatch(MovingPatchInfo& p, const ChVector3d& Z);
 
     // Synchronize information for fixed patch
     void UpdateFixedPatch(MovingPatchInfo& p);
 
     // Ray-OBB intersection test
-    bool RayOBBtest(const MovingPatchInfo& p, const ChVector<>& from, const ChVector<>& Z);
+    bool RayOBBtest(const MovingPatchInfo& p, const ChVector3d& from, const ChVector3d& Z);
 
     // Reset the list of forces and fill it with forces from the soil contact model.
     // This is called automatically during timestepping (only at the beginning of each step).
@@ -522,10 +522,10 @@ class CH_VEHICLE_API SCMLoader : public ChLoadContainer {
     void RemoveMaterialFromNode(double amount, NodeRecord& nr);
 
     // Update vertex position and color in visualization mesh
-    void UpdateMeshVertexCoordinates(const ChVector2<int> ij, int iv, const NodeRecord& nr);
+    void UpdateMeshVertexCoordinates(const ChVector2i ij, int iv, const NodeRecord& nr);
 
     // Update vertex normal in visualization mesh
-    void UpdateMeshVertexNormal(const ChVector2<int> ij, int iv);
+    void UpdateMeshVertexNormal(const ChVector2i ij, int iv);
 
     /// Get the heights of all modified grid nodes.
     /// If 'all_nodes = true', return modified nodes from the start of simulation.  Otherwise, return only the nodes
@@ -537,7 +537,7 @@ class CH_VEHICLE_API SCMLoader : public ChLoadContainer {
 
     PatchType m_type;      ///< type of SCM patch
     ChCoordsys<> m_plane;  ///< SCM frame (deformation occurs along the z axis of this frame)
-    ChVector<> m_Z;        ///< SCM plane vertical direction (in absolute frame)
+    ChVector3d m_Z;        ///< SCM plane vertical direction (in absolute frame)
     double m_delta;        ///< grid spacing
     double m_area;         ///< area of a grid cell
     int m_nx;              ///< range for grid indices in X direction: [-m_nx, +m_nx]
@@ -546,8 +546,8 @@ class CH_VEHICLE_API SCMLoader : public ChLoadContainer {
     ChMatrixDynamic<> m_heights;  ///< (base) grid heights (when initializing from height-field map)
     double m_base_height;         ///< default height for vertices outside the projection of input mesh
 
-    std::unordered_map<ChVector2<int>, NodeRecord, CoordHash> m_grid_map;  ///< modified grid nodes (persistent)
-    std::vector<ChVector2<int>> m_modified_nodes;                          ///< modified grid nodes (current)
+    std::unordered_map<ChVector2i, NodeRecord, CoordHash> m_grid_map;  ///< modified grid nodes (persistent)
+    std::vector<ChVector2i> m_modified_nodes;                          ///< modified grid nodes (current)
 
     std::vector<MovingPatchInfo> m_patches;  ///< set of active moving patches
     bool m_moving_patch;                     ///< user-specified moving patches?
@@ -573,8 +573,8 @@ class CH_VEHICLE_API SCMLoader : public ChLoadContainer {
     std::shared_ptr<SCMTerrain::SoilParametersCallback> m_soil_fun;
 
     // Contact forces on contactable objects interacting with the SCM terrain
-    std::unordered_map<ChBody*, std::pair<ChVector<>, ChVector<>>> m_body_forces;
-    std::unordered_map<std::shared_ptr<fea::ChNodeFEAxyz>, ChVector<>> m_node_forces;
+    std::unordered_map<ChBody*, std::pair<ChVector3d, ChVector3d>> m_body_forces;
+    std::unordered_map<std::shared_ptr<fea::ChNodeFEAxyz>, ChVector3d> m_node_forces;
 
     // Bulldozing effects
     bool m_bulldozing;

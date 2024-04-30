@@ -43,18 +43,18 @@ mesh = fea.ChMesh()
 # Remember to add the mesh to the system!
 sys.Add(mesh)
 
-# sys.Set_G_acc(VNULL) or
+# sys.SetGravitationalAcceleration(VNULL) or
 mesh.SetAutomaticGravity(False)
 
 nodePlotA = fea.ChNodeFEAxyzrot()
 nodePlotB = fea.ChNodeFEAxyzrot()
 nodesLoad = []
 
-ref_X = chrono.ChFunction_Recorder()
-ref_Y = chrono.ChFunction_Recorder()
+ref_X = chrono.ChFunctionInterp()
+ref_Y = chrono.ChFunctionInterp()
 
-load_torque = chrono.ChVectorD()
-load_force = chrono.ChVectorD()
+load_torque = chrono.ChVector3d()
+load_force = chrono.ChVector3d()
 
 bench1 = False
 bench2 = True
@@ -89,9 +89,9 @@ if (bench1):  # set as 'True' to execute this
     for il in range(nels_L+1) :
         for iw in range(nels_W +1):           
             # Make nodes
-            nodepos = chrono.ChVectorD(rect_L * (il / nels_L), 0, rect_W * (iw / nels_W))
-            noderot = chrono.ChQuaternionD(chrono.QUNIT)
-            nodeframe = chrono.ChFrameD(nodepos, noderot)
+            nodepos = chrono.ChVector3d(rect_L * (il / nels_L), 0, rect_W * (iw / nels_W))
+            noderot = chrono.ChQuaterniond(chrono.QUNIT)
+            nodeframe = chrono.ChFramed(nodepos, noderot)
             mnode = fea.ChNodeFEAxyzrot(nodeframe)
             mesh.AddNode(mnode)
             for i in range(3):
@@ -110,7 +110,7 @@ if (bench1):  # set as 'True' to execute this
 								   nodearray[(il) * (nels_W + 1) + (iw - 1)], nodearray[(il) * (nels_W + 1) + (iw)],
 								   nodearray[(il - 1) * (nels_W + 1) + (iw)])
 
-                melement.AddLayer(rect_thickness, 0 * chrono.CH_C_DEG_TO_RAD, mat)
+                melement.AddLayer(rect_thickness, 0 * chrono.CH_DEG_TO_RAD, mat)
                 elarray[(il - 1) * (nels_W) + (iw - 1)] = melement
                 
     nodesLoad = nodes_end
@@ -120,9 +120,9 @@ if (bench1):  # set as 'True' to execute this
         startnode.SetFixed(True)
 
     # applied load
-    # load_force = chrono.ChVectorD(200000,0, 20000)
-    load_force = chrono.ChVectorD(0, 4, 0)
-    # load_torque = chrono.ChVectorD(0, 0, 50*CH_C_PI/3.0)
+    # load_force = chrono.ChVector3d(200000,0, 20000)
+    load_force = chrono.ChVector3d(0, 4, 0)
+    # load_torque = chrono.ChVector3d(0, 0, 50*CH_PI/3.0)
 
     # reference solution for (0, 4, 0) shear to plot
     ref_Y.AddPoint(0.10, 1.309)
@@ -164,7 +164,7 @@ if (bench2):  # set as 'True' to execute this
 	# Create the nodes
     nels_U = 60
     nels_W = 10
-    arc = chrono.CH_C_2PI * 1 
+    arc = chrono.CH_2PI * 1 
     elarray = [fea.ChElementShellReissner4]*(nels_U * nels_W)
     nodearray = [fea.ChNodeFEAxyzrot]*((nels_U + 1) * (nels_W + 1))
     nodes_start = [fea.ChNodeFEAxyzrot]*(nels_W + 1)
@@ -175,10 +175,10 @@ if (bench2):  # set as 'True' to execute this
             # Make nodes
             u = iu / nels_U
             w = iw / nels_W
-            nodepos = chrono.ChVectorD((plate_Ri + (plate_Ro - plate_Ri) * w) * np.cos(u * arc), 0,
+            nodepos = chrono.ChVector3d((plate_Ri + (plate_Ro - plate_Ri) * w) * np.cos(u * arc), 0,
 							   (plate_Ri + (plate_Ro - plate_Ri) * w) * np.sin(u * arc))
-            noderot = chrono.ChQuaternionD(chrono.QUNIT)
-            nodeframe = chrono.ChFrameD(nodepos, noderot)
+            noderot = chrono.ChQuaterniond(chrono.QUNIT)
+            nodeframe = chrono.ChFramed(nodepos, noderot)
             mnode = fea.ChNodeFEAxyzrot(nodeframe)
             mesh.AddNode(mnode)
             for i in range(3):
@@ -197,7 +197,7 @@ if (bench2):  # set as 'True' to execute this
 								   nodearray[(iu - 1) * (nels_W + 1) + (iw - 1)],
 								   nodearray[(iu) * (nels_W + 1) + (iw - 1)])
 
-                melement.AddLayer(plate_thickness, 0 * chrono.CH_C_DEG_TO_RAD, mat)
+                melement.AddLayer(plate_thickness, 0 * chrono.CH_DEG_TO_RAD, mat)
                 elarray[(iu - 1) * (nels_W) + (iw - 1)] = melement
 
     nodesLoad = nodes_end
@@ -207,7 +207,7 @@ if (bench2):  # set as 'True' to execute this
     for mstartnode in nodes_start :
         mstartnode.SetFixed(True)
 
-    load_force = chrono.ChVectorD(0, 0.8 * 4, 0)
+    load_force = chrono.ChVector3d(0, 0.8 * 4, 0)
     load_torque = chrono.VNULL
 	# reference solution to plot
     ref_X.AddPoint(0.025, 1.305)
@@ -255,7 +255,7 @@ if (bench3):
 	# Create the nodes
     nels_U = 32
     nels_W = 32
-    arc = chrono.CH_C_PI
+    arc = chrono.CH_PI
     elarray = [fea.ChElementShellReissner4]*(nels_U * nels_W)
     nodearray = [fea.ChNodeFEAxyzrot]*(nels_U + 1) * (nels_W + 1)
     nodes_start = [fea.ChNodeFEAxyzrot]*(nels_W + 1)
@@ -268,9 +268,9 @@ if (bench3):
 			# Make nodes
             u = iu / nels_U
             w = iw / nels_W
-            nodepos = chrono.ChVectorD((plate_R)*np.cos(w * arc), (plate_R)*np.sin(w * arc), u * plate_L)
-            noderot = chrono.ChQuaternionD(chrono.QUNIT)
-            nodeframe = chrono.ChFrameD(nodepos, noderot)
+            nodepos = chrono.ChVector3d((plate_R)*np.cos(w * arc), (plate_R)*np.sin(w * arc), u * plate_L)
+            noderot = chrono.ChQuaterniond(chrono.QUNIT)
+            nodeframe = chrono.ChFramed(nodepos, noderot)
             mnode = fea.ChNodeFEAxyzrot(nodeframe)
             mesh.AddNode(mnode)
             for i in range(3):
@@ -294,11 +294,11 @@ if (bench3):
 								   nodearray[(iu - 1) * (nels_W + 1) + (iw - 1)],
 								   nodearray[(iu) * (nels_W + 1) + (iw - 1)])
 
-                melement.AddLayer(plate_thickness, 0 * chrono.CH_C_DEG_TO_RAD, mat)
+                melement.AddLayer(plate_thickness, 0 * chrono.CH_DEG_TO_RAD, mat)
 				# In case you want to test laminated shells, do instead:
-				#  melement.AddLayer(plate_thickness/3, 0 * CH_C_DEG_TO_RAD, mat_ortho)
-				#  melement.AddLayer(plate_thickness/3, 90 * CH_C_DEG_TO_RAD, mat_ortho)
-				#  melement.AddLayer(plate_thickness/3, 0 * CH_C_DEG_TO_RAD, mat_ortho)
+				#  melement.AddLayer(plate_thickness/3, 0 * CH_DEG_TO_RAD, mat_ortho)
+				#  melement.AddLayer(plate_thickness/3, 90 * CH_DEG_TO_RAD, mat_ortho)
+				#  melement.AddLayer(plate_thickness/3, 0 * CH_DEG_TO_RAD, mat_ortho)
 
                 elarray[(iu - 1) * (nels_W) + (iw - 1)] = melement
 
@@ -310,7 +310,7 @@ if (bench3):
         mstartnode.SetFixed(True)
 
     mtruss = chrono.ChBody()
-    mtruss.SetBodyFixed(True)
+    mtruss.SetFixed(True)
     sys.Add(mtruss)
     for mendnode in nodes_left :
         mlink = chrono.ChLinkMateGeneric(False, True, False, True, False, True)
@@ -322,7 +322,7 @@ if (bench3):
         mlink.Initialize(mendnode, mtruss, False, mendnode.Frame(), mendnode.Frame())
         sys.Add(mlink)
 
-    load_force = chrono.ChVectorD(0, -2000, 0)
+    load_force = chrono.ChVector3d(0, -2000, 0)
     load_torque = chrono.VNULL
     
     # reference solution to plot
@@ -365,7 +365,7 @@ vis.SetWindowTitle('Shells FEA')
 vis.Initialize()
 vis.AddLogo(chrono.GetChronoDataFile('logo_pychrono_alpha.png'))
 vis.AddSkyBox()
-vis.AddCamera(chrono.ChVectorD(0, 6.0, -10))
+vis.AddCamera(chrono.ChVector3d(0, 6.0, -10))
 vis.AddTypicalLights()
 
 
@@ -378,7 +378,7 @@ sys.SetSolver(mkl_solver)
 ts = chrono.ChTimestepperEulerImplicit(sys)
 sys.SetTimestepper(ts)
 
-ts.SetMaxiters(5)
+ts.SetMaxIters(5)
 ts.SetAbsTolerances(1e-12, 1e-12)
 
 timestep = 0.1

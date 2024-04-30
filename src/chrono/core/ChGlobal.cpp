@@ -10,69 +10,11 @@
 //
 // =============================================================================
 
-#include <cstring>
-
 #include "chrono/core/ChGlobal.h"
 
 #include "chrono_thirdparty/filesystem/path.h"
 
-#if defined(_WIN32) || defined(_WIN64)
-#include "Windows.h"
-#endif
-
-#if defined(__APPLE__)
-#include <libkern/OSAtomic.h>
-#endif
-
 namespace chrono {
-
-// -----------------------------------------------------------------------------
-// Functions for assigning unique identifiers
-// -----------------------------------------------------------------------------
-
-// Set the start value for the sequence of IDs (ATTENTION: not thread safe)
-// Subsequent calls to GetUniqueIntID() will return val+1, val+2, etc.
-static volatile int first_id = 100000;
-
-void SetFirstIntID(int val) {
-    first_id = val;
-}
-
-// Obtain a unique identifier (thread-safe; platform-dependent)
-#if (defined(__GCC_HAVE_SYNC_COMPARE_AND_SWAP_4) || defined(__ARM_ARCH_5T__) || defined(__ARM_ARCH_5TE__) || defined(__EMSCRIPTEN__))
-
-int GetUniqueIntID() {
-    static volatile int id = first_id;
-    return __sync_add_and_fetch(&id, 1);
-}
-
-#elif defined(_WIN32)
-
-int GetUniqueIntID() {
-    volatile static long id = first_id;
-    return (int)InterlockedIncrement(&id);
-}
-
-#elif defined(_WIN64)
-
-int GetUniqueIntID() {
-    volatile static long long id = first_id;
-    return (int)InterlockedIncrement64(&id);
-}
-
-#elif defined(__APPLE__)
-
-int GetUniqueIntID() {
-    static volatile int32_t id = first_id;
-    return (int)OSAtomicIncrement32Barrier(&id);
-}
-
-#else
-
-//// TODO
-#error "No support for atomic operations on current platform!"
-
-#endif
 
 // -----------------------------------------------------------------------------
 // Functions for manipulating the Chrono data directory

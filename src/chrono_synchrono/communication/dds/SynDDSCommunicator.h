@@ -65,11 +65,13 @@ class SYN_API SynDDSCommunicator : public SynCommunicator {
     ///@brief Default constructor
     ///
     ///@param name The name to set to the qos
+    ///@param prefix prefix to use for the participant
     SynDDSCommunicator(const std::string& name, const std::string& prefix = default_prefix);
 
     ///@brief Set the QoS directly from the constructor
     ///
     ///@param qos the Quality of Service to set for the participant
+    ///@param prefix prefix to use for the participant
     SynDDSCommunicator(eprosima::fastdds::dds::DomainParticipantQos& qos, const std::string& prefix = default_prefix);
 
     ///@brief Destructor
@@ -176,7 +178,7 @@ class SYN_API SynDDSCommunicator : public SynCommunicator {
     ///
     ///@param topic Topic object describing the DDS topic
     ///@param is_managed Whether the SynDDSCommunicator is responsible for using the sending/receiving function calls
-    ///@param read_qos Data Writer Quality of Service. Falls back to default if nullptr
+    ///@param write_qos Data Writer Quality of Service. Falls back to default if nullptr
     std::shared_ptr<SynDDSPublisher> CreatePublisher(std::shared_ptr<SynDDSTopic> topic, 
                                                      bool is_managed = false,
                                                      eprosima::fastdds::dds::DataWriterQos* write_qos = nullptr);

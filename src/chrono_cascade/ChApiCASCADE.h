@@ -23,14 +23,14 @@
 // link the library to your code, and the symbols will be imported.
 
 #if defined(CH_API_COMPILE_CASCADE)
-#define ChApiCASCADE ChApiEXPORT
+    #define ChApiCASCADE ChApiEXPORT
 #else
-#define ChApiCASCADE ChApiIMPORT
+    #define ChApiCASCADE ChApiIMPORT
 #endif
 
 /**
     @defgroup cascade_module CASCADE module
-    @brief Tools for interoperation with CAD files. 
+    @brief Tools for interoperation with CAD files.
 
     This module allows using the OpenCASCADE solid modeling kernel in Chrono::Engine.
 
@@ -38,7 +38,6 @@
     - the [installation guide](@ref module_cascade_installation)
     - the [tutorials](@ref tutorial_root)
 */
-
 
 namespace chrono {
 
@@ -53,8 +52,6 @@ namespace cascade {}
 
 /// @}
 
-}
-
-
+}  // namespace chrono
 
 #endif  // END of header

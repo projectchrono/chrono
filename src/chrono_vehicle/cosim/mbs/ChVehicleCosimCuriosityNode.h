@@ -45,7 +45,7 @@ class CH_VEHICLE_API ChVehicleCosimCuriosityNode : public ChVehicleCosimWheeledM
     std::shared_ptr<curiosity::Curiosity> GetRover() const { return m_curiosity; }
 
     /// Set the initial rover position, relative to the center of the terrain top-surface.
-    void SetInitialLocation(const ChVector<>& init_loc) { m_init_loc = init_loc; }
+    void SetInitialLocation(const ChVector3d& init_loc) { m_init_loc = init_loc; }
 
     /// Set the initial rover yaw angle (in radians).
     void SetInitialYaw(double init_yaw) { m_init_yaw = init_yaw; }
@@ -55,12 +55,12 @@ class CH_VEHICLE_API ChVehicleCosimCuriosityNode : public ChVehicleCosimWheeledM
 
   private:
     /// Initialize the rover MBS and any associated subsystems.
-    virtual void InitializeMBS(const ChVector2<>& terrain_size,  ///< terrain length x width
-                               double terrain_height             ///< initial terrain height
+    virtual void InitializeMBS(const ChVector2d& terrain_size,  ///< terrain length x width
+                               double terrain_height            ///< initial terrain height
                                ) override;
 
     /// Apply tire info (mass, radius, width).
-    virtual void ApplyTireInfo(const std::vector<ChVector<>>& tire_info) override;
+    virtual void ApplyTireInfo(const std::vector<ChVector3d>& tire_info) override;
 
     // Output rover data.
     virtual void OnOutputData(int frame) override;
@@ -72,7 +72,7 @@ class CH_VEHICLE_API ChVehicleCosimCuriosityNode : public ChVehicleCosimWheeledM
     virtual void ApplySpindleForce(unsigned int i, const TerrainForce& spindle_force) override;
 
     /// Return the number of spindles in the rover system.
-    virtual int GetNumSpindles() const override { return 6; }
+    virtual unsigned int GetNumSpindles() const override { return 6; }
 
     /// Return the i-th spindle body in the rover system.
     virtual std::shared_ptr<ChBody> GetSpindleBody(unsigned int i) const override;
@@ -90,7 +90,7 @@ class CH_VEHICLE_API ChVehicleCosimCuriosityNode : public ChVehicleCosimWheeledM
     /// Impose spindle angular speed as dictated by an attached DBP rig.
     virtual void OnInitializeDBPRig(std::shared_ptr<ChFunction> func) override;
 
-    void WriteBodyInformation(utils::CSV_writer& csv);
+    void WriteBodyInformation(utils::ChWriterCSV& csv);
 
     virtual void OnRender() override;
 
@@ -99,7 +99,7 @@ class CH_VEHICLE_API ChVehicleCosimCuriosityNode : public ChVehicleCosimWheeledM
     std::shared_ptr<curiosity::CuriosityDriver> m_driver;  ///< Curiosity driver
     std::shared_ptr<ChVisualSystem> m_vsys;                ///< run-time visualization system
 
-    ChVector<> m_init_loc;  ///< initial rover location (relative to center of terrain top surface)
+    ChVector3d m_init_loc;  ///< initial rover location (relative to center of terrain top surface)
     double m_init_yaw;      ///< initial rover yaw
 
     std::vector<double> m_spindle_vertical_loads;                              ///< vertical loads on each spindle

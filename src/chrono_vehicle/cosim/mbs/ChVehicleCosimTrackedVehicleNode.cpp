@@ -56,9 +56,9 @@ class TrackedVehicleDBPDriver : public ChDriver {
         m_steering = 0;
         m_braking = 0;
 
-        double ang_speed = m_func->Get_y(time);
-        m_vehicle->GetTrackAssembly(VehicleSide::LEFT)->GetSprocket()->GetAxle()->SetPos_dt(ang_speed);
-        m_vehicle->GetTrackAssembly(VehicleSide::RIGHT)->GetSprocket()->GetAxle()->SetPos_dt(ang_speed);
+        double ang_speed = m_func->GetVal(time);
+        m_vehicle->GetTrackAssembly(VehicleSide::LEFT)->GetSprocket()->GetAxle()->SetPosDt(ang_speed);
+        m_vehicle->GetTrackAssembly(VehicleSide::RIGHT)->GetSprocket()->GetAxle()->SetPosDt(ang_speed);
     }
 
     std::shared_ptr<ChTrackedVehicle> m_vehicle;
@@ -95,9 +95,9 @@ ChVehicleCosimTrackedVehicleNode::~ChVehicleCosimTrackedVehicleNode() {}
 
 // -----------------------------------------------------------------------------
 
-void ChVehicleCosimTrackedVehicleNode::InitializeMBS(const ChVector2<>& terrain_size, double terrain_height) {
+void ChVehicleCosimTrackedVehicleNode::InitializeMBS(const ChVector2d& terrain_size, double terrain_height) {
     // Initialize vehicle
-    ChCoordsys<> init_pos(m_init_loc + ChVector<>(0, 0, terrain_height), Q_from_AngZ(m_init_yaw));
+    ChCoordsys<> init_pos(m_init_loc + ChVector3d(0, 0, terrain_height), QuatFromAngleZ(m_init_yaw));
 
     m_vehicle->Initialize(init_pos);
     m_vehicle->GetChassis()->SetFixed(m_chassis_fixed);
@@ -123,16 +123,16 @@ void ChVehicleCosimTrackedVehicleNode::InitializeMBS(const ChVector2<>& terrain_
         auto vsys_vsg = chrono_types::make_shared<ChTrackedVehicleVisualSystemVSG>();
         vsys_vsg->AttachVehicle(m_vehicle.get());
         vsys_vsg->SetWindowTitle("Tracked Vehicle Node");
-        vsys_vsg->SetWindowSize(ChVector2<int>(1280, 720));
-        vsys_vsg->SetWindowPosition(ChVector2<int>(100, 300));
-        vsys_vsg->SetChaseCamera(ChVector<>(0, 0, 1.5), 6.0, 0.5);
+        vsys_vsg->SetWindowSize(ChVector2i(1280, 720));
+        vsys_vsg->SetWindowPosition(ChVector2i(100, 300));
+        vsys_vsg->SetChaseCamera(ChVector3d(0, 0, 1.5), 6.0, 0.5);
         vsys_vsg->SetChaseCameraState(utils::ChChaseCamera::Track);
         vsys_vsg->SetChaseCameraPosition(m_cam_pos);
         vsys_vsg->SetUseSkyBox(false);
         vsys_vsg->SetClearColor(ChColor(0.455f, 0.525f, 0.640f));
         vsys_vsg->SetCameraAngleDeg(40);
         vsys_vsg->SetLightIntensity(1.0f);
-        vsys_vsg->SetLightDirection(1.5 * CH_C_PI_2, CH_C_PI_4);
+        vsys_vsg->SetLightDirection(1.5 * CH_PI_2, CH_PI_4);
         vsys_vsg->AddGrid(1.0, 1.0, (int)(terrain_size.x() / 1.0), (int)(terrain_size.y() / 1.0), CSYSNORM,
                           ChColor(0.4f, 0.4f, 0.4f));
         vsys_vsg->SetImageOutputDirectory(m_node_out_dir + "/images");
@@ -145,7 +145,7 @@ void ChVehicleCosimTrackedVehicleNode::InitializeMBS(const ChVector2<>& terrain_
         vsys_irr->AttachVehicle(m_vehicle.get());
         vsys_irr->SetWindowTitle("Tracked Vehicle Node");
         vsys_irr->SetWindowSize(1280, 720);
-        vsys_irr->SetChaseCamera(ChVector<>(10, 0, 1), 6.0, 0.5);
+        vsys_irr->SetChaseCamera(ChVector3d(10, 0, 1), 6.0, 0.5);
         vsys_irr->SetChaseCameraState(utils::ChChaseCamera::Track);
         vsys_irr->SetChaseCameraPosition(m_cam_pos);
         vsys_irr->Initialize();
@@ -170,7 +170,7 @@ double ChVehicleCosimTrackedVehicleNode::GetTrackShoeMass() const {
 
 // -----------------------------------------------------------------------------
 
-int ChVehicleCosimTrackedVehicleNode::GetNumTracks() const {
+unsigned int ChVehicleCosimTrackedVehicleNode::GetNumTracks() const {
     return 2;
 }
 
@@ -255,7 +255,7 @@ void ChVehicleCosimTrackedVehicleNode::OnOutputData(int frame) {
     if (m_outf.is_open()) {
         std::string del("  ");
 
-        const ChVector<>& pos = m_vehicle->GetPos();
+        const ChVector3d& pos = m_vehicle->GetPos();
 
         m_outf << m_system->GetChTime() << del;
         // Body states
@@ -271,18 +271,18 @@ void ChVehicleCosimTrackedVehicleNode::OnOutputData(int frame) {
     }
 
     // Create and write frame output file.
-    utils::CSV_writer csv(" ");
+    utils::ChWriterCSV csv(" ");
     csv << m_system->GetChTime() << endl;  // current time
     WriteBodyInformation(csv);             // vehicle body states
 
     std::string filename = OutputFilename(m_node_out_dir + "/simulation", "data", "dat", frame + 1, 5);
-    csv.write_to_file(filename);
+    csv.WriteToFile(filename);
 
     if (m_verbose)
         cout << "[Vehicle node] write output file ==> " << filename << endl;
 }
 
-void ChVehicleCosimTrackedVehicleNode::WriteBodyInformation(utils::CSV_writer& csv) {
+void ChVehicleCosimTrackedVehicleNode::WriteBodyInformation(utils::ChWriterCSV& csv) {
     //// RADU TODO
     /*
 
@@ -291,13 +291,13 @@ void ChVehicleCosimTrackedVehicleNode::WriteBodyInformation(utils::CSV_writer& c
 
         // Write body state information
         auto chassis = m_vehicle->GetChassisBody();
-        csv << chassis->GetPos() << chassis->GetRot() << chassis->GetPos_dt() << chassis->GetRot_dt() << endl;
+        csv << chassis->GetPos() << chassis->GetRot() << chassis->GetPosDt() << chassis->GetRotDt() << endl;
 
         for (auto& axle : m_vehicle->GetAxles()) {
             for (auto& wheel : axle->GetWheels()) {
                 auto spindle_body = wheel->GetSpindle();
-                csv << spindle_body->GetPos() << spindle_body->GetRot() << spindle_body->GetPos_dt()
-                    << spindle_body->GetRot_dt() << endl;
+                csv << spindle_body->GetPos() << spindle_body->GetRot() << spindle_body->GetPosDt()
+                    << spindle_body->GetRotDt() << endl;
             }
         }
     */

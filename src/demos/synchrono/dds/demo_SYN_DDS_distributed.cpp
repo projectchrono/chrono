@@ -62,7 +62,7 @@ using namespace eprosima::fastrtps::rtps;
 // =============================================================================
 
 // Initial vehicle location and orientation
-ChVector<> initLoc(0, 0, 1.0);
+ChVector3d initLoc(0, 0, 1.0);
 ChQuaternion<> initRot(1, 0, 0, 0);
 
 // Visualization type for vehicle parts (PRIMITIVES, MESH, or NONE)
@@ -79,7 +79,7 @@ TireModelType tire_model = TireModelType::TMEASY;
 enum VehicleType { SEDAN, HMMWV, UAZ, CITYBUS, MAN };
 
 // Point on chassis tracked by the camera
-ChVector<> trackPoint(0.0, 0.0, 1.75);
+ChVector3d trackPoint(0.0, 0.0, 1.75);
 
 // Contact method
 ChContactMethod contact_method = ChContactMethod::SMC;
@@ -318,19 +318,19 @@ int main(int argc, char* argv[]) {
     // Calculate initial position and paths for each vehicle
     double pathLength = 1.5 * target_speed * end_time;
 
-    ChVector<> init_loc;
+    ChVector3d init_loc;
     ChQuaternion<> init_rot;
     std::shared_ptr<ChBezierCurve> path;
     if (node_id % 2 == 0) {
         // Start even vehicles in a row on the south side, driving north
-        init_loc = ChVector<>(0, 2.0 * (node_id + 1), 0.5);
+        init_loc = ChVector3d(0, 2.0 * (node_id + 1), 0.5);
         init_rot = Q_from_AngZ(0);
-        path = StraightLinePath(init_loc, init_loc + ChVector<>(pathLength, 0, 0));
+        path = StraightLinePath(init_loc, init_loc + ChVector3d(pathLength, 0, 0));
     } else {
         // Start odd vehicles staggered going up the west edge, driving east
-        init_loc = ChVector<>(2.0 * (node_id - 1), -5.0 - 2.0 * (node_id - 1), 0.5);
-        init_rot = Q_from_AngZ(CH_C_PI / 2);
-        path = StraightLinePath(init_loc, init_loc + ChVector<>(0, pathLength, 0));
+        init_loc = ChVector3d(2.0 * (node_id - 1), -5.0 - 2.0 * (node_id - 1), 0.5);
+        init_rot = Q_from_AngZ(CH_PI / 2);
+        path = StraightLinePath(init_loc, init_loc + ChVector3d(0, pathLength, 0));
     }
     ChPathFollowerDriver driver(vehicle, path, "Box path", target_speed);
     driver.Initialize();

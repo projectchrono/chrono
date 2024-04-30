@@ -37,7 +37,7 @@
 #include "chrono_models/vehicle/m113/M113.h"
 
 #ifdef CHRONO_POSTPROCESS
-#include "chrono_postprocess/ChGnuPlot.h"
+    #include "chrono_postprocess/ChGnuPlot.h"
 #endif
 
 using namespace chrono;
@@ -64,7 +64,9 @@ double step_size = 5e-4;
 // =============================================================================
 
 int main(int argc, char* argv[]) {
-    GetLog() << "Copyright (c) 2017 projectchrono.org\nChrono version: " << CHRONO_VERSION << "\n\n";
+    std::cout << "Copyright (c) 2017 projectchrono.org" << std::endl
+              << "Chrono version: " << CHRONO_VERSION << std::endl
+              << std::endl;
 
     // --------------
     // Create systems
@@ -79,7 +81,7 @@ int main(int argc, char* argv[]) {
     m113.SetPowertrainType(powertrain_type);
     m113.SetChassisCollisionType(chassis_collision_type);
 
-    m113.SetInitPosition(ChCoordsys<>(ChVector<>(-terrainLength / 2 + 5, 0, 0.7), ChQuaternion<>(1, 0, 0, 0)));
+    m113.SetInitPosition(ChCoordsys<>(ChVector3d(-terrainLength / 2 + 5, 0, 0.7), ChQuaternion<>(1, 0, 0, 0)));
     m113.Initialize();
 
     m113.SetChassisVisualizationType(VisualizationType::NONE);
@@ -96,12 +98,12 @@ int main(int argc, char* argv[]) {
 
     // Create the terrain
     RigidTerrain terrain(m113.GetSystem());
-    auto patch_mat = chrono_types::make_shared<ChMaterialSurfaceSMC>();
+    auto patch_mat = chrono_types::make_shared<ChContactMaterialSMC>();
     patch_mat->SetFriction(0.9f);
     patch_mat->SetRestitution(0.01f);
     patch_mat->SetYoungModulus(2e7f);
     patch_mat->SetPoissonRatio(0.3f);
-    auto patch = terrain.AddPatch(patch_mat, ChVector<>(0, 0, 0), ChVector<>(0, 0, 1), terrainLength, 5);
+    auto patch = terrain.AddPatch(patch_mat, ChVector3d(0, 0, 0), ChVector3d(0, 0, 1), terrainLength, 5);
     patch->SetColor(ChColor(0.8f, 0.8f, 0.5f));
     patch->SetTexture(vehicle::GetDataFile("terrain/textures/tile4.jpg"), 200, 5);
     terrain.Initialize();
@@ -109,7 +111,7 @@ int main(int argc, char* argv[]) {
     // Create the vehicle Irrlicht interface
     ChTrackedVehicleVisualSystemIrrlicht app(&m113.GetVehicle());
     app.SetWindowTitle("M113 Vehicle Demo");
-    app.SetChaseCamera(ChVector<>(0, 0, 0), 6.0, 0.5);
+    app.SetChaseCamera(ChVector3d(0, 0, 0), 6.0, 0.5);
     app.Initialize();
     app.AddTypicalLights();
 
@@ -117,7 +119,7 @@ int main(int argc, char* argv[]) {
     // Create the straight path and the driver system
     // ----------------------------------------------
 
-    auto path = StraightLinePath(ChVector<>(-terrainLength / 2, 0, 0.5), ChVector<>(terrainLength / 2, 0, 0.5), 1);
+    auto path = StraightLinePath(ChVector3d(-terrainLength / 2, 0, 0.5), ChVector3d(terrainLength / 2, 0, 0.5), 1);
     ChPathFollowerDriver driver(m113.GetVehicle(), path, "my_path", 1000.0);
     driver.GetSteeringController().SetLookAheadDistance(5.0);
     driver.GetSteeringController().SetGains(0.5, 0, 0);
@@ -139,7 +141,7 @@ int main(int argc, char* argv[]) {
     double last_speed = -1;
 
     // Record vehicle speed
-    ChFunction_Recorder speed_recorder;
+    ChFunctionInterp speed_recorder;
 
     // Initialize simulation frame counter and simulation time
     int step_number = 0;

@@ -17,7 +17,7 @@
 //
 // =============================================================================
 
-//#define EIGEN_NO_MALLOC 
+//#define EIGEN_NO_MALLOC
 
 #include <iostream>
 #include <vector>
@@ -30,8 +30,8 @@ using namespace chrono;
 class BaseClass {
   public:
     virtual ~BaseClass() {}
-    //virtual ChMatrixConstRef GetA() const = 0;
-    virtual ChMatrixRef GetA() = 0;
+    // virtual ChMatrixConstRef GetRotMat() const = 0;
+    virtual ChMatrixRef GetRotMat() = 0;
 };
 
 class DerivedClass1 : public BaseClass {
@@ -40,8 +40,8 @@ class DerivedClass1 : public BaseClass {
         m_A.resize(2, 3);
         m_A.setRandom();
     }
-    //virtual ChMatrixConstRef GetA() const override { m_A; }
-    virtual ChMatrixRef GetA() override { return m_A; }
+    // virtual ChMatrixConstRef GetRotMat() const override { m_A; }
+    virtual ChMatrixRef GetRotMat() override { return m_A; }
 
   private:
     ChMatrixDynamic<double> m_A;
@@ -50,8 +50,8 @@ class DerivedClass1 : public BaseClass {
 class DerivedClass2 : public BaseClass {
   public:
     DerivedClass2() { m_A.setRandom(); }
-    //virtual ChMatrixConstRef GetA() const override { return m_A; }
-    virtual ChMatrixRef GetA() override { return m_A; }
+    // virtual ChMatrixConstRef GetRotMat() const override { return m_A; }
+    virtual ChMatrixRef GetRotMat() override { return m_A; }
 
   private:
     ChMatrixNM<double, 2, 3> m_A;
@@ -75,7 +75,7 @@ int main(int argc, char* argv[]) {
     std::cout << c << std::endl;
 
     DerivedClass2 c2;
-    std::cout << c2.GetA() << std::endl;
+    std::cout << c2.GetRotMat() << std::endl;
 #else
     ChMatrixDynamic<double> A(2, 3);
     A.setRandom();
@@ -93,16 +93,16 @@ int main(int argc, char* argv[]) {
 
     DerivedClass1 c1;
     V.push_back(&c1);
-    std::cout << "\n" << c1.GetA() << std::endl;
-    c1.GetA()(0, 0) = 1;
+    std::cout << "\n" << c1.GetRotMat() << std::endl;
+    c1.GetRotMat()(0, 0) = 1;
 
     DerivedClass2 c2;
     V.push_back(&c2);
-    std::cout << "\n" << c2.GetA() << std::endl;
-    c2.GetA()(0, 0) = 1;
+    std::cout << "\n" << c2.GetRotMat() << std::endl;
+    c2.GetRotMat()(0, 0) = 1;
 
     for (auto v : V) {
-        std::cout << "\n" << v->GetA() << std::endl;
+        std::cout << "\n" << v->GetRotMat() << std::endl;
     }
 #endif
 

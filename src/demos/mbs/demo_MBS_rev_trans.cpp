@@ -30,10 +30,10 @@ using namespace chrono;
 using namespace chrono::irrlicht;
 
 int main(int argc, char* argv[]) {
-    GetLog() << "Copyright (c) 2017 projectchrono.org\nChrono version: " << CHRONO_VERSION << "\n\n";
+    std::cout << "Copyright (c) 2017 projectchrono.org\nChrono version: " << CHRONO_VERSION << std::endl;
 
     ChSystemNSC sys;
-    sys.Set_G_acc(ChVector<>(0.01, -1, 1));
+    sys.SetGravitationalAcceleration(ChVector3d(0.01, -1, 1));
 
     double L = 0.5;  // distance for the revolute-translational joint
 
@@ -42,37 +42,35 @@ int main(int argc, char* argv[]) {
 
     auto ground = chrono_types::make_shared<ChBody>();
     sys.AddBody(ground);
-    ground->SetIdentifier(-1);
-    ground->SetBodyFixed(true);
-    ground->SetCollide(false);
-    ground->SetPos(ChVector<>(0, 0, -1));
+    ground->SetFixed(true);
+    ground->EnableCollision(false);
+    ground->SetPos(ChVector3d(0, 0, -1));
 
     auto box = chrono_types::make_shared<ChVisualShapeBox>(20, 0.08, 0.12);
     box->SetColor(ChColor(0, 0, 0.6f));
-    ground->AddVisualShape(box, ChFrame<>(ChVector<>(5, 0, 0)));
+    ground->AddVisualShape(box, ChFrame<>(ChVector3d(5, 0, 0)));
 
     // Create a pendulum body
     // ----------------------
 
     auto pend = chrono_types::make_shared<ChBody>();
     sys.AddBody(pend);
-    pend->SetIdentifier(1);
-    pend->SetBodyFixed(false);
-    pend->SetCollide(false);
+    pend->SetFixed(false);
+    pend->EnableCollision(false);
     pend->SetMass(1);
-    pend->SetInertiaXX(ChVector<>(0.2, 1, 1));
+    pend->SetInertiaXX(ChVector3d(0.2, 1, 1));
 
     // Initial position of the pendulum (horizontal, pointing towards positive X).
-    pend->SetPos(ChVector<>(1.5, -L, -1));
+    pend->SetPos(ChVector3d(1.5, -L, -1));
 
     // Attach visualization assets.
     auto cyl_p = chrono_types::make_shared<ChVisualShapeCylinder>(0.2, 2.92);
     cyl_p->SetColor(ChColor(0.6f, 0, 0));
-    pend->AddVisualShape(cyl_p, ChFrame<>(VNULL, Q_from_AngY(CH_C_PI_2)));
+    pend->AddVisualShape(cyl_p, ChFrame<>(VNULL, QuatFromAngleY(CH_PI_2)));
 
     auto cyl_j = chrono_types::make_shared<ChVisualShapeCylinder>(0.04, 0.4);
     cyl_j->SetColor(ChColor(0.6f, 0, 0));
-    pend->AddVisualShape(cyl_j, ChFrame<>(ChVector<>(-1.5, 0, 0), QUNIT));
+    pend->AddVisualShape(cyl_j, ChFrame<>(ChVector3d(-1.5, 0, 0), QUNIT));
 
     // Create a revolute-translational joint to connect pendulum to ground.
     auto rev_trans = chrono_types::make_shared<ChLinkRevoluteTranslational>();
@@ -81,7 +79,7 @@ int main(int argc, char* argv[]) {
     // Initialize the joint specifying a coordinate sys (expressed in the
     // absolute frame) and a distance. The revolute side is attached to the
     // pendulum and the translational side to the ground.
-    rev_trans->Initialize(pend, ground, ChCoordsys<>(ChVector<>(0, -L, -1), Q_from_AngZ(CH_C_PI_2)), L);
+    rev_trans->Initialize(pend, ground, ChCoordsys<>(ChVector3d(0, -L, -1), QuatFromAngleZ(CH_PI_2)), L);
 
     // Create the Irrlicht application
     // -------------------------------
@@ -94,8 +92,10 @@ int main(int argc, char* argv[]) {
     vis->Initialize();
     vis->AddLogo();
     vis->AddSkyBox();
-    vis->AddCamera(ChVector<>(-1.5, 2, 3));
+    vis->AddCamera(ChVector3d(-1.5, 2, 3));
     vis->AddTypicalLights();
+
+    vis->EnableLinkFrameDrawing(true);
 
     // Simulation loop
     while (vis->Run()) {
@@ -104,14 +104,9 @@ int main(int argc, char* argv[]) {
 
         // Render the connecting body.
         // Recall that the joint reference frame is given in the Body coordinates.
-        ChCoordsys<> joint_csys = ground->GetCoord() >> rev_trans->GetLinkRelativeCoords();
-        ChVector<> point1 = joint_csys.pos;
-        ChVector<> point2 = joint_csys.TransformPointLocalToParent(ChVector<>(L, 0, 0));
-        tools::drawSegment(vis.get(), point1, point2, ChColor(0, 0.2f, 0), true);
-
-        // Render a line between the two points of the revolute-translational joint.
-        tools::drawSegment(vis.get(), rev_trans->GetPoint1Abs(), rev_trans->GetPoint2Abs(),
-                           ChColor(0.6f, 0.6f, 0.6f), true);
+        ChVector3d p1 = rev_trans->GetFrame1Abs().GetPos();
+        ChVector3d p2 = rev_trans->GetFrame1Abs().TransformPointLocalToParent(ChVector3d(L, 0, 0));
+        tools::drawSegment(vis.get(), p1, p2, ChColor(0, 1, 0), true);
 
         vis->EndScene();
 

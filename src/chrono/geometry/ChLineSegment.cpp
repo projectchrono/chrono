@@ -15,7 +15,6 @@
 #include "chrono/geometry/ChLineSegment.h"
 
 namespace chrono {
-namespace geometry {
 
 // Register into the object factory, to enable run-time dynamic creation and persistence
 CH_FACTORY_REGISTER(ChLineSegment)
@@ -26,36 +25,35 @@ ChLineSegment::ChLineSegment(const ChLineSegment& source) : ChLine(source) {
 }
 
 ChFrame<> ChLineSegment::GetFrame() const {
-    ChVector<> dir = (pB - pA).GetNormalized();
-    ChVector<> u, v, w;
-    dir.DirToDxDyDz(w, u, v);
+    ChVector3d dir = (pB - pA).GetNormalized();
+    ChVector3d u, v, w;
+    dir.GetDirectionAxesAsX(w, u, v);
 
     return ChFrame<>(0.5 * (pB + pA), ChMatrix33<>(u, v, w));
 }
 
-ChVector<> ChLineSegment::Evaluate(double parU) const {
+ChVector3d ChLineSegment::Evaluate(double parU) const {
     return pA * (1 - parU) + pB * parU;
 }
 
-void ChLineSegment::ArchiveOut(ChArchiveOut& marchive) {
+void ChLineSegment::ArchiveOut(ChArchiveOut& archive_out) {
     // version number
-    marchive.VersionWrite<ChLineSegment>();
+    archive_out.VersionWrite<ChLineSegment>();
     // serialize parent class
-    ChLine::ArchiveOut(marchive);
+    ChLine::ArchiveOut(archive_out);
     // serialize all member data:
-    marchive << CHNVP(pA);
-    marchive << CHNVP(pB);
+    archive_out << CHNVP(pA);
+    archive_out << CHNVP(pB);
 }
 
-void ChLineSegment::ArchiveIn(ChArchiveIn& marchive) {
+void ChLineSegment::ArchiveIn(ChArchiveIn& archive_in) {
     // version number
-    /*int version =*/ marchive.VersionRead<ChLineSegment>();
+    /*int version =*/archive_in.VersionRead<ChLineSegment>();
     // deserialize parent class
-    ChLine::ArchiveIn(marchive);
+    ChLine::ArchiveIn(archive_in);
     // stream in all member data:
-    marchive >> CHNVP(pA);
-    marchive >> CHNVP(pB);
+    archive_in >> CHNVP(pA);
+    archive_in >> CHNVP(pB);
 }
 
-}  // end namespace geometry
 }  // end namespace chrono

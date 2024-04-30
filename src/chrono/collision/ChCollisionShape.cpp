@@ -19,7 +19,6 @@ namespace chrono {
 // Register into the object factory, to enable run-time dynamic creation and persistence
 CH_FACTORY_REGISTER(ChCollisionShape)
 
-
 class ChCollisionShape_Type_enum_mapper : public ChCollisionShape {
   public:
     CH_ENUM_MAPPER_BEGIN(Type);
@@ -47,31 +46,29 @@ class ChCollisionShape_Type_enum_mapper : public ChCollisionShape {
 
 ChCollisionShape::ChCollisionShape(Type type) : m_type(type), m_material(nullptr) {}
 
-ChCollisionShape::ChCollisionShape(Type type, std::shared_ptr<ChMaterialSurface> material)
+ChCollisionShape::ChCollisionShape(Type type, std::shared_ptr<ChContactMaterial> material)
     : m_type(type), m_material(material) {}
 
-void ChCollisionShape::ArchiveOut(ChArchiveOut& marchive) {
+void ChCollisionShape::ArchiveOut(ChArchiveOut& archive_out) {
     // version number
-    marchive.VersionWrite<ChCollisionShape>();
+    archive_out.VersionWrite<ChCollisionShape>();
     // serialize all member data:
-    marchive << CHNVP(m_material);
+    archive_out << CHNVP(m_material);
 
     ChCollisionShape_Type_enum_mapper::Type_mapper typemapper;
     Type type = GetType();
-    marchive << CHNVP(typemapper(type), "ChCollisionShape__Type");
-
+    archive_out << CHNVP(typemapper(type), "ChCollisionShape__Type");
 }
 
-void ChCollisionShape::ArchiveIn(ChArchiveIn& marchive) {
+void ChCollisionShape::ArchiveIn(ChArchiveIn& archive_in) {
     // version number
-    /*int version =*/marchive.VersionRead<ChCollisionShape>();
+    /*int version =*/archive_in.VersionRead<ChCollisionShape>();
     // stream in all member data:
-    marchive >> CHNVP(m_material);
+    archive_in >> CHNVP(m_material);
 
     ChCollisionShape_Type_enum_mapper::Type_mapper typemapper;
     Type type = GetType();
-    marchive >> CHNVP(typemapper(type), "ChCollisionShape__Type");
-
+    archive_in >> CHNVP(typemapper(type), "ChCollisionShape__Type");
 }
 
 }  // namespace chrono

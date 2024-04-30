@@ -34,11 +34,11 @@ class MyObstacle {
     void AddVisualization(std::shared_ptr<ChBody> body) {
         auto cyl = chrono_types::make_shared<ChVisualShapeCylinder>(radius, 1.1);
         cyl->SetColor(ChColor(0.6f, 0.3f, 0.0f));
-        body->AddVisualShape(cyl, ChFrame<>(center + ChVector<>(0, 0.55, 0), Q_from_AngX(CH_C_PI_2)));    
+        body->AddVisualShape(cyl, ChFrame<>(center + ChVector3d(0, 0.55, 0), QuatFromAngleX(CH_PI_2)));
     }
 
     double radius;
-    ChVector<> center;
+    ChVector3d center;
 };
 
 // Custom collision detection callback class
@@ -46,8 +46,8 @@ class MyCustomCollisionDetection : public ChSystem::CustomCollisionCallback {
   public:
     MyCustomCollisionDetection(std::shared_ptr<ChBody> ball,
                                std::shared_ptr<ChBody> ground,
-                               std::shared_ptr<ChMaterialSurface> ball_mat,
-                               std::shared_ptr<ChMaterialSurface> obst_mat,
+                               std::shared_ptr<ChContactMaterial> ball_mat,
+                               std::shared_ptr<ChContactMaterial> obst_mat,
                                double ball_radius,
                                const MyObstacle& obstacle)
         : m_ball(ball),
@@ -63,10 +63,10 @@ class MyCustomCollisionDetection : public ChSystem::CustomCollisionCallback {
 
         // Get current ball position and project on horizontal plane.
         auto b_pos = m_ball->GetPos();
-        auto b_center = ChVector2<>(b_pos.x(), b_pos.z());
+        auto b_center = ChVector2d(b_pos.x(), b_pos.z());
 
         // Check collision with obstacle (working in the horizontal plane).
-        auto o_center = ChVector2<>(m_obst_center.x(), m_obst_center.z());
+        auto o_center = ChVector2d(m_obst_center.x(), m_obst_center.z());
         auto delta = o_center - b_center;
         auto dist2 = delta.Length2();
         if (dist2 >= r_sum * r_sum)
@@ -74,9 +74,9 @@ class MyCustomCollisionDetection : public ChSystem::CustomCollisionCallback {
 
         // Find collision points on the ball and obstacle and the contact normal.
         auto dist = std::sqrt(dist2);
-        ChVector2<> normal = delta / dist;
-        ChVector2<> pt_ball = b_center + m_ball_radius * normal;
-        ChVector2<> pt_obst = o_center - m_obst_radius * normal;
+        ChVector2d normal = delta / dist;
+        ChVector2d pt_ball = b_center + m_ball_radius * normal;
+        ChVector2d pt_obst = o_center - m_obst_radius * normal;
 
         // Populate the collision info object (express all vectors in 3D).
         // We pass null pointers to collision shapes.
@@ -85,48 +85,48 @@ class MyCustomCollisionDetection : public ChSystem::CustomCollisionCallback {
         contact.modelB = m_ground->GetCollisionModel().get();
         contact.shapeA = nullptr;
         contact.shapeB = nullptr;
-        contact.vN = ChVector<>(normal.x(), 0.0, normal.y());
-        contact.vpA = ChVector<>(pt_ball.x(), b_pos.y(), pt_ball.y());
-        contact.vpB = ChVector<>(pt_obst.x(), b_pos.y(), pt_obst.y());
+        contact.vN = ChVector3d(normal.x(), 0.0, normal.y());
+        contact.vpA = ChVector3d(pt_ball.x(), b_pos.y(), pt_ball.y());
+        contact.vpB = ChVector3d(pt_obst.x(), b_pos.y(), pt_obst.y());
         contact.distance = dist - r_sum;
         msys->GetContactContainer()->AddContact(contact, m_ball_mat, m_obst_mat);
     }
 
     std::shared_ptr<ChBody> m_ball;
     std::shared_ptr<ChBody> m_ground;
-    std::shared_ptr<ChMaterialSurface> m_ball_mat;
-    std::shared_ptr<ChMaterialSurface> m_obst_mat;
+    std::shared_ptr<ChContactMaterial> m_ball_mat;
+    std::shared_ptr<ChContactMaterial> m_obst_mat;
     double m_ball_radius;
     double m_obst_radius;
-    ChVector<> m_obst_center;
+    ChVector3d m_obst_center;
 };
 
 int main(int argc, char* argv[]) {
-    GetLog() << "Copyright (c) 2017 projectchrono.org\nChrono version: " << CHRONO_VERSION << "\n\n";
+    std::cout << "Copyright (c) 2017 projectchrono.org\nChrono version: " << CHRONO_VERSION << std::endl;
 
     ChContactMethod contact_method = ChContactMethod::SMC;
 
     double ball_radius = 0.5;
     MyObstacle obstacle;
-    ChVector<> obst_center(2.9, 0, 2.9);
+    ChVector3d obst_center(2.9, 0, 2.9);
 
     // Create the system and the various contact materials
     ChSystem* sys = nullptr;
-    std::shared_ptr<ChMaterialSurface> ground_mat;
-    std::shared_ptr<ChMaterialSurface> ball_mat;
-    std::shared_ptr<ChMaterialSurface> obst_mat;
+    std::shared_ptr<ChContactMaterial> ground_mat;
+    std::shared_ptr<ChContactMaterial> ball_mat;
+    std::shared_ptr<ChContactMaterial> obst_mat;
 
     switch (contact_method) {
         case ChContactMethod::NSC: {
             sys = new ChSystemNSC;
 
-            auto g_mat = chrono_types::make_shared<ChMaterialSurfaceNSC>();
+            auto g_mat = chrono_types::make_shared<ChContactMaterialNSC>();
             g_mat->SetRestitution(0.9f);
             g_mat->SetFriction(0.4f);
-            auto b_mat = chrono_types::make_shared<ChMaterialSurfaceNSC>();
+            auto b_mat = chrono_types::make_shared<ChContactMaterialNSC>();
             b_mat->SetRestitution(0.9f);
             b_mat->SetFriction(0.5f);
-            auto o_mat = chrono_types::make_shared<ChMaterialSurfaceNSC>();
+            auto o_mat = chrono_types::make_shared<ChContactMaterialNSC>();
             o_mat->SetRestitution(0.9f);
             o_mat->SetFriction(0.4f);
 
@@ -139,13 +139,13 @@ int main(int argc, char* argv[]) {
         case ChContactMethod::SMC: {
             sys = new ChSystemSMC;
 
-            auto g_mat = chrono_types::make_shared<ChMaterialSurfaceSMC>();
+            auto g_mat = chrono_types::make_shared<ChContactMaterialSMC>();
             g_mat->SetRestitution(0.9f);
             g_mat->SetFriction(0.4f);
-            auto b_mat = chrono_types::make_shared<ChMaterialSurfaceSMC>();
+            auto b_mat = chrono_types::make_shared<ChContactMaterialSMC>();
             b_mat->SetRestitution(0.9f);
             b_mat->SetFriction(0.5f);
-            auto o_mat = chrono_types::make_shared<ChMaterialSurfaceSMC>();
+            auto o_mat = chrono_types::make_shared<ChContactMaterialSMC>();
             o_mat->SetRestitution(0.9f);
             o_mat->SetFriction(0.4f);
 
@@ -157,28 +157,28 @@ int main(int argc, char* argv[]) {
         }
     }
 
-    sys->Set_G_acc(ChVector<>(0, -9.8, 0));
+    sys->SetGravitationalAcceleration(ChVector3d(0, -9.8, 0));
     sys->SetCollisionSystemType(ChCollisionSystem::Type::BULLET);
 
     // Create the ground body with a plate and side walls (both collision and visualization).
     // Add obstacle visualization (in a separate level with a different color).
     auto ground = chrono_types::make_shared<ChBody>();
     sys->AddBody(ground);
-    ground->SetCollide(true);
-    ground->SetBodyFixed(true);
+    ground->EnableCollision(true);
+    ground->SetFixed(true);
 
     auto ground_vmat = chrono_types::make_shared<ChVisualMaterial>();
     ground_vmat->SetKdTexture(GetChronoDataFile("textures/blue.png"));
 
-    utils::AddBoxGeometry(ground.get(), ground_mat, ChVector<>(10, 2, 10), ChVector<>(0, -1, 0), QUNIT, true,
+    utils::AddBoxGeometry(ground.get(), ground_mat, ChVector3d(10, 2, 10), ChVector3d(0, -1, 0), QUNIT, true,
                           ground_vmat);
-    utils::AddBoxGeometry(ground.get(), ground_mat, ChVector<>(0.2, 2, 10.2), ChVector<>(-5, 0, 0), QUNIT, true,
+    utils::AddBoxGeometry(ground.get(), ground_mat, ChVector3d(0.2, 2, 10.2), ChVector3d(-5, 0, 0), QUNIT, true,
                           ground_vmat);
-    utils::AddBoxGeometry(ground.get(), ground_mat, ChVector<>(0.2, 2, 10.2), ChVector<>(+5, 0, 0), QUNIT, true,
+    utils::AddBoxGeometry(ground.get(), ground_mat, ChVector3d(0.2, 2, 10.2), ChVector3d(+5, 0, 0), QUNIT, true,
                           ground_vmat);
-    utils::AddBoxGeometry(ground.get(), ground_mat, ChVector<>(10.2, 2, 0.2), ChVector<>(0, 0, -5), QUNIT, true,
+    utils::AddBoxGeometry(ground.get(), ground_mat, ChVector3d(10.2, 2, 0.2), ChVector3d(0, 0, -5), QUNIT, true,
                           ground_vmat);
-    utils::AddBoxGeometry(ground.get(), ground_mat, ChVector<>(10.2, 2, 0.2), ChVector<>(0, 0, +5), QUNIT, true,
+    utils::AddBoxGeometry(ground.get(), ground_mat, ChVector3d(10.2, 2, 0.2), ChVector3d(0, 0, +5), QUNIT, true,
                           ground_vmat);
 
     obstacle.AddVisualization(ground);
@@ -187,10 +187,10 @@ int main(int argc, char* argv[]) {
     auto ball = chrono_types::make_shared<ChBody>();
     sys->AddBody(ball);
     ball->SetMass(10);
-    ball->SetInertiaXX(4 * ball_radius * ball_radius * ChVector<>(1, 1, 1));
-    ball->SetPos(ChVector<>(-3, 1.2 * ball_radius, -3));
-    ball->SetPos_dt(ChVector<>(5, 0, 5));
-    ball->SetCollide(true);
+    ball->SetInertiaXX(4 * ball_radius * ball_radius * ChVector3d(1, 1, 1));
+    ball->SetPos(ChVector3d(-3, 1.2 * ball_radius, -3));
+    ball->SetPosDt(ChVector3d(5, 0, 5));
+    ball->EnableCollision(true);
 
     auto ball_vmat = chrono_types::make_shared<ChVisualMaterial>();
     ball_vmat->SetKdTexture(GetChronoDataFile("textures/bluewhite.png"));
@@ -210,9 +210,9 @@ int main(int argc, char* argv[]) {
     vis->Initialize();
     vis->AddLogo();
     vis->AddSkyBox();
-    vis->AddCamera(ChVector<>(8, 8, -6));
+    vis->AddCamera(ChVector3d(8, 8, -6));
     vis->AddTypicalLights();
-    vis->AddLightWithShadow(ChVector<>(0.0, 24.0, 2.0), ChVector<>(0, 0, 0), 35, 2.2, 25.0, 40, 1024,
+    vis->AddLightWithShadow(ChVector3d(0.0, 24.0, 2.0), ChVector3d(0, 0, 0), 35, 2.2, 25.0, 40, 1024,
                             ChColor(0.8f, 0.8f, 1.0f));
     vis->EnableShadows();
 

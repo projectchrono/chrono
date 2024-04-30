@@ -71,7 +71,7 @@ class MySoilParams (veh.SoilParametersCallback):
 # Global parameters for tire
 tire_rad = 0.8
 tire_vel_z0 = -3
-tire_center = chrono.ChVectorD(0, 0.02 + tire_rad, -1.5)
+tire_center = chrono.ChVector3d(0, 0.02 + tire_rad, -1.5)
 tire_w0 = tire_vel_z0 / tire_rad
 
 # ----------------------------
@@ -83,15 +83,15 @@ sys.SetCollisionSystemType(chrono.ChCollisionSystem.Type_BULLET)
 
 # Create the ground
 ground = chrono.ChBody()
-ground.SetBodyFixed(True)
+ground.SetFixed(True)
 sys.Add(ground)
 
 # Create the rigid body with contact mesh
 body = chrono.ChBody()
 sys.Add(body)
 body.SetMass(500)
-body.SetInertiaXX(chrono.ChVectorD(20, 20, 20))
-body.SetPos(tire_center + chrono.ChVectorD(0, 0.3, 0))
+body.SetInertiaXX(chrono.ChVector3d(20, 20, 20))
+body.SetPos(tire_center + chrono.ChVector3d(0, 0.3, 0))
 
 # Load mesh
 mesh = chrono.ChTriangleMeshConnected()
@@ -104,7 +104,7 @@ vis_shape.SetColor(chrono.ChColor(0.3, 0.3, 0.3))
 body.AddVisualShape(vis_shape)
 
 # Set collision shape
-material = chrono.ChMaterialSurfaceSMC()
+material = chrono.ChContactMaterialSMC()
 
 body_ct_shape = chrono.ChCollisionShapeTriangleMesh(material, # contact material
                                                     mesh,     # the mesh 
@@ -112,13 +112,13 @@ body_ct_shape = chrono.ChCollisionShapeTriangleMesh(material, # contact material
                                                     False,    # is it convex?
                                                     0.01)     # "thickness" for increased robustness
 body.AddCollisionShape(body_ct_shape)
-body.SetCollide(True)
+body.EnableCollision(True)
 
 # Create motor
 motor = chrono.ChLinkMotorRotationAngle()
 motor.SetSpindleConstraint(chrono.ChLinkMotorRotation.SpindleConstraint_OLDHAM)
-motor.SetAngleFunction(chrono.ChFunction_Ramp(0, math.pi / 4))
-motor.Initialize(body, ground, chrono.ChFrameD(tire_center, chrono.Q_from_AngY(math.pi/2)))
+motor.SetAngleFunction(chrono.ChFunctionRamp(0, math.pi / 4))
+motor.Initialize(body, ground, chrono.ChFramed(tire_center, chrono.QuatFromAngleY(math.pi/2)))
 sys.Add(motor)
 
 # ------------------------
@@ -128,7 +128,7 @@ sys.Add(motor)
 # Note that SCMTerrain uses a default ISO reference frame (Z up). Since the mechanism is modeled here in
 # a Y-up global frame, we rotate the terrain plane by -90 degrees about the X axis.
 terrain = veh.SCMTerrain(sys)
-terrain.SetPlane(chrono.ChCoordsysD(chrono.ChVectorD(0,0.2,0), chrono.Q_from_AngX(-math.pi/2)))
+terrain.SetPlane(chrono.ChCoordsysd(chrono.ChVector3d(0,0.2,0), chrono.QuatFromAngleX(-math.pi/2)))
 terrain.Initialize(2.0, 6.0, 0.04)
 
 my_params = MySoilParams()
@@ -161,7 +161,7 @@ vis.SetWindowTitle('Deformable soil')
 vis.Initialize()
 vis.AddLogo(chrono.GetChronoDataFile('logo_pychrono_alpha.png'))
 vis.AddSkyBox()
-vis.AddCamera(chrono.ChVectorD(2.0,1.4,0.0), chrono.ChVectorD(0,tire_rad,0))
+vis.AddCamera(chrono.ChVector3d(2.0,1.4,0.0), chrono.ChVector3d(0,tire_rad,0))
 vis.AddTypicalLights()
 
 # ------------------

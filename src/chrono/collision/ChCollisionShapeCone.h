@@ -28,13 +28,13 @@ namespace chrono {
 class ChApi ChCollisionShapeCone : public ChCollisionShape {
   public:
     ChCollisionShapeCone();
-    ChCollisionShapeCone(std::shared_ptr<ChMaterialSurface> material, double radius, double height);
-    ChCollisionShapeCone(std::shared_ptr<ChMaterialSurface> material, const geometry::ChCone& cone);
+    ChCollisionShapeCone(std::shared_ptr<ChContactMaterial> material, double radius, double height);
+    ChCollisionShapeCone(std::shared_ptr<ChContactMaterial> material, const ChCone& cone);
 
     ~ChCollisionShapeCone() {}
 
     /// Access the cone geometry.
-    geometry::ChCone& GetGeometry() { return gcone; }
+    ChCone& GetGeometry() { return gcone; }
 
     /// Get the cone radius.
     double GetRadius() const { return gcone.GetRadius(); }
@@ -43,13 +43,13 @@ class ChApi ChCollisionShapeCone : public ChCollisionShape {
     double GetHeight() const { return gcone.GetHeight(); }
 
     /// Method to allow serialization of transient data to archives.
-    virtual void ArchiveOut(ChArchiveOut& marchive) override;
+    virtual void ArchiveOut(ChArchiveOut& archive_out) override;
 
     /// Method to allow de-serialization of transient data from archives.
-    virtual void ArchiveIn(ChArchiveIn& marchive) override;
+    virtual void ArchiveIn(ChArchiveIn& archive_in) override;
 
   private:
-    geometry::ChCone gcone;
+    ChCone gcone;
 };
 
 /// @} chrono_collision

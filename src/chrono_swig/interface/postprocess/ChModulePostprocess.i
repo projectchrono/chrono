@@ -1,24 +1,14 @@
-//////////////////////////////////////////////////
+// =====================================================================================
 //  
-//   ChModulePostprocess.i
+// ChModulePostprocess.i
+// Create the Python and C# wrappers for the Chrono::Postprocess module.
 //
-//   SWIG configuration file.
-//   This is processed by SWIG to create the C::E
-//   wrapper for Python.
+// ATTENTION: 
+// Must be included from another SWIG interface file which defines the module.
 //
-///////////////////////////////////////////////////
-
-
-
-// Define the module to be used in Python when typing 
-//  'import postprocess'
-
-
-%module(directors="1") postprocess
-
+// =====================================================================================
 
 // Turn on the documentation of members, for more intuitive IDE typing
-
 %feature("autodoc", "1");
 %feature("flatnested", "1");
 
@@ -35,8 +25,8 @@
 }
 
 
-// For optional downcasting of polimorphic objects:
-%include "../chrono_downcast.i" 
+// For optional casting of polimorphic objects:
+%include "../chrono_cast.i" 
 
 // For supporting shared pointers:
 %include <std_shared_ptr.i>
@@ -80,12 +70,12 @@ using namespace chrono::postprocess;
 %include "typemaps.i"
 %include "cpointer.i"
 
-// This is to enable references to double,int,etc. types in function parameters
+#ifdef SWIGPYTHON  // --------------------------------------------------------------------- PYTHON
+// Enable references to double, int, and float types in function parameters
 %pointer_class(int,int_ptr);
 %pointer_class(double,double_ptr);
 %pointer_class(float,float_ptr);
-
-
+#endif             // --------------------------------------------------------------------- PYTHON
 
 //
 // For each class, keep updated the  A, B, C sections: 
@@ -138,11 +128,23 @@ using namespace chrono::postprocess;
 // in the .i file, before the %include of the .h, even if already forwarded in .h
 
 //  core/  classes
+#ifdef SWIGPYTHON  // --------------------------------------------------------------------- PYTHON
 %import(module = "pychrono.core")  "chrono_swig/interface/core/ChClassFactory.i"
 %import(module = "pychrono.core")  "chrono_swig/interface/core/ChVisualShape.i"
 %import(module = "pychrono.core")  "chrono_swig/interface/core/ChColor.i"
 %import(module = "pychrono.core")  "chrono_swig/interface/core/ChSystem.i"
 %import(module = "pychrono.core")  "chrono_swig/interface/core/ChVisualShape.i"
+#endif             // --------------------------------------------------------------------- PYTHON
+
+#ifdef SWIGCSHARP  // --------------------------------------------------------------------- CSHARP
+%import  "chrono_swig/interface/core/ChClassFactory.i"
+%import  "chrono_swig/interface/core/ChVisualShape.i"
+%import  "chrono_swig/interface/core/ChColor.i"
+%import  "chrono_swig/interface/core/ChSystem.i"
+%import  "chrono_swig/interface/core/ChVisualShape.i"
+%import  "chrono_swig/interface/core/ChFunction.i"
+#endif             // --------------------------------------------------------------------- CSHARP
+
 
 %include "ChPostProcessBase.i"
 %include "ChPovRay.i"
@@ -151,32 +153,32 @@ using namespace chrono::postprocess;
 
 
 //
-// C- DOWNCASTING OF SHARED POINTERS
+// C- CASTING OF SHARED POINTERS
 // 
 // This is not automatic in Python + SWIG, except if one uses the 
 // %downcast_output_sharedptr(...) macro, as above, but this causes
 // a lot of code bloat. 
 // Alternatively, in the following we create a set of Python-side
 // functions to perform casting by hand, thank to the macro 
-// %DefSharedPtrDynamicDowncast(base,derived). 
+// %DefSharedPtrDynamicCast(base,derived). 
 // Do not specify the "chrono::" namespace before base or derived!
 // Later, in python, you can do the following:
 //  myvis = chrono.CastToChVisualizationShared(myasset)
 //  print ('Could be cast to visualization object?', !myvis.IsNull())
 
-%DefSharedPtrDynamicDowncast(chrono,ChVisualShape,ChVisualShapeBox)
-%DefSharedPtrDynamicDowncast(chrono,ChVisualShape,ChVisualShapeModelFile)
-%DefSharedPtrDynamicDowncast(chrono,ChVisualShape,ChVisualShapeSphere)
-%DefSharedPtrDynamicDowncast(chrono,ChVisualShape,ChVisualShapeCylinder)
-%DefSharedPtrDynamicDowncast(chrono,ChVisualShape,ChVisualShapeLine)
-%DefSharedPtrDynamicDowncast(chrono,ChVisualShape,ChVisualShapeSurface)
-%DefSharedPtrDynamicDowncast(chrono,ChVisualShape,ChVisualShapePath)
-%DefSharedPtrDynamicDowncast(chrono,ChVisualShape,ChVisualShapeTriangleMesh)
-%DefSharedPtrDynamicDowncast(chrono,ChVisualShape,ChVisualShapeEllipsoid)
-%DefSharedPtrDynamicDowncast(chrono,ChVisualShape,ChVisualShapePointPoint)
-%DefSharedPtrDynamicDowncast(chrono,ChVisualShape,ChVisualShapeSegment)
-%DefSharedPtrDynamicDowncast(chrono,ChVisualShape,ChVisualShapeSpring)
-%DefSharedPtrDynamicDowncast(chrono,ChVisualShape,ChVisualShapeRotSpring)
+%DefSharedPtrDynamicCast(chrono,ChVisualShape,ChVisualShapeBox)
+%DefSharedPtrDynamicCast(chrono,ChVisualShape,ChVisualShapeModelFile)
+%DefSharedPtrDynamicCast(chrono,ChVisualShape,ChVisualShapeSphere)
+%DefSharedPtrDynamicCast(chrono,ChVisualShape,ChVisualShapeCylinder)
+%DefSharedPtrDynamicCast(chrono,ChVisualShape,ChVisualShapeLine)
+%DefSharedPtrDynamicCast(chrono,ChVisualShape,ChVisualShapeSurface)
+%DefSharedPtrDynamicCast(chrono,ChVisualShape,ChVisualShapePath)
+%DefSharedPtrDynamicCast(chrono,ChVisualShape,ChVisualShapeTriangleMesh)
+%DefSharedPtrDynamicCast(chrono,ChVisualShape,ChVisualShapeEllipsoid)
+%DefSharedPtrDynamicCast(chrono,ChVisualShape,ChVisualShapePointPoint)
+%DefSharedPtrDynamicCast(chrono,ChVisualShape,ChVisualShapeSegment)
+%DefSharedPtrDynamicCast(chrono,ChVisualShape,ChVisualShapeSpring)
+%DefSharedPtrDynamicCast(chrono,ChVisualShape,ChVisualShapeRotSpring)
 
 //
 // ADDITIONAL C++ FUNCTIONS / CLASSES THAT ARE USED ONLY FOR PYTHON WRAPPER

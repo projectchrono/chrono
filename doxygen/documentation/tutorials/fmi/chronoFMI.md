@@ -32,7 +32,7 @@ Chrono FMI module tutorials {#tutorial_table_of_content_chrono_fmi}
 
     This tire FMU defines continuous output variables for:
       - wheel tire/terrain load (of type TerrainForce)
-      - location of the terrain query point (of type ChVector)
+      - location of the terrain query point (of type ChVector3)
     <br>
 
   - `FMU_PathFollowerDriver` is a co-simulation FMU encapsulating a vehicle path-follower driver system. The driver model includes a lateral path-following PID controller and a longitudinal PID cruise controller.

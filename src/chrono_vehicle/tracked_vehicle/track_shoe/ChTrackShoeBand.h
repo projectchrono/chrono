@@ -54,7 +54,7 @@ class CH_VEHICLE_API ChTrackShoeBand : public ChTrackShoe {
     /// the center of the track shoe subsystem is at the specified location and all
     /// bodies have the specified orientation.
     virtual void Initialize(std::shared_ptr<ChBodyAuxRef> chassis,  ///< [in] handle to the chassis body
-                            const ChVector<>& location,             ///< [in] location relative to the chassis frame
+                            const ChVector3d& location,             ///< [in] location relative to the chassis frame
                             const ChQuaternion<>& rotation          ///< [in] orientation relative to the chassis frame
                             ) override;
 
@@ -73,22 +73,22 @@ class CH_VEHICLE_API ChTrackShoeBand : public ChTrackShoe {
     virtual double GetWebMass() const = 0;
 
     /// Return the moments of inertia of the tread body.
-    virtual const ChVector<>& GetTreadInertia() const = 0;
+    virtual const ChVector3d& GetTreadInertia() const = 0;
 
     /// Return the moments of inertia of the web.
     /// These will be distributed over the specified number of web segments.
-    virtual const ChVector<>& GetWebInertia() const = 0;
+    virtual const ChVector3d& GetWebInertia() const = 0;
 
     /// Return the dimensions of the contact box for the guiding pin.
     /// Note that this is for contact with wheels, idler, and ground only.
     /// This contact geometry does not affect contact with the sprocket.
-    virtual const ChVector<>& GetGuideBoxDimensions() const = 0;
+    virtual const ChVector3d& GetGuideBoxDimensions() const = 0;
 
     /// Return the offset (in X direction) of the guiding pin.
     virtual double GetGuideBoxOffsetX() const = 0;
 
     /// Return the location of the guiding pin center, expressed in the shoe reference frame.
-    virtual ChVector<> GetLateralContactPoint() const override;
+    virtual ChVector3d GetLateralContactPoint() const override;
 
     /// Return the width of the CB track belt (in the Y direction)
     virtual double GetBeltWidth() const = 0;
@@ -137,17 +137,17 @@ class CH_VEHICLE_API ChTrackShoeBand : public ChTrackShoe {
 
   private:
     /// Utilities for creating the tooth visualization mesh.
-    int ProfilePoints(std::vector<ChVector2<>>& points, std::vector<ChVector2<>>& normals);
+    int ProfilePoints(std::vector<ChVector2d>& points, std::vector<ChVector2d>& normals);
     std::shared_ptr<ChVisualShapeTriangleMesh> ToothMesh(double y);
 
-    ChVector2<> m_center_p;       ///< center of (+x) arc, in tread body x-z plane
-    ChVector2<> m_center_m;       ///< center of (-x) arc, in tread body x-z plane
+    ChVector2d m_center_p;        ///< center of (+x) arc, in tread body x-z plane
+    ChVector2d m_center_m;        ///< center of (-x) arc, in tread body x-z plane
     double m_center_p_arc_start;  ///< starting angle of the (+x) arc, in tread body x-z plane
     double m_center_p_arc_end;    ///< ending angle of the (+x) arc, in tread body x-z plane
     double m_center_m_arc_start;  ///< starting angle of the (-x) arc, in tread body x-z plane
     double m_center_m_arc_end;    ///< ending angle of the (-x) arc, in tread body x-z plane
 
-    std::shared_ptr<ChMaterialSurface> m_tooth_material;  ///< contact material for teeth (sprocket interaction)
+    std::shared_ptr<ChContactMaterial> m_tooth_material;  ///< contact material for teeth (sprocket interaction)
 
     friend class ChSprocketBand;
     friend class SprocketBandContactCB;

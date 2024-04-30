@@ -51,13 +51,13 @@ class ChApi ChConstraintTwo : public ChConstraint {
 
     /// Access auxiliary vector (ex: used by iterative solvers).
     virtual ChVectorRef Get_Eq_a() = 0;
-    
+
     /// Access auxiliary vector (ex: used by iterative solvers).
     virtual ChVectorRef Get_Eq_b() = 0;
 
     /// Access the first variable object.
     ChVariables* GetVariables_a() { return variables_a; }
-    
+
     /// Access the second variable object.
     ChVariables* GetVariables_b() { return variables_b; }
 
@@ -66,10 +66,10 @@ class ChApi ChConstraintTwo : public ChConstraint {
     virtual void SetVariables(ChVariables* mvariables_a, ChVariables* mvariables_b) = 0;
 
     /// Method to allow serialization of transient data to archives.
-    virtual void ArchiveOut(ChArchiveOut& marchive) override;
+    virtual void ArchiveOut(ChArchiveOut& archive_out) override;
 
     /// Method to allow de-serialization of transient data from archives.
-    virtual void ArchiveIn(ChArchiveIn& marchive) override;
+    virtual void ArchiveIn(ChArchiveIn& archive_in) override;
 };
 
 }  // end namespace chrono

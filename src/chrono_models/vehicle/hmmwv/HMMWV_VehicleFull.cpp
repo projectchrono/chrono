@@ -87,7 +87,7 @@ void HMMWV_VehicleFull::Create(bool fixed,
             m_steerings[0] = chrono_types::make_shared<HMMWV_RackPinion>("Steering");
             break;
         default:
-            GetLog() << "Steering type NOT supported\n";
+            std::cout << "Steering type NOT supported\n";
             break;
     }
 
@@ -147,14 +147,14 @@ void HMMWV_VehicleFull::Initialize(const ChCoordsys<>& chassisPos, double chassi
 
     // Initialize the steering subsystem (specify the steering subsystem's frame relative to the chassis reference
     // frame).
-    ChVector<> offset = ChVector<>(1.24498, 0, 0.101322);
-    ChQuaternion<> rotation = Q_from_AngAxis(18.5 * CH_C_PI / 180, ChVector<>(0, 1, 0));
+    ChVector3d offset = ChVector3d(1.24498, 0, 0.101322);
+    ChQuaternion<> rotation = QuatFromAngleY(18.5 * CH_PI / 180);
     m_steerings[0]->Initialize(m_chassis, offset, rotation);
 
     // Initialize the axle subsystems.
-    m_axles[0]->Initialize(m_chassis, nullptr, m_steerings[0], ChVector<>(1.688965, 0, 0), ChVector<>(0), 0.0,
+    m_axles[0]->Initialize(m_chassis, nullptr, m_steerings[0], ChVector3d(1.688965, 0, 0), ChVector3d(0), 0.0,
                            m_omega[0], m_omega[1]);
-    m_axles[1]->Initialize(m_chassis, nullptr, nullptr, ChVector<>(-1.688965, 0, 0), ChVector<>(0), 0.0, m_omega[2],
+    m_axles[1]->Initialize(m_chassis, nullptr, nullptr, ChVector3d(-1.688965, 0, 0), ChVector3d(0), 0.0, m_omega[2],
                            m_omega[3]);
 
     // Initialize the driveline subsystem
@@ -214,19 +214,15 @@ double HMMWV_VehicleFull::GetShockVelocity(int axle, VehicleSide side) const {
 // subsystems (display in inches)
 // -----------------------------------------------------------------------------
 void HMMWV_VehicleFull::LogHardpointLocations() {
-    GetLog().SetNumFormat("%7.3f");
-
-    GetLog() << "\n---- FRONT suspension hardpoint locations (LEFT side)\n";
+    std::cout << "\n---- FRONT suspension hardpoint locations (LEFT side)\n";
     std::static_pointer_cast<ChDoubleWishbone>(m_axles[0]->m_suspension)
-        ->LogHardpointLocations(ChVector<>(-37.78, 0, 30.77), true);
+        ->LogHardpointLocations(ChVector3d(-37.78, 0, 30.77), true);
 
-    GetLog() << "\n---- REAR suspension hardpoint locations (LEFT side)\n";
+    std::cout << "\n---- REAR suspension hardpoint locations (LEFT side)\n";
     std::static_pointer_cast<ChDoubleWishbone>(m_axles[1]->m_suspension)
-        ->LogHardpointLocations(ChVector<>(-170.77, 0, 30.77), true);
+        ->LogHardpointLocations(ChVector3d(-170.77, 0, 30.77), true);
 
-    GetLog() << "\n\n";
-
-    GetLog().SetNumFormat("%g");
+    std::cout << "\n\n";
 }
 
 // -----------------------------------------------------------------------------
@@ -235,34 +231,30 @@ void HMMWV_VehicleFull::LogHardpointLocations() {
 // Log constraint violations of suspension joints.
 // -----------------------------------------------------------------------------
 void HMMWV_VehicleFull::DebugLog(int what) {
-    GetLog().SetNumFormat("%10.2f");
-
     if (what & OUT_SPRINGS) {
-        GetLog() << "\n---- Spring (front-left, front-right, rear-left, rear-right)\n";
-        GetLog() << "Length [m]       " << GetSpringLength(0, LEFT) << "  " << GetSpringLength(0, RIGHT) << "  "
-                 << GetSpringLength(1, LEFT) << "  " << GetSpringLength(1, RIGHT) << "\n";
-        GetLog() << "Deformation [m]  " << GetSpringDeformation(0, LEFT) << "  " << GetSpringDeformation(0, RIGHT)
-                 << "  " << GetSpringDeformation(1, LEFT) << "  " << GetSpringDeformation(1, RIGHT) << "\n";
-        GetLog() << "Force [N]         " << GetSpringForce(0, LEFT) << "  " << GetSpringForce(0, RIGHT) << "  "
-                 << GetSpringForce(1, LEFT) << "  " << GetSpringForce(1, RIGHT) << "\n";
+        std::cout << "\n---- Spring (front-left, front-right, rear-left, rear-right)\n";
+        std::cout << "Length [m]       " << GetSpringLength(0, LEFT) << "  " << GetSpringLength(0, RIGHT) << "  "
+                  << GetSpringLength(1, LEFT) << "  " << GetSpringLength(1, RIGHT) << "\n";
+        std::cout << "Deformation [m]  " << GetSpringDeformation(0, LEFT) << "  " << GetSpringDeformation(0, RIGHT)
+                  << "  " << GetSpringDeformation(1, LEFT) << "  " << GetSpringDeformation(1, RIGHT) << "\n";
+        std::cout << "Force [N]         " << GetSpringForce(0, LEFT) << "  " << GetSpringForce(0, RIGHT) << "  "
+                  << GetSpringForce(1, LEFT) << "  " << GetSpringForce(1, RIGHT) << "\n";
     }
 
     if (what & OUT_SHOCKS) {
-        GetLog() << "\n---- Shock (front-left, front-right, rear-left, rear-right)\n";
-        GetLog() << "Length [m]       " << GetShockLength(0, LEFT) << "  " << GetShockLength(0, RIGHT) << "  "
-                 << GetShockLength(1, LEFT) << "  " << GetShockLength(1, RIGHT) << "\n";
-        GetLog() << "Velocity [m/s]   " << GetShockVelocity(0, LEFT) << "  " << GetShockVelocity(0, RIGHT) << "  "
-                 << GetShockVelocity(1, LEFT) << "  " << GetShockVelocity(1, RIGHT) << "\n";
-        GetLog() << "Force [N]         " << GetShockForce(0, LEFT) << "  " << GetShockForce(0, RIGHT) << "  "
-                 << GetShockForce(1, LEFT) << "  " << GetShockForce(1, RIGHT) << "\n";
+        std::cout << "\n---- Shock (front-left, front-right, rear-left, rear-right)\n";
+        std::cout << "Length [m]       " << GetShockLength(0, LEFT) << "  " << GetShockLength(0, RIGHT) << "  "
+                  << GetShockLength(1, LEFT) << "  " << GetShockLength(1, RIGHT) << "\n";
+        std::cout << "Velocity [m/s]   " << GetShockVelocity(0, LEFT) << "  " << GetShockVelocity(0, RIGHT) << "  "
+                  << GetShockVelocity(1, LEFT) << "  " << GetShockVelocity(1, RIGHT) << "\n";
+        std::cout << "Force [N]         " << GetShockForce(0, LEFT) << "  " << GetShockForce(0, RIGHT) << "  "
+                  << GetShockForce(1, LEFT) << "  " << GetShockForce(1, RIGHT) << "\n";
     }
 
     if (what & OUT_CONSTRAINTS) {
         // Report constraint violations for all joints
         LogConstraintViolations();
     }
-
-    GetLog().SetNumFormat("%g");
 }
 
 }  // end namespace hmmwv

@@ -19,7 +19,6 @@
 #ifndef PAC89_TIRE_H
 #define PAC89_TIRE_H
 
-
 #include "chrono_vehicle/wheeled_vehicle/tire/ChPac89Tire.h"
 #include "chrono_vehicle/ChApiVehicle.h"
 
@@ -40,7 +39,7 @@ class CH_VEHICLE_API Pac89Tire : public ChPac89Tire {
 
     virtual double GetNormalStiffnessForce(double depth) const override {
         if (m_has_vert_table) {
-            return m_vert_map.Get_y(depth);
+            return m_vert_map.GetVal(depth);
         } else {
             return m_normalStiffness * depth;
         }
@@ -50,7 +49,7 @@ class CH_VEHICLE_API Pac89Tire : public ChPac89Tire {
     }
 
     virtual double GetTireMass() const override { return m_mass; }
-    virtual ChVector<> GetTireInertia() const override { return m_inertia; }
+    virtual ChVector3d GetTireInertia() const override { return m_inertia; }
 
     virtual double GetVisualizationWidth() const override { return m_visualization_width; }
 
@@ -65,10 +64,10 @@ class CH_VEHICLE_API Pac89Tire : public ChPac89Tire {
     double m_normalStiffness;
     double m_normalDamping;
     double m_mass;
-    ChVector<> m_inertia;
+    ChVector3d m_inertia;
     bool m_has_mesh;
     bool m_has_vert_table;
-    ChFunction_Recorder m_vert_map;
+    ChFunctionInterp m_vert_map;
 
     double m_visualization_width;
     std::string m_meshFile_left;

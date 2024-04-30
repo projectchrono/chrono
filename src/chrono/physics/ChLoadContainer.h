@@ -51,9 +51,9 @@ class ChApi ChLoadContainer : public ChPhysicsItem {
                                    ) override;
 
     virtual void IntLoadResidual_Mv(const unsigned int off,      ///< offset in R residual
-                                   ChVectorDynamic<>& R,        ///< result: the R residual, R += c*M*v
-                                   const ChVectorDynamic<>& w,  ///< the w vector
-                                   const double c               ///< a scaling factor
+                                    ChVectorDynamic<>& R,        ///< result: the R residual, R += c*M*v
+                                    const ChVectorDynamic<>& w,  ///< the w vector
+                                    const double c               ///< a scaling factor
                                     ) override;
     virtual void IntLoadLumpedMass_Md(const unsigned int off,  ///< offset in Md vector
                                       ChVectorDynamic<>& Md,  ///< result: Md vector, diagonal of the lumped mass matrix
@@ -61,32 +61,26 @@ class ChApi ChLoadContainer : public ChPhysicsItem {
                                       const double c  ///< a scaling factor
                                       ) override;
 
-    /// Tell to a system descriptor that there are items of type
-    /// ChKblock in this object (for further passing it to a solver)
-    /// Basically does nothing, but maybe that inherited classes may specialize this.
-    virtual void InjectKRMmatrices(ChSystemDescriptor& mdescriptor) override;
+    /// Register with the given system descriptor any ChKRMBlock objects associated with this item.
+    virtual void InjectKRMMatrices(ChSystemDescriptor& descriptor) override;
 
-    /// Adds the current stiffness K and damping R and mass M matrices in encapsulated
-    /// ChKblock item(s), if any. The K, R, M matrices are added with scaling
-    /// values Kfactor, Rfactor, Mfactor.
-    /// NOTE: signs are flipped respect to the ChTimestepper dF/dx terms:  K = -dF/dq, R = -dF/dv
-    virtual void KRMmatricesLoad(double Kfactor, double Rfactor, double Mfactor) override;
-
-    //
-    // SERIALIZATION
-    //
+    /// Compute and load current stiffnes (K), damping (R), and mass (M) matrices in encapsulated ChKRMBlock objects.
+    /// The resulting KRM blocks represent linear combinations of the K, R, and M matrices, with the specified
+    /// coefficients Kfactor, Rfactor,and Mfactor, respectively.
+    /// Note: signs are flipped from the term dF/dx in the integrator: K = -dF/dq and R = -dF/dv.
+    virtual void LoadKRMMatrices(double Kfactor, double Rfactor, double Mfactor) override;
 
     /// Method to allow serialization of transient data to archives.
-    virtual void ArchiveOut(ChArchiveOut& marchive) override;
+    virtual void ArchiveOut(ChArchiveOut& archive_out) override;
 
     /// Method to allow deserialization of transient data from archives.
-    virtual void ArchiveIn(ChArchiveIn& marchive) override;
+    virtual void ArchiveIn(ChArchiveIn& archive_in) override;
 
   private:
     std::vector<std::shared_ptr<ChLoadBase> > loadlist;
 };
 
-CH_CLASS_VERSION(ChLoadContainer,0)
+CH_CLASS_VERSION(ChLoadContainer, 0)
 
 }  // end namespace chrono
 

@@ -22,7 +22,7 @@ namespace chrono {
 namespace vehicle {
 namespace mrole {
 
-const double rpm2rads = CH_C_PI / 30;
+const double rpm2rads = CH_PI / 30;
 
 mrole_EngineSimpleMap::mrole_EngineSimpleMap(const std::string& name) : ChEngineSimpleMap(name) {}
 
@@ -30,7 +30,7 @@ double mrole_EngineSimpleMap::GetMaxEngineSpeed() {
     return 2400 * rpm2rads;
 }
 
-void mrole_EngineSimpleMap::SetEngineTorqueMaps(ChFunction_Recorder& map0, ChFunction_Recorder& mapF) {
+void mrole_EngineSimpleMap::SetEngineTorqueMaps(ChFunctionInterp& map0, ChFunctionInterp& mapF) {
     map0.AddPoint(-10.472, 0.000);
     map0.AddPoint(83.776, -20.0);
     map0.AddPoint(104.720, -20.0);
@@ -43,7 +43,7 @@ void mrole_EngineSimpleMap::SetEngineTorqueMaps(ChFunction_Recorder& map0, ChFun
     map0.AddPoint(251.327, -100.0);
     map0.AddPoint(282.743, -800.0);
 
-    double rpm_to_radsec = CH_C_2PI / 60.;
+    double rpm_to_radsec = CH_2PI / 60.;
 
     mapF.AddPoint(-100 * rpm_to_radsec, 600);
     mapF.AddPoint(702.26 * rpm_to_radsec, 700);

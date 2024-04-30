@@ -38,8 +38,8 @@ const double Kraz_trailer_Suspension::m_axleTubeRadius = 0.08;
 const double Kraz_trailer_Suspension::m_spindleRadius = 0.10;
 const double Kraz_trailer_Suspension::m_spindleWidth = 0.06;
 
-const ChVector<> Kraz_trailer_Suspension::m_axleTubeInertia(178.4760417, 1.6, 178.4760417);
-const ChVector<> Kraz_trailer_Suspension::m_spindleInertia(0.04117, 0.07352, 0.04117);
+const ChVector3d Kraz_trailer_Suspension::m_axleTubeInertia(178.4760417, 1.6, 178.4760417);
+const ChVector3d Kraz_trailer_Suspension::m_spindleInertia(0.04117, 0.07352, 0.04117);
 
 const double Kraz_trailer_Suspension::m_springDesignLength = 0.2;
 const double Kraz_trailer_Suspension::m_springCoefficient = 710611.5169;
@@ -69,7 +69,7 @@ class Trailer_SpringForceRear : public ChLinkTSDA::ForceFunctor {
     double m_min_length;
     double m_max_length;
 
-    ChFunction_Recorder m_bump;
+    ChFunctionInterp m_bump;
 };
 
 Trailer_SpringForceRear::Trailer_SpringForceRear(double spring_constant, double min_length, double max_length)
@@ -106,7 +106,7 @@ double Trailer_SpringForceRear::evaluate(double time,
         defl_rebound = length - m_max_length;
     }
 
-    force = defl_spring * m_spring_constant + m_bump.Get_y(defl_bump) - m_bump.Get_y(defl_rebound);
+    force = defl_spring * m_spring_constant + m_bump.GetVal(defl_bump) - m_bump.GetVal(defl_rebound);
 
     return force;
 }
@@ -170,20 +170,20 @@ Kraz_trailer_Suspension::Kraz_trailer_Suspension(const std::string& name) : ChLe
         m_damperCoefficient, m_damperDegressivityCompression, m_damperCoefficient, m_damperDegressivityExpansion);
 }
 
-const ChVector<> Kraz_trailer_Suspension::getLocation(PointId which) {
+const ChVector3d Kraz_trailer_Suspension::getLocation(PointId which) {
     switch (which) {
         case SPRING_A:
-            return ChVector<>(0.0, 0.729, m_axleTubeRadius);
+            return ChVector3d(0.0, 0.729, m_axleTubeRadius);
         case SPRING_C:
-            return ChVector<>(0.0, 0.729, m_axleTubeRadius + m_springDesignLength);
+            return ChVector3d(0.0, 0.729, m_axleTubeRadius + m_springDesignLength);
         case SHOCK_A:
-            return ChVector<>(-0.15, 0.7075, m_axleTubeRadius - 0.05);
+            return ChVector3d(-0.15, 0.7075, m_axleTubeRadius - 0.05);
         case SHOCK_C:
-            return ChVector<>(0.0, 0.629, m_axleTubeRadius + m_springDesignLength + 0.2);
+            return ChVector3d(0.0, 0.629, m_axleTubeRadius + m_springDesignLength + 0.2);
         case SPINDLE:
-            return ChVector<>(0.0, 1.0325, 0.0);
+            return ChVector3d(0.0, 1.0325, 0.0);
         default:
-            return ChVector<>(0, 0, 0);
+            return ChVector3d(0, 0, 0);
     }
 }
 

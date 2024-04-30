@@ -51,11 +51,11 @@ ChNodeFEAxyzrot& ChNodeFEAxyzrot::operator=(const ChNodeFEAxyzrot& other) {
     return *this;
 }
 
-void ChNodeFEAxyzrot::SetNoSpeedNoAcceleration() {
-    this->GetPos_dt() = VNULL;
-    this->GetRot_dtdt() = QNULL;
-    this->GetPos_dtdt() = VNULL;
-    this->GetRot_dtdt() = QNULL;
+void ChNodeFEAxyzrot::ForceToRest() {
+    SetPosDt(VNULL);
+    SetRotDt(QNULL);
+    SetPosDt2(VNULL);
+    SetRotDt2(QNULL);
 }
 
 void ChNodeFEAxyzrot::SetFixed(bool fixed) {
@@ -73,11 +73,11 @@ void ChNodeFEAxyzrot::NodeIntStateGather(const unsigned int off_x,
                                          const unsigned int off_v,
                                          ChStateDelta& v,
                                          double& T) {
-    x.segment(off_x + 0, 3) = this->coord.pos.eigen();
-    x.segment(off_x + 3, 4) = this->coord.rot.eigen();
+    x.segment(off_x + 0, 3) = this->GetPos().eigen();
+    x.segment(off_x + 3, 4) = this->GetRot().eigen();
 
-    v.segment(off_v + 0, 3) = this->coord_dt.pos.eigen();
-    v.segment(off_v + 3, 3) = this->GetWvel_loc().eigen();
+    v.segment(off_v + 0, 3) = this->GetPosDt().eigen();
+    v.segment(off_v + 3, 3) = this->GetAngVelLocal().eigen();
 }
 
 void ChNodeFEAxyzrot::NodeIntStateScatter(const unsigned int off_x,
@@ -85,19 +85,19 @@ void ChNodeFEAxyzrot::NodeIntStateScatter(const unsigned int off_x,
                                           const unsigned int off_v,
                                           const ChStateDelta& v,
                                           const double T) {
-    this->SetCoord(x.segment(off_x, 7));
-    this->SetPos_dt(v.segment(off_v, 3));
-    this->SetWvel_loc(v.segment(off_v + 3, 3));
+    this->SetCoordsys(x.segment(off_x, 7));
+    this->SetPosDt(v.segment(off_v, 3));
+    this->SetAngVelLocal(v.segment(off_v + 3, 3));
 }
 
 void ChNodeFEAxyzrot::NodeIntStateGatherAcceleration(const unsigned int off_a, ChStateDelta& a) {
-    a.segment(off_a + 0, 3) = this->coord_dtdt.pos.eigen();
-    a.segment(off_a + 3, 3) = this->GetWacc_loc().eigen();
+    a.segment(off_a + 0, 3) = this->GetPosDt2().eigen();
+    a.segment(off_a + 3, 3) = this->GetAngAccLocal().eigen();
 }
 
 void ChNodeFEAxyzrot::NodeIntStateScatterAcceleration(const unsigned int off_a, const ChStateDelta& a) {
-    this->SetPos_dtdt(a.segment(off_a, 3));
-    this->SetWacc_loc(a.segment(off_a + 3, 3));
+    this->SetPosDt2(a.segment(off_a, 3));
+    this->SetAngAccLocal(a.segment(off_a + 3, 3));
 }
 
 void ChNodeFEAxyzrot::NodeIntStateIncrement(const unsigned int off_x,
@@ -108,20 +108,21 @@ void ChNodeFEAxyzrot::NodeIntStateIncrement(const unsigned int off_x,
     x_new(off_x) = x(off_x) + Dv(off_v);
     x_new(off_x + 1) = x(off_x + 1) + Dv(off_v + 1);
     x_new(off_x + 2) = x(off_x + 2) + Dv(off_v + 2);
-    
-    // ADVANCE ROTATION: R_new = DR_a * R_old 
+
+    // ADVANCE ROTATION: R_new = DR_a * R_old
     // (using quaternions, local or abs:  q_new = Dq_a * q_old =  q_old * Dq_l  )
     ChQuaternion<> q_old(x.segment(off_x + 3, 4));
-    ChQuaternion<> rel_q; rel_q.Q_from_Rotv(Dv.segment(off_v + 3, 3));
+    ChQuaternion<> rel_q;
+    rel_q.SetFromRotVec(Dv.segment(off_v + 3, 3));
     ChQuaternion<> q_new = q_old * rel_q;
     x_new.segment(off_x + 3, 4) = q_new.eigen();
 }
 
 void ChNodeFEAxyzrot::NodeIntStateGetIncrement(const unsigned int off_x,
-                                            const ChState& x_new,
-                                            const ChState& x,
-                                            const unsigned int off_v,
-                                            ChStateDelta& Dv) {
+                                               const ChState& x_new,
+                                               const ChState& x,
+                                               const unsigned int off_v,
+                                               ChStateDelta& Dv) {
     // POSITION:
     Dv(off_v) = x_new(off_x) - x(off_x);
     Dv(off_v + 1) = x_new(off_x + 1) - x(off_x + 1);
@@ -131,12 +132,12 @@ void ChNodeFEAxyzrot::NodeIntStateGetIncrement(const unsigned int off_x,
     //  because   q_new = Dq_abs * q_old   = q_old * Dq_loc
     ChQuaternion<> q_old(x.segment(off_x + 3, 4));
     ChQuaternion<> q_new(x_new.segment(off_x + 3, 4));
-    ChQuaternion<> rel_q = q_old.GetConjugate() % q_new;
-    Dv.segment(off_v + 3, 3) = rel_q.Q_to_Rotv().eigen();
+    ChQuaternion<> rel_q = q_old.GetConjugate() * q_new;
+    Dv.segment(off_v + 3, 3) = rel_q.GetRotVec().eigen();
 }
 
 void ChNodeFEAxyzrot::NodeIntLoadResidual_F(const unsigned int off, ChVectorDynamic<>& R, const double c) {
-    ChVector<> gyro = Vcross(this->GetWvel_loc(), (variables.GetBodyInertia() * this->GetWvel_loc()));
+    ChVector3d gyro = Vcross(this->GetAngVelLocal(), (variables.GetBodyInertia() * this->GetAngVelLocal()));
 
     R.segment(off + 0, 3) += c * Force.eigen();
     R.segment(off + 3, 3) += c * (Torque - gyro).eigen();
@@ -149,7 +150,7 @@ void ChNodeFEAxyzrot::NodeIntLoadResidual_Mv(const unsigned int off,
     R(off + 0) += c * GetMass() * w(off + 0);
     R(off + 1) += c * GetMass() * w(off + 1);
     R(off + 2) += c * GetMass() * w(off + 2);
-    ChVector<> Iw(GetInertia() * w.segment(off + 3, 3));
+    ChVector3d Iw(GetInertia() * w.segment(off + 3, 3));
     R.segment(off + 3, 3) += c * Iw.eigen();
 }
 
@@ -168,56 +169,56 @@ void ChNodeFEAxyzrot::NodeIntLoadLumpedMass_Md(const unsigned int off,
 }
 
 void ChNodeFEAxyzrot::NodeIntToDescriptor(const unsigned int off_v, const ChStateDelta& v, const ChVectorDynamic<>& R) {
-    variables.Get_qb() = v.segment(off_v, 6);
-    variables.Get_fb() = R.segment(off_v, 6);
+    variables.State() = v.segment(off_v, 6);
+    variables.Force() = R.segment(off_v, 6);
 }
 
 void ChNodeFEAxyzrot::NodeIntFromDescriptor(const unsigned int off_v, ChStateDelta& v) {
-    v.segment(off_v, 6) = variables.Get_qb();
+    v.segment(off_v, 6) = variables.State();
 }
 
 // -----------------------------------------------------------------------------
 
-void ChNodeFEAxyzrot::InjectVariables(ChSystemDescriptor& mdescriptor) {
-    mdescriptor.InsertVariables(&variables);
+void ChNodeFEAxyzrot::InjectVariables(ChSystemDescriptor& descriptor) {
+    descriptor.InsertVariables(&variables);
 }
 
 void ChNodeFEAxyzrot::VariablesFbReset() {
-    variables.Get_fb().setZero();
+    variables.Force().setZero();
 }
 
 void ChNodeFEAxyzrot::VariablesFbLoadForces(double factor) {
-    ChVector<> gyro = Vcross(this->GetWvel_loc(), variables.GetBodyInertia() * this->GetWvel_loc());
+    ChVector3d gyro = Vcross(this->GetAngVelLocal(), variables.GetBodyInertia() * this->GetAngVelLocal());
 
-    variables.Get_fb().segment(0, 3) = factor * Force.eigen();
-    variables.Get_fb().segment(3, 3) = factor * (Torque - gyro).eigen();
+    variables.Force().segment(0, 3) = factor * Force.eigen();
+    variables.Force().segment(3, 3) = factor * (Torque - gyro).eigen();
 }
 
 void ChNodeFEAxyzrot::VariablesQbLoadSpeed() {
     // set current speed in 'qb', it can be used by the solver when working in incremental mode
-    variables.Get_qb().segment(0, 3) = this->GetCoord_dt().pos.eigen();
-    variables.Get_qb().segment(3, 3) = this->GetWvel_loc().eigen();
+    variables.State().segment(0, 3) = this->GetCoordsysDt().pos.eigen();
+    variables.State().segment(3, 3) = this->GetAngVelLocal().eigen();
 }
 
 void ChNodeFEAxyzrot::VariablesQbSetSpeed(double step) {
-    ChCoordsys<> old_coord_dt = this->GetCoord_dt();
+    ChCoordsys<> old_coord_dt = this->GetCoordsysDt();
 
     // from 'qb' vector, sets body speed, and updates auxiliary data
-    this->SetPos_dt(this->variables.Get_qb().segment(0, 3));
-    this->SetWvel_loc(this->variables.Get_qb().segment(3, 3));
+    this->SetPosDt(this->variables.State().segment(0, 3));
+    this->SetAngVelLocal(this->variables.State().segment(3, 3));
 
     // apply limits (if in speed clamping mode) to speeds.
     // ClampSpeed();
 
     // Compute accel. by BDF (approximate by differentiation);
     if (step) {
-        this->SetPos_dtdt((this->GetCoord_dt().pos - old_coord_dt.pos) / step);
-        this->SetRot_dtdt((this->GetCoord_dt().rot - old_coord_dt.rot) / step);
+        this->SetPosDt2((this->GetCoordsysDt().pos - old_coord_dt.pos) / step);
+        this->SetRotDt2((this->GetCoordsysDt().rot - old_coord_dt.rot) / step);
     }
 }
 
 void ChNodeFEAxyzrot::VariablesFbIncrementMq() {
-    variables.Compute_inc_Mb_v(variables.Get_fb(), variables.Get_qb());
+    variables.AddMassTimesVector(variables.Force(), variables.State());
 }
 
 void ChNodeFEAxyzrot::VariablesQbIncrementPosition(double step) {
@@ -225,10 +226,10 @@ void ChNodeFEAxyzrot::VariablesQbIncrementPosition(double step) {
     //	return;
 
     // Updates position with incremental action of speed contained in the
-    // 'qb' vector:  pos' = pos + dt * speed   , like in an Eulero step.
+    // 'qb' vector:  pos' = pos + dt * speed   , like in an Euler step.
 
-    ChVector<> newspeed(variables.Get_qb().segment(0, 3));
-    ChVector<> newwel(variables.Get_qb().segment(3, 3));
+    ChVector3d newspeed(variables.State().segment(0, 3));
+    ChVector3d newwel(variables.State().segment(3, 3));
 
     // ADVANCE POSITION: pos' = pos + dt * vel
     this->SetPos(this->GetPos() + newspeed * step);
@@ -236,14 +237,13 @@ void ChNodeFEAxyzrot::VariablesQbIncrementPosition(double step) {
     // ADVANCE ROTATION: rot' = [dt*wwel]%rot  (use quaternion for delta rotation)
     ChQuaternion<> mdeltarot;
     ChQuaternion<> moldrot = this->GetRot();
-    ChVector<> newwel_abs = this->Amatrix * newwel;
+    ChVector3d newwel_abs = this->GetRotMat() * newwel;
     double mangle = newwel_abs.Length() * step;
     newwel_abs.Normalize();
-    mdeltarot.Q_from_AngAxis(mangle, newwel_abs);
-    ChQuaternion<> mnewrot = mdeltarot % moldrot;
+    mdeltarot.SetFromAngleAxis(mangle, newwel_abs);
+    ChQuaternion<> mnewrot = mdeltarot * moldrot;
     this->SetRot(mnewrot);
 }
-
 
 // -----------------------------------------------------------------------------
 
@@ -252,21 +252,21 @@ void ChNodeFEAxyzrot::LoadableGetVariables(std::vector<ChVariables*>& mvars) {
 }
 
 void ChNodeFEAxyzrot::LoadableStateIncrement(const unsigned int off_x,
-                                    ChState& x_new,
-                                    const ChState& x,
-                                    const unsigned int off_v,
-                                    const ChStateDelta& Dv) {
+                                             ChState& x_new,
+                                             const ChState& x,
+                                             const unsigned int off_v,
+                                             const ChStateDelta& Dv) {
     this->NodeIntStateIncrement(off_x, x_new, x, off_v, Dv);
 }
 
-void ChNodeFEAxyzrot::LoadableGetStateBlock_x(int block_offset, ChState& mD) {
-    mD.segment(block_offset + 0, 3) = this->GetCoord().pos.eigen();
-    mD.segment(block_offset + 3, 4) = this->GetCoord().rot.eigen();
+void ChNodeFEAxyzrot::LoadableGetStateBlockPosLevel(int block_offset, ChState& mD) {
+    mD.segment(block_offset + 0, 3) = this->GetCoordsys().pos.eigen();
+    mD.segment(block_offset + 3, 4) = this->GetCoordsys().rot.eigen();
 }
 
-void ChNodeFEAxyzrot::LoadableGetStateBlock_w(int block_offset, ChStateDelta& mD) {
-    mD.segment(block_offset + 0, 3) = this->GetPos_dt().eigen();
-    mD.segment(block_offset + 3, 3) = this->GetWvel_loc().eigen();
+void ChNodeFEAxyzrot::LoadableGetStateBlockVelLevel(int block_offset, ChStateDelta& mD) {
+    mD.segment(block_offset + 0, 3) = this->GetPosDt().eigen();
+    mD.segment(block_offset + 3, 3) = this->GetAngVelLocal().eigen();
 }
 
 void ChNodeFEAxyzrot::ComputeNF(
@@ -279,16 +279,16 @@ void ChNodeFEAxyzrot::ComputeNF(
     ChVectorDynamic<>* state_x,  // if != 0, update state (pos. part) to this, then evaluate Q
     ChVectorDynamic<>* state_w   // if != 0, update state (speed part) to this, then evaluate Q
 ) {
-    ChVector<> abs_pos(U, V, W);
-    ChVector<> absF(F.segment(0, 3));
-    ChVector<> absT(F.segment(3, 3));
-    ChVector<> body_absF;
-    ChVector<> body_locT;
+    ChVector3d abs_pos(U, V, W);
+    ChVector3d absF(F.segment(0, 3));
+    ChVector3d absT(F.segment(3, 3));
+    ChVector3d body_absF;
+    ChVector3d body_locT;
     ChCoordsys<> nodecoord;
     if (state_x)
         nodecoord = state_x->segment(0, 7);  // the numerical jacobian algo might change state_x
     else
-        nodecoord = this->coord;
+        nodecoord = this->m_csys;
 
     // compute Q components F,T, given current state of 'nodecoord'. Note T in Q is in local csys, F is an abs csys
     body_absF = absF;
@@ -298,33 +298,32 @@ void ChNodeFEAxyzrot::ComputeNF(
     detJ = 1;  // not needed because not used in quadrature.
 }
 
-
 // -----------------------------------------------------------------------------
 
-void ChNodeFEAxyzrot::ArchiveOut(ChArchiveOut& marchive) {
+void ChNodeFEAxyzrot::ArchiveOut(ChArchiveOut& archive_out) {
     // version number
-    marchive.VersionWrite<ChNodeFEAxyzrot>();
+    archive_out.VersionWrite<ChNodeFEAxyzrot>();
     // serialize parent class
-    ChNodeFEAbase::ArchiveOut(marchive);
+    ChNodeFEAbase::ArchiveOut(archive_out);
     // serialize parent class
-    ChBodyFrame::ArchiveOut(marchive);
+    ChBodyFrame::ArchiveOut(archive_out);
     // serialize all member data:
-    marchive << CHNVP(X0);
-    marchive << CHNVP(Force);
-    marchive << CHNVP(Torque);
+    archive_out << CHNVP(X0);
+    archive_out << CHNVP(Force);
+    archive_out << CHNVP(Torque);
 }
 
-void ChNodeFEAxyzrot::ArchiveIn(ChArchiveIn& marchive) {
+void ChNodeFEAxyzrot::ArchiveIn(ChArchiveIn& archive_in) {
     // version number
-    /*int version =*/ marchive.VersionRead<ChNodeFEAxyzrot>();
+    /*int version =*/archive_in.VersionRead<ChNodeFEAxyzrot>();
     // deserialize parent class
-    ChNodeFEAbase::ArchiveIn(marchive);
+    ChNodeFEAbase::ArchiveIn(archive_in);
     // serialize parent class
-    ChBodyFrame::ArchiveIn(marchive);
+    ChBodyFrame::ArchiveIn(archive_in);
     // stream in all member data:
-    marchive >> CHNVP(X0);
-    marchive >> CHNVP(Force);
-    marchive >> CHNVP(Torque);
+    archive_in >> CHNVP(X0);
+    archive_in >> CHNVP(Force);
+    archive_in >> CHNVP(Torque);
 }
 
 }  // end namespace fea

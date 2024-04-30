@@ -18,8 +18,6 @@
 
 namespace chrono {
 
-using namespace geometry;
-
 // Register into the object factory, to enable run-time dynamic creation and persistence
 CH_FACTORY_REGISTER(ChContactContainerNSC)
 
@@ -171,22 +169,22 @@ void ChContactContainerNSC::EndAddContact() {
 }
 
 template <class Tcont, class Titer, class Ta, class Tb>
-void _OptimalContactInsert(std::list<Tcont*>& contactlist,           // contact list
-                           Titer& lastcontact,                       // last contact acquired
-                           int& n_added,                             // number of contacts inserted
-                           ChContactContainer* container,            // contact container
-                           Ta* objA,                                 // collidable object A
-                           Tb* objB,                                 // collidable object B
-                           const ChCollisionInfo& cinfo,  // collision information
-                           const ChMaterialCompositeNSC& cmat        // composite material
+void _OptimalContactInsert(std::list<Tcont*>& contactlist,            // contact list
+                           Titer& lastcontact,                        // last contact acquired
+                           int& n_added,                              // number of contacts inserted
+                           ChContactContainerNSC* container,          // contact container
+                           Ta* objA,                                  // collidable object A
+                           Tb* objB,                                  // collidable object B
+                           const ChCollisionInfo& cinfo,              // collision information
+                           const ChContactMaterialCompositeNSC& cmat  // composite material
 ) {
     if (lastcontact != contactlist.end()) {
         // reuse old contacts
-        (*lastcontact)->Reset(objA, objB, cinfo, cmat);
+        (*lastcontact)->Reset(objA, objB, cinfo, cmat, container->GetMinBounceSpeed());
         lastcontact++;
     } else {
         // add new contact
-        Tcont* mc = new Tcont(container, objA, objB, cinfo, cmat);
+        Tcont* mc = new Tcont(container, objA, objB, cinfo, cmat, container->GetMinBounceSpeed());
         contactlist.push_back(mc);
         lastcontact = contactlist.end();
     }
@@ -194,8 +192,8 @@ void _OptimalContactInsert(std::list<Tcont*>& contactlist,           // contact 
 }
 
 void ChContactContainerNSC::AddContact(const ChCollisionInfo& cinfo,
-                                       std::shared_ptr<ChMaterialSurface> mat1,
-                                       std::shared_ptr<ChMaterialSurface> mat2) {
+                                       std::shared_ptr<ChContactMaterial> mat1,
+                                       std::shared_ptr<ChContactMaterial> mat2) {
     assert(cinfo.modelA->GetContactable());
     assert(cinfo.modelB->GetContactable());
 
@@ -212,9 +210,9 @@ void ChContactContainerNSC::AddContact(const ChCollisionInfo& cinfo,
     }
 
     // Create the composite material
-    ChMaterialCompositeNSC cmat(GetSystem()->composition_strategy.get(),
-                                std::static_pointer_cast<ChMaterialSurfaceNSC>(mat1),
-                                std::static_pointer_cast<ChMaterialSurfaceNSC>(mat2));
+    ChContactMaterialCompositeNSC cmat(GetSystem()->composition_strategy.get(),
+                                       std::static_pointer_cast<ChContactMaterialNSC>(mat1),
+                                       std::static_pointer_cast<ChContactMaterialNSC>(mat2));
 
     InsertContact(cinfo, cmat);
 }
@@ -237,9 +235,9 @@ void ChContactContainerNSC::AddContact(const ChCollisionInfo& cinfo) {
     }
 
     // Create the composite material
-    ChMaterialCompositeNSC cmat(GetSystem()->composition_strategy.get(),
-                                std::static_pointer_cast<ChMaterialSurfaceNSC>(cinfo.shapeA->GetMaterial()),
-                                std::static_pointer_cast<ChMaterialSurfaceNSC>(cinfo.shapeB->GetMaterial()));
+    ChContactMaterialCompositeNSC cmat(GetSystem()->composition_strategy.get(),
+                                       std::static_pointer_cast<ChContactMaterialNSC>(cinfo.shapeA->GetMaterial()),
+                                       std::static_pointer_cast<ChContactMaterialNSC>(cinfo.shapeB->GetMaterial()));
 
     // Check for a user-provided callback to modify the material
     if (GetAddContactCallback()) {
@@ -249,7 +247,7 @@ void ChContactContainerNSC::AddContact(const ChCollisionInfo& cinfo) {
     InsertContact(cinfo, cmat);
 }
 
-void ChContactContainerNSC::InsertContact(const ChCollisionInfo& cinfo, const ChMaterialCompositeNSC& cmat) {
+void ChContactContainerNSC::InsertContact(const ChCollisionInfo& cinfo, const ChContactMaterialCompositeNSC& cmat) {
     auto contactableA = cinfo.modelA->GetContactable();
     auto contactableB = cinfo.modelB->GetContactable();
 
@@ -275,17 +273,20 @@ void ChContactContainerNSC::InsertContact(const ChCollisionInfo& cinfo, const Ch
                 auto objB = static_cast<ChContactable_1vars<6>*>(contactableB);
                 // 3_6 -> 6_3
                 ChCollisionInfo swapped_cinfo(cinfo, true);
-                _OptimalContactInsert(contactlist_6_3, lastcontact_6_3, n_added_6_3, this, objB, objA, swapped_cinfo, cmat);
+                _OptimalContactInsert(contactlist_6_3, lastcontact_6_3, n_added_6_3, this, objB, objA, swapped_cinfo,
+                                      cmat);
             } else if (contactableB->GetContactableType() == ChContactable::CONTACTABLE_333) {
                 auto objB = static_cast<ChContactable_3vars<3, 3, 3>*>(contactableB);
                 // 3_333 -> 333_3
                 ChCollisionInfo swapped_cinfo(cinfo, true);
-                _OptimalContactInsert(contactlist_333_3, lastcontact_333_3, n_added_333_3, this, objB, objA, swapped_cinfo, cmat);
+                _OptimalContactInsert(contactlist_333_3, lastcontact_333_3, n_added_333_3, this, objB, objA,
+                                      swapped_cinfo, cmat);
             } else if (contactableB->GetContactableType() == ChContactable::CONTACTABLE_666) {
                 auto objB = static_cast<ChContactable_3vars<6, 6, 6>*>(contactableB);
                 // 3_666 -> 666_3
                 ChCollisionInfo swapped_cinfo(cinfo, true);
-                _OptimalContactInsert(contactlist_666_3, lastcontact_666_3, n_added_666_3, this, objB, objA, swapped_cinfo, cmat);
+                _OptimalContactInsert(contactlist_666_3, lastcontact_666_3, n_added_666_3, this, objB, objA,
+                                      swapped_cinfo, cmat);
             }
         } break;
 
@@ -299,7 +300,8 @@ void ChContactContainerNSC::InsertContact(const ChCollisionInfo& cinfo, const Ch
                 auto objB = static_cast<ChContactable_1vars<6>*>(contactableB);
                 // 6_6    ***NOTE: for body-body one could have rolling friction: ***
                 if (cmat.rolling_friction || cmat.spinning_friction) {
-                    _OptimalContactInsert(contactlist_6_6_rolling, lastcontact_6_6_rolling, n_added_6_6_rolling, this, objA, objB, cinfo, cmat);
+                    _OptimalContactInsert(contactlist_6_6_rolling, lastcontact_6_6_rolling, n_added_6_6_rolling, this,
+                                          objA, objB, cinfo, cmat);
                 } else {
                     _OptimalContactInsert(contactlist_6_6, lastcontact_6_6, n_added_6_6, this, objA, objB, cinfo, cmat);
                 }
@@ -307,12 +309,14 @@ void ChContactContainerNSC::InsertContact(const ChCollisionInfo& cinfo, const Ch
                 auto objB = static_cast<ChContactable_3vars<3, 3, 3>*>(contactableB);
                 // 6_333 -> 333_6
                 ChCollisionInfo swapped_cinfo(cinfo, true);
-                _OptimalContactInsert(contactlist_333_6, lastcontact_333_6, n_added_333_6, this, objB, objA, swapped_cinfo, cmat);
+                _OptimalContactInsert(contactlist_333_6, lastcontact_333_6, n_added_333_6, this, objB, objA,
+                                      swapped_cinfo, cmat);
             } else if (contactableB->GetContactableType() == ChContactable::CONTACTABLE_666) {
                 auto objB = static_cast<ChContactable_3vars<6, 6, 6>*>(contactableB);
                 // 6_666 -> 666_6
                 ChCollisionInfo swapped_cinfo(cinfo, true);
-                _OptimalContactInsert(contactlist_666_6, lastcontact_666_6, n_added_666_6, this, objB, objA, swapped_cinfo, cmat);
+                _OptimalContactInsert(contactlist_666_6, lastcontact_666_6, n_added_666_6, this, objB, objA,
+                                      swapped_cinfo, cmat);
             }
         } break;
 
@@ -321,20 +325,24 @@ void ChContactContainerNSC::InsertContact(const ChCollisionInfo& cinfo, const Ch
             if (contactableB->GetContactableType() == ChContactable::CONTACTABLE_3) {
                 auto objB = static_cast<ChContactable_1vars<3>*>(contactableB);
                 // 333_3
-                _OptimalContactInsert(contactlist_333_3, lastcontact_333_3, n_added_333_3, this, objA, objB, cinfo, cmat);
+                _OptimalContactInsert(contactlist_333_3, lastcontact_333_3, n_added_333_3, this, objA, objB, cinfo,
+                                      cmat);
             } else if (contactableB->GetContactableType() == ChContactable::CONTACTABLE_6) {
                 auto objB = static_cast<ChContactable_1vars<6>*>(contactableB);
                 // 333_6
-                _OptimalContactInsert(contactlist_333_6, lastcontact_333_6, n_added_333_6, this, objA, objB, cinfo, cmat);
+                _OptimalContactInsert(contactlist_333_6, lastcontact_333_6, n_added_333_6, this, objA, objB, cinfo,
+                                      cmat);
             } else if (contactableB->GetContactableType() == ChContactable::CONTACTABLE_333) {
                 auto objB = static_cast<ChContactable_3vars<3, 3, 3>*>(contactableB);
                 // 333_333
-                _OptimalContactInsert(contactlist_333_333, lastcontact_333_333, n_added_333_333, this, objA, objB, cinfo, cmat);
+                _OptimalContactInsert(contactlist_333_333, lastcontact_333_333, n_added_333_333, this, objA, objB,
+                                      cinfo, cmat);
             } else if (contactableB->GetContactableType() == ChContactable::CONTACTABLE_666) {
                 auto objB = static_cast<ChContactable_3vars<6, 6, 6>*>(contactableB);
                 // 333_666 -> 666_333
                 ChCollisionInfo swapped_cinfo(cinfo, true);
-                _OptimalContactInsert(contactlist_666_333, lastcontact_666_333, n_added_666_333, this, objB, objA, swapped_cinfo, cmat);
+                _OptimalContactInsert(contactlist_666_333, lastcontact_666_333, n_added_666_333, this, objB, objA,
+                                      swapped_cinfo, cmat);
             }
         } break;
 
@@ -343,25 +351,29 @@ void ChContactContainerNSC::InsertContact(const ChCollisionInfo& cinfo, const Ch
             if (contactableB->GetContactableType() == ChContactable::CONTACTABLE_3) {
                 auto objB = static_cast<ChContactable_1vars<3>*>(contactableB);
                 // 666_3
-                _OptimalContactInsert(contactlist_666_3, lastcontact_666_3, n_added_666_3, this, objA, objB, cinfo, cmat);
+                _OptimalContactInsert(contactlist_666_3, lastcontact_666_3, n_added_666_3, this, objA, objB, cinfo,
+                                      cmat);
             } else if (contactableB->GetContactableType() == ChContactable::CONTACTABLE_6) {
                 auto objB = static_cast<ChContactable_1vars<6>*>(contactableB);
                 // 666_6
-                _OptimalContactInsert(contactlist_666_6, lastcontact_666_6, n_added_666_6, this, objA, objB, cinfo, cmat);
+                _OptimalContactInsert(contactlist_666_6, lastcontact_666_6, n_added_666_6, this, objA, objB, cinfo,
+                                      cmat);
             } else if (contactableB->GetContactableType() == ChContactable::CONTACTABLE_333) {
                 auto objB = static_cast<ChContactable_3vars<3, 3, 3>*>(contactableB);
                 // 666_333
-                _OptimalContactInsert(contactlist_666_333, lastcontact_666_333, n_added_666_333, this, objA, objB, cinfo, cmat);
+                _OptimalContactInsert(contactlist_666_333, lastcontact_666_333, n_added_666_333, this, objA, objB,
+                                      cinfo, cmat);
             } else if (contactableB->GetContactableType() == ChContactable::CONTACTABLE_666) {
                 auto objB = static_cast<ChContactable_3vars<6, 6, 6>*>(contactableB);
                 // 666_666
-                _OptimalContactInsert(contactlist_666_666, lastcontact_666_666, n_added_666_666, this, objA, objB, cinfo, cmat);
+                _OptimalContactInsert(contactlist_666_666, lastcontact_666_666, n_added_666_666, this, objA, objB,
+                                      cinfo, cmat);
             }
         } break;
 
         default: {
             //// TODO Fallback to some dynamic-size allocated constraint for cases that were not trapped by the switch
-        } break; 
+        } break;
 
     }  // switch (contactableA->GetContactableType())
 }
@@ -381,20 +393,20 @@ void ChContactContainerNSC::ComputeContactForces() {
     SumAllContactForces(contactlist_6_6_rolling, contact_forces);
 }
 
-ChVector<> ChContactContainerNSC::GetContactableForce(ChContactable* contactable) {
+ChVector3d ChContactContainerNSC::GetContactableForce(ChContactable* contactable) {
     std::unordered_map<ChContactable*, ForceTorque>::const_iterator Iterator = contact_forces.find(contactable);
     if (Iterator != contact_forces.end()) {
         return Iterator->second.force;
     }
-    return ChVector<>(0);
+    return ChVector3d(0);
 }
 
-ChVector<> ChContactContainerNSC::GetContactableTorque(ChContactable* contactable) {
+ChVector3d ChContactContainerNSC::GetContactableTorque(ChContactable* contactable) {
     std::unordered_map<ChContactable*, ForceTorque>::const_iterator Iterator = contact_forces.find(contactable);
     if (Iterator != contact_forces.end()) {
         return Iterator->second.torque;
     }
-    return ChVector<>(0);
+    return ChVector3d(0);
 }
 
 template <class Tcont>
@@ -440,7 +452,6 @@ void ChContactContainerNSC::ReportAllContacts(std::shared_ptr<ReportContactCallb
     _ReportAllContactsRolling(contactlist_6_6_rolling, callback.get());
 }
 
-
 template <class Tcont>
 void _ReportAllContactsNSC(std::list<Tcont*>& contactlist, ChContactContainerNSC::ReportContactCallbackNSC* mcallback) {
     typename std::list<Tcont*>::iterator itercontact = contactlist.begin();
@@ -457,15 +468,15 @@ void _ReportAllContactsNSC(std::list<Tcont*>& contactlist, ChContactContainerNSC
 }
 
 template <class Tcont>
-void _ReportAllContactsRollingNSC(std::list<Tcont*>& contactlist, ChContactContainerNSC::ReportContactCallbackNSC* mcallback) {
+void _ReportAllContactsRollingNSC(std::list<Tcont*>& contactlist,
+                                  ChContactContainerNSC::ReportContactCallbackNSC* mcallback) {
     typename std::list<Tcont*>::iterator itercontact = contactlist.begin();
     while (itercontact != contactlist.end()) {
         bool proceed = mcallback->OnReportContact(
             (*itercontact)->GetContactP1(), (*itercontact)->GetContactP2(), (*itercontact)->GetContactPlane(),
             (*itercontact)->GetContactDistance(), (*itercontact)->GetEffectiveCurvatureRadius(),
             (*itercontact)->GetContactForce(), (*itercontact)->GetContactTorque(), (*itercontact)->GetObjA(),
-            (*itercontact)->GetObjB(),
-            (*itercontact)->GetConstraintNx()->GetOffset());
+            (*itercontact)->GetObjB(), (*itercontact)->GetConstraintNx()->GetOffset());
         if (!proceed)
             break;
         ++itercontact;
@@ -693,26 +704,26 @@ void ChContactContainerNSC::IntFromDescriptor(const unsigned int off_v,
 // SOLVER INTERFACES
 
 template <class Tcont>
-void _InjectConstraints(std::list<Tcont*>& contactlist, ChSystemDescriptor& mdescriptor) {
+void _InjectConstraints(std::list<Tcont*>& contactlist, ChSystemDescriptor& descriptor) {
     typename std::list<Tcont*>::iterator itercontact = contactlist.begin();
     while (itercontact != contactlist.end()) {
-        (*itercontact)->InjectConstraints(mdescriptor);
+        (*itercontact)->InjectConstraints(descriptor);
         ++itercontact;
     }
 }
 
-void ChContactContainerNSC::InjectConstraints(ChSystemDescriptor& mdescriptor) {
-    _InjectConstraints(contactlist_6_6, mdescriptor);
-    _InjectConstraints(contactlist_6_3, mdescriptor);
-    _InjectConstraints(contactlist_3_3, mdescriptor);
-    _InjectConstraints(contactlist_333_3, mdescriptor);
-    _InjectConstraints(contactlist_333_6, mdescriptor);
-    _InjectConstraints(contactlist_333_333, mdescriptor);
-    _InjectConstraints(contactlist_666_3, mdescriptor);
-    _InjectConstraints(contactlist_666_6, mdescriptor);
-    _InjectConstraints(contactlist_666_333, mdescriptor);
-    _InjectConstraints(contactlist_666_666, mdescriptor);
-    _InjectConstraints(contactlist_6_6_rolling, mdescriptor);
+void ChContactContainerNSC::InjectConstraints(ChSystemDescriptor& descriptor) {
+    _InjectConstraints(contactlist_6_6, descriptor);
+    _InjectConstraints(contactlist_6_3, descriptor);
+    _InjectConstraints(contactlist_3_3, descriptor);
+    _InjectConstraints(contactlist_333_3, descriptor);
+    _InjectConstraints(contactlist_333_6, descriptor);
+    _InjectConstraints(contactlist_333_333, descriptor);
+    _InjectConstraints(contactlist_666_3, descriptor);
+    _InjectConstraints(contactlist_666_6, descriptor);
+    _InjectConstraints(contactlist_666_333, descriptor);
+    _InjectConstraints(contactlist_666_666, descriptor);
+    _InjectConstraints(contactlist_6_6_rolling, descriptor);
 }
 
 template <class Tcont>
@@ -761,7 +772,7 @@ void ChContactContainerNSC::ConstraintsBiLoad_C(double factor, double recovery_c
     _ConstraintsBiLoad_C(contactlist_6_6_rolling, factor, recovery_clamp, do_clamp);
 }
 
-void ChContactContainerNSC::ConstraintsLoadJacobians() {
+void ChContactContainerNSC::LoadConstraintJacobians() {
     // already loaded when contact objects are created
 }
 
@@ -789,22 +800,26 @@ void ChContactContainerNSC::ConstraintsFetch_react(double factor) {
     _ConstraintsFetch_react(contactlist_6_6_rolling, factor);
 }
 
-void ChContactContainerNSC::ArchiveOut(ChArchiveOut& marchive) {
+void ChContactContainerNSC::ArchiveOut(ChArchiveOut& archive_out) {
     // version number
-    marchive.VersionWrite<ChContactContainerNSC>();
+    archive_out.VersionWrite<ChContactContainerNSC>();
     // serialize parent class
-    ChContactContainer::ArchiveOut(marchive);
+    ChContactContainer::ArchiveOut(archive_out);
     // serialize all member data:
+    archive_out << CHNVP(min_bounce_speed);
+
     // NO SERIALIZATION of contact list because assume it is volatile and generated when needed
 }
 
 /// Method to allow de serialization of transient data from archives.
-void ChContactContainerNSC::ArchiveIn(ChArchiveIn& marchive) {
+void ChContactContainerNSC::ArchiveIn(ChArchiveIn& archive_in) {
     // version number
-    /*int version =*/ marchive.VersionRead<ChContactContainerNSC>();
+    /*int version =*/archive_in.VersionRead<ChContactContainerNSC>();
     // deserialize parent class
-    ChContactContainer::ArchiveIn(marchive);
+    ChContactContainer::ArchiveIn(archive_in);
     // stream in all member data:
+    archive_in >> CHNVP(min_bounce_speed);
+
     RemoveAllContacts();
     // NO SERIALIZATION of contact list because assume it is volatile and generated when needed
 }

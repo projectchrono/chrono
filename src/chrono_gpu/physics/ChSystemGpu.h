@@ -17,7 +17,7 @@
 #include <vector>
 
 #include "chrono_gpu/ChApiGpu.h"
-#include "chrono/core/ChVector.h"
+#include "chrono/core/ChVector3.h"
 #include "chrono/core/ChMatrix33.h"
 #include "chrono/geometry/ChTriangleMeshConnected.h"
 #include "chrono/core/ChTimer.h"
@@ -40,10 +40,7 @@ class ChSystemGpuMesh_impl;
 class CH_GPU_API ChSystemGpu {
   public:
     /// Construct system with given sphere radius, density, big domain dimensions and center.
-    ChSystemGpu(float sphere_rad,
-                float density,
-                const ChVector<float>& boxDims,
-                ChVector<float> O = ChVector<float>(0));
+    ChSystemGpu(float sphere_rad, float density, const ChVector3f& boxDims, ChVector3f O = ChVector3f(0));
 
     /// Construct system with a checkpoint file.
     ChSystemGpu(const std::string& checkpoint);
@@ -51,12 +48,12 @@ class CH_GPU_API ChSystemGpu {
     virtual ~ChSystemGpu();
 
     /// Set gravitational acceleration vector.
-    void SetGravitationalAcceleration(const ChVector<float>& g);
+    void SetGravitationalAcceleration(const ChVector3f& g);
 
     /// Set particle positions, velocities and angular velocities.
-    void SetParticles(const std::vector<ChVector<float>>& points,
-                      const std::vector<ChVector<float>>& vels = std::vector<ChVector<float>>(),
-                      const std::vector<ChVector<float>>& ang_vels = std::vector<ChVector<float>>());
+    void SetParticles(const std::vector<ChVector3f>& points,
+                      const std::vector<ChVector3f>& vels = std::vector<ChVector3f>(),
+                      const std::vector<ChVector3f>& ang_vels = std::vector<ChVector3f>());
 
     /// Set particle positions, velocities and angular velocities from a file.
     void ReadParticleFile(const std::string& infilename);
@@ -74,7 +71,7 @@ class CH_GPU_API ChSystemGpu {
     /// Set the center of the big box domain, relative to the origin of the coordinate system (default: [0,0,0]).
     /// Note that the domain is always axis-aligned. The user must make sure that all simulation information (particle
     /// locations, boundaries, meshes...) is consistent with this domain.
-    void SetBDCenter(const ChVector<float>& O);
+    void SetBDCenter(const ChVector3f& O);
 
     /// Set flags indicating whether or not a particle is fixed.
     /// MUST be called only once and MUST be called before Initialize.
@@ -186,16 +183,12 @@ class CH_GPU_API ChSystemGpu {
     void SetVerbosity(CHGPU_VERBOSITY level);
 
     /// Create an axis-aligned sphere boundary condition.
-    size_t CreateBCSphere(const ChVector<float>& center,
-                          float radius,
-                          bool outward_normal,
-                          bool track_forces,
-                          float mass);
+    size_t CreateBCSphere(const ChVector3f& center, float radius, bool outward_normal, bool track_forces, float mass);
 
-    // void UpdateBCSpherePosition(size_t sphere_bc_id, ChVector<double> position);
+    // void UpdateBCSpherePosition(size_t sphere_bc_id, ChVector3d position);
 
     /// Create a Z-axis aligned cone boundary condition.
-    size_t CreateBCConeZ(const ChVector<float>& tip,
+    size_t CreateBCConeZ(const ChVector3f& tip,
                          float slope,
                          float hmax,
                          float hmin,
@@ -203,13 +196,13 @@ class CH_GPU_API ChSystemGpu {
                          bool track_forces);
 
     /// Create a plane boundary condition.
-    size_t CreateBCPlane(const ChVector<float>& pos, const ChVector<float>& normal, bool track_forces);
+    size_t CreateBCPlane(const ChVector3f& pos, const ChVector3f& normal, bool track_forces);
 
     /// create a plate boundary condition
-    size_t CreateCustomizedPlate(const ChVector<float>& pos_center, const ChVector<float>& normal, float hdim_y);
+    size_t CreateCustomizedPlate(const ChVector3f& pos_center, const ChVector3f& normal, float hdim_y);
 
     /// Create a Z-axis aligned cylinder boundary condition.
-    size_t CreateBCCylinderZ(const ChVector<float>& center, float radius, bool outward_normal, bool track_forces);
+    size_t CreateBCCylinderZ(const ChVector3f& center, float radius, bool outward_normal, bool track_forces);
 
     /// Disable a boundary condition by its ID, returns false if the BC does not exist.
     bool DisableBCbyID(size_t BC_id);
@@ -247,10 +240,10 @@ class CH_GPU_API ChSystemGpu {
     float GetParticleRadius() const;
 
     /// Return particle position.
-    ChVector<float> GetParticlePosition(int nSphere) const;
+    ChVector3f GetParticlePosition(int nSphere) const;
 
     /// Set particle position
-    void SetParticlePosition(int nSphere, const ChVector<double> pos);
+    void SetParticlePosition(int nSphere, const ChVector3d pos);
 
     /// Set particle density
     void SetParticleDensity(float density);
@@ -259,46 +252,46 @@ class CH_GPU_API ChSystemGpu {
     void SetParticleRadius(float rad);
 
     /// Set particle velocity
-    void SetParticleVelocity(int nSphere, const ChVector<double> velo);
+    void SetParticleVelocity(int nSphere, const ChVector3d velo);
 
     /// Return particle angular velocity.
-    ChVector<float> GetParticleAngVelocity(int nSphere) const;
+    ChVector3f GetParticleAngVelocity(int nSphere) const;
 
     /// return particle acc
-    ChVector<float> GetParticleLinAcc(int nSphere) const;
+    ChVector3f GetParticleLinAcc(int nSphere) const;
 
     /// Return whether or not the particle is fixed
     bool IsFixed(int nSphere) const;
 
     /// Return particle linear velocity.
-    ChVector<float> GetParticleVelocity(int nSphere) const;
+    ChVector3f GetParticleVelocity(int nSphere) const;
 
     /// Return the total kinetic energy of all particles.
     float GetParticlesKineticEnergy() const;
 
     /// Return position of BC plane.
-    ChVector<float> GetBCPlanePosition(size_t plane_id) const;
+    ChVector3f GetBCPlanePosition(size_t plane_id) const;
 
     /// Return position of BC sphere
-    ChVector<float> GetBCSpherePosition(size_t sphere_id) const;
+    ChVector3f GetBCSpherePosition(size_t sphere_id) const;
 
     /// Set position of BC spheres
-    void SetBCSpherePosition(size_t sphere_bc_id, const ChVector<float>& pos);
+    void SetBCSpherePosition(size_t sphere_bc_id, const ChVector3f& pos);
 
     /// Return velocity of BC sphere
-    ChVector<float> GetBCSphereVelocity(size_t sphere_id) const;
+    ChVector3f GetBCSphereVelocity(size_t sphere_id) const;
 
     /// Set velocity of BC spheres
-    void SetBCSphereVelocity(size_t sphere_bc_id, const ChVector<float>& velo);
+    void SetBCSphereVelocity(size_t sphere_bc_id, const ChVector3f& velo);
 
     /// Set BC plane rotation
-    void SetBCPlaneRotation(size_t plane_id, ChVector<double> center, ChVector<double> omega);
+    void SetBCPlaneRotation(size_t plane_id, ChVector3d center, ChVector3d omega);
 
     /// Get the reaction forces on a boundary by ID, returns false if the forces are invalid (bad BC ID)
-    bool GetBCReactionForces(size_t BC_id, ChVector<float>& force) const;
+    bool GetBCReactionForces(size_t BC_id, ChVector3f& force) const;
 
     /// Return number of particle-particle contacts.
-    int GetNumContacts() const;
+    unsigned int GetNumContacts() const;
 
     /// Return number of subdomains in the big domain.
     unsigned int GetNumSDs() const;
@@ -330,16 +323,16 @@ class CH_GPU_API ChSystemGpu {
     size_t EstimateMemUsage() const;
 
     /// Get rolling friction torque between body i and j, return 0 if not in contact
-    ChVector<float> getRollingFrictionTorque(unsigned int i, unsigned int j);
+    ChVector3f getRollingFrictionTorque(unsigned int i, unsigned int j);
 
     /// Get tangential friction force between body i and j, return 0 if not in contact
-    ChVector<float> getSlidingFrictionForce(unsigned int i, unsigned int j);
+    ChVector3f getSlidingFrictionForce(unsigned int i, unsigned int j);
 
     /// Get normal friction force between body i and j, return 0 if not in contact
-    ChVector<float> getNormalForce(unsigned int i, unsigned int j);
+    ChVector3f getNormalForce(unsigned int i, unsigned int j);
 
     /// Get v_rot for rolling friction
-    ChVector<float> getRollingVrot(unsigned int i, unsigned int j);
+    ChVector3f getRollingVrot(unsigned int i, unsigned int j);
 
     /// get contact char time
     float getRollingCharContactTime(unsigned int i, unsigned int j);
@@ -349,7 +342,6 @@ class CH_GPU_API ChSystemGpu {
 
     /// Get current estimated RTF (real time factor).
     float GetRTF() const { return m_RTF; }
-
 
   protected:
     /// Protected default constructor.  Derived class must create m_sys.
@@ -396,7 +388,7 @@ class CH_GPU_API ChSystemGpu {
     /// Set gravitational acceleration as a float3 vector.
     void SetGravitationalAcceleration(const float3 g);
 
-    ChTimer m_timer; 
+    ChTimer m_timer;
     float m_RTF;  // real-time factor
 };
 
@@ -406,10 +398,7 @@ class CH_GPU_API ChSystemGpu {
 class CH_GPU_API ChSystemGpuMesh : public ChSystemGpu {
   public:
     /// Construct system with given sphere radius, density, big domain dimensions and center.
-    ChSystemGpuMesh(float sphere_rad,
-                    float density,
-                    const ChVector<float>& boxDims,
-                    ChVector<float> O = ChVector<float>(0));
+    ChSystemGpuMesh(float sphere_rad, float density, const ChVector3f& boxDims, ChVector3f O = ChVector3f(0));
 
     /// Construct system with a checkpoint file.
     ChSystemGpuMesh(const std::string& checkpoint);
@@ -419,13 +408,13 @@ class CH_GPU_API ChSystemGpuMesh : public ChSystemGpu {
     /// Add a trimesh to the granular system.
     /// The return value is a mesh identifier which can be used during the simulation to apply rigid body motion to the
     /// mesh; see ApplyMeshMotion(). This function must be called before Initialize().
-    unsigned int AddMesh(std::shared_ptr<geometry::ChTriangleMeshConnected> mesh, float mass);
+    unsigned int AddMesh(std::shared_ptr<ChTriangleMeshConnected> mesh, float mass);
 
     /// Add a trimesh from the specified Wavefront OBJ file to the granular system.
     /// The return value is a mesh identifier which can be used during the simulation to apply rigid body motion to the
     /// mesh; see ApplyMeshMotion(). This function must be called before Initialize().
     unsigned int AddMesh(const std::string& filename,
-                         const ChVector<float>& translation,
+                         const ChVector3f& translation,
                          const ChMatrix33<float>& rotscale,
                          float mass);
 
@@ -433,7 +422,7 @@ class CH_GPU_API ChSystemGpuMesh : public ChSystemGpu {
     /// The return value is a vector of mesh identifiers which can be used during the simulation to apply rigid body
     /// motion to the mesh; see ApplyMeshMotion(). This function must be called before Initialize().
     std::vector<unsigned int> AddMeshes(const std::vector<std::string>& objfilenames,
-                                        const std::vector<ChVector<float>>& translations,
+                                        const std::vector<ChVector3f>& translations,
                                         const std::vector<ChMatrix33<float>>& rotscales,
                                         const std::vector<float>& masses);
 
@@ -445,17 +434,17 @@ class CH_GPU_API ChSystemGpuMesh : public ChSystemGpu {
 
     /// Apply rigid body motion to specified mesh.
     void ApplyMeshMotion(unsigned int mesh_id,
-                         const ChVector<>& pos,
+                         const ChVector3d& pos,
                          const ChQuaternion<>& rot,
-                         const ChVector<>& lin_vel,
-                         const ChVector<>& ang_vel);
+                         const ChVector3d& lin_vel,
+                         const ChVector3d& ang_vel);
 
     /// Return the number of meshes in the system.
     unsigned int GetNumMeshes() const;
 
     /// Return the specified mesh in the system.
     /// The mesh is assumed to have been added with one of the AddMesh() functions.
-    std::shared_ptr<geometry::ChTriangleMeshConnected> GetMesh(unsigned int mesh_id) const { return m_meshes[mesh_id]; }
+    std::shared_ptr<ChTriangleMeshConnected> GetMesh(unsigned int mesh_id) const { return m_meshes[mesh_id]; }
 
     /// Return the mass of the specified mesh.
     /// The mesh is assumed to have been added with one of the AddMesh() functions.
@@ -507,10 +496,10 @@ class CH_GPU_API ChSystemGpuMesh : public ChSystemGpu {
     virtual double AdvanceSimulation(float duration) override;
 
     /// Collect contact forces exerted on all meshes by the granular system.
-    void CollectMeshContactForces(std::vector<ChVector<>>& forces, std::vector<ChVector<>>& torques);
+    void CollectMeshContactForces(std::vector<ChVector3d>& forces, std::vector<ChVector3d>& torques);
 
     /// Collect contact forces exerted on the specified meshe by the granular system.
-    void CollectMeshContactForces(int mesh, ChVector<>& force, ChVector<>& torque);
+    void CollectMeshContactForces(int mesh, ChVector3d& force, ChVector3d& torque);
 
     /// GpuMesh version of checkpoint loading from a file.
     void ReadCheckpointFile(const std::string& infilename, bool overwrite = false);
@@ -528,9 +517,9 @@ class CH_GPU_API ChSystemGpuMesh : public ChSystemGpu {
     /// Set triangle meshes in underlying GPU system.
     void SetMeshes();
 
-    CHGPU_MESH_VERBOSITY mesh_verbosity;                                       ///< mesh operations verbosity level
-    std::vector<std::shared_ptr<geometry::ChTriangleMeshConnected>> m_meshes;  ///< list of meshes used in cosimulation
-    std::vector<float> m_mesh_masses;                                          ///< associated mesh masses
+    CHGPU_MESH_VERBOSITY mesh_verbosity;                             ///< mesh operations verbosity level
+    std::vector<std::shared_ptr<ChTriangleMeshConnected>> m_meshes;  ///< list of meshes used in cosimulation
+    std::vector<float> m_mesh_masses;                                ///< associated mesh masses
     bool use_mesh_normals =
         false;  ///< true: use mesh normals in file to correct mesh orientation; false: do nothing, implicitly use RHR
 

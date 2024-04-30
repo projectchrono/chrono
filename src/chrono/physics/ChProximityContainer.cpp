@@ -17,26 +17,26 @@
 namespace chrono {
 
 // Register into the object factory, to enable run-time dynamic creation and persistence
-//CH_FACTORY_REGISTER(ChProximityContainer)  // NO! Abstract class
+// CH_FACTORY_REGISTER(ChProximityContainer)  // NO! Abstract class
 
 ChProximityContainer::ChProximityContainer(const ChProximityContainer& other) : ChPhysicsItem(other) {
     add_proximity_callback = other.add_proximity_callback;
     report_proximity_callback = other.report_proximity_callback;
 }
 
-void ChProximityContainer::ArchiveOut(ChArchiveOut& marchive) {
+void ChProximityContainer::ArchiveOut(ChArchiveOut& archive_out) {
     // version number
-    marchive.VersionWrite(1);
+    archive_out.VersionWrite(1);
     // serialize parent class
-    ChPhysicsItem::ArchiveOut(marchive);
+    ChPhysicsItem::ArchiveOut(archive_out);
     // serialize all member data:
 }
 
-void ChProximityContainer::ArchiveIn(ChArchiveIn& marchive) {
+void ChProximityContainer::ArchiveIn(ChArchiveIn& archive_in) {
     // version number
-    /*int version =*/ marchive.VersionRead();
+    /*int version =*/archive_in.VersionRead();
     // deserialize parent class
-    ChPhysicsItem::ArchiveIn(marchive);
+    ChPhysicsItem::ArchiveIn(archive_in);
     // stream in all member data:
 }
 

@@ -21,16 +21,16 @@ namespace chrono {
 ChHydraulicCylinder::ChHydraulicCylinder()
     : pistonD(0.08), rodD(0.035), p0({3.3e6, 4.4e6}), L0({0.15, 0.15}), length_exceeded(false) {
     pistonL = L0(0) + L0(1);
-    A(0) = CH_C_PI * pistonD * pistonD / 4;
-    A(1) = A(0) - CH_C_PI * rodD * rodD / 4;
+    A(0) = CH_PI * pistonD * pistonD / 4;
+    A(1) = A(0) - CH_PI * rodD * rodD / 4;
 }
 
 void ChHydraulicCylinder::SetDimensions(double piston_diameter, double rod_diameter) {
     pistonD = piston_diameter;
     rodD = rod_diameter;
 
-    A(0) = CH_C_PI * pistonD * pistonD / 4;
-    A(1) = A(0) - CH_C_PI * rodD * rodD / 4;
+    A(0) = CH_PI * pistonD * pistonD / 4;
+    A(1) = A(0) - CH_PI * rodD * rodD / 4;
 }
 
 void ChHydraulicCylinder::SetInitialChamberLengths(double piston_side, double rod_side) {
@@ -82,7 +82,7 @@ ChHydraulicDirectionalValve4x3::ChHydraulicDirectionalValve4x3() : linear_limit(
     // Flow rate constant corresponding to a nominal flow of 24 l/min with a pressure difference of 35 bar
     Cv = (24e-3 / 60) / (1.0 * std::sqrt(35e5));
     // Valve time constant corresponding to a -45 degree phase shift frequency of 35 Hz
-    time_constant = 1 / (CH_C_2PI * 35);
+    time_constant = 1 / (CH_2PI * 35);
 }
 
 void ChHydraulicDirectionalValve4x3::SetCharacteristicParameters(double linear_limit, double Q, double dp) {
@@ -91,7 +91,7 @@ void ChHydraulicDirectionalValve4x3::SetCharacteristicParameters(double linear_l
 }
 
 void ChHydraulicDirectionalValve4x3::SetTimeConstantFrequency(double fm45) {
-    time_constant = 1 / (CH_C_2PI * fm45);
+    time_constant = 1 / (CH_2PI * fm45);
 }
 
 void ChHydraulicDirectionalValve4x3::SetValveDeadZone(double dead_zone) {
@@ -116,7 +116,7 @@ Vec2 ChHydraulicDirectionalValve4x3::ComputeVolumeFlows(double U, const Vec2& p,
     //    2. Compute the actual flow as a factor of the flow at the limit.
     //       Sign of Delta_p defines sign of the volume flow.
     // In the turbulent regime:
-    //    1. Use quadratic characteristic. 
+    //    1. Use quadratic characteristic.
     //       Sign of Delta_p defines sign of the volume flow.
 
     if (U >= dead_zone) {
@@ -161,7 +161,7 @@ Vec2 ChHydraulicDirectionalValve4x3::ComputeVolumeFlows(double U, const Vec2& p,
 // ---------------------------------------------------------------------------------------------------------------------
 
 ChHydraulicThrottleValve::ChHydraulicThrottleValve() : valveD(0.006), Do(850), linear_limit(2e5), Cd(0.8) {
-    double A = CH_C_PI * valveD * valveD / 4;
+    double A = CH_PI * valveD * valveD / 4;
     Cv = Cd * A * std::sqrt(2 / Do);
 }
 
@@ -174,7 +174,7 @@ void ChHydraulicThrottleValve::SetParameters(double valve_diameter,
     this->linear_limit = linear_limit;
     this->Cd = Cd;
 
-    double A = CH_C_PI * valveD * valveD / 4;
+    double A = CH_PI * valveD * valveD / 4;
     Cv = Cd * A * std::sqrt(2 / Do);
 }
 

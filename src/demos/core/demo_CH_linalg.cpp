@@ -18,8 +18,8 @@
 
 #include "chrono/core/ChMatrix.h"
 #include "chrono/core/ChMatrixMBD.h"
-#include "chrono/core/ChTransform.h"
-#include "chrono/core/ChVector.h"
+#include "chrono/core/ChVector3.h"
+#include "chrono/core/ChRotation.h"
 
 int main(int argc, char* argv[]) {
     ///! [Basic operations with matrices]
@@ -88,7 +88,7 @@ int main(int argc, char* argv[]) {
         chrono::ChMatrixDynamic<double> CD = C * D;
         chrono::ChMatrixDynamic<double> CD_t = D.transpose() * C.transpose();
 
-        chrono::ChMatrix33<> R(chrono::Q_from_AngX(chrono::CH_C_PI / 3));
+        chrono::ChMatrix33<> R(chrono::QuatFromAngleX(chrono::CH_PI / 3));
         std::cout << "rot * matrix\n" << R * C << std::endl;
         std::cout << "matrix * rot\n" << D * R << std::endl;
     }
@@ -161,7 +161,7 @@ int main(int argc, char* argv[]) {
 
     std::cout << "\n=== 3x3 matrix times vector ===\n" << std::endl;
     {
-        chrono::ChVector<> v(1, 2, 3);
+        chrono::ChVector3d v(1, 2, 3);
         chrono::ChMatrix33<> A;
         A.setRandom();
 
@@ -169,10 +169,10 @@ int main(int argc, char* argv[]) {
         std::cout << B << std::endl;
 
         // Vector transformation, typical product [A] * v
-        chrono::ChVector<> res1 = A * v;
+        chrono::ChVector3d res1 = A * v;
 
         // Inverse vector transformation, [A]' * v
-        chrono::ChVector<> res2 = A.transpose() * v;
+        chrono::ChVector3d res2 = A.transpose() * v;
 
         std::cout << A << std::endl;
         std::cout << res1 << std::endl;
@@ -183,7 +183,7 @@ int main(int argc, char* argv[]) {
     {
         chrono::ChMatrix34<> G = Eigen::Matrix<double, 3, 4>::Ones(3, 4);
         chrono::ChQuaternion<> q(1, 2, 3, 4);
-        chrono::ChVector<> v = G * q;
+        chrono::ChVector3d v = G * q;
         std::cout << v << std::endl;
 
         chrono::ChMatrix43<> Gt = 2 * G.transpose();
@@ -193,7 +193,7 @@ int main(int argc, char* argv[]) {
         q = G.transpose() * v;
         std::cout << q << std::endl;
 
-        chrono::ChMatrix33<> rot(chrono::Q_from_AngX(chrono::CH_C_PI / 6));
+        chrono::ChMatrix33<> rot(chrono::QuatFromAngleX(chrono::CH_PI / 6));
         std::cout << rot << std::endl;
         std::cout << rot.transpose() << std::endl;
 
@@ -209,7 +209,7 @@ int main(int argc, char* argv[]) {
         chrono::ChMatrix44<> A44;
         A44.setRandom();
         chrono::ChQuaternion<> q2 = A44 * q;
-        std::cout << "Random 4x4 * q:\n" << q2 << std::endl; 
+        std::cout << "Random 4x4 * q:\n" << q2 << std::endl;
 
         chrono::ChStarMatrix44<> X(chrono::ChQuaternion<>(1, 2, 3, 4));
         std::cout << "4x4 star matrix X:\n" << X << std::endl;
@@ -219,31 +219,26 @@ int main(int argc, char* argv[]) {
         std::cout << "Semi-negate X:\n" << X << std::endl;
     }
 
-    std::cout << "\n=== Use of ChTransform ===\n" << std::endl;
+    std::cout << "\n=== Frame transformations ===\n" << std::endl;
     {
-        chrono::ChVector<> vl(2, 3, 4);        // local point to transform
-        chrono::ChVector<> t(5, 6, 7);         // translation of coord system
+        chrono::ChVector3d vl(2, 3, 4);        // local point to transform
+        chrono::ChVector3d t(5, 6, 7);         // translation of coord system
         chrono::ChQuaternion<> q(1, 3, 4, 5);  // rotation of coord system (quaternion)
         q.Normalize();                         // as unit quaternion, must be normalized
         chrono::ChMatrix33<> R;                // rotation of coord system (rotation matrix)
-        R.Set_A_quaternion(q);                 // set from quaternion
-        chrono::Coordsys csys(t, q);           // coordinate system representing translation + rotation
+        R.SetFromQuaternion(q);                // set from quaternion
+        chrono::ChCoordsysd csys(t, q);        // coordinate system representing translation + rotation
 
         // Perform the transformation: v = t + [R] * v'
         // NOTE: all the following ways will give the same result, so you can use them equivalently!
-        auto va1 = chrono::ChTransform<>::TransformLocalToParent(vl, t, R);
-        auto va2 = chrono::ChTransform<>::TransformLocalToParent(vl, t, q);
-        auto va3 = csys.TransformLocalToParent(vl);
-        auto va4 = t + R * vl;
-        std::cout << va2.Equals(va1, 1e-6) << " " << va3.Equals(va1, 1e-6) << " " << va4.Equals(va1, 1e-6) << std::endl;
+        auto va1 = csys.TransformPointLocalToParent(vl);
+        auto va2 = t + R * vl;
+        std::cout << va1.Equals(va2, 1e-6) << std::endl;
 
         // Inverse transformation
-        auto vl1 = chrono::ChTransform<>::TransformParentToLocal(va1, t, q);
-        auto vl2 = chrono::ChTransform<>::TransformParentToLocal(va1, t, R);
-        auto vl3 = csys.TransformParentToLocal(va1);
+        auto vl3 = csys.TransformPointParentToLocal(va1);
         auto vl4 = R.transpose() * (va1 - t);
-        std::cout << vl1.Equals(vl, 1e-6) << " " << vl2.Equals(vl, 1e-6) << " " << vl3.Equals(vl, 1e-6) << " "
-                  << vl4.Equals(vl, 1e-6) << std::endl;
+        std::cout << vl3.Equals(vl, 1e-6) << " " << vl4.Equals(vl, 1e-6) << std::endl;
     }
 
     std::cout << "\n=== Linear systems ===\n" << std::endl;

@@ -115,14 +115,14 @@ class CH_SENSOR_API ChLidarSensor : public ChOptixSensor {
     float GetVertDivAngle() const { return m_vert_divergence_angle; }
 
     bool DualReturnFlag() const {
-      switch (m_return_mode){
-      case LidarReturnMode::DUAL_RETURN:
-        return true;
-      default:
-        return false;
-      }
+        switch (m_return_mode) {
+            case LidarReturnMode::DUAL_RETURN:
+                return true;
+            default:
+                return false;
+        }
     }
-    
+
   private:
     float m_hFOV;                   ///< the horizontal field of view of the sensor
     float m_max_vert_angle;         ///< maximum vertical angle of the rays

@@ -12,38 +12,29 @@
 // Authors: Alessandro Tasora
 // =============================================================================
 
-#include <memory.h>
-#include <cfloat>
-#include <cmath>
-#include <cstdio>
-#include <cstdlib>
-#include <cstring>
-
 #include "chrono/geometry/ChVolume.h"
 
 namespace chrono {
-namespace geometry {
 
 // Register into the object factory, to enable run-time dynamic creation and persistence
 // CH_FACTORY_REGISTER(ChVolume)  // NO! abstract class!
 
-void ChVolume::ArchiveOut(ChArchiveOut& marchive) {
+void ChVolume::ArchiveOut(ChArchiveOut& archive_out) {
     // version number
-    marchive.VersionWrite<ChVolume>();
+    archive_out.VersionWrite<ChVolume>();
     // serialize parent class
-    ChGeometry::ArchiveOut(marchive);
+    ChGeometry::ArchiveOut(archive_out);
     // serialize all member data:
-    // marchive << CHNVP(closed);
+    // archive_out << CHNVP(closed);
 }
 
-void ChVolume::ArchiveIn(ChArchiveIn& marchive) {
+void ChVolume::ArchiveIn(ChArchiveIn& archive_in) {
     // version number
-    /*int version =*/ marchive.VersionRead<ChVolume>();
+    /*int version =*/archive_in.VersionRead<ChVolume>();
     // deserialize parent class
-    ChGeometry::ArchiveIn(marchive);
+    ChGeometry::ArchiveIn(archive_in);
     // stream in all member data:
-    // marchive >> CHNVP(closed);
+    // archive_in >> CHNVP(closed);
 }
 
-}  // end namespace geometry
 }  // end namespace chrono

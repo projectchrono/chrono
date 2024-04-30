@@ -18,12 +18,14 @@
 // =============================================================================
 
 #ifdef __EMSCRIPTEN__
-#include <emscripten.h>
+    #include <emscripten.h>
 #endif
 
 #include "chrono/physics/ChBodyEasy.h"
 #include "chrono/physics/ChLinkMotorRotationSpeed.h"
 #include "chrono/physics/ChSystemNSC.h"
+#include "chrono/core/ChRandom.h"
+
 #include "chrono_opengl/ChVisualSystemOpenGL.h"
 
 // Use the namespace of Chrono
@@ -47,7 +49,7 @@ void create_some_falling_items(ChSystemNSC& sys) {
     ChCollisionModel::SetDefaultSuggestedEnvelope(0.3);
 
     // contact material shared by all falling objects
-    auto mat = chrono_types::make_shared<ChMaterialSurfaceNSC>();
+    auto mat = chrono_types::make_shared<ChContactMaterialNSC>();
     mat->SetFriction(0.3f);
 
     // Create falling bodies
@@ -57,21 +59,21 @@ void create_some_falling_items(ChSystemNSC& sys) {
                                                                       true,  // visualization?
                                                                       true,  // collision?
                                                                       mat);  // contact material
-        mrigidBody->SetPos(ChVector<>(-5 + ChRandom() * 10, 4 + bi * 0.05, -5 + ChRandom() * 10));
+        mrigidBody->SetPos(ChVector3d(-5 + ChRandom::Get() * 10, 4 + bi * 0.05, -5 + ChRandom::Get() * 10));
         sys.Add(mrigidBody);
     }
 
     // Create the five walls of the rectangular container, using fixed rigid bodies of 'box' type:
 
-    auto floor_mat = chrono_types::make_shared<ChMaterialSurfaceNSC>();
+    auto floor_mat = chrono_types::make_shared<ChContactMaterialNSC>();
 
     auto floorBody = chrono_types::make_shared<ChBodyEasyBox>(20, 1, 20,   // x,y,z size
                                                               1000,        // density
                                                               true,        // visualization?
                                                               true,        // collision?
                                                               floor_mat);  // contact material
-    floorBody->SetPos(ChVector<>(0, -5, 0));
-    floorBody->SetBodyFixed(true);
+    floorBody->SetPos(ChVector3d(0, -5, 0));
+    floorBody->SetFixed(true);
     sys.Add(floorBody);
 
     auto wallBody1 = chrono_types::make_shared<ChBodyEasyBox>(1, 10, 20.99,  // x,y,z size
@@ -79,8 +81,8 @@ void create_some_falling_items(ChSystemNSC& sys) {
                                                               true,          // visualization?
                                                               true,          // collision?
                                                               floor_mat);    // contact material
-    wallBody1->SetPos(ChVector<>(-10, 0, 0));
-    wallBody1->SetBodyFixed(true);
+    wallBody1->SetPos(ChVector3d(-10, 0, 0));
+    wallBody1->SetFixed(true);
     sys.Add(wallBody1);
 
     auto wallBody2 = chrono_types::make_shared<ChBodyEasyBox>(1, 10, 20.99,  // x,y,z size
@@ -88,8 +90,8 @@ void create_some_falling_items(ChSystemNSC& sys) {
                                                               true,          // visualization?
                                                               true,          // collision?
                                                               floor_mat);    // contact material
-    wallBody2->SetPos(ChVector<>(10, 0, 0));
-    wallBody2->SetBodyFixed(true);
+    wallBody2->SetPos(ChVector3d(10, 0, 0));
+    wallBody2->SetFixed(true);
     sys.Add(wallBody2);
 
     auto wallBody3 = chrono_types::make_shared<ChBodyEasyBox>(20.99, 10, 1,  // x,y,z size
@@ -97,8 +99,8 @@ void create_some_falling_items(ChSystemNSC& sys) {
                                                               true,          // visualization?
                                                               true,          // collision?
                                                               floor_mat);    // contact material
-    wallBody3->SetPos(ChVector<>(0, 0, -10));
-    wallBody3->SetBodyFixed(true);
+    wallBody3->SetPos(ChVector3d(0, 0, -10));
+    wallBody3->SetFixed(true);
     sys.Add(wallBody3);
 
     auto wallBody4 = chrono_types::make_shared<ChBodyEasyBox>(20.99, 10, 1,  // x,y,z size
@@ -106,12 +108,12 @@ void create_some_falling_items(ChSystemNSC& sys) {
                                                               true,          // visualization?
                                                               true,          // collision?
                                                               floor_mat);    // contact material
-    wallBody4->SetPos(ChVector<>(0, 0, 10));
-    wallBody4->SetBodyFixed(true);
+    wallBody4->SetPos(ChVector3d(0, 0, 10));
+    wallBody4->SetFixed(true);
     sys.Add(wallBody4);
 
     // Add the rotating mixer
-    auto mixer_mat = chrono_types::make_shared<ChMaterialSurfaceNSC>();
+    auto mixer_mat = chrono_types::make_shared<ChContactMaterialNSC>();
     mixer_mat->SetFriction(0.4f);
 
     auto rotatingBody = chrono_types::make_shared<ChBodyEasyBox>(10, 5, 1,    // x,y,z size
@@ -119,18 +121,18 @@ void create_some_falling_items(ChSystemNSC& sys) {
                                                                  true,        // visualization?
                                                                  true,        // collision?
                                                                  mixer_mat);  // contact material
-    rotatingBody->SetPos(ChVector<>(0, -1.6, 0));
+    rotatingBody->SetPos(ChVector3d(0, -1.6, 0));
     sys.Add(rotatingBody);
 
     // .. a motor between mixer and truss
     auto motor = chrono_types::make_shared<ChLinkMotorRotationSpeed>();
-    motor->Initialize(rotatingBody, floorBody, ChFrame<>(ChVector<>(0, 0, 0), Q_from_AngAxis(CH_C_PI_2, VECT_X)));
-    motor->SetSpeedFunction(chrono_types::make_shared<ChFunction_Const>(CH_C_PI / 2.0));
+    motor->Initialize(rotatingBody, floorBody, ChFrame<>(ChVector3d(0, 0, 0), QuatFromAngleX(CH_PI_2)));
+    motor->SetSpeedFunction(chrono_types::make_shared<ChFunctionConst>(CH_PI / 2.0));
     sys.AddLink(motor);
 }
 
 int main(int argc, char* argv[]) {
-    GetLog() << "Copyright (c) 2017 projectchrono.org\nChrono version: " << CHRONO_VERSION << "\n\n";
+    std::cout << "Copyright (c) 2017 projectchrono.org\nChrono version: " << CHRONO_VERSION << std::endl;
 
     // Create a Chrono physical system and an associated collision system
     ChSystemNSC sys;
@@ -143,7 +145,7 @@ int main(int argc, char* argv[]) {
     // Modify some setting of the physical system for the simulation, if you want
 
     sys.SetSolverType(ChSolver::Type::PSOR);
-    sys.SetSolverMaxIterations(20);
+    sys.GetSolver()->AsIterative()->SetMaxIterations(20);
 
     // Cohesion in a contact depends on the cohesion in the surface property of
     // the touching bodies, but the user can override this value when each contact is created,
@@ -151,9 +153,10 @@ int main(int argc, char* argv[]) {
 
     class MyContactCallback : public ChContactContainer::AddContactCallback {
       public:
-        virtual void OnAddContact(const ChCollisionInfo& contactinfo, ChMaterialComposite* const material) override {
+        virtual void OnAddContact(const ChCollisionInfo& contactinfo,
+                                  ChContactMaterialComposite* const material) override {
             // Downcast to appropriate composite material type
-            auto mat = static_cast<ChMaterialCompositeNSC* const>(material);
+            auto mat = static_cast<ChContactMaterialCompositeNSC* const>(material);
 
             // Set friction according to user setting:
             mat->static_friction = GLOBAL_friction;
@@ -182,7 +185,7 @@ int main(int argc, char* argv[]) {
     };
 
     auto mycontact_callback = chrono_types::make_shared<MyContactCallback>();  // create the callback object
-    mycontact_callback->msystem = &sys;                            // will be used by callback
+    mycontact_callback->msystem = &sys;                                        // will be used by callback
 
     // Use the above callback to process each contact as it is created.
     sys.GetContactContainer()->RegisterAddContactCallback(mycontact_callback);
@@ -194,7 +197,7 @@ int main(int argc, char* argv[]) {
     vis.SetWindowSize(1280, 720);
     vis.SetRenderMode(opengl::SOLID);
     vis.Initialize();
-    vis.AddCamera(ChVector<>(0, 0, -10), ChVector<>(0, 0, 0));
+    vis.AddCamera(ChVector3d(0, 0, -10), ChVector3d(0, 0, 0));
     vis.SetCameraVertical(CameraVerticalDir::Y);
 
     std::function<void()> step_iter = [&]() {

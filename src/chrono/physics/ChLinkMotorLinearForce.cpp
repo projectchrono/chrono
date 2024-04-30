@@ -20,9 +20,9 @@ namespace chrono {
 CH_FACTORY_REGISTER(ChLinkMotorLinearForce)
 
 ChLinkMotorLinearForce::ChLinkMotorLinearForce() {
-    this->c_x = false;
+    this->c_z = false;  // no actual constraint is set on the actuated axis
     SetupLinkMask();
-    m_func = chrono_types::make_shared<ChFunction_Const>(0.0);
+    m_func = chrono_types::make_shared<ChFunctionConst>(0.0);
 }
 
 ChLinkMotorLinearForce::ChLinkMotorLinearForce(const ChLinkMotorLinearForce& other) : ChLinkMotorLinear(other) {}
@@ -35,76 +35,67 @@ void ChLinkMotorLinearForce::Update(double mytime, bool update_assets) {
 
 void ChLinkMotorLinearForce::IntLoadResidual_F(const unsigned int off, ChVectorDynamic<>& R, const double c) {
     // compute instant force
-    double mF = m_func->Get_y(this->GetChTime());
+    double mF = m_func->GetVal(this->GetChTime());
 
-    ChFrame<> aframe1 = this->frame1 >> (*this->Body1);
-    ChFrame<> aframe2 = this->frame2 >> (*this->Body2);
-    Vector m_abs_force = aframe2.GetA() * ChVector<>(mF, 0, 0);
-    Vector mbody_force;
-    Vector mbody_torque;
+    ChFrame<> aframe1 = this->frame1 >> (*this->m_body1);
+    ChFrame<> aframe2 = this->frame2 >> (*this->m_body2);
 
-    if (Body2->Variables().IsActive()) {
-        Body2->To_abs_forcetorque(m_abs_force,
-                                  aframe1.GetPos(),            // absolute application point is always marker1
-                                  false,                       // from abs. space
-                                  mbody_force, mbody_torque);  // resulting force-torque, both in abs coords
-        R.segment(Body2->Variables().GetOffset() + 0, 3) -= c * mbody_force.eigen();
-        R.segment(Body2->Variables().GetOffset() + 3, 3) -=
-            c * Body2->TransformDirectionParentToLocal(mbody_torque).eigen();
+    // application point is always marker1
+    ChVector3d m_abs_force = aframe2.GetRotMat() * ChVector3d(0, 0, mF);
+
+    if (m_body2->Variables().IsActive()) {
+        auto w2_abs = m_body2->AppliedForceParentToWrenchParent(m_abs_force, aframe1.GetPos());
+        R.segment(m_body2->Variables().GetOffset() + 0, 3) -= c * w2_abs.force.eigen();
+        R.segment(m_body2->Variables().GetOffset() + 3, 3) -=
+            c * m_body2->TransformDirectionParentToLocal(w2_abs.torque).eigen();
     }
 
-    if (Body1->Variables().IsActive()) {
-        Body1->To_abs_forcetorque(m_abs_force,
-                                  aframe1.GetPos(),            // absolute application point is always marker1
-                                  false,                       // from abs. space
-                                  mbody_force, mbody_torque);  // resulting force-torque, both in abs coords
-        R.segment(Body1->Variables().GetOffset() + 0, 3) += c * mbody_force.eigen();
-        R.segment(Body1->Variables().GetOffset() + 3, 3) +=
-            c * Body1->TransformDirectionParentToLocal(mbody_torque).eigen();
+    if (m_body1->Variables().IsActive()) {
+        auto w1_abs = m_body1->AppliedForceParentToWrenchParent(m_abs_force, aframe1.GetPos());
+        R.segment(m_body1->Variables().GetOffset() + 0, 3) += c * w1_abs.force.eigen();
+        R.segment(m_body1->Variables().GetOffset() + 3, 3) +=
+            c * m_body1->TransformDirectionParentToLocal(w1_abs.torque).eigen();
     }
 }
 
 void ChLinkMotorLinearForce::ConstraintsFbLoadForces(double factor) {
     // compute instant force
-    double mF = m_func->Get_y(this->GetChTime());
+    double mF = m_func->GetVal(this->GetChTime());
 
-    ChFrame<> aframe1 = this->frame1 >> (*this->Body1);
-    ChFrame<> aframe2 = this->frame2 >> (*this->Body2);
-    Vector m_abs_force = aframe2.GetA() * ChVector<>(mF, 0, 0);
-    Vector mbody_force;
-    Vector mbody_torque;
-    Body2->To_abs_forcetorque(m_abs_force,
-                              aframe1.GetPos(),            // absolute application point is always marker1
-                              false,                       // from abs. space
-                              mbody_force, mbody_torque);  // resulting force-torque, both in abs coords
-    Body2->Variables().Get_fb().segment(0, 3) -= factor * mbody_force.eigen();
-    Body2->Variables().Get_fb().segment(3, 3) -= factor * Body2->TransformDirectionParentToLocal(mbody_torque).eigen();
+    ChFrame<> aframe1 = this->frame1 >> (*this->m_body1);
+    ChFrame<> aframe2 = this->frame2 >> (*this->m_body2);
 
-    Body1->To_abs_forcetorque(m_abs_force,
-                              aframe1.GetPos(),            // absolute application point is always marker1
-                              false,                       // from abs. space
-                              mbody_force, mbody_torque);  // resulting force-torque, both in abs coords
-    Body1->Variables().Get_fb().segment(0, 3) += factor * mbody_force.eigen();
-    Body1->Variables().Get_fb().segment(3, 3) += factor * Body1->TransformDirectionParentToLocal(mbody_torque).eigen();
+    // application point is always marker1
+    ChVector3d m_abs_force = aframe2.GetRotMat() * ChVector3d(0, 0, mF);
+
+    auto w2_abs = m_body2->AppliedForceParentToWrenchParent(m_abs_force, aframe1.GetPos());
+    m_body2->Variables().Force().segment(0, 3) -= factor * w2_abs.force.eigen();
+    m_body2->Variables().Force().segment(3, 3) -=
+        factor * m_body2->TransformDirectionParentToLocal(w2_abs.torque).eigen();
+
+    auto w1_abs = m_body1->AppliedForceParentToWrenchParent(m_abs_force, aframe1.GetPos());
+    m_body1->Variables().Force().segment(0, 3) += factor * w1_abs.force.eigen();
+    m_body1->Variables().Force().segment(3, 3) +=
+        factor * m_body1->TransformDirectionParentToLocal(w1_abs.torque).eigen();
 }
 
-void ChLinkMotorLinearForce::ArchiveOut(ChArchiveOut& marchive) {
+void ChLinkMotorLinearForce::ArchiveOut(ChArchiveOut& archive_out) {
     // version number
-    marchive.VersionWrite<ChLinkMotorLinearForce>();
+    archive_out.VersionWrite<ChLinkMotorLinearForce>();
 
     // serialize parent class
-    ChLinkMotorLinear::ArchiveOut(marchive);
+    ChLinkMotorLinear::ArchiveOut(archive_out);
 
     // serialize all member data:
 }
 
 /// Method to allow de serialization of transient data from archives.
-void ChLinkMotorLinearForce::ArchiveIn(ChArchiveIn& marchive) {
+void ChLinkMotorLinearForce::ArchiveIn(ChArchiveIn& archive_in) {
     // version number
-    /*int version =*/ marchive.VersionRead<ChLinkMotorLinearForce>();
+    /*int version =*/archive_in.VersionRead<ChLinkMotorLinearForce>();
 
     // deserialize parent class
-    ChLinkMotorLinear::ArchiveIn(marchive);
+    ChLinkMotorLinear::ArchiveIn(archive_in);
 
     // deserialize all member data:
 }

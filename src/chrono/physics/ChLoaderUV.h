@@ -10,29 +10,29 @@
 //
 // =============================================================================
 
-#ifndef CHLOADERUV_H
-#define CHLOADERUV_H
+#ifndef CH_LOADER_UV_H
+#define CH_LOADER_UV_H
+
+#include "chrono/core/ChApiCE.h"
 
 #include "chrono/physics/ChLoader.h"
 
 namespace chrono {
 
-/// Class of loaders for ChLoadableUV objects (which support surface loads).
-
-class ChLoaderUV : public ChLoader {
+/// Loaders for ChLoadableUV objects (which support surface loads).
+class ChApi ChLoaderUV : public ChLoader {
   public:
-    typedef ChLoadableUV type_loadable;
-
     std::shared_ptr<ChLoadableUV> loadable;
 
     ChLoaderUV(std::shared_ptr<ChLoadableUV> mloadable) : loadable(mloadable) {}
     virtual ~ChLoaderUV() {}
 
-    /// Children classes must provide this function that evaluates F = F(u,v)
-    /// This will be evaluated during ComputeQ() to perform integration over the domain.
-    virtual void ComputeF(const double U,        ///< parametric coordinate in surface
-                          const double V,        ///< parametric coordinate in surface
-                          ChVectorDynamic<>& F,  ///< Result F vector here, size must be = n.field coords.of loadable
+    /// Evaluate F = F(u,v) for this line load.
+    /// The vector F is set to zero on entry.
+    /// The function provided by derived classes is called by ComputeQ to perform integration over the domain.
+    virtual void ComputeF(double U,                    ///< parametric coordinate in surface
+                          double V,                    ///< parametric coordinate in surface
+                          ChVectorDynamic<>& F,        ///< result vector, size = field dim of loadable
                           ChVectorDynamic<>* state_x,  ///< if != 0, update state (pos. part) to this, then evaluate F
                           ChVectorDynamic<>* state_w   ///< if != 0, update state (speed part) to this, then evaluate F
                           ) = 0;
@@ -42,10 +42,11 @@ class ChLoaderUV : public ChLoader {
     std::shared_ptr<ChLoadableUV> GetLoadableUV() { return loadable; }
 };
 
-/// Class of loaders for ChLoadableUV objects (which support surface loads), for loads of distributed type,
-/// so these loads will undergo Gauss quadrature to integrate them in the surface.
+//--------------------------------------------------------------------------------
 
-class ChLoaderUVdistributed : public ChLoaderUV {
+/// Loaders for ChLoadableUV objects (which support surface loads), for loads of distributed type.
+/// These loads will undergo Gauss quadrature to integrate them on the surface.
+class ChApi ChLoaderUVdistributed : public ChLoaderUV {
   public:
     ChLoaderUVdistributed(std::shared_ptr<ChLoadableUV> mloadable) : ChLoaderUV(mloadable){};
     virtual ~ChLoaderUVdistributed() {}
@@ -53,145 +54,79 @@ class ChLoaderUVdistributed : public ChLoaderUV {
     virtual int GetIntegrationPointsU() = 0;
     virtual int GetIntegrationPointsV() = 0;
 
-    /// Computes Q = integral (N'*F*detJ dudvdz)
+    /// Compute the generalized load Q = integral (N'*F*detJ dudvdz), using the ComputeF method.
     virtual void ComputeQ(ChVectorDynamic<>* state_x,  ///< if != 0, update state (pos. part) to this, then evaluate Q
                           ChVectorDynamic<>* state_w   ///< if != 0, update state (speed part) to this, then evaluate Q
-                          ) override {
-        Q.setZero(loadable->LoadableGet_ndof_w());
-        ChVectorDynamic<> mF(loadable->Get_field_ncoords());
-        mF.setZero();
-
-        if (!loadable->IsTriangleIntegrationNeeded()) {
-            // Case of normal quadrilateral isoparametric coords
-            assert(GetIntegrationPointsU() <= ChQuadrature::GetStaticTables()->Weight.size());
-            assert(GetIntegrationPointsV() <= ChQuadrature::GetStaticTables()->Weight.size());
-            const std::vector<double>& Ulroots = ChQuadrature::GetStaticTables()->Lroots[GetIntegrationPointsU() - 1];
-            const std::vector<double>& Uweight = ChQuadrature::GetStaticTables()->Weight[GetIntegrationPointsU() - 1];
-            const std::vector<double>& Vlroots = ChQuadrature::GetStaticTables()->Lroots[GetIntegrationPointsV() - 1];
-            const std::vector<double>& Vweight = ChQuadrature::GetStaticTables()->Weight[GetIntegrationPointsV() - 1];
-
-            ChVectorDynamic<> mNF(Q.size());  // temporary value for loop
-
-            // Gauss quadrature :  Q = sum (N'*F*detJ * wi*wj)
-            for (unsigned int iu = 0; iu < Ulroots.size(); iu++) {
-                for (unsigned int iv = 0; iv < Vlroots.size(); iv++) {
-                    double detJ;
-                    // Compute F= F(u,v)
-                    this->ComputeF(Ulroots[iu], Vlroots[iv], mF, state_x, state_w);
-                    // Compute mNF= N(u,v)'*F
-                    loadable->ComputeNF(Ulroots[iu], Vlroots[iv], mNF, detJ, mF, state_x, state_w);
-                    // Compute Q+= mNF detJ * wi*wj
-                    mNF *= (detJ * Uweight[iu] * Vweight[iv]);
-                    Q += mNF;
-                }
-            }
-        } else {
-            // case of triangle: use special 3d quadrature tables (given U,V,W orders, use the U only)
-            assert(GetIntegrationPointsU() <= ChQuadrature::GetStaticTablesTriangle()->Weight.size());
-            const std::vector<double>& Ulroots = ChQuadrature::GetStaticTablesTriangle()->LrootsU[GetIntegrationPointsU() - 1];
-            const std::vector<double>& Vlroots = ChQuadrature::GetStaticTablesTriangle()->LrootsV[GetIntegrationPointsU() - 1];
-            const std::vector<double>& weight = ChQuadrature::GetStaticTablesTriangle()->Weight[GetIntegrationPointsU() - 1];
-
-            ChVectorDynamic<> mNF(Q.size());  // temporary value for loop
-
-            // Gauss quadrature :  Q = sum (N'*F*detJ * wi *1/2)   often detJ= 2 * triangle area
-            for (unsigned int i = 0; i < Ulroots.size(); i++) {
-                double detJ;
-                // Compute F= F(u,v)
-                this->ComputeF(Ulroots[i], Vlroots[i], mF, state_x, state_w);
-                // Compute mNF= N(u,v)'*F
-                loadable->ComputeNF(Ulroots[i], Vlroots[i], mNF, detJ, mF, state_x, state_w);
-                // Compute Q+= mNF detJ * wi *1/2
-                mNF *= (detJ * weight[i] * (1. / 2.));  // (the 1/2 coefficient is not in the table);
-                Q += mNF;
-            }
-        }
-    }
-};
-
-/// Class of loaders for ChLoadableUV objects (which support surface loads) of atomic type,
-/// that is, with a concentrated load in a point Pu,Pv.
-
-class ChLoaderUVatomic : public ChLoaderUV {
-  public:
-    double Pu;
-    double Pv;
-
-    ChLoaderUVatomic(std::shared_ptr<ChLoadableUV> mloadable) : ChLoaderUV(mloadable), Pu(0), Pv(0) {}
-    virtual ~ChLoaderUVatomic() {}
-
-    /// Computes Q = N'*F
-    virtual void ComputeQ(ChVectorDynamic<>* state_x,  ///< if != 0, update state (pos. part) to this, then evaluate Q
-                          ChVectorDynamic<>* state_w   ///< if != 0, update state (speed part) to this, then evaluate Q
-                          ) override {
-        Q.setZero(loadable->LoadableGet_ndof_w());
-        ChVectorDynamic<> mF(loadable->Get_field_ncoords());
-        mF.setZero();
-
-        // Compute F=F(u,v)
-        this->ComputeF(Pu, Pv, mF, state_x, state_w);
-
-        // Compute N(u,v)'*F
-        double detJ;
-        loadable->ComputeNF(Pu, Pv, Q, detJ, mF, state_x, state_w);
-    }
-
-    /// Set the position, on the surface where the atomic load is applied
-    void SetApplication(double mu, double mv) {
-        Pu = mu;
-        Pv = mv;
-    }
+                          ) override;
 };
 
 //--------------------------------------------------------------------------------
+
+/// Loaders for ChLoadableUV objects (which support surface loads), for concentrated loads.
+class ChApi ChLoaderUVatomic : public ChLoaderUV {
+  public:
+    ChLoaderUVatomic(std::shared_ptr<ChLoadableUV> mloadable) : ChLoaderUV(mloadable), Pu(0), Pv(0) {}
+    virtual ~ChLoaderUVatomic() {}
+
+    /// Compute the generalized load  Q = N'*F, using the ComputeF method.
+    virtual void ComputeQ(ChVectorDynamic<>* state_x,  ///< if != 0, update state (pos. part) to this, then evaluate Q
+                          ChVectorDynamic<>* state_w   ///< if != 0, update state (speed part) to this, then evaluate Q
+                          ) override;
+
+    /// Set the position on the surface where the atomic load is applied.
+    void SetApplication(double u, double v);
+
+  private:
+    double Pu;
+    double Pv;
+};
+
+// ===============================================================================
+
 // BASIC UV LOADERS
-//
 // Some ready-to use basic loaders
 
-/// A very simple surface loader: a constant force vector, applied to a point on a u,v surface
-
-class ChLoaderForceOnSurface : public ChLoaderUVatomic {
-  private:
-    ChVector<> force;
-
+/// Simple surface loader: a constant force vector, applied to a point on a u,v surface.
+class ChApi ChLoaderForceOnSurface : public ChLoaderUVatomic {
   public:
     ChLoaderForceOnSurface(std::shared_ptr<ChLoadableUV> mloadable) : ChLoaderUVatomic(mloadable) {}
 
-    virtual void ComputeF(const double U,        ///< parametric coordinate in surface
-                          const double V,        ///< parametric coordinate in surface
+    virtual void ComputeF(double U,              ///< parametric coordinate in surface
+                          double V,              ///< parametric coordinate in surface
                           ChVectorDynamic<>& F,  ///< Result F vector here, size must be = n.field coords.of loadable
                           ChVectorDynamic<>* state_x,  ///< if != 0, update state (pos. part) to this, then evaluate F
                           ChVectorDynamic<>* state_w   ///< if != 0, update state (speed part) to this, then evaluate F
                           ) override {
         F.segment(0, 3) = force.eigen();
     }
-    // Set constant force (assumed in absolute coordinates)
-    void SetForce(ChVector<> mforce) { force = mforce; }
-    // Get constant force (assumed in absolute coordinates)
-    ChVector<> GetForce() { return force; }
+
+    /// Set constant force (assumed in absolute coordinates).
+    void SetForce(ChVector3d mforce) { force = mforce; }
+
+    /// Get constant force (assumed in absolute coordinates).
+    ChVector3d GetForce() { return force; }
 
     virtual bool IsStiff() override { return false; }
+
+  private:
+    ChVector3d force;
 };
 
-/// A very usual type of surface loader: the constant pressure load, a 3D per-area force that is aligned to the surface normal.
+//--------------------------------------------------------------------------------
 
-class ChLoaderPressure : public ChLoaderUVdistributed {
-  private:
-    double pressure;
-    bool is_stiff;
-    int num_integration_points;
-
+/// Commonly used surface loader: constant pressure load, a 3D per-area force aligned with the surface normal.
+class ChApi ChLoaderPressure : public ChLoaderUVdistributed {
   public:
     ChLoaderPressure(std::shared_ptr<ChLoadableUV> mloadable)
         : ChLoaderUVdistributed(mloadable), is_stiff(false), num_integration_points(1) {}
 
-    virtual void ComputeF(const double U,        ///< parametric coordinate in surface
-                          const double V,        ///< parametric coordinate in surface
+    virtual void ComputeF(double U,              ///< parametric coordinate in surface
+                          double V,              ///< parametric coordinate in surface
                           ChVectorDynamic<>& F,  ///< Result F vector here, size must be = n.field coords.of loadable
                           ChVectorDynamic<>* state_x,  ///< if != 0, update state (pos. part) to this, then evaluate F
                           ChVectorDynamic<>* state_w   ///< if != 0, update state (speed part) to this, then evaluate F
                           ) override {
-        ChVector<> mnorm = this->loadable->ComputeNormal(U, V);
+        ChVector3d mnorm = this->loadable->ComputeNormal(U, V);
         F.segment(0, 3) = -pressure * mnorm.eigen();
     }
 
@@ -204,6 +139,11 @@ class ChLoaderPressure : public ChLoaderUVdistributed {
 
     void SetStiff(bool val) { is_stiff = val; }
     virtual bool IsStiff() override { return is_stiff; }
+
+  private:
+    double pressure;
+    bool is_stiff;
+    int num_integration_points;
 };
 
 }  // end namespace chrono

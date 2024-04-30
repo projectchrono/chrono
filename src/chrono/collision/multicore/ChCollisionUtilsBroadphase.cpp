@@ -27,7 +27,7 @@
 #include <thrust/functional.h>
 
 namespace chrono {
-namespace ch_utils {
+namespace mc_utils {
 
 // Grid Size FUNCTIONS =====================================================================================
 
@@ -337,5 +337,5 @@ void f_TL_Write_AABB_Leaf_Intersection(const uint& index,
 
 */
 
-}  // end namespace ch_utils
+}  // end namespace mc_utils
 }  // end namespace chrono

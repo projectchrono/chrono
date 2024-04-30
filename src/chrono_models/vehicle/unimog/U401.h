@@ -130,4 +130,3 @@ class CH_MODELS_API U401 {
 }  // end namespace chrono
 
 #endif
-

@@ -12,8 +12,8 @@
 // Authors: Aaron Young
 // =============================================================================
 //
-// Class wrapping a ChVector into a GPS coordinate, along with helper functions
-// to translate BezierCurves between ChVectors and GPS coordinates. There is
+// Class wrapping a vector into a GPS coordinate, along with helper functions
+// to translate BezierCurves between vectors and GPS coordinates. There is
 // some overlap between the functions here and those in ChGPSSensor, in the
 // future they will share the same codebase, but for now take care when using
 // both of them.
@@ -31,7 +31,7 @@ namespace chrono {
 namespace synchrono {
 
 SynGPSTools::SynGPSTools(const GPScoord& origin, std::shared_ptr<ChTerrain> terrain)
-    : m_terrain(terrain) , m_origin(origin) {
+    : m_terrain(terrain), m_origin(origin) {
     // Store origin info in radians, from degree-based GPScoord
     m_lat_origin = origin.lat_rad();
     m_lon_origin = origin.lon_rad();
@@ -42,7 +42,7 @@ SynGPSTools::~SynGPSTools() {}
 std::shared_ptr<ChBezierCurve> SynGPSTools::CurveFromGPS(std::vector<GPScoord>& gps_points,
                                                          double vert_offset,
                                                          bool closed) {
-    std::vector<ChVector<>> bezier_points;
+    std::vector<ChVector3d> bezier_points;
     bezier_points.reserve(gps_points.size());
     for (const auto& gps_point : gps_points)
         bezier_points.push_back(To3DCartesian(gps_point, vert_offset));
@@ -66,9 +66,9 @@ std::shared_ptr<ChBezierCurve> SynGPSTools::CurveFromGPS(const std::string& file
     std::string line;
     try {
         ifile.exceptions(std::ios::failbit | std::ios::badbit | std::ios::eofbit);
-        ifile.open(filename.c_str());
+        ifile.open(filename);
     } catch (std::exception&) {
-        throw ChException("Cannot open input file");
+        throw std::invalid_argument("Cannot open input file");
     }
 
     // Read number of knots and type of curve
@@ -84,7 +84,7 @@ std::shared_ptr<ChBezierCurve> SynGPSTools::CurveFromGPS(const std::string& file
 
     if (num_cols == 2) {
         // Read points as GPS waypoints
-        std::vector<ChVector<>> waypoints;
+        std::vector<ChVector3d> waypoints;
         waypoints.reserve(num_waypoints);
         for (size_t i = 0; i < num_waypoints; i++) {
             double lat, lon;
@@ -112,16 +112,16 @@ std::shared_ptr<ChBezierCurve> SynGPSTools::CurveFromGPS(const std::string& file
                  << "\n";
 
         ifile.close();
-        return ChBezierCurve::read(filename);
+        return ChBezierCurve::Read(filename);
     }
 
     // Not the expected number of columns.  Close the file and throw an exception.
     ifile.close();
-    throw ChException("Invalid input file");
+    throw std::invalid_argument("Invalid input file");
 }
 
 // TODO Add support for altitude
-ChVector<> SynGPSTools::To3DCartesian(const GPScoord& gps, double height) const {
+ChVector3d SynGPSTools::To3DCartesian(const GPScoord& gps, double height) const {
     auto lat_rad = gps.lat_rad();
     auto lon_rad = gps.lon_rad();
 

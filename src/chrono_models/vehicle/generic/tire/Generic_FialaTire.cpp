@@ -33,7 +33,7 @@ namespace generic {
 const double Generic_FialaTire::m_normalDamping = 7500;
 
 const double Generic_FialaTire::m_mass = 37.6;
-const ChVector<> Generic_FialaTire::m_inertia(3.84, 6.69, 3.84);
+const ChVector3d Generic_FialaTire::m_inertia(3.84, 6.69, 3.84);
 
 const std::string Generic_FialaTire::m_meshFile_left = "generic/tire/generic_tire_coarse.obj";
 const std::string Generic_FialaTire::m_meshFile_right = "generic/tire/generic_tire_coarse.obj";
@@ -54,10 +54,6 @@ void Generic_FialaTire::SetFialaParams() {
     m_c_alpha = 50000.0;
     m_u_min = 0.5568;
     m_u_max = 0.9835;
-    // m_relax_length_x = 0.1244;
-    // m_relax_length_y = 0.0317;
-    m_relax_length_x = 2;
-    m_relax_length_y = 2;
 
     // load the vertical stiffness table
     m_vert_map.AddPoint(0.000, 0);
@@ -90,7 +86,7 @@ double Generic_FialaTire::GetNormalStiffnessForce(double depth) const {
     }
 
     // Return interpolated data
-    return m_vert_map.Get_y(depth);
+    return m_vert_map.GetVal(depth);
 }
 
 double Generic_FialaTire::GetNormalDampingForce(double depth, double velocity) const {

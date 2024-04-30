@@ -19,7 +19,7 @@
 #include <locale>
 
 #include "chrono/utils/ChProfiler.h"
-#include "chrono/core/ChMathematics.h"
+#include "chrono/utils/ChUtils.h"
 
 #include "chrono/assets/ChVisualShapeTriangleMesh.h"
 #include "chrono/assets/ChVisualShapeSurface.h"
@@ -55,7 +55,8 @@ ChVisualSystemIrrlicht::ChVisualSystemIrrlicht()
       m_win_title(""),
       m_yup(true),
       m_use_effects(false),
-      m_modal(false) {
+      m_modal(false),
+      m_quality(0) {
     // Set default device parameter values
     m_device_params.AntiAlias = true;
     m_device_params.Bits = 32;
@@ -85,8 +86,8 @@ ChVisualSystemIrrlicht::ChVisualSystemIrrlicht()
 }
 
 ChVisualSystemIrrlicht::ChVisualSystemIrrlicht(ChSystem* sys,
-                                               const ChVector<>& camera_pos,
-                                               const ChVector<>& camera_targ)
+                                               const ChVector3d& camera_pos,
+                                               const ChVector3d& camera_targ)
     : ChVisualSystemIrrlicht() {
     AttachSystem(sys);
     SetWindowSize(800, 600);
@@ -284,7 +285,7 @@ void ChVisualSystemIrrlicht::PurgeIrrNodes() {
 
 // -----------------------------------------------------------------------------
 
-int ChVisualSystemIrrlicht::AddCamera(const ChVector<>& pos, ChVector<> targ) {
+int ChVisualSystemIrrlicht::AddCamera(const ChVector3d& pos, ChVector3d targ) {
     if (!m_device)
         return -1;
 
@@ -312,19 +313,19 @@ void ChVisualSystemIrrlicht::UpdateGrid(int id, const ChCoordsys<>& csys) {
     m_grids[id].csys = csys;
 }
 
-void ChVisualSystemIrrlicht::SetCameraPosition(int id, const ChVector<>& pos) {
+void ChVisualSystemIrrlicht::SetCameraPosition(int id, const ChVector3d& pos) {
     m_cameras[id]->setPosition(core::vector3dfCH(pos));
 }
 
-void ChVisualSystemIrrlicht::SetCameraTarget(int id, const ChVector<>& target) {
+void ChVisualSystemIrrlicht::SetCameraTarget(int id, const ChVector3d& target) {
     m_cameras[id]->setTarget(core::vector3dfCH(target));
 }
 
-void ChVisualSystemIrrlicht::SetCameraPosition(const ChVector<>& pos) {
+void ChVisualSystemIrrlicht::SetCameraPosition(const ChVector3d& pos) {
     GetActiveCamera()->setPosition(core::vector3dfCH(pos));
 }
 
-void ChVisualSystemIrrlicht::SetCameraTarget(const ChVector<>& target) {
+void ChVisualSystemIrrlicht::SetCameraTarget(const ChVector3d& target) {
     GetActiveCamera()->setTarget(core::vector3dfCH(target));
 }
 
@@ -343,11 +344,11 @@ void ChVisualSystemIrrlicht::AddTypicalLights() {
         return;
 
     if (m_yup) {
-        AddLight(ChVector<>(30, 80, +30), 280, ChColor(0.7f, 0.7f, 0.7f));
-        AddLight(ChVector<>(30, 80, -30), 280, ChColor(0.7f, 0.7f, 0.7f));
+        AddLight(ChVector3d(30, 80, +30), 280, ChColor(0.7f, 0.7f, 0.7f));
+        AddLight(ChVector3d(30, 80, -30), 280, ChColor(0.7f, 0.7f, 0.7f));
     } else {
-        AddLight(ChVector<>(30, +30, 80), 280, ChColor(0.7f, 0.7f, 0.7f));
-        AddLight(ChVector<>(30, -30, 80), 280, ChColor(0.7f, 0.7f, 0.7f));
+        AddLight(ChVector3d(30, +30, 80), 280, ChColor(0.7f, 0.7f, 0.7f));
+        AddLight(ChVector3d(30, -30, 80), 280, ChColor(0.7f, 0.7f, 0.7f));
     }
 }
 
@@ -396,7 +397,7 @@ ILightSceneNode* ChVisualSystemIrrlicht::AddLightDirectional(double elevation,
     return light;
 }
 
-ILightSceneNode* ChVisualSystemIrrlicht::AddLight(const ChVector<>& pos, double radius, ChColor color) {
+ILightSceneNode* ChVisualSystemIrrlicht::AddLight(const ChVector3d& pos, double radius, ChColor color) {
     if (!m_device)
         return nullptr;
 
@@ -405,8 +406,8 @@ ILightSceneNode* ChVisualSystemIrrlicht::AddLight(const ChVector<>& pos, double 
     return light;
 }
 
-ILightSceneNode* ChVisualSystemIrrlicht::AddLightWithShadow(const ChVector<>& pos,
-                                                            const ChVector<>& aim,
+ILightSceneNode* ChVisualSystemIrrlicht::AddLightWithShadow(const ChVector3d& pos,
+                                                            const ChVector3d& aim,
                                                             double radius,
                                                             double near_value,
                                                             double far_value,
@@ -485,16 +486,16 @@ void ChVisualSystemIrrlicht::EnableShadows(std::shared_ptr<ChPhysicsItem> item) 
         if (node != m_nodes.end())
             AddShadowToIrrNode(node->second.get());
     } else {
-        for (auto& body : m_systems[0]->Get_bodylist()) {
+        for (auto& body : m_systems[0]->GetBodies()) {
             EnableShadows(body);
         }
-        for (auto& link : m_systems[0]->Get_linklist()) {
+        for (auto& link : m_systems[0]->GetLinks()) {
             EnableShadows(link);
         }
-        for (auto& mesh : m_systems[0]->Get_meshlist()) {
+        for (auto& mesh : m_systems[0]->GetMeshes()) {
             EnableShadows(mesh);
         }
-        for (auto& ph : m_systems[0]->Get_otherphysicslist()) {
+        for (auto& ph : m_systems[0]->GetOtherPhysicsItems()) {
             EnableShadows(ph);
         }
     }
@@ -517,7 +518,6 @@ void ChVisualSystemIrrlicht::EnableContactDrawing(ContactsDrawMode mode) {
     if (m_gui->initialized)
         m_gui->SetContactsDrawMode(mode);
 }
-
 
 void ChVisualSystemIrrlicht::EnableLinkDrawing(LinkDrawMode mode) {
     if (m_gui->initialized)
@@ -586,16 +586,16 @@ void ChVisualSystemIrrlicht::BeginScene(bool backBuffer, bool zBuffer, ChColor c
             m_gui->modal_phi = 0;
 
         // scan for modal assemblies, if any
-        for (const auto& item : m_systems[0]->Get_otherphysicslist()) {
+        for (const auto& item : m_systems[0]->GetOtherPhysicsItems()) {
             if (auto modalassembly = std::dynamic_pointer_cast<modal::ChModalAssembly>(item)) {
                 try {
                     // superposition of modal shape
                     modalassembly->SetFullStateWithModeOverlay(m_gui->modal_mode_n, m_gui->modal_phi,
                                                                m_gui->modal_amplitude);
                     // fetch Hz of this mode
-                    m_gui->modal_current_freq = modalassembly->Get_modes_frequencies()(m_gui->modal_mode_n);
+                    m_gui->modal_current_freq = modalassembly->GetUndampedFrequencies()(m_gui->modal_mode_n);
                     // fetch damping factor
-                    m_gui->modal_current_dampingfactor = modalassembly->Get_modes_damping_ratios()(m_gui->modal_mode_n);
+                    m_gui->modal_current_dampingfactor = modalassembly->GetDampingRatios()(m_gui->modal_mode_n);
                     // Force an update of the visual system
                     OnUpdate(m_systems[0]);
                 } catch (...) {
@@ -641,9 +641,9 @@ void ChVisualSystemIrrlicht::Render() {
 
 void ChVisualSystemIrrlicht::RenderFrame(const ChFrame<>& frame, double axis_length) {
     const auto& loc = frame.GetPos();
-    const auto& u = frame.GetA().Get_A_Xaxis();
-    const auto& v = frame.GetA().Get_A_Yaxis();
-    const auto& w = frame.GetA().Get_A_Zaxis();
+    const auto& u = frame.GetRotMat().GetAxisX();
+    const auto& v = frame.GetRotMat().GetAxisY();
+    const auto& w = frame.GetRotMat().GetAxisZ();
     irrlicht::tools::drawSegment(this, loc, loc + u * axis_length, ChColor(1, 0, 0));
     irrlicht::tools::drawSegment(this, loc, loc + v * axis_length, ChColor(0, 1, 0));
     irrlicht::tools::drawSegment(this, loc, loc + w * axis_length, ChColor(0, 0, 1));
@@ -656,7 +656,7 @@ void ChVisualSystemIrrlicht::RenderCOGFrames(double axis_length) {
 void ChVisualSystemIrrlicht::WriteImageToFile(const std::string& filename) {
     video::IImage* image = GetVideoDriver()->createScreenShot();
     if (image) {
-        GetVideoDriver()->writeImageToFile(image, filename.c_str());
+        GetVideoDriver()->writeImageToFile(image, filename.c_str(), m_quality);
         image->drop();
     }
 }
@@ -679,6 +679,16 @@ void ChVisualSystemIrrlicht::BindAll() {
     std::unordered_set<const ChAssembly*> trace;
     CreateIrrNodes(&m_systems[0]->GetAssembly(), trace);
 }
+
+void ChVisualSystemIrrlicht::UnbindItem(std::shared_ptr<ChPhysicsItem> item) {
+    auto node = m_nodes.find(item.get());
+    if (node != m_nodes.end()) {
+        node->second->removeAll();
+        node->second->remove();
+    }
+}
+
+// -----------------------------------------------------------------------------
 
 int ChVisualSystemIrrlicht::AddVisualModel(std::shared_ptr<ChVisualModel> model, const ChFrame<>& frame) {
     if (!m_device)
@@ -703,6 +713,8 @@ int ChVisualSystemIrrlicht::AddVisualModel(std::shared_ptr<ChVisualShape> shape,
     return AddVisualModel(model, frame);
 }
 
+// -----------------------------------------------------------------------------
+
 void ChVisualSystemIrrlicht::UpdateVisualModel(int id, const ChFrame<>& frame) {
     assert(id >= 0 && id < m_vis_nodes.size());
 
@@ -716,19 +728,19 @@ void ChVisualSystemIrrlicht::CreateIrrNodes(const ChAssembly* assembly, std::uno
     if (!trace.insert(assembly).second)
         return;
 
-    for (auto& body : assembly->Get_bodylist()) {
+    for (auto& body : assembly->GetBodies()) {
         CreateIrrNode(body);
     }
 
-    for (auto& link : assembly->Get_linklist()) {
+    for (auto& link : assembly->GetLinks()) {
         CreateIrrNode(link);
     }
 
-    for (auto& mesh : assembly->Get_meshlist()) {
+    for (auto& mesh : assembly->GetMeshes()) {
         CreateIrrNode(mesh);
     }
 
-    for (auto& ph : assembly->Get_otherphysicslist()) {
+    for (auto& ph : assembly->GetOtherPhysicsItems()) {
         CreateIrrNode(ph);
 
         // Recursively process sub-assemblies
@@ -740,20 +752,20 @@ void ChVisualSystemIrrlicht::CreateIrrNodes(const ChAssembly* assembly, std::uno
 #ifdef CHRONO_MODAL
     // Modal assemblies contain custom internal items that might be useful to visualize
     if (auto assy_modal = dynamic_cast<const chrono::modal::ChModalAssembly*>(assembly)) {
-        for (auto body : assy_modal->Get_internal_bodylist()) {
+        for (auto body : assy_modal->GetBodiesInternal()) {
             CreateIrrNode(body);
         }
-        for (auto& mesh : assy_modal->Get_internal_meshlist()) {
+        for (auto& mesh : assy_modal->GetMeshesInternal()) {
             CreateIrrNode(mesh);
         }
-        for (auto ph : assy_modal->Get_internal_otherphysicslist()) {
+        for (auto ph : assy_modal->GetOtherPhysicsItemsInternal()) {
             CreateIrrNode(ph);
             // If the assembly holds another assemblies, also bind their contents.
             if (auto a = std::dynamic_pointer_cast<ChAssembly>(ph)) {
                 CreateIrrNodes(a.get(), trace);
             }
         }
-        for (auto link : assy_modal->Get_internal_linklist()) {
+        for (auto link : assy_modal->GetLinksInternal()) {
             CreateIrrNode(link);
         }
     }
@@ -833,7 +845,7 @@ static void SetVisualMaterial(ISceneNode* node, std::shared_ptr<ChVisualShape> s
 void ChVisualSystemIrrlicht::PopulateIrrNode(ISceneNode* node,
                                              std::shared_ptr<ChVisualModel> model,
                                              const ChFrame<>& parent_frame) {
-    for (const auto& shape_instance : model->GetShapes()) {
+    for (const auto& shape_instance : model->GetShapeInstances()) {
         auto& shape = shape_instance.first;
         auto& shape_frame = shape_instance.second;
         core::matrix4CH shape_m4(shape_frame);
@@ -915,7 +927,7 @@ void ChVisualSystemIrrlicht::PopulateIrrNode(ISceneNode* node,
                 mproxynode->drop();
 
                 double mradius = sphere->GetRadius();
-                mchildnode->setScale(core::vector3dfCH(ChVector<>(mradius, mradius, mradius)));
+                mchildnode->setScale(core::vector3dfCH(ChVector3d(mradius, mradius, mradius)));
                 mchildnode->setPosition(shape_m4.getTranslation());
                 mchildnode->setRotation(shape_m4.getRotationDegrees());
 
@@ -1012,7 +1024,8 @@ void ChVisualSystemIrrlicht::PopulateIrrNode(ISceneNode* node,
 
             ////mchildnode->setMaterialFlag(video::EMF_WIREFRAME,  mytrimesh->IsWireframe() );
             ////mchildnode->setMaterialFlag(video::EMF_BACK_FACE_CULLING, mytrimesh->IsBackfaceCull() );
-        } else if (std::dynamic_pointer_cast<ChVisualShapePath>(shape) || std::dynamic_pointer_cast<ChVisualShapeLine>(shape)) {
+        } else if (std::dynamic_pointer_cast<ChVisualShapePath>(shape) ||
+                   std::dynamic_pointer_cast<ChVisualShapeLine>(shape)) {
             CDynamicMeshBuffer* buffer = new CDynamicMeshBuffer(video::EVT_STANDARD, video::EIT_32BIT);
             SMesh* newmesh = new SMesh;
             newmesh->addMeshBuffer(buffer);

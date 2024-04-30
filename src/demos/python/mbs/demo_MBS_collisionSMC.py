@@ -23,7 +23,7 @@ print ("Example: demonstration of collisions and contacts")
 
 def AddFallingItems(sys):
     # Shared contact materials for falling objects
-    mat = chrono.ChMaterialSurfaceSMC()
+    mat = chrono.ChContactMaterialSMC()
 
     # Create falling rigid bodies (spheres and boxes etc.)
     for ix in range(-2, 3):
@@ -33,13 +33,13 @@ def AddFallingItems(sys):
             radius = 1.1
             body = chrono.ChBody()
             comp = (2.0 / 5.0) * mass * radius**2
-            body.SetInertiaXX(chrono.ChVectorD(comp, comp, comp))
+            body.SetInertiaXX(chrono.ChVector3d(comp, comp, comp))
             body.SetMass(mass)
-            body.SetPos(chrono.ChVectorD(4.0 * ix + 0.1, 4.0, 4.0 * iz))
+            body.SetPos(chrono.ChVector3d(4.0 * ix + 0.1, 4.0, 4.0 * iz))
 
             body_ct_shape = chrono.ChCollisionShapeSphere(mat, radius)
             body.AddCollisionShape(body_ct_shape)
-            body.SetCollide(True)
+            body.EnableCollision(True)
 
             sphere = chrono.ChVisualShapeSphere(radius)
             sphere.SetTexture(chrono.GetChronoDataFile("textures/bluewhite.png"))
@@ -49,15 +49,15 @@ def AddFallingItems(sys):
 
             # add boxes
             mass = 1
-            size = chrono.ChVectorD(1.5, 1.5, 1.5)
+            size = chrono.ChVector3d(1.5, 1.5, 1.5)
             body = chrono.ChBody()
 
             body.SetMass(mass)
-            body.SetPos(chrono.ChVectorD(4.0 * ix, 6.0, 4.0 * iz))
+            body.SetPos(chrono.ChVector3d(4.0 * ix, 6.0, 4.0 * iz))
 
             body_ct_shape = chrono.ChCollisionShapeBox(mat, size.x, size.y, size.z)
             body.AddCollisionShape(body_ct_shape)
-            body.SetCollide(True)
+            body.EnableCollision(True)
 
             box = chrono.ChVisualShapeBox(size)
             box.SetTexture(chrono.GetChronoDataFile("textures/pinkwhite.png"))
@@ -67,29 +67,29 @@ def AddFallingItems(sys):
 
 def AddContainerWall(body, mat, size, pos, visible=True):
     body_ct_shape = chrono.ChCollisionShapeBox(mat, size.x, size.y, size.z)
-    body.AddCollisionShape(body_ct_shape, chrono.ChFrameD(pos, chrono.QUNIT))
+    body.AddCollisionShape(body_ct_shape, chrono.ChFramed(pos, chrono.QUNIT))
     if visible:
         box = chrono.ChVisualShapeBox(size)
         box.SetTexture(chrono.GetChronoDataFile("textures/concrete.jpg"))
-        body.AddVisualShape(box, chrono.ChFrameD(pos))
+        body.AddVisualShape(box, chrono.ChFramed(pos))
 
 def AddContainer(sys):
     # The fixed body (5 walls)
     fixedBody = chrono.ChBody()
 
     fixedBody.SetMass(1.0)
-    fixedBody.SetBodyFixed(True)
-    fixedBody.SetPos(chrono.ChVectorD())
-    fixedBody.SetCollide(True)
+    fixedBody.SetFixed(True)
+    fixedBody.SetPos(chrono.ChVector3d())
+    fixedBody.EnableCollision(True)
 
     # Contact material for container
-    fixed_mat = chrono.ChMaterialSurfaceSMC()
+    fixed_mat = chrono.ChContactMaterialSMC()
 
-    AddContainerWall(fixedBody, fixed_mat, chrono.ChVectorD(20, 1, 20), chrono.ChVectorD(0, -5, 0))
-    AddContainerWall(fixedBody, fixed_mat, chrono.ChVectorD(1, 10, 20.99), chrono.ChVectorD(-10, 0, 0))
-    AddContainerWall(fixedBody, fixed_mat, chrono.ChVectorD(1, 10, 20.99), chrono.ChVectorD(10, 0, 0))
-    AddContainerWall(fixedBody, fixed_mat, chrono.ChVectorD(20.99, 10, 1), chrono.ChVectorD(0, 0, -10), False)
-    AddContainerWall(fixedBody, fixed_mat, chrono.ChVectorD(20.99, 10, 1), chrono.ChVectorD(0, 0, 10))
+    AddContainerWall(fixedBody, fixed_mat, chrono.ChVector3d(20, 1, 20), chrono.ChVector3d(0, -5, 0))
+    AddContainerWall(fixedBody, fixed_mat, chrono.ChVector3d(1, 10, 20.99), chrono.ChVector3d(-10, 0, 0))
+    AddContainerWall(fixedBody, fixed_mat, chrono.ChVector3d(1, 10, 20.99), chrono.ChVector3d(10, 0, 0))
+    AddContainerWall(fixedBody, fixed_mat, chrono.ChVector3d(20.99, 10, 1), chrono.ChVector3d(0, 0, -10), False)
+    AddContainerWall(fixedBody, fixed_mat, chrono.ChVector3d(20.99, 10, 1), chrono.ChVector3d(0, 0, 10))
 
     sys.AddBody(fixedBody)
 
@@ -97,31 +97,30 @@ def AddContainer(sys):
     rotatingBody = chrono.ChBody()
 
     rotatingBody.SetMass(10.0)
-    rotatingBody.SetInertiaXX(chrono.ChVectorD(50, 50, 50))
-    rotatingBody.SetPos(chrono.ChVectorD(0, -1.6, 0))
-    rotatingBody.SetCollide(True)
+    rotatingBody.SetInertiaXX(chrono.ChVector3d(50, 50, 50))
+    rotatingBody.SetPos(chrono.ChVector3d(0, -1.6, 0))
+    rotatingBody.EnableCollision(True)
 
     # Contact material for mixer body
-    rot_mat = chrono.ChMaterialSurfaceSMC()
+    mixer_mat = chrono.ChContactMaterialSMC()
 
-    hsize = chrono.ChVectorD(5, 2.75, 0.5)
+    rotatingBody = chrono.ChBodyEasyBox(14, 6, 1,  # x,y,z size
+                                        4000,      # density
+                                        True,      # visualization?
+                                        True,      # collision?
+                                        mixer_mat) # contact material
+    rotatingBody.SetPos(chrono.ChVector3d(0, -1.6, 0))
+    sys.Add(rotatingBody)
 
-    rotatingBody_ct_shape = chrono.ChCollisionShapeBox(rot_mat, hsize.x, hsize.y, hsize.z)
-    rotatingBody.AddCollisionShape(rotatingBody_ct_shape)
-
-    box = chrono.ChVisualShapeBox(hsize * 2.0)
-    rotatingBody.AddVisualShape(box)
-
-    sys.AddBody(rotatingBody)
 
     # A motor between the two
     my_motor = chrono.ChLinkMotorRotationSpeed()
 
     my_motor.Initialize(rotatingBody,
                         fixedBody,
-                        chrono.ChFrameD(chrono.ChVectorD(0, 0, 0), 
-                                        chrono.Q_from_AngAxis(chrono.CH_C_PI_2, chrono.VECT_X)))
-    mfun = chrono.ChFunction_Const(chrono.CH_C_PI / 2.0)  # speed w=90°/s
+                        chrono.ChFramed(chrono.ChVector3d(0, 0, 0), 
+                                        chrono.QuatFromAngleAxis(chrono.CH_PI_2, chrono.VECT_X)))
+    mfun = chrono.ChFunctionConst(chrono.CH_PI / 2.0)  # speed w=90°/s
     my_motor.SetSpeedFunction(mfun)
 
     sys.AddLink(my_motor)
@@ -152,7 +151,7 @@ vis.SetWindowTitle('Collisions between objects')
 vis.Initialize()
 vis.AddLogo(chrono.GetChronoDataFile('logo_pychrono_alpha.png'))
 vis.AddSkyBox()
-vis.AddCamera(chrono.ChVectorD(0, 18, -20))
+vis.AddCamera(chrono.ChVector3d(0, 18, -20))
 vis.AddTypicalLights()
 
 # Simulation loop

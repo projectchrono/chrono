@@ -45,7 +45,7 @@ class ChApi ChSolverAPGD : public ChIterativeSolverVI {
     void Dump_Lambda(std::vector<double>& temp);
 
   private:
-    void ShurBvectorCompute(ChSystemDescriptor& sysd);
+    void SchurBvectorCompute(ChSystemDescriptor& sysd);
     double Res4(ChSystemDescriptor& sysd);
 
     double residual;

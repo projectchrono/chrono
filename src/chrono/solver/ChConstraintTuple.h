@@ -67,7 +67,7 @@ class ChConstraintTuple_1vars {
 
     void SetVariables(T& m_tuple_carrier) {
         if (!m_tuple_carrier.GetVariables1()) {
-            throw ChException("ERROR. SetVariables() getting null pointer. \n");
+            throw std::runtime_error("ERROR: SetVariables() getting null pointer.");
         }
         variables = m_tuple_carrier.GetVariables1();
     }
@@ -76,7 +76,7 @@ class ChConstraintTuple_1vars {
         // 1- Assuming jacobians are already computed, now compute
         //   the matrices [Eq]=[invM]*[Cq]' and [Eq]
         if (variables->IsActive()) {
-            variables->Compute_invMb_v(Eq, Cq.transpose());
+            variables->ComputeMassInverseTimesVector(Eq, Cq.transpose());
         }
 
         // 2- Compute g_i = [Cq_i]*[invM_i]*[Cq_i]' + cfm_i
@@ -85,42 +85,42 @@ class ChConstraintTuple_1vars {
         }
     }
 
-    double Compute_Cq_q() {
+    double ComputeJacobianTimesState() {
         double ret = 0;
 
         if (variables->IsActive()) {
-            ret += Cq * variables->Get_qb();
+            ret += Cq * variables->State();
         }
 
         return ret;
     }
 
-    void Increment_q(const double deltal) {
+    void IncrementState(double deltal) {
         if (variables->IsActive()) {
-            variables->Get_qb() += Eq * deltal;
+            variables->State() += Eq * deltal;
         }
     }
 
-    void MultiplyAndAdd(double& result, const ChVectorDynamic<double>& vect) const {
+    void AddJacobianTimesVectorInto(double& result, ChVectorConstRef vect) const {
         if (variables->IsActive()) {
             result += Cq * vect.segment(variables->GetOffset(), T::nvars1);
         }
     }
 
-    void MultiplyTandAdd(ChVectorDynamic<double>& result, double l) {
+    void AddJacobianTransposedTimesScalarInto(ChVectorRef result, double l) const {
         if (variables->IsActive()) {
             result.segment(variables->GetOffset(), T::nvars1) += Cq.transpose() * l;
         }
     }
 
-    void Build_Cq(ChSparseMatrix& storage, int insrow) {
+    void PasteJacobianInto(ChSparseMatrix& mat, unsigned int start_row, unsigned int start_col) const {
         if (variables->IsActive())
-            PasteMatrix(storage, Cq, insrow, variables->GetOffset());
+            PasteMatrix(mat, Cq, start_row, variables->GetOffset() + start_col);
     }
 
-    void Build_CqT(ChSparseMatrix& storage, int inscol) {
+    void PasteJacobianTransposedInto(ChSparseMatrix& mat, unsigned int start_row, unsigned int start_col) const {
         if (variables->IsActive())
-            PasteMatrix(storage, Cq.transpose(), variables->GetOffset(), inscol);
+            PasteMatrix(mat, Cq.transpose(), variables->GetOffset() + start_row, start_col);
     }
 };
 
@@ -181,7 +181,7 @@ class ChConstraintTuple_2vars {
 
     void SetVariables(T& m_tuple_carrier) {
         if (!m_tuple_carrier.GetVariables1() || !m_tuple_carrier.GetVariables2()) {
-            throw ChException("ERROR. SetVariables() getting null pointer. \n");
+            throw std::runtime_error("ERROR: SetVariables() getting null pointer.");
         }
         variables_1 = m_tuple_carrier.GetVariables1();
         variables_2 = m_tuple_carrier.GetVariables2();
@@ -191,10 +191,10 @@ class ChConstraintTuple_2vars {
         // 1- Assuming jacobians are already computed, now compute
         //   the matrices [Eq_a]=[invM_a]*[Cq_a]' and [Eq_b]
         if (variables_1->IsActive()) {
-            variables_1->Compute_invMb_v(Eq_1, Cq_1.transpose());
+            variables_1->ComputeMassInverseTimesVector(Eq_1, Cq_1.transpose());
         }
         if (variables_2->IsActive()) {
-            variables_2->Compute_invMb_v(Eq_2, Cq_2.transpose());
+            variables_2->ComputeMassInverseTimesVector(Eq_2, Cq_2.transpose());
         }
 
         // 2- Compute g_i = [Cq_i]*[invM_i]*[Cq_i]' + cfm_i
@@ -206,31 +206,31 @@ class ChConstraintTuple_2vars {
         }
     }
 
-    double Compute_Cq_q() {
+    double ComputeJacobianTimesState() {
         double ret = 0;
 
         if (variables_1->IsActive()) {
-            ret += Cq_1 * variables_1->Get_qb();
+            ret += Cq_1 * variables_1->State();
         }
 
         if (variables_2->IsActive()) {
-            ret += Cq_2 * variables_2->Get_qb();
+            ret += Cq_2 * variables_2->State();
         }
 
         return ret;
     }
 
-    void Increment_q(const double deltal) {
+    void IncrementState(double deltal) {
         if (variables_1->IsActive()) {
-            variables_1->Get_qb() += Eq_1 * deltal;
+            variables_1->State() += Eq_1 * deltal;
         }
 
         if (variables_2->IsActive()) {
-            variables_2->Get_qb() += Eq_2 * deltal;
+            variables_2->State() += Eq_2 * deltal;
         }
     }
 
-    void MultiplyAndAdd(double& result, const ChVectorDynamic<double>& vect) const {
+    void AddJacobianTimesVectorInto(double& result, ChVectorConstRef vect) const {
         if (variables_1->IsActive()) {
             result += Cq_1 * vect.segment(variables_1->GetOffset(), T::nvars1);
         }
@@ -240,7 +240,7 @@ class ChConstraintTuple_2vars {
         }
     }
 
-    void MultiplyTandAdd(ChVectorDynamic<double>& result, double l) {
+    void AddJacobianTransposedTimesScalarInto(ChVectorRef result, double l) const {
         if (variables_1->IsActive()) {
             result.segment(variables_1->GetOffset(), T::nvars1) += Cq_1.transpose() * l;
         }
@@ -250,18 +250,18 @@ class ChConstraintTuple_2vars {
         }
     }
 
-    void Build_Cq(ChSparseMatrix& storage, int insrow) {
+    void PasteJacobianInto(ChSparseMatrix& mat, unsigned int start_row, unsigned int start_col) const {
         if (variables_1->IsActive())
-            PasteMatrix(storage, Cq_1, insrow, variables_1->GetOffset());
+            PasteMatrix(mat, Cq_1, start_row, variables_1->GetOffset() + start_col);
         if (variables_2->IsActive())
-            PasteMatrix(storage, Cq_2, insrow, variables_2->GetOffset());
+            PasteMatrix(mat, Cq_2, start_row, variables_2->GetOffset() + start_col);
     }
 
-    void Build_CqT(ChSparseMatrix& storage, int inscol) {
+    void PasteJacobianTransposedInto(ChSparseMatrix& mat, unsigned int start_row, unsigned int start_col) const {
         if (variables_1->IsActive())
-            PasteMatrix(storage, Cq_1.transpose(), variables_1->GetOffset(), inscol);
+            PasteMatrix(mat, Cq_1.transpose(), variables_1->GetOffset() + start_row, start_col);
         if (variables_2->IsActive())
-            PasteMatrix(storage, Cq_2.transpose(), variables_2->GetOffset(), inscol);
+            PasteMatrix(mat, Cq_2.transpose(), variables_2->GetOffset() + start_row, start_col);
     }
 };
 
@@ -335,7 +335,7 @@ class ChConstraintTuple_3vars {
 
     void SetVariables(T& m_tuple_carrier) {
         if (!m_tuple_carrier.GetVariables1() || !m_tuple_carrier.GetVariables2() || !m_tuple_carrier.GetVariables3()) {
-            throw ChException("ERROR. SetVariables() getting null pointer. \n");
+            throw std::runtime_error("ERROR: SetVariables() getting null pointer.");
         }
         variables_1 = m_tuple_carrier.GetVariables1();
         variables_2 = m_tuple_carrier.GetVariables2();
@@ -346,13 +346,13 @@ class ChConstraintTuple_3vars {
         // 1- Assuming jacobians are already computed, now compute
         //   the matrices [Eq_a]=[invM_a]*[Cq_a]' and [Eq_b]
         if (variables_1->IsActive()) {
-            variables_1->Compute_invMb_v(Eq_1, Cq_1.transpose());
+            variables_1->ComputeMassInverseTimesVector(Eq_1, Cq_1.transpose());
         }
         if (variables_2->IsActive()) {
-            variables_2->Compute_invMb_v(Eq_2, Cq_2.transpose());
+            variables_2->ComputeMassInverseTimesVector(Eq_2, Cq_2.transpose());
         }
         if (variables_3->IsActive()) {
-            variables_3->Compute_invMb_v(Eq_3, Cq_3.transpose());
+            variables_3->ComputeMassInverseTimesVector(Eq_3, Cq_3.transpose());
         }
 
         // 2- Compute g_i = [Cq_i]*[invM_i]*[Cq_i]' + cfm_i
@@ -367,39 +367,39 @@ class ChConstraintTuple_3vars {
         }
     }
 
-    double Compute_Cq_q() {
+    double ComputeJacobianTimesState() {
         double ret = 0;
 
         if (variables_1->IsActive()) {
-            ret += Cq_1 * variables_1->Get_qb();
+            ret += Cq_1 * variables_1->State();
         }
 
         if (variables_2->IsActive()) {
-            ret += Cq_2 * variables_2->Get_qb();
+            ret += Cq_2 * variables_2->State();
         }
 
         if (variables_3->IsActive()) {
-            ret += Cq_3 * variables_3->Get_qb();
+            ret += Cq_3 * variables_3->State();
         }
 
         return ret;
     }
 
-    void Increment_q(const double deltal) {
+    void IncrementState(double deltal) {
         if (variables_1->IsActive()) {
-            variables_1->Get_qb() += Eq_1 * deltal;
+            variables_1->State() += Eq_1 * deltal;
         }
 
         if (variables_2->IsActive()) {
-            variables_2->Get_qb() += Eq_2 * deltal;
+            variables_2->State() += Eq_2 * deltal;
         }
 
         if (variables_3->IsActive()) {
-            variables_3->Get_qb() += Eq_3 * deltal;
+            variables_3->State() += Eq_3 * deltal;
         }
     }
 
-    void MultiplyAndAdd(double& result, const ChVectorDynamic<double>& vect) const {
+    void AddJacobianTimesVectorInto(double& result, ChVectorConstRef vect) const {
         if (variables_1->IsActive()) {
             result += Cq_1 * vect.segment(variables_1->GetOffset(), T::nvars1);
         }
@@ -413,7 +413,7 @@ class ChConstraintTuple_3vars {
         }
     }
 
-    void MultiplyTandAdd(ChVectorDynamic<double>& result, double l) {
+    void AddJacobianTransposedTimesScalarInto(ChVectorRef result, double l) const {
         if (variables_1->IsActive()) {
             result.segment(variables_1->GetOffset(), T::nvars1) += Cq_1.transpose() * l;
         }
@@ -427,25 +427,24 @@ class ChConstraintTuple_3vars {
         }
     }
 
-    void Build_Cq(ChSparseMatrix& storage, int insrow) {
+    void PasteJacobianInto(ChSparseMatrix& mat, unsigned int start_row, unsigned int start_col) const {
         if (variables_1->IsActive())
-            PasteMatrix(storage, Cq_1, insrow, variables_1->GetOffset());
+            PasteMatrix(mat, Cq_1, start_row, variables_1->GetOffset() + start_col);
         if (variables_2->IsActive())
-            PasteMatrix(storage, Cq_2, insrow, variables_2->GetOffset());
+            PasteMatrix(mat, Cq_2, start_row, variables_2->GetOffset() + start_col);
         if (variables_3->IsActive())
-            PasteMatrix(storage, Cq_3, insrow, variables_3->GetOffset());
+            PasteMatrix(mat, Cq_3, start_row, variables_3->GetOffset() + start_col);
     }
 
-    void Build_CqT(ChSparseMatrix& storage, int inscol) {
+    void PasteJacobianTransposedInto(ChSparseMatrix& mat, unsigned int start_row, int start_col) const {
         if (variables_1->IsActive())
-            PasteMatrix(storage, Cq_1.transpose(), variables_1->GetOffset(), inscol);
+            PasteMatrix(mat, Cq_1.transpose(), variables_1->GetOffset() + start_row, start_col);
         if (variables_2->IsActive())
-            PasteMatrix(storage, Cq_2.transpose(), variables_2->GetOffset(), inscol);
+            PasteMatrix(mat, Cq_2.transpose(), variables_2->GetOffset() + start_row, start_col);
         if (variables_3->IsActive())
-            PasteMatrix(storage, Cq_3.transpose(), variables_3->GetOffset(), inscol);
+            PasteMatrix(mat, Cq_3.transpose(), variables_3->GetOffset() + start_row, start_col);
     }
 };
-
 
 /// Case of tuple with reference to 4 ChVariable objects:
 
@@ -529,8 +528,9 @@ class ChConstraintTuple_4vars {
     ChVariables* GetVariables_4() { return variables_4; }
 
     void SetVariables(T& m_tuple_carrier) {
-        if (!m_tuple_carrier.GetVariables1() || !m_tuple_carrier.GetVariables2() || !m_tuple_carrier.GetVariables3() || !m_tuple_carrier.GetVariables4() ) {
-            throw ChException("ERROR. SetVariables() getting null pointer. \n");
+        if (!m_tuple_carrier.GetVariables1() || !m_tuple_carrier.GetVariables2() || !m_tuple_carrier.GetVariables3() ||
+            !m_tuple_carrier.GetVariables4()) {
+            throw std::runtime_error("ERROR: SetVariables() getting null pointer.");
         }
         variables_1 = m_tuple_carrier.GetVariables1();
         variables_2 = m_tuple_carrier.GetVariables2();
@@ -542,16 +542,16 @@ class ChConstraintTuple_4vars {
         // 1- Assuming jacobians are already computed, now compute
         //   the matrices [Eq_a]=[invM_a]*[Cq_a]' and [Eq_b]
         if (variables_1->IsActive()) {
-            variables_1->Compute_invMb_v(Eq_1, Cq_1.transpose());
+            variables_1->ComputeMassInverseTimesVector(Eq_1, Cq_1.transpose());
         }
         if (variables_2->IsActive()) {
-            variables_2->Compute_invMb_v(Eq_2, Cq_2.transpose());
+            variables_2->ComputeMassInverseTimesVector(Eq_2, Cq_2.transpose());
         }
         if (variables_3->IsActive()) {
-            variables_3->Compute_invMb_v(Eq_3, Cq_3.transpose());
+            variables_3->ComputeMassInverseTimesVector(Eq_3, Cq_3.transpose());
         }
         if (variables_4->IsActive()) {
-            variables_4->Compute_invMb_v(Eq_4, Cq_4.transpose());
+            variables_4->ComputeMassInverseTimesVector(Eq_4, Cq_4.transpose());
         }
 
         // 2- Compute g_i = [Cq_i]*[invM_i]*[Cq_i]' + cfm_i
@@ -569,47 +569,47 @@ class ChConstraintTuple_4vars {
         }
     }
 
-    double Compute_Cq_q() {
+    double ComputeJacobianTimesState() {
         double ret = 0;
 
         if (variables_1->IsActive()) {
-            ret += Cq_1 * variables_1->Get_qb();
+            ret += Cq_1 * variables_1->State();
         }
 
         if (variables_2->IsActive()) {
-            ret += Cq_2 * variables_2->Get_qb();
+            ret += Cq_2 * variables_2->State();
         }
 
         if (variables_3->IsActive()) {
-            ret += Cq_3 * variables_3->Get_qb();
+            ret += Cq_3 * variables_3->State();
         }
 
         if (variables_4->IsActive()) {
-            ret += Cq_4 * variables_4->Get_qb();
+            ret += Cq_4 * variables_4->State();
         }
 
         return ret;
     }
 
-    void Increment_q(const double deltal) {
+    void IncrementState(double deltal) {
         if (variables_1->IsActive()) {
-            variables_1->Get_qb() += Eq_1 * deltal;
+            variables_1->State() += Eq_1 * deltal;
         }
 
         if (variables_2->IsActive()) {
-            variables_2->Get_qb() += Eq_2 * deltal;
+            variables_2->State() += Eq_2 * deltal;
         }
 
         if (variables_3->IsActive()) {
-            variables_3->Get_qb() += Eq_3 * deltal;
+            variables_3->State() += Eq_3 * deltal;
         }
 
         if (variables_4->IsActive()) {
-            variables_4->Get_qb() += Eq_4 * deltal;
+            variables_4->State() += Eq_4 * deltal;
         }
     }
 
-    void MultiplyAndAdd(double& result, const ChVectorDynamic<double>& vect) const {
+    void AddJacobianTimesVectorInto(double& result, ChVectorConstRef vect) const {
         if (variables_1->IsActive()) {
             result += Cq_1 * vect.segment(variables_1->GetOffset(), T::nvars1);
         }
@@ -627,7 +627,7 @@ class ChConstraintTuple_4vars {
         }
     }
 
-    void MultiplyTandAdd(ChVectorDynamic<double>& result, double l) {
+    void AddJacobianTransposedTimesScalarInto(ChVectorRef result, double l) const {
         if (variables_1->IsActive()) {
             result.segment(variables_1->GetOffset(), T::nvars1) += Cq_1.transpose() * l;
         }
@@ -645,26 +645,26 @@ class ChConstraintTuple_4vars {
         }
     }
 
-    void Build_Cq(ChSparseMatrix& storage, int insrow) {
+    void PasteJacobianInto(ChSparseMatrix& mat, unsigned int start_row, unsigned int start_col) const {
         if (variables_1->IsActive())
-            PasteMatrix(storage, Cq_1, insrow, variables_1->GetOffset());
+            PasteMatrix(mat, Cq_1, start_row, variables_1->GetOffset() + start_col);
         if (variables_2->IsActive())
-            PasteMatrix(storage, Cq_2, insrow, variables_2->GetOffset());
+            PasteMatrix(mat, Cq_2, start_row, variables_2->GetOffset() + start_col);
         if (variables_3->IsActive())
-            PasteMatrix(storage, Cq_3, insrow, variables_3->GetOffset());
+            PasteMatrix(mat, Cq_3, start_row, variables_3->GetOffset() + start_col);
         if (variables_4->IsActive())
-            PasteMatrix(storage, Cq_4, insrow, variables_4->GetOffset());
+            PasteMatrix(mat, Cq_4, start_row, variables_4->GetOffset() + start_col);
     }
 
-    void Build_CqT(ChSparseMatrix& storage, int inscol) {
+    void PasteJacobianTransposedInto(ChSparseMatrix& mat, unsigned int start_row, unsigned int start_col) const {
         if (variables_1->IsActive())
-            PasteMatrix(storage, Cq_1.transpose(), variables_1->GetOffset(), inscol);
+            PasteMatrix(mat, Cq_1.transpose(), variables_1->GetOffset() + start_row, start_col);
         if (variables_2->IsActive())
-            PasteMatrix(storage, Cq_2.transpose(), variables_2->GetOffset(), inscol);
+            PasteMatrix(mat, Cq_2.transpose(), variables_2->GetOffset() + start_row, start_col);
         if (variables_3->IsActive())
-            PasteMatrix(storage, Cq_3.transpose(), variables_3->GetOffset(), inscol);
+            PasteMatrix(mat, Cq_3.transpose(), variables_3->GetOffset() + start_row, start_col);
         if (variables_4->IsActive())
-            PasteMatrix(storage, Cq_4.transpose(), variables_4->GetOffset(), inscol);
+            PasteMatrix(mat, Cq_4.transpose(), variables_4->GetOffset() + start_row, start_col);
     }
 };
 

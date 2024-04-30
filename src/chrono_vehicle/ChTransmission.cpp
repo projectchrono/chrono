@@ -64,12 +64,10 @@ void ChTransmission::SetGear(int gear) {
     if (m_current_gear < 0) {
         m_current_gear_ratio = m_gear_ratios[0];
         OnGearShift();
-    }
-    else if (m_current_gear > 0 && m_current_gear < m_gear_ratios.size()) {
+    } else if (m_current_gear > 0 && m_current_gear < m_gear_ratios.size()) {
         m_current_gear_ratio = m_gear_ratios[m_current_gear];
         OnGearShift();
-    }
-    else {
+    } else {
         m_current_gear_ratio = CHRONO_NEUTRAL_GEAR_RATIO;
         OnNeutralShift();
     }

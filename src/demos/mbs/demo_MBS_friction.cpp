@@ -39,7 +39,7 @@ using namespace chrono;
 ChVisualSystem::Type vis_type = ChVisualSystem::Type::VSG;
 
 int main(int argc, char* argv[]) {
-    GetLog() << "Copyright (c) 2017 projectchrono.org\nChrono version: " << CHRONO_VERSION << "\n\n";
+    std::cout << "Copyright (c) 2017 projectchrono.org\nChrono version: " << CHRONO_VERSION << std::endl;
 
     // Create a physical system
     ChSystemNSC sys;
@@ -54,7 +54,7 @@ int main(int argc, char* argv[]) {
 
     // Create some spheres that roll horizontally, with increasing rolling friction values
     for (int bi = 0; bi < 10; bi++) {
-        auto mat = chrono_types::make_shared<ChMaterialSurfaceNSC>();
+        auto mat = chrono_types::make_shared<ChContactMaterialNSC>();
         mat->SetFriction(0.4f);
         mat->SetRollingFriction(((float)bi / 10) * 0.05f);
 
@@ -65,14 +65,14 @@ int main(int argc, char* argv[]) {
                                                                       mat);     // contact material
 
         // Set some properties
-        sphereBody->SetPos(ChVector<>(-7, mradius - 0.5, -5 + bi * mradius * 2.5));
+        sphereBody->SetPos(ChVector3d(-7, mradius - 0.5, -5 + bi * mradius * 2.5));
         sphereBody->GetVisualShape(0)->SetMaterial(0, sph_vis_mat);
 
         // Set initial speed: rolling in horizontal direction
         double initial_angspeed = 10;
         double initial_linspeed = initial_angspeed * mradius;
-        sphereBody->SetWvel_par(ChVector<>(0, 0, -initial_angspeed));
-        sphereBody->SetPos_dt(ChVector<>(initial_linspeed, 0, 0));
+        sphereBody->SetAngVelParent(ChVector3d(0, 0, -initial_angspeed));
+        sphereBody->SetPosDt(ChVector3d(initial_linspeed, 0, 0));
 
         // Add to the system
         sys.Add(sphereBody);
@@ -80,7 +80,7 @@ int main(int argc, char* argv[]) {
 
     // Create some spheres that spin on place, for a 'drilling friction' case, with increasing spinning friction values
     for (int bi = 0; bi < 10; bi++) {
-        auto mat = chrono_types::make_shared<ChMaterialSurfaceNSC>();
+        auto mat = chrono_types::make_shared<ChContactMaterialNSC>();
         mat->SetFriction(0.4f);
         mat->SetSpinningFriction(((float)bi / 10) * 0.02f);
 
@@ -90,11 +90,11 @@ int main(int argc, char* argv[]) {
                                                                       true,     // collision?
                                                                       mat);     // contact material
         // Set some properties
-        sphereBody->SetPos(ChVector<>(-8, 1 + mradius - 0.5, -5 + bi * mradius * 2.5));
+        sphereBody->SetPos(ChVector3d(-8, 1 + mradius - 0.5, -5 + bi * mradius * 2.5));
         sphereBody->GetVisualShape(0)->SetMaterial(0, sph_vis_mat);
 
         // Set initial speed: spinning in vertical direction
-        sphereBody->SetWvel_par(ChVector<>(0, 20, 0));
+        sphereBody->SetAngVelParent(ChVector3d(0, 20, 0));
 
         // Add to the system
         sys.Add(sphereBody);
@@ -108,13 +108,13 @@ int main(int argc, char* argv[]) {
 
     // Create a container fixed to ground
     auto bin = chrono_types::make_shared<ChBody>();
-    bin->SetPos(ChVector<>(0, -1, 0));
-    bin->SetBodyFixed(true);
-    bin->SetCollide(true);
+    bin->SetPos(ChVector3d(0, -1, 0));
+    bin->SetFixed(true);
+    bin->EnableCollision(true);
 
     // Set rolling and friction coefficients for the container.
     // By default, the composite material will use the minimum value for an interacting collision pair.
-    auto bin_mat = chrono_types::make_shared<ChMaterialSurfaceNSC>();
+    auto bin_mat = chrono_types::make_shared<ChContactMaterialNSC>();
     bin_mat->SetRollingFriction(1);
     bin_mat->SetSpinningFriction(1);
 
@@ -123,11 +123,11 @@ int main(int argc, char* argv[]) {
     bin_vis_mat->SetKdTexture(GetChronoDataFile("textures/blue.png"));
 
     // Add collision geometry and visualization shapes for the floor and the 4 walls
-    utils::AddBoxGeometry(bin.get(), bin_mat, ChVector<>(20, 1, 20), ChVector<>(0, 0, 0), QUNIT, true, bin_vis_mat);
-    utils::AddBoxGeometry(bin.get(), bin_mat, ChVector<>(1, 2, 20.99), ChVector<>(-10, 1, 0), QUNIT, true, bin_vis_mat);
-    utils::AddBoxGeometry(bin.get(), bin_mat, ChVector<>(1, 2, 20.99), ChVector<>(10, 1, 0), QUNIT, true, bin_vis_mat);
-    utils::AddBoxGeometry(bin.get(), bin_mat, ChVector<>(20.99, 2, 1), ChVector<>(0, 1, -10), QUNIT, true, bin_vis_mat);
-    utils::AddBoxGeometry(bin.get(), bin_mat, ChVector<>(20.99, 2, 1), ChVector<>(0, 1, 10), QUNIT, true, bin_vis_mat);
+    utils::AddBoxGeometry(bin.get(), bin_mat, ChVector3d(20, 1, 20), ChVector3d(0, 0, 0), QUNIT, true, bin_vis_mat);
+    utils::AddBoxGeometry(bin.get(), bin_mat, ChVector3d(1, 2, 20.99), ChVector3d(-10, 1, 0), QUNIT, true, bin_vis_mat);
+    utils::AddBoxGeometry(bin.get(), bin_mat, ChVector3d(1, 2, 20.99), ChVector3d(10, 1, 0), QUNIT, true, bin_vis_mat);
+    utils::AddBoxGeometry(bin.get(), bin_mat, ChVector3d(20.99, 2, 1), ChVector3d(0, 1, -10), QUNIT, true, bin_vis_mat);
+    utils::AddBoxGeometry(bin.get(), bin_mat, ChVector3d(20.99, 2, 1), ChVector3d(0, 1, 10), QUNIT, true, bin_vis_mat);
 
     sys.Add(bin);
 
@@ -152,9 +152,9 @@ int main(int argc, char* argv[]) {
             vis_irr->Initialize();
             vis_irr->AddLogo();
             vis_irr->AddSkyBox();
-            vis_irr->AddCamera(ChVector<>(0, 14, -20));
-            vis_irr->AddLight(ChVector<>(30.f, 100.f, 30.f), 290, ChColor(0.7f, 0.7f, 0.7f));
-            vis_irr->AddLight(ChVector<>(-30.f, 100.f, -30.f), 190, ChColor(0.7f, 0.8f, 0.8f));
+            vis_irr->AddCamera(ChVector3d(0, 14, -20));
+            vis_irr->AddLight(ChVector3d(30.f, 100.f, 30.f), 290, ChColor(0.7f, 0.7f, 0.7f));
+            vis_irr->AddLight(ChVector3d(-30.f, 100.f, -30.f), 190, ChColor(0.7f, 0.8f, 0.8f));
 
             vis = vis_irr;
 #endif
@@ -165,18 +165,19 @@ int main(int argc, char* argv[]) {
 #ifdef CHRONO_VSG
             auto vis_vsg = chrono_types::make_shared<ChVisualSystemVSG>();
             vis_vsg->AttachSystem(&sys);
-            vis_vsg->SetWindowSize(ChVector2<int>(800, 600));
-            vis_vsg->SetWindowPosition(ChVector2<int>(100, 100));
+            vis_vsg->SetWindowSize(ChVector2i(800, 600));
+            vis_vsg->SetWindowPosition(ChVector2i(100, 100));
             vis_vsg->SetWindowTitle("VSG Rolling Friction");
             vis_vsg->SetClearColor(ChColor(0.8f, 0.85f, 0.9f));
             vis_vsg->SetOutputScreen(0);
             vis_vsg->SetUseSkyBox(true);  // use built-in path
             vis_vsg->SetOutputScreen(0);
             vis_vsg->SetCameraVertical(CameraVerticalDir::Y);
-            vis_vsg->AddCamera(ChVector<>(0, 14, -20));
+            vis_vsg->AddCamera(ChVector3d(0, 14, -20));
             vis_vsg->SetCameraAngleDeg(40.0);
             vis_vsg->SetLightIntensity(1.0f);
-            vis_vsg->SetLightDirection(1.5 * CH_C_PI_2, CH_C_PI_4);
+            vis_vsg->SetLightDirection(1.5 * CH_PI_2, CH_PI_4);
+            vis_vsg->SetShadows(true);
             vis_vsg->SetWireFrameMode(false);
             vis_vsg->Initialize();
 
@@ -188,7 +189,7 @@ int main(int argc, char* argv[]) {
 
     // Modify some setting of the physical system for the simulation
     sys.SetSolverType(ChSolver::Type::APGD);
-    sys.SetSolverMaxIterations(100);
+    sys.GetSolver()->AsIterative()->SetMaxIterations(100);
 
     // Simulation loop
     double timestep = 0.005;

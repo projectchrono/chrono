@@ -33,7 +33,7 @@ const double mrole_RigidTire::m_radius = 0.675;
 const double mrole_RigidTire::m_width = 0.8 * 0.415;
 
 const double mrole_RigidTire::m_mass = 105.0;
-const ChVector<> mrole_RigidTire::m_inertia(21.72, 38.74, 21.72);
+const ChVector3d mrole_RigidTire::m_inertia(21.72, 38.74, 21.72);
 
 const std::string mrole_RigidTire::m_meshFile_left = "hmmwv/hmmwv_tire_left.obj";
 const std::string mrole_RigidTire::m_meshFile_right = "hmmwv/hmmwv_tire_right.obj";

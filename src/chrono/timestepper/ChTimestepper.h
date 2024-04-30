@@ -17,7 +17,7 @@
 
 #include <cstdlib>
 #include "chrono/core/ChApiCE.h"
-#include "chrono/core/ChMath.h"
+#include "chrono/core/ChFrame.h"
 #include "chrono/serialization/ChArchive.h"
 #include "chrono/timestepper/ChIntegrable.h"
 #include "chrono/timestepper/ChState.h"
@@ -63,7 +63,7 @@ class ChApi ChTimestepper {
                          ) = 0;
 
     /// Access the lagrangian multipliers, if any.
-    virtual ChVectorDynamic<>& get_L() { return L; }
+    virtual ChVectorDynamic<>& GetLagrangeMultipliers() { return L; }
 
     /// Set the integrable object.
     virtual void SetIntegrable(ChIntegrable* intgr) { integrable = intgr; }
@@ -79,12 +79,6 @@ class ChApi ChTimestepper {
 
     /// Turn on/off logging of messages.
     void SetVerbose(bool verb) { verbose = verb; }
-
-    /// Turn on/off clamping on the Qcterm.
-    void SetQcDoClamp(bool dc) { Qc_do_clamp = dc; }
-
-    /// Turn on/off clamping on the Qcterm.
-    void SetQcClamping(double cl) { Qc_clamping = cl; }
 
     /// Method to allow serialization of transient data to archives.
     virtual void ArchiveOut(ChArchiveOut& archive);
@@ -102,6 +96,8 @@ class ChApi ChTimestepper {
 
     bool Qc_do_clamp;
     double Qc_clamping;
+
+    friend class ChSystem;
 };
 
 /// Base class for 1st order timesteppers, that is a time integrator for a ChIntegrable.
@@ -118,10 +114,10 @@ class ChApi ChTimestepperIorder : public ChTimestepper {
     virtual ~ChTimestepperIorder() {}
 
     /// Access the state at current time
-    virtual ChState& get_Y() { return Y; }
+    virtual ChState& GetState() { return Y; }
 
     /// Access the derivative of state at current time
-    virtual ChStateDelta& get_dYdt() { return dYdt; }
+    virtual ChStateDelta& GetStateDt() { return dYdt; }
 
     /// Set the integrable object
     virtual void SetIntegrable(ChIntegrable* intgr) {
@@ -148,13 +144,13 @@ class ChApi ChTimestepperIIorder : public ChTimestepper {
     virtual ~ChTimestepperIIorder() {}
 
     /// Access the state, position part, at current time
-    virtual ChState& get_X() { return X; }
+    virtual ChState& GetStatePos() { return X; }
 
     /// Access the state, speed part, at current time
-    virtual ChStateDelta& get_V() { return V; }
+    virtual ChStateDelta& GetStateVel() { return V; }
 
     /// Access the acceleration, at current time
-    virtual ChStateDelta& get_A() { return A; }
+    virtual ChStateDelta& GetStateAcc() { return A; }
 
     /// Set the integrable object
     virtual void SetIntegrable(ChIntegrableIIorder* intgr) {
@@ -168,30 +164,35 @@ class ChApi ChTimestepperIIorder : public ChTimestepper {
     using ChTimestepper::SetIntegrable;
 };
 
-
 /// Base properties for explicit solvers.
-/// Such integrators might require solution of a nonlinear problem if constraints 
+/// Such integrators might require solution of a nonlinear problem if constraints
 /// are added, otherwise they can use penalty in constraints and lumped masses to avoid the linear system.
 /// Diagonal lumping is off by default.
-/// Note that if you apply this 
+/// Note that if you apply this
 class ChApi ChExplicitTimestepper {
   protected:
-      ChLumpingParms* lumping_parameters;
+    ChLumpingParms* lumping_parameters;
 
   public:
-      ChExplicitTimestepper() : lumping_parameters(nullptr) {}
-      virtual ~ChExplicitTimestepper() { if (lumping_parameters) delete (lumping_parameters); }
+    ChExplicitTimestepper() : lumping_parameters(nullptr) {}
+    virtual ~ChExplicitTimestepper() {
+        if (lumping_parameters)
+            delete (lumping_parameters);
+    }
 
-    /// Turn on the diagonal lumping. This can achieve a large speedup because no linear system is needeed 
-    /// to compute the derivative (i.e. acceleration in II order systems), but not all Chintegrable might 
-    /// support the diagonal lumping. 
-    /// If lumping not supported because ChIntegrable::LoadLumpedMass_Md() not implemented, throw exception. 
+    /// Turn on the diagonal lumping. This can achieve a large speedup because no linear system is needeed
+    /// to compute the derivative (i.e. acceleration in II order systems), but not all Chintegrable might
+    /// support the diagonal lumping.
+    /// If lumping not supported because ChIntegrable::LoadLumpedMass_Md() not implemented, throw exception.
     /// If lumping introduces some approximation, you'll get nonzero in GetLumpingError().
     /// Optionally paramters: the stiffness penalty for constraints, and damping penalty for constraints.
-    void SetDiagonalLumpingON(double Ck = 1000, double Cr = 0) { lumping_parameters = new ChLumpingParms(Ck,Cr); }
+    void SetDiagonalLumpingON(double Ck = 1000, double Cr = 0) { lumping_parameters = new ChLumpingParms(Ck, Cr); }
 
     /// Turn off the diagonal lumping (default is off)
-    void SetDiagonalLumpingOFF() { if (lumping_parameters) delete (lumping_parameters); }
+    void SetDiagonalLumpingOFF() {
+        if (lumping_parameters)
+            delete (lumping_parameters);
+    }
 
     /// Gets the diagonal lumping error done last time the integrator has been called
     double GetLumpingError() {
@@ -217,7 +218,7 @@ class ChApi ChExplicitTimestepper {
     /// Method to allow de-serialization of transient data from archives.
     virtual void ArchiveIn(ChArchiveIn& archive) {
         // version number
-        /*int version =*/ archive.VersionRead();
+        /*int version =*/archive.VersionRead();
         // stream in all member data:
         archive >> CHNVP(lumping_parameters);
     }
@@ -232,14 +233,14 @@ class ChApi ChImplicitTimestepper {};
 /// a linear system must be solved.
 class ChApi ChImplicitIterativeTimestepper : public ChImplicitTimestepper {
   protected:
-    int maxiters;    ///< maximum number of iterations
-    double reltol;   ///< relative tolerance
-    double abstolS;  ///< absolute tolerance (states)
-    double abstolL;  ///< absolute tolerance (Lagrange multipliers)
+    unsigned int maxiters;  ///< maximum number of iterations
+    double reltol;          ///< relative tolerance
+    double abstolS;         ///< absolute tolerance (states)
+    double abstolL;         ///< absolute tolerance (Lagrange multipliers)
 
-    int numiters;   ///< number of iterations
-    int numsetups;  ///< number of calls to the solver's Setup function
-    int numsolves;  ///< number of calls to the solver's Solve function
+    unsigned int numiters;   ///< number of iterations
+    unsigned int numsetups;  ///< number of calls to the solver's Setup function
+    unsigned int numsolves;  ///< number of calls to the solver's Solve function
 
   public:
     ChImplicitIterativeTimestepper()
@@ -247,9 +248,9 @@ class ChApi ChImplicitIterativeTimestepper : public ChImplicitTimestepper {
     virtual ~ChImplicitIterativeTimestepper() {}
 
     /// Set the max number of iterations using the Newton Raphson procedure
-    void SetMaxiters(int iters) { maxiters = iters; }
+    void SetMaxIters(int iters) { maxiters = iters; }
     /// Get the max number of iterations using the Newton Raphson procedure
-    double GetMaxiters() { return maxiters; }
+    double GetMaxIters() { return maxiters; }
 
     /// Set the relative tolerance.
     /// This tolerance is optionally used by derived classes in the Newton-Raphson
@@ -275,13 +276,13 @@ class ChApi ChImplicitIterativeTimestepper : public ChImplicitTimestepper {
     }
 
     /// Return the number of iterations.
-    int GetNumIterations() const { return numiters; }
+    unsigned int GetNumIterations() const { return numiters; }
 
     /// Return the number of calls to the solver's Setup function.
-    int GetNumSetupCalls() const { return numsetups; }
+    unsigned int GetNumSetupCalls() const { return numsetups; }
 
     /// Return the number of calls to the solver's Solve function.
-    int GetNumSolveCalls() const { return numsolves; }
+    unsigned int GetNumSolveCalls() const { return numsolves; }
 
     /// Method to allow serialization of transient data to archives.
     virtual void ArchiveOut(ChArchiveOut& archive) {
@@ -297,7 +298,7 @@ class ChApi ChImplicitIterativeTimestepper : public ChImplicitTimestepper {
     /// Method to allow de-serialization of transient data from archives.
     virtual void ArchiveIn(ChArchiveIn& archive) {
         // version number
-        /*int version =*/ archive.VersionRead();
+        /*int version =*/archive.VersionRead();
         // stream in all member data:
         archive >> CHNVP(maxiters);
         archive >> CHNVP(reltol);
@@ -315,7 +316,7 @@ class ChApi ChTimestepperEulerExpl : public ChTimestepperIorder, public ChExplic
 
     /// Performs an integration timestep
     virtual void Advance(const double dt  ///< timestep to advance
-    ) override;
+                         ) override;
 
     /// Method to allow serialization of transient data to archives.
     virtual void ArchiveOut(ChArchiveOut& archive) override;
@@ -363,7 +364,7 @@ class ChApi ChTimestepperEulerSemiImplicit : public ChTimestepperIIorder, public
 
     /// Performs an integration timestep
     virtual void Advance(const double dt  ///< timestep to advance
-    ) override;
+                         ) override;
 
     /// Method to allow serialization of transient data to archives.
     virtual void ArchiveOut(ChArchiveOut& archive) override;
@@ -597,7 +598,7 @@ class ChApi ChTimestepperTrapezoidalLinearized : public ChTimestepperIIorder, pu
 };
 
 /// Performs a step of trapezoidal implicit linearized for II order systems.
-///*** SIMPLIFIED VERSION -DOES NOT WORK - PREFER ChTimestepperTrapezoidalLinearized
+/// SIMPLIFIED VERSION -DOES NOT WORK - PREFER ChTimestepperTrapezoidalLinearized
 class ChApi ChTimestepperTrapezoidalLinearized2 : public ChTimestepperIIorder, public ChImplicitIterativeTimestepper {
   protected:
     ChStateDelta Dv;
@@ -613,7 +614,7 @@ class ChApi ChTimestepperTrapezoidalLinearized2 : public ChTimestepperIIorder, p
 
     /// Performs an integration timestep
     virtual void Advance(const double dt  ///< timestep to advance
-    ) override;
+                         ) override;
 
     /// Method to allow serialization of transient data to archives.
     virtual void ArchiveOut(ChArchiveOut& archive) override;
@@ -643,7 +644,7 @@ class ChApi ChTimestepperNewmark : public ChTimestepperIIorder, public ChImplici
     ChTimestepperNewmark(ChIntegrableIIorder* intgr = nullptr)
         : ChTimestepperIIorder(intgr), ChImplicitIterativeTimestepper() {
         SetGammaBeta(0.6, 0.3);  // default values with some damping, and that works also with DAE constraints
-        modified_Newton = true; // default use modified Newton with jacobian factorization only at beginning
+        modified_Newton = true;  // default use modified Newton with jacobian factorization only at beginning
     }
 
     virtual Type GetType() const override { return Type::NEWMARK; }

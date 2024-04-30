@@ -52,12 +52,12 @@ void ChSolverMulticoreAPGD::UpdateR() {
     R_n = -b_n - D_n_T * M_invk + s_n;
 }
 
-uint ChSolverMulticoreAPGD::Solve(ChShurProduct& ShurProduct,
-                                 ChProjectConstraints& Project,
-                                 const uint max_iter,
-                                 const uint size,
-                                 const DynamicVector<real>& r,
-                                 DynamicVector<real>& gamma) {
+uint ChSolverMulticoreAPGD::Solve(ChSchurProduct& SchurProduct,
+                                  ChProjectConstraints& Project,
+                                  const uint max_iter,
+                                  const uint size,
+                                  const DynamicVector<real>& r,
+                                  DynamicVector<real>& gamma) {
     if (size == 0) {
         return 0;
     }
@@ -87,7 +87,7 @@ uint ChSolverMulticoreAPGD::Solve(ChShurProduct& ShurProduct,
     // Is the initial projection necessary?
     // Project(gamma.data());
     // gamma_hat = gamma;
-    // ShurProduct(gamma, mg);
+    // SchurProduct(gamma, mg);
     // mg = mg - r;
 
     temp = gamma - one;
@@ -106,7 +106,7 @@ uint ChSolverMulticoreAPGD::Solve(ChShurProduct& ShurProduct,
         }
     } else if (data_manager->settings.solver.use_power_iteration) {
         data_manager->measures.solver.lambda_max =
-            LargestEigenValue(ShurProduct, temp, data_manager->measures.solver.lambda_max);
+            LargestEigenValue(SchurProduct, temp, data_manager->measures.solver.lambda_max);
         L = data_manager->measures.solver.lambda_max;
     } else {
         // If gamma is one temp should be zero, in that case set L to one
@@ -115,7 +115,7 @@ uint ChSolverMulticoreAPGD::Solve(ChShurProduct& ShurProduct,
             L = 1.0;
         } else {
             // If the N matrix is zero for some reason, temp will be zero
-            ShurProduct(temp, temp);
+            SchurProduct(temp, temp);
             // If temp is zero then L will be zero
             L = Sqrt((real)(temp, temp)) / norm_temp;
         }
@@ -141,12 +141,12 @@ uint ChSolverMulticoreAPGD::Solve(ChShurProduct& ShurProduct,
     gamma_hat = gamma;
 
     for (current_iteration = 0; current_iteration < (signed)max_iter; current_iteration++) {
-        ShurProduct(y, temp);
-        // ShurProduct(y, g);
+        SchurProduct(y, temp);
+        // SchurProduct(y, g);
         g = temp - r;
         gamma_new = y - t * g;
         Project(gamma_new.data());
-        ShurProduct(gamma_new, N_gamma_new);
+        SchurProduct(gamma_new, N_gamma_new);
         obj2 = (y, 0.5 * temp - r);
         temp = gamma_new - y;
         while ((gamma_new, 0.5 * N_gamma_new - r) > obj2 + (g + 0.5 * L * temp, temp)) {
@@ -154,7 +154,7 @@ uint ChSolverMulticoreAPGD::Solve(ChShurProduct& ShurProduct,
             t = 1.0 / L;
             gamma_new = y - t * g;
             Project(gamma_new.data());
-            ShurProduct(gamma_new, N_gamma_new);
+            SchurProduct(gamma_new, N_gamma_new);
             obj1 = (gamma_new, 0.5 * N_gamma_new - r);
             temp = gamma_new - y;
         }

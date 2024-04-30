@@ -23,13 +23,13 @@ CH_UPCASTING(ChCollisionShapeMeshTriangle, ChCollisionShape)
 ChCollisionShapeMeshTriangle::ChCollisionShapeMeshTriangle() : ChCollisionShape(Type::MESHTRIANGLE) {}
 
 ChCollisionShapeMeshTriangle::ChCollisionShapeMeshTriangle(
-    std::shared_ptr<ChMaterialSurface> material,  // contact material
-    ChVector<>* V1,                               // vertex1 coords
-    ChVector<>* V2,                               // vertex2 coords
-    ChVector<>* V3,                               // vertex3 coords
-    ChVector<>* eP1,                              // neighboring vertex at edge1 if any
-    ChVector<>* eP2,                              // neighboring vertex at edge2 if any
-    ChVector<>* eP3,                              // neighboring vertex at edge3 if any
+    std::shared_ptr<ChContactMaterial> material,  // contact material
+    const ChVector3d* V1,                         // vertex1 coords
+    const ChVector3d* V2,                         // vertex2 coords
+    const ChVector3d* V3,                         // vertex3 coords
+    const ChVector3d* eP1,                        // neighboring vertex at edge1 if any
+    const ChVector3d* eP2,                        // neighboring vertex at edge2 if any
+    const ChVector3d* eP3,                        // neighboring vertex at edge3 if any
     bool ownsV1,                                  // vertex1 owned by this triangle (otherwise, owned by neighbor)
     bool ownsV2,                                  // vertex2 owned by this triangle (otherwise, owned by neighbor)
     bool ownsV3,                                  // vertex3 owned by this triangle (otherwise, owned by neighbor)
@@ -54,20 +54,20 @@ ChCollisionShapeMeshTriangle::ChCollisionShapeMeshTriangle(
     this->sradius = sphere_radius;
 }
 
-void ChCollisionShapeMeshTriangle::ArchiveOut(ChArchiveOut& marchive) {
+void ChCollisionShapeMeshTriangle::ArchiveOut(ChArchiveOut& archive_out) {
     // version number
-    marchive.VersionWrite<ChCollisionShapeMeshTriangle>();
+    archive_out.VersionWrite<ChCollisionShapeMeshTriangle>();
     // serialize parent class
-    ChCollisionShape::ArchiveOut(marchive);
+    ChCollisionShape::ArchiveOut(archive_out);
     // serialize all member data:
     //// TODO
 }
 
-void ChCollisionShapeMeshTriangle::ArchiveIn(ChArchiveIn& marchive) {
+void ChCollisionShapeMeshTriangle::ArchiveIn(ChArchiveIn& archive_in) {
     // version number
-    /*int version =*/marchive.VersionRead<ChCollisionShapeMeshTriangle>();
+    /*int version =*/archive_in.VersionRead<ChCollisionShapeMeshTriangle>();
     // deserialize parent class
-    ChCollisionShape::ArchiveIn(marchive);
+    ChCollisionShape::ArchiveIn(archive_in);
     // stream in all member data:
     //// TODO
 }

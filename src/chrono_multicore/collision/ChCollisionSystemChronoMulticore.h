@@ -29,7 +29,6 @@ namespace chrono {
 // Forward declaration for friend class declaration
 class ChSystemMulticore;
 
-
 /// @addtogroup multicore_collision
 /// @{
 

@@ -51,7 +51,7 @@ class CH_SENSOR_API ChAccelerometerSensor : public ChDynamicSensor {
     virtual void ClearKeyFrames();
 
   private:
-    std::vector<ChVector<double>> m_keyframes;  ///< stores keyframes for sensor
+    std::vector<ChVector3d> m_keyframes;  ///< stores keyframes for sensor
     friend class ChFilterAccelerometerUpdate;
 };
 /// Gyroscope class. The data is collected from the physical quantities
@@ -77,7 +77,7 @@ class CH_SENSOR_API ChGyroscopeSensor : public ChDynamicSensor {
     virtual void ClearKeyFrames();
 
   private:
-    std::vector<ChVector<double>> m_keyframes;  ///< stores keyframes for sensor
+    std::vector<ChVector3d> m_keyframes;  ///< stores keyframes for sensor
     friend class ChFilterGyroscopeUpdate;
 };
 
@@ -98,15 +98,20 @@ class CH_SENSOR_API ChMagnetometerSensor : public ChDynamicSensor {
                          float updateRate,
                          chrono::ChFrame<double> offsetPose,
                          std::shared_ptr<ChNoiseModel> noise_model,
-                         ChVector<double> gps_reference);
+                         ChVector3d gps_reference);
     /// Class destructor
     ~ChMagnetometerSensor() {}
     virtual void PushKeyFrame();
     virtual void ClearKeyFrames();
 
+    /// Get the GPS reference location
+    const ChVector3d GetGPSReference() const { return m_gps_reference; }
+
   private:
     std::vector<ChFrame<double>> m_keyframes;
     friend class ChFilterMagnetometerUpdate;
+
+    const ChVector3d m_gps_reference;  ///< reference location in GPS coordinates (longitude, latitude, altitude)
 };
 /// @} sensor_sensors
 

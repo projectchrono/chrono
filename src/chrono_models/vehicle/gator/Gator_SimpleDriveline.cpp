@@ -50,12 +50,12 @@ void Gator_SimpleDriveline::Synchronize(double time, const DriverInputs& driver_
         return;
 
     // Enforce driveshaft speed
-    m_driveshaft_speed = 0.5 * (m_left->GetPos_dt() + m_right->GetPos_dt());
+    m_driveshaft_speed = 0.5 * (m_left->GetPosDt() + m_right->GetPosDt());
 
     // Split the driveshaft torque for the corresponding left/right wheels.
     // Use a siple model of a Torsten limited-slip differential with a max_bias:1 torque bias ratio.
-    double speed_left = m_left->GetPos_dt();
-    double speed_right = m_right->GetPos_dt();
+    double speed_left = m_left->GetPosDt();
+    double speed_right = m_right->GetPosDt();
     double diff = std::abs(speed_left - speed_right);
 
     // The bias grows from 1 at diff=0.25 to m_diff_bias at diff=0.5
@@ -81,8 +81,8 @@ void Gator_SimpleDriveline::Synchronize(double time, const DriverInputs& driver_
     }
 
     // Apply torques to left and right shafts
-    m_left->SetAppliedTorque(-torque_left);
-    m_right->SetAppliedTorque(-torque_right);
+    m_left->SetAppliedLoad(-torque_left);
+    m_right->SetAppliedLoad(-torque_right);
 }
 
 // -----------------------------------------------------------------------------
@@ -94,9 +94,9 @@ double Gator_SimpleDriveline::GetSpindleTorque(int axle, VehicleSide side) const
         return 0;
 
     if (side == VehicleSide::LEFT)
-        return -m_left->GetAppliedTorque();
+        return -m_left->GetAppliedLoad();
 
-    return -m_right->GetAppliedTorque();
+    return -m_right->GetAppliedLoad();
 }
 
 // -----------------------------------------------------------------------------

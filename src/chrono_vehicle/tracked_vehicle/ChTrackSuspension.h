@@ -88,7 +88,7 @@ class CH_VEHICLE_API ChTrackSuspension : public ChPart {
     /// Derived classes must call this base class implementation (which only
     /// initializes the road wheel).
     virtual void Initialize(std::shared_ptr<ChChassis> chassis,  ///< [in] associated chassis subsystem
-                            const ChVector<>& location,          ///< [in] location relative to the chassis frame
+                            const ChVector3d& location,          ///< [in] location relative to the chassis frame
                             ChTrackAssembly* track               ///< [in] containing track assembly
     );
 
@@ -115,7 +115,7 @@ class CH_VEHICLE_API ChTrackSuspension : public ChPart {
     bool m_has_shock;     ///< specifies whether or not the suspension has a damper
     bool m_lock_arm;      ///< specified whether the suspension arm is locked
 
-    ChVector<> m_rel_loc;                        ///< suspension subsystem location relative to chassis
+    ChVector3d m_rel_loc;                        ///< suspension subsystem location relative to chassis
     std::shared_ptr<ChTrackWheel> m_road_wheel;  ///< road-wheel subsystem
     ChTrackAssembly* m_track;                    ///< containing track assembly
 

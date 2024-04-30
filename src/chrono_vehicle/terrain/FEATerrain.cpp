@@ -19,8 +19,8 @@
 #include <cstdio>
 #include <cmath>
 
-#include "chrono/physics/ChMaterialSurfaceNSC.h"
-#include "chrono/physics/ChMaterialSurfaceSMC.h"
+#include "chrono/physics/ChContactMaterialNSC.h"
+#include "chrono/physics/ChContactMaterialSMC.h"
 
 #include "chrono/fea/ChElementHexaANCF_3813_9.h"
 #include "chrono/fea/ChContactSurfaceMesh.h"
@@ -51,30 +51,30 @@ FEATerrain::FEATerrain(ChSystem* system)
 }
 
 // Return the terrain height at the specified location
-double FEATerrain::GetHeight(const ChVector<>& loc) const {
+double FEATerrain::GetHeight(const ChVector3d& loc) const {
     //// TODO
     return 0;
 }
 
 // Return the terrain normal at the specified location
-ChVector<> FEATerrain::GetNormal(const ChVector<>& loc) const {
+ChVector3d FEATerrain::GetNormal(const ChVector3d& loc) const {
     //// TODO
     return ChWorldFrame::Vertical();
 }
 
 // Return the terrain coefficient of friction at the specified location
-float FEATerrain::GetCoefficientFriction(const ChVector<>& loc) const {
+float FEATerrain::GetCoefficientFriction(const ChVector3d& loc) const {
     return m_friction_fun ? (*m_friction_fun)(loc) : 0.8f;
 }
 
 // Set properties of the FEA soil model
 void FEATerrain::SetSoilParametersFEA(double rho,              ///< Soil density
-                                                double Emod,             ///< Soil modulus of elasticity
-                                                double nu,               ///< Soil Poisson ratio
-                                                double yield_stress,     ///< Soil yield stress, for plasticity
-                                                double hardening_slope,  ///< Soil hardening slope, for plasticity
-                                                double friction_angle,   ///< Soil internal friction angle
-                                                double dilatancy_angle   ///< Soil dilatancy angle
+                                      double Emod,             ///< Soil modulus of elasticity
+                                      double nu,               ///< Soil Poisson ratio
+                                      double yield_stress,     ///< Soil yield stress, for plasticity
+                                      double hardening_slope,  ///< Soil hardening slope, for plasticity
+                                      double friction_angle,   ///< Soil internal friction angle
+                                      double dilatancy_angle   ///< Soil dilatancy angle
 ) {
     m_rho = rho;
     m_E = Emod;
@@ -86,9 +86,9 @@ void FEATerrain::SetSoilParametersFEA(double rho,              ///< Soil density
 }
 
 // Initialize the terrain as a box of 9-node brick elements of given dimensions.
-void FEATerrain::Initialize(const ChVector<>& start_point,
-                                      const ChVector<>& terrain_dimension,
-                                      const ChVector<int>& terrain_discretization) {
+void FEATerrain::Initialize(const ChVector3d& start_point,
+                            const ChVector3d& terrain_dimension,
+                            const ChVector3i& terrain_discretization) {
     // Specification of the mesh (40,20,6)
     int numDiv_x = terrain_discretization.x();
     int numDiv_y = terrain_discretization.y();
@@ -117,7 +117,7 @@ void FEATerrain::Initialize(const ChVector<>& start_point,
             double loc_z = start_point.z() + j * dz;
 
             // Create the node
-            auto node = chrono_types::make_shared<ChNodeFEAxyz>(ChVector<>(loc_x, loc_y, loc_z));
+            auto node = chrono_types::make_shared<ChNodeFEAxyz>(ChVector3d(loc_x, loc_y, loc_z));
             node->SetMass(0);
             // Fix all nodes along the axis Z = 0
             if (j == 0) {
@@ -151,19 +151,19 @@ void FEATerrain::Initialize(const ChVector<>& start_point,
     }
     // Initialize coordinates for curvature (central) node
     for (int i = 0; i < TotalNumElements; i++) {
-        auto node = chrono_types::make_shared<ChNodeFEAcurv>(ChVector<>(0.0, 0.0, 0.0), ChVector<>(0.0, 0.0, 0.0),
-                                                             ChVector<>(0.0, 0.0, 0.0));
+        auto node = chrono_types::make_shared<ChNodeFEAcurv>(ChVector3d(0.0, 0.0, 0.0), ChVector3d(0.0, 0.0, 0.0),
+                                                             ChVector3d(0.0, 0.0, 0.0));
         node->SetMass(0);
         m_mesh->AddNode(node);
     }
 
     // Basic material properties for soil.
     auto material = chrono_types::make_shared<ChContinuumElastic>();
-    material->Set_RayleighDampingK(0.0);
-    material->Set_RayleighDampingM(0.0);
-    material->Set_density(m_rho);
-    material->Set_E(m_E);
-    material->Set_v(m_nu);
+    material->SetRayleighDampingBeta(0.0);
+    material->SetRayleighDampingAlpha(0.0);
+    material->SetDensity(m_rho);
+    material->SetYoungModulus(m_E);
+    material->SetPoissonRatio(m_nu);
 
     // Initial plastic deformation tensor: Initially identity (elastic).
     ChMatrixNM<double, 9, 8> CCPInitial;
@@ -209,7 +209,7 @@ void FEATerrain::Initialize(const ChVector<>& start_point,
                           std::dynamic_pointer_cast<ChNodeFEAcurv>(m_mesh->GetNode(node8)));
 
         // Set element dimensions
-        element->SetDimensions(ChVector<>(dx, dy, dz));
+        element->SetDimensions(ChVector3d(dx, dy, dz));
 
         // Add a single layers with a fiber angle of 0 degrees.
         element->SetMaterial(material);

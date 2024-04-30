@@ -28,7 +28,6 @@ namespace chrono {
 /// control assumption is a good approximation of what you simulate (e.g., very good and reactive controllers).
 /// By default it is initialized with constant angular speed: df/dt = 1.
 /// Use SetSpeedFunction() to change to other speed functions.
-
 class ChApi ChLinkMotorRotationSpeed : public ChLinkMotorRotation {
   public:
     ChLinkMotorRotationSpeed();
@@ -49,28 +48,37 @@ class ChApi ChLinkMotorRotationSpeed : public ChLinkMotorRotation {
     void SetAngleOffset(double mo) { rot_offset = mo; }
 
     /// Get initial offset, in [rad].
-    double GetAngleOffset() { return rot_offset; }
+    double GetAngleOffset() const { return rot_offset; }
 
-    /// Set if the constraint must avoid angular drift. If true, it
-    /// means that the constraint is satisfied also at the rotation level,
-    /// by integrating the velocity in a separate auxiliary state. Default, true.
-    void SetAvoidAngleDrift(bool mb) { this->avoid_angle_drift = mb; }
-
-    /// Set if the constraint is in "avoid angle drift" mode.
-    bool GetAvoidAngleDrift() { return this->avoid_angle_drift; }
+    /// Enable angular drift avoidance (default: true).
+    /// If true, it means that the constraint is satisfied also at the rotation level, by integrating the velocity in a
+    /// separate auxiliary state.
+    void AvoidAngleDrift(bool avoid) { this->avoid_angle_drift = avoid; }
 
     /// Get the current actuator reaction torque [Nm]
     virtual double GetMotorTorque() const override { return -this->react_torque.z(); }
 
-    void Update(double mytime, bool update_assets = true) override;
-
-    //
-    // STATE FUNCTIONS
-    //
-
-    virtual int GetDOF() override { return 1; }
-
     ChVariablesGeneric& Variables() { return variable; }
+
+    /// Method to allow serialization of transient data to archives.
+    virtual void ArchiveOut(ChArchiveOut& archive_out) override;
+
+    /// Method to allow deserialization of transient data from archives.
+    virtual void ArchiveIn(ChArchiveIn& archive_in) override;
+
+  private:
+    double rot_offset;
+
+    ChVariablesGeneric variable;
+
+    double aux_dt;  // used for integrating speed, = angle
+    double aux_dtdt;
+
+    bool avoid_angle_drift;
+
+    virtual void Update(double mytime, bool update_assets = true) override;
+
+    virtual unsigned int GetNumCoordsPosLevel() override { return 1; }
 
     virtual void IntStateGather(const unsigned int off_x,
                                 ChState& x,
@@ -107,38 +115,20 @@ class ChApi ChLinkMotorRotationSpeed : public ChLinkMotorRotation {
 
     virtual void IntLoadConstraint_Ct(const unsigned int off, ChVectorDynamic<>& Qc, const double c) override;
 
-    //
-    // SOLVER INTERFACE (OLD)
-    //
-
     virtual void VariablesFbReset() override;
     virtual void VariablesFbLoadForces(double factor = 1) override;
     virtual void VariablesQbLoadSpeed() override;
     virtual void VariablesFbIncrementMq() override;
     virtual void VariablesQbSetSpeed(double step = 0) override;
-    virtual void InjectVariables(ChSystemDescriptor& mdescriptor) override;
+    virtual void InjectVariables(ChSystemDescriptor& descriptor) override;
 
     virtual void ConstraintsBiLoad_Ct(double factor = 1) override;
 
-    /// Add the current stiffness K matrix in encapsulated ChKblock item(s), if any.
-    /// The K matrices are load with scaling values Kfactor.
-    virtual void KRMmatricesLoad(double Kfactor, double Rfactor, double Mfactor) override;
+    /// Add the current stiffness K matrix in encapsulated ChKRMBlock item(s), if any.
+    /// The K matrix is loaded with scaling value Kfactor.
+    virtual void LoadKRMMatrices(double Kfactor, double Rfactor, double Mfactor) override;
 
-    /// Method to allow serialization of transient data to archives.
-    virtual void ArchiveOut(ChArchiveOut& marchive) override;
-
-    /// Method to allow deserialization of transient data from archives.
-    virtual void ArchiveIn(ChArchiveIn& marchive) override;
-
-  private:
-    double rot_offset;
-
-    ChVariablesGeneric variable;
-
-    double aux_dt;  // used for integrating speed, = angle
-    double aux_dtdt;
-
-    bool avoid_angle_drift;
+    friend class ChSystemMulticore;
 };
 
 CH_CLASS_VERSION(ChLinkMotorRotationSpeed, 0)

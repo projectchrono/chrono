@@ -15,7 +15,7 @@ class RSDATorqueFunctor : public chrono::ChLinkRSDA::TorqueFunctor {
                                 double angle,
                                 double vel,
                                 const chrono::ChLinkRSDA& link) override {
-            GetLog() << "You must implement the function evaluate()!\n";
+            std::cout << "You must implement the function evaluate()!" << std::endl;
             return 0.0;
         }
 };

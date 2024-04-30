@@ -68,14 +68,14 @@ ChPhysicsItem* ChCollisionModel::GetPhysicsItem() {
     return contactable->GetPhysicsItem();
 }
 
-geometry::ChAABB ChCollisionModel::GetBoundingBox() const {
+ChAABB ChCollisionModel::GetBoundingBox() const {
     // Return an updated bounding box only if this collision model was processed by the current collision system
     // (through BindAll or BindItem)
 
     if (impl)
         return impl->GetBoundingBox();
 
-    return geometry::ChAABB();
+    return ChAABB();
 }
 
 void ChCollisionModel::SetDefaultSuggestedEnvelope(double envelope) {
@@ -116,7 +116,7 @@ int ChCollisionModel::GetFamily() {
 }
 
 // Clear the family_mask bit in position mfamily.
-void ChCollisionModel::SetFamilyMaskNoCollisionWithFamily(int family) {
+void ChCollisionModel::DisallowCollisionsWith(int family) {
     assert(family >= 0 && family < 15);
     family_mask &= ~(1 << family);
     if (impl)
@@ -124,7 +124,7 @@ void ChCollisionModel::SetFamilyMaskNoCollisionWithFamily(int family) {
 }
 
 // Set the family_mask bit in position mfamily.
-void ChCollisionModel::SetFamilyMaskDoCollisionWithFamily(int family) {
+void ChCollisionModel::AllowCollisionsWith(int family) {
     assert(family >= 0 && family < 15);
     family_mask |= (1 << family);
     if (impl)
@@ -132,7 +132,7 @@ void ChCollisionModel::SetFamilyMaskDoCollisionWithFamily(int family) {
 }
 
 // Return true if the family_mask bit in position mfamily is set.
-bool ChCollisionModel::GetFamilyMaskDoesCollisionWithFamily(int family) {
+bool ChCollisionModel::CollidesWith(int family) {
     assert(family >= 0 && family < 15);
     return (family_mask & (1 << family)) != 0;
 }
@@ -168,11 +168,11 @@ void ChCollisionModel::AddShapes(std::shared_ptr<ChCollisionModel> model, const 
     }
 }
 
-void ChCollisionModel::AddCylinder(std::shared_ptr<ChMaterialSurface> material,
+void ChCollisionModel::AddCylinder(std::shared_ptr<ChContactMaterial> material,
                                    double radius,
-                                   const ChVector<>& p1,
-                                   const ChVector<>& p2) {
-    geometry::ChLineSegment seg(p1, p2);
+                                   const ChVector3d& p1,
+                                   const ChVector3d& p2) {
+    ChLineSegment seg(p1, p2);
     auto height = seg.GetLength();
     auto frame = seg.GetFrame();
 
@@ -180,37 +180,37 @@ void ChCollisionModel::AddCylinder(std::shared_ptr<ChMaterialSurface> material,
     AddShape(cylinder_shape, frame);
 }
 
-void ChCollisionModel::SetAllShapesMaterial(std::shared_ptr<ChMaterialSurface> mat) {
+void ChCollisionModel::SetAllShapesMaterial(std::shared_ptr<ChContactMaterial> mat) {
     assert(m_shape_instances.size() == 0 ||
            m_shape_instances[0].first->m_material->GetContactMethod() == mat->GetContactMethod());
     for (auto& shape : m_shape_instances)
         shape.first->m_material = mat;
 }
 
-void ChCollisionModel::ArchiveOut(ChArchiveOut& marchive) {
+void ChCollisionModel::ArchiveOut(ChArchiveOut& archive_out) {
     // version number
-    marchive.VersionWrite<ChCollisionModel>();
+    archive_out.VersionWrite<ChCollisionModel>();
 
     // serialize all member data:
-    marchive << CHNVP(model_envelope);
-    marchive << CHNVP(model_safe_margin);
-    marchive << CHNVP(family_group);
-    marchive << CHNVP(family_mask);
-    marchive << CHNVP(m_shape_instances);
-    marchive << CHNVP(contactable);
+    archive_out << CHNVP(model_envelope);
+    archive_out << CHNVP(model_safe_margin);
+    archive_out << CHNVP(family_group);
+    archive_out << CHNVP(family_mask);
+    archive_out << CHNVP(m_shape_instances);
+    archive_out << CHNVP(contactable);
 }
 
-void ChCollisionModel::ArchiveIn(ChArchiveIn& marchive) {
+void ChCollisionModel::ArchiveIn(ChArchiveIn& archive_in) {
     // version number
-    /*int version =*/marchive.VersionRead<ChCollisionModel>();
+    /*int version =*/archive_in.VersionRead<ChCollisionModel>();
 
     // stream in all member data:
-    marchive >> CHNVP(model_envelope);
-    marchive >> CHNVP(model_safe_margin);
-    marchive >> CHNVP(family_group);
-    marchive >> CHNVP(family_mask);
-    marchive >> CHNVP(m_shape_instances);
-    marchive >> CHNVP(contactable);
+    archive_in >> CHNVP(model_envelope);
+    archive_in >> CHNVP(model_safe_margin);
+    archive_in >> CHNVP(family_group);
+    archive_in >> CHNVP(family_mask);
+    archive_in >> CHNVP(m_shape_instances);
+    archive_in >> CHNVP(contactable);
 }
 
 // -----------------------------------------------------------------------------

@@ -15,19 +15,12 @@
 #ifndef CHLINKBASE_H
 #define CHLINKBASE_H
 
-#include "chrono/core/ChLog.h"
 #include "chrono/physics/ChPhysicsItem.h"
 
 namespace chrono {
 
-/// Base class for all types of constraints that act like mechanical joints ('links') in 3D space.
+/// Base class for all types of constraints in the 3D space.
 class ChApi ChLinkBase : public ChPhysicsItem {
-
-  protected:
-    bool disabled;  ///< all constraints of link disabled because of user needs
-    bool valid;     ///< link data is valid
-    bool broken;    ///< link is broken because of excessive pulling/pushing.
-
   public:
     ChLinkBase() : disabled(false), valid(true), broken(false) {}
     ChLinkBase(const ChLinkBase& other);
@@ -36,16 +29,19 @@ class ChApi ChLinkBase : public ChPhysicsItem {
     /// Tells if the link data is currently valid.
     /// (i.e. pointers to other items are correct)
     bool IsValid() { return valid; }
+
     /// Set the status of link validity
     void SetValid(bool mon) { valid = mon; }
 
     /// Tells if all constraints of this link are currently turned on or off by the user.
     bool IsDisabled() { return disabled; }
+
     /// User can use this to enable/disable all the constraint of the link as desired.
     virtual void SetDisabled(bool mdis) { disabled = mdis; }
 
     /// Tells if the link is broken, for excess of pulling/pushing.
     bool IsBroken() { return broken; }
+
     /// Set the 'broken' status vof this link.
     virtual void SetBroken(bool mon) { broken = mon; }
 
@@ -55,24 +51,7 @@ class ChApi ChLinkBase : public ChPhysicsItem {
     virtual bool IsActive() const override { return (valid && !disabled && !broken); }
 
     /// Get the number of scalar variables affected by constraints in this link
-    virtual int GetNumCoords() = 0;
-
-    /// Get the link coordinate system in absolute reference.
-    /// This represents the 'main' reference of the link: reaction forces and reaction torques are expressed in this
-    /// coordinate system. Child classes should implement this.
-    virtual ChCoordsys<> GetLinkAbsoluteCoords() { return CSYSNORM; }
-
-    /// Get the reference frame (expressed in and relative to the absolute frame) of the visual model.
-    /// For a ChLink, the default implementation returns the link coordinate frame.
-    virtual ChFrame<> GetVisualModelFrame(unsigned int nclone = 0) override {
-        return ChFrame<>(GetLinkAbsoluteCoords());
-    }
-
-    /// To get reaction force, expressed in link coordinate system:
-    virtual ChVector<> Get_react_force() { return VNULL; }
-    /// To get reaction torque,  expressed in link coordinate system:
-    virtual ChVector<> Get_react_torque() { return VNULL; }
-    // (Note, functions above might fit better in a specialized subclass, but here for easier GUI interface)
+    virtual unsigned int GetNumAffectedCoords() = 0;
 
     /// Get the current constraint violations.
     virtual ChVectorDynamic<> GetConstraintViolation() const { return ChVectorDynamic<>(); }
@@ -82,19 +61,36 @@ class ChApi ChLinkBase : public ChPhysicsItem {
     /// child classes might return false for optimizing sleeping, in case no time-dependant.
     virtual bool IsRequiringWaking() { return true; }
 
-    //
-    // SERIALIZATION
-    //
+    /// Get the link frame 1, on the 1st connected object, expressed in the absolute frame.
+    virtual ChFramed GetFrame1Abs() const = 0;
+
+    /// Get the link frame 2, on the 2nd connected object, expressed in the absolute frame.
+    virtual ChFramed GetFrame2Abs() const = 0;
+
+    /// Get the reaction force and torque on the 1st connected object, expressed in the link frame 1.
+    virtual ChWrenchd GetReaction1() const = 0;
+
+    /// Get the reaction force and torque on the 2nd connected object, expressed in the link frame 2.
+    virtual ChWrenchd GetReaction2() const = 0;
+
+    /// Get the reference frame (expressed in and relative to the absolute frame) of the visual model.
+    /// For a ChLink, the default implementation returns the link coordinate frame 1.
+    virtual ChFrame<> GetVisualModelFrame(unsigned int nclone = 0) const override { return GetFrame1Abs(); }
 
     /// Method to allow serialization of transient data to archives.
-    virtual void ArchiveOut(ChArchiveOut& marchive) override;
+    virtual void ArchiveOut(ChArchiveOut& archive_out) override;
 
     /// Method to allow deserialization of transient data from archives.
-    virtual void ArchiveIn(ChArchiveIn& marchive) override;
+    virtual void ArchiveIn(ChArchiveIn& archive_in) override;
+
+  protected:
+    bool disabled;  ///< all constraints of link disabled because of user needs
+    bool valid;     ///< link data is valid
+    bool broken;    ///< link is broken because of excessive pulling/pushing.
 };
 
-CH_CLASS_VERSION(ChLinkBase,0)
+CH_CLASS_VERSION(ChLinkBase, 0)
 
-}  // end namespace
+}  // namespace chrono
 
 #endif

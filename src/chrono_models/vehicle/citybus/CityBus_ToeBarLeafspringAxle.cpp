@@ -44,11 +44,11 @@ const double CityBus_ToeBarLeafspringAxle::m_knuckleRadius = 0.05;
 const double CityBus_ToeBarLeafspringAxle::m_tierodRadius = 0.02;
 const double CityBus_ToeBarLeafspringAxle::m_draglinkRadius = 0.02;
 
-const ChVector<> CityBus_ToeBarLeafspringAxle::m_axleTubeInertia(22.21 * 6.56, 0.0775 * 6.56, 22.21 * 6.56);
-const ChVector<> CityBus_ToeBarLeafspringAxle::m_spindleInertia(0.04117 * 6.56, 0.07352 * 6.56, 0.04117 * 6.56);
-const ChVector<> CityBus_ToeBarLeafspringAxle::m_knuckleInertia(0.1 * 6.56, 0.1 * 6.56, 0.1 * 6.56);
-const ChVector<> CityBus_ToeBarLeafspringAxle::m_tierodInertia(1.0 * 6.56, 0.1 * 6.56, 1.0 * 6.56);
-const ChVector<> CityBus_ToeBarLeafspringAxle::m_draglinkInertia(0.1 * 6.56, 1.0 * 6.56, 0.1 * 6.56);
+const ChVector3d CityBus_ToeBarLeafspringAxle::m_axleTubeInertia(22.21 * 6.56, 0.0775 * 6.56, 22.21 * 6.56);
+const ChVector3d CityBus_ToeBarLeafspringAxle::m_spindleInertia(0.04117 * 6.56, 0.07352 * 6.56, 0.04117 * 6.56);
+const ChVector3d CityBus_ToeBarLeafspringAxle::m_knuckleInertia(0.1 * 6.56, 0.1 * 6.56, 0.1 * 6.56);
+const ChVector3d CityBus_ToeBarLeafspringAxle::m_tierodInertia(1.0 * 6.56, 0.1 * 6.56, 1.0 * 6.56);
+const ChVector3d CityBus_ToeBarLeafspringAxle::m_draglinkInertia(0.1 * 6.56, 1.0 * 6.56, 0.1 * 6.56);
 
 const double CityBus_ToeBarLeafspringAxle::m_springDesignLength = 0.4;
 const double CityBus_ToeBarLeafspringAxle::m_springCoefficient = 565480;
@@ -78,7 +78,7 @@ class CityBus_SpringForceFront : public ChLinkTSDA::ForceFunctor {
     double m_min_length;
     double m_max_length;
 
-    ChFunction_Recorder m_bump;
+    ChFunctionInterp m_bump;
 };
 
 CityBus_SpringForceFront::CityBus_SpringForceFront(double spring_constant, double min_length, double max_length)
@@ -115,7 +115,7 @@ double CityBus_SpringForceFront::evaluate(double time,
         defl_rebound = length - m_max_length;
     }
 
-    force = defl_spring * m_spring_constant + m_bump.Get_y(defl_bump) - m_bump.Get_y(defl_rebound);
+    force = defl_spring * m_spring_constant + m_bump.GetVal(defl_bump) - m_bump.GetVal(defl_rebound);
 
     return force;
 }
@@ -183,32 +183,32 @@ CityBus_ToeBarLeafspringAxle::CityBus_ToeBarLeafspringAxle(const std::string& na
 // -----------------------------------------------------------------------------
 CityBus_ToeBarLeafspringAxle::~CityBus_ToeBarLeafspringAxle() {}
 
-const ChVector<> CityBus_ToeBarLeafspringAxle::getLocation(PointId which) {
+const ChVector3d CityBus_ToeBarLeafspringAxle::getLocation(PointId which) {
     switch (which) {
         case SPRING_A:
-            return ChVector<>(0.0, 0.3824, m_axleTubeRadius);
+            return ChVector3d(0.0, 0.3824, m_axleTubeRadius);
         case SPRING_C:
-            return ChVector<>(0.0, 0.3824, m_axleTubeRadius + m_springDesignLength - 0.1);
+            return ChVector3d(0.0, 0.3824, m_axleTubeRadius + m_springDesignLength - 0.1);
         case SHOCK_A:
-            return ChVector<>(-0.125, 0.441, -0.0507);
+            return ChVector3d(-0.125, 0.441, -0.0507);
         case SHOCK_C:
-            return ChVector<>(-0.2, 0.4193, 0.5298 - 0.1);
+            return ChVector3d(-0.2, 0.4193, 0.5298 - 0.1);
         case SPINDLE:
-            return ChVector<>(0.0, 0.7325 + 0.275, 0.0);
+            return ChVector3d(0.0, 0.7325 + 0.275, 0.0);
         case KNUCKLE_CM:
-            return ChVector<>(0.0, 0.7325 + 0.08, 0.0);
+            return ChVector3d(0.0, 0.7325 + 0.08, 0.0);
         case KNUCKLE_L:
-            return ChVector<>(0.0, 0.7325 + 0.08 + 0.0098058067569092, -0.1);
+            return ChVector3d(0.0, 0.7325 + 0.08 + 0.0098058067569092, -0.1);
         case KNUCKLE_U:
-            return ChVector<>(0.0, 0.7325 + 0.08 - 0.0098058067569092, 0.1);
+            return ChVector3d(0.0, 0.7325 + 0.08 - 0.0098058067569092, 0.1);
         case KNUCKLE_DRL:
-            return ChVector<>(0.02909228 * 2, 0.7325 + 0.08 - 0.19787278 * 1.5, 0.2);
+            return ChVector3d(0.02909228 * 2, 0.7325 + 0.08 - 0.19787278 * 1.5, 0.2);
         case TIEROD_K:
-            return ChVector<>(-0.24777 * 2, 0.7325 + 0.08 - 0.033323 * 1.5, 0.0);
+            return ChVector3d(-0.24777 * 2, 0.7325 + 0.08 - 0.033323 * 1.5, 0.0);
         case DRAGLINK_C:
-            return ChVector<>(0.6 + 0.6 + 0.4, 0.7325 + 0.08 - 0.19787278 * 1.5, 0.1);
+            return ChVector3d(0.6 + 0.6 + 0.4, 0.7325 + 0.08 - 0.19787278 * 1.5, 0.1);
         default:
-            return ChVector<>(0, 0, 0);
+            return ChVector3d(0, 0, 0);
     }
 }
 

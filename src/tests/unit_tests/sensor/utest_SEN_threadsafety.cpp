@@ -18,7 +18,6 @@
 
 #include "gtest/gtest.h"
 
-#include "chrono/core/ChLog.h"
 #include "chrono/physics/ChBodyEasy.h"
 #include "chrono/physics/ChSystemNSC.h"
 #include "chrono_sensor/sensors/ChCameraSensor.h"
@@ -44,20 +43,23 @@ TEST(ChSensor, modifying) {}
 TEST(ChFilterAccess, data_access_safety) {
     ChSystemNSC sys;
 
-    auto box = chrono_types::make_shared<ChBodyEasyBox>(1, 1, 1, 1000, true, true);
-    box->SetBodyFixed(true);
+    auto mat = chrono_types::make_shared<ChContactMaterialNSC>();
+    mat->SetFriction(0.2f);
+
+    auto box = chrono_types::make_shared<ChBodyEasyBox>(1, 1, 1, 1000, true, true, mat);
+    box->SetFixed(true);
     sys.Add(box);
 
     auto manager = chrono_types::make_shared<ChSensorManager>(&sys);
     manager->scene->AddPointLight({100, 100, 100}, {1, 1, 1}, 500);
 
     auto cam = chrono_types::make_shared<ChCameraSensor>(
-        box,                                                                // body camera is attached to
-        50.0f,                                                              // update rate in Hz
-        chrono::ChFrame<double>({-8, 0, 1}, Q_from_AngAxis(0, {0, 1, 0})),  // offset pose
-        1,                                                                  // image width
-        1,                                                                  // image height
-        (float)CH_C_PI / 3                                                  // FOV
+        box,                                                                   // body camera is attached to
+        50.0f,                                                                 // update rate in Hz
+        chrono::ChFrame<double>({-8, 0, 1}, QuatFromAngleAxis(0, {0, 1, 0})),  // offset pose
+        1,                                                                     // image width
+        1,                                                                     // image height
+        (float)CH_PI / 3                                                       // FOV
     );
     cam->SetName("Camera Sensor");
     cam->PushFilter(chrono_types::make_shared<ChFilterRGBA8Access>());

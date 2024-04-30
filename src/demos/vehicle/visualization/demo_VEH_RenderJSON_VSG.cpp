@@ -76,7 +76,7 @@ ChVehicle* CreateVehicle(ChSystem* sys, bool is_wheeled) {
     if (is_wheeled) {
         // Create the wheeled vehicle system
         auto vehicle = new WheeledVehicle(sys, vehicle::GetDataFile(setup.VehicleJSON()));
-        vehicle->Initialize(ChCoordsys<>(ChVector<>(0, 0, 0.75), QUNIT));
+        vehicle->Initialize(ChCoordsys<>(ChVector3d(0, 0, 0.75), QUNIT));
         vehicle->GetChassis()->SetFixed(chassis_fixed);
         vehicle->SetChassisVisualizationType(VisualizationType::MESH);
         vehicle->SetSuspensionVisualizationType(VisualizationType::PRIMITIVES);
@@ -101,7 +101,7 @@ ChVehicle* CreateVehicle(ChSystem* sys, bool is_wheeled) {
     } else {
         // Create the tracked vehicle system
         auto vehicle = new TrackedVehicle(sys, vehicle::GetDataFile(setup.VehicleJSON()));
-        vehicle->Initialize(ChCoordsys<>(ChVector<>(0, 0, 0.85), QUNIT));
+        vehicle->Initialize(ChCoordsys<>(ChVector3d(0, 0, 0.85), QUNIT));
         vehicle->GetChassis()->SetFixed(chassis_fixed);
         vehicle->SetChassisVisualizationType(VisualizationType::MESH);
         vehicle->SetSprocketVisualizationType(VisualizationType::MESH);
@@ -155,7 +155,7 @@ class KeyboardHandlerVSG : public ChEventHandlerVSG {
 // =============================================================================
 
 int main(int argc, char* argv[]) {
-    GetLog() << "Copyright (c) 2017 projectchrono.org\nChrono version: " << CHRONO_VERSION << "\n\n";
+    std::cout << "Copyright (c) 2017 projectchrono.org\nChrono version: " << CHRONO_VERSION << std::endl;
 
     // Peek in vehicle JSON file and infer type
     rapidjson::Document d;
@@ -171,7 +171,7 @@ int main(int argc, char* argv[]) {
     // Create containing system and vehicle
     ChSystemSMC sys;
     sys.SetCollisionSystemType(ChCollisionSystem::Type::BULLET);
-    sys.Set_G_acc(enable_gravity ? ChVector<>(0, 0, -9.81) : VNULL);
+    sys.SetGravitationalAcceleration(enable_gravity ? ChVector3d(0, 0, -9.81) : VNULL);
     auto vehicle = CreateVehicle(&sys, is_wheeled);
 
     // (Constant) driver inputs
@@ -198,14 +198,14 @@ int main(int argc, char* argv[]) {
     ChVisualSystemVSG vis;
     vis.AttachSystem(&sys);
     vis.SetWindowTitle("JSON visualization - " + setup.VehicleJSON());
-    vis.AddCamera(factor * ChVector<>(-1.75, -1.75, 1.0), ChVector<>(0, 0, 0.5));
-    vis.SetWindowSize(ChVector2<int>(800, 600));
-    vis.SetWindowPosition(ChVector2<int>(100, 100));
+    vis.AddCamera(factor * ChVector3d(-1.75, -1.75, 1.0), ChVector3d(0, 0, 0.5));
+    vis.SetWindowSize(ChVector2i(800, 600));
+    vis.SetWindowPosition(ChVector2i(100, 100));
     vis.SetUseSkyBox(false);
     vis.SetCameraVertical(CameraVerticalDir::Z);
     vis.SetCameraAngleDeg(40.0);
     vis.SetLightIntensity(1.0f);
-    vis.SetLightDirection(CH_C_PI_2, CH_C_PI_4);
+    vis.SetLightDirection(CH_PI_2, CH_PI_4);
 
     // Attach the custom event receiver (use key 'U' to trigger a vehicle update)
     auto kbhandler = chrono_types::make_shared<KeyboardHandlerVSG>(vehicle, is_wheeled);

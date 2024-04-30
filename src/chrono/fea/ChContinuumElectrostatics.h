@@ -33,8 +33,8 @@ class ChContinuumElectrostatics : public ChContinuumPoisson3D {
     }
     virtual ~ChContinuumElectrostatics() {}
 
-    /// Sets the e absolute permittivity constant of the material,
-    /// expressed in Faraday per meter  [ F/m ].
+    /// Set the absolute permittivity constant of the material,
+    /// expressed in Faraday per meter [F/m].
     /// Sets the conductivity matrix as isotropic (diagonal k)
     void SetPermittivity(double me) {
         e_permittivity = me;
@@ -42,18 +42,18 @@ class ChContinuumElectrostatics : public ChContinuumPoisson3D {
         ConstitutiveMatrix.fillDiagonal(e_permittivity);
     }
 
-    /// Sets the e absolute permittivity by using the relative
+    /// Set the absolute permittivity by using the relative
     /// permittivity er, since e = er*e0 with e0 the constant permittivity
     /// of vacuum, so this is easier than using SetPermittivity(),
     /// Examples: air er=1.000589, rubber er=7, water er=80, glass 4-10 (approx.)
     void SetRelativePermettivity(double re) { SetPermittivity(re * 8.854187817e-12); }
 
-    /// Gets the e absolute permittivity constant of the material,
+    /// Get the absolute permittivity constant of the material,
     /// expressed in Faraday per meter  [ F/m ].
     double GetPermittivity() const { return e_permittivity; }
 
-    /// Get the e permittivity matrix
-    ChMatrixDynamic<> Get_PermittivityEmatrix() { return ConstitutiveMatrix; }
+    /// Get the permittivity matrix
+    ChMatrixDynamic<> GetPermittivityMatrix() { return ConstitutiveMatrix; }
 };
 
 }  // end namespace fea

@@ -13,7 +13,7 @@
 // =============================================================================
 //
 // Base class for a vehicle wheel.
-// A wheel subsystem does not own a body. Instead, when attached to the spindle 
+// A wheel subsystem does not own a body. Instead, when attached to the spindle
 // of a suspension subsystem, the wheel's mass properties are used to update
 // those of the spindle body owned by the suspension.
 // A concrete wheel subsystem can optionally carry its own visualization assets
@@ -55,14 +55,14 @@ void ChWheel::Initialize(std::shared_ptr<ChChassis> chassis,
 
     if (m_spindle->GetCollisionModel()) {
         m_spindle->GetCollisionModel()->SetFamily(WheeledCollisionFamily::WHEEL);
-        m_spindle->GetCollisionModel()->SetFamilyMaskNoCollisionWithFamily(WheeledCollisionFamily::WHEEL);
+        m_spindle->GetCollisionModel()->DisallowCollisionsWith(WheeledCollisionFamily::WHEEL);
     }
 
     // Create ChLoad objects to apply terrain forces on spindle
     m_spindle_terrain_force = chrono_types::make_shared<ChLoadBodyForce>(m_spindle, VNULL, false, VNULL, false);
     m_spindle_terrain_torque = chrono_types::make_shared<ChLoadBodyTorque>(m_spindle, VNULL, false);
-    m_spindle_terrain_force->SetNameString(m_name + "_terrain_force");
-    m_spindle_terrain_torque->SetNameString(m_name + "_terrain_torque");
+    m_spindle_terrain_force->SetName(m_name + "_terrain_force");
+    m_spindle_terrain_torque->SetName(m_name + "_terrain_torque");
 
     // Add terrain loads to a container
     if (chassis) {
@@ -89,7 +89,7 @@ void ChWheel::InitializeInertiaProperties() {
 }
 
 void ChWheel::UpdateInertiaProperties() {
-    m_xform = ChFrame<>(m_spindle->TransformPointLocalToParent(ChVector<>(0, m_offset, 0)), m_spindle->GetRot());
+    m_xform = ChFrame<>(m_spindle->TransformPointLocalToParent(ChVector3d(0, m_offset, 0)), m_spindle->GetRot());
 }
 
 void ChWheel::Synchronize() {
@@ -100,30 +100,29 @@ void ChWheel::Synchronize() {
 }
 
 void ChWheel::Synchronize(const TerrainForce& tire_force) {
-    m_spindle->Accumulate_force(tire_force.force, tire_force.point, false);
-    m_spindle->Accumulate_torque(tire_force.moment, false);
+    m_spindle->AccumulateForce(tire_force.force, tire_force.point, false);
+    m_spindle->AccumulateTorque(tire_force.moment, false);
 
     ////m_spindle_terrain_force->SetForce(tire_force.force, false);
     ////m_spindle_terrain_force->SetApplicationPoint(tire_force.point, false);
     ////m_spindle_terrain_torque->SetTorque(tire_force.moment, false);
 }
 
-ChVector<> ChWheel::GetPos() const {
-    return m_spindle->TransformPointLocalToParent(ChVector<>(0, m_offset, 0));
+ChVector3d ChWheel::GetPos() const {
+    return m_spindle->TransformPointLocalToParent(ChVector3d(0, m_offset, 0));
 }
 
 WheelState ChWheel::GetState() const {
     WheelState state;
 
-    ChFrameMoving<> wheel_loc(ChVector<>(0, m_offset, 0), QUNIT);
-    ChFrameMoving<> wheel_abs;
-    m_spindle->TransformLocalToParent(wheel_loc, wheel_abs);
+    ChFrameMoving<> wheel_loc(ChVector3d(0, m_offset, 0), QUNIT);
+    ChFrameMoving<> wheel_abs = m_spindle->TransformLocalToParent(wheel_loc);
     state.pos = wheel_abs.GetPos();
     state.rot = wheel_abs.GetRot();
-    state.lin_vel = wheel_abs.GetPos_dt();
-    state.ang_vel = wheel_abs.GetWvel_par();
+    state.lin_vel = wheel_abs.GetPosDt();
+    state.ang_vel = wheel_abs.GetAngVelParent();
 
-    ChVector<> ang_vel_loc = state.rot.RotateBack(state.ang_vel);
+    ChVector3d ang_vel_loc = state.rot.RotateBack(state.ang_vel);
     state.omega = ang_vel_loc.y();
 
     return state;
@@ -136,14 +135,14 @@ void ChWheel::AddVisualizationAssets(VisualizationType vis) {
         return;
 
     if (vis == VisualizationType::MESH && !m_vis_mesh_file.empty()) {
-        ChQuaternion<> rot = (m_side == VehicleSide::LEFT) ? Q_from_AngZ(0) : Q_from_AngZ(CH_C_PI);
-        auto trimesh = geometry::ChTriangleMeshConnected::CreateFromWavefrontFile(vehicle::GetDataFile(m_vis_mesh_file),
-                                                                                  true, true);
+        ChQuaternion<> rot = (m_side == VehicleSide::LEFT) ? QuatFromAngleZ(0) : QuatFromAngleZ(CH_PI);
+        auto trimesh =
+            ChTriangleMeshConnected::CreateFromWavefrontFile(vehicle::GetDataFile(m_vis_mesh_file), true, true);
         m_trimesh_shape = chrono_types::make_shared<ChVisualShapeTriangleMesh>();
         m_trimesh_shape->SetMesh(trimesh);
         m_trimesh_shape->SetName(filesystem::path(m_vis_mesh_file).stem());
         m_trimesh_shape->SetMutable(false);
-        m_spindle->AddVisualShape(m_trimesh_shape, ChFrame<>(ChVector<>(0, m_offset, 0), ChMatrix33<>(rot)));
+        m_spindle->AddVisualShape(m_trimesh_shape, ChFrame<>(ChVector3d(0, m_offset, 0), ChMatrix33<>(rot)));
         return;
     }
 
@@ -151,8 +150,8 @@ void ChWheel::AddVisualizationAssets(VisualizationType vis) {
         return;
 
     m_cyl_shape = ChVehicleGeometry::AddVisualizationCylinder(m_spindle,                                    //
-                                                              ChVector<>(0, m_offset + GetWidth() / 2, 0),  //
-                                                              ChVector<>(0, m_offset - GetWidth() / 2, 0),  //
+                                                              ChVector3d(0, m_offset + GetWidth() / 2, 0),  //
+                                                              ChVector3d(0, m_offset - GetWidth() / 2, 0),  //
                                                               GetRadius());
 }
 

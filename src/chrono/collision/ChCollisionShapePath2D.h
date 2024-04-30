@@ -27,7 +27,7 @@ namespace chrono {
 /// When added to a collision model, the path is defined in the XY plane of the shape frame.
 /// This shape defines a 2D collision shape that will collide with another 2D line of the same type if aligned on the
 /// same plane. This is useful for mechanisms that work on a plane, and that require more precise collision that is not
-/// possible with current 3D shapes. For example, the line can contain concave or convex round fillets. 
+/// possible with current 3D shapes. For example, the line can contain concave or convex round fillets.
 /// Requirements:
 /// - the line must be clockwise for inner material, (counterclockwise=hollow, material outside)
 /// - the line must contain only ChLineSegment and ChLineArc sub-lines
@@ -35,26 +35,26 @@ namespace chrono {
 class ChApi ChCollisionShapePath2D : public ChCollisionShape {
   public:
     ChCollisionShapePath2D();
-    ChCollisionShapePath2D(std::shared_ptr<ChMaterialSurface> material,
-                           std::shared_ptr<geometry::ChLinePath> path,
+    ChCollisionShapePath2D(std::shared_ptr<ChContactMaterial> material,
+                           std::shared_ptr<ChLinePath> path,
                            double radius = 0.001);
 
     ~ChCollisionShapePath2D() {}
 
     /// Access the path geometry.
-    std::shared_ptr<geometry::ChLinePath> GetGeometry() { return gpath; }
+    std::shared_ptr<ChLinePath> GetGeometry() { return gpath; }
 
     /// Get the path thickness (the radius of a sweeping sphere).
     double GetSRadius() const { return radius; }
 
     /// Method to allow serialization of transient data to archives.
-    virtual void ArchiveOut(ChArchiveOut& marchive) override;
+    virtual void ArchiveOut(ChArchiveOut& archive_out) override;
 
     /// Method to allow de-serialization of transient data from archives.
-    virtual void ArchiveIn(ChArchiveIn& marchive) override;
+    virtual void ArchiveIn(ChArchiveIn& archive_in) override;
 
   private:
-    std::shared_ptr<geometry::ChLinePath> gpath;
+    std::shared_ptr<ChLinePath> gpath;
     double radius;
 };
 

@@ -24,8 +24,8 @@
 #include "chrono/timestepper/ChTimestepper.h"
 
 #include "chrono/fea/ChElementShellReissner4.h"
-#include "chrono/fea/ChLinkDirFrame.h"
-#include "chrono/fea/ChLinkPointFrame.h"
+#include "chrono/fea/ChLinkNodeSlopeFrame.h"
+#include "chrono/fea/ChLinkNodeFrame.h"
 #include "chrono/fea/ChMesh.h"
 #include "chrono/assets/ChVisualShapeFEA.h"
 
@@ -45,13 +45,11 @@ using namespace chrono::fea;
 using namespace chrono::irrlicht;
 using namespace chrono::postprocess;
 
-// Output directory
-const std::string out_dir = GetChronoOutputPath() + "FEA_SHELLS";
-
 int main(int argc, char* argv[]) {
-    GetLog() << "Copyright (c) 2017 projectchrono.org\nChrono version: " << CHRONO_VERSION << "\n\n";
+    std::cout << "Copyright (c) 2017 projectchrono.org\nChrono version: " << CHRONO_VERSION << std::endl;
 
     // Create (if needed) output directory
+    const std::string out_dir = GetChronoOutputPath() + "FEA_SHELLS";
     if (!filesystem::create_directory(filesystem::path(out_dir))) {
         std::cout << "Error creating directory " << out_dir << std::endl;
         return 1;
@@ -67,18 +65,18 @@ int main(int argc, char* argv[]) {
     // Remember to add the mesh to the system!
     sys.Add(my_mesh);
 
-    // sys.Set_G_acc(VNULL); or
+    // sys.SetGravitationalAcceleration(VNULL); or
     my_mesh->SetAutomaticGravity(false);
 
     std::shared_ptr<ChNodeFEAxyzrot> nodePlotA;
     std::shared_ptr<ChNodeFEAxyzrot> nodePlotB;
     std::vector<std::shared_ptr<ChNodeFEAxyzrot>> nodesLoad;
 
-    ChFunction_Recorder ref_X;
-    ChFunction_Recorder ref_Y;
+    ChFunctionInterp ref_X;
+    ChFunctionInterp ref_Y;
 
-    ChVector<> load_torque;
-    ChVector<> load_force;
+    ChVector3d load_torque;
+    ChVector3d load_force;
 
     //
     // BENCHMARK n.1
@@ -116,7 +114,7 @@ int main(int argc, char* argv[]) {
         for (int il = 0; il <= nels_L; ++il) {
             for (int iw = 0; iw <= nels_W; ++iw) {
                 // Make nodes
-                ChVector<> nodepos(rect_L * ((double)il / (double)nels_L), 0, rect_W * ((double)iw / (double)nels_W));
+                ChVector3d nodepos(rect_L * ((double)il / (double)nels_L), 0, rect_W * ((double)iw / (double)nels_W));
                 ChQuaternion<> noderot(QUNIT);
 
                 ChFrame<> nodeframe(nodepos, noderot);
@@ -143,7 +141,7 @@ int main(int argc, char* argv[]) {
                                        nodearray[(il) * (nels_W + 1) + (iw - 1)], nodearray[(il) * (nels_W + 1) + (iw)],
                                        nodearray[(il - 1) * (nels_W + 1) + (iw)]);
 
-                    melement->AddLayer(rect_thickness, 0 * CH_C_DEG_TO_RAD, mat);
+                    melement->AddLayer(rect_thickness, 0 * CH_DEG_TO_RAD, mat);
 
                     elarray[(il - 1) * (nels_W) + (iw - 1)] = melement;
                 }
@@ -158,9 +156,9 @@ int main(int argc, char* argv[]) {
         }
 
         // applied load
-        // load_force = ChVector<>(200000,0, 20000);
-        load_force = ChVector<>(0, 4, 0);
-        // load_torque = ChVector<>(0, 0, 50*CH_C_PI/3.0);
+        // load_force = ChVector3d(200000,0, 20000);
+        load_force = ChVector3d(0, 4, 0);
+        // load_torque = ChVector3d(0, 0, 50*CH_PI/3.0);
 
         // reference solution for (0, 4, 0) shear to plot
         ref_Y.AddPoint(0.10, 1.309);
@@ -208,7 +206,7 @@ int main(int argc, char* argv[]) {
 
         int nels_U = 60;
         int nels_W = 10;
-        double arc = CH_C_2PI * 1;
+        double arc = CH_2PI * 1;
         std::vector<std::shared_ptr<ChElementShellReissner4>> elarray(nels_U * nels_W);
         std::vector<std::shared_ptr<ChNodeFEAxyzrot>> nodearray((nels_U + 1) * (nels_W + 1));
         std::vector<std::shared_ptr<ChNodeFEAxyzrot>> nodes_start(nels_W + 1);
@@ -219,7 +217,7 @@ int main(int argc, char* argv[]) {
                 // Make nodes
                 double u = ((double)iu / (double)nels_U);
                 double w = ((double)iw / (double)nels_W);
-                ChVector<> nodepos((plate_Ri + (plate_Ro - plate_Ri) * w) * cos(u * arc), 0,
+                ChVector3d nodepos((plate_Ri + (plate_Ro - plate_Ri) * w) * cos(u * arc), 0,
                                    (plate_Ri + (plate_Ro - plate_Ri) * w) * sin(u * arc));
                 ChQuaternion<> noderot(QUNIT);
                 ChFrame<> nodeframe(nodepos, noderot);
@@ -246,7 +244,7 @@ int main(int argc, char* argv[]) {
                                        nodearray[(iu - 1) * (nels_W + 1) + (iw - 1)],
                                        nodearray[(iu) * (nels_W + 1) + (iw - 1)]);
 
-                    melement->AddLayer(plate_thickness, 0 * CH_C_DEG_TO_RAD, mat);
+                    melement->AddLayer(plate_thickness, 0 * CH_DEG_TO_RAD, mat);
 
                     elarray[(iu - 1) * (nels_W) + (iw - 1)] = melement;
                 }
@@ -261,7 +259,7 @@ int main(int argc, char* argv[]) {
             mstartnode->SetFixed(true);
         }
 
-        load_force = ChVector<>(0, 0.8 * 4, 0);
+        load_force = ChVector3d(0, 0.8 * 4, 0);
         load_torque = VNULL;
 
         // reference solution to plot
@@ -315,7 +313,7 @@ int main(int argc, char* argv[]) {
 
         int nels_U = 32;
         int nels_W = 32;
-        double arc = CH_C_PI;
+        double arc = CH_PI;
         std::vector<std::shared_ptr<ChElementShellReissner4>> elarray(nels_U * nels_W);
         std::vector<std::shared_ptr<ChNodeFEAxyzrot>> nodearray((nels_U + 1) * (nels_W + 1));
         std::vector<std::shared_ptr<ChNodeFEAxyzrot>> nodes_start(nels_W + 1);
@@ -328,7 +326,7 @@ int main(int argc, char* argv[]) {
                 // Make nodes
                 double u = ((double)iu / (double)nels_U);
                 double w = ((double)iw / (double)nels_W);
-                ChVector<> nodepos((plate_R)*cos(w * arc), (plate_R)*sin(w * arc), u * plate_L);
+                ChVector3d nodepos((plate_R)*cos(w * arc), (plate_R)*sin(w * arc), u * plate_L);
                 ChQuaternion<> noderot(QUNIT);
                 ChFrame<> nodeframe(nodepos, noderot);
 
@@ -358,11 +356,11 @@ int main(int argc, char* argv[]) {
                                        nodearray[(iu - 1) * (nels_W + 1) + (iw - 1)],
                                        nodearray[(iu) * (nels_W + 1) + (iw - 1)]);
 
-                    melement->AddLayer(plate_thickness, 0 * CH_C_DEG_TO_RAD, mat);
+                    melement->AddLayer(plate_thickness, 0 * CH_DEG_TO_RAD, mat);
                     // In case you want to test laminated shells, do instead:
-                    //  melement->AddLayer(plate_thickness/3, 0 * CH_C_DEG_TO_RAD, mat_ortho);
-                    //  melement->AddLayer(plate_thickness/3, 90 * CH_C_DEG_TO_RAD, mat_ortho);
-                    //  melement->AddLayer(plate_thickness/3, 0 * CH_C_DEG_TO_RAD, mat_ortho);
+                    //  melement->AddLayer(plate_thickness/3, 0 * CH_DEG_TO_RAD, mat_ortho);
+                    //  melement->AddLayer(plate_thickness/3, 90 * CH_DEG_TO_RAD, mat_ortho);
+                    //  melement->AddLayer(plate_thickness/3, 0 * CH_DEG_TO_RAD, mat_ortho);
 
                     elarray[(iu - 1) * (nels_W) + (iw - 1)] = melement;
                 }
@@ -378,7 +376,7 @@ int main(int argc, char* argv[]) {
         }
 
         auto mtruss = chrono_types::make_shared<ChBody>();
-        mtruss->SetBodyFixed(true);
+        mtruss->SetFixed(true);
         sys.Add(mtruss);
         for (auto mendnode : nodes_left) {
             auto mlink = chrono_types::make_shared<ChLinkMateGeneric>(false, true, false, true, false, true);
@@ -391,7 +389,7 @@ int main(int argc, char* argv[]) {
             sys.Add(mlink);
         }
 
-        load_force = ChVector<>(0, -2000, 0);
+        load_force = ChVector3d(0, -2000, 0);
         load_torque = VNULL;
 
         // reference solution to plot
@@ -407,7 +405,7 @@ int main(int argc, char* argv[]) {
         ref_X.AddPoint(1.00, 1 - 1.71);
     }
 
-    //Visualization of the FEM mesh.
+    // Visualization of the FEM mesh.
     // This will automatically update a triangle mesh (a ChVisualShapeTriangleMesh
     // asset that is internally managed) by setting  proper
     // coordinates and vertex colors as in the FEM elements.
@@ -441,7 +439,7 @@ int main(int argc, char* argv[]) {
     vis->AddLogo();
     vis->AddSkyBox();
     vis->AddTypicalLights();
-    vis->AddCamera(ChVector<>(0.0, 6.0, -15.0));
+    vis->AddCamera(ChVector3d(0.0, 6.0, -15.0));
     vis->AttachSystem(&sys);
 
     // Change solver to PardisoMKL
@@ -455,7 +453,7 @@ int main(int argc, char* argv[]) {
     // sys.SetTimestepperType(ChTimestepper::Type::HHT);
 
     if (auto mint = std::dynamic_pointer_cast<ChImplicitIterativeTimestepper>(sys.GetTimestepper())) {
-        mint->SetMaxiters(5);
+        mint->SetMaxIters(5);
         mint->SetAbsTolerances(1e-12, 1e-12);
     }
 
@@ -463,8 +461,8 @@ int main(int argc, char* argv[]) {
     sys.Setup();
     sys.Update();
 
-    ChFunction_Recorder rec_X;
-    ChFunction_Recorder rec_Y;
+    ChFunctionInterp rec_X;
+    ChFunctionInterp rec_Y;
 
     double mtime = 0;
 
@@ -502,7 +500,7 @@ int main(int argc, char* argv[]) {
     // Outputs results in a GNUPLOT plot:
 
     std::string gplfilename = out_dir + "/shell_benchmark.gpl";
-    ChGnuPlot mplot(gplfilename.c_str());
+    ChGnuPlot mplot(gplfilename);
     mplot.SetGrid(false, 1, ChColor(0.8f, 0.8f, 0.8f));
     mplot.SetLabelX("Torque T/T0");
     mplot.SetLabelY("Tip displacement [m]");

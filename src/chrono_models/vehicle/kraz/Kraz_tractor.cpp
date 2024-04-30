@@ -90,13 +90,13 @@ void Kraz_tractor::Initialize(const ChCoordsys<>& chassisPos, double chassisFwdV
 
     // Initialize the steering subsystem (specify the steering subsystem's frame relative to the chassis reference
     // frame).
-    m_steerings[0]->Initialize(m_chassis, ChVector<>(0, 0, 0), ChQuaternion<>(1, 0, 0, 0));
+    m_steerings[0]->Initialize(m_chassis, ChVector3d(0, 0, 0), ChQuaternion<>(1, 0, 0, 0));
 
     // Initialize the axle subsystems.
-    m_axles[0]->Initialize(m_chassis, nullptr, m_steerings[0], ChVector<>(0.0, 0, 0), ChVector<>(0), 0.0);
+    m_axles[0]->Initialize(m_chassis, nullptr, m_steerings[0], ChVector3d(0.0, 0, 0), ChVector3d(0), 0.0);
     const double twin_tire_dist = 0.33528;  // Michelin for 12.00 R 20
-    m_axles[1]->Initialize(m_chassis, nullptr, nullptr, ChVector<>(-4.08, 0, 0), ChVector<>(0), twin_tire_dist);
-    m_axles[2]->Initialize(m_chassis, nullptr, nullptr, ChVector<>(-5.48, 0, 0), ChVector<>(0), twin_tire_dist);
+    m_axles[1]->Initialize(m_chassis, nullptr, nullptr, ChVector3d(-4.08, 0, 0), ChVector3d(0), twin_tire_dist);
+    m_axles[2]->Initialize(m_chassis, nullptr, nullptr, ChVector3d(-5.48, 0, 0), ChVector3d(0), twin_tire_dist);
 
     // Initialize the driveline subsystem (6x4 = rear axles are driven)
     std::vector<int> driven_susp = {1, 2};
@@ -187,19 +187,17 @@ double Kraz_tractor::GetShockVelocity(int axle, VehicleSide side) const {
 // subsystems (display in inches)
 // -----------------------------------------------------------------------------
 void Kraz_tractor::LogHardpointLocations() {
-    GetLog().SetNumFormat("%7.3f");
-
-    GetLog() << "\n---- FRONT suspension hardpoint locations (RIGHT side)\n";
+    std::cout << "\n---- FRONT suspension hardpoint locations (RIGHT side)\n";
     std::static_pointer_cast<ChToeBarLeafspringAxle>(m_axles[0]->m_suspension)
-        ->LogHardpointLocations(ChVector<>(0, 0, 0), true);
-    GetLog() << "\n---- REAR#1 suspension hardpoint locations (RIGHT side)\n";
+        ->LogHardpointLocations(ChVector3d(0, 0, 0), true);
+    std::cout << "\n---- REAR#1 suspension hardpoint locations (RIGHT side)\n";
     std::static_pointer_cast<ChLeafspringAxle>(m_axles[1]->m_suspension)
-        ->LogHardpointLocations(ChVector<>(0, 0, 0), true);
-    GetLog() << "\n---- REAR#2 suspension hardpoint locations (RIGHT side)\n";
+        ->LogHardpointLocations(ChVector3d(0, 0, 0), true);
+    std::cout << "\n---- REAR#2 suspension hardpoint locations (RIGHT side)\n";
     std::static_pointer_cast<ChLeafspringAxle>(m_axles[2]->m_suspension)
-        ->LogHardpointLocations(ChVector<>(0, 0, 0), true);
+        ->LogHardpointLocations(ChVector3d(0, 0, 0), true);
 
-    GetLog() << "\n\n";
+    std::cout << "\n\n";
 }
 
 // -----------------------------------------------------------------------------
@@ -210,40 +208,36 @@ void Kraz_tractor::LogHardpointLocations() {
 // Lengths are reported in inches, velocities in inches/s, and forces in lbf (are they?)
 // -----------------------------------------------------------------------------
 void Kraz_tractor::DebugLog(int what) {
-    GetLog().SetNumFormat("%10.2f");
-
     if (what & OUT_SPRINGS) {
-        GetLog() << "\n---- Spring (front-left, front-right, rear1-left, rear1-right, rear2-left, rear2-right)\n";
-        GetLog() << "Length [inch]       " << GetSpringLength(0, LEFT) << "  " << GetSpringLength(0, RIGHT) << "  "
-                 << GetSpringLength(1, LEFT) << "  " << GetSpringLength(1, RIGHT) << GetSpringLength(2, LEFT) << "  "
-                 << GetSpringLength(2, RIGHT) << "\n";
-        GetLog() << "Deformation [inch]  " << GetSpringDeformation(0, LEFT) << "  " << GetSpringDeformation(0, RIGHT)
-                 << "  " << GetSpringDeformation(1, LEFT) << "  " << GetSpringDeformation(1, RIGHT) << "  "
-                 << GetSpringDeformation(2, LEFT) << "  " << GetSpringDeformation(2, RIGHT) << "\n";
-        GetLog() << "Force [lbf]         " << GetSpringForce(0, LEFT) << "  " << GetSpringForce(0, RIGHT) << "  "
-                 << GetSpringForce(1, LEFT) << "  " << GetSpringForce(1, RIGHT) << GetSpringForce(2, LEFT) << "  "
-                 << GetSpringForce(2, RIGHT) << "\n";
+        std::cout << "\n---- Spring (front-left, front-right, rear1-left, rear1-right, rear2-left, rear2-right)\n";
+        std::cout << "Length [inch]       " << GetSpringLength(0, LEFT) << "  " << GetSpringLength(0, RIGHT) << "  "
+                  << GetSpringLength(1, LEFT) << "  " << GetSpringLength(1, RIGHT) << GetSpringLength(2, LEFT) << "  "
+                  << GetSpringLength(2, RIGHT) << "\n";
+        std::cout << "Deformation [inch]  " << GetSpringDeformation(0, LEFT) << "  " << GetSpringDeformation(0, RIGHT)
+                  << "  " << GetSpringDeformation(1, LEFT) << "  " << GetSpringDeformation(1, RIGHT) << "  "
+                  << GetSpringDeformation(2, LEFT) << "  " << GetSpringDeformation(2, RIGHT) << "\n";
+        std::cout << "Force [lbf]         " << GetSpringForce(0, LEFT) << "  " << GetSpringForce(0, RIGHT) << "  "
+                  << GetSpringForce(1, LEFT) << "  " << GetSpringForce(1, RIGHT) << GetSpringForce(2, LEFT) << "  "
+                  << GetSpringForce(2, RIGHT) << "\n";
     }
 
     if (what & OUT_SHOCKS) {
-        GetLog() << "\n---- Shock (front-left, front-right, rear1-left, rear1-right, rear2-left, rear2-right)\n";
-        GetLog() << "Length [inch]       " << GetShockLength(0, LEFT) << "  " << GetShockLength(0, RIGHT) << "  "
-                 << GetShockLength(1, LEFT) << "  " << GetShockLength(1, RIGHT) << GetShockLength(2, LEFT) << "  "
-                 << GetShockLength(2, RIGHT) << "\n";
-        GetLog() << "Velocity [inch/s]   " << GetShockVelocity(0, LEFT) << "  " << GetShockVelocity(0, RIGHT) << "  "
-                 << GetShockVelocity(1, LEFT) << "  " << GetShockVelocity(1, RIGHT) << GetShockVelocity(2, LEFT) << "  "
-                 << GetShockVelocity(2, RIGHT) << "\n";
-        GetLog() << "Force [lbf]         " << GetShockForce(0, LEFT) << "  " << GetShockForce(0, RIGHT) << "  "
-                 << GetShockForce(1, LEFT) << "  " << GetShockForce(1, RIGHT) << GetShockForce(2, LEFT) << "  "
-                 << GetShockForce(2, RIGHT) << "\n";
+        std::cout << "\n---- Shock (front-left, front-right, rear1-left, rear1-right, rear2-left, rear2-right)\n";
+        std::cout << "Length [inch]       " << GetShockLength(0, LEFT) << "  " << GetShockLength(0, RIGHT) << "  "
+                  << GetShockLength(1, LEFT) << "  " << GetShockLength(1, RIGHT) << GetShockLength(2, LEFT) << "  "
+                  << GetShockLength(2, RIGHT) << "\n";
+        std::cout << "Velocity [inch/s]   " << GetShockVelocity(0, LEFT) << "  " << GetShockVelocity(0, RIGHT) << "  "
+                  << GetShockVelocity(1, LEFT) << "  " << GetShockVelocity(1, RIGHT) << GetShockVelocity(2, LEFT)
+                  << "  " << GetShockVelocity(2, RIGHT) << "\n";
+        std::cout << "Force [lbf]         " << GetShockForce(0, LEFT) << "  " << GetShockForce(0, RIGHT) << "  "
+                  << GetShockForce(1, LEFT) << "  " << GetShockForce(1, RIGHT) << GetShockForce(2, LEFT) << "  "
+                  << GetShockForce(2, RIGHT) << "\n";
     }
 
     if (what & OUT_CONSTRAINTS) {
         // Report constraint violations for all joints
         LogConstraintViolations();
     }
-
-    GetLog().SetNumFormat("%g");
 }
 
 }  // end namespace kraz

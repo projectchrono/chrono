@@ -20,9 +20,9 @@
 #define CHOPTIXUTILS_H
 
 #ifdef _WIN32
-#ifndef NOMINMAX
-#define NOMINMAX
-#endif
+    #ifndef NOMINMAX
+        #define NOMINMAX
+    #endif
 #endif
 
 #include <optix.h>
@@ -45,40 +45,42 @@ namespace sensor {
 /// @addtogroup sensor_optix
 /// @{
 
-
 /// Checks the output of an optix call for any error, will throw a runtime error if not success
-#define OPTIX_ERROR_CHECK(result) { \
-    if (result != OPTIX_SUCCESS) { \
-        std::string error_name = std::string(optixGetErrorName(result)); \
-        std::string error_string = std::string(optixGetErrorString(result)); \
-        std::string file = std::string(__FILE__); \
-        std::string line = std::to_string(__LINE__); \
-        throw std::runtime_error(error_name + ": " + error_string + " at " + file + ":" + line); \
-    } \
-} \
+#define OPTIX_ERROR_CHECK(result)                                                                    \
+    {                                                                                                \
+        if (result != OPTIX_SUCCESS) {                                                               \
+            std::string error_name = std::string(optixGetErrorName(result));                         \
+            std::string error_string = std::string(optixGetErrorString(result));                     \
+            std::string file = std::string(__FILE__);                                                \
+            std::string line = std::to_string(__LINE__);                                             \
+            throw std::runtime_error(error_name + ": " + error_string + " at " + file + ":" + line); \
+        }                                                                                            \
+    }
 
 /// Checks the output of a cuda call for any error, will throw a runtime error if not success
-#define CUDA_ERROR_CHECK(result) { \
-    if (result != cudaSuccess) { \
-        std::string error_name = std::string(cudaGetErrorName(result));\
-        std::string error_string = std::string(cudaGetErrorString(result));\
-        std::string file = std::string(__FILE__);\
-        std::string line = std::to_string(__LINE__);\
-        throw std::runtime_error(error_name + ": " + error_string + " at " + file + ":" + line);\
-    }\
-}
+#define CUDA_ERROR_CHECK(result)                                                                     \
+    {                                                                                                \
+        if (result != cudaSuccess) {                                                                 \
+            std::string error_name = std::string(cudaGetErrorName(result));                          \
+            std::string error_string = std::string(cudaGetErrorString(result));                      \
+            std::string file = std::string(__FILE__);                                                \
+            std::string line = std::to_string(__LINE__);                                             \
+            throw std::runtime_error(error_name + ": " + error_string + " at " + file + ":" + line); \
+        }                                                                                            \
+    }
 
 #ifdef USE_CUDA_NVRTC
-/// Checks the output of a cuda call for any error, will throw a runtime error if not success
-#define NVRTC_ERROR_CHECK(result) { \
-    if (result != NVRTC_SUCCESS) { \
-        std::string error_name = "NVRTC ERROR"; \
-        std::string error_string = std::string(nvrtcGetErrorString(result)); \
-        std::string file = std::string(__FILE__); \
-        std::string line = std::to_string(__LINE__); \
-        throw std::runtime_error(error_name + ": " + error_string + " at " + file + ":" + line); \
-    } \
-}
+    /// Checks the output of a cuda call for any error, will throw a runtime error if not success
+    #define NVRTC_ERROR_CHECK(result)                                                                    \
+        {                                                                                                \
+            if (result != NVRTC_SUCCESS) {                                                               \
+                std::string error_name = "NVRTC ERROR";                                                  \
+                std::string error_string = std::string(nvrtcGetErrorString(result));                     \
+                std::string file = std::string(__FILE__);                                                \
+                std::string line = std::to_string(__LINE__);                                             \
+                throw std::runtime_error(error_name + ": " + error_string + " at " + file + ":" + line); \
+            }                                                                                            \
+        }
 #endif
 
 /// holds string values for ptx file and ray generation program
@@ -140,7 +142,7 @@ optix::Transform CreateEmptyTransform(optix::Context context);
 /// @param context optix context
 /// @param a projection matrix
 /// @param b
-optix::Transform CreateTransform(optix::Context context, ChMatrix33<double> a, ChVector<double> b);
+optix::Transform CreateTransform(optix::Context context, ChMatrix33<double> a, ChVector3d b);
 
 /// creates an optix::transform node
 /// @param context optix context
@@ -148,7 +150,7 @@ optix::Transform CreateTransform(optix::Context context, ChMatrix33<double> a, C
 /// @param b
 /// @param s
 /// @return an optix::transform
-optix::Transform CreateTransform(optix::Context context, ChMatrix33<double> a, ChVector<double> b, ChVector<double> s);
+optix::Transform CreateTransform(optix::Context context, ChMatrix33<double> a, ChVector3d b, ChVector3d s);
 
 /// creatse an optix::transform node based on end points
 /// @param context optix context
@@ -156,7 +158,7 @@ optix::Transform CreateTransform(optix::Context context, ChMatrix33<double> a, C
 /// @param b
 /// @param from
 /// @return an optix::transform
-optix::Transform CreateTransformFromEndPoints(optix::Context context, ChVector<> a, ChVector<> b, ChVector<> from);
+optix::Transform CreateTransformFromEndPoints(optix::Context context, ChVector3d a, ChVector3d b, ChVector3d from);
 
 /// creates an optix::transform node based on end points
 /// @param context optix context
@@ -166,23 +168,23 @@ optix::Transform CreateTransformFromEndPoints(optix::Context context, ChVector<>
 /// @param s
 /// @return an optix::transform
 optix::Transform CreateTransformFromEndPoints(optix::Context context,
-                                              ChVector<> a,
-                                              ChVector<> b,
-                                              ChVector<> from,
-                                              ChVector<double> s);
+                                              ChVector3d a,
+                                              ChVector3d b,
+                                              ChVector3d from,
+                                              ChVector3d s);
 
 /// updates the projection matrix in the optix::transform object
 /// @param t optix transform object
 /// @param a projection matrix
 /// @param b
-void UpdateTransform(optix::Transform t, ChMatrix33<double> a, ChVector<double> b);
+void UpdateTransform(optix::Transform t, ChMatrix33<double> a, ChVector3d b);
 
 /// updates the projection matrix in the optix::transform object
 /// @param t optix tranform object
 /// @param a projection matrix
 /// @param b
 /// @param s
-void UpdateTransform(optix::Transform t, ChMatrix33<double> a, ChVector<double> b, ChVector<double> s);
+void UpdateTransform(optix::Transform t, ChMatrix33<double> a, ChVector3d b, ChVector3d s);
 */
 
 CH_SENSOR_API void SetSensorShaderDir(const std::string& path);

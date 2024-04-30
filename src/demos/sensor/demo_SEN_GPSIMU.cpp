@@ -22,6 +22,7 @@
 #include <iomanip>
 #include <memory>
 
+
 #include "chrono/assets/ChVisualShapeTriangleMesh.h"
 #include "chrono/assets/ChVisualMaterial.h"
 #include "chrono/assets/ChVisualShape.h"
@@ -41,7 +42,6 @@
 #include "chrono_sensor/filters/ChFilterVisualize.h"
 
 using namespace chrono;
-using namespace chrono::geometry;
 using namespace chrono::sensor;
 
 // -----------------------------------------------------------------------------
@@ -70,8 +70,11 @@ float imu_collection_time = 0;
 enum GPSNoiseModel {
     NORMAL,    // individually parameterized independent gaussian distribution
     GPS_NONE,  // no noise model
+    GPS_RANDOMWALK
 };
-GPSNoiseModel gps_noise_type = GPS_NONE;
+// PSNoiseModel gps_noise_type = GPS_NONE;
+GPSNoiseModel gps_noise_type = GPS_RANDOMWALK;
+// GPSNoiseModel gps_noise_type = NORMAL;
 
 // GPS update rate in Hz
 int gps_update_rate = 10;
@@ -87,7 +90,7 @@ float gps_collection_time = 0;
 
 // Origin used as the gps reference point
 // Located in Madison, WI
-ChVector<> gps_reference(-89.400, 43.070, 260.0);
+ChVector3d gps_reference(43.0723, -89.413, 260.0);
 
 // -----------------------------------------------------------------------------
 // Simulation parameters
@@ -97,53 +100,53 @@ ChVector<> gps_reference(-89.400, 43.070, 260.0);
 double step_size = 1e-3;
 
 // Simulation end time
-double end_time = 20.0f;
+float end_time = 20.0f;
 
 // Save data
 bool save = true;
 
 // Output directories
-const std::string out_dir = GetChronoOutputPath() + "GPS_IMU";
+const std::string out_dir = "SENSOR_OUTPUT/";
 
 int main(int argc, char* argv[]) {
-    GetLog() << "Copyright (c) 2019 projectchrono.org\nChrono version: " << CHRONO_VERSION << "\n\n";
+    std::cout << "Copyright (c) 2019 projectchrono.org\nChrono version: " << CHRONO_VERSION << "\n\n" << std::endl;
 
     // -----------------
     // Create the system
     // -----------------
     ChSystemNSC sys;
-    sys.Set_G_acc({0, 0, -9.81});
+    sys.SetGravitationalAcceleration({0, 0, -9.81});
 
     // -------------------------------
     // Create a double pendulum system
     // -------------------------------
     auto base = chrono_types::make_shared<ChBodyEasyBox>(.2, .2, 1, 1000, true, false);
-    base->SetPos(ChVector<>(-.2, 0, .5));
-    base->SetBodyFixed(true);  // the truss does not move!
+    base->SetPos(ChVector3d(-.2, 0, .5));
+    base->SetFixed(true);  // the truss does not move!
     sys.Add(base);
 
     auto pendulum_leg_1 = chrono_types::make_shared<ChBodyEasyBox>(.2, .4, .2, 1000, true, false);
-    pendulum_leg_1->SetPos(ChVector<>(0, .2, 1));
-    pendulum_leg_1->SetBodyFixed(false);
+    pendulum_leg_1->SetPos(ChVector3d(0, .2, 1));
+    pendulum_leg_1->SetFixed(false);
     sys.Add(pendulum_leg_1);
 
     auto pendulum_leg_2 = chrono_types::make_shared<ChBodyEasyBox>(.2, .4, .2, 1000, true, false);
-    pendulum_leg_2->SetPos(ChVector<>(0, .6, 1));
-    pendulum_leg_2->SetBodyFixed(false);
+    pendulum_leg_2->SetPos(ChVector3d(0, .6, 1));
+    pendulum_leg_2->SetFixed(false);
     sys.Add(pendulum_leg_2);
 
     auto plate = chrono_types::make_shared<ChBodyEasyBox>(.4, .2, .2, 1000, true, false);
-    plate->SetPos(ChVector<>(0, 0, 4));
-    plate->SetBodyFixed(true);
+    plate->SetPos(ChVector3d(0, 0, 4));
+    plate->SetFixed(true);
     sys.Add(plate);
 
     auto link1 = chrono_types::make_shared<ChLinkLockRevolute>();
-    link1->Initialize(base, pendulum_leg_1, ChCoordsys<>({0, 0, 1}, chrono::Q_from_AngAxis(CH_C_PI / 2, VECT_Y)));
+    link1->Initialize(base, pendulum_leg_1, ChFrame<>({0, 0, 1}, chrono::QuatFromAngleAxis(CH_PI / 2, VECT_Y)));
     sys.AddLink(link1);
 
     auto link2 = chrono_types::make_shared<ChLinkLockRevolute>();
     link2->Initialize(pendulum_leg_1, pendulum_leg_2,
-                      ChCoordsys<>({0, .4, 1}, chrono::Q_from_AngAxis(CH_C_PI / 2, VECT_Y)));
+                      ChFrame<>({0, .4, 1}, chrono::QuatFromAngleAxis(CH_PI / 2, VECT_Y)));
     sys.AddLink(link2);
 
     // -----------------------
@@ -162,20 +165,20 @@ int main(int argc, char* argv[]) {
         case NORMAL_DRIFT:
             // Set the imu noise model to a gaussian model
             acc_noise_model =
-                chrono_types::make_shared<ChNoiseNormalDrift>(imu_update_rate,                          //
-                                                              ChVector<double>({0., 0., 0.}),           // mean,
-                                                              ChVector<double>({0.001, 0.001, 0.001}),  // stdev,
-                                                              .0001,                                    // bias_drift,
-                                                              .1);                                      // tau_drift,
+                chrono_types::make_shared<ChNoiseNormalDrift>(imu_update_rate,                    //
+                                                              ChVector3d({0., 0., 0.}),           // mean,
+                                                              ChVector3d({0.001, 0.001, 0.001}),  // stdev,
+                                                              .0001,                              // bias_drift,
+                                                              .1);                                // tau_drift,
             gyro_noise_model =
-                chrono_types::make_shared<ChNoiseNormalDrift>(imu_update_rate,                 // float updateRate,
-                                                              ChVector<double>({0., 0., 0.}),  // float mean,
-                                                              ChVector<double>({0.001, 0.001, 0.001}),  // float
-                                                              .001,  // double bias_drift,
-                                                              .1);   // double tau_drift,
+                chrono_types::make_shared<ChNoiseNormalDrift>(imu_update_rate,                    // float updateRate,
+                                                              ChVector3d({0., 0., 0.}),           // float mean,
+                                                              ChVector3d({0.001, 0.001, 0.001}),  // float
+                                                              .001,                               // double bias_drift,
+                                                              .1);                                // double tau_drift,
             mag_noise_model =
-                chrono_types::make_shared<ChNoiseNormal>(ChVector<double>({0., 0., 0.}),            // float mean,
-                                                         ChVector<double>({0.001, 0.001, 0.001}));  // float stdev,
+                chrono_types::make_shared<ChNoiseNormal>(ChVector3d({0., 0., 0.}),            // float mean,
+                                                         ChVector3d({0.001, 0.001, 0.001}));  // float stdev,
             break;
         case IMU_NONE:
             // Set the imu noise model to none (does not affect the data)
@@ -186,7 +189,7 @@ int main(int argc, char* argv[]) {
     }
 
     // add an accelerometer, gyroscope, and magnetometer to one of the pendulum legs
-    auto imu_offset_pose = chrono::ChFrame<double>({0, 0, 0}, Q_from_AngAxis(0, {1, 0, 0}));
+    auto imu_offset_pose = chrono::ChFrame<double>({0, 0, 0}, QuatFromAngleAxis(0, {1, 0, 0}));
     auto acc = chrono_types::make_shared<ChAccelerometerSensor>(pendulum_leg_1,    // body to which the IMU is attached
                                                                 imu_update_rate,   // update rate
                                                                 imu_offset_pose,   // offset pose from body
@@ -226,19 +229,20 @@ int main(int argc, char* argv[]) {
     switch (gps_noise_type) {
         case NORMAL:
             // Set the gps noise model to a gaussian model
-            gps_noise_model =
-                chrono_types::make_shared<ChNoiseNormal>(ChVector<double>(1.f, 1.f, 1.f),  // Mean
-                                                         ChVector<double>(2.f, 3.f, 1.f)   // Standard Deviation
-                );
+            gps_noise_model = chrono_types::make_shared<ChNoiseNormal>(ChVector3d(1.f, 1.f, 1.f),  // Mean
+                                                                       ChVector3d(2.f, 3.f, 1.f)   // Standard Deviation
+            );
             break;
         case GPS_NONE:
             // Set the gps noise model to none (does not affect the data)
             gps_noise_model = chrono_types::make_shared<ChNoiseNone>();
             break;
+        case GPS_RANDOMWALK:
+            gps_noise_model = chrono_types::make_shared<ChNoiseRandomWalks>(0, 0.016, 100, 0.03, 0.005, gps_reference);
     }
 
     // add a GPS sensor to one of the boxes
-    auto gps_offset_pose = chrono::ChFrame<double>({0, 0, 0}, Q_from_AngAxis(0, {1, 0, 0}));
+    auto gps_offset_pose = chrono::ChFrame<double>({0, 0, 0}, QuatFromAngleAxis(0, {1, 0, 0}));
     auto gps = chrono_types::make_shared<ChGPSSensor>(
         pendulum_leg_2,   // body to which the GPS is attached
         gps_update_rate,  // update rate
@@ -255,19 +259,21 @@ int main(int argc, char* argv[]) {
     // -----------------
     // Initialize output
     // -----------------
-
     if (!filesystem::create_directory(filesystem::path(out_dir))) {
         std::cout << "Error creating directory " << out_dir << std::endl;
         return 1;
     }
 
-    // Create a CSV writers to record the IMU and GPS data
-    utils::CSV_writer imu_csv(" ");
-    utils::CSV_writer gps_csv(" ");
+    // Create a CSV writer to record the IMU data
+    utils::ChWriterCSV imu_csv(" ");
+
+    // Create a CSV writer to record the GPS data
+    utils::ChWriterCSV gps_csv(" ");
 
     // ---------------
     // Simulate system
     // ---------------
+    float ch_time = 0;
 
     std::chrono::high_resolution_clock::time_point t1 = std::chrono::high_resolution_clock::now();
     UserAccelBufferPtr bufferAcc;
@@ -280,12 +286,10 @@ int main(int argc, char* argv[]) {
 
     double rot_rate = 1;
     double ang;
-    ChVector<double> axis;
+    ChVector3d axis;
 
-    double time = 0;
-    while (time < end_time) {
-        plate->SetRot(Q_from_AngZ(rot_rate * time));
-
+    while (ch_time < end_time) {
+        plate->SetRot(QuatFromAngleZ(rot_rate * ch_time));
         // Get the most recent imu data
         bufferAcc = acc->GetMostRecentBuffer<UserAccelBufferPtr>();
         bufferGyro = gyro->GetMostRecentBuffer<UserGyroBufferPtr>();
@@ -297,7 +301,7 @@ int main(int argc, char* argv[]) {
             GyroData gyro_data = bufferGyro->Buffer[0];
             MagnetData mag_data = bufferMag->Buffer[0];
 
-            plate->GetRot().Q_to_AngAxis(ang, axis);
+            plate->GetRot().GetAngleAxis(ang, axis);
 
             imu_csv << std::fixed << std::setprecision(6);
             imu_csv << acc_data.X;
@@ -318,7 +322,7 @@ int main(int argc, char* argv[]) {
         if (bufferGPS->Buffer && bufferGPS->LaunchedCount > gps_last_launch) {
             // Save the gps data to file
             GPSData gps_data = bufferGPS->Buffer[0];
-            gps_csv << std::fixed << std::setprecision(6);
+            gps_csv << std::fixed << std::setprecision(10);
             gps_csv << gps_data.Latitude;   // Latitude
             gps_csv << gps_data.Longitude;  // Longitude
             gps_csv << gps_data.Altitude;   // Altitude
@@ -335,18 +339,17 @@ int main(int argc, char* argv[]) {
         sys.DoStepDynamics(step_size);
 
         // Get the current time of the simulation
-        time = sys.GetChTime();
+        ch_time = (float)sys.GetChTime();
     }
 
     std::chrono::high_resolution_clock::time_point t2 = std::chrono::high_resolution_clock::now();
     std::chrono::duration<double> wall_time = std::chrono::duration_cast<std::chrono::duration<double>>(t2 - t1);
-    std::cout << "Simulation time: " << time << "s, wall time: " << wall_time.count() << "s.\n";
+    std::cout << "Simulation time: " << ch_time << "s, wall time: " << wall_time.count() << "s.\n";
 
     std::string imu_file = out_dir + "/imu_pendulum_leg_1.csv";
     std::string gps_file = out_dir + "/gps_pendulum_leg_2.csv";
-
-    imu_csv.write_to_file(imu_file);
-    gps_csv.write_to_file(gps_file);
+    imu_csv.WriteToFile(imu_file);
+    gps_csv.WriteToFile(gps_file);
 
     return 0;
 }

@@ -40,7 +40,7 @@ class CH_MODELS_API Marder_SprocketSinglePin : public ChSprocketSinglePin {
     virtual ~Marder_SprocketSinglePin() {}
 
     /// Get the number of teeth of the gear.
-    virtual int GetNumTeeth() const override { return m_num_teeth; }
+    virtual unsigned int GetNumTeeth() const override { return m_num_teeth; }
 
     /// Get the radius of the gear.
     /// This quantity is used during the automatic track assembly.
@@ -53,7 +53,7 @@ class CH_MODELS_API Marder_SprocketSinglePin : public ChSprocketSinglePin {
     /// Return the mass of the gear body.
     virtual double GetGearMass() const override { return m_gear_mass; }
     /// Return the moments of inertia of the gear body.
-    virtual const ChVector<>& GetGearInertia() override { return m_gear_inertia; }
+    virtual const ChVector3d& GetGearInertia() override { return m_gear_inertia; }
     /// Return the inertia of the axle shaft.
     virtual double GetAxleInertia() const override { return m_axle_inertia; }
     /// Return the distance between the two gear profiles.
@@ -83,7 +83,7 @@ class CH_MODELS_API Marder_SprocketSinglePin : public ChSprocketSinglePin {
     static const int m_num_teeth;
 
     static const double m_gear_mass;
-    static const ChVector<> m_gear_inertia;
+    static const ChVector3d m_gear_inertia;
     static const double m_axle_inertia;
     static const double m_separation;
 

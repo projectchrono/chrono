@@ -44,7 +44,7 @@ class CH_MODELS_API ARTcar_RigidTire : public chrono::vehicle::ChRigidTire {
     virtual double GetRadius() const override { return m_radius; }
     virtual double GetWidth() const override { return m_width; }
     virtual double GetTireMass() const override { return m_mass; }
-    virtual ChVector<> GetTireInertia() const override { return m_inertia; }
+    virtual ChVector3d GetTireInertia() const override { return m_inertia; }
 
     virtual void AddVisualizationAssets(VisualizationType vis) override;
     virtual void RemoveVisualizationAssets() override final;
@@ -54,10 +54,10 @@ class CH_MODELS_API ARTcar_RigidTire : public chrono::vehicle::ChRigidTire {
     static const double m_radius;
     static const double m_width;
     static const double m_mass;
-    static const ChVector<> m_inertia;
+    static const ChVector3d m_inertia;
 
     static const std::string m_meshName;
-    //static const std::string m_meshFile;
+    // static const std::string m_meshFile;
     static const std::string m_meshFile_left;
     static const std::string m_meshFile_right;
     std::shared_ptr<ChVisualShapeTriangleMesh> m_trimesh_shape;

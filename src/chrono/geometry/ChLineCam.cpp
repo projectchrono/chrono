@@ -15,24 +15,23 @@
 #include "chrono/geometry/ChLineCam.h"
 
 namespace chrono {
-namespace geometry {
 
 // Register into the object factory, to enable run-time dynamic creation and persistence
 CH_FACTORY_REGISTER(ChLineCam)
 
 ChLineCam::ChLineCam() {
-    Set_complexity(10);
+    SetComplexity(10);
     this->closed = true;
-    type = CAM_TYPE_SLIDEFOLLOWER;
+    type = CamType::SLIDEFOLLOWER;
     Rb = 1.0;
     Rr = 0.0;
     p = 1.8;
     d = 2;
-    b0 = CH_C_PI / 6.0;
+    b0 = CH_PI / 6.0;
     center = VNULL;
     e = 0;
     s = Rb;
-    law = chrono_types::make_shared<ChFunction_Const>(0);  // default law = no follower motion
+    law = chrono_types::make_shared<ChFunctionConst>(0);  // default law = no follower motion
     negative = false;
     internal = false;
 }
@@ -52,37 +51,37 @@ ChLineCam::ChLineCam(const ChLineCam& source) : ChLine(source) {
     internal = source.internal;
 }
 
-void ChLineCam::Set_Rb(double mrb) {
-    Rb = mrb;
+void ChLineCam::SetCamRadius(double r) {
+    Rb = r;
     if (e > 0.9 * Rb)
         e = 0.9 * Rb;
     if (e < -0.9 * Rb)
         e = -0.9 * Rb;
 }
 
-void ChLineCam::Set_rotating_follower(double mp, double md, double mb0) {
+void ChLineCam::SetRotatingFollower(double mp, double md, double mb0) {
     p = mp;
     d = md;
     b0 = mb0;
     Rb = sqrt(p * p + d * d - 2 * p * d * cos(b0));
 }
 
-void ChLineCam::Set_flat_oscillate(double me, double md, double mb0) {
+void ChLineCam::SetFlatOscillate(double me, double md, double mb0) {
     e = me;
     d = md;
     b0 = mb0;
     Rb = e + d * sin(b0);
 }
 
-ChVector<> ChLineCam::EvaluateCamPoint(double par, double& g, double& q) const {
-    double a = par * 2 * CH_C_PI;  // range : par 0..1 -> angle 0...2PI
+ChVector3d ChLineCam::EvaluateCamPoint(double par, double& g, double& q) const {
+    double a = par * 2 * CH_PI;  // range : par 0..1 -> angle 0...2PI
     double r, f, b, B, fshift, y, ydx, ydxdx, sa, fxalpha, u, uh = 0;
     double sign, signdx, signdxdx;
 
     // defaults
     g = 0;
     q = 0;
-    ChVector<> res = VNULL;
+    ChVector3d res = VNULL;
 
     double radius = internal ? -Rr : +Rr;
     double ecc = negative ? -e : +e;
@@ -93,30 +92,30 @@ ChVector<> ChLineCam::EvaluateCamPoint(double par, double& g, double& q) const {
     if (negative) {
         sign = signdx = signdxdx = -1;  // reverse sign
 
-        if ((type == CAM_TYPE_ROTATEFOLLOWER) || (type == CAM_TYPE_FLATOSCILLATE)) {
-            fxalpha = 2 * CH_C_PI - a;  // also reverse direction
+        if ((type == CamType::ROTATEFOLLOWER) || (type == CamType::FLATOSCILLATE)) {
+            fxalpha = 2 * CH_PI - a;  // also reverse direction
             signdx = signdxdx = +1;
         }
     }
 
-    y = sign * law->Get_y(fxalpha);
-    ydx = signdx * law->Get_y_dx(fxalpha);
-    ydxdx = signdxdx * law->Get_y_dxdx(fxalpha);
+    y = sign * law->GetVal(fxalpha);
+    ydx = signdx * law->GetDer(fxalpha);
+    ydxdx = signdxdx * law->GetDer2(fxalpha);
 
     switch (this->type) {
-        case CAM_TYPE_SLIDEFOLLOWER:
+        case CamType::SLIDEFOLLOWER:
             g = atan(ydx / (Rb + y));
             r = sqrt(radius * radius + pow(Rb + y, 2) - 2 * radius * (Rb + y) * cos(g));
             fshift = asin(radius * sin(g) / r);
             if (radius > Rb)
-                fshift = CH_C_PI - fshift;
+                fshift = CH_PI - fshift;
             f = a + fshift;
             q = pow(ydx * ydx + pow(Rb + y, 2), 1.5) / (pow(Rb + y, 2) - ydxdx * (Rb + y) + 2 * (ydx * ydx)) - radius;
             break;
-        case CAM_TYPE_ROTATEFOLLOWER:
+        case CamType::ROTATEFOLLOWER:
             b = b0 + y;
             u = atan2((p * sin(b) * (1 - ydx)), (d - p * cos(b) * (1 - ydx)));
-            g = CH_C_PI / 2.0 - b - u;
+            g = CH_PI / 2.0 - b - u;
             r = sqrt(pow(p * sin(b) - radius * sin(u), 2) + pow(d - p * cos(b) - radius * cos(u), 2));
             fshift = atan2((p * sin(b) - radius * sin(u)), (d - p * cos(b) - radius * cos(u)));
             f = (a + fshift);
@@ -124,28 +123,28 @@ ChVector<> ChLineCam::EvaluateCamPoint(double par, double& g, double& q) const {
                 (p * (1 - ydx) * ydx * cos(b + u) - p * ydxdx * sin(b + u)) / (d * cos(u) - p * (1 - ydx) * cos(b + u));
             q = ((p * cos(b0 + y) * (1 - ydx)) + d) / ((1 + uh) * cos(u)) - radius;
             break;
-        case CAM_TYPE_ECCENTRICFOLLOWER: {
-            double s_dist = Get_s();
+        case CamType::ECCENTRICFOLLOWER: {
+            double s_dist = sqrt(Rb * Rb - e * e);
             sa = s_dist + y;
             g = atan((ydx - ecc) / (s_dist + y));
             r = sqrt(pow((sa - radius * cos(g)), 2) + pow((ecc + radius * sin(g)), 2));
             fshift = atan((ecc + radius * sin(g)) / (sa - radius * cos(g)));
             if (radius > Rb)
-                fshift = CH_C_PI + fshift;
+                fshift = CH_PI + fshift;
             f = a + fshift;
             q = pow((pow(s_dist + y, 2) + pow(ecc - ydx, 2)), 1.5) /
                     (pow(s_dist + y, 2) + (ecc - ydx) * (ecc - 2 * ydx) - (s_dist + y) * ydxdx) -
                 radius;
             break;
         }
-        case CAM_TYPE_FLAT:
+        case CamType::FLAT:
             g = 0;
             B = ydx;
             r = sqrt(pow(Rb + y, 2) + ydx * ydx);
             f = a + atan2(ydx, (Rb + y));
             q = Rb + y + ydxdx;
             break;
-        case CAM_TYPE_FLATOSCILLATE:
+        case CamType::FLATOSCILLATE:
             b = b0 + y;
             B = (d * cos(b)) / (1 - ydx);
             g = atan2(ecc, B);
@@ -159,10 +158,10 @@ ChVector<> ChLineCam::EvaluateCamPoint(double par, double& g, double& q) const {
     }
 
     if (negative) {
-        if ((type == CAM_TYPE_FLAT) || (type == CAM_TYPE_SLIDEFOLLOWER) || (type == CAM_TYPE_ECCENTRICFOLLOWER))
-            f += CH_C_PI;  // polar 180
+        if ((type == CamType::FLAT) || (type == CamType::SLIDEFOLLOWER) || (type == CamType::ECCENTRICFOLLOWER))
+            f += CH_PI;  // polar 180
 
-        if ((type == CAM_TYPE_ROTATEFOLLOWER) || (type == CAM_TYPE_FLATOSCILLATE)) {
+        if ((type == CamType::ROTATEFOLLOWER) || (type == CamType::FLATOSCILLATE)) {
             f = -f;  // y mirror
         }
     }
@@ -174,55 +173,66 @@ ChVector<> ChLineCam::EvaluateCamPoint(double par, double& g, double& q) const {
     return res;
 }
 
-ChVector<> ChLineCam::Evaluate(double parU) const {
+ChVector3d ChLineCam::Evaluate(double parU) const {
     double qtmp, gtmp;
     return EvaluateCamPoint(parU, gtmp, qtmp);
 }
 
-void ChLineCam::ArchiveOut(ChArchiveOut& marchive) {
+class ChLineenum_mapper : public ChLineCam {
+  public:
+    CH_ENUM_MAPPER_BEGIN(CamType);
+    CH_ENUM_VAL(CamType::SLIDEFOLLOWER);
+    CH_ENUM_VAL(CamType::ROTATEFOLLOWER);
+    CH_ENUM_VAL(CamType::ECCENTRICFOLLOWER);
+    CH_ENUM_VAL(CamType::FLAT);
+    CH_ENUM_VAL(CamType::FLATOSCILLATE);
+    CH_ENUM_MAPPER_END(CamType);
+};
+
+void ChLineCam::ArchiveOut(ChArchiveOut& archive_out) {
     // version number
-    marchive.VersionWrite<ChLineCam>();
+    archive_out.VersionWrite<ChLineCam>();
     // serialize parent class
-    ChLine::ArchiveOut(marchive);
+    ChLine::ArchiveOut(archive_out);
     // serialize all member data:
 
-    eChCamType_mapper mmapper;
-    marchive << CHNVP(mmapper(type), "type");
-    marchive << CHNVP(law);
-    marchive << CHNVP(phase);
-    marchive << CHNVP(Rb);
-    marchive << CHNVP(Rr);
-    marchive << CHNVP(p);
-    marchive << CHNVP(d);
-    marchive << CHNVP(b0);
-    marchive << CHNVP(e);
-    marchive << CHNVP(s);
-    marchive << CHNVP(negative);
-    marchive << CHNVP(internal);
-    marchive << CHNVP(center);
+    ChLineenum_mapper::CamType_mapper mmapper;
+    archive_out << CHNVP(mmapper(type), "ChLineCam__Type");
+    archive_out << CHNVP(law);
+    archive_out << CHNVP(phase);
+    archive_out << CHNVP(Rb);
+    archive_out << CHNVP(Rr);
+    archive_out << CHNVP(p);
+    archive_out << CHNVP(d);
+    archive_out << CHNVP(b0);
+    archive_out << CHNVP(e);
+    archive_out << CHNVP(s);
+    archive_out << CHNVP(negative);
+    archive_out << CHNVP(internal);
+    archive_out << CHNVP(center);
 }
 
-void ChLineCam::ArchiveIn(ChArchiveIn& marchive) {
+void ChLineCam::ArchiveIn(ChArchiveIn& archive_in) {
     // version number
-    /*int version =*/ marchive.VersionRead<ChLineCam>();
+    /*int version =*/archive_in.VersionRead<ChLineCam>();
     // deserialize parent class
-    ChLine::ArchiveIn(marchive);
+    ChLine::ArchiveIn(archive_in);
     // stream in all member data:
-    eChCamType_mapper mmapper;
-    marchive >> CHNVP(mmapper(type), "type");
-    marchive >> CHNVP(law);
-    marchive >> CHNVP(phase);
-    marchive >> CHNVP(Rb);
-    marchive >> CHNVP(Rr);
-    marchive >> CHNVP(p);
-    marchive >> CHNVP(d);
-    marchive >> CHNVP(b0);
-    marchive >> CHNVP(e);
-    marchive >> CHNVP(s);
-    marchive >> CHNVP(negative);
-    marchive >> CHNVP(internal);
-    marchive >> CHNVP(center);
+
+    ChLineenum_mapper::CamType_mapper mmapper;
+    archive_in >> CHNVP(mmapper(type), "ChLineCam__Type");
+    archive_in >> CHNVP(law);
+    archive_in >> CHNVP(phase);
+    archive_in >> CHNVP(Rb);
+    archive_in >> CHNVP(Rr);
+    archive_in >> CHNVP(p);
+    archive_in >> CHNVP(d);
+    archive_in >> CHNVP(b0);
+    archive_in >> CHNVP(e);
+    archive_in >> CHNVP(s);
+    archive_in >> CHNVP(negative);
+    archive_in >> CHNVP(internal);
+    archive_in >> CHNVP(center);
 }
 
-}  // end namespace geometry
 }  // end namespace chrono

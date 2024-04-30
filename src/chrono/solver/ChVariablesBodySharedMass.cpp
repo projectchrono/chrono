@@ -33,22 +33,22 @@ void ChSharedMassBody::SetBodyMass(const double mmass) {
     inv_mass = 1.0 / mass;
 }
 
-void ChSharedMassBody::ArchiveOut(ChArchiveOut& marchive) {
+void ChSharedMassBody::ArchiveOut(ChArchiveOut& archive_out) {
     // version number
-    marchive.VersionWrite<ChSharedMassBody>();
+    archive_out.VersionWrite<ChSharedMassBody>();
 
     // serialize all member data:
-    marchive << CHNVP(mass);
-    ////marchive << CHNVP(inertia);
+    archive_out << CHNVP(mass);
+    ////archive_out << CHNVP(inertia);
 }
 
-void ChSharedMassBody::ArchiveIn(ChArchiveIn& marchive) {
+void ChSharedMassBody::ArchiveIn(ChArchiveIn& archive_in) {
     // version number
-    /*int version =*/ marchive.VersionRead<ChSharedMassBody>();
+    /*int version =*/archive_in.VersionRead<ChSharedMassBody>();
 
     // stream in all member data:
-    marchive >> CHNVP(mass);
-    ////marchive >> CHNVP(inertia);
+    archive_in >> CHNVP(mass);
+    ////archive_in >> CHNVP(inertia);
     SetBodyMass(mass);
     ////SetBodyInertia(inertia);
 }
@@ -70,10 +70,9 @@ ChVariablesBodySharedMass& ChVariablesBodySharedMass::operator=(const ChVariable
     return *this;
 }
 
-// Computes the product of the inverse mass matrix by a vector, and set in result: result = [invMb]*vect
-void ChVariablesBodySharedMass::Compute_invMb_v(ChVectorRef result, ChVectorConstRef vect) const {
-    assert(vect.size() == Get_ndof());
-    assert(result.size() == Get_ndof());
+void ChVariablesBodySharedMass::ComputeMassInverseTimesVector(ChVectorRef result, ChVectorConstRef vect) const {
+    assert(vect.size() == ndof);
+    assert(result.size() == ndof);
 
     // optimized unrolled operations
     result(0) = sharedmass->inv_mass * vect(0);
@@ -87,27 +86,9 @@ void ChVariablesBodySharedMass::Compute_invMb_v(ChVectorRef result, ChVectorCons
                 sharedmass->inv_inertia(2, 2) * vect(5);
 }
 
-// Computes the product of the inverse mass matrix by a vector, and increment result: result += [invMb]*vect
-void ChVariablesBodySharedMass::Compute_inc_invMb_v(ChVectorRef result, ChVectorConstRef vect) const {
-    assert(vect.size() == Get_ndof());
-    assert(result.size() == Get_ndof());
-
-    // optimized unrolled operations
-    result(0) += sharedmass->inv_mass * vect(0);
-    result(1) += sharedmass->inv_mass * vect(1);
-    result(2) += sharedmass->inv_mass * vect(2);
-    result(3) += sharedmass->inv_inertia(0, 0) * vect(3) + sharedmass->inv_inertia(0, 1) * vect(4) +
-                 sharedmass->inv_inertia(0, 2) * vect(5);
-    result(4) += sharedmass->inv_inertia(1, 0) * vect(3) + sharedmass->inv_inertia(1, 1) * vect(4) +
-                 sharedmass->inv_inertia(1, 2) * vect(5);
-    result(5) += sharedmass->inv_inertia(2, 0) * vect(3) + sharedmass->inv_inertia(2, 1) * vect(4) +
-                 sharedmass->inv_inertia(2, 2) * vect(5);
-}
-
-// Computes the product of the mass matrix by a vector, and set in result: result = [Mb]*vect
-void ChVariablesBodySharedMass::Compute_inc_Mb_v(ChVectorRef result, ChVectorConstRef vect) const {
-    assert(result.size() == Get_ndof());
-    assert(vect.size() == Get_ndof());
+void ChVariablesBodySharedMass::AddMassTimesVector(ChVectorRef result, ChVectorConstRef vect) const {
+    assert(result.size() == ndof);
+    assert(vect.size() == ndof);
 
     // optimized unrolled operations
     result(0) += sharedmass->mass * vect(0);
@@ -121,70 +102,64 @@ void ChVariablesBodySharedMass::Compute_inc_Mb_v(ChVectorRef result, ChVectorCon
                   sharedmass->inertia(2, 2) * vect(5));
 }
 
-// Computes the product of the corresponding block in the system matrix (ie. the mass matrix) by 'vect', scale by c_a,
-// and add to 'result'.
-// NOTE: the 'vect' and 'result' vectors must already have the size of the total variables&constraints in the system;
-// the procedure will use the ChVariable offsets (that must be already updated) to know the indexes in result and vect.
-void ChVariablesBodySharedMass::MultiplyAndAdd(ChVectorRef result, ChVectorConstRef vect, const double c_a) const {
+void ChVariablesBodySharedMass::AddMassTimesVectorInto(ChVectorRef result,
+                                                       ChVectorConstRef vect,
+                                                       const double ca) const {
     // optimized unrolled operations
-    double q0 = vect(this->offset + 0);
-    double q1 = vect(this->offset + 1);
-    double q2 = vect(this->offset + 2);
-    double q3 = vect(this->offset + 3);
-    double q4 = vect(this->offset + 4);
-    double q5 = vect(this->offset + 5);
-    double scaledmass = c_a * sharedmass->mass;
-    result(this->offset + 0) += scaledmass * q0;
-    result(this->offset + 1) += scaledmass * q1;
-    result(this->offset + 2) += scaledmass * q2;
-    result(this->offset + 3) +=
-        c_a * (sharedmass->inertia(0, 0) * q3 + sharedmass->inertia(0, 1) * q4 + sharedmass->inertia(0, 2) * q5);
-    result(this->offset + 4) +=
-        c_a * (sharedmass->inertia(1, 0) * q3 + sharedmass->inertia(1, 1) * q4 + sharedmass->inertia(1, 2) * q5);
-    result(this->offset + 5) +=
-        c_a * (sharedmass->inertia(2, 0) * q3 + sharedmass->inertia(2, 1) * q4 + sharedmass->inertia(2, 2) * q5);
+    double q0 = vect(offset + 0);
+    double q1 = vect(offset + 1);
+    double q2 = vect(offset + 2);
+    double q3 = vect(offset + 3);
+    double q4 = vect(offset + 4);
+    double q5 = vect(offset + 5);
+    double scaledmass = ca * sharedmass->mass;
+    result(offset + 0) += scaledmass * q0;
+    result(offset + 1) += scaledmass * q1;
+    result(offset + 2) += scaledmass * q2;
+    result(offset + 3) +=
+        ca * (sharedmass->inertia(0, 0) * q3 + sharedmass->inertia(0, 1) * q4 + sharedmass->inertia(0, 2) * q5);
+    result(offset + 4) +=
+        ca * (sharedmass->inertia(1, 0) * q3 + sharedmass->inertia(1, 1) * q4 + sharedmass->inertia(1, 2) * q5);
+    result(offset + 5) +=
+        ca * (sharedmass->inertia(2, 0) * q3 + sharedmass->inertia(2, 1) * q4 + sharedmass->inertia(2, 2) * q5);
 }
 
-// Add the diagonal of the mass matrix scaled  by c_a, to 'result'.
-// NOTE: the 'result' vector must already have the size of system unknowns, ie the size of the total variables &
-// constraints in the system; the procedure will use the ChVariable offset (that must be already updated) as index.
-void ChVariablesBodySharedMass::DiagonalAdd(ChVectorRef result, const double c_a) const {
-    result(this->offset + 0) += c_a * sharedmass->mass;
-    result(this->offset + 1) += c_a * sharedmass->mass;
-    result(this->offset + 2) += c_a * sharedmass->mass;
-    result(this->offset + 3) += c_a * sharedmass->inertia(0, 0);
-    result(this->offset + 4) += c_a * sharedmass->inertia(1, 1);
-    result(this->offset + 5) += c_a * sharedmass->inertia(2, 2);
+void ChVariablesBodySharedMass::AddMassDiagonalInto(ChVectorRef result, const double ca) const {
+    result(offset + 0) += ca * sharedmass->mass;
+    result(offset + 1) += ca * sharedmass->mass;
+    result(offset + 2) += ca * sharedmass->mass;
+    result(offset + 3) += ca * sharedmass->inertia(0, 0);
+    result(offset + 4) += ca * sharedmass->inertia(1, 1);
+    result(offset + 5) += ca * sharedmass->inertia(2, 2);
 }
 
-// Build the mass matrix (for these variables) scaled by c_a, storing
-// it in 'storage' sparse matrix, at given column/row offset.
-// Note, most iterative solvers don't need to know mass matrix explicitly.
-// Optimized: doesn't fill unneeded elements except mass and 3x3 inertia.
-void ChVariablesBodySharedMass::Build_M(ChSparseMatrix& storage, int insrow, int inscol, const double c_a) {
-    storage.SetElement(insrow + 0, inscol + 0, c_a * sharedmass->mass);
-    storage.SetElement(insrow + 1, inscol + 1, c_a * sharedmass->mass);
-    storage.SetElement(insrow + 2, inscol + 2, c_a * sharedmass->mass);
-    ChMatrix33<> scaledJ = sharedmass->inertia * c_a;
-    PasteMatrix(storage, scaledJ, insrow + 3, inscol + 3);
+void ChVariablesBodySharedMass::PasteMassInto(ChSparseMatrix& mat,
+                                              unsigned int start_row,
+                                              unsigned int start_col,
+                                              const double ca) const {
+    mat.SetElement(offset + start_row + 0, offset + start_col + 0, ca * sharedmass->mass);
+    mat.SetElement(offset + start_row + 1, offset + start_col + 1, ca * sharedmass->mass);
+    mat.SetElement(offset + start_row + 2, offset + start_col + 2, ca * sharedmass->mass);
+    ChMatrix33<> scaledJ = sharedmass->inertia * ca;
+    PasteMatrix(mat, scaledJ, offset + start_row + 3, offset + start_col + 3);
 }
 
-void ChVariablesBodySharedMass::ArchiveOut(ChArchiveOut& marchive) {
+void ChVariablesBodySharedMass::ArchiveOut(ChArchiveOut& archive_out) {
     // version number
-    marchive.VersionWrite<ChVariablesBodySharedMass>();
+    archive_out.VersionWrite<ChVariablesBodySharedMass>();
     // serialize parent class
-    ChVariablesBody::ArchiveOut(marchive);
+    ChVariablesBody::ArchiveOut(archive_out);
     // serialize all member data:
-    marchive << CHNVP(sharedmass);
+    archive_out << CHNVP(sharedmass);
 }
 
-void ChVariablesBodySharedMass::ArchiveIn(ChArchiveIn& marchive) {
+void ChVariablesBodySharedMass::ArchiveIn(ChArchiveIn& archive_in) {
     // version number
-    /*int version =*/ marchive.VersionRead<ChVariablesBodySharedMass>();
+    /*int version =*/archive_in.VersionRead<ChVariablesBodySharedMass>();
     // deserialize parent class
-    ChVariablesBody::ArchiveIn(marchive);
+    ChVariablesBody::ArchiveIn(archive_in);
     // stream in all member data:
-    marchive >> CHNVP(sharedmass);
+    archive_in >> CHNVP(sharedmass);
 }
 
 }  // end namespace chrono

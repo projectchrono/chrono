@@ -71,24 +71,24 @@ void ChLoadContainer::IntLoadLumpedMass_Md(
     }
 }
 
-void ChLoadContainer::InjectKRMmatrices(ChSystemDescriptor& mdescriptor) {
+void ChLoadContainer::InjectKRMMatrices(ChSystemDescriptor& descriptor) {
     for (size_t i = 0; i < loadlist.size(); ++i) {
-        loadlist[i]->InjectKRMmatrices(mdescriptor);
+        loadlist[i]->InjectKRMMatrices(descriptor);
     }
 }
 
-void ChLoadContainer::KRMmatricesLoad(double Kfactor, double Rfactor, double Mfactor) {
+void ChLoadContainer::LoadKRMMatrices(double Kfactor, double Rfactor, double Mfactor) {
     for (size_t i = 0; i < loadlist.size(); ++i) {
-        loadlist[i]->KRMmatricesLoad(Kfactor, Rfactor, Mfactor);
+        loadlist[i]->LoadKRMMatrices(Kfactor, Rfactor, Mfactor);
     }
 }
 
-void ChLoadContainer::ArchiveOut(ChArchiveOut& marchive) {
-    //***TODO***
+void ChLoadContainer::ArchiveOut(ChArchiveOut& archive_out) {
+    //// TODO
 }
 
-void ChLoadContainer::ArchiveIn(ChArchiveIn& marchive) {
-    //***TODO***
+void ChLoadContainer::ArchiveIn(ChArchiveIn& archive_in) {
+    //// TODO
 }
 
 }  // end namespace chrono

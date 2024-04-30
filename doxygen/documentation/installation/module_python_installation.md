@@ -37,12 +37,14 @@ This module consists of *two* build targets:
     - to use the *pychrono.cascade* module you must also build and install the [pythonocc-core](https://github.com/tpaviot/pythonocc-core) package. For consistency with OpenCASCADE 7.4.0 (required to build Chrono::Cascade), make sure to use **pythonocc-core version 7.4.1**.
     
 - To **build** this module:
-    - you must have [Python3](http://www.python.org) installed,
-    - you must have the [SWIG](http://www.swig.org/) wrapper generator installed. On the Mac type <tt>brew install swig</tt>.
+    - you must have [Python3](http://www.python.org) installed.
+    - you must have the [SWIG](http://www.swig.org/) wrapper generator installed.
 
 <div class="ce-warning">
-Building PyChrono requires SWIG version **4.0.0* or newer.
-On the Mac **SWIG v. 4.0.1** is known to work. It is installed by homebrew.
+Building PyChrono requires SWIG version **4.0.0** or newer.
+- On Windows, use a [SWIGWIN](https://sourceforge.net/projects/swig/files/swigwin) distribution which includes a pre-built executable. SWIG versions 4.0.2, 4.1.0, and 4.2.1 have been tested.
+- On Linux, many distributions include packages of SWIG. Consult your package management application.
+- On MacOS, SWIG can be installed with homebrew (<tt>brew install swig</tt>).
 </div>
 
 ## Building instructions
@@ -52,15 +54,14 @@ On the Mac **SWIG v. 4.0.1** is known to work. It is installed by homebrew.
 2. Repeat the instructions for the [full installation](@ref tutorial_install_chrono), but when you see 
    the CMake window, you must add the following steps:
 
-3. Set the `ENABLE_MODULE_PYTHON` as 'on', then press 'Configure' (to refresh the variable list) 
+3. Set `ENABLE_MODULE_PYTHON` as 'on', then press 'Configure' (to refresh the variable list) 
 
-4. If prompted, set the `CH_PYTHONDIR` variable to the directory where you have your copy of Python. 
+4. The Python package should be detected by CMake automatically.
+If prompted, set the `CH_PYTHONDIR` variable to the directory where you have your copy of Python. 
    For example, it could be <tt>C:/Python33</tt>
 
-5. When you pressed 'Configure', CMake should have detected your SWIG tools. This should create two variables in CMake called <tt>SWIG_DIR</tt> and <tt>SWIG_EXECUTABLE</tt>. 
-   If all is fine, they should automatically contain meaningful values, 
-   for example <tt>C:/swigwin-4.0.0/Lib</tt> and <tt>C:/swigwin-4.0.0/swig.exe</tt> , 
-   so you do not need to touch them. (On Windows, you may need to set them by hand).
+5. If prompted, set the CMake <tt>SWIG_EXECUTABLE</tt> variable to specify the SWIG executable. 
+   On Linux, this should be detected automatically. On Windows, depending on how SWIG was installed, you may need to set this manually. 
 
 6. Press 'Configure' again, then 'Generate', and proceed as usual in the installation instructions.
 

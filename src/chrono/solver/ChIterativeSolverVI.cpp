@@ -18,8 +18,7 @@ namespace chrono {
 
 CH_UPCASTING(ChIterativeSolverVI, ChIterativeSolver)
 CH_UPCASTING(ChIterativeSolverVI, ChSolverVI)
-CH_UPCASTING(ChSolverVI, ChSolver) // placed here since ChSolver is missing the .cpp
-
+CH_UPCASTING(ChSolverVI, ChSolver)  // placed here since ChSolver is missing the .cpp
 
 ChIterativeSolverVI::ChIterativeSolverVI()
     : ChIterativeSolver(50, 0.0, true, false),
@@ -53,30 +52,30 @@ void ChIterativeSolverVI::AtIterationEnd(double mmaxviolation, double mdeltalamb
     dlambda_history.push_back(mdeltalambda);
 }
 
-void ChIterativeSolverVI::ArchiveOut(ChArchiveOut& marchive) {
+void ChIterativeSolverVI::ArchiveOut(ChArchiveOut& archive_out) {
     // version number
-    marchive.VersionWrite<ChIterativeSolverVI>();
+    archive_out.VersionWrite<ChIterativeSolverVI>();
     // serialize parent class
-    ChSolver::ArchiveOut(marchive);
+    ChSolver::ArchiveOut(archive_out);
     // serialize all member data:
-    marchive << CHNVP(m_max_iterations);
-    marchive << CHNVP(m_warm_start);
-    marchive << CHNVP(m_tolerance);
-    marchive << CHNVP(m_omega);
-    marchive << CHNVP(m_shlambda);
+    archive_out << CHNVP(m_max_iterations);
+    archive_out << CHNVP(m_warm_start);
+    archive_out << CHNVP(m_tolerance);
+    archive_out << CHNVP(m_omega);
+    archive_out << CHNVP(m_shlambda);
 }
 
-void ChIterativeSolverVI::ArchiveIn(ChArchiveIn& marchive) {
+void ChIterativeSolverVI::ArchiveIn(ChArchiveIn& archive_in) {
     // version number
-    /*int version =*/ marchive.VersionRead<ChIterativeSolverVI>();
+    /*int version =*/archive_in.VersionRead<ChIterativeSolverVI>();
     // deserialize parent class
-    ChSolver::ArchiveIn(marchive);
+    ChSolver::ArchiveIn(archive_in);
     // stream in all member data:
-    marchive >> CHNVP(m_max_iterations);
-    marchive >> CHNVP(m_warm_start);
-    marchive >> CHNVP(m_tolerance);
-    marchive >> CHNVP(m_omega);
-    marchive >> CHNVP(m_shlambda);
+    archive_in >> CHNVP(m_max_iterations);
+    archive_in >> CHNVP(m_warm_start);
+    archive_in >> CHNVP(m_tolerance);
+    archive_in >> CHNVP(m_omega);
+    archive_in >> CHNVP(m_shlambda);
 }
 
 }  // end namespace chrono

@@ -40,7 +40,7 @@ class CH_MODELS_API Sedan_TMsimpleTire : public ChTMsimpleTire {
 
     virtual void SetTMsimpleParams() override;
     virtual double GetTireMass() const override { return m_mass; }
-    virtual ChVector<> GetTireInertia() const override { return m_inertia; }
+    virtual ChVector3d GetTireInertia() const override { return m_inertia; }
 
     virtual void AddVisualizationAssets(VisualizationType vis) override;
     virtual void RemoveVisualizationAssets() override final;
@@ -49,8 +49,8 @@ class CH_MODELS_API Sedan_TMsimpleTire : public ChTMsimpleTire {
 
   private:
     static const double m_mass;
-    static const ChVector<> m_inertia;
-    ChFunction_Recorder m_stiffnessMap;
+    static const ChVector3d m_inertia;
+    ChFunctionInterp m_stiffnessMap;
 
     static const std::string m_meshFile;
     std::shared_ptr<ChVisualShapeTriangleMesh> m_trimesh_shape;
@@ -63,4 +63,3 @@ class CH_MODELS_API Sedan_TMsimpleTire : public ChTMsimpleTire {
 }  // end namespace chrono
 
 #endif
-

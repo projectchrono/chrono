@@ -34,4 +34,4 @@ class CH_MULTICORE_API ChSystemDescriptorMulticore : public ChSystemDescriptor {
 
 /// @} multicore_solver
 
-} // end namespace chrono
+}  // end namespace chrono

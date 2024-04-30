@@ -45,7 +45,7 @@ class ChApi ChCollisionModelBullet : public ChCollisionModelImpl {
 
     /// Returns the axis aligned bounding box (AABB) of the collision model.
     /// Note that SyncPosition() should be invoked before calling this.
-    virtual geometry::ChAABB GetBoundingBox() const override;
+    virtual ChAABB GetBoundingBox() const override;
 
     /// Return the outward safe margin.
     float GetEnvelope() { return model->GetEnvelope(); }

@@ -38,13 +38,11 @@
 
 using namespace chrono;
 
-std::string out_dir = GetChronoOutputPath() + "DEMO_EXTERNAL_DYNAMICS";
-
 class VanDerPolODE : public ChExternalDynamics {
   public:
     VanDerPolODE(double mu) : m_mu(mu) {}
 
-    virtual int GetNumStates() const override { return 2; }
+    virtual unsigned int GetNumStates() const override { return 2; }
 
     virtual bool IsStiff() const override { return m_mu > 10; }
 
@@ -83,9 +81,10 @@ class VanDerPolODE : public ChExternalDynamics {
 };
 
 int main(int argc, char* argv[]) {
-    GetLog() << "Copyright (c) 2023 projectchrono.org\nChrono version: " << CHRONO_VERSION << "\n\n";
+    std::cout << "Copyright (c) 2023 projectchrono.org\nChrono version: " << CHRONO_VERSION << std::endl;
 
     // Create (if needed) output directory
+    std::string out_dir = GetChronoOutputPath() + "DEMO_EXTERNAL_DYNAMICS";
     if (!filesystem::create_directory(filesystem::path(out_dir))) {
         std::cout << "Error creating directory " << out_dir << std::endl;
         return 1;
@@ -105,7 +104,7 @@ int main(int argc, char* argv[]) {
         ChVectorDynamic<> y(2);
 
         Eigen::IOFormat rowFmt(Eigen::StreamPrecision, Eigen::DontAlignCols, "  ", "  ", "", "", "", "");
-        utils::CSV_writer csv(" ");
+        utils::ChWriterCSV csv(" ");
         y = vdp->GetInitialStates();
         csv << t << y.format(rowFmt) << std::endl;
 
@@ -117,7 +116,7 @@ int main(int argc, char* argv[]) {
         }
 
         std::string out_file = out_dir + "/vanDerPol_nonstiff.out";
-        csv.write_to_file(out_file);
+        csv.WriteToFile(out_file);
 
 #ifdef CHRONO_POSTPROCESS
         postprocess::ChGnuPlot gplot(out_dir + "/vanDerPol_nonstiff.gpl");
@@ -154,7 +153,7 @@ int main(int argc, char* argv[]) {
         sys.SetTimestepperType(ChTimestepper::Type::HHT);
         auto mystepper = std::dynamic_pointer_cast<ChTimestepperHHT>(sys.GetTimestepper());
         mystepper->SetAlpha(-0.2);
-        mystepper->SetMaxiters(100);
+        mystepper->SetMaxIters(100);
         mystepper->SetAbsTolerances(1e-5);
         mystepper->SetModifiedNewton(true);
         mystepper->SetVerbose(false);
@@ -165,7 +164,7 @@ int main(int argc, char* argv[]) {
         ChVectorDynamic<> y(2);
 
         Eigen::IOFormat rowFmt(Eigen::StreamPrecision, Eigen::DontAlignCols, "  ", "  ", "", "", "", "");
-        utils::CSV_writer csv(" ");
+        utils::ChWriterCSV csv(" ");
         y = vdp->GetInitialStates();
         csv << t << y.format(rowFmt) << std::endl;
 
@@ -177,7 +176,7 @@ int main(int argc, char* argv[]) {
         }
 
         std::string out_file = out_dir + "/vanDerPol_Stiff.out";
-        csv.write_to_file(out_file);
+        csv.WriteToFile(out_file);
 
 #ifdef CHRONO_POSTPROCESS
         postprocess::ChGnuPlot gplot(out_dir + "/vanDerPol_stiff.gpl");

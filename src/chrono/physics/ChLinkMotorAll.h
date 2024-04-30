@@ -22,5 +22,4 @@
 #include "chrono/physics/ChLinkMotorLinearForce.h"
 #include "chrono/physics/ChLinkMotorLinearDriveline.h"
 
-
 #endif

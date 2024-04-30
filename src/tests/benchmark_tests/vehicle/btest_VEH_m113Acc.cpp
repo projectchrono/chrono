@@ -17,6 +17,7 @@
 // =============================================================================
 
 #include "chrono/ChConfig.h"
+#include "chrono/physics/ChSystemNSC.h"
 #include "chrono/solver/ChSolverPSOR.h"
 #include "chrono/utils/ChBenchmark.h"
 
@@ -39,7 +40,7 @@ using namespace chrono::vehicle::m113;
 
 template <typename EnumClass, EnumClass SHOE_TYPE>
 class M113AccTest : public utils::ChBenchmarkTest {
-public:
+  public:
     M113AccTest();
     ~M113AccTest();
 
@@ -48,7 +49,7 @@ public:
 
     void SimulateVis();
 
-private:
+  private:
     M113* m_m113;
     RigidTerrain* m_terrain;
     ChPathFollowerDriver* m_driver;
@@ -80,7 +81,7 @@ M113AccTest<EnumClass, SHOE_TYPE>::M113AccTest() : m_step(1e-3) {
     m_m113->SetTransmissionType(transmission_model);
     m_m113->SetChassisCollisionType(chassis_collision_type);
 
-    m_m113->SetInitPosition(ChCoordsys<>(ChVector<>(-250 + 5, 0, 1.1), ChQuaternion<>(1, 0, 0, 0)));
+    m_m113->SetInitPosition(ChCoordsys<>(ChVector3d(-250 + 5, 0, 1.1), ChQuaternion<>(1, 0, 0, 0)));
     m_m113->Initialize();
 
     m_m113->SetChassisVisualizationType(VisualizationType::NONE);
@@ -93,7 +94,7 @@ M113AccTest<EnumClass, SHOE_TYPE>::M113AccTest() : m_step(1e-3) {
 
     // Create the terrain
     m_terrain = new RigidTerrain(m_m113->GetSystem());
-    auto patch_material = chrono_types::make_shared<ChMaterialSurfaceSMC>();
+    auto patch_material = chrono_types::make_shared<ChContactMaterialSMC>();
     patch_material->SetFriction(0.9f);
     patch_material->SetRestitution(0.01f);
     patch_material->SetYoungModulus(2e7f);
@@ -103,7 +104,7 @@ M113AccTest<EnumClass, SHOE_TYPE>::M113AccTest() : m_step(1e-3) {
     m_terrain->Initialize();
 
     // Create the straight path and the driver system
-    auto path = StraightLinePath(ChVector<>(-250, 0, 0.5), ChVector<>(250, 0, 0.5), 1);
+    auto path = StraightLinePath(ChVector3d(-250, 0, 0.5), ChVector3d(250, 0, 0.5), 1);
     m_driver = new ChPathFollowerDriver(m_m113->GetVehicle(), path, "my_path", 1000.0);
     m_driver->GetSteeringController().SetLookAheadDistance(5.0);
     m_driver->GetSteeringController().SetGains(0.5, 0, 0);
@@ -117,8 +118,10 @@ M113AccTest<EnumClass, SHOE_TYPE>::M113AccTest() : m_step(1e-3) {
     solver->SetSharpnessLambda(1.0);
     m_m113->GetSystem()->SetSolver(solver);
 
-    m_m113->GetSystem()->SetMaxPenetrationRecoverySpeed(1.5);
-    m_m113->GetSystem()->SetMinBounceSpeed(2.0);
+    if (contact_method == ChContactMethod::NSC) {
+        static_cast<ChSystemNSC*>(m_m113->GetSystem())->SetMaxPenetrationRecoverySpeed(1.5);
+        static_cast<ChSystemNSC*>(m_m113->GetSystem())->SetMinBounceSpeed(2.0);
+    }
 
     m_shoeL.resize(m_m113->GetVehicle().GetNumTrackShoes(LEFT));
     m_shoeR.resize(m_m113->GetVehicle().GetNumTrackShoes(RIGHT));
@@ -161,7 +164,7 @@ void M113AccTest<EnumClass, SHOE_TYPE>::SimulateVis() {
     auto vis = chrono_types::make_shared<ChTrackedVehicleVisualSystemIrrlicht>();
     vis->AttachVehicle(&m_m113->GetVehicle());
     vis->SetWindowTitle("M113 acceleration test");
-    vis->SetChaseCamera(ChVector<>(0.0, 0.0, 0.0), 6.0, 0.5);
+    vis->SetChaseCamera(ChVector3d(0.0, 0.0, 0.0), 6.0, 0.5);
     vis->Initialize();
     vis->AddTypicalLights();
 
@@ -181,7 +184,7 @@ void M113AccTest<EnumClass, SHOE_TYPE>::SimulateVis() {
 // =============================================================================
 
 #define NUM_SKIP_STEPS 1000  // number of steps for hot start
-#define NUM_SIM_STEPS 1000   // number of simulation steps for each benchmark
+#define NUM_SIM_STEPS 1000  // number of simulation steps for each benchmark
 #define REPEATS 10
 
 // NOTE: trick to prevent erros in expanding macros due to types that contain a comma.

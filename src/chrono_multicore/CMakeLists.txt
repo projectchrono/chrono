@@ -228,7 +228,7 @@ SET(ChronoEngine_Multicore_SOLVER
     solver/ChSolverMulticoreCG.cpp
     solver/ChSolverMulticoreGS.cpp
     solver/ChSolverMulticoreSPGQP.cpp
-    solver/ChShurProduct.cpp
+    solver/ChSchurProduct.cpp
     )
 
 SOURCE_GROUP(solver FILES ${ChronoEngine_Multicore_SOLVER})

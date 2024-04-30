@@ -25,10 +25,14 @@ namespace vehicle {
 ChChassisConnectorHitch::ChChassisConnectorHitch(const std::string& name) : ChChassisConnector(name) {}
 
 ChChassisConnectorHitch::~ChChassisConnectorHitch() {
+    if (!m_initialized)
+        return;
+
     auto sys = m_joint->GetSystem();
-    if (sys) {
-        sys->Remove(m_joint);
-    }
+    if (!sys)
+        return;
+
+    sys->Remove(m_joint);
 }
 
 void ChChassisConnectorHitch::Initialize(std::shared_ptr<ChChassis> front, std::shared_ptr<ChChassisRear> rear) {
@@ -36,12 +40,12 @@ void ChChassisConnectorHitch::Initialize(std::shared_ptr<ChChassis> front, std::
 
     // Express the connector reference frame in the absolute coordinate system
     ChFrame<> to_abs(rear->GetLocalPosFrontConnector());
-    to_abs.ConcatenatePreTransformation(rear->GetBody()->GetFrame_REF_to_abs());
+    to_abs.ConcatenatePreTransformation(rear->GetBody()->GetFrameRefToAbs());
 
     // Create the revolute joint connection
     m_joint = chrono_types::make_shared<ChLinkLockSpherical>();
-    m_joint->SetNameString(m_name + " joint");
-    m_joint->Initialize(front->GetBody(), rear->GetBody(), ChCoordsys<>(to_abs.GetPos(), QUNIT));
+    m_joint->SetName(m_name + " joint");
+    m_joint->Initialize(front->GetBody(), rear->GetBody(), ChFrame<>(to_abs.GetPos(), QUNIT));
     rear->GetBody()->GetSystem()->AddLink(m_joint);
 }
 

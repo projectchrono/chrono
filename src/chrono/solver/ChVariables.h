@@ -18,38 +18,24 @@
 #include "chrono/core/ChApiCE.h"
 #include "chrono/core/ChMatrix.h"
 
-
 namespace chrono {
 
-/// Base class for representing objects that introduce 'variables' (also referred as 'v') and their associated mass
-/// submatrices for a sparse representation of the problem.
-///
+/// Base class for representing objects that introduce 'variables' and their associated mass submatrices.
+/// Used for a sparse, distributed representation of the problem.
 /// See ChSystemDescriptor for more information about the overall problem and data representation.
 ///
-/// Each ChVariables object must be able to compute a mass submatrix, that will be assembled directly inside the global
-/// matrix Z, (in particular inside the block H or M). Because of this there is no need for ChVariables and derived
-/// classes to actually \e store their mass submatrix in memory: they just need to be able to compute it!
+/// Each ChVariables object must be able to define a mass submatrix, that will be assembled directly inside the global
+/// matrix Z (in particular, inside the block H or M). Because of this there is no need for ChVariables and derived
+/// classes to actually \e store their mass submatrix in memory: they just need to be able to compute with it.
 ///
-/// Moreover, in some cases, the mass submatrix is not even needed. In fact, some Chrono solvers are matrix-free. This
-/// means that each ChVariables (and derived) object can be asked not to \e assemble its mass submatrix, but instead to
-/// provide operation related to it. E.g. M*x, M\\x, +=M*x, and so on... Each derived class must implement these
-/// methods!
-///
-/// Because of this, the ChVariables class does \e not include any mass submatrix by default
-
+/// Furthermore, the system-level mass matrix is not always formed explicitly. If a matrix-free solver is used, each
+/// ChVariables (and derived) object can be asked not to \e assemble its mass submatrix, but instead to provide
+/// operation related to it, Ee.g. M*x, M\\x, +=M*x, and so on. Each derived class must implement these methods.
+/// Because of this, the ChVariables class does \e not include any mass submatrix by default.
 class ChApi ChVariables {
-  private:
-    ChVectorDynamic<double> qb;  ///< variables (accelerations, speeds, etc. depending on the problem)
-    ChVectorDynamic<double> fb;  ///< known vector (forces, or impulses, etc. depending on the problem)
-    int ndof;                    ///< number of degrees of freedom (number of contained scalar variables)
-    bool disabled;               ///< user activation/deactivation of variables
-
-  protected:
-    int offset;  ///< offset in global q state vector (needed by some solvers)
-
   public:
     ChVariables();
-    ChVariables(int m_ndof);
+    ChVariables(unsigned int dof);
     virtual ~ChVariables() {}
 
     /// Assignment operator: copy from other object
@@ -65,67 +51,70 @@ class ChApi ChVariables {
     /// In general, tells if they must be included into the system solver or not.
     bool IsActive() const { return !disabled; }
 
-    /// The number of scalar variables in the vector qb (dof=degrees of freedom)
-    /// *** This function MUST BE OVERRIDDEN by specialized inherited classes.
-    virtual int Get_ndof() const { return ndof; }
+    /// The number of scalar variables in the vector qb (dof=degrees of freedom).
+    unsigned int GetDOF() const { return ndof; }
 
-    /// Returns reference to qb, body-relative part of degrees of freedom q in system:
+    /// Get a reference to the differential states encapsulated by these variables.
+    /// These variable states are part of 'q' in the system:
     /// <pre>
-    ///    | M -Cq'|*|q|- | f|= |0| ,  c>0, l>0, l*r=0;
-    ///    | Cq  0 | |l|  |-b|  |c|
+    ///    | M -Cq'| * |q|- | f| = |0| ,  c>0, l>0, l*r=0;
+    ///    | Cq  0 |   |l|  |-b|   |c|
     /// </pre>
-    ChVectorRef Get_qb() { return qb; }
+    ChVectorRef State() { return qb; }
 
-    /// Compute fb, body-relative part of known vector f in system.
-    /// *** This function MAY BE OVERRIDDEN by specialized inherited classes (e.g., for impulsive multibody simulation,
-    /// this may be fb = dt*Forces+[M]*previous_v ).
-    /// Another option is to set values into fb vectors, accessing them by Get_fb() from an external procedure,
-    /// for each body, before starting the solver.
-    virtual void Compute_fb() {}
-
-    /// Returns reference to fb, body-relative part of known vector f in system.
+    /// Get a reference to the generalized force corresponding to these variables.
+    /// These variable forces are part of 'f' in the system:
     /// <pre>
-    ///    | M -Cq'|*|q|- | f|= |0| ,  c>0, l>0, l*r=0;
-    ///    | Cq  0 | |l|  |-b|  |c|
+    ///    | M -Cq'| * |q|- | f| = |0| ,  c>0, l>0, l*r=0;
+    ///    | Cq  0 |   |l|  |-b|   |c|
     /// </pre>
-    /// This function can be used to set values of fb vector before starting the solver.
-    ChVectorRef Get_fb() { return fb; }
+    ChVectorRef Force() { return fb; }
 
-    /// Computes the product of the inverse mass matrix by a vector, and store in result: result = [invMb]*vect
-    virtual void Compute_invMb_v(ChVectorRef result, ChVectorConstRef vect) const = 0;
+    /// Compute the product of the inverse mass matrix by a given vector and store in result.
+    /// This function must calculate `result = M^(-1) * vect` for a vector of same size as the variables state.
+    virtual void ComputeMassInverseTimesVector(ChVectorRef result, ChVectorConstRef vect) const = 0;
 
-    /// Computes the product of the inverse mass matrix by a vector, and increment result: result += [invMb]*vect
-    virtual void Compute_inc_invMb_v(ChVectorRef result, ChVectorConstRef vect) const = 0;
+    /// Compute the product of the mass matrix by a given vector and increment result.
+    /// This function must perform the operation `result += M * vect` for a vector of same size as the variables state.
+    virtual void AddMassTimesVector(ChVectorRef result, ChVectorConstRef vect) const = 0;
 
-    /// Computes the product of the mass matrix by a vector, and increment result: result = [Mb]*vect
-    virtual void Compute_inc_Mb_v(ChVectorRef result, ChVectorConstRef vect) const = 0;
+    /// Add the product of the mass submatrix by a given vector, scaled by ca, to result.
+    /// Note: 'result' and 'vect' are system-level vectors of appropriate size. This function must index into these
+    /// vectors using the offsets of each variable.
+    virtual void AddMassTimesVectorInto(ChVectorRef result, ChVectorConstRef vect, const double ca) const = 0;
 
-    /// Computes the product of the corresponding block in the system matrix (ie. the mass matrix) by 'vect', scale by
-    /// c_a, and add to 'result'.
-    /// NOTE: the 'vect' and 'result' vectors must already have the size of the total variables&constraints in the
-    /// system; the procedure will use the ChVariable offset (that must be already updated) to know the indexes in
-    /// result and vect.
-    virtual void MultiplyAndAdd(ChVectorRef result, ChVectorConstRef vect, const double c_a) const = 0;
+    /// Add the diagonal of the mass matrix, as a vector scaled by ca, to result.
+    /// Note: 'result' is a system-level vector of appropriate size. This function must index into this vector using the
+    /// offsets of each variable.
+    virtual void AddMassDiagonalInto(ChVectorRef result, const double ca) const = 0;
 
-    /// Add the diagonal of the mass matrix scaled by c_a, to 'result', as a vector.
-    /// NOTE: the 'result' vector must already have the size of system unknowns, ie the size of the total variables &
-    /// constraints in the system; the procedure will use the ChVariable offset (that must be already updated) as index.
-    virtual void DiagonalAdd(ChVectorRef result, const double c_a) const = 0;
+    /// Write the mass submatrix for these variables into the specified global matrix at the offsets of each variable.
+    /// The masses will be scaled by the given factor 'ca'. The (start_row, start_col) pair specifies the top-left
+    /// corner of the system-level mass matrix in the provided matrix. Assembling the system-level sparse matrix
+    /// is required only if using a direct sparse solver or for debugging/reporting purposes.
+    virtual void PasteMassInto(ChSparseMatrix& mat,
+                               unsigned int start_row,
+                               unsigned int start_col,
+                               const double ca) const = 0;
 
-    /// Build the mass submatrix (for these variables) multiplied by c_a, storing
-    /// it in 'storage' sparse matrix, at given column/row offset.
-    /// Most iterative solvers don't need to know this matrix explicitly.
-    /// *** This function MUST BE OVERRIDDEN by specialized
-    /// inherited classes
-    virtual void Build_M(ChSparseMatrix& storage, int insrow, int inscol, const double c_a) = 0;
+    /// Set offset in the global state vector.
+    /// This offset if set automatically by the ChSystemDescriptor during set up.
+    void SetOffset(unsigned int moff) { offset = moff; }
 
-    /// Set offset in global q vector (set automatically by ChSystemDescriptor)
-    void SetOffset(int moff) { offset = moff; }
-    /// Get offset in global q vector
-    int GetOffset() const { return offset; }
+    /// Get offset in the global state vector.
+    unsigned int GetOffset() const { return offset; }
 
-    virtual void ArchiveOut(ChArchiveOut& marchive);
-    virtual void ArchiveIn(ChArchiveIn& marchive);
+    virtual void ArchiveOut(ChArchiveOut& archive_out);
+    virtual void ArchiveIn(ChArchiveIn& archive_in);
+
+  protected:
+    unsigned int offset;  ///< offset in global q state vector (needed by some solvers)
+    unsigned int ndof;    ///< number of degrees of freedom (number of contained scalar variables)
+
+  private:
+    ChVectorDynamic<double> qb;  ///< state variables (accelerations, speeds, etc. depending on the problem)
+    ChVectorDynamic<double> fb;  ///< right-hand side force vector (forces, impulses, etc. depending on the problem)
+    bool disabled;               ///< user activation/deactivation of variables
 };
 
 }  // end namespace chrono

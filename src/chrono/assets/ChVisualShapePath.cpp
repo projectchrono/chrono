@@ -18,31 +18,32 @@ namespace chrono {
 CH_FACTORY_REGISTER(ChVisualShapePath)
 
 ChVisualShapePath::ChVisualShapePath() : npoints(200), thickness(10.0) {
-    gpath = chrono_types::make_shared<geometry::ChLinePath>();
+    gpath = chrono_types::make_shared<ChLinePath>();
 }
 
-ChVisualShapePath::ChVisualShapePath(std::shared_ptr<geometry::ChLinePath>& mpath) : npoints(200), thickness(10.0), gpath(mpath) {}
+ChVisualShapePath::ChVisualShapePath(std::shared_ptr<ChLinePath>& mpath)
+    : npoints(200), thickness(10.0), gpath(mpath) {}
 
-void ChVisualShapePath::ArchiveOut(ChArchiveOut& marchive) {
+void ChVisualShapePath::ArchiveOut(ChArchiveOut& archive_out) {
     // version number
-    marchive.VersionWrite<ChVisualShapePath>();
+    archive_out.VersionWrite<ChVisualShapePath>();
     // serialize parent class
-    ChVisualShape::ArchiveOut(marchive);
+    ChVisualShape::ArchiveOut(archive_out);
     // serialize all member data:
-    marchive << CHNVP(gpath);
-    marchive << CHNVP(npoints);
-    marchive << CHNVP(thickness);
+    archive_out << CHNVP(gpath);
+    archive_out << CHNVP(npoints);
+    archive_out << CHNVP(thickness);
 }
 
-void ChVisualShapePath::ArchiveIn(ChArchiveIn& marchive) {
+void ChVisualShapePath::ArchiveIn(ChArchiveIn& archive_in) {
     // version number
-    /*int version =*/ marchive.VersionRead<ChVisualShapePath>();
+    /*int version =*/archive_in.VersionRead<ChVisualShapePath>();
     // deserialize parent class
-    ChVisualShape::ArchiveIn(marchive);
+    ChVisualShape::ArchiveIn(archive_in);
     // stream in all member data:
-    marchive >> CHNVP(gpath);
-    marchive >> CHNVP(npoints);
-    marchive >> CHNVP(thickness);
+    archive_in >> CHNVP(gpath);
+    archive_in >> CHNVP(npoints);
+    archive_in >> CHNVP(thickness);
 }
 
 }  // end namespace chrono

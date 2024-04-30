@@ -60,7 +60,7 @@ class CH_VEHICLE_API ChVehicleCosimTrackedVehicleNode : public ChVehicleCosimTra
     std::shared_ptr<ChTrackedVehicle> GetVehicle() const { return m_vehicle; }
 
     /// Set the initial vehicle position, relative to the center of the terrain top-surface.
-    void SetInitialLocation(const ChVector<>& init_loc) { m_init_loc = init_loc; }
+    void SetInitialLocation(const ChVector3d& init_loc) { m_init_loc = init_loc; }
 
     /// Set the initial vehicle yaw angle (in radians).
     void SetInitialYaw(double init_yaw) { m_init_yaw = init_yaw; }
@@ -73,8 +73,8 @@ class CH_VEHICLE_API ChVehicleCosimTrackedVehicleNode : public ChVehicleCosimTra
 
   private:
     /// Initialize the vehicle MBS and any associated subsystems.
-    virtual void InitializeMBS(const ChVector2<>& terrain_size,  ///< terrain length x width
-                               double terrain_height             ///< initial terrain height
+    virtual void InitializeMBS(const ChVector2d& terrain_size,  ///< terrain length x width
+                               double terrain_height            ///< initial terrain height
                                ) override;
 
     /// Return terrain contact geometry and material information for one track shoe.
@@ -96,7 +96,7 @@ class CH_VEHICLE_API ChVehicleCosimTrackedVehicleNode : public ChVehicleCosimTra
     virtual void ApplyTrackShoeForce(int track_id, int shoe_id, const TerrainForce& force) override;
 
     /// Return the number of tracks in the vehicle system.
-    virtual int GetNumTracks() const override;
+    virtual unsigned int GetNumTracks() const override;
 
     /// Return the number of track shoes in the specified track subsystem.
     virtual size_t GetNumTrackShoes(int track_id) const override;
@@ -119,7 +119,7 @@ class CH_VEHICLE_API ChVehicleCosimTrackedVehicleNode : public ChVehicleCosimTra
     /// Impose spindle angular speed as dictated by an attached DBP rig.
     virtual void OnInitializeDBPRig(std::shared_ptr<ChFunction> func) override;
 
-    void WriteBodyInformation(utils::CSV_writer& csv);
+    void WriteBodyInformation(utils::ChWriterCSV& csv);
 
     virtual void OnRender() override;
 
@@ -129,7 +129,7 @@ class CH_VEHICLE_API ChVehicleCosimTrackedVehicleNode : public ChVehicleCosimTra
     std::shared_ptr<ChDriver> m_driver;                  ///< vehicle driver
     std::shared_ptr<ChVehicleVisualSystem> m_vsys;       ///< run-time visualization system
 
-    ChVector<> m_init_loc;  ///< initial vehicle location (relative to center of terrain top surface)
+    ChVector3d m_init_loc;  ///< initial vehicle location (relative to center of terrain top surface)
     double m_init_yaw;      ///< initial vehicle yaw
     bool m_chassis_fixed;   ///< fix chassis to ground
 

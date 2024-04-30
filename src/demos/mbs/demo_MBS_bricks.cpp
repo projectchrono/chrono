@@ -14,7 +14,7 @@
 //
 //   Demo code about
 //     - collisions and contacts
-//     - sharing a ChMaterialSurfaceNSC property between bodies
+//     - sharing a ChContactMaterialNSC property between bodies
 //
 // =============================================================================
 
@@ -40,7 +40,7 @@ ChVisualSystem::Type vis_type = ChVisualSystem::Type::VSG;
 // Create a bunch of rigid bodies that represent bricks in a large wall.
 void create_wall_bodies(ChSystemNSC& sys) {
     // Create a material that will be shared among all collision shapes
-    auto mat = chrono_types::make_shared<ChMaterialSurfaceNSC>();
+    auto mat = chrono_types::make_shared<ChContactMaterialNSC>();
     mat->SetFriction(0.4f);
     mat->SetCompliance(0.0);
     mat->SetComplianceT(0.0);
@@ -56,7 +56,7 @@ void create_wall_bodies(ChSystemNSC& sys) {
                                                                            true,        // visualization?
                                                                            true,        // collision?
                                                                            mat);        // contact material
-                mrigidBody->SetPos(ChVector<>(-8 + ui * 4.0 + 2 * (bi % 2), 1.0 + bi * 2.0, ai * 9));
+                mrigidBody->SetPos(ChVector3d(-8 + ui * 4.0 + 2 * (bi % 2), 1.0 + bi * 2.0, ai * 9));
                 mrigidBody->GetVisualShape(0)->SetTexture(GetChronoDataFile("textures/cubetexture_borders.png"));
                 sys.Add(mrigidBody);
             }
@@ -69,8 +69,8 @@ void create_wall_bodies(ChSystemNSC& sys) {
                                                                 true,         // visulization?
                                                                 true,         // collision?
                                                                 mat);         // contact material
-    mrigidFloor->SetPos(ChVector<>(0, -2, 0));
-    mrigidFloor->SetBodyFixed(true);
+    mrigidFloor->SetPos(ChVector3d(0, -2, 0));
+    mrigidFloor->SetFixed(true);
 
     sys.Add(mrigidFloor);
 
@@ -80,9 +80,9 @@ void create_wall_bodies(ChSystemNSC& sys) {
                                                                   true,  // visualization?
                                                                   true,  // collision?
                                                                   mat);  // contact material
-    mrigidBall->SetPos(ChVector<>(0, -2, 0));
-    mrigidBall->SetPos(ChVector<>(0, 3, -8));
-    mrigidBall->SetPos_dt(ChVector<>(0, 0, 16));  // set initial speed
+    mrigidBall->SetPos(ChVector3d(0, -2, 0));
+    mrigidBall->SetPos(ChVector3d(0, 3, -8));
+    mrigidBall->SetPosDt(ChVector3d(0, 0, 16));  // set initial speed
     mrigidBall->GetVisualShape(0)->SetTexture(GetChronoDataFile("textures/bluewhite.png"));
     sys.Add(mrigidBall);
 }
@@ -90,7 +90,7 @@ void create_wall_bodies(ChSystemNSC& sys) {
 // Create a bunch of ChronoENGINE rigid bodies that represent bricks in a Jenga tower
 void create_jengatower_bodies(ChSystemNSC& sys) {
     // Create a material that will be shared among all collision shapes
-    auto mat = chrono_types::make_shared<ChMaterialSurfaceNSC>();
+    auto mat = chrono_types::make_shared<ChContactMaterialNSC>();
     mat->SetFriction(0.4f);
     mat->SetCompliance(0.0);
     mat->SetComplianceT(0.0);
@@ -103,7 +103,7 @@ void create_jengatower_bodies(ChSystemNSC& sys) {
                                                                     true,      // visualization?
                                                                     true,      // collision?
                                                                     mat);      // contact material
-        mrigidBody1->SetPos(ChVector<>(-5, 1.0 + bi * 2.0, 0));
+        mrigidBody1->SetPos(ChVector3d(-5, 1.0 + bi * 2.0, 0));
         sys.Add(mrigidBody1);
 
         auto mrigidBody2 = chrono_types::make_shared<ChBodyEasyBox>(2, 2, 14,  // x,y,z size
@@ -111,7 +111,7 @@ void create_jengatower_bodies(ChSystemNSC& sys) {
                                                                     true,      // visualization?
                                                                     true,      // collision?
                                                                     mat);      // contact material
-        mrigidBody2->SetPos(ChVector<>(5, 1.0 + bi * 2.0, 0));
+        mrigidBody2->SetPos(ChVector3d(5, 1.0 + bi * 2.0, 0));
         sys.Add(mrigidBody2);
 
         auto mrigidBody3 = chrono_types::make_shared<ChBodyEasyBox>(14, 2, 2,  // x,y,z size
@@ -119,7 +119,7 @@ void create_jengatower_bodies(ChSystemNSC& sys) {
                                                                     true,      // visualization?
                                                                     true,      // collision?
                                                                     mat);      // contact material
-        mrigidBody3->SetPos(ChVector<>(0, 3.0 + bi * 2.0, 5));
+        mrigidBody3->SetPos(ChVector3d(0, 3.0 + bi * 2.0, 5));
         sys.Add(mrigidBody3);
 
         auto mrigidBody4 = chrono_types::make_shared<ChBodyEasyBox>(14, 2, 2,  // x,y,z size
@@ -127,7 +127,7 @@ void create_jengatower_bodies(ChSystemNSC& sys) {
                                                                     true,      // visualization?
                                                                     true,      // collision?
                                                                     mat);      // contact material
-        mrigidBody4->SetPos(ChVector<>(0, 3.0 + bi * 2.0, -5));
+        mrigidBody4->SetPos(ChVector3d(0, 3.0 + bi * 2.0, -5));
         sys.Add(mrigidBody4);
     }
 
@@ -137,8 +137,8 @@ void create_jengatower_bodies(ChSystemNSC& sys) {
                                                                 true,         // visualization?
                                                                 true,         // collision?
                                                                 mat);         // contact material
-    mrigidFloor->SetPos(ChVector<>(0, -2, 0));
-    mrigidFloor->SetBodyFixed(true);
+    mrigidFloor->SetPos(ChVector3d(0, -2, 0));
+    mrigidFloor->SetFixed(true);
 
     sys.Add(mrigidFloor);
 
@@ -148,14 +148,14 @@ void create_jengatower_bodies(ChSystemNSC& sys) {
                                                                   true,  // visualization?
                                                                   true,  // collision?
                                                                   mat);  // contact material
-    mrigidBall->SetPos(ChVector<>(0, 3, -8));
-    mrigidBall->SetPos_dt(ChVector<>(0, 0, 2));  // set initial speed
+    mrigidBall->SetPos(ChVector3d(0, 3, -8));
+    mrigidBall->SetPosDt(ChVector3d(0, 0, 2));  // set initial speed
     mrigidBall->GetVisualShape(0)->SetTexture(GetChronoDataFile("textures/bluewhite.png"));
     sys.Add(mrigidBall);
 }
 
 int main(int argc, char* argv[]) {
-    GetLog() << "Copyright (c) 2017 projectchrono.org\nChrono version: " << CHRONO_VERSION << "\n\n";
+    std::cout << "Copyright (c) 2017 projectchrono.org\nChrono version: " << CHRONO_VERSION << std::endl;
 
     // Create the physical system
     ChSystemNSC sys;
@@ -186,9 +186,9 @@ int main(int argc, char* argv[]) {
             vis_irr->Initialize();
             vis_irr->AddLogo();
             vis_irr->AddSkyBox();
-            vis_irr->AddLight(ChVector<>(70, 120, -90), 290, ChColor(0.7f, 0.7f, 0.7f));
-            vis_irr->AddLight(ChVector<>(30, 80, 60), 190, ChColor(0.7f, 0.8f, 0.8f));
-            vis_irr->AddCamera(ChVector<>(-15, 14, -30), ChVector<>(0, 5, 0));
+            vis_irr->AddLight(ChVector3d(70, 120, -90), 290, ChColor(0.7f, 0.7f, 0.7f));
+            vis_irr->AddLight(ChVector3d(30, 80, 60), 190, ChColor(0.7f, 0.8f, 0.8f));
+            vis_irr->AddCamera(ChVector3d(-15, 14, -30), ChVector3d(0, 5, 0));
 
             vis = vis_irr;
 #endif
@@ -199,15 +199,16 @@ int main(int argc, char* argv[]) {
 #ifdef CHRONO_VSG
             auto vis_vsg = chrono_types::make_shared<ChVisualSystemVSG>();
             vis_vsg->AttachSystem(&sys);
-            vis_vsg->SetWindowSize(ChVector2<int>(800, 600));
-            vis_vsg->SetWindowPosition(ChVector2<int>(100, 100));
+            vis_vsg->SetWindowSize(ChVector2i(800, 600));
+            vis_vsg->SetWindowPosition(ChVector2i(100, 100));
             vis_vsg->SetWindowTitle("VSG Bricks Demo");
             vis_vsg->SetClearColor(ChColor(0.8f, 0.85f, 0.9f));
             vis_vsg->SetUseSkyBox(true);
             vis_vsg->SetCameraVertical(CameraVerticalDir::Y);
-            vis_vsg->AddCamera(ChVector<>(-30, 28, -60), ChVector<>(0, 5, 0));
+            vis_vsg->AddCamera(ChVector3d(-30, 28, -60), ChVector3d(0, 5, 0));
             vis_vsg->SetCameraAngleDeg(40);
-            vis_vsg->SetLightDirection(1.5 * CH_C_PI_2, CH_C_PI_4);
+            vis_vsg->SetLightDirection(1.5 * CH_PI_2, CH_PI_4);
+            vis_vsg->SetShadows(true);
             vis_vsg->Initialize();
 
             vis = vis_vsg;
@@ -222,7 +223,7 @@ int main(int argc, char* argv[]) {
     solver->EnableWarmStart(true);
     sys.SetSolver(solver);
 
-    // sys.SetUseSleeping(true);
+    // sys.SetSleepingAllowed(true);
     sys.SetMaxPenetrationRecoverySpeed(1.0);
 
     // Simulation loop

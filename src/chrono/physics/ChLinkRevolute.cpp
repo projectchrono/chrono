@@ -29,18 +29,18 @@ ChLinkRevolute::ChLinkRevolute() {
 }
 
 ChLinkRevolute::ChLinkRevolute(const ChLinkRevolute& other) : ChLink(other) {
-    Body1 = other.Body1;
-    Body2 = other.Body2;
+    m_body1 = other.m_body1;
+    m_body2 = other.m_body2;
     system = other.system;
 
     m_frame1 = other.m_frame1;
     m_frame2 = other.m_frame2;
 
-    m_cnstr_x.SetVariables(&other.Body1->Variables(), &other.Body2->Variables());
-    m_cnstr_y.SetVariables(&other.Body1->Variables(), &other.Body2->Variables());
-    m_cnstr_z.SetVariables(&other.Body1->Variables(), &other.Body2->Variables());
-    m_cnstr_uw.SetVariables(&other.Body1->Variables(), &other.Body2->Variables());
-    m_cnstr_vw.SetVariables(&other.Body1->Variables(), &other.Body2->Variables());
+    m_cnstr_x.SetVariables(&other.m_body1->Variables(), &other.m_body2->Variables());
+    m_cnstr_y.SetVariables(&other.m_body1->Variables(), &other.m_body2->Variables());
+    m_cnstr_z.SetVariables(&other.m_body1->Variables(), &other.m_body2->Variables());
+    m_cnstr_uw.SetVariables(&other.m_body1->Variables(), &other.m_body2->Variables());
+    m_cnstr_vw.SetVariables(&other.m_body1->Variables(), &other.m_body2->Variables());
 
     for (int i = 0; i < 5; i++) {
         m_multipliers[i] = other.m_multipliers[i];
@@ -50,24 +50,22 @@ ChLinkRevolute::ChLinkRevolute(const ChLinkRevolute& other) : ChLink(other) {
 // -----------------------------------------------------------------------------
 // Link initialization functions
 // -----------------------------------------------------------------------------
-void ChLinkRevolute::Initialize(std::shared_ptr<ChBody> body1,
-                                std::shared_ptr<ChBody> body2,
-                                const ChFrame<>& frame) {
-    Body1 = body1.get();
-    Body2 = body2.get();
+void ChLinkRevolute::Initialize(std::shared_ptr<ChBody> body1, std::shared_ptr<ChBody> body2, const ChFrame<>& frame) {
+    m_body1 = body1.get();
+    m_body2 = body2.get();
 
-    m_cnstr_x.SetVariables(&Body1->Variables(), &Body2->Variables());
-    m_cnstr_y.SetVariables(&Body1->Variables(), &Body2->Variables());
-    m_cnstr_z.SetVariables(&Body1->Variables(), &Body2->Variables());
-    m_cnstr_uw.SetVariables(&Body1->Variables(), &Body2->Variables());
-    m_cnstr_vw.SetVariables(&Body1->Variables(), &Body2->Variables());
+    m_cnstr_x.SetVariables(&m_body1->Variables(), &m_body2->Variables());
+    m_cnstr_y.SetVariables(&m_body1->Variables(), &m_body2->Variables());
+    m_cnstr_z.SetVariables(&m_body1->Variables(), &m_body2->Variables());
+    m_cnstr_uw.SetVariables(&m_body1->Variables(), &m_body2->Variables());
+    m_cnstr_vw.SetVariables(&m_body1->Variables(), &m_body2->Variables());
 
-    ((ChFrame<>*)Body1)->TransformParentToLocal(frame, m_frame1);
-    ((ChFrame<>*)Body2)->TransformParentToLocal(frame, m_frame2);
+    m_frame1 = ((ChFrame<>*)m_body1)->TransformParentToLocal(frame);
+    m_frame2 = ((ChFrame<>*)m_body2)->TransformParentToLocal(frame);
 
-    m_u1_tilde = ChStarMatrix33<>(m_frame1.GetA().Get_A_Xaxis());
-    m_v1_tilde = ChStarMatrix33<>(m_frame1.GetA().Get_A_Yaxis());
-    m_w2_tilde = ChStarMatrix33<>(m_frame2.GetA().Get_A_Zaxis());
+    m_u1_tilde = ChStarMatrix33<>(m_frame1.GetRotMat().GetAxisX());
+    m_v1_tilde = ChStarMatrix33<>(m_frame1.GetRotMat().GetAxisY());
+    m_w2_tilde = ChStarMatrix33<>(m_frame2.GetRotMat().GetAxisZ());
 
     m_C.setZero();
 }
@@ -77,14 +75,14 @@ void ChLinkRevolute::Initialize(std::shared_ptr<ChBody> body1,
                                 bool local,
                                 const ChFrame<>& frame1,
                                 const ChFrame<>& frame2) {
-    Body1 = body1.get();
-    Body2 = body2.get();
+    m_body1 = body1.get();
+    m_body2 = body2.get();
 
-    m_cnstr_x.SetVariables(&Body1->Variables(), &Body2->Variables());
-    m_cnstr_y.SetVariables(&Body1->Variables(), &Body2->Variables());
-    m_cnstr_z.SetVariables(&Body1->Variables(), &Body2->Variables());
-    m_cnstr_uw.SetVariables(&Body1->Variables(), &Body2->Variables());
-    m_cnstr_vw.SetVariables(&Body1->Variables(), &Body2->Variables());
+    m_cnstr_x.SetVariables(&m_body1->Variables(), &m_body2->Variables());
+    m_cnstr_y.SetVariables(&m_body1->Variables(), &m_body2->Variables());
+    m_cnstr_z.SetVariables(&m_body1->Variables(), &m_body2->Variables());
+    m_cnstr_uw.SetVariables(&m_body1->Variables(), &m_body2->Variables());
+    m_cnstr_vw.SetVariables(&m_body1->Variables(), &m_body2->Variables());
 
     ChFrame<> frame1_abs;
     ChFrame<> frame2_abs;
@@ -92,24 +90,24 @@ void ChLinkRevolute::Initialize(std::shared_ptr<ChBody> body1,
     if (local) {
         m_frame1 = frame1;
         m_frame2 = frame2;
-        frame1_abs = frame1 >> *Body1;
-        frame2_abs = frame2 >> *Body2;
+        frame1_abs = frame1 >> *m_body1;
+        frame2_abs = frame2 >> *m_body2;
     } else {
-        ((ChFrame<>*)Body1)->TransformParentToLocal(frame1, m_frame1);
-        ((ChFrame<>*)Body2)->TransformParentToLocal(frame2, m_frame2);
+        m_frame1 = ((ChFrame<>*)m_body1)->TransformParentToLocal(frame1);
+        m_frame2 = ((ChFrame<>*)m_body2)->TransformParentToLocal(frame2);
         frame1_abs = frame1;
         frame2_abs = frame2;
     }
 
-    m_u1_tilde = ChStarMatrix33<>(m_frame1.GetA().Get_A_Xaxis());
-    m_v1_tilde = ChStarMatrix33<>(m_frame1.GetA().Get_A_Yaxis());
-    m_w2_tilde = ChStarMatrix33<>(m_frame2.GetA().Get_A_Zaxis());
+    m_u1_tilde = ChStarMatrix33<>(m_frame1.GetRotMat().GetAxisX());
+    m_v1_tilde = ChStarMatrix33<>(m_frame1.GetRotMat().GetAxisY());
+    m_w2_tilde = ChStarMatrix33<>(m_frame2.GetRotMat().GetAxisZ());
 
-    m_C(0) = frame2_abs.coord.pos.x() - frame1_abs.coord.pos.x();
-    m_C(1) = frame2_abs.coord.pos.y() - frame1_abs.coord.pos.y();
-    m_C(2) = frame2_abs.coord.pos.z() - frame1_abs.coord.pos.z();
-    m_C(3) = Vdot(frame1_abs.GetA().Get_A_Xaxis(), frame2_abs.GetA().Get_A_Zaxis());
-    m_C(4) = Vdot(frame1_abs.GetA().Get_A_Yaxis(), frame2_abs.GetA().Get_A_Zaxis());
+    m_C(0) = frame2_abs.GetPos().x() - frame1_abs.GetPos().x();
+    m_C(1) = frame2_abs.GetPos().y() - frame1_abs.GetPos().y();
+    m_C(2) = frame2_abs.GetPos().z() - frame1_abs.GetPos().z();
+    m_C(3) = Vdot(frame1_abs.GetRotMat().GetAxisX(), frame2_abs.GetRotMat().GetAxisZ());
+    m_C(4) = Vdot(frame1_abs.GetRotMat().GetAxisY(), frame2_abs.GetRotMat().GetAxisZ());
 }
 
 // -----------------------------------------------------------------------------
@@ -120,18 +118,18 @@ void ChLinkRevolute::Update(double time, bool update_assets) {
     ChLink::UpdateTime(time);
 
     // Express the joint frames in absolute frame
-    ChFrame<> frame1_abs = m_frame1 >> *Body1;
-    ChFrame<> frame2_abs = m_frame2 >> *Body2;
+    ChFrame<> frame1_abs = m_frame1 >> *m_body1;
+    ChFrame<> frame2_abs = m_frame2 >> *m_body2;
 
     // Calculate violations and Jacobians of the spherical constraints
     //    pos2_abs - pos1_abs = 0
-    m_C(0) = frame2_abs.coord.pos.x() - frame1_abs.coord.pos.x();
-    m_C(1) = frame2_abs.coord.pos.y() - frame1_abs.coord.pos.y();
-    m_C(2) = frame2_abs.coord.pos.z() - frame1_abs.coord.pos.z();
+    m_C(0) = frame2_abs.GetPos().x() - frame1_abs.GetPos().x();
+    m_C(1) = frame2_abs.GetPos().y() - frame1_abs.GetPos().y();
+    m_C(2) = frame2_abs.GetPos().z() - frame1_abs.GetPos().z();
 
     {
-        ChMatrix33<> Phi_pi1 = Body1->GetA() * ChStarMatrix33<>(m_frame1.coord.pos);
-        ChMatrix33<> Phi_pi2 = Body2->GetA() * ChStarMatrix33<>(m_frame2.coord.pos);
+        ChMatrix33<> Phi_pi1 = m_body1->GetRotMat() * ChStarMatrix33<>(m_frame1.GetPos());
+        ChMatrix33<> Phi_pi2 = m_body2->GetRotMat() * ChStarMatrix33<>(m_frame2.GetPos());
 
         m_cnstr_x.Get_Cq_a()(0) = -1;
         m_cnstr_x.Get_Cq_b()(0) = +1;
@@ -175,16 +173,16 @@ void ChLinkRevolute::Update(double time, bool update_assets) {
 
     // Calculate violation and Jacobians of the dot constraint (u1,w2)
     //    dot(u1_abs, w2_abs) = 0
-    ChVector<> u1 = frame1_abs.GetA().Get_A_Xaxis();
-    ChVector<> w2 = frame2_abs.GetA().Get_A_Zaxis();
+    ChVector3d u1 = frame1_abs.GetRotMat().GetAxisX();
+    ChVector3d w2 = frame2_abs.GetRotMat().GetAxisZ();
 
     m_C(3) = Vdot(u1, w2);
 
     {
-        ChMatrix33<> mat1 = Body1->GetA() * m_u1_tilde;
-        ChMatrix33<> mat2 = Body2->GetA() * m_w2_tilde;
-        ChVector<> Phi_pi1 = mat1.transpose() * w2;
-        ChVector<> Phi_pi2 = mat2.transpose() * u1;
+        ChMatrix33<> mat1 = m_body1->GetRotMat() * m_u1_tilde;
+        ChMatrix33<> mat2 = m_body2->GetRotMat() * m_w2_tilde;
+        ChVector3d Phi_pi1 = mat1.transpose() * w2;
+        ChVector3d Phi_pi2 = mat2.transpose() * u1;
 
         m_cnstr_uw.Get_Cq_a()(0) = 0;
         m_cnstr_uw.Get_Cq_a()(1) = 0;
@@ -203,15 +201,15 @@ void ChLinkRevolute::Update(double time, bool update_assets) {
 
     // Calculate violation and Jacobians of the dot constraint (v1,w2)
     //    dot(v1_abs, w2_abs) = 0
-    ChVector<> v1 = frame1_abs.GetA().Get_A_Yaxis();
+    ChVector3d v1 = frame1_abs.GetRotMat().GetAxisY();
 
     m_C(4) = Vdot(v1, w2);
 
     {
-        ChMatrix33<> mat1 = Body1->GetA() * m_v1_tilde;
-        ChMatrix33<> mat2 = Body2->GetA() * m_w2_tilde;
-        ChVector<> Phi_pi1 = mat1.transpose() * w2;
-        ChVector<> Phi_pi2 = mat2.transpose() * v1;
+        ChMatrix33<> mat1 = m_body1->GetRotMat() * m_v1_tilde;
+        ChMatrix33<> mat2 = m_body2->GetRotMat() * m_w2_tilde;
+        ChVector3d Phi_pi1 = mat1.transpose() * w2;
+        ChVector3d Phi_pi2 = mat2.transpose() * v1;
 
         m_cnstr_vw.Get_Cq_a()(0) = 0;
         m_cnstr_vw.Get_Cq_a()(1) = 0;
@@ -253,7 +251,7 @@ void ChLinkRevolute::IntStateScatterReactions(const unsigned int off_L, const Ch
     m_multipliers[4] = L(off_L + 4);
 
     // Also compute 'intuitive' reactions:
-    ChVector<> lam_sph(m_multipliers[0], m_multipliers[1], m_multipliers[2]);
+    ChVector3d lam_sph(m_multipliers[0], m_multipliers[1], m_multipliers[2]);
     double lam_uw = m_multipliers[3];
     double lam_vw = m_multipliers[4];
 
@@ -268,30 +266,30 @@ void ChLinkRevolute::IntStateScatterReactions(const unsigned int off_L, const Ch
     //     = -C^T * [A_2 * tilde(w2')]^T * (u1 * lam_uw + v1 * lam_vw)
 
     // Reaction force
-    ChVector<> F2 = Body2->GetA().transpose() * lam_sph;
-    react_force = m_frame2.GetA().transpose() * F2;
+    ChVector3d F2 = m_body2->GetRotMat().transpose() * lam_sph;
+    react_force = m_frame2.GetRotMat().transpose() * F2;
 
     // Reaction torque
-    ChVector<> u1 = Body1->TransformDirectionLocalToParent(m_frame1.GetA().Get_A_Xaxis());
-    ChVector<> v1 = Body1->TransformDirectionLocalToParent(m_frame1.GetA().Get_A_Yaxis());
-    ChMatrix33<> mat2 = Body2->GetA() * m_w2_tilde;
-    ChVector<> T2 = mat2.transpose() * (lam_uw * u1 + lam_vw * v1);
-    react_torque = -(m_frame2.GetA().transpose() * T2);
+    ChVector3d u1 = m_body1->TransformDirectionLocalToParent(m_frame1.GetRotMat().GetAxisX());
+    ChVector3d v1 = m_body1->TransformDirectionLocalToParent(m_frame1.GetRotMat().GetAxisY());
+    ChMatrix33<> mat2 = m_body2->GetRotMat() * m_w2_tilde;
+    ChVector3d T2 = mat2.transpose() * (lam_uw * u1 + lam_vw * v1);
+    react_torque = -(m_frame2.GetRotMat().transpose() * T2);
 }
 
 void ChLinkRevolute::IntLoadResidual_CqL(const unsigned int off_L,    ///< offset in L multipliers
                                          ChVectorDynamic<>& R,        ///< result: the R residual, R += c*Cq'*L
                                          const ChVectorDynamic<>& L,  ///< the L vector
                                          const double c               ///< a scaling factor
-                                         ) {
+) {
     if (!IsActive())
         return;
 
-    m_cnstr_x.MultiplyTandAdd(R, L(off_L + 0) * c);
-    m_cnstr_y.MultiplyTandAdd(R, L(off_L + 1) * c);
-    m_cnstr_z.MultiplyTandAdd(R, L(off_L + 2) * c);
-    m_cnstr_uw.MultiplyTandAdd(R, L(off_L + 3) * c);
-    m_cnstr_vw.MultiplyTandAdd(R, L(off_L + 4) * c);
+    m_cnstr_x.AddJacobianTransposedTimesScalarInto(R, L(off_L + 0) * c);
+    m_cnstr_y.AddJacobianTransposedTimesScalarInto(R, L(off_L + 1) * c);
+    m_cnstr_z.AddJacobianTransposedTimesScalarInto(R, L(off_L + 2) * c);
+    m_cnstr_uw.AddJacobianTransposedTimesScalarInto(R, L(off_L + 3) * c);
+    m_cnstr_vw.AddJacobianTransposedTimesScalarInto(R, L(off_L + 4) * c);
 }
 
 void ChLinkRevolute::IntLoadConstraint_C(const unsigned int off_L,  ///< offset in Qc residual
@@ -299,7 +297,7 @@ void ChLinkRevolute::IntLoadConstraint_C(const unsigned int off_L,  ///< offset 
                                          const double c,            ///< a scaling factor
                                          bool do_clamp,             ///< apply clamping to c*C?
                                          double recovery_clamp      ///< value for min/max clamping of c*C
-                                         ) {
+) {
     if (!IsActive())
         return;
 
@@ -310,11 +308,11 @@ void ChLinkRevolute::IntLoadConstraint_C(const unsigned int off_L,  ///< offset 
     double cnstr_vw_violation = c * m_C(4);
 
     if (do_clamp) {
-        cnstr_x_violation = ChMin(ChMax(cnstr_x_violation, -recovery_clamp), recovery_clamp);
-        cnstr_y_violation = ChMin(ChMax(cnstr_y_violation, -recovery_clamp), recovery_clamp);
-        cnstr_z_violation = ChMin(ChMax(cnstr_z_violation, -recovery_clamp), recovery_clamp);
-        cnstr_uw_violation = ChMin(ChMax(cnstr_uw_violation, -recovery_clamp), recovery_clamp);
-        cnstr_vw_violation = ChMin(ChMax(cnstr_vw_violation, -recovery_clamp), recovery_clamp);
+        cnstr_x_violation = std::min(std::max(cnstr_x_violation, -recovery_clamp), recovery_clamp);
+        cnstr_y_violation = std::min(std::max(cnstr_y_violation, -recovery_clamp), recovery_clamp);
+        cnstr_z_violation = std::min(std::max(cnstr_z_violation, -recovery_clamp), recovery_clamp);
+        cnstr_uw_violation = std::min(std::max(cnstr_uw_violation, -recovery_clamp), recovery_clamp);
+        cnstr_vw_violation = std::min(std::max(cnstr_vw_violation, -recovery_clamp), recovery_clamp);
     }
     Qc(off_L + 0) += cnstr_x_violation;
     Qc(off_L + 1) += cnstr_y_violation;
@@ -332,17 +330,17 @@ void ChLinkRevolute::IntToDescriptor(const unsigned int off_v,
     if (!IsActive())
         return;
 
-    m_cnstr_x.Set_l_i(L(off_L + 0));
-    m_cnstr_y.Set_l_i(L(off_L + 1));
-    m_cnstr_z.Set_l_i(L(off_L + 2));
-    m_cnstr_uw.Set_l_i(L(off_L + 3));
-    m_cnstr_vw.Set_l_i(L(off_L + 4));
+    m_cnstr_x.SetLagrangeMultiplier(L(off_L + 0));
+    m_cnstr_y.SetLagrangeMultiplier(L(off_L + 1));
+    m_cnstr_z.SetLagrangeMultiplier(L(off_L + 2));
+    m_cnstr_uw.SetLagrangeMultiplier(L(off_L + 3));
+    m_cnstr_vw.SetLagrangeMultiplier(L(off_L + 4));
 
-    m_cnstr_x.Set_b_i(Qc(off_L + 0));
-    m_cnstr_y.Set_b_i(Qc(off_L + 1));
-    m_cnstr_z.Set_b_i(Qc(off_L + 2));
-    m_cnstr_uw.Set_b_i(Qc(off_L + 3));
-    m_cnstr_vw.Set_b_i(Qc(off_L + 4));
+    m_cnstr_x.SetRightHandSide(Qc(off_L + 0));
+    m_cnstr_y.SetRightHandSide(Qc(off_L + 1));
+    m_cnstr_z.SetRightHandSide(Qc(off_L + 2));
+    m_cnstr_uw.SetRightHandSide(Qc(off_L + 3));
+    m_cnstr_vw.SetRightHandSide(Qc(off_L + 4));
 }
 
 void ChLinkRevolute::IntFromDescriptor(const unsigned int off_v,
@@ -352,11 +350,11 @@ void ChLinkRevolute::IntFromDescriptor(const unsigned int off_v,
     if (!IsActive())
         return;
 
-    L(off_L + 0) = m_cnstr_x.Get_l_i();
-    L(off_L + 1) = m_cnstr_y.Get_l_i();
-    L(off_L + 2) = m_cnstr_z.Get_l_i();
-    L(off_L + 3) = m_cnstr_uw.Get_l_i();
-    L(off_L + 4) = m_cnstr_vw.Get_l_i();
+    L(off_L + 0) = m_cnstr_x.GetLagrangeMultiplier();
+    L(off_L + 1) = m_cnstr_y.GetLagrangeMultiplier();
+    L(off_L + 2) = m_cnstr_z.GetLagrangeMultiplier();
+    L(off_L + 3) = m_cnstr_uw.GetLagrangeMultiplier();
+    L(off_L + 4) = m_cnstr_vw.GetLagrangeMultiplier();
 }
 
 // -----------------------------------------------------------------------------
@@ -374,11 +372,11 @@ void ChLinkRevolute::InjectConstraints(ChSystemDescriptor& descriptor) {
 }
 
 void ChLinkRevolute::ConstraintsBiReset() {
-    m_cnstr_x.Set_b_i(0.0);
-    m_cnstr_y.Set_b_i(0.0);
-    m_cnstr_z.Set_b_i(0.0);
-    m_cnstr_uw.Set_b_i(0.0);
-    m_cnstr_vw.Set_b_i(0.0);
+    m_cnstr_x.SetRightHandSide(0.0);
+    m_cnstr_y.SetRightHandSide(0.0);
+    m_cnstr_z.SetRightHandSide(0.0);
+    m_cnstr_uw.SetRightHandSide(0.0);
+    m_cnstr_vw.SetRightHandSide(0.0);
 }
 
 void ChLinkRevolute::ConstraintsBiLoad_C(double factor, double recovery_clamp, bool do_clamp) {
@@ -392,30 +390,30 @@ void ChLinkRevolute::ConstraintsBiLoad_C(double factor, double recovery_clamp, b
     double cnstr_vw_violation = factor * m_C(4);
 
     if (do_clamp) {
-        cnstr_x_violation = ChMin(ChMax(cnstr_x_violation, -recovery_clamp), recovery_clamp);
-        cnstr_y_violation = ChMin(ChMax(cnstr_y_violation, -recovery_clamp), recovery_clamp);
-        cnstr_z_violation = ChMin(ChMax(cnstr_z_violation, -recovery_clamp), recovery_clamp);
-        cnstr_uw_violation = ChMin(ChMax(cnstr_uw_violation, -recovery_clamp), recovery_clamp);
-        cnstr_vw_violation = ChMin(ChMax(cnstr_vw_violation, -recovery_clamp), recovery_clamp);
+        cnstr_x_violation = std::min(std::max(cnstr_x_violation, -recovery_clamp), recovery_clamp);
+        cnstr_y_violation = std::min(std::max(cnstr_y_violation, -recovery_clamp), recovery_clamp);
+        cnstr_z_violation = std::min(std::max(cnstr_z_violation, -recovery_clamp), recovery_clamp);
+        cnstr_uw_violation = std::min(std::max(cnstr_uw_violation, -recovery_clamp), recovery_clamp);
+        cnstr_vw_violation = std::min(std::max(cnstr_vw_violation, -recovery_clamp), recovery_clamp);
     }
 
-    m_cnstr_x.Set_b_i(m_cnstr_x.Get_b_i() + cnstr_x_violation);
-    m_cnstr_y.Set_b_i(m_cnstr_y.Get_b_i() + cnstr_y_violation);
-    m_cnstr_z.Set_b_i(m_cnstr_z.Get_b_i() + cnstr_z_violation);
-    m_cnstr_uw.Set_b_i(m_cnstr_uw.Get_b_i() + cnstr_uw_violation);
-    m_cnstr_vw.Set_b_i(m_cnstr_vw.Get_b_i() + cnstr_vw_violation);
+    m_cnstr_x.SetRightHandSide(m_cnstr_x.GetRightHandSide() + cnstr_x_violation);
+    m_cnstr_y.SetRightHandSide(m_cnstr_y.GetRightHandSide() + cnstr_y_violation);
+    m_cnstr_z.SetRightHandSide(m_cnstr_z.GetRightHandSide() + cnstr_z_violation);
+    m_cnstr_uw.SetRightHandSide(m_cnstr_uw.GetRightHandSide() + cnstr_uw_violation);
+    m_cnstr_vw.SetRightHandSide(m_cnstr_vw.GetRightHandSide() + cnstr_vw_violation);
 }
 
-void ChLinkRevolute::ConstraintsLoadJacobians() {
+void ChLinkRevolute::LoadConstraintJacobians() {
     // Nothing to do here. Jacobians were loaded in Update().
 }
 
 void ChLinkRevolute::ConstraintsFetch_react(double factor) {
     // Extract the Lagrange multipliers for the 3 spherical constraints and for
     // the 2 dot constraint.
-    ChVector<> lam_sph(m_cnstr_x.Get_l_i(), m_cnstr_y.Get_l_i(), m_cnstr_z.Get_l_i());
-    double lam_uw = m_cnstr_uw.Get_l_i();
-    double lam_vw = m_cnstr_vw.Get_l_i();
+    ChVector3d lam_sph(m_cnstr_x.GetLagrangeMultiplier(), m_cnstr_y.GetLagrangeMultiplier(), m_cnstr_z.GetLagrangeMultiplier());
+    double lam_uw = m_cnstr_uw.GetLagrangeMultiplier();
+    double lam_vw = m_cnstr_vw.GetLagrangeMultiplier();
 
     // Note that the Lagrange multipliers must be multiplied by 'factor' to
     // convert from reaction impulses to reaction forces.
@@ -434,40 +432,40 @@ void ChLinkRevolute::ConstraintsFetch_react(double factor) {
     //     = -C^T * [A_2 * tilde(w2')]^T * (u1 * lam_uw + v1 * lam_vw)
 
     // Reaction force
-    ChVector<> F2 = Body2->GetA().transpose() * lam_sph;
-    react_force = m_frame2.GetA().transpose() * F2;
+    ChVector3d F2 = m_body2->GetRotMat().transpose() * lam_sph;
+    react_force = m_frame2.GetRotMat().transpose() * F2;
 
     // Reaction torque
-    ChVector<> u1 = Body1->TransformDirectionLocalToParent(m_frame1.GetA().Get_A_Xaxis());
-    ChVector<> v1 = Body1->TransformDirectionLocalToParent(m_frame1.GetA().Get_A_Yaxis());
-    ChMatrix33<> mat2 = Body2->GetA() * m_w2_tilde;
-    ChVector<> T2 = mat2.transpose() * (lam_uw * u1 + lam_vw * v1);
-    react_torque = -(m_frame2.GetA().transpose() * T2);
+    ChVector3d u1 = m_body1->TransformDirectionLocalToParent(m_frame1.GetRotMat().GetAxisX());
+    ChVector3d v1 = m_body1->TransformDirectionLocalToParent(m_frame1.GetRotMat().GetAxisY());
+    ChMatrix33<> mat2 = m_body2->GetRotMat() * m_w2_tilde;
+    ChVector3d T2 = mat2.transpose() * (lam_uw * u1 + lam_vw * v1);
+    react_torque = -(m_frame2.GetRotMat().transpose() * T2);
 }
 
-void ChLinkRevolute::ArchiveOut(ChArchiveOut& marchive) {
+void ChLinkRevolute::ArchiveOut(ChArchiveOut& archive_out) {
     // version number
-    marchive.VersionWrite<ChLinkRevolute>();
+    archive_out.VersionWrite<ChLinkRevolute>();
 
     // serialize parent class
-    ChLink::ArchiveOut(marchive);
+    ChLink::ArchiveOut(archive_out);
 
     // serialize all member data:
-    marchive << CHNVP(m_frame1);
-    marchive << CHNVP(m_frame2);
+    archive_out << CHNVP(m_frame1);
+    archive_out << CHNVP(m_frame2);
 }
 
 /// Method to allow de serialization of transient data from archives.
-void ChLinkRevolute::ArchiveIn(ChArchiveIn& marchive) {
+void ChLinkRevolute::ArchiveIn(ChArchiveIn& archive_in) {
     // version number
-    /*int version =*/ marchive.VersionRead<ChLinkRevolute>();
+    /*int version =*/archive_in.VersionRead<ChLinkRevolute>();
 
     // deserialize parent class
-    ChLink::ArchiveIn(marchive);
+    ChLink::ArchiveIn(archive_in);
 
     // deserialize all member data:
-    marchive >> CHNVP(m_frame1);
-    marchive >> CHNVP(m_frame2);
+    archive_in >> CHNVP(m_frame1);
+    archive_in >> CHNVP(m_frame2);
 }
 
 }  // end namespace chrono

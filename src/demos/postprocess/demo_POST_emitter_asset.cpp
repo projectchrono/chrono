@@ -34,7 +34,7 @@ using namespace chrono::irrlicht;
 using namespace chrono::postprocess;
 
 int main(int argc, char* argv[]) {
-    GetLog() << "Copyright (c) 2017 projectchrono.org\nChrono version: " << CHRONO_VERSION << "\n\n";
+    std::cout << "Copyright (c) 2017 projectchrono.org\nChrono version: " << CHRONO_VERSION << std::endl;
 
     // Create a Chrono system and set the associated collision system
     ChSystemNSC sys;
@@ -48,7 +48,7 @@ int main(int argc, char* argv[]) {
     vis->AddLogo();
     vis->AddSkyBox();
     vis->AddTypicalLights();
-    vis->AddCamera(ChVector<>(0, 4, -6), ChVector<>(0, -2, 0));
+    vis->AddCamera(ChVector3d(0, 4, -6), ChVector3d(0, -2, 0));
 
     // Create an exporter to POVray
     ChPovRay pov_exporter = ChPovRay(&sys);
@@ -87,12 +87,12 @@ int main(int argc, char* argv[]) {
     // CREATE THE SYSTEM OBJECTS
 
     // Create the floor:
-    auto floor_mat = chrono_types::make_shared<ChMaterialSurfaceNSC>();
+    auto floor_mat = chrono_types::make_shared<ChContactMaterialNSC>();
 
     auto floor_body = chrono_types::make_shared<ChBodyEasyBox>(20, 1, 20, 1000, true, true, floor_mat);
-    floor_body->SetPos(ChVector<>(0, -5, 0));
-    floor_body->SetBodyFixed(true);
-    floor_body->GetVisualShape(0)->SetColor(ChColor(0.0f, 1.0f, (float)ChRandom()));
+    floor_body->SetPos(ChVector3d(0, -5, 0));
+    floor_body->SetFixed(true);
+    floor_body->GetVisualShape(0)->SetColor(ChColor(0.0f, 1.0f, (float)ChRandom::Get()));
 
     auto floor_shape = chrono_types::make_shared<ChCollisionShapeBox>(floor_mat, 20, 1, 20);
     floor_body->AddCollisionShape(floor_shape);
@@ -124,16 +124,16 @@ int main(int argc, char* argv[]) {
         // ---Initialize the randomizer for positions
         double xpos = (ie - 0.5 * num_emitters) * 2.2;
         auto emitter_positions = chrono_types::make_shared<ChRandomParticlePositionRectangleOutlet>();
-        emitter_positions->Outlet() = ChCoordsys<>(
-            ChVector<>(xpos, -4, 0), Q_from_AngAxis(CH_C_PI_2, VECT_X));  // center and alignment of the outlet
+        emitter_positions->Outlet() =
+            ChCoordsys<>(ChVector3d(xpos, -4, 0), QuatFromAngleX(CH_PI_2));  // center and alignment of the outlet
         emitter_positions->OutletWidth() = 1.2;
         emitter_positions->OutletHeight() = 1.2;
         emitters[ie].SetParticlePositioner(emitter_positions);
 
         // just for visualizing outlet
         auto boxbody = chrono_types::make_shared<ChBodyEasyBox>(1.2, 0.4, 1.2, 3000, true, false);
-        boxbody->SetPos(ChVector<>(xpos, -4.1, 0));
-        boxbody->SetBodyFixed(true);
+        boxbody->SetPos(ChVector3d(xpos, -4.1, 0));
+        boxbody->SetFixed(true);
         boxbody->GetVisualShape(0)->SetColor(ChColor(1.0f, 0.5f, 0.1f));
         sys.Add(boxbody);
 
@@ -152,7 +152,7 @@ int main(int argc, char* argv[]) {
         // Create a ChRandomShapeCreator object (ex. here for sphere particles)
 
         auto creator_spheres = chrono_types::make_shared<ChRandomShapeCreatorSpheres>();
-        creator_spheres->SetDiameterDistribution(chrono_types::make_shared<ChMinMaxDistribution>(0.20, 0.06));
+        creator_spheres->SetDiameterDistribution(chrono_types::make_shared<ChUniformDistribution>(0.06, 0.20));
         creator_spheres->SetDensityDistribution(chrono_types::make_shared<ChConstantDistribution>(1600));
 
         // Optional: define a callback to be exectuted at each creation of a sphere particle:
@@ -183,7 +183,7 @@ int main(int argc, char* argv[]) {
         // Create a ChRandomShapeCreator object (ex. here for hull particles)
 
         auto creator_hulls = chrono_types::make_shared<ChRandomShapeCreatorConvexHulls>();
-        creator_hulls->SetChordDistribution(chrono_types::make_shared<ChMinMaxDistribution>(0.68, 0.15));
+        creator_hulls->SetChordDistribution(chrono_types::make_shared<ChUniformDistribution>(0.15, 0.68));
         creator_hulls->SetDensityDistribution(chrono_types::make_shared<ChConstantDistribution>(1600));
 
         // Optional: define a callback to be exectuted at each creation of a sphere particle:
@@ -240,7 +240,7 @@ int main(int argc, char* argv[]) {
                 pov->Add(body);
 
                 // Disable gyroscopic forces for increased integrator stabilty
-                body->SetNoGyroTorque(true);
+                body->SetUseGyroTorque(false);
             }
             ChVisualSystem* vis;
             ChPovRay* pov;
@@ -277,11 +277,11 @@ int main(int argc, char* argv[]) {
         for (unsigned int ie = 0; ie < emitters.size(); ie++) {
             double tstart = ((double)ie / (double)num_emitters) * 1;
             double tend = tstart + 0.3;
-            ChFunction_Sigma mfuns(3000, tstart, tend);
-            emitters[ie].ParticlesPerSecond() = mfuns.Get_y(sys.GetChTime());
+            ChFunctionPoly23 mfuns(3000, tstart, tend);
+            emitters[ie].ParticlesPerSecond() = mfuns.GetVal(sys.GetChTime());
             emitters[ie].EmitParticles(sys, timestep);
-            // GetLog() << ie << "  " << tstart << " " << mfuns.Get_y(application.GetSystem()->GetChTime()) << " " <<
-            // emitters[ie].ParticlesPerSecond() << "\n";
+            // std::cout << ie << "  " << tstart << " " << mfuns.GetVal(application.GetSystem()->GetChTime()) << " " <<
+            // emitters[ie].ParticlesPerSecond() << std::endl;
         }
 
         sys.DoStepDynamics(timestep);

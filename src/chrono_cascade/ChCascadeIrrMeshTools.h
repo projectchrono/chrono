@@ -83,8 +83,8 @@ class ChCascadeIrrMeshTools {
                 gp_Dir pn;
                 p = mNodes(j).Transformed(theLocation.Transformation());
 
-                chrono::ChVector<> pos(p.X(), p.Y(), p.Z());
-                chrono::ChVector<> nor(mNormals((j - 1) * 3 + 1), mNormals((j - 1) * 3 + 2), mNormals((j - 1) * 3 + 3));
+                chrono::ChVector3d pos(p.X(), p.Y(), p.Z());
+                chrono::ChVector3d nor(mNormals((j - 1) * 3 + 1), mNormals((j - 1) * 3 + 2), mNormals((j - 1) * 3 + 3));
                 if (F.Orientation() == TopAbs_REVERSED)
                     nor *= -1;
 
@@ -127,7 +127,7 @@ class ChCascadeIrrMeshTools {
                                             video::SColor clr = video::SColor(255, 255, 255, 255)) {
         BRepTools::Clean(mshape);
         BRepMesh_IncrementalMesh M(mshape, deflection, relative_deflection, angulardeflection, true);
-        // GetLog() << "    ..tesselation done \n";
+        // std::cout << "    ..tesselation done" << std::endl;
 
         // Loop on faces..
         TopExp_Explorer ex;

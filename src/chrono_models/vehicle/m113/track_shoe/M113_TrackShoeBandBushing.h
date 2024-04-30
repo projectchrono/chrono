@@ -55,16 +55,16 @@ class CH_MODELS_API M113_TrackShoeBandBushing : public ChTrackShoeBandBushing {
     virtual double GetWebMass() const override { return m_web_mass; }
 
     /// Return the moments of inertia of the tread body.
-    virtual const ChVector<>& GetTreadInertia() const override { return m_tread_inertias; }
+    virtual const ChVector3d& GetTreadInertia() const override { return m_tread_inertias; }
 
     /// Return the moments of inertia of the web.
     /// These will be distributed over the specified number of web segments.
-    virtual const ChVector<>& GetWebInertia() const override { return m_web_inertias; }
+    virtual const ChVector3d& GetWebInertia() const override { return m_web_inertias; }
 
     /// Return the dimensions of the contact box for the guiding pin.
     /// Note that this is for contact with wheels, idler, and ground only.
     /// This contact geometry does not affect contact with the sprocket.
-    virtual const ChVector<>& GetGuideBoxDimensions() const override { return m_guide_box_dims; }
+    virtual const ChVector3d& GetGuideBoxDimensions() const override { return m_guide_box_dims; }
 
     /// Return the offset (in X direction) of the guiding pin.
     virtual double GetGuideBoxOffsetX() const override { return m_guide_box_offset_x; }
@@ -84,7 +84,7 @@ class CH_MODELS_API M113_TrackShoeBandBushing : public ChTrackShoeBandBushing {
     virtual double GetToothArcRadius() const override { return m_tooth_arc_radius; }
 
     /// Return the number of segments that the web section is broken up into.
-    virtual int GetNumWebSegments() const override { return m_num_web_segments; }
+    virtual unsigned int GetNumWebSegments() const override { return m_num_web_segments; }
     /// Return the combined length of all of the web sections (in the X direction)
     virtual double GetWebLength() const override { return m_web_length; }
     /// Return the thickness of the web section (in the Z direction)
@@ -108,10 +108,10 @@ class CH_MODELS_API M113_TrackShoeBandBushing : public ChTrackShoeBandBushing {
     std::shared_ptr<ChVehicleBushingData> m_bushingData;
 
     static const double m_tread_mass;
-    static const ChVector<> m_tread_inertias;
+    static const ChVector3d m_tread_inertias;
 
     static const double m_web_mass;
-    static const ChVector<> m_web_inertias;
+    static const ChVector3d m_web_inertias;
 
     static const double m_shoe_height;
 
@@ -127,7 +127,7 @@ class CH_MODELS_API M113_TrackShoeBandBushing : public ChTrackShoeBandBushing {
     static const double m_tread_length;
     static const double m_tread_thickness;
 
-    static const ChVector<> m_guide_box_dims;
+    static const ChVector3d m_guide_box_dims;
     static const double m_guide_box_offset_x;
 
     static const std::string m_meshFile;        // name of OBJ file with tread visualization mesh

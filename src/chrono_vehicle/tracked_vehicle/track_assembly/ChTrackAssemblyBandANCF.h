@@ -68,16 +68,16 @@ class CH_VEHICLE_API ChTrackAssemblyBandANCF : public ChTrackAssemblyBand {
   protected:
     /// Set material properties of the rubber layers (isotropic material).
     void SetRubberLayerMaterial(double rho,            ///< density (default: 1100)
-                                const ChVector<>& E,   ///< elasticity moduli, E_x, E_y, E_z (default: 1e7)
-                                const ChVector<>& nu,  ///< Poisson ratios, nu_x, nu_y, nu_z (default: 0.49)
-                                const ChVector<>& G    ///< shear moduli, G_x, Gy, Gz (default: 0.5 * E / (1 + nu))
+                                const ChVector3d& E,   ///< elasticity moduli, E_x, E_y, E_z (default: 1e7)
+                                const ChVector3d& nu,  ///< Poisson ratios, nu_x, nu_y, nu_z (default: 0.49)
+                                const ChVector3d& G    ///< shear moduli, G_x, Gy, Gz (default: 0.5 * E / (1 + nu))
     );
 
     /// Set material properties of the steel layer (isotropic material).
     void SetSteelLayerMaterial(double rho,            ///< density (default: 1100)
-                               const ChVector<>& E,   ///< elasticity moduli, E_x, E_y, E_z (default: 1e7)
-                               const ChVector<>& nu,  ///< Poisson ratios, nu_x, nu_y, nu_z (default: 0.3)
-                               const ChVector<>& G    ///< shear moduli, G_x, Gy, Gz (default: 0.5 * E / (1 + nu))
+                               const ChVector3d& E,   ///< elasticity moduli, E_x, E_y, E_z (default: 1e7)
+                               const ChVector3d& nu,  ///< Poisson ratios, nu_x, nu_y, nu_z (default: 0.3)
+                               const ChVector3d& G    ///< shear moduli, G_x, Gy, Gz (default: 0.5 * E / (1 + nu))
     );
 
     /// Set element structural damping (default: 0.05).
@@ -94,7 +94,7 @@ class CH_VEHICLE_API ChTrackAssemblyBandANCF : public ChTrackAssemblyBand {
 
     ChTrackShoeBandANCFList m_shoes;                        ///< track shoes
     std::shared_ptr<fea::ChMesh> m_track_mesh;              ///< web mesh
-    std::shared_ptr<ChMaterialSurface> m_contact_material;  ///< contact material for the web mesh
+    std::shared_ptr<ChContactMaterial> m_contact_material;  ///< contact material for the web mesh
     ContactSurfaceType m_contact_type;                      ///< type of contact surface model (node cloud or mesh)
 
   private:
@@ -126,14 +126,14 @@ class CH_VEHICLE_API ChTrackAssemblyBandANCF : public ChTrackAssemblyBand {
     std::shared_ptr<BroadphaseCulling> m_callback;  ///< custom broadphase callback object
 
     double m_rubber_rho;
-    ChVector<> m_rubber_E;
-    ChVector<> m_rubber_nu;
-    ChVector<> m_rubber_G;
+    ChVector3d m_rubber_E;
+    ChVector3d m_rubber_nu;
+    ChVector3d m_rubber_G;
 
     double m_steel_rho;
-    ChVector<> m_steel_E;
-    ChVector<> m_steel_nu;
-    ChVector<> m_steel_G;
+    ChVector3d m_steel_E;
+    ChVector3d m_steel_nu;
+    ChVector3d m_steel_G;
 
     double m_angle_1;
     double m_angle_2;

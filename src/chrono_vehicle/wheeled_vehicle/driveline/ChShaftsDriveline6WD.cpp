@@ -28,11 +28,11 @@ namespace vehicle {
 // the conic gear pair, in chassis local coords.
 //
 // dir_axle specifies the direction of the axle, i.e. the output of the conic
-// conic gear pair, in chassis local coords. This is needed because ChShaftsBody
+// conic gear pair, in chassis local coords. This is needed because ChShaftBodyRotation
 // could transfer pitch torque to the chassis.
 // -----------------------------------------------------------------------------
 ChShaftsDriveline6WD::ChShaftsDriveline6WD(const std::string& name)
-    : ChDrivelineWV(name), m_dir_motor_block(ChVector<>(1, 0, 0)), m_dir_axle(ChVector<>(0, 1, 0)) {}
+    : ChDrivelineWV(name), m_dir_motor_block(ChVector3d(1, 0, 0)), m_dir_axle(ChVector3d(0, 1, 0)) {}
 
 ChShaftsDriveline6WD::~ChShaftsDriveline6WD() {
     auto sys = m_central_differential->GetSystem();
@@ -239,36 +239,36 @@ void ChShaftsDriveline6WD::Initialize(std::shared_ptr<ChChassis> chassis,
 
     // Front differential
     double omega_front_differentialbox = 0.5 * (omega_axle_FL + omega_axle_FR);
-    m_front_differentialbox->SetPos_dt(omega_front_differentialbox);
+    m_front_differentialbox->SetPosDt(omega_front_differentialbox);
 
     // Rear1 differential
     double omega_rear1_differentialbox = 0.5 * (omega_axle_RL1 + omega_axle_RR1);
-    m_rear1_differentialbox->SetPos_dt(omega_rear1_differentialbox);
+    m_rear1_differentialbox->SetPosDt(omega_rear1_differentialbox);
 
     // Rear2 differential
     double omega_rear2_differentialbox = 0.5 * (omega_axle_RL2 + omega_axle_RR2);
-    m_rear2_differentialbox->SetPos_dt(omega_rear2_differentialbox);
+    m_rear2_differentialbox->SetPosDt(omega_rear2_differentialbox);
 
     // Front conical gear
     double omega_front_shaft = omega_front_differentialbox / GetFrontConicalGearRatio();
-    m_front_shaft->SetPos_dt(omega_front_shaft);
+    m_front_shaft->SetPosDt(omega_front_shaft);
 
     // Rear1 conical gear
     double omega_rear1_shaft = omega_rear1_differentialbox / GetRearConicalGearRatio();
-    m_rear1_shaft->SetPos_dt(omega_rear1_shaft);
+    m_rear1_shaft->SetPosDt(omega_rear1_shaft);
 
     // Rear2 conical gear
     double omega_rear2_shaft = omega_rear2_differentialbox / GetRearConicalGearRatio();
-    m_rear2_shaft->SetPos_dt(omega_rear2_shaft);
+    m_rear2_shaft->SetPosDt(omega_rear2_shaft);
 
     // Central differential
     double omega_driveshaft = 0.5 * (omega_rear1_shaft + omega_rear2_shaft);
-    m_driveshaft->SetPos_dt(omega_driveshaft);
+    m_driveshaft->SetPosDt(omega_driveshaft);
 }
 
 // -----------------------------------------------------------------------------
 void ChShaftsDriveline6WD::Synchronize(double time, const DriverInputs& driver_inputs, double driveshaft_torque) {
-    m_driveshaft->SetAppliedTorque(driveshaft_torque);
+    m_driveshaft->SetAppliedLoad(driveshaft_torque);
 }
 
 // -----------------------------------------------------------------------------
@@ -289,9 +289,9 @@ void ChShaftsDriveline6WD::LockAxleDifferential(int axle, bool lock) {
         return;
     }
 
-    GetLog() << "WARNING: Incorrect axle specification in ChShaftsDriveline6WD::LockAxleDifferential.\n";
+    std::cerr << "WARNING: Incorrect axle specification in ChShaftsDriveline6WD::LockAxleDifferential." << std::endl;
     for (size_t i = 0; i < m_driven_axles.size(); i++) {
-        GetLog() << "         Driven axles are: " << m_driven_axles[i] << "\n";
+        std::cerr << "         Driven axles are: " << m_driven_axles[i] << std::endl;
     }
 }
 
@@ -315,27 +315,27 @@ double ChShaftsDriveline6WD::GetSpindleTorque(int axle, VehicleSide side) const 
     if (axle == m_driven_axles[0]) {
         switch (side) {
             case LEFT:
-                return -m_front_differential->GetTorqueReactionOn2() - m_front_clutch->GetTorqueReactionOn1();
+                return -m_front_differential->GetReaction2() - m_front_clutch->GetReaction1();
             case RIGHT:
-                return -m_front_differential->GetTorqueReactionOn3() - m_front_clutch->GetTorqueReactionOn2();
+                return -m_front_differential->GetTorqueReactionOn3() - m_front_clutch->GetReaction2();
         }
     }
 
     if (axle == m_driven_axles[1]) {
         switch (side) {
             case LEFT:
-                return -m_rear1_differential->GetTorqueReactionOn2() - m_rear1_clutch->GetTorqueReactionOn1();
+                return -m_rear1_differential->GetReaction2() - m_rear1_clutch->GetReaction1();
             case RIGHT:
-                return -m_rear1_differential->GetTorqueReactionOn3() - m_rear1_clutch->GetTorqueReactionOn2();
+                return -m_rear1_differential->GetTorqueReactionOn3() - m_rear1_clutch->GetReaction2();
         }
     }
 
     if (axle == m_driven_axles[2]) {
         switch (side) {
             case LEFT:
-                return -m_rear2_differential->GetTorqueReactionOn2() - m_rear2_clutch->GetTorqueReactionOn1();
+                return -m_rear2_differential->GetReaction2() - m_rear2_clutch->GetReaction1();
             case RIGHT:
-                return -m_rear2_differential->GetTorqueReactionOn3() - m_rear2_clutch->GetTorqueReactionOn2();
+                return -m_rear2_differential->GetTorqueReactionOn3() - m_rear2_clutch->GetReaction2();
         }
     }
 

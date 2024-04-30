@@ -32,7 +32,7 @@ class ChMesh;
 /// This is the typical node that can be used for tetrahedrons, etc.
 class ChApi ChNodeFEAxyz : public ChNodeFEAbase, public ChNodeXYZ, public ChVariableTupleCarrier_1vars<3> {
   public:
-    ChNodeFEAxyz(ChVector<> initial_pos = VNULL);
+    ChNodeFEAxyz(ChVector3d initial_pos = VNULL);
     ChNodeFEAxyz(const ChNodeFEAxyz& other);
     virtual ~ChNodeFEAxyz() {}
 
@@ -44,7 +44,7 @@ class ChApi ChNodeFEAxyz : public ChNodeFEAbase, public ChNodeXYZ, public ChVari
     virtual void Relax() override;
 
     /// Reset to no speed and acceleration.
-    virtual void SetNoSpeedNoAcceleration() override;
+    virtual void ForceToRest() override;
 
     /// Fix/release this node.
     /// If fixed, its state variables are not changed by the solver.
@@ -55,22 +55,32 @@ class ChApi ChNodeFEAxyz : public ChNodeFEAbase, public ChNodeXYZ, public ChVari
 
     /// Get mass of the node.
     virtual double GetMass() const override { return variables.GetNodeMass(); }
+
     /// Set mass of the node.
     virtual void SetMass(double m) override { variables.SetNodeMass(m); }
 
     /// Set the initial (reference) position
-    virtual void SetX0(ChVector<> x) { X0 = x; }
+    virtual void SetX0(const ChVector3d& x) { X0 = x; }
+
     /// Get the initial (reference) position
-    virtual ChVector<> GetX0() { return X0; }
+    virtual const ChVector3d& GetX0() const { return X0; }
 
     /// Set the 3d applied force, in absolute reference
-    virtual void SetForce(ChVector<> f) { Force = f; }
+    virtual void SetForce(const ChVector3d& frc) { Force = frc; }
+
     /// Get the 3d applied force, in absolute reference
-    virtual ChVector<> GetForce() { return Force; }
+    virtual const ChVector3d& GetForce() const { return Force; }
 
     /// Get the number of degrees of freedom
-    virtual int GetNdofX() const override { return 3; }
+    virtual unsigned int GetNumCoordsPosLevel() const override { return 3; }
 
+    /// Method to allow serialization of transient data to archives.
+    virtual void ArchiveOut(ChArchiveOut& archive) override;
+
+    /// Method to allow de-serialization of transient data from archives.
+    virtual void ArchiveIn(ChArchiveIn& archive) override;
+
+  public:
     // INTERFACE to ChVariableTupleCarrier_1vars
     virtual ChVariables* GetVariables1() override { return &Variables(); }
 
@@ -122,15 +132,10 @@ class ChApi ChNodeFEAxyz : public ChNodeFEAbase, public ChNodeXYZ, public ChVari
     virtual void VariablesFbIncrementMq() override;
     virtual void VariablesQbIncrementPosition(double step) override;
 
-    // SERIALIZATION
-
-    virtual void ArchiveOut(ChArchiveOut& archive) override;
-    virtual void ArchiveIn(ChArchiveIn& archive) override;
-
   protected:
     ChVariablesNode variables;  ///< 3D node variables, with x,y,z
-    ChVector<> X0;              ///< reference position
-    ChVector<> Force;           ///< applied force
+    ChVector3d X0;              ///< reference position
+    ChVector3d Force;           ///< applied force
 };
 
 /// @} fea_nodes

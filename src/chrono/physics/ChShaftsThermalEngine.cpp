@@ -23,10 +23,10 @@ CH_FACTORY_REGISTER(ChShaftsThermalEngine)
 
 ChShaftsThermalEngine::ChShaftsThermalEngine() : throttle(1), error_backward(false) {
     // default torque curve= constant zero. User will provide better fx.
-    Tw = chrono_types::make_shared<ChFunction_Const>(0);
+    Tw = chrono_types::make_shared<ChFunctionConst>(0);
 }
 
-ChShaftsThermalEngine::ChShaftsThermalEngine(const ChShaftsThermalEngine& other) : ChShaftsTorqueBase(other) {
+ChShaftsThermalEngine::ChShaftsThermalEngine(const ChShaftsThermalEngine& other) : ChShaftsTorque(other) {
     throttle = other.throttle;
     error_backward = other.error_backward;
     Tw = std::shared_ptr<ChFunction>(other.Tw->Clone());  // deep copy
@@ -34,7 +34,7 @@ ChShaftsThermalEngine::ChShaftsThermalEngine(const ChShaftsThermalEngine& other)
 
 double ChShaftsThermalEngine::ComputeTorque() {
     // COMPUTE THE TORQUE HERE!
-    double mw = GetRelativeRotation_dt();
+    double mw = GetRelativePosDt();
 
     if (mw < 0)
         error_backward = true;
@@ -42,7 +42,7 @@ double ChShaftsThermalEngine::ComputeTorque() {
         error_backward = false;
 
     // get the actual torque from torque curve
-    double mT = Tw->Get_y(mw);
+    double mT = Tw->GetVal(mw);
 
     // modulate it with throttle
     double modulated_T = mT * throttle;
@@ -50,29 +50,29 @@ double ChShaftsThermalEngine::ComputeTorque() {
     return modulated_T;
 }
 
-void ChShaftsThermalEngine::ArchiveOut(ChArchiveOut& marchive) {
+void ChShaftsThermalEngine::ArchiveOut(ChArchiveOut& archive_out) {
     // version number
-    marchive.VersionWrite<ChShaftsThermalEngine>();
+    archive_out.VersionWrite<ChShaftsThermalEngine>();
 
     // serialize parent class
-    ChShaftsTorqueBase::ArchiveOut(marchive);
+    ChShaftsTorque::ArchiveOut(archive_out);
 
     // serialize all member data:
-    marchive << CHNVP(Tw);
-    marchive << CHNVP(throttle);
+    archive_out << CHNVP(Tw);
+    archive_out << CHNVP(throttle);
 }
 
 /// Method to allow de serialization of transient data from archives.
-void ChShaftsThermalEngine::ArchiveIn(ChArchiveIn& marchive) {
+void ChShaftsThermalEngine::ArchiveIn(ChArchiveIn& archive_in) {
     // version number
-    /*int version =*/ marchive.VersionRead<ChShaftsThermalEngine>();
+    /*int version =*/archive_in.VersionRead<ChShaftsThermalEngine>();
 
     // deserialize parent class:
-    ChShaftsTorqueBase::ArchiveIn(marchive);
+    ChShaftsTorque::ArchiveIn(archive_in);
 
     // deserialize all member data:
-    marchive >> CHNVP(Tw);
-    marchive >> CHNVP(throttle);
+    archive_in >> CHNVP(Tw);
+    archive_in >> CHNVP(throttle);
 }
 
 }  // end namespace chrono

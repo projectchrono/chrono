@@ -32,7 +32,7 @@
 #include <stdexcept>
 
 #include "chrono/physics/ChSystemSMC.h"
-#include "chrono/physics/ChMaterialSurfaceSMC.h"
+#include "chrono/physics/ChContactMaterialSMC.h"
 #include "chrono_multicore/solver/ChIterativeSolverMulticore.h"
 
 #include <thrust/sort.h>
@@ -256,7 +256,7 @@ void function_CalcContactForces(
                 real v2 = char_vel * char_vel;
                 real loge = (cr_eff < eps) ? Log(eps) : Log(cr_eff);
                 loge = (cr_eff > 1 - eps) ? Log(1 - eps) : loge;
-                real tmp_g = 1 + Pow(CH_C_PI / loge, 2);
+                real tmp_g = 1 + Pow(CH_PI / loge, 2);
                 kn = tmp_k * Pow(m_eff * v2 / tmp_k, 1.0 / 5);
                 kt = kn;
                 gn = Sqrt(4 * m_eff * kn / tmp_g);
@@ -279,7 +279,7 @@ void function_CalcContactForces(
                 real Sn = 2 * E_eff * sqrt_Rd;
                 real St = 8 * G_eff * sqrt_Rd;
                 real loge = (cr_eff < eps) ? Log(eps) : Log(cr_eff);
-                real beta = loge / Sqrt(loge * loge + CH_C_PI * CH_C_PI);
+                real beta = loge / Sqrt(loge * loge + CH_PI * CH_PI);
                 kn = (2.0 / 3) * Sn;
                 kt = St;
                 gn = -2 * Sqrt(5.0 / 6) * beta * Sqrt(Sn * m_eff);
@@ -305,7 +305,7 @@ void function_CalcContactForces(
                 cr_eff = (cr_eff < 0.01) ? 0.01 : cr_eff;
                 cr_eff = (cr_eff > 1.0 - eps) ? 1.0 - eps : cr_eff;
                 real loge = Log(cr_eff);
-                real beta = loge / Sqrt(loge * loge + CH_C_PI * CH_C_PI);
+                real beta = loge / Sqrt(loge * loge + CH_PI * CH_PI);
                 char_vel = (displ_mode == ChSystemSMC::TangentialDisplacementModel::MultiStep) ? relvel_init : char_vel;
                 kn = (2.0 / 3.0) * Sn;
                 kt = (2.0 / 3.0) * St;
@@ -329,7 +329,7 @@ void function_CalcContactForces(
                 real sqrt_Rd = Sqrt(delta_n);
                 real Sn = 2 * E_eff * sqrt_Rd;
                 real loge = (cr_eff < eps) ? Log(eps) : Log(cr_eff);
-                real beta = loge / Sqrt(loge * loge + CH_C_PI * CH_C_PI);
+                real beta = loge / Sqrt(loge * loge + CH_PI * CH_PI);
                 kn = (2.0 / 3) * Sn;
                 gn = -2 * Sqrt(5.0 / 6) * beta * Sqrt(Sn * m_eff);
             } else {
@@ -362,7 +362,7 @@ void function_CalcContactForces(
                 // Rolling and spinning friction are applied right away for critically damped or over-damped systems
                 real d_coeff = gn_simple / (2.0 * m_eff * Sqrt(kn_simple / m_eff));
                 if (d_coeff < 1.0) {
-                    real t_collision = CH_C_PI * Sqrt(m_eff / (kn_simple * (1 - d_coeff * d_coeff)));
+                    real t_collision = CH_PI * Sqrt(m_eff / (kn_simple * (1 - d_coeff * d_coeff)));
                     if (t_contact <= t_collision) {
                         muRoll_eff = 0.0;
                         muSpin_eff = 0.0;
@@ -484,7 +484,7 @@ void function_CalcContactForces(
     // Rolling and spinning friction are applied right away for critically damped or over-damped systems.
     real d_coeff = gn_simple / (2.0 * m_eff * Sqrt(kn_simple / m_eff));
     if (d_coeff < 1.0) {
-        real t_collision = CH_C_PI * Sqrt(m_eff / (kn_simple * (1 - d_coeff * d_coeff)));
+        real t_collision = CH_PI * Sqrt(m_eff / (kn_simple * (1 - d_coeff * d_coeff)));
         if (t_contact <= t_collision) {
             muRoll_eff = 0.0;
             muSpin_eff = 0.0;
@@ -833,7 +833,7 @@ void ChIterativeSolverMulticoreSMC::RunTimeStep() {
         ComputeR();
         data_manager->system_timer.stop("ChIterativeSolverMulticore_Matrices");
 
-        ShurProductBilateral.Setup(data_manager);
+        SchurProductBilateral.Setup(data_manager);
 
         bilateral_solver->Setup(data_manager);
 

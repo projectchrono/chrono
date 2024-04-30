@@ -43,18 +43,18 @@ int main(int argc, char* argv[]) {
     // Dummy body
 
     auto body = chrono_types::make_shared<ChBody>();
-    body->SetPos(ChVector<>(-1, -2, -3));
-    body->SetPos_dt(ChVector<>(0.2, 0.3, 0.4));
-    body->SetRot(Q_from_AngAxis(CH_C_PI / 4, ChVector<>(0, 1, 0)));
-    body->SetWvel_loc(ChVector<>(0.1, -0.1, 0.2));
+    body->SetPos(ChVector3d(-1, -2, -3));
+    body->SetPosDt(ChVector3d(0.2, 0.3, 0.4));
+    body->SetRot(QuatFromAngleY(CH_PI / 4));
+    body->SetAngVelLocal(ChVector3d(0.1, -0.1, 0.2));
 
-    ChFrame<> frame(ChVector<>(1, 2, 3), Q_from_AngX(CH_C_PI / 8));
+    ChFrame<> frame(ChVector3d(1, 2, 3), QuatFromAngleX(CH_PI / 8));
     thrust::host_vector<Real4> bce;
     std::ofstream fbce;
 
     // Box
 
-    ChVector<> box_size(0.2, 0.4, 0.6);
+    ChVector3d box_size(0.2, 0.4, 0.6);
 
     bce.clear();
     sysFSI.CreateBCE_box(fsi::utils::ToReal3(box_size), true, bce);
@@ -122,8 +122,8 @@ int main(int argc, char* argv[]) {
 
     // Cylinder
 
-    Real cyl_radius = 0.25;
-    Real cyl_height = 0.4;
+    Real cyl_radius = Real(0.25);
+    Real cyl_height = Real(0.4);
     bool cyl_capped = true;
 
     bce.clear();
@@ -168,9 +168,9 @@ int main(int argc, char* argv[]) {
 
     // Cylindrical annulus
 
-    Real ca_radius_inner = 0.2;
-    Real ca_radius_outer = 0.4;
-    Real ca_height = 0.2;
+    Real ca_radius_inner = Real(0.2);
+    Real ca_radius_outer = Real(0.4);
+    Real ca_height = Real(0.2);
 
     bce.clear();
     sysFSI.CreateBCE_cylinder_annulus(ca_radius_inner, ca_radius_outer, ca_height, true, bce);
@@ -194,8 +194,8 @@ int main(int argc, char* argv[]) {
 
     // Cone
 
-    Real cone_radius = 0.25;
-    Real cone_height = 0.2;
+    Real cone_radius = Real(0.25);
+    Real cone_height = Real(0.2);
     bool cone_capped = false;
 
     bce.clear();

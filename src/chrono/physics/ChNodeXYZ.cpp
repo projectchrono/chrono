@@ -18,7 +18,7 @@ namespace chrono {
 
 ChNodeXYZ::ChNodeXYZ() : pos(VNULL), pos_dt(VNULL), pos_dtdt(VNULL) {}
 
-ChNodeXYZ::ChNodeXYZ(const ChVector<>& initial_pos) : pos(initial_pos), pos_dt(VNULL), pos_dtdt(VNULL) {}
+ChNodeXYZ::ChNodeXYZ(const ChVector3d& initial_pos) : pos(initial_pos), pos_dt(VNULL), pos_dtdt(VNULL) {}
 
 ChNodeXYZ::ChNodeXYZ(const ChNodeXYZ& other) {
     offset_x = other.offset_x;
@@ -42,11 +42,11 @@ ChNodeXYZ& ChNodeXYZ::operator=(const ChNodeXYZ& other) {
     return *this;
 }
 
-void ChNodeXYZ::LoadableGetStateBlock_x(int block_offset, ChState& mD) {
+void ChNodeXYZ::LoadableGetStateBlockPosLevel(int block_offset, ChState& mD) {
     mD.segment(block_offset, 3) = pos.eigen();
 }
 
-void ChNodeXYZ::LoadableGetStateBlock_w(int block_offset, ChStateDelta& mD) {
+void ChNodeXYZ::LoadableGetStateBlockVelLevel(int block_offset, ChStateDelta& mD) {
     mD.segment(block_offset, 3) = pos_dt.eigen();
 }
 
@@ -76,31 +76,31 @@ void ChNodeXYZ::ComputeNF(
     detJ = 1;  // not needed because not used in quadrature.
 }
 
-void ChNodeXYZ::ArchiveOut(ChArchiveOut& marchive) {
+void ChNodeXYZ::ArchiveOut(ChArchiveOut& archive_out) {
     // version number
-    marchive.VersionWrite<ChNodeXYZ>();
+    archive_out.VersionWrite<ChNodeXYZ>();
 
     // serialize parent class
-    ChNodeBase::ArchiveOut(marchive);
+    ChNodeBase::ArchiveOut(archive_out);
 
     // serialize all member data:
-    marchive << CHNVP(pos);
-    marchive << CHNVP(pos_dt);
-    marchive << CHNVP(pos_dtdt);
+    archive_out << CHNVP(pos);
+    archive_out << CHNVP(pos_dt);
+    archive_out << CHNVP(pos_dtdt);
 }
 
 /// Method to allow de serialization of transient data from archives.
-void ChNodeXYZ::ArchiveIn(ChArchiveIn& marchive) {
+void ChNodeXYZ::ArchiveIn(ChArchiveIn& archive_in) {
     // version number
-    /*int version =*/marchive.VersionRead<ChNodeXYZ>();
+    /*int version =*/archive_in.VersionRead<ChNodeXYZ>();
 
     // deserialize parent class:
-    ChNodeBase::ArchiveIn(marchive);
+    ChNodeBase::ArchiveIn(archive_in);
 
     // deserialize all member data:
-    marchive >> CHNVP(pos);
-    marchive >> CHNVP(pos_dt);
-    marchive >> CHNVP(pos_dtdt);
+    archive_in >> CHNVP(pos);
+    archive_in >> CHNVP(pos_dt);
+    archive_in >> CHNVP(pos_dtdt);
 }
 
 }  // end namespace chrono

@@ -38,7 +38,7 @@ void ChNodeBase::NodeIntStateIncrement(const unsigned int off_x,
                                        const ChState& x,
                                        const unsigned int off_v,
                                        const ChStateDelta& Dv) {
-    for (int i = 0; i < GetNdofX(); ++i) {
+    for (unsigned int i = 0; i < GetNumCoordsPosLevel(); ++i) {
         x_new(off_x + i) = x(off_x + i) + Dv(off_v + i);
     }
 }
@@ -48,20 +48,20 @@ void ChNodeBase::NodeIntStateGetIncrement(const unsigned int off_x,
                                           const ChState& x,
                                           const unsigned int off_v,
                                           ChStateDelta& Dv) {
-    for (int i = 0; i < GetNdofX(); ++i) {
+    for (unsigned int i = 0; i < GetNumCoordsPosLevel(); ++i) {
         Dv(off_v + i) = x_new(off_x + i) - x(off_x + i);
     }
 }
 
-void ChNodeBase::ArchiveOut(ChArchiveOut& marchive) {
+void ChNodeBase::ArchiveOut(ChArchiveOut& archive_out) {
     // version number
-    marchive.VersionWrite<ChNodeBase>();
+    archive_out.VersionWrite<ChNodeBase>();
     // serialize all member data:
 }
 
-void ChNodeBase::ArchiveIn(ChArchiveIn& marchive) {
+void ChNodeBase::ArchiveIn(ChArchiveIn& archive_in) {
     // version number
-    /*int version =*/marchive.VersionRead<ChNodeBase>();
+    /*int version =*/archive_in.VersionRead<ChNodeBase>();
     // deserialize all member data:
 }
 

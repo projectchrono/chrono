@@ -70,7 +70,7 @@ const double SerThrsh[6] = {1.1,   // for a = coeff[0]
                             1.8};  // for f = coeff[5]
 
 template <class T1, class T2>
-void RotCo(const int cid, const T1& phi, const ChVector<>& p, T2* const cf) {
+void RotCo(const int cid, const T1& phi, const ChVector3d& p, T2* const cf) {
     T2 phip[10];
     T2 phi2(phi ^ phi);
     double mp(p.Length());  // (sqrt(p.Dot()));
@@ -115,44 +115,44 @@ void RotCo(const int cid, const T1& phi, const ChVector<>& p, T2* const cf) {
 
 /// Coefficients:            up to a     (COEFF_A)
 template <class T1, class T2>
-void CoeffA(const T1& phi, const ChVector<>& p, T2* const coeff) {
+void CoeffA(const T1& phi, const ChVector3d& p, T2* const coeff) {
     RotCo(COEFF_A, phi, p, coeff);
 };
 
 /// Coefficients:            up to b     (COEFF_B)
 template <class T1, class T2>
-void CoeffB(const T1& phi, const ChVector<>& p, T2* const coeff) {
+void CoeffB(const T1& phi, const ChVector3d& p, T2* const coeff) {
     RotCo(COEFF_B, phi, p, coeff);
 };
 
 /// Coefficients:            up to c     (COEFF_C)
 template <class T1, class T2>
-void CoeffC(const T1& phi, const ChVector<>& p, T2* const coeff) {
+void CoeffC(const T1& phi, const ChVector3d& p, T2* const coeff) {
     RotCo(COEFF_C, phi, p, coeff);
 };
 
 /// Coefficients:            up to d     (COEFF_D)
 template <class T1, class T2>
-void CoeffD(const T1& phi, const ChVector<>& p, T2* const coeff) {
+void CoeffD(const T1& phi, const ChVector3d& p, T2* const coeff) {
     RotCo(COEFF_D, phi, p, coeff);
 };
 
 /// Coefficients:            up to e     (COEFF_E)
 template <class T1, class T2>
-void CoeffE(const T1& phi, const ChVector<>& p, T2* const coeff) {
+void CoeffE(const T1& phi, const ChVector3d& p, T2* const coeff) {
     RotCo(COEFF_E, phi, p, coeff);
 };
 
 /// Coefficients:            up to f     (COEFF_F)
 template <class T1, class T2>
-void CoeffF(const T1& phi, const ChVector<>& p, T2* const coeff) {
+void CoeffF(const T1& phi, const ChVector3d& p, T2* const coeff) {
     RotCo(COEFF_F, phi, p, coeff);
 };
 
 /// Starred coefficients:    up to c*    (COEFF_C_STAR)
 /// Coefficients:            up to d     (COEFF_D)
 template <class T1, class T2>
-void CoeffCStar(const T1& phi, const ChVector<>& p, T2* const coeff, T2* const coeffs) {
+void CoeffCStar(const T1& phi, const ChVector3d& p, T2* const coeff, T2* const coeffs) {
     RotCo(COEFF_D, phi, p, coeff);
     coeffs[0] = -coeff[3] / (coeff[1] * 2.);
 };
@@ -160,14 +160,14 @@ void CoeffCStar(const T1& phi, const ChVector<>& p, T2* const coeff, T2* const c
 /// Starred coefficients:    up to e*    (COEFF_E_STAR)
 /// Coefficients:            up to f     (COEFF_F)
 template <class T1, class T2>
-void CoeffEStar(const T1& phi, const ChVector<>& p, T2* const coeff, T2* const coeffs) {
+void CoeffEStar(const T1& phi, const ChVector3d& p, T2* const coeff, T2* const coeffs) {
     RotCo(COEFF_F, phi, p, coeff);
     coeffs[0] = -coeff[3] / (coeff[1] * 2.);
     coeffs[1] = -(coeff[4] + coeff[5]) / (coeff[1] * 4.);
 };
 
 /// Compute the rotation matrix Phi from Euler Rogriguez's parameters phi.
-ChMatrix33<> Rot(const ChVector<>& phi) {
+ChMatrix33<> Rot(const ChVector3d& phi) {
     double coeff[COEFF_B];
 
     CoeffB(phi, phi, coeff);
@@ -176,12 +176,12 @@ ChMatrix33<> Rot(const ChVector<>& phi) {
     ChStarMatrix33<> Phix(phi * coeff[0]);
     ChStarMatrix33<> pxpx(phi, phi * coeff[1]);
 
-    return Eye + Phix + pxpx; // I + c[0] * phi x + c[1] * phi x phi x
+    return Eye + Phix + pxpx;  // I + c[0] * phi x + c[1] * phi x phi x
 }
 
 /// Compute a G matrix from Euler Rogriguez's parameters Phi.
 /// G is defined in such a way that dPhi * PhiT = G * dphi.
-ChMatrix33<> DRot(const ChVector<>& phi) {
+ChMatrix33<> DRot(const ChVector3d& phi) {
     double coeff[COEFF_C];
 
     CoeffC(phi, phi, coeff);
@@ -190,17 +190,17 @@ ChMatrix33<> DRot(const ChVector<>& phi) {
     ChStarMatrix33<> Phix(phi * coeff[1]);
     ChStarMatrix33<> pxpx(phi, phi * coeff[2]);
 
-    return Eye + Phix + pxpx; // I + c[1] * phi x += c[2] * phi x phi x
+    return Eye + Phix + pxpx;  // I + c[1] * phi x += c[2] * phi x phi x
 }
 
 /// Compute rotation matrix Phi and Ga matrix from Euler Rogriguez's parameters Phi.
-void RotAndDRot(const ChVector<>& phi, ChMatrix33<>& Phi, ChMatrix33<>& Ga) {
+void RotAndDRot(const ChVector3d& phi, ChMatrix33<>& Phi, ChMatrix33<>& Ga) {
     double coeff[COEFF_C];
 
     CoeffC(phi, phi, coeff);
 
     ChMatrix33<> Eye(1);
-    
+
     {
         ChStarMatrix33<> Phix(phi * coeff[0]);
         ChStarMatrix33<> pxpx(phi, phi * coeff[1]);
@@ -210,14 +210,14 @@ void RotAndDRot(const ChVector<>& phi, ChMatrix33<>& Phi, ChMatrix33<>& Ga) {
     {
         ChStarMatrix33<> Phix(phi * coeff[1]);
         ChStarMatrix33<> pxpx(phi, phi * coeff[2]);
-        Ga = Eye + Phix + pxpx; // I + c[1] * phi x + c[2] * phi x phi x
+        Ga = Eye + Phix + pxpx;  // I + c[1] * phi x + c[2] * phi x phi x
     }
 
     return;
 }
 
 /// Compute the inverse transpose of G matrix from Euler Rogriguez's parameters Phi.
-ChMatrix33<> DRot_IT(const ChVector<>& phi) {
+ChMatrix33<> DRot_IT(const ChVector3d& phi) {
     double coeff[COEFF_D], coeffs[COEFF_C_STAR];
 
     CoeffCStar(phi, phi, coeff, coeffs);
@@ -230,7 +230,7 @@ ChMatrix33<> DRot_IT(const ChVector<>& phi) {
 }
 
 /// Compute the inverse of G matrix from Euler Rogriguez's parameters Phi.
-ChMatrix33<> DRot_I(const ChVector<>& phi) {
+ChMatrix33<> DRot_I(const ChVector3d& phi) {
     double coeff[COEFF_D], coeffs[COEFF_C_STAR];
 
     CoeffCStar(phi, phi, coeff, coeffs);
@@ -242,18 +242,19 @@ ChMatrix33<> DRot_I(const ChVector<>& phi) {
     return Eye + Phix + pxpx;
 }
 
-
 /// Compute Euler Rogriguez's parameters phi from rotation matrix Phi.
-ChVector<> VecRot(const ChMatrix33<>& Phi) {
+ChVector3d VecRot(const ChMatrix33<>& Phi) {
     double a, cosphi, sinphi;
-    ChVector<> unit;
+    ChVector3d unit;
 
     cosphi = (Phi.trace() - 1.) / 2.;
     if (cosphi > 0.) {
-        unit = Phi.GetAx();
+        unit[0] = 0.5 * (Phi(2, 1) - Phi(1, 2));
+        unit[1] = 0.5 * (Phi(0, 2) - Phi(2, 0));
+        unit[2] = 0.5 * (Phi(1, 0) - Phi(0, 1));
         sinphi = unit.Length();
         double phi = atan2(sinphi, cosphi);
-        CoeffA(ChVector<>(phi, 0., 0.), ChVector<>(phi, 0., 0.), &a);
+        CoeffA(ChVector3d(phi, 0., 0.), ChVector3d(phi, 0., 0.), &a);
         unit /= a;
     } else {
         // -1 <= cosphi <= 0
@@ -262,14 +263,14 @@ ChVector<> VecRot(const ChMatrix33<>& Phi) {
         eet(1, 1) -= cosphi;
         eet(2, 2) -= cosphi;
         int maxcol = 0;
-        ChVector<> col = eet.Get_A_Xaxis();
+        ChVector3d col = eet.GetAxisX();
         if (eet(1, 1) > eet(0, 0)) {
             maxcol = 1;
-            col = eet.Get_A_Yaxis();
+            col = eet.GetAxisY();
         }
         if (eet(2, 2) > eet(maxcol, maxcol)) {
             maxcol = 2;
-            col = eet.Get_A_Zaxis();
+            col = eet.GetAxisZ();
         }
         unit = (col / sqrt(eet(maxcol, maxcol) * (1. - cosphi)));
         ChStarMatrix33<> unitx(unit);
@@ -281,7 +282,7 @@ ChVector<> VecRot(const ChMatrix33<>& Phi) {
 
 /// Compute, given Euler Rogriguez's parameters phi, a L matrix such that
 /// dG * a = L(phi, a) * dphi.
-ChMatrix33<> Elle(const ChVector<>& phi, const ChVector<>& a) {
+ChMatrix33<> Elle(const ChVector3d& phi, const ChVector3d& a) {
     double coeff[COEFF_E];
     CoeffE(phi, phi, coeff);
 

@@ -96,8 +96,8 @@ void ChSimpleDriveline::Synchronize(double time, const DriverInputs& driver_inpu
         return;
 
     // Set driveshaft speed (output to transmission)
-    double speed_front = 0.5 * (m_front_left->GetPos_dt() + m_front_right->GetPos_dt());
-    double speed_rear = 0.5 * (m_rear_left->GetPos_dt() + m_rear_right->GetPos_dt());
+    double speed_front = 0.5 * (m_front_left->GetPosDt() + m_front_right->GetPosDt());
+    double speed_rear = 0.5 * (m_rear_left->GetPosDt() + m_rear_right->GetPosDt());
     double alpha = GetFrontTorqueFraction();
     m_driveshaft_speed = alpha * speed_front + (1 - alpha) * speed_rear;
 
@@ -110,15 +110,15 @@ void ChSimpleDriveline::Synchronize(double time, const DriverInputs& driver_inpu
     double torque_left;
     double torque_right;
 
-    differentialSplit(torque_front, GetFrontDifferentialMaxBias(), m_front_left->GetPos_dt(),
-                      m_front_right->GetPos_dt(), torque_left, torque_right);
-    m_front_left->SetAppliedTorque(-torque_left);
-    m_front_right->SetAppliedTorque(-torque_right);
-
-    differentialSplit(torque_rear, GetRearDifferentialMaxBias(), m_rear_left->GetPos_dt(), m_rear_right->GetPos_dt(),
+    differentialSplit(torque_front, GetFrontDifferentialMaxBias(), m_front_left->GetPosDt(), m_front_right->GetPosDt(),
                       torque_left, torque_right);
-    m_rear_left->SetAppliedTorque(-torque_left);
-    m_rear_right->SetAppliedTorque(-torque_right);
+    m_front_left->SetAppliedLoad(-torque_left);
+    m_front_right->SetAppliedLoad(-torque_right);
+
+    differentialSplit(torque_rear, GetRearDifferentialMaxBias(), m_rear_left->GetPosDt(), m_rear_right->GetPosDt(),
+                      torque_left, torque_right);
+    m_rear_left->SetAppliedLoad(-torque_left);
+    m_rear_right->SetAppliedLoad(-torque_right);
 }
 
 // -----------------------------------------------------------------------------
@@ -130,16 +130,16 @@ double ChSimpleDriveline::GetSpindleTorque(int axle, VehicleSide side) const {
     if (axle == m_driven_axles[0]) {
         switch (side) {
             case LEFT:
-                return -m_front_left->GetAppliedTorque();
+                return -m_front_left->GetAppliedLoad();
             case RIGHT:
-                return -m_front_right->GetAppliedTorque();
+                return -m_front_right->GetAppliedLoad();
         }
     } else if (axle == m_driven_axles[1]) {
         switch (side) {
             case LEFT:
-                return -m_rear_left->GetAppliedTorque();
+                return -m_rear_left->GetAppliedLoad();
             case RIGHT:
-                return -m_rear_right->GetAppliedTorque();
+                return -m_rear_right->GetAppliedLoad();
         }
     }
 

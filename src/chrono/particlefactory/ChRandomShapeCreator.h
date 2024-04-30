@@ -20,22 +20,20 @@
 
 #include <memory>
 
-#include "chrono/core/ChMathematics.h"
-#include "chrono/core/ChVector.h"
+#include "chrono/core/ChRandom.h"
+#include "chrono/core/ChVector3.h"
 #include "chrono/core/ChMatrix.h"
-#include "chrono/core/ChDistribution.h"
 #include "chrono/geometry/ChSphere.h"
 #include "chrono/geometry/ChBox.h"
 #include "chrono/geometry/ChCylinder.h"
 #include "chrono/physics/ChBodyEasy.h"
-#include "chrono/physics/ChMaterialSurfaceNSC.h"
+#include "chrono/physics/ChContactMaterialNSC.h"
 
 namespace chrono {
 namespace particlefactory {
 
 // Forward reference
 class ChRandomShapeCreator;
-
 
 /// BASE class for generators of random ChBody shapes
 class ChRandomShapeCreator {
@@ -105,7 +103,7 @@ class ChRandomShapeCreatorSpheres : public ChRandomShapeCreator {
         diameter = chrono_types::make_shared<ChConstantDistribution>(0.02);
         density = chrono_types::make_shared<ChConstantDistribution>(1000);
 
-        material = chrono_types::make_shared<ChMaterialSurfaceNSC>();
+        material = chrono_types::make_shared<ChContactMaterialNSC>();
     }
 
     /// Function that creates a random ChBody particle each
@@ -114,7 +112,7 @@ class ChRandomShapeCreatorSpheres : public ChRandomShapeCreator {
         double mrad = 0.5 * diameter->GetRandom();
         auto mbody = chrono_types::make_shared<ChBodyEasySphere>(
             mrad, density->GetRandom(), this->add_visualization_asset, this->add_collision_shape, material);
-        mbody->SetCoord(mcoords);
+        mbody->SetCoordsys(mcoords);
         return mbody;
     };
 
@@ -128,7 +126,7 @@ class ChRandomShapeCreatorSpheres : public ChRandomShapeCreator {
     std::shared_ptr<ChDistribution> diameter;
     std::shared_ptr<ChDistribution> density;
 
-    std::shared_ptr<ChMaterialSurfaceNSC> material;
+    std::shared_ptr<ChContactMaterialNSC> material;
 };
 
 /// Class for generating boxes with variable sizes
@@ -143,7 +141,7 @@ class ChRandomShapeCreatorBoxes : public ChRandomShapeCreator {
         sizeratioZ = chrono_types::make_shared<ChConstantDistribution>(1.0);
         density = chrono_types::make_shared<ChConstantDistribution>(1000);
 
-        material = chrono_types::make_shared<ChMaterialSurfaceNSC>();
+        material = chrono_types::make_shared<ChContactMaterialNSC>();
     }
 
     /// Function that creates a random ChBody particle each
@@ -154,7 +152,7 @@ class ChRandomShapeCreatorBoxes : public ChRandomShapeCreator {
         double sz = fabs(sx * sizeratioYZ->GetRandom() * sizeratioZ->GetRandom());
         auto mbody = chrono_types::make_shared<ChBodyEasyBox>(
             sx, sy, sz, fabs(density->GetRandom()), this->add_visualization_asset, this->add_collision_shape, material);
-        mbody->SetCoord(mcoords);
+        mbody->SetCoordsys(mcoords);
         return mbody;
     };
 
@@ -174,7 +172,7 @@ class ChRandomShapeCreatorBoxes : public ChRandomShapeCreator {
     std::shared_ptr<ChDistribution> sizeratioZ;
     std::shared_ptr<ChDistribution> density;
 
-    std::shared_ptr<ChMaterialSurfaceNSC> material;
+    std::shared_ptr<ChContactMaterialNSC> material;
 };
 
 /// Class for generating cylinders with variable diameter
@@ -188,7 +186,7 @@ class ChRandomShapeCreatorCylinders : public ChRandomShapeCreator {
         length_factor = chrono_types::make_shared<ChConstantDistribution>(2.0);
         density = chrono_types::make_shared<ChConstantDistribution>(1000);
 
-        material = chrono_types::make_shared<ChMaterialSurfaceNSC>();
+        material = chrono_types::make_shared<ChContactMaterialNSC>();
     }
 
     /// Function that creates a random ChBody particle each
@@ -196,10 +194,10 @@ class ChRandomShapeCreatorCylinders : public ChRandomShapeCreator {
     virtual std::shared_ptr<ChBody> RandomGenerate(ChCoordsys<> mcoords) override {
         double rad = 0.5 * diameter->GetRandom();
         double height = length_factor->GetRandom() * 2.0 * rad;
-        auto mbody = chrono_types::make_shared<ChBodyEasyCylinder>(geometry::ChAxis::Y, rad, height,
-                                                                   density->GetRandom(), this->add_visualization_asset,
+        auto mbody = chrono_types::make_shared<ChBodyEasyCylinder>(ChAxis::Y, rad, height, density->GetRandom(),
+                                                                   this->add_visualization_asset,
                                                                    this->add_collision_shape, material);
-        mbody->SetCoord(mcoords);
+        mbody->SetCoordsys(mcoords);
         return mbody;
     };
 
@@ -216,7 +214,7 @@ class ChRandomShapeCreatorCylinders : public ChRandomShapeCreator {
     std::shared_ptr<ChDistribution> length_factor;
     std::shared_ptr<ChDistribution> density;
 
-    std::shared_ptr<ChMaterialSurfaceNSC> material;
+    std::shared_ptr<ChContactMaterialNSC> material;
 };
 
 /// Class for generating convex hulls with variable chordal size
@@ -232,7 +230,7 @@ class ChRandomShapeCreatorConvexHulls : public ChRandomShapeCreator {
         sizeratioZ = chrono_types::make_shared<ChConstantDistribution>(1.0);
         density = chrono_types::make_shared<ChConstantDistribution>(1000);
 
-        material = chrono_types::make_shared<ChMaterialSurfaceNSC>();
+        material = chrono_types::make_shared<ChContactMaterialNSC>();
     }
 
     /// Function that creates a random ChBody particle each
@@ -242,15 +240,15 @@ class ChRandomShapeCreatorConvexHulls : public ChRandomShapeCreator {
         double msizeratioYZ = sizeratioYZ->GetRandom();
         double msizeratioZ = sizeratioZ->GetRandom();
 
-        std::vector<ChVector<> > points;
+        std::vector<ChVector3d> points;
         points.resize(npoints);
         double hsizex = 0;
         double hsizey = 0;
         double hsizez = 0;
         for (int ip = 0; ip < npoints; ++ip) {
-            points[ip].x() = ChRandom();
-            points[ip].y() = ChRandom();
-            points[ip].z() = ChRandom();
+            points[ip].x() = ChRandom::Get();
+            points[ip].y() = ChRandom::Get();
+            points[ip].z() = ChRandom::Get();
             if (fabs(points[ip].x()) > hsizex)
                 hsizex = fabs(points[ip].x());
             if (fabs(points[ip].y()) > hsizey)
@@ -265,7 +263,7 @@ class ChRandomShapeCreatorConvexHulls : public ChRandomShapeCreator {
         }
         auto mbody = chrono_types::make_shared<ChBodyEasyConvexHull>(
             points, density->GetRandom(), this->add_visualization_asset, this->add_collision_shape, material);
-        mbody->SetCoord(mcoords);
+        mbody->SetCoordsys(mcoords);
         return mbody;
     };
 
@@ -290,7 +288,7 @@ class ChRandomShapeCreatorConvexHulls : public ChRandomShapeCreator {
     std::shared_ptr<ChDistribution> sizeratioZ;
     std::shared_ptr<ChDistribution> density;
 
-    std::shared_ptr<ChMaterialSurfaceNSC> material;
+    std::shared_ptr<ChContactMaterialNSC> material;
 };
 
 /// Class for generating worm-like particles, optionally helically twisted.
@@ -310,7 +308,7 @@ class ChRandomShapeCreatorShavings : public ChRandomShapeCreator {
         lengthratio = chrono_types::make_shared<ChConstantDistribution>(3.0);
         density = chrono_types::make_shared<ChConstantDistribution>(1000);
 
-        material = chrono_types::make_shared<ChMaterialSurfaceNSC>();
+        material = chrono_types::make_shared<ChContactMaterialNSC>();
     }
 
     /// Function that creates a random ChBody particle each
@@ -319,7 +317,7 @@ class ChRandomShapeCreatorShavings : public ChRandomShapeCreator {
         double mtwistU = twistU->GetRandom();
         double mtwistV = twistV->GetRandom();
         double mdiameter = diameter->GetRandom();
-        double mlengthratio = ChMax(1.0, lengthratio->GetRandom());
+        double mlengthratio = std::max(1.0, lengthratio->GetRandom());
         double mlength = mdiameter * mlengthratio;
         double mlengthsweep = mlength - mdiameter;
         double targetinterval = mdiameter * spacing_factor;
@@ -327,7 +325,7 @@ class ChRandomShapeCreatorShavings : public ChRandomShapeCreator {
         double realinterval = mlengthsweep / nintervals;
         unsigned int npoints = (unsigned int)nintervals + 1;
 
-        std::vector<ChVector<> > points;
+        std::vector<ChVector3d> points;
         points.resize(npoints);
         std::vector<double> radii;
         radii.resize(npoints);
@@ -338,22 +336,23 @@ class ChRandomShapeCreatorShavings : public ChRandomShapeCreator {
             points[ip] = localframe.GetPos();
             // compute displacement to next sphere:
             ChFrame<> displacement;
-            displacement.SetPos(ChVector<>(realinterval, 0, 0));  // shift on x
+            displacement.SetPos(ChVector3d(realinterval, 0, 0));  // shift on x
             ChQuaternion<> mrotU;
-            mrotU.Q_from_AngY(realinterval * mtwistU);
+            mrotU.SetFromAngleY(realinterval * mtwistU);
             ChQuaternion<> mrotV;
-            mrotV.Q_from_AngX(realinterval * mtwistV);
-            displacement.SetRot(mrotU % mrotV);  // rotate on z and y
+            mrotV.SetFromAngleX(realinterval * mtwistV);
+            displacement.SetRot(mrotU * mrotV);  // rotate on z and y
             localframe.ConcatenatePostTransformation(displacement);
         }
 
         auto mbody = chrono_types::make_shared<ChBodyEasyClusterOfSpheres>(
             points, radii, density->GetRandom(), this->add_visualization_asset, this->add_collision_shape, material);
 
-        // GetLog() << "Diameter:" << mdiameter << " length:" << mlength << " mass:" << mbody->GetMass() << "\n
-        // inertiaXX" << mbody->GetInertiaXX() << "\n inertiaXY:" <<  mbody->GetInertiaXY() << "\n";
+        // std::cout << "Diameter:" << mdiameter << " length:" << mlength << " mass:" << mbody->GetMass() << std::endl
+        // << " inertiaXX" << mbody->GetInertiaXX() << std::endl << " inertiaXY:" <<  mbody->GetInertiaXY() <<
+        // std::endl;
 
-        mbody->SetCoord(mcoords);
+        mbody->SetCoordsys(mcoords);
         return mbody;
     };
 
@@ -384,7 +383,7 @@ class ChRandomShapeCreatorShavings : public ChRandomShapeCreator {
     std::shared_ptr<ChDistribution> lengthratio;
     std::shared_ptr<ChDistribution> density;
 
-    std::shared_ptr<ChMaterialSurfaceNSC> material;
+    std::shared_ptr<ChContactMaterialNSC> material;
 };
 
 /// Class for generating spheres from different families,
@@ -413,7 +412,7 @@ class ChRandomShapeCreatorFromFamilies : public ChRandomShapeCreator {
 
     virtual std::shared_ptr<ChBody> RandomGenerate(ChCoordsys<> mcoords) override {
         if (family_generators.size() == 0)
-            throw ChException("Error, cannot randomize particles from a zero length vector of samples");
+            throw std::invalid_argument("Error: cannot randomize particles from a zero length vector of samples");
 
         std::shared_ptr<ChBody> sample;  // default null
 
@@ -430,7 +429,7 @@ class ChRandomShapeCreatorFromFamilies : public ChRandomShapeCreator {
         }
         // Scan families, starting from randomized index, and see which is
         // 'lagging behind'.
-        unsigned int tested_family = (int)floor((double)(family_generators.size() - 1) * ChRandom());
+        unsigned int tested_family = (int)floor((double)(family_generators.size() - 1) * ChRandom::Get());
         unsigned int ntests = 0;
         while (true) {
             // windup tested family to scan all families if reached end
@@ -456,7 +455,7 @@ class ChRandomShapeCreatorFromFamilies : public ChRandomShapeCreator {
         if (probability_mode == MASS_PROBABILITY)
             generated_stats[tested_family] += sample->GetMass();
 
-        sample->SetCoord(mcoords);
+        sample->SetCoordsys(mcoords);
         return sample;
     };
 

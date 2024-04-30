@@ -57,12 +57,12 @@ class CH_VEHICLE_API MultiLink : public ChMultiLink {
     virtual double getUprightRadius() const override { return m_uprightRadius; }
     virtual double getTierodRadius() const override { return m_tierodRadius; }
 
-    virtual const ChVector<>& getSpindleInertia() const override { return m_spindleInertia; }
-    virtual const ChVector<>& getUpperArmInertia() const override { return m_upperArmInertia; }
-    virtual const ChVector<>& getLateralInertia() const override { return m_lateralInertia; }
-    virtual const ChVector<>& getTrailingLinkInertia() const override { return m_trailingLinkInertia; }
-    virtual const ChVector<>& getUprightInertia() const override { return m_uprightInertia; }
-    virtual const ChVector<> getTierodInertia() const override { return m_tierodInertia; }
+    virtual const ChVector3d& getSpindleInertia() const override { return m_spindleInertia; }
+    virtual const ChVector3d& getUpperArmInertia() const override { return m_upperArmInertia; }
+    virtual const ChVector3d& getLateralInertia() const override { return m_lateralInertia; }
+    virtual const ChVector3d& getTrailingLinkInertia() const override { return m_trailingLinkInertia; }
+    virtual const ChVector3d& getUprightInertia() const override { return m_uprightInertia; }
+    virtual const ChVector3d getTierodInertia() const override { return m_tierodInertia; }
 
     virtual double getAxleInertia() const override { return m_axleInertia; }
 
@@ -74,16 +74,16 @@ class CH_VEHICLE_API MultiLink : public ChMultiLink {
     virtual std::shared_ptr<ChVehicleBushingData> getTierodBushingData() const override { return m_tierodBushingData; }
 
   private:
-    virtual const ChVector<> getLocation(PointId which) override { return m_points[which]; }
-    virtual const ChVector<> getDirection(DirectionId which) override { return m_directions[which]; }
+    virtual const ChVector3d getLocation(PointId which) override { return m_points[which]; }
+    virtual const ChVector3d getDirection(DirectionId which) override { return m_directions[which]; }
 
     virtual void Create(const rapidjson::Document& d) override;
 
     std::shared_ptr<ChLinkTSDA::ForceFunctor> m_springForceCB;
     std::shared_ptr<ChLinkTSDA::ForceFunctor> m_shockForceCB;
 
-    ChVector<> m_points[NUM_POINTS];
-    ChVector<> m_directions[NUM_DIRS];
+    ChVector3d m_points[NUM_POINTS];
+    ChVector3d m_directions[NUM_DIRS];
 
     bool m_use_tierod_bodies;
 
@@ -105,12 +105,12 @@ class CH_VEHICLE_API MultiLink : public ChMultiLink {
     double m_uprightRadius;
     double m_tierodRadius;
 
-    ChVector<> m_spindleInertia;
-    ChVector<> m_upperArmInertia;
-    ChVector<> m_lateralInertia;
-    ChVector<> m_trailingLinkInertia;
-    ChVector<> m_uprightInertia;
-    ChVector<> m_tierodInertia;
+    ChVector3d m_spindleInertia;
+    ChVector3d m_upperArmInertia;
+    ChVector3d m_lateralInertia;
+    ChVector3d m_trailingLinkInertia;
+    ChVector3d m_uprightInertia;
+    ChVector3d m_tierodInertia;
 
     double m_axleInertia;
 

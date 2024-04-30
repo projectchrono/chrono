@@ -20,30 +20,12 @@
 
 namespace chrono {
 
-/// A class for representing a constraint between two bodies (2x6dof in space) and a 1D dof (a shaft)
-
+/// Constraint between two bodies (2x6dof in space) and a 1D dof (a shaft).
 class ChApi ChConstraintThreeBBShaft : public ChConstraintThree {
-  protected:
-    ChRowVectorN<double, 6> Cq_a;  ///< The [Cq_a] jacobian of the constraint
-    ChRowVectorN<double, 6> Cq_b;  ///< The [Cq_b] jacobian of the constraint
-    ChRowVectorN<double, 1> Cq_c;  ///< The [Cq_c] jacobian of the constraint
-
-    // Auxiliary data (used by iterative constraint solvers)
-
-    ChVectorN<double, 6> Eq_a;  ///< The [Eq_a] product [Eq_a]=[invM_a]*[Cq_a]'
-    ChVectorN<double, 6> Eq_b;  ///< The [Eq_b] product [Eq_b]=[invM_b]*[Cq_b]'
-    ChVectorN<double, 1> Eq_c;  ///< The [Eq_c] product [Eq_c]=[invM_c]*[Cq_c]'
-
   public:
-    /// Default constructor
     ChConstraintThreeBBShaft() {}
-
-    /// Construct and immediately set references to variables
     ChConstraintThreeBBShaft(ChVariablesBody* mvariables_a, ChVariablesBody* mvariables_b, ChVariables* mvariables_c);
-
-    /// Copy constructor
     ChConstraintThreeBBShaft(const ChConstraintThreeBBShaft& other);
-
     ~ChConstraintThreeBBShaft() {}
 
     /// "Virtual" copy constructor (covariant return type).
@@ -52,11 +34,13 @@ class ChApi ChConstraintThreeBBShaft : public ChConstraintThree {
     /// Assignment operator: copy from other object
     ChConstraintThreeBBShaft& operator=(const ChConstraintThreeBBShaft& other);
 
-    /// Access jacobian vector.
+    /// Access Jacobian vector.
     virtual ChRowVectorRef Get_Cq_a() override { return Cq_a; }
-    /// Access jacobian vector.
+
+    /// Access Jacobian vector.
     virtual ChRowVectorRef Get_Cq_b() override { return Cq_b; }
-    /// Access jacobian vector.
+
+    /// Access Jacobian vector.
     virtual ChRowVectorRef Get_Cq_c() override { return Cq_c; }
 
     /// Access auxiliary vector (ex: used by iterative solvers).
@@ -66,57 +50,68 @@ class ChApi ChConstraintThreeBBShaft : public ChConstraintThree {
     /// Access auxiliary vector (ex: used by iterative solvers).
     virtual ChVectorRef Get_Eq_c() override { return Eq_c; }
 
-    /// Set references to the constrained objects,
-    /// If first two variables aren't from ChVariablesBody class, an assert failure happens.
+    /// Set references to the constrained ChVariables objects,automatically creating/resizing Jacobians as needed.
     void SetVariables(ChVariables* mvariables_a, ChVariables* mvariables_b, ChVariables* mvariables_c) override;
 
     /// This function updates the following auxiliary data:
-    ///  - the Eq_a and Eq_b and Eq_c matrices
+    ///  - the Eq_a and Eq_b matrices
     ///  - the g_i product
-    /// This is often called by solvers at the beginning
-    /// of the solution process.
-    /// Most often, inherited classes won't need to override this.
     virtual void Update_auxiliary() override;
 
-    ///  This function must computes the product between
-    /// the row-jacobian of this constraint '[Cq_i]' and the
-    /// vector of variables, 'v'. that is    CV=[Cq_i]*v
-    ///  This is used for some iterative solvers.
-    virtual double Compute_Cq_q() override;
+    /// Compute the product between the Jacobian of this constraint, [Cq_i], and the vector of variables.
+    /// In other words, perform the operation:
+    /// <pre>
+    ///   CV = [Cq_i] * v
+    /// </pre>
+    virtual double ComputeJacobianTimesState() override;
 
-    ///  This function must increment the vector of variables
-    /// 'v' with the quantity [invM]*[Cq_i]'*deltal,that is
-    ///   v+=[invM]*[Cq_i]'*deltal  or better: v+=[Eq_i]*deltal
-    ///  This is used for some iterative solvers.
-    virtual void Increment_q(const double deltal) override;
+    /// Increment the vector of variables with the quantity [invM]*[Cq_i]'*deltal.
+    /// In other words, perform the operation:
+    /// <pre>
+    ///    v += [invM] * [Cq_i]' * deltal
+    /// or else
+    ///    v+=[Eq_i] * deltal
+    /// </pre>
+    virtual void IncrementState(double deltal) override;
 
-    /// Computes the product of the corresponding block in the
-    /// system matrix by 'vect', and add to 'result'.
-    /// NOTE: the 'vect' vector must already have
-    /// the size of the total variables&constraints in the system; the procedure
-    /// will use the ChVariable offsets (that must be already updated) to know the
-    /// indexes in result and vect;
-    virtual void MultiplyAndAdd(double& result, const ChVectorDynamic<double>& vect) const override;
+    /// Add the product of the corresponding block in the system matrix by 'vect' and add to result.
+    /// Note: 'vect' is assumed to be of proper size; the procedure uses the ChVariable offsets to index in 'vect'.
+    virtual void AddJacobianTimesVectorInto(double& result, ChVectorConstRef vect) const override;
 
-    /// Computes the product of the corresponding transposed blocks in the
-    /// system matrix (ie. the TRANSPOSED jacobian matrix C_q') by 'l', and add to 'result'.
-    /// NOTE: the 'result' vector must already have
-    /// the size of the total variables&constraints in the system; the procedure
-    /// will use the ChVariable offsets (that must be already updated) to know the
-    /// indexes in result and vect;
-    virtual void MultiplyTandAdd(ChVectorDynamic<double>& result, double l) override;
+    /// Add the product of the corresponding transposed block in the system matrix by 'l' and add to result.
+    /// Note: 'result' is assumed to be of proper size; the procedure uses the ChVariable offsets to index in 'result'.
+    virtual void AddJacobianTransposedTimesScalarInto(ChVectorRef result, double l) const override;
 
-    /// Puts the jacobian parts into the 'insrow' row of a sparse matrix,
-    /// where both portions of the jacobian are shifted in order to match the
-    /// offset of the corresponding ChVariable.
-    virtual void Build_Cq(ChSparseMatrix& storage, int insrow) override;
-    virtual void Build_CqT(ChSparseMatrix& storage, int inscol) override;
+    /// Write the constraint Jacobian into the specified global matrix at the offsets of the associated variables.
+    /// The (start_row, start_col) pair specifies the top-left corner of the system-level constraint Jacobian in the
+    /// provided matrix.
+    virtual void PasteJacobianInto(ChSparseMatrix& mat,
+                                   unsigned int start_row,
+                                   unsigned int start_col) const override;
+
+    /// Write the transposed constraint Jacobian into the specified global matrix at the offsets of the associated
+    /// variables. The (start_row, start_col) pair specifies the top-left corner of the system-level constraint Jacobian
+    /// in the provided matrix.
+    virtual void PasteJacobianTransposedInto(ChSparseMatrix& mat,
+                                             unsigned int start_row,
+                                             unsigned int start_col) const override;
 
     /// Method to allow serialization of transient data to archives.
-    virtual void ArchiveOut(ChArchiveOut& marchive) override;
+    virtual void ArchiveOut(ChArchiveOut& archive_out) override;
 
     /// Method to allow de-serialization of transient data from archives.
-    virtual void ArchiveIn(ChArchiveIn& marchive) override;
+    virtual void ArchiveIn(ChArchiveIn& archive_in) override;
+
+  protected:
+    ChRowVectorN<double, 6> Cq_a;  ///< [Cq_a] Jacobian of the constraint
+    ChRowVectorN<double, 6> Cq_b;  ///< [Cq_b] Jacobian of the constraint
+    ChRowVectorN<double, 1> Cq_c;  ///< [Cq_c] Jacobian of the constraint
+
+    // Auxiliary data (used by iterative constraint solvers)
+
+    ChVectorN<double, 6> Eq_a;  ///< [Eq_a] product [Eq_a]=[invM_a]*[Cq_a]'
+    ChVectorN<double, 6> Eq_b;  ///< [Eq_b] product [Eq_b]=[invM_b]*[Cq_b]'
+    ChVectorN<double, 1> Eq_c;  ///< [Eq_c] product [Eq_c]=[invM_c]*[Cq_c]'
 };
 
 }  // end namespace chrono

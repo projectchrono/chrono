@@ -33,10 +33,10 @@ namespace marder {
 // Static variables
 // -----------------------------------------------------------------------------
 const double Marder_Chassis::m_body_mass = 25000.00;
-const ChVector<> Marder_Chassis::m_body_inertiaXX(13653.38542, 98182.70833, 101954.4271);
-const ChVector<> Marder_Chassis::m_body_inertiaXY(0, 0, 0);
-const ChVector<> Marder_Chassis::m_body_COM_loc(-2.7958, 0, 0.0);
-const ChCoordsys<> Marder_Chassis::m_driverCsys(ChVector<>(0.0, 0.5, 0.0), ChQuaternion<>(1, 0, 0, 0));
+const ChVector3d Marder_Chassis::m_body_inertiaXX(13653.38542, 98182.70833, 101954.4271);
+const ChVector3d Marder_Chassis::m_body_inertiaXY(0, 0, 0);
+const ChVector3d Marder_Chassis::m_body_COM_loc(-2.7958, 0, 0.0);
+const ChCoordsys<> Marder_Chassis::m_driverCsys(ChVector3d(0.0, 0.5, 0.0), ChQuaternion<>(1, 0, 0, 0));
 
 // -----------------------------------------------------------------------------
 // -----------------------------------------------------------------------------
@@ -70,17 +70,17 @@ Marder_Chassis::Marder_Chassis(const std::string& name, bool fixed, CollisionTyp
     double Cz = 0.343;
     double thickness = 0.2;
 
-    ChVector<> dims1((Bx - Ax), width, thickness);
-    ChVector<> loc1(0.5 * (Ax + Bx), 0.0, Az + 0.5 * thickness);
+    ChVector3d dims1((Bx - Ax), width, thickness);
+    ChVector3d loc1(0.5 * (Ax + Bx), 0.0, Az + 0.5 * thickness);
     ChQuaternion<> rot1(1, 0, 0, 0);
     ChVehicleGeometry::BoxShape box1(loc1, rot1, dims1);
 
     double alpha = std::atan2(Cz - Bz, Cx - Bx);  // pitch angle of front box
 
-    ChVector<> dims2((Cx - Bx) / std::cos(alpha), width, thickness);
-    ChVector<> loc2(0.5 * (Bx + Cx) - 0.5 * thickness * std::sin(alpha), 0.0,
+    ChVector3d dims2((Cx - Bx) / std::cos(alpha), width, thickness);
+    ChVector3d loc2(0.5 * (Bx + Cx) - 0.5 * thickness * std::sin(alpha), 0.0,
                     0.5 * (Bz + Cz) + 0.5 * thickness * std::cos(alpha));
-    ChQuaternion<> rot2 = Q_from_AngY(-alpha);
+    ChQuaternion<> rot2 = QuatFromAngleY(-alpha);
     ChVehicleGeometry::BoxShape box2(loc2, rot2, dims2);
 
     m_geometry.m_has_primitives = true;

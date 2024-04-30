@@ -42,14 +42,10 @@
     #include "chrono_mumps/ChSolverMumps.h"
 #endif
 
-#ifdef CHRONO_PARDISOPROJECT
-    #include "chrono_pardisoproject/ChSolverPardisoProject.h"
-#endif
-
 using namespace chrono;
 using namespace chrono::fea;
 
-enum class SolverType { MINRES, MKL, MUMPS, PARDISO_PROJECT, SparseQR };
+enum class SolverType { MINRES, PARDISO_MKL, MUMPS, SparseQR };
 
 template <int N>
 class ANCFshell : public utils::ChBenchmarkTest {
@@ -82,7 +78,7 @@ class ANCFshell_SparseQR : public ANCFshell<N> {
 template <int N>
 class ANCFshell_MKL : public ANCFshell<N> {
   public:
-    ANCFshell_MKL() : ANCFshell<N>(SolverType::MKL) {}
+    ANCFshell_MKL() : ANCFshell<N>(SolverType::PARDISO_MKL) {}
 };
 
 template <int N>
@@ -92,22 +88,16 @@ class ANCFshell_MUMPS : public ANCFshell<N> {
 };
 
 template <int N>
-class ANCFshell_PARDISOPROJECT : public ANCFshell<N> {
-  public:
-    ANCFshell_PARDISOPROJECT() : ANCFshell<N>(SolverType::PARDISO_PROJECT) {}
-};
-
-template <int N>
 ANCFshell<N>::ANCFshell(SolverType solver_type) {
     m_system = new ChSystemSMC();
-    m_system->Set_G_acc(ChVector<>(0, -9.8, 0));
+    m_system->SetGravitationalAcceleration(ChVector3d(0, -9.8, 0));
     m_system->SetNumThreads(4);
 
     // Set solver parameters
 #ifndef CHRONO_PARDISO_MKL
-    if (solver_type == SolverType::MKL) {
+    if (solver_type == SolverType::PARDISO_MKL) {
         solver_type = SolverType::MINRES;
-        std::cout << "WARNING! Chrono::MKL not enabled. Forcing use of MINRES solver" << std::endl;
+        std::cout << "WARNING! Chrono::PardisoMKL not enabled. Forcing use of MINRES solver" << std::endl;
     }
 #endif
 
@@ -115,13 +105,6 @@ ANCFshell<N>::ANCFshell(SolverType solver_type) {
     if (solver_type == SolverType::MUMPS) {
         solver_type = SolverType::MINRES;
         std::cout << "WARNING! Chrono::MUMPS not enabled. Forcing use of MINRES solver" << std::endl;
-    }
-#endif
-
-#ifndef CHRONO_PARDISOPROJECT
-    if (solver_type == SolverType::PARDISO_PROJECT) {
-        solver_type = SolverType::MINRES;
-        std::cout << "WARNING! Chrono::PARDISO_PROJECT not enabled. Forcing use of MINRES solver" << std::endl;
     }
 #endif
 
@@ -133,10 +116,10 @@ ANCFshell<N>::ANCFshell(SolverType solver_type) {
             solver->SetTolerance(1e-10);
             solver->EnableDiagonalPreconditioner(true);
             solver->SetVerbose(false);
-            m_system->SetSolverForceTolerance(1e-10);
+            solver->SetTolerance(1e-12);
             break;
         }
-        case SolverType::MKL: {
+        case SolverType::PARDISO_MKL: {
 #ifdef CHRONO_PARDISO_MKL
             auto solver = chrono_types::make_shared<ChSolverPardisoMKL>(4);
             solver->UseSparsityPatternLearner(false);
@@ -156,16 +139,6 @@ ANCFshell<N>::ANCFshell(SolverType solver_type) {
 #endif
             break;
         }
-        case SolverType::PARDISO_PROJECT: {
-#ifdef CHRONO_PARDISOPROJECT
-            auto solver = chrono_types::make_shared<ChSolverPardisoProject>();
-            solver->UseSparsityPatternLearner(false);
-            solver->LockSparsityPattern(true);
-            solver->SetVerbose(false);
-            m_system->SetSolver(solver);
-#endif
-            break;
-        }
         case SolverType::SparseQR: {
             auto solver = chrono_types::make_shared<ChSolverSparseQR>();
             m_system->SetSolver(solver);
@@ -177,7 +150,7 @@ ANCFshell<N>::ANCFshell(SolverType solver_type) {
     m_system->SetTimestepperType(ChTimestepper::Type::HHT);
     auto integrator = std::static_pointer_cast<ChTimestepperHHT>(m_system->GetTimestepper());
     integrator->SetAlpha(-0.2);
-    integrator->SetMaxiters(100);
+    integrator->SetMaxIters(100);
     integrator->SetAbsTolerances(1e-5);
     integrator->SetVerbose(false);
 
@@ -187,9 +160,9 @@ ANCFshell<N>::ANCFshell(SolverType solver_type) {
     double thickness = 0.01;
 
     double rho = 500;
-    ChVector<> E(2.1e7, 2.1e7, 2.1e7);
-    ChVector<> nu(0.3, 0.3, 0.3);
-    ChVector<> G(8.0769231e6, 8.0769231e6, 8.0769231e6);
+    ChVector3d E(2.1e7, 2.1e7, 2.1e7);
+    ChVector3d nu(0.3, 0.3, 0.3);
+    ChVector3d G(8.0769231e6, 8.0769231e6, 8.0769231e6);
     auto mat = chrono_types::make_shared<ChMaterialShellANCF>(rho, E, nu, G);
 
     // Create mesh nodes and elements
@@ -209,25 +182,25 @@ ANCFshell<N>::ANCFshell(SolverType solver_type) {
     mesh->AddVisualShapeFEA(vis_node);
 
     double dx = length / N;
-    ChVector<> dir(0, 1, 0);
+    ChVector3d dir(0, 1, 0);
 
-    auto nodeA = chrono_types::make_shared<ChNodeFEAxyzD>(ChVector<>(0, 0, -width / 2), dir);
-    auto nodeB = chrono_types::make_shared<ChNodeFEAxyzD>(ChVector<>(0, 0, +width / 2), dir);
+    auto nodeA = chrono_types::make_shared<ChNodeFEAxyzD>(ChVector3d(0, 0, -width / 2), dir);
+    auto nodeB = chrono_types::make_shared<ChNodeFEAxyzD>(ChVector3d(0, 0, +width / 2), dir);
     nodeA->SetFixed(true);
     nodeB->SetFixed(true);
     mesh->AddNode(nodeA);
     mesh->AddNode(nodeB);
 
     for (int i = 1; i < N; i++) {
-        auto nodeC = chrono_types::make_shared<ChNodeFEAxyzD>(ChVector<>(i * dx, 0, -width / 2), dir);
-        auto nodeD = chrono_types::make_shared<ChNodeFEAxyzD>(ChVector<>(i * dx, 0, +width / 2), dir);
+        auto nodeC = chrono_types::make_shared<ChNodeFEAxyzD>(ChVector3d(i * dx, 0, -width / 2), dir);
+        auto nodeD = chrono_types::make_shared<ChNodeFEAxyzD>(ChVector3d(i * dx, 0, +width / 2), dir);
         mesh->AddNode(nodeC);
         mesh->AddNode(nodeD);
 
         auto element = chrono_types::make_shared<ChElementShellANCF_3423>();
         element->SetNodes(nodeA, nodeB, nodeD, nodeC);
         element->SetDimensions(dx, width);
-        element->AddLayer(thickness, 0 * CH_C_DEG_TO_RAD, mat);
+        element->AddLayer(thickness, 0 * CH_DEG_TO_RAD, mat);
         element->SetAlphaDamp(0.0);
         mesh->AddElement(element);
 
@@ -248,15 +221,14 @@ void ANCFshell<N>::SimulateVis() {
     vis->AddLogo();
     vis->AddSkyBox();
     vis->AddTypicalLights();
-    vis->AddCamera(ChVector<>(-0.2, 0.2, 0.2), ChVector<>(0, 0, 0));
-
+    vis->AddCamera(ChVector3d(-0.2, 0.2, 0.2), ChVector3d(0, 0, 0));
 
     while (vis->Run()) {
         vis->BeginScene();
         vis->Render();
-        irrlicht::tools::drawSegment(vis.get(), ChVector<>(0), ChVector<>(1, 0, 0), ChColor(1, 0, 0));
-        irrlicht::tools::drawSegment(vis.get(), ChVector<>(0), ChVector<>(0, 1, 0), ChColor(0, 1, 0));
-        irrlicht::tools::drawSegment(vis.get(), ChVector<>(0), ChVector<>(0, 0, 1), ChColor(0, 0, 1));
+        irrlicht::tools::drawSegment(vis.get(), ChVector3d(0), ChVector3d(1, 0, 0), ChColor(1, 0, 0));
+        irrlicht::tools::drawSegment(vis.get(), ChVector3d(0), ChVector3d(0, 1, 0), ChColor(0, 1, 0));
+        irrlicht::tools::drawSegment(vis.get(), ChVector3d(0), ChVector3d(0, 0, 1), ChColor(0, 0, 1));
         ExecuteStep();
         vis->EndScene();
     }
@@ -290,13 +262,6 @@ CH_BM_SIMULATION_LOOP(ANCFshell08_MUMPS, ANCFshell_MUMPS<8>, NUM_SKIP_STEPS, NUM
 CH_BM_SIMULATION_LOOP(ANCFshell16_MUMPS, ANCFshell_MUMPS<16>, NUM_SKIP_STEPS, NUM_SIM_STEPS, 10);
 CH_BM_SIMULATION_LOOP(ANCFshell32_MUMPS, ANCFshell_MUMPS<32>, NUM_SKIP_STEPS, NUM_SIM_STEPS, 10);
 CH_BM_SIMULATION_LOOP(ANCFshell64_MUMPS, ANCFshell_MUMPS<64>, NUM_SKIP_STEPS, NUM_SIM_STEPS, 10);
-#endif
-
-#ifdef CHRONO_PARDISOPROJECT
-CH_BM_SIMULATION_LOOP(ANCFshell08_PARDISOPROJECT, ANCFshell_PARDISOPROJECT<8>, NUM_SKIP_STEPS, NUM_SIM_STEPS, 10);
-CH_BM_SIMULATION_LOOP(ANCFshell16_PARDISOPROJECT, ANCFshell_PARDISOPROJECT<16>, NUM_SKIP_STEPS, NUM_SIM_STEPS, 10);
-CH_BM_SIMULATION_LOOP(ANCFshell32_PARDISOPROJECT, ANCFshell_PARDISOPROJECT<32>, NUM_SKIP_STEPS, NUM_SIM_STEPS, 10);
-CH_BM_SIMULATION_LOOP(ANCFshell64_PARDISOPROJECT, ANCFshell_PARDISOPROJECT<64>, NUM_SKIP_STEPS, NUM_SIM_STEPS, 10);
 #endif
 
 // =============================================================================

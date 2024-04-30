@@ -22,9 +22,8 @@
 #include <cmath>
 
 #include "chrono/core/ChApiCE.h"
-#include "chrono/core/ChVector.h"
+#include "chrono/core/ChVector3.h"
 #include "chrono/core/ChQuaternion.h"
-#include "chrono/core/ChMathematics.h"
 
 #include "chrono/collision/ChCollisionModel.h"
 
@@ -39,41 +38,41 @@ namespace utils {
 ///    Pa = P1 + mua (P2 - P1)
 ///    Pb = P3 + mub (P4 - P3)
 /// Return false if no solution exists.
-ChApi bool LineLineIntersect(const ChVector<>& p1,
-                             const ChVector<>& p2,
-                             const ChVector<>& p3,
-                             const ChVector<>& p4,
-                             ChVector<>* pa,
-                             ChVector<>* pb,
+ChApi bool LineLineIntersect(const ChVector3d& p1,
+                             const ChVector3d& p2,
+                             const ChVector3d& p3,
+                             const ChVector3d& p4,
+                             ChVector3d* pa,
+                             ChVector3d* pb,
                              double* mua,
                              double* mub);
 
 /// Calculate distance between a point p and a line identified with segment dA,dB.
 /// Returns distance and the mu value reference.
 /// tells if the nearest projection of point on line falls into segment (for mu 0...1).
-ChApi double PointLineDistance(const ChVector<>& p,
-                               const ChVector<>& dA,
-                               const ChVector<>& dB,
+ChApi double PointLineDistance(const ChVector3d& p,
+                               const ChVector3d& dA,
+                               const ChVector3d& dB,
                                double& mu,
                                bool& is_insegment);
 
 /// Calculate distance of a point from a triangle surface.
 /// Also computes if projection is inside the triangle. If is_into = true, Bprojected is also computed.
 /// Returns distance (positive if 'out' side, out is where points A1 A2 A3 can be read in clockwise fashion).
-ChApi double PointTriangleDistance(const ChVector<>& B,
-                                   const ChVector<>& A1,
-                                   const ChVector<>& A2,
-                                   const ChVector<>& A3,
+ChApi double PointTriangleDistance(const ChVector3d& B,
+                                   const ChVector3d& A1,
+                                   const ChVector3d& A2,
+                                   const ChVector3d& A3,
                                    double& mu,
                                    double& mv,
                                    bool& is_into,
-                                   ChVector<>& Bprojected);
+                                   ChVector3d& Bprojected);
 
 /// Check if the triangle defined by the two given vectors is degenerate.
-ChApi bool DegenerateTriangle(const ChVector<>& Dx, const ChVector<>& Dy);
+ChApi bool DegenerateTriangle(const ChVector3d& Dx, const ChVector3d& Dy);
 
 /// Check if the triangle defined by the three given vertices is degenerate.
-ChApi bool DegenerateTriangle(const ChVector<>& v1, const ChVector<>& v2, const ChVector<>& v3);
+ChApi bool DegenerateTriangle(const ChVector3d& v1, const ChVector3d& v2, const ChVector3d& v3);
 
 /*
 
@@ -82,11 +81,11 @@ ChApi bool DegenerateTriangle(const ChVector<>& v1, const ChVector<>& v2, const 
 inline double CalcBiSphereVolume(double radius, double c_dist) {
     double delta = 2 * radius - c_dist;
     double cos_theta = (radius - 0.5 * delta) / radius;
-    return (4.0 / 3.0) * CH_C_PI * radius * radius * radius * (1 + cos_theta);
+    return (4.0 / 3.0) * CH_PI * radius * radius * radius * (1 + cos_theta);
 }
 
 inline double CalcTorusVolume(double radius, double thickness) {
-    return 2 * CH_C_PI * CH_C_PI * thickness * thickness * radius;
+    return 2 * CH_PI * CH_PI * thickness * thickness * radius;
 }
 
 // Gyration calculations

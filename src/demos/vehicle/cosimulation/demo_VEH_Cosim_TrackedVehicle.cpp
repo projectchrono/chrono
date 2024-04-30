@@ -36,7 +36,7 @@
 #include "chrono_thirdparty/cxxopts/ChCLI.h"
 
 #include "chrono_vehicle/cosim/mbs/ChVehicleCosimTrackedVehicleNode.h"
-    #include "chrono_vehicle/cosim/terrain/ChVehicleCosimTerrainNodeRigid.h"
+#include "chrono_vehicle/cosim/terrain/ChVehicleCosimTerrainNodeRigid.h"
 #include "chrono_vehicle/cosim/terrain/ChVehicleCosimTerrainNodeSCM.h"
 #ifdef CHRONO_MULTICORE
     #include "chrono_vehicle/cosim/terrain/ChVehicleCosimTerrainNodeGranularOMP.h"
@@ -97,7 +97,7 @@ class MyDriver : public ChDriver {
         else if (eff_time > Te)
             m_steering = 1;
         else
-            m_steering = 0.5 + 0.5 * std::sin(CH_C_PI * (eff_time - Ts) / (Te - Ts) - CH_C_PI_2);
+            m_steering = 0.5 + 0.5 * std::sin(CH_PI * (eff_time - Ts) / (Te - Ts) - CH_PI_2);
     }
 
   private:
@@ -160,18 +160,21 @@ int main(int argc, char** argv) {
         return 1;
     }
 
-    ChVector<> init_loc(-terrain_length / 2 + 5, -terrain_width / 2 + 2, 0.9);
+    ChVector3d init_loc(-terrain_length / 2 + 5, -terrain_width / 2 + 2, 0.9);
 
     // Overwrite terrain patch size if using a DBP rig
     if (use_DBP_rig) {
         terrain_length = 20;
         terrain_width = 5;
-        init_loc = ChVector<>(-5, 0, 0.9);
+        init_loc = ChVector3d(-5, 0, 0.9);
     }
 
     // Peek in spec file and extract terrain type
     auto terrain_type = ChVehicleCosimTerrainNodeChrono::GetTypeFromSpecfile(terrain_specfile);
-    if (terrain_type == ChVehicleCosimTerrainNodeChrono::Type::UNKNOWN) {
+    if (terrain_type != ChVehicleCosimTerrainNodeChrono::Type::RIGID ||
+        terrain_type != ChVehicleCosimTerrainNodeChrono::Type::SCM) {
+        if (rank == 0)
+            std::cout << "Only RIGID or SCM terrain supported" << std::endl;
         MPI_Finalize();
         return 1;
     }
@@ -211,8 +214,7 @@ int main(int argc, char** argv) {
             auto m113_vehicle = chrono_types::make_shared<m113::M113_Vehicle_SinglePin>(
                 false, DrivelineTypeTV::BDS, BrakeType::SIMPLE, false, false, false, nullptr);
             auto m113_engine = chrono_types::make_shared<m113::M113_EngineShafts>("Engine");
-            auto m113_transmission =
-                chrono_types::make_shared<m113::M113_AutomaticTransmissionShafts>("Transmission");
+            auto m113_transmission = chrono_types::make_shared<m113::M113_AutomaticTransmissionShafts>("Transmission");
             auto m113_powertrain = chrono_types::make_shared<ChPowertrainAssembly>(m113_engine, m113_transmission);
             vehicle = new ChVehicleCosimTrackedVehicleNode(m113_vehicle, m113_powertrain);
         }
@@ -236,7 +238,7 @@ int main(int argc, char** argv) {
         vehicle->SetOutDir(out_dir, suffix);
         if (renderRT)
             vehicle->EnableRuntimeVisualization(render_fps, writeRT);
-        vehicle->SetCameraPosition(ChVector<>(terrain_length / 2, 0, 2));
+        vehicle->SetCameraPosition(ChVector3d(terrain_length / 2, 0, 2));
         if (verbose)
             cout << "[Vehicle node] output directory: " << vehicle->GetOutDirName() << endl;
 
@@ -256,7 +258,7 @@ int main(int argc, char** argv) {
                 terrain->SetOutDir(out_dir, suffix);
                 if (renderRT)
                     terrain->EnableRuntimeVisualization(render_fps);
-                terrain->SetCameraPosition(ChVector<>(terrain_length / 2, 0, 2));
+                terrain->SetCameraPosition(ChVector3d(terrain_length / 2, 0, 2));
                 if (verbose)
                     cout << "[Terrain node] output directory: " << terrain->GetOutDirName() << endl;
 
@@ -273,7 +275,7 @@ int main(int argc, char** argv) {
                 terrain->SetOutDir(out_dir, suffix);
                 if (renderRT)
                     terrain->EnableRuntimeVisualization(render_fps, writeRT);
-                terrain->SetCameraPosition(ChVector<>(terrain_length / 2, 0, 2));
+                terrain->SetCameraPosition(ChVector3d(terrain_length / 2, 0, 2));
                 if (verbose)
                     cout << "[Terrain node] output directory: " << terrain->GetOutDirName() << endl;
 

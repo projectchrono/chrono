@@ -127,11 +127,11 @@ class MyEventReceiver : public IEventReceiver {
 };
 
 // Initial copter location and orientation
-ChVector<> initLoc(0, 0, 1.0);
+ChVector3d initLoc(0, 0, 1.0);
 ChQuaternion<> initRot(1, 0, 0, 0);
 
 // Point on chassis tracked by the camera
-// ChVector<> trackPoint(0.0, 0.0, 1.75);
+// ChVector3d trackPoint(0.0, 0.0, 1.75);
 
 // Contact method
 ChContactMethod contact_method = ChContactMethod::SMC;
@@ -192,10 +192,10 @@ int main(int argc, char* argv[]) {
     double distance = node_id * 2.5;
     // Create the vehicle, set parameters, and initialize
     ChSystemNSC sys;
-    sys.Set_G_acc(ChVector<>(0, 0, -9.81));
-    Little_Hexy myhexy(sys, ChVector<>(0, distance, 0));
+    sys.SetGravitationalAcceleration(ChVector3d(0, 0, -9.81));
+    Little_Hexy myhexy(sys, ChVector3d(0, distance, 0));
     myhexy.AddVisualizationAssets();
-    auto mymat = chrono_types::make_shared<ChMaterialSurfaceNSC>();
+    auto mymat = chrono_types::make_shared<ChContactMaterialNSC>();
     myhexy.AddCollisionShapes(mymat);
 
     // Add vehicle as an agent and initialize SynChronoManager
@@ -217,7 +217,7 @@ int main(int argc, char* argv[]) {
         vis->AddLogo();
         vis->AddSkyBox();
         vis->AddTypicalLights();
-        vis->AddCamera(ChVector<>(-15, 14, -30), ChVector<>(0, 5, 0));
+        vis->AddCamera(ChVector3d(-15, 14, -30), ChVector3d(0, 5, 0));
 
         // create text with info
         vis->GetGUIEnvironment()->addStaticText(

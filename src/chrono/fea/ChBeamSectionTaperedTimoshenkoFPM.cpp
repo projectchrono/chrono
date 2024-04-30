@@ -31,43 +31,42 @@ void ChBeamSectionTaperedTimoshenkoAdvancedGenericFPM::ComputeAverageFPM() {
     this->average_fpm(5, 5) = this->avg_sec_par->EIzz;
 }
 
-ChMatrixNM<double, 6, 6> ChBeamSectionTaperedTimoshenkoAdvancedGenericFPM::GetAverageKlaw() {
-    ChMatrixNM<double, 6, 6> Klaw_average =
+ChMatrix66d ChBeamSectionTaperedTimoshenkoAdvancedGenericFPM::GetAverageKlaw() {
+    ChMatrix66d Klaw_average =
         0.5 * (this->section_fpmA->GetStiffnessMatrixFPM() + this->section_fpmB->GetStiffnessMatrixFPM());
     return Klaw_average;
 }
 
-ChMatrixNM<double, 6, 6> ChBeamSectionTaperedTimoshenkoAdvancedGenericFPM::GetAverageMlaw() {
-    ChMatrixNM<double, 6, 6> Mlaw_average =
-        0.5 * (this->section_fpmA->GetMassMatrixFPM() + this->section_fpmB->GetMassMatrixFPM());
+ChMatrix66d ChBeamSectionTaperedTimoshenkoAdvancedGenericFPM::GetAverageMlaw() {
+    ChMatrix66d Mlaw_average = 0.5 * (this->section_fpmA->GetMassMatrixFPM() + this->section_fpmB->GetMassMatrixFPM());
     return Mlaw_average;
 }
 
-ChMatrixNM<double, 6, 6> ChBeamSectionTaperedTimoshenkoAdvancedGenericFPM::GetKlawAtPoint(const double eta) {
+ChMatrix66d ChBeamSectionTaperedTimoshenkoAdvancedGenericFPM::GetKlawAtPoint(const double eta) {
     // calculate cross-sectional material stiffness matrix Klaw at dimensionless point eta, by linear interpolation
     // eta = (-1,1)
     double Nx1 = (1. / 2.) * (1 - eta);
     double Nx2 = (1. / 2.) * (1 + eta);
-    ChMatrixNM<double, 6, 6> Klaw_point =
+    ChMatrix66d Klaw_point =
         Nx1 * this->section_fpmA->GetStiffnessMatrixFPM() + Nx2 * this->section_fpmB->GetStiffnessMatrixFPM();
 
     return Klaw_point;
 }
 
-ChMatrixNM<double, 6, 6> ChBeamSectionTaperedTimoshenkoAdvancedGenericFPM::GetMlawAtPoint(const double eta) {
+ChMatrix66d ChBeamSectionTaperedTimoshenkoAdvancedGenericFPM::GetMlawAtPoint(const double eta) {
     // calculate cross-sectional material mass matrix Mlaw at dimensionless point eta, by linear interpolation
     // eta = (-1,1)
     double Nx1 = (1. / 2.) * (1 - eta);
     double Nx2 = (1. / 2.) * (1 + eta);
-    ChMatrixNM<double, 6, 6> Mlaw_point =
+    ChMatrix66d Mlaw_point =
         Nx1 * this->section_fpmA->GetMassMatrixFPM() + Nx2 * this->section_fpmB->GetMassMatrixFPM();
 
     return Mlaw_point;
 }
 
-ChMatrixNM<double, 6, 6> ChBeamSectionTaperedTimoshenkoAdvancedGenericFPM::GetRlawAtPoint(const double eta) {
-    DampingCoefficients rdamping_coeff_A = this->section_fpmA->GetBeamRaleyghDamping();
-    DampingCoefficients rdamping_coeff_B = this->section_fpmB->GetBeamRaleyghDamping();
+ChMatrix66d ChBeamSectionTaperedTimoshenkoAdvancedGenericFPM::GetRlawAtPoint(const double eta) {
+    DampingCoefficients rdamping_coeff_A = this->section_fpmA->GetRayleighDamping();
+    DampingCoefficients rdamping_coeff_B = this->section_fpmB->GetRayleighDamping();
     double artificial_factor_for_shear_damping_A = this->section_fpmA->GetArtificialFactorForShearDamping();
     double artificial_factor_for_shear_damping_B = this->section_fpmB->GetArtificialFactorForShearDamping();
 
@@ -81,7 +80,7 @@ ChMatrixNM<double, 6, 6> ChBeamSectionTaperedTimoshenkoAdvancedGenericFPM::GetRl
     double artificial_factor_for_shear_damping =
         Nx1 * artificial_factor_for_shear_damping_A + Nx2 * artificial_factor_for_shear_damping_B;
 
-    ChMatrixNM<double, 6, 6> mb;
+    ChMatrix66d mb;
     mb.setIdentity();
     mb(0, 0) = mbx;
     mb(1, 1) = mby * artificial_factor_for_shear_damping;
@@ -90,8 +89,8 @@ ChMatrixNM<double, 6, 6> ChBeamSectionTaperedTimoshenkoAdvancedGenericFPM::GetRl
     mb(4, 4) = mbz;
     mb(5, 5) = mby;
 
-    ChMatrixNM<double, 6, 6> Klaw_point = this->GetKlawAtPoint(eta);
-    ChMatrixNM<double, 6, 6> Rlaw_point = mb.transpose() * Klaw_point * mb;  // material damping matrix
+    ChMatrix66d Klaw_point = this->GetKlawAtPoint(eta);
+    ChMatrix66d Rlaw_point = mb.transpose() * Klaw_point * mb;  // material damping matrix
 
     return Rlaw_point;
 }

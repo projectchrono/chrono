@@ -15,8 +15,8 @@
 //
 // =============================================================================
 
+#include "chrono/utils/ChUtils.h"
 #include "chrono_sensor/optix/ChOptixGeometry.h"
-
 #include "chrono_sensor/optix/ChOptixDefinitions.h"
 
 #include <cuda.h>
@@ -76,6 +76,8 @@ void ChOptixGeometry::Cleanup() {
     m_sphere_gas_id = 0;
     m_cyl_inst = false;
     m_cyl_gas_id = 0;
+    m_nvdb_inst = false;
+    m_nvdb_gas_id = 0;
 
     // clear out chrono reference data
     m_obj_scales.clear();
@@ -97,13 +99,13 @@ void ChOptixGeometry::Cleanup() {
 void ChOptixGeometry::AddGenericObject(unsigned int mat_id,
                                        std::shared_ptr<ChBody> body,
                                        ChFrame<double> asset_frame,
-                                       ChVector<double> scale,
+                                       ChVector3d scale,
                                        OptixTraversableHandle gas_handle) {
     // add to list of box instances
     m_obj_mat_ids.push_back(mat_id);
     m_bodies.push_back(body);
-    m_obj_body_frames_start.push_back(body->GetFrame_REF_to_abs());
-    m_obj_body_frames_end.push_back(body->GetFrame_REF_to_abs());
+    m_obj_body_frames_start.push_back(body->GetFrameRefToAbs());
+    m_obj_body_frames_end.push_back(body->GetFrameRefToAbs());
 
     // create the motion transform for this box
     m_motion_transforms.emplace_back();
@@ -127,7 +129,7 @@ void ChOptixGeometry::AddGenericObject(unsigned int mat_id,
 
 void ChOptixGeometry::AddBox(std::shared_ptr<ChBody> body,
                              ChFrame<double> asset_frame,
-                             ChVector<double> scale,
+                             ChVector3d scale,
                              unsigned int mat_id) {
     if (!m_box_inst) {
         // create first box instance
@@ -207,9 +209,101 @@ void ChOptixGeometry::AddBox(std::shared_ptr<ChBody> body,
     AddGenericObject(mat_id, body, asset_frame, scale, m_gas_handles[m_box_gas_id]);
 }
 
+
+#ifdef USE_SENSOR_NVDB
+void ChOptixGeometry::AddNVDBVolume(std::shared_ptr<ChBody> body,
+                                    ChFrame<double> asset_frame,
+                                    ChVector3d scale,
+                                    unsigned int mat_id) {
+    if (!m_nvdb_inst) {
+        // create first box instance
+        OptixAabb aabb[1];
+
+        //*aabb = {-512.0f, -64.0f, 0.0f, 0.0f, 0.0f, 28.0f};
+        //*aabb = {-508.0f, -84.0f, 0.0f, 0.0f,  0.0f, 20.0f};
+        *aabb = {-.5f, -.5f, -.5f, .5f, .5f, .5f};
+        //*aabb = {-1500.0f, -1500.0f, -1500.0f, 1500.0f, 1500.0f, 1500.0f};
+        //*aabb = {-404.0f, -204.0f, 0.0f, 0.0f,  0.0f, 12.0f};
+        // *aabb = {-204.0f, -104.0f, 0.0f, 0.0f,  0.0f, 24.0f};
+
+        CUdeviceptr d_aabb;
+        CUDA_ERROR_CHECK(cudaMalloc(reinterpret_cast<void**>(&d_aabb), sizeof(OptixAabb)));
+        CUDA_ERROR_CHECK(cudaMemcpy(reinterpret_cast<void*>(d_aabb), &aabb, sizeof(OptixAabb), cudaMemcpyHostToDevice));
+        uint32_t aabb_input_flags[] = {OPTIX_GEOMETRY_FLAG_DISABLE_ANYHIT};
+        // uint32_t aabb_input_flags[] = {OPTIX_GEOMETRY_FLAG_NONE};
+        // const uint32_t sbt_index[] = {0};  // TODO: may need to check this when we have multiple types of ojbects
+        // CUdeviceptr d_sbt_index;
+        // CUDA_ERROR_CHECK(cudaMalloc(reinterpret_cast<void**>(&d_sbt_index), sizeof(sbt_index)));
+        // CUDA_ERROR_CHECK(
+        //     cudaMemcpy(reinterpret_cast<void*>(d_sbt_index), sbt_index, sizeof(sbt_index), cudaMemcpyHostToDevice));
+
+        OptixBuildInput aabb_input = {};
+        aabb_input.type = OPTIX_BUILD_INPUT_TYPE_CUSTOM_PRIMITIVES;
+        aabb_input.customPrimitiveArray.aabbBuffers = &d_aabb;
+        aabb_input.customPrimitiveArray.flags = aabb_input_flags;
+        aabb_input.customPrimitiveArray.numSbtRecords = 1;
+        aabb_input.customPrimitiveArray.numPrimitives = 1;
+        aabb_input.customPrimitiveArray.sbtIndexOffsetBuffer = 0;  // d_sbt_index;
+        aabb_input.customPrimitiveArray.sbtIndexOffsetSizeInBytes = sizeof(uint32_t);
+        aabb_input.customPrimitiveArray.sbtIndexOffsetStrideInBytes = sizeof(uint32_t);
+        aabb_input.customPrimitiveArray.primitiveIndexOffset = 0;
+
+        OptixAccelBuildOptions accel_options = {
+            OPTIX_BUILD_FLAG_ALLOW_COMPACTION,  // buildFlags
+            OPTIX_BUILD_OPERATION_BUILD         // operation
+        };
+
+        // building box GAS
+        OptixAccelBufferSizes gas_buffer_sizes;
+        CUdeviceptr d_temp_buffer_gas;
+        OPTIX_ERROR_CHECK(optixAccelComputeMemoryUsage(m_context, &accel_options, &aabb_input, 1, &gas_buffer_sizes));
+        CUDA_ERROR_CHECK(cudaMalloc(reinterpret_cast<void**>(&d_temp_buffer_gas), gas_buffer_sizes.tempSizeInBytes));
+        CUdeviceptr d_buffer_temp_output_gas_and_compacted_size;
+
+        size_t compactedSizeOffset = (size_t)((gas_buffer_sizes.outputSizeInBytes + 8ull - 1 / 8ull) * 8ull);
+
+        CUDA_ERROR_CHECK(cudaMalloc(reinterpret_cast<void**>(&d_buffer_temp_output_gas_and_compacted_size),
+                                    compactedSizeOffset + 8));
+        OptixAccelEmitDesc emitProperty = {};
+        emitProperty.type = OPTIX_PROPERTY_TYPE_COMPACTED_SIZE;
+        emitProperty.result = (CUdeviceptr)((char*)d_buffer_temp_output_gas_and_compacted_size + compactedSizeOffset);
+
+        m_gas_handles.emplace_back();
+        m_gas_buffers.emplace_back();
+        m_box_gas_id = static_cast<unsigned int>(m_gas_handles.size() - 1);
+
+        OPTIX_ERROR_CHECK(optixAccelBuild(m_context, 0, &accel_options, &aabb_input, 1, d_temp_buffer_gas,
+                                          gas_buffer_sizes.tempSizeInBytes, d_buffer_temp_output_gas_and_compacted_size,
+                                          gas_buffer_sizes.outputSizeInBytes, &m_gas_handles[m_box_gas_id],
+                                          &emitProperty, 1));
+        CUDA_ERROR_CHECK(cudaFree(reinterpret_cast<void*>(d_temp_buffer_gas)));
+
+        size_t compacted_gas_size;
+        CUDA_ERROR_CHECK(cudaMemcpy(&compacted_gas_size, reinterpret_cast<void*>(emitProperty.result), sizeof(size_t),
+                                    cudaMemcpyDeviceToHost));
+
+        if (compacted_gas_size < gas_buffer_sizes.outputSizeInBytes) {
+            CUDA_ERROR_CHECK(cudaMalloc(reinterpret_cast<void**>(&m_gas_buffers[m_box_gas_id]), compacted_gas_size));
+
+            // use handle as input and output
+            OPTIX_ERROR_CHECK(optixAccelCompact(m_context, 0, m_gas_handles[m_box_gas_id], m_gas_buffers[m_box_gas_id],
+                                                compacted_gas_size, &m_gas_handles[m_box_gas_id]));
+            CUDA_ERROR_CHECK(cudaFree(reinterpret_cast<void*>(d_buffer_temp_output_gas_and_compacted_size)));
+        } else {
+            m_gas_buffers[m_box_gas_id] = d_buffer_temp_output_gas_and_compacted_size;
+        }
+        CUDA_ERROR_CHECK(cudaFree(reinterpret_cast<void*>(d_aabb)));
+        // CUDA_ERROR_CHECK(cudaFree(reinterpret_cast<void*>(d_sbt_index)));
+        m_nvdb_inst = true;
+    }
+
+    AddGenericObject(mat_id, body, asset_frame, scale, m_gas_handles[m_box_gas_id]);
+}
+#endif // USE_SENSOR_NVDB
+
 void ChOptixGeometry::AddSphere(std::shared_ptr<ChBody> body,
                                 ChFrame<double> asset_frame,
-                                ChVector<double> scale,
+                                ChVector3d scale,
                                 unsigned int mat_id) {
     if (!m_sphere_inst) {
         // create first sphere instance
@@ -286,7 +380,7 @@ void ChOptixGeometry::AddSphere(std::shared_ptr<ChBody> body,
 
 void ChOptixGeometry::AddCylinder(std::shared_ptr<ChBody> body,
                                   ChFrame<double> asset_frame,
-                                  ChVector<double> scale,
+                                  ChVector3d scale,
                                   unsigned int mat_id) {
     if (!m_cyl_inst) {
         // create first cylinder instance
@@ -365,7 +459,7 @@ unsigned int ChOptixGeometry::AddRigidMesh(CUdeviceptr d_vertices,
                                            std::shared_ptr<ChVisualShapeTriangleMesh> mesh_shape,
                                            std::shared_ptr<ChBody> body,
                                            ChFrame<double> asset_frame,
-                                           ChVector<double> scale,
+                                           ChVector3d scale,
                                            unsigned int mat_id) {
     // std::cout << "Adding rigid mesh to optix!\n";
     bool mesh_found = false;
@@ -399,7 +493,7 @@ void ChOptixGeometry::AddDeformableMesh(CUdeviceptr d_vertices,
                                         std::shared_ptr<ChVisualShapeTriangleMesh> mesh_shape,
                                         std::shared_ptr<ChBody> body,
                                         ChFrame<double> asset_frame,
-                                        ChVector<double> scale,
+                                        ChVector3d scale,
                                         unsigned int mat_id) {
     unsigned int mesh_gas_id = BuildTrianglesGAS(mesh_shape, d_vertices, d_indices, false);
     AddGenericObject(mat_id, body, asset_frame, scale, m_gas_handles[mesh_gas_id]);
@@ -439,14 +533,14 @@ unsigned int ChOptixGeometry::BuildTrianglesGAS(std::shared_ptr<ChVisualShapeTri
 
     // vertex data/params
     mesh_input.triangleArray.vertexBuffers = &d_vertices;
-    mesh_input.triangleArray.numVertices = static_cast<unsigned int>(mesh->getCoordsVertices().size());
+    mesh_input.triangleArray.numVertices = static_cast<unsigned int>(mesh->GetCoordsVertices().size());
     mesh_input.triangleArray.vertexFormat = OPTIX_VERTEX_FORMAT_FLOAT3;
     // TODO: if vertices get padded to float4, this need to reflect that
     mesh_input.triangleArray.vertexStrideInBytes = sizeof(float4);  // sizeof(float3);
 
     // index data/params
     mesh_input.triangleArray.indexBuffer = d_indices;
-    mesh_input.triangleArray.numIndexTriplets = static_cast<unsigned int>(mesh->getIndicesVertexes().size());
+    mesh_input.triangleArray.numIndexTriplets = static_cast<unsigned int>(mesh->GetIndicesVertexes().size());
     mesh_input.triangleArray.indexFormat = OPTIX_INDICES_FORMAT_UNSIGNED_INT3;
     // TODO: if vertices get padded to uint4, this need to reflect that
     mesh_input.triangleArray.indexStrideInBytes = sizeof(uint4);  // sizeof(uint3);
@@ -608,12 +702,12 @@ void ChOptixGeometry::RebuildRootStructure() {
     for (int i = 0; i < m_motion_transforms.size(); i++) {
         // update the motion transforms
         const ChFrame<double> f_start = m_obj_body_frames_start[i] * m_obj_asset_frames[i];
-        const ChVector<double> pos_start = f_start.GetPos() - m_origin_offset;
-        const ChMatrix33<double> rot_mat_start = f_start.Amatrix;
+        const ChVector3d pos_start = f_start.GetPos() - m_origin_offset;
+        const ChMatrix33<double> rot_mat_start = f_start.GetRotMat();
 
         const ChFrame<double> f_end = m_obj_body_frames_end[i] * m_obj_asset_frames[i];
-        const ChVector<double> pos_end = f_end.GetPos() - m_origin_offset;
-        const ChMatrix33<double> rot_mat_end = f_end.Amatrix;
+        const ChVector3d pos_end = f_end.GetPos() - m_origin_offset;
+        const ChMatrix33<double> rot_mat_end = f_end.GetRotMat();
 
         m_motion_transforms[i].motionOptions.timeBegin = m_start_time;  // default at start, will be updated
         m_motion_transforms[i].motionOptions.timeEnd = m_end_time;      // default at start, will be updated
@@ -660,7 +754,7 @@ void ChOptixGeometry::UpdateBodyTransformsStart(float t_start, float t_target_en
     // std::cout << "Updating body transforms for start keyframe\n";
     std::vector<ChFrame<double>> frames = std::vector<ChFrame<double>>(m_bodies.size());
     for (int i = 0; i < frames.size(); i++) {
-        frames[i] = m_bodies[i]->GetFrame_REF_to_abs();
+        frames[i] = m_bodies[i]->GetFrameRefToAbs();
     }
     auto keyframe = std::make_tuple(t_start, t_target_end, std::move(frames));
     m_obj_body_frames_start_tmps.push_back(keyframe);
@@ -672,7 +766,7 @@ void ChOptixGeometry::UpdateBodyTransformsEnd(float t_end) {
     // pack the end frame
     m_end_time = t_end;
     for (int i = 0; i < m_bodies.size(); i++) {
-        m_obj_body_frames_end[i] = m_bodies[i]->GetFrame_REF_to_abs();
+        m_obj_body_frames_end[i] = m_bodies[i]->GetFrameRefToAbs();
     }
 
     // need a default start time that will trigger first transform to always be valid
@@ -704,10 +798,7 @@ void ChOptixGeometry::UpdateBodyTransformsEnd(float t_end) {
     m_start_time = ChClamp(m_start_time, 0.f, m_end_time);
 }
 
-void ChOptixGeometry::GetT3x4FromSRT(const ChVector<double>& s,
-                                     const ChMatrix33<double>& a,
-                                     const ChVector<double>& b,
-                                     float* t) {
+void ChOptixGeometry::GetT3x4FromSRT(const ChVector3d& s, const ChMatrix33<double>& a, const ChVector3d& b, float* t) {
     t[0] = (float)(s.x() * a(0));
     t[1] = (float)(s.y() * a(1));
     t[2] = (float)(s.z() * a(2));
@@ -723,9 +814,9 @@ void ChOptixGeometry::GetT3x4FromSRT(const ChVector<double>& s,
     t[10] = (float)(s.z() * a(8));
     t[11] = (float)b.z();
 }
-void ChOptixGeometry::GetInvT3x4FromSRT(const ChVector<double>& s,
+void ChOptixGeometry::GetInvT3x4FromSRT(const ChVector3d& s,
                                         const ChMatrix33<double>& a,
-                                        const ChVector<double>& b,
+                                        const ChVector3d& b,
                                         float* t) {
     t[0] = (float)(a(0) / s.x());
     t[1] = (float)(a(3) / s.x());

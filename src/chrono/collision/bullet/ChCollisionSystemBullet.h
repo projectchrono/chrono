@@ -57,7 +57,7 @@ class ChApi ChCollisionSystemBullet : public ChCollisionSystem {
     virtual void Run() override;
 
     /// Return an AABB bounding all collision shapes in the system.
-    virtual geometry::ChAABB GetBoundingBox() const override;
+    virtual ChAABB GetBoundingBox() const override;
 
     /// Reset timers for collision detection.
     virtual void ResetTimers() override;
@@ -87,11 +87,11 @@ class ChApi ChCollisionSystemBullet : public ChCollisionSystem {
     virtual void ReportProximities(ChProximityContainer* mproximitycontainer) override;
 
     /// Perform a ray-hit test with all collision models.
-    virtual bool RayHit(const ChVector<>& from, const ChVector<>& to, ChRayhitResult& result) const override;
+    virtual bool RayHit(const ChVector3d& from, const ChVector3d& to, ChRayhitResult& result) const override;
 
     /// Perform a ray-hit test with the specified collision model.
-    virtual bool RayHit(const ChVector<>& from,
-                        const ChVector<>& to,
+    virtual bool RayHit(const ChVector3d& from,
+                        const ChVector3d& to,
                         ChCollisionModel* model,
                         ChRayhitResult& result) const override;
 
@@ -104,40 +104,41 @@ class ChApi ChCollisionSystemBullet : public ChCollisionSystem {
     /// visualization callback was not specified with RegisterVisualizationCallback().
     virtual void Visualize(int flags) override;
 
-    // Get the underlying Bullet collision world.
+    /// Get the underlying Bullet collision world.
     cbtCollisionWorld* GetBulletCollisionWorld() { return bt_collision_world; }
 
-    // Change default contact breaking/merging threshold tolerance of Bullet.
-    // This is the static gContactBreakingThreshold scalar in Bullet.
-    // Call this function only once, before running the simulation.
+    /// Change default contact breaking/merging threshold tolerance of Bullet.
+    /// This is the static gContactBreakingThreshold scalar in Bullet.
+    /// Call this function only once, before running the simulation.
     static void SetContactBreakingThreshold(double threshold);
 
     /// Method to allow serialization of transient data to archives.
-    virtual void ArchiveOut(ChArchiveOut& marchive) override;
+    virtual void ArchiveOut(ChArchiveOut& archive_out) override;
 
     /// Method to allow deserialization of transient data from archives.
-    virtual void ArchiveIn(ChArchiveIn& marchive) override;
+    virtual void ArchiveIn(ChArchiveIn& archive_in) override;
 
   protected:
     /// Perform a ray-hit test with all collision models. This version allows specifying the Bullet
     /// collision filter group and mask (see cbtBroadphaseProxy::CollisionFilterGroups).
-    bool RayHit(const ChVector<>& from,
-                const ChVector<>& to,
+    bool RayHit(const ChVector3d& from,
+                const ChVector3d& to,
                 ChRayhitResult& result,
                 short int filter_group,
                 short int filter_mask) const;
 
     /// Perform a ray-hit test with the specified collision model. This version allows specifying the Bullet
     /// collision filter group and mask (see cbtBroadphaseProxy::CollisionFilterGroups).
-    bool RayHit(const ChVector<>& from,
-                const ChVector<>& to,
+    bool RayHit(const ChVector3d& from,
+                const ChVector3d& to,
                 ChCollisionModel* model,
                 ChRayhitResult& result,
                 short int filter_group,
                 short int filter_mask) const;
 
-    /// Remove the specified Bullet model from this collision stystem
-    void Remove(ChCollisionModelBullet* bt_model);
+    /// Remove the specified Bullet model from this collision system.
+    /// If erase=true, also remove from the bt_models list.
+    void Remove(ChCollisionModelBullet* bt_model, bool erase);
 
     std::vector<std::shared_ptr<ChCollisionModelBullet>> bt_models;
 

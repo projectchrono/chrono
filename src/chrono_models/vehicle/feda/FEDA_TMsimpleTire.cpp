@@ -34,7 +34,7 @@ const std::string FEDA_TMsimpleTire::m_meshFile_left = "feda/meshes/feda_tire_fi
 const std::string FEDA_TMsimpleTire::m_meshFile_right = "feda/meshes/feda_tire_fine.obj";
 
 const double FEDA_TMsimpleTire::m_mass = 56.1;
-const ChVector<> FEDA_TMsimpleTire::m_inertia(10.5, 16.8, 10.5);
+const ChVector3d FEDA_TMsimpleTire::m_inertia(10.5, 16.8, 10.5);
 
 // -----------------------------------------------------------------------------
 // -----------------------------------------------------------------------------
@@ -60,7 +60,7 @@ void FEDA_TMsimpleTire::SetTMsimpleParams() {
     m_par.dz = 6188.0;
     m_par.pn = 21674.0 / 2.0;
     m_par.pn_max = 3.5 * m_par.pn;
-    
+
     m_par.dfx0_pn = 131379.8988;
     m_par.dfx0_p2n = 289802.2285;
     m_par.fxm_pn = 10148.8286;
@@ -75,7 +75,6 @@ void FEDA_TMsimpleTire::SetTMsimpleParams() {
     m_par.fys_p2n = 15344.1442;
 
     SetHorizontalCoefficients();
-
 }
 
 void FEDA_TMsimpleTire::GenerateCharacteristicPlots(const std::string& dirname) {

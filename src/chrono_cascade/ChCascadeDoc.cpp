@@ -72,7 +72,6 @@
 
 using namespace chrono;
 using namespace cascade;
-using namespace geometry;
 
 ChCascadeDoc::ChCascadeDoc() {
     doc = new Handle(TDocStd_Document);
@@ -86,10 +85,10 @@ ChCascadeDoc::~ChCascadeDoc() {
 }
 
 static bool recurse_CascadeDoc(TDF_Label label,
-                               Handle(XCAFDoc_ShapeTool)& shapeTool,
+                               Handle(XCAFDoc_ShapeTool) & shapeTool,
                                TopLoc_Location& parentloc,
                                int level,
-                               ChCascadeDoc::callback_CascadeDoc& mcallback) {
+                               ChCascadeDoc::ScanShapesCallback& callback) {
     TDF_LabelSequence child_labels;
     Standard_Boolean is_assembly;
 
@@ -121,34 +120,33 @@ static bool recurse_CascadeDoc(TDF_Label label,
     TopoDS_Shape rShape;
     rShape = shapeTool->GetShape(label);
     if (!rShape.IsNull()) {
-        // === call the callback! ===
-        if (!mcallback.ForShape(rShape, absloc, mstring, level, label))
-            return false;  // (skip children recursion if returned false)
+        // execute the callback function
+        if (!callback.ForShape(rShape, absloc, mstring, level, label))
+            return false;  // skip children recursion
     }
 
-    // Recurse all children !!!
+    // Recurse all children
     if (is_assembly) {
         for (Standard_Integer j = 1; j <= child_labels.Length(); j++) {
             TDF_Label clabel = child_labels.Value(j);
-            recurse_CascadeDoc(clabel, shapeTool, absloc, (level + 1), mcallback);
+            recurse_CascadeDoc(clabel, shapeTool, absloc, (level + 1), callback);
         }
     }
 
-    // If it is a reference, Recurse all children of reference
+    // If it is a reference, recurse all children of reference
     if (isref) {
         TDF_LabelSequence refchild_labels;
-        Standard_Boolean refis_assembly;
-        refis_assembly = shapeTool->GetComponents(reflabel, refchild_labels, 0);
+        shapeTool->GetComponents(reflabel, refchild_labels, 0);
         for (Standard_Integer j = 1; j <= refchild_labels.Length(); j++) {
             TDF_Label clabel = refchild_labels.Value(j);
-            recurse_CascadeDoc(clabel, shapeTool, absloc, (level + 1), mcallback);
+            recurse_CascadeDoc(clabel, shapeTool, absloc, (level + 1), callback);
         }
     }
 
     return true;
 }
 
-void ChCascadeDoc::ScanCascadeShapes(callback_CascadeDoc& mcallback) {
+void ChCascadeDoc::ScanCascadeShapes(ScanShapesCallback& callback) {
     TopLoc_Location rootloc;
     rootloc.Identity();
 
@@ -158,7 +156,7 @@ void ChCascadeDoc::ScanCascadeShapes(callback_CascadeDoc& mcallback) {
     for (Standard_Integer i = 1; i <= root_labels.Length(); i++) {
         TDF_Label label = root_labels.Value(i);
         int level = 0;
-        recurse_CascadeDoc(label, shapeTool, rootloc, level, mcallback);
+        recurse_CascadeDoc(label, shapeTool, rootloc, level, callback);
     }
 }
 
@@ -166,48 +164,48 @@ bool ChCascadeDoc::Load_STEP(const char* filename) {
     STEPCAFControl_Reader cafreader;
 
     if (!Interface_Static::SetCVal("xstep.cascade.unit", "M"))
-        GetLog() << "\n\n ERROR SETTING 'M' UNITS!!!..   \n\n\n";
+        std::cerr << "\n\n ERROR SETTING 'M' UNITS!!!..   \n\n" << std::endl;
 
     IFSelect_ReturnStatus aStatus = cafreader.ReadFile(filename);
 
     if (aStatus == IFSelect_RetDone) {
-        /*Standard_Boolean aRes =*/ cafreader.Transfer((*doc));
+        /*Standard_Boolean aRes =*/cafreader.Transfer((*doc));
         return true;
     }
     return false;
 }
 
-class callback_CascadeDoc_dump : public ChCascadeDoc::callback_CascadeDoc {
+class DumpShapesCallback : public ChCascadeDoc::ScanShapesCallback {
   public:
     virtual bool ForShape(TopoDS_Shape& mshape, TopLoc_Location& mloc, char* mname, int mlevel, TDF_Label& mlabel) {
         for (int i = 0; i < mlevel; i++)
-            GetLog() << "  ";
-        GetLog() << "-Name :" << mname;
+            std::cout << "  ";
+        std::cout << "-Name :" << mname;
 
         if (mlevel == 0)
-            GetLog() << " (root)";
-        GetLog() << "\n";
+            std::cout << " (root)";
+        std::cout << "\n";
 
         for (int i = 0; i < mlevel; i++)
-            GetLog() << "  ";
+            std::cout << "  ";
         gp_XYZ mtr = mloc.Transformation().TranslationPart();
-        GetLog() << "      pos at: " << mtr.X() << " " << mtr.Y() << " " << mtr.Z() << " (absolute) \n";
+        std::cout << "      pos at: " << mtr.X() << " " << mtr.Y() << " " << mtr.Z() << " (absolute) \n";
         for (int i = 0; i < mlevel; i++)
-            GetLog() << "  ";
+            std::cout << "  ";
         gp_XYZ mtr2 = mshape.Location().Transformation().TranslationPart();
-        GetLog() << "      pos at: " << mtr2.X() << " " << mtr2.Y() << " " << mtr2.Z() << " (.Location)\n";
+        std::cout << "      pos at: " << mtr2.X() << " " << mtr2.Y() << " " << mtr2.Z() << " (.Location)\n";
 
         return true;
     }
 };
 
-void ChCascadeDoc::Dump(ChStreamOutAscii& mstream) {
-    callback_CascadeDoc_dump adumper;
-    this->ScanCascadeShapes(adumper);
+void ChCascadeDoc::Dump(std::ostream& mstream) {
+    DumpShapesCallback dump;
+    this->ScanCascadeShapes(dump);
 }
 
 int wildcard_compare(const char* wildcard, const char* string) {
-    const char* cp = 0, * mp = 0;
+    const char *cp = 0, *mp = 0;
 
     while ((*string) && (*wildcard != '*')) {
         if ((*wildcard != *string) && (*wildcard != '?')) {
@@ -241,7 +239,7 @@ int wildcard_compare(const char* wildcard, const char* string) {
     return !*wildcard;
 }
 
-class callback_CascadeDoc_getnamed : public ChCascadeDoc::callback_CascadeDoc {
+class GetNamedShapesCallback : public ChCascadeDoc::ScanShapesCallback {
   public:
     char search_string[200];
 
@@ -259,8 +257,7 @@ class callback_CascadeDoc_getnamed : public ChCascadeDoc::callback_CascadeDoc {
     int res_level;
     TDF_Label res_label;
 
-    callback_CascadeDoc_getnamed(const char* name_with_path)
-        : res_found(false), set_location_to_root(true), res_level(0) {
+    GetNamedShapesCallback(const char* name_with_path) : res_found(false), set_location_to_root(true), res_level(0) {
         aBuilder.MakeCompound(res_comp);
 
         strcpy(search_string, name_with_path);
@@ -300,7 +297,7 @@ class callback_CascadeDoc_getnamed : public ChCascadeDoc::callback_CascadeDoc {
     }
 
     virtual bool ForShape(TopoDS_Shape& mshape, TopLoc_Location& mloc, char* mname, int mlevel, TDF_Label& mlabel) {
-        if (this->level_names.size() > mlevel) {
+        if ((int)level_names.size() > mlevel) {
             if (wildcard_compare(level_names[mlevel].c_str(), mname)) {
                 if (level_copy[mlevel] != -2) {
                     level_copy[mlevel] = level_copy[mlevel] - 1;
@@ -309,7 +306,7 @@ class callback_CascadeDoc_getnamed : public ChCascadeDoc::callback_CascadeDoc {
                 }
 
                 if ((level_copy[mlevel] == 0) || (level_copy[mlevel] == -2)) {
-                    if (mlevel == this->level_names.size() - 1) {
+                    if (mlevel == (int)level_names.size() - 1) {
                         // Found!!!
 
                         if (this->set_location_to_root)
@@ -337,16 +334,16 @@ class callback_CascadeDoc_getnamed : public ChCascadeDoc::callback_CascadeDoc {
     }
 };
 
-bool ChCascadeDoc::GetNamedShape(TopoDS_Shape& mshape, char* name, bool set_location_to_root, bool get_multiple) {
-    callback_CascadeDoc_getnamed aselector(name);
+bool ChCascadeDoc::GetNamedShape(TopoDS_Shape& mshape, const char* name, bool set_location_to_root, bool get_multiple) {
+    GetNamedShapesCallback selector(name);
 
-    this->ScanCascadeShapes(aselector);
+    this->ScanCascadeShapes(selector);
 
-    if (aselector.res_found) {
+    if (selector.res_found) {
         if (get_multiple)
-            mshape = aselector.res_comp;
+            mshape = selector.res_comp;
         else
-            mshape = aselector.res_shape;
+            mshape = selector.res_shape;
         return true;
     } else {
         mshape.Nullify();
@@ -366,25 +363,25 @@ bool ChCascadeDoc::GetRootShape(TopoDS_Shape& mshape, const int num) {
 
 bool ChCascadeDoc::GetVolumeProperties(const TopoDS_Shape& mshape,   ///< pass the shape here
                                        const double density,         ///< pass the density here
-                                       ChVector<>& center_position,  ///< get the position center, respect to shape pos.
-                                       ChVector<>& inertiaXX,        ///< get the inertia diagonal terms
-                                       ChVector<>& inertiaXY,        ///< get the inertia extradiagonal terms
+                                       ChVector3d& center_position,  ///< get the position center, respect to shape pos.
+                                       ChVector3d& inertiaXX,        ///< get the inertia diagonal terms
+                                       ChVector3d& inertiaXY,        ///< get the inertia extradiagonal terms
                                        double& volume,               ///< get the volume
                                        double& mass                  ///< get the mass
-                                       ) {
+) {
     if (mshape.IsNull())
         return false;
 
     GProp_GProps vprops;
-    
-	// default density = 1;
+
+    // default density = 1;
 
     BRepGProp::VolumeProperties(mshape, vprops);
 
-	mass = vprops.Mass() * density; 
+    mass = vprops.Mass() * density;
     volume = vprops.Mass();
     gp_Pnt G = vprops.CentreOfMass();
-	gp_Mat I = vprops.MatrixOfInertia();
+    gp_Mat I = vprops.MatrixOfInertia();
 
     center_position.x() = G.X();
     center_position.y() = G.Y();
@@ -397,15 +394,15 @@ bool ChCascadeDoc::GetVolumeProperties(const TopoDS_Shape& mshape,   ///< pass t
     inertiaXY.y() = I(1, 3);
     inertiaXY.z() = I(2, 3);
 
-	inertiaXX *= density;
-	inertiaXY *= density;
+    inertiaXX *= density;
+    inertiaXY *= density;
 
     return true;
 }
 
 void ChCascadeDoc::FromCascadeToChrono(const TopLoc_Location& from_coord, ChFrame<>& to_coord) {
     gp_XYZ mtr = from_coord.Transformation().TranslationPart();
-    to_coord.SetPos(ChVector<>(mtr.X(), mtr.Y(), mtr.Z()));
+    to_coord.SetPos(ChVector3d(mtr.X(), mtr.Y(), mtr.Z()));
 
     gp_Mat mro = from_coord.Transformation().VectorialPart();
     ChMatrix33<> to_mat;
@@ -426,23 +423,20 @@ void ChCascadeDoc::FromCascadeToChrono(const TopLoc_Location& from_coord, ChFram
 }
 
 void ChCascadeDoc::FromChronoToCascade(const ChFrame<>& from_coord, TopLoc_Location& to_coord) {
-    const ChVector<>& mpos = from_coord.GetPos();
+    const ChVector3d& mpos = from_coord.GetPos();
     gp_Vec mtr(mpos.x(), mpos.y(), mpos.z());
 
-    const ChMatrix33<>& from_mat = from_coord.GetA();
-	
-	gp_Trsf castrasf;
-	castrasf.SetValues(from_mat(0, 0), from_mat(0, 1), from_mat(0, 2), mpos.x(), from_mat(1, 0), from_mat(1, 1),
-		from_mat(1, 2), mpos.y(), from_mat(2, 0), from_mat(2, 1), from_mat(2, 2), mpos.z());
+    const ChMatrix33<>& from_mat = from_coord.GetRotMat();
 
-	to_coord = TopLoc_Location(castrasf);
+    gp_Trsf castrasf;
+    castrasf.SetValues(from_mat(0, 0), from_mat(0, 1), from_mat(0, 2), mpos.x(), from_mat(1, 0), from_mat(1, 1),
+                       from_mat(1, 2), mpos.y(), from_mat(2, 0), from_mat(2, 1), from_mat(2, 2), mpos.z());
+
+    to_coord = TopLoc_Location(castrasf);
 
     //((gp_Trsf)(to_coord.Transformation()))
     //    .SetValues(from_mat(0, 0), from_mat(0, 1), from_mat(0, 2), mpos.x(), from_mat(1, 0), from_mat(1, 1),
     //               from_mat(1, 2), mpos.y(), from_mat(2, 0), from_mat(2, 1), from_mat(2, 2), mpos.z()); //0, 0);
 }
-
-
-
 
 /////////////////////

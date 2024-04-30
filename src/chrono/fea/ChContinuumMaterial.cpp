@@ -20,26 +20,26 @@ namespace fea {
 // -----------------------------------------------------------------------------
 
 ChContinuumMaterial::ChContinuumMaterial(const ChContinuumMaterial& other) {
-    density = other.density;
+    m_density = other.m_density;
 }
 
 // Register into the object factory, to enable run-time dynamic creation and persistence
 CH_FACTORY_REGISTER(ChContinuumMaterial)
 
-void ChContinuumMaterial::ArchiveOut(ChArchiveOut& marchive) {
+void ChContinuumMaterial::ArchiveOut(ChArchiveOut& archive_out) {
     // version number
-    marchive.VersionWrite<ChContinuumMaterial>();
+    archive_out.VersionWrite<ChContinuumMaterial>();
     // serialize parent class
     // serialize all member data:
-    marchive << CHNVP(density, "density");
+    archive_out << CHNVP(m_density);
 }
 
-void ChContinuumMaterial::ArchiveIn(ChArchiveIn& marchive) {
+void ChContinuumMaterial::ArchiveIn(ChArchiveIn& archive_in) {
     // version number
-    /*int version =*/ marchive.VersionRead<ChContinuumMaterial>();
+    /*int version =*/archive_in.VersionRead<ChContinuumMaterial>();
     // deserialize parent class
     // stream in all member data:
-    marchive >> CHNVP(density, "density");
+    archive_in >> CHNVP(m_density);
 }
 
 // -----------------------------------------------------------------------------
@@ -47,125 +47,121 @@ void ChContinuumMaterial::ArchiveIn(ChArchiveIn& marchive) {
 // Register into the object factory, to enable run-time dynamic creation and persistence
 CH_FACTORY_REGISTER(ChContinuumElastic)
 
-ChContinuumElastic::ChContinuumElastic(double myoung, double mpoisson, double mdensity)
-    : ChContinuumMaterial(mdensity) {
-    E = myoung;
-    Set_v(mpoisson);              // sets also G and l
+ChContinuumElastic::ChContinuumElastic(double young, double poisson, double density) : ChContinuumMaterial(density) {
+    m_E = young;
+    SetPoissonRatio(poisson);     // sets also LamÃ©
     ComputeStressStrainMatrix();  // sets Elasticity matrix
-    this->damping_M = 0;
-    this->damping_K = 0;
+    this->m_rayl_damping_alpha = 0;
+    this->m_rayl_damping_beta = 0;
 }
 
 ChContinuumElastic::ChContinuumElastic(const ChContinuumElastic& other) : ChContinuumMaterial(other) {
-    E = other.E;
-    v = other.v;
-    G = other.G;
-    l = other.l;
-    damping_M = other.damping_M;
-    damping_K = other.damping_K;
+    m_E = other.m_E;
+    m_poisson = other.m_poisson;
+    m_lamefirst = other.m_lamefirst;
+    m_rayl_damping_alpha = other.m_rayl_damping_alpha;
+    m_rayl_damping_beta = other.m_rayl_damping_beta;
 
     StressStrainMatrix = other.StressStrainMatrix;
 }
 
-void ChContinuumElastic::Set_E(double m_E) {
-    E = m_E;
-    G = E / (2 * (1 + v));                  // fixed v, E, get G
-    l = (v * E) / ((1 + v) * (1 - 2 * v));  // Lame's constant l
-    ComputeStressStrainMatrix();            // updates Elasticity matrix
+void ChContinuumElastic::SetYoungModulus(double E) {
+    m_E = E;
+    m_lamefirst = (m_poisson * m_E) / ((1 + m_poisson) * (1 - 2 * m_poisson));  // Lame's constant l
+    ComputeStressStrainMatrix();                                                // updates Elasticity matrix
 }
 
-void ChContinuumElastic::Set_v(double m_v) {
-    v = m_v;
-    G = E / (2 * (1 + v));                  // fixed v, E, get G
-    l = (v * E) / ((1 + v) * (1 - 2 * v));  // Lame's constant l
-    ComputeStressStrainMatrix();            // updates Elasticity matrix
+void ChContinuumElastic::SetPoissonRatio(double v) {
+    m_poisson = v;
+    m_lamefirst = (m_poisson * m_E) / ((1 + m_poisson) * (1 - 2 * m_poisson));  // Lame's constant l
+    ComputeStressStrainMatrix();                                                // updates Elasticity matrix
 }
 
-void ChContinuumElastic::Set_G(double m_G) {
-    G = m_G;
-    v = (E / (2 * G)) - 1;                  // fixed G, E, get v
-    l = (v * E) / ((1 + v) * (1 - 2 * v));  // Lame's constant l
-    ComputeStressStrainMatrix();            // updates Elasticity matrix
+void ChContinuumElastic::SetShearModulus(double G) {
+    m_poisson = (m_E / (2 * G)) - 1;                                            // fixed G, E, get v
+    m_lamefirst = (m_poisson * m_E) / ((1 + m_poisson) * (1 - 2 * m_poisson));  // Lame's constant l
+    ComputeStressStrainMatrix();                                                // updates Elasticity matrix
 }
 
 void ChContinuumElastic::ComputeStressStrainMatrix() {
     StressStrainMatrix.setZero(6, 6);
-    StressStrainMatrix(0, 0) = (E * (1 - v)) / (1 + v) / (1 - 2 * v);
+    StressStrainMatrix(0, 0) = (m_E * (1 - m_poisson)) / (1 + m_poisson) / (1 - 2 * m_poisson);
     // StressStrainMatrix(1,1)=StressStrainMatrix(0,0);	//
-    // StressStrainMatrix(2,2)=StressStrainMatrix(0,0);	//per non ricalcolare; qual'è meglio?
-    StressStrainMatrix(1, 1) = (E * (1 - v)) / (1 + v) / (1 - 2 * v);
-    StressStrainMatrix(2, 2) = (E * (1 - v)) / (1 + v) / (1 - 2 * v);
-    StressStrainMatrix(0, 1) = (E * (v)) / (1 + v) / (1 - 2 * v);
-    StressStrainMatrix(0, 2) = (E * (v)) / (1 + v) / (1 - 2 * v);
-    StressStrainMatrix(1, 0) = (E * (v)) / (1 + v) / (1 - 2 * v);
-    StressStrainMatrix(1, 2) = (E * (v)) / (1 + v) / (1 - 2 * v);
-    StressStrainMatrix(2, 0) = (E * (v)) / (1 + v) / (1 - 2 * v);
-    StressStrainMatrix(2, 1) = (E * (v)) / (1 + v) / (1 - 2 * v);
-    StressStrainMatrix(3, 3) = (E * (1 - 2 * v)) / (1 + v) / (1 - 2 * v) / 2;
-    StressStrainMatrix(4, 4) = (E * (1 - 2 * v)) / (1 + v) / (1 - 2 * v) / 2;
-    StressStrainMatrix(5, 5) = (E * (1 - 2 * v)) / (1 + v) / (1 - 2 * v) / 2;
+    // StressStrainMatrix(2,2)=StressStrainMatrix(0,0);	//per non ricalcolare; qual'ï¿½ meglio?
+    StressStrainMatrix(1, 1) = (m_E * (1 - m_poisson)) / (1 + m_poisson) / (1 - 2 * m_poisson);
+    StressStrainMatrix(2, 2) = (m_E * (1 - m_poisson)) / (1 + m_poisson) / (1 - 2 * m_poisson);
+    StressStrainMatrix(0, 1) = (m_E * (m_poisson)) / (1 + m_poisson) / (1 - 2 * m_poisson);
+    StressStrainMatrix(0, 2) = (m_E * (m_poisson)) / (1 + m_poisson) / (1 - 2 * m_poisson);
+    StressStrainMatrix(1, 0) = (m_E * (m_poisson)) / (1 + m_poisson) / (1 - 2 * m_poisson);
+    StressStrainMatrix(1, 2) = (m_E * (m_poisson)) / (1 + m_poisson) / (1 - 2 * m_poisson);
+    StressStrainMatrix(2, 0) = (m_E * (m_poisson)) / (1 + m_poisson) / (1 - 2 * m_poisson);
+    StressStrainMatrix(2, 1) = (m_E * (m_poisson)) / (1 + m_poisson) / (1 - 2 * m_poisson);
+    StressStrainMatrix(3, 3) = (m_E * (1 - 2 * m_poisson)) / (1 + m_poisson) / (1 - 2 * m_poisson) / 2;
+    StressStrainMatrix(4, 4) = (m_E * (1 - 2 * m_poisson)) / (1 + m_poisson) / (1 - 2 * m_poisson) / 2;
+    StressStrainMatrix(5, 5) = (m_E * (1 - 2 * m_poisson)) / (1 + m_poisson) / (1 - 2 * m_poisson) / 2;
 }
 
-void ChContinuumElastic::ComputeElasticStress(ChStressTensor<>& mstress, const ChStrainTensor<>& mstrain) const {
-    mstress.XX() = mstrain.XX() * (l + 2 * G) + mstrain.YY() * l + mstrain.ZZ() * l;
-    mstress.YY() = mstrain.XX() * l + mstrain.YY() * (l + 2 * G) + mstrain.ZZ() * l;
-    mstress.ZZ() = mstrain.XX() * l + mstrain.YY() * l + mstrain.ZZ() * (l + 2 * G);
-    mstress.XY() = mstrain.XY() * 2 * G;
-    mstress.XZ() = mstrain.XZ() * 2 * G;
-    mstress.YZ() = mstrain.YZ() * 2 * G;
+void ChContinuumElastic::ComputeElasticStress(ChStressTensor<>& stress, const ChStrainTensor<>& strain) const {
+    double G = GetShearModulus();
+    stress.XX() = strain.XX() * (m_lamefirst + 2 * G) + strain.YY() * m_lamefirst + strain.ZZ() * m_lamefirst;
+    stress.YY() = strain.XX() * m_lamefirst + strain.YY() * (m_lamefirst + 2 * G) + strain.ZZ() * m_lamefirst;
+    stress.ZZ() = strain.XX() * m_lamefirst + strain.YY() * m_lamefirst + strain.ZZ() * (m_lamefirst + 2 * G);
+    stress.XY() = strain.XY() * 2 * G;
+    stress.XZ() = strain.XZ() * 2 * G;
+    stress.YZ() = strain.YZ() * 2 * G;
 }
 
-void ChContinuumElastic::ComputeElasticStrain(ChStrainTensor<>& mstrain, const ChStressTensor<>& mstress) const {
-    double invE = 1. / E;
-    double invhG = 0.5 / G;
-    mstrain.XX() = invE * (mstress.XX() - mstress.YY() * v - mstress.ZZ() * v);
-    mstrain.YY() = invE * (-mstress.XX() * v + mstress.YY() - mstress.ZZ() * v);
-    mstrain.ZZ() = invE * (-mstress.XX() * v - mstress.YY() * v + mstress.ZZ());
-    mstrain.XY() = mstress.XY() * invhG;
-    mstrain.XZ() = mstress.XZ() * invhG;
-    mstrain.YZ() = mstress.YZ() * invhG;
+void ChContinuumElastic::ComputeElasticStrain(ChStrainTensor<>& strain, const ChStressTensor<>& stress) const {
+    double invE = 1. / m_E;
+    double invhG = 0.5 / GetShearModulus();
+    strain.XX() = invE * (stress.XX() - stress.YY() * m_poisson - stress.ZZ() * m_poisson);
+    strain.YY() = invE * (-stress.XX() * m_poisson + stress.YY() - stress.ZZ() * m_poisson);
+    strain.ZZ() = invE * (-stress.XX() * m_poisson - stress.YY() * m_poisson + stress.ZZ());
+    strain.XY() = stress.XY() * invhG;
+    strain.XZ() = stress.XZ() * invhG;
+    strain.YZ() = stress.YZ() * invhG;
 }
 
-void ChContinuumElastic::ArchiveOut(ChArchiveOut& marchive) {
+void ChContinuumElastic::ArchiveOut(ChArchiveOut& archive_out) {
     // version number
-    marchive.VersionWrite<ChContinuumElastic>();
+    archive_out.VersionWrite<ChContinuumElastic>();
     // serialize parent class
-    ChContinuumMaterial::ArchiveOut(marchive);
+    ChContinuumMaterial::ArchiveOut(archive_out);
     // serialize all member data:
-    marchive << CHNVP(this->E);
-    marchive << CHNVP(this->v);
-    marchive << CHNVP(this->damping_M);
-    marchive << CHNVP(this->damping_K);
+    archive_out << CHNVP(m_E);
+    archive_out << CHNVP(m_poisson);
+    archive_out << CHNVP(m_rayl_damping_alpha);
+    archive_out << CHNVP(m_rayl_damping_beta);
 }
 
-void ChContinuumElastic::ArchiveIn(ChArchiveIn& marchive) {
+void ChContinuumElastic::ArchiveIn(ChArchiveIn& archive_in) {
     // version number
-    /*int version =*/ marchive.VersionRead<ChContinuumElastic>();
+    /*int version =*/archive_in.VersionRead<ChContinuumElastic>();
     // deserialize parent class
-    ChContinuumMaterial::ArchiveIn(marchive);
+    ChContinuumMaterial::ArchiveIn(archive_in);
     // stream in all member data:
-    marchive >> CHNVP(this->E);
-    marchive >> CHNVP(this->v);
-    this->Set_v(this->v);  // G and l from v
-    marchive >> CHNVP(this->damping_M);
-    marchive >> CHNVP(this->damping_K);
+    archive_in >> CHNVP(m_E);
+    archive_in >> CHNVP(m_poisson);
+    this->SetPoissonRatio(m_poisson);  // G and l from v
+    archive_in >> CHNVP(m_rayl_damping_alpha);
+    archive_in >> CHNVP(m_rayl_damping_beta);
 }
 
 // -----------------------------------------------------------------------------
 
-void ChContinuumElastoplastic::ArchiveOut(ChArchiveOut& marchive) {
+void ChContinuumElastoplastic::ArchiveOut(ChArchiveOut& archive_out) {
     // version number
-    marchive.VersionWrite<ChContinuumElastoplastic>();
+    archive_out.VersionWrite<ChContinuumElastoplastic>();
     // serialize parent class
-    ChContinuumElastic::ArchiveOut(marchive);
+    ChContinuumElastic::ArchiveOut(archive_out);
     // serialize all member data:
 }
 
-void ChContinuumElastoplastic::ArchiveIn(ChArchiveIn& marchive) {
+void ChContinuumElastoplastic::ArchiveIn(ChArchiveIn& archive_in) {
     // version number
-    /*int version =*/ marchive.VersionRead<ChContinuumElastoplastic>();
+    /*int version =*/archive_in.VersionRead<ChContinuumElastoplastic>();
     // deserialize parent class
-    ChContinuumElastic::ArchiveIn(marchive);
+    ChContinuumElastic::ArchiveIn(archive_in);
     // stream in all member data:
 }
 
@@ -174,76 +170,76 @@ void ChContinuumElastoplastic::ArchiveIn(ChArchiveIn& marchive) {
 // Register into the object factory, to enable run-time dynamic creation and persistence
 CH_FACTORY_REGISTER(ChContinuumPlasticVonMises)
 
-ChContinuumPlasticVonMises::ChContinuumPlasticVonMises(double myoung,
-                                                       double mpoisson,
-                                                       double mdensity,
-                                                       double melastic_yeld,
-                                                       double mplastic_yeld)
-    : ChContinuumElastoplastic(myoung, mpoisson, mdensity),
-      elastic_yeld(melastic_yeld),
-      plastic_yeld(mplastic_yeld),
-      flow_rate(1) {}
+ChContinuumPlasticVonMises::ChContinuumPlasticVonMises(double young,
+                                                       double poisson,
+                                                       double density,
+                                                       double elastic_yeld,
+                                                       double plastic_yeld)
+    : ChContinuumElastoplastic(young, poisson, density),
+      m_elastic_yield(elastic_yeld),
+      m_plastic_yield(plastic_yeld),
+      m_plastic_flow_rate(1) {}
 
 ChContinuumPlasticVonMises::ChContinuumPlasticVonMises(const ChContinuumPlasticVonMises& other)
     : ChContinuumElastoplastic(other) {
-    elastic_yeld = other.elastic_yeld;
-    plastic_yeld = other.plastic_yeld;
-    flow_rate = other.flow_rate;
+    m_elastic_yield = other.m_elastic_yield;
+    m_plastic_yield = other.m_plastic_yield;
+    m_plastic_flow_rate = other.m_plastic_flow_rate;
 }
 
-double ChContinuumPlasticVonMises::ComputeYeldFunction(const ChStressTensor<>& mstress) const {
-    return (mstress.GetEquivalentVonMises() - this->elastic_yeld);
+double ChContinuumPlasticVonMises::ComputeYieldFunction(const ChStressTensor<>& stress) const {
+    return (stress.GetEquivalentVonMises() - this->m_elastic_yield);
 }
 
-void ChContinuumPlasticVonMises::ComputeReturnMapping(ChStrainTensor<>& mplasticstrainflow,
-                                                      const ChStrainTensor<>& mincrementstrain,
-                                                      const ChStrainTensor<>& mlastelasticstrain,
-                                                      const ChStrainTensor<>& mlastplasticstrain) const {
-    ChStrainTensor<> guesselstrain(mlastelasticstrain);
-    guesselstrain += mincrementstrain;  // assume increment is all elastic
+void ChContinuumPlasticVonMises::ComputeReturnMapping(ChStrainTensor<>& plasticstrainflow,
+                                                      const ChStrainTensor<>& incrementstrain,
+                                                      const ChStrainTensor<>& lastelasticstrain,
+                                                      const ChStrainTensor<>& lastplasticstrain) const {
+    ChStrainTensor<> guesselstrain(lastelasticstrain);
+    guesselstrain += incrementstrain;  // assume increment is all elastic
 
     double vonm = guesselstrain.GetEquivalentVonMises();
-    if (vonm > this->elastic_yeld) {
+    if (vonm > this->m_elastic_yield) {
         ChVoightTensor<> mdev;
         guesselstrain.GetDeviatoricPart(mdev);
-        mplasticstrainflow = mdev * ((vonm - this->elastic_yeld) / (vonm));
+        plasticstrainflow = mdev * ((vonm - this->m_elastic_yield) / (vonm));
     } else {
-        mplasticstrainflow.setZero();
+        plasticstrainflow.setZero();
     }
 }
 
-void ChContinuumPlasticVonMises::ComputePlasticStrainFlow(ChStrainTensor<>& mplasticstrainflow,
-                                                          const ChStrainTensor<>& mtotstrain) const {
-    double vonm = mtotstrain.GetEquivalentVonMises();
-    if (vonm > this->elastic_yeld) {
+void ChContinuumPlasticVonMises::ComputePlasticStrainFlow(ChStrainTensor<>& plasticstrainflow,
+                                                          const ChStrainTensor<>& totstrain) const {
+    double vonm = totstrain.GetEquivalentVonMises();
+    if (vonm > this->m_elastic_yield) {
         ChVoightTensor<> mdev;
-        mtotstrain.GetDeviatoricPart(mdev);
-        mplasticstrainflow = mdev * ((vonm - this->elastic_yeld) / (vonm));
+        totstrain.GetDeviatoricPart(mdev);
+        plasticstrainflow = mdev * ((vonm - this->m_elastic_yield) / (vonm));
     } else {
-        mplasticstrainflow.setZero();
+        plasticstrainflow.setZero();
     }
 }
 
-void ChContinuumPlasticVonMises::ArchiveOut(ChArchiveOut& marchive) {
+void ChContinuumPlasticVonMises::ArchiveOut(ChArchiveOut& archive_out) {
     // version number
-    marchive.VersionWrite<ChContinuumPlasticVonMises>();
+    archive_out.VersionWrite<ChContinuumPlasticVonMises>();
     // serialize parent class
-    ChContinuumElastoplastic::ArchiveOut(marchive);
+    ChContinuumElastoplastic::ArchiveOut(archive_out);
     // serialize all member data:
-    marchive << CHNVP(this->elastic_yeld);
-    marchive << CHNVP(this->plastic_yeld);
-    marchive << CHNVP(this->flow_rate);
+    archive_out << CHNVP(m_elastic_yield);
+    archive_out << CHNVP(m_plastic_yield);
+    archive_out << CHNVP(m_plastic_flow_rate);
 }
 
-void ChContinuumPlasticVonMises::ArchiveIn(ChArchiveIn& marchive) {
+void ChContinuumPlasticVonMises::ArchiveIn(ChArchiveIn& archive_in) {
     // version number
-    /*int version =*/ marchive.VersionRead<ChContinuumPlasticVonMises>();
+    /*int version =*/archive_in.VersionRead<ChContinuumPlasticVonMises>();
     // deserialize parent class
-    ChContinuumElastoplastic::ArchiveIn(marchive);
+    ChContinuumElastoplastic::ArchiveIn(archive_in);
     // stream in all member data:
-    marchive >> CHNVP(this->elastic_yeld);
-    marchive >> CHNVP(this->plastic_yeld);
-    marchive >> CHNVP(this->flow_rate);
+    archive_in >> CHNVP(m_elastic_yield);
+    archive_in >> CHNVP(m_plastic_yield);
+    archive_in >> CHNVP(m_plastic_flow_rate);
 }
 
 // -----------------------------------------------------------------------------
@@ -251,69 +247,69 @@ void ChContinuumPlasticVonMises::ArchiveIn(ChArchiveIn& marchive) {
 // Register into the object factory, to enable run-time dynamic creation and persistence
 CH_FACTORY_REGISTER(ChContinuumDruckerPrager)
 
-ChContinuumDruckerPrager::ChContinuumDruckerPrager(double myoung,
-                                                   double mpoisson,
-                                                   double mdensity,
-                                                   double melastic_yeld,
-                                                   double malpha,
-                                                   double mdilatancy)
-    : ChContinuumElastoplastic(myoung, mpoisson, mdensity),
-      elastic_yeld(melastic_yeld),
-      alpha(malpha),
-      dilatancy(mdilatancy),
-      hardening_limit(elastic_yeld),
-      hardening_speed(0),
-      flow_rate(1) {}
+ChContinuumDruckerPrager::ChContinuumDruckerPrager(double young,
+                                                   double poisson,
+                                                   double density,
+                                                   double elastic_yield,
+                                                   double alpha,
+                                                   double dilatancy)
+    : ChContinuumElastoplastic(young, poisson, density),
+      m_elastic_yield(elastic_yield),
+      m_alpha(alpha),
+      m_dilatancy(dilatancy),
+      m_hardening_limit(elastic_yield),
+      m_hardening_speed(0),
+      m_plastic_flow_rate(1) {}
 
 ChContinuumDruckerPrager::ChContinuumDruckerPrager(const ChContinuumDruckerPrager& other)
     : ChContinuumElastoplastic(other) {
-    elastic_yeld = other.elastic_yeld;
-    alpha = other.alpha;
-    dilatancy = other.dilatancy;
-    hardening_speed = other.hardening_speed;
-    hardening_limit = other.hardening_limit;
-    flow_rate = other.flow_rate;
+    m_elastic_yield = other.m_elastic_yield;
+    m_alpha = other.m_alpha;
+    m_dilatancy = other.m_dilatancy;
+    m_hardening_speed = other.m_hardening_speed;
+    m_hardening_limit = other.m_hardening_limit;
+    m_plastic_flow_rate = other.m_plastic_flow_rate;
 }
 
-void ChContinuumDruckerPrager::Set_from_MohrCoulomb(double phi, double cohesion, bool inner_approx) {
+void ChContinuumDruckerPrager::SetFromMohrCoulomb(double phi, double cohesion, bool inner_approx) {
     if (inner_approx) {
-        alpha = (2 * sin(phi)) / (sqrt(3.0) * (3.0 - sin(phi)));
-        elastic_yeld = (6 * cohesion * cos(phi)) / (sqrt(3.0) * (3.0 - sin(phi)));
+        m_alpha = (2 * sin(phi)) / (sqrt(3.0) * (3.0 - sin(phi)));
+        m_elastic_yield = (6 * cohesion * cos(phi)) / (sqrt(3.0) * (3.0 - sin(phi)));
     } else {
-        alpha = (2 * sin(phi)) / (sqrt(3.0) * (3.0 + sin(phi)));
-        elastic_yeld = (6 * cohesion * cos(phi)) / (sqrt(3.0) * (3.0 + sin(phi)));
+        m_alpha = (2 * sin(phi)) / (sqrt(3.0) * (3.0 + sin(phi)));
+        m_elastic_yield = (6 * cohesion * cos(phi)) / (sqrt(3.0) * (3.0 + sin(phi)));
     }
 }
 
-double ChContinuumDruckerPrager::ComputeYeldFunction(const ChStressTensor<>& mstress) const {
-    return (mstress.GetInvariant_I1() * this->alpha + sqrt(mstress.GetInvariant_J2()) - this->elastic_yeld);
+double ChContinuumDruckerPrager::ComputeYieldFunction(const ChStressTensor<>& mstress) const {
+    return (mstress.GetInvariant_I1() * this->m_alpha + sqrt(mstress.GetInvariant_J2()) - this->m_elastic_yield);
 }
 
-void ChContinuumDruckerPrager::ComputeReturnMapping(ChStrainTensor<>& mplasticstrainflow,
-                                                    const ChStrainTensor<>& mincrementstrain,
-                                                    const ChStrainTensor<>& mlastelasticstrain,
-                                                    const ChStrainTensor<>& mlastplasticstrain) const {
-    ChStrainTensor<> guesselstrain(mlastelasticstrain);
-    guesselstrain += mincrementstrain;  // assume increment is all elastic
+void ChContinuumDruckerPrager::ComputeReturnMapping(ChStrainTensor<>& plasticstrainflow,
+                                                    const ChStrainTensor<>& incrementstrain,
+                                                    const ChStrainTensor<>& lastelasticstrain,
+                                                    const ChStrainTensor<>& lastplasticstrain) const {
+    ChStrainTensor<> guesselstrain(lastelasticstrain);
+    guesselstrain += incrementstrain;  // assume increment is all elastic
 
     ChStressTensor<> mstress;
     this->ComputeElasticStress(mstress, guesselstrain);
-    double fprager = this->ComputeYeldFunction(mstress);
+    double fprager = this->ComputeYieldFunction(mstress);
 
     if (fprager > 0) {
-        if (mstress.GetInvariant_I1() * this->alpha - sqrt(mstress.GetInvariant_J2()) * this->alpha * this->alpha -
-                this->elastic_yeld >
+        if (mstress.GetInvariant_I1() * this->m_alpha -
+                sqrt(mstress.GetInvariant_J2()) * this->m_alpha * this->m_alpha - this->m_elastic_yield >
             0) {
             // Case: tentative stress is in polar cone; a singular region where the gradient of
             // the yield function (or flow potential) is not defined. Just project to vertex.
             ChStressTensor<> vertexstress;
-            double vertcoord = this->elastic_yeld / (3 * this->alpha);
+            double vertcoord = this->m_elastic_yield / (3 * this->m_alpha);
             vertexstress.XX() = vertcoord;
             vertexstress.YY() = vertcoord;
             vertexstress.ZZ() = vertcoord;
             ChStrainTensor<> vertexstrain;
             this->ComputeElasticStrain(vertexstrain, vertexstress);
-            mplasticstrainflow = guesselstrain - vertexstrain;
+            plasticstrainflow = guesselstrain - vertexstrain;
         } else {
             // Case: tentative stress is out of the yield cone.
             // Just project using the yield (or flow potential) gradient.
@@ -323,21 +319,21 @@ void ChContinuumDruckerPrager::ComputeReturnMapping(ChStrainTensor<>& mplasticst
             if (devsq > 10e-16) {
                 double sixdevsq = 6 * devsq;
 
-                dFdS.XX() = this->alpha + (2 * mstress.XX() - mstress.YY() - mstress.ZZ()) / sixdevsq;
-                dFdS.YY() = this->alpha + (-mstress.XX() + 2 * mstress.YY() - mstress.ZZ()) / sixdevsq;
-                dFdS.ZZ() = this->alpha + (-mstress.XX() - mstress.YY() + 2 * mstress.ZZ()) / sixdevsq;
+                dFdS.XX() = this->m_alpha + (2 * mstress.XX() - mstress.YY() - mstress.ZZ()) / sixdevsq;
+                dFdS.YY() = this->m_alpha + (-mstress.XX() + 2 * mstress.YY() - mstress.ZZ()) / sixdevsq;
+                dFdS.ZZ() = this->m_alpha + (-mstress.XX() - mstress.YY() + 2 * mstress.ZZ()) / sixdevsq;
                 dFdS.XY() = mstress.XY() / devsq;
                 dFdS.YZ() = mstress.YZ() / devsq;
                 dFdS.XZ() = mstress.XZ() / devsq;
 
-                dGdS.XX() = this->dilatancy + (2 * mstress.XX() - mstress.YY() - mstress.ZZ()) / sixdevsq;
-                dGdS.YY() = this->dilatancy + (-mstress.XX() + 2 * mstress.YY() - mstress.ZZ()) / sixdevsq;
-                dGdS.ZZ() = this->dilatancy + (-mstress.XX() - mstress.YY() + 2 * mstress.ZZ()) / sixdevsq;
+                dGdS.XX() = this->m_dilatancy + (2 * mstress.XX() - mstress.YY() - mstress.ZZ()) / sixdevsq;
+                dGdS.YY() = this->m_dilatancy + (-mstress.XX() + 2 * mstress.YY() - mstress.ZZ()) / sixdevsq;
+                dGdS.ZZ() = this->m_dilatancy + (-mstress.XX() - mstress.YY() + 2 * mstress.ZZ()) / sixdevsq;
                 dGdS.XY() = mstress.XY() / devsq;
                 dGdS.YZ() = mstress.YZ() / devsq;
                 dGdS.XZ() = mstress.XZ() / devsq;
             } else {
-                GetLog() << "      ... axial singularity - SHOULD NEVER OCCUR  - handled by polar cone\n";
+                std::cerr << "Error: axial singularity - SHOULD NEVER OCCUR  - handled by polar cone" << std::endl;
                 dFdS.setZero();
                 dFdS.XX() = 1;
                 dFdS.YY() = 1;
@@ -351,65 +347,65 @@ void ChContinuumDruckerPrager::ComputeReturnMapping(ChStrainTensor<>& mplasticst
             this->ComputeElasticStress(aux_dFdS_C, dFdS);
 
             ChMatrixNM<double, 1, 1> inner_up;
-            inner_up = aux_dFdS_C.transpose() * mincrementstrain;
+            inner_up = aux_dFdS_C.transpose() * incrementstrain;
             ChMatrixNM<double, 1, 1> inner_dw;
             inner_dw = aux_dFdS_C.transpose() * dGdS;
 
-            mplasticstrainflow = dGdS;
-            mplasticstrainflow *= inner_up(0) / inner_dw(0);
+            plasticstrainflow = dGdS;
+            plasticstrainflow *= inner_up(0) / inner_dw(0);
         }
     } else {
-        mplasticstrainflow.setZero();
+        plasticstrainflow.setZero();
     }
 }
 
-//***OBSOLETE***
+//// OBSOLETE
 void ChContinuumDruckerPrager::ComputePlasticStrainFlow(ChStrainTensor<>& mplasticstrainflow,
                                                         const ChStrainTensor<>& mestrain) const {
     ChStressTensor<> mstress;
     this->ComputeElasticStress(mstress, mestrain);
-    double prager = mstress.GetInvariant_I1() * this->alpha + sqrt(mstress.GetInvariant_J2());
-    if (prager > this->elastic_yeld) {
+    double prager = mstress.GetInvariant_I1() * this->m_alpha + sqrt(mstress.GetInvariant_J2());
+    if (prager > this->m_elastic_yield) {
         ChVoightTensor<> mdev;
         mstress.GetDeviatoricPart(mdev);
         double divisor = 2. * sqrt(mstress.GetInvariant_J2());
         if (divisor > 10e-20)
             mdev *= 1. / divisor;
-        mdev.XX() += this->dilatancy;
-        mdev.YY() += this->dilatancy;
-        mdev.ZZ() += this->dilatancy;
+        mdev.XX() += this->m_dilatancy;
+        mdev.YY() += this->m_dilatancy;
+        mdev.ZZ() += this->m_dilatancy;
         mplasticstrainflow = mdev;
     } else {
         mplasticstrainflow.setZero();
     }
 }
 
-void ChContinuumDruckerPrager::ArchiveOut(ChArchiveOut& marchive) {
+void ChContinuumDruckerPrager::ArchiveOut(ChArchiveOut& archive_out) {
     // version number
-    marchive.VersionWrite<ChContinuumDruckerPrager>();
+    archive_out.VersionWrite<ChContinuumDruckerPrager>();
     // serialize parent class
-    ChContinuumElastoplastic::ArchiveOut(marchive);
+    ChContinuumElastoplastic::ArchiveOut(archive_out);
     // serialize all member data:
-    marchive << CHNVP(this->elastic_yeld);
-    marchive << CHNVP(this->alpha);
-    marchive << CHNVP(this->dilatancy);
-    marchive << CHNVP(this->hardening_speed);
-    marchive << CHNVP(this->hardening_limit);
-    marchive << CHNVP(this->flow_rate);
+    archive_out << CHNVP(m_elastic_yield);
+    archive_out << CHNVP(m_alpha);
+    archive_out << CHNVP(m_dilatancy);
+    archive_out << CHNVP(m_hardening_speed);
+    archive_out << CHNVP(m_hardening_limit);
+    archive_out << CHNVP(m_plastic_flow_rate);
 }
 
-void ChContinuumDruckerPrager::ArchiveIn(ChArchiveIn& marchive) {
+void ChContinuumDruckerPrager::ArchiveIn(ChArchiveIn& archive_in) {
     // version number
-    /*int version =*/ marchive.VersionRead<ChContinuumDruckerPrager>();
+    /*int version =*/archive_in.VersionRead<ChContinuumDruckerPrager>();
     // deserialize parent class
-    ChContinuumElastoplastic::ArchiveIn(marchive);
+    ChContinuumElastoplastic::ArchiveIn(archive_in);
     // stream in all member data:
-    marchive >> CHNVP(this->elastic_yeld);
-    marchive >> CHNVP(this->alpha);
-    marchive >> CHNVP(this->dilatancy);
-    marchive >> CHNVP(this->hardening_speed);
-    marchive >> CHNVP(this->hardening_limit);
-    marchive >> CHNVP(this->flow_rate);
+    archive_in >> CHNVP(m_elastic_yield);
+    archive_in >> CHNVP(m_alpha);
+    archive_in >> CHNVP(m_dilatancy);
+    archive_in >> CHNVP(m_hardening_speed);
+    archive_in >> CHNVP(m_hardening_limit);
+    archive_in >> CHNVP(m_plastic_flow_rate);
 }
 
 }  // end namespace fea

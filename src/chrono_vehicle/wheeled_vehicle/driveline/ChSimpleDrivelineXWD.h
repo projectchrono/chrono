@@ -45,7 +45,7 @@ class CH_VEHICLE_API ChSimpleDrivelineXWD : public ChDrivelineWV {
     virtual std::string GetTemplateName() const override { return "SimpleDrivelineXWD"; }
 
     /// Return the number of driven axles.
-    virtual int GetNumDrivenAxles() const override { return static_cast<int>(m_shaft_left.size()); }
+    virtual unsigned int GetNumDrivenAxles() const override { return static_cast<int>(m_shaft_left.size()); }
 
     /// Initialize the driveline subsystem.
     /// This function connects this driveline subsystem to the specified axle subsystems.

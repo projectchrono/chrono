@@ -26,6 +26,8 @@
 
 using namespace chrono;
 
+static constexpr int tag_particles = 100;
+
 GroundGranular::GroundGranular(ChSystemMulticore* sys) : m_sys(sys), m_num_particles(0), m_radius(0), m_num_layers(0) {}
 
 GroundGranularA::GroundGranularA(ChSystemMulticore* sys) : GroundGranular(sys) {
@@ -34,9 +36,8 @@ GroundGranularA::GroundGranularA(ChSystemMulticore* sys) : GroundGranular(sys) {
 
 GroundGranularB::GroundGranularB(ChSystemMulticore* sys) : GroundGranular(sys) {
     m_ground = chrono_types::make_shared<ChBody>();
-    m_ground->SetIdentifier(-1);
-    m_ground->SetBodyFixed(true);
-    m_ground->SetCollide(true);
+    m_ground->SetFixed(true);
+    m_ground->EnableCollision(true);
     sys->AddBody(m_ground);
 }
 
@@ -59,14 +60,14 @@ void GroundGranular::Initialize(double x_min, double z_max, double step_size) {
     double bottom = z_max - m_num_layers * (2 * m_radius1);
 
     // Center of bottom boundary
-    m_center = ChVector<>(x_min + m_length / 2, 0, bottom);
+    m_center = ChVector3d(x_min + m_length / 2, 0, bottom);
 
     // Create contact materials
-    double coh_force = (CH_C_PI * m_radius * m_radius) * m_cohesion;
+    double coh_force = (CH_PI * m_radius * m_radius) * m_cohesion;
 
     switch (m_sys->GetContactMethod()) {
         case ChContactMethod::SMC: {
-            auto mat_c = chrono_types::make_shared<ChMaterialSurfaceSMC>();
+            auto mat_c = chrono_types::make_shared<ChContactMaterialSMC>();
             mat_c->SetFriction(0.0f);
             mat_c->SetRestitution(0.0f);
             mat_c->SetYoungModulus(8e5f);
@@ -78,7 +79,7 @@ void GroundGranular::Initialize(double x_min, double z_max, double step_size) {
             mat_c->SetGt(4.0e1f);
             m_material_c = mat_c;
 
-            auto mat_g = chrono_types::make_shared<ChMaterialSurfaceSMC>();
+            auto mat_g = chrono_types::make_shared<ChContactMaterialSMC>();
             mat_g->SetFriction(static_cast<float>(m_friction));
             mat_g->SetRestitution(0.0f);
             mat_g->SetYoungModulus(8e5f);
@@ -93,13 +94,13 @@ void GroundGranular::Initialize(double x_min, double z_max, double step_size) {
             break;
         }
         case ChContactMethod::NSC: {
-            auto mat_c = chrono_types::make_shared<ChMaterialSurfaceNSC>();
+            auto mat_c = chrono_types::make_shared<ChContactMaterialNSC>();
             mat_c->SetFriction(0.0f);
             mat_c->SetRestitution(0.0f);
             mat_c->SetCohesion(0.0f);
             m_material_c = mat_c;
 
-            auto mat_g = chrono_types::make_shared<ChMaterialSurfaceNSC>();
+            auto mat_g = chrono_types::make_shared<ChContactMaterialNSC>();
             mat_g->SetFriction(static_cast<float>(m_friction));
             mat_g->SetRestitution(0.0f);
             mat_g->SetCohesion(static_cast<float>(coh_force * step_size));
@@ -131,7 +132,6 @@ void GroundGranularA::Initialize(double x_min, double z_max, double step_size) {
     if (m_sys->GetContactMethod() == ChContactMethod::NSC)
         m_terrain->SetCollisionEnvelope(0.02 * m_radius);
 
-    m_terrain->SetStartIdentifier(m_start_id);
     m_terrain->EnableVisualization(true);
     m_terrain->EnableVerbose(true);
     m_terrain->Initialize(m_center, m_length, m_width, m_num_layers, m_radius, m_density);
@@ -148,24 +148,24 @@ void GroundGranularB::Initialize(double x_min, double z_max, double step_size) {
 
     // Create container walls
     utils::AddBoxContainer(m_ground, m_material_c,                   //
-                           ChFrame<>(ChVector<>(0, 0, 0.5), QUNIT),  //
-                           ChVector<>(m_length, m_width, 1), 0.1,    //
-                           ChVector<int>(2, 2, -1));
+                           ChFrame<>(ChVector3d(0, 0, 0.5), QUNIT),  //
+                           ChVector3d(m_length, m_width, 1), 0.1,    //
+                           ChVector3i(2, 2, -1));
 
     // Create particles (all spheres)
-    utils::PDSampler<double> sampler(2 * m_radius1);
-    utils::Generator gen(m_sys);
-    std::shared_ptr<utils::MixtureIngredient> m1 = gen.AddMixtureIngredient(utils::MixtureType::SPHERE, 1.0);
-    m1->setDefaultMaterial(m_material_g);
-    m1->setDefaultDensity(m_density);
-    m1->setDefaultSize(m_radius);
+    utils::ChPDSampler<double> sampler(2 * m_radius1);
+    utils::ChGenerator gen(m_sys);
+    std::shared_ptr<utils::ChMixtureIngredient> m1 = gen.AddMixtureIngredient(utils::MixtureType::SPHERE, 1.0);
+    m1->SetDefaultMaterial(m_material_g);
+    m1->SetDefaultDensity(m_density);
+    m1->SetDefaultSize(m_radius);
 
     // Set starting value for body identifiers
-    gen.setBodyIdentifier(m_start_id + 1);
+    gen.SetStartTag(tag_particles);
 
     // Create particles in layers separated by an inflated particle diameter, starting at the bottom boundary
-    ChVector<> hdims(m_length / 2 - m_radius1, m_width / 2 - m_radius1, 0);
-    ChVector<> center = m_center;
+    ChVector3d hdims(m_length / 2 - m_radius1, m_width / 2 - m_radius1, 0);
+    ChVector3d center = m_center;
     center.z() += 3 * m_radius1;
 
     for (unsigned int il = 0; il < m_num_layers; il++) {
@@ -174,7 +174,7 @@ void GroundGranularB::Initialize(double x_min, double z_max, double step_size) {
         center.z() += 2 * m_radius1;
     }
 
-    m_num_particles = gen.getTotalNumBodies();
+    m_num_particles = gen.GetTotalNumBodies();
 }
 
 std::pair<double, double> GroundGranular::GetTopHeight(int num_samples) const {
@@ -195,8 +195,8 @@ std::pair<double, double> GroundGranular::GetTopHeight(int num_samples) const {
     std::vector<double> heights(num_samples, -DBL_MAX);
 
     // Loop over all bodies in system
-    for (auto body : m_sys->Get_bodylist()) {
-        if (body->GetIdentifier() <= m_start_id)
+    for (auto body : m_sys->GetBodies()) {
+        if (body->GetTag() < tag_particles)
             continue;
         auto pos = body->GetPos();
         int ix = (int)std::floor((pos.x() - xm) / dx);

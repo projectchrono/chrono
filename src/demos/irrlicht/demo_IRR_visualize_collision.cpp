@@ -34,7 +34,7 @@ class DebugDrawer : public ChCollisionSystem::VisualizationCallback {
     explicit DebugDrawer(ChVisualSystemIrrlicht* vis) : m_vis(vis) {}
     ~DebugDrawer() {}
 
-    virtual void DrawLine(const ChVector<>& from, const ChVector<>& to, const ChColor& color) override {
+    virtual void DrawLine(const ChVector3d& from, const ChVector3d& to, const ChColor& color) override {
         m_vis->GetVideoDriver()->draw3DLine(irr::core::vector3dfCH(from), irr::core::vector3dfCH(to),
                                             irr::video::SColor(255, color.R * 255, color.G * 255, color.B * 255));
     }
@@ -56,43 +56,42 @@ class DebugDrawer : public ChCollisionSystem::VisualizationCallback {
 };
 
 int main(int argc, char* argv[]) {
-    GetLog() << "Copyright (c) 2017 projectchrono.org\nChrono version: " << CHRONO_VERSION << "\n\n";
+    std::cout << "Copyright (c) 2017 projectchrono.org\nChrono version: " << CHRONO_VERSION << std::endl;
 
     // Create the Chrono system, bodies, and collison shapes
     ChSystemNSC sys;
     sys.SetCollisionSystemType(csys_type);
 
-    auto mat = chrono_types::make_shared<ChMaterialSurfaceNSC>();
+    auto mat = chrono_types::make_shared<ChContactMaterialNSC>();
 
     auto ground = chrono_types::make_shared<ChBodyEasyBox>(10, 3, 10, 100, mat);
-    ground->SetBodyFixed(true);
-    ground->SetPos(ChVector<>(0.0, 0.0, 0.0));
+    ground->SetFixed(true);
+    ground->SetPos(ChVector3d(0.0, 0.0, 0.0));
     ground->GetVisualShape(0)->SetColor(ChColor(0.2f, 0.3f, 0.6f));
     sys.AddBody(ground);
 
-    auto cyl = chrono_types::make_shared<ChBodyEasyCylinder>(geometry::ChAxis::Y, 0.5, 1.0, 100, mat);
-    cyl->SetPos(ChVector<>(0.0, 3.0, 0.0));
+    auto cyl = chrono_types::make_shared<ChBodyEasyCylinder>(ChAxis::Y, 0.5, 1.0, 100, mat);
+    cyl->SetPos(ChVector3d(0.0, 3.0, 0.0));
     cyl->GetVisualShape(0)->SetColor(ChColor(0.2f, 0.3f, 0.6f));
     sys.AddBody(cyl);
 
     auto box = chrono_types::make_shared<ChBodyEasyBox>(0.5, 0.5, 0.5, 100, mat);
-    box->SetPos(ChVector<>(0.2, 2.0, 0.0));
+    box->SetPos(ChVector3d(0.2, 2.0, 0.0));
     box->GetVisualShape(0)->SetColor(ChColor(0.2f, 0.3f, 0.6f));
     sys.AddBody(box);
 
     auto sphere = chrono_types::make_shared<ChBodyEasySphere>(0.25, 100.0, mat);
-    sphere->SetPos(ChVector<>(-0.2, 2.0, 0.75));
+    sphere->SetPos(ChVector3d(-0.2, 2.0, 0.75));
     sphere->GetVisualShape(0)->SetColor(ChColor(0.2f, 0.3f, 0.6f));
     sys.AddBody(sphere);
 
-    auto ellipse = chrono_types::make_shared<ChBodyEasyEllipsoid>(ChVector<>(0.4, 0.8, 1.2), 100.0, mat);
-    ellipse->SetPos(ChVector<>(0.2, 2.0, -1.0));
+    auto ellipse = chrono_types::make_shared<ChBodyEasyEllipsoid>(ChVector3d(0.4, 0.8, 1.2), 100.0, mat);
+    ellipse->SetPos(ChVector3d(0.2, 2.0, -1.0));
     ellipse->GetVisualShape(0)->SetColor(ChColor(0.2f, 0.3f, 0.6f));
     sys.AddBody(ellipse);
 
-    auto mesh =
-        chrono_types::make_shared<ChBodyEasyMesh>(GetChronoDataFile("models/cube.obj"), 100.0, mat, 0.05);
-    mesh->SetPos(ChVector<>(2.0, 3.5, -2.0));
+    auto mesh = chrono_types::make_shared<ChBodyEasyMesh>(GetChronoDataFile("models/cube.obj"), 100.0, mat, 0.05);
+    mesh->SetPos(ChVector3d(2.0, 3.5, -2.0));
     mesh->GetVisualShape(0)->SetColor(ChColor(0.2f, 0.3f, 0.6f));
     sys.AddBody(mesh);
 
@@ -104,7 +103,7 @@ int main(int argc, char* argv[]) {
     vis->Initialize();
     vis->AddLogo();
     vis->AddSkyBox();
-    vis->AddCamera(ChVector<>(0, 8, 6));
+    vis->AddCamera(ChVector3d(0, 8, 6));
     vis->AddTypicalLights();
 
     // Set the debug drawer for collision visualization

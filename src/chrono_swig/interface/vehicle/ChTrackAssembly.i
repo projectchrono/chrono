@@ -11,6 +11,7 @@
 
 #include "chrono/physics/ChSystem.h"
 #include "chrono/physics/ChBodyAuxRef.h"
+#include "chrono/geometry/ChLinePath.h"
 
 #include "chrono_vehicle/ChApiVehicle.h"
 #include "chrono_vehicle/ChPart.h"
@@ -66,7 +67,13 @@
 #include "chrono_vehicle/tracked_vehicle/track_assembly/TrackAssemblyDoublePin.h"
 
 #include "chrono_thirdparty/rapidjson/document.h"
+
+using namespace chrono;
 %}
+
+%shared_ptr(chrono::ChLinePath)
+%import "../../../chrono/geometry/ChLinePath.h"
+
 
 %shared_ptr(chrono::vehicle::ChSprocket)
 %shared_ptr(chrono::vehicle::ChSprocketSinglePin)
@@ -118,13 +125,8 @@
 %shared_ptr(chrono::vehicle::TrackAssemblySinglePin)
 %shared_ptr(chrono::vehicle::TrackAssemblyDoublePin)
 
-#ifdef SWIGCSHARP
-%import "chrono_swig/interface/core/ChShaft.i"
-#endif
 
-#ifdef SWIGPYCHRONO
 %import(module = "pychrono.core") "chrono_swig/interface/core/ChShaft.i"
-#endif
 
 %import "../../../chrono_vehicle/ChPart.h"
 

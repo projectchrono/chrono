@@ -47,15 +47,15 @@ const double Generic_HendricksonPRIMAXX::m_torquerodRadius = 0.02;
 const double Generic_HendricksonPRIMAXX::m_lowerbeamRadius = 0.03;
 const double Generic_HendricksonPRIMAXX::m_transversebeamRadius = 0.02;
 
-const ChVector<> Generic_HendricksonPRIMAXX::m_axlehousingCOM(0, 0, 0);
-const ChVector<> Generic_HendricksonPRIMAXX::m_transversebeamCOM(-0.376, 0, -0.197);
+const ChVector3d Generic_HendricksonPRIMAXX::m_axlehousingCOM(0, 0, 0);
+const ChVector3d Generic_HendricksonPRIMAXX::m_transversebeamCOM(-0.376, 0, -0.197);
 
-const ChVector<> Generic_HendricksonPRIMAXX::m_axlehousingInertia(0.744, 0.045, 0.744);
-const ChVector<> Generic_HendricksonPRIMAXX::m_knuckleInertia(0.00255, 0.00134, 0.00196);
-const ChVector<> Generic_HendricksonPRIMAXX::m_spindleInertia(0.0000558, 0.0000279, 0.0000558);
-const ChVector<> Generic_HendricksonPRIMAXX::m_torquerodInertia(0.011, 0.011, 0.000142);
-const ChVector<> Generic_HendricksonPRIMAXX::m_lowerbeamInertia(0.0514, 0.0514, 0.00037);
-const ChVector<> Generic_HendricksonPRIMAXX::m_transversebeamInertia(0.5, 0.2, 0.5);
+const ChVector3d Generic_HendricksonPRIMAXX::m_axlehousingInertia(0.744, 0.045, 0.744);
+const ChVector3d Generic_HendricksonPRIMAXX::m_knuckleInertia(0.00255, 0.00134, 0.00196);
+const ChVector3d Generic_HendricksonPRIMAXX::m_spindleInertia(0.0000558, 0.0000279, 0.0000558);
+const ChVector3d Generic_HendricksonPRIMAXX::m_torquerodInertia(0.011, 0.011, 0.000142);
+const ChVector3d Generic_HendricksonPRIMAXX::m_lowerbeamInertia(0.0514, 0.0514, 0.00037);
+const ChVector3d Generic_HendricksonPRIMAXX::m_transversebeamInertia(0.5, 0.2, 0.5);
 
 const double Generic_HendricksonPRIMAXX::m_axleInertia = 0.4;
 
@@ -91,44 +91,44 @@ Generic_HendricksonPRIMAXX::~Generic_HendricksonPRIMAXX() {}
 // function are for the left half of the suspension only.
 // -----------------------------------------------------------------------------
 
-const ChVector<> Generic_HendricksonPRIMAXX::getLocation(PointId which) {
+const ChVector3d Generic_HendricksonPRIMAXX::getLocation(PointId which) {
     switch (which) {
         case SPINDLE:
-            return ChVector<>(0, 0.910, 0);  // spindle location
+            return ChVector3d(0, 0.910, 0);  // spindle location
         case KNUCKLE_L:
-            return ChVector<>(0.006, 0.849, -0.061);  // lower knuckle point
+            return ChVector3d(0.006, 0.849, -0.061);  // lower knuckle point
         case KNUCKLE_U:
-            return ChVector<>(-0.018, 0.819, 0.091);  // upper knuckle point
+            return ChVector3d(-0.018, 0.819, 0.091);  // upper knuckle point
         case TIEROD_C:
-            return ChVector<>(-0.091, 0.400, -0.079);  // tierod, chassis
+            return ChVector3d(-0.091, 0.400, -0.079);  // tierod, chassis
         case TIEROD_K:
-            return ChVector<>(-0.091, 0.825, -0.079);  // tierod, knuckle
+            return ChVector3d(-0.091, 0.825, -0.079);  // tierod, knuckle
         case TORQUEROD_C:
-            return ChVector<>(0.629, 0.65, 0.1);  // torquerod, chassis
+            return ChVector3d(0.629, 0.65, 0.1);  // torquerod, chassis
         case TORQUEROD_AH:
-            return ChVector<>(-0.0, 0.65, 0.1);  // torquerod, axle housing (AH)
+            return ChVector3d(-0.0, 0.65, 0.1);  // torquerod, axle housing (AH)
         case LOWERBEAM_C:
-            return ChVector<>(0.629, 0.65, -0.0);  // lowerbeam, chassis
+            return ChVector3d(0.629, 0.65, -0.0);  // lowerbeam, chassis
         case LOWERBEAM_AH:
-            return ChVector<>(-0.0, 0.65, -0.197);  // lowerbeam, axle housing (AH)
+            return ChVector3d(-0.0, 0.65, -0.197);  // lowerbeam, axle housing (AH)
         case LOWERBEAM_TB:
-            return ChVector<>(-0.376, 0.65, -0.197);  // lowerbeam, transverse beam
+            return ChVector3d(-0.376, 0.65, -0.197);  // lowerbeam, transverse beam
         case SHOCKAH_C:
-            return ChVector<>(-0.1, 0.65, 0.15);  // shock at axle housing (AH), chassis
+            return ChVector3d(-0.1, 0.65, 0.15);  // shock at axle housing (AH), chassis
         case SHOCKAH_AH:
-            return ChVector<>(-0.1, 0.65, -0.1);  // shock at axle housing (AH), axle housing
+            return ChVector3d(-0.1, 0.65, -0.1);  // shock at axle housing (AH), axle housing
         case SHOCKLB_C:
-            return ChVector<>(-0.376, 0.65, 0.15);  //  shock at lower beam (LB), chassis
+            return ChVector3d(-0.376, 0.65, 0.15);  //  shock at lower beam (LB), chassis
         case SHOCKLB_LB:
-            return ChVector<>(-0.376, 0.65, -0.197);  //  shock at lower beam (LB), lower beam
+            return ChVector3d(-0.376, 0.65, -0.197);  //  shock at lower beam (LB), lower beam
         case KNUCKLE_CM:
-            return ChVector<>(-0.006, 0.834, 0.015);  //  knuckle, center of mass
+            return ChVector3d(-0.006, 0.834, 0.015);  //  knuckle, center of mass
         case TORQUEROD_CM:
-            return ChVector<>(0.0, 0.65, 0.0);  //  torquerod, center of mass
+            return ChVector3d(0.0, 0.65, 0.0);  //  torquerod, center of mass
         case LOWERBEAM_CM:
-            return ChVector<>(0.0, 0.65, 0.0);  // lowerbeam, center of mass
+            return ChVector3d(0.0, 0.65, 0.0);  // lowerbeam, center of mass
         default:
-            return ChVector<>(0, 0, 0);
+            return ChVector3d(0, 0, 0);
     }
 }
 
@@ -136,18 +136,18 @@ const ChVector<> Generic_HendricksonPRIMAXX::getLocation(PointId which) {
 // Implementation of the getDirection() virtual methods.
 // -----------------------------------------------------------------------------
 
-const ChVector<> Generic_HendricksonPRIMAXX::getDirection(DirectionId which) {
+const ChVector3d Generic_HendricksonPRIMAXX::getDirection(DirectionId which) {
     switch (which) {
         case UNIV_AXIS_TORQUEROD_ROD:
-            return ChVector<>(0, 1, 0);
+            return ChVector3d(0, 1, 0);
         case UNIV_AXIS_TORQUEROD_CHASSIS:
-            return ChVector<>(0, 0, 1);
+            return ChVector3d(0, 0, 1);
         case UNIV_AXIS_LOWERBEAM_BEAM:
-            return ChVector<>(0, -1, 0);
+            return ChVector3d(0, -1, 0);
         case UNIV_AXIS_LOWERBEAM_CHASSIS:
-            return ChVector<>(0, 0, 1);
+            return ChVector3d(0, 0, 1);
         default:
-            return ChVector<>(0, 0, 1);
+            return ChVector3d(0, 0, 1);
     }
 }
 

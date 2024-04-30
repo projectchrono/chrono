@@ -11,36 +11,18 @@ endif()
 # List all demos
 
 set(DEMOS
-    demo_VEH_CityBus
-    demo_VEH_FEDA_SSC
-    demo_VEH_Duro
-    demo_VEH_Gator
-    demo_VEH_HMMWV
-    demo_VEH_HMMWV_Accel
     demo_VEH_HMMWV_Rollover
-    demo_VEH_HMMWV9
-    demo_VEH_UAZBUS
-    demo_VEH_U401
+    demo_VEH_Gator_Incline
     demo_VEH_WheeledGeneric
     demo_VEH_WheeledGenericSet
+    demo_VEH_Wheeled
     demo_VEH_WheeledJSON
 )
 
 if(ENABLE_MODULE_IRRLICHT)
    set(DEMOS ${DEMOS}
-       demo_VEH_FEDA_Accel
-       demo_VEH_Gator_Accel
        demo_VEH_HMMWV9_YUP
-       demo_VEH_Kraz_ClosedLoop
-       demo_VEH_Kraz_OpenLoop
-       demo_VEH_LMTV_ride
-       demo_VEH_MAN
-       demo_VEH_MROLE
-       demo_VEH_MTV_ride
-       demo_VEH_ARTcar
-       demo_VEH_Sedan
        demo_VEH_Sedan_Lockable_Diff
-       demo_VEH_UAZBUS_SAE
    )
 endif()
 
@@ -88,8 +70,14 @@ endif()
 foreach(PROGRAM ${DEMOS})
     message(STATUS "...add ${PROGRAM}")
 
-    add_executable(${PROGRAM} ${PROGRAM}.cpp)
-    source_group("" FILES ${PROGRAM}.cpp)
+    if(PROGRAM STREQUAL "demo_VEH_Wheeled")
+      set(MODELS ../WheeledVehicleModels.h)
+    else()
+      set(MODELS "")
+    endif()
+
+    add_executable(${PROGRAM} ${PROGRAM}.cpp ${MODELS})
+    source_group("" FILES ${PROGRAM}.cpp ${MODELS})
 
     set_target_properties(${PROGRAM} PROPERTIES COMPILE_FLAGS "${COMPILER_FLAGS}" LINK_FLAGS "${LINKER_FLAGS}")
     if(APPLE)

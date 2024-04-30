@@ -23,7 +23,7 @@ namespace chrono {
 // Register into the object factory, to enable run-time dynamic creation and persistence
 CH_FACTORY_REGISTER(ChColor)
 
-ChVector<float> ChColor::RGB2HSV(const ChColor& rgb) {
+ChVector3f ChColor::RGB2HSV(const ChColor& rgb) {
     const float& R = rgb.R;
     const float& G = rgb.G;
     const float& B = rgb.B;
@@ -39,7 +39,7 @@ ChVector<float> ChColor::RGB2HSV(const ChColor& rgb) {
     if (V > 0)
         S = C / V;
     else
-        return ChVector<float>(-1, 0, 0); // undefined H
+        return ChVector3f(-1, 0, 0);  // undefined H
 
     if (C > 0) {
         if (R == V)
@@ -56,10 +56,10 @@ ChVector<float> ChColor::RGB2HSV(const ChColor& rgb) {
     if (H < 0)
         H += 360.0;
 
-    return ChVector<float>(H, S, V);
+    return ChVector3f(H, S, V);
 }
 
-ChColor ChColor::HSV2RGB(const ChVector<float>& hsv) {
+ChColor ChColor::HSV2RGB(const ChVector3f& hsv) {
     const float& H = hsv[0];
     const float& S = hsv[1];
     const float& V = hsv[2];
@@ -142,24 +142,24 @@ ChColor ChColor::ComputeFalseColor(double v, double vmin, double vmax, bool out_
     return c;
 }
 
-void ChColor::ArchiveOut(ChArchiveOut& marchive) {
+void ChColor::ArchiveOut(ChArchiveOut& archive_out) {
     // version number
-    marchive.VersionWrite<ChColor>();
+    archive_out.VersionWrite<ChColor>();
 
     // serialize all member data:
-    marchive << CHNVP(R);
-    marchive << CHNVP(G);
-    marchive << CHNVP(B);
+    archive_out << CHNVP(R);
+    archive_out << CHNVP(G);
+    archive_out << CHNVP(B);
 }
 
-void ChColor::ArchiveIn(ChArchiveIn& marchive) {
+void ChColor::ArchiveIn(ChArchiveIn& archive_in) {
     // version number
-    /*int version =*/marchive.VersionRead<ChColor>();
+    /*int version =*/archive_in.VersionRead<ChColor>();
 
     // stream in all member data:
-    marchive >> CHNVP(R);
-    marchive >> CHNVP(G);
-    marchive >> CHNVP(B);
+    archive_in >> CHNVP(R);
+    archive_in >> CHNVP(G);
+    archive_in >> CHNVP(B);
 }
 
 }  // end namespace chrono

@@ -38,7 +38,7 @@ class CH_VEHICLE_API RigidChassis : public ChRigidChassis {
     ~RigidChassis() {}
 
     /// Get the location (in the local frame of this chassis) of the connection to a rear chassis.
-    virtual const ChVector<> GetLocalPosRearConnector() const override { return m_connector_rear_loc; }
+    virtual const ChVector3d GetLocalPosRearConnector() const override { return m_connector_rear_loc; }
 
     /// Get the local driver position and orientation.
     /// This is a coordinate system relative to the chassis reference frame.
@@ -53,8 +53,8 @@ class CH_VEHICLE_API RigidChassis : public ChRigidChassis {
 
     double m_body_mass;               ///< chassis body mass
     ChMatrix33<> m_body_inertia;      ///< chassis body inertia tensor, w.r.t. centroidal frame
-    ChVector<> m_body_COM_loc;        ///< location of the chassis COM in the chassis reference frame
-    ChVector<> m_connector_rear_loc;  ///< location of connector to a potential rear chassis
+    ChVector3d m_body_COM_loc;        ///< location of the chassis COM in the chassis reference frame
+    ChVector3d m_connector_rear_loc;  ///< location of connector to a potential rear chassis
     ChCoordsys<> m_driverCsys;        ///< driver position and orientation relative to chassis
 };
 
@@ -66,10 +66,10 @@ class CH_VEHICLE_API RigidChassisRear : public ChRigidChassisRear {
     ~RigidChassisRear() {}
 
     /// Get the location (in the local frame of this chassis) of the connection to the front chassis.
-    virtual const ChVector<>& GetLocalPosFrontConnector() const override { return m_connector_front_loc; }
+    virtual const ChVector3d& GetLocalPosFrontConnector() const override { return m_connector_front_loc; }
 
     /// Get the location (in the local frame of this chassis) of the connection to a rear chassis.
-    virtual const ChVector<> GetLocalPosRearConnector() const override { return m_connector_rear_loc; }
+    virtual const ChVector3d GetLocalPosRearConnector() const override { return m_connector_rear_loc; }
 
   private:
     virtual double GetBodyMass() const override { return m_body_mass; }
@@ -80,9 +80,9 @@ class CH_VEHICLE_API RigidChassisRear : public ChRigidChassisRear {
 
     double m_body_mass;                ///< chassis body mass
     ChMatrix33<> m_body_inertia;       ///< chassis body inertia tensor, w.r.t. centroidal frame
-    ChVector<> m_body_COM_loc;         ///< location of the chassis body COM in the chassis reference frame
-    ChVector<> m_connector_front_loc;  ///< location of connector to the front chassis
-    ChVector<> m_connector_rear_loc;   ///< location of connector to a potential rear chassis
+    ChVector3d m_body_COM_loc;         ///< location of the chassis body COM in the chassis reference frame
+    ChVector3d m_connector_front_loc;  ///< location of connector to the front chassis
+    ChVector3d m_connector_rear_loc;   ///< location of connector to a potential rear chassis
 };
 
 /// @} vehicle

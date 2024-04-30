@@ -56,7 +56,7 @@ class ChParticleProcessor {
 
         int nprocessed = 0;
 
-        for (auto body : msystem.Get_bodylist()) {
+        for (auto body : msystem.GetBodies()) {
             if (this->trigger->TriggerEvent(body, msystem)) {
                 this->particle_processor->ParticleProcessEvent(body, msystem, this->trigger);
                 ++nprocessed;

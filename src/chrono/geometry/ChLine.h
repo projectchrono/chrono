@@ -17,20 +17,17 @@
 
 #include <cmath>
 
-#include "chrono/core/ChFilePS.h"
 #include "chrono/geometry/ChGeometry.h"
 
 namespace chrono {
-namespace geometry {
+
+/// @addtogroup chrono_geometry
+/// @{
 
 /// Base class for all geometric objects representing lines in 3D space.
 /// This is the base for all U-parametric object, implementing Evaluate()
 /// that returns a point as a function of the U parameter.
 class ChApi ChLine : public ChGeometry {
-  protected:
-    bool closed;
-    int complexityU;
-
   public:
     ChLine() : closed(false), complexityU(2) {}
     ChLine(const ChLine& source);
@@ -40,41 +37,41 @@ class ChApi ChLine : public ChGeometry {
     // virtual ChLine* Clone() const override { };
 
     /// Get the class type as an enum.
-    virtual Type GetClassType() const override { return Type::LINE; }
+    virtual Type GetType() const override { return Type::LINE; }
 
     /// Return a point on the line, given parametric coordinate U.
     /// Parameter U always work in 0..1 range.
     /// The default implementation always returns the origin of the surface frame.
-    virtual ChVector<> Evaluate(double U) const = 0;
+    virtual ChVector3d Evaluate(double U) const = 0;
 
     /// Return the tangent unit vector at the parametric coordinate U (in [0,1]).
     /// This default implementation uses finite differences.
-    virtual ChVector<> GetTangent(double parU) const;
+    virtual ChVector3d GetTangent(double parU) const;
 
     /// Tell if the curve is closed
-    virtual bool Get_closed() const { return closed; }
-    virtual void Set_closed(bool mc) { closed = mc; }
+    virtual bool IsClosed() const { return closed; }
+    virtual void SetClosed(bool mc) { closed = mc; }
 
     /// Tell the complexity
-    virtual int Get_complexity() const { return complexityU; }
-    virtual void Set_complexity(int mc) { complexityU = mc; }
+    virtual int GetComplexity() const { return complexityU; }
+    virtual void SetComplexity(int mc) { complexityU = mc; }
 
     /// This is a line
     virtual int GetManifoldDimension() const override { return 1; }
 
     /// Find the parameter resU for the nearest point on curve to "point".
-    bool FindNearestLinePoint(ChVector<>& point, double& resU, double approxU, double tol) const;
+    bool FindNearestLinePoint(ChVector3d& point, double& resU, double approxU, double tol) const;
 
     /// Returns curve length. Typical sampling 1..5 (1 already gives correct result with degree1 curves)
     virtual double Length(int sampling) const;
 
     /// Return the start point of the line.
     /// By default, evaluates line at U=0.
-    virtual ChVector<> GetEndA() const { return Evaluate(0); }
+    virtual ChVector3d GetEndA() const { return Evaluate(0); }
 
     /// Return the end point of the line.
     /// By default, evaluates line at U=1.
-    virtual ChVector<> GetEndB() const { return Evaluate(1); }
+    virtual ChVector3d GetEndB() const { return Evaluate(1); }
 
     /// Returns adimensional information on "how much" this curve is similar to another
     /// in its overall shape (does not matter parametrization or start point). Try with 20 samples.
@@ -94,19 +91,20 @@ class ChApi ChLine : public ChGeometry {
     double CurveCurveDistMax(ChLine* compline, int samples) const;
     double CurveSegmentDistMax(ChLine* complinesegm, int samples) const;
 
-    /// Draw into the current graph viewport of a ChFile_ps file
-    virtual bool DrawPostscript(ChFile_ps* mfle, int markpoints, int bezier_interpolate);
-
     /// Method to allow serialization of transient data to archives.
-    virtual void ArchiveOut(ChArchiveOut& marchive) override;
+    virtual void ArchiveOut(ChArchiveOut& archive_out) override;
 
     /// Method to allow de-serialization of transient data from archives.
-    virtual void ArchiveIn(ChArchiveIn& marchive) override;
+    virtual void ArchiveIn(ChArchiveIn& archive_in) override;
+
+  protected:
+    bool closed;
+    int complexityU;
 };
 
-}  // end namespace geometry
+/// @} chrono_geometry
 
-CH_CLASS_VERSION(geometry::ChLine, 0)
+CH_CLASS_VERSION(ChLine, 0)
 
 }  // end namespace chrono
 

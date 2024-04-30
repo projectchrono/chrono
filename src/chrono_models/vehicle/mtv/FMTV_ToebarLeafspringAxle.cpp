@@ -41,11 +41,11 @@ const double FMTV_ToebarLeafspringAxle::m_knuckleRadius = 0.06;
 const double FMTV_ToebarLeafspringAxle::m_tierodRadius = 0.02;
 const double FMTV_ToebarLeafspringAxle::m_draglinkRadius = 0.02;
 
-const ChVector<> FMTV_ToebarLeafspringAxle::m_axleTubeInertia(160.3141845, 1.0458, 160.3141845);
-const ChVector<> FMTV_ToebarLeafspringAxle::m_spindleInertia(0.04117, 0.07352, 0.04117);
-const ChVector<> FMTV_ToebarLeafspringAxle::m_knuckleInertia(0.1, 0.1, 0.1);
-const ChVector<> FMTV_ToebarLeafspringAxle::m_tierodInertia(1.0, 0.1, 1.0);
-const ChVector<> FMTV_ToebarLeafspringAxle::m_draglinkInertia(0.1, 1.0, 0.1);
+const ChVector3d FMTV_ToebarLeafspringAxle::m_axleTubeInertia(160.3141845, 1.0458, 160.3141845);
+const ChVector3d FMTV_ToebarLeafspringAxle::m_spindleInertia(0.04117, 0.07352, 0.04117);
+const ChVector3d FMTV_ToebarLeafspringAxle::m_knuckleInertia(0.1, 0.1, 0.1);
+const ChVector3d FMTV_ToebarLeafspringAxle::m_tierodInertia(1.0, 0.1, 1.0);
+const ChVector3d FMTV_ToebarLeafspringAxle::m_draglinkInertia(0.1, 1.0, 0.1);
 
 const double FMTV_ToebarLeafspringAxle::m_springDesignLength = 0.2;
 const double FMTV_ToebarLeafspringAxle::m_springCoefficient = 428656.6583;
@@ -75,7 +75,7 @@ class FMTV_SpringForceFront : public ChLinkTSDA::ForceFunctor {
     double m_min_length;
     double m_max_length;
 
-    ChFunction_Recorder m_bump;
+    ChFunctionInterp m_bump;
 };
 
 FMTV_SpringForceFront::FMTV_SpringForceFront(double spring_constant, double min_length, double max_length)
@@ -111,7 +111,7 @@ double FMTV_SpringForceFront::evaluate(double time,
         defl_rebound = length - m_max_length;
     }
 
-    force = defl_spring * m_spring_constant + m_bump.Get_y(defl_bump) - m_bump.Get_y(defl_rebound);
+    force = defl_spring * m_spring_constant + m_bump.GetVal(defl_bump) - m_bump.GetVal(defl_rebound);
 
     return force;
 }
@@ -122,9 +122,9 @@ double FMTV_SpringForceFront::evaluate(double time,
 class FMTV_ShockForceFront : public ChLinkTSDA::ForceFunctor {
   public:
     FMTV_ShockForceFront(double compression_slope,
-                           double compression_degressivity,
-                           double expansion_slope,
-                           double expansion_degressivity);
+                         double compression_degressivity,
+                         double expansion_slope,
+                         double expansion_degressivity);
 
     virtual double evaluate(double time,
                             double rest_length,
@@ -140,9 +140,9 @@ class FMTV_ShockForceFront : public ChLinkTSDA::ForceFunctor {
 };
 
 FMTV_ShockForceFront::FMTV_ShockForceFront(double compression_slope,
-                                               double compression_degressivity,
-                                               double expansion_slope,
-                                               double expansion_degressivity)
+                                           double compression_degressivity,
+                                           double expansion_slope,
+                                           double expansion_degressivity)
     : m_slope_compr(compression_slope),
       m_slope_expand(expansion_slope),
       m_degres_compr(compression_degressivity),
@@ -175,32 +175,32 @@ FMTV_ToebarLeafspringAxle::FMTV_ToebarLeafspringAxle(const std::string& name) : 
         m_damperCoefficient, m_damperDegressivityCompression, m_damperCoefficient, m_damperDegressivityExpansion);
 }
 
-const ChVector<> FMTV_ToebarLeafspringAxle::getLocation(PointId which) {
+const ChVector3d FMTV_ToebarLeafspringAxle::getLocation(PointId which) {
     switch (which) {
         case SPRING_A:
-            return ChVector<>(0.0, 0.529, m_axleTubeRadius);
+            return ChVector3d(0.0, 0.529, m_axleTubeRadius);
         case SPRING_C:
-            return ChVector<>(0.0, 0.529, m_axleTubeRadius + m_springDesignLength);
+            return ChVector3d(0.0, 0.529, m_axleTubeRadius + m_springDesignLength);
         case SHOCK_A:
-            return ChVector<>(-0.15, 0.7075, m_axleTubeRadius - 0.05);
+            return ChVector3d(-0.15, 0.7075, m_axleTubeRadius - 0.05);
         case SHOCK_C:
-            return ChVector<>(0.0, 0.529, m_axleTubeRadius + m_springDesignLength + 0.2);
+            return ChVector3d(0.0, 0.529, m_axleTubeRadius + m_springDesignLength + 0.2);
         case SPINDLE:
-            return ChVector<>(0.0, 1.0025, 0.0);
+            return ChVector3d(0.0, 1.0025, 0.0);
         case KNUCKLE_CM:
-            return ChVector<>(0.0, 0.908341392, 0.0);
+            return ChVector3d(0.0, 0.908341392, 0.0);
         case KNUCKLE_L:
-            return ChVector<>(0.0, 0.92597409, -0.1);
+            return ChVector3d(0.0, 0.92597409, -0.1);
         case KNUCKLE_U:
-            return ChVector<>(0.0, 0.890708694, 0.1);
+            return ChVector3d(0.0, 0.890708694, 0.1);
         case KNUCKLE_DRL:
-            return ChVector<>(0.0, 0.708341392, 0.1);
+            return ChVector3d(0.0, 0.708341392, 0.1);
         case TIEROD_K:
-            return ChVector<>(-0.2, 0.862974035, 0.1);
+            return ChVector3d(-0.2, 0.862974035, 0.1);
         case DRAGLINK_C:
-            return ChVector<>(1.0, 0.708341392, 0.1);
+            return ChVector3d(1.0, 0.708341392, 0.1);
         default:
-            return ChVector<>(0, 0, 0);
+            return ChVector3d(0, 0, 0);
     }
 }
 

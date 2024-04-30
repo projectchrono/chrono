@@ -72,4 +72,4 @@ class CH_MULTICORE_API ChConstraintRigidRigid {
 
 /// @} multicore_constraint
 
-} // end namespace chrono
+}  // end namespace chrono

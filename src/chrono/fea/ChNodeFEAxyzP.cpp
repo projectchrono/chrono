@@ -17,7 +17,7 @@
 namespace chrono {
 namespace fea {
 
-ChNodeFEAxyzP::ChNodeFEAxyzP(ChVector<> initial_pos) : pos(initial_pos), P(0), P_dt(0), F(0) {
+ChNodeFEAxyzP::ChNodeFEAxyzP(ChVector3d initial_pos) : pos(initial_pos), P(0), P_dt(0), F(0) {
     variables.GetMass()(0) = 0;
 }
 
@@ -108,55 +108,55 @@ void ChNodeFEAxyzP::NodeIntLoadLumpedMass_Md(const unsigned int off,
 }
 
 void ChNodeFEAxyzP::NodeIntToDescriptor(const unsigned int off_v, const ChStateDelta& v, const ChVectorDynamic<>& R) {
-    variables.Get_qb()(0) = v(off_v);
-    variables.Get_fb()(0) = R(off_v);
+    variables.State()(0) = v(off_v);
+    variables.Force()(0) = R(off_v);
 }
 
 void ChNodeFEAxyzP::NodeIntFromDescriptor(const unsigned int off_v, ChStateDelta& v) {
-    v(off_v) = variables.Get_qb()(0);
+    v(off_v) = variables.State()(0);
 }
 
 // -----------------------------------------------------------------------------
 
-void ChNodeFEAxyzP::InjectVariables(ChSystemDescriptor& mdescriptor) {
-    mdescriptor.InsertVariables(&variables);
+void ChNodeFEAxyzP::InjectVariables(ChSystemDescriptor& descriptor) {
+    descriptor.InsertVariables(&variables);
 }
 
 void ChNodeFEAxyzP::VariablesFbReset() {
-    variables.Get_fb()(0) = 0;
+    variables.Force()(0) = 0;
 }
 
 void ChNodeFEAxyzP::VariablesFbLoadForces(double factor) {
     if (variables.IsDisabled())
         return;
-    variables.Get_fb()(0) += F * factor;
+    variables.Force()(0) += F * factor;
 }
 
 void ChNodeFEAxyzP::VariablesQbLoadSpeed() {
     if (variables.IsDisabled())
         return;
     // not really a 'speed', just the field derivative (may be used in incremental solver)
-    variables.Get_qb()(0) = P_dt;
+    variables.State()(0) = P_dt;
 }
 
 void ChNodeFEAxyzP::VariablesQbSetSpeed(double step) {
     if (variables.IsDisabled())
         return;
     // not really a 'speed', just the field derivative (may be used in incremental solver)
-    P_dt = variables.Get_qb()(0);
+    P_dt = variables.State()(0);
 }
 
 void ChNodeFEAxyzP::VariablesFbIncrementMq() {
     if (variables.IsDisabled())
         return;
-    variables.Compute_inc_Mb_v(variables.Get_fb(), variables.Get_qb());
+    variables.AddMassTimesVector(variables.Force(), variables.State());
 }
 
 void ChNodeFEAxyzP::VariablesQbIncrementPosition(double step) {
     if (variables.IsDisabled())
         return;
 
-    double pseudospeed = variables.Get_qb()(0);
+    double pseudospeed = variables.State()(0);
 
     // ADVANCE FIELD: pos' = pos + dt * vel
     P = P + pseudospeed * step;
@@ -164,26 +164,26 @@ void ChNodeFEAxyzP::VariablesQbIncrementPosition(double step) {
 
 // -----------------------------------------------------------------------------
 
-void ChNodeFEAxyzP::ArchiveOut(ChArchiveOut& marchive) {
+void ChNodeFEAxyzP::ArchiveOut(ChArchiveOut& archive_out) {
     // version number
-    marchive.VersionWrite<ChNodeFEAxyzP>();
+    archive_out.VersionWrite<ChNodeFEAxyzP>();
     // serialize parent class
-    ChNodeFEAbase::ArchiveOut(marchive);
+    ChNodeFEAbase::ArchiveOut(archive_out);
     // serialize all member data:
-    marchive << CHNVP(P);
-    marchive << CHNVP(P_dt);
-    marchive << CHNVP(F);
+    archive_out << CHNVP(P);
+    archive_out << CHNVP(P_dt);
+    archive_out << CHNVP(F);
 }
 
-void ChNodeFEAxyzP::ArchiveIn(ChArchiveIn& marchive) {
+void ChNodeFEAxyzP::ArchiveIn(ChArchiveIn& archive_in) {
     // version number
-    /*int version =*/ marchive.VersionRead<ChNodeFEAxyzP>();
+    /*int version =*/archive_in.VersionRead<ChNodeFEAxyzP>();
     // deserialize parent class
-    ChNodeFEAbase::ArchiveIn(marchive);
+    ChNodeFEAbase::ArchiveIn(archive_in);
     // stream in all member data:
-    marchive >> CHNVP(P);
-    marchive >> CHNVP(P_dt);
-    marchive >> CHNVP(F);
+    archive_in >> CHNVP(P);
+    archive_in >> CHNVP(P_dt);
+    archive_in >> CHNVP(F);
 }
 
 }  // end namespace fea

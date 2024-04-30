@@ -44,30 +44,30 @@ class ChApi ChElementHexaANCF_3813_9 : public ChElementANCF,
     ~ChElementHexaANCF_3813_9() {}
 
     /// Get number of nodes of this element.
-    virtual int GetNnodes() override { return 9; }
+    virtual unsigned int GetNumNodes() override { return 9; }
 
     /// Get the number of coordinates in the field used by the referenced nodes.
-    virtual int GetNdofs() override { return 8 * 3 + 9; }
+    virtual unsigned int GetNumCoordsPosLevel() override { return 8 * 3 + 9; }
 
     /// Get the number of active coordinates in the field used by the referenced nodes.
-    virtual int GetNdofs_active() override { return m_element_dof; }
+    virtual unsigned int GetNumCoordsPosLevelActive() override { return m_element_dof; }
 
     /// Get the number of coordinates from the n-th node used by this element.
-    virtual int GetNodeNdofs(int n) override {
+    virtual unsigned int GetNodeNumCoordsPosLevel(unsigned int n) override {
         if (n < 8)
-            return m_nodes[n]->GetNdofX();
-        return m_central_node->GetNdofX();
+            return m_nodes[n]->GetNumCoordsPosLevel();
+        return m_central_node->GetNumCoordsPosLevel();
     }
 
     /// Get the number of active coordinates from the n-th node used by this element.
-    virtual int GetNodeNdofs_active(int n) override {
+    virtual unsigned int GetNodeNumCoordsPosLevelActive(unsigned int n) override {
         if (n < 8)
-            return m_nodes[n]->GetNdofX_active();
-        return m_central_node->GetNdofX_active();
+            return m_nodes[n]->GetNumCoordsPosLevelActive();
+        return m_central_node->GetNumCoordsPosLevelActive();
     }
 
     /// Access the n-th node of this element.
-    virtual std::shared_ptr<ChNodeFEAbase> GetNodeN(int n) override {
+    virtual std::shared_ptr<ChNodeFEAbase> GetNode(unsigned int n) override {
         if (n < 8)
             return m_nodes[n];
 
@@ -75,7 +75,7 @@ class ChApi ChElementHexaANCF_3813_9 : public ChElementANCF,
     }
 
     /// Return the specified hexahedron node (0 <= n <= 7).
-    virtual std::shared_ptr<ChNodeFEAxyz> GetHexahedronNode(int n) override { return m_nodes[n]; }
+    virtual std::shared_ptr<ChNodeFEAxyz> GetHexahedronNode(unsigned int n) override { return m_nodes[n]; }
 
     /// Specify the nodes of this element.
     void SetNodes(std::shared_ptr<ChNodeFEAxyz> node1,
@@ -118,9 +118,9 @@ class ChApi ChElementHexaANCF_3813_9 : public ChElementANCF,
     double m_DP_yield;
     double m_DPCapBeta;  ///  DP_Cap parameter
     /// Set element dimensions (x, y, z directions).
-    void SetDimensions(const ChVector<>& dims) { m_dimensions = dims; }
+    void SetDimensions(const ChVector3d& dims) { m_dimensions = dims; }
     /// Get the element dimensions (x, y, z directions).
-    const ChVector<>& GetDimensions() const { return m_dimensions; }
+    const ChVector3d& GetDimensions() const { return m_dimensions; }
 
     /// Set the continuum material for this element.
     void SetMaterial(std::shared_ptr<ChContinuumElastic> material) { m_material = material; }
@@ -181,33 +181,33 @@ class ChApi ChElementHexaANCF_3813_9 : public ChElementANCF,
     void ShapeFunctionsDerivativeZ(ShapeVector& Nz, double x, double y, double z);
 
     /// Number of coordinates in the interpolated field: here the {x,y,z} displacement.
-    virtual int Get_field_ncoords() override { return 3; }
+    virtual unsigned int GetNumFieldCoords() override { return 3; }
 
     /// Get the number of DOFs sub-blocks.
-    virtual int GetSubBlocks() override { return 9; }
+    virtual unsigned int GetNumSubBlocks() override { return 9; }
 
     /// Get the offset of the specified sub-block of DOFs in global vector.
-    virtual unsigned int GetSubBlockOffset(int nblock) override {
-        return (nblock < 8) ? m_nodes[nblock]->NodeGetOffsetW() : m_central_node->NodeGetOffsetW();
+    virtual unsigned int GetSubBlockOffset(unsigned int nblock) override {
+        return (nblock < 8) ? m_nodes[nblock]->NodeGetOffsetVelLevel() : m_central_node->NodeGetOffsetVelLevel();
     }
 
     /// Get the size of the specified sub-block of DOFs in global vector.
-    virtual unsigned int GetSubBlockSize(int nblock) override { return (nblock < 8) ? 3 : 9; }
+    virtual unsigned int GetSubBlockSize(unsigned int nblock) override { return (nblock < 8) ? 3 : 9; }
 
     /// Check if the specified sub-block of DOFs is active.
-    virtual bool IsSubBlockActive(int nblock) const override { return !m_nodes[nblock]->IsFixed(); }
+    virtual bool IsSubBlockActive(unsigned int nblock) const override { return !m_nodes[nblock]->IsFixed(); }
 
     /// Get the number of DOFs affected by this element (position part).
-    virtual int LoadableGet_ndof_x() override { return 8 * 3 + 9; }
+    virtual unsigned int GetLoadableNumCoordsPosLevel() override { return 8 * 3 + 9; }
 
     /// Get the number of DOFs affected by this element (speed part).
-    virtual int LoadableGet_ndof_w() override { return 8 * 3 + 9; }
+    virtual unsigned int GetLoadableNumCoordsVelLevel() override { return 8 * 3 + 9; }
 
     /// Get all the DOFs packed in a single vector (position part).
-    virtual void LoadableGetStateBlock_x(int block_offset, ChState& mD) override;
+    virtual void LoadableGetStateBlockPosLevel(int block_offset, ChState& mD) override;
 
     /// Get all the DOFs packed in a single vector (speed part).
-    virtual void LoadableGetStateBlock_w(int block_offset, ChStateDelta& mD) override;
+    virtual void LoadableGetStateBlockVelLevel(int block_offset, ChStateDelta& mD) override;
 
     /// Increment all DOFs using a delta.
     virtual void LoadableStateIncrement(const unsigned int off_x,
@@ -235,7 +235,7 @@ class ChApi ChElementHexaANCF_3813_9 : public ChElementANCF,
 
     /// Return the material density.
     /// This is needed so that it can be accessed by ChLoaderVolumeGravity.
-    virtual double GetDensity() override { return this->m_material->Get_density(); }
+    virtual double GetDensity() override { return this->m_material->GetDensity(); }
 
   private:
     // -----------------------------------
@@ -247,7 +247,7 @@ class ChApi ChElementHexaANCF_3813_9 : public ChElementANCF,
 
     std::shared_ptr<ChContinuumElastic> m_material;  ///< elastic material
 
-    ChVector<> m_dimensions;                      ///< element dimensions (x, y, z components)
+    ChVector3d m_dimensions;                      ///< element dimensions (x, y, z components)
     ChMatrixNM<double, 33, 33> m_MassMatrix;      ///< mass matrix
     ChMatrixNM<double, 33, 33> m_JacobianMatrix;  ///< Jacobian matrix (Kfactor*[K] + Rfactor*[R])
     double m_GaussScaling;
@@ -303,7 +303,7 @@ class ChApi ChElementHexaANCF_3813_9 : public ChElementANCF,
     virtual void ComputeInternalForces(ChVectorDynamic<>& Fi) override;
 
     /// Compute the generalized force vector due to gravity using the efficient element specific method
-    virtual void ComputeGravityForces(ChVectorDynamic<>& Fg, const ChVector<>& G_acc) override;
+    virtual void ComputeGravityForces(ChVectorDynamic<>& Fg, const ChVector3d& G_acc) override;
 
     // -----------------------------------
     // Functions for internal computations
@@ -341,7 +341,7 @@ class ChApi ChElementHexaANCF_3813_9 : public ChElementANCF,
     void CalcCoordMatrix(ChMatrixNM<double, 11, 3>& d);
 
     // Calculate the current 33x1 matrix of nodal coordinate derivatives.
-    void CalcCoordDerivMatrix(ChVectorN<double, 33>& dt);
+    void CalcCoordDtMatrix(ChVectorN<double, 33>& dt);
 
     void ComputeStrainD_Brick9(ChMatrixNM<double, 6, 33>& strainD,
                                ChMatrixNM<double, 1, 11> Nx,

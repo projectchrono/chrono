@@ -23,7 +23,7 @@
 
 namespace chrono {
 
-using namespace chrono::ch_utils;
+using namespace chrono::mc_utils;
 
 #define MPR_TOLERANCE C_REAL_EPSILON
 #define MAX_ITERATIONS 100

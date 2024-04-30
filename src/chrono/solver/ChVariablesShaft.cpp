@@ -33,60 +33,38 @@ ChVariablesShaft& ChVariablesShaft::operator=(const ChVariablesShaft& other) {
     return *this;
 }
 
-// Set the inertia associated with rotation of the shaft
 void ChVariablesShaft::SetInertia(double inertia) {
     m_inertia = inertia;
     m_inv_inertia = 1 / inertia;
 }
 
-// Computes the product of the inverse mass matrix by a
-// vector, and set in result: result = [invMb]*vect
-void ChVariablesShaft::Compute_invMb_v(ChVectorRef result, ChVectorConstRef vect) const {
-    assert(vect.size() == Get_ndof());
-    assert(result.size() == Get_ndof());
+void ChVariablesShaft::ComputeMassInverseTimesVector(ChVectorRef result, ChVectorConstRef vect) const {
+    assert(vect.size() == ndof);
+    assert(result.size() == ndof);
 
     result(0) = m_inv_inertia * vect(0);
 }
 
-// Computes the product of the inverse mass matrix by a
-// vector, and increment result: result += [invMb]*vect
-void ChVariablesShaft::Compute_inc_invMb_v(ChVectorRef result, ChVectorConstRef vect) const {
-    assert(vect.size() == Get_ndof());
-    assert(result.size() == Get_ndof());
-
-    result(0) += m_inv_inertia * vect(0);
-}
-
-// Computes the product of the mass matrix by a
-// vector, and set in result: result = [Mb]*vect
-void ChVariablesShaft::Compute_inc_Mb_v(ChVectorRef result, ChVectorConstRef vect) const {
-    assert(result.size() == Get_ndof());
-    assert(vect.size() == Get_ndof());
+void ChVariablesShaft::AddMassTimesVector(ChVectorRef result, ChVectorConstRef vect) const {
+    assert(result.size() == ndof);
+    assert(vect.size() == ndof);
 
     result(0) += m_inertia * vect(0);
 }
 
-// Computes the product of the corresponding block in the system matrix (ie. the mass matrix) by 'vect', scale by c_a,
-// and add to 'result'.
-// NOTE: the 'vect' and 'result' vectors must already have the size of the total variables&constraints in the system;
-// the procedure will use the ChVariable offsets (that must be already updated) to know the indexes in result and vect.
-void ChVariablesShaft::MultiplyAndAdd(ChVectorRef result, ChVectorConstRef vect, const double c_a) const {
-    result(this->offset) += c_a * m_inertia * vect(this->offset);
+void ChVariablesShaft::AddMassTimesVectorInto(ChVectorRef result, ChVectorConstRef vect, const double ca) const {
+    result(offset) += ca * m_inertia * vect(offset);
 }
 
-// Add the diagonal of the mass matrix scaled by c_a, to 'result'.
-// NOTE: the 'result' vector must already have the size of system unknowns, ie the size of the total variables &
-// constraints in the system; the procedure will use the ChVariable offset (that must be already updated) as index.
-void ChVariablesShaft::DiagonalAdd(ChVectorRef result, const double c_a) const {
-    result(this->offset) += c_a * m_inertia;
+void ChVariablesShaft::AddMassDiagonalInto(ChVectorRef result, const double ca) const {
+    result(offset) += ca * m_inertia;
 }
 
-// Build the mass matrix (for these variables) scaled by c_a, storing
-// it in 'storage' sparse matrix, at given column/row offset.
-// Note, most iterative solvers don't need to know mass matrix explicitly.
-// Optimized: doesn't fill unneeded elements except mass.
-void ChVariablesShaft::Build_M(ChSparseMatrix& storage, int insrow, int inscol, const double c_a) {
-    storage.SetElement(insrow + 0, inscol + 0, c_a * m_inertia);
+void ChVariablesShaft::PasteMassInto(ChSparseMatrix& mat,
+                                     unsigned int start_row,
+                                     unsigned int start_col,
+                                     const double ca) const {
+    mat.SetElement(offset + start_row + 0, offset + start_col + 0, ca * m_inertia);
 }
 
 }  // end namespace chrono

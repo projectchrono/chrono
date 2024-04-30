@@ -25,7 +25,7 @@ namespace chrono {
 namespace vehicle {
 namespace fmtv {
 
-const double rpm2rads = CH_C_PI / 30;
+const double rpm2rads = CH_PI / 30;
 
 FMTV_AutomaticTransmissionSimpleMap::FMTV_AutomaticTransmissionSimpleMap(const std::string& name)
     : ChAutomaticTransmissionSimpleMap(name) {}

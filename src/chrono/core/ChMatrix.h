@@ -15,9 +15,11 @@
 #ifndef CHMATRIX_H
 #define CHMATRIX_H
 
+#include <fstream>
+
 // Include these before ChMatrixEigenExtensions
 #include "chrono/serialization/ChArchive.h"
-#include "chrono/serialization/ChArchiveAsciiDump.h"
+#include "chrono/serialization/ChOutputASCII.h"
 
 // -----------------------------------------------------------------------------
 
@@ -89,6 +91,18 @@ using ChMatrixNM_col = Eigen::Matrix<T, M, N, Eigen::ColMajor>;
 
 ////template <typename T, int M, int N>
 ////using ChMatrixNMnoalign = Eigen::Matrix<T, M, N, Eigen::RowMajor | Eigen::DontAlign>;
+
+// -----------------------------------------------------------------------------
+
+/// Alias for a 6x6 matrix templated by coefficient type (row-major storage).
+template <typename T>
+using ChMatrix66 = ChMatrixNM<T, 6, 6>;
+
+/// Alias for a 6x6 matrix of doubles.
+using ChMatrix66d = ChMatrix66<double>;
+
+/// Alias for a 6x6 matrix of floats.
+using ChMatrix66f = ChMatrix66<float>;
 
 // -----------------------------------------------------------------------------
 
@@ -172,8 +186,61 @@ using ChSparseMatrix = Eigen::SparseMatrix<double, Eigen::RowMajor, int>;
 
 // -----------------------------------------------------------------------------
 
-/// Serialization of a dense matrix or vector into an ASCII stream (e.g. a file) in Matlab format.
-inline void StreamOutDenseMatlabFormat(ChMatrixConstRef A, ChStreamOutAscii& stream) {
+//// RADU
+//// TODO: serialization of matrix classes
+
+//// RADU
+//// Implement some utilities to abstract use of Eigen::Map to copy vectors into matrices and vice-versa
+
+// -----------------------------------------------------------------------------
+
+/// Paste a given matrix into a sparse matrix at position (\a start_row, \a start_col).
+/// The matrix \a matrFrom will be copied into \a matrTo[start_row : start_row + \a matrFrom.GetRows()][start_col : start_col +
+/// matrFrom.GetColumns()]
+/// \param[out] matrTo The output sparse matrix
+/// \param[in] matrFrom The source matrix that will be copied
+/// \param[in] start_row The row index where the first element will be copied
+/// \param[in] start_col The column index where the first element will be copied
+/// \param[in] overwrite Indicate if the copied elements will overwrite existing elements or be summed to them
+inline void PasteMatrix(ChSparseMatrix& matrTo,
+                        ChMatrixConstRef matrFrom,
+                        int start_row,
+                        int start_col,
+                        bool overwrite = true) {
+    if (overwrite) {
+        for (auto i = 0; i < matrFrom.rows(); i++) {
+            for (auto j = 0; j < matrFrom.cols(); j++) {
+                matrTo.SetElement(start_row + i, start_col + j, matrFrom(i, j), true);
+            }
+        }
+    } else {
+        for (auto i = 0; i < matrFrom.rows(); i++) {
+            for (auto j = 0; j < matrFrom.cols(); j++) {
+                matrTo.SetElement(start_row + i, start_col + j, matrFrom(i, j), false);
+            }
+        }
+    }
+}
+
+// -----------------------------------------------------------------------------
+
+/// Utility function for slicing a vector based on an array of indices.
+/// Return a new vector which only contains the elements with specified indices.
+#ifndef SWIG
+template <typename T = double>
+ChVectorDynamic<T> SliceVector(ChVectorConstRef v, ChArrayConstRef<int> indices) {
+#if EIGEN_VERSION_AT_LEAST(3, 4, 0)
+    return v(indices);
+#else
+    return indices.unaryExpr(v);
+#endif
+}
+#endif
+
+// -----------------------------------------------------------------------------
+
+/// Serialization of a dense matrix or vector into an ASCII stream (e.g. a file).
+inline void StreamOut(ChMatrixConstRef A, std::ostream& stream) {
     for (int ii = 0; ii < A.rows(); ii++) {
         for (int jj = 0; jj < A.cols(); jj++) {
             stream << A(ii, jj);
@@ -184,105 +251,27 @@ inline void StreamOutDenseMatlabFormat(ChMatrixConstRef A, ChStreamOutAscii& str
     }
 }
 
-/// Parse numeric data from a file (eg. csv) and store into dense matrix.
-inline void StreamInDenseMatlabFormat(const std::string& filename, ChMatrixDynamic<>& matr, char delim = ',') {
-    std::ifstream file_input(filename);
-    std::vector<std::vector<double>> tmp_data;
-    std::string line;
-    while (std::getline(file_input, line, '\n')) { // get line up to 'newline'
-        std::stringstream line_ss(line); // tmp
-        std::string subline; // tmp
-        std::vector<double> data_row; // tmp
-        while (std::getline(line_ss, subline, delim)) // split line at delimiter (eg. ',')
-            data_row.push_back(std::stod(subline)); // store sub parts in double vector
-        tmp_data.push_back(data_row); // add new numerical row in temporary data container
-    }
-    size_t num_rows = tmp_data.size(); // get number of rows in file
-    size_t num_cols = tmp_data[0].size(); // get number of columns in file (assume all equal)
-    // Store parsed data in output ChMatrixDynamic<>
-    matr.resize(num_rows, num_cols);
-    for (int i = 0; i < num_rows; ++i)
-        for (int j = 0; j < num_cols; ++j)
-            matr(i, j) = tmp_data[i][j];
-    file_input.close();
-}
+/// Serialization of a sparse matrix to an ASCII stream (e.g., a file) in COO sparse matrix format.
+/// By default, uses 0-based indices. If one_indexed=true, row and column indices start at 1 (as in Matlab).
+inline void StreamOut(ChSparseMatrix& mat, std::ostream& stream, bool one_indexed = false) {
+    int offset = one_indexed ? 1 : 0;
 
-//// RADU
-//// TODO: serialization of matrix classes
+    bool last_row_visited = false;
+    bool last_col_visited = false;
 
-//// RADU
-//// Implement some utilities to abstract use of Eigen::Map to copy vectors into matrices and vice-versa
-
-// -----------------------------------------------------------------------------
-
-/// Paste a given matrix into a sparse matrix at position (\a insrow, \a inscol).
-/// The matrix \a matrFrom will be copied into \a matrTo[insrow : insrow + \a matrFrom.GetRows()][inscol : inscol +
-/// matrFrom.GetColumns()]
-/// \param[out] matrTo The output sparse matrix
-/// \param[in] matrFrom The source matrix that will be copied
-/// \param[in] insrow The row index where the first element will be copied
-/// \param[in] inscol The column index where the first element will be copied
-/// \param[in] overwrite Indicate if the copied elements will overwrite existing elements or be summed to them
-inline void PasteMatrix(ChSparseMatrix& matrTo,
-                        ChMatrixConstRef matrFrom,
-                        int insrow,
-                        int inscol,
-                        bool overwrite = true) {
-    if (overwrite) {
-        for (auto i = 0; i < matrFrom.rows(); i++) {
-            for (auto j = 0; j < matrFrom.cols(); j++) {
-                matrTo.SetElement(insrow + i, inscol + j, matrFrom(i, j), true);
-            }
+    for (int k = 0; k < mat.outerSize(); ++k)
+        for (ChSparseMatrix::InnerIterator it(mat, k); it; ++it) {
+            if (it.value())
+                stream << it.row() + offset << " " << it.col() + offset << " " << it.value() << "\n";
+            if (it.row() == mat.rows() - 1)
+                last_row_visited = true;
+            if (it.col() == mat.cols() - 1)
+                last_col_visited = true;
         }
-    } else {
-        for (auto i = 0; i < matrFrom.rows(); i++) {
-            for (auto j = 0; j < matrFrom.cols(); j++) {
-                matrTo.SetElement(insrow + i, inscol + j, matrFrom(i, j), false);
-            }
-        }
-    }
-}
 
-/// Serialization of a sparse matrix to an ASCI stream (e.g., a file) in Matlab sparse matrix format.
-/// Note that row and column indices start at 1.
-inline void StreamOutSparseMatlabFormat(ChSparseMatrix& matr, ChStreamOutAscii& mstream) {
-    for (int ii = 0; ii < matr.rows(); ii++) {
-        for (int jj = 0; jj < matr.cols(); jj++) {
-            double elVal = matr.coeff(ii, jj);
-            if (elVal || (ii == matr.rows() - 1 && jj == matr.cols() - 1)) {
-                mstream << ii + 1 << " " << jj + 1 << " " << elVal << "\n";
-            }
-        }
-    }
-}
-
-/// Serialization of a sparse matrix to an ASCII stream (for debugging; only the top-left 8x8 corner is printed).
-inline void StreamOut(ChSparseMatrix& matr, ChStreamOutAscii& stream) {
-    int mrows = static_cast<int>(matr.rows());
-    int mcols = static_cast<int>(matr.cols());
-    stream << "\n"
-           << "Matrix " << mrows << " rows, " << mcols << " columns."
-           << "\n";
-    for (int i = 0; i < std::min(mrows, 8); i++) {
-        for (int j = 0; j < std::min(mcols, 8); j++)
-            stream << static_cast<double>(matr.coeff(i, j)) << "  ";
-        if (matr.cols() > 8)
-            stream << "...";
-        stream << "\n";
-    }
-    if (matr.rows() > 8)
-        stream << "... \n\n";
-}
-
-/// Utility function for slicing a vector based on an array of indices.
-/// Return a new vector which only contains the elements with specified indices.
-template <typename T = double>
-ChVectorDynamic<T> SliceVector(ChVectorConstRef v, ChArrayConstRef<int> indices) {
-#if EIGEN_VERSION_AT_LEAST(3, 4, 0)
-    return v(indices);
-#else
-    return indices.unaryExpr(v);
-#endif
+    if (mat.rows() && mat.cols())                    // if the matrix is not empty
+        if (!last_row_visited || !last_col_visited)  // if the last row or last column is not visited
+            stream << mat.rows() - 1 + offset << " " << mat.cols() - 1 + offset << " " << 0. << "\n";
 }
 
 /// @} chrono_linalg

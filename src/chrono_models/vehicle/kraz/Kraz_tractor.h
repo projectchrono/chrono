@@ -38,11 +38,11 @@ class CH_MODELS_API Kraz_tractor : public ChWheeledVehicle {
     Kraz_tractor(ChSystem* system, bool fixed);
     ~Kraz_tractor() {}
 
-    virtual int GetNumberAxles() const override { return 3; }
+    virtual unsigned int GetNumberAxles() const override { return 3; }
 
     virtual double GetWheelbase() const override { return 4.78; }
     virtual double GetMinTurningRadius() const override { return 7.7; }
-    virtual double GetMaxSteeringAngle() const override { return 30 * chrono::CH_C_DEG_TO_RAD; }
+    virtual double GetMaxSteeringAngle() const override { return 30 * chrono::CH_DEG_TO_RAD; }
 
     double GetSpringForce(int axle, VehicleSide side) const;
     double GetSpringLength(int axle, VehicleSide side) const;

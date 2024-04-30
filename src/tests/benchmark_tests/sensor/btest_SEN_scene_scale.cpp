@@ -21,7 +21,9 @@
 #include "chrono/geometry/ChTriangleMeshConnected.h"
 #include "chrono/physics/ChBodyEasy.h"
 #include "chrono/physics/ChSystemNSC.h"
+#include "chrono/core/ChRandom.h"
 #include "chrono/utils/ChUtilsCreators.h"
+
 #include "chrono_thirdparty/filesystem/path.h"
 
 #include "chrono_sensor/sensors/ChCameraSensor.h"
@@ -32,7 +34,6 @@
 #include "chrono_sensor/filters/ChFilterVisualize.h"
 
 using namespace chrono;
-using namespace chrono::geometry;
 using namespace chrono::sensor;
 
 float time_interval = 5.0f;
@@ -54,7 +55,7 @@ float randf() {
 
 int main(int argc, char* argv[]) {
     srand(0);
-    GetLog() << "Copyright (c) 2019 projectchrono.org\nChrono version: " << CHRONO_VERSION << "\n\n";
+    std::cout << "Copyright (c) 2019 projectchrono.org\nChrono version: " << CHRONO_VERSION << std::endl;
 
     // -----------------
     // Create the system
@@ -68,15 +69,15 @@ int main(int argc, char* argv[]) {
     manager->scene->AddPointLight({-100, -100, 100}, {1, 1, 1}, 5000);
 
     auto cam_body = chrono_types::make_shared<ChBodyEasyBox>(.01, .01, .01, 1000, false, false);
-    cam_body->SetBodyFixed(true);
+    cam_body->SetFixed(true);
     sys.Add(cam_body);
     auto cam = std::make_shared<ChCameraSensor>(
-        cam_body,                                                           // body camera is attached to
-        10.0f,                                                              // update rate in Hz
-        chrono::ChFrame<double>({-8, 0, 1}, Q_from_AngAxis(0, {0, 1, 0})),  // offset pose
-        1280,                                                               // image width
-        720,                                                                // image height
-        (float)CH_C_PI / 3                                                  // FOV
+        cam_body,                                                              // body camera is attached to
+        10.0f,                                                                 // update rate in Hz
+        chrono::ChFrame<double>({-8, 0, 1}, QuatFromAngleAxis(0, {0, 1, 0})),  // offset pose
+        1280,                                                                  // image width
+        720,                                                                   // image height
+        (float)CH_PI / 3                                                       // FOV
     );
     cam->SetName("Camera Sensor");
     if (vis)
@@ -96,32 +97,32 @@ int main(int argc, char* argv[]) {
         while (curr_item_cnt < target_item_cnt) {
             if (obj_type == 2) {
                 // cylinder
-                auto cyl = std::make_shared<ChBodyEasyCylinder>(geometry::ChAxis::Y,              //
+                auto cyl = std::make_shared<ChBodyEasyCylinder>(ChAxis::Y,                        //
                                                                 randf() + .05, 2 * randf() + .1,  //
                                                                 1000,                             //
                                                                 true, false);
-                cyl->SetBodyFixed(true);
+                cyl->SetFixed(true);
                 cyl->SetPos({2 * x_bound * (randf() - .5), 2 * y_bound * (randf() - .5), 2 * z_bound * (randf() - .5)});
 
                 auto vis_mat = std::make_shared<ChVisualMaterial>();
                 vis_mat->SetAmbientColor({0.f, 0.f, 0.f});
-                vis_mat->SetDiffuseColor({(float)ChRandom(), (float)ChRandom(), (float)ChRandom()});
+                vis_mat->SetDiffuseColor({(float)ChRandom::Get(), (float)ChRandom::Get(), (float)ChRandom::Get()});
                 vis_mat->SetSpecularColor({.2f, .2f, .2f});
-                cyl->GetVisualModel()->GetShapes()[0].first->AddMaterial(vis_mat);
+                cyl->GetVisualModel()->GetShapeInstances()[0].first->AddMaterial(vis_mat);
 
                 sys.Add(cyl);
                 curr_item_cnt++;
             } else if (obj_type == 1) {
                 // sphere
                 auto sphere = std::make_shared<ChBodyEasySphere>(randf() + .05, 1000, true, false);
-                sphere->SetBodyFixed(true);
+                sphere->SetFixed(true);
                 sphere->SetPos(
                     {2 * x_bound * (randf() - .5), 2 * y_bound * (randf() - .5), 2 * z_bound * (randf() - .5)});
                 auto vis_mat = std::make_shared<ChVisualMaterial>();
                 vis_mat->SetAmbientColor({0.f, 0.f, 0.f});
-                vis_mat->SetDiffuseColor({(float)ChRandom(), (float)ChRandom(), (float)ChRandom()});
+                vis_mat->SetDiffuseColor({(float)ChRandom::Get(), (float)ChRandom::Get(), (float)ChRandom::Get()});
                 vis_mat->SetSpecularColor({.2f, .2f, .2f});
-                sphere->GetVisualModel()->GetShapes()[0].first->AddMaterial(vis_mat);
+                sphere->GetVisualModel()->GetShapeInstances()[0].first->AddMaterial(vis_mat);
 
                 sys.Add(sphere);
                 curr_item_cnt++;
@@ -129,13 +130,13 @@ int main(int argc, char* argv[]) {
                 // box
                 auto box = std::make_shared<ChBodyEasyBox>(2 * randf() + .1, 2 * randf() + .1, 2 * randf() + .1, 1000,
                                                            true, false);
-                box->SetBodyFixed(true);
+                box->SetFixed(true);
                 box->SetPos({2 * x_bound * (randf() - .5), 2 * y_bound * (randf() - .5), 2 * z_bound * (randf() - .5)});
                 auto vis_mat = std::make_shared<ChVisualMaterial>();
                 vis_mat->SetAmbientColor({0.f, 0.f, 0.f});
-                vis_mat->SetDiffuseColor({(float)ChRandom(), (float)ChRandom(), (float)ChRandom()});
+                vis_mat->SetDiffuseColor({(float)ChRandom::Get(), (float)ChRandom::Get(), (float)ChRandom::Get()});
                 vis_mat->SetSpecularColor({.2f, .2f, .2f});
-                box->GetVisualModel()->GetShapes()[0].first->AddMaterial(vis_mat);
+                box->GetVisualModel()->GetShapeInstances()[0].first->AddMaterial(vis_mat);
 
                 sys.Add(box);
                 curr_item_cnt++;
@@ -156,7 +157,7 @@ int main(int argc, char* argv[]) {
             cam->SetOffsetPose(chrono::ChFrame<double>(
                 {-orbit_radius * cos(ch_time * orbit_rate), -orbit_radius * sin(ch_time * orbit_rate),
                  .2 * orbit_radius},
-                Q_from_AngAxis(ch_time * orbit_rate, {0, 0, 1}) * Q_from_AngAxis(.3, {0, 1, 0})));
+                QuatFromAngleAxis(ch_time * orbit_rate, {0, 0, 1}) * QuatFromAngleAxis(.3, {0, 1, 0})));
 
             manager->Update();
             sys.DoStepDynamics(0.1);

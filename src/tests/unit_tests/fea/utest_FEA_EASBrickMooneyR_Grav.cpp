@@ -35,8 +35,8 @@
 #include "chrono/fea/ChElementBar.h"
 #include "chrono/fea/ChElementHexaANCF_3813.h"
 #include "chrono/fea/ChElementSpring.h"
-#include "chrono/fea/ChLinkDirFrame.h"
-#include "chrono/fea/ChLinkPointFrame.h"
+#include "chrono/fea/ChLinkNodeSlopeFrame.h"
+#include "chrono/fea/ChLinkNodeFrame.h"
 #include "chrono/assets/ChVisualShapeFEA.h"
 
 #include "chrono_thirdparty/filesystem/path.h"
@@ -54,7 +54,7 @@ int main(int argc, char* argv[]) {
 
     ChMatrixDynamic<> FileInputMat(2000, 2);
     if (output) {
-        GetLog() << "Output file: ../TEST_Brick/UT_EASBrickMR_Grav.txt\n";
+        std::cout << "Output file: ../TEST_Brick/UT_EASBrickMR_Grav.txt\n";
     } else {
         // Utils to open/read files: Load reference solution ("golden") file
         std::string EASBrick_val_file = GetChronoDataPath() + "testing/fea/UT_EASBrickMR_Grav.txt";
@@ -71,12 +71,12 @@ int main(int argc, char* argv[]) {
             fileMid >> FileInputMat(x, 0) >> FileInputMat(x, 1);
         }
         fileMid.close();
-        GetLog() << "Running in unit test mode.\n";
+        std::cout << "Running in unit test mode.\n";
     }
     // Create the physical system
 
     ChSystemNSC sys;
-    sys.Set_G_acc(ChVector<>(0, 0, -9.81));
+    sys.SetGravitationalAcceleration(ChVector3d(0, 0, -9.81));
 
     auto my_mesh = chrono_types::make_shared<ChMesh>();
 
@@ -118,12 +118,11 @@ int main(int argc, char* argv[]) {
     }
 
     auto mmaterial = chrono_types::make_shared<ChContinuumElastic>();
-    mmaterial->Set_RayleighDampingK(0.0);
-    mmaterial->Set_RayleighDampingM(0.0);
-    mmaterial->Set_density(MPROP(0, 0));
-    mmaterial->Set_E(MPROP(0, 1));
-    mmaterial->Set_G(MPROP(0, 1) / (2 + 2 * MPROP(0, 2)));
-    mmaterial->Set_v(MPROP(0, 2));
+    mmaterial->SetRayleighDampingBeta(0.0);
+    mmaterial->SetRayleighDampingAlpha(0.0);
+    mmaterial->SetDensity(MPROP(0, 0));
+    mmaterial->SetYoungModulus(MPROP(0, 1));
+    mmaterial->SetPoissonRatio(MPROP(0, 2));
 
     //!--------------- Element data--------------------
 
@@ -176,7 +175,7 @@ int main(int argc, char* argv[]) {
     int i = 0;
     while (i < TotalNumNodes) {
         auto node =
-            chrono_types::make_shared<ChNodeFEAxyz>(ChVector<>(COORDFlex(i, 0), COORDFlex(i, 1), COORDFlex(i, 2)));
+            chrono_types::make_shared<ChNodeFEAxyz>(ChVector3d(COORDFlex(i, 0), COORDFlex(i, 1), COORDFlex(i, 2)));
         node->SetMass(0.0);
         my_mesh->AddNode(node);
         if (NDR(i, 0) == 1 && NDR(i, 1) == 1 && NDR(i, 2) == 1) {
@@ -234,31 +233,31 @@ int main(int argc, char* argv[]) {
     sys.SetTimestepperType(ChTimestepper::Type::HHT);
     auto mystepper = std::static_pointer_cast<ChTimestepperHHT>(sys.GetTimestepper());
     mystepper->SetAlpha(-0.2);
-    mystepper->SetMaxiters(10000);
+    mystepper->SetMaxIters(10000);
     mystepper->SetAbsTolerances(1e-4);
 
     // Simulation loop
     if (output) {
         // Create output directory (if it does not already exist).
         if (!filesystem::create_directory(filesystem::path("../TEST_Brick"))) {
-            GetLog() << "Error creating directory ../TEST_Brick\n";
+            std::cout << "Error creating directory ../TEST_Brick\n";
             return 1;
         }
         // Initialize the output stream and set precision.
-        utils::CSV_writer out("\t");
-        out.stream().setf(std::ios::scientific | std::ios::showpos);
-        out.stream().precision(7);
+        utils::ChWriterCSV out("\t");
+        out.Stream().setf(std::ios::scientific | std::ios::showpos);
+        out.Stream().precision(7);
         int Iterations = 0;
         // Simulate to final time, while saving position of tip node.
         while (sys.GetChTime() < sim_time) {
             sys.DoStepDynamics(step_size);
             Iterations += mystepper->GetNumIterations();
             out << sys.GetChTime() << nodetip->GetPos().z() << std::endl;
-            GetLog() << "time = " << sys.GetChTime() << "\t" << nodetip->GetPos().z() << "\t"
-                     << nodetip->GetForce().z() << "\t" << Iterations << "\n";
+            std::cout << "time = " << sys.GetChTime() << "\t" << nodetip->GetPos().z() << "\t"
+                      << nodetip->GetForce().z() << "\t" << Iterations << "\n";
         }
         // Write results to output file.
-        out.write_to_file("../TEST_Brick/UT_EASBrickMR_Grav.txt");
+        out.WriteToFile("../TEST_Brick/UT_EASBrickMR_Grav.txt");
     } else {
         // Initialize total number of iterations and timer.
         int Iterations = 0;
@@ -269,7 +268,7 @@ int main(int argc, char* argv[]) {
         while (sys.GetChTime() < sim_time_UT) {
             sys.DoStepDynamics(step_size);
             AbsVal = std::abs(nodetip->GetPos().z() - FileInputMat(stepNo, 1));
-            GetLog() << "time = " << sys.GetChTime() << "\t" << nodetip->GetPos().z() << "\n";
+            std::cout << "time = " << sys.GetChTime() << "\t" << nodetip->GetPos().z() << "\n";
             if (AbsVal > precision) {
                 std::cout << "Unit test check failed \n";
                 return 1;
@@ -279,7 +278,7 @@ int main(int argc, char* argv[]) {
         }
         // Report run time and total number of iterations.
         double duration = (std::clock() - start) / (double)CLOCKS_PER_SEC;
-        GetLog() << "Computation Time: " << duration << "   Number of iterations: " << Iterations << "\n";
+        std::cout << "Computation Time: " << duration << "   Number of iterations: " << Iterations << "\n";
         std::cout << "Unit test check succeeded \n";
     }
 

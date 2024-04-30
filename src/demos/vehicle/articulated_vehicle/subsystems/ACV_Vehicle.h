@@ -27,7 +27,7 @@ class ACV_Vehicle : public chrono::vehicle::ChWheeledVehicle {
 
     ~ACV_Vehicle() {}
 
-    virtual int GetNumberAxles() const override { return 2; }
+    virtual unsigned int GetNumberAxles() const override { return 2; }
 
     virtual double GetWheelbase() const override { return 1.0; }
     virtual double GetMinTurningRadius() const override { return 5.0; }

@@ -23,26 +23,25 @@
 #include <sstream>
 #include <fstream>
 
-#include "chrono/core/ChMathematics.h"
+#include "chrono/utils/ChUtils.h"
 #include "chrono_vehicle/ChDriver.h"
 
 namespace chrono {
 namespace vehicle {
 
 ChDriver::ChDriver(ChVehicle& vehicle)
-    : m_vehicle(vehicle), m_throttle(0), m_steering(0), m_braking(0), m_clutch(0), m_log_filename("") {
-}
+    : m_vehicle(vehicle), m_throttle(0), m_steering(0), m_braking(0), m_clutch(0), m_log_filename("") {}
 
 // Get current driver inputs
 DriverInputs ChDriver::GetInputs() const {
-    return { m_steering, m_throttle, m_braking, m_clutch };
+    return {m_steering, m_throttle, m_braking, m_clutch};
 }
 
 // Initialize output file for recording deriver inputs.
 bool ChDriver::LogInit(const std::string& filename) {
     m_log_filename = filename;
 
-    std::ofstream ofile(filename.c_str(), std::ios::out);
+    std::ofstream ofile(filename, std::ios::out);
     if (!ofile)
         return false;
 
@@ -56,7 +55,7 @@ bool ChDriver::Log(double time) {
     if (m_log_filename.empty())
         return false;
 
-    std::ofstream ofile(m_log_filename.c_str(), std::ios::app);
+    std::ofstream ofile(m_log_filename, std::ios::app);
     if (!ofile)
         return false;
 
@@ -78,7 +77,6 @@ void ChDriver::SetBraking(double braking) {
 void ChDriver::SetClutch(double clutch) {
     m_clutch = ChClamp(clutch, 0.0, 1.0);
 }
-
 
 }  // end namespace vehicle
 }  // end namespace chrono

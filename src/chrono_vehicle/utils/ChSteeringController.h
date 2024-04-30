@@ -66,11 +66,11 @@ class CH_VEHICLE_API ChSteeringController {
 
     /// Return the current location of the sentinel point.
     /// The return vector is expressed in the global reference frame.
-    const ChVector<>& GetSentinelLocation() const { return m_sentinel; }
+    const ChVector3d& GetSentinelLocation() const { return m_sentinel; }
 
     /// Return the current value of the target point.
     /// The return vector is expressed in the global reference frame.
-    const ChVector<>& GetTargetLocation() const { return m_target; }
+    const ChVector3d& GetTargetLocation() const { return m_target; }
 
     /// Return a pointer to the Bezier curve
     std::shared_ptr<ChBezierCurve> GetPath() const { return m_path; }
@@ -112,15 +112,15 @@ class CH_VEHICLE_API ChSteeringController {
     std::shared_ptr<ChBezierCurve> m_path;  ///< tracked path (piecewise cubic Bezier curve)
 
     double m_dist;          ///< look-ahead distance
-    ChVector<> m_sentinel;  ///< position of sentinel point in global frame
-    ChVector<> m_target;    ///< position of target point in global frame
+    ChVector3d m_sentinel;  ///< position of sentinel point in global frame
+    ChVector3d m_target;    ///< position of target point in global frame
 
     double m_err;   ///< current error (signed distance to target point)
     double m_errd;  ///< error derivative
     double m_erri;  ///< integral of error
 
-    utils::CSV_writer* m_csv;  ///< CSV_writer object for data collection
-    bool m_collect;            ///< flag indicating whether or not data is being collected
+    utils::ChWriterCSV* m_csv;  ///< ChWriterCSV object for data collection
+    bool m_collect;             ///< flag indicating whether or not data is being collected
 };
 
 // --------------------------------------------------------------------------------------------------------------------
@@ -220,8 +220,8 @@ class CH_VEHICLE_API ChPathSteeringControllerXT : public ChSteeringController {
     virtual double Advance(const ChFrameMoving<>& ref_frame, double time, double step) override;
 
   private:
-    double CalcHeadingError(ChVector<>& a, ChVector<>& b);
-    int CalcCurvatureCode(ChVector<>& a, ChVector<>& b);
+    double CalcHeadingError(ChVector3d& a, ChVector3d& b);
+    int CalcCurvatureCode(ChVector3d& a, ChVector3d& b);
     double CalcAckermannAngle();
 
     std::unique_ptr<ChBezierCurveTracker> m_tracker;  ///< path tracker
@@ -229,9 +229,9 @@ class CH_VEHICLE_API ChPathSteeringControllerXT : public ChSteeringController {
     double m_R_threshold;           ///< allowed minimal curve radius to be treated as straight line
     double m_max_wheel_turn_angle;  ///< max. possible turn angle of the front wheel (bicycle model)
 
-    ChVector<> m_pnormal;    ///< local path normal
-    ChVector<> m_ptangent;   ///< local path tangent
-    ChVector<> m_pbinormal;  ///< local path binormal
+    ChVector3d m_pnormal;    ///< local path normal
+    ChVector3d m_ptangent;   ///< local path tangent
+    ChVector3d m_pbinormal;  ///< local path binormal
     double m_pcurvature;     ///< local curvature
 
     bool m_filters_initialized;
@@ -248,7 +248,7 @@ class CH_VEHICLE_API ChPathSteeringControllerXT : public ChSteeringController {
     utils::ChFilterPDT1 m_PathErrCtl;          ///< H(s) = Kp*(0.3*s + 1) / (0.15*s + 1), from the book
 
     double m_res;      ///< last steering signal
-    ChVector<> m_vel;  ///< vehicle velocity vector
+    ChVector3d m_vel;  ///< vehicle velocity vector
 };
 // --------------------------------------------------------------------------------------------------------------------
 
@@ -307,10 +307,10 @@ class CH_VEHICLE_API ChPathSteeringControllerSR : public ChSteeringController {
     double m_delta_max;  ///< max. allowed average turn angle of the steered wheels (bycicle model of the vehicle)
     double m_umin;       ///< threshold where the controller gets active
 
-    size_t m_idx_curr;              ///< current interval index
-    std::vector<ChVector<> > S_l;   ///< course definition points
-    std::vector<ChVector<> > R_l;   ///< direction vector: S_l[i+1] = S_l[i] + R_l[i]
-    std::vector<ChVector<> > R_lu;  ///< R_l with unit length, precalculated to avoid redundant calculations
+    size_t m_idx_curr;             ///< current interval index
+    std::vector<ChVector3d> S_l;   ///< course definition points
+    std::vector<ChVector3d> R_l;   ///< direction vector: S_l[i+1] = S_l[i] + R_l[i]
+    std::vector<ChVector3d> R_lu;  ///< R_l with unit length, precalculated to avoid redundant calculations
 };
 
 // --------------------------------------------------------------------------------------------------------------------
@@ -361,14 +361,14 @@ class CH_VEHICLE_API ChPathSteeringControllerStanley : public ChSteeringControll
     /// point.
     virtual void CalcTargetLocation() override;
 
-    double CalcHeadingError(ChVector<>& a, ChVector<>& b);
+    double CalcHeadingError(ChVector3d& a, ChVector3d& b);
 
   private:
     std::shared_ptr<utils::ChFilterPT1> m_delayFilter;
     std::unique_ptr<ChBezierCurveTracker> m_tracker;  ///< path tracker
 
     double m_pcurvature;    ///< local curvature
-    ChVector<> m_ptangent;  ///< local path tangent
+    ChVector3d m_ptangent;  ///< local path tangent
 
     double m_Kp;  ///< Proportional gain
     double m_Ki;  ///< Integral gain

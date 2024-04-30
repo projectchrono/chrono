@@ -12,101 +12,93 @@
 
 #include "gtest/gtest.h"
 #include "chrono/utils/ChFilters.h"
+#include "chrono/utils/ChConstants.h"
 
 using namespace chrono;
 
 // Test classes for shock signal weighting filters ISO 2631-5, error limits from ISO 8041
 
-class ShockTestbed
-{
-public:
+class ShockTestbed {
+  public:
     ShockTestbed();
     double Test1();
     double Test2();
     double Test3();
 
-protected:
-    double m_tDuration; // duration of the complete testsignal
-    double m_fSample;   // sample rate of input
+  protected:
+    double m_tDuration;  // duration of the complete testsignal
+    double m_fSample;    // sample rate of input
     std::vector<double> input_signal;
     std::vector<double> output_signal;
 };
 
-ShockTestbed::ShockTestbed()
-    : m_tDuration(2)
-    , m_fSample(160)
-{
+ShockTestbed::ShockTestbed() : m_tDuration(2), m_fSample(160) {
     size_t nPoints = (size_t)(m_tDuration * m_fSample + 1);
     input_signal.resize(nPoints, 0.0);
     output_signal.resize(nPoints, 0.0);
-    for(size_t i = 0; i < input_signal.size(); i++) {
+    for (size_t i = 0; i < input_signal.size(); i++) {
         double t = double(i) / m_fSample;
-        if(t <= 0.05) {
+        if (t <= 0.05) {
             input_signal[i] = 40.0 * t + 0.0;
-        } else if(t > 0.05 && t <= 0.2) {
+        } else if (t > 0.05 && t <= 0.2) {
             input_signal[i] = 0.0 * t + 2.0;
-        } else if(t > 0.2 && t <= 0.4) {
+        } else if (t > 0.2 && t <= 0.4) {
             input_signal[i] = -20.0 * t + 6.0;
-        } else if(t > 0.4 && t <= 0.5) {
+        } else if (t > 0.4 && t <= 0.5) {
             input_signal[i] = 0.0 * t - 2.0;
-        } else if(t > 0.5 && t <= 0.55) {
+        } else if (t > 0.5 && t <= 0.55) {
             input_signal[i] = 40.0 * t - 22.0;
-        } else if(t > 0.55 && t <= 2.0) {
+        } else if (t > 0.55 && t <= 2.0) {
             input_signal[i] = 0.0 * t + 0.0;
         }
     }
 }
 
-double ShockTestbed::Test1()
-{
+double ShockTestbed::Test1() {
     // Search the global maximum
     double r = output_signal[0];
-    for(size_t i = 1; i < output_signal.size(); i++) {
-        if(output_signal[i] > r) {
+    for (size_t i = 1; i < output_signal.size(); i++) {
+        if (output_signal[i] > r) {
             r = output_signal[i];
         }
     }
     return r;
 }
 
-double ShockTestbed::Test2()
-{
+double ShockTestbed::Test2() {
     // Search the global minimum
     double r = output_signal[0];
-    for(size_t i = 1; i < output_signal.size(); i++) {
-        if(output_signal[i] < r) {
+    for (size_t i = 1; i < output_signal.size(); i++) {
+        if (output_signal[i] < r) {
             r = output_signal[i];
         }
     }
     return r;
 }
 
-double ShockTestbed::Test3()
-{
+double ShockTestbed::Test3() {
     // Search the second maximum
     size_t istart = (size_t)(0.5 * m_fSample);
     double r = output_signal[istart];
-    for(size_t i = istart + 1; i < output_signal.size(); i++) {
-        if(output_signal[i] > r) {
+    for (size_t i = istart + 1; i < output_signal.size(); i++) {
+        if (output_signal[i] > r) {
             r = output_signal[i];
         }
     }
     return r;
 }
 
-class ShockTestWxy : public ShockTestbed
-{
-public:
+class ShockTestWxy : public ShockTestbed {
+  public:
     ShockTestWxy();
 
-private:
+  private:
     chrono::utils::ChISO2631_5_Wxy filter;
 };
 
-ShockTestWxy::ShockTestWxy()
-{
+ShockTestWxy::ShockTestWxy() {
     std::ofstream shock("shock.txt");
-    for(size_t i = 0; i < input_signal.size(); i++) {
+    for (size_t i = 0; i < input_signal.size(); i++) {
         double t = double(i) / m_fSample;
         output_signal[i] = filter.Filter(input_signal[i]);
         shock << t << "\t" << input_signal[i] << "\t" << output_signal[i] << std::endl;
@@ -114,17 +106,15 @@ ShockTestWxy::ShockTestWxy()
     shock.close();
 }
 
-class ShockTestWz : public ShockTestbed
-{
-public:
+class ShockTestWz : public ShockTestbed {
+  public:
     ShockTestWz();
 
-private:
+  private:
     chrono::utils::ChISO2631_5_Wz filter;
 };
 
-ShockTestWz::ShockTestWz()
-{
+ShockTestWz::ShockTestWz() {
     filter.Filter(input_signal, output_signal);
 }
 
@@ -132,86 +122,76 @@ ShockTestWz::ShockTestWz()
 // Actually considered: Whole Body Vibration (Bandfilter 0.4 ... 100 Hz, Wk, Wd)
 // Sawtooth Burst input signals and error limits taken from ISO 8041
 
-class SawtoothTestbed
-{
-public:
+class SawtoothTestbed {
+  public:
     SawtoothTestbed(size_t nSawTeeth);
-    virtual double Test()
-    {
-        return 0;
-    };
+    virtual double Test() { return 0; };
 
-protected:
-    unsigned int m_Nsaw; // # of periods of sawtooth
-    double m_wSaw;       // angular frequency of the sawtooth
-    double m_aSaw;       // period length of sawtooth
-    double m_tDuration;  // duration of the complete testsignal
-    double m_fSample;    // sample rate of input
+  protected:
+    unsigned int m_Nsaw;  // # of periods of sawtooth
+    double m_wSaw;        // angular frequency of the sawtooth
+    double m_aSaw;        // period length of sawtooth
+    double m_tDuration;   // duration of the complete testsignal
+    double m_fSample;     // sample rate of input
     std::vector<double> input_signal;
     std::vector<double> output_signal;
     double rms();
 
-private:
+  private:
     double sawtooth(double t_ofs, double t);
 };
 
-SawtoothTestbed::SawtoothTestbed(size_t nSawTeeth)
-    : m_wSaw(100)
-    , m_tDuration(60)
-    , m_fSample(1000)
-{
-    switch(nSawTeeth) {
-    case 1:
-        m_Nsaw = 1;
-        break;
-    case 2:
-        m_Nsaw = 2;
-        break;
-    case 4:
-        m_Nsaw = 4;
-        break;
-    case 8:
-        m_Nsaw = 8;
-        break;
-    case 16:
-        m_Nsaw = 16;
-        break;
-    default:
-        m_Nsaw = 0; // continous sawtooth signal
+SawtoothTestbed::SawtoothTestbed(size_t nSawTeeth) : m_wSaw(100), m_tDuration(60), m_fSample(1000) {
+    switch (nSawTeeth) {
+        case 1:
+            m_Nsaw = 1;
+            break;
+        case 2:
+            m_Nsaw = 2;
+            break;
+        case 4:
+            m_Nsaw = 4;
+            break;
+        case 8:
+            m_Nsaw = 8;
+            break;
+        case 16:
+            m_Nsaw = 16;
+            break;
+        default:
+            m_Nsaw = 0;  // continous sawtooth signal
     }
-    m_aSaw = CH_C_2PI / m_wSaw;
+    m_aSaw = CH_2PI / m_wSaw;
     size_t nPoints = (size_t)(m_tDuration * m_fSample + 1);
     input_signal.resize(nPoints, 0.0);
     output_signal.resize(nPoints, 0.0);
     const double t_ofs1 = 1.0;
     const double t_ofs_rep = 10.0;
-    for(size_t i = 0; i < input_signal.size(); i++) {
+    for (size_t i = 0; i < input_signal.size(); i++) {
         double t = double(i) / m_fSample;
-        if(m_Nsaw > 0) {
+        if (m_Nsaw > 0) {
             input_signal[i] = sawtooth(t_ofs1, t) + sawtooth(t_ofs1 + t_ofs_rep, t) +
-                sawtooth(t_ofs1 + 2.0 * t_ofs_rep, t) + sawtooth(t_ofs1 + 3.0 * t_ofs_rep, t) +
-                sawtooth(t_ofs1 + 4.0 * t_ofs_rep, t) + sawtooth(t_ofs1 + 5.0 * t_ofs_rep, t);
+                              sawtooth(t_ofs1 + 2.0 * t_ofs_rep, t) + sawtooth(t_ofs1 + 3.0 * t_ofs_rep, t) +
+                              sawtooth(t_ofs1 + 4.0 * t_ofs_rep, t) + sawtooth(t_ofs1 + 5.0 * t_ofs_rep, t);
         } else {
             input_signal[i] = sawtooth(t_ofs1, t);
         }
     }
 }
 
-double SawtoothTestbed::rms()
-{
+double SawtoothTestbed::rms() {
     double r = 0.0;
-    for(size_t i = 0; i < output_signal.size(); i++) {
+    for (size_t i = 0; i < output_signal.size(); i++) {
         double e = output_signal[i];
         r += e * e;
     }
     return sqrt(r / double(output_signal.size()));
 }
 
-double SawtoothTestbed::sawtooth(double t_ofs, double t)
-{
+double SawtoothTestbed::sawtooth(double t_ofs, double t) {
     double y = 0;
-    if(m_Nsaw > 0) {
-        if((t >= t_ofs) && (t <= t_ofs + m_Nsaw * m_aSaw)) {
+    if (m_Nsaw > 0) {
+        if ((t >= t_ofs) && (t <= t_ofs + m_Nsaw * m_aSaw)) {
             y = 2.0 * ((t - t_ofs) / m_aSaw - floor(0.5 + (t - t_ofs) / m_aSaw));
         }
     } else {
@@ -220,84 +200,71 @@ double SawtoothTestbed::sawtooth(double t_ofs, double t)
     return y;
 }
 
-class SawtoothTestBandfilter : public SawtoothTestbed
-{
-public:
+class SawtoothTestBandfilter : public SawtoothTestbed {
+  public:
     SawtoothTestBandfilter(size_t nSawTeeth);
     double Test();
 
-private:
-    chrono::utils::ChButterworth_Highpass hp;
-    chrono::utils::ChButterworth_Lowpass lp;
+  private:
+    chrono::utils::ChButterworthHighpass hp;
+    chrono::utils::ChButterworthLowpass lp;
 };
 
-SawtoothTestBandfilter::SawtoothTestBandfilter(size_t nSawTeeth)
-    : SawtoothTestbed(nSawTeeth)
-{
+SawtoothTestBandfilter::SawtoothTestBandfilter(size_t nSawTeeth) : SawtoothTestbed(nSawTeeth) {
     hp.Config(2, 1.0 / m_fSample, 0.4);
     lp.Config(2, 1.0 / m_fSample, 100.0);
 }
 
-double SawtoothTestBandfilter::Test()
-{
-    for(size_t i = 0; i < input_signal.size(); i++) {
+double SawtoothTestBandfilter::Test() {
+    for (size_t i = 0; i < input_signal.size(); i++) {
         double y = hp.Filter(input_signal[i]);
         output_signal[i] = lp.Filter(y);
     }
     return rms();
 }
 
-class SawtoothTestWkfilter : public SawtoothTestbed
-{
-public:
+class SawtoothTestWkfilter : public SawtoothTestbed {
+  public:
     SawtoothTestWkfilter(size_t nSawTeeth);
     void GenerateOutput();
     double Test();
 
-private:
+  private:
     chrono::utils::ChISO2631_1_Wk wk;
 };
 
-SawtoothTestWkfilter::SawtoothTestWkfilter(size_t nSawTeeth)
-    : SawtoothTestbed(nSawTeeth)
-{
+SawtoothTestWkfilter::SawtoothTestWkfilter(size_t nSawTeeth) : SawtoothTestbed(nSawTeeth) {
     wk.Config(1.0 / m_fSample);
 }
 
-double SawtoothTestWkfilter::Test()
-{
-    for(size_t i = 0; i < input_signal.size(); i++) {
+double SawtoothTestWkfilter::Test() {
+    for (size_t i = 0; i < input_signal.size(); i++) {
         output_signal[i] = wk.Filter(input_signal[i]);
     }
     return rms();
 }
 
-class SawtoothTestWdfilter : public SawtoothTestbed
-{
-public:
+class SawtoothTestWdfilter : public SawtoothTestbed {
+  public:
     SawtoothTestWdfilter(size_t nSawTeeth);
     double Test();
 
-private:
+  private:
     chrono::utils::ChISO2631_1_Wd wd;
 };
 
-SawtoothTestWdfilter::SawtoothTestWdfilter(size_t nSawTeeth)
-    : SawtoothTestbed(nSawTeeth)
-{
+SawtoothTestWdfilter::SawtoothTestWdfilter(size_t nSawTeeth) : SawtoothTestbed(nSawTeeth) {
     wd.Config(1.0 / m_fSample);
 }
 
-double SawtoothTestWdfilter::Test()
-{
-    for(size_t i = 0; i < input_signal.size(); i++) {
+double SawtoothTestWdfilter::Test() {
+    for (size_t i = 0; i < input_signal.size(); i++) {
         output_signal[i] = wd.Filter(input_signal[i]);
     }
     return rms();
 }
 
-TEST(WholeBodyBandfilter, SawtoothBurstRMS)
-{
+TEST(WholeBodyBandfilter, SawtoothBurstRMS) {
     const double band_res_1 = 0.0433;
     const double band_res_1_err = 0.1 * band_res_1;
     SawtoothTestBandfilter bf_1(1);
@@ -329,8 +296,7 @@ TEST(WholeBodyBandfilter, SawtoothBurstRMS)
     ASSERT_NEAR(bf_c.Test(), band_res_c, band_res_c_err);
 }
 
-TEST(WholeBodyWkFilter, SawtoothBurstRMS)
-{
+TEST(WholeBodyWkFilter, SawtoothBurstRMS) {
     const double wk_res_1 = 0.0299;
     const double wk_res_1_err = 0.1 * wk_res_1;
     SawtoothTestWkfilter wk_1(1);
@@ -362,8 +328,7 @@ TEST(WholeBodyWkFilter, SawtoothBurstRMS)
     ASSERT_NEAR(wk_c.Test(), wk_res_c, wk_res_c_err);
 }
 
-TEST(WholeBodyWdFilter, SawtoothBurstRMS)
-{
+TEST(WholeBodyWdFilter, SawtoothBurstRMS) {
     const double wd_res_1 = 0.00669;
     const double wd_res_1_err = 0.1 * wd_res_1;
     SawtoothTestWdfilter wd_1(1);
@@ -395,8 +360,7 @@ TEST(WholeBodyWdFilter, SawtoothBurstRMS)
     ASSERT_NEAR(wd_c.Test(), wd_res_c, wd_res_c_err);
 }
 
-TEST(ShockWxyFilter, StandardSignal)
-{
+TEST(ShockWxyFilter, StandardSignal) {
     ShockTestWxy wxy;
 
     const double wxy_res_1 = 3.025;
@@ -412,8 +376,7 @@ TEST(ShockWxyFilter, StandardSignal)
     ASSERT_NEAR(wxy.Test3(), wxy_res_3, wxy_res_3_err);
 }
 
-TEST(ShockWzFilter, StandardSignal)
-{
+TEST(ShockWzFilter, StandardSignal) {
     ShockTestWz wz;
 
     const double wz_res_1 = 1.661;

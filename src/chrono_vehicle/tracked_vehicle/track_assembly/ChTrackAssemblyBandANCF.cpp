@@ -22,7 +22,6 @@
 
 #include <cmath>
 
-#include "chrono/core/ChLog.h"
 #include "chrono_vehicle/tracked_vehicle/track_assembly/ChTrackAssemblyBandANCF.h"
 
 using namespace chrono::fea;
@@ -91,9 +90,9 @@ ChTrackAssemblyBandANCF::~ChTrackAssemblyBandANCF() {
 // -----------------------------------------------------------------------------
 // -----------------------------------------------------------------------------
 void ChTrackAssemblyBandANCF::SetRubberLayerMaterial(double rho,
-    const ChVector<>& E,
-    const ChVector<>& nu,
-    const ChVector<>& G) {
+                                                     const ChVector3d& E,
+                                                     const ChVector3d& nu,
+                                                     const ChVector3d& G) {
     m_rubber_rho = rho;
     m_rubber_E = E;
     m_rubber_nu = nu;
@@ -101,9 +100,9 @@ void ChTrackAssemblyBandANCF::SetRubberLayerMaterial(double rho,
 }
 
 void ChTrackAssemblyBandANCF::SetSteelLayerMaterial(double rho,
-    const ChVector<>& E,
-    const ChVector<>& nu,
-    const ChVector<>& G) {
+                                                    const ChVector3d& E,
+                                                    const ChVector3d& nu,
+                                                    const ChVector3d& G) {
     m_steel_rho = rho;
     m_steel_E = E;
     m_steel_nu = nu;
@@ -149,11 +148,12 @@ bool ChTrackAssemblyBandANCF::Assemble(std::shared_ptr<ChBodyAuxRef> chassis) {
     connection_lengths[1] = m_shoes[0]->GetWebLength();
 
     // Create ANCF materials (shared by all track shoes)
-    auto rubber_mat = chrono_types::make_shared<fea::ChMaterialShellANCF>(m_rubber_rho, m_rubber_E, m_rubber_nu, m_rubber_G);
+    auto rubber_mat =
+        chrono_types::make_shared<fea::ChMaterialShellANCF>(m_rubber_rho, m_rubber_E, m_rubber_nu, m_rubber_G);
     auto steel_mat = chrono_types::make_shared<fea::ChMaterialShellANCF>(m_steel_rho, m_steel_E, m_steel_nu, m_steel_G);
 
     // Calculate assembly points
-    std::vector<ChVector2<>> shoe_points;
+    std::vector<ChVector2d> shoe_points;
     bool ccw = FindAssemblyPoints(chassis, num_shoes, connection_lengths, shoe_points);
 
     // Create and add the mesh container for the track shoe webs to the system
@@ -165,11 +165,11 @@ bool ChTrackAssemblyBandANCF::Assemble(std::shared_ptr<ChBodyAuxRef> chassis) {
     for (int s = 0; s < num_shoes; s++) {
         std::vector<ChCoordsys<>> shoe_components_coordsys;
         for (auto i = 0; i < num_shoe_elements; i++) {
-            ChVector2<> mid = (shoe_points[i + 1 + s * num_shoe_elements] + shoe_points[i + s * num_shoe_elements]) / 2;
-            ChVector2<> dir = shoe_points[i + 1 + s * num_shoe_elements] - shoe_points[i + s * num_shoe_elements];
-            ChVector<> loc(mid.x(), m_sprocket_offset, mid.y());
+            ChVector2d mid = (shoe_points[i + 1 + s * num_shoe_elements] + shoe_points[i + s * num_shoe_elements]) / 2;
+            ChVector2d dir = shoe_points[i + 1 + s * num_shoe_elements] - shoe_points[i + s * num_shoe_elements];
+            ChVector3d loc(mid.x(), m_sprocket_offset, mid.y());
             double ang = std::atan2(dir.y(), dir.x());
-            ChQuaternion<> rot = Q_from_AngY(-ang);  // Negative of the angle in 3D
+            ChQuaternion<> rot = QuatFromAngleY(-ang);  // Negative of the angle in 3D
 
             shoe_components_coordsys.push_back(ChCoordsys<>(loc, rot));
         }
@@ -185,8 +185,6 @@ bool ChTrackAssemblyBandANCF::Assemble(std::shared_ptr<ChBodyAuxRef> chassis) {
         m_shoes[s]->Initialize(chassis, shoe_components_coordsys);
     }
 
-    ////GetLog() << "Track assembly done.  Number of track shoes: " << num_shoes << "\n";
-
     // Add contact for the mesh -- only if SMC!!!
 
     if (chassis->GetSystem()->GetContactMethod() == ChContactMethod::SMC) {
@@ -200,12 +198,11 @@ bool ChTrackAssemblyBandANCF::Assemble(std::shared_ptr<ChBodyAuxRef> chassis) {
                 auto contact_surf = chrono_types::make_shared<ChContactSurfaceNodeCloud>(m_contact_material);
                 m_track_mesh->AddContactSurface(contact_surf);
                 contact_surf->AddAllNodes(thickness / 2);
-                ////GetLog() << "Node cloud web contact. Number of nodes: " << contact_surf->GetNnodes() << "\n";
 
                 // Place all collision triangles in the same collision family and disable contact with each other
-                for (auto& node : contact_surf->GetNodeList()) {
+                for (auto& node : contact_surf->GetNodes()) {
                     node->GetCollisionModel()->SetFamily(TrackedCollisionFamily::SHOES);
-                    node->GetCollisionModel()->SetFamilyMaskNoCollisionWithFamily(TrackedCollisionFamily::SHOES);
+                    node->GetCollisionModel()->DisallowCollisionsWith(TrackedCollisionFamily::SHOES);
                 }
 
                 break;
@@ -214,19 +211,16 @@ bool ChTrackAssemblyBandANCF::Assemble(std::shared_ptr<ChBodyAuxRef> chassis) {
                 auto contact_surf = chrono_types::make_shared<ChContactSurfaceMesh>(m_contact_material);
                 m_track_mesh->AddContactSurface(contact_surf);
                 contact_surf->AddFacesFromBoundary(thickness / 2, false);
-                ////GetLog() << "Triangle mesh web contact. Number of faces: " << contact_surf->GetNumTriangles() <<
-                ///"\n";
 
                 // Place all collision triangles in the same collision family and disable contact with each other
-                for (auto& face : contact_surf->GetTriangleList()) {
+                for (auto& face : contact_surf->GetTrianglesXYZ()) {
                     face->GetCollisionModel()->SetFamily(TrackedCollisionFamily::SHOES);
-                    face->GetCollisionModel()->SetFamilyMaskNoCollisionWithFamily(TrackedCollisionFamily::SHOES);
+                    face->GetCollisionModel()->DisallowCollisionsWith(TrackedCollisionFamily::SHOES);
                 }
 
                 break;
             }
             case ContactSurfaceType::NONE: {
-                ////GetLog() << "No web contact.\n";
                 break;
             }
         }

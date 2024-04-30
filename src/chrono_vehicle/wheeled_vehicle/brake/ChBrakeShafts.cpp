@@ -24,11 +24,15 @@ namespace vehicle {
 ChBrakeShafts::ChBrakeShafts(const std::string& name) : ChBrake(name), m_modulation(0), m_locked(false) {}
 
 ChBrakeShafts::~ChBrakeShafts() {
+    if (!m_initialized)
+        return;
+
     auto sys = m_shaft->GetSystem();
-    if (sys) {
-        sys->Remove(m_shaft);
-        sys->Remove(m_clutch);
-    }
+    if (!sys)
+        return;
+
+    sys->Remove(m_shaft);
+    sys->Remove(m_clutch);
 }
 
 void ChBrakeShafts::Initialize(std::shared_ptr<ChChassis> chassis,
@@ -38,7 +42,7 @@ void ChBrakeShafts::Initialize(std::shared_ptr<ChChassis> chassis,
 
     // Create and initialize the brake shaft
     m_shaft = chrono_types::make_shared<ChShaft>();
-    m_shaft->SetNameString(m_name + "_shaft");
+    m_shaft->SetName(m_name + "_shaft");
     m_shaft->SetInertia(GetShaftInertia());
     chassis->GetSystem()->AddShaft(m_shaft);
 
@@ -46,8 +50,8 @@ void ChBrakeShafts::Initialize(std::shared_ptr<ChChassis> chassis,
     auto body = suspension->GetBrakeBody(side);
     if (!body)
         body = chassis->GetBody();
-    auto connection = chrono_types::make_shared<ChShaftsBody>();
-    connection->Initialize(m_shaft, body, ChVector<>(0, -1, 0));
+    auto connection = chrono_types::make_shared<ChShaftBodyRotation>();
+    connection->Initialize(m_shaft, body, ChVector3d(0, -1, 0));
     chassis->GetSystem()->Add(connection);
 
     // Create and initialize the brake clutch (set as unlocked)
@@ -58,9 +62,9 @@ void ChBrakeShafts::Initialize(std::shared_ptr<ChChassis> chassis,
     chassis->GetSystem()->Add(m_clutch);
 }
 
-void ChBrakeShafts::Synchronize(double modulation) {
-    m_modulation = modulation;
-    m_clutch->SetModulation(modulation);
+void ChBrakeShafts::Synchronize(double time, double braking) {
+    m_modulation = braking;
+    m_clutch->SetModulation(braking);
     //// TODO: more here?
 }
 

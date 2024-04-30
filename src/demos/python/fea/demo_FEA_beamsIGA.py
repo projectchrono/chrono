@@ -38,28 +38,28 @@ mesh = fea.ChMesh()
 sys.Add(mesh)
 
 mesh.SetAutomaticGravity(True,2) # for max precision in gravity of FE, at least 2 integration points per element when using cubic IGA
-sys.Set_G_acc(chrono.ChVectorD(0,-9.81, 0));
+sys.SetGravitationalAcceleration(chrono.ChVector3d(0,-9.81, 0));
 
 beam_L = 6
 beam_ro = 0.050
 beam_ri = 0.045
-CH_C_PI = 3.1456
+CH_PI = 3.1456
 
 # Create a section, i.e. thickness and material properties
 # for beams. This will be shared among some beams.
 
 minertia = fea.ChInertiaCosseratSimple()
 minertia.SetDensity(7800);
-minertia.SetArea(CH_C_PI * (pow(beam_ro, 2)- pow(beam_ri, 2)));
-minertia.SetIyy( (CH_C_PI / 4.0) * (pow(beam_ro, 4) - pow(beam_ri, 4)) );
-minertia.SetIzz( (CH_C_PI / 4.0) * (pow(beam_ro, 4) - pow(beam_ri, 4)) );
+minertia.SetArea(CH_PI * (pow(beam_ro, 2)- pow(beam_ri, 2)));
+minertia.SetIyy( (CH_PI / 4.0) * (pow(beam_ro, 4) - pow(beam_ri, 4)) );
+minertia.SetIzz( (CH_PI / 4.0) * (pow(beam_ro, 4) - pow(beam_ri, 4)) );
     
 melasticity = fea.ChElasticityCosseratSimple()
 melasticity.SetYoungModulus(210e9)
-melasticity.SetGwithPoissonRatio(0.3)
-melasticity.SetIyy( (CH_C_PI / 4.0) * (pow(beam_ro, 4) - pow(beam_ri, 4)) )
-melasticity.SetIzz( (CH_C_PI / 4.0) * (pow(beam_ro, 4) - pow(beam_ri, 4)) )
-melasticity.SetJ  ( (CH_C_PI / 2.0) * (pow(beam_ro, 4) - pow(beam_ri, 4)) )
+melasticity.SetShearModulusFromPoisson(0.3)
+melasticity.SetIyy( (CH_PI / 4.0) * (pow(beam_ro, 4) - pow(beam_ri, 4)) )
+melasticity.SetIzz( (CH_PI / 4.0) * (pow(beam_ro, 4) - pow(beam_ri, 4)) )
+melasticity.SetJ  ( (CH_PI / 2.0) * (pow(beam_ro, 4) - pow(beam_ri, 4)) )
 
 msection = fea.ChBeamSectionCosserat(minertia, melasticity)
 
@@ -74,8 +74,8 @@ builder = fea.ChBuilderBeamIGA()
 builder.BuildBeam(mesh,      # the mesh to put the elements in
 	msection,					# section of the beam
 	20,							# number of sections (spans)
-	chrono.ChVectorD(0, 0, 0),		# start point
-	chrono.ChVectorD(beam_L, 0, 0),	# end point
+	chrono.ChVector3d(0, 0, 0),		# start point
+	chrono.ChVector3d(beam_L, 0, 0),	# end point
 	chrono.VECT_Y,				# suggested Y direction of section
 	1)							# order (3 = cubic, etc)
 
@@ -84,9 +84,9 @@ node_mid = builder.GetLastBeamNodes()[m.floor(builder.GetLastBeamNodes().size()/
 # Create the flywheel and attach it to the center of the beam
 	
 mbodyflywheel = chrono.ChBodyEasyCylinder(chrono.ChAxis_Y, 0.24, 0.1, 7800) # R, h, density
-mbodyflywheel.SetCoord(
-		chrono.ChCoordsysD(node_mid.GetPos() + chrono.ChVectorD(0,0.05,0), # flywheel initial center (plus Y offset)
-		chrono.Q_from_AngAxis(CH_C_PI/2.0, chrono.VECT_Z)) # flywheel initial alignment (rotate 90° so cylinder axis is on X)
+mbodyflywheel.SetCoordsys(
+		chrono.ChCoordsysd(node_mid.GetPos() + chrono.ChVector3d(0,0.05,0), # flywheel initial center (plus Y offset)
+		chrono.QuatFromAngleAxis(CH_PI/2.0, chrono.VECT_Z)) # flywheel initial alignment (rotate 90° so cylinder axis is on X)
 )
 sys.Add(mbodyflywheel)
 
@@ -96,14 +96,14 @@ sys.Add(myjoint)
 
 # Create the truss
 truss = chrono.ChBody()
-truss.SetBodyFixed(True)
+truss.SetFixed(True)
 sys.Add(truss)
 
 # Create the end bearing 
 bearing = chrono.ChLinkMateGeneric(False, True, True, False, True, True)
 bearing.Initialize(builder.GetLastBeamNodes().back(),
 	truss,
-	chrono.ChFrameD(builder.GetLastBeamNodes().back().GetPos())
+	chrono.ChFramed(builder.GetLastBeamNodes().back().GetPos())
 )
 sys.Add(bearing)
 
@@ -113,16 +113,16 @@ rotmotor1 = chrono.ChLinkMotorRotationSpeed()
 # Connect the rotor and the stator and add the motor to the system:
 rotmotor1.Initialize(builder.GetLastBeamNodes().front(),                # body A (slave)
 	truss,               # body B (master)
-	chrono.ChFrameD(builder.GetLastBeamNodes().front().GetPos(), 
-                    chrono.Q_from_AngAxis(CH_C_PI/2.0, chrono.VECT_Y)) # motor frame, in abs. coords
+	chrono.ChFramed(builder.GetLastBeamNodes().front().GetPos(), 
+                    chrono.QuatFromAngleAxis(CH_PI/2.0, chrono.VECT_Y)) # motor frame, in abs. coords
 )
 sys.Add(rotmotor1)
 	
 # use a custom function for setting the speed of the motor
-class ChFunction_myf (chrono.ChFunction):
+class ChFunctionMyFun (chrono.ChFunction):
     def __init__(self):
          chrono.ChFunction.__init__(self)
-    def Get_y(self,x):
+    def GetVal(self,x):
         A1 = 0.8
         A2 = 1.2
         T1 = 0.5
@@ -130,16 +130,16 @@ class ChFunction_myf (chrono.ChFunction):
         T3 = 1.25
         w = 60
         if x < T1:
-            return A1 * w * (1. - m.cos(CH_C_PI*x / T1)) / 2.0
+            return A1 * w * (1. - m.cos(CH_PI*x / T1)) / 2.0
         elif (x > T1 and x <= T2):
             return A1 * w
         elif (x > T2 and x <= T3):
-            return A1 * w + (A2 - A1) * w * (1.0 - m.cos(CH_C_PI*(x - T2) / (T3 - T2))) / 2.0
+            return A1 * w + (A2 - A1) * w * (1.0 - m.cos(CH_PI*(x - T2) / (T3 - T2))) / 2.0
         else:
             return A2 * w
 
-f_ramp = ChFunction_myf()
-#f_ramp = chrono.ChFunction_Sine(0,0.2,40)
+f_ramp = ChFunctionMyFun()
+#f_ramp = chrono.ChFunctionSine(40,0.2)
 rotmotor1.SetMotorFunction(f_ramp)
 
 # Attach a visualization of the FEM mesh.
@@ -166,7 +166,7 @@ vis.SetWindowTitle('Test FEA: the Jeffcott rotor with IGA beams')
 vis.Initialize()
 vis.AddLogo(chrono.GetChronoDataFile('logo_pychrono_alpha.png'))
 vis.AddSkyBox()
-vis.AddCamera(chrono.ChVectorD(0, 1, 4), chrono.ChVectorD(beam_L/2, 0, 0))
+vis.AddCamera(chrono.ChVector3d(0, 1, 4), chrono.ChVector3d(beam_L/2, 0, 0))
 vis.AddTypicalLights()
 
 

@@ -40,11 +40,11 @@ class StackingTest : public ::testing::TestWithParam<ChSystemSMC::ContactForceMo
         float adDMT = 0.0f;        // Magnitude of the adhesion in the DMT adhesion model
         float adSPerko = 0.0f;     // Magnitude of the adhesion in the SPerko adhesion model
 
-        auto mat = chrono_types::make_shared<ChMaterialSurfaceSMC>();
+        auto mat = chrono_types::make_shared<ChContactMaterialSMC>();
         mat->SetYoungModulus(y_modulus);
         mat->SetPoissonRatio(p_ratio);
-        mat->SetSfriction(s_frict);
-        mat->SetKfriction(k_frict);
+        mat->SetStaticFriction(s_frict);
+        mat->SetSlidingFriction(k_frict);
         mat->SetRollingFriction(roll_frict);
         mat->SetSpinningFriction(spin_frict);
         mat->SetRestitution(cor_in);
@@ -55,24 +55,24 @@ class StackingTest : public ::testing::TestWithParam<ChSystemSMC::ContactForceMo
         // Create a multicore SMC system and set the system parameters
         sys = new ChSystemMulticoreSMC();
         time_step = 3.0E-5;
-        SetSimParameters(sys, ChVector<>(0, -9.81, 0), fmodel);
+        SetSimParameters(sys, ChVector3d(0, -9.81, 0), fmodel);
 
         sys->SetNumThreads(2);
 
         // Add the wall to the system
         double wmass = 10.0;
-        ChVector<> wsize(8, 1, 8);
-        ChVector<> wpos(0, -wsize.y() / 2, 0);
+        ChVector3d wsize(8, 1, 8);
+        ChVector3d wpos(0, -wsize.y() / 2, 0);
 
-        auto wall = AddWall(-1, sys, mat, wsize, wmass, wpos, ChVector<>(0, 0, 0), true);
+        auto wall = AddWall(sys, mat, wsize, wmass, wpos, ChVector3d(0, 0, 0), true);
 
         // Add the spheres to the system
         double srad = 1.0;
         double smass = 1.0;
 
         for (int sid = 0; sid < 5; ++sid) {
-            ChVector<> spos(0, 5 + 2.5 * srad * sid, 0);
-            auto body = AddSphere(sid, sys, mat, srad, smass, spos, ChVector<>(0, 0, 0));
+            ChVector3d spos(0, 5 + 2.5 * srad * sid, 0);
+            auto body = AddSphere(sys, mat, srad, smass, spos, ChVector3d(0, 0, 0));
             bodies.push_back(body);
         }
     }
@@ -102,7 +102,7 @@ TEST_P(StackingTest, stacking) {
 
     // Check that spheres are in a stack, with (x,z) positions at (0,0) and no rotation.
     for (auto& body : bodies) {
-        const ChVector<>& pos = body->GetPos();
+        const ChVector3d& pos = body->GetPos();
         const ChQuaternion<>& rot = body->GetRot();
         std::cout << pos << "    " << rot << "\n";
         ASSERT_NEAR(pos.x(), 0.0, 1e-6);

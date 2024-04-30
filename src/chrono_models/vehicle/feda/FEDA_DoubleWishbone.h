@@ -62,14 +62,14 @@ class CH_MODELS_API FEDA_DoubleWishboneFront : public ChDoubleWishbone {
     virtual double getUprightRadius() const override { return m_uprightRadius; }
     virtual double getTierodRadius() const override { return m_tierodRadius; }
 
-    virtual const ChVector<>& getSpindleInertia() const override { return m_spindleInertia; }
-    virtual const ChVector<>& getUCAInertiaMoments() const override { return m_UCAInertiaMoments; }
-    virtual const ChVector<>& getUCAInertiaProducts() const override { return m_UCAInertiaProducts; }
-    virtual const ChVector<>& getLCAInertiaMoments() const override { return m_LCAInertiaMoments; }
-    virtual const ChVector<>& getLCAInertiaProducts() const override { return m_LCAInertiaProducts; }
-    virtual const ChVector<>& getUprightInertiaMoments() const override { return m_uprightInertiaMoments; }
-    virtual const ChVector<>& getUprightInertiaProducts() const override { return m_uprightInertiaProducts; }
-    virtual const ChVector<> getTierodInertia() const override { return m_tierodInertia; }
+    virtual const ChVector3d& getSpindleInertia() const override { return m_spindleInertia; }
+    virtual const ChVector3d& getUCAInertiaMoments() const override { return m_UCAInertiaMoments; }
+    virtual const ChVector3d& getUCAInertiaProducts() const override { return m_UCAInertiaProducts; }
+    virtual const ChVector3d& getLCAInertiaMoments() const override { return m_LCAInertiaMoments; }
+    virtual const ChVector3d& getLCAInertiaProducts() const override { return m_LCAInertiaProducts; }
+    virtual const ChVector3d& getUprightInertiaMoments() const override { return m_uprightInertiaMoments; }
+    virtual const ChVector3d& getUprightInertiaProducts() const override { return m_uprightInertiaProducts; }
+    virtual const ChVector3d getTierodInertia() const override { return m_tierodInertia; }
 
     virtual double getAxleInertia() const override { return m_axleInertia; }
 
@@ -81,13 +81,13 @@ class CH_MODELS_API FEDA_DoubleWishboneFront : public ChDoubleWishbone {
         std::shared_ptr<ChChassis> chassis,        ///< [in] associated chassis subsystem
         std::shared_ptr<ChSubchassis> subchassis,  ///< [in] associated subchassis subsystem (may be null)
         std::shared_ptr<ChSteering> steering,      ///< [in] associated steering subsystem (may be null)
-        const ChVector<>& location,                ///< [in] location relative to the chassis frame
+        const ChVector3d& location,                ///< [in] location relative to the chassis frame
         double left_ang_vel = 0,                   ///< [in] initial angular velocity of left wheel
         double right_ang_vel = 0                   ///< [in] initial angular velocity of right wheel
         ) override;
 
   private:
-    virtual const ChVector<> getLocation(PointId which) override;
+    virtual const ChVector3d getLocation(PointId which) override;
 
     std::shared_ptr<ChLinkTSDA::ForceFunctor> m_springForceCB;
     std::shared_ptr<ChLinkTSDA::ForceFunctor> m_shockForceCB;
@@ -109,14 +109,14 @@ class CH_MODELS_API FEDA_DoubleWishboneFront : public ChDoubleWishbone {
     static const double m_uprightRadius;
     static const double m_tierodRadius;
 
-    static const ChVector<> m_spindleInertia;
-    static const ChVector<> m_UCAInertiaMoments;
-    static const ChVector<> m_UCAInertiaProducts;
-    static const ChVector<> m_LCAInertiaMoments;
-    static const ChVector<> m_LCAInertiaProducts;
-    static const ChVector<> m_uprightInertiaMoments;
-    static const ChVector<> m_uprightInertiaProducts;
-    static const ChVector<> m_tierodInertia;
+    static const ChVector3d m_spindleInertia;
+    static const ChVector3d m_UCAInertiaMoments;
+    static const ChVector3d m_UCAInertiaProducts;
+    static const ChVector3d m_LCAInertiaMoments;
+    static const ChVector3d m_LCAInertiaProducts;
+    static const ChVector3d m_uprightInertiaMoments;
+    static const ChVector3d m_uprightInertiaProducts;
+    static const ChVector3d m_tierodInertia;
 
     static const double m_axleInertia;
 
@@ -160,14 +160,14 @@ class CH_MODELS_API FEDA_DoubleWishboneRear : public ChDoubleWishbone {
     virtual double getUprightRadius() const override { return m_uprightRadius; }
     virtual double getTierodRadius() const override { return m_tierodRadius; }
 
-    virtual const ChVector<>& getSpindleInertia() const override { return m_spindleInertia; }
-    virtual const ChVector<>& getUCAInertiaMoments() const override { return m_UCAInertiaMoments; }
-    virtual const ChVector<>& getUCAInertiaProducts() const override { return m_UCAInertiaProducts; }
-    virtual const ChVector<>& getLCAInertiaMoments() const override { return m_LCAInertiaMoments; }
-    virtual const ChVector<>& getLCAInertiaProducts() const override { return m_LCAInertiaProducts; }
-    virtual const ChVector<>& getUprightInertiaMoments() const override { return m_uprightInertiaMoments; }
-    virtual const ChVector<>& getUprightInertiaProducts() const override { return m_uprightInertiaProducts; }
-    virtual const ChVector<> getTierodInertia() const override { return m_tierodInertia; }
+    virtual const ChVector3d& getSpindleInertia() const override { return m_spindleInertia; }
+    virtual const ChVector3d& getUCAInertiaMoments() const override { return m_UCAInertiaMoments; }
+    virtual const ChVector3d& getUCAInertiaProducts() const override { return m_UCAInertiaProducts; }
+    virtual const ChVector3d& getLCAInertiaMoments() const override { return m_LCAInertiaMoments; }
+    virtual const ChVector3d& getLCAInertiaProducts() const override { return m_LCAInertiaProducts; }
+    virtual const ChVector3d& getUprightInertiaMoments() const override { return m_uprightInertiaMoments; }
+    virtual const ChVector3d& getUprightInertiaProducts() const override { return m_uprightInertiaProducts; }
+    virtual const ChVector3d getTierodInertia() const override { return m_tierodInertia; }
 
     virtual double getAxleInertia() const override { return m_axleInertia; }
 
@@ -179,13 +179,13 @@ class CH_MODELS_API FEDA_DoubleWishboneRear : public ChDoubleWishbone {
         std::shared_ptr<ChChassis> chassis,        ///< [in] associated chassis subsystem
         std::shared_ptr<ChSubchassis> subchassis,  ///< [in] associated subchassis subsystem (may be null)
         std::shared_ptr<ChSteering> steering,      ///< [in] associated steering subsystem (may be null)
-        const ChVector<>& location,                ///< [in] location relative to the chassis frame
+        const ChVector3d& location,                ///< [in] location relative to the chassis frame
         double left_ang_vel = 0,                   ///< [in] initial angular velocity of left wheel
         double right_ang_vel = 0                   ///< [in] initial angular velocity of right wheel
         ) override;
 
   private:
-    virtual const ChVector<> getLocation(PointId which) override;
+    virtual const ChVector3d getLocation(PointId which) override;
 
     std::shared_ptr<ChLinkTSDA::ForceFunctor> m_springForceCB;
     std::shared_ptr<ChLinkTSDA::ForceFunctor> m_shockForceCB;
@@ -207,14 +207,14 @@ class CH_MODELS_API FEDA_DoubleWishboneRear : public ChDoubleWishbone {
     static const double m_uprightRadius;
     static const double m_tierodRadius;
 
-    static const ChVector<> m_spindleInertia;
-    static const ChVector<> m_UCAInertiaMoments;
-    static const ChVector<> m_UCAInertiaProducts;
-    static const ChVector<> m_LCAInertiaMoments;
-    static const ChVector<> m_LCAInertiaProducts;
-    static const ChVector<> m_uprightInertiaMoments;
-    static const ChVector<> m_uprightInertiaProducts;
-    static const ChVector<> m_tierodInertia;
+    static const ChVector3d m_spindleInertia;
+    static const ChVector3d m_UCAInertiaMoments;
+    static const ChVector3d m_UCAInertiaProducts;
+    static const ChVector3d m_LCAInertiaMoments;
+    static const ChVector3d m_LCAInertiaProducts;
+    static const ChVector3d m_uprightInertiaMoments;
+    static const ChVector3d m_uprightInertiaProducts;
+    static const ChVector3d m_tierodInertia;
 
     static const double m_axleInertia;
 

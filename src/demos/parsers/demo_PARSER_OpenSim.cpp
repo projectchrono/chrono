@@ -66,7 +66,7 @@ int main(int argc, char* argv[]) {
     ChParserOpenSim parser;
     parser.SetVisualizationType(vis_type);
     parser.SetVerbose(true);
-    parser.SetCollide(collide);
+    parser.EnableCollision(collide);
     ////parser.ActivateActuators(true);
     parser.Parse(sys, filename);
 
@@ -84,13 +84,13 @@ int main(int argc, char* argv[]) {
     // Find the actuator named "grav" and directly set its excitation function
     ////if (auto force = rep.GetForce("grav")) {
     ////    if (auto body_force = std::dynamic_pointer_cast<ChLoadBodyForce>(force)) {
-    ////        auto excitation = chrono_types::make_shared<ChFunction_Ramp>(0, 1);
+    ////        auto excitation = chrono_types::make_shared<ChFunctionRamp>(0, 1);
     ////        body_force->SetModulationFunction(excitation);
     ////    }
     ////}
 
     // Use parser wrapper method to set excitation for named actuator.
-    ////auto excitation = chrono_types::make_shared<ChFunction_Ramp>(0, 1);
+    ////auto excitation = chrono_types::make_shared<ChFunctionRamp>(0, 1);
     ////parser.SetExcitationFunction("grav", excitation);
 
     // Create the Irrlicht visualization system
@@ -101,7 +101,7 @@ int main(int argc, char* argv[]) {
     vis->Initialize();
     vis->AddLogo();
     vis->AddSkyBox();
-    vis->AddCamera(ChVector<>(0, 0, 2));
+    vis->AddCamera(ChVector3d(0, 0, 2));
     vis->AddTypicalLights();
 
     // Simulation loop

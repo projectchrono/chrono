@@ -79,8 +79,8 @@ class CH_VEHICLE_API ChTrackAssemblyDoublePin : public ChTrackAssemblySegmented 
     /// specifies locations and orientations for the shoe and connector bodies separately (in 2D, in the (x-z) plane).
     void CreateTrackShoe(std::shared_ptr<ChBodyAuxRef> chassis,  ///< associated vehicle chassis
                          size_t index,                           ///< index of track shoe within assembly
-                         ChVector2<> ps,                         ///< (x-z) location of shoe body
-                         ChVector2<> pc,                         ///< (x-z) location of connector body
+                         ChVector2d ps,                          ///< (x-z) location of shoe body
+                         ChVector2d pc,                          ///< (x-z) location of connector body
                          double as,                              ///< shoe body angle
                          double ac                               ///< connector body angle
     );

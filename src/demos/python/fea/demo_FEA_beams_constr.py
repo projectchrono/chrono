@@ -24,14 +24,14 @@ import pychrono.irrlicht as chronoirr
 import os
 
 # Create a motor between the truss and the crank:
-class ChFunction_myf (chrono.ChFunction):
+class ChFunctionMyFun (chrono.ChFunction):
     def __init__(self):
          chrono.ChFunction.__init__(self)
-    def Get_y(self,x):
+    def GetVal(self,x):
         if (x > 0.4):
-            return chrono.CH_C_PI
+            return chrono.CH_PI
         else:
-            return -chrono.CH_C_PI * (1.0 - m.cos(chrono.CH_C_PI * x / 0.4)) / 2.0
+            return -chrono.CH_PI * (1.0 - m.cos(chrono.CH_PI * x / 0.4)) / 2.0
 
 # Output directory
 out_dir = chrono.GetChronoOutputPath() + "BEAM_BUCKLING"
@@ -44,21 +44,21 @@ sys = chrono.ChSystemSMC()
 L = 1
 H = 0.25
 K = 0.05
-vA = chrono.ChVectorD(0, 0, 0)
-vC = chrono.ChVectorD(L, 0, 0)
-vB = chrono.ChVectorD(L, -H, 0)
-vG = chrono.ChVectorD(L - K, -H, 0)
-vd = chrono.ChVectorD(0, 0, 0.0001)
+vA = chrono.ChVector3d(0, 0, 0)
+vC = chrono.ChVector3d(L, 0, 0)
+vB = chrono.ChVector3d(L, -H, 0)
+vG = chrono.ChVector3d(L - K, -H, 0)
+vd = chrono.ChVector3d(0, 0, 0.0001)
 
 # Create a truss:
 body_truss = chrono.ChBody()
-body_truss.SetBodyFixed(True)
+body_truss.SetFixed(True)
 
 sys.AddBody(body_truss)
 
 # Attach a 'box' shape asset for visualization.
 boxtruss = chrono.ChVisualShapeBox(0.02, 0.2, 0.1)
-body_truss.AddVisualShape(boxtruss, chrono.ChFrameD(chrono.ChVectorD(-0.01, 0, 0), chrono.QUNIT))
+body_truss.AddVisualShape(boxtruss, chrono.ChFramed(chrono.ChVector3d(-0.01, 0, 0), chrono.QUNIT))
 
 # Create body for crank
 body_crank = chrono.ChBody()
@@ -71,8 +71,8 @@ boxcrank = chrono.ChVisualShapeBox(K, 0.02, 0.02)
 body_crank.AddVisualShape(boxcrank)
 
 motor = chrono.ChLinkMotorRotationAngle()
-motor.Initialize(body_truss, body_crank, chrono.ChFrameD(vG))
-myfun = ChFunction_myf()
+motor.Initialize(body_truss, body_crank, chrono.ChFramed(vG))
+myfun = ChFunctionMyFun()
 motor.SetAngleFunction(myfun)
 sys.Add(motor)
 
@@ -93,7 +93,7 @@ minertia.SetAsRectangularSection(beam_wy, beam_wz, 2700)  # automatically sets A
 
 melasticity = fea.ChElasticityCosseratSimple()
 melasticity.SetYoungModulus(73.0e9)
-melasticity.SetGwithPoissonRatio(0.3)
+melasticity.SetShearModulusFromPoisson(0.3)
 melasticity.SetAsRectangularSection(beam_wy, beam_wz)
 
 msection1 = fea.ChBeamSectionCosserat(minertia, melasticity)
@@ -118,8 +118,8 @@ section2 = fea.ChBeamSectionEulerAdvanced()
 hbeam_d = 0.024
 section2.SetDensity(2700)
 section2.SetYoungModulus(73.0e9)
-section2.SetGwithPoissonRatio(0.3)
-section2.SetBeamRaleyghDamping(0.000)
+section2.SetShearModulusFromPoisson(0.3)
+section2.SetRayleighDamping(0.000)
 section2.SetAsCircularSection(hbeam_d)
 
 builderA = fea.ChBuilderBeamEuler()
@@ -128,7 +128,7 @@ builderA.BuildBeam(mesh,               # the mesh where to put the created nodes
                    3,                     # the number of ChElementBeamEuler to create
                    vC + vd,               # the 'A' poin space (beginning of beam)
                    vB + vd,               # the 'B' poin space (end of beam)
-                   chrono.ChVectorD(1, 0, 0))  # the 'Y' up direction of the section for the beam
+                   chrono.ChVector3d(1, 0, 0))  # the 'Y' up direction of the section for the beam
 node_top = builderA.GetLastBeamNodes()[0]
 node_down = builderA.GetLastBeamNodes()[-1]
 
@@ -150,8 +150,8 @@ section3 = fea.ChBeamSectionEulerAdvanced()
 crankbeam_d = 0.048
 section3.SetDensity(2700)
 section3.SetYoungModulus(73.0e9)
-section3.SetGwithPoissonRatio(0.3)
-section3.SetBeamRaleyghDamping(0.000)
+section3.SetShearModulusFromPoisson(0.3)
+section3.SetRayleighDamping(0.000)
 section3.SetAsCircularSection(crankbeam_d)
 builderB = fea.ChBuilderBeamEuler()
 builderB.BuildBeam(mesh,               # the mesh where to put the created nodes and elements
@@ -159,7 +159,7 @@ builderB.BuildBeam(mesh,               # the mesh where to put the created nodes
                    3,                     # the number of ChElementBeamEuler to create
                    vG + vd,               # the 'A' poin space (beginning of beam)
                    vB + vd,               # the 'B' poin space (end of beam)
-                   chrono.ChVectorD(0, 1, 0))  # the 'Y' up direction of the section for the beam
+                   chrono.ChVector3d(0, 1, 0))  # the 'Y' up direction of the section for the beam
 
 node_crankG = builderB.GetLastBeamNodes()[0]
 node_crankB = builderB.GetLastBeamNodes()[-1]
@@ -223,7 +223,7 @@ vis.SetWindowTitle('Beams and constraints')
 vis.Initialize()
 vis.AddLogo(chrono.GetChronoDataFile('logo_pychrono_alpha.png'))
 vis.AddSkyBox()
-vis.AddCamera(chrono.ChVectorD(0.0, 0.6, -1.0))
+vis.AddCamera(chrono.ChVector3d(0.0, 0.6, -1.0))
 vis.AddTypicalLights()
 
 # Use a solver that can handle stiffnss matrices:
@@ -241,7 +241,7 @@ while vis.Run():
     vis.Render()
     chronoirr.drawGrid(vis,
         0.05, 0.05, 20, 20, 
-        chrono.ChCoordsysD(chrono.ChVectorD(0, 0, 0), chrono.Q_from_AngZ(chrono.CH_C_PI_2)))
+        chrono.ChCoordsysd(chrono.ChVector3d(0, 0, 0), chrono.QuatFromAngleZ(chrono.CH_PI_2)))
     vis.EndScene()
 
     sys.DoStepDynamics(0.001)

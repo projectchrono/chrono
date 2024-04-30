@@ -24,8 +24,8 @@ namespace chrono {
 void ChVisualShapePointPoint::Update(ChPhysicsItem* updater, const ChFrame<>& frame) {
     // Extract two positions from updater if it has any, and then update line geometry from these positions.
     if (auto link_markers = dynamic_cast<ChLinkMarkers*>(updater)) {
-        UpdateLineGeometry(frame.TransformPointParentToLocal(link_markers->GetMarker1()->GetAbsCoord().pos),
-                           frame.TransformPointParentToLocal(link_markers->GetMarker2()->GetAbsCoord().pos));
+        UpdateLineGeometry(frame.TransformPointParentToLocal(link_markers->GetMarker1()->GetAbsCoordsys().pos),
+                           frame.TransformPointParentToLocal(link_markers->GetMarker2()->GetAbsCoordsys().pos));
     } else if (auto link_dist = dynamic_cast<ChLinkDistance*>(updater)) {
         UpdateLineGeometry(frame.TransformPointParentToLocal(link_dist->GetEndPoint1Abs()),
                            frame.TransformPointParentToLocal(link_dist->GetEndPoint2Abs()));
@@ -36,8 +36,8 @@ void ChVisualShapePointPoint::Update(ChPhysicsItem* updater, const ChFrame<>& fr
         UpdateLineGeometry(frame.TransformPointParentToLocal(link_tsda->GetPoint1Abs()),
                            frame.TransformPointParentToLocal(link_tsda->GetPoint2Abs()));
     } else if (auto link_mate = dynamic_cast<ChLinkMateGeneric*>(updater)) {
-        auto pt1 = link_mate->GetBody1()->TransformPointLocalToParent(link_mate->GetFrame1().GetPos());
-        auto pt2 = link_mate->GetBody2()->TransformPointLocalToParent(link_mate->GetFrame2().GetPos());
+        auto pt1 = link_mate->GetBody1()->TransformPointLocalToParent(link_mate->GetFrame1Rel().GetPos());
+        auto pt2 = link_mate->GetBody2()->TransformPointLocalToParent(link_mate->GetFrame2Rel().GetPos());
         UpdateLineGeometry(frame.TransformPointParentToLocal(pt1), frame.TransformPointParentToLocal(pt2));
     } else if (auto link = dynamic_cast<ChLink*>(updater)) {
         UpdateLineGeometry(frame.TransformPointParentToLocal(link->GetBody1()->GetPos()),
@@ -49,24 +49,22 @@ void ChVisualShapePointPoint::Update(ChPhysicsItem* updater, const ChFrame<>& fr
 }
 
 // Set line geometry as a segment between two end point
-void ChVisualShapeSegment::UpdateLineGeometry(const ChVector<>& endpoint1, const ChVector<>& endpoint2) {
-    this->SetLineGeometry(std::static_pointer_cast<geometry::ChLine>(
-        chrono_types::make_shared<geometry::ChLineSegment>(endpoint1, endpoint2)));
+void ChVisualShapeSegment::UpdateLineGeometry(const ChVector3d& endpoint1, const ChVector3d& endpoint2) {
+    this->SetLineGeometry(
+        std::static_pointer_cast<ChLine>(chrono_types::make_shared<ChLineSegment>(endpoint1, endpoint2)));
 };
 
 // Set line geometry as a coil between two end point
-void ChVisualShapeSpring::UpdateLineGeometry(const ChVector<>& endpoint1, const ChVector<>& endpoint2) {
-    auto linepath = chrono_types::make_shared<geometry::ChLinePath>();
+void ChVisualShapeSpring::UpdateLineGeometry(const ChVector3d& endpoint1, const ChVector3d& endpoint2) {
+    auto linepath = chrono_types::make_shared<ChLinePath>();
 
     // Following part was copied from irrlicht::tools::drawSpring()
-    ChVector<> dist = endpoint2 - endpoint1;
-    ChVector<> Vx, Vy, Vz;
+    ChVector3d dist = endpoint2 - endpoint1;
+    ChVector3d Vx, Vy, Vz;
     double length = dist.Length();
-    ChVector<> dir = dist.GetNormalized();
-    XdirToDxDyDz(dir, VECT_Y, Vx, Vy, Vz);
-
-    ChMatrix33<> rel_matrix(Vx, Vy, Vz);
-    ChCoordsys<> mpos(endpoint1, rel_matrix.Get_A_quaternion());
+    ChMatrix33<> rel_matrix;
+    rel_matrix.SetFromAxisX(dist, VECT_Y);
+    ChCoordsys<> mpos(endpoint1, rel_matrix.GetQuaternion());
 
     double phaseA = 0;
     double phaseB = 0;
@@ -74,18 +72,18 @@ void ChVisualShapeSpring::UpdateLineGeometry(const ChVector<>& endpoint1, const 
     double heightB = 0;
 
     for (int iu = 1; iu <= resolution; iu++) {
-        phaseB = turns * CH_C_2PI * (double)iu / (double)resolution;
+        phaseB = turns * CH_2PI * (double)iu / (double)resolution;
         heightB = length * ((double)iu / (double)resolution);
-        ChVector<> V1(heightA, radius * cos(phaseA), radius * sin(phaseA));
-        ChVector<> V2(heightB, radius * cos(phaseB), radius * sin(phaseB));
+        ChVector3d V1(heightA, radius * cos(phaseA), radius * sin(phaseA));
+        ChVector3d V2(heightB, radius * cos(phaseB), radius * sin(phaseB));
 
-        auto segment = geometry::ChLineSegment(mpos.TransformLocalToParent(V1), mpos.TransformLocalToParent(V2));
+        auto segment = ChLineSegment(mpos.TransformPointLocalToParent(V1), mpos.TransformPointLocalToParent(V2));
         linepath->AddSubLine(segment);
         phaseA = phaseB;
         heightA = heightB;
     }
 
-    this->SetLineGeometry(std::static_pointer_cast<geometry::ChLine>(linepath));
+    this->SetLineGeometry(std::static_pointer_cast<ChLine>(linepath));
 }
 
 void ChVisualShapeRotSpring::Update(ChPhysicsItem* updater, const ChFrame<>& frame) {
@@ -95,19 +93,19 @@ void ChVisualShapeRotSpring::Update(ChPhysicsItem* updater, const ChFrame<>& fra
         return;
 
     // The asset frame for an RSDA is the frame on body1.
-    auto linepath = chrono_types::make_shared<geometry::ChLinePath>();
+    auto linepath = chrono_types::make_shared<ChLinePath>();
     double del_angle = rsda->GetAngle() / m_resolution;
-    ChVector<> V1(m_radius, 0, 0);
+    ChVector3d V1(m_radius, 0, 0);
     for (int iu = 1; iu <= m_resolution; iu++) {
         double crt_angle = iu * del_angle;
-        double crt_radius = m_radius - (iu * del_angle / CH_C_2PI) * (m_radius / 10);
-        ChVector<> V2(crt_radius * std::cos(crt_angle), crt_radius * std::sin(crt_angle), 0);
-        auto segment = geometry::ChLineSegment(V1, V2);
+        double crt_radius = m_radius - (iu * del_angle / CH_2PI) * (m_radius / 10);
+        ChVector3d V2(crt_radius * std::cos(crt_angle), crt_radius * std::sin(crt_angle), 0);
+        auto segment = ChLineSegment(V1, V2);
         linepath->AddSubLine(segment);
         V1 = V2;
     }
 
-    this->SetLineGeometry(std::static_pointer_cast<geometry::ChLine>(linepath));
+    this->SetLineGeometry(std::static_pointer_cast<ChLine>(linepath));
 }
 
 }  // end namespace chrono

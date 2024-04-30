@@ -12,6 +12,7 @@
 // Authors: Radu Serban
 // =============================================================================
 
+#include <iomanip>
 #include "chrono/solver/ChIterativeSolver.h"
 
 namespace chrono {
@@ -19,10 +20,10 @@ namespace chrono {
 ChIterativeSolver::ChIterativeSolver(int max_iterations, double tolerance, bool use_precond, bool warm_start)
     : m_max_iterations(max_iterations), m_tolerance(tolerance), m_use_precond(use_precond), m_warm_start(warm_start) {}
 
-void ChIterativeSolver::SaveMatrix(ChSystemDescriptor& sysd) {
+void ChIterativeSolver::WriteMatrices(ChSystemDescriptor& sysd, bool one_indexed) {
     // Assemble sparse matrix
     ChSparseMatrix Z1;
-    sysd.ConvertToMatrixForm(&Z1, nullptr);
+    sysd.BuildSystemMatrix(&Z1, nullptr);
 
     // Create sparse matrix with SPMV
     ChMatrixDynamic<> Z2(Z1.rows(), Z1.cols());
@@ -37,19 +38,19 @@ void ChIterativeSolver::SaveMatrix(ChSystemDescriptor& sysd) {
 
     // Save matrices to file
     {
-        ChStreamOutAsciiFile file("Z1.dat");
-        file.SetNumFormat("%.12g");
-        StreamOutSparseMatlabFormat(Z1, file);
+        std::ofstream file("Z1.dat");
+        file << std::setprecision(12) << std::scientific;
+        StreamOut(Z1, file, one_indexed);
     }
     {
-        ChStreamOutAsciiFile file("Z2.dat");
-        file.SetNumFormat("%.12g");
-        StreamOutDenseMatlabFormat(Z2, file);
+        std::ofstream file("Z2.dat");
+        file << std::setprecision(12) << std::scientific;
+        StreamOut(Z2, file);
     }
 
     // Assemble RHS
     ChVectorDynamic<> rhs1;
-    sysd.ConvertToMatrixForm(nullptr, &rhs1);
+    sysd.BuildSystemMatrix(nullptr, &rhs1);
 
     // RHS using d vector
     ChVectorDynamic<> rhs2;
@@ -57,25 +58,25 @@ void ChIterativeSolver::SaveMatrix(ChSystemDescriptor& sysd) {
 
     // Save vectors to file
     {
-        ChStreamOutAsciiFile file("rhs1.dat");
-        file.SetNumFormat("%.12g");
-        StreamOutDenseMatlabFormat(rhs1, file);
+        std::ofstream file("rhs1.dat");
+        file << std::setprecision(12) << std::scientific;
+        StreamOut(rhs1, file);
     }
     {
-        ChStreamOutAsciiFile file("rhs2.dat");
-        file.SetNumFormat("%.12g");
-        StreamOutDenseMatlabFormat(rhs2, file);
+        std::ofstream file("rhs2.dat");
+        file << std::setprecision(12) << std::scientific;
+        StreamOut(rhs2, file);
     }
 }
 
 double ChIterativeSolver::CheckSolution(ChSystemDescriptor& sysd, const ChVectorDynamic<>& x) {
     ChVectorDynamic<> b;
-    sysd.ConvertToMatrixForm(nullptr, &b);
+    sysd.BuildSystemMatrix(nullptr, &b);
 
     ChSparseMatrix Z;
-    sysd.ConvertToMatrixForm(&Z, nullptr);
+    sysd.BuildSystemMatrix(&Z, nullptr);
     double res_norm1 = (Z * x - b).norm();
-    
+
     ChVectorDynamic<> Zx(x.size());
     sysd.SystemProduct(Zx, x);
     double res_norm2 = (Zx - b).norm();

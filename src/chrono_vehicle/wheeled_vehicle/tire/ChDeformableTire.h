@@ -26,8 +26,8 @@
 
 #include "chrono/fea/ChContactSurfaceMesh.h"
 #include "chrono/fea/ChContactSurfaceNodeCloud.h"
-#include "chrono/fea/ChLinkDirFrame.h"
-#include "chrono/fea/ChLinkPointFrame.h"
+#include "chrono/fea/ChLinkNodeSlopeFrame.h"
+#include "chrono/fea/ChLinkNodeFrame.h"
 #include "chrono/fea/ChMesh.h"
 #include "chrono/fea/ChNodeFEAbase.h"
 #include "chrono/assets/ChVisualShapeFEA.h"
@@ -55,7 +55,7 @@ class CH_VEHICLE_API ChDeformableTire : public ChTire {
     virtual double GetTireMass() const override final;
 
     /// Return the tire moments of inertia (in the tire centroidal frame).
-    virtual ChVector<> GetTireInertia() const override final;
+    virtual ChVector3d GetTireInertia() const override final;
 
     /// Set the type of contact surface.
     void SetContactSurfaceType(ContactSurfaceType type) { m_contact_type = type; }
@@ -73,7 +73,7 @@ class CH_VEHICLE_API ChDeformableTire : public ChTire {
 
     /// Get the tire contact material.
     /// Note that this is not set until after tire initialization.
-    std::shared_ptr<ChMaterialSurfaceSMC> GetContactMaterial() const { return m_contact_mat; }
+    std::shared_ptr<ChContactMaterialSMC> GetContactMaterial() const { return m_contact_mat; }
 
     /// Enable/disable tire pressure (default: true).
     void EnablePressure(bool val) { m_pressure_enabled = val; }
@@ -150,11 +150,11 @@ class CH_VEHICLE_API ChDeformableTire : public ChTire {
     /// Create the SMC contact material.
     virtual void CreateContactMaterial() = 0;
 
-    std::shared_ptr<fea::ChMesh> m_mesh;                                ///< tire mesh
-    std::shared_ptr<ChLoadContainer> m_load_container;                  ///< load container (for pressure load)
-    std::vector<std::shared_ptr<fea::ChLinkPointFrame>> m_connections;  ///< tire-wheel point connections
-    std::vector<std::shared_ptr<fea::ChLinkDirFrame>> m_connectionsD;   ///< tire-wheel direction connections
-    std::vector<std::shared_ptr<ChLinkMateFix>> m_connectionsF;         ///< tire-wheel fix connection (point+rotation)
+    std::shared_ptr<fea::ChMesh> m_mesh;                                     ///< tire mesh
+    std::shared_ptr<ChLoadContainer> m_load_container;                       ///< load container (for pressure load)
+    std::vector<std::shared_ptr<fea::ChLinkNodeFrame>> m_connections;        ///< tire-wheel point connections
+    std::vector<std::shared_ptr<fea::ChLinkNodeSlopeFrame>> m_connectionsD;  ///< tire-wheel direction connections
+    std::vector<std::shared_ptr<ChLinkMateFix>> m_connectionsF;  ///< tire-wheel fix connection (point+rotation)
 
     bool m_connection_enabled;  ///< enable tire connections to rim
     bool m_pressure_enabled;    ///< enable internal tire pressure
@@ -164,15 +164,15 @@ class CH_VEHICLE_API ChDeformableTire : public ChTire {
     double m_contact_node_radius;       ///< node radius (for node cloud contact surface)
     double m_contact_face_thickness;    ///< face thickness (for mesh contact surface)
 
-    std::shared_ptr<ChMaterialSurfaceSMC> m_contact_mat;  ///< tire contact material
+    std::shared_ptr<ChContactMaterialSMC> m_contact_mat;  ///< tire contact material
     std::shared_ptr<ChVisualShapeFEA> m_visualization;    ///< tire mesh visualization
 
     // The mass properties of a deformable tire are implicitly included through the FEA mesh.
     // No mass and inertia are added to the associated spindle body.
     virtual double GetAddedMass() const override final { return 0; }
-    virtual ChVector<> GetAddedInertia() const override final { return ChVector<>(0, 0, 0); }
+    virtual ChVector3d GetAddedInertia() const override final { return ChVector3d(0, 0, 0); }
 
-     /// Return the tire mass.
+    /// Return the tire mass.
     virtual void InitializeInertiaProperties() override final;
 
     /// Return the tire moments of inertia (in the tire centroidal frame).

@@ -45,11 +45,11 @@ class RollingGravityTest : public ::testing::TestWithParam<ChSystemSMC::ContactF
         if (fmodel == ChSystemSMC::ContactForceModel::Flores)
             cor_in = 0.1f;
 
-        auto mat = chrono_types::make_shared<ChMaterialSurfaceSMC>();
+        auto mat = chrono_types::make_shared<ChContactMaterialSMC>();
         mat->SetYoungModulus(y_modulus);
         mat->SetPoissonRatio(p_ratio);
-        mat->SetSfriction(s_frict);
-        mat->SetKfriction(k_frict);
+        mat->SetStaticFriction(s_frict);
+        mat->SetSlidingFriction(k_frict);
         mat->SetRollingFriction(roll_frict);
         mat->SetSpinningFriction(spin_frict);
         mat->SetRestitution(cor_in);
@@ -60,25 +60,24 @@ class RollingGravityTest : public ::testing::TestWithParam<ChSystemSMC::ContactF
         // Create a multicore SMC system and set the system parameters
         sys = new ChSystemSMC();
         time_step = 3.0E-5;
-        SetSimParameters(sys, ChVector<>(0, -9.81, 0), fmodel);
+        SetSimParameters(sys, ChVector3d(0, -9.81, 0), fmodel);
 
         sys->SetNumThreads(2);
 
         // Add the wall to the system
-        int id = -1;
         double wmass = 10.0;
-        ChVector<> wsize(4, 1, 4);
-        ChVector<> wpos(0, -wsize.y() / 2, 0);
+        ChVector3d wsize(4, 1, 4);
+        ChVector3d wpos(0, -wsize.y() / 2, 0);
 
-        auto wall = AddWall(id, sys, mat, wsize, wmass, wpos, ChVector<>(0, 0, 0), true);
+        auto wall = AddWall(sys, mat, wsize, wmass, wpos, ChVector3d(0, 0, 0), true);
 
         // Add the sphere to the system
         double srad = 0.5;
         double smass = 1.0;
-        ChVector<> spos(0, srad + 1e-2, 0);
-        ChVector<> init_v(0, -0.1, 0);
+        ChVector3d spos(0, srad + 1e-2, 0);
+        ChVector3d init_v(0, -0.1, 0);
 
-        body = AddSphere(++id, sys, mat, srad, smass, spos, init_v);
+        body = AddSphere(sys, mat, srad, smass, spos, init_v);
 
         // Let the sphere settle on the plate before giving it a push
         double t_end = 1;
@@ -101,8 +100,8 @@ class RollingGravityTest : public ::testing::TestWithParam<ChSystemSMC::ContactF
 
 TEST_P(RollingGravityTest, rolling) {
     // Give the sphere a push in the horizontal direction
-    ChVector<> init_v(1, 0, 0);
-    body->SetPos_dt(init_v);
+    ChVector3d init_v(1, 0, 0);
+    body->SetPosDt(init_v);
 
     double t_start = sys->GetChTime();
     double t_end = t_start + 1;
@@ -116,7 +115,7 @@ TEST_P(RollingGravityTest, rolling) {
     }
 
     // Check results. The sphere's rotational velocity should be < 1e-3.
-    double wvel = body->GetWvel_par().Length();
+    double wvel = body->GetAngVelParent().Length();
     std::cout << ForceModel_name(GetParam()) << "  " << wvel << "\n";
     ASSERT_LT(wvel, 1e-3);
 }

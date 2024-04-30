@@ -51,16 +51,16 @@ class CH_VEHICLE_API TrackShoeBandBushing : public ChTrackShoeBandBushing {
     virtual double GetWebMass() const override { return m_web_mass; }
 
     /// Return the moments of inertia of the tread body.
-    virtual const ChVector<>& GetTreadInertia() const override { return m_tread_inertias; }
+    virtual const ChVector3d& GetTreadInertia() const override { return m_tread_inertias; }
 
     /// Return the moments of inertia of the web.
     /// These will be distributed over the specified number of web segments.
-    virtual const ChVector<>& GetWebInertia() const override { return m_web_inertias; }
+    virtual const ChVector3d& GetWebInertia() const override { return m_web_inertias; }
 
     /// Return the dimensions of the contact box for the guiding pin.
     /// Note that this is for contact with wheels, idler, and ground only.
     /// This contact geometry does not affect contact with the sprocket.
-    virtual const ChVector<>& GetGuideBoxDimensions() const override { return m_guide_box_dims; }
+    virtual const ChVector3d& GetGuideBoxDimensions() const override { return m_guide_box_dims; }
 
     /// Return the offset (in X direction) of the guiding pin.
     virtual double GetGuideBoxOffsetX() const override { return m_guide_box_offset_x; }
@@ -80,7 +80,7 @@ class CH_VEHICLE_API TrackShoeBandBushing : public ChTrackShoeBandBushing {
     virtual double GetToothArcRadius() const override { return m_tooth_arc_radius; }
 
     /// Return the number of segments that the web section is broken up into.
-    virtual int GetNumWebSegments() const override { return m_num_web_segments; }
+    virtual unsigned int GetNumWebSegments() const override { return m_num_web_segments; }
     /// Return the combined length of all of the web sections (in the X direction)
     virtual double GetWebLength() const override { return m_web_length; }
     /// Return the thickness of the web section (in the Z direction)
@@ -104,10 +104,10 @@ class CH_VEHICLE_API TrackShoeBandBushing : public ChTrackShoeBandBushing {
     virtual void AddVisualizationAssets(VisualizationType vis) override;
 
     double m_tread_mass;
-    ChVector<> m_tread_inertias;
+    ChVector3d m_tread_inertias;
 
     double m_web_mass;
-    ChVector<> m_web_inertias;
+    ChVector3d m_web_inertias;
 
     double m_shoe_height;
 
@@ -123,7 +123,7 @@ class CH_VEHICLE_API TrackShoeBandBushing : public ChTrackShoeBandBushing {
     double m_tread_length;
     double m_tread_thickness;
 
-    ChVector<> m_guide_box_dims;
+    ChVector3d m_guide_box_dims;
     double m_guide_box_offset_x;
 
     bool m_has_mesh;               ///< OBJ file provided

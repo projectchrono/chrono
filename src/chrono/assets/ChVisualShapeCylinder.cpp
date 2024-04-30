@@ -29,26 +29,26 @@ ChVisualShapeCylinder::ChVisualShapeCylinder(double radius, double height) {
     SetMutable(false);
 }
 
-ChVisualShapeCylinder::ChVisualShapeCylinder(const geometry::ChCylinder& cyl) : gcylinder(cyl) {
+ChVisualShapeCylinder::ChVisualShapeCylinder(const ChCylinder& cyl) : gcylinder(cyl) {
     SetMutable(false);
 }
 
-void ChVisualShapeCylinder::ArchiveOut(ChArchiveOut& marchive) {
+void ChVisualShapeCylinder::ArchiveOut(ChArchiveOut& archive_out) {
     // version number
-    marchive.VersionWrite<ChVisualShapeCylinder>();
+    archive_out.VersionWrite<ChVisualShapeCylinder>();
     // serialize parent class
-    ChVisualShape::ArchiveOut(marchive);
+    ChVisualShape::ArchiveOut(archive_out);
     // serialize all member data:
-    marchive << CHNVP(gcylinder);
+    archive_out << CHNVP(gcylinder);
 }
 
-void ChVisualShapeCylinder::ArchiveIn(ChArchiveIn& marchive) {
+void ChVisualShapeCylinder::ArchiveIn(ChArchiveIn& archive_in) {
     // version number
-    /*int version =*/ marchive.VersionRead<ChVisualShapeCylinder>();
+    /*int version =*/archive_in.VersionRead<ChVisualShapeCylinder>();
     // deserialize parent class
-    ChVisualShape::ArchiveIn(marchive);
+    ChVisualShape::ArchiveIn(archive_in);
     // stream in all member data:
-    marchive >> CHNVP(gcylinder);
+    archive_in >> CHNVP(gcylinder);
 }
 
 }  // end namespace chrono

@@ -28,26 +28,26 @@ ChVisualShapeCone::ChVisualShapeCone(double radius, double height) {
     SetMutable(false);
 }
 
-ChVisualShapeCone::ChVisualShapeCone(const geometry::ChCone& cone) : gcone(cone) {
+ChVisualShapeCone::ChVisualShapeCone(const ChCone& cone) : gcone(cone) {
     SetMutable(false);
 }
 
-void ChVisualShapeCone::ArchiveOut(ChArchiveOut& marchive) {
+void ChVisualShapeCone::ArchiveOut(ChArchiveOut& archive_out) {
     // version number
-    marchive.VersionWrite<ChVisualShapeCone>();
+    archive_out.VersionWrite<ChVisualShapeCone>();
     // serialize parent class
-    ChVisualShape::ArchiveOut(marchive);
+    ChVisualShape::ArchiveOut(archive_out);
     // serialize all member data:
-    marchive << CHNVP(gcone);
+    archive_out << CHNVP(gcone);
 }
 
-void ChVisualShapeCone::ArchiveIn(ChArchiveIn& marchive) {
+void ChVisualShapeCone::ArchiveIn(ChArchiveIn& archive_in) {
     // version number
-    /*int version =*/marchive.VersionRead<ChVisualShapeCone>();
+    /*int version =*/archive_in.VersionRead<ChVisualShapeCone>();
     // deserialize parent class
-    ChVisualShape::ArchiveIn(marchive);
+    ChVisualShape::ArchiveIn(archive_in);
     // stream in all member data:
-    marchive >> CHNVP(gcone);
+    archive_in >> CHNVP(gcone);
 }
 
 }  // end namespace chrono

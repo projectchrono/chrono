@@ -59,23 +59,23 @@ Each \ref chrono::ChBody "ChBody" (as well as any other object derived from \ref
 Each \ref chrono::ChBody "ChBody" may contain a:
 + \ref chrono::ChCollisionModel "ChCollisionModel", that contains (multiple):
  + \ref chrono::ChCollisionShape "ChCollisionShape", each of which containing:
-   + \ref chrono::geometry::ChGeometry "ChGeometry"
-   + \ref chrono::ChMaterialSurface "ChMaterialSurface"
+   + \ref chrono::ChGeometry "ChGeometry"
+   + \ref chrono::ChContactMaterial "ChContactMaterial"
 
 A similar structure can be found also for the [Visualization System](@ref visualization_system).
 
-Actually, as many other objects in Chrono, items within the *ChCollisionModel* are stored through pointers, so to allow to easily share them across different bodies. This is very useful especially for *ChMaterialSurface* objects.
+Actually, as many other objects in Chrono, items within the *ChCollisionModel* are stored through pointers, so to allow to easily share them across different bodies. This is very useful especially for *ChContactMaterial* objects.
 
 In order to provide a collision shape to a _ChBody_ object:
 ~~~{.cpp}
 auto body = chrono_types::make_shared<ChBody>();
 
-auto collmat = chrono_types::make_shared<ChMaterialSurfaceNSC>();
+auto collmat = chrono_types::make_shared<ChContactMaterialNSC>();
 
 auto collshape = chrono_types::make_shared<ChCollisionShapeBox>(collmat, 0.1, 0.2, 0.3);
 
 body->AddCollisionShape(collshape);
-body->SetCollide(true);
+body->EnableCollision(true);
 ~~~
 
 Always remember to set a given collision system type in \ref chrono::ChSystem "ChSystem" e.g.
@@ -129,7 +129,7 @@ collide with any objects of family=4:
 ~~~{.cpp}
 // default collision family is 0. Change it:
 body_b->GetCollisionModel()->SetFamily(2);
-body_b->GetCollisionModel()->SetFamilyMaskNoCollisionWithFamily(4);
+body_b->GetCollisionModel()->DisallowCollisionsWith(4);
 ~~~
 
 Currently, Chrono allows up to 15 different collision families that can be involved in a simulation.
@@ -137,12 +137,12 @@ Currently, Chrono allows up to 15 different collision families that can be invol
 
 # Collision Surface Materials {#collision_materials}
 
-The contact between shapes is influenced by various properties of the material (friction, damping, cohesion, restitution, ...). These properties are specified for each shape, by providing either a \ref chrono::ChMaterialSurfaceNSC "ChMaterialSurfaceNSC" or \ref chrono::ChMaterialSurfaceSMC "ChMaterialSurfaceSMC" object to the *ChCollisionShape*.
+The contact between shapes is influenced by various properties of the material (friction, damping, cohesion, restitution, ...). These properties are specified for each shape, by providing either a \ref chrono::ChContactMaterialNSC "ChContactMaterialNSC" or \ref chrono::ChContactMaterialSMC "ChContactMaterialSMC" object to the *ChCollisionShape*.
 
 Chrono can handle two different contact formulations - Non Smooth Contacts (**NSC**) and SMooth Contacts (**SMC**) - each of which requires different _surface material_ types as well as different \ref chrono::ChSystem "ChSystem" types (see [ChSystem manual](@ref manual_ChSystem)).
 
 <div class="ce-warning"> 
-When a body is copied (copy-constructed) or Cloned, what gets copied of the ChMaterialSurface is the pointer, not the object itself. This means that two copied bodies will share the same instance of ChMaterialSurface, meaning that any change on the material of an object is reflected also to all the copied ones.
+When a body is copied (copy-constructed) or Cloned, what gets copied of the ChContactMaterial is the pointer, not the object itself. This means that two copied bodies will share the same instance of ChContactMaterial, meaning that any change on the material of an object is reflected also to all the copied ones.
 </div> 
 
 # Collision Tolerances {#collision_tolerances}
@@ -189,6 +189,6 @@ Please refer to [demo_MBS_callbackNSC.cpp](https://github.com/projectchrono/chro
 
 # Examples
 For further guidance, see:
-- [demo_bricks.cpp](@ref tutorial_demo_bricks)
-- [demo_collision.cpp](@ref tutorial_demo_collision)
-- [demo_friction.cpp](@ref tutorial_demo_friction)
+- [demo_MBS_bricks](https://github.com/projectchrono/chrono/blob/main/src/demos/mbs/demo_MBS_bricks.cpp)
+- [demo_MBS_collisionNSC](https://github.com/projectchrono/chrono/blob/main/src/demos/mbs/demo_MBS_collisionNSC.cpp)
+- [demo_MBS_friction](https://github.com/projectchrono/chrono/blob/main/src/demos/mbs/demo_MBS_friction.cpp)

@@ -29,7 +29,7 @@
 #include "chrono/fea/ChNodeFEAxyzP.h"
 #include "chrono/fea/ChMesh.h"
 #include "chrono/fea/ChMeshFileLoader.h"
-#include "chrono/fea/ChLinkPointFrame.h"
+#include "chrono/fea/ChLinkNodeFrame.h"
 #include "chrono/assets/ChVisualShapeFEA.h"
 
 #include "chrono_irrlicht/ChVisualSystemIrrlicht.h"
@@ -42,7 +42,7 @@ using namespace chrono::fea;
 using namespace chrono::irrlicht;
 
 int main(int argc, char* argv[]) {
-    GetLog() << "Copyright (c) 2017 projectchrono.org\nChrono version: " << CHRONO_VERSION << "\n\n";
+    std::cout << "Copyright (c) 2017 projectchrono.org\nChrono version: " << CHRONO_VERSION << std::endl;
 
     // Create a Chrono::Engine physical system
     ChSystemSMC sys;
@@ -54,8 +54,8 @@ int main(int argc, char* argv[]) {
     // Create a material, that must be assigned to each element,
     // and set its parameters
     auto mmaterial = chrono_types::make_shared<ChContinuumThermal>();
-    mmaterial->SetMassSpecificHeatCapacity(2);
-    mmaterial->SetThermalConductivityK(200);
+    mmaterial->SetSpecificHeatCapacity(2);
+    mmaterial->SetThermalConductivity(200);
 
     //
     // Add some TETAHEDRONS:
@@ -67,14 +67,14 @@ int main(int argc, char* argv[]) {
     try {
         ChMeshFileLoader::FromTetGenFile(my_mesh, GetChronoDataFile("fea/beam.node").c_str(),
                                          GetChronoDataFile("fea/beam.ele").c_str(), mmaterial);
-    } catch (const ChException& myerr) {
-        GetLog() << myerr.what();
+    } catch (std::exception myerr) {
+        std::cerr << myerr.what() << std::endl;
         return 0;
     }
 
-    for (unsigned int inode = 0; inode < my_mesh->GetNnodes(); ++inode) {
+    for (unsigned int inode = 0; inode < my_mesh->GetNumNodes(); ++inode) {
         if (auto mnode = std::dynamic_pointer_cast<ChNodeFEAxyzP>(my_mesh->GetNode(inode))) {
-            mnode->SetPos(mnode->GetPos() * ChVector<>(3, 1, 3));
+            mnode->SetPos(mnode->GetPos() * ChVector3d(3, 1, 3));
         }
     }
 
@@ -84,22 +84,22 @@ int main(int argc, char* argv[]) {
 
     // Impose load on the 180th node
     auto mnode3 = std::dynamic_pointer_cast<ChNodeFEAxyzP>(my_mesh->GetNode(180));
-    mnode3->SetF(20);  // thermal load: heat flux [W] into node
+    mnode3->SetLoad(20);  // thermal load: heat flux [W] into node
 
     // Impose field on two top nodes (remember the SetFixed(true); )
-    auto mnode1 = std::dynamic_pointer_cast<ChNodeFEAxyzP>(my_mesh->GetNode(my_mesh->GetNnodes() - 1));
+    auto mnode1 = std::dynamic_pointer_cast<ChNodeFEAxyzP>(my_mesh->GetNode(my_mesh->GetNumNodes() - 1));
     mnode1->SetFixed(true);
-    mnode1->SetP(0.5);  // field: temperature [K]
-    auto mnode2 = std::dynamic_pointer_cast<ChNodeFEAxyzP>(my_mesh->GetNode(my_mesh->GetNnodes() - 2));
+    mnode1->SetFieldVal(0.5);  // field: temperature [K]
+    auto mnode2 = std::dynamic_pointer_cast<ChNodeFEAxyzP>(my_mesh->GetNode(my_mesh->GetNumNodes() - 2));
     mnode2->SetFixed(true);
-    mnode2->SetP(0.5);  // field: temperature [K]
+    mnode2->SetFieldVal(0.5);  // field: temperature [K]
 
     // Impose field on the base points:
-    for (unsigned int inode = 0; inode < my_mesh->GetNnodes(); ++inode) {
+    for (unsigned int inode = 0; inode < my_mesh->GetNumNodes(); ++inode) {
         if (auto mnode = std::dynamic_pointer_cast<ChNodeFEAxyzP>(my_mesh->GetNode(inode))) {
             if (mnode->GetPos().y() < 0.01) {
                 mnode->SetFixed(true);
-                mnode->SetP(10);  // field: temperature [K]
+                mnode->SetFieldVal(10);  // field: temperature [K]
             }
         }
     }
@@ -115,10 +115,9 @@ int main(int argc, char* argv[]) {
     // postprocessor that can handle a colored ChVisualShapeTriangleMesh).
     // Do not forget AddVisualShapeFEA() at the end!
 
-    // This will paint the colored mesh with temperature scale (NODE_P is the scalar field of the Poisson
-    // problem)
+    // Paint the colored mesh with temperature scale (NODE_FIELD_VALUE is the scalar field of the Poisson problem)
     auto mvisualizemesh = chrono_types::make_shared<ChVisualShapeFEA>(my_mesh);
-    mvisualizemesh->SetFEMdataType(ChVisualShapeFEA::DataType::NODE_P);
+    mvisualizemesh->SetFEMdataType(ChVisualShapeFEA::DataType::NODE_FIELD_VALUE);
     mvisualizemesh->SetColorscaleMinMax(-1, 12);
     mvisualizemesh->SetShrinkElements(false, 0.85);
     mvisualizemesh->SetSmoothFaces(true);
@@ -146,9 +145,9 @@ int main(int argc, char* argv[]) {
     vis->Initialize();
     vis->AddLogo();
     vis->AddSkyBox();
-    vis->AddLight(ChVector<>(+20, 20, +20), 90, ChColor(0.5, 0.5, 0.5));
-    vis->AddLight(ChVector<>(-20, 20, -20), 90, ChColor(0.7f, 0.8f, 0.8f));
-    vis->AddCamera(ChVector<>(0, 0.7, -1), ChVector<>(0, 0.4, 0));
+    vis->AddLight(ChVector3d(+20, 20, +20), 90, ChColor(0.5, 0.5, 0.5));
+    vis->AddLight(ChVector3d(-20, 20, -20), 90, ChColor(0.7f, 0.8f, 0.8f));
+    vis->AddCamera(ChVector3d(0, 0.7, -1), ChVector3d(0, 0.4, 0));
     vis->AttachSystem(&sys);
 
     // SIMULATION LOOP
@@ -184,10 +183,10 @@ int main(int argc, char* argv[]) {
     }
 
     // Print some node temperatures..
-    for (unsigned int inode = 0; inode < my_mesh->GetNnodes(); ++inode) {
+    for (unsigned int inode = 0; inode < my_mesh->GetNumNodes(); ++inode) {
         if (auto mnode = std::dynamic_pointer_cast<ChNodeFEAxyzP>(my_mesh->GetNode(inode))) {
             if (mnode->GetPos().x() < 0.01) {
-                GetLog() << "Node at y=" << mnode->GetPos().y() << " has T=" << mnode->GetP() << "\n";
+                std::cout << "Node at y=" << mnode->GetPos().y() << " has T=" << mnode->GetFieldVal() << "\n";
             }
         }
     }

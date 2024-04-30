@@ -51,7 +51,7 @@ class ChApi ChMeshFileLoader {
         const char* filename_node,                         ///< name of the .node file
         const char* filename_ele,                          ///< name of the .ele  file
         std::shared_ptr<ChContinuumMaterial> my_material,  ///< material for the created tetahedrons
-        ChVector<> pos_transform = VNULL,                  ///< optional displacement of imported mesh
+        ChVector3d pos_transform = VNULL,                  ///< optional displacement of imported mesh
         ChMatrix33<> rot_transform = ChMatrix33<>(1)       ///< optional rotation/scaling of imported mesh
     );
 
@@ -62,7 +62,7 @@ class ChApi ChMeshFileLoader {
         std::shared_ptr<ChContinuumMaterial> my_material,  ///< material for the created tetahedrons
         std::map<std::string, std::vector<std::shared_ptr<ChNodeFEAbase> > >&
             node_sets,                                 ///< vect of vectors of 'marked'nodes
-        ChVector<> pos_transform = VNULL,              ///< optional displacement of imported mesh
+        ChVector3d pos_transform = VNULL,              ///< optional displacement of imported mesh
         ChMatrix33<> rot_transform = ChMatrix33<>(1),  ///< optional rotation/scaling of imported mesh
         bool discard_unused_nodes =
             true  ///< if true, Abaqus nodes that are not used in elements or sets are not imported in C::E
@@ -74,20 +74,21 @@ class ChApi ChMeshFileLoader {
         std::shared_ptr<ChMaterialShellANCF> my_material,  ///< material to be given to the shell
         std::vector<double>& node_ave_area,                ///< output the average area of the nodes
         std::vector<int>& BC_nodes,                        ///< material to be given to the shell
-        ChVector<> pos_transform = VNULL,                  ///< optional displacement of imported mesh
+        ChVector3d pos_transform = VNULL,                  ///< optional displacement of imported mesh
         ChMatrix33<> rot_transform = ChMatrix33<>(1),      ///< optional rotation/scaling of imported mesh
         double scaleFactor = 1,                            ///< import scale factor
         bool printNodes = false,                           ///< display the imported nodes
         bool printElements = false                         ///< display the imported elements
     );
 
-    /// Load a triangle mesh in Wavefront OBJ file format, and convert it into a mesh of shell elements of ChElementShellBST type.
+    /// Load a triangle mesh in Wavefront OBJ file format, and convert it into a mesh of shell elements of
+    /// ChElementShellBST type.
     static void BSTShellFromObjFile(
         std::shared_ptr<ChMesh> mesh,                           ///< destination mesh
         const char* filename,                                   ///< .obj mesh complete filename
         std::shared_ptr<ChMaterialShellKirchhoff> my_material,  ///< material to be given to the shell elements
         double my_thickness,                                    ///< thickness to be given to shell elements
-        ChVector<> pos_transform = VNULL,                       ///< optional displacement of imported mesh
+        ChVector3d pos_transform = VNULL,                       ///< optional displacement of imported mesh
         ChMatrix33<> rot_transform = ChMatrix33<>(1)            ///< optional rotation/scaling of imported mesh
     );
 };

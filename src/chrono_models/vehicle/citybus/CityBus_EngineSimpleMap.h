@@ -36,8 +36,8 @@ class CH_MODELS_API CityBus_EngineSimpleMap : public ChEngineSimpleMap {
   public:
     CityBus_EngineSimpleMap(const std::string& name);
     virtual double GetMaxEngineSpeed() override;
-    virtual void SetEngineTorqueMaps(ChFunction_Recorder& map0,  ///< [out] engine map at zero throttle
-                                     ChFunction_Recorder& mapF   ///< [out] engine map at full throttle
+    virtual void SetEngineTorqueMaps(ChFunctionInterp& map0,  ///< [out] engine map at zero throttle
+                                     ChFunctionInterp& mapF   ///< [out] engine map at full throttle
                                      ) override;
 };
 

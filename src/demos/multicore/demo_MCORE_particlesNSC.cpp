@@ -37,7 +37,7 @@
 #include "chrono_multicore/physics/Ch3DOFContainer.h"
 
 #ifdef CHRONO_OPENGL
-#include "chrono_opengl/ChVisualSystemOpenGL.h"
+    #include "chrono_opengl/ChVisualSystemOpenGL.h"
 #endif
 
 using namespace chrono;
@@ -52,12 +52,12 @@ real diameter = 0.016;
 // -----------------------------------------------------------------------------
 void AddContainer(ChSystemMulticoreNSC* sys) {
     // Create a common material
-    auto mat = chrono_types::make_shared<ChMaterialSurfaceNSC>();
+    auto mat = chrono_types::make_shared<ChContactMaterialNSC>();
     mat->SetFriction(0.4f);
 
-    utils::CreateBoxContainer(sys, 0, mat,                      //
-                              ChVector<>(1.1, 1.2, 1.1), 0.05,  //
-                              VNULL, Q_from_AngY(-10),          //
+    utils::CreateBoxContainer(sys, mat,                         //
+                              ChVector3d(1.1, 1.2, 1.1), 0.05,  //
+                              VNULL, QuatFromAngleY(-10),       //
                               true, true, true);
 }
 
@@ -85,8 +85,8 @@ void AddParticles(ChSystemMulticoreNSC* sys) {
     std::vector<real3> pos_particles;
     std::vector<real3> vel_particles;
 
-    utils::GridSampler<> sampler(diameter);
-    utils::Generator::PointVector points = sampler.SampleSphere(ChVector<>(0, 0, 0), radius);
+    utils::ChGridSampler<> sampler(diameter);
+    utils::ChGenerator::PointVector points = sampler.SampleSphere(ChVector3d(0, 0, 0), radius);
 
     pos_particles.resize(points.size());
     vel_particles.resize(points.size());
@@ -103,7 +103,7 @@ void AddParticles(ChSystemMulticoreNSC* sys) {
 // Create the system, specify simulation parameters, and run simulation loop.
 // -----------------------------------------------------------------------------
 int main(int argc, char* argv[]) {
-    GetLog() << "Copyright (c) 2017 projectchrono.org\nChrono version: " << CHRONO_VERSION << "\n\n";
+    std::cout << "Copyright (c) 2017 projectchrono.org\nChrono version: " << CHRONO_VERSION << std::endl;
 
     // Simulation parameters
     // ---------------------
@@ -123,7 +123,7 @@ int main(int argc, char* argv[]) {
     sys.SetNumThreads(8);
 
     // Set gravitational acceleration
-    sys.Set_G_acc(ChVector<>(0, 0, -gravity));
+    sys.SetGravitationalAcceleration(ChVector3d(0, 0, -gravity));
 
     // Set solver parameters
     sys.GetSettings()->solver.solver_mode = SolverMode::SLIDING;
@@ -155,7 +155,7 @@ int main(int argc, char* argv[]) {
     vis.SetWindowSize(1280, 720);
     vis.SetRenderMode(opengl::WIREFRAME);
     vis.Initialize();
-    vis.AddCamera(ChVector<>(0, -2, -1), ChVector<>(0, 0, -1));
+    vis.AddCamera(ChVector3d(0, -2, -1), ChVector3d(0, 0, -1));
     vis.SetCameraVertical(CameraVerticalDir::Z);
 
     // Uncomment the following two lines for the OpenGL manager to automatically

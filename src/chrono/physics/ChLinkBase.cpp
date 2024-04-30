@@ -18,7 +18,7 @@
 namespace chrono {
 
 // Register into the object factory, to enable run-time dynamic creation and persistence
-//CH_FACTORY_REGISTER(ChLinkBase)   // NO! Abstract class!
+// CH_FACTORY_REGISTER(ChLinkBase)   // NO! Abstract class!
 
 ChLinkBase::ChLinkBase(const ChLinkBase& other) : ChPhysicsItem(other) {
     disabled = other.disabled;
@@ -26,30 +26,30 @@ ChLinkBase::ChLinkBase(const ChLinkBase& other) : ChPhysicsItem(other) {
     broken = other.broken;
 }
 
-void ChLinkBase::ArchiveOut(ChArchiveOut& marchive) {
+void ChLinkBase::ArchiveOut(ChArchiveOut& archive_out) {
     // version number
-    marchive.VersionWrite<ChLinkBase>();
+    archive_out.VersionWrite<ChLinkBase>();
 
     // serialize parent class
-    ChPhysicsItem::ArchiveOut(marchive);
+    ChPhysicsItem::ArchiveOut(archive_out);
 
     // serialize all member data:
-    marchive << CHNVP(disabled);
-    marchive << CHNVP(valid);
-    marchive << CHNVP(broken);
+    archive_out << CHNVP(disabled);
+    archive_out << CHNVP(valid);
+    archive_out << CHNVP(broken);
 }
 
-void ChLinkBase::ArchiveIn(ChArchiveIn& marchive) {
+void ChLinkBase::ArchiveIn(ChArchiveIn& archive_in) {
     // version number
-    /*int version =*/ marchive.VersionRead<ChLinkBase>();
+    /*int version =*/archive_in.VersionRead<ChLinkBase>();
 
     // deserialize parent class
-    ChPhysicsItem::ArchiveIn(marchive);
+    ChPhysicsItem::ArchiveIn(archive_in);
 
     // deserialize all member data:
-    marchive >> CHNVP(disabled);
-    marchive >> CHNVP(valid);
-    marchive >> CHNVP(broken);
+    archive_in >> CHNVP(disabled);
+    archive_in >> CHNVP(valid);
+    archive_in >> CHNVP(broken);
 }
 
 }  // end namespace chrono

@@ -77,10 +77,10 @@ void ChConstraintTwoBodies::Update_auxiliary() {
     // 1- Assuming jacobians are already computed, now compute
     //   the matrices [Eq_a]=[invM_a]*[Cq_a]' and [Eq_b]
     if (variables_a->IsActive()) {
-        variables_a->Compute_invMb_v(Eq_a, Cq_a.transpose());
+        variables_a->ComputeMassInverseTimesVector(Eq_a, Cq_a.transpose());
     }
     if (variables_b->IsActive()) {
-        variables_b->Compute_invMb_v(Eq_b, Cq_b.transpose());
+        variables_b->ComputeMassInverseTimesVector(Eq_b, Cq_b.transpose());
     }
 
     // 2- Compute g_i = [Cq_i]*[invM_i]*[Cq_i]' + cfm_i
@@ -97,31 +97,31 @@ void ChConstraintTwoBodies::Update_auxiliary() {
         g_i += cfm_i;
 }
 
-double ChConstraintTwoBodies::Compute_Cq_q() {
+double ChConstraintTwoBodies::ComputeJacobianTimesState() {
     double ret = 0;
 
     if (variables_a->IsActive()) {
-        ret += Cq_a * variables_a->Get_qb();
+        ret += Cq_a * variables_a->State();
     }
 
     if (variables_b->IsActive()) {
-        ret += Cq_b * variables_b->Get_qb();
+        ret += Cq_b * variables_b->State();
     }
 
     return ret;
 }
 
-void ChConstraintTwoBodies::Increment_q(const double deltal) {
+void ChConstraintTwoBodies::IncrementState(double deltal) {
     if (variables_a->IsActive()) {
-        variables_a->Get_qb() += Eq_a * deltal;
+        variables_a->State() += Eq_a * deltal;
     }
 
     if (variables_b->IsActive()) {
-        variables_b->Get_qb() += Eq_b * deltal;
+        variables_b->State() += Eq_b * deltal;
     }
 }
 
-void ChConstraintTwoBodies::MultiplyAndAdd(double& result, const ChVectorDynamic<double>& vect) const {
+void ChConstraintTwoBodies::AddJacobianTimesVectorInto(double& result, ChVectorConstRef vect) const {
     if (variables_a->IsActive()) {
         result += Cq_a * vect.segment(variables_a->GetOffset(), 6);
     }
@@ -131,7 +131,7 @@ void ChConstraintTwoBodies::MultiplyAndAdd(double& result, const ChVectorDynamic
     }
 }
 
-void ChConstraintTwoBodies::MultiplyTandAdd(ChVectorDynamic<double>& result, double l) {
+void ChConstraintTwoBodies::AddJacobianTransposedTimesScalarInto(ChVectorRef result, double l) const {
     if (variables_a->IsActive()) {
         result.segment(variables_a->GetOffset(), 6) += Cq_a.transpose() * l;
     }
@@ -141,26 +141,26 @@ void ChConstraintTwoBodies::MultiplyTandAdd(ChVectorDynamic<double>& result, dou
     }
 }
 
-void ChConstraintTwoBodies::Build_Cq(ChSparseMatrix& storage, int insrow) {
+void ChConstraintTwoBodies::PasteJacobianInto(ChSparseMatrix& mat, unsigned int start_row, unsigned int start_col) const {
     if (variables_a->IsActive())
-        PasteMatrix(storage, Cq_a, insrow, variables_a->GetOffset());
+        PasteMatrix(mat, Cq_a, start_row, variables_a->GetOffset() + start_col);
     if (variables_b->IsActive())
-        PasteMatrix(storage, Cq_b, insrow, variables_b->GetOffset());
+        PasteMatrix(mat, Cq_b, start_row, variables_b->GetOffset() + start_col);
 }
 
-void ChConstraintTwoBodies::Build_CqT(ChSparseMatrix& storage, int inscol) {
+void ChConstraintTwoBodies::PasteJacobianTransposedInto(ChSparseMatrix& mat, unsigned int start_row, unsigned int start_col) const {
     if (variables_a->IsActive())
-        PasteMatrix(storage, Cq_a.transpose(), variables_a->GetOffset(), inscol);
+        PasteMatrix(mat, Cq_a.transpose(), variables_a->GetOffset() + start_row, start_col);
     if (variables_b->IsActive())
-        PasteMatrix(storage, Cq_b.transpose(), variables_b->GetOffset(), inscol);
+        PasteMatrix(mat, Cq_b.transpose(), variables_b->GetOffset() + start_row, start_col);
 }
 
-void ChConstraintTwoBodies::ArchiveOut(ChArchiveOut& marchive) {
+void ChConstraintTwoBodies::ArchiveOut(ChArchiveOut& archive_out) {
     // version number
-    marchive.VersionWrite<ChConstraintTwoBodies>();
+    archive_out.VersionWrite<ChConstraintTwoBodies>();
 
     // serialize the parent class data too
-    ChConstraintTwo::ArchiveOut(marchive);
+    ChConstraintTwo::ArchiveOut(archive_out);
 
     // serialize all member data:
     // NOTHING INTERESTING TO SERIALIZE (the Cq jacobians are not so
@@ -170,12 +170,12 @@ void ChConstraintTwoBodies::ArchiveOut(ChArchiveOut& marchive) {
     // mstream << Cq_b;
 }
 
-void ChConstraintTwoBodies::ArchiveIn(ChArchiveIn& marchive) {
+void ChConstraintTwoBodies::ArchiveIn(ChArchiveIn& archive_in) {
     // version number
-    /*int version =*/ marchive.VersionRead<ChConstraintTwoBodies>();
+    /*int version =*/archive_in.VersionRead<ChConstraintTwoBodies>();
 
     // deserialize the parent class data too
-    ChConstraintTwo::ArchiveIn(marchive);
+    ChConstraintTwo::ArchiveIn(archive_in);
 
     // deserialize all member data:
     // NOTHING INTERESTING TO SERIALIZE (the Cq jacobians are not so

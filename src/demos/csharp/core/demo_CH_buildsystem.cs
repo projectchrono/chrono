@@ -23,30 +23,33 @@ namespace ChronoDemo
     {
         static void Main(string[] args)
         {
+            Console.WriteLine("Copyright (c) 2017 projectchrono.org");
+            Console.WriteLine("Chrono version: " + CHRONO_VERSION);
+
             // Set the path to the Chrono data files
             chrono.SetChronoDataPath(CHRONO_DATA_DIR);
 
             ChSystemNSC sys = new ChSystemNSC();
 
-            sys.Set_G_acc(new ChVectorD(0, -10, 0));
+            sys.SetGravitationalAcceleration(new ChVector3d(0, -10, 0));
 
             // ..the truss
             ChBody my_body_A = new ChBody();
             sys.AddBody(my_body_A);
-            my_body_A.SetBodyFixed(true);  // truss does not move!
+            my_body_A.SetFixed(true);  // truss does not move!
             my_body_A.SetName("Ground-Truss");
 
             // ..the crank
             ChBody my_body_B = new ChBody();
             sys.AddBody(my_body_B);
-            my_body_B.SetPos(new ChVectorD(1, 0, 0));  // position of COG of crank
+            my_body_B.SetPos(new ChVector3d(1, 0, 0));  // position of COG of crank
             my_body_B.SetMass(2);
             my_body_B.SetName("Crank");
 
             // ..the rod
             ChBody my_body_C = new ChBody();
             sys.AddBody(my_body_C);
-            my_body_C.SetPos(new ChVectorD(1, 0, 0));  // position of COG of rod
+            my_body_C.SetPos(new ChVector3d(1, 0, 0));  // position of COG of rod
             my_body_C.SetMass(3);
             my_body_C.SetName("Rod");
 
@@ -55,30 +58,30 @@ namespace ChronoDemo
             // .. a revolute joint between crank and rod
             ChLinkLockRevolute my_link_BC = new ChLinkLockRevolute();
             my_link_BC.SetName("RevJointCrankRod");
-            my_link_BC.Initialize(my_body_B, my_body_C, new ChCoordsysD(new ChVectorD(2, 0, 0)));
+            my_link_BC.Initialize(my_body_B, my_body_C, new ChFramed(new ChVector3d(2, 0, 0)));
             sys.AddLink(my_link_BC);
 
             // .. a slider joint between rod and truss
             ChLinkLockPointLine my_link_CA = new ChLinkLockPointLine();
             my_link_CA.SetName("TransJointRodGround");
-            my_link_CA.Initialize(my_body_C, my_body_A, new ChCoordsysD(new ChVectorD(6, 0, 0)));
+            my_link_CA.Initialize(my_body_C, my_body_A, new ChFramed(new ChVector3d(6, 0, 0)));
             sys.AddLink(my_link_CA);
 
             // .. a motor between crank and truss
             ChLinkMotorRotationSpeed my_link_AB = new ChLinkMotorRotationSpeed();
-            my_link_AB.Initialize(my_body_A, my_body_B, new ChFrameD());
+            my_link_AB.Initialize(my_body_A, my_body_B, new ChFramed());
             my_link_AB.SetName("RotationalMotor");
             sys.AddLink(my_link_AB);
-            ChFunction_Const my_speed_function = new ChFunction_Const(3.14);  // speed w=3.145 rad/sec
+            ChFunctionConst my_speed_function = new ChFunctionConst(3.14);  // speed w=3.145 rad/sec
             my_link_AB.SetSpeedFunction(my_speed_function);
 
-            ChMaterialSurfaceNSC mat = new ChMaterialSurfaceNSC();
+            ChContactMaterialNSC mat = new ChContactMaterialNSC();
             mat.SetFriction(0.5F);
             mat.SetRestitution(0.5F);
 
             ChBodyEasyBox myEasyBox = new ChBodyEasyBox(0.1, 0.2, 0.3, 1000, true, true, mat);
             ChBodyAuxRef myBAuxRef = new ChBodyAuxRef();
-            myBAuxRef.SetBodyFixed(true);
+            myBAuxRef.SetFixed(true);
 
             sys.Add(myBAuxRef);
             sys.Add(myEasyBox);
@@ -86,7 +89,7 @@ namespace ChronoDemo
             ChLinkMateFix myMate = new ChLinkMateFix();
             ChBodyFrame converted_body = chrono.CastToChBodyFrame(myEasyBox);
             ChBodyFrame converted_body2 = chrono.CastToChBodyFrame(myBAuxRef);
-            myMate.Initialize(converted_body, converted_body2, new ChFrameD(new ChVectorD(2, 0, 0)));
+            myMate.Initialize(converted_body, converted_body2, new ChFramed(new ChVector3d(2, 0, 0)));
             sys.Add(myMate);
 
             // Timer for enforcing soft real-time

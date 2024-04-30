@@ -14,7 +14,7 @@
 //
 // AIDriver for the Sedan vehicle.
 // Uses a maximum front wheel angle of 0.63 rad (about 36 degrees).
-// 
+//
 // =============================================================================
 
 #include "chrono_models/vehicle/sedan/Sedan_AIDriver.h"

@@ -41,6 +41,21 @@ else()
     message(STATUS "Package urdfdom NOT found. The Chrono URDF parser will NOT be built.")
 endif()
 
+
+set(HAVE_ROS FALSE)
+
+find_package(ROS2 QUIET)
+if (ROS2_FOUND)
+  find_package(ament_index_cpp QUIET)
+  if (ament_index_cpp_FOUND)
+    set(HAVE_ROS TRUE)
+    message(STATUS "Found ROS 2.")
+    message(STATUS "  ROS 2 distro is \"$ENV{ROS_DISTRO}\"")
+  endif()
+else()
+  message(STATUS "Package ROS2 NOT found. ROS support disabled.")
+endif()
+
 #-----------------------------------------------------------------------------
 
 set(HAVE_PYTHON FALSE)
@@ -97,6 +112,7 @@ source_group("" FILES ${ChronoEngine_PARSERS_SOURCES} ${ChronoEngine_PARSERS_HEA
 
 SET(HAVE_PYTHON "${HAVE_PYTHON}" PARENT_SCOPE)
 SET(HAVE_URDF "${HAVE_URDF}" PARENT_SCOPE)
+SET(HAVE_ROS "${HAVE_ROS}" PARENT_SCOPE)
 
 #-----------------------------------------------------------------------------
 
@@ -105,12 +121,19 @@ if(HAVE_URDF)
     include_directories(${urdfdom_INCLUDE_DIRS})
     set(CH_PARSERS_INCLUDES "${CH_PARSERS_INCLUDES};${urdfdom_INCLUDE_DIRS}")
 endif()
+if (HAVE_ROS)
+  # Update the includes directories to point to ROS includes
+  set(_ament_prefix_path "$ENV{AMENT_PREFIX_PATH}")
+  foreach(_ros2_packages_path IN LISTS _ament_prefix_path)
+      string(REPLACE ":" ";" _ros2_packages_path ${_ros2_packages_path})
+      set(CH_PARSERS_INCLUDES "${CH_PARSERS_INCLUDES};${_ros2_packages_path}/include")
+  endforeach()
+  add_definitions(-DHAVE_ROS)
+endif()
 if(HAVE_PYTHON)
     include_directories(${CH_PYTHONINC})
     set(CH_PARSERS_INCLUDES "${CH_PARSERS_INCLUDES};${CH_PYTHONINC}")
 endif()
-set(HAVE_URDF "${HAVE_URDF}" PARENT_SCOPE)
-set(HAVE_PYTHON "${HAVE_PYTHON}" PARENT_SCOPE)
 set(CH_PARSERS_INCLUDES "${CH_PARSERS_INCLUDES}" PARENT_SCOPE)
 
 add_library(ChronoEngine_parsers ${ChronoEngine_PARSERS_SOURCES} ${ChronoEngine_PARSERS_HEADERS})
@@ -128,6 +151,9 @@ if(HAVE_URDF)
     target_link_libraries(ChronoEngine_parsers urdfdom::urdfdom_world)
     target_link_libraries(ChronoEngine_parsers urdfdom::urdfdom_sensor)
     target_link_libraries(ChronoEngine_parsers tinyxml2::tinyxml2)
+endif()
+if(HAVE_ROS)
+    target_link_libraries(ChronoEngine_parsers ament_index_cpp::ament_index_cpp)
 endif()
 if(HAVE_PYTHON)
     target_link_libraries(ChronoEngine_parsers ${CH_PYTHONLIB})

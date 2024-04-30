@@ -63,10 +63,10 @@ enum class DriverMode {
     DATAFILE,    // inputs from data file
     ROADPROFILE  // inputs to follow road profile
 };
-std::string driver_file("M113/test_rig/TTR_inputs.dat");   // used for mode=DATAFILE
+std::string driver_file("M113/test_rig/TTR_inputs.dat");  // used for mode=DATAFILE
 ////std::string driver_file("M113/test_rig/TTR_inputs2.dat");  // used for mode=DATAFILE
-std::string road_file("M113/test_rig/TTR_road.dat");       // used for mode=ROADPROFILE
-double road_speed = 10;                                    // used for mode=ROADPROFILE
+std::string road_file("M113/test_rig/TTR_road.dat");  // used for mode=ROADPROFILE
+double road_speed = 10;                               // used for mode=ROADPROFILE
 DriverMode driver_mode = DriverMode::ROADPROFILE;
 
 // Contact method
@@ -97,7 +97,6 @@ bool verbose_integrator = false;
 
 // Output collection
 bool output = true;
-const std::string out_dir = GetChronoOutputPath() + "TRACK_TEST_RIG";
 double out_step_size = 1e-2;
 
 // Test detracking
@@ -107,7 +106,7 @@ bool apply_detracking_force = false;
 // =============================================================================
 
 int main(int argc, char* argv[]) {
-    GetLog() << "Copyright (c) 2017 projectchrono.org\nChrono version: " << CHRONO_VERSION << "\n\n";
+    std::cout << "Copyright (c) 2017 projectchrono.org\nChrono version: " << CHRONO_VERSION << std::endl;
 
     // -----------------------
     // Construct rig mechanism
@@ -135,7 +134,7 @@ int main(int argc, char* argv[]) {
                 break;
             }
             default:
-                GetLog() << "Track type NOT supported\n";
+                std::cout << "Track type NOT supported\n";
                 return 1;
         }
 
@@ -155,7 +154,7 @@ int main(int argc, char* argv[]) {
 
     auto vis = chrono_types::make_shared<ChTrackTestRigVisualSystemIrrlicht>();
     vis->SetWindowTitle("Track Test Rig");
-    vis->SetChaseCamera(ChVector<>(0), 3.0, 0.0);
+    vis->SetChaseCamera(ChVector3d(0), 3.0, 0.0);
     vis->SetChaseCameraMultipliers(1e-4, 10);
     ////vis->RenderTrackShoeFrames(true, 0.4);
 
@@ -178,7 +177,8 @@ int main(int argc, char* argv[]) {
             break;
         }
         case DriverMode::ROADPROFILE: {
-            auto road_driver = chrono_types::make_shared<ChTrackTestRigRoadDriver>(vehicle::GetDataFile(road_file), road_speed);
+            auto road_driver =
+                chrono_types::make_shared<ChTrackTestRigRoadDriver>(vehicle::GetDataFile(road_file), road_speed);
             driver = road_driver;
             break;
         }
@@ -194,8 +194,8 @@ int main(int argc, char* argv[]) {
     rig->SetDisplacementLimit(0.15);
     rig->SetMaxTorque(6000);
 
-    ////rig->SetCollide(TrackedCollisionFlag::NONE);
-    ////rig->SetCollide(TrackedCollisionFlag::SPROCKET_LEFT | TrackedCollisionFlag::SHOES_LEFT);
+    ////rig->EnableCollision(TrackedCollisionFlag::NONE);
+    ////rig->EnableCollision(TrackedCollisionFlag::SPROCKET_LEFT | TrackedCollisionFlag::SHOES_LEFT);
     ////rig->SetPostCollide(false);
 
     rig->MonitorContacts(TrackedCollisionFlag::SPROCKET_LEFT);
@@ -217,20 +217,21 @@ int main(int argc, char* argv[]) {
     vis->AddLogo();
     vis->AttachVehicle(rig);
 
-    ////ChVector<> target_point = rig->GetPostPosition();
-    ////ChVector<> target_point = rig->GetTrackAssembly()->GetIdler()->GetWheelBody()->GetPos();
-    ////ChVector<> target_point = rig->GetTrackAssembly()->GetSprocket()->GetGearBody()->GetPos();
-    ChVector<> target_point = 0.5 * (rig->GetTrackAssembly()->GetSprocket()->GetGearBody()->GetPos() +
+    ////ChVector3d target_point = rig->GetPostPosition();
+    ////ChVector3d target_point = rig->GetTrackAssembly()->GetIdler()->GetWheelBody()->GetPos();
+    ////ChVector3d target_point = rig->GetTrackAssembly()->GetSprocket()->GetGearBody()->GetPos();
+    ChVector3d target_point = 0.5 * (rig->GetTrackAssembly()->GetSprocket()->GetGearBody()->GetPos() +
                                      rig->GetTrackAssembly()->GetIdler()->GetWheelBody()->GetPos());
 
-    vis->SetChaseCameraPosition(target_point + ChVector<>(0, -5, 0));
+    vis->SetChaseCameraPosition(target_point + ChVector3d(0, -5, 0));
     vis->SetChaseCameraState(utils::ChChaseCamera::Free);
-    vis->SetChaseCameraAngle(CH_C_PI_2);
+    vis->SetChaseCameraAngle(CH_PI_2);
 
     // -----------------
     // Set up rig output
     // -----------------
 
+    const std::string out_dir = GetChronoOutputPath() + "TRACK_TEST_RIG";
     if (output) {
         if (!filesystem::create_directory(filesystem::path(out_dir))) {
             std::cout << "Error creating directory " << out_dir << std::endl;
@@ -274,7 +275,7 @@ int main(int argc, char* argv[]) {
 
     // Add load on first track shoe to simulate detracking
     if (apply_detracking_force) {
-        ChVector<> force(0, 20000, 0);
+        ChVector3d force(0, 20000, 0);
         auto shoe_body = rig->GetTrackAssembly()->GetTrackShoe(0)->GetShoeBody();
         auto load_container = chrono_types::make_shared<ChLoadContainer>();
         load_container->Add(chrono_types::make_shared<ChLoadBodyForce>(shoe_body, force, true, VNULL, true));

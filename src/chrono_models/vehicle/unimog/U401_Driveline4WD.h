@@ -32,7 +32,7 @@ namespace unimog {
 
 /// Shafts-based 4-WD driveline for the UAZBUS vehicle.
 class CH_MODELS_API U401_Driveline4WD : public ChShaftsDriveline4WD {
-   public:
+  public:
     U401_Driveline4WD(const std::string& name);
     ~U401_Driveline4WD() {}
 
@@ -49,7 +49,7 @@ class CH_MODELS_API U401_Driveline4WD : public ChShaftsDriveline4WD {
     virtual double GetAxleDifferentialLockingLimit() const override { return m_axle_differential_locking_limit; }
     virtual double GetCentralDifferentialLockingLimit() const override { return m_central_differential_locking_limit; }
 
-   private:
+  private:
     // Shaft inertias.
     static const double m_central_differentialbox_inertia;
     static const double m_front_differentialbox_inertia;

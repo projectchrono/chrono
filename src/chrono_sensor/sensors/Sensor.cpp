@@ -50,7 +50,7 @@ CH_SENSOR_API std::shared_ptr<ChSensor> Sensor::CreateFromJSON(const std::string
     ReadFilterListJSON(filename, sensor);
     sensor->SetName(name);
 
-    GetLog() << "Loaded JSON: " << filename.c_str() << "\n";
+    std::cout << "Loaded JSON: " << filename << std::endl;
 
     return sensor;
 }

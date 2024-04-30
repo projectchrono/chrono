@@ -40,69 +40,85 @@ class ChApi ChLinkDistance : public ChLink {
 
     /// Initialize this constraint, given the two bodies to be connected, the positions of the two anchor endpoints of
     /// the distance (each expressed in body or abs. coordinates) and the imposed distance.
-    int Initialize(std::shared_ptr<ChBodyFrame> mbody1,  ///< first frame to link
-                   std::shared_ptr<ChBodyFrame> mbody2,  ///< second frame to link
-                   bool pos_are_relative,                ///< true: following pos. are relative to bodies
-                   ChVector<> mpos1,  ///< pos. of distance endpoint, for 1st body (rel. or abs., see flag above)
-                   ChVector<> mpos2,  ///< pos. of distance endpoint, for 2nd body (rel. or abs., see flag above)
-                   bool auto_distance =
-                       true,  ///< if true, initializes the imposed distance as the distance between mpos1 and mpos2
-                   double mdistance = 0,        ///< imposed distance (no need to define, if auto_distance=true.)
-                   Mode mode = Mode::BILATERAL  ///< set distance constraining mode
+    int Initialize(
+        std::shared_ptr<ChBodyFrame> body1,  ///< first frame to link
+        std::shared_ptr<ChBodyFrame> body2,  ///< second frame to link
+        bool pos_are_relative,               ///< true: following pos. are relative to bodies
+        ChVector3d pos1,                     ///< pos. of distance endpoint, for 1st body (rel. or abs., see flag above)
+        ChVector3d pos2,                     ///< pos. of distance endpoint, for 2nd body (rel. or abs., see flag above)
+        bool auto_distance = true,  ///< if true, initializes the imposed distance as the distance between pos1 and pos2
+        double mdistance = 0,       ///< imposed distance (no need to define, if auto_distance=true.)
+        Mode mode = Mode::BILATERAL  ///< set distance constraining mode
     );
 
     /// Get the number of (bilateral) constraints introduced by this link.
-    virtual int GetDOC_c() override { return 1; }
+    virtual unsigned int GetNumConstraintsBilateral() override { return 1; }
 
-    /// Get the link coordinate system, expressed relative to Body2 (the 'master' body). This represents the 'main'
-    /// reference of the link: reaction forces are expressed in this coordinate system. (It is the coordinate system of
-    /// the contact plane relative to Body2)
-    virtual ChCoordsys<> GetLinkRelativeCoords() override;
+    /// Get the link frame 1, relative to body 1.
+    /// For this class link frame 1 coincides with body 1.
+    virtual ChFramed GetFrame1Rel() const override { return ChFramed(m_body1->GetCoordsys()); }
 
-    /// Get the 1st anchor endpoint for the distance (expressed in Body1 coordinate system)
-    ChVector<> GetEndPoint1Rel() const { return pos1; }
-    /// Set the 1st anchor endpoint for the distance (expressed in Body1 coordinate system)
-    void SetEndPoint1Rel(const ChVector<>& mset) { pos1 = mset; }
+    /// Get the link frame 2, relative to body 2.
+    /// For this class link frame 2 is located at body 2, but with the X axes pointing towards body 1.
+    virtual ChFramed GetFrame2Rel() const override;
+
+    /// Get the 1st anchor endpoint for the distance (expressed in body 1 coordinate system)
+    ChVector3d GetEndPoint1Rel() const { return m_pos1; }
+    /// Set the 1st anchor endpoint for the distance (expressed in body 1 coordinate system)
+    void SetEndPoint1Rel(const ChVector3d& mset) { m_pos1 = mset; }
     /// Get the 1st anchor endpoint for the distance (expressed in absolute coordinate system)
-    ChVector<> GetEndPoint1Abs() const { return ((ChFrame<double>*)Body1)->TransformLocalToParent(pos1); }
+    ChVector3d GetEndPoint1Abs() const { return m_body1->TransformPointLocalToParent(m_pos1); }
     /// Set the 1st anchor endpoint for the distance (expressed in absolute coordinate system)
-    void SetEndPoint1Abs(ChVector<>& mset) { pos1 = ((ChFrame<double>*)Body1)->TransformParentToLocal(mset); }
+    void SetEndPoint1Abs(const ChVector3d& mset) { m_pos1 = m_body1->TransformPointParentToLocal(mset); }
 
-    /// Get the 2nd anchor endpoint for the distance (expressed in Body2 coordinate system)
-    ChVector<> GetEndPoint2Rel() const { return pos2; }
-    /// Set the 2nd anchor endpoint for the distance (expressed in Body2 coordinate system)
-    void SetEndPoint2Rel(const ChVector<>& mset) { pos2 = mset; }
+    /// Get the 2nd anchor endpoint for the distance (expressed in body 2 coordinate system)
+    ChVector3d GetEndPoint2Rel() const { return m_pos2; }
+    /// Set the 2nd anchor endpoint for the distance (expressed in body 2 coordinate system)
+    void SetEndPoint2Rel(const ChVector3d& mset) { m_pos2 = mset; }
     /// Get the 1st anchor endpoint for the distance (expressed in absolute coordinate system)
-    ChVector<> GetEndPoint2Abs() const { return ((ChFrame<double>*)Body2)->TransformLocalToParent(pos2); }
+    ChVector3d GetEndPoint2Abs() const { return m_body2->TransformPointLocalToParent(m_pos2); }
     /// Set the 1st anchor endpoint for the distance (expressed in absolute coordinate system)
-    void SetEndPoint2Abs(ChVector<>& mset) { pos2 = ((ChFrame<double>*)Body2)->TransformParentToLocal(mset); }
+    void SetEndPoint2Abs(const ChVector3d& mset) { m_pos2 = m_body2->TransformPointParentToLocal(mset); }
 
-    /// Set the imposed distance
+    /// Set the imposed distance.
     void SetImposedDistance(const double mset) { distance = mset; }
 
-    /// Get the imposed distance
+    /// Get the imposed distance.
     double GetImposedDistance() const { return distance; };
 
-    /// Get the distance currently existing between the two endpoints
+    /// Get the distance currently existing between the two endpoints.
     double GetCurrentDistance() const { return curr_dist; }
 
-    /// Set link mode
+    /// Set link mode.
     /// The joint can act as bilateral or unilateral; in this latter case, it can either limit the maximum or minimum
     /// distance; if in unilateral mode, a VI solver is required!
     void SetMode(Mode mode);
 
-    /// Get link mode
+    /// Get link mode.
     Mode GetMode() const { return this->mode; }
 
-    /// Get the constraint violation
+    /// Get the constraint violation.
     virtual ChVectorDynamic<> GetConstraintViolation() const override { return C; }
 
-    /// Override _all_ time, jacobian etc. updating.
-    /// In detail, it computes jacobians, violations, etc. and stores
-    /// results in inner structures.
-    virtual void Update(double mtime, bool update_assets = true) override;
+    /// Method to allow serialization of transient data to archives.
+    virtual void ArchiveOut(ChArchiveOut& archive_out) override;
 
-    // STATE FUNCTIONS
+    /// Method to allow deserialization of transient data from archives.
+    virtual void ArchiveIn(ChArchiveIn& archive_in) override;
+
+  private:
+    Mode mode;                 ///< current mode
+    double mode_sign;          ///< current mode
+    double distance;           ///< imposed distance
+    double curr_dist;          ///< current distance
+    ChVector3d m_pos1;         ///< first endpoint, in body rel. coords
+    ChVector3d m_pos2;         ///< second endpoint, in body rel. coords
+    ChConstraintTwoBodies Cx;  ///< the constraint object
+    ChVectorN<double, 1> C;    ///< constraint violation
+
+    // Solver and integrator interface functions
+
+    virtual void Update(double mtime, bool update_assets = true) override;
 
     virtual void IntStateGatherReactions(const unsigned int off_L, ChVectorDynamic<>& L) override;
     virtual void IntStateScatterReactions(const unsigned int off_L, const ChVectorDynamic<>& L) override;
@@ -126,31 +142,14 @@ class ChApi ChLinkDistance : public ChLink {
                                    const unsigned int off_L,
                                    ChVectorDynamic<>& L) override;
 
-    // SOLVER INTERFACE
-
-    virtual void InjectConstraints(ChSystemDescriptor& mdescriptor) override;
+    virtual void InjectConstraints(ChSystemDescriptor& descriptor) override;
     virtual void ConstraintsBiReset() override;
     virtual void ConstraintsBiLoad_C(double factor = 1, double recovery_clamp = 0.1, bool do_clamp = false) override;
-    virtual void ConstraintsLoadJacobians() override;
+    virtual void LoadConstraintJacobians() override;
     virtual void ConstraintsFetch_react(double factor = 1) override;
 
-    // SERIALIZATION
-
-    /// Method to allow serialization of transient data to archives.
-    virtual void ArchiveOut(ChArchiveOut& marchive) override;
-
-    /// Method to allow deserialization of transient data from archives.
-    virtual void ArchiveIn(ChArchiveIn& marchive) override;
-
-  private:
-    Mode mode;                 ///< current mode
-    double mode_sign;          ///< current mode
-    double distance;           ///< imposed distance
-    double curr_dist;          ///< current distance
-    ChVector<> pos1;           ///< first endpoint, in body rel. coords
-    ChVector<> pos2;           ///< second endpoint, in body rel. coords
-    ChConstraintTwoBodies Cx;  ///< the constraint object
-    ChVectorN<double, 1> C;    ///< constraint violation
+  public:
+    EIGEN_MAKE_ALIGNED_OPERATOR_NEW
 };
 
 CH_CLASS_VERSION(ChLinkDistance, 0)

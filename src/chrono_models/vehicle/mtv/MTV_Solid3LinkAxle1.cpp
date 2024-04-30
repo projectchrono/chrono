@@ -36,10 +36,10 @@ const double MTV_Solid3LinkAxle1::m_axleTubeRadius = 0.0476;
 const double MTV_Solid3LinkAxle1::m_spindleRadius = 0.10;
 const double MTV_Solid3LinkAxle1::m_spindleWidth = 0.06;
 
-const ChVector<> MTV_Solid3LinkAxle1::m_axleTubeInertia(329.00, 16.46, 330.00);
-const ChVector<> MTV_Solid3LinkAxle1::m_spindleInertia(0.04117 * 6.56, 0.07352 * 6.56, 0.04117 * 6.56);
-const ChVector<> MTV_Solid3LinkAxle1::m_triangleInertia(0.2, 0.2, 0.2);
-const ChVector<> MTV_Solid3LinkAxle1::m_linkInertia(0.05, 0.1, 0.1);
+const ChVector3d MTV_Solid3LinkAxle1::m_axleTubeInertia(329.00, 16.46, 330.00);
+const ChVector3d MTV_Solid3LinkAxle1::m_spindleInertia(0.04117 * 6.56, 0.07352 * 6.56, 0.04117 * 6.56);
+const ChVector3d MTV_Solid3LinkAxle1::m_triangleInertia(0.2, 0.2, 0.2);
+const ChVector3d MTV_Solid3LinkAxle1::m_linkInertia(0.05, 0.1, 0.1);
 
 const double MTV_Solid3LinkAxle1::m_axleShaftInertia = 0.4;
 
@@ -58,32 +58,32 @@ MTV_Solid3LinkAxle1::MTV_Solid3LinkAxle1(const std::string& name) : ChSolidThree
     m_springForceCB =
         chrono_types::make_shared<MTV_SpringForceRear>(m_springCoefficient, m_springMinLength, m_springMaxLength);
 
-    m_shockForceCB = chrono_types::make_shared<MTV_ShockForceRear>(
-        m_damperCoefficient, m_damperDegressivityCompression, m_damperCoefficient, m_damperDegressivityExpansion);
+    m_shockForceCB = chrono_types::make_shared<MTV_ShockForceRear>(m_damperCoefficient, m_damperDegressivityCompression,
+                                                                   m_damperCoefficient, m_damperDegressivityExpansion);
 }
 
-const ChVector<> MTV_Solid3LinkAxle1::getLocation(PointId which) {
+const ChVector3d MTV_Solid3LinkAxle1::getLocation(PointId which) {
     switch (which) {
         case SPRING_A:
-            return ChVector<>(0.0, 0.529, 0.1);
+            return ChVector3d(0.0, 0.529, 0.1);
         case SPRING_C:
-            return ChVector<>(0.0, 0.529, 0.4);
+            return ChVector3d(0.0, 0.529, 0.4);
         case SHOCK_A:
-            return ChVector<>(0.1, 0.529, -0.1);
+            return ChVector3d(0.1, 0.529, -0.1);
         case SHOCK_C:
-            return ChVector<>(0.2, 0.529, 0.570);
+            return ChVector3d(0.2, 0.529, 0.570);
         case SPINDLE:
-            return ChVector<>(0.0, 2.07 / 2.0, 0.0);
+            return ChVector3d(0.0, 2.07 / 2.0, 0.0);
         case TRIANGLE_A:
-            return ChVector<>(0.0, 0.0, 0.260);
+            return ChVector3d(0.0, 0.0, 0.260);
         case TRIANGLE_C:
-            return ChVector<>(-0.50, 0.30, 0.260);
+            return ChVector3d(-0.50, 0.30, 0.260);
         case LINK_A:
-            return ChVector<>(0.0, 0.420, -0.090);
+            return ChVector3d(0.0, 0.420, -0.090);
         case LINK_C:
-            return ChVector<>(-0.50, 0.420, -0.090);
+            return ChVector3d(-0.50, 0.420, -0.090);
         default:
-            return ChVector<>(0, 0, 0);
+            return ChVector3d(0, 0, 0);
     }
 }
 

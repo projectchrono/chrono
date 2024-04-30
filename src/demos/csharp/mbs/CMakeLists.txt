@@ -1,5 +1,7 @@
 set(DEMOS
     demo_MBS_ballSMC
+    demo_MBS_earthquake
+    demo_MBS_link_bushing
 )
 
 message(STATUS "-------------------")

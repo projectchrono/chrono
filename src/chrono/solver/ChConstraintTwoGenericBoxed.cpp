@@ -60,29 +60,28 @@ void ChConstraintTwoGenericBoxed::SetBoxedMinMax(double mmin, double mmax) {
     l_max = mmax;
 }
 
-void ChConstraintTwoGenericBoxed::ArchiveOut(ChArchiveOut& marchive) {
+void ChConstraintTwoGenericBoxed::ArchiveOut(ChArchiveOut& archive_out) {
     // version number
-    marchive.VersionWrite<ChConstraintTwoGenericBoxed>();
+    archive_out.VersionWrite<ChConstraintTwoGenericBoxed>();
 
     // serialize the parent class data too
-    ChConstraintTwoGeneric::ArchiveOut(marchive);
+    ChConstraintTwoGeneric::ArchiveOut(archive_out);
 
     // serialize all member data:
-    marchive << CHNVP(l_min);
-    marchive << CHNVP(l_max);
+    archive_out << CHNVP(l_min);
+    archive_out << CHNVP(l_max);
 }
 
-void ChConstraintTwoGenericBoxed::ArchiveIn(ChArchiveIn& marchive) {
+void ChConstraintTwoGenericBoxed::ArchiveIn(ChArchiveIn& archive_in) {
     // version number
-    /*int version =*/ marchive.VersionRead<ChConstraintTwoGenericBoxed>();
+    /*int version =*/archive_in.VersionRead<ChConstraintTwoGenericBoxed>();
 
     // deserialize the parent class data too
-    ChConstraintTwoGeneric::ArchiveIn(marchive);
+    ChConstraintTwoGeneric::ArchiveIn(archive_in);
 
     // deserialize all member data:
-    marchive >> CHNVP(l_min);
-    marchive >> CHNVP(l_max);
+    archive_in >> CHNVP(l_min);
+    archive_in >> CHNVP(l_max);
 }
-
 
 }  // end namespace chrono

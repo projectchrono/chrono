@@ -45,6 +45,14 @@ try:
     import _robot
 except:
     pass
+try:
+    import _parsers
+except:
+    pass
+try:
+    import _ros
+except:
+    pass
 
 # The following allows the package "pychrono" to be directly
 # used as C++ namespace chrono:: ie. you just need to type

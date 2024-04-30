@@ -37,12 +37,11 @@
 
 using namespace chrono;
 
-std::string out_dir = GetChronoOutputPath() + "DEMO_HYDRAULIC_ACTUATOR";
-
 int main(int argc, char* argv[]) {
-    GetLog() << "Copyright (c) 2023 projectchrono.org\nChrono version: " << CHRONO_VERSION << "\n\n";
+    std::cout << "Copyright (c) 2023 projectchrono.org\nChrono version: " << CHRONO_VERSION << std::endl;
 
     // Create (if needed) output directory
+    std::string out_dir = GetChronoOutputPath() + "DEMO_HYDRAULIC_ACTUATOR";
     if (!filesystem::create_directory(filesystem::path(out_dir))) {
         std::cout << "Error creating directory " << out_dir << std::endl;
         return 1;
@@ -51,7 +50,7 @@ int main(int argc, char* argv[]) {
     ChSystemSMC sys;
 
     auto actuator = chrono_types::make_shared<ChHydraulicActuator3>();
-    actuator->SetInputFunction(chrono_types::make_shared<ChFunction_Sine>(0.0, 5.0, 1.0));
+    actuator->SetInputFunction(chrono_types::make_shared<ChFunctionSine>(1.0, 5.0));
     actuator->Cylinder().SetInitialChamberLengths(0.221, 0.221);
     actuator->Cylinder().SetInitialChamberPressures(3.3e6, 4.4e6);
     actuator->DirectionalValve().SetInitialSpoolPosition(0);
@@ -68,12 +67,12 @@ int main(int argc, char* argv[]) {
     ////sys.SetTimestepperType(ChTimestepper::Type::HHT);
     ////auto integrator = std::dynamic_pointer_cast<ChTimestepperHHT>(sys.GetTimestepper());
     ////integrator->SetAlpha(-0.2);
-    ////integrator->SetMaxiters(100);
+    ////integrator->SetMaxIters(100);
     ////integrator->SetAbsTolerances(1e-5);
 
     sys.SetTimestepperType(ChTimestepper::Type::EULER_IMPLICIT);
     auto integrator = std::static_pointer_cast<chrono::ChTimestepperEulerImplicit>(sys.GetTimestepper());
-    integrator->SetMaxiters(50);
+    integrator->SetMaxIters(50);
     integrator->SetAbsTolerances(1e-4, 1e2);
 
     double t_end = 2;
@@ -81,7 +80,7 @@ int main(int argc, char* argv[]) {
     double t = 0;
 
     Eigen::IOFormat rowFmt(Eigen::StreamPrecision, Eigen::DontAlignCols, "  ", "  ", "", "", "", "");
-    utils::CSV_writer csv(" ");
+    utils::ChWriterCSV csv(" ");
     auto y0 = actuator->GetInitialStates();
     csv << t << 0 << y0.format(rowFmt) << std::endl;
 
@@ -97,7 +96,7 @@ int main(int argc, char* argv[]) {
     }
 
     std::string out_file = out_dir + "/hydro.out";
-    csv.write_to_file(out_file);
+    csv.WriteToFile(out_file);
 
 #ifdef CHRONO_POSTPROCESS
     {

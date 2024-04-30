@@ -21,7 +21,7 @@ namespace chrono {
 namespace vehicle {
 namespace artcar {
 
-const double rpm2rads = CH_C_PI / 30;
+const double rpm2rads = CH_PI / 30;
 
 ARTcar_EngineSimpleMap::ARTcar_EngineSimpleMap(const std::string& name)
     : ChEngineSimpleMap(name),
@@ -35,7 +35,7 @@ double ARTcar_EngineSimpleMap::GetMaxEngineSpeed() {
     return m_Kv_rating * m_supply_voltage * m_voltage_ratio * rpm2rads;
 }
 
-void ARTcar_EngineSimpleMap::SetEngineTorqueMaps(ChFunction_Recorder& map0, ChFunction_Recorder& mapF) {
+void ARTcar_EngineSimpleMap::SetEngineTorqueMaps(ChFunctionInterp& map0, ChFunctionInterp& mapF) {
     double max_rpm = m_Kv_rating * m_supply_voltage * m_voltage_ratio;
 
     // since this is a model of motor and ESC combination, we assume a linear relationship.

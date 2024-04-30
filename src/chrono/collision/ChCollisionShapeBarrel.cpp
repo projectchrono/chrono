@@ -22,7 +22,7 @@ CH_UPCASTING(ChCollisionShapeBarrel, ChCollisionShape)
 
 ChCollisionShapeBarrel::ChCollisionShapeBarrel() : ChCollisionShape(Type::BARREL) {}
 
-ChCollisionShapeBarrel::ChCollisionShapeBarrel(std::shared_ptr<ChMaterialSurface> material,
+ChCollisionShapeBarrel::ChCollisionShapeBarrel(std::shared_ptr<ChContactMaterial> material,
                                                double Y_low,
                                                double Y_high,
                                                double axis_vert,
@@ -36,30 +36,30 @@ ChCollisionShapeBarrel::ChCollisionShapeBarrel(std::shared_ptr<ChMaterialSurface
     this->R_offset = R_offset;
 }
 
-void ChCollisionShapeBarrel::ArchiveOut(ChArchiveOut& marchive) {
+void ChCollisionShapeBarrel::ArchiveOut(ChArchiveOut& archive_out) {
     // version number
-    marchive.VersionWrite<ChCollisionShapeBarrel>();
+    archive_out.VersionWrite<ChCollisionShapeBarrel>();
     // serialize parent class
-    ChCollisionShape::ArchiveOut(marchive);
+    ChCollisionShape::ArchiveOut(archive_out);
     // serialize all member data:
-    marchive << CHNVP(Y_low);
-    marchive << CHNVP(Y_high);
-    marchive << CHNVP(axis_vert);
-    marchive << CHNVP(axis_hor);
-    marchive << CHNVP(R_offset);
+    archive_out << CHNVP(Y_low);
+    archive_out << CHNVP(Y_high);
+    archive_out << CHNVP(axis_vert);
+    archive_out << CHNVP(axis_hor);
+    archive_out << CHNVP(R_offset);
 }
 
-void ChCollisionShapeBarrel::ArchiveIn(ChArchiveIn& marchive) {
+void ChCollisionShapeBarrel::ArchiveIn(ChArchiveIn& archive_in) {
     // version number
-    /*int version =*/marchive.VersionRead<ChCollisionShapeBarrel>();
+    /*int version =*/archive_in.VersionRead<ChCollisionShapeBarrel>();
     // deserialize parent class
-    ChCollisionShape::ArchiveIn(marchive);
+    ChCollisionShape::ArchiveIn(archive_in);
     // stream in all member data:
-    marchive >> CHNVP(Y_low);
-    marchive >> CHNVP(Y_high);
-    marchive >> CHNVP(axis_vert);
-    marchive >> CHNVP(axis_hor);
-    marchive >> CHNVP(R_offset);
+    archive_in >> CHNVP(Y_low);
+    archive_in >> CHNVP(Y_high);
+    archive_in >> CHNVP(axis_vert);
+    archive_in >> CHNVP(axis_hor);
+    archive_in >> CHNVP(R_offset);
 }
 
 }  // end namespace chrono

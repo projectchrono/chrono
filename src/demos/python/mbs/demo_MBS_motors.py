@@ -31,17 +31,17 @@ def CreateSliderGuide(material,
                       pos) :
     guide = chrono.ChBodyEasyBox(4, 0.3, 0.6, 1000, True, True, material)
     guide.SetPos(pos)
-    guide.SetBodyFixed(True)
+    guide.SetFixed(True)
     guide.GetVisualShape(0).SetColor(chrono.ChColor(0.4, 0.4, 0.4))
     system.Add(guide)
 
     slider = chrono.ChBodyEasyBox(0.4, 0.2, 0.5, 1000, True, True, material)
-    slider.SetPos(pos + chrono.ChVectorD(0, 0.3, 0))
+    slider.SetPos(pos + chrono.ChVector3d(0, 0.3, 0))
     slider.GetVisualShape(0).SetColor(chrono.ChColor(0.6, 0.6, 0.0))
     system.Add(slider)
 
     obstacle = chrono.ChBodyEasyBox(0.4, 0.4, 0.4, 8000, True, True, material)
-    obstacle.SetPos(pos + chrono.ChVectorD(1.5, 0.4, 0))
+    obstacle.SetPos(pos + chrono.ChVector3d(1.5, 0.4, 0))
     obstacle.GetVisualShape(0).SetColor(chrono.ChColor(0.2, 0.2, 0.2))
     system.Add(obstacle)
 
@@ -58,14 +58,14 @@ def CreateStatorRotor(material,
                       pos) :
     stator = chrono.ChBodyEasyCylinder(chrono.ChAxis_Y, 0.5, 0.1, 1000, True, True, material)
     stator.SetPos(pos)
-    stator.SetRot(chrono.Q_from_AngAxis(chrono.CH_C_PI_2, chrono.VECT_X))
-    stator.SetBodyFixed(True)
+    stator.SetRot(chrono.QuatFromAngleAxis(chrono.CH_PI_2, chrono.VECT_X))
+    stator.SetFixed(True)
     stator.GetVisualShape(0).SetColor(chrono.ChColor(0.4, 0.4, 0.4))
     system.Add(stator)
     
 
     rotor = chrono.ChBodyEasyBox(1, 0.1, 0.1, 1000, True, True, material)
-    rotor.SetPos(pos + chrono.ChVectorD(0.5, 0, -0.15))
+    rotor.SetPos(pos + chrono.ChVector3d(0.5, 0, -0.15))
     rotor.GetVisualShape(0).SetColor(chrono.ChColor(0.6, 0.6, 0.0))
     system.Add(rotor)
 
@@ -78,12 +78,12 @@ sys = chrono.ChSystemNSC()
 sys.SetCollisionSystemType(chrono.ChCollisionSystem.Type_BULLET)
 
 # Contact material shared among all objects
-material = chrono.ChMaterialSurfaceNSC()
+material = chrono.ChContactMaterialNSC()
 
 # Create a floor that is fixed (that is used also to represent the absolute reference)
 floorBody = chrono.ChBodyEasyBox(20, 2, 20, 3000, True, True, material)
-floorBody.SetPos(chrono.ChVectorD(0, -2, 0))
-floorBody.SetBodyFixed(True)
+floorBody.SetPos(chrono.ChVector3d(0, -2, 0))
+floorBody.SetFixed(True)
 floorBody.GetVisualShape(0).SetTexture(chrono.GetChronoDataFile("textures/blue.png"))
 sys.Add(floorBody)
 
@@ -106,7 +106,7 @@ sys.Add(floorBody)
 # rotating body hits some hard contact, the solver might give unpredictable
 # oscillatory or diverging results because of the contradiction.
 
-positionA1 = chrono.ChVectorD(-3, 2, -3) 
+positionA1 = chrono.ChVector3d(-3, 2, -3) 
 stator1, rotor1 = CreateStatorRotor(material, sys, positionA1)
 
 # Create the motor
@@ -115,12 +115,12 @@ rotmotor1 = chrono.ChLinkMotorRotationSpeed()
 # Connect the rotor and the stator and add the motor to the sys:
 rotmotor1.Initialize(rotor1,                # body A (slave)
                       stator1,               # body B (master)
-                      chrono.ChFrameD(positionA1)  # motor frame, in abs. coords
+                      chrono.ChFramed(positionA1)  # motor frame, in abs. coords
 )
 sys.Add(rotmotor1)
 
 # Create a ChFunction to be used for the ChLinkMotorRotationSpeed
-mwspeed = chrono.ChFunction_Const(chrono.CH_C_PI_2)  # constant angular speed, in [rad/s], 1PI/s =180°/s
+mwspeed = chrono.ChFunctionConst(chrono.CH_PI_2)  # constant angular speed, in [rad/s], 1PI/s =180°/s
 # Let the motor use this motion function:
 rotmotor1.SetSpeedFunction(mwspeed)
 
@@ -149,7 +149,7 @@ rotmotor1.SetSpeedFunction(mwspeed)
 # rotating body hits some hard contact, the solver might give unpredictable
 # oscillatory or diverging results because of the contradiction.
 
-positionA2 = chrono.ChVectorD(-3, 2, -2)
+positionA2 = chrono.ChVector3d(-3, 2, -2)
 stator2, rotor2 = CreateStatorRotor(material, sys, positionA2)
 
 # Create the motor
@@ -158,14 +158,13 @@ rotmotor2 = chrono.ChLinkMotorRotationAngle()
 # Connect the rotor and the stator and add the motor to the sys:
 rotmotor2.Initialize(rotor2,                # body A (slave)
                       stator2,               # body B (master)
-                      chrono.ChFrameD(positionA2)  # motor frame, in abs. coords
+                      chrono.ChFramed(positionA2)  # motor frame, in abs. coords
 )
 sys.Add(rotmotor2)
 
 # Create a ChFunction to be used for the ChLinkMotorRotationAngle
-msineangle = chrono.ChFunction_Sine(0,       # phase [rad]
-                                    0.05,    # frequency [Hz]
-                                    chrono.CH_C_PI)  # amplitude [rad]
+msineangle = chrono.ChFunctionSine(chrono.CH_PI,
+                                    0.05)  # amplitude
 
 # Let the motor use this motion function as a motion profile:
 rotmotor2.SetAngleFunction(msineangle)
@@ -181,7 +180,7 @@ rotmotor2.SetAngleFunction(msineangle)
 # must implement a PID controller that continuously adjusts the value of the
 # torque during the simulation).
 
-positionA3 = chrono.ChVectorD(-3, 2, -1)
+positionA3 = chrono.ChVector3d(-3, 2, -1)
 stator3, rotor3 = CreateStatorRotor(material, sys, positionA3)
 
 # Create the motor
@@ -190,14 +189,13 @@ rotmotor3 = chrono.ChLinkMotorRotationTorque()
 # Connect the rotor and the stator and add the motor to the sys:
 rotmotor3.Initialize(rotor3,                # body A (slave)
                       stator3,               # body B (master)
-                      chrono.ChFrameD(positionA3))  # motor frame, in abs. coords
+                      chrono.ChFramed(positionA3))  # motor frame, in abs. coords
 
 sys.Add(rotmotor3)
 
 # The torque(time) function:
-mtorquetime = chrono.ChFunction_Sine(0,   # phase [rad]
-                                     2,   # frequency [Hz]
-                                     160)  # amplitude [Nm]
+mtorquetime = chrono.ChFunctionSine(160,   # amplitude
+                                     2)
 
 # Let the motor use this motion function as a motion profile:
 rotmotor3.SetTorqueFunction(mtorquetime)
@@ -208,7 +206,7 @@ rotmotor3.SetTorqueFunction(mtorquetime)
 # torque by a custom function. In this example we implement a
 # basic torque(speed) model of a three-phase induction electric motor..
 
-positionA4 = chrono.ChVectorD(-3, 2, 0)
+positionA4 = chrono.ChVector3d(-3, 2, 0)
 stator4, rotor4 =  CreateStatorRotor( material, sys, positionA4)
 
 # Create the motor
@@ -217,7 +215,7 @@ rotmotor4 = chrono.ChLinkMotorRotationTorque()
 # Connect the rotor and the stator and add the motor to the sys:
 rotmotor4.Initialize(rotor4,                # body A (slave)
                       stator4,               # body B (master)
-                      chrono.ChFrameD(positionA4))  # motor frame, in abs. coords
+                      chrono.ChFramed(positionA4))  # motor frame, in abs. coords
 
 sys.Add(rotmotor4)
 
@@ -225,7 +223,7 @@ sys.Add(rotmotor4)
 # We could use pre-defined ChFunction classes like sine, constant, ramp, etc.,
 # but in this example we show how to implement a custom function: a
 # torque(speed) function that represents a three-phase electric induction motor.
-# Just inherit from ChFunction and implement Get_y() so that it returns different
+# Just inherit from ChFunction and implement GetVal() so that it returns different
 # values (regrdless of time x) depending only on the slip speed of the motor:
 class MyTorqueCurve(chrono.ChFunction) :
   def __init__(self, e2, r2, x2, n_s, mot) : 
@@ -239,11 +237,11 @@ class MyTorqueCurve(chrono.ChFunction) :
   def Clone(self) :
         return deepcopy(self)
 
-  def Get_y(self, x) :
+  def GetVal(self, x) :
         # The three-phase torque(speed) model
-        w = self.mymotor.GetMotorRot_dt()
+        w = self.mymotor.GetMotorAngleDt()
         s = (self.ns - w) / self.ns  # slip
-        T = (3.0 / 2 * chrono.CH_C_PI * self.ns) * (s * self.E2 * self.E2 * self.R2) / (self.R2 * self.R2 + pow(s * self.X2, 2))  # electric torque curve
+        T = (3.0 / 2 * chrono.CH_PI * self.ns) * (s * self.E2 * self.E2 * self.R2) / (self.R2 * self.R2 + pow(s * self.X2, 2))  # electric torque curve
         T -= w * 5  # simulate also a viscous brake
         return T
     
@@ -277,7 +275,7 @@ rotmotor4.SetTorqueFunction(mtorquespeed)
 # if any) and ending at inner shaft 1 (consider it to be the output, i.e. the
 # slow-rotation spindle).
 
-positionA5 = chrono.ChVectorD(-3, 2, 1)
+positionA5 = chrono.ChVector3d(-3, 2, 1)
 stator5, rotor5 = CreateStatorRotor(material, sys, positionA5)
 
 # Create the motor
@@ -286,7 +284,7 @@ rotmotor5 = chrono.ChLinkMotorRotationDriveline()
 # Connect the rotor and the stator and add the motor to the sys:
 rotmotor5.Initialize(rotor5,                # body A (slave)
                       stator5,               # body B (master)
-                      chrono.ChFrameD(positionA5) ) # motor frame, in abs. coords
+                      chrono.ChFramed(positionA5) ) # motor frame, in abs. coords
 
 sys.Add(rotmotor5)
 
@@ -328,7 +326,7 @@ my_drive.Initialize(my_shaftA,                   # A , the rotor of the drive
 
 sys.Add(my_drive)
 # Create a speed(time) function, and use it in my_drive:
-my_driveangle = chrono.ChFunction_Const(25 * chrono.CH_C_2PI)  # 25 [rps] = 1500 [rpm]
+my_driveangle = chrono.ChFunctionConst(25 * chrono.CH_2PI)  # 25 [rps] = 1500 [rpm]
 my_drive.SetSpeedFunction(my_driveangle)
 
 # Create the REDUCER. We should not use the simple ChShaftsGear because
@@ -347,13 +345,6 @@ sys.Add(my_reducer)
 # Btw:  later, if you want, you can access / plot speeds and
 # torques for whatever part of the driveline by putting lines like the following
 # in the  while() {...} simulation loop:
-#
-# GetLog() << " 1D shaft 'A' angular speed: "      << my_shaftA.GetPos_dt() << " [rad/s] \n"
-# GetLog() << " 1D Drive angular speed: rot-stat " << my_drive.GetMotorRot_dt() << " [rad/s] \n"
-# GetLog() << " 1D Drive torque: "                 << my_drive.GetMotorTorque() << " [Ns] \n"
-# GetLog() << " 3D motor angular speed: rot-stat " << rotmotor5.GetMotorRot_dt() << " [rad/s] \n"
-# GetLog() << " 3D motor torque: "                 << rotmotor5.GetMotorTorque() << " [Ns] \n"
-# etc.
 
 # EXAMPLE B.1
 #
@@ -369,7 +360,7 @@ sys.Add(my_reducer)
 # sliding body hits some hard contact, the solver might give unpredictable
 # oscillatory or diverging results because of the contradiction.
 
-positionB1 = chrono.ChVectorD(0, 0, -3)
+positionB1 = chrono.ChVector3d(0, 0, -3)
 guide1, slider1 = CreateSliderGuide(material, sys, positionB1)
 
 # Create the linear motor
@@ -378,14 +369,13 @@ motor1 = chrono.ChLinkMotorLinearPosition()
 # Connect the guide and the slider and add the motor to the sys:
 motor1.Initialize(slider1,               # body A (slave)
                    guide1,                # body B (master)
-                   chrono.ChFrameD(positionB1)  # motor frame, in abs. coords
+                   chrono.ChFramed(positionB1, chrono.Q_ROTATE_Z_TO_X)  # motor frame, in abs. coords
 )
 sys.Add(motor1)
 
 # Create a ChFunction to be used for the ChLinkMotorLinearPosition
-msine = chrono.ChFunction_Sine(0,    # phase
-                               0.5,  # frequency
-                               1.6)   # amplitude
+msine = chrono.ChFunctionSine(1.6,
+                               0.5)
 
 # Let the motor use this motion function:
 motor1.SetMotionFunction(msine)
@@ -409,7 +399,7 @@ motor1.SetMotionFunction(msine)
 # accumulation (position drift). Optionally, such constraon
 # position level can be disabled if you are not interested in pos.drift.
 
-positionB2 = chrono.ChVectorD(0, 0, -2)
+positionB2 = chrono.ChVector3d(0, 0, -2)
 guide2, slider2 = CreateSliderGuide(material, sys, positionB2)
 
 # Create the linear motor
@@ -418,14 +408,14 @@ motor2 = chrono.ChLinkMotorLinearSpeed()
 # Connect the guide and the slider and add the motor to the sys:
 motor2.Initialize(slider2,               # body A (slave)
                    guide2,                # body B (master)
-                   chrono.ChFrameD(positionB2) ) # motor frame, in abs. coords
+                   chrono.ChFramed(positionB2, chrono.Q_ROTATE_Z_TO_X) ) # motor frame, in abs. coords
 
 sys.Add(motor2)
 
 # Create a ChFunction to be used for the ChLinkMotorLinearSpeed
-msp = chrono.ChFunction_Sine(chrono.CH_C_PI_2,            # phase
+msp = chrono.ChFunctionSine(1.6 * 0.5 * chrono.CH_2PI, # amplitude
                              0.5,                  # frequency
-                             1.6 * 0.5 * chrono.CH_C_2PI)  # amplitude
+                             chrono.CH_PI_2) # phase
 
 # Let the motor use this motion function:
 motor2.SetSpeedFunction(msp)
@@ -460,11 +450,11 @@ motor2.SetSpeedFunction(msp)
 # some hard contact, it just stops and keeps pushing, and no troubles
 # with the solver happen.
 
-positionB3 = chrono.ChVectorD(0, 0, -1)
+positionB3 = chrono.ChVector3d(0, 0, -1)
 guide3, slider3 = CreateSliderGuide(material, sys, positionB3)
 
 # just for fun: modify the initial speed of slider to match other examples
-slider3.SetPos_dt(chrono.ChVectorD(1.6 * 0.5 * chrono.CH_C_2PI))
+slider3.SetPosDt(chrono.ChVector3d(1.6 * 0.5 * chrono.CH_2PI))
 
 # Create the linear motor
 motor3 = chrono.ChLinkMotorLinearForce()
@@ -472,21 +462,20 @@ motor3 = chrono.ChLinkMotorLinearForce()
 # Connect the guide and the slider and add the motor to the sys:
 motor3.Initialize(slider3,               # body A (slave)
                    guide3,                # body B (master)
-                   chrono.ChFrameD(positionB3) ) # motor frame, in abs. coords
+                   chrono.ChFramed(positionB3, chrono.Q_ROTATE_Z_TO_X) ) # motor frame, in abs. coords
 
 sys.Add(motor3)
 
 # Create a ChFunction to be used for F(t) in ChLinkMotorLinearForce.
-mF = chrono.ChFunction_Const(200)
+mF = chrono.ChFunctionConst(200)
 # Let the motor use this motion function:
 motor3.SetForceFunction(mF)
 
 # Alternative: just for fun, use a sine harmonic whose max force is F=M*A, where
 # M is the mass of the slider, A is the max acceleration of the previous examples,
 # so finally the motion should be quite the same - but without feedback, if hits a disturb, it goes crazy:
-mF2 =chrono.ChFunction_Sine(0,                                                        # phase
-                            0.5,                                                      # frequency
-                            slider3.GetMass() * 1.6 * pow(0.5 * chrono.CH_C_2PI, 2) ) # amplitude
+mF2 =chrono.ChFunctionSine(slider3.GetMass() * 1.6 * pow(0.5 * chrono.CH_2PI, 2) ,
+                            0.5)
 
 # motor3.SetForceFunction(mF2) # uncomment to test this
 
@@ -496,7 +485,7 @@ mF2 =chrono.ChFunction_Sine(0,                                                  
 # F by a user-defined procedure (as a callback). For example, here we write a very
 # basic PID control algorithm that adjusts F trying to chase a sinusoidal position.
 
-positionB4 = chrono.ChVectorD(0, 0, 0)
+positionB4 = chrono.ChVector3d(0, 0, 0)
 guide4, slider4 = CreateSliderGuide(material, sys, positionB4)
 
 # Create the linear motor
@@ -505,25 +494,25 @@ motor4 = chrono.ChLinkMotorLinearForce()
 # Connect the guide and the slider and add the motor to the sys:
 motor4.Initialize(slider4,                       # body A (slave)
                   guide4,                       # body B (master)
-                  chrono.ChFrameD(positionB4))  # motor frame, in abs. coords
+                  chrono.ChFramed(positionB4, chrono.Q_ROTATE_Z_TO_X))  # motor frame, in abs. coords
 
 sys.Add(motor4)
 
 # Create a ChFunction that computes F by a user-defined algorithm, as a callback.
-# One quick option would be to inherit from the ChFunction base class, and implement the Get_y()
+# One quick option would be to inherit from the ChFunction base class, and implement the GetVal()
 # function by putting the code you wish, as explained in demo_CH_functions.cpp. However this has some
-# limitations. A more powerful approach is to inherit from ChFunction_SetpointCallback, that automatically
+# limitations. A more powerful approach is to inherit from ChFunctionSetpointCallback, that automatically
 # computes the derivatives, if needed, by BDF etc. Therefore:
-# 1. You must inherit from the ChFunction_SetpointCallback base class, and implement the SetpointCallback()
+# 1. You must inherit from the ChFunctionSetpointCallback base class, and implement the SetpointCallback()
 #    function by putting the code you wish. For example something like the follow:
 
-class MyForceClass (chrono.ChFunction_SetpointCallback) :
+class MyForceClass (chrono.ChFunctionSetpointCallback) :
       def __init__(self, amp, freq, prop, der, ltime, lerr, f, motor) :
         """ THIS IS CRUCIAL FOR CORRECT INITIALIZATION: Initialize all the three in down-up order """
-        chrono.ChFunction_Setpoint.__init__(self) 
-        chrono.ChFunction_SetpointCallback.__init__(self) 
+        chrono.ChFunctionSetpoint.__init__(self) 
+        chrono.ChFunctionSetpointCallback.__init__(self) 
         
-        # Here some specific data to be used in Get_y(),
+        # Here some specific data to be used in GetVal(),
         # add whatever you need, ex:
         self.setpoint_position_sine_amplitude = amp
         self.setpoint_position_sine_freq = freq
@@ -544,7 +533,7 @@ class MyForceClass (chrono.ChFunction_SetpointCallback) :
             if (time > self.last_time) :
                 dt = time - self.last_time
                 # for example, the position to chase is this sine formula:
-                setpo= self.setpoint_position_sine_amplitude * m.sin(self.setpoint_position_sine_freq * chrono.CH_C_2PI * x)
+                setpo= self.setpoint_position_sine_amplitude * m.sin(self.setpoint_position_sine_freq * chrono.CH_2PI * x)
                 error = setpo- self.linearmotor.GetMotorPos()
                 error_dt = (error - self.last_error) / dt
                 # for example, finally compute the force using the PID idea:
@@ -554,7 +543,7 @@ class MyForceClass (chrono.ChFunction_SetpointCallback) :
             
             return self.F
      # def SetSetpoint(self,y,x):
-     #       chrono.ChFunction_Setpoint.SetSetpoint(self,y,x)
+     #       chrono.ChFunctionSetpoint.SetSetpoint(self,y,x)
         
 #      def Update(self, x):
 #            y = self.SetpointCallback(x)
@@ -579,20 +568,31 @@ motor4.SetForceFunction(mFcallback)
 # generic 1D powertrain inside this 3D motor.
 # Powertrains/drivelines are defined by connecting a variable number of
 # 1D objects such as ChShaft, ChClutch, ChShaftsMotor, etc. In this way, for
-# example, you can represent a drive+flywheel+reducer+pulley sys, hence taking into account
+# example, you can represent a drive+flywheel+reducer+pulley system, hence taking into account
 # of the inertia of the flywheel and the elasticity of the synchro belt without
 # the complication of adding full 3D shapes that represents all parts.
 # The 1D driveline is "interfaced" to the two connected threedimensional
-# parts using two "inner" 1D shafts, each translating as the connected 3D part
+# parts using two "inner" 1D shafts, each translating as the connected 3D part;
 # it is up to the user to build the driveline that connects those two shafts.
 # Most often the driveline is like a graph starting at inner shaft 2 and ending
 # at inner shaft 1.
-# Note: in the part 2 there is an additional inner shaft that operates on rotation
+# Note: in the part 2 there is an additional inner shaft that operates on rotation;
 # this is needed because, for example, maybe you want to model a driveline like a
-# drive+screw you will anchor the drive to part 2 using this rotational shaft so
+# drive+screw; you will anchor the drive to part 2 using this rotational shaft; so
 # reaction torques arising because of inner flywheel accelerations can be transmitted to this shaft.
+#
+#
+#               [************ motor5 ********]
+#  [ guide5  ]----[-----(ChShaftBodyRotation)-------[Shaft2Rot]----]--->
+#  [ guide5  ]----[-----(ChShaftBodyTranslation)----[Shaft2Lin]----]--->
+#  [ slider5 ]----[-----(ChShaftBodyTranslation)----[Shaft1Lin]----]--->
+#
+#                                     [***** my_rackpinion *****]
+#  >-[my_driveli]----[my_shaftB] -----[----[shaft2]             ]
+#  >----------------------------------[----[shaft1]             ]
+#  >----------------------------------[----[shaft3]             ]
 
-positionB5 = chrono.ChVectorD(0, 0, 1)
+positionB5 = chrono.ChVector3d(0, 0, 1)
 guide5, slider5 = CreateSliderGuide(material, sys, positionB5)
 
 # Create the motor
@@ -601,7 +601,7 @@ motor5 = chrono.ChLinkMotorLinearDriveline()
 # Connect the rotor and the stator and add the motor to the sys:
 motor5.Initialize(slider5,               # body A (slave)
                    guide5,                # body B (master)
-                   chrono.ChFrameD(positionB5) ) # motor frame, in abs. coords
+                   chrono.ChFramed(positionB5, chrono.Q_ROTATE_Z_TO_X) ) # motor frame, in abs. coords
 
 sys.Add(motor5)
 
@@ -609,33 +609,14 @@ sys.Add(motor5)
 # Note: they adds up to 3D inertia when 3D parts translate about the link shaft.
 # Note: do not use too small values compared to 3D inertias: it might negatively affect
 # the precision of some solvers if so, rather diminish the 3D inertia of guide/slider parts and add to these.
-motor5.GetInnerShaft1lin().SetInertia(3.0)  # [kg]
-motor5.GetInnerShaft2lin().SetInertia(3.0)  # [kg]
-motor5.GetInnerShaft2rot().SetInertia(0.8)  # [kg/m^2]
+motor5.GetInnerShaft1Lin().SetInertia(3.0)  # [kg]
+motor5.GetInnerShaft2Lin().SetInertia(3.0)  # [kg]
+motor5.GetInnerShaft2Rot().SetInertia(0.8)  # [kg/m^2]
 
-# Now create the driveline. We want to model a drive+reducer sytem.
-# This driveline must connect "inner shafts" of s1 and s2, where:
-#  s1, is the 3D "slider5" part B (ex. a gantry robot gripper) and
-#  s2, is the 3D "guide5"  part A (ex. a gantry robot base).
-# In the following scheme, the motor is [ DRIVE ], the reducer is [ RACKPINION ],
-# the shafts ( shown with symbol || to mean inertia) are:
-#  S1: the 1D inner shaft for s1 robot arm (already present in ChLinkMotorLinearDriveline)
-#  S2: the 1D inner shaft for s2 robot base (already present in ChLinkMotorLinearDriveline)
-#  B : the shaft of the electric drive
-# Note that s1 and s2 are translational degrees of freedom, differently
-# from ChLinkMotorLinearDriveline.
-#
-#     S2rot              B                      S1lin
-#    <--||---[ DRIVE ]---||-----[ RACKPINION ]----||-. 3d
-# 3d <                          [            ]          s1
-# s2 < S2lin                    [            ]
-#    <--||----------------------[            ]
-#
+# Tell the motor that the inner shaft 'S2rot' is Y, orthogonal to
+# the Z direction of the guide (default was Z, as for screw actuators)
 
-# Tell the motor that the inner shaft  'S2rot' is Z, orthogonal to
-# the X direction of the guide (default was X, as for screw actuators)
-
-motor5.SetInnerShaft2RotDirection(chrono.VECT_Z)  # in link coordinates
+motor5.SetInnerShaft2RotDirection(chrono.VECT_Y)  # in link coordinates
 
 # Create 'B', a 1D shaft. This is the shaft of the electric drive, representing its inertia.
 
@@ -646,28 +627,28 @@ sys.Add(my_shaftB)
 # Create 'DRIVE', the hispeed motor - as a simple example use a 'imposed speed' motor: this
 # is the equivalent of the ChLinkMotorRotationAngle, but for 1D elements:
 
-my_driveli = chrono.ChShaftsMotorAngle()
+my_driveli = chrono.ChShaftsMotorPosition()
 my_driveli.Initialize(my_shaftB,                   # B    , the rotor of the drive
-                       motor5.GetInnerShaft2rot() ) # S2rot, the stator of the drive
+                       motor5.GetInnerShaft2Rot() ) # S2rot, the stator of the drive
 
 sys.Add(my_driveli)
 
 # Create a angle(time) function. It could be something as simple as
-#   my_functangle = chrono.ChFunction_Ramp>(0,  180)
+#   my_functangle = chrono.ChFunctionRamp>(0,  180)
 # but here we'll rather do a back-forth motion, made with a repetition of a sequence of 4 basic functions:
 
-my_functsequence = chrono.ChFunction_Sequence()
-my_funcsigma1 = chrono.ChFunction_Sigma(180, 0, 0.5)  # diplacement, t_start, t_end
-my_funcpause1 = chrono.ChFunction_Const(0)
-my_funcsigma2 = chrono.ChFunction_Sigma(-180, 0, 0.3)  # diplacement, t_start, t_end
-my_funcpause2 = chrono.ChFunction_Const(0)
+my_functsequence = chrono.ChFunctionSequence()
+my_funcsigma1 = chrono.ChFunctionPoly23(180, 0, 0.5)  # diplacement, t_start, t_end
+my_funcpause1 = chrono.ChFunctionConst(0)
+my_funcsigma2 = chrono.ChFunctionPoly23(-180, 0, 0.3)  # diplacement, t_start, t_end
+my_funcpause2 = chrono.ChFunctionConst(0)
 my_functsequence.InsertFunct(my_funcsigma1, 0.5, 1.0, True)  # fx, duration, weight, enforce C0 continuity
 my_functsequence.InsertFunct(my_funcpause1, 0.2, 1.0, True)  # fx, duration, weight, enforce C0 continuity
 my_functsequence.InsertFunct(my_funcsigma2, 0.3, 1.0, True)  # fx, duration, weight, enforce C0 continuity
 my_functsequence.InsertFunct(my_funcpause2, 0.2, 1.0, True)  # fx, duration, weight, enforce C0 continuity
-my_functangle = chrono.ChFunction_Repeat(my_functsequence)
-my_functangle.Set_window_length(0.5 + 0.2 + 0.3 + 0.2)
-my_driveli.SetAngleFunction(my_functangle)
+my_functangle = chrono.ChFunctionRepeat(my_functsequence)
+my_functangle.SetSliceWidth(0.5 + 0.2 + 0.3 + 0.2)
+my_driveli.SetPositionFunction(my_functangle)
 
 # Create the RACKPINION.
 # It will connect three parts:
@@ -676,9 +657,9 @@ my_driveli.SetAngleFunction(my_functangle)
 # - S1lin, the out (translational) shaft.
 
 my_rackpinion = chrono.ChShaftsPlanetary()
-my_rackpinion.Initialize(motor5.GetInnerShaft2lin(),  # S2lin, the carrier (truss)
+my_rackpinion.Initialize(motor5.GetInnerShaft2Lin(),  # S2lin, the carrier (truss)
                           my_shaftB,                    # B,     the input shaft
-                          motor5.GetInnerShaft1lin() )  # S1lin, the output shaft
+                          motor5.GetInnerShaft1Lin() )  # S1lin, the output shaft
 
 my_rackpinion.SetTransmissionRatios(-1, -1.0 / 100.0, 1)
 sys.Add(my_rackpinion)
@@ -686,13 +667,6 @@ sys.Add(my_rackpinion)
 # Btw:  later, if you want, you can access / plot speeds and
 # torques for whatever part of the driveline by putting lines like the   following
 # in the  while() {...} simulation loop:
-#
-# GetLog() << " 1D shaft 'B' angular speed: "      << my_shaftB.GetPos_dt() << " [rad/s] \n"
-# GetLog() << " 1D Drive angular speed: rot-stat " << my_driveli.GetMotorRot_dt() << " [rad/s] \n"
-# GetLog() << " 1D Drive torque: "                 << my_driveli.GetMotorTorque() << " [Ns] \n"
-# GetLog() << " 3D actuator speed: rot-stat " << motor5.GetMotorPos() << " [rad/s] \n"
-# GetLog() << " 3D actuator force: "                 << motor5.GetMotorForce() << " [Ns] \n"
-# etc.
 
 # EXAMPLE B.6
 #
@@ -705,18 +679,18 @@ sys.Add(my_rackpinion)
 # we put a line in the while{...} simulation loop that continuously changes the
 # position by setting a value from some computation.
 #  Well: here one might be tempted to do  motor6.SetMotionFunction(myconst) where
-# myconst is a ChFunction_Const object where you would continuously change the value
-# of the constant by doing  myconst.Set_yconst() in the while{...} loop this would
+# myconst is a ChFunctionConst object where you would continuously change the value
+# of the constant by doing  myconst.SetConstant() in the while{...} loop this would
 # work somehow but it would miss the derivative of the function, something that is used
-# in the guts of ChLinkMotorLinearPosition. To overcome this, we'll use a  ChFunction_Setpoint
+# in the guts of ChLinkMotorLinearPosition. To overcome this, we'll use a  ChFunctionSetpoint
 # function, that is able to guess the derivative of the changing setpoby doing numerical
 # differentiation each time you call  myfunction.SetSetpoint().
 #  Note: A more elegant solution would be to inherit our custom motion function
-# from  ChFunction_SetpointCallback  as explained in EXAMPLE B.4, and then setting
+# from  ChFunctionSetpointCallback  as explained in EXAMPLE B.4, and then setting
 # motor6.SetMotionFunction(mycallback) this would avoid polluting the while{...} loop
 # but sometimes is faster to do the quick & dirty approach of this example.
 
-positionB6 = chrono.ChVectorD(0, 0, 2)
+positionB6 = chrono.ChVector3d(0, 0, 2)
 guide6, slider6 = CreateSliderGuide(material, sys, positionB6)
 
 # Create the linear motor
@@ -725,14 +699,14 @@ motor6 = chrono.ChLinkMotorLinearPosition()
 # Connect the guide and the slider and add the motor to the sys:
 motor6.Initialize(slider6,               # body A (slave)
                    guide6,                # body B (master)
-                   chrono.ChFrameD(positionB6) ) # motor frame, in abs. coords
+                   chrono.ChFramed(positionB6, chrono.Q_ROTATE_Z_TO_X) ) # motor frame, in abs. coords
 
 sys.Add(motor6)
 
 # Create a ChFunction to be used for the ChLinkMotorLinearPosition
 # Note! look later in the while{...} simulation loop, we'll continuously
 # update its value using  motor6setpoint.SetSetpoint()
-motor6setpoint= chrono.ChFunction_Setpoint()
+motor6setpoint= chrono.ChFunctionSetpoint()
 # Let the motor use this motion function:
 motor6.SetMotionFunction(motor6setpoint)
 
@@ -748,9 +722,9 @@ vis.SetWindowTitle('Motors demo')
 vis.Initialize()
 vis.AddLogo(chrono.GetChronoDataFile('logo_pychrono_alpha.png'))
 vis.AddSkyBox()
-vis.AddCamera(chrono.ChVectorD(1, 3, -7))
+vis.AddCamera(chrono.ChVector3d(1, 3, -7))
 vis.AddTypicalLights()
-vis.AddLightWithShadow(chrono.ChVectorD(20.0, 35.0, -25.0), chrono.ChVectorD(0, 0, 0), 55, 20, 55, 35, 512)
+vis.AddLightWithShadow(chrono.ChVector3d(20.0, 35.0, -25.0), chrono.ChVector3d(0, 0, 0), 55, 20, 55, 35, 512)
 ##vis.EnableShadows()
 
 
@@ -759,14 +733,16 @@ solver = chrono.ChSolverPSOR()
 solver.SetMaxIterations(50)
 sys.SetSolver(solver)
 
+timer = chrono.ChRealtimeStepTimer()
 while vis.Run():
     # Example B.6 requires the setpoto be changed in the simulation loop:
     # for example use a clamped sinusoid, just for fun:
     t = sys.GetChTime()
-    Sp = chrono.ChMin(chrono.ChMax(2.6 * m.sin(t * 1.8), -1.4), 1.4)
+    Sp = min(max(2.6 * m.sin(t * 1.8), -1.4), 1.4)
     motor6setpoint.SetSetpoint(Sp, t)
 
     vis.BeginScene() 
     vis.Render()
     vis.EndScene()
     sys.DoStepDynamics(5e-3)
+    timer.Spin(5e-3)

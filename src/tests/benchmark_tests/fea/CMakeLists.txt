@@ -8,7 +8,7 @@ set(TESTS
 	btest_FEA_ANCFhexa_3843_LargeDisplacement
     )
 
-set(TESTS_MKL_MUMPS_PARPROJ
+set(TESTS_MKL_MUMPS
    btest_FEA_sparse_solver
    )
 
@@ -37,14 +37,8 @@ if(ENABLE_MODULE_MUMPS)
   list(APPEND LIBS "ChronoEngine_mumps")
 endif()
 
-if(ENABLE_MODULE_PARDISO_PROJECT)
-  include_directories(${CH_PARDISOPROJECT_INCLUDES})
-  list(APPEND LIBS "ChronoEngine_pardisoproject")
-  list(APPEND LIBS ${PARDISOPROJECT_LIBRARIES})
-endif()
-
-if(ENABLE_MODULE_PARDISO_MKL OR ENABLE_MODULE_MUMPS OR ENABLE_MODULE_PARDISO_PROJECT)
-  set(TESTS ${TESTS} ${TESTS_MKL_MUMPS_PARPROJ})
+if(ENABLE_MODULE_PARDISO_MKL OR ENABLE_MODULE_MUMPS)
+  set(TESTS ${TESTS} ${TESTS_MKL_MUMPS})
 endif()
 
 # ------------------------------------------------------------------------------

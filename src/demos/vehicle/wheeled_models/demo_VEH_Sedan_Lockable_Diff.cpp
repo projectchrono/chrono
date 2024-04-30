@@ -37,19 +37,18 @@ using namespace chrono::vehicle::sedan;
 // =============================================================================
 
 const double step_size = 1e-3;
-const std::string out_dir = GetChronoOutputPath() + "SEDAN";
 
 // =============================================================================
 
 int main(int argc, char* argv[]) {
-    GetLog() << "Copyright (c) 2017 projectchrono.org\nChrono version: " << CHRONO_VERSION << "\n\n";
+    std::cout << "Copyright (c) 2017 projectchrono.org\nChrono version: " << CHRONO_VERSION << std::endl;
 
     bool lock_diff = (argc > 1) ? true : false;
 
     if (lock_diff) {
-        GetLog() << "The differential box is locked\n";
+        std::cout << "The differential box is locked\n";
     } else {
-        GetLog() << "The differential box is unlocked\n";
+        std::cout << "The differential box is unlocked\n";
     }
 
     // Create the vehicle
@@ -57,7 +56,7 @@ int main(int argc, char* argv[]) {
     sedan.SetContactMethod(ChContactMethod::SMC);
     sedan.SetChassisCollisionType(CollisionType::NONE);
     sedan.SetChassisFixed(false);
-    sedan.SetInitPosition(ChCoordsys<>(ChVector<>(-40, 0, 1.0)));
+    sedan.SetInitPosition(ChCoordsys<>(ChVector3d(-40, 0, 1.0)));
     sedan.SetTireType(TireModelType::TMEASY);
     sedan.SetTireStepSize(1e-3);
     sedan.Initialize();
@@ -76,20 +75,20 @@ int main(int argc, char* argv[]) {
     // Create the terrain
     RigidTerrain terrain(sedan.GetSystem());
 
-    auto patch1_mat = chrono_types::make_shared<ChMaterialSurfaceSMC>();
+    auto patch1_mat = chrono_types::make_shared<ChContactMaterialSMC>();
     patch1_mat->SetFriction(0.1f);
     patch1_mat->SetRestitution(0.01f);
     patch1_mat->SetYoungModulus(2e7f);
     patch1_mat->SetPoissonRatio(0.3f);
 
-    auto patch2_mat = chrono_types::make_shared<ChMaterialSurfaceSMC>();
+    auto patch2_mat = chrono_types::make_shared<ChContactMaterialSMC>();
     patch2_mat->SetFriction(0.9f);
     patch2_mat->SetRestitution(0.01f);
     patch2_mat->SetYoungModulus(2e7f);
     patch2_mat->SetPoissonRatio(0.3f);
 
-    auto patch1 = terrain.AddPatch(patch1_mat, ChCoordsys<>(ChVector<>(0, -25, 0), QUNIT), 100, 50);
-    auto patch2 = terrain.AddPatch(patch2_mat, ChCoordsys<>(ChVector<>(0, +25, 0), QUNIT), 100, 50);
+    auto patch1 = terrain.AddPatch(patch1_mat, ChCoordsys<>(ChVector3d(0, -25, 0), QUNIT), 100, 50);
+    auto patch2 = terrain.AddPatch(patch2_mat, ChCoordsys<>(ChVector3d(0, +25, 0), QUNIT), 100, 50);
 
     patch1->SetColor(ChColor(0.8f, 0.8f, 0.5f));
     patch1->SetTexture(vehicle::GetDataFile("terrain/textures/dirt.jpg"), 200, 50);
@@ -102,7 +101,7 @@ int main(int argc, char* argv[]) {
     // Create the vehicle Irrlicht interface
     auto vis = chrono_types::make_shared<ChWheeledVehicleVisualSystemIrrlicht>();
     vis->SetWindowTitle("Sedan Demo Locked Diff");
-    vis->SetChaseCamera(ChVector<>(0.0, 0.0, 1.5), 4.0, 0.5);
+    vis->SetChaseCamera(ChVector3d(0.0, 0.0, 1.5), 4.0, 0.5);
     vis->Initialize();
     vis->AddLightDirectional();
     vis->AddSkyBox();
@@ -110,11 +109,12 @@ int main(int argc, char* argv[]) {
     vis->AttachVehicle(&sedan.GetVehicle());
 
     // Initialize output
+    const std::string out_dir = GetChronoOutputPath() + "SEDAN";
     if (!filesystem::create_directory(filesystem::path(out_dir))) {
         std::cout << "Error creating directory " << out_dir << std::endl;
         return 1;
     }
-    utils::CSV_writer wheelomega_csv("\t");
+    utils::ChWriterCSV wheelomega_csv("\t");
 
     // Simulation loop
     while (vis->Run()) {
@@ -151,7 +151,7 @@ int main(int argc, char* argv[]) {
         vis->Advance(step_size);
     }
 
-    wheelomega_csv.write_to_file(out_dir + "/FrontWheelOmega_" + std::to_string(lock_diff) + ".csv");
+    wheelomega_csv.WriteToFile(out_dir + "/FrontWheelOmega_" + std::to_string(lock_diff) + ".csv");
 
     return 0;
 }

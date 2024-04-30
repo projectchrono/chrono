@@ -18,50 +18,49 @@
 
 #include "chrono/physics/ChBodyEasy.h"
 #include "chrono/physics/ChLinkMotorRotationSpeed.h"
-#include "chrono/physics/ChLinkTrajectory.h"
+#include "chrono/physics/ChLinkLockTrajectory.h"
 #include "chrono/physics/ChSystemNSC.h"
 
 #include "chrono_irrlicht/ChVisualSystemIrrlicht.h"
 
 // Use the namespaces of Chrono
 using namespace chrono;
-using namespace chrono::geometry;
 using namespace chrono::irrlicht;
 
 int main(int argc, char* argv[]) {
-    GetLog() << "Copyright (c) 2017 projectchrono.org\nChrono version: " << CHRONO_VERSION << "\n\n";
+    std::cout << "Copyright (c) 2017 projectchrono.org\nChrono version: " << CHRONO_VERSION << std::endl;
 
     // Create a Chrono physical system
     ChSystemNSC sys;
     sys.SetCollisionSystemType(ChCollisionSystem::Type::BULLET);
 
     // Contact material (shared among all collision shapes)
-    auto mat = chrono_types::make_shared<ChMaterialSurfaceNSC>();
+    auto mat = chrono_types::make_shared<ChContactMaterialNSC>();
 
     // EXAMPLE 1:
 
     // Create the truss:
     auto mfloor = chrono_types::make_shared<ChBody>();
-    mfloor->SetBodyFixed(true);
+    mfloor->SetFixed(true);
     sys.Add(mfloor);
 
     // Create a ChBody that contains a 2D convex collision shape:
 
     auto mcoin = chrono_types::make_shared<ChBody>();
-    mcoin->SetPos(ChVector<>(5.5, 1, 0));
+    mcoin->SetPos(ChVector3d(5.5, 1, 0));
     sys.Add(mcoin);
 
     // Create a ChLinePath geometry, and insert sub-paths in clockwise order.
     // Note that the end of one segment must match the beginning of the other.
     // For arcs, the beginning corresponds to angle1, the second to angle2.
     auto mpathcoin = chrono_types::make_shared<ChLinePath>();
-    ChLineArc marcol1(ChCoordsys<>(ChVector<>(0, 0, 0)), 0.5, 0, CH_C_PI);
-    ChLineSegment msegcol1(ChVector<>(-0.5, 0, 0), ChVector<>(0.5, 0, 0));
+    ChLineArc marcol1(ChCoordsys<>(ChVector3d(0, 0, 0)), 0.5, 0, CH_PI);
+    ChLineSegment msegcol1(ChVector3d(-0.5, 0, 0), ChVector3d(0.5, 0, 0));
     mpathcoin->AddSubLine(marcol1);
     mpathcoin->AddSubLine(msegcol1);
 
     // Add the collision shape to the body
-    mcoin->SetCollide(true);
+    mcoin->EnableCollision(true);
     auto coin_coll = chrono_types::make_shared<ChCollisionShapePath2D>(mat, mpathcoin);
     mcoin->AddCollisionShape(coin_coll, ChFrame<>());
     mcoin->GetCollisionModel()->SetSafeMargin(0.1f);
@@ -74,8 +73,8 @@ int main(int argc, char* argv[]) {
     // Create a ChBody that contains a 2D concave collision shape:
 
     auto mhole = chrono_types::make_shared<ChBody>();
-    mhole->SetPos(ChVector<>(4, 0, 0));
-    mhole->SetBodyFixed(true);
+    mhole->SetPos(ChVector3d(4, 0, 0));
+    mhole->SetFixed(true);
     sys.Add(mhole);
 
     // Create a ChLinePath geometry, and insert sub-paths in clockwise order.
@@ -84,18 +83,17 @@ int main(int argc, char* argv[]) {
     // means 'concave' because for 2d shapes, the 'solid' part of the shape is always ON THE RIGHT
     // side of the curvilinear abscyssa.
     auto mpathhole = chrono_types::make_shared<ChLinePath>();
-    ChLineArc marcol2(ChCoordsys<>(ChVector<>(0, 0, 0)), 1, -CH_C_PI, 0, true);  // true = ccw arc = concave
-    ChLineSegment msegcol2(ChVector<>(1, 0, 0), ChVector<>(2, 0.04, 0));
+    ChLineArc marcol2(ChCoordsys<>(ChVector3d(0, 0, 0)), 1, -CH_PI, 0, true);  // true = ccw arc = concave
+    ChLineSegment msegcol2(ChVector3d(1, 0, 0), ChVector3d(2, 0.04, 0));
     mpathhole->AddSubLine(marcol2);
     mpathhole->AddSubLine(msegcol2);
-    mpathhole->Set_closed(false);
+    mpathhole->SetClosed(false);
 
     // Add the collision shape to the body
-    mhole->SetCollide(true);
+    mhole->EnableCollision(true);
     auto hole_coll = chrono_types::make_shared<ChCollisionShapePath2D>(mat, mpathhole);
     mhole->AddCollisionShape(hole_coll, ChFrame<>());
     mhole->GetCollisionModel()->SetSafeMargin(0.1f);
-
 
     // Create a ChVisualShapeLine, a visualization asset for lines.
     auto mholeasset = chrono_types::make_shared<ChVisualShapeLine>();
@@ -110,17 +108,17 @@ int main(int argc, char* argv[]) {
     double Ri = 0.5;
     double wi = 0.1;
     double Li = 0.8;
-    ChVector<> geneva_center(-0, 0, 0);
+    ChVector3d geneva_center(-0, 0, 0);
     // compute aux data:
-    double beta = (CH_C_2PI / (double)nstations);  // angle width of station
-    double gamma = 2 * (CH_C_PI_2 - beta / 2);
+    double beta = (CH_2PI / (double)nstations);  // angle width of station
+    double gamma = 2 * (CH_PI_2 - beta / 2);
     double B = R * tan(beta / 2);
-    ChVector<> crank_center = ChVector<>(B, R, 0) + geneva_center;
+    ChVector3d crank_center = ChVector3d(B, R, 0) + geneva_center;
 
     // Create the rotating Genevawheel:
     auto mgenevawheel = chrono_types::make_shared<ChBody>();
     mgenevawheel->SetPos(geneva_center);
-    mgenevawheel->SetWvel_loc(ChVector<>(0, 0, -0.08));
+    mgenevawheel->SetAngVelLocal(ChVector3d(0, 0, -0.08));
     sys.Add(mgenevawheel);
 
     // Create a ChLinePath geometry that represents the 2D shape of the Geneva wheel.
@@ -130,13 +128,13 @@ int main(int argc, char* argv[]) {
 
     for (int i = 0; i < nstations; ++i) {
         double alpha = -i * beta;  // phase of current station
-        ChVector<> p1(-B + Ri, R, 0);
-        ChVector<> p2(-wi / 2, R, 0);
-        ChVector<> p3(-wi / 2, R - Li, 0);
-        ChVector<> p4(wi / 2, R - Li, 0);
-        ChVector<> p5(wi / 2, R, 0);
-        ChVector<> p6(B - Ri, R, 0);
-        ChVector<> p7(B, R, 0);
+        ChVector3d p1(-B + Ri, R, 0);
+        ChVector3d p2(-wi / 2, R, 0);
+        ChVector3d p3(-wi / 2, R - Li, 0);
+        ChVector3d p4(wi / 2, R - Li, 0);
+        ChVector3d p5(wi / 2, R, 0);
+        ChVector3d p6(B - Ri, R, 0);
+        ChVector3d p7(B, R, 0);
         ChMatrix33<> mm(alpha, VECT_Z);
         p1 = mm * p1;
         p2 = mm * p2;
@@ -155,14 +153,14 @@ int main(int argc, char* argv[]) {
         mpathwheel->AddSubLine(mseg3);
         mpathwheel->AddSubLine(mseg4);
         mpathwheel->AddSubLine(mseg5);
-        double a1 = alpha + CH_C_PI;
-        double a2 = alpha + CH_C_PI + gamma;
+        double a1 = alpha + CH_PI;
+        double a2 = alpha + CH_PI + gamma;
         ChLineArc marc0(ChCoordsys<>(p7), Ri, a1, a2, true);  // ccw arc bacause concave
         mpathwheel->AddSubLine(marc0);
     }
 
     // Add the collision shape to the body
-    mgenevawheel->SetCollide(true);
+    mgenevawheel->EnableCollision(true);
     auto genevawheel_coll = chrono_types::make_shared<ChCollisionShapePath2D>(mat, mpathwheel);
     mgenevawheel->AddCollisionShape(genevawheel_coll, ChFrame<>());
     mgenevawheel->GetCollisionModel()->SetSafeMargin(0.02f);
@@ -174,7 +172,7 @@ int main(int argc, char* argv[]) {
 
     // Revolute constraint
     auto mrevolute = chrono_types::make_shared<ChLinkLockRevolute>();
-    mrevolute->Initialize(mgenevawheel, mfloor, ChCoordsys<>(geneva_center));
+    mrevolute->Initialize(mgenevawheel, mfloor, ChFrame<>(geneva_center));
     sys.Add(mrevolute);
 
     // Create the crank:
@@ -185,19 +183,19 @@ int main(int argc, char* argv[]) {
 
     // Create a ChLinePath geometry, and insert sub-paths in clockwise order:
     auto mpathcrankpin = chrono_types::make_shared<ChLinePath>();
-    ChLineArc mpin(ChCoordsys<>(ChVector<>(-B, 0, 0)), wi / 2 - 0.005, CH_C_2PI, 0);
+    ChLineArc mpin(ChCoordsys<>(ChVector3d(-B, 0, 0)), wi / 2 - 0.005, CH_2PI, 0);
     mpathcrankpin->AddSubLine(mpin);
 
     auto mpathcrankstopper = chrono_types::make_shared<ChLinePath>();
-    ChLineArc mstopperarc(ChCoordsys<>(ChVector<>(0, 0, 0)), Ri - 0.005, CH_C_PI - gamma / 2, -CH_C_PI + gamma / 2);
-    ChLineSegment mstopperve1(mstopperarc.GetEndB(), ChVector<>(0, 0, 0));
-    ChLineSegment mstopperve2(ChVector<>(0, 0, 0), mstopperarc.GetEndA());
+    ChLineArc mstopperarc(ChCoordsys<>(ChVector3d(0, 0, 0)), Ri - 0.005, CH_PI - gamma / 2, -CH_PI + gamma / 2);
+    ChLineSegment mstopperve1(mstopperarc.GetEndB(), ChVector3d(0, 0, 0));
+    ChLineSegment mstopperve2(ChVector3d(0, 0, 0), mstopperarc.GetEndA());
     mpathcrankstopper->AddSubLine(mstopperarc);
     mpathcrankstopper->AddSubLine(mstopperve1);
     mpathcrankstopper->AddSubLine(mstopperve2);
 
     // Add the collision shape to the body
-    mcrank->SetCollide(true);
+    mcrank->EnableCollision(true);
     auto crankpin_coll = chrono_types::make_shared<ChCollisionShapePath2D>(mat, mpathcrankpin);
     auto crankstopper_coll = chrono_types::make_shared<ChCollisionShapePath2D>(mat, mpathcrankstopper);
     mcrank->AddCollisionShape(crankpin_coll, ChFrame<>());
@@ -216,7 +214,7 @@ int main(int argc, char* argv[]) {
     // .. a motor between crank and truss
     auto my_motor = chrono_types::make_shared<ChLinkMotorRotationSpeed>();
     my_motor->Initialize(mcrank, mfloor, ChFrame<>(crank_center));
-    my_motor->SetSpeedFunction(chrono_types::make_shared<ChFunction_Const>(CH_C_PI / 8.0));
+    my_motor->SetSpeedFunction(chrono_types::make_shared<ChFunctionConst>(CH_PI / 8.0));
     sys.AddLink(my_motor);
 
     // Create the Irrlicht visualization system
@@ -227,7 +225,7 @@ int main(int argc, char* argv[]) {
     vis->Initialize();
     vis->AddLogo();
     vis->AddSkyBox();
-    vis->AddCamera(ChVector<>(0, 4, -6));
+    vis->AddCamera(ChVector3d(0, 4, -6));
     vis->AddTypicalLights();
 
     // This means that contactforces will be shown in Irrlicht application

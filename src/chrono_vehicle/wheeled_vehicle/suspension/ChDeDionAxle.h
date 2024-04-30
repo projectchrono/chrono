@@ -90,7 +90,7 @@ class CH_VEHICLE_API ChDeDionAxle : public ChSuspension {
         std::shared_ptr<ChChassis> chassis,        ///< [in] associated chassis subsystem
         std::shared_ptr<ChSubchassis> subchassis,  ///< [in] associated subchassis subsystem (may be null)
         std::shared_ptr<ChSteering> steering,      ///< [in] associated steering subsystem (may be null)
-        const ChVector<>& location,                ///< [in] location relative to the chassis frame
+        const ChVector3d& location,                ///< [in] location relative to the chassis frame
         double left_ang_vel = 0,                   ///< [in] initial angular velocity of left wheel
         double right_ang_vel = 0                   ///< [in] initial angular velocity of right wheel
         ) override;
@@ -135,9 +135,9 @@ class CH_VEHICLE_API ChDeDionAxle : public ChSuspension {
     /// Log current constraint violations.
     virtual void LogConstraintViolations(VehicleSide side) override;
 
-    void LogHardpointLocations(const ChVector<>& ref, bool inches = false);
+    void LogHardpointLocations(const ChVector3d& ref, bool inches = false);
 
-    const ChVector<> GetConnectorLocation(VehicleSide side);
+    const ChVector3d GetConnectorLocation(VehicleSide side);
     const std::shared_ptr<ChBody> GetConnectorBody() { return m_axleTube; }
 
   protected:
@@ -162,7 +162,7 @@ class CH_VEHICLE_API ChDeDionAxle : public ChSuspension {
 
     /// Return the location of the specified hardpoint.
     /// The returned location must be expressed in the suspension reference frame.
-    virtual const ChVector<> getLocation(PointId which) = 0;
+    virtual const ChVector3d getLocation(PointId which) = 0;
 
     /// Return the camber angle, in radians (default: 0).
     virtual double getCamberAngle() const { return 0; }
@@ -172,7 +172,7 @@ class CH_VEHICLE_API ChDeDionAxle : public ChSuspension {
     virtual double getToeAngle() const { return 0; }
 
     /// Return the center of mass of the axle tube.
-    virtual const ChVector<> getAxleTubeCOM() const = 0;
+    virtual const ChVector3d getAxleTubeCOM() const = 0;
 
     /// Return the mass of the axle tube body.
     virtual double getAxleTubeMass() const = 0;
@@ -189,13 +189,13 @@ class CH_VEHICLE_API ChDeDionAxle : public ChSuspension {
     virtual double getWattLinkRadius() const = 0;
 
     /// Return the moments of inertia of the axle tube body.
-    virtual const ChVector<>& getAxleTubeInertia() const = 0;
+    virtual const ChVector3d& getAxleTubeInertia() const = 0;
     /// Return the moments of inertia of the spindle body.
-    virtual const ChVector<>& getSpindleInertia() const = 0;
+    virtual const ChVector3d& getSpindleInertia() const = 0;
     /// Return the moments of inertia of the Watt center body.
-    virtual const ChVector<>& getWattCenterInertia() const = 0;
+    virtual const ChVector3d& getWattCenterInertia() const = 0;
     /// Return the moments of inertia of the Watt side bodies (same value for both sides).
-    virtual const ChVector<>& getWattSideInertia() const = 0;
+    virtual const ChVector3d& getWattSideInertia() const = 0;
 
     /// Return the inertia of the axle shaft.
     virtual double getAxleInertia() const = 0;
@@ -226,36 +226,36 @@ class CH_VEHICLE_API ChDeDionAxle : public ChSuspension {
 
   private:
     // Hardpoint absolute locations
-    std::vector<ChVector<>> m_pointsL;
-    std::vector<ChVector<>> m_pointsR;
+    std::vector<ChVector3d> m_pointsL;
+    std::vector<ChVector3d> m_pointsR;
 
     // Points for axle tube visualization
-    ChVector<> m_axleOuterL;
-    ChVector<> m_axleOuterR;
-    ChVector<> m_axleCenter;
-    ChVector<> m_axleChassis;
-    ChVector<> m_stabiConnectorL;
-    ChVector<> m_stabiConnectorR;
+    ChVector3d m_axleOuterL;
+    ChVector3d m_axleOuterR;
+    ChVector3d m_axleCenter;
+    ChVector3d m_axleChassis;
+    ChVector3d m_stabiConnectorL;
+    ChVector3d m_stabiConnectorR;
 
     // Points for tierod visualization
-    ChVector<> m_tierodOuterL;
-    ChVector<> m_tierodOuterR;
+    ChVector3d m_tierodOuterL;
+    ChVector3d m_tierodOuterR;
 
     // Points for watt mechanism visualization
-    ChVector<> m_wattOuterL;
-    ChVector<> m_wattOuterR;
-    ChVector<> m_wattLower;
-    ChVector<> m_wattUpper;
+    ChVector3d m_wattOuterL;
+    ChVector3d m_wattOuterR;
+    ChVector3d m_wattLower;
+    ChVector3d m_wattUpper;
 
     void InitializeSide(VehicleSide side,
                         std::shared_ptr<ChBodyAuxRef> chassis,
                         std::shared_ptr<ChBody> scbeam,
-                        const std::vector<ChVector<>>& points,
+                        const std::vector<ChVector3d>& points,
                         double ang_vel);
 
     static void AddVisualizationLink(std::shared_ptr<ChBody> body,
-                                     const ChVector<> pt_1,
-                                     const ChVector<> pt_2,
+                                     const ChVector3d pt_1,
+                                     const ChVector3d pt_2,
                                      double radius,
                                      const ChColor& color);
 

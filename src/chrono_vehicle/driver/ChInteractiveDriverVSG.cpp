@@ -17,6 +17,8 @@
 // inputs.
 // =============================================================================
 
+#include "chrono/utils/ChUtils.h"
+
 #include "chrono_vehicle/driver/ChInteractiveDriverVSG.h"
 
 namespace chrono {

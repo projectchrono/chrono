@@ -13,7 +13,6 @@
 // =============================================================================
 
 #include "chrono/solver/ChSolverBB.h"
-#include "chrono/core/ChMathematics.h"
 
 namespace chrono {
 
@@ -23,12 +22,13 @@ CH_FACTORY_REGISTER(ChSolverBB)
 ChSolverBB::ChSolverBB() : n_armijo(10), max_armijo_backtrace(3), lastgoodres(1e30) {}
 
 double ChSolverBB::Solve(ChSystemDescriptor& sysd) {
-    std::vector<ChConstraint*>& mconstraints = sysd.GetConstraintsList();
-    std::vector<ChVariables*>& mvariables = sysd.GetVariablesList();
+    std::vector<ChConstraint*>& mconstraints = sysd.GetConstraints();
+    std::vector<ChVariables*>& mvariables = sysd.GetVariables();
 
-    if (sysd.GetKblocksList().size() > 0) {
-        std::cerr << "\n\nChSolverBB: Can NOT use Barzilai-Borwein solver if there are stiffness matrices.\n" << std::endl;
-        throw ChException("ChSolverBB: Do NOT use Barzilai-Borwein solver if there are stiffness matrices.");
+    if (sysd.GetKRMBlocks().size() > 0) {
+        std::cerr << "\n\nChSolverBB: Can NOT use Barzilai-Borwein solver if there are stiffness matrices."
+                  << std::endl;
+        throw std::runtime_error("ChSolverBB: Do NOT use Barzilai-Borwein solver if there are stiffness matrices.");
     }
 
     // Tuning of the spectral gradient search
@@ -51,7 +51,7 @@ double ChSolverBB::Solve(ChSystemDescriptor& sysd) {
 
     int nc = sysd.CountActiveConstraints();
     if (verbose)
-        GetLog() << "\n-----Barzilai-Borwein, solving nc=" << nc << "unknowns \n";
+        std::cout << "\n-----Barzilai-Borwein, solving nc=" << nc << "unknowns" << std::endl;
 
     ChVectorDynamic<> ml(nc);
     ChVectorDynamic<> ml_candidate(nc);
@@ -76,14 +76,14 @@ double ChSolverBB::Solve(ChSystemDescriptor& sysd) {
     int j_friction_comp = 0;
     double gi_values[3];
     for (unsigned int ic = 0; ic < mconstraints.size(); ic++) {
-        if (mconstraints[ic]->GetMode() == CONSTRAINT_FRIC) {
-            gi_values[j_friction_comp] = mconstraints[ic]->Get_g_i();
+        if (mconstraints[ic]->GetMode() == ChConstraint::Mode::FRICTION) {
+            gi_values[j_friction_comp] = mconstraints[ic]->GetSchurComplement();
             j_friction_comp++;
             if (j_friction_comp == 3) {
                 double average_g_i = (gi_values[0] + gi_values[1] + gi_values[2]) / 3.0;
-                mconstraints[ic - 2]->Set_g_i(average_g_i);
-                mconstraints[ic - 1]->Set_g_i(average_g_i);
-                mconstraints[ic - 0]->Set_g_i(average_g_i);
+                mconstraints[ic - 2]->SetSchurComplement(average_g_i);
+                mconstraints[ic - 1]->SetSchurComplement(average_g_i);
+                mconstraints[ic - 0]->SetSchurComplement(average_g_i);
                 j_friction_comp = 0;
             }
         }
@@ -93,34 +93,34 @@ double ChSolverBB::Solve(ChSystemDescriptor& sysd) {
     int d_i = 0;
     for (unsigned int ic = 0; ic < mconstraints.size(); ic++)
         if (mconstraints[ic]->IsActive()) {
-            mD(d_i, 0) = mconstraints[ic]->Get_g_i();
+            mD(d_i, 0) = mconstraints[ic]->GetSchurComplement();
             ++d_i;
         }
 
-    // ***TO DO*** move the following thirty lines in a short function ChSystemDescriptor::ShurBvectorCompute() ?
+    // ***TO DO*** move the following thirty lines in a short function ChSystemDescriptor::SchurBvectorCompute() ?
 
-    // Compute the b_shur vector in the Shur complement equation N*l = b_shur
+    // Compute the b_schur vector in the Schur complement equation N*l = b_schur
     // with
-    //   N_shur  = D'* (M^-1) * D
-    //   b_shur  = - c + D'*(M^-1)*k = b_i + D'*(M^-1)*k
-    // but flipping the sign of lambdas,  b_shur = - b_i - D'*(M^-1)*k
+    //   N_schur  = D'* (M^-1) * D
+    //   b_schur  = - c + D'*(M^-1)*k = b_i + D'*(M^-1)*k
+    // but flipping the sign of lambdas,  b_schur = - b_i - D'*(M^-1)*k
     // Do this in three steps:
 
     // Put (M^-1)*k    in  q  sparse vector of each variable..
     for (unsigned int iv = 0; iv < mvariables.size(); iv++)
         if (mvariables[iv]->IsActive())
-            mvariables[iv]->Compute_invMb_v(mvariables[iv]->Get_qb(), mvariables[iv]->Get_fb());  // q = [M]'*fb
+            mvariables[iv]->ComputeMassInverseTimesVector(mvariables[iv]->State(), mvariables[iv]->Force());  // q = [M]'*fb
 
-    // ...and now do  b_shur = - D'*q = - D'*(M^-1)*k ..
+    // ...and now do  b_schur = - D'*q = - D'*(M^-1)*k ..
     mb.setZero();
     int s_i = 0;
     for (unsigned int ic = 0; ic < mconstraints.size(); ic++)
         if (mconstraints[ic]->IsActive()) {
-            mb(s_i, 0) = -mconstraints[ic]->Compute_Cq_q();
+            mb(s_i, 0) = -mconstraints[ic]->ComputeJacobianTimesState();
             ++s_i;
         }
 
-    // ..and finally do   b_shur = b_shur - c
+    // ..and finally do   b_schur = b_schur - c
     sysd.BuildBiVector(mb_tmp);  // b_i   =   -c   = phi/h
     mb -= mb_tmp;
 
@@ -144,8 +144,8 @@ double ChSolverBB::Solve(ChSystemDescriptor& sysd) {
 
     // g = gradient of 0.5*l'*N*l-l'*b
     // g = N*l-b
-    sysd.ShurComplementProduct(mg, ml);  // 1)  g = N * l
-    mg -= mb;                            // 2)  g = N * l - b_shur
+    sysd.SchurComplementProduct(mg, ml);  // 1)  g = N * l
+    mg -= mb;                             // 2)  g = N * l - b_schur
 
     mg_p = mg;
 
@@ -191,7 +191,7 @@ double ChSolverBB::Solve(ChSystemDescriptor& sysd) {
             ml_p = ml + lambda * mdir;
 
             // m_tmp = Nl_p = N*l_p;
-            sysd.ShurComplementProduct(mb_tmp, ml_p);
+            sysd.SchurComplementProduct(mb_tmp, ml_p);
 
             // g_p = N * l_p - b  = Nl_p - b
             mg_p = mb_tmp - mb;
@@ -202,7 +202,7 @@ double ChSolverBB::Solve(ChSystemDescriptor& sysd) {
             f_hist.push_back(mf_p);
 
             double max_compare = 10e29;
-            for (int h = 1; h <= ChMin(iter, this->n_armijo); h++) {
+            for (int h = 1; h <= std::min(iter, this->n_armijo); h++) {
                 double compare = f_hist[iter - h] + gamma * lambda * dTg;
                 if (compare > max_compare)
                     max_compare = compare;
@@ -213,9 +213,9 @@ double ChSolverBB::Solve(ChSystemDescriptor& sysd) {
                 if (iter > 0)
                     mf = f_hist[iter - 1];
                 double lambdanew = -lambda * lambda * dTg / (2 * (mf_p - mf - lambda * dTg));
-                lambda = ChMax(sigma_min * lambda, ChMin(sigma_max * lambda, lambdanew));
+                lambda = std::max(sigma_min * lambda, std::min(sigma_max * lambda, lambdanew));
                 if (verbose)
-                    GetLog() << " Repeat Armijo, new lambda=" << lambda << "\n";
+                    std::cout << " Repeat Armijo, new lambda=" << lambda << std::endl;
             } else {
                 armijo_repeat = false;
             }
@@ -241,7 +241,7 @@ double ChSolverBB::Solve(ChSystemDescriptor& sysd) {
                 alpha = neg_BB1_fallback;
             } else {
                 double alph = sDs / sy;  // (s,Ds)/(s,y)   BB1
-                alpha = ChMin(a_max, ChMax(a_min, alph));
+                alpha = std::min(a_max, std::max(a_min, alph));
             }
         }
 
@@ -261,7 +261,7 @@ double ChSolverBB::Solve(ChSystemDescriptor& sysd) {
             else
             {
                 double alph = ss / sDy;  // (s,s)/(s,Di*y)   BB1 (modified version)
-                alpha = ChMin (a_max, ChMax(a_min, alph));
+                alpha = std::min (a_max, std::max(a_min, alph));
             }
         }
         */
@@ -277,7 +277,7 @@ double ChSolverBB::Solve(ChSystemDescriptor& sysd) {
                 alpha = neg_BB2_fallback;
             } else {
                 double alph = sy / yDy;  // (s,y)/(y,Di*y)   BB2
-                alpha = ChMin(a_max, ChMax(a_min, alph));
+                alpha = std::min(a_max, std::max(a_min, alph));
             }
         }
 
@@ -306,7 +306,8 @@ double ChSolverBB::Solve(ChSystemDescriptor& sysd) {
             AtIterationEnd(maxd, maxdeltalambda, iter);
 
         if (verbose)
-            GetLog() << "  iter=" << iter << "   f=" << mf_p << "  |d|=" << maxd << "  |s|=" << maxdeltalambda << "\n";
+            std::cout << "  iter=" << iter << "   f=" << mf_p << "  |d|=" << maxd << "  |s|=" << maxdeltalambda
+                      << std::endl;
 
         m_iterations++;
 
@@ -315,7 +316,7 @@ double ChSolverBB::Solve(ChSystemDescriptor& sysd) {
         /*
         if (maxd < m_tolerance)
         {
-            GetLog() <<"BB premature proj.gradient break at i=" << iter << "\n";
+            std::cout <<"BB premature proj.gradient break at i=" << iter << std::endl;
             break;
         }
         */
@@ -337,11 +338,11 @@ double ChSolverBB::Solve(ChSystemDescriptor& sysd) {
     // ... + (M^-1)*D*l     (this increment and also stores 'qb' in the ChVariable items)
     for (unsigned int ic = 0; ic < mconstraints.size(); ic++) {
         if (mconstraints[ic]->IsActive())
-            mconstraints[ic]->Increment_q(mconstraints[ic]->Get_l_i());
+            mconstraints[ic]->IncrementState(mconstraints[ic]->GetLagrangeMultiplier());
     }
 
     if (verbose)
-        GetLog() << "-----\n";
+        std::cout << "-----" << std::endl;
 
     return lastgoodres;
 }
@@ -349,26 +350,26 @@ double ChSolverBB::Solve(ChSystemDescriptor& sysd) {
 //////////////////////////////////////////////////////////////////////////////
 //////////////////////////////////////////////////////////////////////////////
 
-void ChSolverBB::ArchiveOut(ChArchiveOut& marchive) {
+void ChSolverBB::ArchiveOut(ChArchiveOut& archive_out) {
     // version number
-    marchive.VersionWrite<ChSolverBB>();
+    archive_out.VersionWrite<ChSolverBB>();
     // serialize parent class
-    ChIterativeSolverVI::ArchiveOut(marchive);
+    ChIterativeSolverVI::ArchiveOut(archive_out);
     // serialize all member data:
-    marchive << CHNVP(n_armijo);
-    marchive << CHNVP(max_armijo_backtrace);
-    marchive << CHNVP(m_use_precond);
+    archive_out << CHNVP(n_armijo);
+    archive_out << CHNVP(max_armijo_backtrace);
+    archive_out << CHNVP(m_use_precond);
 }
 
-void ChSolverBB::ArchiveIn(ChArchiveIn& marchive) {
+void ChSolverBB::ArchiveIn(ChArchiveIn& archive_in) {
     // version number
-    /*int version =*/ marchive.VersionRead<ChSolverBB>();
+    /*int version =*/archive_in.VersionRead<ChSolverBB>();
     // deserialize parent class
-    ChIterativeSolverVI::ArchiveIn(marchive);
+    ChIterativeSolverVI::ArchiveIn(archive_in);
     // stream in all member data:
-    marchive >> CHNVP(n_armijo);
-    marchive >> CHNVP(max_armijo_backtrace);
-    marchive >> CHNVP(m_use_precond);
+    archive_in >> CHNVP(n_armijo);
+    archive_in >> CHNVP(max_armijo_backtrace);
+    archive_in >> CHNVP(m_use_precond);
 }
 
 }  // end namespace chrono

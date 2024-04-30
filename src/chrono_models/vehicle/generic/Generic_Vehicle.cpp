@@ -154,6 +154,8 @@ void Generic_Vehicle::ConstructVehicle(bool fixed, bool use_tirerod_bodies, bool
         case SteeringTypeWV::RACK_PINION:
             m_steerings[0] = chrono_types::make_shared<Generic_RackPinion>("Steering");
             break;
+        default:
+            break;
     }
 
     // Create the driveline
@@ -167,6 +169,8 @@ void Generic_Vehicle::ConstructVehicle(bool fixed, bool use_tirerod_bodies, bool
             break;
         case DrivelineTypeWV::SIMPLE:
             m_driveline = chrono_types::make_shared<Generic_SimpleDriveline>("Driveline");
+            break;
+        default:
             break;
     }
 }
@@ -209,8 +213,8 @@ std::shared_ptr<ChSuspension> Generic_Vehicle::ConstructSuspension(const std::st
     }
 
     if (front && !suspension->IsSteerable()) {
-        std::cout << "Non-steerable front suspension." << std::endl;
-        throw ChException("Non-steerable front suspension");
+        std::cerr << "Non-steerable front suspension." << std::endl;
+        throw std::invalid_argument("Non-steerable front suspension");
     }
 
     return suspension;
@@ -224,25 +228,25 @@ void Generic_Vehicle::Initialize(const ChCoordsys<>& chassisPos, double chassisF
 
     // Initialize the steering subsystem
     // (specify the steering subsystem's frame relative to the chassis reference frame).
-    ChVector<> offset;
+    ChVector3d offset;
     switch (m_suspension_type_front) {
         case SuspensionTypeWV::DOUBLE_WISHBONE:
-            offset = ChVector<>(1.24498, 0, 0.101322);
+            offset = ChVector3d(1.24498, 0, 0.101322);
             break;
         case SuspensionTypeWV::DOUBLE_WISHBONE_REDUCED:
-            offset = ChVector<>(1.24498, 0, 0.101322);
+            offset = ChVector3d(1.24498, 0, 0.101322);
             break;
         case SuspensionTypeWV::SOLID_AXLE:
-            offset = ChVector<>(2.1, 0, -0.02);
+            offset = ChVector3d(2.1, 0, -0.02);
             break;
         case SuspensionTypeWV::MULTI_LINK:
-            offset = ChVector<>(1.25, 0, 0.01);
+            offset = ChVector3d(1.25, 0, 0.01);
             break;
         case SuspensionTypeWV::HENDRICKSON_PRIMAXX:
-            offset = ChVector<>(1.25, 0, -0.21);
+            offset = ChVector3d(1.25, 0, -0.21);
             break;
         case SuspensionTypeWV::MACPHERSON_STRUT:
-            offset = ChVector<>(1.25, 0, 0.03);
+            offset = ChVector3d(1.25, 0, 0.03);
             break;
         default:
             break;
@@ -250,9 +254,9 @@ void Generic_Vehicle::Initialize(const ChCoordsys<>& chassisPos, double chassisF
     m_steerings[0]->Initialize(m_chassis, offset, ChQuaternion<>(1, 0, 0, 0));
 
     // Initialize the axle subsystems
-    m_axles[0]->Initialize(m_chassis, nullptr, m_steerings[0], ChVector<>(1.688965, 0, 0), ChVector<>(1.3, 0, 0.0),
+    m_axles[0]->Initialize(m_chassis, nullptr, m_steerings[0], ChVector3d(1.688965, 0, 0), ChVector3d(1.3, 0, 0.0),
                            0.0);
-    m_axles[1]->Initialize(m_chassis, nullptr, nullptr, ChVector<>(-1.688965, 0, 0), ChVector<>(1.3, 0, 0.0), 0.0);
+    m_axles[1]->Initialize(m_chassis, nullptr, nullptr, ChVector3d(-1.688965, 0, 0), ChVector3d(1.3, 0, 0.0), 0.0);
 
     // Initialize the driveline subsystem
     std::vector<int> driven_susp_indexes(m_driveline->GetNumDrivenAxles());
@@ -283,18 +287,16 @@ void Generic_Vehicle::Initialize(const ChCoordsys<>& chassisPos, double chassisF
 // Log constraint violations of suspension joints.
 // -----------------------------------------------------------------------------
 void Generic_Vehicle::DebugLog(int what) {
-    GetLog().SetNumFormat("%10.3f");
-
     if (what & OUT_SPRINGS || what & OUT_SHOCKS) {
-        GetLog() << "\n---- Spring and Shock information\n\n";
+        std::cout << "\n---- Spring and Shock information\n\n";
         for (int axle = 0; axle < 2; axle++) {
             std::string axlePosition = (axle == 0) ? "Front" : "Rear ";
             for (int side = LEFT; side <= RIGHT; side++) {
                 for (auto& forceTSDA :
                      m_axles[axle]->m_suspension->ReportSuspensionForce(static_cast<VehicleSide>(side))) {
-                    GetLog() << axlePosition << " " << (side == LEFT ? "Left " : "Right") << " ";
-                    GetLog() << forceTSDA.name << std::string(10 - std::max(0, (int)forceTSDA.name.size()), ' ')
-                             << " Length: " << forceTSDA.length << " m, Force: " << forceTSDA.force << " N\n";
+                    std::cout << axlePosition << " " << (side == LEFT ? "Left " : "Right") << " ";
+                    std::cout << forceTSDA.name << std::string(10 - std::max(0, (int)forceTSDA.name.size()), ' ')
+                              << " Length: " << forceTSDA.length << " m, Force: " << forceTSDA.force << " N\n";
                 }
             }
         }
@@ -304,8 +306,6 @@ void Generic_Vehicle::DebugLog(int what) {
         // Report constraint violations for all joints
         LogConstraintViolations();
     }
-
-    GetLog().SetNumFormat("%g");
 }
 
 // -----------------------------------------------------------------------------
@@ -385,7 +385,7 @@ void Generic_Vehicle::CreateAndInitializeTires(TireModelType tire_type, Visualiz
         }
 
         default:
-            GetLog() << "Unsupported Tire Model Type! Switching to PAC02.\n";
+            std::cout << "Unsupported Tire Model Type! Switching to PAC02.\n";
         case TireModelType::PAC02: {
             auto tire_FL = chrono_types::make_shared<Generic_Pac02Tire>("FL");
             auto tire_FR = chrono_types::make_shared<Generic_Pac02Tire>("FR");

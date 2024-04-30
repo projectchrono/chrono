@@ -74,7 +74,7 @@ class ViperDBPDriver : public ViperDriver {
     virtual DriveMotorType GetDriveMotorType() const override { return DriveMotorType::SPEED; }
 
     virtual void Update(double time) override {
-        double driving = m_func->Get_y(time);
+        double driving = m_func->GetVal(time);
         double steering = 0;
         double lifting = 0;
         for (int i = 0; i < 4; i++) {
@@ -95,9 +95,9 @@ ChVehicleCosimViperNode::ChVehicleCosimViperNode() : ChVehicleCosimWheeledMBSNod
 
 ChVehicleCosimViperNode::~ChVehicleCosimViperNode() {}
 
-void ChVehicleCosimViperNode::InitializeMBS(const ChVector2<>& terrain_size, double terrain_height) {
+void ChVehicleCosimViperNode::InitializeMBS(const ChVector2d& terrain_size, double terrain_height) {
     // Initialize vehicle
-    ChFrame<> init_pos(m_init_loc + ChVector<>(0, 0, terrain_height), Q_from_AngZ(m_init_yaw));
+    ChFrame<> init_pos(m_init_loc + ChVector3d(0, 0, terrain_height), QuatFromAngleZ(m_init_yaw));
 
     m_viper->SetDriver(m_driver);
     m_viper->SetWheelVisualization(false);
@@ -131,8 +131,8 @@ void ChVehicleCosimViperNode::InitializeMBS(const ChVector2<>& terrain_size, dou
         auto vsys_vsg = chrono_types::make_shared<vsg3d::ChVisualSystemVSG>();
         vsys_vsg->AttachSystem(m_system);
         vsys_vsg->SetWindowTitle("Viper Rover Node");
-        vsys_vsg->SetWindowSize(ChVector2<int>(1280, 720));
-        vsys_vsg->SetWindowPosition(ChVector2<int>(100, 300));
+        vsys_vsg->SetWindowSize(ChVector2i(1280, 720));
+        vsys_vsg->SetWindowPosition(ChVector2i(100, 300));
         vsys_vsg->AddCamera(m_cam_pos, m_cam_target);
         vsys_vsg->AddGrid(1.0, 1.0, (int)(terrain_size.x() / 1.0), (int)(terrain_size.y() / 1.0), CSYSNORM,
                           ChColor(0.1f, 0.3f, 0.1f));
@@ -157,7 +157,7 @@ void ChVehicleCosimViperNode::InitializeMBS(const ChVector2<>& terrain_size, dou
     }
 }
 
-void ChVehicleCosimViperNode::ApplyTireInfo(const std::vector<ChVector<>>& tire_info) {
+void ChVehicleCosimViperNode::ApplyTireInfo(const std::vector<ChVector3d>& tire_info) {
     //// TODO
 }
 
@@ -226,7 +226,7 @@ void ChVehicleCosimViperNode::OnOutputData(int frame) {
     if (m_outf.is_open()) {
         std::string del("  ");
 
-        const ChVector<>& pos = m_viper->GetChassis()->GetPos();
+        const ChVector3d& pos = m_viper->GetChassis()->GetPos();
 
         m_outf << m_system->GetChTime() << del;
         // Body states
@@ -242,18 +242,18 @@ void ChVehicleCosimViperNode::OnOutputData(int frame) {
     }
 
     // Create and write frame output file.
-    utils::CSV_writer csv(" ");
+    utils::ChWriterCSV csv(" ");
     csv << m_system->GetChTime() << endl;  // current time
     WriteBodyInformation(csv);             // vehicle body states
 
     std::string filename = OutputFilename(m_node_out_dir + "/simulation", "data", "dat", frame + 1, 5);
-    csv.write_to_file(filename);
+    csv.WriteToFile(filename);
 
     if (m_verbose)
         cout << "[Vehicle node] write output file ==> " << filename << endl;
 }
 
-void ChVehicleCosimViperNode::WriteBodyInformation(utils::CSV_writer& csv) {
+void ChVehicleCosimViperNode::WriteBodyInformation(utils::ChWriterCSV& csv) {
     // Write number of bodies
     csv << 1 + 4 * 4 << endl;
 

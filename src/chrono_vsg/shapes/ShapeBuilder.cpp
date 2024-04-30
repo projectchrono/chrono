@@ -101,41 +101,62 @@ vsg::ref_ptr<vsg::Group> ShapeBuilder::CreatePbrShape(ShapeType shape_type,
     vsg::ref_ptr<vsg::vec2Array> texcoords;
     vsg::ref_ptr<vsg::ushortArray> indices;
 
+    // Important:
+    // the unique texcoords cannot be used directly to allow individual scaling
+    // a copy is taken therefore
     switch (shape_type) {
         case ShapeType::BOX_SHAPE:
             vertices = m_box_data->vertices;
             normals = m_box_data->normals;
-            texcoords = m_box_data->texcoords;
+            texcoords = vsg::vec2Array::create(m_box_data->texcoords->size());
+            for (size_t i = 0; i < m_box_data->texcoords->size(); i++) {
+                texcoords->set(i, m_box_data->texcoords->at(i));
+            }
             indices = m_box_data->indices;
             break;
         case ShapeType::DIE_SHAPE:
             vertices = m_die_data->vertices;
             normals = m_die_data->normals;
-            texcoords = m_die_data->texcoords;
+            texcoords = vsg::vec2Array::create(m_die_data->texcoords->size());
+            for (size_t i = 0; i < m_die_data->texcoords->size(); i++) {
+                texcoords->set(i, m_die_data->texcoords->at(i));
+            }
             indices = m_die_data->indices;
             break;
         case ShapeType::SPHERE_SHAPE:
             vertices = m_sphere_data->vertices;
             normals = m_sphere_data->normals;
-            texcoords = m_sphere_data->texcoords;
+            texcoords = vsg::vec2Array::create(m_sphere_data->texcoords->size());
+            for (size_t i = 0; i < m_sphere_data->texcoords->size(); i++) {
+                texcoords->set(i, m_sphere_data->texcoords->at(i));
+            }
             indices = m_sphere_data->indices;
             break;
         case ShapeType::CYLINDER_SHAPE:
             vertices = m_cylinder_data->vertices;
             normals = m_cylinder_data->normals;
-            texcoords = m_cylinder_data->texcoords;
+            texcoords = vsg::vec2Array::create(m_cylinder_data->texcoords->size());
+            for (size_t i = 0; i < m_cylinder_data->texcoords->size(); i++) {
+                texcoords->set(i, m_cylinder_data->texcoords->at(i));
+            }
             indices = m_cylinder_data->indices;
             break;
         case ShapeType::CAPSULE_SHAPE:
             vertices = m_capsule_data->vertices;
             normals = m_capsule_data->normals;
-            texcoords = m_capsule_data->texcoords;
+            texcoords = vsg::vec2Array::create(m_capsule_data->texcoords->size());
+            for (size_t i = 0; i < m_capsule_data->texcoords->size(); i++) {
+                texcoords->set(i, m_capsule_data->texcoords->at(i));
+            }
             indices = m_capsule_data->indices;
             break;
         case ShapeType::CONE_SHAPE:
             vertices = m_cone_data->vertices;
             normals = m_cone_data->normals;
-            texcoords = m_cone_data->texcoords;
+            texcoords = vsg::vec2Array::create(m_cone_data->texcoords->size());
+            for (size_t i = 0; i < m_cone_data->texcoords->size(); i++) {
+                texcoords->set(i, m_cone_data->texcoords->at(i));
+            }
             indices = m_cone_data->indices;
             break;
     }
@@ -164,29 +185,29 @@ vsg::ref_ptr<vsg::Group> ShapeBuilder::CreateTrimeshColShape(std::shared_ptr<ChV
 
     const auto& mesh = tms->GetMesh();
 
-    const auto& vertices = mesh->getCoordsVertices();
-    const auto& normals = mesh->getCoordsNormals();
-    const auto& uvs = mesh->getCoordsUV();
-    const auto& colors = mesh->getCoordsColors();
+    const auto& vertices = mesh->GetCoordsVertices();
+    const auto& normals = mesh->GetCoordsNormals();
+    const auto& uvs = mesh->GetCoordsUV();
+    const auto& colors = mesh->GetCoordsColors();
 
-    const auto& v_indices = mesh->getIndicesVertexes();
-    const auto& n_indices = mesh->getIndicesNormals();
-    const auto& uv_indices = mesh->getIndicesUV();
-    const auto& c_indices = mesh->getIndicesColors();
+    const auto& v_indices = mesh->GetIndicesVertexes();
+    const auto& n_indices = mesh->GetIndicesNormals();
+    const auto& uv_indices = mesh->GetIndicesUV();
+    const auto& c_indices = mesh->GetIndicesColors();
 
     unsigned int ntriangles = (unsigned int)v_indices.size();
 
     // Set the Irrlicht vertex and index buffers for the mesh buffer
-    ChVector<> t[3];    // positions of triangle vertices
-    ChVector<> n[3];    // normals at the triangle vertices
-    ChVector2<> uv[3];  // UV coordinates at the triangle vertices
-    ChColor col[3];     // color coordinates at the triangle vertices
+    ChVector3d t[3];   // positions of triangle vertices
+    ChVector3d n[3];   // normals at the triangle vertices
+    ChVector2d uv[3];  // UV coordinates at the triangle vertices
+    ChColor col[3];    // color coordinates at the triangle vertices
 
     auto default_color = tms->GetColor();
 
-    std::vector<ChVector<>> tmp_vertices;
-    std::vector<ChVector<>> tmp_normals;
-    std::vector<ChVector2<>> tmp_texcoords;
+    std::vector<ChVector3d> tmp_vertices;
+    std::vector<ChVector3d> tmp_normals;
+    std::vector<ChVector2d> tmp_texcoords;
     std::vector<ChColor> tmp_colors;
 
     for (unsigned int itri = 0; itri < ntriangles; itri++) {
@@ -239,7 +260,7 @@ vsg::ref_ptr<vsg::Group> ShapeBuilder::CreateTrimeshColShape(std::shared_ptr<ChV
         vsg_vertices->set(k, vsg::vec3CH(tmp_vertices[k]));
         vsg_normals->set(k, vsg::vec3CH(tmp_normals[k]));
         // seems to work with v-coordinate flipped on VSG
-        vsg_texcoords->set(k, vsg::vec2(tmp_texcoords[k].x(), 1 - tmp_texcoords[k].y()));
+        vsg_texcoords->set(k, vsg::vec2(tmp_texcoords[k].x(), tmp_texcoords[k].y()));
         vsg_colors->set(k, vsg::vec4CH(tmp_colors[k]));
         vsg_indices->set(k, (unsigned int)k);
     }
@@ -281,14 +302,14 @@ vsg::ref_ptr<vsg::Group> ShapeBuilder::CreateTrimeshColAvgShape(std::shared_ptr<
 
     const auto& mesh = tms->GetMesh();
 
-    const auto& vertices = mesh->getCoordsVertices();
-    const auto& normals = mesh->getCoordsNormals();
-    const auto& uvs = mesh->getCoordsUV();
-    const auto& colors = mesh->getCoordsColors();
+    const auto& vertices = mesh->GetCoordsVertices();
+    const auto& normals = mesh->GetCoordsNormals();
+    const auto& uvs = mesh->GetCoordsUV();
+    const auto& colors = mesh->GetCoordsColors();
 
     size_t nvertices = vertices.size();
     bool normals_ok = true;
-    std::vector<ChVector<>> avg_normals;
+    std::vector<ChVector3d> avg_normals;
     if (nvertices != normals.size()) {
         avg_normals = mesh->getAverageNormals();
         normals_ok = false;
@@ -302,7 +323,7 @@ vsg::ref_ptr<vsg::Group> ShapeBuilder::CreateTrimeshColAvgShape(std::shared_ptr<
         colors_ok = false;
     }
 
-    const auto& v_indices = mesh->getIndicesVertexes();
+    const auto& v_indices = mesh->GetIndicesVertexes();
     auto default_color = tms->GetColor();
 
     // create and fill the vsg buffers
@@ -315,7 +336,7 @@ vsg::ref_ptr<vsg::Group> ShapeBuilder::CreateTrimeshColAvgShape(std::shared_ptr<
         vsg_vertices->set(k, vsg::vec3CH(vertices[k]));
         vsg_normals->set(k, normals_ok ? vsg::vec3CH(normals[k]) : vsg::vec3CH(avg_normals[k]));
         // seems to work with v-coordinate flipped on VSG (??)
-        vsg_texcoords->set(k, texcoords_ok ? vsg::vec2(uvs[k].x(), 1 - uvs[k].y()) : vsg::vec2CH({0, 0}));
+        vsg_texcoords->set(k, texcoords_ok ? vsg::vec2(uvs[k].x(), uvs[k].y()) : vsg::vec2CH({0, 0}));
         vsg_colors->set(k, colors_ok ? vsg::vec4CH(colors[k]) : vsg::vec4CH(default_color));
     }
     size_t kk = 0;
@@ -361,14 +382,14 @@ vsg::ref_ptr<vsg::Group> ShapeBuilder::CreateTrimeshPbrMatShape(std::shared_ptr<
     const auto& materials = tms->GetMaterials();
     int nmaterials = (int)materials.size();
 
-    const auto& vertices = mesh->getCoordsVertices();
-    const auto& normals = mesh->getCoordsNormals();
-    const auto& uvs = mesh->getCoordsUV();
+    const auto& vertices = mesh->GetCoordsVertices();
+    const auto& normals = mesh->GetCoordsNormals();
+    const auto& uvs = mesh->GetCoordsUV();
 
-    const auto& v_indices = mesh->getIndicesVertexes();
-    const auto& n_indices = mesh->getIndicesNormals();
-    const auto& uv_indices = mesh->getIndicesUV();
-    const auto& m_indices = mesh->getIndicesMaterials();
+    const auto& v_indices = mesh->GetIndicesVertexes();
+    const auto& n_indices = mesh->GetIndicesNormals();
+    const auto& uv_indices = mesh->GetIndicesUV();
+    const auto& m_indices = mesh->GetIndicesMaterials();
 
     size_t ntriangles_all = (unsigned int)v_indices.size();
 
@@ -393,13 +414,13 @@ vsg::ref_ptr<vsg::Group> ShapeBuilder::CreateTrimeshPbrMatShape(std::shared_ptr<
         auto chronoMat = materials[imat];
         vsg::ref_ptr<vsg::ShaderSet> shaderSet = createPbrShaderSet(m_options, chronoMat);
 
-        std::vector<ChVector<>> tmp_vertices;
-        std::vector<ChVector<>> tmp_normals;
-        std::vector<ChVector2<>> tmp_texcoords;
+        std::vector<ChVector3d> tmp_vertices;
+        std::vector<ChVector3d> tmp_normals;
+        std::vector<ChVector2d> tmp_texcoords;
         // Set the VSG vertex and index buffers for this material
-        ChVector<> t[3];    // positions of triangle vertices
-        ChVector<> n[3];    // normals at the triangle vertices
-        ChVector2<> uv[3];  // UV coordinates at the triangle vertices
+        ChVector3d t[3];   // positions of triangle vertices
+        ChVector3d n[3];   // normals at the triangle vertices
+        ChVector2d uv[3];  // UV coordinates at the triangle vertices
         for (size_t itri = 0; itri < ntriangles_all; itri++) {
             if (!m_indices.empty() && m_indices[itri] != imat)
                 continue;
@@ -546,15 +567,15 @@ vsg::ref_ptr<vsg::Group> ShapeBuilder::CreateLineShape(ChVisualModel::ShapeInsta
     scenegraph->addChild(transform);
 
     // calculate vertices
-    int numPoints = ls->GetNumRenderPoints();
+    unsigned int numPoints = ls->GetNumRenderPoints();
     double maxU = 1;
-    if (auto mline_path = std::dynamic_pointer_cast<geometry::ChLinePath>(ls->GetLineGeometry()))
+    if (auto mline_path = std::dynamic_pointer_cast<ChLinePath>(ls->GetLineGeometry()))
         maxU = mline_path->GetPathDuration();
     assert(numPoints > 2);
     double ustep = maxU / (numPoints - 1);
     auto vertices = vsg::vec3Array::create(numPoints);
     auto colors = vsg::vec3Array::create(numPoints);
-    for (int i = 0; i < numPoints; i++) {
+    for (unsigned int i = 0; i < numPoints; i++) {
         double u = i * ustep;
         auto pos = ls->GetLineGeometry()->Evaluate(u);
         vertices->set(i, vsg::vec3CH(pos));
@@ -592,13 +613,13 @@ vsg::ref_ptr<vsg::Group> ShapeBuilder::CreatePathShape(ChVisualModel::ShapeInsta
     scenegraph->addChild(transform);
 
     // calculate vertices
-    int numPoints = ps->GetNumRenderPoints();
+    unsigned int numPoints = ps->GetNumRenderPoints();
     assert(numPoints > 2);
     double maxU = ps->GetPathGeometry()->GetPathDuration();
     double ustep = maxU / (numPoints - 1);
     auto vertices = vsg::vec3Array::create(numPoints);
     auto colors = vsg::vec3Array::create(numPoints);
-    for (int i = 0; i < numPoints; i++) {
+    for (unsigned int i = 0; i < numPoints; i++) {
         double u = i * ustep;
         auto pos = ps->GetPathGeometry()->Evaluate(u);
         vertices->set(i, vsg::vec3CH(pos));
@@ -652,7 +673,7 @@ vsg::ref_ptr<vsg::Group> ShapeBuilder::CreateSpringShape(std::shared_ptr<ChLinkB
     double phase = 0.0;
     double height = 0.0;
     for (int iu = 0; iu < numPoints; iu++) {
-        phase = turns * CH_C_2PI * (double)iu / (double)numPoints;
+        phase = turns * CH_2PI * (double)iu / (double)numPoints;
         height = length * ((double)iu / (double)numPoints);
         vsg::vec3 pos;
         pos = p + vsg::vec3(cos(phase), height, sin(phase));
@@ -741,28 +762,28 @@ vsg::ref_ptr<vsg::Group> ShapeBuilder::CreateGrid(double ustep,
     auto p = pos.pos;
     auto r = pos.rot;
     double rotAngle;
-    ChVector<> rotAxis;
-    r.Q_to_AngAxis(rotAngle, rotAxis);
+    ChVector3d rotAxis;
+    r.GetAngleAxis(rotAngle, rotAxis);
     transform->matrix =
         vsg::translate(p.x(), p.y(), p.z()) * vsg::rotate(rotAngle, rotAxis.x(), rotAxis.y(), rotAxis.z());
 
     scenegraph->addChild(transform);
     // calculate vertices
-    std::vector<ChVector<>> v;
+    std::vector<ChVector3d> v;
     for (int iu = -nu / 2; iu <= nu / 2; iu++) {
-        ChVector<> V1(iu * ustep, vstep * (nv / 2), 0);
-        ChVector<> V2(iu * ustep, -vstep * (nv / 2), 0);
+        ChVector3d V1(iu * ustep, vstep * (nv / 2), 0);
+        ChVector3d V2(iu * ustep, -vstep * (nv / 2), 0);
         v.push_back(V1);
         v.push_back(V2);
-        // drawSegment(vis, pos.TransformLocalToParent(V1), pos.TransformLocalToParent(V2), col, use_Zbuffer);
+        // drawSegment(vis, pos.TransformPointLocalToParent(V1), pos.TransformPointLocalToParent(V2), col, use_Zbuffer);
     }
 
     for (int iv = -nv / 2; iv <= nv / 2; iv++) {
-        ChVector<> V1(ustep * (nu / 2), iv * vstep, 0);
-        ChVector<> V2(-ustep * (nu / 2), iv * vstep, 0);
+        ChVector3d V1(ustep * (nu / 2), iv * vstep, 0);
+        ChVector3d V2(-ustep * (nu / 2), iv * vstep, 0);
         v.push_back(V1);
         v.push_back(V2);
-        // drawSegment(vis, pos.TransformLocalToParent(V1), pos.TransformLocalToParent(V2), col, use_Zbuffer);
+        // drawSegment(vis, pos.TransformPointLocalToParent(V1), pos.TransformPointLocalToParent(V2), col, use_Zbuffer);
     }
 
     auto numPoints = v.size();
@@ -813,9 +834,9 @@ ShapeBuilder::BoxShapeData::BoxShapeData() {
                                       {1, 0, 0},  {1, 0, 0},  {1, 0, 0},  {1, 0, 0},  {0, 0, -1}, {0, 0, -1},
                                       {0, 0, -1}, {0, 0, -1}, {0, 0, 1},  {0, 0, 1},  {0, 0, 1},  {0, 0, 1}});
 
-    texcoords = vsg::vec2Array::create({{0, 0}, {1, 0}, {1, 1}, {0, 1}, {0, 0}, {1, 0}, {1, 1}, {0, 1},
-                                        {0, 0}, {1, 0}, {1, 1}, {0, 1}, {0, 0}, {1, 0}, {1, 1}, {0, 1},
-                                        {0, 0}, {1, 0}, {1, 1}, {0, 1}, {0, 0}, {1, 0}, {1, 1}, {0, 1}});
+    texcoords = vsg::vec2Array::create({{0, 1}, {1, 1}, {1, 0}, {0, 0}, {0, 1}, {1, 1}, {1, 0}, {0, 0},
+                                        {0, 1}, {1, 1}, {1, 0}, {0, 0}, {0, 1}, {1, 1}, {1, 0}, {0, 0},
+                                        {0, 1}, {1, 1}, {1, 0}, {0, 0}, {0, 1}, {1, 1}, {1, 0}, {0, 0}});
 
     indices = vsg::ushortArray::create({0,  1,  2,  0,  2,  3,  4,  5,  6,  4,  6,  7,  8,  9,  10, 8,  10, 11,
                                         12, 13, 14, 12, 14, 15, 16, 17, 18, 16, 18, 19, 20, 21, 22, 20, 22, 23});
@@ -851,8 +872,8 @@ ShapeBuilder::SphereShapeData::SphereShapeData(int num_divs) {
     int nPhi = num_divs;
 
     double r = 1.0;
-    double dTheta = CH_C_PI / nTheta;
-    double dPhi = CH_C_2PI / nPhi;
+    double dTheta = CH_PI / nTheta;
+    double dPhi = CH_2PI / nPhi;
 
     size_t nv = (nPhi + 1) * (nTheta + 1);
     vertices = vsg::vec3Array::create(nv);
@@ -872,13 +893,11 @@ ShapeBuilder::SphereShapeData::SphereShapeData(int num_divs) {
             double x = r * sin(theta) * cos(phi);
             double y = r * sin(theta) * sin(phi);
             double z = r * cos(theta);
-            auto vertex = ChVector<>(x, y, z);
+            auto vertex = ChVector3d(x, y, z);
             vertices->set(v, vsg::vec3CH(vertex));
             normals->set(v, vsg::vec3CH(vertex.GetNormalized()));
 
-            double utex = 1 - phi / CH_C_2PI;
-            double vtex = theta / CH_C_PI;
-            ChVector2<> t(utex, vtex);
+            ChVector2d t(phi / CH_2PI, theta / CH_PI);
             texcoords->set(v, vsg::vec2CH(t));
 
             v++;
@@ -928,7 +947,7 @@ ShapeBuilder::CylinderShapeData::CylinderShapeData(int num_divs) {
 
     double r = 1.0;
     double h = 0.5;
-    double dPhi = CH_C_2PI / nPhi;
+    double dPhi = CH_2PI / nPhi;
 
     size_t nv = 4 * (nPhi + 1);
     vertices = vsg::vec3Array::create(nv);
@@ -947,17 +966,17 @@ ShapeBuilder::CylinderShapeData::CylinderShapeData(int num_divs) {
         auto phi = iPhi * dPhi;
         double x = r * cos(phi);
         double y = -r * sin(phi);
-        double utex = 1 - phi / CH_C_2PI;
-
-        // bottom vertices
-        vertices->set(v, vsg::vec3(x, y, -h));
-        normals->set(v, vsg::vec3(x, y, 0));
-        texcoords->set(v, vsg::vec2(utex, 0));
+        double utex = 1 - phi / CH_PI;
 
         // top vertices
         vertices->set(nPhi + 1 + v, vsg::vec3(x, y, +h));
         normals->set(nPhi + 1 + v, vsg::vec3(x, y, 0));
-        texcoords->set(nPhi + 1 + v, vsg::vec2(utex, 1));
+        texcoords->set(nPhi + 1 + v, vsg::vec2(utex, 0));
+
+        // bottom vertices
+        vertices->set(v, vsg::vec3(x, y, -h));
+        normals->set(v, vsg::vec3(x, y, 0));
+        texcoords->set(v, vsg::vec2(utex, h / (2 * r)));
 
         v++;
     }
@@ -986,8 +1005,8 @@ ShapeBuilder::CylinderShapeData::CylinderShapeData(int num_divs) {
         auto phi = iPhi * dPhi;
         double x = r * cos(phi);
         double y = -r * sin(phi);
-        double utex = (cos(phi) + 1) / 2;
-        double vtex = (sin(phi) + 1) / 2;
+        double utex = (sin(phi) + 1) / 2;
+        double vtex = (cos(phi) + 1) / 2;
 
         // bottom vertices
         vertices->set(v, vsg::vec3(x, y, -h));
@@ -1054,7 +1073,7 @@ ShapeBuilder::ConeShapeData::ConeShapeData(int num_divs) {
 
     double r = 1.0;
     double h = 1.0;
-    double dPhi = CH_C_2PI / nPhi;
+    double dPhi = CH_2PI / nPhi;
 
     size_t nv = 3 * (nPhi + 1);
     vertices = vsg::vec3Array::create(nv);
@@ -1073,19 +1092,19 @@ ShapeBuilder::ConeShapeData::ConeShapeData(int num_divs) {
         auto phi = iPhi * dPhi;
         double x = r * cos(phi);
         double y = -r * sin(phi);
-        double utex = 1 - phi / CH_C_2PI;
+        double utex = 1 - (iPhi * 1.0) / nPhi;
 
-        auto normal = ChVector<>(x, y, r * r / h).GetNormalized();
+        auto normal = ChVector3d(x, y, r * r / h).GetNormalized();
 
         // bottom vertices
         vertices->set(v, vsg::vec3(x, y, 0));
         normals->set(v, vsg::vec3CH(normal));
-        texcoords->set(v, vsg::vec2(utex, 0));
+        texcoords->set(v, vsg::vec2(utex, 1));
 
         // top vertices (all at cone apex)
         vertices->set(nPhi + 1 + v, vsg::vec3(0, 0, h));
         normals->set(nPhi + 1 + v, vsg::vec3CH(normal));
-        texcoords->set(nPhi + 1 + v, vsg::vec2(utex, 1));
+        texcoords->set(nPhi + 1 + v, vsg::vec2(utex, 0));
 
         v++;
     }
@@ -1109,8 +1128,8 @@ ShapeBuilder::ConeShapeData::ConeShapeData(int num_divs) {
         auto phi = iPhi * dPhi;
         double x = r * cos(phi);
         double y = -r * sin(phi);
-        double utex = (cos(phi) + 1) / 2;
-        double vtex = (sin(phi) + 1) / 2;
+        double utex = (sin(phi) + 1) / CH_2PI;
+        double vtex = (cos(phi) + 1) / CH_2PI;
 
         // bottom vertices
         vertices->set(v, vsg::vec3(x, y, 0));
@@ -1160,8 +1179,8 @@ ShapeBuilder::CapsuleShapeData::CapsuleShapeData(int num_divs) {
     double r = 1.0;
     double h = 1;
 
-    double dTheta = CH_C_PI_2 / nTheta;
-    double dPhi = CH_C_2PI / nPhi;
+    double dTheta = CH_PI_2 / nTheta;
+    double dPhi = CH_2PI / nPhi;
 
     size_t nv = 2 * (nPhi + 1) + (nPhi + 1) * (nTheta + 1) + (nPhi + 1) * (nTheta + 1);
     vertices = vsg::vec3Array::create(nv);
@@ -1179,17 +1198,17 @@ ShapeBuilder::CapsuleShapeData::CapsuleShapeData(int num_divs) {
         auto phi = iPhi * dPhi;
         double x = r * cos(phi);
         double y = -r * sin(phi);
-        double utex = 1 - phi / CH_C_2PI;
-
-        // bottom vertices
-        vertices->set(v, vsg::vec3(x, y, -h));
-        normals->set(v, vsg::vec3(x, y, 0));
-        texcoords->set(v, vsg::vec2(utex, 0));
+        double utex = 1 - phi / CH_2PI;
 
         // top vertices
         vertices->set(nPhi + 1 + v, vsg::vec3(x, y, +h));
         normals->set(nPhi + 1 + v, vsg::vec3(x, y, 0));
-        texcoords->set(nPhi + 1 + v, vsg::vec2(utex, 1));
+        texcoords->set(nPhi + 1 + v, vsg::vec2(utex, 0));
+
+        // bottom vertices
+        vertices->set(v, vsg::vec3(x, y, -h));
+        normals->set(v, vsg::vec3(x, y, 0));
+        texcoords->set(v, vsg::vec2(utex, 1));
 
         v++;
     }
@@ -1223,13 +1242,13 @@ ShapeBuilder::CapsuleShapeData::CapsuleShapeData(int num_divs) {
             double x = r * cos(theta) * cos(phi);
             double y = r * cos(theta) * sin(phi);
             double z = r * sin(theta);
-            auto vertex = ChVector<>(x, y, z);
-            vertices->set(v, vsg::vec3CH(vertex + ChVector<>(0, 0, h)));
+            auto vertex = ChVector3d(x, y, z);
+            vertices->set(v, vsg::vec3CH(vertex + ChVector3d(0, 0, h)));
             normals->set(v, vsg::vec3CH(vertex.GetNormalized()));
 
-            double utex = 1 - phi / CH_C_2PI;
-            double vtex = theta / CH_C_PI;
-            ChVector2<> t(utex, vtex);
+            double utex = phi / CH_2PI;
+            double vtex = 1 - theta / CH_PI;
+            ChVector2d t(utex, vtex);
             texcoords->set(v, vsg::vec2CH(t));
 
             v++;
@@ -1270,13 +1289,13 @@ ShapeBuilder::CapsuleShapeData::CapsuleShapeData(int num_divs) {
             double x = r * cos(theta) * cos(phi);
             double y = r * cos(theta) * sin(phi);
             double z = r * sin(theta);
-            auto vertex = ChVector<>(x, y, z);
-            vertices->set(v, vsg::vec3CH(vertex + ChVector<>(0, 0, -h)));
+            auto vertex = ChVector3d(x, y, z);
+            vertices->set(v, vsg::vec3CH(vertex + ChVector3d(0, 0, -h)));
             normals->set(v, vsg::vec3CH(vertex.GetNormalized()));
 
-            double utex = 1 - phi / CH_C_2PI;
-            double vtex = theta / CH_C_PI;
-            ChVector2<> t(utex, vtex);
+            double utex = phi / CH_2PI;
+            double vtex = 1 - theta / CH_PI;
+            ChVector2d t(utex, vtex);
             texcoords->set(v, vsg::vec2CH(t));
 
             v++;

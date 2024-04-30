@@ -17,7 +17,6 @@
 #include "chrono/geometry/ChCone.h"
 
 namespace chrono {
-namespace geometry {
 
 // Register into the object factory, to enable run-time dynamic creation and persistence
 CH_FACTORY_REGISTER(ChCone)
@@ -30,7 +29,7 @@ ChCone::ChCone(const ChCone& source) {
 // -----------------------------------------------------------------------------
 
 double ChCone::GetVolume(double radius, double height) {
-    return CH_C_PI * radius * radius * height / 3.0;
+    return CH_PI * radius * radius * height / 3.0;
 }
 
 double ChCone::GetVolume() const {
@@ -54,7 +53,7 @@ ChMatrix33<> ChCone::GetGyration() const {
 }
 
 ChAABB ChCone::GetBoundingBox(double radius, double height) {
-    return ChAABB(ChVector<>(-radius, -radius, 0), ChVector<>(+radius, +radius, height));
+    return ChAABB(ChVector3d(-radius, -radius, 0), ChVector3d(+radius, +radius, height));
 }
 
 ChAABB ChCone::GetBoundingBox() const {
@@ -71,25 +70,24 @@ double ChCone::GetBoundingSphereRadius() const {
 
 // -----------------------------------------------------------------------------
 
-void ChCone::ArchiveOut(ChArchiveOut& marchive) {
+void ChCone::ArchiveOut(ChArchiveOut& archive_out) {
     // version number
-    marchive.VersionWrite<ChCone>();
+    archive_out.VersionWrite<ChCone>();
     // serialize parent class
-    ChGeometry::ArchiveOut(marchive);
+    ChGeometry::ArchiveOut(archive_out);
     // serialize all member data:
-    marchive << CHNVP(r);
-    marchive << CHNVP(h);
+    archive_out << CHNVP(r);
+    archive_out << CHNVP(h);
 }
 
-void ChCone::ArchiveIn(ChArchiveIn& marchive) {
+void ChCone::ArchiveIn(ChArchiveIn& archive_in) {
     // version number
-    /*int version =*/marchive.VersionRead<ChCone>();
+    /*int version =*/archive_in.VersionRead<ChCone>();
     // deserialize parent class
-    ChGeometry::ArchiveIn(marchive);
+    ChGeometry::ArchiveIn(archive_in);
     // stream in all member data:
-    marchive >> CHNVP(r);
-    marchive >> CHNVP(h);
+    archive_in >> CHNVP(r);
+    archive_in >> CHNVP(h);
 }
 
-}  // end namespace geometry
 }  // end namespace chrono

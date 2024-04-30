@@ -41,8 +41,8 @@ class CH_MODELS_API mrole_EngineShafts : public ChEngineShafts {
     virtual double GetMotorBlockInertia() const override { return m_motorblock_inertia; }
     virtual double GetMotorshaftInertia() const override { return m_motorshaft_inertia; }
 
-    virtual void SetEngineTorqueMap(std::shared_ptr<ChFunction_Recorder>& map) override;
-    virtual void SetEngineLossesMap(std::shared_ptr<ChFunction_Recorder>& map) override;
+    virtual void SetEngineTorqueMap(std::shared_ptr<ChFunctionInterp>& map) override;
+    virtual void SetEngineLossesMap(std::shared_ptr<ChFunctionInterp>& map) override;
 
   private:
     // Shaft inertias.

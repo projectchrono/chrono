@@ -87,8 +87,7 @@ void ChRigidChassis::Output(ChVehicleOutput& database) const {
 
 ChRigidChassisRear::ChRigidChassisRear(const std::string& name) : ChChassisRear(name) {}
 
-void ChRigidChassisRear::Initialize(std::shared_ptr<ChChassis> chassis,
-                                    int collision_family) {
+void ChRigidChassisRear::Initialize(std::shared_ptr<ChChassis> chassis, int collision_family) {
     // Invoke the base class method to construct the frame body.
     ChChassisRear::Initialize(chassis, collision_family);
 

@@ -33,7 +33,7 @@ const double FEDA_RigidTire::m_radius = 0.499;
 const double FEDA_RigidTire::m_width = 0.335;
 
 const double FEDA_RigidTire::m_mass = 55.4;
-const ChVector<> FEDA_RigidTire::m_inertia(6.39, 11.31, 6.39);
+const ChVector3d FEDA_RigidTire::m_inertia(6.39, 11.31, 6.39);
 
 const std::string FEDA_RigidTire::m_meshFile = "feda/meshes/feda_tire_fine.obj";
 

@@ -19,7 +19,6 @@
 //// - reconsider the use of large static matrices
 //// - more use of Eigen expressions
 
-#include "chrono/core/ChException.h"
 #include "chrono/physics/ChSystem.h"
 #include "chrono/fea/ChElementHexaANCF_3813.h"
 
@@ -70,14 +69,14 @@ void ChElementHexaANCF_3813::SetNodes(std::shared_ptr<ChNodeFEAxyz> nodeA,
     Kmatr.SetVariables(mvars);
     // EAS
     // Initial position
-    ChVector<> pA = m_nodes[0]->GetPos();
-    ChVector<> pB = m_nodes[1]->GetPos();
-    ChVector<> pC = m_nodes[2]->GetPos();
-    ChVector<> pD = m_nodes[3]->GetPos();
-    ChVector<> pE = m_nodes[4]->GetPos();
-    ChVector<> pF = m_nodes[5]->GetPos();
-    ChVector<> pG = m_nodes[6]->GetPos();
-    ChVector<> pH = m_nodes[7]->GetPos();
+    ChVector3d pA = m_nodes[0]->GetPos();
+    ChVector3d pB = m_nodes[1]->GetPos();
+    ChVector3d pC = m_nodes[2]->GetPos();
+    ChVector3d pD = m_nodes[3]->GetPos();
+    ChVector3d pE = m_nodes[4]->GetPos();
+    ChVector3d pF = m_nodes[5]->GetPos();
+    ChVector3d pG = m_nodes[6]->GetPos();
+    ChVector3d pH = m_nodes[7]->GetPos();
     m_d0(0, 0) = pA[0];
     m_d0(0, 1) = pA[1];
     m_d0(0, 2) = pA[2];
@@ -130,7 +129,7 @@ void ChElementHexaANCF_3813::SetStockAlpha(double a1,
 // -----------------------------------------------------------------------------
 
 // Internal force, EAS stiffness, and analytical jacobian are calculated
-class Brick_ForceAnalytical : public ChIntegrable3D<ChVectorN<double, 906>> {
+class Brick_ForceAnalytical : public ChIntegrand3D<ChVectorN<double, 906>> {
   public:
     Brick_ForceAnalytical(ChMatrixNM<double, 8, 3>* d_,
                           ChMatrixNM<double, 8, 3>* d0_,
@@ -268,10 +267,10 @@ void Brick_ForceAnalytical::Evaluate(ChVectorN<double, 906>& result, const doubl
 
     // Transformation : Orthogonal transformation (A and J)
 
-    ChVector<double> G1;
-    ChVector<double> G2;
-    ChVector<double> G3;
-    ChVector<double> G1xG2;
+    ChVector3d G1;
+    ChVector3d G2;
+    ChVector3d G3;
+    ChVector3d G1xG2;
     G1[0] = rd0(0, 0);
     G2[0] = rd0(0, 1);
     G3[0] = rd0(0, 2);
@@ -284,21 +283,21 @@ void Brick_ForceAnalytical::Evaluate(ChVectorN<double, 906>& result, const doubl
     G1xG2.Cross(G1, G2);
 
     // Tangent Frame
-    ChVector<> A1 = G1 / sqrt(G1[0] * G1[0] + G1[1] * G1[1] + G1[2] * G1[2]);
-    ChVector<> A3 = G1xG2 / sqrt(G1xG2[0] * G1xG2[0] + G1xG2[1] * G1xG2[1] + G1xG2[2] * G1xG2[2]);
-    ChVector<> A2 = A3.Cross(A1);
+    ChVector3d A1 = G1 / sqrt(G1[0] * G1[0] + G1[1] * G1[1] + G1[2] * G1[2]);
+    ChVector3d A3 = G1xG2 / sqrt(G1xG2[0] * G1xG2[0] + G1xG2[1] * G1xG2[1] + G1xG2[2] * G1xG2[2]);
+    ChVector3d A2 = A3.Cross(A1);
 
     // Direction for orthotropic material
     double theta = 0.0;
-    ChVector<> AA1 = A1 * cos(theta) + A2 * sin(theta);
-    ChVector<> AA2 = -A1 * sin(theta) + A2 * cos(theta);
-    ChVector<> AA3 = A3;
+    ChVector3d AA1 = A1 * cos(theta) + A2 * sin(theta);
+    ChVector3d AA2 = -A1 * sin(theta) + A2 * cos(theta);
+    ChVector3d AA3 = A3;
 
     // Beta
     ChMatrixNM<double, 3, 3> j0 = rd0.inverse();
-    ChVector<double> j01;
-    ChVector<double> j02;
-    ChVector<double> j03;
+    ChVector3d j01;
+    ChVector3d j02;
+    ChVector3d j03;
     j01[0] = j0(0, 0);
     j02[0] = j0(1, 0);
     j03[0] = j0(2, 0);
@@ -673,7 +672,7 @@ void Brick_ForceAnalytical::Evaluate(ChVectorN<double, 906>& result, const doubl
 
 // -----------------------------------------------------------------------------
 
-class Brick_ForceNumerical : public ChIntegrable3D<ChVectorN<double, 330>> {
+class Brick_ForceNumerical : public ChIntegrand3D<ChVectorN<double, 330>> {
   public:
     Brick_ForceNumerical(ChMatrixNM<double, 8, 3>* d_,
                          ChMatrixNM<double, 8, 3>* d0_,
@@ -803,10 +802,10 @@ void Brick_ForceNumerical::Evaluate(ChVectorN<double, 330>& result, const double
     //////////////////////////////////////////////////////////////
     //// Transformation : Orthogonal transformation (A and J) ////
     //////////////////////////////////////////////////////////////
-    ChVector<double> G1;
-    ChVector<double> G2;
-    ChVector<double> G3;
-    ChVector<double> G1xG2;
+    ChVector3d G1;
+    ChVector3d G2;
+    ChVector3d G3;
+    ChVector3d G1xG2;
     G1[0] = rd0(0, 0);
     G2[0] = rd0(0, 1);
     G3[0] = rd0(0, 2);
@@ -819,21 +818,21 @@ void Brick_ForceNumerical::Evaluate(ChVectorN<double, 330>& result, const double
     G1xG2.Cross(G1, G2);
 
     ////Tangent Frame
-    ChVector<> A1 = G1 / sqrt(G1[0] * G1[0] + G1[1] * G1[1] + G1[2] * G1[2]);
-    ChVector<> A3 = G1xG2 / sqrt(G1xG2[0] * G1xG2[0] + G1xG2[1] * G1xG2[1] + G1xG2[2] * G1xG2[2]);
-    ChVector<> A2 = A3.Cross(A1);
+    ChVector3d A1 = G1 / sqrt(G1[0] * G1[0] + G1[1] * G1[1] + G1[2] * G1[2]);
+    ChVector3d A3 = G1xG2 / sqrt(G1xG2[0] * G1xG2[0] + G1xG2[1] * G1xG2[1] + G1xG2[2] * G1xG2[2]);
+    ChVector3d A2 = A3.Cross(A1);
 
     ////Direction for orthotropic material//
     double theta = 0.0;
-    ChVector<> AA1 = A1 * cos(theta) + A2 * sin(theta);
-    ChVector<> AA2 = -A1 * sin(theta) + A2 * cos(theta);
-    ChVector<> AA3 = A3;
+    ChVector3d AA1 = A1 * cos(theta) + A2 * sin(theta);
+    ChVector3d AA2 = -A1 * sin(theta) + A2 * cos(theta);
+    ChVector3d AA3 = A3;
 
     ////Beta
     ChMatrixNM<double, 3, 3> j0 = rd0.inverse();
-    ChVector<double> j01;
-    ChVector<double> j02;
-    ChVector<double> j03;
+    ChVector3d j01;
+    ChVector3d j02;
+    ChVector3d j03;
     j01[0] = j0(0, 0);
     j02[0] = j0(1, 0);
     j03[0] = j0(2, 0);
@@ -1089,14 +1088,14 @@ void Brick_ForceNumerical::Evaluate(ChVectorN<double, 330>& result, const double
 void ChElementHexaANCF_3813::ComputeInternalForces(ChVectorDynamic<>& Fi) {
     int ie = GetElemNum();
 
-    ChVector<> pA = m_nodes[0]->GetPos();
-    ChVector<> pB = m_nodes[1]->GetPos();
-    ChVector<> pC = m_nodes[2]->GetPos();
-    ChVector<> pD = m_nodes[3]->GetPos();
-    ChVector<> pE = m_nodes[4]->GetPos();
-    ChVector<> pF = m_nodes[5]->GetPos();
-    ChVector<> pG = m_nodes[6]->GetPos();
-    ChVector<> pH = m_nodes[7]->GetPos();
+    ChVector3d pA = m_nodes[0]->GetPos();
+    ChVector3d pB = m_nodes[1]->GetPos();
+    ChVector3d pC = m_nodes[2]->GetPos();
+    ChVector3d pD = m_nodes[3]->GetPos();
+    ChVector3d pE = m_nodes[4]->GetPos();
+    ChVector3d pF = m_nodes[5]->GetPos();
+    ChVector3d pG = m_nodes[6]->GetPos();
+    ChVector3d pH = m_nodes[7]->GetPos();
 
     ChMatrixNM<double, 8, 3> d;
     d(0, 0) = pA.x();
@@ -1124,8 +1123,8 @@ void ChElementHexaANCF_3813::ComputeInternalForces(ChVectorDynamic<>& Fi) {
     d(7, 1) = pH.y();
     d(7, 2) = pH.z();
 
-    double v = m_Material->Get_v();
-    double E = m_Material->Get_E();
+    double v = m_Material->GetPoissonRatio();
+    double E = m_Material->GetYoungModulus();
 
     Fi.setZero();
 
@@ -1217,7 +1216,7 @@ void ChElementHexaANCF_3813::ComputeInternalForces(ChVectorDynamic<>& Fi) {
                 ResidHE = KALPHA1.colPivHouseholderQr().solve(HE);
             }
             if (m_flag_HE == ANALYTICAL && count > 2) {
-                GetLog() << ie << "  count " << count << "  NormHE " << norm_HE << "\n";
+                std::cerr << ie << "  count " << count << "  NormHE " << norm_HE << std::endl;
             }
         }
         Fi = -Finternal;
@@ -1489,7 +1488,7 @@ void ChElementHexaANCF_3813::ComputeStiffnessMatrix() {
 
 // -----------------------------------------------------------------------------
 
-class Brick_Mass : public ChIntegrable3D<ChMatrixNM<double, 24, 24>> {
+class Brick_Mass : public ChIntegrand3D<ChMatrixNM<double, 24, 24>> {
   public:
     Brick_Mass(ChMatrixNM<double, 8, 3>* d0_, ChElementHexaANCF_3813* element_);
     ~Brick_Mass() {}
@@ -1536,7 +1535,7 @@ void Brick_Mass::Evaluate(ChMatrixNM<double, 24, 24>& result, const double x, co
 }
 
 void ChElementHexaANCF_3813::ComputeMassMatrix() {
-    double rho = m_Material->Get_density();
+    double rho = m_Material->GetDensity();
     Brick_Mass myformula(&m_d0, this);
     m_MassMatrix.setZero();
     ChQuadrature::Integrate3D<ChMatrixNM<double, 24, 24>>(m_MassMatrix,  // result of integration will go there
@@ -1556,7 +1555,7 @@ void ChElementHexaANCF_3813::ComputeMassMatrix() {
 // -----------------------------------------------------------------------------
 
 // Class to calculate the gravity forces of a brick element
-class BrickGravity : public ChIntegrable3D<ChVectorN<double, 8>> {
+class BrickGravity : public ChIntegrand3D<ChVectorN<double, 8>> {
   public:
     BrickGravity(ChMatrixNM<double, 8, 3>* d0_, ChElementHexaANCF_3813* element_);
     ~BrickGravity() {}
@@ -1607,11 +1606,11 @@ void ChElementHexaANCF_3813::ComputeGravityForceScale() {
                                                     2                  // order of integration
     );
 
-    m_GravForceScale *= m_Material->Get_density();
+    m_GravForceScale *= m_Material->GetDensity();
 }
 
 // Compute the generalized force vector due to gravity
-void ChElementHexaANCF_3813::ComputeGravityForces(ChVectorDynamic<>& Fg, const ChVector<>& G_acc) {
+void ChElementHexaANCF_3813::ComputeGravityForces(ChVectorDynamic<>& Fg, const ChVector3d& G_acc) {
     assert(Fg.size() == 24);
 
     // Calculate and add the generalized force due to gravity to the generalized internal force vector for the element.
@@ -1649,7 +1648,7 @@ void ChElementHexaANCF_3813::ComputeKRMmatricesGlobal(ChMatrixRef H, double Kfac
 
     // For K stiffness matrix and R matrix: scale by factors
     // because [R] = r*[K] , so kf*[K]+rf*[R] = (kf+rf*r)*[K]
-    double kr_factor = Kfactor + Rfactor * m_Material->Get_RayleighDampingK();
+    double kr_factor = Kfactor + Rfactor * m_Material->GetRayleighDampingBeta();
 
     // Paste scaled K stiffness matrix and R matrix in resulting H and add scaled mass matrix.
     H.block(0, 0, 24, 24) = kr_factor * m_StiffnessMatrix + Mfactor * m_MassMatrix;
@@ -1674,10 +1673,10 @@ void ChElementHexaANCF_3813::T0DetJElementCenterForEAS(ChMatrixNM<double, 8, 3>&
     detJ0C = rd0.determinant();
 
     // Transformation : Orthogonal transformation (A and J) ////
-    ChVector<double> G1;
-    ChVector<double> G2;
-    ChVector<double> G3;
-    ChVector<double> G1xG2;
+    ChVector3d G1;
+    ChVector3d G2;
+    ChVector3d G3;
+    ChVector3d G1xG2;
     G1[0] = rd0(0, 0);
     G2[0] = rd0(0, 1);
     G3[0] = rd0(0, 2);
@@ -1690,19 +1689,19 @@ void ChElementHexaANCF_3813::T0DetJElementCenterForEAS(ChMatrixNM<double, 8, 3>&
     G1xG2.Cross(G1, G2);
 
     // Tangent Frame
-    ChVector<> A1 = G1 / sqrt(G1[0] * G1[0] + G1[1] * G1[1] + G1[2] * G1[2]);
-    ChVector<> A3 = G1xG2 / sqrt(G1xG2[0] * G1xG2[0] + G1xG2[1] * G1xG2[1] + G1xG2[2] * G1xG2[2]);
-    ChVector<> A2 = A3.Cross(A1);
+    ChVector3d A1 = G1 / sqrt(G1[0] * G1[0] + G1[1] * G1[1] + G1[2] * G1[2]);
+    ChVector3d A3 = G1xG2 / sqrt(G1xG2[0] * G1xG2[0] + G1xG2[1] * G1xG2[1] + G1xG2[2] * G1xG2[2]);
+    ChVector3d A2 = A3.Cross(A1);
     double theta = 0.0;
-    ChVector<> AA1 = A1 * cos(theta) + A2 * sin(theta);
-    ChVector<> AA2 = -A1 * sin(theta) + A2 * cos(theta);
-    ChVector<> AA3 = A3;
+    ChVector3d AA1 = A1 * cos(theta) + A2 * sin(theta);
+    ChVector3d AA2 = -A1 * sin(theta) + A2 * cos(theta);
+    ChVector3d AA3 = A3;
 
     // Beta
     ChMatrixNM<double, 3, 3> j0 = rd0.inverse();
-    ChVector<double> j01;
-    ChVector<double> j02;
-    ChVector<double> j03;
+    ChVector3d j01;
+    ChVector3d j02;
+    ChVector3d j03;
     j01[0] = j0(0, 0);
     j02[0] = j0(1, 0);
     j03[0] = j0(2, 0);
@@ -1781,7 +1780,7 @@ void ChElementHexaANCF_3813::Basis_M(ChMatrixNM<double, 6, 9>& M, double x, doub
 
 // -----------------------------------------------------------------------------
 
-void ChElementHexaANCF_3813::LoadableGetStateBlock_x(int block_offset, ChState& mD) {
+void ChElementHexaANCF_3813::LoadableGetStateBlockPosLevel(int block_offset, ChState& mD) {
     mD.segment(block_offset + 0, 3) = m_nodes[0]->GetPos().eigen();
     mD.segment(block_offset + 3, 3) = m_nodes[1]->GetPos().eigen();
     mD.segment(block_offset + 6, 3) = m_nodes[2]->GetPos().eigen();
@@ -1792,15 +1791,15 @@ void ChElementHexaANCF_3813::LoadableGetStateBlock_x(int block_offset, ChState& 
     mD.segment(block_offset + 21, 3) = m_nodes[7]->GetPos().eigen();
 }
 
-void ChElementHexaANCF_3813::LoadableGetStateBlock_w(int block_offset, ChStateDelta& mD) {
-    mD.segment(block_offset + 0, 3) = m_nodes[0]->GetPos_dt().eigen();
-    mD.segment(block_offset + 3, 3) = m_nodes[1]->GetPos_dt().eigen();
-    mD.segment(block_offset + 6, 3) = m_nodes[2]->GetPos_dt().eigen();
-    mD.segment(block_offset + 9, 3) = m_nodes[3]->GetPos_dt().eigen();
-    mD.segment(block_offset + 12, 3) = m_nodes[4]->GetPos_dt().eigen();
-    mD.segment(block_offset + 15, 3) = m_nodes[5]->GetPos_dt().eigen();
-    mD.segment(block_offset + 18, 3) = m_nodes[6]->GetPos_dt().eigen();
-    mD.segment(block_offset + 21, 3) = m_nodes[7]->GetPos_dt().eigen();
+void ChElementHexaANCF_3813::LoadableGetStateBlockVelLevel(int block_offset, ChStateDelta& mD) {
+    mD.segment(block_offset + 0, 3) = m_nodes[0]->GetPosDt().eigen();
+    mD.segment(block_offset + 3, 3) = m_nodes[1]->GetPosDt().eigen();
+    mD.segment(block_offset + 6, 3) = m_nodes[2]->GetPosDt().eigen();
+    mD.segment(block_offset + 9, 3) = m_nodes[3]->GetPosDt().eigen();
+    mD.segment(block_offset + 12, 3) = m_nodes[4]->GetPosDt().eigen();
+    mD.segment(block_offset + 15, 3) = m_nodes[5]->GetPosDt().eigen();
+    mD.segment(block_offset + 18, 3) = m_nodes[6]->GetPosDt().eigen();
+    mD.segment(block_offset + 21, 3) = m_nodes[7]->GetPosDt().eigen();
 }
 
 void ChElementHexaANCF_3813::LoadableStateIncrement(const unsigned int off_x,

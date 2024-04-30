@@ -112,20 +112,22 @@ class ChApi ChLinkRSDA : public ChLink {
     /// Get current torque (in the direction of the torque element).
     double GetTorque() const;
 
-    /// Get the link coordinate system, expressed relative to Body2.
-    /// This represents the 'main' reference of the link: reaction torques are expressed in this coordinate system.
-    virtual ChCoordsys<> GetLinkRelativeCoords() override;
+    /// Get the link frame 1, relative to body 1.
+    virtual ChFrame<> GetFrame1Rel() const override { return ChFramed(m_csys1); }
+
+    /// Get the link frame 2, relative to body 2.
+    virtual ChFrame<> GetFrame2Rel() const override { return ChFramed(m_csys2); }
 
     /// Get the reference frame (expressed in and relative to the absolute frame) of the visual model.
     /// Return the coordinate system on body1.
-    virtual ChFrame<> GetVisualModelFrame(unsigned int nclone = 0) override;
+    virtual ChFrame<> GetVisualModelFrame(unsigned int nclone = 0) const override;
 
     /// Initialize the rotational spring by specifying the two bodies to be connected and an RSDA frame specified in the
     /// absolute frame. The RSDA is constructed such that it acts on the Z axis of the joint frame. Unless
     /// SetRestAngle() is explicitly called, the RSDA rest angle is set to 0.
     void Initialize(std::shared_ptr<ChBody> body1,  ///< first body frame
                     std::shared_ptr<ChBody> body2,  ///< second body frame
-                    const ChCoordsys<>& csys        ///< RSDA frame orientation (in absolute frame)
+                    const ChFrame<>& frame          ///< RSDA frame orientation (in absolute reference frame)
     );
 
     /// Initialize the rotational spring by specifying the two bodies to be connected and RSDA frames on each body.
@@ -136,15 +138,15 @@ class ChApi ChLinkRSDA : public ChLink {
     void Initialize(std::shared_ptr<ChBody> body1,  ///< first body frame
                     std::shared_ptr<ChBody> body2,  ///< second body frame
                     bool local,                     ///< true if data given in body local frames
-                    const ChCoordsys<>& csys1,      ///< RSDA frame orientation on body 1
-                    const ChCoordsys<>& csys2       ///< RSDA frame orientation on body 2
+                    const ChFrame<>& frame1,        ///< RSDA frame orientation on body 1
+                    const ChFrame<>& frame2         ///< RSDA frame orientation on body 2
     );
 
     /// Method to allow serialization of transient data to archives.
-    virtual void ArchiveOut(ChArchiveOut& marchive) override;
+    virtual void ArchiveOut(ChArchiveOut& archive_out) override;
 
     /// Method to allow deserialization of transient data from archives.
-    virtual void ArchiveIn(ChArchiveIn& marchive) override;
+    virtual void ArchiveIn(ChArchiveIn& archive_in) override;
 
   private:
     virtual void Update(double time, bool update_assets = true) override;
@@ -158,7 +160,7 @@ class ChApi ChLinkRSDA : public ChLink {
     ChCoordsys<> m_csys1;  ///< joint frame orientation on body 1
     ChCoordsys<> m_csys2;  ///< joint frame orientation on body 2
 
-    ChVector<> m_axis;  ///< RSDA axis (expressed in absolute frame)
+    ChVector3d m_axis;  ///< RSDA axis (expressed in absolute frame)
 
     double m_k;  ///< spring coefficient (if no torque functor provided)
     double m_r;  ///< damping coefficient (if no torque functor provided)

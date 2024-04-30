@@ -48,6 +48,9 @@ namespace uaz {}
 /// Namespace for the bus vehicle model
 namespace citybus {}
 
+/// Namespace for the BMW 330i vehicle model
+namespace bmw {}
+
 /// Namespace for the generic wheeled vehicle model
 namespace generic {}
 

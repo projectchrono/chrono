@@ -31,11 +31,11 @@ namespace unimog {
 // Static variables
 // -----------------------------------------------------------------------------
 const double U401_Chassis::m_body_mass = 2621.0;
-const ChVector<> U401_Chassis::m_body_inertiaXX(785.0, 2612.0, 2761.0);
-const ChVector<> U401_Chassis::m_body_inertiaXY(0, 0, 0);
-const ChVector<> U401_Chassis::m_body_COM_loc(-0.982857143, 0.0, 0.3);
-const ChVector<> U401_Chassis::m_connector_rear_loc(-3.5, 0, -0.05);
-const ChCoordsys<> U401_Chassis::m_driverCsys(ChVector<>(0.0, 0.7, 0.5), ChQuaternion<>(1, 0, 0, 0));
+const ChVector3d U401_Chassis::m_body_inertiaXX(785.0, 2612.0, 2761.0);
+const ChVector3d U401_Chassis::m_body_inertiaXY(0, 0, 0);
+const ChVector3d U401_Chassis::m_body_COM_loc(-0.982857143, 0.0, 0.3);
+const ChVector3d U401_Chassis::m_connector_rear_loc(-3.5, 0, -0.05);
+const ChCoordsys<> U401_Chassis::m_driverCsys(ChVector3d(0.0, 0.7, 0.5), ChQuaternion<>(1, 0, 0, 0));
 
 // -----------------------------------------------------------------------------
 // -----------------------------------------------------------------------------
@@ -58,7 +58,7 @@ U401_Chassis::U401_Chassis(const std::string& name, bool fixed, CollisionType ch
 
     //// TODO:
     //// A more appropriate contact shape from primitives
-    ChVehicleGeometry::BoxShape box1(ChVector<>(-1.0, 0.0, 0.1), ChQuaternion<>(1, 0, 0, 0), ChVector<>(1.6, 1.0, 0.2));
+    ChVehicleGeometry::BoxShape box1(ChVector3d(-1.0, 0.0, 0.1), ChQuaternion<>(1, 0, 0, 0), ChVector3d(1.6, 1.0, 0.2));
 
     m_geometry.m_has_primitives = true;
     m_geometry.m_vis_boxes.push_back(box1);
@@ -85,4 +85,3 @@ U401_Chassis::U401_Chassis(const std::string& name, bool fixed, CollisionType ch
 }  // namespace unimog
 }  // end namespace vehicle
 }  // end namespace chrono
-

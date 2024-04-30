@@ -23,7 +23,7 @@ from OCC.Core import TopoDS
 # If running from a different directory, you must change the path to the data directory with: 
 #chrono.SetChronoDataPath('path/to/data')
 
-#  Create the simulation system and add items
+# Create the simulation system and add items
 sys = chrono.ChSystemNSC()
 sys.SetCollisionSystemType(chrono.ChCollisionSystem.Type_BULLET)
 
@@ -40,17 +40,17 @@ load_ok = mydoc.Load_STEP(chrono.GetChronoDataFile('cascade/IRB7600_23_500_m2000
 if not load_ok:
     raise ValueError("Warning. Desired STEP file could not be opened/parsed \n")
       
-CH_C_PI = 3.1456
+CH_PI = 3.1456
 
 # In most CADs the Y axis is horizontal, but we want it vertical.
 # So define a root transformation for rotating all the imported objects.
-rotation1 = chrono.ChQuaternionD()
-rotation1.Q_from_AngAxis(-CH_C_PI / 2, chrono.ChVectorD(1, 0, 0))  # 1: rotate 90° on X axis
-rotation2 = chrono.ChQuaternionD()
-rotation2.Q_from_AngAxis(CH_C_PI, chrono.ChVectorD(0, 1, 0))  # 2: rotate 180° on vertical Y axis
-tot_rotation = chrono.ChQuaternionD()
-tot_rotation = rotation2 % rotation1     # rotate on 1 then on 2, using quaternion product
-root_frame = chrono.ChFrameMovingD(chrono.ChVectorD(0, 0, 0), tot_rotation)
+rotation1 = chrono.ChQuaterniond()
+rotation1.SetFromAngleAxis(-CH_PI / 2, chrono.ChVector3d(1, 0, 0))  # 1: rotate 90° on X axis
+rotation2 = chrono.ChQuaterniond()
+rotation2.SetFromAngleAxis(CH_PI, chrono.ChVector3d(0, 1, 0))  # 2: rotate 180° on vertical Y axis
+tot_rotation = chrono.ChQuaterniond()
+tot_rotation = rotation2 * rotation1     # rotate on 1 then on 2, using quaternion product
+root_frame = chrono.ChFrameMovingd(chrono.ChVector3d(0, 0, 0), tot_rotation)
 
 # Retrieve some sub shapes from the loaded model, using
 # the GetNamedShape() function, that can use path/subpath/subsubpath/part
@@ -64,7 +64,7 @@ def make_body_from_name(partname, root_transformation):
                                            True,    # mesh for visualization?
                                            False)   # mesh for collision?
         sys.Add(mbody1)
-        # Move the body as for global displacement/rotation (also mbody1 %= root_frame; )
+        # Move the body as for global displacement/rotation
         mbody1.ConcatenatePreTransformation(root_transformation)
         return mbody1
     else:
@@ -81,8 +81,8 @@ rigidBody_hand     = make_body_from_name("Assem10/Assem9", root_frame)
 rigidBody_cylinder = make_body_from_name("Assem10/Assem3", root_frame)
 rigidBody_rod      = make_body_from_name("Assem10/Assem2", root_frame)
 
-rigidBody_base.SetBodyFixed(True)
-#rigidBody_hand.SetBodyFixed(True)
+rigidBody_base.SetFixed(True)
+#rigidBody_hand.SetFixed(True)
 
 # Create joints between two parts.
 # To understand where is the axis of the joint, we can exploit the fact
@@ -93,7 +93,7 @@ rigidBody_base.SetBodyFixed(True)
 def make_frame_from_name(partname, root_transformation):
     shape_marker = TopoDS.TopoDS_Shape()
     if (mydoc.GetNamedShape(shape_marker, partname)):
-        frame_marker = chrono.ChFrameD()
+        frame_marker = chrono.ChFramed()
         mydoc.FromCascadeToChrono(shape_marker.Location(), frame_marker)
         frame_marker.ConcatenatePreTransformation(root_transformation)
         return frame_marker
@@ -117,47 +117,47 @@ frame_marker_rod_bicep      = make_frame_from_name("Assem10/Assem2/marker#2", ro
 # frame_marker_xxxx_zzzz frames created above.
 
 my_link1 = chrono.ChLinkLockRevolute()
-my_link1.Initialize(rigidBody_base, rigidBody_turret, frame_marker_base_turret.GetCoord())
+my_link1.Initialize(rigidBody_base, rigidBody_turret, frame_marker_base_turret)
 sys.Add(my_link1)
     
 my_link2 = chrono.ChLinkLockRevolute()                                               
-my_link2.Initialize(rigidBody_turret, rigidBody_bicep, frame_marker_turret_bicep.GetCoord())
+my_link2.Initialize(rigidBody_turret, rigidBody_bicep, frame_marker_turret_bicep)
 sys.Add(my_link2)  
         
 my_link3 = chrono.ChLinkLockRevolute()
-my_link3.Initialize(rigidBody_bicep, rigidBody_elbow, frame_marker_bicep_elbow.GetCoord())
+my_link3.Initialize(rigidBody_bicep, rigidBody_elbow, frame_marker_bicep_elbow)
 sys.Add(my_link3)
 
 my_link4 = chrono.ChLinkLockRevolute()
-my_link4.Initialize(rigidBody_elbow, rigidBody_forearm, frame_marker_elbow_forearm.GetCoord())
+my_link4.Initialize(rigidBody_elbow, rigidBody_forearm, frame_marker_elbow_forearm)
 sys.Add(my_link4)
 
 my_link5 = chrono.ChLinkLockRevolute()
-my_link5.Initialize(rigidBody_forearm, rigidBody_wrist, frame_marker_forearm_wrist.GetCoord())
+my_link5.Initialize(rigidBody_forearm, rigidBody_wrist, frame_marker_forearm_wrist)
 sys.Add(my_link5)
 
 my_link6 = chrono.ChLinkLockRevolute()
-my_link6.Initialize(rigidBody_wrist, rigidBody_hand, frame_marker_wrist_hand.GetCoord())
+my_link6.Initialize(rigidBody_wrist, rigidBody_hand, frame_marker_wrist_hand)
 sys.Add(my_link6)
 
 my_link7 = chrono.ChLinkLockRevolute()
-my_link7.Initialize(rigidBody_turret, rigidBody_cylinder, frame_marker_turret_cylinder.GetCoord())
+my_link7.Initialize(rigidBody_turret, rigidBody_cylinder, frame_marker_turret_cylinder)
 sys.Add(my_link7)
 
 my_link8 = chrono.ChLinkLockRevolute()
-my_link8.Initialize(rigidBody_cylinder, rigidBody_rod, frame_marker_cylinder_rod.GetCoord())
+my_link8.Initialize(rigidBody_cylinder, rigidBody_rod, frame_marker_cylinder_rod)
 sys.Add(my_link8)
         
 my_link9 = chrono.ChLinkLockRevolute()
-my_link9.Initialize(rigidBody_rod, rigidBody_bicep, frame_marker_rod_bicep.GetCoord())
+my_link9.Initialize(rigidBody_rod, rigidBody_bicep, frame_marker_rod_bicep)
 sys.Add(my_link9)
 
                          
 # Create a large cube as a floor.
 
 floor = chrono.ChBodyEasyBox(5, 1, 5, 1000, True, True)
-floor.SetPos(chrono.ChVectorD(0,-0.5,0))
-floor.SetBodyFixed(True)
+floor.SetPos(chrono.ChVector3d(0,-0.5,0))
+floor.SetFixed(True)
 floor.GetVisualShape(0).SetTexture(chrono.GetChronoDataFile('textures/blue.png'))
 sys.Add(floor)
 
@@ -170,15 +170,15 @@ sys.Add(floor)
 # Create a ChLinePath geometry, for the hand path, and insert arc/lines sub-paths:
 path = chrono.ChLinePath()
 a1 = chrono.ChLineArc(
-            chrono.ChCoordsysD(rigidBody_hand.GetPos(), # arc center position
+            chrono.ChCoordsysd(rigidBody_hand.GetPos(), # arc center position
                                chrono.Q_ROTATE_X_TO_Z),   # arc plane alignment (default: xy plane) 
             0.3, # radius 
-            -chrono.CH_C_PI_2, # start arc ngle (counterclockwise, from local x)
-            -chrono.CH_C_PI_2+chrono.CH_C_2PI, # end arc angle 
+            -chrono.CH_PI_2, # start arc ngle (counterclockwise, from local x)
+            -chrono.CH_PI_2+chrono.CH_2PI, # end arc angle 
             True)
 path.AddSubLine(a1)
 path.SetPathDuration(2)
-path.Set_closed(True)
+path.SetClosed(True)
 
 # Create a ChVisualShapeLine, a visualization asset for lines.
 pathasset = chrono.ChVisualShapeLine()
@@ -186,24 +186,24 @@ pathasset.SetLineGeometry(path)
 floor.AddVisualShape(pathasset)
 
 # This is the constraint that uses the trajectory
-trajectory = chrono.ChLinkTrajectory()
+trajectory = chrono.ChLinkLockTrajectory()
 # Define which parts are connected (the trajectory is considered in the 2nd body).
-trajectory.Initialize(rigidBody_hand, # body1 that follows the trajectory
-          floor,                 # body2 that 'owns' the trajectory
-          chrono.VNULL,           # point on body1 that will follow the trajectory, in body1 coords
-          path                   # the trajectory (reuse the one already added to body2 as asset)
-          )
+trajectory.Initialize(rigidBody_hand,   # body1 that follows the trajectory
+                      floor,            # body2 that 'owns' the trajectory
+                      chrono.VNULL,     # point on body1 that will follow the trajectory, in body1 coords
+                      path              # the trajectory (reuse the one already added to body2 as asset)
+                      )
 sys.Add(trajectory)
 
 # Optionally, set a function that gets the curvilinear
 # abscyssa s of the line, as a function of time s(t). 
 # By default it was simply  s=t.
-spacefx = chrono.ChFunction_Ramp(0, 0.5)
-trajectory.Set_space_fx(spacefx)
+spacefx = chrono.ChFunctionRamp(0, 0.5)
+trajectory.SetTimeLaw(spacefx)
 
 # Just to constraint the hand rotation:
 parallelism = chrono.ChLinkLockParallel()
-parallelism.Initialize(rigidBody_hand, floor, frame_marker_wrist_hand.GetCoord())
+parallelism.Initialize(rigidBody_hand, floor, frame_marker_wrist_hand)
 sys.Add(parallelism);
 
 #  Create an Irrlicht application to visualize the system
@@ -214,10 +214,10 @@ vis.SetWindowTitle('Import STEP')
 vis.Initialize()
 vis.AddLogo(chrono.GetChronoDataFile('logo_pychrono_alpha.png'))
 vis.AddSkyBox()
-vis.AddCamera(chrono.ChVectorD(2,2,2),chrono.ChVectorD(0,0.8,0))
+vis.AddCamera(chrono.ChVector3d(2,2,2),chrono.ChVector3d(0,0.8,0))
 vis.AddTypicalLights()
-#vis.AddLightWithShadow(chrono.ChVectorD(3,6,2),  # point
-#                       chrono.ChVectorD(0,0,0),  # aimpoint
+#vis.AddLightWithShadow(chrono.ChVector3d(3,6,2),  # point
+#                       chrono.ChVector3d(0,0,0),  # aimpoint
 #                       12,                       # radius (power)
 #                       1,11,                     # near, far
 #                       55)                       # angle of FOV
@@ -231,7 +231,7 @@ vis.AddTypicalLights()
 
 sys.SetSolverType(chrono.ChSolver.Type_BARZILAIBORWEIN);
 #sys.SetSolverType(chrono.ChSolver.Type_MINRES);
-sys.SetSolverMaxIterations(300)
+sys.GetSolver().AsIterative().SetMaxIterations(300)
 
 # Run the simulation
 while vis.Run():

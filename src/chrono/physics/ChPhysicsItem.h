@@ -16,6 +16,8 @@
 #define CH_PHYSICSITEM_H
 
 #include "chrono/core/ChFrame.h"
+#include "chrono/core/ChRotation.h"
+
 #include "chrono/geometry/ChGeometry.h"
 #include "chrono/physics/ChObject.h"
 #include "chrono/assets/ChCamera.h"
@@ -79,7 +81,7 @@ class ChApi ChPhysicsItem : public ChObj {
     /// Get the reference frame (expressed in and relative to the absolute frame) of the visual model.
     /// If the visual model is cloned (for example for a physics item modeling a particle system), this function returns
     /// the coordinate system of the specified clone.
-    virtual ChFrame<> GetVisualModelFrame(unsigned int nclone = 0) { return ChFrame<>(); }
+    virtual ChFrame<> GetVisualModelFrame(unsigned int nclone = 0) const { return ChFrame<>(); }
 
     /// Return the number of clones of the visual model associated with this physics item.
     /// If the visual model is cloned (for example for a physics item modeling a particle system), this function should
@@ -104,7 +106,7 @@ class ChApi ChPhysicsItem : public ChObj {
 
     /// Tell if the object is subject to collision.
     /// Only for interface; child classes may override this, using internal flags.
-    virtual bool GetCollide() const { return false; }
+    virtual bool IsCollisionEnabled() const { return false; }
 
     /// Add to the provided collision system any collision models managed by this physics item.
     /// A derived calss should invoke ChCollisionSystem::Add for each of its collision models.
@@ -123,20 +125,13 @@ class ChApi ChPhysicsItem : public ChObj {
     /// The AABB must enclose the collision models, if any.
     /// By default is infinite AABB.
     /// Should be overridden by child classes.
-    virtual geometry::ChAABB GetTotalAABB();
+    virtual ChAABB GetTotalAABB();
 
     /// Get a symbolic 'center' of the object. By default this
     /// function returns the center of the AABB.
     /// It could be overridden by child classes, anyway it must
     /// always get a point that must be inside AABB.
-    virtual void GetCenter(ChVector<>& mcenter);
-
-    /// Method to deserialize only the state (position, speed)
-    /// Must be implemented by child classes.
-    virtual void StreamInstate(ChStreamInBinary& mstream) {}
-    /// Method to serialize only the state (position, speed)
-    /// Must be implemented by child classes.
-    virtual void StreamOutstate(ChStreamOutBinary& mstream) {}
+    virtual void GetCenter(ChVector3d& mcenter);
 
     // UPDATING  - child classes may implement these functions
 
@@ -161,34 +156,26 @@ class ChApi ChPhysicsItem : public ChObj {
     virtual void Update(bool update_assets = true) { Update(ChTime, update_assets); }
 
     /// Set zero speed (and zero accelerations) in state, without changing the position.
-    /// Child classes should implement this function if GetDOF() > 0.
+    /// Child classes should implement this function if GetNumCoordsPosLevel() > 0.
     /// It is used by owner ChSystem for some static analysis.
-    virtual void SetNoSpeedNoAcceleration() {}
+    virtual void ForceToRest() {}
 
-    // STATE FUNCTIONS
-    //
-    // These functions are used for bookkeeping in ChSystem, so that states (position, speeds)
-    // of multiple physics items can be mapped in a single system state vector.
-    // These will be used to interface to time integrators.
-    // Note: these are not 'pure virtual' interfaces to avoid the burden of implementing all them
-    // when just few are needed, so here is a default fallback that represent a 0 DOF, 0 DOC item, but
-    // the children classes should override them.
+    /// Get the number of coordinates at the position level.
+    /// Might differ from coordinates at velocity level if quaternions are used for rotations.
+    virtual unsigned int GetNumCoordsPosLevel() { return 0; }
 
-    /// Get the number of scalar coordinates (variables), if any, in this item.
-    /// Children classes must override this.
-    virtual int GetDOF() { return 0; }
-    /// Get the number of scalar coordinates of variables derivatives (usually = DOF, but might be
-    /// different than DOF, ex. DOF=4 for quaternions, but DOF_w = 3 for its Lie algebra, ex angular velocity)
-    /// Children classes might override this.
-    virtual int GetDOF_w() { return GetDOF(); }
-    /// Get the number of scalar constraints, if any, in this item
-    virtual int GetDOC() { return GetDOC_c() + GetDOC_d(); }
-    /// Get the number of scalar constraints, if any, in this item (only bilateral constr.)
-    /// Children classes might override this.
-    virtual int GetDOC_c() { return 0; }
-    /// Get the number of scalar constraints, if any, in this item (only unilateral constr.)
-    /// Children classes might override this.
-    virtual int GetDOC_d() { return 0; }
+    /// Get the number of coordinates at the velocity level.
+    /// Might differ from coordinates at position level if quaternions are used for rotations.
+    virtual unsigned int GetNumCoordsVelLevel() { return GetNumCoordsPosLevel(); }
+
+    /// Get the number of scalar constraints.
+    virtual unsigned int GetNumConstraints() { return GetNumConstraintsBilateral() + GetNumConstraintsUnilateral(); }
+
+    /// Get the number of bilateral scalar constraints.
+    virtual unsigned int GetNumConstraintsBilateral() { return 0; }
+
+    /// Get the number of unilateral scalar constraints.
+    virtual unsigned int GetNumConstraintsUnilateral() { return 0; }
 
     /// Get offset in the state vector (position part)
     unsigned int GetOffset_x() { return offset_x; }
@@ -256,7 +243,7 @@ class ChApi ChPhysicsItem : public ChObj {
                                    const unsigned int off_v,  ///< offset in v state vector
                                    const ChStateDelta& Dv     ///< state vector, increment
     ) {
-        for (int i = 0; i < GetDOF(); ++i) {
+        for (unsigned int i = 0; i < GetNumCoordsPosLevel(); ++i) {
             x_new(off_x + i) = x(off_x + i) + Dv(off_v + i);
         }
     }
@@ -270,7 +257,7 @@ class ChApi ChPhysicsItem : public ChObj {
                                       const unsigned int off_v,  ///< offset in v state vector
                                       ChStateDelta& Dv           ///< state vector, increment. Here gets the result
     ) {
-        for (int i = 0; i < GetDOF(); ++i) {
+        for (unsigned int i = 0; i < GetNumCoordsPosLevel(); ++i) {
             Dv(off_v + i) = x_new(off_x + i) - x(off_x + i);
         }
     }
@@ -348,6 +335,26 @@ class ChApi ChPhysicsItem : public ChObj {
     // The children classes, inherited from ChPhysicsItem, can implement them (by default,
     // the base ChPhysicsItem does not introduce any variable nor any constraint).
 
+    /// Register with the given system descriptor any ChVariable objects associated with this item.
+    virtual void InjectVariables(ChSystemDescriptor& descriptor) {}
+
+    /// Register with the given system descriptor any ChConstraint objects associated with this item.
+    virtual void InjectConstraints(ChSystemDescriptor& descriptor) {}
+
+    /// Compute and load current Jacobians in encapsulated ChConstraint objects.
+    virtual void LoadConstraintJacobians() {}
+
+    /// Register with the given system descriptor any ChKRMBlock objects associated with this item.
+    virtual void InjectKRMMatrices(ChSystemDescriptor& descriptor) {}
+
+    /// Compute and load current stiffnes (K), damping (R), and mass (M) matrices in encapsulated ChKRMBlock objects.
+    /// The resulting KRM blocks represent linear combinations of the K, R, and M matrices, with the specified
+    /// coefficients Kfactor, Rfactor,and Mfactor, respectively.
+    /// Note: signs are flipped from the term dF/dx in the integrator: K = -dF/dq and R = -dF/dv.
+    virtual void LoadKRMMatrices(double Kfactor, double Rfactor, double Mfactor) {}
+
+    // OLD BOOKKEEPING MECHANISM (marked for elimination)
+
     /// Sets the 'fb' part (the known term) of the encapsulated ChVariables to zero.
     virtual void VariablesFbReset() {}
 
@@ -376,18 +383,8 @@ class ChApi ChPhysicsItem : public ChObj {
     /// multiplied by a 'step' factor.
     ///     pos+=qb*step
     /// If qb is a speed, this behaves like a single step of 1-st order
-    /// numerical integration (Eulero integration).
+    /// numerical integration (Euler integration).
     virtual void VariablesQbIncrementPosition(double step) {}
-
-    /// Tell to a system descriptor that there are variables of type
-    /// ChVariables in this object (for further passing it to a solver)
-    /// Basically does nothing, but maybe that inherited classes may specialize this.
-    virtual void InjectVariables(ChSystemDescriptor& mdescriptor) {}
-
-    /// Tell to a system descriptor that there are constraints of type
-    /// ChConstraint in this object (for further passing it to a solver)
-    /// Basically does nothing, but maybe that inherited classes may specialize this.
-    virtual void InjectConstraints(ChSystemDescriptor& mdescriptor) {}
 
     /// Sets to zero the known term (b_i) of encapsulated ChConstraints
     virtual void ConstraintsBiReset() {}
@@ -408,9 +405,6 @@ class ChApi ChPhysicsItem : public ChObj {
     /// of the ChVariables referenced by encapsulated ChConstraints
     virtual void ConstraintsFbLoadForces(double factor = 1) {}
 
-    /// Adds the current jacobians in encapsulated ChConstraints
-    virtual void ConstraintsLoadJacobians() {}
-
     /// Fetches the reactions from the lagrangian multiplier (l_i)
     /// of encapsulated ChConstraints.
     /// Mostly used after the solver provided the solution in ChConstraints.
@@ -418,24 +412,13 @@ class ChApi ChPhysicsItem : public ChObj {
     /// from link space to intuitive react_force and react_torque.
     virtual void ConstraintsFetch_react(double factor = 1) {}
 
-    /// Tell to a system descriptor that there are items of type
-    /// ChKblock in this object (for further passing it to a solver)
-    /// Basically does nothing, but maybe that inherited classes may specialize this.
-    virtual void InjectKRMmatrices(ChSystemDescriptor& mdescriptor) {}
-
-    /// Adds the current stiffness K and damping R and mass M matrices in encapsulated
-    /// ChKblock item(s), if any. The K, R, M matrices are added with scaling
-    /// values Kfactor, Rfactor, Mfactor.
-    /// NOTE: signs are flipped respect to the ChTimestepper dF/dx terms:  K = -dF/dq, R = -dF/dv
-    virtual void KRMmatricesLoad(double Kfactor, double Rfactor, double Mfactor) {}
-
     // SERIALIZATION
 
     /// Method to allow serialization of transient data to archives.
-    virtual void ArchiveOut(ChArchiveOut& marchive) override;
+    virtual void ArchiveOut(ChArchiveOut& archive_out) override;
 
     /// Method to allow deserialization of transient data from archives.
-    virtual void ArchiveIn(ChArchiveIn& marchive) override;
+    virtual void ArchiveIn(ChArchiveIn& archive_in) override;
 
   protected:
     ChSystem* system;  ///< parent system

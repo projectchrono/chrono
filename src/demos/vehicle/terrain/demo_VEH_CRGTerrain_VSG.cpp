@@ -44,9 +44,7 @@
 #include "chrono_thirdparty/cxxopts/ChCLI.h"
 #include "chrono_thirdparty/filesystem/path.h"
 
-using namespace chrono;
-using namespace chrono::vehicle;
-using namespace chrono::vehicle::hmmwv;
+#include "../WheeledVehicleModels.h"
 
 // =============================================================================
 // Problem parameters
@@ -59,9 +57,6 @@ enum class DriverModelType {
     HUMAN     // simple realistic human driver
 };
 
-// Type of tire model (LUGRE, FIALA, PACEJKA, TMSIMPLE or TMEASY)
-TireModelType tire_model = TireModelType::TMSIMPLE;
-
 // Road visualization (mesh or boundary lines)
 bool useMesh = true;
 
@@ -73,13 +68,11 @@ double minimum_speed = 12;
 double maximum_speed = 30;
 
 // Simulation step size
-double step_size = 3e-3;
-double tire_step_size = 1e-3;
+double step_size = 1e-3;
 
 // Output frame images
 bool output_images = false;
 double fps = 60;
-const std::string out_dir = GetChronoOutputPath() + "OPENCRG_DEMO";
 
 DriverModelType DriverModelFromString(const std::string& str) {
     if (str == "HUMAN")
@@ -186,14 +179,14 @@ class MyDriver {
 
     const std::string& GetDriverType() { return m_driver_type; }
 
-    ChVector<> GetTargetLocation() {
+    ChVector3d GetTargetLocation() {
         if (m_type == DriverModelType::HUMAN)
             return std::static_pointer_cast<ChHumanDriver>(m_driver)->GetTargetLocation();
         else
             return m_steering_controller->GetTargetLocation();
     }
 
-    ChVector<> GetSentinelLocation() {
+    ChVector3d GetSentinelLocation() {
         if (m_type == DriverModelType::HUMAN)
             return std::static_pointer_cast<ChHumanDriver>(m_driver)->GetSentinelLocation();
         else
@@ -224,7 +217,7 @@ class MyDriver {
 // =============================================================================
 
 int main(int argc, char* argv[]) {
-    GetLog() << "Copyright (c) 2017 projectchrono.org\nChrono version: " << CHRONO_VERSION << "\n\n";
+    std::cout << "Copyright (c) 2017 projectchrono.org\nChrono version: " << CHRONO_VERSION << std::endl;
 
     ChCLI cli(argv[0]);
 
@@ -244,15 +237,6 @@ int main(int argc, char* argv[]) {
     crg_road_file = vehicle::GetDataFile(cli.GetAsType<std::string>("roadfile"));
     yup = cli.GetAsType<bool>("yup");
 
-    // ----------------
-    // Output directory
-    // ----------------
-
-    if (!filesystem::create_directory(filesystem::path(out_dir))) {
-        std::cout << "Error creating directory " << out_dir << std::endl;
-        return 1;
-    }
-
     // ---------------
     // Set World Frame
     // ---------------
@@ -270,8 +254,9 @@ int main(int argc, char* argv[]) {
 
     ChSystemSMC sys;
     sys.SetCollisionSystemType(ChCollisionSystem::Type::BULLET);
-    sys.Set_G_acc(-9.81 * ChWorldFrame::Vertical());
-    sys.SetSolverMaxIterations(150);
+    sys.SetGravitationalAcceleration(-9.81 * ChWorldFrame::Vertical());
+    sys.SetSolverType(ChSolver::Type::BARZILAIBORWEIN);
+    sys.GetSolver()->AsIterative()->SetMaxIterations(150);
     sys.SetMaxPenetrationRecoverySpeed(4.0);
 
     // ------------------
@@ -304,44 +289,61 @@ int main(int argc, char* argv[]) {
     std::cout << "Road width  = " << road_width << std::endl;
     std::cout << std::boolalpha << "Closed loop?  " << path_is_closed << std::endl << std::endl;
 
-    terrain.GetGround()->AddVisualShape(chrono_types::make_shared<ChVisualShapeBox>(geometry::ChBox(1, road_width, 1)),
+    terrain.GetGround()->AddVisualShape(chrono_types::make_shared<ChVisualShapeBox>(ChBox(1, road_width, 1)),
                                         ChFrame<>(init_csys.pos - 0.5 * ChWorldFrame::Vertical(), init_csys.rot));
-
-    path->write(out_dir + "/path.txt");
 
     // ------------------
     // Create the vehicle
     // ------------------
 
+    // Select vehicle model (see VehicleModel.h)
+    auto models = WheeledVehicleModel::List();
+
+    int num_models = (int)models.size();
+    int which = 0;
+    std::cout << "Options:\n";
+    for (int i = 0; i < num_models; i++)
+        std::cout << std::setw(2) << i + 1 << "  " << models[i].second << std::endl;
+    std::cout << "\nSelect vehicle: ";
+    std::cin >> which;
+    std::cout << std::endl;
+    ChClampValue(which, 1, num_models);
+
+    auto vehicle_model = models[which - 1].first;
+
     // Initial location and orientation from CRG terrain (create vehicle 0.5 m above road)
     init_csys.pos += 0.5 * ChWorldFrame::Vertical();
 
-    // Create the HMMWV vehicle, set parameters, and initialize
-    HMMWV_Full hmmwv(&sys);
-    hmmwv.SetContactMethod(ChContactMethod::SMC);
-    hmmwv.SetChassisFixed(false);
-    hmmwv.SetInitPosition(init_csys);
-    hmmwv.SetEngineType(EngineModelType::SHAFTS);
-    hmmwv.SetTransmissionType(TransmissionModelType::AUTOMATIC_SHAFTS);
-    hmmwv.SetDriveType(DrivelineTypeWV::RWD);
-    hmmwv.SetTireType(tire_model);
-    hmmwv.SetTireStepSize(tire_step_size);
-    hmmwv.Initialize();
+    // Create the vehicle model
+    vehicle_model->Create(&sys, init_csys);
+    auto& vehicle = vehicle_model->GetVehicle();
 
-    hmmwv.SetChassisVisualizationType(VisualizationType::PRIMITIVES);
-    hmmwv.SetSuspensionVisualizationType(VisualizationType::PRIMITIVES);
-    hmmwv.SetSteeringVisualizationType(VisualizationType::PRIMITIVES);
-    hmmwv.SetWheelVisualizationType(VisualizationType::NONE);
-    hmmwv.SetTireVisualizationType(VisualizationType::MESH);
+    vehicle.GetSystem()->SetCollisionSystemType(ChCollisionSystem::Type::BULLET);
 
     // --------------------
     // Create driver system
     // --------------------
 
-    MyDriver driver(driver_type, hmmwv.GetVehicle(), path, road_width);
+    MyDriver driver(driver_type, vehicle, path, road_width);
     driver.Initialize();
 
     std::cout << "Driver model: " << driver.GetDriverType() << std::endl << std::endl;
+
+    // ----------------
+    // Output directory
+    // ----------------
+
+    std::string out_dir = GetChronoOutputPath() + "OPENCRG_DEMO";
+    if (!filesystem::create_directory(filesystem::path(out_dir))) {
+        std::cout << "Error creating directory " << out_dir << std::endl;
+        return 1;
+    }
+
+    out_dir = out_dir + "/" + vehicle_model->ModelName();
+    if (!filesystem::create_directory(filesystem::path(out_dir))) {
+        std::cout << "Error creating directory " << out_dir << std::endl;
+        return 1;
+    }
 
     // -------------------------------
     // Create the visualization system
@@ -349,8 +351,11 @@ int main(int argc, char* argv[]) {
 
     auto vis = chrono_types::make_shared<ChWheeledVehicleVisualSystemVSG>();
     vis->SetWindowTitle("OpenCRG Steering");
-    vis->SetChaseCamera(ChVector<>(0.0, 0.0, 1.75), 6.0, 0.5);
-    vis->AttachVehicle(&hmmwv.GetVehicle());
+    vis->SetWindowSize(1200, 800);
+    vis->SetChaseCamera(vehicle_model->TrackPoint(), vehicle_model->CameraDistance(), vehicle_model->CameraHeight());
+    vis->SetLightDirection(1.5 * CH_PI_2, CH_PI_4);
+    vis->SetShadows(true);
+    vis->AttachVehicle(&vehicle);
 
     auto sentinel = chrono_types::make_shared<ChVisualShapeSphere>(0.1);
     auto target = chrono_types::make_shared<ChVisualShapeSphere>(0.1);
@@ -365,7 +370,7 @@ int main(int argc, char* argv[]) {
     // Simulation loop
     // ---------------
 
-    hmmwv.GetVehicle().EnableRealtime(true);
+    vehicle.EnableRealtime(true);
 
     // Number of simulation steps between image outputs
     double render_step_size = 1 / fps;
@@ -376,7 +381,7 @@ int main(int argc, char* argv[]) {
     int render_frame = 0;
 
     while (vis->Run()) {
-        double time = hmmwv.GetSystem()->GetChTime();
+        double time = vehicle.GetSystem()->GetChTime();
 
         // Driver inputs
         DriverInputs driver_inputs = driver.GetInputs();
@@ -392,8 +397,8 @@ int main(int argc, char* argv[]) {
             if (output_images) {
                 char filename[200];
                 int nstr = sizeof(filename) - 1;
-                    snprintf(filename, nstr, "%s/image_%05d.png", out_dir.c_str(), render_frame);
-                    vis->WriteImageToFile(filename);
+                snprintf(filename, nstr, "%s/image_%05d.png", out_dir.c_str(), render_frame);
+                vis->WriteImageToFile(filename);
                 render_frame++;
             }
         }
@@ -401,13 +406,13 @@ int main(int argc, char* argv[]) {
         // Update modules (process inputs from other modules)
         driver.Synchronize(time);
         terrain.Synchronize(time);
-        hmmwv.Synchronize(time, driver_inputs, terrain);
+        vehicle_model->Synchronize(time, driver_inputs, terrain);
         vis->Synchronize(time, driver_inputs);
 
         // Advance simulation for one timestep for all modules
         driver.Advance(step_size);
         terrain.Advance(step_size);
-        hmmwv.Advance(step_size);
+        vehicle_model->Advance(step_size);
         vis->Advance(step_size);
         sys.DoStepDynamics(step_size);
 

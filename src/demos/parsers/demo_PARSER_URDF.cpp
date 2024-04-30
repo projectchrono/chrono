@@ -49,13 +49,13 @@ int main(int argc, char* argv[]) {
 
     // Create a Chrono system
     ChSystemSMC sys;
-    sys.Set_G_acc(ChVector<>(0, 0, -9.8));
+    sys.SetGravitationalAcceleration(ChVector3d(0, 0, -9.8));
 
     // Create a "floor" body
     auto floor = chrono_types::make_shared<ChBody>();
-    floor->SetBodyFixed(true);
-    auto floor_box = chrono_types::make_shared<ChVisualShapeBox>(3, 2, 0.1);
-    floor_box->SetTexture(GetChronoDataFile("textures/checker2.png"));
+    floor->SetFixed(true);
+    auto floor_box = chrono_types::make_shared<ChVisualShapeBox>(3, 3, 0.1);
+    floor_box->SetTexture(GetChronoDataFile("textures/checker2.png"), 1, 1);
     floor->AddVisualShape(floor_box);
     sys.AddBody(floor);
 
@@ -63,7 +63,7 @@ int main(int argc, char* argv[]) {
     ChParserURDF parser(GetChronoDataFile(filename));
 
     // Set root body pose
-    parser.SetRootInitPose(ChFrame<>(ChVector<>(0, 0, 1.5), QUNIT));
+    parser.SetRootInitPose(ChFrame<>(ChVector3d(0, 0, 1.5), QUNIT));
 
     // Make all eligible joints as actuated
     parser.SetAllJointsActuationType(ChParserURDF::ActuationType::POSITION);
@@ -91,7 +91,7 @@ int main(int argc, char* argv[]) {
     // Optional custom processing
     std::cout << "\nCustom processing example - scan elements \"link\"\n" << std::endl;
     class MyCustomProcessor : public ChParserURDF::CustomProcessor {
-        virtual void Process(const tinyxml2::XMLElement& element, ChSystem& system) override {
+        virtual void Process(tinyxml2::XMLElement& element, ChSystem& system) override {
             std::cout << "Process element: " << element.Name() << std::endl;
             if (element.FirstChildElement()) {
                 std::cout << "   First child name: " << element.FirstChildElement()->Name() << std::endl;
@@ -105,10 +105,10 @@ int main(int argc, char* argv[]) {
     auto root_loc = parser.GetRootChBody()->GetPos();
 
     // Fix root body
-    parser.GetRootChBody()->SetBodyFixed(true);
+    parser.GetRootChBody()->SetFixed(true);
 
     // Example: Change actuation function for a particular joint
-    auto sfun = chrono_types::make_shared<ChFunction_Sine>(0, 0.2, 1.0);
+    auto sfun = chrono_types::make_shared<ChFunctionSine>(1.0, 0.2);
     parser.SetMotorFunction("head_swivel", sfun);  // hardcoded for R2D2 model
 
     // Create the visualization window
@@ -133,7 +133,7 @@ int main(int argc, char* argv[]) {
             vis_irr->Initialize();
             vis_irr->AddLogo();
             vis_irr->AddSkyBox();
-            vis_irr->AddCamera(root_loc + ChVector<>(3, 3, 0), root_loc);
+            vis_irr->AddCamera(root_loc + ChVector3d(3, 3, 0), root_loc);
             vis_irr->AddTypicalLights();
 
             vis = vis_irr;
@@ -147,14 +147,15 @@ int main(int argc, char* argv[]) {
             vis_vsg->AttachSystem(&sys);
             vis_vsg->SetCameraVertical(CameraVerticalDir::Z);
             vis_vsg->SetWindowTitle("URDF parser demo");
-            vis_vsg->AddCamera(root_loc + ChVector<>(3, 3, 0), root_loc);
-            vis_vsg->SetWindowSize(ChVector2<int>(1200, 800));
-            vis_vsg->SetWindowPosition(ChVector2<int>(500, 100));
+            vis_vsg->AddCamera(root_loc + ChVector3d(3, 3, 0), root_loc);
+            vis_vsg->SetWindowSize(ChVector2i(1200, 800));
+            vis_vsg->SetWindowPosition(ChVector2i(500, 100));
             vis_vsg->SetClearColor(ChColor(0.455f, 0.525f, 0.640f));
             vis_vsg->SetUseSkyBox(false);
             vis_vsg->SetCameraAngleDeg(40.0);
             vis_vsg->SetLightIntensity(1.0f);
-            vis_vsg->SetLightDirection(1.5 * CH_C_PI_2, CH_C_PI_4);
+            vis_vsg->SetLightDirection(1.5 * CH_PI_2, CH_PI_4);
+            vis_vsg->SetShadows(true);
             vis_vsg->SetWireFrameMode(false);
             vis_vsg->Initialize();
 

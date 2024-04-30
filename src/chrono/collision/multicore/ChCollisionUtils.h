@@ -34,7 +34,7 @@ namespace chrono {
 /// @{
 
 /// Utilities for Chrono multicore collision detection
-namespace ch_utils {
+namespace mc_utils {
 
 // =============================================================================
 
@@ -774,7 +774,7 @@ ChApi int box_intersects_triangle(const real3& hdims,
 
 /// @}
 
-}  // end namespace ch_utils
+}  // end namespace mc_utils
 
 /// @} collision_mc
 

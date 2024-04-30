@@ -22,7 +22,6 @@
 #include "chrono_vehicle/tracked_vehicle/ChTrackedVehicle.h"
 #include "chrono_vehicle/tracked_vehicle/test_rig/ChTrackTestRig.h"
 
-
 namespace chrono {
 namespace vehicle {
 
@@ -110,7 +109,7 @@ void ChTrackContactManager::Process(ChTrackedVehicle* vehicle) {
             }
 
             for (const auto& c : m_sprocket_L_contacts) {
-                m_csv << m_sprocket_L->GetGearBody()->TransformPointParentToLocal(c.m_point);            
+                m_csv << m_sprocket_L->GetGearBody()->TransformPointParentToLocal(c.m_point);
             }
 
             // Right sprocket contact points
@@ -165,7 +164,7 @@ void ChTrackContactManager::Process(ChTrackTestRig* rig) {
             if (rig->GetTrackAssembly()->GetNumTrackShoes() > m_shoe_index_R) {
                 m_shoe_R = rig->GetTrackAssembly()->GetTrackShoe(m_shoe_index_R);
             }
-            m_idler_R = rig->GetTrackAssembly()->GetIdler();        
+            m_idler_R = rig->GetTrackAssembly()->GetIdler();
         }
 
         m_initialized = true;
@@ -186,7 +185,7 @@ void ChTrackContactManager::Process(ChTrackTestRig* rig) {
         // Clear any flags related to the left side
         m_flags = m_flags & (~TrackedCollisionFlag::SPROCKET_LEFT) & (~TrackedCollisionFlag::IDLER_LEFT) &
                   (~TrackedCollisionFlag::WHEELS_LEFT) & (~TrackedCollisionFlag::SHOES_LEFT) &
-                  (~TrackedCollisionFlag::ROLLERS_LEFT);    
+                  (~TrackedCollisionFlag::ROLLERS_LEFT);
     }
 
     // Clear lists
@@ -300,15 +299,15 @@ bool ChTrackContactManager::InContact(TrackedCollisionFlag::Enum part) const {
 
 // -----------------------------------------------------------------------------
 
-ChVector<> ChTrackContactManager::GetSprocketResistiveTorque(VehicleSide side) const {
+ChVector3d ChTrackContactManager::GetSprocketResistiveTorque(VehicleSide side) const {
     const auto& contacts = (side == VehicleSide::LEFT) ? m_sprocket_L_contacts : m_sprocket_R_contacts;
     const auto& spoint =
         (side == VehicleSide::LEFT) ? m_sprocket_L->GetGearBody()->GetPos() : m_sprocket_R->GetGearBody()->GetPos();
 
-    ChVector<> torque(0);
+    ChVector3d torque(0);
     for (auto& c : contacts) {
-        ChVector<> F = c.m_csys * c.m_force;
-        ChVector<> T = c.m_csys * c.m_torque;
+        ChVector3d F = c.m_csys * c.m_force;
+        ChVector3d T = c.m_csys * c.m_torque;
         torque += (c.m_point - spoint).Cross(F) + T;
     }
 
@@ -317,13 +316,13 @@ ChVector<> ChTrackContactManager::GetSprocketResistiveTorque(VehicleSide side) c
 
 // -----------------------------------------------------------------------------
 
-bool ChTrackContactManager::OnReportContact(const ChVector<>& pA,
-                                            const ChVector<>& pB,
+bool ChTrackContactManager::OnReportContact(const ChVector3d& pA,
+                                            const ChVector3d& pB,
                                             const ChMatrix33<>& plane_coord,
                                             const double& distance,
                                             const double& eff_radius,
-                                            const ChVector<>& react_forces,
-                                            const ChVector<>& react_torques,
+                                            const ChVector3d& react_forces,
+                                            const ChVector3d& react_torques,
                                             ChContactable* modA,
                                             ChContactable* modB) {
     ContactInfo info;
@@ -461,7 +460,7 @@ bool ChTrackContactManager::OnReportContact(const ChVector<>& pA,
 
 void ChTrackContactManager::WriteContacts(const std::string& filename) {
     if (m_collect && m_flags != 0)
-        m_csv.write_to_file(filename);
+        m_csv.WriteToFile(filename);
 }
 
 // -----------------------------------------------------------------------------
@@ -486,9 +485,9 @@ bool ChTrackCollisionManager::OnNarrowphase(ChCollisionInfo& contactinfo) {
         return true;
 
     // Body B is a track shoe body
-    if (bodyB->GetIdentifier() == BodyID::SHOE_BODY) {
+    if (bodyB->GetTag() == TrackedVehicleBodyTag::SHOE_BODY) {
         auto nrm = bodyA->TransformDirectionParentToLocal(contactinfo.vN);  // Express collision normal in body A frame
-        auto id = bodyA->GetIdentifier();                                   // body A identifier
+        auto tag = bodyA->GetTag();                                         // body A tag
 
         // Identify "lateral" contacts (assumed to be with a guiding pin) and let Chrono generate contacts
         if (std::abs(nrm.y()) > nrm_threshold) {
@@ -498,46 +497,46 @@ bool ChTrackCollisionManager::OnNarrowphase(ChCollisionInfo& contactinfo) {
         // Intercept and cache collisions between wheels and shoe or ground and shoe.
         // (note that no collisions with sprocket are generated anyway)
         // Do not generate Chrono contact for such collisions.
-        if (m_idler_shoe && id == BodyID::IDLER_BODY) {
+        if (m_idler_shoe && tag == TrackedVehicleBodyTag::IDLER_BODY) {
             m_collisions_idler.push_back(contactinfo);
             return false;
         }
-        if (m_wheel_shoe && id == BodyID::WHEEL_BODY) {
+        if (m_wheel_shoe && tag == TrackedVehicleBodyTag::WHEEL_BODY) {
             m_collisions_wheel.push_back(contactinfo);
             return false;
         }
-        if (m_ground_shoe && id != BodyID::IDLER_BODY && id != BodyID::WHEEL_BODY) {
+        if (m_ground_shoe && tag != TrackedVehicleBodyTag::IDLER_BODY && tag != TrackedVehicleBodyTag::WHEEL_BODY) {
             m_collisions_ground.push_back(contactinfo);
             return false;
         }
     }
 
     // Body A is a track shoe body
-    if (bodyA->GetIdentifier() == BodyID::SHOE_BODY) {
-        auto nrm = bodyB->TransformDirectionParentToLocal(contactinfo.vN); // Express collision normal in body B frame
-        auto id = bodyB->GetIdentifier();                                   // body A identifier
+    if (bodyA->GetTag() == TrackedVehicleBodyTag::SHOE_BODY) {
+        auto nrm = bodyB->TransformDirectionParentToLocal(contactinfo.vN);  // Express collision normal in body B frame
+        auto tag = bodyB->GetTag();                                         // body B tag
 
         // Identify "lateral" contacts (assumed to be with a guiding pin) and let Chrono generate contacts
         if (std::abs(nrm.y()) > nrm_threshold) {
             return true;
         }
- 
+
         // Intercept and cache collisions between wheels and shoe or ground and shoe.
         // (note that no collisions with sprocket are generated anyway)
         // Do not generate Chrono contact for such collisions.
-        if (m_idler_shoe && id == BodyID::IDLER_BODY) {
-                auto contactinfoS = contactinfo;
-                contactinfoS.SwapModels();
-                m_collisions_idler.push_back(contactinfoS);
-                return false;
+        if (m_idler_shoe && tag == TrackedVehicleBodyTag::IDLER_BODY) {
+            auto contactinfoS = contactinfo;
+            contactinfoS.SwapModels();
+            m_collisions_idler.push_back(contactinfoS);
+            return false;
         }
-        if (m_wheel_shoe && id == BodyID::WHEEL_BODY) {
-                auto contactinfoS = contactinfo;
-                contactinfoS.SwapModels();
-                m_collisions_wheel.push_back(contactinfoS);
-                return false;
+        if (m_wheel_shoe && tag == TrackedVehicleBodyTag::WHEEL_BODY) {
+            auto contactinfoS = contactinfo;
+            contactinfoS.SwapModels();
+            m_collisions_wheel.push_back(contactinfoS);
+            return false;
         }
-        if (m_ground_shoe && id != BodyID::IDLER_BODY && id != BodyID::WHEEL_BODY) {
+        if (m_ground_shoe && tag != TrackedVehicleBodyTag::IDLER_BODY && tag != TrackedVehicleBodyTag::WHEEL_BODY) {
             auto contactinfoS = contactinfo;
             contactinfoS.SwapModels();
             m_collisions_ground.push_back(contactinfoS);
@@ -545,7 +544,7 @@ bool ChTrackCollisionManager::OnNarrowphase(ChCollisionInfo& contactinfo) {
         }
     }
 
-    // Let Chrono generate contact for any other collision 
+    // Let Chrono generate contact for any other collision
     return true;
 }
 
@@ -555,7 +554,7 @@ void ChTrackCustomContact::Setup() {
     // Calculate contact forces for all current wheel-shoe collisions, calling the user-supplied callback
     ApplyForces();
 
-    // Perform a full update of the load container 
+    // Perform a full update of the load container
     ChLoadContainer::Update(ChTime, false);
 }
 
@@ -575,7 +574,7 @@ void ChTrackCustomContact::ApplyForces() {
     ////std::cout << "Wheel-shoe collisions:  " << m_collision_manager->m_collisions_wheel.size() << std::endl;
     ////std::cout << "Ground-shoe collisions: " << m_collision_manager->m_collisions_ground.size() << std::endl;
 
-    ChVector<> force_shoe;
+    ChVector3d force_shoe;
 
     if (OverridesIdlerContact()) {
         for (auto& cInfo : m_collision_manager->m_collisions_idler) {
@@ -614,7 +613,7 @@ void ChTrackCustomContact::ApplyForces() {
             ComputeGroundContactForce(cInfo, ground_body, shoe_body, force_shoe);
 
             // Apply equal and opposite forces on the two bodies (ground and track shoe) in contact
-            if (!ground_body->GetBodyFixed()) {
+            if (!ground_body->IsFixed()) {
                 Add(chrono_types::make_shared<ChLoadBodyForce>(ground_body, -force_shoe, false, cInfo.vpA, false));
             }
             Add(chrono_types::make_shared<ChLoadBodyForce>(shoe_body, +force_shoe, false, cInfo.vpB, false));

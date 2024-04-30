@@ -64,7 +64,7 @@ class ChApi ChIterativeSolver {
     ChIterativeSolver(int max_iterations, double tolerance, bool use_precond, bool warm_start);
 
     // Debugging utilities
-    void SaveMatrix(ChSystemDescriptor& sysd);
+    void WriteMatrices(ChSystemDescriptor& sysd, bool one_indexed = true);
     double CheckSolution(ChSystemDescriptor& sysd, const ChVectorDynamic<>& x);
 
     bool m_use_precond;    ///< use diagonal preconditioning?

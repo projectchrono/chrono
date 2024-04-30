@@ -16,17 +16,13 @@
 #include <algorithm>
 
 #include "chrono/core/ChGlobal.h"
-#include "chrono/core/ChTransform.h"
 #include "chrono/physics/ChIndexedParticles.h"
 #include "chrono/physics/ChSystem.h"
 
 namespace chrono {
 
-using namespace geometry;
-
 // Register into the object factory, to enable run-time  dynamic creation and persistence
 // CH_FACTORY_REGISTER(ChIndexedParticles)  // NO! abstract class!
-
 
 // Base class for particles
 
@@ -42,28 +38,28 @@ ChParticleBase& ChParticleBase::operator=(const ChParticleBase& other) {
 
 /// Base class for particle clusters
 
-ChFrame<> ChIndexedParticles::GetVisualModelFrame(unsigned int nclone) {
+ChFrame<> ChIndexedParticles::GetVisualModelFrame(unsigned int nclone) const {
     ChFrame<> res;
-    res = GetParticle(nclone);
+    res = Particle(nclone);
     return res;
 }
 
-void ChIndexedParticles::ArchiveOut(ChArchiveOut& marchive) {
+void ChIndexedParticles::ArchiveOut(ChArchiveOut& archive_out) {
     // class version number
-    marchive.VersionWrite<ChIndexedParticles>();
+    archive_out.VersionWrite<ChIndexedParticles>();
 
     // serialize parent class too
-    ChPhysicsItem::ArchiveOut(marchive);
+    ChPhysicsItem::ArchiveOut(archive_out);
 
     // stream out all member data
 }
 
-void ChIndexedParticles::ArchiveIn(ChArchiveIn& marchive) {
+void ChIndexedParticles::ArchiveIn(ChArchiveIn& archive_in) {
     // class version number
-    /*int version =*/ marchive.VersionRead<ChIndexedParticles>();
+    /*int version =*/archive_in.VersionRead<ChIndexedParticles>();
 
     // deserialize parent class too
-    ChPhysicsItem::ArchiveIn(marchive);
+    ChPhysicsItem::ArchiveIn(archive_in);
 
     // stream in all member data
 }

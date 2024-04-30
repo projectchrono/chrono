@@ -46,11 +46,11 @@ class CohesionTest : public ::testing::TestWithParam<ChSystemSMC::ContactForceMo
         if (fmodel == ChSystemSMC::ContactForceModel::Flores)
             cor_in = 0.1f;
 
-        auto mat = chrono_types::make_shared<ChMaterialSurfaceSMC>();
+        auto mat = chrono_types::make_shared<ChContactMaterialSMC>();
         mat->SetYoungModulus(y_modulus);
         mat->SetPoissonRatio(p_ratio);
-        mat->SetSfriction(s_frict);
-        mat->SetKfriction(k_frict);
+        mat->SetStaticFriction(s_frict);
+        mat->SetSlidingFriction(k_frict);
         mat->SetRollingFriction(roll_frict);
         mat->SetSpinningFriction(spin_frict);
         mat->SetRestitution(cor_in);
@@ -60,21 +60,20 @@ class CohesionTest : public ::testing::TestWithParam<ChSystemSMC::ContactForceMo
 
         // Create a multicore SMC system and set the system parameters
         sys = new ChSystemMulticoreSMC();
-        
 
         time_step = 3.0E-5;
-        SetSimParameters(sys, ChVector<>(0, 0, 0), fmodel);
+        SetSimParameters(sys, ChVector3d(0, 0, 0), fmodel);
 
         sys->SetNumThreads(2);
 
         // Add the sphere to the system
         srad = 0.5;
         double smass = 1.0;
-        ChVector<> spos(0, srad + 1e-2, 0);
-        ChVector<> init_v(0, -0.1, 0);
+        ChVector3d spos(0, srad + 1e-2, 0);
+        ChVector3d init_v(0, -0.1, 0);
 
-        body1 = AddSphere(0, sys, mat, srad, smass, spos, init_v);
-        body2 = AddSphere(1, sys, mat, srad, smass, spos * -1, init_v * -1);
+        body1 = AddSphere(sys, mat, srad, smass, spos, init_v);
+        body2 = AddSphere(sys, mat, srad, smass, spos * -1, init_v * -1);
 
         // Let the block settle of the plate before giving it a push
         double t_end = 1;
@@ -100,10 +99,10 @@ class CohesionTest : public ::testing::TestWithParam<ChSystemSMC::ContactForceMo
 
 TEST_P(CohesionTest, stick) {
     // Fix body1
-    body1->SetBodyFixed(true);
+    body1->SetFixed(true);
 
     // Set gravitational acceleration below cohesion value
-    sys->Set_G_acc(ChVector<>(0, -(ad - 2), 0));
+    sys->SetGravitationalAcceleration(ChVector3d(0, -(ad - 2), 0));
 
     double t_end = sys->GetChTime() + 0.5;
     while (sys->GetChTime() < t_end) {
@@ -118,10 +117,10 @@ TEST_P(CohesionTest, stick) {
 
 TEST_P(CohesionTest, detach) {
     // Fix body1
-    body1->SetBodyFixed(true);
+    body1->SetFixed(true);
 
     // Set gravitational acceleration at (or above) cohesion value
-    sys->Set_G_acc(ChVector<>(0, -(ad + 0.1), 0));
+    sys->SetGravitationalAcceleration(ChVector3d(0, -(ad + 0.1), 0));
 
     double time_sim = sys->GetChTime() + 0.5;
     while (sys->GetChTime() < time_sim) {

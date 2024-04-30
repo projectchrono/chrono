@@ -38,15 +38,15 @@ TEST(gpuStack, check) {
     float precision_KE = 1e-5f;
     float precision_pos = 1e-2f;
 
-    float mass = 4.f / 3.f * (float)CH_C_PI * pow(radius, 3.f) * density;
+    float mass = 4.f / 3.f * (float)CH_PI * pow(radius, 3.f) * density;
     float penetration = pow(mass * abs(-g) / 1e7f, 2.f / 3.f);
 
     float inertia = 2.f / 5.f * mass * pow(radius, 2.f);
     float settled_pos = -100.f / 2.0f + radius - penetration;
 
     // Setup simulation
-    ChSystemGpu gpu_sys(radius, density, ChVector<float>(100.f, 100.f, 100.f));
-    gpu_sys.SetGravitationalAcceleration(ChVector<>(0, 0, -g));
+    ChSystemGpu gpu_sys(radius, density, ChVector3f(100.f, 100.f, 100.f));
+    gpu_sys.SetGravitationalAcceleration(ChVector3d(0, 0, -g));
     gpu_sys.SetFrictionMode(CHGPU_FRICTION_MODE::MULTI_STEP);
     gpu_sys.SetTimeIntegrator(CHGPU_TIME_INTEGRATOR::CHUNG);
 
@@ -72,11 +72,11 @@ TEST(gpuStack, check) {
     gpu_sys.SetPsiFactors(32, 16);
 
     // set up balls for simulation
-    std::vector<ChVector<float>> body_points;
-    std::vector<ChVector<float>> velocity;
+    std::vector<ChVector3f> body_points;
+    std::vector<ChVector3f> velocity;
     for (int i = 0; i < 5; i++) {
-        body_points.push_back(ChVector<float>(0.f, 0.f, settled_pos + radius * 3.f * i));
-        velocity.push_back(ChVector<float>(0.0f, 0.0f, 0.0f));
+        body_points.push_back(ChVector3f(0.f, 0.f, settled_pos + radius * 3.f * i));
+        velocity.push_back(ChVector3f(0.0f, 0.0f, 0.0f));
     }
 
     gpu_sys.SetParticles(body_points, velocity);

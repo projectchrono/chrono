@@ -19,8 +19,6 @@
 //
 // =============================================================================
 
-#include "chrono/core/ChLog.h"
-
 #include "chrono_cosimulation/ChCosimulation.h"
 
 using namespace chrono;
@@ -28,12 +26,11 @@ using namespace chrono::utils;
 using namespace chrono::cosimul;
 
 int main(int argc, char* argv[]) {
-    GetLog() << "Copyright (c) 2017 projectchrono.org\nChrono version: " << CHRONO_VERSION << "\n\n";
+    std::cout << "Copyright (c) 2017 projectchrono.org\n"
+              << "Chrono version: " << CHRONO_VERSION << std::endl;
 
-    // To write something to the console, use the chrono::GetLog()
-
-    GetLog() << "CHRONO demo about cosimulation \n\n";
-    GetLog() << "NOTE! This requires that you also run a copy of Simulink. \n\n";
+    std::cout << "CHRONO demo about cosimulation\n" << std::endl;
+    std::cout << "NOTE! This requires that you also run a copy of Simulink.\n" << std::endl;
 
     try {
         // Create a cosimulation interface and exchange some data with Simulink.
@@ -53,8 +50,9 @@ int main(int argc, char* argv[]) {
                                          2);  // num. output values to Simulink
 
         // 3) Wait client (Simulink) to connect...
-        GetLog() << " *** Waiting Simulink to start... *** \n     (load 'data/cosimulation/test_cosimulation.mdl' in "
-                    "Simulink and press Start...)\n\n";
+        std::cout << " *** Waiting Simulink to start... ***\n"
+                  << "(load 'data/cosimulation/test_cosimulation.mdl' in Simulink and press Start...)\n"
+                  << std::endl;
 
         cosimul_interface.WaitConnection(PORT_NUMBER);
 
@@ -72,11 +70,11 @@ int main(int argc, char* argv[]) {
             data_out(0) = 0.1 * data_in(0) + 0.4 * data_in(1) + 0.1 * data_in(2);
             data_out(1) = 1.0 - data_in(1);
 
-            GetLog() << "--- synchronization at time: " << mytime << "\n\n";
+            std::cout << "--- synchronization at time: " << mytime << std::endl << std::endl;
             std::cout << data_in << std::endl;
         }
-    } catch (ChExceptionSocket exception) {
-        GetLog() << " ERRROR with socket system: \n" << exception.what() << "\n";
+    } catch (std::exception exception) {
+        std::cerr << " ERRROR with socket system:\n" << exception.what() << std::endl;
     }
 
     return 0;

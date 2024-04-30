@@ -98,16 +98,16 @@ int main(int argc, char* argv[]) {
 
     bool passBending = BendingQuasiStatic(FileInputBend);
     if (passBending)
-        GetLog() << "Passed\n";
+        std::cout << "Passed\n";
     bool passSwinging = SwingingShell(FileInputMat);
     if (passSwinging)
-        GetLog() << "Passed\n";
+        std::cout << "Passed\n";
     bool passJ2 = J2Plastic(FileInputJ2);
     if (passJ2)
-        GetLog() << "Passed\n";
+        std::cout << "Passed\n";
     bool passDP = DruckerPragerPlastic(FileInputDP);
     if (passDP)
-        GetLog() << "Passed\n";
+        std::cout << "Passed\n";
 
     if (passBending && passSwinging && passJ2 && passDP) {
         return 0;
@@ -120,15 +120,15 @@ int main(int argc, char* argv[]) {
 bool BendingQuasiStatic(ChMatrixDynamic<> FileInputMat) {
     FILE* outputfile = nullptr;
     ChSystemNSC sys;
-    sys.Set_G_acc(ChVector<>(0, 0, -9.81));
+    sys.SetGravitationalAcceleration(ChVector3d(0, 0, -9.81));
     double time_step = 1e-3;
     bool genRefFile = false;
     double precision = 1e-3;  // Precision for unit test
 
-    GetLog() << "-----------------------------------------------------------\n";
-    GetLog() << "-----------------------------------------------------------\n";
-    GetLog() << "  9-Node, Large Deformation Brick Element: Bending Problem \n";
-    GetLog() << "-----------------------------------------------------------\n";
+    std::cout << "-----------------------------------------------------------\n";
+    std::cout << "-----------------------------------------------------------\n";
+    std::cout << "  9-Node, Large Deformation Brick Element: Bending Problem \n";
+    std::cout << "-----------------------------------------------------------\n";
 
     // Create a mesh, that is a container for groups of elements and their referenced nodes.
     auto my_mesh = chrono_types::make_shared<ChMesh>();
@@ -159,7 +159,7 @@ bool BendingQuasiStatic(ChMatrixDynamic<> FileInputMat) {
             double loc_z = j * dz;
 
             // Create the node
-            auto node = chrono_types::make_shared<ChNodeFEAxyz>(ChVector<>(loc_x, loc_y, loc_z));
+            auto node = chrono_types::make_shared<ChNodeFEAxyz>(ChVector3d(loc_x, loc_y, loc_z));
             node->SetMass(0);
 
             // Fix all nodes along the axis X=0
@@ -172,8 +172,8 @@ bool BendingQuasiStatic(ChMatrixDynamic<> FileInputMat) {
     }
 
     for (int i = 0; i < TotalNumElements; i++) {
-        auto node = chrono_types::make_shared<ChNodeFEAcurv>(ChVector<>(0.0, 0.0, 0.0), ChVector<>(0.0, 0.0, 0.0),
-                                                             ChVector<>(0.0, 0.0, 0.0));
+        auto node = chrono_types::make_shared<ChNodeFEAcurv>(ChVector3d(0.0, 0.0, 0.0), ChVector3d(0.0, 0.0, 0.0),
+                                                             ChVector3d(0.0, 0.0, 0.0));
         node->SetMass(0);
         my_mesh->AddNode(node);
     }
@@ -183,16 +183,15 @@ bool BendingQuasiStatic(ChMatrixDynamic<> FileInputMat) {
 
     // All layers for all elements share the same material.
     double rho = 500;
-    ChVector<> E(2.1e8, 2.1e8, 2.1e8);
-    ChVector<> nu(0.3, 0.3, 0.3);
-    ChVector<> G(8.0769231e7, 8.0769231e7, 8.0769231e7);
+    ChVector3d E(2.1e8, 2.1e8, 2.1e8);
+    ChVector3d nu(0.3, 0.3, 0.3);
+    ChVector3d G(8.0769231e7, 8.0769231e7, 8.0769231e7);
     auto material = chrono_types::make_shared<ChContinuumElastic>();
-    material->Set_RayleighDampingK(0.0);
-    material->Set_RayleighDampingM(0.0);
-    material->Set_density(rho);
-    material->Set_E(E.x());
-    material->Set_G(G.x());
-    material->Set_v(nu.x());
+    material->SetRayleighDampingBeta(0.0);
+    material->SetRayleighDampingAlpha(0.0);
+    material->SetDensity(rho);
+    material->SetYoungModulus(E.x());
+    material->SetPoissonRatio(nu.x());
 
     // Create the elements
     for (int i = 0; i < TotalNumElements; i++) {
@@ -220,7 +219,7 @@ bool BendingQuasiStatic(ChMatrixDynamic<> FileInputMat) {
                           std::dynamic_pointer_cast<ChNodeFEAcurv>(my_mesh->GetNode(node8)));
 
         // Set element dimensions
-        element->SetDimensions(ChVector<>(dx, dy, dz));
+        element->SetDimensions(ChVector3d(dx, dy, dz));
 
         // Add a single layers with a fiber angle of 0 degrees.
         element->SetMaterial(material);
@@ -238,7 +237,7 @@ bool BendingQuasiStatic(ChMatrixDynamic<> FileInputMat) {
     // Add the mesh to the system
     sys.Add(my_mesh);
 
-    sys.Set_G_acc(ChVector<>(0.0, 0.0, 0.0));
+    sys.SetGravitationalAcceleration(ChVector3d(0.0, 0.0, 0.0));
 
     // Set up solver
     auto solver = chrono_types::make_shared<ChSolverMINRES>();
@@ -252,14 +251,14 @@ bool BendingQuasiStatic(ChMatrixDynamic<> FileInputMat) {
     sys.SetTimestepperType(ChTimestepper::Type::HHT);
     auto mystepper = std::dynamic_pointer_cast<ChTimestepperHHT>(sys.GetTimestepper());
     mystepper->SetAlpha(-0.2);
-    mystepper->SetMaxiters(20);
+    mystepper->SetMaxIters(20);
     mystepper->SetAbsTolerances(1e-3, 1e-1);
     mystepper->SetVerbose(false);
     sys.Setup();
     sys.Update();
 
     double force1 = -50;
-    nodetip->SetForce(ChVector<>(0.0, 0.0, force1));
+    nodetip->SetForce(ChVector3d(0.0, 0.0, force1));
 
     if (genRefFile) {
         outputfile = fopen("UT_QuasiBendingBrick9.txt", "w");
@@ -274,9 +273,9 @@ bool BendingQuasiStatic(ChMatrixDynamic<> FileInputMat) {
 
     while (sys.GetChTime() < 0.02) {
         if (sys.GetChTime() <= 1.0)
-            nodetip->SetForce(ChVector<>(0.0, 0.0, force1 * sys.GetChTime()));
+            nodetip->SetForce(ChVector3d(0.0, 0.0, force1 * sys.GetChTime()));
         else
-            nodetip->SetForce(ChVector<>(0.0, 0.0, force1));
+            nodetip->SetForce(ChVector3d(0.0, 0.0, force1));
 
         sys.DoStepDynamics(time_step);
         it++;
@@ -292,7 +291,6 @@ bool BendingQuasiStatic(ChMatrixDynamic<> FileInputMat) {
             RelVal2 = std::abs(nodetip->pos.y() - FileInputMat(it, 2)) / std::abs(FileInputMat(it, 2));
             RelVal3 = std::abs(nodetip->pos.z() - FileInputMat(it, 3)) / std::abs(FileInputMat(it, 3));
             RelVal = RelVal1 + RelVal2 + RelVal3;
-            // GetLog() << RelVal1 << RelVal2 << RelVal3 << RelVal << "\n";
             if (RelVal > precision) {
                 std::cout << "Unit test check failed \n";
                 return false;
@@ -309,12 +307,12 @@ bool SwingingShell(ChMatrixDynamic<> FileInputMat) {
     double precision = 1e-3;  // Precision for test
     bool genRefFile = false;
     ChSystemNSC sys;
-    sys.Set_G_acc(ChVector<>(0, 0, 0));
+    sys.SetGravitationalAcceleration(ChVector3d(0, 0, 0));
 
-    GetLog() << "--------------------------------------------------------------------\n";
-    GetLog() << "--------------------------------------------------------------------\n";
-    GetLog() << " 9-Node, Large Deformation Brick Element: Swinging (Bricked) Shell  \n";
-    GetLog() << "--------------------------------------------------------------------\n";
+    std::cout << "--------------------------------------------------------------------\n";
+    std::cout << "--------------------------------------------------------------------\n";
+    std::cout << " 9-Node, Large Deformation Brick Element: Swinging (Bricked) Shell  \n";
+    std::cout << "--------------------------------------------------------------------\n";
 
     // Create a mesh, that is a container for groups of elements and their referenced nodes.
     auto my_mesh = chrono_types::make_shared<ChMesh>();
@@ -349,7 +347,7 @@ bool SwingingShell(ChMatrixDynamic<> FileInputMat) {
             double loc_z = j * dz;
 
             // Create the node
-            auto node = chrono_types::make_shared<ChNodeFEAxyz>(ChVector<>(loc_x, loc_y, loc_z));
+            auto node = chrono_types::make_shared<ChNodeFEAxyz>(ChVector3d(loc_x, loc_y, loc_z));
             node->SetMass(0);
             // Fix all nodes along the axis X=0
             if (i == 0 && j == 0)
@@ -361,28 +359,27 @@ bool SwingingShell(ChMatrixDynamic<> FileInputMat) {
     }
 
     for (int i = 0; i < TotalNumElements; i++) {
-        auto node = chrono_types::make_shared<ChNodeFEAcurv>(ChVector<>(0.0, 0.0, 0.0), ChVector<>(0.0, 0.0, 0.0),
-                                                             ChVector<>(0.0, 0.0, 0.0));
+        auto node = chrono_types::make_shared<ChNodeFEAcurv>(ChVector3d(0.0, 0.0, 0.0), ChVector3d(0.0, 0.0, 0.0),
+                                                             ChVector3d(0.0, 0.0, 0.0));
         node->SetMass(0);
         my_mesh->AddNode(node);
     }
 
     // Get a handle to the tip node.
     auto nodetip = std::dynamic_pointer_cast<ChNodeFEAxyz>(my_mesh->GetNode(2 * XYNumNodes - 1));
-    nodetip->SetForce(ChVector<>(0.0, 0.0, -0.0));
+    nodetip->SetForce(ChVector3d(0.0, 0.0, -0.0));
 
     // All layers for all elements share the same material.
     double rho = 1000;
-    ChVector<> E(2.1e7, 2.1e7, 2.1e7);
-    ChVector<> nu(0.3, 0.3, 0.3);
-    ChVector<> G(8.0769231e6, 8.0769231e6, 8.0769231e6);
+    ChVector3d E(2.1e7, 2.1e7, 2.1e7);
+    ChVector3d nu(0.3, 0.3, 0.3);
+    ChVector3d G(8.0769231e6, 8.0769231e6, 8.0769231e6);
     auto material = chrono_types::make_shared<ChContinuumElastic>();
-    material->Set_RayleighDampingK(0.0);
-    material->Set_RayleighDampingM(0.0);
-    material->Set_density(rho);
-    material->Set_E(E.x());
-    material->Set_G(G.x());
-    material->Set_v(nu.x());
+    material->SetRayleighDampingBeta(0.0);
+    material->SetRayleighDampingAlpha(0.0);
+    material->SetDensity(rho);
+    material->SetYoungModulus(E.x());
+    material->SetPoissonRatio(nu.x());
 
     // Create the elements
     for (int i = 0; i < TotalNumElements; i++) {
@@ -410,7 +407,7 @@ bool SwingingShell(ChMatrixDynamic<> FileInputMat) {
                           std::dynamic_pointer_cast<ChNodeFEAcurv>(my_mesh->GetNode(node8)));
 
         // Set element dimensions
-        element->SetDimensions(ChVector<>(dx, dy, dz));
+        element->SetDimensions(ChVector3d(dx, dy, dz));
 
         // Add a single layers with a fiber angle of 0 degrees.
         element->SetMaterial(material);
@@ -432,7 +429,7 @@ bool SwingingShell(ChMatrixDynamic<> FileInputMat) {
     // Options for visualization in irrlicht
     // -------------------------------------
 
-    sys.Set_G_acc(ChVector<>(0.0, 0.0, -9.81));
+    sys.SetGravitationalAcceleration(ChVector3d(0.0, 0.0, -9.81));
 
     // ----------------------------------
     // Perform a dynamic time integration
@@ -450,7 +447,7 @@ bool SwingingShell(ChMatrixDynamic<> FileInputMat) {
     sys.SetTimestepperType(ChTimestepper::Type::HHT);
     auto mystepper = std::dynamic_pointer_cast<ChTimestepperHHT>(sys.GetTimestepper());
     mystepper->SetAlpha(-0.2);
-    mystepper->SetMaxiters(20);
+    mystepper->SetMaxIters(20);
     mystepper->SetAbsTolerances(1e-3, 1e-1);
     mystepper->SetVerbose(false);
 
@@ -483,7 +480,6 @@ bool SwingingShell(ChMatrixDynamic<> FileInputMat) {
             RelVal2 = std::abs(nodetip->pos.y() - FileInputMat(it, 2)) / std::abs(FileInputMat(it, 2));
             RelVal3 = std::abs(nodetip->pos.z() - FileInputMat(it, 3)) / std::abs(FileInputMat(it, 3));
             RelVal = RelVal1 + RelVal2 + RelVal3;
-            // GetLog() << RelVal << "\n";
             if (RelVal > precision) {
                 std::cout << "Unit test check failed \n";
                 return false;
@@ -497,15 +493,15 @@ bool SwingingShell(ChMatrixDynamic<> FileInputMat) {
 bool J2Plastic(ChMatrixDynamic<> FileInputMat) {
     FILE* outputfile = nullptr;
     ChSystemNSC sys;
-    sys.Set_G_acc(ChVector<>(0, 0, -9.81));
+    sys.SetGravitationalAcceleration(ChVector3d(0, 0, -9.81));
     double time_step = 1e-4;
     bool genRefFile = false;
     double precision = 1e-4;  // Precision for unit test
 
-    GetLog() << "-----------------------------------------------------------------\n";
-    GetLog() << "-----------------------------------------------------------------\n";
-    GetLog() << "  9-Node, Large Deformation Brick Element: J2 Plasticity Problem \n";
-    GetLog() << "-----------------------------------------------------------------\n";
+    std::cout << "-----------------------------------------------------------------\n";
+    std::cout << "-----------------------------------------------------------------\n";
+    std::cout << "  9-Node, Large Deformation Brick Element: J2 Plasticity Problem \n";
+    std::cout << "-----------------------------------------------------------------\n";
 
     // Create a mesh, that is a container for groups of elements and their referenced nodes.
     auto my_mesh = chrono_types::make_shared<ChMesh>();
@@ -539,7 +535,7 @@ bool J2Plastic(ChMatrixDynamic<> FileInputMat) {
             double loc_z = j * dz;
 
             // Create the node
-            auto node = chrono_types::make_shared<ChNodeFEAxyz>(ChVector<>(loc_x, loc_y, loc_z));
+            auto node = chrono_types::make_shared<ChNodeFEAxyz>(ChVector3d(loc_x, loc_y, loc_z));
             node->SetMass(0);
 
             // Fix all nodes along the axis X=0
@@ -552,8 +548,8 @@ bool J2Plastic(ChMatrixDynamic<> FileInputMat) {
     }
 
     for (int i = 0; i < TotalNumElements; i++) {
-        auto node = chrono_types::make_shared<ChNodeFEAcurv>(ChVector<>(0.0, 0.0, 0.0), ChVector<>(0.0, 0.0, 0.0),
-                                                             ChVector<>(0.0, 0.0, 0.0));
+        auto node = chrono_types::make_shared<ChNodeFEAcurv>(ChVector3d(0.0, 0.0, 0.0), ChVector3d(0.0, 0.0, 0.0),
+                                                             ChVector3d(0.0, 0.0, 0.0));
         node->SetMass(0);
         my_mesh->AddNode(node);
     }
@@ -566,16 +562,15 @@ bool J2Plastic(ChMatrixDynamic<> FileInputMat) {
 
     // All layers for all elements share the same material.
     double rho = 7850.0;
-    ChVector<> E(1.0e7, 1.0e7, 1.0e7);
-    ChVector<> nu(0.3, 0.3, 0.3);
-    ChVector<> G(3.8461538e6, 3.8461538e6, 3.8461538e6);
+    ChVector3d E(1.0e7, 1.0e7, 1.0e7);
+    ChVector3d nu(0.3, 0.3, 0.3);
+    ChVector3d G(3.8461538e6, 3.8461538e6, 3.8461538e6);
     auto material = chrono_types::make_shared<ChContinuumElastic>();
-    material->Set_RayleighDampingK(0.0);
-    material->Set_RayleighDampingM(0.0);
-    material->Set_density(rho);
-    material->Set_E(E.x());
-    material->Set_G(G.x());
-    material->Set_v(nu.x());
+    material->SetRayleighDampingBeta(0.0);
+    material->SetRayleighDampingAlpha(0.0);
+    material->SetDensity(rho);
+    material->SetYoungModulus(E.x());
+    material->SetPoissonRatio(nu.x());
     ChMatrixNM<double, 9, 8> CCPInitial;
     CCPInitial.setZero();
     for (int k = 0; k < 8; k++) {
@@ -609,7 +604,7 @@ bool J2Plastic(ChMatrixDynamic<> FileInputMat) {
                           std::dynamic_pointer_cast<ChNodeFEAcurv>(my_mesh->GetNode(node8)));
 
         // Set element dimensions
-        element->SetDimensions(ChVector<>(dx, dy, dz));
+        element->SetDimensions(ChVector3d(dx, dy, dz));
 
         // Add a single layers with a fiber angle of 0 degrees.
         element->SetMaterial(material);
@@ -631,7 +626,7 @@ bool J2Plastic(ChMatrixDynamic<> FileInputMat) {
     // Add the mesh to the system
     sys.Add(my_mesh);
 
-    sys.Set_G_acc(ChVector<>(0.0, 0.0, 0.0));
+    sys.SetGravitationalAcceleration(ChVector3d(0.0, 0.0, 0.0));
 
     // Set up solver
     auto solver = chrono_types::make_shared<ChSolverMINRES>();
@@ -645,7 +640,7 @@ bool J2Plastic(ChMatrixDynamic<> FileInputMat) {
     sys.SetTimestepperType(ChTimestepper::Type::HHT);
     auto mystepper = std::dynamic_pointer_cast<ChTimestepperHHT>(sys.GetTimestepper());
     mystepper->SetAlpha(0.0);
-    mystepper->SetMaxiters(20);
+    mystepper->SetMaxIters(20);
     mystepper->SetAbsTolerances(1e-8, 1e-1);
     mystepper->SetVerbose(false);
     sys.Setup();
@@ -663,11 +658,11 @@ bool J2Plastic(ChMatrixDynamic<> FileInputMat) {
     double RelVal, RelVal1, RelVal2, RelVal3, force;
 
     while (sys.GetChTime() < 0.005) {
-        force = 75 * std::sin(sys.GetChTime() * CH_C_PI);
-        nodetip1->SetForce(ChVector<>(force, 0.0, 0.0));
-        nodetip2->SetForce(ChVector<>(force, 0.0, 0.0));
-        nodetip3->SetForce(ChVector<>(force, 0.0, 0.0));
-        nodetip4->SetForce(ChVector<>(force, 0.0, 0.0));
+        force = 75 * std::sin(sys.GetChTime() * CH_PI);
+        nodetip1->SetForce(ChVector3d(force, 0.0, 0.0));
+        nodetip2->SetForce(ChVector3d(force, 0.0, 0.0));
+        nodetip3->SetForce(ChVector3d(force, 0.0, 0.0));
+        nodetip4->SetForce(ChVector3d(force, 0.0, 0.0));
 
         sys.DoStepDynamics(time_step);
         it++;
@@ -683,7 +678,6 @@ bool J2Plastic(ChMatrixDynamic<> FileInputMat) {
             RelVal2 = std::abs(nodetip1->pos.y() - FileInputMat(it, 2)) / std::abs(FileInputMat(it, 2));
             RelVal3 = std::abs(nodetip1->pos.z() - FileInputMat(it, 3)) / std::abs(FileInputMat(it, 3));
             RelVal = RelVal1 + RelVal2 + RelVal3;
-            // GetLog() << RelVal1 << RelVal2 << RelVal3 << RelVal << "\n";
             if (RelVal > precision) {
                 std::cout << "Unit test check failed at step " << it  //
                           << "  rel error = " << RelVal               //
@@ -700,15 +694,15 @@ bool J2Plastic(ChMatrixDynamic<> FileInputMat) {
 bool DruckerPragerPlastic(ChMatrixDynamic<> FileInputMat) {
     FILE* outputfile = nullptr;
     ChSystemNSC sys;
-    sys.Set_G_acc(ChVector<>(0, 0, -9.81));
+    sys.SetGravitationalAcceleration(ChVector3d(0, 0, -9.81));
     double time_step = 1e-4;
     bool genRefFile = false;
     double precision = 1e-4;  // Precision for unit test
 
-    GetLog() << "-----------------------------------------------------------------------------\n";
-    GetLog() << "-----------------------------------------------------------------------------\n";
-    GetLog() << "  9-Node, Large Deformation Brick Element: Drucker-Prager Plasticity Problem \n";
-    GetLog() << "-----------------------------------------------------------------------------\n";
+    std::cout << "-----------------------------------------------------------------------------\n";
+    std::cout << "-----------------------------------------------------------------------------\n";
+    std::cout << "  9-Node, Large Deformation Brick Element: Drucker-Prager Plasticity Problem \n";
+    std::cout << "-----------------------------------------------------------------------------\n";
 
     // Create a mesh, that is a container for groups of elements and their referenced nodes.
     auto my_mesh = chrono_types::make_shared<ChMesh>();
@@ -742,7 +736,7 @@ bool DruckerPragerPlastic(ChMatrixDynamic<> FileInputMat) {
             double loc_z = j * dz;
 
             // Create the node
-            auto node = chrono_types::make_shared<ChNodeFEAxyz>(ChVector<>(loc_x, loc_y, loc_z));
+            auto node = chrono_types::make_shared<ChNodeFEAxyz>(ChVector3d(loc_x, loc_y, loc_z));
             node->SetMass(0);
 
             // Fix all nodes along the axis X=0
@@ -755,8 +749,8 @@ bool DruckerPragerPlastic(ChMatrixDynamic<> FileInputMat) {
     }
 
     for (int i = 0; i < TotalNumElements; i++) {
-        auto node = chrono_types::make_shared<ChNodeFEAcurv>(ChVector<>(0.0, 0.0, 0.0), ChVector<>(0.0, 0.0, 0.0),
-                                                             ChVector<>(0.0, 0.0, 0.0));
+        auto node = chrono_types::make_shared<ChNodeFEAcurv>(ChVector3d(0.0, 0.0, 0.0), ChVector3d(0.0, 0.0, 0.0),
+                                                             ChVector3d(0.0, 0.0, 0.0));
         node->SetMass(0);
         my_mesh->AddNode(node);
     }
@@ -769,16 +763,15 @@ bool DruckerPragerPlastic(ChMatrixDynamic<> FileInputMat) {
 
     // All layers for all elements share the same material.
     double rho = 7850.0;
-    ChVector<> E(1.0e7, 1.0e7, 1.0e7);
-    ChVector<> nu(0.3, 0.3, 0.3);
-    ChVector<> G(3.8461538e6, 3.8461538e6, 3.8461538e6);
+    ChVector3d E(1.0e7, 1.0e7, 1.0e7);
+    ChVector3d nu(0.3, 0.3, 0.3);
+    ChVector3d G(3.8461538e6, 3.8461538e6, 3.8461538e6);
     auto material = chrono_types::make_shared<ChContinuumElastic>();
-    material->Set_RayleighDampingK(0.0);
-    material->Set_RayleighDampingM(0.0);
-    material->Set_density(rho);
-    material->Set_E(E.x());
-    material->Set_G(G.x());
-    material->Set_v(nu.x());
+    material->SetRayleighDampingBeta(0.0);
+    material->SetRayleighDampingAlpha(0.0);
+    material->SetDensity(rho);
+    material->SetYoungModulus(E.x());
+    material->SetPoissonRatio(nu.x());
     ChMatrixNM<double, 9, 8> CCPInitial;
     CCPInitial.setZero();
     for (int k = 0; k < 8; k++) {
@@ -812,7 +805,7 @@ bool DruckerPragerPlastic(ChMatrixDynamic<> FileInputMat) {
                           std::dynamic_pointer_cast<ChNodeFEAcurv>(my_mesh->GetNode(node8)));
 
         // Set element dimensions
-        element->SetDimensions(ChVector<>(dx, dy, dz));
+        element->SetDimensions(ChVector3d(dx, dy, dz));
 
         // Add a single layers with a fiber angle of 0 degrees.
         element->SetMaterial(material);
@@ -839,7 +832,7 @@ bool DruckerPragerPlastic(ChMatrixDynamic<> FileInputMat) {
     // Add the mesh to the system
     sys.Add(my_mesh);
 
-    sys.Set_G_acc(ChVector<>(0.0, 0.0, 0.0));
+    sys.SetGravitationalAcceleration(ChVector3d(0.0, 0.0, 0.0));
 
     // Set up solver
     auto solver = chrono_types::make_shared<ChSolverMINRES>();
@@ -853,7 +846,7 @@ bool DruckerPragerPlastic(ChMatrixDynamic<> FileInputMat) {
     sys.SetTimestepperType(ChTimestepper::Type::HHT);
     auto mystepper = std::dynamic_pointer_cast<ChTimestepperHHT>(sys.GetTimestepper());
     mystepper->SetAlpha(0.0);
-    mystepper->SetMaxiters(20);
+    mystepper->SetMaxIters(20);
     mystepper->SetAbsTolerances(1e-8, 1e-1);
     mystepper->SetVerbose(false);
     sys.Setup();
@@ -871,11 +864,11 @@ bool DruckerPragerPlastic(ChMatrixDynamic<> FileInputMat) {
     double RelVal, RelVal1, RelVal2, RelVal3, force;
 
     while (sys.GetChTime() < 0.005) {
-        force = 75 * std::sin(sys.GetChTime() * CH_C_PI);
-        nodetip1->SetForce(ChVector<>(force, 0.0, 0.0));
-        nodetip2->SetForce(ChVector<>(force, 0.0, 0.0));
-        nodetip3->SetForce(ChVector<>(force, 0.0, 0.0));
-        nodetip4->SetForce(ChVector<>(force, 0.0, 0.0));
+        force = 75 * std::sin(sys.GetChTime() * CH_PI);
+        nodetip1->SetForce(ChVector3d(force, 0.0, 0.0));
+        nodetip2->SetForce(ChVector3d(force, 0.0, 0.0));
+        nodetip3->SetForce(ChVector3d(force, 0.0, 0.0));
+        nodetip4->SetForce(ChVector3d(force, 0.0, 0.0));
 
         sys.DoStepDynamics(time_step);
         it++;

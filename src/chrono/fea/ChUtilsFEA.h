@@ -35,7 +35,7 @@ template <int N>
 bool LU_factor(ChMatrixNM<double, N, N>& A,  ///< [input/output] matrix to be factorized
                ChMatrixNM<int, N, 1>& INDX,  ///< [output] vector of pivots
                bool& pivoting                ///< [output] true if pivoting was required; false otherwise
-               ) {
+) {
     double AAMAX;
     double SUM;
     double DUM;
@@ -110,7 +110,7 @@ template <int N>
 void LU_solve(const ChMatrixNM<double, N, N>& A,  ///< [input] LU factorized matrix
               const ChMatrixNM<int, N, 1>& INDX,  ///< [output] vector of pivots
               ChMatrixNM<double, N, 1>& B         ///< [input/output] on entry, the RHS; on return, the solution vector
-              ) {
+) {
     int II = 0;
     int LL;
     double SUM;

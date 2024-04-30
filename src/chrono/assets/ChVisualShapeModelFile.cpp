@@ -27,24 +27,24 @@ ChVisualShapeModelFile::ChVisualShapeModelFile(const std::string& fname) : filen
     SetMutable(false);
 }
 
-void ChVisualShapeModelFile::ArchiveOut(ChArchiveOut& marchive) {
+void ChVisualShapeModelFile::ArchiveOut(ChArchiveOut& archive_out) {
     // version number
-    marchive.VersionWrite<ChVisualShapeModelFile>();
+    archive_out.VersionWrite<ChVisualShapeModelFile>();
     // serialize parent class
-    ChVisualShape::ArchiveOut(marchive);
+    ChVisualShape::ArchiveOut(archive_out);
     // serialize all member data:
-    marchive << CHNVP(filename);
-    marchive << CHNVP(scale);
+    archive_out << CHNVP(filename);
+    archive_out << CHNVP(scale);
 }
 
-void ChVisualShapeModelFile::ArchiveIn(ChArchiveIn& marchive) {
+void ChVisualShapeModelFile::ArchiveIn(ChArchiveIn& archive_in) {
     // version number
-    /*int version =*/ marchive.VersionRead<ChVisualShapeModelFile>();
+    /*int version =*/archive_in.VersionRead<ChVisualShapeModelFile>();
     // deserialize parent class
-    ChVisualShape::ArchiveIn(marchive);
+    ChVisualShape::ArchiveIn(archive_in);
     // stream in all member data:
-    marchive >> CHNVP(filename);
-    marchive >> CHNVP(scale);
+    archive_in >> CHNVP(filename);
+    archive_in >> CHNVP(scale);
 }
 
 }  // end namespace chrono

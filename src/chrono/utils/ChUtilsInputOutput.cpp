@@ -42,18 +42,18 @@ void WriteBodies(ChSystem* system,
                  bool active_only,
                  bool dump_vel,
                  const std::string& delim) {
-    CSV_writer csv(delim);
+    ChWriterCSV csv(delim);
 
-    for (auto body : system->Get_bodylist()) {
+    for (auto body : system->GetBodies()) {
         if (active_only && !body->IsActive())
             continue;
         csv << body->GetPos() << body->GetRot();
         if (dump_vel)
-            csv << body->GetPos_dt() << body->GetWvel_loc();
+            csv << body->GetPosDt() << body->GetAngVelLocal();
         csv << std::endl;
     }
 
-    csv.write_to_file(filename);
+    csv.WriteToFile(filename);
 }
 
 // -----------------------------------------------------------------------------
@@ -64,16 +64,16 @@ void WriteBodies(ChSystem* system,
 // -----------------------------------------------------------------------------
 bool WriteCheckpoint(ChSystem* system, const std::string& filename) {
     // Create the CSV stream.
-    CSV_writer csv(" ");
+    ChWriterCSV csv(" ");
     std::string tab("    ");
 
     // Write contact method type (0: NSC, 1: SMC)
     int ctype = (system->GetContactMethod() == ChContactMethod::NSC) ? 0 : 1;
     csv << ctype << std::endl;
 
-    for (auto body : system->Get_bodylist()) {
+    for (auto body : system->GetBodies()) {
         // Write body identifier, the body fixed flag, and the collide flag
-        csv << body->GetIdentifier() << body->GetBodyFixed() << body->GetCollide() << tab;
+        csv << body->GetTag() << body->IsFixed() << body->IsCollisionEnabled() << tab;
 
         // Write collision family information.
         csv << body->GetCollisionModel()->GetFamilyGroup() << body->GetCollisionModel()->GetFamilyMask() << tab;
@@ -83,17 +83,17 @@ bool WriteCheckpoint(ChSystem* system, const std::string& filename) {
 
         // Write body position, orientation, and their time derivatives
         csv << body->GetPos() << body->GetRot() << tab;
-        csv << body->GetPos_dt() << body->GetRot_dt() << tab;
+        csv << body->GetPosDt() << body->GetRotDt() << tab;
 
         csv << std::endl;
 
         // Write number of collision shapes
-        int n_shapes = body->GetCollisionModel()->GetNumShapes();
+        unsigned int n_shapes = body->GetCollisionModel()->GetNumShapes();
         csv << n_shapes << std::endl;
 
         // Loop over each shape and write its data on a separate line.
         // If we encounter an unsupported type, return false.
-        for (const auto& s : body->GetCollisionModel()->GetShapes()) {
+        for (const auto& s : body->GetCollisionModel()->GetShapeInstances()) {
             const auto& shape = s.first;
             const auto& frame = s.second;
 
@@ -102,13 +102,13 @@ bool WriteCheckpoint(ChSystem* system, const std::string& filename) {
 
             // Write shape material information
             if (ctype == 0) {
-                auto mat = std::static_pointer_cast<ChMaterialSurfaceNSC>(shape->GetMaterial());
+                auto mat = std::static_pointer_cast<ChContactMaterialNSC>(shape->GetMaterial());
                 csv << mat->static_friction << mat->sliding_friction << mat->rolling_friction << mat->spinning_friction;
                 csv << mat->restitution << mat->cohesion << mat->dampingf;
                 csv << mat->compliance << mat->complianceT << mat->complianceRoll << mat->complianceSpin;
                 csv << tab;
             } else {
-                auto mat = std::static_pointer_cast<ChMaterialSurfaceSMC>(shape->GetMaterial());
+                auto mat = std::static_pointer_cast<ChContactMaterialSMC>(shape->GetMaterial());
                 csv << mat->young_modulus << mat->poisson_ratio;
                 csv << mat->static_friction << mat->sliding_friction;
                 csv << mat->restitution << mat->constant_adhesion << mat->adhesionMultDMT;
@@ -190,7 +190,7 @@ bool WriteCheckpoint(ChSystem* system, const std::string& filename) {
         }
     }
 
-    csv.write_to_file(filename);
+    csv.WriteToFile(filename);
 
     return true;
 }
@@ -203,7 +203,7 @@ bool WriteCheckpoint(ChSystem* system, const std::string& filename) {
 // -----------------------------------------------------------------------------
 void ReadCheckpoint(ChSystem* system, const std::string& filename) {
     // Open input file stream
-    std::ifstream ifile(filename.c_str());
+    std::ifstream ifile(filename);
     std::string line;
 
     // Read the contact method type
@@ -224,17 +224,17 @@ void ReadCheckpoint(ChSystem* system, const std::string& filename) {
         std::istringstream iss1(line);
 
         // Read body Id and flags
-        int bid, bfixed, bcollide;
+        int btag, bfixed, bcollide;
         short family_group, family_mask;
-        iss1 >> bid >> bfixed >> bcollide >> family_group >> family_mask;
+        iss1 >> btag >> bfixed >> bcollide >> family_group >> family_mask;
 
         // Read body mass and inertia
         double mass;
-        ChVector<> inertiaXX;
+        ChVector3d inertiaXX;
         iss1 >> mass >> inertiaXX.x() >> inertiaXX.y() >> inertiaXX.z();
 
         // Read body position, orientation, and their time derivatives
-        ChVector<> bpos, bpos_dt;
+        ChVector3d bpos, bpos_dt;
         ChQuaternion<> brot, brot_dt;
         iss1 >> bpos.x() >> bpos.y() >> bpos.z();
         iss1 >> brot.e0() >> brot.e1() >> brot.e2() >> brot.e3();
@@ -248,12 +248,12 @@ void ReadCheckpoint(ChSystem* system, const std::string& filename) {
         // Set body properties and state
         body->SetPos(bpos);
         body->SetRot(brot);
-        body->SetPos_dt(bpos_dt);
-        body->SetRot_dt(brot_dt);
+        body->SetPosDt(bpos_dt);
+        body->SetRotDt(brot_dt);
 
-        body->SetIdentifier(bid);
-        body->SetBodyFixed(bfixed != 0);
-        body->SetCollide(bcollide != 0);
+        body->SetTag(btag);
+        body->SetFixed(bfixed != 0);
+        body->EnableCollision(bcollide != 0);
 
         body->SetMass(mass);
         body->SetInertiaXX(inertiaXX);
@@ -271,21 +271,21 @@ void ReadCheckpoint(ChSystem* system, const std::string& filename) {
             std::istringstream iss(line);
 
             // Get shape relative position and rotation
-            ChVector<> spos;
+            ChVector3d spos;
             ChQuaternion<> srot;
             iss >> spos.x() >> spos.y() >> spos.z() >> srot.e0() >> srot.e1() >> srot.e2() >> srot.e3();
 
             // Get material information and create the material
-            std::shared_ptr<ChMaterialSurface> mat;
+            std::shared_ptr<ChContactMaterial> mat;
             if (ctype == 0) {
-                auto matNSC = chrono_types::make_shared<ChMaterialSurfaceNSC>();
+                auto matNSC = chrono_types::make_shared<ChContactMaterialNSC>();
                 iss >> matNSC->static_friction >> matNSC->sliding_friction >> matNSC->rolling_friction >>
                     matNSC->spinning_friction;
                 iss >> matNSC->restitution >> matNSC->cohesion >> matNSC->dampingf;
                 iss >> matNSC->compliance >> matNSC->complianceT >> matNSC->complianceRoll >> matNSC->complianceSpin;
                 mat = matNSC;
             } else {
-                auto matSMC = chrono_types::make_shared<ChMaterialSurfaceSMC>();
+                auto matSMC = chrono_types::make_shared<ChContactMaterialSMC>();
                 iss >> matSMC->young_modulus >> matSMC->poisson_ratio;
                 iss >> matSMC->static_friction >> matSMC->sliding_friction;
                 iss >> matSMC->restitution >> matSMC->constant_adhesion >> matSMC->adhesionMultDMT;
@@ -304,12 +304,12 @@ void ReadCheckpoint(ChSystem* system, const std::string& filename) {
                     AddSphereGeometry(body.get(), mat, radius, spos, srot);
                 } break;
                 case ChCollisionShape::Type::ELLIPSOID: {
-                    ChVector<> size;
+                    ChVector3d size;
                     iss >> size.x() >> size.y() >> size.z();
                     AddEllipsoidGeometry(body.get(), mat, size * 2, spos, srot);
                 } break;
                 case ChCollisionShape::Type::BOX: {
-                    ChVector<> size;
+                    ChVector3d size;
                     iss >> size.x() >> size.y() >> size.z();
                     AddBoxGeometry(body.get(), mat, size, spos, srot);
                 } break;
@@ -329,7 +329,7 @@ void ReadCheckpoint(ChSystem* system, const std::string& filename) {
                     AddConeGeometry(body.get(), mat, radius, height, spos, srot);
                 } break;
                 case ChCollisionShape::Type::ROUNDEDBOX: {
-                    ChVector<> size;
+                    ChVector3d size;
                     double srad;
                     iss >> size.x() >> size.y() >> size.z() >> srad;
                     AddRoundedBoxGeometry(body.get(), mat, size * 2, srad, spos, srot);
@@ -354,15 +354,15 @@ void ReadCheckpoint(ChSystem* system, const std::string& filename) {
 // Write CSV output file with current camera information
 // -----------------------------------------------------------------------------
 void WriteCamera(const std::string& filename,
-                 const ChVector<>& cam_location,
-                 const ChVector<>& cam_target,
-                 const ChVector<>& camera_upvec,
+                 const ChVector3d& cam_location,
+                 const ChVector3d& cam_target,
+                 const ChVector3d& camera_upvec,
                  const std::string& delim) {
-    CSV_writer csv(delim);
+    ChWriterCSV csv(delim);
     csv << cam_location << std::endl;
     csv << cam_target << std::endl;
     csv << camera_upvec << std::endl;
-    csv.write_to_file(filename);
+    csv.WriteToFile(filename);
 }
 
 // -----------------------------------------------------------------------------
@@ -419,19 +419,19 @@ void WriteVisualizationAssets(ChSystem* system,
                               std::function<bool(const ChBody&)> selector,
                               bool body_info,
                               const std::string& delim) {
-    CSV_writer csv(delim);
+    ChWriterCSV csv(delim);
 
     // If requested, Loop over all bodies and write out their position and
     // orientation.  Otherwise, body count is left at 0.
     int b_count = 0;
 
     if (body_info) {
-        for (auto body : system->Get_bodylist()) {
+        for (auto body : system->GetBodies()) {
             if (!selector(*body))
                 continue;
 
-            const ChVector<>& body_pos = body->GetFrame_REF_to_abs().GetPos();
-            const ChQuaternion<>& body_rot = body->GetFrame_REF_to_abs().GetRot();
+            const ChVector3d& body_pos = body->GetFrameRefToAbs().GetPos();
+            const ChQuaternion<>& body_rot = body->GetFrameRefToAbs().GetRot();
 
             csv << body->GetIdentifier() << body->IsActive() << body_pos << body_rot << std::endl;
 
@@ -441,7 +441,7 @@ void WriteVisualizationAssets(ChSystem* system,
 
     // Loop over all bodies and over all their assets.
     int a_count = 0;
-    for (auto body : system->Get_bodylist()) {
+    for (auto body : system->GetBodies()) {
         if (!selector(*body))
             continue;
 
@@ -449,9 +449,9 @@ void WriteVisualizationAssets(ChSystem* system,
             continue;
 
         // Loop over visual shapes -- write information for supported types.
-        for (auto& shape_instance : body->GetVisualModel()->GetShapes()) {
+        for (auto& shape_instance : body->GetVisualModel()->GetShapeInstances()) {
             auto& shape = shape_instance.first;
-            auto X_GS = body->GetFrame_REF_to_abs() * shape_instance.second;
+            auto X_GS = body->GetFrameRefToAbs() * shape_instance.second;
             auto& pos = X_GS.GetPos();
             auto& rot = X_GS.GetRot();
 
@@ -462,11 +462,11 @@ void WriteVisualizationAssets(ChSystem* system,
                 gss << SPHERE << delim << sphere->GetRadius();
                 a_count++;
             } else if (auto ellipsoid = std::dynamic_pointer_cast<ChVisualShapeEllipsoid>(shape)) {
-                const Vector& size = ellipsoid->GetSemiaxes();
+                const ChVector3d& size = ellipsoid->GetSemiaxes();
                 gss << ELLIPSOID << delim << size.x() << delim << size.y() << delim << size.z();
                 a_count++;
             } else if (auto box = std::dynamic_pointer_cast<ChVisualShapeBox>(shape)) {
-                const Vector& hlen = box->GetHalflengths();
+                const ChVector3d& hlen = box->GetHalflengths();
                 gss << BOX << delim << hlen.x() << delim << hlen.y() << delim << hlen.z();
                 a_count++;
             } else if (auto capsule = std::dynamic_pointer_cast<ChVisualShapeCapsule>(shape)) {
@@ -479,7 +479,7 @@ void WriteVisualizationAssets(ChSystem* system,
                 gss << CONE << delim << cone->GetRadius() << delim << cone->GetHeight();
                 a_count++;
             } else if (auto rbox = std::dynamic_pointer_cast<ChVisualShapeRoundedBox>(shape)) {
-                const Vector& hlen = rbox->GetHalflengths();
+                const ChVector3d& hlen = rbox->GetHalflengths();
                 double srad = rbox->GetSphereRadius();
                 gss << ROUNDEDBOX << delim << hlen.x() << delim << hlen.y() << delim << hlen.z() << delim << srad;
                 a_count++;
@@ -493,8 +493,8 @@ void WriteVisualizationAssets(ChSystem* system,
                 gss << TRIANGLEMESH << delim << "\"" << mesh->GetName() << "\"";
                 a_count++;
             } else if (auto line = std::dynamic_pointer_cast<ChVisualShapeLine>(shape)) {
-                std::shared_ptr<geometry::ChLine> geom = line->GetLineGeometry();
-                if (auto bezier = std::dynamic_pointer_cast<geometry::ChLineBezier>(geom)) {
+                std::shared_ptr<ChLine> geom = line->GetLineGeometry();
+                if (auto bezier = std::dynamic_pointer_cast<ChLineBezier>(geom)) {
                     gss << BEZIER << delim << "\"" << line->GetName() << "\"";
                     a_count++;
                 } else {
@@ -515,12 +515,12 @@ void WriteVisualizationAssets(ChSystem* system,
 
     // Loop over all links.  Write information on selected types of links.
     int l_count = 0;
-    for (auto ilink : system->Get_linklist()) {
+    for (auto ilink : system->GetLinks()) {
         if (auto linkR = std::dynamic_pointer_cast<ChLinkLockRevolute>(ilink)) {
             chrono::ChFrame<> frA_abs = *(linkR->GetMarker1()) >> *(linkR->GetBody1());
             chrono::ChFrame<> frB_abs = *(linkR->GetMarker2()) >> *(linkR->GetBody2());
 
-            csv << REVOLUTE << frA_abs.GetPos() << frA_abs.GetA().Get_A_Zaxis() << std::endl;
+            csv << REVOLUTE << frA_abs.GetPos() << frA_abs.GetRotMat().GetAxisZ() << std::endl;
             l_count++;
         } else if (auto linkS = std::dynamic_pointer_cast<ChLinkLockSpherical>(ilink)) {
             chrono::ChFrame<> frA_abs = *(linkS->GetMarker1()) >> *(linkS->GetBody1());
@@ -532,19 +532,19 @@ void WriteVisualizationAssets(ChSystem* system,
             chrono::ChFrame<> frA_abs = *(linkP->GetMarker1()) >> *(linkP->GetBody1());
             chrono::ChFrame<> frB_abs = *(linkP->GetMarker2()) >> *(linkP->GetBody2());
 
-            csv << PRISMATIC << frA_abs.GetPos() << frA_abs.GetA().Get_A_Zaxis() << std::endl;
+            csv << PRISMATIC << frA_abs.GetPos() << frA_abs.GetRotMat().GetAxisZ() << std::endl;
             l_count++;
         } else if (auto linkC = std::dynamic_pointer_cast<ChLinkLockCylindrical>(ilink)) {
             chrono::ChFrame<> frA_abs = *(linkC->GetMarker1()) >> *(linkC->GetBody1());
             chrono::ChFrame<> frB_abs = *(linkC->GetMarker2()) >> *(linkC->GetBody2());
 
-            csv << CYLINDRICAL << frA_abs.GetPos() << frA_abs.GetA().Get_A_Zaxis() << std::endl;
+            csv << CYLINDRICAL << frA_abs.GetPos() << frA_abs.GetRotMat().GetAxisZ() << std::endl;
             l_count++;
         } else if (auto linkU = std::dynamic_pointer_cast<ChLinkUniversal>(ilink)) {
             chrono::ChFrame<> frA_abs = linkU->GetFrame1Abs();
             chrono::ChFrame<> frB_abs = linkU->GetFrame2Abs();
 
-            csv << UNIVERSAL << frA_abs.GetPos() << frA_abs.GetA().Get_A_Xaxis() << frB_abs.GetA().Get_A_Yaxis()
+            csv << UNIVERSAL << frA_abs.GetPos() << frA_abs.GetRotMat().GetAxisX() << frB_abs.GetRotMat().GetAxisY()
                 << std::endl;
             l_count++;
         } else if (auto linkT = std::dynamic_pointer_cast<ChLinkTSDA>(ilink)) {
@@ -561,13 +561,13 @@ void WriteVisualizationAssets(ChSystem* system,
 
     // Loop over links and write assets associated with spring-dampers.
     int la_count = 0;
-    for (auto ilink : system->Get_linklist()) {
+    for (auto ilink : system->GetLinks()) {
         auto link = std::dynamic_pointer_cast<ChLinkTSDA>(ilink);
         if (!link)
             continue;
         if (!link->GetVisualModel())
             continue;
-        for (auto& shape_instance : link->GetVisualModel()->GetShapes()) {
+        for (auto& shape_instance : link->GetVisualModel()->GetShapeInstances()) {
             auto& shape = shape_instance.first;
             if (std::dynamic_pointer_cast<ChVisualShapeSegment>(shape)) {
                 csv << SEGMENT << link->GetPoint1Abs() << link->GetPoint2Abs() << std::endl;
@@ -584,7 +584,7 @@ void WriteVisualizationAssets(ChSystem* system,
     std::stringstream header;
     header << b_count << delim << a_count << delim << l_count << delim << la_count << delim << std::endl;
 
-    csv.write_to_file(filename, header.str());
+    csv.WriteToFile(filename, header.str());
 }
 
 // -----------------------------------------------------------------------------
@@ -593,11 +593,11 @@ void WriteVisualizationAssets(ChSystem* system,
 // Write the triangular mesh from the specified OBJ file as a macro in a PovRay
 // include file.
 // -----------------------------------------------------------------------------
-void WriteMeshPovray(geometry::ChTriangleMeshConnected& trimesh,
+void WriteMeshPovray(ChTriangleMeshConnected& trimesh,
                      const std::string& mesh_name,
                      const std::string& out_dir,
                      const ChColor& col,
-                     const ChVector<>& pos,
+                     const ChVector3d& pos,
                      const ChQuaternion<>& rot,
                      bool smoothed) {
     // Transform vertices.
@@ -612,7 +612,7 @@ void WriteMeshPovray(geometry::ChTriangleMeshConnected& trimesh,
 
     // Open output file.
     std::string pov_filename = out_dir + "/" + mesh_name + ".inc";
-    std::ofstream ofile(pov_filename.c_str());
+    std::ofstream ofile(pov_filename);
 
     ofile << "#declare " << mesh_name << "_mesh = mesh2 {" << std::endl;
 
@@ -620,7 +620,7 @@ void WriteMeshPovray(geometry::ChTriangleMeshConnected& trimesh,
     ofile << "vertex_vectors {" << std::endl;
     ofile << trimesh.m_vertices.size();
     for (unsigned int i = 0; i < trimesh.m_vertices.size(); i++) {
-        ChVector<> v = trimesh.m_vertices[i];
+        ChVector3d v = trimesh.m_vertices[i];
         ofile << ",\n<" << v.x() << ", " << v.z() << ", " << v.y() << ">";
     }
     ofile << "\n}" << std::endl;
@@ -630,7 +630,7 @@ void WriteMeshPovray(geometry::ChTriangleMeshConnected& trimesh,
         ofile << "normal_vectors {" << std::endl;
         ofile << trimesh.m_normals.size();
         for (unsigned int i = 0; i < trimesh.m_normals.size(); i++) {
-            ChVector<> n = trimesh.m_normals[i];
+            ChVector3d n = trimesh.m_normals[i];
             ofile << ",\n<" << n.x() << ", " << n.z() << ", " << n.y() << ">";
         }
         ofile << "\n}" << std::endl;
@@ -640,7 +640,7 @@ void WriteMeshPovray(geometry::ChTriangleMeshConnected& trimesh,
     ofile << "face_indices {" << std::endl;
     ofile << trimesh.m_face_v_indices.size();
     for (int i = 0; i < trimesh.m_face_v_indices.size(); i++) {
-        ChVector<int> face = trimesh.m_face_v_indices[i];
+        ChVector3i face = trimesh.m_face_v_indices[i];
         ofile << ",\n<" << face.x() << ", " << face.y() << ", " << face.z() << ">";
     }
     ofile << "\n}" << std::endl;
@@ -665,10 +665,10 @@ bool WriteMeshPovray(const std::string& obj_filename,
                      const std::string& mesh_name,
                      const std::string& out_dir,
                      const ChColor& col,
-                     const ChVector<>& pos,
+                     const ChVector3d& pos,
                      const ChQuaternion<>& rot) {
     // Read trimesh from OBJ file
-    auto trimesh = geometry::ChTriangleMeshConnected::CreateFromWavefrontFile(obj_filename, false, false);
+    auto trimesh = ChTriangleMeshConnected::CreateFromWavefrontFile(obj_filename, false, false);
     if (!trimesh)
         return false;
 
@@ -690,22 +690,22 @@ void WriteCurvePovray(const ChBezierCurve& curve,
                       const ChColor& col) {
     int nP = 20;
     double dt = 1.0 / nP;
-    size_t nS = curve.getNumPoints() - 1;
+    size_t nS = curve.GetNumPoints() - 1;
 
     // Open output file.
     std::string pov_filename = out_dir + "/" + curve_name + ".inc";
-    std::ofstream ofile(pov_filename.c_str());
+    std::ofstream ofile(pov_filename);
 
     ofile << "#declare " << curve_name << " = object {" << std::endl;
     ofile << "  sphere_sweep {" << std::endl;
     ofile << "    linear_spline " << nP * nS + 1 << "," << std::endl;
 
-    ChVector<> v = curve.eval(0, 0.0);
+    ChVector3d v = curve.Eval(0, 0.0);
     ofile << "        <" << v.x() << ", " << v.z() << ", " << v.x() << "> ," << radius << std::endl;
 
     for (int iS = 0; iS < nS; iS++) {
         for (int iP = 1; iP <= nP; iP++) {
-            v = curve.eval(iS, iP * dt);
+            v = curve.Eval(iS, iP * dt);
             ofile << "        <" << v.x() << ", " << v.z() << ", " << v.y() << "> ," << radius << std::endl;
         }
     }

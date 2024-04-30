@@ -41,11 +41,11 @@ class CorNormalTest : public ::testing::TestWithParam<std::tuple<ChSystemSMC::Co
         float adDMT = 0.0f;                      // Magnitude of the adhesion in the DMT adhesion model
         float adSPerko = 0.0f;                   // Magnitude of the adhesion in the SPerko adhesion model
 
-        auto mat = chrono_types::make_shared<ChMaterialSurfaceSMC>();
+        auto mat = chrono_types::make_shared<ChContactMaterialSMC>();
         mat->SetYoungModulus(y_modulus);
         mat->SetPoissonRatio(p_ratio);
-        mat->SetSfriction(s_frict);
-        mat->SetKfriction(k_frict);
+        mat->SetStaticFriction(s_frict);
+        mat->SetSlidingFriction(k_frict);
         mat->SetRollingFriction(roll_frict);
         mat->SetSpinningFriction(spin_frict);
         mat->SetRestitution(cor_in);
@@ -56,21 +56,21 @@ class CorNormalTest : public ::testing::TestWithParam<std::tuple<ChSystemSMC::Co
         // Create a multicore SMC system and set the system parameters
         sys = new ChSystemMulticoreSMC();
         time_step = 3.0E-5;
-        SetSimParameters(sys, ChVector<>(0, 0, 0), fmodel);
+        SetSimParameters(sys, ChVector3d(0, 0, 0), fmodel);
 
         sys->SetNumThreads(2);
 
         // Add the sphere to the system
         double srad = 0.5;
         double smass = 1.0;
-        ChVector<> spos(0, srad * 1.25, 0);
-        ChVector<> init_v(0, -1, 0);
+        ChVector3d spos(0, srad * 1.25, 0);
+        ChVector3d init_v(0, -1, 0);
 
-        body1 = AddSphere(0, sys, mat, srad, smass, spos, init_v);
-        body2 = AddSphere(1, sys, mat, srad, smass, spos * -1, init_v * -1);
+        body1 = AddSphere(sys, mat, srad, smass, spos, init_v);
+        body2 = AddSphere(sys, mat, srad, smass, spos * -1, init_v * -1);
 
         // Calculate motion parameters prior to collision
-        rel_vm_in = (body2->GetPos_dt() - body1->GetPos_dt()).Length();
+        rel_vm_in = (body2->GetPosDt() - body1->GetPosDt()).Length();
     }
 
     ~CorNormalTest() { delete sys; }
@@ -89,7 +89,7 @@ TEST_P(CorNormalTest, impact) {
     }
 
     // Calculate output COR and compare against input COR. Test passes if difference below 1e-3
-    double rel_vm_out = (body2->GetPos_dt() - body1->GetPos_dt()).Length();
+    double rel_vm_out = (body2->GetPosDt() - body1->GetPosDt()).Length();
     double cor_out = rel_vm_out / rel_vm_in;
     double cor_in = std::get<1>(GetParam());
     std::cout << ForceModel_name(std::get<0>(GetParam())) << "  "  //

@@ -36,7 +36,7 @@ namespace fsi {
 class CH_FSI_API ChFsiVisualization {
   public:
     /// Rendering mode for particles and mesh objects.
-    enum class RenderMode {POINTS, WIREFRAME, SOLID};
+    enum class RenderMode { POINTS, WIREFRAME, SOLID };
 
     /// Create a run-time FSI visualization object associated with a given Chrono::Fsi system.
     ChFsiVisualization(ChSystemFsi* sysFSI);
@@ -50,10 +50,10 @@ class CH_FSI_API ChFsiVisualization {
     virtual void SetSize(int width, int height);
 
     /// Add a camera initially at the specified position and target (look at) point.
-    virtual void AddCamera(const ChVector<>& pos, const ChVector<>& target);
+    virtual void AddCamera(const ChVector3d& pos, const ChVector3d& target);
 
     /// Set camera position and target (look at) point.
-    virtual void UpdateCamera(const ChVector<>& pos, const ChVector<>& target);
+    virtual void UpdateCamera(const ChVector3d& pos, const ChVector3d& target);
 
     /// Set camera up vector (default: Z).
     virtual void SetCameraVertical(CameraVerticalDir up);

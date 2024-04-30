@@ -85,7 +85,7 @@ class ChApi ChContactContainerSMC : public ChContactContainer {
     virtual ChContactContainerSMC* Clone() const override { return new ChContactContainerSMC(*this); }
 
     /// Report the number of added contacts.
-    virtual int GetNcontacts() const override {
+    virtual unsigned int GetNumContacts() const override {
         return n_added_3_3 + n_added_6_3 + n_added_6_6 + n_added_333_3 + n_added_333_6 + n_added_333_333 +
                n_added_666_3 + n_added_666_6 + n_added_666_333 + n_added_666_666;
     }
@@ -103,8 +103,8 @@ class ChApi ChContactContainerSMC : public ChContactContainer {
     /// A compositecontact material is created from the two given materials.
     /// In this case, the collision info object may have null pointers to collision shapes.
     virtual void AddContact(const ChCollisionInfo& cinfo,
-                            std::shared_ptr<ChMaterialSurface> mat1,
-                            std::shared_ptr<ChMaterialSurface> mat2) override;
+                            std::shared_ptr<ChContactMaterial> mat1,
+                            std::shared_ptr<ChContactMaterial> mat2) override;
 
     /// Add a contact between two collision shapes, storing it into this container.
     /// The collision info object is assumed to contain valid pointers to the two colliding shapes.
@@ -128,16 +128,16 @@ class ChApi ChContactContainerSMC : public ChContactContainer {
     virtual void ComputeContactForces() override;
 
     /// Return the resultant contact force acting on the specified contactable object.
-    virtual ChVector<> GetContactableForce(ChContactable* contactable) override;
+    virtual ChVector3d GetContactableForce(ChContactable* contactable) override;
 
     /// Return the resultant contact torque acting on the specified contactable object.
-    virtual ChVector<> GetContactableTorque(ChContactable* contactable) override;
+    virtual ChVector3d GetContactableTorque(ChContactable* contactable) override;
 
     // STATE FUNCTIONS
 
     virtual void IntLoadResidual_F(const unsigned int off, ChVectorDynamic<>& R, const double c) override;
-    virtual void KRMmatricesLoad(double Kfactor, double Rfactor, double Mfactor) override;
-    virtual void InjectKRMmatrices(ChSystemDescriptor& mdescriptor) override;
+    virtual void LoadKRMMatrices(double Kfactor, double Rfactor, double Mfactor) override;
+    virtual void InjectKRMMatrices(ChSystemDescriptor& descriptor) override;
 
     // SOLVER INTERFACE
 
@@ -146,13 +146,13 @@ class ChApi ChContactContainerSMC : public ChContactContainer {
     // SERIALIZATION
 
     /// Method to allow serialization of transient data to archives.
-    virtual void ArchiveOut(ChArchiveOut& marchive) override;
+    virtual void ArchiveOut(ChArchiveOut& archive_out) override;
 
     /// Method to allow de-serialization of transient data from archives.
-    virtual void ArchiveIn(ChArchiveIn& marchive) override;
+    virtual void ArchiveIn(ChArchiveIn& archive_in) override;
 
   private:
-    void InsertContact(const ChCollisionInfo& cinfo, const ChMaterialCompositeSMC& cmat);
+    void InsertContact(const ChCollisionInfo& cinfo, const ChContactMaterialCompositeSMC& cmat);
 };
 
 CH_CLASS_VERSION(ChContactContainerSMC, 0)

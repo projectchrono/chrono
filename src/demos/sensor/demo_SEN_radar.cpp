@@ -47,7 +47,6 @@
 #include "chrono_sensor/filters/ChFilterImageOps.h"
 
 using namespace chrono;
-using namespace chrono::geometry;
 using namespace chrono::sensor;
 
 // ------------------------------------
@@ -68,8 +67,8 @@ unsigned int horizontal_samples = 100;
 unsigned int vertical_samples = 100;
 
 // Field of View
-float horizontal_fov = float(CH_C_PI / 2);  // 20 degree scan
-float vertical_fov = float(CH_C_PI / 3);    // 12 degrees up
+float horizontal_fov = float(CH_PI / 2);  // 20 degree scan
+float vertical_fov = float(CH_PI / 3);    // 12 degrees up
 
 // camera can have same view as radar
 float aspect_ratio = horizontal_fov / vertical_fov;
@@ -98,14 +97,14 @@ double step_size = 1e-3;
 float end_time = 2000.0f;
 
 int main(int argc, char* argv[]) {
-    GetLog() << "Copyright (c) 2019 projectchrono.org\nChrono version: " << CHRONO_VERSION << "\n\n";
+    std::cout << "Copyright (c) 2019 projectchrono.org\nChrono version: " << CHRONO_VERSION << std::endl;
 
     // -----------------
-    auto material = chrono_types::make_shared<ChMaterialSurfaceNSC>();
+    auto material = chrono_types::make_shared<ChContactMaterialNSC>();
     // Create the system
     // -----------------
     ChSystemNSC sys;
-    sys.Set_G_acc(ChVector<>(0, 0, 0));
+    sys.SetGravitationalAcceleration(ChVector3d(0, 0, 0));
 
     // ----------------------
     // color visual materials
@@ -122,63 +121,61 @@ int main(int argc, char* argv[]) {
     // -------------------------------------------
     auto floor = chrono_types::make_shared<ChBodyEasyBox>(0.1, 0.1, 0.1, 1000, true, false);
     floor->SetPos({0, 0, -1});
-    floor->SetBodyFixed(true);
-    //    floor->SetWvel_par(ChVector<>(-0.2,-0.4,-0.3));
-    //    floor->SetPos_dt(ChVector<>(0.1, 0, 0));
+    floor->SetFixed(true);
+    //    floor->SetAngVelParent(ChVector3d(-0.2,-0.4,-0.3));
+    //    floor->SetPosDt(ChVector3d(0.1, 0, 0));
     sys.Add(floor);
-    floor->GetVisualModel()->GetShapes()[0].first->AddMaterial(green);
+    floor->GetVisualModel()->GetShapeInstances()[0].first->AddMaterial(green);
 
-
-    auto box = chrono_types::make_shared<ChBodyEasyBox>(1,1,1, 1000, true, false);
-    box->SetPos({4,3,2});
-    box->SetBodyFixed(true);
+    auto box = chrono_types::make_shared<ChBodyEasyBox>(1, 1, 1, 1000, true, false);
+    box->SetPos({4, 3, 2});
+    box->SetFixed(true);
     sys.Add(box);
-    box->GetVisualModel()->GetShapes()[0].first->AddMaterial(green);
+    box->GetVisualModel()->GetShapeInstances()[0].first->AddMaterial(green);
 
-
-    auto box1 = chrono_types::make_shared<ChBodyEasyBox>(1,1,1, 1000, true, false);
-    box1->SetPos({4,-3,2});
-    box1->SetBodyFixed(true);
+    auto box1 = chrono_types::make_shared<ChBodyEasyBox>(1, 1, 1, 1000, true, false);
+    box1->SetPos({4, -3, 2});
+    box1->SetFixed(true);
     sys.Add(box1);
-    box1->GetVisualModel()->GetShapes()[0].first->AddMaterial(green);
+    box1->GetVisualModel()->GetShapeInstances()[0].first->AddMaterial(green);
 
-    auto box2 = chrono_types::make_shared<ChBodyEasyBox>(1,1,1, 1000, true, false);
-    box2->SetPos({4,0,2});
-    box2->SetBodyFixed(true);
-    box2->GetVisualModel()->GetShapes()[0].first->AddMaterial(green);
+    auto box2 = chrono_types::make_shared<ChBodyEasyBox>(1, 1, 1, 1000, true, false);
+    box2->SetPos({4, 0, 2});
+    box2->SetFixed(true);
+    box2->GetVisualModel()->GetShapeInstances()[0].first->AddMaterial(green);
     sys.Add(box2);
 
     // -------------------------------------------
     // add a few box bodies to be sense by a radar
     // -------------------------------------------
-//    auto floor = chrono_types::make_shared<ChBodyEasyBox>(1, 1, 1, 1000, true, false);
-//    floor->SetPos({0, 0, -1});
-//    floor->SetBodyFixed(true);
-//    sys.Add(floor);
-//    floor->GetVisualModel()->GetShapes()[0].first->AddMaterial(green);
+    //    auto floor = chrono_types::make_shared<ChBodyEasyBox>(1, 1, 1, 1000, true, false);
+    //    floor->SetPos({0, 0, -1});
+    //    floor->SetFixed(true);
+    //    sys.Add(floor);
+    //    floor->GetVisualModel()->GetShapeInstances()[0].first->AddMaterial(green);
 
-//
-//    for (int i = 0; i < 10; i++) {
-//        float x = rand() % 50;
-//        float y = 1;
-//        float z = 0;
-//        auto box_body = chrono_types::make_shared<ChBodyEasyBox>(0.5, 0.5, 0.5, 1000, true, false);
-//        box_body->SetPos({5 + x, y, z});
-//        box_body->SetPos_dt({-0.5, 0, 0});
-//        sys.Add(box_body);
-//        box_body->GetVisualModel()->GetShapes()[0].first->AddMaterial(red);
-//    }
-//
-//    for (int i = 0; i < 10; i++) {
-//        float x = rand() % 50;
-//        float y = -1;
-//        float z = 0;
-//        auto box_body = chrono_types::make_shared<ChBodyEasyBox>(0.5, 0.5, 0.5, 1000, true, false);
-//        box_body->SetPos({10 - x, y, z});
-//        box_body->SetPos_dt({0.5, 0, 0});
-//        sys.Add(box_body);
-//        box_body->GetVisualModel()->GetShapes()[0].first->AddMaterial(red);
-//    }
+    //
+    //    for (int i = 0; i < 10; i++) {
+    //        float x = rand() % 50;
+    //        float y = 1;
+    //        float z = 0;
+    //        auto box_body = chrono_types::make_shared<ChBodyEasyBox>(0.5, 0.5, 0.5, 1000, true, false);
+    //        box_body->SetPos({5 + x, y, z});
+    //        box_body->SetPosDt({-0.5, 0, 0});
+    //        sys.Add(box_body);
+    //        box_body->GetVisualModel()->GetShapeInstances()[0].first->AddMaterial(red);
+    //    }
+    //
+    //    for (int i = 0; i < 10; i++) {
+    //        float x = rand() % 50;
+    //        float y = -1;
+    //        float z = 0;
+    //        auto box_body = chrono_types::make_shared<ChBodyEasyBox>(0.5, 0.5, 0.5, 1000, true, false);
+    //        box_body->SetPos({10 - x, y, z});
+    //        box_body->SetPosDt({0.5, 0, 0});
+    //        sys.Add(box_body);
+    //        box_body->GetVisualModel()->GetShapeInstances()[0].first->AddMaterial(red);
+    //    }
 
     // -----------------------
     // Create a sensor manager
@@ -190,11 +187,10 @@ int main(int argc, char* argv[]) {
     // -----------------------------------------------
     // Create a radar and add it to the sensor manager
     // -----------------------------------------------
-    auto offset_pose = chrono::ChFrame<double>({0, 0, 1}, Q_from_AngZ(0));
+    auto offset_pose = chrono::ChFrame<double>({0, 0, 1}, QuatFromAngleZ(0));
 
     auto radar = chrono_types::make_shared<ChRadarSensor>(floor, update_rate, offset_pose, horizontal_samples,
-                                                          vertical_samples, horizontal_fov, vertical_fov,
-                                                          max_distance);
+                                                          vertical_samples, horizontal_fov, vertical_fov, max_distance);
     radar->SetName("Radar Sensor");
     radar->SetLag(lag);
     radar->SetCollectionWindow(collection_time);
@@ -204,7 +200,7 @@ int main(int argc, char* argv[]) {
     radar->PushFilter(chrono_types::make_shared<ChFilterRadarXYZVisualize>(640, 480, 1, "Radar XYZ Return"));
     manager->AddSensor(radar);
 
-    auto cam_offset_pose = chrono::ChFrame<double>({0, 0, 1}, Q_from_AngZ(0));
+    auto cam_offset_pose = chrono::ChFrame<double>({0, 0, 1}, QuatFromAngleZ(0));
     auto cam1 = chrono_types::make_shared<ChCameraSensor>(floor,            // body camera is attached to
                                                           update_rate,      // update rate in Hz
                                                           cam_offset_pose,  // offset pose

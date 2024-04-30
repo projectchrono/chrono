@@ -4,103 +4,1659 @@
 Change Log
 ==========
 
-- [Unreleased (development version)](#unreleased-development-branch)
-  - [Updated Chrono::VSG module](#changed-updated-chronovsg-module)
-  - [New motion functions and filters](#added-new-motion-functions-and-filters)
-  - [Updated ChBlender exporter to Blender4.0](#changed-updated-chblender-exporter-to-blender40)
-  - [Added unilateral distance constraint](#added-added-unilateral-distance-constraint)
-  - [Collision detection refactoring](#changed-collision-detection-refactoring)
-  - [Application of terrain forces to vehicle systems](#changed-application-of-terrain-forces-to-vehicle-systems)
-  - [Modifications to the HHT integrator](#changed-modifications-to-the-hht-integrator)
-  - [Modeling hydraulic circuit elements and hydraulic actuators](#added-modeling-hydraulic-circuit-elements-and-hydraulic-actuators)
-  - [Support for modeling components with own dynamics](#added-support-for-modeling-components-with-own-dynamics)
-  - [Renamed SPHTerrain and RCCar vehicle classes](#changed-renamed-sphterrain-and-rccar-vehicle-classes)
-  - [Moved drive mode to automatic transmissions](#changed-moved-drive-mode-to-automatic-transmissions)
-  - [Changed gear numbering](#changed-changed-gear-numbering)
-  - [Redundant constraints remover](#added-redundant-constraints-remover)
-  - [Serialization expanded and improved](#changed-serialization-expanded-and-improved)
-  - [Rewrite of Pac02 handling tire model](#changed-rewrite-of-pac02-handling-tire-model)
-  - [New URDF parser](#added-new-urdf-parser)
-  - [Support for STL 3D file format](#added-support-for-stl-3d-file-format)
-  - [Definition and use of primitive geometric shapes](#changed-definition-and-use-of-primitive-geometric-shapes)
-  - [Chrono::Vehicle engine and transmission templates](#changed-chronovehicle-engine-and-transmission-templates)
-  - [New generic template for wheeled suspension subsystems](#added-new-generic-template-for-wheeled-suspension-subsystems)
-  - [CMake configuration and utility build scripts](#changed-cmake-configuration-and-utility-build-scripts)
-  - [SPHTerrain - continuum representation method for deformable terrain](#added-sphterrain---continuum-representation-method-for-deformable-terrain)
-  - [TMSimple tire model](#added-tmsimple-tire-model)
-  - [Blender plug-in for post-process visualization](#added-blender-plug-in-for-post-process-visualization)
-  - [VSG-based run-time visualization module](#added-vsg-based-run-time-visualization-module)
-  - [Support for linear and nonlinear vehicle force elements](#changed-support-for-linear-and-nonlinear-vehicle-force-elements)
-- [Release 8.0.0](#release-800---2022-12-21)
-  - [Chrono::Sensor features and updates](#added-chronosensor-features-and-updates)
-  - [Closed-loop vehicle paths](#fixed-closed-loop-vehicle-paths)
-  - [Miscellaneous Chrono::Vehicle extensions](#added-miscellaneous-chronovehicle-extensions)
-  - [Chrono::FSI API changes](#changed-chronofsi-api-changes)
-  - [User-defined SMC contact force calculation](#added-user-defined-smc-contact-force-calculation)
-  - [Redesigned run-time visualization system](#changed-redesigned-run-time-visualization-system)
-  - [Vehicle inertia properties](#changed-vehicle-inertia-properties)
-  - [CMake project configuration script](#changed-cmake-project-configuration-script)
-  - [Right-handed frames in Chrono::Irrlicht](#changed-right-handed-frames-in-chronoirrlicht)
-  - [Modal analysis module](#added-modal-analysis-module)
-  - [Callback mechanism for collision debug visualization](#added-callback-mechanism-for-collision-debug-visualization)
-  - [Translational and rotational spring-damper-actuators](#changed-translational-and-rotational-spring-damper-actuators)
-  - [Refactor Chrono::Vehicle suspension test rigs](#changed-refactor-chronovehicle-suspension-test-rigs)
-- [Release 7.0.3](#release-703---2022-04-17)
-- [Release 7.0.2](#release-702---2022-04-03)  
-- [Release 7.0.1](#release-701---2022-01-07)  
-- [Release 7.0.0](#release-700---2021-11-15) 
-  - [DDS communicator in Chrono::Synchrono module](#added-dds-communicator-in-chronosynchrono-module)
-  - [New terramechanics co-simulation module](#added-new-terramechanics-co-simulation-module)
-  - [Chrono::FSI API redesign](#changed-chronofsi-api-redesign)
-  - [Sensor performance improvements and feature additions](#changed-sensor-to-improve-performance-and-added-features)
-  - [ANCF element improvements and additions](#changed-ancf-element-improvements-and-additions)
-  - [New Chrono::Vehicle features](#added-new-chronovehicle-features)
-  - [New robot models](#added-new-robot-models)
-  - [New multicore collision detection system](#added-new-multicore-collision-detection-system)
-  - [Miscellaneous additions to Chrono::Gpu](#added-miscellaneous-additions-to-chronogpu)
-  - [New loads for ChNodeFEAxyzrot](#added-new-loads-for-chnodefeaxyzrot)
-  - [Analytical box-box collision detection algorithm in Chrono::Multicore](#added-analytical-box-box-collision-detection-algorithm-in-chronomulticore)
-  - [Checkpointing capabilities in Chrono::Gpu](#added-checkpointing-capabilities-in-chronogpu)
-  - [Fixes to particle volume samplers and generators](#fixed-fixes-to-particle-volume-samplers-and-generators)
-  - [SCM deformable terrain improvements](#changed-scm-deformable-terrain-improvements)
-  - [Miscellaneous fixes to Chrono::Vehicle API](#changed-miscellaneous-fixes-to-chronovehicle-api)
-  - [New tracked vehicle model](#added-new-tracked-vehicle-model)
-  - [Support for Z up camera in Chrono::Irrlicht](#changed-support-for-z-up-camera-in-chronoirrlicht)
-  - [Reading and writing collision meshes in Chrono::Gpu](#changed-reading-and-writing-collision-meshes-in-chronogpu)
-  - [Support compiling to WebAssembly](#added-support-for-the-emscripten-compiler-targeting-webassembly)
-- [Release 6.0.0](#release-600---2021-02-10) 
-  - [New Chrono::Csharp module](#added-new-chronocsharp-module)
-  - [RoboSimian, Viper, and LittleHexy models](#added-robosimian-viper-and-littlehexy-models)
-  - [Contact force reporting through user-provided callback](#added-contact-force-reporting-through-user-provided-callback)
-  - [Chrono::Gpu module rename](#changed-chronogpu-module-rename)
-  - [Chrono::Multicore module rename](#changed-chronomulticore-module-rename)
-  - [Geometric stiffness for Euler beams](#added-geometric-stiffness-for-euler-beams)
-  - [New Chrono::Synchrono module](#added-new-chronosynchrono-module)
-  - [Rename Intel MKL Pardiso interface module](#changed-rename-intel-mkl-pardiso-interface-module)
-  - [Saving POV-Ray files from Irrlicht interactive view](#added-saving-pov-ray-files-from-irrlicht-interactive-view)
-  - [Support for modelling wheeled trailers](#added-support-for-modelling-wheeled-trailers)
-  - [Enhancements to Chrono::FSI](#changed-enhancements-to-chronofsi)
-  - [New Chrono::Sensor module](#added-new-chronosensor-module)
-  - [Setting OpenMP number of threads](#changed-setting-openmp-number-of-threads)
-  - [Redesigned SCM deformable terrain](#changed-redesigned-scm-deformable-terrain)
-  - [Tracked vehicle support in PyChrono](#added-tracked-vehicle-support-in-pychrono)
-  - [Constitutive models for Euler beams](#changed-constitutive-models-for-euler-beams)
-  - [Constitutive models for IGA beams](#changed-constitutive-models-for-iga-beams)
-  - [Obtaining body applied forces](#added-obtaining-body-applied-forces)
-  - [Chrono::Vehicle simulation world frame](#added-chronovehicle-simulation-world-frame)
-  - [CASCADE module](#changed-cascade-module)
-  - [Collision shapes and contact materials](#changed-collision-shapes-and-contact-materials)
-- [Release 5.0.1](#release-501---2020-02-29)
-- [Release 5.0.0](#release-500---2020-02-24)
-  - [Eigen dense linear algebra](#changed-refactoring-of-dense-linear-algebra)
-  - [Eigen sparse matrices](#changed-eigen-sparse-matrices-and-updates-to-direct-sparse-linear-solvers)
-- [Release 4.0.0](#release-400---2019-02-22)
+- [Unreleased (development branch)](#unreleased-development-branch)
+  - [\[Changed\] Refactoring of class and function names](#changed-refactoring-of-class-and-function-names)
+  - [\[Added\] Chrono::Sensor features and updates](#added-chronosensor-features-and-updates)
+  - [\[Changed\] Updated Chrono::VSG module](#changed-updated-chronovsg-module)
+  - [\[Added\] New motion functions and filters](#added-new-motion-functions-and-filters)
+  - [\[Changed\] Updated ChBlender exporter to Blender4.0](#changed-updated-chblender-exporter-to-blender4.0)
+  - [\[Added\] Unilateral distance constraint](#added-unilateral-distance-constraint)
+  - [\[Changed\] Collision detection refactoring](#changed-collision-detection-refactoring)
+  - [\[Changed\] Application of terrain forces to vehicle systems](#changed-application-of-terrain-forces-to-vehicle-systems)
+  - [\[Changed\] Modifications to the HHT integrator](#changed-modifications-to-the-hht-integrator)
+  - [\[Added\] Modeling hydraulic circuit elements and hydraulic actuators](#added-modeling-hydraulic-circuit-elements-and-hydraulic-actuators)
+  - [\[Added\] Support for modeling components with own dynamics](#added-support-for-modeling-components-with-own-dynamics)
+  - [\[Changed\] Renamed SPHTerrain and RCCar vehicle classes](#changed-renamed-sphterrain-and-rccar-vehicle-classes)
+  - [\[Changed\] Moved drive mode to automatic transmissions](#changed-moved-drive-mode-to-automatic-transmissions)
+  - [\[Changed\] Transmission gear numbering](#changed-transmission-gear-numbering)
+  - [\[Added\] Redundant constraints remover](#added-redundant-constraints-remover)
+  - [\[Changed\] Serialization expanded and improved](#changed-serialization-expanded-and-improved)
+  - [\[Changed\] Rewrite of Pac02 handling tire model](#changed-rewrite-of-pac02-handling-tire-model)
+  - [\[Added\] New URDF parser](#added-new-urdf-parser)
+  - [\[Added\] Support for STL 3D file format](#added-support-for-stl-3d-file-format)
+  - [\[Changed\] Definition and use of primitive geometric shapes](#changed-definition-and-use-of-primitive-geometric-shapes)
+  - [\[Changed\] Chrono::Vehicle engine and transmission templates](#changed-chronovehicle-engine-and-transmission-templates)
+  - [\[Added\] New generic template for wheeled suspension subsystems](#added-new-generic-template-for-wheeled-suspension-subsystems)
+  - [\[Changed\] CMake configuration and utility build scripts](#changed-cmake-configuration-and-utility-build-scripts)
+  - [\[Added\] SPHTerrain - continuum representation method for deformable terrain](#added-sphterrain---continuum-representation-method-for-deformable-terrain)
+  - [\[Added\] TMSimple tire model](#added-tmsimple-tire-model)
+  - [\[Added\] Blender plug-in for post-process visualization](#added-blender-plug-in-for-post-process-visualization)
+  - [\[Added\] VSG-based run-time visualization module](#added-vsg-based-run-time-visualization-module)
+  - [\[Changed\] Support for linear and nonlinear vehicle force elements](#changed-support-for-linear-and-nonlinear-vehicle-force-elements)
+- [Release 8.0.0 (2022-12-21)](#release-800-2022-12-21)
+  - [\[Added\] Chrono::Sensor features and updates](#added-chronosensor-features-and-updates)
+  - [\[Fixed\] Closed-loop vehicle paths](#fixed-closed-loop-vehicle-paths)
+  - [\[Added\] Miscellaneous Chrono::Vehicle extensions](#added-miscellaneous-chronovehicle-extensions)
+  - [\[Changed\] Chrono::FSI API changes](#changed-chronofsi-api-changes)
+  - [\[Added\] User-defined SMC contact force calculation](#added-user-defined-smc-contact-force-calculation)
+  - [\[Changed\] Redesigned run-time visualization system](#changed-redesigned-run-time-visualization-system)
+  - [\[Changed\] Vehicle inertia properties](#changed-vehicle-inertia-properties)
+  - [\[Changed\] CMake project configuration script](#changed-cmake-project-configuration-script)
+  - [\[Changed\] Right-handed frames in Chrono::Irrlicht](#changed-right-handed-frames-in-chronoirrlicht)
+  - [\[Added\] Modal analysis module](#added-modal-analysis-module)
+  - [\[Added\] Callback mechanism for collision debug visualization](#added-callback-mechanism-for-collision-debug-visualization)
+  - [\[Changed\] Translational and rotational spring-damper-actuators](#changed-translational-and-rotational-spring-damper-actuators)
+  - [\[Changed\] Refactor Chrono::Vehicle suspension test rigs](#changed-refactor-chronovehicle-suspension-test-rigs)
+- [Release 7.0.3 (2022-04-17)](#release-703-2022-04-17)
+  - [\[Fixed\]](#fixed)
+- [Release 7.0.2 (2022-04-03)](#release-702-2022-04-03)
+  - [\[Fixed\]](#fixed-1)
+- [Release 7.0.1 (2022-01-07)](#release-701-2022-01-07)
+  - [\[Fixed\]](#fixed-2)
+- [Release 7.0.0 (2021-11-15)](#release-700-2021-11-15)
+  - [\[Added\] DDS communicator in Chrono::Synchrono module](#added-dds-communicator-in-chronosynchrono-module)
+  - [\[Added\] New terramechanics co-simulation module](#added-new-terramechanics-co-simulation-module)
+  - [\[Changed\] Chrono::Fsi API redesign](#changed-chronofsi-api-redesign)
+  - [\[Changed\] Sensor to improve performance and added features](#changed-sensor-to-improve-performance-and-added-features)
+  - [\[Changed\] ANCF element improvements and additions](#changed-ancf-element-improvements-and-additions)
+  - [\[Added\] New Chrono::Vehicle features](#added-new-chronovehicle-features)
+  - [\[Added\] New robot models](#added-new-robot-models)
+  - [\[Added\] New multicore collision detection system](#added-new-multicore-collision-detection-system)
+  - [\[Added\] Miscellaneous additions to Chrono::Gpu](#added-miscellaneous-additions-to-chronogpu)
+  - [\[Added\] New loads for ChNodeFEAxyzrot](#added-new-loads-for-chnodefeaxyzrot)
+  - [\[Added\] Analytical box box collision detection algorithm in Chrono::Multicore](#added-analytical-box-box-collision-detection-algorithm-in-chronomulticore)
+  - [\[Added\] Checkpointing capabilities in Chrono::Gpu](#added-checkpointing-capabilities-in-chronogpu)
+  - [\[Fixed\] Particle volume samplers and generators](#fixed-particle-volume-samplers-and-generators)
+  - [\[Changed\] SCM deformable terrain improvements](#changed-scm-deformable-terrain-improvements)
+  - [\[Changed\] Miscellaneous fixes to Chrono::Vehicle API](#changed-miscellaneous-fixes-to-chronovehicle-api)
+  - [\[Added\] New tracked vehicle model](#added-new-tracked-vehicle-model)
+  - [\[Changed\] Support for Z up camera in Chrono::Irrlicht](#changed-support-for-z-up-camera-in-chronoirrlicht)
+  - [\[Changed\] Reading and writing collision meshes in Chrono::Gpu](#changed-reading-and-writing-collision-meshes-in-chronogpu)
+  - [\[Added\] Support for the Emscripten compiler targeting WebAssembly](#added-support-for-the-emscripten-compiler-targeting-webassembly)
+- [Release 6.0.0 (2021-02-10)](#release-600-2021-02-10)
+  - [\[Added\] New Chrono::Csharp module](#added-new-chronocsharp-module)
+  - [\[Added\] RoboSimian, Viper, and LittleHexy models](#added-robosimian-viper-and-littlehexy-models)
+  - [\[Added\] Contact force reporting through user-provided callback](#added-contact-force-reporting-through-user-provided-callback)
+  - [\[Changed\] Chrono::Gpu module rename](#changed-chronogpu-module-rename)
+  - [\[Changed\] Chrono::Multicore module rename](#changed-chronomulticore-module-rename)
+  - [\[Added\] Geometric stiffness for Euler beams](#added-geometric-stiffness-for-euler-beams)
+  - [\[Added\] New Chrono::Synchrono module](#added-new-chronosynchrono-module)
+  - [\[Changed\] Rename Intel MKL Pardiso interface module](#changed-rename-intel-mkl-pardiso-interface-module)
+  - [\[Added\] Saving POV-Ray files from Irrlicht interactive view](#added-saving-pov-ray-files-from-irrlicht-interactive-view)
+  - [\[Added\] Support for modelling wheeled trailers](#added-support-for-modelling-wheeled-trailers)
+  - [\[Changed\] Enhancements to Chrono::FSI](#changed-enhancements-to-chronofsi)
+  - [\[Added\] New Chrono::Sensor module](#added-new-chronosensor-module)
+  - [\[Changed\] Setting OpenMP number of threads](#changed-setting-openmp-number-of-threads)
+  - [\[Changed\] Redesigned SCM deformable terrain](#changed-redesigned-scm-deformable-terrain)
+  - [\[Added\] Tracked vehicle support in PyChrono](#added-tracked-vehicle-support-in-pychrono)
+  - [\[Changed\] Constitutive models for EULER beams](#changed-constitutive-models-for-euler-beams)
+  - [\[Changed\] Constitutive models for IGA beams](#changed-constitutive-models-for-iga-beams)
+  - [\[Added\] Obtaining body applied forces](#added-obtaining-body-applied-forces)
+  - [\[Added\] Chrono::Vehicle simulation world frame](#added-chronovehicle-simulation-world-frame)
+  - [\[Changed\] CASCADE module](#changed-cascade-module)
+  - [\[Changed\] Collision shapes and contact materials](#changed-collision-shapes-and-contact-materials)
+- [Release 5.0.1 (2020-02-29)](#release-501-2020-02-29)
+  - [\[Fixed\]](#fixed-3)
+- [Release 5.0.0 (2020-02-24)](#release-500-2020-02-24)
+  - [\[Changed\] Refactoring of dense linear algebra](#changed-refactoring-of-dense-linear-algebra)
+  - [\[Changed\] Eigen sparse matrices and updates to direct sparse linear solvers](#changed-eigen-sparse-matrices-and-updates-to-direct-sparse-linear-solvers)
+- [Release 4.0.0 (2019-02-22)](#release-400-2019-02-22)
 
-## Unreleased (development branch)
+# Unreleased (development branch)
+
+## [Changed] Refactoring of class and function names
+
+For consistency and uniformity, many classes and functions were renamed, modified, or even obsoleted.
+Note that this represents a major public API change and we expect most user code will need to be updated to reflect these changes.
+
+The main changes are collected in the following tables. These can serve as a "dictionary" for converting existing user codes to the new Chrono API.
+Please make sure to also read the notes at the end of this log entry where we provide more details on changes that went beyond simple class or function renaming.
+
+**Header files**
+
+| File                                | Action                                    |
+| :---------------------------------- | :---------------------------------------- |
+| ChBitmaskEnums.h                    | remove                                    |
+| ChController.h                      | rename: ChControllers.h                   |
+| ChDistribution.h                    | rename: ChRandom.h                        |
+| ChException.h                       | remove                                    |
+| ChFunction_Const.h                  | rename: ChFunctionConst.h                 |
+| ChFunction_BSpline.h                | rename: ChFunctionBSpline.h               |
+| ChFunction_ConstAcc.h               | rename: ChFunctionConstAcc.h              |
+| ChFunction_DoubleS.h                | rename: ChFunctionConstJerk.h             |
+| ChFunction_Cycloidal.h              | rename: ChFunctionCycloidal.h             |
+| ChFunction_Derive.h                 | rename: ChFunctionDerivative.h            |
+| ChFunction_Fillet3.h                | rename: ChFunctionFillet3.h               |
+| ChFunction_Integrate.h              | rename: ChFunctionIntegral.h              |
+| ChFunction_Lambda.h                 | rename: ChFunctionLambda.h                |
+| ChFunction_Mirror.h                 | rename: ChFunctionMirror.h                |
+| ChFunction_Mocap.h                  | remove                                    |
+| ChFunction_Noise.h                  | remove                                    |
+| ChFunction_Operation.h              | rename: ChFunctionOperator.h              |
+| ChFunction_Oscilloscope.h           | remove                                    |
+| ChFunction_Poly345.h                | rename: ChFunctionPoly345.h               |
+| ChFunction_Poly.h                   | rename: ChFunctionPoly.h                  |
+| ChFunction_Ramp.h                   | rename: ChFunctionRamp.h                  |
+| ChFunction_Recorder.h               | rename: ChFunctionInterp.h                |
+| ChFunction_Repeat.h                 | rename: ChFunctionRepeat.h                |
+| ChFunction_Sequence.h               | rename: ChFunctionSequence.h              |
+| ChFunction_Sigma.h                  | rename: ChFunctionPoly23.h                |
+| ChFunction_Sine.h                   | rename: ChFunctionSine.h                  |
+| ChFunction_Setpoint.h               | rename: ChFunctionSetpoint.h              |
+| ChFunctionPosition_line.h           | rename: ChFunctionPositionLine.h          |
+| ChFunctionPosition_setpoint.h       | rename: ChFunctionPositionSetpoint.h      |
+| ChFunctionPosition_XYZfunctions.h   | rename: ChFunctionPositionXYZFunctions.h  |
+| ChFunctionRotation_ABCfunctions.h   | rename: ChFunctionRotationABCFunctions.h  |
+| ChFunctionRotation_axis.h           | rename: ChFunctionRotationAxis.h          |
+| ChFunctionRotation_setpoint.h       | rename: ChFunctionRotationSetpoint.h      |
+| ChFunctionRotation_spline.h         | rename: ChFunctionRotationBSpline.h       |
+| ChFunctionRotation_SQUAD.h          | rename: ChFunctionRotationSQUAD.h         |
+| ChFx.h                              | remove                                    |
+| ChKblock.h                          | remove                                    |
+| ChKblockGeneric.h                   | rename: ChKRMBlock.h                      |
+| ChLimit.h                           | rename: ChLinkLimit.h                     |
+| ChLineBspline.h                     | rename: ChLineBSpline.h                   |
+| ChLinkBeamIGAslider.h               | rename: ChLinkBeamIGAFrame.h              |
+| ChLinkBrake.h                       | rename: ChLinkLockBrake.h                 |
+| ChLinkClearance.h                   | rename: ChLinkLockClearance.h             |
+| ChLinkDirFrame.h                    | rename: ChLinkNodeSlopeFrame.h            |
+| ChLinkGear.h                        | rename: ChLinkLockGear.h                  |
+| ChLinkLinActuator.h                 | rename: ChLinkLockLinActuator.h           |
+| ChLinkPointFrame.h                  | rename: ChLinkNodeFrame.h                 |
+| ChLinkPointPoint.h                  | rename: ChLinkNodeNode.h                  |
+| ChLinkPointSpline.h                 | rename: ChLinkLockPointSpline.h           |
+| ChLinkPointTriface.h                | rename: ChLinkNodeFace.h                  |
+| ChLinkPulley.h                      | rename: ChLinkLockPulley.h                |
+| ChLinkRackpinion.h                  | remove: merged into ChLinkMate.h          |
+| ChLinkScrew.h                       | rename: ChLinkLockScrew.h                 |
+| ChLinkTrajectory.h                  | rename: ChLinkLockTrajectory.h            |
+| ChLists.h                           | remove                                    |
+| ChLoadsXYZnode.h                    | rename: ChLoadsNodeXYZ.h                  |
+| ChLoadsZYZROTnode.h                 | rename: ChLoadsNodeXYZRot.h               |
+| ChLog.h                             | remove                                    |
+| ChMaterialSurface.h                 | rename: ChContactMaterial.h               |
+| ChMaterialSurfaceNSC.h              | rename: ChContactMaterialNSC.h            |
+| ChMaterialSurfaceSMC.h              | rename: ChContactMaterialSMC.h            |
+| ChMath.h                            | remove                                    |
+| ChMathematics.h                     | remove and replace with:                  |
+|                                     |         ChConstants.h                     |
+|                                     |         ChUtils.h                         |
+| ChShaftsBody.h                      | rename: ChShaftBodyConstraint.h           |
+| ChShaftsMotorAngle.h                | rename: ChShaftsMotorPosition.h           |
+| ChShaftsMotorTorque.h               | rename: ChShaftsMotorLoad.h               |
+| ChSolvmin.h                         | remove                                    |
+| ChStream.h                          | remove                                    |
+| ChUpdateFlags.h                     | remove                                    |
+| ChVector.h                          | rename: ChVector3.h                       |
+
+
+**Classes and functions**
+
+The following table summarizes all changes in class and member function names.
+The table is sorted in alphabetical order of the old class name (in the 1st column) and then in alphabetical order of the old member function name (in the 2nd column).
+The 3rd column specifies the action taken on that class or function: remove (indicating obsoleted functionality) or renamed (in which case the new class or function name is provided).
+In some instances, the reader is directed to the "Notes" section for more details.
+
+| Class                             | Function                      | Action                                           |
+| :-------------------------------- | :--------------------------   | :----------------------------------------------- |
+| -                                 | make_ChFunctionLambda         | remove                                           |
+| -                                 | make_shared_ChFunctionLambda  | remove                                           |
+| -                                 | ChAtan2                       | remove                                           |
+| -                                 | ChClamp                       | relocate to utils/ChUtils.h                      |
+| -                                 | ChClampValue                  | relocate to utils/ChUtils.h                      |
+| -                                 | ChGetRandomSeed               | remove                                           |
+| -                                 | ChMax                         | remove                                           |
+| -                                 | ChMin                         | remove                                           |
+| -                                 | ChPeriodicPar                 | remove                                           |
+|                                   | ChRandom                      | replace with: ChRandom::Get                      |
+| -                                 | ChSetRandomSeed               | replace with: ChRandom::SetSeed                  |
+| -                                 | ChSignum                      | relocate to utils/ChUtils.h                      |
+| -                                 | ChSineStep                    | implemented in ChFunctionSineStep                |
+| -                                 | GetUniqueIntID                | remove                                           |
+| -                                 | GetLog                        | remove                                           |
+| -                                 | SetFirstIntID                 | remove                                           |
+| -                                 | SetLog                        | remove                                           |
+| -                                 | SetLogDefault                 | remove                                           |
+| -                                 | StreamInDenseMAtlabFormat     | remove                                           |
+| -                                 | StreamOutDenseMatlabFormat    | rename: ChStreamOut                              |
+| -                                 | StreamOutSparseMatlabFormat   | rename: ChStreamOut (0- or 1- indexed option)    |
+| -                                 | XdirToDxDyDz                  | remove                                           |
+| ChAbsorbed_Power_Vertical         |                               | rename: ChAbsorbedPowerVertical                  |
+| ChAparticle                       |                               | rename: ChParticle                               |
+| ChArchiveFmu                      |                               | rename: ChOutputFMU                              |
+| ChArchiveAsciiDump                |                               | rename: ChOutputASCII                            |
+| ChArchiveExplorer                 |                               | rename: ChObjectExplorer                         |
+| ChAssembly                        |                               |                                                  |
+|                                   | Get_bodylist                  | rename: GetBodies                                |
+|                                   | Get_linklist                  | rename: GetLinks                                 |
+|                                   | Get_meshlist                  | rename: GetMeshes                                |
+|                                   | Get_otherphysicslist          | rename: GetShafts                                |
+|                                   | Get_shaftslist                | rename: GetOtherPhysicsItems                     |
+|                                   | GetForceList                  | rename: GetForces                                |
+|                                   | GetMarkerList                 | rename: GetMarkers                               |
+|                                   | GetNbodies                    | rename: GetNumBodiesActive                       |
+|                                   | GetNbodiesFixed               | rename: GetNumBodiesFixed                        |
+|                                   | GetNbodiesSleeping            | rename: GetNumBodiesSleeping                     |
+|                                   | GetNbodiesTotal               | rename: GetNumBodies                             |
+|                                   | GetNcontacts                  | rename: GetNumContacts                           |
+|                                   | GetNcoords                    | rename: GetNumCoordsPosLevel                     |
+|                                   | GetNcoords_w                  | rename: GetNumCoordsVelLevel                     |
+|                                   | GetNdoc                       | remove: no constraints at position level         |
+|                                   | GetNdoc_w                     | rename: GetNumConstraints                        |
+|                                   | GetNdoc_w_C                   | rename: GetNumConstraintsBilateral               |
+|                                   | GetNdoc_w_D                   | rename: GetNumConstraintsUnilateral              |
+|                                   | GetNdof                       | remove: it was a rough estimate                  |
+|                                   | GetNlinks                     | rename: GetNumLinksActive                        |
+|                                   | GetNmeshes                    | rename: GetNumMeshes                             |
+|                                   | GetNphysicsItems              | rename: GetNumOtherPhysicsItemsActive            |
+|                                   | GetNshafts                    | rename: GetNumShafts                             |
+|                                   | GetNshaftsFixed               | rename: GetNumShaftsFixed                        |
+|                                   | GetNshaftsSleeping            | rename: GetNumShaftsSleeping                     |
+|                                   | GetNshaftsTotal               | rename: GetNumShaftsTotal                        |
+|                                   | GetNsysvars                   | remove                                           |
+|                                   | GetNsysvars_w                 | remove                                           |
+|                                   | SetNoSpeedNoAcceleration      | rename: ForceToRest                              |
+| ChAssemblyAnalysis                |                               |                                                  |
+|                                   | get_L                         | rename: GetLagrangeMultipliers                   |
+|                                   | get_X                         | rename: GetStatePos                              |
+|                                   | get_V                         | rename: GetStateVel                              |
+|                                   | get_A                         | rename: GetStateAcc                              |
+| ChBasisToolsBspline               |                               | rename: ChBasisToolsBSpline                      |
+| ChBasisToolsBsplineSurfaces       |                               | rename: ChBasisToolsBSplineSurfaces              |
+| ChBeamSectionCable                |                               |                                                  |
+|                                   | GetBeamRayleighDamping        | rename: GetRayleighDamping                       |
+|                                   | GetI                          | rename: GetInertia                               |
+|                                   | SetBeamRayleighDamping        | rename: SetRayleighDamping                       |
+|                                   | SetI                          | rename: SetInertia                               |
+| ChBeamSectionEuler                |                               |                                                  |
+|                                   | GetBeamRayleighDampingAlpha   | rename: GetRayleighDampingAlpha                  |
+|                                   | GetBeamRayleighDampingBeta    | rename: GetRayleighDampingBeta                   |
+|                                   | SetBeamRayleighDampingAlpha   | rename: SetRayleighDampingAlpha                  |
+|                                   | SetBeamRayleighDampingBeta    | rename: SetRayleighDampingBeta                   |
+| ChBeamSectionEulerAdvancedGeneric |                               |                                                  |
+|                                   | SetXtorsionRigidity           | rename: SetTorsionRigidityX                      |
+|                                   | SetYbendingRigidity           | rename: SetBendingRigidityY                      |
+|                                   | SetZbendingRigidity           | rename: SetBendingRigidityZ                      |
+| ChBeamSectionEulerSimple          |                               |                                                  |
+|                                   | GetGshearModulus              | rename: GetShearModulus                          |
+|                                   | GetXtorsionRigidity           | rename: GetTorsionRigidityX                      |
+|                                   | GetYbendingRigidity           | rename: GetBendingRigidityY                      |
+|                                   | GetZbendingRigidity           | rename: GetBendingRigidityZ                      |
+|                                   | SetGshearModulus              | rename: SetShearModulus                          |
+|                                   | SetGwithPoissonRatio          | rename: SetShearModulusFromPoisson               |
+| ChBeamSectionShape                |                               |                                                  |
+|                                   | GetNofLines                   | rename: GetNumLines                              |
+|                                   | GetNofPoints                  | rename: GetNumPoints                             |
+| ChBeamSectionTimoshenkoAdvancedGeneric  |                         |                                                  |
+|                                   | GetYshearRigidity             | rename: GetShearRigidityY                        |
+|                                   | GetZshearRigidity             | rename: GetShearRigidityZ                        |
+|                                   | SetYshearRigidity             | rename: SetShearRigidityY                        |
+|                                   | SetZshearRigidity             | rename: SetShearRigidityZ                        |
+| ChBezierCurve                     |                               |                                                  |
+|                                   | calcClosestPoint              | rename: CalcClosestPoint                         |
+|                                   | eval                          | rename: Eval                                     |
+|                                   | evalD                         | rename: EvalDer                                  |
+|                                   | evalDD                        | rename: EvalDer2                                 |
+|                                   | getNumPoints                  | rename: GetNumPoints                             |
+|                                   | getNumSegments                | rename: GetNumSegments                           |
+|                                   | getPoint                      | rename: GetPoint                                 |
+|                                   | getPoints                     | rename: GetPoints                                |
+|                                   | read                          | rename: Read                                     |
+|                                   | reset                         | rename: Reset                                    |
+|                                   | write                         | rename: Write                                    |
+| ChBinaryArchive                   |                               | remove                                           |
+| ChBody                            |                               |                                                  |
+|                                   | Accumulate_force              | rename: AccumulateForce                          |
+|                                   | Accumulate_torque             | rename: AccumulateTorque                         |
+|                                   | Dir_Body2World                | remove                                           |
+|                                   | Dir_World2Body                | remove                                           |
+|                                   | Empty_forces_accumulators     | rename: EmptyAccumulators                        |
+|                                   | Get_accumulated_force         | rename: GetAccumulatedForce                      |
+|                                   | Get_accumulated_torque        | rename: GetAccumulatedTorque                     |
+|                                   | GetBodyFixed                  | rename: IsFixed                                  |
+|                                   | GetCollide                    | rename: IsCollisionEnabled                       |
+|                                   | GetFrame_COG_to_abs           | rename: GetFrameCOMToAbs                         |
+|                                   | GetGid                        | remove                                           |
+|                                   | GetId                         | rename: GetIndex (internal use only)             |
+|                                   | GetMaxSpeed                   | rename: GetMaxLinVel                             |
+|                                   | GetMaxWvel                    | rename: GetMaxAngVel                             |
+|                                   | GetSleeping                   | rename: IsSleeping                               |
+|                                   | GetSleepMinSpeed              | rename: GetSleepMinLinVel                        |
+|                                   | GetSleepMinWvel               | rename: GetSleepMinAngVel                        |
+|                                   | GetUseSleeping                | rename: IsSleepingAllowed                        |
+|                                   | Point_Body2World              | remove                                           |
+|                                   | Point_World2Body              | remove                                           |
+|                                   | RelPoint_AbsAcc               | remove                                           |
+|                                   | RelPoint_AbsSpeed             | remove                                           |
+|                                   | SetBodyFixed                  | rename: SetFixed                                 |
+|                                   | SetCollide                    | rename: EnableCollision                          |
+|                                   | SetGid                        | remove                                           |
+|                                   | SetId                         | remove                                           |
+|                                   | SetMaxSpeed                   | rename: SetMaxLinVel                             |
+|                                   | SetMaxWvel                    | rename: SetMaxAngVel                             |
+|                                   | SetNoSpeedNoAcceleration      | rename: ForceToRest                              |
+|                                   | SetSleepMinSpeed              | rename: SetSleepMinLinVel                        |
+|                                   | SetSleepMinWvel               | rename: SetSleepMinAngVel                        |
+|                                   | SetUseSleeping                | rename: SetSleepingAllowed                       |
+| ChBodyAuxRef                      |                               |                                                  |
+|                                   | GetFrame_COG_to_REF           | rename: GetFrameCOMToRef                         |
+|                                   | GetFrame_REF_to_abs           | rename: GetFrameRefToAbs                         |
+|                                   | GetFrame_REF_to_COG           | rename: GetFrameRefToCOM                         |
+|                                   | SetFrame_COG_to_REF           | rename: SetFrameCOMToRef                         |
+|                                   | SetFrame_REF_to_abs           | rename: SetFrameRefToAbs                         |
+|                                   | SetFrame_REF_to_COG           | rename: SetFrameRefToCOM                         |
+| ChBodyFrame                       |                               |                                                  |
+|                                   | To_abs_forcetorque            | remove                                           |
+|                                   |                               | added: AppliedForceLocalToWrenchParent           |
+|                                   |                               | added: AppliedForceParentToWrenchParent          |
+| ChButterworth_Highpass            |                               | rename: ChButterworthHighpass                    |
+| ChButterworth_Lowpass             |                               | rename: ChButterworthLowpass                     |
+| ChCollisionModel                  |                               |                                                  |
+|                                   | GetFamilyMaskDoesCollisionWithFamily | rename: CollidesWith                      |
+|                                   | GetShape                      | rename: GetShapeInstance                         |
+|                                   | GetShapes                     | rename: GetShapeInstances                        |
+|                                   | SetFamilyMaskDoCollisionWithFamily   | rename: AllowCollisionsWith               | 
+|                                   | SetFamilyMaskNoCollisionWithFamily   | rename: DisallowCollisionsWith            |
+| ChConstraint                      |                               |                                                  |
+|                                   | Build_Cq                      | rename: PasteJacobianInto                        |
+|                                   | Build_CqT                     | rename: PasteJacobianTransposedInto              |
+|                                   | Compute_c_i                   | rename: ComputeResidual                          |
+|                                   | Compute_Cq_q                  | rename: ComputeJacobianTimesState                |
+|                                   | Get_b_i                       | rename: GetRightHandSide                         |
+|                                   | Get_c_i                       | rename: GetResidual                              |
+|                                   | Get_cfm_i                     | rename: GetComplianceTerm                        |
+|                                   | Get_g_i                       | rename: GetSchurComplement                       |
+|                                   | Get_l_i                       | rename: GetLagrangeMultiplier                    |
+|                                   | Set_b_i                       | rename: SetRightHandSide                         |
+|                                   | Set_c_i                       | rename: SetResidual                              |
+|                                   | Set_cfm_i                     | rename: SetComplianceTerm                        |
+|                                   | Set_g_i                       | rename: SetSchurComplement                       |
+|                                   | Set_l_i                       | rename: SetLagrangeMultiplier                    |
+|                                   | Increment_q                   | rename: IncrementState                           |
+|                                   | MultiplyAndAdd                | rename: AddJacobianTimesVectorInto               |
+|                                   | MultiplyTandAdd               | rename: AddJacobianTransposedTimesScalarInto     |
+| ChContactable                     |                               |                                                  |
+|                                   | ContactableGet_ndof_x         | rename: GetContactableNumCoordsPosLevel          |
+|                                   | ContactableGet_ndof_w         | rename: GetContactableNumCoordsVelLevel          |
+|                                   | ContactableGetStateBlock_x    | rename: ContactableGetStateBlockPosLevel         |
+|                                   | ContactableGetStateBlock_w    | rename: ContactableGetStateBlockVelLevel         |
+|                                   | GetCsysForCollisionModel      | rename: GetCollisionModelFrame                   |
+| ChContactNodeXYZROT               |                               | rename: ChContactNodeXYZRot                      |
+| ChContactNodeXYZROTsphere         |                               | rename: ChContactNodeXYZRotSphere                |
+| ChContactSurfaceMesh              |                               |                                                  |
+|                                   | GetTriangleList               | rename: GetTrianglesXYZ                          |
+|                                   | GetTriangleListRot            | rename: GetTrianglesXYZROT                       |
+| ChContactSurfaceNodeCloud         |                               |                                                  |
+|                                   | GetNnodesRot                  | rename: GetNumNodesRot                           |
+|                                   | GetNodeList                   | rename: GetNodes                                 |
+|                                   | GetNodeListRot                | rename: GetNodesRot                              |
+| ChContactTriangleXYZROT           |                               | rename: ChContactTriangleXYZRot                  |
+|                                   | GetTrianglesXYZROT            | rename: GetTrianglesXYZRot                       |
+| ChContinuumElastic                |                               |                                                  |
+|                                   | Get_BulkModulus               | rename: GetBulkModulus                           |
+|                                   | Get_density                   | rename: GetDensity                               |
+|                                   | Get_E                         | rename: GetYoungModulus                          |
+|                                   | Get_G                         | rename: GetShearModulus                          |
+|                                   | Get_l                         | rename: GetLameFirstParam                        |
+|                                   | Get_StressStrainMatrix        | rename: GetStressStrainMatrix                    |
+|                                   | Get_RayleighDampingK          | rename: GetRayleighDampingBeta                   |
+|                                   | Get_RayleighDampingM          | rename: GetRayleighDampingAlpha                  |
+|                                   | Get_WaveModulus               | rename: GetPWaveModulus                          |
+|                                   | Get_v                         | rename: GetPoissonRatio                          |
+|                                   | Set_density                   | rename: SetDensity                               |
+|                                   | Set_E                         | rename: SetYoungModulus                          |
+|                                   | Set_G                         | rename: SetShearModulus                          |
+|                                   | Set_RayleighDampingK          | rename: SetRayleighDampingBeta                   |
+|                                   | Set_RayleighDampingM          | rename: SetRayleighDampingAlpha                  |
+|                                   | Set_v                         | rename: SetPoissonRatio                          |
+| ChContinuumDruckerPrager          |                               |                                                  |
+|                                   | Get_alpha                     | rename: GetInternalFriction                      |
+|                                   | Get_dilatancy                 | rename: GetDilatancy                             |
+|                                   | Get_hardening_limit           | rename: GetHardeningLimit                        |
+|                                   | Get_hardening_speed           | rename: GetHardeningSpeed                        |
+|                                   | Set_alpha                     | rename: SetInternalFriction                      |
+|                                   | Set_dilatancy                 | rename: SetDilatancy                             |
+|                                   | Set_from_MohrCoulomb          | rename: SetFromMohrCoulomb                       |
+|                                   | Set_hardening_limit           | rename: SetHardeningLimit                        |
+|                                   | Set_hardening_speed           | rename: SetHardeningSpeed                        |
+| ChContinuumElastoplastic          |                               |                                                  |
+|                                   | ComputeYeldFunction           | rename: ComputeYieldFunction                     |
+|                                   | Get_flow_rate                 | rename: GetPlasticFlowRate                       |
+|                                   | Set_flow_rate                 | rename: SetPlasticFlowRate                       |
+| ChContinuumElectrostatics         |                               |                                                  |
+|                                   | Get_PermittivityEmatrix       | rename: GetPermittivityMatrix                    |
+| ChContinuumMaterial               |                               |                                                  |
+|                                   | Get_density                   | rename: GetDensity                               |
+|                                   | Set_density                   | rename: SetDensity                               |
+| ChContinuumPlasticVonMises        |                               |                                                  |
+|                                   | Get_elastic_yeld              | rename: GetElasticYield                          |
+|                                   | Get_plastic_yeld              | rename: GetPlasticYield                          |
+|                                   | Set_elastic_yeld              | rename: SetElasticYield                          |
+|                                   | Set_plastic_yeld              | rename: SetPlasticYield                          |
+| ChContinuumPoisson3D              |                               |                                                  |
+|                                   | Get_ConstitutiveMatrix        | rename: GetConstitutiveMatrix                    |
+| ChContinuumThermal                |                               |                                                  |
+|                                   | GetThermalConductivityK       | rename: GetThermalConductivity                   |
+|                                   | GetMassSpecificHeatCapacity   | rename: GetSpecificHeatCapacity                  |
+|                                   | Get_ThermalKmatrix            | rename: GetConductivityMatrix                    |
+|                                   | SetThermalConductivityK       | rename: SetThermalConductivity                   |
+|                                   | SetMassSpecificHeatCapacity   | rename: SetSpecificHeatCapacity                  |
+| ChControllerPID                   |                               |                                                  |
+|                                   | Get_Out                       | rename: GetOutput                                |
+|                                   | Get_Pcomp                     | remove                                           |
+|                                   | Get_Icomp                     | remove                                           |
+|                                   | Get_Dcomp                     | remove                                           |
+|                                   | Get_In_int                    | remove                                           |
+|                                   | Get_In_dt                     | remove                                           |
+|                                   | Get_In                        | remove                                           |
+| ChElasticityCosseratAdvancedGenericFPM |                          |                                                  |
+|                                   | GetEMatrix                    | rename: GetStiffnessMatrix                       |
+|                                   | SetEMatrix                    | rename: SetStiffnessMatrix                       |
+|                                   | UpdateEMatrix                 | rename: UpdateStiffnessMatrix                    |
+| ChElasticityKirchhoffIsothropic   |                               |                                                  |
+|                                   | Get_nu                        | rename: GetPoissonRatio                          |
+| ChElasticityKirchhoffOrthotropic  |                               |                                                  |
+|                                   | Get_E_x                       | rename: GetYoungModulusX                         |
+|                                   | Get_E_y                       | rename: GetYoungModulusY                         |
+|                                   | Get_G_xy                      | rename: GetShearModulusXY                        |
+|                                   | Get_nu_xy                     | rename: GetPoissonRatioXY                        |
+|                                   | Get_nu_yx                     | rename: GetPoissonRatioYX                        |
+| ChElasticityReissnerIsothropic    |                               |                                                  |
+|                                   | Get_alpha                     | rename: GetShearFactor                           |
+|                                   | Get_beta                      | rename: GetTorqueFactor                          |
+| ChElasticityReissnerOrthotropic   |                               |                                                  |
+|                                   | Get_G_xz                      | rename: GetShearModulusXZ                        |
+|                                   | Get_G_yz                      | rename: GetShearModulusYZ                        |
+| ChElementBar                      |                               |                                                  |
+|                                   | GetBarArea                    | rename: GetArea                                  |
+|                                   | GetBarDensity                 | rename: GetDensity                               |
+|                                   | GetBarRayleighDamping         | rename: GetRayleighDamping                       |
+|                                   | GetBarYoungModulus            | rename: GetYoungModulus                          |
+|                                   | SetBarArea                    | rename: SetArea                                  |
+|                                   | SetBarDensity                 | rename: SetDensity                               |
+|                                   | SetBarRayleighDamping         | rename: SetRayleighDamping                       |
+|                                   | SetBarYoungModulus            | rename: SetYoungModulus                          |
+| ChElementBase                     |                               |                                                  |
+|                                   | GetNdofs                      | rename: GetNumCoordsPosLevel                     |
+|                                   | GetNdofs_active               | rename: GetNumCoordsPosLevelActive               |
+|                                   | GetNodeN                      | rename: GetNode                                  |
+|                                   | GetNodeNdofs                  | rename: GetNodeNumCoordsPosLevel                 |
+|                                   | GetNodeNdofs_active           | rename: GetNodeNumCoordsPosLevelActive           |
+|                                   | GetNnodes                     | rename: GetNumNodes                              |
+|                                   | InjectKRMmatrices             | rename: InjectKRMMatrices                        |
+|                                   | KRMmatricesLoad               | rename: LoadKRMMatrices                          |
+| ChElementBeamEuler                |                               |                                                  |
+|                                   | GetField_dt                   | rename: GetFieldDt                               |
+|                                   | GetField_dtdt                 | rename: GetFieldDt2                              |
+| ChElementShellANCF                |                               |                                                  |
+|                                   | Get_rho                       | rename: GetDensity                               |
+| ChElementShellBST                 |                               |                                                  |
+|                                   | Get_theta                     | rename: GetFiberAngle                            |
+|                                   | Get_thickness                 | rename: GetThickness                             |
+|                                   | GetNodeNeighbourN             | rename: GetNodeNeighbour                         |
+|                                   | GetNodeTriangleN              | rename: GetNodeMainTriangle                      |
+| ChElementSpring                   |                               |                                                  |
+|                                   | GetDamperR                    | rename: GetDampingCoefficient                    |
+|                                   | GetSpringK                    | rename: GetSpringCoefficient                     |
+|                                   | SetDamperR                    | rename: SetDampingCoefficient                    |
+|                                   | SetSpringK                    | rename: SetSpringCoefficient                     |
+| ChException                       |                               | remove                                           |
+| ChFrame                           |                               |                                                  |
+|                                   | GetA                          | rename: GetRotMat                                |
+|                                   | GetCoord                      | rename: GetCoordsys                              |
+|                                   | operator%=                    | remove                                           |
+|                                   | SetCoord                      | rename: SetCoordsys                              |
+|                                   | TransformLocalToParent        | see Notes                                        |
+|                                   | TransformParentToLocal        | see Notes                                        |
+| ChFrameMoving                     |                               |                                                  |
+|                                   | Compute_Adt                   | rename: ComputeRotMatDt                          |
+|                                   | Compute_Adtdt                 | rename: ComputeRotMatDt2                         |
+|                                   | GetA_dt                       | rename: GetRotMatDt                              |
+|                                   | GetA_dtdt                     | rename: GetRotMatDt2                             |
+|                                   | GetCoord_dt                   | rename: GetCoordsysDt                            |
+|                                   | GetCoord_dtdt                 | rename: GetCoordsysDt2                           |
+|                                   | GetPos_dt                     | rename: GetPosDt                                 |
+|                                   |                               | added: GetLinVel                                 |
+|                                   | GetPos_dtdt                   | rename: GetPosDt2                                |
+|                                   |                               | added: GetLinAcc                                 |
+|                                   | GetRot_dt                     | rename: GetRotDt                                 |
+|                                   | GetRot_dtdt                   | rename: GetRotDt2                                |
+|                                   | GetWacc_loc                   | rename: GetAngAccLocal                           |
+|                                   | GetWacc_par                   | rename: GetAngAccParent                          |
+|                                   | GetWvel_loc                   | rename: GetAngVelLocal                           |
+|                                   | GetWvel_par                   | rename: GetAngVelParent                          |
+|                                   | operator%=                    | remove                                           |
+|                                   | SetCoord_dt                   | rename: SetCoordsysDt                            |
+|                                   | SetCoord_dtdt                 | rename: SetCoordsysDt2                           |
+|                                   | SetPos_dt                     | rename: SetPosDt                                 |
+|                                   |                               | added: SetLinVel                                 |
+|                                   | SetPos_dtdt                   | rename: SetPosDt2                                |
+|                                   |                               | added: SetLinAcc                                 |
+|                                   | SetRot_dt                     | rename: SetRotDt                                 |
+|                                   | SetRot_dtdt                   | rename: SetRotDt2                                |
+|                                   | SetWacc_loc                   | rename: SetAngAccLocal                           |
+|                                   | SetWacc_par                   | rename: SetAngAccParent                          |
+|                                   | SetWvel_loc                   | rename: SetAngVelLocal                           |
+|                                   | SetWvel_par                   | rename: SetAngVelParent                          |
+| ChFunction                        |                               |                                                  |
+|                                   | Compute_int                   | rename: GetIntegral                              |
+|                                   | Compute_max                   | rename: GetMax                                   |
+|                                   | Compute_mean                  | rename: GetMean                                  |
+|                                   | Compute_min                   | rename: GetMin                                   |
+|                                   | Compute_sqrmean               | rename: GetSquaredMean                           |
+|                                   | Estimate_x_range              | remove                                           |
+|                                   | Estimate_y_range              | remove: use GetMin, GetMax                       |
+|                                   | EvaluateIntervaldN            | rename: SampleUpToDerN                           |
+|                                   | Get_Ca_neg                    | rename: GetNegativeAccelerationCoeff             |
+|                                   | Get_Ca_pos                    | rename: GetPositiveAccelerationCoeff             |
+|                                   | Get_Cv                        | rename: GetVelocityCoeff                         |
+|                                   | Get_Type                      | rename: GetType                                  |
+|                                   | Get_weight                    | rename: GetWeight                                |
+|                                   | Get_y                         | rename: GetVal                                   |
+|                                   | Get_y_dN                      | rename: GetDerN                                  |
+|                                   | Get_y_dx                      | rename: GetDer                                   |
+|                                   | Get_y_dxdx                    | rename: GetDer2                                  |
+|                                   | Get_y_dxdxdx                  | rename: GetDer3                                  |
+|                                   | FileAsciiPairsSave            | rename: OutputToASCIIFile                        |
+|                                   | HandleAccess                  | remove                                           |
+|                                   | HandleNumber                  | remove                                           |
+|                                   | FilePostscriptPlot            | remove                                           |
+| ChFunction_Const                  |                               | rename: ChFunctionConst                          |
+|                                   | Get_yconst                    | rename: GetConstant                              |
+|                                   | Set_yconst                    | rename: SetConstant                              |
+| ChFunction_BSpline                |                               | rename: ChFunctionBSpline                        |
+|                                   | Get_Basis_Tool                | rename: GetBasisTool                             |
+|                                   | Get_Control_Points            | rename: GetControlPoints                         |
+|                                   | Get_Control_Points_Abscissae  | rename: GetControlPointsAbscissae                |
+|                                   | Get_Knots                     | rename: GetKnots                                 |
+|                                   | Get_Order                     | rename: GetOrder                                 |
+|                                   | Recompute_Constrained         | rename: ApplyInterpolationConstraints            |
+|                                   | Setup_Data                    | rename: Setup                                    |
+| ChFunction_ConstAcc               |                               | rename: ChFunctionConstAcc                       |
+|                                   | Get_end                       | rename: GetDuration                              |
+|                                   | Get_h                         | rename: GetDisplacement                          |
+|                                   | Get_av                        | rename: GetFirstAccelerationEnd                  |
+|                                   | Get_aw                        | rename: GetSecondAccelerationStart               |
+|                                   | Set_av                        | rename: SetFirstAccelerationEnd                  |
+|                                   | Set_avw                       | rename: SetAccelerationReferencePoints           |
+|                                   | Set_aw                        | rename: SetSecondAccelerationStart               |
+|                                   | Set_end                       | rename: SetDuration                              |
+|                                   | Set_h                         | rename: SetDisplacement                          |
+| ChFunction_Derive                 |                               | rename: ChFunctionDerivative                     |
+|                                   | Get_order                     | rename: GetOrder                                 |
+|                                   | Set_fa                        | rename: SetOperandFunction                       |
+|                                   | Get_fa                        | rename: GetOperandFunction                       |
+|                                   | Set_order                     | rename: SetOrder                                 |
+| ChFunction_DoubleS                |                               | rename: ChFunctionConstJerk                      |
+|                                   | Get_Bounds                    | rename: GetBoundaryConditions                    |
+|                                   | Get_Constraints               | rename: GetImposedLimits                         |
+|                                   | Get_Limits                    | rename: GetReachedLimits                         |
+|                                   | Get_Times                     | rename: GetTimes                                 |
+| ChFunction_Cycloidal              |                               | rename: ChFunctionCycloidal                      |
+|                                   | Set_end                       | rename: SetWidth                                 |
+|                                   | Set_h                         | rename: SetHeight                                |
+|                                   | Get_end                       | rename: GetWidth                                 |
+|                                   | Get_h                         | rename: GetHeight                                |
+| ChFunction_Fillet3                |                               | rename: ChFunctionFillet3                        |
+|                                   | Get_dy1                       | rename: GetStartDer                              |
+|                                   | Get_dy2                       | rename: GetEndDer                                |
+|                                   | Get_y1                        | rename: GetStartVal                              |
+|                                   | Get_y2                        | rename: GetEndVal                                |
+|                                   | Set_dy1                       | rename: SetStartDer                              |
+|                                   | Set_dy2                       | rename: SetEndDer                                |
+|                                   | Set_y1                        | rename: SetStartVal                              |
+|                                   | Set_y2                        | rename: SetEndVal                                |
+|                                   | SetupCoefficients             | rename: Setup                                    |
+| ChFunction_Integrate              |                               | rename: ChFunctionIntegral                       |
+|                                   | ComputeIntegral               | rename: Setup                                    |
+|                                   | Get_C_start                   | rename: GetOffsetVal                             |
+|                                   | Get_num_samples               | rename: GetNumSamples                            |
+|                                   | Get_x_end                     | rename: GetStart                                 |
+|                                   | Get_x_start                   | rename: GetEnd                                   |
+|                                   | Set_C_start                   | rename: SetOffsetVal                             |
+|                                   | Set_num_samples               | rename: SetNumSamples                            |
+|                                   | Set_x_end                     | rename: SetEndArg                                |
+|                                   | Set_x_start                   | rename: SetStartArg                              |
+| ChFunction_Lambda                 |                               | rename: ChFunctionLambda                         |
+| ChFunction_Mirror                 |                               | rename: ChFunctionMirror                         |
+|                                   | Get_mirror_axis               | rename: GetMirrorAxis                            |  
+|                                   | Set_mirror_axis               | rename: SetMirrorAxis                            |  
+| ChFunction_Mocap                  |                               | remove                                           |
+| ChFunction_Noise                  |                               | remove                                           |
+| ChFunction_Operation              |                               | rename: ChFunctionOperator                       |
+|                                   | Get_fa                        | rename: GetFirstOperandFunction                  |
+|                                   | Get_fb                        | rename: GetSecondOperandFunction                 |
+|                                   | Get_optype                    | rename: GetOperationType                         |
+|                                   | Set_fa                        | rename: SetFirstFunction                         |
+|                                   | Set_fb                        | rename: SetSecondOperandFunction                 |
+|                                   | Set_optype                    | rename: SetOperationType                         |
+| ChFunction_Oscilloscope           |                               | remove                                           |
+| ChFunction_Poly                   |                               | rename: ChFunctionPoly                           |
+|                                   | Get_coeff                     | rename: GetCoefficients                          |
+|                                   | Set_coeff                     | rename: SetCoefficients                          |
+| ChFunction_Poly345                |                               | rename: ChFunctionPoly345                        |
+|                                   | Set_end                       | rename: SetWidth                                 |
+|                                   | Set_h                         | rename: SetHeight                                |
+|                                   | Get_end                       | rename: GetWidth                                 |
+|                                   | Get_h                         | rename: GetHeight                                |
+| ChFunction_Ramp                   |                               | rename: ChFunctionRamp                           |
+|                                   | Set_ang                       | rename: SetAngularCoeff                          |
+|                                   | Set_y0                        | rename: SetStartVal                              |
+|                                   | Get_ang                       | rename: GetAngularCoeff                          |
+|                                   | Get_y0                        | rename: GetStartVal                              |
+| ChFunction_Recorder               |                               | rename: ChFunctionInterp                         |
+|                                   | GetPoints                     | rename: GetTable                                 |
+| ChFunction_Repeat                 |                               | rename: ChFunctionRepeat                         |
+|                                   | Get_window_length             | rename: GetSliceLength                           |
+|                                   | Get_window_phase              | rename: GetSliceShift                            |
+|                                   | Get_window_start              | rename: GetSliceStart                            |
+|                                   | Set_window_length             | rename: SetSliceWidth                            |
+|                                   | Set_window_phase              | rename: SetSliceShift                            |
+|                                   | Set_window_start              | rename: SetSliceStart                            |
+| ChFunction_Sequence               |                               | rename: ChFunctionSequence                       |
+|                                   | Get_list                      | rename: GetFunctions                             |
+|                                   | GetNthDuration                | rename: GetDuration                              |
+|                                   | GetNthFunction                | rename: GetFunction                              |
+|                                   | GetNthNode                    | rename: GetNode                                  |
+|                                   | KillFunct                     | rename: RemoveFunct                              |
+| ChFunction_Sigma                  |                               | rename: ChFunctionPoly23                         |
+|                                   | Get_amp                       | rename: GetAmplitude                             |
+|                                   | Set_amp                       | rename: SetAmplitude                             |
+| ChFunction_Sine                   |                               | rename: ChFunctionSine                           |
+|                                   | (constructor)                 | changed args order to ampl, freq, phase          |
+|                                   | Get_phase                     | rename: GetPhase                                 |
+|                                   | Set_phase                     | rename: SetPhase                                 |
+|                                   | SetFreq                       | rename: SetFrequency                             |
+|                                   | Get_w                         | rename: GetAngularRate                           |
+|                                   | Set_freq                      | rename: SetFrequency                             |
+|                                   | Set_w                         | rename: SetAngularRate                           |
+| ChFunction_SineStep               | SetP1                         | rename: SetFirstPoint                            |
+|                                   | SetP2                         | rename: SetSecondPoint                           |
+| ChFunction_Setpoint               |                               | rename: ChFunctionSetpoint                       |
+| ChFunctionPosition                |                               |                                                  |
+|                                   | Get_p                         | rename: GetPos                                   |
+|                                   | Get_p_ds                      | rename: GetLinVel                                |
+|                                   | Get_p_dsds                    | rename: GetLinAcc                                |
+| ChFunctionPosition                |                               |                                                  |
+|                                   | Get_q                         | rename: GetQuat                                  |
+|                                   | Get_w_loc                     | rename: GetAngVel                                |
+|                                   | Get_a_loc                     | rename: GetAngAcc                                |
+| ChFunctionPosition_line           |                               | rename: ChFunctionPositionLine                   |
+| ChFunctionPosition_setpoint       |                               | rename: ChFunctionPositionSetpoint               |
+| ChFunctionPosition_XYZfunctions   |                               | rename: ChFunctionPositionXYZFunctions           |
+| ChFunctionRotation_ABCfunctions   |                               | rename: ChFunctionRotationABCFunctions           |
+|                                   | SetAngleset                   | rename: SetRotationRepresentation                |
+|                                   | GetAngleset                   | rename: GetRotationRepresentation                |
+| ChFunctionRotation_axis           |                               | rename: ChFunctionRotationAxis                   |
+| ChFunctionRotation_setpoint       |                               | rename: ChFunctionRotationSetpoint               |
+| ChFunctionRotation_spline         |                               | rename: ChFunctionRotationBSpline                |
+| ChFunctionRotation_SQUAD          |                               | rename: ChFunctionRotationSQUAD                  |
+| ChImplicitTimestepper             |                               |                                                  |
+|                                   | GetMaxiters                   | rename: GetMaxIters                              |
+|                                   | SetMaxiters                   | rename: SetMaxIters                              |
+| ChIndexedParticles                |                               |                                                  |
+|                                   | GetNparticles                 | rename: GetNumParticles                          |
+|                                   | GetParticle                   | rename: Particle                                 |
+| ChIntegrable                      |                               |                                                  |
+|                                   | GetNconstr                    | rename: GetNumConstraints                        |
+|                                   | GetNcoords_dy                 | remove: split in GetNumCoordsVelLevel/Acc        |
+|                                   | GetNcoords_x                  | rename: GetNumCoordsPosLevel                     |
+|                                   | GetNcoords_v                  | rename: GetNumCoordsVelLevel                     |
+|                                   | GetNcoords_y                  | remove: split in GetNumCoordsPosLevel/Vel        |
+| ChIntegrable1D                    |                               | rename: ChIntegrand1D                            |
+| ChIntegrable2D                    |                               | rename: ChIntegrand2D                            |
+| ChIntegrable3D                    |                               | rename: ChIntegrand3D                            |
+| ChIterativeSolver                 |                               |                                                  |
+|                                   | SaveMatrix                    | rename: WriteMatrices                            |
+| ChKblock                          |                               | remove                                           |
+| ChKblockGeneric                   |                               | rename: ChKRMBlock                               |
+|                                   | Build_K                       | rename: PasteMatrixInto (see Notes)              |
+|                                   | Get_K                         | rename: GetMatrix                                |
+|                                   | GetVariableN                  | rename: GetVariable                              |
+|                                   | MultiplyAndAdd                | rename: AddMatrixTimesVectorInto                 |
+| ChLine                            |                               |                                                  |
+|                                   | Get_closed                    | rename: IsClosed                                 |
+|                                   | Get_complexity                | rename: GetComplexity                            |
+|                                   | Set_closed                    | rename: SetClosed                                |
+|                                   | Set_complexity                | rename: SetComplexity                            |
+| ChLineBspline                     |                               | rename: ChLineBSpline                            |
+| ChLineCam                         |                               |                                                  |
+|                                   | Get_b0                        | rename: GetFollowerInitPhase                     |
+|                                   | Get_center                    | rename: GetCenter                                |
+|                                   | Get_d                         | rename: GetFollowerDistance                      |
+|                                   | Get_e                         | remove                                           |
+|                                   | Get_internal                  | rename: IsInternal                               |
+|                                   | Get_motion_law                | rename: GetMotionLaw                             |
+|                                   | Get_negative                  | rename: IsNegative                               |
+|                                   | Get_Phase                     | rename: GetPhase                                 |
+|                                   | Get_Rb                        | rename: GetCamRadius                             |
+|                                   | Get_Rr                        | rename: GetWheelRadius                           |
+|                                   | Get_s                         | remove                                           |
+|                                   | Get_type                      | rename: GetCamType                               |
+|                                   | Set_center                    | rename: SetCenter                                |
+|                                   | Set_flat_oscillate            | rename: SetFlatOscillate                         |
+|                                   | Set_internal                  | rename: SetInternal                              |
+|                                   | Set_motion_law                | rename: SetMotionLaw                             |
+|                                   | Set_negative                  | rename: SetNegative                              |
+|                                   | Set_Phase                     | rename: SetPhase                                 |
+|                                   | Set_Rb                        | rename: SetCamRadius                             |
+|                                   | Set_Rr                        | rename: SetWheelRadius                           |
+|                                   | Set_rotating_follower         | rename: SetRotatingFollower                      |
+|                                   | Set_sliding_eccentrical       | rename: SetSlidingEccentrical                    |
+|                                   | Set_type                      | rename: SetCamType                               |
+| ChLinePoly                        |                               |                                                  |
+|                                   | Get_degree                    | rename: GetDegree                                |
+|                                   | Get_numpoints                 | rename: GetNumPoints                             |
+|                                   | Set_point                     | rename: SetPoint                                 |
+| ChLink                            |                               |                                                  |
+|                                   | GetLeftDOF                    | remove                                           |
+|                                   | GetLinkRelativeCoords         | remove (see Notes)                               |
+|                                   |                               | add: GetFrame1Rel                                |
+|                                   |                               | add: GetFrame2Rel                                |
+|                                   | ResetRedundant                | remove                                           |
+| ChLinkBase                        |                               |                                                  |
+|                                   | GetLinkAbsoluteCoords         | remove                                           |
+|                                   |                               | add: ChFrameAbs1                                 |
+|                                   |                               | add: ChFrameAbs2                                 |
+|                                   | GetNumCoords                  | rename: GetNumAffectedCoords                     |
+|                                   | Get_react_force               | remove                                           |
+|                                   | Get_react_torque              | remove                                           |
+|                                   |                               | add: GetReaction1 (see Notes)                    |
+|                                   |                               | add: GetReaction2 (see Notes)                    |
+| ChLinkBeamIGAslider               |                               | rename: ChLinkBeamIGAFrame                       |
+| ChLinkBrake                       |                               | rename: ChLinkLockBrake                          |
+| ChLinkClearance                   |                               | rename: ChLinkLockClearance                      |
+| ChLinkDirFrame                    |                               | rename: ChLinkNodeSlopeFrame                     |
+| ChLinkForce                       |                               |                                                  |
+|                                   | GetF                          | rename: GetActuatorForceTorque                   |
+|                                   | GetFcurrent                   | rename: GetCurrentActuatorForceTorque            |
+|                                   | GetForce                      | rename: GetForceTorque                           |
+|                                   | GetK                          | rename: GetSpringCoefficient                     |
+|                                   | GetKcurrent                   | rename: GetCurrentSpringCoefficient              |
+|                                   | GetModulationActuator         | rename: GetActuatorModulation                    |
+|                                   | GetModulationK                | rename: GetSpringModulation                      |
+|                                   | GetModulationR                | rename: GetDamperModulation                      |
+|                                   | GetR                          | rename: GetDampingCoefficient                    |
+|                                   | GetRcurrent                   | rename: GetCurrentDampingCoefficient             |
+|                                   | SetF                          | rename: SetActuatorForceTorque                   |
+|                                   | SetModulationF                | rename: SetActuatorModulation                    |
+|                                   | SetModulationK                | rename: SetSpringModulation                      |
+|                                   | SetModulationR                | rename: SetDamperModulation                      |
+| ChLinkGear                        |                               | rename: ChLinkLockGear                           |
+| ChLinkLimit                       |                               |                                                  |
+|                                   | GetKmax                       | rename: GetSpringCoefficientMax                  |
+|                                   | GetKmin                       | rename: GetSpringCoefficientMin                  |
+|                                   | GetMaxPolarAngle              | rename: GetPolarAngleMax                         |
+|                                   | GetModulationKmax             | rename: GetSpringModulationMax                   |
+|                                   | GetModulationKmin             | rename: GetSpringModulationMin                   |
+|                                   | GetModulationRmax             | rename: GetDamperModulationMax                   |
+|                                   | GetModulationRmin             | rename: GetDamperModulationMin                   |
+|                                   | GetPolarMax                   | rename: GetPolarAngleModulationMax               |
+|                                   | GetRmax                       | rename: GetDampingCoefficientMax                 |
+|                                   | GetRmin                       | rename: GetDampingCoefficientMin                 |
+|                                   | SetKmax                       | rename: SetSpringCoefficientMax                  |
+|                                   | SetKmin                       | rename: SetSpringCoefficientMin                  |
+|                                   | SetModulationKmax             | rename: SetSpringModulationMax                   |
+|                                   | SetModulationKmin             | rename: SetSpringModulationMin                   |
+|                                   | SetModulationRmax             | rename: SetDamperModulationMax                   |
+|                                   | SetModulationRmin             | rename: SetDamperModulationMin                   |
+|                                   | SetPolarMax                   | rename: SetPolarAngleModulationMax               |
+|                                   | SetRmax                       | rename: SetDampingCoefficientMax                 |
+|                                   | SetRmin                       | rename: SetDampingCoefficientMin                 |
+| ChLinkLinActuator                 |                               | rename: ChLinkLockLinActuator                    |
+| ChLinkLock                        |                               |                                                  |
+|                                   | ChangeLinkType                | rename: ChangeType                               |
+|                                   | GetConstraintViolation_dt     | rename: GetConstraintViolationDt                 |
+|                                   | GetConstraintViolation_dtdt   | rename: GetConstraintViolationDt2                |
+|                                   | GetForce_D                    | rename: ForceD                                   |
+|                                   | GetForce_R                    | rename: ForceRp                                  |
+|                                   | GetForce_Rx                   | rename: ForceRx                                  |
+|                                   | GetForce_Ry                   | rename: ForceRy                                  |
+|                                   | GetForce_Rz                   | rename: ForceRz                                  |
+|                                   | GetForce_X                    | rename: ForceX                                   |
+|                                   | GetForce_Y                    | rename: ForceY                                   |
+|                                   | GetForce_Z                    | rename: ForceZ                                   |
+|                                   | GetLimit_D                    | rename: LimitD                                   |
+|                                   | GetLimit_Rp                   | rename: LimitRp                                  |
+|                                   | GetLimit_Rx                   | rename: LimitRx                                  |
+|                                   | GetLimit_Ry                   | rename: LimitRy                                  |
+|                                   | GetLimit_Rz                   | rename: LimitRz                                  |
+|                                   | GetLimit_X                    | rename: LimitX                                   |
+|                                   | GetLimit_Y                    | rename: LimitY                                   |
+|                                   | GetLimit_Z                    | rename: LimitZ                                   |
+|                                   | GetRelM                       | rename: GetRelCoordsys                           |
+|                                   | GetRelM_dt                    | rename: GetRelCoordsysDt                         |
+|                                   | GetRelM_dtdt                  | rename: GetRelCoordsysDt2                        |
+|                                   | SetUpMarkers                  | rename: SetupMarkers                             |
+| ChLinkLockBrake                   |                               |                                                  |
+|                                   | Get_brake_mode                | rename: GetBrakeMode                             |
+|                                   | Get_brake_torque              | rename: GetBrakeTorque                           |
+|                                   | Get_stick_ratio               | rename: GetStickingCoeff                         |
+|                                   | Set_brake_mode                | rename: SetBrakeMode                             |
+|                                   | Set_brake_torque              | rename: SetBrakeTorque                           |
+|                                   | Set_stick_ratio               | rename: SetStickingCoeff                         |
+| ChLinkLockClearance               |                               |                                                  |
+|                                   | Get_axis_eccentricity         | rename: GetEccentricity                          |
+|                                   | Get_axis_phase                | rename: GetAxisAngularLocation                   |
+|                                   | Get_c_friction                | rename: GetFriction                              |
+|                                   | Get_c_restitution             | rename: GetRestitution                           |
+|                                   | Get_c_tang_restitution        | remove                                           |
+|                                   | Get_c_viscous                 | remove                                           |
+|                                   | Get_clearance                 | rename: GetClearance                             |
+|                                   | Get_contact_F_abs             | rename: GetContactForceAbs                       |
+|                                   | Get_contact_F_n               | rename: GetContactForceNormal                    |
+|                                   | Get_contact_F_t               | rename: GetContactForceTangential                |
+|                                   | Get_contact_N_abs             | rename: GetContactNormalAbs                      |
+|                                   | Get_contact_P_abs             | rename: GetContactPosAbs                         |
+|                                   | Get_contact_V_t               | rename: GetContactSpeedTangential                |
+|                                   | Get_diameter                  | rename: GetDiameter                              |
+|                                   | Get_is_in_contact             | remove                                           |
+|                                   | Get_rotation_angle            | rename: GetRotationAngle                         |
+|                                   | GetC_force                    | rename: GetAccumulatedForce                      |
+|                                   | GetC_torque                   | rename: GetAccumulatedTorque                     |
+|                                   | GetRelRotaxis                 | rename: GetRelAngleAxis                          |
+|                                   | Set_c_friction                | rename: SetFriction                              |
+|                                   | Set_c_restitution             | rename: SetRestitution                           |
+|                                   | Set_c_tang_restitution        | remove                                           |
+|                                   | Set_c_viscous                 | remove                                           |
+|                                   | Set_clearance                 | rename: SetClearance                             |
+|                                   | Set_diameter                  | rename: SetDiameter                              |
+| ChLinkLockLock                    |                               |                                                  |
+|                                   | GetMotion_ang                 | rename: GetMotionAng1                            |
+|                                   | GetMotion_ang2                | rename: GetMotionAng2                            |
+|                                   | GetMotion_ang3                | rename: GetMotionAng3                            |
+|                                   | GetMotion_axis                | rename: GetMotionAxis                            |
+|                                   | GetMotion_X                   | rename: GetMotionX                               |
+|                                   | GetMotion_Y                   | rename: GetMotionY                               |
+|                                   | GetMotion_Z                   | rename: GetMotionZ                               |
+|                                   | GetRelC                       | rename: GetRelCoordsysViolation                  |
+|                                   | GetRelC_dt                    | rename: GetRelCoordsysViolationDt                |
+|                                   | GetRelC_dtdt                  | rename: GetRelCoordsysViolationDt2               |
+|                                   | SetMotion_ang                 | rename: SetMotionAng1                            |
+|                                   | SetMotion_ang2                | rename: SetMotionAng2                            |
+|                                   | SetMotion_ang3                | rename: SetMotionAng3                            |
+|                                   | SetMotion_axis                | rename: SetMotionAxis                            |
+|                                   | SetMotion_X                   | rename: SetMotionX                               |
+|                                   | SetMotion_Y                   | rename: SetMotionY                               |
+|                                   | SetMotion_Z                   | rename: SetMotionZ                               |
+| ChLinkLockGear                    |                               |                                                  |
+|                                   | Get_a1                        | rename: GetRotation1                             |
+|                                   | Get_a2                        | rename: GetRotation2                             |
+|                                   | Get_alpha                     | rename: GetPressureAngle                         |
+|                                   | Get_beta                      | rename: GetPitchAngle                            |
+|                                   | Get_checkphase                | rename: GetEnforcePhase                          |
+|                                   | Get_epicyclic                 | rename: GetEpicyclic                             |
+|                                   | Get_local_shaft1              | rename: GetFrameShaft1                           |
+|                                   | Get_local_shaft2              | rename: GetFrameShaft2                           |
+|                                   | Get_phase                     | rename: GetPhase                                 |
+|                                   | Get_r1                        | rename: GetRadius1                               |
+|                                   | Get_r2                        | rename: GetRadius2                               |
+|                                   | Get_shaft_dir1                | rename: GetDirShaft1                             |
+|                                   | Get_shaft_dir2                | rename: GetDirShaft2                             |
+|                                   | Get_shaft_pos1                | rename: GetPosShaft1                             |
+|                                   | Get_shaft_pos2                | rename: GetPosShaft2                             |
+|                                   | Get_tau                       | rename: GetTransmissionRatio                     |
+|                                   | Reset_a1a2                    | rename: ResetRotations                           |
+|                                   | Set_alpha                     | rename: SetPressureAngle                         |
+|                                   | Set_beta                      | rename: SetPitchAngle                            |
+|                                   | Set_checkphase                | rename: SetEnforcePhase                          |
+|                                   | Set_local_shaft1              | rename: SetFrameShaft1                           |
+|                                   | Set_local_shaft2              | rename: SetFrameShaft2                           |
+|                                   | Set_epicyclic                 | rename: SetEpicyclic                             |
+|                                   | Set_tau                       | rename: SetTransmissionRatio                     |
+| ChLinkLockPointSpline             |                               |                                                  |
+|                                   | Get_trajectory_line           | rename: GetTrajectory                            |
+|                                   | Set_trajectory_line           | rename: SetTrajectory                            |
+| ChLinkLockPulley                  |                               |                                                  |
+|                                   | Get_belt_up1                  | rename: GetBeltUpPos1                            |
+|                                   | Get_belt_up2                  | rename: GetBeltUpPos2                            |
+|                                   | Get_belt_low1                 | rename: GetBeltBottomPos1                        |
+|                                   | Get_belt_low2                 | rename: GetBeltBottomPos2                        |
+|                                   | Set_r1                        | rename: SetRadius1                               |
+|                                   | Set_r2                        | rename: SetRadius2                               |
+| ChLinkLockScrew                   |                               |                                                  |
+|                                   | Get_thread                    | rename: GetThread                                |
+|                                   | Set_thread                    | rename: SetThread                                |
+| ChLinkLockTrajectory              |                               |                                                  |
+|                                   | Get_space_fx                  | rename: GetTimeLaw                               |
+|                                   | Set_space_fx                  | rename: SetTimeLaw                               |
+|                                   | Set_modulo_one_fx             | rename: WrapTimeLaw                              |
+| ChLinkMask                        |                               |                                                  |
+|                                   | Constr_N                      | rename: GetConstraint                            |
+|                                   | GetActiveConstrByNum          | rename: GetActiveConstraint                      |
+|                                   | GetMaskDoc                    | rename: GetNumConstraintsActive                  |
+|                                   | GetMaskDoc_c                  | rename: GetNumConstraintsBilateralActive         |
+|                                   | GetMaskDoc_d                  | rename: GetNumConstraintsUnilateralActive        |
+|                                   | nconstr                       | rename: GetNumConstraints                        |
+|                                   | ResetNconstr                  | rename: SetNumConstraints                        |
+|                                   | ResetRedundant                | remove                                           |
+|                                   | SetActiveRedundantByArray     | remove                                           |
+| ChLinkMarkers                     |                               |                                                  |
+|                                   | GetDist                       | rename: GetDistance                              |
+|                                   | GetDist_dt                    | rename: GetDistanceDt                            |
+|                                   | GetRelWvel                    | rename: GetRelativeAngVel                        |
+|                                   | GetRelWacc                    | rename: GetRelativeAngAcc                        |
+| ChLinkMate                        |                               |                                                  |
+|                                   | RestoreRedundant              | rename: ResetRedundant                           |
+| ChLinkMateCoaxial                 |                               | rename: ChLinkMateCylindrical                    |
+| ChLinkMateGeneric                 |                               |                                                  |
+|                                   | GetSeparation                 | rename: GetDistance                              |
+| ChLinkMatePlane                   |                               | rename: ChLinkMatePlanar                         |
+|                                   | GetLagrangeMultiplier_f       | remove                                           |
+|                                   | GetLagrangeMultiplier_m       | remove                                           |
+| ChLinkMatePrismatic               |                               |                                                  |
+|                                   | GetRelativePos_dt             | rename: GetRelativePosDt                         |
+|                                   | GetRelativePos_dtdt           | rename: GetRelativePosDt2                        |
+| ChLinkMateRevolute                |                               |                                                  |
+|                                   | GetRelativeAngle_dt           | rename: GetRelativeAngleDt                       |
+|                                   | GetRelativeAngle_dtdt         | rename: GetRelativeAngleDt2                      |
+| ChLinkMateXdistance               |                               | rename: ChLinkMateDistanceZ                      |
+| ChLinkMotorLinearDriveline        |                               |                                                  |
+|                                   | GetInnerShaft1lin             | rename: GetInnerShaft1Lin                        |
+|                                   | GetInnerShaft2lin             | rename: GetInnerShaft2Lin                        |
+|                                   | GetInnerShaft2rot             | rename: GetInnerShaft2Rot                        |
+| ChLinkMotorPosition               |                               |                                                  |
+|                                   | GetMotorPos_dt                | rename: GetMotorPosDt                            |
+|                                   | GetMotorPos_dtdt              | rename: GetMotorPosDt2                           |
+| ChLinkMotorRotation               |                               |                                                  |
+|                                   | GetMotorRot                   | rename: GetMotorAngle                            |
+|                                   | GetMotorRot_dt                | rename: GetMotorAngleDt                          |
+|                                   | GetMotorRot_dtdt              | rename: GetMotorAngleDt2                         |
+|                                   | GetMotorRotPeriodic           | rename: GetMotorAngleWrapped                     |
+|                                   | GetMotorRotTurns              | rename: GetMotorNumTurns                         |
+| ChLinkMotorRotationSpeed          |                               |                                                  |
+|                                   | GetAvoidAngleDrift            | remove                                           |
+|                                   | SetAvoidAngleDrift            | rename: AvoidAngleDrift                          |
+| ChLinkPointFrame                  |                               | rename: ChLinkNodeFrame                          |
+| ChLinkPointPoint                  |                               | rename: ChLinkNodeNode                           |
+|                                   | GetConstrainedNodeA           | rename: GetNode1                                 |
+|                                   | GetConstrainedNodeB           | rename: GetNode2                                 |
+| ChLinkPointTriface                |                               | rename: ChLinkNodeFace                           |
+|                                   | GetConstrainedNodeA           | rename: GetNode                                  |
+|                                   | GetConstrainedTriangle        | rename: GetTriangle                              |
+| ChLinkPointTrifaceRot             |                               | rename: ChLinkNodeFaceRot                        |
+|                                   | GetConstrainedNodeA           | rename: GetNode                                  |
+|                                   | GetConstrainedTriangle        | rename: GetTriangle                              |
+| ChLinkPointSpline                 |                               | rename: ChLinkLockPointSpline                    |
+| ChLinkPulley                      |                               | rename: ChLinkLockPulley                         |
+| ChLinkRackpinion                  |                               | rename: ChLinkMateRackPinion                     |
+|                                   | GetAlpha                      | rename: GetPressureAngle                         |
+|                                   | GetBeta                       | rename: GetPitchAngle                            |
+|                                   | GetCheckphase                 | rename: GetEnforcePhase                          |
+|                                   | SetAlpha                      | rename: SetPressureAngle                         |
+|                                   | SetBeta                       | rename: SetPitchAngle                            |
+|                                   | SetCheckphase                 | rename: SetEnforcePhase                          |
+|                                   | Reset_a1                      | rename: ResetRotation1                           |
+| ChLinkScrew                       |                               | rename: ChLinkLockScrew                          |
+| ChLinkTrajectory                  |                               | rename: ChLinkLockTrajectory                     |
+| ChList                            |                               | remove                                           |
+| ChLoad                            |                               | replaced with non-templated class (see Notes)    |
+|                                   | LoadGet_ndof_x                | rename: LoadGetNumCoordsPosLevel                 |
+|                                   | LoadGet_ndof_w                | rename: LoadGetNumCoordsVelLevel                 |
+| ChLoadable                        |                               |                                                  |
+|                                   | Get_field_ncoords             | rename: GetNumFieldCoords                        |
+|                                   | GetSubBlocks                  | rename: GetNumSubBlocks                          |
+|                                   | LoadableGet_ndof_x            | rename: GetLoadableNumCoordsPosLevel             |
+|                                   | LoadableGet_ndof_w            | rename: GetLoadableNumCoordsVelLevel             |
+|                                   | LoadableGetStateBlock_x       | rename: LoadableGetStateBlockPosLevel            |
+|                                   | LoadableGetStateBlock_w       | rename: LoadableGetStateBlockVelLevel            |
+| ChLoadBase                        |                               |                                                  |
+|                                   | LoadGet_field_ncoords         | rename: LoadGetNumFieldCoords                    |
+| ChLoadBodyBodyBushingPlastic      |                               |                                                  |
+|                                   | GetYeld                       | rename: GetYield                                 |
+|                                   | SetYeld                       | rename: SetYield                                 |
+| ChLoaderGravity                   |                               |                                                  |
+|                                   | Get_G_acc                     | rename: GetGravitationalAcceleration             |
+|                                   | Set_G_acc                     | rename: SetGravitationalAcceleration             |
+| ChLoaderXYZnode                   |                               | rename: ChLoaderNodeXYZ                          |
+| ChLoadXYZnode                     |                               | rename: ChLoadNodeXYZ                            |
+| ChLoadXYZnodeBody                 |                               | rename: ChLoadNodeXYZBody                        |
+|                                   | GetBodyB                      | rename: GetBody                                  |
+|                                   | GetNodeA                      | rename: GetNode                                  |
+| ChLoadXYZnodeBodyBushing          |                               | rename: ChLoadNodeXYZBodyBushing                 |
+| ChLoadXYZnodeBodySpring           |                               | rename: ChLoadNodeXYZBodySpring                  |
+| ChLoadXYZnodeForce                |                               | rename: ChLoadNodeXYZForce                       |
+| ChLoadXYZnodeForceAbsolute        |                               | rename: ChLoadNodeXYZForceAbs                    |
+| ChLoadXYZnodeXYZnode              |                               | rename: ChLoadNodeXYZNodeXYZ                     |
+| ChLoadXYZnodeXYZnodeBushing       |                               | rename: ChLoadNodeXYZNodeXYZBushing              |
+| ChLoadXYZnodeXYZnodeSpring        |                               | rename: ChLoadNodeXYZNodeXYZSpring               |
+| ChLoadXYZROTnodeBody              |                               | rename: ChLoadNodeXYZRotBody                     |
+|                                   | GetBodyB                      | rename: GetBody                                  |
+|                                   | GetNodeA                      | rename: GetNode                                  |
+| ChLoadXYZROTnodeBodyBushingGeneric   |                            | rename: ChLoadNodeXYZRotBodyBushingGeneric       |
+| ChLoadXYZROTnodeBodyBushingMate      |                            | rename: ChLoadNodeXYZRotBodyBushingMate          |
+| ChLoadXYZROTnodeBodyBushingPlastic   |                            | rename: ChLoadNodeXYZRotBodyBushingPlastic       |
+| ChLoadXYZROTnodeBodyBushingSpherical |                            | rename: ChLoadNodeXYZRotBodyBushingSpherical     |
+| ChLoadXYZROTnode                  |                               | rename: ChLoadNodeXYZRot                         |
+| ChLoadXYZROTnodeForceAbsolute     |                               | rename: ChLoadNodeXYZRotForceAbs                 |
+| ChLoadXYZROTnodeXYZROTnode        |                               | rename: ChLoadNodeXYZRotNodeXYZRot               |
+| ChLoadXYZROTnodeXYZROTnodeBushingGeneric   |                      | rename: ChLoadNodeXYZRotNodeXYZRotBushingGeneric   |
+| ChLoadXYZROTnodeXYZROTnodeBushingMate      |                      | rename: ChLoadNodeXYZRotNodeXYZRotBushingMate      |
+| ChLoadXYZROTnodeXYZROTnodeBushingPlastic   |                      | rename: ChLoadNodeXYZRotNodeXYZRotBushingPlastic   |
+| ChLoadXYZROTnodeXYZROTnodeBushingSpherical |                      | rename: ChLoadNodeXYZRotNodeXYZRotBushingSpherical |
+| ChLog                             |                               | remove                                           |
+| ChLogConsole                      |                               | remove                                           |
+| ChMarker                          |                               |                                                  |
+|                                   | Dir_Ref2World                 | remove                                           |
+|                                   | Dir_World2Ref                 | remove                                           |
+|                                   | GetAbsWvel                    | rename: GetAngVelAbs                             |
+|                                   | GetAbsWacc                    | rename: GetAngAccAbs                             |
+|                                   | GetAbsCoord                   | rename: GetAbsCoordsys                           |
+|                                   | GetAbsCoord_dt                | rename: GetAbsCoordsysDt                         |
+|                                   | GetAbsCoord_dtdt              | rename: GetAbsCoordsysDt2                        |
+|                                   | GetMotionAng1                 | rename: GetMotionAngle                           |
+|                                   | GetMotion_axis                | rename: GetMotionAxis                            |
+|                                   | GetMotionX                    | rename: GetMotionX                               |
+|                                   | GetMotionY                    | rename: GetMotionY                               |
+|                                   | GetMotionZ                    | rename: GetMotionZ                               |
+|                                   | GetRest_Coord                 | rename: GetRestCoordsys                          |
+|                                   | Impose_Rel_Coord              | rename: ImposeRelativeTransform                  |
+|                                   | Impose_Abs_Coord              | rename: ImposeAbsoluteTransform                  |
+|                                   | Point_Ref2World               | remove                                           |
+|                                   | Point_World2Ref               | remove                                           |
+|                                   | SetAbsCoord                   | rename: SetAbsCoordsys                           |
+|                                   | SetAbsCoord_dt                | rename: SetAbsCoordsysDt                         |
+|                                   | SetAbsCoord_dtdt              | rename: SetAbsCoordsysDt2                        |
+|                                   | SetMotion_ang                 | rename: SetMotionAngle                           |
+|                                   | SetMotion_axis                | rename: SetMotionAxis                            |
+|                                   | SetMotion_X                   | rename: SetMotionX                               |
+|                                   | SetMotion_Y                   | rename: SetMotionY                               |
+|                                   | SetMotion_Z                   | rename: SetMotionZ                               |
+| ChMaterialSurface                 |                               | rename: ChContactMaterial                        |
+|                                   | SetSfriction                  | rename: SetStaticFriction                        |
+|                                   | GetSfriction                  | rename: GetStaticFriction                        |
+|                                   | SetKfriction                  | rename: SetSlidingFriction                       |
+|                                   | GetKfriction                  | rename: GetSlidingFriction                       |
+| ChMaterialComposite               |                               | rename: ChContactMaterialComposite               |
+| ChMaterialCompositeNSC            |                               | rename: ChContactMaterialCompositeNSC            |
+| ChMaterialCompositeSMC            |                               | rename: ChContactMaterialCompositeSMC            |
+| ChMaterialCompositionStrategy     |                               | rename: ChContactMaterialCompositionStrategy     |
+| ChMatrix33                        |                               |                                                  |
+|                                   | Get_A_Cardano                 | rename: GetFromCardanAnglesZXY                   |
+|                                   | Get_A_Eulero                  | rename: GetFromEulerAnglesZXZ                    |
+|                                   | Get_A_Hpb                     | rename: GetFromCardanAnglesZYX                   |
+|                                   | Get_A_quaternion              | rename: GetFromQuaternion                        |
+|                                   | Get_A_Rodriguez               | rename: GetFromRodriguesParameters               |
+|                                   | Get_A_Rxyz                    | rename: GetFromCardanAnglesXYZ                   |
+|                                   | Get_A_Xaxis()                 | rename: GetAxisX()                               |
+|                                   | Get_A_Yaxis()                 | rename: GetAxisY()                               |
+|                                   | Get_A_Zaxis()                 | rename: GetAxisZ()                               |
+|                                   | GetAx()                       | remove                                           |
+|                                   | Set_A_axis                    | rename: SetFromDirectionAxes                     |
+|                                   | Set_A_Cardano                 | rename: SetFromCardanAnglesZXY                   |
+|                                   | Set_A_Eulero                  | rename: SetFromEulerAnglesZXZ                    |
+|                                   | Set_A_Hpb                     | rename: SetFromCardanAnglesZYX                   |
+|                                   | Set_A_quaternion              | rename: SetFromQuaternion                        |
+|                                   | Set_A_Rodriguez               | rename: SetFromRodriguesParameters               |
+|                                   | Set_A_Rxyz                    | rename: SetFromCardanAnglesXYZ                   |
+|                                   | Set_A_Xdir                    | rename: SetFromAxisX                             |
+| ChMesh                            |                               |                                                  |
+|                                   | GetNcontactSurfaces           | rename: GetNumContactSurfaces                    |
+|                                   | GetNelements                  | rename: GetNumElements                           |
+|                                   | GetNmeshSurfaces              | rename: GetNumMeshSurfaces                       |
+|                                   | SetNoSpeedNoAcceleration      | rename: ForceToRest                              |
+| ChMeshSurface                     |                               |                                                  |
+|                                   | GetFacesList                  | rename: GetFaces                                 |
+| ChMinMaxDistribution              |                               | rename: ChUniformDistribution                    |
+| ChModalAssembly                   |                               |                                                  |
+|                                   | refer to ChAssembly           | like ChAssembly with boundary/internal suffixes  |
+|                                   | DoModalReduction_CraigBamption | rename: ApplyCraigBamptonTransformation         |
+|                                   | DoModalReduction_HERTING      | rename: ApplyHertingTransformation               |
+|                                   | DumpSubassemblyMatrices       | rename: WriteSubassemblyMatrices                 |
+|                                   | Get_full_assembly_x_old       | rename: GetDeformedState                         |
+|                                   | Get_modal_K                   | rename: GetModalStiffnessMatrix                  |
+|                                   | Get_modal_M                   | rename: GetModalMassMatrix                       |
+|                                   | Get_modal_Psi                 | rename: GetModalReductionMatrix                  |
+|                                   | Get_modal_q                   | rename: GetModalCoordinatesPosLevel              |
+|                                   | Get_modal_q_dt                | rename: GetModalCoordinatesVelLevel              |
+|                                   | Get_modal_q_dtdt              | rename: GetModalCoordinatesAccLevel              |
+|                                   | Get_modal_R                   | rename: GetModalDampingMatrix                    |
+|                                   | Get_modes_assembly_x0         | rename: GetInitialState                          |
+|                                   | Get_modes_damping_ratios      | rename: GetDampingRatios                         |
+|                                   | Get_modes_eig                 | rename: GetEigenValues                           |
+|                                   | Get_modes_frequencies         | rename: GetUndampedFrequencies                   |
+|                                   | Get_modes_V                   | rename: GetEigenVectors                          |
+|                                   | SetNoSpeedNoAcceleration      | rename: ForceToRest                              |
+|                                   | SwitchModalReductionON        | rename: DoModalReduction                         |
+| ChMotionlawFilter                 |                               | rename: ChMotionFilter                           |
+| ChMotionlawFilter_SecondOrder     |                               | rename: ChMotionFilterSecondOrder                |
+| ChMotionlawFilter_ThirdOrder      |                               | rename: ChMotionFilterThirdOrder                 |
+| ChNodeBase                        |                               |                                                  |
+|                                   | GetNdofX                      | rename: GetNumCoordsPosLevel                     |
+|                                   | GetNdofX_active               | rename: GetNumCoordsPosLevelActive               |
+|                                   | GetNdofW                      | rename: GetNumCoordsVelLevel                     |
+|                                   | GetNdofW_active               | rename: GetNumCoordsVelLevelActive               |
+|                                   | NodeGetOffsetX                | rename: NodeGetOffsetPosLevel                    |
+|                                   | NodeGetOffsetW                | rename: NodeGetOffsetVelLevel                    |
+|                                   | NodeSetOffset_x               | rename: NodeSetOffsetPosLevel                    |
+|                                   | NodeSetOffset_w               | rename: NodeSetOffsetVelLevel                    |
+|                                   | UseFullDof                    | rename: IsAllCoordsActive                        |
+| ChNodeFEAbase                     |                               |                                                  |
+|                                   | SetNoSpeedNoAcceleration      | rename: ForceToRest                              |
+| ChNodeFEAcurv                     |                               |                                                  |
+|                                   | SetNoSpeedNoAcceleration      | rename: ForceToRest                              |
+| ChNodeFEAxyz                      |                               |                                                  |
+|                                   | SetNoSpeedNoAcceleration      | rename: ForceToRest                              |
+| ChNodeFEAxyzD                     |                               |                                                  |
+|                                   | GetD                          | rename: GetSlope1                                |
+|                                   | GetD_dt                       | rename: GetSlope1Dt                              |
+|                                   | GetD_dtdt                     | rename: GetSlope1Dt2                             |
+|                                   | IsFixedD                      | rename: IsSlope1Fixed                            |
+|                                   | SetD                          | rename: SetSlope1                                |
+|                                   | SetD_dt                       | rename: SetSlope1Dt                              |
+|                                   | SetD_dtdt                     | rename: SetSlope1Dt2                             |
+|                                   | SetFixedD                     | rename: SetSlope1Fixed                           |
+|                                   | SetNoSpeedNoAcceleration      | rename: ForceToRest                              |
+|                                   | Variable_D                    | rename: VariablesSlope1                          |
+| ChNodeFEAxyzDD                    |                               |                                                  |
+|                                   | GetDD                         | rename: GetSlope2                                |
+|                                   | GetDD_dt                      | rename: GetSlope2Dt                              |
+|                                   | GetDD_dtdt                    | rename: GetSlope2Dt2                             |
+|                                   | IsFixedDD                     | rename: IsSlope2Fixed                            |
+|                                   | SetDD                         | rename: SetSlope2                                |
+|                                   | SetDD_dt                      | rename: SetSlope2Dt                              |
+|                                   | SetDD_dtdt                    | rename: SetSlope2Dt2                             |
+|                                   | SetFixedDD                    | rename: SetSlope2Fixed                           |
+|                                   | SetNoSpeedNoAcceleration      | rename: ForceToRest                              |
+|                                   | Variable_DD                   | rename: VariablesSlope2                          |
+| ChNodeFEAxyzDDD                   |                               |                                                  |
+|                                   | GetDDD                        | rename: GetSlope3                                |
+|                                   | GetDDD_dt                     | rename: GetSlope3Dt                              |
+|                                   | GetDDD_dtdt                   | rename: GetSlope3Dt2                             |
+|                                   | IsFixedDDD                    | rename: IsSlope3Fixed                            |
+|                                   | SetDDD                        | rename: SetSlope3                                |
+|                                   | SetDDD_dt                     | rename: SetSlope3Dt                              |
+|                                   | SetDDD_dtdt                   | rename: SetSlope3Dt2                             |
+|                                   | SetFixedDDD                   | rename: SetSlope3Fixed                           |
+|                                   | SetNoSpeedNoAcceleration      | rename: ForceToRest                              |
+|                                   | Variable_DDD                  | rename: VariablesSlope3                          |
+| ChNodeFEAxyzP                     |                               |                                                  |
+|                                   | GetF                          | rename: GetLoad                                  |
+|                                   | GetP                          | rename: GetFieldVal                              |
+|                                   | GetP_dt                       | rename: GetFieldValDt                            |
+|                                   | SetF                          | rename: SetLoad                                  |
+|                                   | SetP                          | rename: SetFieldVal                              |
+|                                   | SetP_dt                       | rename: SetFieldValDt                            |
+| ChNodeFEAxyzrot                   |                               |                                                  |
+|                                   | SetNoSpeedNoAcceleration      | rename: ForceToRest                              |
+| ChObj                             |                               |                                                  |
+|                                   | SetIdentifier                 | remove (see Notes)                               |
+|                                   | GetName                       | remove                                           |
+|                                   | GetNameString                 | rename: GetName                                  |
+|                                   | SetName                       | remove                                           |
+|                                   | SetNameString                 | rename: SetName                                  |
+| ChParticleCloud                   |                               |                                                  |
+|                                   | SetNoSpeedNoAcceleration      | rename: ForceToRest                              |
+| ChPhysicsItem                     |                               |                                                  |
+|                                   | ConstraintsLoadJacobian       | rename: LoadConstraintJacobians                  |
+|                                   | GetDOC                        | rename: GetNumConstraints                        |
+|                                   | GetDOC_c                      | rename: GetNumConstraintsBilateral               |
+|                                   | GetDOC_d                      | rename: GetNumConstraintsUnilateral              |
+|                                   | GetDOF                        | rename: GetNumCoordsPosLevel                     |
+|                                   | GetDOF_w                      | rename: GetNumCoordsVelLevel                     |
+|                                   | InjectKRMmatrices             | rename: InjectKRMMatrices                        |
+|                                   | KRMmatricesLoad               | rename: LoadKRMMatrices                          |
+|                                   | SetNoSpeedNoAcceleration      | rename: SetZeroVelocityZeroAcceleration          |
+| ChQuaternion                      |                               |                                                  |
+|                                   | free functions                | rename and move to ChRotation.h (see Notes)      |
+|                                   | GetXaxis                      | rename: GetAxisX                                 |
+|                                   | GetYaxis                      | rename: GetAxisY                                 |
+|                                   | GetZaxis                      | rename: GetAxisZ                                 |
+|                                   | ImmQ_complete                 | remove                                           |
+|                                   | ImmQ_dt_complete              | remove                                           |
+|                                   | ImmQ_dtdtcomplete             | remove                                           |
+|                                   | operator%                     | remove  use operator*()                          |
+|                                   | Q_from_AngAxis                | rename: SetFromAngleAxis                         |
+|                                   | Q_from_AngX                   | rename: SetFromAngleX                            |
+|                                   | Q_from_AngY                   | rename: SetFromAngleY                            |
+|                                   | Q_from_AngZ                   | rename: SetFromAngleZ                            |
+|                                   | Q_from_Euler123               | rename: SetFromCardanAnglesXYZ                   |
+|                                   | Q_from_NasaAngles             | rename: SetFromCardanAnglesZYX                   |
+|                                   | Q_from_Rotv                   | rename: SetFromRotVec                            |
+|                                   | Q_to_AngAxis                  | rename: GetAngleAxis                             |
+|                                   | Q_to_Euler123                 | rename: GetCardanAnglesXYZ                       |
+|                                   | Q_to_NasaAngles               | rename: GetCardanAnglesZYX                       |
+|                                   | Q_to_Rotv                     | rename: GetRotVec                                |
+|                                   | Qdt_from_AngAxis              | rename: SetDtFromAngleAxis                       |
+|                                   | Qdt_from_Wabs                 | rename: SetDtFromAngVelAbs                       |
+|                                   | Qdt_to_Wabs                   | rename: GetAngVelAbs                             |
+|                                   | Qdt_to_Wrel                   | rename: GetAngVelRel                             |
+|                                   | Qdt_from_Wrel                 | rename: SetDtFromAngVelRel                       |
+|                                   | Qdtdt_from_Aabs               | rename: SetDt2FromAngAccAbs                      |
+|                                   | Qdtdt_from_Arel               | rename: SetDt2FromAngAccRel                      |
+|                                   | Qdtdt_from_AngAxis            | rename: SetDt2FromAngleAxis                      |
+| ChShaft                           |                               |                                                  |
+|                                   | GetAppliedTorque              | rename: GetAppliedLoad                           |
+|                                   | GetId                         | rename: GetIndex (internal use only)             |
+|                                   | GetGid                        | remove                                           |
+|                                   | GetLimitSpeed                 | remove                                           |
+|                                   | GetShaftFixed                 | rename: IsFixed                                  |
+|                                   | GetSleeping                   | rename: IsSleeping                               |
+|                                   | GetSleepMinSpeed              | remove                                           |
+|                                   | GetSleepMinWvel               | remove                                           |
+|                                   | GetSleepTime                  | remove                                           |
+|                                   | GetUseSleeping                | rename: IsSleepingAllowed                        |
+|                                   | SetAppliedTorque              | rename: SetAppliedLoad                           |
+|                                   | SetNoSpeedNoAcceleration      | rename: ForceToRest                              |
+|                                   | SetSleepMinWvel               | remove                                           |
+|                                   | SetShaftFixed                 | rename: SetFixed                                 |
+|                                   | SetUseSleeping                | rename: SetSleepingAllowed                       |
+| ChShaftsBody                      |                               | rename: ChShaftBodyRotation                      |
+| ChShaftsBodyTranslation           |                               | rename: ChShaftBodyTranslation                   |
+| ChShaftsClutch                    |                               |                                                  |
+|                                   | GetSlippage_dt                | rename: GetSlippageDt                            |
+|                                   | GetSlippage_dtdt              | rename: GetSlippageDt2                           |
+| ChShaftsCouple                    |                               |                                                  |
+|                                   | GetRelativeRotation           | rename: GetRelativePos                           |
+|                                   | GetRelativeRotation_dt        | rename: GetRelativePosDt                         |
+|                                   | GetRelativeRotation_dtdt      | rename: GetRelativePosDt2                        |
+|                                   | GetTorqueReactionOn1          | rename: GetReaction1                             |
+|                                   | GetTorqueReactionOn2          | rename: GetReaction2                             |
+| ChShaftsElasticGear               |                               |                                                  |
+|                                   | GetGearRadiusA                | rename: GetGearRadius1                           |
+|                                   | GetGearRadiusB                | rename: GetGearRadius2                           |
+| ChShaftsGear                      |                               |                                                  |
+|                                   | GetAvoidPhaseDrift            | remove                                           |
+|                                   | SetAvoidPhaseDrift            | rename: AvoidPhaseDrift                          |
+| ChShaftsLoad                      |                               |                                                  |
+|                                   | GetShaftA                     | rename: GetShaft1                                |
+|                                   | GetShaftB                     | rename: GetShaft2                                |
+| ChShaftsMotor                     |                               | remove                                           |
+| ChShaftsMotorBase                 |                               | rename: ChShaftsMotor                            |
+|                                   | GetMotorRot                   | rename: GetMotorPos                              |
+|                                   | GetMotorRot_dt                | rename: GetMotorPosDt                            |
+|                                   | GetMotorRot_dtdt              | rename: GetMotorPosDt2                           |
+|                                   | GetMotorRotPeriodic           | rename: GetMotorAngleWrapped                     |
+|                                   | GetMotorRotTurns              | rename: GetMotorNumTurns                         |
+|                                   | GetMotorTorque                | rename: GetMotorLoad                             |
+|                                   | GetTorqueReactionOn1          | rename: GetReaction1                             |
+|                                   | GetTorqueReactionOn2          | rename: GetReaction2                             |
+| ChShaftsMotorAngle                |                               | rename: ChShaftsMotorPosition                    |
+|                                   | GetAngleFunction              | rename: GetPositionFunction                      |
+|                                   | GetAngleOffset                | rename: GetOffset                                |
+|                                   | SetAngleFunction              | rename: SetPositionFunction                      |
+|                                   | SetAngleOffset                | rename: SetOffset                                |
+| ChShaftsMotorSpeed                |                               |                                                  |
+|                                   | GetAvoidAngleDrift            | remove                                           |
+|                                   | GetAngleOffset                | rename: GetOffset                                |
+|                                   | SetAvoidAngleDrift            | rename: AvoidDrift                               |
+|                                   | SetAngleOffset                | rename: SetOffset                                |
+| ChShaftsMotorTorque               |                               | rename: ChShaftsMotorLoad                        |
+|                                   | GetTorqueFunction             | rename: GetLoadFunction                          |
+|                                   | SetTorqueFunction             | rename: SetLoadFunction                          |
+| ChShaftsPlanetary                 |                               |                                                  |
+|                                   | GetAvoidPhaseDrift            | remove                                           |
+|                                   | SetAvoidPhaseDrift            | rename: AvoidPhaseDrift                          |
+| ChShaftsTorque                    |                               | rename: ChShaftsAppliedTorque                    |
+| ChShaftsTorqueBase                |                               | rename: ChShaftsTorque                           |
+| ChSolverBB                        |                               |                                                  |
+|                                   | GetMaxArmijoBacktrace         | rename: GetMaxStepsArmijoBacktrace               |
+|                                   | GetNarmijo                    | rename: GetMaxStepsArmijoLineSearch              |
+|                                   | SetMaxArmijoBacktrace         | rename: SetMaxStepsArmijoBacktrace               |
+|                                   | SetNarmijo                    | rename: SetMaxStepsArmijoLineSearch              |
+| ChStaticAnalysis                  |                               | remove                                           |
+|                                   | GetL                          | rename: GetLagrangeMultipliers                   |
+|                                   | GetX                          | rename: GetStatePos                              |
+| ChStream                          |                               | remove                                           |
+| ChStreamFile                      |                               | remove                                           |
+| ChStreamIn                        |                               | remove                                           |
+| ChStreamInAscii                   |                               | remove                                           |
+| ChStreamInAsciiFile               |                               | remove                                           |
+| ChStreamInBinary                  |                               | remove                                           |
+| ChStreamInBinaryFile              |                               | remove                                           |
+| ChStreamOut                       |                               | remove                                           |
+| ChStreamOutAscii                  |                               | remove                                           |
+| ChStreamOutAsciiFile              |                               | remove                                           |
+| ChStreamOutBinary                 |                               | remove                                           |
+| ChStreamOutBinaryFile             |                               | remove                                           |
+| ChSurface                         |                               |                                                  |
+|                                   | Get_closed_U                  | rename: IsClosedU                                |
+|                                   | Get_closed_V                  | rename: IsClosedV                                |
+| ChSystem                          |                               |                                                  |
+|                                   | ConstraintsLoadJacobian       | rename: LoadConstraintJacobians                  |
+|                                   | DoEntireDynamics              | remove                                           |
+|                                   | DoEntireKinematics            | remove                                           |
+|                                   | DoEntireUniformDynamics       | remove                                           |
+|                                   | DoFullAssembly                | remove  use DoAssembly(AssemblyLevel::FULL)      |
+|                                   | DumpSystemMatrices            | rename: WriteSystemMatrices                      |
+|                                   | Get_bodylist                  | rename: GetBodies                                |
+|                                   | Get_G_acc                     | rename: GetGravitationalAcceleration             |
+|                                   | Get_linklist                  | rename: GetLinks                                 |
+|                                   | Get_meshlist                  | rename: GetMeshes                                |
+|                                   | Get_otherphysicslist          | rename: GetOtherPhysicsItems                     |
+|                                   | Get_shaftslist                | rename: GetShafts                                |
+|                                   | GetDOC                        | remove                                           |
+|                                   | GetDOC_c                      | remove                                           |
+|                                   | GetDOC_d                      | remove                                           |
+|                                   | GetDOF                        | remove                                           |
+|                                   | GetDOF_w                      | remove                                           |
+|                                   | GetMaxiter                    | remove                                           |
+|                                   | GetMinBounceSpeed             | remove                                           |
+|                                   | GetNbodies                    | rename: GetNumBodiesActive                       |
+|                                   | GetNbodiesFixed               | rename: GetNumBodiesFixed                        |
+|                                   | GetNbodiesSleeping            | rename: GetNumBodiesSleeping                     |
+|                                   | GetNbodiesTotal               | rename: GetNumBodies                             |
+|                                   | GetNconstr                    | rename: GetNumConstraints                        |
+|                                   | GetNcontacts                  | rename: GetNumContacts                           |
+|                                   | GetNcoords                    | rename: GetNumCoordsPosLevel                     |
+|                                   | GetNcoords_w                  | rename: GetNumCoordsVelLevel                     |
+|                                   | GetNdoc                       | remove: no constraints at position level         |
+|                                   | GetNdoc_w                     | rename: GetNumConstraints                        |
+|                                   | GetNdoc_w_C                   | rename: GetNumConstraintsBilateral               |
+|                                   | GetNdoc_w_D                   | rename: GetNumConstraintsUnilateral              |
+|                                   | GetNdof                       | remove: it was a rough estimate                  |
+|                                   | GetNlinks                     | rename: GetNumLinksActive                        |
+|                                   | GetNmeshes                    | rename: GetNumMeshes                             |
+|                                   | GetNphysicsItems              | rename: GetNumOtherPhysicsItemsActive            |
+|                                   | GetNshafts                    | rename: GetNumShafts                             |
+|                                   | GetNshaftsFixed               | rename: GetNumShaftsFixed                        |
+|                                   | GetNshaftsSleeping            | rename: GetNumShaftsSleeping                     |
+|                                   | GetNshaftsTotal               | rename: GetNumShaftsTotal                        |
+|                                   | GetNsysvars                   | remove                                           |
+|                                   | GetNsysvars_w                 | remove                                           |
+|                                   | GetSolverCallsCount           | rename: GetSolverSolveCount                      |
+|                                   | GetSolverForceTolerance       | remove                                           |
+|                                   | GetSolverMaxIterations        | remove                                           |
+|                                   | GetSolverTolerance            | remove                                           |
+|                                   | GetStepcount                  | rename: GetNumSteps                              |
+|                                   | GetUseSleeping                | rename: IsSleepingAllowed                        |
+|                                   | InjectKRMmatrices             | rename: InjectKRMMatrices                        |
+|                                   | Integrate_Y                   | rename: AdvanceDynamics                          |
+|                                   | KRMmatricesLoad               | rename: LoadKRMMatrices                          |
+|                                   | ResetStepcount                | rename: ResetNumSteps                            |
+|                                   | Set_G_acc                     | rename: SetGravitationalAcceleration             |
+|                                   | SetMaxiter                    | remove                                           |
+|                                   | SetMinBounceSpeed             | remove and move to ChSystemNSC                   |
+|                                   | SetSolverForceTolerance       | remove (see Notes)                               |
+|                                   | SetSolverMaxIterations        | remove (see Notes)                               |
+|                                   | SetSolverTolerance            | remove (see Notes)                               |
+|                                   | SetStep                       | remove                                           |
+|                                   | SetUseSleeping                | rename: SetSleepingAllowed                       |
+| ChSystemSMC                       |                               |                                                  |
+|                                   | GetStiffContact               | rename: IsContactStiff                           |
+|                                   | SetStiffContact               | rename: SetContactStiff                          |
+| ChSystemDescriptor                |                               |                                                  |
+|                                   | ConvertToMatrixForm           | rename: BuildSystemMatrix                        |
+|                                   | GetConstraintsList            | rename: GetConstraints                           |
+|                                   | GetKblocksList                | rename: GetKRMBlocks                             |
+|                                   | GetVariablesList              | rename: GetVariables                             |
+|                                   | InsertKblock                  | rename: InsertKRMBlock                           |
+| ChSystemFsi                       |                               |                                                  |
+|                                   | Get_G_acc                     | rename: GetGravitationalAcceleration             |
+|                                   | Set_G_acc                     | rename: SetGravitationalAcceleration             |
+| ChSystemMulticore                 |                               |                                                  |
+|                                   | GetNumBilaterals              | rename: GetNumConstraintsBilateral               |
+|                                   | Integrate_Y                   | rename: AdvanceDynamics                          |
+| ChTimestepper                     |                               |                                                  |
+|                                   | get_L                         | rename: GetLagrangeMultipliers                   |
+| ChTimestepperIorder               |                               |                                                  |
+|                                   | get_Y                         | rename: GetState                                 |
+|                                   | get_dYdt                      | rename: GetStateDt                               |
+| ChTimestepperIIorder              |                               |                                                  |
+|                                   | get_X                         | rename: GetStatePos                              |
+|                                   | get_V                         | rename: GetStateVel                              |
+|                                   | get_A                         | rename: GetStateAcc                              |
+| ChTriangleMesh                    |                               |                                                  |
+|                                   | addTriangle                   | rename: AddTriangle                              |
+|                                   | getNumTriangles               | rename: GetNumTriangles                          |
+|                                   | getTriangle                   | rename: GetTriangle                              |
+| ChTimer                           |                               | see Notes                                        |
+|                                   | GetTimeMicrosecondsIntermediate | remove                                         |
+|                                   | GetTimeMillisecondsIntermediate | remove                                         |
+|                                   | GetTimeSecondsIntermediate      | remove                                         |
+| ChTriangleMeshConnected           |                               |                                                  |
+|                                   | addTriangle                   | rename: AddTriangle                              |
+|                                   | getCoordsVertices             | rename: GetCoordsVertices                        |
+|                                   | getCoordsNormals              | rename: GetCoordsNormals                         |
+|                                   | getCoordsUV                   | rename: GetCoordsUV                              |
+|                                   | getCoordsColors               | rename: GetCoordsColors                          |
+|                                   | getIndicesVertexes            | rename: GetIndicesVertexes                       |
+|                                   | getIndicesNormals             | rename: GetIndicesNormals                        |
+|                                   | getIndicesUV                  | rename: GetIndicesUV                             |
+|                                   | getIndicesColors              | rename: GetIndicesColors                         |
+|                                   | getIndicesMaterials           | rename: GetIndicesMaterials                      |
+|                                   | getNumNormals                 | rename: GetNumNormals                            |
+|                                   | getNumTriangles               | rename: GetNumTriangles                          |
+|                                   | getNumVertices                | rename: GetNumVertices                           |
+|                                   | getPropertiesPerVertex        | rename: GetPropertiesPerVertex                   |
+|                                   | getPropertiesPerFace          | rename: GetPropertiesPerFace                     |
+|                                   | getTriangle                   | rename: GetTriangle                              |
+| ChTriangleMeshSoup                |                               |                                                  |
+|                                   | addTriangle                   | rename: AddTriangle                              |
+|                                   | getNumTriangles               | rename: GetNumTriangles                          |
+|                                   | getTriangle                   | rename: GetTriangle                              |
+| ChTriangleOfXYZnodes              |                               | rename: ChTriangleNodesXYZ                       |
+| ChTriangleOfXYZROTnodes           |                               | rename: ChTriangleNodesXYZrot                    |
+| ChVariables                       |                               |                                                  |
+|                                   | Build_M                       | rename: PasteMassInto  (see Notes)               |
+|                                   | Compute_fb                    | remove                                           |
+|                                   | Compute_invMb_v               | rename: ComputeMassInverseTimesVector            |
+|                                   | Compute_inc_invMb_v           | remove                                           |
+|                                   | Compute_inc_Mb_v              | rename: AddMassTimesVector                       |
+|                                   | DiagonalAdd                   | rename: AddMassDiagonalInto                      |
+|                                   | Get_ndof                      | rename: GetDOF                                   |
+|                                   | Get_qb                        | rename: State                                    |
+|                                   | Get_fb                        | rename: Force                                    |
+|                                   | MultiplyAndAdd                | rename: AddMassTimesVectorInto                   |
+| ChVector                          |                               | rename: ChVector3                                |
+|                                   | DirToDxDyDz                   | rename: GetDirectionAxesAsX                      |
+| ChVisualModel                     |                               |                                                  |
+|                                   | GetShapes                     | rename: GetShapeInstances                        |
+| ChVolume                          |                               |                                                  |
+|                                   | Get_closed_U                  | rename: IsClosedU                                |
+|                                   | Get_closed_V                  | rename: IsClosedV                                |
+|                                   | Get_closed_W                  | rename: IsClosedW                                |
+| CSV_writer                        |                               | rename: ChWriterCSV                              |
+|                                   | delim                         | rename: GetDelimiter                             |
+|                                   | set_delim                     | rename: SetDelimiter                             |
+|                                   | stream                        | rename: Stream                                   |
+|                                   | write_to_file                 | rename: WriteToFile                              |
+| Generator                         |                               | rename: ChGenerator                              |
+|                                   | getBodyIdentifier             | rename: GetBodyIdentifier                        |
+|                                   | getTotalMass                  | rename: GetTotalMass                             |
+|                                   | getTotalNumBodies             | rename: GetTotalNumBodies                        |
+|                                   | getTotalVolume                | rename: GetTotalVolume                           |
+|                                   | setBodyIdentifier             | rename: SetStartTag                              |
+| GridSampler                       |                               | rename: ChGridSampler                            |
+| HCPSampler                        |                               | rename: ChHCPSampler                             |
+| MixtureIngredient                 |                               | rename: ChMixtureIngredient                      |
+|                                   | setDefaultDensity             | rename: SetDefaultDensity                        |
+|                                   | setDefaultMaterial            | rename: SetDefaultMaterial                       |
+|                                   | setDefaultSize                | rename: SetDefaultSize                           |
+|                                   | setDistributionCohesion       | rename: SetDistributionCohesion                  |
+|                                   | setDistributionDensity        | rename: SetDistributionDensity                   |
+|                                   | setDistributionFriction       | rename: SetDistributionFriction                  |
+|                                   | setDistributionPoisson        | rename: SetDistributionPoisson                   |
+|                                   | setDistributionRestitution    | rename: SetDistributionRestitution               |
+|                                   | setDistributionSize           | rename: SetDistributionSize                      |
+|                                   | setDistributionYoung          | rename: SetDistributionYoung                     |
+| PDSampler                         |                               | rename: ChPDSampler                              |
+| Sampler                           |                               | rename: ChSampler                                |
+
+
+**Types**
+
+| Class                             | Type                | Action                                           |
+| :-------------------------------- | :------------------ | :----------------------------------------------- |
+| ChCoordsys                        | Coordsys            | rename: ChCoordsysd                              |
+|                                   | CoordsysF           | rename: ChCoordsysf                              |
+| ChQuaternion                      | Quaternion          | rename: ChQuaterniond                            |
+|                                   | QuaternionF         | rename: ChQuaternionf                            |
+| ChVector                          | Vector              | rename: ChVector3d                               |
+|                                   | VectorF             | rename: ChVector3f                               |
+
+**Constants**
+
+| Name                              | Action                                           |
+| :-------------------------------- | :----------------------------------------------- |
+| CH_C_1_PI                         | remove                                           |
+| CH_C_2PI                          | rename: CH_2PI                                   |
+| CH_C_DEG_TO_RAD                   | rename: CH_DEG_TO_RAD                            |
+| CH_C_E                            | remove                                           |
+| CH_C_LN10                         | remove                                           |
+| CH_C_LN2                          | remove                                           |
+| CH_C_LOG10E                       | remove                                           |
+| CH_C_LOG2E                        | remove                                           |
+| CH_C_PI                           | rename: CH_PI                                    |
+| CH_C_PI_2                         | rename: CH_PI_2                                  |
+| CH_C_PI_4                         | rename: CH_PI_4                                  |
+| CH_C_RAD_TO_DEG                   | rename: CH_RAD_TO_DEG                            |
+| CH_C_RPM_TO_RPS                   | rename: CH_RPM_TO_RAD_S                          |
+| CH_C_SQRT_1_2                     | remove                                           |
+| CH_C_SQRT_2                       | rename: CH_SQRT_2                                |
+
+
+**Notes**
+
++ The code for `ChFunction` classes was moved from `src/chrono/motion_functions/` to `src/chrono/functions/`. As such, include headers should be changed to something like:
+  ```cpp
+  #include "chrono/functions/ChFunctionSine.h"
+  ```
+
++ The `chrono::geometry` namespace was removed. All geometry classes are now in the `chrono` namespace.
+
++ Chrono object identifiers were made read-only so that uniqueness can be guaranteed. 
+  - These integer identifiers are read-only and can be cached by the user (e.g., for searching in a ChAssembly).
+    Identifiers are generated automatically in incremental order based on the order in which objects are created.
+    As transient quantities, object identifiers are not serialized.
+  - Chrono objects can now be tagged (using newly introduced functions `SetTag`/`GetTag`).
+    Unlike object identifiers, object tags are completely under user control and not used anywhere else in Chrono.
+    Tags are serialized and de-serialized.
+
++ Functions that duplicated C++ Standard Library functions were removed and replaced with the corresponding C++ function (e.g., `ChMin` was obsoleted in favor of `std::min`).
+
++ The enum `AngleSet` (previously defined in ChQuaternion.h) was renamed to `RotRepresentation` and moved to a new header named ChRotation.h.
+
++ All free functions for converting from one rotation representation to another are now located in ChRotation.h.
+  These functions have consistent names of the form *XxxFromYyy*.
+
+  | Old (in ChQuaternion.h)  | New (in ChRotation.h)         |
+  | :----------------------- | :-----------------------------|
+  | -                        | AngleSetFromAngleSet          |
+  | -                        | AngleSetFromRodriguez         |
+  | -                        | RodriguezFromAngleSet         |
+  | -                        | QuatFromRotVec                |
+  | -                        | RotVecFromQuat                |
+  | Angle_to_Quat            | QuatFromRodriguez             |
+  | Angle_to_Quat            | QuatFromAngleSet              |
+  | AngleDT_to_QuatDT        | QuatDtFromAngleSet            |
+  | AngleDT_to_QuatDT        | QuatDtFromRodriguez           |
+  | AngleDTDT_to_QuatDTDT    | QuatDt2FromAngleSet           |
+  | AngleDTDT_to_QuatDTDT    | QuatDt2FromRodriguez          |
+  | ImmQ_complete            | QuatFromImaginary             |
+  | ImmQ_dt_complete         | QuatDtFromImaginary           |
+  | ImmQ_dtdt_complete       | QuatDt2FromImaginary          |
+  | Q_from_AngAxis           | QuatFromAngleAxis             |
+  | Q_from_AngX              | QuatFromAngleX                |
+  | Q_from_AngY              | QuatFromAngleY                |
+  | Q_from_AngZ              | QuatFromAngleZ                |
+  | Q_from_Euler123          | QuatFromAngleSet              |
+  | Q_from_NasaAngles        | QuatFromAngleSet              |
+  | Q_from_Vect_to_Vect      | QuatFromVec2Vec               |
+  | Q_to_AngAxis             | AngleAxisFromQuat             |
+  | Q_to_Euler123            | AngleSetFromQuat              |
+  | Q_to_NasaAngles          | AngleSetFromQuat              |
+  | Qdt_from_AngAxis         | QuatDtFromAngleAxis           |
+  | Qdtdt_from_AngAxis       | QuatDt2FromAngleAxis          |
+  | Quat_to_Angle            | RodriguezFromQuat             |
+  | Quat_to_Angle            | AngleSetFromQuat              |
+
++ For consistency, functions for transforming a `ChFrame` or a `ChCoordsys` from one reference to another (`TransformFromLocalToParent` and `TransformFromParentToLocal`) were modified so that they return the transformed object (previously, the returned object was pased as an argument).
+  For clarity, we removed functions such as `ChFrame::TransformLocalToParent(const ChVector<>& local)` to express a 3D vector given in local coordinates to the parent frame. Use instead `ChFrame::TransformPointLocalToParent`.
+
++ `ChLinkMate` and derived classes have been rewritten so that:
+  - for links with a single DOF, the relevant axis is Z, in line with `ChLinkLock` formulation (e.g., a `ChLinkMatePrismatic` allows translation along the Z axis of the link frame, a ChLinkMateRevolute allows rotation about the Z axis of the link frame, etc.).
+  - for links with 2 DOFs, the relevant axes are X and Y. The exception to this is `ChLinkMateRackPinion` which uses the Z axis of the link frame as axis of rotation for the pinion and the X as direction of translation for the rack.
+  - the 'flipped==true' state now refers to axes that are counter-aligned.
+
++ Link objects used to consider just one frame as 'principal' (usually 'frame 2'), thus returning reaction forces, frame position, as well as any other information with respect to this frame only.
+  - For consistency and to remove ambiguity, all links (connections between two physical items) now report two frames, one on each connected object. These frames, expressed in the absolute coordinate frame can be obtained through the functions `GetFrame1Abs` and `GetFrame2Abs`.
+    Certain derived classes (notably those connecting two `ChBody` objects, in particular all classes representing kinematic joints) also provide functions to return the link frames expressed in the frame of the corresponding connected body (`GetFrame1Rel` and `GetFrame2Rel`).
+  - Similarly, all link objects now provide functions to return the reaction force and torque at the location of the link frame on the connected object. These reactions are expressed in the corresponding link frame and can be obtained, as a wrench, through calls to `GetReaction[1|2]`.
+
++ The signature of all ChLink `Initialize()` functions were changed to consistently use `ChFrame` objects to specify link position and alignment (where previously some of them used `ChCoordsys`).
+  A corresponding change was done for the constructor of `vehicle::ChVehicleJoint`.
+
++ The `ChLoad` class (loads on physics items via `ChLoader` objects) was changed to a non-templated class.  Instead of specifying the ChLoader as a template parameter, a shared pointer to a ChLoader is now passed as a constructor argument. 
+  This streamlines the code and allows proper SWIG wrapping for use in Python or C# codes. 
+  All pre-defined ChLoader classes (e.g., `ChLoaderPressure`, `ChLoaderGravity`, `ChLoaderBeamWrench`, etc.) were updated accordingly.
+  An example of a user-provided loader class (derived from some `ChLoader`) is as follows:
+  ```cpp
+  class MyLoader : public ChLoaderUatomic {
+    public:
+      MyLoader(std::shared_ptr<ChLoadableU> loadable) : ChLoaderUatomic(loadable) {}
+
+      virtual void ComputeF(const double U,              // normalized line position
+                            ChVectorDynamic<>& F,        // load at U (set to zero on entry)
+                            ChVectorDynamic<>* state_x,  // if non-null, first update position to this
+                            ChVectorDynamic<>* state_w   // if non-null, first update velocities to this
+                            ) override {
+          // Compute F = F(U)...
+      }
+  };
+
+  auto loader = chrono_types::make_shared<MyLoader>(object);
+  auto load = chrono_types::make_shared<ChLoad>(loader);
+  load_container->Add(load);
+  ```
+
++ `ChStream` classes were simple wrappers around C++ output streams. The entire code has been now refactored to operate on STL streams directly, in order to simplify the API and to allow the user a more familiar interaction with streams in Chrono.
+  - the `operator<<` associated to `ChStreamOutAscii` has been removed: this means that it is not possible to stream custom classes through this operator;
+  this option has been replaced by appropriate overloads of STL streams (clearly limited to data members publicly accessible) or by the direct usage of `ChOutputASCII`.
+  - `ChStream[In/Out]Binary` features to operate on streams through the `read|write` methods have been incorporated into the one class that was using it, namely `ChArchiveBinary`. 
+
++ `ChArchive` classes have been refactored to adapt to the direct use of STL streams and have been renamed for consistency and clarity.
+  - proper serialization/de-serialization classes kept the same name:
+    + `ChArchiveJSON[In/Out]`
+    + `ChArchiveXML[In/Out]`
+    + `ChArchiveBinary[In/Out]`
+  - auxiliary classes which, while still leveraging the `ChArchive` features, allow only export but not loading back objects were renamed:
+    + `ChArchiveAsciiDump` &#8594; `ChOutputASCII`
+    + `ChArchiveExplorer` &#8594; `ChObjectExplorer`
+
++ Solver access through `ChSystem` was removed. The functions `SetSolverMaxIterations`, `SetSolverTolerance`, and `SetSolverForceTolerance` were controlling only a subset of solver parameters and only for iterative solvers.
+  Instead, the user must set solver parameters directly on the solver object. This is straightforward for the case where the user explicitly creates a solver object and attaches it to the system with `ChSystem::SetSolver`.
+  For the case where the default solver is used or where the solver is set through `ChSystem::SetSolverType`, we implemented a mechanism on `ChSolver` and derived classes which permits identifying the solver type
+  and setting solver parameters without the need for dynamic casting and testing. This mechanism is provided through `ChSolver` functions and can be used as illustrated below:
+  ```cpp
+  if (my_system.GetSolver()->IsIterative()) {
+     my_system.GetSolver()->AsIterative()->SetMaxIterations(100);
+     my_system.GetSolver()->AsIterative()->SetTolerance(1e-6);
+  }
+  ```
+  or
+  ```cpp
+  my_system.SetSolverType(ChSolver::Type::BARZILAIBORWEIN);
+  my_system.GetSolver()->AsIterative()->SetMaxIterations(20);
+  ```
++ We removed the option of setting an integration step size for the types of analyses that require it. Instead, the desired step size value is always explicitly passed as an argument to the `ChSystem` function that initiates that analysis (e.g., `DoStepDynamics`).
+  The current value of the step size (which may be adjusted internally in certain situations) is cached and can still be queried with `ChSystem::GetStep`. This is typically needed only internally but can also be used in user code that requires it.
+
+  Similarly, we removed the function `ChSystem::SetMaxiter` which allowed setting the maximum number of iterations for the system assembly analysis. This quantity can now be passed through an optional argument to `ChSystem::DoAssembly` (default value: 6).
+
++ `ChKblock::Build_K` (now `ChKRMBlock::PasteInto`) reversed the meaning of the last argument (was `add`, now `overwrite`) in accordance to the signature of `PasteMatrix`;
+  Also `ChVariable::Build_M` (now `PasteMassInto`) is not taking the position in which the mass should be placed but the offset with respect to the `ChVariable::offset`
+
++ The `ChTimer` class was refactored so that `GetTimeMicroseconds`, `GetTimeMilliseconds`, and `GetTimeSeconds` return either an intermediate time (if the timer was started but not stopped; in this case the timer keeps running) or the timer value when the timer was stopped.
+  The old functions `GetTimeMicrosecondsIntermediate`, `GetTimeMillisecondsIntermediate`, and `GetTimeSecondsIntermediate` were obsoleted.
+
+## [Added] Chrono::Sensor features and updates
+
+**Updates and Bug Fixes**
+  - Upgraded to Optix 7.7, requiring NVIDIA drive 530.41 or newer
+  - Fixed issues with CUDA NVRTC runtime compilation of Optix shaders
+
+**New Features**
+  - Added supprt for Area Lights (rectangular shaped). Can be added to a scene using `ChScene::AddAreaLights(ChVector3f position, ChColor color, float max_range, ChVector3f du, ChVector3f dv)`.
+  - Added support for rendering emissive surfaces. When defining a visual material, set `ChVisualMaterial::SetEmissiveColor(ChColor color)` and set `ChVisualMaterial:SetEmissivePower(float power)`.
+  - Added a Depth Camera sensor (`ChDepthCamera`). The Depth Camera is initialized in the same manner as `ChCameraSensor` , with each pixel containing depth information of the scene in meters (m).
+  - Added support for the Hapke BRDF model to render celestial bodies (ex: Lunar regolith). To enable, when defining a material set `ChVisualMaterial:SetUseHapke(bool enableHapke)` and set the model parameters using `ChVisualMaterial:SetHapkeParameters(float w,...)`. More information regarding the Hapke model and its parametrization can be found in <https://doi.org/10.1002/2013JE004580>.
+  - Added a Random Walk based noise model for GPS sensor. To enable this noise model, when adding a `ChGPSSensor`, set a pointer to a `ChNoiseRandomWalks`object as the noise model parameter.
+
 
 ## [Changed] Updated Chrono::VSG module
 
-The Chrono::VSG m,odule was updated to use newer version of the VSG libraries.
+The Chrono::VSG module was updated to use newer version of the VSG libraries.
 - Adds shadow support (enabled in several demos).
 - Includes an optional argument to the `ChVisualSystemVSG` constructor to specify the tesselation resolution for round primitive shapes. This is provided as a number of divisions of a full circle, with a default value of 24, corresponding to a 15 degree angular increment. 
 - No other changes to the public API.
@@ -112,11 +1668,11 @@ The **required** VSG library versions are as follows:
 - vsgImGui - latest
 - assimp 5.3.1
 
-If the above requirements are not met, an error is issued during CMake configuration (if the Chrono::VSG moduile is enabled).  
+If the above requirements are not met, an error is issued during CMake configuration (if the Chrono::VSG module is enabled).  
 The simplest way to satisfy the VSG version requirements is to build and install them using the scripts provided with the Chrono distribution (see the Chrono::VSG installation instructions).
 
 
-### [Added] New motion functions and filters
+## [Added] New motion functions and filters
 The following functions were added
 + `ChFunction_BSpline`: univariate B-Spline motion function, able to approximate or exactly interpolate given waypoints and derivatives 
 + `ChFunction_Cycloidal`: smooth ramp function defined by amount of displacement and motion time
@@ -125,18 +1681,18 @@ These and all other `ChFunction`s are now able to compute up to third derivative
 
 In addition, the new non-linear filters `utils::ChMotionlawFilter_SecondOrder` and `utils::ChMotionlawFilter_ThirdOrder` were introduced for tracking raw signals with smooth motion profiles, on the fly.
 
-### [Changed] Updated ChBlender exporter to Blender4.0
+## [Changed] Updated ChBlender exporter to Blender4.0
 Due to some obsoleted methods the ChBlender exported was not compatible with the latest Blender4.0. It is now updated.
 
-### [Added] Added unilateral distance constraint
-The `ChLinkDistance` has been expanded to include also unilateral distance constraints. Through `SetMode`/`GetMode` three different behaviours are now available:
+## [Added] Unilateral distance constraint
+The `ChLinkDistance` has been expanded to include also unilateral distance constraints. Through `SetMode`/`GetMode` three different behaviors are now available:
 + `BILATERAL` (default): current_distance = imposed_distance;
 + `UNILATERAL_MAXDISTANCE`: current_distance < imposed_distance; (e.g. a rope)
 + `UNILATERAL_MINDISTANCE`: current_distance > imposed_distance;
 
 For the latter two cases a [*VI* solver](https://api.projectchrono.org/development/simulation_system.html#solvers) is required since the unilateral constraints are non-smooth.
 
-### [Changed] Collision detection refactoring
+## [Changed] Collision detection refactoring
 
 This refactoring affects the specification of collision models and shapes attached to contactable objects, as well as the specification of a collision system associated with a Chrono physics system. With these changes, it is now possible to specify collision information in Chrono independent of a particular implementation (e.g., the Bullet-based collision detection or the Chrono-internal multicore collision detection system), both in term of collision models and collision systems. The refactored Chrono code synchronizes the API for specifying collision and visualization shapes and models, as well as the API for creating and associating collision and visualization systems. 
 
@@ -231,7 +1787,7 @@ In addition to `BindAll`, a concrete collision system implementation also provid
 
 
 
-### [Changed] Application of terrain forces to vehicle systems
+## [Changed] Application of terrain forces to vehicle systems
 
 Chrono offers several mechanism for applying external forces to rigid bodies in a multibody system. The first one, and arguably the easiest to implement in user code, relies on so-called accumulators for an external force an moment (accumulated as a resultant wrench at the body center of mass). It is the responsibility of the user to clear the body accumulator before loading updated forces and torques that will be applied next (e.g., over the next dynamics step). While simple to use, this approach is also fragile and a potential source of mistakes; indeed, there is no way to control if the same body accumulators are not being used simultaneously in different parts of the code.  Other mechanisms for applying external forces and torques are (i) creating objects of type `ChForce` (which can represent either a force or a torque) and associating an arbitrary number with any rigid body; and (ii) using objects of type `ChLoad` which associate a so-called "loadable" (e.g., a rigid body or an FEA node) with a load (concentrated, surface-distributed, or volumetric) and managing them in so-called "load containers" in the underlying Chrono system.
 
@@ -239,13 +1795,13 @@ Because of the limitations and potential pitfalls of the accumulator approach, t
 
 As part of this change, the API for synchronizing the dynamic simulation of tracked vehicles at the beginning of a time step was simplified. Indeed, when using any of the available Chrono terrain systems (rigid or deformable) in a monolithic simulation setting, the interaction between terrain and track shoes leverages the underlying Chrono collision and contact system. As such, there is no need for the user to explicitly pass null terrain interaction forces which were eliminated from the signature of `ChTrackedVehicle::Synchronize` function.  The version that takes lists of such terrain forces (one per track shoe) is still available, for use in co-simulation (such as the Chrono::Vehicle terrain-vehicle co-simulation framework).
 
-### [Changed] Modifications to the HHT integrator
+## [Changed] Modifications to the HHT integrator
 
 As part of an ongoing set of changes to the implicit integrator based on the Hilber-Hughes-Taylor (HHT) method, `ChTimestepperHHT` was modified to eliminate the so-called "position" formulation (which had no proper theoretical support and was anyway not appropriate for systems that included bodies or nodes with rotational degrees of freedom). The current implementation, only provides the acceleration-level formulation suitable for the 2nd order multibody equations of motion. 
 
 A numerical estimate of the rate of convergence for the underlying Newton solver is now evaluated internally (note that this convergence rate estimate can be calculated only after the third iterations; as such, a value of 1 is set for the first two iterations). The last convergence rate estimate is user-accessible through the `GetEstimatedConvergenceRate` function; together with the reported number of Newton iterations during the last integration step, this can be monitored in user code to provide an indicator of possible numerical difficulties in solving the system dynamics.
 
-### [Added] Modeling hydraulic circuit elements and hydraulic actuators
+## [Added] Modeling hydraulic circuit elements and hydraulic actuators
 
 Initial support was added for modeling elements of hydraulic circuits, including hydraulic pistons, directional valves, and throttle valves. These physics components are modeled with underlying dynamics described by ODEs based on the so-called lumped fluid approach. Two models of hydraulic actuators are also provided. The first one, `ChHydraulicActuator2` uses a hydraulic circuit with two volumes composed of a pump, a tank, a hydraulic cylinder, and a directional valve connected with two hoses. The second actuator, `ChHydraulicActuator3` models a hydraulic circuit with three volumes and also includes a throttle valve (as well as an additional hose). The hydraulic actuators are controlled by providing an actuation function which defines the desired (reference) spool position of the directional valve as a function of time; this reference, specified through a `ChFunction` object, can be either pre-defined for the time interval of interest or else adjusted interactively (for example, using a `ChFunction_Setpoint` that is updated externally from some user input). 
 
@@ -278,7 +1834,7 @@ If used in a co-simulation setting, the actuator is initialized stand-alone:
 ```
 In this case, the current actuator length is provided from the outside, while the force generated by the actuator can be extracted with the `ChHydraulicActuatorBase::GetActuatorForce` function, thus allowing a force-displacement co-simulation setup.
 
-### [Added] Support for modeling components with own dynamics
+## [Added] Support for modeling components with own dynamics
 
 The new base class `ChExternalDynamics` allows modeling and inclusion in a Chrono system of a physics item that carries its own dynamics, described as a set of Ordinary Differential Equations (ODE). The states of such components are appended to those of the containing system and are integrated simultaneously with the system's equations of motion. These states can be accessed and used coupled with other components.
 
@@ -332,21 +1888,21 @@ class VanDerPolODE : public ChExternalDynamics {
 ```
 
 
-### [Changed] Renamed SPHTerrain and RCCar vehicle classes
+## [Changed] Renamed SPHTerrain and RCCar vehicle classes
 
 For consistency, better suited names were given to the following classes:
 - `SPHTerrain` was renamed to `CRMTerrain` (deformable terrain using the Continuous Representation Model, an SPH-based granular formulation)
 - `RCCar` was renamed to `ARTcar` (the Autonomy Research Testbed car)
 
-### [Changed] Moved drive mode to automatic transmissions
+## [Changed] Moved drive mode to automatic transmissions
 
 The concept of a drive mode was moved from `ChTransmission` to `ChAutomaticTransmission` as it is something that only exists for automatic transmissions. This is an API change.
 
-### [Changed] Changed gear numbering
+## [Changed] Transmission gear numbering
 
 Reverse gear is now indicated as -1, making room for a neutral gear as 0. Positive numbers are still forward gears. This is a semantic change to the existing API so please review your code as your IDE will most likely not pick up on it. Added to the API is a method to return the highest (forward) gear that is available.
 
-### [Added] Redundant constraints remover
+## [Added] Redundant constraints remover
 It is quite common to spot models, even in Chrono demos, where the number of constraints are even greater than the number of variables. While this is allowed in Chrono systems, it should be considered a bad practice. Redundant constraints unnecessarily increase the size of the problem, lead to noisy measurements of the link reactions, cause instability to direct solvers.  
 Taking care of adding _only_ the required number of constraints is - and always will be - the best option for the user. However, whenever this approach might be too tedious or impractical, it is now possible to ask the system to get rid of those redundant constraints by calling:
 
@@ -357,7 +1913,7 @@ It is recommended to:
 - initially set the `verbose` to `true` to double check which constraints have been removed.
 
 
-### [Changed] Serialization expanded and improved
+## [Changed] Serialization expanded and improved
 Serialization is now capable of storing and loading back entire `ChSystem`s consistently. Available classes include rigid bodies along with their visual assets (excluding ChVisualShapeFEA) and collision models, links (both ChLinkMate and ChLinkLock families), shafts, system solvers and collision systems. More classes will become available in the next future.
 
 An additional macro called `CH_UPCASTING` now allows to properly handle those classes with multiple inheritance: if a class, *or any of its parent classes*, shows multiple inheritance it is strongly recommended to specify its inheritance scheme with the new `CH_UPCASTING` macro:
@@ -383,7 +1939,7 @@ Further insights can be found in the documentation of the `CH_UPCASTING` macro. 
 `CH_UPCASTING_SANITIZED(ChBody, ChContactable_1vars<6>, ChBody_ChContactable_1vars_6)`
  
 
-### [Changed] Rewrite of Pac02 handling tire model
+## [Changed] Rewrite of Pac02 handling tire model
 
 Some of the salient characteristic of the updated Pac02 handling tire model (implemented in the `ChPac02Tire` class) are:
 - performs only steady state calculations.
@@ -515,7 +2071,7 @@ Notes:
 - when specifying tire parameters explicitly (option 2 above), all units **must** be SI (fortunately, most Pac02 parameters are non-dimensional).
 - if a parameter is not explicitly set in the JSON file, it is set to a default value of `0.0`; similarly, scaling factors not explicitly defined in the JSON file are set to a default value of `1.0`.
 
-### [Added] New URDF parser
+## [Added] New URDF parser
 
 The miscellaneous parsers provided with Chrono have been reorganized in a separate module, Chrono::Parsers. This module (and associated library) include the previous OpenSim and Adams parsers (previously part of the core Chrono library, as well as the Python parser (previously a separate library built together with the PyChrono wrapper libraries). In addition, the Chrono::Parsers module has a new parser which can populate a Chrono system with a mechanism specified through a [URDF](http://wiki.ros.org/urdf]) (Unified Robotics Description Format) file.
 
@@ -536,13 +2092,13 @@ Two example URDF models are provided: the R2D2 model from the ROS [URDF tutorial
 
 See `demo_PARSER_URDF` for an illustration of reading and visualizing a robot specified through URDF. See `demo_PARSER_URDF_RoboSimian` for a more complex example of building and actuating a robot specified through URDF.
 
-### [Added] Support for STL 3D file format
+## [Added] Support for STL 3D file format
 
 We have added support for creating a triangular mesh (`ChTriangleMeshConnected`) from a **binary** STL () file. This is implemented through the functions `ChTriangleMeshConnected::LoadSTLMesh()` and `ChTriangleMeshConnected::CreateFromSTLFile()`.
 
 Even though the STL format uses a redundant representation in which vertices are replicated for each mesh face, the Chrono reader functions collapse identical vertices, thus providing a minimal mesh representation and connectivity information.
 
-### [Changed] Definition and use of primitive geometric shapes
+## [Changed] Definition and use of primitive geometric shapes
 
 Specification of low-level geometric shapes and their use as collision and visualization shapes was changed for consistency and a more intuitive API.  The main changes can be described as follows:
   - Geometric shapes with a directional axis (e.g., cylinder, cone, capsule) are always aligned with the Z axis.
@@ -625,7 +2181,7 @@ In conjunction with the above changes to the basic primitive shapes, several oth
 
 For users of the `Chrono::Vehicle` module, note that these changes **do not** affect use of any of the vehicle subsystem templates nor do they require any changes to JSON specification files.
 
-### [Changed] Chrono::Vehicle engine and transmission templates
+## [Changed] Chrono::Vehicle engine and transmission templates
 
 New Chrono::Vehicle templates for the engine and transmission subsystems replace the old powertrain template. The new templates maintain the same modelling capabilities, but allow more flexibility in mixing and matching different models of engines with different transmission models. The coupling between an engine and a transmission is done at the motorshaft, with the engine providing the torque on this shaft and the transmission specifying the angular speed of the shaft. For interfacing with the vehicle system, an aggregate class, ChPowertrainAssembly, manages an engine and transmission and intermediates the coupling with a driveline vehicle subsystem through the driveshaft connecting the transmission to the driveline.
 
@@ -645,7 +2201,7 @@ While currently only templates for automatic transmissions are implemented, the 
 This code change requires modifications to any existing vehicle model, whether specified through a set of C++ classes providing concrete instantiations of various subsystem templates or else specified through a set of JSON files. Consult the vehicle models in the Chrono::Vehicle models library and the sample JSON specification files distributed with Chrono.
 
 
-### [Added] New generic template for wheeled suspension subsystems
+## [Added] New generic template for wheeled suspension subsystems
 
 A new Chrono::Vehicle template for modeling a wheeled vehicle suspension was added. The `ChGenericWheeledSuspension` class permits definition of a suspension subsystem with arbitrary, user-defined topology and sets of bodies, joints, and spring-damper elements. The only elements assumed to always exist in a suspension subsystem are the two spindles and the two axle shafts which connect the spindles to a driveline. A companion class, `GenericWheeledSuspension` allows definition of an arbitrary suspension subsystem based on a JSON specification file. 
 
@@ -655,7 +2211,7 @@ This new template allows for more flexibility in defining non-standard or concep
 
 See `demo_VEH_WheeledVehicle` and `demo_VEH_SuspensionTestRig` which can be modified appropriately to use a HMMWV or UAZ vehicle with the new suspension specifications.
 
-### [Changed] CMake configuration and utility build scripts
+## [Changed] CMake configuration and utility build scripts
 
 For consistency, the following changes were made to some of the Chrono CMake configuration scripts:
   - Chrono::Irrlicht module: `IRRLICHT_INSTALL_DIR` replaces the old IRRLICHT_ROOT
@@ -673,11 +2229,11 @@ Follow the instructions listed in comments at the top of each one of the above b
 Finally, the scripts `buildChrono.bat` (for Windows), `buildChrono.sh` (for Linux), and `buildChronoMac.sh` (for MacOS) are provided as examples of CMake configuration for the various Chrono modules. They should be copied to a different directory and modified to reflect the setup on the user machine and to enable only those Chrono modules of interest. When executed, these scripts run the CMake configuration of Chrono and generate the files for building the Chrono libraries, as appropriate on each platform.
 
 
-### [Added] SPHTerrain - continuum representation method for deformable terrain
+## [Added] SPHTerrain - continuum representation method for deformable terrain
 
 A new Chrono::Vehicle terrain class, SPHTerrain, was added to model deformable terrain using the Continuum Representation Method (CRM), an SPH-based formulation that leverages the Chrono::FSI module.  An SPHTerrain can be created from data files with positions of SPH particles and BCE markers read from data files (these positions are assumed to be provided on an integer grid, in multiples of the initial separation of SPH particles) or from a height-map image file.  In addition, this type of terrain permits definition of rigid obstacles that may be embedded, partially or fully, in the terrain volume (to model, for example, embedded rocks); currently, rigid obstacles must be specified with trimesh geometry read from a Wavefront OBJ file.  Run-time visualization is supported through `ChFsiVisualizationVSG` or `ChFsiVisualizationGL` which leverage the Chrono::VSG and Chrono::OpenGL modules, respectively. See `demo_VEH_SPHTerrain_Obstacles`, `demo_VEH_SPHTerrain_WheeledVehicle`, and `demo_VEH_SPHTerrain_Viper`.
 
-### [Added] TMSimple tire model
+## [Added] TMSimple tire model
 
 A new tire model (`ChTMsimple`) was added to Chrono::Vehicle. This tire model is of "force element" type and shares part of its formulation with the TMeasy model (both of these tire models were developed by Wolfgang Hirschberg from TU Graz in Austria). The goal of TMsimple is to provide a simple handling tire model with fewer parameters than TMeasy while still providing realistic (albeit reduced) functionality.
 
@@ -688,7 +2244,7 @@ The TMsimple model
 
 TMeasy requires 5 parameters to define its basic function for Fx and Fy: (1) slope at zero, (2) slip at force maximum, (3) maximal force, (4) slip at sliding initiation, and (5) sliding force. In contrast, TMsimple needs only 3 parameters: (1) slope, (2) maximal force, and (3) force at infinite slip.  A complete parameter set for Fx(sx,Fz) and Fy(sy,Fz) has 20 items for TMeasy and only 12 for TMsimple. Chrono's TMsimple implementation has a new stand-still/low speed algorithm for friction forces. It is not part of TMsimple itself, and could be adapted to other handling tire models as well.
 
-### [Added] Blender plug-in for post-process visualization
+## [Added] Blender plug-in for post-process visualization
 
 A new tool has been developed. It is an add-on for the [Blender](http://blender.org) rendering/modeling/animation software, that allows importing Chrono simulation in the GUI of Blender. From the C++ side, the only requirement is using some export functions of the POSTPROCESS module. This aims at replacing the old POVray post-processing pipeline.
 
@@ -702,7 +2258,7 @@ A new tool has been developed. It is an add-on for the [Blender](http://blender.
 Details on this new tool is available at [the Chrono::Blender page](https://api.projectchrono.org/development/introduction_chrono_blender.html) on the ProjectChrono.org website.
 
 
-### [Added] VSG-based run-time visualization module
+## [Added] VSG-based run-time visualization module
 
 A new module (`Chrono::VSG`) was added to provide an alternative for run-time visualization. This module uses VulkanSceneGraph ([VSG](https://vsg-dev.github.io/VulkanSceneGraph/)), a new cross-platform, high-performance scene graph library built upon the Vulkan graphics/compute API. Chrono::VSG implements most of the functionality expected by the base Chrono visual system; currently, missing support includes FEA and modal analysis visualizations (work in progress). Except for this, the `ChVisualSystemVSG` is interchangeable with `ChVisualSystemIrrlicht` with minor changes to user code. See for example the various Chrono MBS and vehicle demos that have been modified to work with either run-time visualization system.  
 
@@ -710,15 +2266,15 @@ Unlike Irrlicht, VulkanSceneGraph provides a modern scene graph library which is
 
 Simultaneous with the introduction of Chrono::VSG, we have modified the `ChVisualSystem` API (and reflected these changes in both `ChVisualSystemIrrlicht` and `ChVisualSystemVSG`) to provided new capabilities, such as the definition and rendering of visual models that are not associated with a Chrono physics item.
 
-### [Changed] Support for linear and nonlinear vehicle force elements
+## [Changed] Support for linear and nonlinear vehicle force elements
 
 The various pre-defined functors for use with TSDA and RSDA elements in vehicle models have been refactored for consistency. These include linear and nonlinear springs, dampers, and spring-damper force elements with optional bump stops (see the definitions in `src/chrono_vehicle/ChSubsysDefs.h`).  In addition, a new TSDA functor, `MapSpringDamper` allows for the definition of a general non-linear spring-damper (depending on both deformation and velocity) specified through bi-linear interpolation of tabular data.
 
 All the pre-defined TSDA and RSDA functors can be specified in JSON files; consult the various JSON files for wheeled vehicle suspension systems in the Chrono data directory.
 
-## Release 8.0.0 - 2022-12-21
+# Release 8.0.0 (2022-12-21)
 
-### [Added] Chrono::Sensor features and updates
+## [Added] Chrono::Sensor features and updates
 
 **Updates and Bug Fixes**
 
@@ -738,13 +2294,13 @@ All the pre-defined TSDA and RSDA functors can be specified in JSON files; consu
 
 
 
-### [Fixed] Closed-loop vehicle paths
+## [Fixed] Closed-loop vehicle paths
 
 The treatment of closed-loop Bezier curves (used for path-following vehicle lateral controllers) and the associated curve tracker was improved and fixed.  With this change, the flag indicating whether a path is open or closed is set in the constructor of `ChBezierCurve` and encapsulating objects (`ChBezierCurveTracker` and the different path-following vehicle driver models) query the underlying path.
 
 If a Bezier curve is declared as closed, it is internally modified to add a new point as needed (coincident with the first one). If no Bezier control points are specified, the Bezier curve corresponding to the equivalent piece-wise cubic spline is constructed using C1 continuity conditions at the closing point.
 
-### [Added] Miscellaneous Chrono::Vehicle extensions
+## [Added] Miscellaneous Chrono::Vehicle extensions
 
 **Wheeled vehicles**
 
@@ -774,7 +2330,7 @@ If a Bezier curve is declared as closed, it is internally modified to add a new 
 
 - Add alternative model for a double-pin track shoe which uses a single body to model the connectors between shoes. For track assemblies that use kinematic joints, this model provides the same track kinematics and dynamics with fewer bodies and joints and without additional complications due to redundant constraints. The previous model, using two distinct connector bodies between two consecutive shoes, is appropriate for the case where kinematic joints are replaced with bushings. The double-pin track shoe topology is specified during construction, using the enum `DoublePinTrackShoeType ` which can be either `TWO_CONNECTORS` or `ONE_CONNECTOR`.
 
-### [Changed] Chrono::FSI API changes
+## [Changed] Chrono::FSI API changes
 
 The public API of Chrono::FSI was further refined to better encapsulate and hide the underlying CUDA implementation from the user.  
 - Only two header files need to be included in most Chrono::FSI user programs: `ChSystemFsi.h` which contains the definition of the top-level FSI system class and `ChDefinitionsFsi.h` which defines various enumerations for problem settings and solution methods.
@@ -787,7 +2343,7 @@ The public API of Chrono::FSI was further refined to better encapsulate and hide
 
 The new optional run-time visualization support for Chrono::FSI simulation requires that the Chrono::OpenGL module is enabled and available. Visualization of SPH particles, boundary BCE markers, rigid-body BCE markers, and flex-body BCE markers can be enabled or disabled individually.  SPH particles are rendered with a point cloud; boundary BCE markers are rendered as boxes (of size equal to the initial particle spacing); solid-body BCE markers are rendered as spheres (of diameter equal to the initial particle spacing). See the various Chrono FSI demos for usage. Note that enabling run-time visualization adds the additional cost of transferring marker positions every time the simulation is rendered.
 
-### [Added] User-defined SMC contact force calculation
+## [Added] User-defined SMC contact force calculation
 
 A mechanism was added for overriding the default contact force calculation for a collision pair in an SMC system. The user must supply a class derived from `ChSystemSMC::ChContactForceSMC` and register it through a call to `ChSystemSMC::SetContactForceAlgorithm`.
 
@@ -813,7 +2369,7 @@ The default implementation of the SMC contact force calculation is implemented i
 
 For an example of overriding the default Chrono behavior, see `demo_IRR_callbackSMC.cpp`.
 
-### [Changed] Redesigned run-time visualization system
+## [Changed] Redesigned run-time visualization system
 
 The entire mechanism for defining visualization models, shapes, and materials, as well as constructing and attaching a run-time visualization system to a Chrono system was redefined for more flexibility and to allow plugging in alternative rendering engines.  The new class hierarchy allows sharing of visualization models among different physics items, visualization shapes among different models, and visualization materials among different shapes.
 
@@ -910,7 +2466,7 @@ To enable the vehicle-specific features, attach the vehicle system to the visual
 
 See demos under `src/demos/vehicle/`. 
 
-### [Changed] Vehicle inertia properties
+## [Changed] Vehicle inertia properties
 
 The underlying mechanism for setting and querying inertia properties (mass, COM location, and inertia matrix) for vehicle systems and subsystems was redesign for consistency.  At the user API level, this change is reflected through a uniform manner to hoe these quantities are reported.
 
@@ -921,7 +2477,7 @@ Any vehicle subsystem (of type `ChPart`), as well as any vehicle system (`ChWhee
 
 In addition, a `ChPart` or `ChVehicle` also provide a method `GetTransform()` which returns the vehicle transform (translation and orientation encapsulated in a `ChFrame`) relative to the global (absolute) frame. Recall that, by convention, the vehicle reference frame is that of its main chassis.
 
-### [Changed] CMake project configuration script
+## [Changed] CMake project configuration script
 
 The CMake script `ChronoConfig.cmake`, generated automatically during Chrono CMake configuration and used in configuring third-party applications that depend on Chrono (via calls to `find_project(Chrono ...)`) was modified to produce the compiler and linker flags in CMake list variables (as opposed to space-separated strings as before).  The variables affected by this change are `CHRONO_CXX_FLAGS`, `CHRONO_C_FLAGS`, and `CHRONO_LINKER_FLAGS`.
 
@@ -932,7 +2488,7 @@ target_compile_options(myexe PUBLIC ${CHRONO_CXX_FLAGS})
 target_link_options(myexe PUBLIC ${CHRONO_LINKER_FLAGS})
 ```
 
-### [Changed] Right-handed frames in Chrono::Irrlicht
+## [Changed] Right-handed frames in Chrono::Irrlicht
 
 The Irrlicht library, wrapped in the Chrono::Irrlicht run-time visualization library uses the DirectX convention of left-handed frames.  This has been a long standing source of confusion for all Chrono users since Chrono simulations (always conducted using right-handed frames) were "mirrored" during rendering.
 
@@ -945,7 +2501,7 @@ We took this opportunity to make a small set of minor API changes, most of them 
 - ChIrrApp::AddTypicalLights() was changed to always construct two point lights with default settings (positions, radii, and colors).  The positions of these lights are different for a Y or Z camera vertical direction.  A user interested in changing the settings of the default lights should use the function ChIrrApp::AddLight() which allows specifying position, radius, and color.
 - ChVehicleIrrApp::SetSkyBox() was obsoleted (the Chrono sky box is automatically added).
 
-### [Added] Modal analysis module
+## [Added] Modal analysis module
 
 A new module `MODULE_MODAL` has been added. The module uses an external dependency (the [Spectra](https://spectralib.org/) library for eigenvalue computation). 
 Follow the Chrono::Modal installation guide for instructions on how to enable it.
@@ -953,20 +2509,20 @@ Follow the Chrono::Modal installation guide for instructions on how to enable it
 The new class `ChModalAssembly` offer three main functionalities:
 
 - **undamped modal analysis** of all the system being created within the sub assembly will be obtained. The modes and frequencies can be also displayed interactively if using the Irrlicht visualization system. 
-	- The sub-assembly can also contain constraints between its sub parts. 
-	- Rigid modes (for free-free structures) are supported
-	- A custom generalized, sparse, constrained eigenvalue solver of Krylov-Schur type allows the computation of only the n lower modes. This allows handling large FEA systems. 
-	
+  - The sub-assembly can also contain constraints between its sub parts. 
+  - Rigid modes (for free-free structures) are supported
+  - A custom generalized, sparse, constrained eigenvalue solver of Krylov-Schur type allows the computation of only the n lower modes. This allows handling large FEA systems. 
+  
 - **damped (complex) modal analysis** of the subsystem: this is like the previous case, but damping matrix is used too, hence obtaining complex eigenvalues/eigenvectors. Damping factors for the modes are output too, indicating stability or instability. *NOTE: while we wait that Spectra will enable complex eigenvalues in Krylov-Schur, a more conventional solver is used, that is not sparse - hence requiring more time and memory*
 
 - **modal reduction** of the sub-assembly. Example of a scenario where this is useful: you have a tower modeled with thousands of finite elements, but you are just interested in the small oscillations of its tip, because you will mount a windmill on its tip. If you simulate thousands of finite elements just for this purpose, you waste CPU time, hence a modal reduction of the tower will discard all the DOFs of the finite elements and represent the overall behavior of the tower using just few modal shapes (ex. fore aft bending, lateral bending, etc.), with extreme CPU performance at the cost of a small reduction of fidelity.
-	- Bodies and FEA nodes can be added to the subassebly as *internal*  or *boundary* interface nodes. Later one can call `ChModalAssembly::SwitchModalReductionON(int n_modes)` to replace the complexity of the internal nodes with few `n_modes` modal coordinates.
-	- Boundary interface nodes can be connected to the rest of the multibody system as usual, using constraints, forces, etc.
-	- Internal constraints can be used between internal nodes. Their effect too will be condensed in the modal reduction.
-	- *NOTE*: at the moment only linear dynamics is supported for the sub-assembly, in the sense that the sub-assembly cannot withstand large rotations, ex. in a helicopter blade. Future developments will address this
+  - Bodies and FEA nodes can be added to the sub-assembly as *internal*  or *boundary* interface nodes. Later one can call `ChModalAssembly::SwitchModalReductionON(int n_modes)` to replace the complexity of the internal nodes with few `n_modes` modal coordinates.
+  - Boundary interface nodes can be connected to the rest of the multibody system as usual, using constraints, forces, etc.
+  - Internal constraints can be used between internal nodes. Their effect too will be condensed in the modal reduction.
+  - *NOTE*: at the moment only linear dynamics is supported for the sub-assembly, in the sense that the sub-assembly cannot withstand large rotations, ex. in a helicopter blade. Future developments will address this
 
 
-### [Added] Callback mechanism for collision debug visualization
+## [Added] Callback mechanism for collision debug visualization
 
 A formal callback mechanism was added to `ChCollisionSystem` which allows user-controlled visualization of collision detection information for debug purposes.
 This mechanism allows overlaying collision detection debug information (wireframe rendering of the collision shapes, axis-aligned bounding boxes, contact points and normals) using any visualization system.
@@ -999,7 +2555,7 @@ A demonstration of this capability, with either the Bullet-based or the parallel
 
 
 
-### [Changed] Translational and rotational spring-damper-actuators
+## [Changed] Translational and rotational spring-damper-actuators
 
 - The classes `ChLinkSpring` and `ChLinkSpringCB` were obsoleted, with their functionality superseded by `ChLinkTSDA`.  
 - For consistency, the class `ChLinkRotSpringCB` was renamed to `ChLinkRSDA`.
@@ -1020,7 +2576,7 @@ Both `ChLinkTSDA` and `ChLinkRSDA` default to a linear spring-damper model, but 
 - For consistency, the mechanism for specifying the spring rest (free) length was changed: unless `SetRestLength` is explicitly called, the spring rest (free) angle is inferred from the initial configuration.
 - The signature of the virtual method `ChLinkTSDA::ForceFunctor::evaluate` was changed to take a const reference to the TSDA element as its last argument.
 
-### [Changed] Refactor Chrono::Vehicle suspension test rigs
+## [Changed] Refactor Chrono::Vehicle suspension test rigs
 
 The wheeled vehicle suspension test rig (STR) was modified to accept an arbitrary number of tested axles from any given vehicle.
 
@@ -1028,7 +2584,7 @@ The new STR will create posts / pushrods for all spindles (left and right) from 
 Like before, one can construct an STR from a given vehicle (from one of the models in the Chrono vehicle models library or else created from a JSON specification file) or else from a JSON specification file for an STR.  However, the latter approach will now construct the entire vehicle (specified though a vehicle JSON file) but include only a user-specified subset of its axles for testing.
 Note that this is not a limitation because Chrono::Vehicle was also modified to allow specification in a JSON file of a stripped-down vehicle model which need not include a driveline nor a steering mechanism and may even define a single axle.
 
-Additional vehicle subsystems (such as steering mechanisms or subchassis components) can be adding to either type of STR (`ChSuspensionTestRigPlatform` or `ChSuspensionTestRigPushrod`) using the functions `IncludeSteeringMechanism` and `IncludeSubchassis`. This simply means that: (i) run-time visualization of the additional subsystem can be enabled and (ii) the additional subsystem is included in the rig output (if that is enabled).
+Additional vehicle subsystems (such as steering mechanisms or sub-chassis components) can be adding to either type of STR (`ChSuspensionTestRigPlatform` or `ChSuspensionTestRigPushrod`) using the functions `IncludeSteeringMechanism` and `IncludeSubchassis`. This simply means that: (i) run-time visualization of the additional subsystem can be enabled and (ii) the additional subsystem is included in the rig output (if that is enabled).
 The associated vehicle is initialized with its chassis fixed and its driveline automatically disconnected. Simulation of the test rig (through the function `ChSuspensionTestRig::Advance`) performs a simulation of the entire vehicle with all its components, but vehicle subsystems not explicitly included in testing are invisible and do not participate in any output.
 
 See `demo_VEH_SuspensionTestRig` for various examples and options, and look at the JSON files used in that demo for changes in their formats.
@@ -1037,33 +2593,33 @@ Note also that the format for a data file with STR actuation information (used b
 In other words, each line of this ASCII file should now contain:<br>
 `    time  steering_input  left_post_0  right_post_0 left_post_1 right_post_1 …`
 
-### Release 7.0.3 - 2022-04-17
+# Release 7.0.3 (2022-04-17)
 
-### [Fixed]
+## [Fixed]
 
 - SIMD detection is combined into one CMake script
 - Fixed SIMD feature detection with Clang, allowing support for Apple-M1 and generic AArch64 CPUs
 
-### Release 7.0.2 - 2022-04-03
+# Release 7.0.2 (2022-04-03)
 
-### [Fixed]
+## [Fixed]
 
 - Fixed bug in ANCF shells 3443 and 3883 where the incorrect Gauss quadrature weights and Jacobian elements were used when multiple layers of different sizes are defined
 - Fixed bug where the active flag for a sub-block of DOFs for a ChBody was incorrectly set
 - Updates to the continuous integration scripts
 
-## Release 7.0.1 - 2022-01-07
+# Release 7.0.1 (2022-01-07)
 
-### [Fixed]
+## [Fixed]
 
 - Fixed Chrono::Sensor class export (Windows)
 - Fixed bug in ChPovRay related to processing of OBJ files
 - Fixed demo program in sample project for vehicle co-simulation
 - Fixed setting of MPI linker flags in CMake project configuration script
 
-## Release 7.0.0 - 2021-11-15
+# Release 7.0.0 (2021-11-15)
 
-### [Added] DDS communicator in Chrono::Synchrono module
+## [Added] DDS communicator in Chrono::Synchrono module
 
 `Chrono::SynChrono` used to rely only on MPI to pass message between ranks. We added a different `SynCommunicator` derived class called `SynDDSCommunicator`. This communicator relies on e-Prosima implementation of DDS, called [fastDDS](https://www.eprosima.com/index.php/products-all/eprosima-fast-dds) and it is alternative to MPI communication. Please note that while DDS implementations are interoperable, they are not compatible at the implementation level, therefore to use this functionality please download or clone and build fastDDS and follow the [instructions on our website](https://github.com/projectchrono/chrono/tree/develop/src/chrono_synchrono). The main purpose of SynChrono-DDS is to perform distributed simulation across different machines, hence overcoming MPI limitations: as long as two machines can establish a UDP/TCP communication they can participate in a distributed SynChrono-DDS communication. 
 
@@ -1089,11 +2645,11 @@ for (const auto& ip : ip_list) {
 auto communicator = chrono_types::make_shared<SynDDSCommunicator>(qos);
 ```
 
-### [Added] New terramechanics co-simulation module
+## [Added] New terramechanics co-simulation module
 
 This new module provides support for co-simulating various Chrono models of ground wheeled vehicles.  This framework implements an explicit co-simulation model (of force-displacement type) and uses an MPI layer for exchanging data between the participant nodes.
 
-The co-simulation framework was architected to support:
+The co-simulation framework was designed to support:
 - any of the terramechanics simulation capabilities in Chrono (rigid terrain; deformable SCM; granular terrain with Chrono::Multicore, Chrono::Gpu, or Chrono::Distributed; continuous granular terrain representation with Chrono::Fsi);
 - external, third-party terramechanics simulation packages (regardless of implementation and/or parallel programing paradigm);
 - terramechanics packages that do not advance themselves the dynamics of the tires (if any) or else treat both tire and terrain simulation;
@@ -1135,7 +2691,7 @@ Output feature include:
 The design of the co-simulation framework is such that all inter-node co-simulation communication is transparent to the user.  User code need only instantiate the appropriate number of co-simulation nodes of the appropriate type (MBS, Tire, or Terrain), select simulation options, and make calls to advance the state of the coupled system from step to step.  At a minimum, the main user simulation loop must call `Synchronize` followed by `Advance` for all co-simulation nodes; optional calls may be made to functions controlling simulation and off-line visualization output.  A set of demo programs (named `demo_VEH_Cosim***`) are provided to illustrate the use of the co-simulation framework with different multibody systems and terrain models.
 
 
-### [Changed] Chrono::Fsi API redesign
+## [Changed] Chrono::Fsi API redesign
 
 For consistency with the main Chrono module and other optional Chrono modules, the Chrono::FSI API was changed as follows: 
 
@@ -1159,7 +2715,7 @@ See the updated FSI demo programs for usage of the new Chrono::FSI API.
 - Users should be careful opting for single precision as this can adversely impact simulation results
 
 
-### [Changed] Sensor to improve performance and added features 
+## [Changed] Sensor to improve performance and added features 
 
 **Changed - Optix 7.2 as Dependency:**
  - Upgraded to Optix 7.2 from 6.5. 7.2 (exactly) is the only version supported.
@@ -1302,7 +2858,7 @@ ChSegmentationCamera(std::shared_ptr<chrono::ChBody> parent,  // object to which
                       CameraLensModelType lens_model = CameraLensModelType::PINHOLE);  // lens model type
 ```
 
-### [Changed] ANCF element improvements and additions
+## [Changed] ANCF element improvements and additions
 
 **Changed - Element Naming Convention:** 
 
@@ -1401,9 +2957,9 @@ Moments can be applied at any point within these elements just like forces.  For
 - For `ChElementHexaANCF_3813` and `ChElementHexaANCF_3843`, a linear quadrilateral face is added to the free faces just like `ChElementHexaANCF_3813_9`.
 
 
-### [Added] New Chrono::Vehicle features
+## [Added] New Chrono::Vehicle features
 
-1. A mechanism was added to allow replacing selected kinematic joints with bushings in various Chrono::Vehicle templates.  Several wheeled vehicle suspension templates, the `ChBalancer` subchassis template, as well as the tracked vehicle suspension and track shoe templates were updated to include this option.  
+1. A mechanism was added to allow replacing selected kinematic joints with bushings in various Chrono::Vehicle templates.  Several wheeled vehicle suspension templates, the `ChBalancer` sub-chassis template, as well as the tracked vehicle suspension and track shoe templates were updated to include this option.  
 
    A particular joint connection with this new option will be modeled as a bushing if bushing data is provided and as a kinematic joint otherwise. For example, the connections of the upper control arms to the chassis in the double wishbone suspension will be modeled as revolute joints (as before) if the virtual method `getUCABushingData` return `nullptr` and as bushings otherwise.  Bushing information is passed as a structure which provides stiffness and damping in the "constrained" linear and rotational directions and stiffness and damping in the DOF directions of the corresponding kinematic joint (see `ChVehicleBushingData`).  When instantiating a vehicle subsystem template through a JSON specification file, a joint with this capability will be modeled as a bushing if a JSON key "Bushing Data" is included.
 
@@ -1423,7 +2979,7 @@ Moments can be applied at any point within these elements just like forces.  For
 
 7. A demonstration program (`demo_VEH_RenderJSON`) was created to illustrate visualization of a Chrono::Vehicle model based on JSON specification files.  Using the Chrono::OpenGL run-time visualization module, this demo program allows re-creating the vehicle model after a potential change to one or more JSON specification files (use key `U` to trigger).
 
-### [Added] New robot models
+## [Added] New robot models
 
 Two new models were added to the collection Chrono robot models:
 
@@ -1467,7 +3023,7 @@ SetMotorStallTorque(double torque, WheelID id)
 `demo_ROBOT_Viper_Rigid` and `demo_ROBOT_Viper_SCM` were modified to reflect changes in the initialization and controls. 
 
 
-### [Added] New multicore collision detection system
+## [Added] New multicore collision detection system
 
 The collision detection system previously embedded in Chrono::Multicore was updated and also made available to the usual Chrono systems (ChSystemNSC and ChSystemSMC) as an alternative to the Bullet-based collision detection system.  The new collision detection system (`ChCollisionSystemChrono`) uses a single-level adaptive grid for broadphase; for the narrowphase, it uses analytical intersection functions for certain pairs of known primitive shapes with fallback to an MPR (Minkovski Portal Refinement) algorithm.  In addition to the features previously available in Chrono::Multicore, the new stand-alone collision detection system includes additional analytical collision functions (e.g., for box-box interaction), as well as support for ray intersection.
 
@@ -1558,7 +3114,7 @@ The following enhancements are currently under development:
 - support for collision of flexible bodies
 
 
-### [Added] Miscellaneous additions to Chrono::Gpu
+## [Added] Miscellaneous additions to Chrono::Gpu
 
 **Added - Specification of the computational domain**
 
@@ -1622,7 +3178,7 @@ void SetBCPlaneRotation(size_t plane_id, ChVector<double> center, ChVector<doubl
 ````
 
 
-### [Added] New loads for ChNodeFEAxyzrot
+## [Added] New loads for ChNodeFEAxyzrot
 
 New classes have been added for creating loads (with automatic Jacobian generation that allow also stiff loads) for ChNodeFEAxyzrot nodes, in detail:
 - on a node of ChNodeFEAxyzrot type (user defined etc.)
@@ -1630,7 +3186,7 @@ New classes have been added for creating loads (with automatic Jacobian generati
 - between a ChNodeFEAxyzrot and a ChBody (user defined, spherical bushing, plastic bushing, generic bushing, etc.)
 Previously, these types of loads were available only for the ChNodeFEAxyz node (used in tetahedrons and bricks, for example) but not for ChNodeFEAxyzrot (used in beams and Reissner shells, for example). 
 
-### [Added] Analytical box box collision detection algorithm in Chrono::Multicore
+## [Added] Analytical box box collision detection algorithm in Chrono::Multicore
 
 A new algorithm for analytical collision detection for box-box interactions was added to the parallel collision system implemented in Chrono:Multicore.
 For collisions involving two boxes, this new algorithm is now used instead of the default MPR algorithm (when using narrow phase type `NARROWPHASE_R` or `NARROWPHASE_HYBRID_MPR`).
@@ -1638,7 +3194,7 @@ For collisions involving two boxes, this new algorithm is now used instead of th
 The new algorithm relies on the 15-axes test of Gottschalk, Lin, and Manocha (Siggraph 1996) for finding the direction of minimum intersection between two oriented boxes and then the collision detection is special-cased for all possible combinations of interacting features from the two boxes (9 different cases).
 The analytical algorithm can produce up to 8 collision pairs and works with or without a collision envelope (thus being appropriate for both SMC and NSC contact formulations).
 
-### [Added] Checkpointing capabilities in Chrono::Gpu
+## [Added] Checkpointing capabilities in Chrono::Gpu
 
 Chrono::Gpu can now output a checkpoint file to store the current simulation state, then re-start the simulation from that stage. The checkpointed information includes the simulation parameters such as sphere radius and density, the positions and velocities of particles, and the friction history if using a frictional model.
 
@@ -1681,7 +3237,7 @@ Known issues:
 - The checkpoint file does not store any manually defined boundaries (those defined by `ChSystemGpu::CreateBC*`) or meshes (those defined by `ChSystemGpuMesh::AddMesh`). For now, these need to be manually added before initializing the re-started simulation.
 
 
-### [Fixed] Fixes to particle volume samplers and generators
+## [Fixed] Particle volume samplers and generators
 
 - An incorrect implementation of the HCP (Hexagonally Close Packed) sampler, `utils::HCPSampler`, resulting in the wrong lattice was fixed. 
 
@@ -1698,7 +3254,7 @@ should be changed to:
 ```
   This change was necessary to obtain proper randomization (where applicable) when generating particles in successive layers; indeed, the previous implementation created a new sampler at each function invocation resulting in layers with the same distribution of particle positions.  
 
-### [Changed] SCM deformable terrain improvements
+## [Changed] SCM deformable terrain improvements
 
 The reference frame for calculation of normal and tangential forces has been changed to be aligned with the local normal (as opposed to always being aligned with the SCM frame).  This fixes the generated terrain forces for SCM patches defined from height maps.  The Bekker forces are aligned with the local terrain normal, while the tangential shear forces (Janosi-Hanamoto) lie in the local tangent plane.  Note that the normal at each grid node is based on the undeformed terrain.
 
@@ -1711,7 +3267,7 @@ Finally, support was added for inclusion of tire-soil parameters (in addition to
 ```
 The necessary data includes the SCM tangential force parameters, Mohr cohesion (Pa), friction angle (degrees), and the Janosi shear parameter (m), as well as a ratio that represents the weight of the tire-soil parameters in calculating the tangential force (using linear interpolation). A ratio value of 0 indicates using only the soil-soil parameters, while a value of 1 indicates using only the tire-soil parameters.  Typically, this ratio is set as the area ratio of tread surface over tire surface.  
 
-### [Changed] Miscellaneous fixes to Chrono::Vehicle API
+## [Changed] Miscellaneous fixes to Chrono::Vehicle API
 
 - Changed enum class names for suspension, driveline, and steering types to properly differentiate between wheeled and tracked vehicles.
    The new enum classes, defined in `ChSubsysDefs.h` are SuspensionTypeWV, DrivelineTypeWV, and SteeringTypeWV for wheeled vehicles and DrivelineTypeTV for tracked vehicles.
@@ -1740,13 +3296,13 @@ The necessary data includes the SCM tangential force parameters, Mohr cohesion (
 - Added function `RandomSurfaceTerrain::EnableCollisionMesh` to optionally generate a terrain collision mesh.
     This is necessary for tracked vehicles or wheeled vehicles with rigid tires (which rely on the underlying Chrono contact system).
 
-### [Added] New tracked vehicle model
+## [Added] New tracked vehicle model
 
 The Marder ("marten" in German) is a tracked infantry fighting vehicle used by the German Bundeswehr since 1969. It has a running gear with 12 road wheels, sprocket, idler and 3 support rollers. The first two and the last two road wheels on every side are damped by telescopic dampers. It is driven by a 444 kW Diesel engine, torque converter with lockup and 4 gear automatic gearbox. It carries up to nine soldiers (commander, gunner, driver and six infantrymen).
 
 The Chrono::Vehicle model is based only on public data available online and information found in literature. Although the original vehicle employs double-pin tracks, the current Chrono model only implements a single-pin track.
 
-### [Changed] Support for Z up camera in Chrono::Irrlicht
+## [Changed] Support for Z up camera in Chrono::Irrlicht
 
 While the default remains to construct a camera with Y up, the ChIrrApp class was modified to also support a camera with Z up.  To create a Z up Irrlicht visualization application, pass `VerticalDir::Z` as the 4th (optional) argument to the ChIrrApp constructor. For example:
 ```cpp
@@ -1761,7 +3317,7 @@ Rotating with the left mouse button and panning with the arrow and PageUp/PageDw
 
 This API change also eliminates classes with only static methods (ChIrrTools and ChIrrWizard), replacing them with free functions in the `chrono::irrlicht::tools` namespace.  See the various Chrono demos for required changes to user code.
 
-### [Changed] Reading and writing collision meshes in Chrono::Gpu
+## [Changed] Reading and writing collision meshes in Chrono::Gpu
 
 The mechanism for specifying collision meshes in a `ChSystemGpuMesh` was changed to allow adding meshes in a sequential manner, at any point and as many times as desired, prior to invoking `ChSystemGpuMesh::Initialize()`. Various different functions are provided for adding a mesh from memory:
 ```cpp
@@ -1798,7 +3354,7 @@ or write a particular mesh to a file by
     void WriteMesh(const std::string& outfilename, unsigned int i) const;
 ```
 
-### [Added] Support for the Emscripten compiler targeting WebAssembly
+## [Added] Support for the Emscripten compiler targeting WebAssembly
 
 Chrono now provides limited support for compiling to WebAssembly and running in browser or Node.js. The core library is supported along with Chrono::OpenGL and Chrono::Vehicle. It is recommended to use the `emcmake` wrapper and Ninja generator when targeting WASM to ensure that all of the configuration options are set correctly. 
 
@@ -1817,25 +3373,25 @@ This allows for cross-compilation which is necessary for WASM.
 WebAssembly platforms typically use WebGL, which maintains a feature set roughly on par with OpenGL ES. WebGL 2.0 is able to emulate almost all of OpenGL ES 3.0, which is similar to the capabilities of the previously supported target of OpenGL 3.3. This modification should also improve overall Chrono::OpenGL performance on low-power rendering hardware such as ultra-portable laptops or mobile devices. 
 
 
-## Release 6.0.0 - 2021-02-10
+# Release 6.0.0 (2021-02-10)
 
-### [Added] New Chrono::Csharp module
+## [Added] New Chrono::Csharp module
 
 The new Chrono::Csharp module provides a C# interface to selected Chrono functionality.  This allows using Chrono from C# programs and facilitates the integration of Chrono with external engines such as Unity.
 
 The module relies on SWIG to automatically generate the interface library and wrapper C# classes.  Upon build, the module creates the wrapper C# files under a `chrono_csharp/` directory in the build tree and a number of shared libraries (dll on Windows, so on Linux) in either the `bin/` or `lib/` directory, depending on platform. Currently, the Chrono::Csharp module provides an interface to the multibody dynamics capabilities in the core Chrono module, as well as to Chrono::Vehicle and the associated vehicle models.
 
-### [Added] RoboSimian, Viper, and LittleHexy models
+## [Added] RoboSimian, Viper, and LittleHexy models
 
 Models of the legged RoboSimian robot, the wheeled Viper rover, and the six-propeller LittleHexy copter are now included in the collection of Chrono models.  These models have no dependencies beyond the core Chrono module, except for an optional utility class for RoboSimian visualization with Irrlicht. Python wrappers are also provided, allowing use of these models with PyChrono. Related demo programs illustrate the robots moving over rigid or SCM deformable terrain (using a core Chrono system) and over granular terrain (using the Chrono::Multicore module).
 
-### [Added] Contact force reporting through user-provided callback
+## [Added] Contact force reporting through user-provided callback
 
 The `OnReportContact` method of a user-supplied reporter callback (derived from `ChContactContainer::ReportContactCallback`) is now called with the proper force and torque for the current contact when using a Chrono::Multicore parallel system (of either NSC or SMC type).  The reported contact force and torque are provided at the contact point and expressed in the *contact frame* (defined by the provided rotation matrix).
 
 For examples of using the contact reporting feature with a Chrono::Multicore system, see `demo_MCORE_callbackNSC` and `demo_MCORE_callbackSMC`.
 
-### [Changed] Chrono::Gpu module rename
+## [Changed] Chrono::Gpu module rename
 
 For consistency and to better reflect the purpose of this module, Chrono::Granular was renamed to **Chrono::Gpu**.
 With this change, the set of three Chrono modules targeting different parallel hardware (each providing different level of support for different types of simulations) are:
@@ -1862,7 +3418,7 @@ See demo_GPU_ballcosim, demo_GPU_mixer, or demo_GPU_repose for use of the run-ti
 
 Finally, note that a future version of the Chrono::Gpu module may simplify its public API even further by collapsing the two current classes ChsystemGpu and ChSystemGpuMesh into a single one.
 
-### [Changed] Chrono::Multicore module rename
+## [Changed] Chrono::Multicore module rename
 
 For consistency and to better reflect the purpose of this module, Chrono::Parallel was renamed to **Chrono::Multicore**.
 
@@ -1876,14 +3432,14 @@ In addition, names of related demos, unit tests, and benchmark tests include the
 
 Users of the Chrono::Multicore module should rerun CMake since the variables related to this module have also changed name (e.g.; `ENABLE_MODULE_MULTICORE`).
 
-### [Added] Geometric stiffness for Euler beams
+## [Added] Geometric stiffness for Euler beams
 
 The geometric stiffness term is now introduced also for the chrono::ChElementBeamEuler beam element (Euler-Bernoulli corotational beams). It is turned on by default, and it is computed via an analytical expression, with minimal cpu overhead. 
 Note that geometric stiffness was already considered in IGA and ANCF beams, only the Euler beam was missing. Geometric stiffness is responsible of the fact that if you pull a thin beam like a string, its natural frequencies will increase, or vice-versa, if you push it, its lateral stiffness decreases up to buckling instability. 
 Note that Euler beams ware able to simulate buckling or pulled-string stiffening even before, but only doing time integration in multiple time steps: instead, if one exported the M,K matrices for doing modal analysis of a pre-stretched Euler beam after a static analysis, the K matrix was missing the contribution of the geometric stiffness hence frequencies were incorrect only in modal analysis.
 
 
-### [Added] New Chrono::Synchrono module
+## [Added] New Chrono::Synchrono module
 
 The new `Chrono::SynChrono` (or simply SynChrono) module has been introduced. SynChrono aims to provide an easier entry point for physics-based autonomous vehicle simulations, and to this end it uses MPI to parallelize simulations in the case where there is no physical interaction between agents. For example in a simulation of two vehicles driving separately, there is no need to simulate interaction between them, yet they must have some knowledge of each other for visualization and for any sensors that they may carry.
 
@@ -1891,7 +3447,7 @@ SynChrono is equipped to synchronize any "agent" (e.g. an arbitrary robot whose 
 
 While SynChrono's primary purpose is to synchronize the state of agents, the MPI communication that synchronizes state data can also be used to send other messages. Examples of these could be messages from an intelligent traffic light to a vehicle (see `flatbuffer/message/Syn[SPAT/MAP]Message`) or from a vehicle to a vehicle with some sensor information (see `SynSensorMessage`). SynChrono supports both `Chrono::Irrlicht` and `Chrono::Sensor`-camera rendering of scenes, and `visualization/` packages some simple defaults along with a class to facilitate easy swapping between the two.
 
-### [Changed] Rename Intel MKL Pardiso interface module
+## [Changed] Rename Intel MKL Pardiso interface module
 
 For consistency and clarity, the `Chrono::MKL` module was renamed to `Chrono::PardisoMKL` (indeed, this module interfaces only to the sparse direct linear solver Pardiso from the Intel MKL library).  From a public API perspective, this name change requires the following changes to user code:
 
@@ -1916,7 +3472,7 @@ For consistency and clarity, the `Chrono::MKL` module was renamed to `Chrono::Pa
   To request this new module when configuring an external project to use Chrono, use the component name `PardisoMKL` in your CMake call to `find_pakage(Chrono...)`.  Recall that the names of the components are case insensitive
 
 
-### [Added] Saving POV-Ray files from Irrlicht interactive view
+## [Added] Saving POV-Ray files from Irrlicht interactive view
 
 New feature in the Irrlicht interactive 3D view. When pressing the F12 key, a directory `povray_project` is immediately created on disk, and .pov .ini .assets etc. files are created inside it, so that later you can use POVray to load the .ini and render the simulation with high quality ray tracing. Press F12 again to stop saving the POVray files. Note that you must later edit the `povray_project/render_frames.pov` to change/add the lights, global illumination, and other specific raytracing settings.
 This feature is available only if you build also the `POSTPROCESS` module, so check *both* `ENABLE_MODULE_IRRLICHT` and  `ENABLE_MODULE_POSTPROCESSING` in CMake.
@@ -1924,7 +3480,7 @@ This feature is available only if you build also the `POSTPROCESS` module, so ch
 Also, the API of the `ChPovRay` class has been simplified. One just uses the new `SetBasePath()` function to set the directory that will contain all .ini, .pov, etc. files, and anim/, output/ subdirectories. The user does not need to create these folders anymore, these are automatically generated if necessary, when setting up ChPovRay with `ExportScript()`. Also, some features of ChPovRay have been fixed / improved.
 
 
-### [Added] Support for modelling wheeled trailers
+## [Added] Support for modelling wheeled trailers
 
 New templates were added to Chrono::Vehicle to allow creating wheeled trailers.  A trailer is an assembly consisting of a "rear chassis" (see `ChChassisRear`), an arbitrary number of `ChAxle` subsystems (each including a suspension subsystem, 2 or 4 wheels, and optionally brake subsystems), and a hitch connector (see `ChChassisConnectorHitch`) for attaching the trailer to a vehicle chassis.
 
@@ -1946,30 +3502,30 @@ for (auto& axle : trailer.GetAxles()) {
 }
 ```
 
-### [Changed] Enhancements to Chrono::FSI
+## [Changed] Enhancements to Chrono::FSI
 
 - The WCSPH based explicit solver now supports both fluid dynamics and granular material dynamics.
 
-	- The fluid dynamics is executed by default.
-	- The granular material dynamics is executed by setting an "Elastic SPH" option in the input JSON file.
+  - The fluid dynamics is executed by default.
+  - The granular material dynamics is executed by setting an "Elastic SPH" option in the input JSON file.
 
 - Add a consistent SPH discretization into the explicit SPH solver.
 
-	- Both the gradient and Laplacian operators in the NS equations are discretized by a consistent format.
-	- The correction matrices are calculated for both operators to enhance the consistency.
-	- A second-order accuracy will be recovered by this consistent discretization.
+  - Both the gradient and Laplacian operators in the NS equations are discretized by a consistent format.
+  - The correction matrices are calculated for both operators to enhance the consistency.
+  - A second-order accuracy will be recovered by this consistent discretization.
 
 - Add a new particle shifting technique into Chrono::FSI.
 
-	- The particle shifting strategy is a penetration-based particle shifting technique.
-	- It supports three-dimensional fluid/granular material dynamics problems with a free surface.
+  - The particle shifting strategy is a penetration-based particle shifting technique.
+  - It supports three-dimensional fluid/granular material dynamics problems with a free surface.
 
 - Make the granular material solver more stable and accurate in the framework of WCSPH.
 
-	- The Drucker-Prager yield criterion is implemented in conjunction with a four-step update strategy for the stress tensor of the granular material.
-	- The interaction between a rigid multibody system and granular material is supported.
+  - The Drucker-Prager yield criterion is implemented in conjunction with a four-step update strategy for the stress tensor of the granular material.
+  - The interaction between a rigid multibody system and granular material is supported.
 
-### [Added] New Chrono::Sensor module
+## [Added] New Chrono::Sensor module
 
 A new module (`Chrono::Sensor`) has been introduced to allow for sensor simulation within Chrono. `Chrono::Sensor` provides an interface for modeling and simulating sensors in the Chrono system to provide input for perception and control algorithms. For example, `Chrono::Sensor` may be used in combination with `Chrono::Vehicle` to simulate an autonomous vehicle equipped with multiple cameras and lidars. The module contains an API for modeling sensors with noise and distortion using a filter-graph paradigm for customization. Rendered sensors (camera and lidar) utilize ray tracing via OptiX to generate synthetic data.
 
@@ -1982,7 +3538,7 @@ Locations:
 - Demos are located in `src/demos/sensor/`
 - Sensor specific data is located in `data/sensor/`
 
-### [Changed] Setting OpenMP number of threads
+## [Changed] Setting OpenMP number of threads
 
 The mechanism for setting the number of OpenMP threads used in various parts of Chrono has been modified and unified. The API is common to Chrono and Chrono::Parallel; however, the number of OpenMP threads is set differently for the two classes of systems.
 
@@ -2011,7 +3567,7 @@ The mechanism for setting the number of OpenMP threads used in various parts of 
 - The number of OpenMP threads used by the sparse direct solvers in Chrono::MKL (Pardiso) and Chrono::MUMPS are specified as an optional constructor argument.  By default, both solvers use a number of threads equal to the number of available processors (as returned by `omp_get_num_procs`).
 
 
-### [Changed] Redesigned SCM deformable terrain
+## [Changed] Redesigned SCM deformable terrain
 
 The SCM deformable terrain was completely redesigned for improved performance. Compared to the previous implementation based on an underlying trimesh representation, the new code - using a Cartesian grid - is significantly faster (speedups of 50x and more).  The API changes are minimal:
 
@@ -2042,12 +3598,12 @@ The SCM deformable terrain was completely redesigned for improved performance. C
 - Bulldozing effects are enabled using `SCMDeformableTerrain::EnableBulldozing`.
 - SCM soil parameters and bulldozing settings are specified as before.
 
-### [Added] Tracked vehicle support in PyChrono
+## [Added] Tracked vehicle support in PyChrono
 
 Tracked vehicle templates and models are now exposed in Chrono::Python and available for use through PyChrono.
 
 
-### [Changed] Constitutive models for EULER beams
+## [Changed] Constitutive models for EULER beams
 
 Section properties of the ChElementBeamEuler are now defined via a **new class** `ChBeamSectionEuler` and subclasses. Old classes for Euler sections have been renamed and rewritten, the old classes have been **deprecated** and will be removed in future:
  - `ChBeamSectionBasic`, use  `ChBeamSectionEulerSimple` instead
@@ -2060,7 +3616,7 @@ Also, a new class  `ChBeamSectionEulerGeneric` has been added, that does not mak
 To speed up coding in case of simple beams, two new classes `ChBeamSectionEulerEasyRectangular` and `ChBeamSectionEulerEasyCircular` have been added.
 
 
-### [Changed] Constitutive models for IGA beams
+## [Changed] Constitutive models for IGA beams
 
 Inertial properties of Cosserat beams, such as the ChElementBeamIGA, are now defined via a **new class** `ChInertiaCosserat` and subclasses, that can be composed into `ChBeamSectionCosserat` just like we do for elastic properties, damping, etc. This is more flexible than before. Therefore these functions have been **removed**:
  - `ChBeamSectionCosserat::SetDensity()`
@@ -2083,7 +3639,7 @@ from the ChBeamSectionCosserat *and* from all elastic/damping/plastic models. We
 and `ChBeamSectionCosseratEasyCircular` that in a single shot create elastic and inertia models, sets them as rectangular or circular, and sets the visualization type.
 
 
-### [Added] Obtaining body applied forces
+## [Added] Obtaining body applied forces
 
 The new functions `ChBody::GetAppliedForce` and `ChBody::GetAppliedTorque` return the body resultant applied force and torque, respectively.
 
@@ -2094,7 +3650,7 @@ The new functions `ChBody::GetAppliedForce` and `ChBody::GetAppliedTorque` retur
 2. Note that reporting this information requires a traversal of the entire system and caching the generalized forces, a quantity that is otherwise not computed in the form required for this reporting.  To prevent any additional overhead when this information is not requested by the user, this is done using lazy evaluation.   In other words, no overhead is incurred at a simulation step if no applied forces are requested. On the other hand, there is a small (but non-zero) cost when a call to `ChBody::GetAppliedForce` or `ChBody::GetAppliedTorque` is made; however, this cost is constant at any given time, regardless of how many queries are made.  Note also that this additional cost is not incurred for Chrono::Parallel.
 
 
-### [Added] Chrono::Vehicle simulation world frame
+## [Added] Chrono::Vehicle simulation world frame
 
 While the default world frame for Chrono::Vehicle simulations is an ISO (Z up) frame, we now provide support to simulate vehicles in a scene specified in a different reference frame (for example, an Y up frame).
 The world frame is uniquely defined through a rotation matrix (the rotation required to align the ISO frame with the desired world frame). To change the world frame definition from the default ISO convention, the desired world frame must be set **before** any Chrono::Vehicle library call:
@@ -2108,19 +3664,19 @@ ChWorldFrame::SetYUP();
 ```
 
 
-### [Changed] CASCADE module
+## [Changed] CASCADE module
 
-1.	Support for OpenCASCADE 7.4.0. The API of OpenCASCADE introduced some changes in the 7.4.0 version so we also updated the CASCADE module of Chrono. Please download and upgrade your OpenCASCADE version as it is not backward compatible. (The module is optionally built via CMake configuration flag ENABLE_MODULE_CASCADE, also remember to update the CASCADE_INCLUDE_DIR and CASCADE_LIBDIR paths and to update your PATH if you added the path to Cascade dlls)
+1.  Support for OpenCASCADE 7.4.0. The API of OpenCASCADE introduced some changes in the 7.4.0 version so we also updated the CASCADE module of Chrono. Please download and upgrade your OpenCASCADE version as it is not backward compatible. (The module is optionally built via CMake configuration flag ENABLE_MODULE_CASCADE, also remember to update the CASCADE_INCLUDE_DIR and CASCADE_LIBDIR paths and to update your PATH if you added the path to Cascade dlls)
 
-2.	The method `ChCascadeDoc::CreateBodyFromShape()` is obsolete. Just use the `ChBodyEasyCascade` class to obtain the same result, for example:
+2.  The method `ChCascadeDoc::CreateBodyFromShape()` is obsolete. Just use the `ChBodyEasyCascade` class to obtain the same result, for example:
     ```cpp
     auto mbody = chrono_types::make_shared<ChBodyEasyCascade>(myshape, ...);
     ```
 
-3.	The mesh tesselation algorithm could give coarser or finer meshes with respect to the previous release.
+3.  The mesh tesselation algorithm could give coarser or finer meshes with respect to the previous release.
 
 
-### [Changed] Collision shapes and contact materials
+## [Changed] Collision shapes and contact materials
 
 The main change is that now contact materials are associated with collision shapes, as opposed to bodies.  We've always had the underlying concept of a collision shape, with a body's collision model potentially including multiple shapes, but these were always sharing the exact same contact material.   With the new code, each collision shape in a collision model can have its own contact material properties.  Of course, through shared pointers, collision shapes in the same model or even in different models can still point to the same (shared) material.   Also, a nice consequence of this change is that now a ChBody is agnostic of contact method or contact materials (as it should be).
 
@@ -2206,112 +3762,112 @@ Here's a summary of the main API changes (there were many other changes under th
  - In Chrono::Distributed, the analytical plane boundaries now require a contact material at construction (internally, this is used in a custom collision callback, as described in #11 above).
 
 
-## Release 5.0.1 - 2020-02-29
+# Release 5.0.1 (2020-02-29)
 
-### [Fixed]
+## [Fixed]
 
 - Correct the ChElementBeamANCF applied moment calculation so that it uses normalized shape function derivatives
 - Comment out code related to applying moments on ANCF elements (requires further testing))
 
-## Release 5.0.0 - 2020-02-24
+# Release 5.0.0 (2020-02-24)
 
-### [Changed] Refactoring of dense linear algebra
+## [Changed] Refactoring of dense linear algebra
 
 Starting with this release, Chrono relies on Eigen3 for all dense linear algebra.
 
 1. With this change, Chrono requires `Eigen3` version 3.3.0 or newer.  Unless not possible for other reasons, we suggest you use their latest version, 3.3.7.
-	- Eigen is available for download at http://eigen.tuxfamily.org/
-	- Eigen is a headers-only library, so no install is required in order to use it in Chrono.
-	- If the location of the Eigen headers is not automatically detected by CMake, manually specify it by setting the CMake variable `EIGEN3_INCLUDE_DIR`.
-	- Note: CUDA 9.1 has removed a file (`math_functions.hpp`) which is referenced by Eigen prior to version 3.3.6.  As such, if you build any of the GPU-based Chrono modules (FSI or Granular) and use CUDA 9.1, make sure to use Eigen 3.3.7.
+  - Eigen is available for download at http://eigen.tuxfamily.org/
+  - Eigen is a headers-only library, so no install is required in order to use it in Chrono.
+  - If the location of the Eigen headers is not automatically detected by CMake, manually specify it by setting the CMake variable `EIGEN3_INCLUDE_DIR`.
+  - Note: CUDA 9.1 has removed a file (`math_functions.hpp`) which is referenced by Eigen prior to version 3.3.6.  As such, if you build any of the GPU-based Chrono modules (FSI or Granular) and use CUDA 9.1, make sure to use Eigen 3.3.7.
 
 2. The switch to Eigen does come with a few strings attached
-	- On the flip side, this makes the code a lot cleaner, easier to understand and maintain, and facilitates several further developments on our road-map.
-	- Furthermore, performance did not degrade and in fact improved meaningfully on practically all our benchmark tests (measured with GCC and clang on Linux and MacOS).
-	- On the other hand, libraries that use expression templates metaprogramming techniques (as Eigen does) lead to longer compile times. Moreover, while release (optimized) code is faster, code built in debug mode will likely be (significantly) slower.
-	- Finally, because several Chrono classes now need to use an (Eigen-provided) overloaded operator new to ensure memory alignment and because of some limitations of the C++ language, this change has an important consequence on user code: std::make_shared **cannot always be used safely**. The solution we adopted is to provide `chrono_types::make_shared` replacement functions which should be used throughout (see below).
+  - On the flip side, this makes the code a lot cleaner, easier to understand and maintain, and facilitates several further developments on our road-map.
+  - Furthermore, performance did not degrade and in fact improved meaningfully on practically all our benchmark tests (measured with GCC and clang on Linux and MacOS).
+  - On the other hand, libraries that use expression templates metaprogramming techniques (as Eigen does) lead to longer compile times. Moreover, while release (optimized) code is faster, code built in debug mode will likely be (significantly) slower.
+  - Finally, because several Chrono classes now need to use an (Eigen-provided) overloaded operator new to ensure memory alignment and because of some limitations of the C++ language, this change has an important consequence on user code: std::make_shared **cannot always be used safely**. The solution we adopted is to provide `chrono_types::make_shared` replacement functions which should be used throughout (see below).
 
 3. The new matrix and vector classes
-	- The "old" Chrono matrix types (`ChMatrixNM`, `ChMatrixDynamic`, `ChVectorDynamic`) are now nothing but *type aliases* of appropriate Eigen types (`see ChMatrix.h`). 
-	In other words, use them as you would Eigen types (see https://eigen.tuxfamily.org/dox/group__TutorialMatrixArithmetic.html).
-	- For completeness, we introduced additional types (such as `ChVectorN`,  `ChRowVectorN`, `ChRowVectorDynamic`), all defined in ChMatrix.h.
-	- We only implemented a handful of extensions needed for Chrono (such as a method for computing the WRMS vector norm) using the "back-door" extension mechanism provided by Eigen (see `ChMatrixEigenExtensions.h`)
-	- The "old" base class ChMatrix was **eliminated**.  For the instances where a Chrono function needs to accept either a dynamic (ChMatrixDynamic) or a static (ChMatrixNM) argument, we rely on the `Eigen::Ref` mechanism. For this, we defined various type aliases, such as `ChMatrixRef` and `ChMatrixConstRef` (see ChMatrix.h).  Currently, these assume a 'double' scalar type as this is all that's needed in Chrono (they could be templated by the scalar type, but this will be done only if absolutely needed).
-	- For 3x3 matrices, the `ChMatrix33` class (as before, templated by the scalar type) is derived from a 3x3 fixed-size vectorizable Eigen matrix.  Using inheritance here was needed in order to implement various custom constructors and methods.  
-	- For clarity and to properly separate responsibilities, we added a small set of 3x4 and 4x4 matrices specific to multibody dynamics.  These derived classes have strict and limited functionality and are unlikely to show up in user code (see `ChMatrixMBD.h`).
-	- Note: for now, the ChVector and ChQuaternion classes were left unchanged.
-	- See `demo_CH_linalg.cpp` for simple examples of matrix operations with the new Chrono classes and types.
+  - The "old" Chrono matrix types (`ChMatrixNM`, `ChMatrixDynamic`, `ChVectorDynamic`) are now nothing but *type aliases* of appropriate Eigen types (`see ChMatrix.h`). 
+  In other words, use them as you would Eigen types (see https://eigen.tuxfamily.org/dox/group__TutorialMatrixArithmetic.html).
+  - For completeness, we introduced additional types (such as `ChVectorN`,  `ChRowVectorN`, `ChRowVectorDynamic`), all defined in ChMatrix.h.
+  - We only implemented a handful of extensions needed for Chrono (such as a method for computing the WRMS vector norm) using the "back-door" extension mechanism provided by Eigen (see `ChMatrixEigenExtensions.h`)
+  - The "old" base class ChMatrix was **eliminated**.  For the instances where a Chrono function needs to accept either a dynamic (ChMatrixDynamic) or a static (ChMatrixNM) argument, we rely on the `Eigen::Ref` mechanism. For this, we defined various type aliases, such as `ChMatrixRef` and `ChMatrixConstRef` (see ChMatrix.h).  Currently, these assume a 'double' scalar type as this is all that's needed in Chrono (they could be templated by the scalar type, but this will be done only if absolutely needed).
+  - For 3x3 matrices, the `ChMatrix33` class (as before, templated by the scalar type) is derived from a 3x3 fixed-size vectorizable Eigen matrix.  Using inheritance here was needed in order to implement various custom constructors and methods.  
+  - For clarity and to properly separate responsibilities, we added a small set of 3x4 and 4x4 matrices specific to multibody dynamics.  These derived classes have strict and limited functionality and are unlikely to show up in user code (see `ChMatrixMBD.h`).
+  - Note: for now, the ChVector and ChQuaternion classes were left unchanged.
+  - See `demo_CH_linalg.cpp` for simple examples of matrix operations with the new Chrono classes and types.
 
 4. Obsolete/eliminated Chrono classes
-	- With the switch to Eigen, we **removed** `ChLinearAlgebra`.  More robust and varied matrix factorization and linear system solvers can be used directly from Eigen (see http://eigen.tuxfamily.org/dox/group__DenseLinearSolvers__chapter.html).
-	- We also **removed** the custom sparse matrix classes `ChLinkedListMatrix` and `ChMapMatrix`.  
+  - With the switch to Eigen, we **removed** `ChLinearAlgebra`.  More robust and varied matrix factorization and linear system solvers can be used directly from Eigen (see http://eigen.tuxfamily.org/dox/group__DenseLinearSolvers__chapter.html).
+  - We also **removed** the custom sparse matrix classes `ChLinkedListMatrix` and `ChMapMatrix`.  
 
 5. Some considerations for developers
-	- Consult the Eigen documentation (http://eigen.tuxfamily.org/dox/) and FAQs to understand what Eigen provides and how it should be used (e.g., when it's meaningful/appropriate to use fixed-size Eigen objects)
-	- Look at block operations with Eigen matrices and vectors (https://eigen.tuxfamily.org/dox/group__TutorialBlockOperations.html)These make code much more clear (contrast this with the use of the old "paste" functions which was obfuscated and prone to mistakes).   However, always measure performance impacts;  in some cases (especially with smaller matrices), explicit loops may be more efficient than Eigen block operations. 
-	- Beware of aliasing issues (https://eigen.tuxfamily.org/dox/group__TopicAliasing.html).  
-	- Beware of memory alignment issues (https://eigen.tuxfamily.org/dox/group__TopicUnalignedArrayAssert.html)
-	In particular, if you create a class that has a fixed-size vectorizable Eigen type (a ChMatrixNM, a ChVectorN, or most common a ChMatrix33) make sure to overload its operator new.  For that, use the Eigen-provided macro `EIGEN_MAKE_ALIGNED_OPERATOR_NEW` (see https://eigen.tuxfamily.org/dox/group__TopicStructHavingEigenMembers.html)
-	- When creating shared pointers, make sure to use **`chrono_types::make_shared`** (see below)
+  - Consult the Eigen documentation (http://eigen.tuxfamily.org/dox/) and FAQs to understand what Eigen provides and how it should be used (e.g., when it's meaningful/appropriate to use fixed-size Eigen objects)
+  - Look at block operations with Eigen matrices and vectors (https://eigen.tuxfamily.org/dox/group__TutorialBlockOperations.html)These make code much more clear (contrast this with the use of the old "paste" functions which was obfuscated and prone to mistakes).   However, always measure performance impacts;  in some cases (especially with smaller matrices), explicit loops may be more efficient than Eigen block operations. 
+  - Beware of aliasing issues (https://eigen.tuxfamily.org/dox/group__TopicAliasing.html).  
+  - Beware of memory alignment issues (https://eigen.tuxfamily.org/dox/group__TopicUnalignedArrayAssert.html)
+  In particular, if you create a class that has a fixed-size vectorizable Eigen type (a ChMatrixNM, a ChVectorN, or most common a ChMatrix33) make sure to overload its operator new.  For that, use the Eigen-provided macro `EIGEN_MAKE_ALIGNED_OPERATOR_NEW` (see https://eigen.tuxfamily.org/dox/group__TopicStructHavingEigenMembers.html)
+  - When creating shared pointers, make sure to use **`chrono_types::make_shared`** (see below)
 
 6. API and user code
-	- Except for the limited situations where user code explicitly used the old-style matrix operations (which should now use the cleaner Eigen API; see e.g. https://eigen.tuxfamily.org/dox/group__TutorialMatrixArithmetic.html), the main impact on users has to do with the shared pointers in the Chrono public API.
-	- The issue has to do with the fact that std::make_shared uses 'placement new' to create a shared pointer with a single memory allocation.  This means that std::make_shared will not use an overloaded 'operator new' for classes that provide it (for memory alignment considerations).
-	- To maintain encapsulation (as much as possible) and not require users to know/care about the guts of Chrono (namely know which classes overload, or have a parent that overloads, their operator new), the solution we adopted is to provide **custom** make_shared functions (in the namespace chrono_types) and a mechanism to pick at compile-time which one should be used (conditional on the object's class having or not an overloaded operator new).   For classes that require aligned memory (i.e. classes that have an overloaded operator new), **`chrono_types::make_shared`** explicitly creates the shared_ptr.   Otherwise, it falls back on using std::make_shared (see `ChTypes.h`).
-	- As such, user code should always create a shared_ptr using something like:
-	~~~.{.cpp}
-	auto foo = chrono_types::make_shared<T>(bar);
-	~~~
-	- See the various Chrono demos and tests for examples.
+  - Except for the limited situations where user code explicitly used the old-style matrix operations (which should now use the cleaner Eigen API; see e.g. https://eigen.tuxfamily.org/dox/group__TutorialMatrixArithmetic.html), the main impact on users has to do with the shared pointers in the Chrono public API.
+  - The issue has to do with the fact that std::make_shared uses 'placement new' to create a shared pointer with a single memory allocation.  This means that std::make_shared will not use an overloaded 'operator new' for classes that provide it (for memory alignment considerations).
+  - To maintain encapsulation (as much as possible) and not require users to know/care about the guts of Chrono (namely know which classes overload, or have a parent that overloads, their operator new), the solution we adopted is to provide **custom** make_shared functions (in the namespace chrono_types) and a mechanism to pick at compile-time which one should be used (conditional on the object's class having or not an overloaded operator new).   For classes that require aligned memory (i.e. classes that have an overloaded operator new), **`chrono_types::make_shared`** explicitly creates the shared_ptr.   Otherwise, it falls back on using std::make_shared (see `ChTypes.h`).
+  - As such, user code should always create a shared_ptr using something like:
+  ~~~.{.cpp}
+  auto foo = chrono_types::make_shared<T>(bar);
+  ~~~
+  - See the various Chrono demos and tests for examples.
 
-### [Changed] Eigen sparse matrices and updates to direct sparse linear solvers
+## [Changed] Eigen sparse matrices and updates to direct sparse linear solvers
 
 Starting with this release, Chrono also uses Eigen for all sparse matrix needs (which are relatively limited and have little, if any, direct consequence on the public API).
 A `ChSparseMatrix` is just a **type alias** to an Eigen SparseMatrix with double scalar type, row-major storage order, and int storage index type.  
 
 1. The main effects on public API relate to concomitant updates we made to the sparse direct linear solvers (the Chrono::MKL interface to the Intel MKL Pardiso solver and the Chrono::Mumps interface to the MUMPS solver).  While we now rely on Eigen’s own interface to Pardiso, Chrono::Mumps still implements a custom interface to MUMPS (ChMumpsEngine).  
 
-	For examples of usage, see `demo_FEA_cablesMKL` and `demo_FEA_cablesMUMPS`.
+  For examples of usage, see `demo_FEA_cablesMKL` and `demo_FEA_cablesMUMPS`.
 
 2. Both sparse direct solvers (and any others that may be provided in the future) share the same functionality in terms of controlling the identification and update of the matrix sparsity pattern.  The main features implemented in the base class `ChSolverDirect` are:
-	- *sparsity pattern lock*
-	The sparsity pattern lock skips sparsity identification or reserving memory for non-zeros on all but the first call to the solver setup. This feature is intended for problems where the system matrix sparsity pattern does not change (or changes very little) from call to call.  See ChSolverDirect::LockSparsityPattern.
-	- *sparsity pattern learning*
-	The sparsity pattern learning feature acquires the sparsity pattern in advance, in order to speed up matrix assembly.  Enabled by default, the sparsity matrix learner identifies the exact matrix sparsity pattern (without actually setting any non-zeros). See ChSolverDirect::UseSparsityPatternLearner.
-	- In situations where the problem structure changes but relatively infrequently, it is still desirable to lock the sparsity pattern.  However, if using the sparsity pattern learner, an update must be explicitly triggered by the user after a problem modification (by calling `ChSparseDirect::ForceSparsityPatternUpdate`).  For an example, `see demo_FEA_beams_extrude`.
-	- Finally, there is an option to provide an estimate for the matrix sparsity (a value in [0,1], with 0 corresponding to a fully dense matrix). When the sparsity pattern learner is disabled, this value is used if/when required to reserve space for matrix indices and non-zeros. See `ChSolverDirect::SetSparsityEstimate`.
+  - *sparsity pattern lock*
+  The sparsity pattern lock skips sparsity identification or reserving memory for non-zeros on all but the first call to the solver setup. This feature is intended for problems where the system matrix sparsity pattern does not change (or changes very little) from call to call.  See ChSolverDirect::LockSparsityPattern.
+  - *sparsity pattern learning*
+  The sparsity pattern learning feature acquires the sparsity pattern in advance, in order to speed up matrix assembly.  Enabled by default, the sparsity matrix learner identifies the exact matrix sparsity pattern (without actually setting any non-zeros). See ChSolverDirect::UseSparsityPatternLearner.
+  - In situations where the problem structure changes but relatively infrequently, it is still desirable to lock the sparsity pattern.  However, if using the sparsity pattern learner, an update must be explicitly triggered by the user after a problem modification (by calling `ChSparseDirect::ForceSparsityPatternUpdate`).  For an example, `see demo_FEA_beams_extrude`.
+  - Finally, there is an option to provide an estimate for the matrix sparsity (a value in [0,1], with 0 corresponding to a fully dense matrix). When the sparsity pattern learner is disabled, this value is used if/when required to reserve space for matrix indices and non-zeros. See `ChSolverDirect::SetSparsityEstimate`.
 
 3. If appropriate and warranted by the problem setup, it is *highly recommended* to enable the sparsity pattern lock. This can significantly improve performance for more complex problems (larger size and/or problems which include constraints).
 
-## Release 4.0.0 - 2019-02-22
+# Release 4.0.0 (2019-02-22)
 
 In addition to various bug fixes and enhancements, Chrono v4.0.0 includes the following main updates:
 - Adopted Google test and benchmark libraries for unit testing and performance benchmarking.
-	- these are set up as Git submodules
-	- unit tests relocated under src/tests/unit_tests; several unit tests were migrated to use the Google test framework
-  	- examples in src/tests/benchmark_tests illustrate use of the Google benchmark framework
+  - these are set up as Git submodules
+  - unit tests relocated under src/tests/unit_tests; several unit tests were migrated to use the Google test framework
+    - examples in src/tests/benchmark_tests illustrate use of the Google benchmark framework
 - Core Chrono module
-	- new LinkMotor elements, for modeling linear and rotational motors
-	- new parsers for generating Chrono models from ADAMS adm files and OpenSim osim files (these parsers provide partial support)
+  - new LinkMotor elements, for modeling linear and rotational motors
+  - new parsers for generating Chrono models from ADAMS adm files and OpenSim osim files (these parsers provide partial support)
 - Chrono::FEA
-	- FEA support is now included in the core Chrono module and not as an optional module anymore
-	- new IGA (isogeometric) beam element
-	- new 8-node, high-order ANCF shell element
+  - FEA support is now included in the core Chrono module and not as an optional module anymore
+  - new IGA (isogeometric) beam element
+  - new 8-node, high-order ANCF shell element
 - Chrono::MUMPS
-	- new optional module providing an interface to the MUMPS sparse direct linear solver
+  - new optional module providing an interface to the MUMPS sparse direct linear solver
 - Chrono::Distributed
-	- new optional module for MPI_based distributed parallel simulation of granular dynamics problems
-	- currently only supports SMC contact formulation (penalty approach) and a reduced number of collision shapes (spheres and triangular meshes)
+  - new optional module for MPI_based distributed parallel simulation of granular dynamics problems
+  - currently only supports SMC contact formulation (penalty approach) and a reduced number of collision shapes (spheres and triangular meshes)
 - Chrono::FSI
-	- support for Implicit Incompressible Smoothed Particle Hydrodynamics
-	- support for fluid-solid interaction with ANCF cable/shell elements
-	- new GPU-based sparse linear solvers via CUBLAS and CUSPARSE libraries
+  - support for Implicit Incompressible Smoothed Particle Hydrodynamics
+  - support for fluid-solid interaction with ANCF cable/shell elements
+  - new GPU-based sparse linear solvers via CUBLAS and CUSPARSE libraries
 - Chrono::Python
-	- Python interface to Chrono now distributed as an Anaconda package
-	- new interface to the Chrono::MKL and Chrono::Cascade modules
-	- several new demos, including demo for use with TensorFlow
+  - Python interface to Chrono now distributed as an Anaconda package
+  - new interface to the Chrono::MKL and Chrono::Cascade modules
+  - several new demos, including demo for use with TensorFlow
 - Chrono::Vehicle
-	- new tire models (TMeasy, Pacejka89)
-	- new templates for continuous-band tracks
-	- new suspension templates
-	- new vehicle models (generic sedan, UAZ van)
+  - new tire models (TMeasy, Pacejka89)
+  - new templates for continuous-band tracks
+  - new suspension templates
+  - new vehicle models (generic sedan, UAZ van)

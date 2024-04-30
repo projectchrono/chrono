@@ -37,13 +37,12 @@
 #include "chrono_sensor/filters/ChFilterVisualize.h"
 
 using namespace chrono;
-using namespace chrono::geometry;
 using namespace chrono::sensor;
 
 float end_time = 100.0f;
 
 int main(int argc, char* argv[]) {
-    GetLog() << "Copyright (c) 2019 projectchrono.org\nChrono version: " << CHRONO_VERSION << "\n\n";
+    std::cout << "Copyright (c) 2019 projectchrono.org\nChrono version: " << CHRONO_VERSION << std::endl;
 
     // -----------------
     // Create the system
@@ -57,8 +56,8 @@ int main(int argc, char* argv[]) {
         for (int j = 0; j <= y_dim; j++) {
             auto sphere1 = chrono_types::make_shared<ChBodyEasySphere>(.4, 1000, true, false);
             sphere1->SetPos({0, i - (x_dim / 2.), j - (y_dim / 2.)});
-            sphere1->SetBodyFixed(true);
-            
+            sphere1->SetFixed(true);
+
             auto color = chrono_types::make_shared<ChVisualMaterial>();
             color->SetDiffuseColor({.8f, 0.f, 0.f});
             color->SetSpecularColor({(float)i / x_dim, (float)i / x_dim, (float)i / x_dim});
@@ -66,7 +65,7 @@ int main(int argc, char* argv[]) {
             color->SetRoughness(1 - (float)j / y_dim);
             color->SetUseSpecularWorkflow(false);
 
-            sphere1->GetVisualModel()->GetShapes()[0].first->AddMaterial(color);
+            sphere1->GetVisualModel()->GetShapeInstances()[0].first->AddMaterial(color);
 
             sys.Add(sphere1);
         }
@@ -74,7 +73,7 @@ int main(int argc, char* argv[]) {
 
     auto sphere2 = chrono_types::make_shared<ChBodyEasySphere>(.001, 1000, false, false);
     sphere2->SetPos({0, 0, 0});
-    sphere2->SetBodyFixed(true);
+    sphere2->SetFixed(true);
     sys.Add(sphere2);
 
     // -----------------------
@@ -93,24 +92,24 @@ int main(int argc, char* argv[]) {
     // Create a camera and add it to the sensor manager
     // ------------------------------------------------
     auto cam = chrono_types::make_shared<ChCameraSensor>(
-        sphere2,                                                             // body camera is attached to
-        30.0f,                                                               // update rate in Hz
-        chrono::ChFrame<double>({-12, 0, 0}, Q_from_AngAxis(0, {0, 1, 0})),  // offset pose
-        1920,                                                                // image width
-        1080,                                                                // image height
-        (float)CH_C_PI / 3                                                   // FOV
+        sphere2,                                                                // body camera is attached to
+        30.0f,                                                                  // update rate in Hz
+        chrono::ChFrame<double>({-12, 0, 0}, QuatFromAngleAxis(0, {0, 1, 0})),  // offset pose
+        1920,                                                                   // image width
+        1080,                                                                   // image height
+        (float)CH_PI / 3                                                        // FOV
     );
     cam->SetName("Camera Sensor");
     cam->PushFilter(chrono_types::make_shared<ChFilterVisualize>(1280, 720, "For user display"));
     manager->AddSensor(cam);
 
     auto cam_g = chrono_types::make_shared<ChCameraSensor>(
-        sphere2,                                                             // body camera is attached to
-        30.0f,                                                               // update rate in Hz
-        chrono::ChFrame<double>({-12, 0, 0}, Q_from_AngAxis(0, {0, 1, 0})),  // offset pose
-        1920,                                                                // image width
-        1080,                                                                // image height
-        (float)CH_C_PI / 3, 1, CameraLensModelType::PINHOLE, true            // FOV
+        sphere2,                                                                // body camera is attached to
+        30.0f,                                                                  // update rate in Hz
+        chrono::ChFrame<double>({-12, 0, 0}, QuatFromAngleAxis(0, {0, 1, 0})),  // offset pose
+        1920,                                                                   // image width
+        1080,                                                                   // image height
+        (float)CH_PI / 3, 1, CameraLensModelType::PINHOLE, true                 // FOV
     );
     cam_g->SetName("Camera Sensor");
     cam_g->PushFilter(chrono_types::make_shared<ChFilterVisualize>(1280, 720, "For user display, GI"));

@@ -22,11 +22,10 @@
 // code, and the symbols will be imported.
 
 #if defined(CH_API_COMPILE_VEHICLE)
-#define CH_VEHICLE_API ChApiEXPORT
+    #define CH_VEHICLE_API ChApiEXPORT
 #else
-#define CH_VEHICLE_API ChApiIMPORT
+    #define CH_VEHICLE_API ChApiIMPORT
 #endif
-
 
 /**
     @defgroup vehicle VEHICLE module
@@ -85,7 +84,6 @@
     @}
 */
 
-
 namespace chrono {
 
 /// @addtogroup vehicle
@@ -96,6 +94,6 @@ namespace vehicle {}
 
 /// @}
 
-}
+}  // namespace chrono
 
 #endif

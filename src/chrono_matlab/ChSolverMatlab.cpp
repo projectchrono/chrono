@@ -29,55 +29,46 @@ ChSolverMatlab::ChSolverMatlab() {
 
 // Solve using the Matlab default direct solver (as in x=A\b)
 double ChSolverMatlab::Solve(ChSystemDescriptor& sysd) {
-    ChSparseMatrix mdM;
-    ChSparseMatrix mdCq;
-    ChSparseMatrix mdE;
-    ChVectorDynamic<double> mdf;
-    ChVectorDynamic<double> mdb;
-    ChVectorDynamic<double> mdfric;
-    sysd.ConvertToMatrixForm(&mdCq, &mdM, &mdE, &mdf, &mdb, &mdfric);
 
-    mengine->PutSparseMatrix(mdM, "mdM");
-    mengine->PutSparseMatrix(mdCq, "mdCq");
-    mengine->PutSparseMatrix(mdE, "mdE");
-    mengine->PutVariable(mdf, "mdf");
-    mengine->PutVariable(mdb, "mdb");
-    mengine->PutVariable(mdfric, "mdfric");
+    ChSparseMatrix Z;
+    ChVectorDynamic<double> rhs;
+    sysd.BuildSystemMatrix(&Z, &rhs);
 
-    mengine->Eval("mdZ = [mdM, mdCq'; mdCq, -mdE]; mdd=[mdf;-mdb];");
+    mengine->PutSparseMatrix(Z, "Z");
+    mengine->PutVariable(rhs, "rhs");
 
-    mengine->Eval("mdx = mldivide(mdZ , mdd);");
+    mengine->Eval("sol = mldivide(Z , rhs);");
 
-    ChMatrixDynamic<> mx;
-    if (!mengine->GetVariable(mx, "mdx"))
-        GetLog() << "ERROR!! cannot fetch mdx";
+    ChMatrixDynamic<> sol;
+    if (!mengine->GetVariable(sol, "sol"))
+        std::cerr << "ERROR!! cannot fetch sol" << std::endl;
 
-    sysd.FromVectorToUnknowns(mx);
+    sysd.FromVectorToUnknowns(sol);
 
-    mengine->Eval("resid = norm(mdZ*mdx - mdd);");
-    ChMatrixDynamic<> mres;
-    mengine->GetVariable(mres, "resid");
-    GetLog() << " Matlab computed residual:" << mres(0, 0) << "\n";
+    mengine->Eval("residual = norm(Z*sol - rhs);");
+    ChMatrixDynamic<> residual;
+    mengine->GetVariable(residual, "residual");
+    std::cout << " Matlab computed residual:" << residual(0, 0) << std::endl;
 
     return 0;
 }
 
-void ChSolverMatlab::ArchiveOut(ChArchiveOut& marchive) {
+void ChSolverMatlab::ArchiveOut(ChArchiveOut& archive_out) {
     // version number
-    marchive.VersionWrite<ChSolverMatlab>();
+    archive_out.VersionWrite<ChSolverMatlab>();
     // serialize parent class
-    ChSolver::ArchiveOut(marchive);
+    ChSolver::ArchiveOut(archive_out);
     // serialize all member data:
-    marchive << CHNVP(mengine);
+    archive_out << CHNVP(mengine);
 }
 
-void ChSolverMatlab::ArchiveIn(ChArchiveIn& marchive) {
+void ChSolverMatlab::ArchiveIn(ChArchiveIn& archive_in) {
     // version number
-    /*int version =*/ marchive.VersionRead<ChSolverMatlab>();
+    /*int version =*/archive_in.VersionRead<ChSolverMatlab>();
     // deserialize parent class
-    ChSolver::ArchiveIn(marchive);
+    ChSolver::ArchiveIn(archive_in);
     // stream in all member data:
-    marchive >> CHNVP(mengine);
+    archive_in >> CHNVP(mengine);
 }
 
 }  // end namespace chrono

@@ -25,22 +25,19 @@
 #include "chrono/geometry/ChTriangleMesh.h"
 
 namespace chrono {
-namespace geometry {
 
-/// Base class for properties to attach to vertexes or particles etc.
-/// as arrays of data.
-/// These properties are virtual classes so that one can store a list of
-/// them in a triangle mesh, or a particle cluster, or a glyph array.
-/// These properties are particularly useful for storing data that later must
-/// be used in postprocessing, for example a scalar property could be the
-/// temperature of particles, to render as falsecolor in Blender or similar tools.
+/// @addtogroup chrono_geometry
+/// @{
 
+/// Base class for properties to attach to vertices or particles as arrays of data.
+/// These properties are virtual classes so that one can store a list of them in a triangle mesh, or a particle cluster,
+/// or a glyph array. They are particularly useful for storing data that later must be used in postprocessing, for
+/// example a scalar property could be the temperature of particles to be rendered as falsecolor.
 class ChApi ChProperty {
-public:
-    ChProperty() {};
-    virtual ~ChProperty() {};
-    
-    /// Cloning: 
+  public:
+    ChProperty() {}
+    virtual ~ChProperty() {}
+
     virtual ChProperty* clone() = 0;
 
     /// Get current size of data array.
@@ -49,74 +46,75 @@ public:
     /// Resize data array to some amount. All internal data will be reset.
     virtual void SetSize(const size_t msize) = 0;
 
-    /// Name of this property.
-    std::string name;
-
     /// Method to allow serialization of transient data to archives.
-    virtual void ArchiveOut(ChArchiveOut& marchive) { marchive << CHNVP(name); };
+    virtual void ArchiveOut(ChArchiveOut& archive_out);
+
     /// Method to allow de-serialization of transient data from archives.
-    virtual void ArchiveIn(ChArchiveIn& marchive) {  marchive >> CHNVP(name); };
+    virtual void ArchiveIn(ChArchiveIn& archive_in);
+
+    std::string name;  ///< name of this property
 };
 
 /// Templated property: a generic array of items of type T.
 template <class T>
-class ChApi ChPropertyT: public ChProperty {
-public:
-    ChPropertyT() { min = 0; max = 1.0; };
-    ~ChPropertyT() {};
-    ChPropertyT(const ChPropertyT& other) { data = other.data; name = other.name; min = other.min; max = other.max; }
+class ChApi ChPropertyT : public ChProperty {
+  public:
+    ChPropertyT() : min(0), max(1) {}
 
-    /// Cloning: 
-    ChProperty* clone() override { return new ChPropertyT<T>(*this); };
-    
-    size_t GetSize() override {
-        return data.size();
-    };
-    void SetSize(const size_t msize) override {
-        return data.resize(msize);
-    };
+    ChPropertyT(const ChPropertyT& other) {
+        data = other.data;
+        name = other.name;
+        min = other.min;
+        max = other.max;
+    }
 
-    /// The data array
-    std::vector<T> data;
-    
-    /// min-max values that can be used to store info on desired falsecolor scale
+    ~ChPropertyT() {}
+
+    ChProperty* clone() override { return new ChPropertyT<T>(*this); }
+
+    size_t GetSize() override { return data.size(); }
+
+    void SetSize(const size_t msize) override { return data.resize(msize); }
+
+    virtual void ArchiveOut(ChArchiveOut& archive_out) override {
+        ChProperty::ArchiveOut(archive_out);
+        archive_out << CHNVP(data);
+        archive_out << CHNVP(min);
+        archive_out << CHNVP(max);
+    }
+
+    virtual void ArchiveIn(ChArchiveIn& archive_in) override {
+        ChProperty::ArchiveIn(archive_in);
+        archive_in >> CHNVP(data);
+        archive_in >> CHNVP(min);
+        archive_in >> CHNVP(max);
+    }
+
+    // min-max values that can be used to store info on desired falsecolor scale
     double min;
     double max;
 
-    virtual void ArchiveOut(ChArchiveOut& marchive) override { 
-        ChProperty::ArchiveOut(marchive);
-        marchive << CHNVP(data);
-        marchive << CHNVP(min);
-        marchive << CHNVP(max);
-    };
-    virtual void ArchiveIn(ChArchiveIn& marchive) override {
-        ChProperty::ArchiveIn(marchive);
-        marchive >> CHNVP(data);
-        marchive >> CHNVP(min);
-        marchive >> CHNVP(max);
-    };
+    std::vector<T> data;  ///< data array
 };
 
-/// Data is an array of floats 
+/// Data is an array of floats
 class ChApi ChPropertyScalar : public ChPropertyT<double> {};
 
-/// Data is an array of vectors 
-class ChApi ChPropertyVector : public ChPropertyT<ChVector<>> {};
+/// Data is an array of vectors
+class ChApi ChPropertyVector : public ChPropertyT<ChVector3d> {};
 
-/// Data is an array of quaternions (for rotations) 
+/// Data is an array of quaternions (for rotations)
 class ChApi ChPropertyQuaternion : public ChPropertyT<ChQuaternion<>> {};
 
-/// Data is an array of colors 
+/// Data is an array of colors
 class ChApi ChPropertyColor : public ChPropertyT<ChColor> {};
 
+/// @} chrono_geometry
 
-
-}  // end namespace geometry
-
-CH_CLASS_VERSION(geometry::ChPropertyScalar, 0)
-CH_CLASS_VERSION(geometry::ChPropertyVector, 0)
-CH_CLASS_VERSION(geometry::ChPropertyQuaternion, 0)
-CH_CLASS_VERSION(geometry::ChPropertyColor, 0)
+CH_CLASS_VERSION(ChPropertyScalar, 0)
+CH_CLASS_VERSION(ChPropertyVector, 0)
+CH_CLASS_VERSION(ChPropertyQuaternion, 0)
+CH_CLASS_VERSION(ChPropertyColor, 0)
 
 }  // end namespace chrono
 

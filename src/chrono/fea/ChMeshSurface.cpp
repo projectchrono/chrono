@@ -34,7 +34,7 @@ void ChMeshSurface::AddFacesFromNodeSet(std::vector<std::shared_ptr<ChNodeFEAbas
     for (int i = 0; i < node_set.size(); ++i)
         node_set_map.insert((size_t)node_set[i].get());
 
-    for (unsigned int ie = 0; ie < this->mmesh->GetNelements(); ++ie) {
+    for (unsigned int ie = 0; ie < this->mmesh->GetNumElements(); ++ie) {
         auto element = mmesh->GetElement(ie);
 
         if (auto tet = std::dynamic_pointer_cast<ChElementTetrahedron>(element)) {
@@ -85,23 +85,23 @@ void ChMeshSurface::AddFacesFromBoundary() {
     // Boundary faces of TETRAHEDRONS
     std::multimap<std::array<ChNodeFEAxyz*, 3>, ChTetrahedronFace> face_map_tet;
 
-    for (unsigned int ie = 0; ie < this->mmesh->GetNelements(); ++ie) {
+    for (unsigned int ie = 0; ie < this->mmesh->GetNumElements(); ++ie) {
         if (auto mtetra = std::dynamic_pointer_cast<ChElementTetrahedron>(mmesh->GetElement(ie))) {
             for (int nface = 0; nface < 4; ++nface) {
                 ChTetrahedronFace mface(mtetra, nface);
-                std::array<ChNodeFEAxyz*, 3> mface_key = {mface.GetNodeN(0).get(), mface.GetNodeN(1).get(),
-                                                          mface.GetNodeN(2).get()};
+                std::array<ChNodeFEAxyz*, 3> mface_key = {mface.GetNode(0).get(), mface.GetNode(1).get(),
+                                                          mface.GetNode(2).get()};
                 std::sort(mface_key.begin(), mface_key.end());
                 face_map_tet.insert({mface_key, mface});
             }
         }
     }
-    for (unsigned int ie = 0; ie < this->mmesh->GetNelements(); ++ie) {
+    for (unsigned int ie = 0; ie < this->mmesh->GetNumElements(); ++ie) {
         if (auto mtetra = std::dynamic_pointer_cast<ChElementTetrahedron>(mmesh->GetElement(ie))) {
             for (int nface = 0; nface < 4; ++nface) {
                 ChTetrahedronFace mface(mtetra, nface);
-                std::array<ChNodeFEAxyz*, 3> mface_key = {mface.GetNodeN(0).get(), mface.GetNodeN(1).get(),
-                                                          mface.GetNodeN(2).get()};
+                std::array<ChNodeFEAxyz*, 3> mface_key = {mface.GetNode(0).get(), mface.GetNode(1).get(),
+                                                          mface.GetNode(2).get()};
                 std::sort(mface_key.begin(), mface_key.end());
                 if (face_map_tet.count(mface_key) == 1) {
                     // Found a face that is not shared.. so it is a boundary face.
@@ -116,23 +116,23 @@ void ChMeshSurface::AddFacesFromBoundary() {
     // Boundary faces of HEXAHEDRONS
     std::multimap<std::array<ChNodeFEAxyz*, 4>, ChHexahedronFace> face_map_hex;
 
-    for (unsigned int ie = 0; ie < mmesh->GetNelements(); ++ie) {
+    for (unsigned int ie = 0; ie < mmesh->GetNumElements(); ++ie) {
         if (auto mbrick = std::dynamic_pointer_cast<ChElementHexahedron>(mmesh->GetElement(ie))) {
             for (int nface = 0; nface < 6; ++nface) {
                 ChHexahedronFace mface(mbrick, nface);
-                std::array<ChNodeFEAxyz*, 4> mface_key = {mface.GetNodeN(0).get(), mface.GetNodeN(1).get(),
-                                                          mface.GetNodeN(2).get(), mface.GetNodeN(3).get()};
+                std::array<ChNodeFEAxyz*, 4> mface_key = {mface.GetNode(0).get(), mface.GetNode(1).get(),
+                                                          mface.GetNode(2).get(), mface.GetNode(3).get()};
                 std::sort(mface_key.begin(), mface_key.end());
                 face_map_hex.insert({mface_key, mface});
             }
         }
     }
-    for (unsigned int ie = 0; ie < mmesh->GetNelements(); ++ie) {
+    for (unsigned int ie = 0; ie < mmesh->GetNumElements(); ++ie) {
         if (auto mbrick = std::dynamic_pointer_cast<ChElementHexahedron>(mmesh->GetElement(ie))) {
             for (int nface = 0; nface < 6; ++nface) {
                 ChHexahedronFace mface(mbrick, nface);
-                std::array<ChNodeFEAxyz*, 4> mface_key = {mface.GetNodeN(0).get(), mface.GetNodeN(1).get(),
-                                                          mface.GetNodeN(2).get(), mface.GetNodeN(3).get()};
+                std::array<ChNodeFEAxyz*, 4> mface_key = {mface.GetNode(0).get(), mface.GetNode(1).get(),
+                                                          mface.GetNode(2).get(), mface.GetNode(3).get()};
                 std::sort(mface_key.begin(), mface_key.end());
                 if (face_map_hex.count(mface_key) == 1) {
                     // Found a face that is not shared.. so it is a boundary face.

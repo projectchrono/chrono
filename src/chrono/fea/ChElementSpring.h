@@ -32,11 +32,11 @@ class ChApi ChElementSpring : public ChElementGeneric {
     ChElementSpring();
     ~ChElementSpring();
 
-    virtual int GetNnodes() override { return 2; }
-    virtual int GetNdofs() override { return 2 * 3; }
-    virtual int GetNodeNdofs(int n) override { return 3; }
+    virtual unsigned int GetNumNodes() override { return 2; }
+    virtual unsigned int GetNumCoordsPosLevel() override { return 2 * 3; }
+    virtual unsigned int GetNodeNumCoordsPosLevel(unsigned int n) override { return 3; }
 
-    virtual std::shared_ptr<ChNodeFEAbase> GetNodeN(int n) override { return nodes[n]; }
+    virtual std::shared_ptr<ChNodeFEAbase> GetNode(unsigned int n) override { return nodes[n]; }
 
     virtual void SetNodes(std::shared_ptr<ChNodeFEAxyz> nodeA, std::shared_ptr<ChNodeFEAxyz> nodeB);
 
@@ -45,7 +45,7 @@ class ChApi ChElementSpring : public ChElementGeneric {
     //
 
     /// Fills the D vector with the current field values at the nodes of the element, with proper ordering.
-    /// If the D vector has not the size of this->GetNdofs(), it will be resized.
+    /// If the D vector has not the size of this->GetNumCoordsPosLevel(), it will be resized.
     virtual void GetStateBlock(ChVectorDynamic<>& mD) override;
 
     /// Sets H as the global stiffness matrix K, scaled  by Kfactor. Optionally, also
@@ -65,16 +65,16 @@ class ChApi ChElementSpring : public ChElementGeneric {
     //
 
     /// Set the stiffness of the spring that connects the two nodes (N/m)
-    virtual void SetSpringK(double ms) { spring_k = ms; }
-    virtual double GetSpringK() { return spring_k; }
+    virtual void SetSpringCoefficient(double ms) { spring_k = ms; }
+    virtual double GetSpringCoefficient() { return spring_k; }
 
     /// Set the damping of the damper that connects the two nodes (Ns/M)
-    virtual void SetDamperR(double md) { damper_r = md; }
-    virtual double GetDamperR() { return damper_r; }
+    virtual void SetDampingCoefficient(double md) { damper_r = md; }
+    virtual double GetDampingCoefficient() { return damper_r; }
 
-	/// Get the current force transmitted along the spring direction, 
-	/// including the effect of the damper. Positive if pulled. (N)
-	virtual double GetCurrentForce();
+    /// Get the current force transmitted along the spring direction,
+    /// including the effect of the damper. Positive if pulled. (N)
+    virtual double GetCurrentForce();
 
     //
     // Functions for interfacing to the solver
@@ -82,10 +82,11 @@ class ChApi ChElementSpring : public ChElementGeneric {
 
   private:
     /// Initial setup.
-    /// No override needed for the spring element because global K is computed on-the-fly in ComputeAddKRmatricesGlobal()
+    /// No override needed for the spring element because global K is computed on-the-fly in
+    /// ComputeAddKRmatricesGlobal()
     ////virtual void SetupInitial(ChSystem* system) override {}
 
-	std::vector<std::shared_ptr<ChNodeFEAxyz> > nodes;
+    std::vector<std::shared_ptr<ChNodeFEAxyz> > nodes;
     double spring_k;
     double damper_r;
 };

@@ -37,23 +37,29 @@ class ChApi ChMaterialShellANCF {
 
     /// Construct a (possibly) orthotropic material.
     ChMaterialShellANCF(double rho,            ///< material density
-                        const ChVector<>& E,   ///< elasticity moduli (E_x, E_y, E_z)
-                        const ChVector<>& nu,  ///< Poisson ratios (nu_xy, nu_xz, nu_yz)
-                        const ChVector<>& G    ///< shear moduli (G_xy, G_xz, G_yz)
+                        const ChVector3d& E,   ///< elasticity moduli (E_x, E_y, E_z)
+                        const ChVector3d& nu,  ///< Poisson ratios (nu_xy, nu_xz, nu_yz)
+                        const ChVector3d& G    ///< shear moduli (G_xy, G_xz, G_yz)
     );
 
     /// Return the material density.
-    double Get_rho() const { return m_rho; }
-
-    /// Return the matrix of elastic coefficients.
-    const ChMatrixNM<double, 6, 6>& Get_E_eps() const { return m_E_eps; }
+    double GetDensity() const { return m_rho; }
 
   private:
-    /// Calculate the matrix of elastic coefficients.
-    void Calc_E_eps(const ChVector<>& E, const ChVector<>& nu, const ChVector<>& G);
+    /// Return the matrix of elastic coefficients.
+    const ChMatrix66d& Get_E_eps() const { return m_E_eps; }
 
-    double m_rho;                      ///< density
-    ChMatrixNM<double, 6, 6> m_E_eps;  ///< matrix of elastic coefficients
+    /// Calculate the matrix of elastic coefficients.
+    void Calc_E_eps(const ChVector3d& E, const ChVector3d& nu, const ChVector3d& G);
+
+    double m_rho;         ///< density
+    ChMatrix66d m_E_eps;  ///< matrix of elastic coefficients
+
+    friend class ChElementShellANCF_3833;
+    friend class ChElementShellANCF_3443;
+    friend class ChElementShellANCF_3423;
+    friend class ShellANCF_Force;
+    friend class ShellANCF_Jacobian;
 
   public:
     EIGEN_MAKE_ALIGNED_OPERATOR_NEW

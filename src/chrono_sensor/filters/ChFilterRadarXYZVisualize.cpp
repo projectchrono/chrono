@@ -22,10 +22,7 @@
 namespace chrono {
 namespace sensor {
 
-CH_SENSOR_API ChFilterRadarXYZVisualize::ChFilterRadarXYZVisualize(int w,
-                                                                   int h,
-                                                                   float zoom,
-                                                                   std::string name)
+CH_SENSOR_API ChFilterRadarXYZVisualize::ChFilterRadarXYZVisualize(int w, int h, float zoom, std::string name)
     : m_zoom(zoom), ChFilterVisualize(w, h, name) {}
 
 CH_SENSOR_API ChFilterRadarXYZVisualize::~ChFilterRadarXYZVisualize() {}
@@ -42,7 +39,7 @@ CH_SENSOR_API void ChFilterRadarXYZVisualize::Initialize(std::shared_ptr<ChSenso
     m_buffer_in = std::dynamic_pointer_cast<SensorDeviceRadarXYZBuffer>(bufferInOut);
     if (!m_buffer_in)
         InvalidFilterGraphBufferTypeMismatch(pSensor);
-    
+
     m_host_buffer = chrono_types::make_shared<SensorHostRadarXYZBuffer>();
     std::shared_ptr<RadarXYZReturn[]> b(
         cudaHostMallocHelper<RadarXYZReturn>(m_buffer_in->Height * m_buffer_in->Width * sizeof(RadarXYZReturn)),
@@ -88,14 +85,14 @@ CH_SENSOR_API void ChFilterRadarXYZVisualize::Apply() {
 
         float hfov = m_radar->GetHFOV();
         float vfov = m_radar->GetVFOV();
-        float near = m_radar->GetClipNear();
-        float far = m_radar->GetMaxDistance();
-        float right = tan(hfov / 2) * near;
+        float nearZ = m_radar->GetClipNear();  // changed near,far -> nearZ,farZ
+        float farZ = m_radar->GetMaxDistance();
+        float right = tan(hfov / 2) * nearZ;
         float left = -right;
-        float top = tan(vfov / 2) * near;
+        float top = tan(vfov / 2) * nearZ;
         float bottom = -top;
 
-        glFrustum(left, right, bottom, top, near, far);
+        glFrustum(left, right, bottom, top, nearZ, farZ);
 
         // Reset Model view matrix stack
         glMatrixMode(GL_MODELVIEW);
@@ -116,12 +113,12 @@ CH_SENSOR_API void ChFilterRadarXYZVisualize::Apply() {
         // draw the vertices, color them by clusterID
 
         for (int i = 0; i < m_buffer_in->Beam_return_count; i++) {
-            glColor3f(1 - m_buffer_in->Buffer[i].amplitude, m_buffer_in->Buffer[i].amplitude,
-                          0);
-//            glColor3f(1, 1, 1);
+            glColor3f(1 - m_buffer_in->Buffer[i].amplitude, m_buffer_in->Buffer[i].amplitude, 0);
+            //            glColor3f(1, 1, 1);
             glVertex3f(-m_buffer_in->Buffer[i].y, m_buffer_in->Buffer[i].z, -m_buffer_in->Buffer[i].x);
-//                printf("%f %f %f\n",m_buffer_in->Buffer[i].xyz[0],m_buffer_in->Buffer[i].xyz[1],m_buffer_in->Buffer[i].xyz[2]);
-            }
+            //                printf("%f %f
+            //                %f\n",m_buffer_in->Buffer[i].xyz[0],m_buffer_in->Buffer[i].xyz[1],m_buffer_in->Buffer[i].xyz[2]);
+        }
 
         // Done drawing points
         glEnd();

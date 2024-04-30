@@ -35,11 +35,10 @@ using namespace chrono;
 // Problem definition
 // -----------------------------------------------------------------------------
 double mass = 1.0;
-ChVector<> inertiaXX(1, 1, 1);
-ChVector<> gravity(0, 0, -9.80665);
+ChVector3d inertiaXX(1, 1, 1);
+ChVector3d gravity(0, 0, -9.80665);
 
-class ChLinActuatorTest
-    : public ::testing::TestWithParam<std::tuple<ChContactMethod, double, ChQuaternion<>>> {
+class ChLinActuatorTest : public ::testing::TestWithParam<std::tuple<ChContactMethod, double, ChQuaternion<>>> {
   protected:
     ChLinActuatorTest();
     ~ChLinActuatorTest() { delete sys; }
@@ -52,7 +51,7 @@ class ChLinActuatorTest
     double speed;
     std::shared_ptr<ChBody> plate;
     std::shared_ptr<ChLinkLockPrismatic> prismatic;
-    std::shared_ptr<ChLinkLinActuator> actuator;
+    std::shared_ptr<ChLinkLockLinActuator> actuator;
     bool animate;
 };
 
@@ -63,7 +62,7 @@ ChLinActuatorTest::ChLinActuatorTest() : animate(false) {
     rot = std::get<2>(GetParam());
 
     // Unit vector along translation axis, expressed in global frame
-    ChVector<> axis = rot.GetZaxis();
+    ChVector3d axis = rot.GetAxisZ();
 
     // Settings
     double tolerance = 1e-5;
@@ -83,7 +82,7 @@ ChLinActuatorTest::ChLinActuatorTest() : animate(false) {
             sys = new ChSystemMulticoreNSC();
             break;
     }
-    sys->Set_G_acc(gravity);
+    sys->SetGravitationalAcceleration(gravity);
 
     // Set associated collision system
     sys->SetCollisionSystemType(ChCollisionSystem::Type::MULTICORE);
@@ -110,7 +109,7 @@ ChLinActuatorTest::ChLinActuatorTest() : animate(false) {
     auto ground = chrono_types::make_shared<ChBody>();
 
     sys->AddBody(ground);
-    ground->SetBodyFixed(true);
+    ground->SetFixed(true);
 
     auto box_g = chrono_types::make_shared<ChVisualShapeBox>(0.1, 0.1, 5);
     ground->AddVisualShape(box_g, ChFrame<>(2.5 * axis, rot));
@@ -118,9 +117,9 @@ ChLinActuatorTest::ChLinActuatorTest() : animate(false) {
     // Create the plate body.
     plate = chrono_types::make_shared<ChBody>();
     sys->AddBody(plate);
-    plate->SetPos(ChVector<>(0, 0, 0));
+    plate->SetPos(ChVector3d(0, 0, 0));
     plate->SetRot(rot);
-    plate->SetPos_dt(speed * axis);
+    plate->SetPosDt(speed * axis);
     plate->SetMass(mass);
     plate->SetInertiaXX(inertiaXX);
 
@@ -131,22 +130,22 @@ ChLinActuatorTest::ChLinActuatorTest() : animate(false) {
     // We set the ground as the "master" body (second one in the initialization
     // call) so that the link coordinate system is expressed in the ground frame.
     prismatic = chrono_types::make_shared<ChLinkLockPrismatic>();
-    prismatic->Initialize(plate, ground, ChCoordsys<>(ChVector<>(0, 0, 0), rot));
+    prismatic->Initialize(plate, ground, ChFrame<>(ChVector3d(0, 0, 0), rot));
     sys->AddLink(prismatic);
 
     // Create a ramp function to impose constant speed.  This function returns
     //   y(t) = 0 + t * speed
     //   y'(t) = speed
-    auto actuator_fun = chrono_types::make_shared<ChFunction_Ramp>(0.0, speed);
+    auto actuator_fun = chrono_types::make_shared<ChFunctionRamp>(0.0, speed);
 
     // Create the linear actuator, connecting the plate to the ground.
     // Here, we set the plate as the master body (second one in the initialization
     // call) so that the link coordinate system is expressed in the plate body
     // frame.
-    actuator = chrono_types::make_shared<ChLinkLinActuator>();
-    ChVector<> pt1 = ChVector<>(0, 0, 0);
-    ChVector<> pt2 = axis;
-    actuator->Initialize(ground, plate, false, ChCoordsys<>(pt1, rot), ChCoordsys<>(pt2, rot));
+    actuator = chrono_types::make_shared<ChLinkLockLinActuator>();
+    ChVector3d pt1 = ChVector3d(0, 0, 0);
+    ChVector3d pt2 = axis;
+    actuator->Initialize(ground, plate, false, ChFrame<>(pt1, rot), ChFrame<>(pt2, rot));
     actuator->SetDistanceOffset(1);
     actuator->SetActuatorFunction(actuator_fun);
     sys->AddLink(actuator);
@@ -169,48 +168,48 @@ void ChLinActuatorTest::VerifySolution(double time) {
     double cnstr_tol = 1e-10;
 
     // Unit vector along translation axis, expressed in global frame
-    ChVector<> axis = rot.GetZaxis();
+    ChVector3d axis = rot.GetAxisZ();
 
     // Position, velocity, and acceleration (expressed in global frame)
     // ----------------------------------------------------------------
 
-    ChVector<> pos = plate->GetPos();
-    ChVector<> vel = plate->GetPos_dt();
-    ChVector<> acc = plate->GetPos_dtdt();
+    ChVector3d pos = plate->GetPos();
+    ChVector3d vel = plate->GetPosDt();
+    ChVector3d acc = plate->GetPosDt2();
 
     // The motion must be constant speed along the translation axis.
-    ChVector<> pos_an = time * speed * axis;
-    ChVector<> vel_an = speed * axis;
-    ChVector<> acc_an = ChVector<>(0, 0, 0);
+    ChVector3d pos_an = time * speed * axis;
+    ChVector3d vel_an = speed * axis;
+    ChVector3d acc_an = ChVector3d(0, 0, 0);
 
-    ChVector<> pos_delta = pos - pos_an;
+    ChVector3d pos_delta = pos - pos_an;
     ASSERT_LT(pos_delta.Length(), pos_tol);
 
-    ChVector<> vel_delta = vel - vel_an;
+    ChVector3d vel_delta = vel - vel_an;
     ASSERT_LT(vel_delta.Length(), vel_tol);
 
-    ChVector<> acc_delta = acc - acc_an;
+    ChVector3d acc_delta = acc - acc_an;
     ASSERT_LT(acc_delta.Length(), acc_tol);
 
     // Orientation and angular velocity / acceleration (expressed in global frame)
     // ---------------------------------------------------------------------------
 
     ChQuaternion<> quat = plate->GetRot();
-    ChVector<> avel = plate->GetWvel_par();
-    ChVector<> aacc = plate->GetWacc_par();
+    ChVector3d avel = plate->GetAngVelParent();
+    ChVector3d aacc = plate->GetAngAccParent();
 
     // The motion must maintain constant orientation of the plate body.
     ChQuaternion<> quat_an = rot;
-    ChVector<> avel_an = ChVector<>(0, 0, 0);
-    ChVector<> aacc_an = ChVector<>(0, 0, 0);
+    ChVector3d avel_an = ChVector3d(0, 0, 0);
+    ChVector3d aacc_an = ChVector3d(0, 0, 0);
 
     ChQuaternion<> quat_delta = quat - quat_an;
     ASSERT_LT(quat_delta.Length(), quat_tol);
 
-    ChVector<> avel_delta = avel - avel_an;
+    ChVector3d avel_delta = avel - avel_an;
     ASSERT_LT(avel_delta.Length(), avel_tol);
 
-    ChVector<> aacc_delta = aacc - aacc_an;
+    ChVector3d aacc_delta = aacc - aacc_an;
     ASSERT_LT(aacc_delta.Length(), aacc_tol);
 
     // Reaction force and torque in prismatic joint
@@ -218,23 +217,25 @@ void ChLinActuatorTest::VerifySolution(double time) {
 
     // These are expressed in the link coordinate system. We convert them to
     // the coordinate system of Body2 (in our case this is the ground).
-    ChCoordsys<> linkCoordsysP = prismatic->GetLinkRelativeCoords();
-    ChVector<> rforceP = prismatic->Get_react_force();
-    ChVector<> rforceP_ground = linkCoordsysP.TransformDirectionLocalToParent(rforceP);
+    ChFrame<> linkCoordsysP = prismatic->GetFrame2Rel();
+    const auto& reactionP = prismatic->GetReaction2();
 
-    ChVector<> rtorqueP = prismatic->Get_react_torque();
-    ChVector<> rtorqueP_ground = linkCoordsysP.TransformDirectionLocalToParent(rtorqueP);
+    ChVector3d rforceP = reactionP.force;
+    ChVector3d rforceP_ground = linkCoordsysP.TransformDirectionLocalToParent(rforceP);
+
+    ChVector3d rtorqueP = reactionP.torque;
+    ChVector3d rtorqueP_ground = linkCoordsysP.TransformDirectionLocalToParent(rtorqueP);
 
     // The reaction force in the prismatic joint is perpendicular to the
     // translation direction. This can be obtained from a force diagram.
-    ChVector<> rforceP_an = gravity - Vdot(gravity, axis) * axis;
-    ChVector<> rforceP_delta = rforceP_ground - rforceP_an;
+    ChVector3d rforceP_an = gravity - Vdot(gravity, axis) * axis;
+    ChVector3d rforceP_delta = rforceP_ground - rforceP_an;
     ASSERT_LT(rforceP_delta.Length(), rforce_tol);
 
     // The reaction torque at the joint location on ground has a non-zero
     // component in the y direction only.
-    ChVector<> rtorqueP_an = Vcross(pos_an, rforceP_an);
-    ChVector<> rtorqueP_delta = rtorqueP_ground - rtorqueP_an;
+    ChVector3d rtorqueP_an = Vcross(pos_an, rforceP_an);
+    ChVector3d rtorqueP_delta = rtorqueP_ground - rtorqueP_an;
     ASSERT_LT(rtorqueP_delta.Length(), rtorque_tol);
 
     // Reaction force and torque in linear actuator
@@ -243,8 +244,9 @@ void ChLinActuatorTest::VerifySolution(double time) {
     // These are expressed in the link coordinate system. The reaction force
     // represents the force that needs to be applied to the plate in order to
     // maintain the prescribed constant velocity.
-    ChVector<> rforceA = actuator->Get_react_force();
-    ChVector<> rtorqueA = actuator->Get_react_torque();
+    const auto& reactionA = actuator->GetReaction2();
+    ChVector3d rforceA = reactionA.force;
+    ChVector3d rtorqueA = reactionA.torque;
 
     // Analytically, the driving force can be obtained from a force diagram along
     // the translation axis.
@@ -258,8 +260,8 @@ void ChLinActuatorTest::VerifySolution(double time) {
     ////    return false;
     ////}
 
-    ChVector<> rtorqueA_an = ChVector<>(0, 0, 0);
-    ChVector<> rtorqueA_delta = rtorqueA - rtorqueA_an;
+    ChVector3d rtorqueA_an = ChVector3d(0, 0, 0);
+    ChVector3d rtorqueA_delta = rtorqueA - rtorqueA_an;
     ASSERT_LT(rtorqueA_delta.Length(), rtorque_tol);
 
     // Constraint violations in prismatic joint
@@ -269,8 +271,8 @@ void ChLinActuatorTest::VerifySolution(double time) {
     for (int i = 0; i < 5; i++) {
         ASSERT_NEAR(CP(i), 0.0, cnstr_tol);
         ////if (std::abs(CP(i)) > cnstr_tol) {
-        ////    std::cout << "   at t = " << time << "  constraint violation (prismatic " << i  << ") = " << CP(i) << std::endl;
-        ////    return false;
+        ////    std::cout << "   at t = " << time << "  constraint violation (prismatic " << i  << ") = " << CP(i) <<
+        ///std::endl; /    return false;
         ////}
     }
 
@@ -303,7 +305,7 @@ TEST_P(ChLinActuatorTest, simulate) {
         vis.SetWindowSize(1280, 720);
         vis.SetRenderMode(opengl::WIREFRAME);
         vis.Initialize();
-        vis.AddCamera(ChVector<>(0, -10, 0), ChVector<>(0, 0, 0));
+        vis.AddCamera(ChVector3d(0, -10, 0), ChVector3d(0, 0, 0));
         vis.SetCameraVertical(CameraVerticalDir::Z);
 
         while (time < time_end) {
@@ -330,4 +332,4 @@ INSTANTIATE_TEST_SUITE_P(ChronoMulticore,
                          ChLinActuatorTest,
                          ::testing::Combine(::testing::Values(ChContactMethod::NSC, ChContactMethod::SMC),
                                             ::testing::Values(1.0, 0.5),
-                                            ::testing::Values(QUNIT, Q_from_AngY(CH_C_PI / 4))));
+                                            ::testing::Values(QUNIT, QuatFromAngleY(CH_PI / 4))));

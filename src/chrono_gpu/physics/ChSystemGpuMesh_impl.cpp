@@ -19,7 +19,7 @@
 #include <cmath>
 
 #include "chrono/core/ChGlobal.h"
-#include "chrono/core/ChVector.h"
+#include "chrono/core/ChVector3.h"
 #include "chrono/core/ChQuaternion.h"
 #include "chrono/core/ChMatrix33.h"
 
@@ -68,7 +68,7 @@ double ChSystemGpuMesh_impl::get_max_K() const {
         double sigma_mesh = (1 - std::pow(PoissonRatio_mesh_UU, 2)) / YoungsModulus_mesh_UU;
 
         maxK = 4.0 / (3.0 * (sigma_sphere + std::min(std::min(sigma_sphere, sigma_wall), sigma_mesh))) *
-                      std::sqrt(sphere_radius_UU);
+               std::sqrt(sphere_radius_UU);
         INFO_PRINTF("Use material based contact force model, maximum effective stiffnes is %e\n", maxK);
         return maxK;
 

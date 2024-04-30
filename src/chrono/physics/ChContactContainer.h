@@ -26,7 +26,7 @@
 #include "chrono/collision/ChCollisionInfo.h"
 #include "chrono/physics/ChBody.h"
 #include "chrono/physics/ChContactable.h"
-#include "chrono/physics/ChMaterialSurface.h"
+#include "chrono/physics/ChContactMaterial.h"
 
 namespace chrono {
 
@@ -38,7 +38,7 @@ class ChApi ChContactContainer : public ChPhysicsItem {
     virtual ~ChContactContainer() {}
 
     /// Get the number of added contacts.
-    virtual int GetNcontacts() const = 0;
+    virtual unsigned int GetNumContacts() const = 0;
 
     /// Remove (delete) all contained contact data.
     virtual void RemoveAllContacts() = 0;
@@ -52,8 +52,8 @@ class ChApi ChContactContainer : public ChPhysicsItem {
     /// A compositecontact material is created from the two given materials.
     /// In this case, the collision info object may have null pointers to collision shapes.
     virtual void AddContact(const ChCollisionInfo& cinfo,
-                            std::shared_ptr<ChMaterialSurface> mat1,
-                            std::shared_ptr<ChMaterialSurface> mat2) = 0;
+                            std::shared_ptr<ChContactMaterial> mat1,
+                            std::shared_ptr<ChContactMaterial> mat2) = 0;
 
     /// Add a contact between two collision shapes, storing it into this container.
     /// The collision info object is assumed to contain valid pointers to the two colliding shapes.
@@ -74,17 +74,18 @@ class ChApi ChContactContainer : public ChPhysicsItem {
         /// Callback used to process contact points being added to the container.
         /// A derived user-provided callback class must implement this. The provided
         /// composite material should be downcast to the appropriate type.
-        virtual void OnAddContact(
-            const ChCollisionInfo& contactinfo,  ///< information about the collision pair
-            ChMaterialComposite* const material             ///< composite material can be modified
-            ) = 0;
+        virtual void OnAddContact(const ChCollisionInfo& contactinfo,         ///< information about the collision pair
+                                  ChContactMaterialComposite* const material  ///< composite material can be modified
+                                  ) = 0;
     };
 
     /// Specify a callback object to be used each time a contact point is added to the container.
     /// Note that derived classes may not support this. If supported, the OnAddContact() method
     /// of the provided callback object will be called for each contact pair to allow modifying the
     /// composite material properties.
-    virtual void RegisterAddContactCallback(std::shared_ptr<AddContactCallback> callback) { add_contact_callback = callback; }
+    virtual void RegisterAddContactCallback(std::shared_ptr<AddContactCallback> callback) {
+        add_contact_callback = callback;
+    }
 
     /// Get the callback object to be used each time a contact point is added to the container.
     virtual std::shared_ptr<AddContactCallback> GetAddContactCallback() { return add_contact_callback; }
@@ -99,13 +100,13 @@ class ChApi ChContactContainer : public ChPhysicsItem {
         /// Callback used to report contact points already added to the container.
         /// If it returns false, the contact scanning will be stopped.
         virtual bool OnReportContact(
-            const ChVector<>& pA,             ///< contact pA
-            const ChVector<>& pB,             ///< contact pB
+            const ChVector3d& pA,             ///< contact pA
+            const ChVector3d& pB,             ///< contact pB
             const ChMatrix33<>& plane_coord,  ///< contact plane coordsystem (A column 'X' is contact normal)
             const double& distance,           ///< contact distance
             const double& eff_radius,         ///< effective radius of curvature at contact
-            const ChVector<>& react_forces,   ///< react.forces (if already computed). In coordsystem 'plane_coord'
-            const ChVector<>& react_torques,  ///< react.torques, if rolling friction (if already computed).
+            const ChVector3d& react_forces,   ///< react.forces (if already computed). In coordsystem 'plane_coord'
+            const ChVector3d& react_torques,  ///< react.torques, if rolling friction (if already computed).
             ChContactable* contactobjA,  ///< model A (note: some containers may not support it and could be nullptr)
             ChContactable* contactobjB   ///< model B (note: some containers may not support it and could be nullptr)
             ) = 0;
@@ -119,21 +120,21 @@ class ChApi ChContactContainer : public ChPhysicsItem {
     virtual void ComputeContactForces() {}
 
     /// Return the resultant contact force acting on the specified contactable object.
-    virtual ChVector<> GetContactableForce(ChContactable* contactable) = 0;
+    virtual ChVector3d GetContactableForce(ChContactable* contactable) = 0;
 
     /// Return the resultant contact torque acting on the specified contactable object.
-    virtual ChVector<> GetContactableTorque(ChContactable* contactable) = 0;
+    virtual ChVector3d GetContactableTorque(ChContactable* contactable) = 0;
 
     /// Method for serialization of transient data to archives.
-    virtual void ArchiveOut(ChArchiveOut& marchive);
+    virtual void ArchiveOut(ChArchiveOut& archive_out);
 
     /// Method for de-serialization of transient data from archives.
-    virtual void ArchiveIn(ChArchiveIn& marchive);
+    virtual void ArchiveIn(ChArchiveIn& archive_in);
 
   protected:
     struct ForceTorque {
-        ChVector<> force;
-        ChVector<> torque;
+        ChVector3d force;
+        ChVector3d torque;
     };
 
     std::shared_ptr<AddContactCallback> add_contact_callback;
@@ -151,14 +152,14 @@ class ChApi ChContactContainer : public ChPhysicsItem {
         for (auto contact = contactlist.begin(); contact != contactlist.end(); ++contact) {
             // Extract information for current contact (expressed in global frame)
             ChMatrix33<> A = (*contact)->GetContactPlane();
-            ChVector<> force_loc = (*contact)->GetContactForce();
-            ChVector<> force = A * force_loc;
-            ChVector<> p1 = (*contact)->GetContactP1();
-            ChVector<> p2 = (*contact)->GetContactP2();
+            ChVector3d force_loc = (*contact)->GetContactForce();
+            ChVector3d force = A * force_loc;
+            ChVector3d p1 = (*contact)->GetContactP1();
+            ChVector3d p2 = (*contact)->GetContactP2();
 
             // Calculate contact torque for first object (expressed in global frame).
             // Recall that -force is applied to the first object.
-            ChVector<> torque1(0);
+            ChVector3d torque1(0);
             if (ChBody* body = dynamic_cast<ChBody*>((*contact)->GetObjA())) {
                 torque1 = Vcross(p1 - body->GetPos(), -force);
             }
@@ -176,7 +177,7 @@ class ChApi ChContactContainer : public ChPhysicsItem {
 
             // Calculate contact torque for second object (expressed in global frame).
             // Recall that +force is applied to the second object.
-            ChVector<> torque2(0);
+            ChVector3d torque2(0);
             if (ChBody* body = dynamic_cast<ChBody*>((*contact)->GetObjB())) {
                 torque2 = Vcross(p2 - body->GetPos(), force);
             }

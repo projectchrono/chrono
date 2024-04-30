@@ -29,15 +29,15 @@ namespace utils {
 //    Pa = P1 + mua (P2 - P1)
 //    Pb = P3 + mub (P4 - P3)
 // Return false if no solution exists.
-bool LineLineIntersect(const ChVector<>& p1,
-                       const ChVector<>& p2,
-                       const ChVector<>& p3,
-                       const ChVector<>& p4,
-                       ChVector<>* pa,
-                       ChVector<>* pb,
+bool LineLineIntersect(const ChVector3d& p1,
+                       const ChVector3d& p2,
+                       const ChVector3d& p3,
+                       const ChVector3d& p4,
+                       ChVector3d* pa,
+                       ChVector3d* pb,
                        double* mua,
                        double* mub) {
-    Vector p13, p43, p21;
+    ChVector3d p13, p43, p21;
     double d1343, d4321, d1321, d4343, d2121;
     double numer, denom;
 
@@ -82,18 +82,18 @@ bool LineLineIntersect(const ChVector<>& p1,
 // Calculate distance between a point p and a line identified
 // with segment dA,dB. Returns distance. Also, the mu value reference
 // tells if the nearest projection of point on line falls into segment (for mu 0...1)
-double PointLineDistance(const ChVector<>& p,
-                         const ChVector<>& dA,
-                         const ChVector<>& dB,
+double PointLineDistance(const ChVector3d& p,
+                         const ChVector3d& dA,
+                         const ChVector3d& dB,
                          double& mu,
                          bool& is_insegment) {
     mu = -1.0;
     is_insegment = false;
     double mdist = 10e34;
 
-    Vector vseg = Vsub(dB, dA);
-    Vector vdir = Vnorm(vseg);
-    Vector vray = Vsub(p, dA);
+    ChVector3d vseg = Vsub(dB, dA);
+    ChVector3d vdir = Vnorm(vseg);
+    ChVector3d vray = Vsub(p, dA);
 
     mdist = Vlength(Vcross(vray, vdir));
     mu = Vdot(vray, vdir) / Vlength(vseg);
@@ -106,20 +106,20 @@ double PointLineDistance(const ChVector<>& p,
 
 // Calculate distance of a point from a triangle surface.
 // Also computes if projection is inside the triangle.
-double PointTriangleDistance(const ChVector<>& B,
-                             const ChVector<>& A1,
-                             const ChVector<>& A2,
-                             const ChVector<>& A3,
+double PointTriangleDistance(const ChVector3d& B,
+                             const ChVector3d& A1,
+                             const ChVector3d& A2,
+                             const ChVector3d& A3,
                              double& mu,
                              double& mv,
                              bool& is_into,
-                             ChVector<>& Bprojected) {
+                             ChVector3d& Bprojected) {
     // defaults
     is_into = false;
     mu = mv = -1;
     double mdistance = 10e22;
 
-    Vector Dx, Dy, Dz, T1, T1p;
+    ChVector3d Dx, Dy, Dz, T1, T1p;
 
     Dx = Vsub(A2, A1);
     Dz = Vsub(A3, A1);
@@ -153,15 +153,15 @@ double PointTriangleDistance(const ChVector<>& B,
     return mdistance;
 }
 
-bool DegenerateTriangle(const ChVector<>& Dx, const ChVector<>& Dy) {
-    Vector vcr;
+bool DegenerateTriangle(const ChVector3d& Dx, const ChVector3d& Dy) {
+    ChVector3d vcr;
     vcr = Vcross(Dx, Dy);
     if (fabs(vcr.x()) < EPS_TRIDEGEN && fabs(vcr.y()) < EPS_TRIDEGEN && fabs(vcr.z()) < EPS_TRIDEGEN)
         return true;
     return false;
 }
 
-bool DegenerateTriangle(const ChVector<>& v1, const ChVector<>& v2, const ChVector<>& v3) {
+bool DegenerateTriangle(const ChVector3d& v1, const ChVector3d& v2, const ChVector3d& v3) {
     return DegenerateTriangle(v2 - v1, v3 - v1);
 }
 

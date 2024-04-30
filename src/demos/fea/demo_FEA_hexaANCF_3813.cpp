@@ -19,8 +19,8 @@
 #include "chrono/physics/ChSystemSMC.h"
 #include "chrono/fea/ChElementHexaANCF_3813.h"
 #include "chrono/fea/ChElementBar.h"
-#include "chrono/fea/ChLinkPointFrame.h"
-#include "chrono/fea/ChLinkDirFrame.h"
+#include "chrono/fea/ChLinkNodeFrame.h"
+#include "chrono/fea/ChLinkNodeSlopeFrame.h"
 #include "chrono/assets/ChVisualShapeFEA.h"
 #include "chrono/solver/ChIterativeSolverLS.h"
 #include "chrono_irrlicht/ChVisualSystemIrrlicht.h"
@@ -30,14 +30,14 @@ using namespace chrono::fea;
 using namespace chrono::irrlicht;
 
 int main(int argc, char* argv[]) {
-    GetLog() << "Copyright (c) 2017 projectchrono.org\nChrono version: " << CHRONO_VERSION << "\n\n";
+    std::cout << "Copyright (c) 2017 projectchrono.org\nChrono version: " << CHRONO_VERSION << std::endl;
 
     ChSystemSMC sys;
 
-    GetLog() << "-----------------------------------------------------------\n";
-    GetLog() << "-----------------------------------------------------------\n";
-    GetLog() << "     Brick Elements demo with implicit integration \n";
-    GetLog() << "-----------------------------------------------------------\n";
+    std::cout << "-----------------------------------------------------------\n";
+    std::cout << "-----------------------------------------------------------\n";
+    std::cout << "     Brick Elements demo with implicit integration \n";
+    std::cout << "-----------------------------------------------------------\n";
 
     // The physical system: it contains all physical objects.
     // Create a mesh, that is a container for groups
@@ -80,12 +80,11 @@ int main(int argc, char* argv[]) {
         MPROP(i, 2) = 0.3;      // nu
     }
     auto mmaterial = chrono_types::make_shared<ChContinuumElastic>();
-    mmaterial->Set_RayleighDampingK(0.0);
-    mmaterial->Set_RayleighDampingM(0.0);
-    mmaterial->Set_density(MPROP(0, 0));
-    mmaterial->Set_E(MPROP(0, 1));
-    mmaterial->Set_G(MPROP(0, 1) / (2 + 2 * MPROP(0, 2)));
-    mmaterial->Set_v(MPROP(0, 2));
+    mmaterial->SetRayleighDampingBeta(0.0);
+    mmaterial->SetRayleighDampingAlpha(0.0);
+    mmaterial->SetDensity(MPROP(0, 0));
+    mmaterial->SetYoungModulus(MPROP(0, 1));
+    mmaterial->SetPoissonRatio(MPROP(0, 2));
     //!------------------------------------------------!
     //!--------------- Element data--------------------!
     //!------------------------------------------------!
@@ -150,7 +149,7 @@ int main(int argc, char* argv[]) {
     int i = 0;
     while (i < TotalNumNodes) {
         auto node =
-            chrono_types::make_shared<ChNodeFEAxyz>(ChVector<>(COORDFlex(i, 0), COORDFlex(i, 1), COORDFlex(i, 2)));
+            chrono_types::make_shared<ChNodeFEAxyz>(ChVector3d(COORDFlex(i, 0), COORDFlex(i, 1), COORDFlex(i, 2)));
         node->SetMass(0.0);
         my_mesh->AddNode(node);
         if (NDR(i, 0) == 1 && NDR(i, 1) == 1 && NDR(i, 2) == 1) {
@@ -163,9 +162,8 @@ int main(int argc, char* argv[]) {
     int elemcount = 0;
     while (elemcount < TotalNumElements) {
         auto element = chrono_types::make_shared<ChElementHexaANCF_3813>();
-        ChVector<double> InertFlexVec(
-            ElemLengthXY(elemcount, 0), ElemLengthXY(elemcount, 1),
-            ElemLengthXY(elemcount, 2));  // read element length, used in ChElementHexaANCF_3813
+        ChVector3d InertFlexVec(ElemLengthXY(elemcount, 0), ElemLengthXY(elemcount, 1),
+                                ElemLengthXY(elemcount, 2));  // read element length, used in ChElementHexaANCF_3813
         element->SetInertFlexVec(InertFlexVec);
         element->SetNodes(std::dynamic_pointer_cast<ChNodeFEAxyz>(my_mesh->GetNode(NumNodes(elemcount, 0))),
                           std::dynamic_pointer_cast<ChNodeFEAxyz>(my_mesh->GetNode(NumNodes(elemcount, 1))),
@@ -188,13 +186,13 @@ int main(int argc, char* argv[]) {
         elemcount++;
     }
 
-    sys.Set_G_acc(ChVector<>(0, 0, -9.81));
+    sys.SetGravitationalAcceleration(ChVector3d(0, 0, -9.81));
     // Remember to add the mesh to the system!
     sys.Add(my_mesh);
 
     // Options for visualization in irrlicht
     auto mvisualizemesh = chrono_types::make_shared<ChVisualShapeFEA>(my_mesh);
-    mvisualizemesh->SetFEMdataType(ChVisualShapeFEA::DataType::NODE_P);
+    mvisualizemesh->SetFEMdataType(ChVisualShapeFEA::DataType::NODE_FIELD_VALUE);
     mvisualizemesh->SetShrinkElements(true, 0.85);
     mvisualizemesh->SetSmoothFaces(false);
     my_mesh->AddVisualShapeFEA(mvisualizemesh);
@@ -227,7 +225,7 @@ int main(int argc, char* argv[]) {
     vis->AddLogo();
     vis->AddSkyBox();
     vis->AddTypicalLights();
-    vis->AddCamera(ChVector<>(1.7, 1.0, -1.7), ChVector<>(0.2, 0.2, 0.0));
+    vis->AddCamera(ChVector3d(1.7, 1.0, -1.7), ChVector3d(0.2, 0.2, 0.0));
     vis->AttachSystem(&sys);
 
     // Perform a dynamic time integration:
@@ -242,7 +240,7 @@ int main(int argc, char* argv[]) {
     sys.SetTimestepperType(ChTimestepper::Type::HHT);
     auto mystepper = std::dynamic_pointer_cast<ChTimestepperHHT>(sys.GetTimestepper());
     mystepper->SetAlpha(-0.2);
-    mystepper->SetMaxiters(100);
+    mystepper->SetMaxIters(100);
     mystepper->SetAbsTolerances(1e-3);
 
     while (vis->Run()) {

@@ -12,15 +12,8 @@
 // Authors: Alessandro Tasora
 // =============================================================================
 
-
 #include "chrono/fea/ChBeamSectionCable.h"
 
-
 namespace chrono {
-namespace fea {
-
-
-
-}  // end namespace fea
+namespace fea {}  // end namespace fea
 }  // end namespace chrono
-

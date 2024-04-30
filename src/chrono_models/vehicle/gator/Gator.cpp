@@ -48,7 +48,7 @@ Gator::Gator()
       m_tire_step_size(-1),
       m_tire_mass(0),
       m_initFwdVel(0),
-      m_initPos(ChCoordsys<>(ChVector<>(0, 0, 1), QUNIT)),
+      m_initPos(ChCoordsys<>(ChVector3d(0, 0, 1), QUNIT)),
       m_initOmega({0, 0, 0, 0}),
       m_apply_drag(false),
       m_Cd(0),
@@ -69,7 +69,7 @@ Gator::Gator(ChSystem* system)
       m_tire_step_size(-1),
       m_tire_mass(0),
       m_initFwdVel(0),
-      m_initPos(ChCoordsys<>(ChVector<>(0, 0, 1), QUNIT)),
+      m_initPos(ChCoordsys<>(ChVector3d(0, 0, 1), QUNIT)),
       m_initOmega({0, 0, 0, 0}),
       m_apply_drag(false),
       m_Cd(0),
@@ -108,13 +108,12 @@ void Gator::Initialize() {
     }
 
     // Create and initialize the powertrain system
-    if (true) { // set this to true/false to select one of the two powertrains below
+    if (true) {  // set this to true/false to select one of the two powertrains below
         auto engine = chrono_types::make_shared<Gator_EngineSimple>("Engine");
         auto transmission = chrono_types::make_shared<Gator_AutomaticTransmissionSimple>("Transmission");
         auto powertrain = chrono_types::make_shared<ChPowertrainAssembly>(engine, transmission);
         m_vehicle->InitializePowertrain(powertrain);
-    }
-    else {
+    } else {
         auto engine = chrono_types::make_shared<Gator_EngineSimpleMap>("Engine");
         auto transmission = chrono_types::make_shared<Gator_AutomaticTransmissionSimpleMap>("Transmission");
         auto powertrain = chrono_types::make_shared<ChPowertrainAssembly>(engine, transmission);

@@ -30,7 +30,7 @@
 #endif
 
 #ifdef CHRONO_MUMPS
-#include "chrono_mumps/ChSolverMumps.h"
+    #include "chrono_mumps/ChSolverMumps.h"
 #endif
 
 #include "chrono_vehicle/utils/ChUtilsJSON.h"
@@ -52,14 +52,14 @@ namespace vehicle {
 // Dummy ChWheel subsystem (needed to attach a ChTire)
 class DummyWheel : public ChWheel {
   public:
-    DummyWheel() : ChWheel("tire_wheel"), m_inertia(ChVector<>(0)) {}
+    DummyWheel() : ChWheel("tire_wheel"), m_inertia(ChVector3d(0)) {}
     virtual double GetWheelMass() const override { return 0; }
-    virtual const ChVector<>& GetWheelInertia() const override { return m_inertia; }
+    virtual const ChVector3d& GetWheelInertia() const override { return m_inertia; }
     virtual double GetRadius() const override { return 1; }
     virtual double GetWidth() const override { return 1; }
 
   private:
-    ChVector<> m_inertia;
+    ChVector3d m_inertia;
 };
 
 // =============================================================================
@@ -73,7 +73,7 @@ ChVehicleCosimTireNode::ChVehicleCosimTireNode(int index, const std::string& tir
     // Create the (sequential) SMC system
     m_system = new ChSystemSMC;
     m_system->SetCollisionSystemType(ChCollisionSystem::Type::BULLET);
-    m_system->Set_G_acc(ChVector<>(0, 0, m_gacc));
+    m_system->SetGravitationalAcceleration(ChVector3d(0, 0, m_gacc));
 
     // Create a tire subsystem from JSON specification file (if provided)
     if (!tire_json.empty())
@@ -203,7 +203,7 @@ void ChVehicleCosimTireNode::Initialize() {
     MPI_Recv(&load_mass, 1, MPI_DOUBLE, MBS_NODE_RANK, 0, MPI_COMM_WORLD, &status);
 
     // Overwrite spindle mass and inertia
-    ChVector<> spindle_inertia(1, 1, 1);  //// TODO
+    ChVector3d spindle_inertia(1, 1, 1);  //// TODO
     m_spindle->SetMass(load_mass);
     m_spindle->SetInertiaXX(spindle_inertia);
 
@@ -282,7 +282,7 @@ void ChVehicleCosimTireNode::InitializeSystem() {
             m_system->SetTimestepperType(ChTimestepper::Type::HHT);
             m_integrator = std::static_pointer_cast<ChTimestepperHHT>(m_system->GetTimestepper());
             m_integrator->SetAlpha(-0.2);
-            m_integrator->SetMaxiters(50);
+            m_integrator->SetMaxIters(50);
             m_integrator->SetAbsTolerances(1e-04, 1e2);
             m_integrator->SetStepControl(false);
             m_integrator->SetModifiedNewton(false);
@@ -314,10 +314,10 @@ void ChVehicleCosimTireNode::SynchronizeBody(int step_number, double time) {
     MPI_Recv(state_data, 13, MPI_DOUBLE, MBS_NODE_RANK, step_number, MPI_COMM_WORLD, &status);
 
     BodyState spindle_state;
-    spindle_state.pos = ChVector<>(state_data[0], state_data[1], state_data[2]);
+    spindle_state.pos = ChVector3d(state_data[0], state_data[1], state_data[2]);
     spindle_state.rot = ChQuaternion<>(state_data[3], state_data[4], state_data[5], state_data[6]);
-    spindle_state.lin_vel = ChVector<>(state_data[7], state_data[8], state_data[9]);
-    spindle_state.ang_vel = ChVector<>(state_data[10], state_data[11], state_data[12]);
+    spindle_state.lin_vel = ChVector3d(state_data[7], state_data[8], state_data[9]);
+    spindle_state.ang_vel = ChVector3d(state_data[10], state_data[11], state_data[12]);
 
     // Pass it to derived class
     ApplySpindleState(spindle_state);
@@ -332,8 +332,8 @@ void ChVehicleCosimTireNode::SynchronizeBody(int step_number, double time) {
     MPI_Recv(force_data, 6, MPI_DOUBLE, TERRAIN_NODE_RANK, step_number, MPI_COMM_WORLD, &status);
 
     TerrainForce spindle_force;
-    spindle_force.force = ChVector<>(force_data[0], force_data[1], force_data[2]);
-    spindle_force.moment = ChVector<>(force_data[3], force_data[4], force_data[5]);
+    spindle_force.force = ChVector3d(force_data[0], force_data[1], force_data[2]);
+    spindle_force.moment = ChVector3d(force_data[3], force_data[4], force_data[5]);
 
     if (m_verbose)
         cout << "[Tire node " << m_index << " ] Recv: spindle force = " << spindle_force.force << endl;
@@ -353,10 +353,10 @@ void ChVehicleCosimTireNode::SynchronizeMesh(int step_number, double time) {
     MPI_Recv(state_data, 13, MPI_DOUBLE, MBS_NODE_RANK, step_number, MPI_COMM_WORLD, &status);
 
     BodyState spindle_state;
-    spindle_state.pos = ChVector<>(state_data[0], state_data[1], state_data[2]);
+    spindle_state.pos = ChVector3d(state_data[0], state_data[1], state_data[2]);
     spindle_state.rot = ChQuaternion<>(state_data[3], state_data[4], state_data[5], state_data[6]);
-    spindle_state.lin_vel = ChVector<>(state_data[7], state_data[8], state_data[9]);
-    spindle_state.ang_vel = ChVector<>(state_data[10], state_data[11], state_data[12]);
+    spindle_state.lin_vel = ChVector3d(state_data[7], state_data[8], state_data[9]);
+    spindle_state.ang_vel = ChVector3d(state_data[10], state_data[11], state_data[12]);
 
     // Pass it to derived class.
     ApplySpindleState(spindle_state);
@@ -396,7 +396,7 @@ void ChVehicleCosimTireNode::SynchronizeMesh(int step_number, double time) {
         int index = index_data[iv];
         mesh_contact.vidx[iv] = index;
         mesh_contact.vforce[iv] =
-            ChVector<>(mesh_contact_data[3 * iv + 0], mesh_contact_data[3 * iv + 1], mesh_contact_data[3 * iv + 2]);
+            ChVector3d(mesh_contact_data[3 * iv + 0], mesh_contact_data[3 * iv + 1], mesh_contact_data[3 * iv + 2]);
     }
 
     if (m_verbose)

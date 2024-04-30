@@ -41,7 +41,7 @@ class CH_MODELS_API FMTV_ChassisFront : public ChRigidChassis {
     ~FMTV_ChassisFront() {}
 
     /// Get the location (in the local frame of this chassis) of the connection to the rear chassis.
-    virtual const chrono::ChVector<> GetLocalPosRearConnector() const override { return m_connector_loc; }
+    virtual const chrono::ChVector3d GetLocalPosRearConnector() const override { return m_connector_loc; }
 
     /// Get the local driver position and orientation.
     /// This is a coordinate system relative to the chassis reference frame.
@@ -55,10 +55,10 @@ class CH_MODELS_API FMTV_ChassisFront : public ChRigidChassis {
     ChMatrix33<> m_body_inertia;
 
     static const double m_body_mass;
-    static const ChVector<> m_body_inertiaXX;
-    static const ChVector<> m_body_inertiaXY;
-    static const ChVector<> m_body_COM_loc;
-    static const chrono::ChVector<> m_connector_loc;
+    static const ChVector3d m_body_inertiaXX;
+    static const ChVector3d m_body_inertiaXY;
+    static const ChVector3d m_body_COM_loc;
+    static const chrono::ChVector3d m_connector_loc;
     static const ChCoordsys<> m_driverCsys;
 };
 

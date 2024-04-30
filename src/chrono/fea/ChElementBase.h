@@ -16,7 +16,7 @@
 #define CHELEMENTBASE_H
 
 #include "chrono/physics/ChLoadable.h"
-#include "chrono/core/ChMath.h"
+#include "chrono/core/ChFrame.h"
 #include "chrono/solver/ChSystemDescriptor.h"
 #include "chrono/fea/ChContinuumMaterial.h"
 #include "chrono/fea/ChNodeFEAbase.h"
@@ -39,33 +39,33 @@ class ChApi ChElementBase {
     virtual ~ChElementBase() {}
 
     /// Get the number of nodes used by this element.
-    virtual int GetNnodes() = 0;
+    virtual unsigned int GetNumNodes() = 0;
 
     /// Get the number of coordinates in the field used by the referenced nodes.
     /// This is for example the size (number of rows/columns) of the local stiffness matrix.
-    virtual int GetNdofs() = 0;
+    virtual unsigned int GetNumCoordsPosLevel() = 0;
 
     /// Get the actual number of active degrees of freedom.
-    /// The default implementation returns the full number of DOFs for this element, but some elements may have nodes
-    /// with fixed variables.
-    virtual int GetNdofs_active() { return GetNdofs(); }
+    /// The default implementation returns the full number of coordinates for this element, but some elements may have
+    /// nodes with fixed variables.
+    virtual unsigned int GetNumCoordsPosLevelActive() { return GetNumCoordsPosLevel(); }
 
     /// Get the number of coordinates from the specified node that are used by this element.
-    /// Note that this may be different from the value returned by GetNodeN(n)->GetNdofW().
-    virtual int GetNodeNdofs(int n) = 0;
+    /// Note that this may be different from the value returned by GetNode(n)->GetNumCoordsVelLevel().
+    virtual unsigned int GetNodeNumCoordsPosLevel(unsigned int n) = 0;
 
     /// Get the actual number of active coordinates from the specified node that are used by this element.
-    /// The default implementation returns the full number of DOFs for this element, but some elements may have nodes
-    /// with fixed variables.
-    virtual int GetNodeNdofs_active(int n) { return GetNodeNdofs(n); }
+    /// The default implementation returns the full number of coordinates for this element, but some elements may have
+    /// nodes with fixed variables.
+    virtual unsigned int GetNodeNumCoordsPosLevelActive(unsigned int n) { return GetNodeNumCoordsPosLevel(n); }
 
     /// Access the nth node.
-    virtual std::shared_ptr<ChNodeFEAbase> GetNodeN(int n) = 0;
+    virtual std::shared_ptr<ChNodeFEAbase> GetNode(unsigned int n) = 0;
 
     // FEM functions
 
     /// Fill the D vector with the current field values at the nodes of the element, with proper ordering.
-    /// If the D vector size is not this->GetNdofs(), it will be resized.
+    /// If the D vector size is not this->GetNumCoordsPosLevel(), it will be resized.
     /// For corotational elements, field is assumed in local reference!
     virtual void GetStateBlock(ChVectorDynamic<>& mD) = 0;
 
@@ -87,7 +87,7 @@ class ChApi ChElementBase {
 
     /// Compute the gravitational forces.
     /// Set values in the provided Fi vector (of size equal to the number of dof of element).
-    virtual void ComputeGravityForces(ChVectorDynamic<>& Fi, const ChVector<>& G_acc) = 0;
+    virtual void ComputeGravityForces(ChVectorDynamic<>& Fi, const ChVector3d& G_acc) = 0;
 
     /// Update, called at least at each time step.
     /// If the element has to keep updated some auxiliary data, such as the rotation matrices for corotational approach,
@@ -120,16 +120,17 @@ class ChApi ChElementBase {
     /// contains G_acc values in the proper stride (ex. tetahedrons have 4x copies of G_acc in g).
     /// Note that elements can provide fast implementations that do not need to build any internal M matrix,
     /// and not even the g vector, for instance if using lumped masses.
-    virtual void EleIntLoadResidual_F_gravity(ChVectorDynamic<>& R, const ChVector<>& G_acc, const double c) = 0;
+    virtual void EleIntLoadResidual_F_gravity(ChVectorDynamic<>& R, const ChVector3d& G_acc, const double c) = 0;
 
     // Functions for interfacing to the solver
 
-    /// Indicate that there are item(s) of type ChKblock in this object (for further passing it to a solver)
-    virtual void InjectKRMmatrices(ChSystemDescriptor& mdescriptor) = 0;
+    /// Register with the given system descriptor any ChKRMBlock objects associated with this item.
+    virtual void InjectKRMMatrices(ChSystemDescriptor& descriptor) = 0;
 
-    /// Add the current stiffness K and damping R and mass M matrices in encapsulated ChKblock item(s), if any.
-    /// The K, R, M matrices are added with scaling values Kfactor, Rfactor, Mfactor.
-    virtual void KRMmatricesLoad(double Kfactor, double Rfactor, double Mfactor) = 0;
+    /// Compute and load current stiffnes (K), damping (R), and mass (M) matrices in encapsulated ChKRMBlock objects.
+    /// The resulting KRM blocks represent linear combinations of the K, R, and M matrices, with the specified
+    /// coefficients Kfactor, Rfactor,and Mfactor, respectively.
+    virtual void LoadKRMMatrices(double Kfactor, double Rfactor, double Mfactor) = 0;
 
     /// Add the internal forces, expressed as nodal forces, into the encapsulated ChVariables.
     /// Update the 'fb' part: qf+=forces*factor

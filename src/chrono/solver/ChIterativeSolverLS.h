@@ -56,7 +56,7 @@ All iterative solvers are implemented in a matrix-free context and rely on the s
 SPMV operations. See ChSystemDescriptor for more information about the problem formulation and the data structures
 passed to the solver.
 
-The default value for the maximum number of iterations is twice the matrrix size.
+The default value for the maximum number of iterations is twice the matrix size.
 
 The threshold value specified through #SetTolerance is used by the stopping criteria as an upper bound to the relative
 residual error: |Ax - b|/|b|. Default: machine precision.
@@ -79,6 +79,10 @@ class ChApi ChIterativeSolverLS : public ChIterativeSolver, public ChSolverLS {
 
   protected:
     ChIterativeSolverLS();
+
+    virtual bool IsIterative() const override { return true; }
+    virtual bool IsDirect() const override { return false; }
+    virtual ChIterativeSolver* AsIterative() override { return this; }
 
     /// Indicate whether or not the #Solve() phase requires an up-to-date problem matrix.
     virtual bool SolveRequiresMatrix() const override final { return true; }

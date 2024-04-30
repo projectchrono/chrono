@@ -13,11 +13,11 @@ A typical usage of \ref chrono::irrlicht::ChVisualSystemIrrlicht "irrlicht::ChVi
     auto vis = chrono_types::make_shared<ChVisualSystemIrrlicht>();
     vis->AttachSystem(&sys);
     vis->SetWindowSize(1024, 768);
-    vis->SetWindowTitle("MyDemo");
+    vis->SetWindowTitle("Irrlicht Demo");
     vis->Initialize();
     vis->AddLogo();
     vis->AddSkyBox();
-    vis->AddCamera(ChVector<>(0, 8, 6));
+    vis->AddCamera(ChVector3d(0, 8, 6));
     vis->AddTypicalLights();
 ~~~
 

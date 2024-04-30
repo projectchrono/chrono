@@ -26,11 +26,11 @@
 #include "chrono/collision/ChCollisionModel.h"
 #include "chrono/core/ChFrame.h"
 #include "chrono/core/ChMatrix.h"
-#include "chrono/solver/ChKblockGeneric.h"
+#include "chrono/solver/ChKRMBlock.h"
 #include "chrono/solver/ChSystemDescriptor.h"
 #include "chrono/physics/ChContactContainer.h"
 #include "chrono/physics/ChContactTuple.h"
-#include "chrono/physics/ChMaterialSurfaceSMC.h"
+#include "chrono/physics/ChContactMaterialSMC.h"
 #include "chrono/physics/ChSystemSMC.h"
 #include "chrono/timestepper/ChState.h"
 
@@ -42,24 +42,24 @@ class ChDefaultContactForceTorqueSMC : public ChSystemSMC::ChContactForceTorqueS
     /// Default SMC force calculation algorithm.
     /// This implementation depends on various settings specified at the ChSystemSMC level (such as normal force model,
     /// tangential force model, use of material physical properties, etc).
-    virtual std::pair<ChVector<>,ChVector<>> CalculateForceTorque(
-        const ChSystemSMC& sys,             ///< containing system
-        const ChVector<>& normal_dir,       ///< normal contact direction (expressed in global frame)
-        const ChVector<>& p1,               ///< most penetrated point on obj1 (expressed in global frame)
-        const ChVector<>& p2,               ///< most penetrated point on obj2 (expressed in global frame)
-        const ChVector<>& vel1,             ///< velocity of contact point on obj1 (expressed in global frame)
-        const ChVector<>& vel2,             ///< velocity of contact point on obj2 (expressed in global frame)
-        const ChMaterialCompositeSMC& mat,  ///< composite material for contact pair
-        double delta,                       ///< overlap in normal direction
-        double eff_radius,                  ///< effective radius of curvature at contact
-        double mass1,                       ///< mass of obj1
-        double mass2,                       ///< mass of obj2
-        ChContactable* objA,                ///< pointer to contactable obj1
-	    ChContactable* objB                 ///< pointer to contactable obj2
-        ) const override {
+    virtual ChWrenchd CalculateForceTorque(
+        const ChSystemSMC& sys,                    ///< containing system
+        const ChVector3d& normal_dir,              ///< normal contact direction (expressed in global frame)
+        const ChVector3d& p1,                      ///< most penetrated point on obj1 (expressed in global frame)
+        const ChVector3d& p2,                      ///< most penetrated point on obj2 (expressed in global frame)
+        const ChVector3d& vel1,                    ///< velocity of contact point on obj1 (expressed in global frame)
+        const ChVector3d& vel2,                    ///< velocity of contact point on obj2 (expressed in global frame)
+        const ChContactMaterialCompositeSMC& mat,  ///< composite material for contact pair
+        double delta,                              ///< overlap in normal direction
+        double eff_radius,                         ///< effective radius of curvature at contact
+        double mass1,                              ///< mass of obj1
+        double mass2,                              ///< mass of obj2
+        ChContactable* objA,                       ///< pointer to contactable obj1
+        ChContactable* objB                        ///< pointer to contactable obj2
+    ) const override {
         // Set contact force to zero if no penetration.
         if (delta <= 0) {
-            return std::make_pair(ChVector<>(0, 0, 0), ChVector<>(0, 0, 0));
+            return {VNULL, VNULL};
         }
 
         // Extract parameters from containing system
@@ -70,10 +70,10 @@ class ChDefaultContactForceTorqueSMC : public ChSystemSMC::ChContactForceTorqueS
         ChSystemSMC::TangentialDisplacementModel tdispl_model = sys.GetTangentialDisplacementModel();
 
         // Relative velocity at contact
-        ChVector<> relvel = vel2 - vel1;
+        ChVector3d relvel = vel2 - vel1;
         double relvel_n_mag = relvel.Dot(normal_dir);
-        ChVector<> relvel_n = relvel_n_mag * normal_dir;
-        ChVector<> relvel_t = relvel - relvel_n;
+        ChVector3d relvel_n = relvel_n_mag * normal_dir;
+        ChVector3d relvel_t = relvel - relvel_n;
         double relvel_t_mag = relvel_t.Length();
 
         // Calculate effective mass
@@ -88,7 +88,7 @@ class ChDefaultContactForceTorqueSMC : public ChSystemSMC::ChContactForceTorqueS
         double gn = 0;
         double gt = 0;
 
-        double eps = std::numeric_limits<double>::epsilon();
+        constexpr double eps = std::numeric_limits<double>::epsilon();
 
         switch (contact_model) {
             case ChSystemSMC::Flores:
@@ -99,7 +99,7 @@ class ChDefaultContactForceTorqueSMC : public ChSystemSMC::ChContactForceTorqueS
                     double v2 = sys.GetCharacteristicImpactVelocity() * sys.GetCharacteristicImpactVelocity();
                     double loge = (mat.cr_eff < eps) ? std::log(eps) : std::log(mat.cr_eff);
                     loge = (mat.cr_eff > 1 - eps) ? std::log(1 - eps) : loge;
-                    double tmp_g = 1 + std::pow(CH_C_PI / loge, 2);
+                    double tmp_g = 1 + std::pow(CH_PI / loge, 2);
                     kn = tmp_k * std::pow(eff_mass * v2 / tmp_k, 1.0 / 5);
                     kt = kn;
                     gn = std::sqrt(4 * eff_mass * kn / tmp_g);
@@ -119,7 +119,7 @@ class ChDefaultContactForceTorqueSMC : public ChSystemSMC::ChContactForceTorqueS
                     double Sn = 2 * mat.E_eff * sqrt_Rd;
                     double St = 8 * mat.G_eff * sqrt_Rd;
                     double loge = (mat.cr_eff < eps) ? std::log(eps) : std::log(mat.cr_eff);
-                    double beta = loge / std::sqrt(loge * loge + CH_C_PI * CH_C_PI);
+                    double beta = loge / std::sqrt(loge * loge + CH_PI * CH_PI);
                     kn = (2.0 / 3) * Sn;
                     kt = St;
                     gn = -2 * std::sqrt(5.0 / 6) * beta * std::sqrt(Sn * eff_mass);
@@ -139,7 +139,7 @@ class ChDefaultContactForceTorqueSMC : public ChSystemSMC::ChContactForceTorqueS
                     double sqrt_Rd = std::sqrt(delta);
                     double Sn = 2 * mat.E_eff * sqrt_Rd;
                     double loge = (mat.cr_eff < eps) ? std::log(eps) : std::log(mat.cr_eff);
-                    double beta = loge / std::sqrt(loge * loge + CH_C_PI * CH_C_PI);
+                    double beta = loge / std::sqrt(loge * loge + CH_PI * CH_PI);
                     kn = (2.0 / 3) * Sn;
                     gn = -2 * std::sqrt(5.0 / 6) * beta * std::sqrt(Sn * eff_mass);
                 } else {
@@ -166,11 +166,11 @@ class ChDefaultContactForceTorqueSMC : public ChSystemSMC::ChContactForceTorqueS
                             forceN -= mat.adhesionMultDMT_eff * sqrt(eff_radius);
                             break;
                     }
-                    ChVector<> force = forceN * normal_dir;
+                    ChVector3d force = forceN * normal_dir;
                     if (relvel_t_mag >= sys.GetSlipVelocityThreshold())
                         force -= (forceT / relvel_t_mag) * relvel_t;
 
-                    return std::make_pair(force, ChVector<>(0, 0, 0));  // zero torque anyway
+                    return {force, VNULL};  // zero torque anyway
                 }
         }
 
@@ -215,11 +215,11 @@ class ChDefaultContactForceTorqueSMC : public ChSystemSMC::ChContactForceTorqueS
         forceT = std::min<double>(forceT, mat.mu_eff * std::abs(forceN));
 
         // Accumulate normal and tangential forces
-        ChVector<> force = forceN * normal_dir;
+        ChVector3d force = forceN * normal_dir;
         if (relvel_t_mag >= sys.GetSlipVelocityThreshold())
             force -= (forceT / relvel_t_mag) * relvel_t;
 
-        return std::make_pair(force, ChVector<>(0, 0, 0)); // zero torque anyway
+        return {force, VNULL};  // zero torque anyway
     }
 };
 
@@ -233,123 +233,117 @@ class ChContactSMC : public ChContactTuple<Ta, Tb> {
 
   private:
     struct ChContactJacobian {
-        ChKblockGeneric m_KRM;        ///< sum of scaled K and R, with pointers to sparse variables
+        ChKRMBlock m_KRM;        ///< sum of scaled K and R, with pointers to sparse variables
         ChMatrixDynamic<double> m_K;  ///< K = dQ/dx
         ChMatrixDynamic<double> m_R;  ///< R = dQ/dv
     };
 
-    ChVector<> m_force;        ///< contact force on objB
-    ChVector<> m_torque;       ///< contact torque on objB
+    ChVector3d m_force;        ///< contact force on objB
+    ChVector3d m_torque;       ///< contact torque on objB
     ChContactJacobian* m_Jac;  ///< contact Jacobian data
 
   public:
     ChContactSMC() : m_Jac(NULL) {}
 
-    ChContactSMC(ChContactContainer* mcontainer,           ///< contact container
-                 Ta* mobjA,                                ///< collidable object A
-                 Tb* mobjB,                                ///< collidable object B
-                 const ChCollisionInfo& cinfo,  ///< data for the collision pair
-                 const ChMaterialCompositeSMC& mat         ///< composite material
+    ChContactSMC(ChContactContainer* contact_container,    ///< contact container
+                 Ta* obj_A,                                ///< contactable object A
+                 Tb* obj_B,                                ///< contactable object B
+                 const ChCollisionInfo& cinfo,             ///< data for the collision pair
+                 const ChContactMaterialCompositeSMC& mat  ///< composite material
                  )
-        : ChContactTuple<Ta, Tb>(mcontainer, mobjA, mobjB, cinfo), m_Jac(NULL) {
-        Reset(mobjA, mobjB, cinfo, mat);
+        : ChContactTuple<Ta, Tb>(contact_container, obj_A, obj_B), m_Jac(NULL) {
+        Reset(obj_A, obj_B, cinfo, mat);
     }
 
     ~ChContactSMC() { delete m_Jac; }
 
     /// Get the contact force, if computed, in contact coordinate system
-    virtual ChVector<> GetContactForce() const override { return this->contact_plane.transpose() * m_force; }
+    virtual ChVector3d GetContactForce() const override { return this->contact_plane.transpose() * m_force; }
 
     /// Get the contact torque, if computed, in contact coordinate system
-    virtual ChVector<> GetContactTorque() const override { return this->contact_plane.transpose() * m_torque; }
+    virtual ChVector3d GetContactTorque() const override { return this->contact_plane.transpose() * m_torque; }
 
     /// Get the contact penetration (positive if there is overlap).
     double GetContactPenetration() const { return -this->norm_dist; }
 
     /// Get the contact force, expressed in the absolute frame
-    ChVector<> GetContactForceAbs() const { return m_force; }
+    ChVector3d GetContactForceAbs() const { return m_force; }
 
     /// Get the contact torque, expressed in the absolute frame
-    ChVector<> GetContactTorqueAbs() const { return m_torque; }
+    ChVector3d GetContactTorqueAbs() const { return m_torque; }
 
     /// Access the proxy to the Jacobian.
-    const ChKblockGeneric* GetJacobianKRM() const { return m_Jac ? &(m_Jac->m_KRM) : NULL; }
+    const ChKRMBlock* GetJacobianKRM() const { return m_Jac ? &(m_Jac->m_KRM) : NULL; }
     const ChMatrixDynamic<double>* GetJacobianK() const { return m_Jac ? &(m_Jac->m_K) : NULL; }
     const ChMatrixDynamic<double>* GetJacobianR() const { return m_Jac ? &(m_Jac->m_R) : NULL; }
 
     /// Reinitialize this contact for reuse.
-    void Reset(Ta* mobjA,                                ///< collidable object A
-               Tb* mobjB,                                ///< collidable object B
-               const ChCollisionInfo& cinfo,  ///< data for the collision pair
-               const ChMaterialCompositeSMC& mat         ///< composite material
+    void Reset(Ta* obj_A,                                ///< contactable object A
+               Tb* obj_B,                                ///< contactable object B
+               const ChCollisionInfo& cinfo,             ///< data for the collision pair
+               const ChContactMaterialCompositeSMC& mat  ///< composite material
     ) {
         // Reset geometric information
-        this->Reset_cinfo(mobjA, mobjB, cinfo);
+        this->Reset_cinfo(obj_A, obj_B, cinfo);
 
         // Note: cinfo.distance is the same as this->norm_dist.
         assert(cinfo.distance < 0);
 
         // Calculate contact force.
-        auto m_forcetorque = CalculateForceTorque(-this->norm_dist,                            // overlap (here, always positive)
+        auto wrench =
+            CalculateForceTorque(-this->norm_dist,                            // overlap (here, always positive)
                                  this->normal,                                // normal contact direction
                                  this->objA->GetContactPointSpeed(this->p1),  // velocity of contact point on objA
                                  this->objB->GetContactPointSpeed(this->p2),  // velocity of contact point on objB
                                  mat                                          // composite material for contact pair
-        );
-        m_force  = m_forcetorque.first;
-        m_torque = m_forcetorque.second;
+            );
+        m_force = wrench.force;
+        m_torque = wrench.torque;
 
         // Set up and compute Jacobian matrices.
-        if (static_cast<ChSystemSMC*>(this->container->GetSystem())->GetStiffContact()) {
+        if (static_cast<ChSystemSMC*>(this->container->GetSystem())->IsContactStiff()) {
             CreateJacobians();
             CalculateJacobians(mat);
         }
     }
 
     /// Calculate contact force, and maybe torque too, expressed in absolute coordinates.
-    std::pair<ChVector<>,ChVector<>> CalculateForceTorque(
-        double delta,                      ///< overlap in normal direction
-        const ChVector<>& normal_dir,      ///< normal contact direction (expressed in global frame)
-        const ChVector<>& vel1,            ///< velocity of contact point on objA (expressed in global frame)
-        const ChVector<>& vel2,            ///< velocity of contact point on objB (expressed in global frame)
-        const ChMaterialCompositeSMC& mat  ///< composite material for contact pair
+    ChWrenchd CalculateForceTorque(
+        double delta,                             ///< overlap in normal direction
+        const ChVector3d& normal_dir,             ///< normal contact direction (expressed in global frame)
+        const ChVector3d& vel1,                   ///< velocity of contact point on objA (expressed in global frame)
+        const ChVector3d& vel2,                   ///< velocity of contact point on objB (expressed in global frame)
+        const ChContactMaterialCompositeSMC& mat  ///< composite material for contact pair
     ) {
         // Set contact force to zero if no penetration.
         if (delta <= 0) {
-            return std::make_pair(ChVector<>(0, 0, 0), ChVector<>(0, 0, 0));  
+            return {VNULL, VNULL};
         }
 
         // Use current SMC algorithm to calculate the force
         ChSystemSMC* sys = static_cast<ChSystemSMC*>(this->container->GetSystem());
-        return sys->GetContactForceTorqueAlgorithm().CalculateForceTorque(*sys,                                      
-                                                              normal_dir, this->p1, this->p2, vel1, vel2,  
-                                                              mat,                                         
-                                                              delta, this->eff_radius,                     
-                                                              this->objA->GetContactableMass(),            
-                                                              this->objB->GetContactableMass(),        
-                                                              this->objA,
-                                                              this->objB
-        );
-
+        return sys->GetContactForceTorqueAlgorithm().CalculateForceTorque(
+            *sys, normal_dir, this->p1, this->p2, vel1, vel2, mat, delta, this->eff_radius,
+            this->objA->GetContactableMass(), this->objB->GetContactableMass(), this->objA, this->objB);
     }
 
     /// Compute all forces in a contiguous array.
     /// Used in finite-difference Jacobian approximation.
-    void CalculateQ(const ChState& stateA_x,            ///< state positions for objA
-                    const ChStateDelta& stateA_w,       ///< state velocities for objA
-                    const ChState& stateB_x,            ///< state positions for objB
-                    const ChStateDelta& stateB_w,       ///< state velocities for objB
-                    const ChMaterialCompositeSMC& mat,  ///< composite material for contact pair
-                    ChVectorDynamic<>& Q                ///< output generalized forces
+    void CalculateQ(const ChState& stateA_x,                   ///< state positions for objA
+                    const ChStateDelta& stateA_w,              ///< state velocities for objA
+                    const ChState& stateB_x,                   ///< state positions for objB
+                    const ChStateDelta& stateB_w,              ///< state velocities for objB
+                    const ChContactMaterialCompositeSMC& mat,  ///< composite material for contact pair
+                    ChVectorDynamic<>& Q                       ///< output generalized forces
     ) {
         // Express contact points in local frames.
         // We assume that these points remain fixed to their respective contactable objects.
-        ChVector<> p1_loc = this->objA->GetCsysForCollisionModel().TransformPointParentToLocal(this->p1);
-        ChVector<> p2_loc = this->objB->GetCsysForCollisionModel().TransformPointParentToLocal(this->p2);
+        ChVector3d p1_loc = this->objA->GetCollisionModelFrame().TransformPointParentToLocal(this->p1);
+        ChVector3d p2_loc = this->objB->GetCollisionModelFrame().TransformPointParentToLocal(this->p2);
 
         // Express the local points in global frame
-        ChVector<> p1_abs = this->objA->GetContactPoint(p1_loc, stateA_x);
-        ChVector<> p2_abs = this->objB->GetContactPoint(p2_loc, stateB_x);
+        ChVector3d p1_abs = this->objA->GetContactPoint(p1_loc, stateA_x);
+        ChVector3d p2_abs = this->objB->GetContactPoint(p2_loc, stateB_x);
 
         /*
             Note: while this can be somewhat justified for a ChBody, it will not work
@@ -361,7 +355,7 @@ class ChContactSMC : public ChContactTuple<Ta, Tb> {
         */
 
         // Calculate normal direction (expressed in global frame)
-        ChVector<> normal_dir = (p1_abs - p2_abs).GetNormalized();
+        ChVector3d normal_dir = (p1_abs - p2_abs).GetNormalized();
 
         // Calculate penetration depth
         double delta = (p1_abs - p2_abs).Length();
@@ -371,17 +365,17 @@ class ChContactSMC : public ChContactTuple<Ta, Tb> {
             delta = -delta;
 
         // Calculate velocity of contact points (expressed in global frame)
-        ChVector<> vel1 = this->objA->GetContactPointSpeed(p1_loc, stateA_x, stateA_w);
-        ChVector<> vel2 = this->objB->GetContactPointSpeed(p2_loc, stateB_x, stateB_w);
+        ChVector3d vel1 = this->objA->GetContactPointSpeed(p1_loc, stateA_x, stateA_w);
+        ChVector3d vel2 = this->objB->GetContactPointSpeed(p2_loc, stateB_x, stateB_w);
 
         // Compute the contact force and torque
-        auto m_forcetorque = CalculateForceTorque(delta, normal_dir, vel1, vel2, mat);
-        auto m_force  = m_forcetorque.first;
-        auto m_torque = m_forcetorque.second;
+        auto wrench = CalculateForceTorque(delta, normal_dir, vel1, vel2, mat);
+        auto force = wrench.force;
+        auto torque = wrench.torque;
 
         // Compute and load the generalized contact forces.
-        this->objA->ContactComputeQ(-m_force, -m_torque, p1_abs, stateA_x, Q, 0);
-        this->objB->ContactComputeQ(m_force, m_torque, p2_abs, stateB_x, Q, this->objA->ContactableGet_ndof_w());
+        this->objA->ContactComputeQ(-force, -torque, p1_abs, stateA_x, Q, 0);
+        this->objB->ContactComputeQ(force, torque, p2_abs, stateB_x, Q, this->objA->GetContactableNumCoordsVelLevel());
     }
 
     /// Create the Jacobian matrices.
@@ -401,23 +395,23 @@ class ChContactSMC : public ChContactTuple<Ta, Tb> {
             vars.push_back(objA_333->GetVariables2());
             vars.push_back(objA_333->GetVariables3());
         }
-        ndof_w += this->objA->ContactableGet_ndof_w();
+        ndof_w += this->objA->GetContactableNumCoordsVelLevel();
 
         vars.push_back(this->objB->GetVariables1());
         if (auto objB_333 = dynamic_cast<ChContactable_3vars<3, 3, 3>*>(this->objB)) {
             vars.push_back(objB_333->GetVariables2());
             vars.push_back(objB_333->GetVariables3());
         }
-        ndof_w += this->objB->ContactableGet_ndof_w();
+        ndof_w += this->objB->GetContactableNumCoordsVelLevel();
 
         m_Jac->m_KRM.SetVariables(vars);
         m_Jac->m_K.setZero(ndof_w, ndof_w);
         m_Jac->m_R.setZero(ndof_w, ndof_w);
-        assert(m_Jac->m_KRM.Get_K().cols() == ndof_w);
+        assert(m_Jac->m_KRM.GetMatrix().cols() == ndof_w);
     }
 
     /// Calculate Jacobian of generalized contact forces.
-    void CalculateJacobians(const ChMaterialCompositeSMC& mat) {
+    void CalculateJacobians(const ChContactMaterialCompositeSMC& mat) {
         // Compute a finite-difference approximations to the Jacobians of the contact forces and
         // load dQ/dx into m_Jac->m_K and dQ/dw into m_Jac->m_R.
         // Note that we only calculate these Jacobians whenever the contact force itself is calculated,
@@ -425,20 +419,20 @@ class ChContactSMC : public ChContactTuple<Ta, Tb> {
         // constant over the time step.
 
         // Get states for objA
-        int ndofA_x = this->objA->ContactableGet_ndof_x();
-        int ndofA_w = this->objA->ContactableGet_ndof_w();
+        int ndofA_x = this->objA->GetContactableNumCoordsPosLevel();
+        int ndofA_w = this->objA->GetContactableNumCoordsVelLevel();
         ChState stateA_x(ndofA_x, NULL);
         ChStateDelta stateA_w(ndofA_w, NULL);
-        this->objA->ContactableGetStateBlock_x(stateA_x);
-        this->objA->ContactableGetStateBlock_w(stateA_w);
+        this->objA->ContactableGetStateBlockPosLevel(stateA_x);
+        this->objA->ContactableGetStateBlockVelLevel(stateA_w);
 
         // Get states for objB
-        int ndofB_x = this->objB->ContactableGet_ndof_x();
-        int ndofB_w = this->objB->ContactableGet_ndof_w();
+        int ndofB_x = this->objB->GetContactableNumCoordsPosLevel();
+        int ndofB_w = this->objB->GetContactableNumCoordsVelLevel();
         ChState stateB_x(ndofB_x, NULL);
         ChStateDelta stateB_w(ndofB_w, NULL);
-        this->objB->ContactableGetStateBlock_x(stateB_x);
-        this->objB->ContactableGetStateBlock_w(stateB_w);
+        this->objB->ContactableGetStateBlockPosLevel(stateB_x);
+        this->objB->ContactableGetStateBlockVelLevel(stateB_w);
 
         // Compute Q at current state
         ChVectorDynamic<> Q0(ndofA_w + ndofB_w);
@@ -492,8 +486,8 @@ class ChContactSMC : public ChContactTuple<Ta, Tb> {
     /// Apply contact forces to the two objects.
     /// (new version, for interfacing to ChTimestepper and ChIntegrable)
     virtual void ContIntLoadResidual_F(ChVectorDynamic<>& R, const double c) override {
-        ChVector<> abs_force_scaled(m_force * c);
-        ChVector<> abs_torque_scaled(m_torque * c);
+        ChVector3d abs_force_scaled(m_force * c);
+        ChVector3d abs_torque_scaled(m_torque * c);
 
         if (this->objA->IsContactActive())
             this->objA->ContactForceLoadResidual_F(-abs_force_scaled, -abs_torque_scaled, this->p1, R);
@@ -503,20 +497,20 @@ class ChContactSMC : public ChContactTuple<Ta, Tb> {
     }
 
     /// Inject Jacobian blocks into the system descriptor.
-    /// Tell to a system descriptor that there are item(s) of type ChKblock in this object
+    /// Tell to a system descriptor that there are item(s) of type ChKRMBlock in this object
     /// (for further passing it to a solver)
     virtual void ContInjectKRMmatrices(ChSystemDescriptor& mdescriptor) override {
         if (m_Jac)
-            mdescriptor.InsertKblock(&m_Jac->m_KRM);
+            mdescriptor.InsertKRMBlock(&m_Jac->m_KRM);
     }
 
     /// Compute Jacobian of contact forces.
     virtual void ContKRMmatricesLoad(double Kfactor, double Rfactor) override {
         if (m_Jac) {
-            m_Jac->m_KRM.Get_K().setZero();
+            m_Jac->m_KRM.GetMatrix().setZero();
 
-            m_Jac->m_KRM.Get_K() += m_Jac->m_K * Kfactor;
-            m_Jac->m_KRM.Get_K() += m_Jac->m_R * Rfactor;
+            m_Jac->m_KRM.GetMatrix() += m_Jac->m_K * Kfactor;
+            m_Jac->m_KRM.GetMatrix() += m_Jac->m_R * Rfactor;
         }
     }
 };

@@ -43,6 +43,144 @@ class ChApi ChContactContainerNSC : public ChContactContainer {
 
     typedef ChContactNSCrolling<ChContactable_1vars<6>, ChContactable_1vars<6> > ChContactNSCrolling_6_6;
 
+  public:
+    ChContactContainerNSC();
+    ChContactContainerNSC(const ChContactContainerNSC& other);
+    virtual ~ChContactContainerNSC();
+
+    /// "Virtual" copy constructor (covariant return type).
+    virtual ChContactContainerNSC* Clone() const override { return new ChContactContainerNSC(*this); }
+
+    /// Report the number of added contacts.
+    virtual unsigned int GetNumContacts() const override {
+        return n_added_3_3 + n_added_6_3 + n_added_6_6 + n_added_333_3 + n_added_333_6 + n_added_333_333 +
+               n_added_666_3 + n_added_666_6 + n_added_666_333 + n_added_666_666 + n_added_6_6_rolling;
+    }
+
+    /// Remove (delete) all contained contact data.
+    virtual void RemoveAllContacts() override;
+
+    /// The collision system will call BeginAddContact() before adding all contacts (for example with AddContact() or
+    /// similar). Instead of simply deleting all list of the previous contacts, this optimized implementation rewinds
+    /// the link iterator to begin and tries to reuse previous contact objects until possible, to avoid too much
+    /// allocation/deallocation.
+    virtual void BeginAddContact() override;
+
+    /// Add a contact between two collision shapes, storing it into this container.
+    /// A compositecontact material is created from the two given materials.
+    /// In this case, the collision info object may have null pointers to collision shapes.
+    virtual void AddContact(const ChCollisionInfo& cinfo,
+                            std::shared_ptr<ChContactMaterial> mat1,
+                            std::shared_ptr<ChContactMaterial> mat2) override;
+
+    /// Add a contact between two collision shapes, storing it into this container.
+    /// The collision info object is assumed to contain valid pointers to the two colliding shapes.
+    /// A composite contact material is created from their material properties.
+    virtual void AddContact(const ChCollisionInfo& cinfo) override;
+
+    /// The collision system will call BeginAddContact() after adding all contacts (for example with AddContact() or
+    /// similar). This optimized version purges the end of the list of contacts that were not reused (if any).
+    virtual void EndAddContact() override;
+
+    /// Scan all the contacts and for each contact executes the OnReportContact() function of the provided callback
+    /// object.
+    virtual void ReportAllContacts(std::shared_ptr<ReportContactCallback> callback) override;
+
+    /// Class to be used as a NSC-specific callback interface for some user defined action to be taken
+    /// for each contact (already added to the container, maybe with already computed forces).
+    /// It can be used to report or post-process contacts.
+    /// It also tells the offset of the contact (first component, normal) in the vector of lagrangian multipliers,
+    /// if this info is not needed, you can just use ChContactContainer::ReportContactCallback
+    class ChApi ReportContactCallbackNSC {
+      public:
+        virtual ~ReportContactCallbackNSC() {}
+
+        /// Callback used to report contact points already added to the container.
+        /// If it returns false, the contact scanning will be stopped.
+        virtual bool OnReportContact(
+            const ChVector3d& pA,             ///< contact pA
+            const ChVector3d& pB,             ///< contact pB
+            const ChMatrix33<>& plane_coord,  ///< contact plane coordsystem (A column 'X' is contact normal)
+            const double& distance,           ///< contact distance
+            const double& eff_radius,         ///< effective radius of curvature at contact
+            const ChVector3d& react_forces,   ///< react.forces (if already computed). In coordsystem 'plane_coord'
+            const ChVector3d& react_torques,  ///< react.torques, if rolling friction (if already computed).
+            ChContactable* contactobjA,  ///< model A (note: some containers may not support it and could be nullptr)
+            ChContactable* contactobjB,  ///< model B (note: some containers may not support it and could be nullptr)
+            const int offset  ///< offset of the first constraint (the normal component) in the vector of lagrangian
+                              ///< multipliers, if already book-keeped
+            ) = 0;
+    };
+
+    /// Scan all the NSC contacts and for each contact executes the OnReportContact() function of the provided callback
+    /// object.
+    virtual void ReportAllContactsNSC(std::shared_ptr<ReportContactCallbackNSC> callback);
+
+    /// Report the number of scalar unilateral constraints.
+    /// Note: friction constraints aren't exactly unilaterals, but they are still counted.
+    virtual unsigned int GetNumConstraintsUnilateral() override {
+        return 3 * (n_added_3_3 + n_added_6_3 + n_added_6_6 + n_added_333_3 + n_added_333_6 + n_added_333_333 +
+                    n_added_666_3 + n_added_666_6 + n_added_666_333 + n_added_666_666) +
+               6 * (n_added_6_6_rolling);
+    }
+
+    /// Objects will rebounce only if their relative colliding speed is above this threshold.
+    double GetMinBounceSpeed() const { return min_bounce_speed; }
+
+    /// Update state of this contact container: compute jacobians, violations, etc.
+    /// and store results in inner structures of contacts.
+    virtual void Update(double mtime, bool update_assets = true) override;
+
+    /// Compute contact forces on all contactable objects in this container.
+    /// This function caches contact forces in a map.
+    virtual void ComputeContactForces() override;
+
+    /// Return the resultant contact force acting on the specified contactable object.
+    virtual ChVector3d GetContactableForce(ChContactable* contactable) override;
+
+    /// Return the resultant contact torque acting on the specified contactable object.
+    virtual ChVector3d GetContactableTorque(ChContactable* contactable) override;
+
+    // STATE FUNCTIONS
+
+    virtual void IntStateGatherReactions(const unsigned int off_L, ChVectorDynamic<>& L) override;
+    virtual void IntStateScatterReactions(const unsigned int off_L, const ChVectorDynamic<>& L) override;
+    virtual void IntLoadResidual_CqL(const unsigned int off_L,
+                                     ChVectorDynamic<>& R,
+                                     const ChVectorDynamic<>& L,
+                                     const double c) override;
+    virtual void IntLoadConstraint_C(const unsigned int off,
+                                     ChVectorDynamic<>& Qc,
+                                     const double c,
+                                     bool do_clamp,
+                                     double recovery_clamp) override;
+    virtual void IntToDescriptor(const unsigned int off_v,
+                                 const ChStateDelta& v,
+                                 const ChVectorDynamic<>& R,
+                                 const unsigned int off_L,
+                                 const ChVectorDynamic<>& L,
+                                 const ChVectorDynamic<>& Qc) override;
+    virtual void IntFromDescriptor(const unsigned int off_v,
+                                   ChStateDelta& v,
+                                   const unsigned int off_L,
+                                   ChVectorDynamic<>& L) override;
+
+    // SOLVER INTERFACE
+
+    virtual void InjectConstraints(ChSystemDescriptor& descriptor) override;
+    virtual void ConstraintsBiReset() override;
+    virtual void ConstraintsBiLoad_C(double factor = 1, double recovery_clamp = 0.1, bool do_clamp = false) override;
+    virtual void LoadConstraintJacobians() override;
+    virtual void ConstraintsFetch_react(double factor = 1) override;
+
+    // SERIALIZATION
+
+    /// Method to allow serialization of transient data to archives.
+    virtual void ArchiveOut(ChArchiveOut& archive_out) override;
+
+    /// Method to allow de-serialization of transient data from archives.
+    virtual void ArchiveIn(ChArchiveIn& archive_in) override;
+
   protected:
     std::list<ChContactNSC_6_6*> contactlist_6_6;
     std::list<ChContactNSC_6_3*> contactlist_6_3;
@@ -84,148 +222,12 @@ class ChApi ChContactContainerNSC : public ChContactContainer {
 
     std::unordered_map<ChContactable*, ForceTorque> contact_forces;
 
-  public:
-    ChContactContainerNSC();
-    ChContactContainerNSC(const ChContactContainerNSC& other);
-    virtual ~ChContactContainerNSC();
-
-    /// "Virtual" copy constructor (covariant return type).
-    virtual ChContactContainerNSC* Clone() const override { return new ChContactContainerNSC(*this); }
-
-    /// Report the number of added contacts.
-    virtual int GetNcontacts() const override {
-        return n_added_3_3 + n_added_6_3 + n_added_6_6 + n_added_333_3 + n_added_333_6 + n_added_333_333 +
-               n_added_666_3 + n_added_666_6 + n_added_666_333 + n_added_666_666 + n_added_6_6_rolling;
-    }
-
-    /// Remove (delete) all contained contact data.
-    virtual void RemoveAllContacts() override;
-
-    /// The collision system will call BeginAddContact() before adding all contacts (for example with AddContact() or
-    /// similar). Instead of simply deleting all list of the previous contacts, this optimized implementation rewinds
-    /// the link iterator to begin and tries to reuse previous contact objects until possible, to avoid too much
-    /// allocation/deallocation.
-    virtual void BeginAddContact() override;
-
-    /// Add a contact between two collision shapes, storing it into this container.
-    /// A compositecontact material is created from the two given materials.
-    /// In this case, the collision info object may have null pointers to collision shapes.
-    virtual void AddContact(const ChCollisionInfo& cinfo,
-                            std::shared_ptr<ChMaterialSurface> mat1,
-                            std::shared_ptr<ChMaterialSurface> mat2) override;
-
-    /// Add a contact between two collision shapes, storing it into this container.
-    /// The collision info object is assumed to contain valid pointers to the two colliding shapes.
-    /// A composite contact material is created from their material properties.
-    virtual void AddContact(const ChCollisionInfo& cinfo) override;
-
-    /// The collision system will call BeginAddContact() after adding all contacts (for example with AddContact() or
-    /// similar). This optimized version purges the end of the list of contacts that were not reused (if any).
-    virtual void EndAddContact() override;
-
-    /// Scan all the contacts and for each contact executes the OnReportContact() function of the provided callback
-    /// object.
-    virtual void ReportAllContacts(std::shared_ptr<ReportContactCallback> callback) override;
-
-    /// Class to be used as a NSC-specific callback interface for some user defined action to be taken
-    /// for each contact (already added to the container, maybe with already computed forces).
-    /// It can be used to report or post-process contacts. 
-    /// It also tells the offset of the contact (first component, normal) in the vector of lagrangian multipliers,
-    /// if this info is not needed, you can just use ChContactContainer::ReportContactCallback
-    class ChApi ReportContactCallbackNSC {
-      public:
-        virtual ~ReportContactCallbackNSC() {}
-
-        /// Callback used to report contact points already added to the container.
-        /// If it returns false, the contact scanning will be stopped.
-        virtual bool OnReportContact(
-            const ChVector<>& pA,             ///< contact pA
-            const ChVector<>& pB,             ///< contact pB
-            const ChMatrix33<>& plane_coord,  ///< contact plane coordsystem (A column 'X' is contact normal)
-            const double& distance,           ///< contact distance
-            const double& eff_radius,         ///< effective radius of curvature at contact
-            const ChVector<>& react_forces,   ///< react.forces (if already computed). In coordsystem 'plane_coord'
-            const ChVector<>& react_torques,  ///< react.torques, if rolling friction (if already computed).
-            ChContactable* contactobjA,  ///< model A (note: some containers may not support it and could be nullptr)
-            ChContactable* contactobjB,  ///< model B (note: some containers may not support it and could be nullptr)
-            const int offset  ///< offset of the first constraint (the normal component) in the vector of lagrangian multipliers, if already book-keeped
-            ) = 0;
-    };
-
-    /// Scan all the NSC contacts and for each contact executes the OnReportContact() function of the provided callback
-    /// object.
-    virtual void ReportAllContactsNSC(std::shared_ptr<ReportContactCallbackNSC> callback);
-
-    /// Report the number of scalar unilateral constraints.
-    /// Note: friction constraints aren't exactly unilaterals, but they are still counted.
-    virtual int GetDOC_d() override {
-        return 3 * (n_added_3_3 + n_added_6_3 + n_added_6_6 + n_added_333_3 + n_added_333_6 + n_added_333_333 +
-                    n_added_666_3 + n_added_666_6 + n_added_666_333 + n_added_666_666) +
-               6 * (n_added_6_6_rolling);
-    }
-
-    /// Update state of this contact container: compute jacobians, violations, etc.
-    /// and store results in inner structures of contacts.
-    virtual void Update(double mtime, bool update_assets = true) override;
-
-    /// Compute contact forces on all contactable objects in this container.
-    /// This function caches contact forces in a map.
-    virtual void ComputeContactForces() override;
-
-    /// Return the resultant contact force acting on the specified contactable object.
-    virtual ChVector<> GetContactableForce(ChContactable* contactable) override;
-
-    /// Return the resultant contact torque acting on the specified contactable object.
-    virtual ChVector<> GetContactableTorque(ChContactable* contactable) override;
-
-    //
-    // STATE FUNCTIONS
-    //
-
-    virtual void IntStateGatherReactions(const unsigned int off_L, ChVectorDynamic<>& L) override;
-    virtual void IntStateScatterReactions(const unsigned int off_L, const ChVectorDynamic<>& L) override;
-    virtual void IntLoadResidual_CqL(const unsigned int off_L,
-                                     ChVectorDynamic<>& R,
-                                     const ChVectorDynamic<>& L,
-                                     const double c) override;
-    virtual void IntLoadConstraint_C(const unsigned int off,
-                                     ChVectorDynamic<>& Qc,
-                                     const double c,
-                                     bool do_clamp,
-                                     double recovery_clamp) override;
-    virtual void IntToDescriptor(const unsigned int off_v,
-                                 const ChStateDelta& v,
-                                 const ChVectorDynamic<>& R,
-                                 const unsigned int off_L,
-                                 const ChVectorDynamic<>& L,
-                                 const ChVectorDynamic<>& Qc) override;
-    virtual void IntFromDescriptor(const unsigned int off_v,
-                                   ChStateDelta& v,
-                                   const unsigned int off_L,
-                                   ChVectorDynamic<>& L) override;
-
-    //
-    // SOLVER INTERFACE
-    //
-
-    virtual void InjectConstraints(ChSystemDescriptor& mdescriptor) override;
-    virtual void ConstraintsBiReset() override;
-    virtual void ConstraintsBiLoad_C(double factor = 1, double recovery_clamp = 0.1, bool do_clamp = false) override;
-    virtual void ConstraintsLoadJacobians() override;
-    virtual void ConstraintsFetch_react(double factor = 1) override;
-
-    //
-    // SERIALIZATION
-    //
-
-    /// Method to allow serialization of transient data to archives.
-    virtual void ArchiveOut(ChArchiveOut& marchive) override;
-
-    /// Method to allow de-serialization of transient data from archives.
-    virtual void ArchiveIn(ChArchiveIn& marchive) override;
-
   private:
-    void InsertContact(const ChCollisionInfo& cinfo, const ChMaterialCompositeNSC& cmat);
+    void InsertContact(const ChCollisionInfo& cinfo, const ChContactMaterialCompositeNSC& cmat);
+
+    double min_bounce_speed;  ///< minimum speed for rebounce after impacts. Lower speeds are clamped to 0
+
+    friend class ChSystemNSC;
 };
 
 CH_CLASS_VERSION(ChContactContainerNSC, 0)

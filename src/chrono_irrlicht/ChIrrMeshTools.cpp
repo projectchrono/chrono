@@ -353,9 +353,9 @@ IMesh* createCapsuleMesh(f32 radius, f32 hlen, u32 numSegV, u32 numSegR) {
     video::S3DVertex v;
     v.Color = color;
 
-    const auto f_PI = f32(CH_C_PI);
-    const auto f_PI2 = f32(CH_C_PI_2);
-    const auto f_2PI = f32(CH_C_2PI);
+    const auto f_PI = f32(CH_PI);
+    const auto f_PI2 = f32(CH_PI_2);
+    const auto f_2PI = f32(CH_2PI);
 
     // Calculate a ratio for mapping the texture v-coordinate.
     auto vRatio = (f_PI2 * radius) / (f_PI * radius + 2 * hlen);
@@ -566,7 +566,6 @@ IMesh* createTruncatedConeMesh(f32 radius_top, f32 radius_low, f32 length, u32 t
     return mesh;
 }
 
-
 /*
 IMesh* createTruncatedConeMesh(f32 radius_top, f32 radius_low, f32 length, u32 tesselation) {
     irr::video::SColor color(255, 255, 255, 255);
@@ -699,8 +698,8 @@ IMesh* createTruncatedConeMesh(f32 radius_top, f32 radius_low, f32 length, u32 t
 // It is used to convert an Irrlicht mesh into a ChTriangleMesh, which is used
 // for collision detection in Chrono::Engine.
 // -----------------------------------------------------------------------------
-void fillChTrimeshFromIrlichtMesh(chrono::geometry::ChTriangleMesh* chTrimesh, IMesh* pMesh) {
-    chrono::ChVector<> vertices[3];
+void fillChTrimeshFromIrlichtMesh(chrono::ChTriangleMesh* chTrimesh, IMesh* pMesh) {
+    chrono::ChVector3d vertices[3];
     u32 i, j, k, index, numVertices;
     u16* mb_indices;
 
@@ -718,12 +717,12 @@ void fillChTrimeshFromIrlichtMesh(chrono::geometry::ChTriangleMesh* chTrimesh, I
                 for (k = 0; k < 3; k++) {                   // three verts per triangle
                     index = mb_indices[j + k];
                     if (index > numVertices)
-                        throw(chrono::ChException(
-                            "Cannot convert corrupted Irrlicht mesh in ChronoEngine ChTriangleMesh."));
-                    vertices[k] = chrono::ChVector<>(mb_vertices[index].Pos.X, mb_vertices[index].Pos.Y,
+                        throw std::runtime_error(
+                            "Cannot convert corrupted Irrlicht mesh in ChronoEngine ChTriangleMesh.");
+                    vertices[k] = chrono::ChVector3d(mb_vertices[index].Pos.X, mb_vertices[index].Pos.Y,
                                                      mb_vertices[index].Pos.Z);
                 }
-                chTrimesh->addTriangle(vertices[0], vertices[1], vertices[2]);
+                chTrimesh->AddTriangle(vertices[0], vertices[1], vertices[2]);
             }
         } else if (mb->getVertexType() == irr::video::EVT_2TCOORDS) {
             // same but for S3DVertex2TCoords data
@@ -734,12 +733,12 @@ void fillChTrimeshFromIrlichtMesh(chrono::geometry::ChTriangleMesh* chTrimesh, I
                 for (k = 0; k < 3; k++) {
                     index = mb_indices[j + k];
                     if (index > numVertices)
-                        throw(chrono::ChException(
-                            "Cannot convert corrupted Irrlicht mesh in ChronoEngine ChTriangleMesh."));
-                    vertices[k] = chrono::ChVector<>(mb_vertices[index].Pos.X, mb_vertices[index].Pos.Y,
+                        throw std::runtime_error(
+                            "Cannot convert corrupted Irrlicht mesh in ChronoEngine ChTriangleMesh.");
+                    vertices[k] = chrono::ChVector3d(mb_vertices[index].Pos.X, mb_vertices[index].Pos.Y,
                                                      mb_vertices[index].Pos.Z);
                 }
-                chTrimesh->addTriangle(vertices[0], vertices[1], vertices[2]);
+                chTrimesh->AddTriangle(vertices[0], vertices[1], vertices[2]);
             }
         }
         // for EVT_TANGENTS vertex type, do nothing
@@ -754,23 +753,23 @@ void fillChTrimeshFromIrlichtMesh(chrono::geometry::ChTriangleMesh* chTrimesh, I
 //
 // ***OBSOLETE***
 // -----------------------------------------------------------------------------
-void fillIrlichtMeshFromChTrimesh(IMesh* pMesh, chrono::geometry::ChTriangleMesh* chTrimesh, irr::video::SColor clr) {
+void fillIrlichtMeshFromChTrimesh(IMesh* pMesh, chrono::ChTriangleMesh* chTrimesh, irr::video::SColor clr) {
     SMeshBuffer* buffer = new SMeshBuffer();
 
     // From index-less triangle soup
-    buffer->Vertices.set_used(chTrimesh->getNumTriangles() * 3);
-    buffer->Indices.set_used(chTrimesh->getNumTriangles() * 3);
+    buffer->Vertices.set_used(chTrimesh->GetNumTriangles() * 3);
+    buffer->Indices.set_used(chTrimesh->GetNumTriangles() * 3);
 
-    for (int i = 0; i < chTrimesh->getNumTriangles(); i++) {
-        chrono::ChVector<> normal = chTrimesh->getTriangle(i).GetNormal();
-        chrono::ChVector<> pos;
-        pos = chTrimesh->getTriangle(i).p1;
+    for (unsigned int i = 0; i < chTrimesh->GetNumTriangles(); i++) {
+        chrono::ChVector3d normal = chTrimesh->GetTriangle(i).GetNormal();
+        chrono::ChVector3d pos;
+        pos = chTrimesh->GetTriangle(i).p1;
         buffer->Vertices[i * 3 + 0] = irr::video::S3DVertex((f32)pos.x(), (f32)pos.y(), (f32)pos.z(), (f32)normal.x(),
                                                             (f32)normal.y(), (f32)normal.z(), clr, 0, 0);
-        pos = chTrimesh->getTriangle(i).p2;
+        pos = chTrimesh->GetTriangle(i).p2;
         buffer->Vertices[i * 3 + 1] = irr::video::S3DVertex((f32)pos.x(), (f32)pos.y(), (f32)pos.z(), (f32)normal.x(),
                                                             (f32)normal.y(), (f32)normal.z(), clr, 0, 0);
-        pos = chTrimesh->getTriangle(i).p3;
+        pos = chTrimesh->GetTriangle(i).p3;
         buffer->Vertices[i * 3 + 2] = irr::video::S3DVertex((f32)pos.x(), (f32)pos.y(), (f32)pos.z(), (f32)normal.x(),
                                                             (f32)normal.y(), (f32)normal.z(), clr, 0, 0);
         buffer->Indices[i * 3 + 0] = i * 3 + 0;

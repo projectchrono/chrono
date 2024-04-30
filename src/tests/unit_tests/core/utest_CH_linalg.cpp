@@ -18,7 +18,7 @@
 
 #include "chrono/core/ChMatrix.h"
 #include "chrono/core/ChMatrixMBD.h"
-#include "chrono/core/ChTransform.h"
+#include "chrono/core/ChRotation.h"
 
 #include "gtest/gtest.h"
 
@@ -32,19 +32,19 @@ TEST(LinearAlgebraTest, create_assign) {
     ChMatrixDynamic<> Md1(5, 7);
     ChMatrixDynamic<> Md2(4, 4);
     ChMatrixNM<double, 4, 4> Ms;
-    ChMatrix33<> A33(Q_from_AngY(0.4));
+    ChMatrix33<> A33(QuatFromAngleY(0.4));
 
     Ms.setConstant(0.1);  // Fill a matrix with an element
     ASSERT_DOUBLE_EQ(Ms.maxCoeff(), 0.1);
     ASSERT_DOUBLE_EQ(Ms.minCoeff(), 0.1);
 
-    Md1.setRandom();         // initialize with random numbers
+    Md1.setRandom();  // initialize with random numbers
     double e32 = Md1(3, 2);
     Md1.transposeInPlace();  // transpose the matrix in place
     ASSERT_DOUBLE_EQ(Md1(2, 3), e32);
 
-    Md1.resize(2, 2);        // resize
-    Md1.setZero();           // set all elements to zero
+    Md1.resize(2, 2);  // resize
+    Md1.setZero();     // set all elements to zero
     ASSERT_DOUBLE_EQ(Md1.maxCoeff(), 0.0);
     ASSERT_DOUBLE_EQ(Md1.minCoeff(), 0.0);
 
@@ -96,7 +96,7 @@ TEST(LinearAlgebraTest, operations) {
     ChMatrixDynamic<> D(2, 3);
     C << 1, 2, 3, 4, 5, 6;
     D << 1, 2, 3, 4, 5, 6;
-    ChMatrix33<> R(Q_from_AngX(CH_C_PI_2));
+    ChMatrix33<> R(QuatFromAngleX(CH_PI_2));
 
     ChMatrixDynamic<double> CD = C * D;
     ChMatrixDynamic<double> CD_t = D.transpose() * C.transpose();
@@ -133,9 +133,9 @@ TEST(LinearAlgebraTest, vector_rotation) {
     ChQuaternion<> q(1, 2, 3, 4);
     ChMatrix33<> A(q.GetNormalized());
 
-    ChVector<> v1(1, 2, 3);
-    ChVector<> v2 = A * v1;
-    ChVector<> v3 = A.transpose() * v2;
+    ChVector3d v1(1, 2, 3);
+    ChVector3d v2 = A * v1;
+    ChVector3d v3 = A.transpose() * v2;
 
     cout << A << endl;
     cout << v1 << endl;
@@ -206,7 +206,7 @@ TEST(LinearAlgebraTest, pasting) {
 TEST(LinearAlgebraTest, custom_matrices) {
     ChMatrix34<> G = Eigen::Matrix<double, 3, 4>::Ones(3, 4);
     ChQuaternion<> q(1, 2, 3, 4);
-    ChVector<> v = G * q;
+    ChVector3d v = G * q;
     cout << v << endl;
 
     ChMatrix43<> Gt2 = 2 * G.transpose();
@@ -216,7 +216,7 @@ TEST(LinearAlgebraTest, custom_matrices) {
     q = G.transpose() * v;
     cout << q << endl;
 
-    ChMatrix33<> rot(Q_from_AngX(CH_C_PI / 6));
+    ChMatrix33<> rot(QuatFromAngleX(CH_PI / 6));
     cout << rot << endl;
     cout << rot.transpose() << endl;
 
@@ -272,7 +272,7 @@ TEST(LinearAlgebra, slicing) {
     // Cases with potential aliasing
     // NOTE: no aliasing when SliceVector is implemented as a function. Aliasing possible if switching to a macro!
     v2 = SliceVector(v2, idx).eval();
-    
+
     ASSERT_TRUE(v2.size() == idx.size());
     for (int i = 0; i < idx.size(); i++) {
         ASSERT_TRUE(v2(i) == w2(i));

@@ -119,17 +119,17 @@ revolute_frame = my_marker.GetAbsFrame()
 link_motor = chrono.ChLinkMotorRotationSpeed()
 link_motor.Initialize(my_shaft, my_ground, revolute_frame)
 link_motor.SetSpindleConstraint(chrono.ChLinkMotorRotationSpeed.SpindleConstraint_CYLINDRICAL)
-link_motor.SetMotorFunction(chrono.ChFunction_Const(1.0*chrono.CH_C_2PI))  # 1.0 Hz to rad/s
+link_motor.SetMotorFunction(chrono.ChFunctionConst(1.0*chrono.CH_2PI))  # 1.0 Hz to rad/s
 my_system.Add(link_motor)
 ~~~
 
-The ```Initialize()``` function requires two bodies and a ```ChFrameD``` object 
+The ```Initialize()``` function requires two bodies and a ```ChFramed``` object 
 that represents the position and rotation of the constraint; we'll use the frame of my_marker.
 In this case the ChLinkMotorRotationSpeed constraint assumes that the Z axis of the 
 frame is used for the rotation axis.
 
 
-Although you could create a ```ChFrameD``` from scratch, by typing 
+Although you could create a ```ChFramed``` from scratch, by typing 
 the rotation and xyz position values, here it was smarter to use the 
 frame of the my_marker object that was created in SolidWorks 
 and fetched in the previous paragraph.
@@ -138,7 +138,7 @@ and fetched in the previous paragraph.
 The ```SetSpindleConstraint()``` is a custom function of ChLinkMotorRotation classes: 
 it can be used to choose which type of connection is used between the two parts. 
 Here we want to set a constant angular velocity, ex. one turn per second, and then 
-we need ```SetMotorFunction()``` to pass a ChFunction object, that is a ChFunction_Const in this case.
+we need ```SetMotorFunction()``` to pass a ChFunction object, that is a ChFunctionConst in this case.
 
 After you modified the ```run_test_modified.py``` according to the suggestions above, you can
 **run it** (from your IDE or by double-clicking on it). You should be able to see the four-cylinder 
@@ -172,7 +172,7 @@ modify, or take inspiration from.
 If you want to change the viewpoint of the camera for the POVray postprocessing system, look in ```run_test_modified.py``` for the following statement and modify the x y z coordinates of the viewpoint to your needs. The parameters of ```SetCamera()``` are the vector with the position of the observer viewpoint, the vector with the position of the aim point, and finally the degrees of the lens angle (ex. 30° for tele lenses, 50° for a wide lenses, etc.):
 
 ~~~{.py}
-pov_exporter.SetCamera(chrono.ChVectorD(0.4,0.6,0.9), chrono.ChVectorD(0.2,0,0), 30)
+pov_exporter.SetCamera(chrono.ChVector3d(0.4,0.6,0.9), chrono.ChVector3d(0.2,0,0), 30)
 ~~~
 
 ##Change material of shape visualization {#manual_sw_material}
@@ -283,8 +283,8 @@ if not my_rod :
 
 ~~~{.py}
 my_movingcamera = chrono.ChCamera()
-my_movingcamera.SetPosition(chrono.ChVectorD(0,-0.1,-0.700))
-my_movingcamera.SetAimPoint(chrono.ChVectorD(0,-0.1,0))
+my_movingcamera.SetPosition(chrono.ChVector3d(0,-0.1,-0.700))
+my_movingcamera.SetAimPoint(chrono.ChVector3d(0,-0.1,0))
 my_rod.GetAssets().push_back(my_movingcamera)
 ~~~
 

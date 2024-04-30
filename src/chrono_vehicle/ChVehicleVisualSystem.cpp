@@ -25,7 +25,7 @@ namespace vehicle {
 ChVehicleVisualSystem::ChVehicleVisualSystem()
     : m_vehicle(nullptr),
       m_stepsize(1e-3),
-      m_camera_point(ChVector<>(1, 0, 0)),
+      m_camera_point(ChVector3d(1, 0, 0)),
       m_camera_dist(5.0),
       m_camera_height(0.5),
       m_camera_state(utils::ChChaseCamera::State::Chase),
@@ -59,10 +59,10 @@ void ChVehicleVisualSystem::AttachVehicle(ChVehicle* vehicle) {
     m_camera->SetMultLimits(m_camera_minMult, m_camera_maxMult);
 }
 
-double ChVehicleVisualSystem::GetSimulationRTF() const {
+double ChVehicleVisualSystem::GetStepRTF() const {
     if (!m_vehicle)
         return 0;
-    return m_vehicle->GetRTF();
+    return m_vehicle->GetStepRTF();
 }
 
 void ChVehicleVisualSystem::Synchronize(double time, const DriverInputs& driver_inputs) {
@@ -72,7 +72,7 @@ void ChVehicleVisualSystem::Synchronize(double time, const DriverInputs& driver_
     m_clutch = driver_inputs.m_clutch;
 }
 
-void ChVehicleVisualSystem::SetChaseCamera(const ChVector<>& ptOnChassis, double chaseDist, double chaseHeight) {
+void ChVehicleVisualSystem::SetChaseCamera(const ChVector3d& ptOnChassis, double chaseDist, double chaseHeight) {
     m_camera_point = ptOnChassis;
     m_camera_dist = chaseDist;
     m_camera_height = chaseHeight;
@@ -90,7 +90,7 @@ void ChVehicleVisualSystem::SetChaseCameraState(utils::ChChaseCamera::State stat
     if (m_camera)
         m_camera->SetState(m_camera_state);
 }
-void ChVehicleVisualSystem::SetChaseCameraPosition(const ChVector<>& pos) {
+void ChVehicleVisualSystem::SetChaseCameraPosition(const ChVector3d& pos) {
     m_camera_pos = pos;
     if (m_camera)
         m_camera->SetCameraPos(m_camera_pos);

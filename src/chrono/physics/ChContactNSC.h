@@ -43,12 +43,14 @@ class ChContactNSC : public ChContactTuple<Ta, Tb> {
     ChConstraintTwoTuplesFrictionT<typecarr_a, typecarr_b> Tu;
     ChConstraintTwoTuplesFrictionT<typecarr_a, typecarr_b> Tv;
 
-    ChVector<> react_force;
+    ChVector3d react_force;
 
     double compliance;
     double complianceT;
     double restitution;
     double dampingf;
+
+    double min_rebounce_speed;
 
   public:
     ChContactNSC() {
@@ -56,29 +58,31 @@ class ChContactNSC : public ChContactTuple<Ta, Tb> {
         Nx.SetTangentialConstraintV(&Tv);
     }
 
-    ChContactNSC(ChContactContainer* mcontainer,           ///< contact container
-                 Ta* mobjA,                                ///< collidable object A
-                 Tb* mobjB,                                ///< collidable object B
-                 const ChCollisionInfo& cinfo,  ///< data for the collision pair
-                 const ChMaterialCompositeNSC&  mat        ///< composite material
+    ChContactNSC(ChContactContainer* contact_container,     ///< contact container
+                 Ta* obj_A,                                 ///< contactable object A
+                 Tb* obj_B,                                 ///< contactable object B
+                 const ChCollisionInfo& cinfo,              ///< data for the collision pair
+                 const ChContactMaterialCompositeNSC& mat,  ///< composite material
+                 double min_speed                           ///< minimum speed for rebounce
                  )
-        : ChContactTuple<Ta, Tb>(mcontainer, mobjA, mobjB, cinfo) {
+        : ChContactTuple<Ta, Tb>(contact_container, obj_A, obj_B) {
         Nx.SetTangentialConstraintU(&Tu);
         Nx.SetTangentialConstraintV(&Tv);
 
-        Reset(mobjA, mobjB, cinfo, mat);
+        Reset(obj_A, obj_B, cinfo, mat, min_speed);
     }
 
     ~ChContactNSC() {}
 
     /// Reinitialize this contact for reuse.
-    virtual void Reset(Ta* mobjA,                                ///< collidable object A
-                       Tb* mobjB,                                ///< collidable object B
-                       const ChCollisionInfo& cinfo,  ///< data for the collision pair
-                       const ChMaterialCompositeNSC& mat         ///< composite material
+    virtual void Reset(Ta* obj_A,                                 ///< contactable object A
+                       Tb* obj_B,                                 ///< contactable object B
+                       const ChCollisionInfo& cinfo,              ///< data for the collision pair
+                       const ChContactMaterialCompositeNSC& mat,  ///< composite material
+                       double min_speed                           ///< minimum speed for rebounce
     ) {
         // Reset geometric information
-        this->Reset_cinfo(mobjA, mobjB, cinfo);
+        this->Reset_cinfo(obj_A, obj_B, cinfo);
 
         Nx.Get_tuple_a().SetVariables(*this->objA);
         Nx.Get_tuple_b().SetVariables(*this->objB);
@@ -98,6 +102,8 @@ class ChContactNSC : public ChContactTuple<Ta, Tb> {
 
         this->reactions_cache = cinfo.reaction_cache;
 
+        this->min_rebounce_speed = min_speed;
+
         // COMPUTE JACOBIANS
 
         // delegate objA to compute its half of jacobian
@@ -108,19 +114,19 @@ class ChContactNSC : public ChContactTuple<Ta, Tb> {
         this->objB->ComputeJacobianForContactPart(this->p2, this->contact_plane, Nx.Get_tuple_b(), Tu.Get_tuple_b(),
                                                   Tv.Get_tuple_b(), true);
 
-		if (reactions_cache) {
-			react_force.x() = reactions_cache[0];
-			react_force.y() = reactions_cache[1];
-			react_force.z() = reactions_cache[2];
-			//GetLog() << "Reset Fn=" << (double)reactions_cache[0] << "  at cache address:" << (int)this->reactions_cache << "\n";
-		}
-		else {
-			react_force = VNULL;
-		}
+        if (reactions_cache) {
+            react_force.x() = reactions_cache[0];
+            react_force.y() = reactions_cache[1];
+            react_force.z() = reactions_cache[2];
+            // std::cout << "Reset Fn=" << (double)reactions_cache[0] << "  at cache address:" <<
+            // (int)this->reactions_cache << std::endl;
+        } else {
+            react_force = VNULL;
+        }
     }
 
     /// Get the contact force, if computed, in contact coordinate system
-    virtual ChVector<> GetContactForce() const override { return react_force; }
+    virtual ChVector3d GetContactForce() const override { return react_force; }
 
     /// Get the contact friction coefficient
     virtual double GetFriction() { return Nx.GetFrictionCoefficient(); }
@@ -153,22 +159,20 @@ class ChContactNSC : public ChContactTuple<Ta, Tb> {
         }
     }
 
-    virtual void ContIntLoadResidual_CqL(const unsigned int off_L,    
-                                         ChVectorDynamic<>& R,        
-                                         const ChVectorDynamic<>& L,  
-                                         const double c               
-                                         ) override {
-        this->Nx.MultiplyTandAdd(R, L(off_L) * c);
-        this->Tu.MultiplyTandAdd(R, L(off_L + 1) * c);
-        this->Tv.MultiplyTandAdd(R, L(off_L + 2) * c);
+    virtual void ContIntLoadResidual_CqL(const unsigned int off_L,
+                                         ChVectorDynamic<>& R,
+                                         const ChVectorDynamic<>& L,
+                                         const double c) override {
+        this->Nx.AddJacobianTransposedTimesScalarInto(R, L(off_L) * c);
+        this->Tu.AddJacobianTransposedTimesScalarInto(R, L(off_L + 1) * c);
+        this->Tv.AddJacobianTransposedTimesScalarInto(R, L(off_L + 2) * c);
     }
 
-    virtual void ContIntLoadConstraint_C(const unsigned int off_L,  
-                                         ChVectorDynamic<>& Qc,     
-                                         const double c,            
-                                         bool do_clamp,             
-                                         double recovery_clamp      
-                                         ) override {
+    virtual void ContIntLoadConstraint_C(const unsigned int off_L,
+                                         ChVectorDynamic<>& Qc,
+                                         const double c,
+                                         bool do_clamp,
+                                         double recovery_clamp) override {
         bool bounced = false;
 
         // Elastic Restitution model (use simple Newton model with coefficient e=v(+)/v(-))
@@ -177,15 +181,15 @@ class ChContactNSC : public ChContactTuple<Ta, Tb> {
         if (this->objA && this->objB) {
             if (this->restitution) {
                 // compute normal rebounce speed
-                Vector V1_w = this->objA->GetContactPointSpeed(this->p1);
-                Vector V2_w = this->objB->GetContactPointSpeed(this->p2);
-                Vector Vrel_w = V2_w - V1_w;
-                Vector Vrel_cplane = this->contact_plane.transpose() * Vrel_w;
+                ChVector3d V1_w = this->objA->GetContactPointSpeed(this->p1);
+                ChVector3d V2_w = this->objB->GetContactPointSpeed(this->p2);
+                ChVector3d Vrel_w = V2_w - V1_w;
+                ChVector3d Vrel_cplane = this->contact_plane.transpose() * Vrel_w;
 
                 double h = this->container->GetSystem()->GetStep();  // = 1.0 / c;  // not all steppers have c = 1/h
 
                 double neg_rebounce_speed = Vrel_cplane.x() * this->restitution;
-                if (neg_rebounce_speed < -this->container->GetSystem()->GetMinBounceSpeed())
+                if (neg_rebounce_speed < -min_rebounce_speed)
                     if (this->norm_dist + neg_rebounce_speed * h < 0) {
                         // CASE: BOUNCE
                         bounced = true;
@@ -204,28 +208,29 @@ class ChContactNSC : public ChContactTuple<Ta, Tb> {
                 double inv_hpa = 1.0 / (h + alpha);         // 1/(h+a)
                 double inv_hhpa = 1.0 / (h * (h + alpha));  // 1/(h*(h+a))
 
-                //***TODO*** move to KRMmatricesLoad() the following, and only for !bounced case
-                Nx.Set_cfm_i((inv_hhpa) * this->compliance);
-                Tu.Set_cfm_i((inv_hhpa) * this->complianceT);
-                Tv.Set_cfm_i((inv_hhpa) * this->complianceT);
+                //// TODO  move to LoadKRMMatrices() the following, and only for !bounced case
+                Nx.SetComplianceTerm((inv_hhpa) * this->compliance);
+                Tu.SetComplianceTerm((inv_hhpa) * this->complianceT);
+                Tv.SetComplianceTerm((inv_hhpa) * this->complianceT);
 
-                double qc = inv_hpa * this->norm_dist;  //***TODO*** see how to move this in KRMmatricesLoad()
-				
+                double qc = inv_hpa * this->norm_dist;  //// TODO  see how to move this in LoadKRMMatrices()
+
                 // Note: clamping of Qc in case of compliance is questionable: it does not limit only the outbound
                 // speed, but also the reaction, so it might allow longer 'sinking' not related to the real compliance.
-				// I.e. If clamping kicks in (when using large timesteps and low compliance), it acts as a numerical damping.
-				if (do_clamp) {
-					qc = ChMax(qc, -recovery_clamp);
-				}
+                // I.e. If clamping kicks in (when using large timesteps and low compliance), it acts as a numerical
+                // damping.
+                if (do_clamp) {
+                    qc = std::max(qc, -recovery_clamp);
+                }
 
                 Qc(off_L) += qc;
 
             } else {
                 if (do_clamp)
                     if (this->Nx.GetCohesion())
-                        Qc(off_L) += ChMin(0.0, ChMax(c * this->norm_dist, -recovery_clamp));
+                        Qc(off_L) += std::min(0.0, std::max(c * this->norm_dist, -recovery_clamp));
                     else
-                        Qc(off_L) += ChMax(c * this->norm_dist, -recovery_clamp);
+                        Qc(off_L) += std::max(c * this->norm_dist, -recovery_clamp);
                 else
                     Qc(off_L) += c * this->norm_dist;
             }
@@ -234,37 +239,34 @@ class ChContactNSC : public ChContactTuple<Ta, Tb> {
 
     virtual void ContIntToDescriptor(const unsigned int off_L,
                                      const ChVectorDynamic<>& L,
-                                     const ChVectorDynamic<>& Qc
-                                     ) override {
+                                     const ChVectorDynamic<>& Qc) override {
         // only for solver warm start
-        Nx.Set_l_i(L(off_L));
-        Tu.Set_l_i(L(off_L + 1));
-        Tv.Set_l_i(L(off_L + 2));
+        Nx.SetLagrangeMultiplier(L(off_L));
+        Tu.SetLagrangeMultiplier(L(off_L + 1));
+        Tv.SetLagrangeMultiplier(L(off_L + 2));
 
         // solver known terms
-        Nx.Set_b_i(Qc(off_L));
-        Tu.Set_b_i(Qc(off_L + 1));
-        Tv.Set_b_i(Qc(off_L + 2));
+        Nx.SetRightHandSide(Qc(off_L));
+        Tu.SetRightHandSide(Qc(off_L + 1));
+        Tv.SetRightHandSide(Qc(off_L + 2));
     }
 
-    virtual void ContIntFromDescriptor(const unsigned int off_L,
-                                       ChVectorDynamic<>& L
-                                       ) override {
-        L(off_L) = Nx.Get_l_i();
-        L(off_L + 1) = Tu.Get_l_i();
-        L(off_L + 2) = Tv.Get_l_i();
+    virtual void ContIntFromDescriptor(const unsigned int off_L, ChVectorDynamic<>& L) override {
+        L(off_L) = Nx.GetLagrangeMultiplier();
+        L(off_L + 1) = Tu.GetLagrangeMultiplier();
+        L(off_L + 2) = Tv.GetLagrangeMultiplier();
     }
 
-    virtual void InjectConstraints(ChSystemDescriptor& mdescriptor) override {
-        mdescriptor.InsertConstraint(&Nx);
-        mdescriptor.InsertConstraint(&Tu);
-        mdescriptor.InsertConstraint(&Tv);
+    virtual void InjectConstraints(ChSystemDescriptor& descriptor) override {
+        descriptor.InsertConstraint(&Nx);
+        descriptor.InsertConstraint(&Tu);
+        descriptor.InsertConstraint(&Tv);
     }
 
     virtual void ConstraintsBiReset() override {
-        Nx.Set_b_i(0.);
-        Tu.Set_b_i(0.);
-        Tv.Set_b_i(0.);
+        Nx.SetRightHandSide(0.);
+        Tu.SetRightHandSide(0.);
+        Tv.SetRightHandSide(0.);
     }
 
     virtual void ConstraintsBiLoad_C(double factor = 1., double recovery_clamp = 0.1, bool do_clamp = false) override {
@@ -276,19 +278,19 @@ class ChContactNSC : public ChContactTuple<Ta, Tb> {
         if (this->objA && this->objB) {
             if (this->restitution) {
                 // compute normal rebounce speed
-                Vector V1_w = this->objA->GetContactPointSpeed(this->p1);
-                Vector V2_w = this->objB->GetContactPointSpeed(this->p2);
-                Vector Vrel_w = V2_w - V1_w;
-                Vector Vrel_cplane = this->contact_plane.transpose() * Vrel_w;
+                ChVector3d V1_w = this->objA->GetContactPointSpeed(this->p1);
+                ChVector3d V2_w = this->objB->GetContactPointSpeed(this->p2);
+                ChVector3d Vrel_w = V2_w - V1_w;
+                ChVector3d Vrel_cplane = this->contact_plane.transpose() * Vrel_w;
 
                 double h = 1.0 / factor;  // inverse timestep is factor
 
                 double neg_rebounce_speed = Vrel_cplane.x() * this->restitution;
-                if (neg_rebounce_speed < -this->container->GetSystem()->GetMinBounceSpeed())
+                if (neg_rebounce_speed < -min_rebounce_speed)
                     if (this->norm_dist + neg_rebounce_speed * h < 0) {
                         // CASE: BOUNCE
                         bounced = true;
-                        Nx.Set_b_i(Nx.Get_b_i() + neg_rebounce_speed);
+                        Nx.SetRightHandSide(Nx.GetRightHandSide() + neg_rebounce_speed);
                     }
             }
         }
@@ -304,36 +306,36 @@ class ChContactNSC : public ChContactTuple<Ta, Tb> {
                 double inv_hpa = 1.0 / (h + alpha);         // 1/(h+a)
                 double inv_hhpa = 1.0 / (h * (h + alpha));  // 1/(h*(h+a))
 
-                Nx.Set_cfm_i((inv_hhpa) * this->compliance);  // was (inv_hh)* ...   //***TEST DAMPING***//
-                Tu.Set_cfm_i((inv_hhpa) * this->complianceT);
-                Tv.Set_cfm_i((inv_hhpa) * this->complianceT);
+                Nx.SetComplianceTerm((inv_hhpa) * this->compliance);  // was (inv_hh)* ...   //// TEST DAMPING
+                Tu.SetComplianceTerm((inv_hhpa) * this->complianceT);
+                Tv.SetComplianceTerm((inv_hhpa) * this->complianceT);
 
-				double qc = inv_hpa * this->norm_dist;
+                double qc = inv_hpa * this->norm_dist;
 
-				// If clamping kicks in(when using large timesteps and low compliance), it acts as a numerical damping.
-				if (do_clamp)
-					qc = ChMax(qc, -recovery_clamp);
+                // If clamping kicks in(when using large timesteps and low compliance), it acts as a numerical damping.
+                if (do_clamp)
+                    qc = std::max(qc, -recovery_clamp);
 
-                Nx.Set_b_i(Nx.Get_b_i() + qc); 
+                Nx.SetRightHandSide(Nx.GetRightHandSide() + qc);
 
             } else {
-                // GetLog()<< "rigid " << (int)this << "  recov_clamp=" << recovery_clamp << "\n";
+                // std::cout << "rigid " << (int)this << "  recov_clamp=" << recovery_clamp << std::endl;
                 if (do_clamp)
                     if (this->Nx.GetCohesion())
-                        Nx.Set_b_i(Nx.Get_b_i() + ChMin(0.0, ChMax(factor * this->norm_dist, -recovery_clamp)));
+                        Nx.SetRightHandSide(Nx.GetRightHandSide() + std::min(0.0, std::max(factor * this->norm_dist, -recovery_clamp)));
                     else
-                        Nx.Set_b_i(Nx.Get_b_i() + ChMax(factor * this->norm_dist, -recovery_clamp));
+                        Nx.SetRightHandSide(Nx.GetRightHandSide() + std::max(factor * this->norm_dist, -recovery_clamp));
                 else
-                    Nx.Set_b_i(Nx.Get_b_i() + factor * this->norm_dist);
+                    Nx.SetRightHandSide(Nx.GetRightHandSide() + factor * this->norm_dist);
             }
         }
     }
 
     virtual void ConstraintsFetch_react(double factor) override {
         // From constraints to react vector:
-        react_force.x() = Nx.Get_l_i() * factor;
-        react_force.y() = Tu.Get_l_i() * factor;
-        react_force.z() = Tv.Get_l_i() * factor;
+        react_force.x() = Nx.GetLagrangeMultiplier() * factor;
+        react_force.y() = Tu.GetLagrangeMultiplier() * factor;
+        react_force.z() = Tv.GetLagrangeMultiplier() * factor;
     }
 };
 

@@ -32,17 +32,17 @@ namespace feda {
 // -----------------------------------------------------------------------------
 /* VIPER config
 const double FEDA_Chassis::m_body_mass = 4450;
-const ChVector<> FEDA_Chassis::m_body_inertiaXX(2420.0, 8200.0, 7100.0);
-const ChVector<> FEDA_Chassis::m_body_inertiaXY(0, 0, 0);
-const ChVector<> FEDA_Chassis::m_body_COM_loc(-1.591564, 0.0889, 0.57);
+const ChVector3d FEDA_Chassis::m_body_inertiaXX(2420.0, 8200.0, 7100.0);
+const ChVector3d FEDA_Chassis::m_body_inertiaXY(0, 0, 0);
+const ChVector3d FEDA_Chassis::m_body_COM_loc(-1.591564, 0.0889, 0.57);
 */
 // configuration as tested on proving ground
 const double FEDA_Chassis::m_body_mass = 5672.87;
-const ChVector<> FEDA_Chassis::m_body_inertiaXX(5.74E+03, 7.66E+03, 9.87E+03);
-const ChVector<> FEDA_Chassis::m_body_inertiaXY(0, 0, 0);
-const ChVector<> FEDA_Chassis::m_body_COM_loc(-(1.0 - 0.4162) * 3.302, 0.00889, 0.61);
+const ChVector3d FEDA_Chassis::m_body_inertiaXX(5.74E+03, 7.66E+03, 9.87E+03);
+const ChVector3d FEDA_Chassis::m_body_inertiaXY(0, 0, 0);
+const ChVector3d FEDA_Chassis::m_body_COM_loc(-(1.0 - 0.4162) * 3.302, 0.00889, 0.61);
 
-const ChCoordsys<> FEDA_Chassis::m_driverCsys(ChVector<>(-1.35, 0.52, 1.01), ChQuaternion<>(1, 0, 0, 0));
+const ChCoordsys<> FEDA_Chassis::m_driverCsys(ChVector3d(-1.35, 0.52, 1.01), ChQuaternion<>(1, 0, 0, 0));
 
 // -----------------------------------------------------------------------------
 // -----------------------------------------------------------------------------
@@ -65,8 +65,7 @@ FEDA_Chassis::FEDA_Chassis(const std::string& name, bool fixed, CollisionType ch
 
     //// TODO:
     //// A more appropriate contact shape from primitives
-    ChVehicleGeometry::BoxShape box1(ChVector<>(0.0, 0.0, 0.1), ChQuaternion<>(1, 0, 0, 0),
-                                          ChVector<>(1.0, 0.5, 0.2));
+    ChVehicleGeometry::BoxShape box1(ChVector3d(0.0, 0.0, 0.1), ChQuaternion<>(1, 0, 0, 0), ChVector3d(1.0, 0.5, 0.2));
 
     m_geometry.m_has_primitives = true;
     m_geometry.m_vis_boxes.push_back(box1);
@@ -81,7 +80,7 @@ FEDA_Chassis::FEDA_Chassis(const std::string& name, bool fixed, CollisionType ch
             m_geometry.m_coll_boxes.push_back(box1);
             break;
         case CollisionType::MESH: {
-            ChVehicleGeometry::TrimeshShape mesh(ChVector<>(0,0,0), "feda/meshes/feda_chassis_coll_mesh.obj", 0.1, 0);
+            ChVehicleGeometry::TrimeshShape mesh(ChVector3d(0, 0, 0), "feda/meshes/feda_chassis_coll_mesh.obj", 0.1, 0);
             m_geometry.m_coll_meshes.push_back(mesh);
             break;
         }

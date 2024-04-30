@@ -24,7 +24,6 @@
 
 #include "chrono_vehicle/ChApiVehicle.h"
 #include "chrono_vehicle/ChChassis.h"
-#include "chrono/core/ChException.h"
 
 namespace chrono {
 namespace vehicle {
@@ -52,7 +51,7 @@ class CH_VEHICLE_API ChTrackShoe : public ChPart {
 
     /// Get track tension at this track shoe.
     /// Return is the force due to the connections of this track shoe, expressed in the track shoe reference frame.
-    virtual ChVector<> GetTension() const = 0;
+    virtual ChVector3d GetTension() const = 0;
 
     /// Return the height of the track shoe.
     virtual double GetHeight() const = 0;
@@ -65,22 +64,22 @@ class CH_VEHICLE_API ChTrackShoe : public ChPart {
     /// This point, which must be in the median plane of the track shoe, is used to enforce lateral contact with the
     /// sprocket as a detracking prevention mechanism. For track shoes with a central guiding pin, this can be the
     /// center of the guiding pin collision shape.
-    virtual ChVector<> GetLateralContactPoint() const = 0;
+    virtual ChVector3d GetLateralContactPoint() const = 0;
 
     /// Return contact geometry and material for interaction with terrain.
     virtual ChVehicleGeometry GetGroundContactGeometry() const { return ChVehicleGeometry(); }
 
     /// Turn on/off collision flag for the shoe body.
-    void SetCollide(bool val) { m_shoe->SetCollide(val); }
+    void EnableCollision(bool val) { m_shoe->EnableCollision(val); }
 
     /// Initialize this track shoe subsystem.
     /// The track shoe is created within the specified system and initialized
     /// at the specified location and orientation (expressed in the global frame).
     /// All actual work is deferred to derived classes (subsystem templates) which
     /// must create the bodies, joints, etc.  In addition, a derived class must set
-    /// the track shoe body's identifier to BodyID::SHOES.
+    /// the track shoe body's tag to TrackedVehicleBodyTag::SHOES.
     virtual void Initialize(std::shared_ptr<ChBodyAuxRef> chassis,  ///< [in] handle to the chassis body
-                            const ChVector<>& location,             ///< [in] location relative to the chassis frame
+                            const ChVector3d& location,             ///< [in] location relative to the chassis frame
                             const ChQuaternion<>& rotation          ///< [in] orientation relative to the chassis frame
     );
 

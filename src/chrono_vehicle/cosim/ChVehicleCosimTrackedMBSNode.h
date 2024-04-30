@@ -90,8 +90,8 @@ class CH_VEHICLE_API ChVehicleCosimTrackedMBSNode : public ChVehicleCosimBaseNod
     ChVehicleCosimTrackedMBSNode();
 
     /// Initialize the underlying MBS
-    virtual void InitializeMBS(const ChVector2<>& terrain_size,  ///< terrain length x width
-                               double terrain_height             ///< initial terrain height
+    virtual void InitializeMBS(const ChVector2d& terrain_size,  ///< terrain length x width
+                               double terrain_height            ///< initial terrain height
                                ) = 0;
 
     /// Return terrain contact geometry and material information for one track shoe.
@@ -117,7 +117,7 @@ class CH_VEHICLE_API ChVehicleCosimTrackedMBSNode : public ChVehicleCosimBaseNod
     virtual void ApplyTrackShoeForce(int track_id, int shoe_id, const TerrainForce& force) = 0;
 
     /// Get the number of track subsystems defined by the underlying MBS.
-    virtual int GetNumTracks() const = 0;
+    virtual unsigned int GetNumTracks() const = 0;
 
     /// Return the number of track shoes in the specified track subsystem.
     virtual size_t GetNumTrackShoes(int track_id) const = 0;

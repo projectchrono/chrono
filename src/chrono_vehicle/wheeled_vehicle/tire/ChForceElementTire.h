@@ -19,6 +19,7 @@
 #ifndef CH_FORCEELEMENT_TIRE_H
 #define CH_FORCEELEMENT_TIRE_H
 
+#include "chrono/utils/ChUtils.h"
 #include "chrono_vehicle/wheeled_vehicle/ChTire.h"
 
 namespace chrono {
@@ -37,7 +38,7 @@ class CH_VEHICLE_API ChForceElementTire : public ChTire {
         ContactData() : in_contact(false), normal_force(0), depth(0) {}
         bool in_contact;      ///< true if tire in contact with terrain
         ChCoordsys<> frame;   ///< contact frame (x: long, y: lat, z: normal)
-        ChVector<> vel;       ///< relative velocity expressed in contact frame
+        ChVector3d vel;       ///< relative velocity expressed in contact frame
         double normal_force;  ///< magnitude of normal contact force
         double depth;         ///< penetration depth
     };
@@ -57,6 +58,9 @@ class CH_VEHICLE_API ChForceElementTire : public ChTire {
     /// Report current tire-terrain contact information.
     /// If the tire is not in contact, all information is set to zero.
     const ContactData& ReportTireContactData() const { return m_data; }
+
+    /// Enable/disable information terminal output (default: false).
+    void SetVerbose(bool verbose) { m_verbose = verbose; }
 
   protected:
     /// Construct a tire with the specified name.
@@ -83,18 +87,20 @@ class CH_VEHICLE_API ChForceElementTire : public ChTire {
     /// Remove visualization assets for the rigid tire subsystem.
     virtual void RemoveVisualizationAssets() override;
 
-    ContactData m_data;             ///< tire-terrain collision information
-    TerrainForce m_tireforce;       ///< tire forces (in tire contact frame)
-    ChFunction_Recorder m_areaDep;  ///< lookup table for estimation of penetration depth from intersection area
+    ContactData m_data;          ///< tire-terrain collision information
+    TerrainForce m_tireforce;    ///< tire forces (in tire contact frame)
+    ChFunctionInterp m_areaDep;  ///< lookup table for estimation of penetration depth from intersection area
 
     std::shared_ptr<ChVisualShape> m_cyl_shape;  ///< visualization cylinder asset
+
+    bool m_verbose;  ///< verbose output
 
   private:
     virtual void InitializeInertiaProperties() override final;
     virtual void UpdateInertiaProperties() override final;
 
     virtual double GetAddedMass() const override final;
-    virtual ChVector<> GetAddedInertia() const override final;
+    virtual ChVector3d GetAddedInertia() const override final;
 };
 
 /// @} vehicle_wheeled_tire

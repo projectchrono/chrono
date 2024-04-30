@@ -22,8 +22,8 @@
 #include <vector>
 
 #include "chrono/physics/ChBody.h"
-#include "chrono/physics/ChMaterialSurfaceNSC.h"
-#include "chrono/physics/ChMaterialSurfaceSMC.h"
+#include "chrono/physics/ChContactMaterialNSC.h"
+#include "chrono/physics/ChContactMaterialSMC.h"
 #include "chrono/geometry/ChTriangleMeshConnected.h"
 #include "chrono/assets/ChVisualShapeCylinder.h"
 
@@ -42,7 +42,7 @@ namespace vehicle {
 class CH_VEHICLE_API ChRigidTire : public ChTire {
   public:
     ChRigidTire(const std::string& name  ///< [in] name of this tire system
-                );
+    );
 
     virtual ~ChRigidTire();
 
@@ -52,7 +52,7 @@ class CH_VEHICLE_API ChRigidTire : public ChTire {
     /// Set Wavefront OBJ file for contact mesh.
     void SetMeshFilename(const std::string& mesh_file,   ///< [in] name of Wavefront file
                          double sweep_sphere_radius = 0  ///< [in] radius of sweeping sphere
-                         );
+    );
 
     /// Check whether or not this tire uses a contact mesh.
     bool UseContactMesh() const { return m_use_contact_mesh; }
@@ -69,7 +69,7 @@ class CH_VEHICLE_API ChRigidTire : public ChTire {
 
     /// Get the tire contact material.
     /// Note that this is not set until after tire initialization.
-    std::shared_ptr<ChMaterialSurface> GetContactMaterial() const { return m_material; }
+    std::shared_ptr<ChContactMaterial> GetContactMaterial() const { return m_material; }
 
     /// Add visualization assets for the rigid tire subsystem.
     virtual void AddVisualizationAssets(VisualizationType vis) override;
@@ -78,25 +78,25 @@ class CH_VEHICLE_API ChRigidTire : public ChTire {
     virtual void RemoveVisualizationAssets() override;
 
     /// Get the contact mesh.
-    std::shared_ptr<geometry::ChTriangleMeshConnected> GetContactMesh() const;
+    std::shared_ptr<ChTriangleMeshConnected> GetContactMesh() const;
 
     /// Get the current state of the collision mesh.
     /// Mesh vertex positions and velocities are returned in the absolute frame.
-    void GetMeshVertexStates(std::vector<ChVector<>>& pos,  ///< mesh vertex positions (expressed in absolute frame)
-                             std::vector<ChVector<>>& vel   ///< mesh vertex velocities (expressed in absolute frame)
+    void GetMeshVertexStates(std::vector<ChVector3d>& pos,  ///< mesh vertex positions (expressed in absolute frame)
+                             std::vector<ChVector3d>& vel   ///< mesh vertex velocities (expressed in absolute frame)
     ) const;
 
   protected:
     /// Create the contact material consistent with the specified contact method.
     virtual void CreateContactMaterial(ChContactMethod contact_method) = 0;
 
-    std::shared_ptr<ChMaterialSurface> m_material;  ///< contact material;
+    std::shared_ptr<ChContactMaterial> m_material;  ///< contact material;
 
     virtual void InitializeInertiaProperties() override final;
     virtual void UpdateInertiaProperties() override final;
 
     virtual double GetAddedMass() const override final;
-    virtual ChVector<> GetAddedInertia() const override final;
+    virtual ChVector3d GetAddedInertia() const override final;
 
     /// Get the tire force and moment.
     /// A ChRigidTire always returns zero force and moment since tire
@@ -116,7 +116,7 @@ class CH_VEHICLE_API ChRigidTire : public ChTire {
     std::string m_contact_meshFile;  ///< name of the OBJ file for contact mesh
     double m_sweep_sphere_radius;    ///< radius of sweeping sphere for mesh contact
 
-    std::shared_ptr<geometry::ChTriangleMeshConnected> m_trimesh;  ///< contact mesh
+    std::shared_ptr<ChTriangleMeshConnected> m_trimesh;  ///< contact mesh
 
     std::shared_ptr<ChVisualShape> m_cyl_shape;  ///< visualization cylinder asset
 };

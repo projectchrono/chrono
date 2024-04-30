@@ -68,10 +68,10 @@ class CH_VEHICLE_API ChVehicleCosimTerrainNodeChrono : public ChVehicleCosimTerr
     struct RigidObstacle {
         std::string m_mesh_filename;          ///< OBJ file with mesh specification
         double m_density;                     ///< material density
-        ChVector<> m_init_pos;                ///< initial position of obstacle
+        ChVector3d m_init_pos;                ///< initial position of obstacle
         ChQuaternion<> m_init_rot;            ///< initial orientation of obstacle
-        ChVector<> m_oobb_center;             ///< center of bounding box
-        ChVector<> m_oobb_dims;               ///< dimensions of bounding box
+        ChVector3d m_oobb_center;             ///< center of bounding box
+        ChVector3d m_oobb_dims;               ///< dimensions of bounding box
         ChContactMaterialData m_contact_mat;  ///< contact material parameters
     };
 
@@ -93,7 +93,7 @@ class CH_VEHICLE_API ChVehicleCosimTerrainNodeChrono : public ChVehicleCosimTerr
     static Type GetTypeFromSpecfile(const std::string& specfile);
 
     /// Get the terrain dimensions (length and width) from the given JSON specification file.
-    static ChVector2<> GetSizeFromSpecfile(const std::string& specfile);
+    static ChVector2d GetSizeFromSpecfile(const std::string& specfile);
 
     /// Set the proxy bodies as fixed to ground.
     void SetProxyFixed(bool fixed) { m_fixed_proxies = fixed; }
@@ -136,7 +136,7 @@ class CH_VEHICLE_API ChVehicleCosimTerrainNodeChrono : public ChVehicleCosimTerr
     /// Use information in the m_geometry struct (collision geometry expressed in local frame).
     virtual void CreateMeshProxy(unsigned int i) {
         if (SupportsMeshInterface()) {
-            throw ChException("Current terrain type does not support the MESH communication interface!");
+            throw std::runtime_error("Current terrain type does not support the MESH communication interface!");
         }
     }
 
@@ -176,7 +176,7 @@ class CH_VEHICLE_API ChVehicleCosimTerrainNodeChrono : public ChVehicleCosimTerr
     Type m_type;  ///< terrain type
 
     ChContactMethod m_method;                               ///< contact method (SMC or NSC)
-    std::shared_ptr<ChMaterialSurface> m_material_terrain;  ///< material properties for terrain bodies
+    std::shared_ptr<ChContactMaterial> m_material_terrain;  ///< material properties for terrain bodies
 
     double m_init_height;  ///< terrain initial height
 

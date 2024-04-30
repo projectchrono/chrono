@@ -42,7 +42,7 @@ class ConstantFunction : public chrono::ChFunction {
         return new ConstantFunction(m_time_delay, m_time_ramp, m_max_value);
     }
 
-    virtual double Get_y(double t) const override {
+    virtual double GetVal(double t) const override {
         if (t <= m_time_delay)
             return 0;
 
@@ -53,14 +53,14 @@ class ConstantFunction : public chrono::ChFunction {
         return m_max_value;
     }
 
-    virtual double Get_y_dx(double t) const override {
+    virtual double GetDer(double t) const override {
         if (t > m_time_delay && t <= m_time_delay + m_time_ramp)
             return m_max_value / m_time_ramp;
 
         return 0;
     }
 
-    virtual double Get_y_dxdx(double t) const override { return 0; }
+    virtual double GetDer2(double t) const override { return 0; }
 
   private:
     double m_time_delay;
@@ -74,19 +74,19 @@ class RampFunction : public chrono::ChFunction {
     RampFunction(double rate, double time_delay = 0) : m_rate(rate), m_time_delay(time_delay) {}
     virtual RampFunction* Clone() const override { return new RampFunction(m_rate, m_time_delay); }
 
-    virtual double Get_y(double t) const override {
+    virtual double GetVal(double t) const override {
         if (t <= m_time_delay)
             return 0;
         return m_rate * (t - m_time_delay);
     }
 
-    virtual double Get_y_dx(double t) const override {
+    virtual double GetDer(double t) const override {
         if (t > m_time_delay)
             return m_rate;
         return 0;
     }
 
-    virtual double Get_y_dxdx(double t) const override { return 0; }
+    virtual double GetDer2(double t) const override { return 0; }
 
   private:
     double m_rate;
@@ -103,9 +103,7 @@ ChVehicleCosimDBPRig::ChVehicleCosimDBPRig()
       m_verbose(false),
       m_delay_time(0) {}
 
-void ChVehicleCosimDBPRig::Initialize(std::shared_ptr<ChBody> chassis,
-                                      double wheel_radius,
-                                      double step_size) {
+void ChVehicleCosimDBPRig::Initialize(std::shared_ptr<ChBody> chassis, double wheel_radius, double step_size) {
     // Initialize filters
     int nw_dbp = static_cast<int>(std::round(m_dbp_filter_window / step_size));
     m_dbp_filter = chrono_types::make_unique<utils::ChRunningAverage>(nw_dbp);
@@ -189,7 +187,7 @@ void ChVehicleCosimDBPRigImposedSlip::InitializeRig(std::shared_ptr<ChBody> chas
 
     // Create a "ground" body
     auto ground = chrono_types::make_shared<ChBody>();
-    ground->SetBodyFixed(true);
+    ground->SetFixed(true);
     chassis->GetSystem()->AddBody(ground);
 
     // Create a "carrier" body.
@@ -197,15 +195,15 @@ void ChVehicleCosimDBPRigImposedSlip::InitializeRig(std::shared_ptr<ChBody> chas
     // vertical load.
     auto carrier = chrono_types::make_shared<ChBody>();
     carrier->SetMass(10);
-    carrier->SetInertiaXX(ChVector<>(1, 1, 1));
+    carrier->SetInertiaXX(ChVector3d(1, 1, 1));
     carrier->SetPos(chassis->GetPos());
     carrier->SetRot(QUNIT);
-    carrier->SetPos_dt(ChVector<>(m_lin_vel, 0, 0));
+    carrier->SetPosDt(ChVector3d(m_lin_vel, 0, 0));
     chassis->GetSystem()->AddBody(carrier);
 
     // Connect chassis body to connector using a vertical prismatic joint
     auto prism_vert = chrono_types::make_shared<ChLinkLockPrismatic>();
-    prism_vert->Initialize(carrier, chassis, ChCoordsys<>(carrier->GetPos(), QUNIT));
+    prism_vert->Initialize(carrier, chassis, ChFrame<>(carrier->GetPos(), QUNIT));
     chassis->GetSystem()->AddLink(prism_vert);
 
     // Connect carrier to ground with a linear motor
@@ -241,7 +239,7 @@ void ChVehicleCosimDBPRigImposedAngVel::InitializeRig(std::shared_ptr<ChBody> ch
 
     // Create a "ground" body
     auto ground = chrono_types::make_shared<ChBody>();
-    ground->SetBodyFixed(true);
+    ground->SetFixed(true);
     chassis->GetSystem()->AddBody(ground);
 
     // Create a "carrier" body.
@@ -249,24 +247,24 @@ void ChVehicleCosimDBPRigImposedAngVel::InitializeRig(std::shared_ptr<ChBody> ch
     // vertical load.
     m_carrier = chrono_types::make_shared<ChBody>();
     m_carrier->SetMass(10);
-    m_carrier->SetInertiaXX(ChVector<>(1, 1, 1));
+    m_carrier->SetInertiaXX(ChVector3d(1, 1, 1));
     m_carrier->SetPos(chassis->GetPos());
     m_carrier->SetRot(QUNIT);
     chassis->GetSystem()->AddBody(m_carrier);
 
     // Connect chassis body to connector using a vertical prismatic joint
     auto prism_vert = chrono_types::make_shared<ChLinkLockPrismatic>();
-    prism_vert->Initialize(m_carrier, chassis, ChCoordsys<>(m_carrier->GetPos(), QUNIT));
+    prism_vert->Initialize(m_carrier, chassis, ChFrame<>(m_carrier->GetPos(), QUNIT));
     chassis->GetSystem()->AddLink(prism_vert);
 
     // Connect carrier to ground with a horizonal prismatic joint
     auto prism_horiz = chrono_types::make_shared<ChLinkLockPrismatic>();
-    prism_horiz->Initialize(m_carrier, ground, ChCoordsys<>(m_carrier->GetPos(), Q_from_AngY(CH_C_PI_2)));
+    prism_horiz->Initialize(m_carrier, ground, ChFrame<>(m_carrier->GetPos(), QuatFromAngleY(CH_PI_2)));
     chassis->GetSystem()->AddLink(prism_horiz);
 
     // Apply a resistive force to carrier body
     auto ramp = chrono_types::make_shared<RampFunction>(m_force_rate, 0.2 + 0.5);
-    m_DBP_force = chrono_types::make_shared<ChLoadBodyForce>(m_carrier, ChVector<>(-1, 0, 0), true, VNULL, true);
+    m_DBP_force = chrono_types::make_shared<ChLoadBodyForce>(m_carrier, ChVector3d(-1, 0, 0), true, VNULL, true);
     m_DBP_force->SetModulationFunction(ramp);
 
     auto load_container = chrono_types::make_shared<ChLoadContainer>();
@@ -282,13 +280,13 @@ std::shared_ptr<ChFunction> ChVehicleCosimDBPRigImposedAngVel::GetMotorFunction(
 }
 
 double ChVehicleCosimDBPRigImposedAngVel::GetSlip() const {
-    double lin_vel = m_carrier->GetPos_dt().x();
+    double lin_vel = m_carrier->GetPosDt().x();
     double slip = 1 - lin_vel / (m_ang_vel * m_tire_radius);
     return slip;
 }
 
 double ChVehicleCosimDBPRigImposedAngVel::GetLinVel() const {
-    return m_carrier->GetPos_dt().x();
+    return m_carrier->GetPosDt().x();
 }
 
 double ChVehicleCosimDBPRigImposedAngVel::GetDBP() const {

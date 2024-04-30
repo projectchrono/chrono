@@ -24,10 +24,10 @@
 //
 // =============================================================================
 
-#include <iostream>
+#include "chrono/utils/ChUtilsInputOutput.h"
 #include "chrono_thirdparty/filesystem/path.h"
 #include "chrono_thirdparty/filesystem/resolver.h"
-#include "chrono/utils/ChUtilsInputOutput.h"
+#include <iostream>
 
 using namespace filesystem;
 using namespace chrono;
@@ -77,9 +77,9 @@ int main(int argc, char** argv) {
 
     cout << "Create output file;  out_file = " << out_file << endl;
     cout << "  out_file exists? " << path(out_file).exists() << endl;
-    utils::CSV_writer csv(",");
-    csv << ChVector<>(1, 2, 3) << ChQuaternion<>(1, 0, 0, 0) << endl;
-    csv.write_to_file(out_file);
+    utils::ChWriterCSV csv(",");
+    csv << ChVector3d(1, 2, 3) << ChQuaternion<>(1, 0, 0, 0) << endl;
+    csv.WriteToFile(out_file);
     cout << "  ...Created output file" << endl;
     cout << "  out_file exists? " << path(out_file).exists() << endl;
     cout << "  out_file is file? " << path(out_file).is_file() << endl;

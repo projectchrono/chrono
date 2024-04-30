@@ -28,11 +28,11 @@ namespace vehicle {
 // the conic gear pair, in chassis local coords.
 //
 // dir_axle specifies the direction of the axle, i.e. the output of the conic
-// conic gear pair, in chassis local coords. This is needed because ChShaftsBody
+// conic gear pair, in chassis local coords. This is needed because ChShaftBodyRotation
 // could transfer pitch torque to the chassis.
 // -----------------------------------------------------------------------------
 ChTrackDrivelineBDS::ChTrackDrivelineBDS(const std::string& name)
-    : ChDrivelineTV(name), m_dir_motor_block(ChVector<>(1, 0, 0)), m_dir_axle(ChVector<>(0, 1, 0)) {}
+    : ChDrivelineTV(name), m_dir_motor_block(ChVector3d(1, 0, 0)), m_dir_axle(ChVector3d(0, 1, 0)) {}
 
 ChTrackDrivelineBDS::~ChTrackDrivelineBDS() {
     auto sys = m_differential->GetSystem();
@@ -98,7 +98,7 @@ void ChTrackDrivelineBDS::Initialize(std::shared_ptr<ChChassis> chassis,
 
 // -----------------------------------------------------------------------------
 void ChTrackDrivelineBDS::Synchronize(double time, const DriverInputs& driver_inputs, double driveshaft_torque) {
-    m_driveshaft->SetAppliedTorque(driveshaft_torque);
+    m_driveshaft->SetAppliedLoad(driveshaft_torque);
 }
 
 // -----------------------------------------------------------------------------
@@ -122,7 +122,7 @@ void ChTrackDrivelineBDS::CombineDriverInputs(const DriverInputs& driver_inputs,
 double ChTrackDrivelineBDS::GetSprocketTorque(VehicleSide side) const {
     switch (side) {
         case LEFT:
-            return -m_differential->GetTorqueReactionOn2();
+            return -m_differential->GetReaction2();
         case RIGHT:
             return -m_differential->GetTorqueReactionOn3();
     }

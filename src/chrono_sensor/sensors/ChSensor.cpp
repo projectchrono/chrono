@@ -16,10 +16,12 @@
 //
 // =============================================================================
 
+#include <iostream>
+
 #include "chrono_sensor/sensors/ChSensor.h"
 #include "chrono_sensor/filters/ChFilterAccess.h"
 #include "chrono/physics/ChSystem.h"
-#include <iostream>
+#include "chrono/utils/ChUtils.h"
 
 namespace chrono {
 namespace sensor {
@@ -89,6 +91,16 @@ CH_SENSOR_API UserRGBA8BufferPtr ChSensor::GetMostRecentBuffer() {
     return GetMostRecentBufferHelper<UserRGBA8BufferPtr, ChFilterRGBA8Access, ChFilterRGBA8AccessName>();
 }
 
+
+// -----------------------------------------------------------------------------
+// retriever function for image depth data as float values
+// -----------------------------------------------------------------------------
+template <>
+CH_SENSOR_API UserDepthBufferPtr ChSensor::GetMostRecentBuffer() {
+    // call the templated helper function
+    return GetMostRecentBufferHelper<UserDepthBufferPtr, ChFilterDepthAccess, ChFilterDepthAccessName>();
+}
+
 // -----------------------------------------------------------------------------
 // retriever function for lidar data in range/depth,intensity format
 // -----------------------------------------------------------------------------
@@ -119,8 +131,7 @@ CH_SENSOR_API UserRadarBufferPtr ChSensor::GetMostRecentBuffer() {
 template <>
 CH_SENSOR_API UserRadarXYZBufferPtr ChSensor::GetMostRecentBuffer() {
     // call the templated helper function
-    return GetMostRecentBufferHelper<UserRadarXYZBufferPtr, ChFilterRadarXYZAccess,
-                                     ChFilterRadarXYZAccessName>();
+    return GetMostRecentBufferHelper<UserRadarXYZBufferPtr, ChFilterRadarXYZAccess, ChFilterRadarXYZAccessName>();
 }
 
 template <>
@@ -158,7 +169,6 @@ CH_SENSOR_API UserTachometerBufferPtr ChSensor::GetMostRecentBuffer() {
     // call the templated helper function
     return GetMostRecentBufferHelper<UserTachometerBufferPtr, ChFilterTachometerAccess, ChFilterTachometerAccessName>();
 }
-
 
 // -----------------------------------------------------------------------------
 // Helper function for retrieving the last buffer of given type

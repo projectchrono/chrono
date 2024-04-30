@@ -33,13 +33,14 @@ namespace vehicle {
 // -----------------------------------------------------------------------------
 // -----------------------------------------------------------------------------
 SprocketBand::SprocketBand(const std::string& filename) : ChSprocketBand(""), m_has_mesh(false) {
-    Document d; ReadFileJSON(filename, d);
+    Document d;
+    ReadFileJSON(filename, d);
     if (d.IsNull())
         return;
 
     Create(d);
 
-    GetLog() << "Loaded JSON: " << filename.c_str() << "\n";
+    std::cout << "Loaded JSON " << filename << std::endl;
 }
 
 SprocketBand::SprocketBand(const rapidjson::Document& d) : ChSprocketBand(""), m_has_mesh(false) {
@@ -68,7 +69,7 @@ void SprocketBand::Create(const rapidjson::Document& d) {
     m_gear_tooth_depth = d["Profile"]["Tooth Depth"].GetDouble();
     m_gear_arc_radius = d["Profile"]["Arc Radius"].GetDouble();
     m_gear_RA = d["Profile"]["Assembly Radius"].GetDouble();
-    m_gear_RT = d["Profile"]["Addenum Radius"].GetDouble();
+    m_gear_RT = d["Profile"]["Addendum Radius"].GetDouble();
 
     // Read contact material data
     assert(d.HasMember("Contact Material"));
@@ -90,8 +91,7 @@ void SprocketBand::CreateContactMaterial(ChContactMethod contact_method) {
 // -----------------------------------------------------------------------------
 void SprocketBand::AddVisualizationAssets(VisualizationType vis) {
     if (vis == VisualizationType::MESH && m_has_mesh) {
-        auto trimesh =
-            geometry::ChTriangleMeshConnected::CreateFromWavefrontFile(vehicle::GetDataFile(m_meshFile), true, true);
+        auto trimesh = ChTriangleMeshConnected::CreateFromWavefrontFile(vehicle::GetDataFile(m_meshFile), true, true);
         auto trimesh_shape = chrono_types::make_shared<ChVisualShapeTriangleMesh>();
         trimesh_shape->SetMesh(trimesh);
         trimesh_shape->SetName(filesystem::path(m_meshFile).stem());

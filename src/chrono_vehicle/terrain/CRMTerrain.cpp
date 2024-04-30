@@ -32,20 +32,14 @@
 using std::cout;
 using std::endl;
 
-
 namespace chrono {
 namespace vehicle {
 
 CRMTerrain::CRMTerrain(ChSystem& sys, double spacing)
-    : m_sys(sys),
-      m_spacing(spacing),
-      m_initialized(false),
-      m_offset(VNULL),
-      m_angle(0.0),
-      m_verbose(false) {
+    : m_sys(sys), m_spacing(spacing), m_initialized(false), m_offset(VNULL), m_angle(0.0), m_verbose(false) {
     // Create ground body
     m_ground = chrono_types::make_shared<ChBody>();
-    m_ground->SetBodyFixed(true);
+    m_ground->SetFixed(true);
     sys.AddBody(m_ground);
 
     // Associate MBS system with underlying FSI system
@@ -65,11 +59,11 @@ void CRMTerrain::AddRigidObstacle(const std::string& obj_file,
                                   double density,
                                   const ChContactMaterialData& cmat,
                                   const ChFrame<>& pos,
-                                  const ChVector<>& interior_point) {
+                                  const ChVector3d& interior_point) {
     //// TODO: calculate OOBB (for possible use with "moving patch")
 
     if (m_initialized)
-        throw ChException("CRMTerrain: obstacles cannot be added after initialization");
+        throw std::runtime_error("CRMTerrain: obstacles cannot be added after initialization");
 
     if (m_verbose) {
         cout << "Add obstacle" << endl;
@@ -83,17 +77,17 @@ void CRMTerrain::AddRigidObstacle(const std::string& obj_file,
     o.point = interior_point;
 
     // Create trimesh
-    o.trimesh = chrono_types::make_shared<geometry::ChTriangleMeshConnected>();
+    o.trimesh = chrono_types::make_shared<ChTriangleMeshConnected>();
     o.trimesh->LoadWavefrontMesh(GetChronoDataFile(obj_file), true, true);
 
     // Scale trimesh
-    for (auto& v : o.trimesh->getCoordsVertices()) {
+    for (auto& v : o.trimesh->GetCoordsVertices()) {
         v *= scale;
     }
 
     // Calculate mass and inertia properties
     double mass;
-    ChVector<> baricenter;
+    ChVector3d baricenter;
     ChMatrix33<> inertia;
     o.trimesh->ComputeMassProperties(true, mass, baricenter, inertia);
 
@@ -101,13 +95,13 @@ void CRMTerrain::AddRigidObstacle(const std::string& obj_file,
 
     // Create the obstacle body
     o.body = chrono_types::make_shared<ChBody>();
-    o.body->SetNameString("obstacle_" + o_name);
+    o.body->SetName("obstacle_" + o_name);
     o.body->SetPos(pos.GetPos());
     o.body->SetRot(pos.GetRot());
     o.body->SetMass(mass * density);
     o.body->SetInertia(inertia * density);
-    o.body->SetBodyFixed(false);
-    o.body->SetCollide(true);
+    o.body->SetFixed(false);
+    o.body->EnableCollision(true);
 
     // Create obstacle visualization geometry
     auto trimesh_shape = chrono_types::make_shared<ChVisualShapeTriangleMesh>();
@@ -128,7 +122,7 @@ void CRMTerrain::AddRigidObstacle(const std::string& obj_file,
     m_sys.AddBody(o.body);
 
     m_obstacles.push_back(o);
-    
+
     if (m_verbose) {
         cout << "  Num. BCE markers: " << o.point_cloud.size() << endl;
     }
@@ -136,7 +130,7 @@ void CRMTerrain::AddRigidObstacle(const std::string& obj_file,
 
 void CRMTerrain::Construct(const std::string& sph_file,
                            const std::string& bce_file,
-                           const ChVector<>& pos,
+                           const ChVector3d& pos,
                            double yaw_angle) {
     if (m_verbose) {
         cout << "Construct CRMTerrain from data files" << endl;
@@ -149,14 +143,14 @@ void CRMTerrain::Construct(const std::string& sph_file,
     while (std::getline(sph, line)) {
         std::istringstream iss(line, std::ios_base::in);
         iss >> x >> y >> z;
-        m_sph.insert(ChVector<int>(x, y, z));
+        m_sph.insert(ChVector3i(x, y, z));
     }
 
     std::ifstream bce(bce_file, std::ios_base::in);
     while (std::getline(bce, line)) {
         std::istringstream iss(line, std::ios_base::in);
         iss >> x >> y >> z;
-        m_bce.insert(ChVector<int>(x, y, z));
+        m_bce.insert(ChVector3i(x, y, z));
     }
 
     if (m_verbose) {
@@ -174,7 +168,7 @@ void CRMTerrain::Construct(double length,
                            double width,
                            double depth,
                            int bce_layers,
-                           const ChVector<>& pos,
+                           const ChVector3d& pos,
                            double yaw_angle,
                            bool side_walls) {
     if (m_verbose) {
@@ -193,8 +187,8 @@ void CRMTerrain::Construct(double length,
     int num_bce = Nx * Ny * bce_layers + (Nx + Ny + 2 * bce_layers) * 2 * bce_layers * Nz;
 
     // Reserve space for containers
-    std::vector<ChVector<int>> sph;
-    std::vector<ChVector<int>> bce;
+    std::vector<ChVector3i> sph;
+    std::vector<ChVector3i> bce;
     sph.reserve(num_sph);
     bce.reserve(num_bce);
 
@@ -202,10 +196,10 @@ void CRMTerrain::Construct(double length,
     for (int Ix = 0; Ix < Nx; Ix++) {
         for (int Iy = 0; Iy < Ny; Iy++) {
             for (int Iz = 0; Iz < Nz; Iz++) {
-                sph.push_back(ChVector<int>(Ix, Iy, Iz));  // SPH particles above 0
+                sph.push_back(ChVector3i(Ix, Iy, Iz));  // SPH particles above 0
             }
             for (int Iz = 1; Iz <= bce_layers; Iz++) {
-                bce.push_back(ChVector<>(Ix, Iy, -Iz));  // BCE markers below 0
+                bce.push_back(ChVector3d(Ix, Iy, -Iz));  // BCE markers below 0
             }
         }
     }
@@ -215,16 +209,16 @@ void CRMTerrain::Construct(double length,
         for (int Ix = -bce_layers; Ix < Nx + bce_layers; Ix++) {
             for (int Iy = -bce_layers; Iy < 0; Iy++) {
                 for (int Iz = -bce_layers; Iz < Nz; Iz++) {
-                    bce.push_back(ChVector<>(Ix, Iy, Iz));
-                    bce.push_back(ChVector<>(Ix, Ny - 1 - Iy, Iz));
+                    bce.push_back(ChVector3d(Ix, Iy, Iz));
+                    bce.push_back(ChVector3d(Ix, Ny - 1 - Iy, Iz));
                 }
             }
         }
         for (int Iy = 0; Iy < Ny; Iy++) {
             for (int Ix = -bce_layers; Ix < 0; Ix++) {
                 for (int Iz = -bce_layers; Iz < Nz; Iz++) {
-                    bce.push_back(ChVector<>(Ix, Iy, Iz));
-                    bce.push_back(ChVector<>(Nx - 1 - Ix, Iy, Iz));
+                    bce.push_back(ChVector3d(Ix, Iy, Iz));
+                    bce.push_back(ChVector3d(Nx - 1 - Ix, Iy, Iz));
                 }
             }
         }
@@ -246,7 +240,7 @@ void CRMTerrain::Construct(double length,
     }
 
     // Complete construction of CRM terrain and obstacles
-    m_offset = pos - ChVector<>(length / 2, width / 2, 0);
+    m_offset = pos - ChVector3d(length / 2, width / 2, 0);
     m_angle = yaw_angle;
     CompleteConstruct();
 }
@@ -254,16 +248,16 @@ void CRMTerrain::Construct(double length,
 void CRMTerrain::Construct(const std::string& heightmap_file,
                            double length,
                            double width,
-                           const ChVector2<>& height_range,
+                           const ChVector2d& height_range,
                            double depth,
                            int bce_layers,
-                           const ChVector<>& pos,
+                           const ChVector3d& pos,
                            double yaw_angle,
                            bool side_walls) {
     // Read the image file (request only 1 channel) and extract number of pixels
     STB hmap;
     if (!hmap.ReadFromFile(heightmap_file, 1)) {
-        throw ChException("Cannot open height map image file");
+        throw std::invalid_argument("Cannot open height map image file");
     }
 
     if (m_verbose) {
@@ -290,8 +284,8 @@ void CRMTerrain::Construct(const std::string& heightmap_file,
     int num_bce = bce_layers * (Nx * Ny);  // underestimate if side_walls
 
     // Reserve space for containers
-    std::vector<ChVector<int>> sph;
-    std::vector<ChVector<int>> bce;
+    std::vector<ChVector3i> sph;
+    std::vector<ChVector3i> bce;
     sph.reserve(num_sph);
     bce.reserve(num_bce);
 
@@ -320,11 +314,11 @@ void CRMTerrain::Construct(const std::string& heightmap_file,
 
             // Load SPH and BCE location below current point
             for (int k = 0; k < Nz; k++) {
-                sph.push_back(ChVector<int>(Ix, Iy, Iz));
+                sph.push_back(ChVector3i(Ix, Iy, Iz));
                 Iz--;
             }
             for (int k = 0; k < bce_layers; k++) {
-                bce.push_back(ChVector<>(Ix, Iy, Iz));
+                bce.push_back(ChVector3d(Ix, Iy, Iz));
                 Iz--;
             }
         }
@@ -338,16 +332,16 @@ void CRMTerrain::Construct(const std::string& heightmap_file,
         for (int Ix = -bce_layers; Ix < Nx + bce_layers; Ix++) {
             for (int Iy = -bce_layers; Iy < 0; Iy++) {
                 for (int k = 0; k < Nz; k++) {
-                    bce.push_back(ChVector<>(Ix, Iy, Izmin + k));
-                    bce.push_back(ChVector<>(Ix, Ny - 1 - Iy, Izmin + k));
+                    bce.push_back(ChVector3d(Ix, Iy, Izmin + k));
+                    bce.push_back(ChVector3d(Ix, Ny - 1 - Iy, Izmin + k));
                 }
             }
         }
         for (int Iy = 0; Iy < Ny; Iy++) {
             for (int Ix = -bce_layers; Ix < 0; Ix++) {
                 for (int k = 0; k < Nz; k++) {
-                    bce.push_back(ChVector<>(Ix, Iy, Izmin + k));
-                    bce.push_back(ChVector<>(Nx - 1 - Ix, Iy, Izmin + k));
+                    bce.push_back(ChVector3d(Ix, Iy, Izmin + k));
+                    bce.push_back(ChVector3d(Nx - 1 - Ix, Iy, Izmin + k));
                 }
             }
         }
@@ -371,7 +365,7 @@ void CRMTerrain::Construct(const std::string& heightmap_file,
     }
 
     // Complete construction of CRM terrain and obstacles
-    m_offset = pos - ChVector<>(length / 2, width / 2, 0);
+    m_offset = pos - ChVector3d(length / 2, width / 2, 0);
     m_angle = yaw_angle;
     CompleteConstruct();
 }
@@ -384,28 +378,28 @@ void CRMTerrain::CompleteConstruct() {
 
         for (auto& o : m_obstacles)
             ProcessObstacleMesh(o);
-        
-        if (m_verbose)            
+
+        if (m_verbose)
             cout << "Num. SPH particles: " << m_sph.size() << endl;
     }
 
     // Convert SPH and BCE grid points to real coordinates and apply patch transformation.
     //// TODO: yaw rotation
-    std::vector<ChVector<>> sph_points;
+    std::vector<ChVector3d> sph_points;
     sph_points.reserve(m_sph.size());
     for (const auto& p : m_sph) {
-        ChVector<> point(m_spacing * p.x(), m_spacing * p.y(), m_spacing * p.z());
+        ChVector3d point(m_spacing * p.x(), m_spacing * p.y(), m_spacing * p.z());
         sph_points.push_back(point + m_offset);
     }
-    std::vector<ChVector<>> bce_points;
+    std::vector<ChVector3d> bce_points;
     bce_points.reserve(m_bce.size());
     for (const auto& p : m_bce) {
-        ChVector<> point(m_spacing * p.x(), m_spacing * p.y(), m_spacing * p.z());
+        ChVector3d point(m_spacing * p.x(), m_spacing * p.y(), m_spacing * p.z());
         bce_points.push_back(point + m_offset);
     }
 
     // Create SPH particles and calculate AABB.
-    ChVector<> tau(0);
+    ChVector3d tau(0);
     for (const auto& p : sph_points) {
         m_sysFSI.AddSPHParticle(p, m_sysFSI.GetDensity(), 0.0, m_sysFSI.GetViscosity(), VNULL, tau, VNULL);
         m_aabb.min = Vmin(m_aabb.min, p);
@@ -419,7 +413,7 @@ void CRMTerrain::CompleteConstruct() {
     }
 
     // Set computational domain
-    ChVector<> aabb_dim = m_aabb.Size();
+    ChVector3d aabb_dim = m_aabb.Size();
     aabb_dim.z() *= 50;
     m_sysFSI.SetBoundaries(m_aabb.min - 0.1 * aabb_dim, m_aabb.max + 0.1 * aabb_dim);
 
@@ -441,20 +435,20 @@ void CRMTerrain::Initialize() {
     m_initialized = true;
 }
 
-ChVector<int> Snap2Grid(const ChVector<> point, double spacing) {
-    return ChVector<int>((int)std::round(point.x() / spacing),  //
-                         (int)std::round(point.y() / spacing),  //
-                         (int)std::round(point.z() / spacing));
+ChVector3i Snap2Grid(const ChVector3d point, double spacing) {
+    return ChVector3i((int)std::round(point.x() / spacing),  //
+                      (int)std::round(point.y() / spacing),  //
+                      (int)std::round(point.z() / spacing));
 }
 
 // Offsets for the 6 neighbors of an integer grid node
-static const std::vector<ChVector<int>> nbr3D{
-    ChVector<int>(-1, 0, 0),  //
-    ChVector<int>(+1, 0, 0),  //
-    ChVector<int>(0, -1, 0),  //
-    ChVector<int>(0, +1, 0),  //
-    ChVector<int>(0, 0, -1),  //
-    ChVector<int>(0, 0, +1)   //
+static const std::vector<ChVector3i> nbr3D{
+    ChVector3i(-1, 0, 0),  //
+    ChVector3i(+1, 0, 0),  //
+    ChVector3i(0, -1, 0),  //
+    ChVector3i(0, +1, 0),  //
+    ChVector3i(0, 0, -1),  //
+    ChVector3i(0, 0, +1)   //
 };
 
 //// TODO:
@@ -464,13 +458,13 @@ void CRMTerrain::ProcessObstacleMesh(RigidObstacle& o) {
     // Create BCE markers for the *transformed* obstacle mesh
     // (to address any roundoff issues that may result in a set of BCE markers that are not watertight)
     auto trimesh = *o.trimesh;
-    for (auto& v : trimesh.getCoordsVertices()) {
+    for (auto& v : trimesh.GetCoordsVertices()) {
         auto v_abs = o.body->TransformPointLocalToParent(v);  // vertex in absolute frame
         v = v_abs - m_offset;                                 // vertex in CRMTerrain frame
     }
 
     // BCE marker locations (in CRMTerrain frame)
-    std::vector<ChVector<>> point_cloud;
+    std::vector<ChVector3d> point_cloud;
     m_sysFSI.CreateMeshPoints(trimesh, m_spacing, point_cloud);
 
     // Express the points in the obstacle BCE point cloud in CRMTerrain grid coordinates
@@ -485,8 +479,8 @@ void CRMTerrain::ProcessObstacleMesh(RigidObstacle& o) {
     auto c = Snap2Grid(c_sph, m_spacing);                       // point in CRMTerrain grid coordinates
 
     // Calculate the (integer) obstacle AABB
-    ChVector<int> aabb_min(+std::numeric_limits<int>::max());
-    ChVector<int> aabb_max(-std::numeric_limits<int>::max());
+    ChVector3i aabb_min(+std::numeric_limits<int>::max());
+    ChVector3i aabb_max(-std::numeric_limits<int>::max());
     for (const auto& p : o.bce) {
         aabb_min = Vmin(aabb_min, p);
         aabb_max = Vmax(aabb_max, p);
@@ -496,7 +490,7 @@ void CRMTerrain::ProcessObstacleMesh(RigidObstacle& o) {
     Points list = o.bce;
 
     // Use a queue-based flood-filling algorithm to find all points interior to the obstacle volume
-    std::queue<ChVector<int>> todo;
+    std::queue<ChVector3i> todo;
 
     // Add the provided interior point to the work queue then iterate until the queue is empty
     todo.push({c.x(), c.y(), c.z()});
@@ -509,7 +503,7 @@ void CRMTerrain::ProcessObstacleMesh(RigidObstacle& o) {
         // Safeguard -- stop as soon as we spill out of the obstacle AABB
         if (!(crt > aabb_min && crt < aabb_max)) {
             std::cout << "Obstacle BCE set is NOT watertight!" << std::endl;
-            throw ChException("Obstacle BCE set is NOT watertight!");
+            throw std::invalid_argument("Obstacle BCE set is NOT watertight!");
         }
 
         // Loop through all 6 neighbors of the current node and add them to the end of the work queue

@@ -31,8 +31,8 @@ sys      = chrono.ChSystemNSC()
 # Create a fixed rigid body
 
 mbody1 = chrono.ChBody()
-mbody1.SetBodyFixed(True)
-mbody1.SetPos( chrono.ChVectorD(0,0,-0.2))
+mbody1.SetFixed(True)
+mbody1.SetPos( chrono.ChVector3d(0,0,-0.2))
 sys.Add(mbody1)
 
 mboxasset = chrono.ChVisualShapeBox(0.4, 1.0, 0.2)
@@ -43,7 +43,7 @@ mbody1.AddVisualShape(mboxasset)
 # Create a swinging rigid body
 
 mbody2 = chrono.ChBody()
-mbody2.SetBodyFixed(False)
+mbody2.SetFixed(False)
 sys.Add(mbody2)
 
 mboxasset = chrono.ChVisualShapeBox(0.4, 1.0, 0.2)
@@ -56,7 +56,7 @@ mbody2.AddVisualShape(mboxasset)
 mlink = chrono.ChLinkRevolute()
 
     # the coordinate sys of the constraint reference in abs. space:
-mframe = chrono.ChFrameD(chrono.ChVectorD(0.1,0.5,0))
+mframe = chrono.ChFramed(chrono.ChVector3d(0.1,0.5,0))
 
     # initialize the constraint telling which part must be connected, and where:
 mlink.Initialize(mbody1,mbody2, mframe)
@@ -75,7 +75,7 @@ vis.SetWindowTitle('Revolute joint demo')
 vis.Initialize()
 vis.AddLogo(chrono.GetChronoDataFile('logo_pychrono_alpha.png'))
 vis.AddSkyBox()
-vis.AddCamera(chrono.ChVectorD(0.6,0.6,0.8))
+vis.AddCamera(chrono.ChVector3d(0.6,0.6,0.8))
 vis.AddTypicalLights()
 
 

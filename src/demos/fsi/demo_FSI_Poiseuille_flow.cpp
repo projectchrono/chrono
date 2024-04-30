@@ -51,16 +51,15 @@ double t_end = 10.0;
 void CreateSolidPhase(ChSystemSMC& sysMBS, ChSystemFsi& sysFSI) {
     // General setting of ground body
     auto ground = chrono_types::make_shared<ChBody>();
-    ground->SetIdentifier(-1);
-    ground->SetBodyFixed(true);
-    ground->SetCollide(false);
+    ground->SetFixed(true);
+    ground->EnableCollision(false);
     sysMBS.AddBody(ground);
 
     // Add BCE particles attached on the walls into FSI system
     sysFSI.AddBoxContainerBCE(ground,                                         //
-                              ChFrame<>(ChVector<>(0, 0, bzDim / 2), QUNIT),  //
-                              ChVector<>(bxDim, byDim, bzDim),                //
-                              ChVector<int>(0, 0, 2));
+                              ChFrame<>(ChVector3d(0, 0, bzDim / 2), QUNIT),  //
+                              ChVector3d(bxDim, byDim, bzDim),                //
+                              ChVector3i(0, 0, 2));
 }
 
 // =============================================================================
@@ -96,17 +95,17 @@ int main(int argc, char* argv[]) {
 
     // Set the periodic boundary condition (in X and Y direction)
     auto initSpace0 = sysFSI.GetInitialSpacing();
-    ChVector<> cMin = ChVector<>(-bxDim / 2 - initSpace0 / 2, -byDim / 2 - initSpace0 / 2, -5.0 * initSpace0);
-    ChVector<> cMax = ChVector<>(bxDim / 2 + initSpace0 / 2, byDim / 2 + initSpace0 / 2, bzDim + 5.0 * initSpace0);
+    ChVector3d cMin = ChVector3d(-bxDim / 2 - initSpace0 / 2, -byDim / 2 - initSpace0 / 2, -5.0 * initSpace0);
+    ChVector3d cMax = ChVector3d(bxDim / 2 + initSpace0 / 2, byDim / 2 + initSpace0 / 2, bzDim + 5.0 * initSpace0);
     sysFSI.SetBoundaries(cMin, cMax);
 
     // Create Fluid region and discretize with SPH particles
-    ChVector<> boxCenter(0.0, 0.0, bzDim / 2);
-    ChVector<> boxHalfDim(bxDim / 2, byDim / 2, bzDim / 2);
+    ChVector3d boxCenter(0.0, 0.0, bzDim / 2);
+    ChVector3d boxHalfDim(bxDim / 2, byDim / 2, bzDim / 2);
 
     // Use a chrono sampler to create a bucket of points
-    chrono::utils::GridSampler<> sampler(initSpace0);
-    chrono::utils::Generator::PointVector points = sampler.SampleBox(boxCenter, boxHalfDim);
+    chrono::utils::ChGridSampler<> sampler(initSpace0);
+    chrono::utils::ChGenerator::PointVector points = sampler.SampleBox(boxCenter, boxHalfDim);
 
     // Add fluid particles from the sampler points to the FSI system
     size_t numPart = points.size();

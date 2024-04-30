@@ -30,26 +30,26 @@ ChVisualShapeRoundedCylinder::ChVisualShapeRoundedCylinder(double radius, double
     SetMutable(false);
 }
 
-ChVisualShapeRoundedCylinder::ChVisualShapeRoundedCylinder(const geometry::ChRoundedCylinder& cyl) : groundedcyl(cyl) {
+ChVisualShapeRoundedCylinder::ChVisualShapeRoundedCylinder(const ChRoundedCylinder& cyl) : groundedcyl(cyl) {
     SetMutable(false);
 }
 
-void ChVisualShapeRoundedCylinder::ArchiveOut(ChArchiveOut& marchive) {
+void ChVisualShapeRoundedCylinder::ArchiveOut(ChArchiveOut& archive_out) {
     // version number
-    marchive.VersionWrite<ChVisualShapeRoundedCylinder>();
+    archive_out.VersionWrite<ChVisualShapeRoundedCylinder>();
     // serialize parent class
-    ChVisualShape::ArchiveOut(marchive);
+    ChVisualShape::ArchiveOut(archive_out);
     // serialize all member data:
-    marchive << CHNVP(groundedcyl);
+    archive_out << CHNVP(groundedcyl);
 }
 
-void ChVisualShapeRoundedCylinder::ArchiveIn(ChArchiveIn& marchive) {
+void ChVisualShapeRoundedCylinder::ArchiveIn(ChArchiveIn& archive_in) {
     // version number
-    /*int version =*/ marchive.VersionRead<ChVisualShapeRoundedCylinder>();
+    /*int version =*/archive_in.VersionRead<ChVisualShapeRoundedCylinder>();
     // deserialize parent class
-    ChVisualShape::ArchiveIn(marchive);
+    ChVisualShape::ArchiveIn(archive_in);
     // stream in all member data:
-    marchive >> CHNVP(groundedcyl);
+    archive_in >> CHNVP(groundedcyl);
 }
 
 }  // end namespace chrono

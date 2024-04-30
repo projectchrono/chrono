@@ -27,14 +27,14 @@
 using namespace chrono;
 
 int main(int argc, char* argv[]) {
-    GetLog() << "Copyright (c) 2017 projectchrono.org\nChrono version: " << CHRONO_VERSION << "\n\n";
+    std::cout << "Copyright (c) 2017 projectchrono.org\nChrono version: " << CHRONO_VERSION << std::endl;
 
     {
         //
         // EXAMPLE 1:
         //
 
-        GetLog() << " Example: create a physical system.. \n";
+        std::cout << " Example: create a physical system..." << std::endl;
 
         // The physical system: it contains all physical objects.
         ChSystemNSC sys;
@@ -77,8 +77,8 @@ int main(int argc, char* argv[]) {
         sys.AddBody(my_body_C);
 
         // Show the hierarchy in the shell window...
-        GetLog() << "Here's the system hierarchy which you built: \n\n ";
-        sys.ShowHierarchy(GetLog());
+        std::cout << "Here's the system hierarchy which you built:" << std::endl;
+        sys.ShowHierarchy(std::cout);
 
         // Do you want to remove items? Use the
         // Remove...() functions.
@@ -97,8 +97,8 @@ int main(int argc, char* argv[]) {
         my_marker_a1->SetName("JohnFoo");
         // ..so you can later use  my_body_B.SearchMarker("JohnFoo"); etc.
 
-        GetLog() << "\n\n\nHere's the system hierarchy after modifications: \n\n ";
-        sys.ShowHierarchy(GetLog());
+        std::cout << std::endl << std::endl << "Here's the system hierarchy after modifications:\n" << std::endl;
+        sys.ShowHierarchy(std::cout);
     }
 
     {
@@ -106,7 +106,7 @@ int main(int argc, char* argv[]) {
         // EXAMPLE 2:
         //
 
-        GetLog() << " Example: create a slider-crank system: \n";
+        std::cout << " Example: create a slider-crank system:" << std::endl;
 
         // The physical system: it contains all physical objects.
         ChSystemNSC sys;
@@ -125,9 +125,9 @@ int main(int argc, char* argv[]) {
         sys.AddBody(my_body_C);
 
         // Set initial position of the bodies (center of mass)
-        my_body_A->SetBodyFixed(true);  // truss does not move!
-        my_body_B->SetPos(ChVector<>(1, 0, 0));
-        my_body_C->SetPos(ChVector<>(4, 0, 0));
+        my_body_A->SetFixed(true);  // truss does not move!
+        my_body_B->SetPos(ChVector3d(1, 0, 0));
+        my_body_C->SetPos(ChVector3d(4, 0, 0));
 
         // Create two markers and add them to two bodies:
         // they will be used as references for 'rod-crank'link.
@@ -142,8 +142,8 @@ int main(int argc, char* argv[]) {
 
         // Set absolute position of the two markers,
         // for the initial position of the 'rod-crank' link:
-        my_marker_b->Impose_Abs_Coord(ChCoordsys<>(ChVector<>(2, 0, 0)));
-        my_marker_c->Impose_Abs_Coord(ChCoordsys<>(ChVector<>(2, 0, 0)));
+        my_marker_b->ImposeAbsoluteTransform(ChFrame<>(ChVector3d(2, 0, 0)));
+        my_marker_c->ImposeAbsoluteTransform(ChFrame<>(ChVector3d(2, 0, 0)));
 
         // Now create a mechanical link (a revolute joint)
         // between these two markers, and insert in system:
@@ -159,7 +159,7 @@ int main(int argc, char* argv[]) {
         // i.e. is using two bodies and a position as arguments..
         // For example, to create the rod-truss constraint:
         auto my_link_CA = chrono_types::make_shared<ChLinkLockPointLine>();
-        my_link_CA->Initialize(my_body_C, my_body_A, ChCoordsys<>(ChVector<>(6, 0, 0)));
+        my_link_CA->Initialize(my_body_C, my_body_A, ChFrame<>(ChVector3d(6, 0, 0)));
         sys.AddLink(my_link_CA);
 
         my_link_CA->GetMarker1()->SetName("rod_poinline");
@@ -169,32 +169,31 @@ int main(int argc, char* argv[]) {
         // Now create a 'motor' link between crank and truss, in 'imposed speed' mode:
         auto my_motor_AB = chrono_types::make_shared<ChLinkMotorRotationSpeed>();
         my_motor_AB->SetName("MOTOR truss-crank");
-        my_motor_AB->Initialize(my_body_A, my_body_B, ChFrame<>(ChVector<>(0, 0, 0)));
-        my_motor_AB->SetSpeedFunction(chrono_types::make_shared<ChFunction_Const>(CH_C_PI));
+        my_motor_AB->Initialize(my_body_A, my_body_B, ChFrame<>(ChVector3d(0, 0, 0)));
+        my_motor_AB->SetSpeedFunction(chrono_types::make_shared<ChFunctionConst>(CH_PI));
         sys.AddLink(my_motor_AB);
 
-        GetLog() << "\n\n\nHere's the system hierarchy for slider-crank: \n\n ";
-        sys.ShowHierarchy(GetLog());
+        std::cout << std::endl << std::endl << "Here's the system hierarchy for slider-crank:\n" << std::endl;
+        sys.ShowHierarchy(std::cout);
 
-        GetLog() << "Now use an interator to scan through already-added constraints:\n\n";
-        for (auto link : sys.Get_linklist()) {
-            GetLog() << "   Link class: " << typeid(link).name() << "\n";
+        std::cout << "Now use an iterator to scan through already-added constraints:" << std::endl;
+        for (auto link : sys.GetLinks()) {
+            auto& rlink = *link.get();
+            std::cout << "   Link class: " << typeid(rlink).name() << std::endl;
         }
+        std::cout << std::endl;
 
-        // OK! NOW GET READY FOR THE DYNAMICAL SIMULATION!
+        // Simulation loop
+        double end_time = 2.5;
+        double step_size = 0.01;
 
-        // A very simple simulation loop..
-        double chronoTime = 0;
-        while (chronoTime < 2.5) {
-            chronoTime += 0.01;
+        for (double frame_time = 0.05; frame_time < end_time; frame_time += 0.05) {
+            // Perform simulation up to frame_time
+            sys.DoFrameDynamics(frame_time, step_size);
 
-            // PERFORM SIMULATION UP TO chronoTime
-            sys.DoFrameDynamics(chronoTime);
-
-            // Print something on the console..
-            GetLog() << "Time: " << chronoTime
-                     << "  Slider X position: " << my_link_CA->GetMarker1()->GetAbsCoord().pos.x()
-                     << "  Engine torque: " << my_motor_AB->GetMotorTorque() << "\n";
+            std::cout << "Time: " << frame_time << "  Steps: " << sys.GetNumSteps()
+                      << "  Slider X position: " << my_link_CA->GetMarker1()->GetAbsCoordsys().pos.x()
+                      << "  Engine torque: " << my_motor_AB->GetMotorTorque() << std::endl;
         }
     }
 

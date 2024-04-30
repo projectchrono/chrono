@@ -11,6 +11,10 @@
 // =============================================================================
 // Authors: Alessandro Tasora
 // =============================================================================
+//
+// Based on the work of Liyang Yu in the tutorial of Codeproject
+//
+// =============================================================================
 
 #ifndef CHSOCKET_H
 #define CHSOCKET_H
@@ -25,10 +29,10 @@
     #define UNIX
 #endif
 
-// Based on the work of Liyang Yu in the tutorial of Codeproject
+#include <string>
+#include <iostream>
 
 #include "chrono/core/ChApiCE.h"
-#include "chrono/core/ChLog.h"
 
 #ifdef UNIX
     #include <sys/socket.h>
@@ -40,7 +44,6 @@
     #include <netinet/in.h>
     #include <iostream>
     #include <sys/types.h>
-    //#include <stropts.h>
     #include <sys/ioctl.h>
     #include <cstdio>
     #include <cstring>
@@ -155,7 +158,7 @@ class ChApi ChSocketTCP : public ChSocket {
   private:
 #ifdef WINDOWS_XP
     // Windows NT version of the MSG_WAITALL option
-    int XPrecieveMessage(std::string&);
+    int XPReceiveMessage(std::string&);
 #endif
 
   public:
@@ -189,6 +192,7 @@ class ChApi ChSocketTCP : public ChSocket {
     /// the length of the buffer).
     int SendBuffer(std::vector<char>& source_buf  ///< source buffer
     );
+
     /// Receive a std::vector<char> (a buffer of bytes) from the connected host,
     /// without the header as in SendMessage (so one must know in advance
     /// the length of the buffer). If the receiving buffer size is not =bsize, it
@@ -231,28 +235,6 @@ class ChApi ChSocketFramework {
   public:
     ChSocketFramework();
     ~ChSocketFramework();
-};
-
-/// Class for exceptions that are thrown by TCP socket connections,
-/// used for example when connecting with other sw for cosimulation.
-
-class ChExceptionSocket : public ChException {
-  public:
-    ChExceptionSocket(int code, const std::string& what) : ChException(what), errorCode(code){};
-
-    // get socket error code in thrown exception
-    int getErrCode() { return errorCode; }
-
-    // std::string& getErrMsg() { return std::string(this->what()); }
-
-    void response() {
-        GetLog() << "TCP socket error: \n";
-        GetLog() << "		==> error code: " << errorCode << "\n";
-        GetLog() << "		==> error message: " << this->what() << "\n";
-    }
-
-  private:
-    int errorCode;
 };
 
 /*

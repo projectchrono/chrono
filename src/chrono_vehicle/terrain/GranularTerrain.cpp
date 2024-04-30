@@ -40,7 +40,6 @@
 #include <cstdio>
 #include <cmath>
 
-#include "chrono/core/ChLog.h"
 #include "chrono/assets/ChVisualShapeBox.h"
 #include "chrono/assets/ChVisualShapeSphere.h"
 #include "chrono/utils/ChUtilsGenerators.h"
@@ -64,13 +63,15 @@ const double safety_factor = 1.001;
 // Note: this should be at least 3, to accommodate the case of rough surface.
 const double offset_factor = 3;
 
+// All particles have tags greater than this value
+static constexpr int tag_particles = 100;
+
 // -----------------------------------------------------------------------------
 // Default constructor.
 // -----------------------------------------------------------------------------
 GranularTerrain::GranularTerrain(ChSystem* system)
     : m_min_num_particles(0),
       m_num_particles(0),
-      m_start_id(1000000),
       m_moving_patch(false),
       m_moved(false),
       m_rough_surface(false),
@@ -80,9 +81,9 @@ GranularTerrain::GranularTerrain(ChSystem* system)
     // Create the ground body and add it to the system.
     m_ground = chrono_types::make_shared<ChBody>();
     m_ground->SetName("ground");
-    m_ground->SetPos(ChVector<>(0, 0, 0));
-    m_ground->SetBodyFixed(true);
-    m_ground->SetCollide(false);
+    m_ground->SetPos(ChVector3d(0, 0, 0));
+    m_ground->SetFixed(true);
+    m_ground->EnableCollision(false);
 
     // Create a collsion model for the ground body (required for the custom boundary detection algorithm)
     m_ground->AddCollisionModel(chrono_types::make_shared<ChCollisionModel>());
@@ -120,7 +121,7 @@ void GranularTerrain::EnableRoughSurface(int num_spheres_x, int num_spheres_y) {
 void GranularTerrain::EnableMovingPatch(std::shared_ptr<ChBody> body,
                                         double buffer_distance,
                                         double shift_distance,
-                                        const ChVector<>& init_vel) {
+                                        const ChVector3d& init_vel) {
     m_body = body;
     m_buffer_distance = buffer_distance;
     m_shift_distance = shift_distance;
@@ -139,24 +140,24 @@ class BoundaryContact : public ChSystem::CustomCollisionCallback {
     virtual void OnCustomCollision(ChSystem* system) override;
 
   private:
-    void CheckBottom(ChBody* body, const ChVector<>& center);
-    void CheckLeft(ChBody* body, const ChVector<>& center);
-    void CheckRight(ChBody* body, const ChVector<>& center);
-    void CheckFront(ChBody* body, const ChVector<>& center);
-    void CheckRear(ChBody* body, const ChVector<>& center);
+    void CheckBottom(ChBody* body, const ChVector3d& center);
+    void CheckLeft(ChBody* body, const ChVector3d& center);
+    void CheckRight(ChBody* body, const ChVector3d& center);
+    void CheckFront(ChBody* body, const ChVector3d& center);
+    void CheckRear(ChBody* body, const ChVector3d& center);
 
-    void CheckFixedSpheres(ChBody* body, const ChVector<>& center);
-    void CheckFixedSphere(ChBody* body, const ChVector<>& center, const ChVector<>& s_center);
+    void CheckFixedSpheres(ChBody* body, const ChVector3d& center);
+    void CheckFixedSphere(ChBody* body, const ChVector3d& center, const ChVector3d& s_center);
 
     GranularTerrain* m_terrain;
     double m_radius;
 };
 
 void BoundaryContact::OnCustomCollision(ChSystem* system) {
-    auto bodylist = system->Get_bodylist();
+    auto bodylist = system->GetBodies();
     for (auto body : bodylist) {
         auto center = body->GetPos();
-        if (body->GetIdentifier() > m_terrain->m_start_id) {
+        if (body->GetTag() >= tag_particles) {
             CheckBottom(body.get(), center);
             CheckLeft(body.get(), center);
             CheckRight(body.get(), center);
@@ -169,7 +170,7 @@ void BoundaryContact::OnCustomCollision(ChSystem* system) {
 }
 
 // Check contact between granular material and ground-fixed spheres.
-void BoundaryContact::CheckFixedSpheres(ChBody* body, const ChVector<>& center) {
+void BoundaryContact::CheckFixedSpheres(ChBody* body, const ChVector3d& center) {
     // No contact if particle above layer of fixed spheres
     double dist = center.z() - m_terrain->m_bottom;
     if (dist > 3 * m_radius)
@@ -186,25 +187,17 @@ void BoundaryContact::CheckFixedSpheres(ChBody* body, const ChVector<>& center) 
     double y_m = m_terrain->m_right + iy * m_terrain->m_sep_y;
     double y_p = y_m + m_terrain->m_sep_y;
 
-    ////double eps = 1e-6;
-    ////if (center.x() < x_m - eps || center.x() > x_p + eps) {
-    ////    GetLog() << "X problem  " << center.x() << " " << x_m << " " << x_p << "\n";
-    ////}
-    ////if (center.y() < y_m - eps || center.y() > y_p + eps) {
-    ////    GetLog() << "Y problem  " << center.y() << " " << y_m << " " << y_p << "\n";
-    ////}
-
     // Check potential collisions
-    CheckFixedSphere(body, center, ChVector<>(x_m, y_m, m_terrain->m_bottom + m_radius));
-    CheckFixedSphere(body, center, ChVector<>(x_m, y_p, m_terrain->m_bottom + m_radius));
-    CheckFixedSphere(body, center, ChVector<>(x_p, y_m, m_terrain->m_bottom + m_radius));
-    CheckFixedSphere(body, center, ChVector<>(x_p, y_p, m_terrain->m_bottom + m_radius));
+    CheckFixedSphere(body, center, ChVector3d(x_m, y_m, m_terrain->m_bottom + m_radius));
+    CheckFixedSphere(body, center, ChVector3d(x_m, y_p, m_terrain->m_bottom + m_radius));
+    CheckFixedSphere(body, center, ChVector3d(x_p, y_m, m_terrain->m_bottom + m_radius));
+    CheckFixedSphere(body, center, ChVector3d(x_p, y_p, m_terrain->m_bottom + m_radius));
 }
 
 // Check collision between the specified particle and a ground-fixed sphere
 // centered at s_center.
-void BoundaryContact::CheckFixedSphere(ChBody* body, const ChVector<>& center, const ChVector<>& s_center) {
-    ChVector<> delta = center - s_center;
+void BoundaryContact::CheckFixedSphere(ChBody* body, const ChVector3d& center, const ChVector3d& s_center) {
+    ChVector3d delta = center - s_center;
     double dist2 = delta.Length2();
     double rad_sum = 2 * m_radius + 2 * m_terrain->m_envelope;
 
@@ -227,7 +220,7 @@ void BoundaryContact::CheckFixedSphere(ChBody* body, const ChVector<>& center, c
 }
 
 // Check contact between granular material and bottom boundary.
-void BoundaryContact::CheckBottom(ChBody* body, const ChVector<>& center) {
+void BoundaryContact::CheckBottom(ChBody* body, const ChVector3d& center) {
     double dist = center.z() - m_terrain->m_bottom;
 
     if (dist > m_radius + 2 * m_terrain->m_envelope)
@@ -238,9 +231,9 @@ void BoundaryContact::CheckBottom(ChBody* body, const ChVector<>& center) {
     contact.modelB = body->GetCollisionModel().get();
     contact.shapeA = nullptr;
     contact.shapeB = nullptr;
-    contact.vN = ChVector<>(0, 0, 1);
-    contact.vpA = ChVector<>(center.x(), center.y(), m_terrain->m_bottom);
-    contact.vpB = ChVector<>(center.x(), center.y(), center.z() - m_radius);
+    contact.vN = ChVector3d(0, 0, 1);
+    contact.vpA = ChVector3d(center.x(), center.y(), m_terrain->m_bottom);
+    contact.vpB = ChVector3d(center.x(), center.y(), center.z() - m_radius);
     contact.distance = dist - m_radius;
     contact.eff_radius = m_radius;
 
@@ -248,7 +241,7 @@ void BoundaryContact::CheckBottom(ChBody* body, const ChVector<>& center) {
 }
 
 // Check contact between granular material and left boundary.
-void BoundaryContact::CheckLeft(ChBody* body, const ChVector<>& center) {
+void BoundaryContact::CheckLeft(ChBody* body, const ChVector3d& center) {
     double dist = m_terrain->m_left - center.y();
 
     ////if (dist > m_radius + 2 * m_terrain->m_envelope)
@@ -260,9 +253,9 @@ void BoundaryContact::CheckLeft(ChBody* body, const ChVector<>& center) {
     contact.modelB = body->GetCollisionModel().get();
     contact.shapeA = nullptr;
     contact.shapeB = nullptr;
-    contact.vN = ChVector<>(0, -1, 0);
-    contact.vpA = ChVector<>(center.x(), m_terrain->m_left, center.z());
-    contact.vpB = ChVector<>(center.x(), center.y() + m_radius, center.z());
+    contact.vN = ChVector3d(0, -1, 0);
+    contact.vpA = ChVector3d(center.x(), m_terrain->m_left, center.z());
+    contact.vpB = ChVector3d(center.x(), center.y() + m_radius, center.z());
     contact.distance = dist - m_radius;
     contact.eff_radius = m_radius;
 
@@ -270,7 +263,7 @@ void BoundaryContact::CheckLeft(ChBody* body, const ChVector<>& center) {
 }
 
 // Check contact between granular material and right boundary.
-void BoundaryContact::CheckRight(ChBody* body, const ChVector<>& center) {
+void BoundaryContact::CheckRight(ChBody* body, const ChVector3d& center) {
     double dist = center.y() - m_terrain->m_right;
 
     ////if (dist > m_radius + 2 * m_terrain->m_envelope)
@@ -282,9 +275,9 @@ void BoundaryContact::CheckRight(ChBody* body, const ChVector<>& center) {
     contact.modelB = body->GetCollisionModel().get();
     contact.shapeA = nullptr;
     contact.shapeB = nullptr;
-    contact.vN = ChVector<>(0, 1, 0);
-    contact.vpA = ChVector<>(center.x(), m_terrain->m_right, center.z());
-    contact.vpB = ChVector<>(center.x(), center.y() - m_radius, center.z());
+    contact.vN = ChVector3d(0, 1, 0);
+    contact.vpA = ChVector3d(center.x(), m_terrain->m_right, center.z());
+    contact.vpB = ChVector3d(center.x(), center.y() - m_radius, center.z());
     contact.distance = dist - m_radius;
     contact.eff_radius = m_radius;
 
@@ -292,7 +285,7 @@ void BoundaryContact::CheckRight(ChBody* body, const ChVector<>& center) {
 }
 
 // Check contact between granular material and front boundary.
-void BoundaryContact::CheckFront(ChBody* body, const ChVector<>& center) {
+void BoundaryContact::CheckFront(ChBody* body, const ChVector3d& center) {
     double dist = m_terrain->m_front - center.x();
 
     ////if (dist > m_radius + 2 * m_terrain->m_envelope)
@@ -304,9 +297,9 @@ void BoundaryContact::CheckFront(ChBody* body, const ChVector<>& center) {
     contact.modelB = body->GetCollisionModel().get();
     contact.shapeA = nullptr;
     contact.shapeB = nullptr;
-    contact.vN = ChVector<>(-1, 0, 0);
-    contact.vpA = ChVector<>(m_terrain->m_front, center.y(), center.z());
-    contact.vpB = ChVector<>(center.x() + m_radius, center.y(), center.z());
+    contact.vN = ChVector3d(-1, 0, 0);
+    contact.vpA = ChVector3d(m_terrain->m_front, center.y(), center.z());
+    contact.vpB = ChVector3d(center.x() + m_radius, center.y(), center.z());
     contact.distance = dist - m_radius;
     contact.eff_radius = m_radius;
 
@@ -314,7 +307,7 @@ void BoundaryContact::CheckFront(ChBody* body, const ChVector<>& center) {
 }
 
 // Check contact between granular material and rear boundary.
-void BoundaryContact::CheckRear(ChBody* body, const ChVector<>& center) {
+void BoundaryContact::CheckRear(ChBody* body, const ChVector3d& center) {
     double dist = center.x() - m_terrain->m_rear;
 
     ////if (dist > m_radius + 2 * m_terrain->m_envelope)
@@ -326,9 +319,9 @@ void BoundaryContact::CheckRear(ChBody* body, const ChVector<>& center) {
     contact.modelB = body->GetCollisionModel().get();
     contact.shapeA = nullptr;
     contact.shapeB = nullptr;
-    contact.vN = ChVector<>(1, 0, 0);
-    contact.vpA = ChVector<>(m_terrain->m_rear, center.y(), center.z());
-    contact.vpB = ChVector<>(center.x() - m_radius, center.y(), center.z());
+    contact.vN = ChVector3d(1, 0, 0);
+    contact.vpA = ChVector3d(m_terrain->m_rear, center.y(), center.z());
+    contact.vpB = ChVector3d(center.x() - m_radius, center.y(), center.z());
     contact.distance = dist - m_radius;
     contact.eff_radius = m_radius;
 
@@ -338,13 +331,13 @@ void BoundaryContact::CheckRear(ChBody* body, const ChVector<>& center) {
 // -----------------------------------------------------------------------------
 // Initialize the granular terrain patch
 // -----------------------------------------------------------------------------
-void GranularTerrain::Initialize(const ChVector<>& center,
+void GranularTerrain::Initialize(const ChVector3d& center,
                                  double length,
                                  double width,
                                  unsigned int num_layers,
                                  double radius,
                                  double density,
-                                 const ChVector<>& init_vel) {
+                                 const ChVector3d& init_vel) {
     m_length = length;
     m_width = width;
     m_radius = radius;
@@ -370,16 +363,16 @@ void GranularTerrain::Initialize(const ChVector<>& center,
             double y_pos = -0.5 * width;
             for (int iy = 0; iy < m_ny; iy++) {
                 auto sphere = chrono_types::make_shared<ChVisualShapeSphere>(radius);
-                m_ground->AddVisualShape(sph_shape, ChFrame<>(ChVector<>(x_pos, y_pos, radius)));
+                m_ground->AddVisualShape(sph_shape, ChFrame<>(ChVector3d(x_pos, y_pos, radius)));
                 y_pos += m_sep_y;
             }
             x_pos += m_sep_x;
         }
 
         if (m_verbose) {
-            GetLog() << "Enable rough surface.\n";
-            GetLog() << "   X direction (" << m_nx << ") separation: " << m_sep_x << "\n";
-            GetLog() << "   Y direction (" << m_ny << ") separation: " << m_sep_y << "\n";
+            std::cout << "Enable rough surface.\n";
+            std::cout << "   X direction (" << m_nx << ") separation: " << m_sep_x << "\n";
+            std::cout << "   Y direction (" << m_ny << ") separation: " << m_sep_y << "\n";
         }
     }
 
@@ -396,32 +389,29 @@ void GranularTerrain::Initialize(const ChVector<>& center,
         }
     }
 
-    // Set the ground body identifier.
-    m_ground->SetIdentifier(m_start_id);
-
     // Create a particle generator and a mixture entirely made out of spheres.
     // Set the starting value for particle body identifiers.
-    utils::Generator generator(m_ground->GetSystem());
-    generator.setBodyIdentifier(m_start_id + 1);
-    std::shared_ptr<utils::MixtureIngredient> m1 = generator.AddMixtureIngredient(utils::MixtureType::SPHERE, 1.0);
-    m1->setDefaultMaterial(m_material);
-    m1->setDefaultDensity(density);
-    m1->setDefaultSize(radius);
+    utils::ChGenerator generator(m_ground->GetSystem());
+    generator.SetStartTag(tag_particles);
+    std::shared_ptr<utils::ChMixtureIngredient> m1 = generator.AddMixtureIngredient(utils::MixtureType::SPHERE, 1.0);
+    m1->SetDefaultMaterial(m_material);
+    m1->SetDefaultDensity(density);
+    m1->SetDefaultSize(radius);
 
     // Create particles, in layers, until exceeding the specified number.
     double r = safety_factor * radius;
-    utils::PDSampler<double> sampler(2 * r);
+    utils::ChPDSampler<double> sampler(2 * r);
     unsigned int layer = 0;
-    ChVector<> layer_hdims(length / 2 - r, width / 2 - r, 0);
-    ChVector<> layer_center = center;
+    ChVector3d layer_hdims(length / 2 - r, width / 2 - r, 0);
+    ChVector3d layer_center = center;
     layer_center.z() += offset_factor * r;
 
     while (layer < num_layers || m_num_particles < m_min_num_particles) {
         if (m_verbose)
-            GetLog() << "Create layer at height: " << layer_center.z() << "\n";
+            std::cout << "Create layer at height: " << layer_center.z() << "\n";
         generator.CreateObjectsBox(sampler, layer_center, layer_hdims, init_vel);
         layer_center.z() += 2 * r;
-        m_num_particles = generator.getTotalNumBodies();
+        m_num_particles = generator.GetTotalNumBodies();
         layer++;
     }
 
@@ -429,7 +419,7 @@ void GranularTerrain::Initialize(const ChVector<>& center,
     if (m_vis_enabled) {
         double hthick = 0.05;
         auto box = chrono_types::make_shared<ChVisualShapeBox>(length, width, 2 * hthick);
-        m_ground->AddVisualShape(box, ChFrame<>(ChVector<>(0, 0, -hthick)));
+        m_ground->AddVisualShape(box, ChFrame<>(ChVector3d(0, 0, -hthick)));
     }
 
     // Register the custom collision callback for boundary conditions.
@@ -444,31 +434,31 @@ void GranularTerrain::Synchronize(double time) {
         return;
 
     // Check distance from monitored body to front boundary.
-    double dist = m_front - m_body->GetFrame_REF_to_abs().GetPos().x();
+    double dist = m_front - m_body->GetFrameRefToAbs().GetPos().x();
     if (dist >= m_buffer_distance)
         return;
 
     // Shift ground body.
-    m_ground->SetPos(m_ground->GetPos() + ChVector<>(m_shift_distance, 0, 0));
+    m_ground->SetPos(m_ground->GetPos() + ChVector3d(m_shift_distance, 0, 0));
 
     // Shift rear boundary.
     m_rear += m_shift_distance;
 
     // Count particles that must be relocated.
     unsigned int num_moved_particles = 0;
-    for (auto body : m_ground->GetSystem()->Get_bodylist()) {
-        if (body->GetIdentifier() > m_start_id && body->GetPos().x() - m_radius < m_rear) {
+    for (auto body : m_ground->GetSystem()->GetBodies()) {
+        if (body->GetTag() >= tag_particles && body->GetPos().x() - m_radius < m_rear) {
             num_moved_particles++;
         }
     }
 
     // Create a Poisson Disk sampler and generate points in layers within the
     // relocation volume.
-    std::vector<ChVector<>> new_points;
+    std::vector<ChVector3d> new_points;
     double r = safety_factor * m_radius;
-    utils::PDSampler<> sampler(2 * r);
-    ChVector<> layer_hdims(m_shift_distance / 2 - r, m_width / 2 - r, 0);
-    ChVector<> layer_center(m_front + m_shift_distance / 2, (m_left + m_right) / 2, m_bottom + offset_factor * r);
+    utils::ChPDSampler<> sampler(2 * r);
+    ChVector3d layer_hdims(m_shift_distance / 2 - r, m_width / 2 - r, 0);
+    ChVector3d layer_center(m_front + m_shift_distance / 2, (m_left + m_right) / 2, m_bottom + offset_factor * r);
     while (new_points.size() < num_moved_particles) {
         auto points = sampler.SampleBox(layer_center, layer_hdims);
         new_points.insert(new_points.end(), points.begin(), points.end());
@@ -477,10 +467,10 @@ void GranularTerrain::Synchronize(double time) {
 
     // Relocate particles at their new locations.
     size_t ip = 0;
-    for (auto body : m_ground->GetSystem()->Get_bodylist()) {
-        if (body->GetIdentifier() > m_start_id && body->GetPos().x() - m_radius < m_rear) {
+    for (auto body : m_ground->GetSystem()->GetBodies()) {
+        if (body->GetTag() >= tag_particles && body->GetPos().x() - m_radius < m_rear) {
             body->SetPos(new_points[ip++]);
-            body->SetPos_dt(m_init_part_vel);
+            body->SetPosDt(m_init_part_vel);
         }
     }
 
@@ -490,31 +480,31 @@ void GranularTerrain::Synchronize(double time) {
     m_moved = true;
 
     if (m_verbose) {
-        GetLog() << "Move patch at time " << time << "\n";
-        GetLog() << "   moved " << num_moved_particles << " particles\n";
-        GetLog() << "   rear: " << m_rear << "  front: " << m_front << "\n";
+        std::cout << "Move patch at time " << time << "\n";
+        std::cout << "   moved " << num_moved_particles << " particles\n";
+        std::cout << "   rear: " << m_rear << "  front: " << m_front << "\n";
     }
 }
 
-double GranularTerrain::GetHeight(const ChVector<>& loc) const {
+double GranularTerrain::GetHeight(const ChVector3d& loc) const {
     double highest = m_bottom;
-    for (auto body : m_ground->GetSystem()->Get_bodylist()) {
+    for (auto body : m_ground->GetSystem()->GetBodies()) {
         ////double height = ChWorldFrame::Height(body->GetPos());
-        if (body->GetIdentifier() > m_start_id && body->GetPos().z() > highest)
+        if (body->GetTag() >= tag_particles && body->GetPos().z() > highest)
             highest = body->GetPos().z();
     }
     return highest + m_radius;
 }
 
-ChVector<> GranularTerrain::GetNormal(const ChVector<>& loc) const {
+ChVector3d GranularTerrain::GetNormal(const ChVector3d& loc) const {
     return ChWorldFrame::Vertical();
 }
 
-float GranularTerrain::GetCoefficientFriction(const ChVector<>& loc) const {
+float GranularTerrain::GetCoefficientFriction(const ChVector3d& loc) const {
     if (m_friction_fun)
         return (*m_friction_fun)(loc);
 
-    return m_material->GetSfriction();
+    return m_material->GetStaticFriction();
 }
 
 }  // end namespace vehicle

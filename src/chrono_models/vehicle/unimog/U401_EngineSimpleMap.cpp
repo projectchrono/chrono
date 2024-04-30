@@ -25,7 +25,7 @@ namespace chrono {
 namespace vehicle {
 namespace unimog {
 
-const double rpm2rads = CH_C_PI / 30;
+const double rpm2rads = CH_PI / 30;
 
 U401_EngineSimpleMap::U401_EngineSimpleMap(const std::string& name) : ChEngineSimpleMap(name) {}
 
@@ -33,7 +33,7 @@ double U401_EngineSimpleMap::GetMaxEngineSpeed() {
     return 3200 * rpm2rads;
 }
 
-void U401_EngineSimpleMap::SetEngineTorqueMaps(ChFunction_Recorder& map0, ChFunction_Recorder& mapF) {
+void U401_EngineSimpleMap::SetEngineTorqueMaps(ChFunctionInterp& map0, ChFunctionInterp& mapF) {
     map0.AddPoint(rpm2rads * -10000.0, 0.0);
     map0.AddPoint(rpm2rads * 1000.0, 0.0);
     map0.AddPoint(rpm2rads * 1.5002376354371584e+03, -3.0);

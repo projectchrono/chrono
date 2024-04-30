@@ -59,7 +59,7 @@ ContactForceTest::ContactForceTest() : sys(nullptr) {
     float kt = 0;
     float gt = 0;
 
-    std::shared_ptr<ChMaterialSurface> material;
+    std::shared_ptr<ChContactMaterial> material;
 
     switch (GetParam()) {
         case ChContactMethod::SMC: {
@@ -69,7 +69,7 @@ ContactForceTest::ContactForceTest() : sys(nullptr) {
             sysSMC->GetSettings()->solver.use_material_properties = use_mat_properties;
             sys = sysSMC;
 
-            auto mat = chrono_types::make_shared<ChMaterialSurfaceSMC>();
+            auto mat = chrono_types::make_shared<ChContactMaterialSMC>();
             mat->SetYoungModulus(young_modulus);
             mat->SetRestitution(restitution);
             mat->SetFriction(friction);
@@ -91,7 +91,7 @@ ContactForceTest::ContactForceTest() : sys(nullptr) {
             sysNSC->ChangeSolverType(SolverType::APGD);
             sys = sysNSC;
 
-            auto mat = chrono_types::make_shared<ChMaterialSurfaceNSC>();
+            auto mat = chrono_types::make_shared<ChContactMaterialNSC>();
             mat->SetRestitution(restitution);
             mat->SetFriction(friction);
             material = mat;
@@ -108,7 +108,7 @@ ContactForceTest::ContactForceTest() : sys(nullptr) {
 
     // Set other sys properties
     double gravity = -9.81;
-    sys->Set_G_acc(ChVector<>(0, 0, gravity));
+    sys->SetGravitationalAcceleration(ChVector3d(0, 0, gravity));
     sys->GetSettings()->solver.tolerance = 1e-5;
     sys->GetSettings()->solver.max_iteration_bilateral = 100;
     sys->GetSettings()->solver.clamp_bilaterals = false;
@@ -118,10 +118,10 @@ ContactForceTest::ContactForceTest() : sys(nullptr) {
     unsigned int num_balls = 8;
     double radius = 0.5;
     double mass = 5;
-    ChVector<> pos(0, 0, 1.1 * radius);
+    ChVector3d pos(0, 0, 1.1 * radius);
     ChQuaternion<> rot(1, 0, 0, 0);
-    ChVector<> init_vel(0, 0, 0);
-    ChVector<> init_omg(0, 0, 0);
+    ChVector3d init_vel(0, 0, 0);
+    ChVector3d init_omg(0, 0, 0);
 
     std::vector<std::shared_ptr<ChBody>> balls(num_balls);
     total_weight = 0;
@@ -129,13 +129,13 @@ ContactForceTest::ContactForceTest() : sys(nullptr) {
         auto ball = chrono_types::make_shared<ChBody>();
 
         ball->SetMass(mass);
-        ball->SetInertiaXX(0.4 * mass * radius * radius * ChVector<>(1, 1, 1));
-        ball->SetPos(pos + ChVector<>(i * 2 * radius, i * 2 * radius, 0));
+        ball->SetInertiaXX(0.4 * mass * radius * radius * ChVector3d(1, 1, 1));
+        ball->SetPos(pos + ChVector3d(i * 2 * radius, i * 2 * radius, 0));
         ball->SetRot(rot);
-        ball->SetPos_dt(init_vel);
-        ball->SetWvel_par(init_omg);
-        ball->SetCollide(true);
-        ball->SetBodyFixed(false);
+        ball->SetPosDt(init_vel);
+        ball->SetAngVelParent(init_omg);
+        ball->EnableCollision(true);
+        ball->SetFixed(false);
 
         auto ct_shape = chrono_types::make_shared<ChCollisionShapeSphere>(material, radius);
         ball->AddCollisionShape(ct_shape);
@@ -153,7 +153,7 @@ ContactForceTest::ContactForceTest() : sys(nullptr) {
     ////std::cout << "Total weight = " << total_weight << std::endl;
 
     // Create container box
-    ground = utils::CreateBoxContainer(sys, 0, material, ChVector<>(20, 20, 2 * radius), 0.1);
+    ground = utils::CreateBoxContainer(sys, material, ChVector3d(20, 20, 2 * radius), 0.1);
 }
 
 TEST_P(ContactForceTest, simulate) {
@@ -171,7 +171,7 @@ TEST_P(ContactForceTest, simulate) {
         vis.SetWindowSize(1200, 800);
         vis.SetRenderMode(opengl::WIREFRAME);
         vis.Initialize();
-        vis.AddCamera(ChVector<>(20, 0, 0), ChVector<>(0, 0, 0));
+        vis.AddCamera(ChVector3d(20, 0, 0), ChVector3d(0, 0, 0));
         vis.SetCameraVertical(CameraVerticalDir::Z);
 
         if (!vis.Run())
@@ -183,7 +183,7 @@ TEST_P(ContactForceTest, simulate) {
 #endif
 
         sys->GetContactContainer()->ComputeContactForces();
-        ChVector<> contact_force = ground->GetContactForce();
+        ChVector3d contact_force = ground->GetContactForce();
         ////std::cout << "t = " << sys->GetChTime() << " num contacts = " << sys->GetNumContacts()
         ////          << "  force =  " << contact_force.z() << std::endl;
 

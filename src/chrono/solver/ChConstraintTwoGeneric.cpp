@@ -55,15 +55,15 @@ void ChConstraintTwoGeneric::SetVariables(ChVariables* mvariables_a, ChVariables
     variables_a = mvariables_a;
     variables_b = mvariables_b;
 
-    if (variables_a->Get_ndof() > 0) {
-        Cq_a.resize(variables_a->Get_ndof());
-        Eq_a.resize(variables_a->Get_ndof());
+    if (variables_a->GetDOF() > 0) {
+        Cq_a.resize(variables_a->GetDOF());
+        Eq_a.resize(variables_a->GetDOF());
         Cq_a.setZero();
     }
 
-    if (variables_b->Get_ndof() > 0) {
-        Cq_b.resize(variables_b->Get_ndof());
-        Eq_b.resize(variables_b->Get_ndof());
+    if (variables_b->GetDOF() > 0) {
+        Cq_b.resize(variables_b->GetDOF());
+        Eq_b.resize(variables_b->GetDOF());
         Cq_b.setZero();
     }
 }
@@ -71,19 +71,19 @@ void ChConstraintTwoGeneric::SetVariables(ChVariables* mvariables_a, ChVariables
 void ChConstraintTwoGeneric::Update_auxiliary() {
     // 1- Assuming jacobians are already computed, now compute
     //   the matrices [Eq_a]=[invM_a]*[Cq_a]' and [Eq_b]
-    if (variables_a->IsActive() && variables_a->Get_ndof() > 0) {
-        variables_a->Compute_invMb_v(Eq_a, Cq_a.transpose());
+    if (variables_a->IsActive() && variables_a->GetDOF() > 0) {
+        variables_a->ComputeMassInverseTimesVector(Eq_a, Cq_a.transpose());
     }
-    if (variables_b->IsActive() && variables_b->Get_ndof() > 0) {
-        variables_b->Compute_invMb_v(Eq_b, Cq_b.transpose());
+    if (variables_b->IsActive() && variables_b->GetDOF() > 0) {
+        variables_b->ComputeMassInverseTimesVector(Eq_b, Cq_b.transpose());
     }
 
     // 2- Compute g_i = [Cq_i]*[invM_i]*[Cq_i]' + cfm_i
     g_i = 0;
-    if (variables_a->IsActive() && variables_a->Get_ndof() > 0) {
+    if (variables_a->IsActive() && variables_a->GetDOF() > 0) {
         g_i += Cq_a * Eq_a;
     }
-    if (variables_b->IsActive() && variables_b->Get_ndof() > 0) {
+    if (variables_b->IsActive() && variables_b->GetDOF() > 0) {
         g_i += Cq_b * Eq_b;
     }
 
@@ -92,31 +92,31 @@ void ChConstraintTwoGeneric::Update_auxiliary() {
         g_i += cfm_i;
 }
 
-double ChConstraintTwoGeneric::Compute_Cq_q() {
+double ChConstraintTwoGeneric::ComputeJacobianTimesState() {
     double ret = 0;
 
     if (variables_a->IsActive()) {
-        ret += Cq_a * variables_a->Get_qb();
+        ret += Cq_a * variables_a->State();
     }
 
     if (variables_b->IsActive()) {
-        ret += Cq_b * variables_b->Get_qb();
+        ret += Cq_b * variables_b->State();
     }
 
     return ret;
 }
 
-void ChConstraintTwoGeneric::Increment_q(const double deltal) {
+void ChConstraintTwoGeneric::IncrementState(double deltal) {
     if (variables_a->IsActive()) {
-        variables_a->Get_qb() += Eq_a * deltal;
+        variables_a->State() += Eq_a * deltal;
     }
 
     if (variables_b->IsActive()) {
-        variables_b->Get_qb() += Eq_b * deltal;
+        variables_b->State() += Eq_b * deltal;
     }
 }
 
-void ChConstraintTwoGeneric::MultiplyAndAdd(double& result, const ChVectorDynamic<double>& vect) const {
+void ChConstraintTwoGeneric::AddJacobianTimesVectorInto(double& result, ChVectorConstRef vect) const {
     if (variables_a->IsActive()) {
         result += Cq_a * vect.segment(variables_a->GetOffset(), Cq_a.size());
     }
@@ -126,7 +126,7 @@ void ChConstraintTwoGeneric::MultiplyAndAdd(double& result, const ChVectorDynami
     }
 }
 
-void ChConstraintTwoGeneric::MultiplyTandAdd(ChVectorDynamic<double>& result, double l) {
+void ChConstraintTwoGeneric::AddJacobianTransposedTimesScalarInto(ChVectorRef result, double l) const {
     if (variables_a->IsActive()) {
         result.segment(variables_a->GetOffset(), Cq_a.size()) += Cq_a.transpose() * l;
     }
@@ -136,27 +136,27 @@ void ChConstraintTwoGeneric::MultiplyTandAdd(ChVectorDynamic<double>& result, do
     }
 }
 
-void ChConstraintTwoGeneric::Build_Cq(ChSparseMatrix& storage, int insrow) {
+void ChConstraintTwoGeneric::PasteJacobianInto(ChSparseMatrix& mat, unsigned int start_row, unsigned int start_col) const {
     if (variables_a->IsActive())
-        PasteMatrix(storage, Cq_a, insrow, variables_a->GetOffset());
+        PasteMatrix(mat, Cq_a, start_row, variables_a->GetOffset() + start_col);
     if (variables_b->IsActive())
-        PasteMatrix(storage, Cq_b, insrow, variables_b->GetOffset());
+        PasteMatrix(mat, Cq_b, start_row, variables_b->GetOffset() + start_col);
 }
 
-void ChConstraintTwoGeneric::Build_CqT(ChSparseMatrix& storage, int inscol) {
+void ChConstraintTwoGeneric::PasteJacobianTransposedInto(ChSparseMatrix& mat, unsigned int start_row, unsigned int start_col) const {
     // Recall that Cq_a and Cq_b are column vectors.
     if (variables_a->IsActive())
-        PasteMatrix(storage, Cq_a.transpose(), variables_a->GetOffset(), inscol);
+        PasteMatrix(mat, Cq_a.transpose(), variables_a->GetOffset() + start_row, start_col);
     if (variables_b->IsActive())
-        PasteMatrix(storage, Cq_b.transpose(), variables_b->GetOffset(), inscol);
+        PasteMatrix(mat, Cq_b.transpose(), variables_b->GetOffset() + start_row, start_col);
 }
 
-void ChConstraintTwoGeneric::ArchiveOut(ChArchiveOut& marchive) {
+void ChConstraintTwoGeneric::ArchiveOut(ChArchiveOut& archive_out) {
     // version number
-    marchive.VersionWrite<ChConstraintTwoGeneric>();
+    archive_out.VersionWrite<ChConstraintTwoGeneric>();
 
     // serialize the parent class data too
-    ChConstraintTwo::ArchiveOut(marchive);
+    ChConstraintTwo::ArchiveOut(archive_out);
 
     // serialize all member data:
     // NOTHING INTERESTING TO SERIALIZE (the Cq jacobians are not so
@@ -166,12 +166,12 @@ void ChConstraintTwoGeneric::ArchiveOut(ChArchiveOut& marchive) {
     // mstream << Cq_b;
 }
 
-void ChConstraintTwoGeneric::ArchiveIn(ChArchiveIn& marchive) {
+void ChConstraintTwoGeneric::ArchiveIn(ChArchiveIn& archive_in) {
     // version number
-    /*int version =*/ marchive.VersionRead<ChConstraintTwoGeneric>();
+    /*int version =*/archive_in.VersionRead<ChConstraintTwoGeneric>();
 
     // deserialize the parent class data too
-    ChConstraintTwo::ArchiveIn(marchive);
+    ChConstraintTwo::ArchiveIn(archive_in);
 
     // deserialize all member data:
     // NOTHING INTERESTING TO SERIALIZE (the Cq jacobians are not so

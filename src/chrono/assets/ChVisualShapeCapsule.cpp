@@ -29,27 +29,27 @@ ChVisualShapeCapsule::ChVisualShapeCapsule(double radius, double height) {
     SetMutable(false);
 }
 
-ChVisualShapeCapsule::ChVisualShapeCapsule(const geometry::ChCapsule& cap) : gcapsule(cap) {
+ChVisualShapeCapsule::ChVisualShapeCapsule(const ChCapsule& cap) : gcapsule(cap) {
     SetMutable(false);
 }
 
-void ChVisualShapeCapsule::ArchiveOut(ChArchiveOut& marchive) {
+void ChVisualShapeCapsule::ArchiveOut(ChArchiveOut& archive_out) {
     // version number
-    marchive.VersionWrite<ChVisualShapeCapsule>();
+    archive_out.VersionWrite<ChVisualShapeCapsule>();
     // serialize parent class
-    ChVisualShape::ArchiveOut(marchive);
+    ChVisualShape::ArchiveOut(archive_out);
     // serialize all member data:
-    marchive << CHNVP(gcapsule);
+    archive_out << CHNVP(gcapsule);
 }
 
 /// Method to allow de serialization of transient data from archives.
-void ChVisualShapeCapsule::ArchiveIn(ChArchiveIn& marchive) {
+void ChVisualShapeCapsule::ArchiveIn(ChArchiveIn& archive_in) {
     // version number
-    /*int version =*/ marchive.VersionRead<ChVisualShapeCapsule>();
+    /*int version =*/archive_in.VersionRead<ChVisualShapeCapsule>();
     // deserialize parent class
-    ChVisualShape::ArchiveIn(marchive);
+    ChVisualShape::ArchiveIn(archive_in);
     // stream in all member data:
-    marchive >> CHNVP(gcapsule);
+    archive_in >> CHNVP(gcapsule);
 }
 
 }  // end namespace chrono

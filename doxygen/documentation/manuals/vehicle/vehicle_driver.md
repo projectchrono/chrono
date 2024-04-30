@@ -17,7 +17,8 @@ Finally, Chrono::Vehicle includes several closed-looped driver system models, ba
 
 ## Interactive driver {#vehicle_driver_interactive}
 
-The interactive driver [ChIrrGuiDriver](@ref chrono::vehicle::ChIrrGuiDriver) can control (steer/accelerate/brake) a simulated vehicle through user input. Since it relies on Irrlicht to handle keyboard and controller events, it is only available with Irrlicht based programs.
+The interactive drivers [ChInteractiveDriverIRR](@ref chrono::vehicle::ChInteractiveDriverIRR) (for the Irrlicht-based run-time visualization system) and [ChInteractiveDriverVSG](@ref chrono::vehicle::ChInteractiveDriverVSG) (for the VSG-based run-time visualization system) can control (steer/accelerate/brake) a simulated vehicle through user input. 
+These interactive drivers rely on keyboard and controller event handlers for the respective run-time visualization systems.
 
 Other features of this driver subsystem model include:
 - experimental controller support

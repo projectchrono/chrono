@@ -45,6 +45,7 @@
 namespace chrono {
 namespace vehicle {
 
+/// TMsimple handling tire model.
 class CH_VEHICLE_API ChTMsimpleTire : public ChForceElementTire {
   public:
     ChTMsimpleTire(const std::string& name);
@@ -200,7 +201,7 @@ class CH_VEHICLE_API ChTMsimpleTire : public ChForceElementTire {
 
     VehicleSide m_measured_side;
 
-    struct TMsimpleCoeff  {
+    struct TMsimpleCoeff {
         double pn;      ///< Nominal vertical force [N]
         double pn_max;  ///< Maximum vertical force [N]
 
@@ -248,7 +249,7 @@ class CH_VEHICLE_API ChTMsimpleTire : public ChForceElementTire {
         double P_len;            // Length of contact patch
         double brx{0};           // bristle deformation x
         double bry{0};           // bristle deformation y
-        ChVector<> disc_normal;  // (temporary for debug)
+        ChVector3d disc_normal;  // (temporary for debug)
     };
 
     TireStates m_states;

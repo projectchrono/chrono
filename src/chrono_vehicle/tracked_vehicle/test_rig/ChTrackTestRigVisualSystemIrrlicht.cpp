@@ -17,8 +17,6 @@
 //
 // =============================================================================
 
-#include "chrono/core/ChMathematics.h"
-
 #include "chrono_vehicle/tracked_vehicle/test_rig/ChTrackTestRigVisualSystemIrrlicht.h"
 
 namespace chrono {
@@ -82,14 +80,14 @@ void ChTrackTestRigVisualSystemIrrlicht::renderOtherGraphics() {
     // Contact normals on left sprocket.
     // Note that we only render information for contacts on the outside gear profile
     for (const auto& c : m_rig->m_contact_manager->m_sprocket_L_contacts) {
-        ChVector<> v1 = c.m_point;
+        ChVector3d v1 = c.m_point;
         if (normals) {
-            ChVector<> v2 = v1 + c.m_csys.Get_A_Xaxis() * scale_normals;
+            ChVector3d v2 = v1 + c.m_csys.GetAxisX() * scale_normals;
             if (v1.y() > m_rig->GetTrackAssembly()->GetSprocket()->GetGearBody()->GetPos().y())
                 irrlicht::tools::drawSegment(this, v1, v2, ChColor(0.31f, 0.00f, 0.00f), false);
         }
         if (forces) {
-            ChVector<> v2 = v1 + c.m_force * scale_forces;
+            ChVector3d v2 = v1 + c.m_force * scale_forces;
             if (v1.y() > m_rig->GetTrackAssembly()->GetSprocket()->GetGearBody()->GetPos().y())
                 irrlicht::tools::drawSegment(this, v1, v2, ChColor(0.31f, 0.00f, 0.00f), false);
         }
@@ -98,14 +96,14 @@ void ChTrackTestRigVisualSystemIrrlicht::renderOtherGraphics() {
     // Contact normals on rear sprocket.
     // Note that we only render information for contacts on the outside gear profile
     for (const auto& c : m_rig->m_contact_manager->m_sprocket_R_contacts) {
-        ChVector<> v1 = c.m_point;
+        ChVector3d v1 = c.m_point;
         if (normals) {
-            ChVector<> v2 = v1 + c.m_csys.Get_A_Xaxis() * scale_normals;
+            ChVector3d v2 = v1 + c.m_csys.GetAxisX() * scale_normals;
             if (v1.y() < m_rig->GetTrackAssembly()->GetSprocket()->GetGearBody()->GetPos().y())
                 irrlicht::tools::drawSegment(this, v1, v2, ChColor(0.31f, 0.00f, 0.00f), false);
         }
         if (forces) {
-            ChVector<> v2 = v1 + c.m_force * scale_forces;
+            ChVector3d v2 = v1 + c.m_force * scale_forces;
             if (v1.y() > m_rig->GetTrackAssembly()->GetSprocket()->GetGearBody()->GetPos().y())
                 irrlicht::tools::drawSegment(this, v1, v2, ChColor(0.31f, 0.00f, 0.00f), false);
         }
@@ -132,13 +130,13 @@ void ChTrackTestRigVisualSystemIrrlicht::renderContacts(const std::list<ChTrackC
                                                         double scale_normals,
                                                         double scale_forces) {
     for (const auto& c : lst) {
-        ChVector<> v1 = c.m_point;
+        ChVector3d v1 = c.m_point;
         if (normals) {
-            ChVector<> v2 = v1 + c.m_csys.Get_A_Xaxis() * scale_normals;
+            ChVector3d v2 = v1 + c.m_csys.GetAxisX() * scale_normals;
             irrlicht::tools::drawSegment(this, v1, v2, col, false);
         }
         if (forces) {
-            ChVector<> v2 = v1 + c.m_force * scale_forces;
+            ChVector3d v2 = v1 + c.m_force * scale_forces;
             irrlicht::tools::drawSegment(this, v1, v2, ChColor(0.71f, 0.00f, 0.00f), false);
         }
     }

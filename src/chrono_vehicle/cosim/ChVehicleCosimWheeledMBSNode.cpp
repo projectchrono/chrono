@@ -54,7 +54,7 @@ ChVehicleCosimWheeledMBSNode::ChVehicleCosimWheeledMBSNode() : ChVehicleCosimBas
     // Create the (sequential) SMC system
     m_system = new ChSystemSMC;
     m_system->SetCollisionSystemType(ChCollisionSystem::Type::BULLET);
-    m_system->Set_G_acc(ChVector<>(0, 0, m_gacc));
+    m_system->SetGravitationalAcceleration(ChVector3d(0, 0, m_gacc));
 
     // Set default number of threads
     m_system->SetNumThreads(1, 1, 1);
@@ -120,7 +120,7 @@ void ChVehicleCosimWheeledMBSNode::Initialize() {
     }
 
     double terrain_height = init_dim[0];
-    ChVector2<> terrain_size(init_dim[1], init_dim[2]);
+    ChVector2d terrain_size(init_dim[1], init_dim[2]);
 
     // Let derived classes construct and initialize their multibody system
     InitializeMBS(terrain_size, terrain_height);
@@ -133,7 +133,7 @@ void ChVehicleCosimWheeledMBSNode::Initialize() {
         MPI_Abort(MPI_COMM_WORLD, 1);
     }
 
-    GetChassisBody()->SetBodyFixed(m_fix_chassis);
+    GetChassisBody()->SetFixed(m_fix_chassis);
 
     // For each TIRE, send initial location
     for (unsigned int i = 0; i < m_num_tire_nodes; i++) {
@@ -148,12 +148,12 @@ void ChVehicleCosimWheeledMBSNode::Initialize() {
     }
 
     // For each TIRE, receive the tire mass, radius, and width
-    std::vector<ChVector<>> tire_info;
+    std::vector<ChVector3d> tire_info;
 
     for (unsigned int i = 0; i < m_num_tire_nodes; i++) {
         double tmp[3];
         MPI_Recv(tmp, 3, MPI_DOUBLE, TIRE_NODE_RANK(i), 0, MPI_COMM_WORLD, &status);
-        tire_info.push_back(ChVector<>(tmp[0], tmp[1], tmp[2]));
+        tire_info.push_back(ChVector3d(tmp[0], tmp[1], tmp[2]));
     }
 
     // Incorporate information on tire mass, radius, and width.
@@ -247,7 +247,7 @@ void ChVehicleCosimWheeledMBSNode::InitializeSystem() {
             m_system->SetTimestepperType(ChTimestepper::Type::HHT);
             m_integrator = std::static_pointer_cast<ChTimestepperHHT>(m_system->GetTimestepper());
             m_integrator->SetAlpha(-0.2);
-            m_integrator->SetMaxiters(50);
+            m_integrator->SetMaxIters(50);
             m_integrator->SetAbsTolerances(1e-1, 10);
             m_integrator->SetVerbose(false);
             m_integrator->SetMaxItersSuccess(5);
@@ -287,8 +287,8 @@ void ChVehicleCosimWheeledMBSNode::Synchronize(int step_number, double time) {
 
         TerrainForce spindle_force;
         spindle_force.point = GetSpindleBody(i)->GetPos();
-        spindle_force.force = ChVector<>(force_data[0], force_data[1], force_data[2]);
-        spindle_force.moment = ChVector<>(force_data[3], force_data[4], force_data[5]);
+        spindle_force.force = ChVector3d(force_data[0], force_data[1], force_data[2]);
+        spindle_force.moment = ChVector3d(force_data[3], force_data[4], force_data[5]);
         ApplySpindleForce(i, spindle_force);
 
         if (m_verbose)

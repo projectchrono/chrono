@@ -91,10 +91,10 @@ class CH_VEHICLE_API ChWheeledVehicle : public ChVehicle {
     std::shared_ptr<ChSubchassis> GetSubchassis(int id) const { return m_subchassis[id]; }
 
     /// Return the number of axles for this vehicle.
-    virtual int GetNumberAxles() const = 0;
+    virtual unsigned int GetNumberAxles() const = 0;
 
     /// Get the global location of the specified spindle.
-    const ChVector<>& GetSpindlePos(int axle, VehicleSide side) const;
+    const ChVector3d& GetSpindlePos(int axle, VehicleSide side) const;
 
     /// Get the orientation of the specified spindle.
     /// Return a quaternion representing a rotation with respect to the global reference frame.
@@ -102,18 +102,22 @@ class CH_VEHICLE_API ChWheeledVehicle : public ChVehicle {
 
     /// Get the linear velocity of the specified spindle.
     /// Return the linear velocity of the spindle center, expressed in the global reference frame.
-    const ChVector<>& GetSpindleLinVel(int axle, VehicleSide side) const;
+    const ChVector3d& GetSpindleLinVel(int axle, VehicleSide side) const;
 
     /// Get the angular velocity of the specified spindle.
     /// Return the angular velocity of the spindle frame, expressed in the global reference frame.
-    ChVector<> GetSpindleAngVel(int axle, VehicleSide side) const;
+    ChVector3d GetSpindleAngVel(int axle, VehicleSide side) const;
 
     /// Get the angular speed of the specified spindle.
     /// This is the angular speed of the spindle shaft.
     double GetSpindleOmega(int axle, VehicleSide side) const;
 
+    /// Get the current steering angle of the specified wheel/spindle.
+    /// The return angle (given in radians) is positive for a turn to the left.
+    double GetSteeringAngle(int axle, VehicleSide side) const;
+
     /// Return the vehicle wheelbase.
-    virtual double GetWheelbase() const  = 0;
+    virtual double GetWheelbase() const = 0;
 
     /// Return the vehicle wheel track of the specified suspension subsystem.
     double GetWheeltrack(int id) const { return m_axles[id]->m_suspension->GetTrack(); }

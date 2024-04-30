@@ -79,11 +79,11 @@ void ChPhysicsItem::AddCamera(std::shared_ptr<ChCamera> camera) {
     cameras.push_back(camera);
 }
 
-geometry::ChAABB ChPhysicsItem::GetTotalAABB() {
-    return geometry::ChAABB();
+ChAABB ChPhysicsItem::GetTotalAABB() {
+    return ChAABB();
 }
 
-void ChPhysicsItem::GetCenter(ChVector<>& mcenter) {
+void ChPhysicsItem::GetCenter(ChVector3d& mcenter) {
     auto bbox = GetTotalAABB();
     mcenter = (bbox.min + bbox.max) * 0.5;
 }
@@ -99,42 +99,40 @@ void ChPhysicsItem::Update(double mytime, bool update_assets) {
     }
 }
 
-void ChPhysicsItem::ArchiveOut(ChArchiveOut& marchive) {
+void ChPhysicsItem::ArchiveOut(ChArchiveOut& archive_out) {
     // version number
-    marchive.VersionWrite<ChPhysicsItem>();
+    archive_out.VersionWrite<ChPhysicsItem>();
 
     // serialize parent class
-    ChObj::ArchiveOut(marchive);
+    ChObj::ArchiveOut(archive_out);
 
     // serialize all member data:
-    // marchive << CHNVP(system); ***TODO***
-    marchive << CHNVP(GetVisualModel(), "visual_model");
-    marchive << CHNVP(cameras);
-    // marchive << CHNVP(offset_x);
-    // marchive << CHNVP(offset_w);
-    // marchive << CHNVP(offset_L);
+    // archive_out << CHNVP(system); ***TODO***
+    archive_out << CHNVP(GetVisualModel(), "visual_model");
+    archive_out << CHNVP(cameras);
+    // archive_out << CHNVP(offset_x);
+    // archive_out << CHNVP(offset_w);
+    // archive_out << CHNVP(offset_L);
 }
 
 /// Method to allow de serialization of transient data from archives.
-void ChPhysicsItem::ArchiveIn(ChArchiveIn& marchive) {
+void ChPhysicsItem::ArchiveIn(ChArchiveIn& archive_in) {
     // version number
-    /*int version =*/marchive.VersionRead<ChPhysicsItem>();
+    /*int version =*/archive_in.VersionRead<ChPhysicsItem>();
 
     // deserialize parent class
-    ChObj::ArchiveIn(marchive);
+    ChObj::ArchiveIn(archive_in);
 
     // stream in all member data:
-    // marchive >> CHNVP(system); ***TODO***
+    // archive_in >> CHNVP(system); ***TODO***
     std::shared_ptr<ChVisualModel> visual_model;
-    marchive >> CHNVP(visual_model);
+    archive_in >> CHNVP(visual_model);
     if (visual_model)
         AddVisualModel(visual_model);
-    marchive >> CHNVP(cameras);
-    // marchive >> CHNVP(offset_x);
-    // marchive >> CHNVP(offset_w);
-    // marchive >> CHNVP(offset_L);
-
-
+    archive_in >> CHNVP(cameras);
+    // archive_in >> CHNVP(offset_x);
+    // archive_in >> CHNVP(offset_w);
+    // archive_in >> CHNVP(offset_L);
 }
 
 }  // end namespace chrono

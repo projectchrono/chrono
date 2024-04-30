@@ -37,8 +37,8 @@
 #include "chrono/utils/ChUtilsValidation.h"
 
 #include "chrono/fea/ChElementShellANCF_3423.h"
-#include "chrono/fea/ChLinkDirFrame.h"
-#include "chrono/fea/ChLinkPointFrame.h"
+#include "chrono/fea/ChLinkNodeSlopeFrame.h"
+#include "chrono/fea/ChLinkNodeFrame.h"
 #include "chrono/fea/ChMesh.h"
 
 #ifdef CHRONO_PARDISO_MKL
@@ -113,7 +113,7 @@ int main(int argc, char* argv[]) {
 
         // Create the node
         auto node =
-            chrono_types::make_shared<ChNodeFEAxyzD>(ChVector<>(loc_x, loc_y, loc_z), ChVector<>(dir_x, dir_y, dir_z));
+            chrono_types::make_shared<ChNodeFEAxyzD>(ChVector3d(loc_x, loc_y, loc_z), ChVector3d(dir_x, dir_y, dir_z));
 
         node->SetMass(0);
 
@@ -153,7 +153,7 @@ int main(int argc, char* argv[]) {
         element->SetDimensions(dx, dy);
 
         // Add a single layers with a fiber angle of 0 degrees.
-        element->AddLayer(dz, 0 * CH_C_DEG_TO_RAD, mat);
+        element->AddLayer(dz, 0 * CH_DEG_TO_RAD, mat);
 
         // Set other element properties
         element->SetAlphaDamp(0.08);  // Structural damping for this element
@@ -193,7 +193,7 @@ int main(int argc, char* argv[]) {
     sys.SetTimestepperType(ChTimestepper::Type::HHT);
     auto mystepper = std::static_pointer_cast<ChTimestepperHHT>(sys.GetTimestepper());
     mystepper->SetAlpha(0.0);
-    mystepper->SetMaxiters(100);
+    mystepper->SetMaxIters(100);
     mystepper->SetAbsTolerances(1e-06);
     mystepper->SetVerbose(true);
 
@@ -201,10 +201,10 @@ int main(int argc, char* argv[]) {
     m_data.resize(2);
     for (size_t col = 0; col < 2; col++)
         m_data[col].resize(num_steps);
-    utils::CSV_writer csv(" ");
+    utils::ChWriterCSV csv(" ");
     std::ifstream file2("UT_ANCFShellIso.txt");
 
-    ChVector<> mforce(0, 0, -50);
+    ChVector3d mforce(0, 0, -50);
 
     // ---------------
     // Simulation loop
@@ -234,6 +234,6 @@ int main(int argc, char* argv[]) {
     /*m_data[0][it] = sys.GetChTime();
     m_data[1][it] = nodetip->pos.z;
     csv << m_data[0][it] << m_data[1][it]  << std::endl;
-    csv.write_to_file("UT_ANCFShellIso.txt");*/
+    csv.WriteToFile("UT_ANCFShellIso.txt");*/
     return 0;
 }

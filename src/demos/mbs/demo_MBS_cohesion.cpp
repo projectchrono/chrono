@@ -21,6 +21,7 @@
 #include "chrono/physics/ChBodyEasy.h"
 #include "chrono/physics/ChLinkMotorRotationSpeed.h"
 #include "chrono/physics/ChSystemNSC.h"
+#include "chrono/core/ChRandom.h"
 
 #include "chrono_irrlicht/ChVisualSystemIrrlicht.h"
 
@@ -123,7 +124,7 @@ void create_some_falling_items(ChSystemNSC& sys) {
     ChCollisionModel::SetDefaultSuggestedEnvelope(0.3);
 
     // Shared contact material for falling objects
-    auto obj_mat = chrono_types::make_shared<ChMaterialSurfaceNSC>();
+    auto obj_mat = chrono_types::make_shared<ChContactMaterialNSC>();
     obj_mat->SetFriction(0.3f);
 
     for (int bi = 0; bi < 400; bi++) {
@@ -133,49 +134,49 @@ void create_some_falling_items(ChSystemNSC& sys) {
                                                                       true,      // visualization?
                                                                       true,      // collision?
                                                                       obj_mat);  // contact material
-        mrigidBody->SetPos(ChVector<>(-5 + ChRandom() * 10, 4 + bi * 0.05, -5 + ChRandom() * 10));
+        mrigidBody->SetPos(ChVector3d(-5 + ChRandom::Get() * 10, 4 + bi * 0.05, -5 + ChRandom::Get() * 10));
         mrigidBody->GetVisualShape(0)->SetTexture(GetChronoDataFile("textures/rock.jpg"));
         sys.Add(mrigidBody);
     }
 
     // Contact and visualization materials for container
-    auto ground_mat = chrono_types::make_shared<ChMaterialSurfaceNSC>();
+    auto ground_mat = chrono_types::make_shared<ChContactMaterialNSC>();
     auto ground_mat_vis = chrono_types::make_shared<ChVisualMaterial>(*ChVisualMaterial::Default());
     ground_mat_vis->SetKdTexture(GetChronoDataFile("textures/concrete.jpg"));
 
     // Create the five walls of the rectangular container, using fixed rigid bodies of 'box' type
     auto floorBody = chrono_types::make_shared<ChBodyEasyBox>(20, 1, 20, 1000, true, true, ground_mat);
-    floorBody->SetPos(ChVector<>(0, -5, 0));
-    floorBody->SetBodyFixed(true);
+    floorBody->SetPos(ChVector3d(0, -5, 0));
+    floorBody->SetFixed(true);
     floorBody->GetVisualShape(0)->SetMaterial(0, ground_mat_vis);
     sys.Add(floorBody);
 
     auto wallBody1 = chrono_types::make_shared<ChBodyEasyBox>(1, 10, 20.99, 1000, true, true, ground_mat);
-    wallBody1->SetPos(ChVector<>(-10, 0, 0));
-    wallBody1->SetBodyFixed(true);
+    wallBody1->SetPos(ChVector3d(-10, 0, 0));
+    wallBody1->SetFixed(true);
     wallBody1->GetVisualShape(0)->SetMaterial(0, ground_mat_vis);
     sys.Add(wallBody1);
 
     auto wallBody2 = chrono_types::make_shared<ChBodyEasyBox>(1, 10, 20.99, 1000, true, true, ground_mat);
-    wallBody2->SetPos(ChVector<>(10, 0, 0));
-    wallBody2->SetBodyFixed(true);
+    wallBody2->SetPos(ChVector3d(10, 0, 0));
+    wallBody2->SetFixed(true);
     wallBody2->GetVisualShape(0)->SetMaterial(0, ground_mat_vis);
     sys.Add(wallBody2);
 
     auto wallBody3 = chrono_types::make_shared<ChBodyEasyBox>(20.99, 10, 1, 1000, true, true, ground_mat);
-    wallBody3->SetPos(ChVector<>(0, 0, -10));
-    wallBody3->SetBodyFixed(true);
+    wallBody3->SetPos(ChVector3d(0, 0, -10));
+    wallBody3->SetFixed(true);
     wallBody3->GetVisualShape(0)->SetMaterial(0, ground_mat_vis);
     sys.Add(wallBody3);
 
     auto wallBody4 = chrono_types::make_shared<ChBodyEasyBox>(20.99, 10, 1, 1000, true, true, ground_mat);
-    wallBody4->SetPos(ChVector<>(0, 0, 10));
-    wallBody4->SetBodyFixed(true);
+    wallBody4->SetPos(ChVector3d(0, 0, 10));
+    wallBody4->SetFixed(true);
     wallBody4->GetVisualShape(0)->SetMaterial(0, ground_mat_vis);
     sys.Add(wallBody4);
 
     // Add the rotating mixer
-    auto mixer_mat = chrono_types::make_shared<ChMaterialSurfaceNSC>();
+    auto mixer_mat = chrono_types::make_shared<ChContactMaterialNSC>();
     mixer_mat->SetFriction(0.4f);
 
     auto rotatingBody = chrono_types::make_shared<ChBodyEasyBox>(10, 5, 1,    // x,y,z size
@@ -183,19 +184,19 @@ void create_some_falling_items(ChSystemNSC& sys) {
                                                                  true,        // visualization?
                                                                  true,        // collision?
                                                                  mixer_mat);  // contact material
-    rotatingBody->SetPos(ChVector<>(0, -1.6, 0));
+    rotatingBody->SetPos(ChVector3d(0, -1.6, 0));
     rotatingBody->GetVisualShape(0)->SetTexture(GetChronoDataFile("textures/blue.png"));
     sys.Add(rotatingBody);
 
     // .. a motor between mixer and truss
     auto motor = chrono_types::make_shared<ChLinkMotorRotationSpeed>();
-    motor->Initialize(rotatingBody, floorBody, ChFrame<>(ChVector<>(0, 0, 0), Q_from_AngAxis(CH_C_PI_2, VECT_X)));
-    motor->SetSpeedFunction(chrono_types::make_shared<ChFunction_Const>(CH_C_PI / 2.0));
+    motor->Initialize(rotatingBody, floorBody, ChFrame<>(ChVector3d(0, 0, 0), QuatFromAngleX(CH_PI_2)));
+    motor->SetSpeedFunction(chrono_types::make_shared<ChFunctionConst>(CH_PI / 2.0));
     sys.AddLink(motor);
 }
 
 int main(int argc, char* argv[]) {
-    GetLog() << "Copyright (c) 2017 projectchrono.org\nChrono version: " << CHRONO_VERSION << "\n\n";
+    std::cout << "Copyright (c) 2017 projectchrono.org\nChrono version: " << CHRONO_VERSION << std::endl;
 
     // Create a Chrono physical system
     ChSystemNSC sys;
@@ -213,7 +214,7 @@ int main(int argc, char* argv[]) {
     vis->Initialize();
     vis->AddLogo();
     vis->AddSkyBox();
-    vis->AddCamera(ChVector<>(0, 14, -20));
+    vis->AddCamera(ChVector3d(0, 14, -20));
     vis->AddTypicalLights();
 
     // This is for GUI tweaking of system parameters..
@@ -222,9 +223,8 @@ int main(int argc, char* argv[]) {
     vis->AddUserEventReceiver(&receiver);
 
     // Modify some setting of the physical system for the simulation, if you want
-
     sys.SetSolverType(ChSolver::Type::PSOR);
-    sys.SetSolverMaxIterations(20);
+    sys.GetSolver()->AsIterative()->SetMaxIterations(20);
 
     // Cohesion in a contact depends on the cohesion in the surface property of the
     // touching bodies, but the user can override this value when each contact is created,
@@ -232,9 +232,10 @@ int main(int argc, char* argv[]) {
 
     class MyContactCallback : public ChContactContainer::AddContactCallback {
       public:
-        virtual void OnAddContact(const ChCollisionInfo& contactinfo, ChMaterialComposite* const material) override {
+        virtual void OnAddContact(const ChCollisionInfo& contactinfo,
+                                  ChContactMaterialComposite* const material) override {
             // Downcast to appropriate composite material type
-            auto mat = static_cast<ChMaterialCompositeNSC* const>(material);
+            auto mat = static_cast<ChContactMaterialCompositeNSC* const>(material);
 
             // Set friction according to user setting:
             mat->static_friction = GLOBAL_friction;

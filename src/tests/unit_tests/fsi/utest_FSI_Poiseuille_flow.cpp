@@ -67,7 +67,7 @@ double PoiseuilleAnalytical(double Z, double L, double time, ChSystemFsi& sysFSI
 // Create the wall boundary and the BCE particles
 //------------------------------------------------------------------
 void CreateSolidPhase(ChSystemSMC& sysMBS, ChSystemFsi& sysFSI) {
-    auto mysurfmaterial = chrono_types::make_shared<ChMaterialSurfaceSMC>();
+    auto mysurfmaterial = chrono_types::make_shared<ChContactMaterialSMC>();
 
     // Set common material Properties
     mysurfmaterial->SetYoungModulus(6e4);
@@ -77,15 +77,14 @@ void CreateSolidPhase(ChSystemSMC& sysMBS, ChSystemFsi& sysFSI) {
 
     // Create a body for the wall
     auto body = chrono_types::make_shared<ChBody>();
-    body->SetIdentifier(-1);
-    body->SetBodyFixed(true);
-    body->SetCollide(true);
+    body->SetFixed(true);
+    body->EnableCollision(true);
 
     // Size and position of the bottom and top walls
     auto initSpace0 = sysFSI.GetInitialSpacing();
-    ChVector<> size_XY(bxDim, byDim, 4 * initSpace0);
-    ChVector<> pos_zn(0, 0, -3 * initSpace0);
-    ChVector<> pos_zp(0, 0, bzDim + 1 * initSpace0);
+    ChVector3d size_XY(bxDim, byDim, 4 * initSpace0);
+    ChVector3d pos_zn(0, 0, -3 * initSpace0);
+    ChVector3d pos_zp(0, 0, bzDim + 1 * initSpace0);
 
     // Add a geometry to the body and set the collision model
     chrono::utils::AddBoxGeometry(body.get(), mysurfmaterial, size_XY, pos_zn, QUNIT, true);
@@ -93,9 +92,9 @@ void CreateSolidPhase(ChSystemSMC& sysMBS, ChSystemFsi& sysFSI) {
 
     // Add BCE particles to the bottom and top wall boundary
     sysFSI.AddBoxContainerBCE(body,                                           //
-                              ChFrame<>(ChVector<>(0, 0, bzDim / 2), QUNIT),  //
-                              ChVector<>(bxDim, byDim, bzDim),                //
-                              ChVector<int>(0, 0, 2));
+                              ChFrame<>(ChVector3d(0, 0, bzDim / 2), QUNIT),  //
+                              ChVector3d(bxDim, byDim, bzDim),                //
+                              ChVector3i(0, 0, 2));
 }
 
 // ===============================
@@ -110,19 +109,19 @@ int main(int argc, char* argv[]) {
 
     // Reset the domain size to handle periodic boundary condition
     auto initSpace0 = sysFSI.GetInitialSpacing();
-    ChVector<> cMin(-bxDim / 2 - initSpace0 / 2, -byDim / 2 - initSpace0 / 2, -10.0 * initSpace0);
-    ChVector<> cMax(bxDim / 2 + initSpace0 / 2, byDim / 2 + initSpace0 / 2, bzDim + 10.0 * initSpace0);
+    ChVector3d cMin(-bxDim / 2 - initSpace0 / 2, -byDim / 2 - initSpace0 / 2, -10.0 * initSpace0);
+    ChVector3d cMax(bxDim / 2 + initSpace0 / 2, byDim / 2 + initSpace0 / 2, bzDim + 10.0 * initSpace0);
     sysFSI.SetBoundaries(cMin, cMax);
 
     // Create SPH particles for the fluid domain
-    chrono::utils::GridSampler<> sampler(initSpace0);
-    ChVector<> boxCenter(0, 0, bzDim * 0.5);
-    ChVector<> boxHalfDim(bxDim / 2, byDim / 2, bzDim / 2);
-    std::vector<ChVector<>> points = sampler.SampleBox(boxCenter, boxHalfDim);
+    chrono::utils::ChGridSampler<> sampler(initSpace0);
+    ChVector3d boxCenter(0, 0, bzDim * 0.5);
+    ChVector3d boxHalfDim(bxDim / 2, byDim / 2, bzDim / 2);
+    std::vector<ChVector3d> points = sampler.SampleBox(boxCenter, boxHalfDim);
     size_t numPart = points.size();
     for (int i = 0; i < numPart; i++) {
         double v_x = PoiseuilleAnalytical(points[i].z(), bzDim, 0.5, sysFSI);
-        sysFSI.AddSPHParticle(points[i], ChVector<>(v_x, 0.0, 0.0));
+        sysFSI.AddSPHParticle(points[i], ChVector3d(v_x, 0.0, 0.0));
     }
 
     // Create SPH particles for the solid domain

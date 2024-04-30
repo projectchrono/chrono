@@ -32,8 +32,6 @@
 
 namespace chrono {
 
-using namespace geometry;
-
 ChFluidContainer::ChFluidContainer() {
     body_offset = 0;
     epsilon = 1e-3;
@@ -161,7 +159,7 @@ void ChFluidContainer::UpdatePosition(double ChTime) {
         pos_fluid[original_index] += vel * data_manager->settings.step_size;
     }
 }
-int ChFluidContainer::GetNumConstraints() {
+unsigned int ChFluidContainer::GetNumConstraints() {
     int num_fluid_fluid = data_manager->num_fluid_bodies;
 
     if (contact_mu == 0) {
@@ -177,7 +175,7 @@ int ChFluidContainer::GetNumConstraints() {
     // printf("ChFluidContainer::GetNumConstraints() %d\n", num_fluid_fluid);
     return num_fluid_fluid;
 }
-int ChFluidContainer::GetNumNonZeros() {
+unsigned int ChFluidContainer::GetNumNonZeros() {
     int nnz_fluid_fluid = data_manager->num_fluid_bodies * 6 * ChNarrowphase::max_neighbors;
 
     if (contact_mu == 0) {
@@ -647,17 +645,19 @@ void ChFluidContainer::CalculateContactForces() {
     // contact_forces
 }
 
-real3 ChFluidContainer::GetBodyContactForce(uint body_id) {
+real3 ChFluidContainer::GetBodyContactForce(std::shared_ptr<ChBody> body) {
     if (data_manager->cd_data->num_rigid_fluid_contacts <= 0) {
         return real3(0);
     }
+    auto body_id = body->GetIndex();
     return real3(contact_forces[body_id * 6 + 0], contact_forces[body_id * 6 + 1], contact_forces[body_id * 6 + 2]);
 }
 
-real3 ChFluidContainer::GetBodyContactTorque(uint body_id) {
+real3 ChFluidContainer::GetBodyContactTorque(std::shared_ptr<ChBody> body) {
     if (data_manager->cd_data->num_rigid_fluid_contacts <= 0) {
         return real3(0);
     }
+    auto body_id = body->GetIndex();
     return real3(contact_forces[body_id * 6 + 3], contact_forces[body_id * 6 + 4], contact_forces[body_id * 6 + 5]);
 }
 

@@ -31,11 +31,11 @@ namespace uaz {
 // -----------------------------------------------------------------------------
 
 const double UAZBUS_TMeasyTireFront::m_mass = 37.6;
-const ChVector<> UAZBUS_TMeasyTireFront::m_inertia(3.84, 6.69, 3.84);
+const ChVector3d UAZBUS_TMeasyTireFront::m_inertia(3.84, 6.69, 3.84);
 const std::string UAZBUS_TMeasyTireFront::m_meshFile = "uaz/uaz_tire.obj";
 
 const double UAZBUS_TMeasyTireRear::m_mass = 37.6;
-const ChVector<> UAZBUS_TMeasyTireRear::m_inertia(3.84, 6.69, 3.84);
+const ChVector3d UAZBUS_TMeasyTireRear::m_inertia(3.84, 6.69, 3.84);
 const std::string UAZBUS_TMeasyTireRear::m_meshFile = "uaz/uaz_tire.obj";
 
 // -----------------------------------------------------------------------------
@@ -47,7 +47,7 @@ UAZBUS_TMeasyTireFront::UAZBUS_TMeasyTireFront(const std::string& name) : ChTMea
 void UAZBUS_TMeasyTireFront::SetTMeasyParams() {
     // Tire Size = 37 x 12.5 x 16.5 Load Range D
     // Tire Load 3850 lbs at 50 psi (Goodyear Military Tire Brochure 6th Edition)
-    
+
     unsigned int li = 121;  // UAZ data
     const double in2m = 0.0254;
     double w = 0.225;
@@ -55,7 +55,7 @@ void UAZBUS_TMeasyTireFront::SetTMeasyParams() {
     double rimdia = 16.0 * in2m;
     double pres_li = 590000;
     double pres_use = 220000;
-    
+
     GuessTruck80Par(li,       // tire load index []
                     w,        // tire width [m]
                     r,        // aspect ratio []
@@ -95,7 +95,7 @@ UAZBUS_TMeasyTireRear::UAZBUS_TMeasyTireRear(const std::string& name) : ChTMeasy
 void UAZBUS_TMeasyTireRear::SetTMeasyParams() {
     // Tire Size = 37 x 12.5 x 16.5 Load Range D
     // Tire Load 3850 lbs at 50 psi (Goodyear Military Tire Brochure 6th Edition)
-    
+
     unsigned int li = 121;  // UAZ data
     const double in2m = 0.0254;
     double w = 0.225;

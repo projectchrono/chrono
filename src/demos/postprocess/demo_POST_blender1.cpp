@@ -32,6 +32,7 @@
 #include "chrono/geometry/ChLineArc.h"
 #include "chrono/physics/ChParticleCloud.h"
 #include "chrono/physics/ChSystemNSC.h"
+#include "chrono/core/ChRandom.h"
 
 #include "chrono_postprocess/ChBlender.h"
 
@@ -41,7 +42,7 @@ using namespace chrono;
 using namespace postprocess;
 
 int main(int argc, char* argv[]) {
-    GetLog() << "Copyright (c) 2017 projectchrono.org\nChrono version: " << CHRONO_VERSION << "\n\n";
+    std::cout << "Copyright (c) 2017 projectchrono.org\nChrono version: " << CHRONO_VERSION << std::endl;
 
     // Create a Chrono system and set the associated collision system
     ChSystemNSC sys;
@@ -76,14 +77,14 @@ int main(int argc, char* argv[]) {
     // Create a rigid body as usual, and add it
     // to the physical system:
     auto floor = chrono_types::make_shared<ChBody>();
-    floor->SetBodyFixed(true);
+    floor->SetFixed(true);
 
     // Define a collision shape
-    auto floor_mat = chrono_types::make_shared<ChMaterialSurfaceNSC>();
+    auto floor_mat = chrono_types::make_shared<ChContactMaterialNSC>();
 
     auto floor_ct_shape = chrono_types::make_shared<ChCollisionShapeBox>(floor_mat, 20, 1, 20);
-    floor->AddCollisionShape(floor_ct_shape, ChFrame<>(ChVector<>(0, -1, 0), QUNIT));
-    floor->SetCollide(true);
+    floor->AddCollisionShape(floor_ct_shape, ChFrame<>(ChVector3d(0, -1, 0), QUNIT));
+    floor->EnableCollision(true);
 
     // Add body to system
     sys.Add(floor);
@@ -91,7 +92,7 @@ int main(int argc, char* argv[]) {
     // ==Asset== attach a 'box' shape.
     auto boxfloor = chrono_types::make_shared<ChVisualShapeBox>(20, 1, 20);
     boxfloor->SetColor(ChColor(0.3f, 0.3f, 0.6f));
-    floor->AddVisualShape(boxfloor, ChFrame<>(ChVector<>(0, -1, 0)));
+    floor->AddVisualShape(boxfloor, ChFrame<>(ChVector3d(0, -1, 0)));
 
     /// [Example 1]
     /* End example */
@@ -103,45 +104,45 @@ int main(int argc, char* argv[]) {
 
     // Create the rigid body as usual (this won't move, it is only for visualization tests)
     auto body = chrono_types::make_shared<ChBody>();
-    body->SetBodyFixed(true);
+    body->SetFixed(true);
     sys.Add(body);
 
     // ==Asset== Attach a 'box' shape
     auto mbox = chrono_types::make_shared<ChVisualShapeBox>(0.4, 1.0, 0.2);
-    body->AddVisualShape(mbox, ChFrame<>(ChVector<>(1, 0, 0)));
+    body->AddVisualShape(mbox, ChFrame<>(ChVector3d(1, 0, 0)));
 
     // ==Asset== Attach a 'cylinder' shape
     auto cyl = chrono_types::make_shared<ChVisualShapeCylinder>(0.3, 0.7);
-    body->AddVisualShape(cyl, ChFrame<>(ChVector<>(2, 0.15, 0), Q_from_AngX(CH_C_PI_2)));
+    body->AddVisualShape(cyl, ChFrame<>(ChVector3d(2, 0.15, 0), QuatFromAngleX(CH_PI_2)));
     body->AddVisualShape(chrono_types::make_shared<ChVisualShapeSphere>(0.03),
-                         ChFrame<>(ChVector<>(2, -0.2, 0), QUNIT));
+                         ChFrame<>(ChVector3d(2, -0.2, 0), QUNIT));
     body->AddVisualShape(chrono_types::make_shared<ChVisualShapeSphere>(0.03),
-                         ChFrame<>(ChVector<>(2, +0.5, 0), QUNIT));
+                         ChFrame<>(ChVector3d(2, +0.5, 0), QUNIT));
     // ...here is an example on how to change the color:
     cyl->SetColor(ChColor(1.f, 0.8f, 0.f));
 
     // ==Asset== Attach a 'sphere' shape
     auto sphere = chrono_types::make_shared<ChVisualShapeSphere>(0.5);
-    body->AddVisualShape(sphere, ChFrame<>(ChVector<>(-1, 0, 0)));
+    body->AddVisualShape(sphere, ChFrame<>(ChVector3d(-1, 0, 0)));
 
     // ...btw here is an example on how to setup a material:
     auto visual_material = chrono_types::make_shared<ChVisualMaterial>();
-    visual_material->SetMetallic(0.5);
-    visual_material->SetRoughness(0.1);
+    visual_material->SetMetallic(0.5f);
+    visual_material->SetRoughness(0.1f);
     sphere->AddMaterial(visual_material);
 
     // ==Asset== Attach a 'Wavefront mesh' asset, referencing a .obj file:
     auto objmesh = chrono_types::make_shared<ChVisualShapeModelFile>();
     objmesh->SetFilename(GetChronoDataFile("models/forklift/body.obj"));
     objmesh->SetTexture(GetChronoDataFile("textures/bluewhite.png"));
-    body->AddVisualShape(objmesh, ChFrame<>(ChVector<>(0, 0, 2)));
+    body->AddVisualShape(objmesh, ChFrame<>(ChVector3d(0, 0, 2)));
 
     // ==Asset== Attach an array of boxes, each rotated to make a spiral
     for (int j = 0; j < 20; j++) {
         auto smallbox = chrono_types::make_shared<ChVisualShapeBox>(0.2, 0.2, 0.02);
         smallbox->SetColor(ChColor(j * 0.05f, 1 - j * 0.05f, 0.0f));
-        ChMatrix33<> rot(Q_from_AngY(j * 21 * CH_C_DEG_TO_RAD));
-        ChVector<> pos = rot * ChVector<>(0.4, 0, 0) + ChVector<>(0, j * 0.02, 0);
+        ChMatrix33<> rot(QuatFromAngleY(j * 21 * CH_DEG_TO_RAD));
+        ChVector3d pos = rot * ChVector3d(0.4, 0, 0) + ChVector3d(0, j * 0.02, 0);
         body->AddVisualShape(smallbox, ChFrame<>(pos, rot));
     }
 
@@ -151,46 +152,46 @@ int main(int argc, char* argv[]) {
 
     auto trimesh = chrono_types::make_shared<ChVisualShapeTriangleMesh>();
     // ...four vertices
-    trimesh->GetMesh()->getCoordsVertices() =
-        std::vector<chrono::ChVector<>>{{2, 1, 0}, {3, 1, 0}, {3, 2, 0}, {2, 2, 0}};
+    trimesh->GetMesh()->GetCoordsVertices() =
+        std::vector<chrono::ChVector3d>{{2, 1, 0}, {3, 1, 0}, {3, 2, 0}, {2, 2, 0}};
     // ...two triangle faces, whose indexes point to the vertexes above. Counterclockwise.
-    trimesh->GetMesh()->getIndicesVertexes() = std::vector<chrono::ChVector<int>>{
+    trimesh->GetMesh()->GetIndicesVertexes() = std::vector<chrono::ChVector3i>{
         {0, 1, 2},
         {2, 3, 0},
     };
     // ... one normal, pointing toward Y (NOTE: normals would be unnecessary in Blender - here just for completeness)
-    trimesh->GetMesh()->getCoordsNormals() = std::vector<chrono::ChVector<>>{
+    trimesh->GetMesh()->GetCoordsNormals() = std::vector<chrono::ChVector3d>{
         {0, 0, 1},
     };
     // ... same normal for all vertexes of both triangles (NOTE: normals would be unnecessary in Blender, etc.)
-    trimesh->GetMesh()->getIndicesNormals() = std::vector<chrono::ChVector<int>>{{0, 0, 0}, {0, 0, 0}};
+    trimesh->GetMesh()->GetIndicesNormals() = std::vector<chrono::ChVector3i>{{0, 0, 0}, {0, 0, 0}};
     // ... per-vertex colors, RGB:
-    trimesh->GetMesh()->getCoordsColors() =
-        std::vector<chrono::ChColor>{{0.9, 0.8, 0.1}, {0.8, 0.2, 0.3}, {0.2, 0.1, 0.9}, {0.2, 0.6, 0.6}};
+    trimesh->GetMesh()->GetCoordsColors() =
+        std::vector<chrono::ChColor>{{0.9f, 0.8f, 0.1f}, {0.8f, 0.2f, 0.3f}, {0.2f, 0.1f, 0.9f}, {0.2f, 0.6f, 0.6f}};
 
     // NOTE: optionally, you can add a scalar or vector property, per vertex or per face, that can
     // be rendered via falsecolor in Blender. Note that optionally we can suggest a min-max range for falsecolor scale.
-    geometry::ChPropertyScalar my_scalars;
+    ChPropertyScalar my_scalars;
     my_scalars.name = "my_temperature";
     my_scalars.data = std::vector<double>{0, 10, 100, 120};
     my_scalars.min = 0;
     my_scalars.max = 150;
     trimesh->GetMesh()->AddPropertyPerVertex(my_scalars);
 
-    geometry::ChPropertyVector my_vectors;
+    ChPropertyVector my_vectors;
     my_vectors.name = "my_velocity";
-    my_vectors.data = std::vector<ChVector<>>{{0, 1, 2}, {3, 0, 0}, {0, 0, 2}, {0, 0, 0}};
+    my_vectors.data = std::vector<ChVector3d>{{0, 1, 2}, {3, 0, 0}, {0, 0, 2}, {0, 0, 0}};
     trimesh->GetMesh()->AddPropertyPerVertex(my_vectors);
 
-    body->AddVisualShape(trimesh, ChFrame<>(ChVector<>(1, 1, 0)));
+    body->AddVisualShape(trimesh, ChFrame<>(ChVector3d(1, 1, 0)));
 
     // ==Asset== Attach a set of 'point glyphs', in this case: n dots rendered as small spheres.
 
     auto glyphs_points = chrono_types::make_shared<ChGlyphs>();
     for (int i = 0; i < 6; ++i)
         glyphs_points->SetGlyphPoint(i,                                // i-th glyph
-                                     ChVector<>(1 + i * 0.2, 2, 0.2),  // the position
-                                     ChColor(0.3, i * 0.1, 0)          // the vector color
+                                     ChVector3d(1 + i * 0.2, 2, 0.2),  // the position
+                                     ChColor(0.3f, i * 0.1f, 0)        // the vector color
         );
     body->AddVisualShape(glyphs_points);
 
@@ -200,9 +201,9 @@ int main(int argc, char* argv[]) {
 
     auto glyphs_coords = chrono_types::make_shared<ChGlyphs>();
     for (int i = 0; i < 6; ++i)
-        glyphs_coords->SetGlyphCoordsys(i,                                                              // i-th glyph
-                                        ChCoordsys<>(ChVector<>(1 + i * 0.2, 2, 0.5),                   // the position
-                                                     Q_from_AngAxis(i * 20 * CH_C_DEG_TO_RAD, VECT_X))  // the rotation
+        glyphs_coords->SetGlyphCoordsys(i,                                                    // i-th glyph
+                                        ChCoordsys<>(ChVector3d(1 + i * 0.2, 2, 0.5),         // the position
+                                                     QuatFromAngleX(i * 20 * CH_DEG_TO_RAD))  // the rotation
         );
     body->AddVisualShape(glyphs_coords);
 
@@ -213,14 +214,14 @@ int main(int argc, char* argv[]) {
     auto glyphs_vectors = chrono_types::make_shared<ChGlyphs>();
     for (int i = 0; i < 6; ++i)
         glyphs_vectors->SetGlyphVector(i,                                  // i-th glyph
-                                       ChVector<>(1 + i * 0.2, 2, 0.8),    // the position
-                                       ChVector<>(0, 0.1 + i * 0.2, 0.4),  // the vector V
+                                       ChVector3d(1 + i * 0.2, 2, 0.8),    // the position
+                                       ChVector3d(0, 0.1 + i * 0.2, 0.4),  // the vector V
                                        ChColor(0.5, 0, i * 0.1)            // the vector color
         );
 
     // Note: glyphs can contain per-point float or scalar properties: these will be
     // rendered using falsecolor color scales in Blender, selecting the desired property via the Chrono add-on GUI.
-    geometry::ChPropertyScalar my_temperature_for_glyps;
+    ChPropertyScalar my_temperature_for_glyps;
     my_temperature_for_glyps.name = "my_temperature";
     my_temperature_for_glyps.data =
         std::vector<double>{0, 10, 30, 40, 65, 68};  // size of .data mut match the n.of glyps
@@ -242,10 +243,10 @@ int main(int argc, char* argv[]) {
     auto glyphs_tensors = chrono_types::make_shared<ChGlyphs>();
     for (int i = 0; i < 6; ++i)
         glyphs_tensors->SetGlyphTensor(
-            i,                                                 // i-th glyph
-            ChVector<>(1 + i * 0.2, 2, 1.2),                   // the position
-            Q_from_AngAxis(i * 20 * CH_C_DEG_TO_RAD, VECT_Z),  // the rotation (local basis of the tensor)
-            ChVector<>(0.2, 0.05 + i * 0.05, 0.04)             // the eigenvalues, aka the ellipsoids lengths
+            i,                                       // i-th glyph
+            ChVector3d(1 + i * 0.2, 2, 1.2),         // the position
+            QuatFromAngleZ(i * 20 * CH_DEG_TO_RAD),  // the rotation (local basis of the tensor)
+            ChVector3d(0.2, 0.05 + i * 0.05, 0.04)   // the eigenvalues, aka the ellipsoids lengths
         );
     glyphs_vectors->glyph_eigenvalues_type = ChGlyphs::eCh_GlyphEigenvalues::PROPERTY;
     glyphs_vectors->glyph_eigenvalues_prop = "eigenvalues";
@@ -254,10 +255,10 @@ int main(int argc, char* argv[]) {
 
     // ==Asset== Attach a line or a path (will be drawn as a line in 3D)
     auto line = chrono_types::make_shared<ChVisualShapeLine>();
-    auto my_arc = chrono_types::make_shared<geometry::ChLineArc>(ChCoordsys<>(ChVector<>(1, 2, 1.6)), 0.5, 0, CH_C_PI,
-                                                                 true);  // origin, rad, angle start&end
+    auto my_arc = chrono_types::make_shared<ChLineArc>(ChCoordsys<>(ChVector3d(1, 2, 1.6)), 0.5, 0, CH_PI,
+                                                       true);  // origin, rad, angle start&end
     line->SetLineGeometry(my_arc);
-    line->SetColor(ChColor(1, 0.3, 0));
+    line->SetColor(ChColor(1.0f, 0.3f, 0));
     line->SetThickness(10.0);
     body->AddVisualShape(line);
 
@@ -266,12 +267,12 @@ int main(int argc, char* argv[]) {
 
     auto camera = chrono_types::make_shared<ChCamera>();
     camera->SetAngle(50);
-    camera->SetPosition(ChVector<>(-3, 4, -5));
-    camera->SetAimPoint(ChVector<>(0, 1, 0));
+    camera->SetPosition(ChVector3d(-3, 4, -5));
+    camera->SetAimPoint(ChVector3d(0, 1, 0));
     body->AddCamera(camera);
 
     // Otherwise a simple (not attached to object) static camera can be optionally added via
-    // blender_exporter.SetCamera(ChVector<>(3, 4, -5), ChVector<>(0, 0.5, 0), 50); , see later.
+    // blender_exporter.SetCamera(ChVector3d(3, 4, -5), ChVector3d(0, 0.5, 0), 50); , see later.
 
     /// [Example 2]
     /* End example */
@@ -288,14 +289,14 @@ int main(int argc, char* argv[]) {
     auto particles = chrono_types::make_shared<ChParticleCloud>();
 
     // Note: coll. shape, if needed, must be specified before creating particles
-    auto particle_mat = chrono_types::make_shared<ChMaterialSurfaceNSC>();
+    auto particle_mat = chrono_types::make_shared<ChContactMaterialNSC>();
     auto particle_shape = chrono_types::make_shared<ChCollisionShapeSphere>(particle_mat, 0.05);
     particles->AddCollisionShape(particle_shape);
-    particles->SetCollide(true);
+    particles->EnableCollision(true);
 
     // Create the random particles
     for (int np = 0; np < 100; ++np)
-        particles->AddParticle(ChCoordsys<>(ChVector<>(ChRandom() - 2, 1, ChRandom() - 0.5)));
+        particles->AddParticle(ChCoordsys<>(ChVector3d(ChRandom::Get() - 2, 1, ChRandom::Get() - 0.5)));
 
     // Do not forget to add the particle cluster to the system:
     sys.Add(particles);
@@ -320,7 +321,7 @@ int main(int argc, char* argv[]) {
 
     // Set a default camera (this is an easier but less  powerful method than
     // attaching a ChCamera to a ChBody via my_body->AddCamera(..) , see above.
-    blender_exporter.SetCamera(ChVector<>(3, 4, -5), ChVector<>(0, 0.5, 0), 50);  // pos, aim, angle
+    blender_exporter.SetCamera(ChVector3d(3, 4, -5), ChVector3d(0, 0.5, 0), 50);  // pos, aim, angle
 
     // Turn on 3d XYZ axis for each body reference frame, and set xyz symbol size
     blender_exporter.SetShowItemsFrames(true, 0.3);
@@ -354,7 +355,7 @@ int main(int argc, char* argv[]) {
     while (sys.GetChTime() < 1.5) {
         sys.DoStepDynamics(0.01);
 
-        GetLog() << "time= " << sys.GetChTime() << "\n";
+        std::cout << "time= " << sys.GetChTime() << std::endl;
 
         // 2) Create the incremental nnnnn.py files in output/ dir, that will be load
         //    by the Blender chrono_import add-on.

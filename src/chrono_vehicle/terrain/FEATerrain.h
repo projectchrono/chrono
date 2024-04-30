@@ -40,15 +40,15 @@ class CH_VEHICLE_API FEATerrain : public ChTerrain {
     /// Construct a default FEADeformableSoil.
     /// The user is responsible for calling various Set methods before Initialize.
     FEATerrain(ChSystem* system  ///< [in/out] pointer to the containing system);
-                         );
+    );
 
     ~FEATerrain() {}
 
     /// Get the terrain height below the specified location.
-    virtual double GetHeight(const ChVector<>& loc) const override;
+    virtual double GetHeight(const ChVector3d& loc) const override;
 
     /// Get the terrain normal at the point below the specified location.
-    virtual chrono::ChVector<> GetNormal(const ChVector<>& loc) const override;
+    virtual chrono::ChVector3d GetNormal(const ChVector3d& loc) const override;
 
     /// Get the terrain coefficient of friction at the point below the specified location.
     /// This coefficient of friction value may be used by certain tire models to modify
@@ -57,7 +57,7 @@ class CH_VEHICLE_API FEATerrain : public ChTerrain {
     /// For FEATerrain, this function defers to the user-provided functor object
     /// of type ChTerrain::FrictionFunctor, if one was specified.
     /// Otherwise, it returns the constant value of 0.8.
-    virtual float GetCoefficientFriction(const ChVector<>& loc) const override;
+    virtual float GetCoefficientFriction(const ChVector3d& loc) const override;
 
     /// Set the properties of the Drucker-Prager FEA soil.
     void SetSoilParametersFEA(double rho,              ///< [in] Soil density
@@ -67,14 +67,14 @@ class CH_VEHICLE_API FEATerrain : public ChTerrain {
                               double hardening_slope,  ///< [in] Soil hardening slope, for plasticity
                               double friction_angle,   ///< [in] Soil internal friction angle
                               double dilatancy_angle   ///< [in] Soil dilatancy angle
-                              );
+    );
 
     /// Initialize the terrain system (flat).
     /// This version creates a flat array of points.
-    void Initialize(const ChVector<>& start_point,               ///< [in] Base point to build terrain box
-                    const ChVector<>& terrain_dimension,         ///< [in] terrain dimensions in the 3 directions
-                    const ChVector<int>& terrain_discretization  ///< [in] Number of finite elements in the 3 directions
-                    );
+    void Initialize(const ChVector3d& start_point,            ///< [in] Base point to build terrain box
+                    const ChVector3d& terrain_dimension,      ///< [in] terrain dimensions in the 3 directions
+                    const ChVector3i& terrain_discretization  ///< [in] Number of finite elements in the 3 directions
+    );
 
     /// Get the underlying FEA mesh.
     std::shared_ptr<fea::ChMesh> GetMesh() const { return m_mesh; }

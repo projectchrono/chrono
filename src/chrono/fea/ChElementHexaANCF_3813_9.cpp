@@ -20,7 +20,6 @@
 //// - more use of Eigen expressions
 //// - split up the ridiculously big switch cases!
 
-#include "chrono/core/ChException.h"
 #include "chrono/core/ChQuadrature.h"
 #include "chrono/fea/ChElementHexaANCF_3813_9.h"
 
@@ -180,7 +179,7 @@ void ChElementHexaANCF_3813_9::ShapeFunctionsDerivativeZ(ShapeVector& Nz, double
 // -----------------------------------------------------------------------------
 
 // Private class for quadrature of the mass matrix.
-class Brick9_Mass : public ChIntegrable3D<ChMatrixNM<double, 33, 33>> {
+class Brick9_Mass : public ChIntegrand3D<ChMatrixNM<double, 33, 33>> {
   public:
     Brick9_Mass(ChElementHexaANCF_3813_9* element) : m_element(element) {}
     ~Brick9_Mass() {}
@@ -222,7 +221,7 @@ void ChElementHexaANCF_3813_9::ComputeMassMatrix() {
                                                           3              // order of integration
     );
 
-    m_MassMatrix *= m_material->Get_density();
+    m_MassMatrix *= m_material->GetDensity();
 }
 
 // -----------------------------------------------------------------------------
@@ -230,7 +229,7 @@ void ChElementHexaANCF_3813_9::ComputeMassMatrix() {
 // -----------------------------------------------------------------------------
 
 // Private class for quadrature of gravitational forces.
-class Brick9_Gravity : public ChIntegrable3D<ChVectorN<double, 11>> {
+class Brick9_Gravity : public ChIntegrand3D<ChVectorN<double, 11>> {
   public:
     Brick9_Gravity(ChElementHexaANCF_3813_9* element) : m_element(element) {}
     ~Brick9_Gravity() {}
@@ -262,11 +261,11 @@ void ChElementHexaANCF_3813_9::ComputeGravityForceScale() {
                                                      2                  // order of integration
     );
 
-    m_GravForceScale *= m_material->Get_density();
+    m_GravForceScale *= m_material->GetDensity();
 }
 
 // Compute the generalized force vector due to gravity
-void ChElementHexaANCF_3813_9::ComputeGravityForces(ChVectorDynamic<>& Fg, const ChVector<>& G_acc) {
+void ChElementHexaANCF_3813_9::ComputeGravityForces(ChVectorDynamic<>& Fg, const ChVector3d& G_acc) {
     assert(Fg.size() == 33);
 
     // Calculate and add the generalized force due to gravity to the generalized internal force vector for the element.
@@ -284,7 +283,7 @@ void ChElementHexaANCF_3813_9::ComputeGravityForces(ChVectorDynamic<>& Fg, const
 // -----------------------------------------------------------------------------
 
 // Private class for quadrature of internal forces
-class Brick9_Force : public ChIntegrable3D<ChVectorN<double, 33>> {
+class Brick9_Force : public ChIntegrand3D<ChVectorN<double, 33>> {
   public:
     Brick9_Force(ChElementHexaANCF_3813_9* element) : m_element(element) {}
     ~Brick9_Force() {}
@@ -345,10 +344,10 @@ void Brick9_Force::Evaluate(ChVectorN<double, 33>& result, const double x, const
     DefF(1, 2) = Nz_d(0, 1);
     DefF(2, 2) = Nz_d(0, 2);
 
-    double E = m_element->GetMaterial()->Get_E();
-    double nu = m_element->GetMaterial()->Get_v();
+    double E = m_element->GetMaterial()->GetYoungModulus();
+    double nu = m_element->GetMaterial()->GetPoissonRatio();
     double C1 = E * nu / ((1.0 + nu) * (1.0 - 2.0 * nu));
-    double C2 = m_element->GetMaterial()->Get_G();
+    double C2 = m_element->GetMaterial()->GetShearModulus();
 
     // Matrix of elastic coefficients
     ChMatrixNM<double, 6, 6> E_eps;
@@ -371,7 +370,7 @@ void Brick9_Force::Evaluate(ChVectorN<double, 33>& result, const double x, const
     // element->SetPlasticityFormulation(ChElementHexaANCF_3813_9::DruckerPrager);
     // if (ChElementHexaANCF_3813_9::Hencky == element->GetStrainFormulation) {
     switch (m_element->m_strain_form) {
-        case ChElementHexaANCF_3813_9::StrainFormulation::GreenLagrange : {
+        case ChElementHexaANCF_3813_9::StrainFormulation::GreenLagrange: {
             // ddNx = e^{T}*Nx^{T}*Nx, ddNy = e^{T}*Ny^{T}*Ny, ddNz = e^{T}*Nz^{T}*Nz
             ChVectorN<double, 11> ddNx = m_element->m_ddT * Nx.transpose();
             ChVectorN<double, 11> ddNy = m_element->m_ddT * Ny.transpose();
@@ -464,7 +463,7 @@ void Brick9_Force::Evaluate(ChVectorN<double, 33>& result, const double x, const
             // Internal force calculation
             result = (detJ0 * m_element->m_GaussScaling) * strainD.transpose() * E_eps * strain;
         } break;
-        case ChElementHexaANCF_3813_9::StrainFormulation::Hencky : {
+        case ChElementHexaANCF_3813_9::StrainFormulation::Hencky: {
             ChMatrixNM<double, 3, 3> CCPinv;  // Inverse of F^{pT}*F^{p}, where F^{p} is the plastic deformation
                                               // gradient stemming from multiplicative decomposition
             ChMatrix33<double> BETRI;         // Left Cauchy-Green tensor for elastic deformation
@@ -535,7 +534,7 @@ void Brick9_Force::Evaluate(ChVectorN<double, 33>& result, const double x, const
                 double EEVD3 = (LogStrain(0) + LogStrain(1) + LogStrain(2)) / 3.0;
 
                 // Deviatoric  Hencky strain
-                ChVector<double> EETD;
+                ChVector3d EETD;
                 EETD.x() = LogStrain(0) - EEVD3;
                 EETD.y() = LogStrain(1) - EEVD3;
                 EETD.z() = LogStrain(2) - EEVD3;
@@ -544,7 +543,7 @@ void Brick9_Force::Evaluate(ChVectorN<double, 33>& result, const double x, const
                 // Hydrostatic pressure
                 double hydroP;
                 // Deviatoric stress
-                ChVector<double> devStress;
+                ChVector3d devStress;
                 // Norm of deviatoric stress tensor
                 double NormSn;
                 // Second invariant of stress tensor
@@ -556,11 +555,11 @@ void Brick9_Force::Evaluate(ChVectorN<double, 33>& result, const double x, const
                 // Variation of flow rate
                 double DeltaGamma;
                 // Updated value of deviatoric stress tensor
-                ChVector<double> devStressUp;
+                ChVector3d devStressUp;
                 // Vector of eigenvalues of current logarithmic strain
-                ChVector<double> lambda;
+                ChVector3d lambda;
                 switch (m_element->m_plast_form) {
-                    case ChElementHexaANCF_3813_9::PlasticityFormulation::J2 : {
+                    case ChElementHexaANCF_3813_9::PlasticityFormulation::J2: {
                         // Hydrostatic pressure , i.e. volumetric stress (from principal stresses)
                         hydroP = (StressK_eig(0) + StressK_eig(1) + StressK_eig(2)) / 3.0;
                         // Deviatoric stress
@@ -666,8 +665,8 @@ void Brick9_Force::Evaluate(ChVectorN<double, 33>& result, const double x, const
 
                         J2Rt = NormSn / sqrt(2.0);
 
-                        double phi = m_element->m_FrictionAngle * CH_C_DEG_TO_RAD;    // Friction angle
-                        double phi2 = m_element->m_DilatancyAngle * CH_C_DEG_TO_RAD;  // Dilatancy angle
+                        double phi = m_element->m_FrictionAngle * CH_DEG_TO_RAD;    // Friction angle
+                        double phi2 = m_element->m_DilatancyAngle * CH_DEG_TO_RAD;  // Dilatancy angle
 
                         double eta = 0;  // Coefficient multiplying hydros. pressure in yield function - function of
                                          // internal friction
@@ -733,7 +732,7 @@ void Brick9_Force::Evaluate(ChVectorN<double, 33>& result, const double x, const
                                     break;
 
                                 if (ii == m_element->GetDPIterationNo() - 1)
-                                    throw ChException(
+                                    throw std::runtime_error(
                                         "Maximum number of iterations reached in Drucker-Prager Newton-Raphson "
                                         "algorithm");
                             }
@@ -798,7 +797,7 @@ void Brick9_Force::Evaluate(ChVectorN<double, 33>& result, const double x, const
                         }
                     } break;
 
-                    case ChElementHexaANCF_3813_9::PlasticityFormulation::DruckerPrager_Cap : {
+                    case ChElementHexaANCF_3813_9::PlasticityFormulation::DruckerPrager_Cap: {
                         // Hydrostatic pressure (Cap)
                         double hydroPt;
                         // Current value of yield function (Cap)
@@ -836,8 +835,8 @@ void Brick9_Force::Evaluate(ChVectorN<double, 33>& result, const double x, const
 
                         J2Rt = NormSn / sqrt(2.0);
 
-                        double phi = m_element->m_FrictionAngle * CH_C_DEG_TO_RAD;    // Friction angle
-                        double phi2 = m_element->m_DilatancyAngle * CH_C_DEG_TO_RAD;  // Dilatancy angle
+                        double phi = m_element->m_FrictionAngle * CH_DEG_TO_RAD;    // Friction angle
+                        double phi2 = m_element->m_DilatancyAngle * CH_DEG_TO_RAD;  // Dilatancy angle
 
                         double eta = 0;  // Coefficient multiplying hydros. pressure in yield function - function of
                                          // internal friction
@@ -925,7 +924,7 @@ void Brick9_Force::Evaluate(ChVectorN<double, 33>& result, const double x, const
                                         break;
 
                                     if (ii == m_element->GetDPIterationNo() - 1)
-                                        throw ChException(
+                                        throw std::runtime_error(
                                             "Maximum number of iterations reached in Drucker-Prager Surface "
                                             "Newton-Raphson algorithm");
                                 }
@@ -976,7 +975,7 @@ void Brick9_Force::Evaluate(ChVectorN<double, 33>& result, const double x, const
                                 double EPBAR = EPBARN;
                                 double SQRJ2 = SQRJ2T;
                                 double P = PT;
-                                ChVector<double> devS = devStress;
+                                ChVector3d devS = devStress;
 
                                 // obtain "hardening parameter a"=MeanEffP and "first derivative of a" =Hi
                                 m_element->ComputeHardening(EPBAR, MeanEffP, Hi);
@@ -1056,7 +1055,7 @@ void Brick9_Force::Evaluate(ChVectorN<double, 33>& result, const double x, const
                                     }
 
                                     if (ii == m_element->GetDPIterationNo() - 1)
-                                        throw ChException(
+                                        throw std::runtime_error(
                                             "Maximum number of iterations reached in Drucker-Prager Cap surface "
                                             "Newton-Raphson algorithm");
                                 }  // End of Newton raphson
@@ -1140,7 +1139,7 @@ void Brick9_Force::Evaluate(ChVectorN<double, 33>& result, const double x, const
                                                 break;
                                         }
                                         if (ii == m_element->GetDPIterationNo() - 1)
-                                            throw ChException(
+                                            throw std::runtime_error(
                                                 "Hit the max iteration for Transient Cap_surf and DP_surf return "
                                                 "mapping");
                                     }  // End of Newton raphson
@@ -1202,7 +1201,7 @@ void Brick9_Force::Evaluate(ChVectorN<double, 33>& result, const double x, const
                         }  // end if of Yield criteria
 
                         // if (FlagYieldType !=0 )
-                        // GetLog() << "FlagYieldType=" << FlagYieldType <<"\n";
+                        // std::cout << "FlagYieldType=" << FlagYieldType << std::endl;
 
                     } break;  // end of Case DruckerPrager_Cap
                 }
@@ -1246,7 +1245,7 @@ void Brick9_Force::Evaluate(ChVectorN<double, 33>& result, const double x, const
 // Compute internal forces and load them in the Fi vector.
 void ChElementHexaANCF_3813_9::ComputeInternalForces(ChVectorDynamic<>& Fi) {
     CalcCoordMatrix(m_d);
-    CalcCoordDerivMatrix(m_d_dt);
+    CalcCoordDtMatrix(m_d_dt);
     m_ddT = m_d * m_d.transpose();
 
     Fi.setZero();
@@ -1270,7 +1269,7 @@ void ChElementHexaANCF_3813_9::ComputeInternalForces(ChVectorDynamic<>& Fi) {
 // -----------------------------------------------------------------------------
 
 // Private class for quadrature of the Jacobian of internal forces
-class Brick9_Jacobian : public ChIntegrable3D<ChMatrixNM<double, 33, 33>> {
+class Brick9_Jacobian : public ChIntegrand3D<ChMatrixNM<double, 33, 33>> {
   public:
     Brick9_Jacobian(ChElementHexaANCF_3813_9* element,  // Associated element
                     double Kfactor,                     // Scaling coefficient for stiffness component
@@ -1339,10 +1338,10 @@ void Brick9_Jacobian::Evaluate(ChMatrixNM<double, 33, 33>& result, const double 
     DefF(1, 2) = Nz_d(0, 1);
     DefF(2, 2) = Nz_d(0, 2);
 
-    double E = m_element->GetMaterial()->Get_E();
-    double nu = m_element->GetMaterial()->Get_v();
+    double E = m_element->GetMaterial()->GetYoungModulus();
+    double nu = m_element->GetMaterial()->GetPoissonRatio();
     double C1 = E * nu / ((1.0 + nu) * (1.0 - 2.0 * nu));
-    double C2 = m_element->GetMaterial()->Get_G();
+    double C2 = m_element->GetMaterial()->GetShearModulus();
 
     // Matrix of elastic coefficients
     ChMatrixNM<double, 6, 6> E_eps;
@@ -1361,7 +1360,7 @@ void Brick9_Jacobian::Evaluate(ChMatrixNM<double, 33, 33>& result, const double 
     E_eps(4, 4) = C2;
     E_eps(5, 5) = C2;
     switch (m_element->m_strain_form) {
-        case ChElementHexaANCF_3813_9::StrainFormulation::GreenLagrange: {  
+        case ChElementHexaANCF_3813_9::StrainFormulation::GreenLagrange: {
             // ddNx = e^{T}*Nx^{T}*Nx, ddNy = e^{T}*Ny^{T}*Ny, ddNz = e^{T}*Nz^{T}*Nz
             ChVectorN<double, 11> ddNx = m_element->m_ddT * Nx.transpose();
             ChVectorN<double, 11> ddNy = m_element->m_ddT * Ny.transpose();
@@ -1598,7 +1597,7 @@ void Brick9_Jacobian::Evaluate(ChMatrixNM<double, 33, 33>& result, const double 
                 double EEVD3 = (LogStrain(0) + LogStrain(1) + LogStrain(2)) / 3.0;
 
                 // Deviatoric  Hencky strain
-                ChVector<double> EETD;
+                ChVector3d EETD;
                 EETD.x() = LogStrain(0) - EEVD3;
                 EETD.y() = LogStrain(1) - EEVD3;
                 EETD.z() = LogStrain(2) - EEVD3;
@@ -1607,7 +1606,7 @@ void Brick9_Jacobian::Evaluate(ChMatrixNM<double, 33, 33>& result, const double 
                 // Hydrostatic pressure
                 double hydroP;
                 // Deviatoric stress tensor
-                ChVector<double> devStress;
+                ChVector3d devStress;
                 // Norm of deviatoric stress tensor
                 double NormSn;
                 // Second invariant of stress tensor
@@ -1619,12 +1618,12 @@ void Brick9_Jacobian::Evaluate(ChMatrixNM<double, 33, 33>& result, const double 
                 // Variation of flow rate
                 double DeltaGamma;
                 // Deviatoric stresses updated
-                ChVector<double> devStressUp;
+                ChVector3d devStressUp;
                 // Vector of eigenvalues of current logarithmic strain
-                ChVector<double> lambda;
+                ChVector3d lambda;
 
                 switch (m_element->m_plast_form) {
-                    case ChElementHexaANCF_3813_9::PlasticityFormulation::J2: {  
+                    case ChElementHexaANCF_3813_9::PlasticityFormulation::J2: {
                         // Hydrostatic pressure , i.e. volumetric stress (from principal stresses)
                         hydroP = (StressK_eig(0) + StressK_eig(1) + StressK_eig(2)) / 3.0;
 
@@ -1736,8 +1735,8 @@ void Brick9_Jacobian::Evaluate(ChMatrixNM<double, 33, 33>& result, const double 
 
                         J2Rt = NormSn / sqrt(2.0);
 
-                        double phi = m_element->m_FrictionAngle * CH_C_DEG_TO_RAD;    // Friction angle
-                        double phi2 = m_element->m_DilatancyAngle * CH_C_DEG_TO_RAD;  // Dilatancy angle
+                        double phi = m_element->m_FrictionAngle * CH_DEG_TO_RAD;    // Friction angle
+                        double phi2 = m_element->m_DilatancyAngle * CH_DEG_TO_RAD;  // Dilatancy angle
                         double eta = 0;  // Coefficient multiplying hydros. pressure in yield function - function of
                                          // internal friction
                         double gsi = 0;  // Coefficient multiplying 'current' cohesion value in yield function
@@ -1801,7 +1800,7 @@ void Brick9_Jacobian::Evaluate(ChMatrixNM<double, 33, 33>& result, const double 
                                     break;
                                 }
                                 if (ii == m_element->GetDPIterationNo() - 1) {
-                                    throw ChException(
+                                    throw std::runtime_error(
                                         "Maximum number of iterations reached in Drucker-Prager Newton-Raphson "
                                         "algorithm. Jacobian \n");
                                 }
@@ -1912,8 +1911,8 @@ void Brick9_Jacobian::Evaluate(ChMatrixNM<double, 33, 33>& result, const double 
 
                         J2Rt = NormSn / sqrt(2.0);
 
-                        double phi = m_element->m_FrictionAngle * CH_C_DEG_TO_RAD;    // Friction angle
-                        double phi2 = m_element->m_DilatancyAngle * CH_C_DEG_TO_RAD;  // Dilatancy angle
+                        double phi = m_element->m_FrictionAngle * CH_DEG_TO_RAD;    // Friction angle
+                        double phi2 = m_element->m_DilatancyAngle * CH_DEG_TO_RAD;  // Dilatancy angle
 
                         double eta = 0;  // Coefficient multiplying hydros. pressure in yield function - function of
                                          // internal friction
@@ -1971,7 +1970,7 @@ void Brick9_Jacobian::Evaluate(ChMatrixNM<double, 33, 33>& result, const double 
                         // double mm_DPCapBeta=m_element->m_DPCapBeta;
 
                         // alphUp = m_element->m_Alpha_Plast(m_element->m_InteCounter);
-                        // GetLog() << "m_DPVector1" << mm_DPVector1 << "m_DPVector2" << mm_DPVector2 <<"\n";
+                        // std::cout << "m_DPVector1" << mm_DPVector1 << "m_DPVector2" << mm_DPVector2 << std::endl;
 
                         // obtain "hardening parameter a"=MeanEffP and "first derivative of a" =Hi
                         m_element->ComputeHardening(m_element->m_Alpha_Plast(m_element->m_InteCounter), MeanEffP, Hi);
@@ -2009,7 +2008,7 @@ void Brick9_Jacobian::Evaluate(ChMatrixNM<double, 33, 33>& result, const double 
                                         break;
 
                                     if (ii == m_element->GetDPIterationNo() - 1)
-                                        throw ChException(
+                                        throw std::runtime_error(
                                             "Maximum number of iterations reached in Drucker-Prager Surface "
                                             "Newton-Raphson algorithm");
                                 }
@@ -2104,7 +2103,7 @@ void Brick9_Jacobian::Evaluate(ChMatrixNM<double, 33, 33>& result, const double 
                                 double EPBAR = EPBARN;
                                 double SQRJ2 = SQRJ2T;
                                 double P = PT;
-                                ChVector<double> devS = devStress;
+                                ChVector3d devS = devStress;
                                 double Acof;
                                 double A11;
                                 double A12;
@@ -2181,7 +2180,7 @@ void Brick9_Jacobian::Evaluate(ChMatrixNM<double, 33, 33>& result, const double 
                                             break;
                                     }
                                     if (ii == m_element->GetDPIterationNo() - 1)
-                                        throw ChException(
+                                        throw std::runtime_error(
                                             "Maximum number of iterations reached in Drucker-Prager Cap surface "
                                             "Newton-Raphson algorithm");
                                 }  // End of Newton raphson
@@ -2264,7 +2263,7 @@ void Brick9_Jacobian::Evaluate(ChMatrixNM<double, 33, 33>& result, const double 
                                                 break;
                                         }
                                         if (ii == m_element->GetDPIterationNo() - 1)
-                                            throw ChException(
+                                            throw std::runtime_error(
                                                 "Hit the max iteration for Transient Cap_surf and DP_surf return "
                                                 "mapping");
                                     }  // End of Newton raphson
@@ -2606,7 +2605,7 @@ void ChElementHexaANCF_3813_9::ComputeKRMmatricesGlobal(ChMatrixRef H, double Kf
 // -----------------------------------------------------------------------------
 
 // Get all the DOFs packed in a single vector (position part).
-void ChElementHexaANCF_3813_9::LoadableGetStateBlock_x(int block_offset, ChState& mD) {
+void ChElementHexaANCF_3813_9::LoadableGetStateBlockPosLevel(int block_offset, ChState& mD) {
     for (int i = 0; i < 8; i++) {
         mD.segment(block_offset + 3 * i, 3) = m_nodes[i]->GetPos().eigen();
     }
@@ -2616,9 +2615,9 @@ void ChElementHexaANCF_3813_9::LoadableGetStateBlock_x(int block_offset, ChState
 }
 
 // Get all the DOFs packed in a single vector (speed part).
-void ChElementHexaANCF_3813_9::LoadableGetStateBlock_w(int block_offset, ChStateDelta& mD) {
+void ChElementHexaANCF_3813_9::LoadableGetStateBlockVelLevel(int block_offset, ChStateDelta& mD) {
     for (int i = 0; i < 8; i++) {
-        mD.segment(block_offset + 3 * i, 3) = m_nodes[i]->GetPos_dt().eigen();
+        mD.segment(block_offset + 3 * i, 3) = m_nodes[i]->GetPosDt().eigen();
     }
     mD.segment(block_offset + 24, 3) = m_central_node->GetCurvatureXX_dt().eigen();
     mD.segment(block_offset + 27, 3) = m_central_node->GetCurvatureYY_dt().eigen();
@@ -2825,15 +2824,15 @@ double ChElementHexaANCF_3813_9::Calc_detJ0(double x, double y, double z) {
 
 void ChElementHexaANCF_3813_9::CalcCoordMatrix(ChMatrixNM<double, 11, 3>& d) {
     for (int i = 0; i < 8; i++) {
-        const ChVector<>& pos = m_nodes[i]->GetPos();
+        const ChVector3d& pos = m_nodes[i]->GetPos();
         d(i, 0) = pos.x();
         d(i, 1) = pos.y();
         d(i, 2) = pos.z();
     }
 
-    const ChVector<>& rxx = m_central_node->GetCurvatureXX();
-    const ChVector<>& ryy = m_central_node->GetCurvatureYY();
-    const ChVector<>& rzz = m_central_node->GetCurvatureZZ();
+    const ChVector3d& rxx = m_central_node->GetCurvatureXX();
+    const ChVector3d& ryy = m_central_node->GetCurvatureYY();
+    const ChVector3d& rzz = m_central_node->GetCurvatureZZ();
 
     d(8, 0) = rxx.x();
     d(8, 1) = rxx.y();
@@ -2848,9 +2847,9 @@ void ChElementHexaANCF_3813_9::CalcCoordMatrix(ChMatrixNM<double, 11, 3>& d) {
     d(10, 2) = rzz.z();
 }
 
-void ChElementHexaANCF_3813_9::CalcCoordDerivMatrix(ChVectorN<double, 33>& dt) {
+void ChElementHexaANCF_3813_9::CalcCoordDtMatrix(ChVectorN<double, 33>& dt) {
     for (int i = 0; i < 8; i++) {
-        const ChVector<>& vel = m_nodes[i]->GetPos_dt();
+        const ChVector3d& vel = m_nodes[i]->GetPosDt();
         dt(3 * i + 0) = vel.x();
         dt(3 * i + 1) = vel.y();
         dt(3 * i + 2) = vel.z();

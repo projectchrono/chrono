@@ -58,7 +58,7 @@ class CH_VEHICLE_API ChVehicleCosimTireNodeFlexible : public ChVehicleCosimTireN
     virtual InterfaceType GetInterfaceType() const override { return InterfaceType::MESH; }
 
     /// Initialize the tire by attaching it to the provided ChWheel.
-    virtual void InitializeTire(std::shared_ptr<ChWheel> wheel, const ChVector<>& init_loc) override;
+    virtual void InitializeTire(std::shared_ptr<ChWheel> wheel, const ChVector3d& init_loc) override;
 
     /// Load current tire mesh state.
     virtual void LoadMeshState(MeshState& mesh_state) override;
@@ -83,13 +83,13 @@ class CH_VEHICLE_API ChVehicleCosimTireNodeFlexible : public ChVehicleCosimTireN
 
   private:
     /// Write mesh vertex positions and velocities.
-    void WriteTireStateInformation(utils::CSV_writer& csv);
+    void WriteTireStateInformation(utils::ChWriterCSV& csv);
     /// Write mesh connectivity and strain information.
-    void WriteTireMeshInformation(utils::CSV_writer& csv);
+    void WriteTireMeshInformation(utils::ChWriterCSV& csv);
     /// Print the current lowest mesh node.
     void PrintLowestNode();
     /// Print current contact forces.
-    void PrintContactData(const std::vector<ChVector<>>& forces, const std::vector<int>& indices);
+    void PrintContactData(const std::vector<ChVector3d>& forces, const std::vector<int>& indices);
 
     std::shared_ptr<ChDeformableTire> m_tire_def;                   ///< deformable tire
     std::shared_ptr<fea::ChLoadContactSurfaceMesh> m_contact_load;  ///< tire contact surface

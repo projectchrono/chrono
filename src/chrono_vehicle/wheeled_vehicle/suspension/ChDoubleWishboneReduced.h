@@ -54,7 +54,7 @@ namespace vehicle {
 class CH_VEHICLE_API ChDoubleWishboneReduced : public ChSuspension {
   public:
     ChDoubleWishboneReduced(const std::string& name  ///< [in] name of the subsystem
-                            );
+    );
 
     virtual ~ChDoubleWishboneReduced();
 
@@ -77,7 +77,7 @@ class CH_VEHICLE_API ChDoubleWishboneReduced : public ChSuspension {
         std::shared_ptr<ChChassis> chassis,        ///< [in] associated chassis subsystem
         std::shared_ptr<ChSubchassis> subchassis,  ///< [in] associated subchassis subsystem (may be null)
         std::shared_ptr<ChSteering> steering,      ///< [in] associated steering subsystem (may be null)
-        const ChVector<>& location,                ///< [in] location relative to the chassis frame
+        const ChVector3d& location,                ///< [in] location relative to the chassis frame
         double left_ang_vel = 0,                   ///< [in] initial angular velocity of left wheel
         double right_ang_vel = 0                   ///< [in] initial angular velocity of right wheel
         ) override;
@@ -128,7 +128,7 @@ class CH_VEHICLE_API ChDoubleWishboneReduced : public ChSuspension {
 
     /// Return the location of the specified hardpoint.
     /// The returned location must be expressed in the suspension reference frame.
-    virtual const ChVector<> getLocation(PointId which) = 0;
+    virtual const ChVector3d getLocation(PointId which) = 0;
 
     /// Return the camber angle, in radians (default: 0).
     virtual double getCamberAngle() const { return 0; }
@@ -143,9 +143,9 @@ class CH_VEHICLE_API ChDoubleWishboneReduced : public ChSuspension {
     virtual double getUprightMass() const = 0;
 
     /// Return the moments of inertia of the spindle body.
-    virtual const ChVector<>& getSpindleInertia() const = 0;
+    virtual const ChVector3d& getSpindleInertia() const = 0;
     /// Return the moments of inertia of the upright body.
-    virtual const ChVector<>& getUprightInertia() const = 0;
+    virtual const ChVector3d& getUprightInertia() const = 0;
 
     /// Return the inertia of the axle shaft.
     virtual double getAxleInertia() const = 0;
@@ -170,20 +170,20 @@ class CH_VEHICLE_API ChDoubleWishboneReduced : public ChSuspension {
 
   private:
     // Hardpoint absolute locations
-    std::vector<ChVector<>> m_pointsL;
-    std::vector<ChVector<>> m_pointsR;
+    std::vector<ChVector3d> m_pointsL;
+    std::vector<ChVector3d> m_pointsR;
 
     void InitializeSide(VehicleSide side,
                         std::shared_ptr<ChBodyAuxRef> chassis,
                         std::shared_ptr<ChBody> tierod_body,
-                        const std::vector<ChVector<>>& points,
+                        const std::vector<ChVector3d>& points,
                         double ang_vel);
 
     static void AddVisualizationUpright(std::shared_ptr<ChBody> upright,
-                                        const ChVector<> pt_C,
-                                        const ChVector<> pt_U,
-                                        const ChVector<> pt_L,
-                                        const ChVector<> pt_T,
+                                        const ChVector3d pt_C,
+                                        const ChVector3d pt_U,
+                                        const ChVector3d pt_L,
+                                        const ChVector3d pt_T,
                                         double radius);
 
     virtual void ExportComponentList(rapidjson::Document& jsonDocument) const override;

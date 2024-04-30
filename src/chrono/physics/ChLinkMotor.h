@@ -17,7 +17,7 @@
 
 #include "chrono/physics/ChBody.h"
 #include "chrono/physics/ChLinkMate.h"
-#include "chrono/motion_functions/ChFunction.h"
+#include "chrono/functions/ChFunction.h"
 
 namespace chrono {
 
@@ -37,7 +37,7 @@ class ChApi ChLinkMotor : public ChLinkMateGeneric {
     /// and can represent a position, angle, linear speed, angular speed, force, or torque.
     /// If controlling a position-level quantity (position or angle), this function must be
     /// C0 continuous (ideally C1 continuous to prevent spikes in accelerations).
-    /// If controlling a velocity-level quantity (linear on angular speed), this function 
+    /// If controlling a velocity-level quantity (linear on angular speed), this function
     /// should ideally be C0 continuous to prevent acceleration spikes.
     void SetMotorFunction(const std::shared_ptr<ChFunction> function) { m_func = function; }
 
@@ -51,10 +51,10 @@ class ChApi ChLinkMotor : public ChLinkMateGeneric {
     virtual void Update(double mytime, bool update_assets) override;
 
     /// Method to allow serialization of transient data to archives.
-    virtual void ArchiveOut(ChArchiveOut& marchive) override;
+    virtual void ArchiveOut(ChArchiveOut& archive_out) override;
 
     /// Method to allow deserialization of transient data from archives.
-    virtual void ArchiveIn(ChArchiveIn& marchive) override;
+    virtual void ArchiveIn(ChArchiveIn& archive_in) override;
 
   protected:
     std::shared_ptr<ChFunction> m_func;

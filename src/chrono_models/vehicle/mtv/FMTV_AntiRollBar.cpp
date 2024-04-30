@@ -22,9 +22,8 @@ namespace chrono {
 namespace vehicle {
 namespace fmtv {
 
-
 const double FMTV_AntirollBarRSD::m_arm_mass = 15.02;
-const ChVector<> FMTV_AntirollBarRSD::m_arm_inertia(0.494431838, 0.010999093, 0.494431838);
+const ChVector3d FMTV_AntirollBarRSD::m_arm_inertia(0.494431838, 0.010999093, 0.494431838);
 const double FMTV_AntirollBarRSD::m_arm_length = 0.9 / 2.0;
 const double FMTV_AntirollBarRSD::m_arm_width = -0.33;
 const double FMTV_AntirollBarRSD::m_droplink_height = -0.17043;

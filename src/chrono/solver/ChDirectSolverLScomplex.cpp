@@ -12,20 +12,17 @@
 // Authors: Alessandro Tasora
 // =============================================================================
 
-#include "chrono/solver/ChDirectSolverLScomplex.h"
 #include "chrono/core/ChSparsityPatternLearner.h"
+
+#include "chrono/solver/ChDirectSolverLScomplex.h"
 
 #define SPM_DEF_SPARSITY 0.9  ///< default predicted sparsity (in [0,1])
 
 namespace chrono {
 
-ChDirectSolverLScomplex::ChDirectSolverLScomplex()
-    : m_dim(0)
-       {}
-
+ChDirectSolverLScomplex::ChDirectSolverLScomplex() : m_dim(0) {}
 
 bool ChDirectSolverLScomplex::Setup() {
-
     // Allow the matrix to be compressed, if not yet compressed
     m_mat.makeCompressed();
 
@@ -33,13 +30,12 @@ bool ChDirectSolverLScomplex::Setup() {
     bool result = FactorizeMatrix();
 
     if (verbose) {
-        GetLog() << " Solver Setup()  n = " << m_dim
-                 << "  nnz = " << (int)m_mat.nonZeros() << "\n";
+        std::cout << " Solver Setup()  n = " << m_dim << "  nnz = " << (int)m_mat.nonZeros() << std::endl;
     }
 
     if (!result) {
         // If the factorization failed, let the concrete solver display an error message.
-        GetLog() << "Solver SetupCurrent() failed\n";
+        std::cerr << "Solver SetupCurrent() failed" << std::endl;
         PrintErrorMessage();
     }
 
@@ -47,26 +43,22 @@ bool ChDirectSolverLScomplex::Setup() {
 }
 
 double ChDirectSolverLScomplex::Solve(const ChVectorDynamic<std::complex<double>>& b) {
-
-
     // Let the concrete solver compute the solution
     bool result = SolveSystem(b);
 
     if (verbose) {
         double res_norm = (b - m_mat * m_sol).norm();
-        GetLog() << " Solver  |residual| = " << res_norm << "\n\n";
+        std::cout << " Solver  |residual| = " << res_norm << std::endl << std::endl;
     }
 
     if (!result) {
         // If the solution failed, let the concrete solver display an error message.
-        GetLog() << "Solver SolveCurrent() failed\n";
+        std::cerr << "Solver SolveCurrent() failed" << std::endl;
         PrintErrorMessage();
     }
 
     return result;
 }
-
-
 
 // ---------------------------------------------------------------------------
 
@@ -84,13 +76,13 @@ void ChSolverSparseComplexLU::PrintErrorMessage() {
     // There are only three possible return codes (see Eigen SparseLU.h)
     switch (m_engine.info()) {
         case Eigen::Success:
-            GetLog() << "computation was successful\n";
+            std::cout << "computation was successful" << std::endl;
             break;
         case Eigen::NumericalIssue:
-            GetLog() << "LU factorization reported a problem, zero diagonal for instance\n";
+            std::cout << "LU factorization reported a problem, zero diagonal for instance" << std::endl;
             break;
         case Eigen::InvalidInput:
-            GetLog() << "inputs are invalid, or the algorithm has been improperly called\n";
+            std::cout << "inputs are invalid, or the algorithm has been improperly called" << std::endl;
             break;
         default:
             break;
@@ -113,13 +105,13 @@ void ChSolverSparseComplexQR::PrintErrorMessage() {
     // There are only three possible return codes (see Eigen SparseLU.h)
     switch (m_engine.info()) {
         case Eigen::Success:
-            GetLog() << "computation was successful\n";
+            std::cout << "computation was successful" << std::endl;
             break;
         case Eigen::NumericalIssue:
-            GetLog() << "QR factorization reported a problem\n";
+            std::cout << "QR factorization reported a problem" << std::endl;
             break;
         case Eigen::InvalidInput:
-            GetLog() << "inputs are invalid, or the algorithm has been improperly called\n";
+            std::cout << "inputs are invalid, or the algorithm has been improperly called" << std::endl;
             break;
         default:
             break;

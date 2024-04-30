@@ -26,7 +26,7 @@ namespace irrlicht {
 
 /// Some functions to allow easy creation of meshes for Irrlicht visualization
 
-/// Create an Irrlicht mesh representing an ellipsoid. 
+/// Create an Irrlicht mesh representing an ellipsoid.
 /// Ellispoid is centered in the origin.
 ChApiIrr irr::scene::IAnimatedMesh* createEllipticalMesh(irr::f32 radiusH,
                                                          irr::f32 radiusV,
@@ -36,12 +36,12 @@ ChApiIrr irr::scene::IAnimatedMesh* createEllipticalMesh(irr::f32 radiusH,
                                                          irr::u32 polyCountX,
                                                          irr::u32 polyCountY);
 
-/// Create an Irrlicht mesh representing a box. 
+/// Create an Irrlicht mesh representing a box.
 /// Box is centered in origin, extending +/- size in each direction.
 ChApiIrr irr::scene::IMesh* createCubeMesh(const irr::core::vector3df& size);
 
 /// Create an Irrlicht mesh representing a cylinder.
-/// Cylinder axis is in Y direction, centered in origin. 
+/// Cylinder axis is in Y direction, centered in origin.
 /// Cylinder tot length is 2*height, ranging from y=-height to y=+height.
 ChApiIrr irr::scene::IMesh* createCylinderMesh(irr::f32 radius, irr::f32 height, irr::u32 tesselation);
 
@@ -49,16 +49,19 @@ ChApiIrr irr::scene::IMesh* createCylinderMesh(irr::f32 radius, irr::f32 height,
 /// Capsule axis is in Y direction, centered at origin.
 /// Capsule total length is radius + 2*hlen + radius.
 /// The hemispherical caps and cylindrical segment are all tesselated using numSegR radial segments.
-/// The hemispherical caps use numSegV vertical segments each. 
+/// The hemispherical caps use numSegV vertical segments each.
 ChApiIrr irr::scene::IMesh* createCapsuleMesh(irr::f32 radius, irr::f32 hlen, irr::u32 numSegV, irr::u32 numSegR);
 
 /// Create an Irrlicht mesh representing a truncated cone.
-/// Truncated cone axis is in Y direction, centered in origin. 
+/// Truncated cone axis is in Y direction, centered in origin.
 /// Truncated cone tot length is 2*height, ranging from y=-height to y=+height.
-ChApiIrr irr::scene::IMesh* createTruncatedConeMesh(irr::f32 radius_top, irr::f32 radius_low, irr::f32 height, irr::u32 tesselation);
+ChApiIrr irr::scene::IMesh* createTruncatedConeMesh(irr::f32 radius_top,
+                                                    irr::f32 radius_low,
+                                                    irr::f32 height,
+                                                    irr::u32 tesselation);
 
 /// Create an Irrlicht mesh representing a cone.
-/// Truncated cone axis is in Y direction, centered in origin. 
+/// Truncated cone axis is in Y direction, centered in origin.
 /// Truncated cone tot length is 2*height, ranging from y=-height to y=+height.
 ChApiIrr irr::scene::IMesh* createConeMesh(irr::f32 radius_low, irr::f32 height, irr::u32 tesselation);
 
@@ -69,7 +72,7 @@ ChApiIrr irr::scene::IMesh* createConeMesh(irr::f32 radius_low, irr::f32 height,
 ///
 /// ***OBSOLETE***
 ///
-ChApiIrr void fillChTrimeshFromIrlichtMesh(geometry::ChTriangleMesh* chTrimesh, irr::scene::IMesh* pMesh);
+ChApiIrr void fillChTrimeshFromIrlichtMesh(ChTriangleMesh* chTrimesh, irr::scene::IMesh* pMesh);
 
 /// Given a ChTriangleMesh object, computes an Irrlicht mesh.
 /// Note: the ChTriangleMesh is a 'triangle soup', so no connectivity is used.
@@ -79,7 +82,7 @@ ChApiIrr void fillChTrimeshFromIrlichtMesh(geometry::ChTriangleMesh* chTrimesh, 
 /// ***OBSOLETE***
 ///
 ChApiIrr void fillIrlichtMeshFromChTrimesh(irr::scene::IMesh* pMesh,
-                                           geometry::ChTriangleMesh* chTrimesh,
+                                           ChTriangleMesh* chTrimesh,
                                            irr::video::SColor clr = irr::video::SColor(255, 255, 255, 255));
 
 /// @} irrlicht_module

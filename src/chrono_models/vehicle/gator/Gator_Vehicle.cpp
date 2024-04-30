@@ -117,14 +117,14 @@ void Gator_Vehicle::Initialize(const ChCoordsys<>& chassisPos, double chassisFwd
 
     // Initialize the steering subsystem (specify the steering subsystem's frame relative to the chassis reference
     // frame).
-    ChVector<> offset = ChVector<>(0.92, 0, 0.08);
+    ChVector3d offset = ChVector3d(0.92, 0, 0.08);
     ChQuaternion<> rotation = ChQuaternion<>(1, 0, 0, 0);
     m_steerings[0]->Initialize(m_chassis, offset, rotation);
 
     // Initialize the axle subsystems.
-    m_axles[0]->Initialize(m_chassis, nullptr, m_steerings[0], ChVector<>(0.97, 0, 0), ChVector<>(0), 0.0, m_omega[0],
+    m_axles[0]->Initialize(m_chassis, nullptr, m_steerings[0], ChVector3d(0.97, 0, 0), ChVector3d(0), 0.0, m_omega[0],
                            m_omega[1]);
-    m_axles[1]->Initialize(m_chassis, nullptr, nullptr, ChVector<>(-0.97, 0, 0), ChVector<>(0), 0.0, m_omega[2],
+    m_axles[1]->Initialize(m_chassis, nullptr, nullptr, ChVector3d(-0.97, 0, 0), ChVector3d(0), 0.0, m_omega[2],
                            m_omega[3]);
 
     // Initialize the driveline subsystem (RWD)
@@ -153,19 +153,15 @@ double Gator_Vehicle::GetShockVelocity(int axle, VehicleSide side) const {
 // Log the hardpoint locations for the front-right and rear-right suspension
 // -----------------------------------------------------------------------------
 void Gator_Vehicle::LogHardpointLocations() {
-    GetLog().SetNumFormat("%7.3f");
-
-    GetLog() << "\n---- FRONT suspension hardpoint locations (LEFT side)\n";
+    std::cout << "\n---- FRONT suspension hardpoint locations (LEFT side)\n";
     std::static_pointer_cast<ChSingleWishbone>(m_axles[0]->m_suspension)
-        ->LogHardpointLocations(ChVector<>(0, 0, 0), false);
+        ->LogHardpointLocations(ChVector3d(0, 0, 0), false);
 
-    GetLog() << "\n---- REAR suspension hardpoint locations (LEFT side)\n";
+    std::cout << "\n---- REAR suspension hardpoint locations (LEFT side)\n";
     std::static_pointer_cast<ChSingleWishbone>(m_axles[1]->m_suspension)
-        ->LogHardpointLocations(ChVector<>(0, 0, 0), false);
+        ->LogHardpointLocations(ChVector3d(0, 0, 0), false);
 
-    GetLog() << "\n\n";
-
-    GetLog().SetNumFormat("%g");
+    std::cout << "\n\n";
 }
 
 // -----------------------------------------------------------------------------
@@ -174,24 +170,20 @@ void Gator_Vehicle::LogHardpointLocations() {
 // Log constraint violations of suspension joints.
 // -----------------------------------------------------------------------------
 void Gator_Vehicle::DebugLog(int what) {
-    GetLog().SetNumFormat("%10.2f");
-
     if (what & OUT_SHOCKS) {
-        GetLog() << "\n---- Shock (front-left, front-right, rear-left, rear-right)\n";
-        GetLog() << "Length [m]       " << GetShockLength(0, LEFT) << "  " << GetShockLength(0, RIGHT) << "  "
-                 << GetShockLength(1, LEFT) << "  " << GetShockLength(1, RIGHT) << "\n";
-        GetLog() << "Velocity [m/s]   " << GetShockVelocity(0, LEFT) << "  " << GetShockVelocity(0, RIGHT) << "  "
-                 << GetShockVelocity(1, LEFT) << "  " << GetShockVelocity(1, RIGHT) << "\n";
-        GetLog() << "Force [N]         " << GetShockForce(0, LEFT) << "  " << GetShockForce(0, RIGHT) << "  "
-                 << GetShockForce(1, LEFT) << "  " << GetShockForce(1, RIGHT) << "\n";
+        std::cout << "\n---- Shock (front-left, front-right, rear-left, rear-right)\n";
+        std::cout << "Length [m]       " << GetShockLength(0, LEFT) << "  " << GetShockLength(0, RIGHT) << "  "
+                  << GetShockLength(1, LEFT) << "  " << GetShockLength(1, RIGHT) << "\n";
+        std::cout << "Velocity [m/s]   " << GetShockVelocity(0, LEFT) << "  " << GetShockVelocity(0, RIGHT) << "  "
+                  << GetShockVelocity(1, LEFT) << "  " << GetShockVelocity(1, RIGHT) << "\n";
+        std::cout << "Force [N]         " << GetShockForce(0, LEFT) << "  " << GetShockForce(0, RIGHT) << "  "
+                  << GetShockForce(1, LEFT) << "  " << GetShockForce(1, RIGHT) << "\n";
     }
 
     if (what & OUT_CONSTRAINTS) {
         // Report constraint violations for all joints
         LogConstraintViolations();
     }
-
-    GetLog().SetNumFormat("%g");
 }
 
 }  // end namespace gator

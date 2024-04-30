@@ -20,10 +20,9 @@
 #include "chrono/particlefactory/ChRandomParticleAlignment.h"
 #include "chrono/particlefactory/ChRandomParticleVelocity.h"
 
-#include "chrono/core/ChMathematics.h"
-#include "chrono/core/ChVector.h"
+#include "chrono/core/ChRandom.h"
+#include "chrono/core/ChVector3.h"
 #include "chrono/core/ChMatrix.h"
-#include "chrono/core/ChDistribution.h"
 #include "chrono/physics/ChSystem.h"
 
 namespace chrono {
@@ -73,7 +72,7 @@ class ChParticleEmitter {
     /// Function that creates random particles with random shape, position
     /// and alignment each time it is called.
     /// Typically, one calls this function once per timestep.
-    void EmitParticles(ChSystem& msystem, double mdt, ChFrameMoving<> pre_transform = ChFrameMoving<>() ) {
+    void EmitParticles(ChSystem& msystem, double mdt, ChFrameMoving<> pre_transform = ChFrameMoving<>()) {
         double done_particles_per_step = this->off_count;
         double done_mass_per_step = this->off_mass;
 
@@ -108,52 +107,53 @@ class ChParticleEmitter {
             // Create the particle
             //
 
-            // 1) compute 
-            // Random position 
+            // 1) compute
+            // Random position
             ChCoordsys<> mcoords;
             mcoords.pos = particle_positioner->RandomPosition();
 
-            // 2) 
+            // 2)
             // Random alignment
             mcoords.rot = particle_aligner->RandomAlignment();
-  
-            // transform if pre_transform is used 
+
+            // transform if pre_transform is used
             ChCoordsys<> mcoords_abs;
-            mcoords_abs = mcoords >> pre_transform.GetCoord(); 
+            mcoords_abs = mcoords >> pre_transform.GetCoordsys();
 
             // 3)
             // Random creation of particle
             std::shared_ptr<ChBody> mbody = particle_creator->RandomGenerateAndCallbacks(mcoords_abs);
 
-            // 4) 
+            // 4)
             // Random velocity and angular speed
-            ChVector<> mv_loc = particle_velocity->RandomVelocity();
-            ChVector<> mw_loc = particle_angular_velocity->RandomVelocity();
-            
-            ChVector<> mv_abs; 
-            ChVector<> mw_abs; 
-            ChVector<> jitter;
+            ChVector3d mv_loc = particle_velocity->RandomVelocity();
+            ChVector3d mw_loc = particle_angular_velocity->RandomVelocity();
 
-            // in case everything is transformed 
+            ChVector3d mv_abs;
+            ChVector3d mw_abs;
+            ChVector3d jitter;
+
+            // in case everything is transformed
             if (inherit_owner_speed) {
                 mv_abs = pre_transform.PointSpeedLocalToParent(mcoords.pos, mv_loc);
-                mw_abs = pre_transform.TransformDirectionLocalToParent(mw_loc) + pre_transform.GetWvel_par();
-            }else {
+                mw_abs = pre_transform.TransformDirectionLocalToParent(mw_loc) + pre_transform.GetAngVelParent();
+            } else {
                 mv_abs = pre_transform.TransformDirectionLocalToParent(mv_loc);
                 mw_abs = pre_transform.TransformDirectionLocalToParent(mw_loc);
             }
-            mbody->SetPos_dt(mv_abs);
-            mbody->SetWvel_par(mw_abs);
+            mbody->SetPosDt(mv_abs);
+            mbody->SetAngVelParent(mw_abs);
 
             if (this->jitter_declustering) {
                 // jitter term: high speed jet clustering
-                jitter  = (ChRandom() * mdt) * mv_abs; 
+                jitter = (ChRandom::Get() * mdt) * mv_abs;
                 // jitter term: moving source
-                jitter -= (ChRandom() * mdt) * pre_transform.PointSpeedLocalToParent(mcoords.pos, VNULL);
+                jitter -= (ChRandom::Get() * mdt) * pre_transform.PointSpeedLocalToParent(mcoords.pos, VNULL);
                 mbody->Move(jitter);
-            }    
+            }
 
-            msystem.AddBatch(mbody);  // the Add() alone woud not be thread safe if called from items inserted in system's lists
+            msystem.AddBatch(
+                mbody);  // the Add() alone woud not be thread safe if called from items inserted in system's lists
 
             if (this->creation_callback)
                 this->creation_callback->OnAddBody(mbody, mcoords_abs, *particle_creator.get());
@@ -172,7 +172,9 @@ class ChParticleEmitter {
 
     /// Pass an object from a ChPostCreationCallback-inherited class if you want to
     /// set additional stuff on each created particle (ex.set some random asset, set some random material, or such)
-    void RegisterAddBodyCallback(std::shared_ptr<ChRandomShapeCreator::AddBodyCallback> callback) { creation_callback = callback; }
+    void RegisterAddBodyCallback(std::shared_ptr<ChRandomShapeCreator::AddBodyCallback> callback) {
+        creation_callback = callback;
+    }
 
     /// Set the particle creator, that is an object whose class is
     /// inherited from ChRandomShapeCreator
@@ -231,7 +233,7 @@ class ChParticleEmitter {
     /// Turn on this to have the particles 'inherit' the speed of the owner body in pre_transform.
     void SetInheritSpeed(bool mi) { this->inherit_owner_speed = mi; }
 
-    /// Turn on this to avoid quantization if generating from an object that has high speed 
+    /// Turn on this to avoid quantization if generating from an object that has high speed
     /// in pre_transform (so avoids clusters in jets of particles).
     void SetJitterDeclustering(bool mj) { this->jitter_declustering = mj; }
 

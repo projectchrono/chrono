@@ -21,7 +21,7 @@
 #include "chrono_irrlicht/ChIrrTools.h"
 
 #ifdef CHRONO_POSTPROCESS
-#include "chrono_postprocess/ChBlender.h"
+    #include "chrono_postprocess/ChBlender.h"
 #endif
 
 namespace chrono {
@@ -53,7 +53,7 @@ class ChApiIrr ChIrrGUI {
     /// Perform operations before closing the Irrlicht scene for the current frame.
     void EndScene();
 
- #ifdef CHRONO_POSTPROCESS
+#ifdef CHRONO_POSTPROCESS
 
     /// If set to true, each frame of the animation will be saved on the disk
     /// as a sequence of scripts to be rendered via Blender. Only if solution build with ENABLE_MODULE_POSTPROCESS.
@@ -76,7 +76,7 @@ class ChApiIrr ChIrrGUI {
 
     void DrawCollisionShapes(irr::video::SColor color);
 
-    void DumpSystemMatrices();
+    void WriteSystemMatrices();
 
     irr::IrrlichtDevice* GetDevice() { return m_device; }
     irr::video::IVideoDriver* GetVideoDriver() { return m_device->getVideoDriver(); }

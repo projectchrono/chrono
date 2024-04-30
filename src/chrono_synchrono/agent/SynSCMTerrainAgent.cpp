@@ -33,8 +33,7 @@ using namespace chrono::vehicle;
 namespace chrono {
 namespace synchrono {
 
-SynSCMTerrainAgent::SynSCMTerrainAgent(std::shared_ptr<vehicle::SCMTerrain> terrain)
-    : SynAgent(), m_terrain(terrain) {
+SynSCMTerrainAgent::SynSCMTerrainAgent(std::shared_ptr<vehicle::SCMTerrain> terrain) : SynAgent(), m_terrain(terrain) {
     m_message = chrono_types::make_shared<SynSCMMessage>();
 }
 

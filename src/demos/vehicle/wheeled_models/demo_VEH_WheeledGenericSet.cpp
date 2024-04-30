@@ -47,12 +47,12 @@ using namespace chrono::vehicle::generic;
 
 ////std::vector<SuspensionTypeWV> suspension_types_front = {SuspensionTypeWV::DOUBLE_WISHBONE,
 ////                                                        SuspensionTypeWV::MACPHERSON_STRUT};
-////
+std::vector<SuspensionTypeWV> suspension_types_front = {SuspensionTypeWV::DOUBLE_WISHBONE,
+                                                        SuspensionTypeWV::MACPHERSON_STRUT};
+
+////std::vector<SuspensionTypeWV> suspension_types_rear = {SuspensionTypeWV::RIGID_SUSPENSION};
 std::vector<SuspensionTypeWV> suspension_types_rear = {SuspensionTypeWV::DOUBLE_WISHBONE_REDUCED,
                                                        SuspensionTypeWV::MULTI_LINK};
-
-std::vector<SuspensionTypeWV> suspension_types_front = {SuspensionTypeWV::DOUBLE_WISHBONE};
-////std::vector<SuspensionTypeWV> suspension_types_rear = {SuspensionTypeWV::RIGID_SUSPENSION};
 
 SteeringTypeWV steering_type = SteeringTypeWV::PITMAN_ARM;
 BrakeType brake_type = BrakeType::SHAFTS;
@@ -70,6 +70,12 @@ ChVisualSystem::Type vis_type = ChVisualSystem::Type::VSG;
 
 // Simulation step size
 double step_size = 1e-3;
+
+// Rendering frequency (FPS)
+double fps = 30;
+
+// End time (used only if no run-time visualization)
+double t_end = 20;
 
 // =============================================================================
 
@@ -93,7 +99,7 @@ class Driver : public ChDriver {
         if (time < m_delay)
             m_steering = 0;
         else
-            m_steering = steering_max * std::sin(CH_C_2PI * m_frequency * (time - m_delay));
+            m_steering = steering_max * std::sin(CH_2PI * m_frequency * (time - m_delay));
 
         m_steering *= std::exp(-time / 10);
 
@@ -107,7 +113,7 @@ class Driver : public ChDriver {
 // =============================================================================
 
 Generic_Vehicle CreateVehicle(ChSystem& sys,
-                              ChVector<> location,
+                              ChVector3d location,
                               SuspensionTypeWV suspension_type_front,
                               SuspensionTypeWV suspension_type_rear) {
     // Construct vehicle
@@ -142,17 +148,17 @@ Generic_Vehicle CreateVehicle(ChSystem& sys,
 // =============================================================================
 
 int main(int argc, char* argv[]) {
-    GetLog() << "Copyright (c) 2017 projectchrono.org\nChrono version: " << CHRONO_VERSION << "\n\n";
+    std::cout << "Copyright (c) 2017 projectchrono.org\nChrono version: " << CHRONO_VERSION << std::endl;
 
     // ------------------------
     // Create the Chrono system
     // ------------------------
 
     ChSystemNSC sys;
-    sys.Set_G_acc(ChVector<>(0, 0, -9.81));
+    sys.SetGravitationalAcceleration(ChVector3d(0, 0, -9.81));
     sys.SetCollisionSystemType(ChCollisionSystem::Type::BULLET);
     sys.SetSolverType(ChSolver::Type::BARZILAIBORWEIN);
-    sys.SetSolverMaxIterations(150);
+    sys.GetSolver()->AsIterative()->SetMaxIterations(150);
     sys.SetMaxPenetrationRecoverySpeed(4.0);
 
     // -------------------
@@ -170,7 +176,7 @@ int main(int argc, char* argv[]) {
 
     for (int ix = 0; ix < x_num; ix++) {
         for (int iy = 0; iy < y_num; iy++) {
-            auto loc = ChVector<>(ix * x_sep, iy * y_sep, 0.6);
+            auto loc = ChVector3d(ix * x_sep, iy * y_sep, 0.6);
             vehicles.push_back(CreateVehicle(sys, loc, suspension_types_front[iy], suspension_types_rear[ix]));
         }
     }
@@ -192,11 +198,11 @@ int main(int argc, char* argv[]) {
     double terrain_y = (y_num - 1) * y_num;
 
     RigidTerrain terrain(&sys);
-    auto patch_mat = chrono_types::make_shared<ChMaterialSurfaceNSC>();
+    auto patch_mat = chrono_types::make_shared<ChContactMaterialNSC>();
     patch_mat->SetFriction(0.9f);
     patch_mat->SetRestitution(0.01f);
     auto patch = terrain.AddPatch(patch_mat,                                                 //
-                                  ChCoordsys<>(ChVector<>(terrain_x, terrain_y, 0), QUNIT),  //
+                                  ChCoordsys<>(ChVector3d(terrain_x, terrain_y, 0), QUNIT),  //
                                   terrain_size_x, terrain_size_y);
     patch->SetColor(ChColor(0.5f, 0.8f, 0.5f));
     patch->SetTexture(vehicle::GetDataFile("terrain/textures/tile4.jpg"), 200, 200);
@@ -224,7 +230,7 @@ int main(int argc, char* argv[]) {
             vis_irr->SetWindowTitle("Generic Vehicles");
             vis_irr->SetChaseCamera(VNULL, 6.0, 1.5);
             ////vis_irr->SetChaseCameraState(utils::ChChaseCamera::Track);
-            ////vis_irr->SetChaseCameraPosition(ChVector<>(-6, terrain_y, 3.0));
+            ////vis_irr->SetChaseCameraPosition(ChVector3d(-6, terrain_y, 3.0));
             vis_irr->Initialize();
             vis_irr->AddLightDirectional();
             vis_irr->AddSkyBox();
@@ -241,16 +247,17 @@ int main(int argc, char* argv[]) {
             // Create the vehicle VSG interface
             auto vis_vsg = chrono_types::make_shared<ChWheeledVehicleVisualSystemVSG>();
             vis_vsg->SetWindowTitle("Generic Vehicles");
-            vis_vsg->SetWindowSize(ChVector2<int>(1200, 900));
-            vis_vsg->SetWindowPosition(ChVector2<int>(100, 300));
+            vis_vsg->SetWindowSize(ChVector2i(1200, 900));
+            vis_vsg->SetWindowPosition(ChVector2i(100, 300));
             vis_vsg->AttachVehicle(&vehicles[i_ego]);
             vis_vsg->SetChaseCamera(VNULL, 8.0, 1.5);
             ////vis_vsg->SetChaseCameraState(utils::ChChaseCamera::Track);
-            ////vis_vsg->SetChaseCameraPosition(ChVector<>(-6, terrain_y, 3.0));
+            ////vis_vsg->SetChaseCameraPosition(ChVector3d(-6, terrain_y, 3.0));
             vis_vsg->SetUseSkyBox(true);
             vis_vsg->SetCameraAngleDeg(40);
             vis_vsg->SetLightIntensity(1.0f);
-            vis_vsg->SetLightDirection(1.5 * CH_C_PI_2, CH_C_PI_4);
+            vis_vsg->SetLightDirection(1.5 * CH_PI_2, CH_PI_4);
+            vis_vsg->SetShadows(true);
             vis_vsg->Initialize();
 
             vis = vis_vsg;
@@ -263,10 +270,12 @@ int main(int argc, char* argv[]) {
     // Simulation loop
     // ---------------
 
+    int render_frame = 0;
+
     for (auto& vehicle : vehicles)
         vehicle.EnableRealtime(true);
 
-    while (vis->Run()) {
+    while (true) {
         double time = sys.GetChTime();
 
         // Stop simulation when vehicles reach the end of the terrain patch
@@ -278,10 +287,19 @@ int main(int argc, char* argv[]) {
         if (done)
             break;
 
-        // Render scene
-        vis->BeginScene();
-        vis->Render();
-        vis->EndScene();
+        if (vis) {
+            // Render scene
+            if (!vis->Run())
+                break;
+            if (time > render_frame / fps) {
+                vis->BeginScene();
+                vis->Render();
+                vis->EndScene();
+                render_frame++;
+            }
+        } else if (time > t_end) {
+            break;
+        }
 
         // Driver inputs
         DriverInputs driver_inputs = driver.GetInputs();
@@ -291,14 +309,16 @@ int main(int argc, char* argv[]) {
         terrain.Synchronize(time);
         for (auto& vehicle : vehicles)
             vehicle.Synchronize(time, driver_inputs, terrain);
-        vis->Synchronize(time, driver_inputs);
+        if (vis)
+            vis->Synchronize(time, driver_inputs);
 
         // Advance simulation for one timestep for all modules
         driver.Advance(step_size);
         terrain.Advance(step_size);
         for (auto& vehicle : vehicles)
             vehicle.Advance(step_size);
-        vis->Advance(step_size);
+        if (vis)
+            vis->Advance(step_size);
 
         // Advance state of entire system (containing all vehicles)
         sys.DoStepDynamics(step_size);

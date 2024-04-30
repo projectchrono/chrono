@@ -70,8 +70,8 @@ class RayCaster:
         self.m_points = []
         
         self.m_body = chrono.ChBody()
-        self.m_body.SetBodyFixed(True)
-        self.m_body.SetCollide(False)
+        self.m_body.SetFixed(True)
+        self.m_body.EnableCollision(False)
         self.m_sys.AddBody(self.m_body)
         
 
@@ -90,7 +90,7 @@ class RayCaster:
             for iy in range(ny):
                 x_local = -0.5 * self.m_dims[0] + ix * self.m_spacing
                 y_local = -0.5 * self.m_dims[1] + iy * self.m_spacing
-                from_vec = self.m_origin.TransformPointLocalToParent(chrono.ChVectorD(x_local, y_local, 0.0))
+                from_vec = self.m_origin.TransformPointLocalToParent(chrono.ChVector3d(x_local, y_local, 0.0))
                 to = from_vec + direc * 100
                 result = chrono.ChRayhitResult()
                 self.m_sys.GetCollisionSystem().RayHit(from_vec, to, result)
@@ -107,26 +107,26 @@ class RayCaster:
 
 def CreateTerrain(sys, length, width, height, offset) :
 
-    ground_mat = chrono.ChMaterialSurface.DefaultMaterial(sys.GetContactMethod())
+    ground_mat = chrono.ChContactMaterial.DefaultMaterial(sys.GetContactMethod())
     ground_mat.SetFriction(0.8)
     ground_mat.SetRestitution(0)
 
     if sys.GetContactMethod() == chrono.ChContactMethod_SMC:
-        matSMC = chrono.CastToChMaterialSurfaceSMC(ground_mat)
+        matSMC = chrono.CastToChContactMaterialSMC(ground_mat)
         matSMC.SetYoungModulus(1e7)
 
     ground = chrono.ChBody()
-    ground.SetBodyFixed(True)
-    ground.SetCollide(True)
+    ground.SetFixed(True)
+    ground.EnableCollision(True)
 
     ground_ct_shape = chrono.ChCollisionShapeBox(ground_mat, length, width, 0.2)
-    ground.AddCollisionShape(ground_ct_shape, chrono.ChFrameD(chrono.ChVectorD(offset, 0, height - 0.1), chrono.QUNIT))
+    ground.AddCollisionShape(ground_ct_shape, chrono.ChFramed(chrono.ChVector3d(offset, 0, height - 0.1), chrono.QUNIT))
 
     sys.GetCollisionSystem().BindItem(ground)
 
     box = chrono.ChVisualShapeBox(length, width, 0.2)
     box.SetTexture(chrono.GetChronoDataFile("textures/pinkwhite.png"), 10 * length, 10 * width)
-    ground.AddVisualShape(box, chrono.ChFrameD(chrono.ChVectorD(offset, 0, height - 0.1), chrono.QUNIT))
+    ground.AddVisualShape(box, chrono.ChFramed(chrono.ChVector3d(offset, 0, height - 0.1), chrono.QUNIT))
 
     sys.AddBody(ground)
 
@@ -145,9 +145,9 @@ def SetContactProperties(robot):
     robot.GetWheelContactMaterial().SetRestitution(cr)
 
     if robot.GetSystem().GetContactMethod() == chrono.ChContactMethod_SMC:
-        sled_matSMC = chrono.CastToChMaterialSurfaceSMC(robot.GetSledContactMaterial())
+        sled_matSMC = chrono.CastToChContactMaterialSMC(robot.GetSledContactMaterial())
         sled_matSMC.SetYoungModulus(Y)
-        wheel_matSMC = chrono.CastToChMaterialSurfaceSMC(robot.GetWheelContactMaterial())
+        wheel_matSMC = chrono.CastToChContactMaterialSMC(robot.GetWheelContactMaterial())
         wheel_matSMC.SetYoungModulus(Y)    
     
 # =============================================================================
@@ -174,10 +174,10 @@ if  contact_method == chrono.ChContactMethod_SMC :
 
 sys.SetCollisionSystemType(chrono.ChCollisionSystem.Type_BULLET)
 
-sys.SetSolverMaxIterations(200)
+sys.GetSolver().AsIterative().SetMaxIterations(200)
 sys.SetSolverType(chrono.ChSolver.Type_BARZILAIBORWEIN)
 
-sys.Set_G_acc(chrono.ChVectorD(0, 0, -9.8))
+sys.SetGravitationalAcceleration(chrono.ChVector3d(0, 0, -9.8))
 
 # -----------------------
 # Create RoboSimian robot
@@ -195,10 +195,10 @@ robot.SetOutputDirectory(out_dir)
 
 # Control collisions (default: True for sled and wheels only)
 
-##robot.SetCollide(robosimian::CollisionFlags::NONE)
-##robot.SetCollide(robosimian::CollisionFlags::ALL)
-##robot.SetCollide(robosimian::CollisionFlags::LIMBS)
-##robot.SetCollide(robosimian::CollisionFlags::CHASSIS | robosimian::CollisionFlags::WHEELS)
+##robot.EnableCollision(robosimian::CollisionFlags::NONE)
+##robot.EnableCollision(robosimian::CollisionFlags::ALL)
+##robot.EnableCollision(robosimian::CollisionFlags::LIMBS)
+##robot.EnableCollision(robosimian::CollisionFlags::CHASSIS | robosimian::CollisionFlags::WHEELS)
 
 # Set visualization modes (default: all COLLISION)
 
@@ -214,8 +214,8 @@ robot.SetOutputDirectory(out_dir)
 
 # Initialize Robosimian robot
 
-##robot.Initialize(ChCoordsys<>(chrono.ChVectorD(0, 0, 0), QUNIT))
-robot.Initialize(chrono.ChCoordsysD(chrono.ChVectorD(0, 0, 0), chrono.Q_from_AngX(chrono.CH_C_PI)))
+##robot.Initialize(ChCoordsys<>(chrono.ChVector3d(0, 0, 0), QUNIT))
+robot.Initialize(chrono.ChCoordsysd(chrono.ChVector3d(0, 0, 0), chrono.QuatFromAngleX(chrono.CH_PI)))
 
 # -----------------------------------
 # Create a driver and attach to robot
@@ -260,7 +260,7 @@ robot.SetDriver(driver)
 # Cast rays into collision models
 # -------------------------------
 
-caster = RayCaster(sys, chrono.ChFrameD(chrono.ChVectorD(0, -2, -1), chrono.Q_from_AngX(-chrono.CH_C_PI_2)), [2.5, 2.5], 0.02)
+caster = RayCaster(sys, chrono.ChFramed(chrono.ChVector3d(0, -2, -1), chrono.QuatFromAngleX(-chrono.CH_PI_2)), [2.5, 2.5], 0.02)
 
 # -------------------------------
 # Create the visualization window
@@ -273,9 +273,9 @@ vis.SetWindowTitle('RoboSimian - Rigid terrain')
 vis.Initialize()
 vis.AddLogo(chrono.GetChronoDataFile('logo_pychrono_alpha.png'))
 vis.AddSkyBox()
-vis.AddCamera(chrono.ChVectorD(1, -2.75, 0.2), chrono.ChVectorD(1, 0, 0))
-vis.AddLight(chrono.ChVectorD(100, +100, 100), 290)
-vis.AddLight(chrono.ChVectorD(100, -100, 80), 190)
+vis.AddCamera(chrono.ChVector3d(1, -2.75, 0.2), chrono.ChVector3d(1, 0, 0))
+vis.AddLight(chrono.ChVector3d(100, +100, 100), 290)
+vis.AddLight(chrono.ChVector3d(100, -100, 80), 190)
 
 # -----------------------------
 # Initialize output directories
@@ -316,14 +316,14 @@ while (vis.Run()) :
         width = 2
 
         # Create terrain
-        hdim = chrono.ChVectorD(length / 2, width / 2, 0.1)
-        loc = chrono.ChVectorD(length / 4, 0, z - 0.1)
+        hdim = chrono.ChVector3d(length / 2, width / 2, 0.1)
+        loc = chrono.ChVector3d(length / 4, 0, z - 0.1)
         ground = CreateTerrain(sys, length, width, z, length / 4)
         SetContactProperties(robot)
 
         vis.BindItem(ground)
 
-        robot.GetChassisBody().SetBodyFixed(False)
+        robot.GetChassisBody().SetFixed(False)
         terrain_created = True
 
 

@@ -29,40 +29,33 @@ class FSIStatsVSG : public vsg3d::ChGuiComponentVSG {
     FSIStatsVSG(ChFsiVisualizationVSG* vsysFSI) : m_vsysFSI(vsysFSI) {}
 
     virtual void render() override {
-        char label[64];
-        int nstr = sizeof(label) - 1;
-
         ImGui::SetNextWindowSize(ImVec2(0.0f, 0.0f));
         ImGui::Begin("SPH");
 
         if (ImGui::BeginTable("SPH", 2, ImGuiTableFlags_BordersOuter | ImGuiTableFlags_SizingFixedFit,
                               ImVec2(0.0f, 0.0f))) {
             ImGui::TableNextColumn();
-            ImGui::Text("SPH particles:");
+            ImGui::TextUnformatted("SPH particles:");
             ImGui::TableNextColumn();
-            snprintf(label, nstr, "%lu", static_cast<unsigned long>(m_vsysFSI->m_systemFSI->GetNumFluidMarkers()));
-            ImGui::Text(label);
+            ImGui::Text("%lu", static_cast<unsigned long>(m_vsysFSI->m_systemFSI->GetNumFluidMarkers()));
 
             ImGui::TableNextRow();
             ImGui::TableNextColumn();
-            ImGui::Text("Boundary BCE:");
+            ImGui::TextUnformatted("Boundary BCE:");
             ImGui::TableNextColumn();
-            snprintf(label, nstr, "%lu", static_cast<unsigned long>(m_vsysFSI->m_systemFSI->GetNumBoundaryMarkers()));
-            ImGui::Text(label);
+            ImGui::Text("%lu", static_cast<unsigned long>(m_vsysFSI->m_systemFSI->GetNumBoundaryMarkers()));
 
             ImGui::TableNextRow();
             ImGui::TableNextColumn();
-            ImGui::Text("Rigid body BCE:");
+            ImGui::TextUnformatted("Rigid body BCE:");
             ImGui::TableNextColumn();
-            snprintf(label, nstr, "%lu", static_cast<unsigned long>(m_vsysFSI->m_systemFSI->GetNumRigidBodyMarkers()));
-            ImGui::Text(label);
+            ImGui::Text("%lu", static_cast<unsigned long>(m_vsysFSI->m_systemFSI->GetNumRigidBodyMarkers()));
 
             ImGui::TableNextRow();
             ImGui::TableNextColumn();
-            ImGui::Text("Flex body BCE:");
+            ImGui::TextUnformatted("Flex body BCE:");
             ImGui::TableNextColumn();
-            snprintf(label, nstr, "%lu", static_cast<unsigned long>(m_vsysFSI->m_systemFSI->GetNumFlexBodyMarkers()));
-            ImGui::Text(label);
+            ImGui::Text("%lu", static_cast<unsigned long>(m_vsysFSI->m_systemFSI->GetNumFlexBodyMarkers()));
 
             ImGui::EndTable();
         }
@@ -83,7 +76,7 @@ ChFsiVisualizationVSG::ChFsiVisualizationVSG(ChSystemFsi* sysFSI, bool verbose) 
     m_vsys->SetWindowTitle("");
     m_vsys->SetWindowSize(1280, 720);
     m_vsys->SetWireFrameMode(true);
-    m_vsys->AddCamera(ChVector<>(0, -3, 0), ChVector<>(0, 0, 0));
+    m_vsys->AddCamera(ChVector3d(0, -3, 0), ChVector3d(0, 0, 0));
     m_vsys->SetCameraVertical(CameraVerticalDir::Z);
     m_vsys->SetUseSkyBox(false);
     m_vsys->SetClearColor(ChColor(18.0f / 255, 26.0f / 255, 32.0f / 255));
@@ -101,11 +94,11 @@ void ChFsiVisualizationVSG::SetTitle(const std::string& title) {
     m_vsys->SetWindowTitle(title);
 }
 
-void ChFsiVisualizationVSG::AddCamera(const ChVector<>& pos, const ChVector<>& target) {
+void ChFsiVisualizationVSG::AddCamera(const ChVector3d& pos, const ChVector3d& target) {
     m_vsys->AddCamera(pos, target);
 }
 
-void ChFsiVisualizationVSG::UpdateCamera(const ChVector<>& pos, const ChVector<>& target) {
+void ChFsiVisualizationVSG::UpdateCamera(const ChVector3d& pos, const ChVector3d& target) {
     m_vsys->UpdateCamera(pos, target);
 }
 
@@ -209,34 +202,34 @@ bool ChFsiVisualizationVSG::Render() {
         thrust::host_vector<Real4> posH = m_systemFSI->m_sysFSI->sphMarkersD2->posRadD;
 
         // List of proxy bodies
-        ////const auto& blist = m_system->Get_bodylist();
+        ////const auto& blist = m_system->GetBodies();
 
         size_t p = 0;
 
         if (m_sph_markers) {
             for (unsigned int i = 0; i < m_systemFSI->GetNumFluidMarkers(); i++) {
-                m_sph_cloud->GetParticle(i).SetPos(ChVector<>(posH[p + i].x, posH[p + i].y, posH[p + i].z));
+                m_sph_cloud->Particle(i).SetPos(ChVector3d(posH[p + i].x, posH[p + i].y, posH[p + i].z));
             }
         }
         p += m_systemFSI->GetNumFluidMarkers();
 
         if (m_bndry_bce_markers) {
             for (unsigned int i = 0; i < m_systemFSI->GetNumBoundaryMarkers(); i++) {
-                m_bndry_bce_cloud->GetParticle(i).SetPos(ChVector<>(posH[p + i].x, posH[p + i].y, posH[p + i].z));
+                m_bndry_bce_cloud->Particle(i).SetPos(ChVector3d(posH[p + i].x, posH[p + i].y, posH[p + i].z));
             }
         }
         p += m_systemFSI->GetNumBoundaryMarkers();
 
         if (m_rigid_bce_markers) {
             for (unsigned int i = 0; i < m_systemFSI->GetNumRigidBodyMarkers(); i++) {
-                m_rigid_bce_cloud->GetParticle(i).SetPos(ChVector<>(posH[p + i].x, posH[p + i].y, posH[p + i].z));
+                m_rigid_bce_cloud->Particle(i).SetPos(ChVector3d(posH[p + i].x, posH[p + i].y, posH[p + i].z));
             }
         }
         p += m_systemFSI->GetNumRigidBodyMarkers();
 
         if (m_flex_bce_markers) {
             for (unsigned int i = 0; i < m_systemFSI->GetNumFlexBodyMarkers(); i++) {
-                m_flex_bce_cloud->GetParticle(i).SetPos(ChVector<>(posH[p + i].x, posH[p + i].y, posH[p + i].z));
+                m_flex_bce_cloud->Particle(i).SetPos(ChVector3d(posH[p + i].x, posH[p + i].y, posH[p + i].z));
             }
         }
 

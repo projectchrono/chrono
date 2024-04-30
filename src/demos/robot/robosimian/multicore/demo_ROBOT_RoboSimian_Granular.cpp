@@ -226,8 +226,8 @@ int main(int argc, char* argv[]) {
     }
 
     sys->SetCollisionSystemType(ChCollisionSystem::Type::MULTICORE);
-    sys->Set_G_acc(ChVector<double>(0, 0, -9.8));
-    ////sys->Set_G_acc(ChVector<double>(0, 0, 0));
+    sys->SetGravitationalAcceleration(ChVector3d(0, 0, -9.8));
+    ////sys->SetGravitationalAcceleration(ChVector3d(0, 0, 0));
 
     int max_threads = ChOMP::GetNumThreads();
     if (nthreads > max_threads)
@@ -254,8 +254,8 @@ int main(int argc, char* argv[]) {
     // Ensure wheels are actuated in ANGLE mode (required for Chrono::Multicore)
     robot.SetMotorActuationMode(robosimian::ActuationMode::ANGLE);
 
-    ////robot.Initialize(ChCoordsys<>(ChVector<>(0, 0, 0), QUNIT));
-    robot.Initialize(ChCoordsys<>(ChVector<>(0, 0, 0), Q_from_AngX(CH_C_PI)));
+    ////robot.Initialize(ChCoordsys<>(ChVector3d(0, 0, 0), QUNIT));
+    robot.Initialize(ChCoordsys<>(ChVector3d(0, 0, 0), QuatFromAngleX(CH_PI)));
 
     robot.SetVisualizationTypeChassis(robosimian::VisualizationType::MESH);
     robot.SetVisualizationTypeSled(robosimian::VisualizationType::MESH);
@@ -327,7 +327,7 @@ int main(int argc, char* argv[]) {
         vis.SetWindowSize(1280, 720);
         vis.SetRenderMode(opengl::WIREFRAME);
         vis.Initialize();
-        vis.AddCamera(ChVector<>(2, -2, 0), ChVector<>(0, 0, 0));
+        vis.AddCamera(ChVector3d(2, -2, 0), ChVector3d(0, 0, 0));
         vis.SetCameraVertical(CameraVerticalDir::Z);
     }
 
@@ -392,8 +392,8 @@ int main(int argc, char* argv[]) {
                 cout << "  Terrain bottom: " << terrain_bottom_height << endl;
                 cout << "  Terrain top:    " << terrain_settled_height.first << " " << terrain_settled_height.second << endl;
 
-                robot.Translate(ChVector<>(0, 0, terrain_settled_height.first - terrain_init_height.first));
-                robot.GetChassisBody()->SetBodyFixed(false);
+                robot.Translate(ChVector3d(0, 0, terrain_settled_height.first - terrain_init_height.first));
+                robot.GetChassisBody()->SetFixed(false);
                 robot_released = true;
             }
 
@@ -416,16 +416,16 @@ int main(int argc, char* argv[]) {
             pov_frame++;
         }
 
-        ////double A = CH_C_PI / 6;
+        ////double A = CH_PI / 6;
         ////double freq = 2;
-        ////double val = 0.5 * A * (1 - std::cos(CH_C_2PI * freq * time));
+        ////double val = 0.5 * A * (1 - std::cos(CH_2PI * freq * time));
         ////robot.Activate(robosimian::FR, "joint2", time, val);
         ////robot.Activate(robosimian::RL, "joint5", time, val);
         ////robot.Activate(robosimian::FL, "joint8", time, -0.4 * time);
 
         robot.DoStepDynamics(step_size);
 
-        ////if (sys->GetNcontacts() > 0) {
+        ////if (sys->GetNumContacts() > 0) {
         ////    robot.ReportContacts();
         ////}
 

@@ -114,14 +114,14 @@ class ChApi ChTimestepperHHT : public ChTimestepperIIorder, public ChImplicitIte
     std::array<double, 3> Dl_nrm_hist;  ///< last 3 update norms
     double convergence_rate;            ///< estimated Newton rate of convergence
 
-    bool step_control;            ///< step size control enabled?
-    int maxiters_success;         ///< maximum number of NR iterations to declare a step successful
-    int req_successful_steps;     ///< required number of successive successful steps for a stepsize increase
-    double step_increase_factor;  ///< factor used in increasing stepsize (>1)
-    double step_decrease_factor;  ///< factor used in decreasing stepsize (<1)
-    double h_min;                 ///< minimum allowable stepsize
-    double h;                     ///< internal stepsize
-    int num_successful_steps;     ///< number of successful steps
+    bool step_control;                  ///< step size control enabled?
+    unsigned int maxiters_success;      ///< maximum number of NR iterations to declare a step successful
+    unsigned int req_successful_steps;  ///< required number of successive successful steps for a stepsize increase
+    double step_increase_factor;        ///< factor used in increasing stepsize (>1)
+    double step_decrease_factor;        ///< factor used in decreasing stepsize (<1)
+    double h_min;                       ///< minimum allowable stepsize
+    double h;                           ///< internal stepsize
+    unsigned int num_successful_steps;  ///< number of successful steps
 
     bool modified_Newton;    ///< use modified Newton?
     bool matrix_is_current;  ///< is the Newton matrix up-to-date?

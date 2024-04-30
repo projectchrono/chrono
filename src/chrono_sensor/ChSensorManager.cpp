@@ -93,7 +93,7 @@ CH_SENSOR_API void ChSensorManager::AddSensor(std::shared_ptr<ChSensor> sensor) 
 
     if (auto pOptixSensor = std::dynamic_pointer_cast<ChOptixSensor>(sensor)) {
         m_render_sensor.push_back(sensor);
-        //******** give each render group all sensor with same update rate *************//
+        /******** give each render group all sensor with same update rate *************/
         bool found_group = false;
 
         // add the sensor to an engine with sensor of similar update frequencies
@@ -101,6 +101,7 @@ CH_SENSOR_API void ChSensorManager::AddSensor(std::shared_ptr<ChSensor> sensor) 
             if (!found_group && engine->GetSensor().size() > 0 &&
                 abs(engine->GetSensor()[0]->GetUpdateRate() - sensor->GetUpdateRate()) < 0.001) {
                 found_group = true;
+                
                 engine->AssignSensor(pOptixSensor);
                 if (m_verbose)
                     std::cout << "Sensor added to existing engine\n";
@@ -116,8 +117,8 @@ CH_SENSOR_API void ChSensorManager::AddSensor(std::shared_ptr<ChSensor> sensor) 
                         m_verbose);  // limits to 2 gpus, TODO: check if device supports cuda
 
                     // engine->ConstructScene();
-                    engine->AssignSensor(pOptixSensor);
 
+                    engine->AssignSensor(pOptixSensor);
                     m_engines.push_back(engine);
                     if (m_verbose)
                         std::cout << "Created another OptiX engine. Now at: " << m_engines.size() << "\n";
@@ -130,8 +131,7 @@ CH_SENSOR_API void ChSensorManager::AddSensor(std::shared_ptr<ChSensor> sensor) 
                         std::cout << "Couldn't find suitable existing OptiX engine, so adding to first engine\n";
                 }
             }
-        }
-        catch (std::exception& e) {
+        } catch (std::exception& e) {
             std::cerr << "Failed to create a ChOptixEngine, with error:\n" << e.what() << "\n";
             exit(1);
         }

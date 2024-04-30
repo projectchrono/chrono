@@ -28,12 +28,12 @@ class ChApi ChVisualShapeCylinder : public ChVisualShape {
   public:
     ChVisualShapeCylinder();
     ChVisualShapeCylinder(double radius, double height);
-    ChVisualShapeCylinder(const geometry::ChCylinder& cyl);
+    ChVisualShapeCylinder(const ChCylinder& cyl);
 
-    ~ChVisualShapeCylinder(){}
+    ~ChVisualShapeCylinder() {}
 
     // Access the cylinder geometry.
-    geometry::ChCylinder& GetGeometry() { return gcylinder; }
+    ChCylinder& GetGeometry() { return gcylinder; }
 
     /// Get the cylinder radius.
     double GetRadius() const { return gcylinder.GetRadius(); }
@@ -42,13 +42,13 @@ class ChApi ChVisualShapeCylinder : public ChVisualShape {
     double GetHeight() const { return gcylinder.GetHeight(); }
 
     /// Method to allow serialization of transient data to archives.
-    virtual void ArchiveOut(ChArchiveOut& marchive) override;
+    virtual void ArchiveOut(ChArchiveOut& archive_out) override;
 
     /// Method to allow de-serialization of transient data from archives.
-    virtual void ArchiveIn(ChArchiveIn& marchive) override;
+    virtual void ArchiveIn(ChArchiveIn& archive_in) override;
 
   private:
-    geometry::ChCylinder gcylinder;
+    ChCylinder gcylinder;
 };
 
 /// @} chrono_assets

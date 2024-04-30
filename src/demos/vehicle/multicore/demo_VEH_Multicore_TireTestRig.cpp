@@ -74,7 +74,7 @@ int main() {
     ////rig.SetGravitationalAcceleration(0);
     rig.SetNormalLoad(2000);
 
-    ////rig.SetCamberAngle(+15 * CH_C_DEG_TO_RAD);
+    ////rig.SetCamberAngle(+15 * CH_DEG_TO_RAD);
 
     rig.SetTireStepsize(tire_step_size);
     rig.SetTireCollisionType(ChTire::CollisionType::FOUR_POINTS);
@@ -89,7 +89,7 @@ int main() {
     // ----------------------------------
 
     double collision_envelope;
-    ChVector<int> collision_bins;
+    ChVector3i collision_bins;
     rig.GetSuggestedCollisionSettings(collision_envelope, collision_bins);
     sys.GetSettings()->collision.narrowphase_algorithm = ChNarrowphase::Algorithm::HYBRID;
     sys.GetSettings()->collision.broadphase_grid = ChBroadphase::GridType::FIXED_RESOLUTION;
@@ -108,19 +108,19 @@ int main() {
     // -----------------
 
     // Scenario: driven wheel
-    ////rig.SetAngSpeedFunction(chrono_types::make_shared<ChFunction_Const>(10.0));
+    ////rig.SetAngSpeedFunction(chrono_types::make_shared<ChFunctionConst>(10.0));
 
     // Scenario: pulled wheel
-    ////rig.SetLongSpeedFunction(chrono_types::make_shared<ChFunction_Const>(1.0));
+    ////rig.SetLongSpeedFunction(chrono_types::make_shared<ChFunctionConst>(1.0));
 
     // Scenario: imobilized wheel (same scenario could be obtained using ChTireTestRig::Mode::DROP in Initialize())
-    rig.SetLongSpeedFunction(chrono_types::make_shared<ChFunction_Const>(0.0));
-    rig.SetAngSpeedFunction(chrono_types::make_shared<ChFunction_Const>(0.0));
+    rig.SetLongSpeedFunction(chrono_types::make_shared<ChFunctionConst>(0.0));
+    rig.SetAngSpeedFunction(chrono_types::make_shared<ChFunctionConst>(0.0));
 
     // Scenario: prescribe all motion functions
-    ////rig.SetLongSpeedFunction(chrono_types::make_shared<ChFunction_Const>(0.2));
-    ////rig.SetAngSpeedFunction(chrono_types::make_shared<ChFunction_Const>(10.0));
-    ////rig.SetSlipAngleFunction(chrono_types::make_shared<ChFunction_Sine>(0, 0.6, 0.2));
+    ////rig.SetLongSpeedFunction(chrono_types::make_shared<ChFunctionConst>(0.2));
+    ////rig.SetAngSpeedFunction(chrono_types::make_shared<ChFunctionConst>(10.0));
+    ////rig.SetSlipAngleFunction(chrono_types::make_shared<ChFunctionSine>(0.2, 0.6));
 
     // Scenario: specified longitudinal slip
     ////rig.SetConstantLongitudinalSlip(0.2, 0.1);
@@ -143,7 +143,7 @@ int main() {
     vis.SetWindowSize(1280, 720);
     vis.SetRenderMode(opengl::SOLID);
     vis.Initialize();
-    vis.AddCamera(ChVector<>(0, 3, 0), ChVector<>(0, 0, 0));
+    vis.AddCamera(ChVector3d(0, 3, 0), ChVector3d(0, 0, 0));
     vis.SetCameraVertical(CameraVerticalDir::Z);
 
     // Perform the simulation
@@ -154,8 +154,8 @@ int main() {
 
         double body_x = rig.GetPos().x();
         double buffer_dist = 0;
-        ChVector<> cam_loc(body_x + buffer_dist, 3, -0.5);
-        ChVector<> cam_point(body_x + buffer_dist, 0, -0.5);
+        ChVector3d cam_loc(body_x + buffer_dist, 3, -0.5);
+        ChVector3d cam_point(body_x + buffer_dist, 0, -0.5);
         vis.UpdateCamera(cam_loc, cam_point);
         vis.Render();
 
