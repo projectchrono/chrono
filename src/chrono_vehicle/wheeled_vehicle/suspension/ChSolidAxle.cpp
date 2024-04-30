@@ -169,6 +169,18 @@ void ChSolidAxle::Initialize(std::shared_ptr<ChChassis> chassis,
         m_pointsR[i] = suspension_to_abs.TransformPointLocalToParent(rel_pos);
     }
 
+    // Connect trackbarBody to axleBody (should be changed to universal)
+    m_sphericalTrackbarAxleLink = chrono_types::make_shared<ChLinkLockSpherical>();
+    m_sphericalTrackbarAxleLink->SetName(m_name + "_sphericalTrackbarAxle");
+    m_sphericalTrackbarAxleLink->Initialize(m_trackbarBody, m_axleTube, ChFrame<>(m_trackbarAxle, QUNIT));
+    chassis->GetSystem()->AddLink(m_sphericalTrackbarAxleLink);
+
+    // Connect trackbarBody to chassisBody
+    m_sphericalTrackbarChassisLink = chrono_types::make_shared<ChLinkLockSpherical>();
+    m_sphericalTrackbarChassisLink->SetName(m_name + "_sphericalTrackbarChassis");
+    m_sphericalTrackbarChassisLink->Initialize(m_trackbarBody, chassis->GetBody(), ChFrame<>(m_trackbarChassis, QUNIT));
+    chassis->GetSystem()->AddLink(m_sphericalTrackbarChassisLink);
+
     // Initialize left and right sides.
     std::shared_ptr<ChBody> tierod_body = (steering == nullptr) ? chassis->GetBody() : steering->GetSteeringLink();
     InitializeSide(LEFT, chassis->GetBody(), tierod_body, m_pointsL, left_ang_vel);

@@ -64,7 +64,7 @@ const ChVector3d Generic_SolidAxle::m_knuckleInertia(0.00255, 0.00134, 0.00196);
 const ChVector3d Generic_SolidAxle::m_tierodInertia(0.252, 0.001, 0.252);
 const ChVector3d Generic_SolidAxle::m_draglinkInertia(0.005, 0.005, 0.001);
 const ChVector3d Generic_SolidAxle::m_bellCrankInertia(0.001, 0.001, 0.001);
-const ChVector3d Generic_SolidAxle::m_trackbarInertia(0.001, 0.001, 0.001);
+const ChVector3d Generic_SolidAxle::m_trackbarInertia(0.1, 0.01, 0.1);
 
 const double Generic_SolidAxle::m_axleInertia = 0.4;
 
@@ -130,9 +130,9 @@ const ChVector3d Generic_SolidAxle::getLocation(PointId which) {
         case DRAGLINK_C:
             return ChVector3d(0.385, 0.45, -0.02);
         case TRACKBAR_A:
-            return ChVector3d(-0.1, 0.710, -0.02);
+            return ChVector3d(-0.1, 0.610, -0.02);
         case TRACKBAR_C:
-            return ChVector3d(-0.1, -0.710, 0.02);
+            return ChVector3d(-0.1, -0.610, 0.02);
         default:
             return ChVector3d(0, 0, 0);
     }
