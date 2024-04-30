@@ -19,6 +19,7 @@
 #pragma once
 
 #include "chrono_models/vehicle/artcar/ARTcar.h"
+#include "chrono_models/vehicle/jeep/Cherokee.h"
 #include "chrono_models/vehicle/bmw/BMW_E90.h"
 #include "chrono_models/vehicle/citybus/CityBus.h"
 #include "chrono_models/vehicle/duro/Duro.h"
@@ -42,6 +43,7 @@ using namespace chrono;
 using namespace chrono::vehicle;
 
 using namespace chrono::vehicle::artcar;
+using namespace chrono::vehicle::jeep;
 using namespace chrono::vehicle::bmw;
 using namespace chrono::vehicle::citybus;
 using namespace chrono::vehicle::duro;
@@ -398,6 +400,25 @@ class BMW_E90_Model : public WheeledVehicleModel {
     BMW_E90* bmw;
 };
 
+class Cherokee_Model : public WheeledVehicleModel {
+  public:
+    virtual std::string ModelName() const override { return "Cherokee"; }
+    virtual void Create(ChContactMethod contact_method, const ChCoordsys<>& init_pos, bool chassis_vis) override;
+    virtual void Create(ChSystem* system, const ChCoordsys<>& init_pos, bool chassis_vis) override;
+    virtual ChWheeledVehicle& GetVehicle() override { return cherokee->GetVehicle(); }
+    virtual void Synchronize(double time, const DriverInputs& driver_inputs, const ChTerrain& terrain) override {
+        cherokee->Synchronize(time, driver_inputs, terrain);
+    }
+    virtual void Advance(double step) override { cherokee->Advance(step); }
+    virtual ChVector3d TrackPoint() const override { return ChVector3d(0, 0, 1.75); }
+    virtual double CameraDistance() const override { return 8.0; }
+    virtual double CameraHeight() const override { return 0.2; }
+
+  private:
+    void Construct(const ChCoordsys<>& init_pos, VisualizationType chassis_vis);
+    Cherokee* cherokee;
+};
+
 class UAZBUS_Model : public WheeledVehicleModel {
   public:
     virtual std::string ModelName() const override { return "UAZBUS"; }
@@ -509,6 +530,35 @@ void Citybus_Model::Construct(const ChCoordsys<>& init_pos, VisualizationType ch
     bus->SetSteeringVisualizationType(VisualizationType::PRIMITIVES);
     bus->SetWheelVisualizationType(VisualizationType::MESH);
     bus->SetTireVisualizationType(VisualizationType::MESH);
+}
+
+// -----------------------------------------------------------------------------
+
+void Cherokee_Model::Create(ChSystem* system, const ChCoordsys<>& init_pos, bool chassis_vis) {
+    cherokee = new Cherokee(system);
+    Construct(init_pos, chassis_vis ? VisualizationType::MESH : VisualizationType::NONE);
+}
+
+void Cherokee_Model::Create(ChContactMethod contact_method, const ChCoordsys<>& init_pos, bool chassis_vis) {
+    cherokee = new Cherokee();
+    cherokee->SetContactMethod(contact_method);
+    Construct(init_pos, chassis_vis ? VisualizationType::MESH : VisualizationType::NONE);
+}
+
+void Cherokee_Model::Construct(const ChCoordsys<>& init_pos, VisualizationType chassis_vis) {
+    cherokee->SetChassisCollisionType(CollisionType::NONE);
+    cherokee->SetChassisFixed(false);
+    cherokee->SetInitPosition(init_pos);
+    cherokee->SetTireType(TireModelType::TMSIMPLE);
+    cherokee->SetBrakeType(BrakeType::SHAFTS);
+    cherokee->Initialize();
+
+    // def cherokee->SetChassisVisualizationType(chassis_vis);
+    cherokee->SetChassisVisualizationType(VisualizationType::MESH);
+    cherokee->SetSuspensionVisualizationType(VisualizationType::PRIMITIVES);
+    cherokee->SetSteeringVisualizationType(VisualizationType::PRIMITIVES);
+    cherokee->SetWheelVisualizationType(VisualizationType::MESH);
+    cherokee->SetTireVisualizationType(VisualizationType::MESH);
 }
 
 // -----------------------------------------------------------------------------
@@ -1037,6 +1087,7 @@ void U401_Model::Construct(const ChCoordsys<>& init_pos, VisualizationType chass
 std::vector<std::pair<std::shared_ptr<WheeledVehicleModel>, std::string>> WheeledVehicleModel::List() {
     std::vector<std::pair<std::shared_ptr<WheeledVehicleModel>, std::string>> models = {
         {chrono_types::make_shared<ARTcar_Model>(), "ARTCAR"},         //
+        {chrono_types::make_shared<Cherokee_Model>(), "Cherokee"},       //
         {chrono_types::make_shared<BMW_E90_Model>(), "BMW_E90"},       //
         {chrono_types::make_shared<Citybus_Model>(), "CITYBUS"},       //
         {chrono_types::make_shared<Duro_Model>(), "DURO"},             //
