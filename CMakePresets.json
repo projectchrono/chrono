@@ -191,7 +191,11 @@
 				"USE_CUDA_NVRTC": "OFF",
 				"USE_FAST_DDS": "ON",
 				"CMAKE_PREFIX_PATH": "C:/Program Files/eProsima/fastrtps 2.4.0/cmake",
-				"PYTHON_EXECUTABLE": "C:/Users/builder/miniconda3/python.exe"
+				"PYTHON_EXECUTABLE": "C:/Users/builder/miniconda3/python.exe",
+				"urdfdom_DIR": "$env{CI_PROJECT_DIR}/contrib/build-scripts/urdf/urdf_build/lib/urdfdom/cmake",
+				"urdfdom_headers_DIR": "$env{CI_PROJECT_DIR}/contrib/build-scripts/urdf/urdf_build/lib/urdfdom_headers/cmake",
+				"console_bridge_DIR": "$env{CI_PROJECT_DIR}/contrib/build-scripts/urdf_build/urdf/lib/console_bridge/cmake",
+				"tinyxml2_DIR": "$env{CI_PROJECT_DIR}/contrib/build-scripts/urdf_build/urdf/CMake"
 			}
 		},
 		{
