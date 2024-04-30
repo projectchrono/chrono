@@ -55,16 +55,8 @@ using namespace chrono::vehicle::feda;
 // Run-time visualization system (IRRLICHT or VSG)
 ChVisualSystem::Type vis_type = ChVisualSystem::Type::VSG;
 
-// Initial vehicle location and orientation
+// Initial vehicle location
 ChVector3d initLoc(0, 0, 1.6);
-ChQuaternion<> initRot(1, 0, 0, 0);
-// ChQuaternion<> initRot(0.866025, 0, 0, 0.5);
-// ChQuaternion<> initRot(0.7071068, 0, 0, 0.7071068);
-// ChQuaternion<> initRot(0.25882, 0, 0, 0.965926);
-// ChQuaternion<> initRot(0, 0, 0, 1);
-
-enum class DriverMode { DEFAULT, RECORD, PLAYBACK };
-DriverMode driver_mode = DriverMode::DEFAULT;
 
 // Visualization type for vehicle parts (PRIMITIVES, MESH, or NONE)
 VisualizationType chassis_vis_type = VisualizationType::MESH;
@@ -97,18 +89,8 @@ bool use_tierod_bodies = true;
 // Type of tire model (RIGID, RIGID_MESH, TMEASY, FIALA, PAC89, PAC02, TMSIMPLE)
 TireModelType tire_model = TireModelType::TMSIMPLE;
 
-// Rigid terrain
-RigidTerrain::PatchType terrain_model = RigidTerrain::PatchType::BOX;
-double terrainHeight = 0;      // terrain height (FLAT terrain only)
-double terrainLength = 200.0;  // size in X direction
-double terrainWidth = 200.0;   // size in Y direction
-
-// Point on chassis tracked by the camera
-ChVector3d trackPoint(0.0, 0.0, 1.75);
-
 // Contact method
 ChContactMethod contact_method = ChContactMethod::SMC;
-bool contact_vis = false;
 
 // Simulation step sizes
 double step_size = 1e-3;
@@ -120,9 +102,6 @@ double render_step_size = 1.0 / 50;  // FPS = 50
 // Debug logging
 bool debug_output = false;
 double debug_step_size = 1.0 / 1;  // FPS = 1
-
-// POV-Ray output
-bool povray_output = false;
 
 double turn_radius_ref = 30.0;
 double turn_radius = turn_radius_ref + 2.5;
@@ -203,12 +182,12 @@ int main(int argc, char* argv[]) {
     // Create systems
     // --------------
 
-    // Create the HMMWV vehicle, set parameters, and initialize
+    // Create the FEDA vehicle, set parameters, and initialize
     FEDA feda;
     feda.SetContactMethod(contact_method);
     feda.SetChassisCollisionType(chassis_collision_type);
     feda.SetChassisFixed(false);
-    feda.SetInitPosition(ChCoordsys<>(initLoc, initRot));
+    feda.SetInitPosition(ChCoordsys<>(initLoc, QUNIT));
     feda.SetEngineType(engine_model);
     feda.SetTransmissionType(transmission_model);
     feda.SetBrakeType(brake_type);
@@ -237,22 +216,8 @@ int main(int argc, char* argv[]) {
     minfo.Y = 2e7f;
     auto patch_mat = minfo.CreateMaterial(contact_method);
 
-    std::shared_ptr<RigidTerrain::Patch> patch;
-    switch (terrain_model) {
-        case RigidTerrain::PatchType::BOX:
-            patch = terrain.AddPatch(patch_mat, CSYSNORM, terrainLength, terrainWidth);
-            patch->SetTexture(vehicle::GetDataFile("terrain/textures/dirt.jpg"), 200, 200);
-            break;
-        case RigidTerrain::PatchType::HEIGHT_MAP:
-            patch = terrain.AddPatch(patch_mat, CSYSNORM, vehicle::GetDataFile("terrain/height_maps/test64.bmp"), 128,
-                                     128, 0, 4);
-            patch->SetTexture(vehicle::GetDataFile("terrain/textures/grass.jpg"), 16, 16);
-            break;
-        case RigidTerrain::PatchType::MESH:
-            patch = terrain.AddPatch(patch_mat, CSYSNORM, vehicle::GetDataFile("terrain/meshes/test.obj"));
-            patch->SetTexture(vehicle::GetDataFile("terrain/textures/grass.jpg"), 100, 100);
-            break;
-    }
+    auto patch = terrain.AddPatch(patch_mat, CSYSNORM, 200.0, 200.0);
+    patch->SetTexture(vehicle::GetDataFile("terrain/textures/dirt.jpg"), 200, 200);
     patch->SetColor(ChColor(0.8f, 0.8f, 0.5f));
 
     terrain.Initialize();
@@ -267,13 +232,6 @@ int main(int argc, char* argv[]) {
     if (!filesystem::create_directory(filesystem::path(out_dir))) {
         std::cout << "Error creating directory " << out_dir << std::endl;
         return 1;
-    }
-    if (povray_output) {
-        if (!filesystem::create_directory(filesystem::path(pov_dir))) {
-            std::cout << "Error creating directory " << pov_dir << std::endl;
-            return 1;
-        }
-        terrain.ExportMeshPovray(out_dir);
     }
 
     // Initialize output file for driver inputs
@@ -322,10 +280,9 @@ int main(int argc, char* argv[]) {
 
     // Create the straight path and the driver system
     auto path = CirclePath(initLoc, turn_radius, run_in_length, turn_direction_left, circle_repeats);
-    // auto path = StraightLinePath(ChVector3d(-terrainLength / 2, 0, 0.5), ChVector3d(terrainLength / 2, 0, 0.5), 1);
     ChPathFollowerDriver driver(feda.GetVehicle(), path, "my_path", initial_speed);
-    driver.GetSteeringController().SetLookAheadDistance(6.0);
-    driver.GetSteeringController().SetGains(0.05, 0.005, 0.0);
+    driver.GetSteeringController().SetLookAheadDistance(3.0);
+    driver.GetSteeringController().SetGains(0.5, 0.05, 0.0);
     driver.GetSpeedController().SetGains(0.5, 0, 0);
     driver.Initialize();
 
@@ -336,13 +293,12 @@ int main(int argc, char* argv[]) {
             // Create the vehicle Irrlicht interface
             auto vis_irr = chrono_types::make_shared<ChWheeledVehicleVisualSystemIrrlicht>();
             vis_irr->SetWindowTitle("FEDA Steady State Cornering Demo");
-            vis_irr->SetChaseCamera(trackPoint, 7.0, 0.5);
+            vis_irr->SetChaseCamera(ChVector3d(0.0, 0.0, 1.75), 7.0, 0.5);
             vis_irr->Initialize();
             vis_irr->AddLightDirectional();
             vis_irr->AddSkyBox();
             vis_irr->AddLogo();
             vis_irr->AttachVehicle(&feda.GetVehicle());
-            vis_irr->Initialize();
             vis = vis_irr;
 #endif
             break;
@@ -354,19 +310,31 @@ int main(int argc, char* argv[]) {
             auto vis_vsg = chrono_types::make_shared<ChWheeledVehicleVisualSystemVSG>();
             vis_vsg->SetWindowTitle("FEDA Steady State Cornering Demo");
             vis_vsg->AttachVehicle(&feda.GetVehicle());
-            vis_vsg->SetChaseCamera(trackPoint, 7.0, 0.5);
-            vis_vsg->SetWindowSize(ChVector2i(800, 600));
+            vis_vsg->SetChaseCamera(ChVector3d(0.0, 0.0, 1.75), 9.0, 0.5);
+            vis_vsg->SetWindowSize(ChVector2i(1200, 800));
             vis_vsg->SetWindowPosition(ChVector2i(100, 300));
             vis_vsg->SetUseSkyBox(true);
             vis_vsg->SetCameraAngleDeg(40);
             vis_vsg->SetLightIntensity(1.0f);
             vis_vsg->SetLightDirection(1.5 * CH_PI_2, CH_PI_4);
             vis_vsg->SetShadows(true);
-            vis_vsg->Initialize();
             vis = vis_vsg;
 #endif
             break;
         }
+    }
+
+    int sentinelID = 0;
+    int targetID = 0;
+    if (vis) {
+        auto sentinel = chrono_types::make_shared<ChVisualShapeSphere>(0.1);
+        auto target = chrono_types::make_shared<ChVisualShapeSphere>(0.1);
+        sentinel->SetColor(ChColor(1, 0, 0));
+        target->SetColor(ChColor(0, 1, 0));
+        sentinelID = vis->AddVisualModel(sentinel, ChFrame<>());
+        targetID = vis->AddVisualModel(target, ChFrame<>());
+
+        vis->Initialize();
     }
 
     // ---------------
@@ -435,16 +403,13 @@ int main(int argc, char* argv[]) {
                 break;
 
             if (step_number % render_steps == 0) {
+                // Update sentinel and target location markers for the path-follower controller.
+                vis->UpdateVisualModel(sentinelID, ChFrame<>(driver.GetSteeringController().GetSentinelLocation()));
+                vis->UpdateVisualModel(targetID, ChFrame<>(driver.GetSteeringController().GetTargetLocation()));
+
                 vis->BeginScene();
                 vis->Render();
                 vis->EndScene();
-
-                if (povray_output) {
-                    // Zero-pad frame numbers in file names for postprocessing
-                    std::ostringstream filename;
-                    filename << pov_dir << "/data_" << std::setw(4) << std::setfill('0') << render_frame + 1 << ".dat";
-                    utils::WriteVisualizationAssets(feda.GetSystem(), filename.str());
-                }
 
                 render_frame++;
             }
