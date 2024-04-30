@@ -136,7 +136,7 @@ class ChApiPeridynamics ChProximityContainerPeri : public ChProximityContainer {
     /// so that you avoid to create all nodes one by one with many calls to AddNode().
     void FillBox(
         std::shared_ptr<ChMatterPeriBase> mmatter, ///< matter to be used for this volume. Must be added too to this, via AddMatter(). 
-        const ChVector<> size,         ///< x,y,z sizes of the box to fill (better if integer multiples of spacing)
+        const ChVector3d size,         ///< x,y,z sizes of the box to fill (better if integer multiples of spacing)
         const double spacing,          ///< the spacing between two near nodes
         const double initial_density,  ///< density of the material inside the box, for initialization of node's masses
         const ChCoordsys<> boxcoords = CSYSNORM,  ///< position and rotation of the box
@@ -152,7 +152,7 @@ class ChApiPeridynamics ChProximityContainerPeri : public ChProximityContainer {
     //
 
     /// Get the number of scalar coordinates (variables), if any, in this item, excluding those that are in fixed state.
-    virtual int GetDOF() override { return n_dofs; }
+    virtual unsigned int GetNumCoordsPosLevel() override { return n_dofs; }
 
  
     virtual void IntStateGather(const unsigned int off_x,
@@ -223,8 +223,8 @@ class ChApiPeridynamics ChProximityContainerPeri : public ChProximityContainer {
         for (auto& node : vnodes) {
             if (!node->IsFixed()) {
                 // add gravity too
-                ChVector<> Gforce = GetSystem()->Get_G_acc() * node->GetMass();
-                ChVector<> TotForce = node->F_peridyn + node->GetForce() + Gforce;
+                ChVector3d Gforce = GetSystem()->GetGravitationalAcceleration() * node->GetMass();
+                ChVector3d TotForce = node->F_peridyn + node->GetForce() + Gforce;
 
                 R.segment(off + local_off, 3) += c * TotForce.eigen();
                 local_off += 3;
@@ -315,10 +315,10 @@ class ChApiPeridynamics ChProximityContainerPeri : public ChProximityContainer {
 
         for (auto& node : vnodes) {
             // add gravity
-            ChVector<> Gforce = GetSystem()->Get_G_acc() * node->GetMass();
-            ChVector<> TotForce = node->F_peridyn + node->GetForce() + Gforce;
+            ChVector3d Gforce = GetSystem()->GetGravitationalAcceleration() * node->GetMass();
+            ChVector3d TotForce = node->F_peridyn + node->GetForce() + Gforce;
 
-            node->Variables().Get_fb() += factor * TotForce.eigen();
+            node->Variables().Force() += factor * TotForce.eigen();
         }
     }
     virtual void VariablesQbLoadSpeed() {
@@ -355,9 +355,9 @@ class ChApiPeridynamics ChProximityContainerPeri : public ChProximityContainer {
     // Other functions
 
     /// Set no speed and no accelerations (but does not change the position).
-    void SetNoSpeedNoAcceleration()  {
+    void ForceToRest()  {
         for (auto& node : vnodes) {
-            node->SetNoSpeedNoAcceleration();
+            node->ForceToRest();
         }
     }
 

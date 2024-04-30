@@ -147,14 +147,14 @@ class  ChMatterPeri : public ChMatterPeriBase {
     std::unordered_map<ChNodePeri*, T_per_node > nodes;      ///< nodes
     std::unordered_map<std::pair<ChNodePeri*,ChNodePeri*>, T_per_bound> bounds;    ///< bounds
 
-    std::shared_ptr<ChMaterialSurface> matsurface;        ///< data for surface contact and impact
+    std::shared_ptr<ChContactMaterial> matsurface;        ///< data for surface contact and impact
 
   public:
 
     /// Build a cluster of nodes for peridynamics.
     /// By default the cluster will contain 0 particles.
     ChMatterPeri() {
-        matsurface = chrono_types::make_shared<ChMaterialSurfaceNSC>();
+        matsurface = chrono_types::make_shared<ChContactMaterialNSC>();
     }
 
     ChMatterPeri(const ChMatterPeri& other) {
@@ -281,7 +281,7 @@ class  ChMatterPeri : public ChMatterPeriBase {
                     auto cshape = chrono_types::make_shared<ChCollisionShapeSphere>(matsurface, coll_rad);
                     mnode->AddCollisionShape(cshape);
                     mnode->GetCollisionModel()->SetSafeMargin(coll_rad);
-                    mnode->GetCollisionModel()->SetEnvelope(ChMax(0.0, aabb_rad - coll_rad));
+                    mnode->GetCollisionModel()->SetEnvelope(std::max(0.0, aabb_rad - coll_rad));
                 }
                 // add to system
                 container->GetSystem()->GetCollisionSystem()->Add(mnode->GetCollisionModel());
@@ -305,10 +305,10 @@ class  ChMatterPeri : public ChMatterPeriBase {
     
 
     /// Set the material surface for 'boundary contact'.
-    void SetMaterialSurface(const std::shared_ptr<ChMaterialSurface>& mnewsurf) { matsurface = mnewsurf; }
+    void SetContactMaterial(const std::shared_ptr<ChContactMaterial>& mnewsurf) { matsurface = mnewsurf; }
 
     /// Set the material surface for 'boundary contact'.
-    std::shared_ptr<ChMaterialSurface>& GetMaterialSurface() { return matsurface; }
+    std::shared_ptr<ChContactMaterial>& GetContactMaterial() { return matsurface; }
 
 
     //

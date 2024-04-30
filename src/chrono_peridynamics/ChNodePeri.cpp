@@ -54,25 +54,25 @@ ChNodePeri::~ChNodePeri() {
 void ChNodePeri::SetHorizonRadius(double mr) {
     h_rad = mr;
     double aabb_rad = h_rad / 2;  // to avoid too many pairs: bounding boxes hemisizes will sum..  __.__--*--
-    if (auto mshape = std::dynamic_pointer_cast<ChCollisionModelBullet>(GetCollisionModel()->GetShape(0).first))
-        mshape->SetSphereRadius(coll_rad, ChMax(0.0, aabb_rad - coll_rad));
+    if (auto mshape = std::dynamic_pointer_cast<ChCollisionModelBullet>(GetCollisionModel()->GetShapeInstance(0).first))
+        mshape->SetSphereRadius(coll_rad, std::max(0.0, aabb_rad - coll_rad));
 }
 
 void ChNodePeri::SetCollisionRadius(double mr) {
     coll_rad = mr;
     double aabb_rad = h_rad / 2;  // to avoid too many pairs: bounding boxes hemisizes will sum..  __.__--*--
-    if (auto mshape = std::dynamic_pointer_cast<ChCollisionModelBullet>(GetCollisionModel()->GetShape(0).first))
-        mshape->SetSphereRadius(coll_rad, ChMax(0.0, aabb_rad - coll_rad));
+    if (auto mshape = std::dynamic_pointer_cast<ChCollisionModelBullet>(GetCollisionModel()->GetShapeInstance(0).first))
+        mshape->SetSphereRadius(coll_rad, std::max(0.0, aabb_rad - coll_rad));
 }
 
-void ChNodePeri::ContactForceLoadResidual_F(const ChVector<>& F,
-    const ChVector<>& T,
-    const ChVector<>& abs_point,
+void ChNodePeri::ContactForceLoadResidual_F(const ChVector3d& F,
+    const ChVector3d& T,
+    const ChVector3d& abs_point,
     ChVectorDynamic<>& R) {
-    R.segment(NodeGetOffsetW(), 3) += F.eigen();
+    R.segment(NodeGetOffsetVelLevel(), 3) += F.eigen();
 }
 
-void ChNodePeri::ComputeJacobianForContactPart(const ChVector<>& abs_point,
+void ChNodePeri::ComputeJacobianForContactPart(const ChVector3d& abs_point,
     ChMatrix33<>& contact_plane,
     ChContactable_1vars::type_constraint_tuple& jacobian_tuple_N,
     ChContactable_1vars::type_constraint_tuple& jacobian_tuple_U,

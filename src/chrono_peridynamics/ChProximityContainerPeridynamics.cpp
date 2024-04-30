@@ -12,6 +12,7 @@
 // Authors: Alessandro Tasora,
 // =============================================================================
 
+#include "chrono/core/ChRandom.h"
 #include "chrono/physics/ChBody.h"
 #include "chrono/physics/ChSystem.h"
 #include "chrono_peridynamics/ChMatterPeridynamics.h"
@@ -21,20 +22,19 @@ namespace chrono {
 
 using namespace fea;
 using namespace peridynamics;
-using namespace geometry;
 
 
 
 static double W_sph(double r, double h) {
     if (r < h) {
-        return (315.0 / (64.0 * CH_C_PI * pow(h, 9))) * pow((h * h - r * r), 3);
+        return (315.0 / (64.0 * CH_PI * pow(h, 9))) * pow((h * h - r * r), 3);
     } else
         return 0;
 }
 
 static double W_sq_visco(double r, double h) {
     if (r < h) {
-        return (45.0 / (CH_C_PI * pow(h, 6))) * (h - r);
+        return (45.0 / (CH_PI * pow(h, 6))) * (h - r);
     } else
         return 0;
 }
@@ -117,7 +117,7 @@ void ChProximityContainerPeri::SetupInitial() {
             vnodes[i]->SetupInitial(GetSystem());
 
             // count the degrees of freedom
-            n_dofs += vnodes[i]->GetNdofX_active();
+            n_dofs += vnodes[i]->GetNumCoordsPosLevelActive();
         }
     }
 }
@@ -127,11 +127,11 @@ void ChProximityContainerPeri::Setup() {
 
     for (unsigned int i = 0; i < vnodes.size(); i++) {
         // Set node offsets in state vectors (based on the offsets of the containing mesh)
-        vnodes[i]->NodeSetOffset_x(GetOffset_x() + n_dofs);;
+        vnodes[i]->NodeSetOffsetPosLevel(GetOffset_x() + n_dofs);;
 
         // Count the actual degrees of freedom (consider only nodes that are not fixed)
         if (!vnodes[i]->IsFixed()) {
-            n_dofs += vnodes[i]->GetNdofX_active();
+            n_dofs += vnodes[i]->GetNumCoordsPosLevelActive();
         }
     }
 }
@@ -198,7 +198,7 @@ void ChProximityContainerPeri::Fill(
 
 void ChProximityContainerPeri::FillBox(
         std::shared_ptr<ChMatterPeriBase> mmatter, ///< matter to be used for this volume. Must be added too to this, via AddMatter(). 
-        const ChVector<> size,         ///< x,y,z sizes of the box to fill (better if integer multiples of spacing)
+        const ChVector3d size,         ///< x,y,z sizes of the box to fill (better if integer multiples of spacing)
         const double spacing,          ///< the spacing between two near nodes
         const double initial_density,  ///< density of the material inside the box, for initialization of node's masses
         const ChCoordsys<> boxcoords,  ///< position and rotation of the box
@@ -229,10 +229,10 @@ void ChProximityContainerPeri::FillBox(
     for (int ix = 0; ix < samples_x; ix++)
         for (int iy = 0; iy < samples_y; iy++)
             for (int iz = 0; iz < samples_z; iz++) {
-                ChVector<> pos(ix * spacing - 0.5 * size.x(), iy * spacing - 0.5 * size.y(), iz * spacing - 0.5 * size.z());
-                pos += ChVector<>(mrandomness * ChRandom() * spacing, mrandomness * ChRandom() * spacing,
-                                    mrandomness * ChRandom() * spacing);
-                ChVector<> mpos = boxcoords.TransformPointLocalToParent(pos);
+                ChVector3d pos(ix * spacing - 0.5 * size.x(), iy * spacing - 0.5 * size.y(), iz * spacing - 0.5 * size.z());
+                pos += ChVector3d(mrandomness * ChRandom::Get() * spacing, mrandomness * ChRandom::Get() * spacing,
+                                    mrandomness * ChRandom::Get() * spacing);
+                ChVector3d mpos = boxcoords.TransformPointLocalToParent(pos);
                 auto mnode = chrono_types::make_shared<ChNodePeri>();
                 mnode->SetX0(mpos);
                 mnode->SetPos(mpos);
@@ -248,9 +248,9 @@ void ChProximityContainerPeri::FillBox(
                 }
 
                 if (do_centeredcube && !((ix == samples_x - 1) || (iy == samples_y - 1) || (iz == samples_z - 1))) {
-                    ChVector<> pos2 = pos + 0.5 * ChVector<>(spacing, spacing, spacing);
-                    pos2 += ChVector<>(mrandomness * ChRandom() * spacing, mrandomness * ChRandom() * spacing,
-                                        mrandomness * ChRandom() * spacing);
+                    ChVector3d pos2 = pos + 0.5 * ChVector3d(spacing, spacing, spacing);
+                    pos2 += ChVector3d(mrandomness * ChRandom::Get() * spacing, mrandomness * ChRandom::Get() * spacing,
+                                        mrandomness * ChRandom::Get() * spacing);
                     mpos = boxcoords.TransformPointLocalToParent(pos2);
                     mnode = chrono_types::make_shared<ChNodePeri>();
                     mnode->SetX0(mpos);

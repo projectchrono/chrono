@@ -24,7 +24,7 @@
 #include "chrono/physics/ChSystemNSC.h"
 #include "chrono/core/ChRealtimeStep.h"
 #include "chrono/physics/ChBodyEasy.h"
-#include "chrono/fea/ChLinkPointFrame.h"
+#include "chrono/fea/ChLinkNodeFrame.h"
 
 #include "chrono_peridynamics/ChMatterPeriSprings.h"
 #include "chrono_peridynamics/ChMatterPeriBulkElastic.h"
@@ -52,7 +52,7 @@ using namespace gui;
 using namespace chrono::irrlicht;
 
 int main(int argc, char* argv[]) {
-    GetLog() << "Copyright (c) 2017 projectchrono.org\nChrono version: " << CHRONO_VERSION << "\n\n";
+    std::cout << "Copyright (c) 2017 projectchrono.org\nChrono version: " << CHRONO_VERSION << std::endl;
 
     // Create a ChronoENGINE physical system
     ChSystemNSC mphysicalSystem;
@@ -64,22 +64,22 @@ int main(int argc, char* argv[]) {
 
 
     // CREATE A FLOOR
-    auto mat = chrono_types::make_shared<ChMaterialSurfaceNSC>();
+    auto mat = chrono_types::make_shared<ChContactMaterialNSC>();
     mat->SetFriction(0.4f);
 
     auto mfloorBody = chrono_types::make_shared<ChBodyEasyBox>(20,1,20,1000,true,true,mat);
     mphysicalSystem.Add(mfloorBody);
-    mfloorBody->SetBodyFixed(true);
-    mfloorBody->SetPos(ChVector<>(0, -7.5, 0));
+    mfloorBody->SetFixed(true);
+    mfloorBody->SetPos(ChVector3d(0, -7.5, 0));
 
-    mfloorBody->GetVisualShape(0)->SetColor(ChColor(0.2, 0.2, 0.2));
+    mfloorBody->GetVisualShape(0)->SetColor(ChColor(0.2f, 0.2f, 0.2f));
 
 
     // CREATE A SPHERE PRESSING THE MATERIAL:
     auto msphere = chrono_types::make_shared<ChBodyEasySphere>(0.7, 23000, true,true, mat);
     mphysicalSystem.Add(msphere);
-    msphere->SetPos(ChVector<>(0, -0.5, 0));
-    msphere->SetPos_dt(ChVector<>(0, -16.5, 0));
+    msphere->SetPos(ChVector3d(0, -0.5, 0));
+    msphere->SetPosDt(ChVector3d(0, -16.5, 0));
 
    
 
@@ -108,11 +108,11 @@ int main(int argc, char* argv[]) {
     // Use the FillBox easy way to create the set of nodes in the Peridynamics matter
     my_peri_proximity->FillBox(
         mymattersprings,
-        ChVector<>(3, 1.5, 3),                      // size of box
+        ChVector3d(3, 1.5, 3),                        // size of box
         4.0 / 20.0,                                   // resolution step
         1000,                                         // initial density
-        ChCoordsys<>(ChVector<>(0, -3.4, 0), QUNIT),  // position & rotation of box
-        false,                                         // do a centered cubic lattice initial arrangement
+        ChCoordsys<>(ChVector3d(0, -3.4, 0), QUNIT),  // position & rotation of box
+        false,                                        // do a centered cubic lattice initial arrangement
         1.6,                                          // set the horizon radius (as multiples of step) 
         0.4);                                         // set the collision radius (as multiples of step) for interface particles
 
@@ -152,7 +152,7 @@ int main(int argc, char* argv[]) {
     // Export all existing visual shapes to POV-Ray
     blender_exporter.AddAll();
 
-    blender_exporter.SetCamera(ChVector<>(3, 4, -5), ChVector<>(0, 0.5, 0), 50);  // pos, aim, angle
+    blender_exporter.SetCamera(ChVector3d(3, 4, -5), ChVector3d(0, 0.5, 0), 50);  // pos, aim, angle
 
     blender_exporter.ExportScript();
 
@@ -167,14 +167,15 @@ int main(int argc, char* argv[]) {
     vsys->Initialize();
     vsys->AddLogo();
     vsys->AddSkyBox();
-    vsys->AddCamera(ChVector<>(-6, 0.3, 2.3), ChVector<>(0, -4, 0));
-    vsys->AddLight(ChVector<>(30, 30, 60), 120, ChColor(0.6f, 0.6f, 0.6f));
-    vsys->AddLight(ChVector<>(40, 60, 30), 120, ChColor(0.6f, 0.6f, 0.6f));
+    vsys->AddCamera(ChVector3d(-6, 0.3, 2.3), ChVector3d(0, -4, 0));
+    vsys->AddLight(ChVector3d(30, 30, 60), 120, ChColor(0.6f, 0.6f, 0.6f));
+    vsys->AddLight(ChVector3d(40, 60, 30), 120, ChColor(0.6f, 0.6f, 0.6f));
 
 
     // Modify some setting of the physical system for the simulation, if you want
-
-    mphysicalSystem.SetSolverMaxIterations(25);  // lower the LCP iters, no needed here
+    if (mphysicalSystem.GetSolver()->IsIterative()) {
+        mphysicalSystem.GetSolver()->AsIterative()->SetMaxIterations(25);
+    }
 
     //
     // THE SOFT-REAL-TIME CYCLE
@@ -186,7 +187,7 @@ int main(int argc, char* argv[]) {
         vsys->Render();
         
         if(true)
-        for  (auto& myiter : mphysicalSystem.Get_otherphysicslist()) {
+        for  (auto& myiter : mphysicalSystem.GetOtherPhysicsItems()) {
 
             // OLD --
             /*
@@ -274,7 +275,7 @@ int main(int argc, char* argv[]) {
                 // show nodes
                 for (const auto& mnode : myperi->GetNodes()) {
 
-                    ChVector<> mv = mnode->GetPos();
+                    ChVector3d mv = mnode->GetPos();
                     float rad = (float)mnode->GetHorizonRadius();
                     core::vector3df mpos((irr::f32)mv.x(), (irr::f32)mv.y(), (irr::f32)mv.z());
 
@@ -339,7 +340,7 @@ int main(int argc, char* argv[]) {
         
         mphysicalSystem.DoStepDynamics(timestep);
         
-        if (mphysicalSystem.GetStepcount() % 5 == 0)
+        if (mphysicalSystem.GetNumSteps() % 5 == 0)
             blender_exporter.ExportData();
     }
 

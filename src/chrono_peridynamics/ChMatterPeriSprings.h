@@ -51,11 +51,11 @@ public:
         // loop on bounds
         for (auto& bound : this->bounds) {
             ChMatterDataPerBound& mbound = bound.second;
-            ChVector<> old_vdist = mbound.nodeB->GetX0() - mbound.nodeA->GetX0();
-            ChVector<>     vdist = mbound.nodeB->GetPos() - mbound.nodeA->GetPos();
-            ChVector<>     vdir = vdist.GetNormalized();
-            double         vel = Vdot(vdir, mbound.nodeB->GetPos_dt() - mbound.nodeA->GetPos_dt());
-            ChVector force_val = (vdist.Length() - old_vdist.Length()) * this->k  + vel * this->r;
+            ChVector3d old_vdist = mbound.nodeB->GetX0() - mbound.nodeA->GetX0();
+            ChVector3d     vdist = mbound.nodeB->GetPos() - mbound.nodeA->GetPos();
+            ChVector3d     vdir = vdist.GetNormalized();
+            double         vel = Vdot(vdir, mbound.nodeB->GetPosDt() - mbound.nodeA->GetPosDt());
+            ChVector3d force_val = (vdist.Length() - old_vdist.Length()) * this->k  + vel * this->r;
             mbound.nodeB->F_peridyn += -vdir * force_val;
             mbound.nodeA->F_peridyn += vdir * force_val;
         }
@@ -89,11 +89,11 @@ public:
         for (auto& bound : this->bounds) {
             ChMatterDataPerBoundBreakable& mbound = bound.second;
             if (!mbound.broken) {
-                ChVector<> old_vdist = mbound.nodeB->GetX0() - mbound.nodeA->GetX0();
-                ChVector<>     vdist = mbound.nodeB->GetPos() - mbound.nodeA->GetPos();
-                ChVector<>     vdir = vdist.GetNormalized();
-                double         vel = Vdot(vdir, mbound.nodeB->GetPos_dt() - mbound.nodeA->GetPos_dt());
-                ChVector force_val = (vdist.Length() - old_vdist.Length()) * this->k + vel * this->r;
+                ChVector3d old_vdist = mbound.nodeB->GetX0() - mbound.nodeA->GetX0();
+                ChVector3d     vdist = mbound.nodeB->GetPos() - mbound.nodeA->GetPos();
+                ChVector3d     vdir = vdist.GetNormalized();
+                double         vel = Vdot(vdir, mbound.nodeB->GetPosDt() - mbound.nodeA->GetPosDt());
+                ChVector3d force_val = (vdist.Length() - old_vdist.Length()) * this->k + vel * this->r;
                 mbound.nodeB->F_peridyn += -vdir * force_val;
                 mbound.nodeA->F_peridyn += vdir * force_val;
 
@@ -137,26 +137,26 @@ protected:
             ++i;
         }
         if (attach_velocity) {
-            geometry::ChPropertyVector myprop;
+            ChPropertyVector myprop;
             myprop.name = "velocity";
             this->AddProperty(myprop);
-            auto mdata = &((geometry::ChPropertyVector*)(m_properties.back()))->data;
+            auto mdata = &((ChPropertyVector*)(m_properties.back()))->data;
             mdata->resize(mmatter->GetNnodes());
             i = 0;
             for (const auto& anode : mmatter->GetMapOfNodes()) {
-                mdata->at(i) = anode.second.node->GetPos_dt();
+                mdata->at(i) = anode.second.node->GetPosDt();
                 ++i;
             }
         }
         if (attach_acceleration) {
-            geometry::ChPropertyVector myprop;
+            ChPropertyVector myprop;
             myprop.name = "acceleration";
             this->AddProperty(myprop);
-            auto mdata = &((geometry::ChPropertyVector*)(m_properties.back()))->data;
+            auto mdata = &((ChPropertyVector*)(m_properties.back()))->data;
             mdata->resize(mmatter->GetNnodes());
             i = 0;
             for (const auto& anode : mmatter->GetMapOfNodes()) {
-                mdata->at(i) = anode.second.node->GetPos_dtdt();
+                mdata->at(i) = anode.second.node->GetPosDt2();
                 ++i;
             }
         }

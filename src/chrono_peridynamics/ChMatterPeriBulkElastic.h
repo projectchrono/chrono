@@ -52,19 +52,19 @@ public:
         for (auto& bound : this->bounds) {
             ChMatterDataPerBoundBulk& mbound = bound.second;
             if (!mbound.broken) {
-                ChVector<> old_vdist = mbound.nodeB->GetX0() - mbound.nodeA->GetX0();
-                ChVector<>     vdist = mbound.nodeB->GetPos() - mbound.nodeA->GetPos();
+                ChVector3d old_vdist = mbound.nodeB->GetX0() - mbound.nodeA->GetX0();
+                ChVector3d     vdist = mbound.nodeB->GetPos() - mbound.nodeA->GetPos();
                 double     old_sdist = old_vdist.Length();
                 double         sdist = vdist.Length();
-                ChVector<>     vdir = vdist.GetNormalized();
-                double         svel = Vdot(vdir, mbound.nodeB->GetPos_dt() - mbound.nodeA->GetPos_dt());
+                ChVector3d     vdir = vdist.GetNormalized();
+                double         svel = Vdot(vdir, mbound.nodeB->GetPosDt() - mbound.nodeA->GetPosDt());
 
                 double     stretch = (sdist - old_sdist) / old_sdist;
 
                 double horizon = mbound.nodeA->GetHorizonRadius();
-                double K_pih4 = 18.0 * k_bulk / (chrono::CH_C_PI * horizon * horizon * horizon * horizon); 
+                double K_pih4 = 18.0 * k_bulk / (chrono::CH_PI * horizon * horizon * horizon * horizon); 
 
-                ChVector force_val = 0.5 * K_pih4 * stretch;
+                ChVector3d force_val = 0.5 * K_pih4 * stretch;
                 
                 if (this->r > 0)
                     force_val += 0.5 * this->r * svel;
@@ -111,26 +111,26 @@ protected:
             ++i;
         }
         if (attach_velocity) {
-            geometry::ChPropertyVector myprop;
+            ChPropertyVector myprop;
             myprop.name = "velocity";
             this->AddProperty(myprop);
-            auto mdata = &((geometry::ChPropertyVector*)(m_properties.back()))->data;
+            auto mdata = &((ChPropertyVector*)(m_properties.back()))->data;
             mdata->resize(mmatter->GetNnodes());
             i = 0;
             for (const auto& anode : mmatter->GetMapOfNodes()) {
-                mdata->at(i) = anode.second.node->GetPos_dt();
+                mdata->at(i) = anode.second.node->GetPosDt();
                 ++i;
             }
         }
         if (attach_acceleration) {
-            geometry::ChPropertyVector myprop;
+            ChPropertyVector myprop;
             myprop.name = "acceleration";
             this->AddProperty(myprop);
-            auto mdata = &((geometry::ChPropertyVector*)(m_properties.back()))->data;
+            auto mdata = &((ChPropertyVector*)(m_properties.back()))->data;
             mdata->resize(mmatter->GetNnodes());
             i = 0;
             for (const auto& anode : mmatter->GetMapOfNodes()) {
-                mdata->at(i) = anode.second.node->GetPos_dtdt();
+                mdata->at(i) = anode.second.node->GetPosDt2();
                 ++i;
             }
         }
