@@ -21,6 +21,7 @@ if(HAVE_OPENCRG)
    if(ENABLE_MODULE_VSG)
       set(DEMOS ${DEMOS}
           demo_VEH_Test_FEDA_Ride
+          demo_VEH_Test_Cornering
    )
    endif()
 endif()
