@@ -42,6 +42,12 @@ FmuComponent::FmuComponent(fmi2String instanceName,
 
     out_path = ".";
 
+    wheel_load.point = ChVector3d(0.0);
+    wheel_load.force = ChVector3d(0.0);
+    wheel_load.moment = ChVector3d(0.0);
+
+    query_point = ChVector3d(0.0);
+
     // Get default JSON file from FMU resources
     auto resources_dir = std::string(fmuResourceLocation).erase(0, 8);
     tire_JSON = resources_dir + "/TMeasyTire.json";
@@ -68,16 +74,20 @@ FmuComponent::FmuComponent(fmi2String instanceName,
                       FmuVariable::CausalityType::input, FmuVariable::VariabilityType::continuous);   //
 
     // Set CONTINUOUS OUTPUTS for this FMU (wheel load)
-    AddFmuVecVariable(wheel_load.point, "wheel_load.point", "m", "wheel load application point",      //
-                      FmuVariable::CausalityType::output, FmuVariable::VariabilityType::continuous);  //
-    AddFmuVecVariable(wheel_load.force, "wheel_load.force", "N", "wheel load applied force",          //
-                      FmuVariable::CausalityType::output, FmuVariable::VariabilityType::continuous);  //
-    AddFmuVecVariable(wheel_load.moment, "wheel_load.moment", "Nm", "wheel load applied moment",      //
-                      FmuVariable::CausalityType::output, FmuVariable::VariabilityType::continuous);  //
+    AddFmuVecVariable(wheel_load.point, "wheel_load.point", "m", "wheel load application point",     //
+                      FmuVariable::CausalityType::output, FmuVariable::VariabilityType::continuous,  //
+                      FmuVariable::InitialType::exact);                                              //
+    AddFmuVecVariable(wheel_load.force, "wheel_load.force", "N", "wheel load applied force",         //
+                      FmuVariable::CausalityType::output, FmuVariable::VariabilityType::continuous,  //
+                      FmuVariable::InitialType::exact);                                              //
+    AddFmuVecVariable(wheel_load.moment, "wheel_load.moment", "Nm", "wheel load applied moment",     //
+                      FmuVariable::CausalityType::output, FmuVariable::VariabilityType::continuous,  //
+                      FmuVariable::InitialType::exact);                                              //
 
     // Set CONTINUOUS OUTPUTS for this FMU (terrain query point)
-    AddFmuVecVariable(query_point, "query_point", "m", "terrain query point",                         //
-                      FmuVariable::CausalityType::output, FmuVariable::VariabilityType::continuous);  //
+    AddFmuVecVariable(query_point, "query_point", "m", "terrain query point",                        //
+                      FmuVariable::CausalityType::output, FmuVariable::VariabilityType::continuous,  //
+                      FmuVariable::InitialType::exact);                                              //
 
     // Set CONTINUOUS INPUTS for this FMU (terrain information)
     AddFmuVariable(&terrain_height, "terrain_height", FmuVariable::Type::Real, "m", "terrain height",        //

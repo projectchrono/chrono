@@ -65,6 +65,12 @@ FmuComponent::FmuComponent(fmi2String instanceName,
     AddFmuVariable(&U, "U", FmuVariable::Type::Real, "1", "valve position",                       //
                    FmuVariable::CausalityType::output, FmuVariable::VariabilityType::continuous);  //
 
+    // Specify variable dependencies
+    AddFmuVariableDependencies("F", {"s", "sd", "Uref"});
+    AddFmuVariableDependencies("p1", {"s", "sd", "Uref"});
+    AddFmuVariableDependencies("p2", {"s", "sd", "Uref"});
+    AddFmuVariableDependencies("U", {"Uref"});
+
     // Specify functions to process input variables (at beginning of step)
     m_preStepCallbacks.push_back([this]() { this->m_actuator->SetActuatorLength(s, sd); });
     m_preStepCallbacks.push_back([this]() { this->m_actuation->SetSetpoint(Uref, this->GetTime()); });

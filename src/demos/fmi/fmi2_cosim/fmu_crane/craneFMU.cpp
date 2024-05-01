@@ -66,6 +66,11 @@ FmuComponent::FmuComponent(fmi2String instanceName,
     AddFmuVariable(&F, "F", FmuVariable::Type::Real, "N", "actuator force",                       //
                    FmuVariable::CausalityType::input, FmuVariable::VariabilityType::continuous);   //
 
+    // Specify variable dependencies
+    AddFmuVariableDependencies("init_F", {"crane_mass", "crane_length", "crane_angle", "pend_mass", "pend_length"});
+    AddFmuVariableDependencies("s", {"crane_length", "crane_angle", "pend_length"});
+    AddFmuVariableDependencies("sd", {"crane_length", "crane_angle", "pend_length"});
+
 #ifdef CHRONO_IRRLICHT
     if (visible == fmi2True)
         vis_sys = chrono_types::make_shared<irrlicht::ChVisualSystemIrrlicht>();
