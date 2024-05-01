@@ -10,14 +10,10 @@ set(DEMOS
     demo_VEH_Test_ISO2631_Ride
     demo_VEH_Test_ISO2631_Shock
     demo_VEH_Test_Accel
-    demo_VEH_Test_FEDA_SSC
     demo_VEH_Test_FMTV_Ride
 )
 
 if(HAVE_OPENCRG)
-   set(DEMOS ${DEMOS}
-       demo_VEH_Test_FEDA_RideTool
-   )
    if(ENABLE_MODULE_VSG)
       set(DEMOS ${DEMOS}
           demo_VEH_Test_FEDA_Ride
