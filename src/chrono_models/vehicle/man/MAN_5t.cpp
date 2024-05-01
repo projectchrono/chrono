@@ -41,6 +41,7 @@ MAN_5t::MAN_5t()
     : m_system(nullptr),
       m_vehicle(nullptr),
       m_contactMethod(ChContactMethod::NSC),
+      m_collsysType(ChCollisionSystem::Type::BULLET),
       m_chassisCollisionType(CollisionType::NONE),
       m_fixed(false),
       m_brake_locking(false),
@@ -58,6 +59,7 @@ MAN_5t::MAN_5t(ChSystem* system)
     : m_system(system),
       m_vehicle(nullptr),
       m_contactMethod(ChContactMethod::NSC),
+      m_collsysType(ChCollisionSystem::Type::BULLET),
       m_chassisCollisionType(CollisionType::NONE),
       m_fixed(false),
       m_engineType(EngineModelType::SIMPLE_MAP),
@@ -89,7 +91,7 @@ void MAN_5t::Initialize() {
     // Create and initialize the MAN_5t vehicle
     m_vehicle = m_system ? new MAN_5t_Vehicle(m_system, m_fixed, m_brake_type, m_chassisCollisionType)
                          : new MAN_5t_Vehicle(m_fixed, m_brake_type, m_contactMethod, m_chassisCollisionType);
-
+    m_vehicle->SetCollisionSystemType(m_collsysType);
     m_vehicle->SetInitWheelAngVel(m_initOmega);
     m_vehicle->Initialize(m_initPos, m_initFwdVel);
 

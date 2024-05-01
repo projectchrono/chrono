@@ -41,6 +41,7 @@ MAN_10t::MAN_10t()
     : m_system(nullptr),
       m_vehicle(nullptr),
       m_contactMethod(ChContactMethod::NSC),
+      m_collsysType(ChCollisionSystem::Type::BULLET),
       m_chassisCollisionType(CollisionType::NONE),
       m_fixed(false),
       m_use_8WD_drivetrain(false),
@@ -59,6 +60,7 @@ MAN_10t::MAN_10t(ChSystem* system)
     : m_system(system),
       m_vehicle(nullptr),
       m_contactMethod(ChContactMethod::NSC),
+      m_collsysType(ChCollisionSystem::Type::BULLET),
       m_chassisCollisionType(CollisionType::NONE),
       m_fixed(false),
       m_use_8WD_drivetrain(false),
@@ -93,7 +95,7 @@ void MAN_10t::Initialize() {
         m_system
             ? new MAN_10t_Vehicle(m_system, m_fixed, m_brake_type, m_chassisCollisionType, m_use_8WD_drivetrain)
             : new MAN_10t_Vehicle(m_fixed, m_brake_type, m_contactMethod, m_chassisCollisionType, m_use_8WD_drivetrain);
-
+    m_vehicle->SetCollisionSystemType(m_collsysType);
     m_vehicle->SetInitWheelAngVel(m_initOmega);
     m_vehicle->Initialize(m_initPos, m_initFwdVel);
 

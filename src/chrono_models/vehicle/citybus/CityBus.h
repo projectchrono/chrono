@@ -49,6 +49,7 @@ class CH_MODELS_API CityBus {
     ~CityBus();
 
     void SetContactMethod(ChContactMethod val) { m_contactMethod = val; }
+    void SetCollisionSystemType(ChCollisionSystem::Type collsys_type) { m_collsysType = collsys_type; }
 
     void SetChassisFixed(bool val) { m_fixed = val; }
     void SetChassisCollisionType(CollisionType val) { m_chassisCollisionType = val; }
@@ -90,6 +91,7 @@ class CH_MODELS_API CityBus {
     CityBus_Vehicle* m_vehicle;
 
     ChContactMethod m_contactMethod;
+    ChCollisionSystem::Type m_collsysType;
     CollisionType m_chassisCollisionType;
     bool m_fixed;
     bool m_brake_locking;
