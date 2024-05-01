@@ -25,6 +25,7 @@
 #include "chrono_vehicle/ChApiVehicle.h"
 #include "chrono_vehicle/ChVehicle.h"
 #include "chrono_vehicle/ChDriver.h"
+#include "chrono_vehicle/ChTerrain.h"
 
 namespace chrono {
 namespace vehicle {
@@ -39,6 +40,9 @@ class CH_VEHICLE_API ChVehicleVisualSystem : virtual public ChVisualSystem {
 
     /// Attach a vehicle to this vehicle visualization system.
     virtual void AttachVehicle(vehicle::ChVehicle* vehicle);
+
+    /// Attach a terrain system to this vehicle visualization system (optional).
+    virtual void AttachTerrain(vehicle::ChTerrain* terrain);
 
     /// Set parameters for the underlying chase camera.
     void SetChaseCamera(const ChVector3d& ptOnChassis,  ///< tracked point on chassis body (in vehicle reference frame)
@@ -68,6 +72,7 @@ class CH_VEHICLE_API ChVehicleVisualSystem : virtual public ChVisualSystem {
     double GetStepRTF() const;
 
     const ChVehicle& GetVehicle() const { return *m_vehicle; }
+    const ChTerrain* GetTerrain() const { return m_terrain; }
     const utils::ChChaseCamera& GetChaseCamera() const { return *m_camera; }
     double GetSteering() const { return m_steering; }
     double GetThrottle() const { return m_throttle; }
@@ -76,6 +81,7 @@ class CH_VEHICLE_API ChVehicleVisualSystem : virtual public ChVisualSystem {
 
   protected:
     ChVehicle* m_vehicle;  ///< pointer to the associated vehicle system
+    ChTerrain* m_terrain;  ///< pointer to an associated terrain system
 
     std::unique_ptr<utils::ChChaseCamera> m_camera;  ///< chase camera
     double m_stepsize;                               ///< integration step size for chase-cam dynamics
