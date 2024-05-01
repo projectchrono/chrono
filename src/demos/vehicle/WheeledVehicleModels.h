@@ -563,12 +563,11 @@ void Cherokee_Model::Construct(const ChCoordsys<>& init_pos, VisualizationType c
     cherokee->SetChassisCollisionType(chassis_collision_type);
     cherokee->SetChassisFixed(false);
     cherokee->SetInitPosition(init_pos);
-    cherokee->SetTireType(TireModelType::TMSIMPLE);
+    cherokee->SetTireType(TireModelType::TMEASY);
     cherokee->SetBrakeType(BrakeType::SHAFTS);
     cherokee->Initialize();
 
-    // def cherokee->SetChassisVisualizationType(chassis_vis);
-    cherokee->SetChassisVisualizationType(VisualizationType::MESH);
+    cherokee->SetChassisVisualizationType(chassis_vis);
     cherokee->SetSuspensionVisualizationType(VisualizationType::PRIMITIVES);
     cherokee->SetSteeringVisualizationType(VisualizationType::PRIMITIVES);
     cherokee->SetWheelVisualizationType(VisualizationType::MESH);
@@ -1116,6 +1115,7 @@ void U401_Model::Construct(const ChCoordsys<>& init_pos, VisualizationType chass
     u401->SetChassisFixed(false);
     u401->SetInitPosition(init_pos);
     u401->SetTireType(TireModelType::TMEASY);
+    u401->SetBrakeType(BrakeType::SHAFTS);
     u401->SetInitFwdVel(0.0);
     u401->Initialize();
 

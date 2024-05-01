@@ -53,22 +53,21 @@ Cherokee_Chassis::Cherokee_Chassis(const std::string& name, bool fixed, Collisio
 
     m_geometry.m_has_collision = (chassis_collision_type != CollisionType::NONE);
     switch (chassis_collision_type) {
+        default:
         case CollisionType::PRIMITIVES:
             box1.m_matID = 0;
             m_geometry.m_coll_boxes.push_back(box1);
             break;
-        case CollisionType::HULLS: {
-            ChVehicleGeometry::ConvexHullsShape hull("hmmwv/Cherokee_Chassis_simple.obj", 0);
-            m_geometry.m_coll_hulls.push_back(hull);
-            break;
-        }
-        case CollisionType::MESH: {
-            ChVehicleGeometry::TrimeshShape trimesh(ChVector3d(), "hmmwv/Cherokee_Chassis_simple.obj", 0.005, 0);
-            m_geometry.m_coll_meshes.push_back(trimesh);
-            break;
-        }
-        default:
-            break;
+        ////case CollisionType::HULLS: {
+        ////    ChVehicleGeometry::ConvexHullsShape hull("jeep/JeepCherokee_collision.obj", 0);
+        ////    m_geometry.m_coll_hulls.push_back(hull);
+        ////    break;
+        ////}
+        ////case CollisionType::MESH: {
+        ////    ChVehicleGeometry::TrimeshShape trimesh(ChVector3d(), "jeep/JeepCherokee_collision.obj", 0.005, 0);
+        ////    m_geometry.m_coll_meshes.push_back(trimesh);
+        ////    break;
+        ////}
     }
 }
 

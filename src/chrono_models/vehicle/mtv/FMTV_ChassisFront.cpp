@@ -75,13 +75,10 @@ FMTV_ChassisFront::FMTV_ChassisFront(const std::string& name, bool fixed, Collis
 
     m_geometry.m_has_collision = (chassis_collision_type != CollisionType::NONE);
     switch (chassis_collision_type) {
-        case CollisionType::HULLS:
-            // For now, fall back to using primitive collision shapes
+        default:
         case CollisionType::PRIMITIVES:
             box.m_matID = 0;
             m_geometry.m_coll_boxes.push_back(box);
-            break;
-        default:
             break;
     }
 }

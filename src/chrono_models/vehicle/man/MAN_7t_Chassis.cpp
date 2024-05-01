@@ -68,17 +68,16 @@ MAN_7t_Chassis::MAN_7t_Chassis(const std::string& name, bool fixed, CollisionTyp
 
     m_geometry.m_has_collision = (chassis_collision_type != CollisionType::NONE);
     switch (chassis_collision_type) {
+        default:
         case CollisionType::PRIMITIVES:
             box1.m_matID = 0;
             m_geometry.m_coll_boxes.push_back(box1);
             break;
-        case CollisionType::HULLS: {
-            ChVehicleGeometry::ConvexHullsShape hull("MAN_Kat1/meshes/MAN_7t_chassis_col.obj", 0);
-            m_geometry.m_coll_hulls.push_back(hull);
-            break;
-        }
-        default:
-            break;
+        ////case CollisionType::HULLS: {
+        ////    ChVehicleGeometry::ConvexHullsShape hull("MAN_Kat1/meshes/MAN_7t_chassis_col.obj", 0);
+        ////    m_geometry.m_coll_hulls.push_back(hull);
+        ////    break;
+        ////}
     }
 }
 

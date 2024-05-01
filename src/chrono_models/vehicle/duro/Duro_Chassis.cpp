@@ -72,6 +72,7 @@ Duro_Chassis::Duro_Chassis(const std::string& name, bool fixed, CollisionType ch
 
     m_geometry.m_has_collision = (chassis_collision_type != CollisionType::NONE);
     switch (chassis_collision_type) {
+        default:
         case CollisionType::PRIMITIVES:
             box1.m_matID = 0;
             m_geometry.m_coll_boxes.push_back(box1);
@@ -81,8 +82,6 @@ Duro_Chassis::Duro_Chassis(const std::string& name, bool fixed, CollisionType ch
         ////    m_geometry.m_coll_hulls.push_back(hull);
         ////    break;
         ////}
-        default:
-            break;
     }
 }
 
