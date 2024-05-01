@@ -6,7 +6,7 @@ if(HAVE_URDF)
   SET(TESTS
     ${TESTS}
     utest_PARSERS_URDF_simple
-    ##utest_PARSERS_URDF_package
+    utest_PARSERS_URDF_package
   )
 endif()
 

@@ -1651,8 +1651,23 @@ In some instances, the reader is directed to the "Notes" section for more detail
   - Added support for rendering emissive surfaces. When defining a visual material, set `ChVisualMaterial::SetEmissiveColor(ChColor color)` and set `ChVisualMaterial:SetEmissivePower(float power)`.
   - Added a Depth Camera sensor (`ChDepthCamera`). The Depth Camera is initialized in the same manner as `ChCameraSensor` , with each pixel containing depth information of the scene in meters (m).
   - Added support for the Hapke BRDF model to render celestial bodies (ex: Lunar regolith). To enable, when defining a material set `ChVisualMaterial:SetUseHapke(bool enableHapke)` and set the model parameters using `ChVisualMaterial:SetHapkeParameters(float w,...)`. More information regarding the Hapke model and its parametrization can be found in <https://doi.org/10.1002/2013JE004580>.
-  - Added a Random Walk based noise model for GPS sensor. To enable this noise model, when adding a `ChGPSSensor`, set a pointer to a `ChNoiseRandomWalks`object as the noise model parameter.
+  - Added a Random Walk based noise model for GPS sensor. To enable this noise model, when adding a `ChGPSSensor`, set a pointer to a `ChNoiseRandomWalks` object as the noise model parameter.
 
+## [Added] Chrono::ROS Module
+
+A new module (`Chrono::ROS`) has been introduced to support direct integration of ROS 2 with Chrono. `Chrono::ROS` provides a bridge between the Chrono simulation and the ROS 2 middleware, allowing for communication of sensor data, vehicle and transformation data, and more. Compatibility with specific Chrono modules, including `Chrono::Vehicle` and `Chrono::Sensor`, is provided. In addition to providing a few default publishers and subscribers, the module exposes an API for creating custom ROS 2 logic within the Chrono simulation.
+
+The `ChROSManager` class is the main interface for the `Chrono::ROS` module. It maintains a single `ChROSInterface` object which wraps a ROS 2 node and provides the ability to create publishers and subscribers. The `ChROSHandler` class is the base class which all ROS 2 logic (i.e. publishers, subscribers, etc.) inherit from. During initialization, the `ChROSInterface` in the `ChROSManager` is passed to the `ChROSHandler` object through the `ChROSHandler::Initialize` function. This allows the `ChROSHandler` object to create ROS 2 objects. Over the course of the simulation, the `ChROSManager` calls `ChROSHandler::Tick` on each handler at a fixed rate to update each handler _relative to the simulation time_. As Chrono may run faster or slower than wall time, it's recommended to set ROS 2 `/use_sim_time` to `true` in all ROS nodes. Multiple nodes may be created by setting the node name in the `ChROSManager` constructor.
+
+Python bindings are also provided for the `Chrono::ROS` module. It can be imported via the `pychrono.ros` module. ROS 2 doesn't directly support wrapping of it's C++ API for use in python, and so a special `ChROSPythonManager` class was created for situations where you need direct access to the ROS 2 API (such as creating a custom handler). When the ChROSPythonManager is used, two nodes are created: the original C++ `rclcpp` node in `ChROSManager`/`ChROSInterface` and the new `rclpy`-based node. The node name for the `rclpy` node (settable via the constructor) is always the `rclcpp` node name with `_py` appended. This allows for the creation of ROS 2 publishers and subscribers in python (as two nodes can't have the same name). All python-based handlers (i.e. when a custom handler inherits from `ChROSHandler` in python) must be added to the `ChROSPythonManager` object, not the `ChROSManager` object. All C++-based handlers can be added to either the `ChROSManager` or `ChROSPythonManager` objects, as in the `ChROSManager` may still be used if custom handlers aren't created in python.
+
+The `Chrono::ROS` module currently only supports ROS 2 humble, and no additional dependencies are required beyond the ROS 2 installation. To build the `Chrono::ROS` module, set the cmake option `ENABLE_MODULE_ROS` to `ON`.
+
+Locations:
+- `Chrono::ROS` source code is maintained under `src/chrono_ros/`
+- `Chrono::ROS` python bindings are maintained under `src/chrono_swig/interface/ros`
+- Demos are located in `src/demos/ros/`
+- Unit tests are located in `src/unit_tests/ros/`
 
 ## [Changed] Updated Chrono::VSG module
 

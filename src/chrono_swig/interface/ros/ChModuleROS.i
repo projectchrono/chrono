@@ -269,7 +269,7 @@ class ChROSSingleThreadedExecutor(rclpy.executors.SingleThreadedExecutor):
       break
 
 class ChROSPythonInterface:
-  def __init__(self, node_name: str = "chrono_ros_node_py"):
+  def __init__(self, node_name: str):
     self.node_name = node_name
 
     self.executor: rclpy.executors.Executor = None
@@ -298,10 +298,10 @@ class ChROSPythonInterface:
 class ChROSPythonManager(ChROSManager):
   """Override the base implemenation to allow for python defined handlers."""
 
-  def __init__(self, *args, **kwargs):
-    super().__init__(*args, **kwargs)
+  def __init__(self, node_name: str = "chrono_ros_node"):
+    super().__init__(node_name)
 
-    self.interface_py = ChROSPythonInterface()
+    self.interface_py = ChROSPythonInterface(f"{node_name}_py")
     self.handlers_py: List[ChROSHandler] = []
 
     self._update_rclpy: bool = False
