@@ -1,7 +1,7 @@
 // =============================================================================
 // PROJECT CHRONO - http://projectchrono.org
 //
-// Copyright (c) 2014 projectchrono.org
+// Copyright (c) 2024 projectchrono.org
 // All rights reserved.
 //
 // Use of this source code is governed by a BSD-style license that can be found
@@ -317,8 +317,6 @@ int main(int argc, char* argv[]) {
     // Create the vehicle model
     vehicle_model->Create(&sys, init_csys);
     auto& vehicle = vehicle_model->GetVehicle();
-
-    vehicle.GetSystem()->SetCollisionSystemType(ChCollisionSystem::Type::BULLET);
 
     // --------------------
     // Create driver system

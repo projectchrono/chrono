@@ -1,7 +1,7 @@
 // =============================================================================
 // PROJECT CHRONO - http://projectchrono.org
 //
-// Copyright (c) 2014 projectchrono.org
+// Copyright (c) 2024 projectchrono.org
 // All rights reserved.
 //
 // Use of this source code is governed by a BSD-style license that can be found
@@ -107,10 +107,9 @@ int main(int argc, char* argv[]) {
     auto vehicle_model = models[which - 1].first;
 
     // Create the vehicle model
+    vehicle_model->SetCollisionSystemType(ChCollisionSystem::Type::BULLET);
     vehicle_model->Create(contact_method, ChCoordsys<>(ChVector3d(0, 0, 0.5), QUNIT));
     auto& vehicle = vehicle_model->GetVehicle();
-
-    vehicle.GetSystem()->SetCollisionSystemType(ChCollisionSystem::Type::BULLET);
 
     // Create the terrain
     RigidTerrain terrain(vehicle.GetSystem());

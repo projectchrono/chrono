@@ -1,3 +1,24 @@
+// =============================================================================
+// PROJECT CHRONO - http://projectchrono.org
+//
+// Copyright (c) 2024 projectchrono.org
+// All rights reserved.
+//
+// Use of this source code is governed by a BSD-style license that can be found
+// in the LICENSE file at the top level of the distribution and at
+// http://projectchrono.org/license-chrono.txt.
+//
+// =============================================================================
+// Authors: Rainer Gericke
+// =============================================================================
+//
+// Steady-state corenring test for Chrono::Vehicle models.
+//
+// The vehicle reference frame has Z up, X towards the front of the vehicle, and
+// Y pointing to the left.
+//
+// =============================================================================
+
 #include "chrono/physics/ChSystemSMC.h"
 #include "chrono/assets/ChVisualShapeBox.h"
 #include "chrono_vehicle/ChVehicleModelData.h"
@@ -18,7 +39,7 @@ using namespace chrono;
 using namespace chrono::postprocess;
 
 int main(int argc, char** argv) {
-    std::cout << "Copyright (c) 2017 projectchrono.org\nChrono version: " << CHRONO_VERSION << std::endl;
+    std::cout << "Copyright (c) 2024 projectchrono.org\nChrono version: " << CHRONO_VERSION << std::endl;
 
     ChCLI cli(argv[0]);
 
@@ -79,6 +100,7 @@ int main(int argc, char** argv) {
         else
             crg_road_file = vehicle::GetDataFile("terrain/crg_roads/circle_50m_left.crg");
     }
+
     // ----------------------------
     // Create the containing system
     // ----------------------------
@@ -120,9 +142,6 @@ int main(int argc, char** argv) {
     std::cout << "Road width  = " << road_width << std::endl;
     std::cout << std::boolalpha << "Closed loop?  " << path_is_closed << std::endl << std::endl;
 
-    terrain.GetGround()->AddVisualShape(chrono_types::make_shared<ChVisualShapeBox>(ChBox(1, road_width, 1)),
-                                        ChFrame<>(init_csys.pos - 0.5 * ChWorldFrame::Vertical(), init_csys.rot));
-
     // ------------------
     // Create the vehicle
     // ------------------
@@ -149,13 +168,12 @@ int main(int argc, char** argv) {
     vehicle_model->Create(&sys, init_csys);
     auto& vehicle = vehicle_model->GetVehicle();
 
-    vehicle.GetSystem()->SetCollisionSystemType(ChCollisionSystem::Type::BULLET);
-
     ChPathFollowerDriver driver(vehicle, path, "my_path", target_speed);
     driver.GetSteeringController().SetLookAheadDistance(5.0);
     driver.GetSteeringController().SetGains(P_gain, I_gain, D_gain);
     driver.GetSpeedController().SetGains(0.4, 0, 0);
     driver.Initialize();
+
     // ----------------
     // Output directory
     // ----------------
@@ -196,12 +214,10 @@ int main(int argc, char** argv) {
         resfilename.append("_left.txt");
         anglefilename.append("_left.txt");
     }
+
     // -------------------------------
     // Create the visualization system
     // -------------------------------
-
-    // Running average of vehicle speed
-    utils::ChRunningAverage dev_filter(500);
 
     auto vis = chrono_types::make_shared<ChWheeledVehicleVisualSystemVSG>();
     vis->SetWindowTitle("OpenCRG Steering");
@@ -223,6 +239,9 @@ int main(int argc, char** argv) {
     // Simulation loop
     // ---------------
 
+    // Running average of vehicle speed
+    utils::ChRunningAverage dev_filter(500);
+
     // vehicle.EnableRealtime(true);
 
     // Number of simulation steps between image outputs
@@ -240,12 +259,13 @@ int main(int argc, char** argv) {
         double roll = vehicle.GetRoll() * CH_RAD_TO_DEG;
         double pitch = vehicle.GetPitch() * CH_RAD_TO_DEG;
         double veh_slip_angle = vehicle.GetSlipAngle() * CH_RAD_TO_DEG;
+
         // Driver inputs
         DriverInputs driver_inputs = driver.GetInputs();
 
+        // Update sentinel and target location markers for the path-follower controller
         auto sentinelPos = driver.GetSteeringController().GetSentinelLocation();
         auto targetPos = driver.GetSteeringController().GetTargetLocation();
-        // Update sentinel and target location markers for the path-follower controller.
         vis->UpdateVisualModel(sentinelID, ChFrame<>(sentinelPos));
         vis->UpdateVisualModel(targetID, ChFrame<>(targetPos));
         double deviation =
@@ -263,15 +283,15 @@ int main(int argc, char** argv) {
             target_speed += speed_step;
             driver.SetDesiredSpeed(target_speed);
         }
+
         // Render scene and output images
         if (sim_frame % render_steps == 0) {
             vis->Render();
 
             if (output_images) {
-                char filename[200];
-                int nstr = sizeof(filename) - 1;
-                snprintf(filename, nstr, "%s/image_%05d.png", out_dir.c_str(), render_frame);
-                vis->WriteImageToFile(filename);
+                std::ostringstream filename;
+                filename << out_dir << "/img_" << std::setw(4) << std::setfill('0') << render_frame + 1 << ".png";
+                vis->WriteImageToFile(filename.str());
                 render_frame++;
             }
         }
@@ -291,9 +311,11 @@ int main(int argc, char** argv) {
 
         // Increment simulation frame number
         sim_frame++;
+
         if (time > t_end)
             break;
     }
+
     csv.WriteToFile(datafilename);
     csv_res.WriteToFile(resfilename);
     csv_angle.WriteToFile(anglefilename);
@@ -359,5 +381,6 @@ int main(int argc, char** argv) {
         mplot_angle.Plot(anglefilename, 1, 3, "Pitch", " with linespoints");
         mplot_angle.Plot(anglefilename, 1, 4, "Vehicle Slip Angle", " with linespoints");
     }
+
     return 0;
 }
