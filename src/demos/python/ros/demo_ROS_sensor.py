@@ -54,13 +54,13 @@ def main():
     sens_manager = sens.ChSensorManager(sys)
 
     intensity = 1.0
-    sens_manager.scene.AddPointLight(ch.ChVectorF(2, 2.5, 100), ch.ChColor(
+    sens_manager.scene.AddPointLight(ch.ChVector3f(2, 2.5, 100), ch.ChColor(
         intensity, intensity, intensity), 500.0)
-    sens_manager.scene.AddPointLight(ch.ChVectorF(9, 2.5, 100), ch.ChColor(
+    sens_manager.scene.AddPointLight(ch.ChVector3f(9, 2.5, 100), ch.ChColor(
         intensity, intensity, intensity), 500.0)
-    sens_manager.scene.AddPointLight(ch.ChVectorF(16, 2.5, 100), ch.ChColor(
+    sens_manager.scene.AddPointLight(ch.ChVector3f(16, 2.5, 100), ch.ChColor(
         intensity, intensity, intensity), 500.0)
-    sens_manager.scene.AddPointLight(ch.ChVectorF(23, 2.5, 100), ch.ChColor(
+    sens_manager.scene.AddPointLight(ch.ChVector3f(23, 2.5, 100), ch.ChColor(
         intensity, intensity, intensity), 500.0)
 
     offset_pose = ch.ChFramed(ch.ChVector3d(-8, 0, 2),
