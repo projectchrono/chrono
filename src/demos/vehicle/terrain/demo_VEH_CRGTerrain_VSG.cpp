@@ -356,6 +356,7 @@ int main(int argc, char* argv[]) {
     vis->SetLightDirection(1.5 * CH_PI_2, CH_PI_4);
     vis->SetShadows(true);
     vis->AttachVehicle(&vehicle);
+    vis->AttachTerrain(&terrain);
 
     auto sentinel = chrono_types::make_shared<ChVisualShapeSphere>(0.1);
     auto target = chrono_types::make_shared<ChVisualShapeSphere>(0.1);
