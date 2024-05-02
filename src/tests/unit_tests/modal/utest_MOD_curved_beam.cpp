@@ -55,6 +55,10 @@ void RunCurvedBeam(bool do_modal_reduction, bool use_herting, ChVector3d& res) {
     int n_parts = 5;
     int n_totalelements = n_parts * 8;
 
+    // damping coefficients
+    double damping_alpha = 0;
+    double damping_beta = 0.002;
+
     double b = 1.0;
     double h = 1.0;
     double Area = b * h;
@@ -98,8 +102,8 @@ void RunCurvedBeam(bool do_modal_reduction, bool use_herting, ChVector3d& res) {
     Klaw(0, 5) = k16;
     Klaw(5, 0) = k16;
     section->SetStiffnessMatrixFPM(Klaw);
-    section->SetRayleighDampingBeta(0.002);
-    section->SetRayleighDampingAlpha(0.000);
+    section->SetRayleighDampingBeta(damping_beta);
+    section->SetRayleighDampingAlpha(damping_alpha);
 
     auto tapered_section = chrono_types::make_shared<ChBeamSectionTaperedTimoshenkoAdvancedGenericFPM>();
     tapered_section->SetSectionA(section);
@@ -109,6 +113,9 @@ void RunCurvedBeam(bool do_modal_reduction, bool use_herting, ChVector3d& res) {
     auto MakeSingleModalAssembly = [&](std::shared_ptr<ChModalAssembly> mod_assem, int mn_ele, double mstart_angle,
                                        double mend_angle) {
         // Settings
+        mod_assem->SetInternalNodesUpdate(true);
+        mod_assem->SetUseLinearInertialTerm(true);
+        mod_assem->SetUseStaticCorrection(false);
         mod_assem->SetModalAutomaticGravity(true);  // with gravity
         if (use_herting)
             mod_assem->SetReductionType(chrono::modal::ChModalAssembly::ReductionType::HERTING);
@@ -217,9 +224,9 @@ void RunCurvedBeam(bool do_modal_reduction, bool use_herting, ChVector3d& res) {
         ChGeneralizedEigenvalueSolverKrylovSchur eigen_solver;
 
         auto modes_settings = ChModalSolveUndamped(12, 1e-5, 500, 1e-10, false, eigen_solver);
+        auto damping_beam = ChModalDampingRayleigh(damping_alpha, damping_beta);
 
         for (int i_part = 0; i_part < n_parts; i_part++) {
-            auto damping_beam = ChModalDampingReductionR(*modal_assembly_list.at(i_part));
             modal_assembly_list.at(i_part)->DoModalReduction(modes_settings, damping_beam);
         }
     }

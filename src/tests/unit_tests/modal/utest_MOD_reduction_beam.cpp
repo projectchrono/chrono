@@ -61,6 +61,10 @@ void RunSlewingBeam(bool do_modal_reduction, bool use_herting, ChMatrixDynamic<>
     int n_parts = 1;
     int n_totalelements = n_parts * 10;
 
+    // damping coefficients
+    double damping_alpha = 0;
+    double damping_beta = 0.005;
+
     double EA = 5.03e6;
     double GJxx = 6.047e5;
     double EIyy = 1.654 * 20;  // increase the bending stiffness by 20 times, otherwise the simulation tends to
@@ -102,13 +106,16 @@ void RunSlewingBeam(bool do_modal_reduction, bool use_herting, ChMatrixDynamic<>
     section->SetShearCenterY(0);
     section->SetShearCenterZ(0);
     section->SetArtificialJyyJzzFactor(1.0 / 500.0);
-    section->SetRayleighDampingBeta(0.005);
-    section->SetRayleighDampingAlpha(0.000);
+    section->SetRayleighDampingBeta(damping_beta);
+    section->SetRayleighDampingAlpha(damping_alpha);
 
     // A function to make a single modal assembly
     auto MakeSingleModalAssembly = [&](std::shared_ptr<ChModalAssembly> mod_assem, int mn_ele, double mstart_x,
                                        double mend_x) {
         // Settings
+        mod_assem->SetInternalNodesUpdate(true);
+        mod_assem->SetUseLinearInertialTerm(true);
+        mod_assem->SetUseStaticCorrection(false);
         mod_assem->SetModalAutomaticGravity(false);  // no gravity
         if (use_herting)
             mod_assem->SetReductionType(chrono::modal::ChModalAssembly::ReductionType::HERTING);
@@ -201,9 +208,9 @@ void RunSlewingBeam(bool do_modal_reduction, bool use_herting, ChMatrixDynamic<>
         // The success of eigen solve is sensitive to the frequency shift (1e-4). If the eigen solver fails, try to
         // tune the shift value.
         auto modes_settings = ChModalSolveUndamped(12, 1e-4, 500, 1e-10, false, eigen_solver);
+        auto damping_beam = ChModalDampingRayleigh(damping_alpha, damping_beta);
 
         for (int i_part = 0; i_part < n_parts; i_part++) {
-            auto damping_beam = ChModalDampingReductionR(*modal_assembly_list.at(i_part));
             modal_assembly_list.at(i_part)->DoModalReduction(modes_settings, damping_beam);
         }
     }
@@ -354,7 +361,8 @@ int main(int argc, char* argv[]) {
     bool check_Herting = CompareResults(res_corot, res_modal_Herting);
 
     bool is_passed = check_CraigBampton && check_Herting;
-    std::cout << "\nUNIT TEST of modal assembly with reduction beam: " << (is_passed ? "PASSED" : "FAILED") << std::endl;
+    std::cout << "\nUNIT TEST of modal assembly with reduction beam: " << (is_passed ? "PASSED" : "FAILED")
+              << std::endl;
 
     return !is_passed;
 }
