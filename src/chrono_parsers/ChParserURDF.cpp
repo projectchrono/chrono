@@ -223,9 +223,9 @@ std::string ChParserURDF::resolveFilename(const std::string& filename) {
             result_filename = path;
 
             // Check if the path is relative (make it absolute if yes) or if it's absolute.
-            filesystem::path path(result_filename);
-            if (!path.is_absolute())
-                result_filename = (filesystem::path(m_filepath) / path).make_absolute().str();
+            filesystem::path fpath(result_filename);
+            if (!fpath.is_absolute())
+                result_filename = (filesystem::path(m_filepath) / fpath).make_absolute().str();
         } else {
             cerr << "While resolving " + filename + ": Schemes of form [" + scheme + "] are not supported." << endl;
             result_filename = filename;
@@ -234,9 +234,9 @@ std::string ChParserURDF::resolveFilename(const std::string& filename) {
         result_filename = filename;
 
         // Check if the path is relative (make it absolute if yes) or if it's absolute.
-        filesystem::path path(result_filename);
-        if (!path.is_absolute())
-            result_filename = (filesystem::path(m_filepath) / path).make_absolute().str();
+        filesystem::path fpath(result_filename);
+        if (!fpath.is_absolute())
+            result_filename = (filesystem::path(m_filepath) / fpath).make_absolute().str();
     }
 
     return result_filename;
