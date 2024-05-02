@@ -686,6 +686,7 @@ void Gator_Model::Construct(const ChCoordsys<>& init_pos, VisualizationType chas
     gator->SetChassisFixed(false);
     gator->SetInitPosition(init_pos);
     gator->SetTireType(TireModelType::TMEASY);
+    gator->SetDrivelineType(DrivelineTypeWV::SIMPLE);
     gator->SetBrakeType(chrono::vehicle::BrakeType::SHAFTS);
     gator->SetAerodynamicDrag(0.5, 5.0, 1.2);
     gator->Initialize();
