@@ -657,7 +657,6 @@ class ChApiModal ChModalAssembly : public ChAssembly {
     // the extended K M R matrices for modal assembly with constraints
     ChSparseMatrix full_K_loc_ext;  //=[Kloc, CqIloc^T; CqIloc, 0]
     ChSparseMatrix full_M_loc_ext;  //=[Mloc, 0; 0, 0]
-    ChSparseMatrix full_R_loc_ext;  //=[Rloc, 0; 0, 0]
 
     // reduced system matrices in the local floating frame of reference F
     ChMatrixDynamic<> M_red;  //=Psi^T * full_M_loc_ext * Psi
@@ -673,13 +672,15 @@ class ChApiModal ChModalAssembly : public ChAssembly {
     ChSparseMatrix K_BI_loc;
     ChSparseMatrix K_IB_loc;
     ChSparseMatrix K_II_loc;
-    ChSparseMatrix R_II_loc;  // for test. todo: remove
+    //ChSparseMatrix R_II_loc;  // for test. todo: remove
     ChSparseMatrix Cq_IB_loc;
     ChSparseMatrix Cq_II_loc;
     ChSparseMatrix Cq_I_loc;
 
     ChSparseMatrix MBI_PsiST_MII;  // an intermediate matrix frequently used when SetUseStaticCorrection(true)
     ChMatrixDynamic<> PTKredP;  // an intermediate matrix, = P_perp_0^T * K_red * P_perp_0, which needs to be recomputed
+                                // if m_num_coords_static_correction = true
+    ChMatrixDynamic<> PTRredP;  // an intermediate matrix, = P_perp_0^T * R_red * P_perp_0, which might need to be recomputed
                                 // if m_num_coords_static_correction = true
 
     ReductionType m_modal_reduction_type =

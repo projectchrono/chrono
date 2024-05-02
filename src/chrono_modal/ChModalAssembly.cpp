@@ -426,7 +426,7 @@ void ChModalAssembly::UpdateFloatingFrameOfReference() {
         ComputeConstraintResidualF(constr_F);
 
         // Jacobian of the constraint vector C_F w.r.t. the floating frame F
-        ChMatrixDynamic<> jac_F(6,6);
+        ChMatrixDynamic<> jac_F(6, 6);
         jac_F.setZero();
         jac_F = -this->U_locred_0.transpose() * this->M_red * this->U_locred * this->P_F.transpose();
 
@@ -629,7 +629,7 @@ void ChModalAssembly::ComputeLocalFullKMCqMatrices(ChSparseMatrix& full_M,
     full_Cq_loc.makeCompressed();
 
     // temporarily retrieve the original local damping matrix
-    // todo: develop a more reasonable modal damping model
+    // todo: develop a more reasonable modal damping model, and remove below code
     ChSparseMatrix full_R;
     this->GetSubassemblyDampingMatrix(&full_R);
     full_R_loc = L_BI.transpose() * full_R * L_BI;
@@ -663,12 +663,6 @@ void ChModalAssembly::PartitionLocalSystemMatrices() {
     K_IB_loc.makeCompressed();
     K_II_loc.makeCompressed();
 
-    // for test. todo: remove
-    // damping matrix
-    R_II_loc = this->full_R_loc.block(m_num_coords_vel_boundary, m_num_coords_vel_boundary, m_num_coords_vel_internal,
-                                      m_num_coords_vel_internal);
-    R_II_loc.makeCompressed();
-
     // constraint matrix
     if (m_num_constr_internal) {
         Cq_I_loc = this->full_Cq_loc.bottomRows(m_num_constr_internal);
@@ -689,15 +683,12 @@ void ChModalAssembly::PartitionLocalSystemMatrices() {
         ChSparseMatrix temp_zero(Cq_I_loc.rows(), Cq_I_loc.cols());
         temp_zero.setZero();
         util_sparse_assembly_2x2symm(full_M_loc_ext, full_M_loc, temp_zero);
-        util_sparse_assembly_2x2symm(full_R_loc_ext, full_R_loc, temp_zero);
     } else {
         full_K_loc_ext = full_K_loc;
         full_M_loc_ext = full_M_loc;
-        full_R_loc_ext = full_R_loc;
     }
     full_K_loc_ext.makeCompressed();
     full_M_loc_ext.makeCompressed();
-    full_R_loc_ext.makeCompressed();
 }
 
 void ChModalAssembly::ApplyModeAccelerationTransformation(const ChModalDamping& damping_model) {
@@ -938,18 +929,11 @@ void ChModalAssembly::ApplyModeAccelerationTransformation(const ChModalDamping& 
             Psi_Cor.transpose() * K_II_loc * Psi_Cor;
     }
 
-    // temporarily set reduced damping matrix from the original local matrix
-    // todo: develop a more reasonable modal damping model
     {
         // Initialize the reduced damping matrix
         this->R_red.setZero(this->K_red.rows(), this->K_red.cols());
         // Modal reduction of R damping matrix: compute using user-provided damping model.
-        // ChModalDampingNone damping_model;
-        // damping_model.ComputeR(*this, this->M_red, this->K_red, Psi, this->R_red);
-        this->R_red = Psi.transpose() * full_R_loc_ext * Psi;
-        // set the off-diagonal blocks to zero to improve the numerical stability.
-        this->R_red.block(0, m_num_coords_vel_boundary, m_num_coords_vel_boundary, m_num_coords_modal).setZero();
-        this->R_red.block(m_num_coords_vel_boundary, 0, m_num_coords_modal, m_num_coords_vel_boundary).setZero();
+        damping_model.ComputeR(*this, this->M_red, this->K_red, Psi, this->R_red);
     }
 
     // For strict symmetry, copy L=U because the computations above might lead to small errors because of numerical
@@ -1128,25 +1112,27 @@ void ChModalAssembly::ComputeModalKRMmatricesGlobal(double Kfactor, double Rfact
             Psi_Cor.transpose() * K_II_loc * Psi_Cor;
     }
 
-    if (m_num_coords_static_correction) {
-        // Update the blocks of reduced damping matrix corresponding to the static correction mode
-        this->R_red.block(m_num_coords_vel_boundary,
-                          m_num_coords_vel_boundary + m_num_coords_modal - m_num_coords_static_correction,
-                          m_num_coords_modal - m_num_coords_static_correction, m_num_coords_static_correction) =
-            Psi_D.transpose() * R_II_loc * Psi_Cor;
+    // Since we might do not have the information of R_II_loc, we have to neglect the effect of the static correction
+    // mode in terms of damping
+    // if (m_num_coords_static_correction) {
+    //    // Update the blocks of reduced damping matrix corresponding to the static correction mode
+    //    this->R_red.block(m_num_coords_vel_boundary,
+    //                      m_num_coords_vel_boundary + m_num_coords_modal - m_num_coords_static_correction,
+    //                      m_num_coords_modal - m_num_coords_static_correction, m_num_coords_static_correction) =
+    //        Psi_D.transpose() * R_II_loc * Psi_Cor;
 
-        this->R_red.block(m_num_coords_vel_boundary + m_num_coords_modal - m_num_coords_static_correction,
-                          m_num_coords_vel_boundary, m_num_coords_static_correction,
-                          m_num_coords_modal - m_num_coords_static_correction) =
-            this->R_red
-                .block(m_num_coords_vel_boundary,
-                       m_num_coords_vel_boundary + m_num_coords_modal - m_num_coords_static_correction,
-                       m_num_coords_modal - m_num_coords_static_correction, m_num_coords_static_correction)
-                .transpose();  // symmetric block
+    //    this->R_red.block(m_num_coords_vel_boundary + m_num_coords_modal - m_num_coords_static_correction,
+    //                      m_num_coords_vel_boundary, m_num_coords_static_correction,
+    //                      m_num_coords_modal - m_num_coords_static_correction) =
+    //        this->R_red
+    //            .block(m_num_coords_vel_boundary,
+    //                   m_num_coords_vel_boundary + m_num_coords_modal - m_num_coords_static_correction,
+    //                   m_num_coords_modal - m_num_coords_static_correction, m_num_coords_static_correction)
+    //            .transpose();  // symmetric block
 
-        this->R_red.bottomRightCorner(m_num_coords_static_correction, m_num_coords_static_correction) =
-            Psi_Cor.transpose() * R_II_loc * Psi_Cor;
-    }
+    //    this->R_red.bottomRightCorner(m_num_coords_static_correction, m_num_coords_static_correction) =
+    //        Psi_Cor.transpose() * R_II_loc * Psi_Cor;
+    //}
 
     this->modal_M.setZero();
     this->modal_K.setZero();
@@ -1163,9 +1149,12 @@ void ChModalAssembly::ComputeModalKRMmatricesGlobal(double Kfactor, double Rfact
     if (Kfactor)
         this->modal_K = GetCorotationalTransformation(PTKredP);
 
+    if (m_num_coords_static_correction || !(PTRredP.any()))  // avoid duplicate computing if possible
+        PTRredP = P_perp_0.transpose() * R_red * P_perp_0;
+
     // material damping matrix of the reduced modal assembly
     if (Rfactor)
-        this->modal_R = GetCorotationalTransformation(P_perp_0.transpose() * R_red * P_perp_0);
+        this->modal_R = GetCorotationalTransformation(PTRredP);
 
     unsigned int num_coords_pos_bou_mod = m_num_coords_pos_boundary + m_num_coords_modal;
     unsigned int num_coords_vel_bou_mod = m_num_coords_vel_boundary + m_num_coords_modal;
@@ -1321,6 +1310,7 @@ void ChModalAssembly::SetupModalData(unsigned int nmodes_reduction) {
                          m_num_coords_vel_boundary + m_num_coords_modal);
     P_perp_0.setZero(m_num_coords_vel_boundary + m_num_coords_modal, m_num_coords_vel_boundary + m_num_coords_modal);
     PTKredP.setZero(m_num_coords_vel_boundary + m_num_coords_modal, m_num_coords_vel_boundary + m_num_coords_modal);
+    PTRredP.setZero(m_num_coords_vel_boundary + m_num_coords_modal, m_num_coords_vel_boundary + m_num_coords_modal);
 
     M_red.setZero(m_num_coords_vel_boundary + m_num_coords_modal, m_num_coords_vel_boundary + m_num_coords_modal);
     K_red.setZero(m_num_coords_vel_boundary + m_num_coords_modal, m_num_coords_vel_boundary + m_num_coords_modal);
