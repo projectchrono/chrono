@@ -55,6 +55,8 @@ constexpr bool APPLY_FORCE = false;
 constexpr bool USE_HERTING = true;
 constexpr bool DO_DYNAMICS = true;
 
+constexpr bool USE_STATIC_CORRECTION = false;
+constexpr bool UPDATE_INTERNAL_NODES = true;
 constexpr bool USE_LINEAR_INERTIAL_TERM = true;
 constexpr bool USE_GRAVITY = false;
 
@@ -77,6 +79,10 @@ void MakeAndRunDemo_SlewingBeam(bool do_modal_reduction, ChMatrixDynamic<>& mdef
     double EIzz = 566.6;
     double mass_per_unit_length = 0.2019;
     double Jxx = 2.28e-5;
+
+    // damping coefficients
+    double damping_alpha = 0;
+    double damping_beta = 0.005;
 
     // Parent system:
     auto my_ground = chrono_types::make_shared<ChBodyEasyBox>(1, 1, 1, 10);
@@ -111,14 +117,16 @@ void MakeAndRunDemo_SlewingBeam(bool do_modal_reduction, ChMatrixDynamic<>& mdef
     section->SetShearCenterY(0);
     section->SetShearCenterZ(0);
     section->SetArtificialJyyJzzFactor(1.0 / 500.0);
-    section->SetRayleighDampingBeta(0.005);
-    section->SetRayleighDampingAlpha(0.000);
+    section->SetRayleighDampingBeta(damping_beta);
+    section->SetRayleighDampingAlpha(damping_alpha);
 
     // A function to make a single modal assembly
     auto MakeSingleModalAssembly = [&](std::shared_ptr<ChModalAssembly> mmodal_assembly, int mn_ele, double mstart_x,
                                        double mend_x) {
         // Settings
+        mmodal_assembly->SetInternalNodesUpdate(UPDATE_INTERNAL_NODES);
         mmodal_assembly->SetUseLinearInertialTerm(USE_LINEAR_INERTIAL_TERM);
+        mmodal_assembly->SetUseStaticCorrection(USE_STATIC_CORRECTION);
         if (USE_HERTING)
             mmodal_assembly->SetReductionType(chrono::modal::ChModalAssembly::ReductionType::HERTING);
         else
@@ -230,15 +238,15 @@ void MakeAndRunDemo_SlewingBeam(bool do_modal_reduction, ChMatrixDynamic<>& mdef
 
     // Do modal reduction for all modal assemblies
     if (do_modal_reduction) {
-        // ChGeneralizedEigenvalueSolverLanczos eigen_solver;
-        ChGeneralizedEigenvalueSolverKrylovSchur eigen_solver;
+        ChGeneralizedEigenvalueSolverLanczos eigen_solver;
+        // ChGeneralizedEigenvalueSolverKrylovSchur eigen_solver;
 
         // The success of eigen solve is sensitive to the frequency shift (1e-4). If the eigen solver fails, try to
         // tune the shift value.
         auto modes_settings = ChModalSolveUndamped(12, 1e-4, 500, 1e-10, false, eigen_solver);
+        auto damping_beam = ChModalDampingRayleigh(damping_alpha, damping_beta);
 
         for (int i_part = 0; i_part < n_parts; i_part++) {
-            auto damping_beam = ChModalDampingReductionR(*modal_assembly_list.at(i_part));
             // modal_assembly_list.at(i_part)->SetVerbose(true);
             modal_assembly_list.at(i_part)->WriteSubassemblyMatrices(
                 true, true, true, true, (out_dir + "/modal_assembly_" + std::to_string(i_part)).c_str());
@@ -368,9 +376,9 @@ void MakeAndRunDemo_SlewingBeam(bool do_modal_reduction, ChMatrixDynamic<>& mdef
 
     } else {  // static analysis
 
-        //for (int i_part = 0; i_part < n_parts; i_part++) {
-        //    modal_assembly_list.at(i_part)->SetVerbose(false);
-        //}
+        // for (int i_part = 0; i_part < n_parts; i_part++) {
+        //     modal_assembly_list.at(i_part)->SetVerbose(false);
+        // }
 
         if (APPLY_FORCE) {
             auto node_int = std::dynamic_pointer_cast<ChNodeFEAxyzrot>(

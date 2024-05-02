@@ -54,9 +54,16 @@ double beam_wy = 0.05;
 double beam_L = 6;
 int n_elements = 8;
 
+// damping coefficients
+double damping_alpha = 0.0001;
+double damping_beta = 0.01;
+
 double step_size = 0.05;
 
 unsigned int num_modes = 12;
+bool USE_STATIC_CORRECTION = false;
+bool UPDATE_INTERNAL_NODES = true;
+bool USE_LINEAR_INERTIAL_TERM = true;
 bool USE_GRAVITY = false;
 
 // static stuff for GUI:
@@ -88,6 +95,9 @@ void MakeAndRunDemoCantilever(ChSystem& sys,
     // You must add finite elements, bodies and constraints into this assembly in order
     // to compute the modal frequencies etc.; objects not added into this won't be counted.
     auto modal_assembly = chrono_types::make_shared<ChModalAssembly>();
+    modal_assembly->SetInternalNodesUpdate(UPDATE_INTERNAL_NODES);
+    modal_assembly->SetUseLinearInertialTerm(USE_LINEAR_INERTIAL_TERM);
+    modal_assembly->SetUseStaticCorrection(USE_STATIC_CORRECTION);
     modal_assembly->SetModalAutomaticGravity(USE_GRAVITY);
     sys.Add(modal_assembly);
 
@@ -120,8 +130,8 @@ void MakeAndRunDemoCantilever(ChSystem& sys,
     section->SetDensity(beam_density);
     section->SetYoungModulus(beam_Young);
     section->SetShearModulusFromPoisson(0.31);
-    section->SetRayleighDampingBeta(0.01);
-    section->SetRayleighDampingAlpha(0.0001);
+    section->SetRayleighDampingBeta(damping_beta);
+    section->SetRayleighDampingAlpha(damping_alpha);
     section->SetAsRectangularSection(beam_wy, beam_wz);
 
     ChBuilderBeamEuler builder;
@@ -266,8 +276,8 @@ void MakeAndRunDemoCantilever(ChSystem& sys,
         modal_assembly->DoModalReduction(
             num_modes,  // The number of modes to retain from modal reduction, or a ChModalSolveUndamped with more
                         // settings
-            ChModalDampingRayleigh(0.001,
-                                   0.005)  // The damping model - Optional parameter: default is ChModalDampingNone().
+            ChModalDampingRayleigh(damping_alpha,
+                                   damping_beta)  // The damping model - Optional parameter: default is ChModalDampingNone().
         );
 
         // OPTIONAL

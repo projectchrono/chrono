@@ -46,19 +46,21 @@ const std::string out_dir = GetChronoOutputPath() + "LINKS";
 
 constexpr double time_step = 0.002;
 constexpr double time_step_prt = 0.2;
-constexpr double time_length = 20;
+constexpr double time_length = 10;
 
-constexpr bool RUN_ORIGIN = true;
+constexpr bool RUN_ORIGIN = false;
 constexpr bool RUN_MODAL = true;
-constexpr bool ROTATING_BEAM = true;
+constexpr bool ROTATING_BEAM = false;
 constexpr bool APPLY_FORCE_BOUNDARY = false;
 constexpr bool APPLY_FORCE_INTERNAL = true;
-constexpr bool USE_HERTING = false;
+constexpr bool USE_HERTING = true;
 
 constexpr bool ADD_BB = true;
 constexpr bool ADD_BI = true;
 constexpr bool ADD_II = true;
 
+constexpr bool USE_STATIC_CORRECTION = true;
+constexpr bool UPDATE_INTERNAL_NODES = true;
 constexpr bool USE_LINEAR_INERTIAL_TERM = true;
 constexpr bool USE_GRAVITY = false;
 
@@ -72,6 +74,10 @@ void MakeAndRunDemo_Links(bool do_modal_reduction, ChMatrixDynamic<>& res) {
     // Parameters
     double beam_L = 8.0;
     int n_elements = 10;
+
+    // damping coefficients
+    double damping_alpha = 0;
+    double damping_beta = 0.005;
 
     double EA = 5.03e6;
     double GJxx = 6.047e5;
@@ -114,12 +120,13 @@ void MakeAndRunDemo_Links(bool do_modal_reduction, ChMatrixDynamic<>& res) {
     section->SetShearCenterY(0);
     section->SetShearCenterZ(0);
     section->SetArtificialJyyJzzFactor(1.0 / 500.0);
-    section->SetRayleighDampingBeta(0.005);
-    section->SetRayleighDampingAlpha(0.000);
+    section->SetRayleighDampingBeta(damping_beta);
+    section->SetRayleighDampingAlpha(damping_alpha);
 
     auto modal_assembly = chrono_types::make_shared<ChModalAssembly>();
+    modal_assembly->SetInternalNodesUpdate(UPDATE_INTERNAL_NODES);
     modal_assembly->SetUseLinearInertialTerm(USE_LINEAR_INERTIAL_TERM);
-    modal_assembly->SetUseStaticCorrection(true);
+    modal_assembly->SetUseStaticCorrection(USE_STATIC_CORRECTION);
     if (USE_HERTING)
         modal_assembly->SetReductionType(chrono::modal::ChModalAssembly::ReductionType::HERTING);
     else
@@ -233,8 +240,8 @@ void MakeAndRunDemo_Links(bool do_modal_reduction, ChMatrixDynamic<>& res) {
         // The success of eigen solve is sensitive to the frequency shift (1e-4). If the eigen solver fails, try to
         // tune the shift value.
         auto modes_settings = ChModalSolveUndamped(13, 1e-4, 500, 1e-10, false, eigen_solver);
+        auto damping_beam = ChModalDampingRayleigh(damping_alpha, damping_beta);
 
-        auto damping_beam = ChModalDampingReductionR(*modal_assembly);
         // modal_assembly->SetVerbose(true);
         modal_assembly->WriteSubassemblyMatrices(true, true, true, true, out_dir + "/modal_assembly_full");
         modal_assembly->DoModalReduction(modes_settings, damping_beam);
@@ -294,8 +301,8 @@ void MakeAndRunDemo_Links(bool do_modal_reduction, ChMatrixDynamic<>& res) {
                 auto node_int1 =
                     std::dynamic_pointer_cast<ChNodeFEAxyzrot>(builder.GetLastBeamNodes().at(n_elements / 2 - 1));
                 node_int1->SetForce(
-                    node_int1->GetRot().Rotate(ChVector3d(0, 0, 0.17 * sin(t0) * (1.0 + cos(3.8 * t0)))));
-                node_int1->SetTorque(ChVector3d(0, 0, 0.23 * cos(t0) * (1.3 - sin(2 * t0))));
+                    node_int1->GetRot().Rotate(ChVector3d(0, 0, 0.47 * sin(t0) * (1.0 + cos(3.8 * t0)))));
+                node_int1->SetTorque(ChVector3d(0, 0, 1.23 * cos(t0) * (1.3 - sin(2 * t0))));
                 // node_int1->SetForce(node_int1->GetRot().Rotate(ChVector3d(0, 0, 0.46*sin(t0))));
                 // node_int1->SetTorque(ChVector3d(0, 0, 0.79*cos(t0)));
             } else {

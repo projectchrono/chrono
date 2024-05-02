@@ -49,17 +49,22 @@ constexpr double time_step = 0.01;
 constexpr double time_step_prt = 0.01;
 constexpr double time_length = 5;
 
-constexpr bool RUN_ORIGIN = true;
-constexpr bool RUN_MODAL = false;
-constexpr bool USE_HERTING = false;
+constexpr bool RUN_ORIGIN = false;
+constexpr bool RUN_MODAL = true;
+constexpr bool USE_HERTING = true;
 constexpr bool DO_DYNAMICS = true;
 
+constexpr bool USE_STATIC_CORRECTION = true;
+constexpr bool UPDATE_INTERNAL_NODES = false;
 constexpr bool USE_LINEAR_INERTIAL_TERM = true;
 constexpr bool USE_GRAVITY = false;
 
 bool VISUALIZATION = false;
 
-void MakeAndRunDemo_SlewingBeam(bool do_modal_reduction, ChMatrixDynamic<>& mdeflection) {
+ChTimer m_timer_modalreduction;
+ChTimer m_timer_dynamics;
+
+void MakeAndRunDemo_Talisman(bool do_modal_reduction, ChMatrixDynamic<>& mdeflection) {
     // Create a Chrono::Engine physical system
     ChSystemNSC sys;
     sys.Clear();
@@ -89,12 +94,16 @@ void MakeAndRunDemo_SlewingBeam(bool do_modal_reduction, ChMatrixDynamic<>& mdef
     double GJxx = 81.85;
     double EIyy = 126.1;
     double EIzz = 126.1;
-    //double GAyy = 3.35e6;
-    //double GAzz = 3.35e6;
+    // double GAyy = 3.35e6;
+    // double GAzz = 3.35e6;
     double mass_per_unit_length = 0.386;
     double Jyy = 4.63e-6;
     double Jzz = 4.63e-6;
     double Jxx = Jyy + Jzz;
+
+    // damping coefficients
+    double damping_alpha = 0;
+    double damping_beta = 0.005;
 
     // Parent system:
     std::vector<std::shared_ptr<ChBody>> root_body_list;
@@ -112,6 +121,9 @@ void MakeAndRunDemo_SlewingBeam(bool do_modal_reduction, ChMatrixDynamic<>& mdef
 
     // Settings
     std::shared_ptr<ChModalAssembly> modal_assembly = chrono_types::make_shared<ChModalAssembly>();
+    modal_assembly->SetInternalNodesUpdate(UPDATE_INTERNAL_NODES);
+    modal_assembly->SetUseLinearInertialTerm(USE_LINEAR_INERTIAL_TERM);
+    modal_assembly->SetUseStaticCorrection(USE_STATIC_CORRECTION);
     // Settings
     modal_assembly->SetUseLinearInertialTerm(USE_LINEAR_INERTIAL_TERM);
     if (USE_HERTING)
@@ -165,8 +177,8 @@ void MakeAndRunDemo_SlewingBeam(bool do_modal_reduction, ChMatrixDynamic<>& mdef
     section->SetShearCenterY(0);
     section->SetShearCenterZ(0);
     section->SetArtificialJyyJzzFactor(1.0 / 500.0);
-    section->SetRayleighDampingBeta(0.005);
-    section->SetRayleighDampingAlpha(0.000);
+    section->SetRayleighDampingBeta(damping_beta);
+    section->SetRayleighDampingAlpha(damping_alpha);
     section->SetDrawCircularRadius(0.01);
 
     ChBuilderBeamEuler builder;
@@ -341,19 +353,28 @@ void MakeAndRunDemo_SlewingBeam(bool do_modal_reduction, ChMatrixDynamic<>& mdef
     sys.Setup();
     sys.Update();
 
-    sys.WriteSystemMatrices(true, true, true, true, (out_dir + "/sys"));
+    // sys.WriteSystemMatrices(true, true, true, true, (out_dir + "/sys"));
 
     // Do modal reduction for all modal assemblies
     if (do_modal_reduction) {
-        // ChGeneralizedEigenvalueSolverLanczos eigen_solver;
-        ChGeneralizedEigenvalueSolverKrylovSchur eigen_solver;
+        m_timer_modalreduction.start();
+
+        ChGeneralizedEigenvalueSolverLanczos eigen_solver;
+        // ChGeneralizedEigenvalueSolverKrylovSchur eigen_solver;
 
         auto modes_settings = ChModalSolveUndamped(12, 1e-5, 500, 1e-10, false, eigen_solver);
 
-        auto damping_beam = ChModalDampingReductionR(*modal_assembly);
+        auto damping_beam = ChModalDampingRayleigh(damping_alpha, damping_beta);
         // modal_assembly->SetVerbose(true);
         modal_assembly->DoModalReduction(modes_settings, damping_beam);
-        modal_assembly->WriteSubassemblyMatrices(true, true, true, true, (out_dir + "/modal_assembly"));
+        std::cout << "DoModalReduction() is finished..." << std::endl;
+
+        // modal_assembly->WriteSubassemblyMatrices(true, true, true, true, (out_dir + "/modal_assembly"));
+
+        m_timer_modalreduction.stop();
+        std::cout << "Computation time for DoModalReduction():\t" << m_timer_modalreduction.GetTimeSeconds()
+                  << " seconds\n";
+        m_timer_modalreduction.reset();
     }
 
     // Do dynamics simulation
@@ -400,8 +421,11 @@ void MakeAndRunDemo_SlewingBeam(bool do_modal_reduction, ChMatrixDynamic<>& mdef
                     vis.EndScene();
                     sys.DoStepDynamics(time_step);
                 }
-            } else
+            } else {
+                m_timer_dynamics.start();
                 sys.DoStepDynamics(time_step);
+                m_timer_dynamics.stop();
+            }
 
             ChFrameMoving<> relative_frame_tip = node_A0->TransformParentToLocal(node_A6->Frame());
 
@@ -433,8 +457,8 @@ void MakeAndRunDemo_SlewingBeam(bool do_modal_reduction, ChMatrixDynamic<>& mdef
             if (frame % itv_frame == 0) {
                 std::cout << "t: " << sys.GetChTime() << "\t";
                 std::cout << "Tip force: " << mdeflection(frame, 1) << "\t";
-                std::cout << "Tip. Def.:\t" << relative_frame_tip.GetPos().x() << "\t" << relative_frame_tip.GetPos().y()
-                         << "\t" << relative_frame_tip.GetPos().z() << "\n";
+                std::cout << "Tip. Def.:\t" << relative_frame_tip.GetPos().x() << "\t"
+                          << relative_frame_tip.GetPos().y() << "\t" << relative_frame_tip.GetPos().z() << "\n";
             }
             frame++;
         }
@@ -451,41 +475,36 @@ int main(int argc, char* argv[]) {
     }
 
     if (create_directory(path(out_dir))) {
-        ChTimer m_timer_computation;
         double time_corot = 0;
         double time_modal = 0;
 
         if (RUN_ORIGIN) {
             std::cout << "1. Run corotational beam model:\n";
 
-            m_timer_computation.start();
             ChMatrixDynamic<> rel_deflection_corot;
-            MakeAndRunDemo_SlewingBeam(false, rel_deflection_corot);
-            m_timer_computation.stop();
+            MakeAndRunDemo_Talisman(false, rel_deflection_corot);
 
-            time_corot = m_timer_computation.GetTimeSeconds();
+            time_corot = m_timer_dynamics.GetTimeSeconds();
+            m_timer_dynamics.reset();
             std::cout << "Computation time of corotational beam model: t_corot = \t" << time_corot << " seconds\n";
-            m_timer_computation.reset();
 
             std::ofstream file_defl_corot((out_dir + "/tip_deflection_corot.dat").c_str());
-            file_defl_corot<< std::setprecision(12) << std::scientific;
+            file_defl_corot << std::setprecision(12) << std::scientific;
             StreamOut(rel_deflection_corot, file_defl_corot);
         }
 
         if (RUN_MODAL) {
             std::cout << "\n\n2. Run modal reduction model:\n";
 
-            m_timer_computation.start();
             ChMatrixDynamic<> rel_deflection_modal;
-            MakeAndRunDemo_SlewingBeam(true, rel_deflection_modal);
-            m_timer_computation.stop();
+            MakeAndRunDemo_Talisman(true, rel_deflection_modal);
 
-            time_modal = m_timer_computation.GetTimeSeconds();
+            time_modal = m_timer_dynamics.GetTimeSeconds();
+            m_timer_dynamics.reset();
             std::cout << "Computation time of modal reduction model: t_modal = \t" << time_modal << " seconds\n";
-            m_timer_computation.reset();
 
             std::ofstream file_defl_modal((out_dir + "/tip_deflection_modal.dat").c_str());
-            file_defl_modal<< std::setprecision(12) << std::scientific;
+            file_defl_modal << std::setprecision(12) << std::scientific;
             StreamOut(rel_deflection_modal, file_defl_modal);
         }
 

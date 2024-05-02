@@ -49,6 +49,8 @@ constexpr double time_length = 30;
 constexpr bool RUN_ORIGIN = true;
 constexpr bool RUN_MODAL = true;
 constexpr bool USE_HERTING = false;
+constexpr bool USE_STATIC_CORRECTION = false;
+constexpr bool UPDATE_INTERNAL_NODES = true;
 constexpr bool USE_LINEAR_INERTIAL_TERM = true;
 constexpr bool USE_GRAVITY = false;
 
@@ -63,6 +65,10 @@ void MakeAndRunDemo_Buckling(bool do_modal_reduction, double P0, ChMatrixDynamic
     double beam_L = 1.0;
     int n_parts = 4;
     int n_totalelements = n_parts * 8;
+
+    // damping coefficients
+    double damping_alpha = 0;
+    double damping_beta = 0.0002;
 
     double E = 7.3e10;
     double rho = 2.68e3;
@@ -110,14 +116,16 @@ void MakeAndRunDemo_Buckling(bool do_modal_reduction, double P0, ChMatrixDynamic
     section->SetCentroidZ(0);
     section->SetShearCenterY(0);
     section->SetShearCenterZ(0);
-    section->SetRayleighDampingBeta(0.0002);
-    section->SetRayleighDampingAlpha(0.000);
+    section->SetRayleighDampingBeta(damping_beta);
+    section->SetRayleighDampingAlpha(damping_alpha);
 
     // A function to make a single modal assembly
     auto MakeSingleModalAssembly = [&](std::shared_ptr<ChModalAssembly> mmodal_assembly, int mn_ele, double mstart_x,
                                        double mend_x) {
         // Settings
+        mmodal_assembly->SetInternalNodesUpdate(UPDATE_INTERNAL_NODES);
         mmodal_assembly->SetUseLinearInertialTerm(USE_LINEAR_INERTIAL_TERM);
+        mmodal_assembly->SetUseStaticCorrection(USE_STATIC_CORRECTION);
         if (USE_HERTING)
             mmodal_assembly->SetReductionType(chrono::modal::ChModalAssembly::ReductionType::HERTING);
         else
@@ -194,7 +202,7 @@ void MakeAndRunDemo_Buckling(bool do_modal_reduction, double P0, ChMatrixDynamic
     else
         sys.SetGravitationalAcceleration(ChVector3d(0, 0, 0));
 
-    // Set linear solver
+        // Set linear solver
 #ifdef CHRONO_PARDISO_MKL
     auto mkl_solver = chrono_types::make_shared<ChSolverPardisoMKL>();
     sys.SetSolver(mkl_solver);
@@ -215,7 +223,7 @@ void MakeAndRunDemo_Buckling(bool do_modal_reduction, double P0, ChMatrixDynamic
             // tune the shift value.
             auto modes_settings = ChModalSolveUndamped(12, 1e-3, 500, 1e-10, false, eigen_solver);
 
-            auto damping_beam = ChModalDampingReductionR(*modal_assembly_list.at(i_part));
+            auto damping_beam = ChModalDampingRayleigh(damping_alpha, damping_beta);
             // modal_assembly_list.at(i_part)->SetVerbose(true);
             modal_assembly_list.at(i_part)->WriteSubassemblyMatrices(
                 true, true, true, true, (out_dir + "/modal_assembly_" + std::to_string(i_part)).c_str());

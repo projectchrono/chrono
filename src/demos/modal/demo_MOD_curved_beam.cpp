@@ -42,6 +42,9 @@ const std::string out_dir = GetChronoOutputPath() + "CURVED_BEAM";
 constexpr bool RUN_ORIGIN = true;
 constexpr bool RUN_MODAL = true;
 constexpr bool USE_HERTING = false;
+
+constexpr bool USE_STATIC_CORRECTION = false;
+constexpr bool UPDATE_INTERNAL_NODES = true;
 constexpr bool USE_LINEAR_INERTIAL_TERM = true;
 constexpr bool USE_GRAVITY = false;
 
@@ -58,19 +61,23 @@ void MakeAndRunDemo_CurvedBeam(bool do_modal_reduction) {
     int n_parts = 4;
     int n_totalelements = n_parts * 8;
 
+    // damping coefficients
+    double damping_alpha = 0;
+    double damping_beta = 0.002;
+
     double b = 1.0;
     double h = 1.0;
     double Area = b * h;
     double Iyy = 1 / 12.0 * b * h * h * h;
     double Izz = 1 / 12.0 * h * b * b * b;
     double Iyz = 0;
-    //double Ip = Iyy + Izz;
+    // double Ip = Iyy + Izz;
 
     double rho = 7800 * 2.2046226218 / pow(39.37007874, 3);
     double mass_per_unit_length = rho * Area;
     double Jyy = rho * Iyy;
     double Jzz = rho * Izz;
-    //double Jxx = rho * Ip;
+    // double Jxx = rho * Ip;
     double Jyz = rho * Iyz;
 
     // Parent system: ground
@@ -103,8 +110,8 @@ void MakeAndRunDemo_CurvedBeam(bool do_modal_reduction) {
     Klaw(0, 5) = k16;
     Klaw(5, 0) = k16;
     section->SetStiffnessMatrixFPM(Klaw);
-    section->SetRayleighDampingBeta(0.002);
-    section->SetRayleighDampingAlpha(0.000);
+    section->SetRayleighDampingBeta(damping_beta);
+    section->SetRayleighDampingAlpha(damping_alpha);
 
     auto tapered_section = chrono_types::make_shared<ChBeamSectionTaperedTimoshenkoAdvancedGenericFPM>();
     tapered_section->SetSectionA(section);
@@ -114,7 +121,9 @@ void MakeAndRunDemo_CurvedBeam(bool do_modal_reduction) {
     auto MakeSingleModalAssembly = [&](std::shared_ptr<ChModalAssembly> mmodal_assembly, int mn_ele,
                                        double mstart_angle, double mend_angle) {
         // Settings
+        mmodal_assembly->SetInternalNodesUpdate(UPDATE_INTERNAL_NODES);
         mmodal_assembly->SetUseLinearInertialTerm(USE_LINEAR_INERTIAL_TERM);
+        mmodal_assembly->SetUseStaticCorrection(USE_STATIC_CORRECTION);
         if (USE_HERTING)
             mmodal_assembly->SetReductionType(chrono::modal::ChModalAssembly::ReductionType::HERTING);
         else
@@ -156,7 +165,7 @@ void MakeAndRunDemo_CurvedBeam(bool do_modal_reduction) {
 
             ChMatrix33<> mrot;
             mrot.SetFromAxisX(mbeam_nodes.at(i_ele + 1)->Frame().GetPos() - mbeam_nodes.at(i_ele)->Frame().GetPos(),
-                            VECT_Y);
+                              VECT_Y);
             ChQuaternion<> elrot = mrot.GetQuaternion();
             mbeam_elements.at(i_ele)->SetNodeAreferenceRot(elrot.GetConjugate() *
                                                            mbeam_elements.at(i_ele)->GetNodeA()->Frame().GetRot());
@@ -199,8 +208,8 @@ void MakeAndRunDemo_CurvedBeam(bool do_modal_reduction) {
     sys.AddLink(my_rootlink);
 
     // Retrieve the tip node
-    auto tip_node = std::dynamic_pointer_cast<ChNodeFEAxyzrot>(
-        modal_assembly_list.back()->GetMeshes().front()->GetNodes().back());
+    auto tip_node =
+        std::dynamic_pointer_cast<ChNodeFEAxyzrot>(modal_assembly_list.back()->GetMeshes().front()->GetNodes().back());
     ChVector3d tip_pos_x0 = tip_node->GetPos();
 
     // set gravity
@@ -209,7 +218,7 @@ void MakeAndRunDemo_CurvedBeam(bool do_modal_reduction) {
     else
         sys.SetGravitationalAcceleration(ChVector3d(0, 0, 0));
 
-    // Set linear solver
+        // Set linear solver
 #ifdef CHRONO_PARDISO_MKL
     auto mkl_solver = chrono_types::make_shared<ChSolverPardisoMKL>();
     sys.SetSolver(mkl_solver);
@@ -227,9 +236,9 @@ void MakeAndRunDemo_CurvedBeam(bool do_modal_reduction) {
         ChGeneralizedEigenvalueSolverKrylovSchur eigen_solver;
 
         auto modes_settings = ChModalSolveUndamped(12, 1e-5, 500, 1e-10, false, eigen_solver);
+        auto damping_beam = ChModalDampingRayleigh(damping_alpha, damping_beta);
 
         for (int i_part = 0; i_part < n_parts; i_part++) {
-            auto damping_beam = ChModalDampingReductionR(*modal_assembly_list.at(i_part));
             // modal_assembly_list.at(i_part)->SetVerbose(true);
             modal_assembly_list.at(i_part)->DoModalReduction(modes_settings, damping_beam);
             modal_assembly_list.at(i_part)->WriteSubassemblyMatrices(
@@ -260,7 +269,6 @@ int main(int argc, char* argv[]) {
     }
 
     if (create_directory(path(out_dir))) {
-
         ChTimer m_timer_computation;
         double time_corot = 0;
         double time_modal = 0;
