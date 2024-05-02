@@ -2199,8 +2199,14 @@ def unregister():
     bpy.app.handlers.frame_change_post.remove(callback_post)
 
     # sidebar UI:
-    
-register()
+  
+# Note on debug.
+# If you want to run this script in debug mode using MS Visual Studio (using the plugin "Blender Development" by Jacques 
+# Lucke, or similar ), then when you run this script from the remode VS debugging session, it won't run the 
+# "if __name__ == "__main__": " section below, and the add-in won't be registered. A workaround is to uncomment
+# the following line "register()" at least temporarily until you complete the debugging sessions.
+
+#register()
 
 # The following is executed all times one runs this chrono_import.py script in Blender
 # scripting editor: it effectively register the add-on "by hand".
