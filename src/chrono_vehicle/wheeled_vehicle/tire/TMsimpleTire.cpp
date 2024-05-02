@@ -173,6 +173,7 @@ void TMsimpleTire::Create(const rapidjson::Document& d) {
     // These must be set here to ensure they are not overwritten.
     if (d.HasMember("Coefficient of Friction"))
         m_par.mu_0 = d["Coefficient of Friction"].GetDouble();
+
     if (d.HasMember("Rolling Resistance Coefficient"))
         m_rolling_resistance = d["Rolling Resistance Coefficient"].GetDouble();
 
