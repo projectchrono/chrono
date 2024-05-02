@@ -166,7 +166,7 @@ TEST(ChronoVehicle, destructors_wheeled) {
 
     // Suspension templates
 
-    ////{ chrono_types::make_shared<DeDionAxle>(vehicle::GetDataFile("generic/suspension/DeDionAxle.json")); }
+    { chrono_types::make_shared<DeDionAxle>(vehicle::GetDataFile("generic/suspension/DeDionAxle.json")); }
     {
         chrono_types::make_shared<DoubleWishbone>(
             vehicle::GetDataFile("hmmwv/suspension/HMMWV_DoubleWishboneFront.json"));
@@ -213,8 +213,8 @@ TEST(ChronoVehicle, destructors_wheeled) {
             vehicle::GetDataFile("MAN_Kat1/suspension/MAN_5t_RearSolidThreeLinkAxle.json"));
     }
     { chrono_types::make_shared<ThreeLinkIRS>(vehicle::GetDataFile("generic/suspension/ThreeLinkIRS.json")); }
-    ////{ chrono_types::make_shared<ToeBarDeDionAxle>(vehicle::GetDataFile("generic/suspension/ToeBarDeDionAxle.json"));
-    ///}
+    { chrono_types::make_shared<ToeBarDeDionAxle>(vehicle::GetDataFile("generic/suspension/ToeBarDeDionAxle.json"));
+    }
     {
         chrono_types::make_shared<ToeBarLeafspringAxle>(
             vehicle::GetDataFile("uaz/suspension/UAZBUS_FrontLeafspringAxle.json"));
