@@ -276,8 +276,9 @@ void MakeAndRunDemoCantilever(ChSystem& sys,
         modal_assembly->DoModalReduction(
             num_modes,  // The number of modes to retain from modal reduction, or a ChModalSolveUndamped with more
                         // settings
-            ChModalDampingRayleigh(damping_alpha,
-                                   damping_beta)  // The damping model - Optional parameter: default is ChModalDampingNone().
+            ChModalDampingRayleigh(
+                damping_alpha,
+                damping_beta)  // The damping model - Optional parameter: default is ChModalDampingNone().
         );
 
         // OPTIONAL
