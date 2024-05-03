@@ -83,6 +83,7 @@ void ChWheeledTrailer::Advance(double step) {
         for (auto& wheel : axle->GetWheels()) {
             wheel->GetTire()->Advance(step);
         }
+        axle->Advance(step);
     }
 }
 

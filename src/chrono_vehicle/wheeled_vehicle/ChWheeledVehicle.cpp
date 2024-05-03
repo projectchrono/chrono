@@ -110,14 +110,15 @@ void ChWheeledVehicle::Advance(double step) {
         m_powertrain_assembly->Advance(step);
     }
 
-    // Advance state of all vehicle tires.
-    // This is done before advancing the state of the multibody system in order to use
-    // wheel states corresponding to current time.
+    // Advance state of all axles and vehicle tires.
+    // This is done before advancing the state of the multibody system in order to use wheel states corresponding to
+    // current time.
     for (auto& axle : m_axles) {
         for (auto& wheel : axle->GetWheels()) {
             if (wheel->m_tire)
                 wheel->m_tire->Advance(step);
         }
+        axle->Advance(step);
     }
 
     // Invoke base class function to advance state of underlying Chrono system.

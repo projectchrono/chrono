@@ -56,23 +56,27 @@ const std::string ChToeBarLeafspringAxle::m_pointNames[] = {"SHOCK_A    ", "SHOC
 ChToeBarLeafspringAxle::ChToeBarLeafspringAxle(const std::string& name) : ChSuspension(name) {}
 
 ChToeBarLeafspringAxle::~ChToeBarLeafspringAxle() {
-    auto sys = m_axleTube->GetSystem();
-    if (sys) {
-        sys->Remove(m_axleTube);
-        sys->Remove(m_tierod);
-        sys->Remove(m_draglink);
-        sys->Remove(m_axleTubeGuide);
-        sys->Remove(m_sphericalTierod);
-        sys->Remove(m_sphericalDraglink);
-        sys->Remove(m_universalDraglink);
-        sys->Remove(m_universalTierod);
+    if (!m_initialized)
+        return;
 
-        for (int i = 0; i < 2; i++) {
-            sys->Remove(m_knuckle[i]);
-            sys->Remove(m_revoluteKingpin[i]);
-            sys->Remove(m_shock[i]);
-            sys->Remove(m_spring[i]);
-        }
+    auto sys = m_axleTube->GetSystem();
+    if (!sys)
+        return;
+
+    sys->Remove(m_axleTube);
+    sys->Remove(m_tierod);
+    sys->Remove(m_draglink);
+    sys->Remove(m_axleTubeGuide);
+    sys->Remove(m_sphericalTierod);
+    sys->Remove(m_sphericalDraglink);
+    sys->Remove(m_universalDraglink);
+    sys->Remove(m_universalTierod);
+
+    for (int i = 0; i < 2; i++) {
+        sys->Remove(m_knuckle[i]);
+        sys->Remove(m_revoluteKingpin[i]);
+        sys->Remove(m_shock[i]);
+        sys->Remove(m_spring[i]);
     }
 }
 

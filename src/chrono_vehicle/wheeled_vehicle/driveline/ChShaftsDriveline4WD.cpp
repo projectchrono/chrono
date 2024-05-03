@@ -35,22 +35,26 @@ ChShaftsDriveline4WD::ChShaftsDriveline4WD(const std::string& name)
     : ChDrivelineWV(name), m_dir_motor_block(ChVector3d(1, 0, 0)), m_dir_axle(ChVector3d(0, 1, 0)) {}
 
 ChShaftsDriveline4WD::~ChShaftsDriveline4WD() {
+    if (!m_initialized)
+        return;
+
     auto sys = m_central_differential->GetSystem();
-    if (sys) {
-        sys->Remove(m_driveshaft);
-        sys->Remove(m_central_differential);
-        sys->Remove(m_central_clutch);
-        sys->Remove(m_front_shaft);
-        sys->Remove(m_rear_shaft);
-        sys->Remove(m_rear_conicalgear);
-        sys->Remove(m_rear_differential);
-        sys->Remove(m_rear_differentialbox);
-        sys->Remove(m_rear_clutch);
-        sys->Remove(m_front_conicalgear);
-        sys->Remove(m_front_differential);
-        sys->Remove(m_front_differentialbox);
-        sys->Remove(m_front_clutch);
-    }
+    if (!sys)
+        return;
+
+    sys->Remove(m_driveshaft);
+    sys->Remove(m_central_differential);
+    sys->Remove(m_central_clutch);
+    sys->Remove(m_front_shaft);
+    sys->Remove(m_rear_shaft);
+    sys->Remove(m_rear_conicalgear);
+    sys->Remove(m_rear_differential);
+    sys->Remove(m_rear_differentialbox);
+    sys->Remove(m_rear_clutch);
+    sys->Remove(m_front_conicalgear);
+    sys->Remove(m_front_differential);
+    sys->Remove(m_front_differentialbox);
+    sys->Remove(m_front_clutch);
 }
 
 // -----------------------------------------------------------------------------

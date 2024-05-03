@@ -35,7 +35,7 @@ BrakeShafts::BrakeShafts(const std::string& filename) : ChBrakeShafts("") {
 
     Create(d);
 
-    std::cout << "Loaded JSONL " << filename << std::endl;
+    std::cout << "Loaded JSON " << filename << std::endl;
 }
 
 BrakeShafts::BrakeShafts(const rapidjson::Document& d) : ChBrakeShafts("") {

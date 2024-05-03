@@ -36,44 +36,51 @@ namespace vehicle {
 // -----------------------------------------------------------------------------
 // Static variables
 // -----------------------------------------------------------------------------
-const std::string ChSolidAxle::m_pointNames[] = {"SHOCK_A    ", "SHOCK_C    ", "KNUCKLE_L  ", "KNUCKLE_U  ",
-                                                 "LL_A       ", "LL_C       ", "UL_A       ", "UL_C       ",
-                                                 "SPRING_A   ", "SPRING_C   ", "TIEROD_C   ", "TIEROD_K   ",
-                                                 "SPINDLE    ", "KNUCKLE_CM ", "LL_CM      ", "UL_CM      "};
+const std::string ChSolidAxle::m_pointNames[] = {
+    "SHOCK_A    ", "SHOCK_C    ", "KNUCKLE_L  ", "KNUCKLE_U  ", "LL_A       ", "LL_C       ",
+    "UL_A       ", "UL_C       ", "SPRING_A   ", "SPRING_C   ", "TIEROD_C   ", "TIEROD_K   ",
+    "SPINDLE    ", "KNUCKLE_CM ", "LL_CM      ", "UL_CM      ", "TRACKBAR_A ", "TRACKBAR_C "};
 
 // -----------------------------------------------------------------------------
 // -----------------------------------------------------------------------------
 ChSolidAxle::ChSolidAxle(const std::string& name) : ChSuspension(name) {}
 
 ChSolidAxle::~ChSolidAxle() {
+    if (!m_initialized)
+        return;
+
     auto sys = m_axleTube->GetSystem();
-    if (sys) {
-        sys->Remove(m_axleTube);
-        sys->Remove(m_tierod);
-        sys->Remove(m_bellCrank);
-        sys->Remove(m_draglink);
+    if (!sys)
+        return;
 
-        sys->Remove(m_revoluteBellCrank);
-        sys->Remove(m_sphericalTierod);
-        sys->Remove(m_sphericalDraglink);
-        sys->Remove(m_universalDraglink);
-        sys->Remove(m_universalTierod);
-        sys->Remove(m_pointPlaneBellCrank);
+    sys->Remove(m_axleTube);
+    sys->Remove(m_tierod);
+    sys->Remove(m_bellCrank);
+    sys->Remove(m_draglink);
+    sys->Remove(m_trackbarBody);
 
-        for (int i = 0; i < 2; i++) {
-            sys->Remove(m_knuckle[i]);
-            sys->Remove(m_upperLink[i]);
-            sys->Remove(m_lowerLink[i]);
+    sys->Remove(m_revoluteBellCrank);
+    sys->Remove(m_sphericalTierod);
+    sys->Remove(m_sphericalDraglink);
+    sys->Remove(m_universalDraglink);
+    sys->Remove(m_universalTierod);
+    sys->Remove(m_pointPlaneBellCrank);
+    sys->Remove(m_sphericalTrackbarAxleLink);
+    sys->Remove(m_sphericalTrackbarChassisLink);
 
-            sys->Remove(m_revoluteKingpin[i]);
-            sys->Remove(m_sphericalUpperLink[i]);
-            sys->Remove(m_sphericalLowerLink[i]);
-            sys->Remove(m_universalUpperLink[i]);
-            sys->Remove(m_universalLowerLink[i]);
+    for (int i = 0; i < 2; i++) {
+        sys->Remove(m_knuckle[i]);
+        sys->Remove(m_upperLink[i]);
+        sys->Remove(m_lowerLink[i]);
 
-            sys->Remove(m_shock[i]);
-            sys->Remove(m_spring[i]);
-        }
+        sys->Remove(m_revoluteKingpin[i]);
+        sys->Remove(m_sphericalUpperLink[i]);
+        sys->Remove(m_sphericalLowerLink[i]);
+        sys->Remove(m_universalUpperLink[i]);
+        sys->Remove(m_universalLowerLink[i]);
+
+        sys->Remove(m_shock[i]);
+        sys->Remove(m_spring[i]);
     }
 }
 
@@ -121,6 +128,21 @@ void ChSolidAxle::Initialize(std::shared_ptr<ChChassis> chassis,
     m_axleTube->SetInertiaXX(getAxleTubeInertia());
     chassis->GetBody()->GetSystem()->AddBody(m_axleTube);
 
+    // Create track connection points and COM
+    ChVector3d trackbarAxle_local(getLocation(TRACKBAR_A));
+    m_trackbarAxle = suspension_to_abs.TransformPointLocalToParent(trackbarAxle_local);
+    ChVector3d trackbarChassis_local(getLocation(TRACKBAR_C));
+    m_trackbarChassis = suspension_to_abs.TransformPointLocalToParent(trackbarChassis_local);
+
+    // Create and initialize the trackbar body
+    m_trackbarBody = chrono_types::make_shared<ChBody>();
+    m_trackbarBody->SetName(m_name + "_trackBar");
+    m_trackbarBody->SetPos((m_trackbarAxle + m_trackbarChassis) / 2);
+    m_trackbarBody->SetRot(chassis->GetBody()->GetFrameRefToAbs().GetRot());
+    m_trackbarBody->SetMass(getTrackbarMass());
+    m_trackbarBody->SetInertiaXX(getTrackbarInertia());
+    chassis->GetBody()->GetSystem()->AddBody(m_trackbarBody);
+
     // Calculate end points on the tierod body, expressed in the absolute frame
     // (for visualization)
     ChVector3d tierodOuter_local(getLocation(TIEROD_K));
@@ -146,6 +168,18 @@ void ChSolidAxle::Initialize(std::shared_ptr<ChChassis> chassis,
         rel_pos.y() = -rel_pos.y();
         m_pointsR[i] = suspension_to_abs.TransformPointLocalToParent(rel_pos);
     }
+
+    // Connect trackbarBody to axleBody (should be changed to universal)
+    m_sphericalTrackbarAxleLink = chrono_types::make_shared<ChLinkLockSpherical>();
+    m_sphericalTrackbarAxleLink->SetName(m_name + "_sphericalTrackbarAxle");
+    m_sphericalTrackbarAxleLink->Initialize(m_trackbarBody, m_axleTube, ChFrame<>(m_trackbarAxle, QUNIT));
+    chassis->GetSystem()->AddLink(m_sphericalTrackbarAxleLink);
+
+    // Connect trackbarBody to chassisBody
+    m_sphericalTrackbarChassisLink = chrono_types::make_shared<ChLinkLockSpherical>();
+    m_sphericalTrackbarChassisLink->SetName(m_name + "_sphericalTrackbarChassis");
+    m_sphericalTrackbarChassisLink->Initialize(m_trackbarBody, chassis->GetBody(), ChFrame<>(m_trackbarChassis, QUNIT));
+    chassis->GetSystem()->AddLink(m_sphericalTrackbarChassisLink);
 
     // Initialize left and right sides.
     std::shared_ptr<ChBody> tierod_body = (steering == nullptr) ? chassis->GetBody() : steering->GetSteeringLink();
@@ -360,8 +394,7 @@ void ChSolidAxle::InitializeSide(VehicleSide side,
 
         m_revoluteBellCrank = chrono_types::make_shared<ChLinkLockRevolute>();
         m_revoluteBellCrank->SetName(m_name + "_revoluteBellCrank" + suffix);
-        m_revoluteBellCrank->Initialize(m_bellCrank, m_axleTube,
-                                        ChFrame<>(points[BELLCRANK_AXLE], rot.GetQuaternion()));
+        m_revoluteBellCrank->Initialize(m_bellCrank, m_axleTube, ChFrame<>(points[BELLCRANK_AXLE], QUNIT));
         chassis->GetSystem()->AddLink(m_revoluteBellCrank);
 
         // Create and initialize the point-plane joint between bell crank and tierod.
@@ -417,6 +450,7 @@ void ChSolidAxle::UpdateInertiaProperties() {
     composite.AddComponent(m_tierod->GetFrameCOMToAbs(), getTierodMass(), ChMatrix33<>(getTierodInertia()));
     composite.AddComponent(m_draglink->GetFrameCOMToAbs(), getDraglinkMass(), ChMatrix33<>(getDraglinkInertia()));
     composite.AddComponent(m_bellCrank->GetFrameCOMToAbs(), getBellCrankMass(), ChMatrix33<>(getBellCrankInertia()));
+    composite.AddComponent(m_trackbarBody->GetFrameCOMToAbs(), getTrackbarMass(), ChMatrix33<>(getTrackbarInertia()));
 
     // Express COM and inertia in subsystem reference frame
     m_com.SetPos(m_xform.TransformPointParentToLocal(composite.GetCOM()));
@@ -579,10 +613,13 @@ void ChSolidAxle::AddVisualizationAssets(VisualizationType vis) {
     AddVisualizationBellCrank(m_bellCrank, m_pointsL[BELLCRANK_DRAGLINK], m_pointsL[BELLCRANK_AXLE],
                               m_pointsL[BELLCRANK_TIEROD], getBellCrankRadius(), ChColor(0.0f, 0.7f, 0.7f));
 
+    AddVisualizationLink(m_trackbarBody, m_trackbarAxle, m_trackbarChassis, getTrackbarRadius(),
+                         ChColor(0.7f, 0.2f, 0.7f));
+
     AddVisualizationKnuckle(m_knuckle[LEFT], m_pointsL[KNUCKLE_U], m_pointsL[KNUCKLE_L], m_pointsL[TIEROD_K],
-                            getKnuckleRadius());
+                            getKnuckleRadius(), ChColor(0.2f, 0.7f, 0.2f));
     AddVisualizationKnuckle(m_knuckle[RIGHT], m_pointsR[KNUCKLE_U], m_pointsR[KNUCKLE_L], m_pointsR[TIEROD_K],
-                            getKnuckleRadius());
+                            getKnuckleRadius(), ChColor(0.2f, 0.7f, 0.2f));
 
     AddVisualizationLink(m_upperLink[LEFT], m_pointsL[UL_A], m_pointsL[UL_C], getULRadius(), ChColor(0.6f, 0.2f, 0.6f));
     AddVisualizationLink(m_upperLink[RIGHT], m_pointsR[UL_A], m_pointsR[UL_C], getULRadius(),
@@ -604,6 +641,7 @@ void ChSolidAxle::RemoveVisualizationAssets() {
     ChPart::RemoveVisualizationAssets(m_tierod);
     ChPart::RemoveVisualizationAssets(m_draglink);
     ChPart::RemoveVisualizationAssets(m_bellCrank);
+    ChPart::RemoveVisualizationAssets(m_trackbarBody);
 
     ChPart::RemoveVisualizationAssets(m_knuckle[LEFT]);
     ChPart::RemoveVisualizationAssets(m_knuckle[RIGHT]);
@@ -635,6 +673,9 @@ void ChSolidAxle::AddVisualizationLink(std::shared_ptr<ChBody> body,
     ChVector3d p_2 = body->TransformPointParentToLocal(pt_2);
 
     ChVehicleGeometry::AddVisualizationCylinder(body, p_1, p_2, radius);
+    auto ns = body->GetVisualModel()->GetNumShapes();
+    for (size_t i = 0; i < ns; i++)
+        body->GetVisualModel()->GetShape(i)->SetColor(color);
 }
 
 void ChSolidAxle::AddVisualizationBellCrank(std::shared_ptr<ChBody> body,
@@ -650,13 +691,18 @@ void ChSolidAxle::AddVisualizationBellCrank(std::shared_ptr<ChBody> body,
 
     ChVehicleGeometry::AddVisualizationCylinder(body, p_D, p_A, radius);
     ChVehicleGeometry::AddVisualizationCylinder(body, p_A, p_T, radius);
+
+    auto ns = body->GetVisualModel()->GetNumShapes();
+    for (size_t i = 0; i < ns; i++)
+        body->GetVisualModel()->GetShape(i)->SetColor(color);
 }
 
 void ChSolidAxle::AddVisualizationKnuckle(std::shared_ptr<ChBody> knuckle,
                                           const ChVector3d pt_U,
                                           const ChVector3d pt_L,
                                           const ChVector3d pt_T,
-                                          double radius) {
+                                          double radius,
+                                          const ChColor& color) {
     static const double threshold2 = 1e-6;
 
     // Express hardpoint locations in body frame.
@@ -675,6 +721,10 @@ void ChSolidAxle::AddVisualizationKnuckle(std::shared_ptr<ChBody> knuckle,
     if (p_T.Length2() > threshold2) {
         ChVehicleGeometry::AddVisualizationCylinder(knuckle, p_T, VNULL, radius);
     }
+
+    auto ns = knuckle->GetVisualModel()->GetNumShapes();
+    for (size_t i = 0; i < ns; i++)
+        knuckle->GetVisualModel()->GetShape(i)->SetColor(color);
 }
 
 // -----------------------------------------------------------------------------

@@ -172,6 +172,7 @@ int main(int argc, char* argv[]) {
             auto vis_vsg = chrono_types::make_shared<ChWheeledVehicleVisualSystemVSG>();
             vis_vsg->SetWindowTitle("Gator Incline Stop");
             vis_vsg->AttachVehicle(&gator.GetVehicle());
+            vis_vsg->AttachTerrain(&terrain);
             vis_vsg->SetChaseCamera(ChVector3d(0.0, 0.0, 2.0), 9.0, 0.05);
             vis_vsg->SetWindowSize(ChVector2i(1200, 900));
             vis_vsg->SetWindowPosition(ChVector2i(100, 300));

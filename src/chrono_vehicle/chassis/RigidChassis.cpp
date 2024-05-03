@@ -35,7 +35,7 @@ RigidChassis::RigidChassis(const std::string& filename) : ChRigidChassis("") {
 
     Create(d);
 
-    std::cout << "Loaded JSONL " << filename << std::endl;
+    std::cout << "Loaded JSON " << filename << std::endl;
 }
 
 RigidChassis::RigidChassis(const rapidjson::Document& d) : ChRigidChassis("") {
@@ -96,7 +96,7 @@ RigidChassisRear::RigidChassisRear(const std::string& filename) : ChRigidChassis
 
     Create(d);
 
-    std::cout << "Loaded JSONL " << filename << std::endl;
+    std::cout << "Loaded JSON " << filename << std::endl;
 }
 
 RigidChassisRear::RigidChassisRear(const rapidjson::Document& d) : ChRigidChassisRear("") {

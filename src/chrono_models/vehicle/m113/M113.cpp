@@ -120,8 +120,8 @@ void M113::Initialize() {
                                      m_ancf_constrain_curvature, m_ancf_num_elements_length, m_ancf_num_elements_width,
                                      m_driveline_type, m_brake_type, m_use_track_bushings, m_use_suspension_bushings,
                                      m_use_track_RSDA, m_contactMethod, m_chassisCollisionType);
-        m_vehicle->SetCollisionSystemType(m_collsysType);
     }
+    m_vehicle->SetCollisionSystemType(m_collsysType);
     m_vehicle->CreateTrack(m_create_track);
     m_vehicle->GetTrackAssembly(LEFT)->SetWheelCollisionType(m_wheel_cyl, m_idler_cyl, true);
     m_vehicle->GetTrackAssembly(RIGHT)->SetWheelCollisionType(m_wheel_cyl, m_idler_cyl, true);

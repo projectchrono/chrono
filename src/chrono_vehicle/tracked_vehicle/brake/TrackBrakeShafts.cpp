@@ -35,7 +35,7 @@ TrackBrakeShafts::TrackBrakeShafts(const std::string& filename) : ChTrackBrakeSh
 
     Create(d);
 
-    std::cout << "Loaded JSONL " << filename << std::endl;
+    std::cout << "Loaded JSON " << filename << std::endl;
 }
 
 TrackBrakeShafts::TrackBrakeShafts(const rapidjson::Document& d) : ChTrackBrakeShafts("") {

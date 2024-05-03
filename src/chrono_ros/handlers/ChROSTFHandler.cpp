@@ -36,7 +36,10 @@ bool ChROSTFHandler::Initialize(std::shared_ptr<ChROSInterface> interface) {
     return true;
 }
 
-void ChROSTFHandler::AddTransform(std::shared_ptr<chrono::ChBody> parent, std::shared_ptr<chrono::ChBody> child) {
+void ChROSTFHandler::AddTransform(std::shared_ptr<chrono::ChBody> parent,
+                                  const std::string& parent_frame_id,
+                                  std::shared_ptr<chrono::ChBody> child,
+                                  const std::string& child_frame_id) {
     if (!parent) {
         std::cerr << "ChROSTFHandler::AddTransform: Parent body is null" << std::endl;
         return;
@@ -45,10 +48,13 @@ void ChROSTFHandler::AddTransform(std::shared_ptr<chrono::ChBody> parent, std::s
         return;
     }
 
-    m_transforms.push_back(std::make_pair(parent, child));
+    ChBodyTransform parent_tf = std::make_pair(parent, !parent_frame_id.empty() ? parent_frame_id : parent->GetName());
+    ChBodyTransform child_tf = std::make_pair(child, !child_frame_id.empty() ? child_frame_id : child->GetName());
+    m_transforms.push_back(std::make_pair(parent_tf, child_tf));
 }
 
 void ChROSTFHandler::AddTransform(std::shared_ptr<chrono::ChBody> parent,
+                                  const std::string& parent_frame_id,
                                   chrono::ChFrame<double> child_frame,
                                   const std::string& child_frame_id) {
     if (!parent) {
@@ -56,8 +62,9 @@ void ChROSTFHandler::AddTransform(std::shared_ptr<chrono::ChBody> parent,
         return;
     }
 
-    ChFrameTransform child = std::make_pair(child_frame, child_frame_id);
-    m_transforms.push_back(std::make_pair(parent, child));
+    ChBodyTransform parent_tf = std::make_pair(parent, parent_frame_id);
+    ChFrameTransform child_tf = std::make_pair(child_frame, child_frame_id);
+    m_transforms.push_back(std::make_pair(parent_tf, child_tf));
 }
 
 #ifdef CHRONO_PARSERS_URDF
@@ -74,13 +81,15 @@ void ChROSTFHandler::AddURDF(chrono::parsers::ChParserURDF& parser) {
 
         auto parent = parser.GetChBody(joint->parent_link_name);
         auto child = parser.GetChBody(joint->child_link_name);
-        AddTransform(parent, child);
+        AddTransform(parent, joint->parent_link_name, child, joint->child_link_name);
     }
 }
 #endif
 
 #ifdef CHRONO_SENSOR
-void ChROSTFHandler::AddSensor(std::shared_ptr<chrono::sensor::ChSensor> sensor, const std::string& frame_id) {
+void ChROSTFHandler::AddSensor(std::shared_ptr<chrono::sensor::ChSensor> sensor,
+                               const std::string& parent_frame_id,
+                               const std::string& child_frame_id) {
     if (!sensor) {
         std::cerr << "ChROSTFHandler::AddSensor: Sensor is null" << std::endl;
         return;
@@ -88,8 +97,7 @@ void ChROSTFHandler::AddSensor(std::shared_ptr<chrono::sensor::ChSensor> sensor,
 
     auto parent = sensor->GetParent();
     auto child_frame = sensor->GetOffsetPose();
-    auto child_frame_id = frame_id.empty() ? sensor->GetName() : frame_id;
-    AddTransform(parent, child_frame, child_frame_id);
+    AddTransform(parent, parent_frame_id, child_frame, child_frame_id);
 }
 #endif
 
@@ -120,20 +128,19 @@ geometry_msgs::msg::TransformStamped CreateTransformStamped(chrono::ChFrame<> lo
 void ChROSTFHandler::Tick(double time) {
     std::vector<geometry_msgs::msg::TransformStamped> transforms;
 
-    for (auto const& [parent, child] : m_transforms) {
+    for (auto const& [parent_tf, child_tf] : m_transforms) {
         chrono::ChFrame<> child_to_parent;
-        std::string child_frame_id;
-        if (std::holds_alternative<std::shared_ptr<chrono::ChBody>>(child)) {
-            auto child_body = std::get<std::shared_ptr<chrono::ChBody>>(child);
-            child_to_parent = parent->GetFrameRefToAbs().GetInverse() * child_body->GetFrameRefToAbs();
-            child_frame_id = child_body->GetName();
+        std::string parent_frame_id, child_frame_id;
+        if (std::holds_alternative<ChBodyTransform>(child_tf)) {
+            auto [parent_body, parent_frame_id] = std::get<ChBodyTransform>(parent_tf);
+            auto [child_body, child_frame_id] = std::get<ChBodyTransform>(child_tf);
+            child_to_parent = parent_body->GetFrameRefToAbs().GetInverse() * child_body->GetFrameRefToAbs();
         } else {
-            auto frame_pair = std::get<ChFrameTransform>(child);
-            child_to_parent = frame_pair.first;
-            child_frame_id = frame_pair.second;
+            auto [parent_body, parent_frame_id] = std::get<ChBodyTransform>(parent_tf);
+            auto [child_to_parent, child_frame_id] = std::get<ChFrameTransform>(child_tf);
         }
 
-        auto tf_msg = CreateTransformStamped(child_to_parent, parent->GetName(), child_frame_id, time);
+        auto tf_msg = CreateTransformStamped(child_to_parent, parent_frame_id, child_frame_id, time);
         transforms.push_back(tf_msg);
     }
 

@@ -36,7 +36,7 @@ RotationalDamperSuspension::RotationalDamperSuspension(const std::string& filena
 
     Create(d);
 
-    std::cout << "Loaded JSONL " << filename << std::endl;
+    std::cout << "Loaded JSON " << filename << std::endl;
 }
 
 RotationalDamperSuspension::RotationalDamperSuspension(const rapidjson::Document& d, bool has_shock, bool lock_arm)

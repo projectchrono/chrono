@@ -52,23 +52,27 @@ const std::string ChToeBarRigidPanhardAxle::m_pointNames[] = {
 ChToeBarRigidPanhardAxle::ChToeBarRigidPanhardAxle(const std::string& name) : ChSuspension(name) {}
 
 ChToeBarRigidPanhardAxle::~ChToeBarRigidPanhardAxle() {
-    auto sys = m_axleTubeBody->GetSystem();
-    if (sys) {
-        sys->Remove(m_axleTubeBody);
-        sys->Remove(m_tierodBody);
-        sys->Remove(m_draglinkBody);
-        sys->Remove(m_axleTubeGuide);
-        sys->Remove(m_sphericalTierod);
-        sys->Remove(m_sphericalDraglink);
-        sys->Remove(m_universalDraglink);
-        sys->Remove(m_universalTierod);
+    if (!m_initialized)
+        return;
 
-        for (int i = 0; i < 2; i++) {
-            sys->Remove(m_knuckleBody[i]);
-            sys->Remove(m_revoluteKingpin[i]);
-            sys->Remove(m_shock[i]);
-            sys->Remove(m_spring[i]);
-        }
+    auto sys = m_axleTubeBody->GetSystem();
+    if (!sys)
+        return;
+
+    sys->Remove(m_axleTubeBody);
+    sys->Remove(m_tierodBody);
+    sys->Remove(m_draglinkBody);
+    sys->Remove(m_axleTubeGuide);
+    sys->Remove(m_sphericalTierod);
+    sys->Remove(m_sphericalDraglink);
+    sys->Remove(m_universalDraglink);
+    sys->Remove(m_universalTierod);
+
+    for (int i = 0; i < 2; i++) {
+        sys->Remove(m_knuckleBody[i]);
+        sys->Remove(m_revoluteKingpin[i]);
+        sys->Remove(m_shock[i]);
+        sys->Remove(m_spring[i]);
     }
 }
 

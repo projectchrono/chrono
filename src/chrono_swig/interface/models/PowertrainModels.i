@@ -6,7 +6,16 @@
 #include <vector>
 
 #include "chrono_vehicle/ChVehicle.h"
+
+#include "chrono_vehicle/ChEngine.h"
 #include "chrono_vehicle/ChPowertrainAssembly.h"
+#include "chrono_vehicle/powertrain/ChEngineSimple.h"
+#include "chrono_vehicle/powertrain/ChEngineSimpleMap.h"
+#include "chrono_vehicle/powertrain/ChEngineShafts.h"
+#include "chrono_vehicle/powertrain/EngineSimple.h"
+#include "chrono_vehicle/powertrain/EngineSimpleMap.h"
+#include "chrono_vehicle/powertrain/EngineShafts.h"
+
 #include "chrono/core/ChCubicSpline.h"
 
 //#include "chrono_models/ChApiModels.h"

@@ -40,11 +40,15 @@ class CH_VEHICLE_API ChTrackBrake : public ChPart {
     );
 
     /// Update the brake subsystem for the given braking driver input.
+    /// The input value is in the range [0,1].<br>
     /// <pre>
-    ///   braking = 0 : completely free,
-    ///   braking = 1 : provide maximum braking torque
+    ///   braking = 0 indicates no braking
+    ///   braking = 1 indicates that the subsystem should provide maximum braking torque
     /// </pre>
-    virtual void Synchronize(double braking) = 0;
+    virtual void Synchronize(double time, double braking) = 0;
+
+    /// Advance the state of the brake subsystem by the specified time step.
+    virtual void Advance(double step) {}
 
     /// Get the current brake torque.
     virtual double GetBrakeTorque() = 0;

@@ -25,10 +25,14 @@ namespace vehicle {
 ChChassisConnectorHitch::ChChassisConnectorHitch(const std::string& name) : ChChassisConnector(name) {}
 
 ChChassisConnectorHitch::~ChChassisConnectorHitch() {
+    if (!m_initialized)
+        return;
+
     auto sys = m_joint->GetSystem();
-    if (sys) {
-        sys->Remove(m_joint);
-    }
+    if (!sys)
+        return;
+
+    sys->Remove(m_joint);
 }
 
 void ChChassisConnectorHitch::Initialize(std::shared_ptr<ChChassis> front, std::shared_ptr<ChChassisRear> rear) {

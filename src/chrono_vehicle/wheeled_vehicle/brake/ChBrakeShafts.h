@@ -45,12 +45,13 @@ class CH_VEHICLE_API ChBrakeShafts : public ChBrake {
                             VehicleSide side                           ///< brake mounted on left/right side
                             ) override;
 
-    /// Update the brake subsystem: set the brake modulation, in 0..1 range:
+    /// Update the brake subsystem for the given braking driver input.
+    /// The input value is in the range [0,1].<br>
     /// <pre>
-    /// when = 0 it is completely free,
-    /// when = 1 it provides the max braking torque
+    ///   braking = 0 indicates no braking
+    ///   braking = 1 indicates that the subsystem should provide maximum braking torque
     /// </pre>
-    virtual void Synchronize(double modulation) override;
+    virtual void Synchronize(double time, double braking) override;
 
     /// Get the current brake torque.
     virtual double GetBrakeTorque() override { return m_modulation * GetMaxBrakingTorque(); }

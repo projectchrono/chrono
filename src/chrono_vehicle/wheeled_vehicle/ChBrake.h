@@ -40,13 +40,16 @@ class CH_VEHICLE_API ChBrake : public ChPart {
                             VehicleSide side                           ///< brake mounted on left/right side
     );
 
-    /// Update the brake subsystem: set the brake modulation.
+    /// Update the brake subsystem for the given braking driver input.
     /// The input value is in the range [0,1].<br>
     /// <pre>
-    ///   modulation = 0 indicates no braking
-    ///   modulation = 1 indicates that the subsystem should provide maximum braking torque
+    ///   braking = 0 indicates no braking
+    ///   braking = 1 indicates that the subsystem should provide maximum braking torque
     /// </pre>
-    virtual void Synchronize(double modulation) = 0;
+    virtual void Synchronize(double time, double braking) = 0;
+
+    /// Advance the state of the brake subsystem by the specified time step.
+    virtual void Advance(double step) {}
 
     /// Enable/disable ability of locking (default: false).
     /// Note that a derived class may or may not support this option.

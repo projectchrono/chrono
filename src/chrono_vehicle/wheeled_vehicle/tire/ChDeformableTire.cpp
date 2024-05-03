@@ -38,19 +38,23 @@ ChDeformableTire::ChDeformableTire(const std::string& name)
       m_contact_face_thickness(0.0) {}
 
 ChDeformableTire::~ChDeformableTire() {
+    if (!m_initialized)
+        return;
+
     auto sys = m_mesh->GetSystem();
-    if (sys) {
-        sys->Remove(m_mesh);
-        sys->Remove(m_load_container);
-        for (size_t i = 0; i < m_connections.size(); i++) {
-            sys->Remove(m_connections[i]);
-        }
-        for (size_t i = 0; i < m_connectionsD.size(); i++) {
-            sys->Remove(m_connectionsD[i]);
-        }
-        for (size_t i = 0; i < m_connectionsF.size(); i++) {
-            sys->Remove(m_connectionsF[i]);
-        }
+    if (!sys)
+        return;
+
+    sys->Remove(m_mesh);
+    sys->Remove(m_load_container);
+    for (size_t i = 0; i < m_connections.size(); i++) {
+        sys->Remove(m_connections[i]);
+    }
+    for (size_t i = 0; i < m_connectionsD.size(); i++) {
+        sys->Remove(m_connectionsD[i]);
+    }
+    for (size_t i = 0; i < m_connectionsF.size(); i++) {
+        sys->Remove(m_connectionsF[i]);
     }
 }
 

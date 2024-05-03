@@ -46,14 +46,18 @@ const std::string ChSemiTrailingArm::m_pointNames[] = {"SPINDLE ", "TA_CM",    "
 ChSemiTrailingArm::ChSemiTrailingArm(const std::string& name) : ChSuspension(name) {}
 
 ChSemiTrailingArm::~ChSemiTrailingArm() {
+    if (!m_initialized)
+        return;
+
     auto sys = m_arm[0]->GetSystem();
-    if (sys) {
-        for (int i = 0; i < 2; i++) {
-            sys->Remove(m_arm[i]);
-            ChChassis::RemoveJoint(m_revoluteArm[i]);
-            sys->Remove(m_shock[i]);
-            sys->Remove(m_spring[i]);
-        }
+    if (!sys)
+        return;
+
+    for (int i = 0; i < 2; i++) {
+        sys->Remove(m_arm[i]);
+        ChChassis::RemoveJoint(m_revoluteArm[i]);
+        sys->Remove(m_shock[i]);
+        sys->Remove(m_spring[i]);
     }
 }
 

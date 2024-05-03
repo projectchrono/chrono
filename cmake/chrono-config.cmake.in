@@ -551,6 +551,14 @@ foreach(COMPONENT ${Chrono_FIND_COMPONENTS})
         list(APPEND CHRONO_DLL_NAMES "ChronoEngine_parsers.dll")
       endif()
 
+      if(@HAVE_URDF@)
+         find_package(urdfdom REQUIRED)
+         find_package(urdfdom_headers REQUIRED)
+         find_package(console_bridge REQUIRED)
+         find_package(tinyxml2 REQUIRED)
+         list(APPEND CHRONO_LIBRARIES "urdfdom::urdfdom_model;urdfdom::urdfdom_world;urdfdom::urdfdom_sensor;tinyxml2::tinyxml2")
+      endif()
+
       set(CHRONO_PARSERS_PYTHON @HAVE_PYTHON@)
       set(CHRONO_PARSERS_URDF @HAVE_URDF@)
 

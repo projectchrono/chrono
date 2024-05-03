@@ -39,7 +39,7 @@ SprocketSinglePin::SprocketSinglePin(const std::string& filename) : ChSprocketSi
 
     Create(d);
 
-    std::cout << "Loaded JSONL " << filename << std::endl;
+    std::cout << "Loaded JSON " << filename << std::endl;
 }
 
 SprocketSinglePin::SprocketSinglePin(const rapidjson::Document& d) : ChSprocketSinglePin(""), m_has_mesh(false) {

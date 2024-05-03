@@ -39,7 +39,7 @@ SolidBellcrankThreeLinkAxle::SolidBellcrankThreeLinkAxle(const std::string& file
 
     Create(d);
 
-    std::cout << "Loaded JSONL " << filename << std::endl;
+    std::cout << "Loaded JSON " << filename << std::endl;
 }
 
 SolidBellcrankThreeLinkAxle::SolidBellcrankThreeLinkAxle(const rapidjson::Document& d)

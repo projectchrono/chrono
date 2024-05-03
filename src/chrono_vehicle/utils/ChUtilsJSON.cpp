@@ -58,6 +58,7 @@
 #include "chrono_vehicle/wheeled_vehicle/suspension/ToeBarPushPipeAxle.h"
 #include "chrono_vehicle/wheeled_vehicle/suspension/RigidPanhardAxle.h"
 #include "chrono_vehicle/wheeled_vehicle/suspension/ToeBarRigidPanhardAxle.h"
+#include "chrono_vehicle/wheeled_vehicle/suspension/SingleWishbone.h"
 #include "chrono_vehicle/wheeled_vehicle/suspension/SolidAxle.h"
 #include "chrono_vehicle/wheeled_vehicle/suspension/SolidBellcrankThreeLinkAxle.h"
 #include "chrono_vehicle/wheeled_vehicle/suspension/SolidThreeLinkAxle.h"
@@ -829,6 +830,8 @@ std::shared_ptr<ChSuspension> ReadSuspensionJSON(const std::string& filename) {
         suspension = chrono_types::make_shared<LeafspringAxle>(d);
     } else if (subtype.compare("SAELeafspringAxle") == 0) {
         suspension = chrono_types::make_shared<SAELeafspringAxle>(d);
+    } else if (subtype.compare("SingleWishbone") == 0) {
+        suspension = chrono_types::make_shared<SingleWishbone>(d);
     } else if (subtype.compare("SolidThreeLinkAxle") == 0) {
         suspension = chrono_types::make_shared<SolidThreeLinkAxle>(d);
     } else if (subtype.compare("SolidBellcrankThreeLinkAxle") == 0) {

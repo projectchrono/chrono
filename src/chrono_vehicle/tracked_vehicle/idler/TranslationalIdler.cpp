@@ -34,7 +34,7 @@ TranslationalIdler::TranslationalIdler(const std::string& filename) : ChTranslat
 
     Create(d);
 
-    std::cout << "Loaded JSONL " << filename << std::endl;
+    std::cout << "Loaded JSON " << filename << std::endl;
 }
 
 TranslationalIdler::TranslationalIdler(const rapidjson::Document& d) : ChTranslationalIdler("") {

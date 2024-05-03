@@ -67,7 +67,7 @@ extern "C" __global__ void __miss__shader() {
         }
         case DEPTH_RAY_TYPE: {
             PerRayData_depthCamera* prd = getDepthCameraPRD();
-            prd->depth = 0.f; // Aribitary max depth
+            prd->depth = prd->max_depth; // set miss hit to max depth
             break;
         }
     }

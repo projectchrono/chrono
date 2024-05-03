@@ -305,6 +305,56 @@ void ChVehicleGuiComponentVSG::render() {
         ImGui::EndTable();
     }
 
+    ImGui::Spacing();
+
+    if (ImGui::BeginTable("VehAttitude", 2, ImGuiTableFlags_BordersOuter | ImGuiTableFlags_SizingFixedFit,
+                          ImVec2(0.0f, 0.0f))) {
+        auto terrain = m_app->GetTerrain();
+        static int e = 0;  // 0: global, 1: local
+
+        ImGui::TableNextRow();
+        ImGui::TableNextColumn();
+        ImGui::TextUnformatted("Vehicle Attitude");
+        
+        if (terrain) {
+            ImGui::TableNextColumn();
+            ImGui::RadioButton("absolute", &e, 0);
+            ImGui::SameLine();
+            ImGui::RadioButton("local", &e, 1);
+        }
+
+        double roll;
+        double pitch;
+
+        if (e == 0) {
+            roll = m_app->GetVehicle().GetRoll() * CH_RAD_TO_DEG;
+            pitch = m_app->GetVehicle().GetPitch() * CH_RAD_TO_DEG;
+        } else if (e == 1) {
+            roll = m_app->GetVehicle().GetRoll(*terrain) * CH_RAD_TO_DEG;
+            pitch = m_app->GetVehicle().GetPitch(*terrain) * CH_RAD_TO_DEG;
+        }
+
+        ImGui::TableNextRow();
+        ImGui::TableNextColumn();
+        ImGui::TextUnformatted("Roll angle:");
+        ImGui::TableNextColumn();
+        ImGui::Text("%6.1f deg", roll);
+
+        ImGui::TableNextRow();
+        ImGui::TableNextColumn();
+        ImGui::TextUnformatted("Pitch angle:");
+        ImGui::TableNextColumn();
+        ImGui::Text("%6.1f deg", pitch);
+
+        ImGui::TableNextRow();
+        ImGui::TableNextColumn();
+        ImGui::TextUnformatted("Slip angle:");
+        ImGui::TableNextColumn();
+        ImGui::Text("%6.1f deg", m_app->GetVehicle().GetSlipAngle() * CH_RAD_TO_DEG);
+
+        ImGui::EndTable();
+    }
+
     // Display information from powertrain system
     const auto& powertrain = m_app->GetVehicle().GetPowertrainAssembly();
     if (powertrain) {

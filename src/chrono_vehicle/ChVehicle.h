@@ -31,6 +31,7 @@
 #include "chrono_vehicle/ChVehicleOutput.h"
 #include "chrono_vehicle/ChChassis.h"
 #include "chrono_vehicle/ChPowertrainAssembly.h"
+#include "chrono_vehicle/ChTerrain.h"
 
 namespace chrono {
 namespace vehicle {
@@ -116,16 +117,48 @@ class CH_VEHICLE_API ChVehicle {
     /// global reference frame.
     ChQuaternion<> GetRot() const { return m_chassis->GetRot(); }
 
-    /// Get the vehicle speed.
+    /// Get vehicle roll angle.
+    /// This version returns the roll angle with respect to the absolte frame; as such, this is a proper representation
+    /// of vehicle roll only on flat horizontal terrain. In the ISO frame convention, a positive roll angle corresponds
+    /// to the vehicle left side lifting (e.g., in a turn to the left).
+    double GetRoll() const;
+
+    /// Get vehicle pitch angle.
+    /// This version returns the pitch angle with respect to the absolte frame; as such, this is a proper representation
+    /// of vehicle pitch only on flat horizontal terrain. In the ISO frame convention, a positive pitch angle
+    /// corresponds to the vehicle front dipping (e.g., during braking).
+    double GetPitch() const;
+
+    /// Get vehicle roll angle (relative to local terrain).
+    /// This version returns the roll angle relative to the terrain normal at a point below the vehicle position; as
+    /// such, this is a reasonable approximation of local vehicle roll only on relatively flat (but not necessarily
+    /// horizontal) terrains. In the ISO frame convention, a positive roll angle corresponds to the vehicle left side
+    /// lifting above the terrain plane.
+    double GetRoll(const ChTerrain& terrain) const;
+
+    /// Get vehicle pitch angle (relative to local terrain).
+    /// This version returns the pitch angle relative to the terrain normal at a point below the vehicle position; as
+    /// such, this is a reasonable approximation of local vehicle pitch only on relatively flat (but not necessarily
+    /// horizontal) terrains. In the ISO frame convention, a positive pitch angle corresponds to the vehicle front
+    /// dipping below the terrain plane.
+    double GetPitch(const ChTerrain& terrain) const;
+
+    /// Get the vehicle speed (velocity component in the vehicle forward direction).
     /// Return the speed measured at the origin of the main chassis reference frame.
     double GetSpeed() const { return m_chassis->GetSpeed(); }
 
+    /// Get the vehicle slip angle.
+    /// This represents the angle betwwen the forward vehicle X axis and the vehicle velocity vector (calculated at the
+    /// origin of the vehicle frame). The return value is in radians with a positive sign for a left turn and a negative
+    /// sign for a right turn.
+    double GetSlipAngle() const;
+
     /// Get the vehicle roll rate.
-    /// The yaw rate is referenced to the chassis frame.
+    /// The roll rate is referenced to the chassis frame.
     double GetRollRate() const { return m_chassis->GetRollRate(); }
 
     /// Get the vehicle pitch rate.
-    /// The yaw rate is referenced to the chassis frame.
+    /// The pitch rate is referenced to the chassis frame.
     double GetPitchRate() const { return m_chassis->GetPitchRate(); }
 
     /// Get the vehicle yaw rate.

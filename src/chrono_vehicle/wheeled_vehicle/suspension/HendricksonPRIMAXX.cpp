@@ -40,7 +40,7 @@ HendricksonPRIMAXX::HendricksonPRIMAXX(const std::string& filename) : ChHendrick
 
     Create(d);
 
-    std::cout << "Loaded JSONL " << filename << std::endl;
+    std::cout << "Loaded JSON " << filename << std::endl;
 }
 
 HendricksonPRIMAXX::HendricksonPRIMAXX(const rapidjson::Document& d) : ChHendricksonPRIMAXX("") {

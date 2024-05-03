@@ -38,7 +38,7 @@ SolidAxle::SolidAxle(const std::string& filename) : ChSolidAxle(""), m_springFor
 
     Create(d);
 
-    std::cout << "Loaded JSONL " << filename << std::endl;
+    std::cout << "Loaded JSON " << filename << std::endl;
 }
 
 SolidAxle::SolidAxle(const rapidjson::Document& d) : ChSolidAxle(""), m_springForceCB(NULL), m_shockForceCB(NULL) {
@@ -116,6 +116,16 @@ void SolidAxle::Create(const rapidjson::Document& d) {
     m_axleTubeCOM = ReadVectorJSON(d["Axle Tube"]["COM"]);
     m_axleTubeInertia = ReadVectorJSON(d["Axle Tube"]["Inertia"]);
     m_axleTubeRadius = d["Axle Tube"]["Radius"].GetDouble();
+
+    // Read trackbar (aka Panhard Rod) data
+    assert(d.HasMember("Trackbar"));
+    assert(d["Trackbar"].IsObject());
+
+    m_trackbarMass = d["Trackbar"]["Mass"].GetDouble();
+    m_trackbarInertia = ReadVectorJSON(d["Trackbar"]["Inertia"]);
+    m_trackbarRadius = d["Trackbar"]["Radius"].GetDouble();
+    m_points[TRACKBAR_A] = ReadVectorJSON(d["Trackbar"]["Location Axle"]);
+    m_points[TRACKBAR_C] = ReadVectorJSON(d["Trackbar"]["Location Chassis"]);
 
     // Read Tierod data
     assert(d.HasMember("Tierod"));

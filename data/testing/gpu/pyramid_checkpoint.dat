@@ -9,7 +9,7 @@ useMinLengthUnit: 1
 recordContactInfo: 0
 particleFileMode: 0
 particleFileFlags: 1
-fixedStepSize: 5e-06
+fixedStepSize: 5e-05
 cohesionOverG: 0
 adhesionOverG_s2w: 0
 G: 0 0 -9.81

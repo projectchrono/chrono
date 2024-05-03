@@ -17,6 +17,7 @@
 // =============================================================================
 
 #include <algorithm>
+#include <cmath>
 
 #include "chrono/ChConfig.h"
 
@@ -81,8 +82,16 @@ ChVehicle::ChVehicle(const std::string& name, ChSystem* system)
 
 ChVehicle::~ChVehicle() {
     delete m_output_db;
-    if (m_ownsSystem)
+    if (m_ownsSystem) {
+        // Release references to the chassis, connectors, and powertrain
+        m_powertrain_assembly = nullptr;
+        m_chassis = nullptr;
+        m_chassis_rear.clear();
+        m_chassis_connectors.clear();
+
+        // Delete underlying Chrono system (this removes references to all contained physics items)
         delete m_system;
+    }
 }
 
 // -----------------------------------------------------------------------------
@@ -226,6 +235,82 @@ void ChVehicle::SetChassisOutput(bool state) {
     for (auto& c : m_chassis_rear)
         c->SetOutput(state);
 }
+
+// -----------------------------------------------------------------------------
+
+double ChVehicle::GetRoll() const {
+    auto angles = m_chassis->GetBody()->GetFrameRefToAbs().GetRot().GetCardanAnglesZYX(); 
+    return angles[1];
+}
+
+double ChVehicle::GetPitch() const {
+    auto angles = m_chassis->GetBody()->GetFrameRefToAbs().GetRot().GetCardanAnglesZYX();
+    return angles[0];
+}
+
+double ChVehicle::GetRoll(const ChTerrain& terrain) const {
+    // Current vehicle position and orientation axes
+    auto vP = m_chassis->GetBody()->GetFrameRefToAbs().GetPos();
+    auto vX = m_chassis->GetBody()->GetFrameRefToAbs().GetRot().GetAxisX();
+    auto vY = m_chassis->GetBody()->GetFrameRefToAbs().GetRot().GetAxisY();
+
+    // Find terrain normal below vehicle position (single point)
+    double h;
+    float mu;
+    ChVector3d tZ;
+    terrain.GetProperties(vP, h, tZ, mu);
+
+    // Calculate terrain Y direction in the vehicle transversal plane
+    ChVector3d tY = Vcross(tZ, vX);
+    tY.Normalize();
+
+    // Calculate roll angle as the signed angle between tY and vY
+    auto cross = Vcross(tY, vY);
+    auto sign = Vdot(cross, vX);
+    auto roll_magnitude = std::asin(cross.Length());
+    auto roll = (sign > 0) ? roll_magnitude : -roll_magnitude;
+
+    return roll;
+}
+
+double ChVehicle::GetPitch(const ChTerrain& terrain) const {
+    // Current vehicle position and orientation axes
+    auto vP = m_chassis->GetBody()->GetFrameRefToAbs().GetPos();
+    auto vX = m_chassis->GetBody()->GetFrameRefToAbs().GetRot().GetAxisX();
+    auto vY = m_chassis->GetBody()->GetFrameRefToAbs().GetRot().GetAxisY();
+
+    // Find terrain normal below vehicle position (single point)
+    double h;
+    float mu;
+    ChVector3d tZ;
+    terrain.GetProperties(vP, h, tZ, mu);
+
+    // Calculate terrain X direction in the vehicle longitudinal plane
+    ChVector3d tX = Vcross(vY, tZ);
+    tX.Normalize();
+
+    // Calculate pitch angle as the signed angle between tX and vX
+    auto cross = Vcross(tX, vX);
+    auto sign = Vdot(cross, vY);
+    auto pitch_magnitude = std::asin(cross.Length());
+    auto pitch = (sign > 0) ? pitch_magnitude : -pitch_magnitude;
+
+    return pitch;
+}
+
+double ChVehicle::GetSlipAngle() const {
+    auto V_abs = m_chassis->GetBody()->GetFrameRefToAbs().GetPosDt();  // chassis velocity (expressed in absolute frame)
+    auto V_loc = m_chassis->GetBody()->TransformDirectionParentToLocal(V_abs);  // chassis velocity in local frame
+
+    // slip angle (positive sign = left turn, negative sign = right turn)
+    double abs_Vx = std::abs(V_loc.x());
+    double zero_Vx = 1e-4;
+    double slip_angle = (abs_Vx > zero_Vx) ? std::atan(V_loc.y() / abs_Vx) : 0;
+
+    return slip_angle;
+}
+
+
 
 }  // end namespace vehicle
 }  // end namespace chrono

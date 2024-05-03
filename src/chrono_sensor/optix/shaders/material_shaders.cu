@@ -1052,7 +1052,7 @@ static __device__ __inline__ void DepthShader(PerRayData_depthCamera* prd,
                                                  const float& ray_dist,
                                                  const float3& ray_orig,
                                                  const float3& ray_dir) {
-    prd->depth = ray_dist;
+    prd->depth = fminf(prd->max_depth, ray_dist);
 }
 
 extern "C" __global__ void __closesthit__material_shader() {

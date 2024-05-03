@@ -38,6 +38,7 @@ Gator::Gator()
     : m_system(nullptr),
       m_vehicle(nullptr),
       m_contact_method(ChContactMethod::NSC),
+      m_collsysType(ChCollisionSystem::Type::BULLET),
       m_chassis_collision_type(CollisionType::NONE),
       m_fixed(false),
       m_driveline_type(DrivelineTypeWV::SIMPLE),
@@ -59,6 +60,7 @@ Gator::Gator(ChSystem* system)
     : m_system(system),
       m_vehicle(nullptr),
       m_contact_method(ChContactMethod::NSC),
+      m_collsysType(ChCollisionSystem::Type::BULLET),
       m_chassis_collision_type(CollisionType::NONE),
       m_fixed(false),
       m_driveline_type(DrivelineTypeWV::SIMPLE),
@@ -98,7 +100,7 @@ void Gator::Initialize() {
         m_vehicle =
             new Gator_Vehicle(m_fixed, m_driveline_type, m_brake_type, m_contact_method, m_chassis_collision_type);
     }
-
+    m_vehicle->SetCollisionSystemType(m_collsysType);
     m_vehicle->SetInitWheelAngVel(m_initOmega);
     m_vehicle->Initialize(m_initPos, m_initFwdVel);
 

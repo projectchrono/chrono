@@ -31,7 +31,7 @@ EngineSimpleMap::EngineSimpleMap(const std::string& filename) : ChEngineSimpleMa
 
     Create(d);
 
-    std::cout << "Loaded JSONL " << filename << std::endl;
+    std::cout << "Loaded JSON " << filename << std::endl;
 }
 
 EngineSimpleMap::EngineSimpleMap(const rapidjson::Document& d) : ChEngineSimpleMap("") {

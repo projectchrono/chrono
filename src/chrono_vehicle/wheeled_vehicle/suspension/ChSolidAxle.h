@@ -146,6 +146,8 @@ class CH_VEHICLE_API ChSolidAxle : public ChSuspension {
         BELLCRANK_AXLE,      ///< bell crank to axle
         BELLCRANK_DRAGLINK,  ///< bell crank to draglink'
         DRAGLINK_C,          ///< draglink, chassis
+        TRACKBAR_A,          ///< trackbar, axle
+        TRACKBAR_C,          ///< trackbar, chassis
         NUM_POINTS
     };
 
@@ -182,6 +184,8 @@ class CH_VEHICLE_API ChSolidAxle : public ChSuspension {
     virtual double getDraglinkMass() const = 0;
     /// Return the mass of the bell crank body.
     virtual double getBellCrankMass() const = 0;
+    /// Return the mass of the trackbar (aka Panhard Rod) body.
+    virtual double getTrackbarMass() const = 0;
 
     /// Return the radius of the axle tube body (visualization only).
     virtual double getAxleTubeRadius() const = 0;
@@ -197,6 +201,8 @@ class CH_VEHICLE_API ChSolidAxle : public ChSuspension {
     virtual double getDraglinkRadius() const = 0;
     /// Return the radius of the bell crank body (visualization only).
     virtual double getBellCrankRadius() const = 0;
+    /// Return the radius of the trackbar body (visualization only).
+    virtual double getTrackbarRadius() const = 0;
 
     /// Return the moments of inertia of the axle tube body.
     virtual const ChVector3d& getAxleTubeInertia() const = 0;
@@ -214,6 +220,8 @@ class CH_VEHICLE_API ChSolidAxle : public ChSuspension {
     virtual const ChVector3d& getDraglinkInertia() const = 0;
     /// Return the moments of inertia of the bell crank body.
     virtual const ChVector3d& getBellCrankInertia() const = 0;
+    /// Return the moments of inertia of the trackbar body.
+    virtual const ChVector3d& getTrackbarInertia() const = 0;
 
     /// Return the inertia of the axle shaft.
     virtual double getAxleInertia() const = 0;
@@ -231,16 +239,21 @@ class CH_VEHICLE_API ChSolidAxle : public ChSuspension {
     std::shared_ptr<ChBody> m_tierod;        ///< handles to the tierod body
     std::shared_ptr<ChBody> m_bellCrank;     ///< handles to the bellcrank body
     std::shared_ptr<ChBody> m_draglink;      ///< handles to the draglink body
+    std::shared_ptr<ChBody> m_trackbarBody;  ///< handles to the trackbar body
     std::shared_ptr<ChBody> m_knuckle[2];    ///< handles to the knuckle bodies (L/R)
     std::shared_ptr<ChBody> m_upperLink[2];  ///< handles to the upper link bodies (L/R)
     std::shared_ptr<ChBody> m_lowerLink[2];  ///< handles to the lower link bodies (L/R)
 
-    std::shared_ptr<ChLinkLockRevolute> m_revoluteBellCrank;       ///< bellCrank-axle revolute joint (left)
-    std::shared_ptr<ChLinkLockSpherical> m_sphericalTierod;        ///< knuckle-tierod spherical joint (left)
-    std::shared_ptr<ChLinkLockSpherical> m_sphericalDraglink;      ///< draglink-chassis spherical joint (left)
-    std::shared_ptr<ChLinkUniversal> m_universalDraglink;          ///< draglink-bellCrank universal joint (left)
-    std::shared_ptr<ChLinkUniversal> m_universalTierod;            ///< knuckle-tierod universal joint (right)
-    std::shared_ptr<ChLinkLockPointPlane> m_pointPlaneBellCrank;   ///< bellCrank-tierod point-plane joint (left)
+    std::shared_ptr<ChLinkLockRevolute> m_revoluteBellCrank;      ///< bellCrank-axle revolute joint (left)
+    std::shared_ptr<ChLinkLockSpherical> m_sphericalTierod;       ///< knuckle-tierod spherical joint (left)
+    std::shared_ptr<ChLinkLockSpherical> m_sphericalDraglink;     ///< draglink-chassis spherical joint (left)
+    std::shared_ptr<ChLinkUniversal> m_universalDraglink;         ///< draglink-bellCrank universal joint (left)
+    std::shared_ptr<ChLinkUniversal> m_universalTierod;           ///< knuckle-tierod universal joint (right)
+    std::shared_ptr<ChLinkLockPointPlane> m_pointPlaneBellCrank;  ///< bellCrank-tierod point-plane joint (left)
+    std::shared_ptr<ChLinkLockSpherical>
+        m_sphericalTrackbarAxleLink;  ///< trackbar spherical joint to axle body (left/single)
+    std::shared_ptr<ChLinkLockSpherical>
+        m_sphericalTrackbarChassisLink;  ///< trackbar spherical joint to chassis body (left/single)
     std::shared_ptr<ChLinkLockRevolute> m_revoluteKingpin[2];      ///< knuckle-axle tube revolute joints (L/R)
     std::shared_ptr<ChLinkLockSpherical> m_sphericalUpperLink[2];  ///< upper link-axle tube spherical joints (L/R)
     std::shared_ptr<ChLinkLockSpherical> m_sphericalLowerLink[2];  ///< lower link-axle tube spherical joints (L/R)
@@ -263,6 +276,10 @@ class CH_VEHICLE_API ChSolidAxle : public ChSuspension {
     ChVector3d m_tierodOuterL;
     ChVector3d m_tierodOuterR;
 
+    // Points for trackbar visualization
+    ChVector3d m_trackbarAxle;
+    ChVector3d m_trackbarChassis;
+
     void InitializeSide(VehicleSide side,
                         std::shared_ptr<ChBodyAuxRef> chassis,
                         std::shared_ptr<ChBody> tierod_body,
@@ -284,7 +301,8 @@ class CH_VEHICLE_API ChSolidAxle : public ChSuspension {
                                         const ChVector3d pt_U,
                                         const ChVector3d pt_L,
                                         const ChVector3d pt_T,
-                                        double radius);
+                                        double radius,
+                                        const ChColor& color);
 
     virtual void ExportComponentList(rapidjson::Document& jsonDocument) const override;
 

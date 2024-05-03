@@ -32,8 +32,10 @@ CH_SENSOR_API ChDepthCamera::ChDepthCamera(std::shared_ptr<chrono::ChBody> paren
                                                          unsigned int w,                  // image width
                                                          unsigned int h,                  // image height
                                                          float hFOV,                      // horizontal field of view
+                                                         float maxDepth,                  // maximum depth value
                                                          CameraLensModelType lens_model)  // lens model to use
     : m_hFOV(hFOV),
+      m_maxDepth(maxDepth),
       m_lens_model_type(lens_model),
       m_lens_parameters({}),
       ChOptixSensor(parent, updateRate, offsetPose, w, h) {

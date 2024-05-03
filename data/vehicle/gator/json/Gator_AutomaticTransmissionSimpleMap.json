@@ -1,0 +1,15 @@
+{
+  "Name": "Gator Simple Map Transmission",
+  "Type": "Transmission",
+  "Template": "AutomaticTransmissionSimpleMap",
+
+  "Gear Box": {
+    "Reverse Gear Ratio": -0.04,
+    "Forward Gear Ratios": [
+      0.07
+    ],
+    "Shift Points Map RPM": [
+      [ 0, 3000 ]
+    ]
+  }
+}

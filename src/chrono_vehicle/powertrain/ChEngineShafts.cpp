@@ -32,14 +32,18 @@ ChEngineShafts::ChEngineShafts(const std::string& name, const ChVector3d& dir_mo
     : ChEngine(name), m_dir_motor_block(dir_motor_block) {}
 
 ChEngineShafts::~ChEngineShafts() {
+    if (!m_initialized)
+        return;
+
     auto sys = m_engine->GetSystem();
-    if (sys) {
-        sys->Remove(m_motorblock);
-        sys->Remove(m_motorblock_to_body);
-        sys->Remove(m_engine);
-        sys->Remove(m_engine_losses);
-        sys->Remove(m_motorshaft);
-    }
+    if (!sys)
+        return;
+
+    sys->Remove(m_motorblock);
+    sys->Remove(m_motorblock_to_body);
+    sys->Remove(m_engine);
+    sys->Remove(m_engine_losses);
+    sys->Remove(m_motorshaft);
 }
 
 double ChEngineShafts::GetOutputMotorshaftTorque() const {

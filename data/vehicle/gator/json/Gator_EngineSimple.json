@@ -1,0 +1,9 @@
+{
+  "Name": "Gator Simple Engine",
+  "Type": "Engine",
+  "Template": "EngineSimple",
+
+  "Maximum Engine Torque": 200,
+  "Maximum Engine Power": 14000,
+  "Maximum Engine Speed": 360
+}

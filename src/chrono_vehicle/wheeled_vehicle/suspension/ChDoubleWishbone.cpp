@@ -48,30 +48,34 @@ ChDoubleWishbone::ChDoubleWishbone(const std::string& name, bool vehicle_frame_i
     : ChSuspension(name), m_vehicle_frame_inertia(vehicle_frame_inertia) {}
 
 ChDoubleWishbone::~ChDoubleWishbone() {
+    if (!m_initialized)
+        return;
+
     auto sys = m_upright[0]->GetSystem();
-    if (sys) {
-        for (int i = 0; i < 2; i++) {
-            sys->Remove(m_upright[i]);
-            sys->Remove(m_UCA[i]);
-            sys->Remove(m_LCA[i]);
+    if (!sys)
+        return;
 
-            ChChassis::RemoveJoint(m_revoluteUCA[i]);
-            ChChassis::RemoveJoint(m_sphericalUCA[i]);
-            ChChassis::RemoveJoint(m_revoluteLCA[i]);
-            ChChassis::RemoveJoint(m_sphericalLCA[i]);
+    for (int i = 0; i < 2; i++) {
+        sys->Remove(m_upright[i]);
+        sys->Remove(m_UCA[i]);
+        sys->Remove(m_LCA[i]);
 
-            if (m_tierod[i]) {
-                sys->Remove(m_tierod[i]);
-                ChChassis::RemoveJoint(m_sphericalTierod[i]);
-                ChChassis::RemoveJoint(m_universalTierod[i]);
-            }
-            if (m_distTierod[i]) {
-                sys->Remove(m_distTierod[i]);
-            }
+        ChChassis::RemoveJoint(m_revoluteUCA[i]);
+        ChChassis::RemoveJoint(m_sphericalUCA[i]);
+        ChChassis::RemoveJoint(m_revoluteLCA[i]);
+        ChChassis::RemoveJoint(m_sphericalLCA[i]);
 
-            sys->Remove(m_shock[i]);
-            sys->Remove(m_spring[i]);
+        if (m_tierod[i]) {
+            sys->Remove(m_tierod[i]);
+            ChChassis::RemoveJoint(m_sphericalTierod[i]);
+            ChChassis::RemoveJoint(m_universalTierod[i]);
         }
+        if (m_distTierod[i]) {
+            sys->Remove(m_distTierod[i]);
+        }
+
+        sys->Remove(m_shock[i]);
+        sys->Remove(m_spring[i]);
     }
 }
 

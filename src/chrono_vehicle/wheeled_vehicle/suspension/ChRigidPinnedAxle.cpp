@@ -42,11 +42,15 @@ namespace vehicle {
 ChRigidPinnedAxle::ChRigidPinnedAxle(const std::string& name) : ChSuspension(name) {}
 
 ChRigidPinnedAxle::~ChRigidPinnedAxle() {
+    if (!m_initialized)
+        return;
+
     auto sys = m_axleTube->GetSystem();
-    if (sys) {
-        sys->Remove(m_axleTube);
-        sys->Remove(m_axlePin);
-    }
+    if (!sys)
+        return;
+
+    sys->Remove(m_axleTube);
+    sys->Remove(m_axlePin);
 }
 
 // -----------------------------------------------------------------------------

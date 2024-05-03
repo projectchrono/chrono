@@ -27,16 +27,20 @@ ChAutomaticTransmissionShafts::ChAutomaticTransmissionShafts(const std::string& 
     : ChAutomaticTransmission(name), m_last_time_gearshift(0), m_gear_shift_latency(0.5) {}
 
 ChAutomaticTransmissionShafts::~ChAutomaticTransmissionShafts() {
+    if (!m_initialized)
+        return;
+
     auto sys = m_torqueconverter->GetSystem();
-    if (sys) {
-        sys->Remove(m_motorshaft);
-        sys->Remove(m_driveshaft);
-        sys->Remove(m_transmissionblock);
-        sys->Remove(m_transmissionblock_to_body);
-        sys->Remove(m_torqueconverter);
-        sys->Remove(m_shaft_ingear);
-        sys->Remove(m_gears);
-    }
+    if (!sys)
+        return;
+
+    sys->Remove(m_motorshaft);
+    sys->Remove(m_driveshaft);
+    sys->Remove(m_transmissionblock);
+    sys->Remove(m_transmissionblock_to_body);
+    sys->Remove(m_torqueconverter);
+    sys->Remove(m_shaft_ingear);
+    sys->Remove(m_gears);
 }
 
 // -----------------------------------------------------------------------------

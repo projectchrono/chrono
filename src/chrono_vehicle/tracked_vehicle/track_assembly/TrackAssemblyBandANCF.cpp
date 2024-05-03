@@ -65,7 +65,7 @@ void TrackAssemblyBandANCF::ReadSprocket(const std::string& filename, int output
         m_sprocket->SetOutput(output == +1);
     }
 
-    std::cout << "  Loaded JSONL " << filename << std::endl;
+    std::cout << "  Loaded JSON " << filename << std::endl;
 }
 
 // -----------------------------------------------------------------------------
@@ -96,7 +96,7 @@ void TrackAssemblyBandANCF::ReadTrackShoes(const std::string& filename, int num_
         m_shoes[0]->SetOutput(output == +1);
     }
 
-    std::cout << "  Loaded JSONL " << filename << std::endl;
+    std::cout << "  Loaded JSON " << filename << std::endl;
 }
 
 // -----------------------------------------------------------------------------
@@ -109,7 +109,7 @@ TrackAssemblyBandANCF::TrackAssemblyBandANCF(const std::string& filename) : ChTr
 
     Create(d);
 
-    std::cout << "Loaded JSONL " << filename << std::endl;
+    std::cout << "Loaded JSON " << filename << std::endl;
 }
 
 TrackAssemblyBandANCF::TrackAssemblyBandANCF(const rapidjson::Document& d) : ChTrackAssemblyBandANCF("", LEFT) {

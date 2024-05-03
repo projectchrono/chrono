@@ -180,7 +180,7 @@ extern "C" __global__ void __raygen__depthcamera() {
     basis_from_quaternion(ray_quat, forward, left, up);
     float3 ray_direction = normalize(forward - d.x * left * h_factor + d.y * up * h_factor);
 
-    PerRayData_depthCamera prd = default_depthCamera_prd();
+    PerRayData_depthCamera prd = default_depthCamera_prd(camera.max_depth);
     
     unsigned int opt1;
     unsigned int opt2;

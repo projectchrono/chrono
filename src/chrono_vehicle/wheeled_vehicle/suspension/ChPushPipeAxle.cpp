@@ -47,14 +47,18 @@ const std::string ChPushPipeAxle::m_pointNames[] = {"SHOCK_A    ", "SHOCK_C    "
 ChPushPipeAxle::ChPushPipeAxle(const std::string& name) : ChSuspension(name) {}
 
 ChPushPipeAxle::~ChPushPipeAxle() {
+    if (!m_initialized)
+        return;
+
     auto sys = m_axleTube->GetSystem();
-    if (sys) {
-        sys->Remove(m_axleTube);
-        sys->Remove(m_panhardRod);
-        for (int i = 0; i < 2; i++) {
-            sys->Remove(m_shock[i]);
-            sys->Remove(m_spring[i]);
-        }
+    if (!sys)
+        return;
+
+    sys->Remove(m_axleTube);
+    sys->Remove(m_panhardRod);
+    for (int i = 0; i < 2; i++) {
+        sys->Remove(m_shock[i]);
+        sys->Remove(m_spring[i]);
     }
 }
 

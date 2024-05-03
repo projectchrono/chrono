@@ -38,7 +38,7 @@ SingleTrackWheel::SingleTrackWheel(const std::string& filename) : ChSingleTrackW
 
     Create(d);
 
-    std::cout << "Loaded JSONL " << filename << std::endl;
+    std::cout << "Loaded JSON " << filename << std::endl;
 }
 
 SingleTrackWheel::SingleTrackWheel(const rapidjson::Document& d) : ChSingleTrackWheel(""), m_has_mesh(false) {

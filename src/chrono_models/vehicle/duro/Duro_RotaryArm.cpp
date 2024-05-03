@@ -28,7 +28,7 @@ namespace duro {
 
 const double Duro_RotaryArm::m_pitmanArmMass = 1.605;
 
-const double Duro_RotaryArm::m_pitmanArmRadius = 0.02;
+const double Duro_RotaryArm::m_pitmanArmRadius = 0.03;
 
 const double Duro_RotaryArm::m_maxAngle = 12.5 * (CH_PI / 180);
 
@@ -45,9 +45,9 @@ Duro_RotaryArm::Duro_RotaryArm(const std::string& name) : ChRotaryArm(name) {}
 const ChVector3d Duro_RotaryArm::getLocation(PointId which) {
     switch (which) {
         case ARM_L:
-            return ChVector3d(0.22, 0.635 - 0.2 + 0.155, 0.1);
+            return ChVector3d(0.22, 0.59, 0.1);
         case ARM_C:
-            return ChVector3d(0.22, 0.635 - 0.2 + 0.155, 0.3);
+            return ChVector3d(0.22, 0.59, 0.3);
         default:
             return ChVector3d(0, 0, 0);
     }

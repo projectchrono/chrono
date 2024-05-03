@@ -37,13 +37,17 @@ ChChassis::ChChassis(const std::string& name, bool fixed) : ChPart(name), m_fixe
 }
 
 ChChassis::~ChChassis() {
+    if (!m_initialized)
+        return;
+
     auto sys = m_body->GetSystem();
-    if (sys) {
-        sys->Remove(m_body);
-        sys->Remove(m_container_bushings);
-        sys->Remove(m_container_external);
-        sys->Remove(m_container_terrain);
-    }
+    if (!sys)
+        return;
+
+    sys->Remove(m_body);
+    sys->Remove(m_container_bushings);
+    sys->Remove(m_container_external);
+    sys->Remove(m_container_terrain);
 }
 
 // -----------------------------------------------------------------------------
