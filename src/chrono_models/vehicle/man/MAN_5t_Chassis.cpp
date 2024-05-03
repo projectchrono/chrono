@@ -68,16 +68,22 @@ MAN_5t_Chassis::MAN_5t_Chassis(const std::string& name, bool fixed, CollisionTyp
 
     m_geometry.m_has_collision = (chassis_collision_type != CollisionType::NONE);
     switch (chassis_collision_type) {
-        default:
         case CollisionType::PRIMITIVES:
             box1.m_matID = 0;
             m_geometry.m_coll_boxes.push_back(box1);
             break;
-        ////case CollisionType::HULLS: {
-        ////    ChVehicleGeometry::ConvexHullsShape hull("MAN_Kat1/meshes/MAN_5t_chassis_col.obj", 0);
-        ////    m_geometry.m_coll_hulls.push_back(hull);
-        ////    break;
-        ////}
+        case CollisionType::HULLS: {
+            ChVehicleGeometry::ConvexHullsShape hull("MAN_Kat1/meshes/MAN_5t_chassis_col.obj", 0);
+            m_geometry.m_coll_hulls.push_back(hull);
+            break;
+        }
+        case CollisionType::MESH: {
+            ChVehicleGeometry::TrimeshShape trimesh(ChVector3d(), "MAN_Kat1/meshes/MAN_5t_chassis_col.obj", 0.005, 0);
+            m_geometry.m_coll_meshes.push_back(trimesh);
+            break;
+        }
+        default:
+            break;
     }
 }
 
