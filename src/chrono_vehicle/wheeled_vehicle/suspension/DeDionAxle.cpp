@@ -99,6 +99,19 @@ void DeDionAxle::Create(const rapidjson::Document& d) {
     m_points[SHOCK_A] = ReadVectorJSON(d["Shock"]["Location Axle"]);
     m_shockForceCB = ReadTSDAFunctorJSON(d["Shock"], m_shockRestLength);
 
+    // Read Watt Mechanism Elements
+    assert(d.HasMember("Watt Mechanism"));
+    assert(d["Watt Mechanism"].IsObject());
+    m_wattCenterMass = d["Watt Mechanism"]["Center Link Mass"].GetDouble();
+    m_wattSideMass = d["Watt Mechanism"]["Side Link Mass"].GetDouble();
+    m_wattLinkRadius = d["Watt Mechanism"]["Link Radius"].GetDouble();
+    m_wattCenterInertia = ReadVectorJSON(d["Watt Mechanism"]["Center Link Inertia"]);
+    m_wattSideInertia = ReadVectorJSON(d["Watt Mechanism"]["Side Link Inertia"]);
+    m_points[WATT_CNT_LE] = ReadVectorJSON(d["Watt Mechanism"]["Location Left Link to Center"]);
+    m_points[WATT_CNT_RI] = ReadVectorJSON(d["Watt Mechanism"]["Location Right Link to Center"]);
+    m_points[WATT_LE_CH] = ReadVectorJSON(d["Watt Mechanism"]["Location Left Link to Chassis"]);
+    m_points[WATT_RI_CH] = ReadVectorJSON(d["Watt Mechanism"]["Location Right Link to Chassis"]);
+
     // Read axle inertia
     assert(d.HasMember("Axle"));
     assert(d["Axle"].IsObject());

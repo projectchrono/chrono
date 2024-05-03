@@ -29,8 +29,8 @@ namespace duro {
 // Static variables
 // -----------------------------------------------------------------------------
 
-const double Duro_RigidTire::m_radius = 0.939 / 2.0;
-const double Duro_RigidTire::m_width = 0.275;
+const double Duro_RigidTire::m_radius = 0.4665;
+const double Duro_RigidTire::m_width = 0.245;
 
 const double Duro_RigidTire::m_mass = 34.4;
 const ChVector3d Duro_RigidTire::m_inertia(3.34, 6.28, 3.34);
