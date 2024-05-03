@@ -463,18 +463,13 @@ Before adding a shared_ptr, mark as shared ptr all its inheritance tree in the m
 %DefSharedPtrDynamicCast(chrono::vehicle,ChEngine, EngineSimple)
 %DefSharedPtrDynamicCast(chrono::vehicle,ChEngine, EngineSimpleMap)
 %DefSharedPtrDynamicCast(chrono::vehicle,ChEngine, EngineShafts)
-// instruct swig for casting up to a ChEngine
-%DefSharedPtrDynamicCast(chrono::vehicle,ChEngineSimple, ChEngine)
-%DefSharedPtrDynamicCast(chrono::vehicle,ChEngineSimpleMap, ChEngine)
 
 %DefSharedPtrDynamicCast(chrono::vehicle,ChTransmission, ChAutomaticTransmissionSimpleMap)
 %DefSharedPtrDynamicCast(chrono::vehicle,ChTransmission, ChAutomaticTransmissionShafts)
 %DefSharedPtrDynamicCast(chrono::vehicle,ChTransmission, AutomaticTransmissionSimpleMap)
 %DefSharedPtrDynamicCast(chrono::vehicle,ChTransmission, AutomaticTransmissionShafts)
-// instruct swig for casting up to a ChTransmission
-%DefSharedPtrDynamicCast(chrono::vehicle,ChAutomaticTransmissionSimpleMap, ChTransmission)
-%DefSharedPtrDynamicCast(chrono::vehicle,ChAutomaticTransmissionShafts, ChTransmission)
-
+%DefSharedPtrDynamicCast(chrono::vehicle,ChTransmission, ChManualTransmissionShafts)
+%DefSharedPtrDynamicCast(chrono::vehicle,ChTransmission, ManualTransmissionShafts)
 
 %DefSharedPtrDynamicCast(chrono::vehicle,ChDriveline, ChDrivelineWV)
 %DefSharedPtrDynamicCast(chrono::vehicle,ChDriveline, ChShaftsDriveline2WD)
