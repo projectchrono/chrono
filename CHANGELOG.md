@@ -1100,8 +1100,13 @@ In some instances, the reader is directed to the "Notes" section for more detail
 | ChMinMaxDistribution              |                               | rename: ChUniformDistribution                    |
 | ChModalAssembly                   |                               |                                                  |
 |                                   | refer to ChAssembly           | like ChAssembly with boundary/internal suffixes  |
-|                                   | DoModalReduction_CraigBamption | rename: ApplyCraigBamptonTransformation         |
-|                                   | DoModalReduction_HERTING      | rename: ApplyHertingTransformation               |
+|                                   | ComputeModalKRMmatrix         | rename: ComputeModalKRMmatricesGlobal            |
+|                                   | ComputeLocalFullKMCqMatrix    | rename: ComputeLocalFullKMCqMatrices             |
+|                                   | ComputeInertialKRMmatrix      | remove                                           |
+|                                   | ComputeStiffnessMatrix        | remove                                           |
+|                                   | ComputeDampingMatrix          | remove                                           |
+|                                   | DoModalReduction_CraigBamption | remove                                          |
+|                                   | DoModalReduction_HERTING      | rename: ApplyModeAccelerationTransformation      |
 |                                   | DumpSubassemblyMatrices       | rename: WriteSubassemblyMatrices                 |
 |                                   | Get_full_assembly_x_old       | rename: GetDeformedState                         |
 |                                   | Get_modal_K                   | rename: GetModalStiffnessMatrix                  |
@@ -1118,6 +1123,8 @@ In some instances, the reader is directed to the "Notes" section for more detail
 |                                   | Get_modes_V                   | rename: GetEigenVectors                          |
 |                                   | SetNoSpeedNoAcceleration      | rename: ForceToRest                              |
 |                                   | SwitchModalReductionON        | rename: DoModalReduction                         |
+|                                   | SetFullStateWithModeOverlay   | rename: UpdateFullStateWithModeOverlay           |
+|                                   | SetInternalStateWithModes     | rename: UpdateInternalStateWithModes             |
 | ChMotionlawFilter                 |                               | rename: ChMotionFilter                           |
 | ChMotionlawFilter_SecondOrder     |                               | rename: ChMotionFilterSecondOrder                |
 | ChMotionlawFilter_ThirdOrder      |                               | rename: ChMotionFilterThirdOrder                 |
