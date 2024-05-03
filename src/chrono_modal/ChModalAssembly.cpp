@@ -301,49 +301,32 @@ void ChModalAssembly::ComputeMassCenterFrame() {
     // that the boundary nodes are added in the boundary 'meshlist' whereas their associated elements might
     // be in the 'internal_meshlist', leading to a mess in the mass computation.
     auto mesh_bou_int = chrono_types::make_shared<ChMesh>();
-    // collect boundary mesh
-    for (auto& item : meshlist) {
-        if (auto mesh = std::dynamic_pointer_cast<ChMesh>(item)) {
-            for (auto& node : mesh->GetNodes())
-                mesh_bou_int->AddNode(node);
-            for (auto& ele : mesh->GetElements())
-                mesh_bou_int->AddElement(ele);
+    // collect both boundary and internal meshes
+    for (const auto& itemvec : {meshlist, internal_meshlist})
+        for (const auto& item : itemvec) {
+            if (const auto mesh = std::dynamic_pointer_cast<ChMesh>(item)) {
+                for (auto& node : mesh->GetNodes())
+                    mesh_bou_int->AddNode(node);
+                for (auto& ele : mesh->GetElements())
+                    mesh_bou_int->AddElement(ele);
+            }
         }
-    }
-    // collect internal mesh
-    for (auto& item : internal_meshlist) {
-        if (auto mesh = std::dynamic_pointer_cast<ChMesh>(item)) {
-            for (auto& node : mesh->GetNodes())
-                mesh_bou_int->AddNode(node);
-            for (auto& ele : mesh->GetElements())
-                mesh_bou_int->AddElement(ele);
-        }
-    }
 
     double mass_total = 0;
     ChVector3d mass_weighted_radius(0);
     ChMatrix33<> inertial_total(0);
 
-    // for boundary bodies
-    for (auto& body : bodylist) {
-        if (body->IsActive()) {
-            mass_total += body->GetMass();
-            mass_weighted_radius += body->GetMass() * body->GetPos();
-            inertial_total +=
-                body->GetInertia() + body->GetMass() * (body->GetPos().Length2() * ChMatrix33<>(1.0) -
-                                                        body->GetPos().eigen() * body->GetPos().eigen().transpose());
+    // for both boundary and internal bodies
+    for (const auto& bodyvec : {bodylist, internal_bodylist})
+        for (const auto& body : bodyvec) {
+            if (body->IsActive()) {
+                mass_total += body->GetMass();
+                mass_weighted_radius += body->GetMass() * body->GetPos();
+                inertial_total += body->GetInertia() +
+                                  body->GetMass() * (body->GetPos().Length2() * ChMatrix33<>(1.0) -
+                                                     body->GetPos().eigen() * body->GetPos().eigen().transpose());
+            }
         }
-    }
-    // for internal bodies
-    for (auto& body : internal_bodylist) {
-        if (body->IsActive()) {
-            mass_total += body->GetMass();
-            mass_weighted_radius += body->GetMass() * body->GetPos();
-            inertial_total +=
-                body->GetInertia() + body->GetMass() * (body->GetPos().Length2() * ChMatrix33<>(1.0) -
-                                                        body->GetPos().eigen() * body->GetPos().eigen().transpose());
-        }
-    }
 
     // compute the mass properties of the mesh
     double mesh_mass = 0;
