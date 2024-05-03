@@ -578,7 +578,6 @@ void ChModalAssembly::ComputeProjectionMatrix() {
         this->is_projection_initialized = true;
         if (m_verbose)
             std::cout << "Projection matrices are initialized.\n";
-
     }
 }
 

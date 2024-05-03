@@ -122,10 +122,10 @@ bool ChGeneralizedEigenvalueSolverKrylovSchur::Solve(
     if (settings.scaleCq) {
         // std::cout << "Scaling Cq\n";
         scaling = K.diagonal().mean();
-        //for (int k = 0; k < Cq.outerSize(); ++k)
-        //    for (ChSparseMatrix::InnerIterator it(Cq, k); it; ++it) {
-        //        it.valueRef() *= scaling;
-        //    }
+        // for (int k = 0; k < Cq.outerSize(); ++k)
+        //     for (ChSparseMatrix::InnerIterator it(Cq, k); it; ++it) {
+        //         it.valueRef() *= scaling;
+        //     }
     }
 
     // A  =  [ -K   -Cq' ]
@@ -430,10 +430,10 @@ bool ChGeneralizedEigenvalueSolverLanczos::Solve(
     if (settings.scaleCq) {
         // std::cout << "Scaling Cq\n";
         scaling = K.diagonal().mean();
-        //for (int k = 0; k < Cq.outerSize(); ++k)
-        //    for (ChSparseMatrix::InnerIterator it(Cq, k); it; ++it) {
-        //        it.valueRef() *= scaling;
-        //    }
+        // for (int k = 0; k < Cq.outerSize(); ++k)
+        //     for (ChSparseMatrix::InnerIterator it(Cq, k); it; ++it) {
+        //         it.valueRef() *= scaling;
+        //     }
     }
 
     // A  =  [ -K   -Cq' ]
