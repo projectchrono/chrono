@@ -11,7 +11,7 @@ if(ENABLE_MODULE_IRRLICHT)
    )
 endif()
 
-if(ENABLE_MODULE_IRRLICHT)
+if(ENABLE_MODULE_MKL)
    set(DEMOS ${DEMOS}
        demo_MOD_reduction_beam
    )
