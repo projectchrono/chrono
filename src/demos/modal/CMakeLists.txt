@@ -13,7 +13,7 @@ endif()
 
 if(ENABLE_MODULE_PARDISO_MKL)
    set(DEMOS ${DEMOS}
-       demo_MOD_reduction_beam
+       demo_MOD_slewing_beam
    )
 endif()
 
