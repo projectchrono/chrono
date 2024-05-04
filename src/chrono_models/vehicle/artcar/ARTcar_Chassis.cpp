@@ -72,14 +72,26 @@ ARTcar_Chassis::ARTcar_Chassis(const std::string& name, bool fixed, CollisionTyp
     m_geometry.m_has_primitives = true;
     m_geometry.m_vis_boxes.push_back(box1);
 
-    m_geometry.m_has_mesh = false;
+    m_geometry.m_has_mesh = true;
+    m_geometry.m_vis_mesh_file = "artcar/chassis.obj";
 
     m_geometry.m_has_collision = (chassis_collision_type != CollisionType::NONE);
     switch (chassis_collision_type) {
-        default:
         case CollisionType::PRIMITIVES:
             box1.m_matID = 0;
             m_geometry.m_coll_boxes.push_back(box1);
+            break;
+        case CollisionType::HULLS: {
+            ChVehicleGeometry::ConvexHullsShape hull("artcar/chassis_col.obj", 0);
+            m_geometry.m_coll_hulls.push_back(hull);
+            break;
+        }
+        case CollisionType::MESH: {
+            ChVehicleGeometry::TrimeshShape trimesh(ChVector3d(), "artcar/chassis.obj_col", 0.005, 0);
+            m_geometry.m_coll_meshes.push_back(trimesh);
+            break;
+        }
+        default:
             break;
     }
 }
