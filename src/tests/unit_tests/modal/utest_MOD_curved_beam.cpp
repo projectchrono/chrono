@@ -36,7 +36,9 @@
 #include "chrono_modal/ChModalAssembly.h"
 
 #include "chrono/solver/ChDirectSolverLS.h"
-#include "chrono_pardisomkl/ChSolverPardisoMKL.h"
+#ifdef CHRONO_PARDISO_MKL
+    #include "chrono_pardisomkl/ChSolverPardisoMKL.h"
+#endif
 
 using namespace chrono;
 using namespace chrono::modal;
