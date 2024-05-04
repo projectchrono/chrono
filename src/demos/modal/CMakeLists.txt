@@ -11,6 +11,12 @@ if(ENABLE_MODULE_IRRLICHT)
    )
 endif()
 
+if(ENABLE_MODULE_IRRLICHT)
+   set(DEMOS ${DEMOS}
+       demo_MOD_reduction_beam
+   )
+endif()
+
 #--------------------------------------------------------------
 
 # Set include paths, compiler & linker flags, and libraries

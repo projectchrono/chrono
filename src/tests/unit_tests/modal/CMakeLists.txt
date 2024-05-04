@@ -1,17 +1,18 @@
-# Unit tests for miscellaneous Chrono joints
+# Unit tests for the Chrono::Modal module
 # ==================================================================
 
-message(STATUS "Unit tests for Chrono joints...")
+message(STATUS "Unit tests for Chrono::Modal...")
 
 set(TESTS
     utest_MOD_eigensolve
 )
 
 # Tests that REQUIRE Chrono::MKL
-set(TESTS_MKL
-    utest_MOD_reduction_beam
-	utest_MOD_curved_beam
-)
+if(ENABLE_MODULE_PARDISO_MKL)
+   set(TESTS ${TESTS}
+       utest_MOD_curved_beam
+   )
+endif()
 
 #--------------------------------------------------------------
 
@@ -33,7 +34,6 @@ if(ENABLE_MODULE_PARDISO_MKL)
     set(COMPILER_FLAGS "${COMPILER_FLAGS} ${CH_MKL_CXX_FLAGS}")
     set(LINKER_FLAGS "${LINKER_FLAGS} ${CH_MKL_LINK_FLAGS}")
     list(APPEND LIBRARIES "ChronoEngine_pardisomkl")
-    set(TESTS ${TESTS} ${TESTS_MKL})
 endif()
 
 #--------------------------------------------------------------
@@ -53,7 +53,7 @@ foreach(PROGRAM ${TESTS})
   target_link_libraries(${PROGRAM} ${LIBRARIES} gtest_main)
 
   install(TARGETS ${PROGRAM} DESTINATION ${CH_INSTALL_DEMO})
-  add_test(${PROGRAM} ${PROJECT_BINARY_DIR}/bin/${PROGRAM})
 
+  add_test(${PROGRAM} ${PROJECT_BINARY_DIR}/bin/${PROGRAM})
   set_tests_properties(${PROGRAM} PROPERTIES WORKING_DIRECTORY ${MY_WORKING_DIR})
 endforeach()

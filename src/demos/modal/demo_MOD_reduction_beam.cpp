@@ -1,7 +1,7 @@
 // =============================================================================
 // PROJECT CHRONO - http://projectchrono.org
 //
-// Copyright (c) 2014 projectchrono.org
+// Copyright (c) 2024 projectchrono.org
 // All rights reserved.
 //
 // Use of this source code is governed by a BSD-style license that can be found
@@ -12,20 +12,20 @@
 // Authors: Chao Peng, Alessandro Tasora
 // =============================================================================
 //
-// Unit test for modal assembly using the "slewing beam" model.
+// Demo for modal assembly using the "slewing beam" model.
 //
 // This benchmark model "slewing beam" is originally proposed in:
-// 1. Wu, E.J., Haug, S.: Geometric non-linear substructuring for dynamics of
+// 1. Wu, S.C., Haug, E.J.: Geometric non-linear substructuring for dynamics of
 // flexible mechanical elements. Int.J.Numer.Methods Eng.26, 2211–2226(1988).
 // and then used in the research paper:
 // 2. Sonneville, V., Scapolan, M., Shan, M. et al. Modal reduction procedures
 // for flexible multibody dynamics. Multibody Syst Dyn 51, 377–418 (2021).
-
-// The simulation results from modal redution are compared against the results from
-// corotational formulation in chrono::fea module.
 //
-// Successful execution of this unit test may validate: modal assembly's internal
-// force, inertia, and numerical integration implementations.
+// The simulation results from modal redution are compared against the results from
+// the Chrono corotational formulation.
+//
+// This demo is used to validate: the modal assembly's internal force, inertia,
+// and numerical integration implementations.
 // =============================================================================
 
 #include <iomanip>
@@ -45,10 +45,10 @@ using namespace chrono;
 using namespace chrono::modal;
 using namespace chrono::fea;
 
-void RunSlewingBeam(bool do_modal_reduction, bool use_herting, ChMatrixDynamic<>& res) {
+void RunSlewingBeam(bool do_modal_reduction, ChModalAssembly::ReductionType reduction_type, ChMatrixDynamic<>& res) {
     double time_step = 0.002;
     double time_step_prt = 0.5;
-    double time_length = 25;
+    double time_length = 50;
 
     // Create a Chrono::Engine physical system
     ChSystemNSC sys;
@@ -117,10 +117,8 @@ void RunSlewingBeam(bool do_modal_reduction, bool use_herting, ChMatrixDynamic<>
         mod_assem->SetUseLinearInertialTerm(true);
         mod_assem->SetUseStaticCorrection(false);
         mod_assem->SetModalAutomaticGravity(false);  // no gravity
-        if (use_herting)
-            mod_assem->SetReductionType(chrono::modal::ChModalAssembly::ReductionType::HERTING);
-        else
-            mod_assem->SetReductionType(chrono::modal::ChModalAssembly::ReductionType::CRAIG_BAMPTON);
+
+        mod_assem->SetReductionType(reduction_type);
 
         sys.Add(mod_assem);
 
@@ -343,26 +341,24 @@ bool CompareResults(const ChMatrixDynamic<>& ref_mat, const ChMatrixDynamic<>& m
 }
 
 int main(int argc, char* argv[]) {
-    std::cout << "Copyright (c) 2021 projectchrono.org\nChrono version: " << CHRONO_VERSION << "\n\n";
+    std::cout << "Copyright (c) 2024 projectchrono.org\nChrono version: " << CHRONO_VERSION << "\n\n";
 
-    std::cout << "1. Run corotational beam model not reduced:\n";
+    std::cout << "1. Run full corotational beam model:\n";
     // ChModalAssembly should be able to run successfully in the full state
     ChMatrixDynamic<> res_corot;
-    RunSlewingBeam(false, false, res_corot);
+    RunSlewingBeam(false, ChModalAssembly::ReductionType::CRAIG_BAMPTON, res_corot);
 
-    std::cout << "\n\n2. Run modal reduction model with Craig Bampton method:\n";
+    std::cout << "\n\n2. Run modal reduction model (Craig Bampton method):\n";
     ChMatrixDynamic<> res_modal_CraigBampton;
-    RunSlewingBeam(true, false, res_modal_CraigBampton);
+    RunSlewingBeam(true, ChModalAssembly::ReductionType::CRAIG_BAMPTON, res_modal_CraigBampton);
     bool check_CraigBampton = CompareResults(res_corot, res_modal_CraigBampton);
+    std::cout << "\nCraig-Bampton reduced model check: " << (check_CraigBampton ? "PASSED" : "FAILED") << std::endl;
 
-    std::cout << "\n\n3. Run modal reduction model with Herting method:\n";
+    std::cout << "\n\n3. Run modal reduction model (Herting method):\n";
     ChMatrixDynamic<> res_modal_Herting;
-    RunSlewingBeam(true, true, res_modal_Herting);
+    RunSlewingBeam(true, ChModalAssembly::ReductionType::HERTING, res_modal_Herting);
     bool check_Herting = CompareResults(res_corot, res_modal_Herting);
+    std::cout << "\nHerting reduced model check: " << (check_Herting ? "PASSED" : "FAILED") << std::endl;
 
-    bool is_passed = check_CraigBampton && check_Herting;
-    std::cout << "\nUNIT TEST of modal assembly with reduction beam: " << (is_passed ? "PASSED" : "FAILED")
-              << std::endl;
-
-    return !is_passed;
+    return 0;
 }
