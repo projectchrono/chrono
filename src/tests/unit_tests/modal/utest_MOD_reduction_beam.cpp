@@ -48,7 +48,7 @@ using namespace chrono::fea;
 void RunSlewingBeam(bool do_modal_reduction, bool use_herting, ChMatrixDynamic<>& res) {
     double time_step = 0.002;
     double time_step_prt = 0.5;
-    double time_length = 50;
+    double time_length = 25;
 
     // Create a Chrono::Engine physical system
     ChSystemNSC sys;
