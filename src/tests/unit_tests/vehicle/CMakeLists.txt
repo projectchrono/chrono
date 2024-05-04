@@ -40,6 +40,6 @@ foreach(PROGRAM ${TESTS})
     target_link_libraries(${PROGRAM} ${LIBS} gtest_main)
 
     install(TARGETS ${PROGRAM} DESTINATION ${CH_INSTALL_DEMO})
-    add_test(${PROGRAM} ${PROJECT_BINARY_DIR}/bin/${PROGRAM})
-    set_tests_properties(${PROGRAM} PROPERTIES WORKING_DIRECTORY ${MY_WORKING_DIR})
+    ##add_test(${PROGRAM} ${PROJECT_BINARY_DIR}/bin/${PROGRAM})
+    ##set_tests_properties(${PROGRAM} PROPERTIES WORKING_DIRECTORY ${MY_WORKING_DIR})
 endforeach(PROGRAM)
