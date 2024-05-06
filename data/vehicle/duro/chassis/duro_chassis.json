@@ -25,8 +25,20 @@
 
   "Rear Connector Location": [ -2.51, 0, -0.3 ],
 
-  "Visualization":
-  {
-   "Mesh":  "duro/traffic_cone.obj"
+  "Visualization": {
+    "Primitives": [
+      {
+        "Type": "BOX",
+        "Location": [0, 0, 0.1],
+        "Orientation": [1, 0, 0, 0],
+        "Dimensions": [2, 1, 0.2]
+      },
+      {
+        "Type": "BOX",
+        "Location": [ 0, 0, 0.3 ],
+        "Orientation": [ 1, 0, 0, 0 ],
+        "Dimensions": [ 1, 0.5, 0.2 ]
+      }
+    ]
   }
 }

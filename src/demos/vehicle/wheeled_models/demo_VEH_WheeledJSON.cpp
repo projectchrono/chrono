@@ -240,7 +240,7 @@ class Duro_Model : public Vehicle_Model {
         return "duro/powertrain/duro_automatic_transmission_simple_map.json";
     }
 
-    virtual double CameraDistance() const override { return 16.0; }
+    virtual double CameraDistance() const override { return 10.0; }
     virtual ChContactMethod ContactMethod() const override { return ChContactMethod::SMC; }
 };
 
