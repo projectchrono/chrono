@@ -230,6 +230,20 @@ class CityBus_Model : public Vehicle_Model {
     virtual ChContactMethod ContactMethod() const override { return ChContactMethod::SMC; }
 };
 
+class Duro_Model : public Vehicle_Model {
+  public:
+    virtual std::string ModelName() const override { return "Duro"; }
+    virtual std::string VehicleJSON() const override { return "duro/vehicle/duro_vehicle.json"; }
+    virtual std::string TireJSON(unsigned int axle) const override { return "duro/tires/duro_tmeasy_tire.json"; }
+    virtual std::string EngineJSON() const override { return "duro/powertrain/duro_engine_simple_map.json"; }
+    virtual std::string TransmissionJSON() const override {
+        return "duro/powertrain/duro_automatic_transmission_simple_map.json";
+    }
+
+    virtual double CameraDistance() const override { return 16.0; }
+    virtual ChContactMethod ContactMethod() const override { return ChContactMethod::SMC; }
+};
+
 class MAN_Model : public Vehicle_Model {
   public:
     virtual std::string ModelName() const override { return "MAN"; }
@@ -357,6 +371,7 @@ int main(int argc, char* argv[]) {
         {chrono_types::make_shared<CityBus_Model>(), "City bus"},
         {chrono_types::make_shared<MAN_Model>(), "MAN"},
         {chrono_types::make_shared<MTV_Model>(), "MTV"},
+        {chrono_types::make_shared<Duro_Model>(), "Duro"},
         {chrono_types::make_shared<Gator_Model>(), "Gator"},
         {chrono_types::make_shared<ACV_Model>(), "Skid steer"}};
 

@@ -27,6 +27,6 @@
 
   "Visualization":
   {
-   // "Mesh":  "duro/duro_chassis.obj"
+   "Mesh":  "duro/traffic_cone.obj"
   }
 }

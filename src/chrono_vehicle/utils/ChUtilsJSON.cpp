@@ -44,6 +44,7 @@
 #include "chrono_vehicle/wheeled_vehicle/steering/PitmanArm.h"
 #include "chrono_vehicle/wheeled_vehicle/steering/RackPinion.h"
 #include "chrono_vehicle/wheeled_vehicle/steering/RotaryArm.h"
+#include "chrono_vehicle/wheeled_vehicle/suspension/DeDionAxle.h"
 #include "chrono_vehicle/wheeled_vehicle/suspension/DoubleWishbone.h"
 #include "chrono_vehicle/wheeled_vehicle/suspension/DoubleWishboneReduced.h"
 #include "chrono_vehicle/wheeled_vehicle/suspension/HendricksonPRIMAXX.h"
@@ -63,6 +64,7 @@
 #include "chrono_vehicle/wheeled_vehicle/suspension/SolidBellcrankThreeLinkAxle.h"
 #include "chrono_vehicle/wheeled_vehicle/suspension/SolidThreeLinkAxle.h"
 #include "chrono_vehicle/wheeled_vehicle/suspension/ThreeLinkIRS.h"
+#include "chrono_vehicle/wheeled_vehicle/suspension/ToeBarDeDionAxle.h"
 #include "chrono_vehicle/wheeled_vehicle/suspension/ToeBarLeafspringAxle.h"
 #include "chrono_vehicle/wheeled_vehicle/suspension/SAEToeBarLeafspringAxle.h"
 #include "chrono_vehicle/wheeled_vehicle/suspension/GenericWheeledSuspension.h"
@@ -814,6 +816,10 @@ std::shared_ptr<ChSuspension> ReadSuspensionJSON(const std::string& filename) {
         suspension = chrono_types::make_shared<DoubleWishboneReduced>(d);
     } else if (subtype.compare("SolidAxle") == 0) {
         suspension = chrono_types::make_shared<SolidAxle>(d);
+    } else if (subtype.compare("DeDionAxle") == 0) {
+        suspension = chrono_types::make_shared<DeDionAxle>(d);
+    } else if (subtype.compare("ToeBarDeDionAxle") == 0) {
+        suspension = chrono_types::make_shared<ToeBarDeDionAxle>(d);
     } else if (subtype.compare("MultiLink") == 0) {
         suspension = chrono_types::make_shared<MultiLink>(d);
     } else if (subtype.compare("MacPhersonStrut") == 0) {

@@ -121,6 +121,8 @@ class CH_VEHICLE_API DeDionAxle : public ChDeDionAxle {
     ChVector3d m_axleTubeCOM;
     ChVector3d m_wattCenterInertia;
     ChVector3d m_wattSideInertia;
+
+    bool m_use_left_knuckle;
 };
 
 /// @} vehicle_wheeled_suspension

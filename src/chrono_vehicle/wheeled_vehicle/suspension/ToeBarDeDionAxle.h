@@ -38,6 +38,8 @@ class CH_VEHICLE_API ToeBarDeDionAxle : public ChToeBarDeDionAxle {
     ~ToeBarDeDionAxle();
 
   protected:
+    virtual bool isLeftKnuckleActuated() const override { return m_use_left_knuckle; }
+
     virtual double getCamberAngle() const override { return m_camber_angle; }
     virtual double getToeAngle() const override { return m_toe_angle; }
 
@@ -92,7 +94,7 @@ class CH_VEHICLE_API ToeBarDeDionAxle : public ChToeBarDeDionAxle {
     /// Return the moments of inertia of the draglink body.
     virtual const ChVector3d& getDraglinkInertia() const override { return m_draglinkInertia; }
     /// Return the moments of inertia of the Watt center body.
-    virtual const ChVector3d& getWattCenterInertia() const override { return m_wattCenterInertia;}
+    virtual const ChVector3d& getWattCenterInertia() const override { return m_wattCenterInertia; }
     /// Return the moments of inertia of the Watt side bodies (same value for both sides).
     virtual const ChVector3d& getWattSideInertia() const override { return m_wattSideInertia; }
 
@@ -108,8 +110,6 @@ class CH_VEHICLE_API ToeBarDeDionAxle : public ChToeBarDeDionAxle {
     virtual std::shared_ptr<ChLinkTSDA::ForceFunctor> getSpringForceFunctor() const override { return m_springForceCB; }
     /// Return the functor object for shock force.
     virtual std::shared_ptr<ChLinkTSDA::ForceFunctor> getShockForceFunctor() const override { return m_shockForceCB; }
-
-    virtual bool isLeftKnuckleActuated() override { return m_use_left_knuckle; }
 
   private:
     virtual const ChVector3d getLocation(PointId which) override { return m_points[which]; }

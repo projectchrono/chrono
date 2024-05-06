@@ -3,8 +3,8 @@
   "Type":                       "Tire",
   "Template":                   "RigidTire",
 
-  "Radius":                     0.3266,
-  "Width":                      0.245,
+  "Radius":                     0.474,
+  "Width":                      0.275,
   "Mass":                       34.4,
   "Inertia":                    [3.34, 6.28, 3.34],
 

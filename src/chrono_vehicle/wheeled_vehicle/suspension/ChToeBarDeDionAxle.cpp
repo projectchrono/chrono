@@ -47,10 +47,10 @@ namespace vehicle {
 // -----------------------------------------------------------------------------
 // Static variables
 // -----------------------------------------------------------------------------
-const std::string ChToeBarDeDionAxle::m_pointNames[] = {"SHOCK_A    ", "SHOCK_C    ", "KNUCKLE_L  ", "KNUCKLE_U  ",
-                                                        "KNUCKLE_DRL", "SPRING_A   ", "SPRING_C   ", "TIEROD_C   ",
-                                                        "TIEROD_K   ", "SPINDLE    ", "KNUCKLE_CM ", "AXLE_C     ",
-                                                        "WATT_CNT_LE", "WATT_CNT_RI", "WATT_LE_CH ", "WATT_RI_CH "};
+const std::string ChToeBarDeDionAxle::m_pointNames[] = {
+    "SHOCK_A    ", "SHOCK_C    ", "KNUCKLE_L  ", "KNUCKLE_U  ", "KNUCKLE_DRL", "SPRING_A   ",
+    "SPRING_C   ", "TIEROD_C   ", "TIEROD_K   ", "SPINDLE    ", "KNUCKLE_CM ", "AXLE_C     ",
+    "WATT_CNT_LE", "WATT_CNT_RI", "WATT_LE_CH ", "WATT_RI_CH ", "STABI_CON  "};
 
 // -----------------------------------------------------------------------------
 // -----------------------------------------------------------------------------
@@ -92,8 +92,6 @@ void ChToeBarDeDionAxle::Initialize(std::shared_ptr<ChChassis> chassis,
 
     m_parent = chassis;
     m_rel_loc = location;
-
-    m_left_knuckle_steers = isLeftKnuckleActuated();
 
     // Unit vectors for orientation matrices.
     ChVector3d u;
@@ -249,7 +247,7 @@ void ChToeBarDeDionAxle::Initialize(std::shared_ptr<ChChassis> chassis,
     // Create connection to steering mechanism
     std::shared_ptr<ChBody> tierod_body = (steering == nullptr) ? chassis->GetBody() : steering->GetSteeringLink();
 
-    if (m_left_knuckle_steers) {
+    if (isLeftKnuckleActuated()) {
         // Create and initialize the draglink body (one side only).
         // Determine the rotation matrix of the draglink based on the plane of the
         // hard points (z-axis along the length of the draglink)
@@ -309,7 +307,7 @@ void ChToeBarDeDionAxle::Initialize(std::shared_ptr<ChChassis> chassis,
         // Create and initialize the universal joint between draglink and knuckle
         m_sphericalDraglinkKnuckle = chrono_types::make_shared<ChLinkLockSpherical>();
         m_sphericalDraglinkKnuckle->SetName(m_name + "_sphericalDraglinkKnuckle" + "_R");
-        m_sphericalDraglinkKnuckle->Initialize(m_draglink, m_knuckle[RIGHT], ChFrame<>(m_pointsL[KNUCKLE_DRL], QUNIT));
+        m_sphericalDraglinkKnuckle->Initialize(m_draglink, m_knuckle[RIGHT], ChFrame<>(m_pointsR[KNUCKLE_DRL], QUNIT));
         chassis->GetBody()->GetSystem()->AddLink(m_sphericalDraglinkKnuckle);
     }
 }
@@ -556,7 +554,7 @@ void ChToeBarDeDionAxle::AddVisualizationAssets(VisualizationType vis) {
 
     AddVisualizationLink(m_tierod, m_tierodOuterL, m_tierodOuterR, getTierodRadius(), ChColor(0.7f, 0.7f, 0.7f));
 
-    if (m_left_knuckle_steers) {
+    if (isLeftKnuckleActuated()) {
         AddVisualizationLink(m_draglink, m_pointsL[DRAGLINK_C], m_pointsL[KNUCKLE_DRL], getDraglinkRadius(),
                              ChColor(0.7f, 0.7f, 0.7f));
     } else {

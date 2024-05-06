@@ -83,7 +83,9 @@ void DeDionAxle::Create(const rapidjson::Document& d) {
     m_axleTubeCOM = ReadVectorJSON(d["Axle Tube"]["COM"]);
     m_axleTubeInertia = ReadVectorJSON(d["Axle Tube"]["Inertia"]);
     m_axleTubeRadius = d["Axle Tube"]["Radius"].GetDouble();
-    m_points[AXLE_C] = ReadVectorJSON(d["Axle Tube"]["Location Connector"]);
+    m_points[AXLE_C] = ReadVectorJSON(d["Axle Tube"]["Location Connector Chassis"]);
+    // m_points[STABI_CON] = ReadVectorJSON(d["Axle Tube"]["Location Stabilizer"]);
+    m_points[STABI_CON] = {0, 0, 0};
 
     // Read spring data and create force callback
     assert(d.HasMember("Spring"));

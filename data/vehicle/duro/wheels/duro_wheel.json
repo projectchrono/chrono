@@ -7,7 +7,7 @@
   "Inertia": [0.94, 1.59, 0.94 ],
 
   "Visualization": {
-    "Mesh Filename": "duro/duro_rim.obj",
+    "Mesh Filename": "duro/Duro_Wheel.obj",
     "Radius": 0.254,
     "Width": 0.2286
   }

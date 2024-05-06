@@ -39,6 +39,8 @@ class CH_MODELS_API Duro_ToeBarDeDionAxle : public ChToeBarDeDionAxle {
   protected:
     virtual const ChVector3d getLocation(PointId which) override;
 
+    virtual bool isLeftKnuckleActuated() const override { return false; }
+
     virtual double getCamberAngle() const override { return 0; }
     virtual double getToeAngle() const override { return 0; }
 
