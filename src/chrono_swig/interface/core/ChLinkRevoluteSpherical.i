@@ -1,3 +1,10 @@
+#ifdef SWIGCSHARP  // --------------------------------------------------------------------- CSHARP
+
+%csmethodmodifiers chrono::ChLinkRevoluteSpherical::GetFrame1Rel "public override"
+%csmethodmodifiers chrono::ChLinkRevoluteSpherical::GetFrame2Rel "public override"
+
+#endif             // --------------------------------------------------------------------- CSHARP
+
 %{
 
 /* Includes the header in the wrapper code */
