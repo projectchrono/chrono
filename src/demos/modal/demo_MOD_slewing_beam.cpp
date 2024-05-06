@@ -47,7 +47,7 @@ using namespace chrono;
 using namespace chrono::modal;
 using namespace chrono::fea;
 
-void RunSlewingBeam(bool do_modal_reduction, ChModalAssembly::ReductionType reduction_type, ChMatrixDynamic<>& res) {
+void RunSlewingBeam(bool do_modal_reduction, ChModalAssembly::ReductionType reduction_type, ChMatrixDynamic<>& res, bool verbose) {
     double time_step = 0.002;
     double time_step_prt = 0.5;
     double time_length = 50;
@@ -237,6 +237,9 @@ void RunSlewingBeam(bool do_modal_reduction, ChModalAssembly::ReductionType redu
 
     res.resize(Nframes, do_modal_reduction ? 20 : 8);
     res.setZero();
+
+    double step_timer = 0;
+
     while (frame < Nframes) {
         double tao = sys.GetChTime() / T;
 
@@ -249,6 +252,7 @@ void RunSlewingBeam(bool do_modal_reduction, ChModalAssembly::ReductionType redu
         driving_fun->SetSetpoint(rot_angle, sys.GetChTime());
 
         sys.DoStepDynamics(time_step);
+        step_timer += sys.GetTimerStep();
 
         res(frame, 0) = sys.GetChTime();
         res(frame, 1) = root_node->GetAngVelLocal().z();  // rotational angular speed, rad/s
@@ -280,7 +284,7 @@ void RunSlewingBeam(bool do_modal_reduction, ChModalAssembly::ReductionType redu
                 modal_assembly_list.back()->GetConstraintsResidualF().transpose().segment(0, 6);
         }
 
-        if (frame % itv_frame == 0) {
+        if (verbose && (frame % itv_frame == 0)) {
             std::cout << "t: " << sys.GetChTime() << "\t";
             std::cout << "Rot. Speed (rad/s): " << res(frame, 1) << "\t";
             std::cout << "Rel. Def.:\t" << relative_defl.GetPos().x() - beam_L << "\t" << relative_defl.GetPos().y()
@@ -288,6 +292,8 @@ void RunSlewingBeam(bool do_modal_reduction, ChModalAssembly::ReductionType redu
         }
         frame++;
     }
+
+    std::cout << "Simulation time = " << step_timer << std::endl;
 }
 
 bool CompareResults(const ChMatrixDynamic<>& ref_mat, const ChMatrixDynamic<>& my_mat) {
@@ -345,20 +351,22 @@ bool CompareResults(const ChMatrixDynamic<>& ref_mat, const ChMatrixDynamic<>& m
 int main(int argc, char* argv[]) {
     std::cout << "Copyright (c) 2024 projectchrono.org\nChrono version: " << CHRONO_VERSION << "\n\n";
 
+    bool verbose = true;
+
     std::cout << "1. Run full corotational beam model:\n";
     // ChModalAssembly should be able to run successfully in the full state
     ChMatrixDynamic<> res_corot;
-    RunSlewingBeam(false, ChModalAssembly::ReductionType::CRAIG_BAMPTON, res_corot);
+    RunSlewingBeam(false, ChModalAssembly::ReductionType::CRAIG_BAMPTON, res_corot, verbose);
 
     std::cout << "\n\n2. Run modal reduction model (Craig Bampton method):\n";
     ChMatrixDynamic<> res_modal_CraigBampton;
-    RunSlewingBeam(true, ChModalAssembly::ReductionType::CRAIG_BAMPTON, res_modal_CraigBampton);
+    RunSlewingBeam(true, ChModalAssembly::ReductionType::CRAIG_BAMPTON, res_modal_CraigBampton, verbose);
     bool check_CraigBampton = CompareResults(res_corot, res_modal_CraigBampton);
     std::cout << "\nCraig-Bampton reduced model check: " << (check_CraigBampton ? "PASSED" : "FAILED") << std::endl;
 
     std::cout << "\n\n3. Run modal reduction model (Herting method):\n";
     ChMatrixDynamic<> res_modal_Herting;
-    RunSlewingBeam(true, ChModalAssembly::ReductionType::HERTING, res_modal_Herting);
+    RunSlewingBeam(true, ChModalAssembly::ReductionType::HERTING, res_modal_Herting, verbose);
     bool check_Herting = CompareResults(res_corot, res_modal_Herting);
     std::cout << "\nHerting reduced model check: " << (check_Herting ? "PASSED" : "FAILED") << std::endl;
 

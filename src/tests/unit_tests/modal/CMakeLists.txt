@@ -5,14 +5,8 @@ message(STATUS "Unit tests for Chrono::Modal...")
 
 set(TESTS
     utest_MOD_eigensolve
+    utest_MOD_curved_beam
 )
-
-# Tests that REQUIRE Chrono::MKL
-if(ENABLE_MODULE_PARDISO_MKL)
-   set(TESTS ${TESTS}
-       utest_MOD_curved_beam
-   )
-endif()
 
 #--------------------------------------------------------------
 
