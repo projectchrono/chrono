@@ -12,6 +12,7 @@ endif()
 
 set(DEMOS
     demo_VEH_TireTestRig
+    demo_VEH_MBTire
 )
 
 if(ENABLE_MODULE_IRRLICHT)
