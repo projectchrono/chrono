@@ -41,6 +41,7 @@ const double Generic_SolidAxle::m_axleTubeMass = 44.958;
 const double Generic_SolidAxle::m_tierodMass = 1.633;
 const double Generic_SolidAxle::m_draglinkMass = 0.464;
 const double Generic_SolidAxle::m_bellCrankMass = 0.218;
+const double Generic_SolidAxle::m_trackbarMass = 2.0;
 
 const double Generic_SolidAxle::m_spindleRadius = 0.06;
 const double Generic_SolidAxle::m_spindleWidth = 0.04;
@@ -51,6 +52,7 @@ const double Generic_SolidAxle::m_knuckleRadius = 0.01;
 const double Generic_SolidAxle::m_tierodRadius = 0.007;
 const double Generic_SolidAxle::m_draglinkRadius = 0.007;
 const double Generic_SolidAxle::m_bellCrankRadius = 0.007;
+const double Generic_SolidAxle::m_trackbarRadius = 0.006;
 
 const ChVector3d Generic_SolidAxle::m_axleTubeCOM(0, 0, 0);
 
@@ -62,6 +64,7 @@ const ChVector3d Generic_SolidAxle::m_knuckleInertia(0.00255, 0.00134, 0.00196);
 const ChVector3d Generic_SolidAxle::m_tierodInertia(0.252, 0.001, 0.252);
 const ChVector3d Generic_SolidAxle::m_draglinkInertia(0.005, 0.005, 0.001);
 const ChVector3d Generic_SolidAxle::m_bellCrankInertia(0.001, 0.001, 0.001);
+const ChVector3d Generic_SolidAxle::m_trackbarInertia(0.1, 0.01, 0.1);
 
 const double Generic_SolidAxle::m_axleInertia = 0.4;
 
@@ -126,6 +129,10 @@ const ChVector3d Generic_SolidAxle::getLocation(PointId which) {
             return ChVector3d(0, 0.425, -0.05);
         case DRAGLINK_C:
             return ChVector3d(0.385, 0.45, -0.02);
+        case TRACKBAR_A:
+            return ChVector3d(-0.1, 0.610, -0.02);
+        case TRACKBAR_C:
+            return ChVector3d(-0.1, -0.610, 0.02);
         default:
             return ChVector3d(0, 0, 0);
     }

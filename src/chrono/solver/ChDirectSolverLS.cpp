@@ -148,6 +148,8 @@ double ChDirectSolverLS::Solve(ChSystemDescriptor& sysd) {
                   << "  solve:             " << m_timer_solve_solvercall.GetTimeSeconds() << std::endl;
     }
 
+    m_solve_call++;
+
     if (!result) {
         // If the solution failed, let the concrete solver display an error message.
         std::cerr << "Solver solve failed" << std::endl;
@@ -206,6 +208,8 @@ double ChDirectSolverLS::SolveCurrent() {
         std::cout << "  assembly rhs+sol:  " << m_timer_solve_assembly.GetTimeSeconds() << "s\n"
                   << "  solve:             " << m_timer_solve_solvercall.GetTimeSeconds() << std::endl;
     }
+
+    m_solve_call++;
 
     if (!result) {
         // If the solution failed, let the concrete solver display an error message.

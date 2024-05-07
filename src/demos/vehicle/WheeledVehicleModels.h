@@ -19,6 +19,7 @@
 #pragma once
 
 #include "chrono_models/vehicle/artcar/ARTcar.h"
+#include "chrono_models/vehicle/jeep/Cherokee.h"
 #include "chrono_models/vehicle/bmw/BMW_E90.h"
 #include "chrono_models/vehicle/citybus/CityBus.h"
 #include "chrono_models/vehicle/duro/Duro.h"
@@ -42,6 +43,7 @@ using namespace chrono;
 using namespace chrono::vehicle;
 
 using namespace chrono::vehicle::artcar;
+using namespace chrono::vehicle::jeep;
 using namespace chrono::vehicle::bmw;
 using namespace chrono::vehicle::citybus;
 using namespace chrono::vehicle::duro;
@@ -72,7 +74,17 @@ class WheeledVehicleModel {
     virtual double CameraDistance() const = 0;
     virtual double CameraHeight() const = 0;
 
+    void SetChassisCollisionType(CollisionType type) { chassis_collision_type = type; }
+    void SetCollisionSystemType(ChCollisionSystem::Type type) { collision_system_type = type; }
+
     static std::vector<std::pair<std::shared_ptr<WheeledVehicleModel>, std::string>> List();
+
+  protected:
+    WheeledVehicleModel()
+        : collision_system_type(ChCollisionSystem::Type::BULLET), chassis_collision_type(CollisionType::NONE) {}
+
+    ChCollisionSystem::Type collision_system_type;
+    CollisionType chassis_collision_type;
 };
 
 class ARTcar_Model : public WheeledVehicleModel {
@@ -248,7 +260,7 @@ class KRAZ_Model : public WheeledVehicleModel {
 
 class LMTV_Model : public WheeledVehicleModel {
   public:
-    virtual std::string ModelName() const override { return "KRAZ"; }
+    virtual std::string ModelName() const override { return "LMTV"; }
     virtual void Create(ChContactMethod contact_method, const ChCoordsys<>& init_pos, bool chassis_vis) override;
     virtual void Create(ChSystem* system, const ChCoordsys<>& init_pos, bool chassis_vis) override;
     virtual ChWheeledVehicle& GetVehicle() override { return lmtv->GetVehicle(); }
@@ -267,7 +279,7 @@ class LMTV_Model : public WheeledVehicleModel {
 
 class MTV_Model : public WheeledVehicleModel {
   public:
-    virtual std::string ModelName() const override { return "KRAZ"; }
+    virtual std::string ModelName() const override { return "MTV"; }
     virtual void Create(ChContactMethod contact_method, const ChCoordsys<>& init_pos, bool chassis_vis) override;
     virtual void Create(ChSystem* system, const ChCoordsys<>& init_pos, bool chassis_vis) override;
     virtual ChWheeledVehicle& GetVehicle() override { return mtv->GetVehicle(); }
@@ -398,6 +410,25 @@ class BMW_E90_Model : public WheeledVehicleModel {
     BMW_E90* bmw;
 };
 
+class Cherokee_Model : public WheeledVehicleModel {
+  public:
+    virtual std::string ModelName() const override { return "Cherokee"; }
+    virtual void Create(ChContactMethod contact_method, const ChCoordsys<>& init_pos, bool chassis_vis) override;
+    virtual void Create(ChSystem* system, const ChCoordsys<>& init_pos, bool chassis_vis) override;
+    virtual ChWheeledVehicle& GetVehicle() override { return cherokee->GetVehicle(); }
+    virtual void Synchronize(double time, const DriverInputs& driver_inputs, const ChTerrain& terrain) override {
+        cherokee->Synchronize(time, driver_inputs, terrain);
+    }
+    virtual void Advance(double step) override { cherokee->Advance(step); }
+    virtual ChVector3d TrackPoint() const override { return ChVector3d(0, 0, 1.75); }
+    virtual double CameraDistance() const override { return 8.0; }
+    virtual double CameraHeight() const override { return 0.2; }
+
+  private:
+    void Construct(const ChCoordsys<>& init_pos, VisualizationType chassis_vis);
+    Cherokee* cherokee;
+};
+
 class UAZBUS_Model : public WheeledVehicleModel {
   public:
     virtual std::string ModelName() const override { return "UAZBUS"; }
@@ -465,13 +496,14 @@ void ARTcar_Model::Create(ChSystem* system, const ChCoordsys<>& init_pos, bool c
 
 void ARTcar_Model::Create(ChContactMethod contact_method, const ChCoordsys<>& init_pos, bool chassis_vis) {
     car = new ARTcar();
+    car->SetCollisionSystemType(collision_system_type);
     car->SetContactMethod(contact_method);
     car->SetInitPosition(init_pos);
     Construct(init_pos, chassis_vis ? VisualizationType::MESH : VisualizationType::NONE);
 }
 
 void ARTcar_Model::Construct(const ChCoordsys<>& init_pos, VisualizationType chassis_vis) {
-    car->SetChassisCollisionType(CollisionType::NONE);
+    car->SetChassisCollisionType(chassis_collision_type);
     car->SetChassisFixed(false);
     car->SetTireType(TireModelType::TMEASY);
     car->Initialize();
@@ -493,12 +525,14 @@ void Citybus_Model::Create(ChSystem* system, const ChCoordsys<>& init_pos, bool 
 
 void Citybus_Model::Create(ChContactMethod contact_method, const ChCoordsys<>& init_pos, bool chassis_vis) {
     bus = new CityBus();
+    bus->SetCollisionSystemType(collision_system_type);
     bus->SetContactMethod(contact_method);
     bus->SetInitPosition(init_pos);
     Construct(init_pos, chassis_vis ? VisualizationType::MESH : VisualizationType::NONE);
 }
 
 void Citybus_Model::Construct(const ChCoordsys<>& init_pos, VisualizationType chassis_vis) {
+    bus->SetChassisCollisionType(chassis_collision_type);
     bus->SetChassisFixed(false);
     bus->SetTireType(TireModelType::PAC02);
     bus->SetBrakeType(chrono::vehicle::BrakeType::SHAFTS);
@@ -513,6 +547,35 @@ void Citybus_Model::Construct(const ChCoordsys<>& init_pos, VisualizationType ch
 
 // -----------------------------------------------------------------------------
 
+void Cherokee_Model::Create(ChSystem* system, const ChCoordsys<>& init_pos, bool chassis_vis) {
+    cherokee = new Cherokee(system);
+    Construct(init_pos, chassis_vis ? VisualizationType::MESH : VisualizationType::NONE);
+}
+
+void Cherokee_Model::Create(ChContactMethod contact_method, const ChCoordsys<>& init_pos, bool chassis_vis) {
+    cherokee = new Cherokee();
+    cherokee->SetCollisionSystemType(collision_system_type);
+    cherokee->SetContactMethod(contact_method);
+    Construct(init_pos, chassis_vis ? VisualizationType::MESH : VisualizationType::NONE);
+}
+
+void Cherokee_Model::Construct(const ChCoordsys<>& init_pos, VisualizationType chassis_vis) {
+    cherokee->SetChassisCollisionType(chassis_collision_type);
+    cherokee->SetChassisFixed(false);
+    cherokee->SetInitPosition(init_pos);
+    cherokee->SetTireType(TireModelType::TMEASY);
+    cherokee->SetBrakeType(BrakeType::SHAFTS);
+    cherokee->Initialize();
+
+    cherokee->SetChassisVisualizationType(chassis_vis);
+    cherokee->SetSuspensionVisualizationType(VisualizationType::PRIMITIVES);
+    cherokee->SetSteeringVisualizationType(VisualizationType::PRIMITIVES);
+    cherokee->SetWheelVisualizationType(VisualizationType::MESH);
+    cherokee->SetTireVisualizationType(VisualizationType::MESH);
+}
+
+// -----------------------------------------------------------------------------
+
 void Duro_Model::Create(ChSystem* system, const ChCoordsys<>& init_pos, bool chassis_vis) {
     duro = new Duro(system);
     Construct(init_pos, chassis_vis ? VisualizationType::MESH : VisualizationType::NONE);
@@ -520,11 +583,13 @@ void Duro_Model::Create(ChSystem* system, const ChCoordsys<>& init_pos, bool cha
 
 void Duro_Model::Create(ChContactMethod contact_method, const ChCoordsys<>& init_pos, bool chassis_vis) {
     duro = new Duro();
+    duro->SetCollisionSystemType(collision_system_type);
     duro->SetContactMethod(contact_method);
     Construct(init_pos, chassis_vis ? VisualizationType::MESH : VisualizationType::NONE);
 }
 
 void Duro_Model::Construct(const ChCoordsys<>& init_pos, VisualizationType chassis_vis) {
+    duro->SetChassisCollisionType(chassis_collision_type);
     duro->SetChassisFixed(false);
     duro->SetInitPosition(init_pos);
     duro->SetEngineType(EngineModelType::SHAFTS);
@@ -550,11 +615,13 @@ void FEDA_Model::Create(ChSystem* system, const ChCoordsys<>& init_pos, bool cha
 
 void FEDA_Model::Create(ChContactMethod contact_method, const ChCoordsys<>& init_pos, bool chassis_vis) {
     feda = new FEDA();
+    feda->SetCollisionSystemType(collision_system_type);
     feda->SetContactMethod(contact_method);
     Construct(init_pos, chassis_vis ? VisualizationType::MESH : VisualizationType::NONE);
 }
 
 void FEDA_Model::Construct(const ChCoordsys<>& init_pos, VisualizationType chassis_vis) {
+    feda->SetChassisCollisionType(chassis_collision_type);
     feda->SetChassisFixed(false);
     feda->SetInitPosition(init_pos);
     feda->SetEngineType(EngineModelType::SIMPLE_MAP);
@@ -580,12 +647,13 @@ void G500_Model::Create(ChSystem* system, const ChCoordsys<>& init_pos, bool cha
 
 void G500_Model::Create(ChContactMethod contact_method, const ChCoordsys<>& init_pos, bool chassis_vis) {
     gclass = new G500();
+    gclass->SetCollisionSystemType(collision_system_type);
     gclass->SetContactMethod(contact_method);
     Construct(init_pos, chassis_vis ? VisualizationType::MESH : VisualizationType::NONE);
 }
 
 void G500_Model::Construct(const ChCoordsys<>& init_pos, VisualizationType chassis_vis) {
-    gclass->SetChassisCollisionType(CollisionType::NONE);
+    gclass->SetChassisCollisionType(chassis_collision_type);
     gclass->SetChassisFixed(false);
     gclass->SetInitPosition(init_pos);
     gclass->SetTireType(TireModelType::TMEASY);
@@ -608,15 +676,17 @@ void Gator_Model::Create(ChSystem* system, const ChCoordsys<>& init_pos, bool ch
 
 void Gator_Model::Create(ChContactMethod contact_method, const ChCoordsys<>& init_pos, bool chassis_vis) {
     gator = new Gator();
+    gator->SetCollisionSystemType(collision_system_type);
     gator->SetContactMethod(contact_method);
     Construct(init_pos, chassis_vis ? VisualizationType::MESH : VisualizationType::NONE);
 }
 
 void Gator_Model::Construct(const ChCoordsys<>& init_pos, VisualizationType chassis_vis) {
-    gator->SetChassisCollisionType(CollisionType::NONE);
+    gator->SetChassisCollisionType(chassis_collision_type);
     gator->SetChassisFixed(false);
     gator->SetInitPosition(init_pos);
     gator->SetTireType(TireModelType::TMEASY);
+    gator->SetDrivelineType(DrivelineTypeWV::SIMPLE);
     gator->SetBrakeType(chrono::vehicle::BrakeType::SHAFTS);
     gator->SetAerodynamicDrag(0.5, 5.0, 1.2);
     gator->Initialize();
@@ -637,12 +707,13 @@ void HMMWV_Model::Create(ChSystem* system, const ChCoordsys<>& init_pos, bool ch
 
 void HMMWV_Model::Create(ChContactMethod contact_method, const ChCoordsys<>& init_pos, bool chassis_vis) {
     hmmwv = new HMMWV_Full();
+    hmmwv->SetCollisionSystemType(collision_system_type);
     hmmwv->SetContactMethod(contact_method);
     Construct(init_pos, chassis_vis ? VisualizationType::MESH : VisualizationType::NONE);
 }
 
 void HMMWV_Model::Construct(const ChCoordsys<>& init_pos, VisualizationType chassis_vis) {
-    hmmwv->SetChassisCollisionType(CollisionType::NONE);
+    hmmwv->SetChassisCollisionType(chassis_collision_type);
     hmmwv->SetChassisFixed(false);
     hmmwv->SetInitPosition(init_pos);
     hmmwv->SetEngineType(EngineModelType::SHAFTS);
@@ -651,7 +722,7 @@ void HMMWV_Model::Construct(const ChCoordsys<>& init_pos, VisualizationType chas
     hmmwv->UseTierodBodies(true);
     hmmwv->SetSteeringType(SteeringTypeWV::PITMAN_ARM);
     hmmwv->SetBrakeType(BrakeType::SHAFTS);
-    hmmwv->SetTireType(TireModelType::PAC02);
+    hmmwv->SetTireType(TireModelType::TMEASY);
     hmmwv->Initialize();
 
     hmmwv->SetChassisVisualizationType(chassis_vis);
@@ -670,6 +741,7 @@ void HMMWV9_Model::Create(ChSystem* system, const ChCoordsys<>& init_pos, bool c
 
 void HMMWV9_Model::Create(ChContactMethod contact_method, const ChCoordsys<>& init_pos, bool chassis_vis) {
     hmmwv = new HMMWV_Reduced();
+    hmmwv->SetCollisionSystemType(collision_system_type);
     hmmwv->SetContactMethod(contact_method);
     Construct(init_pos, chassis_vis ? VisualizationType::MESH : VisualizationType::NONE);
 }
@@ -677,7 +749,7 @@ void HMMWV9_Model::Create(ChContactMethod contact_method, const ChCoordsys<>& in
 void HMMWV9_Model::Construct(const ChCoordsys<>& init_pos, VisualizationType chassis_vis) {
     hmmwv->SetChassisFixed(false);
     hmmwv->SetInitPosition(init_pos);
-    hmmwv->SetChassisCollisionType(CollisionType::NONE);
+    hmmwv->SetChassisCollisionType(chassis_collision_type);
     hmmwv->SetEngineType(EngineModelType::SHAFTS);
     hmmwv->SetTransmissionType(TransmissionModelType::AUTOMATIC_SHAFTS);
     hmmwv->SetDriveType(DrivelineTypeWV::AWD);
@@ -700,11 +772,13 @@ void KRAZ_Model::Create(ChSystem* system, const ChCoordsys<>& init_pos, bool cha
 
 void KRAZ_Model::Create(ChContactMethod contact_method, const ChCoordsys<>& init_pos, bool chassis_vis) {
     kraz = new Kraz();
+    kraz->SetCollisionSystemType(collision_system_type);
     kraz->SetContactMethod(contact_method);
     Construct(init_pos, chassis_vis ? VisualizationType::MESH : VisualizationType::NONE);
 }
 
 void KRAZ_Model::Construct(const ChCoordsys<>& init_pos, VisualizationType chassis_vis) {
+    kraz->SetChassisCollisionType(chassis_collision_type);
     kraz->SetChassisFixed(false);
     kraz->SetInitPosition(init_pos);
     kraz->SetInitFwdVel(0.0);
@@ -726,13 +800,17 @@ void LMTV_Model::Create(ChSystem* system, const ChCoordsys<>& init_pos, bool cha
 
 void LMTV_Model::Create(ChContactMethod contact_method, const ChCoordsys<>& init_pos, bool chassis_vis) {
     lmtv = new LMTV();
+    lmtv->SetCollisionSystemType(collision_system_type);
     lmtv->SetContactMethod(contact_method);
     Construct(init_pos, chassis_vis ? VisualizationType::MESH : VisualizationType::NONE);
 }
 
 void LMTV_Model::Construct(const ChCoordsys<>& init_pos, VisualizationType chassis_vis) {
+    lmtv->SetChassisCollisionType(chassis_collision_type);
     lmtv->SetChassisFixed(false);
     lmtv->SetInitPosition(init_pos);
+    lmtv->SetEngineType(EngineModelType::SIMPLE_MAP);
+    lmtv->SetTransmissionType(TransmissionModelType::AUTOMATIC_SIMPLE_MAP);
     lmtv->SetTireType(TireModelType::TMEASY);
     lmtv->Initialize();
 
@@ -753,14 +831,18 @@ void MTV_Model::Create(ChSystem* system, const ChCoordsys<>& init_pos, bool chas
 
 void MTV_Model::Create(ChContactMethod contact_method, const ChCoordsys<>& init_pos, bool chassis_vis) {
     mtv = new MTV();
+    mtv->SetCollisionSystemType(collision_system_type);
     mtv->SetContactMethod(contact_method);
     Construct(init_pos, chassis_vis ? VisualizationType::MESH : VisualizationType::NONE);
 }
 
 void MTV_Model::Construct(const ChCoordsys<>& init_pos, VisualizationType chassis_vis) {
+    mtv->SetChassisCollisionType(chassis_collision_type);
     mtv->SetChassisFixed(false);
     mtv->SetInitPosition(init_pos);
     mtv->UseWalkingBeamRearSuspension(false);
+    mtv->SetEngineType(EngineModelType::SIMPLE_MAP);
+    mtv->SetTransmissionType(TransmissionModelType::AUTOMATIC_SIMPLE_MAP);
     mtv->SetTireType(TireModelType::TMEASY);
     mtv->Initialize();
 
@@ -782,12 +864,13 @@ void MAN5_Model::Create(ChSystem* system, const ChCoordsys<>& init_pos, bool cha
 
 void MAN5_Model::Create(ChContactMethod contact_method, const ChCoordsys<>& init_pos, bool chassis_vis) {
     man = new MAN_5t();
+    man->SetCollisionSystemType(collision_system_type);
     man->SetContactMethod(contact_method);
     Construct(init_pos, chassis_vis ? VisualizationType::MESH : VisualizationType::NONE);
 }
 
 void MAN5_Model::Construct(const ChCoordsys<>& init_pos, VisualizationType chassis_vis) {
-    man->SetChassisCollisionType(CollisionType::NONE);
+    man->SetChassisCollisionType(chassis_collision_type);
     man->SetChassisFixed(false);
     man->SetInitPosition(init_pos);
     man->SetEngineType(EngineModelType::SIMPLE);
@@ -812,12 +895,13 @@ void MAN7_Model::Create(ChSystem* system, const ChCoordsys<>& init_pos, bool cha
 
 void MAN7_Model::Create(ChContactMethod contact_method, const ChCoordsys<>& init_pos, bool chassis_vis) {
     man = new MAN_7t();
+    man->SetCollisionSystemType(collision_system_type);
     man->SetContactMethod(contact_method);
     Construct(init_pos, chassis_vis ? VisualizationType::MESH : VisualizationType::NONE);
 }
 
 void MAN7_Model::Construct(const ChCoordsys<>& init_pos, VisualizationType chassis_vis) {
-    man->SetChassisCollisionType(CollisionType::NONE);
+    man->SetChassisCollisionType(chassis_collision_type);
     man->SetChassisFixed(false);
     man->SetInitPosition(init_pos);
     man->SetEngineType(EngineModelType::SIMPLE);
@@ -842,12 +926,13 @@ void MAN10_Model::Create(ChSystem* system, const ChCoordsys<>& init_pos, bool ch
 
 void MAN10_Model::Create(ChContactMethod contact_method, const ChCoordsys<>& init_pos, bool chassis_vis) {
     man = new MAN_10t();
+    man->SetCollisionSystemType(collision_system_type);
     man->SetContactMethod(contact_method);
     Construct(init_pos, chassis_vis ? VisualizationType::MESH : VisualizationType::NONE);
 }
 
 void MAN10_Model::Construct(const ChCoordsys<>& init_pos, VisualizationType chassis_vis) {
-    man->SetChassisCollisionType(CollisionType::NONE);
+    man->SetChassisCollisionType(chassis_collision_type);
     man->SetChassisFixed(false);
     man->SetInitPosition(init_pos);
     man->SetEngineType(EngineModelType::SIMPLE);
@@ -872,12 +957,13 @@ void MROLE_Model::Create(ChSystem* system, const ChCoordsys<>& init_pos, bool ch
 
 void MROLE_Model::Create(ChContactMethod contact_method, const ChCoordsys<>& init_pos, bool chassis_vis) {
     mrole = new mrole_Full();
+    mrole->SetCollisionSystemType(collision_system_type);
     mrole->SetContactMethod(contact_method);
     Construct(init_pos, chassis_vis ? VisualizationType::MESH : VisualizationType::NONE);
 }
 
 void MROLE_Model::Construct(const ChCoordsys<>& init_pos, VisualizationType chassis_vis) {
-    mrole->SetChassisCollisionType(CollisionType::NONE);
+    mrole->SetChassisCollisionType(chassis_collision_type);
     mrole->SetChassisFixed(false);
     mrole->SetInitPosition(init_pos);
     mrole->SetEngineType(EngineModelType::SHAFTS);
@@ -904,12 +990,13 @@ void BMW_E90_Model::Create(ChSystem* system, const ChCoordsys<>& init_pos, bool 
 
 void BMW_E90_Model::Create(ChContactMethod contact_method, const ChCoordsys<>& init_pos, bool chassis_vis) {
     bmw = new BMW_E90();
+    bmw->SetCollisionSystemType(collision_system_type);
     bmw->SetContactMethod(contact_method);
     Construct(init_pos, chassis_vis ? VisualizationType::MESH : VisualizationType::NONE);
 }
 
 void BMW_E90_Model::Construct(const ChCoordsys<>& init_pos, VisualizationType chassis_vis) {
-    bmw->SetChassisCollisionType(CollisionType::NONE);
+    bmw->SetChassisCollisionType(chassis_collision_type);
     bmw->SetChassisFixed(false);
     bmw->SetInitPosition(init_pos);
     bmw->SetTireType(TireModelType::TMSIMPLE);
@@ -932,12 +1019,13 @@ void Sedan_Model::Create(ChSystem* system, const ChCoordsys<>& init_pos, bool ch
 
 void Sedan_Model::Create(ChContactMethod contact_method, const ChCoordsys<>& init_pos, bool chassis_vis) {
     sedan = new Sedan();
+    sedan->SetCollisionSystemType(collision_system_type);
     sedan->SetContactMethod(contact_method);
     Construct(init_pos, chassis_vis ? VisualizationType::MESH : VisualizationType::NONE);
 }
 
 void Sedan_Model::Construct(const ChCoordsys<>& init_pos, VisualizationType chassis_vis) {
-    sedan->SetChassisCollisionType(CollisionType::NONE);
+    sedan->SetChassisCollisionType(chassis_collision_type);
     sedan->SetChassisFixed(false);
     sedan->SetInitPosition(init_pos);
     sedan->SetTireType(TireModelType::PAC02);
@@ -960,11 +1048,13 @@ void UAZBUS_Model::Create(ChSystem* system, const ChCoordsys<>& init_pos, bool c
 
 void UAZBUS_Model::Create(ChContactMethod contact_method, const ChCoordsys<>& init_pos, bool chassis_vis) {
     uaz = new UAZBUS();
+    uaz->SetCollisionSystemType(collision_system_type);
     uaz->SetContactMethod(contact_method);
     Construct(init_pos, chassis_vis ? VisualizationType::MESH : VisualizationType::NONE);
 }
 
 void UAZBUS_Model::Construct(const ChCoordsys<>& init_pos, VisualizationType chassis_vis) {
+    uaz->SetChassisCollisionType(chassis_collision_type);
     uaz->SetChassisFixed(false);
     uaz->SetInitPosition(init_pos);
     uaz->SetTireType(TireModelType::PAC02);
@@ -987,11 +1077,13 @@ void UAZBUSSAE_Model::Create(ChSystem* system, const ChCoordsys<>& init_pos, boo
 
 void UAZBUSSAE_Model::Create(ChContactMethod contact_method, const ChCoordsys<>& init_pos, bool chassis_vis) {
     uaz = new UAZBUS_SAE();
+    uaz->SetCollisionSystemType(collision_system_type);
     uaz->SetContactMethod(contact_method);
     Construct(init_pos, chassis_vis ? VisualizationType::MESH : VisualizationType::NONE);
 }
 
 void UAZBUSSAE_Model::Construct(const ChCoordsys<>& init_pos, VisualizationType chassis_vis) {
+    uaz->SetChassisCollisionType(chassis_collision_type);
     uaz->SetChassisFixed(false);
     uaz->SetInitPosition(init_pos);
     uaz->SetTireType(TireModelType::TMEASY);
@@ -1014,14 +1106,17 @@ void U401_Model::Create(ChSystem* system, const ChCoordsys<>& init_pos, bool cha
 
 void U401_Model::Create(ChContactMethod contact_method, const ChCoordsys<>& init_pos, bool chassis_vis) {
     u401 = new U401();
+    u401->SetCollisionSystemType(collision_system_type);
     u401->SetContactMethod(contact_method);
     Construct(init_pos, chassis_vis ? VisualizationType::MESH : VisualizationType::NONE);
 }
 
 void U401_Model::Construct(const ChCoordsys<>& init_pos, VisualizationType chassis_vis) {
+    u401->SetChassisCollisionType(chassis_collision_type);
     u401->SetChassisFixed(false);
     u401->SetInitPosition(init_pos);
     u401->SetTireType(TireModelType::TMEASY);
+    u401->SetBrakeType(BrakeType::SHAFTS);
     u401->SetInitFwdVel(0.0);
     u401->Initialize();
 
@@ -1037,6 +1132,7 @@ void U401_Model::Construct(const ChCoordsys<>& init_pos, VisualizationType chass
 std::vector<std::pair<std::shared_ptr<WheeledVehicleModel>, std::string>> WheeledVehicleModel::List() {
     std::vector<std::pair<std::shared_ptr<WheeledVehicleModel>, std::string>> models = {
         {chrono_types::make_shared<ARTcar_Model>(), "ARTCAR"},         //
+        {chrono_types::make_shared<Cherokee_Model>(), "Cherokee"},     //
         {chrono_types::make_shared<BMW_E90_Model>(), "BMW_E90"},       //
         {chrono_types::make_shared<Citybus_Model>(), "CITYBUS"},       //
         {chrono_types::make_shared<Duro_Model>(), "DURO"},             //

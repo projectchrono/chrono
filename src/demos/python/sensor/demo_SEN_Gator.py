@@ -225,6 +225,7 @@ depth_cam = sens.ChDepthCamera(
 depth_cam.SetName("Depth Camera Sensor")
 depth_cam.SetLag(lag)
 depth_cam.SetCollectionWindow(exposure_time)
+depth_cam.SetMaxDepth(30)#
 
 if vis:
     depth_cam.PushFilter(sens.ChFilterVisualize(
@@ -260,6 +261,12 @@ while vis.Run() :
         chrono.ChVector3d(-orbit_radius * math.cos(time * orbit_rate), -orbit_radius * math.sin(time * orbit_rate), 1),
         chrono.QuatFromAngleAxis(time * orbit_rate, chrono.ChVector3d(0, 0, 1))))
     manager.Update()
+
+    # Read depth sensor data (Note: Unlike other sensors you don't need to push an Access filter to access the data from the depth sensor. It is already done internally)
+    depthBuffer = depth_cam.GetMostRecentDepthBuffer()
+    if (depthBuffer.HasData()):
+        depth_data = depthBuffer.GetDepthData()
+        print("Depth data: ", depth_data[0])
 
     # Advance simulation for one timestep for all modules
     driver.Advance(step_size)

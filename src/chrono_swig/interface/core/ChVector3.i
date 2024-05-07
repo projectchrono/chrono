@@ -34,11 +34,14 @@
 %template(ChWrenchf) chrono::ChWrench<float>; 
 
 
-// This is needed because a std::vector<ChVector3d might be used somewhere,
-// and we want to use it via python or C#
-%template(vector_ChVector3d) std::vector< chrono::ChVector3<double> >;
-%template(vector_ChVector3f) std::vector< chrono::ChVector3<float> >;
-%template(vector_ChVector3i) std::vector< chrono::ChVector3<int> >;
+// Wrap an std::vector<ChVector3d> for use via python or C#
+%template(vector_ChVector3d) std::vector<chrono::ChVector3<double>>;
+%template(vector_ChVector3f) std::vector<chrono::ChVector3<float>>;
+%template(vector_ChVector3i) std::vector<chrono::ChVector3<int>>;
+
+// Wrap an std::vector<std::vector<ChVector3d>> for use via python or C#
+// (e.g., for the storage of mesh or hulls into a vector of vectors of ChVector3)
+%template(vector_vector_ChVector3d) std::vector<std::vector<chrono::ChVector3<double>>>;
 
 #ifdef SWIGPYTHON  // --------------------------------------------------------------------- PYTHON
 

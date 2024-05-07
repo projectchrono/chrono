@@ -24,11 +24,15 @@ namespace vehicle {
 ChBrakeShafts::ChBrakeShafts(const std::string& name) : ChBrake(name), m_modulation(0), m_locked(false) {}
 
 ChBrakeShafts::~ChBrakeShafts() {
+    if (!m_initialized)
+        return;
+
     auto sys = m_shaft->GetSystem();
-    if (sys) {
-        sys->Remove(m_shaft);
-        sys->Remove(m_clutch);
-    }
+    if (!sys)
+        return;
+
+    sys->Remove(m_shaft);
+    sys->Remove(m_clutch);
 }
 
 void ChBrakeShafts::Initialize(std::shared_ptr<ChChassis> chassis,
@@ -58,9 +62,9 @@ void ChBrakeShafts::Initialize(std::shared_ptr<ChChassis> chassis,
     chassis->GetSystem()->Add(m_clutch);
 }
 
-void ChBrakeShafts::Synchronize(double modulation) {
-    m_modulation = modulation;
-    m_clutch->SetModulation(modulation);
+void ChBrakeShafts::Synchronize(double time, double braking) {
+    m_modulation = braking;
+    m_clutch->SetModulation(braking);
     //// TODO: more here?
 }
 

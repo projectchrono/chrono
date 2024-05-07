@@ -32,10 +32,14 @@ ChRotaryArm::ChRotaryArm(const std::string& name, bool vehicle_frame_inertia)
     : ChSteering(name), m_vehicle_frame_inertia(vehicle_frame_inertia) {}
 
 ChRotaryArm::~ChRotaryArm() {
+    if (!m_initialized)
+        return;
+
     auto sys = m_revolute->GetSystem();
-    if (sys) {
-        sys->Remove(m_revolute);
-    }
+    if (!sys)
+        return;
+
+    sys->Remove(m_revolute);
 }
 
 // -----------------------------------------------------------------------------

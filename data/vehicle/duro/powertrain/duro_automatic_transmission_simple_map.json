@@ -1,0 +1,17 @@
+{
+  "Name": "Duro Simple Map Transmission",
+  "Type": "Transmission",
+  "Template": "AutomaticTransmissionSimpleMap",
+
+   "Gear Box": {
+    "Reverse Gear Ratio":    -0.1790,
+    "Forward Gear Ratios":   [ 0.45, 0.26, 0.44, 0.69, 1.0 ],
+    "Shift Points Map RPM":  [
+      [ 1200, 2500 ],
+      [ 1200, 2500 ],
+      [ 1200, 2500 ],
+      [ 1200, 2500 ],
+      [ 1200, 3200 ]
+    ]
+  }
+}

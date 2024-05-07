@@ -24,10 +24,14 @@ namespace vehicle {
 ChSteering::ChSteering(const std::string& name) : ChPart(name) {}
 
 ChSteering::~ChSteering() {
+    if (!m_initialized)
+        return;
+
     auto sys = m_link->GetSystem();
-    if (sys) {
-        sys->Remove(m_link);
-    }
+    if (!sys)
+        return;
+
+    sys->Remove(m_link);
 }
 
 void ChSteering::Initialize(std::shared_ptr<ChChassis> chassis,

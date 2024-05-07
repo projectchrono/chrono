@@ -34,7 +34,7 @@ SimpleDriveline::SimpleDriveline(const std::string& filename) : ChSimpleDrivelin
 
     Create(d);
 
-    std::cout << "Loaded JSONL " << filename << std::endl;
+    std::cout << "Loaded JSON " << filename << std::endl;
 }
 
 SimpleDriveline::SimpleDriveline(const rapidjson::Document& d) : ChSimpleDriveline("") {

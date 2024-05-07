@@ -122,6 +122,9 @@ FmuComponent::FmuComponent(fmi2String instanceName,
 
     // Set CONTINOUS INPUTS and OUTPUTS for this FMU (wheel state and forces for co-simulation)
     for (int iw = 0; iw < 4; iw++) {
+        wheel_data[iw].state.lin_vel = VNULL;
+        wheel_data[iw].state.ang_vel = VNULL;
+
         std::string prefix = "wheel_" + wheel_data[iw].identifier;
 
         AddFmuVecVariable(wheel_data[iw].load.point, prefix + ".point", "m", prefix + " load application point",  //
@@ -136,9 +139,19 @@ FmuComponent::FmuComponent(fmi2String instanceName,
         AddFmuQuatVariable(wheel_data[iw].state.rot, prefix + ".rot", "1", prefix + " rotation",                     //
                            FmuVariable::CausalityType::output, FmuVariable::VariabilityType::continuous);            //
         AddFmuVecVariable(wheel_data[iw].state.lin_vel, prefix + ".lin_vel", "m/s", prefix + " linear velocity",     //
-                          FmuVariable::CausalityType::output, FmuVariable::VariabilityType::continuous);             //
+                          FmuVariable::CausalityType::output, FmuVariable::VariabilityType::continuous,              //
+                          FmuVariable::InitialType::exact);                                                          //
         AddFmuVecVariable(wheel_data[iw].state.ang_vel, prefix + ".ang_vel", "rad/s", prefix + " angular velocity",  //
-                          FmuVariable::CausalityType::output, FmuVariable::VariabilityType::continuous);             //
+                          FmuVariable::CausalityType::output, FmuVariable::VariabilityType::continuous,              //
+                          FmuVariable::InitialType::exact);                                                          //
+    }
+
+    // Specify variable dependencies
+    AddFmuVariableDependencies("ref_frame", {"init_loc", "init_yaw"});
+    for (int iw = 0; iw < 4; iw++) {
+        std::string prefix = "wheel_" + wheel_data[iw].identifier;
+        AddFmuVariableDependencies(prefix + ".pos", {"init_loc", "init_yaw"});
+        AddFmuVariableDependencies(prefix + ".rot", {"init_loc", "init_yaw"});
     }
 
     // Specify functions to process input variables (at beginning of step)

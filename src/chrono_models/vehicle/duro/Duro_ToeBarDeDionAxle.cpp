@@ -203,17 +203,17 @@ const ChVector3d Duro_ToeBarDeDionAxle::getLocation(PointId which) {
         case SPINDLE:
             return ChVector3d(0.0, 0.84, 0.0);  // 0.84 - 0.635 = 0.205
         case KNUCKLE_CM:
-            return ChVector3d(0.0, 0.635 - 0.07 + 0.155, 0.0);
+            return ChVector3d(0.0, 0.72, 0.0);
         case KNUCKLE_L:
-            return ChVector3d(0.0, 0.635 - 0.07 + 0.0098058067569092 + 0.155, -0.1);
+            return ChVector3d(0.0, 0.729805807, -0.1);
         case KNUCKLE_U:
-            return ChVector3d(0.0, 0.635 - 0.07 - 0.0098058067569092 + 0.155, 0.1);
+            return ChVector3d(0.0, 0.710194193, 0.1);
         case KNUCKLE_DRL:
-            return ChVector3d(0.22, -(0.635 - 0.2 + 0.155), 0.1);
+            return ChVector3d(0.22, 0.5900, 0.1);
         case TIEROD_K:
-            return ChVector3d(-0.190568826619798, (0.635 - 0.07 - 0.060692028477827 + 0.155), 0.1);
+            return ChVector3d(-0.190568826619798, 0.6593, 0.1);
         case DRAGLINK_C:
-            return ChVector3d(0.22, 0.635 - 0.2 + 0.155, 0.1);
+            return ChVector3d(0.22, 0.59, 0.1);
         case AXLE_C:
             return ChVector3d(-1.675, 0.0, 0.1);
         case STABI_CON:

@@ -349,6 +349,7 @@ int main(int argc, char* argv[]) {
             vis_vsg->SetLightIntensity(1.0f);
             vis_vsg->SetChaseCamera(track_point, 10.0, 0.5);
             vis_vsg->AttachVehicle(&hmmwv.GetVehicle());
+            vis_vsg->AttachTerrain(&terrain);
             vis_vsg->AddGuiColorbar("Sinkage (m)", 0.0, 0.1);
             vis_vsg->Initialize();
 

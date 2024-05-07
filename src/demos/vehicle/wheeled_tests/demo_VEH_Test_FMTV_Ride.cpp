@@ -1,7 +1,7 @@
 // =============================================================================
 // PROJECT CHRONO - http://projectchrono.org
 //
-// Copyright (c) 2014 projectchrono.org
+// Copyright (c) 2024 projectchrono.org
 // All right reserved.
 //
 // Use of this source code is governed by a BSD-style license that can be found
@@ -196,6 +196,7 @@ int main(int argc, char* argv[]) {
     auto vehicle_model = models[which - 1];
 
     // Create the vehicle model
+    vehicle_model->SetCollisionSystemType(ChCollisionSystem::Type::BULLET);
     vehicle_model->Create(ChContactMethod::NSC, ChCoordsys<>(initLoc, QUNIT), false);
     auto& vehicle = vehicle_model->GetVehicle();
 
@@ -203,8 +204,6 @@ int main(int argc, char* argv[]) {
     int num_wheels = 2 * vehicle.GetNumberAxles();
 
     std::cout << "Vehicle mass: " << vehicle.GetMass() << std::endl;
-
-    vehicle.GetSystem()->SetCollisionSystemType(ChCollisionSystem::Type::BULLET);
 
     // ------------------
     // Create the terrain

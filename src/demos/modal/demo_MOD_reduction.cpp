@@ -42,7 +42,7 @@ using namespace chrono::fea;
 using namespace chrono::irrlicht;
 
 // Output directory
-const std::string out_dir = GetChronoOutputPath() + "MODAL_ASSEMBLY";
+const std::string out_dir = GetChronoOutputPath() + "MODAL_REDUCTION";
 
 int ID_current_example = 1;
 bool modal_analysis = true;
@@ -54,9 +54,17 @@ double beam_wy = 0.05;
 double beam_L = 6;
 int n_elements = 8;
 
+// damping coefficients
+double damping_alpha = 0.0001;
+double damping_beta = 0.01;
+
 double step_size = 0.05;
 
 unsigned int num_modes = 12;
+bool USE_STATIC_CORRECTION = false;
+bool UPDATE_INTERNAL_NODES = true;
+bool USE_LINEAR_INERTIAL_TERM = true;
+bool USE_GRAVITY = false;
 
 // static stuff for GUI:
 bool SWITCH_EXAMPLE = false;
@@ -87,6 +95,10 @@ void MakeAndRunDemoCantilever(ChSystem& sys,
     // You must add finite elements, bodies and constraints into this assembly in order
     // to compute the modal frequencies etc.; objects not added into this won't be counted.
     auto modal_assembly = chrono_types::make_shared<ChModalAssembly>();
+    modal_assembly->SetInternalNodesUpdate(UPDATE_INTERNAL_NODES);
+    modal_assembly->SetUseLinearInertialTerm(USE_LINEAR_INERTIAL_TERM);
+    modal_assembly->SetUseStaticCorrection(USE_STATIC_CORRECTION);
+    modal_assembly->SetModalAutomaticGravity(USE_GRAVITY);
     sys.Add(modal_assembly);
 
     // Specify the modal reduction method used:
@@ -106,8 +118,8 @@ void MakeAndRunDemoCantilever(ChSystem& sys,
     auto mesh_boundary = chrono_types::make_shared<ChMesh>();
     modal_assembly->Add(mesh_boundary);  // NOTE: MESH FOR BOUNDARY NODES: USE assembly->Add()
 
-    mesh_internal->SetAutomaticGravity(false);
-    mesh_boundary->SetAutomaticGravity(false);
+    mesh_internal->SetAutomaticGravity(USE_GRAVITY);
+    mesh_boundary->SetAutomaticGravity(USE_GRAVITY);
 
     // BEAMS:
 
@@ -118,8 +130,8 @@ void MakeAndRunDemoCantilever(ChSystem& sys,
     section->SetDensity(beam_density);
     section->SetYoungModulus(beam_Young);
     section->SetShearModulusFromPoisson(0.31);
-    section->SetRayleighDampingBeta(0.01);
-    section->SetRayleighDampingAlpha(0.0001);
+    section->SetRayleighDampingBeta(damping_beta);
+    section->SetRayleighDampingAlpha(damping_alpha);
     section->SetAsRectangularSection(beam_wy, beam_wz);
 
     ChBuilderBeamEuler builder;
@@ -246,9 +258,16 @@ void MakeAndRunDemoCantilever(ChSystem& sys,
         my_node_internal->SetTorque(ChVector3d(0, 2, 0));
     }
 
+    // set gravity
+    if (USE_GRAVITY)
+        sys.SetGravitationalAcceleration(ChVector3d(0, 0, -9.81));  // -Z axis
+    else
+        sys.SetGravitationalAcceleration(ChVector3d(0, 0, 0));
+
     // Just for later reference, dump  M,R,K,Cq matrices. Ex. for comparison with Matlab eigs()
     sys.Setup();
     sys.Update();
+
     modal_assembly->WriteSubassemblyMatrices(true, true, true, true, out_dir + "/dump");
 
     if (do_modal_reduction) {
@@ -257,14 +276,15 @@ void MakeAndRunDemoCantilever(ChSystem& sys,
         modal_assembly->DoModalReduction(
             num_modes,  // The number of modes to retain from modal reduction, or a ChModalSolveUndamped with more
                         // settings
-            ChModalDampingRayleigh(0.001,
-                                   0.005)  // The damping model - Optional parameter: default is ChModalDampingNone().
+            ChModalDampingRayleigh(
+                damping_alpha,
+                damping_beta)  // The damping model - Optional parameter: default is ChModalDampingNone().
         );
 
         // OPTIONAL
 
         // Just for later reference, dump reduced M,R,K,Cq matrices. Ex. for comparison with Matlab eigs()
-        modal_assembly->WriteSubassemblyMatrices(true, true, true, true, (out_dir + "/dump_reduced").c_str());
+        modal_assembly->WriteSubassemblyMatrices(true, true, true, true, out_dir + "/dump_reduced");
 
     } else {
         // Otherwise we perform a conventional modal analysis on the full ChModalAssembly.
@@ -417,8 +437,7 @@ int main(int argc, char* argv[]) {
     vis.AddSkyBox();
     vis.AddCamera(ChVector3d(1, 1.3, 6), ChVector3d(3, 0, 0));
     vis.AddLightWithShadow(ChVector3d(20, 20, 20), ChVector3d(0, 0, 0), 50, 5, 50, 55);
-    vis.AddLight(ChVector3d(-20, -20, 0), 6, ChColor(0.6f, 1.0f, 1.0f));
-    vis.AddLight(ChVector3d(0, -20, -20), 6, ChColor(0.6f, 1.0f, 1.0f));
+    vis.AddTypicalLights();
 
     // This is for GUI tweaking of system parameters..
     MyEventReceiver receiver(vis);

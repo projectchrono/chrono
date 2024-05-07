@@ -494,6 +494,7 @@ void ChOptixPipeline::SpawnPipeline(PipelineType type) {
             raygen_record->data.specific.depthCamera.frame_buffer = {};  // default value
             raygen_record->data.specific.depthCamera.lens_model = PINHOLE;     // default value
             raygen_record->data.specific.depthCamera.lens_parameters = {};
+            raygen_record->data.specific.depthCamera.max_depth = 1000.f;  // default value
             break;
         }
 

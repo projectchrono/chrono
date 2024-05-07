@@ -22,16 +22,20 @@ namespace vehicle {
 ChManualTransmissionShafts::ChManualTransmissionShafts(const std::string& name) : ChManualTransmission(name) {}
 
 ChManualTransmissionShafts::~ChManualTransmissionShafts() {
+    if (!m_initialized)
+        return;
+
     auto sys = m_motorshaft->GetSystem();
-    if (sys) {
-        sys->Remove(m_motorshaft);
-        sys->Remove(m_driveshaft);
-        sys->Remove(m_transmissionblock);
-        sys->Remove(m_transmissionblock_to_body);
-        sys->Remove(m_gears);
-        sys->Remove(m_clutchShaft);
-        sys->Remove(m_clutch);
-    }
+    if (!sys)
+        return;
+
+    sys->Remove(m_motorshaft);
+    sys->Remove(m_driveshaft);
+    sys->Remove(m_transmissionblock);
+    sys->Remove(m_transmissionblock_to_body);
+    sys->Remove(m_gears);
+    sys->Remove(m_clutchShaft);
+    sys->Remove(m_clutch);
 }
 
 // -----------------------------------------------------------------------------

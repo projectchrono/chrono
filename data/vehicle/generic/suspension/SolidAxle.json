@@ -53,6 +53,15 @@
     "Radius":                       0.03
   },
 
+  "Trackbar" :
+  {
+    "Mass":                         5.0,
+    "Inertia":                      [0.1, 0.01, 0.1],
+    "Radius":                       0.006,
+    "Location Axle":                [-0.1, 0.610, -0.02],
+    "Location Chassis":             [-0.1, -0.610, 0.02]
+ },
+
   "Tierod":
   {
     "Mass":                         1.633,

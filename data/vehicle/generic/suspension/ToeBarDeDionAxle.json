@@ -1,0 +1,92 @@
+{
+  "Name":                           "Generic Front Axle",
+  "Type":                           "Suspension",
+  "Template":                       "ToeBarDeDionAxle",
+
+  "Camber Angle (deg)":                   0,
+  "Toe Angle (deg)":                      0,
+
+  "Spindle" :
+  {
+    "Mass":                         14.705,
+    "COM":                          [0.0, 0.84, 0.0],
+    "Inertia":                      [0.04117, 0.07352, 0.04117],
+    "Radius":                       0.10,
+    "Width":                        0.06
+  },
+
+  "Knuckle":
+  {
+    "Mass":                         10.0,
+    "COM":                          [0.0, 0.72, 0.0],
+    "Inertia":                      [0.1, 0.1, 0.1],
+    "Radius":                       0.05,
+    "Location Lower":               [0.0, 0.729805807, -0.1],
+    "Location Upper":               [0.0, 0.710194193, 0.1],
+    "Location Draglink":            [0.22, -0.5900, 0.1]  // y > 0 -> left knuckle connects to draglink
+    // y < 0 -> right knuckle connects to draglink
+  },
+
+  "Axle Tube" :
+  {
+    "Mass":                         124.0,
+    "COM":                          [0, 0, 0],
+    "Inertia":                      [22.21, 0.0775, 22.21],
+    "Radius":                       0.0476,
+    "Location Connector Chassis":   [-1.675, 0.0, 0.1],
+    "Location Stabilizer":          [-1.675, 0.42, 0.1]
+  },
+
+  "Tierod":
+  {
+    "Mass":                         5.0,
+    "Inertia":                      [1.0, 0.1, 1.0],
+    "Location Knuckle":             [-0.190568826619798, 0.6593, 0.1],
+    "Radius":                       0.02
+  },
+
+  "Draglink":
+  {
+    "Mass":                         5.0,
+    "Inertia":                      [0.1, 1.0, 0.1],
+    "Location Chassis":             [0.22, 0.59, 0.1],
+    "Radius":                       0.02
+  },
+
+  "Watt Mechanism":
+  {
+    "Center Link Mass":             15.0,
+    "Side Link Mass":               15.0,
+    "Center Link Inertia":          [0.05, 0.01, 0.05],
+    "Side Link Inertia":            [0.07, 0.01, 0.07],
+    "Link Radius":                  0.02,
+    "Location Left Link to Chassis":   [0.15, -0.44, 0.25],
+    "Location Left Link to Center":   [0.15, 0, 0.25],
+    "Location Right Link to Chassis":   [0.15, 0.44, 0.05],
+    "Location Right Link to Center":   [0.15, 0.0, 0.05]
+  },
+
+  "Spring":
+  {
+    "Location Chassis":             [0.01, 0.52, 0.368],
+    "Location Axle":                [0.03, 0.55, 0.068],
+    "Spring Coefficient":           166283.0949,
+    "Free Length":                  0.3621225507207084,
+    "Minimum Length":               0.282,
+    "Maximum Length":               0.442
+  },
+
+  "Shock":
+  {
+    "Location Chassis":             [-0.12, 0.52, 0.468],
+    "Location Axle":                [-0.1, 0.55, 0.124],
+    "Damping Coefficient":          20792.69215,
+    "Degressivity Compression":     3,
+    "Degressivity Expansion":       1
+  },
+
+  "Axle":
+  {
+    "Inertia":                      0.4
+  }
+}

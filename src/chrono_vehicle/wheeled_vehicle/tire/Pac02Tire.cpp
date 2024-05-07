@@ -53,7 +53,7 @@ Pac02Tire::Pac02Tire(const std::string& filename) : ChPac02Tire(""), m_mass(0), 
 
     Create(d);
 
-    std::cout << "Loaded JSONL " << filename << std::endl;
+    std::cout << "Loaded JSON " << filename << std::endl;
 }
 
 Pac02Tire::Pac02Tire(const rapidjson::Document& d) : ChPac02Tire(""), m_mass(0), m_has_mesh(false) {

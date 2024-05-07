@@ -98,7 +98,10 @@ class CH_VEHICLE_API ChSuspension : public ChPart {
     double GetAxleSpeed(VehicleSide side) const { return m_axle[side]->GetPosDt(); }
 
     /// Synchronize this suspension subsystem.
-    virtual void Synchronize();
+    virtual void Synchronize(double time);
+
+    /// Advance the state of the suspension subsystem by the specified time step.
+    virtual void Advance(double step) {}
 
     /// Apply the provided motor torque.
     /// The given torque is applied to the specified (left or right) axle. This

@@ -1,3 +1,12 @@
+#ifdef SWIGCSHARP  // --------------------------------------------------------------------- CSHARP
+
+%csmethodmodifiers chrono::ChLinkMarkers::GetFrame1Rel "public override"
+%csmethodmodifiers chrono::ChLinkMarkers::GetFrame2Rel "public override"
+
+#endif             // --------------------------------------------------------------------- CSHARP
+
+
+
 %{
 
 /* Includes the header in the wrapper code */

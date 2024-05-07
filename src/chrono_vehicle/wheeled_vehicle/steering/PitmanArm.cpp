@@ -34,7 +34,7 @@ PitmanArm::PitmanArm(const std::string& filename) : ChPitmanArm("") {
 
     Create(d);
 
-    std::cout << "Loaded JSONL " << filename << std::endl;
+    std::cout << "Loaded JSON " << filename << std::endl;
 }
 
 PitmanArm::PitmanArm(const rapidjson::Document& d) : ChPitmanArm("") {

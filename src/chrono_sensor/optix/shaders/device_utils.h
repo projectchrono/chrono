@@ -121,9 +121,10 @@ __device__ __inline__ PerRayData_camera default_camera_prd() {
 };
 
 
-__device__ __inline__ PerRayData_depthCamera default_depthCamera_prd() {
+__device__ __inline__ PerRayData_depthCamera default_depthCamera_prd(float maxDepth) {
     PerRayData_depthCamera prd = {};
     prd.depth = 0.f;
+    prd.max_depth = maxDepth;
     return prd;
 };
 

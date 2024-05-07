@@ -27,7 +27,7 @@ namespace gator {
 // -----------------------------------------------------------------------------
 
 const double Gator_RackPinion::m_steeringLinkMass = 2;
-const ChVector3d Gator_RackPinion::m_steeringLinkInertia(.138, 0.05, .138);
+const ChVector3d Gator_RackPinion::m_steeringLinkInertia(0.138, 0.05, 0.138);
 const double Gator_RackPinion::m_steeringLinkCOM = 0;
 const double Gator_RackPinion::m_steeringLinkLength = 0.5;
 const double Gator_RackPinion::m_steeringLinkRadius = 0.03;

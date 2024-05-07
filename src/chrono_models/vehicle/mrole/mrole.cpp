@@ -41,6 +41,7 @@ mrole::mrole()
     : m_system(nullptr),
       m_vehicle(nullptr),
       m_contactMethod(ChContactMethod::NSC),
+      m_collsysType(ChCollisionSystem::Type::BULLET),
       m_chassisCollisionType(CollisionType::NONE),
       m_fixed(false),
       m_brake_locking(false),
@@ -61,6 +62,7 @@ mrole::mrole(ChSystem* system)
     : m_system(system),
       m_vehicle(nullptr),
       m_contactMethod(ChContactMethod::NSC),
+      m_collsysType(ChCollisionSystem::Type::BULLET),
       m_chassisCollisionType(CollisionType::NONE),
       m_fixed(false),
       m_brake_locking(false),
@@ -94,6 +96,7 @@ void mrole::SetAerodynamicDrag(double Cd, double area, double air_density) {
 void mrole::Initialize() {
     // Create and initialize the mrole vehicle
     m_vehicle = CreateVehicle();
+    m_vehicle->SetCollisionSystemType(m_collsysType);
     m_vehicle->SetInitWheelAngVel(m_initOmega);
     m_vehicle->Initialize(m_initPos, m_initFwdVel);
 

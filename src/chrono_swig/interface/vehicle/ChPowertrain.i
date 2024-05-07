@@ -27,6 +27,8 @@
 #include "chrono_vehicle/powertrain/ChAutomaticTransmissionShafts.h"
 #include "chrono_vehicle/powertrain/AutomaticTransmissionSimpleMap.h"
 #include "chrono_vehicle/powertrain/AutomaticTransmissionShafts.h"
+#include "chrono_vehicle/powertrain/ChManualTransmissionShafts.h"
+#include "chrono_vehicle/powertrain/ManualTransmissionShafts.h"
 %}
 
 %shared_ptr(chrono::vehicle::ChPowertrainAssembly)
@@ -42,6 +44,8 @@
 %shared_ptr(chrono::vehicle::ChAutomaticTransmissionShafts)
 %shared_ptr(chrono::vehicle::AutomaticTransmissionSimpleMap)
 %shared_ptr(chrono::vehicle::AutomaticTransmissionShafts)
+%shared_ptr(chrono::vehicle::ChManualTransmissionShafts)
+%shared_ptr(chrono::vehicle::ManualTransmissionShafts)
 
 
 %import "../../../chrono_vehicle/ChPart.h"
@@ -68,5 +72,6 @@
 %include "../../../chrono_vehicle/powertrain/ChAutomaticTransmissionShafts.h"
 %include "../../../chrono_vehicle/powertrain/AutomaticTransmissionSimpleMap.h"
 %include "../../../chrono_vehicle/powertrain/AutomaticTransmissionShafts.h"
+%include "../../../chrono_vehicle/powertrain/ChManualTransmissionShafts.h"
+%include "../../../chrono_vehicle/powertrain/ManualTransmissionShafts.h"
 
-%include "chrono_swig/interface/models/PowertrainModels.i"

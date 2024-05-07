@@ -33,6 +33,7 @@ BMW_E90::BMW_E90()
     : m_system(nullptr),
       m_vehicle(nullptr),
       m_contactMethod(ChContactMethod::NSC),
+      m_collsysType(ChCollisionSystem::Type::BULLET),
       m_chassisCollisionType(CollisionType::NONE),
       m_fixed(false),
       m_brake_locking(false),
@@ -48,6 +49,7 @@ BMW_E90::BMW_E90(ChSystem* system)
     : m_system(system),
       m_vehicle(nullptr),
       m_contactMethod(ChContactMethod::NSC),
+      m_collsysType(ChCollisionSystem::Type::BULLET),
       m_chassisCollisionType(CollisionType::NONE),
       m_fixed(false),
       m_brake_locking(false),
@@ -77,7 +79,7 @@ void BMW_E90::Initialize() {
     // Create and initialize the BMW_E90 vehicle
     m_vehicle = m_system ? new BMW_E90_Vehicle(m_system, m_fixed, m_brake_type, m_chassisCollisionType)
                          : new BMW_E90_Vehicle(m_fixed, m_brake_type, m_contactMethod, m_chassisCollisionType);
-
+    m_vehicle->SetCollisionSystemType(m_collsysType);
     m_vehicle->SetInitWheelAngVel(m_initOmega);
     m_vehicle->Initialize(m_initPos, m_initFwdVel);
 

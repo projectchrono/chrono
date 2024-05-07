@@ -97,7 +97,7 @@ using namespace gui;
 // is enough that a single class in an inheritance tree uses %shared_ptr, and all other in the 
 // tree must be promoted to %shared_ptr too).
 
-%ignore irr::scene::ISceneNode;
+//%ignore irr::scene::ISceneNode;
 
 %shared_ptr(chrono::irrlicht::ChIrrNodeShape)
 %shared_ptr(chrono::irrlicht::ChIrrNodeModel)

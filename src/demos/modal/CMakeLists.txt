@@ -1,13 +1,15 @@
 #--------------------------------------------------------------
 # List all MODAL demos 
 
-set(DEMOS "")
+set(DEMOS
+    demo_MOD_slewing_beam
+    )
 
 # Add demos that require Irrlicht
 if(ENABLE_MODULE_IRRLICHT)
    set(DEMOS ${DEMOS}
        demo_MOD_analysis
-       demo_MOD_modal_assembly
+       demo_MOD_reduction
    )
 endif()
 
@@ -20,7 +22,7 @@ include_directories(${CMAKE_CURRENT_SOURCE_DIR})
 include_directories(${CH_INCLUDES})
 set(COMPILER_FLAGS "${CH_CXX_FLAGS}")
 set(LINKER_FLAGS "${CH_LINKERFLAG_EXE}")
-list(APPEND LIBS "ChronoEngine")
+set(LIBS ChronoEngine ChronoEngine_modal)
 
 if(ENABLE_MODULE_IRRLICHT)
   include_directories(${CH_IRRLICHT_INCLUDES})

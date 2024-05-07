@@ -37,11 +37,15 @@ namespace vehicle {
 ChRackPinion::ChRackPinion(const std::string& name) : ChSteering(name) {}
 
 ChRackPinion::~ChRackPinion() {
+    if (!m_initialized)
+        return;
+
     auto sys = m_prismatic->GetSystem();
-    if (sys) {
-        sys->Remove(m_prismatic);
-        sys->Remove(m_actuator);
-    }
+    if (!sys)
+        return;
+
+    sys->Remove(m_prismatic);
+    sys->Remove(m_actuator);
 }
 
 // -----------------------------------------------------------------------------

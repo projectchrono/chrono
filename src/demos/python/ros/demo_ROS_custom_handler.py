@@ -75,7 +75,7 @@ def main():
     ros_manager.RegisterHandler(chros.ChROSBodyHandler(25, box, "~/box"))
 
     tf_handler = chros.ChROSTFHandler(30)
-    tf_handler.AddTransform(floor, box)
+    tf_handler.AddTransform(floor, floor.GetName(), box, box.GetName())
     ros_manager.RegisterHandler(tf_handler)
 
     # Create the custom handler

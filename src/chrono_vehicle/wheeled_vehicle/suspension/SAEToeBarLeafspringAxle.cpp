@@ -44,7 +44,7 @@ SAEToeBarLeafspringAxle::SAEToeBarLeafspringAxle(const std::string& filename)
 
     Create(d);
 
-    std::cout << "Loaded JSONL " << filename << std::endl;
+    std::cout << "Loaded JSON " << filename << std::endl;
 }
 
 SAEToeBarLeafspringAxle::SAEToeBarLeafspringAxle(const rapidjson::Document& d)
@@ -154,7 +154,6 @@ void SAEToeBarLeafspringAxle::Create(const rapidjson::Document& d) {
     assert(d.HasMember("Leafspring"));
     assert(d["Leafspring"].IsObject());
 
-    std::cout << "Leafspring found\n";
     m_points[FRONT_HANGER] = ReadVectorJSON(d["Leafspring"]["Location Front Hanger"]);
     m_points[REAR_HANGER] = ReadVectorJSON(d["Leafspring"]["Location Rear Hanger"]);
     m_points[SHACKLE] = ReadVectorJSON(d["Leafspring"]["Location Shackle"]);
@@ -172,32 +171,32 @@ void SAEToeBarLeafspringAxle::Create(const rapidjson::Document& d) {
 
     m_frontleafMass = d["Leafspring"]["Frontleaf"]["Mass"].GetDouble();
     m_frontleafInertia = ReadVectorJSON(d["Leafspring"]["Frontleaf"]["Inertia"]);
-    std::cout << "m_frontleafMass " << m_frontleafMass << "\n";
-    std::cout << "m_frontleafInertia " << m_frontleafInertia << "\n";
+    ////std::cout << "m_frontleafMass " << m_frontleafMass << "\n";
+    ////std::cout << "m_frontleafInertia " << m_frontleafInertia << "\n";
 
     assert(d["Leafspring"].HasMember("Rearleaf"));
     assert(d["Leafspring"]["Rearleaf"].IsObject());
 
     m_rearleafMass = d["Leafspring"]["Rearleaf"]["Mass"].GetDouble();
     m_rearleafInertia = ReadVectorJSON(d["Leafspring"]["Rearleaf"]["Inertia"]);
-    std::cout << "m_rearleafMass " << m_rearleafMass << "\n";
-    std::cout << "m_rearleafInertia " << m_rearleafInertia << "\n";
+    ////std::cout << "m_rearleafMass " << m_rearleafMass << "\n";
+    ////std::cout << "m_rearleafInertia " << m_rearleafInertia << "\n";
 
     assert(d["Leafspring"].HasMember("Half Clamp"));
     assert(d["Leafspring"]["Half Clamp"].IsObject());
 
     m_clampMass = d["Leafspring"]["Half Clamp"]["Mass"].GetDouble();
     m_clampInertia = ReadVectorJSON(d["Leafspring"]["Half Clamp"]["Inertia"]);
-    std::cout << "m_clampMass " << m_clampMass << "\n";
-    std::cout << "m_clampInertia " << m_clampInertia << "\n";
+    ////std::cout << "m_clampMass " << m_clampMass << "\n";
+    ////std::cout << "m_clampInertia " << m_clampInertia << "\n";
 
     assert(d["Leafspring"].HasMember("Shackle"));
     assert(d["Leafspring"]["Shackle"].IsObject());
 
     m_shackleMass = d["Leafspring"]["Shackle"]["Mass"].GetDouble();
     m_shackleInertia = ReadVectorJSON(d["Leafspring"]["Shackle"]["Inertia"]);
-    std::cout << "m_shackleMass " << m_shackleMass << "\n";
-    std::cout << "m_shackleInertia " << m_shackleInertia << "\n";
+    ////std::cout << "m_shackleMass " << m_shackleMass << "\n";
+    ////std::cout << "m_shackleInertia " << m_shackleInertia << "\n";
 
     // Bushing data (optional)
     if (d["Leafspring"].HasMember("Shackle Bushing Data")) {
@@ -217,8 +216,8 @@ void SAEToeBarLeafspringAxle::Create(const rapidjson::Document& d) {
     ChVector3d Ma = preload.Cross(ra);
     ChVector3d Mb = preload.Cross(rb);
 
-    std::cout << "Ma " << Ma;
-    std::cout << "Mb " << Mb;
+    ////std::cout << "Ma " << Ma << std::endl;
+    ////std::cout << "Mb " << Mb << std::endl;
 
     double KAlat = lateral_stiffness / (1.0 + stiffness_bias);
     double KBlat = stiffness_bias * KAlat;

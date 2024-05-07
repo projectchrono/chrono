@@ -590,7 +590,7 @@ void ChVisualSystemIrrlicht::BeginScene(bool backBuffer, bool zBuffer, ChColor c
             if (auto modalassembly = std::dynamic_pointer_cast<modal::ChModalAssembly>(item)) {
                 try {
                     // superposition of modal shape
-                    modalassembly->SetFullStateWithModeOverlay(m_gui->modal_mode_n, m_gui->modal_phi,
+                    modalassembly->UpdateFullStateWithModeOverlay(m_gui->modal_mode_n, m_gui->modal_phi,
                                                                m_gui->modal_amplitude);
                     // fetch Hz of this mode
                     m_gui->modal_current_freq = modalassembly->GetUndampedFrequencies()(m_gui->modal_mode_n);

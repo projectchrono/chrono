@@ -1,0 +1,31 @@
+{
+  "Name":     "Gator chassis",
+  "Type":     "Chassis",
+  "Template": "RigidChassis",
+
+  "Components":
+  [
+   {
+     "Centroidal Frame":    {
+                              "Location":    [-0.184, 0, 0.359], 
+                              "Orientation": [1, 0, 0, 0]
+                            },
+     "Mass":                800,
+     "Moments of Inertia":  [107.7, 350.8, 457.7],
+     "Products of Inertia": [0, 0, 0],
+     "Void":                false
+   }
+  ],
+
+  "Driver Position":
+  {
+    "Location":     [0.3, 0.25, 1.2],
+    "Orientation":  [1, 0, 0, 0]
+  },
+  
+  "Rear Connector Location": [ -1, 0, 0 ],
+
+  "Visualization": {
+    "Mesh": "gator/gator_chassis.obj"
+  }
+}

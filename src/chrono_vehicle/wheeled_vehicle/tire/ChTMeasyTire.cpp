@@ -618,38 +618,28 @@ void ChTMeasyTire::GuessPassCar70Par(double tireLoad,       // tire load force [
 bool ChTMeasyTire::CheckParameters() {
     // Nominal Load set?
     if (m_par.pn < GetTireMaxLoad(0)) {
-        std::cerr << "TMsimpleCheckParameters(): Tire Nominal Load Problem!" << std::endl;
+        std::cerr << "TMsimpleCheckParameters(): Incorrect tire nominal load!" << std::endl;
         return false;
     }
 
     // Stiffness parameters, spring
     if (m_d1 <= 0.0) {
-        std::cerr << "TMsimpleCheckParameters(): Tire Vertical Stiffness Problem!" << std::endl;
+        std::cerr << "TMsimpleCheckParameters(): Incorrect tire vertical stiffness!" << std::endl;
         return false;
     }
 
     // Stiffness parameters, spring
     if (m_par.mu_0 <= 0.0) {
-        std::cerr << "TMsimpleCheckParameters(): Friction Coefficien Mu_0 unset!" << std::endl;
+        std::cerr << "TMsimpleCheckParameters(): Incorrect coefficient of friction!" << std::endl;
         return false;
     }
 
     if (m_par.dz <= 0.0) {
-        std::cerr << "TMsimpleCheckParameters(): Tire Vertical Damping Problem!" << std::endl;
+        std::cerr << "TMsimpleCheckParameters(): Incorrect tire vertical damping!" << std::endl;
         return false;
     }
 
     return true;
-}
-
-// set tire reference coefficient of friction
-void ChTMeasyTire::SetFrictionCoefficient(double coeff) {
-    m_par.mu_0 = coeff;
-}
-
-// Set Rolling Resistance Coefficients
-void ChTMeasyTire::SetRollingResistanceCoefficient(double r_coef) {
-    m_rolling_resistance = r_coef;
 }
 
 }  // end namespace vehicle

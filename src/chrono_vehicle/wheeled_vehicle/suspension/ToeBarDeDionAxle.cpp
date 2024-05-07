@@ -38,7 +38,7 @@ ToeBarDeDionAxle::ToeBarDeDionAxle(const std::string& filename)
 
     Create(d);
 
-    std::cout << "Loaded JSONL " << filename << std::endl;
+    std::cout << "Loaded JSON " << filename << std::endl;
 }
 
 ToeBarDeDionAxle::ToeBarDeDionAxle(const rapidjson::Document& d)
@@ -84,7 +84,9 @@ void ToeBarDeDionAxle::Create(const rapidjson::Document& d) {
     m_axleTubeCOM = ReadVectorJSON(d["Axle Tube"]["COM"]);
     m_axleTubeInertia = ReadVectorJSON(d["Axle Tube"]["Inertia"]);
     m_axleTubeRadius = d["Axle Tube"]["Radius"].GetDouble();
-    m_points[AXLE_C] = ReadVectorJSON(d["Axle Tube"]["Location Connector"]);
+    m_points[AXLE_C] = ReadVectorJSON(d["Axle Tube"]["Location Connector Chassis"]);
+    // m_points[STABI_CON] = ReadVectorJSON(d["Axle Tube"]["Location Stabilizer"]);
+    m_points[STABI_CON] = {0, 0, 0};
 
     // Read Knuckle data
     assert(d.HasMember("Knuckle"));
@@ -133,6 +135,19 @@ void ToeBarDeDionAxle::Create(const rapidjson::Document& d) {
     m_points[SHOCK_C] = ReadVectorJSON(d["Shock"]["Location Chassis"]);
     m_points[SHOCK_A] = ReadVectorJSON(d["Shock"]["Location Axle"]);
     m_shockForceCB = ReadTSDAFunctorJSON(d["Shock"], m_shockRestLength);
+
+    // Read Watt Mechanism Elements
+    assert(d.HasMember("Watt Mechanism"));
+    assert(d["Watt Mechanism"].IsObject());
+    m_wattCenterMass = d["Watt Mechanism"]["Center Link Mass"].GetDouble();
+    m_wattSideMass = d["Watt Mechanism"]["Side Link Mass"].GetDouble();
+    m_wattlinkRadius = d["Watt Mechanism"]["Link Radius"].GetDouble();
+    m_wattCenterInertia = ReadVectorJSON(d["Watt Mechanism"]["Center Link Inertia"]);
+    m_wattSideInertia = ReadVectorJSON(d["Watt Mechanism"]["Side Link Inertia"]);
+    m_points[WATT_CNT_LE] = ReadVectorJSON(d["Watt Mechanism"]["Location Left Link to Center"]);
+    m_points[WATT_CNT_RI] = ReadVectorJSON(d["Watt Mechanism"]["Location Right Link to Center"]);
+    m_points[WATT_LE_CH] = ReadVectorJSON(d["Watt Mechanism"]["Location Left Link to Chassis"]);
+    m_points[WATT_RI_CH] = ReadVectorJSON(d["Watt Mechanism"]["Location Right Link to Chassis"]);
 
     // Read axle inertia
     assert(d.HasMember("Axle"));

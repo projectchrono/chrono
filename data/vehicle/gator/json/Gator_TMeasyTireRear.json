@@ -1,0 +1,45 @@
+{
+  "Name": "Gator TMeasy Tire Rear",
+  "Type": "Tire",
+  "Template": "TMeasyTire",
+
+  // ------------------------------------------------
+  // Tire design (REQUIRED)
+
+  "Design": {
+    "Unloaded Radius [m]": 0.3175,
+    "Mass [kg]": 9.3,
+    "Inertia [kg.m2]": [ 0.258, 0.416, 0.258 ],
+    "Width [m]": 0.3048,
+    "Rim Radius [m]": 0.1143
+  },
+
+  "Coefficient of Friction": 0.6,
+
+  "Rolling Resistance Coefficient": 0.01,
+
+  // ------------------------------------------------
+  // Vehicle type.
+  // Required only if tire specified with "load index" or "bearing capacity".
+  // Must be one of "Truck" or "Passenger"
+
+  "Vehicle Type": "Truck",
+
+  // ------------------------------------------------
+  // Bearing capacity specification.
+  // Lowest priority (used only if no other specification provided)
+
+  "Maximum Bearing Capacity [N]": 2600,
+
+  // Inflation pressures
+  "Inflation Pressure Design [Pa]": 1,
+  "Inflation Pressure Use [Pa]": 1,
+
+  // ------------------------------------------------
+  // Visualization mesh (OPTIONAL)
+
+  "Visualization": {
+    "Mesh Filename Left": "gator/gator_wheel_RL.obj",
+    "Mesh Filename Right": "gator/gator_wheel_RR.obj"
+  }
+}

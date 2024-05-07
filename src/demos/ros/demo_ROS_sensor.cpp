@@ -204,13 +204,13 @@ int main(int argc, char* argv[]) {
 
     // Create _one_ tf handler which we'll add transforms for all the sensors to
     auto tf_handler = chrono_types::make_shared<ChROSTFHandler>(100);
-    tf_handler->AddSensor(cam);
-    tf_handler->AddSensor(lidar);
-    tf_handler->AddSensor(lidar_2d);
-    tf_handler->AddSensor(acc);
-    tf_handler->AddSensor(gyro);
-    tf_handler->AddSensor(mag);
-    tf_handler->AddSensor(gps);
+    tf_handler->AddSensor(cam, ground_body->GetName(), "cam");
+    tf_handler->AddSensor(lidar, ground_body->GetName(), "lidar");
+    tf_handler->AddSensor(lidar_2d, ground_body->GetName(), "lidar_2d");
+    tf_handler->AddSensor(acc, ground_body->GetName(), "acc");
+    tf_handler->AddSensor(gyro, ground_body->GetName(), "gyro");
+    tf_handler->AddSensor(mag, ground_body->GetName(), "mag");
+    tf_handler->AddSensor(gps, ground_body->GetName(), "gps");
 
     // Finally, initialize the ros manager
     ros_manager->Initialize();

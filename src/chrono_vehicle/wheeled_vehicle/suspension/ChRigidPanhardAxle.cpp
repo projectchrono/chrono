@@ -49,14 +49,18 @@ const std::string ChRigidPanhardAxle::m_pointNames[] = {"SHOCK_A    ", "SHOCK_C 
 ChRigidPanhardAxle::ChRigidPanhardAxle(const std::string& name) : ChSuspension(name) {}
 
 ChRigidPanhardAxle::~ChRigidPanhardAxle() {
+    if (!m_initialized)
+        return;
+
     auto sys = m_axleTubeBody->GetSystem();
-    if (sys) {
-        sys->Remove(m_axleTubeBody);
-        sys->Remove(m_axleTubeGuide);
-        for (int i = 0; i < 2; i++) {
-            sys->Remove(m_shock[i]);
-            sys->Remove(m_spring[i]);
-        }
+    if (!sys)
+        return;
+
+    sys->Remove(m_axleTubeBody);
+    sys->Remove(m_axleTubeGuide);
+    for (int i = 0; i < 2; i++) {
+        sys->Remove(m_shock[i]);
+        sys->Remove(m_spring[i]);
     }
 }
 

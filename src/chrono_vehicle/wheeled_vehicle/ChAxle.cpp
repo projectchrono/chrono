@@ -73,17 +73,26 @@ void ChAxle::Initialize(std::shared_ptr<ChChassis> chassis,
 
 void ChAxle::Synchronize(double time, const DriverInputs& driver_inputs) {
     // Synchronize suspension subsystem (prepare to accept tire forces)
-    m_suspension->Synchronize();
+    m_suspension->Synchronize(time);
 
-    // Let the wheel subsystems get tire forces and pass them to their associated suspension.
+    // Let the wheel subsystems get tire forces and pass them to their associated suspension
     for (auto& wheel : m_wheels) {
         wheel->Synchronize();
     }
 
-    // Apply braking input.
+    // Apply braking input
     if (m_brake_left && m_brake_right) {
-        m_brake_left->Synchronize(driver_inputs.m_braking);
-        m_brake_right->Synchronize(driver_inputs.m_braking);
+        m_brake_left->Synchronize(time, driver_inputs.m_braking);
+        m_brake_right->Synchronize(time, driver_inputs.m_braking);
+    }
+}
+
+void ChAxle::Advance(double step) {
+    m_suspension->Advance(step);
+
+    if (m_brake_left && m_brake_right) {
+        m_brake_left->Advance(step);
+        m_brake_right->Advance(step);
     }
 }
 

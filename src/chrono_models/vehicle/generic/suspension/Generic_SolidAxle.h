@@ -54,6 +54,7 @@ class CH_MODELS_API Generic_SolidAxle : public ChSolidAxle {
     virtual double getTierodMass() const override { return m_tierodMass; }
     virtual double getDraglinkMass() const override { return m_draglinkMass; }
     virtual double getBellCrankMass() const override { return m_bellCrankMass; }
+    virtual double getTrackbarMass() const override { return m_trackbarMass; }
 
     virtual double getAxleTubeRadius() const override { return m_axleTubeRadius; }
     virtual double getSpindleRadius() const override { return m_spindleRadius; }
@@ -64,6 +65,7 @@ class CH_MODELS_API Generic_SolidAxle : public ChSolidAxle {
     virtual double getTierodRadius() const override { return m_tierodRadius; }
     virtual double getDraglinkRadius() const override { return m_draglinkRadius; }
     virtual double getBellCrankRadius() const override { return m_bellCrankRadius; }
+    virtual double getTrackbarRadius() const override { return m_trackbarRadius; }
 
     virtual const ChVector3d& getAxleTubeInertia() const override { return m_axleTubeInertia; }
     virtual const ChVector3d& getSpindleInertia() const override { return m_spindleInertia; }
@@ -73,6 +75,7 @@ class CH_MODELS_API Generic_SolidAxle : public ChSolidAxle {
     virtual const ChVector3d& getTierodInertia() const override { return m_tierodInertia; }
     virtual const ChVector3d& getDraglinkInertia() const override { return m_draglinkInertia; }
     virtual const ChVector3d& getBellCrankInertia() const override { return m_bellCrankInertia; }
+    virtual const ChVector3d& getTrackbarInertia() const override { return m_trackbarInertia; }
 
     virtual double getAxleInertia() const override { return m_axleInertia; }
 
@@ -96,6 +99,7 @@ class CH_MODELS_API Generic_SolidAxle : public ChSolidAxle {
     static const double m_tierodMass;
     static const double m_draglinkMass;
     static const double m_bellCrankMass;
+    static const double m_trackbarMass;
 
     static const double m_axleTubeRadius;
     static const double m_spindleRadius;
@@ -106,6 +110,7 @@ class CH_MODELS_API Generic_SolidAxle : public ChSolidAxle {
     static const double m_tierodRadius;
     static const double m_draglinkRadius;
     static const double m_bellCrankRadius;
+    static const double m_trackbarRadius;
 
     static const ChVector3d m_axleTubeCOM;
 
@@ -117,6 +122,7 @@ class CH_MODELS_API Generic_SolidAxle : public ChSolidAxle {
     static const ChVector3d m_tierodInertia;
     static const ChVector3d m_draglinkInertia;
     static const ChVector3d m_bellCrankInertia;
+    static const ChVector3d m_trackbarInertia;
 
     static const double m_axleInertia;
 

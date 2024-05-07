@@ -35,7 +35,7 @@ AutomaticTransmissionShafts::AutomaticTransmissionShafts(const std::string& file
 
     Create(d);
 
-    std::cout << "Loaded JSONL " << filename << std::endl;
+    std::cout << "Loaded JSON " << filename << std::endl;
 }
 
 AutomaticTransmissionShafts::AutomaticTransmissionShafts(const rapidjson::Document& d)

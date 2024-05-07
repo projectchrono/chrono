@@ -81,33 +81,37 @@ const std::string ChSAELeafspringAxle::m_pointNames[] = {"SHOCK_A     ", "SHOCK_
 ChSAELeafspringAxle::ChSAELeafspringAxle(const std::string& name) : ChSuspension(name) {}
 
 ChSAELeafspringAxle::~ChSAELeafspringAxle() {
+    if (!m_initialized)
+        return;
+
     auto sys = m_axleTube->GetSystem();
-    if (sys) {
-        sys->Remove(m_axleTube);
+    if (!sys)
+        return;
 
-        for (int i = 0; i < 2; i++) {
-            sys->Remove(m_shock[i]);
-            sys->Remove(m_spring[i]);
+    sys->Remove(m_axleTube);
 
-            sys->Remove(m_shackle[i]);
-            sys->Remove(m_frontleaf[i]);
-            sys->Remove(m_frontleafSph[i]);
-            sys->Remove(m_rearleaf[i]);
-            sys->Remove(m_rearleafSph[i]);
-            sys->Remove(m_clampA[i]);
-            sys->Remove(m_clampB[i]);
+    for (int i = 0; i < 2; i++) {
+        sys->Remove(m_shock[i]);
+        sys->Remove(m_spring[i]);
 
-            ChChassis::RemoveJoint(m_shackleRev[i]);
-            ChChassis::RemoveJoint(m_frontleafRev[i]);
-            ChChassis::RemoveJoint(m_rearleafRev[i]);
-            ChChassis::RemoveJoint(m_clampARev[i]);
-            ChChassis::RemoveJoint(m_clampBRev[i]);
+        sys->Remove(m_shackle[i]);
+        sys->Remove(m_frontleaf[i]);
+        sys->Remove(m_frontleafSph[i]);
+        sys->Remove(m_rearleaf[i]);
+        sys->Remove(m_rearleafSph[i]);
+        sys->Remove(m_clampA[i]);
+        sys->Remove(m_clampB[i]);
 
-            sys->Remove(m_latRotSpringA[i]);
-            sys->Remove(m_latRotSpringB[i]);
-            sys->Remove(m_vertRotSpringA[i]);
-            sys->Remove(m_vertRotSpringB[i]);
-        }
+        ChChassis::RemoveJoint(m_shackleRev[i]);
+        ChChassis::RemoveJoint(m_frontleafRev[i]);
+        ChChassis::RemoveJoint(m_rearleafRev[i]);
+        ChChassis::RemoveJoint(m_clampARev[i]);
+        ChChassis::RemoveJoint(m_clampBRev[i]);
+
+        sys->Remove(m_latRotSpringA[i]);
+        sys->Remove(m_latRotSpringB[i]);
+        sys->Remove(m_vertRotSpringA[i]);
+        sys->Remove(m_vertRotSpringB[i]);
     }
 }
 

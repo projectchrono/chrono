@@ -26,11 +26,15 @@ namespace vehicle {
 ChChassisConnectorTorsion::ChChassisConnectorTorsion(const std::string& name) : ChChassisConnector(name) {}
 
 ChChassisConnectorTorsion::~ChChassisConnectorTorsion() {
+    if (!m_initialized)
+        return;
+
     auto sys = m_joint->GetSystem();
-    if (sys) {
-        sys->Remove(m_joint);
-        sys->Remove(m_spring);
-    }
+    if (!sys)
+        return;
+
+    sys->Remove(m_joint);
+    sys->Remove(m_spring);
 }
 
 void ChChassisConnectorTorsion::Initialize(std::shared_ptr<ChChassis> front, std::shared_ptr<ChChassisRear> rear) {

@@ -46,33 +46,37 @@ const std::string ChMultiLink::m_pointNames[] = {"SPINDLE  ", "UPRIGHT  ", "UA_F
 ChMultiLink::ChMultiLink(const std::string& name) : ChSuspension(name) {}
 
 ChMultiLink::~ChMultiLink() {
+    if (!m_initialized)
+        return;
+
     auto sys = m_upright[0]->GetSystem();
-    if (sys) {
-        for (int i = 0; i < 2; i++) {
-            sys->Remove(m_upright[i]);
-            sys->Remove(m_upperArm[i]);
-            sys->Remove(m_lateral[i]);
-            sys->Remove(m_trailingLink[i]);
+    if (!sys)
+        return;
 
-            sys->Remove(m_revoluteUA[i]);
-            sys->Remove(m_sphericalUA[i]);
-            sys->Remove(m_universalLateralChassis[i]);
-            sys->Remove(m_sphericalLateralUpright[i]);
-            sys->Remove(m_universalTLChassis[i]);
-            sys->Remove(m_sphericalTLUpright[i]);
+    for (int i = 0; i < 2; i++) {
+        sys->Remove(m_upright[i]);
+        sys->Remove(m_upperArm[i]);
+        sys->Remove(m_lateral[i]);
+        sys->Remove(m_trailingLink[i]);
 
-            if (m_tierod[i]) {
-                sys->Remove(m_tierod[i]);
-                ChChassis::RemoveJoint(m_sphericalTierod[i]);
-                ChChassis::RemoveJoint(m_universalTierod[i]);
-            }
-            if (m_distTierod[i]) {
-                sys->Remove(m_distTierod[i]);
-            }
+        sys->Remove(m_revoluteUA[i]);
+        sys->Remove(m_sphericalUA[i]);
+        sys->Remove(m_universalLateralChassis[i]);
+        sys->Remove(m_sphericalLateralUpright[i]);
+        sys->Remove(m_universalTLChassis[i]);
+        sys->Remove(m_sphericalTLUpright[i]);
 
-            sys->Remove(m_shock[i]);
-            sys->Remove(m_spring[i]);
+        if (m_tierod[i]) {
+            sys->Remove(m_tierod[i]);
+            ChChassis::RemoveJoint(m_sphericalTierod[i]);
+            ChChassis::RemoveJoint(m_universalTierod[i]);
         }
+        if (m_distTierod[i]) {
+            sys->Remove(m_distTierod[i]);
+        }
+
+        sys->Remove(m_shock[i]);
+        sys->Remove(m_spring[i]);
     }
 }
 

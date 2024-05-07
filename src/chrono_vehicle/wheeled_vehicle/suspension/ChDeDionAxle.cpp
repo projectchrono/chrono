@@ -55,13 +55,17 @@ const std::string ChDeDionAxle::m_pointNames[] = {"SHOCK_A    ", "SHOCK_C    ", 
 ChDeDionAxle::ChDeDionAxle(const std::string& name) : ChSuspension(name) {}
 
 ChDeDionAxle::~ChDeDionAxle() {
+    if (!m_initialized)
+        return;
+
     auto sys = m_axleTube->GetSystem();
-    if (sys) {
-        sys->Remove(m_axleTube);
-        for (int i = 0; i < 2; i++) {
-            sys->Remove(m_shock[i]);
-            sys->Remove(m_spring[i]);
-        }
+    if (!sys)
+        return;
+
+    sys->Remove(m_axleTube);
+    for (int i = 0; i < 2; i++) {
+        sys->Remove(m_shock[i]);
+        sys->Remove(m_spring[i]);
     }
 }
 
@@ -312,8 +316,7 @@ void ChDeDionAxle::UpdateInertiaProperties() {
     composite.AddComponent(m_wattCenterLinkBody->GetFrameCOMToAbs(), getWattCenterMass(),
                            ChMatrix33<>(inertiaWattCenter));
     composite.AddComponent(m_wattLeftLinkBody->GetFrameCOMToAbs(), getWattSideMass(), ChMatrix33<>(inertiaWattSide));
-    composite.AddComponent(m_wattRightLinkBody->GetFrameCOMToAbs(), getWattSideMass(),
-                           ChMatrix33<>(inertiaWattSide));
+    composite.AddComponent(m_wattRightLinkBody->GetFrameCOMToAbs(), getWattSideMass(), ChMatrix33<>(inertiaWattSide));
 
     // Express COM and inertia in subsystem reference frame
     m_com.SetPos(m_xform.TransformPointParentToLocal(composite.GetCOM()));

@@ -64,10 +64,13 @@ class CH_VEHICLE_API ChAxle {
                     double right_ang_vel = 0                   ///< initial angular velocity of right wheel
     );
 
-    /// Synchronize this suspension subsystem.
+    /// Synchronize this axle subsystem.
     void Synchronize(double time,                       ///< [in] current time
                      const DriverInputs& driver_inputs  ///< [in] current driver inputs
     );
+
+    /// Advance the state of this axle subsystem by the specified time step.
+    virtual void Advance(double step);
 
     /// Get all wheels from this axle.
     /// The wheels associated with an axle are assumed to be ordered from inner to outer wheels, first left then right.

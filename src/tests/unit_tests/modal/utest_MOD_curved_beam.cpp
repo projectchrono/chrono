@@ -9,12 +9,23 @@
 // http://projectchrono.org/license-chrono.txt.
 //
 // =============================================================================
-// Authors: Alessandro Tasora, Chao Peng
+// Authors: Chao Peng, Alessandro Tasora
 // =============================================================================
 //
-// Show how to use the ChAssembly to manage the hierarchy of the entire system
-// containing substructures.
+// Unit test for modal assembly using the "curved beam" model.
 //
+// This benchmark model "curved beam" is originally proposed in:
+// 1. Bathe, K.J., Bolourchi, S.: Large displacement analysis of three-dimensional
+// beam structures. Int. J. Numer. Methods Eng.14(7), 961–986(1979).
+// and then used in the research paper:
+// 2. Sonneville, V., Scapolan, M., Shan, M. et al. Modal reduction procedures
+// for flexible multibody dynamics. Multibody Syst Dyn 51, 377–418 (2021).
+
+// The simulation results from modal redution are compared against the results from
+// corotational formulation in chrono::fea module.
+//
+// Successful execution of this unit test may validate: the material stiffness
+// matrix, the geometric stiffness matrix, and the gravity load
 // =============================================================================
 
 #include "chrono/physics/ChSystemNSC.h"
@@ -29,22 +40,11 @@
     #include "chrono_pardisomkl/ChSolverPardisoMKL.h"
 #endif
 
-#include "chrono_thirdparty/filesystem/path.h"
-
 using namespace chrono;
 using namespace chrono::modal;
 using namespace chrono::fea;
-using namespace filesystem;
 
-// Output directory
-const std::string out_dir = GetChronoOutputPath() + "CURVED_BEAM";
-
-constexpr bool RUN_ORIGIN = true;
-constexpr bool RUN_MODAL = true;
-constexpr bool USE_HERTING = false;
-constexpr bool USE_LINEAR_INERTIAL_TERM = true;
-
-void MakeAndRunDemo_CurvedBeam(bool do_modal_reduction) {
+void RunCurvedBeam(bool do_modal_reduction, bool use_herting, ChVector3d& res) {
     // Create a Chrono::Engine physical system
     ChSystemNSC sys;
 
@@ -54,8 +54,12 @@ void MakeAndRunDemo_CurvedBeam(bool do_modal_reduction) {
     // Parameters
     double radius = 100.0;
     double rotangle = 45.0 * CH_DEG_TO_RAD;
-    int n_parts = 4;
+    int n_parts = 5;
     int n_totalelements = n_parts * 8;
+
+    // damping coefficients
+    double damping_alpha = 0;
+    double damping_beta = 0.002;
 
     double b = 1.0;
     double h = 1.0;
@@ -63,13 +67,11 @@ void MakeAndRunDemo_CurvedBeam(bool do_modal_reduction) {
     double Iyy = 1 / 12.0 * b * h * h * h;
     double Izz = 1 / 12.0 * h * b * b * b;
     double Iyz = 0;
-    //double Ip = Iyy + Izz;
 
     double rho = 7800 * 2.2046226218 / pow(39.37007874, 3);
     double mass_per_unit_length = rho * Area;
     double Jyy = rho * Iyy;
     double Jzz = rho * Izz;
-    //double Jxx = rho * Ip;
     double Jyz = rho * Iyz;
 
     // Parent system: ground
@@ -102,32 +104,34 @@ void MakeAndRunDemo_CurvedBeam(bool do_modal_reduction) {
     Klaw(0, 5) = k16;
     Klaw(5, 0) = k16;
     section->SetStiffnessMatrixFPM(Klaw);
-    section->SetRayleighDampingBeta(0.002);
-    section->SetRayleighDampingAlpha(0.000);
+    section->SetRayleighDampingBeta(damping_beta);
+    section->SetRayleighDampingAlpha(damping_alpha);
 
     auto tapered_section = chrono_types::make_shared<ChBeamSectionTaperedTimoshenkoAdvancedGenericFPM>();
     tapered_section->SetSectionA(section);
     tapered_section->SetSectionB(section);
 
     // A function to make a single modal assembly
-    auto MakeSingleModalAssembly = [&](std::shared_ptr<ChModalAssembly> mmodal_assembly, int mn_ele,
-                                       double mstart_angle, double mend_angle) {
+    auto MakeSingleModalAssembly = [&](std::shared_ptr<ChModalAssembly> mod_assem, int mn_ele, double mstart_angle,
+                                       double mend_angle) {
         // Settings
-        mmodal_assembly->SetUseLinearInertialTerm(USE_LINEAR_INERTIAL_TERM);
-        if (USE_HERTING)
-            mmodal_assembly->SetReductionType(chrono::modal::ChModalAssembly::ReductionType::HERTING);
+        mod_assem->SetInternalNodesUpdate(true);
+        mod_assem->SetUseLinearInertialTerm(true);
+        mod_assem->SetUseStaticCorrection(false);
+        mod_assem->SetModalAutomaticGravity(true);  // with gravity
+        if (use_herting)
+            mod_assem->SetReductionType(chrono::modal::ChModalAssembly::ReductionType::HERTING);
         else
-            mmodal_assembly->SetReductionType(chrono::modal::ChModalAssembly::ReductionType::CRAIG_BAMPTON);
-
-        sys.Add(mmodal_assembly);
+            mod_assem->SetReductionType(chrono::modal::ChModalAssembly::ReductionType::CRAIG_BAMPTON);
+        sys.Add(mod_assem);
 
         // Initialize mesh
         auto mesh_internal = chrono_types::make_shared<ChMesh>();
-        mmodal_assembly->AddInternalMesh(mesh_internal);
+        mod_assem->AddInternalMesh(mesh_internal);
         auto mesh_boundary = chrono_types::make_shared<ChMesh>();
-        mmodal_assembly->AddMesh(mesh_boundary);
-        mesh_internal->SetAutomaticGravity(false);
-        mesh_boundary->SetAutomaticGravity(false);
+        mod_assem->AddMesh(mesh_boundary);
+        mesh_internal->SetAutomaticGravity(true);  // with gravity
+        mesh_boundary->SetAutomaticGravity(true);  // with gravity
 
         // Build nodes
         auto mbeam_nodes = std::vector<std::shared_ptr<ChNodeFEAxyzrot>>(mn_ele + 1);
@@ -154,7 +158,7 @@ void MakeAndRunDemo_CurvedBeam(bool do_modal_reduction) {
 
             ChMatrix33<> mrot;
             mrot.SetFromAxisX(mbeam_nodes.at(i_ele + 1)->Frame().GetPos() - mbeam_nodes.at(i_ele)->Frame().GetPos(),
-                            VECT_Y);
+                              VECT_Y);
             ChQuaternion<> elrot = mrot.GetQuaternion();
             mbeam_elements.at(i_ele)->SetNodeAreferenceRot(elrot.GetConjugate() *
                                                            mbeam_elements.at(i_ele)->GetNodeA()->Frame().GetRot());
@@ -167,7 +171,7 @@ void MakeAndRunDemo_CurvedBeam(bool do_modal_reduction) {
         }
     };
 
-    // Mesh the curved beam with several seperate modal assemblies
+    // Mesh the curved beam with several seperate modal assemblies to deal with the significant geometrical nonliearity
     std::vector<std::shared_ptr<ChModalAssembly>> modal_assembly_list;
     double delta_angle = rotangle / n_parts;
     for (int i_part = 0; i_part < n_parts; i_part++) {
@@ -197,12 +201,13 @@ void MakeAndRunDemo_CurvedBeam(bool do_modal_reduction) {
     sys.AddLink(my_rootlink);
 
     // Retrieve the tip node
-    auto tip_node = std::dynamic_pointer_cast<ChNodeFEAxyzrot>(
-        modal_assembly_list.back()->GetMeshes().front()->GetNodes().back());
+    auto tip_node =
+        std::dynamic_pointer_cast<ChNodeFEAxyzrot>(modal_assembly_list.back()->GetMeshes().front()->GetNodes().back());
+    // Store the initial position of tip node
     ChVector3d tip_pos_x0 = tip_node->GetPos();
 
-    // Gravity is zero
-    sys.SetGravitationalAcceleration(ChVector3d(0, 0, 0));
+    // Set gravity
+    sys.SetGravitationalAcceleration(ChVector3d(0, 0, -9.81));  // -Z axis
 
     // Set linear solver
 #ifdef CHRONO_PARDISO_MKL
@@ -218,77 +223,50 @@ void MakeAndRunDemo_CurvedBeam(bool do_modal_reduction) {
 
     // Do modal reduction for all modal assemblies
     if (do_modal_reduction) {
-        // ChGeneralizedEigenvalueSolverLanczos eigen_solver;
         ChGeneralizedEigenvalueSolverKrylovSchur eigen_solver;
 
         auto modes_settings = ChModalSolveUndamped(12, 1e-5, 500, 1e-10, false, eigen_solver);
+        auto damping_beam = ChModalDampingRayleigh(damping_alpha, damping_beta);
 
         for (int i_part = 0; i_part < n_parts; i_part++) {
-            auto damping_beam = ChModalDampingReductionR(*modal_assembly_list.at(i_part));
-            // modal_assembly_list.at(i_part)->verbose = true;
             modal_assembly_list.at(i_part)->DoModalReduction(modes_settings, damping_beam);
-            modal_assembly_list.at(i_part)->WriteSubassemblyMatrices(
-                true, true, true, true, (out_dir + "/modal_assembly_" + std::to_string(i_part)).c_str());
         }
     }
 
     // Apply the external load
     double Pz = 600;
     tip_node->SetForce(ChVector3d(0, 0, Pz));
-    std::cout << "The applied force is: " << Pz << " N\n";
 
     // Static analysis
     sys.DoStaticNonlinear(100);
 
-    // Postprocess: print the tip displacement
-    ChVector3d tip_displ = tip_node->GetPos() - tip_pos_x0;
-    std::cout << "Tip displacement:\t" << tip_displ.x() << "\t" << tip_displ.y() << "\t" << tip_displ.z() << "\n";
+    // Print the tip displacement
+    res = tip_node->GetPos() - tip_pos_x0;
+    std::cout << "Tip displacement is:\t" << res.x() << "\t" << res.y() << "\t" << res.z() << "\n";
 }
 
 int main(int argc, char* argv[]) {
     std::cout << "Copyright (c) 2021 projectchrono.org\nChrono version: " << CHRONO_VERSION << "\n\n";
 
-    // Directory for output data
-    if (!filesystem::create_directory(filesystem::path(out_dir))) {
-        std::cout << "Error creating directory " << out_dir << std::endl;
-        return 1;
-    }
+    double tol = 1.0;
 
-    if (create_directory(path(out_dir))) {
+    std::cout << "1. Run corotational beam model not reduced:\n";
+    // ChModalAssembly should be able to run successfully in the full state
+    ChVector3d res_corot;
+    RunCurvedBeam(false, false, res_corot);
 
-        ChTimer m_timer_computation;
-        double time_corot = 0;
-        double time_modal = 0;
+    std::cout << "\n\n2. Run modal reduction model with Craig Bampton method:\n";
+    ChVector3d res_modal_CraigBampton;
+    RunCurvedBeam(true, false, res_modal_CraigBampton);
+    bool check_CraigBampton = (res_modal_CraigBampton - res_corot).eigen().norm() < tol;
 
-        if (RUN_ORIGIN) {
-            std::cout << "1. Run corotational beam model:\n";
+    std::cout << "\n\n3. Run modal reduction model with Herting method:\n";
+    ChVector3d res_modal_Herting;
+    RunCurvedBeam(true, true, res_modal_Herting);
+    bool check_Herting = (res_modal_Herting - res_corot).eigen().norm() < tol;
 
-            m_timer_computation.start();
-            MakeAndRunDemo_CurvedBeam(false);
-            m_timer_computation.stop();
+    bool is_passed = check_CraigBampton && check_Herting;
+    std::cout << "\nUNIT TEST of modal assembly with curved beam: " << (is_passed ? "PASSED" : "FAILED") << std::endl;
 
-            time_corot = m_timer_computation.GetTimeSeconds();
-            std::cout << "Computation time of corotational beam model: t_corot = \t" << time_corot << " seconds\n";
-            m_timer_computation.reset();
-        }
-
-        if (RUN_MODAL) {
-            std::cout << "\n\n2. Run modal reduction model:\n";
-
-            m_timer_computation.start();
-            MakeAndRunDemo_CurvedBeam(true);
-            m_timer_computation.stop();
-
-            time_modal = m_timer_computation.GetTimeSeconds();
-            std::cout << "Computation time of modal reduction model: t_modal = \t" << time_modal << " seconds\n";
-            m_timer_computation.reset();
-        }
-
-        if (time_corot && time_modal)
-            std::cout << "\n\n3. Ratio of computation time: t_modal / t_corot = \t" << time_modal / time_corot << "\n";
-    } else {
-        std::cout << "  ...Error creating subdirectories\n";
-    }
-
-    return 0;
+    return !is_passed;
 }

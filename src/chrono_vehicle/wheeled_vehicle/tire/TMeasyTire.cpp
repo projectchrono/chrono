@@ -36,7 +36,7 @@ TMeasyTire::TMeasyTire(const std::string& filename) : ChTMeasyTire(""), m_has_me
 
     Create(d);
 
-    std::cout << "Loaded JSONL " << filename << std::endl;
+    std::cout << "Loaded JSON " << filename << std::endl;
 }
 
 TMeasyTire::TMeasyTire(const rapidjson::Document& d) : ChTMeasyTire(""), m_has_mesh(false) {
@@ -187,6 +187,7 @@ void TMeasyTire::Create(const rapidjson::Document& d) {
     // These must be set here to ensure they are not overwritten.
     if (d.HasMember("Coefficient of Friction"))
         m_par.mu_0 = d["Coefficient of Friction"].GetDouble();
+
     if (d.HasMember("Rolling Resistance Coefficient"))
         m_rolling_resistance = d["Rolling Resistance Coefficient"].GetDouble();
 

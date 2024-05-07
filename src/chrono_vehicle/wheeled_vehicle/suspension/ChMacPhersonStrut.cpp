@@ -46,31 +46,35 @@ const std::string ChMacPhersonStrut::m_pointNames[] = {"SPINDLE ", "UPRIGHT ", "
 ChMacPhersonStrut::ChMacPhersonStrut(const std::string& name) : ChSuspension(name) {}
 
 ChMacPhersonStrut::~ChMacPhersonStrut() {
+    if (!m_initialized)
+        return;
+
     auto sys = m_upright[0]->GetSystem();
-    if (sys) {
-        for (int i = 0; i < 2; i++) {
-            sys->Remove(m_upright[i]);
-            sys->Remove(m_strut[i]);
-            sys->Remove(m_LCA[i]);
+    if (!sys)
+        return;
 
-            sys->Remove(m_cylindricalStrut[i]);
-            sys->Remove(m_universalStrut[i]);
+    for (int i = 0; i < 2; i++) {
+        sys->Remove(m_upright[i]);
+        sys->Remove(m_strut[i]);
+        sys->Remove(m_LCA[i]);
 
-            ChChassis::RemoveJoint(m_revoluteLCA[i]);
-            ChChassis::RemoveJoint(m_sphericalLCA[i]);
+        sys->Remove(m_cylindricalStrut[i]);
+        sys->Remove(m_universalStrut[i]);
 
-            if (m_tierod[i]) {
-                sys->Remove(m_tierod[i]);
-                ChChassis::RemoveJoint(m_sphericalTierod[i]);
-                ChChassis::RemoveJoint(m_universalTierod[i]);
-            }
-            if (m_distTierod[i]) {
-                sys->Remove(m_distTierod[i]);
-            }
+        ChChassis::RemoveJoint(m_revoluteLCA[i]);
+        ChChassis::RemoveJoint(m_sphericalLCA[i]);
 
-            sys->Remove(m_shock[i]);
-            sys->Remove(m_spring[i]);
+        if (m_tierod[i]) {
+            sys->Remove(m_tierod[i]);
+            ChChassis::RemoveJoint(m_sphericalTierod[i]);
+            ChChassis::RemoveJoint(m_universalTierod[i]);
         }
+        if (m_distTierod[i]) {
+            sys->Remove(m_distTierod[i]);
+        }
+
+        sys->Remove(m_shock[i]);
+        sys->Remove(m_spring[i]);
     }
 }
 

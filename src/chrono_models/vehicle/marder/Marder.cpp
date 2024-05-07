@@ -43,7 +43,7 @@ Marder::Marder()
       m_vehicle(nullptr),
       m_contactMethod(ChContactMethod::NSC),
       m_chassisCollisionType(CollisionType::NONE),
-      m_collsys_type(ChCollisionSystem::Type::BULLET),
+      m_collsysType(ChCollisionSystem::Type::BULLET),
       m_wheel_cyl(true),
       m_idler_cyl(true),
       m_roller_cyl(true),
@@ -63,7 +63,7 @@ Marder::Marder(ChSystem* system)
       m_vehicle(nullptr),
       m_contactMethod(ChContactMethod::NSC),
       m_chassisCollisionType(CollisionType::NONE),
-      m_collsys_type(ChCollisionSystem::Type::BULLET),
+      m_collsysType(ChCollisionSystem::Type::BULLET),
       m_wheel_cyl(true),
       m_idler_cyl(true),
       m_roller_cyl(true),
@@ -100,9 +100,8 @@ void Marder::Initialize() {
     } else {
         m_vehicle = new Marder_Vehicle(m_fixed, m_shoe_type, m_driveline_type, m_brake_type, m_contactMethod,
                                        m_chassisCollisionType);
-        m_vehicle->SetCollisionSystemType(m_collsys_type);
     }
-
+    m_vehicle->SetCollisionSystemType(m_collsysType);
     m_vehicle->CreateTrack(m_create_track);
     m_vehicle->GetTrackAssembly(LEFT)->SetWheelCollisionType(m_wheel_cyl, m_idler_cyl, m_roller_cyl);
     m_vehicle->GetTrackAssembly(RIGHT)->SetWheelCollisionType(m_wheel_cyl, m_idler_cyl, m_roller_cyl);

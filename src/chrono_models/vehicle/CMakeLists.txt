@@ -16,6 +16,36 @@ set(CVM_COMMON_FILES
 )
 source_group("" FILES ${CVM_COMMON_FILES})
 
+set(CVM_JEEP_FILES
+        jeep/Cherokee_Chassis.cpp
+        jeep/Cherokee_Chassis.h
+        jeep/Cherokee_Wheel.cpp
+        jeep/Cherokee_Wheel.h
+        jeep/Cherokee_TMeasyTire.cpp
+        jeep/Cherokee_TMeasyTire.h
+        jeep/Cherokee_Driveline4WD.cpp
+        jeep/Cherokee_Driveline4WD.h
+        jeep/Cherokee_AutomaticTransmissionStafts.cpp
+        jeep/Cherokee_AutomaticTransmissionStafts.h
+        jeep/Cherokee_BrakeShafts.cpp
+        jeep/Cherokee_BrakeShafts.h
+        jeep/Cherokee_EngineShafts.cpp
+        jeep/Cherokee_EngineShafts.h
+        jeep/Cherokee_SolidAxleRear.cpp
+        jeep/Cherokee_SolidAxleRear.h
+        jeep/Cherokee_SolidAxleFront.cpp
+        jeep/Cherokee_SolidAxleFront.h
+        jeep/Cherokee_Steering.cpp
+        jeep/Cherokee_Steering.h
+        jeep/Cherokee_Vehicle.cpp
+        jeep/Cherokee_Vehicle.h
+        jeep/Cherokee.cpp
+        jeep/Cherokee.h
+        jeep/Cherokee_RigidTire.cpp
+        jeep/Cherokee_RigidTire.h
+)
+source_group("jeep" FILES ${CVM_JEEP_FILES})
+
 set(CVM_BMW_FILES
     bmw/BMW_E90_AutomaticTransmissionSimpleMap.cpp
     bmw/BMW_E90_AutomaticTransmissionSimpleMap.h
@@ -965,6 +995,7 @@ set(LIBRARIES ChronoEngine ChronoEngine_vehicle)
 
 add_library(ChronoModels_vehicle
     ${CVM_COMMON_FILES}
+    ${CVM_JEEP_FILES}     
     ${CVM_BMW_FILES}     
     ${CVM_GCLASS_FILES}     
     ${CVM_HMMWV_FILES}

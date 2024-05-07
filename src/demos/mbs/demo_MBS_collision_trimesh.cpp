@@ -30,15 +30,53 @@
 using namespace chrono;
 using namespace chrono::irrlicht;
 
+// -----------------------------------------------------------------------------
+
+ChCollisionSystem::Type coll_sys_type = ChCollisionSystem::Type::BULLET;
+bool draw_coll_shapes = false;
+
+// -----------------------------------------------------------------------------
+
+// Drawer for collision shapes
+class DebugDrawer : public ChCollisionSystem::VisualizationCallback {
+  public:
+    explicit DebugDrawer(ChVisualSystemIrrlicht* vis) : m_vis(vis) {}
+    ~DebugDrawer() {}
+
+    virtual void DrawLine(const ChVector3d& from, const ChVector3d& to, const ChColor& color) override {
+        m_vis->GetVideoDriver()->draw3DLine(irr::core::vector3dfCH(from), irr::core::vector3dfCH(to),
+                                            irr::video::SColor(255, 55, 55, 255));
+    }
+
+    virtual double GetNormalScale() const override { return 1.0; }
+
+    void Draw(int flags, bool use_zbuffer = true) {
+        m_vis->GetVideoDriver()->setTransform(irr::video::ETS_WORLD, irr::core::matrix4());
+        irr::video::SMaterial mattransp;
+        mattransp.ZBuffer = use_zbuffer;
+        mattransp.Lighting = false;
+        m_vis->GetVideoDriver()->setMaterial(mattransp);
+
+        m_vis->GetSystem(0).GetCollisionSystem()->Visualize(flags);
+    }
+
+  private:
+    ChVisualSystemIrrlicht* m_vis;
+};
+
+// -----------------------------------------------------------------------------
+
 int main(int argc, char* argv[]) {
     std::cout << "Copyright (c) 2017 projectchrono.org\nChrono version: " << CHRONO_VERSION << std::endl;
+
+    ChRandom::SetSeed(0);
 
     // Create a Chrono physical system
     ChSystemNSC sys;
 
     ChCollisionModel::SetDefaultSuggestedEnvelope(0.0025);
     ChCollisionModel::SetDefaultSuggestedMargin(0.0025);
-    sys.SetCollisionSystemType(ChCollisionSystem::Type::BULLET);
+    sys.SetCollisionSystemType(coll_sys_type);
 
     // - Create a floor
 
@@ -46,7 +84,7 @@ int main(int argc, char* argv[]) {
     auto floor = chrono_types::make_shared<ChBodyEasyBox>(5, 2, 5, 1000, true, true, floor_mat);
     floor->SetPos(ChVector3d(0, -1, 0));
     floor->SetFixed(true);
-    floor->GetVisualShape(0)->SetTexture(GetChronoDataFile("textures/concrete.jpg"));
+    floor->GetVisualShape(0)->SetTexture(GetChronoDataFile("textures/pinkwhite.png"), 50, 50);
     sys.Add(floor);
 
     // - Create a falling item with triangle mesh shape
@@ -96,7 +134,7 @@ int main(int argc, char* argv[]) {
     auto vis_shape = chrono_types::make_shared<ChVisualShapeTriangleMesh>();
     vis_shape->SetMesh(mesh);
     vis_shape->SetMutable(false);
-    vis_shape->SetColor(ChColor(1.0f, 0.5f, 0.5f));
+    vis_shape->SetColor(ChColor(0.25f, 0.5f, 0.25f));
     vis_shape->SetBackfaceCull(true);
     auto vis_model = chrono_types::make_shared<ChVisualModel>();
     vis_model->AddShape(vis_shape);
@@ -149,17 +187,24 @@ int main(int argc, char* argv[]) {
     vis->AddLogo();
     vis->AddSkyBox();
     vis->AddCamera(ChVector3d(0, 1, -1));
-    vis->AddTypicalLights();
-    vis->AddLightWithShadow(ChVector3d(1.5, 5.5, -2.5), ChVector3d(0, 0, 0), 3, 2.2, 7.2, 40, 512,
-                            ChColor(0.8f, 0.8f, 1.0f));
+    vis->AddLight(ChVector3d(30, 80, +30), 80, ChColor(0.7f, 0.7f, 0.7f));
+    vis->AddLight(ChVector3d(30, 80, -30), 80, ChColor(0.7f, 0.7f, 0.7f));
     vis->EnableShadows();
 
-    ////application.SetContactsDrawMode(ContactsDrawMode::CONTACT_DISTANCES);
+    ////vis->EnableContactDrawing(ContactsDrawMode::CONTACT_NORMALS);
+
+    // Set the debug drawer for collision visualization
+    auto drawer = chrono_types::make_shared<DebugDrawer>(vis.get());
+    sys.GetCollisionSystem()->RegisterVisualizationCallback(drawer);
+    int mode = ChCollisionSystem::VIS_Shapes;
+    bool use_zbuffer = true;
 
     // Simulation loop
     while (vis->Run()) {
         vis->BeginScene(true, true, ChColor(0.55f, 0.63f, 0.75f));
         vis->Render();
+        if (draw_coll_shapes)
+            drawer->Draw(mode, use_zbuffer);
         vis->EndScene();
         sys.DoStepDynamics(0.005);
     }

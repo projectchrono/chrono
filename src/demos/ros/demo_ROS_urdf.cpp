@@ -195,11 +195,11 @@ int main(int argc, char* argv[]) {
 
     // Create a TF handler that will publish the transform of the robot
     auto tf_handler = chrono_types::make_shared<ChROSTFHandler>(100);
-    tf_handler->AddTransform(floor, torso);
-    tf_handler->AddTransform(torso, robot.GetChBody("limb1_link1"));
-    tf_handler->AddTransform(torso, robot.GetChBody("limb2_link1"));
-    tf_handler->AddTransform(torso, robot.GetChBody("limb3_link1"));
-    tf_handler->AddTransform(torso, robot.GetChBody("limb4_link1"));
+    tf_handler->AddTransform(floor, floor->GetName(), torso, torso->GetName());
+    tf_handler->AddTransform(torso, torso->GetName(), robot.GetChBody("limb1_link1"), "limb1_link1");
+    tf_handler->AddTransform(torso, torso->GetName(), robot.GetChBody("limb2_link1"), "limb2_link1");
+    tf_handler->AddTransform(torso, torso->GetName(), robot.GetChBody("limb3_link1"), "limb3_link1");
+    tf_handler->AddTransform(torso, torso->GetName(), robot.GetChBody("limb4_link1"), "limb4_link1");
     tf_handler->AddURDF(robot);
     ros_manager->RegisterHandler(tf_handler);
 

@@ -1,7 +1,7 @@
 // =============================================================================
 // PROJECT CHRONO - http://projectchrono.org
 //
-// Copyright (c) 2014 projectchrono.org
+// Copyright (c) 2024 projectchrono.org
 // All rights reserved.
 //
 // Use of this source code is governed by a BSD-style license that can be found
@@ -318,8 +318,6 @@ int main(int argc, char* argv[]) {
     vehicle_model->Create(&sys, init_csys);
     auto& vehicle = vehicle_model->GetVehicle();
 
-    vehicle.GetSystem()->SetCollisionSystemType(ChCollisionSystem::Type::BULLET);
-
     // --------------------
     // Create driver system
     // --------------------
@@ -356,6 +354,7 @@ int main(int argc, char* argv[]) {
     vis->SetLightDirection(1.5 * CH_PI_2, CH_PI_4);
     vis->SetShadows(true);
     vis->AttachVehicle(&vehicle);
+    vis->AttachTerrain(&terrain);
 
     auto sentinel = chrono_types::make_shared<ChVisualShapeSphere>(0.1);
     auto target = chrono_types::make_shared<ChVisualShapeSphere>(0.1);

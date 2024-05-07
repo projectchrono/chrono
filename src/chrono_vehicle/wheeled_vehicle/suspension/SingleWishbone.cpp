@@ -36,7 +36,7 @@ SingleWishbone::SingleWishbone(const std::string& filename)
 
     Create(d);
 
-    std::cout << "Loaded JSONL " << filename << std::endl;
+    std::cout << "Loaded JSON " << filename << std::endl;
 }
 
 SingleWishbone::SingleWishbone(const rapidjson::Document& d)
@@ -82,8 +82,8 @@ void SingleWishbone::Create(const rapidjson::Document& d) {
     m_uprightRadius = d["Upright"]["Radius"].GetDouble();
 
     // Read CA data
-    assert(d.HasMember("Upper Control Arm"));
-    assert(d["Upper Control Arm"].IsObject());
+    assert(d.HasMember("Control Arm"));
+    assert(d["Control Arm"].IsObject());
 
     m_CAMass = d["Control Arm"]["Mass"].GetDouble();
     m_points[CA_CM] = ReadVectorJSON(d["Control Arm"]["COM"]);

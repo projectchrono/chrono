@@ -555,15 +555,5 @@ bool ChTMsimpleTire::CheckParameters() {
     return true;
 }
 
-// set tire reference coefficient of friction
-void ChTMsimpleTire::SetFrictionCoefficient(double coeff) {
-    m_par.mu_0 = coeff;
-}
-
-// Set Rolling Resistance Coefficients
-void ChTMsimpleTire::SetRollingResistanceCoefficient(double r_coef) {
-    m_rolling_resistance = r_coef;
-}
-
 }  // end namespace vehicle
 }  // end namespace chrono

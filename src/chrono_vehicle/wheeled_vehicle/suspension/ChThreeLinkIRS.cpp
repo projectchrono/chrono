@@ -48,20 +48,24 @@ const std::string ChThreeLinkIRS::m_pointNames[] = {"SPINDLE ", "TA_CM",    "TA_
 ChThreeLinkIRS::ChThreeLinkIRS(const std::string& name) : ChSuspension(name) {}
 
 ChThreeLinkIRS::~ChThreeLinkIRS() {
+    if (!m_initialized)
+        return;
+
     auto sys = m_arm[0]->GetSystem();
-    if (sys) {
-        for (int i = 0; i < 2; i++) {
-            sys->Remove(m_arm[i]);
-            sys->Remove(m_upper[i]);
-            sys->Remove(m_lower[i]);
-            ChChassis::RemoveJoint(m_sphericalArm[i]);
-            ChChassis::RemoveJoint(m_sphericalUpper[i]);
-            ChChassis::RemoveJoint(m_sphericalLower[i]);
-            ChChassis::RemoveJoint(m_universalUpper[i]);
-            ChChassis::RemoveJoint(m_universalLower[i]);
-            sys->Remove(m_shock[i]);
-            sys->Remove(m_spring[i]);
-        }
+    if (!sys)
+        return;
+
+    for (int i = 0; i < 2; i++) {
+        sys->Remove(m_arm[i]);
+        sys->Remove(m_upper[i]);
+        sys->Remove(m_lower[i]);
+        ChChassis::RemoveJoint(m_sphericalArm[i]);
+        ChChassis::RemoveJoint(m_sphericalUpper[i]);
+        ChChassis::RemoveJoint(m_sphericalLower[i]);
+        ChChassis::RemoveJoint(m_universalUpper[i]);
+        ChChassis::RemoveJoint(m_universalLower[i]);
+        sys->Remove(m_shock[i]);
+        sys->Remove(m_spring[i]);
     }
 }
 

@@ -36,14 +36,18 @@ ChShaftsDriveline2WD::ChShaftsDriveline2WD(const std::string& name)
     : ChDrivelineWV(name), m_dir_motor_block(ChVector3d(1, 0, 0)), m_dir_axle(ChVector3d(0, 1, 0)) {}
 
 ChShaftsDriveline2WD::~ChShaftsDriveline2WD() {
+    if (!m_initialized)
+        return;
+
     auto sys = m_differential->GetSystem();
-    if (sys) {
-        sys->Remove(m_driveshaft);
-        sys->Remove(m_conicalgear);
-        sys->Remove(m_differentialbox);
-        sys->Remove(m_differential);
-        sys->Remove(m_clutch);
-    }
+    if (!sys)
+        return;
+
+    sys->Remove(m_driveshaft);
+    sys->Remove(m_conicalgear);
+    sys->Remove(m_differentialbox);
+    sys->Remove(m_differential);
+    sys->Remove(m_clutch);
 }
 
 // -----------------------------------------------------------------------------

@@ -34,7 +34,7 @@ TrackBrakeSimple::TrackBrakeSimple(const std::string& filename) : ChTrackBrakeSi
 
     Create(d);
 
-    std::cout << "Loaded JSONL " << filename << std::endl;
+    std::cout << "Loaded JSON " << filename << std::endl;
 }
 
 TrackBrakeSimple::TrackBrakeSimple(const rapidjson::Document& d) : ChTrackBrakeSimple("") {

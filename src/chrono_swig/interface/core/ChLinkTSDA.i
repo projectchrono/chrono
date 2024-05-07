@@ -1,3 +1,12 @@
+#ifdef SWIGCSHARP  // --------------------------------------------------------------------- CSHARP
+
+%csmethodmodifiers chrono::ChLinkTSDA::GetFrame1Rel "public override"
+%csmethodmodifiers chrono::ChLinkTSDA::GetFrame2Rel "public override"
+
+#endif             // --------------------------------------------------------------------- CSHARP
+
+
+
 %{
 #include "chrono/physics/ChLinkTSDA.h"
 

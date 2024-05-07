@@ -29,11 +29,11 @@ namespace vehicle {
 ChBalancer::ChBalancer(const std::string& name) : ChSubchassis(name) {}
 
 ChBalancer::~ChBalancer() {
-    auto sys = m_beam[0]->GetSystem();
-    if (sys) {
-        ChChassis::RemoveJoint(m_balancer_joint[0]);
-        ChChassis::RemoveJoint(m_balancer_joint[1]);
-    }
+    if (!m_initialized)
+        return;
+
+    ChChassis::RemoveJoint(m_balancer_joint[0]);
+    ChChassis::RemoveJoint(m_balancer_joint[1]);
 }
 
 // -----------------------------------------------------------------------------

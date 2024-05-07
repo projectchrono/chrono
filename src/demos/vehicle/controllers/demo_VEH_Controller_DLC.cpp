@@ -63,6 +63,8 @@ using namespace chrono::irrlicht;
 using namespace chrono::vsg3d;
 #endif
 
+#include "chrono_thirdparty/filesystem/path.h"
+
 using namespace chrono;
 using namespace chrono::vehicle;
 using namespace chrono::vehicle::hmmwv;
@@ -412,10 +414,17 @@ int main(int argc, char* argv[]) {
     }
 
 #ifdef CHRONO_POSTPROCESS
+    const std::string out_dir = GetChronoOutputPath() + "DEMO_CONTROLLER_DLC";
+    if (!filesystem::create_directory(filesystem::path(out_dir))) {
+        std::cout << "Error creating directory " << out_dir << std::endl;
+        return 1;
+    }
+
+
     std::string test_title = std::string(dlc_mode == ISO3888_1 ? "1" : "2") +
                              std::string(left_turn ? " left turn test" : " right turn test");
 
-    postprocess::ChGnuPlot gplot;
+    postprocess::ChGnuPlot gplot(out_dir + "/speed.gpl");
     gplot.SetGrid();
     std::string speed_title = "Speed at ISO3888-" + test_title;
     gplot.SetTitle(speed_title);
@@ -423,7 +432,7 @@ int main(int argc, char* argv[]) {
     gplot.SetLabelY("speed (m/s)");
     gplot.Plot(speed_recorder, "", " with lines lt -1 lc rgb'#00AAEE' ");
 
-    postprocess::ChGnuPlot gplot_acc("_tmp2_gnuplot.gpl");
+    postprocess::ChGnuPlot gplot_acc(out_dir + "/lateral_acceleration.gpl");
     gplot_acc.SetGrid();
     std::string accel_title = "Lateral Acceleration at ISO3888-" + test_title;
     gplot_acc.SetTitle(accel_title);
@@ -431,7 +440,7 @@ int main(int argc, char* argv[]) {
     gplot_acc.SetLabelY("lateral acceleration (m/s^2)");
     gplot_acc.Plot(accel_recorder, "", " with lines lt -1 lc rgb'#00AAEE' ");
 
-    postprocess::ChGnuPlot gplot_steer("_tmp3_gnuplot.gpl");
+    postprocess::ChGnuPlot gplot_steer(out_dir + "/steering_angle.gpl");
     gplot_steer.SetGrid();
     std::string steer_title = "Steering Wheel Angle at ISO3888-" + test_title;
     gplot_steer.SetTitle(steer_title);
@@ -439,7 +448,7 @@ int main(int argc, char* argv[]) {
     gplot_steer.SetLabelY("steering wheel angle (degrees)");
     gplot_steer.Plot(steer_recorder, "", " with lines lt -1 lc rgb'#00AAEE' ");
 
-    postprocess::ChGnuPlot gplot_angspeed("_tmp4_gnuplot.gpl");
+    postprocess::ChGnuPlot gplot_angspeed(out_dir + "/steering_angular_vel.gpl");
     gplot_angspeed.SetGrid();
     std::string angspeed_title = "Steering Wheel Angular Speed at ISO3888-" + test_title;
     gplot_angspeed.SetTitle(angspeed_title);

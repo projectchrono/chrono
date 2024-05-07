@@ -134,12 +134,15 @@ FmuComponent::FmuComponent(fmi2String instanceName,
                    FmuVariable::CausalityType::input, FmuVariable::VariabilityType::discrete);               //
 
     // Set CONTINOUS OUTPUTS for this FMU
-    AddFmuVariable(&steering, "steering", FmuVariable::Type::Real, "1", "steering command",        //
-                   FmuVariable::CausalityType::output, FmuVariable::VariabilityType::continuous);  //
-    AddFmuVariable(&throttle, "throttle", FmuVariable::Type::Real, "1", "throttle command",        //
-                   FmuVariable::CausalityType::output, FmuVariable::VariabilityType::continuous);  //
-    AddFmuVariable(&braking, "braking", FmuVariable::Type::Real, "1", "braking command",           //
-                   FmuVariable::CausalityType::output, FmuVariable::VariabilityType::continuous);  //
+    AddFmuVariable(&steering, "steering", FmuVariable::Type::Real, "1", "steering command",       //
+                   FmuVariable::CausalityType::output, FmuVariable::VariabilityType::continuous,  //
+                   FmuVariable::InitialType::exact);                                              //
+    AddFmuVariable(&throttle, "throttle", FmuVariable::Type::Real, "1", "throttle command",       //
+                   FmuVariable::CausalityType::output, FmuVariable::VariabilityType::continuous,  //
+                   FmuVariable::InitialType::exact);                                              //
+    AddFmuVariable(&braking, "braking", FmuVariable::Type::Real, "1", "braking command",          //
+                   FmuVariable::CausalityType::output, FmuVariable::VariabilityType::continuous,  //
+                   FmuVariable::InitialType::exact);                                              //
 
     // Specify functions to process input variables (at beginning of step)
     m_preStepCallbacks.push_back([this]() { this->SynchronizeDriver(this->GetTime()); });

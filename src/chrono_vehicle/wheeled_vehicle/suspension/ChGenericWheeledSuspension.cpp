@@ -42,25 +42,29 @@ namespace vehicle {
 ChGenericWheeledSuspension::ChGenericWheeledSuspension(const std::string& name) : ChSuspension(name) {}
 
 ChGenericWheeledSuspension::~ChGenericWheeledSuspension() {
-    auto sys = m_spindle[0]->GetSystem();
-    if (sys) {
-        for (auto& item : m_bodies)
-            sys->Remove(item.second.body);
-        for (auto& item : m_joints)
-            ChChassis::RemoveJoint(item.second.joint);
-        for (auto& item : m_dists)
-            sys->Remove(item.second.dist);
-        for (auto& item : m_tsdas)
-            sys->Remove(item.second.tsda);
-        for (auto& item : m_rsdas)
-            sys->Remove(item.second.rsda);
+    if (!m_initialized)
+        return;
 
-        m_bodies.clear();
-        m_joints.clear();
-        m_dists.clear();
-        m_tsdas.clear();
-        m_rsdas.clear();
-    }
+    auto sys = m_spindle[0]->GetSystem();
+    if (!sys)
+        return;
+
+    for (auto& item : m_bodies)
+        sys->Remove(item.second.body);
+    for (auto& item : m_joints)
+        ChChassis::RemoveJoint(item.second.joint);
+    for (auto& item : m_dists)
+        sys->Remove(item.second.dist);
+    for (auto& item : m_tsdas)
+        sys->Remove(item.second.tsda);
+    for (auto& item : m_rsdas)
+        sys->Remove(item.second.rsda);
+
+    m_bodies.clear();
+    m_joints.clear();
+    m_dists.clear();
+    m_tsdas.clear();
+    m_rsdas.clear();
 }
 
 // -----------------------------------------------------------------------------

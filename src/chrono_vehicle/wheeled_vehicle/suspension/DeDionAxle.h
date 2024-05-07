@@ -53,14 +53,24 @@ class CH_VEHICLE_API DeDionAxle : public ChDeDionAxle {
     virtual double getAxleTubeMass() const override { return m_axleTubeMass; }
     /// Return the mass of the spindle body.
     virtual double getSpindleMass() const override { return m_spindleMass; }
+    /// Return the mass of the Watt center link body.
+    virtual double getWattCenterMass() const override { return m_wattCenterMass; };
+    /// Return the mass of the Watt side link bodies (same value for both sides).
+    virtual double getWattSideMass() const override { return m_wattSideMass; };
 
     /// Return the radius of the axle tube body (visualization only).
     virtual double getAxleTubeRadius() const override { return m_axleTubeRadius; }
+    /// Return the radius of the Watt linkage bodies (visualization only, same value for center, left, right).
+    virtual double getWattLinkRadius() const override { return m_wattLinkRadius; };
 
     /// Return the moments of inertia of the axle tube body.
     virtual const ChVector3d& getAxleTubeInertia() const override { return m_axleTubeInertia; }
     /// Return the moments of inertia of the spindle body.
     virtual const ChVector3d& getSpindleInertia() const override { return m_spindleInertia; }
+    /// Return the moments of inertia of the Watt center body.
+    virtual const ChVector3d& getWattCenterInertia() const override { return m_wattCenterInertia; }
+    /// Return the moments of inertia of the Watt side bodies (same value for both sides).
+    virtual const ChVector3d& getWattSideInertia() const override { return m_wattSideInertia; }
 
     /// Return the inertia of the axle shaft.
     virtual double getAxleInertia() const override { return m_axleInertia; }
@@ -94,10 +104,13 @@ class CH_VEHICLE_API DeDionAxle : public ChDeDionAxle {
 
     double m_spindleMass;
     double m_axleTubeMass;
+    double m_wattCenterMass;
+    double m_wattSideMass;
 
     double m_spindleRadius;
     double m_spindleWidth;
     double m_axleTubeRadius;
+    double m_wattLinkRadius;
 
     double m_springRestLength;
     double m_shockRestLength;
@@ -106,6 +119,10 @@ class CH_VEHICLE_API DeDionAxle : public ChDeDionAxle {
     ChVector3d m_spindleInertia;
     ChVector3d m_axleTubeInertia;
     ChVector3d m_axleTubeCOM;
+    ChVector3d m_wattCenterInertia;
+    ChVector3d m_wattSideInertia;
+
+    bool m_use_left_knuckle;
 };
 
 /// @} vehicle_wheeled_suspension

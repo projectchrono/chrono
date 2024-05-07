@@ -145,10 +145,10 @@ class CH_VEHICLE_API ChTMeasyTire : public ChForceElementTire {
     void SetVerticalStiffness(std::vector<double>& defl, std::vector<double>& frc);
 
     /// Set the tire reference coefficient of friction.
-    void SetFrictionCoefficient(double coeff);
+    void SetFrictionCoefficient(double coef) { m_par.mu_0 = coef; }
 
     /// Set rolling resistance coefficients (default: 0.01).
-    void SetRollingResistanceCoefficient(double rr_coeff);
+    void SetRollingResistanceCoefficient(double coef) { m_rolling_resistance = coef; }
 
     /// Generate basic tire plots.
     /// This function creates a Gnuplot script file with the specified name.

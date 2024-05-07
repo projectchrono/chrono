@@ -1,0 +1,47 @@
+{
+  "Name": "Gator bodies",
+  "Type": "Vehicle",
+  "Template": "WheeledVehicle",
+
+  "Chassis": {
+    "Input File": "gator/json/Gator_Chassis.json"
+  },
+
+  "Axles": [
+    {
+      "Suspension Input File": "gator/json/Gator_SingleWishboneFront.json",
+      "Suspension Location": [ 0.97, 0, 0 ],
+      "Steering Index": 0,
+      "Left Wheel Input File": "gator/json/Gator_Wheel.json",
+      "Right Wheel Input File": "gator/json/Gator_Wheel.json",
+      "Left Brake Input File": "gator/json/Gator_BrakeShafts.json",
+      "Right Brake Input File": "gator/json/Gator_BrakeShafts.json"
+    },
+
+    {
+      "Suspension Input File": "gator/json/Gator_RigidSuspensionRear.json",
+      "Suspension Location": [ -0.97, 0, 0 ],
+      "Left Wheel Input File": "gator/json/Gator_Wheel.json",
+      "Right Wheel Input File": "gator/json/Gator_Wheel.json",
+      "Left Brake Input File": "gator/json/Gator_BrakeShafts.json",
+      "Right Brake Input File": "gator/json/Gator_BrakeShafts.json"
+    }
+  ],
+
+  "Steering Subsystems": [
+    {
+      "Input File": "gator/json/Gator_RackPinion.json",
+      "Location": [ 0.92, 0, 0.08 ],
+      "Orientation": [ 1, 0, 0, 0 ]
+    }
+  ],
+
+  "Wheelbase": 2.776,
+  "Minimum Turning Radius": 7.6,
+  "Maximum Steering Angle (deg)": 25,
+
+  "Driveline": {
+    "Input File": "gator/json/Gator_Driveline2WD.json",
+    "Suspension Indexes": [ 1 ]
+  }
+}

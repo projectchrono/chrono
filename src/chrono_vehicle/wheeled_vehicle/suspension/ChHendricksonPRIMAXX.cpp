@@ -48,34 +48,38 @@ const std::string ChHendricksonPRIMAXX::m_pointNames[] = {
 ChHendricksonPRIMAXX::ChHendricksonPRIMAXX(const std::string& name) : ChSuspension(name) {}
 
 ChHendricksonPRIMAXX::~ChHendricksonPRIMAXX() {
+    if (!m_initialized)
+        return;
+
     auto sys = m_transversebeam->GetSystem();
-    if (sys) {
-        sys->Remove(m_transversebeam);
-        sys->Remove(m_axlehousing);
+    if (!sys)
+        return;
 
-        for (int i = 0; i < 2; i++) {
-            sys->Remove(m_knuckle[i]);
-            sys->Remove(m_torquerod[i]);
-            sys->Remove(m_lowerbeam[i]);
-            sys->Remove(m_revoluteKingpin[i]);
-            sys->Remove(m_sphericalTorquerod[i]);
-            sys->Remove(m_revoluteTorquerod[i]);
-            sys->Remove(m_sphericalLowerbeam[i]);
-            sys->Remove(m_revoluteLowerbeam[i]);
-            sys->Remove(m_sphericalTB[i]);
+    sys->Remove(m_transversebeam);
+    sys->Remove(m_axlehousing);
 
-            if (m_tierod[i]) {
-                sys->Remove(m_tierod[i]);
-                ChChassis::RemoveJoint(m_sphericalTierod[i]);
-                ChChassis::RemoveJoint(m_universalTierod[i]);
-            }
-            if (m_distTierod[i]) {
-                sys->Remove(m_distTierod[i]);
-            }
+    for (int i = 0; i < 2; i++) {
+        sys->Remove(m_knuckle[i]);
+        sys->Remove(m_torquerod[i]);
+        sys->Remove(m_lowerbeam[i]);
+        sys->Remove(m_revoluteKingpin[i]);
+        sys->Remove(m_sphericalTorquerod[i]);
+        sys->Remove(m_revoluteTorquerod[i]);
+        sys->Remove(m_sphericalLowerbeam[i]);
+        sys->Remove(m_revoluteLowerbeam[i]);
+        sys->Remove(m_sphericalTB[i]);
 
-            sys->Remove(m_shockLB[i]);
-            sys->Remove(m_shockAH[i]);
+        if (m_tierod[i]) {
+            sys->Remove(m_tierod[i]);
+            ChChassis::RemoveJoint(m_sphericalTierod[i]);
+            ChChassis::RemoveJoint(m_universalTierod[i]);
         }
+        if (m_distTierod[i]) {
+            sys->Remove(m_distTierod[i]);
+        }
+
+        sys->Remove(m_shockLB[i]);
+        sys->Remove(m_shockAH[i]);
     }
 }
 

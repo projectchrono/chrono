@@ -216,21 +216,27 @@ std::string ChParserURDF::resolveFilename(const std::string& filename) {
             cerr << "While resolving " + filename +
                         ": Filename prefixed with package:// not supported without a ROS installation."
                  << endl;
-            return filename;
+            result_filename = filename;
 #endif
         } else if (scheme == "file") {
             // Remove file since Chrono doesn't support this
             result_filename = path;
+
+            // Check if the path is relative (make it absolute if yes) or if it's absolute.
+            filesystem::path fpath(result_filename);
+            if (!fpath.is_absolute())
+                result_filename = (filesystem::path(m_filepath) / fpath).make_absolute().str();
         } else {
             cerr << "While resolving " + filename + ": Schemes of form [" + scheme + "] are not supported." << endl;
-            return filename;
+            result_filename = filename;
         }
     } else {
-        // If there is no prefix, we either check if the path is relative (make it absolute if yes) or if it's
-        // absolute.
-        filesystem::path path(filename);
-        if (!path.is_absolute())
-            result_filename = (filesystem::path(m_filepath) / path).make_absolute().str();
+        result_filename = filename;
+
+        // Check if the path is relative (make it absolute if yes) or if it's absolute.
+        filesystem::path fpath(result_filename);
+        if (!fpath.is_absolute())
+            result_filename = (filesystem::path(m_filepath) / fpath).make_absolute().str();
     }
 
     return result_filename;
