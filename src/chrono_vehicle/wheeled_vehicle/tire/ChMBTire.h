@@ -280,7 +280,7 @@ class MBTireModel : public ChPhysicsItem {
         virtual void CalculateJacobian(double Kfactor, double Rfactor) = 0;
         virtual void CalculateJacobianFD(double Kfactor, double Rfactor) = 0;
 
-        void CalculateJacobianBlocks(double Kfactor, double Rfactor, ChMatrixRef Kblock, ChMatrixRef Rblock);
+        ChMatrix33<> CalculateJacobianBlock(double Kfactor, double Rfactor);
     };
 
     // Rotational spring between three FEA nodes.
@@ -333,12 +333,11 @@ class MBTireModel : public ChPhysicsItem {
         virtual void CalculateJacobian(double Kfactor, double Rfactor) override;
         virtual void CalculateJacobianFD(double Kfactor, double Rfactor) override;
 
+        ChMatrix33<> JacobianRotatedVector();
+
         ChVector3d local_pos;
         ChVector3d force_wheel;
         ChVector3d torque_wheel;
-
-        ChMatrix33<> JacobianRotatedVector();
-        ChMatrix33<> JacobianRotatedVelocityVector();
     };
 
     // Rotational spring between three grid nodes.
@@ -354,9 +353,10 @@ class MBTireModel : public ChPhysicsItem {
     struct EdgeSpring3 : public Spring3 {
         void Initialize(bool stiff);
         virtual void CalculateForce() override;
-        ChMatrix33<> JacobianRotatedVector();
         virtual void CalculateJacobian(double Kfactor) override;
         virtual void CalculateJacobianFD(double Kfactor) override;
+
+        ChMatrix33<> JacobianRotatedVector();
 
         ChVector3d local_pos;
         ChVector3d force_wheel;
