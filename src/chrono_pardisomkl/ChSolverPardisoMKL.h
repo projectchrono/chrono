@@ -55,9 +55,7 @@ See ChSystemDescriptor for more information about the problem formulation and th
 class ChApiPardisoMKL ChSolverPardisoMKL : public ChDirectSolverLS {
   public:
     /// Construct an MKL Pardiso sparse direct solver object and specify the number of OpenMP threads.
-    /// Passing the default value num_threads=0 results in using a number of threads equal to the number
-    /// of available processors (as returned by the function omp_get_num_procs)
-    ChSolverPardisoMKL(int num_threads = 0);
+    ChSolverPardisoMKL(unsigned int num_threads = 1);
 
     ~ChSolverPardisoMKL() {}
 
@@ -81,10 +79,10 @@ class ChApiPardisoMKL ChSolverPardisoMKL : public ChDirectSolverLS {
     Eigen::PardisoLU<ChSparseMatrix> m_engine;  ///< underlying Eigen Pardiso interface
 };
 
-/// Sparse complex Pardiso direct solver.\n
+/// Sparse complex Pardiso direct solver.
 class ChApiPardisoMKL ChSolverComplexPardisoMKL : public ChDirectSolverLScomplex {
   public:
-    ChSolverComplexPardisoMKL(int num_threads = 0);
+    ChSolverComplexPardisoMKL(unsigned int num_threads = 1);
     ~ChSolverComplexPardisoMKL() {}
 
     /// Get a handle to the underlying MKL engine.

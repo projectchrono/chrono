@@ -17,9 +17,8 @@
 
 namespace chrono {
 
-ChSolverPardisoMKL::ChSolverPardisoMKL(int num_threads) {
-    int nthreads = (num_threads <= 0) ? ChOMP::GetNumProcs() : num_threads;
-    ChOMP::SetNumThreads(nthreads);
+ChSolverPardisoMKL::ChSolverPardisoMKL(unsigned int num_threads) {
+    mkl_set_num_threads(num_threads);
 }
 
 bool ChSolverPardisoMKL::FactorizeMatrix() {
@@ -52,9 +51,8 @@ void ChSolverPardisoMKL::PrintErrorMessage() {
 
 //----------------------------------------------------------------------------------
 
-ChSolverComplexPardisoMKL::ChSolverComplexPardisoMKL(int num_threads) {
-    int nthreads = (num_threads <= 0) ? ChOMP::GetNumProcs() : num_threads;
-    ChOMP::SetNumThreads(nthreads);
+ChSolverComplexPardisoMKL::ChSolverComplexPardisoMKL(unsigned int num_threads) {
+    mkl_set_num_threads(num_threads);
 }
 
 bool ChSolverComplexPardisoMKL::FactorizeMatrix() {
