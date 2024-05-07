@@ -1,7 +1,22 @@
+// =============================================================================
+// PROJECT CHRONO - http://projectchrono.org
 //
-// Created by Rainer Gericke on 16.04.24.
+// Copyright (c) 2014 projectchrono.org
+// All right reserved.
+//
+// Use of this source code is governed by a BSD-style license that can be found
+// in the LICENSE file at the top level of the distribution and at
+// http://projectchrono.org/license-chrono.txt.
+//
+// =============================================================================
+// Authors: Radu Serban, Asher Elmquist, Rainer Gericke
+// =============================================================================
+//
+// Jeep Cherokee 4WD engine model based on ChShaft objects.
+// Engine data taken from:
 // https://www.automobile-catalog.com/curve/2006/1317620/jeep_wrangler_sport_4_0l.html#gsc.tab=0
 //
+// =============================================================================
 
 #include "Cherokee_EngineShafts.h"
 

@@ -1,6 +1,25 @@
+// =============================================================================
+// PROJECT CHRONO - http://projectchrono.org
 //
-// Created by Rainer Gericke on 16.04.24.
+// Copyright (c) 2014 projectchrono.org
+// All right reserved.
 //
+// Use of this source code is governed by a BSD-style license that can be found
+// in the LICENSE file at the top level of the distribution and at
+// http://projectchrono.org/license-chrono.txt.
+//
+// =============================================================================
+// Authors: Radu Serban, Asher Elmquist, Rainer Gericke
+// =============================================================================
+//
+// Class for modeling the tires of Jeep Cherokee 1997
+// Vehicle Parameters taken from SAE Paper 1999-01-0121
+// (including the vehicle itself, the powertrain, and the tires).
+// The tire parameters are actually estimated, because the original data in
+// the SAE paper are based on an older Salaani-Model. To do.
+// The tire design is pretty close to the chrono estimation model.
+//
+// =============================================================================
 
 #ifndef CHRONO_CHEROKEE_TMEASYTIRE_H
 #define CHRONO_CHEROKEE_TMEASYTIRE_H
