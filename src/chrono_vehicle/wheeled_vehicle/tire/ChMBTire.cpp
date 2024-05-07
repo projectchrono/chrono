@@ -32,6 +32,7 @@ ChMBTire::ChMBTire(const std::string& name) : ChDeformableTire(name) {
     m_model = chrono_types::make_shared<MBTireModel>();
     m_model->m_tire = this;
     m_model->m_stiff = false;
+    m_model->m_force_jac = false;
 }
 
 void ChMBTire::SetTireGeometry(const std::vector<double>& ring_radii,
@@ -73,6 +74,10 @@ void ChMBTire::SetRadialSpringCoefficients(double kR, double cR) {
 
 void ChMBTire::IsStiff(bool val) {
     m_model->m_stiff = val;
+}
+
+void ChMBTire::ForceJacobianCalculation(bool val) {
+    m_model->m_force_jac = val;
 }
 
 void ChMBTire::SetTireContactMaterial(const ChContactMaterialData& mat_data) {
@@ -162,6 +167,14 @@ void ChMBTire::UpdateInertiaProperties() {
     ChVector3d com;
     m_model->CalculateInertiaProperties(com, m_inertia);
     m_com = ChFrame<>(com, QUNIT);
+}
+
+std::vector<std::shared_ptr<fea::ChNodeFEAxyz>>& ChMBTire::GetGridNodes() const {
+    return m_model->m_nodes;
+}
+
+std::vector<std::shared_ptr<fea::ChNodeFEAxyz>>& ChMBTire::GetRimNodes() const {
+    return m_model->m_rim_nodes;
 }
 
 // =============================================================================
@@ -320,18 +333,17 @@ void MBTireModel::GridSpring2::CalculateJacobian(double Kfactor, double Rfactor)
     J.block(3, 0, 3, 3) = A;   // block for F2 and node1
     J.block(3, 3, 3, 3) = -A;  // block for F2 and node2
 
-    /*
-    CalculateJacobianFD(Kfactor, Rfactor);
-    std::cout << "Grid spring2 " << inode1 << "-" << inode2 << std::endl << "-------" << std::endl;
-    std::cout << J << std::endl;
-    std::cout << "-------\n";
-    std::cout << J_fd << std::endl;
-    std::cout << "-------\n";
-    std::cout << "err_2   = " << (J_fd - J).norm() / J.norm() << "\n";
-    std::cout << "err_1   = " << (J_fd - J).lpNorm<1>() / J.lpNorm<1>() << "\n";
-    std::cout << "err_inf = " << (J_fd - J).lpNorm<Eigen::Infinity>() / J.lpNorm<Eigen::Infinity>() << "\n";
-    std::cout << "=======" << std::endl;
-    */
+    ////CalculateJacobianFD(Kfactor, Rfactor);
+    ////std::cout << "Grid spring2 " << inode1 << "-" << inode2 << std::endl;
+    ////std::cout << "-------\n";
+    ////std::cout << J << std::endl;
+    ////std::cout << "-------\n";
+    ////std::cout << J_fd << std::endl;
+    ////std::cout << "-------\n";
+    ////std::cout << "err_2 = " << (J_fd - J).norm() / J.norm() << "\t";
+    ////std::cout << "err_1 = " << (J_fd - J).lpNorm<1>() / J.lpNorm<1>() << "\t";
+    ////std::cout << "err_inf = " << (J_fd - J).lpNorm<Eigen::Infinity>() / J.lpNorm<Eigen::Infinity>() << "\n";
+    ////std::cout << "=======" << std::endl;
 }
 
 void MBTireModel::GridSpring2::CalculateJacobianFD(double Kfactor, double Rfactor) {
@@ -433,19 +445,17 @@ void MBTireModel::EdgeSpring2::CalculateJacobian(double Kfactor, double Rfactor)
     J.block(3, 0, 3, 9) = skew_rp * J.block(0, 0, 3, 9);  // block of torque
     J.block(6, 0, 3, 9) = -J.block(0, 0, 3, 9);           // block for F2 and node1
 
-    /*
-    CalculateJacobianFD(Kfactor, Rfactor);
-    std::cout << "Edge spring2 " << inode1 << "-" << inode2 << std::endl << "-------" << std::endl;
-    std::cout << J << std::endl;
-    std::cout << "-------\n";
-    std::cout << J_fd << std::endl;
-
-    std::cout << "-------\n";
-    std::cout << "err_2   = " << (J_fd - J).norm() / J.norm() << "\n";
-    std::cout << "err_1   = " << (J_fd - J).lpNorm<1>() / J.lpNorm<1>() << "\n";
-    std::cout << "err_inf = " << (J_fd - J).lpNorm<Eigen::Infinity>() / J.lpNorm<Eigen::Infinity>() << "\n";
-    std::cout << "=======" << std::endl;
-    */
+    ////CalculateJacobianFD(Kfactor, Rfactor);
+    ////std::cout << "Edge spring2 " << inode1 << "-" << inode2 << std::endl;
+    ////std::cout << "-------\n";
+    ////std::cout << J << std::endl;
+    ////std::cout << "-------\n";
+    ////std::cout << J_fd << std::endl;
+    ////std::cout << "-------\n";
+    ////std::cout << "err_2   = " << (J_fd - J).norm() / J.norm() << "\n";
+    ////std::cout << "err_1   = " << (J_fd - J).lpNorm<1>() / J.lpNorm<1>() << "\n";
+    ////std::cout << "err_inf = " << (J_fd - J).lpNorm<Eigen::Infinity>() / J.lpNorm<Eigen::Infinity>() << "\n";
+    ////std::cout << "=======" << std::endl;
 }
 
 void MBTireModel::EdgeSpring2::CalculateJacobianFD(double Kfactor, double Rfactor) {
@@ -454,8 +464,6 @@ void MBTireModel::EdgeSpring2::CalculateJacobianFD(double Kfactor, double Rfacto
 
     K.setZero();
     R.setZero();
-
-    //// TODO: approximate K and R
 
     ChVector3d posW = wheel->GetPos();
     ChQuaterniond rotW = wheel->GetRot();
@@ -773,23 +781,17 @@ void MBTireModel::GridSpring3::CalculateJacobian(double Kfactor) {
     J.block(3, 0, 3, 9) = Jp + Jn;
     J.block(6, 0, 3, 9) = -Jn;
 
-    /*
-    CalculateJacobianFD(Kfactor);
-    std::cout << "Grid spring3 " << inode_p << "-" << inode_c << "-" << inode_n << std::endl << "-------" << std::endl;
-
-    std::cout << J << std::endl;
-    std::cout << "-------\n";
-    std::cout << J_fd << std::endl;
-
-    std::cout << "-------\n";
-    std::cout << "err_2   = " << (J_fd - J).norm()                                                    //
-              << "  " << (J_fd - J).norm() / J.norm() << "\n";                                        //
-    std::cout << "err_1   = " << (J_fd - J).lpNorm<1>()                                               //
-              << "  " << (J_fd - J).lpNorm<1>() / J.lpNorm<1>() << "\n";                              //
-    std::cout << "err_inf = " << (J_fd - J).lpNorm<Eigen::Infinity>()                                 //
-              << "  " << (J_fd - J).lpNorm<Eigen::Infinity>() / J.lpNorm<Eigen::Infinity>() << "\n";  //
-    std::cout << "=======" << std::endl;
-    */
+    ////CalculateJacobianFD(Kfactor);
+    ////std::cout << "Grid spring3 " << inode_p << "-" << inode_c << "-" << inode_n << std::endl;
+    ////std::cout << "-------\n";
+    ////std::cout << J << std::endl;
+    ////std::cout << "-------\n";
+    ////std::cout << J_fd << std::endl;
+    ////std::cout << "-------\n";
+    ////std::cout << "err_2   = " << (J_fd - J).norm() / J.norm() << "\n";
+    ////std::cout << "err_1   = " << (J_fd - J).lpNorm<1>() / J.lpNorm<1>() << "\n";
+    ////std::cout << "err_inf = " << (J_fd - J).lpNorm<Eigen::Infinity>() / J.lpNorm<Eigen::Infinity>() << "\n";
+    ////std::cout << "=======" << std::endl;
 }
 
 void MBTireModel::GridSpring3::CalculateJacobianFD(double Kfactor) {
@@ -898,20 +900,17 @@ void MBTireModel::EdgeSpring3::CalculateJacobian(double Kfactor) {
     J.block(6, 0, 3, 12) = Jp + Jn;
     J.block(9, 0, 3, 12) = -Jn;
 
-    /*
-    CalculateJacobianFD(Kfactor);
-    std::cout << "Edge spring3 " << inode_p << "-" << inode_c << "-" << inode_n << std::endl << "-------" << std::endl;
-    std::cout << J << std::endl;
-    std::cout << "-------\n";
-    std::cout << J_fd << std::endl;
-    std::cout << "-------\n";
-
-    std::cout << "err_2   = " << (J_fd - J).norm() << "  " << (J_fd - J).norm() / J.norm() << "\n";
-    std::cout << "err_1   = " << (J_fd - J).lpNorm<1>() << "  " << (J_fd - J).lpNorm<1>() / J.lpNorm<1>() << "\n";
-    std::cout << "err_inf = " << (J_fd - J).lpNorm<Eigen::Infinity>() << "  "
-              << (J_fd - J).lpNorm<Eigen::Infinity>() / J.lpNorm<Eigen::Infinity>() << "\n";
-    std::cout << "=======" << std::endl;
-    */
+    ////CalculateJacobianFD(Kfactor);
+    ////std::cout << "Edge spring3 " << inode_p << "-" << inode_c << "-" << inode_n << std::endl;
+    ////std::cout << "-------\n";
+    ////std::cout << J << std::endl;
+    ////std::cout << "-------\n";
+    ////std::cout << J_fd << std::endl;
+    ////std::cout << "-------\n";
+    ////std::cout << "err_2   = " << (J_fd - J).norm() / J.norm() << "\n";
+    ////std::cout << "err_1   = " << (J_fd - J).lpNorm<1>() / J.lpNorm<1>() << "\n";
+    ////std::cout << "err_inf = " << (J_fd - J).lpNorm<Eigen::Infinity>() / J.lpNorm<Eigen::Infinity>() << "\n";
+    ////std::cout << "=======" << std::endl;
 }
 
 void MBTireModel::EdgeSpring3::CalculateJacobianFD(double Kfactor) {
@@ -1077,7 +1076,7 @@ void MBTireModel::Construct() {
             spring.k = m_kC;
             spring.c = m_cC;
 
-            spring.Initialize(m_stiff);
+            spring.Initialize(m_stiff || m_force_jac);
             m_grid_lin_springs.push_back(spring);
         }
     }
@@ -1100,7 +1099,7 @@ void MBTireModel::Construct() {
 
             spring.local_pos = m_wheel->TransformPointParentToLocal(m_rim_nodes[inode1]->GetPos());
 
-            spring.Initialize(m_stiff);
+            spring.Initialize(m_stiff || m_force_jac);
             m_edge_lin_springs.push_back(spring);
         }
 
@@ -1118,7 +1117,7 @@ void MBTireModel::Construct() {
             spring.k = m_kT;
             spring.c = m_cT;
 
-            spring.Initialize(m_stiff);
+            spring.Initialize(m_stiff || m_force_jac);
             m_grid_lin_springs.push_back(spring);
         }
 
@@ -1138,7 +1137,7 @@ void MBTireModel::Construct() {
 
             spring.local_pos = m_wheel->TransformPointParentToLocal(m_rim_nodes[inode1]->GetPos());
 
-            spring.Initialize(m_stiff);
+            spring.Initialize(m_stiff || m_force_jac);
             m_edge_lin_springs.push_back(spring);
         }
     }
@@ -1162,7 +1161,7 @@ void MBTireModel::Construct() {
             spring.k = m_kB;
             spring.c = m_cB;
 
-            spring.Initialize(m_stiff);
+            spring.Initialize(m_stiff || m_force_jac);
             m_grid_rot_springs.push_back(spring);
         }
     }
@@ -1192,7 +1191,7 @@ void MBTireModel::Construct() {
 
             spring.local_pos = m_wheel->TransformPointParentToLocal(m_rim_nodes[inode_p]->GetPos());
 
-            spring.Initialize(m_stiff);
+            spring.Initialize(m_stiff || m_force_jac);
             m_edge_rot_springs.push_back(spring);
         }
 
@@ -1214,7 +1213,7 @@ void MBTireModel::Construct() {
             spring.k = m_kB;
             spring.c = m_cB;
 
-            spring.Initialize(m_stiff);
+            spring.Initialize(m_stiff || m_force_jac);
             m_grid_rot_springs.push_back(spring);
         }
 
@@ -1238,7 +1237,7 @@ void MBTireModel::Construct() {
 
             spring.local_pos = m_wheel->TransformPointParentToLocal(m_rim_nodes[inode_p]->GetPos());
 
-            spring.Initialize(m_stiff);
+            spring.Initialize(m_stiff || m_force_jac);
             m_edge_rot_springs.push_back(spring);
         }
     }
@@ -1568,7 +1567,7 @@ void MBTireModel::InjectKRMMatrices(ChSystemDescriptor& descriptor) {
 }
 
 void MBTireModel::LoadKRMMatrices(double Kfactor, double Rfactor, double Mfactor) {
-    if (!m_stiff)
+    if (!m_stiff && !m_force_jac)
         return;
 
     for (auto& spring : m_grid_lin_springs)

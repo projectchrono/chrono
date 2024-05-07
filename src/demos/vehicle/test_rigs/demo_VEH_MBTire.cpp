@@ -20,6 +20,7 @@
 ////unsigned int fp_control_state = _controlfp(_EM_INEXACT, _MCW_EM);
 
 #include <algorithm>
+#include <iomanip>
 
 #include "chrono/core/ChTimer.h"
 
@@ -58,7 +59,6 @@ ChVisualSystem::Type vis_type = ChVisualSystem::Type::IRRLICHT;
 // -----------------------------------------------------------------------------
 
 int main() {
-
     // Create system and set solver
     ChSystem* sys = nullptr;
     ChSolver::Type solver_type;
@@ -87,7 +87,7 @@ int main() {
     sys->SetGravitationalAcceleration(ChVector3d(0, 0, -9.8));
 
     SetChronoSolver(*sys, solver_type, integrator_type);
-    
+
     // Create spindle body
     auto spindle = chrono_types::make_shared<ChBody>();
     spindle->SetFixed(true);
@@ -107,12 +107,15 @@ int main() {
     wheel->SetTire(tire);
 
     tire->IsStiff(false);
+    tire->ForceJacobianCalculation(true);
     tire->SetStepsize(step_size);
     tire->SetContactFaceThickness(0.02);
     tire->Initialize(wheel);
     tire->SetVisualizationType(VisualizationType::MESH);
 
     auto tire_radius = 2 * tire->GetRadius();
+    auto grid_nodes = tire->GetGridNodes();
+    auto rim_nodes = tire->GetRimNodes();
 
     // Create terrain
     ChContactMaterialData cinfo;
@@ -196,18 +199,7 @@ int main() {
         tire->Advance(step_size);
         sys->DoStepDynamics(step_size);
 
-        ////std::cout << sys.GetChTime() << std::endl;
-        ////auto long_slip = tire->GetLongitudinalSlip();
-        ////auto slip_angle = tire->GetSlipAngle();
-        ////auto camber_angle = tire->GetCamberAngle();
-        ////std::cout << "   " << long_slip << " " << slip_angle << " " << camber_angle << std::endl;
-        ////auto tforce = rig.ReportTireForce();
-        ////auto frc = tforce.force;
-        ////auto pnt = tforce.point;
-        ////auto trq = tforce.moment;
-        ////std::cout << "   " << frc.x() << " " << frc.y() << " " << frc.z() << std::endl;
-        ////std::cout << "   " << pnt.x() << " " << pnt.y() << " " << pnt.z() << std::endl;
-        ////std::cout << "   " << trq.x() << " " << trq.y() << " " << trq.z() << std::endl;
+        std::cout << std::setw(10) << std::setprecision(5) << time << " | " << grid_nodes[0]->GetPos() << std::endl;
     }
 
     return 0;
