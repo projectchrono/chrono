@@ -107,7 +107,7 @@ int main() {
     wheel->SetTire(tire);
 
     tire->IsStiff(false);
-    tire->ForceJacobianCalculation(true);
+    tire->ForceJacobianCalculation(false);
     tire->SetStepsize(step_size);
     tire->SetContactFaceThickness(0.02);
     tire->Initialize(wheel);

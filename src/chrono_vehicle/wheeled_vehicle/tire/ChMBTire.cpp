@@ -322,6 +322,10 @@ ChMatrix33<> MBTireModel::Spring2::CalculateJacobianBlock(double Kfactor, double
 // where f1, f2 are the nodal forces and n1, n2 are the states of the 2 nodes.
 void MBTireModel::GridSpring2::CalculateJacobian(double Kfactor, double Rfactor) {
     ChMatrixRef J = KRM.GetMatrix();
+    if (Kfactor == 0 && Rfactor == 0) {
+        J.setZero();
+        return;
+    }
 
     ////std::cout << "Grid spring2 " << inode1 << "-" << inode2;
     ////std::cout << "  J size: " << J.rows() << "x" << J.cols() << std::endl;
@@ -427,7 +431,10 @@ ChMatrix33<> MBTireModel::EdgeSpring2::JacobianRotatedVector() {
 
 void MBTireModel::EdgeSpring2::CalculateJacobian(double Kfactor, double Rfactor) {
     ChMatrixRef J = KRM.GetMatrix();
-    J.setZero();
+    if (Kfactor == 0 && Rfactor == 0) {
+        J.setZero();
+        return;
+    }
 
     ////std::cout << "Edge spring2 " << inode1 << "-" << inode2;
     ////std::cout << "  J size: " << J.rows() << "x" << J.cols() << std::endl;
@@ -763,6 +770,10 @@ ChMatrixNM<double, 6, 9> MBTireModel::Spring3::CalculateJacobianBlockJ2(double K
 // where f_p, f_c, and f_n are the nodal forces and n_p, n_c, and n_n are the states of the 3 nodes.
 void MBTireModel::GridSpring3::CalculateJacobian(double Kfactor) {
     ChMatrixRef J = KRM.GetMatrix();
+    if (Kfactor == 0) {
+        J.setZero();
+        return;
+    }
 
     ////std::cout << "Grid spring3 " << inode_p << "-" << inode_c << "-" << inode_n;
     ////std::cout << "  J size: " << J.rows() << "x" << J.cols() << std::endl;
@@ -872,7 +883,11 @@ ChMatrix33<> MBTireModel::EdgeSpring3::JacobianRotatedVector() {
 
 void MBTireModel::EdgeSpring3::CalculateJacobian(double Kfactor) {
     ChMatrixRef J = KRM.GetMatrix();
-    J.setZero();
+    if (Kfactor == 0) {
+        J.setZero();
+        return;
+    }
+
     ////std::cout << "Edge spring3 " << inode_p << "-" << inode_c << "-" << inode_n;
     ////std::cout << "  J size: " << J.rows() << "x" << J.cols() << std::endl;
 
