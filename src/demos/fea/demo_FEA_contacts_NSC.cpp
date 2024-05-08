@@ -45,7 +45,8 @@ int main(int argc, char* argv[]) {
 
     // Create a Chrono::Engine physical system
     ChSystemNSC sys;
-    sys.SetNumThreads(ChOMP::GetNumProcs(), 0, 1);
+
+    sys.SetNumThreads(std::min(4, ChOMP::GetNumProcs()), 0, 1);
 
     // Create and set the collision system
     ChCollisionModel::SetDefaultSuggestedEnvelope(0.0025);

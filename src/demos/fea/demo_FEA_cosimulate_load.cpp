@@ -109,6 +109,8 @@ int main(int argc, char* argv[]) {
     ChSystemSMC sys;
     sys.SetCollisionSystemType(ChCollisionSystem::Type::BULLET);
 
+    sys.SetNumThreads(std::min(4, ChOMP::GetNumProcs()), 0, 1);
+
     // CREATE A FINITE ELEMENT MESH
 
     // Create the surface material

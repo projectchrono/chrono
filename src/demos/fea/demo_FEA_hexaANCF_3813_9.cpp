@@ -87,6 +87,8 @@ void DPCapPress(const std::string& out_dir) {
     sys.SetContactForceModel(ChSystemSMC::ContactForceModel::Hooke);
     sys.SetGravitationalAcceleration(ChVector3d(0, 0, 0));
 
+    sys.SetNumThreads(std::min(4, ChOMP::GetNumProcs()), 0, 1);
+
     std::cout << "-----------------------------------------------------------------------" << std::endl;
     std::cout << "-----------------------------------------------------------------------" << std::endl;
     std::cout << "     9-Node, Large Deformation Brick Element with implicit integration " << std::endl;
@@ -401,6 +403,8 @@ void ShellBrickContact(const std::string& out_dir) {
     sys.SetAdhesionForceModel(ChSystemSMC::AdhesionForceModel::Constant);
     sys.SetContactForceModel(ChSystemSMC::ContactForceModel::PlainCoulomb);
     sys.SetGravitationalAcceleration(ChVector3d(0, 0, 0));
+
+    sys.SetNumThreads(std::min(4, ChOMP::GetNumProcs()), 0, 1);
 
     std::cout << "-----------------------------------------------------------------------" << std::endl;
     std::cout << "-----------------------------------------------------------------------" << std::endl;
@@ -788,6 +792,8 @@ void SimpleBoxContact(const std::string& out_dir) {
     sys.SetContactForceModel(ChSystemSMC::ContactForceModel::PlainCoulomb);
     sys.SetGravitationalAcceleration(ChVector3d(0, 0, 0));
 
+    sys.SetNumThreads(std::min(4, ChOMP::GetNumProcs()), 0, 1);
+
     std::cout << "-----------------------------------------------------------------------" << std::endl;
     std::cout << "-----------------------------------------------------------------------" << std::endl;
     std::cout << "     9-Node, Large Deformation Brick Element with implicit integration " << std::endl;
@@ -1076,6 +1082,8 @@ void SoilBin(const std::string& out_dir) {
     // sys.SetContactForceModel(ChSystemSMC::ContactForceModel::PlainCoulomb);
     sys.SetContactForceModel(ChSystemSMC::ContactForceModel::Hooke);
     sys.SetGravitationalAcceleration(ChVector3d(0, 0, 0));
+
+    sys.SetNumThreads(std::min(4, ChOMP::GetNumProcs()), 0, 1);
 
     std::cout << "-----------------------------------------------------------------------" << std::endl;
     std::cout << "-----------------------------------------------------------------------" << std::endl;
@@ -1406,6 +1414,8 @@ void AxialDynamics(const std::string& out_dir) {
     ChSystemSMC sys;
     sys.SetGravitationalAcceleration(ChVector3d(0, 0, 0));
 
+    sys.SetNumThreads(std::min(4, ChOMP::GetNumProcs()), 0, 1);
+
     std::cout << "-----------------------------------------------------------------------" << std::endl;
     std::cout << "-----------------------------------------------------------------------" << std::endl;
     std::cout << "     9-Node, Large Deformation Brick Element with implicit integration " << std::endl;
@@ -1653,6 +1663,8 @@ void BendingQuasiStatic(const std::string& out_dir) {
     ChSystemSMC sys;
     sys.SetGravitationalAcceleration(ChVector3d(0, 0, -9.81));
 
+    sys.SetNumThreads(std::min(4, ChOMP::GetNumProcs()), 0, 1);
+
     std::cout << "-----------------------------------------------------------" << std::endl;
     std::cout << "-----------------------------------------------------------" << std::endl;
     std::cout << "  9-Node, Large Deformation Brick Element: Bending Problem " << std::endl;
@@ -1874,6 +1886,8 @@ void SwingingShell(const std::string& out_dir) {
     FILE* outputfile;
     ChSystemSMC sys;
     sys.SetGravitationalAcceleration(ChVector3d(0, 0, 0));
+
+    sys.SetNumThreads(std::min(4, ChOMP::GetNumProcs()), 0, 1);
 
     auto ground = chrono_types::make_shared<ChBody>();
     ground->SetFixed(true);

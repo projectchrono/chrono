@@ -71,6 +71,8 @@ int main(int argc, char* argv[]) {
     // Create a Chrono::Engine physical system
     ChSystemSMC sys;
 
+    sys.SetNumThreads(std::min(4, ChOMP::GetNumProcs()), 0, 1);
+
     double L = 1;
     double H = 0.25;
     double K = 0.05;
