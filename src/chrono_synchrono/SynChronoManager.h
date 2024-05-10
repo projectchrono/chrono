@@ -74,6 +74,10 @@ class SYN_API SynChronoManager {
     ///
     std::map<AgentKey, std::shared_ptr<SynAgent>>& GetAgents() { return m_agents; }
 
+    ///@brief Get the zombies list
+    ///
+    std::map<AgentKey, std::shared_ptr<SynAgent>>& GetZombies() { return m_zombies; }
+
     ///@brief Set the heartbeat for the rate at which SynChrono synchronization
     /// occurs
     ///
