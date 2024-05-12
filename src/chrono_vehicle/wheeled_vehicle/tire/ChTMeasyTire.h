@@ -175,8 +175,6 @@ class CH_VEHICLE_API ChTMeasyTire : public ChForceElementTire {
 
     double m_vnum;
 
-    double m_gamma_limit;  ///< limit camber angle (degrees!)
-
     // TMsimple tire model parameters
     double m_unloaded_radius;     ///< reference tire radius
     double m_width;               ///< tire width
