@@ -1712,8 +1712,6 @@ void ChPac02Tire::Synchronize(double time, const ChTerrain& terrain) {
     // Calculate tire kinematics
     CalculateKinematics(wheel_state, m_data.frame);
 
-    m_states.gamma = ChClamp(GetCamberAngle(), -m_gamma_limit * CH_DEG_TO_RAD, m_gamma_limit * CH_DEG_TO_RAD);
-
     if (m_data.in_contact) {
         // Wheel velocity in the ISO-C Frame
         ChVector3d vel = wheel_state.lin_vel;

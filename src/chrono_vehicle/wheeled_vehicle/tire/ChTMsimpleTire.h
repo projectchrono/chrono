@@ -58,9 +58,6 @@ class CH_VEHICLE_API ChTMsimpleTire : public ChForceElementTire {
     /// Get the tire radius.
     virtual double GetRadius() const override { return m_states.R_eff; }
 
-    /// Set the limit for camber angle (in degrees).  Default: 3 degrees.
-    void SetGammaLimit(double gamma_limit) { m_gamma_limit = gamma_limit; }
-
     /// Get the width of the tire.
     virtual double GetWidth() const override { return m_width; }
 
