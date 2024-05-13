@@ -34,7 +34,7 @@ class ChApi ChIterativeSolver {
     virtual ~ChIterativeSolver() {}
 
     /// Set the maximum number of iterations.
-    void SetMaxIterations(int max_iterations) { m_max_iterations = max_iterations; }
+    virtual void SetMaxIterations(int max_iterations) { m_max_iterations = max_iterations; }
 
     /// Set the tolerance threshold used by the stopping criteria.
     void SetTolerance(double tolerance) { m_tolerance = tolerance; }
