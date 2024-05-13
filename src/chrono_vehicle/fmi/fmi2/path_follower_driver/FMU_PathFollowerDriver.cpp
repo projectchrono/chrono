@@ -145,10 +145,10 @@ FmuComponent::FmuComponent(fmi2String instanceName,
                    FmuVariable::InitialType::exact);                                              //
 
     // Specify functions to process input variables (at beginning of step)
-    m_preStepCallbacks.push_back([this]() { this->SynchronizeDriver(this->GetTime()); });
+    AddPreStepFunction([this]() { this->SynchronizeDriver(this->GetTime()); });
 
     // Specify functions to calculate FMU outputs (at end of step)
-    m_postStepCallbacks.push_back([this]() { this->CalculateDriverOutputs(); });
+    AddPostStepFunction([this]() { this->CalculateDriverOutputs(); });
 }
 
 void FmuComponent::CreateDriver() {

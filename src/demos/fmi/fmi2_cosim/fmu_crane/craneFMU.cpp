@@ -67,9 +67,9 @@ FmuComponent::FmuComponent(fmi2String instanceName,
                    FmuVariable::CausalityType::input, FmuVariable::VariabilityType::continuous);   //
 
     // Specify variable dependencies
-    AddFmuVariableDependencies("init_F", {"crane_mass", "crane_length", "crane_angle", "pend_mass", "pend_length"});
-    AddFmuVariableDependencies("s", {"crane_length", "crane_angle", "pend_length"});
-    AddFmuVariableDependencies("sd", {"crane_length", "crane_angle", "pend_length"});
+    DeclareVariableDependencies("init_F", {"crane_mass", "crane_length", "crane_angle", "pend_mass", "pend_length"});
+    DeclareVariableDependencies("s", {"crane_length", "crane_angle", "pend_length"});
+    DeclareVariableDependencies("sd", {"crane_length", "crane_angle", "pend_length"});
 
 #ifdef CHRONO_IRRLICHT
     if (visible == fmi2True)
@@ -77,10 +77,10 @@ FmuComponent::FmuComponent(fmi2String instanceName,
 #endif
 
     // Specify functions to process input variables (at beginning of step)
-    m_preStepCallbacks.push_back([this]() { this->ProcessActuatorForce(); });
+    AddPreStepFunction([this]() { this->ProcessActuatorForce(); });
 
     // Specify functions to calculate FMU outputs (at end of step)
-    m_postStepCallbacks.push_back([this]() { this->CalculateActuatorLength(); });
+    AddPostStepFunction([this]() { this->CalculateActuatorLength(); });
 }
 
 void FmuComponent::ProcessActuatorForce() {

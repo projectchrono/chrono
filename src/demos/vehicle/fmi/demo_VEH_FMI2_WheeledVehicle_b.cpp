@@ -67,7 +67,7 @@ void CreateVehicleFMU(FmuChronoUnit& vehicle_fmu,
                       bool visible,
                       double fps) {
     try {
-        vehicle_fmu.Load(VEHICLE_FMU_FILENAME, VEHICLE_UNPACK_DIR);
+        vehicle_fmu.Load(fmi2Type::fmi2CoSimulation, VEHICLE_FMU_FILENAME, VEHICLE_UNPACK_DIR);
     } catch (std::exception& e) {
         throw e;
     }
@@ -116,7 +116,7 @@ void CreateDriverFMU(FmuChronoUnit& driver_fmu,
                      bool visible,
                      double fps) {
     try {
-        driver_fmu.Load(DRIVER_FMU_FILENAME, DRIVER_UNPACK_DIR);
+        driver_fmu.Load(fmi2Type::fmi2CoSimulation, DRIVER_FMU_FILENAME, DRIVER_UNPACK_DIR);
     } catch (std::exception& e) {
         throw e;
     }
@@ -159,7 +159,7 @@ void CreateTireFMU(FmuChronoUnit& tire_fmu,
                    const std::vector<std::string>& logCategories,
                    const std::string& out_path) {
     try {
-        tire_fmu.Load(TIRE_FMU_FILENAME, TIRE_UNPACK_DIR);
+        tire_fmu.Load(fmi2Type::fmi2CoSimulation, TIRE_FMU_FILENAME, TIRE_UNPACK_DIR);
     } catch (std::exception& e) {
         throw e;
     }

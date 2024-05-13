@@ -147,18 +147,18 @@ FmuComponent::FmuComponent(fmi2String instanceName,
     }
 
     // Specify variable dependencies
-    AddFmuVariableDependencies("ref_frame", {"init_loc", "init_yaw"});
+    DeclareVariableDependencies("ref_frame", {"init_loc", "init_yaw"});
     for (int iw = 0; iw < 4; iw++) {
         std::string prefix = "wheel_" + wheel_data[iw].identifier;
-        AddFmuVariableDependencies(prefix + ".pos", {"init_loc", "init_yaw"});
-        AddFmuVariableDependencies(prefix + ".rot", {"init_loc", "init_yaw"});
+        DeclareVariableDependencies(prefix + ".pos", {"init_loc", "init_yaw"});
+        DeclareVariableDependencies(prefix + ".rot", {"init_loc", "init_yaw"});
     }
 
     // Specify functions to process input variables (at beginning of step)
-    m_preStepCallbacks.push_back([this]() { this->SynchronizeVehicle(this->GetTime()); });
+    AddPreStepFunction([this]() { this->SynchronizeVehicle(this->GetTime()); });
 
     // Specify functions to calculate FMU outputs (at end of step)
-    m_postStepCallbacks.push_back([this]() { this->CalculateVehicleOutputs(); });
+    AddPostStepFunction([this]() { this->CalculateVehicleOutputs(); });
 }
 
 void FmuComponent::CreateVehicle() {
