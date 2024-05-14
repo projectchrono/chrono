@@ -9,6 +9,8 @@ else()
   set(COMPONENT_DLL_DEPENDENCIES "")
 endif()
 
+set(FMU_CS ON)
+
 #--------------------------------------------------------------
 
 # Set include paths, compiler & linker flags, and libraries

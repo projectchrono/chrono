@@ -5,6 +5,8 @@ set(COMPONENT_CHRONO_DEPENDENCIES ChronoEngine ChronoEngine_irrlicht)
 set(COMPONENT_RESOURCES_DIR "")
 set(COMPONENT_DLL_DEPENDENCIES "")
 
+set(FMU_CS ON)
+
 #--------------------------------------------------------------
 
 # Set include paths, compiler & linker flags, and libraries
