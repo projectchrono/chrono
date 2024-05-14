@@ -149,7 +149,7 @@ int main(int argc, char* argv[]) {
     body->AddVisualShape(chrono_types::make_shared<ChVisualShapeSphere>(0.03),
                          ChFrame<>(ChVector3d(-3, 1, +0.5), QUNIT));
 
-    // Attach a cone shape (NOT YET SUPPORTED)
+    // Attach a cone shape
     auto cone = chrono_types::make_shared<ChVisualShapeCone>(0.3, 1.0);
     cone->SetMaterial(0, pink_mat);
     body->AddVisualShape(cone, ChFrame<>(ChVector3d(-4, 1.5, -1), QUNIT));
