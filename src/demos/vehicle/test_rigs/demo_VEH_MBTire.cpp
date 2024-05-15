@@ -31,6 +31,7 @@
 #include "chrono_models/vehicle/hmmwv/HMMWV_Wheel.h"
 
 #include "chrono_vehicle/terrain/RigidTerrain.h"
+#include "chrono_vehicle/terrain/SCMTerrain.h"
 
 #include "chrono_thirdparty/filesystem/path.h"
 
@@ -52,6 +53,10 @@ using namespace chrono::vehicle;
 
 // Contact formulation type (SMC or NSC)
 ChContactMethod contact_method = ChContactMethod::SMC;
+
+// Terrain type (RIGID or SCM)
+enum class TerrainType { RIGID, SCM };
+TerrainType terrain_type = TerrainType::SCM;
 
 // Run-time visualization system (IRRLICHT or VSG)
 ChVisualSystem::Type vis_type = ChVisualSystem::Type::IRRLICHT;
@@ -88,11 +93,14 @@ int main() {
 
     SetChronoSolver(*sys, solver_type, integrator_type);
 
+    // Set vertical load on tire (added mass, in kg)
+    double load = 300;
+
     // Create spindle body
     auto spindle = chrono_types::make_shared<ChBody>();
-    spindle->SetFixed(true);
+    spindle->SetFixed(false);
     spindle->SetName("rig_spindle");
-    spindle->SetMass(0);
+    spindle->SetMass(load);
     spindle->SetInertiaXX(ChVector3d(0.01, 0.02, 0.01));
     spindle->SetPos(ChVector3d(0, 0, 0));
     spindle->SetRot(QUNIT);
@@ -106,6 +114,8 @@ int main() {
     wheel->SetVisualizationType(VisualizationType::NONE);
     wheel->SetTire(tire);
 
+    if (terrain_type == TerrainType::SCM)
+        tire->SetContactSurfaceType(ChDeformableTire::ContactSurfaceType::TRIANGLE_MESH);
     tire->IsStiff(false);
     tire->ForceJacobianCalculation(false);
     tire->SetStepsize(step_size);
@@ -113,23 +123,63 @@ int main() {
     tire->Initialize(wheel);
     tire->SetVisualizationType(VisualizationType::MESH);
 
-    auto tire_radius = 2 * tire->GetRadius();
+    auto tire_radius = tire->GetRadius();
     auto grid_nodes = tire->GetGridNodes();
     auto rim_nodes = tire->GetRimNodes();
 
     // Create terrain
-    ChContactMaterialData cinfo;
-    cinfo.mu = 0.8f;
-    cinfo.cr = 0.0f;
-    cinfo.Y = 2e7f;
-    auto patch_mat = cinfo.CreateMaterial(contact_method);
+    std::shared_ptr<ChTerrain> terrain;
+    double sizeX = 3;
+    double sizeY = 3;
 
-    RigidTerrain terrain(sys);
-    auto patch = terrain.AddPatch(patch_mat, ChCoordsys<>(ChVector3d(0, 0, -tire_radius), QUNIT), 10.0, 10.0, 0.1);
-    patch->SetTexture(GetChronoDataFile("textures/concrete.jpg"), 10, 10);
-    terrain.Initialize();
+    switch (terrain_type) {
+        case TerrainType::RIGID: {
+            auto terrain_rigid = chrono_types::make_shared<vehicle::RigidTerrain>(sys);
 
-    // Create the vehicle run-time visualization interface and the interactive driver
+            ChContactMaterialData cinfo;
+            cinfo.mu = 0.8f;
+            cinfo.cr = 0.0f;
+            cinfo.Y = 2e7f;
+            auto patch_mat = cinfo.CreateMaterial(contact_method);
+
+            auto patch = terrain_rigid->AddPatch(patch_mat, ChCoordsys<>(ChVector3d(0, 0, -1.1 * tire_radius), QUNIT),
+                                                 sizeX, sizeY, 0.1);
+            patch->SetTexture(GetChronoDataFile("textures/concrete.jpg"), 10, 10);
+
+            terrain_rigid->Initialize();
+            terrain = terrain_rigid;
+
+            break;
+        }
+        case TerrainType::SCM: {
+            auto terrain_scm = chrono_types::make_shared<vehicle::SCMTerrain>(sys);
+
+            double delta = 0.125;
+
+            terrain_scm->SetPlane(ChCoordsys<>(ChVector3d(0, 0, -1.1 * tire_radius), QUNIT));
+            terrain_scm->SetSoilParameters(2e6,   // Bekker Kphi
+                                           0,     // Bekker Kc
+                                           1.1,   // Bekker n exponent
+                                           0,     // Mohr cohesive limit (Pa)
+                                           30,    // Mohr friction limit (degrees)
+                                           0.01,  // Janosi shear coefficient (m)
+                                           2e8,   // Elastic stiffness (Pa/m), before plastic yield
+                                           3e4    // Damping (Pa s/m), proportional to negative vertical speed
+            );
+            terrain_scm->SetPlotType(vehicle::SCMTerrain::PLOT_SINKAGE, 0, 0.05);
+            terrain_scm->Initialize(sizeX, sizeY, delta);
+            terrain_scm->AddMovingPatch(spindle, ChVector3d(0, 0, 0),
+                                        ChVector3d(2 * tire->GetRadius(), 1.0, 2 * tire->GetRadius()));
+
+            terrain = terrain_scm;
+
+            break;
+        }
+    }
+
+    // Create run-time visualization interface
+    std::shared_ptr<ChVisualSystem> vis;
+
 #ifndef CHRONO_IRRLICHT
     if (vis_type == ChVisualSystem::Type::IRRLICHT)
         vis_type = ChVisualSystem::Type::VSG;
@@ -139,7 +189,6 @@ int main() {
         vis_type = ChVisualSystem::Type::IRRLICHT;
 #endif
 
-    std::shared_ptr<ChVisualSystem> vis;
     switch (vis_type) {
         case ChVisualSystem::Type::IRRLICHT: {
 #ifdef CHRONO_IRRLICHT
@@ -189,17 +238,17 @@ int main() {
         vis->EndScene();
 
         // Synchronize subsystems
-        terrain.Synchronize(time);
-        tire->Synchronize(time, terrain);
+        terrain->Synchronize(time);
+        tire->Synchronize(time, *terrain);
         spindle->EmptyAccumulators();
         wheel->Synchronize();
 
         // Advance state
-        terrain.Advance(step_size);
+        terrain->Advance(step_size);
         tire->Advance(step_size);
         sys->DoStepDynamics(step_size);
 
-        std::cout << std::setw(10) << std::setprecision(5) << time << " | " << grid_nodes[0]->GetPos() << std::endl;
+        ////std::cout << std::setw(10) << std::setprecision(5) << time << " | " << grid_nodes[0]->GetPos() << std::endl;
     }
 
     return 0;

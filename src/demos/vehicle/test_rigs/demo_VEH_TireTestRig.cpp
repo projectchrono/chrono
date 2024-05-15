@@ -170,7 +170,9 @@ int main() {
             }
             case TireType::MB: {
                 auto mb_tire = chrono_types::make_shared<hmmwv::HMMWV_MBTire>("Multibody Tire");
-                ////mb_tire->IsStiff(true);   
+                mb_tire->IsStiff(false);   
+                if (terrain_type == TerrainType::SCM)
+                    mb_tire->SetContactSurfaceType(ChDeformableTire::ContactSurfaceType::TRIANGLE_MESH);
                 tire = mb_tire;
                 break;
             }
