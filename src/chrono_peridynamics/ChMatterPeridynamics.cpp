@@ -16,7 +16,7 @@
 #include <algorithm>
 
 #include "chrono_peridynamics/ChMatterPeridynamics.h"
-#include "chrono_peridynamics/ChProximityContainerPeridynamics.h"
+#include "chrono_peridynamics/ChPeridynamics.h"
 
 namespace chrono {
 

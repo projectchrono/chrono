@@ -27,7 +27,7 @@ namespace chrono {
 namespace peridynamics {
 
 // Forward declaration
-class ChProximityContainerPeri;
+class ChPeridynamics;
 
 /// @addtogroup chrono_peridynamics
 /// @{
@@ -110,7 +110,7 @@ public:
     // with default implementations that should work for all materials.
         
     /// Add a node that will be affected by this material. Note that the node 
-    /// must be added also to the ChProximityContainerPeri that manages this material.
+    /// must be added also to the ChPeridynamics that manages this material.
     virtual std::shared_ptr<ChNodePeri> AddNode(std::shared_ptr<ChNodePeri> mnode) = 0;
 
     /// Override/inherit only if really needed. 
@@ -123,12 +123,12 @@ public:
         ChNodePeri* nodeB) = 0;  
 
     // Get the owner container that handles peridynamics nodes
-    ChProximityContainerPeri* GetContainer() const { return container; }
+    ChPeridynamics* GetContainer() const { return container; }
     // Set the owner container that handles peridynamics nodes
-    void SetContainer(ChProximityContainerPeri* mc) { container = mc; }
+    void SetContainer(ChPeridynamics* mc) { container = mc; }
 
 protected:
-    ChProximityContainerPeri* container = 0;
+    ChPeridynamics* container = 0;
 
 };
 
@@ -186,8 +186,6 @@ class  ChMatterPeri : public ChMatterPeriBase {
     virtual std::shared_ptr<ChNodePeri> AddNode(std::shared_ptr<ChNodePeri> mnode) override {
         T_per_node node_data;
         node_data.node = mnode;
-
-        //mnode->variables.SetUserData((void*)this);
 
         this->nodes[mnode.get()] = node_data;  // add to container using ptr of node as unique key
 
@@ -277,8 +275,12 @@ class  ChMatterPeri : public ChMatterPeriBase {
                 if (!mnode->GetCollisionModel()) {
                     double aabb_rad = mnode->GetHorizonRadius() / 2;  // to avoid too many pairs: bounding boxes hemisizes will sum..  __.__--*--
                     double coll_rad = mnode->GetCollisionRadius();
-                    //auto cshape = chrono_types::make_shared<ChCollisionShapePoint>(matsurface, VNULL, coll_rad); // ..Point like ..Sphere, but no point-vs-point contact generation 
-                    auto cshape = chrono_types::make_shared<ChCollisionShapeSphere>(matsurface, coll_rad);
+                    std::shared_ptr<ChCollisionShape> cshape;
+                    if (mnode->is_boundary)
+                        cshape = chrono_types::make_shared<ChCollisionShapeSphere>(matsurface, coll_rad);
+                    else
+                        cshape = chrono_types::make_shared<ChCollisionShapePoint>(matsurface, VNULL, coll_rad); // ..Point like ..Sphere, but no point-vs-point contact generation 
+                    //auto cshape = chrono_types::make_shared<ChCollisionShapeSphere>(matsurface, coll_rad);
                     mnode->AddCollisionShape(cshape);
                     mnode->GetCollisionModel()->SetSafeMargin(coll_rad);
                     mnode->GetCollisionModel()->SetEnvelope(std::max(0.0, aabb_rad - coll_rad));

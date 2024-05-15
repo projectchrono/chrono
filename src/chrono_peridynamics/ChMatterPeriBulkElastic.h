@@ -23,24 +23,37 @@
 namespace chrono {
 namespace peridynamics {
 
-class ChProximityContainerPeri;
+class ChPeridynamics;
 
 /// @addtogroup chrono_peridynamics
 /// @{
 
 
 
+/// Helper class: the per-bond auxialiary data for ChMatterPeriBulkElastic
 
 class  ChApiPeridynamics ChMatterDataPerBoundBulk : public ChMatterDataPerBound { 
 public: 
     bool broken = false;
-    double F_per_bond = 0;
+    double F_per_bond = 0;  // force density in this bound
 };
+
+
+/// Simple bond-based peridynamic material whose elasticity depends on a single
+/// parameter, that is K, the bulk modulus.  
+/// The Poisson ratio is always 1/4 and cannot be set otherwise, as in general for bond-based
+/// elasticity models. Having a fixed Poission ration can be a limitation, but the positive
+/// note is that this material is very computationally-efficient.
 
 class ChApiPeridynamics ChMatterPeriBulkElastic : public ChMatterPeri<ChMatterDataPerNode, ChMatterDataPerBoundBulk> {
 public:
-    double k_bulk = 100;
-    double r = 10;
+    /// bulk modulus, unit  Pa, i.e. N/m^2
+    double k_bulk = 100; 
+
+    /// bulk damping, unit  Pa*s/m, i.e. Ns/m^3
+    double r_bulk = 10;
+    
+    /// maximum stretch - after this, bonds will break
     double max_stretch = 0.08;
 
     ChMatterPeriBulkElastic() {};
@@ -62,13 +75,14 @@ public:
                 double     stretch = (sdist - old_sdist) / old_sdist;
 
                 double horizon = mbound.nodeA->GetHorizonRadius();
-                double K_pih4 = 18.0 * k_bulk / (chrono::CH_PI * horizon * horizon * horizon * horizon); 
+                double pih4 = chrono::CH_PI * horizon * horizon * horizon * horizon;
 
-                ChVector3d force_val = 0.5 * K_pih4 * stretch;
+                double force_val = 0.5 * (18.0 * k_bulk / pih4) * stretch;
                 
-                if (this->r > 0)
-                    force_val += 0.5 * this->r * svel;
+                if (this->r_bulk > 0)
+                    force_val += 0.5 * (18.0 * r_bulk / pih4) * svel;
 
+                mbound.F_per_bond = force_val;
                 mbound.nodeB->F_peridyn += -vdir * force_val * mbound.nodeA->volume;
                 mbound.nodeA->F_peridyn += vdir * force_val * mbound.nodeB->volume;
 
@@ -90,49 +104,47 @@ public:
 
 
 
+
+/// Class for visualization of ChMatterPeriBulkElastic  nodes
+/// This can be attached to ChPeridynamics with my_peridynamics->AddVisualShape(my_visual);
+
 class /*ChApiPeridynamics*/ ChVisualPeriBulkElastic : public ChGlyphs {
 public:
     ChVisualPeriBulkElastic(std::shared_ptr<ChMatterPeriBulkElastic> amatter) : mmatter(amatter) { is_mutable = true; };
     virtual ~ChVisualPeriBulkElastic() {}
 
-    // set true if you want those attributes to be attached to the glyps 
-    // (ex for postprocessing in falsecolor or with vectors with the Blender addon)
-    bool attach_velocity = 0;
-    bool attach_acceleration = 0;
+    // Attach velocity property. (ex for postprocessing in falsecolor or with vectors with the Blender add-on)
+    void AttachVelocity(double min = 0, double max = 1, std::string mname = "Velocity") {
+        vel_property = new ChPropertyVector;
+        vel_property->min = min; vel_property->max = max;  vel_property->name = mname;
+        this->m_properties.push_back(vel_property);
+    }
+
+    // Attach acceleration property. (ex for postprocessing in falsecolor or with vectors with the Blender add-on)
+    void AttachAcceleration(double min = 0, double max = 1, std::string mname = "Acceleration") {
+        acc_property = new ChPropertyVector;
+        acc_property->min = min; acc_property->max = max;  acc_property->name = mname;
+        this->m_properties.push_back(acc_property);
+    }
+    
 
 protected:
+    ChPropertyVector* vel_property;
+    ChPropertyVector* acc_property;
+
     virtual void Update(ChPhysicsItem* updater, const ChFrame<>& frame) {
         if (!mmatter)
             return;
         this->Reserve(mmatter->GetNnodes());
+
         unsigned int i = 0;
         for (const auto& anode : mmatter->GetMapOfNodes()) {
-            this->SetGlyphPoint(i, anode.second.node->GetPos());
+            this->SetGlyphPoint(i, anode.first->GetPos());
+            if (vel_property) 
+                vel_property->data[i] = anode.first->GetPosDt();
+            if (acc_property) 
+                acc_property->data[i] = anode.first->GetPosDt2();
             ++i;
-        }
-        if (attach_velocity) {
-            ChPropertyVector myprop;
-            myprop.name = "velocity";
-            this->AddProperty(myprop);
-            auto mdata = &((ChPropertyVector*)(m_properties.back()))->data;
-            mdata->resize(mmatter->GetNnodes());
-            i = 0;
-            for (const auto& anode : mmatter->GetMapOfNodes()) {
-                mdata->at(i) = anode.second.node->GetPosDt();
-                ++i;
-            }
-        }
-        if (attach_acceleration) {
-            ChPropertyVector myprop;
-            myprop.name = "acceleration";
-            this->AddProperty(myprop);
-            auto mdata = &((ChPropertyVector*)(m_properties.back()))->data;
-            mdata->resize(mmatter->GetNnodes());
-            i = 0;
-            for (const auto& anode : mmatter->GetMapOfNodes()) {
-                mdata->at(i) = anode.second.node->GetPosDt2();
-                ++i;
-            }
         }
 
     }
@@ -140,6 +152,10 @@ protected:
     std::shared_ptr<ChMatterPeriBulkElastic> mmatter;
 };
 
+
+
+/// Class for visualization of ChMatterPeriBulkElastic  bounds
+/// This can be attached to ChPeridynamics with my_peridynamics->AddVisualShape(my_visual);
 
 class /*ChApiPeridynamics*/ ChVisualPeriBulkElasticBounds : public ChGlyphs {
 public:
@@ -153,13 +169,22 @@ protected:
     virtual void Update(ChPhysicsItem* updater, const ChFrame<>& frame) {
         if (!mmatter)
             return;
-        this->Reserve(mmatter->GetNbounds());
+
+        unsigned int count = 0;
+        for (const auto& abound : mmatter->GetMapOfBounds()) {
+            if (abound.second.broken && draw_broken)
+                ++count;
+            if (!abound.second.broken && draw_unbroken)
+                ++count;
+        }
+        this->Reserve(count);
+
         unsigned int i = 0;
-        for (const auto& anode : mmatter->GetMapOfBounds()) {
-            if (anode.second.broken && draw_broken)
-                this->SetGlyphVector(i, anode.second.nodeA->GetPos(), anode.second.nodeB->GetPos()-anode.second.nodeA->GetPos(),ChColor(1,0,0));
-            if (!anode.second.broken && draw_unbroken)
-                this->SetGlyphVector(i, anode.second.nodeA->GetPos(), anode.second.nodeB->GetPos() - anode.second.nodeA->GetPos(),ChColor(0, 0, 1));
+        for (const auto& abound : mmatter->GetMapOfBounds()) {
+            if (abound.second.broken && draw_broken)
+                this->SetGlyphVector(i, abound.second.nodeA->GetPos(), abound.second.nodeB->GetPos() - abound.second.nodeA->GetPos(),ChColor(1,0,0));
+            if (!abound.second.broken && draw_unbroken)
+                this->SetGlyphVector(i, abound.second.nodeA->GetPos(), abound.second.nodeB->GetPos() - abound.second.nodeA->GetPos(),ChColor(0, 0, 1));
             ++i;
         }
     }

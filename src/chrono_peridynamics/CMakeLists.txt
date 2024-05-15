@@ -21,7 +21,8 @@ SET(ChronoEngine_PERIDYNAMICS_SOURCES
     ChMatterPeridynamics.cpp
     ChMatterPeriSprings.cpp
     ChMatterPeriBulkElastic.cpp
-    ChProximityContainerPeridynamics.cpp
+    ChMatterPeriLiquid.cpp
+    ChPeridynamics.cpp
 )
 
 SET(ChronoEngine_PERIDYNAMICS_HEADERS
@@ -30,7 +31,8 @@ SET(ChronoEngine_PERIDYNAMICS_HEADERS
     ChMatterPeridynamics.h
     ChMatterPeriSprings.h
     ChMatterPeriBulkElastic.h
-    ChProximityContainerPeridynamics.h
+    ChMatterPeriLiquid.h
+    ChPeridynamics.h
 )
 
 SOURCE_GROUP("" FILES 

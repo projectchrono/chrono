@@ -23,7 +23,7 @@
 namespace chrono {
 namespace peridynamics {
 
-class ChProximityContainerPeri;
+class ChPeridynamics;
 
 /// @addtogroup chrono_peridynamics
 /// @{
@@ -94,8 +94,8 @@ public:
                 ChVector3d     vdir = vdist.GetNormalized();
                 double         vel = Vdot(vdir, mbound.nodeB->GetPosDt() - mbound.nodeA->GetPosDt());
                 ChVector3d force_val = (vdist.Length() - old_vdist.Length()) * this->k + vel * this->r;
-                mbound.nodeB->F_peridyn += -vdir * force_val;
-                mbound.nodeA->F_peridyn += vdir * force_val;
+                mbound.nodeB->F_peridyn += -vdir * force_val / mbound.nodeB->volume; //divide by volumes because F_peridyn are force _densities_
+                mbound.nodeA->F_peridyn += vdir * force_val / mbound.nodeA->volume;
 
                 double stretch = (vdist.Length() - old_vdist.Length()) / old_vdist.Length();
                 if (stretch > max_stretch) {

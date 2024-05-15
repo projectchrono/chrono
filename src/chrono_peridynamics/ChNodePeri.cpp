@@ -69,7 +69,7 @@ void ChNodePeri::ContactForceLoadResidual_F(const ChVector3d& F,
     const ChVector3d& T,
     const ChVector3d& abs_point,
     ChVectorDynamic<>& R) {
-    R.segment(NodeGetOffsetVelLevel(), 3) += F.eigen();
+    R.segment(NodeGetOffsetVelLevel(), 3) += F.eigen(); // from 
 }
 
 void ChNodePeri::ComputeJacobianForContactPart(const ChVector3d& abs_point,

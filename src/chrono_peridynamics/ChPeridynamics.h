@@ -12,8 +12,8 @@
 // Authors: Alessandro Tasora 
 // =============================================================================
 
-#ifndef CHPROXIMITYCONTAINERPERIDYNAMICS_H
-#define CHPROXIMITYCONTAINERPERIDYNAMICS_H
+#ifndef CHPERIDYNAMICS_H
+#define CHPERIDYNAMICS_H
 
 #include <list>
 
@@ -21,7 +21,6 @@
 #include "chrono/physics/ChProximityContainer.h"
 #include "chrono/physics/ChSystem.h"
 #include "chrono/utils/ChUtilsSamplers.h"
-
 
 namespace chrono {
 
@@ -43,15 +42,15 @@ class peridynamics::ChNodePeri;
 /// Such an item must be addd to the physical system if you want to use 
 /// one or more ChMatterPeri materials.
 
-class ChApiPeridynamics ChProximityContainerPeri : public ChProximityContainer {
+class ChApiPeridynamics ChPeridynamics : public ChProximityContainer {
 
   public:
-    ChProximityContainerPeri();
-    ChProximityContainerPeri(const ChProximityContainerPeri& other);
-    virtual ~ChProximityContainerPeri();
+    ChPeridynamics();
+    ChPeridynamics(const ChPeridynamics& other);
+    virtual ~ChPeridynamics();
 
     /// "Virtual" copy constructor (covariant return type).
-    virtual ChProximityContainerPeri* Clone() const override { return new ChProximityContainerPeri(*this); }
+    virtual ChPeridynamics* Clone() const override { return new ChPeridynamics(*this); }
 
     // PERIDYNAMICS
 
@@ -63,7 +62,7 @@ class ChApiPeridynamics ChProximityContainerPeri : public ChProximityContainer {
     const std::list<std::shared_ptr<ChMatterPeriBase>>& GetMaterials() const { return materials; }
 
     /// Add a node. Only nodes that are added here will be simulated. Nodes can be shared among diffferent ChMatterPeri,
-    /// but not among different ChProximityContainerPeri.
+    /// but not among different ChPeridynamics.
     void AddNode(std::shared_ptr<ChNodePeri> m_node);
 
     /// Get the array of nodes.
@@ -120,30 +119,32 @@ class ChApiPeridynamics ChProximityContainerPeri : public ChProximityContainer {
     /// Create a region filled with nodes. Adds the node to this, and to the specified matter. This is a helper function
     /// so that you avoid to create all nodes one by one with many calls
     /// to AddNode().
-    /*
+    
     void Fill(
-        std::shared_ptr<fea::ChMatterPeriBase> mmatter, ///< matter to be used for this volume. Must be added too to this, via AddMatter(). 
-        utils::PointVectorD& points,                    ///< points obtained from a sampler of the volume, ex. use utils::Sampler
+        std::shared_ptr<ChMatterPeriBase> mmatter,      ///< matter to be used for this volume. Must be added too to this, via AddMatter(). 
+        std::vector<ChVector3d>& points,                ///< points obtained from a sampler of the volume, ex. use utils::Sampler
         const double spacing,                           ///< average spacing used in sampling
         const double mass,                              ///< total mass of the volume
-        const double horizon_sfactor = 1.6,             ///< the radius of horizon of the particle is 'spacing' multiplied this value
-        const ChCoordsys<> mcoords = CSYSNORM           ///< position and rotation of the volume
+        const double volume,                            ///< total volume
+        const double horizon_sfactor,                   ///< the radius of horizon of the particle is 'spacing' multiplied this value
+        const double collision_sfactor,                 ///< the radius of collision shape (sphere) of the particle is 'spacing' multiplied this value
+        const ChCoordsys<> mcoords                      ///< position and rotation of the volume
     );
-    */
+    
 
     /// Create a box filled with nodes. Face nodes are automatically marked as interface, i.e. are collidable.
     /// Adds the nodes to this, and to the specified matter. This is a helper function
     /// so that you avoid to create all nodes one by one with many calls to AddNode().
     void FillBox(
-        std::shared_ptr<ChMatterPeriBase> mmatter, ///< matter to be used for this volume. Must be added too to this, via AddMatter(). 
-        const ChVector3d size,         ///< x,y,z sizes of the box to fill (better if integer multiples of spacing)
-        const double spacing,          ///< the spacing between two near nodes
-        const double initial_density,  ///< density of the material inside the box, for initialization of node's masses
-        const ChCoordsys<> boxcoords = CSYSNORM,  ///< position and rotation of the box
-        const bool do_centeredcube = false,  ///< if false, array is simply cubic, if true is centered cubes (highest regularity)
-        const double horizon_sfactor = 1.6,  ///< the radius of horizon of the particle is 'spacing' multiplied this value
-        const double collision_sfactor = 0.3,///< the radius of collision shape (sphere) of the particle is 'spacing' multiplied this value
-        const double randomness = 0.0       ///< randomness of the initial distribution lattice, 0...1
+        std::shared_ptr<ChMatterPeriBase> mmatter,  ///< matter to be used for this volume. Must be added too to this, via AddMatter(). 
+        const ChVector3d size,                      ///< x,y,z sizes of the box to fill (better if integer multiples of spacing)
+        const double spacing,                       ///< the spacing between two near nodes
+        const double initial_density,               ///< density of the material inside the box, for initialization of node's masses
+        const ChCoordsys<> boxcoords = CSYSNORM,    ///< position and rotation of the box
+        const bool do_centeredcube = false,         ///< if false, array is simply cubic, if true is centered cubes (highest regularity)
+        const double horizon_sfactor = 1.6,         ///< the radius of horizon of the particle is 'spacing' multiplied this value
+        const double collision_sfactor = 0.3,       ///< the radius of collision shape (sphere) of the particle is 'spacing' multiplied this value
+        const double randomness = 0.0               ///< randomness of the initial distribution lattice, 0...1
     );
 
 
@@ -224,7 +225,7 @@ class ChApiPeridynamics ChProximityContainerPeri : public ChProximityContainer {
             if (!node->IsFixed()) {
                 // add gravity too
                 ChVector3d Gforce = GetSystem()->GetGravitationalAcceleration() * node->GetMass();
-                ChVector3d TotForce = node->F_peridyn + node->GetForce() + Gforce;
+                ChVector3d TotForce = (node->F_peridyn*node->volume) + node->GetForce() + Gforce;
 
                 R.segment(off + local_off, 3) += c * TotForce.eigen();
                 local_off += 3;
@@ -316,7 +317,7 @@ class ChApiPeridynamics ChProximityContainerPeri : public ChProximityContainer {
         for (auto& node : vnodes) {
             // add gravity
             ChVector3d Gforce = GetSystem()->GetGravitationalAcceleration() * node->GetMass();
-            ChVector3d TotForce = node->F_peridyn + node->GetForce() + Gforce;
+            ChVector3d TotForce = (node->F_peridyn * node->volume) + node->GetForce() + Gforce;
 
             node->Variables().Force() += factor * TotForce.eigen();
         }

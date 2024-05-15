@@ -16,7 +16,7 @@
 #include "chrono/physics/ChBody.h"
 #include "chrono/physics/ChSystem.h"
 #include "chrono_peridynamics/ChMatterPeridynamics.h"
-#include "chrono_peridynamics/ChProximityContainerPeridynamics.h"
+#include "chrono_peridynamics/ChPeridynamics.h"
 
 namespace chrono {
 
@@ -43,12 +43,12 @@ static double W_sq_visco(double r, double h) {
 // ------------------------------------------------------------------------------------------------
 
 // Register into the object factory, to enable run-time dynamic creation and persistence
-CH_FACTORY_REGISTER(ChProximityContainerPeri)
+CH_FACTORY_REGISTER(ChPeridynamics)
 
-ChProximityContainerPeri::ChProximityContainerPeri() : n_added(0), is_updated(true), n_dofs(0) {
+ChPeridynamics::ChPeridynamics() : n_added(0), is_updated(true), n_dofs(0) {
 }
 
-ChProximityContainerPeri::ChProximityContainerPeri(const ChProximityContainerPeri& other)
+ChPeridynamics::ChPeridynamics(const ChPeridynamics& other)
     : ChProximityContainer(other) {
     vnodes = other.vnodes; 
     n_added = other.n_added;
@@ -57,29 +57,29 @@ ChProximityContainerPeri::ChProximityContainerPeri(const ChProximityContainerPer
     n_dofs = other.n_dofs;
 }
 
-ChProximityContainerPeri::~ChProximityContainerPeri() {
+ChPeridynamics::~ChPeridynamics() {
 }
 
-void ChProximityContainerPeri::RemoveAllProximities() {
+void ChPeridynamics::RemoveAllProximities() {
 
     // nothing to do: proximities are handled by materials in this->materials
     n_added = 0;
 }
 
-void ChProximityContainerPeri::BeginAddProximities() {
+void ChPeridynamics::BeginAddProximities() {
     
     // nothing to do: proximities are handled by materials in this->materials
 
     n_added = 0;
 }
 
-void ChProximityContainerPeri::EndAddProximities() {
+void ChPeridynamics::EndAddProximities() {
 
     is_updated = false;
     // nothing to do: proximities are handled by materials in this->materials
 }
 
-void ChProximityContainerPeri::AddProximity(ChCollisionModel* modA, ChCollisionModel* modB) {
+void ChPeridynamics::AddProximity(ChCollisionModel* modA, ChCollisionModel* modB) {
     // Fetch the frames of that proximity and other infos
 
     ChNodePeri* mnA = dynamic_cast<ChNodePeri*>(modA->GetContactable());
@@ -103,13 +103,13 @@ void ChProximityContainerPeri::AddProximity(ChCollisionModel* modA, ChCollisionM
     n_added++;
 }
 
-void ChProximityContainerPeri::ReportAllProximities(ReportProximityCallback* mcallback) {
+void ChPeridynamics::ReportAllProximities(ReportProximityCallback* mcallback) {
     
     // TODO: proximities are handled by materials in this->materials
 }
 
 
-void ChProximityContainerPeri::SetupInitial() {
+void ChPeridynamics::SetupInitial() {
     n_dofs = 0;
 
     for (unsigned int i = 0; i < vnodes.size(); i++) {
@@ -122,7 +122,7 @@ void ChProximityContainerPeri::SetupInitial() {
     }
 }
 
-void ChProximityContainerPeri::Setup() {
+void ChPeridynamics::Setup() {
     n_dofs = 0;
 
     for (unsigned int i = 0; i < vnodes.size(); i++) {
@@ -136,7 +136,7 @@ void ChProximityContainerPeri::Setup() {
     }
 }
 
-void ChProximityContainerPeri::Update(double mytime, bool update_assets) {
+void ChPeridynamics::Update(double mytime, bool update_assets) {
     // Inherit time changes of parent class
     ChProximityContainer::Update(mytime, update_assets);
 
@@ -149,12 +149,12 @@ void ChProximityContainerPeri::Update(double mytime, bool update_assets) {
 }
 
 
-void ChProximityContainerPeri::AddMatter(std::shared_ptr<ChMatterPeriBase> mmatter) {
+void ChPeridynamics::AddMatter(std::shared_ptr<ChMatterPeriBase> mmatter) {
         materials.push_back(mmatter);
         mmatter->SetContainer(this);
 }
 
-void ChProximityContainerPeri::AddNode(std::shared_ptr<ChNodePeri> m_node) {
+void ChPeridynamics::AddNode(std::shared_ptr<ChNodePeri> m_node) {
     vnodes.push_back(m_node);
 
     // If the obj is is already added to a system, mark the system uninitialized and out-of-date
@@ -166,37 +166,42 @@ void ChProximityContainerPeri::AddNode(std::shared_ptr<ChNodePeri> m_node) {
     */
 }
 
-/*
-void ChProximityContainerPeri::Fill(
-        std::shared_ptr<fea::ChMatterPeriBase> mmatter, ///< matter to be used for this volume. Must be added too to this, via AddMatter(). 
-        utils::PointVectorD& points,                    ///< points obtained from a sampler of the volume, ex. use utils::Sampler
+void ChPeridynamics::Fill(
+        std::shared_ptr<ChMatterPeriBase> mmatter,      ///< matter to be used for this volume. Must be added too to this, via AddMatter(). 
+        std::vector<ChVector3d>& points,                ///< points obtained from a sampler of the volume, ex. use utils::Sampler
         const double spacing,                           ///< average spacing used in sampling
         const double mass,                              ///< total mass of the volume
+        const double volume,                            ///< total volume
         const double horizon_sfactor,                   ///< the radius of horizon of the particle is 'spacing' multiplied this value
+        const double collision_sfactor,
         const ChCoordsys<> mcoords                      ///< position and rotation of the volume
         )  
 {
-    double horizon = horizon_sfactor * spacing;
     unsigned int nsamples = points.size();
     double per_node_mass = mass / nsamples;
+    double per_node_volume = volume / nsamples;
+    double horizon = horizon_sfactor * spacing;
+    double collrad = collision_sfactor * spacing;
 
     for (const auto& mpos_loc : points) {
-        ChVector<> mpos = mcoords.TransformPointLocalToParent(mpos_loc);
+        ChVector3d mpos = mcoords.TransformPointLocalToParent(mpos_loc);
         auto mnode = chrono_types::make_shared<ChNodePeri>();
-        mnode->SetPosReference(mpos);
+        mnode->SetX0(mpos);
         mnode->SetPos(mpos);
         mnode->SetMass(per_node_mass);
+        mnode->volume = per_node_volume;
+        mnode->is_elastic = true;
+        mnode->coll_rad = collrad;
+        mnode->h_rad = horizon;
 
         // Add to this
         this->AddNode(mnode);
-
-        // Add to the material, it must know the map of nodes, also it will allocate per-node custom data.
-        mmatter->AddNode(mnode,horizon);
+        mmatter->AddNode(mnode);
     }
 }
-*/
 
-void ChProximityContainerPeri::FillBox(
+
+void ChPeridynamics::FillBox(
         std::shared_ptr<ChMatterPeriBase> mmatter, ///< matter to be used for this volume. Must be added too to this, via AddMatter(). 
         const ChVector3d size,         ///< x,y,z sizes of the box to fill (better if integer multiples of spacing)
         const double spacing,          ///< the spacing between two near nodes
@@ -267,18 +272,18 @@ void ChProximityContainerPeri::FillBox(
 }
 
 
-void ChProximityContainerPeri::ArchiveOut(ChArchiveOut& marchive) {
+void ChPeridynamics::ArchiveOut(ChArchiveOut& marchive) {
     // version number
-    marchive.VersionWrite<ChProximityContainerPeri>();
+    marchive.VersionWrite<ChPeridynamics>();
     // serialize parent class
     ChProximityContainer::ArchiveOut(marchive);
     // serialize all member data:
 }
 
 /// Method to allow de serialization of transient data from archives.
-void ChProximityContainerPeri::ArchiveIn(ChArchiveIn& marchive) {
+void ChPeridynamics::ArchiveIn(ChArchiveIn& marchive) {
     // version number
-    /*int version =*/ marchive.VersionRead<ChProximityContainerPeri>();
+    /*int version =*/ marchive.VersionRead<ChPeridynamics>();
     // deserialize parent class
     ChProximityContainer::ArchiveIn(marchive);
     // stream in all member data:
