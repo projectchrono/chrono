@@ -36,6 +36,8 @@ int main(int argc, char* argv[]) {
     ChSystemSMC sys;
     sys.SetGravitationalAcceleration(ChVector3d(0, 0, -9.8));
 
+    sys.SetNumThreads(std::min(4, ChOMP::GetNumProcs()), 0, 1);
+
     std::cout << "-----------------------------------------------------------\n";
     std::cout << "-----------------------------------------------------------\n";
     std::cout << "     ANCF Shell Elements demo with implicit integration    \n";

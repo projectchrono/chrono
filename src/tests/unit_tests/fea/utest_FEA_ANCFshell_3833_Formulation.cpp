@@ -139,6 +139,8 @@ ANCFShellTest::ANCFShellTest(bool useContInt) {
     m_system = new ChSystemSMC();
     m_system->SetGravitationalAcceleration(ChVector3d(0, 0, -9.80665));
 
+    m_system->SetNumThreads(std::min(8, ChOMP::GetNumProcs()), 1, 1);
+
     auto solver = chrono_types::make_shared<ChSolverSparseQR>();
     solver->UseSparsityPatternLearner(true);
     solver->LockSparsityPattern(true);
@@ -1241,6 +1243,8 @@ bool ANCFShellTest::AxialDisplacementCheck(int msglvl) {
     // Set gravity to 0 since this is a statics test against an analytical solution
     system->SetGravitationalAcceleration(ChVector3d(0, 0, 0));
 
+    system->SetNumThreads(std::min(8, ChOMP::GetNumProcs()), 1, 1);
+
     auto solver = chrono_types::make_shared<ChSolverSparseQR>();
     solver->UseSparsityPatternLearner(true);
     solver->LockSparsityPattern(true);
@@ -1425,6 +1429,8 @@ bool ANCFShellTest::CantileverTipLoadCheck(int msglvl) {
     auto system = new ChSystemSMC();
     // Set gravity to 0 since this is a statics test against an analytical solution
     system->SetGravitationalAcceleration(ChVector3d(0, 0, 0));
+
+    system->SetNumThreads(std::min(8, ChOMP::GetNumProcs()), 1, 1);
 
     auto solver = chrono_types::make_shared<ChSolverSparseQR>();
     solver->UseSparsityPatternLearner(true);
@@ -1615,6 +1621,8 @@ bool ANCFShellTest::CantileverGravityCheck(int msglvl) {
     double g = -9.80665;
     system->SetGravitationalAcceleration(ChVector3d(0, 0, g));
 
+    system->SetNumThreads(std::min(8, ChOMP::GetNumProcs()), 1, 1);
+
     auto solver = chrono_types::make_shared<ChSolverSparseQR>();
     solver->UseSparsityPatternLearner(true);
     solver->LockSparsityPattern(true);
@@ -1761,6 +1769,8 @@ bool ANCFShellTest::AxialTwistCheck(int msglvl) {
     auto system = new ChSystemSMC();
     // Set gravity to 0 since this is a statics test against an analytical solution
     system->SetGravitationalAcceleration(ChVector3d(0, 0, 0));
+
+    system->SetNumThreads(std::min(8, ChOMP::GetNumProcs()), 1, 1);
 
     auto solver = chrono_types::make_shared<ChSolverSparseQR>();
     solver->UseSparsityPatternLearner(true);
@@ -1951,6 +1961,8 @@ bool ANCFShellTest::MLCantileverCheck1A(int msglvl) {
     // Set gravity to 0 to match the reference solution
     system->SetGravitationalAcceleration(ChVector3d(0, 0, -9810));
 
+    system->SetNumThreads(std::min(8, ChOMP::GetNumProcs()), 1, 1);
+
     auto solver = chrono_types::make_shared<ChSolverSparseQR>();
     solver->UseSparsityPatternLearner(true);
     solver->LockSparsityPattern(true);
@@ -2110,6 +2122,8 @@ bool ANCFShellTest::MLCantileverCheck1B(int msglvl) {
     auto system = new ChSystemSMC();
     // Set gravity to 0 to match the reference solution
     system->SetGravitationalAcceleration(ChVector3d(0, 0, -9810));
+
+    system->SetNumThreads(std::min(8, ChOMP::GetNumProcs()), 1, 1);
 
     auto solver = chrono_types::make_shared<ChSolverSparseQR>();
     solver->UseSparsityPatternLearner(true);
@@ -2271,6 +2285,8 @@ bool ANCFShellTest::MLCantileverCheck2A(int msglvl) {
     // Set gravity to 0 to match the reference solution
     system->SetGravitationalAcceleration(ChVector3d(0, 0, -9810));
 
+    system->SetNumThreads(std::min(8, ChOMP::GetNumProcs()), 1, 1);
+
     auto solver = chrono_types::make_shared<ChSolverSparseQR>();
     solver->UseSparsityPatternLearner(true);
     solver->LockSparsityPattern(true);
@@ -2430,6 +2446,8 @@ bool ANCFShellTest::MLCantileverCheck2B(int msglvl) {
     auto system = new ChSystemSMC();
     // Set gravity to 0 to match the reference solution
     system->SetGravitationalAcceleration(ChVector3d(0, 0, -9810));
+
+    system->SetNumThreads(std::min(8, ChOMP::GetNumProcs()), 1, 1);
 
     auto solver = chrono_types::make_shared<ChSolverSparseQR>();
     solver->UseSparsityPatternLearner(true);

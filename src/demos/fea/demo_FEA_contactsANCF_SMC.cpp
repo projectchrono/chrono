@@ -69,7 +69,7 @@ int main(int argc, char* argv[]) {
 
     ChSystemSMC sys;
 
-    sys.SetNumThreads(ChOMP::GetNumProcs(), 0, 1);
+    sys.SetNumThreads(std::min(4, ChOMP::GetNumProcs()), 0, 1);
 
     ChCollisionModel::SetDefaultSuggestedMargin(0.001);  // max inside penetration
     // Use this value for an outward additional layer around meshes, that can improve

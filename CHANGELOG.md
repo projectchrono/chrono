@@ -5,6 +5,7 @@ Change Log
 ==========
 
 - [Unreleased (development branch)](#unreleased-development-branch)
+  - [\[Changed\] Default number of threads](#changed-default-number-of-threads)
   - [\[Changed\] Refactoring of class and function names](#changed-refactoring-of-class-and-function-names)
   - [\[Added\] Chrono::Sensor features and updates](#added-chronosensor-features-and-updates)
   - [\[Changed\] Updated Chrono::VSG module](#changed-updated-chronovsg-module)
@@ -103,6 +104,19 @@ Change Log
 - [Release 4.0.0 (2019-02-22)](#release-400-2019-02-22)
 
 # Unreleased (development branch)
+
+## [Changed] Default number of threads
+
+The default values for the number of OpenMP threads used in various parts of Chrono were changed to be always 1.
+The user is responsible to adjust these settings to values that are appropriate to their problem and hardware.
+
+This affects OpenMP settings for the Chrono system and the PardisoMKL direct sparse linear solver.  
+- the function `ChSystem::SetNumThreads` controls the following values:
+  + *num_threads_chrono*: number of OpenMP threads used in FEA (for parallel evaluation of internal forces and their Jacobians) and in the SCM deformable terrain (for parallel ray casting).
+  + *num_threads_collision*: number of OpenMP threads used by the collision detection algorithms (Bullet or Multicore).
+  + *num_threads_eigen*: number of threads used in the Eigen sparse direct solvers (SparseLU and SparseQR) and a few linear algebra operations. Note that Eigen enables multi-threaded execution only under certain conditions (consult the Eigen documentation).
+
+- the constructor for `ChSolverPardisoMKL` takes as an argument the number of OpenMP threads passed to MKL (default: 1) and used during the setup and solve phases.
 
 ## [Changed] Refactoring of class and function names
 

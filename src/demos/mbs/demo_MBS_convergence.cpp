@@ -186,7 +186,9 @@ int main(int argc, char* argv[]) {
     // Modify some setting of the physical system for the simulation, if you want
 
     sys.SetSolverType(ChSolver::Type::BARZILAIBORWEIN);
-    sys.GetSolver()->AsIterative()->SetMaxIterations(60);
+     //sys.GetSolver()->AsIterative()->SetTolerance(1e-6); // not implemented for BARZILAIBORWEIN!
+    // the solver will iterate for all the requested iterations for BARZILAIBORWEIN
+    sys.GetSolver()->AsIterative()->SetMaxIterations(120);
 
     // When using compliance, exp. for large compliances, the max. penetration recovery speed
     // also affects reaction forces, thus it must be deactivated (or used as a very large value)

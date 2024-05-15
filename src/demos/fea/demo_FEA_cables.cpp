@@ -38,6 +38,8 @@ int main(int argc, char* argv[]) {
     // Create a Chrono::Engine physical system
     ChSystemSMC sys;
 
+    sys.SetNumThreads(std::min(4, ChOMP::GetNumProcs()), 0, 1);
+
     // Create a mesh, that is a container for groups of elements and
     // their referenced nodes.
     auto mesh = chrono_types::make_shared<ChMesh>();

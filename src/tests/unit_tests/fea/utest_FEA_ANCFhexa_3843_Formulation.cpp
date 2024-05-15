@@ -131,6 +131,8 @@ ANCFBrickTest::ANCFBrickTest(bool useContInt) {
     m_system = new ChSystemSMC();
     m_system->SetGravitationalAcceleration(ChVector3d(0, 0, -9.80665));
 
+    m_system->SetNumThreads(std::min(8, ChOMP::GetNumProcs()), 1, 1);
+
     auto solver = chrono_types::make_shared<ChSolverSparseQR>();
     solver->UseSparsityPatternLearner(true);
     solver->LockSparsityPattern(true);

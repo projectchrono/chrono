@@ -543,7 +543,7 @@ void ChIrrGUI::Render() {
         DrawCollisionShapes(irr::video::SColor(50, 0, 0, 110));
 
     if (g_plot_convergence->isChecked())
-        tools::drawHUDviolation(m_vis, 240, 370, 300, 100, 100.0);
+        tools::drawHUDviolation(m_vis, 240, 370, 300, 100);
 
     g_tabbed->setVisible(show_infos);
     g_treeview->setVisible(show_explorer);

@@ -47,6 +47,13 @@ using namespace chrono;
 using namespace chrono::modal;
 using namespace chrono::fea;
 
+// -----------------------------------------------------------------------------
+
+// Supported direct sparse linear solver types: PardisoMKL and SparseQR
+ChSolver::Type solver_type = ChSolver::Type::SPARSE_QR;
+
+// -----------------------------------------------------------------------------
+
 void RunSlewingBeam(bool do_modal_reduction, ChModalAssembly::ReductionType reduction_type, ChMatrixDynamic<>& res, bool verbose) {
     double time_step = 0.002;
     double time_step_prt = 0.5;
@@ -54,6 +61,8 @@ void RunSlewingBeam(bool do_modal_reduction, ChModalAssembly::ReductionType redu
 
     // Create a Chrono::Engine physical system
     ChSystemNSC sys;
+
+    sys.SetNumThreads(std::min(4, ChOMP::GetNumProcs()), 0, 1);
 
     sys.Clear();
     sys.SetChTime(0);
@@ -190,13 +199,28 @@ void RunSlewingBeam(bool do_modal_reduction, ChModalAssembly::ReductionType redu
     sys.SetGravitationalAcceleration(ChVector3d(0, 0, 0));
 
     // Set linear solver
-#ifdef CHRONO_PARDISO_MKL
-    auto mkl_solver = chrono_types::make_shared<ChSolverPardisoMKL>();
-    sys.SetSolver(mkl_solver);
-#else
-    auto qr_solver = chrono_types::make_shared<ChSolverSparseQR>();
-    sys.SetSolver(qr_solver);
+#ifndef CHRONO_PARDISO_MKL
+    if (solver_type == ChSolver::Type::PARDISO_MKL)
+        solver_type = ChSolver::Type::SPARSE_QR;
 #endif
+
+    switch (solver_type) {
+        case ChSolver::Type::PARDISO_MKL: {
+#ifdef CHRONO_PARDISO_MKL
+            std::cout << "Using PardisoMKL linear solver" << std::endl;
+            auto mkl_solver = chrono_types::make_shared<ChSolverPardisoMKL>();
+            sys.SetSolver(mkl_solver);
+#endif
+            break;
+        }
+        default:
+        case ChSolver::Type::SPARSE_QR: {
+            std::cout << "Using SparseQR linear solver" << std::endl;
+            auto qr_solver = chrono_types::make_shared<ChSolverSparseQR>();
+            sys.SetSolver(qr_solver);
+            break;
+        }
+    }
 
     sys.Setup();
     sys.Update();
@@ -347,6 +371,8 @@ bool CompareResults(const ChMatrixDynamic<>& ref_mat, const ChMatrixDynamic<>& m
 
     return test_passed;
 }
+
+// -----------------------------------------------------------------------------
 
 int main(int argc, char* argv[]) {
     std::cout << "Copyright (c) 2024 projectchrono.org\nChrono version: " << CHRONO_VERSION << "\n\n";

@@ -121,6 +121,9 @@ bool BendingQuasiStatic(ChMatrixDynamic<> FileInputMat) {
     FILE* outputfile = nullptr;
     ChSystemNSC sys;
     sys.SetGravitationalAcceleration(ChVector3d(0, 0, -9.81));
+
+    sys.SetNumThreads(std::min(8, ChOMP::GetNumProcs()), 1, 1);
+
     double time_step = 1e-3;
     bool genRefFile = false;
     double precision = 1e-3;  // Precision for unit test
@@ -309,6 +312,8 @@ bool SwingingShell(ChMatrixDynamic<> FileInputMat) {
     ChSystemNSC sys;
     sys.SetGravitationalAcceleration(ChVector3d(0, 0, 0));
 
+    sys.SetNumThreads(std::min(8, ChOMP::GetNumProcs()), 1, 1);
+
     std::cout << "--------------------------------------------------------------------\n";
     std::cout << "--------------------------------------------------------------------\n";
     std::cout << " 9-Node, Large Deformation Brick Element: Swinging (Bricked) Shell  \n";
@@ -494,6 +499,9 @@ bool J2Plastic(ChMatrixDynamic<> FileInputMat) {
     FILE* outputfile = nullptr;
     ChSystemNSC sys;
     sys.SetGravitationalAcceleration(ChVector3d(0, 0, -9.81));
+
+    sys.SetNumThreads(std::min(8, ChOMP::GetNumProcs()), 1, 1);
+
     double time_step = 1e-4;
     bool genRefFile = false;
     double precision = 1e-4;  // Precision for unit test
@@ -695,6 +703,9 @@ bool DruckerPragerPlastic(ChMatrixDynamic<> FileInputMat) {
     FILE* outputfile = nullptr;
     ChSystemNSC sys;
     sys.SetGravitationalAcceleration(ChVector3d(0, 0, -9.81));
+
+    sys.SetNumThreads(std::min(8, ChOMP::GetNumProcs()), 1, 1);
+
     double time_step = 1e-4;
     bool genRefFile = false;
     double precision = 1e-4;  // Precision for unit test
