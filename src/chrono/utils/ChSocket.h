@@ -240,10 +240,10 @@ class ChApi ChSocketTCP : public ChSocket {
     template <typename DataInType, typename... DataInTypes>
     int ReceiveData(DataInType& data_in_1, DataInTypes&... data_ins) {
         receive_id += sizeof(data_in_1);
-        ReceiveData(data_ins...);
+        int received_size = ReceiveData(data_ins...);
         receive_id -= sizeof(data_in_1);
         ParseReceivedData(data_in_1, receive_id);
-        return receive_id;
+        return received_size;
     }
 
     /// Binds the socket to an address and port number
