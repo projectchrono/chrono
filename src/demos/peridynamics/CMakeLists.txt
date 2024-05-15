@@ -7,6 +7,7 @@ set(PERI_DEMOS
 # List of demos requiring the Chrono::Irrlicht module
 set(PERI_DEMOS_IRR
 	demo_PERI_fracture
+    demo_PERI_fluid
 	)
 
 #--------------------------------------------------------------
