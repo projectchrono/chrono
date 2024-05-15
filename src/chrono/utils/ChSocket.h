@@ -77,33 +77,14 @@ const int PORTNUM = 1200;
 
 /// Base class for sockets. Sockets have at least an ID and a port.
 /// The more specialized ChSocketTCP must be used in applications.
-
 class ChApi ChSocket {
-  protected:
-    /*
-       only used when the socket is used for client communication
-       once this is done, the next necessary call is setSocketId(int)
-    */
-    ChSocket() {}
-    void setSocketId(int socketFd) { socketId = socketFd; }
-
-  protected:
-    int portNumber;  // Socket port number
-    int socketId;    // Socket file descriptor
-
-    int blocking;  // Blocking flag
-    int bindFlag;  // Binding flag
-
-    struct sockaddr_in clientAddr;  // Address of the client that sent data
-
   public:
-    ChSocket(int);  // given a port number, create a socket
+    // given a port number, create a socket
+    ChSocket(int);
 
     virtual ~ChSocket();
 
-  public:
     // socket options : ON/OFF
-
     void setDebug(int);
     void setReuseAddr(int);
     void setKeepAlive(int);
@@ -112,12 +93,10 @@ class ChApi ChSocket {
     void setSocketBlocking(int);
 
     // size of the send and receive buffer
-
     void setSendBufSize(int);
     void setReceiveBufSize(int);
 
     // retrieve socket option settings
-
     int getDebug();
     int getReuseAddr();
     int getKeepAlive();
@@ -136,6 +115,22 @@ class ChApi ChSocket {
     // show the socket
     friend std::ostream& operator<<(std::ostream&, ChSocket&);
 
+  protected:
+    /*
+       only used when the socket is used for client communication
+       once this is done, the next necessary call is setSocketId(int)
+    */
+    ChSocket() {}
+    void setSocketId(int socketFd) { socketId = socketFd; }
+
+    int portNumber;  // Socket port number
+    int socketId;    // Socket file descriptor
+
+    int blocking;  // Blocking flag
+    int bindFlag;  // Binding flag
+
+    struct sockaddr_in clientAddr;  // Address of the client that sent data
+
   private:
 // Gets the system error
 #ifdef WINDOWS_XP
@@ -149,18 +144,20 @@ class ChApi ChSocket {
 #endif
 };
 
-/// This is a specialized type of socket: the TCP socket.
-/// It can be used to talk with third party applications
-/// because it is frequent that other simulators (ex. Simulink)
-/// support the TCP socket communication.
-
+/// ChSocket for TCP communications.
+/// Three modes for sending|receiving are available:
+/// - full-manual mode:
+///   + the user owns its own buffer of type std::vector<char>
+///   + calls SendBuffer(std::vector<char>&) | ReceiveBuffer(std::vector<char>&, int) once
+/// - templated mode (sending):
+///   + multiple calls to Enqueue()
+///   + call SendBuffer() once
+/// - templated mode (receiving):
+///   + call ReceiveBuffer(int)
+///   + multiple calls to ParseReceivedData()
+/// - full-auto mode
+///   + call SendData() | ReceiveData() with all the variables to be sent
 class ChApi ChSocketTCP : public ChSocket {
-  private:
-#ifdef WINDOWS_XP
-    // Windows NT version of the MSG_WAITALL option
-    int XPReceiveMessage(std::string&);
-#endif
-
   public:
     /*
        Constructor. used for creating instances dedicated to client
@@ -201,6 +198,54 @@ class ChApi ChSocketTCP : public ChSocket {
                       int bsize                     ///< size in bytes of expected received buffer.
     );
 
+    /// Add data to an internal sending buffer.
+    /// When operation is completed, send all data at once with SendBuffer().
+    template <typename T>
+    void Enqueue(const T& data_to_send) {
+        for (auto s = 0; s < sizeof(data_to_send); ++s) {
+            m_internal_buffer_send.push_back(reinterpret_cast<const char*>(&data_to_send)[s]);
+        }
+    }
+
+    /// Clear the internal send buffer.
+    void ClearInternalSendBuffer() { m_internal_buffer_send.clear(); }
+
+    /// Send data collected in internal buffer.
+    int SendBuffer();
+
+    /// Receive a given amount of bytes.
+    int ReceiveBuffer(int data_in_size  ///< size (in bytes) of the receiving stream
+    );
+
+    /// Read the received buffer, at the specified offset, into the given variable.
+    template <typename T>
+    void ParseReceivedData(T& data_read, int offset = 0) {
+        for (auto s = 0; s < sizeof(data_read); ++s) {
+            reinterpret_cast<char*>(&data_read)[s] = m_internal_buffer_receive[offset + s];
+        }
+    }
+
+    /// Send the given variables.
+    /// The sending order respects the order of the arguments.
+    template <typename DataInType, typename... DataInTypes>
+    int SendData(DataInType data_in_1, DataInTypes... data_ins) {
+        Enqueue(data_in_1);
+        return SendData(data_ins...);
+    }
+
+    /// Receive the given variables.
+    /// The receiving order follows the order of the arguments.
+    /// It is not possible to receive only part of the streamed content.
+    /// To this purpose use ReceiveBuffer(int) together with ParseReceivedData()
+    template <typename DataInType, typename... DataInTypes>
+    int ReceiveData(DataInType& data_in_1, DataInTypes&... data_ins) {
+        receive_id += sizeof(data_in_1);
+        ReceiveData(data_ins...);
+        receive_id -= sizeof(data_in_1);
+        ParseReceivedData(data_in_1, receive_id);
+        return receive_id;
+    }
+
     /// Binds the socket to an address and port number
     /// (a server call)
     void bindSocket();
@@ -218,6 +263,21 @@ class ChApi ChSocketTCP : public ChSocket {
     virtual void connectToServer(std::string&, hostType);
 
   private:
+#ifdef WINDOWS_XP
+    // Windows NT version of the MSG_WAITALL option
+    int XPReceiveMessage(std::string&);
+#endif
+
+    // SendData variadic specialization for empty arguments
+    int SendData() { return SendBuffer(); }
+
+    // ReceiveData variadic specialization for empty arguments
+    int ReceiveData();
+
+    std::vector<char> m_internal_buffer_send = {};     ///< internal buffer to collect data to be sent
+    std::vector<char> m_internal_buffer_receive = {};  ///< internal buffer to collect received data
+    int receive_id = 0;
+
     void detectErrorBind(int*, std::string&);
     void detectErrorSend(int*, std::string&);
     void detectErrorRecv(int*, std::string&);
@@ -230,7 +290,6 @@ class ChApi ChSocketTCP : public ChSocket {
 /// all classes related to sockets, because it initializes some platform-specific
 /// settings.
 /// Delete it after you do not need sockets anymore.
-
 class ChApi ChSocketFramework {
   public:
     ChSocketFramework();

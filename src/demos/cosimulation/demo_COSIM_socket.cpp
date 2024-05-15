@@ -72,46 +72,19 @@ int main(int argc, char* argv[]) {
         double a_out = 0;
         double a, b, c = 0;
 
-        auto write_to_charv = [](std::vector<char>& buffer, size_t offset, auto data_in) {
-            for (auto s = 0; s < sizeof(data_in); ++s) {
-                buffer[offset + s] = reinterpret_cast<char*>(&data_in)[s];
-            }
-        };
-
-        auto read_from_charv = [](const std::vector<char>& buffer, size_t offset, auto& data_out) {
-            for (auto s = 0; s < sizeof(data_out); ++s) {
-                reinterpret_cast<char*>(&data_out)[s] = buffer[offset + s];
-            }
-        };
-
         //// TODO: the pointer of local_host gets null after some time
         //// thus triggering an exception when asket to get its name
         auto local_host_name = std::string(local_host.getHostName());
 
         while (true) {
-            // Send to the client
 
-            std::vector<char> sbuffer(sizeof(double));
-            write_to_charv(sbuffer, 0, a_out);
+            int size_sent = client->SendData(a_out);
 
-            std::cout << local_host_name << " will send a buffer of " << sbuffer.size() << " bytes." << std::endl;
+            std::cout << local_host_name << " will send a buffer of " << size_sent << " bytes." << std::endl;
 
-            // -----> SEND!!!
-            client->SendBuffer(sbuffer);
+            int size_recv = client->ReceiveData(a, b, c);
 
-            // Receive from the client
-            int nbytes = sizeof(double) * 3;
-            std::vector<char> rbuffer;
-            rbuffer.resize(nbytes);  // reserve to number of expected bytes
-
-            // -----> RECEIVE!!!
-            int numBytes = client->ReceiveBuffer(rbuffer, nbytes);
-
-            std::cout << "Received " << numBytes << " bytes" << std::endl;
-
-            read_from_charv(rbuffer, 0, a);
-            read_from_charv(rbuffer, sizeof(double), b);
-            read_from_charv(rbuffer, 2 * sizeof(double), c);
+            std::cout << "Received " << size_recv << " bytes" << std::endl;
 
             std::cout << " a = " << a << std::endl << " b = " << b << std::endl << " c = " << c << std::endl;
 
