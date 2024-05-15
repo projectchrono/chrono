@@ -171,6 +171,8 @@ int main(int argc, char* argv[]) {
     double dt = 5e-4;
 
     while (time < stop_time) {
+        std::cout << "\r" << time << "\r";
+
         // ----------- Actuator input signal -> [actuator]
         fmi2Real Uref = actuation->GetVal(time);
 

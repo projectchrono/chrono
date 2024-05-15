@@ -1,7 +1,7 @@
 set(COMPONENT_NAME "FMU2_actuator")
 set(COMPONENT_MAIN_DIR "${DEMO_FMU_MAIN_DIR}")
 set(COMPONENT_SOURCES actuatorFMU.h actuatorFMU.cpp)
-set(COMPONENT_CHRONO_DEPENDENCIES ChronoEngine ChronoEngine_irrlicht)
+set(COMPONENT_CHRONO_DEPENDENCIES ChronoEngine)
 set(COMPONENT_RESOURCES_DIR "")
 set(COMPONENT_DLL_DEPENDENCIES "")
 
@@ -16,12 +16,6 @@ set(LINKER_FLAGS "${CH_LINKERFLAG_EXE}")
 list(APPEND LIBS "ChronoEngine")
 
 include_directories(${FMU_TOOLS_DIR})
-
-if(ENABLE_MODULE_IRRLICHT)
-  include_directories(${CH_IRRLICHT_INCLUDES})
-  set(COMPILER_FLAGS "${COMPILER_FLAGS} ${CH_IRRLICHT_CXX_FLAGS}")
-  list(APPEND LIBS "ChronoEngine_irrlicht")
-endif()
 
 #==============================================================
 

@@ -29,6 +29,9 @@
 
 #include "chrono_thirdparty/filesystem/path.h"
 
+#include "chrono/assets/ChVisualSystem.h"
+#include "chrono_vehicle/ChVehicleVisualSystem.h"
+
 #ifdef CHRONO_IRRLICHT
     #include "chrono_vehicle/driver/ChInteractiveDriverIRR.h"
     #include "chrono_vehicle/wheeled_vehicle/ChWheeledVehicleVisualSystemIrrlicht.h"
