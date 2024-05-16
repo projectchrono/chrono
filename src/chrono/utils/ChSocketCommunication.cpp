@@ -14,16 +14,16 @@
 
 #include <vector>
 
-#include "chrono_cosimulation/ChCosimulation.h"
+#include "chrono/utils/ChSocketCommunication.h"
 
 using namespace chrono::utils;
 
 namespace chrono {
-namespace cosimul {
+namespace utils {
 
-ChCosimulation::ChCosimulation(ChSocketFramework& mframework,  // socket framework
-                               int n_in_values,                // number of scalar variables to receive each timestep
-                               int n_out_values                // number of scalar variables to send each timestep
+ChSocketCommunication::ChSocketCommunication(ChSocketFramework& framework,  // socket framework
+                                             int n_in_values,               // number of recv scalar variables
+                                             int n_out_values               // number of send variables
 ) {
     this->myServer = 0;
     this->myClient = 0;
@@ -32,7 +32,7 @@ ChCosimulation::ChCosimulation(ChSocketFramework& mframework,  // socket framewo
     this->nport = 0;
 }
 
-ChCosimulation::~ChCosimulation() {
+ChSocketCommunication::~ChSocketCommunication() {
     if (this->myServer)
         delete this->myServer;
     this->myServer = 0;
@@ -41,11 +41,11 @@ ChCosimulation::~ChCosimulation() {
     this->myClient = 0;
 }
 
-bool ChCosimulation::WaitConnection(int aport) {
-    this->nport = aport;
+bool ChSocketCommunication::WaitConnection(int port) {
+    this->nport = port;
 
     // a server is created, that could listen at a given port
-    this->myServer = new ChSocketTCP(aport);
+    this->myServer = new ChSocketTCP(port);
 
     // bind socket to server
     this->myServer->bindSocket();
@@ -63,7 +63,7 @@ bool ChCosimulation::WaitConnection(int aport) {
     return true;
 }
 
-bool ChCosimulation::SendData(double mtime, ChVectorConstRef out_data) {
+bool ChSocketCommunication::SendData(double time, ChVectorConstRef out_data) {
     if (out_data.size() != this->out_n)
         throw std::runtime_error("ERROR: Sent data must be a vector of size N.");
     if (!myClient)
@@ -71,10 +71,9 @@ bool ChCosimulation::SendData(double mtime, ChVectorConstRef out_data) {
 
     std::vector<char> mbuffer;
     mbuffer.resize((out_data.size() + 1) * sizeof(double));
-    // Serialize data (little endian)...
-    // time:
+    // Serialize data (little endian): send time
     for (size_t ds = 0; ds < sizeof(double); ++ds) {
-        mbuffer[ds] = (reinterpret_cast<char*>(&mtime))[ds];
+        mbuffer[ds] = (reinterpret_cast<char*>(&time))[ds];
     }
 
     // variables:
@@ -91,7 +90,7 @@ bool ChCosimulation::SendData(double mtime, ChVectorConstRef out_data) {
     return true;
 }
 
-bool ChCosimulation::ReceiveData(double& mtime, ChVectorRef in_data) {
+bool ChSocketCommunication::ReceiveData(double& time, ChVectorRef in_data) {
     if (in_data.size() != this->in_n)
         throw std::runtime_error("ERROR: Received data must be a vector of size N.");
     if (!myClient)
@@ -105,10 +104,9 @@ bool ChCosimulation::ReceiveData(double& mtime, ChVectorRef in_data) {
     // -----> RECEIVE!!!
     /*int numBytes =*/this->myClient->ReceiveBuffer(rbuffer, nbytes);
 
-    // Deserialize data (little endian)...
-    // retrieve time
+    // Deserialize data (little endian): retrieve time
     for (size_t ds = 0; ds < sizeof(double); ++ds) {
-        reinterpret_cast<char*>(&mtime)[ds] = rbuffer[ds];
+        reinterpret_cast<char*>(&time)[ds] = rbuffer[ds];
     }
 
     // retrieve variables:
@@ -121,5 +119,5 @@ bool ChCosimulation::ReceiveData(double& mtime, ChVectorRef in_data) {
     return true;
 }
 
-}  // end namespace cosimul
+}  // end namespace utils
 }  // end namespace chrono

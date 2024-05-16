@@ -19,12 +19,6 @@
 #ifndef CHSOCKET_H
 #define CHSOCKET_H
 
-// This version is for both Windows and UNIX, the following statements
-// are used to set the flags WINDOWS_XP or UNIX that in these few files of 'socket'
-// code are used for conditional compilation
-#if (defined _WIN32)
-    #define WINDOWS_XP
-#endif
 #if (defined(__linux__) || defined(__APPLE__))
     #define UNIX
 #endif
@@ -47,9 +41,6 @@
     #include <sys/ioctl.h>
     #include <cstdio>
     #include <cstring>
-    #ifndef UNIX
-        #include <sys/filio.h>
-    #endif
     #ifdef __APPLE__
         // be sure to have TARGET_OS_MAC defined
         #include "TargetConditionals.h"
@@ -76,7 +67,6 @@ const int MAX_MSG_LEN = 1024;
 const int PORTNUM = 1200;
 
 /// Base class for sockets. Sockets have at least an ID and a port.
-/// The more specialized ChSocketTCP must be used in applications.
 class ChApi ChSocket {
   public:
     // given a port number, create a socket
@@ -133,7 +123,7 @@ class ChApi ChSocket {
 
   private:
 // Gets the system error
-#ifdef WINDOWS_XP
+#ifdef _WIN32
     void detectErrorOpenWinSocket(int*, std::string&);
     void detectErrorSetSocketOption(int*, std::string&);
     void detectErrorGetSocketOption(int*, std::string&);
@@ -159,20 +149,15 @@ class ChApi ChSocket {
 ///   + call SendData() | ReceiveData() with all the variables to be sent
 class ChApi ChSocketTCP : public ChSocket {
   public:
-    /*
-       Constructor. used for creating instances dedicated to client
-       communication:
+    /// Constructor used for creating instances dedicated to client communication.
+    /// When accept() is successful, a socketId is generated and returned this socket id is then used to build a new
+    /// socket using the following constructor, therefore, the next necessary call should be setSocketId() using this
+    /// newly generated socket fd.
+    ChSocketTCP() {}
+    ~ChSocketTCP() {}
 
-       when accept() is successful, a socketId is generated and returned
-       this socket id is then used to build a new socket using the following
-       constructor, therefore, the next necessary call should be setSocketId()
-       using this newly generated socket fd
-    */
-    ChSocketTCP(){};
-    ~ChSocketTCP(){};
-
-    /// Constructor.  Used to create a new TCP socket given a port
-    ChSocketTCP(int portId) : ChSocket(portId){};
+    /// Constructor.  Used to create a new TCP socket given a port.
+    ChSocketTCP(int portId) : ChSocket(portId) {}
 
     /// Send a std::string to the connected host.
     /// Note that the string size is handled automatically because there is
@@ -214,8 +199,7 @@ class ChApi ChSocketTCP : public ChSocket {
     int SendBuffer();
 
     /// Receive a given amount of bytes.
-    int ReceiveBuffer(int data_in_size  ///< size (in bytes) of the receiving stream
-    );
+    int ReceiveBuffer(int data_in_size);
 
     /// Read the received buffer, at the specified offset, into the given variable.
     template <typename T>
@@ -263,7 +247,7 @@ class ChApi ChSocketTCP : public ChSocket {
     virtual void connectToServer(std::string&, hostType);
 
   private:
-#ifdef WINDOWS_XP
+#ifdef _WIN32
     // Windows NT version of the MSG_WAITALL option
     int XPReceiveMessage(std::string&);
 #endif
@@ -287,9 +271,7 @@ class ChApi ChSocketTCP : public ChSocket {
 };
 
 /// A single object of this class must be instantiated before using
-/// all classes related to sockets, because it initializes some platform-specific
-/// settings.
-/// Delete it after you do not need sockets anymore.
+/// all classes related to sockets, because it initializes some platform-specific settings.
 class ChApi ChSocketFramework {
   public:
     ChSocketFramework();
@@ -317,19 +299,16 @@ class ChApi ChSocketFramework {
      in this case, the standard host name for the current processor is used
 */
 
-/// Class for storing information about a TCP host
-/// in socket communication, ex with an IP address.
-
+/// Class for storing information about a TCP host in socket communication, e.g. with an IP address.
 class ChApi ChSocketHostInfo {
   private:
 #ifdef UNIX
     char searchHostDB;  ///< search the host database flag
 #endif
 
-    struct hostent* hostPtr;  ///< Entry within the host address database
+    struct hostent* hostPtr;  ///< entry within the host address database
 
   public:
-    /// Default constructor
     ChSocketHostInfo();
 
     /// Retrieves the host entry based on the host name or address.
@@ -356,14 +335,14 @@ class ChApi ChSocketHostInfo {
 
 #endif
 
-    /// Retrieves the hosts IP address in dot x.y.z.w notation.
+    /// Retrieve the hosts IP address in dot x.y.z.w notation.
     char* getHostIPAddress();
 
-    /// Retrieves the hosts name.
+    /// Retrieve the hosts name.
     char* getHostName() { return hostPtr->h_name; }
 
   private:
-#ifdef WINDOWS_XP
+#ifdef _WIN32
     void detectErrorGethostbyname(int*, std::string&);
     void detectErrorGethostbyaddr(int*, std::string&);
 #endif

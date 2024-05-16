@@ -21,12 +21,10 @@
 // =============================================================================
 
 #include "chrono/physics/ChSystemNSC.h"
-
-#include "chrono_cosimulation/ChCosimulation.h"
+#include "chrono/utils/ChSocketCommunication.h"
 
 using namespace chrono;
 using namespace chrono::utils;
-using namespace chrono::cosimul;
 
 int main(int argc, char* argv[]) {
     std::cout << "Copyright (c) 2017 projectchrono.org\n"
@@ -90,9 +88,9 @@ int main(int argc, char* argv[]) {
 
         // 3) Create the cosimulation interface:
 
-        ChCosimulation cosimul_interface(socket_tools,
-                                         1,   // n.input values from Simulink
-                                         2);  // n.output values to Simulink
+        ChSocketCommunication cosimul_interface(socket_tools,
+                                                1,   // n.input values from Simulink
+                                                2);  // n.output values to Simulink
 
         // Prepare the two column vectors of data that will be swapped
         // back and forth between Chrono and Simulink. In detail we will

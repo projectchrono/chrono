@@ -9,8 +9,6 @@ Additional Chrono functionalities are provided through optional _modules_, condi
 
 -   [CASCADE module](@ref module_cascade_installation)
 
--   [COSIMULATION module](@ref module_cosimulation_installation)
-
 -   [CSHARP module](@ref module_csharp_installation)
 
 -   [FMI module](@ref module_fmi_installation)

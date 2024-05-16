@@ -19,11 +19,10 @@
 //
 // =============================================================================
 
-#include "chrono_cosimulation/ChCosimulation.h"
+#include "chrono/utils/ChSocketCommunication.h"
 
 using namespace chrono;
 using namespace chrono::utils;
-using namespace chrono::cosimul;
 
 int main(int argc, char* argv[]) {
     std::cout << "Copyright (c) 2017 projectchrono.org\n"
@@ -45,9 +44,9 @@ int main(int argc, char* argv[]) {
         ChSocketFramework socket_tools;
 
         // 2) Create the cosimulation interface:
-        ChCosimulation cosimul_interface(socket_tools,
-                                         3,   // num. input values from Simulink
-                                         2);  // num. output values to Simulink
+        ChSocketCommunication cosimul_interface(socket_tools,
+                                                3,   // num. input values from Simulink
+                                                2);  // num. output values to Simulink
 
         // 3) Wait client (Simulink) to connect...
         std::cout << " *** Waiting Simulink to start... ***\n"
