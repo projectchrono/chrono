@@ -1,13 +1,19 @@
 set(COMPONENT_NAME "FMU2_crane")
 set(COMPONENT_MAIN_DIR "${DEMO_FMU_MAIN_DIR}")
 set(COMPONENT_SOURCES craneFMU.h craneFMU.cpp)
-set(COMPONENT_CHRONO_DEPENDENCIES ChronoEngine ChronoEngine_irrlicht)
 set(COMPONENT_RESOURCES_DIR "")
-if(${CMAKE_SYSTEM_NAME} MATCHES "Windows")
-  set(COMPONENT_DLL_DEPENDENCIES "${CH_IRRLICHT_DLL}")
+if (ENABLE_MODULE_IRRLICHT)
+  set(COMPONENT_CHRONO_DEPENDENCIES ChronoEngine ChronoEngine_irrlicht)
+  if(${CMAKE_SYSTEM_NAME} MATCHES "Windows")
+    set(COMPONENT_DLL_DEPENDENCIES "${CH_IRRLICHT_DLL}")
+  else()
+    set(COMPONENT_DLL_DEPENDENCIES "")
+  endif()
 else()
-  set(COMPONENT_DLL_DEPENDENCIES "")
+  set(COMPONENT_CHRONO_DEPENDENCIES ChronoEngine)
 endif()
+
+set(FMU_CS ON)
 
 #--------------------------------------------------------------
 

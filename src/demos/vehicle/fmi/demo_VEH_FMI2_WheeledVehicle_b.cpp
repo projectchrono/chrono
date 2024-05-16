@@ -20,12 +20,17 @@
 #include <array>
 
 #include "chrono/core/ChTimer.h"
+#include "chrono/utils/ChUtilsInputOutput.h"
 
 #include "chrono_vehicle/ChConfigVehicleFMI.h"
 #include "chrono_vehicle/ChVehicleModelData.h"
 #include "chrono_vehicle/ChSubsysDefs.h"
 #include "chrono_vehicle/terrain/RigidTerrain.h"
 #include "chrono_vehicle/terrain/FlatTerrain.h"
+
+#ifdef CHRONO_POSTPROCESS
+    #include "chrono_postprocess/ChGnuPlot.h"
+#endif
 
 #include "chrono_thirdparty/filesystem/path.h"
 
@@ -67,7 +72,7 @@ void CreateVehicleFMU(FmuChronoUnit& vehicle_fmu,
                       bool visible,
                       double fps) {
     try {
-        vehicle_fmu.Load(VEHICLE_FMU_FILENAME, VEHICLE_UNPACK_DIR);
+        vehicle_fmu.Load(fmi2Type::fmi2CoSimulation, VEHICLE_FMU_FILENAME, VEHICLE_UNPACK_DIR);
     } catch (std::exception& e) {
         throw e;
     }
@@ -116,7 +121,7 @@ void CreateDriverFMU(FmuChronoUnit& driver_fmu,
                      bool visible,
                      double fps) {
     try {
-        driver_fmu.Load(DRIVER_FMU_FILENAME, DRIVER_UNPACK_DIR);
+        driver_fmu.Load(fmi2Type::fmi2CoSimulation, DRIVER_FMU_FILENAME, DRIVER_UNPACK_DIR);
     } catch (std::exception& e) {
         throw e;
     }
@@ -159,7 +164,7 @@ void CreateTireFMU(FmuChronoUnit& tire_fmu,
                    const std::vector<std::string>& logCategories,
                    const std::string& out_path) {
     try {
-        tire_fmu.Load(TIRE_FMU_FILENAME, TIRE_UNPACK_DIR);
+        tire_fmu.Load(fmi2Type::fmi2CoSimulation, TIRE_FMU_FILENAME, TIRE_UNPACK_DIR);
     } catch (std::exception& e) {
         throw e;
     }
@@ -221,7 +226,7 @@ int main(int argc, char* argv[]) {
     std::vector<std::string> logCategories = {"logAll"};
 
     double start_time = 0;
-    double stop_time = 20;
+    double stop_time = 16;
     double step_size = 1e-3;
 
     bool vehicle_visible = true;
@@ -292,19 +297,23 @@ int main(int argc, char* argv[]) {
     // Create terrain
     FlatTerrain terrain(0.0, 0.8f);
 
-    // Simulation loop
-    std::string wheel_id[4] = {"wheel_FL", "wheel_FR", "wheel_RL", "wheel_RR"};
+    // Initialize output
+    utils::ChWriterCSV csv;
+    csv.SetDelimiter(" ");
 
     // Enable/disable saving snapshots
     vehicle_fmu.SetVariable("save_img", save_img);
     driver_fmu.SetVariable("save_img", save_img);
+
+     // Simulation loop
+    std::string wheel_id[4] = {"wheel_FL", "wheel_FR", "wheel_RL", "wheel_RR"};
 
     double time = 0;
     ChTimer timer;
     timer.start();
 
     while (time < stop_time) {
-        ////std::cout << "time = " << time << std::endl;
+        std::cout << "\r" << time << "\r";
 
         // ----------- Set FMU control variables
         double target_speed = 12;
@@ -359,6 +368,9 @@ int main(int argc, char* argv[]) {
             tire_fmu[i].SetVariable("terrain_mu", terrain_mu, FmuVariable::Type::Real);
         }
 
+        // ----------- Save output
+        csv << time << ref_frame.GetPos() << std::endl;
+
         // ----------- Advance FMUs
         auto status_vehicle = vehicle_fmu.DoStep(time, step_size, fmi2True);
         auto status_driver = driver_fmu.DoStep(time, step_size, fmi2True);
@@ -376,6 +388,18 @@ int main(int argc, char* argv[]) {
     timer.stop();
     std::cout << "Sim time: " << time << std::endl;
     std::cout << "Run time: " << timer() << std::endl;
+
+    std::string out_file = out_dir + "/vehicle.out";
+    csv.WriteToFile(out_file);
+
+#ifdef CHRONO_POSTPROCESS
+    postprocess::ChGnuPlot gplot(out_dir + "/vehicle.gpl");
+    gplot.SetGrid();
+    gplot.SetLabelX("x");
+    gplot.SetLabelY("y");
+    gplot.SetTitle("Vehicle path");
+    gplot.Plot(out_file, 2, 3, "path", " with lines lt 1 lw 2");
+#endif
 
     return 0;
 }

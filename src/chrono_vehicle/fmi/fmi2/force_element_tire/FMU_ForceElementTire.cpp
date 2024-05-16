@@ -98,10 +98,10 @@ FmuComponent::FmuComponent(fmi2String instanceName,
                    FmuVariable::CausalityType::input, FmuVariable::VariabilityType::continuous);             //
 
     // Specify functions to process input variables (at beginning of step)
-    m_preStepCallbacks.push_back([this]() { this->SynchronizeTire(this->GetTime()); });
+    AddPreStepFunction([this]() { this->SynchronizeTire(this->GetTime()); });
 
     // Specify functions to calculate FMU outputs (at end of step)
-    m_postStepCallbacks.push_back([this]() { this->CalculateTireOutputs(); });
+    AddPostStepFunction([this]() { this->CalculateTireOutputs(); });
 }
 
 class DummyWheel : public ChWheel {
