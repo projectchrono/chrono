@@ -174,7 +174,8 @@ class ChApi ChVisualShapeFEA {
                                std::shared_ptr<fea::ChElementBase> melement);
     ChColor ComputeFalseColor(double in);
 
-    // Helper functions for updateing buffers of specific element types
+    // Helper functions for updating buffers of specific element types
+
     void UpdateBuffers_Tetrahedron(std::shared_ptr<fea::ChElementBase> element,
                                    ChTriangleMeshConnected& trianglemesh,
                                    unsigned int& i_verts,

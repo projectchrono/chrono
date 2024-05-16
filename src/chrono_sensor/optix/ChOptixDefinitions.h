@@ -39,10 +39,6 @@ struct half4 {
 /// @addtogroup sensor_optix
 /// @{
 
-/// @addtogroup sensor_optix
-/// @{
-
-
 /// Ray types, used to determine the shading and miss functions for populating ray information
 enum RayType {
     CAMERA_RAY_TYPE = 0,       /// camera rays

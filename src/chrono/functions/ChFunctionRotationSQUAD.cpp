@@ -31,10 +31,8 @@ ChFunctionRotationSQUAD::ChFunctionRotationSQUAD() {
     space_fx = chrono_types::make_shared<ChFunctionRamp>(0, 1.);
 }
 
-ChFunctionRotationSQUAD::ChFunctionRotationSQUAD(
-    const std::vector<ChQuaternion<> >& mrotations,  ///< control points, size n. Required: at least n >= p+1
-    ChVectorDynamic<>* mknots  ///< knots, size k. Required k=n+p+1. If not provided, initialized to uniform.
-) {
+ChFunctionRotationSQUAD::ChFunctionRotationSQUAD(const std::vector<ChQuaternion<> >& mrotations,
+                                                 ChVectorDynamic<>* mknots) {
     this->closed = false;
     this->Setup(mrotations, mknots);
 
@@ -52,10 +50,7 @@ ChFunctionRotationSQUAD::ChFunctionRotationSQUAD(const ChFunctionRotationSQUAD& 
 
 ChFunctionRotationSQUAD::~ChFunctionRotationSQUAD() {}
 
-void ChFunctionRotationSQUAD::Setup(
-    const std::vector<ChQuaternion<> >& mrotations,  ///< rotation control points, size n. Required: at least n >= p+1
-    ChVectorDynamic<>* mknots  ///< knots, as many as control points. If not provided, initialized to uniform.
-) {
+void ChFunctionRotationSQUAD::Setup(const std::vector<ChQuaternion<> >& mrotations, ChVectorDynamic<>* mknots) {
     if (mrotations.size() < 2)
         throw std::invalid_argument("ChFunctionRotationSQUAD::Setup requires at least 2control points.");
 

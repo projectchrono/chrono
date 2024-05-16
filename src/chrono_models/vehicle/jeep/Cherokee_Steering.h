@@ -28,7 +28,7 @@ namespace chrono {
 namespace vehicle {
 namespace jeep {
 
-/// @addtogroup vehicle_models_fmtv
+/// @addtogroup vehicle_models_cherokee
 /// @{
 
 /// RotaryArm steering subsystem for the FMTV vehicles.
@@ -60,7 +60,7 @@ class CH_MODELS_API Cherokee_Steering : public ChRotaryArm {
     static const ChVector3d m_pitmanArmInertiaProducts;
 };
 
-/// @} vehicle_models_fmtv
+/// @} vehicle_models_cherokee
 
 }  // namespace fmtv
 }  // end namespace vehicle

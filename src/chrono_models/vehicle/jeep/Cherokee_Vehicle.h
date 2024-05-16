@@ -30,7 +30,7 @@ namespace chrono {
 namespace vehicle {
 namespace jeep {
 
-/// @addtogroup vehicle_models_sedan
+/// @addtogroup vehicle_models_cherokee
 /// @{
 
 /// Sedan vehicle system.
@@ -79,7 +79,7 @@ class CH_MODELS_API Cherokee_Vehicle : public ChWheeledVehicle {
     std::vector<double> m_omega;
 };
 
-/// @} vehicle_models_sedan
+/// @} vehicle_models_cherokee
 
 }  // namespace bmw
 }  // end namespace vehicle

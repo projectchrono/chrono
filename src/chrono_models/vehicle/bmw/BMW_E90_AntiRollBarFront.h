@@ -59,7 +59,7 @@ class CH_MODELS_API BMW_E90_AntiRollBarFront : public ChAntirollBarRSD {
     static const double m_damping_coef;
 };
 
-/// @} vehicle_models_feda
+/// @} vehicle_models_bmw
 
 }  // namespace bmw
 }  // end namespace vehicle

@@ -29,7 +29,7 @@ namespace chrono {
 namespace vehicle {
 namespace bmw {
 
-/// @addtogroup vehicle_models_sedan
+/// @addtogroup vehicle_models_bmw
 /// @{
 
 /// Shafts-based 2-WD driveline for the Sedan vehicle.
@@ -58,7 +58,7 @@ class CH_MODELS_API BMW_E90_Driveline : public ChShaftsDriveline2WD {
     static const double m_axle_differential_locking_limit;
 };
 
-/// @} vehicle_models_sedan
+/// @} vehicle_models_bmw
 
 }  // namespace bmw
 }  // end namespace vehicle

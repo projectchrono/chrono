@@ -43,9 +43,9 @@ class ChApi ChMarker : public ChObj, public ChFrameMoving<double> {
     ChMarker();
     ChMarker(const std::string& name,
              ChBody* body,
-             const ChCoordsysd& rel_csys,
-             const ChCoordsysd& rel_csys_dt,
-             const ChCoordsysd& rel_csys_dtdt);
+             const ChCoordsys<>& rel_csys,
+             const ChCoordsys<>& rel_csys_dt,
+             const ChCoordsys<>& rel_csys_dtdt);
     ChMarker(const ChMarker& other);
     ~ChMarker();
 

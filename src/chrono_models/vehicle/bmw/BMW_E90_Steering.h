@@ -65,7 +65,7 @@ class CH_MODELS_API BMW_E90_Steering : public ChRackPinion {
     static const double m_maxAngle;
 };
 
-/// @} vehicle_models_hmmwv
+/// @} vehicle_models_bmw
 
 }  // namespace bmw
 }  // end namespace vehicle
