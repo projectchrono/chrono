@@ -584,12 +584,6 @@ void ChSocketTCP::bindSocket() {
 
 #ifdef WINDOWS_XP
 
-int ChSocketTCP::ReceiveData() {
-    m_internal_buffer_receive.resize(receive_id);
-    ReceiveBuffer(m_internal_buffer_receive, (int)m_internal_buffer_receive.size());
-    return receive_id;
-}
-
 void ChSocketTCP::detectErrorBind(int* errCode, std::string& errMsg) {
     *errCode = WSAGetLastError();
 
@@ -1189,6 +1183,13 @@ int ChSocketTCP::ReceiveBuffer(int data_in_size) {
     m_internal_buffer_receive.clear();
     return ReceiveBuffer(m_internal_buffer_receive, data_in_size);
 }
+
+int ChSocketTCP::ReceiveData() {
+    m_internal_buffer_receive.resize(receive_id);
+    ReceiveBuffer(m_internal_buffer_receive, (int)m_internal_buffer_receive.size());
+    return receive_id;
+}
+
 
 // -----------------
 // ChSocketFramework
