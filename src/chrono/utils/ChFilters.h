@@ -421,7 +421,7 @@ class ChApi ChISO2631_5_Wxy {
 class ChApi ChISO2631_5_Wz {
   public:
     ChISO2631_5_Wz();
-    void Filter(std::vector<double>& u, std::vector<double>& y);
+    void Filter(const std::vector<double>& u, std::vector<double>& y);
 
   private:
     static const double m_w[13][7];
