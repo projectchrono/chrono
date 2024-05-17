@@ -1,7 +1,7 @@
 {
 	"version": 1,
 	"vendor": {
-		"projectchrono.org/chrono/8.0.0": {}
+		"projectchrono.org/chrono/9.0.0": {}
 	},
 	"cmakeMinimumRequired": {
 		"major": 3,
