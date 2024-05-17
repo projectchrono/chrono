@@ -1038,15 +1038,15 @@ void drawProfiler(ChVisualSystemIrrlicht* vis) {
 }
 
 // Draw RGB coordinate system
-void drawCoordsys(ChVisualSystemIrrlicht* vis, const ChCoordsys<>& coord, double scale) {
+void drawCoordsys(ChVisualSystemIrrlicht* vis, const ChCoordsys<>& coord, double scale, bool use_Zbuffer) {
     ChVector3d pos = coord.pos;
     ChQuaternion<> rot = coord.rot;
     // X axis
-    drawSegment(vis, pos, pos + rot.Rotate(VECT_X) * scale, ChColor(1.f, 0.f, 0.f));
+    drawSegment(vis, pos, pos + rot.Rotate(VECT_X) * scale, ChColor(1.f, 0.f, 0.f), use_Zbuffer);
     // Y axis
-    drawSegment(vis, pos, pos + rot.Rotate(VECT_Y) * scale, ChColor(0.f, 1.f, 0.f));
+    drawSegment(vis, pos, pos + rot.Rotate(VECT_Y) * scale, ChColor(0.f, 1.f, 0.f), use_Zbuffer);
     // Z axis
-    drawSegment(vis, pos, pos + rot.Rotate(VECT_Z) * scale, ChColor(0.f, 0.f, 1.f));
+    drawSegment(vis, pos, pos + rot.Rotate(VECT_Z) * scale, ChColor(0.f, 0.f, 1.f), use_Zbuffer);
 }
 
 // -----------------------------------------------------------------------------
