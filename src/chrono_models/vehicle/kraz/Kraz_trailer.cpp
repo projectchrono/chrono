@@ -26,9 +26,10 @@ namespace chrono {
 namespace vehicle {
 namespace kraz {
 
-Kraz_trailer::Kraz_trailer(ChSystem* system) : ChWheeledTrailer("KrazTrailer", system) {
+Kraz_trailer::Kraz_trailer(ChSystem* system, CollisionType chassis_collision_type)
+    : ChWheeledTrailer("KrazTrailer", system) {
     // Create the chassis and its connector
-    m_chassis = chrono_types::make_shared<Kraz_trailer_Chassis>("Chassis");
+    m_chassis = chrono_types::make_shared<Kraz_trailer_Chassis>("Chassis", chassis_collision_type);
     m_connector = chrono_types::make_shared<Kraz_trailer_Connector>("Connector");
 
     // Create the axle subsystems (suspension, wheels, and brakes)

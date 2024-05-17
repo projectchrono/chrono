@@ -34,8 +34,10 @@ namespace kraz {
 /// Kraz tractor system.
 class CH_MODELS_API Kraz_tractor : public ChWheeledVehicle {
   public:
-    Kraz_tractor(bool fixed, ChContactMethod contactMethod = ChContactMethod::NSC);
-    Kraz_tractor(ChSystem* system, bool fixed);
+    Kraz_tractor(bool fixed,
+                 CollisionType chassis_collision_type = CollisionType::NONE,
+                 ChContactMethod contactMethod = ChContactMethod::NSC);
+    Kraz_tractor(ChSystem* system, bool fixed, CollisionType chassis_collision_type = CollisionType::NONE);
     ~Kraz_tractor() {}
 
     virtual unsigned int GetNumberAxles() const override { return 3; }
@@ -59,7 +61,7 @@ class CH_MODELS_API Kraz_tractor : public ChWheeledVehicle {
     void DebugLog(int what);       /// shock forces and lengths, constraints, etc.
 
   private:
-    void Create(bool fixed);
+    void Create(bool fixed, CollisionType chassis_collision_type);
 };
 
 /// @} vehicle_models_kraz

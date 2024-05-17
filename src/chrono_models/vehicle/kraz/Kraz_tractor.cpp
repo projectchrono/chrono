@@ -30,17 +30,19 @@ namespace vehicle {
 namespace kraz {
 
 // -----------------------------------------------------------------------------
-Kraz_tractor::Kraz_tractor(bool fixed, ChContactMethod contactMethod) : ChWheeledVehicle("KrazTractor", contactMethod) {
-    Create(fixed);
+Kraz_tractor::Kraz_tractor(bool fixed, CollisionType chassis_collision_type, ChContactMethod contactMethod)
+    : ChWheeledVehicle("KrazTractor", contactMethod) {
+    Create(fixed, chassis_collision_type);
 }
 
-Kraz_tractor::Kraz_tractor(ChSystem* system, bool fixed) : ChWheeledVehicle("KrazTractor", system) {
-    Create(fixed);
+Kraz_tractor::Kraz_tractor(ChSystem* system, bool fixed, CollisionType chassis_collision_type)
+    : ChWheeledVehicle("KrazTractor", system) {
+    Create(fixed, chassis_collision_type);
 }
 
-void Kraz_tractor::Create(bool fixed) {
+void Kraz_tractor::Create(bool fixed, CollisionType chassis_collision_type) {
     // Create the chassis subsystem
-    m_chassis = chrono_types::make_shared<Kraz_tractor_Chassis>("Chassis");
+    m_chassis = chrono_types::make_shared<Kraz_tractor_Chassis>("Chassis", fixed, chassis_collision_type);
 
     // Create the axle subsystems
     m_axles.resize(3);
