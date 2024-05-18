@@ -4,6 +4,7 @@
 Change Log
 ==========
 
+- [Unreleased (development branch)](#unreleased-development-branch)
 - [Release 9.0.0 (2024-05-20)](#release-900-2024-05-20)
   - [\[Changed\] Default number of threads](#changed-default-number-of-threads)
   - [\[Changed\] Refactoring of class and function names](#changed-refactoring-of-class-and-function-names)
@@ -105,6 +106,7 @@ Change Log
   - [\[Changed\] Eigen sparse matrices and updates to direct sparse linear solvers](#changed-eigen-sparse-matrices-and-updates-to-direct-sparse-linear-solvers)
 - [Release 4.0.0 (2019-02-22)](#release-400-2019-02-22)
 
+# Unreleased (development branch)
 
 # Release 9.0.0 (2024-05-20)
 
