@@ -602,6 +602,11 @@ void ChContactSurfaceMesh::AddFace(std::shared_ptr<ChNodeFEAxyz> node1,
     );
     contact_triangle->AddCollisionShape(tri_shape);
 
+    if (!m_self_collide) {
+        contact_triangle->GetCollisionModel()->SetFamily(m_collision_family);
+        contact_triangle->GetCollisionModel()->DisallowCollisionsWith(m_collision_family);
+    }
+
     m_faces.push_back(contact_triangle);
 }
 
@@ -639,6 +644,11 @@ void ChContactSurfaceMesh::AddFace(std::shared_ptr<ChNodeFEAxyzrot> node1,
         sphere_swept                                            // thickness
     );
     contact_triangle->AddCollisionShape(tri_shape);
+
+    if (!m_self_collide) {
+        contact_triangle->GetCollisionModel()->SetFamily(m_collision_family);
+        contact_triangle->GetCollisionModel()->DisallowCollisionsWith(m_collision_family);
+    }
 
     m_faces_rot.push_back(contact_triangle);
 }
