@@ -144,6 +144,9 @@ class CH_VEHICLE_API ChMBTire : public ChDeformableTire {
 
 // Underlying (private) implementation of the MB tire model.
 class MBTireModel : public ChPhysicsItem {
+  public:
+    MBTireModel();
+
   private:
     // Construct the MB tire relative to the associated wheel/spindle body.
     void Construct();
@@ -224,12 +227,12 @@ class MBTireModel : public ChPhysicsItem {
 
     // Get the node index from the ring index and division index.
     // Return -1 if out-of-bounds ring and use a cyclic index for divisions on the ring.
-    int NodeIndex(int ir, int id);
+    int NodeIndex(int ir, int id) const;
 
     // Get the rim node index from the ring index and division index.
     // Used to identify rim nodes.
     // Return -1 if out-of-bounds ring and use a cyclic index for divisions on the ring.
-    int RimNodeIndex(int ir, int id);
+    int RimNodeIndex(int ir, int id) const;
 
     // Get normal and elemental area for the node with current ring and division indices.
     void CalcNormal(int ir, int id, ChVector3d& normal, double& area);
@@ -264,9 +267,16 @@ class MBTireModel : public ChPhysicsItem {
     std::shared_ptr<fea::ChContactSurface> m_contact_surf;        // contact surface
     std::shared_ptr<ChVisualShapeTriangleMesh> m_trimesh_shape;   // mesh visualization asset
 
+    // Base class for all springs in an MBTire model.
+    struct Spring {
+        virtual void CalculateForce() = 0;
+        virtual void CalculateJacobian(double Kfactor, double Rfactor) = 0;
+        virtual void CalculateJacobianFD(double Kfactor, double Rfactor) = 0;
+    };
+
     // Linear spring between two FEA nodes.
     // Spring forces include both stiffness and damping.
-    struct Spring2 {
+    struct Spring2 : public Spring {
         int inode1;  // index of first node
         int inode2;  // index of second node
 
@@ -286,16 +296,14 @@ class MBTireModel : public ChPhysicsItem {
         ChMatrixDynamic<double> J_fd;
 
         void Initialize();
-        virtual void CalculateForce();
-        virtual void CalculateJacobian(double Kfactor, double Rfactor) = 0;
-        virtual void CalculateJacobianFD(double Kfactor, double Rfactor) = 0;
+        virtual void CalculateForce() override;
 
         ChMatrix33<> CalculateJacobianBlock(double Kfactor, double Rfactor);
     };
 
     // Rotational spring between three FEA nodes.
     // Spring forces include only stiffness (no velocity-dependence).
-    struct Spring3 {
+    struct Spring3 : public Spring {
         int inode_p;  // index of previous node
         int inode_c;  // index of central node
         int inode_n;  // index of next node
@@ -319,9 +327,7 @@ class MBTireModel : public ChPhysicsItem {
         ChMatrixDynamic<double> J_fd;
 
         void Initialize();
-        virtual void CalculateForce();
-        virtual void CalculateJacobian(double Kfactor) = 0;
-        virtual void CalculateJacobianFD(double Kfactor) = 0;
+        virtual void CalculateForce() override;
 
         ChMatrixNM<double, 6, 9> CalculateJacobianBlockJ1(double Kfactor);
         ChMatrixNM<double, 6, 9> CalculateJacobianBlockJ2(double Kfactor);
@@ -354,8 +360,8 @@ class MBTireModel : public ChPhysicsItem {
     // F = [ force_p ; force_c ; force_n ]
     struct GridSpring3 : public Spring3 {
         void Initialize(bool stiff);
-        virtual void CalculateJacobian(double Kfactor) override;
-        virtual void CalculateJacobianFD(double Kfactor) override;
+        virtual void CalculateJacobian(double Kfactor, double Rfactor) override;
+        virtual void CalculateJacobianFD(double Kfactor, double Rfactor) override;
     };
 
     // Rotational spring between a wheel node and two grid nodes.
@@ -363,8 +369,8 @@ class MBTireModel : public ChPhysicsItem {
     struct EdgeSpring3 : public Spring3 {
         void Initialize(bool stiff);
         virtual void CalculateForce() override;
-        virtual void CalculateJacobian(double Kfactor) override;
-        virtual void CalculateJacobianFD(double Kfactor) override;
+        virtual void CalculateJacobian(double Kfactor, double Rfactor) override;
+        virtual void CalculateJacobianFD(double Kfactor, double Rfactor) override;
 
         ChMatrix33<> JacobianRotatedVector();
 
@@ -373,10 +379,18 @@ class MBTireModel : public ChPhysicsItem {
         ChVector3d torque_wheel;
     };
 
-    std::vector<GridSpring2> m_grid_lin_springs;  // node-node translational springs
-    std::vector<EdgeSpring2> m_edge_lin_springs;  // node-rim translational springs (first and last ring)
-    std::vector<GridSpring3> m_grid_rot_springs;  // node-node torsional springs
-    std::vector<EdgeSpring3> m_edge_rot_springs;  // node-rim torsional springs (first and last ring)
+    std::vector<std::shared_ptr<GridSpring2>> m_grid_lin_springs;  // node-node translational springs
+    std::vector<std::shared_ptr<EdgeSpring2>> m_edge_lin_springs;  // node-rim translational springs
+    std::vector<std::shared_ptr<GridSpring3>> m_grid_rot_springs;  // node-node torsional springs
+    std::vector<std::shared_ptr<EdgeSpring3>> m_edge_rot_springs;  // node-rim torsional springs
+
+    int m_num_grid_lin_springs;  // number of node-node translational springs
+    int m_num_edge_lin_springs;  // number of node-rim translational springs (first and last ring)
+    int m_num_grid_rot_springs;  // number of node-node torsional springs
+    int m_num_edge_rot_springs;  // number of node-rim torsional springs (first and last ring)
+
+    std::vector<std::shared_ptr<Spring>> m_springs;  // all springs in the system
+    int m_num_springs;                               // number of all springs in the system
 
     std::shared_ptr<ChBody> m_wheel;  // associated wheel body
     ChVector3d m_wheel_force;         // applied wheel spindle force (in global frame)

@@ -25,6 +25,14 @@
 #include "chrono/assets/ChVisualShapeSphere.h"
 #include "chrono_vehicle/wheeled_vehicle/tire/ChMBTire.h"
 
+// =============================================================================
+
+#define FORCE_SEQUENTIAL
+////#define FORCE_OMP_ALL_AT_ONCE
+////#define FORCE_OMP_CRITICAL_SECTION
+
+// =============================================================================
+
 namespace chrono {
 namespace vehicle {
 
@@ -179,7 +187,14 @@ std::vector<std::shared_ptr<fea::ChNodeFEAxyz>>& ChMBTire::GetRimNodes() const {
 
 // =============================================================================
 
-int MBTireModel::NodeIndex(int ir, int id) {
+MBTireModel::MBTireModel()
+    : m_num_grid_lin_springs(0),
+      m_num_edge_lin_springs(0),
+      m_num_grid_rot_springs(0),
+      m_num_edge_rot_springs(0),
+      m_num_springs(0) {}
+
+int MBTireModel::NodeIndex(int ir, int id) const {
     // If ring index out-of-bounds, return -1
     if (ir < 0 || ir >= m_num_rings)
         return -1;
@@ -192,7 +207,7 @@ int MBTireModel::NodeIndex(int ir, int id) {
     return ir * m_num_divs + (id % m_num_divs);
 }
 
-int MBTireModel::RimNodeIndex(int ir, int id) {
+int MBTireModel::RimNodeIndex(int ir, int id) const {
     // If ring index out-of-bounds, return -1
     if (ir != 0 && ir != m_num_rings - 1)
         return -1;
@@ -768,7 +783,9 @@ ChMatrixNM<double, 6, 9> MBTireModel::Spring3::CalculateJacobianBlockJ2(double K
 // For a rotational spring connecting three grid nodes, the Jacobian is a 9x9 matrix:
 //   d[f_p;f_c;f_n]/d[n_p;n_c;n_n]
 // where f_p, f_c, and f_n are the nodal forces and n_p, n_c, and n_n are the states of the 3 nodes.
-void MBTireModel::GridSpring3::CalculateJacobian(double Kfactor) {
+
+// Note: Rfactor not used here (no damping)
+void MBTireModel::GridSpring3::CalculateJacobian(double Kfactor, double Rfactor) {
     ChMatrixRef J = KRM.GetMatrix();
     if (Kfactor == 0) {
         J.setZero();
@@ -805,7 +822,8 @@ void MBTireModel::GridSpring3::CalculateJacobian(double Kfactor) {
     ////std::cout << "=======" << std::endl;
 }
 
-void MBTireModel::GridSpring3::CalculateJacobianFD(double Kfactor) {
+// Note: Rfactor not used here (no damping)
+void MBTireModel::GridSpring3::CalculateJacobianFD(double Kfactor, double Rfactor) {
     ChMatrixNM<double, 9, 9> K;
 
     K.setZero();
@@ -881,7 +899,8 @@ ChMatrix33<> MBTireModel::EdgeSpring3::JacobianRotatedVector() {
     return Jac_Af_m;
 }
 
-void MBTireModel::EdgeSpring3::CalculateJacobian(double Kfactor) {
+// Note: Rfactor not used here (no damping)
+void MBTireModel::EdgeSpring3::CalculateJacobian(double Kfactor, double Rfactor) {
     ChMatrixRef J = KRM.GetMatrix();
     if (Kfactor == 0) {
         J.setZero();
@@ -928,7 +947,8 @@ void MBTireModel::EdgeSpring3::CalculateJacobian(double Kfactor) {
     ////std::cout << "=======" << std::endl;
 }
 
-void MBTireModel::EdgeSpring3::CalculateJacobianFD(double Kfactor) {
+// Note: Rfactor not used here (no damping)
+void MBTireModel::EdgeSpring3::CalculateJacobianFD(double Kfactor, double Rfactor) {
     ChMatrixNM<double, 12, 12> K;  // +3 due to the torque
 
     K.setZero();
@@ -1082,17 +1102,22 @@ void MBTireModel::Construct() {
             int inode1 = NodeIndex(ir, id);
             int inode2 = NodeIndex(ir, id + 1);
 
-            GridSpring2 spring;
-            spring.inode1 = inode1;
-            spring.inode2 = inode2;
-            spring.node1 = m_nodes[inode1].get();
-            spring.node2 = m_nodes[inode2].get();
-            spring.wheel = m_wheel.get();
-            spring.k = m_kC;
-            spring.c = m_cC;
+            auto spring = chrono_types::make_shared<GridSpring2>();
+            spring->inode1 = inode1;
+            spring->inode2 = inode2;
+            spring->node1 = m_nodes[inode1].get();
+            spring->node2 = m_nodes[inode2].get();
+            spring->wheel = m_wheel.get();
+            spring->k = m_kC;
+            spring->c = m_cC;
 
-            spring.Initialize(m_stiff || m_force_jac);
+            spring->Initialize(m_stiff || m_force_jac);
+
             m_grid_lin_springs.push_back(spring);
+            m_num_grid_lin_springs++;
+
+            m_springs.push_back(spring);
+            m_num_springs++;
         }
     }
 
@@ -1103,19 +1128,24 @@ void MBTireModel::Construct() {
             int inode1 = RimNodeIndex(0, id);
             int inode2 = NodeIndex(0, id);
 
-            EdgeSpring2 spring;
-            spring.inode1 = inode1;
-            spring.inode2 = inode2;
-            spring.node1 = m_rim_nodes[inode1].get();
-            spring.node2 = m_nodes[inode2].get();
-            spring.wheel = m_wheel.get();
-            spring.k = m_kR;
-            spring.c = m_cR;
+            auto spring = chrono_types::make_shared<EdgeSpring2>();
+            spring->inode1 = inode1;
+            spring->inode2 = inode2;
+            spring->node1 = m_rim_nodes[inode1].get();
+            spring->node2 = m_nodes[inode2].get();
+            spring->wheel = m_wheel.get();
+            spring->k = m_kR;
+            spring->c = m_cR;
 
-            spring.local_pos = m_wheel->TransformPointParentToLocal(m_rim_nodes[inode1]->GetPos());
+            spring->local_pos = m_wheel->TransformPointParentToLocal(m_rim_nodes[inode1]->GetPos());
 
-            spring.Initialize(m_stiff || m_force_jac);
+            spring->Initialize(m_stiff || m_force_jac);
+
             m_edge_lin_springs.push_back(spring);
+            m_num_edge_lin_springs++;
+
+            m_springs.push_back(spring);
+            m_num_springs++;
         }
 
         // node-node springs
@@ -1123,17 +1153,22 @@ void MBTireModel::Construct() {
             int inode1 = NodeIndex(ir, id);
             int inode2 = NodeIndex(ir + 1, id);
 
-            GridSpring2 spring;
-            spring.inode1 = inode1;
-            spring.inode2 = inode2;
-            spring.node1 = m_nodes[inode1].get();
-            spring.node2 = m_nodes[inode2].get();
-            spring.wheel = m_wheel.get();
-            spring.k = m_kT;
-            spring.c = m_cT;
+            auto spring = chrono_types::make_shared<GridSpring2>();
+            spring->inode1 = inode1;
+            spring->inode2 = inode2;
+            spring->node1 = m_nodes[inode1].get();
+            spring->node2 = m_nodes[inode2].get();
+            spring->wheel = m_wheel.get();
+            spring->k = m_kT;
+            spring->c = m_cT;
 
-            spring.Initialize(m_stiff || m_force_jac);
+            spring->Initialize(m_stiff || m_force_jac);
+
             m_grid_lin_springs.push_back(spring);
+            m_num_grid_lin_springs++;
+
+            m_springs.push_back(spring);
+            m_num_springs++;
         }
 
         // radial springs connected to the rim at last ring
@@ -1141,19 +1176,24 @@ void MBTireModel::Construct() {
             int inode1 = RimNodeIndex(m_num_rings - 1, id);
             int inode2 = NodeIndex(m_num_rings - 1, id);
 
-            EdgeSpring2 spring;
-            spring.inode1 = inode1;
-            spring.inode2 = inode2;
-            spring.node1 = m_rim_nodes[inode1].get();
-            spring.node2 = m_nodes[inode2].get();
-            spring.wheel = m_wheel.get();
-            spring.k = m_kR;
-            spring.c = m_cR;
+            auto spring = chrono_types::make_shared<EdgeSpring2>();
+            spring->inode1 = inode1;
+            spring->inode2 = inode2;
+            spring->node1 = m_rim_nodes[inode1].get();
+            spring->node2 = m_nodes[inode2].get();
+            spring->wheel = m_wheel.get();
+            spring->k = m_kR;
+            spring->c = m_cR;
 
-            spring.local_pos = m_wheel->TransformPointParentToLocal(m_rim_nodes[inode1]->GetPos());
+            spring->local_pos = m_wheel->TransformPointParentToLocal(m_rim_nodes[inode1]->GetPos());
 
-            spring.Initialize(m_stiff || m_force_jac);
+            spring->Initialize(m_stiff || m_force_jac);
+
             m_edge_lin_springs.push_back(spring);
+            m_num_edge_lin_springs++;
+
+            m_springs.push_back(spring);
+            m_num_springs++;
         }
     }
 
@@ -1164,20 +1204,25 @@ void MBTireModel::Construct() {
             int inode_c = NodeIndex(ir, id);
             int inode_n = NodeIndex(ir, id + 1);
 
-            GridSpring3 spring;
-            spring.inode_p = inode_p;
-            spring.inode_c = inode_c;
-            spring.inode_n = inode_n;
-            spring.node_p = m_nodes[inode_p].get();
-            spring.node_c = m_nodes[inode_c].get();
-            spring.node_n = m_nodes[inode_n].get();
-            spring.wheel = m_wheel.get();
-            spring.t0 = ChVector3d(0, 1, 0);
-            spring.k = m_kB;
-            spring.c = m_cB;
+            auto spring = chrono_types::make_shared<GridSpring3>();
+            spring->inode_p = inode_p;
+            spring->inode_c = inode_c;
+            spring->inode_n = inode_n;
+            spring->node_p = m_nodes[inode_p].get();
+            spring->node_c = m_nodes[inode_c].get();
+            spring->node_n = m_nodes[inode_n].get();
+            spring->wheel = m_wheel.get();
+            spring->t0 = ChVector3d(0, 1, 0);
+            spring->k = m_kB;
+            spring->c = m_cB;
 
-            spring.Initialize(m_stiff || m_force_jac);
+            spring->Initialize(m_stiff || m_force_jac);
+
             m_grid_rot_springs.push_back(spring);
+            m_num_grid_rot_springs++;
+
+            m_springs.push_back(spring);
+            m_num_springs++;
         }
     }
 
@@ -1192,22 +1237,27 @@ void MBTireModel::Construct() {
             int inode_c = NodeIndex(0, id);
             int inode_n = NodeIndex(1, id);
 
-            EdgeSpring3 spring;
-            spring.inode_p = inode_p;
-            spring.inode_c = inode_c;
-            spring.inode_n = inode_n;
-            spring.node_p = m_rim_nodes[inode_p].get();
-            spring.node_c = m_nodes[inode_c].get();
-            spring.node_n = m_nodes[inode_n].get();
-            spring.wheel = m_wheel.get();
-            spring.t0 = t0;
-            spring.k = m_kB;
-            spring.c = m_cB;
+            auto spring = chrono_types::make_shared<EdgeSpring3>();
+            spring->inode_p = inode_p;
+            spring->inode_c = inode_c;
+            spring->inode_n = inode_n;
+            spring->node_p = m_rim_nodes[inode_p].get();
+            spring->node_c = m_nodes[inode_c].get();
+            spring->node_n = m_nodes[inode_n].get();
+            spring->wheel = m_wheel.get();
+            spring->t0 = t0;
+            spring->k = m_kB;
+            spring->c = m_cB;
 
-            spring.local_pos = m_wheel->TransformPointParentToLocal(m_rim_nodes[inode_p]->GetPos());
+            spring->local_pos = m_wheel->TransformPointParentToLocal(m_rim_nodes[inode_p]->GetPos());
 
-            spring.Initialize(m_stiff || m_force_jac);
+            spring->Initialize(m_stiff || m_force_jac);
+
             m_edge_rot_springs.push_back(spring);
+            m_num_edge_rot_springs++;
+
+            m_springs.push_back(spring);
+            m_num_springs++;
         }
 
         // node-node torsional springs
@@ -1216,20 +1266,25 @@ void MBTireModel::Construct() {
             int inode_c = NodeIndex(ir, id);
             int inode_n = NodeIndex(ir + 1, id);
 
-            GridSpring3 spring;
-            spring.inode_p = inode_p;
-            spring.inode_c = inode_c;
-            spring.inode_n = inode_n;
-            spring.node_p = m_nodes[inode_p].get();
-            spring.node_c = m_nodes[inode_c].get();
-            spring.node_n = m_nodes[inode_n].get();
-            spring.wheel = m_wheel.get();
-            spring.t0 = t0;
-            spring.k = m_kB;
-            spring.c = m_cB;
+            auto spring = chrono_types::make_shared<GridSpring3>();
+            spring->inode_p = inode_p;
+            spring->inode_c = inode_c;
+            spring->inode_n = inode_n;
+            spring->node_p = m_nodes[inode_p].get();
+            spring->node_c = m_nodes[inode_c].get();
+            spring->node_n = m_nodes[inode_n].get();
+            spring->wheel = m_wheel.get();
+            spring->t0 = t0;
+            spring->k = m_kB;
+            spring->c = m_cB;
 
-            spring.Initialize(m_stiff || m_force_jac);
+            spring->Initialize(m_stiff || m_force_jac);
+
             m_grid_rot_springs.push_back(spring);
+            m_num_grid_rot_springs++;
+
+            m_springs.push_back(spring);
+            m_num_springs++;
         }
 
         // torsional springs connected to the rim at last ring
@@ -1238,24 +1293,34 @@ void MBTireModel::Construct() {
             int inode_c = NodeIndex(m_num_rings - 1, id);
             int inode_n = NodeIndex(m_num_rings - 2, id);
 
-            EdgeSpring3 spring;
-            spring.inode_p = inode_p;
-            spring.inode_c = inode_c;
-            spring.inode_n = inode_n;
-            spring.node_p = m_rim_nodes[inode_p].get();
-            spring.node_c = m_nodes[inode_c].get();
-            spring.node_n = m_nodes[inode_n].get();
-            spring.wheel = m_wheel.get();
-            spring.t0 = -t0;
-            spring.k = m_kB;
-            spring.c = m_cB;
+            auto spring = chrono_types::make_shared<EdgeSpring3>();
+            spring->inode_p = inode_p;
+            spring->inode_c = inode_c;
+            spring->inode_n = inode_n;
+            spring->node_p = m_rim_nodes[inode_p].get();
+            spring->node_c = m_nodes[inode_c].get();
+            spring->node_n = m_nodes[inode_n].get();
+            spring->wheel = m_wheel.get();
+            spring->t0 = -t0;
+            spring->k = m_kB;
+            spring->c = m_cB;
 
-            spring.local_pos = m_wheel->TransformPointParentToLocal(m_rim_nodes[inode_p]->GetPos());
+            spring->local_pos = m_wheel->TransformPointParentToLocal(m_rim_nodes[inode_p]->GetPos());
 
-            spring.Initialize(m_stiff || m_force_jac);
+            spring->Initialize(m_stiff || m_force_jac);
+
             m_edge_rot_springs.push_back(spring);
+            m_num_edge_rot_springs++;
+
+            m_springs.push_back(spring);
+            m_num_springs++;
         }
     }
+
+    assert(m_num_grid_lin_springs == (int)m_grid_lin_springs.size());
+    assert(m_num_grid_rot_springs == (int)m_grid_rot_springs.size());
+    assert(m_num_edge_lin_springs == (int)m_edge_lin_springs.size());
+    assert(m_num_edge_rot_springs == (int)m_edge_rot_springs.size());
 
     // ------------ Collision and visualization meshes
 
@@ -1430,37 +1495,132 @@ void MBTireModel::CalculateForces() {
 
     // ------------ Spring forces
 
+#if defined(FORCE_SEQUENTIAL)
+
     // Forces in mesh linear springs (node-node)
     for (auto& spring : m_grid_lin_springs) {
-        spring.CalculateForce();
-        nodal_forces[spring.inode1] += spring.force1;
-        nodal_forces[spring.inode2] += spring.force2;
+        spring->CalculateForce();
+        nodal_forces[spring->inode1] += spring->force1;
+        nodal_forces[spring->inode2] += spring->force2;
     }
 
     // Forces in edge linear springs (rim node: node1)
     for (auto& spring : m_edge_lin_springs) {
-        spring.CalculateForce();
-        m_wheel_force += spring.force_wheel;
-        m_wheel_torque += spring.torque_wheel;
-        nodal_forces[spring.inode2] += spring.force2;
+        spring->CalculateForce();
+        m_wheel_force += spring->force_wheel;
+        m_wheel_torque += spring->torque_wheel;
+        nodal_forces[spring->inode2] += spring->force2;
     }
 
     // Forces in mesh rotational springs (node-node)
     for (auto& spring : m_grid_rot_springs) {
-        spring.CalculateForce();
-        nodal_forces[spring.inode_p] += spring.force_p;
-        nodal_forces[spring.inode_c] += spring.force_c;
-        nodal_forces[spring.inode_n] += spring.force_n;
+        spring->CalculateForce();
+        nodal_forces[spring->inode_p] += spring->force_p;
+        nodal_forces[spring->inode_c] += spring->force_c;
+        nodal_forces[spring->inode_n] += spring->force_n;
     }
 
     // Forces in edge rotational springs (rim node: node_p)
     for (auto& spring : m_edge_rot_springs) {
-        spring.CalculateForce();
-        m_wheel_force += spring.force_wheel;
-        m_wheel_torque += spring.torque_wheel;
-        nodal_forces[spring.inode_c] += spring.force_c;
-        nodal_forces[spring.inode_n] += spring.force_n;
+        spring->CalculateForce();
+        m_wheel_force += spring->force_wheel;
+        m_wheel_torque += spring->torque_wheel;
+        nodal_forces[spring->inode_c] += spring->force_c;
+        nodal_forces[spring->inode_n] += spring->force_n;
     }
+
+#elif defined(FORCE_OMP_ALL_AT_ONCE)
+
+    int nthreads = GetSystem()->GetNumThreadsChrono();
+
+    // Loop through all springs in the system and let them evaluate forces
+    #pragma omp parallel for schedule(dynamic, 4) num_threads(nthreads)
+    for (int is = 0; is < m_num_springs; is++) {
+        m_springs[is]->CalculateForce();
+    }
+
+    // Loop through each type of spring and load nodal and wheel forces
+    for (auto& spring : m_grid_lin_springs) {
+        nodal_forces[spring->inode1] += spring->force1;
+        nodal_forces[spring->inode2] += spring->force2;
+    }
+
+    for (auto& spring : m_edge_lin_springs) {
+        m_wheel_force += spring->force_wheel;
+        m_wheel_torque += spring->torque_wheel;
+        nodal_forces[spring->inode2] += spring->force2;
+    }
+
+    for (auto& spring : m_grid_rot_springs) {
+        nodal_forces[spring->inode_p] += spring->force_p;
+        nodal_forces[spring->inode_c] += spring->force_c;
+        nodal_forces[spring->inode_n] += spring->force_n;
+    }
+
+    for (auto& spring : m_edge_rot_springs) {
+        m_wheel_force += spring->force_wheel;
+        m_wheel_torque += spring->torque_wheel;
+        nodal_forces[spring->inode_c] += spring->force_c;
+        nodal_forces[spring->inode_n] += spring->force_n;
+    }
+
+#elif defined(FORCE_OMP_CRITICAL_SECTION)
+
+    int nthreads = GetSystem()->GetNumThreadsChrono();
+
+    // Forces in mesh linear springs (node-node)
+    #pragma omp parallel for schedule(dynamic, 4) num_threads(nthreads)
+    for (int is = 0; is < m_num_grid_lin_springs; is++) {
+        auto& spring = m_grid_lin_springs[is];
+        spring->CalculateForce();
+    #pragma omp critical
+        {
+            nodal_forces[spring->inode1] += spring->force1;
+            nodal_forces[spring->inode2] += spring->force2;
+        }
+    }
+
+    // Forces in edge linear springs (rim node: node1)
+    #pragma omp parallel for schedule(dynamic, 4) num_threads(nthreads)
+    for (int is = 0; is < m_num_edge_lin_springs; is++) {
+        auto& spring = m_edge_lin_springs[is];
+        spring->CalculateForce();
+    #pragma omp critical
+        {
+            m_wheel_force += spring->force_wheel;
+            m_wheel_torque += spring->torque_wheel;
+            nodal_forces[spring->inode2] += spring->force2;
+        }
+    }
+
+    // Forces in mesh rotational springs (node-node)
+    #pragma omp parallel for schedule(dynamic, 4) num_threads(nthreads)
+    for (int is = 0; is < m_num_grid_rot_springs; is++) {
+        auto& spring = m_grid_rot_springs[is];
+        spring->CalculateForce();
+    #pragma omp critical
+        {
+            nodal_forces[spring->inode_p] += spring->force_p;
+            nodal_forces[spring->inode_c] += spring->force_c;
+            nodal_forces[spring->inode_n] += spring->force_n;
+        }
+    }
+
+    // Forces in edge rotational springs (rim node: node_p)
+    #pragma omp parallel for schedule(dynamic, 4) num_threads(nthreads)
+    for (int is = 0; is < m_num_edge_rot_springs; is++) {
+        auto& spring = m_edge_rot_springs[is];
+        spring->CalculateForce();
+    #pragma omp critical
+        {
+            m_wheel_force += spring->force_wheel;
+            m_wheel_torque += spring->torque_wheel;
+            nodal_forces[spring->inode_c] += spring->force_c;
+            nodal_forces[spring->inode_n] += spring->force_n;
+        }
+    }
+
+#endif
 
     // ------------ Apply loads on FEA nodes
 
@@ -1572,13 +1732,13 @@ void MBTireModel::InjectKRMMatrices(ChSystemDescriptor& descriptor) {
         return;
 
     for (auto& spring : m_grid_lin_springs)
-        descriptor.InsertKRMBlock(&spring.KRM);
+        descriptor.InsertKRMBlock(&spring->KRM);
     for (auto& spring : m_edge_lin_springs)
-        descriptor.InsertKRMBlock(&spring.KRM);
+        descriptor.InsertKRMBlock(&spring->KRM);
     for (auto& spring : m_grid_rot_springs)
-        descriptor.InsertKRMBlock(&spring.KRM);
+        descriptor.InsertKRMBlock(&spring->KRM);
     for (auto& spring : m_edge_rot_springs)
-        descriptor.InsertKRMBlock(&spring.KRM);
+        descriptor.InsertKRMBlock(&spring->KRM);
 }
 
 void MBTireModel::LoadKRMMatrices(double Kfactor, double Rfactor, double Mfactor) {
@@ -1586,13 +1746,13 @@ void MBTireModel::LoadKRMMatrices(double Kfactor, double Rfactor, double Mfactor
         return;
 
     for (auto& spring : m_grid_lin_springs)
-        spring.CalculateJacobian(Kfactor, Rfactor);
+        spring->CalculateJacobian(Kfactor, Rfactor);
     for (auto& spring : m_edge_lin_springs)
-        spring.CalculateJacobian(Kfactor, Rfactor);
+        spring->CalculateJacobian(Kfactor, Rfactor);
     for (auto& spring : m_grid_rot_springs)
-        spring.CalculateJacobian(Kfactor);
+        spring->CalculateJacobian(Kfactor, Rfactor);
     for (auto& spring : m_edge_rot_springs)
-        spring.CalculateJacobian(Kfactor);
+        spring->CalculateJacobian(Kfactor, Rfactor);
 }
 
 void MBTireModel::IntStateGather(const unsigned int off_x,
