@@ -1,7 +1,7 @@
 {
 	"version": 1,
 	"vendor": {
-		"projectchrono.org/chrono/8.0.0": {}
+		"projectchrono.org/chrono/9.0.0": {}
 	},
 	"cmakeMinimumRequired": {
 		"major": 3,
@@ -27,8 +27,7 @@
 				"ENABLE_MODULE_MULTICORE": "ON",
 				"ENABLE_MODULE_OPENGL": "ON",
 				"ENABLE_MODULE_SYNCHRONO": "ON",
-				"ENABLE_MODULE_CSHARP": "ON",
-				"ENABLE_MODULE_COSIMULATION": "ON"
+				"ENABLE_MODULE_CSHARP": "ON"
 			}
 		},
 		{
@@ -63,7 +62,6 @@
 				"ENABLE_MODULE_GPU": "ON",
 				"ENABLE_MODULE_PARDISO_MKL": "ON",
 				"ENABLE_MODULE_CASCADE": "ON",
-				"ENABLE_MODULE_COSIMULATION": "ON",
 				"ENABLE_MODULE_SENSOR": "ON",
 				"ENABLE_MODULE_MODAL": "ON",
 				"ENABLE_MODULE_MATLAB": "OFF",
@@ -161,7 +159,6 @@
 				"ENABLE_MODULE_GPU": "ON",
 				"ENABLE_MODULE_PARDISO_MKL": "ON",
 				"ENABLE_MODULE_CASCADE": "ON",
-				"ENABLE_MODULE_COSIMULATION": "ON",
 				"ENABLE_MODULE_SENSOR": "ON",
 				"ENABLE_MODULE_MODAL": "ON",
 				"ENABLE_MODULE_MATLAB": "OFF",

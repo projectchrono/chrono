@@ -68,8 +68,13 @@ FmuComponent::FmuComponent(fmi2String instanceName,
     wheel_data[2].identifier = "RL";
     wheel_data[3].identifier = "RR";
 
+#ifdef CHRONO_IRRLICHT
     if (visible)
         vis_sys = chrono_types::make_shared<ChWheeledVehicleVisualSystemIrrlicht>();
+#else
+    if (visible)
+        std::cout << "The FMU was not built with run-time visualization support. Visualization disabled." << std::endl;
+#endif
 
     // Set FIXED PARAMETERS for this FMU
     AddFmuVariable(&data_path, "data_path", FmuVariable::Type::String, "1", "vehicle data path",  //
@@ -147,18 +152,18 @@ FmuComponent::FmuComponent(fmi2String instanceName,
     }
 
     // Specify variable dependencies
-    AddFmuVariableDependencies("ref_frame", {"init_loc", "init_yaw"});
+    DeclareVariableDependencies("ref_frame", {"init_loc", "init_yaw"});
     for (int iw = 0; iw < 4; iw++) {
         std::string prefix = "wheel_" + wheel_data[iw].identifier;
-        AddFmuVariableDependencies(prefix + ".pos", {"init_loc", "init_yaw"});
-        AddFmuVariableDependencies(prefix + ".rot", {"init_loc", "init_yaw"});
+        DeclareVariableDependencies(prefix + ".pos", {"init_loc", "init_yaw"});
+        DeclareVariableDependencies(prefix + ".rot", {"init_loc", "init_yaw"});
     }
 
     // Specify functions to process input variables (at beginning of step)
-    m_preStepCallbacks.push_back([this]() { this->SynchronizeVehicle(this->GetTime()); });
+    AddPreStepFunction([this]() { this->SynchronizeVehicle(this->GetTime()); });
 
     // Specify functions to calculate FMU outputs (at end of step)
-    m_postStepCallbacks.push_back([this]() { this->CalculateVehicleOutputs(); });
+    AddPostStepFunction([this]() { this->CalculateVehicleOutputs(); });
 }
 
 void FmuComponent::CreateVehicle() {
@@ -238,11 +243,11 @@ void FmuComponent::SynchronizeVehicle(double time) {
         wheel_data[iw].wheel->Synchronize(wheel_data[iw].load);
     }
 
-    if (vis_sys) {
 #ifdef CHRONO_IRRLICHT
+    if (vis_sys) {
         vis_sys->Synchronize(time, driver_inputs);
-#endif
     }
+#endif
 }
 
 void FmuComponent::CalculateVehicleOutputs() {
@@ -271,8 +276,8 @@ void FmuComponent::_exitInitializationMode() {
     ConfigureSystem();
 
     // Initialize runtime visualization (if requested and if available)
-    if (vis_sys) {
 #ifdef CHRONO_IRRLICHT
+    if (vis_sys) {
         std::cout << " Enable run-time visualization" << std::endl;
 
         vis_sys->SetLogLevel(irr::ELL_NONE);
@@ -285,10 +290,8 @@ void FmuComponent::_exitInitializationMode() {
         vis_sys->Initialize();
         vis_sys->AddLightDirectional();
         vis_sys->AttachVehicle(vehicle.get());
-#else
-        std::cout << " Run-time visualization not available" << std::endl;
-#endif
     }
+#endif
 }
 
 fmi2Status FmuComponent::_doStep(fmi2Real currentCommunicationPoint,
@@ -299,8 +302,8 @@ fmi2Status FmuComponent::_doStep(fmi2Real currentCommunicationPoint,
                               std::min(communicationStepSize, step_size));
         vehicle->Advance(h);
 
-        if (vis_sys) {
 #ifdef CHRONO_IRRLICHT
+        if (vis_sys) {
             auto status = vis_sys->Run();
             if (!status)
                 return fmi2Discard;
@@ -317,8 +320,8 @@ fmi2Status FmuComponent::_doStep(fmi2Real currentCommunicationPoint,
             }
 
             vis_sys->Advance(h);
-#endif
         }
+#endif
 
         ////sendToLog("time: " + std::to_string(m_time) + "\n", fmi2Status::fmi2OK, "logAll");
 

@@ -45,8 +45,8 @@ void CreateCraneFMU(FmuChronoUnit& crane_fmu,
                     double stop_time,
                     const std::vector<std::string>& logCategories) {
     try {
-        crane_fmu.Load(CRANE_FMU_FILENAME, crane_unpack_directory);
-        ////crane_fmu.Load(CRANE_FMU_FILENAME); // will go in TEMP/_fmu_temp
+        crane_fmu.Load(fmi2Type::fmi2CoSimulation, CRANE_FMU_FILENAME, crane_unpack_directory);
+        ////crane_fmu.Load(fmi2Type::fmi2CoSimulation, CRANE_FMU_FILENAME); // will go in TEMP/_fmu_temp
     } catch (std::exception& e) {
         throw e;
     }
@@ -88,8 +88,8 @@ void CreateActuatorFMU(FmuChronoUnit& actuator_fmu,
                        double stop_time,
                        const std::vector<std::string>& logCategories) {
     try {
-        actuator_fmu.Load(ACTUATOR_FMU_FILENAME, actuator_unpack_directory);
-        ////actuator_fmu.Load(ACTUATOR_FMU_FILENAME); // will go in TEMP/_fmu_temp
+        actuator_fmu.Load(fmi2Type::fmi2CoSimulation, ACTUATOR_FMU_FILENAME, actuator_unpack_directory);
+        ////actuator_fmu.Load(fmi2Type::fmi2CoSimulation, ACTUATOR_FMU_FILENAME); // will go in TEMP/_fmu_temp
     } catch (std::exception& e) {
         throw e;
     }
@@ -171,6 +171,8 @@ int main(int argc, char* argv[]) {
     double dt = 5e-4;
 
     while (time < stop_time) {
+        std::cout << "\r" << time << "\r";
+
         // ----------- Actuator input signal -> [actuator]
         fmi2Real Uref = actuation->GetVal(time);
 

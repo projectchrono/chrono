@@ -31,11 +31,9 @@ ChFunctionRotationBSpline::ChFunctionRotationBSpline() {
     space_fx = chrono_types::make_shared<ChFunctionRamp>(0, 1.);
 }
 
-ChFunctionRotationBSpline::ChFunctionRotationBSpline(
-    int morder,                                      ///< order p: 1= linear, 2=quadratic, etc.
-    const std::vector<ChQuaternion<> >& mrotations,  ///< control points, size n. Required: at least n >= p+1
-    ChVectorDynamic<>* mknots  ///< knots, size k. Required k=n+p+1. If not provided, initialized to uniform.
-) {
+ChFunctionRotationBSpline::ChFunctionRotationBSpline(int morder,
+                                                     const std::vector<ChQuaternion<> >& mrotations,
+                                                     ChVectorDynamic<>* mknots) {
     this->closed = false;
     this->Setup(morder, mrotations, mknots);
 
@@ -53,11 +51,9 @@ ChFunctionRotationBSpline::ChFunctionRotationBSpline(const ChFunctionRotationBSp
 
 ChFunctionRotationBSpline::~ChFunctionRotationBSpline() {}
 
-void ChFunctionRotationBSpline::Setup(
-    int morder,                                      ///< order p: 1= linear, 2=quadratic, etc.
-    const std::vector<ChQuaternion<> >& mrotations,  ///< rotation control points, size n. Required: at least n >= p+1
-    ChVectorDynamic<>* mknots  ///< knots, size k. Required k=n+p+1. If not provided, initialized to uniform.
-) {
+void ChFunctionRotationBSpline::Setup(int morder,
+                                      const std::vector<ChQuaternion<> >& mrotations,
+                                      ChVectorDynamic<>* mknots) {
     if (morder < 1)
         throw std::invalid_argument("ChFunctionRotationBSpline::Setup requires order >= 1.");
 

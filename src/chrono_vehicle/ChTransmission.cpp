@@ -21,7 +21,7 @@
 namespace chrono {
 namespace vehicle {
 
-#define CHRONO_NEUTRAL_GEAR_RATIO 1e-20
+#define CHRONO_NEUTRAL_GEAR_RATIO 1e20
 
 ChTransmission::ChTransmission(const std::string& name)
     : ChPart(name), m_current_gear(-1), m_current_gear_ratio(CHRONO_NEUTRAL_GEAR_RATIO) {}

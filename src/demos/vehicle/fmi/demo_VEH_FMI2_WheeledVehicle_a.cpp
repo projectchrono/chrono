@@ -22,6 +22,7 @@
 #include "chrono/physics/ChSystemSMC.h"
 #include "chrono/physics/ChBody.h"
 #include "chrono/core/ChTimer.h"
+#include "chrono/utils/ChUtilsInputOutput.h"
 
 #include "chrono_vehicle/ChConfigVehicleFMI.h"
 #include "chrono_vehicle/ChVehicleModelData.h"
@@ -30,6 +31,10 @@
 #include "chrono_vehicle/utils/ChUtilsJSON.h"
 #include "chrono_vehicle/wheeled_vehicle/ChTire.h"
 #include "chrono_vehicle/wheeled_vehicle/ChWheel.h"
+
+#ifdef CHRONO_POSTPROCESS
+    #include "chrono_postprocess/ChGnuPlot.h"
+#endif
 
 #include "chrono_thirdparty/filesystem/path.h"
 
@@ -66,7 +71,7 @@ void CreateVehicleFMU(FmuChronoUnit& vehicle_fmu,
                       bool visible,
                       double fps) {
     try {
-        vehicle_fmu.Load(VEHICLE_FMU_FILENAME, VEHICLE_UNPACK_DIR);
+        vehicle_fmu.Load(fmi2Type::fmi2CoSimulation, VEHICLE_FMU_FILENAME, VEHICLE_UNPACK_DIR);
     } catch (std::exception& e) {
         throw e;
     }
@@ -116,7 +121,7 @@ void CreateDriverFMU(FmuChronoUnit& driver_fmu,
                      bool visible,
                      double fps) {
     try {
-        driver_fmu.Load(DRIVER_FMU_FILENAME, DRIVER_UNPACK_DIR);
+        driver_fmu.Load(fmi2Type::fmi2CoSimulation, DRIVER_FMU_FILENAME, DRIVER_UNPACK_DIR);
     } catch (std::exception& e) {
         throw e;
     }
@@ -319,6 +324,10 @@ int main(int argc, char* argv[]) {
     std::array<WheelTire, 4> wt;
     CreateTires(sys, wt);
 
+    // Initialize output
+    utils::ChWriterCSV csv;
+    csv.SetDelimiter(" ");
+
     // Enable/disable saving snapshots
     vehicle_fmu.SetVariable("save_img", save_img);
     driver_fmu.SetVariable("save_img", save_img);
@@ -329,7 +338,7 @@ int main(int argc, char* argv[]) {
     timer.start();
 
     while (time < stop_time) {
-        ////std::cout << "time = " << time << std::endl;
+        std::cout << "\r" << time << "\r";
 
         // ----------- Set FMU control variables
         double target_speed = 12;
@@ -353,6 +362,9 @@ int main(int argc, char* argv[]) {
         // ----------- Exchange data between vehicle FMU and tires
         SynchronizeTires(time, vehicle_fmu, terrain, wt);
 
+        // ----------- Save output
+        csv << time << ref_frame.GetPos() << std::endl;
+
         // ----------- Advance FMUs
         auto status_vehicle = vehicle_fmu.DoStep(time, step_size, fmi2True);
         auto status_driver = driver_fmu.DoStep(time, step_size, fmi2True);
@@ -370,6 +382,18 @@ int main(int argc, char* argv[]) {
     timer.stop();
     std::cout << "Sim time: " << time << std::endl;
     std::cout << "Run time: " << timer() << std::endl;
+
+    std::string out_file = out_dir + "/vehicle.out";
+    csv.WriteToFile(out_file);
+
+#ifdef CHRONO_POSTPROCESS
+    postprocess::ChGnuPlot gplot(out_dir + "/vehicle.gpl");
+    gplot.SetGrid();
+    gplot.SetLabelX("x");
+    gplot.SetLabelY("y");
+    gplot.SetTitle("Vehicle path");
+    gplot.Plot(out_file, 2, 3, "path", " with lines lt 1 lw 2");
+#endif
 
     return 0;
 }

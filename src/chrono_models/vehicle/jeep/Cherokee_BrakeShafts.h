@@ -46,7 +46,7 @@ class CH_MODELS_API Cherokee_BrakeShafts : public ChBrakeShafts {
     static const double m_shaft_inertia;
 };
 
-/// @} vehicle_models_hmmwv
+/// @} vehicle_models_cherokee
 
 }  // end namespace hmmwv
 }  // end namespace vehicle

@@ -120,7 +120,7 @@ class CH_MODELS_API BMW_E90_DoubleWishbone : public ChDoubleWishbone {
     static const double m_kinematicFactorDamper;
 };
 
-/// @} vehicle_models_hmmwv
+/// @} vehicle_models_bmw
 
 }  // namespace bmw
 }  // end namespace vehicle

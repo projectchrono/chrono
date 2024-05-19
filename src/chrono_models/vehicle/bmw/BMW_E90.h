@@ -35,7 +35,7 @@ namespace chrono {
 namespace vehicle {
 namespace bmw {
 
-/// @addtogroup vehicle_models_BMW_E90
+/// @addtogroup vehicle_models_bmw
 /// @{
 
 /// Definition of the BMW_E90 assembly.
@@ -115,7 +115,7 @@ class CH_MODELS_API BMW_E90 {
     double m_tire_mass;
 };
 
-/// @} vehicle_models_BMW_E90
+/// @} vehicle_models_bmw
 
 }  // namespace bmw
 }  // end namespace vehicle

@@ -157,8 +157,14 @@ void Pac02Tire::Create(const rapidjson::Document& d) {
                 m_par.FNOMIN = d["Vertical"]["Nominal Wheel Load"].GetDouble();
             if (d["Vertical"].HasMember("Tire Mass"))
                 m_par.TIRE_MASS = d["Vertical"]["Tire Mass"].GetDouble();
-            if (d["Vertical"].HasMember("QFZ1"))
+            if (d["Vertical"].HasMember("QFZ1")) {
                 m_par.QFZ1 = d["Vertical"]["QFZ1"].GetDouble();
+            }
+            else {
+                // older JSON templates might not yet have this parameter set explicitly,
+                // so we fall back to calculating it ourselves if it is missing
+                m_par.QFZ1 = m_par.VERTICAL_STIFFNESS * m_par.UNLOADED_RADIUS / m_par.FNOMIN;
+            }
             if (d["Vertical"].HasMember("QFZ2"))
                 m_par.QFZ2 = d["Vertical"]["QFZ2"].GetDouble();
             if (d["Vertical"].HasMember("QFZ3"))

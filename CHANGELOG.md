@@ -5,9 +5,12 @@ Change Log
 ==========
 
 - [Unreleased (development branch)](#unreleased-development-branch)
+- [Release 9.0.0 (2024-05-20)](#release-900-2024-05-20)
   - [\[Changed\] Default number of threads](#changed-default-number-of-threads)
   - [\[Changed\] Refactoring of class and function names](#changed-refactoring-of-class-and-function-names)
+  - [\[Added\] Functional Mock-Up Interface (FMI) support](#added-functional-mock-up-interface-fmi-support)
   - [\[Added\] Chrono::Sensor features and updates](#added-chronosensor-features-and-updates)
+  - [\[Added\] Chrono::ROS module](#added-chronoros-module)
   - [\[Changed\] Updated Chrono::VSG module](#changed-updated-chronovsg-module)
   - [\[Added\] New motion functions and filters](#added-new-motion-functions-and-filters)
   - [\[Changed\] Updated ChBlender exporter to Blender4.0](#changed-updated-chblender-exporter-to-blender4.0)
@@ -104,6 +107,8 @@ Change Log
 - [Release 4.0.0 (2019-02-22)](#release-400-2019-02-22)
 
 # Unreleased (development branch)
+
+# Release 9.0.0 (2024-05-20)
 
 ## [Changed] Default number of threads
 
@@ -1662,6 +1667,14 @@ In some instances, the reader is directed to the "Notes" section for more detail
 + The `ChTimer` class was refactored so that `GetTimeMicroseconds`, `GetTimeMilliseconds`, and `GetTimeSeconds` return either an intermediate time (if the timer was started but not stopped; in this case the timer keeps running) or the timer value when the timer was stopped.
   The old functions `GetTimeMicrosecondsIntermediate`, `GetTimeMillisecondsIntermediate`, and `GetTimeSecondsIntermediate` were obsoleted.
 
+## [Added] Functional Mock-Up Interface (FMI) support
+
+The Functional Mock-up Interface is an open (tool-independent) standard for exchanging dynamical simulation models between different tools in a standardized format.  These models are encapsulated in so-called Functional Mock-Up Units (FMU) which contain a description of the model (as an XML file) and binaries (as shared libraries).
+
+FMI support in Chrono is provided via (1) `fmu-tools`, a general-purpose, stand-alone library for exporting and importing FMUs and (2) `Chrono::FMI`, a module with Chrono-specific extensions to facilitate working with FMU variables wrapping Chrono types.
+
+At this time, only the FMI 2.0 standard is supported (with FMI 3.0 support coming later). The stand-alone `fmu_tools` library provides support for exporting and importing both *Co-Simulation* and *Model Exchange* FMUs.  Currently, `Chrono:FMI` focuses only on Co-Simulation FMUs. 
+
 ## [Added] Chrono::Sensor features and updates
 
 **Updates and Bug Fixes**
@@ -1675,7 +1688,7 @@ In some instances, the reader is directed to the "Notes" section for more detail
   - Added support for the Hapke BRDF model to render celestial bodies (ex: Lunar regolith). To enable, when defining a material set `ChVisualMaterial:SetUseHapke(bool enableHapke)` and set the model parameters using `ChVisualMaterial:SetHapkeParameters(float w,...)`. More information regarding the Hapke model and its parametrization can be found in <https://doi.org/10.1002/2013JE004580>.
   - Added a Random Walk based noise model for GPS sensor. To enable this noise model, when adding a `ChGPSSensor`, set a pointer to a `ChNoiseRandomWalks` object as the noise model parameter.
 
-## [Added] Chrono::ROS Module
+## [Added] Chrono::ROS module
 
 A new module (`Chrono::ROS`) has been introduced to support direct integration of ROS 2 with Chrono. `Chrono::ROS` provides a bridge between the Chrono simulation and the ROS 2 middleware, allowing for communication of sensor data, vehicle and transformation data, and more. Compatibility with specific Chrono modules, including `Chrono::Vehicle` and `Chrono::Sensor`, is provided. In addition to providing a few default publishers and subscribers, the module exposes an API for creating custom ROS 2 logic within the Chrono simulation.
 

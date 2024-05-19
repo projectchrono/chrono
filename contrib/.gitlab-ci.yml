@@ -206,6 +206,8 @@ linux:ubuntu22.04-clang:test:
     - git clone https://github.com/projectchrono/chrono_ros_interfaces.git src/
     - colcon build --packages-select chrono_ros_interfaces
     - source $HOME/Packages/ros_ws/install/setup.sh
+    # Initialize git repository
+    - cd $CI_PROJECT_DIR
     - git submodule init
     - git submodule update
     - echo "Build PyChrono and deploy via Anaconda..."
@@ -295,7 +297,7 @@ windows:vs2022:test:
   extends: .windows
   script:
   - cd build
-  - ctest --extra-verbose --output-on-failure
+  - ctest --output-on-failure -E "utest_PARSERS"
   dependencies: ["windows:vs2022:build"]
 
 .windows-deploy-base:

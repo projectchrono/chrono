@@ -1,10 +1,8 @@
-Chrono COSIMULATION module tutorials   {#tutorial_table_of_content_chrono_cosimulation}
+Chrono socket communication tutorials   {#tutorial_table_of_content_chrono_cosimulation}
 ======================================
 
-Tutorial that teaches how to use the 
-[COSIMULATION module](group__cosimulation__module.html).
-
+Tutorial illustrating the use of the Chrono socket communication utilities.
 
 -   @subpage tutorial_demo_cosim_hydraulics
 	
-    Tutorial which teaches how to perform a cosimulation with Simulink
+    Tutorial on performing a cosimulation with Simulink

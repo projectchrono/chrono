@@ -28,7 +28,7 @@ namespace chrono {
 namespace vehicle {
 namespace bmw {
 
-/// @addtogroup vehicle_models_sedan
+/// @addtogroup vehicle_models_bmw
 /// @{
 
 /// Simple Sedan powertrain subsystem (based on engine speed-torque maps).
@@ -47,7 +47,7 @@ class CH_MODELS_API BMW_E90_EngineSimpleMap : public ChEngineSimpleMap {
                              ) override;
 };
 
-/// @} vehicle_models_sedan
+/// @} vehicle_models_bmw
 
 }  // namespace bmw
 }  // end namespace vehicle

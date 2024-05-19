@@ -1,17 +1,11 @@
 Cosimulation with Simulink (demo_COSIM_hydraulics.cpp)  {#tutorial_demo_cosim_hydraulics}
 ==========================
 
-This tutorial explains how to use co-simulation to 
-simulate a hydraulic system that moves a simple mechanism. 
-The hydraulic system is managed by Simulink, 
-while the mechanism with moving parts and joints is simulated by 
-Chrono. This is enabled by the [COSIMULATION module](group__cosimulation__module.html).
+This tutorial explains how to use co-simulation to simulate a hydraulic system that moves a simple mechanism. 
+The hydraulic system is managed by Simulink, while the mechanism with moving parts and joints is simulated by 
+Chrono.
 
-The approach described can serve as a template for complex scenarios 
-in which mechanisms with multiple hydraulic 
-cylinders actuate moving parts. In general, Simulink features are used 
-for hydraulic subsystem simulation and controls, 
-whereas Chrono can be used for the remaining components of the mechanical system:
+The approach described can serve as a template for complex scenarios in which mechanisms with multiple hydraulic cylinders actuate moving parts. In general, Simulink features are used for hydraulic subsystem simulation and controls, whereas Chrono can be used for the remaining components of the mechanical system:
 
 ![](http://projectchrono.org/assets/manual/Tutorial_cosim_hydraulics_01.png)
 
@@ -20,31 +14,23 @@ whereas Chrono can be used for the remaining components of the mechanical system
 
 The prerequisites for this tutorial are:
 
-* The Chrono [COSIMULATION module](group__cosimulation__module.html) should be properly installed/working.
+* The Chrono core module should be properly installed/working.
 * [Simulink](http://www.mathworks.com/products/simulink) must be installed.
 * The Matlab [Instrument Control Toolbox](http://www.mathworks.com/products/instrument) should be installed.
 * The Matlab [SimHydraulics Toolbox](http://www.mathworks.com/products/simhydraulics) should be installed.
 
 <div class="ce-info">
-SimHydraulics is an optional 
-Matlab toolbox for Simulink. This specific Chrono demo requires it yet other 
-examples of cosimulation might not necessarily need it.
+SimHydraulics is an optional Matlab toolbox for Simulink. This specific Chrono demo requires it yet other examples of cosimulation might not necessarily need it.
 </div>
 
 
 # Background 
 
-Two way co-simulation draws on two simulation tools which simultaneously simulate (advance in time)  
-the two subsystems in which the original system is partitioned.
-Once in a while the two solvers (simulation tools) synchronize to exchange data after which they 
-proceed independently until the next synchronization time. 
-This periodic data synchronization is necessary because the subsystems 
-are coupled. For tightly coupled  subsystems the synchronization 
-happens very often.
+Two way co-simulation draws on two simulation tools which simultaneously simulate (advance in time)  the two subsystems in which the original system is partitioned.
+Once in a while the two solvers (simulation tools) synchronize to exchange data after which they proceed independently until the next synchronization time. 
+This periodic data synchronization is necessary because the subsystems are coupled. For tightly coupled  subsystems the synchronization happens very often.
 
-There are many approaches to co-simulation. 
-The method described in this tutorial is quite simple - it is based on the following pattern of interaction 
-between Chrono and Simulink:
+There are many approaches to co-simulation. The method described in this tutorial is quite simple - it is based on the following pattern of interaction between Chrono and Simulink:
 
 ![](http://projectchrono.org/assets/manual/Tutorial_cosim_hydraulics_02.png)
 

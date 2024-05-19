@@ -22,6 +22,7 @@
 #include "chrono_vehicle/wheeled_vehicle/ChWheeledTrailer.h"
 
 #include "chrono_models/ChApiModels.h"
+#include "chrono_models/vehicle/ChVehicleModelDefs.h"
 
 namespace chrono {
 namespace vehicle {
@@ -33,7 +34,7 @@ namespace kraz {
 /// Kraz trailer system.
 class CH_MODELS_API Kraz_trailer : public ChWheeledTrailer {
   public:
-    Kraz_trailer(ChSystem* system);
+    Kraz_trailer(ChSystem* system, CollisionType chassis_collision_type = CollisionType::NONE);
 
     ~Kraz_trailer() {}
 

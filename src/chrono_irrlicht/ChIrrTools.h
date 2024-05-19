@@ -249,7 +249,10 @@ ChApiIrr void drawPlot3D(ChVisualSystemIrrlicht* vis,
 ChApiIrr void drawProfiler(ChVisualSystemIrrlicht* vis);
 
 /// Draw RGB coordinate system.
-ChApiIrr void drawCoordsys(ChVisualSystemIrrlicht* vis, const ChCoordsys<>& coord = CSYSNORM, double scale = 1);
+ChApiIrr void drawCoordsys(ChVisualSystemIrrlicht* vis,
+                           const ChCoordsys<>& coord = CSYSNORM,
+                           double scale = 1,
+                           bool use_Zbuffer = false);
 
 /// Draw a line arrow in 3D space with given color.
 ChApiIrr void drawArrow(ChVisualSystemIrrlicht* vis,           ///< visual system

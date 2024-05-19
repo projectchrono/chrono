@@ -45,7 +45,7 @@ class CH_MODELS_API BMW_E90_BrakeShafts : public ChBrakeShafts {
     static const double m_shaft_inertia;
 };
 
-/// @} vehicle_models_sedan
+/// @} vehicle_models_bmw
 
 }  // namespace bmw
 }  // end namespace vehicle

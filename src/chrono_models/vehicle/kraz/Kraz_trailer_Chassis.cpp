@@ -29,7 +29,15 @@ const ChVector3d Kraz_trailer_Chassis::m_body_inertiaXY(0, 0, 0);
 const ChVector3d Kraz_trailer_Chassis::m_body_COM_loc(-6, 0, 0.8);
 const ChVector3d Kraz_trailer_Chassis::m_connector_loc(-0.04, 0, 0.82);
 
-Kraz_trailer_Chassis::Kraz_trailer_Chassis(const std::string& name) : ChRigidChassisRear(name) {
+Kraz_trailer_Chassis::Kraz_trailer_Chassis(const std::string& name, CollisionType chassis_collision_type)
+    : ChRigidChassisRear(name) {
+    // In this model, we use a single contact material.
+    ChContactMaterialData minfo;
+    minfo.mu = 1.0f;
+    minfo.cr = 0.1f;
+    minfo.Y = 5e5f;
+    m_geometry.m_materials.push_back(minfo);
+
     m_body_inertia(0, 0) = m_body_inertiaXX.x();
     m_body_inertia(1, 1) = m_body_inertiaXX.y();
     m_body_inertia(2, 2) = m_body_inertiaXX.z();
@@ -52,6 +60,11 @@ Kraz_trailer_Chassis::Kraz_trailer_Chassis(const std::string& name) : ChRigidCha
     m_geometry.m_has_colors = true;
     m_geometry.m_color_boxes = ChColor(0.3f, 0.2f, 0.2f);
     m_geometry.m_color_cylinders = ChColor(0.3f, 0.2f, 0.2f);
+
+    // Collision shape is always a box
+    m_geometry.m_has_collision = (chassis_collision_type != CollisionType::NONE);
+    box.m_matID = 0;
+    m_geometry.m_coll_boxes.push_back(box);
 }
 
 }  // end namespace kraz
