@@ -61,6 +61,12 @@ TerrainType terrain_type = TerrainType::SCM;
 // Run-time visualization system (IRRLICHT or VSG)
 ChVisualSystem::Type vis_type = ChVisualSystem::Type::IRRLICHT;
 
+// Number of OpenMP threads used in Chrono (here, for parallel spring force evaluation and SCM ray-casting)
+int num_threads_chrono = 4;
+
+// Number of threads used in collision detection
+int num_threads_collision = 4;
+
 // -----------------------------------------------------------------------------
 
 int main() {
@@ -74,22 +80,31 @@ int main() {
         case ChContactMethod::SMC:
             sys = new ChSystemSMC;
             step_size = 5e-5;
+
             ////solver_type = ChSolver::Type::PARDISO_MKL;
-            solver_type = ChSolver::Type::SPARSE_QR;
+            ////solver_type = ChSolver::Type::SPARSE_QR;
+            ////solver_type = ChSolver::Type::BICGSTAB;
+            solver_type = ChSolver::Type::MINRES;
+            
             integrator_type = ChTimestepper::Type::EULER_IMPLICIT_PROJECTED;
             ////integrator_type = ChTimestepper::Type::EULER_IMPLICIT_LINEARIZED;
+            
             break;
-
         case ChContactMethod::NSC:
             sys = new ChSystemNSC;
             step_size = 1e-3;
+            
             solver_type = ChSolver::Type::BARZILAIBORWEIN;
+            
             integrator_type = ChTimestepper::Type::EULER_IMPLICIT_LINEARIZED;
+            
             break;
     }
 
     sys->SetCollisionSystemType(ChCollisionSystem::Type::BULLET);
     sys->SetGravitationalAcceleration(ChVector3d(0, 0, -9.8));
+
+    sys->SetNumThreads(num_threads_chrono, num_threads_collision, 1);
 
     SetChronoSolver(*sys, solver_type, integrator_type);
 
@@ -99,7 +114,7 @@ int main() {
     // Create spindle body
     auto spindle = chrono_types::make_shared<ChBody>();
     spindle->SetFixed(false);
-    spindle->SetName("rig_spindle");
+    spindle->SetName("Spindle");
     spindle->SetMass(load);
     spindle->SetInertiaXX(ChVector3d(0.01, 0.02, 0.01));
     spindle->SetPos(ChVector3d(0, 0, 0));
@@ -120,6 +135,7 @@ int main() {
     tire->ForceJacobianCalculation(false);
     tire->SetStepsize(step_size);
     tire->SetContactFaceThickness(0.02);
+    tire->SetCollisionFamily(11);
     tire->Initialize(wheel);
     tire->SetVisualizationType(VisualizationType::MESH);
 
@@ -228,14 +244,24 @@ int main() {
         }
     }
 
+    ChTimer timer;         // timer for measuring total run time
+    double time = 0;       // simulated time
+    double sim_time = 0;   // simulation time
+    double fps = 120;      // rendering frequency
+    int render_frame = 0;  // render frame counter
+
     // Perform the simulation
+    timer.start();
     while (vis->Run()) {
-        double time = sys->GetChTime();
+        time = sys->GetChTime();
 
         // Render
-        vis->BeginScene();
-        vis->Render();
-        vis->EndScene();
+        if (time >= render_frame / fps) {
+            vis->BeginScene();
+            vis->Render();
+            vis->EndScene();
+            render_frame++;
+        }
 
         // Synchronize subsystems
         terrain->Synchronize(time);
@@ -248,8 +274,18 @@ int main() {
         tire->Advance(step_size);
         sys->DoStepDynamics(step_size);
 
+        sim_time += sys->GetTimerStep();
+
+        std::cout << "\rRTF: " << sys->GetRTF();
+
         ////std::cout << std::setw(10) << std::setprecision(5) << time << " | " << grid_nodes[0]->GetPos() << std::endl;
     }
+    timer.stop();
+
+    double step_time = timer();
+    std::cout << "\rSimulated time: " << time << std::endl;
+    std::cout << "Run time (simulation): " << sim_time << "  |  RTF: " << sim_time / time << std::endl;
+    std::cout << "Run time (total):      " << step_time << "  |  RTF: " << step_time / time << std::endl;
 
     return 0;
 }

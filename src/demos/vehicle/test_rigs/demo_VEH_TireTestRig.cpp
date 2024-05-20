@@ -77,9 +77,16 @@ TireType tire_type = TireType::MB;
 enum class TerrainType { RIGID, SCM };
 TerrainType terrain_type = TerrainType::RIGID;
 
+// Number of OpenMP threads used in Chrono (here, for parallel spring force evaluation and SCM ray-casting)
+int num_threads_chrono = 4;
+
+// Number of threads used in collision detection
+int num_threads_collision = 4;
+
 // Read from JSON specification file?
 bool use_JSON = false;
 
+bool debug_output = false;
 bool gnuplot_output = false;
 bool blender_output = false;
 
@@ -148,6 +155,7 @@ int main() {
             case TireType::ANCF4: {
                 auto hmmwv_tire = chrono_types::make_shared<hmmwv::HMMWV_ANCFTire>(
                     "ANCF tire", hmmwv::HMMWV_ANCFTire::ElementType::ANCF_4);
+                hmmwv_tire->SetContactFaceThickness(0.02);
                 if (terrain_type == TerrainType::SCM)
                     hmmwv_tire->SetContactSurfaceType(ChDeformableTire::ContactSurfaceType::TRIANGLE_MESH);
                 tire = hmmwv_tire;
@@ -156,6 +164,7 @@ int main() {
             case TireType::ANCF8: {
                 auto hmmwv_tire = chrono_types::make_shared<hmmwv::HMMWV_ANCFTire>(
                     "ANCF tire", hmmwv::HMMWV_ANCFTire::ElementType::ANCF_8);
+                hmmwv_tire->SetContactFaceThickness(0.02);
                 if (terrain_type == TerrainType::SCM)
                     hmmwv_tire->SetContactSurfaceType(ChDeformableTire::ContactSurfaceType::TRIANGLE_MESH);
                 tire = hmmwv_tire;
@@ -163,6 +172,7 @@ int main() {
             }
             case TireType::REISSNER: {
                 auto hmmwv_tire = chrono_types::make_shared<hmmwv::HMMWV_ReissnerTire>("Reissner tire");
+                hmmwv_tire->SetContactFaceThickness(0.02);
                 if (terrain_type == TerrainType::SCM)
                     hmmwv_tire->SetContactSurfaceType(ChDeformableTire::ContactSurfaceType::TRIANGLE_MESH);
                 tire = hmmwv_tire;
@@ -170,7 +180,10 @@ int main() {
             }
             case TireType::MB: {
                 auto mb_tire = chrono_types::make_shared<hmmwv::HMMWV_MBTire>("Multibody Tire");
-                mb_tire->IsStiff(false);   
+                mb_tire->IsStiff(false);
+                mb_tire->ForceJacobianCalculation(false);
+                mb_tire->SetCollisionFamily(11);
+                mb_tire->SetContactFaceThickness(0.02);
                 if (terrain_type == TerrainType::SCM)
                     mb_tire->SetContactSurfaceType(ChDeformableTire::ContactSurfaceType::TRIANGLE_MESH);
                 tire = mb_tire;
@@ -196,30 +209,40 @@ int main() {
         case ChContactMethod::SMC:
             sys = new ChSystemSMC;
             step_size = 5e-5;
+
             ////solver_type = ChSolver::Type::PARDISO_MKL;
-            solver_type = ChSolver::Type::SPARSE_QR;
+            ////solver_type = ChSolver::Type::SPARSE_QR;
+            ////solver_type = ChSolver::Type::BICGSTAB;
+            solver_type = ChSolver::Type::MINRES;
+
             integrator_type = ChTimestepper::Type::EULER_IMPLICIT_PROJECTED;
             ////integrator_type = ChTimestepper::Type::EULER_IMPLICIT_LINEARIZED;
-            std::static_pointer_cast<ChDeformableTire>(tire)->SetContactFaceThickness(0.02);
-            break;
 
+            break;
         case ChContactMethod::NSC:
             sys = new ChSystemNSC;
             step_size = 1e-3;
+
             solver_type = ChSolver::Type::BARZILAIBORWEIN;
+
             integrator_type = ChTimestepper::Type::EULER_IMPLICIT_LINEARIZED;
+
             break;
     }
 
     sys->SetCollisionSystemType(ChCollisionSystem::Type::BULLET);
 
+    sys->SetNumThreads(num_threads_chrono, num_threads_collision, 1);
+
     SetChronoSolver(*sys, solver_type, integrator_type);
+
+    tire->SetStepsize(step_size);
 
     // Create and configure test rig
     ChTireTestRig rig(wheel, tire, sys);
 
-    rig.SetGravitationalAcceleration(0);
-    rig.SetNormalLoad(8000);
+    rig.SetGravitationalAcceleration(9.8);
+    rig.SetNormalLoad(3000);
 
     ////rig.SetCamberAngle(+15 * CH_DEG_TO_RAD);
 
@@ -230,10 +253,9 @@ int main() {
     if (terrain_type == TerrainType::RIGID)
         rig.SetTerrainRigid(0.8, 0, 2e7);
     else
-        rig.SetTerrainSCM(6259.1e3, 5085.6e3, 1.42, 1.58e3, 34.1, 22.17e-3);
+        rig.SetTerrainSCM(2e6, 0, 1.1, 0, 30, 0.01);
 
     // Set test scenario
-    // -----------------
 
     // Scenario: driven wheel
     ////rig.SetAngSpeedFunction(chrono_types::make_shared<ChFunctionConst>(10.0));
@@ -260,7 +282,7 @@ int main() {
     ////rig.SetConstantLongitudinalSlip(0.2, 0.1);
 
     // Initialize the tire test rig
-    rig.SetTimeDelay(0.0);
+    rig.SetTimeDelay(0.2);
     ////rig.Initialize(ChTireTestRig::Mode::SUSPEND);
     ////rig.Initialize(ChTireTestRig::Mode::DROP);
     rig.Initialize(ChTireTestRig::Mode::TEST);
@@ -347,49 +369,72 @@ int main() {
     }
 #endif
 
-    // Perform the simulation
-    ChFunctionInterp long_slip;
-    ChFunctionInterp slip_angle;
-    ChFunctionInterp camber_angle;
+    // Timers and counters
+    ChTimer timer;         // timer for measuring total run time
+    double time = 0;       // simulated time
+    double sim_time = 0;   // simulation time
+    double fps = 120;      // rendering frequency
+    int render_frame = 0;  // render frame counter
+
+    // Data collection
+    ChFunctionInterp long_slip_fct;
+    ChFunctionInterp slip_angle_fct;
+    ChFunctionInterp camber_angle_fct;
 
     double time_offset = 0.5;
 
+    // Simulation loop
+    timer.start();
     while (vis->Run()) {
-        double time = sys->GetChTime();
+        time = sys->GetChTime();
 
-        if (time > time_offset) {
-            long_slip.AddPoint(time, tire->GetLongitudinalSlip());
-            slip_angle.AddPoint(time, tire->GetSlipAngle() * CH_RAD_TO_DEG);
-            camber_angle.AddPoint(time, tire->GetCamberAngle() * CH_RAD_TO_DEG);
+        if ((debug_output || gnuplot_output) && time >= time_offset) {
+            long_slip_fct.AddPoint(time, tire->GetLongitudinalSlip());
+            slip_angle_fct.AddPoint(time, tire->GetSlipAngle() * CH_RAD_TO_DEG);
+            camber_angle_fct.AddPoint(time, tire->GetCamberAngle() * CH_RAD_TO_DEG);
         }
 
-        auto& loc = rig.GetPos();
-        vis->UpdateCamera(loc + ChVector3d(1.0, 2.5, 0.5), loc + ChVector3d(0, 0.25, -0.25));
+        if (time >= render_frame / fps) {
+            auto& loc = rig.GetPos();
+            vis->UpdateCamera(loc + ChVector3d(1.0, 2.5, 0.5), loc + ChVector3d(0, 0.25, -0.25));
 
-        vis->BeginScene();
-        vis->Render();
-        ////tools::drawAllContactPoints(vis.get(), 1.0, ContactsDrawMode::CONTACT_NORMALS);
-        rig.Advance(step_size);
-        vis->EndScene();
+            vis->BeginScene();
+            vis->Render();
+            ////tools::drawAllContactPoints(vis.get(), 1.0, ContactsDrawMode::CONTACT_NORMALS);
+            vis->EndScene();
 
 #ifdef CHRONO_POSTPROCESS
-        if (blender_output)
-            blender_exporter.ExportData();
+            if (blender_output)
+                blender_exporter.ExportData();
 #endif
+        }
 
-        ////std::cout << sys.GetChTime() << std::endl;
-        ////auto long_slip = tire->GetLongitudinalSlip();
-        ////auto slip_angle = tire->GetSlipAngle();
-        ////auto camber_angle = tire->GetCamberAngle();
-        ////std::cout << "   " << long_slip << " " << slip_angle << " " << camber_angle << std::endl;
-        ////auto tforce = rig.ReportTireForce();
-        ////auto frc = tforce.force;
-        ////auto pnt = tforce.point;
-        ////auto trq = tforce.moment;
-        ////std::cout << "   " << frc.x() << " " << frc.y() << " " << frc.z() << std::endl;
-        ////std::cout << "   " << pnt.x() << " " << pnt.y() << " " << pnt.z() << std::endl;
-        ////std::cout << "   " << trq.x() << " " << trq.y() << " " << trq.z() << std::endl;
+        rig.Advance(step_size);
+        sim_time += sys->GetTimerStep();
+
+        if (debug_output) {
+            std::cout << time << std::endl;
+            auto long_slip = tire->GetLongitudinalSlip();
+            auto slip_angle = tire->GetSlipAngle();
+            auto camber_angle = tire->GetCamberAngle();
+            std::cout << "   " << long_slip << " " << slip_angle << " " << camber_angle << std::endl;
+            auto tforce = rig.ReportTireForce();
+            auto frc = tforce.force;
+            auto pnt = tforce.point;
+            auto trq = tforce.moment;
+            std::cout << "   " << frc.x() << " " << frc.y() << " " << frc.z() << std::endl;
+            std::cout << "   " << pnt.x() << " " << pnt.y() << " " << pnt.z() << std::endl;
+            std::cout << "   " << trq.x() << " " << trq.y() << " " << trq.z() << std::endl;
+        } else {
+            std::cout << "\rRTF: " << sys->GetRTF();
+        }
     }
+    timer.stop();
+
+    double step_time = timer();
+    std::cout << "\rSimulated time: " << time << std::endl;
+    std::cout << "Run time (simulation): " << sim_time << "  |  RTF: " << sim_time / time << std::endl;
+    std::cout << "Run time (total):      " << step_time << "  |  RTF: " << step_time / time << std::endl;
 
 #ifdef CHRONO_POSTPROCESS
     if (gnuplot_output && sys->GetChTime() > time_offset) {
@@ -397,19 +442,19 @@ int main() {
         gplot_long_slip.SetGrid();
         gplot_long_slip.SetLabelX("time (s)");
         gplot_long_slip.SetLabelY("Long. slip");
-        gplot_long_slip.Plot(long_slip, "", " with lines lt -1 lc rgb'#00AAEE' ");
+        gplot_long_slip.Plot(long_slip_fct, "", " with lines lt -1 lc rgb'#00AAEE' ");
 
         postprocess::ChGnuPlot gplot_slip_angle(out_dir + "/tmp2.gpl");
         gplot_slip_angle.SetGrid();
         gplot_slip_angle.SetLabelX("time (s)");
         gplot_slip_angle.SetLabelY("Slip angle");
-        gplot_slip_angle.Plot(slip_angle, "", " with lines lt -1 lc rgb'#00AAEE' ");
+        gplot_slip_angle.Plot(slip_angle_fct, "", " with lines lt -1 lc rgb'#00AAEE' ");
 
         postprocess::ChGnuPlot gplot_camber_angle(out_dir + "/tmp3.gpl");
         gplot_camber_angle.SetGrid();
         gplot_camber_angle.SetLabelX("time (s)");
         gplot_camber_angle.SetLabelY("Camber angle");
-        gplot_camber_angle.Plot(camber_angle, "", " with lines lt -1 lc rgb'#00AAEE' ");
+        gplot_camber_angle.Plot(camber_angle_fct, "", " with lines lt -1 lc rgb'#00AAEE' ");
     }
 #endif
 
