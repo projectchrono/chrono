@@ -94,7 +94,7 @@ int main() {
         ancf_tire->SetPressure(320e3);
         ancf_tire->SetAlpha(0.15);
         if (terrain_type == TerrainType::SCM)
-            ancf_tire->SetContactSurfaceType(ChDeformableTire::ContactSurfaceType::TRIANGLE_MESH);
+            ancf_tire->SetContactSurfaceType(ChTire::ContactSurfaceType::TRIANGLE_MESH, 0.02);
         tire = ancf_tire;
     } else if (use_JSON) {
         std::string tire_file;
@@ -143,7 +143,7 @@ int main() {
                 auto hmmwv_tire = chrono_types::make_shared<hmmwv::HMMWV_ANCFTire>(
                     "ANCF tire", hmmwv::HMMWV_ANCFTire::ElementType::ANCF_4);
                 if (terrain_type == TerrainType::SCM)
-                    hmmwv_tire->SetContactSurfaceType(ChDeformableTire::ContactSurfaceType::TRIANGLE_MESH);
+                    hmmwv_tire->SetContactSurfaceType(ChTire::ContactSurfaceType::TRIANGLE_MESH, 0.02);
                 tire = hmmwv_tire;
                 break;
             }
@@ -151,14 +151,14 @@ int main() {
                 auto hmmwv_tire = chrono_types::make_shared<hmmwv::HMMWV_ANCFTire>(
                     "ANCF tire", hmmwv::HMMWV_ANCFTire::ElementType::ANCF_8);
                 if (terrain_type == TerrainType::SCM)
-                    hmmwv_tire->SetContactSurfaceType(ChDeformableTire::ContactSurfaceType::TRIANGLE_MESH);
+                    hmmwv_tire->SetContactSurfaceType(ChTire::ContactSurfaceType::TRIANGLE_MESH, 0.02);
                 tire = hmmwv_tire;
                 break;
             }
             case TireType::REISSNER: {
                 auto hmmwv_tire = chrono_types::make_shared<hmmwv::HMMWV_ReissnerTire>("Reissner tire");
                 if (terrain_type == TerrainType::SCM)
-                    hmmwv_tire->SetContactSurfaceType(ChDeformableTire::ContactSurfaceType::TRIANGLE_MESH);
+                    hmmwv_tire->SetContactSurfaceType(ChTire::ContactSurfaceType::TRIANGLE_MESH, 0.02);
                 tire = hmmwv_tire;
                 break;
             }
@@ -184,7 +184,6 @@ int main() {
             step_size = 2e-4;
             solver_type = ChSolver::Type::PARDISO_MKL;
             integrator_type = ChTimestepper::Type::EULER_IMPLICIT_PROJECTED;
-            std::static_pointer_cast<ChDeformableTire>(tire)->SetContactFaceThickness(0.02);
             break;
 
         case ChContactMethod::NSC:

@@ -59,6 +59,8 @@ HMMWV::HMMWV()
       m_transmissionType(TransmissionModelType::AUTOMATIC_SHAFTS),
       m_tireType(TireModelType::RIGID),
       m_tire_collision_type(ChTire::CollisionType::SINGLE_POINT),
+      m_tire_surface_type(ChTire::ContactSurfaceType::NODE_CLOUD),
+      m_tire_surface_dim(0.01),
       m_tire_step_size(-1),
       m_initFwdVel(0),
       m_initPos(ChCoordsys<>(ChVector3d(0, 0, 1), QUNIT)),
@@ -80,6 +82,8 @@ HMMWV::HMMWV(ChSystem* system)
       m_transmissionType(TransmissionModelType::AUTOMATIC_SHAFTS),
       m_tireType(TireModelType::RIGID),
       m_tire_collision_type(ChTire::CollisionType::SINGLE_POINT),
+      m_tire_surface_type(ChTire::ContactSurfaceType::NODE_CLOUD),
+      m_tire_surface_dim(0.01),
       m_tire_step_size(-1),
       m_initFwdVel(0),
       m_initPos(ChCoordsys<>(ChVector3d(0, 0, 1), QUNIT)),
@@ -97,6 +101,11 @@ void HMMWV::SetAerodynamicDrag(double Cd, double area, double air_density) {
     m_air_density = air_density;
 
     m_apply_drag = true;
+}
+
+void HMMWV::SetTireContactSurfaceType(ChTire::ContactSurfaceType surface_type, double surface_dim) {
+    m_tire_surface_type = surface_type;
+    m_tire_surface_dim = surface_dim;
 }
 
 // -----------------------------------------------------------------------------
@@ -251,6 +260,11 @@ void HMMWV::Initialize() {
             auto tire_RL = chrono_types::make_shared<HMMWV_ANCFTire>("RL");
             auto tire_RR = chrono_types::make_shared<HMMWV_ANCFTire>("RR");
 
+            tire_FL->SetContactSurfaceType(m_tire_surface_type, m_tire_surface_dim);
+            tire_FR->SetContactSurfaceType(m_tire_surface_type, m_tire_surface_dim);
+            tire_RL->SetContactSurfaceType(m_tire_surface_type, m_tire_surface_dim);
+            tire_RR->SetContactSurfaceType(m_tire_surface_type, m_tire_surface_dim);
+
             m_vehicle->InitializeTire(tire_FL, m_vehicle->GetAxle(0)->m_wheels[LEFT], VisualizationType::NONE);
             m_vehicle->InitializeTire(tire_FR, m_vehicle->GetAxle(0)->m_wheels[RIGHT], VisualizationType::NONE);
             m_vehicle->InitializeTire(tire_RL, m_vehicle->GetAxle(1)->m_wheels[LEFT], VisualizationType::NONE);
@@ -265,6 +279,11 @@ void HMMWV::Initialize() {
             auto tire_FR = chrono_types::make_shared<HMMWV_ReissnerTire>("FR");
             auto tire_RL = chrono_types::make_shared<HMMWV_ReissnerTire>("RL");
             auto tire_RR = chrono_types::make_shared<HMMWV_ReissnerTire>("RR");
+
+            tire_FL->SetContactSurfaceType(m_tire_surface_type, m_tire_surface_dim);
+            tire_FR->SetContactSurfaceType(m_tire_surface_type, m_tire_surface_dim);
+            tire_RL->SetContactSurfaceType(m_tire_surface_type, m_tire_surface_dim);
+            tire_RR->SetContactSurfaceType(m_tire_surface_type, m_tire_surface_dim);
 
             m_vehicle->InitializeTire(tire_FL, m_vehicle->GetAxle(0)->m_wheels[LEFT], VisualizationType::NONE);
             m_vehicle->InitializeTire(tire_FR, m_vehicle->GetAxle(0)->m_wheels[RIGHT], VisualizationType::NONE);
