@@ -23,6 +23,8 @@
 #include "chrono_vehicle/powertrain/EngineSimpleMap.h"
 #include "chrono_vehicle/powertrain/EngineShafts.h"
 
+#include "chrono_vehicle/ChTransmission.h"
+
 #include "chrono_vehicle/powertrain/ChAutomaticTransmissionSimpleMap.h"
 #include "chrono_vehicle/powertrain/ChAutomaticTransmissionShafts.h"
 #include "chrono_vehicle/powertrain/AutomaticTransmissionSimpleMap.h"
@@ -40,14 +42,6 @@
 %shared_ptr(chrono::vehicle::EngineSimpleMap)
 %shared_ptr(chrono::vehicle::EngineShafts)
 
-%shared_ptr(chrono::vehicle::ChAutomaticTransmissionSimpleMap)
-%shared_ptr(chrono::vehicle::ChAutomaticTransmissionShafts)
-%shared_ptr(chrono::vehicle::AutomaticTransmissionSimpleMap)
-%shared_ptr(chrono::vehicle::AutomaticTransmissionShafts)
-%shared_ptr(chrono::vehicle::ChManualTransmissionShafts)
-%shared_ptr(chrono::vehicle::ManualTransmissionShafts)
-
-
 %import "../../../chrono_vehicle/ChPart.h"
 
 #ifdef SWIGCSHARP
@@ -61,17 +55,11 @@
 // Parse the header file to generate wrappers
 %include "../../../chrono_vehicle/ChPowertrainAssembly.h"
 
+
 %include "../../../chrono_vehicle/powertrain/ChEngineSimple.h"
 %include "../../../chrono_vehicle/powertrain/ChEngineSimpleMap.h"
 %include "../../../chrono_vehicle/powertrain/ChEngineShafts.h"
 %include "../../../chrono_vehicle/powertrain/EngineSimple.h"
 %include "../../../chrono_vehicle/powertrain/EngineSimpleMap.h"
 %include "../../../chrono_vehicle/powertrain/EngineShafts.h"
-
-%include "../../../chrono_vehicle/powertrain/ChAutomaticTransmissionSimpleMap.h"
-%include "../../../chrono_vehicle/powertrain/ChAutomaticTransmissionShafts.h"
-%include "../../../chrono_vehicle/powertrain/AutomaticTransmissionSimpleMap.h"
-%include "../../../chrono_vehicle/powertrain/AutomaticTransmissionShafts.h"
-%include "../../../chrono_vehicle/powertrain/ChManualTransmissionShafts.h"
-%include "../../../chrono_vehicle/powertrain/ManualTransmissionShafts.h"
 
