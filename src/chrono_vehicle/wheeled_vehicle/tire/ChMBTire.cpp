@@ -92,6 +92,10 @@ void ChMBTire::SetTireContactMaterial(const ChContactMaterialData& mat_data) {
     m_contact_mat_data = mat_data;
 }
 
+void ChMBTire::SetCollisionFamily(int family) {
+    m_model->m_collision_family = family;
+}
+
 double ChMBTire::GetRadius() const {
     return *std::max_element(m_model->m_radii.begin(), m_model->m_radii.end());
 }
@@ -188,7 +192,8 @@ std::vector<std::shared_ptr<fea::ChNodeFEAxyz>>& ChMBTire::GetRimNodes() const {
 // =============================================================================
 
 MBTireModel::MBTireModel()
-    : m_num_grid_lin_springs(0),
+    : m_collision_family(14),
+      m_num_grid_lin_springs(0),
       m_num_edge_lin_springs(0),
       m_num_grid_rot_springs(0),
       m_num_edge_rot_springs(0),
@@ -1366,6 +1371,7 @@ void MBTireModel::Construct() {
             case ChDeformableTire::ContactSurfaceType::NODE_CLOUD: {
                 auto contact_surf = chrono_types::make_shared<fea::ChContactSurfaceNodeCloud>(contact_mat);
                 contact_surf->SetPhysicsItem(this);
+                contact_surf->DisableSelfCollisions(m_collision_family);
                 for (const auto& node : m_nodes)
                     contact_surf->AddNode(node, m_tire->GetContactNodeRadius());
                 m_contact_surf = contact_surf;
@@ -1374,6 +1380,7 @@ void MBTireModel::Construct() {
             case ChDeformableTire::ContactSurfaceType::TRIANGLE_MESH: {
                 auto contact_surf = chrono_types::make_shared<fea::ChContactSurfaceMesh>(contact_mat);
                 contact_surf->SetPhysicsItem(this);
+                contact_surf->DisableSelfCollisions(m_collision_family);
                 for (k = 0; k < m_num_faces; k++) {
                     const auto& node1 = m_nodes[idx_vertices[k][0]];
                     const auto& node2 = m_nodes[idx_vertices[k][1]];
@@ -1387,7 +1394,6 @@ void MBTireModel::Construct() {
                                           auxdata[k].owns_edge[0], auxdata[k].owns_edge[1], auxdata[k].owns_edge[2],  //
                                           m_tire->GetContactFaceThickness());
                 }
-
                 m_contact_surf = contact_surf;
                 break;
             }

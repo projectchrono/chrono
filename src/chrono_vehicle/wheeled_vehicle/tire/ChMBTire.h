@@ -79,6 +79,13 @@ class CH_VEHICLE_API ChMBTire : public ChDeformableTire {
     /// Set contact material properties.
     void SetTireContactMaterial(const ChContactMaterialData& mat_data);
 
+    /// Set the collision family for collision shapes asociated with this tire (default: 14).
+    /// For performance considerations, self-collisions are disabled by default.  This is done by placing all collision
+    /// shapes in the same collision family and disabling collisions within that family. The caller should be careful
+    /// when other collision shapes are placed in the same collision family, as this may result in incorrect
+    /// simulations.
+    void SetCollisionFamily(int family);
+
     /// Get the tire radius.
     virtual double GetRadius() const override final;
 
@@ -398,6 +405,8 @@ class MBTireModel : public ChPhysicsItem {
 
     bool m_stiff;      // true if loads are stiff (triggers Jacobian calculation)
     bool m_force_jac;  // force Jacobian calculation (for debugging)
+
+    int m_collision_family;  // collision family (default: 14)
 
     ChMBTire* m_tire;  // owner ChMBTire object
 
