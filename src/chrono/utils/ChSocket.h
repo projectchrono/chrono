@@ -224,7 +224,10 @@ class ChApi ChSocketTCP : public ChSocket {
     template <typename DataInType, typename... DataInTypes>
     int ReceiveData(DataInType& data_in_1, DataInTypes&... data_ins) {
         receive_id += sizeof(data_in_1);
-        int received_size = ReceiveData(data_ins...);
+        int received_size = ReceiveData(data_ins...); 
+        if (received_size <= 0) {
+            return received_size;
+        }
         receive_id -= sizeof(data_in_1);
         ParseReceivedData(data_in_1, receive_id);
         return received_size;
