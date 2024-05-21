@@ -107,7 +107,7 @@ int main() {
         ancf_tire->SetPressure(320e3);
         ancf_tire->SetAlpha(0.15);
         if (terrain_type == TerrainType::SCM)
-            ancf_tire->SetContactSurfaceType(ChDeformableTire::ContactSurfaceType::TRIANGLE_MESH);
+            ancf_tire->SetContactSurfaceType(ChTire::ContactSurfaceType::TRIANGLE_MESH, 0.02);
         tire = ancf_tire;
     } else if (use_JSON) {
         std::string tire_file;
@@ -155,26 +155,23 @@ int main() {
             case TireType::ANCF4: {
                 auto hmmwv_tire = chrono_types::make_shared<hmmwv::HMMWV_ANCFTire>(
                     "ANCF tire", hmmwv::HMMWV_ANCFTire::ElementType::ANCF_4);
-                hmmwv_tire->SetContactFaceThickness(0.02);
                 if (terrain_type == TerrainType::SCM)
-                    hmmwv_tire->SetContactSurfaceType(ChDeformableTire::ContactSurfaceType::TRIANGLE_MESH);
+                    hmmwv_tire->SetContactSurfaceType(ChTire::ContactSurfaceType::TRIANGLE_MESH, 0.02);
                 tire = hmmwv_tire;
                 break;
             }
             case TireType::ANCF8: {
                 auto hmmwv_tire = chrono_types::make_shared<hmmwv::HMMWV_ANCFTire>(
                     "ANCF tire", hmmwv::HMMWV_ANCFTire::ElementType::ANCF_8);
-                hmmwv_tire->SetContactFaceThickness(0.02);
                 if (terrain_type == TerrainType::SCM)
-                    hmmwv_tire->SetContactSurfaceType(ChDeformableTire::ContactSurfaceType::TRIANGLE_MESH);
+                    hmmwv_tire->SetContactSurfaceType(ChTire::ContactSurfaceType::TRIANGLE_MESH, 0.02);
                 tire = hmmwv_tire;
                 break;
             }
             case TireType::REISSNER: {
                 auto hmmwv_tire = chrono_types::make_shared<hmmwv::HMMWV_ReissnerTire>("Reissner tire");
-                hmmwv_tire->SetContactFaceThickness(0.02);
                 if (terrain_type == TerrainType::SCM)
-                    hmmwv_tire->SetContactSurfaceType(ChDeformableTire::ContactSurfaceType::TRIANGLE_MESH);
+                    hmmwv_tire->SetContactSurfaceType(ChTire::ContactSurfaceType::TRIANGLE_MESH, 0.02);
                 tire = hmmwv_tire;
                 break;
             }
@@ -183,9 +180,8 @@ int main() {
                 mb_tire->IsStiff(false);
                 mb_tire->ForceJacobianCalculation(false);
                 mb_tire->SetCollisionFamily(11);
-                mb_tire->SetContactFaceThickness(0.02);
                 if (terrain_type == TerrainType::SCM)
-                    mb_tire->SetContactSurfaceType(ChDeformableTire::ContactSurfaceType::TRIANGLE_MESH);
+                    mb_tire->SetContactSurfaceType(ChTire::ContactSurfaceType::TRIANGLE_MESH, 0.02);
                 tire = mb_tire;
                 break;
             }

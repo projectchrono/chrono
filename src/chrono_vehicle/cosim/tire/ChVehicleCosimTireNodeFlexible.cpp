@@ -93,7 +93,7 @@ void ChVehicleCosimTireNodeFlexible::InitializeTire(std::shared_ptr<ChWheel> whe
     m_tire_def->EnablePressure(m_tire_pressure);
     m_tire_def->EnableContact(true);
     m_tire_def->EnableRimConnection(true);
-    m_tire_def->SetContactSurfaceType(ChDeformableTire::ContactSurfaceType::TRIANGLE_MESH);
+    m_tire_def->SetContactSurfaceType(ChTire::ContactSurfaceType::TRIANGLE_MESH);
 
     m_spindle->SetPos(init_loc);
     wheel->SetTire(m_tire);

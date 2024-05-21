@@ -43,9 +43,6 @@ namespace vehicle {
 /// Base class for a deformable tire model.
 class CH_VEHICLE_API ChDeformableTire : public ChTire {
   public:
-    /// Type of the mesh contact surface.
-    enum class ContactSurfaceType { NODE_CLOUD, TRIANGLE_MESH };
-
     /// Construct a deformable tire with the specified name.
     ChDeformableTire(const std::string& name);
 
@@ -56,20 +53,6 @@ class CH_VEHICLE_API ChDeformableTire : public ChTire {
 
     /// Return the tire moments of inertia (in the tire centroidal frame).
     virtual ChVector3d GetTireInertia() const override final;
-
-    /// Set the type of contact surface.
-    void SetContactSurfaceType(ContactSurfaceType type) { m_contact_type = type; }
-    ContactSurfaceType GetContactSurfaceType() const { return m_contact_type; }
-
-    /// Set radius of contact nodes.
-    /// This value is relevant only for NODE_CLOUD contact surface type.
-    void SetContactNodeRadius(double radius) { m_contact_node_radius = radius; }
-    double GetContactNodeRadius() const { return m_contact_node_radius; }
-
-    /// Set thickness of contact faces (radius of swept sphere).
-    /// This value is relevant only for TRIANGLE_MESH contact surface type.
-    void SetContactFaceThickness(double thickness) { m_contact_face_thickness = thickness; }
-    double GetContactFaceThickness() const { return m_contact_face_thickness; }
 
     /// Get the tire contact material.
     /// Note that this is not set until after tire initialization.
@@ -168,10 +151,6 @@ class CH_VEHICLE_API ChDeformableTire : public ChTire {
     bool m_connection_enabled;  ///< enable tire connections to rim
     bool m_pressure_enabled;    ///< enable internal tire pressure
     bool m_contact_enabled;     ///< enable tire-terrain contact
-
-    ContactSurfaceType m_contact_type;  ///< type of contact surface model (node cloud or mesh)
-    double m_contact_node_radius;       ///< node radius (for node cloud contact surface)
-    double m_contact_face_thickness;    ///< face thickness (for mesh contact surface)
 
     std::shared_ptr<ChContactMaterialSMC> m_contact_mat;  ///< tire contact material
     std::shared_ptr<ChVisualShapeFEA> m_visualization;    ///< tire mesh visualization

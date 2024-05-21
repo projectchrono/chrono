@@ -32,10 +32,7 @@ ChDeformableTire::ChDeformableTire(const std::string& name)
     : ChTire(name),
       m_connection_enabled(true),
       m_pressure_enabled(true),
-      m_contact_enabled(true),
-      m_contact_type(ContactSurfaceType::NODE_CLOUD),
-      m_contact_node_radius(0.005),
-      m_contact_face_thickness(0.005) {}
+      m_contact_enabled(true) {}
 
 ChDeformableTire::~ChDeformableTire() {
     if (!m_initialized)

@@ -133,7 +133,7 @@ void ChMBTire::Initialize(std::shared_ptr<ChWheel> wheel) {
 
     // Construct the underlying tire model, attached to the wheel spindle body
     m_model->m_wheel = wheel->GetSpindle();
-    m_model->Construct();
+    m_model->Construct(m_contact_surface_type, m_contact_surface_dim);
 }
 
 void ChMBTire::Synchronize(double time, const ChTerrain& terrain) {
@@ -1030,7 +1030,7 @@ void MBTireModel::EdgeSpring3::CalculateJacobianFD(double Kfactor, double Rfacto
 
 // -----------------------------------------------------------------------------
 
-void MBTireModel::Construct() {
+void MBTireModel::Construct(ChTire::ContactSurfaceType surface_type, double surface_dim) {
     m_num_rim_nodes = 2 * m_num_divs;
     m_num_nodes = m_num_rings * m_num_divs;
     m_num_faces = 2 * (m_num_rings - 1) * m_num_divs;
@@ -1367,13 +1367,13 @@ void MBTireModel::Construct() {
     if (m_tire->IsContactEnabled()) {
         auto contact_mat = m_tire->GetContactMaterial();
 
-        switch (m_tire->GetContactSurfaceType()) {
+        switch (surface_type) {
             case ChDeformableTire::ContactSurfaceType::NODE_CLOUD: {
                 auto contact_surf = chrono_types::make_shared<fea::ChContactSurfaceNodeCloud>(contact_mat);
                 contact_surf->SetPhysicsItem(this);
                 contact_surf->DisableSelfCollisions(m_collision_family);
                 for (const auto& node : m_nodes)
-                    contact_surf->AddNode(node, m_tire->GetContactNodeRadius());
+                    contact_surf->AddNode(node, surface_dim);
                 m_contact_surf = contact_surf;
                 break;
             }
@@ -1392,7 +1392,7 @@ void MBTireModel::Construct() {
                                           edge_node1, edge_node2, edge_node3,                                         //
                                           auxdata[k].owns_node[0], auxdata[k].owns_node[1], auxdata[k].owns_node[2],  //
                                           auxdata[k].owns_edge[0], auxdata[k].owns_edge[1], auxdata[k].owns_edge[2],  //
-                                          m_tire->GetContactFaceThickness());
+                                          surface_dim);
                 }
                 m_contact_surf = contact_surf;
                 break;
@@ -1854,7 +1854,7 @@ void MBTireModel::IntLoadResidual_F(const unsigned int off, ChVectorDynamic<>& R
         local_off_v += node->GetNumCoordsVelLevelActive();
     }
 
-    ////std::cout << "   " << m_wheel_force << "             " << m_wheel_torque << std::endl;
+    ////std::cout << m_tire->GetName() << "   " << m_wheel_force << "             " << m_wheel_torque << std::endl;
 
     // Load wheel body forces into R
     if (m_wheel->Variables().IsActive()) {

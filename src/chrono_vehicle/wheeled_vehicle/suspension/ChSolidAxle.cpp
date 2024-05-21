@@ -674,7 +674,7 @@ void ChSolidAxle::AddVisualizationLink(std::shared_ptr<ChBody> body,
 
     ChVehicleGeometry::AddVisualizationCylinder(body, p_1, p_2, radius);
     auto ns = body->GetVisualModel()->GetNumShapes();
-    for (size_t i = 0; i < ns; i++)
+    for (unsigned int i = 0; i < ns; i++)
         body->GetVisualModel()->GetShape(i)->SetColor(color);
 }
 
@@ -693,7 +693,7 @@ void ChSolidAxle::AddVisualizationBellCrank(std::shared_ptr<ChBody> body,
     ChVehicleGeometry::AddVisualizationCylinder(body, p_A, p_T, radius);
 
     auto ns = body->GetVisualModel()->GetNumShapes();
-    for (size_t i = 0; i < ns; i++)
+    for (unsigned int i = 0; i < ns; i++)
         body->GetVisualModel()->GetShape(i)->SetColor(color);
 }
 
@@ -723,7 +723,7 @@ void ChSolidAxle::AddVisualizationKnuckle(std::shared_ptr<ChBody> knuckle,
     }
 
     auto ns = knuckle->GetVisualModel()->GetNumShapes();
-    for (size_t i = 0; i < ns; i++)
+    for (unsigned int i = 0; i < ns; i++)
         knuckle->GetVisualModel()->GetShape(i)->SetColor(color);
 }
 

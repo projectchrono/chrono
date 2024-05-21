@@ -156,7 +156,7 @@ class MBTireModel : public ChPhysicsItem {
 
   private:
     // Construct the MB tire relative to the associated wheel/spindle body.
-    void Construct();
+    void Construct(ChTire::ContactSurfaceType surface_type, double surface_dim);
 
     // Calculate COG and inertia, expressed relative to the frame of the associated wheel/spindle body.
     void CalculateInertiaProperties(ChVector3d& com, ChMatrix33<>& inertia);

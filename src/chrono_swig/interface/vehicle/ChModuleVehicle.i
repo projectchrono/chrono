@@ -269,8 +269,6 @@ Before adding a shared_ptr, mark as shared ptr all its inheritance tree in the m
 %shared_ptr(chrono::vehicle::ChEngineShafts)
 
 %shared_ptr(chrono::vehicle::ChTransmission)
-%shared_ptr(chrono::vehicle::ChAutomaticTransmission)
-%shared_ptr(chrono::vehicle::ChManualTransmission) 
 
 // Expose for both python and csharp
 %shared_ptr(chrono::vehicle::ChVehicleVisualSystem)
@@ -323,7 +321,7 @@ Before adding a shared_ptr, mark as shared ptr all its inheritance tree in the m
 %template(ChAxleList) std::vector<std::shared_ptr<chrono::vehicle::ChAxle> > ;
 
 
-#ifdef SWIGPYTHON
+#ifdef SWIGPYTHON  // --------------------------------------------------------------------- PYTHON
 
   #ifdef CHRONO_IRRLICHT
     #define ChApiIrr 
@@ -332,7 +330,7 @@ Before adding a shared_ptr, mark as shared ptr all its inheritance tree in the m
     %include "chrono_swig/interface/vehicle/ChVehicleVisualSystemIrrlicht.i"
   #endif
 
-#endif  // ----- end PYTHON
+#endif             // ----------------------------------------------------------------- end PYTHON
 
 // TODO: 
 //%include "rapidjson.i"
@@ -470,6 +468,12 @@ Before adding a shared_ptr, mark as shared ptr all its inheritance tree in the m
 %DefSharedPtrDynamicCast(chrono::vehicle,ChTransmission, AutomaticTransmissionShafts)
 %DefSharedPtrDynamicCast(chrono::vehicle,ChTransmission, ChManualTransmissionShafts)
 %DefSharedPtrDynamicCast(chrono::vehicle,ChTransmission, ManualTransmissionShafts)
+
+%DefSharedPtrDynamicCast(chrono::vehicle, ChTransmission, ChAutomaticTransmission);
+%DefSharedPtrDynamicCast(chrono::vehicle, ChAutomaticTransmission, ChAutomaticTransmissionSimpleMap);
+%DefSharedPtrDynamicCast(chrono::vehicle, ChAutomaticTransmission, ChAutomaticTransmissionShafts);
+%DefSharedPtrDynamicCast(chrono::vehicle, ChTransmission, ChManualTransmission);
+%DefSharedPtrDynamicCast(chrono::vehicle, ChManualTransmission, ChManualTransmissionShafts);
 
 %DefSharedPtrDynamicCast(chrono::vehicle,ChDriveline, ChDrivelineWV)
 %DefSharedPtrDynamicCast(chrono::vehicle,ChDriveline, ChShaftsDriveline2WD)

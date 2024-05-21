@@ -109,7 +109,7 @@ int main() {
     SetChronoSolver(*sys, solver_type, integrator_type);
 
     // Set vertical load on tire (added mass, in kg)
-    double load = 300;
+    double load = 600;
 
     // Create spindle body
     auto spindle = chrono_types::make_shared<ChBody>();
@@ -130,11 +130,10 @@ int main() {
     wheel->SetTire(tire);
 
     if (terrain_type == TerrainType::SCM)
-        tire->SetContactSurfaceType(ChDeformableTire::ContactSurfaceType::TRIANGLE_MESH);
+        tire->SetContactSurfaceType(ChTire::ContactSurfaceType::TRIANGLE_MESH, 0.02);
     tire->IsStiff(false);
     tire->ForceJacobianCalculation(false);
     tire->SetStepsize(step_size);
-    tire->SetContactFaceThickness(0.02);
     tire->SetCollisionFamily(11);
     tire->Initialize(wheel);
     tire->SetVisualizationType(VisualizationType::MESH);
