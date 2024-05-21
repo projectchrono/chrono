@@ -51,6 +51,10 @@ using namespace chrono::vehicle;
 
 // -----------------------------------------------------------------------------
 
+bool fix_wheel = false;
+
+// -----------------------------------------------------------------------------
+
 // Contact formulation type (SMC or NSC)
 ChContactMethod contact_method = ChContactMethod::SMC;
 
@@ -67,7 +71,7 @@ int num_threads_chrono = 4;
 // Number of threads used in collision detection
 int num_threads_collision = 4;
 
-// -----------------------------------------------------------------------------
+// =============================================================================
 
 int main() {
     // Create system and set solver
@@ -113,7 +117,7 @@ int main() {
 
     // Create spindle body
     auto spindle = chrono_types::make_shared<ChBody>();
-    spindle->SetFixed(false);
+    spindle->SetFixed(fix_wheel);
     spindle->SetName("Spindle");
     spindle->SetMass(load);
     spindle->SetInertiaXX(ChVector3d(0.01, 0.02, 0.01));
@@ -157,7 +161,7 @@ int main() {
             cinfo.Y = 2e7f;
             auto patch_mat = cinfo.CreateMaterial(contact_method);
 
-            auto patch = terrain_rigid->AddPatch(patch_mat, ChCoordsys<>(ChVector3d(0, 0, -1.1 * tire_radius), QUNIT),
+            auto patch = terrain_rigid->AddPatch(patch_mat, ChCoordsys<>(ChVector3d(0, 0, -1.2 * tire_radius), QUNIT),
                                                  sizeX, sizeY, 0.1);
             patch->SetTexture(GetChronoDataFile("textures/concrete.jpg"), 10, 10);
 
@@ -171,7 +175,7 @@ int main() {
 
             double delta = 0.125;
 
-            terrain_scm->SetPlane(ChCoordsys<>(ChVector3d(0, 0, -1.1 * tire_radius), QUNIT));
+            terrain_scm->SetPlane(ChCoordsys<>(ChVector3d(0, 0, -1.2 * tire_radius), QUNIT));
             terrain_scm->SetSoilParameters(2e6,   // Bekker Kphi
                                            0,     // Bekker Kc
                                            1.1,   // Bekker n exponent
