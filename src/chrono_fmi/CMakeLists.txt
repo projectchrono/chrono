@@ -1,33 +1,40 @@
 #=============================================================================
 # CMake configuration file for the Chrono::FMI module
-# 
-# Cannot be used stand-alone (it's loaded by CMake config. file in parent dir.)
 #=============================================================================
 
 option(ENABLE_MODULE_FMI "Enable the Chrono::FMI module" OFF)
 
 # Return now if this module is not enabled
 if(NOT ENABLE_MODULE_FMI)
+    mark_as_advanced(FORCE FMU_EXPORT_SUPPORT)
+    mark_as_advanced(FORCE FMU_TOOLS_DIR)
+    mark_as_advanced(FORCE FMU_TESTING)
+    mark_as_advanced(FORCE FMU_GUID_NAMESPACE)
 	return()
+else()
+    mark_as_advanced(CLEAR FMU_EXPORT_SUPPORT)
+    mark_as_advanced(CLEAR FMU_TOOLS_DIR)
+    mark_as_advanced(CLEAR FMU_TESTING)
+    mark_as_advanced(CLEAR FMU_GUID_NAMESPACE)
 endif()
 
 MESSAGE(STATUS "\n==== Chrono FMI module ====\n")
 
+cmake_dependent_option(FMU_EXPORT_SUPPORT "Enable FMU export capabilities" ON "ENABLE_MODULE_FMI" OFF)
+
 # -------------------------------------------------
 
-if (BUILD_SHARED_LIBS)
-  message(NOTICE "For FMI support, Chrono must be configured and built in static mode. Disable 'BUILD_SHARED_LIBS'.")
-  message(NOTICE "Chrono FMI module disabled.")
-  set(ENABLE_MODULE_FMI OFF CACHE BOOL "Enable the Chrono::FMI module" FORCE)
-  return()
+if(FMU_EXPORT_SUPPORT AND BUILD_SHARED_LIBS)
+  message(NOTICE "For FMI export support, Chrono must be configured and built in static mode. Disable 'BUILD_SHARED_LIBS'.")
+  message(NOTICE "FMU export capabilities in Chrono::FMI module disabled.")
+  set(FMU_EXPORT_SUPPORT OFF CACHE BOOL "Enable FMU export capabilities" FORCE)
 endif()
 
 if(MSVC)
-  if (NOT USE_MSVC_STATIC_RUNTIME)
-    message(NOTICE "For FMI support on Windows, Chrono must be configured and built with a statically-linked runtime library. Enable 'USE_MSVC_STATIC_RUNTIME'.")
-    message(NOTICE "Chrono FMI module disabled.")
-    set(ENABLE_MODULE_FMI OFF CACHE BOOL "Enable the Chrono::FMI module" FORCE)
-    return()
+  if (FMU_EXPORT_SUPPORT AND NOT USE_MSVC_STATIC_RUNTIME)
+    message(NOTICE "For FMI export support on Windows, Chrono must be configured and built with a statically-linked runtime library. Enable 'USE_MSVC_STATIC_RUNTIME'.")
+    message(NOTICE "FMU export capabilities in Chrono::FMI module disabled.")
+    set(FMU_EXPORT_SUPPORT OFF CACHE BOOL "Enable FMU export capabilities" FORCE)
   endif()
 endif()
 
@@ -43,7 +50,7 @@ include_directories(${FMU_TOOLS_DIR})
 # -------------------------------------------------
 # Enable testing of generated FMUs
 
-set(FMU_TESTING OFF CACHE BOOL "Enable testing")
+cmake_dependent_option(FMU_TESTING "Enable FMU testing" ON "ENABLE_FMU_EXPORT" OFF)
 
 # -------------------------------------------------
 # Set Architecture and Operating System Flags
@@ -83,7 +90,25 @@ message(STATUS "FMI target version:   ${FMI_VERSION}")
 message(STATUS "FMI platform:         ${FMI_PLATFORM}")
 message(STATUS "FMU Tools directory:  ${FMU_TOOLS_DIR}")
 
-# -------------------------------------------------
+if(FMU_EXPORT_SUPPORT)
+  include(FetchContent)
+endif()
+
+#=============================================================================
+# Generate and install the Chrono::FMI configuration header
+
+if(FMU_EXPORT_SUPPORT)
+  set(DEFINE_FMU_EXPORT_SUPPORT "#define FMU_EXPORT_SUPPORT")
+else()
+  set(DEFINE_FMU_EXPORT_SUPPORT "#undef FMU_EXPORT_SUPPORT")
+endif()
+
+configure_file(${CMAKE_CURRENT_SOURCE_DIR}/ChConfigFMI.h.in
+               ${PROJECT_BINARY_DIR}/chrono_fmi/ChConfigFMI.h)
+
+install(FILES "${PROJECT_BINARY_DIR}/chrono_fmi/ChConfigFMI.h"
+        DESTINATION include/chrono_fmi)
+
 
 include(FetchContent)
 
