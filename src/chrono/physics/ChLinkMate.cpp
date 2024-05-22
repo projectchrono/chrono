@@ -849,16 +849,16 @@ double ChLinkMateRevolute::GetRelativeAngleDt() {
     ChFrameMoving<> F1_W = ChFrameMoving<>(frame1) >> *m_body1;
     ChFrameMoving<> F2_W = ChFrameMoving<>(frame2) >> *m_body2;
     ChFrameMoving<> F1_F2 = F2_W.TransformParentToLocal(F1_W);
-    double vel12_W = F1_F2.GetAngVelLocal().z();  // NB: assumes rotation along z
-    return vel12_W;
+    double vel = F1_F2.GetAngVelLocal().z();  // NB: assumes rotation along z
+    return vel;
 }
 
 double ChLinkMateRevolute::GetRelativeAngleDt2() {
     ChFrameMoving<> F1_W = ChFrameMoving<>(frame1) >> *m_body1;
     ChFrameMoving<> F2_W = ChFrameMoving<>(frame2) >> *m_body2;
     ChFrameMoving<> F1_F2 = F2_W.TransformParentToLocal(F1_W);
-    double acc12_W = F1_F2.GetAngAccLocal().z();  // NB: assumes rotation along z
-    return acc12_W;
+    double acc = F1_F2.GetAngAccLocal().z();  // NB: assumes rotation along z
+    return acc;
 }
 
 void ChLinkMateRevolute::ArchiveOut(ChArchiveOut& archive_out) {
@@ -916,22 +916,22 @@ void ChLinkMatePrismatic::Initialize(std::shared_ptr<ChBodyFrame> body1,
 double ChLinkMatePrismatic::GetRelativePos() {
     ChFrame<> F1_W = frame1 >> *m_body1;
     ChFrame<> F2_W = frame2 >> *m_body2;
-    ChVector3d pos12_W = F1_W.GetPos() - F2_W.GetPos();
-    return pos12_W.z();  // NB: assumes translation along Z
+    ChVector3d pos12_F2 = F2_W.TransformDirectionParentToLocal(F1_W.GetPos() - F2_W.GetPos());
+    return pos12_F2.z();  // NB: assumes translation along Z
 }
 
 double ChLinkMatePrismatic::GetRelativePosDt() {
     ChFrameMoving<> F1_W = ChFrameMoving<>(frame1) >> *m_body1;
     ChFrameMoving<> F2_W = ChFrameMoving<>(frame2) >> *m_body2;
-    ChVector3d vel12_W = F1_W.GetPosDt() - F2_W.GetPosDt();
-    return vel12_W.z();  // NB: assumes translation along Z
+    ChVector3d vel12_F2 = F2_W.TransformDirectionParentToLocal(F1_W.GetPosDt() - F2_W.GetPosDt());
+    return vel12_F2.z();  // NB: assumes translation along Z
 }
 
 double ChLinkMatePrismatic::GetRelativePosDt2() {
     ChFrameMoving<> F1_W = ChFrameMoving<>(frame1) >> *m_body1;
     ChFrameMoving<> F2_W = ChFrameMoving<>(frame2) >> *m_body2;
-    ChVector3d acc12_W = F1_W.GetPosDt2() - F2_W.GetPosDt2();
-    return acc12_W.z();  // NB: assumes translation along Z
+    ChVector3d acc12_F2 = F2_W.TransformDirectionParentToLocal(F1_W.GetPosDt2() - F2_W.GetPosDt2());
+    return acc12_F2.z();  // NB: assumes translation along Z
 }
 
 void ChLinkMatePrismatic::ArchiveOut(ChArchiveOut& archive_out) {
