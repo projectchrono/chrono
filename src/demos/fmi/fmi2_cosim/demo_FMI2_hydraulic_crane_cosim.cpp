@@ -121,7 +121,8 @@ int main(int argc, char* argv[]) {
 #else
     // Expect fully qualified FMU filenames as program arguments
     if (argc != 3) {
-        std::cout << "Usage: ./demo_FMI2_hydraulic_crane [crane_FMU_filename] [actuator_FMU_filename]" << std::endl;
+        std::cout << "Usage: ./demo_FMI2_hydraulic_crane_cosim [crane_FMU_filename] [actuator_FMU_filename]"
+                  << std::endl;
         return 1;
     }
     std::string crane_fmu_filename = argv[1];
@@ -133,7 +134,7 @@ int main(int argc, char* argv[]) {
     std::string actuator_unpack_dir = DEMO_FMU_MAIN_DIR + std::string("/tmp_unpack_actuator");
 
     // Create (if needed) output directory
-    std::string out_dir = GetChronoOutputPath() + "./DEMO_HYDRAULIC_CRANE_FMI_COSIM";
+    std::string out_dir = GetChronoOutputPath() + "./DEMO_FMI_HYDRAULIC_CRANE_COSIM";
 
     if (!filesystem::create_directory(filesystem::path(out_dir))) {
         std::cout << "Error creating directory " << out_dir << std::endl;
