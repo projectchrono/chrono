@@ -1,6 +1,9 @@
 #version 450
 #extension GL_ARB_separate_shader_objects : enable
-#pragma import_defines (VSG_DIFFUSE_MAP, VSG_GREYSCALE_DIFFUSE_MAP, VSG_EMISSIVE_MAP, VSG_LIGHTMAP_MAP, VSG_NORMAL_MAP, VSG_METALLROUGHNESS_MAP, VSG_SPECULAR_MAP, VSG_OPACITY_MAP, VSG_TWO_SIDED_LIGHTING, VSG_WORKFLOW_SPECGLOSS, SHADOWMAP_DEBUG)
+#pragma import_defines (VSG_DIFFUSE_MAP, VSG_GREYSCALE_DIFFUSE_MAP, VSG_EMISSIVE_MAP, VSG_LIGHTMAP_MAP, VSG_NORMAL_MAP, VSG_METALLROUGHNESS_MAP, VSG_SPECULAR_MAP, VSG_OPACITY_MAP, VSG_TWO_SIDED_LIGHTING, VSG_WORKFLOW_SPECGLOSS, VSG_SHADOWS_PCSS, VSG_SHADOWS_SOFT, VSG_SHADOWS_HARD, SHADOWMAP_DEBUG, VSG_ALPHA_TEST)
+
+// define by default for backwards compatibility
+#define VSG_SHADOWS_HARD
 
 #define VIEW_DESCRIPTOR_SET 0
 #define MATERIAL_DESCRIPTOR_SET 1
@@ -52,12 +55,11 @@ layout(set = MATERIAL_DESCRIPTOR_SET, binding = 10) uniform PbrData
 } pbr;
 
 // ViewDependentState
+layout(constant_id = 3) const int lightDataSize = 256;
 layout(set = VIEW_DESCRIPTOR_SET, binding = 0) uniform LightData
 {
-    vec4 values[2048];
+    vec4 values[lightDataSize];
 } lightData;
-
-layout(set = VIEW_DESCRIPTOR_SET, binding = 2) uniform sampler2DArrayShadow shadowMaps;
 
 layout(location = 0) in vec3 eyePos;
 layout(location = 1) in vec3 normalDir;
@@ -110,6 +112,9 @@ float pow5(const in float value)
 {
     return value * value * value * value * value;
 }
+
+// include the calculateShadowCoverageForDirectionalLight(..) implementation
+#include "shadows.glsl"
 
 // Find the normal for this fragment, pulling either from a predefined normal map
 // or from the interpolated mesh normal and tangent attributes.
@@ -334,11 +339,9 @@ void main()
     baseColor = vertexColor * pbr.baseColorFactor;
 #endif
 
-    if (pbr.alphaMask == 1.0f)
-    {
-        if (baseColor.a < pbr.alphaMaskCutoff)
-            discard;
-    }
+#ifdef VSG_ALPHA_TEST
+    if (material.alphaMask == 1.0f && diffuseColor.a < material.alphaMaskCutoff) discard;
+#endif
 
 #ifdef VSG_WORKFLOW_SPECGLOSS
     #ifdef VSG_DIFFUSE_MAP
@@ -408,14 +411,14 @@ void main()
     int numDirectionalLights = int(lightNums[1]);
     int numPointLights = int(lightNums[2]);
     int numSpotLights = int(lightNums[3]);
-    int index = 1;
+    int lightDataIndex = 1;
 
     if (numAmbientLights>0)
     {
         // ambient lights
         for(int i = 0; i<numAmbientLights; ++i)
         {
-            vec4 ambient_color = lightData.values[index++];
+            vec4 ambient_color = lightData.values[lightDataIndex++];
             color += (baseColor.rgb * ambient_color.rgb) * (ambient_color.a * ambientOcclusion);
         }
     }
@@ -425,56 +428,39 @@ void main()
 
     if (numDirectionalLights>0)
     {
+        vec3 q1 = dFdx(eyePos);
+        vec3 q2 = dFdy(eyePos);
+        vec2 st1 = dFdx(texCoord0);
+        vec2 st2 = dFdy(texCoord0);
+
+        vec3 N = normalize(normalDir);
+        vec3 T = normalize(q1 * st2.t - q2 * st1.t);
+        vec3 B = -normalize(cross(N, T));
+
         // directional lights
         for(int i = 0; i<numDirectionalLights; ++i)
         {
-            vec4 lightColor = lightData.values[index++];
-            vec3 direction = -lightData.values[index++].xyz;
-            vec4 shadowMapSettings = lightData.values[index++];
+            vec4 lightColor = lightData.values[lightDataIndex++];
+            vec3 direction = -lightData.values[lightDataIndex++].xyz;
 
             float brightness = lightColor.a;
 
-            // check shadow maps if required
-            bool matched = false;
-            while ((shadowMapSettings.r > 0.0 && brightness > brightnessCutoff) && !matched)
+            // if light is too dim to effect the rendering skip it
+            if (brightness <= brightnessCutoff ) continue;
+
+            int shadowMapCount = int(lightData.values[lightDataIndex].r);
+            if (shadowMapCount > 0)
             {
-                mat4 sm_matrix = mat4(lightData.values[index++],
-                                      lightData.values[index++],
-                                      lightData.values[index++],
-                                      lightData.values[index++]);
+                if (brightness > brightnessCutoff)
+                    brightness *= (1.0-calculateShadowCoverageForDirectionalLight(lightDataIndex, shadowMapIndex, T, B, color));
 
-                vec4 sm_tc = (sm_matrix) * vec4(eyePos, 1.0);
-
-                if (sm_tc.x >= 0.0 && sm_tc.x <= 1.0 && sm_tc.y >= 0.0 && sm_tc.y <= 1.0 && sm_tc.z >= 0.0 /* && sm_tc.z <= 1.0*/)
-                {
-                    matched = true;
-
-                    float coverage = texture(shadowMaps, vec4(sm_tc.st, shadowMapIndex, sm_tc.z)).r;
-                    brightness *= (1.0-coverage);
-
-#ifdef SHADOWMAP_DEBUG
-                    if (shadowMapIndex==0) color = vec3(1.0, 0.0, 0.0);
-                    else if (shadowMapIndex==1) color = vec3(0.0, 1.0, 0.0);
-                    else if (shadowMapIndex==2) color = vec3(0.0, 0.0, 1.0);
-                    else if (shadowMapIndex==3) color = vec3(1.0, 1.0, 0.0);
-                    else if (shadowMapIndex==4) color = vec3(0.0, 1.0, 1.0);
-                    else color = vec3(1.0, 1.0, 1.0);
-#endif
-                }
-
-                ++shadowMapIndex;
-                shadowMapSettings.r -= 1.0;
+                lightDataIndex += 1 + 8 * shadowMapCount;
+                shadowMapIndex += shadowMapCount;
             }
+            else
+                lightDataIndex++;
 
-            if (shadowMapSettings.r > 0.0)
-            {
-                // skip lightData and shadowMap entries for shadow maps that we haven't visited for this light
-                // so subsequent light pointions are correct.
-                index += 4 * int(shadowMapSettings.r);
-                shadowMapIndex += int(shadowMapSettings.r);
-            }
-
-            // if light is too dim/shadowed to effect the rendering skip it
+            // if light is too shadowed to effect the rendering skip it
             if (brightness <= brightnessCutoff ) continue;
 
             vec3 l = direction;         // Vector from surface point to light
@@ -490,8 +476,8 @@ void main()
         // point light
         for(int i = 0; i<numPointLights; ++i)
         {
-            vec4 lightColor = lightData.values[index++];
-            vec3 position = lightData.values[index++].xyz;
+            vec4 lightColor = lightData.values[lightDataIndex++];
+            vec3 position = lightData.values[lightDataIndex++].xyz;
 
             vec3 delta = position - eyePos;
             float distance2 = delta.x * delta.x + delta.y * delta.y + delta.z * delta.z;
@@ -507,21 +493,53 @@ void main()
 
     if (numSpotLights>0)
     {
+        vec3 q1 = dFdx(eyePos);
+        vec3 q2 = dFdy(eyePos);
+        vec2 st1 = dFdx(texCoord0);
+        vec2 st2 = dFdy(texCoord0);
+
+        vec3 N = normalize(normalDir);
+        vec3 T = normalize(q1 * st2.t - q2 * st1.t);
+        vec3 B = -normalize(cross(N, T));
+
         // spot light
         for(int i = 0; i<numSpotLights; ++i)
         {
-            vec4 lightColor = lightData.values[index++];
-            vec4 position_cosInnerAngle = lightData.values[index++];
-            vec4 lightDirection_cosOuterAngle = lightData.values[index++];
+            vec4 lightColor = lightData.values[lightDataIndex++];
+            vec4 position_cosInnerAngle = lightData.values[lightDataIndex++];
+            vec4 lightDirection_cosOuterAngle = lightData.values[lightDataIndex++];
+
+            float brightness = lightColor.a;
+
+            // if light is too dim to effect the rendering skip it
+            if (brightness <= brightnessCutoff ) continue;
 
             vec3 delta = position_cosInnerAngle.xyz - eyePos;
             float distance2 = delta.x * delta.x + delta.y * delta.y + delta.z * delta.z;
-            vec3 direction = delta / sqrt(distance2);
-            float dot_lightdirection = -dot(lightDirection_cosOuterAngle.xyz, direction);
+            float dist = sqrt(distance2);
+
+            vec3 direction = delta / dist;
+
+            float dot_lightdirection = dot(lightDirection_cosOuterAngle.xyz, -direction);
+
+            int shadowMapCount = int(lightData.values[lightDataIndex].r);
+            if (shadowMapCount > 0)
+            {
+                if (lightDirection_cosOuterAngle.w > dot_lightdirection)
+                    brightness *= (1.0-calculateShadowCoverageForSpotLight(lightDataIndex, shadowMapIndex, T, B, dist, color));
+
+                lightDataIndex += 1 + 8 * shadowMapCount;
+                shadowMapIndex += shadowMapCount;
+            }
+            else
+                lightDataIndex++;
+
+            // if light is too shadowed to effect the rendering skip it
+            if (brightness <= brightnessCutoff ) continue;
 
             vec3 l = direction;        // Vector from surface point to light
             vec3 h = normalize(l+v);    // Half vector between both l and v
-            float scale = (lightColor.a * smoothstep(lightDirection_cosOuterAngle.w, position_cosInnerAngle.w, dot_lightdirection)) / distance2;
+            float scale = (brightness * smoothstep(lightDirection_cosOuterAngle.w, position_cosInnerAngle.w, dot_lightdirection)) / distance2;
 
             color.rgb += BRDF(lightColor.rgb * scale, v, n, l, h, perceptualRoughness, metallic, specularEnvironmentR0, specularEnvironmentR90, alphaRoughness, diffuseColor, specularColor, ambientOcclusion);
         }
@@ -531,6 +549,7 @@ void main()
     vec3 aop = texture(opacityMap, texCoord0).xyz;
     baseColor.a = (aop.x + aop.y + aop.z)/3;
 #endif
+
 
     outColor = LINEARtoSRGB(vec4(color, baseColor.a));
 }

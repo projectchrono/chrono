@@ -716,8 +716,12 @@ void ChVisualSystemVSG::Initialize() {
     directionalLight->name = "sun light";
     directionalLight->color.set(1.0f, 1.0f, 1.0f);
     directionalLight->intensity = m_lightIntensity;
-    if (m_use_shadows)
-        directionalLight->shadowMaps = 10;
+    if(m_use_shadows) {
+        uint32_t numShadowsPerLight = 10;
+        auto shadowSettings = vsg::HardShadows::create(numShadowsPerLight);
+        directionalLight->shadowSettings = shadowSettings;
+        directionalLight->intensity *= 0.8; // try to avoid saturation due to additional lights
+    }
 
     double se = std::sin(m_elevation);
     double ce = std::cos(m_elevation);

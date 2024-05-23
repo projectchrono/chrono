@@ -1189,8 +1189,8 @@ int ChSocketTCP::ReceiveBuffer(int data_in_size) {
 
 int ChSocketTCP::ReceiveData() {
     m_internal_buffer_receive.resize(receive_id);
-    ReceiveBuffer(m_internal_buffer_receive, (int)m_internal_buffer_receive.size());
-    return receive_id;
+    int received_bytes = ReceiveBuffer(m_internal_buffer_receive, (int)m_internal_buffer_receive.size());
+    return received_bytes;
 }
 
 // -----------------

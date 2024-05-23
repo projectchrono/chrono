@@ -1,7 +1,7 @@
 #version 450
 #extension GL_ARB_separate_shader_objects : enable
 
-#pragma import_defines (VSG_INSTANCE_POSITIONS, VSG_BILLBOARD, VSG_DISPLACEMENT_MAP)
+#pragma import_defines (VSG_INSTANCE_POSITIONS, VSG_BILLBOARD, VSG_DISPLACEMENT_MAP, VSG_SKINNING)
 
 #define VIEW_DESCRIPTOR_SET 0
 #define MATERIAL_DESCRIPTOR_SET 1
@@ -25,6 +25,16 @@ layout(location = 3) in vec4 vsg_Color;
 layout(location = 4) in vec4 vsg_position_scaleDistance;
 #elif defined(VSG_INSTANCE_POSITIONS)
 layout(location = 4) in vec3 vsg_position;
+#endif
+
+#ifdef VSG_SKINNING
+layout(location = 5) in ivec4 vsg_JointIndices;
+layout(location = 6) in vec4 vsg_JointWeights;
+
+layout(set = MATERIAL_DESCRIPTOR_SET, binding = 11) buffer JointMatrices
+{
+	mat4 matrices[];
+} joint;
 #endif
 
 layout(location = 0) out vec3 eyePos;
@@ -96,6 +106,15 @@ void main()
 
 #ifdef VSG_BILLBOARD
     mat4 mv = computeBillboadMatrix(pc.modelView * vec4(vsg_position_scaleDistance.xyz, 1.0), vsg_position_scaleDistance.w);
+#elif defined(VSG_SKINNING)
+    // Calculate skinned matrix from weights and joint indices of the current vertex
+    mat4 skinMat =
+        vsg_JointWeights.x * joint.matrices[vsg_JointIndices.x] +
+        vsg_JointWeights.y * joint.matrices[vsg_JointIndices.y] +
+        vsg_JointWeights.z * joint.matrices[vsg_JointIndices.z] +
+        vsg_JointWeights.w * joint.matrices[vsg_JointIndices.w];
+
+    mat4 mv = pc.modelView * skinMat;
 #else
     mat4 mv = pc.modelView;
 #endif
