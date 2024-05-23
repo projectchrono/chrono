@@ -36,7 +36,14 @@ class ChApi ChExternalDynamics : public ChPhysicsItem {
     virtual ChExternalDynamics* Clone() const override;
 
     /// Initialize the physics item.
-    void Initialize();
+    virtual void Initialize();
+
+    /// Declare as stiff (default: false).
+    /// If stiff, Jacobian information will be generated.
+    virtual bool IsStiff() const { return false; }
+
+    /// Get number of states (dimension of y).
+    virtual unsigned int GetNumStates() const { return 0; }
 
     /// Get the initial values (state at initial time).
     ChVectorDynamic<> GetInitialStates();
@@ -44,15 +51,11 @@ class ChApi ChExternalDynamics : public ChPhysicsItem {
     /// Get current states.
     const ChVectorDynamic<>& GetStates() const { return m_states; }
 
+    /// Get current RHS.
+    const ChVectorDynamic<>& GetRHS() const { return m_rhs; }
+
   protected:
     ChExternalDynamics();
-
-    /// Declare as stiff (default: false).
-    /// If stiff, Jacobian information will be generated.
-    virtual bool IsStiff() const { return false; }
-
-    /// Specify number of states (dimension of y).
-    virtual unsigned int GetNumStates() const { return 0; }
 
     /// Set initial conditions.
     /// Must load y0 = y(0).
