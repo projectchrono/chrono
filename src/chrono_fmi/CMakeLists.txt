@@ -109,6 +109,49 @@ configure_file(${CMAKE_CURRENT_SOURCE_DIR}/ChConfigFMI.h.in
 install(FILES "${PROJECT_BINARY_DIR}/chrono_fmi/ChConfigFMI.h"
         DESTINATION include/chrono_fmi)
 
+#=============================================================================
+# Create the Chrono::FMI library
 
-include(FetchContent)
+set(ChronoEngine_FMI_SOURCES 
+    fmi2/ChExternalFmu.cpp
+)
 
+set(ChronoEngine_FMI_HEADERS
+    ChApiFmi.h 
+    fmi2/ChFmuToolsImport.h
+    fmi2/ChExternalFmu.h
+)
+
+source_group("" FILES 
+            ${ChronoEngine_FMI_HEADERS} 
+            ${ChronoEngine_FMI_SOURCES})
+
+#-----------------------------------------------------------------------------
+
+add_library(ChronoEngine_fmi
+            ${ChronoEngine_FMI_HEADERS}
+            ${ChronoEngine_FMI_SOURCES})
+
+set_target_properties(ChronoEngine_fmi PROPERTIES
+                      COMPILE_FLAGS "${CH_CXX_FLAGS}"
+                      LINK_FLAGS "${CH_LINKERFLAG_LIB}")
+
+target_include_directories(ChronoEngine_fmi PUBLIC ${FMU_TOOLS_DIR})
+
+target_compile_definitions(ChronoEngine_fmi PRIVATE "CH_API_COMPILE_FMI")
+target_compile_definitions(ChronoEngine_fmi PRIVATE "CH_IGNORE_DEPRECATED")
+
+target_compile_definitions(ChronoEngine_fmi PUBLIC FMU_OS_SUFFIX="${FMI_PLATFORM}")
+target_compile_definitions(ChronoEngine_fmi PUBLIC SHARED_LIBRARY_SUFFIX="${CMAKE_SHARED_LIBRARY_SUFFIX}")
+
+target_link_libraries(ChronoEngine_fmi ChronoEngine)
+
+add_dependencies(ChronoEngine_fmi ChronoEngine)
+
+install(TARGETS ChronoEngine_fmi
+        RUNTIME DESTINATION bin
+        LIBRARY DESTINATION lib
+        ARCHIVE DESTINATION lib)        
+
+install(FILES ${ChronoEngine_FMI_HEADERS}
+        DESTINATION include/chrono_fmi)
