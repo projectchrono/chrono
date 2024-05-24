@@ -117,7 +117,7 @@ set(ChronoEngine_FMI_SOURCES
 )
 
 set(ChronoEngine_FMI_HEADERS
-    ChApiFmi.h 
+    ChApiFMI.h 
     fmi2/ChFmuToolsImport.h
     fmi2/ChExternalFmu.h
 )
