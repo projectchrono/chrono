@@ -48,7 +48,7 @@
 #include "chrono/physics/ChLoadContainer.h"
 #include "chrono/fea/ChLoadsBeam.h"
 
-#if defined WIN32 || defined _WIN32 || defined WIN64 || defined _WIN64
+#if defined _WIN32 || defined _WIN64
     #include <windows.h>
 #endif
 
@@ -1321,7 +1321,7 @@ bool RunElementChecks(int msglvl) {
 }
 
 int main(int argc, char* argv[]) {
-#if defined WIN32 || defined _WIN32 || defined WIN64 || defined _WIN64
+#if defined _WIN32 || defined _WIN64
     HANDLE hOut = GetStdHandle(STD_OUTPUT_HANDLE);
     DWORD dwMode = 0;
     GetConsoleMode(hOut, &dwMode);

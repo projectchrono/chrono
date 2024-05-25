@@ -1,7 +1,7 @@
 // =============================================================================
 // PROJECT CHRONO - http://projectchrono.org
 //
-// Copyright (c) 2014 projectchrono.org
+// Copyright (c) 2024 projectchrono.org
 // All rights reserved.
 //
 // Use of this source code is governed by a BSD-style license that can be found
@@ -12,24 +12,21 @@
 // Authors: Radu Serban
 // =============================================================================
 //
-// Chrono-Vehicle configuration header file
+// Chrono::FMI configuration header file
 //
 // Automatically created during CMake configuration.
 //
 // =============================================================================
 
-#ifndef CH_CONFIG_VEHICLE_FMI_H
-#define CH_CONFIG_VEHICLE_FMI_H
+#ifndef CH_CONFIG_FMI_H
+#define CH_CONFIG_FMI_H
 
-// Include Chrono::Vehicle configuration header
-#include "chrono_vehicle/ChConfigVehicle.h"
-
-// Include Chrono::FMI configuration header
-#include "chrono_fmi/ChConfigFMI.h"
+// Include main Chrono configuration header
+#include "chrono/ChConfig.h"
 
 // -----------------------------------------------------------------------------
 
-// Main directory with Chrono::Vehicle FMUs
-@CHRONO_VEHICLE_FMU_DIR@
+// If FMU export support is enabled, define FMU_EXPORT_SUPPORT
+@DEFINE_FMU_EXPORT_SUPPORT@
 
 #endif
