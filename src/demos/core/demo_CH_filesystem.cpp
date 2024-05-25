@@ -35,7 +35,7 @@ using std::cout;
 using std::endl;
 
 int main(int argc, char** argv) {
-#if defined(WIN32)
+#if defined(_WIN32)
     path path1("C:\\dir 1\\dir 2\\");
 #else
     path path1("/dir 1/dir 2/");
@@ -89,7 +89,7 @@ int main(int argc, char** argv) {
     cout << endl;
 
     // Create hierarchy of nested directories
-#if defined(WIN32)
+#if defined(_WIN32)
     std::string nested = out_dir + "\\child\\grandchild";
 #else
     std::string nested = out_dir + "/child/grandchild";
