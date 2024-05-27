@@ -148,7 +148,7 @@ class ChApi ChBody : public ChPhysicsItem, public ChBodyFrame, public ChContacta
 
     /// Get the reference frame (expressed in and relative to the absolute frame) of the visual model.
     /// For a ChBody, this is the main coordinate system of the rigid body.
-    virtual ChFrame<> GetVisualModelFrame(unsigned int nclone = 0) const override { return (GetFrameRefToAbs()); }
+    virtual ChFrame<> GetVisualModelFrame(unsigned int nclone = 0) const override { return GetFrameRefToAbs(); }
 
     /// Get the axis-aligned bounding (AABB) box of the object.
     /// The body AABB is the AABB of its collision model (if any).
