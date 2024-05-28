@@ -51,7 +51,6 @@ endif()
 if(ENABLE_MODULE_PARDISO_MKL AND ENABLE_MODULE_IRRLICHT)
     set(DEMOS ${DEMOS}
         demo_VEH_SCMTerrain_FEATire
-        demo_VEH_SCMTerrain_MBTire
     )
 endif()
 

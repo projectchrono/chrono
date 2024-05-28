@@ -57,8 +57,11 @@ bool fix_wheels = false;
 // Terrain parameters
 // -----------------------------------------------------------------------------
 
-// If true, set the SCM terrain profile from a mesh (bump.obj).
-// Otherwise, create a flat SCM terrain patch of given dimensions.
+// Terrain type (RIGID or SCM)
+enum class TerrainType { RIGID, SCM };
+TerrainType terrain_type = TerrainType::SCM;
+
+// If MESH or HEIGHTMAP, create a hill terrain profile (from the bump.obj or bump64.bmp image, respectively)
 enum class PatchType { FLAT, MESH, HEIGHMAP };
 PatchType patch_type = PatchType::FLAT;
 
@@ -136,6 +139,8 @@ int main(int argc, char* argv[]) {
             patch_size = ChVector2d(40.0, 40.0);
             break;
     }
+    if (fix_chassis || fix_wheels)
+        init_loc.z() += 1.0;
 
     // --------------------
     // Create HMMWV vehicle
@@ -172,55 +177,78 @@ int main(int argc, char* argv[]) {
     // ------------------
     // Create the terrain
     // ------------------
-    SCMTerrain terrain(sys);
-    terrain.SetSoilParameters(2e6,   // Bekker Kphi
-                              0,     // Bekker Kc
-                              1.1,   // Bekker n exponent
-                              0,     // Mohr cohesive limit (Pa)
-                              30,    // Mohr friction limit (degrees)
-                              0.01,  // Janosi shear coefficient (m)
-                              2e8,   // Elastic stiffness (Pa/m), before plastic yield
-                              3e4    // Damping (Pa s/m), proportional to negative vertical speed (optional)
-    );
+    std::shared_ptr<ChTerrain> terrain;
 
-    // Optionally, enable bulldozing effects.
-    ////terrain.EnableBulldozing(true);      // inflate soil at the border of the rut
-    ////terrain.SetBulldozingParameters(55,   // angle of friction for erosion of displaced material at rut border
-    ////                                0.8,  // displaced material vs downward pressed material.
-    ////                                5,    // number of erosion refinements per timestep
-    ////                                10);  // number of concentric vertex selections subject to erosion
+    switch (terrain_type) {
+        case TerrainType::RIGID: {
+            auto terrain_rigid = chrono_types::make_shared<vehicle::RigidTerrain>(sys);
 
-    // Optionally, enable moving patch feature (single patch around vehicle chassis)
-    ////terrain.AddMovingPatch(hmmwv.GetChassisBody(), ChVector3d(0, 0, 0), ChVector3d(5, 3, 1));
+            ChContactMaterialData cinfo;
+            cinfo.mu = 0.8f;
+            cinfo.cr = 0.0f;
+            cinfo.Y = 2e7f;
+            auto patch_mat = cinfo.CreateMaterial(ChContactMethod::SMC);
 
-    // Optionally, enable moving patch feature (multiple patches around each wheel)
-    for (auto& axle : hmmwv.GetVehicle().GetAxles()) {
-        terrain.AddMovingPatch(axle->m_wheels[0]->GetSpindle(), ChVector3d(0, 0, 0), ChVector3d(1, 0.5, 1));
-        terrain.AddMovingPatch(axle->m_wheels[1]->GetSpindle(), ChVector3d(0, 0, 0), ChVector3d(1, 0.5, 1));
-    }
+            auto patch = terrain_rigid->AddPatch(patch_mat, ChCoordsys<>(ChVector3d(0, 0, 0), QUNIT), patch_size.x(),
+                                                 patch_size.y(), 0.1);
+            patch->SetTexture(GetChronoDataFile("textures/concrete.jpg"), 10, 10);
 
-    switch (patch_type) {
-        case PatchType::FLAT:
-            terrain.Initialize(patch_size.x(), patch_size.y(), delta);
+            terrain_rigid->Initialize();
+
+            terrain = terrain_rigid;
             break;
-        case PatchType::MESH:
-            terrain.Initialize(vehicle::GetDataFile("terrain/meshes/bump.obj"), delta);
+        }
+        case TerrainType::SCM: {
+            auto terrain_scm = chrono_types::make_shared<vehicle::SCMTerrain>(sys);
+
+            terrain_scm->SetSoilParameters(2e6,   // Bekker Kphi
+                                           0,     // Bekker Kc
+                                           1.1,   // Bekker n exponent
+                                           0,     // Mohr cohesive limit (Pa)
+                                           30,    // Mohr friction limit (degrees)
+                                           0.01,  // Janosi shear coefficient (m)
+                                           2e8,   // Elastic stiffness (Pa/m), before plastic yield
+                                           3e4    // Damping (Pa s/m), proportional to negative vertical speed
+            );
+
+            // Optionally, enable moving patch feature (single patch around vehicle chassis)
+            ////terrain.AddMovingPatch(hmmwv.GetChassisBody(), ChVector3d(0, 0, 0), ChVector3d(5, 3, 1));
+
+            // Optionally, enable moving patch feature (multiple patches around each wheel)
+            for (auto& axle : hmmwv.GetVehicle().GetAxles()) {
+                terrain_scm->AddMovingPatch(axle->m_wheels[0]->GetSpindle(), ChVector3d(0, 0, 0),
+                                            ChVector3d(1, 0.5, 1));
+                terrain_scm->AddMovingPatch(axle->m_wheels[1]->GetSpindle(), ChVector3d(0, 0, 0),
+                                            ChVector3d(1, 0.5, 1));
+            }
+
+            switch (patch_type) {
+                case PatchType::FLAT:
+                    terrain_scm->Initialize(patch_size.x(), patch_size.y(), delta);
+                    break;
+                case PatchType::MESH:
+                    terrain_scm->Initialize(vehicle::GetDataFile("terrain/meshes/bump.obj"), delta);
+                    break;
+                case PatchType::HEIGHMAP:
+                    terrain_scm->Initialize(vehicle::GetDataFile("terrain/height_maps/bump64.bmp"), patch_size.x(),
+                                            patch_size.y(), 0.0, 1.0, delta);
+                    break;
+            }
+
+            // Control visualization of SCM terrain
+            terrain_scm->GetMesh()->SetWireframe(render_wireframe);
+
+            if (apply_texture)
+                terrain_scm->GetMesh()->SetTexture(vehicle::GetDataFile("terrain/textures/dirt.jpg"));
+
+            if (render_sinkage) {
+                terrain_scm->SetPlotType(vehicle::SCMTerrain::PLOT_SINKAGE, 0, 0.1);
+                ////terrain_scm->SetPlotType(vehicle::SCMTerrain::PLOT_PRESSURE_YELD, 0, 30000.2);
+            }
+
+            terrain = terrain_scm;
             break;
-        case PatchType::HEIGHMAP:
-            terrain.Initialize(vehicle::GetDataFile("terrain/height_maps/bump64.bmp"), patch_size.x(), patch_size.y(),
-                               0.0, 1.0, delta);
-            break;
-    }
-
-    // Control visualization of SCM terrain
-    terrain.GetMesh()->SetWireframe(render_wireframe);
-
-    if (apply_texture)
-        terrain.GetMesh()->SetTexture(vehicle::GetDataFile("terrain/textures/dirt.jpg"));
-
-    if (render_sinkage) {
-        terrain.SetPlotType(vehicle::SCMTerrain::PLOT_SINKAGE, 0, 0.1);
-        ////terrain.SetPlotType(vehicle::SCMTerrain::PLOT_PRESSURE_YELD, 0, 30000.2);
+        }
     }
 
     // -------------------------------------------
@@ -307,8 +335,8 @@ int main(int argc, char* argv[]) {
 
         // Update modules
         driver.Synchronize(time);
-        terrain.Synchronize(time);
-        hmmwv.Synchronize(time, driver_inputs, terrain);
+        terrain->Synchronize(time);
+        hmmwv.Synchronize(time, driver_inputs, *terrain);
         vis->Synchronize(time, driver_inputs);
 
         // Advance dynamics
