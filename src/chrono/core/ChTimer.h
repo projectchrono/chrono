@@ -50,7 +50,7 @@ class ChTimer {
     unsigned long long GetTimeMilliseconds() const {
         if (m_running) {
             auto now = std::chrono::high_resolution_clock::now();
-            return std::chrono::duration_cast<std::chrono::microseconds>(now - m_start).count();
+            return std::chrono::duration_cast<std::chrono::milliseconds>(now - m_start).count();
         }
         return std::chrono::duration_cast<std::chrono::milliseconds>(m_total).count();
     }
