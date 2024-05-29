@@ -87,7 +87,7 @@ ARTcar_Chassis::ARTcar_Chassis(const std::string& name, bool fixed, CollisionTyp
             break;
         }
         case CollisionType::MESH: {
-            ChVehicleGeometry::TrimeshShape trimesh(ChVector3d(), "artcar/chassis.obj_col", 0.005, 0);
+            ChVehicleGeometry::TrimeshShape trimesh(ChVector3d(), "artcar/chassis_col.obj", 0.005, 0);
             m_geometry.m_coll_meshes.push_back(trimesh);
             break;
         }
