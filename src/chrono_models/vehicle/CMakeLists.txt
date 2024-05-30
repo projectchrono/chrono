@@ -985,8 +985,6 @@ set(CVM_KRAZ_FILES
     kraz/Kraz_trailer_Tire.h
     kraz/Kraz_trailer_Wheel.cpp
     kraz/Kraz_trailer_Wheel.h
-        jeep/Cherokee_EngineSimpleMap.cpp
-        jeep/Cherokee_EngineSimpleMap.h
 )
 source_group("kraz" FILES ${CVM_KRAZ_FILES})
 
