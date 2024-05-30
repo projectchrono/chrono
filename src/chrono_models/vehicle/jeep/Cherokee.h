@@ -27,7 +27,9 @@
 #include "chrono_models/ChApiModels.h"
 #include "chrono_models/vehicle/jeep/Cherokee_Vehicle.h"
 #include "chrono_models/vehicle/jeep/Cherokee_AutomaticTransmissionStafts.h"
+#include "chrono_models/vehicle/jeep/Cherokee_AutomaticTransmissionSimpleMap.h"
 #include "chrono_models/vehicle/jeep/Cherokee_EngineShafts.h"
+#include "chrono_models/vehicle/jeep/Cherokee_EngineSimpleMap.h"
 #include "chrono_models/vehicle/jeep/Cherokee_RigidTire.h"
 #include "chrono_models/vehicle/jeep/Cherokee_TMeasyTire.h"
 

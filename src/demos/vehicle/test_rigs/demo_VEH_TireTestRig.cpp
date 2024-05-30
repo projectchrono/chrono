@@ -96,6 +96,12 @@ int main() {
     // Create wheel and tire subsystems
     auto wheel = chrono_types::make_shared<hmmwv::HMMWV_Wheel>("Wheel");
 
+    ChTire::ContactSurfaceType tire_contact_surface_type =
+        (terrain_type == TerrainType::RIGID ? ChTire::ContactSurfaceType::NODE_CLOUD
+                                            : ChTire::ContactSurfaceType::TRIANGLE_MESH);
+    double tire_contact_surface_dim = 0.02;
+    int tire_collision_family = 7;
+
     std::shared_ptr<ChTire> tire;
     if (tire_type == TireType::ANCF_TOROIDAL) {
         auto ancf_tire = chrono_types::make_shared<ANCFToroidalTire>("ANCFtoroidal tire");
@@ -106,8 +112,7 @@ int main() {
         ancf_tire->SetDivWidth(8);
         ancf_tire->SetPressure(320e3);
         ancf_tire->SetAlpha(0.15);
-        if (terrain_type == TerrainType::SCM)
-            ancf_tire->SetContactSurfaceType(ChTire::ContactSurfaceType::TRIANGLE_MESH, 0.02);
+        ancf_tire->SetContactSurfaceType(tire_contact_surface_type, tire_contact_surface_dim, tire_collision_family);
         tire = ancf_tire;
     } else if (use_JSON) {
         std::string tire_file;
@@ -153,26 +158,26 @@ int main() {
                 tire = chrono_types::make_shared<hmmwv::HMMWV_Pac89Tire>("Pac89 tire");
                 break;
             case TireType::ANCF4: {
-                auto hmmwv_tire = chrono_types::make_shared<hmmwv::HMMWV_ANCFTire>(
+                auto ancf4_tire = chrono_types::make_shared<hmmwv::HMMWV_ANCFTire>(
                     "ANCF tire", hmmwv::HMMWV_ANCFTire::ElementType::ANCF_4);
-                if (terrain_type == TerrainType::SCM)
-                    hmmwv_tire->SetContactSurfaceType(ChTire::ContactSurfaceType::TRIANGLE_MESH, 0.02);
-                tire = hmmwv_tire;
+                ancf4_tire->SetContactSurfaceType(tire_contact_surface_type, tire_contact_surface_dim,
+                                                  tire_collision_family);
+                tire = ancf4_tire;
                 break;
             }
             case TireType::ANCF8: {
-                auto hmmwv_tire = chrono_types::make_shared<hmmwv::HMMWV_ANCFTire>(
+                auto ancf8_tire = chrono_types::make_shared<hmmwv::HMMWV_ANCFTire>(
                     "ANCF tire", hmmwv::HMMWV_ANCFTire::ElementType::ANCF_8);
-                if (terrain_type == TerrainType::SCM)
-                    hmmwv_tire->SetContactSurfaceType(ChTire::ContactSurfaceType::TRIANGLE_MESH, 0.02);
-                tire = hmmwv_tire;
+                ancf8_tire->SetContactSurfaceType(tire_contact_surface_type, tire_contact_surface_dim,
+                                                  tire_collision_family);
+                tire = ancf8_tire;
                 break;
             }
             case TireType::REISSNER: {
-                auto hmmwv_tire = chrono_types::make_shared<hmmwv::HMMWV_ReissnerTire>("Reissner tire");
-                if (terrain_type == TerrainType::SCM)
-                    hmmwv_tire->SetContactSurfaceType(ChTire::ContactSurfaceType::TRIANGLE_MESH, 0.02);
-                tire = hmmwv_tire;
+                auto reissner_tire = chrono_types::make_shared<hmmwv::HMMWV_ReissnerTire>("Reissner tire");
+                reissner_tire->SetContactSurfaceType(tire_contact_surface_type, tire_contact_surface_dim,
+                                                     tire_collision_family);
+                tire = reissner_tire;
                 break;
             }
             case TireType::MB: {

@@ -51,8 +51,8 @@ class CH_MODELS_API Cherokee_Vehicle : public ChWheeledVehicle {
     virtual unsigned int GetNumberAxles() const override { return 2; }
 
     virtual double GetWheelbase() const override { return 2.578; }
-    virtual double GetMinTurningRadius() const override { return 6.0; }
-    virtual double GetMaxSteeringAngle() const override { return 10.0 * CH_DEG_TO_RAD; }
+    virtual double GetMinTurningRadius() const override { return 4.39775; }
+    virtual double GetMaxSteeringAngle() const override { return 0.656422; }
 
     void SetInitWheelAngVel(const std::vector<double>& omega) {
         assert(omega.size() == 4);
