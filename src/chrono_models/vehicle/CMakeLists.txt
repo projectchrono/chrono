@@ -43,6 +43,10 @@ set(CVM_JEEP_FILES
         jeep/Cherokee.h
         jeep/Cherokee_RigidTire.cpp
         jeep/Cherokee_RigidTire.h
+        jeep/Cherokee_EngineSimpleMap.cpp
+        jeep/Cherokee_EngineSimpleMap.h
+        jeep/Cherokee_AutomaticTransmissionSimpleMap.cpp
+        jeep/Cherokee_AutomaticTransmissionSimpleMap.h
 )
 source_group("jeep" FILES ${CVM_JEEP_FILES})
 
@@ -981,6 +985,8 @@ set(CVM_KRAZ_FILES
     kraz/Kraz_trailer_Tire.h
     kraz/Kraz_trailer_Wheel.cpp
     kraz/Kraz_trailer_Wheel.h
+        jeep/Cherokee_EngineSimpleMap.cpp
+        jeep/Cherokee_EngineSimpleMap.h
 )
 source_group("kraz" FILES ${CVM_KRAZ_FILES})
 

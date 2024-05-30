@@ -85,8 +85,8 @@ void Cherokee::Initialize() {
     }
 
     // Create and initialize the powertrain system
-    auto engine = chrono_types::make_shared<Cherokee_EngineShafts>("Engine");
-    auto transmission = chrono_types::make_shared<Cherokee_AutomaticTransmissionShafts>("Transmission");
+    auto engine = chrono_types::make_shared<Cherokee_EngineSimpleMap>("Engine");
+    auto transmission = chrono_types::make_shared<Cherokee_AutomaticTransmissionSimpleMap>("Transmission");
     auto powertrain = chrono_types::make_shared<ChPowertrainAssembly>(engine, transmission);
     m_vehicle->InitializePowertrain(powertrain);
 

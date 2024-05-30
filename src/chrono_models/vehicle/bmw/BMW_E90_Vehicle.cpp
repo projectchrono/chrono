@@ -115,7 +115,7 @@ void BMW_E90_Vehicle::Initialize(const ChCoordsys<>& chassisPos, double chassisF
 
     // Initialize the steering subsystem (specify the steering subsystem's frame relative to the chassis reference
     // frame).
-    ChVector3d offset = ChVector3d(-0.05588, 0.0, -0.09017);
+    ChVector3d offset = ChVector3d(-0.2, 0.0, -0.05);
     ChQuaternion<> rotation = ChQuaternion<>(1, 0, 0, 0);
     m_steerings[0]->Initialize(m_chassis, offset, rotation);
 

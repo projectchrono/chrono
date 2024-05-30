@@ -30,7 +30,7 @@ namespace jeep {
 
 const double Cherokee_Steering::m_pitmanArmMass = 1.605;
 const double Cherokee_Steering::m_pitmanArmRadius = 0.02;
-const double Cherokee_Steering::m_maxAngle = 10 * (CH_PI / 180);
+const double Cherokee_Steering::m_maxAngle = 28 * CH_DEG_TO_RAD;
 const ChVector3d Cherokee_Steering::m_pitmanArmInertiaMoments(0.00638, 0.00756, 0.00150);
 const ChVector3d Cherokee_Steering::m_pitmanArmInertiaProducts(0.0, 0.0, 0.0);
 

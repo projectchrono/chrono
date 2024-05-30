@@ -98,9 +98,9 @@ const ChVector3d BMW_E90_MacPhersonStrut::getLocation(PointId which) {
         case SPRING_U:
             return ChVector3d(-0.00508, 0.61976, -0.00127);  // spring connection to upright
         case TIEROD_C:
-            return ChVector3d(-0.05588, 0.3429, -0.09017);  // tierod connection point to chassis/steering
+            return ChVector3d(-0.2, 0.2, -0.05);  // tierod connection point to chassis/steering
         case TIEROD_U:
-            return ChVector3d(-0.13716, 0.68072, -0.09779);  // tierod connection point to upright
+            return ChVector3d(-0.2,	0.574803759,	-0.00127);  // tierod connection point to upright
         default:
             return ChVector3d(0, 0, 0);
     }
