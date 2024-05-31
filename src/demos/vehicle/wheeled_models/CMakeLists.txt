@@ -17,13 +17,13 @@ set(DEMOS
     demo_VEH_WheeledGenericSet
     demo_VEH_Wheeled
     demo_VEH_WheeledJSON
+    demo_VEH_HMMWV_MBTire
 )
 
 if(ENABLE_MODULE_IRRLICHT)
    set(DEMOS ${DEMOS}
        demo_VEH_HMMWV9_YUP
        demo_VEH_Sedan_Lockable_Diff
-       demo_VEH_HMMWV_MBTire
    )
 endif()
 

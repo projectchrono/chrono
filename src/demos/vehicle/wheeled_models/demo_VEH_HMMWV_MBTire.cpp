@@ -28,11 +28,20 @@
 #include "chrono_vehicle/ChDriver.h"
 #include "chrono_vehicle/terrain/SCMTerrain.h"
 #include "chrono_vehicle/terrain/RigidTerrain.h"
-#include "chrono_vehicle/wheeled_vehicle/ChWheeledVehicleVisualSystemIrrlicht.h"
 
 #include "chrono_models/vehicle/hmmwv/HMMWV.h"
 
 #include "chrono_thirdparty/filesystem/path.h"
+
+#ifdef CHRONO_IRRLICHT
+    #include "chrono_vehicle/wheeled_vehicle/ChWheeledVehicleVisualSystemIrrlicht.h"
+using namespace chrono::irrlicht;
+#endif
+
+#ifdef CHRONO_VSG
+    #include "chrono_vehicle/wheeled_vehicle/ChWheeledVehicleVisualSystemVSG.h"
+using namespace chrono::vsg3d;
+#endif
 
 #include "demos/SetChronoSolver.h"
 
@@ -48,8 +57,10 @@ using std::endl;
 // USER SETTINGS
 // =============================================================================
 
-// Note: fixing the wheels also fixes the chassis.
+// Run-time visualization system (IRRLICHT or VSG)
+ChVisualSystem::Type vis_type = ChVisualSystem::Type::VSG;
 
+// Note: fixing the wheels also fixes the chassis.
 bool fix_chassis = false;
 bool fix_wheels = false;
 
@@ -65,7 +76,7 @@ TerrainType terrain_type = TerrainType::SCM;
 enum class PatchType { FLAT, MESH, HEIGHMAP };
 PatchType patch_type = PatchType::FLAT;
 
-double delta = 0.1;  // SCM grid spacing
+double delta = 0.125;  // SCM grid spacing
 
 // SCM terrain visualization options
 bool render_wireframe = true;  // render wireframe (flat otherwise)
@@ -73,14 +84,21 @@ bool apply_texture = false;    // add texture
 bool render_sinkage = true;    // use false coloring for sinkage visualization
 
 // -----------------------------------------------------------------------------
+// Collision families
+// -----------------------------------------------------------------------------
+
+int coll_family_tire = 7;
+int coll_family_terrain = 8;
+
+// -----------------------------------------------------------------------------
 // Simulation parameters
 // -----------------------------------------------------------------------------
 
 // Number of OpenMP threads used in Chrono (here, for parallel spring force evaluation and SCM ray-casting)
-int num_threads_chrono = 4;
+int num_threads_chrono = 1;
 
 // Number of threads used in collision detection
-int num_threads_collision = 4;
+int num_threads_collision = 1;
 
 // Visualization output
 bool img_output = false;
@@ -129,7 +147,7 @@ int main(int argc, char* argv[]) {
     switch (patch_type) {
         case PatchType::FLAT:
             init_loc = ChVector3d(-5.0, -2.0, 0.6);
-            patch_size = ChVector2d(16.0, 8.0);
+            patch_size = ChVector2d(40.0, 40.0);
             break;
         case PatchType::MESH:
             init_loc = ChVector3d(-12.0, -12.0, 1.6);
@@ -141,6 +159,10 @@ int main(int argc, char* argv[]) {
     }
     if (fix_chassis || fix_wheels)
         init_loc.z() += 1.0;
+
+    ChTire::ContactSurfaceType tire_contact_surface_type =
+        (terrain_type == TerrainType::RIGID ? ChTire::ContactSurfaceType::NODE_CLOUD
+                                            : ChTire::ContactSurfaceType::TRIANGLE_MESH);
 
     // --------------------
     // Create HMMWV vehicle
@@ -154,7 +176,7 @@ int main(int argc, char* argv[]) {
     hmmwv.SetTransmissionType(TransmissionModelType::AUTOMATIC_SHAFTS);
     hmmwv.SetDriveType(DrivelineTypeWV::AWD);
     hmmwv.SetTireType(TireModelType::MB);
-    hmmwv.SetTireContactSurfaceType(ChTire::ContactSurfaceType::TRIANGLE_MESH, 0.02);
+    hmmwv.SetTireContactSurfaceType(tire_contact_surface_type, 0.02, coll_family_tire);
     hmmwv.Initialize();
 
     hmmwv.SetChassisVisualizationType(VisualizationType::NONE);
@@ -182,6 +204,7 @@ int main(int argc, char* argv[]) {
     switch (terrain_type) {
         case TerrainType::RIGID: {
             auto terrain_rigid = chrono_types::make_shared<vehicle::RigidTerrain>(sys);
+            terrain_rigid->SetCollisionFamily(coll_family_terrain);
 
             ChContactMaterialData cinfo;
             cinfo.mu = 0.8f;
@@ -189,9 +212,27 @@ int main(int argc, char* argv[]) {
             cinfo.Y = 2e7f;
             auto patch_mat = cinfo.CreateMaterial(ChContactMethod::SMC);
 
-            auto patch = terrain_rigid->AddPatch(patch_mat, ChCoordsys<>(ChVector3d(0, 0, 0), QUNIT), patch_size.x(),
-                                                 patch_size.y(), 0.1);
-            patch->SetTexture(GetChronoDataFile("textures/concrete.jpg"), 10, 10);
+            switch (patch_type) {
+                case PatchType::FLAT: {
+                    auto patch =
+                        terrain_rigid->AddPatch(patch_mat, ChCoordsys<>(), patch_size.x(), patch_size.y(), 0.1);
+                    patch->SetTexture(GetChronoDataFile("textures/concrete.jpg"), 10, 10);
+                    break;
+                }
+                case PatchType::MESH: {
+                    auto patch = terrain_rigid->AddPatch(patch_mat, ChCoordsys<>(),
+                                                         vehicle::GetDataFile("terrain/meshes/bump.obj"));
+                    patch->SetTexture(vehicle::GetDataFile("terrain/textures/dirt.jpg"), 6.0f, 6.0f);
+                    break;
+                }
+                case PatchType::HEIGHMAP: {
+                    auto patch = terrain_rigid->AddPatch(patch_mat, ChCoordsys<>(),
+                                                         vehicle::GetDataFile("terrain/height_maps/bump64.bmp"),
+                                                         patch_size.x(), patch_size.y(), 0.0, 1.0);
+                    patch->SetTexture(vehicle::GetDataFile("terrain/textures/dirt.jpg"), 6.0f, 6.0f);
+                    break;
+                }
+            }
 
             terrain_rigid->Initialize();
 
@@ -254,19 +295,60 @@ int main(int argc, char* argv[]) {
     // -------------------------------------------
     // Create the run-time visualization interface
     // -------------------------------------------
-    auto vis = chrono_types::make_shared<ChWheeledVehicleVisualSystemIrrlicht>();
-    vis->SetWindowTitle("Wheeled vehicle on SCM deformable terrain");
-    vis->SetChaseCamera(ChVector3d(0.0, 0.0, 1.75), 6.0, 0.5);
-    vis->Initialize();
-    vis->AddLightDirectional();
-    vis->AddSkyBox();
-    vis->AddLogo();
-    vis->AttachVehicle(&hmmwv.GetVehicle());
+    std::shared_ptr<ChVehicleVisualSystem> vis;
+
+#ifndef CHRONO_IRRLICHT
+    if (vis_type == ChVisualSystem::Type::IRRLICHT)
+        vis_type = ChVisualSystem::Type::VSG;
+#endif
+#ifndef CHRONO_VSG
+    if (vis_type == ChVisualSystem::Type::VSG)
+        vis_type = ChVisualSystem::Type::IRRLICHT;
+#endif
+
+    switch (vis_type) {
+        case ChVisualSystem::Type::IRRLICHT: {
+#ifdef CHRONO_IRRLICHT
+            auto vis_irr = chrono_types::make_shared<ChWheeledVehicleVisualSystemIrrlicht>();
+            vis_irr->SetWindowTitle("Wheeled vehicle on SCM deformable terrain");
+            vis_irr->SetChaseCamera(ChVector3d(0.0, 0.0, 1.75), 6.0, 0.5);
+            vis_irr->Initialize();
+            vis_irr->AddLightDirectional();
+            vis_irr->AddSkyBox();
+            vis_irr->AddLogo();
+            vis_irr->AttachVehicle(&hmmwv.GetVehicle());
+
+            vis = vis_irr;
+#endif
+            break;
+        }
+        default:
+        case ChVisualSystem::Type::VSG: {
+#ifdef CHRONO_VSG
+            auto vis_vsg = chrono_types::make_shared<ChWheeledVehicleVisualSystemVSG>();
+            vis_vsg->SetWindowTitle("Wheeled vehicle on SCM deformable terrain");
+            vis_vsg->SetWindowSize(ChVector2i(1200, 800));
+            vis_vsg->SetWindowPosition(ChVector2i(100, 100));
+            vis_vsg->SetUseSkyBox(true);
+            vis_vsg->SetCameraAngleDeg(40);
+            vis_vsg->SetLightIntensity(1.0f);
+            vis_vsg->SetShadows(true);
+            vis_vsg->SetChaseCamera(ChVector3d(0.0, 0.0, 1.75), 10.0, 0.5);
+            vis_vsg->AttachVehicle(&hmmwv.GetVehicle());
+            vis_vsg->AttachTerrain(terrain.get());
+            vis_vsg->Initialize();
+
+            vis = vis_vsg;
+#endif
+            break;
+        }
+    }
 
     // -----------------
     // Initialize output
     // -----------------
-    const std::string out_dir = GetChronoOutputPath() + "HMMWV_MB_TIRE_SCM";
+    std::string out_dir = GetChronoOutputPath() + "HMMWV_MB_TIRE";
+    out_dir += (terrain_type == TerrainType::RIGID ? "_RIGID" : "_SCM");
     const std::string img_dir = out_dir + "/IMG";
 
     if (!filesystem::create_directory(filesystem::path(out_dir))) {
@@ -288,9 +370,9 @@ int main(int argc, char* argv[]) {
     ChTimestepper::Type integrator_type;
 
     ////solver_type = ChSolver::Type::PARDISO_MKL;
-    solver_type = ChSolver::Type::SPARSE_QR;
+    ////solver_type = ChSolver::Type::SPARSE_QR;
     ////solver_type = ChSolver::Type::BICGSTAB;
-    ////solver_type = ChSolver::Type::MINRES;
+    solver_type = ChSolver::Type::MINRES;
 
     integrator_type = ChTimestepper::Type::EULER_IMPLICIT_PROJECTED;
     ////integrator_type = ChTimestepper::Type::EULER_IMPLICIT_LINEARIZED;
@@ -306,16 +388,20 @@ int main(int argc, char* argv[]) {
 
     // Initialize counters
     ChTimer timer;
+    double time_end = 7;
     double time = 0;       // simulated time
     double sim_time = 0;   // simulation time
-    double fps = 120;      // rendering frequency
+    double fps = 60;       // rendering frequency
     int render_frame = 0;  // render frame counter
 
     timer.start();
     while (vis->Run()) {
         time = sys->GetChTime();
 
-        if (time >= render_frame / fps) {
+        if (time > time_end)
+            break;
+
+        if (time > render_frame / fps) {
             vis->BeginScene();
             vis->Render();
             vis->EndScene();
