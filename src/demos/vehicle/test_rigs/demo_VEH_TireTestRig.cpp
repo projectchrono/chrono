@@ -181,13 +181,12 @@ int main() {
                 break;
             }
             case TireType::MB: {
-                auto mb_tire = chrono_types::make_shared<hmmwv::HMMWV_MBTire>("Multibody Tire");
-                mb_tire->IsStiff(false);
-                mb_tire->ForceJacobianCalculation(false);
-                mb_tire->SetCollisionFamily(11);
-                if (terrain_type == TerrainType::SCM)
-                    mb_tire->SetContactSurfaceType(ChTire::ContactSurfaceType::TRIANGLE_MESH, 0.02);
-                tire = mb_tire;
+                auto hmmwv_tire = chrono_types::make_shared<hmmwv::HMMWV_MBTire>("Multibody Tire");
+                hmmwv_tire->IsStiff(false);
+                hmmwv_tire->ForceJacobianCalculation(false);
+                hmmwv_tire->SetContactSurfaceType(tire_contact_surface_type, tire_contact_surface_dim,
+                                                  tire_collision_family);
+                tire = hmmwv_tire;
                 break;
             }
         }

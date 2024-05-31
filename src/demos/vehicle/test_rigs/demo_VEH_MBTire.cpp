@@ -63,7 +63,7 @@ enum class TerrainType { RIGID, SCM };
 TerrainType terrain_type = TerrainType::SCM;
 
 // Run-time visualization system (IRRLICHT or VSG)
-ChVisualSystem::Type vis_type = ChVisualSystem::Type::IRRLICHT;
+ChVisualSystem::Type vis_type = ChVisualSystem::Type::VSG;
 
 // Number of OpenMP threads used in Chrono (here, for parallel spring force evaluation and SCM ray-casting)
 int num_threads_chrono = 4;
@@ -134,11 +134,12 @@ int main() {
     wheel->SetTire(tire);
 
     if (terrain_type == TerrainType::SCM)
-        tire->SetContactSurfaceType(ChTire::ContactSurfaceType::TRIANGLE_MESH, 0.02);
+        tire->SetContactSurfaceType(ChTire::ContactSurfaceType::TRIANGLE_MESH, 0.02, 11);
+    else
+        tire->SetContactSurfaceType(ChTire::ContactSurfaceType::NODE_CLOUD, 0.02, 11);
     tire->IsStiff(false);
     tire->ForceJacobianCalculation(false);
     tire->SetStepsize(step_size);
-    tire->SetCollisionFamily(11);
     tire->Initialize(wheel);
     tire->SetVisualizationType(VisualizationType::MESH);
 
@@ -185,6 +186,7 @@ int main() {
                                            2e8,   // Elastic stiffness (Pa/m), before plastic yield
                                            3e4    // Damping (Pa s/m), proportional to negative vertical speed
             );
+            terrain_scm->SetMeshWireframe(false);
             terrain_scm->SetPlotType(vehicle::SCMTerrain::PLOT_SINKAGE, 0, 0.05);
             terrain_scm->Initialize(sizeX, sizeY, delta);
             terrain_scm->AddMovingPatch(spindle, ChVector3d(0, 0, 0),

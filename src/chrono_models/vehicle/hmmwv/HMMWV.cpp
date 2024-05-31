@@ -309,6 +309,11 @@ void HMMWV::Initialize() {
             auto tire_RL = chrono_types::make_shared<HMMWV_MBTire>("RL");
             auto tire_RR = chrono_types::make_shared<HMMWV_MBTire>("RR");
 
+            tire_FL->SetContactSurfaceType(m_tire_surface_type, m_tire_surface_dim, m_tire_collision_family);
+            tire_FR->SetContactSurfaceType(m_tire_surface_type, m_tire_surface_dim, m_tire_collision_family);
+            tire_RL->SetContactSurfaceType(m_tire_surface_type, m_tire_surface_dim, m_tire_collision_family);
+            tire_RR->SetContactSurfaceType(m_tire_surface_type, m_tire_surface_dim, m_tire_collision_family);
+
             m_vehicle->InitializeTire(tire_FL, m_vehicle->GetAxle(0)->m_wheels[LEFT], VisualizationType::NONE);
             m_vehicle->InitializeTire(tire_FR, m_vehicle->GetAxle(0)->m_wheels[RIGHT], VisualizationType::NONE);
             m_vehicle->InitializeTire(tire_RL, m_vehicle->GetAxle(1)->m_wheels[LEFT], VisualizationType::NONE);
