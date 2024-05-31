@@ -688,7 +688,7 @@ void ChBody::SyncCollisionModels() {
 
 // ---------------------------------------------------------------------------
 
-ChAABB ChBody::GetTotalAABB() {
+ChAABB ChBody::GetTotalAABB() const {
     if (GetCollisionModel())
         return GetCollisionModel()->GetBoundingBox();
 

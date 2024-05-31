@@ -119,41 +119,34 @@ class ChApi ChPhysicsItem : public ChObj {
     /// Synchronize the position and bounding box of any collsion models managed by this physics item.
     virtual void SyncCollisionModels() {}
 
-    // Functions used by domain decomposition
+    /// Get the axis-aligned bounding box (AABB) of this object.
+    /// The AABB must enclose all collision models, if any.
+    /// By default, returns an infinite AABB.
+    virtual ChAABB GetTotalAABB() const;
 
-    /// Get the entire AABB axis-aligned bounding box of the object.
-    /// The AABB must enclose the collision models, if any.
-    /// By default is infinite AABB.
-    /// Should be overridden by child classes.
-    virtual ChAABB GetTotalAABB();
+    /// Get a symbolic 'center' of the object. 
+    /// By default this function returns the center of the AABB.
+    /// Derived classes may override this, but must always return a point inside the AABB.
+    virtual ChVector3d GetCenter() const;
 
-    /// Get a symbolic 'center' of the object. By default this
-    /// function returns the center of the AABB.
-    /// It could be overridden by child classes, anyway it must
-    /// always get a point that must be inside AABB.
-    virtual void GetCenter(ChVector3d& mcenter);
+    // UPDATE OPERATIONS
 
-    // UPDATING  - child classes may implement these functions
-
-    /// This might recompute the number of coordinates, DOFs, constraints,
-    /// in case this might change (ex in ChAssembly), as well as state offsets
-    /// of contained items (ex in ChMesh)
+    /// Perform setup operations.
+    /// This function is called at the beginning of a step, to recalculate quantities that may have changed (e.g.,
+    /// number of coordinates, DOFs, constraints), as well as offsets in system-wide state vectors.
     virtual void Setup() {}
 
-    /// This is an important function, which is called by the
-    /// owner ChSystem at least once per integration step.
-    /// It may update all auxiliary data of the item, such as
-    /// matrices if any, etc., depending on the current coordinates.
-    /// The inherited classes, for example the ChLinkMask, often
-    /// implement specialized versions of this Update(time) function,
-    /// because they might need to update inner states, forces, springs, etc.
-    /// This base version, by default, simply updates the item's time,
-    /// and update the asset tree, if any.
-    virtual void Update(double mytime, bool update_assets = true);
+    /// Perform any updates necessary at the current phase during the solution process.
+    /// This function is called at least once per step to update auxiliary data, internal states, etc.
+    /// The default implementation updates the item's time stamp and its visualization assets (if any are defined anf
+    /// only if requested).
+    virtual void Update(double time, bool update_assets = true);
 
-    /// As above, but does not require updating of time-dependent
-    /// data. By default, calls Update(mytime) using item's current time.
-    virtual void Update(bool update_assets = true) { Update(ChTime, update_assets); }
+    /// Perform an update using the current time.
+    virtual void Update(bool update_assets = true);
+
+    /// Utility function to update only the associated visual assets (if any).
+    void UpdateVisualModel();
 
     /// Set zero speed (and zero accelerations) in state, without changing the position.
     /// Child classes should implement this function if GetNumCoordsPosLevel() > 0.
