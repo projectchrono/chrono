@@ -159,8 +159,10 @@ class CH_VSG_API ChVisualSystemVSG : virtual public ChVisualSystem {
     /// Enable/disable VSG information terminal output during initialization (default: false).
     void SetVerbose(bool verbose) { m_verbose = verbose; }
 
-    /// Enable/disable Shadows, use before Initialization, to see an effect
+    /// Enable/disable rendering of shadows.
+    /// This function must be called before Initialize().
     void SetShadows(bool yesno = false) { m_use_shadows = yesno; }
+
     void SetLightIntensity(float intensity);
     void SetLightDirection(double azimuth, double elevation);
     void SetCameraAngleDeg(double angleDeg) { m_cameraAngleDeg = angleDeg; }
@@ -296,14 +298,11 @@ class CH_VSG_API ChVisualSystemVSG : virtual public ChVisualSystem {
     /// Bind the visual model associated with a body.
     void BindBody(const std::shared_ptr<ChBody>& body);
 
-    /// Bind the visual model associated with an FEA mesh.
-    void BindMesh(const std::shared_ptr<fea::ChMesh>& mesh);
+    /// Bind meshes in the visual model associated with the given physics item.
+    void BindMesh(const std::shared_ptr<ChPhysicsItem>& item);
 
-    /// Bind the visual model assoicated with a particle cloud
+    /// Bind the visual model assoicated with a particle cloud.
     void BindParticleCloud(const std::shared_ptr<ChParticleCloud>& pcloud);
-
-    /// Bind the visual model associated with a load container.
-    void BindLoadContainer(const std::shared_ptr<ChLoadContainer>& loadcont);
 
     /// Bind the visual model associated with a TSDA.
     void BindTSDA(const std::shared_ptr<ChLinkTSDA>& tsda);
