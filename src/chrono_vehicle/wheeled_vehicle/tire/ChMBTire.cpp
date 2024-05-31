@@ -92,10 +92,6 @@ void ChMBTire::SetTireContactMaterial(const ChContactMaterialData& mat_data) {
     m_contact_mat_data = mat_data;
 }
 
-void ChMBTire::SetCollisionFamily(int family) {
-    m_model->m_collision_family = family;
-}
-
 double ChMBTire::GetRadius() const {
     return *std::max_element(m_model->m_radii.begin(), m_model->m_radii.end());
 }
@@ -133,7 +129,7 @@ void ChMBTire::Initialize(std::shared_ptr<ChWheel> wheel) {
 
     // Construct the underlying tire model, attached to the wheel spindle body
     m_model->m_wheel = wheel->GetSpindle();
-    m_model->Construct(m_contact_surface_type, m_contact_surface_dim);
+    m_model->Construct(m_contact_surface_type, m_contact_surface_dim, m_collision_family);
 }
 
 void ChMBTire::Synchronize(double time, const ChTerrain& terrain) {
@@ -192,8 +188,7 @@ std::vector<std::shared_ptr<fea::ChNodeFEAxyz>>& ChMBTire::GetRimNodes() const {
 // =============================================================================
 
 MBTireModel::MBTireModel()
-    : m_collision_family(14),
-      m_num_grid_lin_springs(0),
+    : m_num_grid_lin_springs(0),
       m_num_edge_lin_springs(0),
       m_num_grid_rot_springs(0),
       m_num_edge_rot_springs(0),
@@ -1030,7 +1025,7 @@ void MBTireModel::EdgeSpring3::CalculateJacobianFD(double Kfactor, double Rfacto
 
 // -----------------------------------------------------------------------------
 
-void MBTireModel::Construct(ChTire::ContactSurfaceType surface_type, double surface_dim) {
+void MBTireModel::Construct(ChTire::ContactSurfaceType surface_type, double surface_dim, int collision_family) {
     m_num_rim_nodes = 2 * m_num_divs;
     m_num_nodes = m_num_rings * m_num_divs;
     m_num_faces = 2 * (m_num_rings - 1) * m_num_divs;
@@ -1371,7 +1366,7 @@ void MBTireModel::Construct(ChTire::ContactSurfaceType surface_type, double surf
             case ChDeformableTire::ContactSurfaceType::NODE_CLOUD: {
                 auto contact_surf = chrono_types::make_shared<fea::ChContactSurfaceNodeCloud>(contact_mat);
                 contact_surf->SetPhysicsItem(this);
-                contact_surf->DisableSelfCollisions(m_collision_family);
+                contact_surf->DisableSelfCollisions(collision_family);
                 for (const auto& node : m_nodes)
                     contact_surf->AddNode(node, surface_dim);
                 m_contact_surf = contact_surf;
@@ -1380,7 +1375,7 @@ void MBTireModel::Construct(ChTire::ContactSurfaceType surface_type, double surf
             case ChDeformableTire::ContactSurfaceType::TRIANGLE_MESH: {
                 auto contact_surf = chrono_types::make_shared<fea::ChContactSurfaceMesh>(contact_mat);
                 contact_surf->SetPhysicsItem(this);
-                contact_surf->DisableSelfCollisions(m_collision_family);
+                contact_surf->DisableSelfCollisions(collision_family);
                 for (k = 0; k < m_num_faces; k++) {
                     const auto& node1 = m_nodes[idx_vertices[k][0]];
                     const auto& node2 = m_nodes[idx_vertices[k][1]];
