@@ -66,6 +66,7 @@
 %shared_ptr(chrono::vehicle::ChPathFollowerDriver)
 %shared_ptr(chrono::vehicle::ChPathFollowerDriverXT)
 %shared_ptr(chrono::vehicle::ChPathFollowerDriverSR)
+%shared_ptr(chrono::vehicle::ChPathFollowerDriverPP)
 %shared_ptr(chrono::vehicle::ChPathFollowerDriverStanley)
 %shared_ptr(chrono::vehicle::ChPathFollowerACCDriver)
 %shared_ptr(chrono::vehicle::ChSuspensionTestRigDriver)
