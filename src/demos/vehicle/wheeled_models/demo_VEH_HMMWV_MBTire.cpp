@@ -57,7 +57,7 @@ using std::endl;
 // USER SETTINGS
 // =============================================================================
 
-// Run-time visualization system (IRRLICHT or VSG)
+// Run-time visualization system (IRRLICHT, VSG, or NONE)
 ChVisualSystem::Type vis_type = ChVisualSystem::Type::VSG;
 
 // Note: fixing the wheels also fixes the chassis.
@@ -94,11 +94,14 @@ int coll_family_terrain = 8;
 // Simulation parameters
 // -----------------------------------------------------------------------------
 
+// Total simulation time
+double time_end = 7;
+
 // Number of OpenMP threads used in Chrono (here, for parallel spring force evaluation and SCM ray-casting)
-int num_threads_chrono = 1;
+int num_threads_chrono = 4;
 
 // Number of threads used in collision detection
-int num_threads_collision = 1;
+int num_threads_collision = 4;
 
 // Visualization output
 bool img_output = false;
@@ -141,6 +144,24 @@ class MyDriver : public ChDriver {
 int main(int argc, char* argv[]) {
     std::cout << "Copyright (c) 2017 projectchrono.org\nChrono version: " << CHRONO_VERSION << std::endl;
 
+    // -----------------
+    // Initialize output
+    // -----------------
+    std::string out_dir = GetChronoOutputPath() + "HMMWV_MB_TIRE";
+    out_dir += (terrain_type == TerrainType::RIGID ? "_RIGID" : "_SCM");
+    const std::string img_dir = out_dir + "/IMG";
+
+    if (!filesystem::create_directory(filesystem::path(out_dir))) {
+        std::cout << "Error creating directory " << out_dir << std::endl;
+        return 1;
+    }
+    if (img_output) {
+        if (!filesystem::create_directory(filesystem::path(img_dir))) {
+            std::cout << "Error creating directory " << img_dir << std::endl;
+            return 1;
+        }
+    }
+
     // Set initial vehicle location
     ChVector3d init_loc;
     ChVector2d patch_size;
@@ -150,7 +171,7 @@ int main(int argc, char* argv[]) {
             patch_size = ChVector2d(40.0, 40.0);
             break;
         case PatchType::MESH:
-            init_loc = ChVector3d(-12.0, -12.0, 1.6);
+            init_loc = ChVector3d(-22.0, -22.0, 0.6);
             break;
         case PatchType::HEIGHMAP:
             init_loc = ChVector3d(-15.0, -15.0, 0.6);
@@ -221,14 +242,14 @@ int main(int argc, char* argv[]) {
                 }
                 case PatchType::MESH: {
                     auto patch = terrain_rigid->AddPatch(patch_mat, ChCoordsys<>(),
-                                                         vehicle::GetDataFile("terrain/meshes/bump.obj"));
+                                                         vehicle::GetDataFile("terrain/meshes/bump.obj"), true, 0.02);
                     patch->SetTexture(vehicle::GetDataFile("terrain/textures/dirt.jpg"), 6.0f, 6.0f);
                     break;
                 }
                 case PatchType::HEIGHMAP: {
                     auto patch = terrain_rigid->AddPatch(patch_mat, ChCoordsys<>(),
                                                          vehicle::GetDataFile("terrain/height_maps/bump64.bmp"),
-                                                         patch_size.x(), patch_size.y(), 0.0, 1.0);
+                                                         patch_size.x(), patch_size.y(), 0.0, 1.0, true, 0.02);
                     patch->SetTexture(vehicle::GetDataFile("terrain/textures/dirt.jpg"), 6.0f, 6.0f);
                     break;
                 }
@@ -310,7 +331,7 @@ int main(int argc, char* argv[]) {
         case ChVisualSystem::Type::IRRLICHT: {
 #ifdef CHRONO_IRRLICHT
             auto vis_irr = chrono_types::make_shared<ChWheeledVehicleVisualSystemIrrlicht>();
-            vis_irr->SetWindowTitle("Wheeled vehicle on SCM deformable terrain");
+            vis_irr->SetWindowTitle("Wheeled vehicle with MBTire");
             vis_irr->SetChaseCamera(ChVector3d(0.0, 0.0, 1.75), 6.0, 0.5);
             vis_irr->Initialize();
             vis_irr->AddLightDirectional();
@@ -322,11 +343,10 @@ int main(int argc, char* argv[]) {
 #endif
             break;
         }
-        default:
         case ChVisualSystem::Type::VSG: {
 #ifdef CHRONO_VSG
             auto vis_vsg = chrono_types::make_shared<ChWheeledVehicleVisualSystemVSG>();
-            vis_vsg->SetWindowTitle("Wheeled vehicle on SCM deformable terrain");
+            vis_vsg->SetWindowTitle("Wheeled vehicle with MBTire");
             vis_vsg->SetWindowSize(ChVector2i(1200, 800));
             vis_vsg->SetWindowPosition(ChVector2i(100, 100));
             vis_vsg->SetUseSkyBox(true);
@@ -342,30 +362,14 @@ int main(int argc, char* argv[]) {
 #endif
             break;
         }
-    }
-
-    // -----------------
-    // Initialize output
-    // -----------------
-    std::string out_dir = GetChronoOutputPath() + "HMMWV_MB_TIRE";
-    out_dir += (terrain_type == TerrainType::RIGID ? "_RIGID" : "_SCM");
-    const std::string img_dir = out_dir + "/IMG";
-
-    if (!filesystem::create_directory(filesystem::path(out_dir))) {
-        std::cout << "Error creating directory " << out_dir << std::endl;
-        return 1;
-    }
-    if (img_output) {
-        if (!filesystem::create_directory(filesystem::path(img_dir))) {
-            std::cout << "Error creating directory " << img_dir << std::endl;
-            return 1;
-        }
+        default:
+            break;
     }
 
     // ---------------
     // Solver settings
     // ---------------
-    double step_size = 5e-5;
+    double step_size = 8e-5;
     ChSolver::Type solver_type;
     ChTimestepper::Type integrator_type;
 
@@ -388,20 +392,19 @@ int main(int argc, char* argv[]) {
 
     // Initialize counters
     ChTimer timer;
-    double time_end = 7;
     double time = 0;       // simulated time
     double sim_time = 0;   // simulation time
     double fps = 60;       // rendering frequency
     int render_frame = 0;  // render frame counter
 
     timer.start();
-    while (vis->Run()) {
+    while (time < time_end) {
         time = sys->GetChTime();
 
-        if (time > time_end)
-            break;
+        if (vis && time > render_frame / fps) {
+            if (!vis->Run())
+                break;
 
-        if (time > render_frame / fps) {
             vis->BeginScene();
             vis->Render();
             vis->EndScene();
@@ -414,6 +417,8 @@ int main(int argc, char* argv[]) {
             }
 
             render_frame++;
+        } else {
+            std::cout << "\r" << std::fixed << std::setprecision(6) << time << std::flush;
         }
 
         // Driver inputs
@@ -423,11 +428,13 @@ int main(int argc, char* argv[]) {
         driver.Synchronize(time);
         terrain->Synchronize(time);
         hmmwv.Synchronize(time, driver_inputs, *terrain);
-        vis->Synchronize(time, driver_inputs);
+        if (vis)
+            vis->Synchronize(time, driver_inputs);
 
         // Advance dynamics
         hmmwv.Advance(step_size);
-        vis->Advance(step_size);
+        if (vis)
+            vis->Advance(step_size);
 
         sim_time += sys->GetTimerStep();
     }
