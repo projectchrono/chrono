@@ -53,9 +53,6 @@ using namespace gui;
 using namespace chrono::irrlicht;
 
 int main(int argc, char* argv[]) {
-    assert(false); // ***THE PERIDYNAMIC FLUID FEATURE IS NOT YET TESTED***
-    return 0;
-
     std::cout << "Copyright (c) 2017 projectchrono.org\nChrono version: " << CHRONO_VERSION << std::endl;
 
     // Create a ChronoENGINE physical system
@@ -69,7 +66,7 @@ int main(int argc, char* argv[]) {
 
     // CREATE A FLOOR
     auto mat = chrono_types::make_shared<ChContactMaterialNSC>();
-    mat->SetFriction(0.0f);
+    mat->SetFriction(0.2f);
 
     auto mfloorBody = chrono_types::make_shared<ChBodyEasyBox>(20,1,20,1000,true,true,mat);
     mphysicalSystem.Add(mfloorBody);
@@ -79,39 +76,29 @@ int main(int argc, char* argv[]) {
     mfloorBody->GetVisualShape(0)->SetColor(ChColor(0.2f, 0.2f, 0.2f));
 
 
-    // CREATE A SPHERE FALLING IN THE FLUID:
-    /*
-    auto msphere = chrono_types::make_shared<ChBodyEasySphere>(0.7, 23000, true,true, mat);
+    
+    // CREATE A SPHERE PRESSING THE MATERIAL:
+    auto msphere = chrono_types::make_shared<ChBodyEasySphere>(0.7, 7000, true,true, mat);
     mphysicalSystem.Add(msphere);
     msphere->SetPos(ChVector3d(0, -1.5, 0));
-    msphere->SetPosDt(ChVector3d(0, -16.5, 0));
-    */
-    // CREATE THREE WALLS TO CONTAIN THE FLUID
-    auto mwall = chrono_types::make_shared<ChBodyEasyBox>(3,2,0.2, 23000, true, true, mat);
-    mphysicalSystem.Add(mwall);
-    mwall->SetPos(ChVector3d(0, -6, -1.6));
-    mwall = chrono_types::make_shared<ChBodyEasyBox>(3, 2, 0.2, 23000, true, true, mat);
-    mphysicalSystem.Add(mwall);
-    mwall->SetPos(ChVector3d(0, -6, 1.6));
-    mwall = chrono_types::make_shared<ChBodyEasyBox>(0.2, 2, 3.4, 23000, true, true, mat);
-    mphysicalSystem.Add(mwall);
-    mwall->SetPos(ChVector3d(1.6, -6, 0));
-    mwall = chrono_types::make_shared<ChBodyEasyBox>(0.2, 2, 2.4, 23000, true, true, mat);
-    mphysicalSystem.Add(mwall);
-    mwall->SetPos(ChVector3d(-1.6, -6, 0.5));
-
+    msphere->SetPosDt(ChVector3d(0, -20.5, 0));
+    
+   
 
     // CREATE THE PERIDYNAMIC CONTINUUM
 
-
     // Create peridynamics material 
-    // This is a viscous fluid with compressibility, working 
-    // similarly to SPH.
-    auto my_perimaterial = chrono_types::make_shared<ChMatterPeriLiquid>();
-    my_perimaterial->viscosity = 0.01; 
-    my_perimaterial->density = 1000;
-    my_perimaterial->pressure_stiffness = 80;
-
+    // This is a very simple one: a linear bond-based elastic material, defined
+    // via the bulk elasticity modulus. The Poisson ratio is fixed to 1/4. 
+    /*
+    auto my_perimaterial = chrono_types::make_shared<ChMatterPeriBulkElastic>();
+    my_perimaterial->k_bulk =  20000000;    // bulk stiffness (unit N/m^2)
+    my_perimaterial->r_bulk = 50000;      // bulk damping (unit Ns/m^3)
+    */
+    auto my_perimaterial = chrono_types::make_shared<ChMatterPeriLinearElastic>();
+    my_perimaterial->k_bulk = 2e8;    // bulk stiffness (unit N/m^2)
+    my_perimaterial->poisson = 0.25;
+    my_perimaterial->r_bulk = 0;      // bulk damping (unit Ns/m^3)
 
     // IMPORTANT!
     // This contains all the peridynamics particles and their materials. 
@@ -123,29 +110,37 @@ int main(int argc, char* argv[]) {
     // Use the FillBox easy way to create the set of nodes in the Peridynamics matter
     my_peridynamics->FillBox(
         my_perimaterial,
-        ChVector3d(2.6, 1.8, 2.6),                        // size of box
-        2.7 / 20.0,                                   // resolution step
+        ChVector3d(3, 1.5, 3),                        // size of box
+        4.0 / 15.0,                                   // resolution step
         1000,                                         // initial density
         ChCoordsys<>(ChVector3d(0, -3.4, 0), QUNIT),  // position & rotation of box
         false,                                        // do a centered cubic lattice initial arrangement
-        1.8,                                          // set the horizon radius (as multiples of step) 
-        0.1);                                         // set the collision radius (as multiples of step) for interface particles
+        1.6,                                          // set the horizon radius (as multiples of step) 
+        0.4);                                         // set the collision radius (as multiples of step) for interface particles
 
-    // Fix to remove boundary state at sides, from FillBox - to be fixed in future
+    // Just for testing, fix some nodes
+    /*
     for (const auto& node : my_peridynamics->GetNodes()) {
-        node->is_boundary = false;
+        if (node->GetPos().z() < -2.70 || node->GetPos().z() > 2.50 || node->GetPos().x() < -2.70 || node->GetPos().x() > 2.50)
+            node->SetFixed(true);
     }
+    */
 
     // Attach visualization to peridynamics. The realtime visualization will show 
     // nodes and bonds with dots, lines etc. Suggestion: use the Blender importer add-on 
     // for rendering properties in falsecolor and other advanced features.
 
-    auto mglyphs_nodes = chrono_types::make_shared<ChVisualPeriLiquid>(my_perimaterial);
+    auto mglyphs_nodes = chrono_types::make_shared<ChVisualPeriLinearElastic>(my_perimaterial);
     my_peridynamics->AddVisualShape(mglyphs_nodes);
-    mglyphs_nodes->SetGlyphsSize(0.06);
+    mglyphs_nodes->SetGlyphsSize(0.04);
     mglyphs_nodes->AttachVelocity(0, 20, "Vel"); // postprocessing tools can exploit this. Also suggest a min-max for falsecolor rendering.
 
-
+    /*
+    auto mglyphs_bounds = chrono_types::make_shared<ChVisualPeriBulkElasticBounds>(mymattersprings);
+    mglyphs_bounds->draw_unbroken = false;
+    mglyphs_bounds->draw_broken = true;
+    my_peridynamics->AddVisualShape(mglyphs_bounds);
+    */
 
     // -----Blender postprocess, optional
 
@@ -173,7 +168,7 @@ int main(int argc, char* argv[]) {
     vsys->Initialize();
     vsys->AddLogo();
     vsys->AddSkyBox();
-    vsys->AddCamera(ChVector3d(-6, 0.3, 2.3), ChVector3d(0, -4, 0));
+    vsys->AddCamera(ChVector3d(-3, -1, 1.3), ChVector3d(0, -4, 0));
     vsys->AddLight(ChVector3d(30, 30, 60), 120, ChColor(0.6f, 0.6f, 0.6f));
     vsys->AddLight(ChVector3d(40, 60, 30), 120, ChColor(0.6f, 0.6f, 0.6f));
 
@@ -189,7 +184,7 @@ int main(int argc, char* argv[]) {
 
     // Set timestep, that is smaller and smaller as stiffness of material increases 
     // and or mesh spacing decreases.
-    double timestep = 0.002;
+    double timestep = 0.0005;
 
     while (vsys->Run()) {
         vsys->BeginScene();
@@ -197,10 +192,10 @@ int main(int argc, char* argv[]) {
         vsys->Render();
         
         vsys->EndScene();
-         
+        
         mphysicalSystem.DoStepDynamics(timestep);
         
-        if (mphysicalSystem.GetNumSteps() % 10 == 0)
+        if (mphysicalSystem.GetNumSteps() % 20 == 0)
             blender_exporter.ExportData();
     }
 
