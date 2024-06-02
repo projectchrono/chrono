@@ -74,6 +74,7 @@ ChVisualSystemIrrlicht::ChVisualSystemIrrlicht()
     cubeMesh = createCubeMesh(core::vector3df(2, 2, 2));  // -/+ 1 unit each xyz axis
     cylinderMesh = createCylinderMesh(1, 1, 32);
     capsuleMesh = createCapsuleMesh(1, 1, 32, 32);
+    coneMesh = createConeMesh(1, 1, 32);
 
     // if (sphereMesh)
     //  sphereMesh->grab();
@@ -83,6 +84,8 @@ ChVisualSystemIrrlicht::ChVisualSystemIrrlicht()
         cylinderMesh->grab();
     if (capsuleMesh)
         capsuleMesh->grab();
+    if (coneMesh)
+        coneMesh->grab();
 }
 
 ChVisualSystemIrrlicht::ChVisualSystemIrrlicht(ChSystem* sys,
@@ -590,7 +593,7 @@ void ChVisualSystemIrrlicht::BeginScene(bool backBuffer, bool zBuffer, ChColor c
             if (auto modalassembly = std::dynamic_pointer_cast<modal::ChModalAssembly>(item)) {
                 try {
                     // superposition of modal shape
-                    modalassembly->SetFullStateWithModeOverlay(m_gui->modal_mode_n, m_gui->modal_phi,
+                    modalassembly->UpdateFullStateWithModeOverlay(m_gui->modal_mode_n, m_gui->modal_phi,
                                                                m_gui->modal_amplitude);
                     // fetch Hz of this mode
                     m_gui->modal_current_freq = modalassembly->GetUndampedFrequencies()(m_gui->modal_mode_n);
@@ -1045,6 +1048,23 @@ void ChVisualSystemIrrlicht::PopulateIrrNode(ISceneNode* node,
 
             ////mchildnode->setMaterialFlag(video::EMF_WIREFRAME,  mytrimesh->IsWireframe() );
             ////mchildnode->setMaterialFlag(video::EMF_BACK_FACE_CULLING, mytrimesh->IsBackfaceCull() );
+        } else if (auto cone = std::dynamic_pointer_cast<ChVisualShapeCone>(shape)) {
+            if (coneMesh) {
+                ISceneNode* mproxynode = new ChIrrNodeShape(cone, node);
+                ISceneNode* mchildnode = GetSceneManager()->addMeshSceneNode(coneMesh, mproxynode);
+                mproxynode->drop();
+
+                double rad = cone->GetRadius();
+                double height = cone->GetHeight();
+
+                core::vector3df irrsize((irr::f32)rad, (irr::f32)rad, (irr::f32)height);
+                mchildnode->setScale(irrsize);
+                mchildnode->setPosition(shape_m4.getTranslation());
+                mchildnode->setRotation(shape_m4.getRotationDegrees());
+
+                SetVisualMaterial(mchildnode, cone);
+                mchildnode->setMaterialFlag(video::EMF_NORMALIZE_NORMALS, true);
+            }
         }
     }
 }

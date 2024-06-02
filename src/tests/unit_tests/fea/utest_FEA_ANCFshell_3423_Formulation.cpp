@@ -21,7 +21,7 @@
 // - Tip angle of twist with a small torque about the beam axis
 //
 // The multilayer formulation is checked against the solution given in Liu, Cheng, Qiang Tian, and Haiyan Hu. "Dynamics
-// of a large scale rigid�flexible multibody system composed of composite laminated plates." Multibody System Dynamics
+// of a large scale rigid-flexible multibody system composed of composite laminated plates." Multibody System Dynamics
 // 26, no. 3 (2011): 283-305.
 //
 // =============================================================================
@@ -48,7 +48,7 @@
 #include "chrono/physics/ChLoadContainer.h"
 #include "chrono/fea/ChLoadsBeam.h"
 
-#if defined WIN32 || defined _WIN32 || defined WIN64 || defined _WIN64
+#if defined _WIN32 || defined _WIN64
     #include <windows.h>
 #endif
 
@@ -99,6 +99,8 @@ bool AxialDisplacementCheck(int msglvl) {
     auto system = new ChSystemSMC();
     // Set gravity to 0 since this is a statics test against an analytical solution
     system->SetGravitationalAcceleration(ChVector3d(0, 0, 0));
+
+    system->SetNumThreads(std::min(8, ChOMP::GetNumProcs()), 1, 1);
 
     auto solver = chrono_types::make_shared<ChSolverSparseQR>();
     solver->UseSparsityPatternLearner(true);
@@ -264,6 +266,8 @@ bool CantileverTipLoadCheck(int msglvl) {
     auto system = new ChSystemSMC();
     // Set gravity to 0 since this is a statics test against an analytical solution
     system->SetGravitationalAcceleration(ChVector3d(0, 0, 0));
+
+    system->SetNumThreads(std::min(8, ChOMP::GetNumProcs()), 1, 1);
 
     auto solver = chrono_types::make_shared<ChSolverSparseQR>();
     solver->UseSparsityPatternLearner(true);
@@ -436,6 +440,8 @@ bool CantileverGravityCheck(int msglvl) {
     double g = -9.80665;
     system->SetGravitationalAcceleration(ChVector3d(0, 0, g));
 
+    system->SetNumThreads(std::min(8, ChOMP::GetNumProcs()), 1, 1);
+
     auto solver = chrono_types::make_shared<ChSolverSparseQR>();
     solver->UseSparsityPatternLearner(true);
     solver->LockSparsityPattern(true);
@@ -564,6 +570,8 @@ bool AxialTwistCheck(int msglvl) {
     auto system = new ChSystemSMC();
     // Set gravity to 0 since this is a statics test against an analytical solution
     system->SetGravitationalAcceleration(ChVector3d(0, 0, 0));
+
+    system->SetNumThreads(std::min(8, ChOMP::GetNumProcs()), 1, 1);
 
     auto solver = chrono_types::make_shared<ChSolverSparseQR>();
     solver->UseSparsityPatternLearner(true);
@@ -734,6 +742,8 @@ bool MLCantileverCheck1A(int msglvl) {
     // Set gravity to 0 to match the reference solution
     system->SetGravitationalAcceleration(ChVector3d(0, 0, -9810));
 
+    system->SetNumThreads(std::min(8, ChOMP::GetNumProcs()), 1, 1);
+
     auto solver = chrono_types::make_shared<ChSolverSparseQR>();
     solver->UseSparsityPatternLearner(true);
     solver->LockSparsityPattern(true);
@@ -873,6 +883,8 @@ bool MLCantileverCheck1B(int msglvl) {
     auto system = new ChSystemSMC();
     // Set gravity to 0 to match the reference solution
     system->SetGravitationalAcceleration(ChVector3d(0, 0, -9810));
+
+    system->SetNumThreads(std::min(8, ChOMP::GetNumProcs()), 1, 1);
 
     auto solver = chrono_types::make_shared<ChSolverSparseQR>();
     solver->UseSparsityPatternLearner(true);
@@ -1017,6 +1029,8 @@ bool MLCantileverCheck2A(int msglvl) {
     // Set gravity to 0 to match the reference solution
     system->SetGravitationalAcceleration(ChVector3d(0, 0, -9810));
 
+    system->SetNumThreads(std::min(8, ChOMP::GetNumProcs()), 1, 1);
+
     auto solver = chrono_types::make_shared<ChSolverSparseQR>();
     solver->UseSparsityPatternLearner(true);
     solver->LockSparsityPattern(true);
@@ -1159,6 +1173,8 @@ bool MLCantileverCheck2B(int msglvl) {
     auto system = new ChSystemSMC();
     // Set gravity to 0 to match the reference solution
     system->SetGravitationalAcceleration(ChVector3d(0, 0, -9810));
+
+    system->SetNumThreads(std::min(8, ChOMP::GetNumProcs()), 1, 1);
 
     auto solver = chrono_types::make_shared<ChSolverSparseQR>();
     solver->UseSparsityPatternLearner(true);
@@ -1305,7 +1321,7 @@ bool RunElementChecks(int msglvl) {
 }
 
 int main(int argc, char* argv[]) {
-#if defined WIN32 || defined _WIN32 || defined WIN64 || defined _WIN64
+#if defined _WIN32 || defined _WIN64
     HANDLE hOut = GetStdHandle(STD_OUTPUT_HANDLE);
     DWORD dwMode = 0;
     GetConsoleMode(hOut, &dwMode);

@@ -35,6 +35,7 @@ Kraz::Kraz()
       m_tractor(nullptr),
       m_trailer(nullptr),
       m_contactMethod(ChContactMethod::NSC),
+      m_collsysType(ChCollisionSystem::Type::BULLET),
       m_chassisCollisionType(CollisionType::NONE),
       m_fixed(false),
       m_engineType(EngineModelType::SIMPLE_MAP),
@@ -49,6 +50,7 @@ Kraz::Kraz(ChSystem* system)
       m_tractor(nullptr),
       m_trailer(nullptr),
       m_contactMethod(ChContactMethod::NSC),
+      m_collsysType(ChCollisionSystem::Type::BULLET),
       m_chassisCollisionType(CollisionType::NONE),
       m_fixed(false),
       m_engineType(EngineModelType::SIMPLE_MAP),
@@ -89,14 +91,16 @@ void Kraz::SetTireVisualizationType(VisualizationType vis_tractor, Visualization
 
 void Kraz::Initialize() {
     // Create and initialize the tractor
-    m_tractor = m_system ? new Kraz_tractor(m_system, m_fixed) : new Kraz_tractor(m_fixed, m_contactMethod);
+    m_tractor = m_system ? new Kraz_tractor(m_system, m_fixed, m_chassisCollisionType)
+                         : new Kraz_tractor(m_fixed, m_chassisCollisionType, m_contactMethod);
+    m_tractor->SetCollisionSystemType(m_collsysType);
     m_tractor->Initialize(m_initPos, m_initFwdVel);
 
     auto drvLine = std::static_pointer_cast<ChShaftsDriveline4WD>(m_tractor->GetDriveline());
     drvLine->LockCentralDifferential(0, false);
 
     // Create and initialize the trailer
-    m_trailer = new Kraz_trailer(m_system);
+    m_trailer = new Kraz_trailer(m_system, m_chassisCollisionType);
     m_trailer->Initialize(m_tractor->GetChassis());
 
     // Create and initialize the powertrain system

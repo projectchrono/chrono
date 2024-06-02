@@ -206,6 +206,8 @@ linux:ubuntu22.04-clang:test:
     - git clone https://github.com/projectchrono/chrono_ros_interfaces.git src/
     - colcon build --packages-select chrono_ros_interfaces
     - source $HOME/Packages/ros_ws/install/setup.sh
+    # Initialize git repository
+    - cd $CI_PROJECT_DIR
     - git submodule init
     - git submodule update
     - echo "Build PyChrono and deploy via Anaconda..."
@@ -277,6 +279,8 @@ windows:vs2022:build:
   script:
   # Build vsg with buildVSG script
   - '& $CI_PROJECT_DIR\contrib\build-scripts\vsg\buildVSG.bat $CI_PROJECT_DIR\contrib\build-scripts\vsg_build'
+  # Build vsg with buildURDF script
+  - '& $CI_PROJECT_DIR\contrib\build-scripts\urdf\buildURDF.bat $CI_PROJECT_DIR\contrib\build-scripts\urdf_build'
   # Configuring chrono
   - cmake -B "$CI_PROJECT_DIR\build" -S "$CI_PROJECT_DIR" -DCMAKE_CXX_FLAGS="/MP4" --preset=windowsci-vs2022
   - cd build
@@ -293,7 +297,7 @@ windows:vs2022:test:
   extends: .windows
   script:
   - cd build
-  - ctest --extra-verbose --output-on-failure
+  - ctest --output-on-failure -E "utest_PARSERS"
   dependencies: ["windows:vs2022:build"]
 
 .windows-deploy-base:

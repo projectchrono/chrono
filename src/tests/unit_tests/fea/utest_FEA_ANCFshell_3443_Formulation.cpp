@@ -47,7 +47,7 @@
 #include "chrono/physics/ChLoadContainer.h"
 #include "chrono/fea/ChLoadsBeam.h"
 
-#if defined WIN32 || defined _WIN32 || defined WIN64 || defined _WIN64
+#if defined _WIN32 || defined _WIN64
     #include <windows.h>
 #endif
 
@@ -138,6 +138,8 @@ ANCFShellTest::ANCFShellTest(bool useContInt) {
 
     m_system = new ChSystemSMC();
     m_system->SetGravitationalAcceleration(ChVector3d(0, 0, -9.80665));
+
+    m_system->SetNumThreads(std::min(8, ChOMP::GetNumProcs()), 1, 1);
 
     auto solver = chrono_types::make_shared<ChSolverSparseQR>();
     solver->UseSparsityPatternLearner(true);
@@ -1235,6 +1237,8 @@ bool ANCFShellTest::AxialDisplacementCheck(int msglvl) {
     // Set gravity to 0 since this is a statics test against an analytical solution
     system->SetGravitationalAcceleration(ChVector3d(0, 0, 0));
 
+    m_system->SetNumThreads(std::min(8, ChOMP::GetNumProcs()), 1, 1);
+
     auto solver = chrono_types::make_shared<ChSolverSparseQR>();
     solver->UseSparsityPatternLearner(true);
     solver->LockSparsityPattern(true);
@@ -1407,6 +1411,8 @@ bool ANCFShellTest::CantileverTipLoadCheck(int msglvl) {
     auto system = new ChSystemSMC();
     // Set gravity to 0 since this is a statics test against an analytical solution
     system->SetGravitationalAcceleration(ChVector3d(0, 0, 0));
+
+    m_system->SetNumThreads(std::min(8, ChOMP::GetNumProcs()), 1, 1);
 
     auto solver = chrono_types::make_shared<ChSolverSparseQR>();
     solver->UseSparsityPatternLearner(true);
@@ -1587,6 +1593,8 @@ bool ANCFShellTest::CantileverGravityCheck(int msglvl) {
     double g = -9.80665;
     system->SetGravitationalAcceleration(ChVector3d(0, 0, g));
 
+    m_system->SetNumThreads(std::min(8, ChOMP::GetNumProcs()), 1, 1);
+
     auto solver = chrono_types::make_shared<ChSolverSparseQR>();
     solver->UseSparsityPatternLearner(true);
     solver->LockSparsityPattern(true);
@@ -1723,6 +1731,8 @@ bool ANCFShellTest::AxialTwistCheck(int msglvl) {
     auto system = new ChSystemSMC();
     // Set gravity to 0 since this is a statics test against an analytical solution
     system->SetGravitationalAcceleration(ChVector3d(0, 0, 0));
+
+    m_system->SetNumThreads(std::min(8, ChOMP::GetNumProcs()), 1, 1);
 
     auto solver = chrono_types::make_shared<ChSolverSparseQR>();
     solver->UseSparsityPatternLearner(true);
@@ -1901,6 +1911,8 @@ bool ANCFShellTest::MLCantileverCheck1A(int msglvl) {
     // Set gravity to 0 to match the reference solution
     system->SetGravitationalAcceleration(ChVector3d(0, 0, -9810));
 
+    m_system->SetNumThreads(std::min(8, ChOMP::GetNumProcs()), 1, 1);
+
     auto solver = chrono_types::make_shared<ChSolverSparseQR>();
     solver->UseSparsityPatternLearner(true);
     solver->LockSparsityPattern(true);
@@ -2048,6 +2060,8 @@ bool ANCFShellTest::MLCantileverCheck1B(int msglvl) {
     auto system = new ChSystemSMC();
     // Set gravity to 0 to match the reference solution
     system->SetGravitationalAcceleration(ChVector3d(0, 0, -9810));
+
+    m_system->SetNumThreads(std::min(8, ChOMP::GetNumProcs()), 1, 1);
 
     auto solver = chrono_types::make_shared<ChSolverSparseQR>();
     solver->UseSparsityPatternLearner(true);
@@ -2200,6 +2214,8 @@ bool ANCFShellTest::MLCantileverCheck2A(int msglvl) {
     // Set gravity to 0 to match the reference solution
     system->SetGravitationalAcceleration(ChVector3d(0, 0, -9810));
 
+    m_system->SetNumThreads(std::min(8, ChOMP::GetNumProcs()), 1, 1);
+
     auto solver = chrono_types::make_shared<ChSolverSparseQR>();
     solver->UseSparsityPatternLearner(true);
     solver->LockSparsityPattern(true);
@@ -2351,6 +2367,8 @@ bool ANCFShellTest::MLCantileverCheck2B(int msglvl) {
     // Set gravity to 0 to match the reference solution
     system->SetGravitationalAcceleration(ChVector3d(0, 0, -9810));
 
+    m_system->SetNumThreads(std::min(8, ChOMP::GetNumProcs()), 1, 1);
+
     auto solver = chrono_types::make_shared<ChSolverSparseQR>();
     solver->UseSparsityPatternLearner(true);
     solver->LockSparsityPattern(true);
@@ -2488,7 +2506,7 @@ bool ANCFShellTest::MLCantileverCheck2B(int msglvl) {
 }
 
 int main(int argc, char* argv[]) {
-#if defined WIN32 || defined _WIN32 || defined WIN64 || defined _WIN64
+#if defined _WIN32 || defined _WIN64
     HANDLE hOut = GetStdHandle(STD_OUTPUT_HANDLE);
     DWORD dwMode = 0;
     GetConsoleMode(hOut, &dwMode);

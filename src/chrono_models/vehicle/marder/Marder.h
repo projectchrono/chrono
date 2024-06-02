@@ -44,6 +44,7 @@ class CH_MODELS_API Marder {
     ~Marder();
 
     void SetContactMethod(ChContactMethod val) { m_contactMethod = val; }
+    void SetCollisionSystemType(ChCollisionSystem::Type collsys_type) { m_collsysType = collsys_type; }
 
     void SetChassisFixed(bool val) { m_fixed = val; }
     void SetChassisCollisionType(CollisionType val) { m_chassisCollisionType = val; }
@@ -59,8 +60,6 @@ class CH_MODELS_API Marder {
 
     void SetInitPosition(const ChCoordsys<>& pos) { m_initPos = pos; }
     void SetInitFwdVel(double fwdVel) { m_initFwdVel = fwdVel; }
-
-    void SetCollisionSystemType(ChCollisionSystem::Type collsys_type) { m_collsys_type = collsys_type; }
 
     void CreateTrack(bool val) { m_create_track = val; }
     void SetEngineType(EngineModelType val) { m_engineType = val; }
@@ -96,14 +95,13 @@ class CH_MODELS_API Marder {
 
   protected:
     ChContactMethod m_contactMethod;
+    ChCollisionSystem::Type m_collsysType;
     CollisionType m_chassisCollisionType;
     bool m_fixed;
     bool m_create_track;
     bool m_wheel_cyl;
     bool m_idler_cyl;
     bool m_roller_cyl;
-
-    ChCollisionSystem::Type m_collsys_type;
 
     BrakeType m_brake_type;
     TrackShoeType m_shoe_type;

@@ -116,6 +116,11 @@ void ChContactSurfaceNodeCloud::AddNode(std::shared_ptr<ChNodeFEAxyz> node, cons
     auto point_shape = chrono_types::make_shared<ChCollisionShapePoint>(m_material, VNULL, point_radius);
     contact_node->AddCollisionShape(point_shape);
 
+    if (!m_self_collide) {
+        contact_node->GetCollisionModel()->SetFamily(m_collision_family);
+        contact_node->GetCollisionModel()->DisallowCollisionsWith(m_collision_family);
+    }
+
     m_nodes.push_back(contact_node);
 }
 
@@ -126,6 +131,11 @@ void ChContactSurfaceNodeCloud::AddNode(std::shared_ptr<ChNodeFEAxyzrot> node, c
     auto contact_node = chrono_types::make_shared<ChContactNodeXYZRotSphere>(node.get(), this);
     auto point_shape = chrono_types::make_shared<ChCollisionShapePoint>(m_material, VNULL, point_radius);
     contact_node->AddCollisionShape(point_shape);
+
+    if (!m_self_collide) {
+        contact_node->GetCollisionModel()->SetFamily(m_collision_family);
+        contact_node->GetCollisionModel()->DisallowCollisionsWith(m_collision_family);
+    }
 
     m_nodes_rot.push_back(contact_node);
 }

@@ -293,7 +293,7 @@ void ChMarker::ArchiveOut(ChArchiveOut& archive_out) {
     archive_out << CHNVP(m_body);
 }
 
-/// Method to allow de serialization of transient data from archives.
+// Method to allow de serialization of transient data from archives.
 void ChMarker::ArchiveIn(ChArchiveIn& archive_in) {
     // version number
     /*int version =*/archive_in.VersionRead<ChMarker>();

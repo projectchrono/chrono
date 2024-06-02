@@ -53,7 +53,7 @@ class CH_VEHICLE_API ChPac89Tire : public ChForceElementTire {
     virtual double GetRadius() const override { return m_states.R_eff; }
 
     /// Set the limit for camber angle (in degrees).  Default: 3 degrees.
-    void SetGammaLimit(double gamma_limit) { m_gamma_limit = gamma_limit; }
+    void SetGammaLimit(double gamma_limit) { m_gamma_limit = gamma_limit * CH_DEG_TO_RAD; }
 
     /// Get the width of the tire.
     virtual double GetWidth() const override { return m_width; }
@@ -64,8 +64,8 @@ class CH_VEHICLE_API ChPac89Tire : public ChForceElementTire {
     /// Get visualization width.
     virtual double GetVisualizationWidth() const override { return m_width; }
 
-    /// Get the slip angle used in Pac89 (expressed in radians).
-    /// The reported value will have opposite sign to that reported by ChTire::GetSlipAngle
+    /// Get the slip angle used in Pac89.
+    /// The reported value, expressed in radians, will have opposite sign to that reported by ChTire::GetSlipAngle
     /// because ChPac89 uses internally a different frame convention.
     double GetSlipAngle_internal() const { return m_states.cp_side_slip; }
 
@@ -73,27 +73,19 @@ class CH_VEHICLE_API ChPac89Tire : public ChForceElementTire {
     /// The reported value will be similar to that reported by ChTire::GetLongitudinalSlip.
     double GetLongitudinalSlip_internal() const { return m_states.cp_long_slip; }
 
-    /// Get the camber angle used in Pac89 (expressed in radians).
-    /// The reported value will be similar to that reported by ChTire::GetCamberAngle.
-    double GetCamberAngle_internal() { return m_gamma * CH_DEG_TO_RAD; }
+    /// Get the camber angle used in Pac89.
+    /// The reported value, expressed in radians, will be similar to that reported by ChTire::GetCamberAngle.
+    double GetCamberAngle_internal() const { return m_gamma; }
 
   protected:
     /// Set the parameters in the Pac89 model.
     virtual void SetPac89Params() = 0;
 
-    double m_kappa;  ///< longitudinal slip (percentage)
-    double m_alpha;  ///< slip angle (degrees)
-    double m_gamma;  ///< camber angle (degrees)
+    double m_gamma;        ///< camber angle
+    double m_gamma_limit;  ///< limit camber angle
 
-    double m_gamma_limit;  ///< limit camber angle (degrees)
-
-    /// Road friction
-    double m_mu;
-    /// Tire reference friction
-    double m_mu0;
-
-    double m_frblend_begin{1};
-    double m_frblend_end{3};
+    double m_mu;   ///< road friction
+    double m_mu0;  ///< tire reference friction
 
     /// Pac89 tire model parameters
     double m_unloaded_radius;
@@ -148,9 +140,10 @@ class CH_VEHICLE_API ChPac89Tire : public ChForceElementTire {
         double C15;
         double C16;
         double C17;
+
         // extra parameters for stand-still/low speed case
-        double sigma0{100000.0};  ///< bristle stiffness for Dahl friction model
-        double sigma1{5000.0};    ///< bristle damping for Dahl friction model
+        double sigma0{100000.0};  // bristle stiffness for Dahl friction model
+        double sigma1{5000.0};    // bristle damping for Dahl friction model
     };
 
     PacCoeff m_PacCoeff;
@@ -159,9 +152,7 @@ class CH_VEHICLE_API ChPac89Tire : public ChForceElementTire {
     virtual void Initialize(std::shared_ptr<ChWheel> wheel) override;
 
     /// Update the state of this tire system at the current time.
-    virtual void Synchronize(double time,              ///< [in] current time
-                             const ChTerrain& terrain  ///< [in] reference to the terrain system
-                             ) override;
+    virtual void Synchronize(double time, const ChTerrain& terrain) override;
 
     /// Advance the state of this tire by the specified time step.
     virtual void Advance(double step) override;
@@ -169,16 +160,16 @@ class CH_VEHICLE_API ChPac89Tire : public ChForceElementTire {
     void CombinedCoulombForces(double& fx, double& fy, double fz, double muscale);
 
     struct TireStates {
-        double cp_long_slip;     // Contact Path - Longitudinal Slip State (Kappa)
-        double cp_side_slip;     // Contact Path - Side Slip State (Alpha)
-        double vx;               // Longitudinal speed
-        double vsx;              // Longitudinal slip velocity
-        double vsy;              // Lateral slip velocity = Lateral velocity
-        double omega;            // Wheel angular velocity about its spin axis
-        double R_eff;            // Effective Radius
+        double cp_long_slip;     // contact path - longitudinal slip state (kappa)
+        double cp_side_slip;     // contact path - side slip state (alpha)
+        double vx;               // longitudinal speed
+        double vsx;              // longitudinal slip velocity
+        double vsy;              // lateral slip velocity
+        double omega;            // wheel angular velocity about its spin axis
+        double R_eff;            // effective Radius
         double brx{0};           // bristle deformation x
         double bry{0};           // bristle deformation y
-        ChVector3d disc_normal;  //(temporary for debug)
+        ChVector3d disc_normal;  // (temporary for debug)
     };
 
     TireStates m_states;

@@ -77,6 +77,11 @@ MAN_7t_Chassis::MAN_7t_Chassis(const std::string& name, bool fixed, CollisionTyp
             m_geometry.m_coll_hulls.push_back(hull);
             break;
         }
+        case CollisionType::MESH: {
+            ChVehicleGeometry::TrimeshShape trimesh(ChVector3d(), "MAN_Kat1/meshes/MAN_7t_chassis_col.obj", 0.005, 0);
+            m_geometry.m_coll_meshes.push_back(trimesh);
+            break;
+        }
         default:
             break;
     }

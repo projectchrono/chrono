@@ -1,7 +1,5 @@
 #=============================================================================
 # CMake configuration file for Chrono Vehicle FMI support
-#
-# Cannot be used stand-alone (it is loaded by parent CMake configuration file)
 #=============================================================================
 
 # Set common output directory for all Chrono::Vehicle FMUs
@@ -14,8 +12,12 @@ configure_file(${CMAKE_CURRENT_SOURCE_DIR}/ChConfigVehicleFMI.h.in
 
 # Create all FMUs
 
-message(STATUS "Add Chrono::Vehicle FMI 2.0 FMUs...")
-add_subdirectory(fmi2)
+if(FMU_EXPORT_SUPPORT)
 
-##message(STATUS "Add Chrono::Vehicle FMI 3.0 FMUs...")
-##add_subdirectory(fmi3)
+  message(STATUS "Add Chrono::Vehicle FMI 2.0 FMUs...")
+  add_subdirectory(fmi2)
+  
+  ##message(STATUS "Add Chrono::Vehicle FMI 3.0 FMUs...")
+  ##add_subdirectory(fmi3)
+
+endif()

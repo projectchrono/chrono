@@ -24,6 +24,7 @@ namespace vehicle {
 
 ChVehicleVisualSystem::ChVehicleVisualSystem()
     : m_vehicle(nullptr),
+      m_terrain(nullptr),
       m_stepsize(1e-3),
       m_camera_point(ChVector3d(1, 0, 0)),
       m_camera_dist(5.0),
@@ -57,6 +58,10 @@ void ChVehicleVisualSystem::AttachVehicle(ChVehicle* vehicle) {
     m_camera->Initialize(m_camera_point, m_vehicle->GetChassis()->GetLocalDriverCoordsys(), m_camera_dist,
                          m_camera_height, ChWorldFrame::Vertical(), ChWorldFrame::Forward());
     m_camera->SetMultLimits(m_camera_minMult, m_camera_maxMult);
+}
+
+void ChVehicleVisualSystem::AttachTerrain(vehicle::ChTerrain* terrain) {
+    m_terrain = terrain;
 }
 
 double ChVehicleVisualSystem::GetStepRTF() const {

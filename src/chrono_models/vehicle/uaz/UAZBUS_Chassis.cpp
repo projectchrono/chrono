@@ -73,8 +73,13 @@ UAZBUS_Chassis::UAZBUS_Chassis(const std::string& name, bool fixed, CollisionTyp
             m_geometry.m_coll_boxes.push_back(box1);
             break;
         case CollisionType::HULLS: {
-            ChVehicleGeometry::ConvexHullsShape hull("uaz/uazbus_chassis_simple.obj", 0);
+            ChVehicleGeometry::ConvexHullsShape hull("uaz/uazbus_chassis_col.obj", 0);
             m_geometry.m_coll_hulls.push_back(hull);
+            break;
+        }
+        case CollisionType::MESH: {
+            ChVehicleGeometry::TrimeshShape trimesh(ChVector3d(), "uaz/uazbus_chassis_col.obj", 0.005, 0);
+            m_geometry.m_coll_meshes.push_back(trimesh);
             break;
         }
         default:

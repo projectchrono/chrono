@@ -1,0 +1,14 @@
+{
+  "Name": "Duro Wheel",
+  "Type": "Wheel",
+  "Template": "Wheel",
+
+  "Mass": 25.0,
+  "Inertia": [0.94, 1.59, 0.94 ],
+
+  "Visualization": {
+    "Mesh Filename": "duro/Duro_Wheel.obj",
+    "Radius": 0.254,
+    "Width": 0.2286
+  }
+}

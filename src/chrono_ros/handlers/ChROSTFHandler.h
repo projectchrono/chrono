@@ -46,7 +46,8 @@ namespace ros {
 /// in ROS, see the tf2_ros documentation.
 class ChROSTFHandler : public ChROSHandler {
     typedef std::pair<chrono::ChFrame<>, std::string> ChFrameTransform;
-    typedef std::variant<std::shared_ptr<chrono::ChBody>, ChFrameTransform> ChROSTransform;
+    typedef std::pair<std::shared_ptr<chrono::ChBody>, std::string> ChBodyTransform;
+    typedef std::variant<ChBodyTransform, ChFrameTransform> ChROSTransform;
 
   public:
     /// Constructor.
@@ -57,19 +58,22 @@ class ChROSTFHandler : public ChROSHandler {
     virtual bool Initialize(std::shared_ptr<ChROSInterface> interface) override;
 
     /// @brief Add a transform to be published. This version of the AddTransform function will use two bodies directly
-    /// and calculate the transform at each tick. This is useful for two bodies that are not connected by a link. The
-    /// parent and child frame id is queried using the parent->GetName() and child->GetName() methods, respectively.
-    /// @param parent The parent body
-    /// @param child The child body
-    void AddTransform(std::shared_ptr<chrono::ChBody> parent, std::shared_ptr<chrono::ChBody> child);
+    /// and calculate the transform at each tick. This is useful for two bodies that are not connected by a link.
+    /// For each iteration of this method, when the frame id for the parent and/or child is not passed, it defaults
+    /// to the name of the body.
+    void AddTransform(std::shared_ptr<chrono::ChBody> parent,
+                      const std::string& parent_frame_id,
+                      std::shared_ptr<chrono::ChBody> child,
+                      const std::string& child_frame_id);
 
     /// @brief Add a transform to be published. This version of the AddTransform function will publish a static
-    /// transform between the parent and child frame. This is useful for two bodies that are connected by a link. The
-    /// parent frame id is queried using the parent->GetName() method.
+    /// transform between the parent and child frame. This is useful for two bodies that are connected by a link.
     /// @param parent The parent body
+    /// @param parent_frame The parent frame id.
     /// @param child_frame The child frame
     /// @param child_frame_id The child frame id
     void AddTransform(std::shared_ptr<chrono::ChBody> parent,
+                      const std::string& parent_frame_id,
                       chrono::ChFrame<double> child_frame,
                       const std::string& child_frame_id);
 
@@ -82,11 +86,12 @@ class ChROSTFHandler : public ChROSHandler {
 
 #ifdef CHRONO_SENSOR
     /// @brief Add a transform to be published from a sensor. This is simply an alias to
-    /// AddTransform(sensor->GetParent(), sensor->GetOffsetPose(), frame_id or sensor->GetName()). frame_id will only be
-    /// used if set to a non-empty string, otherwise sensor->GetName() will be used.
+    /// AddTransform(sensor->GetParent(), sensor->GetOffsetPose(), frame_id).
     /// @param sensor The sensor
-    /// @param frame_id The frame id. Defaults to an empty string. If unset, sensor->GetName() will be used.
-    void AddSensor(std::shared_ptr<chrono::sensor::ChSensor> sensor, const std::string& frame_id = "");
+    /// @param frame_id The frame id.
+    void AddSensor(std::shared_ptr<chrono::sensor::ChSensor> sensor,
+                   const std::string& parent_frame_id,
+                   const std::string& child_frame_id);
 #endif
 
   protected:
@@ -95,7 +100,7 @@ class ChROSTFHandler : public ChROSHandler {
     virtual void Tick(double time) override;
 
   private:
-    std::vector<std::pair<std::shared_ptr<chrono::ChBody>, ChROSTransform>> m_transforms;  ///< The transforms to publish
+    std::vector<std::pair<ChROSTransform, ChROSTransform>> m_transforms;  ///< The transforms to publish
 
     std::unique_ptr<tf2_ros::TransformBroadcaster> m_tf_broadcaster;  ///< The tf broadcaster
 };

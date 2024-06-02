@@ -1,7 +1,7 @@
 {
 	"version": 1,
 	"vendor": {
-		"projectchrono.org/chrono/8.0.0": {}
+		"projectchrono.org/chrono/9.0.0": {}
 	},
 	"cmakeMinimumRequired": {
 		"major": 3,
@@ -28,7 +28,7 @@
 				"ENABLE_MODULE_OPENGL": "ON",
 				"ENABLE_MODULE_SYNCHRONO": "ON",
 				"ENABLE_MODULE_CSHARP": "ON",
-				"ENABLE_MODULE_COSIMULATION": "ON"
+				"ENABLE_MODULE_FMI": "ON"
 			}
 		},
 		{
@@ -63,13 +63,13 @@
 				"ENABLE_MODULE_GPU": "ON",
 				"ENABLE_MODULE_PARDISO_MKL": "ON",
 				"ENABLE_MODULE_CASCADE": "ON",
-				"ENABLE_MODULE_COSIMULATION": "ON",
 				"ENABLE_MODULE_SENSOR": "ON",
 				"ENABLE_MODULE_MODAL": "ON",
 				"ENABLE_MODULE_MATLAB": "OFF",
 				"ENABLE_MODULE_CSHARP": "ON",
 				"ENABLE_MODULE_PYTHON": "ON",
 				"ENABLE_MODULE_SYNCHRONO": "OFF",
+				"ENABLE_MODULE_FMI": "ON",
 				"ENABLE_MODULE_ROS": "ON",
 				"BUILD_BENCHMARKING": "ON",
 				"BUILD_TESTING": "ON",
@@ -161,13 +161,13 @@
 				"ENABLE_MODULE_GPU": "ON",
 				"ENABLE_MODULE_PARDISO_MKL": "ON",
 				"ENABLE_MODULE_CASCADE": "ON",
-				"ENABLE_MODULE_COSIMULATION": "ON",
 				"ENABLE_MODULE_SENSOR": "ON",
 				"ENABLE_MODULE_MODAL": "ON",
 				"ENABLE_MODULE_MATLAB": "OFF",
 				"ENABLE_MODULE_CSHARP": "ON",
 				"ENABLE_MODULE_PYTHON": "ON",
 				"ENABLE_MODULE_SYNCHRONO": "ON",
+				"ENABLE_MODULE_FMI": "ON",
 				"BUILD_BENCHMARKING": "ON",
 				"BUILD_TESTING": "ON",
 				"ENABLE_OPENCRG": "ON",
@@ -191,7 +191,11 @@
 				"USE_CUDA_NVRTC": "OFF",
 				"USE_FAST_DDS": "ON",
 				"CMAKE_PREFIX_PATH": "C:/Program Files/eProsima/fastrtps 2.4.0/cmake",
-				"PYTHON_EXECUTABLE": "C:/Users/builder/miniconda3/python.exe"
+				"PYTHON_EXECUTABLE": "C:/Users/builder/miniconda3/python.exe",
+				"urdfdom_DIR": "C:/Packages/urdf/lib/urdfdom/cmake",
+				"urdfdom_headers_DIR": "C:/Packages/urdf/CMake",
+				"console_bridge_DIR": "C:/Packages/urdf/CMake",
+				"tinyxml2_DIR": "C:/Packages/urdf/CMake"
 			}
 		},
 		{

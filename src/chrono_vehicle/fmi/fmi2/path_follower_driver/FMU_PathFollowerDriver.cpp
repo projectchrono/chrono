@@ -74,8 +74,13 @@ FmuComponent::FmuComponent(fmi2String instanceName,
     auto resources_dir = std::string(fmuResourceLocation).erase(0, 8);
     path_file = resources_dir + "/ISO_double_lane_change.txt";
 
+#ifdef CHRONO_IRRLICHT
     if (visible)
         vis_sys = chrono_types::make_shared<irrlicht::ChVisualSystemIrrlicht>();
+#else
+    if (visible)
+        std::cout << "The FMU was not built with run-time visualization support. Visualization disabled." << std::endl;
+#endif
 
     // Set FIXED PARAMETERS for this FMU
     //// TODO: units for gains
@@ -134,18 +139,21 @@ FmuComponent::FmuComponent(fmi2String instanceName,
                    FmuVariable::CausalityType::input, FmuVariable::VariabilityType::discrete);               //
 
     // Set CONTINOUS OUTPUTS for this FMU
-    AddFmuVariable(&steering, "steering", FmuVariable::Type::Real, "1", "steering command",        //
-                   FmuVariable::CausalityType::output, FmuVariable::VariabilityType::continuous);  //
-    AddFmuVariable(&throttle, "throttle", FmuVariable::Type::Real, "1", "throttle command",        //
-                   FmuVariable::CausalityType::output, FmuVariable::VariabilityType::continuous);  //
-    AddFmuVariable(&braking, "braking", FmuVariable::Type::Real, "1", "braking command",           //
-                   FmuVariable::CausalityType::output, FmuVariable::VariabilityType::continuous);  //
+    AddFmuVariable(&steering, "steering", FmuVariable::Type::Real, "1", "steering command",       //
+                   FmuVariable::CausalityType::output, FmuVariable::VariabilityType::continuous,  //
+                   FmuVariable::InitialType::exact);                                              //
+    AddFmuVariable(&throttle, "throttle", FmuVariable::Type::Real, "1", "throttle command",       //
+                   FmuVariable::CausalityType::output, FmuVariable::VariabilityType::continuous,  //
+                   FmuVariable::InitialType::exact);                                              //
+    AddFmuVariable(&braking, "braking", FmuVariable::Type::Real, "1", "braking command",          //
+                   FmuVariable::CausalityType::output, FmuVariable::VariabilityType::continuous,  //
+                   FmuVariable::InitialType::exact);                                              //
 
     // Specify functions to process input variables (at beginning of step)
-    m_preStepCallbacks.push_back([this]() { this->SynchronizeDriver(this->GetTime()); });
+    AddPreStepFunction([this]() { this->SynchronizeDriver(this->GetTime()); });
 
     // Specify functions to calculate FMU outputs (at end of step)
-    m_postStepCallbacks.push_back([this]() { this->CalculateDriverOutputs(); });
+    AddPostStepFunction([this]() { this->CalculateDriverOutputs(); });
 }
 
 void FmuComponent::CreateDriver() {
@@ -206,8 +214,8 @@ void FmuComponent::_exitInitializationMode() {
     CreateDriver();
 
     // Initialize runtime visualization (if requested and if available)
-    if (vis_sys) {
 #ifdef CHRONO_IRRLICHT
+    if (vis_sys) {
         std::cout << " Enable run-time visualization" << std::endl;
 
         // Calculate grid dimensions based on path AABB
@@ -237,10 +245,8 @@ void FmuComponent::_exitInitializationMode() {
         target_shape->SetColor(ChColor(0, 1, 0));
         iballS = vis_sys->AddVisualModel(sentinel_shape, ChFrame<>());
         iballT = vis_sys->AddVisualModel(target_shape, ChFrame<>());
-#else
-        std::cout << " Run-time visualization not available" << std::endl;
-#endif
     }
+#endif
 }
 
 fmi2Status FmuComponent::_doStep(fmi2Real currentCommunicationPoint,
@@ -273,8 +279,8 @@ fmi2Status FmuComponent::_doStep(fmi2Real currentCommunicationPoint,
         ChClampValue(out_steering, -1.0, 1.0);
         steering = out_steering;
 
-        if (vis_sys) {
 #ifdef CHRONO_IRRLICHT
+        if (vis_sys) {
             // Update system and all visual assets
             sys.Update(true);
             sys.SetChTime(m_time);
@@ -303,8 +309,8 @@ fmi2Status FmuComponent::_doStep(fmi2Real currentCommunicationPoint,
                 vis_sys->WriteImageToFile(filename.str());
                 render_frame++;
             }
-#endif
         }
+#endif
         ////sendToLog("time: " + std::to_string(m_time) + "\n", fmi2Status::fmi2OK, "logAll");
 
         m_time += h;

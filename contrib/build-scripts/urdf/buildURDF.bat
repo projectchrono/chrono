@@ -119,7 +119,7 @@ rmdir /S/Q build_urdfdom 2>nul
 cmake -B build_urdfdom -S %URDFDOM_SOURCE_DIR% ^
       -DCMAKE_DEBUG_POSTFIX=_d ^
       -DCMAKE_RELWITHDEBINFO_POSTFIX=_rd ^
-      -Dtinyxml2_DIR:PATH=%URDF_INSTALL_DIR%/CMake ^
+      -DTinyXML2_DIR:PATH=%URDF_INSTALL_DIR%/CMake ^
       -Dconsole_bridge_DIR:PATH=%URDF_INSTALL_DIR%/CMake ^
       -Durdfdom_headers_DIR:PATH=%URDF_INSTALL_DIR%/CMake
 

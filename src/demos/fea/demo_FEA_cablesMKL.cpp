@@ -33,6 +33,8 @@ int main(int argc, char* argv[]) {
     // Create a Chrono::Engine physical system
     ChSystemSMC sys;
 
+    sys.SetNumThreads(std::min(4, ChOMP::GetNumProcs()), 0, 1);
+
     // Create a mesh, that is a container for groups of elements and
     // their referenced nodes.
     auto my_mesh = chrono_types::make_shared<ChMesh>();
@@ -79,7 +81,7 @@ int main(int argc, char* argv[]) {
     // Configure PardisoMKL solver.
     // For this simple and relatively small problem, use of the sparsity pattern learner may introduce additional
     // overhead (if the sparsity pattern is not locked).
-    auto mkl_solver = chrono_types::make_shared<ChSolverPardisoMKL>();
+    auto mkl_solver = chrono_types::make_shared<ChSolverPardisoMKL>(1);
     mkl_solver->UseSparsityPatternLearner(false);
     mkl_solver->LockSparsityPattern(false);
     mkl_solver->SetVerbose(false);

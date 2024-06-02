@@ -32,7 +32,7 @@ const double FEDA_PitmanArm::m_pitmanArmMass = 1.605;
 const double FEDA_PitmanArm::m_steeringLinkRadius = 0.03;
 const double FEDA_PitmanArm::m_pitmanArmRadius = 0.02;
 
-const double FEDA_PitmanArm::m_maxAngle = 27.05 * (CH_PI / 180);
+const double FEDA_PitmanArm::m_maxAngle = 27.5 * (CH_DEG_TO_RAD);
 
 const ChVector3d FEDA_PitmanArm::m_steeringLinkInertiaMoments(0.252, 0.00233, 0.254);
 const ChVector3d FEDA_PitmanArm::m_steeringLinkInertiaProducts(0.0, 0.0, 0.0);

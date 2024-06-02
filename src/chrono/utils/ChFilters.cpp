@@ -734,8 +734,8 @@ const double ChISO2631_5_Wz::m_W[8] = {57.96539, 52.32773, 49.78227, 53.16885, 5
 
 ChISO2631_5_Wz::ChISO2631_5_Wz() {}
 
-void ChISO2631_5_Wz::Filter(std::vector<double>& u, std::vector<double>& y) {
-    std::vector<double> asz(8);
+void ChISO2631_5_Wz::Filter(const std::vector<double>& u, std::vector<double>& y) {
+    std::vector<double> asz(8, 0.0);
     asz.insert(asz.end(), u.begin(), u.end());
     int asz_size = static_cast<int>(asz.size());
     y.resize(asz.size(), 0.0);

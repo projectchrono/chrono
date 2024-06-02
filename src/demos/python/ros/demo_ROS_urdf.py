@@ -138,11 +138,11 @@ def main():
 
     # Create the TF handler that will publish the transform of the robot
     tf_handler = chros.ChROSTFHandler(100)
-    tf_handler.AddTransform(ground_body, robot.GetChBody("torso"))
-    tf_handler.AddTransform(robot.GetChBody("torso"), robot.GetChBody("limb1_link1"))
-    tf_handler.AddTransform(robot.GetChBody("torso"), robot.GetChBody("limb2_link1"))
-    tf_handler.AddTransform(robot.GetChBody("torso"), robot.GetChBody("limb3_link1"))
-    tf_handler.AddTransform(robot.GetChBody("torso"), robot.GetChBody("limb4_link1"))
+    tf_handler.AddTransform(ground_body, ground_body.GetName(), robot.GetChBody("torso"), "torso")
+    tf_handler.AddTransform(robot.GetChBody("torso"), "torso", robot.GetChBody("limb1_link1"), "limb1_link1")
+    tf_handler.AddTransform(robot.GetChBody("torso"), "torso", robot.GetChBody("limb2_link1"), "limb2_link1")
+    tf_handler.AddTransform(robot.GetChBody("torso"), "torso", robot.GetChBody("limb3_link1"), "limb3_link1")
+    tf_handler.AddTransform(robot.GetChBody("torso"), "torso", robot.GetChBody("limb4_link1"), "limb4_link1")
     tf_handler.AddURDF(robot)
     ros_manager.RegisterHandler(tf_handler)
 

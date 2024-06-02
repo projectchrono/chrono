@@ -45,7 +45,13 @@ class ChApi ChContactSurface {
     /// Set the owner physics item (e.g., an FEA mesh).
     void SetPhysicsItem(ChPhysicsItem* physics_item) { m_physics_item = physics_item; }
 
-    /// Get the surface contact material
+    /// Disable self-collisions (default: enabled).
+    /// Calling this function results in all associated collision models being placed in the same collision family and
+    /// disabling collisions within that family.
+    /// Note: this function must be called *before* adding collision shapes to this contact surface. 
+    void DisableSelfCollisions(int family);
+
+    /// Get the surface contact material.
     std::shared_ptr<ChContactMaterial>& GetMaterialSurface() { return m_material; }
 
     // Functions to interface this with ChPhysicsItem container
@@ -56,6 +62,8 @@ class ChApi ChContactSurface {
   protected:
     std::shared_ptr<ChContactMaterial> m_material;  ///< contact material properties
     ChPhysicsItem* m_physics_item;                  ///< associated physics item (e.g., an FEA mesh)
+    bool m_self_collide;                            ///< include self-collisions?
+    int m_collision_family;                         ///< collision family (if no self-collisions)
 };
 
 /// @} fea_contact

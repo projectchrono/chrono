@@ -32,7 +32,7 @@ namespace chrono {
 namespace vehicle {
 namespace bmw {
 
-/// @addtogroup vehicle_models_sedan
+/// @addtogroup vehicle_models_bmw
 /// @{
 
 /// Sedan wheel (can be used on any axle, left or right).
@@ -53,7 +53,7 @@ class CH_MODELS_API BMW_E90_FrontWheel : public ChWheel {
     static const ChVector3d m_inertia;
 };
 
-/// @} vehicle_models_sedan
+/// @} vehicle_models_bmw
 
 }  // namespace bmw
 }  // end namespace vehicle

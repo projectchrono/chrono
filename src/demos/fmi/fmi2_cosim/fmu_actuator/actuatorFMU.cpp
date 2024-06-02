@@ -65,14 +65,20 @@ FmuComponent::FmuComponent(fmi2String instanceName,
     AddFmuVariable(&U, "U", FmuVariable::Type::Real, "1", "valve position",                       //
                    FmuVariable::CausalityType::output, FmuVariable::VariabilityType::continuous);  //
 
+    // Specify variable dependencies
+    DeclareVariableDependencies("F", {"s", "sd", "Uref"});
+    DeclareVariableDependencies("p1", {"s", "sd", "Uref"});
+    DeclareVariableDependencies("p2", {"s", "sd", "Uref"});
+    DeclareVariableDependencies("U", {"Uref"});
+
     // Specify functions to process input variables (at beginning of step)
-    m_preStepCallbacks.push_back([this]() { this->m_actuator->SetActuatorLength(s, sd); });
-    m_preStepCallbacks.push_back([this]() { this->m_actuation->SetSetpoint(Uref, this->GetTime()); });
+    AddPreStepFunction([this]() { this->m_actuator->SetActuatorLength(s, sd); });
+    AddPreStepFunction([this]() { this->m_actuation->SetSetpoint(Uref, this->GetTime()); });
 
     // Specify functions to calculate FMU outputs (at end of step)
-    m_postStepCallbacks.push_back([this]() { this->CalculateActuatorForce(); });
-    m_postStepCallbacks.push_back([this]() { this->CalculatePistonPressures(); });
-    m_postStepCallbacks.push_back([this]() { this->CalculateValvePosition(); });
+    AddPostStepFunction([this]() { this->CalculateActuatorForce(); });
+    AddPostStepFunction([this]() { this->CalculatePistonPressures(); });
+    AddPostStepFunction([this]() { this->CalculateValvePosition(); });
 }
 
 void FmuComponent::CalculateActuatorForce() {

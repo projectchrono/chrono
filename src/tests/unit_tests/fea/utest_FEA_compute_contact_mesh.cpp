@@ -15,7 +15,7 @@
 // Unit test for ComputeContactForces utility: NodeCloud, Mesh Vs Body Contact.
 // Method system->GetContactContainer()->ComputeContactForces() iterates over
 // all bodies/meshes into contact and stores resultant contact force in an unordered map.
-// Upon invocation of myBody->GetContactForce(), the user can retrieve the resultant
+// Upon invocation of body->GetContactForce(), the user can retrieve the resultant
 // of all (!) contact forces acting on the body from the NodeCloud SMC contact.
 // In this unit test, the overall contact force applied to a box (from mesh) is compared
 // to the total weight of the ANCF shell mesh.
@@ -114,7 +114,7 @@ int main(int argc, char* argv[]) {
 
     // Create the ANCF shell element mesh
 
-    auto my_mesh = chrono_types::make_shared<ChMesh>();
+    auto mesh = chrono_types::make_shared<ChMesh>();
 
     // Geometry of the plate
     double plate_lenght_x = 0.5;
@@ -147,7 +147,7 @@ int main(int argc, char* argv[]) {
         node->SetMass(0);
 
         // Add node to mesh
-        my_mesh->AddNode(node);
+        mesh->AddNode(node);
     }
 
     // Create an isotropic material
@@ -168,10 +168,10 @@ int main(int argc, char* argv[]) {
 
         // Create the element and set its nodes.
         auto element = chrono_types::make_shared<ChElementShellANCF_3423>();
-        element->SetNodes(std::dynamic_pointer_cast<ChNodeFEAxyzD>(my_mesh->GetNode(node0)),
-                          std::dynamic_pointer_cast<ChNodeFEAxyzD>(my_mesh->GetNode(node1)),
-                          std::dynamic_pointer_cast<ChNodeFEAxyzD>(my_mesh->GetNode(node2)),
-                          std::dynamic_pointer_cast<ChNodeFEAxyzD>(my_mesh->GetNode(node3)));
+        element->SetNodes(std::dynamic_pointer_cast<ChNodeFEAxyzD>(mesh->GetNode(node0)),
+                          std::dynamic_pointer_cast<ChNodeFEAxyzD>(mesh->GetNode(node1)),
+                          std::dynamic_pointer_cast<ChNodeFEAxyzD>(mesh->GetNode(node2)),
+                          std::dynamic_pointer_cast<ChNodeFEAxyzD>(mesh->GetNode(node3)));
 
         // Element length is a fixed number in both direction. (uniform distribution of nodes in both directions)
         element->SetDimensions(dy, dx);
@@ -180,30 +180,30 @@ int main(int argc, char* argv[]) {
         // Set other element properties
         element->SetAlphaDamp(0.05);  // Structural damping for this
         // Add element to mesh
-        my_mesh->AddElement(element);
+        mesh->AddElement(element);
     }
-    auto nodeRef = std::dynamic_pointer_cast<ChNodeFEAxyzD>(my_mesh->GetNode(0));
+    auto nodeRef = std::dynamic_pointer_cast<ChNodeFEAxyzD>(mesh->GetNode(0));
 
     // Create node cloud for contact with box
-    double m_contact_node_radius = 0.0015;
-    auto mysurfmaterial = chrono_types::make_shared<ChContactMaterialSMC>();
+    double contact_node_radius = 0.0015;
+    auto contact_material = chrono_types::make_shared<ChContactMaterialSMC>();
 
-    mysurfmaterial->SetKn(kn);
-    mysurfmaterial->SetKt(kt);
-    mysurfmaterial->SetGn(gn);
-    mysurfmaterial->SetGt(gt);
+    contact_material->SetKn(kn);
+    contact_material->SetKt(kt);
+    contact_material->SetGn(gn);
+    contact_material->SetGt(gt);
 
-    auto contact_surf = chrono_types::make_shared<ChContactSurfaceNodeCloud>(mysurfmaterial);
-    my_mesh->AddContactSurface(contact_surf);
-    contact_surf->AddAllNodes(m_contact_node_radius);
+    auto contact_surf = chrono_types::make_shared<ChContactSurfaceNodeCloud>(contact_material);
+    mesh->AddContactSurface(contact_surf);
+    contact_surf->AddAllNodes(contact_node_radius);
 
     // Remember to add the mesh to the system!
-    system.Add(my_mesh);
+    system.Add(mesh);
 
     // Create container box
     auto ground = utils::CreateBoxContainer(&system, material,                                           //
                                             ChVector3d(bin_width, bin_length, 200 * dy), bin_thickness,  //
-                                            ChVector3d(0, 0, -1.5 * m_contact_node_radius), QUNIT);      //
+                                            ChVector3d(0, 0, -1.5 * contact_node_radius), QUNIT);        //
 
     // -------------------
     // Setup linear solver

@@ -110,7 +110,12 @@ void ChManualTransmissionShafts::Synchronize(double time,
     m_driveshaft->SetPosDt(driveshaft_speed);
 
     // Clutch
-    m_clutch->SetModulation(1.0 - driver_inputs.m_clutch);
+    if (GetCurrentGear() == 0) {
+        m_clutch->SetModulation(0.0);
+    }
+    else {
+        m_clutch->SetModulation(1.0 - driver_inputs.m_clutch);
+    }
 }
 
 double ChManualTransmissionShafts::GetOutputDriveshaftTorque() const {

@@ -29,7 +29,7 @@ namespace chrono {
 namespace vehicle {
 namespace bmw {
 
-/// @addtogroup vehicle_models_sedan
+/// @addtogroup vehicle_models_bmw
 /// @{
 
 /// Sedan vehicle system.
@@ -50,8 +50,8 @@ class CH_MODELS_API BMW_E90_Vehicle : public ChWheeledVehicle {
     virtual unsigned int GetNumberAxles() const override { return 2; }
 
     virtual double GetWheelbase() const override { return 2.776; }
-    virtual double GetMinTurningRadius() const override { return 7.6; }
-    virtual double GetMaxSteeringAngle() const override { return 25.0 * CH_DEG_TO_RAD; }
+    virtual double GetMinTurningRadius() const override { return 4.702; }
+    virtual double GetMaxSteeringAngle() const override { return 0.626671; }
 
     void SetInitWheelAngVel(const std::vector<double>& omega) {
         assert(omega.size() == 4);
@@ -78,7 +78,7 @@ class CH_MODELS_API BMW_E90_Vehicle : public ChWheeledVehicle {
     std::vector<double> m_omega;
 };
 
-/// @} vehicle_models_sedan
+/// @} vehicle_models_bmw
 
 }  // namespace bmw
 }  // end namespace vehicle

@@ -239,7 +239,7 @@ class CH_VEHICLE_API ChToeBarDeDionAxle : public ChSuspension {
     virtual std::shared_ptr<ChLinkTSDA::ForceFunctor> getShockForceFunctor() const = 0;
 
     /// Returns toplology flag for knuckle/draglink connection
-    virtual bool isLeftKnuckleActuated() { return true; }
+    virtual bool isLeftKnuckleActuated() const = 0;
 
     std::shared_ptr<ChBody> m_axleTube;            ///< handles to the axle tube body
     std::shared_ptr<ChBody> m_tierod;              ///< handles to the tierod body
@@ -288,9 +288,6 @@ class CH_VEHICLE_API ChToeBarDeDionAxle : public ChSuspension {
     ChVector3d m_wattOuterR;
     ChVector3d m_wattLower;
     ChVector3d m_wattUpper;
-
-    // Left or right knuckle is actuated by draglink?
-    bool m_left_knuckle_steers;
 
     void InitializeSide(VehicleSide side,
                         std::shared_ptr<ChBodyAuxRef> chassis,

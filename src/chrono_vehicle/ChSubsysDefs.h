@@ -439,6 +439,7 @@ enum class TransmissionModelType {
 
 /// Enum for available wheeled-vehicle suspension model templates.
 enum class SuspensionTypeWV {
+    DEDION_AXLE,                      ///< DeDion Axle
     DOUBLE_WISHBONE,                  ///< double wishbone
     DOUBLE_WISHBONE_REDUCED,          ///< simplified double wishbone (constraint-based)
     HENDRICKSON_PRIMAXX,              ///< Hendrickson PRIMAXX (walking beam)
@@ -456,6 +457,7 @@ enum class SuspensionTypeWV {
     TOE_BAR_LEAF_SPRING_AXLE,         ///< steerable leaf-spring solid axle
     SAE_TOE_BAR_LEAF_SPRING_AXLE,     ///< steerable leaf-spring solid axle with kinematic leaf-spring model
     PUSHPIPE_AXLE,                    ///< solid axle with pushpipe and panhard rod
+    TOEBAR_DEDION_AXLE,               ///< steerable DeDion Axle
     TOEBAR_PUSHPIPE_AXLE              ///< steerable solid axle with pushpipe and panhard rod
 };
 

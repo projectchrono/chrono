@@ -42,9 +42,7 @@
 
     For additional information, see:
     - the [overview](@ref module_ros_overview)
-    - the [installation guide](@ref module_ros_installation_guide)
-    - a [simple example](@ref module_ros_simple_example)
-    - an [advanced example](@ref module_ros_advanced_example)
+    - the [installation guide](@ref module_ros_installation)
 
     @{
         @defgroup ros_core ROS Core

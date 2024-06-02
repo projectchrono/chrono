@@ -5,8 +5,12 @@ Change Log
 ==========
 
 - [Unreleased (development branch)](#unreleased-development-branch)
+- [Release 9.0.0 (2024-05-20)](#release-900-2024-05-20)
+  - [\[Changed\] Default number of threads](#changed-default-number-of-threads)
   - [\[Changed\] Refactoring of class and function names](#changed-refactoring-of-class-and-function-names)
+  - [\[Added\] Functional Mock-Up Interface (FMI) support](#added-functional-mock-up-interface-fmi-support)
   - [\[Added\] Chrono::Sensor features and updates](#added-chronosensor-features-and-updates)
+  - [\[Added\] Chrono::ROS module](#added-chronoros-module)
   - [\[Changed\] Updated Chrono::VSG module](#changed-updated-chronovsg-module)
   - [\[Added\] New motion functions and filters](#added-new-motion-functions-and-filters)
   - [\[Changed\] Updated ChBlender exporter to Blender4.0](#changed-updated-chblender-exporter-to-blender4.0)
@@ -103,6 +107,21 @@ Change Log
 - [Release 4.0.0 (2019-02-22)](#release-400-2019-02-22)
 
 # Unreleased (development branch)
+
+# Release 9.0.0 (2024-05-20)
+
+## [Changed] Default number of threads
+
+The default values for the number of OpenMP threads used in various parts of Chrono were changed to be always 1.
+The user is responsible to adjust these settings to values that are appropriate to their problem and hardware.
+
+This affects OpenMP settings for the Chrono system and the PardisoMKL direct sparse linear solver.  
+- the function `ChSystem::SetNumThreads` controls the following values:
+  + *num_threads_chrono*: number of OpenMP threads used in FEA (for parallel evaluation of internal forces and their Jacobians) and in the SCM deformable terrain (for parallel ray casting).
+  + *num_threads_collision*: number of OpenMP threads used by the collision detection algorithms (Bullet or Multicore).
+  + *num_threads_eigen*: number of threads used in the Eigen sparse direct solvers (SparseLU and SparseQR) and a few linear algebra operations. Note that Eigen enables multi-threaded execution only under certain conditions (consult the Eigen documentation).
+
+- the constructor for `ChSolverPardisoMKL` takes as an argument the number of OpenMP threads passed to MKL (default: 1) and used during the setup and solve phases.
 
 ## [Changed] Refactoring of class and function names
 
@@ -334,6 +353,7 @@ In some instances, the reader is directed to the "Notes" section for more detail
 |                                   | SetId                         | remove                                           |
 |                                   | SetMaxSpeed                   | rename: SetMaxLinVel                             |
 |                                   | SetMaxWvel                    | rename: SetMaxAngVel                             |
+|                                   | SetNoGyroTorque               | rename: SetUseGyroTorque                         |
 |                                   | SetNoSpeedNoAcceleration      | rename: ForceToRest                              |
 |                                   | SetSleepMinSpeed              | rename: SetSleepMinLinVel                        |
 |                                   | SetSleepMinWvel               | rename: SetSleepMinAngVel                        |
@@ -627,7 +647,7 @@ In some instances, the reader is directed to the "Notes" section for more detail
 |                                   | Get_fa                        | rename: GetFirstOperandFunction                  |
 |                                   | Get_fb                        | rename: GetSecondOperandFunction                 |
 |                                   | Get_optype                    | rename: GetOperationType                         |
-|                                   | Set_fa                        | rename: SetFirstFunction                         |
+|                                   | Set_fa                        | rename: SetFirstOperandFunction                  |
 |                                   | Set_fb                        | rename: SetSecondOperandFunction                 |
 |                                   | Set_optype                    | rename: SetOperationType                         |
 | ChFunction_Oscilloscope           |                               | remove                                           |
@@ -1100,8 +1120,13 @@ In some instances, the reader is directed to the "Notes" section for more detail
 | ChMinMaxDistribution              |                               | rename: ChUniformDistribution                    |
 | ChModalAssembly                   |                               |                                                  |
 |                                   | refer to ChAssembly           | like ChAssembly with boundary/internal suffixes  |
-|                                   | DoModalReduction_CraigBamption | rename: ApplyCraigBamptonTransformation         |
-|                                   | DoModalReduction_HERTING      | rename: ApplyHertingTransformation               |
+|                                   | ComputeModalKRMmatrix         | rename: ComputeModalKRMmatricesGlobal            |
+|                                   | ComputeLocalFullKMCqMatrix    | rename: ComputeLocalFullKMCqMatrices             |
+|                                   | ComputeInertialKRMmatrix      | remove                                           |
+|                                   | ComputeStiffnessMatrix        | remove                                           |
+|                                   | ComputeDampingMatrix          | remove                                           |
+|                                   | DoModalReduction_CraigBamption | remove                                          |
+|                                   | DoModalReduction_HERTING      | rename: ApplyModeAccelerationTransformation      |
 |                                   | DumpSubassemblyMatrices       | rename: WriteSubassemblyMatrices                 |
 |                                   | Get_full_assembly_x_old       | rename: GetDeformedState                         |
 |                                   | Get_modal_K                   | rename: GetModalStiffnessMatrix                  |
@@ -1118,6 +1143,8 @@ In some instances, the reader is directed to the "Notes" section for more detail
 |                                   | Get_modes_V                   | rename: GetEigenVectors                          |
 |                                   | SetNoSpeedNoAcceleration      | rename: ForceToRest                              |
 |                                   | SwitchModalReductionON        | rename: DoModalReduction                         |
+|                                   | SetFullStateWithModeOverlay   | rename: UpdateFullStateWithModeOverlay           |
+|                                   | SetInternalStateWithModes     | rename: UpdateInternalStateWithModes             |
 | ChMotionlawFilter                 |                               | rename: ChMotionFilter                           |
 | ChMotionlawFilter_SecondOrder     |                               | rename: ChMotionFilterSecondOrder                |
 | ChMotionlawFilter_ThirdOrder      |                               | rename: ChMotionFilterThirdOrder                 |
@@ -1640,6 +1667,14 @@ In some instances, the reader is directed to the "Notes" section for more detail
 + The `ChTimer` class was refactored so that `GetTimeMicroseconds`, `GetTimeMilliseconds`, and `GetTimeSeconds` return either an intermediate time (if the timer was started but not stopped; in this case the timer keeps running) or the timer value when the timer was stopped.
   The old functions `GetTimeMicrosecondsIntermediate`, `GetTimeMillisecondsIntermediate`, and `GetTimeSecondsIntermediate` were obsoleted.
 
+## [Added] Functional Mock-Up Interface (FMI) support
+
+The Functional Mock-up Interface is an open (tool-independent) standard for exchanging dynamical simulation models between different tools in a standardized format.  These models are encapsulated in so-called Functional Mock-Up Units (FMU) which contain a description of the model (as an XML file) and binaries (as shared libraries).
+
+FMI support in Chrono is provided via (1) `fmu-tools`, a general-purpose, stand-alone library for exporting and importing FMUs and (2) `Chrono::FMI`, a module with Chrono-specific extensions to facilitate working with FMU variables wrapping Chrono types.
+
+At this time, only the FMI 2.0 standard is supported (with FMI 3.0 support coming later). The stand-alone `fmu_tools` library provides support for exporting and importing both *Co-Simulation* and *Model Exchange* FMUs.  Currently, `Chrono:FMI` focuses only on Co-Simulation FMUs. 
+
 ## [Added] Chrono::Sensor features and updates
 
 **Updates and Bug Fixes**
@@ -1651,8 +1686,23 @@ In some instances, the reader is directed to the "Notes" section for more detail
   - Added support for rendering emissive surfaces. When defining a visual material, set `ChVisualMaterial::SetEmissiveColor(ChColor color)` and set `ChVisualMaterial:SetEmissivePower(float power)`.
   - Added a Depth Camera sensor (`ChDepthCamera`). The Depth Camera is initialized in the same manner as `ChCameraSensor` , with each pixel containing depth information of the scene in meters (m).
   - Added support for the Hapke BRDF model to render celestial bodies (ex: Lunar regolith). To enable, when defining a material set `ChVisualMaterial:SetUseHapke(bool enableHapke)` and set the model parameters using `ChVisualMaterial:SetHapkeParameters(float w,...)`. More information regarding the Hapke model and its parametrization can be found in <https://doi.org/10.1002/2013JE004580>.
-  - Added a Random Walk based noise model for GPS sensor. To enable this noise model, when adding a `ChGPSSensor`, set a pointer to a `ChNoiseRandomWalks`object as the noise model parameter.
+  - Added a Random Walk based noise model for GPS sensor. To enable this noise model, when adding a `ChGPSSensor`, set a pointer to a `ChNoiseRandomWalks` object as the noise model parameter.
 
+## [Added] Chrono::ROS module
+
+A new module (`Chrono::ROS`) has been introduced to support direct integration of ROS 2 with Chrono. `Chrono::ROS` provides a bridge between the Chrono simulation and the ROS 2 middleware, allowing for communication of sensor data, vehicle and transformation data, and more. Compatibility with specific Chrono modules, including `Chrono::Vehicle` and `Chrono::Sensor`, is provided. In addition to providing a few default publishers and subscribers, the module exposes an API for creating custom ROS 2 logic within the Chrono simulation.
+
+The `ChROSManager` class is the main interface for the `Chrono::ROS` module. It maintains a single `ChROSInterface` object which wraps a ROS 2 node and provides the ability to create publishers and subscribers. The `ChROSHandler` class is the base class which all ROS 2 logic (i.e. publishers, subscribers, etc.) inherit from. During initialization, the `ChROSInterface` in the `ChROSManager` is passed to the `ChROSHandler` object through the `ChROSHandler::Initialize` function. This allows the `ChROSHandler` object to create ROS 2 objects. Over the course of the simulation, the `ChROSManager` calls `ChROSHandler::Tick` on each handler at a fixed rate to update each handler _relative to the simulation time_. As Chrono may run faster or slower than wall time, it's recommended to set ROS 2 `/use_sim_time` to `true` in all ROS nodes. Multiple nodes may be created by setting the node name in the `ChROSManager` constructor.
+
+Python bindings are also provided for the `Chrono::ROS` module. It can be imported via the `pychrono.ros` module. ROS 2 doesn't directly support wrapping of it's C++ API for use in python, and so a special `ChROSPythonManager` class was created for situations where you need direct access to the ROS 2 API (such as creating a custom handler). When the ChROSPythonManager is used, two nodes are created: the original C++ `rclcpp` node in `ChROSManager`/`ChROSInterface` and the new `rclpy`-based node. The node name for the `rclpy` node (settable via the constructor) is always the `rclcpp` node name with `_py` appended. This allows for the creation of ROS 2 publishers and subscribers in python (as two nodes can't have the same name). All python-based handlers (i.e. when a custom handler inherits from `ChROSHandler` in python) must be added to the `ChROSPythonManager` object, not the `ChROSManager` object. All C++-based handlers can be added to either the `ChROSManager` or `ChROSPythonManager` objects, as in the `ChROSManager` may still be used if custom handlers aren't created in python.
+
+The `Chrono::ROS` module currently only supports ROS 2 humble, and no additional dependencies are required beyond the ROS 2 installation. To build the `Chrono::ROS` module, set the cmake option `ENABLE_MODULE_ROS` to `ON`.
+
+Locations:
+- `Chrono::ROS` source code is maintained under `src/chrono_ros/`
+- `Chrono::ROS` python bindings are maintained under `src/chrono_swig/interface/ros`
+- Demos are located in `src/demos/ros/`
+- Unit tests are located in `src/unit_tests/ros/`
 
 ## [Changed] Updated Chrono::VSG module
 

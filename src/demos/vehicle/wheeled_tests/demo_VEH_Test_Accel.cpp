@@ -1,7 +1,7 @@
 // =============================================================================
 // PROJECT CHRONO - http://projectchrono.org
 //
-// Copyright (c) 2019 projectchrono.org
+// Copyright (c) 2024 projectchrono.org
 // All rights reserved.
 //
 // Use of this source code is governed by a BSD-style license that can be found
@@ -34,6 +34,9 @@
 #include "chrono_vehicle/utils/ChVehiclePath.h"
 
 #include "chrono_thirdparty/filesystem/path.h"
+
+#include "chrono/assets/ChVisualSystem.h"
+#include "chrono_vehicle/ChVehicleVisualSystem.h"
 
 #ifdef CHRONO_IRRLICHT
     #include "chrono_vehicle/driver/ChInteractiveDriverIRR.h"
@@ -107,10 +110,9 @@ int main(int argc, char* argv[]) {
     auto vehicle_model = models[which - 1].first;
 
     // Create the vehicle model
+    vehicle_model->SetCollisionSystemType(ChCollisionSystem::Type::BULLET);
     vehicle_model->Create(ChContactMethod::SMC, ChCoordsys<>(init_loc, QUNIT), false);
     auto& vehicle = vehicle_model->GetVehicle();
-
-    vehicle.GetSystem()->SetCollisionSystemType(ChCollisionSystem::Type::BULLET);
 
     // -----------------------
     // Create output directory

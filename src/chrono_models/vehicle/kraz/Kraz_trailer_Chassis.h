@@ -23,6 +23,7 @@
 #include "chrono_vehicle/chassis/ChChassisConnectorHitch.h"
 
 #include "chrono_models/ChApiModels.h"
+#include "chrono_models/vehicle/ChVehicleModelDefs.h"
 
 namespace chrono {
 namespace vehicle {
@@ -36,7 +37,7 @@ namespace kraz {
 /// Kraz trailer chassis subsystem.
 class CH_MODELS_API Kraz_trailer_Chassis : public ChRigidChassisRear {
   public:
-    Kraz_trailer_Chassis(const std::string& name);
+    Kraz_trailer_Chassis(const std::string& name, CollisionType chassis_collision_type = CollisionType::NONE);
     ~Kraz_trailer_Chassis() {}
 
     /// Get the location (in the local frame of this chassis) of the connection to the front chassis.

@@ -27,7 +27,7 @@ ChSocket::ChSocket(int pNumber) {
 
     try {
         if ((socketId = (int)::socket(AF_INET, SOCK_STREAM, 0)) == -1) {
-#ifdef WINDOWS_XP
+#ifdef _WIN32
             int errorCode;
             std::string errorMsg = "";
             detectErrorOpenWinSocket(&errorCode, errorMsg);
@@ -56,7 +56,7 @@ ChSocket::ChSocket(int pNumber) {
 }
 
 ChSocket::~ChSocket() {
-#ifdef WINDOWS_XP
+#ifdef _WIN32
     closesocket(socketId);
 #else
     close(socketId);
@@ -66,7 +66,7 @@ ChSocket::~ChSocket() {
 void ChSocket::setDebug(int debugToggle) {
     try {
         if (setsockopt(socketId, SOL_SOCKET, SO_DEBUG, (char*)&debugToggle, sizeof(debugToggle)) == -1) {
-#ifdef WINDOWS_XP
+#ifdef _WIN32
             int errorCode;
             std::string errorMsg = "DEBUG option:";
             detectErrorSetSocketOption(&errorCode, errorMsg);
@@ -86,7 +86,7 @@ void ChSocket::setDebug(int debugToggle) {
 void ChSocket::setReuseAddr(int reuseToggle) {
     try {
         if (setsockopt(socketId, SOL_SOCKET, SO_REUSEADDR, (char*)&reuseToggle, sizeof(reuseToggle)) == -1) {
-#ifdef WINDOWS_XP
+#ifdef _WIN32
             int errorCode;
             std::string errorMsg = "REUSEADDR option:";
             detectErrorSetSocketOption(&errorCode, errorMsg);
@@ -106,7 +106,7 @@ void ChSocket::setReuseAddr(int reuseToggle) {
 void ChSocket::setKeepAlive(int aliveToggle) {
     try {
         if (setsockopt(socketId, SOL_SOCKET, SO_KEEPALIVE, (char*)&aliveToggle, sizeof(aliveToggle)) == -1) {
-#ifdef WINDOWS_XP
+#ifdef _WIN32
             int errorCode;
             std::string errorMsg = "ALIVE option:";
             detectErrorSetSocketOption(&errorCode, errorMsg);
@@ -134,7 +134,7 @@ void ChSocket::setLingerSeconds(int seconds) {
 
     try {
         if (setsockopt(socketId, SOL_SOCKET, SO_LINGER, (char*)&lingerOption, sizeof(struct linger)) == -1) {
-#ifdef WINDOWS_XP
+#ifdef _WIN32
             int errorCode;
             std::string errorMsg = "LINGER option:";
             detectErrorSetSocketOption(&errorCode, errorMsg);
@@ -161,7 +161,7 @@ void ChSocket::setLingerOnOff(bool lingerOn) {
 
     try {
         if (setsockopt(socketId, SOL_SOCKET, SO_LINGER, (char*)&lingerOption, sizeof(struct linger)) == -1) {
-#ifdef WINDOWS_XP
+#ifdef _WIN32
             int errorCode;
             std::string errorMsg = "LINGER option:";
             detectErrorSetSocketOption(&errorCode, errorMsg);
@@ -181,7 +181,7 @@ void ChSocket::setLingerOnOff(bool lingerOn) {
 void ChSocket::setSendBufSize(int sendBufSize) {
     try {
         if (setsockopt(socketId, SOL_SOCKET, SO_SNDBUF, (char*)&sendBufSize, sizeof(sendBufSize)) == -1) {
-#ifdef WINDOWS_XP
+#ifdef _WIN32
             int errorCode;
             std::string errorMsg = "SENDBUFSIZE option:";
             detectErrorSetSocketOption(&errorCode, errorMsg);
@@ -201,7 +201,7 @@ void ChSocket::setSendBufSize(int sendBufSize) {
 void ChSocket::setReceiveBufSize(int receiveBufSize) {
     try {
         if (setsockopt(socketId, SOL_SOCKET, SO_RCVBUF, (char*)&receiveBufSize, sizeof(receiveBufSize)) == -1) {
-#ifdef WINDOWS_XP
+#ifdef _WIN32
             int errorCode;
             std::string errorMsg = "RCVBUF option:";
             detectErrorSetSocketOption(&errorCode, errorMsg);
@@ -232,7 +232,7 @@ void ChSocket::setSocketBlocking(int blockingToggle) {
     }
 
     try {
-#ifdef WINDOWS_XP
+#ifdef _WIN32
         if (ioctlsocket(socketId, FIONBIO, (unsigned long*)&blocking) == -1) {
             int errorCode;
             std::string errorMsg = "Blocking option: ";
@@ -262,7 +262,7 @@ int ChSocket::getDebug() {
 
     try {
         if (getsockopt(socketId, SOL_SOCKET, SO_DEBUG, (char*)&myOption, &myOptionLen) == -1) {
-#ifdef WINDOWS_XP
+#ifdef _WIN32
             int errorCode;
             std::string errorMsg = "get DEBUG option: ";
             detectErrorGetSocketOption(&errorCode, errorMsg);
@@ -291,7 +291,7 @@ int ChSocket::getReuseAddr() {
 
     try {
         if (getsockopt(socketId, SOL_SOCKET, SO_REUSEADDR, (char*)&myOption, &myOptionLen) == -1) {
-#ifdef WINDOWS_XP
+#ifdef _WIN32
             int errorCode;
             std::string errorMsg = "get REUSEADDR option: ";
             detectErrorGetSocketOption(&errorCode, errorMsg);
@@ -320,7 +320,7 @@ int ChSocket::getKeepAlive() {
 
     try {
         if (getsockopt(socketId, SOL_SOCKET, SO_KEEPALIVE, (char*)&myOption, &myOptionLen) == -1) {
-#ifdef WINDOWS_XP
+#ifdef _WIN32
             int errorCode;
             std::string errorMsg = "get KEEPALIVE option: ";
             detectErrorGetSocketOption(&errorCode, errorMsg);
@@ -348,7 +348,7 @@ int ChSocket::getLingerSeconds() {
 
     try {
         if (getsockopt(socketId, SOL_SOCKET, SO_LINGER, (char*)&lingerOption, &myOptionLen) == -1) {
-#ifdef WINDOWS_XP
+#ifdef _WIN32
             int errorCode;
             std::string errorMsg = "get LINER option: ";
             detectErrorGetSocketOption(&errorCode, errorMsg);
@@ -377,7 +377,7 @@ bool ChSocket::getLingerOnOff() {
 
     try {
         if (getsockopt(socketId, SOL_SOCKET, SO_LINGER, (char*)&lingerOption, &myOptionLen) == -1) {
-#ifdef WINDOWS_XP
+#ifdef _WIN32
             int errorCode;
             std::string errorMsg = "get LINER option: ";
             detectErrorGetSocketOption(&errorCode, errorMsg);
@@ -409,7 +409,7 @@ int ChSocket::getSendBufSize() {
 
     try {
         if (getsockopt(socketId, SOL_SOCKET, SO_SNDBUF, (char*)&sendBuf, &myOptionLen) == -1) {
-#ifdef WINDOWS_XP
+#ifdef _WIN32
             int errorCode;
             std::string errorMsg = "get SNDBUF option: ";
             detectErrorGetSocketOption(&errorCode, errorMsg);
@@ -436,7 +436,7 @@ int ChSocket::getReceiveBufSize() {
 #endif
     try {
         if (getsockopt(socketId, SOL_SOCKET, SO_RCVBUF, (char*)&rcvBuf, &myOptionLen) == -1) {
-#ifdef WINDOWS_XP
+#ifdef _WIN32
             int errorCode;
             std::string errorMsg = "get RCVBUF option: ";
             detectErrorGetSocketOption(&errorCode, errorMsg);
@@ -454,7 +454,7 @@ int ChSocket::getReceiveBufSize() {
     return rcvBuf;
 }
 
-#ifdef WINDOWS_XP
+#ifdef _WIN32
 void ChSocket::detectErrorOpenWinSocket(int* errCode, std::string& errMsg) {
     *errCode = WSAGetLastError();
 
@@ -566,7 +566,7 @@ std::ostream& operator<<(std::ostream& io, ChSocket& s) {
 void ChSocketTCP::bindSocket() {
     try {
         if (::bind(socketId, (struct sockaddr*)&clientAddr, sizeof(struct sockaddr_in)) == -1) {
-#ifdef WINDOWS_XP
+#ifdef _WIN32
             int errorCode = 0;
             std::string errorMsg = "error calling bind(): \n";
             detectErrorBind(&errorCode, errorMsg);
@@ -582,7 +582,7 @@ void ChSocketTCP::bindSocket() {
     }
 }
 
-#ifdef WINDOWS_XP
+#ifdef _WIN32
 
 void ChSocketTCP::detectErrorBind(int* errCode, std::string& errMsg) {
     *errCode = WSAGetLastError();
@@ -881,7 +881,7 @@ void ChSocketTCP::connectToServer(std::string& serverNameOrAddr, hostType hType)
     // Connect to the given address
     try {
         if (connect(socketId, (struct sockaddr*)&serverAddress, sizeof(serverAddress)) == -1) {
-#ifdef WINDOWS_XP
+#ifdef _WIN32
             int errorCode = 0;
             std::string errorMsg = "error calling connect():\n";
             detectErrorConnect(&errorCode, errorMsg);
@@ -912,7 +912,7 @@ ChSocketTCP* ChSocketTCP::acceptClient(std::string& clientHost) {
     // Accepts a new client connection and stores its socket file descriptor
     try {
         if ((newSocket = (int)accept(socketId, (struct sockaddr*)&clientAddress, &clientAddressLen)) == -1) {
-#ifdef WINDOWS_XP
+#ifdef _WIN32
             int errorCode = 0;
             std::string errorMsg = "error calling accept(): \n";
             detectErrorAccept(&errorCode, errorMsg);
@@ -943,7 +943,7 @@ ChSocketTCP* ChSocketTCP::acceptClient(std::string& clientHost) {
 void ChSocketTCP::listenToClient(int totalNumPorts) {
     try {
         if (listen(socketId, totalNumPorts) == -1) {
-#ifdef WINDOWS_XP
+#ifdef _WIN32
             int errorCode = 0;
             std::string errorMsg = "error calling listen():\n";
             detectErrorListen(&errorCode, errorMsg);
@@ -976,7 +976,7 @@ int ChSocketTCP::sendMessage(std::string& message)
     {
         if (numBytes = send(socketId,sendMsg.c_str(),sendMsg.size(),0) == -1)
         {
-            #ifdef WINDOWS_XP
+            #ifdef _WIN32
                 int errorCode = 0;
                 std::string errorMsg = "error calling send():\n";
                 detectErrorSend(&errorCode,errorMsg);
@@ -1017,7 +1017,7 @@ int ChSocketTCP::sendMessage(std::string& message) {
     try {
         numBytes = send(socketId, sendMsg.c_str(), (int)sendMsg.size(), 0);
         if (numBytes == -1) {
-#ifdef WINDOWS_XP
+#ifdef _WIN32
             int errorCode = 0;
             std::string errorMsg = "error calling send():\n";
             detectErrorSend(&errorCode, errorMsg);
@@ -1036,7 +1036,7 @@ int ChSocketTCP::sendMessage(std::string& message) {
     return numBytes;
 }
 
-#ifdef WINDOWS_XP
+#ifdef _WIN32
 
 int ChSocketTCP::XPReceiveMessage(std::string& message) {
     int received = 0;            // The number of bytes received
@@ -1083,9 +1083,11 @@ int ChSocketTCP::XPReceiveMessage(std::string& message) {
 #endif
 
 int ChSocketTCP::receiveMessage(std::string& message) {
-#ifdef WINDOWS_XP
+#ifdef _WIN32
+
     return XPReceiveMessage(message);
-#endif
+
+#else
 
     int64_t numBytes = 0;       // Number of received bytes on the last recv
     int64_t expectedBytes = 0;  // Number of total bytes expected
@@ -1115,6 +1117,7 @@ int ChSocketTCP::receiveMessage(std::string& message) {
     }
 
     return numBytes;
+#endif
 }
 
 int ChSocketTCP::SendBuffer(std::vector<char>& source_buf) {
@@ -1128,7 +1131,7 @@ int ChSocketTCP::SendBuffer(std::vector<char>& source_buf) {
     // Sends the message to the connected host
     int sentBytes = send(socketId, data, nbytes, 0);
     if (sentBytes == -1) {
-#ifdef WINDOWS_XP
+#ifdef _WIN32
         int errorCode = 0;
         std::string errorMsg = "error calling send():\n";
         detectErrorRecv(&errorCode, errorMsg);
@@ -1157,7 +1160,7 @@ int ChSocketTCP::ReceiveBuffer(std::vector<char>& dest_buf, int bsize) {
 
     int receivedBytes = recv(socketId, (char*)data, nbytes, 0);
     if (receivedBytes == -1) {
-#ifdef WINDOWS_XP
+#ifdef _WIN32
         int errorCode = 0;
         std::string errorMsg = "error calling recv():\n";
         detectErrorRecv(&errorCode, errorMsg);
@@ -1172,12 +1175,30 @@ int ChSocketTCP::ReceiveBuffer(std::vector<char>& dest_buf, int bsize) {
     return receivedBytes;
 }
 
+int ChSocketTCP::SendBuffer() {
+    int send_size = (int)m_internal_buffer_send.size();
+    SendBuffer(m_internal_buffer_send);
+    m_internal_buffer_send.clear();
+    return send_size;
+}
+
+int ChSocketTCP::ReceiveBuffer(int data_in_size) {
+    m_internal_buffer_receive.clear();
+    return ReceiveBuffer(m_internal_buffer_receive, data_in_size);
+}
+
+int ChSocketTCP::ReceiveData() {
+    m_internal_buffer_receive.resize(receive_id);
+    int received_bytes = ReceiveBuffer(m_internal_buffer_receive, (int)m_internal_buffer_receive.size());
+    return received_bytes;
+}
+
 // -----------------
 // ChSocketFramework
 // -----------------
 
 ChSocketFramework::ChSocketFramework() {
-#ifdef WINDOWS_XP
+#ifdef _WIN32
 
     // Initialize the winsock library
     WSADATA wsaData;
@@ -1190,7 +1211,7 @@ ChSocketFramework::ChSocketFramework() {
 }
 
 ChSocketFramework::~ChSocketFramework() {
-#ifdef WINDOWS_XP
+#ifdef _WIN32
     WSACleanup();
 #endif
 }
@@ -1205,7 +1226,7 @@ ChSocketHostInfo::ChSocketHostInfo() {
 // winLog<<"UNIX version ChSocketHostInfo() is called...\n";
 #endif
 
-#ifdef WINDOWS_XP
+#ifdef _WIN32
 
     char sName[HOST_NAME_LENGTH + 1];
     memset(sName, 0, sizeof(sName));
@@ -1238,7 +1259,7 @@ ChSocketHostInfo::ChSocketHostInfo(const std::string& hostName, hostType type) {
             hostPtr = gethostbyname(hostName.c_str());
 
             if (hostPtr == NULL) {
-#ifdef WINDOWS_XP
+#ifdef _WIN32
                 int errorCode;
                 std::string errorMsg = "";
                 detectErrorGethostbyname(&errorCode, errorMsg);
@@ -1258,7 +1279,7 @@ ChSocketHostInfo::ChSocketHostInfo(const std::string& hostName, hostType type) {
 
             hostPtr = gethostbyaddr((char*)&netAddr, sizeof(netAddr), AF_INET);
             if (hostPtr == NULL) {
-#ifdef WINDOWS_XP
+#ifdef _WIN32
                 int errorCode;
                 std::string errorMsg = "";
                 detectErrorGethostbyaddr(&errorCode, errorMsg);
@@ -1286,7 +1307,7 @@ char* ChSocketHostInfo::getHostIPAddress() {
     return inet_ntoa(*addr_ptr);
 }
 
-#ifdef WINDOWS_XP
+#ifdef _WIN32
 void ChSocketHostInfo::detectErrorGethostbyname(int* errCode, std::string& errorMsg) {
     *errCode = WSAGetLastError();
 
@@ -1313,7 +1334,7 @@ void ChSocketHostInfo::detectErrorGethostbyname(int* errCode, std::string& error
 }
 #endif
 
-#ifdef WINDOWS_XP
+#ifdef _WIN32
 void ChSocketHostInfo::detectErrorGethostbyaddr(int* errCode, std::string& errorMsg) {
     *errCode = WSAGetLastError();
 

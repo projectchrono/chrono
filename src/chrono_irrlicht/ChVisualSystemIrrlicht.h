@@ -28,6 +28,7 @@
 #include "chrono/assets/ChVisualShapeCylinder.h"
 #include "chrono/assets/ChVisualShapeSphere.h"
 #include "chrono/assets/ChVisualShapeCapsule.h"
+#include "chrono/assets/ChVisualShapeCone.h"
 #include "chrono/assets/ChVisualShapeModelFile.h"
 #include "chrono/assets/ChVisualShape.h"
 #include "chrono/assets/ChVisualShapeTriangleMesh.h"
@@ -339,6 +340,9 @@ class ChApiIrr ChVisualSystemIrrlicht : virtual public ChVisualSystem {
         m_device_params = device_params;
     }
 
+    /// Get list of cameras defined for the scene
+    std::vector<std::shared_ptr<RTSCamera>> GetCameras() const { return m_cameras; }
+
   private:
     /// Irrlicht scene node for a visual model not associated with a physics item.
     class ChIrrNodeVisual : public irr::scene::ISceneNode {
@@ -409,6 +413,7 @@ class ChApiIrr ChVisualSystemIrrlicht : virtual public ChVisualSystem {
     irr::scene::IMesh* cubeMesh;
     irr::scene::IMesh* cylinderMesh;
     irr::scene::IMesh* capsuleMesh;
+    irr::scene::IMesh* coneMesh;
 };
 
 /// @} irrlicht_module

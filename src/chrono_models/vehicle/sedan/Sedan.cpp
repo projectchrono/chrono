@@ -32,6 +32,7 @@ Sedan::Sedan()
     : m_system(nullptr),
       m_vehicle(nullptr),
       m_contactMethod(ChContactMethod::NSC),
+      m_collsysType(ChCollisionSystem::Type::BULLET),
       m_chassisCollisionType(CollisionType::NONE),
       m_fixed(false),
       m_brake_locking(false),
@@ -47,6 +48,7 @@ Sedan::Sedan(ChSystem* system)
     : m_system(system),
       m_vehicle(nullptr),
       m_contactMethod(ChContactMethod::NSC),
+      m_collsysType(ChCollisionSystem::Type::BULLET),
       m_chassisCollisionType(CollisionType::NONE),
       m_fixed(false),
       m_brake_locking(false),
@@ -76,7 +78,7 @@ void Sedan::Initialize() {
     // Create and initialize the Sedan vehicle
     m_vehicle = m_system ? new Sedan_Vehicle(m_system, m_fixed, m_brake_type, m_chassisCollisionType)
                          : new Sedan_Vehicle(m_fixed, m_brake_type, m_contactMethod, m_chassisCollisionType);
-
+    m_vehicle->SetCollisionSystemType(m_collsysType);
     m_vehicle->SetInitWheelAngVel(m_initOmega);
     m_vehicle->Initialize(m_initPos, m_initFwdVel);
 

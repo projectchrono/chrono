@@ -28,11 +28,13 @@ const double rpm2rads = CH_PI / 30;
 FMTV_EngineSimpleMap::FMTV_EngineSimpleMap(const std::string& name) : ChEngineSimpleMap(name) {}
 
 double FMTV_EngineSimpleMap::GetMaxEngineSpeed() {
-    return 2700 * rpm2rads;
+    return 2300 * rpm2rads;
 }
 
 void FMTV_EngineSimpleMap::SetEngineTorqueMaps(ChFunctionInterp& map0, ChFunctionInterp& mapF) {
-    map0.AddPoint(-10.472, 0.000);
+    map0.AddPoint(-10, 0);
+    map0.AddPoint(0, 0);
+    map0.AddPoint(50, 0);
     map0.AddPoint(83.776, -20.0);
     map0.AddPoint(104.720, -20.0);
     map0.AddPoint(125.664, -30.0);
@@ -45,7 +47,9 @@ void FMTV_EngineSimpleMap::SetEngineTorqueMaps(ChFunctionInterp& map0, ChFunctio
     map0.AddPoint(282.743, -800.0);
 
     // Caterpillar 3116 Diesel
-    mapF.AddPoint(-10.472, 406.7);
+    mapF.AddPoint(-100 * rpm2rads, 0);
+    mapF.AddPoint(0, 100);
+    mapF.AddPoint(200 * rpm2rads, 200);
     mapF.AddPoint(500 * rpm2rads, 300);
     mapF.AddPoint(1000 * rpm2rads, 500);
     mapF.AddPoint(1200 * rpm2rads, 572);
@@ -57,7 +61,7 @@ void FMTV_EngineSimpleMap::SetEngineTorqueMaps(ChFunctionInterp& map0, ChFunctio
     mapF.AddPoint(2200 * rpm2rads, 707);
     mapF.AddPoint(2300 * rpm2rads, 682);
     mapF.AddPoint(2500 * rpm2rads, -271.2);
-    mapF.AddPoint(2400 * rpm2rads, -800.0);
+    mapF.AddPoint(2700 * rpm2rads, -800.0);
 }
 
 }  // namespace fmtv

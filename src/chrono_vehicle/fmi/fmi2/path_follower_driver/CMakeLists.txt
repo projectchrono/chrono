@@ -1,12 +1,18 @@
 set(COMPONENT_NAME "FMU2_PathFollowerDriver")
 set(COMPONENT_SOURCES FMU_PathFollowerDriver.h FMU_PathFollowerDriver.cpp)
-set(COMPONENT_CHRONO_DEPENDENCIES ChronoEngine ChronoEngine_vehicle ChronoEngine_irrlicht)
 set(COMPONENT_RESOURCES_DIR ${CMAKE_SOURCE_DIR}/data/vehicle/fmi/path_follower)
-if(${CMAKE_SYSTEM_NAME} MATCHES "Windows")
-  set(COMPONENT_DLL_DEPENDENCIES "${CH_IRRLICHT_DLL}")
+if (ENABLE_MODULE_IRRLICHT)
+  set(COMPONENT_CHRONO_DEPENDENCIES ChronoEngine ChronoEngine_vehicle ChronoEngine_irrlicht)
+  if(${CMAKE_SYSTEM_NAME} MATCHES "Windows")
+    set(COMPONENT_DLL_DEPENDENCIES "${CH_IRRLICHT_DLL}")
+  else()
+    set(COMPONENT_DLL_DEPENDENCIES "")
+  endif()
 else()
-  set(COMPONENT_DLL_DEPENDENCIES "")
+  set(COMPONENT_CHRONO_DEPENDENCIES ChronoEngine ChronoEngine_vehicle)
 endif()
+
+set(FMU_CS ON)
 
 #--------------------------------------------------------------
 

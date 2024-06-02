@@ -49,7 +49,8 @@
          @defgroup vehicle_models_marder Marder tracked vehicle
          @defgroup vehicle_models_duro Duro vehicle
          @defgroup vehicle_models_gclass Mercedes G500 vehicle
-         @defgroup vehicle_models_BMW_E90 BMW E90 vehicle
+         @defgroup vehicle_models_bmw BMW E90 vehicle
+         @defgroup vehicle_models_cherokee Jeep Cherokee vehicle
          @defgroup vehicle_models_unimog Unimog 401 vehicle
        @}
        @defgroup robot_models Robot models

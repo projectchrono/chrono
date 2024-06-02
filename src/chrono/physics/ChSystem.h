@@ -259,7 +259,7 @@ class ChApi ChSystem : public ChIntegrableIIorder {
     ///                           See the Eigen documentation.
     ///                           If passing 0, then num_threads_eigen = num_threads_chrono.
     /// By default (if this function is not called), the following values are used:
-    ///   num_threads_chrono = omp_get_num_procs()
+    ///   num_threads_chrono = 1
     ///   num_threads_collision = 1
     ///   num_threads_eigen = 1
     /// </pre>

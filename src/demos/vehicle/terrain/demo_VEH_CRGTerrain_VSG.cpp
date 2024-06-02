@@ -1,7 +1,7 @@
 // =============================================================================
 // PROJECT CHRONO - http://projectchrono.org
 //
-// Copyright (c) 2014 projectchrono.org
+// Copyright (c) 2024 projectchrono.org
 // All rights reserved.
 //
 // Use of this source code is governed by a BSD-style license that can be found
@@ -52,6 +52,7 @@
 enum class DriverModelType {
     PID,      // pure PID lateral controller with constant speed controller
     STANLEY,  // geometrical P heading and PID lateral controller with constant speed controller
+    PP,       // geometrical P lateral controller with constant speed controller
     XT,       // alternative PID lateral controller with constant speed controller
     SR,       // alternative PID lateral controller with constant speed controller
     HUMAN     // simple realistic human driver
@@ -81,13 +82,15 @@ DriverModelType DriverModelFromString(const std::string& str) {
         return DriverModelType::PID;
     if (str == "STANLEY")
         return DriverModelType::STANLEY;
+    if (str == "PP")
+        return DriverModelType::PP;
     if (str == "SR")
         return DriverModelType::SR;
     if (str == "XT")
         return DriverModelType::XT;
-    std::cerr << "String \"" + str +
-                     "\" does not represent a valid DriverModelType (HUMAN/PID/SR/XT) - returned DriverModelType::HUMAN"
-              << std::endl;
+
+    std::cerr << str + "is not a valid DriverModelType (HUMAN/PID/STANLEY/PP/SR/XT)." << std::endl;
+    std::cerr << "Fall back on DriverModelType::HUMAN" << std::endl;
     return DriverModelType::HUMAN;
 }
 
@@ -123,6 +126,19 @@ class MyDriver {
 
                 m_driver = driverStanley;
                 m_steering_controller = &driverStanley->GetSteeringController();
+                break;
+            }
+            case DriverModelType::PP: {
+                m_driver_type = "PP";
+
+                auto driverPP =
+                    chrono_types::make_shared<ChPathFollowerDriverPP>(vehicle, path, "my_path", target_speed);
+                driverPP->GetSteeringController().SetLookAheadDistance(5.0);
+                driverPP->GetSteeringController().SetGain(0.0);
+                driverPP->GetSpeedController().SetGains(0.4, 0, 0);
+
+                m_driver = driverPP;
+                m_steering_controller = &driverPP->GetSteeringController();
                 break;
             }
             case DriverModelType::XT: {
@@ -226,7 +242,7 @@ int main(int argc, char* argv[]) {
     std::string crg_road_file = "terrain/crg_roads/RoadCourse.crg";
     bool yup = false;
 
-    cli.AddOption<std::string>("Demo", "m,model", "Controller model type - PID, STANLEY, XT, SR, HUMAN", "HUMAN");
+    cli.AddOption<std::string>("Demo", "m,model", "Controller model type - PID, STANLEY, PP, XT, SR, HUMAN", "HUMAN");
     cli.AddOption<std::string>("Demo", "f,roadfile", "CRG road filename", crg_road_file);
     cli.AddOption<bool>("Demo", "y,yup", "Use YUP world frame", std::to_string(yup));
 
@@ -318,8 +334,6 @@ int main(int argc, char* argv[]) {
     vehicle_model->Create(&sys, init_csys);
     auto& vehicle = vehicle_model->GetVehicle();
 
-    vehicle.GetSystem()->SetCollisionSystemType(ChCollisionSystem::Type::BULLET);
-
     // --------------------
     // Create driver system
     // --------------------
@@ -356,6 +370,7 @@ int main(int argc, char* argv[]) {
     vis->SetLightDirection(1.5 * CH_PI_2, CH_PI_4);
     vis->SetShadows(true);
     vis->AttachVehicle(&vehicle);
+    vis->AttachTerrain(&terrain);
 
     auto sentinel = chrono_types::make_shared<ChVisualShapeSphere>(0.1);
     auto target = chrono_types::make_shared<ChVisualShapeSphere>(0.1);

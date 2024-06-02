@@ -35,11 +35,22 @@ namespace vehicle {
 ChTire::ChTire(const std::string& name)
     : ChPart(name),
       m_collision_type(CollisionType::SINGLE_POINT),
+      m_contact_surface_type(ContactSurfaceType::NODE_CLOUD),
+      m_contact_surface_dim(0.01),
+      m_collision_family(13),
       m_stepsize(1e-3),
       m_slip_angle(0),
       m_longitudinal_slip(0),
       m_camber_angle(0),
       m_pressure(0.0) {}
+
+// -----------------------------------------------------------------------------
+
+void ChTire::SetContactSurfaceType(ContactSurfaceType type, double dim, int collision_family) {
+    m_contact_surface_type = type;
+    m_contact_surface_dim = dim;
+    m_collision_family = collision_family;
+}
 
 // -----------------------------------------------------------------------------
 // Initialize this tire by associating it to the specified wheel.

@@ -59,7 +59,7 @@ class CH_MODELS_API BMW_E90_TMsimpleTireFront : public ChTMsimpleTire {
     std::shared_ptr<ChVisualShapeTriangleMesh> m_trimesh_shape;
 };
 
-/// @} vehicle_models_feda
+/// @} vehicle_models_bmw
 
 }  // namespace bmw
 }  // end namespace vehicle

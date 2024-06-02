@@ -45,7 +45,6 @@ namespace vehicle {
 ChTMsimpleTire::ChTMsimpleTire(const std::string& name)
     : ChForceElementTire(name),
       m_vnum(0.01),
-      m_gamma_limit(4),
       m_begin_start_transition(0.1),
       m_end_start_transition(0.25),
       m_use_startup_transition(false),
@@ -110,7 +109,7 @@ void ChTMsimpleTire::Synchronize(double time, const ChTerrain& terrain) {
     // Calculate tire kinematics
     CalculateKinematics(wheel_state, m_data.frame);
 
-    m_states.gamma = ChClamp(GetCamberAngle(), -m_gamma_limit * CH_DEG_TO_RAD, m_gamma_limit * CH_DEG_TO_RAD);
+    m_states.gamma = GetCamberAngle();
 
     if (m_data.in_contact) {
         // Wheel velocity in the ISO-C Frame
@@ -553,16 +552,6 @@ bool ChTMsimpleTire::CheckParameters() {
     }
 
     return true;
-}
-
-// set tire reference coefficient of friction
-void ChTMsimpleTire::SetFrictionCoefficient(double coeff) {
-    m_par.mu_0 = coeff;
-}
-
-// Set Rolling Resistance Coefficients
-void ChTMsimpleTire::SetRollingResistanceCoefficient(double r_coef) {
-    m_rolling_resistance = r_coef;
 }
 
 }  // end namespace vehicle

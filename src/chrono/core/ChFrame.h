@@ -32,23 +32,25 @@ namespace chrono {
 template <class Real = double>
 class ChFrame {
   public:
-    /// Default constructor, or construct from pos and rot (as a quaternion)
-    explicit ChFrame(const ChVector3<Real>& v = ChVector3<Real>(0, 0, 0),
-                     const ChQuaternion<Real>& q = ChQuaternion<Real>(1, 0, 0, 0))
+    /// Default constructor (identity frame).
+    ChFrame() : m_csys(ChVector3<Real>(0, 0, 0), ChQuaternion<Real>(1, 0, 0, 0)), m_rmat(1.0) {}
+
+    /// Construct from position and rotation (as quaternion).
+    ChFrame(const ChVector3<Real>& v, const ChQuaternion<Real>& q = ChQuaternion<Real>(1, 0, 0, 0))
         : m_csys(v, q), m_rmat(q) {}
 
-    /// Construct from pos and rotation (as a 3x3 matrix)
+    /// Construct from pos and rotation (as a 3x3 matrix).
     ChFrame(const ChVector3<Real>& v, const ChMatrix33<Real>& R) : m_csys(v, R.GetQuaternion()), m_rmat(R) {}
 
-    /// Construct from a coordsys
-    explicit ChFrame(const ChCoordsys<Real>& C) : m_csys(C), m_rmat(C.rot) {}
-
-    /// Construct from position mv and rotation of angle alpha around unit vector mu
+    /// Construct from position mv and rotation of angle alpha around unit vector mu.
     ChFrame(const ChVector3<Real>& v, const Real angle, const ChVector3<Real>& u) : m_csys(v, angle, u) {
         m_rmat.SetFromQuaternion(m_csys.rot);
     }
 
-    /// Copy constructor, build from another frame
+    /// Construct from a coordsys.
+    explicit ChFrame(const ChCoordsys<Real>& C) : m_csys(C), m_rmat(C.rot) {}
+
+    /// Copy constructor, build from another frame.
     ChFrame(const ChFrame<Real>& other) : m_csys(other.m_csys), m_rmat(other.m_rmat) {}
 
     virtual ~ChFrame() {}

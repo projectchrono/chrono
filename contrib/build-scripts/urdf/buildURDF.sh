@@ -138,8 +138,9 @@ cmake -G "${BUILDSYSTEM}" -B build_urdfdom -S ${URDFDOM_SOURCE_DIR} \
       -DCMAKE_DEBUG_POSTFIX=_d \
       -DCMAKE_RELWITHDEBINFO_POSTFIX=_rd \
       -Dconsole_bridge_DIR:PATH=${URDF_INSTALL_DIR}/lib/console_bridge/cmake \
-      -Durdfdom_headers_DIR:PATH=${URDF_INSTALL_DIR}/lib/urdfdom_headers/cmake
-
+      -Durdfdom_headers_DIR:PATH=${URDF_INSTALL_DIR}/lib/urdfdom_headers/cmake \
+      -DTINYXML2_INCLUDE_DIR:PATH=${URDF_INSTALL_DIR}/include \
+      -DTinyXML2_DIR:PATH=${URDF_INSTALL_DIR}/CMake 
 echo -e "\n------------------------ Build and install urdfdom\n"
 cmake --build build_urdfdom --config Release
 cmake --install build_urdfdom --config Release --prefix ${URDF_INSTALL_DIR}

@@ -8,7 +8,7 @@
 #
 # In the call to find_package(), the following Chrono components can be
 # requested (case insensitive): 
-#   Cascade, Cosimulation, CSharp, FMI, FSI, GPU, Irrlicht, OpenGL, VSG, Matlab,
+#   Cascade, CSharp, FMI, FSI, GPU, Irrlicht, OpenGL, VSG, Matlab,
 #   Modal, Multicore, PardisoMKL, Parsers, Postprocess, Sensor,
 #   Synchrono, Vehicle, VehicleCosim.
 # A component can be requested either as required or optional
@@ -156,7 +156,6 @@ set(CHRONO_MPI_FOUND "@MPI_CXX_FOUND@")
 #-------------------------------------------------------------------------------
 
 set(Chrono_CASCADE_AVAILABLE        @ENABLE_MODULE_CASCADE@)
-set(Chrono_COSIMULATION_AVAILABLE   @ENABLE_MODULE_COSIMULATION@)
 set(Chrono_IRRLICHT_AVAILABLE       @ENABLE_MODULE_IRRLICHT@)
 set(Chrono_MATLAB_AVAILABLE         @ENABLE_MODULE_MATLAB@)
 set(Chrono_PARDISOMKL_AVAILABLE     @ENABLE_MODULE_PARDISO_MKL@)
@@ -536,19 +535,20 @@ foreach(COMPONENT ${Chrono_FIND_COMPONENTS})
         list(APPEND CHRONO_DLL_NAMES "ChronoEngine_cascade.dll")
       endif()
 
-    elseif(${COMPONENT_UPPER} MATCHES "COSIMULATION")
-
-      list(PREPEND CHRONO_LIB_NAMES "ChronoEngine_cosimulation")
-      if (NOT CHRONO_STATIC)
-        list(APPEND CHRONO_DLL_NAMES "ChronoEngine_cosimulation.dll")
-      endif()
-
     elseif(${COMPONENT_UPPER} MATCHES "PARSERS")
 
       list(APPEND CHRONO_INCLUDE_DIRS "@CH_PARSERS_INCLUDES@")
       list(PREPEND CHRONO_LIB_NAMES "ChronoEngine_parsers")
       if (NOT CHRONO_STATIC)
         list(APPEND CHRONO_DLL_NAMES "ChronoEngine_parsers.dll")
+      endif()
+
+      if(@HAVE_URDF@)
+         find_package(urdfdom REQUIRED)
+         find_package(urdfdom_headers REQUIRED)
+         find_package(console_bridge REQUIRED)
+         find_package(tinyxml2 REQUIRED)
+         list(APPEND CHRONO_LIBRARIES "urdfdom::urdfdom_model;urdfdom::urdfdom_world;urdfdom::urdfdom_sensor;tinyxml2::tinyxml2")
       endif()
 
       set(CHRONO_PARSERS_PYTHON @HAVE_PYTHON@)

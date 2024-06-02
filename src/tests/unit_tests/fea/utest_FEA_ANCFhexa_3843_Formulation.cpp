@@ -44,7 +44,7 @@
 #include "chrono/physics/ChLoadContainer.h"
 #include "chrono/fea/ChLoadsBeam.h"
 
-#if defined WIN32 || defined _WIN32 || defined WIN64 || defined _WIN64
+#if defined _WIN32 || defined _WIN64
     #include <windows.h>
 #endif
 
@@ -130,6 +130,8 @@ ANCFBrickTest::ANCFBrickTest(bool useContInt) {
 
     m_system = new ChSystemSMC();
     m_system->SetGravitationalAcceleration(ChVector3d(0, 0, -9.80665));
+
+    m_system->SetNumThreads(std::min(8, ChOMP::GetNumProcs()), 1, 1);
 
     auto solver = chrono_types::make_shared<ChSolverSparseQR>();
     solver->UseSparsityPatternLearner(true);
@@ -1965,7 +1967,7 @@ bool ANCFBrickTest::AxialTwistCheck(int msglvl) {
 }
 
 int main(int argc, char* argv[]) {
-#if defined WIN32 || defined _WIN32 || defined WIN64 || defined _WIN64
+#if defined _WIN32 || defined _WIN64
     HANDLE hOut = GetStdHandle(STD_OUTPUT_HANDLE);
     DWORD dwMode = 0;
     GetConsoleMode(hOut, &dwMode);

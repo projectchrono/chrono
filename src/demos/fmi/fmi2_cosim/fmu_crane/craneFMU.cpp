@@ -66,16 +66,24 @@ FmuComponent::FmuComponent(fmi2String instanceName,
     AddFmuVariable(&F, "F", FmuVariable::Type::Real, "N", "actuator force",                       //
                    FmuVariable::CausalityType::input, FmuVariable::VariabilityType::continuous);   //
 
+    // Specify variable dependencies
+    DeclareVariableDependencies("init_F", {"crane_mass", "crane_length", "crane_angle", "pend_mass", "pend_length"});
+    DeclareVariableDependencies("s", {"crane_length", "crane_angle", "pend_length"});
+    DeclareVariableDependencies("sd", {"crane_length", "crane_angle", "pend_length"});
+
 #ifdef CHRONO_IRRLICHT
     if (visible == fmi2True)
         vis_sys = chrono_types::make_shared<irrlicht::ChVisualSystemIrrlicht>();
+#else
+    if (visible)
+        std::cout << "The FMU was not built with run-time visualization support. Visualization disabled." << std::endl;
 #endif
 
     // Specify functions to process input variables (at beginning of step)
-    m_preStepCallbacks.push_back([this]() { this->ProcessActuatorForce(); });
+    AddPreStepFunction([this]() { this->ProcessActuatorForce(); });
 
     // Specify functions to calculate FMU outputs (at end of step)
-    m_postStepCallbacks.push_back([this]() { this->CalculateActuatorLength(); });
+    AddPostStepFunction([this]() { this->CalculateActuatorLength(); });
 }
 
 void FmuComponent::ProcessActuatorForce() {
@@ -189,8 +197,8 @@ void FmuComponent::_exitInitializationMode() {
     CalculateActuatorLength();
 
     // Initialize runtime visualization (if requested and if available)
-    if (vis_sys) {
 #ifdef CHRONO_IRRLICHT
+    if (vis_sys) {
         sendToLog("Enable run-time visualization", fmi2Status::fmi2OK, "logAll");
         vis_sys->AttachSystem(&sys);
         vis_sys->SetWindowSize(800, 600);
@@ -199,10 +207,8 @@ void FmuComponent::_exitInitializationMode() {
         vis_sys->Initialize();
         vis_sys->AddCamera(ChVector3d(0.5, -1, 0.5), ChVector3d(0.5, 0, 0.5));
         vis_sys->AddTypicalLights();
-#else
-        sendToLog("Run-time visualization not available", fmi2Status::fmi2OK, "logAll");
-#endif
     }
+#endif
 
     sys.DoAssembly(AssemblyLevel::FULL);
 }

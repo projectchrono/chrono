@@ -37,19 +37,28 @@ void ChIterativeSolverVI::SetSharpnessLambda(double mval) {
         m_shlambda = mval;
 }
 
+void ChIterativeSolverVI::SetMaxIterations(int max_iterations) {
+    m_max_iterations = max_iterations;
+    violation_history.resize(m_max_iterations);
+    dlambda_history.resize(m_max_iterations);
+}
+
+void ChIterativeSolverVI::SetRecordViolation(bool mval) {
+    record_violation_history = mval;
+    SetMaxIterations(m_max_iterations);
+}
+
 void ChIterativeSolverVI::AtIterationEnd(double mmaxviolation, double mdeltalambda, unsigned int iternum) {
     if (!record_violation_history)
         return;
-    if (iternum != violation_history.size()) {
-        violation_history.clear();
-        violation_history.resize(iternum);
+
+    if (iternum >= violation_history.size()){
+        assert(false && "Try to access out-of-bound.");
+        return;
     }
-    if (iternum != dlambda_history.size()) {
-        dlambda_history.clear();
-        dlambda_history.resize(iternum);
-    }
-    violation_history.push_back(mmaxviolation);
-    dlambda_history.push_back(mdeltalambda);
+
+    violation_history[iternum] = mmaxviolation;
+    dlambda_history[iternum] = mdeltalambda;
 }
 
 void ChIterativeSolverVI::ArchiveOut(ChArchiveOut& archive_out) {

@@ -35,7 +35,7 @@ namespace chrono {
 namespace vehicle {
 namespace bmw {
 
-/// @addtogroup vehicle_models_BMW_E90
+/// @addtogroup vehicle_models_bmw
 /// @{
 
 /// Definition of the BMW_E90 assembly.
@@ -49,6 +49,7 @@ class CH_MODELS_API BMW_E90 {
     ~BMW_E90();
 
     void SetContactMethod(ChContactMethod val) { m_contactMethod = val; }
+    void SetCollisionSystemType(ChCollisionSystem::Type collsys_type) { m_collsysType = collsys_type; }
 
     void SetChassisFixed(bool val) { m_fixed = val; }
     void SetChassisCollisionType(CollisionType val) { m_chassisCollisionType = val; }
@@ -92,6 +93,7 @@ class CH_MODELS_API BMW_E90 {
     BMW_E90_Vehicle* m_vehicle;
 
     ChContactMethod m_contactMethod;
+    ChCollisionSystem::Type m_collsysType;
     CollisionType m_chassisCollisionType;
     bool m_fixed;
     bool m_brake_locking;
@@ -113,7 +115,7 @@ class CH_MODELS_API BMW_E90 {
     double m_tire_mass;
 };
 
-/// @} vehicle_models_BMW_E90
+/// @} vehicle_models_bmw
 
 }  // namespace bmw
 }  // end namespace vehicle

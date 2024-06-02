@@ -18,6 +18,7 @@
 #include "chrono_modal/ChApiModal.h"
 #include "chrono/core/ChMatrix.h"
 #include "chrono/core/ChTimer.h"
+#include "chrono/physics/ChAssembly.h"
 
 #include <complex>
 
@@ -75,12 +76,42 @@ class ChApiModal ChGeneralizedEigenvalueSolver {
         const ChSparseMatrix& K,   ///< input K matrix, n_v x n_v
         const ChSparseMatrix& Cq,  ///< input Cq matrix of constraint jacobians, n_c x n_v
         ChMatrixDynamic<std::complex<double>>&
-            V,  ///< output matrix n x n_v with eigenvectors as columns, will be resized
-        ChVectorDynamic<std::complex<double>>& eig,  ///< output vector with n eigenvalues, will be resized.
+            eigvects,  ///< output matrix n x n_v with eigenvectors as columns, will be resized
+        ChVectorDynamic<std::complex<double>>& eigvals,  ///< output vector with n eigenvalues, will be resized.
         ChVectorDynamic<double>& freq,  ///< output vector with n frequencies [Hz], as f=w/(2*PI), will be resized.
         ChEigenvalueSolverSettings settings = 0  ///< optional: settings for the solver, or n. of desired lower
                                                  ///< eigenvalues. If =0, return all eigenvalues.
     ) const = 0;
+
+    /// Solve the constrained eigenvalue problem (-wsquare*M + K)*x = 0 s.t. Cq*x = 0
+    /// If n_modes=0, return all eigenvalues, otherwise only the first lower n_modes.
+    virtual bool Solve(
+        ChAssembly& assembly,  ///< assembly on which to apply the eigen solver
+        ChMatrixDynamic<std::complex<double>>&
+            eigvects,  ///< output matrix n x n_v with eigenvectors as columns, will be resized
+        ChVectorDynamic<std::complex<double>>& eigvals,  ///< output vector with n eigenvalues, will be resized.
+        ChVectorDynamic<double>& freq,  ///< output vector with n frequencies [Hz], as f=w/(2*PI), will be resized.
+        ChEigenvalueSolverSettings settings = 0  ///< optional: settings for the solver, or n. of desired lower
+                                                 ///< eigenvalues. If =0, return all eigenvalues.
+    ) const = 0;
+
+    /// Get cumulative time for matrix assembly.
+    double GetTimeMatrixAssembly() const { return m_timer_matrix_assembly(); }
+
+    /// Get cumulative time eigensolver setup.
+    double GetTimeEigenSetup() const { return m_timer_eigen_setup(); }
+
+    /// Get cumulative time eigensolver solution.
+    double GetTimeEigenSolver() const { return m_timer_eigen_solver(); }
+
+    /// Get cumulative time for post-solver solution postprocessing.
+    double GetTimeSolutionPostProcessing() const { return m_timer_solution_postprocessing(); }
+
+  protected:
+    mutable ChTimer m_timer_matrix_assembly;          ///< timer for matrix assembly
+    mutable ChTimer m_timer_eigen_setup;              ///< timer for eigensolver setup
+    mutable ChTimer m_timer_eigen_solver;             ///< timer for eigensolver solution
+    mutable ChTimer m_timer_solution_postprocessing;  ///< timer for conversion of eigensolver solution
 };
 
 /// Solves the undamped constrained eigenvalue problem with the Krylov-Schur iterative method.
@@ -98,8 +129,20 @@ class ChApiModal ChGeneralizedEigenvalueSolverKrylovSchur : public ChGeneralized
         const ChSparseMatrix& K,   ///< input K matrix, n_v x n_v
         const ChSparseMatrix& Cq,  ///< input Cq matrix of constraint jacobians, n_c x n_v
         ChMatrixDynamic<std::complex<double>>&
-            V,  ///< output matrix n x n_v with eigenvectors as columns, will be resized
-        ChVectorDynamic<std::complex<double>>& eig,  ///< output vector with n eigenvalues, will be resized.
+            eigvects,  ///< output matrix n x n_v with eigenvectors as columns, will be resized
+        ChVectorDynamic<std::complex<double>>& eigvals,  ///< output vector with n eigenvalues, will be resized.
+        ChVectorDynamic<double>& freq,  ///< output vector with n frequencies [Hz], as f=w/(2*PI), will be resized.
+        ChEigenvalueSolverSettings settings = 0  ///< optional: settings for the solver, or n. of desired lower
+                                                 ///< eigenvalues. If =0, return all eigenvalues.
+    ) const override;
+
+    /// Solve the constrained eigenvalue problem (-wsquare*M + K)*x = 0 s.t. Cq*x = 0
+    /// If n_modes=0, return all eigenvalues, otherwise only the first lower n_modes.
+    virtual bool Solve(
+        ChAssembly& assembly,  ///< assembly on which to apply the eigen solver
+        ChMatrixDynamic<std::complex<double>>&
+            eigvects,  ///< output matrix n x n_v with eigenvectors as columns, will be resized
+        ChVectorDynamic<std::complex<double>>& eigvals,  ///< output vector with n eigenvalues, will be resized.
         ChVectorDynamic<double>& freq,  ///< output vector with n frequencies [Hz], as f=w/(2*PI), will be resized.
         ChEigenvalueSolverSettings settings = 0  ///< optional: settings for the solver, or n. of desired lower
                                                  ///< eigenvalues. If =0, return all eigenvalues.
@@ -122,12 +165,26 @@ class ChApiModal ChGeneralizedEigenvalueSolverLanczos : public ChGeneralizedEige
         const ChSparseMatrix& K,   ///< input K matrix, n_v x n_v
         const ChSparseMatrix& Cq,  ///< input Cq matrix of constraint jacobians, n_c x n_v
         ChMatrixDynamic<std::complex<double>>&
-            V,  ///< output matrix n x n_v with eigenvectors as columns, will be resized
-        ChVectorDynamic<std::complex<double>>& eig,  ///< output vector with n eigenvalues, will be resized.
+            eigvects,  ///< output matrix n x n_v with eigenvectors as columns, will be resized
+        ChVectorDynamic<std::complex<double>>& eigvals,  ///< output vector with n eigenvalues, will be resized.
         ChVectorDynamic<double>& freq,  ///< output vector with n frequencies [Hz], as f=w/(2*PI), will be resized.
         ChEigenvalueSolverSettings settings = 0  ///< optional: settings for the solver, or n. of desired lower
                                                  ///< eigenvalues. If =0, return all eigenvalues.
     ) const override;
+
+    /// Solve the constrained eigenvalue problem (-wsquare*M + K)*x = 0 s.t. Cq*x = 0
+    /// If n_modes=0, return all eigenvalues, otherwise only the first lower n_modes.
+    virtual bool Solve(
+        ChAssembly& assembly,  ///< assembly on which to apply the eigen solver
+        ChMatrixDynamic<std::complex<double>>&
+            eigvects,  ///< output matrix n x n_v with eigenvectors as columns, will be resized
+        ChVectorDynamic<std::complex<double>>& eigvals,  ///< output vector with n eigenvalues, will be resized.
+        ChVectorDynamic<double>& freq,  ///< output vector with n frequencies [Hz], as f=w/(2*PI), will be resized.
+        ChEigenvalueSolverSettings settings = 0  ///< optional: settings for the solver, or n. of desired lower
+                                                 ///< eigenvalues. If =0, return all eigenvalues.
+    ) const override {
+        throw std::runtime_error("Method not implemented yet.");
+    }
 };
 
 //---------------------------------------------------------------------------------------------
@@ -203,8 +260,19 @@ class ChApiModal ChModalSolveUndamped {
         const ChSparseMatrix& K,   ///< input K matrix, n_v x n_v
         const ChSparseMatrix& Cq,  ///< input Cq matrix of constraint jacobians, n_c x n_v
         ChMatrixDynamic<std::complex<double>>&
-            V,  ///< output matrix n x n_v with eigenvectors as columns, will be resized
-        ChVectorDynamic<std::complex<double>>& eig,  ///< output vector with n eigenvalues, will be resized.
+            eigvects,  ///< output matrix n x n_v with eigenvectors as columns, will be resized
+        ChVectorDynamic<std::complex<double>>& eigvals,  ///< output vector with n eigenvalues, will be resized.
+        ChVectorDynamic<double>& freq  ///< output vector with n frequencies [Hz], as f=w/(2*PI), will be resized.
+    ) const;
+
+    /// Solve the constrained eigenvalue problem (-wsquare*M + K)*x = 0 s.t. Cq*x = 0
+    /// Return the n. of found modes, where n is not necessarily n_lower_modes (or the sum of ChFreqSpan::nmodes if
+    /// multiple spans)
+    virtual int Solve(
+        ChAssembly& assembly,  ///< assembly on which to apply the eigen solver
+        ChMatrixDynamic<std::complex<double>>&
+            eigvects,  ///< output matrix n x n_v with eigenvectors as columns, will be resized
+        ChVectorDynamic<std::complex<double>>& eigvals,  ///< output vector with n eigenvalues, will be resized.
         ChVectorDynamic<double>& freq  ///< output vector with n frequencies [Hz], as f=w/(2*PI), will be resized.
     ) const;
 
@@ -229,13 +297,29 @@ class ChApiModal ChQuadraticEigenvalueSolver {
     /// Solve the quadratic eigenvalue problem (lambda^2*M + lambda*R + K)*x = 0 s.t. Cq*x = 0
     /// If n_modes=0, return all eigenvalues, otherwise only the first lower n_modes.
     virtual bool Solve(
-        const ChSparseMatrix& M,                   ///< input M matrix
-        const ChSparseMatrix& R,                   ///< input R matrix
-        const ChSparseMatrix& K,                   ///< input K matrix
-        const ChSparseMatrix& Cq,                  ///< input Cq matrix of constraint jacobians
-        ChMatrixDynamic<std::complex<double>>& V,  ///< output matrix with eigenvectors as columns, will be resized
+        const ChSparseMatrix& M,   ///< input M matrix
+        const ChSparseMatrix& R,   ///< input R matrix
+        const ChSparseMatrix& K,   ///< input K matrix
+        const ChSparseMatrix& Cq,  ///< input Cq matrix of constraint jacobians
+        ChMatrixDynamic<std::complex<double>>&
+            eigvects,  ///< output matrix with eigenvectors as columns, will be resized
         ChVectorDynamic<std::complex<double>>&
-            eig,  ///< output vector with eigenvalues (real part not zero if some damping), will be resized
+            eigvals,  ///< output vector with eigenvalues (real part not zero if some damping), will be resized
+        ChVectorDynamic<double>&
+            freq,  ///< output vector with n undamped frequencies [Hz], as f=w/(2*PI), will be resized.
+        ChVectorDynamic<double>& damping_ratio,  ///< output vector with n damping rations r=damping/critical_damping.
+        ChEigenvalueSolverSettings settings = 0  ///< optional: settings for the solver, or n. of desired lower
+                                                 ///< eigenvalues. If =0, return all eigenvalues.
+    ) const = 0;
+
+    /// Solve the quadratic eigenvalue problem (lambda^2*M + lambda*R + K)*x = 0 s.t. Cq*x = 0
+    /// If n_modes=0, return all eigenvalues, otherwise only the first lower n_modes.
+    virtual bool Solve(
+        ChAssembly& assembly,  ///< assembly on which to apply the eigen solver
+        ChMatrixDynamic<std::complex<double>>&
+            eigvects,  ///< output matrix with eigenvectors as columns, will be resized
+        ChVectorDynamic<std::complex<double>>&
+            eigvals,  ///< output vector with eigenvalues (real part not zero if some damping), will be resized
         ChVectorDynamic<double>&
             freq,  ///< output vector with n undamped frequencies [Hz], as f=w/(2*PI), will be resized.
         ChVectorDynamic<double>& damping_ratio,  ///< output vector with n damping rations r=damping/critical_damping.
@@ -274,18 +358,36 @@ class ChApiModal ChQuadraticEigenvalueSolverNullspaceDirect : public ChQuadratic
     /// Solve the quadratic eigenvalue problem (lambda^2*M + lambda*R + K)*x = 0 s.t. Cq*x = 0
     /// If n_modes=0, return all eigenvalues, otherwise only the first lower n_modes.
     virtual bool Solve(
-        const ChSparseMatrix& M,                   ///< input M matrix
-        const ChSparseMatrix& R,                   ///< input R matrix
-        const ChSparseMatrix& K,                   ///< input K matrix
-        const ChSparseMatrix& Cq,                  ///< input Cq matrix of constraint jacobians
-        ChMatrixDynamic<std::complex<double>>& V,  ///< output matrix with eigenvectors as columns, will be resized
+        const ChSparseMatrix& M,   ///< input M matrix
+        const ChSparseMatrix& R,   ///< input R matrix
+        const ChSparseMatrix& K,   ///< input K matrix
+        const ChSparseMatrix& Cq,  ///< input Cq matrix of constraint jacobians
+        ChMatrixDynamic<std::complex<double>>&
+            eigvects,  ///< output matrix with eigenvectors as columns, will be resized
         ChVectorDynamic<std::complex<double>>&
-            eig,  ///< output vector with complex eigenvalues (real part not zero if some damping), will be resized
+            eigvals,  ///< output vector with complex eigenvalues (real part not zero if some damping), will be resized
         ChVectorDynamic<double>& freq,  ///< output vector with n frequencies [Hz], as f=w/(2*PI), will be resized.
         ChVectorDynamic<double>& damping_ratio,  ///< output vector with n damping rations r=damping/critical_damping.
         ChEigenvalueSolverSettings settings = 0  ///< optional: settings for the solver, or n. of desired lower
                                                  ///< eigenvalues. If =0, return all eigenvalues.
     ) const override;
+
+    /// Solve the quadratic eigenvalue problem (lambda^2*M + lambda*R + K)*x = 0 s.t. Cq*x = 0
+    /// If n_modes=0, return all eigenvalues, otherwise only the first lower n_modes.
+    virtual bool Solve(
+        ChAssembly& assembly,  ///< assembly on which to apply the eigen solver
+        ChMatrixDynamic<std::complex<double>>&
+            eigvects,  ///< output matrix with eigenvectors as columns, will be resized
+        ChVectorDynamic<std::complex<double>>&
+            eigvals,  ///< output vector with eigenvalues (real part not zero if some damping), will be resized
+        ChVectorDynamic<double>&
+            freq,  ///< output vector with n undamped frequencies [Hz], as f=w/(2*PI), will be resized.
+        ChVectorDynamic<double>& damping_ratio,  ///< output vector with n damping rations r=damping/critical_damping.
+        ChEigenvalueSolverSettings settings = 0  ///< optional: settings for the solver, or n. of desired lower
+                                                 ///< eigenvalues. If =0, return all eigenvalues.
+    ) const override {
+        throw std::runtime_error("Method not implemented yet.");
+    }
 };
 
 /// Solves the eigenvalue problem with the Krylov-Schur iterative method.
@@ -303,17 +405,33 @@ class ChApiModal ChQuadraticEigenvalueSolverKrylovSchur : public ChQuadraticEige
     /// Solve the quadratic eigenvalue problem (lambda^2*M + lambda*R + K)*x = 0 s.t. Cq*x = 0
     /// Returns only the first lower n_modes. If n_modes=0, it return all eigenvalues (performance warning)
     virtual bool Solve(
-        const ChSparseMatrix& M,                   ///< input M matrix
-        const ChSparseMatrix& R,                   ///< input R matrix
-        const ChSparseMatrix& K,                   ///< input K matrix
-        const ChSparseMatrix& Cq,                  ///< input Cq matrix of constraint jacobians
-        ChMatrixDynamic<std::complex<double>>& V,  ///< output matrix with eigenvectors as columns, will be resized
+        const ChSparseMatrix& M,   ///< input M matrix
+        const ChSparseMatrix& R,   ///< input R matrix
+        const ChSparseMatrix& K,   ///< input K matrix
+        const ChSparseMatrix& Cq,  ///< input Cq matrix of constraint jacobians
+        ChMatrixDynamic<std::complex<double>>&
+            eigvects,  ///< output matrix with eigenvectors as columns, will be resized
         ChVectorDynamic<std::complex<double>>&
-            eig,  ///< output vector with complex eigenvalues (real part not zero if some damping), will be resized
+            eigvals,  ///< output vector with complex eigenvalues (real part not zero if some damping), will be resized
         ChVectorDynamic<double>& freq,  ///< output vector with n frequencies [Hz], as f=w/(2*PI), will be resized.
         ChVectorDynamic<double>& damping_ratio,  ///< output vector with n damping rations r=damping/critical_damping.
         ChEigenvalueSolverSettings settings =
             0  ///< optional: settings for the solver, or n. of desired lower eigenvalues.
+    ) const override;
+
+    /// Solve the quadratic eigenvalue problem (lambda^2*M + lambda*R + K)*x = 0 s.t. Cq*x = 0
+    /// If n_modes=0, return all eigenvalues, otherwise only the first lower n_modes.
+    virtual bool Solve(
+        ChAssembly& assembly,  ///< assembly on which to apply the eigen solver
+        ChMatrixDynamic<std::complex<double>>&
+            eigvects,  ///< output matrix with eigenvectors as columns, will be resized
+        ChVectorDynamic<std::complex<double>>&
+            eigvals,  ///< output vector with eigenvalues (real part not zero if some damping), will be resized
+        ChVectorDynamic<double>&
+            freq,  ///< output vector with n undamped frequencies [Hz], as f=w/(2*PI), will be resized.
+        ChVectorDynamic<double>& damping_ratio,  ///< output vector with n damping rations r=damping/critical_damping.
+        ChEigenvalueSolverSettings settings = 0  ///< optional: settings for the solver, or n. of desired lower
+                                                 ///< eigenvalues. If =0, return all eigenvalues.
     ) const override;
 
     ChDirectSolverLScomplex* linear_solver;
@@ -393,8 +511,20 @@ class ChApiModal ChModalSolveDamped {
         const ChSparseMatrix& K,   ///< input K matrix, n_v x n_v
         const ChSparseMatrix& Cq,  ///< input Cq matrix of constraint jacobians, n_c x n_v
         ChMatrixDynamic<std::complex<double>>&
-            V,  ///< output matrix n x n_v with eigenvectors as columns, will be resized
-        ChVectorDynamic<std::complex<double>>& eig,  ///< output vector with n eigenvalues, will be resized.
+            eigvects,  ///< output matrix n x n_v with eigenvectors as columns, will be resized
+        ChVectorDynamic<std::complex<double>>& eigvals,  ///< output vector with n eigenvalues, will be resized.
+        ChVectorDynamic<double>& freq,  ///< output vector with n frequencies [Hz], as f=w/(2*PI), will be resized.
+        ChVectorDynamic<double>& damp_ratios  ///< output vector with n damping ratios, will be resized.
+    ) const;
+
+    /// Solve the constrained eigenvalue problem (-wsquare*M + K)*x = 0 s.t. Cq*x = 0
+    /// Return the number of found modes, where n is not necessarily n_lower_modes (or the sum of ChFreqSpan::nmodes if
+    /// multiple spans)
+    virtual int Solve(
+        ChAssembly& assembly,  ///< input M matrix, n_v x n_v
+        ChMatrixDynamic<std::complex<double>>&
+            eigvects,  ///< output matrix n x n_v with eigenvectors as columns, will be resized
+        ChVectorDynamic<std::complex<double>>& eigvals,  ///< output vector with n eigenvalues, will be resized.
         ChVectorDynamic<double>& freq,  ///< output vector with n frequencies [Hz], as f=w/(2*PI), will be resized.
         ChVectorDynamic<double>& damp_ratios  ///< output vector with n damping ratios, will be resized.
     ) const;

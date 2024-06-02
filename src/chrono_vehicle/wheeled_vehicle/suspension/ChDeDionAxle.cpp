@@ -316,8 +316,7 @@ void ChDeDionAxle::UpdateInertiaProperties() {
     composite.AddComponent(m_wattCenterLinkBody->GetFrameCOMToAbs(), getWattCenterMass(),
                            ChMatrix33<>(inertiaWattCenter));
     composite.AddComponent(m_wattLeftLinkBody->GetFrameCOMToAbs(), getWattSideMass(), ChMatrix33<>(inertiaWattSide));
-    composite.AddComponent(m_wattRightLinkBody->GetFrameCOMToAbs(), getWattSideMass(),
-                           ChMatrix33<>(inertiaWattSide));
+    composite.AddComponent(m_wattRightLinkBody->GetFrameCOMToAbs(), getWattSideMass(), ChMatrix33<>(inertiaWattSide));
 
     // Express COM and inertia in subsystem reference frame
     m_com.SetPos(m_xform.TransformPointParentToLocal(composite.GetCOM()));

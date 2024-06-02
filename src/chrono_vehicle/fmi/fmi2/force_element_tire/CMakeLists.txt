@@ -4,6 +4,8 @@ set(COMPONENT_CHRONO_DEPENDENCIES ChronoEngine ChronoEngine_vehicle)
 set(COMPONENT_RESOURCES_DIR ${CMAKE_SOURCE_DIR}/data/vehicle/fmi/handling_tire)
 set(COMPONENT_DLL_DEPENDENCIES "")
 
+set(FMU_CS ON)
+
 #--------------------------------------------------------------
 
 # Set include paths, compiler & linker flags, and libraries

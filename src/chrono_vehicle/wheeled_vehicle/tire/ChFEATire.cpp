@@ -44,11 +44,11 @@ void ChFEATire::CreatePressureLoad() {
 }
 
 void ChFEATire::CreateContactSurface() {
-    switch (m_contact_type) {
+    switch (m_contact_surface_type) {
         case ContactSurfaceType::NODE_CLOUD: {
             auto contact_surf = chrono_types::make_shared<ChContactSurfaceNodeCloud>(m_contact_mat);
             m_mesh->AddContactSurface(contact_surf);
-            contact_surf->AddAllNodes(m_contact_node_radius);
+            contact_surf->AddAllNodes(m_contact_surface_dim);
             break;
         }
         case ContactSurfaceType::TRIANGLE_MESH: {

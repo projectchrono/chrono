@@ -1,0 +1,17 @@
+{
+  "Name": "Gator RigidSuspension Front",
+  "Type": "Suspension",
+  "Template": "RigidSuspension",
+
+  "Spindle": {
+    "Mass": 3.0,
+    "COM": [ 0.0, 0.62, 0.0 ],
+    "Inertia": [ 0.000478, 0.000496, 0.000478 ],
+    "Radius": 0.06,
+    "Width": 0.025
+  },
+
+  "Axle": {
+    "Inertia": 0.4
+  }
+}

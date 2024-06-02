@@ -32,7 +32,7 @@ namespace chrono {
 namespace vehicle {
 namespace bmw {
 
-/// @addtogroup vehicle_models_sedan
+/// @addtogroup vehicle_models_bmw
 /// @{
 
 /// Simple Sedan automatic transmission subsystem.
@@ -50,7 +50,7 @@ class CH_MODELS_API BMW_E90_AutomaticTransmissionSimpleMap : public ChAutomaticT
                         ) override;
 };
 
-/// @} vehicle_models_sedan
+/// @} vehicle_models_bmw
 
 }  // namespace bmw
 }  // end namespace vehicle

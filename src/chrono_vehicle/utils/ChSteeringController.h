@@ -292,7 +292,7 @@ class CH_VEHICLE_API ChPathSteeringControllerSR : public ChSteeringController {
     /// Calculate the current target point location.
     /// The target point is the point on the associated path that is closest to the current location of the sentinel
     /// point.
-    virtual void CalcTargetLocation() override{};
+    virtual void CalcTargetLocation() override {};
 
   private:
     void CalcPathPoints();  ///< extracts path points and direction vectors, make adjustments as needed
@@ -380,6 +380,65 @@ class CH_VEHICLE_API ChPathSteeringControllerStanley : public ChSteeringControll
     double m_Treset;     ///< the integral error gets reset after this time automatically, no wind-up should happen
     double m_deadZone;  ///< lateral zone where no lateral error is recognized, reduces sensitivity to path disturbances
     double m_Tdelay;    ///< delay time to consider driver reaction (around 0.4 sec)
+};
+
+// --------------------------------------------------------------------------------------------------------------------
+/// "Pure Pursuit" path-following controller
+/// This implementation is based on the CARLA Pure Pursuit controller:
+/// https://carla.org//
+/// https://thomasfermi.github.io/Algorithms-for-Automated-Driving/Control/PurePursuit.html
+/// Original algorithm documented at:
+/// https://www.ri.cmu.edu/pub_files/pub3/coulter_r_craig_1992_1/coulter_r_craig_1992_1.pdf
+//
+class CH_VEHICLE_API ChPathSteeringControllerPP : public ChSteeringController {
+  public:
+    /// Construct a steering controller to track the specified path.
+    /// This version uses default controller parameters (zero gains).
+    /// The user is responsible for calling SetGains and SetLookAheadDistance.
+    ChPathSteeringControllerPP(std::shared_ptr<ChBezierCurve> path,
+                               double max_wheel_turn_angle = 0.0,
+                               double wheel_base = 2.0);
+
+    /// Construct a steering controller to track the specified path.
+    /// This version reads controller gains and lookahead distance from the specified JSON file.
+    ChPathSteeringControllerPP(const std::string& filename,
+                               std::shared_ptr<ChBezierCurve> path,
+                               double max_wheel_turn_angle = 0.0,
+                               double wheel_base = 2.0);
+
+    ~ChPathSteeringControllerPP() {}
+
+    /// Set the gain for the PP controller
+    void SetGain(double Kd) { m_Kdd = Kd; }
+
+    void SetPreviewDistance(double pvd) { m_dist = pvd; }
+
+    void SetStartSpeed(double v_start) { m_Vstart = v_start; }
+
+    /// Advance the state of the Stanley controller.
+    virtual double Advance(const ChFrameMoving<>& ref_frame, double time, double step) override;
+
+    /// Reset the PID controller.
+    /// This function resets the underlying path tracker using the current location of the sentinel point.
+    virtual void Reset(const ChFrameMoving<>& ref_frame) override;
+
+    /// Calculate the current target point location.
+    /// The target point is the point on the associated path that is closest to the current location of the sentinel
+    /// point.
+    virtual void CalcTargetLocation() override;
+
+    double CalcHeadingError(ChVector3d& a, ChVector3d& b);
+
+  private:
+    std::unique_ptr<ChBezierCurveTracker> m_tracker;  ///< path tracker
+
+    double m_pcurvature;    ///< local curvature
+    ChVector3d m_ptangent;  ///< local path tangent
+
+    double m_deltaMax;  ///< Maximum wheel turn angle
+    double m_L;         ///< Vehicle wheel base
+    double m_Kdd;        ///< Proportional gain for speed sensitivity
+    double m_Vstart;    ///< speed, at which the pure pursuit controller engages
 };
 
 /// @} vehicle_utils

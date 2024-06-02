@@ -858,6 +858,9 @@ void ChPac02Tire::LoadSectionScaling(FILE* fp) {
         if (skey.compare("LVX") == 0) {
             m_par.LVX = stod(sval);
         }
+        if (skey.compare("LGAX") == 0) {
+            m_par.LGAX = stod(sval);
+        }
         if (skey.compare("LCY") == 0) {
             m_par.LCY = stod(sval);
         }
@@ -909,6 +912,9 @@ void ChPac02Tire::LoadSectionScaling(FILE* fp) {
         if (skey.compare("LGYR") == 0) {
             m_par.LGYR = stod(sval);
         }
+        if (skey.compare("LVMX") == 0) {
+            m_par.LVMX = stod(sval);
+        }
         if (skey.compare("LMX") == 0) {
             m_par.LMX = stod(sval);
         }
@@ -917,6 +923,12 @@ void ChPac02Tire::LoadSectionScaling(FILE* fp) {
         }
         if (skey.compare("LIP") == 0) {
             m_par.LIP = stod(sval);
+        }
+        if (skey.compare("LKYG") == 0) {
+            m_par.LKYG = stod(sval);
+        }
+        if (skey.compare("LCZ") == 0) {
+            m_par.LCZ = stod(sval);
         }
     }
 }
@@ -1011,6 +1023,12 @@ void ChPac02Tire::LoadSectionLongitudinal(FILE* fp) {
         }
         if (skey.compare("RCX1") == 0) {
             m_par.RCX1 = stod(sval);
+        }
+        if (skey.compare("REX1") == 0) {
+            m_par.REX1 = stod(sval);
+        }
+        if (skey.compare("REX2") == 0) {
+            m_par.REX2 = stod(sval);
         }
         if (skey.compare("RHX1") == 0) {
             m_par.RHX1 = stod(sval);
@@ -1224,8 +1242,17 @@ void ChPac02Tire::LoadSectionLateral(FILE* fp) {
         if (skey.compare("RCY1") == 0) {
             m_par.RCY1 = stod(sval);
         }
+        if (skey.compare("REY1") == 0) {
+            m_par.REY1 = stod(sval);
+        }
+        if (skey.compare("REY2") == 0) {
+            m_par.REY2 = stod(sval);
+        }
         if (skey.compare("RHY1") == 0) {
             m_par.RHY1 = stod(sval);
+        }
+        if (skey.compare("RHY2") == 0) {
+            m_par.RHY2 = stod(sval);
         }
         if (skey.compare("RVY1") == 0) {
             m_par.RVY1 = stod(sval);
@@ -1555,6 +1582,9 @@ void ChPac02Tire::LoadSectionAligning(FILE* fp) {
         if (skey.compare("QBZ9") == 0) {
             m_par.QBZ9 = stod(sval);
         }
+        if (skey.compare("QBZ10") == 0) {
+            m_par.QBZ10 = stod(sval);
+        }
         if (skey.compare("QCZ1") == 0) {
             m_par.QCZ1 = stod(sval);
         }
@@ -1608,6 +1638,12 @@ void ChPac02Tire::LoadSectionAligning(FILE* fp) {
         }
         if (skey.compare("QHZ4") == 0) {
             m_par.QHZ4 = stod(sval);
+        }
+        if (skey.compare("QPZ1") == 0) {
+            m_par.QPZ1 = stod(sval);
+        }
+        if (skey.compare("QPZ2") == 0) {
+            m_par.QPZ2 = stod(sval);
         }
         if (skey.compare("SSZ1") == 0) {
             m_par.SSZ1 = stod(sval);
@@ -1711,8 +1747,6 @@ void ChPac02Tire::Synchronize(double time, const ChTerrain& terrain) {
 
     // Calculate tire kinematics
     CalculateKinematics(wheel_state, m_data.frame);
-
-    m_states.gamma = ChClamp(GetCamberAngle(), -m_gamma_limit * CH_DEG_TO_RAD, m_gamma_limit * CH_DEG_TO_RAD);
 
     if (m_data.in_contact) {
         // Wheel velocity in the ISO-C Frame

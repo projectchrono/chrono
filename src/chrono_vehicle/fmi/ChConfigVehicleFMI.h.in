@@ -21,8 +21,11 @@
 #ifndef CH_CONFIG_VEHICLE_FMI_H
 #define CH_CONFIG_VEHICLE_FMI_H
 
-// Include main Chrono::Vehicle configuration header
+// Include Chrono::Vehicle configuration header
 #include "chrono_vehicle/ChConfigVehicle.h"
+
+// Include Chrono::FMI configuration header
+#include "chrono_fmi/ChConfigFMI.h"
 
 // -----------------------------------------------------------------------------
 

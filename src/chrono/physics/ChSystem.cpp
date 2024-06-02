@@ -63,17 +63,17 @@ ChSystem::ChSystem()
       composition_strategy(new ChContactMaterialCompositionStrategy),
       collision_system(nullptr),
       visual_system(nullptr),
-      nthreads_chrono(ChOMP::GetNumProcs()),
+      nthreads_chrono(1),
       nthreads_eigen(1),
       nthreads_collision(1),
       applied_forces_current(false) {
     assembly.system = this;
 
-    // Set default collision engine type, collision envelope, and margin.
+    // Set default collision envelope and margin
     ChCollisionModel::SetDefaultSuggestedEnvelope(0.03);
     ChCollisionModel::SetDefaultSuggestedMargin(0.01);
 
-    // Set default timestepper.
+    // Set default timestepper
     timestepper = chrono_types::make_shared<ChTimestepperEulerImplicitLinearized>(this);
 }
 

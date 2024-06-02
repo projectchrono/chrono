@@ -59,7 +59,6 @@ namespace vehicle {
 ChTMeasyTire::ChTMeasyTire(const std::string& name)
     : ChForceElementTire(name),
       m_vnum(0.01),
-      m_gamma_limit(4),
       m_begin_start_transition(0.1),
       m_end_start_transition(0.25),
       m_use_startup_transition(false),
@@ -128,7 +127,7 @@ void ChTMeasyTire::Synchronize(double time, const ChTerrain& terrain) {
         std::cerr << "FATAL error in ChTMeasyTire::Synchronize - Nominal Force has not been set!" << std::endl;
         throw std::runtime_error("FATAL error in ChTMeasyTire::Synchronize - Nominal Force has not been set!");
     }
-    m_states.gamma = ChClamp(GetCamberAngle(), -m_gamma_limit * CH_DEG_TO_RAD, m_gamma_limit * CH_DEG_TO_RAD);
+    m_states.gamma = GetCamberAngle();
 
     if (m_data.in_contact) {
         // Wheel velocity in the ISO-C Frame
@@ -618,38 +617,28 @@ void ChTMeasyTire::GuessPassCar70Par(double tireLoad,       // tire load force [
 bool ChTMeasyTire::CheckParameters() {
     // Nominal Load set?
     if (m_par.pn < GetTireMaxLoad(0)) {
-        std::cerr << "TMsimpleCheckParameters(): Tire Nominal Load Problem!" << std::endl;
+        std::cerr << "TMsimpleCheckParameters(): Incorrect tire nominal load!" << std::endl;
         return false;
     }
 
     // Stiffness parameters, spring
     if (m_d1 <= 0.0) {
-        std::cerr << "TMsimpleCheckParameters(): Tire Vertical Stiffness Problem!" << std::endl;
+        std::cerr << "TMsimpleCheckParameters(): Incorrect tire vertical stiffness!" << std::endl;
         return false;
     }
 
     // Stiffness parameters, spring
     if (m_par.mu_0 <= 0.0) {
-        std::cerr << "TMsimpleCheckParameters(): Friction Coefficien Mu_0 unset!" << std::endl;
+        std::cerr << "TMsimpleCheckParameters(): Incorrect coefficient of friction!" << std::endl;
         return false;
     }
 
     if (m_par.dz <= 0.0) {
-        std::cerr << "TMsimpleCheckParameters(): Tire Vertical Damping Problem!" << std::endl;
+        std::cerr << "TMsimpleCheckParameters(): Incorrect tire vertical damping!" << std::endl;
         return false;
     }
 
     return true;
-}
-
-// set tire reference coefficient of friction
-void ChTMeasyTire::SetFrictionCoefficient(double coeff) {
-    m_par.mu_0 = coeff;
-}
-
-// Set Rolling Resistance Coefficients
-void ChTMeasyTire::SetRollingResistanceCoefficient(double r_coef) {
-    m_rolling_resistance = r_coef;
 }
 
 }  // end namespace vehicle

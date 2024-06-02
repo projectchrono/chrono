@@ -1,0 +1,16 @@
+{
+  "Name": "Duro Rotary-Arm Steering",
+  "Type": "Steering",
+  "Template": "RotaryArm",
+
+  "Pitman Arm": {
+    "Mass": 1.605,
+    "Inertia": [ 0.00638, 0.00756, 0.00150 ],
+    "Inertia Products": [ 0, 0, 0 ],
+    "Radius": 0.02,
+    "Axis of Rotation": [ -1, 0, 0 ], // arm-chassis revolute joint
+    "Point of Rotation": [ 0.22, 0.59, 0.3 ], // location of chassis connection
+    "Point to Draglink": [ 0.22, 0.59, 0.1 ], // location of draglink connection
+    "Maximum Angle (deg)": 12.5
+  }
+}

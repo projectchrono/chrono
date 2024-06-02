@@ -53,6 +53,7 @@ double beam_wy = 0.05;
 double beam_L = 6;
 
 unsigned int num_modes = 14;
+bool USE_GRAVITY = true;
 
 void MakeAndRunDemoCantilever(ChSystem& sys, ChVisualSystemIrrlicht& vis, bool base_fixed) {
     // Clear previous demo, if any:
@@ -65,6 +66,7 @@ void MakeAndRunDemoCantilever(ChSystem& sys, ChVisualSystemIrrlicht& vis, bool b
     // You must add finite elements, bodies and constraints into this assembly in order
     // to compute the modal frequencies etc.; objects not added into this won't be counted.
     auto assembly = chrono_types::make_shared<ChModalAssembly>();
+    assembly->SetModalAutomaticGravity(USE_GRAVITY);
     sys.Add(assembly);
 
     // Now populate the assembly to analyze.
@@ -82,7 +84,7 @@ void MakeAndRunDemoCantilever(ChSystem& sys, ChVisualSystemIrrlicht& vis, bool b
     auto mesh = chrono_types::make_shared<ChMesh>();
     assembly->Add(mesh);
 
-    mesh->SetAutomaticGravity(false);
+    mesh->SetAutomaticGravity(USE_GRAVITY);
 
     // BEAMS:
 
@@ -214,6 +216,7 @@ void MakeAndRunDemoLbeam(ChSystem& sys, ChVisualSystemIrrlicht& vis, bool body1f
     // You must add finite elements, bodies and constraints into this assembly in order
     // to compute the modal frequencies etc.; objects not added into this won't be counted.
     auto assembly = chrono_types::make_shared<ChModalAssembly>();
+    assembly->SetModalAutomaticGravity(USE_GRAVITY);
     sys.Add(assembly);
 
     // Now populate the assembly to analyze.
@@ -223,7 +226,7 @@ void MakeAndRunDemoLbeam(ChSystem& sys, ChVisualSystemIrrlicht& vis, bool body1f
     auto mesh = chrono_types::make_shared<ChMesh>();
     assembly->Add(mesh);
 
-    mesh->SetAutomaticGravity(false);
+    mesh->SetAutomaticGravity(USE_GRAVITY);
 
     // BEAMS:
 
