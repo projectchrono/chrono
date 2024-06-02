@@ -120,6 +120,8 @@ void ChPeridynamics::SetupInitial() {
             n_dofs += vnodes[i]->GetNumCoordsPosLevelActive();
         }
     }
+    for (auto& mat : this->materials)
+        mat->SetupInitial();
 }
 
 void ChPeridynamics::Setup() {
@@ -229,7 +231,7 @@ void ChPeridynamics::FillBox(
     double mtotvol = size.x() * size.y() * size.z();
     double mtotmass = mtotvol * initial_density;
     double nodemass = mtotmass / (double)totsamples;
-    double nodevol = mtotmass / (double)totsamples;
+    double nodevol = mtotvol / (double)totsamples;
 
     for (int ix = 0; ix < samples_x; ix++)
         for (int iy = 0; iy < samples_y; iy++)
