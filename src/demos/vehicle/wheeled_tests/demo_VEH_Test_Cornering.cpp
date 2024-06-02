@@ -48,11 +48,9 @@ int main(int argc, char** argv) {
     cli.AddOption<bool>("SSC", "r,right_turn", "Turn right instead of left", "false");
     cli.AddOption<bool>("SSC", "l,logged_data", "Plot logged data", "false");
     cli.AddOption<bool>("SSC", "c,charts", "Plot result charts", "false");
+    cli.AddOption<bool>("Graphics", "show_car_body", "Show Car Body (default NO)", "false");
     cli.AddOption<bool>("SSC", "b,big_radius", "Use 100 m radius instead of 50 m", "false");
     cli.AddOption<double>("SSC", "s,speed_step", "Speed inrement after subtest (m/s)", "1");
-    cli.AddOption<double>("Controller", "P,P_gain", "Proportional gain of course controller", "8");
-    cli.AddOption<double>("Controller", "I,I_gain", "Integral gain of course controller", "0");
-    cli.AddOption<double>("Controller", "D,D_gain", "Differential gain of course controller", "0");
     cli.AddOption<double>("Controller", "T,preview_distance", "Preview distance of course controller", "5");
     cli.AddOption<double>("Controller", "m,max_deviation", "Maximal course deviation (m)", "0.1");
 
@@ -61,6 +59,7 @@ int main(int argc, char** argv) {
         return 1;
     }
 
+    bool show_car_body = cli.GetAsType<bool>("show_car_body");
     bool right_turn = cli.GetAsType<bool>("right_turn");
     bool big_radius = cli.GetAsType<bool>("big_radius");
     bool logged_data_plot = cli.GetAsType<bool>("logged_data");
@@ -75,9 +74,6 @@ int main(int argc, char** argv) {
     int n_subtests = std::max(5, cli.GetAsType<int>("nsubtests"));
     size_t switch_frame = floor(t_duration / step_size);  // length of subtest as frame number
     double t_end = double(n_subtests) * t_duration;
-    double P_gain = std::max(1.0, cli.GetAsType<double>("P_gain"));
-    double I_gain = std::max(0.0, cli.GetAsType<double>("I_gain"));
-    double D_gain = std::max(0.0, cli.GetAsType<double>("D_gain"));
     double D_pre = std::max(1.0, cli.GetAsType<double>("preview_distance"));
     std::cout << "Big radius = " << big_radius << std::endl;
     std::cout << "Turn right = " << right_turn << std::endl;
@@ -85,8 +81,7 @@ int main(int argc, char** argv) {
     std::cout << "Duration     = " << t_duration << std::endl;
     std::cout << "Plot logged data = " << logged_data_plot << std::endl;
     std::cout << "Plot result charts = " << result_plot << std::endl;
-    std::cout << "PID course = " << P_gain << "," << I_gain << "," << D_gain << std::endl;
-    std::cout << "PID preview = " << D_pre << std::endl;
+    std::cout << "Preview distance = " << D_pre << std::endl;
 
     std::string crg_road_file;
     if (big_radius) {
@@ -165,12 +160,13 @@ int main(int argc, char** argv) {
     init_csys.pos += 0.5 * ChWorldFrame::Vertical();
 
     // Create the vehicle model
-    vehicle_model->Create(&sys, init_csys);
+    vehicle_model->Create(&sys, init_csys, show_car_body);
     auto& vehicle = vehicle_model->GetVehicle();
 
-    ChPathFollowerDriver driver(vehicle, path, "my_path", target_speed);
-    driver.GetSteeringController().SetLookAheadDistance(5.0);
-    driver.GetSteeringController().SetGains(P_gain, I_gain, D_gain);
+    ChPathFollowerDriverPP driver(vehicle, path, "my_path", target_speed);
+    driver.GetSteeringController().SetLookAheadDistance(D_pre);
+    driver.GetSteeringController().SetGain(0);
+    driver.GetSteeringController().SetStartSpeed(target_speed);
     driver.GetSpeedController().SetGains(0.4, 0, 0);
     driver.Initialize();
 
