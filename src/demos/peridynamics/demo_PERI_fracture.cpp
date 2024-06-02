@@ -57,6 +57,9 @@ int main(int argc, char* argv[]) {
 
     // Create a ChronoENGINE physical system
     ChSystemNSC mphysicalSystem;
+    
+    mphysicalSystem.SetNumThreads(std::min(4, ChOMP::GetNumProcs()), 0, 1);
+
 
     // Set small collision envelopes for objects that will be created from now on
     ChCollisionModel::SetDefaultSuggestedEnvelope(0.0002);
