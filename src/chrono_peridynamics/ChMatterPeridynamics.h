@@ -103,6 +103,12 @@ public:
     /// bounds have been updated with latest collision detection.
     virtual void ComputeForces() = 0;
 
+    /// CONSTITUTIVE MODEL - INTERFACE TO IMPLEMENT: (optionally) 
+    /// This function is called where system construction is completed, at the 
+    /// beginning of the simulation. Maybe your constitutive law has to initialize
+    /// some state data, if so you can implement this function, otherwise leave as empty.
+    virtual void SetupInitial() {};
+
 
 
     // -------

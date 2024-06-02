@@ -72,6 +72,41 @@ class ChApiPeridynamics ChPeridynamics : public ChProximityContainer {
     unsigned int GetNnodes() const { return (unsigned int)vnodes.size(); }
 
 
+    /// Create a region filled with nodes. Adds the node to this, and to the specified matter. This is a helper function
+    /// so that you avoid to create all nodes one by one with many calls
+    /// to AddNode().
+
+    void Fill(
+        std::shared_ptr<ChMatterPeriBase> mmatter,      ///< matter to be used for this volume. Must be added too to this, via AddMatter(). 
+        std::vector<ChVector3d>& points,                ///< points obtained from a sampler of the volume, ex. use utils::Sampler
+        const double spacing,                           ///< average spacing used in sampling
+        const double mass,                              ///< total mass of the volume
+        const double volume,                            ///< total volume
+        const double horizon_sfactor,                   ///< the radius of horizon of the particle is 'spacing' multiplied this value
+        const double collision_sfactor,                 ///< the radius of collision shape (sphere) of the particle is 'spacing' multiplied this value
+        const ChCoordsys<> mcoords                      ///< position and rotation of the volume
+    );
+
+
+    /// Create a box filled with nodes. Face nodes are automatically marked as interface, i.e. are collidable.
+    /// Adds the nodes to this, and to the specified matter. This is a helper function
+    /// so that you avoid to create all nodes one by one with many calls to AddNode().
+    void FillBox(
+        std::shared_ptr<ChMatterPeriBase> mmatter,  ///< matter to be used for this volume. Must be added too to this, via AddMatter(). 
+        const ChVector3d size,                      ///< x,y,z sizes of the box to fill (better if integer multiples of spacing)
+        const double spacing,                       ///< the spacing between two near nodes
+        const double initial_density,               ///< density of the material inside the box, for initialization of node's masses
+        const ChCoordsys<> boxcoords = CSYSNORM,    ///< position and rotation of the box
+        const bool do_centeredcube = false,         ///< if false, array is simply cubic, if true is centered cubes (highest regularity)
+        const double horizon_sfactor = 1.6,         ///< the radius of horizon of the particle is 'spacing' multiplied this value
+        const double collision_sfactor = 0.3,       ///< the radius of collision shape (sphere) of the particle is 'spacing' multiplied this value
+        const double randomness = 0.0               ///< randomness of the initial distribution lattice, 0...1
+    );
+
+
+
+
+
     // INTERFACE TO PROXIMITY CONTAINER
 
     /// Tell the number of added contacts
@@ -116,37 +151,6 @@ class ChApiPeridynamics ChPeridynamics : public ChProximityContainer {
     virtual void Update(double mytime, bool update_assets = true) override;
 
 
-    /// Create a region filled with nodes. Adds the node to this, and to the specified matter. This is a helper function
-    /// so that you avoid to create all nodes one by one with many calls
-    /// to AddNode().
-    
-    void Fill(
-        std::shared_ptr<ChMatterPeriBase> mmatter,      ///< matter to be used for this volume. Must be added too to this, via AddMatter(). 
-        std::vector<ChVector3d>& points,                ///< points obtained from a sampler of the volume, ex. use utils::Sampler
-        const double spacing,                           ///< average spacing used in sampling
-        const double mass,                              ///< total mass of the volume
-        const double volume,                            ///< total volume
-        const double horizon_sfactor,                   ///< the radius of horizon of the particle is 'spacing' multiplied this value
-        const double collision_sfactor,                 ///< the radius of collision shape (sphere) of the particle is 'spacing' multiplied this value
-        const ChCoordsys<> mcoords                      ///< position and rotation of the volume
-    );
-    
-
-    /// Create a box filled with nodes. Face nodes are automatically marked as interface, i.e. are collidable.
-    /// Adds the nodes to this, and to the specified matter. This is a helper function
-    /// so that you avoid to create all nodes one by one with many calls to AddNode().
-    void FillBox(
-        std::shared_ptr<ChMatterPeriBase> mmatter,  ///< matter to be used for this volume. Must be added too to this, via AddMatter(). 
-        const ChVector3d size,                      ///< x,y,z sizes of the box to fill (better if integer multiples of spacing)
-        const double spacing,                       ///< the spacing between two near nodes
-        const double initial_density,               ///< density of the material inside the box, for initialization of node's masses
-        const ChCoordsys<> boxcoords = CSYSNORM,    ///< position and rotation of the box
-        const bool do_centeredcube = false,         ///< if false, array is simply cubic, if true is centered cubes (highest regularity)
-        const double horizon_sfactor = 1.6,         ///< the radius of horizon of the particle is 'spacing' multiplied this value
-        const double collision_sfactor = 0.3,       ///< the radius of collision shape (sphere) of the particle is 'spacing' multiplied this value
-        const double randomness = 0.0               ///< randomness of the initial distribution lattice, 0...1
-    );
-
 
     //
     // STATE
@@ -176,7 +180,7 @@ class ChApiPeridynamics ChPeridynamics : public ChProximityContainer {
                                  const unsigned int off_v,
                                  const ChStateDelta& v,
                                  const double T,
-                                 bool full_update) {
+                                 bool full_update) override  {
         unsigned int local_off = 0;
         for (auto& node : vnodes) {
             if (!node->IsFixed()) {
@@ -187,7 +191,7 @@ class ChApiPeridynamics ChPeridynamics : public ChProximityContainer {
         Update(T, full_update);
     }
 
-    virtual void IntStateGatherAcceleration(const unsigned int off_a, ChStateDelta& a) {
+    virtual void IntStateGatherAcceleration(const unsigned int off_a, ChStateDelta& a) override {
         unsigned int local_off = 0;
         for (auto& node : vnodes) {
             if (!node->IsFixed()) {
@@ -196,7 +200,7 @@ class ChApiPeridynamics ChPeridynamics : public ChProximityContainer {
             }
         }
     }
-    virtual void IntStateScatterAcceleration(const unsigned int off_a, const ChStateDelta& a) {
+    virtual void IntStateScatterAcceleration(const unsigned int off_a, const ChStateDelta& a) override {
         unsigned int local_off = 0;
         for (auto& node : vnodes) {
             if (node->IsFixed()) {
@@ -205,7 +209,7 @@ class ChApiPeridynamics ChPeridynamics : public ChProximityContainer {
             }
         }
     }
-    virtual void IntLoadResidual_F(const unsigned int off, ChVectorDynamic<>& R, const double c)  {
+    virtual void IntLoadResidual_F(const unsigned int off, ChVectorDynamic<>& R, const double c) override {
 
         // RESET FORCES ACCUMULATORS CAUSED BY PERIDYNAMIC MATERIALS!
         // Each node will be reset  as  F=0
@@ -235,7 +239,7 @@ class ChApiPeridynamics ChPeridynamics : public ChProximityContainer {
     virtual void IntLoadResidual_Mv(const unsigned int off,
                                     ChVectorDynamic<>& R,
                                     const ChVectorDynamic<>& w,
-                                    const double c) {
+                                    const double c) override {
         unsigned int local_off = 0;
         for (auto& node : vnodes) {
             if (!node->IsFixed()) {
@@ -248,7 +252,7 @@ class ChApiPeridynamics ChPeridynamics : public ChProximityContainer {
     virtual void IntLoadLumpedMass_Md(const unsigned int off,
                                     ChVectorDynamic<>& Md,
                                     double& err,
-                                    const double c) {
+                                    const double c) override {
         unsigned int local_off = 0;
         for (auto& node : vnodes) {
             if (node->IsFixed()) {
@@ -263,7 +267,7 @@ class ChApiPeridynamics ChPeridynamics : public ChProximityContainer {
                                  const ChVectorDynamic<>& R,
                                  const unsigned int off_L,
                                  const ChVectorDynamic<>& L,
-                                 const ChVectorDynamic<>& Qc) {
+                                 const ChVectorDynamic<>& Qc) override {
         unsigned int local_off = 0;
         for (auto& node : vnodes) {
             if (!node->IsFixed()) {
@@ -275,7 +279,7 @@ class ChApiPeridynamics ChPeridynamics : public ChProximityContainer {
     virtual void IntFromDescriptor(const unsigned int off_v,
                                    ChStateDelta& v,
                                    const unsigned int off_L,
-                                   ChVectorDynamic<>& L) {
+                                   ChVectorDynamic<>& L) override {
         unsigned int local_off = 0;
         for (auto& node : vnodes) {
             if (!node->IsFixed()) {
@@ -291,13 +295,13 @@ class ChApiPeridynamics ChPeridynamics : public ChProximityContainer {
 
     // Override/implement system functions of ChPhysicsItem (to assemble/manage data for system solver))
 
-    virtual void VariablesFbReset() {
+    virtual void VariablesFbReset() override {
         // OBSOLETE
         for (auto& node : vnodes) {
             node->VariablesFbReset();
         }
     }
-    virtual void VariablesFbLoadForces(double factor = 1) {
+    virtual void VariablesFbLoadForces(double factor = 1) override {
 
         // RESET FORCES ACCUMULATORS CAUSED BY PERIDYNAMIC MATERIALS!
         // Each node will be reset  as  F=0
@@ -322,31 +326,31 @@ class ChApiPeridynamics ChPeridynamics : public ChProximityContainer {
             node->Variables().Force() += factor * TotForce.eigen();
         }
     }
-    virtual void VariablesQbLoadSpeed() {
+    virtual void VariablesQbLoadSpeed() override {
         // OBSOLETE
         for (auto& node : vnodes) {
             node->VariablesQbLoadSpeed();
         }
     }
-    virtual void VariablesFbIncrementMq() {
+    virtual void VariablesFbIncrementMq() override {
         // OBSOLETE
         for (auto& node : vnodes) {
             node->VariablesFbIncrementMq();
         }
     }
-    virtual void VariablesQbSetSpeed(double step = 0) {
+    virtual void VariablesQbSetSpeed(double step = 0) override {
         // OBSOLETE
         for (auto& node : vnodes) {
             node->VariablesQbSetSpeed(step);
         }
     }
-    virtual void VariablesQbIncrementPosition(double step) {
+    virtual void VariablesQbIncrementPosition(double step) override {
         // OBSOLETE
         for (auto& node : vnodes) {
             node->VariablesQbIncrementPosition(step);
         }
     }
-    virtual void InjectVariables(ChSystemDescriptor& mdescriptor) {
+    virtual void InjectVariables(ChSystemDescriptor& mdescriptor) override {
         // variables.SetDisabled(!IsActive());
         for (auto& node : vnodes) {
             node->InjectVariables(mdescriptor);
@@ -356,14 +360,14 @@ class ChApiPeridynamics ChPeridynamics : public ChProximityContainer {
     // Other functions
 
     /// Set no speed and no accelerations (but does not change the position).
-    void ForceToRest()  {
+    void ForceToRest() override {
         for (auto& node : vnodes) {
             node->ForceToRest();
         }
     }
 
     /// Synchronize coll.models coordinates and bounding boxes to the positions of the particles.
-    virtual void SyncCollisionModels() {
+    virtual void SyncCollisionModels() override {
 
         // COMPUTE COLLISION STATE CHANGES CAUSED BY PERIDYNAMIC MATERIALS!
         // For example generate coll.models in nodes if fractured, remove if elastic-vs-elastic (to reuse persistent bonds) 
