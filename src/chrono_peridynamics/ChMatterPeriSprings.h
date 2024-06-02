@@ -121,44 +121,38 @@ public:
     ChVisualPeriSpringsBreakable(std::shared_ptr<ChMatterPeriSpringsBreakable> amatter) : mmatter(amatter) { is_mutable = true; };
     virtual ~ChVisualPeriSpringsBreakable() {}
 
-    // set true if you want those attributes to be attached to the glyps 
-    // (ex for postprocessing in falsecolor or with vectors with the Blender addon)
-    bool attach_velocity = 0;
-    bool attach_acceleration = 0;
+    // Attach velocity property. (ex for postprocessing in falsecolor or with vectors with the Blender add-on)
+    void AttachVelocity(double min = 0, double max = 1, std::string mname = "Velocity") {
+        vel_property = new ChPropertyVector;
+        vel_property->min = min; vel_property->max = max;  vel_property->name = mname;
+        this->m_properties.push_back(vel_property);
+    }
+
+    // Attach acceleration property. (ex for postprocessing in falsecolor or with vectors with the Blender add-on)
+    void AttachAcceleration(double min = 0, double max = 1, std::string mname = "Acceleration") {
+        acc_property = new ChPropertyVector;
+        acc_property->min = min; acc_property->max = max;  acc_property->name = mname;
+        this->m_properties.push_back(acc_property);
+    }
+
 
 protected:
+    ChPropertyVector* vel_property = 0;
+    ChPropertyVector* acc_property = 0;
+
     virtual void Update(ChPhysicsItem* updater, const ChFrame<>& frame) {
         if (!mmatter)
             return;
         this->Reserve(mmatter->GetNnodes());
+
         unsigned int i = 0;
         for (const auto& anode : mmatter->GetMapOfNodes()) {
-            this->SetGlyphPoint(i, anode.second.node->GetPos());
+            this->SetGlyphPoint(i, anode.first->GetPos());
+            if (vel_property)
+                vel_property->data[i] = anode.first->GetPosDt();
+            if (acc_property)
+                acc_property->data[i] = anode.first->GetPosDt2();
             ++i;
-        }
-        if (attach_velocity) {
-            ChPropertyVector myprop;
-            myprop.name = "velocity";
-            this->AddProperty(myprop);
-            auto mdata = &((ChPropertyVector*)(m_properties.back()))->data;
-            mdata->resize(mmatter->GetNnodes());
-            i = 0;
-            for (const auto& anode : mmatter->GetMapOfNodes()) {
-                mdata->at(i) = anode.second.node->GetPosDt();
-                ++i;
-            }
-        }
-        if (attach_acceleration) {
-            ChPropertyVector myprop;
-            myprop.name = "acceleration";
-            this->AddProperty(myprop);
-            auto mdata = &((ChPropertyVector*)(m_properties.back()))->data;
-            mdata->resize(mmatter->GetNnodes());
-            i = 0;
-            for (const auto& anode : mmatter->GetMapOfNodes()) {
-                mdata->at(i) = anode.second.node->GetPosDt2();
-                ++i;
-            }
         }
 
     }

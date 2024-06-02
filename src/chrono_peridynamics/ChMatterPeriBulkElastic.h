@@ -42,7 +42,7 @@ public:
 /// Simple bond-based peridynamic material whose elasticity depends on a single
 /// parameter, that is K, the bulk modulus.  
 /// The Poisson ratio is always 1/4 and cannot be set otherwise, as in general for bond-based
-/// elasticity models. Having a fixed Poission ration can be a limitation, but the positive
+/// elasticity models. Having a fixed Poisson ration can be a limitation, but the positive
 /// note is that this material is very computationally-efficient.
 
 class ChApiPeridynamics ChMatterPeriBulkElastic : public ChMatterPeri<ChMatterDataPerNode, ChMatterDataPerBoundBulk> {
@@ -53,8 +53,8 @@ public:
     /// bulk damping, unit  Pa*s/m, i.e. Ns/m^3
     double r_bulk = 10;
     
-    /// maximum stretch - after this, bonds will break
-    double max_stretch = 0.08;
+    /// maximum stretch - after this, bonds will break. Default no break.
+    double max_stretch = 1e30;
 
     ChMatterPeriBulkElastic() {};
 
@@ -129,8 +129,8 @@ public:
     
 
 protected:
-    ChPropertyVector* vel_property;
-    ChPropertyVector* acc_property;
+    ChPropertyVector* vel_property =0;
+    ChPropertyVector* acc_property =0;
 
     virtual void Update(ChPhysicsItem* updater, const ChFrame<>& frame) {
         if (!mmatter)
