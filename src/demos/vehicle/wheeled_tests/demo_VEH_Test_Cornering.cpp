@@ -12,7 +12,7 @@
 // Authors: Rainer Gericke
 // =============================================================================
 //
-// Steady-state corenring test for Chrono::Vehicle models.
+// Steady-state cornering test for Chrono::Vehicle models.
 //
 // The vehicle reference frame has Z up, X towards the front of the vehicle, and
 // Y pointing to the left.
@@ -44,6 +44,7 @@ int main(int argc, char** argv) {
     ChCLI cli(argv[0]);
 
     cli.AddOption<double>("SSC", "d,duration", "Subtest duration (s)", "30.0");
+    cli.AddOption<double>("SSC", "f,friction-coefficient", "Road surface friction coefficient ()", "0.8");
     cli.AddOption<int>("SSC", "n,nsubtests", "No. of subtests ()", "20");
     cli.AddOption<bool>("SSC", "r,right_turn", "Turn right instead of left", "false");
     cli.AddOption<bool>("SSC", "l,logged_data", "Plot logged data", "false");
@@ -65,6 +66,7 @@ int main(int argc, char** argv) {
     bool logged_data_plot = cli.GetAsType<bool>("logged_data");
     bool result_plot = cli.GetAsType<bool>("charts");
     bool output_images = false;
+    double road_friction = std::max(0.1,cli.GetAsType<double>("friction-coefficient"));
     double target_speed = 5;
     double speed_step = std::max(1.0, cli.GetAsType<double>("speed_step"));
     double step_size = 1.0e-3;
@@ -75,13 +77,14 @@ int main(int argc, char** argv) {
     size_t switch_frame = floor(t_duration / step_size);  // length of subtest as frame number
     double t_end = double(n_subtests) * t_duration;
     double D_pre = std::max(1.0, cli.GetAsType<double>("preview_distance"));
-    std::cout << "Big radius = " << big_radius << std::endl;
-    std::cout << "Turn right = " << right_turn << std::endl;
-    std::cout << "No. Subtests = " << n_subtests << std::endl;
-    std::cout << "Duration     = " << t_duration << std::endl;
-    std::cout << "Plot logged data = " << logged_data_plot << std::endl;
+    std::cout << "Big radius         = " << big_radius << std::endl;
+    std::cout << "Turn right         = " << right_turn << std::endl;
+    std::cout << "No. Subtests       = " << n_subtests << std::endl;
+    std::cout << "Duration           = " << t_duration << std::endl;
+    std::cout << "Road friction      = " << road_friction << std::endl;
+    std::cout << "Plot logged data   = " << logged_data_plot << std::endl;
     std::cout << "Plot result charts = " << result_plot << std::endl;
-    std::cout << "Preview distance = " << D_pre << std::endl;
+    std::cout << "Preview distance   = " << D_pre << std::endl;
 
     std::string crg_road_file;
     if (big_radius) {
@@ -118,7 +121,7 @@ int main(int argc, char** argv) {
 
     CRGTerrain terrain(&sys);
     terrain.UseMeshVisualization(true);
-    terrain.SetContactFrictionCoefficient(0.8f);
+    terrain.SetContactFrictionCoefficient(road_friction);
     terrain.SetRoadsidePostDistance(50.0);
     // bright concrete
     terrain.SetRoadDiffuseTextureFile("vehicle/terrain/textures/Concrete002_2K-JPG/Concrete002_2K_Color.jpg");
@@ -268,16 +271,20 @@ int main(int argc, char** argv) {
             dev_filter.Add(sqrt(pow(sentinelPos[0] - targetPos[0], 2) + pow(sentinelPos[1] - targetPos[1], 2)));
         if (time > 10)
             csv << time << speed << acc_y << deviation << std::endl;
+        if (deviation > max_dev && time > 10) {
+            std::cout << "Vehicle leaves turn circle! Test Stopped." << std::endl;
+            break;
+        }
         if (sim_frame % switch_frame == 0 && sim_frame > 0) {
-            std::cout << "Actual Deviation = " << deviation << " m" << std::endl;
-            if (deviation > max_dev && time > 10) {
-                std::cout << "Vehicle leaves turn circle! Test Stopped." << std::endl;
-                break;
-            }
+            std::cout << "Actual course deviation = " << deviation << " m at Ay = " << floor(100.0*acc_y/9.81) << "% G" << std::endl;
             csv_res << acc_y << driver.GetSteering() << std::endl;
             csv_angle << acc_y << roll << pitch << veh_slip_angle << std::endl;
             target_speed += speed_step;
             driver.SetDesiredSpeed(target_speed);
+            if (driver.GetInputs().m_throttle > 0.9 && time > 10) {
+                std::cout << "Vehicle engine power exhausted! Test Stopped." << std::endl;
+                break;
+            }
         }
 
         // Render scene and output images

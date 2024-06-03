@@ -65,13 +65,11 @@ const ChVector3d BMW_E90_DoubleWishbone::m_tierodInertia(0.05, 0.05, 0.5);
 
 const double BMW_E90_DoubleWishbone::m_axleInertia = 0.4;
 
-const double BMW_E90_DoubleWishbone::m_kinematicFactorSpring = 2.109289617;
-const double BMW_E90_DoubleWishbone::m_kinematicFactorDamper = 1.969387755;
 const double BMW_E90_DoubleWishbone::m_springRestLength = 0.275364585;
-const double BMW_E90_DoubleWishbone::m_springConstant = 37130.0 * m_kinematicFactorSpring * m_kinematicFactorSpring;
-// static wheel load = 560 kg
-const double BMW_E90_DoubleWishbone::m_springPreload = 560 * 9.81 * m_kinematicFactorSpring;
-const double BMW_E90_DoubleWishbone::m_damperConstant = 5810.4 * m_kinematicFactorDamper * m_kinematicFactorDamper;
+const double BMW_E90_DoubleWishbone::m_springConstant = 37130.0;
+
+const double BMW_E90_DoubleWishbone::m_springPreload = 7600;
+const double BMW_E90_DoubleWishbone::m_damperConstant = 5810.4;
 
 // -----------------------------------------------------------------------------
 
