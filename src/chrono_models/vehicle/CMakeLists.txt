@@ -83,6 +83,10 @@ set(CVM_BMW_FILES
     bmw/BMW_E90_TMsimpleTireFront.h
     bmw/BMW_E90_TMsimpleTireRear.cpp
     bmw/BMW_E90_TMsimpleTireRear.h
+        bmw/BMW_E90_TMeasyTireFront.cpp
+        bmw/BMW_E90_TMeasyTireFront.h
+        bmw/BMW_E90_TMeasyTireRear.cpp
+        bmw/BMW_E90_TMeasyTireRear.h
 )
 source_group("bmw" FILES ${CVM_BMW_FILES})
 

@@ -30,6 +30,8 @@
 #include "chrono_models/vehicle/bmw/BMW_E90_EngineSimpleMap.h"
 #include "chrono_models/vehicle/bmw/BMW_E90_TMsimpleTireFront.h"
 #include "chrono_models/vehicle/bmw/BMW_E90_TMsimpleTireRear.h"
+#include "chrono_models/vehicle/bmw/BMW_E90_TMeasyTireFront.h"
+#include "chrono_models/vehicle/bmw/BMW_E90_TMeasyTireRear.h"
 
 namespace chrono {
 namespace vehicle {
