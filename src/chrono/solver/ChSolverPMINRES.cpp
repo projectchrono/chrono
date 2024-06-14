@@ -98,7 +98,8 @@ double ChSolverPMINRES::Solve(ChSystemDescriptor& sysd) {
     // Put (M^-1)*k    in  q  sparse vector of each variable..
     for (unsigned int iv = 0; iv < mvariables.size(); iv++)
         if (mvariables[iv]->IsActive())
-            mvariables[iv]->ComputeMassInverseTimesVector(mvariables[iv]->State(), mvariables[iv]->Force());  // q = [M]'*fb
+            mvariables[iv]->ComputeMassInverseTimesVector(mvariables[iv]->State(),
+                                                          mvariables[iv]->Force());  // q = [M]'*fb
 
     // ...and now do  b_schur = - D' * q  ..
     mb.setZero();
@@ -163,6 +164,8 @@ double ChSolverPMINRES::Solve(ChSystemDescriptor& sysd) {
     //
 
     std::vector<double> f_hist;
+    std::fill(violation_history.begin(), violation_history.end(), 0.0);
+    std::fill(dlambda_history.begin(), dlambda_history.end(), 0.0);
 
     for (int iter = 0; iter < m_max_iterations; iter++) {
         // MNp = Mi*Np; % = Mi*N*p                  %% -- Precond

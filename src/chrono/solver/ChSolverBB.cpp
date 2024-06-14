@@ -161,6 +161,9 @@ double ChSolverBB::Solve(ChSystemDescriptor& sysd) {
     double mf = 1e29;
     std::vector<double> f_hist;
 
+    std::fill(violation_history.begin(), violation_history.end(), 0.0);
+    std::fill(dlambda_history.begin(), dlambda_history.end(), 0.0);
+
     for (int iter = 0; iter < m_max_iterations; iter++) {
         // Dg = Di*g;
         mDg = mg;

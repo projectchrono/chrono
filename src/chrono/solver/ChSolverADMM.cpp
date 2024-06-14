@@ -89,8 +89,7 @@ double ChSolverADMM::_SolveBasic(ChSystemDescriptor& sysd) {
 
         m_timer_convert.stop();
         if (verbose)
-            std::cout << " Time for BuildSystemMatrix: << " << m_timer_convert.GetTimeSeconds() << "s"
-                      << std::endl;
+            std::cout << " Time for BuildSystemMatrix: << " << m_timer_convert.GetTimeSeconds() << "s" << std::endl;
 
         // v = H\k
         LS_solver->SetupCurrent();
@@ -189,8 +188,9 @@ double ChSolverADMM::_SolveBasic(ChSystemDescriptor& sysd) {
         int d_i = 0;
         for (unsigned int ic = 0; ic < mconstraints.size(); ic++)
             if (mconstraints[ic]->IsActive()) {
-                S(d_i, 0) = sqrt(mconstraints[ic]->GetSchurComplement());  // square root of diagonal of N, just mass matrices
-                                                                // considered, no stiffness matrices anyway
+                S(d_i, 0) =
+                    sqrt(mconstraints[ic]->GetSchurComplement());  // square root of diagonal of N, just mass matrices
+                                                                   // considered, no stiffness matrices anyway
                 ++d_i;
             }
         // Now we should scale Cq, E, b as
@@ -264,8 +264,7 @@ double ChSolverADMM::_SolveBasic(ChSystemDescriptor& sysd) {
 
     m_timer_convert.stop();
     if (verbose)
-        std::cout << " Time for BuildSystemMatrix: << " << m_timer_convert.GetTimeSeconds() << "s"
-                  << std::endl;
+        std::cout << " Time for BuildSystemMatrix: << " << m_timer_convert.GetTimeSeconds() << "s" << std::endl;
 
     m_timer_factorize.start();
 
@@ -285,6 +284,9 @@ double ChSolverADMM::_SolveBasic(ChSystemDescriptor& sysd) {
     res_story.r_rho=zeros(1,1);
     res_story.r_violation=zeros(1,1);
     */
+
+    std::fill(violation_history.begin(), violation_history.end(), 0.0);
+    std::fill(dlambda_history.begin(), dlambda_history.end(), 0.0);
 
     for (int iter = 0; iter < m_max_iterations; iter++) {
         // diagnostic
@@ -439,8 +441,8 @@ double ChSolverADMM::_SolveBasic(ChSystemDescriptor& sysd) {
 
                 m_timer_refactorize.stop();
                 if (verbose)
-                    std::cout << " Time for re-factorize : << " << m_timer_refactorize.GetTimeSeconds()
-                              << "s" << std::endl;
+                    std::cout << " Time for re-factorize : << " << m_timer_refactorize.GetTimeSeconds() << "s"
+                              << std::endl;
             }
 
         }  // end step adjust
@@ -498,8 +500,7 @@ double ChSolverADMM::_SolveFast(ChSystemDescriptor& sysd) {
 
         m_timer_convert.stop();
         if (verbose)
-            std::cout << " Time for BuildSystemMatrix: << " << m_timer_convert.GetTimeSeconds() << "s"
-                      << std::endl;
+            std::cout << " Time for BuildSystemMatrix: << " << m_timer_convert.GetTimeSeconds() << "s" << std::endl;
 
         // v = H\k
         LS_solver->SetupCurrent();
@@ -600,8 +601,9 @@ double ChSolverADMM::_SolveFast(ChSystemDescriptor& sysd) {
         int d_i = 0;
         for (unsigned int ic = 0; ic < mconstraints.size(); ic++)
             if (mconstraints[ic]->IsActive()) {
-                S(d_i, 0) = sqrt(mconstraints[ic]->GetSchurComplement());  // square root of diagonal of N, just mass matrices
-                                                                // considered, no stiffness matrices anyway
+                S(d_i, 0) =
+                    sqrt(mconstraints[ic]->GetSchurComplement());  // square root of diagonal of N, just mass matrices
+                                                                   // considered, no stiffness matrices anyway
                 ++d_i;
             }
         // Now we should scale Cq, E, b as
@@ -675,8 +677,7 @@ double ChSolverADMM::_SolveFast(ChSystemDescriptor& sysd) {
 
     m_timer_convert.stop();
     if (verbose)
-        std::cout << " Time for BuildSystemMatrix: << " << m_timer_convert.GetTimeSeconds() << "s"
-                  << std::endl;
+        std::cout << " Time for BuildSystemMatrix: << " << m_timer_convert.GetTimeSeconds() << "s" << std::endl;
 
     m_timer_factorize.start();
 
@@ -868,8 +869,8 @@ double ChSolverADMM::_SolveFast(ChSystemDescriptor& sysd) {
 
                 m_timer_refactorize.stop();
                 if (verbose)
-                    std::cout << " Time for re-factorize : << " << m_timer_refactorize.GetTimeSeconds()
-                              << "s" << std::endl;
+                    std::cout << " Time for re-factorize : << " << m_timer_refactorize.GetTimeSeconds() << "s"
+                              << std::endl;
             }
 
         }  // end step adjust
