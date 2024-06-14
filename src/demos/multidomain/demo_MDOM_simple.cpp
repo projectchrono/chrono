@@ -18,6 +18,7 @@
 
 #include "chrono/physics/ChSystemSMC.h"
 #include "chrono/physics/ChLinkMotorRotationSpeed.h"
+#include "chrono/serialization/ChArchiveBinary.h"
 
 #include "chrono_irrlicht/ChVisualSystemIrrlicht.h"
 #include "chrono_multidomain/ChDomainManager.h"
@@ -153,9 +154,53 @@ std::shared_ptr<ChBody> AddContainer(ChSystemSMC& sys) {
 int main(int argc, char* argv[]) {
     std::cout << "Copyright (c) 2024 projectchrono.org\nChrono version: " << CHRONO_VERSION << std::endl;
 
+    std::stringstream mbuffer;
+    ChArchiveOutBinary archive_out(mbuffer);
+
+
+    ///////////
+    // TEST
+
+    ChDomainManagerSharedmemory domain_manager;
+    ChDomainBuilderSlices       domain_builder(
+                                        2,              // how many domains 
+                                        -20, 20,        // interval to slice
+                                        ChAxis::X);     // axis about whom one needs the space slicing
+
+
+    ChSystemSMC sys_0;
+    sys_0.SetCollisionSystemType(ChCollisionSystem::Type::BULLET);
+
+    domain_manager.AddDomain(domain_builder.BuildDomain(
+                                        &sys_0, // physical system of this domain
+                                        0       // rank of this domain 
+                                       ));
+
+   
+    ChSystemSMC sys_1;
+    sys_1.SetCollisionSystemType(ChCollisionSystem::Type::BULLET);
+
+    domain_manager.AddDomain(domain_builder.BuildDomain(
+                                        &sys_1, // physical system of this domain
+                                        1       // rank of this domain 
+                                       ));
+
+    domain_manager.DoUpdateSharedLeaving();
+    domain_manager.DoDomainsSendReceive();
+    domain_manager.DoUpdateSharedReceived();
+
+
+    system("pause");
+    return 0;
+
+
+
+
+
+
     // Simulation and rendering time-step
     double time_step = 1e-4;
-    double out_step = 1.0 / 20;
+
 
     // Create the physical system
     ChSystemSMC sys;
