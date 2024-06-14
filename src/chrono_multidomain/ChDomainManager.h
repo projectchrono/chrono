@@ -17,7 +17,9 @@
 
 #include <unordered_set>
 #include <unordered_map>
+#include <sstream>
 
+#include "chrono/serialization/ChArchiveBinary.h"
 #include "chrono/physics/ChSystem.h"
 #include "chrono/fea/ChMesh.h"
 #include "chrono/geometry/ChGeometry.h"
@@ -26,20 +28,77 @@
 namespace chrono {
 namespace multidomain {
 
+// Forward decl
+class ChDomain;
 
-/// Class for managing domain decomposition and inter-domain data serialization/deserialization.
-/// This takes care of transient-persistent-transient converison of chrono models, so that 
-/// bodies, links, etc. can migrate through domain boundaries.
+/// Base class of mechanisms that allow inter-domain communication. 
 
 class ChApiMultiDomain ChDomainManager {
+public:
+    ChDomainManager() {};
+    virtual ~ChDomainManager() {};
+
+    virtual bool DoUpdateSharedLeaving() = 0;
+    virtual bool DoDomainsSendReceive() = 0;
+    virtual bool DoUpdateSharedReceived() = 0;
+};
+
+/// The simpliest form of multidomain communication: domains are residing in the 
+/// same memory, so this single stucture handles pointers to all domains. This also
+/// mean that this must be instanced once and shared among different threads on a single cpu.
+
+class ChApiMultiDomain ChDomainManagerSharedmemory : public ChDomainManager {
+public:
+    ChDomainManagerSharedmemory() {};
+    virtual ~ChDomainManagerSharedmemory() {};
+
+    virtual bool DoUpdateSharedLeaving();
+    virtual bool DoDomainsSendReceive();
+    virtual bool DoUpdateSharedReceived();
+
+    /// As soon as you create a domain via a ChDomainBuilder, you must add it here:
+    void AddDomain(std::shared_ptr<ChDomain> mdomain);
+
+    std::unordered_map<int, std::shared_ptr<ChDomain>> domains;
+};
+
+
+
+/// Class of helpers to manage domain decomposition and inter-domain data serialization/deserialization.
+
+class ChApiMultiDomain ChDomainBuilder {
   public:
-    ChDomainManager();
-    ~ChDomainManager() {}
+    ChDomainBuilder() {};
+    virtual ~ChDomainBuilder() {}
+
+    virtual int GetTotRanks() = 0;
 
   private:
 };
 
+class ChApiMultiDomain ChDomainBuilderSlices {
+public:
+    ChDomainBuilderSlices(
+        int tot_ranks,
+        double mmin,
+        double mmax,
+        ChAxis maxis);
 
+    ChDomainBuilderSlices(
+        std::vector<double> axis_cuts,
+        ChAxis maxis);
+    virtual ~ChDomainBuilderSlices() {}
+
+    virtual int GetTotRanks() { return domains_bounds.size() - 1; };
+
+    std::shared_ptr<ChDomain> BuildDomain(
+        ChSystem* msys,
+        int this_rank);
+
+private:
+    std::vector<double> domains_bounds;
+    ChAxis axis = ChAxis::X;
+};
 
 
 ////////////////////////////////////////////////////////////////////////////////////////////////
@@ -55,23 +114,43 @@ public:
         system = msystem;
         rank = mrank;
     }
-    ~ChDomain() {}
+    virtual ~ChDomain() {}
 
-    // Test if some item, with axis-aligned bounding box, must be included in this domain.
-    // Children classes must implement this, depending on the shape of the domain.
+    /// Test if some item, with axis-aligned bounding box, must be included in this domain.
+    /// Children classes must implement this, depending on the shape of the domain.
     virtual bool IsOverlap(ChAABB abox) = 0;
 
-    // Test if some item, represented by a single point, must be included in this domain.
+    /// Test if some item, represented by a single point, must be included in this domain.
     virtual bool IsInto(ChVector3d apoint) = 0;
 
+    /// Prepare serialization of with items to send to neighbours, storing in 
+    /// the buffer_sending  of the domain interfaces.
+    /// Remove items that are not here anymore. 
+    /// This is usually followed by a set of global MPI send/receive operations,
+    /// and finally a DoUpdateSharedReceived()
+    virtual void DoUpdateSharedLeaving();
 
-    virtual void DoUpdateShared();
+    /// Deserialize of items received from neighbours, fetching from  
+    /// the buffer_receiving  of the domain interfaces. Creates items in ChSystem if needed.
+    /// This is usually preceded by a DoUpdateSharedLeaving() and a 
+    /// global MPI send/receive operations.
+    virtual void DoUpdateSharedReceived();
+
+
+    /// Get map of interfaces
+    std::unordered_map<int, ChDomainInterface>& GetInterfaces()  { return interfaces; };
+
+    /// Get rank of this domain
+    int GetRank() {  return rank;  };
+
+    /// Set rank of this domain
+    void SetRank(int mrank) { rank = mrank; };
 
 private:
     int rank = 0;
     ChSystem* system = nullptr;
 
-    std::vector<ChDomainInterface> interfaces;
+    std::unordered_map<int, ChDomainInterface>  interfaces; // key is rank of neighbour domain
 };
 
 
@@ -88,9 +167,9 @@ class ChApiMultiDomain ChDomainSlice : public ChDomain {
         max = mmax;
         axis = maxis;
     }
-    ~ChDomainSlice() {}
+    virtual ~ChDomainSlice() {}
 
-    // Test if some item, with axis-aligned bounding box, must be included in this domain
+    /// Test if some item, with axis-aligned bounding box, must be included in this domain
     virtual bool IsOverlap(ChAABB abox) override {
         switch (axis) {
         case ChAxis::X:
@@ -113,7 +192,7 @@ class ChApiMultiDomain ChDomainSlice : public ChDomain {
         }
     }
 
-    // Test if some item, represented by a single point, must be included in this domain.
+    /// Test if some item, represented by a single point, must be included in this domain.
     virtual bool IsInto(ChVector3d apoint) override {
         switch (axis) {
         case ChAxis::X:
@@ -150,9 +229,9 @@ public:
     ChDomainBox(ChSystem* msystem, int mrank, ChAABB domain_aabb) : ChDomain(msystem, mrank) {
         aabb = domain_aabb;
     }
-    ~ChDomainBox() {}
+    virtual ~ChDomainBox() {}
 
-    // Test if some item, with axis-aligned bounding box, must be included in this domain
+    /// Test if some item, with axis-aligned bounding box, must be included in this domain
     virtual bool IsOverlap(ChAABB abox) override {
         if ((aabb.min.x() <= abox.max.x() && abox.min.x() < aabb.max.x()) &&
             (aabb.min.y() <= abox.max.y() && abox.min.y() < aabb.max.y()) &&
@@ -162,7 +241,7 @@ public:
             return false;
     }
 
-    // Test if some item, represented by a single point, must be included in this domain.
+    /// Test if some item, represented by a single point, must be included in this domain.
     virtual bool IsInto(ChVector3d apoint) override {
         if ((aabb.min.x() <= apoint.x() && apoint.x() < apoint.x()) &&
             (aabb.min.y() <= apoint.y() && apoint.y() < apoint.y()) &&
@@ -180,26 +259,49 @@ private:
 ////////////////////////////////////////////////////////////////////////////////////////////////
 
 
-// Class for interfacing between domains, for example when two domains share
-// a face or an edge or a corner. A domain handles multiples of this, depending
-// on the topology of the domain partitioning.
-// The A_side_domain is the "internal" side, the B_side_domain is the "outer" side
-// and most often (on distributed memory architectures) is just a placeholder domain
-// that has no ChSystem and it is used only to store the geometry&rank of the domains surrounding
-// the one of the running rank.
+/// Class for interfacing between domains, for example when two domains share
+/// a face or an edge or a corner. A domain handles multiples of this, depending
+/// on the topology of the domain partitioning.
+/// The side_IN_domain is the "internal" side, the side_OUT_domain is the "outer" side
+/// and most often (on distributed memory architectures) is just a placeholder domain
+/// that has no ChSystem and it is used only to store the geometry&rank of the domains surrounding
+/// the one of the running rank.
 
 class ChApiMultiDomain ChDomainInterface {
 public:
-    ChDomainInterface(ChDomain* A_side_domain, ChDomain* B_side_domain);
+    ChDomainInterface() {};
     ~ChDomainInterface() {}
 
-    ChDomain* A_side = nullptr;
-    ChDomain* B_side = nullptr;
+    ChDomainInterface(const ChDomainInterface& other) {
+        side_IN = other.side_IN;
+        side_OUT = other.side_OUT;
+        shared_bodies = other.shared_bodies;
+        shared_items = other.shared_items;
+        shared_nodes = other.shared_nodes;
+        buffer_sending << other.buffer_sending.rdbuf();
+        buffer_receiving << other.buffer_receiving.rdbuf();
+    };
+    ChDomainInterface& operator =(const ChDomainInterface& other) {
+        side_IN = other.side_IN;
+        side_OUT = other.side_OUT;
+        shared_bodies = other.shared_bodies;
+        shared_items = other.shared_items;
+        shared_nodes = other.shared_nodes;
+        buffer_sending << other.buffer_sending.rdbuf();
+        buffer_receiving << other.buffer_receiving.rdbuf();
+        return *this;
+    }
 
+    ChDomain* side_IN = nullptr;
+    std::shared_ptr<ChDomain> side_OUT;
+
+    std::unordered_map<int, std::shared_ptr<ChBody>>        shared_bodies;
     std::unordered_map<int, std::shared_ptr<ChPhysicsItem>> shared_items;
     std::unordered_map<int, std::shared_ptr<ChNodeBase>>    shared_nodes;
-    std::vector<std::shared_ptr<ChPhysicsItem>> items_to_send;
-    std::vector<std::shared_ptr<ChNodeBase>>    nodes_to_send;
+
+    std::stringstream buffer_sending;
+    std::stringstream buffer_receiving;
+
 private:
 };
 
