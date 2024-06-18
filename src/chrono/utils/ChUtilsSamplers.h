@@ -41,6 +41,7 @@
 
 #include "chrono/core/ChApiCE.h"
 #include "chrono/core/ChVector3.h"
+#include "chrono/utils/ChUtils.h"
 
 namespace chrono {
 namespace utils {
@@ -112,6 +113,7 @@ class ChSampler {
     PointVector SampleBox(const ChVector3<T>& center, const ChVector3<T>& halfDim) {
         m_center = center;
         m_size = halfDim;
+        SetFuzz();
         return Sample(BOX);
     }
 
@@ -119,6 +121,7 @@ class ChSampler {
     PointVector SampleSphere(const ChVector3<T>& center, T radius) {
         m_center = center;
         m_size = ChVector3<T>(radius, radius, radius);
+        SetFuzz();
         return Sample(SPHERE);
     }
 
@@ -126,6 +129,7 @@ class ChSampler {
     PointVector SampleCylinderX(const ChVector3<T>& center, T radius, T halfHeight) {
         m_center = center;
         m_size = ChVector3<T>(halfHeight, radius, radius);
+        SetFuzz();
         return Sample(CYLINDER_X);
     }
 
@@ -133,6 +137,7 @@ class ChSampler {
     PointVector SampleCylinderY(const ChVector3<T>& center, T radius, T halfHeight) {
         m_center = center;
         m_size = ChVector3<T>(radius, halfHeight, radius);
+        SetFuzz();
         return Sample(CYLINDER_Y);
     }
 
@@ -143,10 +148,10 @@ class ChSampler {
         return Sample(CYLINDER_Z);
     }
 
-    /// Get the current value of the minimum separation.
+    /// Get the current value of the suggested minimum separation.
     virtual T GetSeparation() const { return m_separation; }
 
-    /// Change the minimum separation for subsequent calls to Sample.
+    /// Change the suggested minimum separation for subsequent calls to Sample.
     virtual void SetSeparation(T separation) { m_separation = separation; }
 
   protected:
@@ -161,31 +166,34 @@ class ChSampler {
     /// Utility function to check if a point is inside the sampling volume.
     bool accept(VolumeType t, const ChVector3<T>& p) const {
         ChVector3<T> vec = p - m_center;
-        T fuzz = (m_size.x() < 1) ? (T)1e-6 * m_size.x() : (T)1e-6;
 
         switch (t) {
             case BOX:
-                return (std::abs(vec.x()) <= m_size.x() + fuzz) && (std::abs(vec.y()) <= m_size.y() + fuzz) &&
-                       (std::abs(vec.z()) <= m_size.z() + fuzz);
+                return (std::abs(vec.x()) <= m_size.x() + m_fuzz) && (std::abs(vec.y()) <= m_size.y() + m_fuzz) &&
+                       (std::abs(vec.z()) <= m_size.z() + m_fuzz);
             case SPHERE:
-                return (vec.Length2() <= m_size.x() * m_size.x());
+                return (vec.Length() <= m_size.x() + m_fuzz);
             case CYLINDER_X:
-                return (vec.y() * vec.y() + vec.z() * vec.z() <= m_size.y() * m_size.y()) &&
-                       (std::abs(vec.x()) <= m_size.x() + fuzz);
+                return (vec.y() * vec.y() + vec.z() * vec.z() <= (m_size.y() + m_fuzz) * (m_size.y() + m_fuzz)) &&
+                       (std::abs(vec.x()) <= m_size.x() + m_fuzz);
             case CYLINDER_Y:
-                return (vec.z() * vec.z() + vec.x() * vec.x() <= m_size.z() * m_size.z()) &&
-                       (std::abs(vec.y()) <= m_size.y() + fuzz);
+                return (vec.z() * vec.z() + vec.x() * vec.x() <= (m_size.z() + m_fuzz) * (m_size.z() + m_fuzz)) &&
+                       (std::abs(vec.y()) <= m_size.y() + m_fuzz);
             case CYLINDER_Z:
-                return (vec.x() * vec.x() + vec.y() * vec.y() <= m_size.x() * m_size.x()) &&
-                       (std::abs(vec.z()) <= m_size.z() + fuzz);
+                return (vec.x() * vec.x() + vec.y() * vec.y() <= (m_size.x() + m_fuzz) * (m_size.x() + m_fuzz)) &&
+                       (std::abs(vec.z()) <= m_size.z() + m_fuzz);
             default:
                 return false;
         }
     }
 
     T m_separation;         ///< inter-particle separation
+    T m_fuzz;               ///< fuzz value to account for roundoff error
     ChVector3<T> m_center;  ///< center of the sampling volume
     ChVector3<T> m_size;    ///< half dimensions of the bounding box of the sampling volume
+
+  private:
+    void SetFuzz() { m_fuzz = (m_size.x() < 1) ? (T)1e-6 * m_size.x() : (T)1e-6; }
 };
 
 /// Simple 3D grid utility class for use by the Poisson Disk sampler.
@@ -492,21 +500,24 @@ class ChGridSampler : public ChSampler<T> {
     virtual PointVector Sample(VolumeType t) override {
         PointVector out_points;
 
+        ChVector3<int> n;    // number of divisions in each direction
+        ChVector3<T> sep3D;  // adjusted separation in each direction
+        for (int i = 0; i < 3; i++) {
+            auto d = 2 * this->m_size[i];
+            n[i] = std::round(d / this->m_sep3D[i]);
+            sep3D[i] = d / n[i];
+        }
+
         ChVector3<T> bl = this->m_center - this->m_size;
-
-        int nx = (int)(2 * this->m_size.x() / m_sep3D.x()) + 1;
-        int ny = (int)(2 * this->m_size.y() / m_sep3D.y()) + 1;
-        int nz = (int)(2 * this->m_size.z() / m_sep3D.z()) + 1;
-
-        for (int i = 0; i < nx; i++) {
-            for (int j = 0; j < ny; j++) {
-                for (int k = 0; k < nz; k++) {
-                    ChVector3<T> p = bl + ChVector3<T>(i * m_sep3D.x(), j * m_sep3D.y(), k * m_sep3D.z());
+        for (int ix = 0; ix <= n[0]; ix++) {
+            for (int iy = 0; iy <= n[1]; iy++) {
+                for (int iz = 0; iz <= n[2]; iz++) {
+                    auto p = bl + ChVector3<T>(ix * sep3D.x(), iy * sep3D.y(), iz * sep3D.z());
                     if (this->accept(t, p))
                         out_points.push_back(p);
                 }
             }
-        }
+        }        
 
         return out_points;
     }
