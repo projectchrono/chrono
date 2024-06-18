@@ -64,6 +64,12 @@ double t_end = 2.0;
 bool render = true;
 float render_fps = 1000;
 
+// Visibility flags
+bool show_rigid = true;
+bool show_rigid_bce = false;
+bool show_boundary_bce = false;
+bool show_particles_sph = true;
+
 //------------------------------------------------------------------
 // Function to save cylinder to Paraview VTK files
 //------------------------------------------------------------------
@@ -180,10 +186,11 @@ void CreateSolidPhase(ChSystemSMC& sysMBS, ChSystemFsi& sysFSI) {
     cylinder->EnableCollision(true);
     cylinder->SetFixed(false);
     chrono::utils::AddCylinderGeometry(cylinder.get(), cmaterial, cyl_radius, cyl_length, VNULL,
-                                       QuatFromAngleX(CH_PI_2));
+                                       QuatFromAngleX(CH_PI_2), show_rigid);
     cylinder->GetCollisionModel()->SetSafeMargin(initSpace0);
 
-    cylinder->GetVisualShape(0)->SetColor(ChColor(0.65f, 0.20f, 0.10f));
+    if (show_rigid)
+        cylinder->GetVisualShape(0)->SetColor(ChColor(0.65f, 0.20f, 0.10f));
 
     // Add this body to chrono system
     sysMBS.AddBody(cylinder);
@@ -240,21 +247,18 @@ int main(int argc, char* argv[]) {
     ChVector3d cMax(bxDim / 2 * 10, byDim / 2 * 10, bzDim * 10);
     sysFSI.SetBoundaries(cMin, cMax);
 
-    // Create an initial box for the terrain patch
+    // Create SPH particle locations using a regular grid sampler
     chrono::utils::ChGridSampler<> sampler(initSpace0);
-
-    // Use a chrono sampler to create a bucket of granular material
     ChVector3d boxCenter(0, 0, bzDim / 2);
-    ChVector3d boxHalfDim(bxDim / 2, byDim / 2, bzDim / 2);
+    ChVector3d boxHalfDim = ChVector3d(bxDim / 2 - initSpace0, byDim / 2 - initSpace0, bzDim / 2 - initSpace0);
     std::vector<ChVector3d> points = sampler.SampleBox(boxCenter, boxHalfDim);
 
-    // Add SPH particles from the sampler points to the FSI system
-    size_t numPart = (int)points.size();
+    // Add SPH particles to the FSI system
     double gz = std::abs(sysFSI.GetGravitationalAcceleration().z());
-    for (int i = 0; i < numPart; i++) {
-        double pre_ini = sysFSI.GetDensity() * gz * (-points[i].z() + bzDim);
+    for (const auto& p : points) {
+        double pre_ini = sysFSI.GetDensity() * gz * (-p.z() + bzDim);
         double rho_ini = sysFSI.GetDensity() + pre_ini / (sysFSI.GetSoundSpeed() * sysFSI.GetSoundSpeed());
-        sysFSI.AddSPHParticle(points[i], rho_ini, pre_ini, sysFSI.GetViscosity(), ChVector3d(0));
+        sysFSI.AddSPHParticle(p, rho_ini, pre_ini, sysFSI.GetViscosity(), ChVector3d(0));
     }
 
     // Create MBD and BCE particles for the solid domain
@@ -305,11 +309,13 @@ int main(int argc, char* argv[]) {
         visFSI->SetSize(1280, 720);
         visFSI->AddCamera(origin - ChVector3d(2 * bxDim, 2 * byDim, 0), origin);
         visFSI->SetCameraMoveScale(0.1f);
-        visFSI->EnableBoundaryMarkers(false);
-        visFSI->EnableRigidBodyMarkers(true);
+        visFSI->EnableFluidMarkers(show_particles_sph);
+        visFSI->EnableBoundaryMarkers(show_boundary_bce);
+        visFSI->EnableRigidBodyMarkers(show_rigid_bce);
         visFSI->SetRenderMode(ChFsiVisualization::RenderMode::SOLID);
         visFSI->SetParticleRenderMode(ChFsiVisualization::RenderMode::SOLID);
-        visFSI->SetSPHColorCallback(chrono_types::make_shared<HeightColorCallback>(0, 1.2));
+        ////visFSI->SetSPHColorCallback(chrono_types::make_shared<HeightColorCallback>(0, 1.2));
+        visFSI->SetSPHColorCallback(chrono_types::make_shared<VelocityColorCallback>(0, 1.0));
         visFSI->AttachSystem(&sysMBS);
         visFSI->Initialize();
     }
