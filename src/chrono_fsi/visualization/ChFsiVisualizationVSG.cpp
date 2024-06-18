@@ -200,6 +200,7 @@ bool ChFsiVisualizationVSG::Render() {
     if (m_vsys->Run()) {
         // Copy SPH particle positions from device to host
         thrust::host_vector<Real4> posH = m_systemFSI->m_sysFSI->sphMarkersD2->posRadD;
+        thrust::host_vector<Real3> velH = m_systemFSI->m_sysFSI->sphMarkersD2->velMasD;
 
         // List of proxy bodies
         ////const auto& blist = m_system->GetBodies();
@@ -209,6 +210,7 @@ bool ChFsiVisualizationVSG::Render() {
         if (m_sph_markers) {
             for (unsigned int i = 0; i < m_systemFSI->GetNumFluidMarkers(); i++) {
                 m_sph_cloud->Particle(i).SetPos(ChVector3d(posH[p + i].x, posH[p + i].y, posH[p + i].z));
+                m_sph_cloud->Particle(i).SetPosDt(ChVector3d(velH[p + i].x, velH[p + i].y, velH[p + i].z));
             }
         }
         p += m_systemFSI->GetNumFluidMarkers();
