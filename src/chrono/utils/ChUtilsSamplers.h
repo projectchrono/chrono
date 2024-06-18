@@ -145,6 +145,7 @@ class ChSampler {
     PointVector SampleCylinderZ(const ChVector3<T>& center, T radius, T halfHeight) {
         m_center = center;
         m_size = ChVector3<T>(radius, radius, halfHeight);
+        SetFuzz();
         return Sample(CYLINDER_Z);
     }
 
