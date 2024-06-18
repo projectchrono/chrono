@@ -340,7 +340,7 @@ int main(int argc, char* argv[]) {
             WriteCylinderVTK(filename, cyl_radius, cyl_length, sysFSI.GetFsiBodies()[0]->GetFrameRefToAbs(), 100);
         }
 
-        // Render SPH particles
+        // Render FSI system
         if (render && current_step % render_steps == 0) {
             if (!visFSI->Render())
                 break;

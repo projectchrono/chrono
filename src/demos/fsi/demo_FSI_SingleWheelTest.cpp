@@ -324,8 +324,9 @@ int main(int argc, char* argv[]) {
     sysFSI.SetBoundaries(cMin, cMax);
 
     // Initialize the SPH particles
+    auto initSpace0 = sysFSI.GetInitialSpacing();
     ChVector3d boxCenter(0.0, 0.0, bzDim / 2);
-    ChVector3d boxHalfDim(bxDim / 2, byDim / 2, bzDim / 2);
+    ChVector3d boxHalfDim(bxDim / 2 - initSpace0, byDim / 2, bzDim / 2 - initSpace0);
     sysFSI.AddBoxSPH(boxCenter, boxHalfDim);
 
     // Create Solid region and attach BCE SPH particles
