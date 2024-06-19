@@ -20,8 +20,8 @@
 
   "Time Stepping":
   {
-    "Fluid time step":               2e-5,
-    "Solid time step":               2e-5,
-    "Maximum time step":             2e-5
+    "Fluid time step":               5e-5,
+    "Solid time step":               5e-5,
+    "Maximum time step":             5e-5
   }
 }

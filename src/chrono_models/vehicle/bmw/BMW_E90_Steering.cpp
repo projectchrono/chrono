@@ -31,12 +31,12 @@ namespace bmw {
 const double BMW_E90_Steering::m_steeringLinkMass = 9.072;
 const ChVector3d BMW_E90_Steering::m_steeringLinkInertia(1, 1, 1);
 const double BMW_E90_Steering::m_steeringLinkCOM = 0;
-const double BMW_E90_Steering::m_steeringLinkLength = 0.6858;
+const double BMW_E90_Steering::m_steeringLinkLength = 0.4;
 const double BMW_E90_Steering::m_steeringLinkRadius = 0.015;
 
 const double BMW_E90_Steering::m_pinionRadius = 0.1;
 
-const double BMW_E90_Steering::m_maxAngle = 28 * (CH_PI / 180);  // ~ 11.0 m turn radius RWD
+const double BMW_E90_Steering::m_maxAngle = 64 * CH_DEG_TO_RAD;  // ~ 11.0 m turn radius RWD
 
 // -----------------------------------------------------------------------------
 // -----------------------------------------------------------------------------

@@ -54,14 +54,14 @@ const ChVector3d BMW_E90_MacPhersonStrut::m_spindleInertia(0.000478, 0.000496, 0
 const ChVector3d BMW_E90_MacPhersonStrut::m_strutInertia(0.000478, 0.000496, 0.000478);
 const ChVector3d BMW_E90_MacPhersonStrut::m_LCAInertiaMoments(0.0151, 0.0207, 0.0355);
 const ChVector3d BMW_E90_MacPhersonStrut::m_uprightInertiaMoments(0.0138, 0.0146, 0.00283);
+const ChVector3d BMW_E90_MacPhersonStrut::m_tierodInertiaMoments(0.01, 0.001, 0.01);
 
-const double BMW_E90_MacPhersonStrut::m_kinematicFactor = 1.528865979;
-const double BMW_E90_MacPhersonStrut::m_springCoefficient = 29770.0 * m_kinematicFactor * m_kinematicFactor;
-const double BMW_E90_MacPhersonStrut::m_dampingCoefficient = 4352.486957 * m_kinematicFactor * m_kinematicFactor;
+const double BMW_E90_MacPhersonStrut::m_springCoefficient = 29770.0;
+const double BMW_E90_MacPhersonStrut::m_dampingCoefficient = 4352.486957;
 // Spring design length = 0.482914056 m
 const double BMW_E90_MacPhersonStrut::m_springRestLength = 0.482914056;
 // static wheel load = 560 kg
-const double BMW_E90_MacPhersonStrut::m_springPreload = 560 * 9.81 * m_kinematicFactor;
+const double BMW_E90_MacPhersonStrut::m_springPreload = 5600;
 
 BMW_E90_MacPhersonStrut::BMW_E90_MacPhersonStrut(const std::string& name) : ChMacPhersonStrut(name) {
     m_springForceCB = chrono_types::make_shared<LinearSpringForce>(m_springCoefficient, m_springPreload);
@@ -98,9 +98,9 @@ const ChVector3d BMW_E90_MacPhersonStrut::getLocation(PointId which) {
         case SPRING_U:
             return ChVector3d(-0.00508, 0.61976, -0.00127);  // spring connection to upright
         case TIEROD_C:
-            return ChVector3d(-0.05588, 0.3429, -0.09017);  // tierod connection point to chassis/steering
+            return ChVector3d(-0.2, 0.2, -0.05);  // tierod connection point to chassis/steering
         case TIEROD_U:
-            return ChVector3d(-0.13716, 0.68072, -0.09779);  // tierod connection point to upright
+            return ChVector3d(-0.2,	0.574803759,	-0.00127);  // tierod connection point to upright
         default:
             return ChVector3d(0, 0, 0);
     }

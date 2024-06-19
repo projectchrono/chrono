@@ -32,10 +32,10 @@ const ChVector3d BMW_E90_AntiRollBarFront::m_arm_inertia(0.494431838, 0.01099909
 const double BMW_E90_AntiRollBarFront::m_arm_length = 1.0 / 2.0;
 const double BMW_E90_AntiRollBarFront::m_arm_width = 0.33;
 const double BMW_E90_AntiRollBarFront::m_droplink_height = -0.17043;
-const double BMW_E90_AntiRollBarFront::m_arm_radius = 0.02;
-// todo !!
-const double BMW_E90_AntiRollBarFront::m_spring_coef = 75745.02052;
-const double BMW_E90_AntiRollBarFront::m_damping_coef = 378.251026;
+const double BMW_E90_AntiRollBarFront::m_arm_radius = 0.01;
+
+const double BMW_E90_AntiRollBarFront::m_spring_coef = 13000.0*0.69; // front/rear 69%/31%;
+const double BMW_E90_AntiRollBarFront::m_damping_coef = 0.05 * BMW_E90_AntiRollBarFront::m_spring_coef;
 
 // -----------------------------------------------------------------------------
 // -----------------------------------------------------------------------------

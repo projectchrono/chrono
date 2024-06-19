@@ -126,6 +126,20 @@ double ChFunctionInterp::GetDer2(double x) const {
     return ChFunction::GetDer2(x);
 }
 
+double ChFunctionInterp::GetMax() const {
+    using pType = std::pair<double, double>;
+    auto ptr = std::max_element(m_table.begin(), m_table.end(),
+                                [](const pType& p1, const pType& p2) { return p1.second < p2.second; });
+    return ptr->second;
+}
+
+double ChFunctionInterp::GetMin() const {
+    using pType = std::pair<double, double>;
+    auto ptr = std::min_element(m_table.begin(), m_table.end(),
+                                [](const pType& p1, const pType& p2) { return p1.second < p2.second; });
+    return ptr->second;
+}
+
 void ChFunctionInterp::ArchiveOut(ChArchiveOut& archive_out) {
     // version number
     archive_out.VersionWrite<ChFunctionInterp>();

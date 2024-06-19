@@ -15,6 +15,26 @@
 // Base class for the BMW E90 vehicle models
 // Vehicle Parameters taken from SAE Paper 2007-01-0818
 //
+// Suspension/ARB parameters fit to test results presented in SAE Paper 2007-01-0817
+// The chassis roll angle = 2.0 deg at steady state lateral acceleration = 0.6 g
+//
+// Steady state cornering simulation shows that the vehicle is understeering, there
+// is no real test available, but this result was expected for a passenger car.
+//
+// The steering geometry has been changed for chrono, because the original data
+// lead to a situation where the inner wheel turn angle is smaller than the outer
+// one at cornering. The steering trapez has been recalculated to standard behavior.
+//
+// The tire parameters where calculated from data with a Matlab script, both presented
+// in SAE Paper 2007-01-0818. Actually no alignment torque, camber influence and
+// relaxation is considered.
+//
+// SAE 2007-01-0817 shows a test called  'Slowly Increasing Steer', where the vehicle
+// runs with constant speed of 50 mph (80 km/h) and the steering wheel angle is increased
+// until the friction limit is reached. To reproduce a similar result with the
+// cornering test the road friction coefficient must be set to 1.0.
+//
+// The wall-to-wall test shows a minimal distance of 11.4m.
 // =============================================================================
 
 #ifndef BMW_E90_VEHICLE_H
@@ -50,8 +70,8 @@ class CH_MODELS_API BMW_E90_Vehicle : public ChWheeledVehicle {
     virtual unsigned int GetNumberAxles() const override { return 2; }
 
     virtual double GetWheelbase() const override { return 2.776; }
-    virtual double GetMinTurningRadius() const override { return 7.6; }
-    virtual double GetMaxSteeringAngle() const override { return 25.0 * CH_DEG_TO_RAD; }
+    virtual double GetMinTurningRadius() const override { return 4.702; }
+    virtual double GetMaxSteeringAngle() const override { return 0.626671; }
 
     void SetInitWheelAngVel(const std::vector<double>& omega) {
         assert(omega.size() == 4);

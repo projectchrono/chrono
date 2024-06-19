@@ -45,24 +45,10 @@ using namespace chrono::vehicle;
 
 // -----------------------------------------------------------------------------
 
-std::string VEHICLE_FMU_MODEL_IDENTIFIER = "FMU2_WheeledVehicle";
-std::string DRIVER_FMU_MODEL_IDENTIFIER = "FMU2_PathFollowerDriver";
-
-std::string VEHICLE_FMU_DIR = CHRONO_VEHICLE_FMU_DIR + VEHICLE_FMU_MODEL_IDENTIFIER + std::string("/");
-std::string DRIVER_FMU_DIR = CHRONO_VEHICLE_FMU_DIR + DRIVER_FMU_MODEL_IDENTIFIER + std::string("/");
-
-std::string VEHICLE_FMU_FILENAME = VEHICLE_FMU_DIR + VEHICLE_FMU_MODEL_IDENTIFIER + std::string(".fmu");
-std::string DRIVER_FMU_FILENAME = DRIVER_FMU_DIR + DRIVER_FMU_MODEL_IDENTIFIER + std::string(".fmu");
-
-std::string VEHICLE_UNPACK_DIR =
-    CHRONO_VEHICLE_FMU_DIR + std::string("tmp_unpack_") + VEHICLE_FMU_MODEL_IDENTIFIER + std::string("/");
-std::string DRIVER_UNPACK_DIR =
-    CHRONO_VEHICLE_FMU_DIR + std::string("tmp_unpack_") + DRIVER_FMU_MODEL_IDENTIFIER + std::string("/");
-
-// -----------------------------------------------------------------------------
-
 void CreateVehicleFMU(FmuChronoUnit& vehicle_fmu,
                       const std::string& instance_name,
+                      const std::string& fmu_filename,
+                      const std::string& fmu_unpack_dir,
                       double step_size,
                       double start_time,
                       double stop_time,
@@ -71,7 +57,7 @@ void CreateVehicleFMU(FmuChronoUnit& vehicle_fmu,
                       bool visible,
                       double fps) {
     try {
-        vehicle_fmu.Load(fmi2Type::fmi2CoSimulation, VEHICLE_FMU_FILENAME, VEHICLE_UNPACK_DIR);
+        vehicle_fmu.Load(fmi2Type::fmi2CoSimulation, fmu_filename, fmu_unpack_dir);
     } catch (std::exception& e) {
         throw e;
     }
@@ -113,6 +99,8 @@ void CreateVehicleFMU(FmuChronoUnit& vehicle_fmu,
 
 void CreateDriverFMU(FmuChronoUnit& driver_fmu,
                      const std::string& instance_name,
+                     const std::string& fmu_filename,
+                     const std::string& fmu_unpack_dir,
                      double step_size,
                      double start_time,
                      double stop_time,
@@ -121,7 +109,7 @@ void CreateDriverFMU(FmuChronoUnit& driver_fmu,
                      bool visible,
                      double fps) {
     try {
-        driver_fmu.Load(fmi2Type::fmi2CoSimulation, DRIVER_FMU_FILENAME, DRIVER_UNPACK_DIR);
+        driver_fmu.Load(fmi2Type::fmi2CoSimulation, fmu_filename, fmu_unpack_dir);
     } catch (std::exception& e) {
         throw e;
     }
@@ -241,11 +229,36 @@ void AdvanceTires(double step_size, std::array<WheelTire, 4>& wt) {
 // -----------------------------------------------------------------------------
 
 int main(int argc, char* argv[]) {
+#ifdef FMU_EXPORT_SUPPORT
+    // FMUs generated in current build
+    std::string vehicle_fmu_model_identifier = "FMU2_WheeledVehicle";
+    std::string driver_fmu_model_identfier = "FMU2_PathFollowerDriver";
+
+    std::string vehicle_fmu_dir = CHRONO_VEHICLE_FMU_DIR + vehicle_fmu_model_identifier + std::string("/");
+    std::string driver_fmu_dir = CHRONO_VEHICLE_FMU_DIR + driver_fmu_model_identfier + std::string("/");
+
+    std::string vehicle_fmu_filename = vehicle_fmu_dir + vehicle_fmu_model_identifier + std::string(".fmu");
+    std::string driver_fmu_filename = driver_fmu_dir + driver_fmu_model_identfier + std::string(".fmu");
+#else
+    // Expect fully qualified FMU filenames as program arguments
+    if (argc != 3) {
+        std::cout << "Usage: ./demo_VEH_FMI2_WheeledVehicle_a [vehicle_FMU_filename] [driver_FMU_filename]"
+                  << std::endl;
+        return 1;
+    }
+    std::string vehicle_fmu_filename = argv[1];
+    std::string driver_fmu_filename = argv[2];
+#endif
+
+    // FMU unpack directories
+    std::string vehicle_unpack_dir = CHRONO_VEHICLE_FMU_DIR + std::string("tmp_unpack_vehicle/");
+    std::string driver_unpack_dir = CHRONO_VEHICLE_FMU_DIR + std::string("tmp_unpack_driver/");
+
     // Names of FMU instances
     std::string vehicle_instance_name = "WheeledVehicleFmuComponent";
     std::string driver_instance_name = "DriverFmuComponent";
 
-    // Create (if needed) output directories
+    // Create output directories
     std::string out_dir = GetChronoOutputPath() + "./DEMO_WHEELEDVEHICLE_FMI_COSIM_A";
     std::string vehicle_out_dir = out_dir + "/" + vehicle_instance_name;
     std::string driver_out_dir = out_dir + "/" + driver_instance_name;
@@ -276,25 +289,27 @@ int main(int argc, char* argv[]) {
     bool save_img = false;
 
     // Create the 2 FMUs
-    ////std::cout << "Vehicle FMU dir: >" << VEHICLE_FMU_DIR << "<" << std::endl;
-    ////std::cout << "Driver FMU dir:  >" << DRIVER_FMU_DIR << "<" << std::endl;
-    ////std::cout << "Vehicle FMU filename: >" << VEHICLE_FMU_FILENAME << "<" << std::endl;
-    ////std::cout << "Driver FMU filename:  >" << DRIVER_FMU_FILENAME << "<" << std::endl;
-    ////std::cout << "Vehicle FMU unpack directory: >" << VEHICLE_UNPACK_DIR << "<" << std::endl;
-    ////std::cout << "Driver FMU unpack directory:  >" << DRIVER_UNPACK_DIR << "<" << std::endl;
+    ////std::cout << "Vehicle FMU filename: >" << vehicle_fmu_filename << "<" << std::endl;
+    ////std::cout << "Driver FMU filename:  >" << driver_fmu_filename << "<" << std::endl;
+    ////std::cout << "Vehicle FMU unpack directory: >" << vehicle_unpack_dir << "<" << std::endl;
+    ////std::cout << "Driver FMU unpack directory:  >" << driver_unpack_dir << "<" << std::endl;
 
     FmuChronoUnit vehicle_fmu;
     FmuChronoUnit driver_fmu;
     try {
-        CreateVehicleFMU(vehicle_fmu, vehicle_instance_name, step_size, start_time, stop_time, logCategories,
-                         vehicle_out_dir, vehicle_visible, fps);
+        CreateVehicleFMU(vehicle_fmu,                                                      //
+                         vehicle_instance_name, vehicle_fmu_filename, vehicle_unpack_dir,  //
+                         step_size, start_time, stop_time,                                 //
+                         logCategories, vehicle_out_dir, vehicle_visible, fps);            //
     } catch (std::exception& e) {
         std::cout << "ERROR loading vehicle FMU: " << e.what() << "\n";
         return 1;
     }
     try {
-        CreateDriverFMU(driver_fmu, driver_instance_name, step_size, start_time, stop_time, logCategories,
-                        driver_out_dir, driver_visible, fps);
+        CreateDriverFMU(driver_fmu,                                                    //
+                        driver_instance_name, driver_fmu_filename, driver_unpack_dir,  //
+                        step_size, start_time, stop_time,                              //
+                        logCategories, driver_out_dir, driver_visible, fps);           //
     } catch (std::exception& e) {
         std::cout << "ERROR loading driver FMU: " << e.what() << "\n";
         return 1;

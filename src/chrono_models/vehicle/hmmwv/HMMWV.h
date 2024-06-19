@@ -61,7 +61,7 @@ class CH_MODELS_API HMMWV {
     void SetTireType(TireModelType val) { m_tireType = val; }
 
     void SetTireCollisionType(ChTire::CollisionType collision_type) { m_tire_collision_type = collision_type; }
-    void SetTireContactSurfaceType(ChTire::ContactSurfaceType surface_type, double surface_dim = 0.01);
+    void SetTireContactSurfaceType(ChTire::ContactSurfaceType surface_type, double surface_dim, int collision_family);
 
     void SetInitPosition(const ChCoordsys<>& pos) { m_initPos = pos; }
     void SetInitFwdVel(double fwdVel) { m_initFwdVel = fwdVel; }
@@ -115,6 +115,7 @@ class CH_MODELS_API HMMWV {
     ChTire::CollisionType m_tire_collision_type;
     ChTire::ContactSurfaceType m_tire_surface_type;
     double m_tire_surface_dim;
+    int m_tire_collision_family;
 
     double m_tire_step_size;
 

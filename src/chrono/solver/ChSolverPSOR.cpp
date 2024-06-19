@@ -78,6 +78,9 @@ double ChSolverPSOR::Solve(ChSystemDescriptor& sysd) {
     // 4)  Perform the iteration loops
     //
 
+    std::fill(violation_history.begin(), violation_history.end(), 0.0);
+    std::fill(dlambda_history.begin(), dlambda_history.end(), 0.0);
+
     for (int iter = 0; iter < m_max_iterations; iter++) {
         // The iteration on all constraints
         //

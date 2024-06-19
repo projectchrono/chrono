@@ -1,7 +1,7 @@
 // =============================================================================
 // PROJECT CHRONO - http://projectchrono.org
 //
-// Copyright (c) 2023 projectchrono.org
+// Copyright (c) 2024 projectchrono.org
 // All rights reserved.
 //
 // Use of this source code is governed by a BSD-style license that can be found
@@ -9,11 +9,23 @@
 // http://projectchrono.org/license-chrono.txt.
 //
 // =============================================================================
+// Authors: Radu Serban
+// =============================================================================
 
-#ifndef CH_CHRONO_FMI_H
-#define CH_CHRONO_FMI_H
+#ifndef CH_API_FMI_H
+#define CH_API_FMI_H
 
-// Definition of the Chrono::FMI module
+#include "chrono/ChVersion.h"
+#include "chrono/core/ChPlatform.h"
+
+// When compiling this library, define CH_API_COMPILE_FMI, so that symbols decorated with
+// 'ChApiFMI' are marked as exported. If the macro is not defined, symbols will be imported.
+
+#if defined(CH_API_COMPILE_FMI)
+    #define ChApiFMI ChApiEXPORT
+#else
+    #define ChApiFMI ChApiIMPORT
+#endif
 
 /**
     @defgroup fmi FMI module
@@ -32,5 +44,16 @@
     - chrono::FmuChronoComponentBase
     - chrono::FmuChronoUnit
 */
+
+namespace chrono {
+
+/// @addtogroup fmi_module
+/// @{
+
+/// Namespace with classes for the FMI module.
+namespace fmi {}
+
+/// @}
+}  // namespace chrono
 
 #endif

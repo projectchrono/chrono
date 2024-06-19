@@ -54,12 +54,12 @@ class ChApi ChLinkDistance : public ChLink {
     /// Get the number of (bilateral) constraints introduced by this link.
     virtual unsigned int GetNumConstraintsBilateral() override { return 1; }
 
-    /// Get the link frame 1, relative to body 1.
-    /// For this class link frame 1 coincides with body 1.
-    virtual ChFramed GetFrame1Rel() const override { return ChFramed(m_body1->GetCoordsys()); }
+    /// Get the link frame1, relative to body1.
+    /// Link frame1 is located on body1 at pos1, with the X axis pointing towards pos2.
+    virtual ChFramed GetFrame1Rel() const override;
 
-    /// Get the link frame 2, relative to body 2.
-    /// For this class link frame 2 is located at body 2, but with the X axes pointing towards body 1.
+    /// Get the link frame2, relative to body2.
+    /// Link frame2 is located on body2 at pos2, with the X axis pointing towards pos1.
     virtual ChFramed GetFrame2Rel() const override;
 
     /// Get the 1st anchor endpoint for the distance (expressed in body 1 coordinate system)

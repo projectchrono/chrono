@@ -999,7 +999,7 @@ void BMW_E90_Model::Construct(const ChCoordsys<>& init_pos, VisualizationType ch
     bmw->SetChassisCollisionType(chassis_collision_type);
     bmw->SetChassisFixed(false);
     bmw->SetInitPosition(init_pos);
-    bmw->SetTireType(TireModelType::TMSIMPLE);
+    bmw->SetTireType(TireModelType::TMEASY);
     bmw->SetBrakeType(BrakeType::SHAFTS);
     bmw->Initialize();
 

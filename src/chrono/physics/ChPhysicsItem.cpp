@@ -79,24 +79,32 @@ void ChPhysicsItem::AddCamera(std::shared_ptr<ChCamera> camera) {
     cameras.push_back(camera);
 }
 
-ChAABB ChPhysicsItem::GetTotalAABB() {
+ChAABB ChPhysicsItem::GetTotalAABB() const {
     return ChAABB();
 }
 
-void ChPhysicsItem::GetCenter(ChVector3d& mcenter) {
+ChVector3d ChPhysicsItem::GetCenter() const {
     auto bbox = GetTotalAABB();
-    mcenter = (bbox.min + bbox.max) * 0.5;
+    return (bbox.min + bbox.max) * 0.5;
 }
 
-void ChPhysicsItem::Update(double mytime, bool update_assets) {
-    ChTime = mytime;
+void ChPhysicsItem::Update(double time, bool update_assets) {
+    ChTime = time;
 
     if (update_assets) {
+        UpdateVisualModel();
         for (auto& camera : cameras)
             camera->Update();
-        if (vis_model_instance)
-            vis_model_instance->Update(GetVisualModelFrame());
     }
+}
+
+void ChPhysicsItem::Update(bool update_assets) {
+    Update(ChTime, update_assets);
+}
+
+void ChPhysicsItem::UpdateVisualModel() {
+    if (vis_model_instance)
+        vis_model_instance->Update(GetVisualModelFrame());
 }
 
 void ChPhysicsItem::ArchiveOut(ChArchiveOut& archive_out) {

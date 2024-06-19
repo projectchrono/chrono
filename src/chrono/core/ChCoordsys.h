@@ -31,14 +31,14 @@ class ChCoordsys {
     ChQuaternion<Real> rot;
 
   public:
-    // Default constructor (identity frame).
+    /// Default constructor (identity frame).
     ChCoordsys() : pos(ChVector3<Real>(0, 0, 0)), rot(ChQuaternion<Real>(1, 0, 0, 0)) {}
 
-    // Construct from position and rotation (as quaternion).
-    explicit ChCoordsys(const ChVector3<Real>& v, const ChQuaternion<Real>& q = ChQuaternion<Real>(1, 0, 0, 0))
+    /// Construct from position and rotation (as quaternion).
+    ChCoordsys(const ChVector3<Real>& v, const ChQuaternion<Real>& q = ChQuaternion<Real>(1, 0, 0, 0))
         : pos(v), rot(q) {}
 
-    // Construct from position v and rotation of angle alpha around unit vector u
+    /// Construct from position v and rotation of angle alpha around unit vector u.
     explicit ChCoordsys(const ChVector3<Real>& v, const Real alpha, const ChVector3<Real>& u) : pos(v) {
         rot.SetFromAngleAxis(alpha, u);
     };

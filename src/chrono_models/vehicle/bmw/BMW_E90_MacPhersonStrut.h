@@ -72,12 +72,15 @@ class CH_MODELS_API BMW_E90_MacPhersonStrut : public ChMacPhersonStrut {
     virtual const ChVector3d& getStrutInertia() const override { return m_strutInertia; }
     virtual const ChVector3d& getLCAInertia() const override { return m_LCAInertiaMoments; }
     virtual const ChVector3d& getUprightInertia() const override { return m_uprightInertiaMoments; }
+    virtual const ChVector3d getTierodInertia() const override { return m_tierodInertiaMoments; }
     /// Return the inertia of the axle shaft.
     virtual double getAxleInertia() const override { return m_axleInertia; }
 
     virtual double getSpringRestLength() const override { return m_springRestLength; }
     virtual std::shared_ptr<ChLinkTSDA::ForceFunctor> getSpringForceFunctor() const override { return m_springForceCB; }
     virtual std::shared_ptr<ChLinkTSDA::ForceFunctor> getShockForceFunctor() const override { return m_shockForceCB; }
+
+    virtual bool UseTierodBodies() const override { return true; }
 
   private:
     std::shared_ptr<ChLinkTSDA::ForceFunctor> m_springForceCB;
@@ -102,6 +105,7 @@ class CH_MODELS_API BMW_E90_MacPhersonStrut : public ChMacPhersonStrut {
     static const ChVector3d m_strutInertia;
     static const ChVector3d m_LCAInertiaMoments;
     static const ChVector3d m_uprightInertiaMoments;
+    static const ChVector3d m_tierodInertiaMoments;
 
     static const double m_springCoefficient;
     static const double m_dampingCoefficient;

@@ -34,16 +34,24 @@
 
 #include "chrono_fsi/ChSystemFsi.h"
 
+#include "chrono_fsi/visualization/ChFsiVisualization.h"
 #ifdef CHRONO_OPENGL
     #include "chrono_fsi/visualization/ChFsiVisualizationGL.h"
+#endif
+#ifdef CHRONO_VSG
+    #include "chrono_fsi/visualization/ChFsiVisualizationVSG.h"
 #endif
 
 #include "chrono_thirdparty/filesystem/path.h"
 
-// Chrono namespaces
 using namespace chrono;
 using namespace chrono::fea;
 using namespace chrono::fsi;
+
+// -----------------------------------------------------------------
+
+// Run-time visualization system (OpenGL or VSG)
+ChVisualSystem::Type vis_type = ChVisualSystem::Type::VSG;
 
 // Set the output directory
 const std::string out_dir = GetChronoOutputPath() + "FSI_Flexible_Flat_Plate/";
@@ -61,19 +69,23 @@ double fyDim = 0.2 + smalldis;
 double fzDim = 1.0 + smalldis;
 
 // Output frequency
-bool output = true;
+bool output = false;
 double out_fps = 20;
 
 // Final simulation time
 double t_end = 10.0;
 
-// Enable/disable run-time visualization (if Chrono::OpenGL is available)
+// Enable/disable run-time visualization
 bool render = true;
 float render_fps = 100;
+
+// -----------------------------------------------------------------
 
 std::vector<std::vector<int>> NodeNeighborElement_mesh;
 
 void Create_MB_FE(ChSystemSMC& sysMBS, ChSystemFsi& sysFSI);
+
+// -----------------------------------------------------------------
 
 int main(int argc, char* argv[]) {
     // Create oputput directories
@@ -130,8 +142,8 @@ int main(int argc, char* argv[]) {
 
     // Create SPH particles of fluid region
     chrono::utils::ChGridSampler<> sampler(initSpace0);
-    ChVector3d boxCenter(-bxDim / 2 + fxDim / 2, 0, fzDim / 2 + 1 * initSpace0);
-    ChVector3d boxHalfDim(fxDim / 2, fyDim / 2, fzDim / 2);
+    ChVector3d boxCenter(-bxDim / 2 + fxDim / 2, 0, fzDim / 2);
+    ChVector3d boxHalfDim(fxDim / 2 - initSpace0, fyDim / 2, fzDim / 2 - initSpace0);
     chrono::utils::ChGenerator::PointVector points = sampler.SampleBox(boxCenter, boxHalfDim);
     size_t numPart = points.size();
     for (int i = 0; i < numPart; i++) {
@@ -143,17 +155,44 @@ int main(int argc, char* argv[]) {
     sysFSI.Initialize();
     auto my_mesh = sysFSI.GetFsiMesh();
 
-#ifdef CHRONO_OPENGL
     // Create a run-tme visualizer
-    ChFsiVisualizationGL fsi_vis(&sysFSI);
-    if (render) {
-        fsi_vis.SetTitle("Chrono::FSI Flexible Flat Plate Demo");
-        fsi_vis.UpdateCamera(ChVector3d(bxDim / 8, -3, 0.25), ChVector3d(bxDim / 8, 0.0, 0.25));
-        fsi_vis.SetCameraMoveScale(1.0f);
-        fsi_vis.EnableBoundaryMarkers(true);
-        fsi_vis.Initialize();
-    }
+#ifndef CHRONO_OPENGL
+    if (vis_type == ChVisualSystem::Type::OpenGL)
+        vis_type = ChVisualSystem::Type::VSG;
 #endif
+#ifndef CHRONO_VSG
+    if (vis_type == ChVisualSystem::Type::VSG)
+        vis_type = ChVisualSystem::Type::OpenGL;
+#endif
+#if !defined(CHRONO_OPENGL) && !defined(CHRONO_VSG)
+    render = false;
+#endif
+
+    std::shared_ptr<ChFsiVisualization> visFSI;
+    if (render) {
+        switch (vis_type) {
+            case ChVisualSystem::Type::OpenGL:
+#ifdef CHRONO_OPENGL
+                visFSI = chrono_types::make_shared<ChFsiVisualizationGL>(&sysFSI);
+#endif
+                break;
+            case ChVisualSystem::Type::VSG: {
+#ifdef CHRONO_VSG
+                visFSI = chrono_types::make_shared<ChFsiVisualizationVSG>(&sysFSI);
+#endif
+                break;
+            }
+        }
+
+        visFSI->SetTitle("Chrono::FSI flexible plate");
+        visFSI->AddCamera(ChVector3d(0, -12 * byDim, 0.5 * bzDim), ChVector3d(0, 0, 0.4 * bzDim));
+        visFSI->SetCameraMoveScale(1.0f);
+        visFSI->EnableFluidMarkers(true);
+        visFSI->EnableBoundaryMarkers(true);
+        visFSI->SetRenderMode(ChFsiVisualization::RenderMode::SOLID);
+        visFSI->SetSPHColorCallback(chrono_types::make_shared<VelocityColorCallback>(0, 2.5));
+        visFSI->Initialize();
+    }
 
 // Set MBS solver
 #ifdef CHRONO_PARDISO_MKL
@@ -192,13 +231,11 @@ int main(int argc, char* argv[]) {
             fea::ChMeshExporter::WriteFrame(my_mesh, MESH_CONNECTIVITY, filename);
         }
 
-#ifdef CHRONO_OPENGL
-        // Render SPH particles
+        // Render FSI system
         if (render && current_step % render_steps == 0) {
-            if (!fsi_vis.Render())
+            if (!visFSI->Render())
                 break;
         }
-#endif
 
         sysFSI.DoStepDynamics_FSI();
 

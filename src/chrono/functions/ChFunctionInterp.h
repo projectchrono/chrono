@@ -25,14 +25,12 @@ namespace chrono {
 /// @addtogroup chrono_functions
 /// @{
 
-/// Interpolation function:
-///
+/// Interpolation function.
 /// Linear interpolation `y=f(x)` given a list of points `(x,y)`.
 class ChApi ChFunctionInterp : public ChFunction {
   private:
-    std::map<double, double> m_table;  ///< map with x-y points
-    mutable std::map<double, double>::const_iterator
-        m_last_greater;          ///< cached pointer to element greater than previous called 'x'
+    std::map<double, double> m_table;                                 ///< map with x-y points
+    mutable std::map<double, double>::const_iterator m_last_greater;  ///< pointer to element greater than last 'x'
     bool m_extrapolate = false;  ///< enable linear extrapolation for out-of-range values
 
   public:
@@ -67,6 +65,12 @@ class ChApi ChFunctionInterp : public ChFunction {
 
     /// Return the biggest value of x in the table.
     double GetEnd() const { return m_table.rbegin()->first; }
+
+    /// Return the maximum function value in the table.
+    double GetMax() const;
+
+    /// Return the minimum function value in the table.
+    double GetMin() const;
 
     /// Enable linear extrapolation.
     /// If enabled, the function will return linear extrapolation for \a x values outside the domain.

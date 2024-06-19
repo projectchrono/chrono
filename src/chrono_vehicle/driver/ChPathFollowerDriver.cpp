@@ -27,6 +27,7 @@
 #include "chrono/utils/ChUtils.h"
 
 #include "chrono_vehicle/driver/ChPathFollowerDriver.h"
+#include "chrono_vehicle/wheeled_vehicle/ChWheeledVehicle.h"
 
 namespace chrono {
 namespace vehicle {
@@ -217,5 +218,41 @@ ChPathSteeringControllerStanley& ChPathFollowerDriverStanley::GetSteeringControl
     return dynamic_cast<ChPathSteeringControllerStanley&>(*m_steeringPID);
 }
 
+//++++++++++ Pure Pursuit +++++++++++++
+ChPathFollowerDriverPP::ChPathFollowerDriverPP(chrono::vehicle::ChVehicle& vehicle,
+                                               std::shared_ptr<ChBezierCurve> path,
+                                               const std::string& path_name,
+                                               double target_speed)
+    : ChClosedLoopDriver(vehicle, path_name, target_speed) {
+    ChWheeledVehicle* veh = dynamic_cast<ChWheeledVehicle*>(&vehicle);
+    if(veh == nullptr) {
+        std::cout << "The Pure Pursuit Controller can actually not be used with tracked vehicles!" << std::endl;
+        exit(99);
+    }
+    m_steeringPID =
+        chrono_types::make_unique<ChPathSteeringControllerPP>(path, veh->GetMaxSteeringAngle(), veh->GetWheelbase());
+    Reset();
+}
+
+ChPathFollowerDriverPP::ChPathFollowerDriverPP(ChVehicle& vehicle,
+                                                         const std::string& steering_filename,
+                                                         const std::string& speed_filename,
+                                                         std::shared_ptr<ChBezierCurve> path,
+                                                         const std::string& path_name,
+                                                         double target_speed)
+    : ChClosedLoopDriver(vehicle, speed_filename, path_name, target_speed) {
+    ChWheeledVehicle* veh = dynamic_cast<ChWheeledVehicle*>(&vehicle);
+    if(veh == nullptr) {
+        std::cout << "The Pure Pursuit Controller can actually not be used with tracked vehicles!" << std::endl;
+        exit(99);
+    }
+    m_steeringPID =
+        chrono_types::make_unique<ChPathSteeringControllerPP>(steering_filename, path, veh->GetMaxSteeringAngle(), veh->GetWheelbase());
+    Reset();
+}
+
+ChPathSteeringControllerPP& ChPathFollowerDriverPP::GetSteeringController() const {
+    return dynamic_cast<ChPathSteeringControllerPP&>(*m_steeringPID);
+}
 }  // end namespace vehicle
 }  // end namespace chrono

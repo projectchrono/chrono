@@ -26,27 +26,35 @@ namespace chrono {
 template <class Real = double>
 class ChFrameMoving : public ChFrame<Real> {
   public:
+    /// Default constructor (identity frame).
+    ChFrameMoving()
+        : ChFrame<Real>(),
+          m_csys_dt(ChVector3<Real>(0, 0, 0), ChQuaternion<Real>(0, 0, 0, 0)),
+          m_csys_dtdt(ChVector3<Real>(0, 0, 0), ChQuaternion<Real>(0, 0, 0, 0)) {}
+
     /// Construct from pos and rot (as a quaternion).
-    explicit ChFrameMoving(const ChVector3<Real>& mv = ChVector3<Real>(0, 0, 0),
-                           const ChQuaternion<Real>& mq = ChQuaternion<Real>(1, 0, 0, 0))
-        : ChFrame<Real>(mv, mq) {
-        m_csys_dt.rot = m_csys_dtdt.rot = ChQuaternion<Real>(0, 0, 0, 0);
-    }
+    ChFrameMoving(const ChVector3<Real>& v, const ChQuaternion<Real>& q = ChQuaternion<Real>(1, 0, 0, 0))
+        : ChFrame<Real>(v, q),
+          m_csys_dt(ChVector3<Real>(0, 0, 0), ChQuaternion<Real>(0, 0, 0, 0)),
+          m_csys_dtdt(ChVector3<Real>(0, 0, 0), ChQuaternion<Real>(0, 0, 0, 0)) {}
 
     /// Construct from pos and rotation (as a 3x3 matrix).
-    ChFrameMoving(const ChVector3<Real>& mv, const ChMatrix33<Real>& ma) : ChFrame<Real>(mv, ma) {
-        m_csys_dt.rot = m_csys_dtdt.rot = ChQuaternion<Real>(0, 0, 0, 0);
-    }
+    ChFrameMoving(const ChVector3<Real>& v, const ChMatrix33<Real>& R)
+        : ChFrame<Real>(v, R),
+          m_csys_dt(ChVector3<Real>(0, 0, 0), ChQuaternion<Real>(0, 0, 0, 0)),
+          m_csys_dtdt(ChVector3<Real>(0, 0, 0), ChQuaternion<Real>(0, 0, 0, 0)) {}
 
     /// Construct from a coordsys.
-    explicit ChFrameMoving(const ChCoordsys<Real>& mc) : ChFrame<Real>(mc) {
-        m_csys_dt.rot = m_csys_dtdt.rot = ChQuaternion<Real>(0, 0, 0, 0);
-    }
+    explicit ChFrameMoving(const ChCoordsys<Real>& C)
+        : ChFrame<Real>(C),
+          m_csys_dt(ChVector3<Real>(0, 0, 0), ChQuaternion<Real>(0, 0, 0, 0)),
+          m_csys_dtdt(ChVector3<Real>(0, 0, 0), ChQuaternion<Real>(0, 0, 0, 0)) {}
 
     /// Construct from a frame.
-    explicit ChFrameMoving(const ChFrame<Real>& mc) : ChFrame<Real>(mc) {
-        m_csys_dt.rot = m_csys_dtdt.rot = ChQuaternion<Real>(0, 0, 0, 0);
-    }
+    explicit ChFrameMoving(const ChFrame<Real>& F)
+        : ChFrame<Real>(F),
+          m_csys_dt(ChVector3<Real>(0, 0, 0), ChQuaternion<Real>(0, 0, 0, 0)),
+          m_csys_dtdt(ChVector3<Real>(0, 0, 0), ChQuaternion<Real>(0, 0, 0, 0)) {}
 
     /// Copy constructor, build from another moving frame.
     ChFrameMoving(const ChFrameMoving<Real>& other)

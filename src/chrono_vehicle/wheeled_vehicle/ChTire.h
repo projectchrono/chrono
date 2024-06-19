@@ -68,7 +68,7 @@ class CH_VEHICLE_API ChTire : public ChPart {
     /// Set the contact surface type (default: NODE_CLOUD).
     /// 'dim' represents the radius of a collision sphere (for NODE_CLOUD) or the mesh thickness (for TRIANGLE_MESH).
     /// Derived classes (concrete tire models) may or may not use this setting.
-    void SetContactSurfaceType(ContactSurfaceType type, double dim = 0.001);
+    void SetContactSurfaceType(ContactSurfaceType type, double dim = 0.01, int collision_family = 13);
 
     /// Set the internal tire pressure [Pa] (default: 0).
     /// Derived classes (concrete tire models) may or may not use this setting.
@@ -259,6 +259,7 @@ class CH_VEHICLE_API ChTire : public ChPart {
     CollisionType m_collision_type;             ///< method used for tire-terrain collision
     ContactSurfaceType m_contact_surface_type;  ///< type of contact surface model (node cloud or mesh)
     double m_contact_surface_dim;               ///< contact surface dimension (node radius or mesh thickness)
+    int m_collision_family;                     ///< collision family for this tire
     std::string m_vis_mesh_file;                ///< name of OBJ file for visualization of this tire (may be empty)
 
     double m_slip_angle;

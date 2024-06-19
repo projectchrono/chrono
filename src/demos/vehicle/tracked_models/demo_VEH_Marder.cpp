@@ -114,7 +114,7 @@ int main(int argc, char* argv[]) {
     ////marder.GetDriveline()->SetGyrationMode(true);
 
     // Change collision detection system
-    ////marder.SetCollisionSystemType(ChCollisionSystemType::CHRONO);
+    ////marder.SetCollisionSystemType(ChCollisionSystem::Type::MULTICORE);
 
     // Change collision shape for road wheels, idlers, and rollers (true: cylinder; false: cylshell)
     ////marder.SetWheelCollisionType(false, false, false);

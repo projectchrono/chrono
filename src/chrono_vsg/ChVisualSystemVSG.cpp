@@ -720,7 +720,7 @@ void ChVisualSystemVSG::Initialize() {
         uint32_t numShadowsPerLight = 10;
         auto shadowSettings = vsg::HardShadows::create(numShadowsPerLight);
         directionalLight->shadowSettings = shadowSettings;
-        directionalLight->intensity *= 0.8; // try to avoid saturation due to additional lights
+        directionalLight->intensity *= 0.8f; // try to avoid saturation due to additional lights
     }
 
     double se = std::sin(m_elevation);
@@ -1247,16 +1247,11 @@ void ChVisualSystemVSG::BindBody(const std::shared_ptr<ChBody>& body) {
     m_bodyScene->addChild(modelGroup);
 }
 
-void ChVisualSystemVSG::BindMesh(const std::shared_ptr<fea::ChMesh>& mesh) {
-    const auto& vis_model = mesh->GetVisualModel();
+void ChVisualSystemVSG::BindMesh(const std::shared_ptr<ChPhysicsItem>& item) {
+    const auto& vis_model = item->GetVisualModel();
 
     if (!vis_model)
         return;
-
-    // Update FEA visualization
-    for (auto& shapeFEA : vis_model->GetShapesFEA()) {
-        shapeFEA->Update(mesh.get(), ChFrame<>());
-    }
 
     for (auto& shape_instance : vis_model->GetShapeInstances()) {
         auto& shape = shape_instance.first;
@@ -1415,54 +1410,6 @@ void ChVisualSystemVSG::BindParticleCloud(const std::shared_ptr<ChParticleCloud>
     m_clouds.push_back(cloud);
 }
 
-void ChVisualSystemVSG::BindLoadContainer(const std::shared_ptr<ChLoadContainer>& loadcont) {
-    const auto& vis_model = loadcont->GetVisualModel();
-
-    if (!vis_model)
-        return;
-
-    const auto& shape_instance = vis_model->GetShapeInstances().at(0);
-    auto& shape = shape_instance.first;
-    auto trimesh = std::dynamic_pointer_cast<ChVisualShapeTriangleMesh>(shape);
-    if (!trimesh)
-        return;
-
-    DeformableMesh def_mesh;
-    def_mesh.trimesh = trimesh->GetMesh();
-
-    auto transform = vsg::MatrixTransform::create();
-    auto child = (trimesh->GetNumMaterials() > 0)
-                     ? m_shapeBuilder->CreateTrimeshPbrMatShape(trimesh, transform, trimesh->IsWireframe())
-                     : m_shapeBuilder->CreateTrimeshColAvgShape(trimesh, transform, trimesh->IsWireframe());
-    m_deformableScene->addChild(child);
-
-    def_mesh.mesh_soup = false;
-
-    def_mesh.vertices = vsg::visit<FindVec3BufferData<0>>(child).getBufferData();
-    def_mesh.vertices->properties.dataVariance = vsg::DYNAMIC_DATA;
-    def_mesh.dynamic_vertices = true;
-
-    if (!trimesh->IsWireframe()) {
-        def_mesh.normals = vsg::visit<FindVec3BufferData<1>>(child).getBufferData();
-        assert(def_mesh.normals->size() == def_mesh.vertices->size());
-        def_mesh.normals->properties.dataVariance = vsg::DYNAMIC_DATA;
-        def_mesh.dynamic_normals = true;
-    } else {
-        def_mesh.dynamic_normals = false;
-    }
-
-    if (trimesh->GetNumMaterials() == 0) {
-        def_mesh.colors = vsg::visit<FindVec4BufferData<3>>(child).getBufferData();
-        assert(def_mesh.colors->size() == def_mesh.vertices->size());
-        def_mesh.colors->properties.dataVariance = vsg::DYNAMIC_DATA;
-        def_mesh.dynamic_colors = true;
-    } else {
-        def_mesh.dynamic_colors = false;
-    }
-
-    m_def_meshes.push_back(def_mesh);
-}
-
 void ChVisualSystemVSG::BindTSDA(const std::shared_ptr<ChLinkTSDA>& tsda) {
     const auto& vis_model = tsda->GetVisualModel();
 
@@ -1563,15 +1510,15 @@ void ChVisualSystemVSG::BindItem(std::shared_ptr<ChPhysicsItem> item) {
     }
 
     if (auto mesh = std::dynamic_pointer_cast<fea::ChMesh>(item)) {
+        mesh->UpdateVisualModel();
         BindMesh(mesh);
         return;
     }
 
     if (item->GetVisualModel()) {
+        BindMesh(item);
         if (const auto& pcloud = std::dynamic_pointer_cast<ChParticleCloud>(item))
             BindParticleCloud(pcloud);
-        else if (const auto& loadcont = std::dynamic_pointer_cast<ChLoadContainer>(item))
-            BindLoadContainer(loadcont);
     }
 }
 
@@ -1594,15 +1541,15 @@ void ChVisualSystemVSG::BindAll() {
 
         // Bind visual models associated with FEA meshes
         for (const auto& mesh : sys->GetAssembly().GetMeshes()) {
+            mesh->UpdateVisualModel();
             BindMesh(mesh);
         }
 
         // Bind visual models associated with other physics items in the system
         for (const auto& item : sys->GetOtherPhysicsItems()) {
+            BindMesh(item);
             if (const auto& pcloud = std::dynamic_pointer_cast<ChParticleCloud>(item))
                 BindParticleCloud(pcloud);
-            else if (const auto& loadcont = std::dynamic_pointer_cast<ChLoadContainer>(item))
-                BindLoadContainer(loadcont);
         }
     }  // end loop over systems
 }

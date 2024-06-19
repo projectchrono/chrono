@@ -21,12 +21,23 @@
 
 #include "chrono_fsi/ChSystemFsi.h"
 
+#include "chrono_fsi/visualization/ChFsiVisualization.h"
+#ifdef CHRONO_OPENGL
+    #include "chrono_fsi/visualization/ChFsiVisualizationGL.h"
+#endif
+#ifdef CHRONO_VSG
+    #include "chrono_fsi/visualization/ChFsiVisualizationVSG.h"
+#endif
+
 #include "chrono_thirdparty/filesystem/path.h"
 
 using namespace chrono;
 using namespace chrono::fsi;
 
 // -----------------------------------------------------------------
+
+// Run-time visualization system (OpenGL or VSG)
+ChVisualSystem::Type vis_type = ChVisualSystem::Type::VSG;
 
 // Output directories and settings
 const std::string out_dir = GetChronoOutputPath() + "FSI_Compressibility/";
@@ -48,6 +59,10 @@ double fzDim = 1.0 + smalldis;
 
 // Final simulation time
 double t_end = 2.0;
+
+// Enable/disable run-time visualization
+bool render = true;
+float render_fps = 1000;
 
 //------------------------------------------------------------------
 // Create the objects of the MBD system. Rigid bodies, and if fsi, their
@@ -109,8 +124,8 @@ int main(int argc, char* argv[]) {
     chrono::utils::ChGridSampler<> sampler(initSpace0);
 
     // Use a chrono sampler to create a bucket of granular material
-    ChVector3d boxCenter(-bxDim / 2 + fxDim / 2, 0 * initSpace0, fzDim / 2 + 1 * initSpace0);
-    ChVector3d boxHalfDim(fxDim / 2, fyDim / 2, fzDim / 2);
+    ChVector3d boxCenter(0, 00, fzDim / 2);
+    ChVector3d boxHalfDim(fxDim / 2 - initSpace0, fyDim / 2 - initSpace0, fzDim / 2 - initSpace0);
     std::vector<ChVector3d> points = sampler.SampleBox(boxCenter, boxHalfDim);
 
     // Add SPH particles from the sampler points to the FSI system
@@ -126,9 +141,49 @@ int main(int argc, char* argv[]) {
     // Complete construction of the FSI system
     sysFSI.Initialize();
 
+    // Create a run-tme visualizer
+#ifndef CHRONO_OPENGL
+    if (vis_type == ChVisualSystem::Type::OpenGL)
+        vis_type = ChVisualSystem::Type::VSG;
+#endif
+#ifndef CHRONO_VSG
+    if (vis_type == ChVisualSystem::Type::VSG)
+        vis_type = ChVisualSystem::Type::OpenGL;
+#endif
+#if !defined(CHRONO_OPENGL) && !defined(CHRONO_VSG)
+    render = false;
+#endif
+
+    std::shared_ptr<ChFsiVisualization> visFSI;
+    if (render) {
+        switch (vis_type) {
+            case ChVisualSystem::Type::OpenGL:
+#ifdef CHRONO_OPENGL
+                visFSI = chrono_types::make_shared<ChFsiVisualizationGL>(&sysFSI);
+#endif
+                break;
+            case ChVisualSystem::Type::VSG: {
+#ifdef CHRONO_VSG
+                visFSI = chrono_types::make_shared<ChFsiVisualizationVSG>(&sysFSI);
+#endif
+                break;
+            }
+        }
+
+        visFSI->SetTitle("Chrono::FSI compressibility test");
+        visFSI->AddCamera(ChVector3d(0, -5 * byDim, 0.5 * bzDim), ChVector3d(0, 0, 0.5 * bzDim));
+        visFSI->SetCameraMoveScale(1.0f);
+        visFSI->EnableFluidMarkers(true);
+        visFSI->EnableBoundaryMarkers(true);
+        visFSI->SetRenderMode(ChFsiVisualization::RenderMode::SOLID);
+        visFSI->SetSPHColorCallback(chrono_types::make_shared<VelocityColorCallback>(0, 5.0));
+        visFSI->Initialize();
+    }
+
     // Start the simulation
     double dT = sysFSI.GetStepSize();
     unsigned int output_steps = (unsigned int)round(1 / (out_fps * dT));
+    unsigned int render_steps = (unsigned int)round(1 / (render_fps * dT));
 
     std::ofstream outf;
     std::string delim = ",";
@@ -147,6 +202,12 @@ int main(int argc, char* argv[]) {
         if (output && current_step % output_steps == 0) {
             std::cout << "------- OUTPUT" << std::endl;
             sysFSI.PrintParticleToFile(out_dir + "/particles");
+        }
+
+        // Render FSI system
+        if (render && current_step % render_steps == 0) {
+            if (!visFSI->Render())
+                break;
         }
 
         sysFSI.DoStepDynamics_FSI();

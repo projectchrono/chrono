@@ -80,15 +80,28 @@ int ChLinkDistance::Initialize(std::shared_ptr<ChBodyFrame> body1,
     return true;
 }
 
-inline ChFramed ChLinkDistance::GetFrame2Rel() const {
-    ChVector3d dir_F1_F2_W =
-        (Vnorm(m_body1->TransformPointLocalToParent(m_pos1) - m_body2->TransformPointLocalToParent(m_pos2)));
-    ChVector3d dir_F1_F2_B1 = m_body2->TransformDirectionParentToLocal(dir_F1_F2_W);
+ChFramed ChLinkDistance::GetFrame1Rel() const {
+    // unit vector from pos1 to pos2 in absolute coordinates
+    ChVector3d dir_12_abs =
+        Vnorm(m_body2->TransformPointLocalToParent(m_pos2) - m_body1->TransformPointLocalToParent(m_pos1));
+    ChVector3d dir_12_loc1 = m_body1->TransformDirectionParentToLocal(dir_12_abs);
     ChMatrix33<> rel_matrix;
-    rel_matrix.SetFromAxisX(dir_F1_F2_B1, VECT_Y);
+    rel_matrix.SetFromAxisX(dir_12_loc1, VECT_Y);
 
-    ChQuaterniond Ql2 = rel_matrix.GetQuaternion();
-    return ChFrame<>(m_pos2, Ql2);
+    ChQuaterniond Q_loc1 = rel_matrix.GetQuaternion();
+    return ChFrame<>(m_pos1, Q_loc1);
+}
+
+ChFramed ChLinkDistance::GetFrame2Rel() const {
+    // unit vector from pos2 to pos1 in absolute coordinates
+    ChVector3d dir_21_abs =
+        Vnorm(m_body1->TransformPointLocalToParent(m_pos1) - m_body2->TransformPointLocalToParent(m_pos2));
+    ChVector3d dir_21_loc2 = m_body2->TransformDirectionParentToLocal(dir_21_abs);
+    ChMatrix33<> rel_matrix;
+    rel_matrix.SetFromAxisX(dir_21_loc2, VECT_Y);
+
+    ChQuaterniond Q_loc2 = rel_matrix.GetQuaternion();
+    return ChFrame<>(m_pos2, Q_loc2);
 }
 
 void ChLinkDistance::SetMode(Mode mode) {
