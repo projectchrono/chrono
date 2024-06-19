@@ -32,16 +32,16 @@ ChMaterialBeamANCF::ChMaterialBeamANCF(double rho,  // material density
                                        )
     : m_rho(rho) {
     double G = 0.5 * E / (1 + nu);
-    Calc_D0_Dv(ChVector<>(E), ChVector<>(nu), ChVector<>(G), k1, k2);
-    Calc_E_eps(ChVector<>(E), ChVector<>(nu), ChVector<>(G), k1, k2);  //(For compatibility with ChElementBeam only)
+    Calc_D0_Dv(ChVector3d(E), ChVector3d(nu), ChVector3d(G), k1, k2);
+    Calc_E_eps(ChVector3d(E), ChVector3d(nu), ChVector3d(G), k1, k2);  //(For compatibility with ChElementBeam only)
     Calc_E_eps_Nu(E, nu, G);                                           //(For compatibility with ChElementBeam only)
 }
 
 // Construct a (possibly) orthotropic material.
 ChMaterialBeamANCF::ChMaterialBeamANCF(double rho,            // material density
-                                       const ChVector<>& E,   // elasticity moduli (E_x, E_y, E_z)
-                                       const ChVector<>& nu,  // Poisson ratios (nu_xy, nu_xz, nu_yz)
-                                       const ChVector<>& G,   // shear moduli (G_xy, G_xz, G_yz)
+                                       const ChVector3d& E,   // elasticity moduli (E_x, E_y, E_z)
+                                       const ChVector3d& nu,  // Poisson ratios (nu_xy, nu_xz, nu_yz)
+                                       const ChVector3d& G,   // shear moduli (G_xy, G_xz, G_yz)
                                        double k1,             // Shear correction factor along beam local y axis
                                        double k2              // Shear correction factor along beam local z axis
                                        )
@@ -53,9 +53,9 @@ ChMaterialBeamANCF::ChMaterialBeamANCF(double rho,            // material densit
 
 // Calculate the matrix form of two stiffness tensors used by the ANCF beam for selective reduced integration of the
 // Poisson effect when utilizing the Enhanced Continuum Mechanics based method
-void ChMaterialBeamANCF::Calc_D0_Dv(const ChVector<>& E,
-                                    const ChVector<>& nu,
-                                    const ChVector<>& G,
+void ChMaterialBeamANCF::Calc_D0_Dv(const ChVector3d& E,
+                                    const ChVector3d& nu,
+                                    const ChVector3d& G,
                                     double k1,
                                     double k2) {
     // orthotropic material ref: http://homes.civil.aau.dk/lda/Continuum/material.pdf
@@ -96,9 +96,9 @@ void ChMaterialBeamANCF::Calc_D0_Dv(const ChVector<>& E,
 // Calculate the matrix of elastic coefficients.
 // Always assume that the material could be orthotropic: E_0
 //(For compatibility with ChElementBeam only)
-void ChMaterialBeamANCF::Calc_E_eps(const ChVector<>& E,
-                                    const ChVector<>& nu,
-                                    const ChVector<>& G,
+void ChMaterialBeamANCF::Calc_E_eps(const ChVector3d& E,
+                                    const ChVector3d& nu,
+                                    const ChVector3d& G,
                                     double k1,
                                     double k2) {
     m_E_eps.setZero();
@@ -115,7 +115,7 @@ void ChMaterialBeamANCF::Calc_E_eps(const ChVector<>& E,
     m_E_eps(4, 4) = G.y() * k2;  // This works for Z axis loading
     m_E_eps(5, 5) = G.z();
 }
-void ChMaterialBeamANCF::Calc_E_eps_Nu(const ChVector<>& E, const ChVector<>& nu, const ChVector<>& G) {
+void ChMaterialBeamANCF::Calc_E_eps_Nu(const ChVector3d& E, const ChVector3d& nu, const ChVector3d& G) {
     double delta = 1.0 - (nu.x() * nu.x()) * E.y() / E.x() - (nu.y() * nu.y()) * E.z() / E.x() -
                    (nu.z() * nu.z()) * E.z() / E.y() - 2.0 * nu.x() * nu.y() * nu.z() * E.z() / E.x();
     m_E_eps_Nu.setZero();
@@ -136,7 +136,7 @@ void ChMaterialBeamANCF::Calc_E_eps_Nu(const ChVector<>& E, const ChVector<>& nu
 
 // Return the complete elasticity tensor in 6x6 matrix form by combining the two parts of the elasticity tensor used for
 // the Enhanced Continuum Mechanics based method
-void ChMaterialBeamANCF::Get_D(ChMatrixNM<double, 6, 6>& D) {
+void ChMaterialBeamANCF::Get_D(ChMatrix66d& D) {
     D.setZero();
     D.diagonal() = m_D0;
     D.block<3, 3>(0, 0) += m_Dv;

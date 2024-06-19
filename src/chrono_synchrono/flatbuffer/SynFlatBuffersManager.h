@@ -27,7 +27,6 @@
 #include "chrono_synchrono/flatbuffer/message/SynMessage.h"
 #include "chrono_synchrono/flatbuffer/message/SynFlatBuffers_generated.h"
 
-/// Manager that handles all flatbuffer specifics
 namespace chrono {
 namespace synchrono {
 

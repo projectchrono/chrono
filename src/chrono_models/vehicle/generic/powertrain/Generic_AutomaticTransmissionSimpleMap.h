@@ -16,8 +16,8 @@
 //
 // =============================================================================
 
-#ifndef GENERIC_AUTOMATICTRANSMISSIONSIMPLEMAP_H
-#define GENERIC_AUTOMATICTRANSMISSIONSIMPLEMAP_H
+#ifndef GENERIC_AUTOMATIC_TRANSMISSION_SIMPLEMAP_H
+#define GENERIC_AUTOMATIC_TRANSMISSION_SIMPLEMAP_H
 
 #include "chrono_vehicle/ChVehicle.h"
 #include "chrono_vehicle/powertrain/ChAutomaticTransmissionSimpleMap.h"

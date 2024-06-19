@@ -32,17 +32,7 @@ ChPhysicsItem::~ChPhysicsItem() {
 }
 
 void ChPhysicsItem::SetSystem(ChSystem* m_system) {
-    if (system == m_system)  // shortcut if no change
-        return;
-    if (system) {
-        if (GetCollide())
-            RemoveCollisionModelsFromSystem();
-    }
-    system = m_system;  // set here
-    if (system) {
-        if (GetCollide())
-            AddCollisionModelsToSystem();
-    }
+    system = m_system;
 }
 
 void ChPhysicsItem::AddVisualModel(std::shared_ptr<ChVisualModel> model) {
@@ -89,81 +79,68 @@ void ChPhysicsItem::AddCamera(std::shared_ptr<ChCamera> camera) {
     cameras.push_back(camera);
 }
 
-void ChPhysicsItem::GetTotalAABB(ChVector<>& bbmin, ChVector<>& bbmax) {
-    bbmin.Set(-1e200, -1e200, -1e200);
-    bbmax.Set(1e200, 1e200, 1e200);
+ChAABB ChPhysicsItem::GetTotalAABB() const {
+    return ChAABB();
 }
 
-void ChPhysicsItem::GetCenter(ChVector<>& mcenter) {
-    ChVector<> mmin, mmax;
-    GetTotalAABB(mmin, mmax);
-    mcenter = (mmin + mmax) * 0.5;
+ChVector3d ChPhysicsItem::GetCenter() const {
+    auto bbox = GetTotalAABB();
+    return (bbox.min + bbox.max) * 0.5;
 }
 
-void ChPhysicsItem::Update(double mytime, bool update_assets) {
-    ChTime = mytime;
+void ChPhysicsItem::Update(double time, bool update_assets) {
+    ChTime = time;
 
     if (update_assets) {
+        UpdateVisualModel();
         for (auto& camera : cameras)
             camera->Update();
-        if (vis_model_instance)
-            vis_model_instance->Update(GetVisualModelFrame());
     }
 }
 
-void ChPhysicsItem::ArchiveOut(ChArchiveOut& marchive) {
+void ChPhysicsItem::Update(bool update_assets) {
+    Update(ChTime, update_assets);
+}
+
+void ChPhysicsItem::UpdateVisualModel() {
+    if (vis_model_instance)
+        vis_model_instance->Update(GetVisualModelFrame());
+}
+
+void ChPhysicsItem::ArchiveOut(ChArchiveOut& archive_out) {
     // version number
-    marchive.VersionWrite<ChPhysicsItem>();
+    archive_out.VersionWrite<ChPhysicsItem>();
 
     // serialize parent class
-    ChObj::ArchiveOut(marchive);
+    ChObj::ArchiveOut(archive_out);
 
     // serialize all member data:
-    // marchive << CHNVP(system); ***TODO***
-    marchive << CHNVP(GetVisualModel(), "visual_model");
-    marchive << CHNVP(cameras);
-    // marchive << CHNVP(offset_x);
-    // marchive << CHNVP(offset_w);
-    // marchive << CHNVP(offset_L);
+    // archive_out << CHNVP(system); ***TODO***
+    archive_out << CHNVP(GetVisualModel(), "visual_model");
+    archive_out << CHNVP(cameras);
+    // archive_out << CHNVP(offset_x);
+    // archive_out << CHNVP(offset_w);
+    // archive_out << CHNVP(offset_L);
 }
 
 /// Method to allow de serialization of transient data from archives.
-void ChPhysicsItem::ArchiveIn(ChArchiveIn& marchive) {
+void ChPhysicsItem::ArchiveIn(ChArchiveIn& archive_in) {
     // version number
-    /*int version =*/marchive.VersionRead<ChPhysicsItem>();
+    /*int version =*/archive_in.VersionRead<ChPhysicsItem>();
 
     // deserialize parent class
-    ChObj::ArchiveIn(marchive);
+    ChObj::ArchiveIn(archive_in);
 
     // stream in all member data:
-    // marchive >> CHNVP(system); ***TODO***
+    // archive_in >> CHNVP(system); ***TODO***
     std::shared_ptr<ChVisualModel> visual_model;
-    marchive >> CHNVP(visual_model);
+    archive_in >> CHNVP(visual_model);
     if (visual_model)
         AddVisualModel(visual_model);
-    marchive >> CHNVP(cameras);
-    // marchive >> CHNVP(offset_x);
-    // marchive >> CHNVP(offset_w);
-    // marchive >> CHNVP(offset_L);
-
-    // INITIALIZATION-BY-METHODS
-    if (marchive.CanTolerateMissingTokens()){
-        bool temp_tolerate_missing_tokens = marchive.GetTolerateMissingTokens();
-        marchive.TryTolerateMissingTokens(true);
-
-        std::vector<std::shared_ptr<ChVisualShape>> _c_AddVisualShape_ChVisualShapes;
-        std::vector<ChFrame<>> _c_AddVisualShape_ChFrames;
-        if (marchive.in(CHNVP(_c_AddVisualShape_ChVisualShapes)) && marchive.in(CHNVP(_c_AddVisualShape_ChFrames))){
-            if (_c_AddVisualShape_ChVisualShapes.size() != _c_AddVisualShape_ChFrames.size())
-                throw ChExceptionArchive("ChVisualShape and ChFrame vector must be of the same length and they are not.");
-
-            for (auto s_sel = 0; s_sel<_c_AddVisualShape_ChVisualShapes.size(); ++s_sel)
-                this->AddVisualShape(_c_AddVisualShape_ChVisualShapes.at(s_sel), _c_AddVisualShape_ChFrames.at(s_sel));
-        }
-
-
-        marchive.TryTolerateMissingTokens(temp_tolerate_missing_tokens);
-    }
+    archive_in >> CHNVP(cameras);
+    // archive_in >> CHNVP(offset_x);
+    // archive_in >> CHNVP(offset_w);
+    // archive_in >> CHNVP(offset_L);
 }
 
 }  // end namespace chrono

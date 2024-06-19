@@ -71,13 +71,13 @@ TEST(ChStateTest, create_assign) {
 
     cout << "-s3\n" << (-s3).transpose() << endl;
 
-    ////ASSERT_DEATH(s4 += s3, "^Assertion failed:");   // should be a run-time assertion failure (only valid in 'Debug' mode)
+    ////ASSERT_DEATH(s4 += s3, "^Assertion failed:");   // should be a run-time assertion failure (only valid in 'Debug'
+    /// mode)
 }
 
-// Test inter-operability with ChVector, ChQuaternion, and ChCoordsys
+// Test inter-operability with ChVector3, ChQuaternion, and ChCoordsys
 TEST(ChStateTest, interop) {
-
-    ChVector<> v1(1, 2, 3);
+    ChVector3d v1(1, 2, 3);
     ChQuaternion<> q1(10, 20, 30, 40);
     ChCoordsys<> cs1(v1, q1);
 
@@ -87,9 +87,9 @@ TEST(ChStateTest, interop) {
 
         S.segment(2, 3) = v1.eigen();
         cout << "v -> S\n" << S.transpose() << endl;
-        ChVector<> v2(S.segment(2, 3));
+        ChVector3d v2(S.segment(2, 3));
         cout << "S -> v (constructor)\n" << v2 << endl;
-        ChVector<> v3(0);
+        ChVector3d v3(0);
         v3 = S.segment(2, 3);
         cout << "S -> v (assignment)\n" << v3 << endl;
 
@@ -127,8 +127,8 @@ TEST(ChStateTest, interop) {
         SD.setZero(12, nullptr);
 
         SD.segment(2, 3) = v1.eigen();
-        ChVector<> v2(SD.segment(2, 3));
-        ChVector<> v3(0);
+        ChVector3d v2(SD.segment(2, 3));
+        ChVector3d v3(0);
         v3 = SD.segment(2, 3);
 
         ASSERT_TRUE(v1.Equals(v2));
@@ -159,8 +159,8 @@ TEST(ChStateTest, interop) {
         V.setZero(12);
 
         V.segment(2, 3) = v1.eigen();
-        ChVector<> v2(V.segment(2, 3));
-        ChVector<> v3(0);
+        ChVector3d v2(V.segment(2, 3));
+        ChVector3d v3(0);
         v3 = V.segment(2, 3);
 
         ASSERT_TRUE(v1.Equals(v2));

@@ -53,12 +53,12 @@ MaxMNUM = 1
 MTYPE = 1
 MaxLayNum = 1
 
-COORDFlex = chrono.ChMatrixDynamicD(TotalNumNodes, 3)
-VELCYFlex = chrono.ChMatrixDynamicD(TotalNumNodes, 3)
+COORDFlex = chrono.ChMatrixDynamicd(TotalNumNodes, 3)
+VELCYFlex = chrono.ChMatrixDynamicd(TotalNumNodes, 3)
 NumNodes = np.empty([TotalNumElements, 8], dtype=int)
 LayNum = np.empty([TotalNumElements, 1], dtype=int)
 NDR = np.empty([TotalNumNodes, 3], dtype=int)
-ElemLengthXY = chrono.ChMatrixDynamicD(TotalNumElements, 3)
+ElemLengthXY = chrono.ChMatrixDynamicd(TotalNumElements, 3)
 MPROP = np.empty([10, 12], dtype=float)
 
 #!------------------------------------------------!
@@ -71,12 +71,12 @@ for i in range(MaxMNUM):
 	MPROP[i, 2] = 0.3      # nu
 
 mmaterial = fea.ChContinuumElastic()
-mmaterial.Set_RayleighDampingK(0.0)
-mmaterial.Set_RayleighDampingM(0.0)
-mmaterial.Set_density(MPROP[0, 0])
-mmaterial.Set_E(MPROP[0, 1])
-mmaterial.Set_G(MPROP[0, 1] / (2 + 2 * MPROP[0, 2]))
-mmaterial.Set_v(MPROP[0, 2])
+mmaterial.SetRayleighDampingBeta(0.0)
+mmaterial.SetRayleighDampingAlpha(0.0)
+mmaterial.SetDensity(MPROP[0, 0])
+mmaterial.SetYoungModulus(MPROP[0, 1])
+mmaterial.SetShearModulus(MPROP[0, 1] / (2 + 2 * MPROP[0, 2]))
+mmaterial.SetPoissonRatio(MPROP[0, 2])
 #!------------------------------------------------!
 #!--------------- Element data--------------------!
 #!------------------------------------------------!
@@ -137,7 +137,7 @@ for i in range(TotalNumNodes) :
 # Adding the nodes to the mesh
 i = 0
 while i < TotalNumNodes :
-	node = fea.ChNodeFEAxyz(chrono.ChVectorD(COORDFlex[i, 0], COORDFlex[i, 1], COORDFlex[i, 2]))
+	node = fea.ChNodeFEAxyz(chrono.ChVector3d(COORDFlex[i, 0], COORDFlex[i, 1], COORDFlex[i, 2]))
 	node.SetMass(0.0)
 	mesh.AddNode(node)
 	if (NDR[i, 0] == 1 and NDR[i, 1] == 1 and NDR[i, 2] == 1) :
@@ -150,7 +150,7 @@ nodetip = fea.CastToChNodeFEAxyz(fea.CastToChNodeFEAbase(mesh.GetNode(TotalNumNo
 elemcount = 0
 while elemcount < TotalNumElements : 
     element = fea.ChElementHexaANCF_3813()
-    InertFlexVec  = chrono.ChVectorD(ElemLengthXY[elemcount, 0], ElemLengthXY[elemcount, 1], ElemLengthXY[elemcount, 2]) # read element length
+    InertFlexVec  = chrono.ChVector3d(ElemLengthXY[elemcount, 0], ElemLengthXY[elemcount, 1], ElemLengthXY[elemcount, 2]) # read element length
     element.SetInertFlexVec(InertFlexVec)
     element.SetNodes(fea.CastToChNodeFEAxyz(fea.CastToChNodeFEAbase(mesh.GetNode(int(NumNodes[elemcount, 0])))),
 					  fea.CastToChNodeFEAxyz(fea.CastToChNodeFEAbase(mesh.GetNode(int(NumNodes[elemcount, 1])))),
@@ -171,17 +171,11 @@ while elemcount < TotalNumElements :
     mesh.AddElement(element)
     elemcount += 1
 
-sys.Set_G_acc(chrono.ChVectorD(0, 0, -9.81))
+sys.SetGravitationalAcceleration(chrono.ChVector3d(0, 0, -9.81))
 # Remember to add the mesh to the system!
 sys.Add(mesh)
 
 # Options for visualization in irrlicht
-mvisualizemesh = chrono.ChVisualShapeFEA(mesh)
-mvisualizemesh.SetFEMdataType(chrono.ChVisualShapeFEA.DataType_NODE_P)
-mvisualizemesh.SetShrinkElements(True, 0.85)
-mvisualizemesh.SetSmoothFaces(False)
-mesh.AddVisualShapeFEA(mvisualizemesh)
-
 mvisualizemeshref = chrono.ChVisualShapeFEA(mesh)
 mvisualizemeshref.SetFEMdataType(chrono.ChVisualShapeFEA.DataType_SURFACE)
 mvisualizemeshref.SetWireframe(True)
@@ -210,7 +204,7 @@ vis.SetWindowTitle('Brick Elements')
 vis.Initialize()
 vis.AddLogo(chrono.GetChronoDataFile('logo_pychrono_alpha.png'))
 vis.AddSkyBox()
-vis.AddCamera(chrono.ChVectorD(1.2, 0.6, 0.3), chrono.ChVectorD(0.2, -0.2, 0))
+vis.AddCamera(chrono.ChVector3d(1.2, 0.6, 0.3), chrono.ChVector3d(0.2, -0.2, 0))
 vis.AddTypicalLights()
 
 
@@ -226,7 +220,7 @@ solver.SetVerbose(False)
 mystepper = chrono.ChTimestepperHHT(sys)
 sys.SetTimestepper(mystepper)
 mystepper.SetAlpha(-0.2)
-mystepper.SetMaxiters(100)
+mystepper.SetMaxIters(100)
 mystepper.SetAbsTolerances(1e-2)
 
 # Simulation loop

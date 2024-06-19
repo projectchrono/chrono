@@ -10,14 +10,10 @@
 //#define ChApi 
 
 // Forward ref
-%import "ChMaterialSurface.i"
+%import "ChContactMaterial.i"
 %import "ChCollisionModel.i"
 
 
 /* Parse the header file to generate wrappers */
-%include "../../../chrono/physics/ChParticleCloud.h"  
-
-
-
-
-
+%ignore chrono::ChParticle;
+%include "../../../chrono/physics/ChParticleCloud.h"

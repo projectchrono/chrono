@@ -34,7 +34,7 @@ class ChApi ChIterativeSolver {
     virtual ~ChIterativeSolver() {}
 
     /// Set the maximum number of iterations.
-    void SetMaxIterations(int max_iterations) { m_max_iterations = max_iterations; }
+    virtual void SetMaxIterations(int max_iterations) { m_max_iterations = max_iterations; }
 
     /// Set the tolerance threshold used by the stopping criteria.
     void SetTolerance(double tolerance) { m_tolerance = tolerance; }
@@ -64,7 +64,7 @@ class ChApi ChIterativeSolver {
     ChIterativeSolver(int max_iterations, double tolerance, bool use_precond, bool warm_start);
 
     // Debugging utilities
-    void SaveMatrix(ChSystemDescriptor& sysd);
+    void WriteMatrices(ChSystemDescriptor& sysd, bool one_indexed = true);
     double CheckSolution(ChSystemDescriptor& sysd, const ChVectorDynamic<>& x);
 
     bool m_use_precond;    ///< use diagonal preconditioning?

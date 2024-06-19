@@ -18,14 +18,14 @@
   },
 
   "Zombie": {
-    "Chassis Visualization File": "M113/Chassis.obj",
-    "Track Shoe Visualization File": "M113/TrackShoe.obj",
-    "Left Sprocket Visualization File": "M113/Sprocket_L.obj",
-    "Right Sprocket Visualization File": "M113/Sprocket_R.obj",
-    "Left Idler Visualization File": "M113/Idler_L.obj",
-    "Right Idler Visualization File": "M113/Idler_R.obj",
-    "Left Road Wheel Visualization File": "M113/Roller_L.obj",
-    "Right Road Wheel Visualization File": "M113/Roller_R.obj",
+    "Chassis Visualization File": "M113/meshes/Chassis.obj",
+    "Track Shoe Visualization File": "M113/meshes/TrackShoeSinglePin.obj",
+    "Left Sprocket Visualization File": "M113/meshes/SprocketSinglePin_L.obj",
+    "Right Sprocket Visualization File": "M113/meshes/SprocketSinglePin_R.obj",
+    "Left Idler Visualization File": "M113/meshes/Idler_L.obj",
+    "Right Idler Visualization File": "M113/meshes/Idler_R.obj",
+    "Left Road Wheel Visualization File": "M113/meshes/Roller_L.obj",
+    "Right Road Wheel Visualization File": "M113/meshes/Roller_R.obj",
 
     "Number of Track Shoes": 127,
     "Number of Sprockets": 2,

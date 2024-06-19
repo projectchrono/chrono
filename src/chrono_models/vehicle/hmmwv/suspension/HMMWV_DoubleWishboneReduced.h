@@ -54,8 +54,8 @@ class CH_MODELS_API HMMWV_DoubleWishboneReducedFront : public ChDoubleWishboneRe
     virtual double getSpindleWidth() const override { return m_spindleWidth; }
     virtual double getUprightRadius() const override { return m_uprightRadius; }
 
-    virtual const ChVector<>& getSpindleInertia() const override { return m_spindleInertia; }
-    virtual const ChVector<>& getUprightInertia() const override { return m_uprightInertia; }
+    virtual const ChVector3d& getSpindleInertia() const override { return m_spindleInertia; }
+    virtual const ChVector3d& getUprightInertia() const override { return m_uprightInertia; }
 
     virtual double getAxleInertia() const override { return m_axleInertia; }
 
@@ -63,7 +63,7 @@ class CH_MODELS_API HMMWV_DoubleWishboneReducedFront : public ChDoubleWishboneRe
     virtual std::shared_ptr<ChLinkTSDA::ForceFunctor> getShockForceFunctor() const override { return m_shockForceCB; }
 
   private:
-    virtual const ChVector<> getLocation(PointId which) override;
+    virtual const ChVector3d getLocation(PointId which) override;
 
     std::shared_ptr<ChLinkTSDA::ForceFunctor> m_shockForceCB;
 
@@ -74,8 +74,8 @@ class CH_MODELS_API HMMWV_DoubleWishboneReducedFront : public ChDoubleWishboneRe
     static const double m_spindleWidth;
     static const double m_uprightRadius;
 
-    static const ChVector<> m_spindleInertia;
-    static const ChVector<> m_uprightInertia;
+    static const ChVector3d m_spindleInertia;
+    static const ChVector3d m_uprightInertia;
 
     static const double m_axleInertia;
 
@@ -103,8 +103,8 @@ class CH_MODELS_API HMMWV_DoubleWishboneReducedRear : public ChDoubleWishboneRed
     virtual double getSpindleWidth() const override { return m_spindleWidth; }
     virtual double getUprightRadius() const override { return m_uprightRadius; }
 
-    virtual const ChVector<>& getSpindleInertia() const override { return m_spindleInertia; }
-    virtual const ChVector<>& getUprightInertia() const override { return m_uprightInertia; }
+    virtual const ChVector3d& getSpindleInertia() const override { return m_spindleInertia; }
+    virtual const ChVector3d& getUprightInertia() const override { return m_uprightInertia; }
 
     virtual double getAxleInertia() const override { return m_axleInertia; }
 
@@ -112,7 +112,7 @@ class CH_MODELS_API HMMWV_DoubleWishboneReducedRear : public ChDoubleWishboneRed
     virtual std::shared_ptr<ChLinkTSDA::ForceFunctor> getShockForceFunctor() const override { return m_shockForceCB; }
 
   private:
-    virtual const ChVector<> getLocation(PointId which) override;
+    virtual const ChVector3d getLocation(PointId which) override;
 
     std::shared_ptr<ChLinkTSDA::ForceFunctor> m_shockForceCB;
 
@@ -123,8 +123,8 @@ class CH_MODELS_API HMMWV_DoubleWishboneReducedRear : public ChDoubleWishboneRed
     static const double m_spindleWidth;
     static const double m_uprightRadius;
 
-    static const ChVector<> m_spindleInertia;
-    static const ChVector<> m_uprightInertia;
+    static const ChVector3d m_spindleInertia;
+    static const ChVector3d m_uprightInertia;
 
     static const double m_axleInertia;
 

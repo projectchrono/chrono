@@ -20,38 +20,32 @@
 
 namespace chrono {
 
-/// Specialized class for representing a 6-DOF item for a system, that is a 3D rigid body, with mass matrix and
-/// associate variables (a 6 element vector, ex.speed) This is an abstract class, specialized for example in
-/// ChVariablesBodyOwnMass and ChVariablesBodySharedMass.
-
+/// Specialized class for representing a 6-DOF 3D rigid body, with mass matrix and associated variables.
+/// This is an abstract class, specialized for example in ChVariablesBodyOwnMass and ChVariablesBodySharedMass.
 class ChApi ChVariablesBody : public ChVariables {
-
-  private:
-    void* user_data;
-
   public:
     ChVariablesBody() : ChVariables(6), user_data(NULL) {}
     virtual ~ChVariablesBody() {}
 
-    /// Assignment operator: copy from other object
+    /// Assignment operator: copy from other object.
     ChVariablesBody& operator=(const ChVariablesBody& other);
 
-    /// Get the mass associated with translation of body
+    /// Get the mass associated with translation of body.
     virtual double GetBodyMass() const = 0;
 
-    /// Access the 3x3 inertia matrix
+    /// Access the 3x3 inertia matrix.
     virtual ChMatrix33<>& GetBodyInertia() = 0;
     virtual const ChMatrix33<>& GetBodyInertia() const = 0;
 
-    /// Access the 3x3 inertia matrix inverted
+    /// Access the 3x3 inertia matrix inverted.
     virtual ChMatrix33<>& GetBodyInvInertia() = 0;
     virtual const ChMatrix33<>& GetBodyInvInertia() const = 0;
 
-    /// The number of scalar variables in the vector qb (dof=degrees of freedom)
-    virtual int Get_ndof() const override { return 6; }
-
     void* GetUserData() { return this->user_data; }
     void SetUserData(void* mdata) { this->user_data = mdata; }
+
+  private:
+    void* user_data;
 };
 
 }  // end namespace chrono

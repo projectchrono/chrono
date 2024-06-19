@@ -18,10 +18,8 @@
 
 #include <cmath>
 
-#include "chrono/core/ChLog.h"
 #include "chrono/core/ChGlobal.h"
-#include "chrono/motion_functions/ChFunction_Recorder.h"
-#include "chrono/motion_functions/ChFunction_Sine.h"
+#include "chrono/functions/ChFunctionInterp.h"
 
 #include "chrono_postprocess/ChGnuPlot.h"
 
@@ -31,9 +29,9 @@ using namespace chrono;
 using namespace postprocess;
 
 int main(int argc, char* argv[]) {
-    GetLog() << "Copyright (c) 2017 projectchrono.org\nChrono version: " << CHRONO_VERSION << "\n\n";
+    std::cout << "Copyright (c) 2017 projectchrono.org\nChrono version: " << CHRONO_VERSION << std::endl;
 
-    GetLog() << "CHRONO demo that launches GNUplot for plotting graphs: \n\n";
+    std::cout << "CHRONO demo that launches GNUplot for plotting graphs:\n" << std::endl;
 
     // Create (if needed) output directory
     const std::string out_dir = GetChronoOutputPath() + "DEMO_GNUPLOT";
@@ -98,10 +96,10 @@ int main(int argc, char* argv[]) {
 
         // Step 1.
         // create a .dat file with three columns of demo data:
-        std::string datafile = out_dir + "/test_gnuplot_data.dat";
-        ChStreamOutAsciiFile mdatafile(datafile.c_str());
+        std::string datafilename = out_dir + "/test_gnuplot_data.dat";
+        std::ofstream datafile(datafilename);
         for (double x = 0; x < 10; x += 0.1)
-            mdatafile << x << ", " << sin(x) << ", " << cos(x) << "\n";
+            datafile << x << ", " << sin(x) << ", " << cos(x) << std::endl;
 
         // Step 2.
         // Create the plot.
@@ -112,8 +110,8 @@ int main(int argc, char* argv[]) {
         mplot.SetGrid();
         mplot.SetLabelX("x");
         mplot.SetLabelY("y");
-        mplot.Plot(datafile, 1, 2, "sine", " with lines lt -1 lw 2");
-        mplot.Plot(datafile, 1, 3, "cosine", " with lines lt 2 lw 2");
+        mplot.Plot(datafilename, 1, 2, "sine", " with lines lt -1 lw 2");
+        mplot.Plot(datafilename, 1, 3, "cosine", " with lines lt 2 lw 2");
     }
 
     {
@@ -138,8 +136,8 @@ int main(int argc, char* argv[]) {
             mx(i) = x;
             my(i) = y;
         }
-        // ..or create demo data in a ChFunction_Recorder
-        ChFunction_Recorder mfun;
+        // ..or create demo data in a ChFunctionInterp
+        ChFunctionInterp mfun;
         for (int i = 0; i < 100; ++i) {
             double x = ((double)i / 100.0) * 12;
             double y = cos(x) * exp(-x * 0.4);
@@ -159,11 +157,11 @@ int main(int argc, char* argv[]) {
         ChGnuPlot mplot(out_dir + "/tmp_gnuplot_4.gpl");
         mplot.SetGrid();
         mplot.Plot(mx, my, "from x,y ChVectorDynamic", " every 5 pt 1 ps 0.5");
-        mplot.Plot(mfun, "from ChFunction_Recorder", " with lines lt -1 lc rgb'#00AAEE' ");
+        mplot.Plot(mfun, "from ChFunctionInterp", " with lines lt -1 lc rgb'#00AAEE' ");
         mplot.Plot(matr, 2, 6, "from ChMatrix", " with lines lt 5");
     }
 
-    GetLog() << "\n  CHRONO execution terminated.";
+    std::cout << "\nCHRONO execution terminated.";
 
     return 0;
 }

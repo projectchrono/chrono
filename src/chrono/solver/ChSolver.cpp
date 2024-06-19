@@ -17,8 +17,8 @@
 namespace chrono {
 
 // Trick to avoid putting the following mapper macro inside the class definition in .h file:
-// enclose macros in local 'my_enum_mappers', just to avoid avoiding cluttering of the parent class.
-class my_enum_mappers : public ChSolver {
+// enclose macros in local 'ChSolver_Type_enum_mapper', just to avoid avoiding cluttering of the parent class.
+class ChSolver_Type_enum_mapper : public ChSolver {
   public:
     CH_ENUM_MAPPER_BEGIN(Type);
     CH_ENUM_VAL(Type::PSOR);
@@ -27,6 +27,7 @@ class my_enum_mappers : public ChSolver {
     CH_ENUM_VAL(Type::PMINRES);
     CH_ENUM_VAL(Type::BARZILAIBORWEIN);
     CH_ENUM_VAL(Type::APGD);
+    CH_ENUM_VAL(Type::ADMM);
     CH_ENUM_VAL(Type::SPARSE_LU);
     CH_ENUM_VAL(Type::SPARSE_QR);
     CH_ENUM_VAL(Type::PARDISO_MKL);
@@ -44,26 +45,26 @@ void ChSolver::EnableWrite(bool val, const std::string& frame, const std::string
     frame_id = frame;
 }
 
-void ChSolver::ArchiveOut(ChArchiveOut& marchive) {
+void ChSolver::ArchiveOut(ChArchiveOut& archive_out) {
     // version number
-    marchive.VersionWrite<ChSolver>();
+    archive_out.VersionWrite<ChSolver>();
     // solver type:
-    my_enum_mappers::Type_mapper typemapper;
+    ChSolver_Type_enum_mapper::Type_mapper typemapper;
     Type type = GetType();
-    marchive << CHNVP(typemapper(type), "solver_type");
+    archive_out << CHNVP(typemapper(type), "solver_type");
     // serialize all member data:
-    marchive << CHNVP(verbose);
+    archive_out << CHNVP(verbose);
 }
 
-void ChSolver::ArchiveIn(ChArchiveIn& marchive) {
+void ChSolver::ArchiveIn(ChArchiveIn& archive_in) {
     // version number
-    /*int version =*/marchive.VersionRead<ChSolver>();
+    /*int version =*/archive_in.VersionRead<ChSolver>();
     // solver type:
-    my_enum_mappers::Type_mapper typemapper;
+    ChSolver_Type_enum_mapper::Type_mapper typemapper;
     Type type = GetType();
-    marchive >> CHNVP(typemapper(type), "solver_type");
+    archive_in >> CHNVP(typemapper(type), "solver_type");
     // stream in all member data:
-    marchive >> CHNVP(verbose);
+    archive_in >> CHNVP(verbose);
 }
 
 }  // end namespace chrono

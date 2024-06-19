@@ -13,200 +13,149 @@
 #ifndef CHARCHIVEBINARY_H
 #define CHARCHIVEBINARY_H
 
+#include <cstring>
+
 #include "chrono/serialization/ChArchive.h"
-#include "chrono/core/ChLog.h"
 
 namespace chrono {
 
-///
-/// This is a class for serializing to binary archives
-///
+/// Templated function for swapping bytes of objects of type 'T', for arbitrary T type.
+/// This is used for cross-platform compatibility when sharing objects between big-endian and little-endian memory
+/// models, depending on the microprocessor type.
+template <class T>
+inline void StreamSwapBytes(T* ptData) {
+    char* acBytes = (char*)ptData;
+    size_t iSize = sizeof(T);
+    size_t iSizeM1 = iSize - 1;
+    size_t iHSize = iSize / 2;
+    for (size_t i0 = 0, i1 = iSizeM1; i0 < iHSize; i0++, i1--) {
+        char cSave = acBytes[i0];
+        acBytes[i0] = acBytes[i1];
+        acBytes[i1] = cSave;
+    }
+}
 
-class ChArchiveOutBinary : public ChArchiveOut {
+/// Serialization to binary stream.
+///
+/// Typical usage:
+/// \code{.cpp}
+/// std::ofstream fileo("/file.dat", std::ios::binary);
+/// ChArchiveOutBinary archiveout(fileo);
+/// archiveout << CHNVP(myobj);
+/// \endcode
+/// Remember to set stream mode to `std::ios::binary`.
+/// Data will always be written with little-endianness even in big-endian machines.
+class ChApi ChArchiveOutBinary : public ChArchiveOut {
   public:
-    ChArchiveOutBinary(ChStreamOutBinary& mostream) { ostream = &mostream; };
+    ChArchiveOutBinary(std::ostream& stream_out);
 
-    virtual ~ChArchiveOutBinary(){};
+    virtual ~ChArchiveOutBinary();
 
-    virtual void out(ChNameValue<bool> bVal) { (*ostream) << bVal.value(); }
-    virtual void out(ChNameValue<int> bVal) { (*ostream) << bVal.value(); }
-    virtual void out(ChNameValue<double> bVal) { (*ostream) << bVal.value(); }
-    virtual void out(ChNameValue<float> bVal) { (*ostream) << bVal.value(); }
-    virtual void out(ChNameValue<char> bVal) { (*ostream) << bVal.value(); }
-    virtual void out(ChNameValue<unsigned int> bVal) { (*ostream) << bVal.value(); }
-    virtual void out(ChNameValue<const char*> bVal) { (*ostream) << bVal.value(); }
-    virtual void out(ChNameValue<std::string> bVal) { (*ostream) << bVal.value(); }
-    virtual void out(ChNameValue<unsigned long> bVal) { (*ostream) << bVal.value(); }
-    virtual void out(ChNameValue<unsigned long long> bVal) { (*ostream) << bVal.value(); }
-    virtual void out(ChNameValue<ChEnumMapperBase> bVal) { (*ostream) << bVal.value().GetValueAsInt(); }
+    virtual void out(ChNameValue<bool> bVal);
+    virtual void out(ChNameValue<int> bVal);
+    virtual void out(ChNameValue<double> bVal);
+    virtual void out(ChNameValue<float> bVal);
+    virtual void out(ChNameValue<char> bVal);
+    virtual void out(ChNameValue<unsigned int> bVal);
+    virtual void out(ChNameValue<unsigned long> bVal);
+    virtual void out(ChNameValue<unsigned long long> bVal);
+    virtual void out(ChNameValue<ChEnumMapperBase> bVal);
 
-    virtual void out_array_pre(ChValue& bVal, size_t msize) { (*ostream) << msize; }
-    virtual void out_array_between(ChValue& bVal, size_t msize) {}
-    virtual void out_array_end(ChValue& bVal, size_t msize) {}
+    virtual void out(ChNameValue<const char*> bVal);
+    virtual void out(ChNameValue<std::string> bVal);
+
+    virtual void out_array_pre(ChValue& bVal, size_t size);
+    virtual void out_array_between(ChValue& bVal, size_t size);
+    virtual void out_array_end(ChValue& bVal, size_t size);
 
     // for custom c++ objects:
-    virtual void out(ChValue& bVal, bool tracked, size_t obj_ID) {
-        if (tracked)
-        {
-            std::string classname = bVal.GetClassRegisteredName();
-            *ostream << "typ" << classname;
+    virtual void out(ChValue& bVal, bool tracked, size_t obj_ID);
 
-            std::string str("oID");
-            *ostream << str << obj_ID;
-
-        }
-        bVal.CallArchiveOut(*this);
-    }
-
-    virtual void out_ref(ChValue& bVal, bool already_inserted, size_t obj_ID, size_t ext_ID) {
-        std::string classname = bVal.GetClassRegisteredName();
-        if (classname.length() > 0) {
-            std::string str("typ");
-            (*ostream) << str << classname;
-        }
-
-        if (!already_inserted) {
-            // New Object, we have to full serialize it
-            std::string str("oID");
-            (*ostream) << str;     // serialize 'this was already saved' info as "oID" string
-            (*ostream) << obj_ID;  // serialize obj_ID in pointers vector as ID
-            bVal.CallArchiveOutConstructor(*this);
-            bVal.CallArchiveOut(*this);
-        } else {
-            if (obj_ID || bVal.IsNull()) {
-                // Object already in list. Only store obj_ID as ID
-                std::string str("rID");
-                (*ostream) << str;     // serialize 'this was already saved' info as "oID" string
-                (*ostream) << obj_ID;  // serialize obj_ID in pointers vector as ID
-            }
-            if (ext_ID) {
-                // Object is external. Only store ref_ID as ID
-                std::string str("eID");
-                (*ostream) << str;     // serialize info as "eID" string
-                (*ostream) << ext_ID;  // serialize ext_ID in pointers vector as ID
-            }
-        }
-    }
+    virtual void out_ref(ChValue& bVal, bool already_inserted, size_t obj_ID, size_t ext_ID);
 
   protected:
-    ChStreamOutBinary* ostream;
+    std::ostream& m_ostream;
+
+    template <typename T>
+    std::ostream& write(T val) {
+        return m_ostream.write(reinterpret_cast<char*>(&val), sizeof(T));
+    }
 };
 
-///
-/// This is a class for serializing from binary archives
-///
+template <>
+std::ostream& ChArchiveOutBinary::write(std::string val);
 
-class ChArchiveInBinary : public ChArchiveIn {
+template <>
+std::ostream& ChArchiveOutBinary::write(bool val);
+
+template <>
+std::ostream& ChArchiveOutBinary::write(const char* val);
+
+/// Deserialization from binary stream.
+///
+/// Typical usage:
+/// \code{.cpp}
+/// std::ifstream filei("/file.dat", std::ios::binary);
+/// ChArchiveInBinary archivein(filei);
+/// archivein >> CHNVP(myobj);
+/// \endcode
+/// Remember to set stream mode to `std::ios::binary`.
+/// Data is expected to always be printed with little-endianness even in big-endian machines.
+/// The class will convert to big-endian if necessary.
+class ChApi ChArchiveInBinary : public ChArchiveIn {
   public:
-    ChArchiveInBinary(ChStreamInBinary& mistream) {
-        istream = &mistream;
-        can_tolerate_missing_tokens = false;
-    };
+    ChArchiveInBinary(std::istream& stream_in);
 
-    virtual ~ChArchiveInBinary(){};
+    virtual ~ChArchiveInBinary();
 
-    virtual bool in(ChNameValue<bool> bVal) override { (*istream) >> bVal.value(); return true; }
-    virtual bool in(ChNameValue<int> bVal) override { (*istream) >> bVal.value(); return true; }
-    virtual bool in(ChNameValue<double> bVal) override { (*istream) >> bVal.value(); return true; }
-    virtual bool in(ChNameValue<float> bVal) override { (*istream) >> bVal.value(); return true; }
-    virtual bool in(ChNameValue<char> bVal) override { (*istream) >> bVal.value(); return true; }
-    virtual bool in(ChNameValue<unsigned int> bVal) override { (*istream) >> bVal.value(); return true; }
-    virtual bool in(ChNameValue<std::string> bVal) override { (*istream) >> bVal.value(); return true; }
-    virtual bool in(ChNameValue<unsigned long> bVal) override { (*istream) >> bVal.value(); return true; }
-    virtual bool in(ChNameValue<unsigned long long> bVal) override { (*istream) >> bVal.value(); return true; }
-    virtual bool in(ChNameValue<ChEnumMapperBase> bVal) override {
-        int foo;
-        (*istream) >> foo;
-        bVal.value().SetValueAsInt(foo);
-        return true;
-    }
+    virtual bool in(ChNameValue<bool> bVal) override;
+
+    ////Can they merged in just one instance?
+    virtual bool in(ChNameValue<int> bVal) override;
+    virtual bool in(ChNameValue<double> bVal) override;
+    virtual bool in(ChNameValue<float> bVal) override;
+    virtual bool in(ChNameValue<unsigned int> bVal) override;
+    virtual bool in(ChNameValue<unsigned long> bVal) override;
+    virtual bool in(ChNameValue<unsigned long long> bVal) override;
+
+    virtual bool in(ChNameValue<ChEnumMapperBase> bVal) override;
+
+    virtual bool in(ChNameValue<char> bVal) override;
+    virtual bool in(ChNameValue<std::string> bVal) override;
+
     // for wrapping arrays and lists
-    virtual bool in_array_pre(const char* name, size_t& msize) override { (*istream) >> msize; return true; }
-    virtual void in_array_between(const char* name) override {}
-    virtual void in_array_end(const char* name) override {}
+    virtual bool in_array_pre(const std::string& name, size_t& size) override;
+    virtual void in_array_between(const std::string& name) override {}
+    virtual void in_array_end(const std::string& name) override {}
 
-    //  for custom c++ objects:
-    virtual bool in(ChNameValue<ChFunctorArchiveIn> bVal) {
-        if (bVal.flags() & NVP_TRACK_OBJECT) {
-            std::string entry;
-            size_t obj_ID = 0;
+    // for custom c++ objects
+    virtual bool in(ChNameValue<ChFunctorArchiveIn> bVal) override;
 
-            // TODO: DARIOM check if it works this way
-            (*istream) >> entry;
-            if (entry == "typ") {
-                (*istream) >> entry;
-                (*istream) >> entry;
-            }
-            if (entry == "oID") {
-                (*istream) >> obj_ID;
-            }
-
-            PutNewPointer(bVal.value().GetRawPtr(), obj_ID);
-        }
-        bVal.value().CallArchiveIn(*this);
-        return true;
-    }
-
-    virtual bool in_ref(ChNameValue<ChFunctorArchiveIn> bVal, void** ptr, std::string& true_classname) {
-        void* new_ptr = nullptr;
-
-        std::string entry;
-        (*istream) >> entry;
-
-        if (entry == "typ") {
-            (*istream) >> true_classname;
-            (*istream) >> entry;
-        }
-
-        // TODO: DARIOM check when things are not found like in JSON and XML
-
-        if (entry == "rID") {
-            size_t ref_ID = 0;
-            //  Was a shared object: just get the pointer to already-retrieved
-            (*istream) >> ref_ID;
-
-            if (this->internal_id_ptr.find(ref_ID) == this->internal_id_ptr.end())
-                throw(ChExceptionArchive("In object '" + std::string(bVal.name()) + "' the reference ID " +
-                                         std::to_string((int)ref_ID) + " is not a valid number."));
-
-            bVal.value().SetRawPtr(
-                ChCastingMap::Convert(true_classname, bVal.value().GetObjectPtrTypeindex(), internal_id_ptr[ref_ID]));
-        } else if (entry == "eID") {
-            size_t ext_ID = 0;
-            // Was an external object: just get the pointer to external
-            (*istream) >> ext_ID;
-
-            if (this->external_id_ptr.find(ext_ID) == this->external_id_ptr.end())
-                throw(ChExceptionArchive("In object '" + std::string(bVal.name()) + "' the external reference ID " + std::to_string((int)ext_ID) + " cannot be rebuilt."));
-
-            bVal.value().SetRawPtr(
-                ChCastingMap::Convert(true_classname, bVal.value().GetObjectPtrTypeindex(), external_id_ptr[ext_ID]));
-        } else if (entry == "oID") {
-            size_t obj_ID = 0;
-            (*istream) >> obj_ID;
-
-            // see ChArchiveJSON for further details
-            bVal.value().CallConstructor(*this, true_classname.c_str());
-
-            void* new_ptr_void = bVal.value().GetRawPtr();
-
-            if (new_ptr_void) {
-                PutNewPointer(new_ptr_void, obj_ID);
-                // 3) Deserialize
-                bVal.value().CallArchiveIn(*this, true_classname.c_str());
-            } else {
-                throw(ChExceptionArchive("Archive cannot create object" + true_classname + "\n"));
-            }
-            new_ptr = bVal.value().GetRawPtr();
-        }
-
-        *ptr = new_ptr;
-        return true;
-    }
+    virtual bool in_ref(ChNameValue<ChFunctorArchiveIn> bVal, void** ptr, std::string& true_classname) override;
 
   protected:
-    ChStreamInBinary* istream;
+    std::istream& m_istream;
+    bool m_big_endian_machine;
+
+    template <typename T>
+    std::istream& read(T& val) {
+        m_istream.read(reinterpret_cast<char*>(&val), sizeof(T));
+        if (m_big_endian_machine) {
+            StreamSwapBytes<T>(&val);
+        }
+
+        return m_istream;
+    }
 };
+
+template <>
+std::istream& ChArchiveInBinary::read(std::string& val);
+
+template <>
+std::istream& ChArchiveInBinary::read(bool& val);
+
+template <>
+std::istream& ChArchiveInBinary::read(char*& val);
 
 }  // end namespace chrono
 

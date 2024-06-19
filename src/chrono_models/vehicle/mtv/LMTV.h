@@ -45,13 +45,14 @@ namespace fmtv {
 /// This class encapsulates a concrete wheeled vehicle model with parameters corresponding to
 /// an LMTV vehicle, the powertrain model, and the 4 tires.
 class CH_MODELS_API LMTV {
-   public:
+  public:
     LMTV();
     LMTV(ChSystem* system);
 
     ~LMTV();
 
     void SetContactMethod(ChContactMethod val) { m_contactMethod = val; }
+    void SetCollisionSystemType(ChCollisionSystem::Type collsys_type) { m_collsysType = collsys_type; }
 
     void SetChassisFixed(bool val) { m_fixed = val; }
     void SetChassisCollisionType(CollisionType val) { m_chassisCollisionType = val; }
@@ -96,8 +97,9 @@ class CH_MODELS_API LMTV {
     void LogHardpointLocations() { m_vehicle->LogHardpointLocations(); }
     void DebugLog(int what) { m_vehicle->DebugLog(what); }
 
-   protected:
+  protected:
     ChContactMethod m_contactMethod;
+    ChCollisionSystem::Type m_collsysType;
     CollisionType m_chassisCollisionType;
     bool m_fixed;
     bool m_brake_locking;

@@ -27,35 +27,38 @@ from itertools import  combinations
 #     For example, we need that new particles will be bound to Irrlicht visualization:
 
 class MyCreatorForAll(chrono.ChRandomShapeCreator_AddBodyCallback):
-    def __init__(self, vis):
+    def __init__(self, vis, coll):
         chrono.ChRandomShapeCreator_AddBodyCallback.__init__(self)
-        self.airrlicht_vis = vis
+        self.vis = vis
+        self.coll = coll
 
     def OnAddBody(self,
-                  mbody,
-                  mcoords,
-                  mcreator):
+                  body,
+                  coords,
+                  creator):
         # optional: add further assets, ex for improving visualization:
-        mbody.GetVisualShape(0).SetTexture(chrono.GetChronoDataFile("textures/bluewhite.png"))
-        self.airrlicht_vis.BindItem(mbody)
+        body.GetVisualShape(0).SetTexture(chrono.GetChronoDataFile("textures/bluewhite.png"))
+        self.vis.BindItem(body)
+        self.coll.BindItem(body)
 
         # Other stuff, ex. disable gyroscopic forces for increased integrator stability
-        mbody.SetNoGyroTorque(True)
+        body.SetUseGyroTorque(False)
 
 
 
 print("Copyright (c) 2017 projectchrono.org")
 
-# Create a ChronoENGINE physical sys
+# Create a Chrono physical sys
 sys = chrono.ChSystemNSC()
-
+sys.SetCollisionSystemType(chrono.ChCollisionSystem.Type_BULLET)
+coll = sys.GetCollisionSystem()
 
 #
 # CREATE THE SYSTEM OBJECTS
 #
 
 # Example: create a ChBody rigid body.
-sphere_mat = chrono.ChMaterialSurfaceNSC()
+sphere_mat = chrono.ChContactMaterialNSC()
 sphere_mat.SetFriction(0.2)
 
 msphereBody = chrono.ChBodyEasySphere(2.1,          # radius size
@@ -63,7 +66,7 @@ msphereBody = chrono.ChBodyEasySphere(2.1,          # radius size
                                       True,         # visualization?
                                       True,         # collision?
                                       sphere_mat)  # contact material
-msphereBody.SetPos(chrono.ChVectorD(1, 1, 0))
+msphereBody.SetPos(chrono.ChVector3d(1, 1, 0))
 msphereBody.GetVisualShape(0).SetTexture(chrono.GetChronoDataFile("textures/concrete.jpg"))
 
 sys.Add(msphereBody)
@@ -98,7 +101,7 @@ emitter.SetParticleReservoirAmount(200)
 # ---Initialize the randomizer for POSITIONS: random points in a large cube
 emitter_positions = chrono.ChRandomParticlePositionOnGeometry()
 sampled_cube = chrono.ChBox(50, 50, 50)
-emitter_positions.SetGeometry(sampled_cube, chrono.ChFrameD())
+emitter_positions.SetGeometry(sampled_cube, chrono.ChFramed())
 
 emitter.SetParticlePositioner(emitter_positions)
 
@@ -108,12 +111,12 @@ emitter.SetParticleAligner(emitter_rotations)
 
 # ---Initialize the randomizer for VELOCITIES, with statistical distribution
 mvelo = chrono.ChRandomParticleVelocityAnyDirection()
-mvelo.SetModulusDistribution(chrono.ChMinMaxDistribution(0.0, 0.5))
+mvelo.SetModulusDistribution(chrono.ChUniformDistribution(0.0, 0.5))
 emitter.SetParticleVelocity(mvelo)
 
 # ---Initialize the randomizer for ANGULAR VELOCITIES, with statistical distribution
 mangvelo = chrono.ChRandomParticleVelocityAnyDirection()
-mangvelo.SetModulusDistribution(chrono.ChMinMaxDistribution(0.0, 0.2))
+mangvelo.SetModulusDistribution(chrono.ChUniformDistribution(0.0, 0.2))
 emitter.SetParticleAngularVelocity(mangvelo)
 
 # ---Initialize the randomizer for CREATED SHAPES, with statistical distribution
@@ -143,7 +146,7 @@ vis.SetWindowTitle('Particle emitter demo')
 vis.Initialize()
 vis.AddLogo(chrono.GetChronoDataFile('logo_pychrono_alpha.png'))
 vis.AddSkyBox()
-vis.AddCamera(chrono.ChVectorD(0, 14, -20))
+vis.AddCamera(chrono.ChVector3d(0, 14, -20))
 vis.AddTypicalLights()
 
 # --- Optional: what to do by default on ALL newly created particles?
@@ -152,7 +155,7 @@ vis.AddTypicalLights()
 
 # a- define a class that implement your custom OnAddBody method (see top of source file)
 # b- create the callback object...
-mcreation_callback = MyCreatorForAll(vis)
+mcreation_callback = MyCreatorForAll(vis, coll)
 # c- set callback own data that it might need...
 #mcreation_callback.airrlicht_vis = vis
 # d- attach the callback to the emitter!
@@ -160,10 +163,10 @@ emitter.RegisterAddBodyCallback(mcreation_callback)
 
 # Modify some setting of the physical sys for the simulation, if you want
 sys.SetSolverType(chrono.ChSolver.Type_PSOR)
-sys.SetSolverMaxIterations(40)
+sys.GetSolver().AsIterative().SetMaxIterations(40)
 
 # Turn off default -9.8 downward gravity
-sys.Set_G_acc(chrono.ChVectorD(0, 0, 0))
+sys.SetGravitationalAcceleration(chrono.ChVector3d(0, 0, 0))
 
 # Simulation loop
 stepsize = 1e-2
@@ -178,14 +181,14 @@ while vis.Run():
 
     # Apply custom forcefield (brute force approach..)
     # A) reset 'user forces accumulators':
-    for body in sys.Get_bodylist() :
-        body.Empty_forces_accumulators()
+    for body in sys.GetBodies() :
+        body.EmptyAccumulators()
 
 
     # B) store user computed force:
     # G_constant = 6.674e-11 # gravitational constant
     G_constant = 6.674e-3  # gravitational constant - HACK to speed up simulation
-    mlist = list(combinations(sys.Get_bodylist(), 2))
+    mlist = list(combinations(sys.GetBodies(), 2))
 
     for bodycomb in  mlist :
         abodyA = bodycomb[0]
@@ -194,8 +197,8 @@ while vis.Run():
         r_attract = D_attract.Length()
         f_attract = G_constant * (abodyA.GetMass() * abodyB.GetMass()) /(pow(r_attract, 2))
         F_attract = (D_attract / r_attract) * f_attract
-        abodyA.Accumulate_force(F_attract, abodyA.GetPos(), False)
-        abodyB.Accumulate_force(-F_attract, abodyB.GetPos(), False)
+        abodyA.AccumulateForce(F_attract, abodyA.GetPos(), False)
+        abodyB.AccumulateForce(-F_attract, abodyB.GetPos(), False)
 
     sys.DoStepDynamics(stepsize)
 

@@ -2,7 +2,7 @@ Demo Collision Shapes {#tutorial_chrono_solidworks_demo_shapes}
 ==========================
 
 
-This tutorial shows how to use the [Chrono::SolidWorks](@ref tutorial_install_chrono_solidworks)  add-in for assigning collision shapes to SolidWorks parts. 
+This tutorial shows how to use the [Chrono::SolidWorks](@ref chrono_solidworks_installation)  add-in for assigning collision shapes to SolidWorks parts. 
 Those collision shapes will be converted to Chrono::Engine collision shapes when exporting the .py scene file.
 
 Note that, by default, all parts that you model in SolidWorks do not generate any collision shapes: if you want to simulate phenomena with collisions, you must use the procedure that is outlined in this tutorial in order to assign collision shapes to parts. This is motivated by various reasons:
@@ -21,7 +21,7 @@ Also groups of them are supported.
 # Prerequisites:
 
 + you must have a [SolidWorks](http://www.solidworks.com) CAD license.
-+ the [Chrono::SolidWorks](@ref tutorial_install_chrono_solidworks) add-in must be installed in SolidWorks.
++ the [Chrono::SolidWorks](@ref chrono_solidworks_installation) add-in must be installed in SolidWorks.
 Optionally, for the last steps of the tutorial (rendering the animation) these tools must be installed: 
 + the [PyChrono](@ref pychrono_introduction) python module must be installed in your Python environment, 
 + the [POVray](http://www.povray.org) rendering software must be installed; not mandatory if you want to use the Irrlicht realtime visualization;
@@ -207,14 +207,14 @@ exported_items = chrono.ImportSolidWorksSystem('./collisions')
 
 + Create a *contact surface material* (surface data that will be used by collision detection to know the friction coefficient and other properties in contact points). In this example, there is a single contact surface material to share between all objects.
 ~~~{.py}
-brick_material = chrono.ChMaterialSurfaceNSC()
+brick_material = chrono.ChContactMaterialNSC()
 brick_material.SetFriction(0.6)
 ~~~
 
 <div class = "ce-info">
 Optionally, one can define surface materials with *compliance*. In such a case, one should write, for example, a material that has some friction, damping coefficient (Raleygh type), orthogonal compliance, and tangential compliance:
 ~~~{.py}
-brick_material = chrono.ChMaterialSurfaceNSC()
+brick_material = chrono.ChContactMaterialNSC()
 brick_material.SetFriction(0.6)
 brick_material.SetDampingF(0.05)
 brick_material.SetCompliance (0.000000003)
@@ -239,7 +239,7 @@ Note also that nonzero restitution coefficient is not physically accurate except
 
 + Assign the brick_material to all rigid body objects, by iterating over all items in the ChSystem:
 ~~~{.py}
-for my_body in my_system.Get_bodylist(): 
+for my_body in my_system.GetBodies(): 
         my_body.SetMaterialSurface(brick_material) 
 ~~~
 
@@ -251,7 +251,7 @@ marble_povmat.SetCommands('''
        texture{T_Stone8}
         ''')
 
-for my_body in my_system.Get_bodylist(): 
+for my_body in my_system.GetBodies(): 
         my_body.AddAsset(marble_povmat)
 ~~~
 
@@ -273,29 +273,29 @@ my_ground = my_system.SearchBody('ground')
 if not my_ground :
     sys.exit('Error: cannot find ground  from its name in the C::E system!')
 	
-my_floor.SetBodyFixed(False)
+my_floor.SetFixed(False)
 link_shaker = chrono.ChLinkLockLock()
-link_shaker.Initialize(my_floor, my_ground, chrono.CSYSNORM)
+link_shaker.Initialize(my_floor, my_ground, chrono.ChFramed)
 my_system.Add(link_shaker)
 ~~~
 
 + Up to here, the link_shaker object has no custom motion law assigned, so it will simply keep the floor statically connected to the ground. So now we create a motion law of the type x=(Ca*sin(t*A+phaseA))*(Cb*sin(t*B+phaseB)) as a product of two armonic laws:
 ~~~{.py}
-my_functA = chrono.ChFunction_Sine(0,1.4,0.06)
+my_functA = chrono.ChFunctionSine(0.06,1.4)
 my_functA.thisown = 0
-my_functB = chrono.ChFunction_Sine(0,0.1,1)
+my_functB = chrono.ChFunctionSine(1.0,0.1)
 my_functB.thisown = 0
-my_funct = chrono.ChFunction_Operation()
-my_funct.Set_fa(my_functA)
-my_funct.Set_fb(my_functB)
-my_funct.Set_optype(chrono.ChOP_MUL)
+my_funct = chrono.ChFunctionOperator()
+my_funct.SetFirstOperandFunction(my_functA)
+my_funct.SetSecondOperandFunction(my_functB)
+my_funct.SetOperationType(chrono.ChFunctionOperator.MUL)
 my_funct.thisown = 0
-link_shaker.SetMotion_X(my_funct)
+link_shaker.SetMotionX(my_funct)
 ~~~
 
 + It is wise to define a better position for the camera and viewpoint, for instance we changed the default position to:
 ~~~{.py}
-pov_exporter.SetCamera(chrono.ChVectorD(3.2,1.3,3.5), chrono.ChVectorD(0.6,0.5,0), 32)
+pov_exporter.SetCamera(chrono.ChVector3d(3.2,1.3,3.5), chrono.ChVector3d(0.6,0.5,0), 32)
 ~~~
 
 + Since we want to use the ```T_Stone8``` procedural texture, whose definition is in POVray header ```stones.inc```, we have to add the include to the POVray scripts. This is done as:

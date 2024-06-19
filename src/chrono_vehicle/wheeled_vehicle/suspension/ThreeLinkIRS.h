@@ -51,10 +51,10 @@ class CH_VEHICLE_API ThreeLinkIRS : public ChThreeLinkIRS {
     virtual double getUpperLinkRadius() const override { return m_upperLinkRadius; }
     virtual double getLowerLinkRadius() const override { return m_lowerLinkRadius; }
 
-    virtual const ChVector<>& getSpindleInertia() const override { return m_spindleInertia; }
-    virtual const ChVector<>& getArmInertia() const override { return m_armInertia; }
-    virtual const ChVector<>& getUpperLinkInertia() const override { return m_upperInertia; }
-    virtual const ChVector<>& getLowerLinkInertia() const override { return m_lowerInertia; }
+    virtual const ChVector3d& getSpindleInertia() const override { return m_spindleInertia; }
+    virtual const ChVector3d& getArmInertia() const override { return m_armInertia; }
+    virtual const ChVector3d& getUpperLinkInertia() const override { return m_upperInertia; }
+    virtual const ChVector3d& getLowerLinkInertia() const override { return m_lowerInertia; }
 
     virtual double getAxleInertia() const override { return m_axleInertia; }
 
@@ -80,16 +80,16 @@ class CH_VEHICLE_API ThreeLinkIRS : public ChThreeLinkIRS {
     }
 
   private:
-    virtual const ChVector<> getLocation(PointId which) override { return m_points[which]; }
-    virtual const ChVector<> getDirection(DirectionId which) override { return m_dirs[which]; }
+    virtual const ChVector3d getLocation(PointId which) override { return m_points[which]; }
+    virtual const ChVector3d getDirection(DirectionId which) override { return m_dirs[which]; }
 
     virtual void Create(const rapidjson::Document& d) override;
 
     std::shared_ptr<ChLinkTSDA::ForceFunctor> m_springForceCB;
     std::shared_ptr<ChLinkTSDA::ForceFunctor> m_shockForceCB;
 
-    ChVector<> m_points[NUM_POINTS];
-    ChVector<> m_dirs[NUM_DIRS];
+    ChVector3d m_points[NUM_POINTS];
+    ChVector3d m_dirs[NUM_DIRS];
 
     double m_camber_angle;
     double m_toe_angle;
@@ -105,10 +105,10 @@ class CH_VEHICLE_API ThreeLinkIRS : public ChThreeLinkIRS {
     double m_upperLinkRadius;
     double m_lowerLinkRadius;
 
-    ChVector<> m_spindleInertia;
-    ChVector<> m_armInertia;
-    ChVector<> m_upperInertia;
-    ChVector<> m_lowerInertia;
+    ChVector3d m_spindleInertia;
+    ChVector3d m_armInertia;
+    ChVector3d m_upperInertia;
+    ChVector3d m_lowerInertia;
 
     double m_axleInertia;
 

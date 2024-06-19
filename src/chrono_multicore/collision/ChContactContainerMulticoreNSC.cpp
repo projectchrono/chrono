@@ -13,11 +13,9 @@
 // =============================================================================
 
 #include "chrono_multicore/collision/ChContactContainerMulticoreNSC.h"
+#include "chrono/collision/multicore/ChCollisionModelMulticore.h"
 
 namespace chrono {
-
-using namespace collision;
-using namespace geometry;
 
 ChContactContainerMulticoreNSC::ChContactContainerMulticoreNSC(ChMulticoreDataManager* dc)
     : ChContactContainerMulticore(dc) {}
@@ -43,9 +41,9 @@ void ChContactContainerMulticoreNSC::EndAddContact() {
     //// Anything else here?!?
 }
 
-void ChContactContainerMulticoreNSC::AddContact(const collision::ChCollisionInfo& cinfo,
-                                                std::shared_ptr<ChMaterialSurface> mat1,
-                                                std::shared_ptr<ChMaterialSurface> mat2) {
+void ChContactContainerMulticoreNSC::AddContact(const ChCollisionInfo& cinfo,
+                                                std::shared_ptr<ChContactMaterial> mat1,
+                                                std::shared_ptr<ChContactMaterial> mat2) {
     assert(cinfo.modelA->GetContactable());
     assert(cinfo.modelB->GetContactable());
 
@@ -64,8 +62,8 @@ void ChContactContainerMulticoreNSC::AddContact(const collision::ChCollisionInfo
 
     if (mmboA && mmboB) {
         // Geometric information for added contact. Make sure body IDs are ordered smallest first!
-        int b1 = ((ChBody*)(cinfo.modelA->GetPhysicsItem()))->GetId();
-        int b2 = ((ChBody*)(cinfo.modelB->GetPhysicsItem()))->GetId();
+        int b1 = ((ChBody*)(cinfo.modelA->GetPhysicsItem()))->GetIndex();
+        int b2 = ((ChBody*)(cinfo.modelB->GetPhysicsItem()))->GetIndex();
         if (b1 < b2) {
             cd_data->norm_rigid_rigid.push_back(real3(cinfo.vN.x(), cinfo.vN.y(), cinfo.vN.z()));
             cd_data->cpta_rigid_rigid.push_back(real3(cinfo.vpA.x(), cinfo.vpA.y(), cinfo.vpA.z()));
@@ -84,9 +82,9 @@ void ChContactContainerMulticoreNSC::AddContact(const collision::ChCollisionInfo
         }
 
         // Composite material for added contact
-        ChMaterialCompositeNSC cmat(data_manager->composition_strategy.get(),
-                                    std::static_pointer_cast<ChMaterialSurfaceNSC>(mat1),
-                                    std::static_pointer_cast<ChMaterialSurfaceNSC>(mat2));
+        ChContactMaterialCompositeNSC cmat(data_manager->composition_strategy.get(),
+                                           std::static_pointer_cast<ChContactMaterialNSC>(mat1),
+                                           std::static_pointer_cast<ChContactMaterialNSC>(mat2));
 
         // Load composite material properties in global data structure
         data_manager->host_data.fric_rigid_rigid.push_back(
@@ -100,7 +98,7 @@ void ChContactContainerMulticoreNSC::AddContact(const collision::ChCollisionInfo
     }
 }
 
-void ChContactContainerMulticoreNSC::AddContact(const collision::ChCollisionInfo& cinfo) {
+void ChContactContainerMulticoreNSC::AddContact(const ChCollisionInfo& cinfo) {
     assert(cinfo.modelA->GetContactable());
     assert(cinfo.modelB->GetContactable());
 
@@ -123,8 +121,8 @@ void ChContactContainerMulticoreNSC::AddContact(const collision::ChCollisionInfo
         cd_data->cptb_rigid_rigid.push_back(real3(cinfo.vpB.x(), cinfo.vpB.y(), cinfo.vpB.z()));
         cd_data->dpth_rigid_rigid.push_back(cinfo.distance);
         cd_data->erad_rigid_rigid.push_back(cinfo.eff_radius);
-        cd_data->bids_rigid_rigid.push_back(vec2(((ChBody*)(cinfo.modelA->GetPhysicsItem()))->GetId(),
-                                                 ((ChBody*)(cinfo.modelB->GetPhysicsItem()))->GetId()));
+        cd_data->bids_rigid_rigid.push_back(vec2(((ChBody*)(cinfo.modelA->GetPhysicsItem()))->GetIndex(),
+                                                 ((ChBody*)(cinfo.modelB->GetPhysicsItem()))->GetIndex()));
         cd_data->num_rigid_contacts++;
     }
 }
@@ -137,13 +135,20 @@ void ChContactContainerMulticoreNSC::AddContact(int index, int b1, int s1, int b
     auto s1_index = cd_data->shape_data.local_rigid[s1];
     auto s2_index = cd_data->shape_data.local_rigid[s2];
 
-    auto mat1 = std::static_pointer_cast<ChMaterialSurfaceNSC>(
-        blist[b1]->GetCollisionModel()->GetShape(s1_index)->GetMaterial());
-    auto mat2 = std::static_pointer_cast<ChMaterialSurfaceNSC>(
-        blist[b2]->GetCollisionModel()->GetShape(s2_index)->GetMaterial());
+    // Chrono multicore collision model implementation
+    auto modelA = (ChCollisionModelMulticore*)blist[b1]->GetCollisionModel()->GetImplementation();
+    auto modelB = (ChCollisionModelMulticore*)blist[b2]->GetCollisionModel()->GetImplementation();
+
+    // Collsion shapes in contact
+    auto shape1 = modelA->m_shapes[s1_index].get();
+    auto shape2 = modelB->m_shapes[s2_index].get();
+
+    // Contact materials of the two colliding shapes
+    auto mat1 = std::static_pointer_cast<ChContactMaterialNSC>(shape1->GetMaterial());
+    auto mat2 = std::static_pointer_cast<ChContactMaterialNSC>(shape2->GetMaterial());
 
     // Composite material
-    ChMaterialCompositeNSC cmat(data_manager->composition_strategy.get(), mat1, mat2);
+    ChContactMaterialCompositeNSC cmat(data_manager->composition_strategy.get(), mat1, mat2);
 
     // Allow user to override composite material
     if (data_manager->add_contact_callback) {
@@ -152,14 +157,14 @@ void ChContactContainerMulticoreNSC::AddContact(int index, int b1, int s1, int b
         real3 vpA = cd_data->cpta_rigid_rigid[index] + data_manager->host_data.pos_rigid[b1];
         real3 vpB = cd_data->cptb_rigid_rigid[index] + data_manager->host_data.pos_rigid[b2];
 
-        chrono::collision::ChCollisionInfo cinfo;
+        chrono::ChCollisionInfo cinfo;
         cinfo.modelA = blist[b1]->GetCollisionModel().get();
         cinfo.modelB = blist[b2]->GetCollisionModel().get();
-        cinfo.shapeA = cinfo.modelA->GetShape(s1_index).get();
-        cinfo.shapeB = cinfo.modelB->GetShape(s2_index).get();
-        cinfo.vN = ChVector<>(vN.x, vN.y, vN.z);
-        cinfo.vpA = ChVector<>(vpA.x, vpA.y, vpA.z);
-        cinfo.vpB = ChVector<>(vpB.x, vpB.y, vpB.z);
+        cinfo.shapeA = shape1;
+        cinfo.shapeB = shape2;
+        cinfo.vN = ChVector3d(vN.x, vN.y, vN.z);
+        cinfo.vpA = ChVector3d(vpA.x, vpA.y, vpA.z);
+        cinfo.vpB = ChVector3d(vpB.x, vpB.y, vpB.z);
         cinfo.distance = cd_data->dpth_rigid_rigid[index];
         cinfo.eff_radius = cd_data->erad_rigid_rigid[index];
 

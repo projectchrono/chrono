@@ -16,7 +16,7 @@
 
   "Coefficient of Friction": 0.8,
 
-  "Rolling Resistance Coefficient": 0.015
+  "Rolling Resistance Coefficient": 0.015,
 
   // ------------------------------------------------
   // Vehicle type.

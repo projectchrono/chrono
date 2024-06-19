@@ -47,7 +47,7 @@ class CH_MODELS_API Generic_DoubleWishbone : public ChDoubleWishbone {
 
     // Implementation of virtual methods imposed by the base class ChDoubleWishbone
 
-    virtual const ChVector<> getLocation(PointId which) override;
+    virtual const ChVector3d getLocation(PointId which) override;
 
     virtual double getCamberAngle() const override { return 0; }
     virtual double getToeAngle() const override { return 0; }
@@ -63,13 +63,13 @@ class CH_MODELS_API Generic_DoubleWishbone : public ChDoubleWishbone {
     virtual double getLCARadius() const override { return m_LCARadius; }
     virtual double getUprightRadius() const override { return m_uprightRadius; }
 
-    virtual const ChVector<>& getSpindleInertia() const override { return m_spindleInertia; }
-    virtual const ChVector<>& getUCAInertiaMoments() const override { return m_UCAInertiaMoments; }
-    virtual const ChVector<>& getUCAInertiaProducts() const override { return m_UCAInertiaProducts; }
-    virtual const ChVector<>& getLCAInertiaMoments() const override { return m_LCAInertiaMoments; }
-    virtual const ChVector<>& getLCAInertiaProducts() const override { return m_LCAInertiaProducts; }
-    virtual const ChVector<>& getUprightInertiaMoments() const override { return m_uprightInertiaMoments; }
-    virtual const ChVector<>& getUprightInertiaProducts() const override { return m_uprightInertiaProducts; }
+    virtual const ChVector3d& getSpindleInertia() const override { return m_spindleInertia; }
+    virtual const ChVector3d& getUCAInertiaMoments() const override { return m_UCAInertiaMoments; }
+    virtual const ChVector3d& getUCAInertiaProducts() const override { return m_UCAInertiaProducts; }
+    virtual const ChVector3d& getLCAInertiaMoments() const override { return m_LCAInertiaMoments; }
+    virtual const ChVector3d& getLCAInertiaProducts() const override { return m_LCAInertiaProducts; }
+    virtual const ChVector3d& getUprightInertiaMoments() const override { return m_uprightInertiaMoments; }
+    virtual const ChVector3d& getUprightInertiaProducts() const override { return m_uprightInertiaProducts; }
 
     virtual double getAxleInertia() const override { return m_axleInertia; }
 
@@ -92,13 +92,13 @@ class CH_MODELS_API Generic_DoubleWishbone : public ChDoubleWishbone {
     static const double m_UCARadius;
     static const double m_LCARadius;
 
-    static const ChVector<> m_spindleInertia;
-    static const ChVector<> m_UCAInertiaMoments;
-    static const ChVector<> m_UCAInertiaProducts;
-    static const ChVector<> m_LCAInertiaMoments;
-    static const ChVector<> m_LCAInertiaProducts;
-    static const ChVector<> m_uprightInertiaMoments;
-    static const ChVector<> m_uprightInertiaProducts;
+    static const ChVector3d m_spindleInertia;
+    static const ChVector3d m_UCAInertiaMoments;
+    static const ChVector3d m_UCAInertiaProducts;
+    static const ChVector3d m_LCAInertiaMoments;
+    static const ChVector3d m_LCAInertiaProducts;
+    static const ChVector3d m_uprightInertiaMoments;
+    static const ChVector3d m_uprightInertiaProducts;
 
     static const double m_axleInertia;
 
@@ -107,18 +107,14 @@ class CH_MODELS_API Generic_DoubleWishbone : public ChDoubleWishbone {
     static const double m_springRestLength;
 };
 
-/// Double wishbone suspension model for a generic vehicle (front).
+/// Full double wishbone front suspension for the generic vehicle vehicle.
+/// The control arms are modeled using rigid bodies.
 class CH_MODELS_API Generic_DoubleWishboneFront : public ChDoubleWishbone {
   public:
-    // Constructor takes as argument the name of the subsystem instance.
-    Generic_DoubleWishboneFront(const std::string& name);
-
-    // Destructor
+    Generic_DoubleWishboneFront(const std::string& name, bool use_tierod_bodies);
     ~Generic_DoubleWishboneFront();
 
-    // Implementation of virtual methods imposed by the base class ChDoubleWishbone
-
-    virtual const ChVector<> getLocation(PointId which) override;
+    virtual bool UseTierodBodies() const override { return m_use_tierod_bodies; }
 
     virtual double getCamberAngle() const override { return 0; }
     virtual double getToeAngle() const override { return 0; }
@@ -127,20 +123,23 @@ class CH_MODELS_API Generic_DoubleWishboneFront : public ChDoubleWishbone {
     virtual double getUCAMass() const override { return m_UCAMass; }
     virtual double getLCAMass() const override { return m_LCAMass; }
     virtual double getUprightMass() const override { return m_uprightMass; }
+    virtual double getTierodMass() const override { return m_tierodMass; }
 
     virtual double getSpindleRadius() const override { return m_spindleRadius; }
     virtual double getSpindleWidth() const override { return m_spindleWidth; }
     virtual double getUCARadius() const override { return m_UCARadius; }
     virtual double getLCARadius() const override { return m_LCARadius; }
     virtual double getUprightRadius() const override { return m_uprightRadius; }
+    virtual double getTierodRadius() const override { return m_tierodRadius; }
 
-    virtual const ChVector<>& getSpindleInertia() const override { return m_spindleInertia; }
-    virtual const ChVector<>& getUCAInertiaMoments() const override { return m_UCAInertiaMoments; }
-    virtual const ChVector<>& getUCAInertiaProducts() const override { return m_UCAInertiaProducts; }
-    virtual const ChVector<>& getLCAInertiaMoments() const override { return m_LCAInertiaMoments; }
-    virtual const ChVector<>& getLCAInertiaProducts() const override { return m_LCAInertiaProducts; }
-    virtual const ChVector<>& getUprightInertiaMoments() const override { return m_uprightInertiaMoments; }
-    virtual const ChVector<>& getUprightInertiaProducts() const override { return m_uprightInertiaProducts; }
+    virtual const ChVector3d& getSpindleInertia() const override { return m_spindleInertia; }
+    virtual const ChVector3d& getUCAInertiaMoments() const override { return m_UCAInertiaMoments; }
+    virtual const ChVector3d& getUCAInertiaProducts() const override { return m_UCAInertiaProducts; }
+    virtual const ChVector3d& getLCAInertiaMoments() const override { return m_LCAInertiaMoments; }
+    virtual const ChVector3d& getLCAInertiaProducts() const override { return m_LCAInertiaProducts; }
+    virtual const ChVector3d& getUprightInertiaMoments() const override { return m_uprightInertiaMoments; }
+    virtual const ChVector3d& getUprightInertiaProducts() const override { return m_uprightInertiaProducts; }
+    virtual const ChVector3d getTierodInertia() const override { return m_tierodInertia; }
 
     virtual double getAxleInertia() const override { return m_axleInertia; }
 
@@ -149,46 +148,50 @@ class CH_MODELS_API Generic_DoubleWishboneFront : public ChDoubleWishbone {
     virtual std::shared_ptr<ChLinkTSDA::ForceFunctor> getShockForceFunctor() const override { return m_shockForceCB; }
 
   private:
+    virtual const ChVector3d getLocation(PointId which) override;
+
     std::shared_ptr<ChLinkTSDA::ForceFunctor> m_springForceCB;
     std::shared_ptr<ChLinkTSDA::ForceFunctor> m_shockForceCB;
 
+    bool m_use_tierod_bodies;
+
     static const double m_spindleMass;
-    static const double m_uprightMass;
     static const double m_UCAMass;
     static const double m_LCAMass;
+    static const double m_uprightMass;
+    static const double m_tierodMass;
 
     static const double m_spindleRadius;
     static const double m_spindleWidth;
-    static const double m_uprightRadius;
     static const double m_UCARadius;
     static const double m_LCARadius;
+    static const double m_uprightRadius;
+    static const double m_tierodRadius;
 
-    static const ChVector<> m_spindleInertia;
-    static const ChVector<> m_UCAInertiaMoments;
-    static const ChVector<> m_UCAInertiaProducts;
-    static const ChVector<> m_LCAInertiaMoments;
-    static const ChVector<> m_LCAInertiaProducts;
-    static const ChVector<> m_uprightInertiaMoments;
-    static const ChVector<> m_uprightInertiaProducts;
+    static const ChVector3d m_spindleInertia;
+    static const ChVector3d m_UCAInertiaMoments;
+    static const ChVector3d m_UCAInertiaProducts;
+    static const ChVector3d m_LCAInertiaMoments;
+    static const ChVector3d m_LCAInertiaProducts;
+    static const ChVector3d m_uprightInertiaMoments;
+    static const ChVector3d m_uprightInertiaProducts;
+    static const ChVector3d m_tierodInertia;
 
     static const double m_axleInertia;
 
-    static const double m_springCoefficient;
     static const double m_springRestLength;
 };
 
-/// Double wishbone suspension model for a generic vehicle (rear).
+// -----------------------------------------------------------------------------
+
+/// Full double wishbone rear suspension for the generic vehicle.
+/// The control arms are modeled using rigid bodies.
 class CH_MODELS_API Generic_DoubleWishboneRear : public ChDoubleWishbone {
   public:
-    // Constructor takes as argument the name of the subsystem instance.
-    Generic_DoubleWishboneRear(const std::string& name);
-
-    // Destructor
+    Generic_DoubleWishboneRear(const std::string& name, bool use_tierod_bodies);
     ~Generic_DoubleWishboneRear();
 
-    // Implementation of virtual methods imposed by the base class ChDoubleWishbone
-
-    virtual const ChVector<> getLocation(PointId which) override;
+    virtual bool UseTierodBodies() const override { return m_use_tierod_bodies; }
 
     virtual double getCamberAngle() const override { return 0; }
     virtual double getToeAngle() const override { return 0; }
@@ -197,20 +200,23 @@ class CH_MODELS_API Generic_DoubleWishboneRear : public ChDoubleWishbone {
     virtual double getUCAMass() const override { return m_UCAMass; }
     virtual double getLCAMass() const override { return m_LCAMass; }
     virtual double getUprightMass() const override { return m_uprightMass; }
+    virtual double getTierodMass() const override { return m_tierodMass; }
 
     virtual double getSpindleRadius() const override { return m_spindleRadius; }
     virtual double getSpindleWidth() const override { return m_spindleWidth; }
     virtual double getUCARadius() const override { return m_UCARadius; }
     virtual double getLCARadius() const override { return m_LCARadius; }
     virtual double getUprightRadius() const override { return m_uprightRadius; }
+    virtual double getTierodRadius() const override { return m_tierodRadius; }
 
-    virtual const ChVector<>& getSpindleInertia() const override { return m_spindleInertia; }
-    virtual const ChVector<>& getUCAInertiaMoments() const override { return m_UCAInertiaMoments; }
-    virtual const ChVector<>& getUCAInertiaProducts() const override { return m_UCAInertiaProducts; }
-    virtual const ChVector<>& getLCAInertiaMoments() const override { return m_LCAInertiaMoments; }
-    virtual const ChVector<>& getLCAInertiaProducts() const override { return m_LCAInertiaProducts; }
-    virtual const ChVector<>& getUprightInertiaMoments() const override { return m_uprightInertiaMoments; }
-    virtual const ChVector<>& getUprightInertiaProducts() const override { return m_uprightInertiaProducts; }
+    virtual const ChVector3d& getSpindleInertia() const override { return m_spindleInertia; }
+    virtual const ChVector3d& getUCAInertiaMoments() const override { return m_UCAInertiaMoments; }
+    virtual const ChVector3d& getUCAInertiaProducts() const override { return m_UCAInertiaProducts; }
+    virtual const ChVector3d& getLCAInertiaMoments() const override { return m_LCAInertiaMoments; }
+    virtual const ChVector3d& getLCAInertiaProducts() const override { return m_LCAInertiaProducts; }
+    virtual const ChVector3d& getUprightInertiaMoments() const override { return m_uprightInertiaMoments; }
+    virtual const ChVector3d& getUprightInertiaProducts() const override { return m_uprightInertiaProducts; }
+    virtual const ChVector3d getTierodInertia() const override { return m_tierodInertia; }
 
     virtual double getAxleInertia() const override { return m_axleInertia; }
 
@@ -219,31 +225,37 @@ class CH_MODELS_API Generic_DoubleWishboneRear : public ChDoubleWishbone {
     virtual std::shared_ptr<ChLinkTSDA::ForceFunctor> getShockForceFunctor() const override { return m_shockForceCB; }
 
   private:
+    virtual const ChVector3d getLocation(PointId which) override;
+
     std::shared_ptr<ChLinkTSDA::ForceFunctor> m_springForceCB;
     std::shared_ptr<ChLinkTSDA::ForceFunctor> m_shockForceCB;
 
+    bool m_use_tierod_bodies;
+
     static const double m_spindleMass;
-    static const double m_uprightMass;
     static const double m_UCAMass;
     static const double m_LCAMass;
+    static const double m_uprightMass;
+    static const double m_tierodMass;
 
     static const double m_spindleRadius;
     static const double m_spindleWidth;
-    static const double m_uprightRadius;
     static const double m_UCARadius;
     static const double m_LCARadius;
+    static const double m_uprightRadius;
+    static const double m_tierodRadius;
 
-    static const ChVector<> m_spindleInertia;
-    static const ChVector<> m_UCAInertiaMoments;
-    static const ChVector<> m_UCAInertiaProducts;
-    static const ChVector<> m_LCAInertiaMoments;
-    static const ChVector<> m_LCAInertiaProducts;
-    static const ChVector<> m_uprightInertiaMoments;
-    static const ChVector<> m_uprightInertiaProducts;
+    static const ChVector3d m_spindleInertia;
+    static const ChVector3d m_UCAInertiaMoments;
+    static const ChVector3d m_UCAInertiaProducts;
+    static const ChVector3d m_LCAInertiaMoments;
+    static const ChVector3d m_LCAInertiaProducts;
+    static const ChVector3d m_uprightInertiaMoments;
+    static const ChVector3d m_uprightInertiaProducts;
+    static const ChVector3d m_tierodInertia;
 
     static const double m_axleInertia;
 
-    static const double m_springCoefficient;
     static const double m_springRestLength;
 };
 

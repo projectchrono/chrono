@@ -54,7 +54,7 @@ namespace vehicle {
 class CH_VEHICLE_API ChSolidAxle : public ChSuspension {
   public:
     ChSolidAxle(const std::string& name  ///< [in] name of the subsystem
-                );
+    );
 
     virtual ~ChSolidAxle();
 
@@ -77,7 +77,7 @@ class CH_VEHICLE_API ChSolidAxle : public ChSuspension {
         std::shared_ptr<ChChassis> chassis,        ///< [in] associated chassis subsystem
         std::shared_ptr<ChSubchassis> subchassis,  ///< [in] associated subchassis subsystem (may be null)
         std::shared_ptr<ChSteering> steering,      ///< [in] associated steering subsystem (may be null)
-        const ChVector<>& location,                ///< [in] location relative to the chassis frame
+        const ChVector3d& location,                ///< [in] location relative to the chassis frame
         double left_ang_vel = 0,                   ///< [in] initial angular velocity of left wheel
         double right_ang_vel = 0                   ///< [in] initial angular velocity of right wheel
         ) override;
@@ -122,30 +122,32 @@ class CH_VEHICLE_API ChSolidAxle : public ChSuspension {
     /// Log current constraint violations.
     virtual void LogConstraintViolations(VehicleSide side) override;
 
-    void LogHardpointLocations(const ChVector<>& ref, bool inches = false);
+    void LogHardpointLocations(const ChVector3d& ref, bool inches = false);
 
   protected:
     /// Identifiers for the various hardpoints.
     enum PointId {
-        SHOCK_A,            ///< shock, axle
-        SHOCK_C,            ///< shock, chassis
-        KNUCKLE_L,          ///< lower knuckle point
-        KNUCKLE_U,          ///< upper knuckle point
-        LL_A,               ///< lower link, axle
-        LL_C,               ///< lower link, chassis
-        UL_A,               ///< upper link, axle
-        UL_C,               ///< upper link, chassis
-        SPRING_A,           ///< spring, axle
-        SPRING_C,           ///< spring, chassis
-        TIEROD_K,           ///< tierod, knuckle
-        SPINDLE,            ///< spindle location
-        KNUCKLE_CM,         ///< knuckle, center of mass
-        LL_CM,              ///< lower link, center of mass
-        UL_CM,              ///< upper link, center of mass
-        BELLCRANK_TIEROD,   ///< bell crank to tierod
-        BELLCRANK_AXLE,     ///< bell crank to axle
-        BELLCRANK_DRAGLINK, ///< bell crank to draglink'
-        DRAGLINK_C,         ///< draglink, chassis
+        SHOCK_A,             ///< shock, axle
+        SHOCK_C,             ///< shock, chassis
+        KNUCKLE_L,           ///< lower knuckle point
+        KNUCKLE_U,           ///< upper knuckle point
+        LL_A,                ///< lower link, axle
+        LL_C,                ///< lower link, chassis
+        UL_A,                ///< upper link, axle
+        UL_C,                ///< upper link, chassis
+        SPRING_A,            ///< spring, axle
+        SPRING_C,            ///< spring, chassis
+        TIEROD_K,            ///< tierod, knuckle
+        SPINDLE,             ///< spindle location
+        KNUCKLE_CM,          ///< knuckle, center of mass
+        LL_CM,               ///< lower link, center of mass
+        UL_CM,               ///< upper link, center of mass
+        BELLCRANK_TIEROD,    ///< bell crank to tierod
+        BELLCRANK_AXLE,      ///< bell crank to axle
+        BELLCRANK_DRAGLINK,  ///< bell crank to draglink'
+        DRAGLINK_C,          ///< draglink, chassis
+        TRACKBAR_A,          ///< trackbar, axle
+        TRACKBAR_C,          ///< trackbar, chassis
         NUM_POINTS
     };
 
@@ -154,7 +156,7 @@ class CH_VEHICLE_API ChSolidAxle : public ChSuspension {
 
     /// Return the location of the specified hardpoint.
     /// The returned location must be expressed in the suspension reference frame.
-    virtual const ChVector<> getLocation(PointId which) = 0;
+    virtual const ChVector3d getLocation(PointId which) = 0;
 
     /// Return the camber angle, in radians (default: 0).
     virtual double getCamberAngle() const { return 0; }
@@ -164,7 +166,7 @@ class CH_VEHICLE_API ChSolidAxle : public ChSuspension {
     virtual double getToeAngle() const { return 0; }
 
     /// Return the center of mass of the axle tube.
-    virtual const ChVector<> getAxleTubeCOM() const = 0;
+    virtual const ChVector3d getAxleTubeCOM() const = 0;
 
     /// Return the mass of the axle tube body.
     virtual double getAxleTubeMass() const = 0;
@@ -182,6 +184,8 @@ class CH_VEHICLE_API ChSolidAxle : public ChSuspension {
     virtual double getDraglinkMass() const = 0;
     /// Return the mass of the bell crank body.
     virtual double getBellCrankMass() const = 0;
+    /// Return the mass of the trackbar (aka Panhard Rod) body.
+    virtual double getTrackbarMass() const = 0;
 
     /// Return the radius of the axle tube body (visualization only).
     virtual double getAxleTubeRadius() const = 0;
@@ -197,23 +201,27 @@ class CH_VEHICLE_API ChSolidAxle : public ChSuspension {
     virtual double getDraglinkRadius() const = 0;
     /// Return the radius of the bell crank body (visualization only).
     virtual double getBellCrankRadius() const = 0;
+    /// Return the radius of the trackbar body (visualization only).
+    virtual double getTrackbarRadius() const = 0;
 
     /// Return the moments of inertia of the axle tube body.
-    virtual const ChVector<>& getAxleTubeInertia() const = 0;
+    virtual const ChVector3d& getAxleTubeInertia() const = 0;
     /// Return the moments of inertia of the spindle body.
-    virtual const ChVector<>& getSpindleInertia() const = 0;
+    virtual const ChVector3d& getSpindleInertia() const = 0;
     /// Return the moments of inertia of the upper link body.
-    virtual const ChVector<>& getULInertia() const = 0;
+    virtual const ChVector3d& getULInertia() const = 0;
     /// Return the moments of inertia of the lower link body.
-    virtual const ChVector<>& getLLInertia() const = 0;
+    virtual const ChVector3d& getLLInertia() const = 0;
     /// Return the moments of inertia of the knuckle body.
-    virtual const ChVector<>& getKnuckleInertia() const = 0;
+    virtual const ChVector3d& getKnuckleInertia() const = 0;
     /// Return the moments of inertia of the tierod body.
-    virtual const ChVector<>& getTierodInertia() const = 0;
+    virtual const ChVector3d& getTierodInertia() const = 0;
     /// Return the moments of inertia of the draglink body.
-    virtual const ChVector<>& getDraglinkInertia() const = 0;
+    virtual const ChVector3d& getDraglinkInertia() const = 0;
     /// Return the moments of inertia of the bell crank body.
-    virtual const ChVector<>& getBellCrankInertia() const = 0;
+    virtual const ChVector3d& getBellCrankInertia() const = 0;
+    /// Return the moments of inertia of the trackbar body.
+    virtual const ChVector3d& getTrackbarInertia() const = 0;
 
     /// Return the inertia of the axle shaft.
     virtual double getAxleInertia() const = 0;
@@ -231,16 +239,21 @@ class CH_VEHICLE_API ChSolidAxle : public ChSuspension {
     std::shared_ptr<ChBody> m_tierod;        ///< handles to the tierod body
     std::shared_ptr<ChBody> m_bellCrank;     ///< handles to the bellcrank body
     std::shared_ptr<ChBody> m_draglink;      ///< handles to the draglink body
+    std::shared_ptr<ChBody> m_trackbarBody;  ///< handles to the trackbar body
     std::shared_ptr<ChBody> m_knuckle[2];    ///< handles to the knuckle bodies (L/R)
     std::shared_ptr<ChBody> m_upperLink[2];  ///< handles to the upper link bodies (L/R)
     std::shared_ptr<ChBody> m_lowerLink[2];  ///< handles to the lower link bodies (L/R)
 
-    std::shared_ptr<ChLinkLockRevolute> m_revoluteBellCrank;       ///< bellCrank-axle revolute joint (left)
-    std::shared_ptr<ChLinkLockSpherical> m_sphericalTierod;        ///< knuckle-tierod spherical joint (left)
-    std::shared_ptr<ChLinkLockSpherical> m_sphericalDraglink;      ///< draglink-chassis spherical joint (left)
-    std::shared_ptr<ChLinkUniversal> m_universalDraglink;          ///< draglink-bellCrank universal joint (left)
-    std::shared_ptr<ChLinkUniversal> m_universalTierod;            ///< knuckle-tierod universal joint (right)
-    std::shared_ptr<ChLinkLockPointPlane> m_pointPlaneBellCrank;   ///< bellCrank-tierod point-plane joint (left)
+    std::shared_ptr<ChLinkLockRevolute> m_revoluteBellCrank;      ///< bellCrank-axle revolute joint (left)
+    std::shared_ptr<ChLinkLockSpherical> m_sphericalTierod;       ///< knuckle-tierod spherical joint (left)
+    std::shared_ptr<ChLinkLockSpherical> m_sphericalDraglink;     ///< draglink-chassis spherical joint (left)
+    std::shared_ptr<ChLinkUniversal> m_universalDraglink;         ///< draglink-bellCrank universal joint (left)
+    std::shared_ptr<ChLinkUniversal> m_universalTierod;           ///< knuckle-tierod universal joint (right)
+    std::shared_ptr<ChLinkLockPointPlane> m_pointPlaneBellCrank;  ///< bellCrank-tierod point-plane joint (left)
+    std::shared_ptr<ChLinkLockSpherical>
+        m_sphericalTrackbarAxleLink;  ///< trackbar spherical joint to axle body (left/single)
+    std::shared_ptr<ChLinkLockSpherical>
+        m_sphericalTrackbarChassisLink;  ///< trackbar spherical joint to chassis body (left/single)
     std::shared_ptr<ChLinkLockRevolute> m_revoluteKingpin[2];      ///< knuckle-axle tube revolute joints (L/R)
     std::shared_ptr<ChLinkLockSpherical> m_sphericalUpperLink[2];  ///< upper link-axle tube spherical joints (L/R)
     std::shared_ptr<ChLinkLockSpherical> m_sphericalLowerLink[2];  ///< lower link-axle tube spherical joints (L/R)
@@ -252,39 +265,44 @@ class CH_VEHICLE_API ChSolidAxle : public ChSuspension {
 
   private:
     // Hardpoint absolute locations
-    std::vector<ChVector<>> m_pointsL;
-    std::vector<ChVector<>> m_pointsR;
+    std::vector<ChVector3d> m_pointsL;
+    std::vector<ChVector3d> m_pointsR;
 
     // Points for axle tube visualization
-    ChVector<> m_axleOuterL;
-    ChVector<> m_axleOuterR;
+    ChVector3d m_axleOuterL;
+    ChVector3d m_axleOuterR;
 
     // Points for tierod visualization
-    ChVector<> m_tierodOuterL;
-    ChVector<> m_tierodOuterR;
+    ChVector3d m_tierodOuterL;
+    ChVector3d m_tierodOuterR;
+
+    // Points for trackbar visualization
+    ChVector3d m_trackbarAxle;
+    ChVector3d m_trackbarChassis;
 
     void InitializeSide(VehicleSide side,
                         std::shared_ptr<ChBodyAuxRef> chassis,
                         std::shared_ptr<ChBody> tierod_body,
-                        const std::vector<ChVector<>>& points,
+                        const std::vector<ChVector3d>& points,
                         double ang_vel);
 
     static void AddVisualizationLink(std::shared_ptr<ChBody> body,
-                                     const ChVector<> pt_1,
-                                     const ChVector<> pt_2,
+                                     const ChVector3d pt_1,
+                                     const ChVector3d pt_2,
                                      double radius,
                                      const ChColor& color);
     static void AddVisualizationBellCrank(std::shared_ptr<ChBody> body,
-                                    const ChVector<> pt_D,
-                                    const ChVector<> pt_A,
-                                    const ChVector<> pt_T,
-                                    double radius,
-                                    const ChColor& color);
+                                          const ChVector3d pt_D,
+                                          const ChVector3d pt_A,
+                                          const ChVector3d pt_T,
+                                          double radius,
+                                          const ChColor& color);
     static void AddVisualizationKnuckle(std::shared_ptr<ChBody> knuckle,
-                                        const ChVector<> pt_U,
-                                        const ChVector<> pt_L,
-                                        const ChVector<> pt_T,
-                                        double radius);
+                                        const ChVector3d pt_U,
+                                        const ChVector3d pt_L,
+                                        const ChVector3d pt_T,
+                                        double radius,
+                                        const ChColor& color);
 
     virtual void ExportComponentList(rapidjson::Document& jsonDocument) const override;
 

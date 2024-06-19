@@ -35,10 +35,6 @@
     #include "chrono_mumps/ChSolverMumps.h"
 #endif
 
-#ifdef CHRONO_PARDISOPROJECT
-    #include "chrono_pardisoproject/ChSolverPardisoProject.h"
-#endif
-
 using namespace chrono;
 using namespace chrono::fea;
 
@@ -47,7 +43,7 @@ class SystemFixture : public ::benchmark::Fixture {
   public:
     void SetUp(const ::benchmark::State& st) override {
         m_system = new ChSystemSMC();
-        m_system->Set_G_acc(ChVector<>(0, -9.8, 0));
+        m_system->SetGravitationalAcceleration(ChVector3d(0, -9.8, 0));
 
         // Mesh properties
         double length = 1;
@@ -55,9 +51,9 @@ class SystemFixture : public ::benchmark::Fixture {
         double thickness = 0.01;
 
         double rho = 500;
-        ChVector<> E(2.1e7, 2.1e7, 2.1e7);
-        ChVector<> nu(0.3, 0.3, 0.3);
-        ChVector<> G(8.0769231e6, 8.0769231e6, 8.0769231e6);
+        ChVector3d E(2.1e7, 2.1e7, 2.1e7);
+        ChVector3d nu(0.3, 0.3, 0.3);
+        ChVector3d G(8.0769231e6, 8.0769231e6, 8.0769231e6);
         auto mat = chrono_types::make_shared<ChMaterialShellANCF>(rho, E, nu, G);
 
         // Create mesh nodes and elements
@@ -65,25 +61,25 @@ class SystemFixture : public ::benchmark::Fixture {
         m_system->Add(mesh);
 
         double dx = length / N;
-        ChVector<> dir(0, 1, 0);
+        ChVector3d dir(0, 1, 0);
 
-        auto nodeA = chrono_types::make_shared<ChNodeFEAxyzD>(ChVector<>(0, 0, -width / 2), dir);
-        auto nodeB = chrono_types::make_shared<ChNodeFEAxyzD>(ChVector<>(0, 0, +width / 2), dir);
+        auto nodeA = chrono_types::make_shared<ChNodeFEAxyzD>(ChVector3d(0, 0, -width / 2), dir);
+        auto nodeB = chrono_types::make_shared<ChNodeFEAxyzD>(ChVector3d(0, 0, +width / 2), dir);
         nodeA->SetFixed(true);
         nodeB->SetFixed(true);
         mesh->AddNode(nodeA);
         mesh->AddNode(nodeB);
 
         for (int i = 1; i <= N; i++) {
-            auto nodeC = chrono_types::make_shared<ChNodeFEAxyzD>(ChVector<>(i * dx, 0, -width / 2), dir);
-            auto nodeD = chrono_types::make_shared<ChNodeFEAxyzD>(ChVector<>(i * dx, 0, +width / 2), dir);
+            auto nodeC = chrono_types::make_shared<ChNodeFEAxyzD>(ChVector3d(i * dx, 0, -width / 2), dir);
+            auto nodeD = chrono_types::make_shared<ChNodeFEAxyzD>(ChVector3d(i * dx, 0, +width / 2), dir);
             mesh->AddNode(nodeC);
             mesh->AddNode(nodeD);
 
             auto element = chrono_types::make_shared<ChElementShellANCF_3423>();
             element->SetNodes(nodeA, nodeB, nodeD, nodeC);
             element->SetDimensions(dx, width);
-            element->AddLayer(thickness, 0 * CH_C_DEG_TO_RAD, mat);
+            element->AddLayer(thickness, 0 * CH_DEG_TO_RAD, mat);
             element->SetAlphaDamp(0.0);
             mesh->AddElement(element);
 
@@ -145,21 +141,6 @@ class SystemFixture : public ::benchmark::Fixture {
     }                                                                                 \
     BENCHMARK_REGISTER_F(SystemFixture, TEST_NAME)->Unit(benchmark::kMillisecond);
 
-#define BM_SOLVER_PARDISOPROJECT(TEST_NAME, N, WITH_LEARNER)                          \
-    BENCHMARK_TEMPLATE_DEFINE_F(SystemFixture, TEST_NAME, N)(benchmark::State & st) { \
-        auto solver = chrono_types::make_shared<ChSolverPardisoProject>();            \
-        solver->UseSparsityPatternLearner(WITH_LEARNER);                              \
-        solver->LockSparsityPattern(true);                                            \
-        solver->SetVerbose(false);                                                    \
-        m_system->SetSolver(solver);                                                  \
-        while (st.KeepRunning()) {                                                    \
-            solver->ForceSparsityPatternUpdate();                                     \
-            m_system->DoStaticLinear();                                               \
-        }                                                                             \
-        Report(st);                                                                   \
-    }                                                                                 \
-    BENCHMARK_REGISTER_F(SystemFixture, TEST_NAME)->Unit(benchmark::kMillisecond);
-
 #define BM_SOLVER_QR(TEST_NAME, N, WITH_LEARNER)                                      \
     BENCHMARK_TEMPLATE_DEFINE_F(SystemFixture, TEST_NAME, N)(benchmark::State & st) { \
         auto solver = chrono_types::make_shared<ChSolverSparseQR>();                  \
@@ -199,19 +180,6 @@ BM_SOLVER_MUMPS(MUMPS_learner_4000, 4000, true)
 BM_SOLVER_MUMPS(MUMPS_no_learner_4000, 4000, false)
 BM_SOLVER_MUMPS(MUMPS_learner_8000, 8000, true)
 BM_SOLVER_MUMPS(MUMPS_no_learner_8000, 8000, false)
-#endif
-
-#ifdef CHRONO_PARDISOPROJECT
-BM_SOLVER_PARDISOPROJECT(PARDISOPROJECT_learner_500, 500, true)
-BM_SOLVER_PARDISOPROJECT(PARDISOPROJECT_no_learner_500, 500, false)
-BM_SOLVER_PARDISOPROJECT(PARDISOPROJECT_learner_1000, 1000, true)
-BM_SOLVER_PARDISOPROJECT(PARDISOPROJECT_no_learner_1000, 1000, false)
-BM_SOLVER_PARDISOPROJECT(PARDISOPROJECT_learner_2000, 2000, true)
-BM_SOLVER_PARDISOPROJECT(PARDISOPROJECT_no_learner_2000, 2000, false)
-BM_SOLVER_PARDISOPROJECT(PARDISOPROJECT_learner_4000, 4000, true)
-BM_SOLVER_PARDISOPROJECT(PARDISOPROJECT_no_learner_4000, 4000, false)
-BM_SOLVER_PARDISOPROJECT(PARDISOPROJECT_learner_8000, 8000, true)
-BM_SOLVER_PARDISOPROJECT(PARDISOPROJECT_no_learner_8000, 8000, false)
 #endif
 
 BM_SOLVER_QR(QR_learner_500, 500, true)

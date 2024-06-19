@@ -16,10 +16,10 @@
 //
 // =============================================================================
 
-#include "chrono/assets/ChTriangleMeshShape.h"
-#include "chrono/assets/ChSphereShape.h"
-#include "chrono/assets/ChBoxShape.h"
-#include "chrono/assets/ChCylinderShape.h"
+#include "chrono/assets/ChVisualShapeTriangleMesh.h"
+#include "chrono/assets/ChVisualShapeSphere.h"
+#include "chrono/assets/ChVisualShapeBox.h"
+#include "chrono/assets/ChVisualShapeCylinder.h"
 
 #include "chrono/utils/ChUtilsCreators.h"
 
@@ -87,8 +87,7 @@ void ChRigidChassis::Output(ChVehicleOutput& database) const {
 
 ChRigidChassisRear::ChRigidChassisRear(const std::string& name) : ChChassisRear(name) {}
 
-void ChRigidChassisRear::Initialize(std::shared_ptr<ChChassis> chassis,
-                                    int collision_family) {
+void ChRigidChassisRear::Initialize(std::shared_ptr<ChChassis> chassis, int collision_family) {
     // Invoke the base class method to construct the frame body.
     ChChassisRear::Initialize(chassis, collision_family);
 

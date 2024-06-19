@@ -23,8 +23,8 @@
 namespace chrono {
 
 #if !defined(_WIN32)
-#define FLT_EPSILON 1.19209290E-07F
-#define FLT_MAX 3.40282347E+38F
+    #define FLT_EPSILON 1.19209290E-07F
+    #define FLT_MAX 3.40282347E+38F
 #endif
 
 #define OPERATOR_EQUALSALT(op, tin, tout)                           \
@@ -180,56 +180,55 @@ class Mat33f {
     CUDA_HOST_DEVICE inline Mat33f() {}
     // Diagonal matrix constructor
 
-    CUDA_HOST_DEVICE inline explicit Mat33f(float v)  {
-		array[0] = v;
-		array[1] = 0.0f;
-		array[2] = 0.0f;
-		array[3] = 0.0f;
-		array[4] = v;
-		array[5] = 0.0f;
-		array[6] = 0.0f;
-		array[7] = 0.0f;
-		array[8] = v;
-	}
+    CUDA_HOST_DEVICE inline explicit Mat33f(float v) {
+        array[0] = v;
+        array[1] = 0.0f;
+        array[2] = 0.0f;
+        array[3] = 0.0f;
+        array[4] = v;
+        array[5] = 0.0f;
+        array[6] = 0.0f;
+        array[7] = 0.0f;
+        array[8] = v;
+    }
 
     // Diagonal matrix constructor
     CUDA_HOST_DEVICE inline explicit Mat33f(float3 v) {
-		array[0] = v.x;
-		array[1] = 0.0f;
-		array[2] = 0.0f;
-		array[3] = 0.0f;
-		array[4] = v.y;
-		array[5] = 0.0f;
-		array[6] = 0.0f;
-		array[7] = 0.0f;
-		array[8] = v.z;
-	
-	}
+        array[0] = v.x;
+        array[1] = 0.0f;
+        array[2] = 0.0f;
+        array[3] = 0.0f;
+        array[4] = v.y;
+        array[5] = 0.0f;
+        array[6] = 0.0f;
+        array[7] = 0.0f;
+        array[8] = v.z;
+    }
     // Coalesced load, each thread p loads a value with a stride
-    CUDA_HOST_DEVICE inline explicit Mat33f(const float* N, const int p, const int s){	
-		array[0] = N[p + s * 0];
-		array[1] = N[p + s * 1];
-		array[2] = N[p + s * 2];
-		array[3] = N[p + s * 3];
-		array[4] = N[p + s * 4];
-		array[5] = N[p + s * 5];
-		array[6] = N[p + s * 6];
-		array[7] = N[p + s * 7];
-		array[8] = N[p + s * 8];
-	}
+    CUDA_HOST_DEVICE inline explicit Mat33f(const float* N, const int p, const int s) {
+        array[0] = N[p + s * 0];
+        array[1] = N[p + s * 1];
+        array[2] = N[p + s * 2];
+        array[3] = N[p + s * 3];
+        array[4] = N[p + s * 4];
+        array[5] = N[p + s * 5];
+        array[6] = N[p + s * 6];
+        array[7] = N[p + s * 7];
+        array[8] = N[p + s * 8];
+    }
 
     // Constructor that takes three columns of the matrix
-    CUDA_HOST_DEVICE inline Mat33f(const float3& col1, const float3& col2, const float3& col3){
-		array[0] = col1.x;
-		array[1] = col1.y;
-		array[2] = col1.z;
-		array[3] = col2.x;
-		array[4] = col2.y;
-		array[5] = col2.z;
-		array[6] = col3.x;
-		array[7] = col3.y;
-		array[8] = col3.z;
-	}
+    CUDA_HOST_DEVICE inline Mat33f(const float3& col1, const float3& col2, const float3& col3) {
+        array[0] = col1.x;
+        array[1] = col1.y;
+        array[2] = col1.z;
+        array[3] = col2.x;
+        array[4] = col2.y;
+        array[5] = col2.z;
+        array[6] = col3.x;
+        array[7] = col3.y;
+        array[8] = col3.z;
+    }
 
     // Constructor that takes individial elements
     CUDA_HOST_DEVICE inline Mat33f(const float& v11,
@@ -240,17 +239,17 @@ class Mat33f {
                                    const float& v32,
                                    const float& v13,
                                    const float& v23,
-                                   const float& v33){
-		array[0] = v11;
-		array[1] = v21;
-		array[2] = v31;
-		array[3] = v12;
-		array[4] = v22;
-		array[5] = v32;
-		array[6] = v13;
-		array[7] = v23;
-		array[8] = v33;
-	}
+                                   const float& v33) {
+        array[0] = v11;
+        array[1] = v21;
+        array[2] = v31;
+        array[3] = v12;
+        array[4] = v22;
+        array[5] = v32;
+        array[6] = v13;
+        array[7] = v23;
+        array[8] = v33;
+    }
     // Copy constructor
     CUDA_HOST_DEVICE inline Mat33f(const Mat33f& M) {
         array[0] = M.array[0];
@@ -332,22 +331,22 @@ struct DiagMat33f {
 
 struct SymMat33f {
     CUDA_HOST_DEVICE SymMat33f() {}
-    CUDA_HOST_DEVICE SymMat33f(const float f){
-		array[0] = f;
-		array[1] = 0.0f;
-		array[2] = 0.0f;
-		array[3] = f;
-		array[4] = 0.0f;
-		array[5] = f;
-	}
+    CUDA_HOST_DEVICE SymMat33f(const float f) {
+        array[0] = f;
+        array[1] = 0.0f;
+        array[2] = 0.0f;
+        array[3] = f;
+        array[4] = 0.0f;
+        array[5] = f;
+    }
     CUDA_HOST_DEVICE SymMat33f(const float* N) {
-		array[0] = N[0];
-		array[1] = N[1];
-		array[2] = N[2];
-		array[3] = N[3];
-		array[4] = N[4];
-		array[5] = N[5];
-	}
+        array[0] = N[0];
+        array[1] = N[1];
+        array[2] = N[2];
+        array[3] = N[3];
+        array[4] = N[4];
+        array[5] = N[5];
+    }
     CUDA_HOST_DEVICE SymMat33f(const float y11,
                                const float y21,
                                const float y31,
@@ -397,14 +396,14 @@ struct SymMat33f {
 
 struct Mat32f {
     CUDA_HOST_DEVICE Mat32f() {}
-    CUDA_HOST_DEVICE Mat32f(const float3& col1, const float3& col2){
-		array[0] = col1.x;
-		array[1] = col1.y;
-		array[2] = col1.z;
-		array[3] = col2.x;
-		array[4] = col2.y;
-		array[5] = col2.z;
-	}
+    CUDA_HOST_DEVICE Mat32f(const float3& col1, const float3& col2) {
+        array[0] = col1.x;
+        array[1] = col1.y;
+        array[2] = col1.z;
+        array[3] = col2.x;
+        array[4] = col2.y;
+        array[5] = col2.z;
+    }
     CUDA_HOST_DEVICE inline float operator[](const unsigned int i) const { return array[i]; }
     CUDA_HOST_DEVICE inline float& operator[](const unsigned int i) { return array[i]; }
     float array[6];
@@ -417,14 +416,14 @@ struct Mat32f {
 
 struct Mat23f {
     CUDA_HOST_DEVICE Mat23f() {}
-    CUDA_HOST_DEVICE Mat23f(const float3 row1, const float3 row2){
-		array[0] = row1.x;
-		array[1] = row1.y;
-		array[2] = row1.z;
-		array[3] = row2.x;
-		array[4] = row2.y;
-		array[5] = row2.z;
-	}
+    CUDA_HOST_DEVICE Mat23f(const float3 row1, const float3 row2) {
+        array[0] = row1.x;
+        array[1] = row1.y;
+        array[2] = row1.z;
+        array[3] = row2.x;
+        array[4] = row2.y;
+        array[5] = row2.z;
+    }
     float array[6];
     // 0 1 2
     // 3 4 5
@@ -878,4 +877,4 @@ CUDA_HOST_DEVICE OPERATOR_EQUALSALT(*, float, Mat33f)       //
 //[U.x,V.x,W.x][x]
 //[U.y,V.y,W.y][y]
 //[U.z,V.z,W.z][z]
-}
+}  // namespace chrono

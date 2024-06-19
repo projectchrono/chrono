@@ -36,7 +36,7 @@ class CH_MODELS_API Duro_DeDionAxle : public ChDeDionAxle {
     ~Duro_DeDionAxle();
 
   protected:
-    virtual const ChVector<> getLocation(PointId which) override;
+    virtual const ChVector3d getLocation(PointId which) override;
 
     virtual double getCamberAngle() const override { return 0; }
     virtual double getToeAngle() const override { return 0; }
@@ -51,12 +51,12 @@ class CH_MODELS_API Duro_DeDionAxle : public ChDeDionAxle {
     virtual double getSpindleWidth() const override { return m_spindleWidth; }
     virtual double getWattLinkRadius() const override { return m_wattLinkRadius; }
 
-    virtual const ChVector<> getAxleTubeCOM() const override { return ChVector<>(0, 0, 0); }
+    virtual const ChVector3d getAxleTubeCOM() const override { return ChVector3d(0, 0, 0); }
 
-    virtual const ChVector<>& getAxleTubeInertia() const override { return m_axleTubeInertia; }
-    virtual const ChVector<>& getSpindleInertia() const override { return m_spindleInertia; }
-    virtual const ChVector<>& getWattCenterInertia() const override { return m_wattCenterInertia; }
-    virtual const ChVector<>& getWattSideInertia() const override { return m_wattSideInertia; }
+    virtual const ChVector3d& getAxleTubeInertia() const override { return m_axleTubeInertia; }
+    virtual const ChVector3d& getSpindleInertia() const override { return m_spindleInertia; }
+    virtual const ChVector3d& getWattCenterInertia() const override { return m_wattCenterInertia; }
+    virtual const ChVector3d& getWattSideInertia() const override { return m_wattSideInertia; }
 
     virtual double getAxleInertia() const override { return m_axleShaftInertia; }
 
@@ -82,10 +82,10 @@ class CH_MODELS_API Duro_DeDionAxle : public ChDeDionAxle {
     static const double m_spindleWidth;
     static const double m_wattLinkRadius;
 
-    static const ChVector<> m_axleTubeInertia;
-    static const ChVector<> m_spindleInertia;
-    static const ChVector<> m_wattCenterInertia;
-    static const ChVector<> m_wattSideInertia;
+    static const ChVector3d m_axleTubeInertia;
+    static const ChVector3d m_spindleInertia;
+    static const ChVector3d m_wattCenterInertia;
+    static const ChVector3d m_wattSideInertia;
 
     static const double m_springCoefficient;
     static const double m_springRestLength;

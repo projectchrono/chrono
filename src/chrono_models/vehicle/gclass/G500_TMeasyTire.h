@@ -28,7 +28,7 @@ namespace chrono {
 namespace vehicle {
 namespace gclass {
 
-/// @addtogroup vehicle_models_uaz
+/// @addtogroup vehicle_models_gclass
 /// @{
 
 /// TMeasy tire model for the UAZBUS (front)
@@ -41,7 +41,7 @@ class CH_MODELS_API G500_TMeasyTireFront : public ChTMeasyTire {
 
     virtual void SetTMeasyParams() override;
     virtual double GetTireMass() const override { return m_mass; }
-    virtual ChVector<> GetTireInertia() const override { return m_inertia; }
+    virtual ChVector3d GetTireInertia() const override { return m_inertia; }
 
     virtual void AddVisualizationAssets(VisualizationType vis) override;
     virtual void RemoveVisualizationAssets() override final;
@@ -50,12 +50,12 @@ class CH_MODELS_API G500_TMeasyTireFront : public ChTMeasyTire {
 
   private:
     static const double m_mass;
-    static const ChVector<> m_inertia;
+    static const ChVector3d m_inertia;
 
-    ChFunction_Recorder m_stiffnessMap;
+    ChFunctionInterp m_stiffnessMap;
 
     static const std::string m_meshFile;
-    std::shared_ptr<ChTriangleMeshShape> m_trimesh_shape;
+    std::shared_ptr<ChVisualShapeTriangleMesh> m_trimesh_shape;
 };
 
 /// TMeasy tire model for the G500 (rear)
@@ -68,7 +68,7 @@ class CH_MODELS_API G500_TMeasyTireRear : public ChTMeasyTire {
 
     virtual void SetTMeasyParams() override;
     virtual double GetTireMass() const override { return m_mass; }
-    virtual ChVector<> GetTireInertia() const override { return m_inertia; }
+    virtual ChVector3d GetTireInertia() const override { return m_inertia; }
 
     virtual void AddVisualizationAssets(VisualizationType vis) override;
     virtual void RemoveVisualizationAssets() override final;
@@ -77,17 +77,17 @@ class CH_MODELS_API G500_TMeasyTireRear : public ChTMeasyTire {
 
   private:
     static const double m_mass;
-    static const ChVector<> m_inertia;
+    static const ChVector3d m_inertia;
 
-    ChFunction_Recorder m_stiffnessMap;
+    ChFunctionInterp m_stiffnessMap;
 
     static const std::string m_meshFile;
-    std::shared_ptr<ChTriangleMeshShape> m_trimesh_shape;
+    std::shared_ptr<ChVisualShapeTriangleMesh> m_trimesh_shape;
 };
 
-/// @} vehicle_models_uaz
+/// @} vehicle_models_gclass
 
-}  // end namespace uaz
+}  // end namespace gclass
 }  // end namespace vehicle
 }  // end namespace chrono
 

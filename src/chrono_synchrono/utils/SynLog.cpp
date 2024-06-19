@@ -1,5 +1,8 @@
 #include "chrono_synchrono/utils/SynLog.h"
 
+#include <iostream>
+#include <string>
+
 namespace chrono {
 namespace synchrono {
 
@@ -11,18 +14,18 @@ void SetLogNodeID(int node_id) {
 }
 
 std::string GetAppendingString(int node_id);
-ChStreamOutAscii& AppendLog(int);
+std::ostream& AppendLog(int);
 
-ChStreamOutAscii& SynLog() {
-    return GlobalNodeID != NULL ? AppendLog((*GlobalNodeID)) : GetLog();
+std::ostream& SynLog() {
+    return GlobalNodeID != NULL ? AppendLog((*GlobalNodeID)) : std::cout;
 }
 
 std::string GetAppendingString(int node_id) {
     return "[" + std::to_string(node_id) + "]:\t";
 }
 
-ChStreamOutAscii& AppendLog(int node_id) {
-    return GetLog() << GetAppendingString(node_id).c_str();
+std::ostream& AppendLog(int node_id) {
+    return std::cout << GetAppendingString(node_id);
 }
 
 }  // namespace synchrono

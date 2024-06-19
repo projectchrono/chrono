@@ -27,18 +27,18 @@
 #include "chrono/assets/ChVisualSystem.h"
 #include "chrono/assets/ChVisualModel.h"
 
-#include "chrono/assets/ChBoxShape.h"
-#include "chrono/assets/ChSphereShape.h"
-#include "chrono/assets/ChEllipsoidShape.h"
-#include "chrono/assets/ChCylinderShape.h"
-#include "chrono/assets/ChCapsuleShape.h"
-#include "chrono/assets/ChBarrelShape.h"
-#include "chrono/assets/ChConeShape.h"
-#include "chrono/assets/ChTriangleMeshShape.h"
-#include "chrono/assets/ChSurfaceShape.h"
-#include "chrono/assets/ChModelFileShape.h"
-#include "chrono/assets/ChLineShape.h"
-#include "chrono/assets/ChPathShape.h"
+#include "chrono/assets/ChVisualShapeBox.h"
+#include "chrono/assets/ChVisualShapeSphere.h"
+#include "chrono/assets/ChVisualShapeEllipsoid.h"
+#include "chrono/assets/ChVisualShapeCylinder.h"
+#include "chrono/assets/ChVisualShapeCapsule.h"
+#include "chrono/assets/ChVisualShapeBarrel.h"
+#include "chrono/assets/ChVisualShapeCone.h"
+#include "chrono/assets/ChVisualShapeTriangleMesh.h"
+#include "chrono/assets/ChVisualShapeSurface.h"
+#include "chrono/assets/ChVisualShapeModelFile.h"
+#include "chrono/assets/ChVisualShapeLine.h"
+#include "chrono/assets/ChVisualShapePath.h"
 
 #include "chrono/physics/ChBody.h"
 #include "chrono/physics/ChLinkMarkers.h"
@@ -60,11 +60,14 @@ namespace vsg3d {
 /// VSG-based Chrono run-time visualization system.
 class CH_VSG_API ChVisualSystemVSG : virtual public ChVisualSystem {
   public:
-    ChVisualSystemVSG();
+    /// Create the Chrono::VSG run-time visualization system.
+    /// Optionally, specify the resolution used for tesselation of primitive shapes, by providing the number of
+    /// divisions used to discretize a full circle. The default value of 24 corresponds to 15-degree divisions.
+    ChVisualSystemVSG(int num_divs = 24);
     ~ChVisualSystemVSG();
 
     /// Initialize the visualization system.
-    virtual void Initialize();
+    virtual void Initialize() override;
 
     /// Process all visual assets in the associated ChSystem.
     /// This function is called by default by Initialize(), but can also be called later if further modifications to
@@ -112,9 +115,9 @@ class CH_VSG_API ChVisualSystemVSG : virtual public ChVisualSystem {
     /// The file extension determines the image format.
     virtual void WriteImageToFile(const std::string& filename) override;
 
-    void SetWindowSize(const ChVector2<int>& size);
+    void SetWindowSize(const ChVector2i& size);
     void SetWindowSize(int width, int height);
-    void SetWindowPosition(const ChVector2<int>& pos);
+    void SetWindowPosition(const ChVector2i& pos);
     void SetWindowPosition(int from_left, int from_top);
     void SetWindowTitle(const std::string& title);
     void SetClearColor(const ChColor& color);
@@ -130,31 +133,35 @@ class CH_VSG_API ChVisualSystemVSG : virtual public ChVisualSystem {
 
     /// Add a camera to the VSG scene.
     /// Note that currently only one camera is supported.
-    virtual int AddCamera(const ChVector<>& pos, ChVector<> targ = VNULL) override;
+    virtual int AddCamera(const ChVector3d& pos, ChVector3d targ = VNULL) override;
 
     /// Set the location of the specified camera.
-    virtual void SetCameraPosition(int id, const ChVector<>& pos) override;
+    virtual void SetCameraPosition(int id, const ChVector3d& pos) override;
 
     /// Set the target (look-at) point of the specified camera.
-    virtual void SetCameraTarget(int id, const ChVector<>& target) override;
+    virtual void SetCameraTarget(int id, const ChVector3d& target) override;
 
     /// Set the location of the current (active) camera.
-    virtual void SetCameraPosition(const ChVector<>& pos) override;
+    virtual void SetCameraPosition(const ChVector3d& pos) override;
 
     /// Set the target (look-at) point of the current (active) camera.
-    virtual void SetCameraTarget(const ChVector<>& target) override;
+    virtual void SetCameraTarget(const ChVector3d& target) override;
 
     /// Get the location of the current (active) camera.
-    virtual ChVector<> GetCameraPosition() const override;
+    virtual ChVector3d GetCameraPosition() const override;
 
     /// Get the target (look-at) point of the current (active) camera.
-    virtual ChVector<> GetCameraTarget() const override;
+    virtual ChVector3d GetCameraTarget() const override;
 
     /// Get estimated FPS.
     double GetRenderingFPS() const { return m_fps; }
 
-    /// Enable/disable VSG information terminal output during initialization (default: true).
+    /// Enable/disable VSG information terminal output during initialization (default: false).
     void SetVerbose(bool verbose) { m_verbose = verbose; }
+
+    /// Enable/disable rendering of shadows.
+    /// This function must be called before Initialize().
+    void SetShadows(bool yesno = false) { m_use_shadows = yesno; }
 
     void SetLightIntensity(float intensity);
     void SetLightDirection(double azimuth, double elevation);
@@ -210,9 +217,9 @@ class CH_VSG_API ChVisualSystemVSG : virtual public ChVisualSystem {
 
     void UpdateFromMBS();
 
-    bool m_initialized = false;
     int m_screen_num = -1;
     bool m_use_fullscreen = false;
+    bool m_use_shadows = false;
 
     vsg::ref_ptr<vsg::Window> m_window;
     vsg::ref_ptr<vsg::Viewer> m_viewer;  ///< high-level VSG rendering manager
@@ -263,14 +270,14 @@ class CH_VSG_API ChVisualSystemVSG : virtual public ChVisualSystem {
 
     /// Data related to deformable meshes (FEA and SCM).
     struct DeformableMesh {
-        std::shared_ptr<geometry::ChTriangleMeshConnected> trimesh;  ///< reference to the Chrono triangle mesh
-        vsg::ref_ptr<vsg::vec3Array> vertices;                       ///< mesh vertices
-        vsg::ref_ptr<vsg::vec3Array> normals;                        ///< mesh normals
-        vsg::ref_ptr<vsg::vec4Array> colors;                         ///< mesh vertex colors
-        bool mesh_soup;                                              ///< true if using separate triangles
-        bool dynamic_vertices;                                       ///< mesh vertices change
-        bool dynamic_normals;                                        ///< mesh normals change
-        bool dynamic_colors;                                         ///< mesh vertex colors change
+        std::shared_ptr<ChTriangleMeshConnected> trimesh;  ///< reference to the Chrono triangle mesh
+        vsg::ref_ptr<vsg::vec3Array> vertices;             ///< mesh vertices
+        vsg::ref_ptr<vsg::vec3Array> normals;              ///< mesh normals
+        vsg::ref_ptr<vsg::vec4Array> colors;               ///< mesh vertex colors
+        bool mesh_soup;                                    ///< true if using separate triangles
+        bool dynamic_vertices;                             ///< mesh vertices change
+        bool dynamic_normals;                              ///< mesh normals change
+        bool dynamic_colors;                               ///< mesh vertex colors change
     };
     std::vector<DeformableMesh> m_def_meshes;
 
@@ -284,18 +291,18 @@ class CH_VSG_API ChVisualSystemVSG : virtual public ChVisualSystem {
     };
     std::vector<ParticleCloud> m_clouds;
 
+    /// export screen image as file (png, bmp, tga, jpg)
+    void exportScreenImage();
+
   private:
     /// Bind the visual model associated with a body.
     void BindBody(const std::shared_ptr<ChBody>& body);
 
-    /// Bind the visual model associated with an FEA mesh.
-    void BindMesh(const std::shared_ptr<fea::ChMesh>& mesh);
+    /// Bind meshes in the visual model associated with the given physics item.
+    void BindMesh(const std::shared_ptr<ChPhysicsItem>& item);
 
-    /// Bind the visual model assoicated with a particle cloud
+    /// Bind the visual model assoicated with a particle cloud.
     void BindParticleCloud(const std::shared_ptr<ChParticleCloud>& pcloud);
-
-    /// Bind the visual model associated with a load container.
-    void BindLoadContainer(const std::shared_ptr<ChLoadContainer>& loadcont);
 
     /// Bind the visual model associated with a TSDA.
     void BindTSDA(const std::shared_ptr<ChLinkTSDA>& tsda);

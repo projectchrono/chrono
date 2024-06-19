@@ -29,7 +29,7 @@ namespace chrono {
 namespace vehicle {
 namespace uaz {
 
-/// @addtogroup vehicle_models_UAZBUS
+/// @addtogroup vehicle_models_uaz
 /// @{
 
 /// Simple UAZBUS powertrain subsystem (based on engine speed-torque maps).
@@ -48,7 +48,7 @@ class CH_MODELS_API UAZBUS_AutomaticTransmissionSimpleMap : public ChAutomaticTr
         ) override;
 };
 
-/// @} vehicle_models_UAZBUS
+/// @} vehicle_models_uaz
 
 }  // namespace uaz
 }  // end namespace vehicle

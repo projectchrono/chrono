@@ -31,7 +31,6 @@
 #include "chrono_thirdparty/filesystem/path.h"
 
 using namespace chrono;
-using namespace chrono::collision;
 
 double time_step = 5e-4;
 
@@ -53,11 +52,6 @@ double duration_sim = 10;            // Duration of actual locomotion simulation
 double output_fps = 100;
 double render_fps = 60;
 
-// Output directories
-const std::string out_dir = GetChronoOutputPath() + "ROBOSIMIAN_RIGID";
-const std::string pov_dir = out_dir + "/POVRAY";
-const std::string img_dir = out_dir + "/IMG";
-
 // POV-Ray and/or IMG output
 bool data_output = true;
 bool povray_output = false;
@@ -67,27 +61,27 @@ bool image_output = false;
 
 class RayCaster {
   public:
-    RayCaster(ChSystem* sys, const ChFrame<>& origin, const ChVector2<>& dims, double spacing);
+    RayCaster(ChSystem* sys, const ChFrame<>& origin, const ChVector2d& dims, double spacing);
 
-    const std::vector<ChVector<>>& GetPoints() const { return m_points; }
+    const std::vector<ChVector3d>& GetPoints() const { return m_points; }
 
     void Update();
 
   private:
     ChSystem* m_sys;
     ChFrame<> m_origin;
-    ChVector2<> m_dims;
+    ChVector2d m_dims;
     double m_spacing;
     std::shared_ptr<ChBody> m_body;
     std::shared_ptr<ChGlyphs> m_glyphs;
-    std::vector<ChVector<>> m_points;
+    std::vector<ChVector3d> m_points;
 };
 
-RayCaster::RayCaster(ChSystem* sys, const ChFrame<>& origin, const ChVector2<>& dims, double spacing)
+RayCaster::RayCaster(ChSystem* sys, const ChFrame<>& origin, const ChVector2d& dims, double spacing)
     : m_sys(sys), m_origin(origin), m_dims(dims), m_spacing(spacing) {
-    m_body = std::shared_ptr<ChBody>(sys->NewBody());
-    m_body->SetBodyFixed(true);
-    m_body->SetCollide(false);
+    m_body = chrono_types::make_shared<ChBody>();
+    m_body->SetFixed(true);
+    m_body->EnableCollision(false);
     sys->AddBody(m_body);
 
     m_glyphs = chrono_types::make_shared<ChGlyphs>();
@@ -100,16 +94,16 @@ RayCaster::RayCaster(ChSystem* sys, const ChFrame<>& origin, const ChVector2<>& 
 void RayCaster::Update() {
     m_points.clear();
 
-    ChVector<> dir = m_origin.GetA().Get_A_Zaxis();
+    ChVector3d dir = m_origin.GetRotMat().GetAxisZ();
     int nx = static_cast<int>(std::round(m_dims.x() / m_spacing));
     int ny = static_cast<int>(std::round(m_dims.y() / m_spacing));
     for (int ix = 0; ix < nx; ix++) {
         for (int iy = 0; iy < ny; iy++) {
             double x_local = -0.5 * m_dims.x() + ix * m_spacing;
             double y_local = -0.5 * m_dims.y() + iy * m_spacing;
-            ChVector<> from = m_origin.TransformPointLocalToParent(ChVector<>(x_local, y_local, 0.0));
-            ChVector<> to = from + dir * 100;
-            collision::ChCollisionSystem::ChRayhitResult result;
+            ChVector3d from = m_origin.TransformPointLocalToParent(ChVector3d(x_local, y_local, 0.0));
+            ChVector3d to = from + dir * 100;
+            ChCollisionSystem::ChRayhitResult result;
             m_sys->GetCollisionSystem()->RayHit(from, to, result);
             if (result.hit)
                 m_points.push_back(result.abs_hitPoint);
@@ -129,26 +123,26 @@ std::shared_ptr<ChBody> CreateTerrain(ChSystem* sys, double length, double width
     float Y = 1e7f;
     float cr = 0.0f;
 
-    auto ground_mat = ChMaterialSurface::DefaultMaterial(sys->GetContactMethod());
+    auto ground_mat = ChContactMaterial::DefaultMaterial(sys->GetContactMethod());
     ground_mat->SetFriction(friction);
     ground_mat->SetRestitution(cr);
 
     if (sys->GetContactMethod() == ChContactMethod::SMC) {
-        std::static_pointer_cast<ChMaterialSurfaceSMC>(ground_mat)->SetYoungModulus(Y);
+        std::static_pointer_cast<ChContactMaterialSMC>(ground_mat)->SetYoungModulus(Y);
     }
 
-    auto ground = std::shared_ptr<ChBody>(sys->NewBody());
-    ground->SetBodyFixed(true);
-    ground->SetCollide(true);
+    auto ground = chrono_types::make_shared<ChBody>();
+    ground->SetFixed(true);
+    ground->EnableCollision(true);
 
-    ground->GetCollisionModel()->ClearModel();
-    ground->GetCollisionModel()->AddBox(ground_mat, length, width, 0.2, ChVector<>(offset, 0, height - 0.1));
-    ground->GetCollisionModel()->BuildModel();
+    auto shape = chrono_types::make_shared<ChCollisionShapeBox>(ground_mat, length, width, 0.2);
+    ground->AddCollisionShape(shape, ChFrame<>(ChVector3d(offset, 0, height - 0.1), QUNIT));
 
-    auto box = chrono_types::make_shared<ChBoxShape>(length, width, 0.2);
+    auto box = chrono_types::make_shared<ChVisualShapeBox>(length, width, 0.2);
     box->SetTexture(GetChronoDataFile("textures/pinkwhite.png"), 10 * (float)length, 10 * (float)width);
-    ground->AddVisualShape(box, ChFrame<>(ChVector<>(offset, 0, height - 0.1), QUNIT));
+    ground->AddVisualShape(box, ChFrame<>(ChVector3d(offset, 0, height - 0.1), QUNIT));
 
+    sys->GetCollisionSystem()->BindItem(ground);
     sys->AddBody(ground);
 
     return ground;
@@ -166,8 +160,8 @@ void SetContactProperties(robosimian::RoboSimian* robot) {
     robot->GetWheelContactMaterial()->SetRestitution(cr);
 
     if (robot->GetSystem()->GetContactMethod() == ChContactMethod::SMC) {
-        std::static_pointer_cast<ChMaterialSurfaceSMC>(robot->GetSledContactMaterial())->SetYoungModulus(Y);
-        std::static_pointer_cast<ChMaterialSurfaceSMC>(robot->GetWheelContactMaterial())->SetYoungModulus(Y);
+        std::static_pointer_cast<ChContactMaterialSMC>(robot->GetSledContactMaterial())->SetYoungModulus(Y);
+        std::static_pointer_cast<ChContactMaterialSMC>(robot->GetWheelContactMaterial())->SetYoungModulus(Y);
     }
 }
 
@@ -194,10 +188,36 @@ int main(int argc, char* argv[]) {
             break;
     }
 
-    my_sys->SetSolverMaxIterations(200);
+    my_sys->SetCollisionSystemType(ChCollisionSystem::Type::BULLET);
     my_sys->SetSolverType(ChSolver::Type::BARZILAIBORWEIN);
-    my_sys->Set_G_acc(ChVector<double>(0, 0, -9.8));
-    ////my_sys->Set_G_acc(ChVector<double>(0, 0, 0));
+    my_sys->GetSolver()->AsIterative()->SetMaxIterations(200);
+    my_sys->SetGravitationalAcceleration(ChVector3d(0, 0, -9.8));
+    ////my_sys->SetGravitationalAcceleration(ChVector3d(0, 0, 0));
+
+    // -----------------------------
+    // Initialize output directories
+    // -----------------------------
+
+    const std::string out_dir = GetChronoOutputPath() + "ROBOSIMIAN_RIGID";
+    const std::string pov_dir = out_dir + "/POVRAY";
+    const std::string img_dir = out_dir + "/IMG";
+
+    if (!filesystem::create_directory(filesystem::path(out_dir))) {
+        std::cout << "Error creating directory " << out_dir << std::endl;
+        return 1;
+    }
+    if (povray_output) {
+        if (!filesystem::create_directory(filesystem::path(pov_dir))) {
+            std::cout << "Error creating directory " << pov_dir << std::endl;
+            return 1;
+        }
+    }
+    if (image_output) {
+        if (!filesystem::create_directory(filesystem::path(img_dir))) {
+            std::cout << "Error creating directory " << img_dir << std::endl;
+            return 1;
+        }
+    }
 
     // -----------------------
     // Create RoboSimian robot
@@ -205,8 +225,7 @@ int main(int argc, char* argv[]) {
 
     robosimian::RoboSimian robot(my_sys, true, true);
 
-    // Set output directory
-
+    // Set output directories
     robot.SetOutputDirectory(out_dir);
 
     // Set actuation mode for wheel motors
@@ -215,10 +234,10 @@ int main(int argc, char* argv[]) {
 
     // Control collisions (default: true for sled and wheels only)
 
-    ////robot.SetCollide(robosimian::CollisionFlags::NONE);
-    ////robot.SetCollide(robosimian::CollisionFlags::ALL);
-    ////robot.SetCollide(robosimian::CollisionFlags::LIMBS);
-    ////robot.SetCollide(robosimian::CollisionFlags::CHASSIS | robosimian::CollisionFlags::WHEELS);
+    ////robot.EnableCollision(robosimian::CollisionFlags::NONE);
+    ////robot.EnableCollision(robosimian::CollisionFlags::ALL);
+    ////robot.EnableCollision(robosimian::CollisionFlags::LIMBS);
+    ////robot.EnableCollision(robosimian::CollisionFlags::CHASSIS | robosimian::CollisionFlags::WHEELS);
 
     // Set visualization modes (default: all COLLISION)
 
@@ -234,8 +253,8 @@ int main(int argc, char* argv[]) {
 
     // Initialize Robosimian robot
 
-    ////robot.Initialize(ChCoordsys<>(ChVector<>(0, 0, 0), QUNIT));
-    robot.Initialize(ChCoordsys<>(ChVector<>(0, 0, 0), Q_from_AngX(CH_C_PI)));
+    ////robot.Initialize(ChCoordsys<>(ChVector3d(0, 0, 0), QUNIT));
+    robot.Initialize(ChCoordsys<>(ChVector3d(0, 0, 0), QuatFromAngleX(CH_PI)));
 
     // -----------------------------------
     // Create a driver and attach to robot
@@ -283,8 +302,10 @@ int main(int argc, char* argv[]) {
     // Cast rays into collision models
     // -------------------------------
 
-    ////RayCaster caster(my_sys, ChFrame<>(ChVector<>(2, 0, -1), Q_from_AngY(-CH_C_PI_2)), ChVector2<>(2.5, 2.5), 0.02);
-    RayCaster caster(my_sys, ChFrame<>(ChVector<>(0, -2, -1), Q_from_AngX(-CH_C_PI_2)), ChVector2<>(2.5, 2.5), 0.02);
+    ////RayCaster caster(my_sys, ChFrame<>(ChVector3d(2, 0, -1), QuatFromAngleY(-CH_PI_2)),
+    ////                 ChVector2d(2.5, 2.5), 0.02);
+    RayCaster caster(my_sys, ChFrame<>(ChVector3d(0, -2, -1), QuatFromAngleX(-CH_PI_2)),
+                     ChVector2d(2.5, 2.5), 0.02);
 
     // -------------------------------
     // Create the visualization window
@@ -297,32 +318,11 @@ int main(int argc, char* argv[]) {
     vis->Initialize();
     vis->AddLogo();
     vis->AddSkyBox();
-    vis->AddCamera(ChVector<>(1, -2.75, 0.2), ChVector<>(1, 0, 0));
-    vis->AddLight(ChVector<>(100, +100, 100), 290, ChColor(0.7f, 0.7f, 0.7f));
-    vis->AddLight(ChVector<>(100, -100, 80), 190, ChColor(0.7f, 0.8f, 0.8f));
-    ////vis->AddLightWithShadow(ChVector<>(10.0, -6.0, 3.0), ChVector<>(0, 0, 0), 3, -10, 10, 40, 512);
+    vis->AddCamera(ChVector3d(1, -2.75, 0.2), ChVector3d(1, 0, 0));
+    vis->AddLight(ChVector3d(100, +100, 100), 290, ChColor(0.7f, 0.7f, 0.7f));
+    vis->AddLight(ChVector3d(100, -100, 80), 190, ChColor(0.7f, 0.8f, 0.8f));
+    ////vis->AddLightWithShadow(ChVector3d(10.0, -6.0, 3.0), ChVector3d(0, 0, 0), 3, -10, 10, 40, 512);
     ////vis->EnableShadows();
-
-    // -----------------------------
-    // Initialize output directories
-    // -----------------------------
-
-    if (!filesystem::create_directory(filesystem::path(out_dir))) {
-        std::cout << "Error creating directory " << out_dir << std::endl;
-        return 1;
-    }
-    if (povray_output) {
-        if (!filesystem::create_directory(filesystem::path(pov_dir))) {
-            std::cout << "Error creating directory " << pov_dir << std::endl;
-            return 1;
-        }
-    }
-    if (image_output) {
-        if (!filesystem::create_directory(filesystem::path(img_dir))) {
-            std::cout << "Error creating directory " << img_dir << std::endl;
-            return 1;
-        }
-    }
 
     // ---------------------------------
     // Run simulation for specified time
@@ -347,14 +347,14 @@ int main(int argc, char* argv[]) {
             double width = 2;
 
             // Create terrain
-            ChVector<> hdim(length / 2, width / 2, 0.1);
-            ChVector<> loc(length / 4, 0, z - 0.1);
+            ChVector3d hdim(length / 2, width / 2, 0.1);
+            ChVector3d loc(length / 4, 0, z - 0.1);
             auto ground = CreateTerrain(my_sys, length, width, z, length / 4);
             vis->BindItem(ground);
             SetContactProperties(&robot);
 
             // Release robot
-            robot.GetChassisBody()->SetBodyFixed(false);
+            robot.GetChassisBody()->SetFixed(false);
 
             terrain_created = true;
         }
@@ -366,32 +366,33 @@ int main(int argc, char* argv[]) {
             robot.Output();
         }
 
-        // Output POV-Ray date and/or snapshot images
+        // Output POV-Ray date and/or snapshot images.
+        // Zero-pad frame numbers in file names for postprocessing.
         if (sim_frame % render_steps == 0) {
             if (povray_output) {
-                char filename[100];
-                sprintf(filename, "%s/data_%04d.dat", pov_dir.c_str(), render_frame + 1);
-                utils::WriteVisualizationAssets(my_sys, filename);
+                std::ostringstream filename;
+                filename << pov_dir << "/data_" << std::setw(4) << std::setfill('0') << render_frame + 1 << ".dat";
+                utils::WriteVisualizationAssets(my_sys, filename.str());
             }
             if (image_output) {
-                char filename[100];
-                sprintf(filename, "%s/img_%04d.jpg", img_dir.c_str(), render_frame + 1);
-                vis->WriteImageToFile(filename);
+                std::ostringstream filename;
+                filename << img_dir << "/img_" << std::setw(4) << std::setfill('0') << render_frame + 1 << ".jpg";
+                vis->WriteImageToFile(filename.str());
             }
 
             render_frame++;
         }
 
         ////double time = my_sys->GetChTime();
-        ////double A = CH_C_PI / 6;
+        ////double A = CH_PI / 6;
         ////double freq = 2;
-        ////double val = 0.5 * A * (1 - std::cos(CH_C_2PI * freq * time));
+        ////double val = 0.5 * A * (1 - std::cos(CH_2PI * freq * time));
         ////robot.Activate(robosimian::FR, "joint2", time, val);
         ////robot.Activate(robosimian::RL, "joint5", time, val);
 
         robot.DoStepDynamics(time_step);
 
-        ////if (my_sys->GetNcontacts() > 0) {
+        ////if (my_sys->GetNumContacts() > 0) {
         ////    robot.ReportContacts();
         ////}
 

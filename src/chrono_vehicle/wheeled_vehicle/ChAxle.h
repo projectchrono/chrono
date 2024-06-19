@@ -57,17 +57,20 @@ class CH_VEHICLE_API ChAxle {
     void Initialize(std::shared_ptr<ChChassis> chassis,        ///< associated chassis subsystem
                     std::shared_ptr<ChSubchassis> subchassis,  ///< associated subchassis subsystem (may be null)
                     std::shared_ptr<ChSteering> steering,      ///< associated steering subsystem (may be null)
-                    const ChVector<>& susp_location,           ///< suspension location relative to the chassis frame
-                    const ChVector<>& arb_location,            ///< antirollbar location relative to chassis frame
+                    const ChVector3d& susp_location,           ///< suspension location relative to the chassis frame
+                    const ChVector3d& arb_location,            ///< antirollbar location relative to chassis frame
                     double wheel_separation = 0,               ///< distance between wheel centers on one side
                     double left_ang_vel = 0,                   ///< initial angular velocity of left wheel
                     double right_ang_vel = 0                   ///< initial angular velocity of right wheel
     );
 
-    /// Synchronize this suspension subsystem.
-    void Synchronize(double time,                           ///< [in] current time
+    /// Synchronize this axle subsystem.
+    void Synchronize(double time,                       ///< [in] current time
                      const DriverInputs& driver_inputs  ///< [in] current driver inputs
     );
+
+    /// Advance the state of this axle subsystem by the specified time step.
+    virtual void Advance(double step);
 
     /// Get all wheels from this axle.
     /// The wheels associated with an axle are assumed to be ordered from inner to outer wheels, first left then right.

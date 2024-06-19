@@ -15,7 +15,6 @@
 #include "chrono/geometry/ChLinePath.h"
 
 namespace chrono {
-namespace geometry {
 
 // Register into the object factory, to enable run-time dynamic creation and persistence
 CH_FACTORY_REGISTER(ChLinePath)
@@ -34,9 +33,9 @@ double ChLinePath::Length(int sampling) const {
     return tot;
 }
 
-void ChLinePath::Evaluate(ChVector<>& pos, const double parU) const {
+ChVector3d ChLinePath::Evaluate(double parU) const {
     if (lines.size() == 0)
-        return;
+        return VNULL;
 
     double u = parU;
 
@@ -58,7 +57,8 @@ void ChLinePath::Evaluate(ChVector<>& pos, const double parU) const {
         uA = end_times[i - 1];
 
     double local_U = (u - uA) / durations[i];
-    lines[i]->Evaluate(pos, local_U);
+
+    return lines[i]->Evaluate(local_U);
 }
 
 void ChLinePath::SetSubLineDurationN(size_t n, double mduration) {
@@ -140,27 +140,26 @@ double ChLinePath::GetContinuityMaxError() const {
     return maxerr;
 }
 
-void ChLinePath::ArchiveOut(ChArchiveOut& marchive) {
+void ChLinePath::ArchiveOut(ChArchiveOut& archive_out) {
     // version number
-    marchive.VersionWrite<ChLinePath>();
+    archive_out.VersionWrite<ChLinePath>();
     // serialize parent class
-    ChLine::ArchiveOut(marchive);
+    ChLine::ArchiveOut(archive_out);
     // serialize all member data:
-    marchive << CHNVP(lines);
-    marchive << CHNVP(end_times);
-    marchive << CHNVP(durations);
+    archive_out << CHNVP(lines);
+    archive_out << CHNVP(end_times);
+    archive_out << CHNVP(durations);
 }
 
-void ChLinePath::ArchiveIn(ChArchiveIn& marchive) {
+void ChLinePath::ArchiveIn(ChArchiveIn& archive_in) {
     // version number
-    /*int version =*/ marchive.VersionRead<ChLinePath>();
+    /*int version =*/archive_in.VersionRead<ChLinePath>();
     // deserialize parent class
-    ChLine::ArchiveIn(marchive);
+    ChLine::ArchiveIn(archive_in);
     // stream in all member data:
-    marchive >> CHNVP(lines);
-    marchive >> CHNVP(end_times);
-    marchive >> CHNVP(durations);
+    archive_in >> CHNVP(lines);
+    archive_in >> CHNVP(end_times);
+    archive_in >> CHNVP(durations);
 }
 
-}  // end namespace geometry
 }  // end namespace chrono

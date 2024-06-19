@@ -24,8 +24,8 @@
 #ifndef CH_WHEEL_H
 #define CH_WHEEL_H
 
-#include "chrono/assets/ChCylinderShape.h"
-#include "chrono/assets/ChTriangleMeshShape.h"
+#include "chrono/assets/ChVisualShapeCylinder.h"
+#include "chrono/assets/ChVisualShapeTriangleMesh.h"
 
 #include "chrono_vehicle/ChApiVehicle.h"
 #include "chrono_vehicle/ChChassis.h"
@@ -73,11 +73,15 @@ class CH_VEHICLE_API ChWheel : public ChPart {
     /// Enable/disable contact for the wheel.
     /// This function controls contact of the wheel with all other collision shapes in the simulation. Must be called
     /// after initialization and has effect only if the derived object has defined some collision shapes.
-    void SetCollide(bool state) { m_spindle->SetCollide(state); }
+    void EnableCollision(bool state) { m_spindle->EnableCollision(state); }
 
-    /// Synchronize the wheel subsystem. 
-    /// This queries the forces from the attached tire and passes it to the associated suspension.
+    /// Synchronize the wheel subsystem.
+    /// This version queries the forces from the attached tire and applies them to the associated suspension.
     void Synchronize();
+
+    /// Synchronize the wheel subsystem.
+    /// This version uses the provided forces as external applied tire/terrain forces.
+    void Synchronize(const TerrainForce& tire_force);
 
     /// Get the tire attached to this wheel.
     std::shared_ptr<ChTire> GetTire() const { return m_tire; }
@@ -92,7 +96,7 @@ class CH_VEHICLE_API ChWheel : public ChPart {
     VehicleSide GetSide() const { return m_side; }
 
     /// Get wheel position (expressed in absolute frame).
-    ChVector<> GetPos() const;
+    ChVector3d GetPos() const;
 
     /// Get the current state for this wheel.
     /// This includes the location, orientation, linear and angular velocities,
@@ -119,16 +123,16 @@ class CH_VEHICLE_API ChWheel : public ChPart {
     virtual void UpdateInertiaProperties() override;
 
     virtual double GetWheelMass() const = 0;
-    virtual const ChVector<>& GetWheelInertia() const = 0;
+    virtual const ChVector3d& GetWheelInertia() const = 0;
 
-    std::shared_ptr<ChBody> m_spindle;             ///< associated suspension spindle body
-    std::shared_ptr<ChTire> m_tire;                ///< attached tire subsystem
-    VehicleSide m_side;                            ///< wheel mounted on left/right side
-    double m_offset;                               ///< offset from spindle center
+    std::shared_ptr<ChBody> m_spindle;  ///< associated suspension spindle body
+    std::shared_ptr<ChTire> m_tire;     ///< attached tire subsystem
+    VehicleSide m_side;                 ///< wheel mounted on left/right side
+    double m_offset;                    ///< offset from spindle center
 
-    std::string m_vis_mesh_file;                           ///< visualization mesh file (may be empty)
-    std::shared_ptr<ChTriangleMeshShape> m_trimesh_shape;  ///< visualization mesh asset
-    std::shared_ptr<ChVisualShape> m_cyl_shape;            ///< visualization cylinder asset
+    std::string m_vis_mesh_file;                                 ///< visualization mesh file (may be empty)
+    std::shared_ptr<ChVisualShapeTriangleMesh> m_trimesh_shape;  ///< visualization mesh asset
+    std::shared_ptr<ChVisualShape> m_cyl_shape;                  ///< visualization cylinder asset
 
     std::shared_ptr<ChLoadBodyForce> m_spindle_terrain_force;    ///< terrain force loads on the spindle
     std::shared_ptr<ChLoadBodyTorque> m_spindle_terrain_torque;  ///< terrain torque loads on the spindle

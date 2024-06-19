@@ -46,7 +46,7 @@ class CH_VEHICLE_API ChRackPinion : public ChSteering {
   public:
     /// Construct a rack-pinion steering mechanism with given base name.
     ChRackPinion(const std::string& name  ///< [in] name of the subsystem
-                 );
+    );
 
     virtual ~ChRackPinion();
 
@@ -58,7 +58,7 @@ class CH_VEHICLE_API ChRackPinion : public ChSteering {
     /// respect to and expressed in the reference frame of the chassis) and with specified orientation (with respect to
     /// the chassis reference frame).
     virtual void Initialize(std::shared_ptr<ChChassis> chassis,  ///< [in] associated chassis subsystem
-                            const ChVector<>& location,          ///< [in] location relative to the chassis frame
+                            const ChVector3d& location,          ///< [in] location relative to the chassis frame
                             const ChQuaternion<>& rotation       ///< [in] orientation relative to the chassis frame
                             ) override;
 
@@ -72,7 +72,7 @@ class CH_VEHICLE_API ChRackPinion : public ChSteering {
     /// Update the state of this steering subsystem at the current time.
     /// The steering subsystem is provided the current steering driver input (a value between -1 and +1).  Positive
     /// steering input indicates steering to the left. This function is called during the vehicle update.
-    virtual void Synchronize(double time,                           ///< [in] current time
+    virtual void Synchronize(double time,                       ///< [in] current time
                              const DriverInputs& driver_inputs  ///< [in] current driver inputs
                              ) override;
 
@@ -87,7 +87,7 @@ class CH_VEHICLE_API ChRackPinion : public ChSteering {
     virtual double GetSteeringLinkMass() const = 0;
 
     /// Return the moments of inertia of the steering link.
-    virtual ChVector<> GetSteeringLinkInertia() const = 0;
+    virtual ChVector3d GetSteeringLinkInertia() const = 0;
 
     /// Return the steering link COM offset in Y direction (positive to the left).
     virtual double GetSteeringLinkCOM() const = 0;
@@ -108,8 +108,8 @@ class CH_VEHICLE_API ChRackPinion : public ChSteering {
 
     virtual void Output(ChVehicleOutput& database) const override;
 
-    std::shared_ptr<ChLinkLockPrismatic> m_prismatic;  ///< handle to the prismatic joint chassis-link
-    std::shared_ptr<ChLinkLinActuator> m_actuator;     ///< handle to the linear actuator on steering link
+    std::shared_ptr<ChLinkLockPrismatic> m_prismatic;   ///< handle to the prismatic joint chassis-link
+    std::shared_ptr<ChLinkLockLinActuator> m_actuator;  ///< handle to the linear actuator on steering link
 };
 
 /// @} vehicle_wheeled_steering

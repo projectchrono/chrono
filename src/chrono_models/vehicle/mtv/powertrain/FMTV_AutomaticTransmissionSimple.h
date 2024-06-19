@@ -30,7 +30,7 @@ namespace chrono {
 namespace vehicle {
 namespace fmtv {
 
-/// @addtogroup vehicle_models_FMTV
+/// @addtogroup vehicle_models_fmtv
 /// @{
 
 /// FMTV automatic transmission model template based on a simple gear-shifting model.
@@ -49,7 +49,7 @@ class CH_MODELS_API FMTV_AutomaticTransmissionSimple : public ChAutomaticTransmi
         ) override;
 };
 
-/// @} vehicle_models_FMTV
+/// @} vehicle_models_fmtv
 
 }  // namespace fmtv
 }  // end namespace vehicle

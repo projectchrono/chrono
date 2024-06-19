@@ -108,4 +108,4 @@ class CH_MULTICORE_API ChTimerMulticore {
 
 /// @} multicore_module
 
-} // end namespace chrono
+}  // end namespace chrono

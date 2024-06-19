@@ -29,7 +29,7 @@ namespace uaz {
 
 // Static variables
 const double UAZBUS_Pac02Tire::m_mass = 19.8;
-const ChVector<> UAZBUS_Pac02Tire::m_inertia(1.2369, 2.22357, 1.2369);
+const ChVector3d UAZBUS_Pac02Tire::m_inertia(1.2369, 2.22357, 1.2369);
 const std::string UAZBUS_Pac02Tire::m_meshFile_left = "uaz/uaz_tire.obj";
 const std::string UAZBUS_Pac02Tire::m_meshFile_right = "uaz/uaz_tire.obj";
 
@@ -61,7 +61,6 @@ void UAZBUS_Pac02Tire::RemoveVisualizationAssets() {
     ChPac02Tire::RemoveVisualizationAssets();
 }
 
-}  // namespace hmmwv
+}  // namespace uaz
 }  // end namespace vehicle
 }  // end namespace chrono
-

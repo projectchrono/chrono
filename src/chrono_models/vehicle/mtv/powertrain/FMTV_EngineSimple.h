@@ -27,7 +27,7 @@ namespace chrono {
 namespace vehicle {
 namespace fmtv {
 
-/// @addtogroup vehicle_models_FMTV
+/// @addtogroup vehicle_models_fmtv
 /// @{
 
 /// FMTV simple engine model based on hyperbolical speed-torque curve (CVT).
@@ -47,7 +47,7 @@ class CH_MODELS_API FMTV_EngineSimple : public ChEngineSimple {
     static const double m_max_speed;   ///< maximum engine speed
 };
 
-/// @} vehicle_models_FMTV
+/// @} vehicle_models_fmtv
 
 }  // namespace fmtv
 }  // end namespace vehicle

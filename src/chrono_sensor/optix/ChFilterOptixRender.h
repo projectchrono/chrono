@@ -69,8 +69,6 @@ class CH_SENSOR_API ChFilterOptixRender : public ChFilter {
     virtual ~ChFilterOptixRender();
 
     /// Apply function. Generates data for ChOptixSensors
-    /// @param pSensor A pointer to the sensor on which the filter is attached.
-    /// @param bufferInOut A buffer that is passed into the filter.
     virtual void Apply();
 
     /// Initializes all data needed by the filter access apply function.

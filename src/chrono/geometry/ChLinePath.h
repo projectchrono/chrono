@@ -20,16 +20,13 @@
 #include "chrono/geometry/ChLine.h"
 
 namespace chrono {
-namespace geometry {
+
+/// @addtogroup chrono_geometry
+/// @{
 
 /// Geometric object representing an sequence of other ChLine objects,
 /// The ChLine objects are assumed to be properly concatenated and to have C0 continuity.
 class ChApi ChLinePath : public ChLine {
-  public:
-    std::vector<std::shared_ptr<ChLine> > lines;
-    std::vector<double> end_times;
-    std::vector<double> durations;
-
   public:
     ChLinePath() {}
     ChLinePath(const ChLinePath& source);
@@ -39,36 +36,36 @@ class ChApi ChLinePath : public ChLine {
     virtual ChLinePath* Clone() const override { return new ChLinePath(*this); }
 
     /// Get the class type as an enum.
-    virtual Type GetClassType() const override { return Type::LINE_PATH; }
+    virtual Type GetType() const override { return Type::LINE_PATH; }
 
-    virtual int Get_complexity() const override { return 2; }
+    virtual int GetComplexity() const override { return 2; }
 
     /// Return curve length.
     /// Sampling does not matter.
     virtual double Length(int sampling) const override;
 
-    /// Curve evaluation (only parU is used, in 0..1 range)
-    virtual void Evaluate(ChVector<>& pos, const double parU) const override;
+    /// Return a point on the line, given parametric coordinate U (in [0,1]).
+    virtual ChVector3d Evaluate(double U) const override;
 
     /// Return the start point of the line.
-    virtual ChVector<> GetEndA() const override { return (lines.front())->GetEndA(); }
+    virtual ChVector3d GetEndA() const override { return (lines.front())->GetEndA(); }
 
     /// Return the end point of the line.
-    virtual ChVector<> GetEndB() const override { return (lines.back())->GetEndB(); }
+    virtual ChVector3d GetEndB() const override { return (lines.back())->GetEndB(); }
 
-    /// Get count of sub-lines that have been added:
-    size_t GetSubLinesCount() { return lines.size(); }
+    /// Get count of sub-lines that have been added.
+    size_t GetSubLinesCount() const { return lines.size(); }
 
-    /// Access the nth line
-    std::shared_ptr<ChLine> GetSubLineN(size_t n) { return lines[n]; }
+    /// Access the nth sub-line.
+    std::shared_ptr<ChLine> GetSubLineN(size_t n) const { return lines[n]; }
 
-    /// Get the nth line duration
-    double GetSubLineDurationN(size_t n) { return durations[n]; }
+    /// Get the nth sub-line duration.
+    double GetSubLineDurationN(size_t n) const { return durations[n]; }
 
-    /// Set the nth line duration
+    /// Set the nth sub-line duration
     void SetSubLineDurationN(size_t n, double mduration);
 
-    /// Queue a line (push it back to the array of lines)
+    /// Queue a line (push it back to the array of lines).
     void AddSubLine(std::shared_ptr<ChLine> mline,  ///< line to add
                     double duration = 1             ///< duration of the abscyssa when calling the Evaluate() function
     );
@@ -78,9 +75,8 @@ class ChApi ChLinePath : public ChLine {
                     double duration = 1  ///< duration of the abscyssa when calling the Evaluate() function
     );
 
-    /// Insert a line at a specified index  n  in line array.
-    /// Note that  n  cannot be higher than GetLineCount().
-    void InsertSubLine(size_t n,                       ///< index of line, 0 is first, etc.
+    /// Insert a line at the specified index in line array.
+    void InsertSubLine(size_t n,                       ///< index in line array
                        std::shared_ptr<ChLine> mline,  ///< line to add
                        double duration = 1  ///< duration of the abscyssa when calling the Evaluate() function
     );
@@ -92,10 +88,9 @@ class ChApi ChLinePath : public ChLine {
                        double duration = 1  ///< duration of the abscyssa when calling the Evaluate() function
     );
 
-    /// Erase a line from a specified index  n  in line array.
+    /// Erase the line at the specified index n in line array.
     /// Note that  n  cannot be higher than GetLineCount().
-    void EraseSubLine(size_t n  //<<< index of line, 0 is first, etc.
-    );
+    void EraseSubLine(size_t n);
 
     /// Tells the duration of the path, sum of the durations of all sub-lines.
     /// This is useful because ifyou use the Evaluate() function on the path, the U
@@ -113,15 +108,19 @@ class ChApi ChLinePath : public ChLine {
     double GetContinuityMaxError() const;
 
     /// Method to allow serialization of transient data to archives.
-    virtual void ArchiveOut(ChArchiveOut& marchive) override;
+    virtual void ArchiveOut(ChArchiveOut& archive_out) override;
 
     /// Method to allow de-serialization of transient data from archives.
-    virtual void ArchiveIn(ChArchiveIn& marchive) override;
+    virtual void ArchiveIn(ChArchiveIn& archive_in) override;
+
+    std::vector<std::shared_ptr<ChLine> > lines;
+    std::vector<double> end_times;
+    std::vector<double> durations;
 };
 
-}  // end namespace geometry
+/// @} chrono_geometry
 
-CH_CLASS_VERSION(geometry::ChLinePath, 0)
+CH_CLASS_VERSION(ChLinePath, 0)
 
 }  // end namespace chrono
 

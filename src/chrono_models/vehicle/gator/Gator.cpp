@@ -38,6 +38,7 @@ Gator::Gator()
     : m_system(nullptr),
       m_vehicle(nullptr),
       m_contact_method(ChContactMethod::NSC),
+      m_collsysType(ChCollisionSystem::Type::BULLET),
       m_chassis_collision_type(CollisionType::NONE),
       m_fixed(false),
       m_driveline_type(DrivelineTypeWV::SIMPLE),
@@ -48,7 +49,7 @@ Gator::Gator()
       m_tire_step_size(-1),
       m_tire_mass(0),
       m_initFwdVel(0),
-      m_initPos(ChCoordsys<>(ChVector<>(0, 0, 1), QUNIT)),
+      m_initPos(ChCoordsys<>(ChVector3d(0, 0, 1), QUNIT)),
       m_initOmega({0, 0, 0, 0}),
       m_apply_drag(false),
       m_Cd(0),
@@ -59,6 +60,7 @@ Gator::Gator(ChSystem* system)
     : m_system(system),
       m_vehicle(nullptr),
       m_contact_method(ChContactMethod::NSC),
+      m_collsysType(ChCollisionSystem::Type::BULLET),
       m_chassis_collision_type(CollisionType::NONE),
       m_fixed(false),
       m_driveline_type(DrivelineTypeWV::SIMPLE),
@@ -69,7 +71,7 @@ Gator::Gator(ChSystem* system)
       m_tire_step_size(-1),
       m_tire_mass(0),
       m_initFwdVel(0),
-      m_initPos(ChCoordsys<>(ChVector<>(0, 0, 1), QUNIT)),
+      m_initPos(ChCoordsys<>(ChVector3d(0, 0, 1), QUNIT)),
       m_initOmega({0, 0, 0, 0}),
       m_apply_drag(false),
       m_Cd(0),
@@ -98,7 +100,7 @@ void Gator::Initialize() {
         m_vehicle =
             new Gator_Vehicle(m_fixed, m_driveline_type, m_brake_type, m_contact_method, m_chassis_collision_type);
     }
-
+    m_vehicle->SetCollisionSystemType(m_collsysType);
     m_vehicle->SetInitWheelAngVel(m_initOmega);
     m_vehicle->Initialize(m_initPos, m_initFwdVel);
 
@@ -108,13 +110,12 @@ void Gator::Initialize() {
     }
 
     // Create and initialize the powertrain system
-    if (true) { // set this to true/false to select one of the two powertrains below
+    if (true) {  // set this to true/false to select one of the two powertrains below
         auto engine = chrono_types::make_shared<Gator_EngineSimple>("Engine");
         auto transmission = chrono_types::make_shared<Gator_AutomaticTransmissionSimple>("Transmission");
         auto powertrain = chrono_types::make_shared<ChPowertrainAssembly>(engine, transmission);
         m_vehicle->InitializePowertrain(powertrain);
-    }
-    else {
+    } else {
         auto engine = chrono_types::make_shared<Gator_EngineSimpleMap>("Engine");
         auto transmission = chrono_types::make_shared<Gator_AutomaticTransmissionSimpleMap>("Transmission");
         auto powertrain = chrono_types::make_shared<ChPowertrainAssembly>(engine, transmission);

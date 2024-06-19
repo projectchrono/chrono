@@ -12,26 +12,18 @@
 // Authors: Alessandro Tasora
 // =============================================================================
 
-#include <memory.h>
-#include <cfloat>
-#include <cmath>
-#include <cstdio>
-#include <cstdlib>
-#include <cstring>
-
 #include "chrono/geometry/ChSurface.h"
 
 namespace chrono {
-namespace geometry {
 
 // Register into the object factory, to enable run-time dynamic creation and persistence
 // CH_FACTORY_REGISTER(ChSurface) // NO! abstract class
 
-ChSurface::ChSurface(const ChSurface& source) {
-    wireframe = source.wireframe;
+ChSurface::ChSurface(const ChSurface& other) : ChGeometry(other) {
+    wireframe = other.wireframe;
 }
 
-void ChSurface::Normal(ChVector<>& dir, const double parU, const double parV) const {
+ChVector3d ChSurface::GetNormal(double parU, double parV) const {
     double bdf = 10e-9;
     double uA = 0, uB = 0;
     double vA = 0, vB = 0;
@@ -50,30 +42,30 @@ void ChSurface::Normal(ChVector<>& dir, const double parU, const double parV) co
         vB = parV + bdf;
         vA = parV;
     }
-    ChVector<> V0, Vu, Vv;
-    Evaluate(V0, uA, vA);
-    Evaluate(Vu, uB, vA);
-    Evaluate(Vv, uA, vB);
-    dir = Vnorm(Vcross((Vu - V0), (Vv - V0)));
+
+    auto V0 = Evaluate(uA, vA);
+    auto Vu = Evaluate(uB, vA);
+    auto Vv = Evaluate(uA, vB);
+
+    return Vnorm(Vcross((Vu - V0), (Vv - V0)));
 }
 
-void ChSurface::ArchiveOut(ChArchiveOut& marchive) {
+void ChSurface::ArchiveOut(ChArchiveOut& archive_out) {
     // version number
-    marchive.VersionWrite<ChSurface>();
+    archive_out.VersionWrite<ChSurface>();
     // serialize parent class
-    ChGeometry::ArchiveOut(marchive);
+    ChGeometry::ArchiveOut(archive_out);
     // serialize all member data:
-    // marchive << CHNVP(closed);
+    // archive_out << CHNVP(closed);
 }
 
-void ChSurface::ArchiveIn(ChArchiveIn& marchive) {
+void ChSurface::ArchiveIn(ChArchiveIn& archive_in) {
     // version number
-    /*int version =*/ marchive.VersionRead<ChSurface>();
+    /*int version =*/archive_in.VersionRead<ChSurface>();
     // deserialize parent class
-    ChGeometry::ArchiveIn(marchive);
+    ChGeometry::ArchiveIn(archive_in);
     // stream in all member data:
-    // marchive >> CHNVP(closed);
+    // archive_in >> CHNVP(closed);
 }
 
-}  // end namespace geometry
 }  // end namespace chrono

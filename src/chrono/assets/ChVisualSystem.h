@@ -23,6 +23,9 @@
 
 namespace chrono {
 
+/// @addtogroup chrono_assets
+/// @{
+
 /// Vertical direction
 enum class CameraVerticalDir { Y, Z };
 
@@ -31,10 +34,11 @@ class ChApi ChVisualSystem {
   public:
     /// Supported run-time visualization systems.
     enum class Type {
-        IRRLICHT,  // Irrlicht
-        VSG,       // Vulkan Scene Graph
-        OpenGL,    // OpenGL
-        OptiX      // OptiX
+        IRRLICHT,  ///< Irrlicht
+        VSG,       ///< Vulkan Scene Graph
+        OpenGL,    ///< OpenGL
+        OptiX,     ///< OptiX
+        NONE
     };
 
     virtual ~ChVisualSystem();
@@ -42,20 +46,28 @@ class ChApi ChVisualSystem {
     /// Attach a Chrono system to this visualization system.
     virtual void AttachSystem(ChSystem* sys);
 
-    /// Process all visual assets in the associated ChSystem.
-    /// This function is called by default when a Chrono system is attached to this visualization system (see
-    /// AttachSystem), but can also be called later if further modifications to visualization assets occur.
+    /// Initialize the visualization system.
+    /// This call must trigger a parsing of the associated Chrono systems to process all visual models.
+    /// A derived class must ensure that this function is called only once (use the m_initialized flag).
+    virtual void Initialize() = 0;
+
+    /// Process all visual assets in the associated Chrono systems.
+    /// This function is called by default for a Chrono system attached to this visualization system during
+    /// initialization, but can also be called later if further modifications to visualization assets occur.
     virtual void BindAll() {}
 
-    /// Process the visual assets for the spcified physics item.
+    /// Process the visual assets for the specified physics item.
     /// This function must be called if a new physics item is added to the system or if changes to its visual model
     /// occur after the visualization system was attached to the Chrono system.
     virtual void BindItem(std::shared_ptr<ChPhysicsItem> item) {}
 
+    /// Remove the visual assets for the specified physics item from this visualization system.
+    virtual void UnbindItem(std::shared_ptr<ChPhysicsItem> item) {}
+
     /// Add a camera to the 3D scene.
     /// Return an ID which can be used later to modify camera location and/or target points.
     /// A concrete visualization system may or may not support multiuple cameras.
-    virtual int AddCamera(const ChVector<>& pos, ChVector<> targ = VNULL) { return -1; }
+    virtual int AddCamera(const ChVector3d& pos, ChVector3d targ = VNULL) { return -1; }
 
     /// Add a grid with specified parameters in the x-y plane of the given frame.
     virtual void AddGrid(double x_step,                           ///< grid cell size in X direction
@@ -67,28 +79,28 @@ class ChApi ChVisualSystem {
     ) {}
 
     /// Set the location of the specified camera.
-    virtual void SetCameraPosition(int id, const ChVector<>& pos) {}
+    virtual void SetCameraPosition(int id, const ChVector3d& pos) {}
 
     /// Set the target (look-at) point of the specified camera.
-    virtual void SetCameraTarget(int id, const ChVector<>& target) {}
+    virtual void SetCameraTarget(int id, const ChVector3d& target) {}
 
     /// Set the location of the current (active) camera.
-    virtual void SetCameraPosition(const ChVector<>& pos) {}
+    virtual void SetCameraPosition(const ChVector3d& pos) {}
 
     /// Set the target (look-at) point of the current (active) camera.
-    virtual void SetCameraTarget(const ChVector<>& target) {}
+    virtual void SetCameraTarget(const ChVector3d& target) {}
 
     /// Get the location of the current (active) camera.
-    virtual ChVector<> GetCameraPosition() const { return VNULL; }
+    virtual ChVector3d GetCameraPosition() const { return VNULL; }
 
     /// Get the target (look-at) point of the current (active) camera.
-    virtual ChVector<> GetCameraTarget() const { return VNULL; }
+    virtual ChVector3d GetCameraTarget() const { return VNULL; }
 
     /// Update the location and/or target points of the specified camera.
-    void UpdateCamera(int id, const ChVector<>& pos, ChVector<> target);
+    void UpdateCamera(int id, const ChVector3d& pos, ChVector3d target);
 
     //// Update the location and/or target point of the current (active) camera.
-    void UpdateCamera(const ChVector<>& pos, ChVector<> target);
+    void UpdateCamera(const ChVector3d& pos, ChVector3d target);
 
     /// Add a visual model not associated with a physical item.
     /// Return an ID which can be used later to modify the position of this visual model.
@@ -132,8 +144,9 @@ class ChApi ChVisualSystem {
     /// Perform any necessary operations ar the end of each rendering frame.
     virtual void EndScene() = 0;
 
-    /// Return the simulation real-time factor (simlation time / simulated time).
+    /// Return the simulation real-time factor (simulation time / simulated time).
     /// The default value returned by this base class is the RTF value from the first associated system (if any).
+    /// See ChSystem::GetRTF
     virtual double GetSimulationRTF() const;
 
     /// Return the current simulated time.
@@ -188,6 +201,8 @@ class ChApi ChVisualSystem {
     /// Called by an associated ChSystem.
     virtual void OnClear(ChSystem* sys) {}
 
+    bool m_initialized;
+
     std::vector<ChSystem*> m_systems;  ///< associated Chrono system(s)
 
     bool m_write_images;      ///< if true, save snapshots
@@ -195,6 +210,8 @@ class ChApi ChVisualSystem {
 
     friend class ChSystem;
 };
+
+/// @} chrono_assets
 
 }  // namespace chrono
 

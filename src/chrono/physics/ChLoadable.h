@@ -14,7 +14,7 @@
 #define CHLOADABLE_H
 
 #include "chrono/core/ChMatrix.h"
-#include "chrono/core/ChVector.h"
+#include "chrono/core/ChVector3.h"
 #include "chrono/solver/ChVariables.h"
 
 namespace chrono {
@@ -32,41 +32,40 @@ class ChApi ChLoadable {
     virtual ~ChLoadable() {}
 
     /// Gets the number of DOFs affected by this element (position part)
-    virtual int LoadableGet_ndof_x() = 0;
+    virtual unsigned int GetLoadableNumCoordsPosLevel() = 0;
 
     /// Gets the number of DOFs affected by this element (speed part)
-    virtual int LoadableGet_ndof_w() = 0;
+    virtual unsigned int GetLoadableNumCoordsVelLevel() = 0;
 
     /// Gets all the DOFs packed in a single vector (position part)
-    virtual void LoadableGetStateBlock_x(int block_offset, ChState& mD) = 0;
+    virtual void LoadableGetStateBlockPosLevel(int block_offset, ChState& mD) = 0;
 
     /// Gets all the DOFs packed in a single vector (speed part)
-    virtual void LoadableGetStateBlock_w(int block_offset, ChStateDelta& mD) = 0;
+    virtual void LoadableGetStateBlockVelLevel(int block_offset, ChStateDelta& mD) = 0;
 
-    /// Increment all DOFs using a delta. Default is sum, but may override if 
+    /// Increment all DOFs using a delta. Default is sum, but may override if
     /// ndof_x is different than ndof_w, for example with rotation quaternions and angular w vel.
     /// This could be invoked, for example, by the BDF differentiation that computes the jacobians.
     virtual void LoadableStateIncrement(const unsigned int off_x,
-                                   ChState& x_new,
-                                   const ChState& x,
-                                   const unsigned int off_v,
-                                   const ChStateDelta& Dv) = 0;
-
+                                        ChState& x_new,
+                                        const ChState& x,
+                                        const unsigned int off_v,
+                                        const ChStateDelta& Dv) = 0;
 
     /// Number of coordinates in the interpolated field (e.g., 3 for a tetrahedron, 1 for a thermal problem, etc.).
-    virtual int Get_field_ncoords() = 0;
+    virtual unsigned int GetNumFieldCoords() = 0;
 
     /// Get the number of DOFs sub-blocks (e.g., 1 for a body, 4 for a tetrahedron, etc.).
-    virtual int GetSubBlocks() = 0;
+    virtual unsigned int GetNumSubBlocks() = 0;
 
     /// Get the offset of the specified sub-block of DOFs in global vector.
-    virtual unsigned int GetSubBlockOffset(int nblock) = 0;
+    virtual unsigned int GetSubBlockOffset(unsigned int nblock) = 0;
 
     /// Get the size of the specified sub-block of DOFs in global vector.
-    virtual unsigned int GetSubBlockSize(int nblock) = 0;
+    virtual unsigned int GetSubBlockSize(unsigned int nblock) = 0;
 
     /// Check if the specified sub-block of DOFs is active.
-    virtual bool IsSubBlockActive(int nblock) const = 0;
+    virtual bool IsSubBlockActive(unsigned int nblock) const = 0;
 
     /// Get the pointers to the contained ChVariables, appending to the mvars vector.
     virtual void LoadableGetVariables(std::vector<ChVariables*>& mvars) = 0;
@@ -81,9 +80,9 @@ class ChApi ChLoadableUVW : virtual public ChLoadable {
     virtual ~ChLoadableUVW() {}
 
     /// Evaluate N'*F , where N is some type of shape function
-    /// evaluated at U,V,W coordinates of the volume, each ranging in [-1..+1], except if IsTetrahedronIntegrationNeeded() true or IsTrianglePrismIntegrationNeeded() true.
-    /// F is a load, N'*F is the resulting generalized load
-    /// Returns also det[J] with J=[dx/du,..], that might be useful in gauss quadrature.
+    /// evaluated at U,V,W coordinates of the volume, each ranging in [-1..+1], except if
+    /// IsTetrahedronIntegrationNeeded() true or IsTrianglePrismIntegrationNeeded() true. F is a load, N'*F is the
+    /// resulting generalized load Returns also det[J] with J=[dx/du,..], that might be useful in gauss quadrature.
     virtual void ComputeNF(const double U,              ///< parametric coordinate in volume
                            const double V,              ///< parametric coordinate in volume
                            const double W,              ///< parametric coordinate in volume
@@ -102,10 +101,10 @@ class ChApi ChLoadableUVW : virtual public ChLoadable {
     /// otherwise use default quadrature over u,v,w in [-1..+1] as box isoparametric coords.
     virtual bool IsTetrahedronIntegrationNeeded() { return false; }
 
-	/// If true, use quadrature over u,v  in [0..1] range as triangle natural coords (with z=1-u-v), and use linear quadrature over w in [-1..+1],
-    /// otherwise use default quadrature over u,v,w in [-1..+1] as box isoparametric coords.
+    /// If true, use quadrature over u,v  in [0..1] range as triangle natural coords (with z=1-u-v), and use linear
+    /// quadrature over w in [-1..+1], otherwise use default quadrature over u,v,w in [-1..+1] as box isoparametric
+    /// coords.
     virtual bool IsTrianglePrismIntegrationNeeded() { return false; }
-
 };
 
 /// Interface for objects that can be subject to area loads,
@@ -117,9 +116,9 @@ class ChApi ChLoadableUV : virtual public ChLoadable {
     virtual ~ChLoadableUV() {}
 
     /// Evaluate N'*F , where N is some type of shape function
-    /// evaluated at U,V coordinates of the surface, each ranging in [-1..+1], except if IsTriangleIntegrationNeeded() true.
-    /// F is a load, N'*F is the resulting generalized load
-    /// Returns also det[J] with J=[dx/du,..], that might be useful in gauss quadrature.
+    /// evaluated at U,V coordinates of the surface, each ranging in [-1..+1], except if IsTriangleIntegrationNeeded()
+    /// true. F is a load, N'*F is the resulting generalized load Returns also det[J] with J=[dx/du,..], that might be
+    /// useful in gauss quadrature.
     virtual void ComputeNF(const double U,              ///< parametric coordinate in surface
                            const double V,              ///< parametric coordinate in surface
                            ChVectorDynamic<>& Qi,       ///< Return result of N'*F  here
@@ -131,7 +130,7 @@ class ChApi ChLoadableUV : virtual public ChLoadable {
 
     /// Gets the normal to the surface at the parametric coordinate u,v.
     /// Normal must be considered pointing outside in case the surface is a boundary to a volume.
-    virtual ChVector<> ComputeNormal(const double U, const double V) = 0;
+    virtual ChVector3d ComputeNormal(const double U, const double V) = 0;
 
     /// If true, use quadrature over u,v in [0..1] range as triangle area coords (with z=1-u-v)
     /// otherwise use default quadrature over u,v in [-1..+1] as rectangular isoparametric coords.

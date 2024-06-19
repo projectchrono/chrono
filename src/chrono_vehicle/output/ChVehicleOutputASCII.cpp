@@ -27,12 +27,14 @@
 namespace chrono {
 namespace vehicle {
 
-ChVehicleOutputASCII::ChVehicleOutputASCII(const std::string& filename) {
-    m_stream.open(filename, std::ios_base::out);
-}
+ChVehicleOutputASCII::ChVehicleOutputASCII(const std::string& filename)
+    : m_file_stream(filename), m_stream(m_file_stream) {}
+
+ChVehicleOutputASCII::ChVehicleOutputASCII(std::ostream& stream) : m_file_stream(), m_stream(stream) {}
 
 ChVehicleOutputASCII::~ChVehicleOutputASCII() {
-    m_stream.close();
+    if (m_file_stream.is_open())
+        m_file_stream.close();
 }
 
 void ChVehicleOutputASCII::WriteTime(int frame, double time) {
@@ -46,10 +48,10 @@ void ChVehicleOutputASCII::WriteSection(const std::string& name) {
 
 void ChVehicleOutputASCII::WriteBodies(const std::vector<std::shared_ptr<ChBody>>& bodies) {
     for (auto body : bodies) {
-        m_stream << "    body: " << body->GetIdentifier() << " \"" << body->GetNameString() << "\" ";
+        m_stream << "    body: " << body->GetIdentifier() << " \"" << body->GetName() << "\" ";
         m_stream << body->GetPos() << " " << body->GetRot() << " ";
-        m_stream << body->GetPos_dt() << " " << body->GetWvel_par() << " ";
-        m_stream << body->GetPos_dtdt() << " " << body->GetWacc_par() << " ";
+        m_stream << body->GetPosDt() << " " << body->GetAngVelParent() << " ";
+        m_stream << body->GetPosDt2() << " " << body->GetAngAccParent() << " ";
         m_stream << std::endl;
         //// TODO
     }
@@ -57,14 +59,14 @@ void ChVehicleOutputASCII::WriteBodies(const std::vector<std::shared_ptr<ChBody>
 
 void ChVehicleOutputASCII::WriteAuxRefBodies(const std::vector<std::shared_ptr<ChBodyAuxRef>>& bodies) {
     for (auto body : bodies) {
-        auto& ref_pos = body->GetFrame_REF_to_abs().GetPos();
-        auto& ref_vel = body->GetFrame_REF_to_abs().GetPos_dt();
-        auto& ref_acc = body->GetFrame_REF_to_abs().GetPos_dtdt();
+        auto& ref_pos = body->GetFrameRefToAbs().GetPos();
+        auto& ref_vel = body->GetFrameRefToAbs().GetPosDt();
+        auto& ref_acc = body->GetFrameRefToAbs().GetPosDt2();
 
-        m_stream << "    body auxref: " << body->GetIdentifier() << " \"" << body->GetNameString() << "\" ";
+        m_stream << "    body auxref: " << body->GetIdentifier() << " \"" << body->GetName() << "\" ";
         m_stream << body->GetPos() << " " << body->GetRot() << " ";
-        m_stream << body->GetPos_dt() << " " << body->GetWvel_par() << " ";
-        m_stream << body->GetPos_dtdt() << " " << body->GetWacc_par() << " ";
+        m_stream << body->GetPosDt() << " " << body->GetAngVelParent() << " ";
+        m_stream << body->GetPosDt2() << " " << body->GetAngAccParent() << " ";
         m_stream << ref_pos << " " << ref_vel << " " << ref_acc << " ";
         m_stream << std::endl;
         //// TODO
@@ -73,10 +75,10 @@ void ChVehicleOutputASCII::WriteAuxRefBodies(const std::vector<std::shared_ptr<C
 
 void ChVehicleOutputASCII::WriteMarkers(const std::vector<std::shared_ptr<ChMarker>>& markers) {
     for (auto marker : markers) {
-        m_stream << "    marker: " << marker->GetIdentifier() << " \"" << marker->GetNameString() << "\" ";
-        m_stream << marker->GetAbsCoord().pos << " ";
-        m_stream << marker->GetAbsCoord_dt().pos << " ";
-        m_stream << marker->GetAbsCoord_dtdt().pos << " ";
+        m_stream << "    marker: " << marker->GetIdentifier() << " \"" << marker->GetName() << "\" ";
+        m_stream << marker->GetAbsCoordsys().pos << " ";
+        m_stream << marker->GetAbsCoordsysDt().pos << " ";
+        m_stream << marker->GetAbsCoordsysDt2().pos << " ";
         m_stream << std::endl;
         //// TODO
     }
@@ -84,9 +86,9 @@ void ChVehicleOutputASCII::WriteMarkers(const std::vector<std::shared_ptr<ChMark
 
 void ChVehicleOutputASCII::WriteShafts(const std::vector<std::shared_ptr<ChShaft>>& shafts) {
     for (auto shaft : shafts) {
-        m_stream << "    shaft: " << shaft->GetIdentifier() << " \"" << shaft->GetNameString() << "\" ";
-        m_stream << shaft->GetPos() << " " << shaft->GetPos_dt() << " " << shaft->GetPos_dtdt() << " ";
-        m_stream << shaft->GetAppliedTorque() << " ";
+        m_stream << "    shaft: " << shaft->GetIdentifier() << " \"" << shaft->GetName() << "\" ";
+        m_stream << shaft->GetPos() << " " << shaft->GetPosDt() << " " << shaft->GetPosDt2() << " ";
+        m_stream << shaft->GetAppliedLoad() << " ";
         m_stream << std::endl;
         //// TODO
     }
@@ -99,8 +101,9 @@ void ChVehicleOutputASCII::WriteJoints(const std::vector<std::shared_ptr<ChLink>
         for (int i = 0; i < C.size(); i++)
             violations.push_back(C(i));
 
-        m_stream << "    joint: " << joint->GetIdentifier() << " \"" << joint->GetNameString() << "\" ";
-        m_stream << joint->Get_react_force() << " " << joint->Get_react_torque() << " ";
+        auto reaction = joint->GetReaction2();
+        m_stream << "    joint: " << joint->GetIdentifier() << " \"" << joint->GetName() << "\" ";
+        m_stream << reaction.force << " " << reaction.torque << " ";
         for (const auto& val : violations) {
             m_stream << val << " ";
         }
@@ -111,10 +114,10 @@ void ChVehicleOutputASCII::WriteJoints(const std::vector<std::shared_ptr<ChLink>
 
 void ChVehicleOutputASCII::WriteCouples(const std::vector<std::shared_ptr<ChShaftsCouple>>& couples) {
     for (auto couple : couples) {
-        m_stream << "    couple: " << couple->GetIdentifier() << " \"" << couple->GetNameString() << "\" ";
-        m_stream << couple->GetRelativeRotation() << " " << couple->GetRelativeRotation_dt() << " "
-                 << couple->GetRelativeRotation_dtdt() << " ";
-        m_stream << couple->GetTorqueReactionOn1() << " " << couple->GetTorqueReactionOn2() << " ";
+        m_stream << "    couple: " << couple->GetIdentifier() << " \"" << couple->GetName() << "\" ";
+        m_stream << couple->GetRelativePos() << " " << couple->GetRelativePosDt() << " " << couple->GetRelativePosDt2()
+                 << " ";
+        m_stream << couple->GetReaction1() << " " << couple->GetReaction2() << " ";
         m_stream << std::endl;
         //// TODO
     }
@@ -122,7 +125,7 @@ void ChVehicleOutputASCII::WriteCouples(const std::vector<std::shared_ptr<ChShaf
 
 void ChVehicleOutputASCII::WriteLinSprings(const std::vector<std::shared_ptr<ChLinkTSDA>>& springs) {
     for (auto spring : springs) {
-        m_stream << "    lin spring: " << spring->GetIdentifier() << " \"" << spring->GetNameString() << "\" ";
+        m_stream << "    lin spring: " << spring->GetIdentifier() << " \"" << spring->GetName() << "\" ";
         m_stream << spring->GetPoint1Abs() << " " << spring->GetPoint2Abs() << " ";
         m_stream << spring->GetLength() << " " << spring->GetVelocity() << " ";
         m_stream << spring->GetForce() << " ";
@@ -133,7 +136,7 @@ void ChVehicleOutputASCII::WriteLinSprings(const std::vector<std::shared_ptr<ChL
 
 void ChVehicleOutputASCII::WriteRotSprings(const std::vector<std::shared_ptr<ChLinkRSDA>>& springs) {
     for (auto spring : springs) {
-        m_stream << "    rot spring: " << spring->GetIdentifier() << " \"" << spring->GetNameString() << "\" ";
+        m_stream << "    rot spring: " << spring->GetIdentifier() << " \"" << spring->GetName() << "\" ";
         m_stream << spring->GetAngle() << " " << spring->GetVelocity() << " ";
         m_stream << spring->GetTorque() << " ";
         m_stream << std::endl;
@@ -143,7 +146,7 @@ void ChVehicleOutputASCII::WriteRotSprings(const std::vector<std::shared_ptr<ChL
 
 void ChVehicleOutputASCII::WriteBodyLoads(const std::vector<std::shared_ptr<ChLoadBodyBody>>& loads) {
     for (auto load : loads) {
-        m_stream << "    body-body load: " << load->GetIdentifier() << " \"" << load->GetNameString() << "\" ";
+        m_stream << "    body-body load: " << load->GetIdentifier() << " \"" << load->GetName() << "\" ";
         m_stream << load->GetForce() << " " << load->GetTorque() << " ";
         m_stream << std::endl;
         //// TODO

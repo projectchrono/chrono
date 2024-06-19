@@ -29,7 +29,7 @@
 #include <cmath>
 
 #include "chrono/core/ChGlobal.h"
-#include "chrono/core/ChLog.h"
+#include "chrono/functions/ChFunctionSineStep.h"
 
 #include "chrono_vehicle/wheeled_vehicle/tire/ChFialaTire.h"
 
@@ -38,17 +38,13 @@ namespace vehicle {
 
 ChFialaTire::ChFialaTire(const std::string& name)
     : ChForceElementTire(name),
-      m_dynamic_mode(false),
       m_mu(0.8),
       m_mu_0(0.8),
-      m_time_trans(0.2),
       m_c_slip(0),
-      m_c_alpha(0),
-      m_frblend_begin(1),
-      m_frblend_end(3) {
-    m_tireforce.force = ChVector<>(0, 0, 0);
-    m_tireforce.point = ChVector<>(0, 0, 0);
-    m_tireforce.moment = ChVector<>(0, 0, 0);
+      m_c_alpha(0) {
+    m_tireforce.force = ChVector3d(0, 0, 0);
+    m_tireforce.point = ChVector3d(0, 0, 0);
+    m_tireforce.moment = ChVector3d(0, 0, 0);
 }
 
 // -----------------------------------------------------------------------------
@@ -73,7 +69,7 @@ void ChFialaTire::Synchronize(double time, const ChTerrain& terrain) {
 
     // Extract the wheel normal (expressed in global frame)
     ChMatrix33<> A(wheel_state.rot);
-    ChVector<> disc_normal = A.Get_A_Yaxis();
+    ChVector3d disc_normal = A.GetAxisY();
 
     // Assuming the tire is a disc, check contact with terrain
     float mu;
@@ -87,7 +83,7 @@ void ChFialaTire::Synchronize(double time, const ChTerrain& terrain) {
 
     if (m_data.in_contact) {
         // Wheel velocity in the ISO-C Frame
-        ChVector<> vel = wheel_state.lin_vel;
+        ChVector3d vel = wheel_state.lin_vel;
         m_data.vel = m_data.frame.TransformDirectionParentToLocal(vel);
 
         // Generate normal contact force (recall, all forces are reduced to the wheel
@@ -118,42 +114,22 @@ void ChFialaTire::Synchronize(double time, const ChTerrain& terrain) {
         m_states.vsy = 0;
         m_states.omega = 0;
         m_states.abs_vt = 0;
-        m_states.disc_normal = ChVector<>(0, 0, 0);
+        m_states.disc_normal = ChVector3d(0, 0, 0);
     }
 }
 
 void ChFialaTire::Advance(double step) {
     // Set tire forces to zero.
-    m_tireforce.force = ChVector<>(0, 0, 0);
-    m_tireforce.moment = ChVector<>(0, 0, 0);
+    m_tireforce.force = ChVector3d(0, 0, 0);
+    m_tireforce.moment = ChVector3d(0, 0, 0);
 
     // Return now if no contact.
     if (!m_data.in_contact)
         return;
 
-    ////Overwrite with steady-state alpha & kappa for debugging
-    // if (m_states.abs_vx != 0) {
-    //  m_states.kappa_l = -m_states.vsx / m_states.abs_vx;
-    //  m_states.alpha_l = std::atan2(m_states.vsy , m_states.abs_vx);
-    //}
-    // else {
-    //  m_states.kappa_l = 0;
-    //  m_states.alpha_l = 0;
-    //}
-
-    const double vnum = 0.01;
-
     // smoothing interval for My
     const double vx_min = 0.125;
     const double vx_max = 0.5;
-
-    // limits for time lags
-    const double tau_min = 1.0e-4;
-    const double tau_max = 0.25;
-
-    // lag times for relaxation
-    double tau_k;
-    double tau_a;
 
     if (m_states.abs_vx != 0) {
         m_states.kappa = -m_states.vsx / m_states.abs_vx;
@@ -162,71 +138,26 @@ void ChFialaTire::Advance(double step) {
         m_states.kappa = 0;
         m_states.alpha = 0;
     }
-    // Relaxation time varies with rotational tire speed. Stand still or very low speed generates
-    // unrealistic lags and causes bad  oscillations. Tau == 0 is not allowed in later calculations
-    tau_k = ChClamp(m_relax_length_x / (m_states.abs_vt + vnum), tau_min, tau_max);
-    tau_a = ChClamp(m_relax_length_y / (m_states.abs_vt + vnum), tau_min, tau_max);
 
     // Now calculate the new force and moment values.
     // Normal force and moment have already been accounted for in Synchronize().
     // See reference for more detail on the calculations
-    double Fx = 0, Fx0 = 0;
-    double Fy = 0, Fy0 = 0;
+    double Fx = 0;
+    double Fy = 0;
     double My = 0;
     double Mz = 0;
 
-    CombinedCoulombForces(Fx0, Fy0, m_data.normal_force, m_mu / m_mu_0);
-
-    double frblend = ChSineStep(m_data.vel.x(), m_frblend_begin, 0.0, m_frblend_end, 1.0);
-
     FialaPatchForces(Fx, Fy, Mz, m_states.kappa, m_states.alpha, m_data.normal_force);
 
-    Fx = (1.0 - frblend) * Fx0 + frblend * Fx;
-    Fy = (1.0 - frblend) * Fy0 + frblend * Fy;
-
     // Smoothing factor dependend on m_state.abs_vx, allows soft switching of My
-    double myStartUp = ChSineStep(m_states.abs_vx, vx_min, 0.0, vx_max, 1.0);
+    double myStartUp = ChFunctionSineStep::Eval(m_states.abs_vx, vx_min, 0.0, vx_max, 1.0);
     // Rolling Resistance
     My = -myStartUp * m_rolling_resistance * m_data.normal_force * ChSignum(m_states.omega);
 
-    if (m_dynamic_mode && (m_relax_length_x > 0.0) && (m_relax_length_y > 0.0)) {
-        // Integration of the ODEs
-        double t = 0;
-        while (t < step) {
-            // Ensure we integrate exactly to 'step'
-            double h = std::min<>(m_stepsize, step - t);
-            double gain_k = 1.0 / tau_k;
-            double gain_a = 1.0 / tau_a;
-            m_states.Fx_l += h / (1.0 - h * (-gain_k)) * gain_k * (Fx - m_states.Fx_l);
-            m_states.Fy_l += h / (1.0 - h * (-gain_a)) * gain_a * (Fy - m_states.Fy_l);
-            t += h;
-        }
-    } else {
-        m_states.Fx_l = Fx;
-        m_states.Fy_l = Fy;
-    }
-
-    // Smooth starting transients
-    double tr_fact = ChSineStep(m_time, 0, 0, m_time_trans, 1.0);
-    m_states.Fx_l *= tr_fact;
-    m_states.Fy_l *= tr_fact;
-
     // compile the force and moment vectors so that they can be
     // transformed into the global coordinate system
-    m_tireforce.force = ChVector<>(m_states.Fx_l, m_states.Fy_l, m_data.normal_force);
-    m_tireforce.moment = ChVector<>(0, My, Mz);
-}
-
-void ChFialaTire::CombinedCoulombForces(double& fx, double& fy, double fz, double muscale) {
-    ChVector2<> F;
-    F.x() = tanh(-2.0 * m_states.vsx) * fz * muscale;
-    F.y() = tanh(-2.0 * m_states.vsy) * fz * muscale;
-    if (F.Length() > fz * muscale) {
-        F.Normalize();
-        F *= fz * muscale;
-    }
-    fx = F.x();
-    fy = F.y();
+    m_tireforce.force = ChVector3d(Fx, Fy, m_data.normal_force);
+    m_tireforce.moment = ChVector3d(0, My, Mz);
 }
 
 // -----------------------------------------------------------------------------
@@ -239,7 +170,6 @@ void ChFialaTire::FialaPatchForces(double& fx, double& fy, double& mz, double ka
 
     // modify U due to local friction
     U *= m_mu / m_mu_0;
-
     // Longitudinal Force:
     if (std::abs(kappa) < S_critical) {
         fx = m_c_slip * kappa;
@@ -263,7 +193,7 @@ void ChFialaTire::FialaPatchForces(double& fx, double& fy, double& mz, double ka
 
 void ChFialaTire::WritePlots(const std::string& plFileName, const std::string& plTireFormat) {
     if (m_c_slip == 0.0 || m_c_alpha == 0.0) {
-        GetLog() << "Fiala Tire Object is not yet initialized! No Plots available.\n";
+        std::cerr << "Fiala Tire Object is not yet initialized! No Plots available." << std::endl;
         return;
     }
     const double Fz_nom = 1.0;
@@ -313,7 +243,7 @@ void ChFialaTire::WritePlots(const std::string& plFileName, const std::string& p
         plot << alpha[i] << "\t" << Fy1[i] << std::endl;
     }
     plot << "EOD" << std::endl;
-    plot << "set title '" << titleName.c_str() << "'" << std::endl;
+    plot << "set title '" << titleName << "'" << std::endl;
     plot << "set xlabel 'Longitudinal Slip Kappa []'" << std::endl;
     plot << "set ylabel 'Longitudinal Friction Coefficient Mux []'" << std::endl;
     plot << "set xrange [0:1]" << std::endl;
@@ -321,7 +251,7 @@ void ChFialaTire::WritePlots(const std::string& plFileName, const std::string& p
 
     plot << "pause -1" << std::endl;
 
-    plot << "set title '" << titleName.c_str() << "'" << std::endl;
+    plot << "set title '" << titleName << "'" << std::endl;
     plot << "set xlabel 'Slip Angle Alpha [rad]'" << std::endl;
     plot << "set ylabel 'Lateral Friction Coefficient Muy []'" << std::endl;
     plot << "set xrange [0:1]" << std::endl;

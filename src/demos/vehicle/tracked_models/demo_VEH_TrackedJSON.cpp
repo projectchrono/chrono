@@ -23,7 +23,6 @@
 
 #include <vector>
 
-#include "chrono/core/ChStream.h"
 #include "chrono/utils/ChUtilsInputOutput.h"
 
 #include "chrono_vehicle/ChConfigVehicle.h"
@@ -63,7 +62,7 @@ class Vehicle_Model {
     virtual std::string VehicleJSON() const = 0;
     virtual std::string EngineJSON() const = 0;
     virtual std::string TransmissionJSON() const = 0;
-    virtual ChVector<> CameraPoint() const = 0;
+    virtual ChVector3d CameraPoint() const = 0;
     virtual double CameraDistance() const = 0;
 };
 
@@ -83,7 +82,7 @@ class M113_SinglePin : public Vehicle_Model {
         return "M113/powertrain/M113_AutomaticTransmissionSimpleMap.json";
         ////return "M113/powertrain/M113_AutomaticTransmissionShafts.json";
     }
-    virtual ChVector<> CameraPoint() const override { return ChVector<>(0, 0, 0); }
+    virtual ChVector3d CameraPoint() const override { return ChVector3d(0, 0, 0); }
     virtual double CameraDistance() const override { return 6.0; }
 };
 
@@ -103,7 +102,7 @@ class M113_DoublePin : public Vehicle_Model {
         return "M113/powertrain/M113_AutomaticTransmissionSimpleMap.json";
         ////return "M113/powertrain/M113_AutomaticTransmissionShafts.json";
     }
-    virtual ChVector<> CameraPoint() const override { return ChVector<>(0, 0, 0); }
+    virtual ChVector3d CameraPoint() const override { return ChVector3d(0, 0, 0); }
     virtual double CameraDistance() const override { return 6.0; }
 };
 
@@ -123,7 +122,7 @@ class M113_RS_SinglePin : public Vehicle_Model {
         return "M113_RS/powertrain/M113_AutomaticTransmissionSimpleMap.json";
         ////return "M113_RS/powertrain/M113_AutomaticTransmissionShafts.json";
     }
-    virtual ChVector<> CameraPoint() const override { return ChVector<>(4, 0, 0); }
+    virtual ChVector3d CameraPoint() const override { return ChVector3d(4, 0, 0); }
     virtual double CameraDistance() const override { return 6.0; }
 };
 
@@ -131,15 +130,15 @@ class Marder_SinglePin : public Vehicle_Model {
   public:
     virtual std::string ModelName() const override { return "Marder_SinglePin"; }
     virtual std::string VehicleJSON() const override {
-        ////return "Marder/vehicle/marder_sp_joints_shafts.json";
+        return "Marder/vehicle/marder_sp_joints_shafts.json";
         ////return "Marder/vehicle/marder_sp_bushings_shafts.json";
-        return "Marder/vehicle/marder_sp_bushings_simple.json";
+        ////return "Marder/vehicle/marder_sp_bushings_simple.json";
     }
     virtual std::string EngineJSON() const override { return "Marder/powertrain/Marder_EngineSimple.json"; }
     virtual std::string TransmissionJSON() const override {
         return "Marder/powertrain/Marder_AutomaticTransmissionSimpleMap.json";
     }
-    virtual ChVector<> CameraPoint() const override { return ChVector<>(0, 0, 0); }
+    virtual ChVector3d CameraPoint() const override { return ChVector3d(0, 0, 0); }
     virtual double CameraDistance() const override { return 8.0; }
 };
 
@@ -148,16 +147,16 @@ class Marder_SinglePin : public Vehicle_Model {
 // =============================================================================
 
 // Current vehicle model selection
-auto vehicle_model = M113_SinglePin();
+////auto vehicle_model = M113_SinglePin();
 ////auto vehicle_model = M113_DoublePin();
 ////auto vehicle_model = M113_RS_SinglePin();
-////auto vehicle_model = Marder_SinglePin();
+auto vehicle_model = Marder_SinglePin();
 
 // JSON files for terrain (rigid plane)
 std::string rigidterrain_file("terrain/RigidPlane.json");
 
 // Initial vehicle position
-ChVector<> initLoc(0, 0, 0.9);
+ChVector3d initLoc(0, 0, 0.9);
 
 // Initial vehicle orientation
 ChQuaternion<> initRot(1, 0, 0, 0);
@@ -177,27 +176,11 @@ double target_speed = 2;                                   // used for mode=PATH
 DriverMode driver_mode = DriverMode::DATAFILE;
 
 // Contact formulation (NSC or SMC)
-ChContactMethod contact_method = ChContactMethod::NSC;
+ChContactMethod contact_method = ChContactMethod::SMC;
 
 // Simulation step size
 double step_size_NSC = 1e-3;
 double step_size_SMC = 5e-4;
-
-// Solver and integrator types
-////ChSolver::Type slvr_type = ChSolver::Type::BARZILAIBORWEIN;
-////ChSolver::Type slvr_type = ChSolver::Type::PSOR;
-////ChSolver::Type slvr_type = ChSolver::Type::PMINRES;
-////ChSolver::Type slvr_type = ChSolver::Type::MINRES;
-////ChSolver::Type slvr_type = ChSolver::Type::GMRES;
-////ChSolver::Type slvr_type = ChSolver::Type::SPARSE_LU;
-////ChSolver::Type slvr_type = ChSolver::Type::SPARSE_QR;
-ChSolver::Type slvr_type = ChSolver::Type::PARDISO_MKL;
-////ChSolver::Type slvr_type = ChSolver::Type::MUMPS;
-
-////ChTimestepper::Type intgr_type = ChTimestepper::Type::EULER_IMPLICIT_LINEARIZED;
-ChTimestepper::Type intgr_type = ChTimestepper::Type::EULER_IMPLICIT_PROJECTED;
-////ChTimestepper::Type intgr_type = ChTimestepper::Type::EULER_IMPLICIT;
-////ChTimestepper::Type intgr_type = ChTimestepper::Type::HHT;
 
 // Verbose output level (solver and integrator)
 bool verbose_solver = false;
@@ -207,7 +190,7 @@ bool verbose_integrator = false;
 double render_step_size = 1.0 / 120;  // FPS = 120
 
 // Point on chassis tracked by the camera
-ChVector<> trackPoint(0.0, 0.0, 0.0);
+ChVector3d trackPoint(0.0, 0.0, 0.0);
 
 // =============================================================================
 
@@ -233,7 +216,7 @@ void ReportConstraintViolation(ChSystem& sys, double threshold = 1e-3) {
     Eigen::Index imax = 0;
     double vmax = 0;
     std::string nmax = "";
-    for (auto joint : sys.Get_linklist()) {
+    for (auto joint : sys.GetLinks()) {
         if (joint->GetConstraintViolation().size() == 0)
             continue;
         Eigen::Index cimax;
@@ -241,7 +224,7 @@ void ReportConstraintViolation(ChSystem& sys, double threshold = 1e-3) {
         if (cmax > vmax) {
             vmax = cmax;
             imax = cimax;
-            nmax = joint->GetNameString();
+            nmax = joint->GetName();
         }
     }
     if (vmax > threshold)
@@ -274,7 +257,7 @@ bool ReportTrackFailure(ChTrackedVehicle& veh, double threshold = 1e-2) {
 // =============================================================================
 
 int main(int argc, char* argv[]) {
-    GetLog() << "Copyright (c) 2017 projectchrono.org\nChrono version: " << CHRONO_VERSION << "\n\n";
+    std::cout << "Copyright (c) 2017 projectchrono.org\nChrono version: " << CHRONO_VERSION << std::endl;
 
     // Create the vehicle system
     cout << "VEHICLE: " << vehicle_model.ModelName() << endl;
@@ -331,6 +314,9 @@ int main(int argc, char* argv[]) {
     cout << "  Transmission type: " << transmission->GetTemplateName() << endl;
     cout << "  Vehicle mass:      " << vehicle.GetMass() << endl;
 
+    // Associate a collision system
+    vehicle.GetSystem()->SetCollisionSystemType(ChCollisionSystem::Type::BULLET);
+
     // Create the terrain
     RigidTerrain terrain(vehicle.GetSystem(), vehicle::GetDataFile(rigidterrain_file));
     terrain.Initialize();
@@ -374,7 +360,7 @@ int main(int argc, char* argv[]) {
         }
         case DriverMode::PATH: {
             auto path =
-                chrono::vehicle::StraightLinePath(chrono::ChVector<>(0, 0, 0.02), chrono::ChVector<>(500, 0, 0.02), 50);
+                chrono::vehicle::StraightLinePath(chrono::ChVector3d(0, 0, 0.02), chrono::ChVector3d(500, 0, 0.02), 50);
             auto path_driver = std::make_shared<ChPathFollowerDriver>(vehicle, path, "my_path", target_speed);
             path_driver->GetSteeringController().SetLookAheadDistance(5.0);
             path_driver->GetSteeringController().SetGains(0.5, 0, 0);
@@ -400,12 +386,13 @@ int main(int argc, char* argv[]) {
             break;
     }
 
-    SetChronoSolver(*vehicle.GetSystem(), slvr_type, intgr_type);
+    SetChronoSolver(*vehicle.GetSystem(), ChSolver::Type::BARZILAIBORWEIN,
+                    ChTimestepper::Type::EULER_IMPLICIT_LINEARIZED);
     vehicle.GetSystem()->GetSolver()->SetVerbose(verbose_solver);
     vehicle.GetSystem()->GetTimestepper()->SetVerbose(verbose_integrator);
 
-    cout << "SOLVER TYPE:     " << (int)slvr_type << endl;
-    cout << "INTEGRATOR TYPE: " << (int)intgr_type << endl;
+    cout << "SOLVER TYPE:     " << (int)vehicle.GetSystem()->GetSolver()->GetType() << endl;
+    cout << "INTEGRATOR TYPE: " << (int)vehicle.GetSystem()->GetTimestepper()->GetType() << endl;
 
     // ---------------
     // Simulation loop

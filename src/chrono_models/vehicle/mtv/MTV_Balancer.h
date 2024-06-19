@@ -34,18 +34,18 @@ class CH_MODELS_API MTV_Balancer : public ChBalancer {
   public:
     MTV_Balancer(const std::string& name);
 
-    virtual const ChVector<> GetLocation(PointId which) override;
+    virtual const ChVector3d GetLocation(PointId which) override;
 
     virtual double GetBalancerBeamMass() const override { return m_beam_mass; }
-    virtual const ChVector<>& GetBalancerBeamInertia() const override { return m_beam_inertia; }
+    virtual const ChVector3d& GetBalancerBeamInertia() const override { return m_beam_inertia; }
     virtual const double GetBalancerMaxPitch() const override { return m_beam_max_pitch; }
-    virtual const ChVector<>& GetBalancerBeamDimensions() const override { return m_beam_dimensions; }
+    virtual const ChVector3d& GetBalancerBeamDimensions() const override { return m_beam_dimensions; }
 
   private:
     static const double m_beam_max_pitch;
     static const double m_beam_mass;
-    static const ChVector<> m_beam_inertia;
-    static const ChVector<> m_beam_dimensions;
+    static const ChVector3d m_beam_inertia;
+    static const ChVector3d m_beam_dimensions;
 };
 
 /// @} vehicle_models_fmtv

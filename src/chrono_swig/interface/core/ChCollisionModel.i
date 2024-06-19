@@ -1,17 +1,21 @@
 %{
 #include "chrono/collision/ChCollisionModel.h"
-#include "chrono/collision/ChCollisionModelBullet.h"
 
-using namespace collision;
+using namespace chrono;
 %}
+
+
 
 #ifdef SWIGPYTHON  // --------------------------------------------------------------------- PYTHON
 
-%feature("director") chrono::collision::ChCollisionModel; // ?????
-%feature("nodirector") chrono::collision::ChCollisionModel::GetPhysicsItem;
+%feature("director") chrono::ChCollisionModel; // ?????
+%feature("nodirector") chrono::ChCollisionModel::GetPhysicsItem;
 
 #endif             // --------------------------------------------------------------------- PYTHON
 
+
+%ignore chrono::ChCollisionModelBullet;
+%ignore chrono::ChCollisionModelMulticore;
+
 // Parse the header file to generate wrappers
 %include "../../../chrono/collision/ChCollisionModel.h"
-%include "../../../chrono/collision/ChCollisionModelBullet.h"

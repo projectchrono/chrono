@@ -27,7 +27,7 @@ namespace chrono {
 namespace vehicle {
 namespace m113 {
 
-/// @addtogroup vehicle_models_M113
+/// @addtogroup vehicle_models_m113
 /// @{
 
 /// M113 simple engine model based on hyperbolical speed-torque curve (CVT).
@@ -47,7 +47,7 @@ class CH_MODELS_API M113_EngineSimple : public ChEngineSimple {
     static const double m_max_speed;   ///< maximum engine speed
 };
 
-/// @} vehicle_models_M113
+/// @} vehicle_models_m113
 
 }  // end namespace M113
 }  // end namespace vehicle

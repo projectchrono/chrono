@@ -16,7 +16,7 @@
 //
 // =============================================================================
 
-#include "chrono/assets/ChTriangleMeshShape.h"
+#include "chrono/assets/ChVisualShapeTriangleMesh.h"
 #include "chrono/utils/ChUtilsInputOutput.h"
 
 #include "chrono_vehicle/ChVehicleModelData.h"
@@ -31,11 +31,11 @@ namespace hmmwv {
 // Static variables
 // -----------------------------------------------------------------------------
 const double HMMWV_Chassis::m_body_mass = 2086.52;
-const ChVector<> HMMWV_Chassis::m_body_inertiaXX(1078.52, 2955.66, 3570.20);
-const ChVector<> HMMWV_Chassis::m_body_inertiaXY(0, 0, 0);
-const ChVector<> HMMWV_Chassis::m_body_COM_loc(0.056, 0, 0.213);
-const ChVector<> HMMWV_Chassis::m_connector_rear_loc(-2.5, 0, -0.25);
-const ChCoordsys<> HMMWV_Chassis::m_driverCsys(ChVector<>(0.87, 0.7, 1.05), ChQuaternion<>(1, 0, 0, 0));
+const ChVector3d HMMWV_Chassis::m_body_inertiaXX(1078.52, 2955.66, 3570.20);
+const ChVector3d HMMWV_Chassis::m_body_inertiaXY(0, 0, 0);
+const ChVector3d HMMWV_Chassis::m_body_COM_loc(0.056, 0, 0.213);
+const ChVector3d HMMWV_Chassis::m_connector_rear_loc(-2.5, 0, -0.25);
+const ChCoordsys<> HMMWV_Chassis::m_driverCsys(ChVector3d(0.87, 0.7, 1.05), ChQuaternion<>(1, 0, 0, 0));
 
 // -----------------------------------------------------------------------------
 // -----------------------------------------------------------------------------
@@ -44,7 +44,8 @@ HMMWV_Chassis::HMMWV_Chassis(const std::string& name, bool fixed, CollisionType 
     // In this model, we use a single contact material.
     ChContactMaterialData minfo;
     minfo.mu = 1.0f;
-    minfo.cr = 0.5f;
+    minfo.cr = 0.1f;
+    minfo.Y = 5e5f;
     m_geometry.m_materials.push_back(minfo);
 
     m_body_inertia(0, 0) = m_body_inertiaXX.x();
@@ -60,8 +61,8 @@ HMMWV_Chassis::HMMWV_Chassis(const std::string& name, bool fixed, CollisionType 
 
     //// TODO:
     //// A more appropriate contact shape from primitives
-    ChVehicleGeometry::BoxShape box1(ChVector<>(0.0, 0.0, 0.1), ChQuaternion<>(1, 0, 0, 0), ChVector<>(2.0, 1.0, 0.2));
-    ChVehicleGeometry::BoxShape box2(ChVector<>(0.0, 0.0, 0.3), ChQuaternion<>(1, 0, 0, 0), ChVector<>(1.0, 0.5, 0.2));
+    ChVehicleGeometry::BoxShape box1(ChVector3d(0.0, 0.0, 0.1), ChQuaternion<>(1, 0, 0, 0), ChVector3d(2.0, 1.0, 0.2));
+    ChVehicleGeometry::BoxShape box2(ChVector3d(0.0, 0.0, 0.3), ChQuaternion<>(1, 0, 0, 0), ChVector3d(1.0, 0.5, 0.2));
 
     m_geometry.m_has_primitives = true;
     m_geometry.m_vis_boxes.push_back(box1);
@@ -77,8 +78,13 @@ HMMWV_Chassis::HMMWV_Chassis(const std::string& name, bool fixed, CollisionType 
             m_geometry.m_coll_boxes.push_back(box1);
             break;
         case CollisionType::HULLS: {
-            ChVehicleGeometry::ConvexHullsShape hull("hmmwv/hmmwv_chassis_simple.obj", 0);
+            ChVehicleGeometry::ConvexHullsShape hull("hmmwv/hmmwv_chassis_col.obj", 0);
             m_geometry.m_coll_hulls.push_back(hull);
+            break;
+        }
+        case CollisionType::MESH: {
+            ChVehicleGeometry::TrimeshShape trimesh(ChVector3d(), "hmmwv/hmmwv_chassis_col.obj", 0.005, 0);
+            m_geometry.m_coll_meshes.push_back(trimesh);
             break;
         }
         default:

@@ -12,7 +12,7 @@
 // Authors: Aaron Young
 // =============================================================================
 //
-// Class wrapping a ChVector into a GPS coordinate, along with helper functions
+// Class wrapping a vector into a GPS coordinate, along with helper functions
 // to translate BezierCurves between ChVectors and GPS coordinates. There is
 // some overlap between the functions here and those in ChGPSSensor, in the
 // future they will share the same codebase, but for now take care when using
@@ -23,7 +23,7 @@
 #ifndef SYN_FRAMEWORK_H
 #define SYN_FRAMEWORK_H
 
-#include "chrono/core/ChVector.h"
+#include "chrono/core/ChVector3.h"
 #include "chrono/core/ChBezierCurve.h"
 
 #include "chrono_vehicle/ChTerrain.h"
@@ -31,10 +31,10 @@
 #include "chrono_synchrono/agent/SynAgent.h"
 
 #ifdef CHRONO_SENSOR
-#include "chrono_sensor/sensors/ChGPSSensor.h"
+    #include "chrono_sensor/sensors/ChGPSSensor.h"
 #else
-#define EARTH_RADIUS 6371000.0  // [meters]
-#endif                          // SENSOR
+    #define EARTH_RADIUS 6371000.0  // [meters]
+#endif                              // SENSOR
 
 namespace chrono {
 namespace synchrono {
@@ -42,7 +42,7 @@ namespace synchrono {
 /// @addtogroup synchrono_utils
 /// @{
 
-/// @brief Wrapper class around ChVector stores GPS points as (lat, long, alt) in degrees
+/// @brief Wrapper class around vector stores GPS points as (lat, long, alt) in degrees
 class SYN_API GPScoord {
   public:
     /// Constructs a GPScoord with a default z value
@@ -55,17 +55,17 @@ class SYN_API GPScoord {
     const double alt() const { return m_vector.z(); }
 
     /// Access to components with conversions
-    const double lat_rad() const { return lat() * CH_C_DEG_TO_RAD; }
-    const double lon_rad() const { return lon() * CH_C_DEG_TO_RAD; }
+    const double lat_rad() const { return lat() * CH_DEG_TO_RAD; }
+    const double lon_rad() const { return lon() * CH_DEG_TO_RAD; }
 
-    ChVector<double> GetVector() const { return m_vector; }
-    void SetVector(ChVector<double> vector) { m_vector = vector; }
+    ChVector3d GetVector() const { return m_vector; }
+    void SetVector(ChVector3d vector) { m_vector = vector; }
 
   private:
-    ChVector<double> m_vector;
+    ChVector3d m_vector;
 };
 
-/// @brief Holds a SynTerrain along with the GPS coordinate mapped to the origin of the ChVector space
+/// @brief Holds a SynTerrain along with the GPS coordinate mapped to the origin of the vector space
 class SYN_API SynGPSTools {
   public:
     /// Construct a SynGPSTools object with the specified origin and attached terrain
@@ -86,7 +86,7 @@ class SYN_API SynGPSTools {
     /// @brief Convert GPS coordinate to 3D cartesian point with an optionally specified height
     /// @param gps the point to convert
     /// @param height optional z/altitude-offset, defaults to 0.5
-    ChVector<> To3DCartesian(const GPScoord& gps, double height = 0.5) const;
+    ChVector3d To3DCartesian(const GPScoord& gps, double height = 0.5) const;
 
   private:
     const std::shared_ptr<vehicle::ChTerrain> m_terrain;  ///< handle to the terrain attached to this framework

@@ -32,14 +32,15 @@ UAZBUS_SAE::UAZBUS_SAE()
     : m_system(nullptr),
       m_vehicle(nullptr),
       m_contactMethod(ChContactMethod::NSC),
+      m_collsysType(ChCollisionSystem::Type::BULLET),
       m_chassisCollisionType(CollisionType::NONE),
       m_fixed(false),
       m_engineType(EngineModelType::SIMPLE_MAP),
-      m_transmissionType(TransmissionModelType::SIMPLE_MAP),
+      m_transmissionType(TransmissionModelType::AUTOMATIC_SIMPLE_MAP),
       m_tireType(TireModelType::RIGID),
       m_tire_step_size(-1),
       m_steeringType(SteeringTypeWV::PITMAN_ARM),
-      m_initPos(ChCoordsys<>(ChVector<>(0, 0, 1), QUNIT)),
+      m_initPos(ChCoordsys<>(ChVector3d(0, 0, 1), QUNIT)),
       m_initFwdVel(0),
       m_initOmega({0, 0, 0, 0}),
       m_apply_drag(false) {}
@@ -48,14 +49,15 @@ UAZBUS_SAE::UAZBUS_SAE(ChSystem* system)
     : m_system(system),
       m_vehicle(nullptr),
       m_contactMethod(ChContactMethod::NSC),
+      m_collsysType(ChCollisionSystem::Type::BULLET),
       m_chassisCollisionType(CollisionType::NONE),
       m_fixed(false),
       m_engineType(EngineModelType::SIMPLE_MAP),
-      m_transmissionType(TransmissionModelType::SIMPLE_MAP),
+      m_transmissionType(TransmissionModelType::AUTOMATIC_SIMPLE_MAP),
       m_tireType(TireModelType::RIGID),
       m_tire_step_size(-1),
       m_steeringType(SteeringTypeWV::PITMAN_ARM),
-      m_initPos(ChCoordsys<>(ChVector<>(0, 0, 1), QUNIT)),
+      m_initPos(ChCoordsys<>(ChVector3d(0, 0, 1), QUNIT)),
       m_initFwdVel(0),
       m_initOmega({0, 0, 0, 0}),
       m_apply_drag(false) {}
@@ -78,7 +80,7 @@ void UAZBUS_SAE::Initialize() {
     // Create and initialize the UAZBUS_SAE vehicle
     m_vehicle = m_system ? new UAZBUS_SAEVehicle(m_system, m_fixed, m_steeringType, m_chassisCollisionType)
                          : new UAZBUS_SAEVehicle(m_fixed, m_steeringType, m_contactMethod, m_chassisCollisionType);
-
+    m_vehicle->SetCollisionSystemType(m_collsysType);
     m_vehicle->SetInitWheelAngVel(m_initOmega);
     m_vehicle->Initialize(m_initPos, m_initFwdVel);
 
@@ -103,11 +105,13 @@ void UAZBUS_SAE::Initialize() {
     }
 
     switch (m_transmissionType) {
-        case TransmissionModelType::SHAFTS:
+        case TransmissionModelType::AUTOMATIC_SHAFTS:
             // transmission = chrono_types::make_shared<UAZBUS_AutomaticTransmissionShafts>("Transmission");
             break;
-        case TransmissionModelType::SIMPLE_MAP:
+        case TransmissionModelType::AUTOMATIC_SIMPLE_MAP:
             transmission = chrono_types::make_shared<UAZBUS_AutomaticTransmissionSimpleMap>("Transmission");
+            break;
+        default:
             break;
     }
 
@@ -138,7 +142,7 @@ void UAZBUS_SAE::Initialize() {
         }
 
         default:
-            GetLog() << "Unsupported Tire Model Type! Switching to TMeasy.\n";
+            std::cout << "Unsupported Tire Model Type! Switching to TMeasy.\n";
         case TireModelType::TMEASY: {
             auto tire_FL = chrono_types::make_shared<UAZBUS_TMeasyTireFront>("FL");
             auto tire_FR = chrono_types::make_shared<UAZBUS_TMeasyTireFront>("FR");

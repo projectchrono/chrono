@@ -31,6 +31,7 @@
 
 #include "chrono_vehicle/driver/ChInteractiveDriverIRR.h"
 #include "chrono_vehicle/utils/ChUtilsJSON.h"
+#include "chrono/utils/ChUtils.h"
 
 #include "chrono_thirdparty/filesystem/path.h"
 
@@ -223,7 +224,7 @@ bool ChInteractiveDriverIRR::ProcessJoystickEvents(const SEvent& event) {
                 joystickLine += " " + std::to_string(event.JoystickEvent.Axis[i]);
             }
             joystickLine += " B: " + std::bitset<32>(event.JoystickEvent.ButtonStates).to_string() + "\n";
-            GetLog() << joystickLine;
+            std::cout << joystickLine;
         }
     }
 
@@ -269,7 +270,7 @@ bool ChInteractiveDriverIRR::ProcessKeyboardEvents(const SEvent& event) {
                     return true;
                 default:
                     break;
-            }       
+            }
         }
     } else {
         switch (event.KeyInput.Key) {
@@ -281,6 +282,8 @@ bool ChInteractiveDriverIRR::ProcessKeyboardEvents(const SEvent& event) {
                 m_braking_target = 0;
                 m_clutch_target = 0;
                 return true;
+            default:
+                break;
         }
         if (transmission_auto) {
             switch (event.KeyInput.Key) {
@@ -378,21 +381,21 @@ void ChInteractiveDriverIRR::Initialize() {
         // Loop over available controllers and distribute axes per controller if specified
         for (u32 id = 0; id < m_joystick_info.size(); ++id) {
             const auto& jinfo = m_joystick_info[id];
-            GetLog() << "Joystick " << id << ":\n";
-            GetLog() << "\tName: '" << jinfo.Name.c_str() << "'\n";
-            GetLog() << "\tAxes: " << jinfo.Axes << "\n";
-            GetLog() << "\tButtons: " << jinfo.Buttons << "\n";
-            GetLog() << "\tHat is: ";
+            std::cout << "Joystick " << id << ":\n";
+            std::cout << "\tName: '" << jinfo.Name.c_str() << "'\n";
+            std::cout << "\tAxes: " << jinfo.Axes << "\n";
+            std::cout << "\tButtons: " << jinfo.Buttons << "\n";
+            std::cout << "\tHat is: ";
             switch (jinfo.PovHat) {
                 case SJoystickInfo::POV_HAT_PRESENT:
-                    GetLog() << "present\n";
+                    std::cout << "present\n";
                     break;
                 case SJoystickInfo::POV_HAT_ABSENT:
-                    GetLog() << "absent\n";
+                    std::cout << "absent\n";
                     break;
                 case SJoystickInfo::POV_HAT_UNKNOWN:
                 default:
-                    GetLog() << "unknown\n";
+                    std::cout << "unknown\n";
                     break;
             }
 
@@ -477,7 +480,7 @@ void ChJoystickAxisIRR::Read(rapidjson::Document& d, const std::string& elementN
         scaled_max = d[element]["scaled_max"].GetDouble();
         value = min;
     } else if (dbg_print) {
-        GetLog() << "Expected a joystick axis definition for " << elementName << " but did not find one.\n";
+        std::cerr << "Expected a joystick axis definition for " << elementName << " but did not find one." << std::endl;
     }
 }
 
@@ -503,7 +506,8 @@ void ChJoystickButtonIRR::Read(rapidjson::Document& d, const std::string& elemen
         name = d[element]["name"].GetString();
         button = d[element]["button"].GetInt();
     } else if (dbg_print) {
-        GetLog() << "Expected a joystick button definition for " << elementName << " but did not find one.\n";
+        std::cerr << "Expected a joystick button definition for " << elementName << " but did not find one."
+                  << std::endl;
     }
 }
 

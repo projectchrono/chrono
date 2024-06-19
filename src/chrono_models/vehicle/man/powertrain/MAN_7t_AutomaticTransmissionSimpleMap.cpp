@@ -24,7 +24,7 @@ namespace chrono {
 namespace vehicle {
 namespace man {
 
-const double rpm2rads = CH_C_PI / 30;
+const double rpm2rads = CH_PI / 30;
 
 MAN_7t_AutomaticTransmissionSimpleMap::MAN_7t_AutomaticTransmissionSimpleMap(const std::string& name)
     : ChAutomaticTransmissionSimpleMap(name) {}

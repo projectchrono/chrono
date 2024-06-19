@@ -1,0 +1,53 @@
+{
+  "Name": "Gator SingleWishbone Front",
+  "Type": "Suspension",
+  "Template": "SingleWishbone",
+
+  "Vehicle-Frame Inertia": false,
+
+  "Camber Angle (deg)": 0,
+  "Toe Angle (deg)": 0,
+
+  "Spindle": {
+    "Mass": 3.0,
+    "COM": [ 0, 0.56, -0.02 ],
+    "Inertia": [ 0.001, 0.0018, 0.001 ],
+    "Radius": 0.06,
+    "Width": 0.025
+  },
+
+  "Upright": {
+    "Mass": 1.5,
+    "COM": [ 0, 0.5, -0.02 ],
+    "Moments of Inertia": [ 0.0138, 0.0146, 0.00283 ],
+    "Products of Inertia": [ 0, 0, 0 ],
+    "Radius": 0.01
+  },
+
+  "Control Arm": {
+    "Mass": 4.0,
+    "COM": [ 0, 0.21, -0.01 ],
+    "Moments of Inertia": [ 0.03, 0.03, 0.06276 ],
+    "Products of Inertia": [ 0, 0, 0 ],
+    "Radius": 0.03,
+    "Location Chassis": [ 0, 0.06, 0 ],
+    "Location Upright": [ 0, 0.48, -0.02 ]
+  },
+
+  "Tierod": {
+    "Location Chassis": [ -0.05, 0.21, 0.08 ],
+    "Location Upright": [ -0.05, 0.48, 0.08 ]
+  },
+
+  "Shock": {
+    "Location Chassis": [ 0, 0.28, 0.34 ],
+    "Location Arm": [ 0, 0.39, -0.015 ],
+    "Spring Coefficient": 300000.0,
+    "Damping Coefficient": 20000.0,
+    "Free Length": 0.3717
+  },
+
+  "Axle": {
+    "Inertia": 0.4
+  }
+}

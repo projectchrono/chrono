@@ -19,7 +19,7 @@ namespace chrono {
 // Register into the object factory, to enable run-time dynamic creation and persistence
 CH_FACTORY_REGISTER(ChVariablesGeneric)
 
-ChVariablesGeneric::ChVariablesGeneric(int m_ndof) : ChVariables(m_ndof), ndof(m_ndof) {
+ChVariablesGeneric::ChVariablesGeneric(unsigned int dof) : ChVariables(dof) {
     Mmass.setIdentity(ndof, ndof);
     inv_Mmass.setIdentity(ndof, ndof);
 }
@@ -37,46 +37,33 @@ ChVariablesGeneric& ChVariablesGeneric::operator=(const ChVariablesGeneric& othe
     return *this;
 }
 
-// Computes the product of the inverse mass matrix by a vector, and add to result: result = [invMb]*vect
-void ChVariablesGeneric::Compute_invMb_v(ChVectorRef result, ChVectorConstRef vect) const {
+void ChVariablesGeneric::ComputeMassInverseTimesVector(ChVectorRef result, ChVectorConstRef vect) const {
     assert(result.size() == ndof);
     assert(vect.size() == ndof);
     result = inv_Mmass * vect;
 }
 
-// Computes the product of the inverse mass matrix by a vector, and increment result: result += [invMb]*vect
-void ChVariablesGeneric::Compute_inc_invMb_v(ChVectorRef result, ChVectorConstRef vect) const {
-    assert(result.size() == ndof);
-    assert(vect.size() == ndof);
-    result += inv_Mmass * vect;
-}
-
-// Computes the product of the mass matrix by a vector, and set in result: result = [Mb]*vect
-void ChVariablesGeneric::Compute_inc_Mb_v(ChVectorRef result, ChVectorConstRef vect) const {
+void ChVariablesGeneric::AddMassTimesVector(ChVectorRef result, ChVectorConstRef vect) const {
     assert(result.size() == ndof);
     assert(vect.size() == ndof);
     result += Mmass * vect;
 }
 
-// Computes the product of the corresponding block in the system matrix (ie. the mass matrix) by 'vect', scale by c_a,
-// and add to 'result'.
-// NOTE: the 'vect' and 'result' vectors must already have the size of the total variables&constraints in the system;
-// the procedure will use the ChVariable offsets (that must be already updated) to know the indexes in result and vect.
-void ChVariablesGeneric::MultiplyAndAdd(ChVectorRef result, ChVectorConstRef vect, const double c_a) const {
-    result.segment(this->offset, ndof) += c_a * Mmass * vect.segment(this->offset, ndof);
+void ChVariablesGeneric::AddMassTimesVectorInto(ChVectorRef result, ChVectorConstRef vect, const double ca) const {
+    result.segment(offset, ndof) += ca * Mmass * vect.segment(offset, ndof);
 }
 
-// Add the diagonal of the mass matrix scaled by c_a, to 'result'.
-// NOTE: the 'result' vector must already have the size of system unknowns, ie the size of the total variables &
-// constraints in the system; the procedure will use the ChVariable offset (that must be already updated) as index.
-void ChVariablesGeneric::DiagonalAdd(ChVectorRef result, const double c_a) const {
-    result.segment(this->offset, ndof) += c_a * Mmass.diagonal();
+void ChVariablesGeneric::AddMassDiagonalInto(ChVectorRef result, const double ca) const {
+    result.segment(offset, ndof) += ca * Mmass.diagonal();
 }
 
-void ChVariablesGeneric::Build_M(ChSparseMatrix& storage, int insrow, int inscol, const double c_a) {
+void ChVariablesGeneric::PasteMassInto(ChSparseMatrix& mat,
+                                       unsigned int start_row,
+                                       unsigned int start_col,
+                                       const double ca) const {
     for (int row = 0; row < Mmass.rows(); ++row)
         for (int col = 0; col < Mmass.cols(); ++col)
-            storage.SetElement(insrow + row, inscol + col, c_a * Mmass(row, col));
+            mat.SetElement(offset + start_row + row, offset + start_col + col, ca * Mmass(row, col));
 }
 
 }  // end namespace chrono

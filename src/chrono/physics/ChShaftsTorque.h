@@ -12,50 +12,52 @@
 // Authors: Alessandro Tasora, Radu Serban
 // =============================================================================
 
-#ifndef CHSHAFTSTORQUE_H
-#define CHSHAFTSTORQUE_H
+#ifndef CH_SHAFTS_TORQUE_H
+#define CH_SHAFTS_TORQUE_H
 
-#include "chrono/physics/ChShaftsTorqueBase.h"
+#include "chrono/physics/ChShaftsCouple.h"
+#include "chrono/solver/ChConstraintTwoGeneric.h"
 
 namespace chrono {
 
-/// Class for defining a user-defined torque between two one-degree-of-freedom parts;
-/// i.e., shafts that can be used to build 1D models of powertrains. This is more
-/// efficient than simulating power trains modeled with full 3D ChBody objects.
-/// Two shafts are needed, because one gets the torque, and the other is the
-/// 'reference' that gets the negative torque as a reaction. For instance, a
-/// thermal engine applies a torque T to a crankshaft, but also applies -T to the
-/// engine block!
-/// Note that another way of imposing a torque is to do just
-///       my_shaftA->SetAppliedTorque(6);
-/// but in such case is an 'absolute' torque does not create a reaction.
-
-class ChApi ChShaftsTorque : public ChShaftsTorqueBase {
-
+/// Base class for all classes defining a torque between two one-degree-of-freedom parts.
+/// Examples include torsional dampers, torsional springs, electric engines, etc.
+class ChApi ChShaftsTorque : public ChShaftsCouple {
   public:
-    ChShaftsTorque() {}
+    ChShaftsTorque();
     ChShaftsTorque(const ChShaftsTorque& other);
-    ~ChShaftsTorque() {}
+    virtual ~ChShaftsTorque() {}
 
-    /// "Virtual" copy constructor (covariant return type).
-    virtual ChShaftsTorque* Clone() const override { return new ChShaftsTorque(*this); }
+    /// Number of scalar constraints
+    virtual unsigned int GetNumConstraintsBilateral() override { return 0; }
 
-    /// Set the imposed torque between the two shafts
-    void SetTorque(double mt) { torque = mt; }
-    /// Get the imposed torque between the two shafts
-    double GetTorque() const { return torque; }
+    /// Get the reaction torque exchanged between the two shafts, considered as applied to the 1st axis.
+    virtual double GetReaction1() const override { return torque; }
 
-    /// (does nothing, just eaves the last user defined torque)
-    virtual double ComputeTorque() override;
+    /// Get the reaction torque exchanged between the two shafts, considered as applied to the 2nd axis.
+    virtual double GetReaction2() const override { return -torque; }
+
+    /// Calculate applied torque.
+    /// In most cases, this is the only function a derived class must implement. It will be called at each Update().
+    virtual double ComputeTorque() = 0;
 
     /// Method to allow serialization of transient data to archives.
-    virtual void ArchiveOut(ChArchiveOut& marchive) override;
+    virtual void ArchiveOut(ChArchiveOut& archive_out) override;
 
     /// Method to allow deserialization of transient data from archives.
-    virtual void ArchiveIn(ChArchiveIn& marchive) override;
+    virtual void ArchiveIn(ChArchiveIn& archive_in) override;
+
+  protected:
+    double torque;  ///< current value of torque
+
+    virtual void Update(double mytime, bool update_assets = true) override;
+
+    virtual void IntLoadResidual_F(const unsigned int off, ChVectorDynamic<>& R, const double c) override;
+
+    void VariablesFbLoadForces(double factor = 1) override;
 };
 
-CH_CLASS_VERSION(ChShaftsTorque,0)
+CH_CLASS_VERSION(ChShaftsTorque, 0)
 
 }  // end namespace chrono
 

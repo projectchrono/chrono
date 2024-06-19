@@ -46,7 +46,8 @@ class ChFsiLinearSolverGMRES : public ChFsiLinearSolver {
     ~ChFsiLinearSolverGMRES() {}
 
     /// Solve the linear system on the device.
-    virtual void Solve(int SIZE, int NNZ, Real* A, unsigned int* ArowIdx, unsigned int* AcolIdx, Real* x, Real* b) override;
+    virtual void Solve(int SIZE, int NNZ, Real* A, unsigned int* ArowIdx, unsigned int* AcolIdx, Real* x, Real* b)
+        override;
 
     /// Set the restart parameter in the GMRES method.
     void SetRestart(int R) { restart = R; }

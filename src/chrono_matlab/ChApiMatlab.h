@@ -24,9 +24,9 @@
 // link the library to your code, and the symbols will be imported.
 
 #if defined(CH_API_COMPILE_MATLAB)
-#define ChApiMatlab ChApiEXPORT
+    #define ChApiMatlab ChApiEXPORT
 #else
-#define ChApiMatlab ChApiIMPORT
+    #define ChApiMatlab ChApiIMPORT
 #endif
 
 /**

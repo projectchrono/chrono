@@ -22,8 +22,8 @@
 #include "chrono/physics/ChSystemNSC.h"
 #include "chrono/physics/ChBodyEasy.h"
 #include "chrono/fea/ChBuilderBeam.h"
-#include "chrono/fea/ChLinkPointFrame.h"
-#include "chrono/fea/ChLinkDirFrame.h"
+#include "chrono/fea/ChLinkNodeFrame.h"
+#include "chrono/fea/ChLinkNodeSlopeFrame.h"
 #include "chrono/solver/ChIterativeSolverLS.h"
 #include "chrono/timestepper/ChTimestepper.h"
 #include "chrono_pardisomkl/ChSolverPardisoMKL.h"
@@ -57,10 +57,10 @@ Model::Model() {
     auto msection_cable2 = chrono_types::make_shared<ChBeamSectionCable>();
     msection_cable2->SetDiameter(0.015);
     msection_cable2->SetYoungModulus(0.01e9);
-    msection_cable2->SetBeamRaleyghDamping(0.000);
+    msection_cable2->SetRayleighDamping(0.000);
 
     auto mtruss = chrono_types::make_shared<ChBody>();
-    mtruss->SetBodyFixed(true);
+    mtruss->SetFixed(true);
 
     ChBuilderCableANCF builder;
 
@@ -68,59 +68,59 @@ Model::Model() {
     builder.BuildBeam(my_mesh,               // the mesh where to put the created nodes and elements
                       msection_cable2,       // ChBeamSectionCable to use for the ChElementBeamANCF_3333 elements
                       1,                     // number of ChElementBeamANCF_3333 to create
-                      ChVector<>(0, 0, 0),   // point A (beginning of beam)
-                      ChVector<>(0.1, 0, 0)  // point B (end of beam)
+                      ChVector3d(0, 0, 0),   // point A (beginning of beam)
+                      ChVector3d(0.1, 0, 0)  // point B (end of beam)
     );
 
-    builder.GetLastBeamNodes().back()->SetForce(ChVector<>(0, -0.2, 0));
+    builder.GetLastBeamNodes().back()->SetForce(ChVector3d(0, -0.2, 0));
 
-    auto constraint_hinge = chrono_types::make_shared<ChLinkPointFrame>();
+    auto constraint_hinge = chrono_types::make_shared<ChLinkNodeFrame>();
     constraint_hinge->Initialize(builder.GetLastBeamNodes().front(), mtruss);
     m_system->Add(constraint_hinge);
 
     // make a box and connect it
     m_box1 = chrono_types::make_shared<ChBodyEasyBox>(0.2, 0.04, 0.04, 1000);
-    m_box1->SetPos(builder.GetLastBeamNodes().back()->GetPos() + ChVector<>(0.1, 0, 0));
+    m_box1->SetPos(builder.GetLastBeamNodes().back()->GetPos() + ChVector3d(0.1, 0, 0));
     m_system->Add(m_box1);
 
-    auto constraint_pos = chrono_types::make_shared<ChLinkPointFrame>();
+    auto constraint_pos = chrono_types::make_shared<ChLinkNodeFrame>();
     constraint_pos->Initialize(builder.GetLastBeamNodes().back(), m_box1);
     m_system->Add(constraint_pos);
 
-    auto constraint_dir = chrono_types::make_shared<ChLinkDirFrame>();
+    auto constraint_dir = chrono_types::make_shared<ChLinkNodeSlopeFrame>();
     constraint_dir->Initialize(builder.GetLastBeamNodes().back(), m_box1);
-    constraint_dir->SetDirectionInAbsoluteCoords(ChVector<>(1, 0, 0));
+    constraint_dir->SetDirectionInAbsoluteCoords(ChVector3d(1, 0, 0));
     m_system->Add(constraint_dir);
 
     // make another beam
     builder.BuildBeam(my_mesh,          // mesh where to put the created nodes and elements
                       msection_cable2,  // ChBeamSectionCable to use for the ChElementBeamANCF_3333 elements
                       7,                // number of ChElementBeamANCF_3333 to create
-                      ChVector<>(m_box1->GetPos().x() + 0.1, 0, 0),           // point A (beginning of beam)
-                      ChVector<>(m_box1->GetPos().x() + 0.1 + 0.1 * 6, 0, 0)  // point B (end of beam)
+                      ChVector3d(m_box1->GetPos().x() + 0.1, 0, 0),           // point A (beginning of beam)
+                      ChVector3d(m_box1->GetPos().x() + 0.1 + 0.1 * 6, 0, 0)  // point B (end of beam)
     );
 
-    auto constraint_pos2 = chrono_types::make_shared<ChLinkPointFrame>();
+    auto constraint_pos2 = chrono_types::make_shared<ChLinkNodeFrame>();
     constraint_pos2->Initialize(builder.GetLastBeamNodes().front(), m_box1);
     m_system->Add(constraint_pos2);
 
-    auto constraint_dir2 = chrono_types::make_shared<ChLinkDirFrame>();
+    auto constraint_dir2 = chrono_types::make_shared<ChLinkNodeSlopeFrame>();
     constraint_dir2->Initialize(builder.GetLastBeamNodes().front(), m_box1);
-    constraint_dir2->SetDirectionInAbsoluteCoords(ChVector<>(1, 0, 0));
+    constraint_dir2->SetDirectionInAbsoluteCoords(ChVector3d(1, 0, 0));
     m_system->Add(constraint_dir2);
 
     // make a box and connect it
     m_box2 = chrono_types::make_shared<ChBodyEasyBox>(0.2, 0.04, 0.04, 1000);
-    m_box2->SetPos(builder.GetLastBeamNodes().back()->GetPos() + ChVector<>(0.1, 0, 0));
+    m_box2->SetPos(builder.GetLastBeamNodes().back()->GetPos() + ChVector3d(0.1, 0, 0));
     m_system->Add(m_box2);
 
-    auto constraint_pos3 = chrono_types::make_shared<ChLinkPointFrame>();
+    auto constraint_pos3 = chrono_types::make_shared<ChLinkNodeFrame>();
     constraint_pos3->Initialize(builder.GetLastBeamNodes().back(), m_box2);
     m_system->Add(constraint_pos3);
 
-    auto constraint_dir3 = chrono_types::make_shared<ChLinkDirFrame>();
+    auto constraint_dir3 = chrono_types::make_shared<ChLinkNodeSlopeFrame>();
     constraint_dir3->Initialize(builder.GetLastBeamNodes().back(), m_box2);
-    constraint_dir3->SetDirectionInAbsoluteCoords(ChVector<>(1, 0, 0));
+    constraint_dir3->SetDirectionInAbsoluteCoords(ChVector3d(1, 0, 0));
     m_system->Add(constraint_dir3);
 
     m_system->Add(my_mesh);
@@ -131,12 +131,12 @@ Model::Model() {
 
     if (auto mystepper = std::dynamic_pointer_cast<ChTimestepperHHT>(m_system->GetTimestepper())) {
         mystepper->SetAlpha(-0.2);
-        mystepper->SetMaxiters(2);
+        mystepper->SetMaxIters(2);
         mystepper->SetAbsTolerances(1e-6);
     }
 }
 
-static void CompareVectors(const ChVector<>& v1, const ChVector<>& v2, double tol) {
+static void CompareVectors(const ChVector3d& v1, const ChVector3d& v2, double tol) {
     ASSERT_NEAR(v1.x(), v2.x(), tol);
     ASSERT_NEAR(v1.y(), v2.y(), tol);
     ASSERT_NEAR(v1.z(), v2.z(), tol);
@@ -157,11 +157,9 @@ TEST(ANCFcables_rigid_constraints, Minres_MKL) {
     auto solver = chrono_types::make_shared<ChSolverMINRES>();
     model1.GetSystem()->SetSolver(solver);
     solver->SetMaxIterations(200);
-    solver->SetTolerance(1e-10);
+    solver->SetTolerance(1e-12);
     solver->EnableDiagonalPreconditioner(true);
     solver->SetVerbose(false);
-
-    model1.GetSystem()->SetSolverForceTolerance(1e-13);
 
     // MODEL2 uses PardisoMKL
     auto mkl_solver = chrono_types::make_shared<ChSolverPardisoMKL>();

@@ -17,27 +17,36 @@
 //
 // =============================================================================
 
-#include "chrono/assets/ChBoxShape.h"
+#include "chrono/assets/ChVisualShapeBox.h"
 #include "chrono/assets/ChCamera.h"
-#include "chrono/assets/ChCylinderShape.h"
-#include "chrono/assets/ChModelFileShape.h"
-#include "chrono/assets/ChSphereShape.h"
+#include "chrono/assets/ChVisualShapeCylinder.h"
+#include "chrono/assets/ChVisualShapeModelFile.h"
+#include "chrono/assets/ChVisualShapeSphere.h"
 #include "chrono/assets/ChTexture.h"
 #include "chrono/physics/ChParticleCloud.h"
 #include "chrono/physics/ChSystemNSC.h"
+#include "chrono/core/ChRandom.h"
 
 #include "chrono_postprocess/ChPovRay.h"
 
 #include "chrono_thirdparty/filesystem/path.h"
 
 using namespace chrono;
-using namespace postprocess;
+using namespace chrono::postprocess;
 
 int main(int argc, char* argv[]) {
-    GetLog() << "Copyright (c) 2017 projectchrono.org\nChrono version: " << CHRONO_VERSION << "\n\n";
+    std::cout << "Copyright (c) 2017 projectchrono.org\nChrono version: " << CHRONO_VERSION << std::endl;
 
-    // Create a Chrono::Engine physical system
+    // Create output directory
+    std::string out_dir = GetChronoOutputPath() + "POVRAY_1";
+    if (!filesystem::create_directory(filesystem::path(out_dir))) {
+        std::cout << "Error creating directory " << out_dir << std::endl;
+        return 1;
+    }
+
+    // Create a Chrono system and set the associated collision system
     ChSystemNSC sys;
+    sys.SetCollisionSystemType(ChCollisionSystem::Type::BULLET);
 
     /* Start example */
     /// [POV exporter]
@@ -50,7 +59,7 @@ int main(int argc, char* argv[]) {
 
     // Set the path where it will save all .pov, .ini, .asset and .dat files, a directory will be created if not
     // existing
-    pov_exporter.SetBasePath(GetChronoOutputPath() + "POVRAY_1");
+    pov_exporter.SetBasePath(out_dir);
 
     // Optional: change the default naming of the generated files:
     // pov_exporter.SetOutputScriptFile("rendering_frames.pov");
@@ -58,7 +67,7 @@ int main(int argc, char* argv[]) {
     // pov_exporter.SetPictureFilebase("picture");
 
     // --Optional: modify default light
-    pov_exporter.SetLight(ChVector<>(-3, 4, 2), ChColor(0.15f, 0.15f, 0.12f), false);
+    pov_exporter.SetLight(ChVector3d(-3, 4, 2), ChColor(0.15f, 0.15f, 0.12f), false);
 
     // --Optional: add further POV commands, for example in this case:
     //     create an area light for soft shadows
@@ -90,23 +99,22 @@ int main(int argc, char* argv[]) {
     // Create a rigid body as usual, and add it
     // to the physical system:
     auto floor = chrono_types::make_shared<ChBody>();
-    floor->SetBodyFixed(true);
+    floor->SetFixed(true);
 
     // Define a collision shape
-    auto floor_mat = chrono_types::make_shared<ChMaterialSurfaceNSC>();
+    auto floor_mat = chrono_types::make_shared<ChContactMaterialNSC>();
 
-    floor->GetCollisionModel()->ClearModel();
-    floor->GetCollisionModel()->AddBox(floor_mat, 20, 1, 20, ChVector<>(0, -1, 0));
-    floor->GetCollisionModel()->BuildModel();
-    floor->SetCollide(true);
+    auto floor_shape = chrono_types::make_shared<ChCollisionShapeBox>(floor_mat, 20, 1, 20);
+    floor->AddCollisionShape(floor_shape, ChFrame<>(ChVector3d(0, -1, 0), QUNIT));
+    floor->EnableCollision(true);
 
     // Add body to system
     sys.Add(floor);
 
     // ==Asset== attach a 'box' shape.
-    auto boxfloor = chrono_types::make_shared<ChBoxShape>(20, 1, 20);
+    auto boxfloor = chrono_types::make_shared<ChVisualShapeBox>(20, 1, 20);
     boxfloor->SetColor(ChColor(0.3f, 0.3f, 0.6f));
-    floor->AddVisualShape(boxfloor, ChFrame<>(ChVector<>(0, -1, 0)));
+    floor->AddVisualShape(boxfloor, ChFrame<>(ChVector3d(0, -1, 0)));
 
     /// [Example 1]
     /* End example */
@@ -118,35 +126,37 @@ int main(int argc, char* argv[]) {
 
     // Create the rigid body as usual (this won't move, it is only for visualization tests)
     auto body = chrono_types::make_shared<ChBody>();
-    body->SetBodyFixed(true);
+    body->SetFixed(true);
     sys.Add(body);
 
     // ==Asset== Attach a 'sphere' shape
-    auto sphere = chrono_types::make_shared<ChSphereShape>(0.5);
-    body->AddVisualShape(sphere, ChFrame<>(ChVector<>(-1, 0, 0)));
+    auto sphere = chrono_types::make_shared<ChVisualShapeSphere>(0.5);
+    body->AddVisualShape(sphere, ChFrame<>(ChVector3d(-1, 0, 0)));
 
     // ==Asset== Attach also a 'box' shape
-    auto mbox = chrono_types::make_shared<ChBoxShape>(0.4, 1.0, 0.2);
-    body->AddVisualShape(mbox, ChFrame<>(ChVector<>(1, 0, 0)));
+    auto mbox = chrono_types::make_shared<ChVisualShapeBox>(0.4, 1.0, 0.2);
+    body->AddVisualShape(mbox, ChFrame<>(ChVector3d(1, 0, 0)));
 
     // ==Asset== Attach also a 'cylinder' shape
-    auto cyl = chrono_types::make_shared<ChCylinderShape>(0.3, 0.7);
-    body->AddVisualShape(cyl, ChFrame<>(ChVector<>(2, 0.15, 0), Q_from_AngX(CH_C_PI_2)));
-    body->AddVisualShape(chrono_types::make_shared<ChSphereShape>(0.03), ChFrame<>(ChVector<>(2, -0.2, 0), QUNIT));
-    body->AddVisualShape(chrono_types::make_shared<ChSphereShape>(0.03), ChFrame<>(ChVector<>(2, +0.5, 0), QUNIT));
+    auto cyl = chrono_types::make_shared<ChVisualShapeCylinder>(0.3, 0.7);
+    body->AddVisualShape(cyl, ChFrame<>(ChVector3d(2, 0.15, 0), QuatFromAngleX(CH_PI_2)));
+    body->AddVisualShape(chrono_types::make_shared<ChVisualShapeSphere>(0.03),
+                         ChFrame<>(ChVector3d(2, -0.2, 0), QUNIT));
+    body->AddVisualShape(chrono_types::make_shared<ChVisualShapeSphere>(0.03),
+                         ChFrame<>(ChVector3d(2, +0.5, 0), QUNIT));
 
     // ==Asset== Attach a 'Wavefront mesh' asset, referencing a .obj file:
-    auto objmesh = chrono_types::make_shared<ChModelFileShape>();
+    auto objmesh = chrono_types::make_shared<ChVisualShapeModelFile>();
     objmesh->SetFilename(GetChronoDataFile("models/forklift/body.obj"));
     objmesh->SetTexture(GetChronoDataFile("textures/bluewhite.png"));
-    body->AddVisualShape(objmesh, ChFrame<>(ChVector<>(0, 0, 2)));
+    body->AddVisualShape(objmesh, ChFrame<>(ChVector3d(0, 0, 2)));
 
     // ==Asset== Attach an array of boxes, each rotated to make a spiral
     for (int j = 0; j < 20; j++) {
-        auto smallbox = chrono_types::make_shared<ChBoxShape>(0.2, 0.2, 0.02);
+        auto smallbox = chrono_types::make_shared<ChVisualShapeBox>(0.2, 0.2, 0.02);
         smallbox->SetColor(ChColor(j * 0.05f, 1 - j * 0.05f, 0.0f));
-        ChMatrix33<> rot(Q_from_AngY(j * 21 * CH_C_DEG_TO_RAD));
-        ChVector<> pos = rot * ChVector<>(0.4, 0, 0) + ChVector<>(0, j * 0.02, 0);
+        ChMatrix33<> rot(QuatFromAngleY(j * 21 * CH_DEG_TO_RAD));
+        ChVector3d pos = rot * ChVector3d(0.4, 0, 0) + ChVector3d(0, j * 0.02, 0);
         body->AddVisualShape(smallbox, ChFrame<>(pos, rot));
     }
 
@@ -154,8 +164,8 @@ int main(int argc, char* argv[]) {
     // Note that a camera can also be attached to a moving object.
     auto camera = chrono_types::make_shared<ChCamera>();
     camera->SetAngle(50);
-    camera->SetPosition(ChVector<>(-3, 4, -5));
-    camera->SetAimPoint(ChVector<>(0, 1, 0));
+    camera->SetPosition(ChVector3d(-3, 4, -5));
+    camera->SetAimPoint(ChVector3d(0, 1, 0));
     body->AddCamera(camera);
 
     /// [Example 2]
@@ -173,23 +183,21 @@ int main(int argc, char* argv[]) {
     auto particles = chrono_types::make_shared<ChParticleCloud>();
 
     // Note: coll. shape, if needed, must be specified before creating particles
-    auto particle_mat = chrono_types::make_shared<ChMaterialSurfaceNSC>();
-
-    particles->GetCollisionModel()->ClearModel();
-    particles->GetCollisionModel()->AddSphere(particle_mat, 0.05);
-    particles->GetCollisionModel()->BuildModel();
-    particles->SetCollide(true);
+    auto particle_mat = chrono_types::make_shared<ChContactMaterialNSC>();
+    auto particle_shape = chrono_types::make_shared<ChCollisionShapeSphere>(particle_mat, 0.05);
+    particles->AddCollisionShape(particle_shape);
+    particles->EnableCollision(true);
 
     // Create the random particles
     for (int np = 0; np < 100; ++np)
-        particles->AddParticle(ChCoordsys<>(ChVector<>(ChRandom() - 2, 1, ChRandom() - 0.5)));
+        particles->AddParticle(ChCoordsys<>(ChVector3d(ChRandom::Get() - 2, 1, ChRandom::Get() - 0.5)));
 
     // Do not forget to add the particle cluster to the system:
     sys.Add(particles);
 
     //  ==Asset== Attach a 'sphere' shape asset.. it will be used as a sample
     // shape to display all particles when rendering in 3D!
-    auto sphereparticle = chrono_types::make_shared<ChSphereShape>(0.05);
+    auto sphereparticle = chrono_types::make_shared<ChVisualShapeSphere>(0.05);
     particles->AddVisualShape(sphereparticle);
 
     /// [Example 3]
@@ -220,7 +228,7 @@ int main(int argc, char* argv[]) {
     while (sys.GetChTime() < 1.5) {
         sys.DoStepDynamics(0.01);
 
-        GetLog() << "time= " << sys.GetChTime() << "\n";
+        std::cout << "time= " << sys.GetChTime() << std::endl;
 
         // 2) Create the incremental nnnn.dat and nnnn.pov files that will be load
         //    by the pov .ini script in POV-Ray (do this at each simulation timestep)

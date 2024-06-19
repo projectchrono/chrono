@@ -34,8 +34,8 @@ namespace chrono {
 class ChApi
 /// \cond
 CH_DEPRECATED("deprecated. Use ChSolverMINRES instead.")
-/// \endcond
-ChSolverPMINRES : public ChIterativeSolverVI {
+    /// \endcond
+    ChSolverPMINRES : public ChIterativeSolverVI {
   public:
     ChSolverPMINRES();
 
@@ -49,7 +49,7 @@ ChSolverPMINRES : public ChIterativeSolverVI {
                          ) override;
 
     /// Same as Solve(), but this also supports the presence of
-    /// ChKblock blocks. If Solve() is called and stiffness is present,
+    /// ChKRMBlock blocks. If Solve() is called and stiffness is present,
     /// Solve() automatically falls back to this function.
     /// It does not solve the Schur complement N*l-r=0 as Solve does, here the
     /// entire system KKT matrix with duals l and primals q is used.
@@ -69,16 +69,15 @@ ChSolverPMINRES : public ChIterativeSolverVI {
     void SetRelTolerance(double mrt) { this->rel_tolerance = mrt; }
     double GetRelTolerance() { return this->rel_tolerance; }
 
-    
     /// Return the tolerance error reached during the last solve.
     /// For the PMINRES solver, this is the norm of the projected residual.
     virtual double GetError() const override { return r_proj_resid; }
 
     /// Method to allow serialization of transient data to archives.
-    virtual void ArchiveOut(ChArchiveOut& marchive) override;
+    virtual void ArchiveOut(ChArchiveOut& archive_out) override;
 
     /// Method to allow de-serialization of transient data from archives.
-    virtual void ArchiveIn(ChArchiveIn& marchive) override;
+    virtual void ArchiveIn(ChArchiveIn& archive_in) override;
 
   private:
     double grad_diffstep;

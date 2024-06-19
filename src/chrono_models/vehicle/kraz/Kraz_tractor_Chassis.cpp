@@ -26,15 +26,23 @@ namespace kraz {
 // Static variables
 // -----------------------------------------------------------------------------
 const double Kraz_tractor_Chassis::m_body_mass = 10000.0;
-const ChVector<> Kraz_tractor_Chassis::m_body_inertiaXX(3441, 28485, 29395);
-const ChVector<> Kraz_tractor_Chassis::m_body_inertiaXY(0, 0, 0);
-const ChVector<> Kraz_tractor_Chassis::m_body_COM_loc(-2.0, 0, 0.6);
-const ChVector<> Kraz_tractor_Chassis::m_connector_loc(-4.64, 0, 0.82);
-const ChCoordsys<> Kraz_tractor_Chassis::m_driverCsys(ChVector<>(-1.5, 0.5, 1.2), ChQuaternion<>(1, 0, 0, 0));
+const ChVector3d Kraz_tractor_Chassis::m_body_inertiaXX(3441, 28485, 29395);
+const ChVector3d Kraz_tractor_Chassis::m_body_inertiaXY(0, 0, 0);
+const ChVector3d Kraz_tractor_Chassis::m_body_COM_loc(-2.0, 0, 0.6);
+const ChVector3d Kraz_tractor_Chassis::m_connector_loc(-4.64, 0, 0.82);
+const ChCoordsys<> Kraz_tractor_Chassis::m_driverCsys(ChVector3d(-1.5, 0.5, 1.2), ChQuaternion<>(1, 0, 0, 0));
 
 // -----------------------------------------------------------------------------
 // -----------------------------------------------------------------------------
-Kraz_tractor_Chassis::Kraz_tractor_Chassis(const std::string& name) : ChRigidChassis(name) {
+Kraz_tractor_Chassis::Kraz_tractor_Chassis(const std::string& name, bool fixed, CollisionType chassis_collision_type)
+    : ChRigidChassis(name) {
+    // In this model, we use a single contact material.
+    ChContactMaterialData minfo;
+    minfo.mu = 1.0f;
+    minfo.cr = 0.1f;
+    minfo.Y = 5e5f;
+    m_geometry.m_materials.push_back(minfo);
+
     m_body_inertia(0, 0) = m_body_inertiaXX.x();
     m_body_inertia(1, 1) = m_body_inertiaXX.y();
     m_body_inertia(2, 2) = m_body_inertiaXX.z();
@@ -46,8 +54,37 @@ Kraz_tractor_Chassis::Kraz_tractor_Chassis(const std::string& name) : ChRigidCha
     m_body_inertia(2, 0) = m_body_inertiaXY.y();
     m_body_inertia(2, 1) = m_body_inertiaXY.z();
 
+    //// TODO:
+    //// A more appropriate contact shape from primitives
+    ChVehicleGeometry::BoxShape box1(ChVector3d(0.0, 0.0, 0.1), ChQuaternion<>(1, 0, 0, 0), ChVector3d(2.0, 1.0, 0.2));
+    ChVehicleGeometry::BoxShape box2(ChVector3d(0.0, 0.0, 0.3), ChQuaternion<>(1, 0, 0, 0), ChVector3d(1.0, 0.5, 0.2));
+
+    m_geometry.m_has_primitives = true;
+    m_geometry.m_vis_boxes.push_back(box1);
+    m_geometry.m_vis_boxes.push_back(box2);
+
     m_geometry.m_has_mesh = true;
     m_geometry.m_vis_mesh_file = "longhaul/meshes/SemiTractorBody.obj";
+
+    m_geometry.m_has_collision = (chassis_collision_type != CollisionType::NONE);
+    switch (chassis_collision_type) {
+        case CollisionType::PRIMITIVES:
+            box1.m_matID = 0;
+            m_geometry.m_coll_boxes.push_back(box1);
+            break;
+        case CollisionType::HULLS: {
+            ChVehicleGeometry::ConvexHullsShape hull("longhaul/meshes/SemiTractorCab_col.obj", 0);
+            m_geometry.m_coll_hulls.push_back(hull);
+            break;
+        }
+        case CollisionType::MESH: {
+            ChVehicleGeometry::TrimeshShape trimesh(ChVector3d(), "longhaul/meshes/SemiTractorCab_col.obj", 0.005, 0);
+            m_geometry.m_coll_meshes.push_back(trimesh);
+            break;
+        }
+        default:
+            break;
+    }
 }
 
 }  // end namespace kraz

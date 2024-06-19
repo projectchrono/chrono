@@ -36,17 +36,17 @@ const double HMMWV_ANCFTire::m_alpha = 0.005;
 const double HMMWV_ANCFTire::m_default_pressure = 200e3;
 
 const double HMMWV_ANCFTire::m_rho_0 = 0.1e4;
-const ChVector<> HMMWV_ANCFTire::m_E_0(0.756e10, 0.474e8, 0.474e8);
-const ChVector<> HMMWV_ANCFTire::m_nu_0(0.45, 0.45, 0.45);
-const ChVector<> HMMWV_ANCFTire::m_G_0(0.1634e8, 0.1634e8, 0.1634e8);
+const ChVector3d HMMWV_ANCFTire::m_E_0(0.756e10, 0.474e8, 0.474e8);
+const ChVector3d HMMWV_ANCFTire::m_nu_0(0.45, 0.45, 0.45);
+const ChVector3d HMMWV_ANCFTire::m_G_0(0.1634e8, 0.1634e8, 0.1634e8);
 const double HMMWV_ANCFTire::m_rho_1 = 0.2639e4;
-const ChVector<> HMMWV_ANCFTire::m_E_1(0.18e12, 0.474e8, 0.474e8);
-const ChVector<> HMMWV_ANCFTire::m_nu_1(0.45, 0.45, 0.45);
-const ChVector<> HMMWV_ANCFTire::m_G_1(0.1634e8, 0.1634e8, 0.1634e8);
+const ChVector3d HMMWV_ANCFTire::m_E_1(0.18e12, 0.474e8, 0.474e8);
+const ChVector3d HMMWV_ANCFTire::m_nu_1(0.45, 0.45, 0.45);
+const ChVector3d HMMWV_ANCFTire::m_G_1(0.1634e8, 0.1634e8, 0.1634e8);
 const double HMMWV_ANCFTire::m_rho_2 = 0.11e4;
-const ChVector<> HMMWV_ANCFTire::m_E_2(0.474e8, 0.474e8, 0.474e8);
-const ChVector<> HMMWV_ANCFTire::m_nu_2(0.45, 0.45, 0.45);
-const ChVector<> HMMWV_ANCFTire::m_G_2(0.1634e8, 0.1634e8, 0.1634e8);
+const ChVector3d HMMWV_ANCFTire::m_E_2(0.474e8, 0.474e8, 0.474e8);
+const ChVector3d HMMWV_ANCFTire::m_nu_2(0.45, 0.45, 0.45);
+const ChVector3d HMMWV_ANCFTire::m_G_2(0.1634e8, 0.1634e8, 0.1634e8);
 
 const int HMMWV_ANCFTire::m_num_elements_b = 2;
 const int HMMWV_ANCFTire::m_num_layers_b = 3;
@@ -182,7 +182,7 @@ void HMMWV_ANCFTire::CreateMesh(const ChFrameMoving<>& wheel_frame, VehicleSide 
 }
 
 void HMMWV_ANCFTire::CreateContactMaterial() {
-    m_contact_mat = chrono_types::make_shared<ChMaterialSurfaceSMC>();
+    m_contact_mat = chrono_types::make_shared<ChContactMaterialSMC>();
     m_contact_mat->SetFriction(m_friction);
     m_contact_mat->SetRestitution(m_restitution);
     m_contact_mat->SetYoungModulus(m_Young);

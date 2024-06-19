@@ -23,12 +23,23 @@
 
 #include "chrono_fsi/ChSystemFsi.h"
 
+#include "chrono_fsi/visualization/ChFsiVisualization.h"
+#ifdef CHRONO_OPENGL
+    #include "chrono_fsi/visualization/ChFsiVisualizationGL.h"
+#endif
+#ifdef CHRONO_VSG
+    #include "chrono_fsi/visualization/ChFsiVisualizationVSG.h"
+#endif
+
 #include "chrono_thirdparty/filesystem/path.h"
 
-// Chrono namespaces
 using namespace chrono;
-using namespace chrono::collision;
 using namespace chrono::fsi;
+
+// -----------------------------------------------------------------
+
+// Run-time visualization system (OpenGL or VSG)
+ChVisualSystem::Type vis_type = ChVisualSystem::Type::VSG;
 
 // Output directories and settings
 const std::string out_dir = GetChronoOutputPath() + "FSI_Poiseuille_Flow/";
@@ -45,6 +56,10 @@ double bzDim = 0.2;
 // Final simulation time
 double t_end = 10.0;
 
+// Enable/disable run-time visualization
+bool render = true;
+float render_fps = 100;
+
 //------------------------------------------------------------------
 // Create the objects of the MBD system. Rigid bodies, and if FSI,
 // their BCE representation are created and added to the systems
@@ -52,16 +67,15 @@ double t_end = 10.0;
 void CreateSolidPhase(ChSystemSMC& sysMBS, ChSystemFsi& sysFSI) {
     // General setting of ground body
     auto ground = chrono_types::make_shared<ChBody>();
-    ground->SetIdentifier(-1);
-    ground->SetBodyFixed(true);
-    ground->SetCollide(false);
+    ground->SetFixed(true);
+    ground->EnableCollision(false);
     sysMBS.AddBody(ground);
 
     // Add BCE particles attached on the walls into FSI system
     sysFSI.AddBoxContainerBCE(ground,                                         //
-                              ChFrame<>(ChVector<>(0, 0, bzDim / 2), QUNIT),  //
-                              ChVector<>(bxDim, byDim, bzDim),                //
-                              ChVector<int>(0, 0, 2));
+                              ChFrame<>(ChVector3d(0, 0, bzDim / 2), QUNIT),  //
+                              ChVector3d(bxDim, byDim, bzDim),                //
+                              ChVector3i(0, 0, 2));
 }
 
 // =============================================================================
@@ -97,17 +111,17 @@ int main(int argc, char* argv[]) {
 
     // Set the periodic boundary condition (in X and Y direction)
     auto initSpace0 = sysFSI.GetInitialSpacing();
-    ChVector<> cMin = ChVector<>(-bxDim / 2 - initSpace0 / 2, -byDim / 2 - initSpace0 / 2, -5.0 * initSpace0);
-    ChVector<> cMax = ChVector<>(bxDim / 2 + initSpace0 / 2, byDim / 2 + initSpace0 / 2, bzDim + 5.0 * initSpace0);
+    ChVector3d cMin = ChVector3d(-bxDim / 2 - initSpace0 / 2, -byDim / 2 - initSpace0 / 2, -5.0 * initSpace0);
+    ChVector3d cMax = ChVector3d(bxDim / 2 + initSpace0 / 2, byDim / 2 + initSpace0 / 2, bzDim + 5.0 * initSpace0);
     sysFSI.SetBoundaries(cMin, cMax);
 
     // Create Fluid region and discretize with SPH particles
-    ChVector<> boxCenter(0.0, 0.0, bzDim / 2);
-    ChVector<> boxHalfDim(bxDim / 2, byDim / 2, bzDim / 2);
+    ChVector3d boxCenter(0.0, 0.0, bzDim / 2);
+    ChVector3d boxHalfDim(bxDim / 2, byDim / 2, bzDim / 2 - initSpace0);
 
     // Use a chrono sampler to create a bucket of points
-    chrono::utils::GridSampler<> sampler(initSpace0);
-    chrono::utils::Generator::PointVector points = sampler.SampleBox(boxCenter, boxHalfDim);
+    chrono::utils::ChGridSampler<> sampler(initSpace0);
+    chrono::utils::ChGenerator::PointVector points = sampler.SampleBox(boxCenter, boxHalfDim);
 
     // Add fluid particles from the sampler points to the FSI system
     size_t numPart = points.size();
@@ -115,15 +129,54 @@ int main(int argc, char* argv[]) {
         sysFSI.AddSPHParticle(points[i]);
     }
 
-    // Create Solid region and attach BCE SPH particles
+    // Create solid region and attach BCE SPH particles
     CreateSolidPhase(sysMBS, sysFSI);
 
     // Complete construction of the FSI system
     sysFSI.Initialize();
+    // Create a run-tme visualizer
+#ifndef CHRONO_OPENGL
+    if (vis_type == ChVisualSystem::Type::OpenGL)
+        vis_type = ChVisualSystem::Type::VSG;
+#endif
+#ifndef CHRONO_VSG
+    if (vis_type == ChVisualSystem::Type::VSG)
+        vis_type = ChVisualSystem::Type::OpenGL;
+#endif
+#if !defined(CHRONO_OPENGL) && !defined(CHRONO_VSG)
+    render = false;
+#endif
+
+    std::shared_ptr<ChFsiVisualization> visFSI;
+    if (render) {
+        switch (vis_type) {
+            case ChVisualSystem::Type::OpenGL:
+#ifdef CHRONO_OPENGL
+                visFSI = chrono_types::make_shared<ChFsiVisualizationGL>(&sysFSI);
+#endif
+                break;
+            case ChVisualSystem::Type::VSG: {
+#ifdef CHRONO_VSG
+                visFSI = chrono_types::make_shared<ChFsiVisualizationVSG>(&sysFSI);
+#endif
+                break;
+            }
+        }
+
+        visFSI->SetTitle("Chrono::FSI Poiseuille flow");
+        visFSI->AddCamera(ChVector3d(0, -5 * byDim, 0.5 * bzDim), ChVector3d(0, 0, 0.5 * bzDim));
+        visFSI->SetCameraMoveScale(1.0f);
+        visFSI->EnableFluidMarkers(true);
+        visFSI->EnableBoundaryMarkers(true);
+        visFSI->SetRenderMode(ChFsiVisualization::RenderMode::SOLID);
+        visFSI->SetSPHColorCallback(chrono_types::make_shared<VelocityColorCallback>(0, 0.04));
+        visFSI->Initialize();
+    }
 
     // Start the simulation
     double dT = sysFSI.GetStepSize();
     unsigned int output_steps = (unsigned int)round(1 / (out_fps * dT));
+    unsigned int render_steps = (unsigned int)round(1 / (render_fps * dT));
 
     double time = 0;
     int current_step = 0;
@@ -137,6 +190,12 @@ int main(int argc, char* argv[]) {
         if (output && current_step % output_steps == 0) {
             std::cout << "------- OUTPUT" << std::endl;
             sysFSI.PrintParticleToFile(out_dir + "/particles");
+        }
+
+        // Render FSI system
+        if (render && current_step % render_steps == 0) {
+            if (!visFSI->Render())
+                break;
         }
 
         // Call the FSI solver

@@ -34,11 +34,13 @@ class ChApi ChElementBar : public ChElementGeneric {
     ChElementBar();
     ~ChElementBar();
 
-    virtual int GetNnodes() override { return 2; }
-    virtual int GetNdofs() override { return 2 * 3; }
-    virtual int GetNodeNdofs(int n) override { return 3; }
+    virtual unsigned int GetNumNodes() override { return 2; }
 
-    virtual std::shared_ptr<ChNodeFEAbase> GetNodeN(int n) override { return nodes[n]; }
+    virtual unsigned int GetNumCoordsPosLevel() override { return 2 * 3; }
+
+    virtual unsigned int GetNodeNumCoordsPosLevel(unsigned int n) override { return 3; }
+
+    virtual std::shared_ptr<ChNodeFEAbase> GetNode(unsigned int n) override { return nodes[n]; }
 
     virtual void SetNodes(std::shared_ptr<ChNodeFEAxyz> nodeA, std::shared_ptr<ChNodeFEAxyz> nodeB);
 
@@ -47,8 +49,11 @@ class ChApi ChElementBar : public ChElementGeneric {
     //
 
     /// Fills the D vector with the current field values at the nodes of the element, with proper ordering.
-    /// If the D vector size is not this->GetNdofs(), it will be resized.
+    /// If the D vector size is not this->GetNumCoordsPosLevel(), it will be resized.
     virtual void GetStateBlock(ChVectorDynamic<>& mD) override;
+
+    /// Add contribution of element inertia to total nodal masses
+    virtual void ComputeNodalMass() override;
 
     /// Sets H as the global stiffness matrix K, scaled  by Kfactor. Optionally, also
     /// superimposes global damping matrix R, scaled by Rfactor, and global mass matrix M multiplied by Mfactor.
@@ -67,20 +72,20 @@ class ChApi ChElementBar : public ChElementGeneric {
     //
 
     /// Set the cross sectional area of the bar (m^2) (also changes stiffness keeping same E modulus)
-    void SetBarArea(double ma) { this->area = ma; }
-    double GetBarArea() { return this->area; }
+    void SetArea(double ma) { this->area = ma; }
+    double GetArea() { return this->area; }
 
     /// Set the density of the bar (kg/m^3)
-    void SetBarDensity(double md) { this->density = md; }
-    double GetBarDensity() { return this->density; }
+    void SetDensity(double md) { this->density = md; }
+    double GetDensity() { return this->density; }
 
     /// Set the Young elastic modulus (N/m^2) (also sets stiffness)
-    void SetBarYoungModulus(double mE) { this->E = mE; }
-    double GetBarYoungModulus() { return this->E; }
+    void SetYoungModulus(double mE) { this->E = mE; }
+    double GetYoungModulus() { return this->E; }
 
     /// Set the Rayleigh damping ratio r (as in: R = r * K )
-    void SetBarRaleyghDamping(double mr) { this->rdamping = mr; }
-    double GetBarRaleyghDamping() { return this->rdamping; }
+    void SetRayleighDamping(double mr) { this->rdamping = mr; }
+    double GetRayleighDamping() { return this->rdamping; }
 
     /// The full mass of the bar
     double GetMass() { return this->mass; }
@@ -95,11 +100,11 @@ class ChApi ChElementBar : public ChElementGeneric {
     double GetStrain() { return (GetCurrentLength() - GetRestLength()) / GetRestLength(); }
 
     /// Get the elastic stress (sigma), after deformation.
-    double GetStress() { return GetBarYoungModulus() * GetStrain(); }
+    double GetStress() { return GetYoungModulus() * GetStrain(); }
 
-	/// Get the current force transmitted along the bar direction, 
-	/// including the effect of the damper. Positive if pulled. (N)
-	virtual double GetCurrentForce();
+    /// Get the current force transmitted along the bar direction,
+    /// including the effect of the damper. Positive if pulled. (N)
+    virtual double GetCurrentForce();
 
     //
     // Functions for interfacing to the solver

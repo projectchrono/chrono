@@ -91,7 +91,8 @@ class MyTerrain : public ChVehicleCosimTerrainNode {
 
 MyTerrain::MyTerrain(double length, double width) : ChVehicleCosimTerrainNode(length, width) {
     m_system = new ChSystemSMC;
-    m_system->Set_G_acc(ChVector<>(0, 0, m_gacc));
+    m_system->SetCollisionSystemType(ChCollisionSystem::Type::BULLET);
+    m_system->SetGravitationalAcceleration(ChVector3d(0, 0, m_gacc));
     m_system->SetNumThreads(1);
     m_system->SetContactForceModel(ChSystemSMC::ContactForceModel::Hertz);
 }
@@ -101,15 +102,14 @@ MyTerrain::~MyTerrain() {
 }
 
 void MyTerrain::OnInitialize(unsigned int num_tires) {
-
     // Create the rigid terrain box with its top surface at init height = 0
-    auto ground = std::shared_ptr<ChBody>(m_system->NewBody());
+    auto ground = chrono_types::make_shared<ChBody>();
     m_system->AddBody(ground);
     ground->SetMass(1);
-    ground->SetBodyFixed(true);
-    ground->SetCollide(true);
+    ground->SetFixed(true);
+    ground->EnableCollision(true);
 
-    auto mat_terrain = chrono_types::make_shared<ChMaterialSurfaceSMC>();
+    auto mat_terrain = chrono_types::make_shared<ChContactMaterialSMC>();
     mat_terrain->SetFriction(0.9f);
     mat_terrain->SetRestitution(0);
     mat_terrain->SetYoungModulus(8e5f);
@@ -119,13 +119,11 @@ void MyTerrain::OnInitialize(unsigned int num_tires) {
     mat_terrain->SetKt(4e5f);
     mat_terrain->SetGt(4e1f);
 
-    ground->GetCollisionModel()->ClearModel();
-    utils::AddBoxGeometry(ground.get(), mat_terrain, ChVector<>(m_dimX, m_dimY, 0.2), ChVector<>(0, 0, -0.1),
+    utils::AddBoxGeometry(ground.get(), mat_terrain, ChVector3d(m_dimX, m_dimY, 0.2), ChVector3d(0, 0, -0.1),
                           ChQuaternion<>(1, 0, 0, 0), true);
-    ground->GetCollisionModel()->BuildModel();
 
     // Shared proxy contact material
-    auto mat_proxy = chrono_types::make_shared<ChMaterialSurfaceSMC>();
+    auto mat_proxy = chrono_types::make_shared<ChContactMaterialSMC>();
     mat_proxy->SetFriction(0.9f);
     mat_proxy->SetRestitution(0);
     mat_proxy->SetYoungModulus(2e7f);
@@ -136,8 +134,9 @@ void MyTerrain::OnInitialize(unsigned int num_tires) {
     mat_proxy->SetGt(4e1f);
 
     // Create the proxy bodies with cylindrical shapes
-    double tire_radius = m_aabb[0].m_dims.x() / 2;
-    double tire_width = m_aabb[0].m_dims.y();
+    auto aabb_size = m_aabb[0].Size();
+    double tire_radius = aabb_size.x() / 2;
+    double tire_width = aabb_size.y();
 
     ////std::cout << "Radius: " << tire_radius << "  Width: " << tire_width << std::endl;
 
@@ -145,12 +144,10 @@ void MyTerrain::OnInitialize(unsigned int num_tires) {
     for (unsigned int i = 0; i < num_tires; i++) {
         m_bodies[i] = chrono_types::make_shared<ChBody>();
         m_bodies[i]->SetMass(m_load_mass[0]);
-        m_bodies[i]->SetInertiaXX(ChVector<>(0.1, 0.1, 0.1));
-        m_bodies[i]->SetCollide(true);
+        m_bodies[i]->SetInertiaXX(ChVector3d(0.1, 0.1, 0.1));
+        m_bodies[i]->EnableCollision(true);
 
-        m_bodies[i]->GetCollisionModel()->ClearModel();
         utils::AddCylinderGeometry(m_bodies[i].get(), mat_proxy, tire_radius, tire_width / 2);
-        m_bodies[i]->GetCollisionModel()->BuildModel();
 
         m_system->AddBody(m_bodies[i]);
     }
@@ -168,7 +165,7 @@ void MyTerrain::OnInitialize(unsigned int num_tires) {
         m_vis->Initialize();
         m_vis->AddLogo();
         m_vis->AddSkyBox();
-        m_vis->AddCamera(ChVector<>(2, 1.4, 1));
+        m_vis->AddCamera(ChVector3d(2, 1.4, 1));
         m_vis->AddLightDirectional();
 
         m_vis->AttachSystem(m_system);
@@ -198,13 +195,13 @@ void MyTerrain::OnRender() {
 
 void MyTerrain::UpdateRigidProxy(unsigned int i, BodyState& rigid_state) {
     m_bodies[i]->SetPos(rigid_state.pos);
-    m_bodies[i]->SetPos_dt(rigid_state.lin_vel);
+    m_bodies[i]->SetPosDt(rigid_state.lin_vel);
     m_bodies[i]->SetRot(rigid_state.rot);
-    m_bodies[i]->SetWvel_par(rigid_state.ang_vel);
+    m_bodies[i]->SetAngVelParent(rigid_state.ang_vel);
 }
 
 void MyTerrain::GetForceRigidProxy(unsigned int i, TerrainForce& rigid_contact) {
-    rigid_contact.point = ChVector<>(0, 0, 0);
+    rigid_contact.point = ChVector3d(0, 0, 0);
     rigid_contact.force = m_bodies[i]->GetContactForce();
     rigid_contact.moment = m_bodies[i]->GetContactTorque();
 }
@@ -251,7 +248,7 @@ int main(int argc, char** argv) {
     // Terrain dimensions and spindle initial location
     double terrain_length = 10;
     double terrain_width = 1;
-    ChVector<> init_loc(-4, 0, 0.5);
+    ChVector3d init_loc(-4, 0, 0.5);
 
     // Prepare output directory.
     std::string out_dir = GetChronoOutputPath() + "RIG_COSIM_CUSTOM";
@@ -320,7 +317,7 @@ int main(int argc, char** argv) {
         terrain->SetOutDir(out_dir, suffix);
         if (renderRT)
             terrain->EnableRuntimeVisualization(render_fps);
-        terrain->SetCameraPosition(ChVector<>(5, 2, 1));
+        terrain->SetCameraPosition(ChVector3d(5, 2, 1));
         node = terrain;
     }
 

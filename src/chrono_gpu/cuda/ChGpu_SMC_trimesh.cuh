@@ -282,7 +282,7 @@ inline __device__ void triangle_figureOutTouchedSDs(unsigned int triangleID,
 
 __global__ void determineCountOfSDsTouchedByEachTriangle(
     const ChSystemGpuMesh_impl::TriangleSoupPtr d_triangleSoup,
-    unsigned int* Triangle_NumSDsTouching,  //!< number of SDs touching this Triangle
+    unsigned int* Triangle_NumSDsTouching,
     ChSystemGpu_impl::GranParamsPtr gran_params,
     ChSystemGpuMesh_impl::MeshParamsPtr mesh_params) {
     // Figure out what triangleID this thread will handle. We work with a 1D block structure and a 1D grid structure
@@ -304,7 +304,7 @@ __global__ void determineCountOfSDsTouchedByEachTriangle(
 /// <param name="Triangle_SDsComposite">- the list of SDs touched by each triangle; triangle by triangle</param>
 /// <param name="Triangle_TriIDsComposite">- array that goes hand in hand with Triangle_SDsComposite; it repeats the
 /// triangle ID for a subsequent sort by key op that is performed elsewhere</param> <param name="gran_params"></param>
-/// <param name="mesh_params"></param> <returns></returns>
+/// <param name="mesh_params"></param>
 __global__ void storeSDsTouchedByEachTriangle(const ChSystemGpuMesh_impl::TriangleSoupPtr d_triangleSoup,
                                               const unsigned int* Triangle_NumSDsTouching,
                                               const unsigned int* TriangleSDCompositeOffsets,
@@ -336,7 +336,7 @@ __global__ void storeSDsTouchedByEachTriangle(const ChSystemGpuMesh_impl::Triang
 /// <param name="d_howManyTrianglesTouchTheTouchedSDs">- if SD is in the list above, it says how many triangles touch
 /// it</param> <param name="nSDs_touchedByTriangles">- how many SDs are actually touched by at least one
 /// triangle</param> <param name="pSD_numTrianglesTouching">- [in/out] array of size SDs, populated with numbre of
-/// triangles touched by each SD</param> <returns></returns>
+/// triangles touched by each SD</param>
 __global__ void finalizeSD_numTrianglesTouching(const unsigned int* d_SDs_touched,
                                                 const unsigned int* d_howManyTrianglesTouchTheTouchedSDs,
                                                 const unsigned int* nSDs_touchedByTriangles,

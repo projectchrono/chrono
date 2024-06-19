@@ -32,17 +32,18 @@ MTV::MTV()
     : m_system(nullptr),
       m_vehicle(nullptr),
       m_contactMethod(ChContactMethod::NSC),
+      m_collsysType(ChCollisionSystem::Type::BULLET),
       m_chassisCollisionType(CollisionType::NONE),
       m_fixed(false),
       m_brake_locking(false),
       m_brake_type(BrakeType::SIMPLE),
       m_engineType(EngineModelType::SHAFTS),
-      m_transmissionType(TransmissionModelType::SHAFTS),
+      m_transmissionType(TransmissionModelType::AUTOMATIC_SHAFTS),
       m_tireType(TireModelType::RIGID),
       m_use_walking_beam(false),
       m_tire_step_size(-1),
       m_initFwdVel(0),
-      m_initPos(ChCoordsys<>(ChVector<>(0, 0, 1), QUNIT)),
+      m_initPos(ChCoordsys<>(ChVector3d(0, 0, 1), QUNIT)),
       m_initOmega({0, 0, 0, 0, 0, 0}),
       m_apply_drag(false) {}
 
@@ -50,17 +51,18 @@ MTV::MTV(ChSystem* system)
     : m_system(system),
       m_vehicle(nullptr),
       m_contactMethod(ChContactMethod::NSC),
+      m_collsysType(ChCollisionSystem::Type::BULLET),
       m_chassisCollisionType(CollisionType::NONE),
       m_fixed(false),
       m_brake_locking(false),
       m_brake_type(BrakeType::SIMPLE),
       m_engineType(EngineModelType::SHAFTS),
-      m_transmissionType(TransmissionModelType::SHAFTS),
+      m_transmissionType(TransmissionModelType::AUTOMATIC_SHAFTS),
       m_tireType(TireModelType::RIGID),
       m_use_walking_beam(false),
       m_tire_step_size(-1),
       m_initFwdVel(0),
-      m_initPos(ChCoordsys<>(ChVector<>(0, 0, 1), QUNIT)),
+      m_initPos(ChCoordsys<>(ChVector3d(0, 0, 1), QUNIT)),
       m_initOmega({0, 0, 0, 0, 0, 0}),
       m_apply_drag(false) {}
 
@@ -83,7 +85,7 @@ void MTV::Initialize() {
     m_vehicle =
         m_system ? new MTV_Vehicle(m_system, m_fixed, m_use_walking_beam, m_brake_type, m_chassisCollisionType)
                  : new MTV_Vehicle(m_fixed, m_use_walking_beam, m_brake_type, m_contactMethod, m_chassisCollisionType);
-
+    m_vehicle->SetCollisionSystemType(m_collsysType);
     m_vehicle->SetInitWheelAngVel(m_initOmega);
     m_vehicle->Initialize(m_initPos, m_initFwdVel);
 
@@ -109,11 +111,13 @@ void MTV::Initialize() {
     }
     if (!transmission) {
         switch (m_transmissionType) {
-            case TransmissionModelType::SHAFTS:
+            case TransmissionModelType::AUTOMATIC_SHAFTS:
                 transmission = chrono_types::make_shared<FMTV_AutomaticTransmissionShafts>("Transmission");
                 break;
-            case TransmissionModelType::SIMPLE_MAP:
+            case TransmissionModelType::AUTOMATIC_SIMPLE_MAP:
                 transmission = chrono_types::make_shared<FMTV_AutomaticTransmissionSimpleMap>("Transmission");
+                break;
+            default:
                 break;
         }
     }

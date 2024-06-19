@@ -17,7 +17,6 @@
 //
 // =============================================================================
 
-#include "chrono/core/ChStream.h"
 #include "chrono/utils/ChUtilsInputOutput.h"
 
 #include "chrono_vehicle/ChConfigVehicle.h"
@@ -42,7 +41,6 @@
 // #include "chrono_sensor/filters/ChFilterVisualizePointCloud.h"
 
 using namespace chrono;
-using namespace chrono::geometry;
 using namespace chrono::irrlicht;
 using namespace chrono::vehicle;
 using namespace chrono::vehicle::hmmwv;
@@ -53,7 +51,7 @@ using namespace chrono::sensor;
 // -----------------------------------------------------------------------------
 
 // Initial vehicle location and orientation
-ChVector<> initLoc(0, 0, 1.0);
+ChVector3d initLoc(0, 0, 1.0);
 ChQuaternion<> initRot(1, 0, 0, 0);
 
 enum DriverMode { DEFAULT, RECORD, PLAYBACK };
@@ -71,7 +69,7 @@ CollisionType chassis_collision_type = CollisionType::NONE;
 
 // Type of powertrain models (SHAFTS, SIMPLE)
 EngineModelType engine_model = EngineModelType::SHAFTS;
-TransmissionModelType transmission_model = TransmissionModelType::SHAFTS;
+TransmissionModelType transmission_model = TransmissionModelType::AUTOMATIC_SHAFTS;
 
 // Drive type (FWD)
 DrivelineTypeWV drive_type = DrivelineTypeWV::AWD;
@@ -88,7 +86,7 @@ double terrainLength = 100.0;  // size in X direction
 double terrainWidth = 100.0;   // size in Y direction
 
 // Point on chassis tracked by the camera
-ChVector<> trackPoint(0.0, 0.0, 1.75);
+ChVector3d trackPoint(0.0, 0.0, 1.75);
 
 // Contact method
 ChContactMethod contact_method = ChContactMethod::SMC;
@@ -118,9 +116,9 @@ unsigned int vertical_samples = 32;
 float cam_fov = 1.408f;
 
 // Lidar's horizontal and vertical fov
-float lidar_hfov = (float)(2 * CH_C_PI);  // 360 degrees
-float lidar_vmax = (float)CH_C_PI / 12;   // 15 degrees up
-float lidar_vmin = (float)-CH_C_PI / 6;   // 30 degrees down
+float lidar_hfov = (float)(2 * CH_PI);  // 360 degrees
+float lidar_vmax = (float)CH_PI / 12;   // 15 degrees up
+float lidar_vmin = (float)-CH_PI / 6;   // 30 degrees down
 float lidar_max_distance = 100.0f;
 
 // -----------------------------------------------------------------------------
@@ -158,7 +156,7 @@ bool sensor_vis = true;
 // =============================================================================
 
 int main(int argc, char* argv[]) {
-    GetLog() << "Copyright (c) 2017 projectchrono.org\nChrono version: " << CHRONO_VERSION << "\n\n";
+    std::cout << "Copyright (c) 2017 projectchrono.org\nChrono version: " << CHRONO_VERSION << std::endl;
 
     // --------------
     // Create systems
@@ -203,8 +201,8 @@ int main(int argc, char* argv[]) {
             patch->SetTexture(vehicle::GetDataFile("terrain/textures/tile4.jpg"), 200, 200);
             break;
         case RigidTerrain::PatchType::HEIGHT_MAP:
-            patch = terrain.AddPatch(patch_mat, CSYSNORM, vehicle::GetDataFile("terrain/height_maps/test64.bmp"),
-                                     128, 128, 0, 4);
+            patch = terrain.AddPatch(patch_mat, CSYSNORM, vehicle::GetDataFile("terrain/height_maps/test64.bmp"), 128,
+                                     128, 0, 4);
             patch->SetTexture(vehicle::GetDataFile("terrain/textures/grass.jpg"), 16, 16);
             break;
         case RigidTerrain::PatchType::MESH:
@@ -243,7 +241,7 @@ int main(int argc, char* argv[]) {
 
     // Initialize output file for driver inputs
     std::string driver_file = out_dir + "/driver_inputs.txt";
-    utils::CSV_writer driver_csv(" ");
+    utils::ChWriterCSV driver_csv(" ");
 
     // Set up vehicle output
     my_hmmwv.GetVehicle().SetChassisOutput(true);
@@ -320,11 +318,11 @@ int main(int argc, char* argv[]) {
     // Create a camera and add it to the sensor manager
     // ------------------------------------------------
     auto cam = chrono_types::make_shared<ChCameraSensor>(
-        my_hmmwv.GetChassisBody(),                                           // body camera is attached to
-        cam_update_rate,                                                     // update rate in Hz
-        chrono::ChFrame<double>({-8, 0, 3}, Q_from_AngAxis(.2, {0, 1, 0})),  // offset pose
-        image_width,                                                         // image width
-        image_height,                                                        // image height
+        my_hmmwv.GetChassisBody(),                                              // body camera is attached to
+        cam_update_rate,                                                        // update rate in Hz
+        chrono::ChFrame<double>({-8, 0, 3}, QuatFromAngleAxis(.2, {0, 1, 0})),  // offset pose
+        image_width,                                                            // image width
+        image_height,                                                           // image height
         cam_fov,
         super_samples);  // fov, lag, exposure
     cam->SetName("Camera Sensor");
@@ -350,11 +348,11 @@ int main(int argc, char* argv[]) {
     // Create a second camera and add it to the sensor manager
     // -------------------------------------------------------
     auto cam2 = chrono_types::make_shared<ChCameraSensor>(
-        my_hmmwv.GetChassisBody(),                                            // body camera is attached to
-        cam_update_rate,                                                      // update rate in Hz
-        chrono::ChFrame<double>({1, 0, .875}, Q_from_AngAxis(0, {1, 0, 0})),  // offset pose
-        image_width,                                                          // image width
-        image_height,                                                         // image height
+        my_hmmwv.GetChassisBody(),                                               // body camera is attached to
+        cam_update_rate,                                                         // update rate in Hz
+        chrono::ChFrame<double>({1, 0, .875}, QuatFromAngleAxis(0, {1, 0, 0})),  // offset pose
+        image_width,                                                             // image width
+        image_height,                                                            // image height
         cam_fov,
         super_samples);  // fov, lag, exposure
     cam2->SetName("Camera Sensor");
@@ -381,7 +379,7 @@ int main(int argc, char* argv[]) {
     // auto lidar = chrono_types::make_shared<ChLidarSensor>(
     //     my_hmmwv.GetChassisBody(),                                         // body to which the IMU is attached
     //     lidar_update_rate,                                                 // update rate
-    //     chrono::ChFrame<double>({0, 0, 2}, Q_from_AngAxis(0, {1, 0, 0})),  // offset pose from body
+    //     chrono::ChFrame<double>({0, 0, 2}, QuatFromAngleAxis(0, {1, 0, 0})),  // offset pose from body
     //     horizontal_samples,                                                // horizontal samples
     //     vertical_samples,                                                  // vertical samples/channels
     //     lidar_hfov,                                                        // horizontal field of view
@@ -429,7 +427,7 @@ int main(int argc, char* argv[]) {
 
         cam->SetOffsetPose(
             chrono::ChFrame<double>({-orbit_radius * cos(time * orbit_rate), -orbit_radius * sin(time * orbit_rate), 3},
-                                    Q_from_AngAxis(time * orbit_rate, {0, 0, 1})));
+                                    QuatFromAngleAxis(time * orbit_rate, {0, 0, 1})));
 
         // Render scene and output POV-Ray data
         if (step_number % render_steps == 0) {
@@ -448,8 +446,8 @@ int main(int argc, char* argv[]) {
 
         // // Debug logging
         // if (debug_output && step_number % debug_steps == 0) {
-        //     GetLog() << "\n\n============ System Information ============\n";
-        //     GetLog() << "Time = " << time << "\n\n";
+        //     std::cout << "\n\n============ System Information ============" << std::endl;
+        //     std::cout << "Time = " << time << std::endl << std::endl;
         //     my_hmmwv.DebugLog(OUT_SPRINGS | OUT_SHOCKS | OUT_CONSTRAINTS);
         // }
 
@@ -484,7 +482,7 @@ int main(int argc, char* argv[]) {
     }
 
     if (driver_mode == RECORD) {
-        driver_csv.write_to_file(driver_file);
+        driver_csv.WriteToFile(driver_file);
     }
 
     return 0;

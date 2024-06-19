@@ -25,8 +25,8 @@
 #include "chrono/fea/ChContactSurfaceMesh.h"
 #include "chrono/fea/ChContactSurfaceNodeCloud.h"
 #include "chrono/fea/ChMaterialShellANCF.h"
-#include "chrono/fea/ChLinkDirFrame.h"
-#include "chrono/fea/ChLinkPointFrame.h"
+#include "chrono/fea/ChLinkNodeSlopeFrame.h"
+#include "chrono/fea/ChLinkNodeFrame.h"
 #include "chrono/fea/ChMesh.h"
 #include "chrono/fea/ChNodeFEAbase.h"
 #include "chrono/assets/ChVisualShapeFEA.h"
@@ -58,14 +58,14 @@ class CH_VEHICLE_API ChTrackShoeBandANCF : public ChTrackShoeBand {
 
     /// Get track tension at this track shoe.
     /// Return is the force due to the connections of this track shoe, expressed in the track shoe reference frame.
-    virtual ChVector<> GetTension() const override;
+    virtual ChVector3d GetTension() const override;
 
     /// Initialize this track shoe subsystem.
     /// The track shoe is created within the specified system and initialized at the specified location and orientation
     /// (expressed in the global frame). This version initializes the bodies of a CB rigid-link track shoe such that the
     /// center of the track shoe subsystem is at the specified location and all bodies have the specified orientation.
     virtual void Initialize(std::shared_ptr<ChBodyAuxRef> chassis,  ///< [in] chassis body
-                            const ChVector<>& location,             ///< [in] location relative to the chassis frame
+                            const ChVector3d& location,             ///< [in] location relative to the chassis frame
                             const ChQuaternion<>& rotation          ///< [in] orientation relative to the chassis frame
                             ) override;
 
@@ -80,10 +80,10 @@ class CH_VEHICLE_API ChTrackShoeBandANCF : public ChTrackShoeBand {
     virtual void UpdateInertiaProperties() override;
 
     /// Get the number of shell elements across the web length (from tread body to tread body).
-    virtual int GetNumElementsLength() const = 0;
+    virtual unsigned int GetNumElementsLength() const = 0;
 
     /// Get the number of shell elements across the web width (side to side).
-    virtual int GetNumElementsWidth() const = 0;
+    virtual unsigned int GetNumElementsWidth() const = 0;
 
     /// Get thickness of the inner steel layer.
     /// The rubber layer thicknesses are obtained from the total web thickness.

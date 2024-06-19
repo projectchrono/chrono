@@ -41,18 +41,19 @@ mrole::mrole()
     : m_system(nullptr),
       m_vehicle(nullptr),
       m_contactMethod(ChContactMethod::NSC),
+      m_collsysType(ChCollisionSystem::Type::BULLET),
       m_chassisCollisionType(CollisionType::NONE),
       m_fixed(false),
       m_brake_locking(false),
       m_brake_type(BrakeType::SIMPLE),
       m_driveType(DrivelineTypeWV::AWD),
-m_engineType(EngineModelType::SHAFTS),
-m_transmissionType(TransmissionModelType::SHAFTS),
- m_tireType(TireModelType::RIGID),
+      m_engineType(EngineModelType::SHAFTS),
+      m_transmissionType(TransmissionModelType::AUTOMATIC_SHAFTS),
+      m_tireType(TireModelType::RIGID),
       m_tire_collision_type(ChTire::CollisionType::SINGLE_POINT),
       m_tire_step_size(-1),
       m_initFwdVel(0),
-      m_initPos(ChCoordsys<>(ChVector<>(0, 0, 1), QUNIT)),
+      m_initPos(ChCoordsys<>(ChVector3d(0, 0, 1), QUNIT)),
       m_initOmega({0, 0, 0, 0}),
       m_ctis(CTIS::ROAD),
       m_apply_drag(false) {}
@@ -61,18 +62,19 @@ mrole::mrole(ChSystem* system)
     : m_system(system),
       m_vehicle(nullptr),
       m_contactMethod(ChContactMethod::NSC),
+      m_collsysType(ChCollisionSystem::Type::BULLET),
       m_chassisCollisionType(CollisionType::NONE),
       m_fixed(false),
       m_brake_locking(false),
       m_brake_type(BrakeType::SIMPLE),
       m_driveType(DrivelineTypeWV::AWD),
-m_engineType(EngineModelType::SHAFTS),
-m_transmissionType(TransmissionModelType::SHAFTS),
-m_tireType(TireModelType::RIGID),
+      m_engineType(EngineModelType::SHAFTS),
+      m_transmissionType(TransmissionModelType::AUTOMATIC_SHAFTS),
+      m_tireType(TireModelType::RIGID),
       m_tire_collision_type(ChTire::CollisionType::SINGLE_POINT),
       m_tire_step_size(-1),
       m_initFwdVel(0),
-      m_initPos(ChCoordsys<>(ChVector<>(0, 0, 1), QUNIT)),
+      m_initPos(ChCoordsys<>(ChVector3d(0, 0, 1), QUNIT)),
       m_initOmega({0, 0, 0, 0}),
       m_ctis(CTIS::ROAD),
       m_apply_drag(false) {}
@@ -94,6 +96,7 @@ void mrole::SetAerodynamicDrag(double Cd, double area, double air_density) {
 void mrole::Initialize() {
     // Create and initialize the mrole vehicle
     m_vehicle = CreateVehicle();
+    m_vehicle->SetCollisionSystemType(m_collsysType);
     m_vehicle->SetInitWheelAngVel(m_initOmega);
     m_vehicle->Initialize(m_initPos, m_initFwdVel);
 
@@ -101,7 +104,7 @@ void mrole::Initialize() {
     if (m_apply_drag) {
         m_vehicle->GetChassis()->SetAerodynamicDrag(m_Cd, m_area, m_air_density);
     }
-    
+
     // Create and initialize the powertrain system
     std::shared_ptr<ChEngine> engine;
     std::shared_ptr<ChTransmission> transmission;
@@ -118,11 +121,13 @@ void mrole::Initialize() {
     }
 
     switch (m_transmissionType) {
-        case TransmissionModelType::SHAFTS:
+        case TransmissionModelType::AUTOMATIC_SHAFTS:
             transmission = chrono_types::make_shared<mrole_AutomaticTransmissionShafts>("Transmission");
             break;
-        case TransmissionModelType::SIMPLE_MAP:
+        case TransmissionModelType::AUTOMATIC_SIMPLE_MAP:
             transmission = chrono_types::make_shared<mrole_AutomaticTransmissionSimpleMap>("Transmission");
+            break;
+        default:
             break;
     }
 
@@ -131,7 +136,6 @@ void mrole::Initialize() {
         m_vehicle->InitializePowertrain(powertrain);
     }
 
- 
     // Create the tires and set parameters depending on type.
     switch (m_tireType) {
         case TireModelType::RIGID:

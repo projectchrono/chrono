@@ -57,38 +57,16 @@ handles pointing to it.
 
 ### Templated classes
 
-Currently there is no support for templated clases in Python. On the
-other side, there are some templated classes in the C++ API of
-Chrono::Engine, especially for vectors, matrices, etc., because in C++
-you might want to create vectors of floats, or doubles, or integers,
-etc. by using the <> syntax, as:
-
-~~~~{.cpp}
-ChVector<float> my_vect;    // vector of floats
-ChVector<double> my_vect;   // vector of double precision floats
-ChVector<int> my_vect;      // vector of integers
-ChVector<> my_vect;         // default: as ChVector<double>
-ChQuaternion<float> my_vect;    // quaternion of floats
-ChQuaternion<double> my_vect;   // quaternion of double precision floats
-...                             // etc.
-~~~~
-
-In PyChrono::Engine, we simply decided to support only the ```<double>```
-templated versions, that are used most of the times. Templated classes
-are renamed by appending a **D** at the end (to remember that they
-represent the ```<double>``` templated versions). In detail, this is a list of
-the Python classes that are equivalent to C++ templated classes:
+Currently there is no support for templated clases in Python. So, all the C++ classes relying on templates need to be wrapped in Python in order to provide the most relevant specializations. Since the most fundamental templated classes offer aliases for the most common specialization those names are reflected also in the Python wrapper.
 
 ~~~~~~~~~~~~~~~{.py}
-chrono.ChVectorD          # as ChVector<double>  in c++
-chrono.ChQuaternionD      # as ChQuaternion<double>  in c++
-chrono.ChMatrix33D        # as ChMatrix33<double>  in c++
-chrono.ChMatrixNMD        # as ChMatrixNM<double>  in c++
-chrono.ChMatrixDynamicD   # as ChMatrixDynamic<double>  in c++
-chrono.ChMatrixD          # as ChMatrix<double>  in c++
-chrono.ChFrameD           # as ChFrame<double>  in c++
-chrono.ChFrameMovingD     # as ChFrameMoving<double>  in c++
-chrono.ChCoordsysD        # as ChCoordsys<double>  in c++
+chrono.ChVector3d         # as ChVector3d  in C++
+chrono.ChQuaterniond      # as ChQuaterniond  in C++
+chrono.ChMatrix33d        # as ChMatrix33d  in C++
+chrono.ChMatrixDynamicd   # as ChMatrixDynamic<double>  in C++
+chrono.ChFramed           # as ChFramed  in C++
+chrono.ChFrameMovingd     # as ChFrameMoving<double>  in C++
+chrono.ChCoordsysd        # as ChCoordsysd  in C++
 ~~~~~~~~~~~~~~~
 
 There is a (quite limited) support for templates of templates, especially
@@ -97,7 +75,7 @@ is translated in a special name in Python. For std::vector, we prepend
 the vector_ prefix: 
 
 ~~~~~~~~~~~~~~~{.py}
-chrono.vector_ChVectorD   # as std::vector<ChVector<double>>  in c++
+chrono.vector_ChVector3d   # as std::vector<ChVector<double>>  in C++
 ~~~~~~~~~~~~~~~
 
 
@@ -118,7 +96,7 @@ double sum = my_vector.y() + my_vector.z();
 becomes
 
 ~~~~~~~~~~~~~~~{.py}
-chrono.ChVectorD  my_vector
+chrono.ChVector3d  my_vector
 my_vector.x = 123
 sum = my_vector.y + my_vector.z
 ~~~~~~~~~~~~~~~
@@ -170,7 +148,7 @@ Upcasting of derived classes to the base class works **automatically**
 in Python and does not require intervention. We managed to do this also
 for shared pointers. For example *ChSystem.Add()* requires a
 (shared)pointer to a *ChPhysicsItem* object, that is a base class, but
-you can pass it a *ChBody*, a *ChLinkGears*, etc. that are derived
+you can pass it a *ChBody*, a *ChLinkLockGear*, etc. that are derived
 classes. The same in Python.
 
 #### Downcasting
@@ -180,14 +158,13 @@ That is, if a function *returns* a pointer to a base class, how to
 understand that a specific returned object belongs to a derived class?
 At the time of writing, an automatic downcasting is performed only for
 classes inherited from ChFunction and ChAsset. Otherwise, one has to
-perform manual downcasting using the CastToXXXYYYZZZ() helper functions;
+perform manual downcasting using the `CastToXXX()` helper functions;
 this is a bit similar to the ```dynamic_cast<derived>(base)``` method in C++.
 Currently such casting functions are provided for many shared
 pointers. Use this in Python as in the following example:
 
 ~~~~~~~~~~~~~~~{.py}
-myvis = chrono.CastToChVisualizationShared(myasset)
-print ('Could be cast to visualization object?', !myvis.IsNull())
+mybody = chrono.CastToChBody(ptr_to_contactable)
 ~~~~~~~~~~~~~~~
 
 ### Nested classes
@@ -220,8 +197,8 @@ Functions that are correctly mapped will return objects whose type is
 echoed in the interpreter window as:
 
 ~~~~~~~~~~~~~~~{.py}
-my_system.Get_G_acc()
-<pychrono.ChVectorD; 
+my_system.GetGravitationalAcceleration()
+<pychrono.ChVector3d; 
 proxy of <Swig Object of type 'chrono::ChVector< double > *' at 0x03EDCEA8> >
 ~~~~~~~~~~~~~~~
 

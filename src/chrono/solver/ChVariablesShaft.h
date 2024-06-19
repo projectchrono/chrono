@@ -25,21 +25,12 @@ class ChShaft;
 /// a shaft, with inertia and associated variable (rotational speed)
 
 class ChApi ChVariablesShaft : public ChVariables {
-  private:
-    ChShaft* m_shaft;      ///< associated shaft element
-    double m_inertia;      ///< shaft inertia
-    double m_inv_inertia;  ///< inverse of shaft inertia value
-
   public:
     ChVariablesShaft() : ChVariables(1), m_shaft(NULL), m_inertia(1), m_inv_inertia(1) {}
     virtual ~ChVariablesShaft() {}
 
     /// Assignment operator: copy from other object
     ChVariablesShaft& operator=(const ChVariablesShaft& other);
-
-    /// The number of scalar variables in the vector qb
-    /// (dof=degrees of freedom)
-    virtual int Get_ndof() const override { return 1; }
 
     /// Get the inertia associated with rotation of the shaft
     double GetInertia() const { return m_inertia; }
@@ -53,56 +44,58 @@ class ChApi ChVariablesShaft : public ChVariables {
     ChShaft* GetShaft() { return m_shaft; }
     void SetShaft(ChShaft* shaft) { m_shaft = shaft; }
 
-    /// Computes the product of the inverse mass matrix by a
-    /// vector, and set in result: result = [invMb]*vect
-    virtual void Compute_invMb_v(ChVectorRef result, ChVectorConstRef vect) const override;
+    /// Compute the product of the inverse mass matrix by a given vector and store in result.
+    /// This function must calculate `result = M^(-1) * vect` for a vector of same size as the variables state.
+    virtual void ComputeMassInverseTimesVector(ChVectorRef result, ChVectorConstRef vect) const override;
 
-    /// Computes the product of the inverse mass matrix by a
-    /// vector, and increment result: result += [invMb]*vect
-    virtual void Compute_inc_invMb_v(ChVectorRef result, ChVectorConstRef vect) const override;
+    /// Compute the product of the mass matrix by a given vector and increment result.
+    /// This function must perform the operation `result += M * vect` for a vector of same size as the variables state.
+    virtual void AddMassTimesVector(ChVectorRef result, ChVectorConstRef vect) const override;
 
-    /// Computes the product of the mass matrix by a
-    /// vector, and set in result: result = [Mb]*vect
-    virtual void Compute_inc_Mb_v(ChVectorRef result, ChVectorConstRef vect) const override;
+    /// Add the product of the mass submatrix by a given vector, scaled by ca, to result.
+    /// Note: 'result' and 'vect' are system-level vectors of appropriate size. This function must index into these
+    /// vectors using the offsets of each variable.
+    virtual void AddMassTimesVectorInto(ChVectorRef result, ChVectorConstRef vect, const double ca) const override;
 
-    /// Computes the product of the corresponding block in the system matrix (ie. the mass matrix) by 'vect', scale by
-    /// c_a, and add to 'result'.
-    /// NOTE: the 'vect' and 'result' vectors must already have the size of the total variables&constraints in the
-    /// system; the procedure will use the ChVariable offsets (that must be already updated) to know the indexes in
-    /// result and vect.
-    virtual void MultiplyAndAdd(ChVectorRef result, ChVectorConstRef vect, const double c_a) const override;
+    /// Add the diagonal of the mass matrix, as a vector scaled by ca, to result.
+    /// Note: 'result' is a system-level vector of appropriate size. This function must index into this vector using the
+    /// offsets of each variable.
+    virtual void AddMassDiagonalInto(ChVectorRef result, const double ca) const override;
 
-    /// Add the diagonal of the mass matrix scaled by c_a, to 'result'.
-    /// NOTE: the 'result' vector must already have the size of system unknowns, ie the size of the total variables &
-    /// constraints in the system; the procedure will use the ChVariable offset (that must be already updated) as index.
-    virtual void DiagonalAdd(ChVectorRef result, const double c_a) const override;
-
-    /// Build the mass matrix (for these variables) scaled by c_a, storing
-    /// it in 'storage' sparse matrix, at given column/row offset.
-    /// Note, most iterative solvers don't need to know mass matrix explicitly.
-    /// Optimized: doesn't fill unneeded elements except mass.
-    virtual void Build_M(ChSparseMatrix& storage, int insrow, int inscol, const double c_a) override;
+    /// Write the mass submatrix for these variables into the specified global matrix at the offsets of each variable.
+    /// The masses will be scaled by the given factor 'ca'. The (start_row, start_col) pair specifies the top-left
+    /// corner of the system-level mass matrix in the provided matrix. Assembling the system-level sparse matrix
+    /// is required only if using a direct sparse solver or for debugging/reporting purposes.
+    virtual void PasteMassInto(ChSparseMatrix& mat,
+                               unsigned int start_row,
+                               unsigned int start_col,
+                               const double ca) const override;
 
     /// Method to allow serialization of transient data to archives.
-    virtual void ArchiveOut(ChArchiveOut& marchive) override {
+    virtual void ArchiveOut(ChArchiveOut& archive_out) override {
         // version number
-        marchive.VersionWrite<ChVariablesShaft>();
+        archive_out.VersionWrite<ChVariablesShaft>();
         // serialize parent class
-        ChVariables::ArchiveOut(marchive);
+        ChVariables::ArchiveOut(archive_out);
         // serialize all member data:
-        marchive << CHNVP(m_inertia);
+        archive_out << CHNVP(m_inertia);
     }
 
     /// Method to allow de-serialization of transient data from archives.
-    virtual void ArchiveIn(ChArchiveIn& marchive) override {
+    virtual void ArchiveIn(ChArchiveIn& archive_in) override {
         // version number
-        /*int version =*/ marchive.VersionRead<ChVariablesShaft>();
+        /*int version =*/archive_in.VersionRead<ChVariablesShaft>();
         // deserialize parent class
-        ChVariables::ArchiveIn(marchive);
+        ChVariables::ArchiveIn(archive_in);
         // stream in all member data:
-        marchive >> CHNVP(m_inertia);
+        archive_in >> CHNVP(m_inertia);
         SetInertia(m_inertia);
     }
+
+  private:
+    ChShaft* m_shaft;      ///< associated shaft element
+    double m_inertia;      ///< shaft inertia
+    double m_inv_inertia;  ///< inverse of shaft inertia value
 };
 
 }  // end namespace chrono

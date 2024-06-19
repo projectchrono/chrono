@@ -9,7 +9,7 @@
 // http://projectchrono.org/license-chrono.txt.
 //
 // =============================================================================
-// Authors: Radu Serban
+// Authors: Radu Serban, Dario Fusai
 // =============================================================================
 //
 // A collection of various data filters
@@ -23,10 +23,10 @@
 #include <valarray>
 #include <vector>
 
-#include <chrono/motion_functions/ChFunction_Recorder.h>
+#include "chrono/functions/ChFunctionInterp.h"
+#include "chrono/functions/ChFunctionSineStep.h"
 #include "chrono/core/ChApiCE.h"
-#include "chrono/core/ChMathematics.h"
-#include "chrono/core/ChVector.h"
+#include "chrono/core/ChVector3.h"
 
 namespace chrono {
 
@@ -35,6 +35,8 @@ namespace utils {
 
 /// @addtogroup chrono_utils
 /// @{
+
+// Averaging filters -----------------------------------------------------------
 
 /// Moving average filter for smoothing running data.
 class ChApi ChRunningAverage {
@@ -82,6 +84,8 @@ class ChApi ChMovingAverage {
   private:
     std::valarray<double> m_out;
 };
+
+// Analogue filters ------------------------------------------------------------
 
 /// Base class for simulated analogue filters in the time domain.
 class ChApi ChAnalogueFilter {
@@ -175,15 +179,17 @@ class ChApi ChFilterPDT1 : public ChAnalogueFilter {
     ChFilterPT1 pt1;
 };
 
+// IIR filters -----------------------------------------------------------------
+
 // Collection of useful recursive filters (IIR) for signal processing.
 // For the sake of stability and numerical efficiency they are based
 // on the bilinear transform (Tustin method)
 
 /// Butterworth low-pass filter.
-class ChApi ChButterworth_Lowpass {
+class ChApi ChButterworthLowpass {
   public:
-    ChButterworth_Lowpass();
-    ChButterworth_Lowpass(unsigned int nPoles, double step, double fc);
+    ChButterworthLowpass();
+    ChButterworthLowpass(unsigned int nPoles, double step, double fc);
     void Reset();
     void Config(unsigned int nPoles, double step, double fc);
     double Filter(double u);
@@ -213,10 +219,10 @@ class ChApi ChButterworth_Lowpass {
 };
 
 /// Butterworth high-pass filter.
-class ChApi ChButterworth_Highpass {
+class ChApi ChButterworthHighpass {
   public:
-    ChButterworth_Highpass();
-    ChButterworth_Highpass(unsigned int nPoles, double step, double fc);
+    ChButterworthHighpass();
+    ChButterworthHighpass(unsigned int nPoles, double step, double fc);
     void Reset();
     void Config(unsigned int nPoles, double step, double fc);
     double Filter(double u);
@@ -246,10 +252,10 @@ class ChApi ChButterworth_Highpass {
 };
 
 /// Filter for vertical absorbed power.
-class ChApi ChAbsorbed_Power_Vertical {
+class ChApi ChAbsorbedPowerVertical {
   public:
-    ChAbsorbed_Power_Vertical();
-    ChAbsorbed_Power_Vertical(double step);
+    ChAbsorbedPowerVertical();
+    ChAbsorbedPowerVertical(double step);
     void Reset();
     void Config(double step);
     double Filter(double u);
@@ -265,6 +271,8 @@ class ChApi ChAbsorbed_Power_Vertical {
     double m_u_hist1, m_u_hist2, m_u_hist3;
     double m_y_hist1, m_y_hist2, m_y_hist3;
 };
+
+// ISO filters -----------------------------------------------------------------
 
 class ChApi ChISO2631_1_AVTransition {
   public:
@@ -331,8 +339,8 @@ class ChApi ChISO2631_1_Wk {
     static const double Q5;
     static const double Q6;
 
-    ChButterworth_Highpass hp;
-    ChButterworth_Lowpass lp;
+    ChButterworthHighpass hp;
+    ChButterworthLowpass lp;
     ChISO2631_1_AVTransition avt;
     ChISO2631_1_UpwardStep ups;
 };
@@ -353,8 +361,8 @@ class ChApi ChISO2631_1_Wd {
     static const double f4;
     static const double Q4;
 
-    ChButterworth_Highpass hp;
-    ChButterworth_Lowpass lp;
+    ChButterworthHighpass hp;
+    ChButterworthLowpass lp;
     ChISO2631_1_AVTransition avt;
 };
 
@@ -377,13 +385,13 @@ class ChApi ChISO2631_1_Wf {
     static const double Q5;
     static const double Q6;
 
-    ChButterworth_Highpass hp;
-    ChButterworth_Lowpass lp;
+    ChButterworthHighpass hp;
+    ChButterworthLowpass lp;
     ChISO2631_1_AVTransition avt;
     ChISO2631_1_UpwardStep ups;
 };
 
-/// ISO2631-5 weighting filter for shock like signal in horizontal direction. 
+/// ISO2631-5 weighting filter for shock like signal in horizontal direction.
 /// Works with sample rate = 160 Hz only.
 class ChApi ChISO2631_5_Wxy {
   public:
@@ -413,7 +421,7 @@ class ChApi ChISO2631_5_Wxy {
 class ChApi ChISO2631_5_Wz {
   public:
     ChISO2631_5_Wz();
-    void Filter(std::vector<double>& u, std::vector<double>& y);
+    void Filter(const std::vector<double>& u, std::vector<double>& y);
 
   private:
     static const double m_w[13][7];
@@ -429,7 +437,7 @@ class ChApi ChISO2631_Vibration_SeatCushionLogger {
     ChISO2631_Vibration_SeatCushionLogger(double step);
     void Config(double step);
     void AddData(double speed, double acc_x, double acc_y, double acc_z);
-    void AddData(double speed, ChVector<>& acc_v) { AddData(speed, acc_v.x(), acc_v.y(), acc_v.z()); }
+    void AddData(double speed, ChVector3d& acc_v) { AddData(speed, acc_v.x(), acc_v.y(), acc_v.z()); }
     void Reset();
     double GetExposureTime() const { return m_logging_time; }
     double GetInputRMS_X() const;
@@ -453,6 +461,8 @@ class ChApi ChISO2631_Vibration_SeatCushionLogger {
     double m_logging_time;
     double m_step;
 
+    std::unique_ptr<ChFunctionSineStep> m_sinestep;
+
     // raw input data series
     std::vector<double> m_data_speed;
 
@@ -461,6 +471,7 @@ class ChApi ChISO2631_Vibration_SeatCushionLogger {
     std::vector<double> m_data_acc_z;
 
     std::vector<double> m_data_acc_ap_z;  // vertical acceleration in ft/s^2 for absorbed power calculation
+    double m_data_ap_avg;
 
     // freqency weighted data series
     std::vector<double> m_data_acc_x_wd;
@@ -492,7 +503,8 @@ class ChApi ChISO2631_Vibration_SeatCushionLogger {
     ChISO2631_1_Wd m_filter_wd_y;
     ChISO2631_1_Wk m_filter_wk_z;
 
-    ChAbsorbed_Power_Vertical m_filter_abspow;
+    ChAbsorbedPowerVertical m_filter_abspow;
+    ChFilterI m_filter_int_abspow;
 
     // filter classes for time integral aw
     ChFilterI m_filter_int_aw_x;
@@ -516,7 +528,7 @@ class ChApi ChISO2631_Shock_SeatCushionLogger {
     ChISO2631_Shock_SeatCushionLogger(double step);
     void Config(double step);
     void AddData(double acc_x, double acc_y, double acc_z);
-    void AddData(ChVector<>& acc_v) { AddData(acc_v.x(), acc_v.y(), acc_v.z()); }
+    void AddData(ChVector3d& acc_v) { AddData(acc_v.x(), acc_v.y(), acc_v.z()); }
     void Reset();
     // Se = equivalent static spine compressive stress [MPa]
     // Se < 0.5 MPa : low risk of severe health effect
@@ -537,6 +549,8 @@ class ChApi ChISO2631_Shock_SeatCushionLogger {
 
     double m_logging_time;
 
+    std::unique_ptr<ChFunctionSineStep> m_sinestep;
+
     // results
     double m_dkx;
     double m_dky;
@@ -547,17 +561,17 @@ class ChApi ChISO2631_Shock_SeatCushionLogger {
     const double m_mz = 0.032;
 
     // antialiasing filters
-    ChButterworth_Lowpass m_lpx;
-    ChButterworth_Lowpass m_lpy;
-    ChButterworth_Lowpass m_lpz;
+    ChButterworthLowpass m_lpx;
+    ChButterworthLowpass m_lpy;
+    ChButterworthLowpass m_lpz;
 
     // legacy lowpass
-    ChButterworth_Lowpass m_legacy_lpz;
+    ChButterworthLowpass m_legacy_lpz;
 
     // buffers for raw but antialiased input data
-    ChFunction_Recorder m_raw_inp_x;
-    ChFunction_Recorder m_raw_inp_y;
-    ChFunction_Recorder m_raw_inp_z;
+    ChFunctionInterp m_raw_inp_x;
+    ChFunctionInterp m_raw_inp_y;
+    ChFunctionInterp m_raw_inp_z;
 
     // buffers for resampled input data
     std::vector<double> m_inp_x;
@@ -575,6 +589,115 @@ class ChApi ChISO2631_Shock_SeatCushionLogger {
     std::vector<double> m_out_z;
 
     double CalcPeaks(std::vector<double>& v, bool vertical);
+};
+
+// Motion law filters ----------------------------------------------------------
+
+/// Base class for smoothing basic motion laws with discrete time-domain nonlinear filters.
+/// Useful to track on the fly externally-provided signals (e.g. by joystick, teach pendant)
+/// with a continuous motion profile.
+class ChApi ChMotionFilter {
+  public:
+    ChMotionFilter() {}
+
+    virtual ~ChMotionFilter() {}
+
+    /// Reset state variables.
+    virtual void Reset() = 0;
+
+    /// Get last filtered position computed.
+    virtual double GetFilteredPos() const { return m_filtpos; }
+
+    /// Get last filtered velocity computed.
+    virtual double GetFilteredVel() const { return m_filtvel; }
+
+    /// Get last filtered acceleration computed.
+    virtual double GetFilteredAcc() const { return m_filtacc; }
+
+  protected:
+    double m_filtpos = 0;  ///< filtered position setpoint
+    double m_filtvel = 0;  ///< filtered velocity setpoint
+    double m_filtacc = 0;  ///< filtered acceleration
+};
+
+/// Second-order nonlinear filter for smoothing basic motion laws (e.g. step, linear ramp)
+/// given maximum (symmetrical) velocity and acceleration constraints.
+/// Output is analogous to a Constant Acceleration motion profile.
+class ChApi ChMotionFilterSecondOrder : public ChMotionFilter {
+  public:
+    ChMotionFilterSecondOrder();
+
+    ChMotionFilterSecondOrder(double vmax, double amax, double timestep);
+
+    virtual ~ChMotionFilterSecondOrder() {}
+
+    /// Configure filter parameters
+    void Config(double vmax, double amax, double timestep);
+
+    /// Reset state variables
+    virtual void Reset() override;
+
+    /// Given instantaneous raw position and velocity setpoints,
+    /// compute filtered pos/vel/acc and return filtered position
+    double Filter(double raw_setpos, double raw_setvel);
+
+  private:
+    double m_vmax = 0;         ///< max allowed velocity
+    double m_amax = 0;         ///< max allowed acceleration
+    double m_timestep = 0;     ///< sampling time
+    double m_filtvel_old = 0;  ///< old filtered velocity setpoint
+};
+
+/// Third-order nonlinear filter for smoothing basic motion laws (e.g. step, linear ramp)
+/// given maximum (symmetrical) velocity, acceleration and jerk constraints.
+/// Output is analogous to a Double-S (aka. Constant Jerk) motion profile.
+/// NB: this filter is affected by some chattering on jerk control variable, thus it works best
+/// if small time step is provided.
+class ChApi ChMotionFilterThirdOrder : public ChMotionFilter {
+  public:
+    ChMotionFilterThirdOrder();
+
+    ChMotionFilterThirdOrder(double vmax, double amax, double jmax, double timestep);
+
+    virtual ~ChMotionFilterThirdOrder() {}
+
+    /// Configure filter parameters
+    void Config(double vmax, double amax, double jmax, double timestep);
+
+    /// Reset state variables
+    virtual void Reset() override;
+
+    /// Given instantaneous raw position, velocity and acceleration setpoints,
+    /// compute filtered pos/vel/acc/jerk and return filtered position
+    double Filter(double raw_setpos, double raw_setvel, double raw_setacc);
+
+    /// Get last filtered jerk computed
+    double GetFilteredJerk() const { return m_filtjerk; }
+
+  private:
+    double GetCoeff_ua(double a);
+
+    double GetCoeff_deltav(double v);
+
+    double GetCoeff_ucv(double v);
+
+    double GetCoeff_uv(double v);
+
+    double m_vmax = 0;         ///< max allowed velocity
+    double m_amax = 0;         ///< max allowed acceleration
+    double m_jmax = 0;         ///< max allowed jerk
+    double m_timestep = 0;     ///< sampling time
+    double m_filtvel_old = 0;  ///< old filtered velocity setpoint
+    double m_filtacc_old = 0;  ///< old filtered acceleration
+    double m_filtjerk = 0;     ///< filtered jerk setpoint
+
+    /// Reference errors
+    double m_err_vel = 0;
+    double m_err_acc = 0;
+    double m_errmax_vel = 0;
+    double m_errmax_acc = 0;
+    double m_errmin_vel = 0;
+    double m_errmin_acc = 0;
 };
 
 /// @} chrono_utils

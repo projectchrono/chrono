@@ -4,7 +4,7 @@
 
 %}
  
-%import "chrono_swig/interface/core/ChVector.i"
+%import "chrono_swig/interface/core/ChVector3.i"
 %import "chrono_swig/interface/core/ChVisualShape.i"
 
 

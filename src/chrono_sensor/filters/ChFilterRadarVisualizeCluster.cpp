@@ -80,14 +80,14 @@ CH_SENSOR_API void ChFilterRadarVisualizeCluster::Apply() {
 
         float hfov = m_radar->GetHFOV();
         float vfov = m_radar->GetVFOV();
-        float near = m_radar->GetClipNear();
-        float far = m_radar->GetMaxDistance();
-        float right = tan(hfov / 2) * near;
+        float nearZ = m_radar->GetClipNear();  ////changed near,far -> nearZ,farZ
+        float farZ = m_radar->GetMaxDistance();
+        float right = tan(hfov / 2) * nearZ;
         float left = -right;
-        float top = tan(vfov / 2) * near;
+        float top = tan(vfov / 2) * nearZ;
         float bottom = -top;
 
-        glFrustum(left, right, bottom, top, near, far);
+        glFrustum(left, right, bottom, top, nearZ, farZ);
 
         // Reset Model view matrix stack
         glMatrixMode(GL_MODELVIEW);
@@ -114,7 +114,8 @@ CH_SENSOR_API void ChFilterRadarVisualizeCluster::Apply() {
                           inten * 0.5 * m_buffer_in->Buffer[i].objectId);
                 //                glColor3f(1, 1, 1);
                 glVertex3f(-m_buffer_in->Buffer[i].y, m_buffer_in->Buffer[i].z, -m_buffer_in->Buffer[i].x);
-//                printf("%f %f %f\n",m_buffer_in->Buffer[i].xyz[0],m_buffer_in->Buffer[i].xyz[1],m_buffer_in->Buffer[i].xyz[2]);
+                //                printf("%f %f
+                //                %f\n",m_buffer_in->Buffer[i].xyz[0],m_buffer_in->Buffer[i].xyz[1],m_buffer_in->Buffer[i].xyz[2]);
             }
         }
 

@@ -44,9 +44,8 @@ class CH_MODELS_API ARTcar_AutomaticTransmissionSimpleMap : public chrono::vehic
     /// Set the ideal shift points for automatic gear shifting.
     /// For each forward gear, specify a pair (min, max) with the minimum and
     /// maximum engine speed for shifting (down and up, respectively).
-    void SetShiftPoints(
-        std::vector<std::pair<double, double>>& shift_bands  ///< [out] down-shift/up-shift points
-        ) override;
+    void SetShiftPoints(std::vector<std::pair<double, double>>& shift_bands  ///< [out] down-shift/up-shift points
+                        ) override;
 };
 
 /// @} vehicle_models_artcar

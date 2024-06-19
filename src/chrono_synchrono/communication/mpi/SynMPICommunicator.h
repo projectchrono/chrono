@@ -81,7 +81,7 @@ class SYN_API SynMPICommunicator : public SynCommunicator {
 
     ///@brief Get the number of ranks in the MPI world
     ///
-    virtual int GetNumRanks() const { return m_num_ranks; }
+    virtual unsigned int GetNumRanks() const { return m_num_ranks; }
 
     // -----------------------------------------------------------------------------------------------
 

@@ -45,7 +45,7 @@ using namespace chrono::vehicle;
 // =============================================================================
 
 // Initial vehicle location and orientation
-ChVector<> initLoc(0, 0, 1.0);
+ChVector3d initLoc(0, 0, 1.0);
 ChQuaternion<> initRot(1, 0, 0, 0);
 
 // Visualization type for vehicle parts (PRIMITIVES, MESH, or NONE)
@@ -60,7 +60,7 @@ VisualizationType road_wheel_assembly_vis_type = VisualizationType::PRIMITIVES;
 enum VehicleType { M113 };
 
 // Point on chassis tracked by the camera
-ChVector<> trackPoint(0.0, 0.0, 1.75);
+ChVector3d trackPoint(0.0, 0.0, 1.75);
 
 // Contact method
 ChContactMethod contact_method = ChContactMethod::SMC;
@@ -204,6 +204,9 @@ int main(int argc, char* argv[]) {
     auto transmission = ReadTransmissionJSON(transmission_file);
     auto powertrain = chrono_types::make_shared<ChPowertrainAssembly>(engine, transmission);
     vehicle.InitializePowertrain(powertrain);
+
+    // Set associated collision detection system
+    vehicle.GetSystem()->SetCollisionSystemType(ChCollisionSystem::Type::BULLET);
 
     // Add vehicle as an agent and initialize SynChronoManager
     auto agent = chrono_types::make_shared<SynTrackedVehicleAgent>(&vehicle, zombie_file);

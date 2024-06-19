@@ -28,10 +28,12 @@ using namespace chrono;
 using namespace fea;
 
 int main(int argc, char* argv[]) {
-    GetLog() << "Copyright (c) 2017 projectchrono.org\nChrono version: " << CHRONO_VERSION << "\n\n";
+    std::cout << "Copyright (c) 2017 projectchrono.org\nChrono version: " << CHRONO_VERSION << std::endl;
 
     // Create a Chrono::Engine physical system
     ChSystemSMC sys;
+
+    sys.SetNumThreads(std::min(4, ChOMP::GetNumProcs()), 0, 1);
 
     // Create a mesh, that is a container for groups of elements and
     // their referenced nodes.
@@ -44,11 +46,11 @@ int main(int argc, char* argv[]) {
     sys.Add(my_mesh);
 
     // Visualization of the FEM mesh.
-    // This will automatically update a triangle mesh (a ChTriangleMeshShape
+    // This will automatically update a triangle mesh (a ChVisualShapeTriangleMesh
     // asset that is internally managed) by setting  proper
     // coordinates and vertex colors as in the FEM elements.
     // Such triangle mesh can be rendered by Irrlicht or POVray or whatever
-    // postprocessor that can handle a colored ChTriangleMeshShape).
+    // postprocessor that can handle a colored ChVisualShapeTriangleMesh).
 
     auto mvisualizebeamA = chrono_types::make_shared<ChVisualShapeFEA>(my_mesh);
     mvisualizebeamA->SetFEMdataType(ChVisualShapeFEA::DataType::ELEM_BEAM_MZ);
@@ -73,13 +75,13 @@ int main(int argc, char* argv[]) {
     vis->AddLogo();
     vis->AddSkyBox();
     vis->AddTypicalLights();
-    vis->AddCamera(ChVector<>(0.0, 0.6, -1.0));
+    vis->AddCamera(ChVector3d(0.0, 0.6, -1.0));
     vis->AttachSystem(&sys);
 
     // Configure PardisoMKL solver.
     // For this simple and relatively small problem, use of the sparsity pattern learner may introduce additional
     // overhead (if the sparsity pattern is not locked).
-    auto mkl_solver = chrono_types::make_shared<ChSolverPardisoMKL>();
+    auto mkl_solver = chrono_types::make_shared<ChSolverPardisoMKL>(1);
     mkl_solver->UseSparsityPatternLearner(false);
     mkl_solver->LockSparsityPattern(false);
     mkl_solver->SetVerbose(false);

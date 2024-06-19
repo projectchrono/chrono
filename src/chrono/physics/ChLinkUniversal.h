@@ -29,7 +29,6 @@ namespace chrono {
 /// these constraints model the cross in a physical universal joint.
 
 class ChApi ChLinkUniversal : public ChLink {
-
   public:
     ChLinkUniversal();
     ChLinkUniversal(const ChLinkUniversal& other);
@@ -39,20 +38,13 @@ class ChApi ChLinkUniversal : public ChLink {
     virtual ChLinkUniversal* Clone() const override { return new ChLinkUniversal(*this); }
 
     /// Get the number of (bilateral) constraints introduced by this joint.
-    virtual int GetDOC_c() override { return 4; }
+    virtual unsigned int GetNumConstraintsBilateral() override { return 4; }
 
-    /// Get the link coordinate system, expressed relative to Body2.
-    virtual ChCoordsys<> GetLinkRelativeCoords() override { return m_frame2.GetCoord(); }
+    /// Get the link frame 1, relative to body 1.
+    virtual ChFramed GetFrame1Rel() const override { return m_frame1; }
 
-    /// Get the joint frame on Body1, expressed in Body1 coordinate system.
-    const ChFrame<>& GetFrame1Rel() const { return m_frame1; }
-    /// Get the joint frame on Body2, expressed in Body2 coordinate system.
-    const ChFrame<>& GetFrame2Rel() const { return m_frame2; }
-
-    /// Get the joint frame on Body1, expressed in absolute coordinate system.
-    ChFrame<> GetFrame1Abs() const { return m_frame1 >> *Body1; }
-    /// Get the joint frame on Body2, expressed in absolute coordinate system.
-    ChFrame<> GetFrame2Abs() const { return m_frame2 >> *Body2; }
+    /// Get the link frame 2, relative to body 2.
+    virtual ChFramed GetFrame2Rel() const override { return m_frame2; }
 
     /// Get the joint violation (residuals of the constraint equations)
     virtual ChVectorDynamic<> GetConstraintViolation() const override { return m_C; }
@@ -80,19 +72,35 @@ class ChApi ChLinkUniversal : public ChLink {
                     const ChFrame<>& frame2         ///< joint frame on body 2
     );
 
-    //
-    // UPDATING FUNCTIONS
-    //
+    /// Method to allow serialization of transient data to archives.
+    virtual void ArchiveOut(ChArchiveOut& archive_out) override;
 
-    /// Perform the update of this joint at the specified time: compute jacobians
-    /// and constraint violations, cache in internal structures
+    /// Method to allow deserialization of transient data from archives.
+    virtual void ArchiveIn(ChArchiveIn& archive_in) override;
+
+  private:
+    // Joint frames (in body local frames)
+    ChFrame<> m_frame1;  ///< joint frame on body 1
+    ChFrame<> m_frame2;  ///< joint frame on body 2
+
+    // Cached matrices
+    ChMatrix33<> m_u1_tilde;
+    ChMatrix33<> m_v2_tilde;
+
+    // The constraint objects
+    ChConstraintTwoBodies m_cnstr_x;    ///< constraint: x1_abs - x2_abs = 0
+    ChConstraintTwoBodies m_cnstr_y;    ///< constraint: y1_abs - y2_abs = 0
+    ChConstraintTwoBodies m_cnstr_z;    ///< constraint: z1_abs - z2_abs = 0
+    ChConstraintTwoBodies m_cnstr_dot;  ///< constraint: dot(u1_abs, v2_abs) = 0
+
+    ChVectorN<double, 4> m_C;  ////< current constraint violations
+
+    double m_multipliers[4];  ///< Lagrange multipliers
+
+    // Solver and integrator interface functions
+
     virtual void Update(double time, bool update_assets = true) override;
 
-    //
-    // STATE FUNCTIONS
-    //
-
-    // (override/implement interfaces for global state vectors, see ChPhysicsItem for comments.)
     virtual void IntStateGatherReactions(const unsigned int off_L, ChVectorDynamic<>& L) override;
     virtual void IntStateScatterReactions(const unsigned int off_L, const ChVectorDynamic<>& L) override;
     virtual void IntLoadResidual_CqL(const unsigned int off_L,
@@ -115,51 +123,17 @@ class ChApi ChLinkUniversal : public ChLink {
                                    const unsigned int off_L,
                                    ChVectorDynamic<>& L) override;
 
-    //
-    // SOLVER INTERFACE
-    //
-
     virtual void InjectConstraints(ChSystemDescriptor& descriptor) override;
     virtual void ConstraintsBiReset() override;
     virtual void ConstraintsBiLoad_C(double factor = 1, double recovery_clamp = 0.1, bool do_clamp = false) override;
-    virtual void ConstraintsLoadJacobians() override;
+    virtual void LoadConstraintJacobians() override;
     virtual void ConstraintsFetch_react(double factor = 1) override;
-
-    //
-    // SERIALIZATION
-    //
-
-    /// Method to allow serialization of transient data to archives.
-    virtual void ArchiveOut(ChArchiveOut& marchive) override;
-
-    /// Method to allow deserialization of transient data from archives.
-    virtual void ArchiveIn(ChArchiveIn& marchive) override;
-
-  private:
-    // Joint frames (in body local frames)
-    ChFrame<> m_frame1;  ///< joint frame on body 1
-    ChFrame<> m_frame2;  ///< joint frame on body 2
-
-    // Cached matrices
-    ChMatrix33<> m_u1_tilde;
-    ChMatrix33<> m_v2_tilde;
-
-    // The constraint objects
-    ChConstraintTwoBodies m_cnstr_x;    ///< constraint: x1_abs - x2_abs = 0
-    ChConstraintTwoBodies m_cnstr_y;    ///< constraint: y1_abs - y2_abs = 0
-    ChConstraintTwoBodies m_cnstr_z;    ///< constraint: z1_abs - z2_abs = 0
-    ChConstraintTwoBodies m_cnstr_dot;  ///< constraint: dot(u1_abs, v2_abs) = 0
-
-    ChVectorN<double, 4> m_C;  ////< current constraint violations
-
-    double m_multipliers[4];  ///< Lagrange multipliers
 
   public:
     EIGEN_MAKE_ALIGNED_OPERATOR_NEW
 };
 
-CH_CLASS_VERSION(ChLinkUniversal,0)
-
+CH_CLASS_VERSION(ChLinkUniversal, 0)
 
 }  // end namespace chrono
 

@@ -27,13 +27,8 @@ namespace chrono {
 /// the diagonal would be different from 0 in case of rigid bodies), so use the ChVariablesBody in this case..
 
 class ChApi ChVariablesGeneric : public ChVariables {
-  private:
-    ChMatrixDynamic<double> Mmass;
-    ChMatrixDynamic<double> inv_Mmass;
-    int ndof;
-
   public:
-    ChVariablesGeneric(int m_ndof = 1);
+    ChVariablesGeneric(unsigned int dof = 1);
     virtual ~ChVariablesGeneric() {}
 
     /// Assignment operator: copy from other object
@@ -45,34 +40,36 @@ class ChApi ChVariablesGeneric : public ChVariables {
     /// Access the inverted inertia matrix
     ChMatrixDynamic<>& GetInvMass() { return inv_Mmass; }
 
-    /// The number of scalar variables in the vector qb (dof=degrees of freedom)
-    virtual int Get_ndof() const override { return this->ndof; }
+    /// Compute the product of the inverse mass matrix by a given vector and store in result.
+    /// This function must calculate `result = M^(-1) * vect` for a vector of same size as the variables state.
+    virtual void ComputeMassInverseTimesVector(ChVectorRef result, ChVectorConstRef vect) const override;
 
-    /// Computes the product of the inverse mass matrix by a vector, and add to result: result = [invMb]*vect
-    virtual void Compute_invMb_v(ChVectorRef result, ChVectorConstRef vect) const override;
+    /// Compute the product of the mass matrix by a given vector and increment result.
+    /// This function must perform the operation `result += M * vect` for a vector of same size as the variables state.
+    virtual void AddMassTimesVector(ChVectorRef result, ChVectorConstRef vect) const override;
 
-    /// Computes the product of the inverse mass matrix by a vector, and increment result: result += [invMb]*vect
-    virtual void Compute_inc_invMb_v(ChVectorRef result, ChVectorConstRef vect) const override;
+    /// Add the product of the mass submatrix by a given vector, scaled by ca, to result.
+    /// Note: 'result' and 'vect' are system-level vectors of appropriate size. This function must index into these
+    /// vectors using the offsets of each variable.
+    virtual void AddMassTimesVectorInto(ChVectorRef result, ChVectorConstRef vect, const double ca) const override;
 
-    /// Computes the product of the mass matrix by a vector, and set in result: result = [Mb]*vect
-    virtual void Compute_inc_Mb_v(ChVectorRef result, ChVectorConstRef vect) const override;
+    /// Add the diagonal of the mass matrix, as a vector scaled by ca, to result.
+    /// Note: 'result' is a system-level vector of appropriate size. This function must index into this vector using the
+    /// offsets of each variable.
+    virtual void AddMassDiagonalInto(ChVectorRef result, const double ca) const override;
 
-    /// Computes the product of the corresponding block in the system matrix (ie. the mass matrix) by 'vect', scale by
-    /// c_a, and add to 'result'.
-    /// NOTE: the 'vect' and 'result' vectors must already have the size of the total variables&constraints in the
-    /// system; the procedure will use the ChVariable offsets (that must be already updated) to know the indexes in
-    /// result and vect.
-    virtual void MultiplyAndAdd(ChVectorRef result, ChVectorConstRef vect, const double c_a) const override;
+    /// Write the mass submatrix for these variables into the specified global matrix at the offsets of each variable.
+    /// The masses will be scaled by the given factor 'ca'. The (start_row, start_col) pair specifies the top-left
+    /// corner of the system-level mass matrix in the provided matrix. Assembling the system-level sparse matrix
+    /// is required only if using a direct sparse solver or for debugging/reporting purposes.
+    virtual void PasteMassInto(ChSparseMatrix& mat,
+                               unsigned int start_row,
+                               unsigned int start_col,
+                               const double ca) const override;
 
-    /// Add the diagonal of the mass matrix scaled by c_a, to 'result'.
-    /// NOTE: the 'result' vector must already have the size of system unknowns, ie the size of the total variables &
-    /// constraints in the system; the procedure will use the ChVariable offset (that must be already updated) as index.
-    virtual void DiagonalAdd(ChVectorRef result, const double c_a) const override;
-
-    /// Build the mass matrix (for these variables) scaled by c_a, storing
-    /// it in 'storage' sparse matrix, at given column/row offset.
-    /// Note, most iterative solvers don't need to know mass matrix explicitly.
-    virtual void Build_M(ChSparseMatrix& storage, int insrow, int inscol, const double c_a) override;
+  private:
+    ChMatrixDynamic<double> Mmass;
+    ChMatrixDynamic<double> inv_Mmass;
 };
 
 }  // end namespace chrono

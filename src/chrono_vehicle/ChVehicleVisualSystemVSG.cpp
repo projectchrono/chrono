@@ -48,6 +48,8 @@ class ChVehicleKeyboardHandlerVSG : public vsg3d::ChEventHandlerVSG {
             case vsg::KEY_V:
                 m_app->m_vehicle->LogConstraintViolations();
                 return;
+            default:
+                break;
         }
 
         switch (keyPress.keyBase) {
@@ -108,6 +110,8 @@ class ChVehicleKeyboardHandlerVSG : public vsg3d::ChEventHandlerVSG {
             case vsg::KEY_5:
                 m_app->SetChaseCameraState(utils::ChChaseCamera::Free);
                 return;
+            default:
+                break;
         }
 
         if (m_transmission_auto) {
@@ -133,6 +137,8 @@ class ChVehicleKeyboardHandlerVSG : public vsg3d::ChEventHandlerVSG {
                 case vsg::KEY_Leftbracket:
                     m_transmission_auto->ShiftDown();
                     return;
+                default:
+                    break;
             }
         }
 
@@ -152,6 +158,8 @@ class ChVehicleKeyboardHandlerVSG : public vsg3d::ChEventHandlerVSG {
                     if (m_app->m_driver)
                         m_app->m_driver->DecreaseClutch();
                     return;
+                default:
+                    break;
             }
         }
     }
@@ -185,58 +193,55 @@ void ShowHelp() {
     if (ImGui::CollapsingHeader("Chase camera controls", ImGuiTreeNodeFlags_DefaultOpen)) {
         ImGui::BulletText("Selection of camera mode");
         ImGui::Indent();
-        ImGui::Text("1, 2, 3, 4: select camera mode (chase/follow/track/inside)");
+        ImGui::TextUnformatted("1, 2, 3, 4: select camera mode (chase/follow/track/inside)");
         ImGui::Unindent();
 
         ImGui::BulletText("'Chase' mode");
         ImGui::Indent();
-        ImGui::Text("Left/Right: adjust camera chase angle");
-        ImGui::Text("Up/Down: adjust camera chase distance");
+        ImGui::TextUnformatted("Left/Right: adjust camera chase angle");
+        ImGui::TextUnformatted("Up/Down: adjust camera chase distance");
         ImGui::Unindent();
 
         ImGui::BulletText("'Follow' mode");
         ImGui::Indent();
-        ImGui::Text("Up/Down: adjust camera chase distance");
+        ImGui::TextUnformatted("Up/Down: adjust camera chase distance");
         ImGui::Unindent();
 
         ImGui::BulletText("'Track' mode");
         ImGui::BulletText("'Inside' mode");
         ImGui::Indent();
-        ImGui::Text("no controls available");
+        ImGui::TextUnformatted("no controls available");
         ImGui::Unindent();
     }
 
     if (ImGui::CollapsingHeader("Vehicle controls", ImGuiTreeNodeFlags_DefaultOpen)) {
         ImGui::BulletText("Drive and steering controls");
         ImGui::Indent();
-        ImGui::Text("W/S: acceleartion/decceleration (combined throttle/brake controls)");
-        ImGui::Text("A/D: steering (left/right)");
-        ImGui::Text("C: center steering wheel (set steering=0)");
-        ImGui::Text("R: release pedals (set throttle=brake=clutch=0)");
+        ImGui::TextUnformatted("W/S: acceleartion/decceleration (combined throttle/brake controls)");
+        ImGui::TextUnformatted("A/D: steering (left/right)");
+        ImGui::TextUnformatted("C: center steering wheel (set steering=0)");
+        ImGui::TextUnformatted("R: release pedals (set throttle=brake=clutch=0)");
         ImGui::Unindent();
 
         ImGui::BulletText("Automatic transmission vehicles");
         ImGui::Indent();
-        ImGui::Text("Z: toggle forward/reverse");
-        ImGui::Text("X: shift to neutral");
-        ImGui::Text("T: toggle manumatic/full automatic mode");
-        ImGui::Text("]: shift up (in manumatic mode)");
-        ImGui::Text("[: shift down (in manumatic mode)");
+        ImGui::TextUnformatted("Z: toggle forward/reverse");
+        ImGui::TextUnformatted("X: shift to neutral");
+        ImGui::TextUnformatted("T: toggle manumatic/full automatic mode");
+        ImGui::TextUnformatted("]: shift up (in manumatic mode)");
+        ImGui::TextUnformatted("[: shift down (in manumatic mode)");
         ImGui::Unindent();
 
         ImGui::BulletText(
             "Manual transmission vehicles\n(shifting up and down goes from forward gears to neutral and then reverse)");
         ImGui::Indent();
-        ImGui::Text("]: shift up");
-        ImGui::Text("[: shift down");
+        ImGui::TextUnformatted("]: shift up");
+        ImGui::TextUnformatted("[: shift down");
         ImGui::Unindent();
     }
 }
 
 void ChVehicleGuiComponentVSG::render() {
-    char label[64];
-    int nstr = sizeof(label) - 1;
-
     ImGui::SetNextWindowSize(ImVec2(280.0f, 0.0f));
     ////ImGui::SetNextWindowPos(ImVec2(5.0f, 150.0f));
     ImGui::Begin("Vehicle");
@@ -244,9 +249,20 @@ void ChVehicleGuiComponentVSG::render() {
     if (ImGui::BeginTable("CamTable", 2, ImGuiTableFlags_BordersOuter | ImGuiTableFlags_SizingFixedFit,
                           ImVec2(0.0f, 0.0f))) {
         ImGui::TableNextColumn();
-        ImGui::Text("Camera State:");
+        ImGui::TextUnformatted("Camera State:");
         ImGui::TableNextColumn();
-        ImGui::Text(m_app->GetChaseCamera().GetStateName().c_str());
+        ImGui::TextUnformatted(m_app->GetChaseCamera().GetStateName().c_str());
+        ImGui::EndTable();
+    }
+
+    ImGui::Spacing();
+
+    if (ImGui::BeginTable("RTFTable", 2, ImGuiTableFlags_BordersOuter | ImGuiTableFlags_SizingFixedFit,
+                          ImVec2(0.0f, 0.0f))) {
+        ImGui::TableNextColumn();
+        ImGui::TextUnformatted("RTF step:");
+        ImGui::TableNextColumn();
+        ImGui::Text("%8.2f", m_app->GetStepRTF());
         ImGui::EndTable();
     }
 
@@ -256,13 +272,12 @@ void ChVehicleGuiComponentVSG::render() {
                           ImVec2(0.0f, 0.0f))) {
         ImGui::TableNextRow();
         ImGui::TableNextColumn();
-        ImGui::Text("Vehicle Speed:");
+        ImGui::TextUnformatted("Vehicle Speed:");
         ImGui::TableNextColumn();
-        snprintf(label, nstr, "%8.3f m/s", m_app->GetVehicle().GetSpeed());
-        ImGui::Text(label);
+        ImGui::Text("%8.2f m/s", m_app->GetVehicle().GetSpeed());
         ImGui::TableNextRow();
         ImGui::TableNextColumn();
-        ImGui::Text("Steering:");
+        ImGui::TextUnformatted("Steering:");
         ImGui::TableNextColumn();
         ImGui::PushItemWidth(150.0f);
         ImGui::PushStyleColor(ImGuiCol_SliderGrab, (ImVec4)ImColor(200, 100, 20));
@@ -273,20 +288,70 @@ void ChVehicleGuiComponentVSG::render() {
         ImGui::TableNextColumn();
         if (m_app->GetVehicle().GetPowertrainAssembly() &&
             m_app->GetVehicle().GetPowertrainAssembly()->GetTransmission()->IsManual()) {
-            ImGui::Text("Clutch:");
+            ImGui::TextUnformatted("Clutch:");
             ImGui::TableNextColumn();
             DrawGauge(m_app->GetClutch(), 0, 1);
             ImGui::TableNextRow();
             ImGui::TableNextColumn();
         }
-        ImGui::Text("Braking:");
+        ImGui::TextUnformatted("Braking:");
         ImGui::TableNextColumn();
         DrawGauge(m_app->GetBraking(), 0, 1);
         ImGui::TableNextRow();
         ImGui::TableNextColumn();
-        ImGui::Text("Throttle:");
+        ImGui::TextUnformatted("Throttle:");
         ImGui::TableNextColumn();
         DrawGauge(m_app->GetThrottle(), 0, 1);
+        ImGui::EndTable();
+    }
+
+    ImGui::Spacing();
+
+    if (ImGui::BeginTable("VehAttitude", 2, ImGuiTableFlags_BordersOuter | ImGuiTableFlags_SizingFixedFit,
+                          ImVec2(0.0f, 0.0f))) {
+        auto terrain = m_app->GetTerrain();
+        static int e = 0;  // 0: global, 1: local
+
+        ImGui::TableNextRow();
+        ImGui::TableNextColumn();
+        ImGui::TextUnformatted("Vehicle Attitude");
+        
+        if (terrain) {
+            ImGui::TableNextColumn();
+            ImGui::RadioButton("absolute", &e, 0);
+            ImGui::SameLine();
+            ImGui::RadioButton("local", &e, 1);
+        }
+
+        double roll;
+        double pitch;
+
+        if (e == 0) {
+            roll = m_app->GetVehicle().GetRoll() * CH_RAD_TO_DEG;
+            pitch = m_app->GetVehicle().GetPitch() * CH_RAD_TO_DEG;
+        } else if (e == 1) {
+            roll = m_app->GetVehicle().GetRoll(*terrain) * CH_RAD_TO_DEG;
+            pitch = m_app->GetVehicle().GetPitch(*terrain) * CH_RAD_TO_DEG;
+        }
+
+        ImGui::TableNextRow();
+        ImGui::TableNextColumn();
+        ImGui::TextUnformatted("Roll angle:");
+        ImGui::TableNextColumn();
+        ImGui::Text("%6.1f deg", roll);
+
+        ImGui::TableNextRow();
+        ImGui::TableNextColumn();
+        ImGui::TextUnformatted("Pitch angle:");
+        ImGui::TableNextColumn();
+        ImGui::Text("%6.1f deg", pitch);
+
+        ImGui::TableNextRow();
+        ImGui::TableNextColumn();
+        ImGui::TextUnformatted("Slip angle:");
+        ImGui::TableNextColumn();
+        ImGui::Text("%6.1f deg", m_app->GetVehicle().GetSlipAngle() * CH_RAD_TO_DEG);
+
         ImGui::EndTable();
     }
 
@@ -304,18 +369,19 @@ void ChVehicleGuiComponentVSG::render() {
         if (ImGui::BeginTable("Powertrain", 2, ImGuiTableFlags_BordersOuter | ImGuiTableFlags_SizingFixedFit,
                               ImVec2(0.0f, 0.0f))) {
             ImGui::TableNextColumn();
-            ImGui::Text("Engine Speed:");
+            ImGui::TextUnformatted("Engine Speed:");
             ImGui::TableNextColumn();
-            snprintf(label, nstr, "%8.1lf RPM", engine->GetMotorSpeed() * 30 / CH_C_PI);
-            ImGui::Text(label);
+            ImGui::Text("%8.1lf RPM", engine->GetMotorSpeed() * 30 / CH_PI);
             ImGui::TableNextRow();
 
             ImGui::TableNextColumn();
-            ImGui::Text("Engine Torque:");
+            ImGui::TextUnformatted("Engine Torque:");
             ImGui::TableNextColumn();
-            snprintf(label, nstr, "%8.1lf Nm", engine->GetOutputMotorshaftTorque());
-            ImGui::Text(label);
+            ImGui::Text("%8.1lf Nm", engine->GetOutputMotorshaftTorque());
             ImGui::TableNextRow();
+
+            char label[64];
+            int nstr = sizeof(label) - 1;
 
             ImGui::TableNextColumn();
             char shift_mode = 'M';
@@ -334,19 +400,18 @@ void ChVehicleGuiComponentVSG::render() {
                         snprintf(label, nstr, "[%c] Gear reverse", shift_mode);
                         break;
                 }
-            }
-            else if (transmission->IsManual()) {
+            } else if (transmission->IsManual()) {
                 snprintf(label, nstr, "[M] Gear:");
             }
-            ImGui::Text(label);
+            ImGui::Text("%s", label);
+
             ImGui::TableNextColumn();
-            if (transmission->IsManual() || (transmission->IsAutomatic() && transmission_auto->GetDriveMode() == ChAutomaticTransmission::DriveMode::FORWARD)) {
-                snprintf(label, nstr, "%d", transmission->GetCurrentGear());
+            if (transmission->IsManual() ||
+                (transmission->IsAutomatic() &&
+                 transmission_auto->GetDriveMode() == ChAutomaticTransmission::DriveMode::FORWARD)) {
+                ImGui::Text("%d", transmission->GetCurrentGear());
             }
-            else {
-                snprintf(label, nstr, "");
-            }
-            ImGui::Text(label);
+
             ImGui::TableNextRow();
             ImGui::EndTable();
         }
@@ -357,28 +422,24 @@ void ChVehicleGuiComponentVSG::render() {
             if (ImGui::BeginTable("TorqueConverter", 2, ImGuiTableFlags_BordersOuter | ImGuiTableFlags_SizingFixedFit,
                                   ImVec2(0.0f, 0.0f))) {
                 ImGui::TableNextColumn();
-                ImGui::Text("T.conv.slip:");
+                ImGui::TextUnformatted("T.conv.slip:");
                 ImGui::TableNextColumn();
-                snprintf(label, nstr, "%8.1f", transmission_auto->GetTorqueConverterSlippage());
-                ImGui::Text(label);
+                ImGui::Text("%8.1f", transmission_auto->GetTorqueConverterSlippage());
                 ImGui::TableNextRow();
                 ImGui::TableNextColumn();
-                ImGui::Text("T.conv.torque.in:");
+                ImGui::TextUnformatted("T.conv.torque.in:");
                 ImGui::TableNextColumn();
-                snprintf(label, nstr, "%8.1f Nm", transmission_auto->GetTorqueConverterInputTorque());
-                ImGui::Text(label);
+                ImGui::Text("%8.1f Nm", transmission_auto->GetTorqueConverterInputTorque());
                 ImGui::TableNextRow();
                 ImGui::TableNextColumn();
-                ImGui::Text("T.conv.torque.out:");
+                ImGui::TextUnformatted("T.conv.torque.out:");
                 ImGui::TableNextColumn();
-                snprintf(label, nstr, "%8.1f Nm", transmission_auto->GetTorqueConverterOutputTorque());
-                ImGui::Text(label);
+                ImGui::Text("%8.1f Nm", transmission_auto->GetTorqueConverterOutputTorque());
                 ImGui::TableNextRow();
                 ImGui::TableNextColumn();
-                ImGui::Text("T.conv.speed.out:");
+                ImGui::TextUnformatted("T.conv.speed.out:");
                 ImGui::TableNextColumn();
-                snprintf(label, nstr, "%8.1f RPM", transmission_auto->GetTorqueConverterOutputSpeed() * 30 / CH_C_PI);
-                ImGui::Text(label);
+                ImGui::Text("%8.1f RPM", transmission_auto->GetTorqueConverterOutputSpeed() * 30 / CH_PI);
                 ImGui::TableNextRow();
                 ImGui::EndTable();
             }
@@ -435,8 +496,8 @@ void ChVehicleVisualSystemVSG::Advance(double step) {
     }
 
     // Update the VSG camera
-    ChVector<> cam_pos = m_camera->GetCameraPos();
-    ChVector<> cam_target = m_camera->GetTargetPos();
+    ChVector3d cam_pos = m_camera->GetCameraPos();
+    ChVector3d cam_target = m_camera->GetTargetPos();
     m_vsg_cameraEye.set(cam_pos.x(), cam_pos.y(), cam_pos.z());
     m_vsg_cameraTarget.set(cam_target.x(), cam_target.y(), cam_target.z());
     m_lookAt->eye.set(cam_pos.x(), cam_pos.y(), cam_pos.z());

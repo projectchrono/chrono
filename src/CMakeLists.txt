@@ -29,27 +29,9 @@ option(BUILD_SHARED_LIBS "Build using shared libraries" ON)
 if (MSVC)
     option(USE_MSVC_STATIC_RUNTIME "Compile with a multi-threaded statically-linked runtime library" OFF)
     if (USE_MSVC_STATIC_RUNTIME)
-        message(STATUS "Enabling STATIC run-time library")
-        message(STATUS "  CMAKE_CXX_FLAGS (IN):          ${CMAKE_CXX_FLAGS}")
-        message(STATUS "  CMAKE_CXX_FLAGS_RELEASE (IN):  ${CMAKE_CXX_FLAGS_RELEASE}")
-        message(STATUS "  CMAKE_CXX_FLAGS_DEBUG (IN):    ${CMAKE_CXX_FLAGS_DEBUG}")
-
-        foreach(flag_var
-                CMAKE_C_FLAGS CMAKE_C_FLAGS_DEBUG CMAKE_C_FLAGS_RELEASE
-                CMAKE_C_FLAGS_MINSIZEREL CMAKE_C_FLAGS_RELWITHDEBINFO
-                CMAKE_CXX_FLAGS CMAKE_CXX_FLAGS_DEBUG CMAKE_CXX_FLAGS_RELEASE
-                CMAKE_CXX_FLAGS_MINSIZEREL CMAKE_CXX_FLAGS_RELWITHDEBINFO)
-          if(${flag_var} MATCHES "/MD")
-            string(REGEX REPLACE "/MD" "/MT" ${flag_var} "${${flag_var}}")
-          endif()
-          if(${flag_var} MATCHES "/MDd")
-            string(REGEX REPLACE "/MDd" "/MTd" ${flag_var} "${${flag_var}}")
-          endif()
-        endforeach(flag_var)
-
-        message(STATUS "  CMAKE_CXX_FLAGS (OUT):         ${CMAKE_CXX_FLAGS}")
-        message(STATUS "  CMAKE_CXX_FLAGS_RELEASE (OUT): ${CMAKE_CXX_FLAGS_RELEASE}")
-        message(STATUS "  CMAKE_CXX_FLAGS_DEBUG (OUT):   ${CMAKE_CXX_FLAGS_DEBUG}")
+        set(CMAKE_MSVC_RUNTIME_LIBRARY "MultiThreaded$<$<CONFIG:Debug>:Debug>")
+    else()
+        set(CMAKE_MSVC_RUNTIME_LIBRARY "MultiThreaded$<$<CONFIG:Debug>:Debug>DLL")
     endif()
 endif()
 
@@ -68,17 +50,14 @@ set(CH_LINKERFLAG_LIB "")
 if (NOT BUILD_SHARED_LIBS)
   set(CH_STATIC ON)
   add_compile_definitions(CH_STATIC)
+  set(CMAKE_POSITION_INDEPENDENT_CODE ON)
 else()
   set(CH_STATIC OFF)
 endif()
 
-
 #-----------------------------------------------------------------------------
 # Check for C++14 and C++17 support
 #-----------------------------------------------------------------------------
-
-# Allow user to enforce strict C++11 standard
-option(CH_ENFORCE_CXX11 "Enforce strict C++11 standard" OFF)
 
 # This is a hack -- look for a more robust solution
 set(CH_CXX14 FALSE)
@@ -86,54 +65,53 @@ set(CH_CXX17 FALSE)
 
 if(CMAKE_CXX_COMPILER_ID MATCHES "GNU")
     message(STATUS "GCC version:  ${CMAKE_CXX_COMPILER_VERSION}")
-    if(NOT CH_ENFORCE_CXX11 AND CMAKE_CXX_COMPILER_VERSION VERSION_GREATER 4.9.9)
+    if(CMAKE_CXX_COMPILER_VERSION VERSION_GREATER 4.9.9)
       set(CH_CXX14 TRUE)
     endif()
-    if(NOT CH_ENFORCE_CXX11 AND CMAKE_CXX_COMPILER_VERSION VERSION_GREATER 7.0.0)
+    if(CMAKE_CXX_COMPILER_VERSION VERSION_GREATER 7.0.0)
       set(CH_CXX17 TRUE)
     endif()
 elseif(CMAKE_CXX_COMPILER_ID MATCHES "Clang")
     message(STATUS "Clang version:  ${CMAKE_CXX_COMPILER_VERSION}")
-    if(NOT CH_ENFORCE_CXX11 AND CMAKE_CXX_COMPILER_VERSION VERSION_GREATER_EQUAL 3.4)
+    if(CMAKE_CXX_COMPILER_VERSION VERSION_GREATER_EQUAL 3.4)
       set(CH_CXX14 TRUE)
     endif()
-    if(NOT CH_ENFORCE_CXX11 AND CMAKE_CXX_COMPILER_VERSION VERSION_GREATER_EQUAL 7.0)
+    if(CMAKE_CXX_COMPILER_VERSION VERSION_GREATER_EQUAL 7.0)
       set(CH_CXX17 TRUE)
     endif()
 elseif(CMAKE_CXX_COMPILER_ID MATCHES "MSVC")
     message(STATUS "Visual Studio version:  ${MSVC_VERSION}")
-    if(NOT CH_ENFORCE_CXX11 AND MSVC_VERSION GREATER 1800)
+    if(MSVC_VERSION GREATER 1800)
       set(CH_CXX14 TRUE)
     endif()
-    if(NOT CH_ENFORCE_CXX11 AND MSVC_VERSION GREATER 1914)
+    if(MSVC_VERSION GREATER 1914)
       set(CH_CXX17 TRUE)
     endif()
 elseif(CMAKE_CXX_COMPILER_ID MATCHES "PGI")
     # CMake's standard support flags behave strangely with PGI compilers, don't trust them
     set(CH_CXX_FLAGS "")
     message(STATUS "PGI version: ${CMAKE_CXX_COMPILER_VERSION}")
-    if(NOT CH_ENFORCE_CXX11 AND CMAKE_CXX_COMPILER_VERSION VERSION_GREATER_EQUAL 17.4)
+    if(CMAKE_CXX_COMPILER_VERSION VERSION_GREATER_EQUAL 17.4)
       message(STATUS "CMAKE_CXX14_STANDARD_COMPILE_OPTION can't be trusted for PGI, manually adding C++14 support")
       set(CH_CXX_FLAGS "-std=c++14")
       set(CH_CXX14 TRUE)
     endif()
 endif()
 
-if(CH_ENFORCE_CXX11)
-    message(STATUS "Enforce C++11")
-	  set(CMAKE_CXX_STANDARD 11)
-    set(CHRONO_CXX_STANDARD 11)
-else()
-    message(STATUS "C++14 compiler support:  ${CH_CXX14}")
-    message(STATUS "C++17 compiler support:  ${CH_CXX17}")
+if(NOT CH_CXX14)
+   message(ERROR "Chrono requires at least C++14 support")
+   return()
+endif()
 
-    if(CH_CXX17)
-        set(CMAKE_CXX_STANDARD 17)
-        set(CHRONO_CXX_STANDARD 17)
-    elseif(CH_CXX14)
-        set(CMAKE_CXX_STANDARD 14)
-        set(CHRONO_CXX_STANDARD 14)
-    endif()
+message(STATUS "C++14 compiler support:  ${CH_CXX14}")
+message(STATUS "C++17 compiler support:  ${CH_CXX17}")
+
+if(CH_CXX17)
+    set(CMAKE_CXX_STANDARD 17)
+    set(CHRONO_CXX_STANDARD 17)
+elseif(CH_CXX14)
+    set(CMAKE_CXX_STANDARD 14)
+    set(CHRONO_CXX_STANDARD 14)
 endif()
 
 #-----------------------------------------------------------------------------
@@ -368,10 +346,15 @@ find_package(CUDA QUIET)
 if(CUDA_FOUND)
   set(CUDA_BINARY_DIR "${CUDA_TOOLKIT_ROOT_DIR}/bin")
 
-  message(STATUS "  CUDA version:          ${CUDA_VERSION_STRING}")
+  message(STATUS "  CUDA version:          ${CUDA_VERSION}")
   message(STATUS "  CUDA toolkit root dir: ${CUDA_TOOLKIT_ROOT_DIR}")
   message(STATUS "  CUDA binary dir:       ${CUDA_BINARY_DIR}")
   mark_as_advanced(FORCE CUDA_TOOLKIT_ROOT_DIR)
+
+  if(CUDA_VERSION VERSION_GREATER "12.3")
+    message("  CUDA version newer than 12.3 not supported. CUDA support disabled.")
+    set(CUDA_FOUND FALSE)
+  endif()
 
 else()
   message(STATUS "  CUDA not found (consider manually setting CUDA_TOOLKIT_ROOT_DIR)")
@@ -443,6 +426,11 @@ if(THRUST_FOUND)
   message(STATUS "  Thrust version:     ${THRUST_VERSION}")
   message(STATUS "  Thrust include dir: ${THRUST_INCLUDE_DIR}")
   mark_as_advanced(FORCE THRUST_INCLUDE_DIR)
+
+  if(THRUST_VERSION VERSION_GREATER "2.2.0")
+    message("  Thrust version newer than 2.2.0 not supported. Thrust support disabled.")
+    set(THRUST_FOUND FALSE)
+  endif()
 else()
   message(STATUS "  Thrust not found (consider manually setting THRUST_INCLUDE_DIR)")
   set(THRUST_INCLUDE_DIR "")
@@ -524,6 +512,8 @@ if(CMAKE_CXX_COMPILER_ID MATCHES "Clang")
     add_compile_options(-Wno-unused-local-typedef)
     add_compile_options(-Wno-unused-function)
     add_compile_options(-Wno-unused-parameter)
+    add_compile_options(-Wno-unused-result)
+    add_compile_options(-Wno-switch)
 elseif(MSVC)
     message(STATUS "[MSVC] Warning level set to /W4")
     add_compile_options(/W4)
@@ -549,6 +539,7 @@ else()
     add_compile_options(-Wno-reorder)
     add_compile_options(-Wno-unused-function)
     add_compile_options(-Wno-unused-parameter)
+    add_compile_options(-Wno-unused-result)
 endif()
 
 #-----------------------------------------------------------------------------
@@ -730,20 +721,19 @@ add_subdirectory(chrono_mumps)
 add_subdirectory(chrono_matlab)
 add_subdirectory(chrono_irrlicht)
 add_subdirectory(chrono_vsg)
+add_subdirectory(chrono_fmi)
 add_subdirectory(chrono_cascade)
 add_subdirectory(chrono_modal)
 add_subdirectory(chrono_postprocess)
-add_subdirectory(chrono_pardisoproject)
-add_subdirectory(chrono_cosimulation)
 add_subdirectory(chrono_multicore)
 add_subdirectory(chrono_opengl)
 add_subdirectory(chrono_fsi)
 add_subdirectory(chrono_gpu)
-add_subdirectory(chrono_distributed)
 add_subdirectory(chrono_vehicle)
 add_subdirectory(chrono_models)
 add_subdirectory(chrono_sensor)
 add_subdirectory(chrono_synchrono)
+add_subdirectory(chrono_ros)
 add_subdirectory(chrono_swig/chrono_python)
 add_subdirectory(chrono_swig/chrono_csharp)
 
@@ -790,10 +780,6 @@ install(DIRECTORY ${CMAKE_SOURCE_DIR}/src/chrono_thirdparty/tinyobjloader
         DESTINATION include/chrono_thirdparty
         FILES_MATCHING PATTERN "*.h" PATTERN "*.cuh" PATTERN "*.hpp" PATTERN "*.inl")
 
-install(DIRECTORY ${CMAKE_SOURCE_DIR}/src/chrono_thirdparty/yafel
-        DESTINATION include/chrono_thirdparty
-        FILES_MATCHING PATTERN "*.h" PATTERN "*.cuh" PATTERN "*.hpp" PATTERN "*.inl")
-
 install(DIRECTORY ${CMAKE_SOURCE_DIR}/src/chrono_thirdparty/chpf
 	      DESTINATION include/chrono_thirdparty
 	      FILES_MATCHING PATTERN "*.hpp")
@@ -834,18 +820,6 @@ if(ENABLE_MODULE_CASCADE)
   set(CHRONO_CASCADE "#define CHRONO_CASCADE")
 else()
   set(CHRONO_CASCADE "#undef CHRONO_CASCADE")
-endif()
-
-if(ENABLE_MODULE_COSIMULATION)
-  set(CHRONO_COSIMULATION "#define CHRONO_COSIMULATION")
-else()
-  set(CHRONO_COSIMULATION "#undef CHRONO_COSIMULATION")
-endif()
-
-if(ENABLE_MODULE_DISTRIBUTED)
-  set(CHRONO_DISTRIBUTED "#define CHRONO_DISTRIBUTED")
-else()
-  set(CHRONO_DISTRIBUTED "#undef CHRONO_DISTRIBUTED")
 endif()
 
 if(ENABLE_MODULE_IRRLICHT)
@@ -908,12 +882,6 @@ else()
   set(CHRONO_POSTPROCESS "#undef CHRONO_POSTPROCESS")
 endif()
 
-if(ENABLE_MODULE_PARDISO_PROJECT)
-  set(CHRONO_PARDISOPROJECT "#define CHRONO_PARDISOPROJECT")
-else()
-  set(CHRONO_PARDISOPROJECT "#undef CHRONO_PARDISOPROJECT")
-endif()
-
 if(ENABLE_MODULE_PYTHON)
   set(CHRONO_PYTHON "#define CHRONO_PYTHON")
 else()
@@ -948,6 +916,18 @@ if(ENABLE_MODULE_SYNCHRONO)
   set(CHRONO_SYNCHRONO "#define CHRONO_SYNCHRONO")
 else()
   set(CHRONO_SYNCHRONO "#undef CHRONO_SYNCHRONO")
+endif()
+
+if(ENABLE_MODULE_FMI)
+  set(CHRONO_FMI "#define CHRONO_FMI")
+else()
+  set(CHRONO_FMI "#undef CHRONO_FMI")
+endif()
+
+if(ENABLE_MODULE_ROS)
+  set(CHRONO_ROS "#define CHRONO_ROS")
+else()
+  set(CHRONO_ROS "#undef CHRONO_ROS")
 endif()
 
 if (USE_SIMD)
@@ -1027,6 +1007,15 @@ set(CH_DATA_DIR "${PROJECT_SOURCE_DIR}/data/")
 configure_file("${PROJECT_SOURCE_DIR}/cmake/chrono-config.cmake.in"
                "${PROJECT_BINARY_DIR}/cmake/chrono-config.cmake"
                @ONLY)
+
+# Generate the C# file with global constants
+# This must be done here, after replacement variables were set.
+if(ENABLE_MODULE_CSHARP)
+  configure_file("${CMAKE_CURRENT_SOURCE_DIR}/chrono_swig/chrono_csharp/ChChronoGlobals.cs.in"
+                 "${PROJECT_BINARY_DIR}/chrono_csharp/core/ChChronoGlobals.cs"
+                 @ONLY)
+endif()
+
 
 # For the INSTALL tree
 set(CH_THIRDPARTY_INCLUDE_DIR "${CMAKE_INSTALL_PREFIX}/include/chrono_thirdparty")

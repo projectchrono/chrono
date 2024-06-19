@@ -61,7 +61,8 @@ static bool compare(const DataEntrySTR& a, const DataEntrySTR& b) {
 }
 
 // -----------------------------------------------------------------------------
-ChSuspensionTestRigDataDriver::ChSuspensionTestRigDataDriver(const std::string& filename) : m_filename(filename), m_ended(false) {}
+ChSuspensionTestRigDataDriver::ChSuspensionTestRigDataDriver(const std::string& filename)
+    : m_filename(filename), m_ended(false) {}
 
 void ChSuspensionTestRigDataDriver::Initialize(int naxles) {
     // Invoke base method
@@ -70,7 +71,7 @@ void ChSuspensionTestRigDataDriver::Initialize(int naxles) {
     // Read data from file
     std::vector<DataEntrySTR> data;  // data table (for sorting)
 
-    std::ifstream ifile(m_filename.c_str());
+    std::ifstream ifile(m_filename);
     std::string line;
     while (std::getline(ifile, line)) {
         std::istringstream iss(line);

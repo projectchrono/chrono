@@ -16,7 +16,7 @@
 //
 // =============================================================================
 
-#include "chrono/core/ChMathematics.h"
+#include "chrono/utils/ChUtils.h"
 
 #include "chrono_vehicle/powertrain/ChAutomaticTransmissionSimpleMap.h"
 
@@ -44,8 +44,7 @@ void ChAutomaticTransmissionSimpleMap::Synchronize(double time,
                                                    double driveshaft_speed) {
     // Automatic gear selection (based on ideal shift points) for current motorshaft speed
     if (m_shift_mode == ShiftMode::AUTOMATIC && m_drive_mode == DriveMode::FORWARD && m_current_gear > 0) {
-        if ((m_current_gear < GetMaxGear()) &&
-            (m_motorshaft_speed > m_shift_points[m_current_gear - 1].second)) {
+        if ((m_current_gear < GetMaxGear()) && (m_motorshaft_speed > m_shift_points[m_current_gear - 1].second)) {
             SetGear(m_current_gear + 1);
         } else if ((m_current_gear > 1) && (m_motorshaft_speed < m_shift_points[m_current_gear - 1].first)) {
             SetGear(m_current_gear - 1);

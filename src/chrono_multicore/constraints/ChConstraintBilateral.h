@@ -50,4 +50,4 @@ class CH_MULTICORE_API ChConstraintBilateral {
 
 /// @} multicore_constraint
 
-} // end namespace chrono
+}  // end namespace chrono

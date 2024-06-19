@@ -26,7 +26,7 @@
 #include "chrono_opengl/core/ChOpenGLObject.h"
 #include "chrono_opengl/core/ChOpenGLVertexAttributes.h"
 #include "chrono_opengl/core/ChOpenGLMaterial.h"
-#include "chrono/assets/ChTriangleMeshShape.h"
+#include "chrono/assets/ChVisualShapeTriangleMesh.h"
 
 namespace chrono {
 namespace opengl {
@@ -43,7 +43,7 @@ class CH_OPENGL_API ChOpenGLMesh : public ChOpenGLObject {
                     std::vector<glm::vec2>& texcoords,
                     std::vector<GLuint>& indices,
                     ChOpenGLMaterial mat);
-    bool Initialize(chrono::ChTriangleMeshShape* tri_mesh, ChOpenGLMaterial mat);
+    bool Initialize(chrono::ChVisualShapeTriangleMesh* tri_mesh, ChOpenGLMaterial mat);
     bool PostInitialize();
     void Update(std::vector<glm::mat4>& model);
 

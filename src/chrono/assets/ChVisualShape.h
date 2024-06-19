@@ -13,13 +13,16 @@
 #ifndef CH_VISUAL_SHAPE_H
 #define CH_VISUAL_SHAPE_H
 
-#include "chrono/core/ChMath.h"
+#include "chrono/core/ChFrame.h"
 #include "chrono/core/ChFrame.h"
 
 #include "chrono/assets/ChColor.h"
 #include "chrono/assets/ChVisualMaterial.h"
 
 namespace chrono {
+
+/// @addtogroup chrono_assets
+/// @{
 
 class ChPhysicsItem;
 
@@ -85,13 +88,13 @@ class ChApi ChVisualShape {
     std::shared_ptr<ChVisualMaterial> GetMaterial(int i) { return material_list[i]; }
 
     /// Get the number of visualization materials.
-    int GetNumMaterials() const { return (int)material_list.size(); }
+    unsigned int GetNumMaterials() const { return (unsigned int)material_list.size(); }
 
     /// Method to allow serialization of transient data to archives.
-    virtual void ArchiveOut(ChArchiveOut& marchive);
+    virtual void ArchiveOut(ChArchiveOut& archive_out);
 
     /// Method to allow de-serialization of transient data from archives.
-    virtual void ArchiveIn(ChArchiveIn& marchive);
+    virtual void ArchiveIn(ChArchiveIn& archive_in);
 
   protected:
     ChVisualShape();
@@ -110,6 +113,8 @@ class ChApi ChVisualShape {
 
     friend class ChVisualModel;
 };
+
+/// @} chrono_assets
 
 CH_CLASS_VERSION(ChVisualShape, 0)
 

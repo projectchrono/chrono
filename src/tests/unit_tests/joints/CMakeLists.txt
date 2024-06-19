@@ -10,6 +10,7 @@ set(TEST_PROGRAMS
     utest_JOINT_prismatic
     utest_JOINT_cylindrical
     utest_JOINT_distance
+    utest_JOINT_distance_unilateral
     utest_JOINT_rackpinion
     utest_JOINT_revsph
     utest_JOINT_linactuator

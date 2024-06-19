@@ -47,9 +47,9 @@ CH_SENSOR_API ChSegmentationCamera::ChSegmentationCamera(std::shared_ptr<chrono:
 // -----------------------------------------------------------------------------
 CH_SENSOR_API ChSegmentationCamera::~ChSegmentationCamera() {}
 
-void ChSegmentationCamera::SetRadialLensParameters(ChVector<float> params) {
-    // Drap, P., & Lefèvre, J. (2016). 
-    // An Exact Formula for Calculating Inverse Radial Lens Distortions. 
+void ChSegmentationCamera::SetRadialLensParameters(ChVector3f params) {
+    // Drap, P., & Lefèvre, J. (2016).
+    // An Exact Formula for Calculating Inverse Radial Lens Distortions.
     // Sensors (Basel, Switzerland), 16(6), 807. https://doi.org/10.3390/s16060807
     // float a1_2 = params.x();
     // float b1 = -params.x();

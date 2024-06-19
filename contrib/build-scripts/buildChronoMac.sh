@@ -32,7 +32,6 @@
 #     - FSI
 #     - CSHARP
 #     - COSIMULATION
-#     - DISTRIBUTED
 #     - SENSOR
 #     - SYNCHRONO
 #     - MATLAB (Apple Silicon)

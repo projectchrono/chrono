@@ -39,6 +39,8 @@
 #include <cmath>
 
 #include "chrono/core/ChGlobal.h"
+#include "chrono/functions/ChFunctionSineStep.h"
+
 #include "chrono_vehicle/ChConfigVehicle.h"
 #include "chrono_vehicle/ChVehicleModelData.h"
 
@@ -49,17 +51,17 @@ namespace vehicle {
 
 ChPac02Tire::ChPac02Tire(const std::string& name)
     : ChForceElementTire(name),
-      m_gamma_limit(3.0 * CH_C_DEG_TO_RAD),
+      m_gamma_limit(3.0 * CH_DEG_TO_RAD),
       m_mu0(0.8),
       m_measured_side(LEFT),
-      m_allow_mirroring(false),
+      m_allow_mirroring(true),
       m_use_mode(0),
       m_vcoulomb(1.0),
       m_frblend_begin(1.0),
       m_frblend_end(3.0) {
-    m_tireforce.force = ChVector<>(0, 0, 0);
-    m_tireforce.point = ChVector<>(0, 0, 0);
-    m_tireforce.moment = ChVector<>(0, 0, 0);
+    m_tireforce.force = ChVector3d(0, 0, 0);
+    m_tireforce.point = ChVector3d(0, 0, 0);
+    m_tireforce.moment = ChVector3d(0, 0, 0);
 }
 
 double ChPac02Tire::GetNormalStiffnessForce(double depth) const {
@@ -71,7 +73,7 @@ double ChPac02Tire::GetNormalStiffnessForce(double depth) const {
                 (1.0 + m_par.QPFZ1 * dpi) * m_par.LCZ * m_par.FNOMIN;
     double Fb = 0;
     if (m_bottoming_table_found)
-        Fb = m_bott_map.Get_y(depth);
+        Fb = m_bott_map.GetVal(depth);
     return Fc + Fb;
 }
 
@@ -81,12 +83,45 @@ double ChPac02Tire::GetNormalDampingForce(double depth, double velocity) const {
 }
 
 void ChPac02Tire::CombinedCoulombForces(double& fx, double& fy, double fz) {
-    ChVector2<> F;
-    F.x() = tanh(-2.0 * m_states.vsx / m_vcoulomb) * fz * m_states.mu_scale;
-    F.y() = tanh(-2.0 * m_states.vsy / m_vcoulomb) * fz * m_states.mu_scale;
-    if (F.Length() > fz * m_states.mu_scale) {
+    ChVector2d F;
+    /*
+     The Dahl Friction Model elastic tread blocks representated by a single bristle. At tire stand still it acts
+     like a spring which enables holding of a vehicle on a slope without creeping (hopefully). Damping terms
+     have been added to calm down the oscillations of the pure spring.
+
+     The time step h must be actually the same as for the vehicle system!
+
+     This model is experimental and needs some testing.
+
+     With bristle deformation z, Coulomb force fc, sliding velocity v and stiffness sigma we have this
+     differential equation:
+         dz/dt = v - sigma0*z*abs(v)/fc
+
+     When z is known, the friction force F can be calulated to:
+        F = sigma0 * z
+
+     For practical use some damping is needed, that leads to:
+        F = sigma0 * z + sigma1 * dz/dt
+
+     Longitudinal and lateral forces are calculated separately and then combined. For stand still a friction
+     circle is used.
+     */
+    double muscale = m_states.mu_road / m_mu0;
+    double fc = fz * muscale;
+    double h = this->m_stepsize;
+    // Longitudinal Friction Force
+    double brx_dot = m_states.vsx - m_par.sigma0 * m_states.brx * fabs(m_states.vsx) / fc;  // dz/dt
+    F.x() = -(m_par.sigma0 * m_states.brx + m_par.sigma1 * brx_dot);
+    // Lateral Friction Force
+    double bry_dot = m_states.vsy - m_par.sigma0 * m_states.bry * fabs(m_states.vsy) / fc;  // dz/dt
+    F.y() = -(m_par.sigma0 * m_states.bry + m_par.sigma1 * bry_dot);
+    // Calculate the new ODE states (implicit Euler)
+    m_states.brx = (fc * m_states.brx + fc * h * m_states.vsx) / (fc + h * m_par.sigma0 * fabs(m_states.vsx));
+    m_states.bry = (fc * m_states.bry + fc * h * m_states.vsy) / (fc + h * m_par.sigma0 * fabs(m_states.vsy));
+    // combine forces (friction circle)
+    if (F.Length() > fz * muscale) {
         F.Normalize();
-        F *= fz * m_states.mu_scale;
+        F *= fz * muscale;
     }
     fx = F.x();
     fy = F.y();
@@ -112,7 +147,7 @@ void ChPac02Tire::CalcFxyMz(double& Fx, double& Fy, double& Mz, double kappa, do
                 (1.0 + m_par.PPX1 * m_states.dpi + m_par.PPX2 * pow(m_states.dpi, 2)) * m_par.LKX;
     double Bx = Kx / (Cx * Dx + 0.1);
     double X1 = Bx * kappa_x;
-    ChClampValue(X1, -CH_C_PI_2 + 0.01, CH_C_PI_2 - 0.01);
+    ChClampValue(X1, -CH_PI_2 + 0.01, CH_PI_2 - 0.01);
     // Fx0 = Dx * sin(Cx * atan(Bx * kappa_x - Ex * (Bx * kappa_x - atan(Bx * kappa_x)))) + Svx;
     Fx0 = Dx * sin(Cx * atan(X1 - Ex * (X1 - atan(X1)))) + Svx;
 
@@ -139,7 +174,7 @@ void ChPac02Tire::CalcFxyMz(double& Fx, double& Fy, double& Mz, double kappa, do
     double Dy = mu_y * Fz;
     double By = Ky / (Cy * Dy + 0.1);
     double Y1 = By * alpha_y;
-    ChClampValue(Y1, -CH_C_PI_2 + 0.01, CH_C_PI_2 - 0.01);
+    ChClampValue(Y1, -CH_PI_2 + 0.01, CH_PI_2 - 0.01);
     // Fy0 = Dy * sin(Cy * atan(By * alpha_y - Ey * (By * alpha_y - atan(By * alpha_y)))) + Svy;
     Fy0 = Dy * sin(Cy * atan(Y1 - Ey * (Y1 - atan(Y1)))) + Svy;
 
@@ -163,7 +198,7 @@ void ChPac02Tire::CalcFxyMz(double& Fx, double& Fy, double& Mz, double kappa, do
     double Bt = std::abs((m_par.QBZ1 + m_par.QBZ2 * m_states.dfz0 + m_par.QBZ3 * pow(m_states.dfz0, 2)) *
                          (1.0 + m_par.QBZ4 * gamma_z + m_par.QBZ5 * std::abs(gamma_z)) * m_par.LKY / m_par.LMUY);
     double Et = (m_par.QEZ1 + m_par.QEZ2 * m_states.dfz0 + m_par.QEZ3 * pow(m_states.dfz0, 2)) *
-                (1.0 + (m_par.QEZ4 + m_par.QEZ5 * gamma_z) * ((2.0 / CH_C_PI) * atan(Bt * Ct * alpha_t)));
+                (1.0 + (m_par.QEZ4 + m_par.QEZ5 * gamma_z) * ((2.0 / CH_PI) * atan(Bt * Ct * alpha_t)));
     if (Et > 1.0)
         Et = 1.0;
     double Dt = Fz * (m_par.QDZ1 + m_par.QDZ2 * m_states.dfz0) * (1.0 - m_par.QPZ1 * m_states.dpi) *
@@ -304,8 +339,8 @@ double ChPac02Tire::CalcMy(double Fx, double Fz, double gamma) {
 void ChPac02Tire::SetMFParamsByFile(const std::string& tirFileName) {
     FILE* fp = fopen(tirFileName.c_str(), "r+");
     if (fp == NULL) {
-        GetLog() << "TIR File not found <" << tirFileName << ">!\n";
-        exit(1);
+        std::cerr << "TIR File not found <" << tirFileName << ">!" << std::endl;
+        throw std::runtime_error("TIR File not found <" + tirFileName + ">!");
     }
     LoadSectionUnits(fp);
     LoadSectionModel(fp);
@@ -376,7 +411,7 @@ bool ChPac02Tire::FindSectionStart(const std::string& sectName, FILE* fp) {
 void ChPac02Tire::LoadSectionUnits(FILE* fp) {
     bool ok = FindSectionStart("[UNITS]", fp);
     if (!ok) {
-        GetLog() << "Desired section [UNITS] not found.\n";
+        std::cerr << "Desired section [UNITS] not found.\n";
         return;
     }
     while (!feof(fp)) {
@@ -402,7 +437,6 @@ void ChPac02Tire::LoadSectionUnits(FILE* fp) {
         if (trpos != std::string::npos) {
             sbuf = sbuf.substr(0, trpos - 1);
         }
-        // GetLog() << sbuf;
         std::string skey, sval;
         size_t eqpos = sbuf.find_first_of("=");
         if (eqpos != std::string::npos) {
@@ -422,9 +456,7 @@ void ChPac02Tire::LoadSectionUnits(FILE* fp) {
         sval = sval.substr(a1pos + 1, a2pos - a1pos - 1);
         // change letters to upper case
         std::transform(sval.begin(), sval.end(), sval.begin(), ::toupper);
-        // GetLog() << "Key=" << skey << "  Val=" << sval << "\n";
         if (skey.compare("LENGTH") == 0) {
-            // GetLog() << skey << "\n";
             if (sval.compare("METER") == 0) {
                 m_par.u_length = 1.0;
             } else if (sval.compare("MM") == 0) {
@@ -440,10 +472,9 @@ void ChPac02Tire::LoadSectionUnits(FILE* fp) {
             } else if (sval.compare("IN") == 0) {
                 m_par.u_length = 0.0254;
             } else {
-                GetLog() << "No unit conversion for " << skey << "=" << sval << "\n";
+                std::cerr << "No unit conversion for " << skey << "=" << sval << "\n";
             }
         } else if (skey.compare("TIME") == 0) {
-            // GetLog() << skey << "\n";
             if (sval.compare("MILLI") == 0) {
                 m_par.u_time = 0.001;
             } else if (sval.compare("SEC") == 0 || sval.compare("SECOND") == 0) {
@@ -453,19 +484,17 @@ void ChPac02Tire::LoadSectionUnits(FILE* fp) {
             } else if (sval.compare("HOUR") == 0) {
                 m_par.u_time = 3600;
             } else {
-                GetLog() << "No unit conversion for " << skey << "=" << sval << "\n";
+                std::cerr << "No unit conversion for " << skey << "=" << sval << "\n";
             }
         } else if (skey.compare("ANGLE") == 0) {
-            // GetLog() << skey << "\n";
             if (sval.compare("DEG") == 0) {
                 m_par.u_angle = 0.0174532925;
             } else if (sval.compare("RAD") == 0 || sval.compare("RADIAN") == 0 || sval.compare("RADIANS") == 0) {
                 m_par.u_angle = 1.0;
             } else {
-                GetLog() << "No unit conversion for " << skey << "=" << sval << "\n";
+                std::cerr << "No unit conversion for " << skey << "=" << sval << "\n";
             }
         } else if (skey.compare("MASS") == 0) {
-            // GetLog() << skey << "\n";
             if (sval.compare("KG") == 0) {
                 m_par.u_mass = 1.0;
             } else if (sval.compare("GRAM") == 0) {
@@ -479,10 +508,9 @@ void ChPac02Tire::LoadSectionUnits(FILE* fp) {
             } else if (sval.compare("OUNCE_MASS") == 0) {
                 m_par.u_mass = 0.0283495231;
             } else {
-                GetLog() << "No unit conversion for " << skey << "=" << sval << "\n";
+                std::cerr << "No unit conversion for " << skey << "=" << sval << "\n";
             }
         } else if (skey.compare("FORCE") == 0) {
-            // GetLog() << skey << "\n";
             if (sval.compare("N") == 0 || sval.compare("NEWTON") == 0) {
                 m_par.u_force = 1.0;
             } else if (sval.compare("KN") == 0 || sval.compare("KNEWTON") == 0) {
@@ -498,7 +526,7 @@ void ChPac02Tire::LoadSectionUnits(FILE* fp) {
             } else if (sval.compare("KG_FORCE") == 0) {
                 m_par.u_force = 9.80665;
             } else {
-                GetLog() << "No unit conversion for " << skey << "=" << sval << "\n";
+                std::cerr << "No unit conversion for " << skey << "=" << sval << "\n";
             }
         } else if (skey.compare("PRESSURE") == 0) {
             if (sval.compare("PASCAL") == 0 || sval.compare("PA") == 0) {
@@ -523,7 +551,7 @@ void ChPac02Tire::LoadSectionUnits(FILE* fp) {
 void ChPac02Tire::LoadSectionModel(FILE* fp) {
     bool ok = FindSectionStart("[MODEL]", fp);
     if (!ok) {
-        GetLog() << "Desired section [MODEL] not found.\n";
+        std::cerr << "Desired section [MODEL] not found.\n";
         return;
     }
     while (!feof(fp)) {
@@ -549,7 +577,6 @@ void ChPac02Tire::LoadSectionModel(FILE* fp) {
         if (trpos != std::string::npos) {
             sbuf = sbuf.substr(0, trpos - 1);
         }
-        // GetLog() << sbuf << "\n";
         // not all entries are of numerical type!
         size_t eqpos = sbuf.find_first_of("=");
         if (eqpos == std::string::npos)
@@ -565,17 +592,15 @@ void ChPac02Tire::LoadSectionModel(FILE* fp) {
             size_t a1pos = sval.find_first_of("'");
             size_t a2pos = sval.find_last_of("'");
             sval = sval.substr(a1pos, a2pos - a1pos + 1);
-            // GetLog() << ">>Key=" << skey << "|" << sval << "|\n";
             if (sval.compare("'PAC2002'") != 0 && sval.compare("'MF_05'") != 0) {
-                GetLog() << "FATAL: unknown file format " << sval << ".\n";
-                exit(41);
+                std::cerr << "FATAL: unknown file format " << sval << std::endl;
+                throw std::runtime_error("FATAL: unknown file format " + sval);
             }
         }
         if (skey.compare("TYRESIDE") == 0) {
             size_t a1pos = sval.find_first_of("'");
             size_t a2pos = sval.find_last_of("'");
             sval = sval.substr(a1pos, a2pos - a1pos + 1);
-            // GetLog() << ">>Key=" << skey << "|" << sval << "|\n";
             if (sval.compare("'LEFT'") == 0 || sval.compare("'UNKNOWN'") == 0) {
                 m_measured_side = LEFT;
             } else {
@@ -586,10 +611,10 @@ void ChPac02Tire::LoadSectionModel(FILE* fp) {
             size_t a1pos = sval.find_first_of("'");
             size_t a2pos = sval.find_last_of("'");
             sval = sval.substr(a1pos, a2pos - a1pos + 1);
-            // GetLog() << ">>Key=" << skey << "|" << sval << "|\n";
             if (sval.compare("'NO'") == 0 || sval.compare("'no'") == 0) {
                 m_use_friction_ellipsis = false;
-                GetLog() << "Friction Ellipsis Method switched off, relying on Pac02 parameters!\n";
+                if (m_verbose)
+                    std::cout << "Friction Ellipsis Method switched off, relying on Pac02 parameters!\n";
             }
         }
         if (skey.compare("USE_MODE") == 0) {
@@ -598,23 +623,28 @@ void ChPac02Tire::LoadSectionModel(FILE* fp) {
                 default:
                 case 0:
                     m_use_mode = m_par.USE_MODE;
-                    GetLog() << "Only Vertical Force Fz will be calculated!\n";
+                    if (m_verbose)
+                        std::cout << "Only Vertical Force Fz will be calculated!\n";
                     break;
                 case 1:
                     m_use_mode = m_par.USE_MODE;
-                    GetLog() << "Only Forces Fx and Fz will be calculated!\n";
+                    if (m_verbose)
+                        std::cout << "Only Forces Fx and Fz will be calculated!\n";
                     break;
                 case 2:
                     m_use_mode = m_par.USE_MODE;
-                    GetLog() << "Only Forces Fy and Fz will be calculated!\n";
+                    if (m_verbose)
+                        std::cout << "Only Forces Fy and Fz will be calculated!\n";
                     break;
                 case 3:
                     m_use_mode = m_par.USE_MODE;
-                    GetLog() << "Uncombined Force calculation!\n";
+                    if (m_verbose)
+                        std::cout << "Uncombined Force calculation!\n";
                     break;
                 case 4:
                     m_use_mode = m_par.USE_MODE;
-                    GetLog() << "Combined Force calculation!\n";
+                    if (m_verbose)
+                        std::cout << "Combined Force calculation!\n";
                     break;
             }
         }
@@ -633,7 +663,7 @@ void ChPac02Tire::LoadSectionModel(FILE* fp) {
 void ChPac02Tire::LoadSectionDimension(FILE* fp) {
     bool ok = FindSectionStart("[DIMENSION]", fp);
     if (!ok) {
-        GetLog() << "Desired section [DIMENSION] not found.\n";
+        std::cerr << "Desired section [DIMENSION] not found.\n";
         return;
     }
     while (!feof(fp)) {
@@ -659,7 +689,6 @@ void ChPac02Tire::LoadSectionDimension(FILE* fp) {
         if (trpos != std::string::npos) {
             sbuf = sbuf.substr(0, trpos - 1);
         }
-        // GetLog() << sbuf << "\n";
         // not all entries are of numerical type!
         size_t eqpos = sbuf.find_first_of("=");
         if (eqpos == std::string::npos)
@@ -671,7 +700,6 @@ void ChPac02Tire::LoadSectionDimension(FILE* fp) {
         if (sppos != std::string::npos) {
             skey = skey.substr(0, sppos);
         }
-        // GetLog() << ">>Key=" << skey << "|" << sval << "\n";
         if (skey.compare("UNLOADED_RADIUS") == 0) {
             m_par.UNLOADED_RADIUS = m_par.u_length * stod(sval);
         }
@@ -693,7 +721,7 @@ void ChPac02Tire::LoadSectionDimension(FILE* fp) {
 void ChPac02Tire::LoadSectionVertical(FILE* fp) {
     bool ok = FindSectionStart("[VERTICAL]", fp);
     if (!ok) {
-        GetLog() << "Desired section [VERTICAL] not found.\n";
+        std::cerr << "Desired section [VERTICAL] not found.\n";
         return;
     }
     while (!feof(fp)) {
@@ -719,7 +747,6 @@ void ChPac02Tire::LoadSectionVertical(FILE* fp) {
         if (trpos != std::string::npos) {
             sbuf = sbuf.substr(0, trpos - 1);
         }
-        // GetLog() << sbuf << "\n";
         // not all entries are of numerical type!
         size_t eqpos = sbuf.find_first_of("=");
         if (eqpos == std::string::npos)
@@ -731,7 +758,6 @@ void ChPac02Tire::LoadSectionVertical(FILE* fp) {
         if (sppos != std::string::npos) {
             skey = skey.substr(0, sppos);
         }
-        // GetLog() << ">>Key=" << skey << "|" << sval << "\n";
         if (skey.compare("VERTICAL_STIFFNESS") == 0) {
             m_par.VERTICAL_STIFFNESS = m_par.u_stiffness * stod(sval);
         }
@@ -774,7 +800,7 @@ void ChPac02Tire::LoadSectionVertical(FILE* fp) {
 void ChPac02Tire::LoadSectionScaling(FILE* fp) {
     bool ok = FindSectionStart("[SCALING_COEFFICIENTS]", fp);
     if (!ok) {
-        GetLog() << "Desired section [SCALING_COEFFICIENTS] not found.\n";
+        std::cerr << "Desired section [SCALING_COEFFICIENTS] not found.\n";
         return;
     }
     while (!feof(fp)) {
@@ -800,7 +826,6 @@ void ChPac02Tire::LoadSectionScaling(FILE* fp) {
         if (trpos != std::string::npos) {
             sbuf = sbuf.substr(0, trpos - 1);
         }
-        // GetLog() << sbuf << "\n";
         // not all entries are of numerical type!
         size_t eqpos = sbuf.find_first_of("=");
         if (eqpos == std::string::npos)
@@ -812,7 +837,6 @@ void ChPac02Tire::LoadSectionScaling(FILE* fp) {
         if (sppos != std::string::npos) {
             skey = skey.substr(0, sppos);
         }
-        // GetLog() << ">>Key=" << skey << "|" << sval << "\n";
         if (skey.compare("LFZO") == 0) {
             m_par.LFZO = stod(sval);
         }
@@ -833,6 +857,9 @@ void ChPac02Tire::LoadSectionScaling(FILE* fp) {
         }
         if (skey.compare("LVX") == 0) {
             m_par.LVX = stod(sval);
+        }
+        if (skey.compare("LGAX") == 0) {
+            m_par.LGAX = stod(sval);
         }
         if (skey.compare("LCY") == 0) {
             m_par.LCY = stod(sval);
@@ -885,6 +912,9 @@ void ChPac02Tire::LoadSectionScaling(FILE* fp) {
         if (skey.compare("LGYR") == 0) {
             m_par.LGYR = stod(sval);
         }
+        if (skey.compare("LVMX") == 0) {
+            m_par.LVMX = stod(sval);
+        }
         if (skey.compare("LMX") == 0) {
             m_par.LMX = stod(sval);
         }
@@ -894,13 +924,19 @@ void ChPac02Tire::LoadSectionScaling(FILE* fp) {
         if (skey.compare("LIP") == 0) {
             m_par.LIP = stod(sval);
         }
+        if (skey.compare("LKYG") == 0) {
+            m_par.LKYG = stod(sval);
+        }
+        if (skey.compare("LCZ") == 0) {
+            m_par.LCZ = stod(sval);
+        }
     }
 }
 
 void ChPac02Tire::LoadSectionLongitudinal(FILE* fp) {
     bool ok = FindSectionStart("[LONGITUDINAL_COEFFICIENTS]", fp);
     if (!ok) {
-        GetLog() << "Desired section [LONGITUDINAL_COEFFICIENTS] not found.\n";
+        std::cerr << "Desired section [LONGITUDINAL_COEFFICIENTS] not found.\n";
         return;
     }
     while (!feof(fp)) {
@@ -926,7 +962,6 @@ void ChPac02Tire::LoadSectionLongitudinal(FILE* fp) {
         if (trpos != std::string::npos) {
             sbuf = sbuf.substr(0, trpos - 1);
         }
-        // GetLog() << sbuf << "\n";
         // not all entries are of numerical type!
         size_t eqpos = sbuf.find_first_of("=");
         if (eqpos == std::string::npos)
@@ -938,7 +973,6 @@ void ChPac02Tire::LoadSectionLongitudinal(FILE* fp) {
         if (sppos != std::string::npos) {
             skey = skey.substr(0, sppos);
         }
-        // GetLog() << ">>Key=" << skey << "|" << sval << "\n";
         if (skey.compare("PCX1") == 0) {
             m_par.PCX1 = stod(sval);
         }
@@ -990,6 +1024,12 @@ void ChPac02Tire::LoadSectionLongitudinal(FILE* fp) {
         if (skey.compare("RCX1") == 0) {
             m_par.RCX1 = stod(sval);
         }
+        if (skey.compare("REX1") == 0) {
+            m_par.REX1 = stod(sval);
+        }
+        if (skey.compare("REX2") == 0) {
+            m_par.REX2 = stod(sval);
+        }
         if (skey.compare("RHX1") == 0) {
             m_par.RHX1 = stod(sval);
         }
@@ -1020,7 +1060,7 @@ void ChPac02Tire::LoadSectionLongitudinal(FILE* fp) {
 void ChPac02Tire::LoadSectionOverturning(FILE* fp) {
     bool ok = FindSectionStart("[OVERTURNING_COEFFICIENTS]", fp);
     if (!ok) {
-        GetLog() << "Desired section [OVERTURNING_COEFFICIENTS] not found.\n";
+        std::cerr << "Desired section [OVERTURNING_COEFFICIENTS] not found.\n";
         return;
     }
     while (!feof(fp)) {
@@ -1046,7 +1086,6 @@ void ChPac02Tire::LoadSectionOverturning(FILE* fp) {
         if (trpos != std::string::npos) {
             sbuf = sbuf.substr(0, trpos - 1);
         }
-        // GetLog() << sbuf << "\n";
         // not all entries are of numerical type!
         size_t eqpos = sbuf.find_first_of("=");
         if (eqpos == std::string::npos)
@@ -1058,7 +1097,6 @@ void ChPac02Tire::LoadSectionOverturning(FILE* fp) {
         if (sppos != std::string::npos) {
             skey = skey.substr(0, sppos);
         }
-        // GetLog() << ">>Key=" << skey << "|" << sval << "\n";
         if (skey.compare("QSX1") == 0) {
             m_par.QSX1 = stod(sval);
         }
@@ -1101,7 +1139,7 @@ void ChPac02Tire::LoadSectionOverturning(FILE* fp) {
 void ChPac02Tire::LoadSectionLateral(FILE* fp) {
     bool ok = FindSectionStart("[LATERAL_COEFFICIENTS]", fp);
     if (!ok) {
-        GetLog() << "Desired section [LATERAL_COEFFICIENTS] not found.\n";
+        std::cerr << "Desired section [LATERAL_COEFFICIENTS] not found.\n";
         return;
     }
     while (!feof(fp)) {
@@ -1127,7 +1165,6 @@ void ChPac02Tire::LoadSectionLateral(FILE* fp) {
         if (trpos != std::string::npos) {
             sbuf = sbuf.substr(0, trpos - 1);
         }
-        // GetLog() << sbuf << "\n";
         // not all entries are of numerical type!
         size_t eqpos = sbuf.find_first_of("=");
         if (eqpos == std::string::npos)
@@ -1139,7 +1176,6 @@ void ChPac02Tire::LoadSectionLateral(FILE* fp) {
         if (sppos != std::string::npos) {
             skey = skey.substr(0, sppos);
         }
-        // GetLog() << ">>Key=" << skey << "|" << sval << "\n";
         if (skey.compare("PCY1") == 0) {
             m_par.PCY1 = stod(sval);
         }
@@ -1206,8 +1242,17 @@ void ChPac02Tire::LoadSectionLateral(FILE* fp) {
         if (skey.compare("RCY1") == 0) {
             m_par.RCY1 = stod(sval);
         }
+        if (skey.compare("REY1") == 0) {
+            m_par.REY1 = stod(sval);
+        }
+        if (skey.compare("REY2") == 0) {
+            m_par.REY2 = stod(sval);
+        }
         if (skey.compare("RHY1") == 0) {
             m_par.RHY1 = stod(sval);
+        }
+        if (skey.compare("RHY2") == 0) {
+            m_par.RHY2 = stod(sval);
         }
         if (skey.compare("RVY1") == 0) {
             m_par.RVY1 = stod(sval);
@@ -1251,7 +1296,7 @@ void ChPac02Tire::LoadSectionLateral(FILE* fp) {
 void ChPac02Tire::LoadSectionRolling(FILE* fp) {
     bool ok = FindSectionStart("[ROLLING_COEFFICIENTS]", fp);
     if (!ok) {
-        GetLog() << "Desired section [ROLLING_COEFFICIENTS] not found.\n";
+        std::cerr << "Desired section [ROLLING_COEFFICIENTS] not found.\n";
         return;
     }
     while (!feof(fp)) {
@@ -1277,7 +1322,6 @@ void ChPac02Tire::LoadSectionRolling(FILE* fp) {
         if (trpos != std::string::npos) {
             sbuf = sbuf.substr(0, trpos - 1);
         }
-        // GetLog() << sbuf << "\n";
         // not all entries are of numerical type!
         size_t eqpos = sbuf.find_first_of("=");
         if (eqpos == std::string::npos)
@@ -1289,7 +1333,6 @@ void ChPac02Tire::LoadSectionRolling(FILE* fp) {
         if (sppos != std::string::npos) {
             skey = skey.substr(0, sppos);
         }
-        // GetLog() << ">>Key=" << skey << "|" << sval << "\n";
         if (skey.compare("QSY1") == 0) {
             m_par.QSY1 = stod(sval);
             if (m_par.QSY1 <= 0.0)
@@ -1322,7 +1365,7 @@ void ChPac02Tire::LoadSectionRolling(FILE* fp) {
 void ChPac02Tire::LoadSectionConditions(FILE* fp) {
     bool ok = FindSectionStart("[TIRE_CONDITIONS]", fp);
     if (!ok) {
-        GetLog() << "Desired section [TIRE_CONDITIONS] not found, older Pacejka file version.\n";
+        std::cerr << "Desired section [TIRE_CONDITIONS] not found, older Pacejka file version.\n";
         return;
     }
     while (!feof(fp)) {
@@ -1348,7 +1391,6 @@ void ChPac02Tire::LoadSectionConditions(FILE* fp) {
         if (trpos != std::string::npos) {
             sbuf = sbuf.substr(0, trpos - 1);
         }
-        // GetLog() << sbuf << "\n";
         // not all entries are of numerical type!
         size_t eqpos = sbuf.find_first_of("=");
         if (eqpos == std::string::npos)
@@ -1360,7 +1402,6 @@ void ChPac02Tire::LoadSectionConditions(FILE* fp) {
         if (sppos != std::string::npos) {
             skey = skey.substr(0, sppos);
         }
-        // GetLog() << ">>Key=" << skey << "|" << sval << "\n";
         bool ip_ok = false;
         if (skey.compare("IP") == 0) {
             m_par.IP = m_par.u_pressure * stod(sval);
@@ -1378,7 +1419,7 @@ void ChPac02Tire::LoadSectionConditions(FILE* fp) {
 void ChPac02Tire::LoadVerticalTable(FILE* fp) {
     bool ok = FindSectionStart("[DEFLECTION_LOAD_CURVE]", fp);
     if (!ok) {
-        GetLog() << "Desired section [DEFLECTION_LOAD_CURVE] not found, using linear vertical stiffness.\n";
+        std::cerr << "Desired section [DEFLECTION_LOAD_CURVE] not found, using linear vertical stiffness.\n";
         return;
     }
     std::vector<double> xval, yval;
@@ -1425,12 +1466,12 @@ void ChPac02Tire::LoadVerticalTable(FILE* fp) {
     m_par.QFZ1 = x(0);
     m_par.QFZ2 = x(1);
     /*
-    GetLog() << "a = " << x(0) << "\n";
-    GetLog() << "b = " << x(1) << "\n";
-    GetLog() << "Test1 " << (x(0)*xval.back()/4.0 + x(1)*pow(xval.back()/4.0,2))*m_par.FNOMIN << "\n";
-    GetLog() << "Test2 " << (x(0)*xval.back()/2.0 + x(1)*pow(xval.back()/2.0,2))*m_par.FNOMIN << "\n";
-    GetLog() << "Test3 " << (x(0)*xval.back()*3.0/4.0 + x(1)*pow(xval.back()*3.0/4.0,2))*m_par.FNOMIN << "\n";
-    GetLog() << "Test2 " << (x(0)*xval.back() + x(1)*pow(xval.back(),2))*m_par.FNOMIN << "\n";
+    std::cout << "a = " << x(0) << "\n";
+    std::cout << "b = " << x(1) << "\n";
+    std::cout << "Test1 " << (x(0)*xval.back()/4.0 + x(1)*pow(xval.back()/4.0,2))*m_par.FNOMIN << "\n";
+    std::cout << "Test2 " << (x(0)*xval.back()/2.0 + x(1)*pow(xval.back()/2.0,2))*m_par.FNOMIN << "\n";
+    std::cout << "Test3 " << (x(0)*xval.back()*3.0/4.0 + x(1)*pow(xval.back()*3.0/4.0,2))*m_par.FNOMIN << "\n";
+    std::cout << "Test2 " << (x(0)*xval.back() + x(1)*pow(xval.back(),2))*m_par.FNOMIN << "\n";
     double sum = 0.0;
     for(int i=0; i<ndata; i++) {
         double f = (m_par.QFZ1*xval[i] + m_par.QFZ2*pow(xval[i],2));
@@ -1438,7 +1479,7 @@ void ChPac02Tire::LoadVerticalTable(FILE* fp) {
         double e = (f-y);
         sum += e*e;
     }
-    GetLog() << "SumOfSquares = " << sum/double(ndata) << "\n";
+    std::cout << "SumOfSquares = " << sum/double(ndata) << "\n";
      */
     m_vertical_table_found = true;
 }
@@ -1446,7 +1487,7 @@ void ChPac02Tire::LoadVerticalTable(FILE* fp) {
 void ChPac02Tire::LoadBottomingTable(FILE* fp) {
     bool ok = FindSectionStart("[BOTTOMING_CURVE]", fp);
     if (!ok) {
-        GetLog() << "Desired section [BOTTOMING_CURVE] not found, no bottoming stiffness set.\n";
+        std::cerr << "Desired section [BOTTOMING_CURVE] not found, no bottoming stiffness set." << std::endl;
         return;
     }
     while (true) {
@@ -1479,14 +1520,14 @@ void ChPac02Tire::LoadBottomingTable(FILE* fp) {
         double y = m_par.u_force * stod(sbuf.substr(sz), &sz);
         m_bott_map.AddPoint(x, y);
     }
-    if (m_bott_map.GetPoints().size() >= 3)
+    if (m_bott_map.GetTable().size() >= 3)
         m_bottoming_table_found = true;
 }
 
 void ChPac02Tire::LoadSectionAligning(FILE* fp) {
     bool ok = FindSectionStart("[ALIGNING_COEFFICIENTS]", fp);
     if (!ok) {
-        GetLog() << "Desired section [ALIGNING_COEFFICIENTS] not found.\n";
+        std::cerr << "Desired section [ALIGNING_COEFFICIENTS] not found." << std::endl;
         return;
     }
     while (!feof(fp)) {
@@ -1512,7 +1553,6 @@ void ChPac02Tire::LoadSectionAligning(FILE* fp) {
         if (trpos != std::string::npos) {
             sbuf = sbuf.substr(0, trpos - 1);
         }
-        // GetLog() << sbuf << "\n";
         // not all entries are of numerical type!
         size_t eqpos = sbuf.find_first_of("=");
         if (eqpos == std::string::npos)
@@ -1524,7 +1564,6 @@ void ChPac02Tire::LoadSectionAligning(FILE* fp) {
         if (sppos != std::string::npos) {
             skey = skey.substr(0, sppos);
         }
-        // GetLog() << ">>Key=" << skey << "|" << sval << "\n";
         if (skey.compare("QBZ1") == 0) {
             m_par.QBZ1 = stod(sval);
         }
@@ -1542,6 +1581,9 @@ void ChPac02Tire::LoadSectionAligning(FILE* fp) {
         }
         if (skey.compare("QBZ9") == 0) {
             m_par.QBZ9 = stod(sval);
+        }
+        if (skey.compare("QBZ10") == 0) {
+            m_par.QBZ10 = stod(sval);
         }
         if (skey.compare("QCZ1") == 0) {
             m_par.QCZ1 = stod(sval);
@@ -1597,6 +1639,12 @@ void ChPac02Tire::LoadSectionAligning(FILE* fp) {
         if (skey.compare("QHZ4") == 0) {
             m_par.QHZ4 = stod(sval);
         }
+        if (skey.compare("QPZ1") == 0) {
+            m_par.QPZ1 = stod(sval);
+        }
+        if (skey.compare("QPZ2") == 0) {
+            m_par.QPZ2 = stod(sval);
+        }
         if (skey.compare("SSZ1") == 0) {
             m_par.SSZ1 = stod(sval);
         }
@@ -1627,8 +1675,8 @@ void ChPac02Tire::LoadSectionAligning(FILE* fp) {
 void ChPac02Tire::Initialize(std::shared_ptr<ChWheel> wheel) {
     ChTire::Initialize(wheel);
 
-    m_g = wheel->GetSpindle()->GetSystem()->Get_G_acc().Length();
-    
+    m_g = wheel->GetSpindle()->GetSystem()->GetGravitationalAcceleration().Length();
+
     // Let derived class set the MF tire parameters
     SetMFParams();
 
@@ -1658,10 +1706,11 @@ void ChPac02Tire::Initialize(std::shared_ptr<ChWheel> wheel) {
             m_par.QHZ1 *= -1.0;
             m_par.QHZ2 *= -1.0;
             m_par.SSZ1 *= -1.0;
-            if (m_measured_side == LEFT) {
-                GetLog() << "Tire is measured as left tire but mounted on the right vehicle side -> mirroring.\n";
-            } else {
-                GetLog() << "Tire is measured as right tire but mounted on the lleft vehicle side -> mirroring.\n";
+            if (m_verbose) {
+                if (m_measured_side == LEFT)
+                    std::cout << "Tire is measured as left tire but mounted on the right -> mirroring." << std::endl;
+                else
+                    std::cout << "Tire is measured as right tire but mounted on the left -> mirroring." << std::endl;
             }
         }
     }
@@ -1676,7 +1725,7 @@ void ChPac02Tire::Initialize(std::shared_ptr<ChWheel> wheel) {
     m_states.vsx = 0;
     m_states.vsy = 0;
     m_states.omega = 0;
-    m_states.disc_normal = ChVector<>(0, 0, 0);
+    m_states.disc_normal = ChVector3d(0, 0, 0);
 }
 
 void ChPac02Tire::Synchronize(double time, const ChTerrain& terrain) {
@@ -1684,7 +1733,7 @@ void ChPac02Tire::Synchronize(double time, const ChTerrain& terrain) {
 
     // Extract the wheel normal (expressed in global frame)
     ChMatrix33<> A(wheel_state.rot);
-    ChVector<> disc_normal = A.Get_A_Yaxis();
+    ChVector3d disc_normal = A.GetAxisY();
 
     // Assuming the tire is a disc, check contact with terrain
     float mu_road;
@@ -1699,11 +1748,9 @@ void ChPac02Tire::Synchronize(double time, const ChTerrain& terrain) {
     // Calculate tire kinematics
     CalculateKinematics(wheel_state, m_data.frame);
 
-    m_states.gamma = ChClamp(GetCamberAngle(), -m_gamma_limit * CH_C_DEG_TO_RAD, m_gamma_limit * CH_C_DEG_TO_RAD);
-
     if (m_data.in_contact) {
         // Wheel velocity in the ISO-C Frame
-        ChVector<> vel = wheel_state.lin_vel;
+        ChVector3d vel = wheel_state.lin_vel;
         m_data.vel = m_data.frame.TransformDirectionParentToLocal(vel);
 
         // Generate normal contact force (recall, all forces are reduced to the wheel
@@ -1737,7 +1784,7 @@ void ChPac02Tire::Synchronize(double time, const ChTerrain& terrain) {
         // Ensure that kappa stays between -1 & 1
         ChClampValue(m_states.kappa, -1.0, 1.0);
         // Ensure that alpha stays between -pi()/2 & pi()/2 (a little less to prevent tan from going to infinity)
-        ChClampValue(m_states.alpha, -CH_C_PI_2 + 0.01, CH_C_PI_2 - 0.01);
+        ChClampValue(m_states.alpha, -CH_PI_2 + 0.01, CH_PI_2 - 0.01);
         // Clamp |gamma| to specified value: Limit due to tire testing, avoids erratic extrapolation. m_gamma_limit is
         // in rad too.
         ChClampValue(m_states.gamma, -m_gamma_limit, m_gamma_limit);
@@ -1758,14 +1805,16 @@ void ChPac02Tire::Synchronize(double time, const ChTerrain& terrain) {
         m_states.dfz0 = 0;
         m_states.Pi0_prime = 0;
         m_states.dpi = 1;
-        m_states.disc_normal = ChVector<>(0, 0, 0);
+        m_states.brx = 0;
+        m_states.bry = 0;
+        m_states.disc_normal = ChVector3d(0, 0, 0);
     }
 }
 
 void ChPac02Tire::Advance(double step) {
     // Set tire forces to zero.
-    m_tireforce.force = ChVector<>(0, 0, 0);
-    m_tireforce.moment = ChVector<>(0, 0, 0);
+    m_tireforce.force = ChVector3d(0, 0, 0);
+    m_tireforce.moment = ChVector3d(0, 0, 0);
 
     // Return now if no contact.
     if (!m_data.in_contact)
@@ -1785,7 +1834,7 @@ void ChPac02Tire::Advance(double step) {
     double kappa = m_states.kappa;
     double alpha = m_states.alpha;
     double gamma = m_states.gamma;
-    double frblend = ChSineStep(std::abs(m_data.vel.x()), m_frblend_begin, 0.0, m_frblend_end, 1.0);
+    double frblend = ChFunctionSineStep::Eval(std::abs(m_data.vel.x()), m_frblend_begin, 0.0, m_frblend_end, 1.0);
 
     switch (m_use_mode) {
         case 0:
@@ -1817,8 +1866,8 @@ void ChPac02Tire::Advance(double step) {
     // Compile the force and moment vectors so that they can be
     // transformed into the global coordinate system.
     // Convert from SAE to ISO Coordinates at the contact patch.
-    m_tireforce.force = ChVector<>(Fx, -Fy, m_data.normal_force);
-    m_tireforce.moment = ChVector<>(Mx, -My, -Mz);
+    m_tireforce.force = ChVector3d(Fx, -Fy, m_data.normal_force);
+    m_tireforce.moment = ChVector3d(Mx, -My, -Mz);
 }
 
 double ChPac02Tire::GetLongitudinalGripSaturation() {

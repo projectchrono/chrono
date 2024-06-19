@@ -30,25 +30,31 @@ namespace generic {
 /// @addtogroup vehicle_models_generic
 /// @{
 
-/// Rigid tire model for the generic vehicle.
+/// Rigid tire model for the Generic vehicle vehicle.
 class CH_MODELS_API Generic_RigidTire : public ChRigidTire {
   public:
-    Generic_RigidTire(const std::string& name);
-
+    Generic_RigidTire(const std::string& name, bool use_mesh = false);
     ~Generic_RigidTire() {}
 
     virtual double GetRadius() const override { return m_radius; }
     virtual double GetWidth() const override { return m_width; }
     virtual double GetTireMass() const override { return m_mass; }
-    virtual ChVector<> GetTireInertia() const override { return m_inertia; }
+    virtual ChVector3d GetTireInertia() const override { return m_inertia; }
 
   private:
     virtual void CreateContactMaterial(ChContactMethod contact_method) override;
+    virtual void AddVisualizationAssets(VisualizationType vis) override;
+    virtual void RemoveVisualizationAssets() override final;
 
     static const double m_radius;
     static const double m_width;
     static const double m_mass;
-    static const ChVector<> m_inertia;
+    static const ChVector3d m_inertia;
+
+    static const std::string m_meshFile_left;
+    static const std::string m_meshFile_right;
+
+    std::shared_ptr<ChVisualShapeTriangleMesh> m_trimesh_shape;
 };
 
 /// @} vehicle_models_generic

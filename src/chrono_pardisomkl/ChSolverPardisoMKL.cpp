@@ -17,9 +17,8 @@
 
 namespace chrono {
 
-ChSolverPardisoMKL::ChSolverPardisoMKL(int num_threads) {
-    int nthreads = (num_threads <= 0) ? ChOMP::GetNumProcs() : num_threads;
-    ChOMP::SetNumThreads(nthreads);
+ChSolverPardisoMKL::ChSolverPardisoMKL(unsigned int num_threads) {
+    mkl_set_num_threads(num_threads);
 }
 
 bool ChSolverPardisoMKL::FactorizeMatrix() {
@@ -36,13 +35,13 @@ void ChSolverPardisoMKL::PrintErrorMessage() {
     // There are only three possible return codes (see manageErrorCode in Eigen's PardisoSupport.h)
     switch (m_engine.info()) {
         case Eigen::Success:
-            GetLog() << "computation was successful";
+            std::cout << "computation was successful" << std::endl;
             break;
         case Eigen::NumericalIssue:
-            GetLog() << "provided data did not satisfy the prerequisites";
+            std::cout << "provided data did not satisfy the prerequisites" << std::endl;
             break;
         case Eigen::InvalidInput:
-            GetLog() << "inputs are invalid, or the algorithm has been improperly called";
+            std::cout << "inputs are invalid, or the algorithm has been improperly called" << std::endl;
             break;
         case Eigen::NoConvergence:
             // Not a possible error for Pardiso
@@ -50,13 +49,10 @@ void ChSolverPardisoMKL::PrintErrorMessage() {
     }
 }
 
-
 //----------------------------------------------------------------------------------
 
-
-ChSolverComplexPardisoMKL::ChSolverComplexPardisoMKL(int num_threads) {
-    int nthreads = (num_threads <= 0) ? ChOMP::GetNumProcs() : num_threads;
-    ChOMP::SetNumThreads(nthreads);
+ChSolverComplexPardisoMKL::ChSolverComplexPardisoMKL(unsigned int num_threads) {
+    mkl_set_num_threads(num_threads);
 }
 
 bool ChSolverComplexPardisoMKL::FactorizeMatrix() {
@@ -73,19 +69,18 @@ void ChSolverComplexPardisoMKL::PrintErrorMessage() {
     // There are only three possible return codes (see manageErrorCode in Eigen's PardisoSupport.h)
     switch (m_engine.info()) {
         case Eigen::Success:
-            GetLog() << "computation was successful";
+            std::cout << "computation was successful" << std::endl;
             break;
         case Eigen::NumericalIssue:
-            GetLog() << "provided data did not satisfy the prerequisites";
+            std::cout << "provided data did not satisfy the prerequisites" << std::endl;
             break;
         case Eigen::InvalidInput:
-            GetLog() << "inputs are invalid, or the algorithm has been improperly called";
+            std::cout << "inputs are invalid, or the algorithm has been improperly called" << std::endl;
             break;
         case Eigen::NoConvergence:
             // Not a possible error for Pardiso
             break;
     }
 }
-
 
 }  // end of namespace chrono

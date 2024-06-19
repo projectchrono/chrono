@@ -50,22 +50,22 @@ namespace sensor {
 void ReadFileJSON(const std::string& filename, Document& d) {
     std::ifstream ifs(filename);
     if (!ifs.good()) {
-        GetLog() << "ERROR: Could not open JSON file: " << filename << "\n";
+        std::cerr << "ERROR: Could not open JSON file: " << filename << std::endl;
     } else {
         IStreamWrapper isw(ifs);
         d.ParseStream<ParseFlag::kParseCommentsFlag>(isw);
         if (d.IsNull()) {
-            GetLog() << "ERROR: Invalid JSON file: " << filename << "\n";
+            std::cerr << "ERROR: Invalid JSON file: " << filename << std::endl;
         }
     }
 }
 
 // -----------------------------------------------------------------------------
 
-ChVector<> ReadVectorJSON(const Value& a) {
+ChVector3d ReadVectorJSON(const Value& a) {
     assert(a.IsArray());
     assert(a.Size() == 3);
-    return ChVector<>(a[0u].GetDouble(), a[1u].GetDouble(), a[2u].GetDouble());
+    return ChVector3d(a[0u].GetDouble(), a[1u].GetDouble(), a[2u].GetDouble());
 }
 
 ChQuaternion<> ReadQuaternionJSON(const Value& a) {
@@ -115,7 +115,7 @@ std::shared_ptr<ChSensor> ReadSensorJSON(const std::string& filename,
     } else if (sensor_type.compare("Lidar") == 0) {
         sensor = ReadLidarSensorJSON(filename, parent, offsetPose);
     } else {
-        throw ChException("Sensor type of " + sensor_type + " not supported in ReadSensorJSON.");
+        throw std::invalid_argument("Sensor type of " + sensor_type + " not supported in ReadSensorJSON.");
     }
 
     return sensor;
@@ -138,7 +138,8 @@ std::shared_ptr<ChCameraSensor> ReadCameraSensorJSON(const std::string& filename
     assert(d.HasMember("Template"));
     std::string subtype = d["Template"].GetString();
     if (subtype.compare("Camera") != 0) {
-        throw ChException("ChUtilsJSON::ReadCameraSensorJSON: Sensor type of " + subtype + " must be Camera.");
+        throw std::invalid_argument("ChUtilsJSON::ReadCameraSensorJSON: Sensor type of " + subtype +
+                                    " must be Camera.");
     }
 
     // Read sensor properties
@@ -194,7 +195,7 @@ std::shared_ptr<ChGPSSensor> ReadGPSSensorJSON(const std::string& filename,
     assert(d.HasMember("Template"));
     std::string subtype = d["Template"].GetString();
     if (subtype.compare("GPS") != 0) {
-        throw ChException("ChUtilsJSON::ReadGPSSensorJSON: Sensor type of " + subtype + " must be GPS.");
+        throw std::invalid_argument("ChUtilsJSON::ReadGPSSensorJSON: Sensor type of " + subtype + " must be GPS.");
     }
 
     // Read sensor properties
@@ -204,7 +205,7 @@ std::shared_ptr<ChGPSSensor> ReadGPSSensorJSON(const std::string& filename,
     // Create the gps sensor.
     float updateRate = properties["Update Rate"].GetFloat();
     // ChFrame<> offsetPose = ReadFrameJSON(properties["Offset Pose"]);
-    ChVector<> gps_reference = ReadVectorJSON(properties["GPS Reference"]);
+    ChVector3d gps_reference = ReadVectorJSON(properties["GPS Reference"]);
     std::shared_ptr<ChNoiseModel> noise_model = CreateNoiseJSON(properties["Noise Model"]);
 
     auto gps = chrono_types::make_shared<ChGPSSensor>(parent, updateRate, offsetPose, gps_reference, noise_model);
@@ -237,8 +238,8 @@ std::shared_ptr<ChAccelerometerSensor> ReadAccelerometerSensorJSON(const std::st
     assert(d.HasMember("Template"));
     std::string subtype = d["Template"].GetString();
     if (subtype.compare("Accelerometer") != 0) {
-        throw ChException("ChUtilsJSON::ReadAccelerometerSensorJSON: Sensor type of " + subtype +
-                          " must be Accelerometer.");
+        throw std::invalid_argument("ChUtilsJSON::ReadAccelerometerSensorJSON: Sensor type of " + subtype +
+                                    " must be Accelerometer.");
     }
 
     // Read sensor properties
@@ -279,7 +280,8 @@ std::shared_ptr<ChGyroscopeSensor> ReadGyroscopeSensorJSON(const std::string& fi
     assert(d.HasMember("Template"));
     std::string subtype = d["Template"].GetString();
     if (subtype.compare("Gyroscope") != 0) {
-        throw ChException("ChUtilsJSON::ReadGyroscopeSensorJSON: Sensor type of " + subtype + " must be Gyroscope.");
+        throw std::invalid_argument("ChUtilsJSON::ReadGyroscopeSensorJSON: Sensor type of " + subtype +
+                                    " must be Gyroscope.");
     }
 
     // Read sensor properties
@@ -320,8 +322,8 @@ std::shared_ptr<ChMagnetometerSensor> ReadMagnetometerSensorJSON(const std::stri
     assert(d.HasMember("Template"));
     std::string subtype = d["Template"].GetString();
     if (subtype.compare("Magnetometer") != 0) {
-        throw ChException("ChUtilsJSON::ReadMagnetometerSensorJSON: Sensor type of " + subtype +
-                          " must be Magnetometer.");
+        throw std::invalid_argument("ChUtilsJSON::ReadMagnetometerSensorJSON: Sensor type of " + subtype +
+                                    " must be Magnetometer.");
     }
 
     // Read sensor properties
@@ -332,7 +334,7 @@ std::shared_ptr<ChMagnetometerSensor> ReadMagnetometerSensorJSON(const std::stri
     float updateRate = properties["Update Rate"].GetFloat();
     // ChFrame<> offsetPose = ReadFrameJSON(properties["Offset Pose"]);
     std::shared_ptr<ChNoiseModel> noise_model = CreateNoiseJSON(properties["Noise Model"]);
-    ChVector<> gps_reference = ReadVectorJSON(properties["GPS Reference"]);
+    ChVector3d gps_reference = ReadVectorJSON(properties["GPS Reference"]);
     auto mag =
         chrono_types::make_shared<ChMagnetometerSensor>(parent, updateRate, offsetPose, noise_model, gps_reference);
 
@@ -364,7 +366,7 @@ std::shared_ptr<ChLidarSensor> ReadLidarSensorJSON(const std::string& filename,
     assert(d.HasMember("Template"));
     std::string subtype = d["Template"].GetString();
     if (subtype.compare("Lidar") != 0) {
-        throw ChException("ChUtilsJSON::ReadLidarSensorJSON: Sensor type of " + subtype + " must be Lidar.");
+        throw std::invalid_argument("ChUtilsJSON::ReadLidarSensorJSON: Sensor type of " + subtype + " must be Lidar.");
     }
 
     // Read sensor properties
@@ -431,7 +433,7 @@ std::shared_ptr<ChLidarSensor> ReadLidarSensorJSON(const std::string& filename,
 
 std::shared_ptr<ChRadarSensor> ReadRadarSensorJSON(const std::string& filename,
                                                    std::shared_ptr<chrono::ChBody> parent,
-                                                   chrono::ChFrame<double> offsetPose){
+                                                   chrono::ChFrame<double> offsetPose) {
     Document d;
     ReadFileJSON(filename, d);
     if (d.IsNull())
@@ -445,8 +447,8 @@ std::shared_ptr<ChRadarSensor> ReadRadarSensorJSON(const std::string& filename,
     // Extract the sensor type.
     assert(d.HasMember("Template"));
     std::string subtype = d["Template"].GetString();
-    if (subtype.compare("Radar") != 0){
-        throw ChException("ChUtilsJSON::ReadRdarSensorJSON: Sensor type of " + subtype + " must be Radar");
+    if (subtype.compare("Radar") != 0) {
+        throw std::invalid_argument("ChUtilsJSON::ReadRdarSensorJSON: Sensor type of " + subtype + " must be Radar");
     }
 
     // Read sensor properties
@@ -467,13 +469,12 @@ std::shared_ptr<ChRadarSensor> ReadRadarSensorJSON(const std::string& filename,
         near_clip = properties["Near Clip"].GetFloat();
     }
 
-    auto radar = chrono_types::make_shared<ChRadarSensor>(
-        parent, updateRate, offsetPose, w, h, hfov, vfov, max_distance, near_clip
-    );
+    auto radar = chrono_types::make_shared<ChRadarSensor>(parent, updateRate, offsetPose, w, h, hfov, vfov,
+                                                          max_distance, near_clip);
 
     if (properties.HasMember("Collection Window")) {
         float exposure_time = properties["Collection Window"].GetFloat();
-    radar->SetCollectionWindow(exposure_time);
+        radar->SetCollectionWindow(exposure_time);
     }
 
     return radar;
@@ -579,7 +580,7 @@ std::shared_ptr<ChFilter> CreateFilterJSON(const Value& value) {
         std::string name = GetStringMemberWithDefault(value, "Name");
         filter = chrono_types::make_shared<ChFilterImageResize>(w, h, name);
     } else {
-        throw ChException("Filter type of \"" + type + "\" not supported in ReadFilterJSON.");
+        throw std::invalid_argument("Filter type of \"" + type + "\" not supported in ReadFilterJSON.");
     }
 
     return filter;
@@ -594,18 +595,18 @@ std::shared_ptr<ChNoiseModel> CreateNoiseJSON(const Value& value) {
     if (type.compare("ChNoiseNone") == 0) {
         model = chrono_types::make_shared<ChNoiseNone>();
     } else if (type.compare("ChNoiseNormal") == 0) {
-        ChVector<float> mean = ReadVectorJSON(value["Mean"]);
-        ChVector<float> stdev = ReadVectorJSON(value["Mean"]);
+        ChVector3f mean = ReadVectorJSON(value["Mean"]);
+        ChVector3f stdev = ReadVectorJSON(value["Standard Deviation"]);
         model = chrono_types::make_shared<ChNoiseNormal>(mean, stdev);
     } else if (type.compare("ChNoiseNormalDrift") == 0) {
         float updateRate = value["Update Rate"].GetFloat();
-        ChVector<float> mean = ReadVectorJSON(value["Mean"]);
-        ChVector<float> stdev = ReadVectorJSON(value["Mean"]);
-        float drift_bias = value["Drift Bias"].GetFloat();
+        ChVector3f mean = ReadVectorJSON(value["Mean"]);
+        ChVector3f stdev = ReadVectorJSON(value["Standard Deviation"]);
+        float drift_bias = value["Bias Drift"].GetFloat();
         float tau_drift = value["Tau Drift"].GetFloat();
         model = chrono_types::make_shared<ChNoiseNormalDrift>(updateRate, mean, stdev, drift_bias, tau_drift);
     } else {
-        throw ChException("Noise model type of \"" + type + "\" not supported in ReadNoiseJSON.");
+        throw std::invalid_argument("Noise model type of \"" + type + "\" not supported in ReadNoiseJSON.");
     }
 
     return model;

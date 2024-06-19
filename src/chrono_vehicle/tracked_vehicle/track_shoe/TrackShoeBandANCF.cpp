@@ -16,7 +16,7 @@
 //
 // =============================================================================
 
-#include "chrono/assets/ChTriangleMeshShape.h"
+#include "chrono/assets/ChVisualShapeTriangleMesh.h"
 
 #include "chrono_vehicle/ChVehicleModelData.h"
 #include "chrono_vehicle/tracked_vehicle/track_shoe/TrackShoeBandANCF.h"
@@ -31,13 +31,14 @@ namespace vehicle {
 
 // -----------------------------------------------------------------------------
 TrackShoeBandANCF::TrackShoeBandANCF(const std::string& filename) : ChTrackShoeBandANCF(""), m_has_mesh(false) {
-    Document d; ReadFileJSON(filename, d);
+    Document d;
+    ReadFileJSON(filename, d);
     if (d.IsNull())
         return;
 
     Create(d);
 
-    GetLog() << "Loaded JSON: " << filename.c_str() << "\n";
+    std::cout << "Loaded JSON " << filename << std::endl;
 }
 
 TrackShoeBandANCF::TrackShoeBandANCF(const rapidjson::Document& d) : ChTrackShoeBandANCF(""), m_has_mesh(false) {
@@ -108,9 +109,8 @@ void TrackShoeBandANCF::Create(const rapidjson::Document& d) {
 // -----------------------------------------------------------------------------
 void TrackShoeBandANCF::AddVisualizationAssets(VisualizationType vis) {
     if (vis == VisualizationType::MESH && m_has_mesh) {
-        auto trimesh =
-            geometry::ChTriangleMeshConnected::CreateFromWavefrontFile(vehicle::GetDataFile(m_meshFile), true, true);
-        auto trimesh_shape = chrono_types::make_shared<ChTriangleMeshShape>();
+        auto trimesh = ChTriangleMeshConnected::CreateFromWavefrontFile(vehicle::GetDataFile(m_meshFile), true, true);
+        auto trimesh_shape = chrono_types::make_shared<ChVisualShapeTriangleMesh>();
         trimesh_shape->SetMesh(trimesh);
         trimesh_shape->SetName(filesystem::path(m_meshFile).stem());
         trimesh_shape->SetMutable(false);

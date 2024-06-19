@@ -1,7 +1,7 @@
 Demo Engine {#tutorial_chrono_solidworks_demo_engine}
 ==========================
 
-This is an important introductory tutorial about how to use the SolidWorks CAD as a preprocessing tool, thanks to the [Chrono::SolidWorks](@ref tutorial_install_chrono_solidworks) add-in. 
+This is an important introductory tutorial about how to use the SolidWorks CAD as a preprocessing tool, thanks to the [Chrono::SolidWorks](@ref chrono_solidworks_installation) add-in. 
 
 You will learn how to model a 3D assembly using SolidWorks, how to export it as a .py file containing the Chrono::Engine system description, how to run a Python simulation of the exported system using [PyChrono](@ref pychrono_introduction), and how to render the simulation using POVray.
 
@@ -11,7 +11,7 @@ Please follow all steps of the tutorial, once you understood all these steps, yo
 # Prerequisites:
 
 + you must have a [SolidWorks](http://www.solidworks.com) CAD license.
-+ the [Chrono::SolidWorks](@ref tutorial_install_chrono_solidworks) add-in must be installed in SolidWorks.
++ the [Chrono::SolidWorks](@ref chrono_solidworks_installation) add-in must be installed in SolidWorks.
 Optionally, for the last steps of the tutorial (rendering the animation) these tools must be installed: 
 + the [PyChrono](@ref pychrono_introduction) python module must be installed in your Python environment, 
 + the [POVray](http://www.povray.org) rendering software must be installed; not mandatory if you want to use the Irrlicht realtime visualization;
@@ -145,7 +145,7 @@ with the ```(-)``` label.
 This operation will save the entire root assembly as a Python file, called ```engine.py```, that contains lot of statements that, once executed as a Python module, will create many ChBody objects for all the moving parts in SolidWorks, and many ChLink objects for each SolidWorks mating constraint. Use an editor to inspect the engine.py file so you can get an idea of what happened.
 
 
-Aside to the engine.py exported file, there will be a directory called ```engine_shapes```. Look into that directory: you will find three .obj files, each corresponding to a 3D mesh with the visualization shape of the moving parts. These shapes will be used later by the Chrono::Engine postprocessing system if you want to do a rendering of the simulation.
+Aside to the ```engine.py``` exported file, there will be a directory called ```engine_shapes```. Look into that directory: you will find three .obj files, each corresponding to a 3D mesh with the visualization shape of the moving parts. These shapes will be used later by the Chrono::Engine postprocessing system if you want to do a rendering of the simulation.
 
 You can also modify, edit or simplify these .obj meshes using 3D tools such as [Blender](http://www.blender.org)
 
@@ -171,7 +171,7 @@ Note, do not expect to see a lot of movement in this animation: the only motion 
 
 What is happening under the hood? When you press Run test: 
 
-1. SolidWorks calls the Python interpreter that will run the test.py file, based on [PyChrono](@ref pychrono_introduction);
+1. SolidWorks calls the Python interpreter that will run the ```test.py```file, based on [PyChrono](@ref pychrono_introduction);
 
 2. on its turn, the test.py file will:
 
@@ -183,7 +183,7 @@ What is happening under the hood? When you press Run test:
 
 6. run the simulation loop
 
-Note that on some systems the step 1 could fail if the Python interpreter is not available on a global path. If so, you can start test.py by hand, by opening for example an Anaconda shell and launching it with:
+Note that on some systems the step 1 could fail if the Python interpreter is not available on a global path. If so, you can start ```test.py``` by hand, by opening for example an Anaconda shell and launching it with:
 
 ```run_test.py -f engine.py```
 
@@ -193,7 +193,7 @@ Other flags can be used too, as the command line syntax is
 
 ```run_test.py (-f|--filename)<model_file> [-d|--timestep]<dt>  [-T|--Tlength]<max_simulated_time> [-v|--visualization]<irrlicht|pov> [-p|--datapath]<path_to_data_folder>```
 
-Anyway: the test.py file is just a simple stub. You can use it as an inspiration and modify it for creating a more sophisticated Python program. We strongly suggest to open it in your Python IDE editor and see how it is working.
+Anyway: the ```test.py``` file is just a simple stub. You can use it as an inspiration and modify it for creating a more sophisticated Python program. We strongly suggest to open it in your Python IDE editor and see how it is working.
 
 
 
@@ -244,9 +244,9 @@ Optionally, you can repeat this exercise by adding more cylinders, to create a c
 
   ![](http://www.projectchrono.org/assets/manual/SWaddin.jpg)
 
-+ Save the entire assembly as ```engine4c.sldasm``` 
++ Save the entire assembly as ```Engine4c.sldasm``` 
 
-+ Export the Chrono::Engine system as ```engine4c.py``` 
++ Export the Chrono::Engine system as ```Engine4c.py``` 
 
 This done, now you can proceed with the following
 [Demo_engine advanced](@ref tutorial_chrono_solidworks_demo_engine_advanced)

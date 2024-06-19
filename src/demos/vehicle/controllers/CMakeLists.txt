@@ -16,7 +16,6 @@ set(DEMOS
 
 if(ENABLE_MODULE_IRRLICHT)
    set(DEMOS ${DEMOS}
-       demo_VEH_Controller
        demo_VEH_Controller_AIDriver
   )
 endif()
@@ -46,6 +45,20 @@ endif()
 if(ENABLE_MODULE_SENSOR)
     list(APPEND LIBS "ChronoEngine_sensor")
 endif()
+
+if (ENABLE_MODULE_SENSOR)
+    list(APPEND LIBS "ChronoEngine_sensor")
+endif()
+
+#--------------------------------------------------------------
+# STB files
+
+set(STB_FILES
+   ${CMAKE_SOURCE_DIR}/src/chrono_thirdparty/stb/stb_image.h
+   ${CMAKE_SOURCE_DIR}/src/chrono_thirdparty/stb/stb_image.cpp
+   ${CMAKE_SOURCE_DIR}/src/chrono_thirdparty/stb/stb_image_write.h
+   ${CMAKE_SOURCE_DIR}/src/chrono_thirdparty/stb/stb_image_write.cpp
+)
 
 #--------------------------------------------------------------
 # Create the executables

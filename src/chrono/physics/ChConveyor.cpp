@@ -15,14 +15,11 @@
 #include <cstdlib>
 #include <algorithm>
 
-#include "chrono/core/ChTransform.h"
 #include "chrono/physics/ChConveyor.h"
 #include "chrono/physics/ChSystem.h"
+#include "chrono/collision/ChCollisionSystem.h"
 
 namespace chrono {
-
-using namespace collision;
-using namespace geometry;
 
 // Register into the object factory, to enable run-time dynamic creation and persistence
 CH_FACTORY_REGISTER(ChConveyor)
@@ -31,22 +28,21 @@ ChConveyor::ChConveyor(double xlength, double ythick, double zwidth) : conveyor_
     conveyor_truss = new ChBody;
     conveyor_plate = new ChBody;
 
-    conveyor_mat = chrono_types::make_shared<ChMaterialSurfaceNSC>();
+    conveyor_mat = chrono_types::make_shared<ChContactMaterialNSC>();
 
-    conveyor_plate->GetCollisionModel()->ClearModel();
-    conveyor_plate->GetCollisionModel()->AddBox(conveyor_mat, xlength, ythick, zwidth);
-    conveyor_plate->GetCollisionModel()->BuildModel();
-    conveyor_plate->SetCollide(true);
+    auto cshape = chrono_types::make_shared<ChCollisionShapeBox>(conveyor_mat, xlength, ythick, zwidth);
+    conveyor_plate->AddCollisionShape(cshape);
+    conveyor_plate->EnableCollision(true);
 
     internal_link = new ChLinkLockLock;
-    internal_link->SetMotion_X(chrono_types::make_shared<ChFunction_Ramp>());
+    internal_link->SetMotionX(chrono_types::make_shared<ChFunctionRamp>());
 
     std::shared_ptr<ChMarker> mmark1(new ChMarker);
     std::shared_ptr<ChMarker> mmark2(new ChMarker);
     conveyor_truss->AddMarker(mmark1);
     conveyor_plate->AddMarker(mmark2);
 
-    internal_link->SetUpMarkers(mmark1.get(), mmark2.get());
+    internal_link->SetupMarkers(mmark1.get(), mmark2.get());
 }
 
 ChConveyor::ChConveyor(const ChConveyor& other) : ChPhysicsItem(other) {
@@ -74,7 +70,7 @@ void ChConveyor::IntStateGather(const unsigned int off_x,  // offset in x state 
                                 const unsigned int off_v,  // offset in v state vector
                                 ChStateDelta& v,           // state vector, speed part
                                 double& T                  // time
-                                ) {
+) {
     conveyor_truss->IntStateGather(off_x, x, off_v, v, T);
     conveyor_plate->IntStateGather(off_x + 7, x, off_v + 6, v, T);
 }
@@ -114,17 +110,17 @@ void ChConveyor::IntStateIncrement(const unsigned int off_x,  // offset in x sta
                                    const ChState& x,          // state vector, initial position part
                                    const unsigned int off_v,  // offset in v state vector
                                    const ChStateDelta& Dv     // state vector, increment
-                                   ) {
+) {
     conveyor_truss->IntStateIncrement(off_x, x_new, x, off_v, Dv);
     conveyor_plate->IntStateIncrement(off_x + 7, x_new, x, off_v + 6, Dv);
 }
 
 void ChConveyor::IntStateGetIncrement(const unsigned int off_x,  // offset in x state vector
-                                   const ChState& x_new,         // state vector, position part, incremented result
-                                   const ChState& x,          // state vector, initial position part
-                                   const unsigned int off_v,  // offset in v state vector
-                                   ChStateDelta& Dv     // state vector, increment
-                                   ) {
+                                      const ChState& x_new,      // state vector, position part, incremented result
+                                      const ChState& x,          // state vector, initial position part
+                                      const unsigned int off_v,  // offset in v state vector
+                                      ChStateDelta& Dv           // state vector, increment
+) {
     conveyor_truss->IntStateGetIncrement(off_x, x_new, x, off_v, Dv);
     conveyor_plate->IntStateGetIncrement(off_x + 7, x_new, x, off_v + 6, Dv);
 }
@@ -132,7 +128,7 @@ void ChConveyor::IntStateGetIncrement(const unsigned int off_x,  // offset in x 
 void ChConveyor::IntLoadResidual_F(const unsigned int off,  // offset in R residual
                                    ChVectorDynamic<>& R,    // result: the R residual, R += c*F
                                    const double c           // a scaling factor
-                                   ) {
+) {
     conveyor_truss->IntLoadResidual_F(off, R, c);
     conveyor_plate->IntLoadResidual_F(off + 6, R, c);
 }
@@ -141,9 +137,14 @@ void ChConveyor::IntLoadResidual_Mv(const unsigned int off,      // offset in R 
                                     ChVectorDynamic<>& R,        // result: the R residual, R += c*M*v
                                     const ChVectorDynamic<>& w,  // the w vector
                                     const double c               // a scaling factor
-                                    ) {
+) {
     conveyor_truss->IntLoadResidual_Mv(off, R, w, c);
     conveyor_plate->IntLoadResidual_Mv(off + 6, R, w, c);
+}
+
+void ChConveyor::IntLoadLumpedMass_Md(const unsigned int off, ChVectorDynamic<>& Md, double& err, const double c) {
+    conveyor_truss->IntLoadLumpedMass_Md(off, Md, err, c);
+    conveyor_plate->IntLoadLumpedMass_Md(off + 6, Md, err, c);
 }
 
 void ChConveyor::IntToDescriptor(const unsigned int off_v,
@@ -187,9 +188,9 @@ void ChConveyor::IntLoadConstraint_Ct(const unsigned int off, ChVectorDynamic<>&
 
 // SOLVER INTERFACE
 
-void ChConveyor::InjectVariables(ChSystemDescriptor& mdescriptor) {
-    conveyor_truss->InjectVariables(mdescriptor);
-    conveyor_plate->InjectVariables(mdescriptor);
+void ChConveyor::InjectVariables(ChSystemDescriptor& descriptor) {
+    conveyor_truss->InjectVariables(descriptor);
+    conveyor_plate->InjectVariables(descriptor);
 }
 
 void ChConveyor::VariablesFbReset() {
@@ -222,8 +223,8 @@ void ChConveyor::VariablesQbIncrementPosition(double dt_step) {
     conveyor_plate->VariablesQbIncrementPosition(dt_step);
 }
 
-void ChConveyor::InjectConstraints(ChSystemDescriptor& mdescriptor) {
-    internal_link->InjectConstraints(mdescriptor);
+void ChConveyor::InjectConstraints(ChSystemDescriptor& descriptor) {
+    internal_link->InjectConstraints(descriptor);
 }
 
 void ChConveyor::ConstraintsBiReset() {
@@ -242,8 +243,8 @@ void ChConveyor::ConstraintsBiLoad_Qc(double factor) {
     internal_link->ConstraintsBiLoad_Qc(factor);
 }
 
-void ChConveyor::ConstraintsLoadJacobians() {
-    internal_link->ConstraintsLoadJacobians();
+void ChConveyor::LoadConstraintJacobians() {
+    internal_link->LoadConstraintJacobians();
 }
 
 void ChConveyor::ConstraintsFetch_react(double factor) {
@@ -263,11 +264,11 @@ void ChConveyor::Update(double mytime, bool update_assets) {
 
     conveyor_truss->Update(mytime, update_assets);
 
-    if (conveyor_truss->GetBodyFixed()) {
+    if (conveyor_truss->IsFixed()) {
         double largemass = 100000;
         conveyor_plate->SetMass(largemass);
-        conveyor_plate->SetInertiaXX(ChVector<>(largemass, largemass, largemass));
-        conveyor_plate->SetInertiaXY(ChVector<>(0, 0, 0));
+        conveyor_plate->SetInertiaXX(ChVector3d(largemass, largemass, largemass));
+        conveyor_plate->SetInertiaXY(ChVector3d(0, 0, 0));
     } else {
         conveyor_plate->SetMass(conveyor_truss->GetMass());
         conveyor_plate->SetInertiaXX(conveyor_truss->GetInertiaXX());
@@ -275,18 +276,34 @@ void ChConveyor::Update(double mytime, bool update_assets) {
     }
 
     // keep the plate always at the same position of the main reference
-    conveyor_plate->SetCoord(conveyor_truss->GetCoord());
-    conveyor_plate->SetCoord_dt(conveyor_truss->GetCoord_dt());
+    conveyor_plate->SetCoordsys(conveyor_truss->GetCoordsys());
+    conveyor_plate->SetCoordsysDt(conveyor_truss->GetCoordsysDt());
     // keep the plate always at the same speed of the main reference, plus the conveyor speed on X local axis
-    conveyor_plate->SetPos_dt(conveyor_truss->GetPos_dt() + (ChVector<>(conveyor_speed, 0, 0) >> (*conveyor_truss)));
+    conveyor_plate->SetPosDt(conveyor_truss->GetPosDt() + (ChVector3d(conveyor_speed, 0, 0) >> (*conveyor_truss)));
 
     conveyor_plate->Update(mytime, update_assets);
 
-    std::static_pointer_cast<ChFunction_Ramp>(internal_link->GetMotion_X())->Set_ang(-conveyor_speed);
+    std::static_pointer_cast<ChFunctionRamp>(internal_link->GetMotionX())->SetAngularCoeff(-conveyor_speed);
     // always zero pos. offset (trick):
-    std::static_pointer_cast<ChFunction_Ramp>(internal_link->GetMotion_X())->Set_y0(+conveyor_speed * GetChTime());
+    std::static_pointer_cast<ChFunctionRamp>(internal_link->GetMotionX())->SetStartVal(+conveyor_speed * GetChTime());
 
     internal_link->Update(mytime, update_assets);
+}
+
+void ChConveyor::AddCollisionModelsToSystem(ChCollisionSystem* coll_sys) const {
+    if (conveyor_truss->GetCollisionModel())
+        coll_sys->Add(conveyor_truss->GetCollisionModel());
+
+    if (conveyor_plate->GetCollisionModel())
+        coll_sys->Add(conveyor_plate->GetCollisionModel());
+}
+
+void ChConveyor::RemoveCollisionModelsFromSystem(ChCollisionSystem* coll_sys) const {
+    if (conveyor_truss->GetCollisionModel())
+        coll_sys->Remove(conveyor_truss->GetCollisionModel());
+
+    if (conveyor_plate->GetCollisionModel())
+        coll_sys->Remove(conveyor_plate->GetCollisionModel());
 }
 
 void ChConveyor::SyncCollisionModels() {
@@ -297,49 +314,35 @@ void ChConveyor::SyncCollisionModels() {
     conveyor_plate->SyncCollisionModels();
 }
 
-void ChConveyor::AddCollisionModelsToSystem() {
-    // inherit parent class
-    ChPhysicsItem::AddCollisionModelsToSystem();
-    // conveyor_truss->AddCollisionModelsToSystem();
-    // conveyor_plate->AddCollisionModelsToSystem();
-}
-
-void ChConveyor::RemoveCollisionModelsFromSystem() {
-    // inherit parent class
-    ChPhysicsItem::RemoveCollisionModelsFromSystem();
-    // conveyor_plate->RemoveCollisionModelsFromSystem();
-    // conveyor_truss->RemoveCollisionModelsFromSystem();
-}
-
 // FILE I/O
 
-void ChConveyor::ArchiveOut(ChArchiveOut& marchive) {
+void ChConveyor::ArchiveOut(ChArchiveOut& archive_out) {
     // version number
-    marchive.VersionWrite<ChConveyor>();
+    archive_out.VersionWrite<ChConveyor>();
 
     // serialize parent class
-    ChPhysicsItem::ArchiveOut(marchive);
+    ChPhysicsItem::ArchiveOut(archive_out);
 
     // serialize all member data:
-    marchive << CHNVP(conveyor_speed);
-    marchive << CHNVP(conveyor_truss);
-    marchive << CHNVP(conveyor_plate);
-    marchive << CHNVP(internal_link);
+    archive_out << CHNVP(conveyor_speed);
+    archive_out << CHNVP(conveyor_truss);
+    archive_out << CHNVP(conveyor_plate);
+    archive_out << CHNVP(internal_link);
 }
 
 /// Method to allow de serialization of transient data from archives.
-void ChConveyor::ArchiveIn(ChArchiveIn& marchive) {
+void ChConveyor::ArchiveIn(ChArchiveIn& archive_in) {
     // version number
-    /*int version =*/ marchive.VersionRead<ChConveyor>();
+    /*int version =*/archive_in.VersionRead<ChConveyor>();
 
     // deserialize parent class
-    ChPhysicsItem::ArchiveIn(marchive);
+    ChPhysicsItem::ArchiveIn(archive_in);
 
     // stream in all member data:
-    marchive >> CHNVP(conveyor_speed);
-    marchive >> CHNVP(conveyor_truss);
-    marchive >> CHNVP(conveyor_plate);
-    marchive >> CHNVP(internal_link);
+    archive_in >> CHNVP(conveyor_speed);
+    archive_in >> CHNVP(conveyor_truss);
+    archive_in >> CHNVP(conveyor_plate);
+    archive_in >> CHNVP(internal_link);
 }
 
 }  // end namespace chrono

@@ -1,4 +1,4 @@
-// Depreciated, will remove 
+// Depreciated, will remove
 #ifndef CHFILTERRADARVISUALIZECLUSTER_H
 #define CHFILTERRADARVISUALIZECLUSTER_H
 

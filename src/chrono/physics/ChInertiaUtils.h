@@ -21,7 +21,7 @@
 #include <cstdlib>
 
 #include "chrono/core/ChApiCE.h"
-#include "chrono/core/ChMath.h"
+#include "chrono/core/ChFrame.h"
 
 namespace chrono {
 
@@ -37,13 +37,13 @@ class ChInertiaUtils {
     /// Note: we assume that body masses are not overlapping
     /// Note: we assume that all local inertias are expressed in body local coords
     /// Note: we assume that all local inertias are expressed relative to body barycenter
-    static void InertiaFromCluster(const std::vector<ChVector<> >& positions,
+    static void InertiaFromCluster(const std::vector<ChVector3d>& positions,
                                    const std::vector<ChMatrix33<> >& rotations,
                                    const std::vector<ChMatrix33<> >& Jlocal,
                                    const std::vector<double>& masses,
                                    ChMatrix33<>& totJ,
                                    double& totmass,
-                                   ChVector<>& baricenter) {
+                                   ChVector3d& baricenter) {
         assert(positions.size() == Jlocal.size());
         assert(positions.size() == masses.size());
 
@@ -67,7 +67,7 @@ class ChInertiaUtils {
 
             // Huygens-Steiner parallel axis theorem:
 
-            ChVector<> dist = positions[i] - baricenter;
+            ChVector3d dist = positions[i] - baricenter;
 
             ChMatrix33<> absJtranslated;
             absJtranslated = absJ;
@@ -97,7 +97,7 @@ class ChInertiaUtils {
     /// given a displacement 'dist', using the Huygens-Steiner
     /// parallel axis theorem.
     static void TranslateInertia(const ChMatrix33<> inertiaIn,
-                                 const ChVector<> dist,
+                                 const ChVector3d dist,
                                  const double mass,
                                  ChMatrix33<>& inertiaOut) {
         // Huygens-Steiner parallel axis theorem:
@@ -118,7 +118,7 @@ class ChInertiaUtils {
     /// The principal moments of inertia are sorted in ascending order.
     /// The principal axes are returned as the columns of a 3x3 rotation matrix.
     static void PrincipalInertia(const ChMatrix33<>& inertia,
-                                 ChVector<>& principal_inertia,
+                                 ChVector3d& principal_inertia,
                                  ChMatrix33<>& principal_axes) {
         ChVectorN<double, 3> principal_I;
         inertia.SelfAdjointEigenSolve(principal_axes, principal_I);
@@ -130,7 +130,7 @@ class ChInertiaUtils {
             principal_axes.col(0) *= -1;
         }
 
-        // Return the principal moments of inertia in a ChVector
+        // Return the principal moments of inertia in a ChVector3d
         principal_inertia = principal_I;
 
         // Tests

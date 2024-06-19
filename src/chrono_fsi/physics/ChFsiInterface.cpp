@@ -40,16 +40,16 @@ void ChFsiInterface::ApplyBodyForce_Fsi2Chrono() {
     thrust::host_vector<Real3> torquesH = m_sysFSI.fsiData->rigid_FSI_TorquesD;
 
     for (size_t i = 0; i < numRigids; i++) {
-        ChVector<> mforce = utils::ToChVector(forcesH[i]);
-        ChVector<> mtorque = utils::ToChVector(torquesH[i]);
+        ChVector3d mforce = utils::ToChVector(forcesH[i]);
+        ChVector3d mtorque = utils::ToChVector(torquesH[i]);
 
         std::shared_ptr<ChBody> body = m_fsi_bodies[i];
 
         // note: when this FSI body goes back to Chrono system, the gravity
         // will be automaticly added. Here only accumulate force from fluid
-        body->Empty_forces_accumulators();
-        body->Accumulate_force(mforce, body->GetPos(), false);
-        body->Accumulate_torque(mtorque, false);
+        body->EmptyAccumulators();
+        body->AccumulateForce(mforce, body->GetPos(), false);
+        body->AccumulateTorque(mtorque, false);
     }
 }
 

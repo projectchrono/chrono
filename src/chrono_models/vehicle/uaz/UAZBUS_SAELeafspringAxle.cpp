@@ -41,8 +41,8 @@ const double UAZBUS_SAELeafspringAxle::m_axleTubeRadius = 0.0476;
 const double UAZBUS_SAELeafspringAxle::m_spindleRadius = 0.10;
 const double UAZBUS_SAELeafspringAxle::m_spindleWidth = 0.06;
 
-const ChVector<> UAZBUS_SAELeafspringAxle::m_axleTubeInertia(22.21, 0.0775, 22.21);
-const ChVector<> UAZBUS_SAELeafspringAxle::m_spindleInertia(0.04117, 0.07352, 0.04117);
+const ChVector3d UAZBUS_SAELeafspringAxle::m_axleTubeInertia(22.21, 0.0775, 22.21);
+const ChVector3d UAZBUS_SAELeafspringAxle::m_spindleInertia(0.04117, 0.07352, 0.04117);
 
 const double UAZBUS_SAELeafspringAxle::m_auxSpringDesignLength = 0.2;
 const double UAZBUS_SAELeafspringAxle::m_auxSpringCoefficient = 0.0;
@@ -67,10 +67,10 @@ const double UAZBUS_SAELeafspringAxle::m_rearleafMass = 3.88575;
 const double UAZBUS_SAELeafspringAxle::m_clampMass = 0.77715;
 const double UAZBUS_SAELeafspringAxle::m_shackleMass = 0.77715;
 
-const ChVector<> UAZBUS_SAELeafspringAxle::m_frontleafInertia = {0.00266206, 0.0809923, 0.083576};  // namespace uaz
-const ChVector<> UAZBUS_SAELeafspringAxle::m_rearleafInertia = {0.00266206, 0.0809923, 0.083576};   // namespace vehicle
-const ChVector<> UAZBUS_SAELeafspringAxle::m_clampInertia = {0.000532413, 0.000655461, 0.0011722};
-const ChVector<> UAZBUS_SAELeafspringAxle::m_shackleInertia = {0.000532413, 0.000655461, 0.0011722};
+const ChVector3d UAZBUS_SAELeafspringAxle::m_frontleafInertia = {0.00266206, 0.0809923, 0.083576};  // namespace uaz
+const ChVector3d UAZBUS_SAELeafspringAxle::m_rearleafInertia = {0.00266206, 0.0809923, 0.083576};   // namespace vehicle
+const ChVector3d UAZBUS_SAELeafspringAxle::m_clampInertia = {0.000532413, 0.000655461, 0.0011722};
+const ChVector3d UAZBUS_SAELeafspringAxle::m_shackleInertia = {0.000532413, 0.000655461, 0.0011722};
 
 // ---------------------------------------------------------------------------------------
 // UAZBUS spring functor class - implements a linear spring + bump stop + rebound stop
@@ -90,7 +90,7 @@ class UAZBUS_AuxSpringForceRear : public ChLinkTSDA::ForceFunctor {
     double m_min_length;
     double m_max_length;
 
-    ChFunction_Recorder m_bump;
+    ChFunctionInterp m_bump;
 };
 
 UAZBUS_AuxSpringForceRear::UAZBUS_AuxSpringForceRear(double spring_constant, double min_length, double max_length)
@@ -127,7 +127,7 @@ double UAZBUS_AuxSpringForceRear::evaluate(double time,
         defl_rebound = length - m_max_length;
     }
 
-    force = defl_spring * m_spring_constant + m_bump.Get_y(defl_bump) - m_bump.Get_y(defl_rebound);
+    force = defl_spring * m_spring_constant + m_bump.GetVal(defl_bump) - m_bump.GetVal(defl_rebound);
 
     return force;
 }
@@ -183,12 +183,12 @@ double UAZBUS_SAEShockForceRear::evaluate(double time,
 }
 
 UAZBUS_SAELeafspringAxle::UAZBUS_SAELeafspringAxle(const std::string& name) : ChSAELeafspringAxle(name) {
-    ChVector<> ra = getLocation(CLAMP_A) - getLocation(FRONT_HANGER);
-    ChVector<> rb = getLocation(CLAMP_B) - getLocation(SHACKLE);
+    ChVector3d ra = getLocation(CLAMP_A) - getLocation(FRONT_HANGER);
+    ChVector3d rb = getLocation(CLAMP_B) - getLocation(SHACKLE);
 
-    ChVector<> preload(0, 0, m_vert_preload / 2.0);
-    ChVector<> Ma = preload.Cross(ra);
-    ChVector<> Mb = preload.Cross(rb);
+    ChVector3d preload(0, 0, m_vert_preload / 2.0);
+    ChVector3d Ma = preload.Cross(ra);
+    ChVector3d Mb = preload.Cross(rb);
 
     double KrotLatA = m_lat_spring_trans_A * pow(ra.Length(), 2.0);
     double KrotLatB = m_lat_spring_trans_B * pow(rb.Length(), 2.0);
@@ -221,35 +221,35 @@ UAZBUS_SAELeafspringAxle::UAZBUS_SAELeafspringAxle(const std::string& name) : Ch
 // -----------------------------------------------------------------------------
 UAZBUS_SAELeafspringAxle::~UAZBUS_SAELeafspringAxle() {}
 
-const ChVector<> UAZBUS_SAELeafspringAxle::getLocation(PointId which) {
+const ChVector3d UAZBUS_SAELeafspringAxle::getLocation(PointId which) {
     switch (which) {
         case SPRING_A:
-            return ChVector<>(0.0, 0.5142, m_axleTubeRadius);
+            return ChVector3d(0.0, 0.5142, m_axleTubeRadius);
         case SPRING_C:
-            return ChVector<>(0.0, 0.5142, m_axleTubeRadius + m_auxSpringDesignLength);
+            return ChVector3d(0.0, 0.5142, m_axleTubeRadius + m_auxSpringDesignLength);
         case SHOCK_A:
-            return ChVector<>(-0.125, 0.441, -0.0507);
+            return ChVector3d(-0.125, 0.441, -0.0507);
         case SHOCK_C:
-            return ChVector<>(-0.3648, 0.4193, 0.4298);
+            return ChVector3d(-0.3648, 0.4193, 0.4298);
         case SPINDLE:
-            return ChVector<>(0.0, 0.7325, 0.0);
+            return ChVector3d(0.0, 0.7325, 0.0);
         case CLAMP_A:
-            return ChVector<>(0.044697881113434, 0.5142, 0.102479751287605);
+            return ChVector3d(0.044697881113434, 0.5142, 0.102479751287605);
             break;
         case CLAMP_B:
-            return ChVector<>(-0.055165072362023, 0.5142, 0.097246155663310);
+            return ChVector3d(-0.055165072362023, 0.5142, 0.097246155663310);
             break;
         case FRONT_HANGER:
-            return ChVector<>(0.494081171752993, 0.5142, 0.1260);
+            return ChVector3d(0.494081171752993, 0.5142, 0.1260);
             break;
         case REAR_HANGER:
-            return ChVector<>(-0.445529598035440, 0.5142, 0.189525823498473);
+            return ChVector3d(-0.445529598035440, 0.5142, 0.189525823498473);
             break;
         case SHACKLE:
-            return ChVector<>(-0.504548363001581, 0.5142, 0.073694975353985);
+            return ChVector3d(-0.504548363001581, 0.5142, 0.073694975353985);
             break;
         default:
-            return ChVector<>(0, 0, 0);
+            return ChVector3d(0, 0, 0);
     }
 }
 

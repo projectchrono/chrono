@@ -31,27 +31,28 @@
 #include "chrono_sensor/sensors/ChRadarSensor.h"
 #include "chrono_sensor/optix/ChOptixUtils.h"
 
-#include "chrono/assets/ChBoxShape.h"
-#include "chrono/assets/ChCapsuleShape.h"
-#include "chrono/assets/ChConeShape.h"
-#include "chrono/assets/ChCylinderShape.h"
-#include "chrono/assets/ChEllipsoidShape.h"
-#include "chrono/assets/ChLineShape.h"
-#include "chrono/assets/ChPathShape.h"
-#include "chrono/assets/ChRoundedBoxShape.h"
-#include "chrono/assets/ChSphereShape.h"
+#include "chrono/assets/ChVisualShapeBox.h"
+#include "chrono/assets/ChVisualShapeCapsule.h"
+#include "chrono/assets/ChVisualShapeCone.h"
+#include "chrono/assets/ChVisualShapeCylinder.h"
+#include "chrono/assets/ChVisualShapeEllipsoid.h"
+#include "chrono/assets/ChVisualShapeLine.h"
+#include "chrono/assets/ChVisualShapePath.h"
+#include "chrono/assets/ChVisualShapeRoundedBox.h"
+#include "chrono/assets/ChVisualShapeSphere.h"
+#include "chrono/assets/ChVisualShapeTriangleMesh.h"
 #include "chrono/assets/ChTexture.h"
-#include "chrono/assets/ChTriangleMeshShape.h"
-#include "chrono/assets/ChVisualShape.h"
 #include "chrono/physics/ChSystem.h"
-
+#include "chrono_sensor/optix/ChNVDBVolume.h"
 #include <random>
+
+#include "chrono_sensor/cuda/cuda_utils.cuh"
 
 namespace chrono {
 namespace sensor {
 
-// using namespace optix;
 
+// using namespace optix;
 ChOptixEngine::ChOptixEngine(ChSystem* sys, int device_id, int max_scene_reflections, bool verbose)
     : m_verbose(verbose), m_deviceId(device_id), m_recursions(max_scene_reflections), m_sceneThread() {
     m_sceneThread.start = false;
@@ -73,7 +74,7 @@ ChOptixEngine::~ChOptixEngine() {
     optixDeviceContextDestroy(m_context);
 }
 
-void ChOptixEngine::Initialize() { 
+void ChOptixEngine::Initialize() {
     cudaFree(0);
     OptixDeviceContext context;
     CUcontext cuCtx = 0;  // zero means take the current context, TODO: enable multigpu
@@ -94,12 +95,20 @@ void ChOptixEngine::Initialize() {
 
     // defaults to no lights
     m_params.lights = {};
+    m_params.arealights = {};
+    m_params.arealights = 0;
     m_params.num_lights = 0;
     m_params.ambient_light_color = make_float3(0.0f, 0.0f, 0.0f);  // make_float3(0.1f, 0.1f, 0.1f);  // default value
     m_params.max_depth = m_recursions;
     m_params.scene_epsilon = 1.e-3f;    // TODO: determine a good value for this
     m_params.importance_cutoff = .01f;  /// TODO: determine a good value for this
 
+    #ifdef USE_SENSOR_NVDB
+        m_params.handle_ptr = nullptr;
+    #else
+    m_params.handle_ptr = 0;
+    #endif  // USE_SENSOR_NVDB
+    
     CUDA_ERROR_CHECK(cudaMalloc(reinterpret_cast<void**>(&md_params), sizeof(ContextParameters)));
     m_params.root = {};
 
@@ -130,7 +139,6 @@ void ChOptixEngine::AssignSensor(std::shared_ptr<ChOptixSensor> sensor) {
         m_cameraStartFrames.push_back(sensor->GetParent()->GetVisualModelFrame());
         m_cameraStartFrames_set.push_back(false);
         m_pipeline->SpawnPipeline(sensor->GetPipelineType());
-
         // create a ChFilterOptixRender and push to front of filter list
         auto opx_filter = chrono_types::make_shared<ChFilterOptixRender>();
         unsigned int id = static_cast<unsigned int>(m_assignedSensor.size() - 1);
@@ -144,6 +152,7 @@ void ChOptixEngine::AssignSensor(std::shared_ptr<ChOptixSensor> sensor) {
             if (cam->GetUseGI()) {
                 std::cout << "Sensor: " << cam->GetName() << " requested global illumination\n";
                 opx_filter->m_denoiser = chrono_types::make_shared<ChOptixDenoiser>(m_context);
+                //opx_filter->m_denoiser = nullptr;
             }
         }
 
@@ -418,9 +427,9 @@ void ChOptixEngine::SceneProcess(RenderThread& tself) {
 }
 
 void ChOptixEngine::boxVisualization(std::shared_ptr<ChBody> body,
-                                     std::shared_ptr<ChBoxShape> box_shape,
+                                     std::shared_ptr<ChVisualShapeBox> box_shape,
                                      ChFrame<> asset_frame) {
-    ChVector<double> size = box_shape->GetLengths();
+    ChVector3d size = box_shape->GetLengths();
 
     unsigned int mat_id;
     if (box_shape->GetNumMaterials() == 0) {
@@ -433,9 +442,9 @@ void ChOptixEngine::boxVisualization(std::shared_ptr<ChBody> body,
 }
 
 void ChOptixEngine::sphereVisualization(std::shared_ptr<ChBody> body,
-                                        std::shared_ptr<ChSphereShape> sphere_shape,
+                                        std::shared_ptr<ChVisualShapeSphere> sphere_shape,
                                         ChFrame<> asset_frame) {
-    ChVector<double> size(sphere_shape->GetRadius());
+    ChVector3d size(sphere_shape->GetRadius());
 
     unsigned int mat_id;
     if (sphere_shape->GetNumMaterials() == 0) {
@@ -448,12 +457,12 @@ void ChOptixEngine::sphereVisualization(std::shared_ptr<ChBody> body,
 }
 
 void ChOptixEngine::cylinderVisualization(std::shared_ptr<ChBody> body,
-                                          std::shared_ptr<ChCylinderShape> cyl_shape,
+                                          std::shared_ptr<ChVisualShapeCylinder> cyl_shape,
                                           ChFrame<> asset_frame) {
     double radius = cyl_shape->GetRadius();
     double height = cyl_shape->GetHeight();
 
-    ChVector<double> size = {radius, radius, height};
+    ChVector3d size = {radius, radius, height};
 
     unsigned int mat_id;
     if (cyl_shape->GetNumMaterials() == 0) {
@@ -466,13 +475,13 @@ void ChOptixEngine::cylinderVisualization(std::shared_ptr<ChBody> body,
 }
 
 void ChOptixEngine::rigidMeshVisualization(std::shared_ptr<ChBody> body,
-                                           std::shared_ptr<ChTriangleMeshShape> mesh_shape,
+                                           std::shared_ptr<ChVisualShapeTriangleMesh> mesh_shape,
                                            ChFrame<> asset_frame) {
     if (mesh_shape->IsWireframe()) {
         std::cerr << "WARNING: Chrono::Sensor does not support wireframe meshes. Defaulting back to solid mesh, please "
                      "check for visual issues.\n";
     }
-    ChVector<double> size = mesh_shape->GetScale();
+    ChVector3d size = mesh_shape->GetScale();
 
     unsigned int mat_id;
     CUdeviceptr d_vertex_buffer;  // handle will go to m_geometry
@@ -484,13 +493,13 @@ void ChOptixEngine::rigidMeshVisualization(std::shared_ptr<ChBody> body,
 }
 
 void ChOptixEngine::deformableMeshVisualization(std::shared_ptr<ChBody> body,
-                                                std::shared_ptr<ChTriangleMeshShape> mesh_shape,
+                                                std::shared_ptr<ChVisualShapeTriangleMesh> mesh_shape,
                                                 ChFrame<> asset_frame) {
     if (mesh_shape->IsWireframe()) {
         std::cerr << "WARNING: Chrono::Sensor does not support wireframe meshes. Defaulting back to solid mesh, please "
                      "check for visual issues.\n";
     }
-    ChVector<double> size = mesh_shape->GetScale();
+    ChVector3d size = mesh_shape->GetScale();
 
     unsigned int mat_id;
     CUdeviceptr d_vertex_buffer;  // handle will go to m_geometry
@@ -500,6 +509,23 @@ void ChOptixEngine::deformableMeshVisualization(std::shared_ptr<ChBody> body,
     m_geometry->AddDeformableMesh(d_vertex_buffer, d_index_buffer, mesh_shape, body, asset_frame, size, mat_id);
     m_pipeline->AddBody(body);
 }
+
+#ifdef USE_SENSOR_NVDB
+void ChOptixEngine::nvdbVisualization(std::shared_ptr<ChBody> body,
+                                      std::shared_ptr<ChNVDBShape> box_shape,
+                                      ChFrame<> asset_frame) {
+    ChVector3d size = box_shape->GetBoxGeometry().GetLengths();
+
+    unsigned int mat_id;
+    if (box_shape->GetNumMaterials() == 0) {
+        mat_id = m_pipeline->GetNVDBMaterial();
+    } else {
+        mat_id = m_pipeline->GetNVDBMaterial(box_shape->GetMaterials());
+    }
+    m_geometry->AddNVDBVolume(body, asset_frame, size, mat_id);
+    m_pipeline->AddBody(body);
+}
+#endif  // USE_SENSOR_NVDB
 
 void ChOptixEngine::ConstructScene() {
     // need to lock before touching any optix stuff
@@ -515,9 +541,9 @@ void ChOptixEngine::ConstructScene() {
     m_pipeline->CleanMaterials();  // remove all programs and materials
 
     // iterate through all bodies in Chrono and add a subnode for each body in Chrono
-    for (auto body : m_system->Get_bodylist()) {
+    for (auto body : m_system->GetBodies()) {
         if (body->GetVisualModel()) {
-            for (auto& shape_instance : body->GetVisualModel()->GetShapes()) {
+            for (auto& shape_instance : body->GetVisualModel()->GetShapeInstances()) {
                 const auto& shape = shape_instance.first;
                 const auto& shape_frame = shape_instance.second;
                 // check if the asset is a ChVisualShape
@@ -525,45 +551,46 @@ void ChOptixEngine::ConstructScene() {
                 // if (std::shared_ptr<ChVisualShape> visual_asset = std::dynamic_pointer_cast<ChVisualShape>(asset)) {
 
                 // collect relative position and orientation of the asset
-                // ChVector<double> asset_pos = visual_asset->Pos;
+                // ChVector3d asset_pos = visual_asset->Pos;
                 // ChMatrix33<double> asset_rot_mat = visual_asset->Rot;
 
                 // const ChFrame<float> asset_frame = ChFrame<float>(asset_pos,asset_rot_mat);
 
                 if (!shape->IsVisible()) {
                     // std::cout << "Ignoring an asset that is set to invisible\n";
-                } else if (std::shared_ptr<ChBoxShape> box_shape = std::dynamic_pointer_cast<ChBoxShape>(shape)) {
+                } else if (auto box_shape = std::dynamic_pointer_cast<ChVisualShapeBox>(shape)) {
                     boxVisualization(body, box_shape, shape_frame);
-
-                } else if (std::shared_ptr<ChSphereShape> sphere_shape =
-                               std::dynamic_pointer_cast<ChSphereShape>(shape)) {
+                } 
+                #ifdef USE_SENSOR_NVDB
+                else if (std::shared_ptr<ChNVDBShape> nvdb_shape = std::dynamic_pointer_cast<ChNVDBShape>(shape)) {
+                    nvdbVisualization(body, nvdb_shape, shape_frame);
+                    printf("Added NVDB Shape!");
+                }
+                #endif
+                else if (auto sphere_shape = std::dynamic_pointer_cast<ChVisualShapeSphere>(shape)) {
                     sphereVisualization(body, sphere_shape, shape_frame);
 
-                } else if (std::shared_ptr<ChCylinderShape> cylinder_shape =
-                               std::dynamic_pointer_cast<ChCylinderShape>(shape)) {
+                } else if (auto cylinder_shape = std::dynamic_pointer_cast<ChVisualShapeCylinder>(shape)) {
                     cylinderVisualization(body, cylinder_shape, shape_frame);
 
-                } else if (std::shared_ptr<ChTriangleMeshShape> trimesh_shape =
-                               std::dynamic_pointer_cast<ChTriangleMeshShape>(shape)) {
+                } else if (auto trimesh_shape = std::dynamic_pointer_cast<ChVisualShapeTriangleMesh>(shape)) {
                     if (!trimesh_shape->IsMutable()) {
                         rigidMeshVisualization(body, trimesh_shape, shape_frame);
-                        
+
                         // added_asset_for_body = true;
                     } else {
                         deformableMeshVisualization(body, trimesh_shape, shape_frame);
                     }
 
-                } else if (std::shared_ptr<ChEllipsoidShape> ellipsoid_shape =
-                               std::dynamic_pointer_cast<ChEllipsoidShape>(shape)) {
-                } else if (std::shared_ptr<ChConeShape> cone_shape = std::dynamic_pointer_cast<ChConeShape>(shape)) {
-                } else if (std::shared_ptr<ChRoundedBoxShape> rbox_shape =
-                               std::dynamic_pointer_cast<ChRoundedBoxShape>(shape)) {
-                } else if (std::shared_ptr<ChCapsuleShape> capsule_shape =
-                               std::dynamic_pointer_cast<ChCapsuleShape>(shape)) {
-                } else if (std::shared_ptr<ChPathShape> path_shape = std::dynamic_pointer_cast<ChPathShape>(shape)) {
-                } else if (std::shared_ptr<ChLineShape> line_shape = std::dynamic_pointer_cast<ChLineShape>(shape)) {
+                } else if (auto ellipsoid_shape = std::dynamic_pointer_cast<ChVisualShapeEllipsoid>(shape)) {
+                } else if (auto cone_shape = std::dynamic_pointer_cast<ChVisualShapeCone>(shape)) {
+                } else if (auto rbox_shape = std::dynamic_pointer_cast<ChVisualShapeRoundedBox>(shape)) {
+                } else if (auto capsule_shape = std::dynamic_pointer_cast<ChVisualShapeCapsule>(shape)) {
+                } else if (auto path_shape = std::dynamic_pointer_cast<ChVisualShapePath>(shape)) {
+                } else if (auto line_shape = std::dynamic_pointer_cast<ChVisualShapeLine>(shape)) {
                 }
 
+                // TODO: Add NVDB Vis condition
                 // }
                 // }
             }
@@ -571,9 +598,9 @@ void ChOptixEngine::ConstructScene() {
     }
 
     // // Assumption made here that other physics items don't have a transform -> not always true!!!
-    for (auto item : m_system->Get_otherphysicslist()) {
+    for (auto item : m_system->GetOtherPhysicsItems()) {
         if (item->GetVisualModel()) {
-            for (auto& shape_instance : item->GetVisualModel()->GetShapes()) {
+            for (auto& shape_instance : item->GetVisualModel()->GetShapeInstances()) {
                 const auto& shape = shape_instance.first;
                 const auto& shape_frame = shape_instance.second;
 
@@ -581,36 +608,29 @@ void ChOptixEngine::ConstructScene() {
 
                 if (!shape->IsVisible()) {
                     // std::cout << "Ignoring an asset that is set to invisible\n";
-                } else if (std::shared_ptr<ChBoxShape> box_shape = std::dynamic_pointer_cast<ChBoxShape>(shape)) {
+                } else if (auto box_shape = std::dynamic_pointer_cast<ChVisualShapeBox>(shape)) {
                     boxVisualization(dummy_body, box_shape, shape_frame);
 
-                } else if (std::shared_ptr<ChSphereShape> sphere_shape =
-                               std::dynamic_pointer_cast<ChSphereShape>(shape)) {
+                } else if (auto sphere_shape = std::dynamic_pointer_cast<ChVisualShapeSphere>(shape)) {
                     sphereVisualization(dummy_body, sphere_shape, shape_frame);
 
-                } else if (std::shared_ptr<ChCylinderShape> cylinder_shape =
-                               std::dynamic_pointer_cast<ChCylinderShape>(shape)) {
+                } else if (auto cylinder_shape = std::dynamic_pointer_cast<ChVisualShapeCylinder>(shape)) {
                     cylinderVisualization(dummy_body, cylinder_shape, shape_frame);
 
-                } else if (std::shared_ptr<ChTriangleMeshShape> trimesh_shape =
-                               std::dynamic_pointer_cast<ChTriangleMeshShape>(shape)) {
+                } else if (auto trimesh_shape = std::dynamic_pointer_cast<ChVisualShapeTriangleMesh>(shape)) {
                     if (!trimesh_shape->IsMutable()) {
                         rigidMeshVisualization(dummy_body, trimesh_shape, shape_frame);
                     } else {
                         deformableMeshVisualization(dummy_body, trimesh_shape, shape_frame);
                     }
 
-                } else if (std::shared_ptr<ChEllipsoidShape> ellipsoid_shape =
-                               std::dynamic_pointer_cast<ChEllipsoidShape>(shape)) {
-                } else if (std::shared_ptr<ChConeShape> cone_shape = std::dynamic_pointer_cast<ChConeShape>(shape)) {
-                } else if (std::shared_ptr<ChRoundedBoxShape> rbox_shape =
-                               std::dynamic_pointer_cast<ChRoundedBoxShape>(shape)) {
-                } else if (std::shared_ptr<ChCapsuleShape> capsule_shape =
-                               std::dynamic_pointer_cast<ChCapsuleShape>(shape)) {
-                } else if (std::shared_ptr<ChPathShape> path_shape = std::dynamic_pointer_cast<ChPathShape>(shape)) {
-                } else if (std::shared_ptr<ChLineShape> line_shape = std::dynamic_pointer_cast<ChLineShape>(shape)) {
+                } else if (auto ellipsoid_shape = std::dynamic_pointer_cast<ChVisualShapeEllipsoid>(shape)) {
+                } else if (auto cone_shape = std::dynamic_pointer_cast<ChVisualShapeCone>(shape)) {
+                } else if (auto rbox_shape = std::dynamic_pointer_cast<ChVisualShapeRoundedBox>(shape)) {
+                } else if (auto capsule_shape = std::dynamic_pointer_cast<ChVisualShapeCapsule>(shape)) {
+                } else if (auto path_shape = std::dynamic_pointer_cast<ChVisualShapePath>(shape)) {
+                } else if (auto line_shape = std::dynamic_pointer_cast<ChVisualShapeLine>(shape)) {
                 }
-
             }
         }
     }
@@ -640,7 +660,7 @@ void ChOptixEngine::UpdateCameraTransforms(std::vector<int>& to_be_updated, std:
 
         // update radar velocity
         if (auto radar = std::dynamic_pointer_cast<ChRadarSensor>(sensor)) {
-            ChVector<float> origin(0, 0, 0);
+            ChVector3f origin(0, 0, 0);
             auto r = radar->GetOffsetPose().GetPos() - origin;
             auto ang_vel = radar->GetAngularVelocity() % r;
             auto vel_abs =
@@ -658,8 +678,8 @@ void ChOptixEngine::UpdateCameraTransforms(std::vector<int>& to_be_updated, std:
         ChFrame<double> global_loc_0 = f_body_0 * f_offset;
         ChFrame<double> global_loc_1 = f_body_1 * f_offset;
 
-        ChVector<float> pos_0 = global_loc_0.GetPos() - scene->GetOriginOffset();
-        ChVector<float> pos_1 = global_loc_1.GetPos() - scene->GetOriginOffset();
+        ChVector3f pos_0 = global_loc_0.GetPos() - scene->GetOriginOffset();
+        ChVector3f pos_1 = global_loc_1.GetPos() - scene->GetOriginOffset();
 
         m_assignedRenderers[id]->m_raygen_record->data.t0 =
             (float)(m_system->GetChTime() - sensor->GetCollectionWindow());
@@ -673,7 +693,6 @@ void ChOptixEngine::UpdateCameraTransforms(std::vector<int>& to_be_updated, std:
             make_float4((float)global_loc_1.GetRot().e0(), (float)global_loc_1.GetRot().e1(),
                         (float)global_loc_1.GetRot().e2(), (float)global_loc_1.GetRot().e3());
         m_assignedRenderers[id]->m_time_stamp = (float)m_system->GetChTime();
-
     }
 }
 
@@ -696,7 +715,33 @@ void ChOptixEngine::UpdateSceneDescription(std::shared_ptr<ChScene> scene) {
         scene->ResetBackgroundChanged();
     }
 
-    if (scene->GetLightsChanged() || scene->GetOriginChanged()) {
+    if (scene->GetLightsChanged() || scene->GetOriginChanged() || scene->GetAreaLightsChanged()) {
+
+        // Handling changes to area lights
+
+        std::vector<AreaLight> a = scene->GetAreaLights();
+        
+       
+        if (a.size() != m_params.num_arealights) {  // need new memory in this case
+            if (m_params.arealights)
+                CUDA_ERROR_CHECK(cudaFree(reinterpret_cast<void*>(m_params.arealights)));
+
+            cudaMalloc(reinterpret_cast<void**>(&m_params.arealights), a.size() * sizeof(AreaLight));
+        }
+
+        
+        for (unsigned int i = 0; i < a.size(); i++) {
+            a[i].pos = make_float3(a[i].pos.x - scene->GetOriginOffset().x(), a[i].pos.y - scene->GetOriginOffset().y(),
+                                   a[i].pos.z - scene->GetOriginOffset().z());
+        }
+
+        cudaMemcpy(reinterpret_cast<void*>(m_params.arealights), a.data(), a.size() * sizeof(AreaLight),
+                   cudaMemcpyHostToDevice);
+
+        m_params.num_arealights = static_cast<int>(a.size());
+        
+        // Handling changes for point lights
+
         std::vector<PointLight> l = scene->GetPointLights();
         if (l.size() != m_params.num_lights) {  // need new memory in this case
             if (m_params.lights)
@@ -713,14 +758,69 @@ void ChOptixEngine::UpdateSceneDescription(std::shared_ptr<ChScene> scene) {
         cudaMemcpy(reinterpret_cast<void*>(m_params.lights), l.data(), l.size() * sizeof(PointLight),
                    cudaMemcpyHostToDevice);
         m_params.num_lights = static_cast<int>(l.size());
+        
+        // Handling changes in origin
+
         m_params.ambient_light_color = {scene->GetAmbientLight().x(), scene->GetAmbientLight().y(),
                                         scene->GetAmbientLight().z()};
+
         cudaMemcpy(reinterpret_cast<void*>(md_params), &m_params, sizeof(ContextParameters), cudaMemcpyHostToDevice);
 
         m_geometry->SetOriginOffset(scene->GetOriginOffset());
         scene->ResetLightsChanged();
+        scene->ResetAreaLightsChanged();
         scene->ResetOriginChanged();
     }
-}
+
+    #ifdef USE_SENSOR_NVDB
+    if (float* d_pts = scene->GetFSIParticles()) {
+        int n = scene->GetNumFSIParticles();
+        
+        printf("Creatinng NanoVDB Handle...\n");
+        using buildType = nanovdb::Point;
+        nanovdb::GridHandle<nanovdb::CudaDeviceBuffer> handle = createNanoVDBGridHandle(d_pts, n);
+        nanovdb::NanoGrid<buildType>* grid = handle.deviceGrid<buildType>();
+        handle.deviceDownload();
+        auto* grid_h = handle.grid<buildType>();
+        auto* tree = grid_h->treePtr();
+
+        // printf("Grid Size: %d\n", grid_h->gridSize());
+        ////printf("Point Count: %d", (int)grid_h->pointCount());
+        // printf("Upper Internal Nodes: %d\n", grid_h->tree().nodeCount(2));
+        // printf("Lower Internal Nodes: %d\n", grid_h->tree().nodeCount(1));
+        // printf("Leaf Nodes: %d\n", grid_h->tree().nodeCount(0));
+
+        // float wBBoxDimZ = (float)grid_h->worldBBox().dim()[2] * 2;
+        // nanovdb::Vec3<float> wBBoxCenter = nanovdb::Vec3<float>(grid_h->worldBBox().min() + grid_h->worldBBox().dim()
+        // * 0.5f); nanovdb::CoordBBox treeIndexBbox = grid_h->tree().bbox(); std::cout << "Bounds: "
+        //          << "[" << treeIndexBbox.min()[0] << "," << treeIndexBbox.min()[1] << "," << treeIndexBbox.min()[2]
+        //          << "] -> [" << treeIndexBbox.max()[0] << "," << treeIndexBbox.max()[1] << "," <<
+        //          treeIndexBbox.max()[2]
+        //          << "]" << std::endl;
+
+        /* printf("size of handle_ptr: %d | size of grid*: %d\n", sizeof(m_params.handle_ptr), sizeof(grid));
+         printf("Grid ptr: %p | Grid Size: %d | Grid Type: %d | Grid Empty: %d\n ", grid, handle.gridSize(),
+         handle.gridType(), handle.empty()); printf("size of ContextParameters: %d\n", sizeof(ContextParameters));*/
+
+        cudaMalloc((void**)&m_params.handle_ptr, handle.gridSize());
+        cudaMemcpy((void*)m_params.handle_ptr, grid, handle.gridSize(), cudaMemcpyDeviceToDevice);
+        /* cudaError_t status = cudaMalloc((void**)&md_params->handle_ptr, handle.gridSize());
+         if (status != cudaSuccess) {
+            printf("cudaMalloc failed: %s\n",cudaGetErrorString(status));
+          }
+         printf("md grid ptr: %p\n", md_params->handle_ptr);
+
+         cudaMemcpy(md_params->handle_ptr, grid, handle.gridSize(), cudaMemcpyDeviceToDevice);*/
+        /*printf("Done!\n");
+        size_t sz = handle.gridSize();
+        cudaMalloc(reinterpret_cast<void**>(&m_params.handle_ptr), sz);he
+        printf("handle: %p\n", &handle);
+        cudaMemcpy(reinterpret_cast<void*>(m_params.handle_ptr), &handle, sz, cudaMemcpyHostToDevice);*/
+
+        cudaMemcpy(reinterpret_cast<void*>(md_params), &m_params, sizeof(ContextParameters), cudaMemcpyHostToDevice);
+    }
+    #endif
+    }
+
 }  // namespace sensor
 }  // namespace chrono

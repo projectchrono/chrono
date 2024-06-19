@@ -40,21 +40,20 @@ using namespace chrono::fea;
 int main(int argc, char* argv[]) {
     auto system = new ChSystemSMC();
     // Set gravity to 0 since this is a statics test against an analytical solution
-    system->Set_G_acc(ChVector<>(0, 0, 0));
+    system->SetGravitationalAcceleration(ChVector3d(0, 0, 0));
 
     auto solver = chrono_types::make_shared<ChSolverMINRES>();
     system->SetSolver(solver);
     solver->SetMaxIterations(100);
-    solver->SetTolerance(1e-10);
+    solver->SetTolerance(1e-12);
     solver->EnableDiagonalPreconditioner(true);
     solver->SetVerbose(false);
-    system->SetSolverForceTolerance(1e-10);
 
     // Set up integrator
     system->SetTimestepperType(ChTimestepper::Type::HHT);
     auto integrator = std::static_pointer_cast<ChTimestepperHHT>(system->GetTimestepper());
     integrator->SetAlpha(-0.2);
-    integrator->SetMaxiters(100);
+    integrator->SetMaxIters(100);
     integrator->SetAbsTolerances(1e-5);
     integrator->SetVerbose(false);
     integrator->SetModifiedNewton(true);
@@ -83,11 +82,11 @@ int main(int argc, char* argv[]) {
     double dx = length / (num_nodes - 1);
 
     // Setup beam cross section gradients to initially align with the global y and z directions
-    ChVector<> dir1(0, 1, 0);
-    ChVector<> dir2(0, 0, 1);
+    ChVector3d dir1(0, 1, 0);
+    ChVector3d dir2(0, 0, 1);
 
     // Create the first node and fix it completely to ground (Cantilever constraint)
-    auto nodeA = chrono_types::make_shared<ChNodeFEAxyzDD>(ChVector<>(0, 0, 0.0), dir1, dir2);
+    auto nodeA = chrono_types::make_shared<ChNodeFEAxyzDD>(ChVector3d(0, 0, 0.0), dir1, dir2);
     nodeA->SetFixed(true);
     mesh->AddNode(nodeA);
 
@@ -95,8 +94,8 @@ int main(int argc, char* argv[]) {
     std::shared_ptr<ChNodeFEAxyzDD> nodeEndPoint;
 
     for (int i = 1; i <= num_elements; i++) {
-        auto nodeB = chrono_types::make_shared<ChNodeFEAxyzDD>(ChVector<>(dx * (2 * i), 0, 0), dir1, dir2);
-        auto nodeC = chrono_types::make_shared<ChNodeFEAxyzDD>(ChVector<>(dx * (2 * i - 1), 0, 0), dir1, dir2);
+        auto nodeB = chrono_types::make_shared<ChNodeFEAxyzDD>(ChVector3d(dx * (2 * i), 0, 0), dir1, dir2);
+        auto nodeC = chrono_types::make_shared<ChNodeFEAxyzDD>(ChVector3d(dx * (2 * i - 1), 0, 0), dir1, dir2);
         mesh->AddNode(nodeB);
         mesh->AddNode(nodeC);
 
@@ -123,12 +122,11 @@ int main(int argc, char* argv[]) {
 
         // Compute F=F(u), the load at U. The load is a 6-row vector, i.e.
         // a wrench: forceX, forceY, forceZ, torqueX, torqueY, torqueZ.
-        virtual void ComputeF(
-            const double U,              ///< normalized position along the beam axis [-1...1]
-            ChVectorDynamic<>& F,        ///< Load at U
-            ChVectorDynamic<>* state_x,  ///< if != 0, update state (pos. part) to this, then evaluate F
-            ChVectorDynamic<>* state_w   ///< if != 0, update state (speed part) to this, then evaluate F
-            ) override {
+        virtual void ComputeF(double U,                    // normalized position along the beam axis [-1...1]
+                              ChVectorDynamic<>& F,        // Load at U
+                              ChVectorDynamic<>* state_x,  // if != 0, update state (pos. part) to this, then evaluate F
+                              ChVectorDynamic<>* state_w  // if != 0, update state (speed part) to this, then evaluate F
+                              ) override {
             assert(auxsystem);
 
             F.setZero();
@@ -148,19 +146,20 @@ int main(int argc, char* argv[]) {
     // The ChLoad is a 'manager' for your ChLoader.
     // It is created using templates, that is instancing a ChLoad<my_loader_class>()
 
-    std::shared_ptr<ChLoad<MyLoaderTimeDependentTipLoad> > mload(new ChLoad<MyLoaderTimeDependentTipLoad>(elementlast));
-    mload->loader.auxsystem = system;   // initialize auxiliary data of the loader, if needed
-    mload->loader.SetApplication(1.0);  // specify application point
-    loadcontainer->Add(mload);          // add the load to the load container.
+    auto loader = chrono_types::make_shared<MyLoaderTimeDependentTipLoad>(elementlast);
+    loader->auxsystem = system;   // initialize auxiliary data of the loader, if needed
+    loader->SetApplication(1.0);  // specify application point
+    auto load = chrono_types::make_shared<ChLoad>(loader);
+    loadcontainer->Add(load);  // add the load to the load container.
 
     // Find the nonlinear static solution for the system (final twist angle)
     system->DoStaticNonlinear(50);
 
     // Calculate the twist angle of the end of the ANCF beam mesh
-    ChVector<> point;
+    ChVector3d point;
     ChQuaternion<> rot;
     elementlast->EvaluateSectionFrame(1, point, rot);
-    ChVector<> Tip_Angles = rot.Q_to_Euler123();
+    ChVector3d Tip_Angles = rot.GetCardanAnglesXYZ();
 
     // For Analytical Formula, see: https://en.wikipedia.org/wiki/Torsion_constant
     double J = 2.25 * std::pow(0.5 * width, 4);
@@ -170,15 +169,15 @@ int main(int argc, char* argv[]) {
     double Percent_Error = (Tip_Angles.x() - Angle_Theory) / Angle_Theory * 100;
 
     std::cout << "ANCF Tip Position: " << point << "m" << std::endl;
-    std::cout << "ANCF Twist Angles (Euler 123): " << Tip_Angles * CH_C_RAD_TO_DEG << "deg" << std::endl;
-    std::cout << "Analytical Twist Angle: " << Angle_Theory * CH_C_RAD_TO_DEG << "deg" << std::endl;
+    std::cout << "ANCF Twist Angles (Euler 123): " << Tip_Angles * CH_RAD_TO_DEG << "deg" << std::endl;
+    std::cout << "Analytical Twist Angle: " << Angle_Theory * CH_RAD_TO_DEG << "deg" << std::endl;
     std::cout << "Percent Error: " << Percent_Error << "%" << std::endl;
 
     if (abs(Percent_Error) > 5.0) {
         std::cout << "Unit test check failed - Twist Angle Error is too large\n";
         return 1;
     }
-    if ((abs(Tip_Angles.y() * CH_C_RAD_TO_DEG) > 0.001) || (abs(Tip_Angles.z() * CH_C_RAD_TO_DEG) > 0.001)) {
+    if ((abs(Tip_Angles.y() * CH_RAD_TO_DEG) > 0.001) || (abs(Tip_Angles.z() * CH_RAD_TO_DEG) > 0.001)) {
         std::cout << "Unit test check failed - Off axis angle is too large.\n";
         return 1;
     }

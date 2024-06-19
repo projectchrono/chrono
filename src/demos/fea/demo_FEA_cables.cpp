@@ -33,10 +33,12 @@ using namespace chrono::irrlicht;
 ChSolver::Type solver_type = ChSolver::Type::SPARSE_QR;
 
 int main(int argc, char* argv[]) {
-    GetLog() << "Copyright (c) 2017 projectchrono.org\nChrono version: " << CHRONO_VERSION << "\n\n";
+    std::cout << "Copyright (c) 2017 projectchrono.org\nChrono version: " << CHRONO_VERSION << std::endl;
 
     // Create a Chrono::Engine physical system
     ChSystemSMC sys;
+
+    sys.SetNumThreads(std::min(4, ChOMP::GetNumProcs()), 0, 1);
 
     // Create a mesh, that is a container for groups of elements and
     // their referenced nodes.
@@ -51,9 +53,9 @@ int main(int argc, char* argv[]) {
     sys.Add(mesh);
 
     // Visualization of the FEM mesh.
-    // This will automatically update a triangle mesh (a ChTriangleMeshShape asset that is internally managed) by
+    // This will automatically update a triangle mesh (a ChVisualShapeTriangleMesh asset that is internally managed) by
     // setting  proper coordinates and vertex colors as in the FEM elements. Such triangle mesh can be rendered by
-    // Irrlicht or POVray or whatever postprocessor that can handle a colored ChTriangleMeshShape).
+    // Irrlicht or POVray or whatever postprocessor that can handle a colored ChVisualShapeTriangleMesh).
     auto vis_beam_A = chrono_types::make_shared<ChVisualShapeFEA>(mesh);
     vis_beam_A->SetFEMdataType(ChVisualShapeFEA::DataType::ELEM_BEAM_MZ);
     vis_beam_A->SetColorscaleMinMax(-0.4, 0.4);
@@ -94,7 +96,7 @@ int main(int argc, char* argv[]) {
             auto solver = chrono_types::make_shared<ChSolverMINRES>();
             sys.SetSolver(solver);
             solver->SetMaxIterations(200);
-            solver->SetTolerance(1e-10);
+            solver->SetTolerance(1e-14);
             solver->EnableDiagonalPreconditioner(true);
             solver->EnableWarmStart(true);  // IMPORTANT for convergence when using EULER_IMPLICIT_LINEARIZED
             solver->SetVerbose(false);
@@ -114,12 +116,11 @@ int main(int argc, char* argv[]) {
     vis->AddLogo();
     vis->AddSkyBox();
     vis->AddTypicalLights();
-    vis->AddCamera(ChVector<>(0, 0.6, -1.0));
+    vis->AddCamera(ChVector3d(0, 0.6, -1.0));
     vis->AttachSystem(&sys);
 
     // Set integrator
     sys.SetTimestepperType(ChTimestepper::Type::EULER_IMPLICIT_LINEARIZED);
-    sys.SetSolverForceTolerance(1e-13);
 
     while (vis->Run()) {
         vis->BeginScene();

@@ -8,13 +8,13 @@
 %include "../../../chrono/core/ChCoordsys.h" 
 
 
-%template(ChCoordsysD) chrono::ChCoordsys<double>; 
-//%template(ChCoordsysF) chrono::ChCoordsys<float>; 
+%template(ChCoordsysd) chrono::ChCoordsys<double>; 
+//%template(ChCoordsysf) chrono::ChCoordsys<float>; 
 
 // This is needed because a std::vector<ChCoordsys<>> might be used somewhere,
 // and we want to use it via python or C#
-%template(vector_ChCoordsysD) std::vector< chrono::ChCoordsys<double> >;
-//%template(vector_ChCoordsysF) std::vector< chrono::ChCoordsys<float> >;
+%template(vector_ChCoordsysd) std::vector< chrono::ChCoordsys<double> >;
+//%template(vector_ChCoordsysf) std::vector< chrono::ChCoordsys<float> >;
 
 #ifdef SWIGPYTHON  // --------------------------------------------------------------------- PYTHON
 
@@ -22,15 +22,15 @@
 /*
 %pythoncode %{
     
-    CSYSNULL = ChCoordsysD(VNULL,QNULL)
-    CSYSNORM = ChCoordsysD(VNULL,QUNIT)
+    CSYSNULL = ChCoordsysd(VNULL,QNULL)
+    CSYSNORM = ChCoordsysd(VNULL,QUNIT)
 %}*/
 
-%extend chrono::ChVector<double>{
+%extend chrono::ChVector3<double>{
         // Workaround because mixed 'out of class' operators  
         // not supported in Swig
         public:
-            chrono::ChVector<double> operator>> (chrono::ChCoordsys<double>& msys) 
+            chrono::ChVector3<double> operator>> (chrono::ChCoordsys<double>& msys) 
             {
                 return msys.TransformPointLocalToParent(*$self);
             }

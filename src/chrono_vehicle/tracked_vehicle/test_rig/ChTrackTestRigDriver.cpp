@@ -17,14 +17,14 @@
 //
 // =============================================================================
 
-#include "chrono_vehicle/tracked_vehicle/test_rig/ChTrackTestRigDriver.h"
-
 #include <fstream>
 #include <iostream>
 #include <iomanip>
 #include <sstream>
 
-#include "chrono/core/ChMathematics.h"
+#include "chrono/utils/ChUtils.h"
+
+#include "chrono_vehicle/tracked_vehicle/test_rig/ChTrackTestRigDriver.h"
 
 namespace chrono {
 namespace vehicle {
@@ -53,7 +53,7 @@ bool ChTrackTestRigDriver::Started() const {
 bool ChTrackTestRigDriver::LogInit(const std::string& filename) {
     m_log_filename = filename;
 
-    std::ofstream ofile(filename.c_str(), std::ios::out);
+    std::ofstream ofile(filename, std::ios::out);
     if (!ofile)
         return false;
 
@@ -73,7 +73,7 @@ bool ChTrackTestRigDriver::Log(double time) {
     if (m_log_filename.empty())
         return false;
 
-    std::ofstream ofile(m_log_filename.c_str(), std::ios::app);
+    std::ofstream ofile(m_log_filename, std::ios::app);
     if (!ofile)
         return false;
 

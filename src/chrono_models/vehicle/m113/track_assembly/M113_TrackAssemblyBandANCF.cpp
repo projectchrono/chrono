@@ -33,20 +33,20 @@ namespace m113 {
 // -----------------------------------------------------------------------------
 // Static variables
 // -----------------------------------------------------------------------------
-const ChVector<> M113_TrackAssemblyBandANCF::m_sprocket_loc(0, 0, 0);
-const ChVector<> M113_TrackAssemblyBandANCF::m_idler_loc(-3.83, 0, -0.12);
-const ChVector<> M113_TrackAssemblyBandANCF::m_susp_locs_L[5] = {  //
-    ChVector<>(-0.655, 0, -0.215),                                 //
-    ChVector<>(-1.322, 0, -0.215),                                 //
-    ChVector<>(-1.989, 0, -0.215),                                 //
-    ChVector<>(-2.656, 0, -0.215),                                 //
-    ChVector<>(-3.322, 0, -0.215)};
-const ChVector<> M113_TrackAssemblyBandANCF::m_susp_locs_R[5] = {  //
-    ChVector<>(-0.740, 0, -0.215),                                 //
-    ChVector<>(-1.407, 0, -0.215),                                 //
-    ChVector<>(-2.074, 0, -0.215),                                 //
-    ChVector<>(-2.740, 0, -0.215),                                 //
-    ChVector<>(-3.407, 0, -0.215)};
+const ChVector3d M113_TrackAssemblyBandANCF::m_sprocket_loc(0, 0, 0);
+const ChVector3d M113_TrackAssemblyBandANCF::m_idler_loc(-3.83, 0, -0.12);
+const ChVector3d M113_TrackAssemblyBandANCF::m_susp_locs_L[5] = {  //
+    ChVector3d(-0.655, 0, -0.215),                                 //
+    ChVector3d(-1.322, 0, -0.215),                                 //
+    ChVector3d(-1.989, 0, -0.215),                                 //
+    ChVector3d(-2.656, 0, -0.215),                                 //
+    ChVector3d(-3.322, 0, -0.215)};
+const ChVector3d M113_TrackAssemblyBandANCF::m_susp_locs_R[5] = {  //
+    ChVector3d(-0.740, 0, -0.215),                                 //
+    ChVector3d(-1.407, 0, -0.215),                                 //
+    ChVector3d(-2.074, 0, -0.215),                                 //
+    ChVector3d(-2.740, 0, -0.215),                                 //
+    ChVector3d(-3.407, 0, -0.215)};
 
 // -----------------------------------------------------------------------------
 // Constructor for the M113 continuous band track assembly using rigid-link
@@ -106,14 +106,14 @@ M113_TrackAssemblyBandANCF::M113_TrackAssemblyBandANCF(VehicleSide side,
     double E_rubber = 0.01e9;
     double nu_rubber = 0.3;
     double G_rubber = 0.5 * E_rubber / (1 + 0.49);
-    SetRubberLayerMaterial(1100, ChVector<>(E_rubber), ChVector<>(nu_rubber), ChVector<>(G_rubber));
+    SetRubberLayerMaterial(1100, ChVector3d(E_rubber), ChVector3d(nu_rubber), ChVector3d(G_rubber));
 
     double E_steel = 210e9;
     double nu_steel = 0.3;
     double G_steel = 0.5 * E_steel / (1 + 0.3);
-    SetSteelLayerMaterial(7900, ChVector<>(E_steel), ChVector<>(nu_steel), ChVector<>(G_steel));
+    SetSteelLayerMaterial(7900, ChVector3d(E_steel), ChVector3d(nu_steel), ChVector3d(G_steel));
 
-    SetLayerFiberAngles(0 * CH_C_DEG_TO_RAD, 0 * CH_C_DEG_TO_RAD, 0 * CH_C_DEG_TO_RAD);
+    SetLayerFiberAngles(0 * CH_DEG_TO_RAD, 0 * CH_DEG_TO_RAD, 0 * CH_DEG_TO_RAD);
 
     SetElementStructuralDamping(0.05);
 
@@ -130,15 +130,15 @@ void M113_TrackAssemblyBandANCF::CreateContactMaterial(ChContactMethod contact_m
 }
 
 // -----------------------------------------------------------------------------
-const ChVector<> M113_TrackAssemblyBandANCF::GetSprocketLocation() const {
+const ChVector3d M113_TrackAssemblyBandANCF::GetSprocketLocation() const {
     return m_sprocket_loc;
 }
 
-const ChVector<> M113_TrackAssemblyBandANCF::GetIdlerLocation() const {
+const ChVector3d M113_TrackAssemblyBandANCF::GetIdlerLocation() const {
     return m_idler_loc;
 }
 
-const ChVector<> M113_TrackAssemblyBandANCF::GetRoadWhelAssemblyLocation(int which) const {
+const ChVector3d M113_TrackAssemblyBandANCF::GetRoadWhelAssemblyLocation(int which) const {
     return (m_side == LEFT) ? m_susp_locs_L[which] : m_susp_locs_R[which];
 }
 

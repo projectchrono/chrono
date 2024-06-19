@@ -18,7 +18,7 @@
 // =============================================================================
 
 #include "chrono/core/ChGlobal.h"
-#include "chrono/assets/ChCylinderShape.h"
+#include "chrono/assets/ChVisualShapeCylinder.h"
 #include "chrono/assets/ChTexture.h"
 
 #include "chrono_vehicle/ChSubsysDefs.h"
@@ -32,7 +32,7 @@ ChSingleTrackWheel::ChSingleTrackWheel(const std::string& name) : ChTrackWheel(n
 
 void ChSingleTrackWheel::Initialize(std::shared_ptr<ChChassis> chassis,
                                     std::shared_ptr<ChBody> carrier,
-                                    const ChVector<>& location,
+                                    const ChVector3d& location,
                                     ChTrackAssembly* track) {
     // Invoke the base class method
     ChTrackWheel::Initialize(chassis, carrier, location, track);
@@ -44,17 +44,15 @@ void ChSingleTrackWheel::Initialize(std::shared_ptr<ChChassis> chassis,
     double radius = GetRadius();
     double width = GetWidth();
 
-    m_wheel->SetCollide(true);
-
-    m_wheel->GetCollisionModel()->ClearModel();
+    m_wheel->EnableCollision(true);
 
     if (track->IsRoadwheelCylinder()) {
-        m_wheel->GetCollisionModel()->AddCylinder(m_material, radius, width, VNULL, Q_from_AngX(CH_C_PI_2));
+        auto ct_shape = chrono_types::make_shared<ChCollisionShapeCylinder>(m_material, radius, width);
+        m_wheel->AddCollisionShape(ct_shape, ChFrame<>(VNULL, QuatFromAngleX(CH_PI_2)));
     } else {
-        m_wheel->GetCollisionModel()->AddCylindricalShell(m_material, radius, width, VNULL, Q_from_AngX(CH_C_PI_2));
+        auto ct_shape = chrono_types::make_shared<ChCollisionShapeCylindricalShell>(m_material, radius, width);
+        m_wheel->AddCollisionShape(ct_shape, ChFrame<>(VNULL, QuatFromAngleX(CH_PI_2)));
     }
-
-    m_wheel->GetCollisionModel()->BuildModel();
 }
 
 void ChSingleTrackWheel::AddVisualizationAssets(VisualizationType vis) {
@@ -65,8 +63,8 @@ void ChSingleTrackWheel::AddVisualizationAssets(VisualizationType vis) {
     double width = GetWidth();
 
     ChVehicleGeometry::AddVisualizationCylinder(m_wheel,                       //
-                                                ChVector<>(0, width / 2, 0),   //
-                                                ChVector<>(0, -width / 2, 0),  //
+                                                ChVector3d(0, width / 2, 0),   //
+                                                ChVector3d(0, -width / 2, 0),  //
                                                 radius);
 }
 

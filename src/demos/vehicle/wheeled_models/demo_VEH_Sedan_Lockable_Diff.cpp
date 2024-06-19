@@ -37,56 +37,58 @@ using namespace chrono::vehicle::sedan;
 // =============================================================================
 
 const double step_size = 1e-3;
-const std::string out_dir = GetChronoOutputPath() + "SEDAN";
 
 // =============================================================================
 
 int main(int argc, char* argv[]) {
-    GetLog() << "Copyright (c) 2017 projectchrono.org\nChrono version: " << CHRONO_VERSION << "\n\n";
+    std::cout << "Copyright (c) 2017 projectchrono.org\nChrono version: " << CHRONO_VERSION << std::endl;
 
     bool lock_diff = (argc > 1) ? true : false;
 
     if (lock_diff) {
-        GetLog() << "The differential box is locked\n";
+        std::cout << "The differential box is locked\n";
     } else {
-        GetLog() << "The differential box is unlocked\n";
+        std::cout << "The differential box is unlocked\n";
     }
 
     // Create the vehicle
-    Sedan my_sedan;
-    my_sedan.SetContactMethod(ChContactMethod::SMC);
-    my_sedan.SetChassisCollisionType(CollisionType::NONE);
-    my_sedan.SetChassisFixed(false);
-    my_sedan.SetInitPosition(ChCoordsys<>(ChVector<>(-40, 0, 1.0)));
-    my_sedan.SetTireType(TireModelType::TMEASY);
-    my_sedan.SetTireStepSize(1e-3);
-    my_sedan.Initialize();
+    Sedan sedan;
+    sedan.SetContactMethod(ChContactMethod::SMC);
+    sedan.SetChassisCollisionType(CollisionType::NONE);
+    sedan.SetChassisFixed(false);
+    sedan.SetInitPosition(ChCoordsys<>(ChVector3d(-40, 0, 1.0)));
+    sedan.SetTireType(TireModelType::TMEASY);
+    sedan.SetTireStepSize(1e-3);
+    sedan.Initialize();
 
-    my_sedan.SetChassisVisualizationType(VisualizationType::NONE);
-    my_sedan.SetSuspensionVisualizationType(VisualizationType::PRIMITIVES);
-    my_sedan.SetSteeringVisualizationType(VisualizationType::PRIMITIVES);
-    my_sedan.SetWheelVisualizationType(VisualizationType::MESH);
-    my_sedan.SetTireVisualizationType(VisualizationType::MESH);
+    sedan.SetChassisVisualizationType(VisualizationType::NONE);
+    sedan.SetSuspensionVisualizationType(VisualizationType::PRIMITIVES);
+    sedan.SetSteeringVisualizationType(VisualizationType::PRIMITIVES);
+    sedan.SetWheelVisualizationType(VisualizationType::MESH);
+    sedan.SetTireVisualizationType(VisualizationType::MESH);
 
-    my_sedan.LockAxleDifferential(0, lock_diff);
+    sedan.LockAxleDifferential(0, lock_diff);
+
+    // Associate a collision system
+    sedan.GetSystem()->SetCollisionSystemType(ChCollisionSystem::Type::BULLET);
 
     // Create the terrain
-    RigidTerrain terrain(my_sedan.GetSystem());
+    RigidTerrain terrain(sedan.GetSystem());
 
-    auto patch1_mat = chrono_types::make_shared<ChMaterialSurfaceSMC>();
+    auto patch1_mat = chrono_types::make_shared<ChContactMaterialSMC>();
     patch1_mat->SetFriction(0.1f);
     patch1_mat->SetRestitution(0.01f);
     patch1_mat->SetYoungModulus(2e7f);
     patch1_mat->SetPoissonRatio(0.3f);
 
-    auto patch2_mat = chrono_types::make_shared<ChMaterialSurfaceSMC>();
+    auto patch2_mat = chrono_types::make_shared<ChContactMaterialSMC>();
     patch2_mat->SetFriction(0.9f);
     patch2_mat->SetRestitution(0.01f);
     patch2_mat->SetYoungModulus(2e7f);
     patch2_mat->SetPoissonRatio(0.3f);
 
-    auto patch1 = terrain.AddPatch(patch1_mat, ChCoordsys<>(ChVector<>(0, -25, 0), QUNIT), 100, 50);
-    auto patch2 = terrain.AddPatch(patch2_mat, ChCoordsys<>(ChVector<>(0, +25, 0), QUNIT), 100, 50);
+    auto patch1 = terrain.AddPatch(patch1_mat, ChCoordsys<>(ChVector3d(0, -25, 0), QUNIT), 100, 50);
+    auto patch2 = terrain.AddPatch(patch2_mat, ChCoordsys<>(ChVector3d(0, +25, 0), QUNIT), 100, 50);
 
     patch1->SetColor(ChColor(0.8f, 0.8f, 0.5f));
     patch1->SetTexture(vehicle::GetDataFile("terrain/textures/dirt.jpg"), 200, 50);
@@ -99,25 +101,26 @@ int main(int argc, char* argv[]) {
     // Create the vehicle Irrlicht interface
     auto vis = chrono_types::make_shared<ChWheeledVehicleVisualSystemIrrlicht>();
     vis->SetWindowTitle("Sedan Demo Locked Diff");
-    vis->SetChaseCamera(ChVector<>(0.0, 0.0, 1.5), 4.0, 0.5);
+    vis->SetChaseCamera(ChVector3d(0.0, 0.0, 1.5), 4.0, 0.5);
     vis->Initialize();
     vis->AddLightDirectional();
     vis->AddSkyBox();
     vis->AddLogo();
-    vis->AttachVehicle(&my_sedan.GetVehicle());
+    vis->AttachVehicle(&sedan.GetVehicle());
 
     // Initialize output
+    const std::string out_dir = GetChronoOutputPath() + "SEDAN";
     if (!filesystem::create_directory(filesystem::path(out_dir))) {
         std::cout << "Error creating directory " << out_dir << std::endl;
         return 1;
     }
-    utils::CSV_writer wheelomega_csv("\t");
+    utils::ChWriterCSV wheelomega_csv("\t");
 
     // Simulation loop
     while (vis->Run()) {
-        double time = my_sedan.GetSystem()->GetChTime();
+        double time = sedan.GetSystem()->GetChTime();
 
-        if (time > 15 || my_sedan.GetVehicle().GetPos().x() > 49)
+        if (time > 15 || sedan.GetVehicle().GetPos().x() > 49)
             break;
 
         // Render scene
@@ -133,22 +136,22 @@ int main(int argc, char* argv[]) {
             driver_inputs.m_throttle = 0.6 * (time - 1);
 
         // Output
-        double omega_front_left = my_sedan.GetVehicle().GetSuspension(0)->GetAxleSpeed(LEFT);
-        double omega_front_right = my_sedan.GetVehicle().GetSuspension(0)->GetAxleSpeed(RIGHT);
+        double omega_front_left = sedan.GetVehicle().GetSuspension(0)->GetAxleSpeed(LEFT);
+        double omega_front_right = sedan.GetVehicle().GetSuspension(0)->GetAxleSpeed(RIGHT);
         wheelomega_csv << time << omega_front_left << omega_front_right << std::endl;
 
         // Synchronize subsystems
         terrain.Synchronize(time);
-        my_sedan.Synchronize(time, driver_inputs, terrain);
+        sedan.Synchronize(time, driver_inputs, terrain);
         vis->Synchronize(time, driver_inputs);
 
         // Advance simulation for all subsystems
         terrain.Advance(step_size);
-        my_sedan.Advance(step_size);
+        sedan.Advance(step_size);
         vis->Advance(step_size);
     }
 
-    wheelomega_csv.write_to_file(out_dir + "/FrontWheelOmega_" + std::to_string(lock_diff) + ".csv");
+    wheelomega_csv.WriteToFile(out_dir + "/FrontWheelOmega_" + std::to_string(lock_diff) + ".csv");
 
     return 0;
 }

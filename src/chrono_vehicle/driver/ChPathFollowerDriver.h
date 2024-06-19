@@ -247,6 +247,38 @@ class CH_VEHICLE_API ChPathFollowerDriverStanley : public ChClosedLoopDriver {
     ChPathSteeringControllerStanley& GetSteeringController() const;
 };
 
+/// Path-following driver system using a lateral steering controller as used on the Pure Pursuit AV.
+///
+/// @sa ChPathSteeringControllerPP
+/// @sa ChSpeedController
+class CH_VEHICLE_API ChPathFollowerDriverPP : public ChClosedLoopDriver {
+  public:
+    /// Construct using the specified Bezier curve.
+    ChPathFollowerDriverPP(
+        ChVehicle& vehicle,                   ///< associated vehicle
+        std::shared_ptr<ChBezierCurve> path,  ///< Bezier curve with target path
+        const std::string& path_name,         ///< name of the path curve
+        double target_speed                  ///< constant target speed
+    );
+
+    /// Construct using JSON specification files.
+    /// The two files must contain specification for the path-follower steering controller
+    /// and the constant-speed controller, respectively.
+    ChPathFollowerDriverPP(
+        ChVehicle& vehicle,                    ///< associated vehicle
+        const std::string& steering_filename,  ///< JSON file with steering controller specification
+        const std::string& speed_filename,     ///< JSON file with speed controller specification
+        std::shared_ptr<ChBezierCurve> path,   ///< Bezier curve with target path
+        const std::string& path_name,          ///< name of the path curve
+        double target_speed                   ///< constant target speed
+    );
+
+    ~ChPathFollowerDriverPP() {}
+
+    /// Get the underlying steering controller object.
+    ChPathSteeringControllerPP& GetSteeringController() const;
+};
+
 /// @} vehicle_driver
 
 }  // end namespace vehicle

@@ -1,3 +1,16 @@
+%extend chrono::ChSystem 
+{
+// Allow serialization of System without wrapping of ChArchive
+void SerializeToJSON(std::string path) {
+  std::ofstream mfileo(path.c_str());
+  chrono::ChArchiveOutJSON archive_out(mfileo);
+  archive_out << chrono::CHNVP(*$self, "sys");
+}
+
+}
+
+
+
 #ifdef SWIGCSHARP  // --------------------------------------------------------------------- CSHARP
 
 // MULTIPLE INHERITANCE WORKAROUND

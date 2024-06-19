@@ -27,12 +27,12 @@ namespace chrono {
 namespace vehicle {
 namespace unimog {
 
-/// @addtogroup vehicle_models_401
+/// @addtogroup vehicle_models_unimog
 /// @{
 
 /// Shafts-based 2-WD driveline for the UAZBUS vehicle.
 class CH_MODELS_API U401_Driveline2WD : public ChShaftsDriveline2WD {
-   public:
+  public:
     U401_Driveline2WD(const std::string& name);
 
     ~U401_Driveline2WD() {}
@@ -44,7 +44,7 @@ class CH_MODELS_API U401_Driveline2WD : public ChShaftsDriveline2WD {
 
     virtual double GetAxleDifferentialLockingLimit() const override { return m_axle_differential_locking_limit; }
 
-   private:
+  private:
     // Shaft inertias
     static const double m_driveshaft_inertia;
     static const double m_differentialbox_inertia;
@@ -56,7 +56,7 @@ class CH_MODELS_API U401_Driveline2WD : public ChShaftsDriveline2WD {
     static const double m_axle_differential_locking_limit;
 };
 
-/// @} vehicle_models_U401
+/// @} vehicle_models_unimog
 
 }  // namespace unimog
 }  // end namespace vehicle

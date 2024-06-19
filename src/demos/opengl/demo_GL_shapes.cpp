@@ -19,7 +19,7 @@
 // =============================================================================
 
 #ifdef __EMSCRIPTEN__
-#include <emscripten.h>
+    #include <emscripten.h>
 #endif
 
 #include "chrono/physics/ChSystemNSC.h"
@@ -28,38 +28,37 @@
 #include "chrono_opengl/ChVisualSystemOpenGL.h"
 
 using namespace chrono;
-using namespace geometry;
 
-int main(int argc, char *argv[]) {
-    GetLog() << "Copyright (c) 2017 projectchrono.org\nChrono version: " << CHRONO_VERSION << "\n\n";
+int main(int argc, char* argv[]) {
+    std::cout << "Copyright (c) 2017 projectchrono.org\nChrono version: " << CHRONO_VERSION << std::endl;
 
     ChSystemNSC sys;
-    auto mat = chrono_types::make_shared<ChMaterialSurfaceNSC>();
+    auto mat = chrono_types::make_shared<ChContactMaterialNSC>();
     auto bin = chrono_types::make_shared<ChBody>();
     sys.AddBody(bin);
 
     double a = 0.5;
     double b = 0.25;
     double c = 0.1;
-    ChVector<> xdir(1.5, 0.0, 0.0);
-    ChVector<> ydir(0.0, 1.5, 0.0);
-    ChVector<> zdir(0.0, 0.0, 1.5);
+    ChVector3d xdir(1.5, 0.0, 0.0);
+    ChVector3d ydir(0.0, 1.5, 0.0);
+    ChVector3d zdir(0.0, 0.0, 1.5);
     ChQuaternion<> rot(1, 0, 0, 0);
-    rot = Q_from_AngX(CH_C_PI / 6);
+    rot = QuatFromAngleX(CH_PI / 6);
 
-    utils::AddSphereGeometry(bin.get(), mat, 0.05, ChVector<>(0, 0, 0));
+    utils::AddSphereGeometry(bin.get(), mat, 0.05, ChVector3d(0, 0, 0));
 
     utils::AddSphereGeometry(bin.get(), mat, a, xdir * 1, rot);
     utils::AddSphereGeometry(bin.get(), mat, b, ydir * 1, rot);
     utils::AddSphereGeometry(bin.get(), mat, c, zdir * 1, rot);
 
-    utils::AddEllipsoidGeometry(bin.get(), mat, ChVector<>(2 * a, 4 * a, 4 * a), xdir * 2, rot);
-    utils::AddEllipsoidGeometry(bin.get(), mat, ChVector<>(4 * b, 2 * b, 4 * b), ydir * 2, rot);
-    utils::AddEllipsoidGeometry(bin.get(), mat, ChVector<>(4 * c, 4 * c, 2 * c), zdir * 2, rot);
+    utils::AddEllipsoidGeometry(bin.get(), mat, ChVector3d(2 * a, 4 * a, 4 * a), xdir * 2, rot);
+    utils::AddEllipsoidGeometry(bin.get(), mat, ChVector3d(4 * b, 2 * b, 4 * b), ydir * 2, rot);
+    utils::AddEllipsoidGeometry(bin.get(), mat, ChVector3d(4 * c, 4 * c, 2 * c), zdir * 2, rot);
 
-    utils::AddBoxGeometry(bin.get(), mat, ChVector<>(2 * a, 4 * a, 4 * a), xdir * 3, rot);
-    utils::AddBoxGeometry(bin.get(), mat, ChVector<>(4 * b, 2 * b, 4 * b), ydir * 3, rot);
-    utils::AddBoxGeometry(bin.get(), mat, ChVector<>(4 * c, 4 * c, 2 * c), zdir * 3, rot);
+    utils::AddBoxGeometry(bin.get(), mat, ChVector3d(2 * a, 4 * a, 4 * a), xdir * 3, rot);
+    utils::AddBoxGeometry(bin.get(), mat, ChVector3d(4 * b, 2 * b, 4 * b), ydir * 3, rot);
+    utils::AddBoxGeometry(bin.get(), mat, ChVector3d(4 * c, 4 * c, 2 * c), zdir * 3, rot);
 
     utils::AddCylinderGeometry(bin.get(), mat, a, 0.5, xdir * 4, rot);
     utils::AddCylinderGeometry(bin.get(), mat, b, 0.5, ydir * 4, rot);
@@ -80,7 +79,7 @@ int main(int argc, char *argv[]) {
     vis.SetWindowSize(1280, 720);
     vis.SetRenderMode(opengl::WIREFRAME);
     vis.Initialize();
-    vis.AddCamera(ChVector<>(6, -10, 0), ChVector<>(6, 0, 0));
+    vis.AddCamera(ChVector3d(6, -10, 0), ChVector3d(6, 0, 0));
     vis.SetCameraVertical(CameraVerticalDir::Z);
 
     std::function<void()> step_iter = [&]() { vis.Render(); };

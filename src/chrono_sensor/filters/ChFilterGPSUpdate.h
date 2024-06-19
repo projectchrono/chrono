@@ -21,7 +21,7 @@
 #include <random>
 #include <queue>
 #include "chrono_sensor/filters/ChFilter.h"
-#include "chrono/core/ChVector.h"
+#include "chrono/core/ChVector3.h"
 
 namespace chrono {
 namespace sensor {
@@ -40,7 +40,7 @@ class CH_SENSOR_API ChFilterGPSUpdate : public ChFilter {
     /// Class constructor
     /// @param gps_reference The GPS location of the simulation origin
     /// @param noise_model The noise model for augmenting the GPS data
-    ChFilterGPSUpdate(ChVector<double> gps_reference, std::shared_ptr<ChNoiseModel> noise_model);
+    ChFilterGPSUpdate(ChVector3d gps_reference, std::shared_ptr<ChNoiseModel> noise_model);
 
     /// Apply function. Generates GPS data.
     virtual void Apply();
@@ -54,7 +54,7 @@ class CH_SENSOR_API ChFilterGPSUpdate : public ChFilter {
     std::shared_ptr<SensorHostGPSBuffer> m_bufferOut;  ///< buffer that will be used for passing to the next filter
     std::shared_ptr<ChGPSSensor> m_GPSSensor;
     std::shared_ptr<ChNoiseModel> m_noise_model;  ///< pointer to the noise model for augmenting GPS data
-    ChVector<double> m_ref;                       ///< for holding the reference location
+    ChVector3d m_ref;                             ///< for holding the reference location
 };
 
 /// @}

@@ -21,7 +21,7 @@
 #include "chrono_irrlicht/ChIrrTools.h"
 
 #ifdef CHRONO_POSTPROCESS
-#include "chrono_postprocess/ChBlender.h"
+    #include "chrono_postprocess/ChBlender.h"
 #endif
 
 namespace chrono {
@@ -53,7 +53,7 @@ class ChApiIrr ChIrrGUI {
     /// Perform operations before closing the Irrlicht scene for the current frame.
     void EndScene();
 
- #ifdef CHRONO_POSTPROCESS
+#ifdef CHRONO_POSTPROCESS
 
     /// If set to true, each frame of the animation will be saved on the disk
     /// as a sequence of scripts to be rendered via Blender. Only if solution build with ENABLE_MODULE_POSTPROCESS.
@@ -76,7 +76,7 @@ class ChApiIrr ChIrrGUI {
 
     void DrawCollisionShapes(irr::video::SColor color);
 
-    void DumpSystemMatrices();
+    void WriteSystemMatrices();
 
     irr::IrrlichtDevice* GetDevice() { return m_device; }
     irr::video::IVideoDriver* GetVideoDriver() { return m_device->getVideoDriver(); }
@@ -107,6 +107,8 @@ class ChApiIrr ChIrrGUI {
     void SetLinksLabelMode(LinkLabelMode mm) { g_labellinks->setSelected((int)mm); }
     /// Set the draw mode for links
     void SetLinksDrawMode(LinkDrawMode mm) { g_drawlinks->setSelected((int)mm); }
+    /// Set if the absolute coordinate system will be plotted
+    void SetPlotAbsCoordsys(bool val) { g_plot_abscoord->setChecked(val); }
     /// Set if the AABB collision shapes will be plotted
     void SetPlotAABB(bool val) { g_plot_aabb->setChecked(val); }
     /// Set if the COG frames will be plotted
@@ -147,7 +149,7 @@ class ChApiIrr ChIrrGUI {
     ChIrrEventReceiver* m_receiver;                      ///< default event receiver
     std::vector<irr::IEventReceiver*> m_user_receivers;  ///< optional user-defined receivers
 
-    std::shared_ptr<collision::ChCollisionSystem::VisualizationCallback> m_drawer;  ///< collision callback
+    std::shared_ptr<ChCollisionSystem::VisualizationCallback> m_drawer;  ///< collision callback
 
     irr::gui::IGUITabControl* g_tabbed;
 
@@ -156,6 +158,7 @@ class ChApiIrr ChIrrGUI {
     irr::gui::IGUIComboBox* g_labelcontacts;
     irr::gui::IGUIComboBox* g_drawlinks;
     irr::gui::IGUIComboBox* g_labellinks;
+    irr::gui::IGUICheckBox* g_plot_abscoord;
     irr::gui::IGUICheckBox* g_plot_aabb;
     irr::gui::IGUICheckBox* g_plot_cogs;
     irr::gui::IGUICheckBox* g_plot_collisionshapes;

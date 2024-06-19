@@ -202,7 +202,7 @@ auto GetAverageValue = [](const double mv1, const double mv2) { return (mv1 + mv
 // For more information, please refer to ANSYS theory document in the chapters of tapered beam element.
 auto GetAverageValue3 = [](const double mv1, const double mv2) {
     if (mv1 * mv2 < 0.) {
-        // GetLog() << "WARNING: negative value, error!\n";
+        // std::cerr << "WARNING: negative value, error!" << std::endl;
         return GetAverageValue(mv1, mv2);
     }
     return (mv1 + pow(mv1 * mv2, 0.5) + mv2) / 3.0;
@@ -210,7 +210,7 @@ auto GetAverageValue3 = [](const double mv1, const double mv2) {
 // For more information, please refer to ANSYS theory document in the chapters of tapered beam element.
 auto GetAverageValue5 = [](const double mv1, const double mv2) {
     if (mv1 * mv2 < 0.) {
-        // GetLog() << "WARNING: negative value, error!\n";
+        // std::cerr << "WARNING: negative value, error!" << std::endl;
         return GetAverageValue(mv1, mv2);
     }
     return (mv1 + pow(mv1 * mv1 * mv1 * mv2, 0.25) + pow(mv1 * mv2, 0.5) + pow(mv1 * mv2 * mv2 * mv2, 0.25) + mv2) /
@@ -231,11 +231,11 @@ void ChBeamSectionTaperedTimoshenkoAdvancedGeneric::ComputeAverageSectionParamet
     double Qz1 = this->sectionA->GetInertiaQzPerUnitLength();
     // double Jmxx1 = this->sectionA->GetInertiaJxxPerUnitLengthInMassReference();
     double EA1 = this->sectionA->GetAxialRigidity();
-    double GJ1 = this->sectionA->GetXtorsionRigidity();
-    double EIyy1 = this->sectionA->GetYbendingRigidity();
-    double EIzz1 = this->sectionA->GetZbendingRigidity();
-    double GAyy1 = this->sectionA->GetYshearRigidity();
-    double GAzz1 = this->sectionA->GetZshearRigidity();
+    double GJ1 = this->sectionA->GetTorsionRigidityX();
+    double EIyy1 = this->sectionA->GetBendingRigidityY();
+    double EIzz1 = this->sectionA->GetBendingRigidityZ();
+    double GAyy1 = this->sectionA->GetShearRigidityY();
+    double GAzz1 = this->sectionA->GetShearRigidityZ();
     double alpha1 = this->sectionA->GetSectionRotation();
     double Cy1 = this->sectionA->GetCentroidY();
     double Cz1 = this->sectionA->GetCentroidZ();
@@ -258,7 +258,7 @@ void ChBeamSectionTaperedTimoshenkoAdvancedGeneric::ComputeAverageSectionParamet
     double EImzz1 = -EIyy1 * sinphi1 + EIzz1 * cosphi1;
     double GAmyy1 = GAyy1 * cosphi1 + GAzz1 * sinphi1;
     double GAmzz1 = -GAyy1 * sinphi1 + GAzz1 * cosphi1;
-    DampingCoefficients rdamping_coeff1 = this->sectionA->GetBeamRaleyghDamping();
+    DampingCoefficients rdamping_coeff1 = this->sectionA->GetRayleighDamping();
     double artificial_factor_for_shear_damping1 = this->sectionA->GetArtificialFactorForShearDamping();
 
     double mu2 = this->sectionB->GetMassPerUnitLength();
@@ -270,11 +270,11 @@ void ChBeamSectionTaperedTimoshenkoAdvancedGeneric::ComputeAverageSectionParamet
     double Qz2 = this->sectionB->GetInertiaQzPerUnitLength();
     // double Jmxx2 = this->sectionB->GetInertiaJxxPerUnitLengthInMassReference();
     double EA2 = this->sectionB->GetAxialRigidity();
-    double GJ2 = this->sectionB->GetXtorsionRigidity();
-    double EIyy2 = this->sectionB->GetYbendingRigidity();
-    double EIzz2 = this->sectionB->GetZbendingRigidity();
-    double GAyy2 = this->sectionB->GetYshearRigidity();
-    double GAzz2 = this->sectionB->GetZshearRigidity();
+    double GJ2 = this->sectionB->GetTorsionRigidityX();
+    double EIyy2 = this->sectionB->GetBendingRigidityY();
+    double EIzz2 = this->sectionB->GetBendingRigidityZ();
+    double GAyy2 = this->sectionB->GetShearRigidityY();
+    double GAzz2 = this->sectionB->GetShearRigidityZ();
     double alpha2 = this->sectionB->GetSectionRotation();
     double Cy2 = this->sectionB->GetCentroidY();
     double Cz2 = this->sectionB->GetCentroidZ();
@@ -297,7 +297,7 @@ void ChBeamSectionTaperedTimoshenkoAdvancedGeneric::ComputeAverageSectionParamet
     double EImzz2 = -EIyy2 * sinphi2 + EIzz2 * cosphi2;
     double GAmyy2 = GAyy2 * cosphi2 + GAzz2 * sinphi2;
     double GAmzz2 = -GAyy2 * sinphi2 + GAzz2 * cosphi2;
-    DampingCoefficients rdamping_coeff2 = this->sectionB->GetBeamRaleyghDamping();
+    DampingCoefficients rdamping_coeff2 = this->sectionB->GetRayleighDamping();
     double artificial_factor_for_shear_damping2 = this->sectionB->GetArtificialFactorForShearDamping();
 
     double L = this->GetLength();
@@ -369,7 +369,7 @@ void ChBeamSectionTaperedTimoshenkoAdvancedGeneric::ComputeAverageSectionParamet
     if (abs(this->avg_sec_par->GAzz) > eps) {  // avoid dividing zero
         this->avg_sec_par->phiz = 12.0 * this->avg_sec_par->EIyy / (this->avg_sec_par->GAzz * LL);
     }
-    
+
     // update the status of lock, to avoid computing again.
     compute_ave_sec_par = true;
 }
@@ -377,8 +377,8 @@ void ChBeamSectionTaperedTimoshenkoAdvancedGeneric::ComputeAverageSectionParamet
 void ChBeamSectionTaperedTimoshenkoAdvancedGeneric::ComputeLumpedInertiaMatrix(ChMatrixNM<double, 12, 12>& M) {
     M.setZero(12, 12);
 
-    ChMatrixNM<double, 6, 6> MA;
-    ChMatrixNM<double, 6, 6> MB;
+    ChMatrix66d MA;
+    ChMatrix66d MB;
     this->sectionA->ComputeInertiaMatrix(MA);
     this->sectionB->ComputeInertiaMatrix(MB);
 
@@ -517,9 +517,9 @@ void ChBeamSectionTaperedTimoshenkoAdvancedGeneric::ComputeSimpleConsistentInert
 
     // In case the section is rotated:
     ChMatrix33<> RotsectA;
-    RotsectA.Set_A_Rxyz(ChVector<>(mass_phi1, 0, 0));
+    RotsectA.SetFromCardanAnglesXYZ(ChVector3d(mass_phi1, 0, 0));
     ChMatrix33<> RotsectB;
-    RotsectB.Set_A_Rxyz(ChVector<>(mass_phi2, 0, 0));
+    RotsectB.SetFromCardanAnglesXYZ(ChVector3d(mass_phi2, 0, 0));
     ChMatrixNM<double, 12, 12> Rotsect;
     Rotsect.setZero();
     Rotsect.block<3, 3>(0, 0) = RotsectA;
@@ -529,7 +529,7 @@ void ChBeamSectionTaperedTimoshenkoAdvancedGeneric::ComputeSimpleConsistentInert
     M = Rotsect.transpose() * M * Rotsect;
 
     // transformation matrix for section A
-    ChMatrixNM<double, 6, 6> Tm1;
+    ChMatrix66d Tm1;
     Tm1.setIdentity();
     Tm1(0, 4) = Mz1;
     Tm1(0, 5) = -My1;
@@ -537,7 +537,7 @@ void ChBeamSectionTaperedTimoshenkoAdvancedGeneric::ComputeSimpleConsistentInert
     Tm1(2, 3) = My1;
 
     // transformation matrix for section B
-    ChMatrixNM<double, 6, 6> Tm2;
+    ChMatrix66d Tm2;
     Tm2.setIdentity();
     Tm2(0, 4) = Mz2;
     Tm2(0, 5) = -My2;
@@ -821,8 +821,8 @@ void ChBeamSectionTaperedTimoshenkoAdvancedGeneric::ComputeInertiaMatrix(ChMatri
 }
 
 void ChBeamSectionTaperedTimoshenkoAdvancedGeneric::ComputeInertiaDampingMatrix(ChMatrixNM<double, 12, 12>& Ri,
-                                                                                const ChVector<>& mW_A,
-                                                                                const ChVector<>& mW_B) {
+                                                                                const ChVector3d& mW_A,
+                                                                                const ChVector3d& mW_B) {
     Ri.setZero(12, 12);
 
     if (this->compute_inertia_damping_matrix == false)
@@ -836,8 +836,8 @@ void ChBeamSectionTaperedTimoshenkoAdvancedGeneric::ComputeInertiaDampingMatrix(
     this->sectionB->compute_inertia_stiffness_matrix = this->compute_inertia_stiffness_matrix;
     this->sectionB->compute_Ri_Ki_by_num_diff = this->compute_Ri_Ki_by_num_diff;
 
-    ChMatrixNM<double, 6, 6> Ri_A;
-    ChMatrixNM<double, 6, 6> Ri_B;
+    ChMatrix66d Ri_A;
+    ChMatrix66d Ri_B;
     this->sectionA->ComputeInertiaDampingMatrix(Ri_A, mW_A);
     this->sectionB->ComputeInertiaDampingMatrix(Ri_B, mW_B);
 
@@ -847,12 +847,12 @@ void ChBeamSectionTaperedTimoshenkoAdvancedGeneric::ComputeInertiaDampingMatrix(
 
 void ChBeamSectionTaperedTimoshenkoAdvancedGeneric::ComputeInertiaStiffnessMatrix(
     ChMatrixNM<double, 12, 12>& Ki,
-    const ChVector<>& mWvel_A,  ///< current angular velocity of section of node A, in material frame
-    const ChVector<>& mWacc_A,  ///< current angular acceleration of section of node A, in material frame
-    const ChVector<>& mXacc_A,  ///< current acceleration of section of node A, in material frame)
-    const ChVector<>& mWvel_B,  ///< current angular velocity of section of node B, in material frame
-    const ChVector<>& mWacc_B,  ///< current angular acceleration of section of node B, in material frame
-    const ChVector<>& mXacc_B   ///< current acceleration of section of node B, in material frame
+    const ChVector3d& mWvel_A,  ///< current angular velocity of section of node A, in material frame
+    const ChVector3d& mWacc_A,  ///< current angular acceleration of section of node A, in material frame
+    const ChVector3d& mXacc_A,  ///< current acceleration of section of node A, in material frame)
+    const ChVector3d& mWvel_B,  ///< current angular velocity of section of node B, in material frame
+    const ChVector3d& mWacc_B,  ///< current angular acceleration of section of node B, in material frame
+    const ChVector3d& mXacc_B   ///< current acceleration of section of node B, in material frame
 ) {
     Ki.setZero(12, 12);
 
@@ -867,8 +867,8 @@ void ChBeamSectionTaperedTimoshenkoAdvancedGeneric::ComputeInertiaStiffnessMatri
     this->sectionB->compute_inertia_stiffness_matrix = this->compute_inertia_stiffness_matrix;
     this->sectionB->compute_Ri_Ki_by_num_diff = this->compute_Ri_Ki_by_num_diff;
 
-    ChMatrixNM<double, 6, 6> Ki_A;
-    ChMatrixNM<double, 6, 6> Ki_B;
+    ChMatrix66d Ki_A;
+    ChMatrix66d Ki_B;
     this->sectionA->ComputeInertiaStiffnessMatrix(Ki_A, mWvel_A, mWacc_A, mXacc_A);
     this->sectionB->ComputeInertiaStiffnessMatrix(Ki_B, mWvel_B, mWacc_B, mXacc_B);
 
@@ -876,7 +876,7 @@ void ChBeamSectionTaperedTimoshenkoAdvancedGeneric::ComputeInertiaStiffnessMatri
     Ki.block<6, 6>(6, 6) = Ki_B;
 }
 
-DampingCoefficients ChBeamSectionTaperedTimoshenkoAdvancedGeneric::GetBeamRaleyghDamping() const {
+DampingCoefficients ChBeamSectionTaperedTimoshenkoAdvancedGeneric::GetRayleighDamping() const {
     return this->avg_sec_par->rdamping_coeff;
 };
 

@@ -41,16 +41,17 @@ MAN_5t::MAN_5t()
     : m_system(nullptr),
       m_vehicle(nullptr),
       m_contactMethod(ChContactMethod::NSC),
+      m_collsysType(ChCollisionSystem::Type::BULLET),
       m_chassisCollisionType(CollisionType::NONE),
       m_fixed(false),
       m_brake_locking(false),
       m_engineType(EngineModelType::SIMPLE_MAP),
-      m_transmissionType(TransmissionModelType::SIMPLE_MAP),
+      m_transmissionType(TransmissionModelType::AUTOMATIC_SIMPLE_MAP),
       m_brake_type(BrakeType::SIMPLE),
       m_tireType(TireModelType::TMEASY),
       m_tire_step_size(-1),
       m_initFwdVel(0),
-      m_initPos(ChCoordsys<>(ChVector<>(0, 0, 1), QUNIT)),
+      m_initPos(ChCoordsys<>(ChVector3d(0, 0, 1), QUNIT)),
       m_initOmega({0, 0, 0, 0}),
       m_apply_drag(false) {}
 
@@ -58,16 +59,17 @@ MAN_5t::MAN_5t(ChSystem* system)
     : m_system(system),
       m_vehicle(nullptr),
       m_contactMethod(ChContactMethod::NSC),
+      m_collsysType(ChCollisionSystem::Type::BULLET),
       m_chassisCollisionType(CollisionType::NONE),
       m_fixed(false),
       m_engineType(EngineModelType::SIMPLE_MAP),
-      m_transmissionType(TransmissionModelType::SIMPLE_MAP),
+      m_transmissionType(TransmissionModelType::AUTOMATIC_SIMPLE_MAP),
       m_brake_locking(false),
       m_brake_type(BrakeType::SIMPLE),
       m_tireType(TireModelType::TMEASY),
       m_tire_step_size(-1),
       m_initFwdVel(0),
-      m_initPos(ChCoordsys<>(ChVector<>(0, 0, 1), QUNIT)),
+      m_initPos(ChCoordsys<>(ChVector3d(0, 0, 1), QUNIT)),
       m_initOmega({0, 0, 0, 0}),
       m_apply_drag(false) {}
 
@@ -89,7 +91,7 @@ void MAN_5t::Initialize() {
     // Create and initialize the MAN_5t vehicle
     m_vehicle = m_system ? new MAN_5t_Vehicle(m_system, m_fixed, m_brake_type, m_chassisCollisionType)
                          : new MAN_5t_Vehicle(m_fixed, m_brake_type, m_contactMethod, m_chassisCollisionType);
-
+    m_vehicle->SetCollisionSystemType(m_collsysType);
     m_vehicle->SetInitWheelAngVel(m_initOmega);
     m_vehicle->Initialize(m_initPos, m_initFwdVel);
 
@@ -104,7 +106,7 @@ void MAN_5t::Initialize() {
     switch (m_engineType) {
         case EngineModelType::SHAFTS:
             // engine = chrono_types::make_shared<MAN_5t_EngineShafts>("Engine");
-            GetLog() << "EngineModelType::SHAFTS not implemented for this model.\n";
+            std::cout << "EngineModelType::SHAFTS not implemented for this model.\n";
             break;
         case EngineModelType::SIMPLE_MAP:
             engine = chrono_types::make_shared<MAN_5t_EngineSimpleMap>("Engine");
@@ -117,12 +119,14 @@ void MAN_5t::Initialize() {
     }
     if (!transmission) {
         switch (m_transmissionType) {
-            case TransmissionModelType::SHAFTS:
+            case TransmissionModelType::AUTOMATIC_SHAFTS:
                 // transmission = chrono_types::make_shared<MAN_5t_AutomaticTransmissionShafts>("Transmission");
-                GetLog() << "TransmissionModelType::SHAFTS not implemented for this model.\n";
+                std::cout << "TransmissionModelType::AUTOMATIC_SHAFTS not implemented for this model.\n";
                 break;
-            case TransmissionModelType::SIMPLE_MAP:
+            case TransmissionModelType::AUTOMATIC_SIMPLE_MAP:
                 transmission = chrono_types::make_shared<MAN_5t_AutomaticTransmissionSimpleMap>("Transmission");
+                break;
+            default:
                 break;
         }
     }

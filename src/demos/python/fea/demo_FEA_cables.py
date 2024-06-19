@@ -39,11 +39,11 @@ model = Model3(sys, mesh)
 sys.Add(mesh)
 
 # ==Asset== attach a visualization of the FEM mesh.
-# This will automatically update a triangle mesh (a ChTriangleMeshShape
+# This will automatically update a triangle mesh (a ChVisualShapeTriangleMesh
 # asset that is internally managed) by setting  proper
 # coordinates and vertex colors as in the FEM elements.
 # Such triangle mesh can be rendered by Irrlicht or POVray or whatever
-# postprocessor that can handle a colored ChTriangleMeshShape).
+# postprocessor that can handle a colored ChVisualShapeTriangleMesh).
 
 visualizebeamA = chrono.ChVisualShapeFEA(mesh)
 visualizebeamA.SetFEMdataType(chrono.ChVisualShapeFEA.DataType_ELEM_BEAM_MZ)
@@ -68,7 +68,7 @@ vis.SetWindowTitle('FEA cables')
 vis.Initialize()
 vis.AddLogo(chrono.GetChronoDataFile('logo_pychrono_alpha.png'))
 vis.AddSkyBox()
-vis.AddCamera(chrono.ChVectorD(0, 0.6, -1))
+vis.AddCamera(chrono.ChVector3d(0, 0.6, -1))
 vis.AddTypicalLights()
 
 # Set solver and solver settings
@@ -92,7 +92,6 @@ elif solver.GetType()== chrono.ChSolver.Type_MINRES :
 else:
 	print("Solver type not supported." )
     
-sys.SetSolverForceTolerance(1e-13)
 
 # Set integrator
 ts = chrono.ChTimestepperEulerImplicitLinearized(sys)

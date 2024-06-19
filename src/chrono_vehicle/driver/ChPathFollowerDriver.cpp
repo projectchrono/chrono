@@ -21,12 +21,13 @@
 
 #include <algorithm>
 
-#include "chrono/core/ChMathematics.h"
-#include "chrono/assets/ChLineShape.h"
+#include "chrono/assets/ChVisualShapeLine.h"
 #include "chrono/geometry/ChLineBezier.h"
 #include "chrono/utils/ChUtilsInputOutput.h"
+#include "chrono/utils/ChUtils.h"
 
 #include "chrono_vehicle/driver/ChPathFollowerDriver.h"
+#include "chrono_vehicle/wheeled_vehicle/ChWheeledVehicle.h"
 
 namespace chrono {
 namespace vehicle {
@@ -54,14 +55,14 @@ ChClosedLoopDriver::ChClosedLoopDriver(ChVehicle& vehicle,
 
 void ChClosedLoopDriver::Initialize() {
     // Create a fixed body to carry a visualization asset for the path
-    auto road = std::shared_ptr<ChBody>(m_vehicle.GetSystem()->NewBody());
-    road->SetBodyFixed(true);
+    auto road = chrono_types::make_shared<ChBody>();
+    road->SetFixed(true);
     m_vehicle.GetSystem()->AddBody(road);
 
     auto bezier_curve = m_steeringPID->GetPath();
-    auto num_points = static_cast<unsigned int>(bezier_curve->getNumPoints());
-    auto path_asset = chrono_types::make_shared<ChLineShape>();
-    path_asset->SetLineGeometry(chrono_types::make_shared<geometry::ChLineBezier>(bezier_curve));
+    auto num_points = static_cast<unsigned int>(bezier_curve->GetNumPoints());
+    auto path_asset = chrono_types::make_shared<ChVisualShapeLine>();
+    path_asset->SetLineGeometry(chrono_types::make_shared<ChLineBezier>(bezier_curve));
     path_asset->SetColor(m_color);
     path_asset->SetName(m_pathName);
     path_asset->SetNumRenderPoints(std::max<unsigned int>(2 * num_points, 400));
@@ -70,13 +71,13 @@ void ChClosedLoopDriver::Initialize() {
 }
 
 void ChClosedLoopDriver::Reset() {
-    m_speedPID->Reset(m_vehicle);
-    m_steeringPID->Reset(m_vehicle);
+    m_speedPID->Reset(m_vehicle.GetRefFrame());
+    m_steeringPID->Reset(m_vehicle.GetRefFrame());
 }
 
 void ChClosedLoopDriver::Advance(double step) {
     // Set the throttle and braking values based on the output from the speed controller.
-    double out_speed = m_speedPID->Advance(m_vehicle, m_target_speed, step);
+    double out_speed = m_speedPID->Advance(m_vehicle.GetRefFrame(), m_target_speed, m_vehicle.GetChTime(), step);
     ChClampValue(out_speed, -1.0, 1.0);
 
     if (out_speed > 0) {
@@ -94,7 +95,7 @@ void ChClosedLoopDriver::Advance(double step) {
     }
 
     // Set the steering value based on the output from the steering controller.
-    double out_steering = m_steeringPID->Advance(m_vehicle, step);
+    double out_steering = m_steeringPID->Advance(m_vehicle.GetRefFrame(), m_vehicle.GetChTime(), step);
     ChClampValue(out_steering, -1.0, 1.0);
     m_steering = out_steering;
 }
@@ -217,5 +218,41 @@ ChPathSteeringControllerStanley& ChPathFollowerDriverStanley::GetSteeringControl
     return dynamic_cast<ChPathSteeringControllerStanley&>(*m_steeringPID);
 }
 
+//++++++++++ Pure Pursuit +++++++++++++
+ChPathFollowerDriverPP::ChPathFollowerDriverPP(chrono::vehicle::ChVehicle& vehicle,
+                                               std::shared_ptr<ChBezierCurve> path,
+                                               const std::string& path_name,
+                                               double target_speed)
+    : ChClosedLoopDriver(vehicle, path_name, target_speed) {
+    ChWheeledVehicle* veh = dynamic_cast<ChWheeledVehicle*>(&vehicle);
+    if(veh == nullptr) {
+        std::cout << "The Pure Pursuit Controller can actually not be used with tracked vehicles!" << std::endl;
+        exit(99);
+    }
+    m_steeringPID =
+        chrono_types::make_unique<ChPathSteeringControllerPP>(path, veh->GetMaxSteeringAngle(), veh->GetWheelbase());
+    Reset();
+}
+
+ChPathFollowerDriverPP::ChPathFollowerDriverPP(ChVehicle& vehicle,
+                                                         const std::string& steering_filename,
+                                                         const std::string& speed_filename,
+                                                         std::shared_ptr<ChBezierCurve> path,
+                                                         const std::string& path_name,
+                                                         double target_speed)
+    : ChClosedLoopDriver(vehicle, speed_filename, path_name, target_speed) {
+    ChWheeledVehicle* veh = dynamic_cast<ChWheeledVehicle*>(&vehicle);
+    if(veh == nullptr) {
+        std::cout << "The Pure Pursuit Controller can actually not be used with tracked vehicles!" << std::endl;
+        exit(99);
+    }
+    m_steeringPID =
+        chrono_types::make_unique<ChPathSteeringControllerPP>(steering_filename, path, veh->GetMaxSteeringAngle(), veh->GetWheelbase());
+    Reset();
+}
+
+ChPathSteeringControllerPP& ChPathFollowerDriverPP::GetSteeringController() const {
+    return dynamic_cast<ChPathSteeringControllerPP&>(*m_steeringPID);
+}
 }  // end namespace vehicle
 }  // end namespace chrono

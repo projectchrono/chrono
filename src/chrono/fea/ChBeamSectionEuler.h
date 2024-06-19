@@ -39,17 +39,17 @@ class ChApi ChBeamSectionEuler : public ChBeamSection {
 
     // STIFFNESS INTERFACE
 
-    /// Gets the axial rigidity, usually A*E, but might be ad hoc
+    /// Gets the axial rigidity, usually A*E.
     virtual double GetAxialRigidity() const = 0;
 
-    /// Gets the torsion rigidity, for torsion about X axis at elastic center, usually J*G, but might be ad hoc
-    virtual double GetXtorsionRigidity() const = 0;
+    /// Gets the torsion rigidity, for torsion about X axis at elastic center, usually J*G.
+    virtual double GetTorsionRigidityX() const = 0;
 
-    /// Gets the bending rigidity, for bending about Y axis at elastic center, usually Iyy*E, but might be ad hoc
-    virtual double GetYbendingRigidity() const = 0;
+    /// Gets the bending rigidity, for bending about Y axis at elastic center, usually Iyy*E.
+    virtual double GetBendingRigidityY() const = 0;
 
-    /// Gets the bending rigidity, for bending about Z axis at elastic center, usually Izz*E, but might be ad hoc
-    virtual double GetZbendingRigidity() const = 0;
+    /// Gets the bending rigidity, for bending about Z axis at elastic center, usually Izz*E.
+    virtual double GetBendingRigidityZ() const = 0;
 
     /// Set the rotation of the Y Z section axes for which the YbendingRigidity and ZbendingRigidity are defined.
     virtual double GetSectionRotation() const = 0;
@@ -76,50 +76,55 @@ class ChApi ChBeamSectionEuler : public ChBeamSection {
 
     /// Compute the 6x6 sectional inertia matrix, as in  {x_momentum,w_momentum}=[Mm]{xvel,wvel}
     /// The matrix is computed in the material reference (i.e. it is the sectional mass matrix)
-    virtual void ComputeInertiaMatrix(ChMatrixNM<double, 6, 6>& M  ///< 6x6 sectional mass matrix values here
+    virtual void ComputeInertiaMatrix(ChMatrix66d& M  ///< 6x6 sectional mass matrix values here
                                       ) = 0;
 
     /// Compute the 6x6 sectional inertia damping matrix [Ri] (gyroscopic matrix damping), as in linearization
     ///  dFi=[Mi]*d{xacc,wacc}+[Ri]*d{xvel,wvel}+[Ki]*d{pos,rot}
-    /// The matrix is computed in the material reference, i.e. both linear and rotational coords assumed in the basis of the centerline reference.
-    /// Default implementation: falls back to numerical differentiation of ComputeInertialForce to compute Ri, 
-    /// please override this if analytical formula of Ri is known!
-    virtual void ComputeInertiaDampingMatrix(ChMatrixNM<double, 6, 6>& Ri,  ///< 6x6 sectional inertial-damping (gyroscopic damping) matrix values here
-        const ChVector<>& mW    ///< current angular velocity of section, in material frame
+    /// The matrix is computed in the material reference, i.e. both linear and rotational coords assumed in the basis of
+    /// the centerline reference. Default implementation: falls back to numerical differentiation of
+    /// ComputeInertialForce to compute Ri, please override this if analytical formula of Ri is known!
+    virtual void ComputeInertiaDampingMatrix(
+        ChMatrix66d& Ri,      ///< 6x6 sectional inertial-damping (gyroscopic damping) matrix values here
+        const ChVector3d& mW  ///< current angular velocity of section, in material frame
     );
 
     /// Compute the 6x6 sectional inertia stiffness matrix [Ki^], as in linearization
-    ///  dFi=[Mi]*d{xacc,wacc}+[Ri]*d{xvel,wvel}+[Ki]*d{pos,rot} 
+    ///  dFi=[Mi]*d{xacc,wacc}+[Ri]*d{xvel,wvel}+[Ki]*d{pos,rot}
     /// The matrix is computed in the material reference.
-    /// NOTE the matrix already contains the 'geometric' stiffness, so it transforms to absolute transl/local rot just like [Mi] and [Ri]:
-    ///  [Ki]_al =[R,0;0,I]*[Ki^]*[R',0;0,I']  , with [Ki^]=([Ki]+[0,f~';0,0])  for f=current force part of inertial forces.
-    /// Default implementation: falls back to numerical differentiation of ComputeInertialForce to compute Ki^, 
+    /// NOTE the matrix already contains the 'geometric' stiffness, so it transforms to absolute transl/local rot just
+    /// like [Mi] and [Ri]:
+    ///  [Ki]_al =[R,0;0,I]*[Ki^]*[R',0;0,I']  , with [Ki^]=([Ki]+[0,f~';0,0])  for f=current force part of inertial
+    ///  forces.
+    /// Default implementation: falls back to numerical differentiation of ComputeInertialForce to compute Ki^,
     /// please override this if analytical formula of Ki^ is known!
-    virtual void ComputeInertiaStiffnessMatrix(ChMatrixNM<double, 6, 6>& Ki, ///< 6x6 sectional inertial-stiffness matrix [Ki^] values here
-        const ChVector<>& mWvel,      ///< current angular velocity of section, in material frame
-        const ChVector<>& mWacc,      ///< current angular acceleration of section, in material frame
-        const ChVector<>& mXacc       ///< current acceleration of section, in material frame (not absolute!)
+    virtual void ComputeInertiaStiffnessMatrix(
+        ChMatrix66d& Ki,          ///< 6x6 sectional inertial-stiffness matrix [Ki^] values here
+        const ChVector3d& mWvel,  ///< current angular velocity of section, in material frame
+        const ChVector3d& mWacc,  ///< current angular acceleration of section, in material frame
+        const ChVector3d& mXacc   ///< current acceleration of section, in material frame (not absolute!)
     );
 
     /// Compute the values of inertial force & torque depending on quadratic velocity terms,
     /// that is the gyroscopic torque (null for Euler beam as point-like mass section, might be nonzero if adding
     /// Rayleigh beam theory) and the centrifugal term (if any). All terms expressed in the material reference, ie. the
     /// reference in the centerline of the section.
-    virtual void ComputeQuadraticTerms(ChVector<>& mF,       ///< centrifugal term (if any) returned here
-                                       ChVector<>& mT,       ///< gyroscopic term returned here
-                                       const ChVector<>& mW  ///< current angular velocity of section, in material frame
+    virtual void ComputeQuadraticTerms(ChVector3d& mF,       ///< centrifugal term (if any) returned here
+                                       ChVector3d& mT,       ///< gyroscopic term returned here
+                                       const ChVector3d& mW  ///< current angular velocity of section, in material frame
                                        ) = 0;
 
-    /// Compute the total inertial forces (per unit length). This default implementation falls back to  Fi = [Mi]*{xacc,wacc}+{mF,mT} 
-    /// where [Mi] is given by ComputeInertiaMatrix() and {F_quad,T_quad} are given by ComputeQuadraticTerms(), i.e. gyro and centrif.terms. 
-    /// Note: both force and torque are returned in the basis of the material frame (not the absolute frame!), 
-    /// ex. to apply it to a Chrono body, the force must be rotated to absolute basis.
-    /// For faster implementations one can override this, ex. avoid doing the [Mi] matrix product.
-    virtual void ComputeInertialForce(ChVector<>& mFi,   ///< total inertial force returned here, in basis of material frame
-        ChVector<>& mTi,      ///< total inertial torque returned here, in basis of material frame
-        const ChVector<>& mWvel,  ///< current angular velocity of section, in material frame
-        const ChVector<>& mWacc,  ///< current angular acceleration of section, in material frame
-        const ChVector<>& mXacc   ///< current acceleration of section, in material frame (not absolute!)
+    /// Compute the total inertial forces (per unit length). This default implementation falls back to  Fi =
+    /// [Mi]*{xacc,wacc}+{mF,mT} where [Mi] is given by ComputeInertiaMatrix() and {F_quad,T_quad} are given by
+    /// ComputeQuadraticTerms(), i.e. gyro and centrif.terms. Note: both force and torque are returned in the basis of
+    /// the material frame (not the absolute frame!), ex. to apply it to a Chrono body, the force must be rotated to
+    /// absolute basis. For faster implementations one can override this, ex. avoid doing the [Mi] matrix product.
+    virtual void ComputeInertialForce(
+        ChVector3d& mFi,          ///< total inertial force returned here, in basis of material frame
+        ChVector3d& mTi,          ///< total inertial torque returned here, in basis of material frame
+        const ChVector3d& mWvel,  ///< current angular velocity of section, in material frame
+        const ChVector3d& mWacc,  ///< current angular acceleration of section, in material frame
+        const ChVector3d& mXacc   ///< current acceleration of section, in material frame (not absolute!)
     );
 
     /// The Euler beam model has no rotational inertia per each section, assuming mass is concentrated on
@@ -132,21 +137,23 @@ class ChApi ChBeamSectionEuler : public ChBeamSection {
 
     // DAMPING INTERFACE
 
-    /// Set the "alpha" Rayleigh damping ratio,  
-    /// the mass-proportional structural damping in: R = alpha*M + beta*K 
-    virtual void SetBeamRaleyghDampingAlpha(double malpha) { this->rdamping_alpha = malpha; }
-    double GetBeamRaleyghDampingAlpha() { return this->rdamping_alpha; }
+    /// Set the "alpha" Rayleigh damping ratio,
+    /// the mass-proportional structural damping in: R = alpha*M + beta*K
+    virtual void SetRayleighDampingAlpha(double malpha) { this->rdamping_alpha = malpha; }
+    double GetRayleighDampingAlpha() { return this->rdamping_alpha; }
 
     /// Set the "beta" Rayleigh damping ratio,
-    /// the stiffness-proportional structural damping in: R = alpha*M + beta*K 
-    virtual void SetBeamRaleyghDampingBeta(double mbeta) { this->rdamping_beta = mbeta; }
-    double GetBeamRaleyghDampingBeta() { return this->rdamping_beta; }
+    /// the stiffness-proportional structural damping in: R = alpha*M + beta*K
+    virtual void SetRayleighDampingBeta(double mbeta) { this->rdamping_beta = mbeta; }
+    double GetRayleighDampingBeta() { return this->rdamping_beta; }
 
-    /// Set both beta and alpha coefficients in Rayleigh damping model:  R = alpha*M + beta*K. 
-    /// For backward compatibility, if one provides only the first parameter, this would be the "beta" 
+    /// Set both beta and alpha coefficients in Rayleigh damping model:  R = alpha*M + beta*K.
+    /// For backward compatibility, if one provides only the first parameter, this would be the "beta"
     /// stiffness-proportional term, and the "alpha" mass proportional term would be left to default zero.
-    virtual void SetBeamRaleyghDamping(double mbeta, double malpha = 0) { this->rdamping_beta = mbeta; this->rdamping_alpha = malpha; }
-
+    virtual void SetRayleighDamping(double mbeta, double malpha = 0) {
+        this->rdamping_beta = mbeta;
+        this->rdamping_alpha = malpha;
+    }
 
     // Optimization flags
 
@@ -161,7 +168,6 @@ class ChApi ChBeamSectionEuler : public ChBeamSection {
     /// Flag for computing the Ri and Ki matrices via numerical differentiation even if
     /// an analytical expression is provided. Children calsses must take care of this. Default: false.
     bool compute_Ri_Ki_by_num_diff = false;
-
 
   protected:
     double rdamping_beta;
@@ -195,7 +201,7 @@ class ChApi ChBeamSectionEulerSimple : public ChBeamSectionEuler {
         : E(0.01e9),     // default E stiffness: (almost rubber)
           density(1000)  // default density: water
     {
-        SetGwithPoissonRatio(0.3);            // default G (low poisson ratio)
+        SetShearModulusFromPoisson(0.3);      // default G (low poisson ratio)
         SetAsRectangularSection(0.01, 0.01);  // defaults Area, Ixx, Iyy, Ks_y, Ks_z, J
     }
 
@@ -238,8 +244,8 @@ class ChApi ChBeamSectionEulerSimple : public ChBeamSectionEuler {
         this->Iyy = (1.0 / 12.0) * width_y * pow(width_z, 3);
 
         // use Roark's formulas for torsion of rectangular sect:
-        double t = ChMin(width_y, width_z);
-        double b = ChMax(width_y, width_z);
+        double t = std::min(width_y, width_z);
+        double b = std::max(width_y, width_z);
         this->J = b * pow(t, 3) * ((1.0 / 3.0) - 0.210 * (t / b) * (1.0 - (1.0 / 12.0) * pow((t / b), 4)));
 
         // set Ks using Timoshenko-Gere formula for solid rect.shapes
@@ -254,8 +260,8 @@ class ChApi ChBeamSectionEulerSimple : public ChBeamSectionEuler {
     /// at once, given the diameter of the beam assumed
     /// with circular shape.
     void SetAsCircularSection(double diameter) {
-        this->Area = CH_C_PI * pow((0.5 * diameter), 2);
-        this->Izz = (CH_C_PI / 4.0) * pow((0.5 * diameter), 4);
+        this->Area = CH_PI * pow((0.5 * diameter), 2);
+        this->Izz = (CH_PI / 4.0) * pow((0.5 * diameter), 4);
         this->Iyy = Izz;
 
         // exact expression for circular beam J = Ixx ,
@@ -278,26 +284,26 @@ class ChApi ChBeamSectionEulerSimple : public ChBeamSectionEuler {
     void SetYoungModulus(double mE) { this->E = mE; }
     double GetYoungModulus() const { return this->E; }
 
-    /// Set G, the shear modulus, used for computing the torsion rigidity = J*G
-    void SetGshearModulus(double mG) { this->G = mG; }
-    double GetGshearModulus() const { return this->G; }
+    /// Set the shear modulus, used for computing the torsion rigidity = J*G
+    void SetShearModulus(double mG) { this->G = mG; }
+    double GetShearModulus() const { return this->G; }
 
-    /// Set G, the shear modulus, given current E and the specified Poisson ratio
-    void SetGwithPoissonRatio(double mpoisson) { this->G = this->E / (2.0 * (1.0 + mpoisson)); }
+    /// Set the shear modulus, given current Young modulus and the specified Poisson ratio.
+    void SetShearModulusFromPoisson(double mpoisson) { this->G = this->E / (2.0 * (1.0 + mpoisson)); }
 
     // INTERFACES
 
-    /// Gets the axial rigidity, usually A*E, but might be ad hoc
+    /// Gets the axial rigidity, usually A*E.
     virtual double GetAxialRigidity() const override { return this->Area * this->E; }
 
-    /// Gets the torsion rigidity, for torsion about X axis at elastic center, usually J*G, but might be ad hoc
-    virtual double GetXtorsionRigidity() const override { return this->J * this->G; }
+    /// Gets the torsion rigidity, for torsion about X axis at elastic center, usually J*G.
+    virtual double GetTorsionRigidityX() const override { return this->J * this->G; }
 
-    /// Gets the bending rigidity, for bending about Y axis at elastic center, usually Iyy*E, but might be ad hoc
-    virtual double GetYbendingRigidity() const override { return this->Iyy * this->E; }
+    /// Gets the bending rigidity, for bending about Y axis at elastic center, usually Iyy*E.
+    virtual double GetBendingRigidityY() const override { return this->Iyy * this->E; }
 
-    /// Gets the bending rigidity, for bending about Z axis at elastic center, usually Izz*E, but might be ad hoc
-    virtual double GetZbendingRigidity() const override { return this->Izz * this->E; }
+    /// Gets the bending rigidity, for bending about Z axis at elastic center, usually Izz*E.
+    virtual double GetBendingRigidityZ() const override { return this->Izz * this->E; }
 
     /// Set the rotation of the Y Z section axes for which the YbendingRigidity and ZbendingRigidity are defined.
     virtual double GetSectionRotation() const override { return 0; }
@@ -313,22 +319,24 @@ class ChApi ChBeamSectionEulerSimple : public ChBeamSectionEuler {
     virtual double GetShearCenterZ() const override { return 0; }
 
     /// Compute the 6x6 sectional inertia matrix, as in  {x_momentum,w_momentum}=[Mm]{xvel,wvel}
-    virtual void ComputeInertiaMatrix(ChMatrixNM<double, 6, 6>& M) override;
+    virtual void ComputeInertiaMatrix(ChMatrix66d& M) override;
 
     /// Compute the 6x6 sectional inertia damping matrix [Ri] (gyroscopic matrix damping)
-    virtual void ComputeInertiaDampingMatrix(ChMatrixNM<double, 6, 6>& Ri,  ///< 6x6 sectional inertial-damping (gyroscopic damping) matrix values here
-        const ChVector<>& mW    ///< current angular velocity of section, in material frame
-    ) override;
+    virtual void ComputeInertiaDampingMatrix(
+        ChMatrix66d& Ri,      ///< 6x6 sectional inertial-damping (gyroscopic damping) matrix values here
+        const ChVector3d& mW  ///< current angular velocity of section, in material frame
+        ) override;
 
     /// Compute the 6x6 sectional inertia stiffness matrix [Ki^]
-    virtual void ComputeInertiaStiffnessMatrix(ChMatrixNM<double, 6, 6>& Ki, ///< 6x6 sectional inertial-stiffness matrix [Ki^] values here
-        const ChVector<>& mWvel,      ///< current angular velocity of section, in material frame
-        const ChVector<>& mWacc,      ///< current angular acceleration of section, in material frame
-        const ChVector<>& mXacc       ///< current acceleration of section, in material frame (not absolute!)
-    ) override;
+    virtual void ComputeInertiaStiffnessMatrix(
+        ChMatrix66d& Ki,          ///< 6x6 sectional inertial-stiffness matrix [Ki^] values here
+        const ChVector3d& mWvel,  ///< current angular velocity of section, in material frame
+        const ChVector3d& mWacc,  ///< current angular acceleration of section, in material frame
+        const ChVector3d& mXacc   ///< current acceleration of section, in material frame (not absolute!)
+        ) override;
 
     /// Compute the centrifugal term and gyroscopic term
-    virtual void ComputeQuadraticTerms(ChVector<>& mF, ChVector<>& mT, const ChVector<>& mW) override;
+    virtual void ComputeQuadraticTerms(ChVector3d& mF, ChVector3d& mT, const ChVector3d& mW) override;
 
     /// Get mass per unit length, ex.SI units [kg/m]
     virtual double GetMassPerUnitLength() const override { return this->Area * this->density; }
@@ -470,17 +478,17 @@ class ChApi ChBeamSectionEulerAdvancedGeneric : public ChBeamSectionEuler {
     /// Sets the torsion rigidity, for torsion about X axis, at elastic center,
     /// usually J*G for uniform elasticity, but for nonuniform elasticity
     /// here you can put a value ad-hoc from a preprocessor
-    virtual void SetXtorsionRigidity(const double mv) { Txx = mv; }
+    virtual void SetTorsionRigidityX(const double mv) { Txx = mv; }
 
     /// Sets the bending rigidity, for bending about Y axis, at elastic center,
     /// usually Iyy*E for uniform elasticity, but for nonuniform elasticity
     /// here you can put a value ad-hoc from a preprocessor
-    virtual void SetYbendingRigidity(const double mv) { Byy = mv; }
+    virtual void SetBendingRigidityY(const double mv) { Byy = mv; }
 
     /// Sets the bending rigidity, for bending about Z axis, at elastic center,
     /// usually Izz*E for uniform elasticity, but for nonuniform elasticity
     /// here you can put a value ad-hoc from a preprocessor
-    virtual void SetZbendingRigidity(const double mv) { Bzz = mv; }
+    virtual void SetBendingRigidityZ(const double mv) { Bzz = mv; }
 
     /// Set the rotation in [rad], abour elastic center, of the Y Z axes for which the
     /// YbendingRigidity and ZbendingRigidity values are defined.
@@ -529,17 +537,17 @@ class ChApi ChBeamSectionEulerAdvancedGeneric : public ChBeamSectionEuler {
 
     // INTERFACES
 
-    /// Gets the axial rigidity, usually A*E, but might be ad hoc
+    /// Gets the axial rigidity, usually A*E.
     virtual double GetAxialRigidity() const override { return this->Ax; }
 
-    /// Gets the torsion rigidity, for torsion about X axis at elastic center, usually J*G, but might be ad hoc
-    virtual double GetXtorsionRigidity() const override { return this->Txx; }
+    /// Gets the torsion rigidity, for torsion about X axis at elastic center, usually J*G.
+    virtual double GetTorsionRigidityX() const override { return this->Txx; }
 
-    /// Gets the bending rigidity, for bending about Y axis at elastic center, usually Iyy*E, but might be ad hoc
-    virtual double GetYbendingRigidity() const override { return this->Byy; }
+    /// Gets the bending rigidity, for bending about Y axis at elastic center, usually Iyy*E.
+    virtual double GetBendingRigidityY() const override { return this->Byy; }
 
-    /// Gets the bending rigidity, for bending about Z axis at elastic center, usually Izz*E, but might be ad hoc
-    virtual double GetZbendingRigidity() const override { return this->Bzz; }
+    /// Gets the bending rigidity, for bending about Z axis at elastic center, usually Izz*E.
+    virtual double GetBendingRigidityZ() const override { return this->Bzz; }
 
     /// Set the rotation of the Y Z section axes for which the YbendingRigidity and ZbendingRigidity are defined.
     virtual double GetSectionRotation() const override { return this->alpha; }
@@ -555,22 +563,24 @@ class ChApi ChBeamSectionEulerAdvancedGeneric : public ChBeamSectionEuler {
     virtual double GetShearCenterZ() const override { return this->Sz; }
 
     /// Compute the 6x6 sectional inertia matrix, as in  {x_momentum,w_momentum}=[Mm]{xvel,wvel}
-    virtual void ComputeInertiaMatrix(ChMatrixNM<double, 6, 6>& M) override;
+    virtual void ComputeInertiaMatrix(ChMatrix66d& M) override;
 
     /// Compute the 6x6 sectional inertia damping matrix [Ri] (gyroscopic matrix damping)
-    virtual void ComputeInertiaDampingMatrix(ChMatrixNM<double, 6, 6>& Ri,  ///< 6x6 sectional inertial-damping (gyroscopic damping) matrix values here
-        const ChVector<>& mW    ///< current angular velocity of section, in material frame
-    ) override;
+    virtual void ComputeInertiaDampingMatrix(
+        ChMatrix66d& Ri,      ///< 6x6 sectional inertial-damping (gyroscopic damping) matrix values here
+        const ChVector3d& mW  ///< current angular velocity of section, in material frame
+        ) override;
 
     /// Compute the 6x6 sectional inertia stiffness matrix [Ki^]
-    virtual void ComputeInertiaStiffnessMatrix(ChMatrixNM<double, 6, 6>& Ki, ///< 6x6 sectional inertial-stiffness matrix [Ki^] values here
-        const ChVector<>& mWvel,      ///< current angular velocity of section, in material frame
-        const ChVector<>& mWacc,      ///< current angular acceleration of section, in material frame
-        const ChVector<>& mXacc       ///< current acceleration of section, in material frame (not absolute!)
-    ) override;
+    virtual void ComputeInertiaStiffnessMatrix(
+        ChMatrix66d& Ki,          ///< 6x6 sectional inertial-stiffness matrix [Ki^] values here
+        const ChVector3d& mWvel,  ///< current angular velocity of section, in material frame
+        const ChVector3d& mWacc,  ///< current angular acceleration of section, in material frame
+        const ChVector3d& mXacc   ///< current acceleration of section, in material frame (not absolute!)
+        ) override;
 
     /// Compute the centrifugal term and gyroscopic term
-    virtual void ComputeQuadraticTerms(ChVector<>& mF, ChVector<>& mT, const ChVector<>& mW) override;
+    virtual void ComputeQuadraticTerms(ChVector3d& mF, ChVector3d& mT, const ChVector3d& mW) override;
 
     /// Get mass per unit length, ex.SI units [kg/m]
     virtual double GetMassPerUnitLength() const override { return this->mu; }
@@ -610,89 +620,82 @@ class ChApi ChBeamSectionEulerEasyCircular : public ChBeamSectionEulerSimple {
     );
 };
 
-
-
-
 ///////////////////////////////////////////////////////////////////////////////////////////////////////
 // Rayleigh beam sections, like Euler sections but adding the effect of Jyy Jzz rotational inertias
 
-
-
 /// This works exactly as ChBeamSectionEulerSimple, but adds the effect of Jyy Jzz rotational sectional inertias,
-/// whereas the conventional Euler theory would assume the mass to be concentrated in the center of mass, hence Jyy Jzz =0.
-/// For wide sections, Jyy Jzz can become not negligible. 
-/// In this simple symmetric case with homogeneous density, the values of Jyy Jzz are computed automatically as
+/// whereas the conventional Euler theory would assume the mass to be concentrated in the center of mass, hence Jyy Jzz
+/// =0. For wide sections, Jyy Jzz can become not negligible. In this simple symmetric case with homogeneous density,
+/// the values of Jyy Jzz are computed automatically as
 ///  \f$ J_{yy} = \rho I_{yy} \f$,  \f$ J_{zz} = \rho I_{zz} \f$
 /// This is a simple section model that assumes the elastic center, the shear center and the mass
 /// center to be all in the centerline of the beam (section origin); this is the case of symmetric sections for example.
-/// 
+///
 /// To be used with ChElementBeamEuler.
 /// This material can be shared between multiple beams.
 ///
 /// \image html "http://www.projectchrono.org/assets/manual/fea_ChElasticityCosseratSimple.png"
 ///
 class ChApi ChBeamSectionRayleighSimple : public ChBeamSectionEulerSimple {
-public:
-
+  public:
     ChBeamSectionRayleighSimple() {}
 
     virtual ~ChBeamSectionRayleighSimple() {}
 
     /// Compute the 6x6 sectional inertia matrix, as in  {x_momentum,w_momentum}=[Mm]{xvel,wvel}
-    virtual void ComputeInertiaMatrix(ChMatrixNM<double, 6, 6>& M) override;
+    virtual void ComputeInertiaMatrix(ChMatrix66d& M) override;
 
     /// Compute the 6x6 sectional inertia damping matrix [Ri] (gyroscopic matrix damping)
-    virtual void ComputeInertiaDampingMatrix(ChMatrixNM<double, 6, 6>& Ri,  ///< 6x6 sectional inertial-damping (gyroscopic damping) matrix values here
-        const ChVector<>& mW    ///< current angular velocity of section, in material frame
-    ) override;
+    virtual void ComputeInertiaDampingMatrix(
+        ChMatrix66d& Ri,      ///< 6x6 sectional inertial-damping (gyroscopic damping) matrix values here
+        const ChVector3d& mW  ///< current angular velocity of section, in material frame
+        ) override;
 
     /// Compute the 6x6 sectional inertia stiffness matrix [Ki^]
-    virtual void ComputeInertiaStiffnessMatrix(ChMatrixNM<double, 6, 6>& Ki, ///< 6x6 sectional inertial-stiffness matrix [Ki^] values here
-        const ChVector<>& mWvel,      ///< current angular velocity of section, in material frame
-        const ChVector<>& mWacc,      ///< current angular acceleration of section, in material frame
-        const ChVector<>& mXacc       ///< current acceleration of section, in material frame (not absolute!)
-    ) override;
+    virtual void ComputeInertiaStiffnessMatrix(
+        ChMatrix66d& Ki,          ///< 6x6 sectional inertial-stiffness matrix [Ki^] values here
+        const ChVector3d& mWvel,  ///< current angular velocity of section, in material frame
+        const ChVector3d& mWacc,  ///< current angular acceleration of section, in material frame
+        const ChVector3d& mXacc   ///< current acceleration of section, in material frame (not absolute!)
+        ) override;
 
     /// Compute the centrifugal term and gyroscopic term
-    virtual void ComputeQuadraticTerms(ChVector<>& mF, ChVector<>& mT, const ChVector<>& mW) override;
+    virtual void ComputeQuadraticTerms(ChVector3d& mF, ChVector3d& mT, const ChVector3d& mW) override;
 };
 
-
-/// This works exactly as ChBeamSectionEulerEasyRectangular, 
+/// This works exactly as ChBeamSectionEulerEasyRectangular,
 /// but adds the effect of Jyy Jzz rotational sectional inertias.
 class ChApi ChBeamSectionRayleighEasyRectangular : public ChBeamSectionRayleighSimple {
   public:
-      ChBeamSectionRayleighEasyRectangular(double width_y,  ///< width of section in y direction
-          double width_z,  ///< width of section in z direction
-          double E,        ///< Young modulus
-          double G,        ///< Shear modulus (only needed for the torsion)
-          double density   ///< volumetric density (ex. in SI units: [kg/m^3])
-      );
+    ChBeamSectionRayleighEasyRectangular(double width_y,  ///< width of section in y direction
+                                         double width_z,  ///< width of section in z direction
+                                         double E,        ///< Young modulus
+                                         double G,        ///< Shear modulus (only needed for the torsion)
+                                         double density   ///< volumetric density (ex. in SI units: [kg/m^3])
+    );
 };
 
-/// This works exactly as ChBeamSectionEulerEasyCircular, 
+/// This works exactly as ChBeamSectionEulerEasyCircular,
 /// but adds the effect of Jyy Jzz rotational sectional inertias.
 class ChApi ChBeamSectionRayleighEasyCircular : public ChBeamSectionRayleighSimple {
   public:
-      ChBeamSectionRayleighEasyCircular(double diameter,  ///< diameter of circular section
-          double E,         ///< Young modulus
-          double G,         ///< Shear modulus (only needed for the torsion)
-          double density    ///< volumetric density (ex. in SI units: [kg/m^3])
-      );
+    ChBeamSectionRayleighEasyCircular(double diameter,  ///< diameter of circular section
+                                      double E,         ///< Young modulus
+                                      double G,         ///< Shear modulus (only needed for the torsion)
+                                      double density    ///< volumetric density (ex. in SI units: [kg/m^3])
+    );
 };
 
-
-/// This works exactly as ChBeamSectionEulerAdvancedGeneric, 
+/// This works exactly as ChBeamSectionEulerAdvancedGeneric,
 /// but adds the effect of Jyy Jzz rotational sectional inertias.
 /// The Jxx inertia of the Euler base class is automatically computed from Jyy Jzz by the polar theorem.
 class ChApi ChBeamSectionRayleighAdvancedGeneric : public ChBeamSectionEulerAdvancedGeneric {
   protected:
-      double Jzz; // sectional inertia per unit length, in centerline reference, measured along centerline main axes
-      double Jyy; // sectional inertia per unit length, in centerline reference, measured along centerline main axes
-      double Jyz; // sectional inertia per unit length, in centerline reference, measured along centerline main axes
+    double Jzz;  // sectional inertia per unit length, in centerline reference, measured along centerline main axes
+    double Jyy;  // sectional inertia per unit length, in centerline reference, measured along centerline main axes
+    double Jyz;  // sectional inertia per unit length, in centerline reference, measured along centerline main axes
   public:
-    ChBeamSectionRayleighAdvancedGeneric()
-        : Jzz(0.5), Jyy(0.5), Jyz(0) {}
+    ChBeamSectionRayleighAdvancedGeneric() : Jzz(0.5), Jyy(0.5), Jyz(0) {}
 
     ChBeamSectionRayleighAdvancedGeneric(
         const double mAx,      ///< axial rigidity
@@ -705,9 +708,9 @@ class ChApi ChBeamSectionRayleighAdvancedGeneric : public ChBeamSectionEulerAdva
         const double mSy,      ///< shear center y displacement respect to centerline
         const double mSz,      ///< shear center z displacement respect to centerline
         const double mmu,      ///< mass per unit length
-        const double mJyy,     ///< inertia Jyy per unit lenght, in centerline reference, measured along centerline main axes
-        const double mJzz,     ///< inertia Jzz per unit lenght, in centerline reference, measured along centerline main axes
-        const double mJyz,     ///< inertia Jyz per unit lenght, in centerline reference, measured along centerline main axes
+        const double mJyy,     ///< inertia Jyy per unit lenght, in centerline reference, along centerline main axes
+        const double mJzz,     ///< inertia Jzz per unit lenght, in centerline reference, along centerline main axes
+        const double mJyz,     ///< inertia Jyz per unit lenght, in centerline reference, along centerline main axes
         const double mMy = 0,  ///< mass center y displacement respect to centerline
         const double mMz = 0   ///< mass center z displacement respect to centerline
         )
@@ -730,56 +733,50 @@ class ChApi ChBeamSectionRayleighAdvancedGeneric : public ChBeamSectionEulerAdva
 
     virtual ~ChBeamSectionRayleighAdvancedGeneric() {}
 
-
-    /// Set the Jyy Jzz Jyz components of the sectional inertia per unit length, 
+    /// Set the Jyy Jzz Jyz components of the sectional inertia per unit length,
     /// in centerline reference, measured along centerline main axes.
-    /// These are defined as: 
-    /// \f$ J_{yy} =  \int_\Omega \rho z^2 d\Omega \f$, also Jyy = Mm(4,4) 
-    /// \f$ J_{zz} =  \int_\Omega \rho y^2 d\Omega \f$, also Jzz = Mm(5,5) 
+    /// These are defined as:
+    /// \f$ J_{yy} =  \int_\Omega \rho z^2 d\Omega \f$, also Jyy = Mm(4,4)
+    /// \f$ J_{zz} =  \int_\Omega \rho y^2 d\Omega \f$, also Jzz = Mm(5,5)
     /// \f$ J_{yz} =  \int_\Omega \rho y z  d\Omega \f$, also Jyz = -Mm(4,5) = -Mm(5,4)
     /// It is not needed to enter also Jxx because Jxx=(Jzz+Jyy) by the polar theorem.
     virtual void SetInertiasPerUnitLength(const double mJyy, const double mJzz, const double mJyz);
 
-
     /// Set inertia moments, per unit length, as assumed computed in the Ym Zm "mass reference"
     /// frame, ie. centered at the center of mass and rotated by phi angle to match the main axes of inertia:
-    /// \f$ Jm_{yy} =  \int_\Omega \rho z_{m}^2 d\Omega \f$, 
+    /// \f$ Jm_{yy} =  \int_\Omega \rho z_{m}^2 d\Omega \f$,
     /// \f$ Jm_{zz} =  \int_\Omega \rho y_{m}^2 d\Omega \f$.
     /// Assuming the center of mass is already set.
     virtual void SetMainInertiasInMassReference(double Jmyy, double Jmzz, double phi);
 
-    /// Get inertia moments, per unit length, as assumed computed in the Ym Zm "mass reference" frame, and the rotation phi of that frame,
-    /// ie. inertias centered at the center of mass and rotated by phi angle to match the main axes of inertia:
-    /// \f$ Jm_{yy} =  \int_\Omega \rho z_{m}^2 d\Omega \f$, 
-    /// \f$ Jm_{zz} =  \int_\Omega \rho y_{m}^2 d\Omega \f$.
-    /// Assuming the center of mass is already set.
+    /// Get inertia moments, per unit length, as assumed computed in the Ym Zm "mass reference" frame, and the rotation
+    /// phi of that frame, ie. inertias centered at the center of mass and rotated by phi angle to match the main axes
+    /// of inertia: \f$ Jm_{yy} =  \int_\Omega \rho z_{m}^2 d\Omega \f$, \f$ Jm_{zz} =  \int_\Omega \rho y_{m}^2 d\Omega
+    /// \f$. Assuming the center of mass is already set.
     virtual void GetMainInertiasInMassReference(double& Jmyy, double& Jmzz, double& phi);
-
-
 
     // INTERFACES
 
     /// Compute the 6x6 sectional inertia matrix, as in  {x_momentum,w_momentum}=[Mm]{xvel,wvel}
-    virtual void ComputeInertiaMatrix(ChMatrixNM<double, 6, 6>& M) override;
+    virtual void ComputeInertiaMatrix(ChMatrix66d& M) override;
 
     /// Compute the 6x6 sectional inertia damping matrix [Ri] (gyroscopic matrix damping)
-    virtual void ComputeInertiaDampingMatrix(ChMatrixNM<double, 6, 6>& Ri,  ///< 6x6 sectional inertial-damping (gyroscopic damping) matrix values here
-        const ChVector<>& mW    ///< current angular velocity of section, in material frame
-    ) override;
+    virtual void ComputeInertiaDampingMatrix(
+        ChMatrix66d& Ri,      ///< 6x6 sectional inertial-damping (gyroscopic damping) matrix values here
+        const ChVector3d& mW  ///< current angular velocity of section, in material frame
+        ) override;
 
     /// Compute the 6x6 sectional inertia stiffness matrix [Ki^]
-    virtual void ComputeInertiaStiffnessMatrix(ChMatrixNM<double, 6, 6>& Ki, ///< 6x6 sectional inertial-stiffness matrix [Ki^] values here
-        const ChVector<>& mWvel,      ///< current angular velocity of section, in material frame
-        const ChVector<>& mWacc,      ///< current angular acceleration of section, in material frame
-        const ChVector<>& mXacc       ///< current acceleration of section, in material frame (not absolute!)
-    ) override;
+    virtual void ComputeInertiaStiffnessMatrix(
+        ChMatrix66d& Ki,          ///< 6x6 sectional inertial-stiffness matrix [Ki^] values here
+        const ChVector3d& mWvel,  ///< current angular velocity of section, in material frame
+        const ChVector3d& mWacc,  ///< current angular acceleration of section, in material frame
+        const ChVector3d& mXacc   ///< current acceleration of section, in material frame (not absolute!)
+        ) override;
 
     /// Compute the centrifugal term and gyroscopic term
-    virtual void ComputeQuadraticTerms(ChVector<>& mF, ChVector<>& mT, const ChVector<>& mW) override;
+    virtual void ComputeQuadraticTerms(ChVector3d& mF, ChVector3d& mT, const ChVector3d& mW) override;
 };
-
-
-
 
 /// @} fea_utils
 

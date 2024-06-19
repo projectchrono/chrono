@@ -19,6 +19,8 @@
 //
 // =============================================================================
 
+#include "chrono/utils/ChUtils.h"
+
 #include "chrono_vehicle/driver/ChAIDriver.h"
 #include "chrono_vehicle/utils/ChUtilsJSON.h"
 
@@ -27,7 +29,7 @@ namespace vehicle {
 
 ChAIDriver::ChAIDriver(ChVehicle& vehicle)
     : ChDriver(vehicle), m_target_speed(0), m_last_time(0), m_last_speed(0), m_throttle_threshold(0.2) {
-    m_speedPID.Reset(m_vehicle);
+    m_speedPID.Reset(m_vehicle.GetRefFrame());
 }
 
 void ChAIDriver::SetSpeedControllerGains(double Kp, double Ki, double Kd) {
@@ -53,7 +55,7 @@ void ChAIDriver::Synchronize(double time, double long_acc, double front_axle_ang
 
 void ChAIDriver::Advance(double step) {
     // Set the throttle and braking values based on the output from the speed controller.
-    double out_speed = m_speedPID.Advance(m_vehicle, m_target_speed, step);
+    double out_speed = m_speedPID.Advance(m_vehicle.GetRefFrame(), m_target_speed, m_vehicle.GetChTime(), step);
     ChClampValue(out_speed, -1.0, 1.0);
 
     if (out_speed > 0) {

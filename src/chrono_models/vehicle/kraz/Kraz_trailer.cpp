@@ -26,9 +26,10 @@ namespace chrono {
 namespace vehicle {
 namespace kraz {
 
-Kraz_trailer::Kraz_trailer(ChSystem* system) : ChWheeledTrailer("KrazTrailer", system) {
+Kraz_trailer::Kraz_trailer(ChSystem* system, CollisionType chassis_collision_type)
+    : ChWheeledTrailer("KrazTrailer", system) {
     // Create the chassis and its connector
-    m_chassis = chrono_types::make_shared<Kraz_trailer_Chassis>("Chassis");
+    m_chassis = chrono_types::make_shared<Kraz_trailer_Chassis>("Chassis", chassis_collision_type);
     m_connector = chrono_types::make_shared<Kraz_trailer_Connector>("Connector");
 
     // Create the axle subsystems (suspension, wheels, and brakes)
@@ -67,9 +68,9 @@ void Kraz_trailer::Initialize(std::shared_ptr<ChChassis> frontChassis) {
     ChWheeledTrailer::Initialize(frontChassis);
 
     // Initialize the axle subsystems.
-    m_axles[0]->Initialize(m_chassis, nullptr, nullptr, ChVector<>(-6.32, 0, 0), ChVector<>(0), 0.0);
-    m_axles[1]->Initialize(m_chassis, nullptr, nullptr, ChVector<>(-7.63, 0, 0), ChVector<>(0), 0.0);
-    m_axles[2]->Initialize(m_chassis, nullptr, nullptr, ChVector<>(-8.94, 0, 0), ChVector<>(0), 0.0);
+    m_axles[0]->Initialize(m_chassis, nullptr, nullptr, ChVector3d(-6.32, 0, 0), ChVector3d(0), 0.0);
+    m_axles[1]->Initialize(m_chassis, nullptr, nullptr, ChVector3d(-7.63, 0, 0), ChVector3d(0), 0.0);
+    m_axles[2]->Initialize(m_chassis, nullptr, nullptr, ChVector3d(-8.94, 0, 0), ChVector3d(0), 0.0);
 }
 
 // Get suspension spring forces

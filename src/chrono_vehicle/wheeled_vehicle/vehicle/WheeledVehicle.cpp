@@ -322,12 +322,12 @@ void WheeledVehicle::Create(const std::string& filename, bool create_powertrain,
     // Set maximum steering angle. Use value from JSON file is provided.
     // Otherwise, use default estimate.
     if (d.HasMember("Maximum Steering Angle (deg)")) {
-        m_steer_angle = d["Maximum Steering Angle (deg)"].GetDouble() * CH_C_DEG_TO_RAD;
+        m_steer_angle = d["Maximum Steering Angle (deg)"].GetDouble() * CH_DEG_TO_RAD;
     } else {
         m_steer_angle = ChWheeledVehicle::GetMaxSteeringAngle();
     }
 
-    GetLog() << "Loaded JSON: " << filename.c_str() << "\n";
+    std::cout << "Loaded JSON " << filename << std::endl;
 }
 
 // -----------------------------------------------------------------------------

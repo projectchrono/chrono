@@ -89,8 +89,8 @@ class MySpringForceCase03 : public ChLinkTSDA::ForceFunctor {
 // =============================================================================
 // Prototypes of local functions
 //
-bool TestTranSpringCB(const ChVector<>& jointLocGnd,
-                      const ChVector<>& jointLocPend,
+bool TestTranSpringCB(const ChVector3d& jointLocGnd,
+                      const ChVector3d& jointLocPend,
                       const ChCoordsys<>& PendCSYS,
                       const int customSpringType,
                       double simTimeStep,
@@ -99,7 +99,7 @@ bool TestTranSpringCB(const ChVector<>& jointLocGnd,
 bool ValidateReference(const std::string& testName, const std::string& what, double tolerance);
 bool ValidateConstraints(const std::string& testName, double tolerance);
 bool ValidateEnergy(const std::string& testName, double tolerance);
-utils::CSV_writer OutStream();
+utils::ChWriterCSV OutStream();
 
 // =============================================================================
 //
@@ -127,7 +127,7 @@ int main(int argc, char* argv[]) {
     // the CG and ground.
 
     test_name = "TranSpringCB_Case01";
-    TestTranSpringCB(ChVector<>(0, 0, 0), ChVector<>(0, 0, 0), ChCoordsys<>(ChVector<>(0, 0, 0), QUNIT), 1, sim_step,
+    TestTranSpringCB(ChVector3d(0, 0, 0), ChVector3d(0, 0, 0), ChCoordsys<>(ChVector3d(0, 0, 0), QUNIT), 1, sim_step,
                      out_step, test_name);
     test_passed &= ValidateReference(test_name, "Pos", 1e-4);
     test_passed &= ValidateReference(test_name, "Vel", 5e-5);
@@ -141,7 +141,7 @@ int main(int argc, char* argv[]) {
     // ground.
 
     test_name = "TranSpringCB_Case02";
-    TestTranSpringCB(ChVector<>(0, 0, 0), ChVector<>(0, 2, 0), ChCoordsys<>(ChVector<>(0, 2, 0), QUNIT), 2, sim_step,
+    TestTranSpringCB(ChVector3d(0, 0, 0), ChVector3d(0, 2, 0), ChCoordsys<>(ChVector3d(0, 2, 0), QUNIT), 2, sim_step,
                      out_step, test_name);
     test_passed &= ValidateReference(test_name, "Pos", 1e-4);
     test_passed &= ValidateReference(test_name, "Vel", 5e-5);
@@ -155,7 +155,7 @@ int main(int argc, char* argv[]) {
     // between ground
 
     test_name = "TranSpringCB_Case03";
-    TestTranSpringCB(ChVector<>(1, 2, 3), ChVector<>(1, 4, 3), ChCoordsys<>(ChVector<>(-1, 4, 3), QUNIT), 3, sim_step,
+    TestTranSpringCB(ChVector3d(1, 2, 3), ChVector3d(1, 4, 3), ChCoordsys<>(ChVector3d(-1, 4, 3), QUNIT), 3, sim_step,
                      out_step, test_name);
     test_passed &= ValidateReference(test_name, "Pos", 1e-4);
     test_passed &= ValidateReference(test_name, "Vel", 5e-4);
@@ -169,8 +169,8 @@ int main(int argc, char* argv[]) {
     // non-linear spring on the end of the pendulum to ground (Double Pendulum).
 
     test_name = "TranSpringCB_Case04";
-    TestTranSpringCB(ChVector<>(0, 0, 0), ChVector<>(0, 2, 0),
-                     ChCoordsys<>(ChVector<>(0, 4, 0), Q_from_AngZ(-CH_C_PI_2)), 3, sim_step, out_step, test_name);
+    TestTranSpringCB(ChVector3d(0, 0, 0), ChVector3d(0, 2, 0),
+                     ChCoordsys<>(ChVector3d(0, 4, 0), QuatFromAngleZ(-CH_PI_2)), 3, sim_step, out_step, test_name);
     test_passed &= ValidateReference(test_name, "Pos", 1e-4);
     test_passed &= ValidateReference(test_name, "Vel", 5e-4);
     test_passed &= ValidateReference(test_name, "Acc", 1e-3);
@@ -180,7 +180,7 @@ int main(int argc, char* argv[]) {
     test_passed &= ValidateReference(test_name, "Rforce", 5e-3);
 
     // Return 0 if all tests passed and 1 otherwise
-    std::cout << std::endl << "UNIT TEST: " << (test_passed ? "PASSED" : "FAILED") << std::endl;
+    std::cout << "\nUNIT TEST: " << (test_passed ? "PASSED" : "FAILED") << std::endl;
     return !test_passed;
 }
 
@@ -188,9 +188,9 @@ int main(int argc, char* argv[]) {
 //
 // Worker function for performing the simulation with specified parameters.
 //
-bool TestTranSpringCB(const ChVector<>& jointLocGnd,   // absolute location of the distance
+bool TestTranSpringCB(const ChVector3d& jointLocGnd,   // absolute location of the distance
                                                        // constrain ground attachment point
-                      const ChVector<>& jointLocPend,  // absolute location of the distance
+                      const ChVector3d& jointLocPend,  // absolute location of the distance
                                                        // constrain pendulum attachment point
                       const ChCoordsys<>& PendCSYS,    // Coordinate system for the pendulum
                       const int customSpringType,      // Flag for Custom spring force Callback
@@ -207,7 +207,7 @@ bool TestTranSpringCB(const ChVector<>& jointLocGnd,   // absolute location of t
     // (MKS is used in this example)
 
     double mass = 1.0;                     // mass of pendulum
-    ChVector<> inertiaXX(0.04, 0.1, 0.1);  // mass moments of inertia of pendulum (centroidal frame)
+    ChVector3d inertiaXX(0.04, 0.1, 0.1);  // mass moments of inertia of pendulum (centroidal frame)
     double g = 9.80665;
 
     double timeRecord = 5;  // simulation length
@@ -219,18 +219,18 @@ bool TestTranSpringCB(const ChVector<>& jointLocGnd,   // absolute location of t
     // handled by this ChSystem object.
 
     ChSystemNSC sys;
-    sys.Set_G_acc(ChVector<>(0.0, 0.0, -g));
+    sys.SetGravitationalAcceleration(ChVector3d(0.0, 0.0, -g));
 
     sys.SetTimestepperType(ChTimestepper::Type::EULER_IMPLICIT_LINEARIZED);
     sys.SetSolverType(ChSolver::Type::PSOR);
-    sys.SetSolverMaxIterations(100);
-    sys.SetSolverForceTolerance(1e-4);
+    sys.GetSolver()->AsIterative()->SetMaxIterations(100);
+    sys.GetSolver()->AsIterative()->SetTolerance(simTimeStep * 1e-4);
 
     // Create the ground body
 
     auto ground = chrono_types::make_shared<ChBody>();
     sys.AddBody(ground);
-    ground->SetBodyFixed(true);
+    ground->SetFixed(true);
 
     // Create the pendulum body in an initial configuration at rest, with an
     // orientatoin that matches the specified joint orientation and a position
@@ -266,18 +266,18 @@ bool TestTranSpringCB(const ChVector<>& jointLocGnd,   // absolute location of t
     // ------------------------------------------------
 
     // Create the CSV_Writer output objects (TAB delimited)
-    utils::CSV_writer out_pos = OutStream();
-    utils::CSV_writer out_vel = OutStream();
-    utils::CSV_writer out_acc = OutStream();
+    utils::ChWriterCSV out_pos = OutStream();
+    utils::ChWriterCSV out_vel = OutStream();
+    utils::ChWriterCSV out_acc = OutStream();
 
-    utils::CSV_writer out_quat = OutStream();
-    utils::CSV_writer out_avel = OutStream();
-    utils::CSV_writer out_aacc = OutStream();
+    utils::ChWriterCSV out_quat = OutStream();
+    utils::ChWriterCSV out_avel = OutStream();
+    utils::ChWriterCSV out_aacc = OutStream();
 
-    utils::CSV_writer out_rfrc = OutStream();
-    utils::CSV_writer out_rtrq = OutStream();
+    utils::ChWriterCSV out_rfrc = OutStream();
+    utils::ChWriterCSV out_rtrq = OutStream();
 
-    utils::CSV_writer out_energy = OutStream();
+    utils::ChWriterCSV out_energy = OutStream();
 
     // Write headers
     out_pos << "Time"
@@ -322,14 +322,13 @@ bool TestTranSpringCB(const ChVector<>& jointLocGnd,   // absolute location of t
                << "Delta_PE"
                << "KE+PE" << std::endl;
 
-    // Perform a system assembly to ensure we have the correct accelerations at
-    // the initial time.
-    sys.DoFullAssembly();
+    // Perform a system assembly to ensure we have the correct accelerations at the initial time.
+    sys.DoAssembly(AssemblyLevel::FULL);
 
     // Total energy at initial time.
     ChMatrix33<> inertia = pendulum->GetInertia();
-    ChVector<> angVelLoc = pendulum->GetWvel_loc();
-    double transKE = 0.5 * mass * pendulum->GetPos_dt().Length2();
+    ChVector3d angVelLoc = pendulum->GetAngVelLocal();
+    double transKE = 0.5 * mass * pendulum->GetPosDt().Length2();
     double rotKE = 0.5 * Vdot(angVelLoc, inertia * angVelLoc);
     double deltaPE = mass * g * (pendulum->GetPos().z() - PendCSYS.pos.z());
     double totalE0 = transKE + rotKE + deltaPE;
@@ -342,39 +341,39 @@ bool TestTranSpringCB(const ChVector<>& jointLocGnd,   // absolute location of t
         // Ensure that the final data point is recorded.
         if (simTime >= outTime - simTimeStep / 2) {
             // CM position, velocity, and acceleration (expressed in global frame).
-            const ChVector<>& position = pendulum->GetPos();
-            const ChVector<>& velocity = pendulum->GetPos_dt();
+            const ChVector3d& position = pendulum->GetPos();
+            const ChVector3d& velocity = pendulum->GetPosDt();
             out_pos << simTime << position << std::endl;
             out_vel << simTime << velocity << std::endl;
-            out_acc << simTime << pendulum->GetPos_dtdt() << std::endl;
+            out_acc << simTime << pendulum->GetPosDt2() << std::endl;
 
             // Orientation, angular velocity, and angular acceleration (expressed in
             // global frame).
             out_quat << simTime << pendulum->GetRot() << std::endl;
-            out_avel << simTime << pendulum->GetWvel_par() << std::endl;
-            out_aacc << simTime << pendulum->GetWacc_par() << std::endl;
+            out_avel << simTime << pendulum->GetAngVelParent() << std::endl;
+            out_aacc << simTime << pendulum->GetAngAccParent() << std::endl;
 
             // Spring Force and Torque
             // Force is given as a scalar and is then transformed into a vector in
             // global coordiantes
             // Torques are expressed in the link coordinate system. We convert them to
             // the coordinate system of Body2 (in our case this is the ground).
-            ChVector<> springVector = spring->GetPoint2Abs() - spring->GetPoint1Abs();
+            ChVector3d springVector = spring->GetPoint2Abs() - spring->GetPoint1Abs();
             springVector.Normalize();
             double springForce = spring->GetForce();
-            ChVector<> springForceGlobal = springForce * springVector;
+            ChVector3d springForceGlobal = springForce * springVector;
             out_rfrc << simTime << springForceGlobal << std::endl;
 
-            ChCoordsys<> linkCoordsys = spring->GetLinkRelativeCoords();
-            ChVector<> reactTorque = spring->Get_react_torque();
-            ChVector<> reactTorqueGlobal = linkCoordsys.TransformDirectionLocalToParent(reactTorque);
+            ChFrame<> linkCoordsys = spring->GetFrame2Rel();
+            ChVector3d reactTorque = spring->GetReaction2().torque;
+            ChVector3d reactTorqueGlobal = linkCoordsys.TransformDirectionLocalToParent(reactTorque);
             out_rtrq << simTime << reactTorqueGlobal << std::endl;
 
             // Conservation of Energy
             // Translational Kinetic Energy (1/2*m*||v||^2)
             // Rotational Kinetic Energy (1/2 w'*I*w)
             // Delta Potential Energy (m*g*dz)
-            angVelLoc = pendulum->GetWvel_loc();
+            angVelLoc = pendulum->GetAngVelLocal();
             transKE = 0.5 * mass * velocity.Length2();
             rotKE = 0.5 * Vdot(angVelLoc, inertia * angVelLoc);
             deltaPE = mass * g * (position.z() - PendCSYS.pos.z());
@@ -393,18 +392,18 @@ bool TestTranSpringCB(const ChVector<>& jointLocGnd,   // absolute location of t
     }
 
     // Write output files
-    out_pos.write_to_file(out_dir + testName + "_CHRONO_Pos.txt", testName + "\n");
-    out_vel.write_to_file(out_dir + testName + "_CHRONO_Vel.txt", testName + "\n");
-    out_acc.write_to_file(out_dir + testName + "_CHRONO_Acc.txt", testName + "\n");
+    out_pos.WriteToFile(out_dir + testName + "_CHRONO_Pos.txt", testName + "\n");
+    out_vel.WriteToFile(out_dir + testName + "_CHRONO_Vel.txt", testName + "\n");
+    out_acc.WriteToFile(out_dir + testName + "_CHRONO_Acc.txt", testName + "\n");
 
-    out_quat.write_to_file(out_dir + testName + "_CHRONO_Quat.txt", testName + "\n");
-    out_avel.write_to_file(out_dir + testName + "_CHRONO_Avel.txt", testName + "\n");
-    out_aacc.write_to_file(out_dir + testName + "_CHRONO_Aacc.txt", testName + "\n");
+    out_quat.WriteToFile(out_dir + testName + "_CHRONO_Quat.txt", testName + "\n");
+    out_avel.WriteToFile(out_dir + testName + "_CHRONO_Avel.txt", testName + "\n");
+    out_aacc.WriteToFile(out_dir + testName + "_CHRONO_Aacc.txt", testName + "\n");
 
-    out_rfrc.write_to_file(out_dir + testName + "_CHRONO_Rforce.txt", testName + "\n");
-    out_rtrq.write_to_file(out_dir + testName + "_CHRONO_Rtorque.txt", testName + "\n");
+    out_rfrc.WriteToFile(out_dir + testName + "_CHRONO_Rforce.txt", testName + "\n");
+    out_rtrq.WriteToFile(out_dir + testName + "_CHRONO_Rtorque.txt", testName + "\n");
 
-    out_energy.write_to_file(out_dir + testName + "_CHRONO_Energy.txt", testName + "\n");
+    out_energy.WriteToFile(out_dir + testName + "_CHRONO_Energy.txt", testName + "\n");
 
     return true;
 }
@@ -435,11 +434,11 @@ bool ValidateReference(const std::string& testName,  // name of this test
 //
 // Utility function to create a CSV output stream and set output format options.
 //
-utils::CSV_writer OutStream() {
-    utils::CSV_writer out("\t");
+utils::ChWriterCSV OutStream() {
+    utils::ChWriterCSV out("\t");
 
-    out.stream().setf(std::ios::scientific | std::ios::showpos);
-    out.stream().precision(6);
+    out.Stream().setf(std::ios::scientific | std::ios::showpos);
+    out.Stream().precision(6);
 
     return out;
 }

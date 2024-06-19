@@ -53,7 +53,7 @@ Pac02Tire::Pac02Tire(const std::string& filename) : ChPac02Tire(""), m_mass(0), 
 
     Create(d);
 
-    GetLog() << "Loaded JSON: " << filename.c_str() << "\n";
+    std::cout << "Loaded JSON " << filename << std::endl;
 }
 
 Pac02Tire::Pac02Tire(const rapidjson::Document& d) : ChPac02Tire(""), m_mass(0), m_has_mesh(false) {
@@ -67,20 +67,20 @@ void Pac02Tire::Create(const rapidjson::Document& d) {
     if (d.HasMember("Mass")) {
         m_mass = d["Mass"].GetDouble();
     } else {
-        GetLog() << "Fatal: Mass not set!\n";
-        exit(9);
+        std::cerr << "Fatal: Mass not set!" << std::endl;
+        throw std::runtime_error("Fatal: Mass not set!");
     }
     if (d.HasMember("Inertia")) {
         m_inertia = ReadVectorJSON(d["Inertia"]);
     } else {
-        GetLog() << "Fatal: Inertia not set!\n";
-        exit(9);
+        std::cerr << "Fatal: Inertia not set!" << std::endl;
+        throw std::runtime_error("Fatal: Inertia not set!");
     }
     if (d.HasMember("Coefficient of Friction")) {
         m_mu0 = d["Coefficient of Friction"].GetDouble();
     } else {
-        GetLog() << "Fatal: Friction not set!\n";
-        exit(9);
+        std::cerr << "Fatal: Friction not set!" << std::endl;
+        throw std::runtime_error("Fatal: Friction not set!");
     }
 
     // Check if TIR specification file provided
@@ -89,7 +89,10 @@ void Pac02Tire::Create(const rapidjson::Document& d) {
     } else {
         // Tire parameters explicitly specified in JSON file
         if (d.HasMember("Use Mode")) {
-            m_use_mode = d["Use Mode"].GetInt();
+            int mode = d["Use Mode"].GetInt();
+            if (mode >= 0 && mode <= 4) {
+                m_use_mode = mode;
+            }
         }
         if (d.HasMember("Tire Side")) {
             std::string tside = d["Tire Side"].GetString();
@@ -99,25 +102,80 @@ void Pac02Tire::Create(const rapidjson::Document& d) {
                 m_measured_side = RIGHT;
             }
         }
+        if (d.HasMember("Friction Ellipsis Mode")) {
+            m_use_friction_ellipsis = d["Friction Ellipsis Mode"].GetBool();
+        }
+        if (d.HasMember("FITTYP")) {
+            m_par.FITTYP = d["FITTYP"].GetInt();
+        }
+        if (d.HasMember("VXLOW")) {
+            m_par.VXLOW = d["VXLOW"].GetInt();
+        }
+        if (d.HasMember("LONGVL")) {
+            m_par.LONGVL = d["LONGVL"].GetInt();
+        }
+        if (d.HasMember("Tire Conditions")) {
+            bool ip_ok = false;
+            if (d["Tire Conditions"].HasMember("Inflation Pressure")) {
+                m_par.IP = d["Tire Conditions"]["Inflation Pressure"].GetDouble();
+                ip_ok = true;
+            }
+            bool ip_nom_ok = false;
+            if (d["Tire Conditions"].HasMember("Nominal Inflation Pressure")) {
+                m_par.IP_NOM = d["Tire Conditions"]["Nominal Inflation Pressure"].GetDouble();
+                ip_nom_ok = true;
+            }
+            m_tire_conditions_found = ip_ok && ip_nom_ok;
+        }
         if (d.HasMember("Dimension")) {
-            m_par.UNLOADED_RADIUS = d["Dimension"]["Unloaded Radius"].GetDouble();
-            m_par.WIDTH = d["Dimension"]["Width"].GetDouble();
-            m_par.ASPECT_RATIO = d["Dimension"]["Aspect Ratio"].GetDouble();
-            m_par.RIM_RADIUS = d["Dimension"]["Rim Radius"].GetDouble();
-            m_par.RIM_WIDTH = d["Dimension"]["Rim Width"].GetDouble();
+            if (d["Dimension"].HasMember("Unloaded Radius"))
+                m_par.UNLOADED_RADIUS = d["Dimension"]["Unloaded Radius"].GetDouble();
+            if (d["Dimension"].HasMember("Width"))
+                m_par.WIDTH = d["Dimension"]["Width"].GetDouble();
+            if (d["Dimension"].HasMember("Aspect Ratio"))
+                m_par.ASPECT_RATIO = d["Dimension"]["Aspect Ratio"].GetDouble();
+            if (d["Dimension"].HasMember("Rim Radius"))
+                m_par.RIM_RADIUS = d["Dimension"]["Rim Radius"].GetDouble();
+            if (d["Dimension"].HasMember("Rim Width"))
+                m_par.RIM_WIDTH = d["Dimension"]["Rim Width"].GetDouble();
         } else {
-            GetLog() << "Fatal: Dimension not set!\n";
-            exit(9);
+            std::cerr << "Fatal: Dimension not set!" << std::endl;
+            throw std::runtime_error("Fatal: Dimension not set!");
         }
         if (d.HasMember("Vertical")) {
-            m_par.VERTICAL_STIFFNESS = d["Vertical"]["Vertical Stiffness"].GetDouble();
-            m_par.VERTICAL_DAMPING = d["Vertical"]["Vertical Damping"].GetDouble();
-            m_par.FNOMIN = d["Vertical"]["Nominal Wheel Load"].GetDouble();
-            m_par.QFZ1 = m_par.VERTICAL_STIFFNESS * m_par.UNLOADED_RADIUS / m_par.FNOMIN;
-            m_par.QFZ2 = 0;
+            if (d["Vertical"].HasMember("Vertical Stiffness"))
+                m_par.VERTICAL_STIFFNESS = d["Vertical"]["Vertical Stiffness"].GetDouble();
+            if (d["Vertical"].HasMember("Vertical Damping"))
+                m_par.VERTICAL_DAMPING = d["Vertical"]["Vertical Damping"].GetDouble();
+            if (d["Vertical"].HasMember("BREFF"))
+                m_par.BREFF = d["Vertical"]["BREFF"].GetDouble();
+            if (d["Vertical"].HasMember("DREFF"))
+                m_par.DREFF = d["Vertical"]["DREFF"].GetDouble();
+            if (d["Vertical"].HasMember("FREFF"))
+                m_par.FREFF = d["Vertical"]["FREFF"].GetDouble();
+            if (d["Vertical"].HasMember("Nominal Wheel Load"))
+                m_par.FNOMIN = d["Vertical"]["Nominal Wheel Load"].GetDouble();
+            if (d["Vertical"].HasMember("Tire Mass"))
+                m_par.TIRE_MASS = d["Vertical"]["Tire Mass"].GetDouble();
+            if (d["Vertical"].HasMember("QFZ1")) {
+                m_par.QFZ1 = d["Vertical"]["QFZ1"].GetDouble();
+            }
+            else {
+                // older JSON templates might not yet have this parameter set explicitly,
+                // so we fall back to calculating it ourselves if it is missing
+                m_par.QFZ1 = m_par.VERTICAL_STIFFNESS * m_par.UNLOADED_RADIUS / m_par.FNOMIN;
+            }
+            if (d["Vertical"].HasMember("QFZ2"))
+                m_par.QFZ2 = d["Vertical"]["QFZ2"].GetDouble();
+            if (d["Vertical"].HasMember("QFZ3"))
+                m_par.QFZ3 = d["Vertical"]["QFZ3"].GetDouble();
+            if (d["Vertical"].HasMember("QPFZ1"))
+                m_par.QPFZ1 = d["Vertical"]["QPFZ1"].GetDouble();
+            if (d["Vertical"].HasMember("QV2"))
+                m_par.QV2 = d["Vertical"]["QV2"].GetDouble();
         } else {
-            GetLog() << "Fatal: Vertical not set!\n";
-            exit(9);
+            std::cerr << "Fatal: Vertical not set!" << std::endl;
+            throw std::runtime_error("Fatal: Vertical not set!");
         }
         if (d.HasMember("Scaling Factors")) {
             if (d["Scaling Factors"].HasMember("LFZO"))
@@ -172,6 +230,8 @@ void Pac02Tire::Create(const rapidjson::Document& d) {
                 m_par.LGYR = d["Scaling Factors"]["LGYR"].GetDouble();
             if (d["Scaling Factors"].HasMember("LVMX"))
                 m_par.LVMX = d["Scaling Factors"]["LVMX"].GetDouble();
+            if (d["Scaling Factors"].HasMember("LMX"))
+                m_par.LMX = d["Scaling Factors"]["LMX"].GetDouble();
             if (d["Scaling Factors"].HasMember("LMY"))
                 m_par.LMY = d["Scaling Factors"]["LMY"].GetDouble();
             if (d["Scaling Factors"].HasMember("LIP"))
@@ -181,7 +241,7 @@ void Pac02Tire::Create(const rapidjson::Document& d) {
             if (d["Scaling Factors"].HasMember("LCZ"))
                 m_par.LCZ = d["Scaling Factors"]["LCZ"].GetDouble();
         } else {
-            GetLog() << "Missing Scaling Factors are set to 1!\n";
+            std::cout << "Missing Scaling Factors are set to 1!" << std::endl;
         }
         if (d.HasMember("Longitudinal Coefficients")) {
             if (d["Longitudinal Coefficients"].HasMember("PCX1"))
@@ -241,8 +301,8 @@ void Pac02Tire::Create(const rapidjson::Document& d) {
             if (d["Longitudinal Coefficients"].HasMember("PPX4"))
                 m_par.PPX4 = d["Longitudinal Coefficients"]["PPX4"].GetDouble();
         } else {
-            GetLog() << "Fatal: Longitudinal Coefficients not set!\n";
-            exit(9);
+            std::cerr << "Fatal: Longitudinal Coefficients not set!" << std::endl;
+            throw std::runtime_error("Fatal: Longitudinal Coefficients not set!");
         }
         if (d.HasMember("Lateral Coefficients")) {
             if (d["Lateral Coefficients"].HasMember("PCY1"))
@@ -322,8 +382,8 @@ void Pac02Tire::Create(const rapidjson::Document& d) {
             if (d["Lateral Coefficients"].HasMember("PPY4"))
                 m_par.PPY4 = d["Lateral Coefficients"]["PPY4"].GetDouble();
         } else {
-            GetLog() << "Fatal: Lateral Coefficients not set!\n";
-            exit(9);
+            std::cerr << "Fatal: Lateral Coefficients not set!" << std::endl;
+            throw std::runtime_error("Fatal: Lateral Coefficients not set!");
         }
         if (d.HasMember("Aligning Coefficients")) {
             if (d["Aligning Coefficients"].HasMember("QBZ1"))
@@ -390,11 +450,15 @@ void Pac02Tire::Create(const rapidjson::Document& d) {
                 m_par.SSZ4 = d["Aligning Coefficients"]["SSZ4"].GetDouble();
             if (d["Aligning Coefficients"].HasMember("QTZ1"))
                 m_par.QTZ1 = d["Aligning Coefficients"]["QTZ1"].GetDouble();
+            if (d["Aligning Coefficients"].HasMember("QPZ1"))
+                m_par.QPZ1 = d["Aligning Coefficients"]["QPZ1"].GetDouble();
+            if (d["Aligning Coefficients"].HasMember("QPZ2"))
+                m_par.QPZ2 = d["Aligning Coefficients"]["QPZ2"].GetDouble();
             if (d["Aligning Coefficients"].HasMember("MBELT"))
                 m_par.MBELT = d["Aligning Coefficients"]["MBELT"].GetDouble();
         } else {
-            GetLog() << "Fatal: Aligning Coefficients not set!\n";
-            exit(9);
+            std::cerr << "Fatal: Aligning Coefficients not set!" << std::endl;
+            throw std::runtime_error("Fatal: Aligning Coefficients not set!");
         }
         if (d.HasMember("Overturning Coefficients")) {
             if (d["Overturning Coefficients"].HasMember("QSX1"))
@@ -422,12 +486,15 @@ void Pac02Tire::Create(const rapidjson::Document& d) {
             if (d["Overturning Coefficients"].HasMember("QPX1"))
                 m_par.QPX1 = d["Overturning Coefficients"]["QPX1"].GetDouble();
         } else {
-            GetLog() << "Fatal: Overturning Coefficients not set!\n";
-            exit(9);
+            std::cerr << "Fatal: Overturning Coefficients not set!" << std::endl;
+            throw std::runtime_error("Fatal: Overturning Coefficients not set!");
         }
         if (d.HasMember("Rolling Coefficients")) {
-            if (d["Rolling Coefficients"].HasMember("QSY1"))
+            if (d["Rolling Coefficients"].HasMember("QSY1")) {
                 m_par.QSY1 = d["Rolling Coefficients"]["QSY1"].GetDouble();
+                if (m_par.QSY1 <= 0.0)
+                    m_par.QSY1 = 0.01; // be sure to have some rolling resistance
+            }
             if (d["Rolling Coefficients"].HasMember("QSY2"))
                 m_par.QSY2 = d["Rolling Coefficients"]["QSY2"].GetDouble();
             if (d["Rolling Coefficients"].HasMember("QSY3"))
@@ -443,8 +510,8 @@ void Pac02Tire::Create(const rapidjson::Document& d) {
             if (d["Rolling Coefficients"].HasMember("QSY8"))
                 m_par.QSY8 = d["Rolling Coefficients"]["QSY8"].GetDouble();
         } else {
-            GetLog() << "Fatal: Rolling Coefficients not set!\n";
-            exit(9);
+            std::cerr << "Fatal: Rolling Coefficients not set!" << std::endl;
+            throw std::runtime_error("Fatal: Rolling Coefficients not set!");
         }
 
         if (!m_tire_conditions_found) {

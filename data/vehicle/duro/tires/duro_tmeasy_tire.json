@@ -1,0 +1,53 @@
+{
+  "Name": "Duro TMeasy Tire",
+  "Type": "Tire",
+  "Template": "TMeasyTire",
+
+  // ------------------------------------------------
+  // Tire design (REQUIRED)
+
+  "Design": {
+    "Unloaded Radius [m]": 0.474,
+    "Mass [kg]": 34.4,
+    "Inertia [kg.m2]": [ 3.34, 6.28, 3.34 ],
+    "Width [m]": 0.275,
+    "Rim Radius [m]": 0.254,
+    "Roundness of Cross Section": 0.1
+  },
+
+  "Coefficient of Friction": 0.8,
+
+  "Rolling Resistance Coefficient": 0.015,
+
+  // ------------------------------------------------
+  // Vehicle type.
+  // Required only if tire specified with "load index" or "bearing capacity".
+  // Must be one of "Truck" or "Passenger"
+
+  "Vehicle Type": "Truck",
+
+  // ------------------------------------------------
+  // Load index specification.
+  // Takes priority over "bearing capacity" (used only if a full parameterization not provided)
+
+  "Load Index": 128,
+
+  // ------------------------------------------------
+  // Bearing capacity specification.
+  // Lowest priority (used only if no other specification provided)
+
+  "Maximum Bearing Capacity [N]": 49050,
+
+  // consider reduced inflation pressure
+  "Inflation Pressure Design [Pa]": 6.55e5,
+  "Inflation Pressure Use [Pa]": 6.55e5,
+
+  // ------------------------------------------------
+  // Visualization mesh (OPTIONAL)
+
+  "Visualization": {
+    "Mesh Filename Left": "duro/Duro_Tire.obj",
+    "Mesh Filename Right": "duro/Duro_Tire.obj"
+  }
+
+}

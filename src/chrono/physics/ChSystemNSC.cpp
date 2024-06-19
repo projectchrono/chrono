@@ -23,36 +23,26 @@
 #include "chrono/physics/ChContactContainerNSC.h"
 #include "chrono/physics/ChProximityContainer.h"
 #include "chrono/physics/ChSystem.h"
-#include "chrono/collision/ChCollisionSystemBullet.h"
 
 namespace chrono {
 
 // Register into the object factory, to enable run-time dynamic creation and persistence
 CH_FACTORY_REGISTER(ChSystemNSC)
 
-ChSystemNSC::ChSystemNSC(bool init_sys)
-    : ChSystem() {
-    if (init_sys) {
-        // Set default contact container
-        contact_container = chrono_types::make_shared<ChContactContainerNSC>();
-        contact_container->SetSystem(this);
+ChSystemNSC::ChSystemNSC() : ChSystem() {
+    // Set the system descriptor
+    descriptor = chrono_types::make_shared<ChSystemDescriptor>();
 
-        // Set default collision engine
-        collision_system = chrono_types::make_shared<collision::ChCollisionSystemBullet>();
-        collision_system->SetNumThreads(nthreads_collision);
-        collision_system->SetSystem(this);
-        collision_system_type = collision::ChCollisionSystemType::BULLET;
+    // Set default solver
+    SetSolverType(ChSolver::Type::PSOR);
 
-        // Set the system descriptor
-        descriptor = chrono_types::make_shared<ChSystemDescriptor>();
-
-        // Set default solver
-        SetSolverType(ChSolver::Type::PSOR);
-    }
+    // Set default contact container
+    contact_container = chrono_types::make_shared<ChContactContainerNSC>();
+    contact_container->SetSystem(this);
 
     // Set default collision envelope and margin.
-    collision::ChCollisionModel::SetDefaultSuggestedEnvelope(0.03);
-    collision::ChCollisionModel::SetDefaultSuggestedMargin(0.01);
+    ChCollisionModel::SetDefaultSuggestedEnvelope(0.03);
+    ChCollisionModel::SetDefaultSuggestedMargin(0.01);
 }
 
 ChSystemNSC::ChSystemNSC(const ChSystemNSC& other) : ChSystem(other) {}
@@ -62,23 +52,27 @@ void ChSystemNSC::SetContactContainer(std::shared_ptr<ChContactContainer> contai
         ChSystem::SetContactContainer(container);
 }
 
-void ChSystemNSC::ArchiveOut(ChArchiveOut& marchive) {
+void ChSystemNSC::SetMinBounceSpeed(double value) {
+    std::static_pointer_cast<ChContactContainerNSC>(contact_container)->min_bounce_speed = value;
+}
+
+void ChSystemNSC::ArchiveOut(ChArchiveOut& archive_out) {
     // version number
-    marchive.VersionWrite<ChSystemNSC>();
+    archive_out.VersionWrite<ChSystemNSC>();
 
     // serialize parent class
-    ChSystem::ArchiveOut(marchive);
+    ChSystem::ArchiveOut(archive_out);
 
     // serialize all member data:
 }
 
 // Method to allow de serialization of transient data from archives.
-void ChSystemNSC::ArchiveIn(ChArchiveIn& marchive) {
+void ChSystemNSC::ArchiveIn(ChArchiveIn& archive_in) {
     // version number
-    /*int version =*/ marchive.VersionRead<ChSystemNSC>();
+    /*int version =*/archive_in.VersionRead<ChSystemNSC>();
 
     // deserialize parent class
-    ChSystem::ArchiveIn(marchive);
+    ChSystem::ArchiveIn(archive_in);
 
     // stream in all member data:
 }

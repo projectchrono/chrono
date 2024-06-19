@@ -20,12 +20,12 @@ ChMatlabEngine::ChMatlabEngine() {
 #ifdef __APPLE__
     ep = matlabengine::engOpen("matlab -automation -nosplash \0");
     if (!ep) {
-        throw ChException("Can't start MATLAB engine");
+        throw std::runtime_error("Can't start MATLAB engine");
     }
 #else
     ep = matlabengine::engOpen("-automation \0");
     if (!ep) {
-        throw ChException("Can't start MATLAB engine");
+        throw std::runtime_error("Can't start MATLAB engine");
     }
 #endif
 }
@@ -35,7 +35,7 @@ ChMatlabEngine::~ChMatlabEngine() {
         if (!m_persist)
             matlabengine::engClose(ep);
         else
-            matlabengine::engSetVisible(ep, true); // set engine as 'visible', for safety
+            matlabengine::engSetVisible(ep, true);  // set engine as 'visible', for safety
     ep = nullptr;
 }
 
@@ -56,7 +56,7 @@ bool ChMatlabEngine::SetVisible(bool mvis) {
 // Keep matlab engine open even after termination of C++ program.
 void ChMatlabEngine::KeepEngineOpen(bool persist) {
     m_persist = persist;
-    matlabengine::engSetVisible(ep, true); // set engine as 'visible', for safety
+    matlabengine::engSetVisible(ep, true);  // set engine as 'visible', for safety
 }
 
 // Evaluate a Matlab instruction (as a string). If error happens while executing, returns false.
@@ -108,9 +108,8 @@ bool ChMatlabEngine::PutSparseMatrix(const ChSparseMatrix& mmatr, std::string va
 
     this->PutVariable(transfer, varname.c_str());
 
-    char buff[100];
-    sprintf(buff, "%s=spconvert(%s)", varname.c_str(), varname.c_str());
-    this->Eval(buff);
+    std::string buf = varname + " = spconvert(" + varname + ")";
+    this->Eval(buf);
 
     return true;
 }
@@ -130,8 +129,7 @@ bool ChMatlabEngine::GetVariable(ChMatrixDynamic<double>& mmatr, std::string var
         }
         const matlabengine::mwSize* siz = mxGetDimensions(T);
         transfer.resize((int)siz[1], (int)siz[0]);
-        memcpy((char*)transfer.data(), (char*)mxGetPr(T),
-               transfer.rows() * transfer.cols() * sizeof(double));
+        memcpy((char*)transfer.data(), (char*)mxGetPr(T), transfer.rows() * transfer.cols() * sizeof(double));
         matlabengine::mxDestroyArray(T);
 
         mmatr = transfer.transpose();
@@ -139,7 +137,7 @@ bool ChMatlabEngine::GetVariable(ChMatrixDynamic<double>& mmatr, std::string var
         return true;
     }
     matlabengine::mxDestroyArray(T);
-    return false;    
+    return false;
 }
 
 // Fetch a string from Matlab environment, specifying its name as variable.

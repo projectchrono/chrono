@@ -23,9 +23,9 @@
 // to your code, and the symbols will be imported.
 
 #if defined(CH_API_COMPILE_PARSERS)
-#define ChApiParsers ChApiEXPORT
+    #define ChApiParsers ChApiEXPORT
 #else
-#define ChApiParsers ChApiIMPORT
+    #define ChApiParsers ChApiIMPORT
 #endif
 
 /**
@@ -33,6 +33,7 @@
     @brief Parsers for various input data formats
 
     For additional information, see:
+    - the [user manual](@ref manual_parsers)
     - the [installation guide](@ref module_parsers_installation)
     - the [tutorials](@ref tutorial_root)
 */
@@ -47,6 +48,6 @@ namespace parsers {}
 
 /// @}
 
-}
+}  // namespace chrono
 
 #endif

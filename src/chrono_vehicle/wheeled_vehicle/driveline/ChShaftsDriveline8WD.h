@@ -54,12 +54,12 @@ class CH_VEHICLE_API ChShaftsDriveline8WD : public ChDrivelineWV {
     /// Set the direction of the motor block.
     /// This direction is a unit vector, relative to the chassis frame (for the ISO coordinate system, this is [1, 0, 0]
     /// for a longitudinal engine and [0, 1, 0] for a transversal engine).
-    void SetMotorBlockDirection(const ChVector<>& dir) { m_dir_motor_block = dir; }
+    void SetMotorBlockDirection(const ChVector3d& dir) { m_dir_motor_block = dir; }
 
     /// Set the direction of the wheel axles.
     /// This direction is a unit vector, relative to the chassis frame. It must be specified for the design
     /// configuration (for the ISO vehicle coordinate system, this is typically [0, 1, 0]).
-    void SetAxleDirection(const ChVector<>& dir) { m_dir_axle = dir; }
+    void SetAxleDirection(const ChVector3d& dir) { m_dir_axle = dir; }
 
     /// Lock/unlock the differential on the specified axle.
     /// By convention, axles are counted front to back, starting with index 0 for the front-most axle.
@@ -77,7 +77,7 @@ class CH_VEHICLE_API ChShaftsDriveline8WD : public ChDrivelineWV {
 
     /// Return the number of driven axles.
     /// A ChShaftsDriveline8WD driveline connects to two axles.
-    virtual int GetNumDrivenAxles() const final override { return 4; }
+    virtual unsigned int GetNumDrivenAxles() const final override { return 4; }
 
     /// Initialize the driveline subsystem.
     /// This function connects this driveline subsystem to the specified axle subsystems.
@@ -102,7 +102,7 @@ class CH_VEHICLE_API ChShaftsDriveline8WD : public ChDrivelineWV {
 
     /// Return the output driveline speed of the driveshaft.
     /// This represents the output from the driveline subsystem that is passed to the transmission subsystem.
-    virtual double GetOutputDriveshaftSpeed() const override { return m_driveshaft->GetPos_dt(); }
+    virtual double GetOutputDriveshaftSpeed() const override { return m_driveshaft->GetPosDt(); }
 
   protected:
     /// Return the inertia of the driveshaft.
@@ -143,8 +143,8 @@ class CH_VEHICLE_API ChShaftsDriveline8WD : public ChDrivelineWV {
     std::array<std::shared_ptr<ChShaft>, 4> m_AD_differentialbox;            ///< differential casings
     std::array<std::shared_ptr<ChShaftsClutch>, 4> m_AD_clutch;              ///< differential locking clutches
 
-    ChVector<> m_dir_motor_block;
-    ChVector<> m_dir_axle;
+    ChVector3d m_dir_motor_block;
+    ChVector3d m_dir_axle;
 };
 
 /// @} vehicle_wheeled_driveline

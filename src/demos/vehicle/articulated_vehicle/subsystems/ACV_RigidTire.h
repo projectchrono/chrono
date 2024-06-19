@@ -30,7 +30,7 @@ class ACV_RigidTire : public chrono::vehicle::ChRigidTire {
     virtual double GetRadius() const override { return m_radius; }
     virtual double GetWidth() const override { return m_width; }
     virtual double GetTireMass() const override { return m_mass; }
-    virtual chrono::ChVector<> GetTireInertia() const override { return m_inertia; }
+    virtual chrono::ChVector3d GetTireInertia() const override { return m_inertia; }
 
   private:
     virtual void CreateContactMaterial(chrono::ChContactMethod contact_method) override;
@@ -38,7 +38,7 @@ class ACV_RigidTire : public chrono::vehicle::ChRigidTire {
     static const double m_radius;
     static const double m_width;
     static const double m_mass;
-    static const chrono::ChVector<> m_inertia;
+    static const chrono::ChVector3d m_inertia;
 };
 
 #endif

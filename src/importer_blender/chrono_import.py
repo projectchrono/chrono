@@ -42,12 +42,12 @@
 
 bl_info = {
     "name": "Chrono import",
-    "blender": (2, 80, 0),
+    "blender": (4, 0, 1),
     "category": "Import-Export",
     "location": "File > Import-Export",
     "description": "Import ProjectChrono simulations",
     "author": "Alessandro Tasora",
-    "version": (0, 0, 3),
+    "version": (0, 0, 5),
     "wiki_url": "https://api.projectchrono.org/development/introduction_chrono_blender.html",
     "doc_url": "https://api.projectchrono.org/development/introduction_chrono_blender.html",
 }
@@ -130,9 +130,88 @@ def create_chrono_path( nameID,
     my_list_materials.append(mat)
     
     return gpencil
+
+
+
+def make_bsdf_material4(nameID, colorRGB, metallic=0, specular=0, specular_tint=(1,0,0,0), roughness=0.5, index_refraction=1.450, transmission=0, emissionRGB=(0,0,0,1), emission_strength=1, bump_map=0, bump_height=1.0):
+    new_mat = bpy.data.materials.new(name=nameID)
+
+    new_mat.use_nodes = True
+
+    if new_mat.node_tree:
+        new_mat.node_tree.links.clear()
+        new_mat.node_tree.nodes.clear()
+        
+    nodes = new_mat.node_tree.nodes
+    links = new_mat.node_tree.links
+    output = nodes.new(type='ShaderNodeOutputMaterial')
+    shader = nodes.new(type='ShaderNodeBsdfPrincipled')
+
+
+    if type(colorRGB) == tuple:
+        nodes["Principled BSDF"].inputs["Base Color"].default_value = colorRGB
+
+    if type(colorRGB) == str:
+        if os.path.exists(colorRGB):
+            texturenode = nodes.new(type="ShaderNodeTexImage")
+            texturenode.image = bpy.data.images.load(colorRGB)
+            links.new(texturenode.outputs[0], nodes["Principled BSDF"].inputs["Base Color"])
+            
+    if type(metallic) == float or type(metallic) == int:
+        nodes["Principled BSDF"].inputs["Metallic"].default_value = metallic
+    if type(metallic) == str:
+
+        if os.path.exists(metallic):
+            texturenode = nodes.new(type="ShaderNodeTexImage")
+            texturenode.image = bpy.data.images.load(metallic)
+            links.new(texturenode.outputs[0], nodes["Principled BSDF"].inputs["Metallic"])
+            
+    nodes["Principled BSDF"].inputs["Specular IOR Level"].default_value = specular
+    nodes["Principled BSDF"].inputs["Specular Tint"].default_value = specular_tint
+
+    if type(roughness) == float or type(roughness) == int:
+        nodes["Principled BSDF"].inputs["Roughness"].default_value = roughness
+    if type(roughness) == str:
+        if os.path.exists(roughness):
+            texturenode = nodes.new(type="ShaderNodeTexImage")
+            texturenode.image = bpy.data.images.load(roughness)
+            links.new(texturenode.outputs[0], nodes["Principled BSDF"].inputs["Roughness"])
     
+    nodes["Principled BSDF"].inputs["IOR"].default_value = index_refraction
+
+    if type(transmission) == float or type(transmission) == int:
+        nodes["Principled BSDF"].inputs["Transmission Weight"].default_value = transmission
+    if type(transmission) == str:
+        if os.path.exists(transmission):
+            texturenode = nodes.new(type="ShaderNodeTexImage")
+            texturenode.image = bpy.data.images.load(transmission)
+            links.new(texturenode.outputs[0], nodes["Principled BSDF"].inputs["Transmission Weight"])
     
-def make_bsdf_material(nameID, colorRGB, metallic=0, specular=0, specular_tint=0, roughness=0.5, index_refraction=1.450, transmission=0, emissionRGB=(0,0,0,1), emission_strength=1, bump_map=0, bump_height=1.0):
+    if type(emissionRGB) == tuple:
+        nodes["Principled BSDF"].inputs["Emission Color"].default_value = emissionRGB
+    if type(emissionRGB) == str:
+        if os.path.exists(emissionRGB):
+            texturenode = nodes.new(type="ShaderNodeTexImage")
+            texturenode.image = bpy.data.images.load(emissionRGB)
+            links.new(texturenode.outputs[0], nodes["Principled BSDF"].inputs["Emission Color"])
+            
+    nodes["Principled BSDF"].inputs["Emission Strength"].default_value = emission_strength
+    
+    if type(bump_map) == str:
+        if os.path.exists(bump_map):
+            texturenode = nodes.new(type="ShaderNodeTexImage")
+            texturenode.image = bpy.data.images.load(bump_map)
+            bumpnode = nodes.new(type="ShaderNodeBump")
+            bumpnode.inputs[0].default_value= bump_height
+            links.new(texturenode.outputs[0], bumpnode.inputs[2])
+            links.new(bumpnode.outputs[0], nodes["Principled BSDF"].inputs[22])
+    
+    links.new(shader.outputs[0], output.inputs[0])
+    
+    return new_mat
+    
+
+def make_bsdf_material3(nameID, colorRGB, metallic=0, specular=0, specular_tint=0, roughness=0.5, index_refraction=1.450, transmission=0, emissionRGB=(0,0,0,1), emission_strength=1, bump_map=0, bump_height=1.0):
     new_mat = bpy.data.materials.new(name=nameID)
 
     new_mat.use_nodes = True
@@ -206,6 +285,13 @@ def make_bsdf_material(nameID, colorRGB, metallic=0, specular=0, specular_tint=0
     
     return new_mat
     
+# switch between different versions
+if bpy.app.version < (4, 0, 0):
+    make_bsdf_material = make_bsdf_material3
+else:
+    make_bsdf_material = make_bsdf_material4
+
+
 
 # helper to add scalar attributes as arrays of floats to: faces (mdomain='FACE') or vertexes (mdomain='POINT') of meshes
 def add_mesh_data_floats(mesh_object, attribute_scalars, attribute_name='myval', mdomain='FACE'):
@@ -499,7 +585,7 @@ def update_meshsetting_falsecolor_material(new_object, meshsetting, propname):
             mat = selected_prop.mat
             mat.node_tree.nodes['Map Range'].inputs[1].default_value = selected_prop.min
             mat.node_tree.nodes['Map Range'].inputs[2].default_value = selected_prop.max
-            ramp = mat.node_tree.nodes['ColorRamp']
+            ramp = mat.node_tree.nodes['Color Ramp']
             colormap = colormaps[selected_prop.colorm]
             for i in range(0,len(ramp.color_ramp.elements)-2):
                 ramp.color_ramp.elements.remove(ramp.color_ramp.elements[1]) # leave start-end. Also, clear() doe not exist
@@ -542,7 +628,7 @@ def update_glyphsetting_material(new_object, meshsetting, propname):
             if mat.node_tree.nodes.get('Map Range'):
                 mat.node_tree.nodes['Map Range'].inputs[1].default_value = selected_prop.min
                 mat.node_tree.nodes['Map Range'].inputs[2].default_value = selected_prop.max
-                ramp = mat.node_tree.nodes['ColorRamp']
+                ramp = mat.node_tree.nodes['Color Ramp']
                 colormap=[]
                 if meshsetting.color_type == 'CONST':
                     colormap = [[0,(meshsetting.const_color.r,meshsetting.const_color.g,meshsetting.const_color.b,1)],[1,(meshsetting.const_color.r,meshsetting.const_color.g,meshsetting.const_color.b,1)]]
@@ -721,7 +807,7 @@ def make_chrono_glyphs_objects(mname,mpos,mrot,
         chasset = masset.copy() 
         chasset.data = masset.data.copy() # full copy?
         
-        chrono_frame_objects.objects.link(chasset)
+        chrono_frame_assets.objects.link(chasset)
         
         while len(chasset.data.materials) < 1:
             chasset.data.materials.append(None)
@@ -733,7 +819,7 @@ def make_chrono_glyphs_objects(mname,mpos,mrot,
                 
     else:        # for multiple assets, geometry nodes must use a collection instance, so wrap them
         chcollection = bpy.data.collections.new(mname+'_glyph_instance')
-        chrono_frame_objects.children.link(chcollection)
+        chrono_frame_assets.children.link(chcollection)
         
         chassets_group = bpy.data.objects.new("glyph_assets_group", empty_mesh)  
         chcollection.objects.link(chassets_group)
@@ -796,10 +882,23 @@ def make_chrono_glyphs_objects(mname,mpos,mrot,
     
     chobject.modifiers.new(name="Chrono clones", type='NODES')
     node_group = bpy.data.node_groups.new('GeometryNodes', 'GeometryNodeTree')
-    inNode = node_group.nodes.new('NodeGroupInput')
-    node_group.outputs.new('NodeSocketGeometry', 'Geometry')
-    outNode = node_group.nodes.new('NodeGroupOutput')
-    node_group.inputs.new('NodeSocketGeometry', 'Geometry')
+    #inNode = node_group.nodes.new('NodeGroupInput')
+    #node_group.outputs.new('NodeSocketGeometry', 'Geometry')
+    #outNode = node_group.nodes.new('NodeGroupOutput')
+    #node_group.inputs.new('NodeSocketGeometry', 'Geometry')
+
+    node_group.interface.new_socket(
+        name='NodeGroupOutput',
+        in_out='OUTPUT',
+        socket_type='NodeSocketGeometry'
+    )
+    node_group.interface.new_socket(
+        name='NodeGroupInput',
+        in_out='INPUT',
+        socket_type='NodeSocketGeometry'
+    )
+    inNode= node_group.nodes.new(type='NodeGroupInput')
+    outNode= node_group.nodes.new(type='NodeGroupOutput')
 
     if len(masset_list) == 1:
         node_objinfo = node_group.nodes.new('GeometryNodeObjectInfo') 
@@ -811,8 +910,8 @@ def make_chrono_glyphs_objects(mname,mpos,mrot,
 
     node_onpoints = node_group.nodes.new('GeometryNodeInstanceOnPoints')
 
-    node_group.links.new(inNode.outputs['Geometry'], node_onpoints.inputs['Points'])
-    node_group.links.new(node_onpoints.outputs['Instances'], outNode.inputs['Geometry'])
+    node_group.links.new(inNode.outputs['NodeGroupInput'], node_onpoints.inputs['Points'])
+    node_group.links.new(node_onpoints.outputs['Instances'], outNode.inputs['NodeGroupOutput'])
     node_group.links.new(node_objinfo.outputs['Geometry'], node_onpoints.inputs['Instance'])
 
     # optional rotation 
@@ -1217,7 +1316,7 @@ def update_camera_coordinates(mname,mpos,mrot):
     cameraasset.location = mpos
 
  
-    
+
 #
 # On file selected: 
 #
@@ -2101,7 +2200,7 @@ def unregister():
 
     # sidebar UI:
     
-
+register()
 
 # The following is executed all times one runs this chrono_import.py script in Blender
 # scripting editor: it effectively register the add-on "by hand".

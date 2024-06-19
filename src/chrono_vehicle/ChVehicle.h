@@ -31,6 +31,7 @@
 #include "chrono_vehicle/ChVehicleOutput.h"
 #include "chrono_vehicle/ChChassis.h"
 #include "chrono_vehicle/ChPowertrainAssembly.h"
+#include "chrono_vehicle/ChTerrain.h"
 
 namespace chrono {
 namespace vehicle {
@@ -99,53 +100,117 @@ class CH_VEHICLE_API ChVehicle {
     /// Get the current vehicle inertia (relative to the vehicle COM frame).
     const ChMatrix33<>& GetInertia() const { return m_inertia; }
 
+    /// Get the current vehicle reference frame.
+    /// This is the same as the reference frame of the chassis.
+    const ChFrameMoving<>& GetRefFrame() const { return GetChassisBody()->GetFrameRefToAbs(); }
+
     /// Get the current vehicle transform relative to the global frame.
     /// This is the same as the global transform of the main chassis.
     const ChFrame<>& GetTransform() const { return m_chassis->GetTransform(); }
 
     /// Get the vehicle global location.
     /// This is the global location of the main chassis reference frame origin.
-    const ChVector<>& GetPos() const { return m_chassis->GetPos(); }
+    const ChVector3d& GetPos() const { return m_chassis->GetPos(); }
 
     /// Get the vehicle orientation.
     /// This is the main chassis orientation, returned as a quaternion representing a rotation with respect to the
     /// global reference frame.
     ChQuaternion<> GetRot() const { return m_chassis->GetRot(); }
 
-    /// Get the vehicle speed.
+    /// Get vehicle roll angle.
+    /// This version returns the roll angle with respect to the absolte frame; as such, this is a proper representation
+    /// of vehicle roll only on flat horizontal terrain. In the ISO frame convention, a positive roll angle corresponds
+    /// to the vehicle left side lifting (e.g., in a turn to the left).
+    double GetRoll() const;
+
+    /// Get vehicle pitch angle.
+    /// This version returns the pitch angle with respect to the absolte frame; as such, this is a proper representation
+    /// of vehicle pitch only on flat horizontal terrain. In the ISO frame convention, a positive pitch angle
+    /// corresponds to the vehicle front dipping (e.g., during braking).
+    double GetPitch() const;
+
+    /// Get vehicle roll angle (relative to local terrain).
+    /// This version returns the roll angle relative to the terrain normal at a point below the vehicle position; as
+    /// such, this is a reasonable approximation of local vehicle roll only on relatively flat (but not necessarily
+    /// horizontal) terrains. In the ISO frame convention, a positive roll angle corresponds to the vehicle left side
+    /// lifting above the terrain plane.
+    double GetRoll(const ChTerrain& terrain) const;
+
+    /// Get vehicle pitch angle (relative to local terrain).
+    /// This version returns the pitch angle relative to the terrain normal at a point below the vehicle position; as
+    /// such, this is a reasonable approximation of local vehicle pitch only on relatively flat (but not necessarily
+    /// horizontal) terrains. In the ISO frame convention, a positive pitch angle corresponds to the vehicle front
+    /// dipping below the terrain plane.
+    double GetPitch(const ChTerrain& terrain) const;
+
+    /// Get the vehicle speed (velocity component in the vehicle forward direction).
     /// Return the speed measured at the origin of the main chassis reference frame.
     double GetSpeed() const { return m_chassis->GetSpeed(); }
+
+    /// Get the vehicle slip angle.
+    /// This represents the angle betwwen the forward vehicle X axis and the vehicle velocity vector (calculated at the
+    /// origin of the vehicle frame). The return value is in radians with a positive sign for a left turn and a negative
+    /// sign for a right turn.
+    double GetSlipAngle() const;
+
+    /// Get the vehicle roll rate.
+    /// The roll rate is referenced to the chassis frame.
+    double GetRollRate() const { return m_chassis->GetRollRate(); }
+
+    /// Get the vehicle pitch rate.
+    /// The pitch rate is referenced to the chassis frame.
+    double GetPitchRate() const { return m_chassis->GetPitchRate(); }
+
+    /// Get the vehicle yaw rate.
+    /// The yaw rate is referenced to the chassis frame.
+    double GetYawRate() const { return m_chassis->GetYawRate(); }
+
+    /// Get the vehicle turn rate.
+    /// Unlike the yaw rate (referenced to the chassis frame), the turn rate is referenced to the global frame.
+    double GetTurnRate() const { return m_chassis->GetTurnRate(); }
 
     /// Get the global position of the specified point.
     /// The point is assumed to be given relative to the main chassis reference frame.
     /// The returned location is expressed in the global reference frame.
-    ChVector<> GetPointLocation(const ChVector<>& locpos) const { return m_chassis->GetPointLocation(locpos); }
+    ChVector3d GetPointLocation(const ChVector3d& locpos) const { return m_chassis->GetPointLocation(locpos); }
 
     /// Get the global velocity of the specified point.
     /// The point is assumed to be given relative to the main chassis reference frame.
     /// The returned velocity is expressed in the global reference frame.
-    ChVector<> GetPointVelocity(const ChVector<>& locpos) const { return m_chassis->GetPointVelocity(locpos); }
+    ChVector3d GetPointVelocity(const ChVector3d& locpos) const { return m_chassis->GetPointVelocity(locpos); }
 
     /// Get the acceleration at the specified point.
     /// The point is assumed to be given relative to the main chassis reference frame.
     /// The returned acceleration is expressed in the chassis reference frame.
-    ChVector<> GetPointAcceleration(const ChVector<>& locpos) const { return m_chassis->GetPointAcceleration(locpos); }
+    ChVector3d GetPointAcceleration(const ChVector3d& locpos) const { return m_chassis->GetPointAcceleration(locpos); }
 
     /// Get the global location of the driver.
-    ChVector<> GetDriverPos() const { return m_chassis->GetDriverPos(); }
+    ChVector3d GetDriverPos() const { return m_chassis->GetDriverPos(); }
 
     /// Enable/disable soft real-time (default: false).
-    /// If enabled, a spinning timer is used to maintain simulation time in sync with real time (if simulation is faster).
-    void EnableRealtime(bool val) { m_realtime_force = val; }
+    /// If enabled, a spinning timer is used to maintain simulation time in sync with real time. This function should be
+    /// called right before the main simulation loop, since it starts the embedded ChTimer.
+    void EnableRealtime(bool val);
 
     /// Get current estimated RTF (real time factor).
     /// Note that the "true" RTF is returned, even if soft real-time is enforced.
-    double GetRTF() const;
+    /// This represents the real time factor for advancing the dynamic state of the system only and as such does not
+    /// take into account any other operations performed during a step (e.g., run-time visualization). During each call
+    /// to Advance(), this value is calculated as T/step_size, where T includes the time spent in system setup,
+    /// collision detection, and integration.
+    double GetRTF() const { return m_system->GetRTF(); }
+
+    /// Get current estimated step RTF (real time factor).
+    /// Unlike the value returned by GetRTF(), this represents the real time factor for all calculations performed
+    /// during a simulation step, including any other operations in addition to advancing the dynamic state of the
+    /// system (run-time visualization, I/O, etc.). This RTF value is calculated as T/step_size, where T represents the
+    /// time from the previous call to Advance().
+    double GetStepRTF() const { return m_RTF; }
 
     /// Change the default collision detection system.
     /// Note that this function should be called *before* initialization of the vehicle system in order to create
     /// consistent collision models.
-    void SetCollisionSystemType(collision::ChCollisionSystemType collsys_type);
+    void SetCollisionSystemType(ChCollisionSystem::Type collsys_type);
 
     /// Enable output for this vehicle system.
     void SetOutput(ChVehicleOutput::Type type,   ///< [int] type of output DB
@@ -154,11 +219,17 @@ class CH_VEHICLE_API ChVehicle {
                    double output_step            ///< [in] interval between output times
     );
 
+    /// Enable output for this vehicle system using an existing output stream.
+    void SetOutput(ChVehicleOutput::Type type,  ///< [int] type of output DB
+                   std::ostream& out_stream,    ///< [in] output stream
+                   double output_step           ///< [in] interval between output times
+    );
+
     /// Initialize this vehicle at the specified global location and orientation.
     /// Derived classes must invoke this base class implementation after they initialize all their subsystem.
     virtual void Initialize(const ChCoordsys<>& chassisPos,  ///< [in] initial global position and orientation
                             double chassisFwdVel = 0         ///< [in] initial chassis forward velocity
-                            );
+    );
 
     /// Initialize the given powertrain assembly and associate it to this vehicle.
     /// The powertrain is initialized by connecting it to this vehicle's chassis and driveline shaft.
@@ -174,11 +245,11 @@ class CH_VEHICLE_API ChVehicle {
     /// Set visualization mode for the rear chassis subsystems.
     void SetChassisRearVisualizationType(VisualizationType vis);
 
-    /// Enable/disable collision for the chassis subsystem. 
+    /// Enable/disable collision for the chassis subsystem.
     /// This function controls contact of the chassis with all other collision shapes in the simulation.
     void SetChassisCollide(bool state);
 
-    /// Enable/disable collision between the chassis and all other vehicle subsystems. 
+    /// Enable/disable collision between the chassis and all other vehicle subsystems.
     /// Note that some of these collisions may be always disabled, as set by the particular derived vehicle class.
     virtual void SetChassisVehicleCollide(bool state) {}
 
@@ -230,7 +301,7 @@ class CH_VEHICLE_API ChVehicle {
     template <typename T>
     static bool AnyOutput(const std::vector<std::shared_ptr<T>>& list) {
         bool val = std::accumulate(list.begin(), list.end(), false,
-            [](bool a, std::shared_ptr<T> b) {return a || b->OutputEnabled(); });
+                                   [](bool a, std::shared_ptr<T> b) { return a || b->OutputEnabled(); });
         return val;
     }
 

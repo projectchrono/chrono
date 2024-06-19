@@ -1,4 +1,4 @@
-Chrono Reference Manual {#manual_root}
+Chrono Core User Manual {#manual_core}
 ==========================
 
 
@@ -9,43 +9,39 @@ Chrono Reference Manual {#manual_root}
 * @subpage modularity
 
 * @subpage mathematical_objects
-	* [Linear algebra](@ref linear_algebra)
+	* [Linear Algebra](@ref linear_algebra)
 	* [ChFunction objects](@ref ChFunction_objects)
 	* [Quadrature](@ref quadrature)
 
-* @subpage shared_pointers
-
-* @subpage coordinate_transformations
-	* [Vectors](@ref manual_ChVector)
+* @subpage coordinate_systems
+	* [Vectors](@ref manual_ChVector3)
 	* [Quaternions](@ref manual_ChQuaternion)
-	* [Rotation matrices](@ref manual_ChMatrix33)
+	* [Rotation Matrices](@ref manual_ChMatrix33)
 	* [ChCoordsys](@ref manual_ChCoordsys)
 	* [ChFrame](@ref manual_ChFrame)
 	* [ChFrameMoving](@ref manual_ChFrameMoving)
+	* [ChMarker](@ref manual_ChMarker)
 
 * @subpage rigid_bodies
-	* [ChBody](@ref manual_ChBody)
-	* [ChBodyAuxRef](@ref manual_ChBodyAuxRef)
-	* [Other bodies](@ref manual_otherbodies)
-
-* @subpage markers
-
-* @subpage collision_shapes
-	* [Collision models](@ref collision_models)
-	* [Collision families](@ref collision_families)
-	* [Collision materials](@ref collision_materials)
-
-* @subpage visualization_system
-	* [Visualization models](@ref manual_vismodel)
-	* [Visualization shapes](@ref manual_visshape)
 
 * @subpage links
 
 * @subpage motors
 	* [3D rotational motors](@ref rotational_motors)
 	* [3D linear motors](@ref linear_motors)
+	* [3D driveline motors](@ref driveline_motors)
 	* [1D motors](@ref shaft_motors)
-	* [How to control motors](@ref how_to_control_motors)
+
+* @subpage loads
+
+* @subpage collisions
+	* [Collision Models and Shapes](@ref collision_models_shapes)
+	* [Collision Families](@ref collision_families)
+	* [Collision Materials](@ref collision_materials)
+	* [Collision Tolerances](@ref collision_tolerances)
+	* [Collision Callbacks](@ref collision_callbacks)
+
+* @subpage visualization_system
 
 * @subpage manual_fea
 	* [List of nodes](@ref manual_fea_nodes)
@@ -56,15 +52,3 @@ Chrono Reference Manual {#manual_root}
 	* [Time steppers](@ref time_steppers)
 	* [Solvers](@ref solvers)
 	* [Other simulation parameters](@ref other_simulation_parameters)
-
-**Additional documentation pages**
-
-* [Chrono::Vehicle](@ref manual_vehicle)
-
-* [Chrono::SolidWorks](@ref introduction_chrono_solidworks)
-
-* [Chrono::Sensor](@ref manual_sensor)
-
-* [PyChrono](@ref pychrono_introduction)
-
-* [Tutorials](@ref tutorial_root)

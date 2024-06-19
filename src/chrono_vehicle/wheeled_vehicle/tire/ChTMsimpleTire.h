@@ -19,6 +19,10 @@
 // Master Thesis of Eva Heimlich https://diglib.tugraz.at/download.php?id=5990d1fdae37a&location=browse
 // The combined forces calculation in Chrono uses the same algorithm as TMeasy.
 //
+//  - Optional tire contact smoothing based on "A New Analytical Tire Model for Vehicle Dynamic Analysis" by
+//      J. Shane Sui & John A Hirshey II
+//  - Standstill algorithm based on Dahl Friction Model with Damping
+//
 // This implementation has been validated with:
 //  - FED-Alpha vehicle model
 //  - Tire data sets gained by conversion of Pac02 TIR parameter files
@@ -31,7 +35,7 @@
 
 #include <vector>
 
-#include "chrono/assets/ChCylinderShape.h"
+#include "chrono/assets/ChVisualShapeCylinder.h"
 #include "chrono/physics/ChBody.h"
 #include "chrono/utils/ChFilters.h"
 
@@ -41,6 +45,7 @@
 namespace chrono {
 namespace vehicle {
 
+/// TMsimple handling tire model.
 class CH_VEHICLE_API ChTMsimpleTire : public ChForceElementTire {
   public:
     ChTMsimpleTire(const std::string& name);
@@ -52,9 +57,6 @@ class CH_VEHICLE_API ChTMsimpleTire : public ChForceElementTire {
 
     /// Get the tire radius.
     virtual double GetRadius() const override { return m_states.R_eff; }
-
-    /// Set the limit for camber angle (in degrees).  Default: 3 degrees.
-    void SetGammaLimit(double gamma_limit) { m_gamma_limit = gamma_limit; }
 
     /// Get the width of the tire.
     virtual double GetWidth() const override { return m_width; }
@@ -129,10 +131,10 @@ class CH_VEHICLE_API ChTMsimpleTire : public ChForceElementTire {
     void SetHorizontalCoefficients();
 
     /// Set the tire reference coefficient of friction.
-    void SetFrictionCoefficient(double coeff);
+    void SetFrictionCoefficient(double coef) { m_par.mu_0 = coef; }
 
     /// Set rolling resistance coefficient (default: 0.01).
-    void SetRollingResistanceCoefficient(double rr_coeff);
+    void SetRollingResistanceCoefficient(double coef) { m_rolling_resistance = coef; }
 
     /// Generate basic tire plots.
     /// This function creates a Gnuplot script file with the specified name.
@@ -164,8 +166,6 @@ class CH_VEHICLE_API ChTMsimpleTire : public ChForceElementTire {
 
     double m_vnum;
 
-    double m_gamma_limit;  ///< limit camber angle (degrees!)
-
     // TMsimple tire model parameters
     double m_unloaded_radius;     ///< reference tire radius
     double m_width;               ///< tire width
@@ -196,7 +196,7 @@ class CH_VEHICLE_API ChTMsimpleTire : public ChForceElementTire {
 
     VehicleSide m_measured_side;
 
-    typedef struct {
+    struct TMsimpleCoeff {
         double pn;      ///< Nominal vertical force [N]
         double pn_max;  ///< Maximum vertical force [N]
 
@@ -210,7 +210,10 @@ class CH_VEHICLE_API ChTMsimpleTire : public ChForceElementTire {
         double dfy0_pn, dfy0_p2n;  ///< Initial lateral slopes dFy/dsy [kN]
         double fym_pn, fym_p2n;    ///< Maximum lateral force [kN]
         double fys_pn, fys_p2n;    ///< Lateral load at sliding [kN]
-    } TMsimpleCoeff;
+
+        double sigma0{100000.0};  ///< bristle stiffness for Dahl friction model
+        double sigma1{5000.0};    ///< bristle damping for Dahl friction model
+    };
 
     TMsimpleCoeff m_par;
 
@@ -239,7 +242,9 @@ class CH_VEHICLE_API ChTMsimpleTire : public ChForceElementTire {
         double omega;            // Wheel angular velocity about its spin axis, filtered by running avg,
         double R_eff;            // Effective Rolling Radius
         double P_len;            // Length of contact patch
-        ChVector<> disc_normal;  // (temporary for debug)
+        double brx{0};           // bristle deformation x
+        double bry{0};           // bristle deformation y
+        ChVector3d disc_normal;  // (temporary for debug)
     };
 
     TireStates m_states;

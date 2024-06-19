@@ -20,24 +20,10 @@
 
 namespace chrono {
 
-/// Class for defining a 'transmission ratio' (a 1D gear) between two one-degree-of-freedom
-/// parts; i.e., shafts that can be used to build 1D models of powertrains. This is more
-/// efficient than simulating power trains modeled with full 3D ChBody objects.
-/// Note that this really simple constraint does not provide a way to transmit a reaction
-/// force to the truss, if this is needed, just use the ChShaftsPlanetary with a fixed
-/// carrier shaft, or the ChShaftGearbox.
-
+/// Class for defining a 'transmission ratio' (a 1D gear) between two one-degree-of-freedom parts.
+/// Note that this really simple constraint does not provide a way to transmit a reaction force to the truss, if this is
+/// needed, just use the ChShaftsPlanetary with a fixed carrier shaft, or the ChShaftGearbox.
 class ChApi ChShaftsGear : public ChShaftsCouple {
-
-  private:
-    double ratio;                       ///< transmission ratio t, as in w2=t*w1, or t=w2/w1
-    double violation;                   ///< constraint violation
-    double torque_react;                ///< reaction torque
-    ChConstraintTwoGeneric constraint;  ///< used as an interface to the solver
-    bool avoid_phase_drift; 
-    double phase1;
-    double phase2;
-
   public:
     ChShaftsGear();
     ChShaftsGear(const ChShaftsGear& other);
@@ -47,13 +33,54 @@ class ChApi ChShaftsGear : public ChShaftsCouple {
     virtual ChShaftsGear* Clone() const override { return new ChShaftsGear(*this); }
 
     /// Number of scalar constraints
-    virtual int GetDOC_c() override { return 1; }
+    virtual unsigned int GetNumConstraintsBilateral() override { return 1; }
 
-    //
-    // STATE FUNCTIONS
-    //
+    /// Set the transmission ratio t, as in w2=t*w1, or t=w2/w1 , or  t*w1 - w2 = 0.
+    /// For example, t=1 for a rigid joint; t=-0.5 for representing
+    /// a couple of spur gears with teeth z1=20 & z2=40; t=0.1 for
+    /// a gear with inner teeth (or epicycloidal reducer), etc.
+    void SetTransmissionRatio(double t) { ratio = t; }
 
-    // (override/implement interfaces for global state vectors, see ChPhysicsItem for comments.)
+    /// Get the transmission ratio t, as in w2=t*w1, or t=w2/w1.
+    double GetTransmissionRatio() const { return ratio; }
+
+    /// Enable phase drift avoidance (default: true).
+    /// If true, phasing is always tracked and the constraint is satisfied also at the position level.
+    /// If false, microslipping can accumulate (as in friction wheels).
+    void AvoidPhaseDrift(bool avoid) { avoid_phase_drift = avoid; }
+
+    /// Get the reaction torque exchanged between the two shafts, considered as applied to the 1st axis.
+    double GetReaction1() const override { return ratio * torque_react; }
+
+    /// Get the reaction torque exchanged between the two shafts, considered as applied to the 2nd axis.
+    double GetReaction2() const override { return -torque_react; }
+
+    /// Return current constraint violation.
+    double GetConstraintViolation() const { return violation; }
+
+    /// Initialize this shafts gear, given two shafts to join.
+    /// Both shafts must belong to the same ChSystem.
+    bool Initialize(std::shared_ptr<ChShaft> shaft_1,  ///< first  shaft to join
+                    std::shared_ptr<ChShaft> shaft_2   ///< second shaft to join
+                    ) override;
+
+    /// Method to allow serialization of transient data to archives.
+    virtual void ArchiveOut(ChArchiveOut& archive_out) override;
+
+    /// Method to allow deserialization of transient data from archives.
+    virtual void ArchiveIn(ChArchiveIn& archive_in) override;
+
+  private:
+    double ratio;                       ///< transmission ratio t, as in w2=t*w1, or t=w2/w1
+    double violation;                   ///< constraint violation
+    double torque_react;                ///< reaction torque
+    ChConstraintTwoGeneric constraint;  ///< used as an interface to the solver
+    bool avoid_phase_drift;
+    double phase1;
+    double phase2;
+
+    virtual void Update(double mytime, bool update_assets = true) override;
+
     virtual void IntStateGatherReactions(const unsigned int off_L, ChVectorDynamic<>& L) override;
     virtual void IntStateScatterReactions(const unsigned int off_L, const ChVectorDynamic<>& L) override;
     virtual void IntLoadResidual_CqL(const unsigned int off_L,
@@ -76,70 +103,15 @@ class ChApi ChShaftsGear : public ChShaftsCouple {
                                    const unsigned int off_L,
                                    ChVectorDynamic<>& L) override;
 
-    // Override/implement system functions of ChShaftsCouple
-    // (to assemble/manage data for system solver)
+    virtual void InjectConstraints(ChSystemDescriptor& descriptor) override;
+    virtual void LoadConstraintJacobians() override;
 
-    virtual void InjectConstraints(ChSystemDescriptor& mdescriptor) override;
     virtual void ConstraintsBiReset() override;
     virtual void ConstraintsBiLoad_C(double factor = 1, double recovery_clamp = 0.1, bool do_clamp = false) override;
-    virtual void ConstraintsLoadJacobians() override;
     virtual void ConstraintsFetch_react(double factor = 1) override;
-
-    // Other functions
-
-    /// Use this function after gear creation, to initialize it, given
-    /// two shafts to join.
-    /// Each shaft must belong to the same ChSystem.
-    bool Initialize(std::shared_ptr<ChShaft> mshaft1,  ///< first  shaft to join
-                    std::shared_ptr<ChShaft> mshaft2   ///< second shaft to join
-                    ) override;
-
-    /// Set the transmission ratio t, as in w2=t*w1, or t=w2/w1 , or  t*w1 - w2 = 0.
-    /// For example, t=1 for a rigid joint; t=-0.5 for representing
-    /// a couple of spur gears with teeth z1=20 & z2=40; t=0.1 for
-    /// a gear with inner teeth (or epicycloidal reducer), etc.
-    void SetTransmissionRatio(double mt) { ratio = mt; }
-    /// Get the transmission ratio t, as in w2=t*w1, or t=w2/w1
-    double GetTransmissionRatio() const { return ratio; }
-
-
-    /// Set if the constraint must avoid phase drift. If true, phasing is always 
-    /// tracked and the constraint is satisfied also at the position level.
-    /// If false, microslipping can accumulate (as in friction wheels).
-    /// Default is enabled.
-    void SetAvoidPhaseDrift(bool mb) {this->avoid_phase_drift = mb;}
-
-    /// Set if the constraint is in "avoid phase drift" mode.
-    bool GetAvoidPhaseDrift() { return this->avoid_phase_drift;}
-
-
-    /// Get the reaction torque exchanged between the two shafts,
-    /// considered as applied to the 1st axis.
-    double GetTorqueReactionOn1() const override { return ratio * torque_react; }
-
-    /// Get the reaction torque exchanged between the two shafts,
-    /// considered as applied to the 2nd axis.
-    double GetTorqueReactionOn2() const override { return -torque_react; }
-
-    /// Return current constraint violation
-    double GetConstraintViolation() const { return violation; }
-
-    /// Update all auxiliary data of the gear transmission at given time
-    virtual void Update(double mytime, bool update_assets = true) override;
-
-    //
-    // SERIALIZATION
-    //
-
-    /// Method to allow serialization of transient data to archives.
-    virtual void ArchiveOut(ChArchiveOut& marchive) override;
-
-    /// Method to allow deserialization of transient data from archives.
-    virtual void ArchiveIn(ChArchiveIn& marchive) override;
 };
 
-CH_CLASS_VERSION(ChShaftsGear,0)
-
+CH_CLASS_VERSION(ChShaftsGear, 0)
 
 }  // end namespace chrono
 

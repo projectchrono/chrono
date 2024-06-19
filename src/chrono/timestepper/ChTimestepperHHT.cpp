@@ -57,16 +57,16 @@ void ChTimestepperHHT::Advance(const double dt) {
     mintegrable->StateSetup(X, V, A);
 
     // Setup auxiliary vectors
-    Da.setZero(mintegrable->GetNcoords_a(), mintegrable);
-    Dl.setZero(mintegrable->GetNconstr());
-    Xnew.setZero(mintegrable->GetNcoords_x(), mintegrable);
-    Vnew.setZero(mintegrable->GetNcoords_v(), mintegrable);
-    Anew.setZero(mintegrable->GetNcoords_a(), mintegrable);
-    R.setZero(mintegrable->GetNcoords_v());
-    Rold.setZero(mintegrable->GetNcoords_v());
-    Qc.setZero(mintegrable->GetNconstr());
-    L.setZero(mintegrable->GetNconstr());
-    Lnew.setZero(mintegrable->GetNconstr());
+    Da.setZero(mintegrable->GetNumCoordsVelLevel(), mintegrable);
+    Dl.setZero(mintegrable->GetNumConstraints());
+    Xnew.setZero(mintegrable->GetNumCoordsPosLevel(), mintegrable);
+    Vnew.setZero(mintegrable->GetNumCoordsVelLevel(), mintegrable);
+    Anew.setZero(mintegrable->GetNumCoordsVelLevel(), mintegrable);
+    R.setZero(mintegrable->GetNumCoordsVelLevel());
+    Rold.setZero(mintegrable->GetNumCoordsVelLevel());
+    Qc.setZero(mintegrable->GetNumConstraints());
+    L.setZero(mintegrable->GetNumConstraints());
+    Lnew.setZero(mintegrable->GetNumConstraints());
 
     // State at current time T
     mintegrable->StateGather(X, V, T);        // state <- system
@@ -86,15 +86,15 @@ void ChTimestepperHHT::Advance(const double dt) {
         h = dt;
         num_successful_steps = 0;
     } else if (num_successful_steps >= req_successful_steps) {
-        double new_h = ChMin(h * step_increase_factor, dt);
+        double new_h = std::min(h * step_increase_factor, dt);
         if (new_h > h + h_min) {
             h = new_h;
             num_successful_steps = 0;
             if (verbose)
-                GetLog() << " +++HHT increase stepsize to " << h << "\n";
+                std::cout << " +++HHT increase stepsize to " << h << std::endl;
         }
     } else {
-        h = ChMin(h, dt);
+        h = std::min(h, dt);
     }
 
     // Monitor flags controlling whther or not the Newton matrix must be updated.
@@ -114,11 +114,11 @@ void ChTimestepperHHT::Advance(const double dt) {
         Da_nrm_hist.fill(0.0);
         Dl_nrm_hist.fill(0.0);
         bool converged = false;
-        int it;
+        unsigned int it;
 
         for (it = 0; it < maxiters; it++) {
             if (verbose && modified_Newton && call_setup)
-                GetLog() << " HHT call Setup.\n";
+                std::cout << " HHT call Setup." << std::endl;
 
             // Solve linear system and increment state
             Increment(mintegrable);
@@ -150,8 +150,8 @@ void ChTimestepperHHT::Advance(const double dt) {
                 num_successful_steps = 0;
 
             if (verbose) {
-                GetLog() << " HHT NR converged (" << num_successful_steps << ").";
-                GetLog() << "  T = " << T + h << "  h = " << h << "\n";
+                std::cout << " HHT NR converged (" << num_successful_steps << ").";
+                std::cout << "  T = " << T + h << "  h = " << h << std::endl;
             }
 
             // Advance time (clamp to tfinal if close enough)
@@ -175,7 +175,7 @@ void ChTimestepperHHT::Advance(const double dt) {
 
                 // re-attempt step with updated matrix
                 if (verbose) {
-                    GetLog() << " HHT re-attempt step with updated matrix.\n";
+                    std::cout << " HHT re-attempt step with updated matrix." << std::endl;
                 }
 
                 call_setup = true;
@@ -189,8 +189,8 @@ void ChTimestepperHHT::Advance(const double dt) {
 
             // accept solution as is and complete step
             if (verbose) {
-                GetLog() << " HHT NR terminated.";
-                GetLog() << "  T = " << T + h << "  h = " << h << "\n";
+                std::cout << " HHT NR terminated.";
+                std::cout << "  T = " << T + h << "  h = " << h << std::endl;
             }
 
             T += h;
@@ -209,13 +209,13 @@ void ChTimestepperHHT::Advance(const double dt) {
             h *= step_decrease_factor;
 
             if (verbose)
-                GetLog() << " ---HHT reduce stepsize to " << h << "\n";
+                std::cout << " ---HHT reduce stepsize to " << h << std::endl;
 
             // bail out if stepsize reaches minimum allowable
             if (h < h_min) {
                 if (verbose)
-                    GetLog() << " HHT at minimum stepsize. Exiting...\n";
-                throw ChException("HHT: Reached minimum allowable step size.");
+                    std::cerr << " HHT at minimum stepsize. Exiting..." << std::endl;
+                throw std::runtime_error("HHT: Reached minimum allowable step size.");
             }
 
             // force a matrix re-evaluation (due to change in stepsize)
@@ -230,7 +230,7 @@ void ChTimestepperHHT::Advance(const double dt) {
         // Scatter state -> system
         mintegrable->StateScatter(X, V, T, false);
         Rold.setZero();
-        Anew.setZero(mintegrable->GetNcoords_a(), mintegrable);
+        Anew.setZero(mintegrable->GetNumCoordsVelLevel(), mintegrable);
     }
 
     // Scatter state -> system doing a full update
@@ -270,7 +270,7 @@ void ChTimestepperHHT::Prepare(ChIntegrableIIorder* integrable) {
 // This is one Newton iteration to solve for a_new
 //
 // [ M - h*gamma*dF/dv - h^2*beta*dF/dx    Cq' ] [ Da ] =
-// [ Cq                                    0   ] [ Dl ]
+// [ Cq                                    0   ] [-Dl ]
 //                [ -1/(1+alpha)*M*(a_new) + (f_new +Cq*l_new) - (alpha/(1+alpha))(f_old +Cq*l_old)]
 //                [  1/(beta*h^2)*C                                                                ]
 //
@@ -283,10 +283,12 @@ void ChTimestepperHHT::Increment(ChIntegrableIIorder* integrable) {
     Qc.setZero();  // zero
 
     // Set up linear system
-    integrable->LoadResidual_F(R, 1.0);                                              //  f_new
-    integrable->LoadResidual_CqL(R, Lnew, 1.0);                                      //  Cq'*l_new
-    integrable->LoadResidual_Mv(R, Anew, -1 / (1 + alpha));                          // -1/(1+alpha)*M*a_new
-    integrable->LoadConstraint_C(Qc, 1 / (beta * h * h), Qc_do_clamp, Qc_clamping);  //  1/(beta*h^2)*C
+    integrable->LoadResidual_F(R, 1.0);                      //  f_new
+    integrable->LoadResidual_CqL(R, Lnew, 1.0);              //  Cq'*l_new
+    integrable->LoadResidual_Mv(R, Anew, -1 / (1 + alpha));  // -1/(1+alpha)*M*a_new
+    integrable->LoadConstraint_C(
+        Qc, 1 / (beta * h * h), Qc_do_clamp,
+        Qc_clamping);  //  Qc= 1/(beta*h^2)*C  (sign will be flipped later in StateSolveCorrection)
 
     // Solve linear system
     integrable->StateSolveCorrection(Da, Dl, R, Qc,
@@ -335,11 +337,11 @@ bool ChTimestepperHHT::CheckConvergence(int it) {
     }
 
     if (verbose) {
-        GetLog() << "   HHT iteration=" << numiters;
-        GetLog() << "  |R|=" << R_nrm << "  |Qc|=" << Qc_nrm << "  |Da|=" << Da_nrm << "  |Dl|=" << Dl_nrm;
+        std::cout << "   HHT iteration=" << numiters;
+        std::cout << "  |R|=" << R_nrm << "  |Qc|=" << Qc_nrm << "  |Da|=" << Da_nrm << "  |Dl|=" << Dl_nrm;
         if (it >= 2)
-            GetLog() << "  Conv. rate = " << convergence_rate;
-        GetLog() << "\n";
+            std::cout << "  Conv. rate = " << convergence_rate;
+        std::cout << std::endl;
     }
 
     if ((R_nrm < abstolS && Qc_nrm < abstolL) || (Da_nrm < 1 && Dl_nrm < 1))

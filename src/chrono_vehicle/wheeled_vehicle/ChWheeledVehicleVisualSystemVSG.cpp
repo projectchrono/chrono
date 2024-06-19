@@ -41,26 +41,20 @@ void ChWheeledVehicleVisualSystemVSG::AppendGUIStats() {
     if (num_driven_axles < 1)
         return;
 
-    char label[64];
-    int nstr = sizeof(label) - 1;
-
     ImGui::Spacing();
 
     if (ImGui::BeginTable("TireTable", 3, ImGuiTableFlags_BordersOuter | ImGuiTableFlags_SizingFixedFit,
                           ImVec2(0.0f, 0.0f))) {
-        for (int i = 0; i < num_driven_axles; i++) {
-            int axle = driven_axles[i];
+        for (unsigned int i = 0; i < num_driven_axles; i++) {
+            unsigned int axle = driven_axles[i];
             ImGui::TableNextColumn();
-            snprintf(label, nstr, "Axle %1d torques", driven_axles[i]);
-            ImGui::Text(label);
+            ImGui::Text("Axle %1d torques", driven_axles[i]);
 
             ImGui::TableNextColumn();
-            snprintf(label, nstr, " L: %5.1f Nm", driveline->GetSpindleTorque(axle, VehicleSide::LEFT));
-            ImGui::Text(label);
+            ImGui::Text(" L: %5.1f Nm", driveline->GetSpindleTorque(axle, VehicleSide::LEFT));
 
             ImGui::TableNextColumn();
-            snprintf(label, nstr, " R: %5.1f Nm", driveline->GetSpindleTorque(axle, VehicleSide::RIGHT));
-            ImGui::Text(label);
+            ImGui::Text(" R: %5.1f Nm", driveline->GetSpindleTorque(axle, VehicleSide::RIGHT));
 
             ImGui::TableNextRow();
         }

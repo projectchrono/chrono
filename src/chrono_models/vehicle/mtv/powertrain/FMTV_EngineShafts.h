@@ -28,7 +28,7 @@ namespace chrono {
 namespace vehicle {
 namespace fmtv {
 
-/// @addtogroup vehicle_models_FMTV
+/// @addtogroup vehicle_models_fmtv
 /// @{
 
 /// Shafts-based engine model for the FMTV vehicle.
@@ -41,8 +41,8 @@ class CH_MODELS_API FMTV_EngineShafts : public ChEngineShafts {
     virtual double GetMotorBlockInertia() const override { return m_motorblock_inertia; }
     virtual double GetMotorshaftInertia() const override { return m_motorshaft_inertia; }
 
-    virtual void SetEngineTorqueMap(std::shared_ptr<ChFunction_Recorder>& map) override;
-    virtual void SetEngineLossesMap(std::shared_ptr<ChFunction_Recorder>& map) override;
+    virtual void SetEngineTorqueMap(std::shared_ptr<ChFunctionInterp>& map) override;
+    virtual void SetEngineLossesMap(std::shared_ptr<ChFunctionInterp>& map) override;
 
   private:
     // Shaft inertias.
@@ -50,7 +50,7 @@ class CH_MODELS_API FMTV_EngineShafts : public ChEngineShafts {
     static const double m_motorshaft_inertia;
 };
 
-/// @} vehicle_models_FMTV
+/// @} vehicle_models_fmtv
 
 }  // namespace fmtv
 }  // end namespace vehicle

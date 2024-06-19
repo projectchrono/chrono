@@ -16,7 +16,7 @@
 //
 // =============================================================================
 
-#include "chrono/assets/ChTriangleMeshShape.h"
+#include "chrono/assets/ChVisualShapeTriangleMesh.h"
 #include "chrono/utils/ChUtilsInputOutput.h"
 
 #include "chrono_vehicle/ChVehicleModelData.h"
@@ -30,10 +30,10 @@ namespace fmtv {
 // Static variables
 
 const double LMTV_ChassisRear::m_body_mass = 1938.333;
-const ChVector<> LMTV_ChassisRear::m_body_inertiaXX(2.4461e3, 2.4605e3, 3.2300e3);
-const ChVector<> LMTV_ChassisRear::m_body_inertiaXY(0, -0.1055e3, 0);
-const ChVector<> LMTV_ChassisRear::m_body_COM_loc(-3.1919, 0, 0.8404);
-const ChVector<> LMTV_ChassisRear::m_connector_loc(-1.85, 0, 0.45);
+const ChVector3d LMTV_ChassisRear::m_body_inertiaXX(2.4461e3, 2.4605e3, 3.2300e3);
+const ChVector3d LMTV_ChassisRear::m_body_inertiaXY(0, -0.1055e3, 0);
+const ChVector3d LMTV_ChassisRear::m_body_COM_loc(-3.1919, 0, 0.8404);
+const ChVector3d LMTV_ChassisRear::m_connector_loc(-1.85, 0, 0.45);
 
 const double LMTV_ChassisConnector::m_torsion_stiffness = 7085;
 
@@ -67,10 +67,10 @@ LMTV_ChassisRear::LMTV_ChassisRear(const std::string& name, CollisionType chassi
     double widthFrame = 0.905;
     double heightFrame = 0.2;
 
-    ChVector<> rearBoxPos((-4.9 + joint_pos_x) / 2, 0, joint_pos_z);
+    ChVector3d rearBoxPos((-4.9 + joint_pos_x) / 2, 0, joint_pos_z);
     ChVehicleGeometry::BoxShape box(rearBoxPos, ChQuaternion<>(1, 0, 0, 0),
-                                    ChVector<>(joint_pos_x + 4.7, widthFrame, heightFrame));
-    ChVehicleGeometry::CylinderShape cyl_torsion(m_connector_loc, ChVector<>(1, 0, 0), 0.1, 0.2);
+                                    ChVector3d(joint_pos_x + 4.7, widthFrame, heightFrame));
+    ChVehicleGeometry::CylinderShape cyl_torsion(m_connector_loc, ChVector3d(1, 0, 0), 0.1, 0.2);
 
     m_geometry.m_has_primitives = true;
     m_geometry.m_vis_boxes.push_back(box);
@@ -85,12 +85,20 @@ LMTV_ChassisRear::LMTV_ChassisRear(const std::string& name, CollisionType chassi
 
     m_geometry.m_has_collision = (chassis_collision_type != CollisionType::NONE);
     switch (chassis_collision_type) {
-        case CollisionType::HULLS:
-            // For now, fall back to using primitive collision shapes
         case CollisionType::PRIMITIVES:
             box.m_matID = 0;
             m_geometry.m_coll_boxes.push_back(box);
             break;
+        case CollisionType::HULLS: {
+            ChVehicleGeometry::ConvexHullsShape hull("mtv/meshes/m1078_rear.obj", 0);
+            m_geometry.m_coll_hulls.push_back(hull);
+            break;
+        }
+        case CollisionType::MESH: {
+            ChVehicleGeometry::TrimeshShape trimesh(ChVector3d(), "mtv/meshes/m1078_rear.obj", 0.005, 0);
+            m_geometry.m_coll_meshes.push_back(trimesh);
+            break;
+        }
         default:
             break;
     }

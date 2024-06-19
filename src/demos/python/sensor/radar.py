@@ -11,34 +11,34 @@ class simulation:
 
     def __init__(self) -> None:
         self.system = chrono.ChSystemNSC()
-        self.system.Set_G_acc(chrono.ChVectorD(0,0,0))
+        self.system.SetGravitationalAcceleration(chrono.ChVector3d(0,0,0))
 
         green = self.init_vis_mat(chrono.ChColor(0,1,0))
         black = self.init_vis_mat(chrono.ChColor(1,1,1))
         yellow = self.init_vis_mat(chrono.ChColor(1,1,0))
 
         ground = chrono.ChBodyEasyBox(1000,40,1,1000,True,False)
-        ground.SetPos(chrono.ChVectorD(0,0,-1))
-        ground.SetBodyFixed(True)
+        ground.SetPos(chrono.ChVector3d(0,0,-1))
+        ground.SetFixed(True)
         ground.GetVisualShape(0).SetMaterial(0, green)
         self.system.Add(ground)
 
         egocar = chrono.ChBodyEasyBox(5,2,2,1000,True,False)
-        egocar.SetPos(chrono.ChVectorD(0,1,1))
+        egocar.SetPos(chrono.ChVector3d(0,1,1))
         egocar.GetVisualShape(0).SetMaterial(0, yellow)
         self.system.Add(egocar)
 
         frontcar = chrono.ChBodyEasyBox(5,2,2,1000,True,False)
-        frontcar.SetPos(chrono.ChVectorD(20,1,1))
-        frontcar.SetPos_dt(chrono.ChVectorD(5,0,0))
+        frontcar.SetPos(chrono.ChVector3d(20,1,1))
+        frontcar.SetPosDt(chrono.ChVector3d(5,0,0))
         frontcar.GetVisualShape(0).SetMaterial(0, yellow)
         self.system.Add(frontcar)
 
         # incoming cars on the left lane
         for i in range(10):
             leftcar = chrono.ChBodyEasyBox(5,2,2,1000,True,False)
-            leftcar.SetPos(chrono.ChVectorD(10 + i * 15 ,20,1))
-            leftcar.SetPos_dt(chrono.ChVectorD(-5,0,0))
+            leftcar.SetPos(chrono.ChVector3d(10 + i * 15 ,20,1))
+            leftcar.SetPosDt(chrono.ChVector3d(-5,0,0))
             leftcar.GetVisualShape(0).SetMaterial(0, yellow)
             self.system.Add(leftcar)
 
@@ -46,12 +46,12 @@ class simulation:
         # cars in the right lane
         for i in range(10):
             rightcar = chrono.ChBodyEasyBox(5,2,2,1000,True,False)
-            rightcar.SetPos(chrono.ChVectorD(10 + i * 15 ,-20,1))
-            rightcar.SetPos_dt(chrono.ChVectorD(15,0,0))
+            rightcar.SetPos(chrono.ChVector3d(10 + i * 15 ,-20,1))
+            rightcar.SetPosDt(chrono.ChVector3d(15,0,0))
             rightcar.GetVisualShape(0).SetMaterial(0, black)
             self.system.Add(rightcar)
 
-        offset_pose = chrono.ChFrameD(chrono.ChVectorD(3,0,0), chrono.Q_from_AngZ(0))
+        offset_pose = chrono.ChFramed(chrono.ChVector3d(3,0,0), chrono.QuatFromAngleZ(0))
         self.adding_sensors(egocar, offset_pose)
 
 
@@ -65,10 +65,10 @@ class simulation:
     def adding_sensors(self, body, offset_pose):
         self.manager = sens.ChSensorManager(self.system)
         intensity = 1.0
-        self.manager.scene.AddPointLight(chrono.ChVectorF(2, 2.5, 100), chrono.ChColor(intensity, intensity, intensity), 500.0)
-        self.manager.scene.AddPointLight(chrono.ChVectorF(9, 2.5, 100), chrono.ChColor(intensity, intensity, intensity), 500.0)
-        self.manager.scene.AddPointLight(chrono.ChVectorF(16, 2.5, 100), chrono.ChColor(intensity, intensity, intensity), 500.0)
-        self.manager.scene.AddPointLight(chrono.ChVectorF(23, 2.5, 100), chrono.ChColor(intensity, intensity, intensity), 500.0)
+        self.manager.scene.AddPointLight(chrono.ChVector3f(2, 2.5, 100), chrono.ChColor(intensity, intensity, intensity), 500.0)
+        self.manager.scene.AddPointLight(chrono.ChVector3f(9, 2.5, 100), chrono.ChColor(intensity, intensity, intensity), 500.0)
+        self.manager.scene.AddPointLight(chrono.ChVector3f(16, 2.5, 100), chrono.ChColor(intensity, intensity, intensity), 500.0)
+        self.manager.scene.AddPointLight(chrono.ChVector3f(23, 2.5, 100), chrono.ChColor(intensity, intensity, intensity), 500.0)
        
         update_rate = 30
         lag = 0

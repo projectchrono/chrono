@@ -44,6 +44,7 @@ class CH_MODELS_API M113 {
     ~M113();
 
     void SetContactMethod(ChContactMethod val) { m_contactMethod = val; }
+    void SetCollisionSystemType(ChCollisionSystem::Type collsys_type) { m_collsysType = collsys_type; }
 
     void SetChassisFixed(bool val) { m_fixed = val; }
     void SetChassisCollisionType(CollisionType val) { m_chassisCollisionType = val; }
@@ -74,8 +75,6 @@ class CH_MODELS_API M113 {
     void SetInitPosition(const ChCoordsys<>& pos) { m_initPos = pos; }
     void SetInitFwdVel(double fwdVel) { m_initFwdVel = fwdVel; }
 
-    void SetCollisionSystemType(collision::ChCollisionSystemType collsys_type) { m_collsysType = collsys_type; }
-
     void SetGyrationMode(bool val) { m_gyration_mode = val; }
 
     void SetAerodynamicDrag(double Cd, double area, double air_density);
@@ -98,8 +97,7 @@ class CH_MODELS_API M113 {
     void SetRoadWheelVisualizationType(VisualizationType vis) { m_vehicle->SetRoadWheelVisualizationType(vis); }
     void SetTrackShoeVisualizationType(VisualizationType vis) { m_vehicle->SetTrackShoeVisualizationType(vis); }
 
-    void Synchronize(double time,
-                     const DriverInputs& driver_inputs);
+    void Synchronize(double time, const DriverInputs& driver_inputs);
     void Synchronize(double time,
                      const DriverInputs& driver_inputs,
                      const TerrainForces& shoe_forces_left,
@@ -110,7 +108,7 @@ class CH_MODELS_API M113 {
 
   protected:
     ChContactMethod m_contactMethod;
-    collision::ChCollisionSystemType m_collsysType;
+    ChCollisionSystem::Type m_collsysType;
     CollisionType m_chassisCollisionType;
     bool m_fixed;
     bool m_create_track;

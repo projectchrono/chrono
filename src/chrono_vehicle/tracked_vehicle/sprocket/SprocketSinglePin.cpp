@@ -17,7 +17,7 @@
 //
 // =============================================================================
 
-#include "chrono/assets/ChTriangleMeshShape.h"
+#include "chrono/assets/ChVisualShapeTriangleMesh.h"
 #include "chrono_vehicle/ChVehicleModelData.h"
 #include "chrono_vehicle/tracked_vehicle/sprocket/SprocketSinglePin.h"
 #include "chrono_vehicle/utils/ChUtilsJSON.h"
@@ -32,13 +32,14 @@ namespace vehicle {
 // -----------------------------------------------------------------------------
 // -----------------------------------------------------------------------------
 SprocketSinglePin::SprocketSinglePin(const std::string& filename) : ChSprocketSinglePin(""), m_has_mesh(false) {
-    Document d; ReadFileJSON(filename, d);
+    Document d;
+    ReadFileJSON(filename, d);
     if (d.IsNull())
         return;
 
     Create(d);
 
-    GetLog() << "Loaded JSON: " << filename.c_str() << "\n";
+    std::cout << "Loaded JSON " << filename << std::endl;
 }
 
 SprocketSinglePin::SprocketSinglePin(const rapidjson::Document& d) : ChSprocketSinglePin(""), m_has_mesh(false) {
@@ -61,7 +62,7 @@ void SprocketSinglePin::Create(const rapidjson::Document& d) {
 
     // Read profile information
     assert(d.HasMember("Profile"));
-    m_gear_RT = d["Profile"]["Addenum Radius"].GetDouble();
+    m_gear_RT = d["Profile"]["Addendum Radius"].GetDouble();
     m_gear_R = d["Profile"]["Arc Radius"].GetDouble();
     m_gear_RC = d["Profile"]["Arc Centers Radius"].GetDouble();
     m_gear_RA = d["Profile"]["Assembly Radius"].GetDouble();
@@ -86,9 +87,8 @@ void SprocketSinglePin::CreateContactMaterial(ChContactMethod contact_method) {
 // -----------------------------------------------------------------------------
 void SprocketSinglePin::AddVisualizationAssets(VisualizationType vis) {
     if (vis == VisualizationType::MESH && m_has_mesh) {
-        auto trimesh =
-            geometry::ChTriangleMeshConnected::CreateFromWavefrontFile(vehicle::GetDataFile(m_meshFile), true, true);
-        auto trimesh_shape = chrono_types::make_shared<ChTriangleMeshShape>();
+        auto trimesh = ChTriangleMeshConnected::CreateFromWavefrontFile(vehicle::GetDataFile(m_meshFile), true, true);
+        auto trimesh_shape = chrono_types::make_shared<ChVisualShapeTriangleMesh>();
         trimesh_shape->SetMesh(trimesh);
         trimesh_shape->SetName(filesystem::path(m_meshFile).stem());
         trimesh_shape->SetMutable(false);

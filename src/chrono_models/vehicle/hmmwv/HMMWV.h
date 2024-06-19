@@ -48,7 +48,7 @@ class CH_MODELS_API HMMWV {
     virtual ~HMMWV();
 
     void SetContactMethod(ChContactMethod val) { m_contactMethod = val; }
-    void SetCollisionSystemType(collision::ChCollisionSystemType collsys_type) { m_collsysType = collsys_type; }
+    void SetCollisionSystemType(ChCollisionSystem::Type collsys_type) { m_collsysType = collsys_type; }
 
     void SetChassisFixed(bool val) { m_fixed = val; }
     void SetChassisCollisionType(CollisionType val) { m_chassisCollisionType = val; }
@@ -61,6 +61,7 @@ class CH_MODELS_API HMMWV {
     void SetTireType(TireModelType val) { m_tireType = val; }
 
     void SetTireCollisionType(ChTire::CollisionType collision_type) { m_tire_collision_type = collision_type; }
+    void SetTireContactSurfaceType(ChTire::ContactSurfaceType surface_type, double surface_dim, int collision_family);
 
     void SetInitPosition(const ChCoordsys<>& pos) { m_initPos = pos; }
     void SetInitFwdVel(double fwdVel) { m_initFwdVel = fwdVel; }
@@ -74,6 +75,7 @@ class CH_MODELS_API HMMWV {
     ChWheeledVehicle& GetVehicle() const { return *m_vehicle; }
     std::shared_ptr<ChChassis> GetChassis() const { return m_vehicle->GetChassis(); }
     std::shared_ptr<ChBodyAuxRef> GetChassisBody() const { return m_vehicle->GetChassisBody(); }
+    const ChFrameMoving<>& GetRefFrame() const { return m_vehicle->GetRefFrame(); }
 
     void Initialize();
 
@@ -99,7 +101,7 @@ class CH_MODELS_API HMMWV {
     virtual HMMWV_Vehicle* CreateVehicle() = 0;
 
     ChContactMethod m_contactMethod;
-    collision::ChCollisionSystemType m_collsysType;
+    ChCollisionSystem::Type m_collsysType;
     CollisionType m_chassisCollisionType;
     bool m_fixed;
     bool m_brake_locking;
@@ -111,6 +113,9 @@ class CH_MODELS_API HMMWV {
     BrakeType m_brake_type;
     TireModelType m_tireType;
     ChTire::CollisionType m_tire_collision_type;
+    ChTire::ContactSurfaceType m_tire_surface_type;
+    double m_tire_surface_dim;
+    int m_tire_collision_family;
 
     double m_tire_step_size;
 
@@ -151,8 +156,8 @@ class CH_MODELS_API HMMWV_Full : public HMMWV {
   private:
     virtual HMMWV_Vehicle* CreateVehicle() override;
 
-    bool m_use_tierod_bodies;       ///< tierod bodies + joints (true) or distance constraints (false)
-    bool m_rigidColumn;             ///< only used with PITMAN_ARM_SHAFT
+    bool m_use_tierod_bodies;  ///< tierod bodies + joints (true) or distance constraints (false)
+    bool m_rigidColumn;        ///< only used with PITMAN_ARM_SHAFT
 };
 
 /// Definition of a HMMWV vehicle assembly (vehicle, powertrain, and tires), using reduced

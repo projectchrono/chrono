@@ -112,7 +112,7 @@ TEST(real4, functions) {
         real3 Res1a = Rotate(V, R1);
         ChQuaternion<real> R2 = ToChQuaternion(R1);
 
-        ChVector<real> Res2 = R2.Rotate(ToChVector(V));
+        ChVector3<real> Res2 = R2.Rotate(ToChVector(V));
         Assert_near(Res1a, FromChVector(Res2), precision);
     }
 

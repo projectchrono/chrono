@@ -18,21 +18,24 @@
 
 #include "chrono/core/ChCoordsys.h"
 #include "chrono/core/ChMatrix.h"
-#include "chrono/core/ChVector.h"
+#include "chrono/core/ChVector3.h"
 #include "chrono/core/ChFrame.h"
 #include "chrono/assets/ChVisualMaterial.h"
-#include "chrono/motion_functions/ChFunction_Base.h"
+#include "chrono/functions/ChFunctionBase.h"
 #include "chrono/physics/ChSystem.h"
 
 #include "chrono_irrlicht/ChApiIrr.h"
 
+/// Main Irrlicht namespace  (Chrono extensions).
 namespace irr {
+
+/// Irrlicht base classes (Chrono extensions).
 namespace core {
 
 /// Utility class to convert a Chrono vector into an Irrlicht vector3df.
 class ChApiIrr vector3dfCH : public vector3df {
   public:
-    vector3dfCH(const chrono::ChVector<>& mch);
+    vector3dfCH(const chrono::ChVector3d& mch);
 };
 
 /// Utility class to convert a Chrono frame into an Irrlicht transform.
@@ -117,7 +120,7 @@ ChApiIrr int drawAllContactPoints(ChVisualSystemIrrlicht* vis,
 /// Draw contact informations as labels at the contact point.
 ChApiIrr int drawAllContactLabels(ChVisualSystemIrrlicht* vis,
                                   ContactsLabelMode labeltype = ContactsLabelMode::CONTACT_FORCES_N_VAL,
-                                  ChColor col = ChColor(1, 1, 1));
+                                  ChColor col = ChColor(1.f, 1.f, 1.f));
 
 /// Draw reaction forces in all contacts in current Irrlicht viewer.
 ChApiIrr int drawAllLinks(ChVisualSystemIrrlicht* vis,
@@ -127,7 +130,7 @@ ChApiIrr int drawAllLinks(ChVisualSystemIrrlicht* vis,
 /// Draw contact informations as labels at the contact point.
 ChApiIrr int drawAllLinkLabels(ChVisualSystemIrrlicht* vis,
                                LinkLabelMode labeltype = LinkLabelMode::LINK_REACT_FORCE_X,
-                               ChColor col = ChColor(1, 1, 1));
+                               ChColor col = ChColor(1.f, 1.f, 1.f));
 
 /// Draw collision objects bounding boxes for rigid bodies (if they have a collision shape).
 ChApiIrr int drawAllBoundingBoxes(ChVisualSystemIrrlicht* vis);
@@ -138,37 +141,48 @@ ChApiIrr int drawAllCOGs(ChVisualSystemIrrlicht* vis, double scale = 0.01);
 /// Draw coordinate systems of link frames.
 ChApiIrr int drawAllLinkframes(ChVisualSystemIrrlicht* vis, double scale = 0.01);
 
+/// Draw the plot of solver violations.
+/// Each vertical red bar of the plot represents the residual during the solver iterations.
+/// The rightmost red bar represents the residual after the latest iteration.
+/// The red horizontal line respresents the tolerance requested to the solver.
+/// The Y axis ranges from zero to four times the requested tolerance (or 4*1e-6 if no tolerance is set).
+/// If the last red bar does not fall below the red line, the solver did not converge.
+/// It is then recommended to increase the number of iterations, reduce the timestep or consider relaxing the tolerance.
+/// Yellow bars refers to the variation of Lagrange multipliers during the iterations.
+/// For them, the Y axis ranges from zero to the maximum variation observed among all the iterations of the last step.
 ChApiIrr void drawHUDviolation(ChVisualSystemIrrlicht* vis,
-                               int mx = 10,
-                               int my = 290,
-                               int sx = 300,
-                               int sy = 100,
-                               double spfact = 100.0);
+                               int pos_x = 10,
+                               int pos_y = 290,
+                               int width = 300,
+                               int height = 100);
 
-ChApiIrr void drawChFunction(ChVisualSystemIrrlicht* vis,
-                             std::shared_ptr<ChFunction> fx,
-                             double xmin = 0,
-                             double xmax = 1,
-                             double ymin = -1,
-                             double ymax = 1,
-                             int mx = 10,
-                             int my = 290,
-                             int sx = 300,
-                             int sy = 100,
-                             ChColor col = ChColor(1, 0, 0),
-                             const char* title = 0);
+/// Draw function value.
+/// Plot widget coordinates are considered from top-left corner of the Irrlicht window.
+ChApiIrr void drawChFunction(ChVisualSystemIrrlicht* vis,           ///< visual system
+                             std::shared_ptr<ChFunction> fx,        ///< function to draw
+                             double xmin = 0,                       ///< minimum X of the plot
+                             double xmax = 1,                       ///< maximum X of the plot
+                             double ymin = -1,                      ///< minimum Y of the plot
+                             double ymax = 1,                       ///< maximum Y of the plot
+                             int pos_x = 10,                        ///< top-left corner X position of the plot window
+                             int pos_y = 290,                       ///< top-left corner Y position of the plot window
+                             int width = 300,                       ///< width of the plot window
+                             int height = 100,                      ///< height of the plot window
+                             ChColor col = ChColor(1.f, 0.f, 0.f),  ///< color of the plot line
+                             std::string title = ""                 ///< title of the plot
+);
 
 /// Draw line segments in 3D space with given color.
 ChApiIrr void drawSegment(ChVisualSystemIrrlicht* vis,
-                          ChVector<> start,
-                          ChVector<> end,
-                          ChColor col = ChColor(1, 1, 1),
+                          ChVector3d start,
+                          ChVector3d end,
+                          ChColor col = ChColor(1.f, 1.f, 1.f),
                           bool use_Zbuffer = false);
 
 /// Draw a polyline in 3D space, given the array of points.
 ChApiIrr void drawPolyline(ChVisualSystemIrrlicht* vis,
-                           std::vector<ChVector<> >& points,
-                           ChColor col = ChColor(1, 1, 1),
+                           std::vector<ChVector3d>& points,
+                           ChColor col = ChColor(1.f, 1.f, 1.f),
                            bool use_Zbuffer = false);
 
 /// Draw a circle line in 3D space with given color.
@@ -176,7 +190,7 @@ ChApiIrr void drawPolyline(ChVisualSystemIrrlicht* vis,
 ChApiIrr void drawCircle(ChVisualSystemIrrlicht* vis,
                          double radius,
                          ChCoordsys<> pos = CSYSNORM,
-                         ChColor col = ChColor(1, 1, 1),
+                         ChColor col = ChColor(1.f, 1.f, 1.f),
                          int resolution = 36,
                          bool use_Zbuffer = false);
 
@@ -185,9 +199,9 @@ ChApiIrr void drawCircle(ChVisualSystemIrrlicht* vis,
 /// helix) and the number of turns.
 ChApiIrr void drawSpring(ChVisualSystemIrrlicht* vis,
                          double radius,
-                         ChVector<> start,
-                         ChVector<> end,
-                         ChColor col = ChColor(1, 1, 1),
+                         ChVector3d start,
+                         ChVector3d end,
+                         ChColor col = ChColor(1.f, 1.f, 1.f),
                          int resolution = 65,
                          double turns = 5,
                          bool use_Zbuffer = false);
@@ -197,7 +211,7 @@ ChApiIrr void drawRotSpring(ChVisualSystemIrrlicht* vis,
                             double radius,
                             double start_angle,
                             double end_angle,
-                            ChColor col = ChColor(1, 1, 1),
+                            ChColor col = ChColor(1.f, 1.f, 1.f),
                             int resolution = 65,
                             bool use_Zbuffer = false);
 
@@ -212,28 +226,43 @@ ChApiIrr void drawGrid(ChVisualSystemIrrlicht* vis,
                        bool use_Zbuffer = false);
 
 /// Draw color bar with a color map and 2D legend.
-ChApiIrr void drawColorbar(ChVisualSystemIrrlicht* vis,
-                           double vmin,
-                           double vmax,
-                           const std::string& label,
-                           int mx = 740,
-                           int my = 20,
-                           int sx = 30,
-                           int sy = 300);
+/// Plot widget coordinates are considered from top-left corner of the Irrlicht window.
+ChApiIrr void drawColorbar(ChVisualSystemIrrlicht* vis,  ///< visual system
+                           double value_min,             ///< minimum value of the color map
+                           double value_max,             ///< maximum value of the color map
+                           const std::string& label,     ///< label of the color bar
+                           int pos_x = 740,              ///< top-left corner X position of the color bar
+                           int pos_y = 20,               ///< top-left corner Y position of the color bar
+                           int width = 30,               ///< width of the color bar
+                           int height = 300              ///< height of the color bar
+);
 
 ChApiIrr void drawPlot3D(ChVisualSystemIrrlicht* vis,
                          ChMatrixConstRef X,  // x of points, in local csys x
                          ChMatrixConstRef Y,  // y of points, in local csys y
                          ChMatrixConstRef Z,  // z height map of points, in local csys z
                          ChCoordsys<> pos = CSYSNORM,
-                         ChColor col = ChColor(1, 1, 1),
+                         ChColor col = ChColor(1.f, 1.f, 1.f),
                          bool use_Zbuffer = false);
 
 /// Render run-time profiler info.
 ChApiIrr void drawProfiler(ChVisualSystemIrrlicht* vis);
 
 /// Draw RGB coordinate system.
-ChApiIrr void drawCoordsys(ChVisualSystemIrrlicht* vis, const ChCoordsys<>& coord = CSYSNORM, double scale = 1);
+ChApiIrr void drawCoordsys(ChVisualSystemIrrlicht* vis,
+                           const ChCoordsys<>& coord = CSYSNORM,
+                           double scale = 1,
+                           bool use_Zbuffer = false);
+
+/// Draw a line arrow in 3D space with given color.
+ChApiIrr void drawArrow(ChVisualSystemIrrlicht* vis,           ///< visual system
+                        ChVector3d start,                      ///< arrow start point
+                        ChVector3d end,                        ///< arrow end point
+                        ChVector3d plane_normal = VECT_Y,      ///< normal to plane containing arrow segments
+                        bool sharp = false,                    ///< set arrow shape as 'sharp' or 'wide'
+                        ChColor col = ChColor(1.f, 1.f, 1.f),  ///< color
+                        bool use_Zbuffer = false               ///< use Z buffer
+);
 
 }  // end namespace tools
 

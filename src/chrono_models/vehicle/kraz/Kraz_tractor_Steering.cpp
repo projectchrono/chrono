@@ -33,10 +33,10 @@ const double Kraz_tractor_Steering::m_pitmanArmMass = 1.605;
 
 const double Kraz_tractor_Steering::m_pitmanArmRadius = 0.02;
 
-const double Kraz_tractor_Steering::m_maxAngle = 22.7 * (CH_C_PI / 180);
+const double Kraz_tractor_Steering::m_maxAngle = 22.7 * (CH_PI / 180);
 
-const ChVector<> Kraz_tractor_Steering::m_pitmanArmInertiaMoments(0.00638, 0.00756, 0.00150);
-const ChVector<> Kraz_tractor_Steering::m_pitmanArmInertiaProducts(0.0, 0.0, 0.0);
+const ChVector3d Kraz_tractor_Steering::m_pitmanArmInertiaMoments(0.00638, 0.00756, 0.00150);
+const ChVector3d Kraz_tractor_Steering::m_pitmanArmInertiaProducts(0.0, 0.0, 0.0);
 
 // -----------------------------------------------------------------------------
 // -----------------------------------------------------------------------------
@@ -45,24 +45,24 @@ Kraz_tractor_Steering::Kraz_tractor_Steering(const std::string& name) : ChRotary
 // -----------------------------------------------------------------------------
 // Implementations of the getLocation() and getDirection() virtual methods.
 // -----------------------------------------------------------------------------
-const ChVector<> Kraz_tractor_Steering::getLocation(PointId which) {
+const ChVector3d Kraz_tractor_Steering::getLocation(PointId which) {
     const double ofs = 0.081;
     switch (which) {
         case ARM_L:
-            return ChVector<>(1.0, 0.708341392 - ofs, 0.1);
+            return ChVector3d(1.0, 0.708341392 - ofs, 0.1);
         case ARM_C:
-            return ChVector<>(1.0, 0.708341392 - ofs, 0.3);
+            return ChVector3d(1.0, 0.708341392 - ofs, 0.3);
         default:
-            return ChVector<>(0, 0, 0);
+            return ChVector3d(0, 0, 0);
     }
 }
 
-const ChVector<> Kraz_tractor_Steering::getDirection(DirectionId which) {
+const ChVector3d Kraz_tractor_Steering::getDirection(DirectionId which) {
     switch (which) {
         case REV_AXIS:
-            return ChVector<>(0, 1, 0);
+            return ChVector3d(0, 1, 0);
         default:
-            return ChVector<>(0, 1, 0);
+            return ChVector3d(0, 1, 0);
     }
 }
 

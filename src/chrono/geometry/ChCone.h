@@ -15,15 +15,17 @@
 #ifndef CHC_CONE_H
 #define CHC_CONE_H
 
-#include "chrono/geometry/ChGeometry.h"
+#include "chrono/geometry/ChVolume.h"
 
 namespace chrono {
-namespace geometry {
+
+/// @addtogroup chrono_geometry
+/// @{
 
 /// A conical geometric object for collisions and visualization.
-class ChApi ChCone : public ChGeometry {
+class ChApi ChCone : public ChVolume {
   public:
-    ChCone() : h(0), r(0) {}
+    ChCone() : r(0), h(0) {}
     ChCone(double radius, double height) : r(radius), h(height) {}
     ChCone(const ChCone& source);
     ~ChCone() {}
@@ -32,14 +34,28 @@ class ChApi ChCone : public ChGeometry {
     virtual ChCone* Clone() const override { return new ChCone(*this); }
 
     /// Get the class type as an enum.
-    virtual Type GetClassType() const override { return Type::CONE; }
+    virtual Type GetType() const override { return Type::CONE; }
 
-    /// Compute bounding box along the directions defined by the given rotation matrix.
-    /// Note: 'rot' is currently ignored.
-    virtual AABB GetBoundingBox(const ChMatrix33<>& rot) const override;
+    /// Return the volume of this solid.
+    virtual double GetVolume() const override;
+
+    /// Return the gyration matrix for this solid.
+    virtual ChMatrix33<> GetGyration() const override;
+
+    /// Compute bounding box along the directions of the shape definition frame.
+    virtual ChAABB GetBoundingBox() const override;
+
+    /// Return the radius of a bounding sphere for this geometry.
+    virtual double GetBoundingSphereRadius() const override;
 
     /// Compute the baricenter of the cone.
-    virtual ChVector<> Baricenter() const override { return ChVector<>(); }
+    virtual ChVector3d Baricenter() const override { return ChVector3d(); }
+
+    /// Evaluate position in box volume.
+    virtual ChVector3d Evaluate(double parU, double parV, double parW) const override {
+        //// TODO
+        return VNULL;
+    }
 
     /// Get the cone radius.
     double GetRadius() const { return r; }
@@ -47,22 +63,31 @@ class ChApi ChCone : public ChGeometry {
     /// Get the cone height.
     double GetHeight() const { return h; }
 
-    /// This is a solid
-    virtual int GetManifoldDimension() const override { return 3; }
+    /// Return the volume of this type of solid with given dimensions.
+    static double GetVolume(double radius, double height);
+
+    /// Return the gyration matrix of this type of solid with given dimensions.
+    static ChMatrix33<> GetGyration(double radius, double height);
+
+    /// Return the bounding box of this type of solid with given dimensions.
+    static ChAABB GetBoundingBox(double radius, double height);
+
+    /// Return the radius of a bounding sphere.
+    static double GetBoundingSphereRadius(double radius, double height);
 
     /// Method to allow serialization of transient data to archives.
-    virtual void ArchiveOut(ChArchiveOut& marchive) override;
+    virtual void ArchiveOut(ChArchiveOut& archive_out) override;
 
     /// Method to allow de-serialization of transient data from archives.
-    virtual void ArchiveIn(ChArchiveIn& marchive) override;
+    virtual void ArchiveIn(ChArchiveIn& archive_in) override;
 
-    double h;
     double r;
+    double h;
 };
 
-}  // end namespace geometry
+/// @} chrono_geometry
 
-CH_CLASS_VERSION(geometry::ChCone, 0)
+CH_CLASS_VERSION(ChCone, 0)
 
 }  // end namespace chrono
 

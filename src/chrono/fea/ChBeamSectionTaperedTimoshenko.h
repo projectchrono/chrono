@@ -15,7 +15,7 @@
 #ifndef CHBEAMSECTIONTAPEREDTIMOSHENKO_H
 #define CHBEAMSECTIONTAPEREDTIMOSHENKO_H
 
-#include "chrono/core/ChMath.h"
+#include "chrono/core/ChFrame.h"
 #include "chrono/fea/ChBeamSectionEuler.h"
 
 namespace chrono {
@@ -182,25 +182,25 @@ class ChApi ChBeamSectionTimoshenkoAdvancedGeneric : public ChBeamSectionRayleig
     /// Sets the shear rigidity, for shearing along Y axis, at shear center,
     /// usually Ayy*G for uniform elasticity, but for nonuniform elasticity
     /// here you can put a value ad-hoc from a preprocessor
-    virtual void SetYshearRigidity(const double mv) { GAyy = mv; }
+    virtual void SetShearRigidityY(const double mv) { GAyy = mv; }
 
     /// Sets the shear rigidity, for shearing along Z axis, at shear center,
     /// usually Azz*G for uniform elasticity, but for nonuniform elasticity
     /// here you can put a value ad-hoc from a preprocessor
-    virtual void SetZshearRigidity(const double mv) { GAzz = mv; }
+    virtual void SetShearRigidityZ(const double mv) { GAzz = mv; }
 
     /// Gets the shear rigidity, for shearing along Y axis at shear center, usually Ayy*G, but might be ad hoc
-    virtual double GetYshearRigidity() const { return this->GAyy; }
+    virtual double GetShearRigidityY() const { return this->GAyy; }
 
     /// Gets the shear rigidity, for shearing along Z axis at shear center, usually Azz*G, but might be ad hoc
-    virtual double GetZshearRigidity() const { return this->GAzz; }
+    virtual double GetShearRigidityZ() const { return this->GAzz; }
 
     /// Sets the damping parameters of section. You have a chance to assign different coefficients for axial, bending
     /// and torsion directions. This would be helpful for those anisotropic material, such as wind turbine blade.
-    virtual void SetBeamRaleyghDamping(DampingCoefficients mdamping_coeff) { this->rdamping_coeff = mdamping_coeff; }
+    virtual void SetRayleighDamping(DampingCoefficients mdamping_coeff) { this->rdamping_coeff = mdamping_coeff; }
 
     ///  Gets the damping parameters of section.
-    virtual DampingCoefficients GetBeamRaleyghDamping() const { return this->rdamping_coeff; }
+    virtual DampingCoefficients GetRayleighDamping() const { return this->rdamping_coeff; }
 
     /// Set the Jyy Jzz Jyz components of the sectional inertia per unit length,
     /// in centerline reference, measured along centerline main axes.
@@ -244,8 +244,8 @@ class ChApi ChBeamSectionTimoshenkoAdvancedGeneric : public ChBeamSectionRayleig
     /// NOTE: To be safe, it is recommended to  use GetMainInertiasInMassReference() instead,
     /// because Qmy,Qmz are ignored, although they are exactly zero in theory.
     virtual double GetInertiaJxxPerUnitLengthInMassReference() const {
-        GetLog() << "Warm warning: it is recommended to use GetMainInertiasInMassReference() instead, "
-                 << "and do calculation: Jmxx = Jmyy+Jmzz \n";
+        std::cerr << "WARNING: it is recommended to use GetMainInertiasInMassReference() instead, "
+                  << "and do calculation: Jmxx = Jmyy+Jmzz" << std::endl;
         return this->Jxx - this->mu * this->Mz * this->Mz - this->mu * this->My * this->My;
     };
 
@@ -325,24 +325,24 @@ class ChApi ChBeamSectionTaperedTimoshenkoAdvancedGeneric {
     /// The lumped format is used, need to multiple 0.5 * length to obtain the final inertial-damping matrix
     virtual void ComputeInertiaDampingMatrix(
         ChMatrixNM<double, 12, 12>& Ri,  ///< 12x12 sectional inertial-damping matrix values here
-        const ChVector<>& mW_A,          ///< current angular velocity of section of node A, in material frame
-        const ChVector<>& mW_B           ///< current angular velocity of section of node B, in material frame
+        const ChVector3d& mW_A,          ///< current angular velocity of section of node A, in material frame
+        const ChVector3d& mW_B           ///< current angular velocity of section of node B, in material frame
     );
 
     /// Compute the 12x12 local inertial-stiffness matrix.
     /// The lumped format is used, need to multiple 0.5 * length to obtain the final inertial-stiffness matrix
     virtual void ComputeInertiaStiffnessMatrix(
         ChMatrixNM<double, 12, 12>& Ki,  ///< 12x12 sectional inertial-stiffness matrix values here
-        const ChVector<>& mWvel_A,       ///< current angular velocity of section of node A, in material frame
-        const ChVector<>& mWacc_A,       ///< current angular acceleration of section of node A, in material frame
-        const ChVector<>& mXacc_A,       ///< current acceleration of section of node A, in material frame)
-        const ChVector<>& mWvel_B,       ///< current angular velocity of section of node B, in material frame
-        const ChVector<>& mWacc_B,       ///< current angular acceleration of section of node B, in material frame
-        const ChVector<>& mXacc_B        ///< current acceleration of section of node B, in material frame
+        const ChVector3d& mWvel_A,       ///< current angular velocity of section of node A, in material frame
+        const ChVector3d& mWacc_A,       ///< current angular acceleration of section of node A, in material frame
+        const ChVector3d& mXacc_A,       ///< current acceleration of section of node A, in material frame)
+        const ChVector3d& mWvel_B,       ///< current angular velocity of section of node B, in material frame
+        const ChVector3d& mWacc_B,       ///< current angular acceleration of section of node B, in material frame
+        const ChVector3d& mXacc_B        ///< current acceleration of section of node B, in material frame
     );
 
     /// Get the average damping parameters of this tapered cross-section.
-    virtual DampingCoefficients GetBeamRaleyghDamping() const;
+    virtual DampingCoefficients GetRayleighDamping() const;
 
     /// Compute the average section parameters: mass, inertia and rigidity, etc.
     virtual void ComputeAverageSectionParameters();
@@ -365,7 +365,7 @@ class ChApi ChBeamSectionTaperedTimoshenkoAdvancedGeneric {
     bool compute_Ri_Ki_by_num_diff = false;
 
     /// A lock to avoid computing avg_sec_par several times, initialized as false by default.
-    /// If one wants to recalculate the avg_sec_par again, set this variable to 'false' and 
+    /// If one wants to recalculate the avg_sec_par again, set this variable to 'false' and
     /// run ComputeAverageSectionParameters() again.
     bool compute_ave_sec_par = false;
 
@@ -384,7 +384,7 @@ class ChApi ChBeamSectionTaperedTimoshenkoAdvancedGeneric {
     bool use_lumped_mass_matrix;
 
     // Some important average section parameters, to calculate only once, enable to access them conveniently.
-    std::shared_ptr<AverageSectionParameters> avg_sec_par;    
+    std::shared_ptr<AverageSectionParameters> avg_sec_par;
 
     /// Compute the 12x12 sectional inertia matrix in lumped format, as in  {x_momentum,w_momentum}=[Mm]{xvel,wvel}
     /// The matrix is computed in the material reference (i.e. it is the sectional mass matrix)
@@ -406,7 +406,7 @@ class ChApi ChBeamSectionTaperedTimoshenkoAdvancedGeneric {
 
   public:
     // If fixed-size matrix of EIGEN3 library is used, we need to add this macro
-    // to reduce the possibility of alignment problems
+    // to address the possibility of alignment problems
     EIGEN_MAKE_ALIGNED_OPERATOR_NEW
 };
 

@@ -38,17 +38,24 @@ There are two prerequisites for building the Chrono VSG module:
 
   To address this issue, we provide a set of scripts (for both Windows and Linux) in the `contrib/build-scripts/vsg` directory of the Chrono source tree.  These scripts allow us to target specific releases of the VSG dependencies (i.e., tags in their respective GitHub repositories) and ensure compatibility with the current Chrono::VSG code.
 
+  The current Chrono::VSG module requires the following versions of the VSG libraries:
+  - vsg 1.1.0
+  - vsgXchange 1.1.0
+  - vsgExamples 1.1.0
+  - vsgImGui - latest
+  - assimp 5.3.1
+
 The two approaches for building and installing the VSG dependencies are described in the next two sections.
 For the reasons detailed above, We **strongly recommend** using the provided VSG [build scripts](#vsg_scripts).
 
-#### 1. VSG Framework {#vsg_framework}
+### 1. VSG Framework
 
 The official way of obtaining all VSG prerequisites for the Chrono::VSG module is to build the [vsgFramework](https://github.com/vsg-dev/vsgFramework) which collects several VSG-related projects and facilitates their build and installation in one single step.  
 
 The VSG libraries are themselves under active development, and so is vsgFramework. While functional, things do occasionally break down and some fixes may be needed to get the necessary dependency libraries. The instructions below reflect the current state of the vsgFramework code.
 
   1. Clone the vsgFramework [GitHub repository](https://github.com/vsg-dev/vsgFramework).
-     Assume the sources are in a local directory [vsgFramework_source].
+     Assume the sources are in a local directory **[vsgFramework_source]**.
   2. Create a **buid** directory and an **install** directory for vsgFramework. 
      Assume these are **[vsgFramework_build]** and **[vsgFramework_install]**, respectively.
   3. Use CMake to configure vsgFramework.  Note that the only components that are necessary for Chrono::VSG are *assimp*, *vsgImGui*, and *vsgXchange*. Enable the corresponding `BUILD_***` CMake options and unselect all other.
@@ -66,7 +73,7 @@ The VSG libraries are themselves under active development, and so is vsgFramewor
   </div>
 
 
-#### 2. VSG build scripts {#vsg_scripts}
+### 2. VSG build scripts {#vsg_scripts}
 
 With the VSG libraries themselves under active development, their latest versions may be incompatible with the current Chrono::VSG code. To ensure compatibility between the Chrono::VSG and its VSG dependencies, we provide (with the Chrono source code) a set of scripts which download specific code versions of the VSG dependencies, build all necessary libraries, and install them in a user-specified location.
 

@@ -17,8 +17,9 @@
 #include "chrono/physics/ChLoadContainer.h"
 #include "chrono/physics/ChSystemSMC.h"
 #include "chrono/utils/ChUtilsInputOutput.h"
+#include "chrono/collision/bullet/ChCollisionSystemBullet.h"
 #ifdef CHRONO_COLLISION
-    #include "chrono/collision/ChCollisionSystemChrono.h"
+    #include "chrono/collision/multicore/ChCollisionSystemMulticore.h"
 #endif
 #ifdef CHRONO_POSTPROCESS
     #include "chrono_postprocess/ChBlender.h"
@@ -46,7 +47,6 @@ ChVisualSystem::Type vis_type = ChVisualSystem::Type::VSG;
 
 bool output = false;
 bool blender_output = false;
-const std::string out_dir = GetChronoOutputPath() + "SCM_DEF_SOIL";
 
 // Type of tire (controls both contact and visualization)
 enum class TireType { CYLINDRICAL, LUGGED };
@@ -69,7 +69,7 @@ bool var_params = true;
 // Here, the vehicle moves in the terrain's negative y direction!
 class MySoilParams : public vehicle::SCMTerrain::SoilParametersCallback {
   public:
-    virtual void Set(const ChVector<>& loc,
+    virtual void Set(const ChVector3d& loc,
                      double& Bekker_Kphi,
                      double& Bekker_Kc,
                      double& Bekker_n,
@@ -101,86 +101,94 @@ class MySoilParams : public vehicle::SCMTerrain::SoilParametersCallback {
 };
 
 int main(int argc, char* argv[]) {
-    GetLog() << "Copyright (c) 2017 projectchrono.org\nChrono version: " << CHRONO_VERSION << "\n\n";
+    std::cout << "Copyright (c) 2017 projectchrono.org\nChrono version: " << CHRONO_VERSION << std::endl;
 
     // Set world frame with Y up
     vehicle::ChWorldFrame::SetYUP();
 
     // Global parameter for tire:
     double tire_rad = 0.8;
-    ChVector<> tire_center(0, 0.02 + tire_rad, -1.5);
+    ChVector3d tire_center(0, 0.02 + tire_rad, -1.5);
 
     // Create a Chrono::Engine physical system
-    auto collsys_type = collision::ChCollisionSystemType::BULLET;
+    auto collsys_type = ChCollisionSystem::Type::BULLET;
     ChSystemSMC sys;
     sys.SetNumThreads(4, 8, 1);
-    if (collsys_type == collision::ChCollisionSystemType::CHRONO) {
+    switch (collsys_type) {
+        case ChCollisionSystem::Type::BULLET: {
+            auto collsys = chrono_types::make_shared<ChCollisionSystemBullet>();
+            sys.SetCollisionSystem(collsys);
+            break;
+        }
+        case ChCollisionSystem::Type::MULTICORE: {
 #ifdef CHRONO_COLLISION
-        auto collsys = chrono_types::make_shared<collision::ChCollisionSystemChrono>();
-        collsys->SetBroadphaseGridResolution(ChVector<int>(20, 20, 10));
-        sys.SetCollisionSystem(collsys);
+            auto collsys = chrono_types::make_shared<ChCollisionSystemMulticore>();
+            collsys->SetBroadphaseGridResolution(ChVector3i(20, 20, 10));
+            sys.SetCollisionSystem(collsys);
 #endif
+            break;
+        }
     }
 
-    auto mtruss = chrono_types::make_shared<ChBody>(collsys_type);
-    mtruss->SetBodyFixed(true);
+    auto mtruss = chrono_types::make_shared<ChBody>();
+    mtruss->SetFixed(true);
     sys.Add(mtruss);
 
     // Initialize output
+    const std::string out_dir = GetChronoOutputPath() + "SCM_DEF_SOIL";
     if (output || blender_output) {
         if (!filesystem::create_directory(filesystem::path(out_dir))) {
             std::cout << "Error creating directory " << out_dir << std::endl;
             return 1;
         }
     }
-    utils::CSV_writer csv(" ");
+    utils::ChWriterCSV csv(" ");
 
     //
     // Create a rigid body with a mesh or a cylinder collision shape
     //
 
-    auto mrigidbody = chrono_types::make_shared<ChBody>(collsys_type);
-    sys.Add(mrigidbody);
-    mrigidbody->SetMass(500);
-    mrigidbody->SetInertiaXX(ChVector<>(20, 20, 20));
-    mrigidbody->SetPos(tire_center + ChVector<>(0, 0.3, 0));
+    auto wheel = chrono_types::make_shared<ChBody>();
+    sys.Add(wheel);
+    wheel->SetMass(500);
+    wheel->SetInertiaXX(ChVector3d(20, 20, 20));
+    wheel->SetPos(tire_center + ChVector3d(0, 0.3, 0));
 
-    auto material = chrono_types::make_shared<ChMaterialSurfaceSMC>();
-    mrigidbody->GetCollisionModel()->ClearModel();
+    auto material = chrono_types::make_shared<ChContactMaterialSMC>();
     switch (tire_type) {
         case TireType::LUGGED: {
-            auto trimesh = geometry::ChTriangleMeshConnected::CreateFromWavefrontFile(
+            auto trimesh = ChTriangleMeshConnected::CreateFromWavefrontFile(
                 GetChronoDataFile("models/tractor_wheel/tractor_wheel.obj"));
 
-            std::shared_ptr<ChTriangleMeshShape> mrigidmesh(new ChTriangleMeshShape);
-            mrigidmesh->SetMesh(trimesh);
-            mrigidmesh->SetColor(ChColor(0.3f, 0.3f, 0.3f));
-            mrigidbody->AddVisualShape(mrigidmesh);
+            auto vis_shape = chrono_types::make_shared<ChVisualShapeTriangleMesh>();
+            vis_shape->SetMesh(trimesh);
+            vis_shape->SetColor(ChColor(0.3f, 0.3f, 0.3f));
+            wheel->AddVisualShape(vis_shape);
 
-            mrigidbody->GetCollisionModel()->AddTriangleMesh(material, trimesh, false, false, VNULL, ChMatrix33<>(1),
-                                                             0.01);
+            auto ct_shape =
+                chrono_types::make_shared<ChCollisionShapeTriangleMesh>(material, trimesh, false, false, 0.01);
+            wheel->AddCollisionShape(ct_shape, ChFrame<>(VNULL, ChMatrix33<>(1)));
             break;
         }
         case TireType::CYLINDRICAL: {
             double radius = 0.5;
             double width = 0.4;
-            mrigidbody->GetCollisionModel()->AddCylinder(material, radius, width, ChVector<>(0),
-                                                         Q_from_AngY(CH_C_PI_2));
+            auto ct_shape = chrono_types::make_shared<ChCollisionShapeCylinder>(material, radius, width);
+            wheel->AddCollisionShape(ct_shape, ChFrame<>(ChVector3d(0), QuatFromAngleY(CH_PI_2)));
 
-            auto cyl_shape = chrono_types::make_shared<ChCylinderShape>(radius, width);
-            cyl_shape->SetColor(ChColor(0.3f, 0.3f, 0.3f));
-            mrigidbody->AddVisualShape(cyl_shape, ChFrame<>(VNULL, Q_from_AngY(CH_C_PI_2)));
+            auto vis_shape = chrono_types::make_shared<ChVisualShapeCylinder>(radius, width);
+            vis_shape->SetColor(ChColor(0.3f, 0.3f, 0.3f));
+            wheel->AddVisualShape(vis_shape, ChFrame<>(VNULL, QuatFromAngleY(CH_PI_2)));
 
             break;
         }
     }
-    mrigidbody->GetCollisionModel()->BuildModel();
-    mrigidbody->SetCollide(true);
+    wheel->EnableCollision(true);
 
     auto motor = chrono_types::make_shared<ChLinkMotorRotationAngle>();
     motor->SetSpindleConstraint(ChLinkMotorRotation::SpindleConstraint::OLDHAM);
-    motor->SetAngleFunction(chrono_types::make_shared<ChFunction_Ramp>(0, CH_C_PI / 4.0));
-    motor->Initialize(mrigidbody, mtruss, ChFrame<>(tire_center, Q_from_AngY(CH_C_PI_2)));
+    motor->SetAngleFunction(chrono_types::make_shared<ChFunctionRamp>(0, CH_PI / 4.0));
+    motor->Initialize(wheel, mtruss, ChFrame<>(tire_center, QuatFromAngleY(CH_PI_2)));
     sys.Add(motor);
 
     //
@@ -193,7 +201,7 @@ int main(int argc, char* argv[]) {
     // Displace/rotate the terrain reference plane.
     // Note that SCMTerrain uses a default ISO reference frame (Z up). Since the mechanism is modeled here in
     // a Y-up global frame, we rotate the terrain plane by -90 degrees about the X axis.
-    mterrain.SetPlane(ChCoordsys<>(ChVector<>(0, 0, 0), Q_from_AngX(-CH_C_PI_2)));
+    mterrain.SetPlane(ChCoordsys<>(ChVector3d(0, 0, 0), QuatFromAngleX(-CH_PI_2)));
 
     // Initialize the geometry of the soil
 
@@ -203,7 +211,8 @@ int main(int argc, char* argv[]) {
     mterrain.Initialize(width, length, mesh_resolution);
 
     // Or use a height map:
-    ////mterrain.Initialize(vehicle::GetDataFile("terrain/height_maps/test64.bmp"), width, length, 0, 0.5, mesh_resolution);
+    ////mterrain.Initialize(vehicle::GetDataFile("terrain/height_maps/test64.bmp"), width, length, 0, 0.5,
+    ///mesh_resolution);
 
     // Or use a mesh:
     ////mterrain.Initialize(vehicle::GetDataFile("terrain/meshes/test_terrain_irregular.obj"), mesh_resolution);
@@ -248,7 +257,7 @@ int main(int argc, char* argv[]) {
 
     // Optionally, enable moving patch feature (reduces number of ray casts)
     if (enable_moving_patch) {
-        mterrain.AddMovingPatch(mrigidbody, ChVector<>(0, 0, 0), ChVector<>(0.5, 2 * tire_rad, 2 * tire_rad));
+        mterrain.AddMovingPatch(wheel, ChVector3d(0, 0, 0), ChVector3d(0.5, 2 * tire_rad, 2 * tire_rad));
     }
 
     // Set some visualization parameters: either with a texture, or with falsecolor plot, etc.
@@ -284,7 +293,7 @@ int main(int argc, char* argv[]) {
             vis_irr->AddLogo();
             vis_irr->AddSkyBox();
             vis_irr->AddLightDirectional();
-            vis_irr->AddCamera(ChVector<>(2.0, 1.4, 0.0), ChVector<>(0, tire_rad, 0));
+            vis_irr->AddCamera(ChVector3d(2.0, 1.4, 0.0), ChVector3d(0, tire_rad, 0));
             vis_irr->AttachSystem(&sys);
 
             vis = vis_irr;
@@ -297,15 +306,15 @@ int main(int argc, char* argv[]) {
             auto vis_vsg = chrono_types::make_shared<ChVisualSystemVSG>();
             vis_vsg->AttachSystem(&sys);
             vis_vsg->SetWindowTitle("SCM deformable terrain");
-            vis_vsg->AddCamera(ChVector<>(3.0, 2.0, 0.0), ChVector<>(0, tire_rad, 0));
-            vis_vsg->SetWindowSize(ChVector2<int>(800, 600));
-            vis_vsg->SetWindowPosition(ChVector2<int>(100, 100));
+            vis_vsg->AddCamera(ChVector3d(3.0, 2.0, 0.0), ChVector3d(0, tire_rad, 0));
+            vis_vsg->SetWindowSize(ChVector2i(800, 600));
+            vis_vsg->SetWindowPosition(ChVector2i(100, 100));
             vis_vsg->SetClearColor(ChColor(0.8f, 0.85f, 0.9f));
             vis_vsg->SetUseSkyBox(true);
             vis_vsg->SetCameraVertical(CameraVerticalDir::Y);
             vis_vsg->SetCameraAngleDeg(40.0);
             vis_vsg->SetLightIntensity(1.0f);
-            vis_vsg->SetLightDirection(1.5 * CH_C_PI_2, CH_C_PI_4);
+            vis_vsg->SetLightDirection(1.5 * CH_PI_2, CH_PI_4);
             vis_vsg->Initialize();
 
             vis = vis_vsg;
@@ -314,12 +323,12 @@ int main(int argc, char* argv[]) {
         }
     }
 
-    // Create the Blender exporter
+        // Create the Blender exporter
 #ifdef CHRONO_POSTPROCESS
     postprocess::ChBlender blender_exporter(&sys);
     if (blender_output) {
         blender_exporter.SetBasePath(out_dir);
-        blender_exporter.SetCamera(ChVector<>(2.0, 1.4, 3.0), ChVector<>(0, tire_rad, 0), 50);
+        blender_exporter.SetCamera(ChVector3d(2.0, 1.4, 3.0), ChVector3d(0, tire_rad, 0), 50);
         blender_exporter.AddAll();
         blender_exporter.ExportScript();
     }
@@ -333,7 +342,7 @@ int main(int argc, char* argv[]) {
         sys.SetTimestepperType(ChTimestepper::Type::HHT);
         auto integrator = std::static_pointer_cast<ChTimestepperHHT>(sys.GetTimestepper());
         integrator->SetAlpha(-0.2);
-        integrator->SetMaxiters(8);
+        integrator->SetMaxIters(8);
         integrator->SetAbsTolerances(1e-1, 10);
         integrator->SetModifiedNewton(true);
         integrator->SetVerbose(true);
@@ -345,9 +354,9 @@ int main(int argc, char* argv[]) {
     while (vis->Run()) {
         double time = sys.GetChTime();
         if (output) {
-            ChVector<> force;
-            ChVector<> torque;
-            mterrain.GetContactForceBody(mrigidbody, force, torque);
+            ChVector3d force;
+            ChVector3d torque;
+            mterrain.GetContactForceBody(wheel, force, torque);
             csv << time << force << torque << std::endl;
         }
 
@@ -358,11 +367,11 @@ int main(int argc, char* argv[]) {
 #endif
 
         ////std::cout << "\nTime: " << time << std::endl;
-        ////std::cout << "Wheel pos: " << mrigidbody->GetPos() << std::endl;
-        ////std::cout << "Wheel rot: " << mrigidbody->GetRot() << std::endl;
+        ////std::cout << "Wheel pos: " << wheel->GetPos() << std::endl;
+        ////std::cout << "Wheel rot: " << wheel->GetRot() << std::endl;
 
         vis->BeginScene();
-        vis->SetCameraTarget(mrigidbody->GetPos());
+        vis->SetCameraTarget(wheel->GetPos());
         vis->Render();
         ////tools::drawColorbar(vis.get(), 0, 30000, "Pressure yield [Pa]", 1180);
         vis->EndScene();
@@ -372,7 +381,7 @@ int main(int argc, char* argv[]) {
     }
 
     if (output) {
-        csv.write_to_file(out_dir + "/output.dat");
+        csv.WriteToFile(out_dir + "/output.dat");
     }
 
     return 0;

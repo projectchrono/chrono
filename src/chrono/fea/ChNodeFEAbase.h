@@ -36,11 +36,11 @@ class ChApi ChNodeFEAbase : public virtual ChNodeBase {
     virtual void Relax() = 0;
 
     /// Reset to no speed and acceleration.
-    virtual void SetNoSpeedNoAcceleration() = 0;
+    virtual void ForceToRest() = 0;
 
     /// Fix/release this node.
     /// If fixed, its state variables are not changed by the solver.
-    virtual void SetFixed(bool mev) = 0;
+    virtual void SetFixed(bool fixed) = 0;
 
     /// Return true if the node is fixed (i.e., its state variables are not changed by the solver).
     virtual bool IsFixed() const = 0;
@@ -54,7 +54,7 @@ class ChApi ChNodeFEAbase : public virtual ChNodeBase {
     /// Initial setup.
     virtual void SetupInitial(ChSystem* system) {}
 
-    double m_TotalMass;  ///< Nodal mass obtained from element masss matrix
+    double m_TotalMass;  ///< Nodal mass obtained from element mass matrix
 
   protected:
     unsigned int g_index;  ///< global node index

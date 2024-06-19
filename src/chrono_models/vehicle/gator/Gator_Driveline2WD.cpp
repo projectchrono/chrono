@@ -28,7 +28,7 @@ namespace gator {
 const double Gator_Driveline2WD::m_driveshaft_inertia = 0.5;
 const double Gator_Driveline2WD::m_differentialbox_inertia = 0.6;
 
-const double Gator_Driveline2WD::m_conicalgear_ratio = 0.2;
+const double Gator_Driveline2WD::m_conicalgear_ratio = 1.0;
 
 const double Gator_Driveline2WD::m_axle_differential_locking_limit = 100;
 
@@ -37,8 +37,8 @@ const double Gator_Driveline2WD::m_axle_differential_locking_limit = 100;
 // the axles is along the Y axis (relative to the chassis coordinate frame),
 // -----------------------------------------------------------------------------
 Gator_Driveline2WD::Gator_Driveline2WD(const std::string& name) : ChShaftsDriveline2WD(name) {
-    SetMotorBlockDirection(ChVector<>(1, 0, 0));
-    SetAxleDirection(ChVector<>(0, 1, 0));
+    SetMotorBlockDirection(ChVector3d(1, 0, 0));
+    SetAxleDirection(ChVector3d(0, 1, 0));
 }
 
 }  // end namespace gator

@@ -48,6 +48,9 @@ namespace uaz {}
 /// Namespace for the bus vehicle model
 namespace citybus {}
 
+/// Namespace for the BMW 330i vehicle model
+namespace bmw {}
+
 /// Namespace for the generic wheeled vehicle model
 namespace generic {}
 
@@ -80,6 +83,12 @@ namespace kraz {}
 
 /// namespace for the Mercedes G500 vehicle model
 namespace gclass {}
+
+/// namespace for the Duro vehicle model
+namespace duro {}
+
+/// namespace for the Unimog 401 vehicle model
+namespace unimog {}
 
 /// @} vehicle_models
 

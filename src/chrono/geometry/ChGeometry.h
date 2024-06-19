@@ -12,19 +12,16 @@
 // Authors: Alessandro Tasora, Radu Serban
 // =============================================================================
 
-#ifndef CHC_GEOMETRY
-#define CHC_GEOMETRY
+#ifndef CH_GEOMETRY_H
+#define CH_GEOMETRY_H
 
 #include <memory>
 #include <limits>
 
 #include "chrono/core/ChApiCE.h"
-#include "chrono/core/ChMath.h"
+#include "chrono/core/ChFrame.h"
 
 namespace chrono {
-
-/// Namespace for classes which represent basic geometric objects
-namespace geometry {
 
 /// @addtogroup chrono_geometry
 /// @{
@@ -34,6 +31,27 @@ enum class ChAxis {
     X,  ///< x direction of a reference frame
     Y,  ///< y direction of a reference frame
     Z   ///< z direction of a reference frame
+};
+
+/// Axis-aligned bounding box.
+struct ChApi ChAABB {
+    /// Default is an inverted bounding box.
+    ChAABB();
+
+    /// Construct an AABB with provided corners.
+    ChAABB(const ChVector3d& aabb_min, const ChVector3d& aabb_max);
+
+    /// Get AABB center.
+    ChVector3d Center() const;
+
+    /// Get AABB dimensions.
+    ChVector3d Size() const;
+
+    /// Return true foir an inverted bounding box.
+    bool IsInverted() const;
+
+    ChVector3d min;  ///< low AABB corner
+    ChVector3d max;  ///< high AABB corner
 };
 
 /// Base class for geometric objects used for collisions and visualization.
@@ -63,41 +81,23 @@ class ChApi ChGeometry {
         TRIANGLEMESH_SOUP
     };
 
-    /// Axis-aligned bounding box.
-    struct ChApi AABB {
-        /// Default is an inverted bounding box.
-        AABB();
-
-        /// Construct an AABB with provided corners.
-        AABB(const ChVector<>& aabb_min, const ChVector<>& aabb_max);
-
-        /// Get AABB center.
-        ChVector<> Center() const;
-
-        /// Get AABB dimensions.
-        ChVector<> Size() const;
-
-        ChVector<> min;  ///< low AABB corner
-        ChVector<> max;  ///< high AABB corner
-    };
-
   public:
     ChGeometry() {}
-    ChGeometry(const ChGeometry& source) {}
+    ChGeometry(const ChGeometry& other) {}
     virtual ~ChGeometry() {}
 
     /// "Virtual" copy constructor.
     virtual ChGeometry* Clone() const = 0;
 
     /// Get the class type as an enum.
-    virtual Type GetClassType() const { return Type::NONE; }
+    virtual Type GetType() const { return Type::NONE; }
 
-    /// Compute bounding box along the directions defined by the given rotation matrix.
-    /// The default implementation returns a bounding box with zeros dimensions.
-    virtual AABB GetBoundingBox(const ChMatrix33<>& rot) const;
+    /// Compute bounding box along the directions of the shape definition frame.
+    /// The default implementation returns a bounding box with zero dimensions.
+    virtual ChAABB GetBoundingBox() const;
 
     /// Enlarge the given existing bounding box with the bounding box of this object.
-    void InflateBoundingBox(AABB& bbox, const ChMatrix33<>& rot) const;
+    void InflateBoundingBox(ChAABB& bbox) const;
 
     /// Returns the radius of a bounding sphere for this geometry.
     /// The default implementation returns the radius of a sphere bounding the geometry bounding box, which is not
@@ -105,7 +105,7 @@ class ChApi ChGeometry {
     virtual double GetBoundingSphereRadius() const;
 
     /// Compute center of mass.
-    virtual ChVector<> Baricenter() const { return VNULL; }
+    virtual ChVector3d Baricenter() const { return VNULL; }
 
     /// Returns the dimension of the geometry
     /// (0=point, 1=line, 2=surface, 3=solid)
@@ -115,17 +115,15 @@ class ChApi ChGeometry {
     virtual void Update() {}
 
     /// Method to allow serialization of transient data to archives.
-    virtual void ArchiveOut(ChArchiveOut& marchive);
+    virtual void ArchiveOut(ChArchiveOut& archive_out);
 
     /// Method to allow de serialization of transient data from archives.
-    virtual void ArchiveIn(ChArchiveIn& marchive);
+    virtual void ArchiveIn(ChArchiveIn& archive_in);
 };
 
 /// @} chrono_geometry
 
-}  // end namespace geometry
-
-CH_CLASS_VERSION(geometry::ChGeometry, 0)
+CH_CLASS_VERSION(ChGeometry, 0)
 
 }  // end namespace chrono
 

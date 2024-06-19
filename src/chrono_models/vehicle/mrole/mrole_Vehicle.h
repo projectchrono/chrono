@@ -21,7 +21,7 @@
 
 #include <vector>
 #include "chrono/core/ChCoordsys.h"
-#include "chrono/physics/ChMaterialSurface.h"
+#include "chrono/physics/ChContactMaterial.h"
 #include "chrono/physics/ChSystem.h"
 
 #include "chrono_vehicle/wheeled_vehicle/ChWheeledVehicle.h"
@@ -40,11 +40,11 @@ class CH_MODELS_API mrole_Vehicle : public ChWheeledVehicle {
   public:
     virtual ~mrole_Vehicle() {}
 
-    virtual int GetNumberAxles() const override { return 4; }
+    virtual unsigned int GetNumberAxles() const override { return 4; }
 
     virtual double GetWheelbase() const override { return 4.225; }  // front susp -> (susp3+susp4)/2
     virtual double GetMinTurningRadius() const override { return 9.1; }
-    virtual double GetMaxSteeringAngle() const override { return 24.66 * CH_C_DEG_TO_RAD; }
+    virtual double GetMaxSteeringAngle() const override { return 24.66 * CH_DEG_TO_RAD; }
 
     void SetInitWheelAngVel(const std::vector<double>& omega) {
         assert(omega.size() == 4);

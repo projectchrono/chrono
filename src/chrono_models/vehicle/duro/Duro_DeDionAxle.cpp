@@ -41,10 +41,10 @@ const double Duro_DeDionAxle::m_spindleRadius = 0.10;
 const double Duro_DeDionAxle::m_spindleWidth = 0.06;
 const double Duro_DeDionAxle::m_wattLinkRadius = 0.03;
 
-const ChVector<> Duro_DeDionAxle::m_axleTubeInertia(22.21, 0.0775, 22.21);
-const ChVector<> Duro_DeDionAxle::m_spindleInertia(0.04117, 0.07352, 0.04117);
-const ChVector<> Duro_DeDionAxle::m_wattCenterInertia(0.05, 0.01, 0.05);
-const ChVector<> Duro_DeDionAxle::m_wattSideInertia(0.07, 0.01, 0.07);
+const ChVector3d Duro_DeDionAxle::m_axleTubeInertia(22.21, 0.0775, 22.21);
+const ChVector3d Duro_DeDionAxle::m_spindleInertia(0.04117, 0.07352, 0.04117);
+const ChVector3d Duro_DeDionAxle::m_wattCenterInertia(0.05, 0.01, 0.05);
+const ChVector3d Duro_DeDionAxle::m_wattSideInertia(0.07, 0.01, 0.07);
 
 const double Duro_DeDionAxle::m_springDesignLength = 0.2;
 const double Duro_DeDionAxle::m_springCoefficient = 230238.1315;
@@ -75,7 +75,7 @@ class Duro_PPSpringForceRear : public ChLinkTSDA::ForceFunctor {
     double m_min_length;
     double m_max_length;
 
-    ChFunction_Recorder m_bump;
+    ChFunctionInterp m_bump;
 };
 
 Duro_PPSpringForceRear::Duro_PPSpringForceRear(double spring_constant, double min_length, double max_length)
@@ -112,7 +112,7 @@ double Duro_PPSpringForceRear::evaluate(double time,
         defl_rebound = length - m_max_length;
     }
 
-    force = defl_spring * m_spring_constant + m_bump.Get_y(defl_bump) - m_bump.Get_y(defl_rebound);
+    force = defl_spring * m_spring_constant + m_bump.GetVal(defl_bump) - m_bump.GetVal(defl_rebound);
 
     return force;
 }
@@ -180,32 +180,32 @@ Duro_DeDionAxle::Duro_DeDionAxle(const std::string& name) : ChDeDionAxle(name) {
 // -----------------------------------------------------------------------------
 Duro_DeDionAxle::~Duro_DeDionAxle() {}
 
-const ChVector<> Duro_DeDionAxle::getLocation(PointId which) {
+const ChVector3d Duro_DeDionAxle::getLocation(PointId which) {
     switch (which) {
         case SPRING_A:
-            return ChVector<>(-0.05, 0.55, 0.024);
+            return ChVector3d(-0.05, 0.55, 0.024);
         case SPRING_C:
-            return ChVector<>(-0.05, 0.55, 0.218);
+            return ChVector3d(-0.05, 0.55, 0.218);
         case SHOCK_A:
-            return ChVector<>(0.05, 0.55, 0.024);
+            return ChVector3d(0.05, 0.55, 0.024);
         case SHOCK_C:
-            return ChVector<>(0.05, 0.55, 0.318);
+            return ChVector3d(0.05, 0.55, 0.318);
         case SPINDLE:
-            return ChVector<>(0.0, 0.84, 0.0);
+            return ChVector3d(0.0, 0.84, 0.0);
         case AXLE_C:
-            return ChVector<>(1.905, 0, 0.1);
+            return ChVector3d(1.905, 0, 0.1);
         case STABI_CON:
-            return ChVector<>(1.905, 0.42, 0.1);
+            return ChVector3d(1.905, 0.42, 0.1);
         case WATT_CNT_LE:
-            return ChVector<>(-0.2, 0, 0.25);
+            return ChVector3d(-0.2, 0, 0.25);
         case WATT_CNT_RI:
-            return ChVector<>(-0.2, 0.0, 0.05);
+            return ChVector3d(-0.2, 0.0, 0.05);
         case WATT_LE_CH:
-            return ChVector<>(-0.2, -0.44, 0.25);
+            return ChVector3d(-0.2, -0.44, 0.25);
         case WATT_RI_CH:
-            return ChVector<>(-0.2, 0.44, 0.05);
+            return ChVector3d(-0.2, 0.44, 0.05);
         default:
-            return ChVector<>(0, 0, 0);
+            return ChVector3d(0, 0, 0);
     }
 }
 

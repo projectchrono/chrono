@@ -19,12 +19,9 @@
 
 namespace chrono {
 
-/// Base class for all linear "motor" constraints between
-/// two frames on two bodies. Motors of this type assume that
-/// the actuator is directed along X direction of the master frame.
-/// Look for children classes for specialized behaviors, for example
-/// ex. chrono::ChLinkMotorLinearPosition
-
+/// Base class for all linear "motor" constraints between two frames on two bodies.
+/// Motors of this type assume that the actuator is directed along Z direction of the master frame. Look for children
+/// classes for specialized behaviors, for example e.g. chrono::ChLinkMotorLinearPosition
 class ChApi ChLinkMotorLinear : public ChLinkMotor {
   public:
     /// Type of guide constraint
@@ -39,38 +36,43 @@ class ChApi ChLinkMotorLinear : public ChLinkMotor {
 
     /// Sets which movements (of frame 1 respect to frame 2) are constrained.
     /// By default, acts as a pure prismatic guide.
-    /// Note that the x direction is the motorized one, and is never affected by
+    /// Note that the Z direction is the motorized one, and is never affected by
     /// this option.
     void SetGuideConstraint(const GuideConstraint mconstraint);
 
     /// Sets which movements (of frame 1 respect to frame 2) are constrained.
     /// By default, acts as a pure prismatic guide.
-    /// Note that the x direction is the motorized one, and is never affected by
+    /// Note that the Z direction is the motorized one, and is never affected by
     /// this option.
-    void SetGuideConstraint(bool mc_y, bool mc_z, bool mc_rx, bool mc_ry, bool mc_rz);
+    void SetGuideConstraint(bool mc_x, bool mc_y, bool mc_rx, bool mc_ry, bool mc_rz);
 
-    /// Get the current actuator displacement [m], including error etc.
+    /// Get the current actuator displacement.
     virtual double GetMotorPos() const { return mpos; }
-    /// Get the current actuator speed [m/s], including error etc.
-    virtual double GetMotorPos_dt() const { return mpos_dt; }
-    /// Get the current actuator acceleration [m/s^2], including error etc.
-    virtual double GetMotorPos_dtdt() const { return mpos_dtdt; }
-    /// Get the current actuator reaction force [N]
+
+    /// Get the current actuator velocity.
+    virtual double GetMotorPosDt() const { return mpos_dt; }
+
+    /// Get the current actuator acceleration.
+    virtual double GetMotorPosDt2() const { return mpos_dtdt; }
+
+    /// Get the current actuator reaction force.
     virtual double GetMotorForce() const = 0;
 
-    void Update(double mytime, bool update_assets) override;
-
     /// Method to allow serialization of transient data to archives.
-    virtual void ArchiveOut(ChArchiveOut& marchive) override;
+    virtual void ArchiveOut(ChArchiveOut& archive_out) override;
 
     /// Method to allow deserialization of transient data from archives.
-    virtual void ArchiveIn(ChArchiveIn& marchive) override;
+    virtual void ArchiveIn(ChArchiveIn& archive_in) override;
 
   protected:
     // aux data for optimization
     double mpos;
     double mpos_dt;
     double mpos_dtdt;
+
+    int m_actuated_idx;  ///< row index of the actuated constraint (Z axis)
+
+    virtual void Update(double mytime, bool update_assets) override;
 };
 
 CH_CLASS_VERSION(ChLinkMotorLinear, 0)

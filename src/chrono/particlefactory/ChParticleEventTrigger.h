@@ -52,8 +52,8 @@ class ChParticleEventTriggerNever : public ChParticleEventTrigger {
 };
 
 /// Event trigger for particles inside a box volume.
-/// The event is triggered every time that the particle processor is run, not only the 1st time that particle enters the volume.
-/// Only the center of gravity of particle is taken into consideration, regardless of its size.
+/// The event is triggered every time that the particle processor is run, not only the 1st time that particle enters the
+/// volume. Only the center of gravity of particle is taken into consideration, regardless of its size.
 class ChParticleEventTriggerBox : public ChParticleEventTrigger {
   public:
     ChParticleEventTriggerBox() { invert_volume = false; }
@@ -61,9 +61,9 @@ class ChParticleEventTriggerBox : public ChParticleEventTrigger {
     /// This function triggers the a particle event according to the fact the the particle is inside a box.
     /// If SetTriggerOutside(true), viceversa triggers event outside the box.
     virtual bool TriggerEvent(std::shared_ptr<ChBody> mbody, ChSystem& msystem) {
-        ChVector<> particle_pos = mbody->GetPos();
+        ChVector3d particle_pos = mbody->GetPos();
 
-        ChVector<> pos = m_frame.TransformPointParentToLocal(particle_pos);
+        ChVector3d pos = m_frame.TransformPointParentToLocal(particle_pos);
 
         if (((fabs(pos.x()) < m_box.hlen.x()) && (fabs(pos.y()) < m_box.hlen.y()) && (fabs(pos.z()) < m_box.hlen.z())) ^
             invert_volume)
@@ -74,8 +74,8 @@ class ChParticleEventTriggerBox : public ChParticleEventTrigger {
 
     void SetTriggerOutside(bool minvert) { invert_volume = minvert; }
 
-    geometry::ChBox m_box;  ///< box volume
-    ChFrame<> m_frame;      ///< box position and orientation
+    ChBox m_box;        ///< box volume
+    ChFrame<> m_frame;  ///< box position and orientation
 
   protected:
     bool invert_volume;
@@ -85,10 +85,10 @@ class _particle_last_pos {
   public:
     _particle_last_pos() {}
     _particle_last_pos(const _particle_last_pos& source) { mbody = source.mbody, mpos = source.mpos; }
-    _particle_last_pos(std::shared_ptr<ChBody> mb, ChVector<> mp) : mbody(mb), mpos(mp){};
+    _particle_last_pos(std::shared_ptr<ChBody> mb, ChVector3d mp) : mbody(mb), mpos(mp){};
 
     std::shared_ptr<ChBody> mbody;
-    ChVector<> mpos;
+    ChVector3d mpos;
 };
 
 /// Trigger an event each time a particle flows into a rectangle.
@@ -103,13 +103,13 @@ class ChParticleEventFlowInRectangle : public ChParticleEventTrigger {
     ChParticleEventFlowInRectangle(double mXsize = 1, double mYsize = 1) {
         Xsize = mXsize;
         Ysize = mYsize;
-        margin = 0.1 * ChMin(Xsize, Ysize);
+        margin = 0.1 * std::min(Xsize, Ysize);
     }
 
     /// This function triggers the a particle event according to the fact
     /// the the particle is crossing a rectangle.
     virtual bool TriggerEvent(std::shared_ptr<ChBody> mbody, ChSystem& msystem) {
-        ChVector<> localpos = rectangle_csys.TransformParentToLocal(mbody->GetPos());
+        ChVector3d localpos = rectangle_csys.TransformPointParentToLocal(mbody->GetPos());
 
         // Is in lower part of rectangle?
         if ((localpos.z() <= 0) && (-localpos.z() < margin) && (fabs(localpos.x()) < 0.5 * Xsize + margin) &&
@@ -117,9 +117,9 @@ class ChParticleEventFlowInRectangle : public ChParticleEventTrigger {
             // Was it in the upper part, at last iteration?
             std::unordered_map<size_t, _particle_last_pos>::iterator mcached = last_positions.find((size_t)mbody.get());
             if (mcached != last_positions.end()) {
-                ChVector<> pA = (*mcached).second.mpos;
-                ChVector<> pB = localpos;
-                ChVector<> pColl;
+                ChVector3d pA = (*mcached).second.mpos;
+                ChVector3d pB = localpos;
+                ChVector3d pColl;
                 double tb = pA.z() / (pA.z() - pB.z());
                 double ta = -pB.z() / (pA.z() - pB.z());
                 if ((pA.z() == 0) && (pB.z() == 0))
@@ -142,8 +142,8 @@ class ChParticleEventFlowInRectangle : public ChParticleEventTrigger {
     virtual void SetupPostProcess(ChSystem& msystem) {
         last_positions.clear();
 
-        for (auto body : msystem.Get_bodylist()) {
-            ChVector<> localpos = rectangle_csys.TransformParentToLocal(body->GetPos());
+        for (auto body : msystem.GetBodies()) {
+            ChVector3d localpos = rectangle_csys.TransformPointParentToLocal(body->GetPos());
             if ((localpos.z() > 0) && (localpos.z() < margin) && (fabs(localpos.x()) < 0.5 * Xsize + margin) &&
                 (fabs(localpos.y()) < 0.5 * Ysize + margin)) {
                 // ok, was in the upper part Z>0 of the triangle.. store in hash table for next
@@ -159,7 +159,7 @@ class ChParticleEventFlowInRectangle : public ChParticleEventTrigger {
     double margin;
     ChCoordsys<> rectangle_csys;
 
-    ChVector<> last_intersectionUV;  // .x and .y in range 0..1
+    ChVector3d last_intersectionUV;  // .x and .y in range 0..1
 
   protected:
     std::unordered_map<size_t, _particle_last_pos> last_positions;

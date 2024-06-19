@@ -38,7 +38,7 @@ namespace vehicle {
 class CH_VEHICLE_API ChTrackShoeSinglePin : public ChTrackShoeSegmented {
   public:
     ChTrackShoeSinglePin(const std::string& name  ///< [in] name of the subsystem
-                         );
+    );
 
     virtual ~ChTrackShoeSinglePin();
 
@@ -47,7 +47,7 @@ class CH_VEHICLE_API ChTrackShoeSinglePin : public ChTrackShoeSegmented {
 
     /// Get track tension at this track shoe.
     /// Return is the force due to the connections of this track shoe, expressed in the track shoe reference frame.
-    virtual ChVector<> GetTension() const override;
+    virtual ChVector3d GetTension() const override;
 
     /// Initialize this track shoe subsystem.
     /// The track shoe is created within the specified system and initialized
@@ -55,7 +55,7 @@ class CH_VEHICLE_API ChTrackShoeSinglePin : public ChTrackShoeSegmented {
     /// A derived class must extend this default implementation and specify the contact
     /// geometry for the track shoe body.
     virtual void Initialize(std::shared_ptr<ChBodyAuxRef> chassis,  ///< [in] chassis body
-                            const ChVector<>& location,             ///< [in] location relative to the chassis frame
+                            const ChVector3d& location,             ///< [in] location relative to the chassis frame
                             const ChQuaternion<>& rotation          ///< [in] orientation relative to the chassis frame
                             ) override;
 
@@ -67,7 +67,7 @@ class CH_VEHICLE_API ChTrackShoeSinglePin : public ChTrackShoeSegmented {
     virtual double GetShoeMass() const = 0;
 
     /// Return the moments of inertia of the shoe body.
-    virtual const ChVector<>& GetShoeInertia() const = 0;
+    virtual const ChVector3d& GetShoeInertia() const = 0;
 
     /// Return the location of the front contact cylinder.
     /// This location is relative to the shoe reference frame (in the positive x direction)

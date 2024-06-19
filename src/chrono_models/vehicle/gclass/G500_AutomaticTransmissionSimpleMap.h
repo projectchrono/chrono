@@ -30,7 +30,7 @@ namespace chrono {
 namespace vehicle {
 namespace gclass {
 
-/// @addtogroup vehicle_models_UAZBUS
+/// @addtogroup vehicle_models_gclass
 /// @{
 
 /// Simple UAZBUS powertrain subsystem (based on engine speed-torque maps).
@@ -49,9 +49,9 @@ class CH_MODELS_API G500_AutomaticTransmissionSimpleMap : public ChAutomaticTran
         ) override;
 };
 
-/// @} vehicle_models_UAZBUS
+/// @} vehicle_models_gclass
 
-}  // namespace uaz
+}  // namespace gclass
 }  // end namespace vehicle
 }  // end namespace chrono
 

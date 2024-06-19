@@ -19,7 +19,7 @@
 #ifndef SEDAN_PAC02_TIRE_H
 #define SEDAN_PAC02_TIRE_H
 
-#include "chrono/assets/ChTriangleMeshShape.h"
+#include "chrono/assets/ChVisualShapeTriangleMesh.h"
 
 #include "chrono_vehicle/wheeled_vehicle/tire/ChPac02Tire.h"
 
@@ -29,17 +29,17 @@ namespace chrono {
 namespace vehicle {
 namespace sedan {
 
-/// @addtogroup vehicle_models_feda
+/// @addtogroup vehicle_models_sedan
 /// @{
 
 /// MF tire model for the FEDA vehicle.
 class CH_MODELS_API Sedan_Pac02Tire : public ChPac02Tire {
-   public:
+  public:
     Sedan_Pac02Tire(const std::string& name, unsigned int pressure_level = 2);
     ~Sedan_Pac02Tire() {}
 
     virtual double GetTireMass() const override { return m_mass; }
-    virtual ChVector<> GetTireInertia() const override { return m_inertia; }
+    virtual ChVector3d GetTireInertia() const override { return m_inertia; }
 
     virtual double GetVisualizationWidth() const override { return m_par.WIDTH; }
 
@@ -48,16 +48,16 @@ class CH_MODELS_API Sedan_Pac02Tire : public ChPac02Tire {
     virtual void AddVisualizationAssets(VisualizationType vis) override;
     virtual void RemoveVisualizationAssets() override final;
 
-   private:
+  private:
     static const double m_mass;
-    static const ChVector<> m_inertia;
+    static const ChVector3d m_inertia;
 
     static const std::string m_meshFile_left;
     static const std::string m_meshFile_right;
-    std::shared_ptr<ChTriangleMeshShape> m_trimesh_shape;
+    std::shared_ptr<ChVisualShapeTriangleMesh> m_trimesh_shape;
 };
 
-/// @} vehicle_models_hmmwv
+/// @} vehicle_models_sedan
 
 }  // namespace sedan
 }  // end namespace vehicle

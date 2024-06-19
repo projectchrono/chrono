@@ -34,10 +34,6 @@ CH_VSG_API vsg::ref_ptr<vsg::Node> createSkybox(const vsg::Path& filename,
                                                 vsg::ref_ptr<vsg::Options> options,
                                                 bool yup);
 
-CH_VSG_API void exportScreenshot(vsg::ref_ptr<vsg::Window> window,
-                                 vsg::ref_ptr<vsg::Options> options,
-                                 std::string& imageFilename);
-
 }  // namespace vsg3d
 }  // namespace chrono
 

@@ -11,23 +11,25 @@ set(DEMOS "")
 if(ENABLE_MODULE_IRRLICHT OR ENABLE_MODULE_VSG)
     set(DEMOS ${DEMOS}
         demo_VEH_RigidTerrain_WheeledVehicle
+        demo_VEH_RigidTerrain_MovingPatch
         demo_VEH_SCMTerrain_WheeledVehicle
         demo_VEH_SCMTerrain_RigidTire
         demo_VEH_SCMTerrain_TrackedVehicle
     )
 endif()
 
-if(HAVE_OPENCRG AND ENABLE_MODULE_IRRLICHT)
-    set(DEMOS ${DEMOS}
-        demo_VEH_CRGTerrain_IRR
-    )
-endif()
+if(HAVE_OPENCRG) 
+   if (ENABLE_MODULE_IRRLICHT)
+      set(DEMOS ${DEMOS}
+          demo_VEH_CRGTerrain_IRR
+      )
+   endif()
 
-if(HAVE_OPENCRG AND ENABLE_MODULE_VSG)
-    set(DEMOS ${DEMOS}
-        demo_VEH_CRGTerrain_VSG
-        demo_VEH_FEDA_Road
+   if(ENABLE_MODULE_VSG)
+      set(DEMOS ${DEMOS}
+          demo_VEH_CRGTerrain_VSG
     )
+   endif()
 endif()
 
 if(ENABLE_MODULE_MULTICORE AND ENABLE_MODULE_OPENGL)

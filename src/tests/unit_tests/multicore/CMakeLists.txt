@@ -22,10 +22,13 @@ SET(TESTS
     utest_MCORE_shafts
     utest_MCORE_rotmotors
     utest_MCORE_other_math
-    #utest_MCORE_svd
-    #utest_MCORE_rhs
-    #utest_MCORE_collision_system
 )
+
+if(USE_MULTICORE_CUDA)
+   set(TESTS ${TESTS}
+       utest_MCORE_svd
+   )
+endif()
 
 MESSAGE(STATUS "Unit test programs for MULTICORE module...")
 

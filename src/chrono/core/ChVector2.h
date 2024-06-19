@@ -16,14 +16,13 @@
 //
 // =============================================================================
 
-#ifndef CHVECTOR2_H
-#define CHVECTOR2_H
+#ifndef CH_VECTOR2_H
+#define CH_VECTOR2_H
 
 #include <algorithm>
 #include <cmath>
 #include <limits>
 
-#include "chrono/core/ChMathematics.h"
 #include "chrono/serialization/ChArchive.h"
 
 namespace chrono {
@@ -181,10 +180,10 @@ class ChVector2 {
     ChVector2<Real> GetOrthogonalVector() const;
 
     /// Method to allow serialization of transient m_data to archives.
-    void ArchiveOut(ChArchiveOut& marchive);
+    void ArchiveOut(ChArchiveOut& archive_out);
 
     /// Method to allow de-serialization of transient m_data from archives.
-    void ArchiveIn(ChArchiveIn& marchive);
+    void ArchiveIn(ChArchiveIn& archive_in);
 
   private:
     Real m_data[2];
@@ -195,6 +194,46 @@ class ChVector2 {
 };
 
 CH_CLASS_VERSION(ChVector2<double>, 0)
+
+// -----------------------------------------------------------------------------
+
+/// Alias for double-precision vectors.
+/// <pre>
+/// Instead of writing
+///    ChVector2<double> v;
+/// or
+///    ChVector2<> v;
+/// you can use:
+///    ChVector2d v;
+/// </pre>
+typedef ChVector2<double> ChVector2d;
+
+/// Alias for single-precision vectors.
+/// <pre>
+/// Instead of writing
+///    ChVector2<float> v;
+/// you can use:
+///    ChVector2f v;
+/// </pre>
+typedef ChVector2<float> ChVector2f;
+
+/// Alias for integer vectors.
+/// <pre>
+/// Instead of writing
+///    ChVector2<int> v;
+/// you can use:
+///    ChVector2i v;
+/// </pre>
+typedef ChVector2<int> ChVector2i;
+
+/// Alias for bool vectors.
+/// <pre>
+/// Instead of writing
+///    ChVector2<bool> v;
+/// you can use:
+///    ChVector2b v;
+/// </pre>
+typedef ChVector2<bool> ChVector2b;
 
 // -----------------------------------------------------------------------------
 // STATIC VECTOR MATH OPERATIONS
@@ -250,6 +289,13 @@ ChVector2<RealA> Vrot(const ChVector2<RealA>& v, RealB angle) {
     ChVector2<RealA> tmp(v);
     tmp.Rotate((RealA)angle);
     return tmp;
+}
+
+/// Insertion of a 2D vector to output stream.
+template <typename Real>
+inline std::ostream& operator<<(std::ostream& out, const ChVector2<Real>& v) {
+    out << v.x() << "  " << v.y();
+    return out;
 }
 
 // =============================================================================
@@ -630,21 +676,21 @@ inline ChVector2<Real> ChVector2<Real>::GetOrthogonalVector() const {
 // Streaming operations
 
 template <class Real>
-inline void ChVector2<Real>::ArchiveOut(ChArchiveOut& marchive) {
+inline void ChVector2<Real>::ArchiveOut(ChArchiveOut& archive_out) {
     // suggested: use versioning
-    marchive.VersionWrite<ChVector2<double>>();  // must use specialized template (any)
+    archive_out.VersionWrite<ChVector2<double>>();  // must use specialized template (any)
     // stream out all member m_data
-    marchive << CHNVP(m_data[0], "x");
-    marchive << CHNVP(m_data[1], "y");
+    archive_out << CHNVP(m_data[0], "x");
+    archive_out << CHNVP(m_data[1], "y");
 }
 
 template <class Real>
-inline void ChVector2<Real>::ArchiveIn(ChArchiveIn& marchive) {
+inline void ChVector2<Real>::ArchiveIn(ChArchiveIn& archive_in) {
     // suggested: use versioning
-    /*int version =*/ marchive.VersionRead<ChVector2<double>>();  // must use specialized template (any)
+    /*int version =*/archive_in.VersionRead<ChVector2<double>>();  // must use specialized template (any)
     // stream in all member m_data
-    marchive >> CHNVP(m_data[0], "x");
-    marchive >> CHNVP(m_data[1], "y");
+    archive_in >> CHNVP(m_data[0], "x");
+    archive_in >> CHNVP(m_data[1], "y");
 }
 
 // -----------------------------------------------------------------------------

@@ -28,7 +28,7 @@ namespace chrono {
 namespace vehicle {
 namespace m113 {
 
-/// @addtogroup vehicle_models_M113
+/// @addtogroup vehicle_models_m113
 /// @{
 
 /// Shafts-based powertrain model for the M113 vehicle.
@@ -47,8 +47,8 @@ class CH_MODELS_API M113_AutomaticTransmissionShafts : public ChAutomaticTransmi
     virtual double GetUpshiftRPM() const override { return m_upshift_RPM; }
     virtual double GetDownshiftRPM() const override { return m_downshift_RPM; }
 
-    virtual void SetTorqueConverterCapacityFactorMap(std::shared_ptr<ChFunction_Recorder>& map) override;
-    virtual void SetTorqeConverterTorqueRatioMap(std::shared_ptr<ChFunction_Recorder>& map) override;
+    virtual void SetTorqueConverterCapacityFactorMap(std::shared_ptr<ChFunctionInterp>& map) override;
+    virtual void SetTorqeConverterTorqueRatioMap(std::shared_ptr<ChFunctionInterp>& map) override;
 
   private:
     // Shaft inertias.
@@ -62,7 +62,7 @@ class CH_MODELS_API M113_AutomaticTransmissionShafts : public ChAutomaticTransmi
     static const double m_downshift_RPM;
 };
 
-/// @} vehicle_models_M113
+/// @} vehicle_models_m113
 
 }  // end namespace M113
 }  // end namespace vehicle

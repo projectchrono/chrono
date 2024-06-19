@@ -18,6 +18,7 @@ using namespace chrono;
 %ignore CH_UPCASTING_SANITIZED;
 %ignore chrono::ChClassRegistrationBase;
 %ignore chrono::ChCastingMap;
+%ignore chrono::getVoidPointer;
 
 /* Parse the header file to generate wrappers */
 %include "../../../chrono/core/ChClassFactory.h"

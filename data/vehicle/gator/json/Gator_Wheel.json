@@ -1,0 +1,8 @@
+{
+  "Name": "Gator Wheel",
+  "Type": "Wheel",
+  "Template": "Wheel",
+
+  "Mass": 11.0,
+  "Inertia": [ 0.24, 0.42, 0.24 ]
+}

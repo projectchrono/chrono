@@ -36,7 +36,7 @@ namespace hmmwv {
 const double HMMWV_Pac89Tire::m_normalDamping = 3500;
 
 const double HMMWV_Pac89Tire::m_mass = 37.6;
-const ChVector<> HMMWV_Pac89Tire::m_inertia(3.84, 6.69, 3.84);
+const ChVector3d HMMWV_Pac89Tire::m_inertia(3.84, 6.69, 3.84);
 
 const std::string HMMWV_Pac89Tire::m_meshFile_left = "hmmwv/hmmwv_tire_left.obj";
 const std::string HMMWV_Pac89Tire::m_meshFile_right = "hmmwv/hmmwv_tire_right.obj";
@@ -141,7 +141,7 @@ double HMMWV_Pac89Tire::GetNormalStiffnessForce(double depth) const {
                 normalforcetabel[int(std::floor(position) + 1)] * scale);
     }
     */
-    return m_vert_map.Get_y(depth);
+    return m_vert_map.GetVal(depth);
 }
 
 // -----------------------------------------------------------------------------

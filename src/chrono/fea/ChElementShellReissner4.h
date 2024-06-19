@@ -32,16 +32,16 @@ namespace fea {
 /// @{
 
 /// Laminated thick shell with geometrically exact kinematics, with 4 nodes.
-/// It generalizes the Reissner thick shell theory (in fact each layer requires 
+/// It generalizes the Reissner thick shell theory (in fact each layer requires
 /// a ChMaterialShellReissner) by using the Chroscielewski 6-dof field shell theory
 /// as discussed in:
 ///
-/// Wojciech Witkowski, "4-Node combined shell element with semi-EAS-ANS strain interpolations 
+/// Wojciech Witkowski, "4-Node combined shell element with semi-EAS-ANS strain interpolations
 /// in 6-parameter shell theories with drilling degrees of freedom", Comp.Mech 2009.
-/// 
+///
 /// This specific implementation is based on the paper:
 ///
-/// Marco Morandini, Pierangelo Masarati, "Implementation and validation of 
+/// Marco Morandini, Pierangelo Masarati, "Implementation and validation of
 /// a 4-node shell finite element", IDETC/CIE 2014.
 ///
 /// The node numbering is in ccw fashion as in the following scheme:
@@ -66,10 +66,10 @@ class ChApi ChElementShellReissner4 : public ChElementShell, public ChLoadableUV
     class Layer {
       public:
         /// Return the layer thickness.
-        double Get_thickness() const { return m_thickness; }
+        double GetThickness() const { return m_thickness; }
 
         /// Return the fiber angle.
-        double Get_theta() const { return m_theta; }
+        double GetFiberAngle() const { return m_theta; }
 
         /// Return the layer material.
         std::shared_ptr<ChMaterialShellReissner> GetMaterial() const { return m_material; }
@@ -80,7 +80,7 @@ class ChApi ChElementShellReissner4 : public ChElementShell, public ChLoadableUV
               double thickness,                                  ///< layer thickness
               double theta,                                      ///< fiber angle
               std::shared_ptr<ChMaterialShellReissner> material  ///< layer material
-              );
+        );
 
         /// Initial setup for this layer
         void SetupInitial();
@@ -96,13 +96,13 @@ class ChApi ChElementShellReissner4 : public ChElementShell, public ChLoadableUV
     };
 
     /// Get the number of nodes used by this element.
-    virtual int GetNnodes() override { return 4; }
+    virtual unsigned int GetNumNodes() override { return 4; }
 
     /// Get the number of coordinates in the field used by the referenced nodes.
-    virtual int GetNdofs() override { return 4 * 6; }
+    virtual unsigned int GetNumCoordsPosLevel() override { return 4 * 6; }
 
     /// Get the number of coordinates from the n-th node used by this element.
-    virtual int GetNodeNdofs(int n) override { return 6; }
+    virtual unsigned int GetNodeNumCoordsPosLevel(unsigned int n) override { return 6; }
 
     /// Specify the nodes of this element.
     /// The node numbering is in ccw fashion as in the following scheme:
@@ -120,7 +120,7 @@ class ChApi ChElementShellReissner4 : public ChElementShell, public ChLoadableUV
                   std::shared_ptr<ChNodeFEAxyzrot> nodeD);
 
     /// Access the n-th node of this element.
-    virtual std::shared_ptr<ChNodeFEAbase> GetNodeN(int n) override { return m_nodes[n]; }
+    virtual std::shared_ptr<ChNodeFEAbase> GetNode(unsigned int n) override { return m_nodes[n]; }
 
     /// Get a handle to the first node of this element.
     std::shared_ptr<ChNodeFEAxyzrot> GetNodeA() const { return m_nodes[0]; }
@@ -144,7 +144,7 @@ class ChApi ChElementShellReissner4 : public ChElementShell, public ChLoadableUV
     void AddLayer(double thickness,                                  ///< layer thickness
                   double theta,                                      ///< fiber angle (radians)
                   std::shared_ptr<ChMaterialShellReissner> material  ///< layer material
-                  );
+    );
 
     /// Impose the reference z level of shell element as centered along the total thickness.
     /// This is the default behavior each time you call AddLayer();
@@ -162,8 +162,8 @@ class ChApi ChElementShellReissner4 : public ChElementShell, public ChLoadableUV
     const Layer& GetLayer(size_t i) const { return m_layers[i]; }
 
     /// Set the structural damping: this is the Rayleigh "alpha"
-	/// ***OBSOLETE*** create a ChDampingReissnerRayleigh object and add to layer material to have the same effect
-    ///void SetAlphaDamp(double a) { m_Alpha = a; } 
+    /// ***OBSOLETE*** create a ChDampingReissnerRayleigh object and add to layer material to have the same effect
+    /// void SetAlphaDamp(double a) { m_Alpha = a; }
 
     /// Get the element length in the X direction.
     double GetLengthX() const { return m_lenX; }
@@ -172,7 +172,7 @@ class ChApi ChElementShellReissner4 : public ChElementShell, public ChLoadableUV
     /// Get the total thickness of the shell element (might be sum of multiple layer thicknesses)
     double GetThickness() { return tot_thickness; }
 
-    ChQuaternion<> GetAvgRot() { return T_overline.Get_A_quaternion(); }
+    ChQuaternion<> GetAvgRot() { return T_overline.GetQuaternion(); }
 
     // Shape functions
     // ---------------
@@ -186,8 +186,8 @@ class ChApi ChElementShellReissner4 : public ChElementShell, public ChLoadableUV
     /// Fills the Ny shape function derivative matrix with respect to Y.
     void ShapeFunctionsDerivativeY(ShapeVector& Ny, double x, double y);
 
-    ChVector<> EvaluateGP(int igp);
-    ChVector<> EvaluatePT(int ipt);
+    ChVector3d EvaluateGP(int igp);
+    ChVector3d EvaluatePT(int ipt);
 
     /// Inner EAS dofs
     virtual unsigned int iGetNumDof(void) const { return 7; };
@@ -203,7 +203,7 @@ class ChApi ChElementShellReissner4 : public ChElementShell, public ChLoadableUV
     void InterpolateOrientation();
     void ComputeIPCurvature();
 
-    //***TEST*** to make private
+    //// TODO: after test to make private
   public:
     //
     // DATA
@@ -213,9 +213,9 @@ class ChApi ChElementShellReissner4 : public ChElementShell, public ChLoadableUV
     std::vector<Layer> m_layers;     ///< element layers
     std::vector<double> m_layers_z;  ///< layer separation z values (not scaled, default centered tot thickness)
 
-    double tot_thickness;                         ///< total element thickness
-    double m_lenX;                                ///< element length in X direction
-    double m_lenY;                                ///< element length in Y direction
+    double tot_thickness;  ///< total element thickness
+    double m_lenX;         ///< element length in X direction
+    double m_lenY;         ///< element length in Y direction
 
     ChMatrixNM<double, 24, 24> m_MassMatrix;      ///< mass matrix
     ChMatrixNM<double, 24, 24> m_JacobianMatrix;  ///< Jacobian matrix (Kfactor*[K] + Rfactor*[R])
@@ -285,22 +285,22 @@ class ChApi ChElementShellReissner4 : public ChElementShell, public ChLoadableUV
     enum InnerEASdofs { IDOFS = 7 };
     ChVariablesGenericDiagonalMass* mvariables;
 
-    //***TODO*** make protected
+    //// TODO  make protected
   public:
     // nodal positions (0: initial; otherwise current)
-    ChVector<> xa_0[NUMNODES];
-    ChVector<> xa[NUMNODES];
+    ChVector3d xa_0[NUMNODES];
+    ChVector3d xa[NUMNODES];
     // current nodal orientation
     ChMatrix33<> iTa[NUMNODES];
     ChMatrix33<> iTa_i[NUMIP];
     ChMatrix33<> iTa_A[NUMSSEP];
     // Euler vector of Ra
-    ChVector<> phi_tilde_n[NUMNODES];
+    ChVector3d phi_tilde_n[NUMNODES];
 
     // Average orientation matrix
-    ChVector<> phi_tilde_i[NUMIP];
-    ChVector<> phi_tilde_A[NUMSSEP];
-    ChVector<> phi_tilde_0;
+    ChVector3d phi_tilde_i[NUMIP];
+    ChVector3d phi_tilde_A[NUMSSEP];
+    ChVector3d phi_tilde_0;
     // Average orientation matrix
     //    .. in reference configuration
     ChMatrix33<> T0_overline;
@@ -327,28 +327,28 @@ class ChApi ChElementShellReissner4 : public ChElementShell, public ChLoadableUV
     ChMatrix33<> Q_A[NUMSSEP];
 
     // Orientation tensor derivative axial vector
-    ChVector<> k_1_i[NUMIP];
-    ChVector<> k_2_i[NUMIP];
+    ChVector3d k_1_i[NUMIP];
+    ChVector3d k_2_i[NUMIP];
 
     // linear deformation vectors
     //    .. in reference configuration
-    ChVector<> eps_tilde_1_0_i[NUMIP];
-    ChVector<> eps_tilde_2_0_i[NUMIP];
-    ChVector<> eps_tilde_1_0_A[NUMSSEP];
-    ChVector<> eps_tilde_2_0_A[NUMSSEP];
+    ChVector3d eps_tilde_1_0_i[NUMIP];
+    ChVector3d eps_tilde_2_0_i[NUMIP];
+    ChVector3d eps_tilde_1_0_A[NUMSSEP];
+    ChVector3d eps_tilde_2_0_A[NUMSSEP];
     //    .. in current configuration
-    ChVector<> eps_tilde_1_i[NUMIP];
-    ChVector<> eps_tilde_2_i[NUMIP];
-    ChVector<> eps_tilde_1_A[NUMSSEP];
-    ChVector<> eps_tilde_2_A[NUMSSEP];
+    ChVector3d eps_tilde_1_i[NUMIP];
+    ChVector3d eps_tilde_2_i[NUMIP];
+    ChVector3d eps_tilde_1_A[NUMSSEP];
+    ChVector3d eps_tilde_2_A[NUMSSEP];
 
     // angular deformation vectors
     //    .. in reference configuration
-    ChVector<> k_tilde_1_0_i[NUMIP];
-    ChVector<> k_tilde_2_0_i[NUMIP];
+    ChVector3d k_tilde_1_0_i[NUMIP];
+    ChVector3d k_tilde_2_0_i[NUMIP];
     //    .. in current configuration
-    ChVector<> k_tilde_1_i[NUMIP];
-    ChVector<> k_tilde_2_i[NUMIP];
+    ChVector3d k_tilde_1_i[NUMIP];
+    ChVector3d k_tilde_2_i[NUMIP];
 
     ChMatrixNM<double, 2, 2> S_alpha_beta_0;
     ChMatrixNM<double, 2, 2> S_alpha_beta_i[NUMIP];
@@ -366,15 +366,15 @@ class ChApi ChElementShellReissner4 : public ChElementShell, public ChLoadableUV
 
     ChMatrixNM<double, IDOFS, IDOFS> K_beta_beta_i[NUMIP];
 
-    ChVector<> y_i_1[NUMIP];
-    ChVector<> y_i_2[NUMIP];
+    ChVector3d y_i_1[NUMIP];
+    ChVector3d y_i_2[NUMIP];
 
     ChVectorN<double, IDOFS> beta;
     ChVectorN<double, 12> epsilon_hat;
     ChVectorN<double, 12> epsilon;
 
     // Reference constitutive law tangent matrices
-    //ChMatrixNM<double, 12, 12> DRef[NUMIP];
+    // ChMatrixNM<double, 12, 12> DRef[NUMIP];
 
     // stress
     ChVectorN<double, 12> stress_i[NUMIP];
@@ -390,7 +390,7 @@ class ChApi ChElementShellReissner4 : public ChElementShell, public ChLoadableUV
     // -------------------------------------
 
     /// Fill the D vector with the current field values at thenodes of the element, with proper ordering.
-    /// If the D vector has not the size of this->GetNdofs_x(), it will be resized.
+    /// If the D vector has not the size of this->GetNumCoordsPosLevel(), it will be resized.
     ///  {x_a y_a z_a Rx_a Rx_a Rx_a x_b y_b z_b Rx_b Ry_b Rz_b}
     virtual void GetStateBlock(ChVectorDynamic<>& mD) override;
 
@@ -417,17 +417,12 @@ class ChApi ChElementShellReissner4 : public ChElementShell, public ChLoadableUV
 
     virtual void EvaluateSectionDisplacement(const double u,
                                              const double v,
-                                             ChVector<>& u_displ,
-                                             ChVector<>& u_rotaz) override;
+                                             ChVector3d& u_displ,
+                                             ChVector3d& u_rotaz) override;
 
-    virtual void EvaluateSectionFrame(const double u,
-                                      const double v,
-                                      ChVector<>& point,
-                                      ChQuaternion<>& rot) override;
+    virtual void EvaluateSectionFrame(const double u, const double v, ChVector3d& point, ChQuaternion<>& rot) override;
 
-    virtual void EvaluateSectionPoint(const double u,
-                                      const double v,
-                                      ChVector<>& point) override;
+    virtual void EvaluateSectionPoint(const double u, const double v, ChVector3d& point) override;
 
     // Internal computations
     // ---------------------
@@ -449,37 +444,43 @@ class ChApi ChElementShellReissner4 : public ChElementShell, public ChLoadableUV
     // ----------------------------------
 
     /// Gets the number of DOFs affected by this element (position part).
-    virtual int LoadableGet_ndof_x() override { return 4 * 7; }
+    virtual unsigned int GetLoadableNumCoordsPosLevel() override { return 4 * 7; }
 
     /// Gets the number of DOFs affected by this element (velocity part).
-    virtual int LoadableGet_ndof_w() override { return 4 * 6; }
+    virtual unsigned int GetLoadableNumCoordsVelLevel() override { return 4 * 6; }
 
     /// Gets all the DOFs packed in a single vector (position part).
-    virtual void LoadableGetStateBlock_x(int block_offset, ChState& mD) override;
+    virtual void LoadableGetStateBlockPosLevel(int block_offset, ChState& mD) override;
 
     /// Gets all the DOFs packed in a single vector (velocity part).
-    virtual void LoadableGetStateBlock_w(int block_offset, ChStateDelta& mD) override;
+    virtual void LoadableGetStateBlockVelLevel(int block_offset, ChStateDelta& mD) override;
 
     /// Increment all DOFs using a delta.
-    virtual void LoadableStateIncrement(const unsigned int off_x, ChState& x_new, const ChState& x, const unsigned int off_v, const ChStateDelta& Dv) override;
+    virtual void LoadableStateIncrement(const unsigned int off_x,
+                                        ChState& x_new,
+                                        const ChState& x,
+                                        const unsigned int off_v,
+                                        const ChStateDelta& Dv) override;
 
     /// Number of coordinates in the interpolated field, ex=3 for a
     /// tetrahedron finite element or a cable, = 1 for a thermal problem, etc.
-    virtual int Get_field_ncoords() override { return 6; }
+    virtual unsigned int GetNumFieldCoords() override { return 6; }
 
     /// Get the number of DOFs sub-blocks.
-    virtual int GetSubBlocks() override { return 4; }
+    virtual unsigned int GetNumSubBlocks() override { return 4; }
 
     /// Get the offset of the specified sub-block of DOFs in global vector.
-    virtual unsigned int GetSubBlockOffset(int nblock) override { return m_nodes[nblock]->NodeGetOffsetW(); }
+    virtual unsigned int GetSubBlockOffset(unsigned int nblock) override {
+        return m_nodes[nblock]->NodeGetOffsetVelLevel();
+    }
 
     /// Get the size of the specified sub-block of DOFs in global vector.
-    virtual unsigned int GetSubBlockSize(int nblock) override { return 6; }
+    virtual unsigned int GetSubBlockSize(unsigned int nblock) override { return 6; }
 
     /// Check if the specified sub-block of DOFs is active.
-    virtual bool IsSubBlockActive(int nblock) const override { return !m_nodes[nblock]->IsFixed(); }
+    virtual bool IsSubBlockActive(unsigned int nblock) const override { return !m_nodes[nblock]->IsFixed(); }
 
-    virtual void EvaluateSectionVelNorm(double U, double V, ChVector<>& Result) override;
+    virtual void EvaluateSectionVelNorm(double U, double V, ChVector3d& Result) override;
 
     /// Get the pointers to the contained ChVariables, appending to the mvars vector.
     virtual void LoadableGetVariables(std::vector<ChVariables*>& mvars) override;
@@ -517,7 +518,7 @@ class ChApi ChElementShellReissner4 : public ChElementShell, public ChLoadableUV
 
     /// Gets the normal to the surface at the parametric coordinate U,V.
     /// Each coordinate ranging in -1..+1.
-    virtual ChVector<> ComputeNormal(const double U, const double V) override;
+    virtual ChVector3d ComputeNormal(const double U, const double V) override;
 };
 
 /// @} fea_elements

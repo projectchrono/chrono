@@ -1,5 +1,5 @@
 ﻿
-List of FEA nodes         {#manual_fea_nodes}
+FEA Nodes        {#manual_fea_nodes}
 =======================
 
 \tableofcontents

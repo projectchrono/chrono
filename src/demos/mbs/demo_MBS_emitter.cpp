@@ -31,10 +31,11 @@ using namespace chrono::particlefactory;
 using namespace chrono::irrlicht;
 
 int main(int argc, char* argv[]) {
-    GetLog() << "Copyright (c) 2017 projectchrono.org\nChrono version: " << CHRONO_VERSION << "\n\n";
+    std::cout << "Copyright (c) 2017 projectchrono.org\nChrono version: " << CHRONO_VERSION << std::endl;
 
-    // Create a Chrono physical system
+    // Create a Chrono system and set the associated collision system
     ChSystemNSC sys;
+    sys.SetCollisionSystemType(ChCollisionSystem::Type::BULLET);
 
     // Create the Irrlicht visualization system
     auto vis = chrono_types::make_shared<ChVisualSystemIrrlicht>();
@@ -44,13 +45,13 @@ int main(int argc, char* argv[]) {
     vis->AddLogo();
     vis->AddSkyBox();
     vis->AddTypicalLights();
-    vis->AddCamera(ChVector<>(5, 7, -10));
+    vis->AddCamera(ChVector3d(5, 7, -10));
 
     // Create the floor body
-    auto floor_mat = chrono_types::make_shared<ChMaterialSurfaceNSC>();
+    auto floor_mat = chrono_types::make_shared<ChContactMaterialNSC>();
     auto floorBody = chrono_types::make_shared<ChBodyEasyBox>(20, 1, 20, 1000, true, true, floor_mat);
-    floorBody->SetPos(ChVector<>(0, -5, 0));
-    floorBody->SetBodyFixed(true);
+    floorBody->SetPos(ChVector3d(0, -5, 0));
+    floorBody->SetFixed(true);
     floorBody->GetVisualShape(0)->SetTexture(GetChronoDataFile("textures/concrete.jpg"));
     sys.Add(floorBody);
 
@@ -87,7 +88,7 @@ int main(int argc, char* argv[]) {
     // ---Initialize the randomizer for positions
     auto emitter_positions = chrono_types::make_shared<ChRandomParticlePositionRectangleOutlet>();
     emitter_positions->Outlet() =
-        ChCoordsys<>(ChVector<>(0, 3, 0), Q_from_AngAxis(CH_C_PI_2, VECT_X));  // center and alignment of the outlet
+        ChCoordsys<>(ChVector3d(0, 3, 0), QuatFromAngleX(CH_PI_2));  // center and alignment of the outlet
     emitter_positions->OutletWidth() = 3.0;
     emitter_positions->OutletHeight() = 4.5;
 
@@ -111,8 +112,8 @@ int main(int argc, char* argv[]) {
     auto mcreator_boxes = chrono_types::make_shared<ChRandomShapeCreatorBoxes>();
     mcreator_boxes->SetXsizeDistribution(
         chrono_types::make_shared<ChZhangDistribution>(0.5, 0.2));  // Zhang parameters: average val, min val.
-    mcreator_boxes->SetSizeRatioZDistribution(chrono_types::make_shared<ChMinMaxDistribution>(0.2, 1.0));
-    mcreator_boxes->SetSizeRatioYZDistribution(chrono_types::make_shared<ChMinMaxDistribution>(0.4, 1.0));
+    mcreator_boxes->SetSizeRatioZDistribution(chrono_types::make_shared<ChUniformDistribution>(0.2, 1.0));
+    mcreator_boxes->SetSizeRatioYZDistribution(chrono_types::make_shared<ChUniformDistribution>(0.4, 1.0));
     mcreator_boxes->SetDensityDistribution(chrono_types::make_shared<ChConstantDistribution>(1000));
 
     // Optional: define a callback to be exectuted at each creation of a box particle:
@@ -122,7 +123,7 @@ int main(int argc, char* argv[]) {
         virtual void OnAddBody(std::shared_ptr<ChBody> mbody,
                                ChCoordsys<> mcoords,
                                ChRandomShapeCreator& mcreator) override {
-            mbody->GetVisualShape(0)->SetColor(ChColor(0.0f, 1.0f, (float)ChRandom()));
+            mbody->GetVisualShape(0)->SetColor(ChColor(0.0f, 1.0f, (float)ChRandom::Get()));
         }
     };
     auto callback_boxes = chrono_types::make_shared<MyCreator_boxes>();
@@ -141,18 +142,24 @@ int main(int argc, char* argv[]) {
         virtual void OnAddBody(std::shared_ptr<ChBody> mbody,
                                ChCoordsys<> mcoords,
                                ChRandomShapeCreator& mcreator) override {
-            // Enable Irrlicht visualization for all particles
+            // Bind visual model to the visual system
             vis->BindItem(mbody);
 
+            // Bind the collision model to the collision system
+            if (mbody->GetCollisionModel())
+                coll->Add(mbody->GetCollisionModel());
+
             // Other stuff, ex. disable gyroscopic forces for increased integrator stabilty
-            mbody->SetNoGyroTorque(true);
+            mbody->SetUseGyroTorque(false);
         }
-        ChVisualSystemIrrlicht* vis;
+        ChVisualSystem* vis;
+        ChCollisionSystem* coll;
     };
     // b- create the callback object...
     auto mcreation_callback = chrono_types::make_shared<MyCreatorForAll>();
     // c- set callback own data that he might need...
     mcreation_callback->vis = vis.get();
+    mcreation_callback->coll = sys.GetCollisionSystem().get();
     // d- attach the callback to the emitter!
     emitter.RegisterAddBodyCallback(mcreation_callback);
 
@@ -161,7 +168,7 @@ int main(int argc, char* argv[]) {
 
     // Modify some setting of the physical system for the simulation, if you want
     sys.SetSolverType(ChSolver::Type::PSOR);
-    sys.SetSolverMaxIterations(40);
+    sys.GetSolver()->AsIterative()->SetMaxIterations(40);
 
     // Simulation loop
     double timestep = 0.01;

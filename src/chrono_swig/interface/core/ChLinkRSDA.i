@@ -1,3 +1,11 @@
+#ifdef SWIGCSHARP  // --------------------------------------------------------------------- CSHARP
+
+%csmethodmodifiers chrono::ChLinkRSDA::GetFrame1Rel "public override"
+%csmethodmodifiers chrono::ChLinkRSDA::GetFrame2Rel "public override"
+
+#endif             // --------------------------------------------------------------------- CSHARP
+
+
 %{
 #include "chrono/physics/ChLinkRSDA.h"
 
@@ -15,7 +23,7 @@ class RSDATorqueFunctor : public chrono::ChLinkRSDA::TorqueFunctor {
                                 double angle,
                                 double vel,
                                 const chrono::ChLinkRSDA& link) override {
-            GetLog() << "You must implement the function evaluate()!\n";
+            std::cout << "You must implement the function evaluate()!" << std::endl;
             return 0.0;
         }
 };

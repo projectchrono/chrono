@@ -43,7 +43,7 @@ Marder::Marder()
       m_vehicle(nullptr),
       m_contactMethod(ChContactMethod::NSC),
       m_chassisCollisionType(CollisionType::NONE),
-      m_collsys_type(collision::ChCollisionSystemType::BULLET),
+      m_collsysType(ChCollisionSystem::Type::BULLET),
       m_wheel_cyl(true),
       m_idler_cyl(true),
       m_roller_cyl(true),
@@ -53,9 +53,9 @@ Marder::Marder()
       m_shoe_type(TrackShoeType::SINGLE_PIN),
       m_driveline_type(DrivelineTypeTV::SIMPLE),
       m_engineType(EngineModelType::SHAFTS),
-      m_transmissionType(TransmissionModelType::SHAFTS),
+      m_transmissionType(TransmissionModelType::AUTOMATIC_SHAFTS),
       m_initFwdVel(0),
-      m_initPos(ChCoordsys<>(ChVector<>(0, 0, 1), QUNIT)),
+      m_initPos(ChCoordsys<>(ChVector3d(0, 0, 1), QUNIT)),
       m_apply_drag(false) {}
 
 Marder::Marder(ChSystem* system)
@@ -63,7 +63,7 @@ Marder::Marder(ChSystem* system)
       m_vehicle(nullptr),
       m_contactMethod(ChContactMethod::NSC),
       m_chassisCollisionType(CollisionType::NONE),
-      m_collsys_type(collision::ChCollisionSystemType::BULLET),
+      m_collsysType(ChCollisionSystem::Type::BULLET),
       m_wheel_cyl(true),
       m_idler_cyl(true),
       m_roller_cyl(true),
@@ -73,9 +73,9 @@ Marder::Marder(ChSystem* system)
       m_shoe_type(TrackShoeType::SINGLE_PIN),
       m_driveline_type(DrivelineTypeTV::SIMPLE),
       m_engineType(EngineModelType::SHAFTS),
-      m_transmissionType(TransmissionModelType::SHAFTS),
+      m_transmissionType(TransmissionModelType::AUTOMATIC_SHAFTS),
       m_initFwdVel(0),
-      m_initPos(ChCoordsys<>(ChVector<>(0, 0, 1), QUNIT)),
+      m_initPos(ChCoordsys<>(ChVector3d(0, 0, 1), QUNIT)),
       m_apply_drag(false) {}
 
 Marder::~Marder() {
@@ -100,9 +100,8 @@ void Marder::Initialize() {
     } else {
         m_vehicle = new Marder_Vehicle(m_fixed, m_shoe_type, m_driveline_type, m_brake_type, m_contactMethod,
                                        m_chassisCollisionType);
-        m_vehicle->SetCollisionSystemType(m_collsys_type);
     }
-
+    m_vehicle->SetCollisionSystemType(m_collsysType);
     m_vehicle->CreateTrack(m_create_track);
     m_vehicle->GetTrackAssembly(LEFT)->SetWheelCollisionType(m_wheel_cyl, m_idler_cyl, m_roller_cyl);
     m_vehicle->GetTrackAssembly(RIGHT)->SetWheelCollisionType(m_wheel_cyl, m_idler_cyl, m_roller_cyl);
@@ -131,11 +130,13 @@ void Marder::Initialize() {
 
     if (!transmission) {
         switch (m_transmissionType) {
-            case TransmissionModelType::SHAFTS:
+            case TransmissionModelType::AUTOMATIC_SHAFTS:
                 transmission = chrono_types::make_shared<Marder_AutomaticTransmissionShafts>("Transmission");
                 break;
-            case TransmissionModelType::SIMPLE_MAP:
+            case TransmissionModelType::AUTOMATIC_SIMPLE_MAP:
                 transmission = chrono_types::make_shared<Marder_AutomaticTransmissionSimpleMap>("Transmission");
+                break;
+            default:
                 break;
         }
     }
@@ -151,8 +152,7 @@ void Marder::Initialize() {
 
 // -----------------------------------------------------------------------------
 
-void Marder::Synchronize(double time,
-                         const DriverInputs& driver_inputs) {
+void Marder::Synchronize(double time, const DriverInputs& driver_inputs) {
     m_vehicle->Synchronize(time, driver_inputs);
 }
 

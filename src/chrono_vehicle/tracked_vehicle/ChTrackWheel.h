@@ -56,7 +56,7 @@ class CH_VEHICLE_API ChTrackWheel : public ChPart {
     virtual double GetMass() const = 0;
 
     /// Return the moments of inertia of the track wheel body.
-    virtual const ChVector<>& GetInertia() = 0;
+    virtual const ChVector3d& GetInertia() = 0;
 
     /// Get the radius of the track wheel.
     virtual double GetRadius() const = 0;
@@ -65,7 +65,7 @@ class CH_VEHICLE_API ChTrackWheel : public ChPart {
     virtual double GetWidth() const = 0;
 
     /// Turn on/off collision flag for the track wheel (default: true).
-    void SetCollide(bool val) { m_wheel->SetCollide(val); }
+    void EnableCollision(bool val) { m_wheel->EnableCollision(val); }
 
     /// Initialize this track wheel subsystem.
     /// The track wheel subsystem is initialized by attaching it to the specified
@@ -76,7 +76,7 @@ class CH_VEHICLE_API ChTrackWheel : public ChPart {
     /// implementation and specify contact geometry for the track wheel.
     virtual void Initialize(std::shared_ptr<ChChassis> chassis,  ///< [in] associated chassis subsystem
                             std::shared_ptr<ChBody> carrier,     ///< [in] carrier body
-                            const ChVector<>& location,          ///< [in] location relative to the chassis frame
+                            const ChVector3d& location,          ///< [in] location relative to the chassis frame
                             ChTrackAssembly* track               ///< [in] containing track assembly
     );
 
@@ -99,7 +99,7 @@ class CH_VEHICLE_API ChTrackWheel : public ChPart {
 
     std::shared_ptr<ChBody> m_wheel;                 ///< track wheel body
     std::shared_ptr<ChLinkLockRevolute> m_revolute;  ///< wheel revolute joint
-    std::shared_ptr<ChMaterialSurface> m_material;   ///< contact material;
+    std::shared_ptr<ChContactMaterial> m_material;   ///< contact material;
     ChTrackAssembly* m_track;                        ///< containing track assembly
 
     friend class ChTrackAssembly;

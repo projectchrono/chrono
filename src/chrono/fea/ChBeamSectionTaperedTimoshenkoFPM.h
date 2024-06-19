@@ -15,7 +15,7 @@
 #ifndef CHBEAMSECTIONTAPEREDTIMOSHENKOFPM_H
 #define CHBEAMSECTIONTAPEREDTIMOSHENKOFPM_H
 
-#include "chrono/core/ChMath.h"
+#include "chrono/core/ChFrame.h"
 #include "chrono/fea/ChBeamSectionTaperedTimoshenko.h"
 
 namespace chrono {
@@ -35,14 +35,14 @@ class ChApi ChBeamSectionTimoshenkoAdvancedGenericFPM : public ChBeamSectionTimo
     /// material fully-populated stiffness matrix of cross-section,
     /// given in centerline reference, measured along centerline main axes.
     /// The shear principal axis orientation is assumed same as elastic principal axis.
-    /// So if you want to consider the different orientation of shear principal axis, please rotate the 
+    /// So if you want to consider the different orientation of shear principal axis, please rotate the
     /// block of shear terms from shear principal axis orientation to elastic principal axis orientation
     /// firstly (do this rotation transformation outside by yourself) and then input it here.
-    ChMatrixNM<double, 6, 6> Klaw;
+    ChMatrix66d Klaw;
 
     /// material fully-populated mass matrix of cross-section,
     /// given in centerline reference, measured along centerline main axes
-    ChMatrixNM<double, 6, 6> Mlaw;
+    ChMatrix66d Mlaw;
 
   public:
     ChBeamSectionTimoshenkoAdvancedGenericFPM() {
@@ -51,26 +51,21 @@ class ChApi ChBeamSectionTimoshenkoAdvancedGenericFPM : public ChBeamSectionTimo
     }
 
     ChBeamSectionTimoshenkoAdvancedGenericFPM(
-        const ChMatrixNM<double, 6, 6>& mKlaw,  ///< material stiffness matrix of cross-section
-        const ChMatrixNM<double, 6, 6>& mMlaw,  ///< material mass matrix of cross-section
-        const double malpha,                   ///< section rotation about elastic center [rad]
-        const double mCy,                      ///< elastic center y displacement respect to centerline
-        const double mCz,                      ///< elastic center z displacement respect to centerline
-        const double mSy,                      ///< shear center y displacement respect to centerline
-        const double mSz,                      ///< shear center z displacement respect to centerline
-        const double mmu,                      ///< mass per unit length
-        const double
-            mJyy,  ///< inertia Jyy per unit lenght, in centerline reference, measured along centerline main axes
-        const double
-            mJzz,  ///< inertia Jzz per unit lenght, in centerline reference, measured along centerline main axes
-        const double mJyz =
-            0,  ///< inertia Jyz per unit lenght, in centerline reference, measured along centerline main axes const
-        const double mQy =
-            0,  ///< inertia Qy per unit lenght, in centerline reference, measured along centerline main axes
-        const double mQz =
-            0,  ///< inertia Qz per unit lenght, in centerline reference, measured along centerline main axes
-        const double mMy = 0,  ///< mass center y displacement respect to centerline
-        const double mMz = 0)  ///< mass center z displacement respect to centerline
+        const ChMatrix66d& mKlaw,  ///< material stiffness matrix of cross-section
+        const ChMatrix66d& mMlaw,  ///< material mass matrix of cross-section
+        const double malpha,       ///< section rotation about elastic center [rad]
+        const double mCy,          ///< elastic center y displacement respect to centerline
+        const double mCz,          ///< elastic center z displacement respect to centerline
+        const double mSy,          ///< shear center y displacement respect to centerline
+        const double mSz,          ///< shear center z displacement respect to centerline
+        const double mmu,          ///< mass per unit length
+        const double mJyy,         ///< inertia Jyy per unit length, in centerline reference, along centerline main axes
+        const double mJzz,         ///< inertia Jzz per unit length, in centerline reference, along centerline main axes
+        const double mJyz = 0,     ///< inertia Jyz per unit length, in centerline reference, along centerline main axes
+        const double mQy = 0,      ///< inertia Qy per unit length, in centerline reference, along centerline main axes
+        const double mQz = 0,      ///< inertia Qz per unit length, in centerline reference, along centerline main axes
+        const double mMy = 0,      ///< mass center y displacement respect to centerline
+        const double mMz = 0)      ///< mass center z displacement respect to centerline
     {
         Klaw = mKlaw;
         Mlaw = mMlaw;
@@ -99,7 +94,7 @@ class ChApi ChBeamSectionTimoshenkoAdvancedGenericFPM : public ChBeamSectionTimo
 
     /// Set the material stiffness matrix of cross-section in fully-polulated format(FPM),
     /// and assign the traditional axial, torsional, shear and bending stiffnesses automatically.
-    virtual void SetStiffnessMatrixFPM(const ChMatrixNM<double, 6, 6>& mKlaw) {
+    virtual void SetStiffnessMatrixFPM(const ChMatrix66d& mKlaw) {
         this->Klaw = mKlaw;
         this->Ax = mKlaw(0, 0);
         this->GAyy = mKlaw(1, 1);
@@ -110,11 +105,11 @@ class ChApi ChBeamSectionTimoshenkoAdvancedGenericFPM : public ChBeamSectionTimo
     }
 
     /// Get the material stiffness matrix of cross-section in fully-polulated format(FPM)
-    virtual ChMatrixNM<double, 6, 6>& GetStiffnessMatrixFPM() { return this->Klaw; }
+    virtual ChMatrix66d& GetStiffnessMatrixFPM() { return this->Klaw; }
 
     /// Set the material mass matrix of cross-section in fully-polulated format(FPM) directly.
     /// This cross-sectional mass matrix should be given in the centerline reference.
-    virtual void SetMassMatrixFPM(const ChMatrixNM<double, 6, 6>& mMlaw) {
+    virtual void SetMassMatrixFPM(const ChMatrix66d& mMlaw) {
         this->Mlaw = mMlaw;
 
         this->mu = (mMlaw(0, 0) + mMlaw(1, 1) + mMlaw(2, 2)) / 3.0;
@@ -176,7 +171,7 @@ class ChApi ChBeamSectionTimoshenkoAdvancedGenericFPM : public ChBeamSectionTimo
     }
 
     /// Get the material mass matrix of cross-section in fully-polulated format(FPM).
-    virtual ChMatrixNM<double, 6, 6>& GetMassMatrixFPM() { return this->Mlaw; }
+    virtual ChMatrix66d& GetMassMatrixFPM() { return this->Mlaw; }
 
   public:
     EIGEN_MAKE_ALIGNED_OPERATOR_NEW
@@ -208,22 +203,22 @@ class ChApi ChBeamSectionTaperedTimoshenkoAdvancedGenericFPM : public ChBeamSect
     std::shared_ptr<ChBeamSectionTimoshenkoAdvancedGenericFPM> GetSectionB() { return section_fpmB; }
 
     /// Get the average FPM(stiffness FPM) of beam element with two ends.
-    ChMatrixNM<double, 6, 6> GetAverageFPM() { return average_fpm; }
+    ChMatrix66d GetAverageFPM() { return average_fpm; }
 
     /// Get the average stiffness FPM of beam element with two ends.
-    ChMatrixNM<double, 6, 6> GetAverageKlaw();
+    ChMatrix66d GetAverageKlaw();
 
     /// Get the average mass FPM of beam element with two ends.
-    ChMatrixNM<double, 6, 6> GetAverageMlaw();
+    ChMatrix66d GetAverageMlaw();
 
     /// Get the stiffness FPM of beam element at abscissa eta.
-    ChMatrixNM<double, 6, 6> GetKlawAtPoint(const double eta);
+    ChMatrix66d GetKlawAtPoint(const double eta);
 
     /// Get the mass FPM of beam element at abscissa eta.
-    ChMatrixNM<double, 6, 6> GetMlawAtPoint(const double eta);
+    ChMatrix66d GetMlawAtPoint(const double eta);
 
     /// Get the damping FPM of beam element at abscissa eta.
-    ChMatrixNM<double, 6, 6> GetRlawAtPoint(const double eta);
+    ChMatrix66d GetRlawAtPoint(const double eta);
 
     /// Compute the 12x12 sectional inertia matrix, as in  {x_momentum,w_momentum}=[Mm]{xvel,wvel}
     /// The matrix is computed in the material reference (i.e. it is the sectional mass matrix)
@@ -237,7 +232,7 @@ class ChApi ChBeamSectionTaperedTimoshenkoAdvancedGenericFPM : public ChBeamSect
     std::shared_ptr<ChBeamSectionTimoshenkoAdvancedGenericFPM> section_fpmB;
 
     /// Some important average section parameters, to calculate once, enable to access them conveniently.
-    ChMatrixNM<double, 6, 6> average_fpm;
+    ChMatrix66d average_fpm;
 
     /// Compute the average stiffness FPM of cross-section.
     virtual void ComputeAverageFPM();

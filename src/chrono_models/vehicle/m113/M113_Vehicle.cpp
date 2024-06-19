@@ -16,8 +16,8 @@
 //
 // =============================================================================
 
-#include "chrono/assets/ChSphereShape.h"
-#include "chrono/assets/ChTriangleMeshShape.h"
+#include "chrono/assets/ChVisualShapeSphere.h"
+#include "chrono/assets/ChVisualShapeTriangleMesh.h"
 #include "chrono/utils/ChUtilsInputOutput.h"
 
 #include "chrono_vehicle/ChVehicleModelData.h"
@@ -323,8 +323,6 @@ void M113_Vehicle::Create(bool fixed,
             m_driveline = chrono_types::make_shared<M113_DrivelineBDS>();
             break;
     }
-
-    GetLog() << "M113 vehicle mass = " << GetMass() << " kg.\n";
 }
 
 // -----------------------------------------------------------------------------
@@ -335,8 +333,8 @@ void M113_Vehicle::Initialize(const ChCoordsys<>& chassisPos, double chassisFwdV
 
     // Initialize the left and right track assemblies.
     double track_offset = 1.0795;
-    m_tracks[0]->Initialize(m_chassis, ChVector<>(0, track_offset, 0), m_create_track);
-    m_tracks[1]->Initialize(m_chassis, ChVector<>(0, -track_offset, 0), m_create_track);
+    m_tracks[0]->Initialize(m_chassis, ChVector3d(0, track_offset, 0), m_create_track);
+    m_tracks[1]->Initialize(m_chassis, ChVector3d(0, -track_offset, 0), m_create_track);
 
     // Initialize the driveline subsystem
     m_driveline->Initialize(m_chassis, m_tracks[0], m_tracks[1]);

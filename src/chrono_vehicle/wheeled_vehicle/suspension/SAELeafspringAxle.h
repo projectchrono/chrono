@@ -42,7 +42,7 @@ class CH_VEHICLE_API SAELeafspringAxle : public ChSAELeafspringAxle {
     virtual double getToeAngle() const override { return m_toe_angle; }
 
     /// Return the center of mass of the axle tube.
-    virtual const ChVector<> getAxleTubeCOM() const override { return m_axleTubeCOM; }
+    virtual const ChVector3d getAxleTubeCOM() const override { return m_axleTubeCOM; }
     /// Return the radius of the spindle body (visualization only).
     virtual double getSpindleRadius() const override { return m_spindleRadius; }
 
@@ -63,13 +63,13 @@ class CH_VEHICLE_API SAELeafspringAxle : public ChSAELeafspringAxle {
     virtual double getAxleTubeRadius() const override { return m_axleTubeRadius; }
 
     /// Return the moments of inertia of the axle tube body.
-    virtual const ChVector<>& getAxleTubeInertia() const override { return m_axleTubeInertia; }
+    virtual const ChVector3d& getAxleTubeInertia() const override { return m_axleTubeInertia; }
     /// Return the moments of inertia of the spindle body.
-    virtual const ChVector<>& getSpindleInertia() const override { return m_spindleInertia; }
-    virtual const ChVector<>& getFrontLeafInertia() const override { return m_frontleafInertia; }
-    virtual const ChVector<>& getRearLeafInertia() const override { return m_rearleafInertia; }
-    virtual const ChVector<>& getClampInertia() const override { return m_clampInertia; }
-    virtual const ChVector<>& getShackleInertia() const override { return m_shackleInertia; }
+    virtual const ChVector3d& getSpindleInertia() const override { return m_spindleInertia; }
+    virtual const ChVector3d& getFrontLeafInertia() const override { return m_frontleafInertia; }
+    virtual const ChVector3d& getRearLeafInertia() const override { return m_rearleafInertia; }
+    virtual const ChVector3d& getClampInertia() const override { return m_clampInertia; }
+    virtual const ChVector3d& getShackleInertia() const override { return m_shackleInertia; }
 
     /// Return the inertia of the axle shaft.
     virtual double getAxleInertia() const override { return m_axleInertia; }
@@ -97,12 +97,16 @@ class CH_VEHICLE_API SAELeafspringAxle : public ChSAELeafspringAxle {
         return m_vertRotSpringCBB;
     }
 
-    virtual std::shared_ptr<ChVehicleBushingData> getShackleBushingData() const override { return m_shackleBushingData; }
+    virtual std::shared_ptr<ChVehicleBushingData> getShackleBushingData() const override {
+        return m_shackleBushingData;
+    }
     virtual std::shared_ptr<ChVehicleBushingData> getClampBushingData() const override { return m_clampBushingData; }
-    virtual std::shared_ptr<ChVehicleBushingData> getLeafspringBushingData() const override { return m_leafspringBushingData; }
+    virtual std::shared_ptr<ChVehicleBushingData> getLeafspringBushingData() const override {
+        return m_leafspringBushingData;
+    }
 
   private:
-    virtual const ChVector<> getLocation(PointId which) override { return m_points[which]; }
+    virtual const ChVector3d getLocation(PointId which) override { return m_points[which]; }
 
     virtual void Create(const rapidjson::Document& d) override;
 
@@ -115,7 +119,7 @@ class CH_VEHICLE_API SAELeafspringAxle : public ChSAELeafspringAxle {
     std::shared_ptr<ChLinkRSDA::TorqueFunctor> m_vertRotSpringCBA;
     std::shared_ptr<ChLinkRSDA::TorqueFunctor> m_vertRotSpringCBB;
 
-    ChVector<> m_points[NUM_POINTS];
+    ChVector3d m_points[NUM_POINTS];
 
     ////double m_damperDegressivityCompression;
     ////double m_damperDegressivityExpansion;
@@ -139,14 +143,14 @@ class CH_VEHICLE_API SAELeafspringAxle : public ChSAELeafspringAxle {
     double m_shockRestLength;
     double m_axleInertia;
 
-    ChVector<> m_spindleInertia;
-    ChVector<> m_axleTubeInertia;
-    ChVector<> m_axleTubeCOM;
+    ChVector3d m_spindleInertia;
+    ChVector3d m_axleTubeInertia;
+    ChVector3d m_axleTubeCOM;
 
-    ChVector<> m_frontleafInertia;
-    ChVector<> m_rearleafInertia;
-    ChVector<> m_clampInertia;
-    ChVector<> m_shackleInertia;
+    ChVector3d m_frontleafInertia;
+    ChVector3d m_rearleafInertia;
+    ChVector3d m_clampInertia;
+    ChVector3d m_shackleInertia;
 
     std::shared_ptr<ChVehicleBushingData> m_shackleBushingData;
     std::shared_ptr<ChVehicleBushingData> m_clampBushingData;

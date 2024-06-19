@@ -21,9 +21,9 @@
 // code, and the symbols will be imported.
 
 #if defined(CH_API_COMPILE_MODELS)
-#define CH_MODELS_API ChApiEXPORT
+    #define CH_MODELS_API ChApiEXPORT
 #else
-#define CH_MODELS_API ChApiIMPORT
+    #define CH_MODELS_API ChApiIMPORT
 #endif
 
 /**
@@ -33,20 +33,25 @@
        @defgroup vehicle_models Vehicle models
        @brief Collection of concrete ground vehicle models
        @{
-         @defgroup vehicle_models_hmmwv HMMWV model
-         @defgroup vehicle_models_feda FED-alpha model
-         @defgroup vehicle_models_sedan Passenger car model
-         @defgroup vehicle_models_citybus City bus model
-         @defgroup vehicle_models_uaz UAZ model
-         @defgroup vehicle_models_gator Gator model
-         @defgroup vehicle_models_fmtv FMTV truck models
-         @defgroup vehicle_models_man MAN truck models
-         @defgroup vehicle_models_kraz Kraz 64431 semi-trailer truck model
-         @defgroup vehicle_models_mrole Multi-purpose wheeled vehicle
-         @defgroup vehicle_models_artcar ARTcar vehicle model
+         @defgroup vehicle_models_hmmwv HMMWV
+         @defgroup vehicle_models_feda FED-alpha vehicle
+         @defgroup vehicle_models_sedan Passenger car
+         @defgroup vehicle_models_citybus City bus
+         @defgroup vehicle_models_uaz UAZ vehicle
+         @defgroup vehicle_models_gator Gator vehicle
+         @defgroup vehicle_models_fmtv FMTV trucks
+         @defgroup vehicle_models_man MAN trucks
+         @defgroup vehicle_models_kraz Kraz 64431 truck
+         @defgroup vehicle_models_mrole Multi-role vehicle
+         @defgroup vehicle_models_artcar ARTcar vehicle
          @defgroup vehicle_models_generic Generic wheeled vehicle
-         @defgroup vehicle_models_m113 M113 tracked vehicle model
-         @defgroup vehicle_models_marder Marder tracked vehicle model
+         @defgroup vehicle_models_m113 M113 tracked vehicle
+         @defgroup vehicle_models_marder Marder tracked vehicle
+         @defgroup vehicle_models_duro Duro vehicle
+         @defgroup vehicle_models_gclass Mercedes G500 vehicle
+         @defgroup vehicle_models_bmw BMW E90 vehicle
+         @defgroup vehicle_models_cherokee Jeep Cherokee vehicle
+         @defgroup vehicle_models_unimog Unimog 401 vehicle
        @}
        @defgroup robot_models Robot models
        @brief Collection of robotic system models

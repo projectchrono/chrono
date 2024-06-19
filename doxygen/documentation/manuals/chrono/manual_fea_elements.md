@@ -1,5 +1,5 @@
 ﻿
-List of FEA elements      {#manual_fea_elements}
+FEA Elements      {#manual_fea_elements}
 =======================
 
 \tableofcontents

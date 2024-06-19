@@ -18,7 +18,6 @@
 
 #include "gtest/gtest.h"
 
-#include "chrono/core/ChLog.h"
 #include "chrono/physics/ChBodyEasy.h"
 #include "chrono/physics/ChSystemNSC.h"
 #include "chrono_sensor/sensors/ChCameraSensor.h"

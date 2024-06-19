@@ -31,7 +31,7 @@ inline void fillRandom(Scalar min, Scalar max) {
 }
 
 /// Test if this matrix is within given tolerance from specified matrix (element-wise).
-template<typename OtherDerived>
+template <typename OtherDerived>
 inline bool equals(const MatrixBase<OtherDerived>& other, Scalar tolerance) {
     return (derived() - other).cwiseAbs().maxCoeff() <= tolerance;
 }
@@ -63,70 +63,69 @@ friend const CwiseBinaryOp<internal::scalar_sum_op<Scalar>, const ConstantReturn
         mat.derived().Constant(mat.rows(), mat.cols(), val), mat.derived());
 }
 
-void ArchiveOut(chrono::ChArchiveOut& marchive) {
+void ArchiveOut(chrono::ChArchiveOut& archive_out) {
     // suggested: use versioning
-	marchive.VersionWrite<chrono::ChMatrix_dense_version_tag>(); // btw use the ChMatrixDynamic version tag also for all other templates.
+    archive_out.VersionWrite<chrono::ChMatrix_dense_version_tag>();  // btw use the ChMatrixDynamic version tag also for
+                                                                     // all other templates.
 
     // stream out all member data
 
-    if (chrono::ChArchiveAsciiDump* mascii = dynamic_cast<chrono::ChArchiveAsciiDump*>(&marchive)) {
-        // CUSTOM row x col 'intuitive' table-like log when using ChArchiveAsciiDump:
+    if (chrono::ChOutputASCII* mascii = dynamic_cast<chrono::ChOutputASCII*>(&archive_out)) {
+        // CUSTOM row x col 'intuitive' table-like log when using ChOutputASCII:
         mascii->indent();
-        mascii->GetStream()->operator<<((int)derived().rows());
-        mascii->GetStream()->operator<<(" rows,  ");
-        mascii->GetStream()->operator<<((int)derived().cols());
-        mascii->GetStream()->operator<<(" columns:\n");
+        mascii->GetStream().operator<<((int)derived().rows());
+        mascii->GetStream().operator<<(" rows,  ");
+        mascii->GetStream().operator<<((int)derived().cols());
+        mascii->GetStream().operator<<(" columns:\n");
         for (int i = 0; i < derived().rows(); i++) {
             mascii->indent();
             for (int j = 0; j < derived().cols(); j++) {
-                (*mascii->GetStream()) << derived()(i, j);
-                mascii->GetStream()->operator<<(", ");
+                mascii->GetStream() << derived()(i, j);
+                mascii->GetStream().operator<<(", ");
             }
-            mascii->GetStream()->operator<<("\n");
+            mascii->GetStream().operator<<("\n");
         }
     } else {
         size_t m_row = derived().rows();
-		size_t m_col = derived().cols();
-        marchive << chrono::make_ChNameValue("rows", m_row);
-        marchive << chrono::make_ChNameValue("columns", m_col);
-         
+        size_t m_col = derived().cols();
+        archive_out << chrono::make_ChNameValue("rows", m_row);
+        archive_out << chrono::make_ChNameValue("columns", m_col);
+
         // NORMAL array-based serialization:
-        size_t tot_elements = derived().rows() *  derived().cols();
-		double* foo = 0;
-        chrono::ChValueSpecific< double* > specVal(foo, "data", 0);
-        marchive.out_array_pre(specVal, tot_elements);
-		char idname[21]; // only for xml, xml serialization needs unique element name
+        size_t tot_elements = derived().rows() * derived().cols();
+        double* foo = 0;
+        chrono::ChValueSpecific<double*> specVal(foo, "data", 0);
+        archive_out.out_array_pre(specVal, tot_elements);
         for (size_t i = 0; i < tot_elements; i++) {
-			sprintf(idname, "%lu", (unsigned long)i);
-            marchive << chrono::CHNVP(derived()((Eigen::Index)i), idname);
-            marchive.out_array_between(specVal, tot_elements);
+            archive_out << chrono::CHNVP(derived()((Eigen::Index)i), std::to_string(i).c_str());
+            archive_out.out_array_between(specVal, tot_elements);
         }
-        marchive.out_array_end(specVal, tot_elements);
+        archive_out.out_array_end(specVal, tot_elements);
     }
 }
 
-void ArchiveIn(chrono::ChArchiveIn& marchive) {
+void ArchiveIn(chrono::ChArchiveIn& archive_in) {
     // suggested: use versioning
-    /*int version =*/ marchive.VersionRead<chrono::ChMatrix_dense_version_tag>(); // btw use the ChMatrixDynamic version tag also for all other templates.
-	
+    /*int version =*/archive_in
+        .VersionRead<chrono::ChMatrix_dense_version_tag>();  // btw use the ChMatrixDynamic version
+                                                             // tag also for all other templates.
+
     // stream in all member data
-    size_t m_row; 
-	size_t m_col;
-    marchive >> chrono::make_ChNameValue("rows", m_row);
-    marchive >> chrono::make_ChNameValue("columns", m_col);
-	
+    size_t m_row;
+    size_t m_col;
+    archive_in >> chrono::make_ChNameValue("rows", m_row);
+    archive_in >> chrono::make_ChNameValue("columns", m_col);
+
     derived().resize(m_row, m_col);
 
     // custom input of matrix data as array
     size_t tot_elements = derived().rows() * derived().cols();
-    marchive.in_array_pre("data", tot_elements);
-	char idname[20]; // only for xml, xml serialization needs unique element name
+    archive_in.in_array_pre("data", tot_elements);
     for (size_t i = 0; i < tot_elements; i++) {
-		sprintf(idname, "%lu", (unsigned long)i);
-        marchive >> chrono::CHNVP(derived()((Eigen::Index)i), idname);
-        marchive.in_array_between("data");
+        archive_in >> chrono::CHNVP(derived()((Eigen::Index)i), std::to_string(i).c_str());
+        archive_in.in_array_between("data");
     }
-    marchive.in_array_end("data");
+    archive_in.in_array_end("data");
 }
 
 #endif

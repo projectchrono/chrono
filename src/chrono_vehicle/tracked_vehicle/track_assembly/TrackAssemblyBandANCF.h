@@ -39,10 +39,10 @@ class CH_VEHICLE_API TrackAssemblyBandANCF : public ChTrackAssemblyBandANCF {
     TrackAssemblyBandANCF(const rapidjson::Document& d);
     ~TrackAssemblyBandANCF() {}
 
-    virtual const ChVector<> GetSprocketLocation() const override { return m_sprocket_loc; }
-    virtual const ChVector<> GetIdlerLocation() const override { return m_idler_loc; }
-    virtual const ChVector<> GetRoadWhelAssemblyLocation(int which) const override { return m_susp_locs[which]; }
-    virtual const ChVector<> GetRollerLocation(int which) const override { return m_roller_locs[which]; }
+    virtual const ChVector3d GetSprocketLocation() const override { return m_sprocket_loc; }
+    virtual const ChVector3d GetIdlerLocation() const override { return m_idler_loc; }
+    virtual const ChVector3d GetRoadWhelAssemblyLocation(int which) const override { return m_susp_locs[which]; }
+    virtual const ChVector3d GetRollerLocation(int which) const override { return m_roller_locs[which]; }
 
   private:
     virtual void Create(const rapidjson::Document& d) override;
@@ -57,10 +57,10 @@ class CH_VEHICLE_API TrackAssemblyBandANCF : public ChTrackAssemblyBandANCF {
     int m_num_rollers;
     int m_num_track_shoes;
 
-    ChVector<> m_sprocket_loc;
-    ChVector<> m_idler_loc;
-    std::vector<ChVector<>> m_susp_locs;
-    std::vector<ChVector<>> m_roller_locs;
+    ChVector3d m_sprocket_loc;
+    ChVector3d m_idler_loc;
+    std::vector<ChVector3d> m_susp_locs;
+    std::vector<ChVector3d> m_roller_locs;
 
     ChContactMaterialData m_mat_info;
 };

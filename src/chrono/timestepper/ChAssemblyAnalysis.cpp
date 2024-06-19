@@ -12,7 +12,7 @@
 // Authors: Alessandro Tasora, Radu Serban
 // =============================================================================
 
-#include "chrono/core/ChMath.h"
+#include "chrono/core/ChFrame.h"
 #include "chrono/timestepper/ChAssemblyAnalysis.h"
 
 namespace chrono {
@@ -36,32 +36,31 @@ void ChAssemblyAnalysis::AssemblyAnalysis(int action, double dt) {
     if (action & AssemblyLevel::POSITION) {
         ChStateDelta Dx;
 
-        for (int m_iter = 0; m_iter < max_assembly_iters; m_iter++) {
+        for (unsigned int m_iter = 0; m_iter < max_assembly_iters; m_iter++) {
             // Set up auxiliary vectors
-            Dx.setZero(integrable->GetNcoords_v(), GetIntegrable());
-            R.setZero(integrable->GetNcoords_v());
-            Qc.setZero(integrable->GetNconstr());
-            L.setZero(integrable->GetNconstr());
+            Dx.setZero(integrable->GetNumCoordsVelLevel(), GetIntegrable());
+            R.setZero(integrable->GetNumCoordsVelLevel());
+            Qc.setZero(integrable->GetNumConstraints());
+            L.setZero(integrable->GetNumConstraints());
 
             integrable->StateGather(X, V, T);  // state <- system
 
             // Solve:
             //
-            // [M          Cq' ] [ dx  ] = [ 0]
-            // [ Cq        0   ] [  l  ] = [ C]
+            // [M          Cq' ] [ dx  ] = [  0]
+            // [ Cq        0   ] [ -l  ] = [ -C]
 
-            integrable->LoadConstraint_C(Qc, 1.0);
+            integrable->LoadConstraint_C(Qc, 1.0);  // sign flipped later in StateSolveCorrection
 
-            integrable->StateSolveCorrection(
-                Dx, L, R, Qc,
-                1.0,      // factor for  M
-                0,        // factor for  dF/dv
-                0,        // factor for  dF/dx (the stiffness matrix)
-                X, V, T,  // not needed
-                false,    // do not scatter Xnew Vnew T+dt before computing correction
-                false,    // full update? (not used, since no scatter)
-                true      // force a call to the solver's Setup function
-                );
+            integrable->StateSolveCorrection(Dx, L, R, Qc,
+                                             1.0,      // factor for  M
+                                             0,        // factor for  dF/dv
+                                             0,        // factor for  dF/dx (the stiffness matrix)
+                                             X, V, T,  // not needed
+                                             false,    // do not scatter Xnew Vnew T+dt before computing correction
+                                             false,    // full update? (not used, since no scatter)
+                                             true      // force a call to the solver's Setup function
+            );
 
             X += Dx;
 
@@ -73,10 +72,10 @@ void ChAssemblyAnalysis::AssemblyAnalysis(int action, double dt) {
         ChStateDelta Vold;
 
         // setup auxiliary vectors
-        Vold.setZero(integrable->GetNcoords_v(), GetIntegrable());
-        R.setZero(integrable->GetNcoords_v());
-        Qc.setZero(integrable->GetNconstr());
-        L.setZero(integrable->GetNconstr());
+        Vold.setZero(integrable->GetNumCoordsVelLevel(), GetIntegrable());
+        R.setZero(integrable->GetNumCoordsVelLevel());
+        Qc.setZero(integrable->GetNumConstraints());
+        L.setZero(integrable->GetNumConstraints());
 
         integrable->StateGather(X, V, T);  // state <- system
 
@@ -85,22 +84,21 @@ void ChAssemblyAnalysis::AssemblyAnalysis(int action, double dt) {
         // Perform a linearized semi-implicit Euler integration step
         //
         // [ M - dt*dF/dv - dt^2*dF/dx    Cq' ] [ v_new  ] = [ M*(v_old) + dt*f]
-        // [ Cq                           0   ] [ -dt*l  ] = [ C/dt + Ct ]
+        // [ Cq                           0   ] [ -dt*l  ] = [ -C/dt - Ct ]
 
         integrable->LoadResidual_F(R, dt);
         integrable->LoadResidual_Mv(R, V, 1.0);
-        integrable->LoadConstraint_C(Qc, 1.0 / dt, false);
-        integrable->LoadConstraint_Ct(Qc, 1.0);
+        integrable->LoadConstraint_C(Qc, 1.0 / dt, false);  // sign later flipped in StateSolveCorrection
+        integrable->LoadConstraint_Ct(Qc, 1.0);             // sign later flipped in StateSolveCorrection
 
-        integrable->StateSolveCorrection(
-            V, L, R, Qc,
-            1.0,           // factor for  M
-            -dt,           // factor for  dF/dv
-            -dt * dt,      // factor for  dF/dx
-            X, V, T + dt,  // not needed
-            false,         // do not scatter Xnew Vnew T+dt before computing correction
-            false,         // full update? (not used, since no scatter)
-            true           // force a call to the solver's Setup() function
+        integrable->StateSolveCorrection(V, L, R, Qc,
+                                         1.0,           // factor for  M
+                                         -dt,           // factor for  dF/dv
+                                         -dt * dt,      // factor for  dF/dx
+                                         X, V, T + dt,  // not needed
+                                         false,         // do not scatter Xnew Vnew T+dt before computing correction
+                                         false,         // full update? (not used, since no scatter)
+                                         true           // force a call to the solver's Setup() function
         );
 
         integrable->StateScatter(X, V, T, true);  // state -> system

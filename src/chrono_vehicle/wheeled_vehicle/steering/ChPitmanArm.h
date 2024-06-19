@@ -56,7 +56,7 @@ class CH_VEHICLE_API ChPitmanArm : public ChSteering {
     /// respect to and expressed in the reference frame of the chassis) and with specified orientation (with respect to
     /// the chassis reference frame).
     virtual void Initialize(std::shared_ptr<ChChassis> chassis,  ///< [in] associated chassis subsystem
-                            const ChVector<>& location,          ///< [in] location relative to the chassis frame
+                            const ChVector3d& location,          ///< [in] location relative to the chassis frame
                             const ChQuaternion<>& rotation       ///< [in] orientation relative to the chassis frame
                             ) override;
 
@@ -70,7 +70,7 @@ class CH_VEHICLE_API ChPitmanArm : public ChSteering {
     /// Update the state of this steering subsystem at the current time.
     /// The steering subsystem is provided the current steering driver input (a value between -1 and +1).  Positive
     /// steering input indicates steering to the left. This function is called during the vehicle update.
-    virtual void Synchronize(double time,                           ///< [in] current time
+    virtual void Synchronize(double time,                       ///< [in] current time
                              const DriverInputs& driver_inputs  ///< [in] current driver inputs
                              ) override;
 
@@ -103,7 +103,7 @@ class CH_VEHICLE_API ChPitmanArm : public ChSteering {
     /// Protected constructor.
     ChPitmanArm(const std::string& name,            ///< [in] name of the subsystem
                 bool vehicle_frame_inertia = false  ///< [in] inertia specified in vehicle-aligned centroidal frames?
-                );
+    );
 
     /// Indicate whether or not inertia matrices are specified with respect to a
     /// vehicle-aligned centroidal frame (flag=true) or with respect to the body
@@ -116,10 +116,10 @@ class CH_VEHICLE_API ChPitmanArm : public ChSteering {
 
     /// Return the location of the specified hardpoint.
     /// The returned location must be expressed in the suspension reference frame.
-    virtual const ChVector<> getLocation(PointId which) = 0;
+    virtual const ChVector3d getLocation(PointId which) = 0;
     /// Return the unit vector for the specified direction.
     /// The returned vector must be expressed in the suspension reference frame.
-    virtual const ChVector<> getDirection(DirectionId which) = 0;
+    virtual const ChVector3d getDirection(DirectionId which) = 0;
 
     /// Return the mass of the steering link body.
     virtual double getSteeringLinkMass() const = 0;
@@ -127,14 +127,14 @@ class CH_VEHICLE_API ChPitmanArm : public ChSteering {
     virtual double getPitmanArmMass() const = 0;
 
     /// Return the moments of inertia of the steering link body.
-    virtual const ChVector<>& getSteeringLinkInertiaMoments() const = 0;
+    virtual const ChVector3d& getSteeringLinkInertiaMoments() const = 0;
     /// Return the products of inertia of the steering link body.
-    virtual const ChVector<>& getSteeringLinkInertiaProducts() const = 0;
+    virtual const ChVector3d& getSteeringLinkInertiaProducts() const = 0;
 
     /// Return the moments of inertia of the Pitman arm body.
-    virtual const ChVector<>& getPitmanArmInertiaMoments() const = 0;
+    virtual const ChVector3d& getPitmanArmInertiaMoments() const = 0;
     /// Return the products of inertia of the Pitman arm body.
-    virtual const ChVector<>& getPitmanArmInertiaProducts() const = 0;
+    virtual const ChVector3d& getPitmanArmInertiaProducts() const = 0;
 
     /// Return the radius of the steering link body (visualization only).
     virtual double getSteeringLinkRadius() const = 0;
@@ -160,14 +160,14 @@ class CH_VEHICLE_API ChPitmanArm : public ChSteering {
     bool m_vehicle_frame_inertia;
 
     // Points for link visualization
-    ChVector<> m_pP;
-    ChVector<> m_pI;
-    ChVector<> m_pTP;
-    ChVector<> m_pTI;
+    ChVector3d m_pP;
+    ChVector3d m_pI;
+    ChVector3d m_pTP;
+    ChVector3d m_pTI;
 
     // Points for arm visualization
-    ChVector<> m_pC;
-    ChVector<> m_pL;
+    ChVector3d m_pC;
+    ChVector3d m_pL;
 };
 
 /// @} vehicle_wheeled_steering

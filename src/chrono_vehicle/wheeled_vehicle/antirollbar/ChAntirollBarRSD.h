@@ -46,7 +46,7 @@ namespace vehicle {
 class CH_VEHICLE_API ChAntirollBarRSD : public ChAntirollBar {
   public:
     ChAntirollBarRSD(const std::string& name  ///< [in] name of the subsystem
-                     );
+    );
 
     virtual ~ChAntirollBarRSD();
 
@@ -60,7 +60,7 @@ class CH_VEHICLE_API ChAntirollBarRSD : public ChAntirollBar {
     /// with the chassis reference frame.
     virtual void Initialize(std::shared_ptr<ChChassis> chassis,        ///< [in] handle to the chassis body
                             std::shared_ptr<ChSuspension> suspension,  ///< [in] associated suspension subsystem
-                            const ChVector<>& location                 ///< [in] location relative to the chassis frame
+                            const ChVector3d& location                 ///< [in] location relative to the chassis frame
                             ) override;
 
     /// Log current constraint violations.
@@ -73,7 +73,7 @@ class CH_VEHICLE_API ChAntirollBarRSD : public ChAntirollBar {
     /// Return the mass of the arm body.
     virtual double getArmMass() const = 0;
     /// Return the moments of inertia of the arm body.
-    virtual ChVector<> getArmInertia() = 0;
+    virtual ChVector3d getArmInertia() = 0;
 
     /// Return the arm length (dimension in y direction).
     virtual double getArmLength() const = 0;
@@ -98,9 +98,9 @@ class CH_VEHICLE_API ChAntirollBarRSD : public ChAntirollBar {
 
   private:
     void AddVisualizationArm(std::shared_ptr<ChBody> arm,
-                             const ChVector<>& pt_1,
-                             const ChVector<>& pt_2,
-                             const ChVector<>& pt_3,
+                             const ChVector3d& pt_1,
+                             const ChVector3d& pt_2,
+                             const ChVector3d& pt_3,
                              double radius,
                              const ChColor& color);
 

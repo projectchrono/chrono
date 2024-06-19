@@ -33,7 +33,7 @@ namespace man {
 const std::string MAN_5t_TMeasyTire::m_meshFile = "MAN_Kat1/meshes/MAN_tire.obj";
 
 const double MAN_5t_TMeasyTire::m_mass = 104.0;
-const ChVector<> MAN_5t_TMeasyTire::m_inertia(17.8651, 31.6623, 17.8651);
+const ChVector3d MAN_5t_TMeasyTire::m_inertia(17.8651, 31.6623, 17.8651);
 
 // -----------------------------------------------------------------------------
 // -----------------------------------------------------------------------------
@@ -73,7 +73,7 @@ void MAN_5t_TMeasyTire::GenerateCharacteristicPlots(const std::string& dirname) 
 // -----------------------------------------------------------------------------
 void MAN_5t_TMeasyTire::AddVisualizationAssets(VisualizationType vis) {
     if (vis == VisualizationType::MESH) {
-        m_trimesh_shape = AddVisualizationMesh(m_meshFile,    // left side
+        m_trimesh_shape = AddVisualizationMesh(m_meshFile,   // left side
                                                m_meshFile);  // right side
     } else {
         ChTMeasyTire::AddVisualizationAssets(vis);

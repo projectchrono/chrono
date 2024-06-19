@@ -28,7 +28,7 @@ namespace chrono {
 namespace vehicle {
 namespace duro {
 
-/// @addtogroup vehicle_models_Duro
+/// @addtogroup vehicle_models_duro
 /// @{
 
 /// Shafts-based engine model for the Duro vehicle.
@@ -41,8 +41,8 @@ class CH_MODELS_API Duro_EngineShafts : public ChEngineShafts {
     virtual double GetMotorBlockInertia() const override { return m_motorblock_inertia; }
     virtual double GetMotorshaftInertia() const override { return m_motorshaft_inertia; }
 
-    virtual void SetEngineTorqueMap(std::shared_ptr<ChFunction_Recorder>& map) override;
-    virtual void SetEngineLossesMap(std::shared_ptr<ChFunction_Recorder>& map) override;
+    virtual void SetEngineTorqueMap(std::shared_ptr<ChFunctionInterp>& map) override;
+    virtual void SetEngineLossesMap(std::shared_ptr<ChFunctionInterp>& map) override;
 
   private:
     // Shaft inertias.
@@ -50,7 +50,7 @@ class CH_MODELS_API Duro_EngineShafts : public ChEngineShafts {
     static const double m_motorshaft_inertia;
 };
 
-/// @} vehicle_models_Duro
+/// @} vehicle_models_duro
 
 }  // namespace duro
 }  // end namespace vehicle

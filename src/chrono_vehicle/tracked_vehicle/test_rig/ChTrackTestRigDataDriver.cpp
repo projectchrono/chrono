@@ -29,7 +29,7 @@
 #include <sstream>
 #include <cstring>
 
-#include "chrono/core/ChMathematics.h"
+#include "chrono/utils/ChUtils.h"
 #include "chrono_vehicle/tracked_vehicle/test_rig/ChTrackTestRigDataDriver.h"
 
 namespace chrono {
@@ -70,7 +70,7 @@ void ChTrackTestRigDataDriver::Initialize(size_t num_posts, const std::vector<do
     double throttle;
 
     // Read data from file
-    std::ifstream ifile(m_filename.c_str());
+    std::ifstream ifile(m_filename);
     if (!ifile.is_open()) {
         std::cout << "failed to open " << m_filename << "    " << std::strerror(errno) << std::endl;
         return;

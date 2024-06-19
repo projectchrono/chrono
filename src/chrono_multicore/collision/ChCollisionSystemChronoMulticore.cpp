@@ -21,7 +21,6 @@
 #include "chrono_multicore/physics/Ch3DOFContainer.h"
 
 namespace chrono {
-namespace collision {
 
 ChCollisionSystemChronoMulticore::ChCollisionSystemChronoMulticore(ChMulticoreDataManager* dc) : data_manager(dc) {
     // Create the shared data structure with external state data
@@ -152,5 +151,4 @@ void ChCollisionSystemChronoMulticore::ReportContacts(ChContactContainer* contai
     container->EndAddContact();
 }
 
-}  // end namespace collision
 }  // end namespace chrono

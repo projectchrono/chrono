@@ -32,6 +32,6 @@ const double ACV_Driveline2WD::m_conicalgear_ratio = 0.2433;
 const double ACV_Driveline2WD::m_axle_differential_locking_limit = 100;
 
 ACV_Driveline2WD::ACV_Driveline2WD(const std::string& name) : ChShaftsDriveline2WD(name) {
-    SetMotorBlockDirection(ChVector<>(1, 0, 0));
-    SetAxleDirection(ChVector<>(0, 1, 0));
+    SetMotorBlockDirection(ChVector3d(1, 0, 0));
+    SetAxleDirection(ChVector3d(0, 1, 0));
 }

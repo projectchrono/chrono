@@ -30,7 +30,7 @@ namespace chrono {
 namespace vehicle {
 namespace duro {
 
-/// @addtogroup vehicle_models_Duro
+/// @addtogroup vehicle_models_duro
 /// @{
 
 /// Duro chassis subsystem.
@@ -42,7 +42,7 @@ class CH_MODELS_API Duro_Chassis : public ChRigidChassis {
     ~Duro_Chassis() {}
 
     /// Get the location (in the local frame of this chassis) of the connection to a rear chassis.
-    virtual const ChVector<> GetLocalPosRearConnector() const override { return m_connector_rear_loc; }
+    virtual const ChVector3d GetLocalPosRearConnector() const override { return m_connector_rear_loc; }
 
     /// Get the local driver position and orientation.
     /// This is a coordinate system relative to the chassis reference frame.
@@ -56,14 +56,14 @@ class CH_MODELS_API Duro_Chassis : public ChRigidChassis {
     ChMatrix33<> m_body_inertia;
 
     static const double m_body_mass;
-    static const ChVector<> m_body_inertiaXX;
-    static const ChVector<> m_body_inertiaXY;
-    static const ChVector<> m_body_COM_loc;
-    static const ChVector<> m_connector_rear_loc;
+    static const ChVector3d m_body_inertiaXX;
+    static const ChVector3d m_body_inertiaXY;
+    static const ChVector3d m_body_COM_loc;
+    static const ChVector3d m_connector_rear_loc;
     static const ChCoordsys<> m_driverCsys;
 };
 
-/// @} vehicle_models_Duro
+/// @} vehicle_models_duro
 
 }  // namespace duro
 }  // end namespace vehicle

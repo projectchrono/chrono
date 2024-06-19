@@ -19,7 +19,7 @@ ChCascadeBodyEasy::ChCascadeBodyEasy(TopoDS_Shape& shape,
                                      double density,
                                      std::shared_ptr<ChCascadeTriangulate> vis_params,
                                      bool collide,
-                                     std::shared_ptr<ChMaterialSurface> mat) {
+                                     std::shared_ptr<ChContactMaterial> mat) {
     Init(shape, density, vis_params, collide, mat);
 }
 
@@ -27,7 +27,7 @@ ChCascadeBodyEasy::ChCascadeBodyEasy(TopoDS_Shape& shape,
                                      double density,
                                      bool visualize,
                                      bool collide,
-                                     std::shared_ptr<ChMaterialSurface> mat) {
+                                     std::shared_ptr<ChContactMaterial> mat) {
     if (visualize)
         Init(shape, density, chrono_types::make_shared<ChCascadeTriangulate>(), collide, mat);
     else
@@ -38,7 +38,7 @@ void ChCascadeBodyEasy::Init(TopoDS_Shape& shape,
                              double density,
                              std::shared_ptr<ChCascadeTriangulate> vis_params,
                              bool collide,
-                             std::shared_ptr<ChMaterialSurface> mat) {
+                             std::shared_ptr<ChContactMaterial> mat) {
     chrono::ChFrame<>* user_ref_to_abs = 0;  // as parameter?
     chrono::ChFrame<> frame_ref_to_abs;
 
@@ -54,62 +54,60 @@ void ChCascadeBodyEasy::Init(TopoDS_Shape& shape,
     this->topods_shape.Location(TopLoc_Location());
 
     // compute mass properties and COG reference
-    chrono::ChVector<> cog;
-    chrono::ChVector<> inertiaXX;
-    chrono::ChVector<> inertiaXY;
+    chrono::ChVector3d cog;
+    chrono::ChVector3d inertiaXX;
+    chrono::ChVector3d inertiaXY;
     double vol;
     double mass;
     chrono::cascade::ChCascadeDoc::GetVolumeProperties(topods_shape, density, cog, inertiaXX, inertiaXY, vol, mass);
 
     // Set mass and COG and REF references
-    this->SetDensity((float)density);
     this->SetMass(mass);
     this->SetInertiaXX(inertiaXX);
     this->SetInertiaXY(inertiaXY);
-    this->SetFrame_REF_to_abs(frame_ref_to_abs);
+    this->SetFrameRefToAbs(frame_ref_to_abs);
 
     chrono::ChFrame<> frame_cog_to_ref;
     frame_cog_to_ref.SetPos(cog);
     frame_cog_to_ref.SetRot(chrono::QUNIT);
-    this->SetFrame_COG_to_REF(frame_cog_to_ref);
+    this->SetFrameCOMToRef(frame_cog_to_ref);
 
     // Add a visualization asset if needed
     if (vis_params) {
-        auto trimesh = chrono_types::make_shared<geometry::ChTriangleMeshConnected>();
+        auto trimesh = chrono_types::make_shared<ChTriangleMeshConnected>();
         ChCascadeMeshTools::fillTriangleMeshFromCascade(*trimesh, topods_shape, *vis_params);
 
-        auto trimesh_shape = chrono_types::make_shared<ChTriangleMeshShape>();
+        auto trimesh_shape = chrono_types::make_shared<ChVisualShapeTriangleMesh>();
         trimesh_shape->SetMesh(trimesh);
         this->AddVisualShape(trimesh_shape);
 
         // Add a collision shape if needed
         if (collide) {
             assert(mat);
-            GetCollisionModel()->ClearModel();
-            GetCollisionModel()->AddTriangleMesh(mat, trimesh, false, false);
-            GetCollisionModel()->BuildModel();
-            SetCollide(true);
+            auto ct_shape = chrono_types::make_shared<ChCollisionShapeTriangleMesh>(mat, trimesh, false, false, 0.0);
+            AddCollisionShape(ct_shape);
+            EnableCollision(true);
         }
     }
 }
 
-ChCascadeBodyEasyProfile::ChCascadeBodyEasyProfile(std::vector<std::shared_ptr<::chrono::geometry::ChLinePath>> wires,
-                                                   std::vector<std::shared_ptr<::chrono::geometry::ChLinePath>> holes,
+ChCascadeBodyEasyProfile::ChCascadeBodyEasyProfile(std::vector<std::shared_ptr<::chrono::ChLinePath>> wires,
+                                                   std::vector<std::shared_ptr<::chrono::ChLinePath>> holes,
                                                    double thickness,
                                                    double density,
                                                    std::shared_ptr<ChCascadeTriangulate> vis_params,
                                                    bool collide,
-                                                   std::shared_ptr<ChMaterialSurface> mat) {
+                                                   std::shared_ptr<ChContactMaterial> mat) {
     AddProfile(wires, holes, thickness, density, vis_params, collide, mat);
 }
 
-void ChCascadeBodyEasyProfile::AddProfile(std::vector<std::shared_ptr<::chrono::geometry::ChLinePath>> wires,
-                                          std::vector<std::shared_ptr<::chrono::geometry::ChLinePath>> holes,
+void ChCascadeBodyEasyProfile::AddProfile(std::vector<std::shared_ptr<::chrono::ChLinePath>> wires,
+                                          std::vector<std::shared_ptr<::chrono::ChLinePath>> holes,
                                           double thickness,
                                           double density,
                                           std::shared_ptr<ChCascadeTriangulate> vis_params,
                                           bool collide,
-                                          std::shared_ptr<ChMaterialSurface> mat) {
+                                          std::shared_ptr<ChContactMaterial> mat) {
     ChCascadeExtrusionFace face;
     face.wires = wires;
     face.holes = holes;
@@ -160,19 +158,19 @@ void ChCascadeBodyEasyProfile::UpdateCollisionAndVisualizationShapes() {
 
         // Add a visualization asset if needed
         if (face.visualization) {
-            auto trimesh = chrono_types::make_shared<geometry::ChTriangleMeshConnected>();
+            auto trimesh = chrono_types::make_shared<ChTriangleMeshConnected>();
             ChCascadeMeshTools::fillTriangleMeshFromCascade(*trimesh, prism, *face.visualization);
 
-            auto trimesh_shape = chrono_types::make_shared<ChTriangleMeshShape>();
+            auto trimesh_shape = chrono_types::make_shared<ChVisualShapeTriangleMesh>();
             trimesh_shape->SetMesh(trimesh);
             this->AddVisualShape(trimesh_shape);
         }
 
         prism.Location(TopLoc_Location());  // needed?
 
-        chrono::ChVector<> cog;
-        chrono::ChVector<> inertiaXX;
-        chrono::ChVector<> inertiaXY;
+        chrono::ChVector3d cog;
+        chrono::ChVector3d inertiaXX;
+        chrono::ChVector3d inertiaXY;
         double vol;
         double mass;
         chrono::cascade::ChCascadeDoc::GetVolumeProperties(prism, face.density, cog, inertiaXX, inertiaXY, vol, mass);
@@ -207,67 +205,57 @@ void ChCascadeBodyEasyProfile::UpdateCollisionAndVisualizationShapes() {
     this->topods_shape = mcompound;
     this->topods_shape.Location(TopLoc_Location());
 
-    if (faces.size())
-        this->SetDensity(
-            (float)this->faces[0].density);  // anyway has no sound meaning...  densities could be different if
-                                             // cluster of  different profiles with different densities..
-
     // Set the total mass and total inertia
 
     this->SetMass(inertia_composer.GetMass());
-    ChVector<> m_inertiaXX(inertia_composer.GetInertia()(0, 0), inertia_composer.GetInertia()(1, 1),
+    ChVector3d m_inertiaXX(inertia_composer.GetInertia()(0, 0), inertia_composer.GetInertia()(1, 1),
                            inertia_composer.GetInertia()(2, 2));
-    ChVector<> m_inertiaXY(inertia_composer.GetInertia()(0, 1), inertia_composer.GetInertia()(0, 2),
+    ChVector3d m_inertiaXY(inertia_composer.GetInertia()(0, 1), inertia_composer.GetInertia()(0, 2),
                            inertia_composer.GetInertia()(1, 2));
     this->SetInertiaXX(m_inertiaXX);
     this->SetInertiaXY(m_inertiaXY);
 
-    // this->SetFrame_REF_to_abs(frame_ref_to_abs); //not needed
+    // this->SetFrameRefToAbs(frame_ref_to_abs); //not needed
 
     chrono::ChFrame<> frame_cog_to_ref;
     frame_cog_to_ref.SetPos(inertia_composer.GetCOM());
     frame_cog_to_ref.SetRot(chrono::QUNIT);
-    this->SetFrame_COG_to_REF(frame_cog_to_ref);
+    this->SetFrameCOMToRef(frame_cog_to_ref);
 
     // Add a collision shape if needed
 
-    GetCollisionModel()->ClearModel();
     bool somefacecollide = false;
 
     for (auto& chface : this->faces) {
         if (chface.collide) {
             assert(chface.material);
             for (auto mpath : chface.wires) {
-                ChVector<> pathposz;
-                mpath->Evaluate(pathposz, 0.0);  // for offset along Z
-                GetCollisionModel()->Add2Dpath(chface.material, mpath,
-                                               ChVector<>(0, 0, pathposz.z() + chface.thickness * 0.5), ChMatrix33<>(1),
-                                               chface.thickness * 0.99);
+                ChVector3d pathposz = mpath->Evaluate(0.0);  // for offset along Z
+                auto ct_shape =
+                    chrono_types::make_shared<ChCollisionShapePath2D>(chface.material, mpath, chface.thickness * 0.99);
+                AddCollisionShape(ct_shape, ChFrame<>(ChVector3d(0, 0, pathposz.z() + chface.thickness * 0.5), QUNIT));
             }
             for (auto mhole : chface.holes) {
-                ChVector<> pathposz;
-                mhole->Evaluate(pathposz, 0.0);  // for offset along Z
-                GetCollisionModel()->Add2Dpath(chface.material, mhole,
-                                               ChVector<>(0, 0, pathposz.z() + chface.thickness * 0.5), ChMatrix33<>(1),
-                                               chface.thickness * 0.99);
+                ChVector3d pathposz = mhole->Evaluate(0.0);  // for offset along Z
+                auto ct_shape =
+                    chrono_types::make_shared<ChCollisionShapePath2D>(chface.material, mhole, chface.thickness * 0.99);
+                AddCollisionShape(ct_shape, ChFrame<>(ChVector3d(0, 0, pathposz.z() + chface.thickness * 0.5), QUNIT));
             }
             somefacecollide = true;
         }
     }
-    GetCollisionModel()->BuildModel();
     if (somefacecollide)
-        SetCollide(true);
+        EnableCollision(true);
     else
-        SetCollide(false);
+        EnableCollision(false);
 }
 
-const TopoDS_Wire ChCascadeBodyEasyProfile::FromChronoPathToCascadeWire(
-    std::shared_ptr<::chrono::geometry::ChLinePath> profile) {
+const TopoDS_Wire ChCascadeBodyEasyProfile::FromChronoPathToCascadeWire(std::shared_ptr<::chrono::ChLinePath> profile) {
     BRepBuilderAPI_MakeWire mwirebuilder;
     for (size_t i = 0; i < profile->GetSubLinesCount(); ++i) {
-        if (auto msegment = std::dynamic_pointer_cast<::chrono::geometry::ChLineSegment>(profile->GetSubLineN(i))) {
+        if (auto msegment = std::dynamic_pointer_cast<::chrono::ChLineSegment>(profile->GetSubLineN(i))) {
             if (msegment->pA.z() != msegment->pB.z())
-                throw ChException(
+                throw std::runtime_error(
                     "Error! ChCascadeBodyEasyProfile: sub segment of ChLinePath not parallel to XY plane!");
 
             gp_Pnt aPntA(msegment->pA.x(), msegment->pA.y(), msegment->pA.z());
@@ -278,9 +266,10 @@ const TopoDS_Wire ChCascadeBodyEasyProfile::FromChronoPathToCascadeWire(
 
             mwirebuilder.Add(aEdge1);
 
-        } else if (auto marc = std::dynamic_pointer_cast<::chrono::geometry::ChLineArc>(profile->GetSubLineN(i))) {
+        } else if (auto marc = std::dynamic_pointer_cast<::chrono::ChLineArc>(profile->GetSubLineN(i))) {
             if ((marc->origin.rot.e1() != 0) || (marc->origin.rot.e2() != 0))
-                throw ChException("Error! ChCascadeBodyEasyProfile: a sub arc of ChLinePath not parallel to XY plane!");
+                throw std::runtime_error(
+                    "Error! ChCascadeBodyEasyProfile: a sub arc of ChLinePath not parallel to XY plane!");
 
             gp_Circ aCirc(
                 gp_Ax2(gp_Pnt(marc->origin.pos.x(), marc->origin.pos.y(), marc->origin.pos.z()), gp_Dir(0., 0., 1.)),
@@ -300,13 +289,13 @@ const TopoDS_Wire ChCascadeBodyEasyProfile::FromChronoPathToCascadeWire(
             mwirebuilder.Add(aEdge);
 
         } else {
-            throw ChException(
+            throw std::runtime_error(
                 "Error! ChCascadeBodyEasyProfile: ChLinePath must contain only ChLineArc and/or ChLineSegment.");
         }
     }
 
     if (!mwirebuilder.IsDone()) {
-        throw ChException("Error! ChCascadeBodyEasyProfile: profile is not closed.");
+        throw std::runtime_error("Error! ChCascadeBodyEasyProfile: profile is not closed.");
     }
 
     return mwirebuilder.Wire();

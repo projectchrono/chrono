@@ -16,7 +16,7 @@
 #define CHMATLABENGINE_H
 
 #include "chrono_matlab/ChApiMatlab.h"
-#include "chrono/core/ChMath.h"
+#include "chrono/core/ChFrame.h"
 
 // Following namespace trick is a fix for VS2010+ and Matlab: avoid error with typedef in matrix.h
 namespace matlabengine {
@@ -92,15 +92,15 @@ class ChApiMatlab ChMatlabEngine {
     // SERIALIZATION
     //
 
-    virtual void ArchiveOut(ChArchiveOut& marchive) {
+    virtual void ArchiveOut(ChArchiveOut& archive_out) {
         // version number
-        marchive.VersionWrite<ChMatlabEngine>();
+        archive_out.VersionWrite<ChMatlabEngine>();
     }
 
     /// Method to allow de serialization of transient data from archives.
-    virtual void ArchiveIn(ChArchiveIn& marchive) {
+    virtual void ArchiveIn(ChArchiveIn& archive_in) {
         // version number
-        /*int version =*/ marchive.VersionRead<ChMatlabEngine>();
+        /*int version =*/archive_in.VersionRead<ChMatlabEngine>();
     }
 };
 

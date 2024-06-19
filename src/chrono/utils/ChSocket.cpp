@@ -27,22 +27,19 @@ ChSocket::ChSocket(int pNumber) {
 
     try {
         if ((socketId = (int)::socket(AF_INET, SOCK_STREAM, 0)) == -1) {
-#ifdef WINDOWS_XP
+#ifdef _WIN32
             int errorCode;
             std::string errorMsg = "";
             detectErrorOpenWinSocket(&errorCode, errorMsg);
-            ChExceptionSocket* openWinSocketException = new ChExceptionSocket(errorCode, errorMsg);
-            throw openWinSocketException;
+            throw std::runtime_error(errorMsg);
 #endif
 
 #ifdef UNIX
-            ChExceptionSocket* openUnixSocketException = new ChExceptionSocket(0, "unix: error getting host by name");
-            throw openUnixSocketException;
+            throw std::runtime_error("unix: error getting host by name");
 #endif
         }
-    } catch (ChExceptionSocket* excp) {
-        excp->response();
-        delete excp;
+    } catch (const std::exception& excp) {
+        std::cerr << excp.what() << std::endl;
         exit(1);
     }
 
@@ -59,7 +56,7 @@ ChSocket::ChSocket(int pNumber) {
 }
 
 ChSocket::~ChSocket() {
-#ifdef WINDOWS_XP
+#ifdef _WIN32
     closesocket(socketId);
 #else
     close(socketId);
@@ -69,22 +66,19 @@ ChSocket::~ChSocket() {
 void ChSocket::setDebug(int debugToggle) {
     try {
         if (setsockopt(socketId, SOL_SOCKET, SO_DEBUG, (char*)&debugToggle, sizeof(debugToggle)) == -1) {
-#ifdef WINDOWS_XP
+#ifdef _WIN32
             int errorCode;
             std::string errorMsg = "DEBUG option:";
             detectErrorSetSocketOption(&errorCode, errorMsg);
-            ChExceptionSocket* socketOptionException = new ChExceptionSocket(errorCode, errorMsg);
-            throw socketOptionException;
+            throw std::runtime_error(errorMsg);
 #endif
 
 #ifdef UNIX
-            ChExceptionSocket* unixSocketOptionException = new ChExceptionSocket(0, "unix: error getting host by name");
-            throw unixSocketOptionException;
+            throw std::runtime_error("unix: error getting host by name");
 #endif
         }
-    } catch (ChExceptionSocket* excp) {
-        excp->response();
-        delete excp;
+    } catch (const std::exception& excp) {
+        std::cerr << excp.what() << std::endl;
         exit(1);
     }
 }
@@ -92,22 +86,19 @@ void ChSocket::setDebug(int debugToggle) {
 void ChSocket::setReuseAddr(int reuseToggle) {
     try {
         if (setsockopt(socketId, SOL_SOCKET, SO_REUSEADDR, (char*)&reuseToggle, sizeof(reuseToggle)) == -1) {
-#ifdef WINDOWS_XP
+#ifdef _WIN32
             int errorCode;
             std::string errorMsg = "REUSEADDR option:";
             detectErrorSetSocketOption(&errorCode, errorMsg);
-            ChExceptionSocket* socketOptionException = new ChExceptionSocket(errorCode, errorMsg);
-            throw socketOptionException;
+            throw std::runtime_error(errorMsg);
 #endif
 
 #ifdef UNIX
-            ChExceptionSocket* unixSocketOptionException = new ChExceptionSocket(0, "unix: error getting host by name");
-            throw unixSocketOptionException;
+            throw std::runtime_error("unix: error getting host by name");
 #endif
         }
-    } catch (ChExceptionSocket* excp) {
-        excp->response();
-        delete excp;
+    } catch (const std::exception& excp) {
+        std::cerr << excp.what() << std::endl;
         exit(1);
     }
 }
@@ -115,22 +106,19 @@ void ChSocket::setReuseAddr(int reuseToggle) {
 void ChSocket::setKeepAlive(int aliveToggle) {
     try {
         if (setsockopt(socketId, SOL_SOCKET, SO_KEEPALIVE, (char*)&aliveToggle, sizeof(aliveToggle)) == -1) {
-#ifdef WINDOWS_XP
+#ifdef _WIN32
             int errorCode;
             std::string errorMsg = "ALIVE option:";
             detectErrorSetSocketOption(&errorCode, errorMsg);
-            ChExceptionSocket* socketOptionException = new ChExceptionSocket(errorCode, errorMsg);
-            throw socketOptionException;
+            throw std::runtime_error(errorMsg);
 #endif
 
 #ifdef UNIX
-            ChExceptionSocket* unixSocketOptionException = new ChExceptionSocket(0, "unix: error getting host by name");
-            throw unixSocketOptionException;
+            throw std::runtime_error("unix: error getting host by name");
 #endif
         }
-    } catch (ChExceptionSocket* excp) {
-        excp->response();
-        delete excp;
+    } catch (const std::exception& excp) {
+        std::cerr << excp.what() << std::endl;
         exit(1);
     }
 }
@@ -146,22 +134,19 @@ void ChSocket::setLingerSeconds(int seconds) {
 
     try {
         if (setsockopt(socketId, SOL_SOCKET, SO_LINGER, (char*)&lingerOption, sizeof(struct linger)) == -1) {
-#ifdef WINDOWS_XP
+#ifdef _WIN32
             int errorCode;
             std::string errorMsg = "LINGER option:";
             detectErrorSetSocketOption(&errorCode, errorMsg);
-            ChExceptionSocket* socketOptionException = new ChExceptionSocket(errorCode, errorMsg);
-            throw socketOptionException;
+            throw std::runtime_error(errorMsg);
 #endif
 
 #ifdef UNIX
-            ChExceptionSocket* unixSocketOptionException = new ChExceptionSocket(0, "unix: error getting host by name");
-            throw unixSocketOptionException;
+            throw std::runtime_error("unix: error getting host by name");
 #endif
         }
-    } catch (ChExceptionSocket* excp) {
-        excp->response();
-        delete excp;
+    } catch (const std::exception& excp) {
+        std::cerr << excp.what() << std::endl;
         exit(1);
     }
 }
@@ -176,22 +161,19 @@ void ChSocket::setLingerOnOff(bool lingerOn) {
 
     try {
         if (setsockopt(socketId, SOL_SOCKET, SO_LINGER, (char*)&lingerOption, sizeof(struct linger)) == -1) {
-#ifdef WINDOWS_XP
+#ifdef _WIN32
             int errorCode;
             std::string errorMsg = "LINGER option:";
             detectErrorSetSocketOption(&errorCode, errorMsg);
-            ChExceptionSocket* socketOptionException = new ChExceptionSocket(errorCode, errorMsg);
-            throw socketOptionException;
+            throw std::runtime_error(errorMsg);
 #endif
 
 #ifdef UNIX
-            ChExceptionSocket* unixSocketOptionException = new ChExceptionSocket(0, "unix: error getting host by name");
-            throw unixSocketOptionException;
+            throw std::runtime_error("unix: error getting host by name");
 #endif
         }
-    } catch (ChExceptionSocket* excp) {
-        excp->response();
-        delete excp;
+    } catch (const std::exception& excp) {
+        std::cerr << excp.what() << std::endl;
         exit(1);
     }
 }
@@ -199,22 +181,19 @@ void ChSocket::setLingerOnOff(bool lingerOn) {
 void ChSocket::setSendBufSize(int sendBufSize) {
     try {
         if (setsockopt(socketId, SOL_SOCKET, SO_SNDBUF, (char*)&sendBufSize, sizeof(sendBufSize)) == -1) {
-#ifdef WINDOWS_XP
+#ifdef _WIN32
             int errorCode;
             std::string errorMsg = "SENDBUFSIZE option:";
             detectErrorSetSocketOption(&errorCode, errorMsg);
-            ChExceptionSocket* socketOptionException = new ChExceptionSocket(errorCode, errorMsg);
-            throw socketOptionException;
+            throw std::runtime_error(errorMsg);
 #endif
 
 #ifdef UNIX
-            ChExceptionSocket* unixSocketOptionException = new ChExceptionSocket(0, "unix: error getting host by name");
-            throw unixSocketOptionException;
+            throw std::runtime_error("unix: error getting host by name");
 #endif
         }
-    } catch (ChExceptionSocket* excp) {
-        excp->response();
-        delete excp;
+    } catch (const std::exception& excp) {
+        std::cerr << excp.what() << std::endl;
         exit(1);
     }
 }
@@ -222,22 +201,19 @@ void ChSocket::setSendBufSize(int sendBufSize) {
 void ChSocket::setReceiveBufSize(int receiveBufSize) {
     try {
         if (setsockopt(socketId, SOL_SOCKET, SO_RCVBUF, (char*)&receiveBufSize, sizeof(receiveBufSize)) == -1) {
-#ifdef WINDOWS_XP
+#ifdef _WIN32
             int errorCode;
             std::string errorMsg = "RCVBUF option:";
             detectErrorSetSocketOption(&errorCode, errorMsg);
-            ChExceptionSocket* socketOptionException = new ChExceptionSocket(errorCode, errorMsg);
-            throw socketOptionException;
+            throw std::runtime_error(errorMsg);
 #endif
 
 #ifdef UNIX
-            ChExceptionSocket* unixSocketOptionException = new ChExceptionSocket(0, "unix: error getting host by name");
-            throw unixSocketOptionException;
+            throw std::runtime_error("unix: error getting host by name");
 #endif
         }
-    } catch (ChExceptionSocket* excp) {
-        excp->response();
-        delete excp;
+    } catch (const std::exception& excp) {
+        std::cerr << excp.what() << std::endl;
         exit(1);
     }
 }
@@ -256,25 +232,22 @@ void ChSocket::setSocketBlocking(int blockingToggle) {
     }
 
     try {
-#ifdef WINDOWS_XP
+#ifdef _WIN32
         if (ioctlsocket(socketId, FIONBIO, (unsigned long*)&blocking) == -1) {
             int errorCode;
             std::string errorMsg = "Blocking option: ";
             detectErrorSetSocketOption(&errorCode, errorMsg);
-            ChExceptionSocket* socketOptionException = new ChExceptionSocket(errorCode, errorMsg);
-            throw socketOptionException;
+            throw std::runtime_error(errorMsg);
         }
 #endif
 
 #ifdef UNIX
         if (ioctl(socketId, FIONBIO, (char*)&blocking) == -1) {
-            ChExceptionSocket* unixSocketOptionException = new ChExceptionSocket(0, "unix: error getting host by name");
-            throw unixSocketOptionException;
+            throw std::runtime_error("unix: error getting host by name");
         }
 #endif
-    } catch (ChExceptionSocket* excp) {
-        excp->response();
-        delete excp;
+    } catch (const std::exception& excp) {
+        std::cerr << excp.what() << std::endl;
         exit(1);
     }
 }
@@ -289,22 +262,19 @@ int ChSocket::getDebug() {
 
     try {
         if (getsockopt(socketId, SOL_SOCKET, SO_DEBUG, (char*)&myOption, &myOptionLen) == -1) {
-#ifdef WINDOWS_XP
+#ifdef _WIN32
             int errorCode;
             std::string errorMsg = "get DEBUG option: ";
             detectErrorGetSocketOption(&errorCode, errorMsg);
-            ChExceptionSocket* socketOptionException = new ChExceptionSocket(errorCode, errorMsg);
-            throw socketOptionException;
+            throw std::runtime_error(errorMsg);
 #endif
 
 #ifdef UNIX
-            ChExceptionSocket* unixSocketOptionException = new ChExceptionSocket(0, "unix: error getting host by name");
-            throw unixSocketOptionException;
+            throw std::runtime_error("unix: error getting host by name");
 #endif
         }
-    } catch (ChExceptionSocket* excp) {
-        excp->response();
-        delete excp;
+    } catch (const std::exception& excp) {
+        std::cerr << excp.what() << std::endl;
         exit(1);
     }
 
@@ -321,22 +291,19 @@ int ChSocket::getReuseAddr() {
 
     try {
         if (getsockopt(socketId, SOL_SOCKET, SO_REUSEADDR, (char*)&myOption, &myOptionLen) == -1) {
-#ifdef WINDOWS_XP
+#ifdef _WIN32
             int errorCode;
             std::string errorMsg = "get REUSEADDR option: ";
             detectErrorGetSocketOption(&errorCode, errorMsg);
-            ChExceptionSocket* socketOptionException = new ChExceptionSocket(errorCode, errorMsg);
-            throw socketOptionException;
+            throw std::runtime_error(errorMsg);
 #endif
 
 #ifdef UNIX
-            ChExceptionSocket* unixSocketOptionException = new ChExceptionSocket(0, "unix: error getting host by name");
-            throw unixSocketOptionException;
+            throw std::runtime_error("unix: error getting host by name");
 #endif
         }
-    } catch (ChExceptionSocket* excp) {
-        excp->response();
-        delete excp;
+    } catch (const std::exception& excp) {
+        std::cerr << excp.what() << std::endl;
         exit(1);
     }
 
@@ -353,22 +320,19 @@ int ChSocket::getKeepAlive() {
 
     try {
         if (getsockopt(socketId, SOL_SOCKET, SO_KEEPALIVE, (char*)&myOption, &myOptionLen) == -1) {
-#ifdef WINDOWS_XP
+#ifdef _WIN32
             int errorCode;
             std::string errorMsg = "get KEEPALIVE option: ";
             detectErrorGetSocketOption(&errorCode, errorMsg);
-            ChExceptionSocket* socketOptionException = new ChExceptionSocket(errorCode, errorMsg);
-            throw socketOptionException;
+            throw std::runtime_error(errorMsg);
 #endif
 
 #ifdef UNIX
-            ChExceptionSocket* unixSocketOptionException = new ChExceptionSocket(0, "unix: error getting host by name");
-            throw unixSocketOptionException;
+            throw std::runtime_error("unix: error getting host by name");
 #endif
         }
-    } catch (ChExceptionSocket* excp) {
-        excp->response();
-        delete excp;
+    } catch (const std::exception& excp) {
+        std::cerr << excp.what() << std::endl;
         exit(1);
     }
     return myOption;
@@ -384,22 +348,19 @@ int ChSocket::getLingerSeconds() {
 
     try {
         if (getsockopt(socketId, SOL_SOCKET, SO_LINGER, (char*)&lingerOption, &myOptionLen) == -1) {
-#ifdef WINDOWS_XP
+#ifdef _WIN32
             int errorCode;
             std::string errorMsg = "get LINER option: ";
             detectErrorGetSocketOption(&errorCode, errorMsg);
-            ChExceptionSocket* socketOptionException = new ChExceptionSocket(errorCode, errorMsg);
-            throw socketOptionException;
+            throw std::runtime_error(errorMsg);
 #endif
 
 #ifdef UNIX
-            ChExceptionSocket* unixSocketOptionException = new ChExceptionSocket(0, "unix: error getting host by name");
-            throw unixSocketOptionException;
+            throw std::runtime_error("unix: error getting host by name");
 #endif
         }
-    } catch (ChExceptionSocket* excp) {
-        excp->response();
-        delete excp;
+    } catch (const std::exception& excp) {
+        std::cerr << excp.what() << std::endl;
         exit(1);
     }
 
@@ -416,22 +377,19 @@ bool ChSocket::getLingerOnOff() {
 
     try {
         if (getsockopt(socketId, SOL_SOCKET, SO_LINGER, (char*)&lingerOption, &myOptionLen) == -1) {
-#ifdef WINDOWS_XP
+#ifdef _WIN32
             int errorCode;
             std::string errorMsg = "get LINER option: ";
             detectErrorGetSocketOption(&errorCode, errorMsg);
-            ChExceptionSocket* socketOptionException = new ChExceptionSocket(errorCode, errorMsg);
-            throw socketOptionException;
+            throw std::runtime_error(errorMsg);
 #endif
 
 #ifdef UNIX
-            ChExceptionSocket* unixSocketOptionException = new ChExceptionSocket(0, "unix: error getting host by name");
-            throw unixSocketOptionException;
+            throw std::runtime_error("unix: error getting host by name");
 #endif
         }
-    } catch (ChExceptionSocket* excp) {
-        excp->response();
-        delete excp;
+    } catch (const std::exception& excp) {
+        std::cerr << excp.what() << std::endl;
         exit(1);
     }
 
@@ -451,22 +409,19 @@ int ChSocket::getSendBufSize() {
 
     try {
         if (getsockopt(socketId, SOL_SOCKET, SO_SNDBUF, (char*)&sendBuf, &myOptionLen) == -1) {
-#ifdef WINDOWS_XP
+#ifdef _WIN32
             int errorCode;
             std::string errorMsg = "get SNDBUF option: ";
             detectErrorGetSocketOption(&errorCode, errorMsg);
-            ChExceptionSocket* socketOptionException = new ChExceptionSocket(errorCode, errorMsg);
-            throw socketOptionException;
+            throw std::runtime_error(errorMsg);
 #endif
 
 #ifdef UNIX
-            ChExceptionSocket* unixSocketOptionException = new ChExceptionSocket(0, "unix: error getting host by name");
-            throw unixSocketOptionException;
+            throw std::runtime_error("unix: error getting host by name");
 #endif
         }
-    } catch (ChExceptionSocket* excp) {
-        excp->response();
-        delete excp;
+    } catch (const std::exception& excp) {
+        std::cerr << excp.what() << std::endl;
         exit(1);
     }
     return sendBuf;
@@ -481,30 +436,29 @@ int ChSocket::getReceiveBufSize() {
 #endif
     try {
         if (getsockopt(socketId, SOL_SOCKET, SO_RCVBUF, (char*)&rcvBuf, &myOptionLen) == -1) {
-#ifdef WINDOWS_XP
+#ifdef _WIN32
             int errorCode;
             std::string errorMsg = "get RCVBUF option: ";
             detectErrorGetSocketOption(&errorCode, errorMsg);
-            ChExceptionSocket* socketOptionException = new ChExceptionSocket(errorCode, errorMsg);
-            throw socketOptionException;
+            throw std::runtime_error(errorMsg);
 #endif
 
 #ifdef UNIX
-            ChExceptionSocket* unixSocketOptionException = new ChExceptionSocket(0, "unix: error getting host by name");
-            throw unixSocketOptionException;
+            throw std::runtime_error("unix: error getting host by name");
 #endif
         }
-    } catch (ChExceptionSocket* excp) {
-        excp->response();
-        delete excp;
+    } catch (const std::exception& excp) {
+        std::cerr << excp.what() << std::endl;
         exit(1);
     }
     return rcvBuf;
 }
 
-#ifdef WINDOWS_XP
+#ifdef _WIN32
 void ChSocket::detectErrorOpenWinSocket(int* errCode, std::string& errMsg) {
     *errCode = WSAGetLastError();
+
+    errMsg.append("Error " + std::to_string(*errCode) + ": ");
 
     if (*errCode == WSANOTINITIALISED)
         errMsg.append("Successful WSAStartup must occur before using this function.");
@@ -532,6 +486,8 @@ void ChSocket::detectErrorOpenWinSocket(int* errCode, std::string& errMsg) {
 
 void ChSocket::detectErrorSetSocketOption(int* errCode, std::string& errMsg) {
     *errCode = WSAGetLastError();
+
+    errMsg.append("Error " + std::to_string(*errCode) + ": ");
 
     if (*errCode == WSANOTINITIALISED)
         errMsg.append("A successful WSAStartup must occur before using this function.");
@@ -561,6 +517,8 @@ void ChSocket::detectErrorSetSocketOption(int* errCode, std::string& errMsg) {
 
 void ChSocket::detectErrorGetSocketOption(int* errCode, std::string& errMsg) {
     *errCode = WSAGetLastError();
+
+    errMsg.append("Error " + std::to_string(*errCode) + ": ");
 
     if (*errCode == WSANOTINITIALISED)
         errMsg.append("A successful WSAStartup must occur before using this function.");
@@ -608,26 +566,23 @@ std::ostream& operator<<(std::ostream& io, ChSocket& s) {
 void ChSocketTCP::bindSocket() {
     try {
         if (::bind(socketId, (struct sockaddr*)&clientAddr, sizeof(struct sockaddr_in)) == -1) {
-#ifdef WINDOWS_XP
+#ifdef _WIN32
             int errorCode = 0;
             std::string errorMsg = "error calling bind(): \n";
             detectErrorBind(&errorCode, errorMsg);
-            ChExceptionSocket* socketBindException = new ChExceptionSocket(errorCode, errorMsg);
-            throw socketBindException;
+            throw std::runtime_error(errorMsg);
 #endif
 #ifdef UNIX
-            ChExceptionSocket* unixSocketBindException = new ChExceptionSocket(0, "unix: error calling bind()");
-            throw unixSocketBindException;
+            throw std::runtime_error("unix: error calling bind()");
 #endif
         }
-    } catch (ChExceptionSocket* excp) {
-        excp->response();
-        delete excp;
+    } catch (const std::exception& excp) {
+        std::cerr << excp.what() << std::endl;
         exit(1);
     }
 }
 
-#ifdef WINDOWS_XP
+#ifdef _WIN32
 
 void ChSocketTCP::detectErrorBind(int* errCode, std::string& errMsg) {
     *errCode = WSAGetLastError();
@@ -926,22 +881,19 @@ void ChSocketTCP::connectToServer(std::string& serverNameOrAddr, hostType hType)
     // Connect to the given address
     try {
         if (connect(socketId, (struct sockaddr*)&serverAddress, sizeof(serverAddress)) == -1) {
-#ifdef WINDOWS_XP
+#ifdef _WIN32
             int errorCode = 0;
             std::string errorMsg = "error calling connect():\n";
             detectErrorConnect(&errorCode, errorMsg);
-            ChExceptionSocket* socketConnectException = new ChExceptionSocket(errorCode, errorMsg);
-            throw socketConnectException;
+            throw std::runtime_error(errorMsg);
 #endif
 
 #ifdef UNIX
-            ChExceptionSocket* unixSocketConnectException = new ChExceptionSocket(0, "unix: error calling connect()");
-            throw unixSocketConnectException;
+            throw std::runtime_error("unix: error calling connect()");
 #endif
         }
-    } catch (ChExceptionSocket* excp) {
-        excp->response();
-        delete excp;
+    } catch (const std::exception& excp) {
+        std::cerr << excp.what() << std::endl;
         exit(1);
     }
 }
@@ -960,22 +912,19 @@ ChSocketTCP* ChSocketTCP::acceptClient(std::string& clientHost) {
     // Accepts a new client connection and stores its socket file descriptor
     try {
         if ((newSocket = (int)accept(socketId, (struct sockaddr*)&clientAddress, &clientAddressLen)) == -1) {
-#ifdef WINDOWS_XP
+#ifdef _WIN32
             int errorCode = 0;
             std::string errorMsg = "error calling accept(): \n";
             detectErrorAccept(&errorCode, errorMsg);
-            ChExceptionSocket* socketAcceptException = new ChExceptionSocket(errorCode, errorMsg);
-            throw socketAcceptException;
+            throw std::runtime_error(errorMsg);
 #endif
 
 #ifdef UNIX
-            ChExceptionSocket* unixSocketAcceptException = new ChExceptionSocket(0, "unix: error calling accept()");
-            throw unixSocketAcceptException;
+            throw std::runtime_error("unix: error calling accept()");
 #endif
         }
-    } catch (ChExceptionSocket* excp) {
-        excp->response();
-        delete excp;
+    } catch (const std::exception& excp) {
+        std::cerr << excp.what() << std::endl;
         return NULL;
     }
 
@@ -994,22 +943,19 @@ ChSocketTCP* ChSocketTCP::acceptClient(std::string& clientHost) {
 void ChSocketTCP::listenToClient(int totalNumPorts) {
     try {
         if (listen(socketId, totalNumPorts) == -1) {
-#ifdef WINDOWS_XP
+#ifdef _WIN32
             int errorCode = 0;
             std::string errorMsg = "error calling listen():\n";
             detectErrorListen(&errorCode, errorMsg);
-            ChExceptionSocket* socketListenException = new ChExceptionSocket(errorCode, errorMsg);
-            throw socketListenException;
+            throw std::runtime_error(errorMsg);
 #endif
 
 #ifdef UNIX
-            ChExceptionSocket* unixSocketListenException = new ChExceptionSocket(0, "unix: error calling listen()");
-            throw unixSocketListenException;
+            throw std::runtime_error("unix: error calling listen()");
 #endif
         }
-    } catch (ChExceptionSocket* excp) {
-        excp->response();
-        delete excp;
+    } catch (const std::exception& excp) {
+        std::cerr << excp.what() << std::endl;
         exit(1);
     }
 }
@@ -1021,7 +967,7 @@ int ChSocketTCP::sendMessage(std::string& message)
 
 
     char msgLength[MSG_HEADER_LEN+1];
-    sprintf(msgLength,"%6d",message.size());
+    snprintf(msgLength,sizeof(msgLength),"%6d",message.size());
     std::string sendMsg = std::string(msgLength);
     sendMsg += message;
 
@@ -1030,23 +976,21 @@ int ChSocketTCP::sendMessage(std::string& message)
     {
         if (numBytes = send(socketId,sendMsg.c_str(),sendMsg.size(),0) == -1)
         {
-            #ifdef WINDOWS_XP
+            #ifdef _WIN32
                 int errorCode = 0;
                 std::string errorMsg = "error calling send():\n";
                 detectErrorSend(&errorCode,errorMsg);
-                ChExceptionSocket* socketSendException = new ChExceptionSocket(errorCode,errorMsg);
-                throw socketSendException;
+                throw std::runtime_error(errorMsg);
             #endif
 
             #ifdef UNIX
-                ChExceptionSocket* unixSocketSendException = new ChExceptionSocket(0,"unix: error calling send()");
-                throw unixSocketSendException;
+                throw std::runtime_error("unix: error calling send()");
             #endif
         }
     }
-    catch(ChExceptionSocket* excp)
+    catch(std::exception* excp)
     {
-        excp->response();
+        std::cerr << excp->what() << std::endl;
         delete excp;
         exit(1);
     }
@@ -1065,7 +1009,7 @@ int ChSocketTCP::sendMessage(std::string& message) {
 
     char msgLength[MSG_HEADER_LEN + 1];
     std::string fmt = "%" + std::to_string(MSG_HEADER_LEN) + "ld";
-    sprintf(msgLength, fmt.c_str(), static_cast<uint64_t>(message.size()));
+    snprintf(msgLength, MSG_HEADER_LEN, fmt.c_str(), static_cast<uint64_t>(message.size()));
     std::string sendMsg(msgLength);
     sendMsg += message;
 
@@ -1073,112 +1017,28 @@ int ChSocketTCP::sendMessage(std::string& message) {
     try {
         numBytes = send(socketId, sendMsg.c_str(), (int)sendMsg.size(), 0);
         if (numBytes == -1) {
-#ifdef WINDOWS_XP
+#ifdef _WIN32
             int errorCode = 0;
             std::string errorMsg = "error calling send():\n";
             detectErrorSend(&errorCode, errorMsg);
-            ChExceptionSocket* socketSendException = new ChExceptionSocket(errorCode, errorMsg);
-            throw socketSendException;
+            throw std::runtime_error(errorMsg);
 #endif
 
 #ifdef UNIX
-            ChExceptionSocket* unixSocketSendException = new ChExceptionSocket(0, "unix: error calling send()");
-            throw unixSocketSendException;
+            throw std::runtime_error("unix: error calling send()");
 #endif
         }
-    } catch (ChExceptionSocket* excp) {
-        excp->response();
-        delete excp;
+    } catch (const std::exception& excp) {
+        std::cerr << excp.what() << std::endl;
         exit(1);
     }
 
     return numBytes;
 }
 
-#ifdef WINDOWS_XP
-/*
-int ChSocketTCP::XPrecieveMessage(std::string& message)
-{
-    int numBytes = 0;                 // The number of bytes received
-    int currentSize = MSG_HEADER_LEN; // The number of bytes wanted to receive
-    int offsetSize = 0;               // The number of bytes currently received
+#ifdef _WIN32
 
-    // retrieve the length of the message received
-
-    char msgLength[MSG_HEADER_LEN+1];
-    memset(msgLength,0,sizeof(msgLength));
-
-    try
-    {
-        while ( numBytes < currentSize )
-        {
-            numBytes = recv(socketId,msgLength+offsetSize,currentSize,MSG_PEEK);
-            if (numBytes == -1)
-            {
-                int errorCode = 0;
-                std::string errorMsg = "error calling recv():\n";
-                detectErrorRecv(&errorCode,errorMsg);
-                ChExceptionSocket* socketRecvException = new ChExceptionSocket(errorCode,errorMsg);
-                throw socketRecvException;
-            }
-            else if ( numBytes < currentSize )
-            {
-                offsetSize += numBytes;
-                currentSize -= numBytes;
-            }
-        }
-
-    }
-    catch(ChExceptionSocket* excp)
-    {
-        excp->response();
-        delete excp;
-        exit(1);
-    }
-
-    // recieve the real message
-    currentSize = atoi(msgLength);
-    offsetSize = 0;
-
-    cout   << "[RECV:message length] " << msgLength << std::endl;
-    winLog << "[RECV:message length] " << msgLength << std::endl;
-
-    try
-    {
-        while ( numBytes < currentSize )
-        {
-            numBytes = recv(socketId,(char*)(message.c_str())+offsetSize,currentSize,0);
-            if (numBytes == -1)
-            {
-                int errorCode = 0;
-                std::string errorMsg = "error calling recv():\n";
-                detectErrorRecv(&errorCode,errorMsg);
-                ChExceptionSocket* socketRecvException = new ChExceptionSocket(errorCode,errorMsg);
-                throw socketRecvException;
-            }
-            else if ( numBytes < currentSize )
-            {
-                offsetSize += numBytes;
-                currentSize -= numBytes;
-            }
-        }
-
-    }
-    catch(ChExceptionSocket* excp)
-    {
-        excp->response();
-        delete excp;
-        exit(1);
-    }
-
-    cout   << "[RECV:message] " << message << std::endl;
-    winLog << "[RECV:message] " << message << std::endl;
-
-    return atoi(msgLength);
-}
-*/
-
-int ChSocketTCP::XPrecieveMessage(std::string& message) {
+int ChSocketTCP::XPReceiveMessage(std::string& message) {
     int received = 0;            // The number of bytes received
     int msgSize = MAX_RECV_LEN;  // The number of bytes wanted to receive
     bool headerFinished = false;
@@ -1195,8 +1055,7 @@ int ChSocketTCP::XPrecieveMessage(std::string& message) {
                 int errorCode = 0;
                 std::string errorMsg = "error calling recv():\n";
                 detectErrorRecv(&errorCode, errorMsg);
-                ChExceptionSocket* socketRecvException = new ChExceptionSocket(errorCode, errorMsg);
-                throw socketRecvException;
+                throw std::runtime_error(errorMsg);
             }
 
             if (!headerFinished) {
@@ -1212,14 +1071,8 @@ int ChSocketTCP::XPrecieveMessage(std::string& message) {
             } else
                 received++;
         }
-    } catch (ChExceptionSocket* excp) {
-        if (excp->getErrCode() == WSAECONNRESET) {
-            std::cout << "!! your party has shut down the connection... \n";
-            // winLog << "!! your party has shut down the connection... \n";
-            return -99;
-        }
-        excp->response();
-        delete excp;
+    } catch (const std::exception& excp) {
+        std::cerr << excp.what() << std::endl;
         exit(1);
     }
 
@@ -1230,9 +1083,11 @@ int ChSocketTCP::XPrecieveMessage(std::string& message) {
 #endif
 
 int ChSocketTCP::receiveMessage(std::string& message) {
-#ifdef WINDOWS_XP
-    return XPrecieveMessage(message);
-#endif
+#ifdef _WIN32
+
+    return XPReceiveMessage(message);
+
+#else
 
     int64_t numBytes = 0;       // Number of received bytes on the last recv
     int64_t expectedBytes = 0;  // Number of total bytes expected
@@ -1243,8 +1098,7 @@ int ChSocketTCP::receiveMessage(std::string& message) {
         char header[MSG_HEADER_LEN + 1];
         numBytes = recv(socketId, header, MSG_HEADER_LEN, 0);
         if (numBytes == -1) {
-            ChExceptionSocket* unixSocketRecvException = new ChExceptionSocket(0, "unix: error calling recv()");
-            throw unixSocketRecvException;
+            throw std::runtime_error("unix: error calling recv()");
         }
         expectedBytes = atoll(header);
         message.resize(expectedBytes);
@@ -1252,19 +1106,18 @@ int ChSocketTCP::receiveMessage(std::string& message) {
         while (receivedBytes < expectedBytes) {
             numBytes = recv(socketId, (char*)(message.c_str()) + receivedBytes, expectedBytes, 0);
             if (numBytes == -1) {
-                ChExceptionSocket* unixSocketRecvException = new ChExceptionSocket(0, "unix: error calling recv()");
-                throw unixSocketRecvException;
+                throw std::runtime_error("unix: error calling recv()");
             }
 
             receivedBytes += numBytes;
         }
-    } catch (ChExceptionSocket* excp) {
-        excp->response();
-        delete excp;
+    } catch (const std::exception& excp) {
+        std::cerr << excp.what() << std::endl;
         exit(1);
     }
 
     return numBytes;
+#endif
 }
 
 int ChSocketTCP::SendBuffer(std::vector<char>& source_buf) {
@@ -1278,15 +1131,15 @@ int ChSocketTCP::SendBuffer(std::vector<char>& source_buf) {
     // Sends the message to the connected host
     int sentBytes = send(socketId, data, nbytes, 0);
     if (sentBytes == -1) {
-#ifdef WINDOWS_XP
+#ifdef _WIN32
         int errorCode = 0;
         std::string errorMsg = "error calling send():\n";
         detectErrorRecv(&errorCode, errorMsg);
-        throw ChExceptionSocket(errorCode, errorMsg);
+        throw std::runtime_error(errorMsg);
 #endif
 
 #ifdef UNIX
-        throw ChExceptionSocket(0, "unix: error calling send()");
+        throw std::runtime_error("unix: error calling send()");
 #endif
     }
 
@@ -1307,19 +1160,37 @@ int ChSocketTCP::ReceiveBuffer(std::vector<char>& dest_buf, int bsize) {
 
     int receivedBytes = recv(socketId, (char*)data, nbytes, 0);
     if (receivedBytes == -1) {
-#ifdef WINDOWS_XP
+#ifdef _WIN32
         int errorCode = 0;
         std::string errorMsg = "error calling recv():\n";
         detectErrorRecv(&errorCode, errorMsg);
-        throw ChExceptionSocket(errorCode, errorMsg);
+        throw std::runtime_error(errorMsg);
 #endif
 
 #ifdef UNIX
-        throw ChExceptionSocket(0, "Error calling recv() in buffer receive:");
+        throw std::runtime_error("Error calling recv() in buffer receive:");
 #endif
     }
 
     return receivedBytes;
+}
+
+int ChSocketTCP::SendBuffer() {
+    int send_size = (int)m_internal_buffer_send.size();
+    SendBuffer(m_internal_buffer_send);
+    m_internal_buffer_send.clear();
+    return send_size;
+}
+
+int ChSocketTCP::ReceiveBuffer(int data_in_size) {
+    m_internal_buffer_receive.clear();
+    return ReceiveBuffer(m_internal_buffer_receive, data_in_size);
+}
+
+int ChSocketTCP::ReceiveData() {
+    m_internal_buffer_receive.resize(receive_id);
+    int received_bytes = ReceiveBuffer(m_internal_buffer_receive, (int)m_internal_buffer_receive.size());
+    return received_bytes;
 }
 
 // -----------------
@@ -1327,20 +1198,20 @@ int ChSocketTCP::ReceiveBuffer(std::vector<char>& dest_buf, int bsize) {
 // -----------------
 
 ChSocketFramework::ChSocketFramework() {
-#ifdef WINDOWS_XP
+#ifdef _WIN32
 
     // Initialize the winsock library
     WSADATA wsaData;
 
     if (WSAStartup(0x101, &wsaData)) {
-        throw ChExceptionSocket(0, "Error: calling WSAStartup()");
+        throw std::runtime_error("Error: calling WSAStartup()");
     }
 
 #endif
 }
 
 ChSocketFramework::~ChSocketFramework() {
-#ifdef WINDOWS_XP
+#ifdef _WIN32
     WSACleanup();
 #endif
 }
@@ -1355,7 +1226,7 @@ ChSocketHostInfo::ChSocketHostInfo() {
 // winLog<<"UNIX version ChSocketHostInfo() is called...\n";
 #endif
 
-#ifdef WINDOWS_XP
+#ifdef _WIN32
 
     char sName[HOST_NAME_LENGTH + 1];
     memset(sName, 0, sizeof(sName));
@@ -1367,11 +1238,10 @@ ChSocketHostInfo::ChSocketHostInfo() {
             int errorCode;
             std::string errorMsg = "";
             detectErrorGethostbyname(&errorCode, errorMsg);
-            ChExceptionSocket* gethostbynameException = new ChExceptionSocket(errorCode, errorMsg);
-            throw gethostbynameException;
+            throw std::runtime_error(errorMsg);
         }
-    } catch (ChExceptionSocket* excp) {
-        excp->response();
+    } catch (std::exception* excp) {
+        std::cerr << excp->what() << std::endl;
         exit(1);
     }
 
@@ -1389,51 +1259,42 @@ ChSocketHostInfo::ChSocketHostInfo(const std::string& hostName, hostType type) {
             hostPtr = gethostbyname(hostName.c_str());
 
             if (hostPtr == NULL) {
-#ifdef WINDOWS_XP
+#ifdef _WIN32
                 int errorCode;
                 std::string errorMsg = "";
                 detectErrorGethostbyname(&errorCode, errorMsg);
-                ChExceptionSocket* gethostbynameException = new ChExceptionSocket(errorCode, errorMsg);
-                throw gethostbynameException;
+                throw std::runtime_error(errorMsg);
 #endif
 
 #ifdef UNIX
-                ChExceptionSocket* gethostbynameException =
-                    new ChExceptionSocket(0, "unix: error getting host by name");
-                throw gethostbynameException;
+                throw std::runtime_error("unix: error getting host by name");
 #endif
             }
         } else if (type == ADDRESS) {
             // Retrieve host by address
             unsigned long netAddr = inet_addr(hostName.c_str());
             if (netAddr == -1) {
-                ChExceptionSocket* inet_addrException = new ChExceptionSocket(0, "Error calling inet_addr()");
-                throw inet_addrException;
+                throw std::runtime_error("Error calling inet_addr()");
             }
 
             hostPtr = gethostbyaddr((char*)&netAddr, sizeof(netAddr), AF_INET);
             if (hostPtr == NULL) {
-#ifdef WINDOWS_XP
+#ifdef _WIN32
                 int errorCode;
                 std::string errorMsg = "";
                 detectErrorGethostbyaddr(&errorCode, errorMsg);
-                ChExceptionSocket* gethostbyaddrException = new ChExceptionSocket(errorCode, errorMsg);
-                throw gethostbyaddrException;
+                throw std::runtime_error(errorMsg);
 #endif
 
 #ifdef UNIX
-                ChExceptionSocket* gethostbynameException =
-                    new ChExceptionSocket(0, "unix: error getting host by name");
-                throw gethostbynameException;
+                throw std::runtime_error("unix: error getting host by name");
 #endif
             }
         } else {
-            ChExceptionSocket* unknownTypeException =
-                new ChExceptionSocket(0, "unknown host type: host name/address has to be given ");
-            throw unknownTypeException;
+            throw std::runtime_error("unknown host type: host name/address has to be given");
         }
-    } catch (ChExceptionSocket* excp) {
-        excp->response();
+    } catch (std::exception* excp) {
+        std::cerr << excp->what() << std::endl;
         exit(1);
     }
 }
@@ -1446,7 +1307,7 @@ char* ChSocketHostInfo::getHostIPAddress() {
     return inet_ntoa(*addr_ptr);
 }
 
-#ifdef WINDOWS_XP
+#ifdef _WIN32
 void ChSocketHostInfo::detectErrorGethostbyname(int* errCode, std::string& errorMsg) {
     *errCode = WSAGetLastError();
 
@@ -1473,7 +1334,7 @@ void ChSocketHostInfo::detectErrorGethostbyname(int* errCode, std::string& error
 }
 #endif
 
-#ifdef WINDOWS_XP
+#ifdef _WIN32
 void ChSocketHostInfo::detectErrorGethostbyaddr(int* errCode, std::string& errorMsg) {
     *errCode = WSAGetLastError();
 

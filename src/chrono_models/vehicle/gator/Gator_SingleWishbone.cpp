@@ -44,11 +44,11 @@ const double Gator_SingleWishbone::m_spindleWidth = 0.025;
 const double Gator_SingleWishbone::m_uprightRadius = 0.01;
 const double Gator_SingleWishbone::m_CARadius = 0.03;
 
-const ChVector<> Gator_SingleWishbone::m_spindleInertia(0.001, 0.0018, 0.001);
-const ChVector<> Gator_SingleWishbone::m_uprightInertiaMoments(0.0138, 0.0146, 0.00283);
-const ChVector<> Gator_SingleWishbone::m_uprightInertiaProducts(0.0, 0.0, 0.0);
-const ChVector<> Gator_SingleWishbone::m_CAInertiaMoments(0.0151, 0.0207, 0.0355);
-const ChVector<> Gator_SingleWishbone::m_CAInertiaProducts(0.0, 0.0, 0.0);
+const ChVector3d Gator_SingleWishbone::m_spindleInertia(0.001, 0.0018, 0.001);
+const ChVector3d Gator_SingleWishbone::m_uprightInertiaMoments(0.0138, 0.0146, 0.00283);
+const ChVector3d Gator_SingleWishbone::m_uprightInertiaProducts(0.0, 0.0, 0.0);
+const ChVector3d Gator_SingleWishbone::m_CAInertiaMoments(0.0151, 0.0207, 0.0355);
+const ChVector3d Gator_SingleWishbone::m_CAInertiaProducts(0.0, 0.0, 0.0);
 
 const double Gator_SingleWishbone::m_axleInertia = 0.4;
 
@@ -77,28 +77,28 @@ Gator_SingleWishbone::~Gator_SingleWishbone() {}
 // function are for the left half of the suspension only.
 // -----------------------------------------------------------------------------
 
-const ChVector<> Gator_SingleWishbone::getLocation(PointId which) {
+const ChVector3d Gator_SingleWishbone::getLocation(PointId which) {
     switch (which) {
         case SPINDLE:
-            return ChVector<>(0, 0.56, -0.02);  // spindle location
+            return ChVector3d(0, 0.56, -0.02);  // spindle location
         case UPRIGHT:
-            return ChVector<>(0, 0.5, -0.02);  // upright location
+            return ChVector3d(0, 0.5, -0.02);  // upright location
         case CA_C:
-            return ChVector<>(0, 0.06, 0);  // control arm, chassis
+            return ChVector3d(0, 0.06, 0);  // control arm, chassis
         case CA_U:
-            return ChVector<>(0, 0.48, -0.02);  // control arm, upright
+            return ChVector3d(0, 0.48, -0.02);  // control arm, upright
         case CA_CM:
-            return ChVector<>(0, 0.21, -0.01);  // control arm, center of mass
+            return ChVector3d(0, 0.21, -0.01);  // control arm, center of mass
         case STRUT_C:
-            return ChVector<>(0, 0.28, 0.34);  // strut, chassis
+            return ChVector3d(0, 0.28, 0.34);  // strut, chassis
         case STRUT_A:
-            return ChVector<>(0, 0.39, -0.015);  // strut, control arm
+            return ChVector3d(0, 0.39, -0.015);  // strut, control arm
         case TIEROD_C:
-            return ChVector<>(-0.05, 0.21, 0.08);  // tierod connection point to chassis
+            return ChVector3d(-0.05, 0.21, 0.08);  // tierod connection point to chassis
         case TIEROD_U:
-            return ChVector<>(-0.05, 0.48, 0.08);  // tierod connection point to upright
+            return ChVector3d(-0.05, 0.48, 0.08);  // tierod connection point to upright
         default:
-            return ChVector<>(0, 0, 0);
+            return ChVector3d(0, 0, 0);
     }
 }
 

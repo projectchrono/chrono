@@ -18,17 +18,18 @@ namespace chrono {
 namespace vehicle {
 namespace citybus {
 
-const double rpm2rads = CH_C_PI / 30;
+const double rpm2rads = CH_PI / 30;
 const double lbft2nm = 1.3558;
 
-CityBus_AutomaticTransmissionSimpleMap::CityBus_AutomaticTransmissionSimpleMap(const std::string& name) : ChAutomaticTransmissionSimpleMap(name) {}
+CityBus_AutomaticTransmissionSimpleMap::CityBus_AutomaticTransmissionSimpleMap(const std::string& name)
+    : ChAutomaticTransmissionSimpleMap(name) {}
 
 void CityBus_AutomaticTransmissionSimpleMap::SetGearRatios(std::vector<double>& fwd, double& rev) {
     rev = -0.20;
     fwd.push_back(0.29);
     fwd.push_back(0.54);
     fwd.push_back(0.71);
-    fwd.push_back(1.0 );
+    fwd.push_back(1.0);
     fwd.push_back(1.33);
     fwd.push_back(1.54);
 }

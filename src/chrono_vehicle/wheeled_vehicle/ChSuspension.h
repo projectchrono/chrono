@@ -20,8 +20,8 @@
 #define CH_SUSPENSION_H
 
 #include "chrono/physics/ChShaft.h"
-#include "chrono/physics/ChShaftsBody.h"
-#include "chrono/assets/ChCylinderShape.h"
+#include "chrono/physics/ChShaftBodyConstraint.h"
+#include "chrono/assets/ChVisualShapeCylinder.h"
 
 #include "chrono_vehicle/ChApiVehicle.h"
 #include "chrono_vehicle/ChChassis.h"
@@ -46,6 +46,15 @@ class CH_VEHICLE_API ChSuspension : public ChPart {
         ForceTSDA(const std::string& n, double f, double l, double v) : name(n), force(f), length(l), velocity(v) {}
     };
 
+    struct ForceRSDA {
+        std::string name;
+        double torque;
+        double angle;
+        double velocity;
+        ForceRSDA() : name(""), torque(0), angle(0), velocity(0) {}
+        ForceRSDA(const std::string& n, double t, double a, double v) : name(n), torque(t), angle(a), velocity(v) {}
+    };
+
     virtual ~ChSuspension();
 
     /// Specify whether or not this suspension can be steered.
@@ -56,7 +65,7 @@ class CH_VEHICLE_API ChSuspension : public ChPart {
 
     /// Get the location of the suspension subsystem relative to the associated chassis reference frame.
     /// The suspension reference frame is always aligned with the chassis reference frame.
-    const ChVector<>& GetRelPosition() const { return m_rel_loc; }
+    const ChVector3d& GetRelPosition() const { return m_rel_loc; }
 
     /// Get a handle to the spindle body on the specified side.
     std::shared_ptr<ChBody> GetSpindle(VehicleSide side) const { return m_spindle[side]; }
@@ -68,7 +77,7 @@ class CH_VEHICLE_API ChSuspension : public ChPart {
     std::shared_ptr<ChLinkLockRevolute> GetRevolute(VehicleSide side) const { return m_revolute[side]; }
 
     /// Get the global location of the spindle on the specified side.
-    const ChVector<>& GetSpindlePos(VehicleSide side) const { return m_spindle[side]->GetPos(); }
+    const ChVector3d& GetSpindlePos(VehicleSide side) const { return m_spindle[side]->GetPos(); }
 
     /// Get the orientation of the spindle body on the specified side.
     /// The spindle body orientation is returned as a quaternion representing a
@@ -78,18 +87,21 @@ class CH_VEHICLE_API ChSuspension : public ChPart {
     /// Get the linear velocity of the spindle body on the specified side.
     /// Return the linear velocity of the spindle center, expressed in the global
     /// reference frame.
-    const ChVector<>& GetSpindleLinVel(VehicleSide side) const { return m_spindle[side]->GetPos_dt(); }
+    const ChVector3d& GetSpindleLinVel(VehicleSide side) const { return m_spindle[side]->GetPosDt(); }
 
     /// Get the angular velocity of the spindle body on the specified side.
     /// Return the angular velocity of the spindle frame, expressed in the global
     /// reference frame.
-    ChVector<> GetSpindleAngVel(VehicleSide side) const { return m_spindle[side]->GetWvel_par(); }
+    ChVector3d GetSpindleAngVel(VehicleSide side) const { return m_spindle[side]->GetAngVelParent(); }
 
     /// Get the angular speed of the axle on the specified side.
-    double GetAxleSpeed(VehicleSide side) const { return m_axle[side]->GetPos_dt(); }
+    double GetAxleSpeed(VehicleSide side) const { return m_axle[side]->GetPosDt(); }
 
     /// Synchronize this suspension subsystem.
-    virtual void Synchronize() {}
+    virtual void Synchronize(double time);
+
+    /// Advance the state of the suspension subsystem by the specified time step.
+    virtual void Advance(double step) {}
 
     /// Apply the provided motor torque.
     /// The given torque is applied to the specified (left or right) axle. This
@@ -109,7 +121,7 @@ class CH_VEHICLE_API ChSuspension : public ChPart {
         std::shared_ptr<ChChassis> chassis,        ///< [in] associated chassis subsystem
         std::shared_ptr<ChSubchassis> subchassis,  ///< [in] associated subchassis subsystem (may be null)
         std::shared_ptr<ChSteering> steering,      ///< [in] associated steering subsystem (may be null)
-        const ChVector<>& location,                ///< [in] location relative to the chassis frame
+        const ChVector3d& location,                ///< [in] location relative to the chassis frame
         double left_ang_vel = 0,                   ///< [in] initial angular velocity of left wheel
         double right_ang_vel = 0                   ///< [in] initial angular velocity of right wheel
     );
@@ -139,7 +151,10 @@ class CH_VEHICLE_API ChSuspension : public ChPart {
     virtual double GetTrack() = 0;
 
     /// Return current suspension TSDA force information on the specified side.
-    virtual std::vector<ForceTSDA> ReportSuspensionForce(VehicleSide side) const = 0;
+    virtual std::vector<ForceTSDA> ReportSuspensionForce(VehicleSide side) const { return {}; }
+
+    /// Return current RSDA torque information on the specified side.
+    virtual std::vector<ForceRSDA> ReportSuspensionTorque(VehicleSide side) const { return {}; }
 
     /// Log current constraint violations.
     virtual void LogConstraintViolations(VehicleSide side) {}
@@ -151,11 +166,11 @@ class CH_VEHICLE_API ChSuspension : public ChPart {
     /// Construct a suspension subsystem with given name.
     ChSuspension(const std::string& name);
 
-    ChVector<> m_rel_loc;                                ///< location relative to chassis
-    std::shared_ptr<ChBody> m_spindle[2];                ///< handles to spindle bodies
-    std::shared_ptr<ChShaft> m_axle[2];                  ///< handles to axle shafts
-    std::shared_ptr<ChShaftsBody> m_axle_to_spindle[2];  ///< handles to spindle-shaft connectors
-    std::shared_ptr<ChLinkLockRevolute> m_revolute[2];   ///< handles to spindle revolute joints
+    ChVector3d m_rel_loc;                                       ///< location relative to chassis
+    std::shared_ptr<ChBody> m_spindle[2];                       ///< handles to spindle bodies
+    std::shared_ptr<ChShaft> m_axle[2];                         ///< handles to axle shafts
+    std::shared_ptr<ChShaftBodyRotation> m_axle_to_spindle[2];  ///< handles to spindle-shaft connectors
+    std::shared_ptr<ChLinkLockRevolute> m_revolute[2];          ///< handles to spindle revolute joints
 
   private:
     std::shared_ptr<ChVisualShape> m_spindle_shapes[2];

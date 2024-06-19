@@ -18,7 +18,6 @@
 // =============================================================================
 
 #include "chrono/core/ChRealtimeStep.h"
-#include "chrono/core/ChStream.h"
 #include "chrono/utils/ChUtilsInputOutput.h"
 
 #include "chrono_vehicle/ChConfigVehicle.h"
@@ -69,7 +68,7 @@ unsigned int rl_image_width = 80;
 unsigned int rl_image_height = 45;
 
 // Camera's horizontal field of view
-float fov = CH_C_PI / 3.;
+float fov = CH_PI / 3.;
 
 // Lag (in seconds) between sensing and when data becomes accessible
 float lag = 0;
@@ -92,7 +91,7 @@ float acc_collection_time = 0;
 // =============================================================================
 
 // Initial vehicle location and orientation
-ChVector<> initLoc(0, 0, 1.0);
+ChVector3d initLoc(0, 0, 1.0);
 ChQuaternion<> initRot(1, 0, 0, 0);
 
 enum DriverMode { DEFAULT, RECORD, PLAYBACK };
@@ -126,7 +125,7 @@ double terrainLength = 250.0;  // size in X direction
 double terrainWidth = 15.0;    // size in Y direction
 
 // Point on chassis tracked by the camera
-ChVector<> trackPoint(0.0, 0.0, 1.75);
+ChVector3d trackPoint(0.0, 0.0, 1.75);
 
 // Contact method
 ChContactMethod contact_method = ChContactMethod::SMC;
@@ -162,7 +161,7 @@ bool vis = false;
 // =============================================================================
 
 int main(int argc, char* argv[]) {
-    GetLog() << "Copyright (c) 2017 projectchrono.org\nChrono version: " << CHRONO_VERSION << "\n\n";
+    std::cout << "Copyright (c) 2017 projectchrono.org" << std::endl << "Chrono version: " << CHRONO_VERSION << std::endl << std::endl;
 
     // --------------
     // Create systems
@@ -202,7 +201,7 @@ int main(int argc, char* argv[]) {
     std::shared_ptr<RigidTerrain::Patch> patch;
     switch (terrain_model) {
         case RigidTerrain::PatchType::BOX:
-            patch = terrain.AddPatch(patch_mat, ChVector<>(0, 0, 0), ChVector<>(0, 0, 1), terrainLength, terrainWidth);
+            patch = terrain.AddPatch(patch_mat, ChVector3d(0, 0, 0), ChVector3d(0, 0, 1), terrainLength, terrainWidth);
             patch->SetTexture(vehicle::GetDataFile("terrain/textures/tile4.jpg"), 200, 200);
             break;
         case RigidTerrain::PatchType::HEIGHT_MAP:
@@ -233,7 +232,7 @@ int main(int argc, char* argv[]) {
     for (int i = 0; i < 3; i++) {
         auto box = chrono_types::make_shared<ChBodyEasyBox>(2, 2, 10, 1000, true, true);
         box->SetPos({25 + 25 * i, (((float)rand() / (float)RAND_MAX) - .5) * 10, 5.05});
-        box->SetBodyFixed(true);
+        box->SetFixed(true);
 
         // Add visual asset to be sensed by camera
         // Will be a solid blue color
@@ -241,7 +240,7 @@ int main(int argc, char* argv[]) {
         vis_mat->SetAmbientColor({0, 0, 0});
         vis_mat->SetDiffuseColor({.2, .2, .9});
         vis_mat->SetSpecularColor({.9, .9, .9});
-        box->GetVisualModel()->GetShapes()[0].first->AddMaterial(vis_mat);
+        box->GetVisualModel()->GetShapeInstances()[0].first->AddMaterial(vis_mat);
 
         my_hmmwv.GetSystem()->Add(box);
     }
@@ -260,7 +259,7 @@ int main(int argc, char* argv[]) {
 
     // Initialize output file for driver inputs
     std::string driver_file = out_dir + "/driver_inputs.txt";
-    utils::CSV_writer driver_csv(" ");
+    utils::ChWriterCSV driver_csv(" ");
 
     // Set up vehicle output
     my_hmmwv.GetVehicle().SetChassisOutput(true);
@@ -280,7 +279,7 @@ int main(int argc, char* argv[]) {
     // ---------------
 
     if (debug_output) {
-        GetLog() << "\n\n============ System Configuration ============\n";
+        std::cout << std::endl << std::endl << "============ System Configuration ============\n";
         my_hmmwv.LogHardpointLocations();
     }
 
@@ -452,8 +451,8 @@ int main(int argc, char* argv[]) {
 
         // Debug logging
         if (debug_output && step_number % debug_steps == 0) {
-            GetLog() << "\n\n============ System Information ============\n";
-            GetLog() << "Time = " << ch_time << "\n\n";
+            std::cout << std::endl << std::endl << "============ System Information ============\n";
+            std::cout << "Time = " << ch_time << std::endl << std::endl;
             my_hmmwv.DebugLog(OUT_SPRINGS | OUT_SHOCKS | OUT_CONSTRAINTS);
         }
 
@@ -495,7 +494,7 @@ int main(int argc, char* argv[]) {
     }
 
     if (driver_mode == RECORD) {
-        driver_csv.write_to_file(driver_file);
+        driver_csv.WriteToFile(driver_file);
     }
 
     return 0;

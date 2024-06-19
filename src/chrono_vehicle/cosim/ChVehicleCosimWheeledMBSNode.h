@@ -42,15 +42,15 @@ namespace vehicle {
  * - ChVehicleCosimViperNode wraps the Viper lunar rover model.
  *
  * Additionally, this module provides various drawbar pull rigs which can be attached to any of the MBS nodes:
- * - ChVehicleCosimDBPRigImposedSlip allows imposing known (fixed) vehicle forward linear velocity and wheel angular velocity to maintain
- * a prescribed value of the longitudinal slip. The actuation specifies if the linear velocity or angular velocity is
- * considered as "base velocity", with the other one derived from the slip value. The DBP force is extracted as the
- * reaction force required to enforce the vehicle forward linear velocity (at steady state).  Each run of this
- * experiment produces one point on the slip-DBP curve.
- * - ChVehicleCosimDBPRigImposedAngVel enforces a prescribed wheel angular velocity. A linearly increasing resistive force is applied
- * against the forward motion of the vehicle and the experiment is ended when the vehicle stops. At each time, the
- * vehicle forward speed and resulting slip are calculated and stored together with the current resistive force (DBP).
- * This experiment produces the entire slip-DBP curve at once.
+ * - ChVehicleCosimDBPRigImposedSlip allows imposing known (fixed) vehicle forward linear velocity and wheel angular
+ * velocity to maintain a prescribed value of the longitudinal slip. The actuation specifies if the linear velocity or
+ * angular velocity is considered as "base velocity", with the other one derived from the slip value. The DBP force is
+ * extracted as the reaction force required to enforce the vehicle forward linear velocity (at steady state).  Each run
+ * of this experiment produces one point on the slip-DBP curve.
+ * - ChVehicleCosimDBPRigImposedAngVel enforces a prescribed wheel angular velocity. A linearly increasing resistive
+ * force is applied against the forward motion of the vehicle and the experiment is ended when the vehicle stops. At
+ * each time, the vehicle forward speed and resulting slip are calculated and stored together with the current resistive
+ * force (DBP). This experiment produces the entire slip-DBP curve at once.
  */
 
 /// @addtogroup vehicle_cosim
@@ -109,13 +109,13 @@ class CH_VEHICLE_API ChVehicleCosimWheeledMBSNode : public ChVehicleCosimBaseNod
     ChVehicleCosimWheeledMBSNode();
 
     /// Initialize the underlying MBS
-    virtual void InitializeMBS(const ChVector2<>& terrain_size,  ///< terrain length x width
-                               double terrain_height             ///< initial terrain height
+    virtual void InitializeMBS(const ChVector2d& terrain_size,  ///< terrain length x width
+                               double terrain_height            ///< initial terrain height
                                ) = 0;
 
     /// Apply tire info (after InitializeMBS).
     /// This includes mass, radius, and width for each tire.
-    virtual void ApplyTireInfo(const std::vector<ChVector<>>& tire_info) = 0;
+    virtual void ApplyTireInfo(const std::vector<ChVector3d>& tire_info) = 0;
 
     /// Perform any required operations before advancing the state of the MBS.
     /// This function is called before every integration step.
@@ -135,7 +135,7 @@ class CH_VEHICLE_API ChVehicleCosimWheeledMBSNode : public ChVehicleCosimBaseNod
 
     /// Get the number of spindles/wheels defined by the underlying MBS.
     /// A co-simulation must have a matching number of TIRE nodes.
-    virtual int GetNumSpindles() const = 0;
+    virtual unsigned int GetNumSpindles() const = 0;
 
     /// Get the spindle body to which the i-th wheel/tire is attached.
     virtual std::shared_ptr<ChBody> GetSpindleBody(unsigned int i) const = 0;

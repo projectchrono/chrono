@@ -33,7 +33,7 @@ ChConstraintRigidRigid::ChConstraintRigidRigid()
     : data_manager(nullptr), offset(3), inv_h(0), inv_hpa(0), inv_hhpa(0) {}
 
 void ChConstraintRigidRigid::func_Project_normal(int index, const vec2* ids, const real* cohesion, real* gamma) {
-    const auto num_rigid_contacts = data_manager->cd_data->num_rigid_contacts;
+    const auto num_rigid_contacts = data_manager->cd_data ? data_manager->cd_data->num_rigid_contacts : 0;
 
     real gamma_x = gamma[index * 1 + 0];
     real coh = cohesion[index];
@@ -177,7 +177,7 @@ void ChConstraintRigidRigid::host_Project_single(int index, vec2* ids, real3* fr
 
 void ChConstraintRigidRigid::Setup(ChMulticoreDataManager* dm) {
     data_manager = dm;
-    const auto num_rigid_contacts = data_manager->cd_data->num_rigid_contacts;
+    const auto num_rigid_contacts = data_manager->cd_data ? data_manager->cd_data->num_rigid_contacts : 0;
 
     inv_h = 1 / data_manager->settings.step_size;
     inv_hpa = 1 / (data_manager->settings.step_size + data_manager->settings.solver.alpha);
@@ -224,7 +224,11 @@ void ChConstraintRigidRigid::Setup(ChMulticoreDataManager* dm) {
 }
 
 void ChConstraintRigidRigid::Project(real* gamma) {
-    const auto num_rigid_contacts = data_manager->cd_data->num_rigid_contacts;
+    const auto num_rigid_contacts = data_manager->cd_data ? data_manager->cd_data->num_rigid_contacts : 0;
+
+    if (num_rigid_contacts <= 0)
+        return;
+
     const custom_vector<vec2>& bids = data_manager->cd_data->bids_rigid_rigid;
     const custom_vector<real3>& friction = data_manager->host_data.fric_rigid_rigid;
     const custom_vector<real>& cohesion = data_manager->host_data.coh_rigid_rigid;
@@ -281,7 +285,7 @@ void ChConstraintRigidRigid::Project_Single(int index, real* gamma) {
 }
 
 void ChConstraintRigidRigid::Build_b() {
-    const auto num_rigid_contacts = data_manager->cd_data->num_rigid_contacts;
+    const auto num_rigid_contacts = data_manager->cd_data ? data_manager->cd_data->num_rigid_contacts : 0;
 
     if (num_rigid_contacts <= 0) {
         return;
@@ -306,7 +310,7 @@ void ChConstraintRigidRigid::Build_b() {
 }
 
 void ChConstraintRigidRigid::Build_s() {
-    const auto num_rigid_contacts = data_manager->cd_data->num_rigid_contacts;
+    const auto num_rigid_contacts = data_manager->cd_data ? data_manager->cd_data->num_rigid_contacts : 0;
 
     if (num_rigid_contacts <= 0) {
         return;
@@ -365,11 +369,11 @@ void ChConstraintRigidRigid::Build_s() {
 }
 
 void ChConstraintRigidRigid::Build_E() {
-    const auto num_rigid_contacts = data_manager->cd_data->num_rigid_contacts;
+    const auto num_rigid_contacts = data_manager->cd_data ? data_manager->cd_data->num_rigid_contacts : 0;
 
-    if (num_rigid_contacts <= 0) {
+    if (num_rigid_contacts <= 0)
         return;
-    }
+
     SolverMode solver_mode = data_manager->settings.solver.solver_mode;
     DynamicVector<real>& E = data_manager->host_data.E;
     uint num_contacts = num_rigid_contacts;
@@ -397,7 +401,11 @@ void ChConstraintRigidRigid::Build_E() {
 }
 
 void ChConstraintRigidRigid::Build_D() {
-    const auto num_rigid_contacts = data_manager->cd_data->num_rigid_contacts;
+    const auto num_rigid_contacts = data_manager->cd_data ? data_manager->cd_data->num_rigid_contacts : 0;
+
+    if (num_rigid_contacts <= 0)
+        return;
+
     real3* norm = data_manager->cd_data->norm_rigid_rigid.data();
     vec2* ids = data_manager->cd_data->bids_rigid_rigid.data();
 
@@ -470,7 +478,11 @@ void ChConstraintRigidRigid::Build_D() {
 }
 
 void ChConstraintRigidRigid::GenerateSparsity() {
-    const auto num_rigid_contacts = data_manager->cd_data->num_rigid_contacts;
+    const auto num_rigid_contacts = data_manager->cd_data ? data_manager->cd_data->num_rigid_contacts : 0;
+
+    if (num_rigid_contacts <= 0)
+        return;
+
     SolverMode solver_mode = data_manager->settings.solver.solver_mode;
 
     CompressedMatrix<real>& D_T = data_manager->host_data.D_T;

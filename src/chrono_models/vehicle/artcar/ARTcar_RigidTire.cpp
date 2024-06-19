@@ -35,14 +35,14 @@ namespace artcar {
 static const double in2m = 0.0254;
 static const double lb2kg = 0.453592;
 
-const double ARTcar_RigidTire::m_radius = .170/2;
+const double ARTcar_RigidTire::m_radius = .170 / 2;
 const double ARTcar_RigidTire::m_width = .0855;
 
 const double ARTcar_RigidTire::m_mass = .200;
-const ChVector<> ARTcar_RigidTire::m_inertia(.0008, 0.001, .0008);
+const ChVector3d ARTcar_RigidTire::m_inertia(.0008, 0.001, .0008);
 
 const std::string ARTcar_RigidTire::m_meshName = "ARTcar_tire_POV_geom";
-//const std::string ARTcar_RigidTire::m_meshFile = "artcar/tire.obj";
+// const std::string ARTcar_RigidTire::m_meshFile = "artcar/tire.obj";
 
 const std::string ARTcar_RigidTire::m_meshFile_left = "artcar/tire_left.obj";
 const std::string ARTcar_RigidTire::m_meshFile_right = "artcar/tire_right.obj";
@@ -58,8 +58,7 @@ void ARTcar_RigidTire::CreateContactMaterial(ChContactMethod contact_method) {
     m_material = minfo.CreateMaterial(contact_method);
 }
 
-ARTcar_RigidTire::ARTcar_RigidTire(const std::string& name, bool use_mesh) : ChRigidTire(name) {
-}
+ARTcar_RigidTire::ARTcar_RigidTire(const std::string& name, bool use_mesh) : ChRigidTire(name) {}
 
 // -----------------------------------------------------------------------------
 // -----------------------------------------------------------------------------

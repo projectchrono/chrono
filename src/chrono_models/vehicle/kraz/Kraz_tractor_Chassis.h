@@ -22,6 +22,7 @@
 #include "chrono_vehicle/chassis/ChRigidChassis.h"
 
 #include "chrono_models/ChApiModels.h"
+#include "chrono_models/vehicle/ChVehicleModelDefs.h"
 
 namespace chrono {
 namespace vehicle {
@@ -33,11 +34,13 @@ namespace kraz {
 /// Kraz tractor chassis subsystem.
 class CH_MODELS_API Kraz_tractor_Chassis : public ChRigidChassis {
   public:
-    Kraz_tractor_Chassis(const std::string& name);
+    Kraz_tractor_Chassis(const std::string& name,
+                         bool fixed = false,
+                         CollisionType chassis_collision_type = CollisionType::NONE);
     ~Kraz_tractor_Chassis() {}
 
     /// Get the location (in the local frame of this chassis) of the connection to the rear chassis.
-    virtual const ChVector<> GetLocalPosRearConnector() const override { return m_connector_loc; }
+    virtual const ChVector3d GetLocalPosRearConnector() const override { return m_connector_loc; }
 
     /// Get the local driver position and orientation.
     /// This is a coordinate system relative to the chassis reference frame.
@@ -51,10 +54,10 @@ class CH_MODELS_API Kraz_tractor_Chassis : public ChRigidChassis {
     ChMatrix33<> m_body_inertia;
 
     static const double m_body_mass;
-    static const ChVector<> m_body_inertiaXX;
-    static const ChVector<> m_body_inertiaXY;
-    static const ChVector<> m_body_COM_loc;
-    static const ChVector<> m_connector_loc;
+    static const ChVector3d m_body_inertiaXX;
+    static const ChVector3d m_body_inertiaXY;
+    static const ChVector3d m_body_COM_loc;
+    static const ChVector3d m_connector_loc;
     static const ChCoordsys<> m_driverCsys;
 };
 

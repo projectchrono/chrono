@@ -15,7 +15,6 @@
 #ifndef CHBEAMSECTIONCABLE_H
 #define CHBEAMSECTIONCABLE_H
 
-
 #include "chrono/fea/ChBeamSection.h"
 
 namespace chrono {
@@ -23,8 +22,6 @@ namespace fea {
 
 /// @addtogroup fea_utils
 /// @{
-
-
 
 /// Simplified geometry for a 'cable' beam section in 3D, that is a beam
 /// without torsional stiffness and with circular section (i.e.same Ixx and Iyy properties).
@@ -53,15 +50,15 @@ class ChApi ChBeamSectionCable : public ChBeamSection {
 
     /// Set the I moment of inertia of the beam (for flexion about y axis or z axis)
     /// Note: since this simple section assumes circular section, Iyy=Izz=I
-    void SetI(double ma) { this->I = ma; }
-    double GetI() const { return this->I; }
+    void SetInertia(double ma) { this->I = ma; }
+    double GetInertia() const { return this->I; }
 
     /// Shortcut: set Area and I inertia at once,
     /// given the diameter of the beam assumed
     /// with circular shape.
     void SetDiameter(double diameter) {
-        this->Area = CH_C_PI * pow((0.5 * diameter), 2);
-        this->I = (CH_C_PI / 4.0) * pow((0.5 * diameter), 4);
+        this->Area = CH_PI * pow((0.5 * diameter), 2);
+        this->I = (CH_PI / 4.0) * pow((0.5 * diameter), 4);
 
         this->SetDrawCircularRadius(diameter / 2);
     }
@@ -75,8 +72,8 @@ class ChApi ChBeamSectionCable : public ChBeamSection {
     double GetYoungModulus() const { return this->E; }
 
     /// Set the Rayleigh damping ratio r (as in: R = r * K ), to do: also mass-proportional term
-    void SetBeamRaleyghDamping(double mr) { this->rdamping = mr; }
-    double GetBeamRaleyghDamping() { return this->rdamping; }
+    void SetRayleighDamping(double mr) { this->rdamping = mr; }
+    double GetRayleighDamping() { return this->rdamping; }
 };
 
 /// @} fea_utils

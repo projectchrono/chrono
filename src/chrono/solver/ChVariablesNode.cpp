@@ -35,10 +35,9 @@ ChVariablesNode& ChVariablesNode::operator=(const ChVariablesNode& other) {
     return *this;
 }
 
-// Computes the product of the inverse mass matrix by a vector, and set in result: result = [invMb]*vect
-void ChVariablesNode::Compute_invMb_v(ChVectorRef result, ChVectorConstRef vect) const {
-    assert(vect.size() == Get_ndof());
-    assert(result.size() == Get_ndof());
+void ChVariablesNode::ComputeMassInverseTimesVector(ChVectorRef result, ChVectorConstRef vect) const {
+    assert(vect.size() == ndof);
+    assert(result.size() == ndof);
 
     // optimized unrolled operations
     double inv_mass = 1.0 / mass;
@@ -47,22 +46,9 @@ void ChVariablesNode::Compute_invMb_v(ChVectorRef result, ChVectorConstRef vect)
     result(2) = inv_mass * vect(2);
 }
 
-// Computes the product of the inverse mass matrix by a vector, and increment result: result += [invMb]*vect
-void ChVariablesNode::Compute_inc_invMb_v(ChVectorRef result, ChVectorConstRef vect) const {
-    assert(vect.size() == Get_ndof());
-    assert(result.size() == Get_ndof());
-
-    // optimized unrolled operations
-    double inv_mass = 1.0 / mass;
-    result(0) += inv_mass * vect(0);
-    result(1) += inv_mass * vect(1);
-    result(2) += inv_mass * vect(2);
-}
-
-// Computes the product of the mass matrix by a vector, and set in result: result = [Mb]*vect
-void ChVariablesNode::Compute_inc_Mb_v(ChVectorRef result, ChVectorConstRef vect) const {
-    assert(result.size() == Get_ndof());
-    assert(vect.size() == Get_ndof());
+void ChVariablesNode::AddMassTimesVector(ChVectorRef result, ChVectorConstRef vect) const {
+    assert(result.size() == ndof);
+    assert(vect.size() == ndof);
 
     // optimized unrolled operations
     result(0) += mass * vect(0);
@@ -70,54 +56,46 @@ void ChVariablesNode::Compute_inc_Mb_v(ChVectorRef result, ChVectorConstRef vect
     result(2) += mass * vect(2);
 }
 
-// Computes the product of the corresponding block in the system matrix (ie. the mass matrix) by 'vect', scale by c_a,
-// and add to 'result'.
-// NOTE: the 'vect' and 'result' vectors must already have the size of the total variables&constraints in the system;
-// the procedure will use the ChVariable offsets (that must be already updated) to know the indexes in result and vect.
-void ChVariablesNode::MultiplyAndAdd(ChVectorRef result, ChVectorConstRef vect, const double c_a) const {
+void ChVariablesNode::AddMassTimesVectorInto(ChVectorRef result, ChVectorConstRef vect, const double ca) const {
     // optimized unrolled operations
-    double scaledmass = c_a * mass;
-    result(this->offset) += scaledmass * vect(this->offset);
-    result(this->offset + 1) += scaledmass * vect(this->offset + 1);
-    result(this->offset + 2) += scaledmass * vect(this->offset + 2);
+    double scaledmass = ca * mass;
+    result(offset + 0) += scaledmass * vect(offset);
+    result(offset + 1) += scaledmass * vect(offset + 1);
+    result(offset + 2) += scaledmass * vect(offset + 2);
 }
 
-// Add the diagonal of the mass matrix scaled by c_a, to 'result'.
-// NOTE: the 'result' vector must already have the size of system unknowns, ie the size of the total variables &
-// constraints in the system; the procedure will use the ChVariable offset (that must be already updated) as index.
-void ChVariablesNode::DiagonalAdd(ChVectorRef result, const double c_a) const {
-    result(this->offset) += c_a * mass;
-    result(this->offset + 1) += c_a * mass;
-    result(this->offset + 2) += c_a * mass;
+void ChVariablesNode::AddMassDiagonalInto(ChVectorRef result, const double ca) const {
+    result(offset + 0) += ca * mass;
+    result(offset + 1) += ca * mass;
+    result(offset + 2) += ca * mass;
 }
 
-// Build the mass matrix (for these variables) scaled by c_a, storing
-// it in 'storage' sparse matrix, at given column/row offset.
-// Note, most iterative solvers don't need to know mass matrix explicitly.
-// Optimized: doesn't fill unneeded elements except mass.
-void ChVariablesNode::Build_M(ChSparseMatrix& storage, int insrow, int inscol, const double c_a) {
-    double scaledmass = c_a * mass;
-    storage.SetElement(insrow + 0, inscol + 0, scaledmass);
-    storage.SetElement(insrow + 1, inscol + 1, scaledmass);
-    storage.SetElement(insrow + 2, inscol + 2, scaledmass);
+void ChVariablesNode::PasteMassInto(ChSparseMatrix& mat,
+                                    unsigned int start_row,
+                                    unsigned int start_col,
+                                    const double ca) const {
+    double scaledmass = ca * mass;
+    mat.SetElement(offset + start_row + 0, offset + start_col + 0, scaledmass);
+    mat.SetElement(offset + start_row + 1, offset + start_col + 1, scaledmass);
+    mat.SetElement(offset + start_row + 2, offset + start_col + 2, scaledmass);
 }
 
-void ChVariablesNode::ArchiveOut(ChArchiveOut& marchive) {
+void ChVariablesNode::ArchiveOut(ChArchiveOut& archive_out) {
     // version number
-    marchive.VersionWrite<ChVariablesNode>();
+    archive_out.VersionWrite<ChVariablesNode>();
     // serialize parent class
-    ChVariables::ArchiveOut(marchive);
+    ChVariables::ArchiveOut(archive_out);
     // serialize all member data:
-    marchive << CHNVP(mass);
+    archive_out << CHNVP(mass);
 }
 
-void ChVariablesNode::ArchiveIn(ChArchiveIn& marchive) {
+void ChVariablesNode::ArchiveIn(ChArchiveIn& archive_in) {
     // version number
-    /*int version =*/ marchive.VersionRead<ChVariablesNode>();
+    /*int version =*/archive_in.VersionRead<ChVariablesNode>();
     // deserialize parent class
-    ChVariables::ArchiveIn(marchive);
+    ChVariables::ArchiveIn(archive_in);
     // stream in all member data:
-    marchive >> CHNVP(mass);
+    archive_in >> CHNVP(mass);
     SetNodeMass(mass);
 }
 

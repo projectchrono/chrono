@@ -30,10 +30,10 @@ namespace hmmwv {
 // Static variables
 // -----------------------------------------------------------------------------
 
-const double HMMWV_FialaTire::m_normalDamping = 7500;
+const double HMMWV_FialaTire::m_normalDamping = 75;
 
 const double HMMWV_FialaTire::m_mass = 37.6;
-const ChVector<> HMMWV_FialaTire::m_inertia(3.84, 6.69, 3.84);
+const ChVector3d HMMWV_FialaTire::m_inertia(3.84, 6.69, 3.84);
 
 const std::string HMMWV_FialaTire::m_meshFile_left = "hmmwv/hmmwv_tire_left.obj";
 const std::string HMMWV_FialaTire::m_meshFile_right = "hmmwv/hmmwv_tire_right.obj";
@@ -54,33 +54,18 @@ void HMMWV_FialaTire::SetFialaParams() {
     m_c_alpha = 50000.0;
     m_u_min = 0.5568;
     m_u_max = 0.9835;
-    // m_relax_length_x = 0.1244;
-    // m_relax_length_y = 0.0317;
-    m_relax_length_x = 2;
-    m_relax_length_y = 2;
 
-    // load the vertical stiffness table
+    // load the vertical stiffness table, adapted from PAC02
     m_vert_map.AddPoint(0.000, 0);
-    m_vert_map.AddPoint(0.005, 585);
-    m_vert_map.AddPoint(0.010, 1286);
-    m_vert_map.AddPoint(0.015, 2352);
-    m_vert_map.AddPoint(0.020, 3477);
-    m_vert_map.AddPoint(0.025, 4798);
-    m_vert_map.AddPoint(0.030, 6190);
-    m_vert_map.AddPoint(0.035, 7540);
-    m_vert_map.AddPoint(0.040, 9027);
-    m_vert_map.AddPoint(0.045, 10570);
-    m_vert_map.AddPoint(0.050, 12139);
-    m_vert_map.AddPoint(0.055, 13654);
-    m_vert_map.AddPoint(0.060, 15368);
-    m_vert_map.AddPoint(0.065, 16904);
-    m_vert_map.AddPoint(0.070, 18469);
-    m_vert_map.AddPoint(0.075, 20089);
-    m_vert_map.AddPoint(0.080, 21699);
+    m_vert_map.AddPoint(0.05, 29000);
+    m_vert_map.AddPoint(0.1, 58000);
+    m_vert_map.AddPoint(0.15, 87000);
+    m_vert_map.AddPoint(0.2, 116000);
+    m_vert_map.AddPoint(0.25, 145000);
 
-    m_max_depth = 0.080;
-    m_max_val = 21699;
-    m_slope = 3.22e5;
+    m_max_depth = 0.25;
+    m_max_val = 145000;
+    m_slope = 2.0 * (145000 - 116000) / 0.05;
 }
 
 double HMMWV_FialaTire::GetNormalStiffnessForce(double depth) const {
@@ -90,7 +75,7 @@ double HMMWV_FialaTire::GetNormalStiffnessForce(double depth) const {
     }
 
     // Return interpolated data
-    return m_vert_map.Get_y(depth);
+    return m_vert_map.GetVal(depth);
 }
 
 double HMMWV_FialaTire::GetNormalDampingForce(double depth, double velocity) const {

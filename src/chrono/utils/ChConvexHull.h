@@ -40,12 +40,12 @@ class ChApi ChConvexHull2D {
     };
 
     /// Construct the convex hull of the specified points, using the given method.
-    ChConvexHull2D(std::vector<ChVector2<>>& points, Method method = JARVIS);
+    ChConvexHull2D(std::vector<ChVector2d>& points, Method method = JARVIS);
 
     ~ChConvexHull2D() {}
 
     /// Return the points in the convex hull.
-    const std::vector<ChVector2<>>& GetHull() const { return m_hull; }
+    const std::vector<ChVector2d>& GetHull() const { return m_hull; }
 
     /// Return the perimeter of the convex hull.
     double GetPerimeter() const { return m_perimeter; }
@@ -58,15 +58,15 @@ class ChApi ChConvexHull2D {
     /// The current implementation returns all points on the convex hull, including any points
     /// that fall on the edges of the convex hull.  However, only vertices of the convex hull
     /// are guaranteed to be in order (as moving counter clock wise from bottom-left point).
-    void ComputeJarvis(const std::vector<ChVector2<>>& points, size_t n);
+    void ComputeJarvis(const std::vector<ChVector2d>& points, size_t n);
 
     /// Convex hull by Graham scan.
     /// Note that this algorithm will modify (permute) the input points.
-    void ComputeGraham(std::vector<ChVector2<>>& points, size_t n);
+    void ComputeGraham(std::vector<ChVector2d>& points, size_t n);
 
-    std::vector<ChVector2<>> m_hull;  ///< points in convex hull
-    double m_perimeter;               ///< perimeter of convex hull
-    double m_area;                    ///< area enclosed by convex hull
+    std::vector<ChVector2d> m_hull;  ///< points in convex hull
+    double m_perimeter;              ///< perimeter of convex hull
+    double m_area;                   ///< area enclosed by convex hull
 };
 
 /// @} chrono_utils

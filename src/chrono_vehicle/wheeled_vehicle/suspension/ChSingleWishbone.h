@@ -74,7 +74,7 @@ class CH_VEHICLE_API ChSingleWishbone : public ChSuspension {
         std::shared_ptr<ChChassis> chassis,        ///< [in] associated chassis subsystem
         std::shared_ptr<ChSubchassis> subchassis,  ///< [in] associated subchassis subsystem (may be null)
         std::shared_ptr<ChSteering> steering,      ///< [in] associated steering subsystem (may be null)
-        const ChVector<>& location,                ///< [in] location relative to the chassis frame
+        const ChVector3d& location,                ///< [in] location relative to the chassis frame
         double left_ang_vel = 0,                   ///< [in] initial angular velocity of left wheel
         double right_ang_vel = 0                   ///< [in] initial angular velocity of right wheel
         ) override;
@@ -115,7 +115,7 @@ class CH_VEHICLE_API ChSingleWishbone : public ChSuspension {
     /// The reported locations are expressed in the suspension reference frame.
     /// By default, these values are reported in SI units (meters), but can be
     /// optionally reported in inches.
-    void LogHardpointLocations(const ChVector<>& ref, bool inches = false);
+    void LogHardpointLocations(const ChVector3d& ref, bool inches = false);
 
   protected:
     /// Identifiers for the various hardpoints.
@@ -146,7 +146,7 @@ class CH_VEHICLE_API ChSingleWishbone : public ChSuspension {
 
     /// Return the location of the specified hardpoint.
     /// The returned location must be expressed in the suspension reference frame.
-    virtual const ChVector<> getLocation(PointId which) = 0;
+    virtual const ChVector3d getLocation(PointId which) = 0;
 
     /// Return the camber angle, in radians (default: 0).
     virtual double getCamberAngle() const { return 0; }
@@ -165,17 +165,17 @@ class CH_VEHICLE_API ChSingleWishbone : public ChSuspension {
     virtual double getTierodMass() const { return 0; }
 
     /// Return the moments of inertia of the spindle body.
-    virtual const ChVector<>& getSpindleInertia() const = 0;
+    virtual const ChVector3d& getSpindleInertia() const = 0;
     /// Return the moments of inertia of the control arm body.
-    virtual const ChVector<>& getCAInertiaMoments() const = 0;
+    virtual const ChVector3d& getCAInertiaMoments() const = 0;
     /// Return the products of inertia of the control arm body.
-    virtual const ChVector<>& getCAInertiaProducts() const = 0;
+    virtual const ChVector3d& getCAInertiaProducts() const = 0;
     /// Return the moments of inertia of the upright body.
-    virtual const ChVector<>& getUprightInertiaMoments() const = 0;
+    virtual const ChVector3d& getUprightInertiaMoments() const = 0;
     /// Return the products of inertia of the upright body.
-    virtual const ChVector<>& getUprightInertiaProducts() const = 0;
+    virtual const ChVector3d& getUprightInertiaProducts() const = 0;
     /// Return the moments of inertia of the tierod body.
-    virtual const ChVector<> getTierodInertia() const { return ChVector<>(0); }
+    virtual const ChVector3d getTierodInertia() const { return ChVector3d(0); }
 
     /// Return the inertia of the axle shaft.
     virtual double getAxleInertia() const = 0;
@@ -215,28 +215,28 @@ class CH_VEHICLE_API ChSingleWishbone : public ChSuspension {
 
   private:
     // Hardpoint absolute locations
-    std::vector<ChVector<>> m_pointsL;
-    std::vector<ChVector<>> m_pointsR;
+    std::vector<ChVector3d> m_pointsL;
+    std::vector<ChVector3d> m_pointsR;
 
     void InitializeSide(VehicleSide side,
                         std::shared_ptr<ChChassis> chassis,
                         std::shared_ptr<ChBody> tierod_body,
-                        const std::vector<ChVector<>>& points,
+                        const std::vector<ChVector3d>& points,
                         double ang_vel);
 
     static void AddVisualizationControlArm(std::shared_ptr<ChBody> arm,
-                                           const ChVector<> pt_C,
-                                           const ChVector<> pt_U,
+                                           const ChVector3d pt_C,
+                                           const ChVector3d pt_U,
                                            double radius);
     static void AddVisualizationUpright(std::shared_ptr<ChBody> upright,
-                                        const ChVector<> pt_U,
-                                        const ChVector<> pt_S,
-                                        const ChVector<> pt_A,
-                                        const ChVector<> pt_T,
+                                        const ChVector3d pt_U,
+                                        const ChVector3d pt_S,
+                                        const ChVector3d pt_A,
+                                        const ChVector3d pt_T,
                                         double radius);
     static void AddVisualizationTierod(std::shared_ptr<ChBody> tierod,
-                                       const ChVector<> pt_C,
-                                       const ChVector<> pt_U,
+                                       const ChVector3d pt_C,
+                                       const ChVector3d pt_U,
                                        double radius);
 
     virtual void ExportComponentList(rapidjson::Document& jsonDocument) const override;

@@ -30,7 +30,7 @@
 #define CH_DISTANCE_IDLER_H
 
 #include "chrono/physics/ChLinkLock.h"
-#include "chrono/physics/ChLinkLinActuator.h"
+#include "chrono/physics/ChLinkLockLinActuator.h"
 
 #include "chrono_vehicle/ChApiVehicle.h"
 #include "chrono_vehicle/ChSubsysDefs.h"
@@ -60,7 +60,7 @@ class CH_VEHICLE_API ChDistanceIdler : public ChIdler {
     virtual std::shared_ptr<ChBody> GetCarrierBody() const override { return m_carrier; }
 
     /// Get the tensioner motor element.
-    std::shared_ptr<ChLinkLinActuator> GetTensioner() const { return m_tensioner; }
+    std::shared_ptr<ChLinkLockLinActuator> GetTensioner() const { return m_tensioner; }
 
     /// Initialize this idler subsystem.
     /// The idler subsystem is initialized by attaching it to the specified chassis at the specified location (with
@@ -68,9 +68,9 @@ class CH_VEHICLE_API ChDistanceIdler : public ChIdler {
     /// reference frame is always aligned with the chassis reference frame. A derived idler subsystem template class
     /// must extend this default implementation and specify contact geometry for the idler wheel.
     virtual void Initialize(std::shared_ptr<ChChassis> chassis,  ///< [in] associated chassis
-                            const ChVector<>& location,          ///< [in] location relative to the chassis frame
+                            const ChVector3d& location,          ///< [in] location relative to the chassis frame
                             ChTrackAssembly* track               ///< [in] containing track assembly
-    ) override;
+                            ) override;
 
     /// Add visualization assets for the idler subsystem.
     /// This default implementation adds assets to the carrier body.
@@ -99,12 +99,12 @@ class CH_VEHICLE_API ChDistanceIdler : public ChIdler {
 
     /// Return the location of the specified hardpoint.
     /// The returned location must be expressed in the idler subsystem reference frame.
-    virtual const ChVector<> GetLocation(PointId which) = 0;
+    virtual const ChVector3d GetLocation(PointId which) = 0;
 
     /// Return the mass of the carrier body.
     virtual double GetCarrierMass() const = 0;
     /// Return the moments of inertia of the carrier body.
-    virtual const ChVector<>& GetCarrierInertia() = 0;
+    virtual const ChVector3d& GetCarrierInertia() = 0;
     /// Return a visualization radius for the carrier body.
     virtual double GetCarrierVisRadius() const = 0;
 
@@ -118,13 +118,13 @@ class CH_VEHICLE_API ChDistanceIdler : public ChIdler {
 
     virtual void Output(ChVehicleOutput& database) const override;
 
-    std::shared_ptr<ChBody> m_carrier;               ///< carrier body
-    std::shared_ptr<ChLinkLockRevolute> m_revolute;  ///< carrier-chassis revolute joint
-    std::shared_ptr<ChLinkLinActuator> m_tensioner;  ///< linear motor tensioner element
+    std::shared_ptr<ChBody> m_carrier;                   ///< carrier body
+    std::shared_ptr<ChLinkLockRevolute> m_revolute;      ///< carrier-chassis revolute joint
+    std::shared_ptr<ChLinkLockLinActuator> m_tensioner;  ///< linear motor tensioner element
 
   private:
     // Hardpoints expressed in absolute frame
-    std::vector<ChVector<>> m_points;
+    std::vector<ChVector3d> m_points;
 };
 
 /// @} vehicle_tracked_idler

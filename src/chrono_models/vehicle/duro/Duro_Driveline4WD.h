@@ -27,7 +27,7 @@ namespace chrono {
 namespace vehicle {
 namespace duro {
 
-/// @addtogroup vehicle_models_Duro
+/// @addtogroup vehicle_models_duro
 /// @{
 
 /// Shafts-based 4-WD driveline for the Duro vehicle.
@@ -67,7 +67,7 @@ class CH_MODELS_API Duro_Driveline4WD : public ChShaftsDriveline4WD {
     static const double m_central_differential_locking_limit;
 };
 
-/// @} vehicle_models_Duro
+/// @} vehicle_models_duro
 
 }  // namespace duro
 }  // end namespace vehicle

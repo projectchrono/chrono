@@ -15,9 +15,8 @@
 // Sedan multi-link suspension subsystem.
 //
 // This concrete suspension subsystem is defined with respect to a right-handed
-// frame with X pointing towards the front, Y to the left, and Z up (as imposed
-// by the base class ChSolidAxle) and origin at the midpoint between the wheel
-// centers.
+// frame with X pointing towards the front, Y to the left, and Z up and origin
+// at the midpoint between the wheel centers.
 //
 // All point locations are provided for the left half of the suspension.
 //
@@ -56,11 +55,11 @@ class CH_MODELS_API Sedan_MultiLink : public ChMultiLink {
     virtual double getTrailingLinkRadius() const override { return m_trailingLinkRadius; }
     virtual double getUprightRadius() const override { return m_uprightRadius; }
 
-    virtual const ChVector<>& getSpindleInertia() const override { return m_spindleInertia; }
-    virtual const ChVector<>& getUpperArmInertia() const override { return m_upperArmInertia; }
-    virtual const ChVector<>& getLateralInertia() const override { return m_lateralInertia; }
-    virtual const ChVector<>& getTrailingLinkInertia() const override { return m_trailingLinkInertia; }
-    virtual const ChVector<>& getUprightInertia() const override { return m_uprightInertia; }
+    virtual const ChVector3d& getSpindleInertia() const override { return m_spindleInertia; }
+    virtual const ChVector3d& getUpperArmInertia() const override { return m_upperArmInertia; }
+    virtual const ChVector3d& getLateralInertia() const override { return m_lateralInertia; }
+    virtual const ChVector3d& getTrailingLinkInertia() const override { return m_trailingLinkInertia; }
+    virtual const ChVector3d& getUprightInertia() const override { return m_uprightInertia; }
 
     virtual double getAxleInertia() const override { return m_axleInertia; }
 
@@ -69,8 +68,8 @@ class CH_MODELS_API Sedan_MultiLink : public ChMultiLink {
     virtual std::shared_ptr<ChLinkTSDA::ForceFunctor> getShockForceFunctor() const override { return m_shockForceCB; }
 
   private:
-    virtual const ChVector<> getLocation(PointId which) override;
-    virtual const ChVector<> getDirection(DirectionId which) override;
+    virtual const ChVector3d getLocation(PointId which) override;
+    virtual const ChVector3d getDirection(DirectionId which) override;
 
     std::shared_ptr<ChLinkTSDA::ForceFunctor> m_springForceCB;
     std::shared_ptr<ChLinkTSDA::ForceFunctor> m_shockForceCB;
@@ -88,11 +87,11 @@ class CH_MODELS_API Sedan_MultiLink : public ChMultiLink {
     static const double m_trailingLinkRadius;
     static const double m_uprightRadius;
 
-    static const ChVector<> m_spindleInertia;
-    static const ChVector<> m_upperArmInertia;
-    static const ChVector<> m_lateralInertia;
-    static const ChVector<> m_trailingLinkInertia;
-    static const ChVector<> m_uprightInertia;
+    static const ChVector3d m_spindleInertia;
+    static const ChVector3d m_upperArmInertia;
+    static const ChVector3d m_lateralInertia;
+    static const ChVector3d m_trailingLinkInertia;
+    static const ChVector3d m_uprightInertia;
 
     static const double m_axleInertia;
 

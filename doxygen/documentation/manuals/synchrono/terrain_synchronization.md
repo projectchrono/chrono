@@ -17,7 +17,7 @@ More details on the physics behind the SCM terrain can be found in the Chrono::V
 
 To synchronize state between two systems, all that needs to be communicated is a list of `(int x, int y)` representing the nodes that were deformed, along with a list of `double z` indicating the current height of the corresponding nodes. During the course of a time step for the terrain's physics update, a list of which nodes were deformed and their height comes as an easy byproduct of calculations that the terrain system already does. Since this list will be reset every physics time step, but SynChrono will only send out messages every heartbeat, the deformed nodes are merged every time step into a map owned by a `SynSCMTerrainAgent` class, which is then reset only once per heartbeat. The message sent out in a FlatBuffer message is a vector of `int x, int y, double z`, each representing a node deformed during the preceding heartbeat.
 
-When terrain state information is received on a synchronizing node, the updates are immediately applied via the [vehicle::SCMDeformableTerrrain::SetModifiedNodes](@ref chrono::vehicle::SCMDeformableTerrain::SetModifiedNodes) function and under the hood the terrain class takes care of applying these external node updates.
+When terrain state information is received on a synchronizing node, the updates are immediately applied via the [vehicle::SCMTerrrain::SetModifiedNodes](@ref chrono::vehicle::SCMTerrain::SetModifiedNodes) function and under the hood the terrain class takes care of applying these external node updates.
 
 ## Caveats {#terrain_sync_caveats}
 

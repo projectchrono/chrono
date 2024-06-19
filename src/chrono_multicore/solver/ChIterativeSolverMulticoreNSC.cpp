@@ -19,21 +19,21 @@ using namespace chrono;
 #define xstr(s) str(s)
 #define str(s) #s
 
-#define CLEAR_RESERVE_RESIZE(M, nnz, rows, cols)   \
-    {                                              \
-        uint current = (uint)M.capacity();         \
-        if (current > 0) {                         \
-            clear(M);                              \
-        }                                          \
-        if (current < (unsigned)nnz) {             \
-            M.reserve(nnz * (size_t)1.1);          \
-        }                                          \
-        M.resize(rows, cols, false);               \
+#define CLEAR_RESERVE_RESIZE(M, nnz, rows, cols) \
+    {                                            \
+        uint current = (uint)M.capacity();       \
+        if (current > 0) {                       \
+            clear(M);                            \
+        }                                        \
+        if (current < (unsigned)nnz) {           \
+            M.reserve(nnz*(size_t)1.1);          \
+        }                                        \
+        M.resize(rows, cols, false);             \
     }
 
 void ChIterativeSolverMulticoreNSC::RunTimeStep() {
     // Compute the offsets and number of constrains depending on the solver mode
-    const auto num_rigid_contacts = data_manager->cd_data->num_rigid_contacts;
+    const auto num_rigid_contacts = data_manager->cd_data ? data_manager->cd_data->num_rigid_contacts : 0;
 
     if (data_manager->settings.solver.solver_mode == SolverMode::NORMAL) {
         data_manager->rigid_rigid->offset = 1;
@@ -96,8 +96,8 @@ void ChIterativeSolverMulticoreNSC::RunTimeStep() {
             data_manager->host_data.D_T *
                 (data_manager->host_data.v + data_manager->host_data.M_inv * data_manager->host_data.hf);
     }
-    ShurProductFull.Setup(data_manager);
-    ShurProductBilateral.Setup(data_manager);
+    SchurProductFull.Setup(data_manager);
+    SchurProductBilateral.Setup(data_manager);
     ProjectFull.Setup(data_manager);
 
     PerformStabilization();
@@ -109,7 +109,7 @@ void ChIterativeSolverMulticoreNSC::RunTimeStep() {
             data_manager->settings.solver.local_solver_mode = SolverMode::NORMAL;
             SetR();
             data_manager->measures.solver.total_iteration +=
-                solver->Solve(ShurProductFull,                                     //
+                solver->Solve(SchurProductFull,                                    //
                               ProjectFull,                                         //
                               data_manager->settings.solver.max_iteration_normal,  //
                               data_manager->num_constraints,                       //
@@ -123,7 +123,7 @@ void ChIterativeSolverMulticoreNSC::RunTimeStep() {
             data_manager->settings.solver.local_solver_mode = SolverMode::SLIDING;
             SetR();
             data_manager->measures.solver.total_iteration +=
-                solver->Solve(ShurProductFull,                                      //
+                solver->Solve(SchurProductFull,                                     //
                               ProjectFull,                                          //
                               data_manager->settings.solver.max_iteration_sliding,  //
                               data_manager->num_constraints,                        //
@@ -136,7 +136,7 @@ void ChIterativeSolverMulticoreNSC::RunTimeStep() {
             data_manager->settings.solver.local_solver_mode = SolverMode::SPINNING;
             SetR();
             data_manager->measures.solver.total_iteration +=
-                solver->Solve(ShurProductFull,                                       //
+                solver->Solve(SchurProductFull,                                      //
                               ProjectFull,                                           //
                               data_manager->settings.solver.max_iteration_spinning,  //
                               data_manager->num_constraints,                         //
@@ -192,7 +192,7 @@ void ChIterativeSolverMulticoreNSC::ComputeD() {
     }
 
     uint num_dof = data_manager->num_dof;
-    uint num_rigid_contacts = data_manager->cd_data->num_rigid_contacts;
+    uint num_rigid_contacts = data_manager->cd_data ? data_manager->cd_data->num_rigid_contacts : 0;
     uint num_bilaterals = data_manager->num_bilaterals;
     uint nnz_bilaterals = data_manager->nnz_bilaterals;
 
@@ -305,8 +305,8 @@ void ChIterativeSolverMulticoreNSC::ComputeN() {
 
     data_manager->system_timer.start("ChIterativeSolverMulticore_N");
     const CompressedMatrix<real>& D_T = data_manager->host_data.D_T;
-    CompressedMatrix<real>& Nshur = data_manager->host_data.Nshur;
-    Nshur = D_T * data_manager->host_data.M_invD;
+    CompressedMatrix<real>& Nschur = data_manager->host_data.Nschur;
+    Nschur = D_T * data_manager->host_data.M_invD;
     data_manager->system_timer.stop("ChIterativeSolverMulticore_N");
 }
 
@@ -318,10 +318,14 @@ void ChIterativeSolverMulticoreNSC::SetR() {
     DynamicVector<real>& R = data_manager->host_data.R;
     const DynamicVector<real>& R_full = data_manager->host_data.R_full;
 
-    uint num_rigid_contacts = data_manager->cd_data->num_rigid_contacts;
+    uint num_rigid_contacts = 0;
+    uint num_rigid_fluid = 0;
+    if (data_manager->cd_data) {
+        num_rigid_contacts = data_manager->cd_data->num_rigid_contacts;
+        num_rigid_fluid = data_manager->cd_data->num_rigid_fluid_contacts * 3;
+    }
     uint num_unilaterals = data_manager->num_unilaterals;
     uint num_bilaterals = data_manager->num_bilaterals;
-    uint num_rigid_fluid = data_manager->cd_data->num_rigid_fluid_contacts * 3;
     uint num_fluid_bodies = data_manager->num_fluid_bodies;
     R.resize(data_manager->num_constraints);
     reset(R);
@@ -409,6 +413,6 @@ void ChIterativeSolverMulticoreNSC::ChangeSolverType(SolverType type) {
             solver = new ChSolverMulticoreGS();
             break;
         default:
-                break;
+            break;
     }
 }

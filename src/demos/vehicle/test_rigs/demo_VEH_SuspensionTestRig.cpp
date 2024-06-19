@@ -64,7 +64,8 @@ class STR_Setup {
 class HMMWV_STR_Setup : public STR_Setup {
   public:
     virtual std::string SuspensionRigJSON() const override { return "hmmwv/suspensionTest/HMMWV_ST_front.json"; }
-    ////virtual std::string SuspensionRigJSON() const override { return "hmmwv/suspensionTest/HMMWV_ST_front_replica.json"; }
+    ////virtual std::string SuspensionRigJSON() const override { return
+    ///"hmmwv/suspensionTest/HMMWV_ST_front_replica.json"; }
     virtual std::string VehicleJSON() const override { return "hmmwv/vehicle/HMMWV_Vehicle.json"; }
     ////virtual std::string VehicleJSON() const override { return "hmmwv/vehicle/HMMWV_Vehicle_replica.json"; }
     virtual std::string TireJSON() const override { return "hmmwv/tire/HMMWV_TMeasyTire.json"; }
@@ -80,7 +81,8 @@ class HMMWV_STR_Setup : public STR_Setup {
 class UAZ_STR_Setup : public STR_Setup {
   public:
     virtual std::string SuspensionRigJSON() const override { return "uaz/suspensionTest/UAZ_ST_front.json"; }
-    ////virtual std::string SuspensionRigJSON() const override { return "uaz/suspensionTest/UAZ_ST_front_replica.json"; }
+    ////virtual std::string SuspensionRigJSON() const override { return "uaz/suspensionTest/UAZ_ST_front_replica.json";
+    ///}
     virtual std::string VehicleJSON() const override { return "uaz/vehicle/UAZBUS_SAEVehicle.json"; }
     ////virtual std::string VehicleJSON() const override { return "uaz/vehicle/UAZBUS_SAEVehicle_replica.json"; }
     virtual std::string TireJSON() const override { return "uaz/tire/UAZBUS_TMeasyTireFront.json"; }
@@ -130,17 +132,16 @@ HMMWV_STR_Setup setup;
 ////Generic_STR_Setup setup;
 
 // STR rig type
-enum class RigMode {PLATFORM, PUSHROD};
+enum class RigMode { PLATFORM, PUSHROD };
 RigMode rig_mode = RigMode::PUSHROD;
 
 // Specification of test rig inputs
-enum class DriverMode {DATA_FILE, INTERACTIVE};
+enum class DriverMode { DATA_FILE, INTERACTIVE };
 DriverMode driver_mode = DriverMode::DATA_FILE;
 
 // Output collection
 bool output = true;
 bool plot = true;
-std::string out_dir = GetChronoOutputPath() + "SUSPENSION_TEST_RIG";
 double out_step_size = 1e-2;
 
 // Simulation step size
@@ -197,10 +198,10 @@ std::shared_ptr<ChSuspensionTestRig> CreateFromSpecFile() {
 // =============================================================================
 
 int main(int argc, char* argv[]) {
-    GetLog() << "Copyright (c) 2017 projectchrono.org\nChrono version: " << CHRONO_VERSION << "\n\n";
+    std::cout << "Copyright (c) 2017 projectchrono.org\nChrono version: " << CHRONO_VERSION << std::endl;
 
     // Option 1: Create the suspension rig from an existing vehicle model
-    ////auto rig = CreateFromVehicleModel(); 
+    ////auto rig = CreateFromVehicleModel();
 
     // Option 2: Create the suspension rig from a JSON rig specification file
     auto rig = CreateFromSpecFile();
@@ -227,12 +228,14 @@ int main(int argc, char* argv[]) {
     // Create the vehicle Irrlicht application.
     auto vis = chrono_types::make_shared<ChVehicleVisualSystemIrrlicht>();
     vis->SetWindowTitle("Suspension Test Rig");
-    vis->SetChaseCamera(0.5 * (rig->GetSpindlePos(0, LEFT) + rig->GetSpindlePos(0, RIGHT)), setup.CameraDistance(), 0.5);
+    vis->SetChaseCamera(0.5 * (rig->GetSpindlePos(0, LEFT) + rig->GetSpindlePos(0, RIGHT)), setup.CameraDistance(),
+                        0.5);
 
     // Create and attach the driver system.
     switch (driver_mode) {
         case DriverMode::DATA_FILE: {
-            auto driver = chrono_types::make_shared<ChSuspensionTestRigDataDriver>(vehicle::GetDataFile(setup.DataDriverFile()));
+            auto driver =
+                chrono_types::make_shared<ChSuspensionTestRigDataDriver>(vehicle::GetDataFile(setup.DataDriverFile()));
             rig->SetDriver(driver);
             break;
         }
@@ -255,6 +258,7 @@ int main(int argc, char* argv[]) {
     vis->AttachVehicle(&rig->GetVehicle());
 
     // Set up rig output
+    std::string out_dir = GetChronoOutputPath() + "SUSPENSION_TEST_RIG";
     if (!filesystem::create_directory(filesystem::path(out_dir))) {
         std::cout << "Error creating directory " << out_dir << std::endl;
         return 1;

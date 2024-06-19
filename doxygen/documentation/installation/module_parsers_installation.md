@@ -16,6 +16,7 @@ The **PARSERS module** provides utilities to import Chrono models from various f
 - Adams
 - Python
 
+Refer to the [user manual](@ref manual_parsers) for additional information.
 
 ## Dependencies
 

@@ -27,6 +27,7 @@
 
 #include "chrono/ChConfig.h"
 #include "chrono/physics/ChSystemSMC.h"
+#include "chrono/utils/ChUtils.h"
 
 #include "chrono_vehicle/ChVehicleModelData.h"
 #include "chrono_vehicle/driver/ChPathFollowerDriver.h"
@@ -124,7 +125,7 @@ int main(int argc, char** argv) {
 
     double terrain_length = 60;
     double terrain_width = 8;
-    ChVector<> init_loc(4.0, 0, 0.25);
+    ChVector3d init_loc(4.0, 0, 0.25);
 
     double target_speed = 4.0;
     std::string vehicle_specfile = "Polaris/Polaris.json";
@@ -182,7 +183,7 @@ int main(int argc, char** argv) {
             vehicle->EnableRuntimeVisualization(render_fps, writeRT);
         if (renderPP)
             vehicle->EnablePostprocessVisualization(render_fps);
-        vehicle->SetCameraPosition(ChVector<>(20, 6, 2));
+        vehicle->SetCameraPosition(ChVector3d(20, 6, 2));
 
         node = vehicle;
     }
@@ -204,7 +205,7 @@ int main(int argc, char** argv) {
             terrain->EnableRuntimeVisualization(render_fps, writeRT);
         if (renderPP)
             terrain->EnablePostprocessVisualization(render_fps);
-        terrain->SetCameraPosition(ChVector<>(4, 6, 1.5));
+        terrain->SetCameraPosition(ChVector3d(4, 6, 1.5));
 
         node = terrain;
     }
@@ -230,7 +231,7 @@ int main(int argc, char** argv) {
     if (rank == MBS_NODE_RANK) {
         auto vehicle = static_cast<ChVehicleCosimWheeledVehicleNode*>(node);
         auto path = CreatePath(vehicle::GetDataFile(path_specfile));
-        double x_max = path->getPoint(path->getNumPoints() - 2).x() - 3.0;
+        ////double x_max = path->GetPoint(path->GetNumPoints() - 2).x() - 3.0;
         auto driver = chrono_types::make_shared<DriverWrapper>(*vehicle->GetVehicle(), path, "path", target_speed, 0.5);
         driver->GetSteeringController().SetLookAheadDistance(2.0);
         driver->GetSteeringController().SetGains(1.0, 0, 0);
@@ -292,14 +293,14 @@ std::shared_ptr<ChBezierCurve> CreatePath(const std::string& path_file) {
     assert(numCols == 3);
 
     // Read path points
-    std::vector<ChVector<>> points;
+    std::vector<ChVector3d> points;
 
     for (size_t i = 0; i < numPoints; i++) {
         double x, y, z;
         std::getline(ifile, line);
         std::istringstream jss(line);
         jss >> x >> y >> z;
-        points.push_back(ChVector<>(x, y, z));
+        points.push_back(ChVector3d(x, y, z));
     }
 
     // Include point beyond CRM patch

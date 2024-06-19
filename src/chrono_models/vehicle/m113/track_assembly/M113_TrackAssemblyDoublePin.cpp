@@ -33,14 +33,14 @@ namespace m113 {
 // -----------------------------------------------------------------------------
 // Static variables
 // -----------------------------------------------------------------------------
-const ChVector<> M113_TrackAssemblyDoublePin::m_sprocket_loc(0, 0, 0);
-const ChVector<> M113_TrackAssemblyDoublePin::m_idler_loc(-3.83, 0, -0.12);
-const ChVector<> M113_TrackAssemblyDoublePin::m_susp_locs_L[5] = {
-    ChVector<>(-0.655, 0, -0.215), ChVector<>(-1.322, 0, -0.215), ChVector<>(-1.989, 0, -0.215),
-    ChVector<>(-2.656, 0, -0.215), ChVector<>(-3.322, 0, -0.215)};
-const ChVector<> M113_TrackAssemblyDoublePin::m_susp_locs_R[5] = {
-    ChVector<>(-0.740, 0, -0.215), ChVector<>(-1.407, 0, -0.215), ChVector<>(-2.074, 0, -0.215),
-    ChVector<>(-2.740, 0, -0.215), ChVector<>(-3.407, 0, -0.215)};
+const ChVector3d M113_TrackAssemblyDoublePin::m_sprocket_loc(0, 0, 0);
+const ChVector3d M113_TrackAssemblyDoublePin::m_idler_loc(-3.83, 0, -0.12);
+const ChVector3d M113_TrackAssemblyDoublePin::m_susp_locs_L[5] = {
+    ChVector3d(-0.655, 0, -0.215), ChVector3d(-1.322, 0, -0.215), ChVector3d(-1.989, 0, -0.215),
+    ChVector3d(-2.656, 0, -0.215), ChVector3d(-3.322, 0, -0.215)};
+const ChVector3d M113_TrackAssemblyDoublePin::m_susp_locs_R[5] = {
+    ChVector3d(-0.740, 0, -0.215), ChVector3d(-1.407, 0, -0.215), ChVector3d(-2.074, 0, -0.215),
+    ChVector3d(-2.740, 0, -0.215), ChVector3d(-3.407, 0, -0.215)};
 
 // -----------------------------------------------------------------------------
 // Constructor for the M113 track assembly using double-pin track shoes.
@@ -109,15 +109,15 @@ M113_TrackAssemblyDoublePin::M113_TrackAssemblyDoublePin(VehicleSide side,
 }
 
 // -----------------------------------------------------------------------------
-const ChVector<> M113_TrackAssemblyDoublePin::GetSprocketLocation() const {
+const ChVector3d M113_TrackAssemblyDoublePin::GetSprocketLocation() const {
     return m_sprocket_loc;
 }
 
-const ChVector<> M113_TrackAssemblyDoublePin::GetIdlerLocation() const {
+const ChVector3d M113_TrackAssemblyDoublePin::GetIdlerLocation() const {
     return m_idler_loc;
 }
 
-const ChVector<> M113_TrackAssemblyDoublePin::GetRoadWhelAssemblyLocation(int which) const {
+const ChVector3d M113_TrackAssemblyDoublePin::GetRoadWhelAssemblyLocation(int which) const {
     return (m_side == LEFT) ? m_susp_locs_L[which] : m_susp_locs_R[which];
 }
 

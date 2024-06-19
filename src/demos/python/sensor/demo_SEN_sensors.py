@@ -29,30 +29,30 @@ def main():
     # Create the system
     # -----------------
     mphysicalSystem = chrono.ChSystemNSC()
-    mphysicalSystem.Set_G_acc(chrono.ChVectorD(0,0,-9.81))
+    mphysicalSystem.SetGravitationalAcceleration(chrono.ChVector3d(0,0,-9.81))
 
     # ----------------------------------------
     # add a floor, box and sphere to the scene
     # ----------------------------------------
-    phys_mat = chrono.ChMaterialSurfaceNSC()
+    phys_mat = chrono.ChContactMaterialNSC()
     phys_mat.SetFriction(0.5)
     phys_mat.SetDampingF(0.00000)
     phys_mat.SetCompliance (1e-9)
     phys_mat.SetComplianceT(1e-9)
 
     floor = chrono.ChBodyEasyBox(10,10,1,1000,True,True,phys_mat)
-    floor.SetPos(chrono.ChVectorD(0,0,-1))
-    floor.SetBodyFixed(True)
+    floor.SetPos(chrono.ChVector3d(0,0,-1))
+    floor.SetFixed(True)
     mphysicalSystem.Add(floor)
 
     box = chrono.ChBodyEasyBox(1,1,1,1000,True,True,phys_mat)
-    box.SetPos(chrono.ChVectorD(0,0,5))
-    box.SetRot(chrono.Q_from_AngAxis(.2,chrono.ChVectorD(1,0,0)))
+    box.SetPos(chrono.ChVector3d(0,0,5))
+    box.SetRot(chrono.QuatFromAngleAxis(.2,chrono.ChVector3d(1,0,0)))
     mphysicalSystem.Add(box)
 
     sphere = chrono.ChBodyEasySphere(.5,1000,True,True,phys_mat)
-    sphere.SetPos(chrono.ChVectorD(0,0,8))
-    sphere.SetRot(chrono.Q_from_AngAxis(.2,chrono.ChVectorD(1,0,0)))
+    sphere.SetPos(chrono.ChVector3d(0,0,8))
+    sphere.SetRot(chrono.QuatFromAngleAxis(.2,chrono.ChVector3d(1,0,0)))
     mphysicalSystem.Add(sphere)
 
     vis_mat = chrono.ChVisualMaterial()
@@ -66,14 +66,14 @@ def main():
     # Create a sensor manager
     # -----------------------
     manager = sens.ChSensorManager(mphysicalSystem)
-    manager.scene.AddPointLight(chrono.ChVectorF(100,100,100),chrono.ChColor(1,1,1),1000.0)
-    manager.scene.AddPointLight(chrono.ChVectorF(-100,-100,100),chrono.ChColor(1,1,1),1000.0)
+    manager.scene.AddPointLight(chrono.ChVector3f(100,100,100),chrono.ChColor(1,1,1),1000.0)
+    manager.scene.AddPointLight(chrono.ChVector3f(-100,-100,100),chrono.ChColor(1,1,1),1000.0)
 
 
     # ------------------------------------------------
     # Create a camera and add it to the sensor manager
     # ------------------------------------------------
-    offset_pose = chrono.ChFrameD(chrono.ChVectorD(-8, 0, 1), chrono.Q_from_AngAxis(0, chrono.ChVectorD(0, 1, 0)))
+    offset_pose = chrono.ChFramed(chrono.ChVector3d(-8, 0, 1), chrono.QuatFromAngleAxis(0, chrono.ChVector3d(0, 1, 0)))
     cam = sens.ChCameraSensor(
         floor,                  # body camera is attached to
         cam_update_rate,        # update rate in Hz
@@ -120,7 +120,7 @@ def main():
     # ------------------------------------------------
     # Create a lidar and add it to the sensor manager
     # ------------------------------------------------
-    offset_pose = chrono.ChFrameD(chrono.ChVectorD(-8, 0, 1), chrono.Q_from_AngAxis(0, chrono.ChVectorD(0, 1, 0)))
+    offset_pose = chrono.ChFramed(chrono.ChVector3d(-8, 0, 1), chrono.QuatFromAngleAxis(0, chrono.ChVector3d(0, 1, 0)))
     lidar = sens.ChLidarSensor(
         floor,                  # body lidar is attached to
         lidar_update_rate,      # scanning rate in Hz
@@ -162,10 +162,10 @@ def main():
     # ----------------------------------------------
     # Create an IMU sensor and add it to the manager
     # ----------------------------------------------
-    offset_pose = chrono.ChFrameD(chrono.ChVectorD(-8, 0, 1), chrono.Q_from_AngAxis(0, chrono.ChVectorD(0, 1, 0)))
-    acc = sens.ChAccelerometerSensor(box,                     # body imu is attached to
-                           imu_update_rate,         # update rate in Hz
-                           offset_pose,             # offset pose
+    offset_pose = chrono.ChFramed(chrono.ChVector3d(-8, 0, 1), chrono.QuatFromAngleAxis(0, chrono.ChVector3d(0, 1, 0)))
+    acc = sens.ChAccelerometerSensor(box,       # body imu is attached to
+                           imu_update_rate,     # update rate in Hz
+                           offset_pose,         # offset pose
                            noise_none,          # noise model
                            )
     acc.SetName("Accelerometer")
@@ -178,9 +178,9 @@ def main():
     # Add the imu to the sensor manager
     manager.AddSensor(acc)
 
-    gyro = sens.ChGyroscopeSensor(box,                     # body imu is attached to
-                           imu_update_rate,         # update rate in Hz
-                           offset_pose,             # offset pose
+    gyro = sens.ChGyroscopeSensor(box,          # body imu is attached to
+                           imu_update_rate,     # update rate in Hz
+                           offset_pose,         # offset pose
                            noise_none,          # noise model
                            )
     gyro.SetName("Gyroscope")
@@ -193,9 +193,9 @@ def main():
     # Add the imu to the sensor manager
     manager.AddSensor(gyro)
 
-    mag = sens.ChMagnetometerSensor(box,                     # body imu is attached to
-                           imu_update_rate,         # update rate in Hz
-                           offset_pose,             # offset pose
+    mag = sens.ChMagnetometerSensor(box,        # body imu is attached to
+                           imu_update_rate,     # update rate in Hz
+                           offset_pose,         # offset pose
                            noise_none,          # noise model
                            gps_reference
                            )
@@ -213,12 +213,12 @@ def main():
     # ----------------------------------------------
     # Create an GPS sensor and add it to the manager
     # ----------------------------------------------
-    offset_pose = chrono.ChFrameD(chrono.ChVectorD(-8, 0, 1), chrono.Q_from_AngAxis(0, chrono.ChVectorD(0, 1, 0)))
-    gps = sens.ChGPSSensor(box,                     # body imu is attached to
-                           gps_update_rate,       # update rate in Hz
-                           offset_pose,             # offset pose
+    offset_pose = chrono.ChFramed(chrono.ChVector3d(-8, 0, 1), chrono.QuatFromAngleAxis(0, chrono.ChVector3d(0, 1, 0)))
+    gps = sens.ChGPSSensor(box,                # body imu is attached to
+                           gps_update_rate,    # update rate in Hz
+                           offset_pose,        # offset pose
                            gps_reference,
-                           noise_none          # noise model
+                           nois_random_walk          # noise model
                            )
     gps.SetName("GPS Sensor")
     gps.SetLag(gps_lag)
@@ -300,9 +300,9 @@ horizontal_samples = 4500
 vertical_samples = 32
 
 # Lidar horizontal and vertical field of view (radians)
-horizontal_fov = 2 * chrono.CH_C_PI  # 360 degrees
-max_vert_angle = chrono.CH_C_PI / 12.
-min_vert_angle = -chrono.CH_C_PI / 6.
+horizontal_fov = 2 * chrono.CH_PI  # 360 degrees
+max_vert_angle = chrono.CH_PI / 12.
+min_vert_angle = -chrono.CH_PI / 6.
 
 
 # Lag time for each sensor
@@ -320,11 +320,12 @@ gps_collection_time = 0 # instant
 
 # GPS reference point
 # Located in Madison, WI
-gps_reference = chrono.ChVectorD(-89.400, 43.070, 260.0)
+gps_reference = chrono.ChVector3d(-89.400, 43.070, 260.0)
 
 # IMU and GPS noise models
 # Setting to none (does not affect the data)
 noise_none = sens.ChNoiseNone()
+nois_random_walk = sens.ChNoiseRandomWalks(0, 0.016, 100, 0.03, 0.005, gps_reference)
 
 # ---------------------
 # Simulation parameters

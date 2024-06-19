@@ -48,11 +48,11 @@ class CH_MODELS_API LMTV_Vehicle : public ChWheeledVehicle {
 
     ~LMTV_Vehicle();
 
-    virtual int GetNumberAxles() const override { return 2; }
+    virtual unsigned int GetNumberAxles() const override { return 2; }
 
     virtual double GetWheelbase() const override { return 3.8; }
     virtual double GetMinTurningRadius() const override { return 11.0; }
-    virtual double GetMaxSteeringAngle() const override { return 24.6 * CH_C_DEG_TO_RAD; }
+    virtual double GetMaxSteeringAngle() const override { return 24.6 * CH_DEG_TO_RAD; }
 
     void SetInitWheelAngVel(const std::vector<double>& omega) {
         assert(omega.size() == 4);

@@ -27,7 +27,7 @@ namespace chrono {
 namespace vehicle {
 namespace m113 {
 
-/// @addtogroup vehicle_models_M113
+/// @addtogroup vehicle_models_m113
 /// @{
 
 /// M113 simple speed-torque engine map subsystem.
@@ -40,13 +40,13 @@ class CH_MODELS_API M113_EngineSimpleMap : public ChEngineSimpleMap {
 
     /// Set the engine speed-torque maps.
     /// A concrete class must add the speed-torque points to the provided maps,
-    /// using the ChFunction_Recorder::AddPoint() function.
-    virtual void SetEngineTorqueMaps(ChFunction_Recorder& map0,  ///< [out] engine map at zero throttle
-                                     ChFunction_Recorder& mapF   ///< [out] engine map at full throttle
+    /// using the ChFunctionInterp::AddPoint() function.
+    virtual void SetEngineTorqueMaps(ChFunctionInterp& map0,  ///< [out] engine map at zero throttle
+                                     ChFunctionInterp& mapF   ///< [out] engine map at full throttle
                                      ) override;
 };
 
-/// @} vehicle_models_M113
+/// @} vehicle_models_m113
 
 }  // end namespace M113
 }  // end namespace vehicle

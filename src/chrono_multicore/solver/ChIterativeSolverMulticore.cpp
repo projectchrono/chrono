@@ -25,7 +25,6 @@ using namespace chrono;
 
 ChIterativeSolverMulticore::ChIterativeSolverMulticore(ChMulticoreDataManager* dc) : data_manager(dc) {
     m_tolerance = 1e-7;
-    record_violation_history = true;
     m_warm_start = false;
     solver = new ChSolverMulticoreAPGD();
     bilateral_solver = new ChSolverMulticoreMinRes();
@@ -219,7 +218,7 @@ void ChIterativeSolverMulticore::PerformStabilization() {
         DynamicVector<real> gamma_b = blaze::subvector(gamma, num_unilaterals, num_bilaterals);
 
         data_manager->measures.solver.total_iteration +=
-            bilateral_solver->Solve(ShurProductBilateral,                                   //
+            bilateral_solver->Solve(SchurProductBilateral,                                  //
                                     ProjectNone,                                            //
                                     data_manager->settings.solver.max_iteration_bilateral,  //
                                     num_bilaterals,                                         //

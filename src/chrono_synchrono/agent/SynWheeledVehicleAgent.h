@@ -108,15 +108,15 @@ class SYN_API SynWheeledVehicleAgent : public SynAgent {
     // ------------------------------------------------------------------------
 
   protected:
-    ///@brief Helper method used to create a ChTriangleMeshShape to be used on as a zombie body
+    ///@brief Helper method used to create a ChVisualShapeTriangleMesh to be used on as a zombie body
     ///
-    ///@param filename the file to generate a ChTriangleMeshShape from
-    ///@return std::shared_ptr<ChTriangleMeshShape>
-    std::shared_ptr<ChTriangleMeshShape> CreateMeshZombieComponent(const std::string& filename);
+    ///@param filename the file to generate a ChVisualShapeTriangleMesh from
+    ///@return std::shared_ptr<ChVisualShapeTriangleMesh>
+    std::shared_ptr<ChVisualShapeTriangleMesh> CreateMeshZombieComponent(const std::string& filename);
 
     ///@brief Create a zombie chassis body. All ChVehicles have a chassis, so this can be defined here
     ///
-    ///@param filename the filename that describes the ChTriangleMeshShape that should represent the chassis
+    ///@param filename the filename that describes the ChVisualShapeTriangleMesh that should represent the chassis
     ///@param system the system to add the body to
     std::shared_ptr<ChBodyAuxRef> CreateChassisZombieBody(const std::string& filename, ChSystem* system);
 

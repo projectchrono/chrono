@@ -40,7 +40,7 @@ M113::M113()
     : m_system(nullptr),
       m_vehicle(nullptr),
       m_contactMethod(ChContactMethod::NSC),
-      m_collsysType(collision::ChCollisionSystemType::BULLET),
+      m_collsysType(ChCollisionSystem::Type::BULLET),
       m_chassisCollisionType(CollisionType::NONE),
       m_fixed(false),
       m_wheel_cyl(true),
@@ -55,12 +55,12 @@ M113::M113()
       m_ancf_constrain_curvature(false),
       m_driveline_type(DrivelineTypeTV::SIMPLE),
       m_engineType(EngineModelType::SHAFTS),
-      m_transmissionType(TransmissionModelType::SHAFTS),
+      m_transmissionType(TransmissionModelType::AUTOMATIC_SHAFTS),
       m_use_track_bushings(false),
       m_use_suspension_bushings(false),
       m_use_track_RSDA(false),
       m_initFwdVel(0),
-      m_initPos(ChCoordsys<>(ChVector<>(0, 0, 1), QUNIT)),
+      m_initPos(ChCoordsys<>(ChVector3d(0, 0, 1), QUNIT)),
       m_gyration_mode(false),
       m_apply_drag(false) {}
 
@@ -68,7 +68,7 @@ M113::M113(ChSystem* system)
     : m_system(system),
       m_vehicle(nullptr),
       m_contactMethod(ChContactMethod::NSC),
-      m_collsysType(collision::ChCollisionSystemType::BULLET),
+      m_collsysType(ChCollisionSystem::Type::BULLET),
       m_chassisCollisionType(CollisionType::NONE),
       m_wheel_cyl(true),
       m_idler_cyl(true),
@@ -83,12 +83,12 @@ M113::M113(ChSystem* system)
       m_ancf_constrain_curvature(false),
       m_driveline_type(DrivelineTypeTV::SIMPLE),
       m_engineType(EngineModelType::SHAFTS),
-      m_transmissionType(TransmissionModelType::SHAFTS),
+      m_transmissionType(TransmissionModelType::AUTOMATIC_SHAFTS),
       m_use_track_bushings(false),
       m_use_suspension_bushings(false),
       m_use_track_RSDA(false),
       m_initFwdVel(0),
-      m_initPos(ChCoordsys<>(ChVector<>(0, 0, 1), QUNIT)),
+      m_initPos(ChCoordsys<>(ChVector3d(0, 0, 1), QUNIT)),
       m_gyration_mode(false),
       m_apply_drag(false) {}
 
@@ -120,8 +120,8 @@ void M113::Initialize() {
                                      m_ancf_constrain_curvature, m_ancf_num_elements_length, m_ancf_num_elements_width,
                                      m_driveline_type, m_brake_type, m_use_track_bushings, m_use_suspension_bushings,
                                      m_use_track_RSDA, m_contactMethod, m_chassisCollisionType);
-        m_vehicle->SetCollisionSystemType(m_collsysType);
     }
+    m_vehicle->SetCollisionSystemType(m_collsysType);
     m_vehicle->CreateTrack(m_create_track);
     m_vehicle->GetTrackAssembly(LEFT)->SetWheelCollisionType(m_wheel_cyl, m_idler_cyl, true);
     m_vehicle->GetTrackAssembly(RIGHT)->SetWheelCollisionType(m_wheel_cyl, m_idler_cyl, true);
@@ -150,13 +150,15 @@ void M113::Initialize() {
             break;
     }
 
-    if(!transmission) {
+    if (!transmission) {
         switch (m_transmissionType) {
-            case TransmissionModelType::SHAFTS:
+            case TransmissionModelType::AUTOMATIC_SHAFTS:
                 transmission = chrono_types::make_shared<M113_AutomaticTransmissionShafts>("Transmission");
                 break;
-            case TransmissionModelType::SIMPLE_MAP:
+            case TransmissionModelType::AUTOMATIC_SIMPLE_MAP:
                 transmission = chrono_types::make_shared<M113_AutomaticTransmissionSimpleMap>("Transmission");
+                break;
+            default:
                 break;
         }
     }
@@ -170,8 +172,7 @@ void M113::Initialize() {
     m_vehicle->InitializeInertiaProperties();
 }
 
-void M113::Synchronize(double time,
-                       const DriverInputs& driver_inputs) {
+void M113::Synchronize(double time, const DriverInputs& driver_inputs) {
     m_vehicle->Synchronize(time, driver_inputs);
 }
 

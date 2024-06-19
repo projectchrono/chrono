@@ -26,13 +26,13 @@ namespace duro {
 const double Duro_EngineShafts::m_motorblock_inertia = 10.5;
 const double Duro_EngineShafts::m_motorshaft_inertia = 1.1;
 
-Duro_EngineShafts::Duro_EngineShafts(const std::string& name) : ChEngineShafts(name, ChVector<>(1, 0, 0)) {}
+Duro_EngineShafts::Duro_EngineShafts(const std::string& name) : ChEngineShafts(name, ChVector3d(1, 0, 0)) {}
 
-void Duro_EngineShafts::SetEngineTorqueMap(std::shared_ptr<ChFunction_Recorder>& map) {
+void Duro_EngineShafts::SetEngineTorqueMap(std::shared_ptr<ChFunctionInterp>& map) {
     // could not get data for original 110 kW at 4000 rpm engine (VM Motori 20B/EP638LI)
     // we take this (more modern) 120 kW at 3000 rpm (VM Motori R756IE5/EU6C)
     // Driveline must be adjusted to reach the max. speed of 110 km/h or 55 km/h offroad
-    double rpm_to_radsec = CH_C_2PI / 60.;
+    double rpm_to_radsec = CH_2PI / 60.;
 
     map->AddPoint(-100 * rpm_to_radsec, 300);  // to start engine
     map->AddPoint(800 * rpm_to_radsec, 398);
@@ -51,8 +51,8 @@ void Duro_EngineShafts::SetEngineTorqueMap(std::shared_ptr<ChFunction_Recorder>&
     map->AddPoint(3300 * rpm_to_radsec, -400);  // fading out of engine torque
 }
 
-void Duro_EngineShafts::SetEngineLossesMap(std::shared_ptr<ChFunction_Recorder>& map) {
-    double rpm_to_radsec = CH_C_2PI / 60.;
+void Duro_EngineShafts::SetEngineLossesMap(std::shared_ptr<ChFunctionInterp>& map) {
+    double rpm_to_radsec = CH_2PI / 60.;
 
     map->AddPoint(-50 * rpm_to_radsec, 30);  // it should never work in negative direction, anyway..
     map->AddPoint(0 * rpm_to_radsec, 0);

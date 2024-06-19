@@ -1,0 +1,44 @@
+{
+  "Name":     "Duro chassis",
+  "Type":     "Chassis",
+  "Template": "RigidChassis",
+
+  "Components":
+  [
+    {
+      "Centroidal Frame":    {
+        "Location":    [-2.2529, 0, 0.6586],
+        "Orientation": [1, 0, 0, 0]
+      },
+      "Mass":                4900.0,
+      "Moments of Inertia":  [2629, 13484, 13502],
+      "Products of Inertia": [0, 0, 0],
+      "Void":                false
+    }
+  ],
+
+  "Driver Position":
+  {
+    "Location":     [-0.52, 0.7, 1.4],
+    "Orientation":  [1, 0, 0, 0]
+  },
+
+  "Rear Connector Location": [ -2.51, 0, -0.3 ],
+
+  "Visualization": {
+    "Primitives": [
+      {
+        "Type": "BOX",
+        "Location": [0, 0, 0.1],
+        "Orientation": [1, 0, 0, 0],
+        "Dimensions": [2, 1, 0.2]
+      },
+      {
+        "Type": "BOX",
+        "Location": [ 0, 0, 0.3 ],
+        "Orientation": [ 1, 0, 0, 0 ],
+        "Dimensions": [ 1, 0.5, 0.2 ]
+      }
+    ]
+  }
+}

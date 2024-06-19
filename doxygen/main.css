@@ -2193,6 +2193,28 @@ pre {
 table {
   background-color: transparent; }
 
+table.markdownTable {
+  /* Inherit other attributes from the default table style */
+  border-collapse: inherit;
+  width: inherit;
+  /* Set the border thickness to your desired value */
+  border-width: 1px; /* Adjust as needed */
+  border-style: solid;
+  border-color: lightgray;
+  /* Add other styles as needed */
+}
+
+/* Apply styles to inner borders of cells in the table */
+table.markdownTable th,
+table.markdownTable td {
+  /* Set the border thickness for inner borders */
+  border-width: 0.01em; /* Adjust as needed */
+  border-style: solid;
+  border-color: lightgray;
+  padding: 0.1em;
+  /* Add other styles as needed */
+}
+
 caption {
   padding-top: 8px;
   padding-bottom: 8px;
@@ -5949,7 +5971,7 @@ blockquote {
     font-weight: 300; }
 
 table {
-  font-size: 12px; }
+  font-size: 13px; }
 
 label,
 .control-label,

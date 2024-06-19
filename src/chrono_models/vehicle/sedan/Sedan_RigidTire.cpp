@@ -29,11 +29,11 @@ namespace sedan {
 // Static variables
 // -----------------------------------------------------------------------------
 
-const double Sedan_RigidTire::m_radius = (26.49/2.0)*0.0254;
+const double Sedan_RigidTire::m_radius = (26.49 / 2.0) * 0.0254;
 const double Sedan_RigidTire::m_width = 8.07 * 0.0254;
 
 const double Sedan_RigidTire::m_mass = 12.0;
-const ChVector<> Sedan_RigidTire::m_inertia(.156, .679, .156);
+const ChVector3d Sedan_RigidTire::m_inertia(.156, .679, .156);
 
 const std::string Sedan_RigidTire::m_meshFile = "sedan/sedan_tire.obj";
 

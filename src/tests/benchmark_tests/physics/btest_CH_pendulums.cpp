@@ -23,7 +23,6 @@
 
 #include "chrono/physics/ChBodyEasy.h"
 #include "chrono/physics/ChSystemNSC.h"
-#include "chrono/physics/ChSystemSMC.h"
 
 #ifdef CHRONO_IRRLICHT
     #include "chrono_irrlicht/ChVisualSystemIrrlicht.h"
@@ -45,7 +44,7 @@ class ChainTest : public utils::ChBenchmarkTest {
     void SimulateVis();
 
   private:
-    ChSystem* m_system;
+    ChSystemNSC* m_system;
     double m_length;
     double m_step;
 };
@@ -57,7 +56,7 @@ ChainTest<N>::ChainTest() : m_length(0.25), m_step(1e-3) {
 
     // Create system
     m_system = new ChSystemNSC;
-    m_system->Set_G_acc(ChVector<>(0, -1, 0));
+    m_system->SetGravitationalAcceleration(ChVector3d(0, -1, 0));
 
     // Set solver parameters
     switch (solver_type) {
@@ -93,7 +92,7 @@ ChainTest<N>::ChainTest() : m_length(0.25), m_step(1e-3) {
             m_system->SetTimestepperType(ChTimestepper::Type::HHT);
             auto integrator = std::static_pointer_cast<ChTimestepperHHT>(m_system->GetTimestepper());
             integrator->SetAlpha(-0.2);
-            integrator->SetMaxiters(50);
+            integrator->SetMaxIters(50);
             integrator->SetAbsTolerances(1e-4, 1e2);
             integrator->SetStepControl(false);
             integrator->SetModifiedNewton(false);
@@ -106,21 +105,21 @@ ChainTest<N>::ChainTest() : m_length(0.25), m_step(1e-3) {
 
     // Create ground
     auto ground = chrono_types::make_shared<ChBody>();
-    ground->SetBodyFixed(true);
+    ground->SetFixed(true);
     m_system->AddBody(ground);
 
     // Create pendulums
     double width = 0.025;
     double density = 500;
     for (int ib = 0; ib < N; ib++) {
-        auto prev = m_system->Get_bodylist().back();
+        auto prev = m_system->GetBodies().back();
 
         auto pend = chrono_types::make_shared<ChBodyEasyBox>(m_length, width, width, density, true, false);
-        pend->SetPos(ChVector<>((ib + 0.5) * m_length, 0, 0));
+        pend->SetPos(ChVector3d((ib + 0.5) * m_length, 0, 0));
         m_system->AddBody(pend);
 
         auto rev = chrono_types::make_shared<ChLinkLockRevolute>();
-        rev->Initialize(pend, prev, ChCoordsys<>(ChVector<>(ib * m_length, 0, 0)));
+        rev->Initialize(pend, prev, ChFrame<>(ChVector3d(ib * m_length, 0, 0)));
         m_system->AddLink(rev);
     }
 }
@@ -139,7 +138,7 @@ void ChainTest<N>::SimulateVis() {
     vis->AddLogo();
     vis->AddSkyBox();
     vis->AddTypicalLights();
-    vis->AddCamera(ChVector<>(0, -offset / 2, offset), ChVector<>(0, -offset / 2, 0));
+    vis->AddCamera(ChVector3d(0, -offset / 2, offset), ChVector3d(0, -offset / 2, 0));
 
     while (vis->Run()) {
         vis->BeginScene();
@@ -153,10 +152,10 @@ void ChainTest<N>::SimulateVis() {
 // =============================================================================
 
 #define NUM_SKIP_STEPS 2000  // number of steps for hot start
-#define NUM_SIM_STEPS 1000   // number of simulation steps for each benchmark
+#define NUM_SIM_STEPS 1000  // number of simulation steps for each benchmark
 
-CH_BM_SIMULATION_LOOP(Chain04, ChainTest<4>,  NUM_SKIP_STEPS, NUM_SIM_STEPS, 20);
-CH_BM_SIMULATION_LOOP(Chain08, ChainTest<8>,  NUM_SKIP_STEPS, NUM_SIM_STEPS, 20);
+CH_BM_SIMULATION_LOOP(Chain04, ChainTest<4>, NUM_SKIP_STEPS, NUM_SIM_STEPS, 20);
+CH_BM_SIMULATION_LOOP(Chain08, ChainTest<8>, NUM_SKIP_STEPS, NUM_SIM_STEPS, 20);
 CH_BM_SIMULATION_LOOP(Chain16, ChainTest<16>, NUM_SKIP_STEPS, NUM_SIM_STEPS, 20);
 CH_BM_SIMULATION_LOOP(Chain32, ChainTest<32>, NUM_SKIP_STEPS, NUM_SIM_STEPS, 20);
 CH_BM_SIMULATION_LOOP(Chain64, ChainTest<64>, NUM_SKIP_STEPS, NUM_SIM_STEPS, 20);

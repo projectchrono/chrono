@@ -42,9 +42,9 @@ const double U401_PushPipeAxle::m_spindleRadius = 0.10;
 const double U401_PushPipeAxle::m_spindleWidth = 0.06;
 const double U401_PushPipeAxle::m_panhardRodRadius = 0.02;
 
-const ChVector<> U401_PushPipeAxle::m_axleTubeInertia(22.21, 0.0775, 22.21);
-const ChVector<> U401_PushPipeAxle::m_spindleInertia(0.04117, 0.07352, 0.04117);
-const ChVector<> U401_PushPipeAxle::m_panhardRodInertia(0.1, 0.02, 0.1);
+const ChVector3d U401_PushPipeAxle::m_axleTubeInertia(22.21, 0.0775, 22.21);
+const ChVector3d U401_PushPipeAxle::m_spindleInertia(0.04117, 0.07352, 0.04117);
+const ChVector3d U401_PushPipeAxle::m_panhardRodInertia(0.1, 0.02, 0.1);
 
 const double U401_PushPipeAxle::m_springDesignLength = 0.35;
 const double U401_PushPipeAxle::m_springCoefficient = 102643.885771329;
@@ -75,7 +75,7 @@ class U401_PPSpringForceRear : public ChLinkTSDA::ForceFunctor {
     double m_min_length;
     double m_max_length;
 
-    ChFunction_Recorder m_bump;
+    ChFunctionInterp m_bump;
 };
 
 U401_PPSpringForceRear::U401_PPSpringForceRear(double spring_constant, double min_length, double max_length)
@@ -94,10 +94,10 @@ U401_PPSpringForceRear::U401_PPSpringForceRear(double spring_constant, double mi
 }
 
 double U401_PPSpringForceRear::evaluate(double time,
-                                           double rest_length,
-                                           double length,
-                                           double vel,
-                                           const ChLinkTSDA& link) {
+                                        double rest_length,
+                                        double length,
+                                        double vel,
+                                        const ChLinkTSDA& link) {
     double force = 0;
 
     double defl_spring = rest_length - length;
@@ -112,7 +112,7 @@ double U401_PPSpringForceRear::evaluate(double time,
         defl_rebound = length - m_max_length;
     }
 
-    force = defl_spring * m_spring_constant + m_bump.Get_y(defl_bump) - m_bump.Get_y(defl_rebound);
+    force = defl_spring * m_spring_constant + m_bump.GetVal(defl_bump) - m_bump.GetVal(defl_rebound);
 
     return force;
 }
@@ -123,9 +123,9 @@ double U401_PPSpringForceRear::evaluate(double time,
 class U401_PPShockForceRear : public ChLinkTSDA::ForceFunctor {
   public:
     U401_PPShockForceRear(double compression_slope,
-                             double compression_degressivity,
-                             double expansion_slope,
-                             double expansion_degressivity);
+                          double compression_degressivity,
+                          double expansion_slope,
+                          double expansion_degressivity);
 
     virtual double evaluate(double time,
                             double rest_length,
@@ -141,19 +141,19 @@ class U401_PPShockForceRear : public ChLinkTSDA::ForceFunctor {
 };
 
 U401_PPShockForceRear::U401_PPShockForceRear(double compression_slope,
-                                                   double compression_degressivity,
-                                                   double expansion_slope,
-                                                   double expansion_degressivity)
+                                             double compression_degressivity,
+                                             double expansion_slope,
+                                             double expansion_degressivity)
     : m_slope_compr(compression_slope),
       m_degres_compr(compression_degressivity),
       m_slope_expand(expansion_slope),
       m_degres_expand(expansion_degressivity) {}
 
 double U401_PPShockForceRear::evaluate(double time,
-                                          double rest_length,
-                                          double length,
-                                          double vel,
-                                          const ChLinkTSDA& link) {
+                                       double rest_length,
+                                       double length,
+                                       double vel,
+                                       const ChLinkTSDA& link) {
     // Simple model of a degressive damping characteristic
     double force = 0;
 
@@ -180,30 +180,29 @@ U401_PushPipeAxle::U401_PushPipeAxle(const std::string& name) : ChPushPipeAxle(n
 // -----------------------------------------------------------------------------
 U401_PushPipeAxle::~U401_PushPipeAxle() {}
 
-const ChVector<> U401_PushPipeAxle::getLocation(PointId which) {
+const ChVector3d U401_PushPipeAxle::getLocation(PointId which) {
     switch (which) {
         case SPRING_A:
-            return ChVector<>(-0.18, 0.4242, 0.124);
+            return ChVector3d(-0.18, 0.4242, 0.124);
         case SPRING_C:
-            return ChVector<>(-0.18, 0.4242, 0.468);
+            return ChVector3d(-0.18, 0.4242, 0.468);
         case SHOCK_A:
-            return ChVector<>(0.1, 0.4242, 0.124);
+            return ChVector3d(0.1, 0.4242, 0.124);
         case SHOCK_C:
-            return ChVector<>(0.1, 0.4242, 0.468);
+            return ChVector3d(0.1, 0.4242, 0.468);
         case SPINDLE:
-            return ChVector<>(0.0, 0.635, 0.0);
+            return ChVector3d(0.0, 0.635, 0.0);
         case AXLE_C:
-            return ChVector<>(0.68, -0.1, 0.335);
+            return ChVector3d(0.68, -0.1, 0.335);
         case PANHARD_A:
-            return ChVector<>(-0.1, -0.45, 0.0 + m_portalOffset);
+            return ChVector3d(-0.1, -0.45, 0.0 + m_portalOffset);
         case PANHARD_C:
-            return ChVector<>(-0.1, 0.45, 0.0 + m_portalOffset);
+            return ChVector3d(-0.1, 0.45, 0.0 + m_portalOffset);
         default:
-            return ChVector<>(0, 0, 0);
+            return ChVector3d(0, 0, 0);
     }
 }
 
 }  // namespace unimog
 }  // end namespace vehicle
 }  // end namespace chrono
-

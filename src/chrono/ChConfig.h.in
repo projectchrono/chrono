@@ -28,9 +28,6 @@
 // If module CASCADE was enabled, define CHRONO_CASCADE
 @CHRONO_CASCADE@
 
-// If module COSIMULATION was enabled, define CHRONO_COSIMULATION
-@CHRONO_COSIMULATION@
-
 // If module IRRLICHT was enabled, define CHRONO_IRRLICHT
 @CHRONO_IRRLICHT@
 
@@ -76,11 +73,14 @@
 // If module SENSOR was enabled, define CHRONO_SENSOR
 @CHRONO_SENSOR@
 
-// If module PARDISOPROJECT was enabled, define CHRONO_PARDISOPROJECT
-@CHRONO_PARDISOPROJECT@
+// If module ROS was enabled, define CHRONO_ROS
+@CHRONO_ROS@
 
 // If module MODAL was enabled, define CHRONO_MODAL
 @CHRONO_MODAL@
+
+// If module FMI was enabled, define CHRONO_FMI
+@CHRONO_FMI@
 
 // -----------------------------------------------------------------------------
 // OpenMP settings

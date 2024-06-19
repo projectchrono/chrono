@@ -16,7 +16,7 @@
 //
 // =============================================================================
 
-#include "chrono/assets/ChTriangleMeshShape.h"
+#include "chrono/assets/ChVisualShapeTriangleMesh.h"
 #include "chrono/assets/ChVisualMaterial.h"
 #include "chrono/assets/ChVisualShape.h"
 #include "chrono/geometry/ChTriangleMeshConnected.h"
@@ -33,7 +33,6 @@
 #include "chrono_sensor/filters/ChFilterVisualize.h"
 
 using namespace chrono;
-using namespace chrono::geometry;
 using namespace chrono::sensor;
 
 float end_time = 2.0f;
@@ -49,7 +48,7 @@ float randf() {
 int main(int argc, char* argv[]) {
     srand(0);
     for (int q = start_q_per_dim; q <= end_q_per_dim; q++) {
-        GetLog() << "Copyright (c) 2019 projectchrono.org\nChrono version: " << CHRONO_VERSION << "\n\n";
+        std::cout << "Copyright (c) 2019 projectchrono.org\nChrono version: " << CHRONO_VERSION << std::endl;
 
         // -----------------
         // Create the system
@@ -61,9 +60,9 @@ int main(int argc, char* argv[]) {
         // ---------------------------------------
         auto mmesh = ChTriangleMeshConnected::CreateFromWavefrontFile(
             GetChronoDataFile("vehicle/hmmwv/hmmwv_chassis.obj"), false, true);
-        mmesh->Transform(ChVector<>(0, 0, 0), ChMatrix33<>(1));  // scale to a different size
+        mmesh->Transform(ChVector3d(0, 0, 0), ChMatrix33<>(1));  // scale to a different size
 
-        auto base_trimesh_shape = std::make_shared<ChTriangleMeshShape>();
+        auto base_trimesh_shape = std::make_shared<ChVisualShapeTriangleMesh>();
         base_trimesh_shape->SetMesh(mmesh);
         // if (base_trimesh_shape->GetNumMaterials() == 0) {
         //     // Create a "proper" set of materials if they don't already exist
@@ -79,7 +78,7 @@ int main(int argc, char* argv[]) {
         for (int i = 0; i < x_instances; i++) {
             for (int j = 0; j < y_instances; j++) {
                 for (int k = 0; k < z_instances; k++) {
-                    auto trimesh_shape = std::make_shared<ChTriangleMeshShape>();
+                    auto trimesh_shape = std::make_shared<ChVisualShapeTriangleMesh>();
                     trimesh_shape->SetMesh(mmesh);
                     // trimesh_shape->SetName("HMMWV Chassis Mesh");
                     trimesh_shape->SetMutable(false);
@@ -96,15 +95,15 @@ int main(int argc, char* argv[]) {
                     ChQuaternion<> quat = {randf(), randf(), randf(), randf()};
                     quat.Normalize();
                     mesh_body->SetRot(quat);
-                    mesh_body->AddVisualShape(trimesh_shape,ChFrame<>());
-                    mesh_body->SetBodyFixed(true);
+                    mesh_body->AddVisualShape(trimesh_shape, ChFrame<>());
+                    mesh_body->SetFixed(true);
                     sys.Add(mesh_body);
                 }
             }
         }
 
         auto cam_body = chrono_types::make_shared<ChBodyEasyBox>(.01, .01, .01, 1000, false, false);
-        cam_body->SetBodyFixed(true);
+        cam_body->SetFixed(true);
         sys.Add(cam_body);
 
         // -----------------------
@@ -120,12 +119,12 @@ int main(int argc, char* argv[]) {
         // Create a camera and add it to the sensor manager
         // ------------------------------------------------
         auto cam = std::make_shared<ChCameraSensor>(
-            cam_body,                                                           // body camera is attached to
-            60.0f,                                                              // update rate in Hz
-            chrono::ChFrame<double>({-8, 0, 1}, Q_from_AngAxis(0, {0, 1, 0})),  // offset pose
-            1920,                                                               // image width
-            1080,                                                               // image height
-            (float)CH_C_PI / 3                                                  // FOV
+            cam_body,                                                              // body camera is attached to
+            60.0f,                                                                 // update rate in Hz
+            chrono::ChFrame<double>({-8, 0, 1}, QuatFromAngleAxis(0, {0, 1, 0})),  // offset pose
+            1920,                                                                  // image width
+            1080,                                                                  // image height
+            (float)CH_PI / 3                                                       // FOV
         );
         cam->SetName("Camera Sensor");
         // if (vis)
@@ -151,7 +150,7 @@ int main(int argc, char* argv[]) {
         while (ch_time < end_time) {
             cam->SetOffsetPose(chrono::ChFrame<double>(
                 {-orbit_radius * cos(ch_time * orbit_rate), -orbit_radius * sin(ch_time * orbit_rate), 1},
-                Q_from_AngAxis(ch_time * orbit_rate, {0, 0, 1})));
+                QuatFromAngleAxis(ch_time * orbit_rate, {0, 0, 1})));
 
             manager->Update();
             sys.DoStepDynamics(0.01);

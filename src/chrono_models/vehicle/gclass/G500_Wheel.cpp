@@ -31,7 +31,7 @@ namespace gclass {
 // -----------------------------------------------------------------------------
 
 const double G500_Wheel::m_mass = 12.0;
-const ChVector<> G500_Wheel::m_inertia(0.24, 0.42, 0.24);
+const ChVector3d G500_Wheel::m_inertia(0.24, 0.42, 0.24);
 
 const double G500_Wheel::m_radius = 0.2032;
 const double G500_Wheel::m_width = 0.1524;
@@ -42,6 +42,6 @@ G500_Wheel::G500_Wheel(const std::string& name) : ChWheel(name) {
     m_vis_mesh_file = "gclass/gd250_rim.obj";
 }
 
-}  // end namespace uaz
+}  // namespace gclass
 }  // end namespace vehicle
 }  // end namespace chrono

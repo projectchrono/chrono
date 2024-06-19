@@ -25,7 +25,7 @@ using namespace chrono::vehicle;
 const double ACV_AutomaticTransmissionSimple::m_fwd_gear_ratio = 0.3;
 const double ACV_AutomaticTransmissionSimple::m_rev_gear_ratio = -0.3;
 
-const double rpm2rads = CH_C_PI / 30;
+const double rpm2rads = CH_PI / 30;
 
 ACV_AutomaticTransmissionSimple::ACV_AutomaticTransmissionSimple(const std::string& name)
     : ChAutomaticTransmissionSimpleMap(name) {}

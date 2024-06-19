@@ -33,7 +33,7 @@ namespace citybus {
 const std::string CityBus_TMeasyTire::m_meshFile = "citybus/CityBusTire.obj";
 
 const double CityBus_TMeasyTire::m_mass = 68.6;
-const ChVector<> CityBus_TMeasyTire::m_inertia(6.104, 11.144, 6.104);
+const ChVector3d CityBus_TMeasyTire::m_inertia(6.104, 11.144, 6.104);
 
 // -----------------------------------------------------------------------------
 // -----------------------------------------------------------------------------

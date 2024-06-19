@@ -22,7 +22,7 @@
 
 #include <cuda_runtime.h>
 #ifndef __CUDACC__
-#include <cmath>
+    #include <cmath>
 #endif
 #include "chrono_fsi/ChConfigFSI.h"
 
@@ -95,9 +95,9 @@ inline __host__ __device__ Real quintic(Real a) {
 ////////////////////////////////////////////////////////////////////////////////
 
 #if defined(__CUDACC_RTC__)
-#define __VECTOR_FUNCTIONS_DECL__ __host__ __device__
+    #define __VECTOR_FUNCTIONS_DECL__ __host__ __device__
 #else /* !__CUDACC_RTC__ */
-#define __VECTOR_FUNCTIONS_DECL__ static __inline__ __host__ __device__
+    #define __VECTOR_FUNCTIONS_DECL__ static __inline__ __host__ __device__
 #endif /* __CUDACC_RTC__ */
 
 /// Make a vector with two unsigned integer elements.

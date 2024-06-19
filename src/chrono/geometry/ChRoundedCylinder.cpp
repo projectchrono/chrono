@@ -17,7 +17,6 @@
 #include "chrono/geometry/ChRoundedCylinder.h"
 
 namespace chrono {
-namespace geometry {
 
 // Register into the object factory, to enable run-time dynamic creation and persistence
 CH_FACTORY_REGISTER(ChRoundedCylinder)
@@ -31,27 +30,71 @@ ChRoundedCylinder::ChRoundedCylinder(const ChRoundedCylinder& source) {
     sr = source.sr;
 }
 
-void ChRoundedCylinder::ArchiveOut(ChArchiveOut& marchive) {
+// -----------------------------------------------------------------------------
+
+double ChRoundedCylinder::GetVolume(double radius, double height, double srad) {
+    double tmp = (radius + srad) * (radius + srad) * height / 2 + srad * (radius * radius + (2.0 / 3.0) * srad * srad) +
+                 (CH_PI_2 - 1.0) * radius * srad * srad;
+    return 2.0 * CH_PI * tmp;
+}
+
+double ChRoundedCylinder::GetVolume() const {
+    return GetVolume(r, h, sr);
+}
+
+ChMatrix33<> ChRoundedCylinder::GetGyration(double radius, double height, double srad) {
+    ChMatrix33<> J;
+    J.setZero();
+    J(0, 0) = (1.0 / 12.0) * (3 * radius * radius + height * height);
+    J(1, 1) = (1.0 / 2.0) * (radius * radius);
+    J(2, 2) = (1.0 / 12.0) * (3 * radius * radius + height * height);
+
+    return J;
+}
+
+ChMatrix33<> ChRoundedCylinder::GetGyration() const {
+    return GetGyration(r, h, sr);
+}
+
+ChAABB ChRoundedCylinder::GetBoundingBox(double radius, double height, double srad) {
+    return ChAABB(ChVector3d(-radius, -radius, -height / 2) - srad,  //
+                  ChVector3d(+radius, +radius, +height / 2) + srad);
+}
+
+ChAABB ChRoundedCylinder::GetBoundingBox() const {
+    return GetBoundingBox(r, h, sr);
+}
+
+double ChRoundedCylinder::GetBoundingSphereRadius(double radius, double height, double srad) {
+    return std::sqrt(height * height / 4 + radius * radius) + srad;
+}
+
+double ChRoundedCylinder::GetBoundingSphereRadius() const {
+    return GetBoundingSphereRadius(r, h, sr);
+}
+
+// -----------------------------------------------------------------------------
+
+void ChRoundedCylinder::ArchiveOut(ChArchiveOut& archive_out) {
     // version number
-    marchive.VersionWrite<ChRoundedCylinder>();
+    archive_out.VersionWrite<ChRoundedCylinder>();
     // serialize parent class
-    ChGeometry::ArchiveOut(marchive);
+    ChGeometry::ArchiveOut(archive_out);
     // serialize all member data:
-    marchive << CHNVP(r);
-    marchive << CHNVP(h);
-    marchive << CHNVP(sr);
+    archive_out << CHNVP(r);
+    archive_out << CHNVP(h);
+    archive_out << CHNVP(sr);
 }
 
-void ChRoundedCylinder::ArchiveIn(ChArchiveIn& marchive) {
+void ChRoundedCylinder::ArchiveIn(ChArchiveIn& archive_in) {
     // version number
-    /*int version =*/marchive.VersionRead<ChRoundedCylinder>();
+    /*int version =*/archive_in.VersionRead<ChRoundedCylinder>();
     // deserialize parent class
-    ChGeometry::ArchiveIn(marchive);
+    ChGeometry::ArchiveIn(archive_in);
     // stream in all member data:
-    marchive >> CHNVP(r);
-    marchive >> CHNVP(h);
-    marchive >> CHNVP(sr);
+    archive_in >> CHNVP(r);
+    archive_in >> CHNVP(h);
+    archive_in >> CHNVP(sr);
 }
 
-}  // end namespace geometry
 }  // end namespace chrono

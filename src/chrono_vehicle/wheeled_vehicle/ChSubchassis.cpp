@@ -25,14 +25,18 @@ namespace vehicle {
 ChSubchassis::ChSubchassis(const std::string& name) : ChPart(name) {}
 
 ChSubchassis::~ChSubchassis() {
+    if (!m_initialized)
+        return;
+
     auto sys = m_beam[0]->GetSystem();
-    if (sys) {
-        sys->Remove(m_beam[0]);
-        sys->Remove(m_beam[1]);
-    }
+    if (!sys)
+        return;
+
+    sys->Remove(m_beam[0]);
+    sys->Remove(m_beam[1]);
 }
 
-void ChSubchassis::Initialize(std::shared_ptr<ChChassis> chassis, const ChVector<>& location) {
+void ChSubchassis::Initialize(std::shared_ptr<ChChassis> chassis, const ChVector3d& location) {
     // Mark as initialized
     m_initialized = true;
 }

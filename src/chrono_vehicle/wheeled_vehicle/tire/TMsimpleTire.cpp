@@ -18,8 +18,6 @@
 
 #include <algorithm>
 
-#include "chrono/core/ChLog.h"
-
 #include "chrono_vehicle/ChVehicleModelData.h"
 #include "chrono_vehicle/utils/ChUtilsJSON.h"
 #include "chrono_vehicle/wheeled_vehicle/tire/TMsimpleTire.h"
@@ -38,7 +36,7 @@ TMsimpleTire::TMsimpleTire(const std::string& filename) : ChTMsimpleTire(""), m_
 
     Create(d);
 
-    GetLog() << "Loaded JSON: " << filename.c_str() << "\n";
+    std::cout << "Loaded JSON " << filename << std::endl;
 }
 
 TMsimpleTire::TMsimpleTire(const rapidjson::Document& d) : ChTMsimpleTire(""), m_has_mesh(false) {
@@ -86,8 +84,8 @@ void TMsimpleTire::Create(const rapidjson::Document& d) {
             }
             SetVerticalStiffness(defl, frc);
         } else {
-            GetLog() << "FATAL: No Vertical Tire Stiffness Definition!\n";
-            exit(19);
+            std::cerr << "FATAL: No Vertical Tire Stiffness Definition!" << std::endl;
+            throw std::runtime_error("FATAL: No Vertical Tire Stiffness Definition!");
         }
         m_par.dz = d["Parameters"]["Vertical"]["Vertical Tire Damping [Ns/m]"].GetDouble();
 
@@ -167,14 +165,15 @@ void TMsimpleTire::Create(const rapidjson::Document& d) {
                               p_li, p_use);
         }
     } else {
-        GetLog() << "ERROR: Incorrect TMeasy JSON specification.\n";
-        return;
+        std::cerr << "ERROR: Incorrect TMsimple JSON specification." << std::endl;
+        throw std::runtime_error("ERROR: Incorrect TMsimple JSON specification.");
     }
 
     // Coefficient of friction and rolling resistance coefficients.
     // These must be set here to ensure they are not overwritten.
     if (d.HasMember("Coefficient of Friction"))
         m_par.mu_0 = d["Coefficient of Friction"].GetDouble();
+
     if (d.HasMember("Rolling Resistance Coefficient"))
         m_rolling_resistance = d["Rolling Resistance Coefficient"].GetDouble();
 

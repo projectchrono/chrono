@@ -22,7 +22,7 @@
 #include <vector>
 
 #include "chrono/physics/ChBody.h"
-#include "chrono/assets/ChCylinderShape.h"
+#include "chrono/assets/ChVisualShapeCylinder.h"
 
 #include "chrono_vehicle/wheeled_vehicle/tire/ChForceElementTire.h"
 #include "chrono_vehicle/ChTerrain.h"
@@ -69,7 +69,7 @@ class CH_VEHICLE_API ChFialaTire : public ChForceElementTire {
 
     /// Get the tire deflection.
     virtual double GetDeflection() const override { return m_data.depth; }
-    
+
     double GetTireOmega() { return m_states.omega; }
 
     /// Generate basic tire plots.
@@ -83,13 +83,6 @@ class CH_VEHICLE_API ChFialaTire : public ChForceElementTire {
     /// Calculate Patch Forces
     void FialaPatchForces(double& fx, double& fy, double& mz, double kappa, double alpha, double fz);
 
-    void CombinedCoulombForces(double& fx, double& fy, double fz, double muscale);
-    
-    // smooth blending of Coulomb Friction model and Fiala model
-    
-    double m_frblend_begin; // tire longitudinal velocity [m/s]
-    double m_frblend_end;   // tire longitudinal velocity [m/s]
-    
     /// Fiala tire model parameters
 
     double m_unloaded_radius;
@@ -99,17 +92,12 @@ class CH_VEHICLE_API ChFialaTire : public ChForceElementTire {
     double m_c_alpha;
     double m_u_min;
     double m_u_max;
-    double m_relax_length_x;
-    double m_relax_length_y;
 
     // Fiala extensions from ADAMS/Car user source example and TMeasy
     double m_mu;    ///< Actual friction coefficient of the road
     double m_mu_0;  ///< Local friction coefficient of the road for given parameters
 
-    /// Switch for dynamic mode (relaxation)
-    bool m_dynamic_mode;
     double m_time;        // actual system time
-    double m_time_trans;  // end of start transient
 
     /// Initialize this tire by associating it to the specified wheel.
     virtual void Initialize(std::shared_ptr<ChWheel> wheel) override;
@@ -130,9 +118,7 @@ class CH_VEHICLE_API ChFialaTire : public ChForceElementTire {
         double vsx;     // Longitudinal slip velocity
         double vsy;     // Lateral slip velocity = Lateral velocity
         double omega;   // Wheel angular velocity about its spin axis (temporary for debug)
-        double Fx_l;
-        double Fy_l;
-        ChVector<> disc_normal;  // temporary for debug
+        ChVector3d disc_normal;  // temporary for debug
     };
 
     TireStates m_states;

@@ -10,28 +10,28 @@
 //
 // =============================================================================
 
-#ifndef CHLOADERU_H
-#define CHLOADERU_H
+#ifndef CH_LOADER_U_H
+#define CH_LOADER_U_H
+
+#include "chrono/core/ChApiCE.h"
 
 #include "chrono/physics/ChLoader.h"
 
 namespace chrono {
 
-/// Class of loaders for ChLoadableU objects (which support line loads).
-
-class ChLoaderU : public ChLoader {
+/// Loaders for ChLoadableU objects (which support line loads).
+class ChApi ChLoaderU : public ChLoader {
   public:
-    typedef ChLoadableU type_loadable;
-
     std::shared_ptr<ChLoadableU> loadable;
 
     ChLoaderU(std::shared_ptr<ChLoadableU> mloadable) : loadable(mloadable) {}
     virtual ~ChLoaderU() {}
 
-    /// Children classes must provide this function that evaluates F = F(u)
-    /// This will be evaluated during ComputeQ() to perform integration over the domain.
-    virtual void ComputeF(const double U,        ///< parametric coordinate in line
-                          ChVectorDynamic<>& F,  ///< Result F vector here, size must be = n.field coords.of loadable
+    /// Evaluate F = F(u) for this line load.
+    /// The vector F is set to zero on entry.
+    /// The function provided by derived classes is called by ComputeQ to perform integration over the domain.
+    virtual void ComputeF(double U,                    ///< parametric coordinate in line
+                          ChVectorDynamic<>& F,        ///< result vector, size = field dim of loadable
                           ChVectorDynamic<>* state_x,  ///< if != 0, update state (pos. part) to this, then evaluate F
                           ChVectorDynamic<>* state_w   ///< if != 0, update state (speed part) to this, then evaluate F
                           ) = 0;
@@ -41,72 +41,41 @@ class ChLoaderU : public ChLoader {
     std::shared_ptr<ChLoadableU> GetLoadableU() { return loadable; }
 };
 
-/// Class of loaders for ChLoadableU objects (which support line loads), for loads of distributed type,
-/// so these loads will undergo Gauss quadrature to integrate them in the surface.
+//--------------------------------------------------------------------------------
 
-class ChLoaderUdistributed : public ChLoaderU {
+/// Loader for ChLoadableU objects (which support line loads), for loads of distributed type.
+/// These loads will undergo Gauss quadrature to integrate them on the line.
+class ChApi ChLoaderUdistributed : public ChLoaderU {
   public:
     ChLoaderUdistributed(std::shared_ptr<ChLoadableU> mloadable) : ChLoaderU(mloadable) {}
     virtual ~ChLoaderUdistributed() {}
 
     virtual int GetIntegrationPointsU() = 0;
 
-    /// Computes Q = integral (N'*F*detJ du)
+    /// Compute the generalized load Q = integral (N'*F*detJ du), using the ComputeF method.
     virtual void ComputeQ(ChVectorDynamic<>* state_x,  ///< if != 0, update state (pos. part) to this, then evaluate Q
                           ChVectorDynamic<>* state_w   ///< if != 0, update state (speed part) to this, then evaluate Q
-                          ) override {
-        assert(GetIntegrationPointsU() <= ChQuadrature::GetStaticTables()->Lroots.size());
-
-        Q.setZero(loadable->LoadableGet_ndof_w());
-        ChVectorDynamic<> mF(loadable->Get_field_ncoords());
-        mF.setZero();
-
-        const std::vector<double>& Ulroots = ChQuadrature::GetStaticTables()->Lroots[GetIntegrationPointsU() - 1];
-        const std::vector<double>& Uweight = ChQuadrature::GetStaticTables()->Weight[GetIntegrationPointsU() - 1];
-
-        ChVectorDynamic<> mNF(Q.size());  // temporary value for loop
-
-        // Gauss quadrature :  Q = sum (N'*F*detJ * wi)
-        for (unsigned int iu = 0; iu < Ulroots.size(); iu++) {
-            double detJ;
-            // Compute F= F(u)
-            this->ComputeF(Ulroots[iu], mF, state_x, state_w);
-            // Compute mNF= N(u)'*F
-            loadable->ComputeNF(Ulroots[iu], mNF, detJ, mF, state_x, state_w);
-            // Compute Q+= mNF detJ * wi
-            mNF *= (detJ * Uweight[iu]);
-            Q += mNF;
-        }
-    }
+                          ) override;
 };
 
-/// Class of loaders for ChLoadableU objects (which support line loads) of atomic type,
-/// that is, with a concentrated load in a point Pu.
+//--------------------------------------------------------------------------------
 
-class ChLoaderUatomic : public ChLoaderU {
+/// Loader for ChLoadableU objects (which support line loads), for concentrated loads.
+class ChApi ChLoaderUatomic : public ChLoaderU {
   public:
-    double Pu;
-
     ChLoaderUatomic(std::shared_ptr<ChLoadableU> mloadable) : ChLoaderU(mloadable), Pu(0) {}
+    virtual ~ChLoaderUatomic() {}
 
-    /// Computes Q = N'*F
+    /// Compute the generalized load Q = N'*F, using the ComputeF method.
     virtual void ComputeQ(ChVectorDynamic<>* state_x,  ///< if != 0, update state (pos. part) to this, then evaluate Q
                           ChVectorDynamic<>* state_w   ///< if != 0, update state (speed part) to this, then evaluate Q
-                          ) override {
-        Q.setZero(loadable->LoadableGet_ndof_w());
-        ChVectorDynamic<> mF(loadable->Get_field_ncoords());
-        mF.setZero();
-
-        // Compute F=F(u)
-        this->ComputeF(Pu, mF, state_x, state_w);
-
-        // Compute N(u)'*F
-        double detJ;
-        loadable->ComputeNF(Pu, Q, detJ, mF, state_x, state_w);
-    }
+                          ) override;
 
     /// Set the position, on the surface where the atomic load is applied
-    void SetApplication(double mu) { Pu = mu; }
+    void SetApplication(double u) { Pu = u; }
+
+  private:
+    double Pu;
 };
 
 }  // end namespace chrono

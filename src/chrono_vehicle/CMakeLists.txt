@@ -233,8 +233,6 @@ set(CV_DRIVER_FILES
     driver/ChPathFollowerDriver.cpp
     driver/ChPathFollowerACCDriver.h
     driver/ChPathFollowerACCDriver.cpp
-    driver/ChExternalDriver.h
-    driver/ChExternalDriver.cpp
     driver/ChInteractiveDriver.h
     driver/ChInteractiveDriver.cpp
 
@@ -858,7 +856,7 @@ source_group("" FILES ${CVVSG_FILES})
 source_group("wheeled_vehicle" FILES ${CVVSG_WV_FILES})
 source_group("tracked_vehicle" FILES ${CVVSG_TV_FILES})
 
-# --------------- VEHICLE VSG INTERFACE
+# --------------- VEHICLE OpenGL INTERFACE
 
 if(ENABLE_MODULE_OPENGL)
     set(CVGL_FILES
@@ -1082,6 +1080,18 @@ if(ENABLE_MODULE_VEHICLE_COSIM)
 endif()
 
 set(ENABLE_MODULE_VEHICLE_COSIM  "${ENABLE_MODULE_VEHICLE_COSIM}" PARENT_SCOPE)
+
+#-------------------------------------------------------------------------------
+# Trigger CMake for vehicle FMUs
+#-------------------------------------------------------------------------------
+
+cmake_dependent_option(ENABLE_MODULE_VEHICLE_FMI  "Enable FMI support for Chrono::Vehicle" ON "ENABLE_MODULE_FMI" OFF)
+mark_as_advanced(FORCE ENABLE_MODULE_VEHICLE_FMI)
+if(ENABLE_MODULE_VEHICLE_FMI)
+  add_subdirectory(fmi)
+endif()
+
+set(ENABLE_MODULE_VEHICLE_FMI  "${ENABLE_MODULE_VEHICLE_FMI}" PARENT_SCOPE)
 
 #-------------------------------------------------------------------------------
 # Install Chrono::Vehicle headers

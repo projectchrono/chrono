@@ -51,7 +51,6 @@ using namespace chrono::vsg3d;
 #endif
 
 using namespace chrono;
-using namespace chrono::collision;
 using namespace chrono::vehicle;
 using namespace chrono::vehicle::hmmwv;
 
@@ -105,11 +104,7 @@ double step_size = 3e-3;
 double render_step_size = 1.0 / 100;
 
 // Point on chassis tracked by the camera
-ChVector<> track_point(0.0, 0.0, 1.75);
-
-// Output directories
-const std::string out_dir = GetChronoOutputPath() + "HMMWV_DEF_SOIL";
-const std::string img_dir = out_dir + "/IMG";
+ChVector3d track_point(0.0, 0.0, 1.75);
 
 // Visualization output
 bool img_output = false;
@@ -140,7 +135,7 @@ class MyDriver : public ChDriver {
         if (eff_time < 2)
             m_steering = 0;
         else
-            m_steering = 0.6 * std::sin(CH_C_2PI * (eff_time - 2) / 6);
+            m_steering = 0.6 * std::sin(CH_2PI * (eff_time - 2) / 6);
     }
 
   private:
@@ -149,36 +144,34 @@ class MyDriver : public ChDriver {
 
 // =============================================================================
 
-void CreateLuggedGeometry(std::shared_ptr<ChBody> wheel_body, std::shared_ptr<ChMaterialSurfaceSMC> wheel_material) {
+void CreateLuggedGeometry(std::shared_ptr<ChBody> wheel_body, std::shared_ptr<ChContactMaterialSMC> wheel_material) {
     std::string lugged_file("hmmwv/lugged_wheel_section.obj");
-    geometry::ChTriangleMeshConnected lugged_mesh;
+    ChTriangleMeshConnected lugged_mesh;
     ChConvexDecompositionHACDv2 lugged_convex;
     chrono::utils::LoadConvexMesh(vehicle::GetDataFile(lugged_file), lugged_mesh, lugged_convex);
     int num_hulls = lugged_convex.GetHullCount();
 
-    auto coll_model = wheel_body->GetCollisionModel();
-    coll_model->ClearModel();
-
     // Assemble the tire contact from 15 segments, properly offset.
     // Each segment is further decomposed in convex hulls.
     for (int iseg = 0; iseg < 15; iseg++) {
-        ChQuaternion<> rot = Q_from_AngAxis(iseg * 24 * CH_C_DEG_TO_RAD, VECT_Y);
+        ChQuaternion<> rot = QuatFromAngleY(iseg * 24 * CH_DEG_TO_RAD);
         for (int ihull = 0; ihull < num_hulls; ihull++) {
-            std::vector<ChVector<> > convexhull;
+            std::vector<ChVector3d> convexhull;
             lugged_convex.GetConvexHullResult(ihull, convexhull);
-            coll_model->AddConvexHull(wheel_material, convexhull, VNULL, rot);
+            auto shape = chrono_types::make_shared<ChCollisionShapeConvexHull>(wheel_material, convexhull);
+            wheel_body->AddCollisionShape(shape, ChFrame<>(VNULL, rot));
         }
     }
 
     // Add a cylinder to represent the wheel hub.
-    coll_model->AddCylinder(wheel_material, 0.223, 0.252, VNULL, Q_from_AngX(CH_C_PI_2));
-    coll_model->BuildModel();
+    auto cyl_shape = chrono_types::make_shared<ChCollisionShapeCylinder>(wheel_material, 0.223, 0.252);
+    wheel_body->AddCollisionShape(cyl_shape, ChFrame<>(VNULL, QuatFromAngleX(CH_PI_2)));
 
     // Visualization
-    auto trimesh = geometry::ChTriangleMeshConnected::CreateFromWavefrontFile(
-        vehicle::GetDataFile("hmmwv/lugged_wheel.obj"), false, false);
+    auto trimesh =
+        ChTriangleMeshConnected::CreateFromWavefrontFile(vehicle::GetDataFile("hmmwv/lugged_wheel.obj"), false, false);
 
-    auto trimesh_shape = chrono_types::make_shared<ChTriangleMeshShape>();
+    auto trimesh_shape = chrono_types::make_shared<ChVisualShapeTriangleMesh>();
     trimesh_shape->SetMesh(trimesh);
     trimesh_shape->SetMutable(false);
     trimesh_shape->SetName("lugged_wheel");
@@ -189,22 +182,22 @@ void CreateLuggedGeometry(std::shared_ptr<ChBody> wheel_body, std::shared_ptr<Ch
 // =============================================================================
 
 int main(int argc, char* argv[]) {
-    GetLog() << "Copyright (c) 2017 projectchrono.org\nChrono version: " << CHRONO_VERSION << "\n\n";
+    std::cout << "Copyright (c) 2017 projectchrono.org\nChrono version: " << CHRONO_VERSION << std::endl;
 
     // Set initial vehicle location
-    ChVector<> init_loc;
-    ChVector2<> patch_size;
+    ChVector3d init_loc;
+    ChVector2d patch_size;
     switch (patch_type) {
         case PatchType::FLAT:
-            init_loc = ChVector<>(-5.0, -2.0, 0.6);
-            patch_size = ChVector2<>(16.0, 8.0);
+            init_loc = ChVector3d(-5.0, -2.0, 0.6);
+            patch_size = ChVector2d(16.0, 8.0);
             break;
         case PatchType::MESH:
-            init_loc = ChVector<>(-12.0, -12.0, 1.6);
+            init_loc = ChVector3d(-12.0, -12.0, 1.6);
             break;
         case PatchType::HEIGHMAP:
-            init_loc = ChVector<>(-15.0, -15.0, 0.6);
-            patch_size = ChVector2<>(40.0, 40.0);
+            init_loc = ChVector3d(-15.0, -15.0, 0.6);
+            patch_size = ChVector2d(40.0, 40.0);
             break;
     }
 
@@ -212,11 +205,12 @@ int main(int argc, char* argv[]) {
     // Create HMMWV vehicle
     // --------------------
     HMMWV_Full hmmwv;
+    hmmwv.SetCollisionSystemType(ChCollisionSystem::Type::BULLET);
     hmmwv.SetContactMethod(ChContactMethod::SMC);
     hmmwv.SetChassisFixed(false);
     hmmwv.SetInitPosition(ChCoordsys<>(init_loc, QUNIT));
     hmmwv.SetEngineType(EngineModelType::SHAFTS);
-    hmmwv.SetTransmissionType(TransmissionModelType::SHAFTS);
+    hmmwv.SetTransmissionType(TransmissionModelType::AUTOMATIC_SHAFTS);
     hmmwv.SetDriveType(DrivelineTypeWV::AWD);
     switch (tire_type) {
         case TireType::CYLINDRICAL:
@@ -233,7 +227,7 @@ int main(int argc, char* argv[]) {
     // -----------------------------------------------------------
     // Set tire contact material, contact model, and visualization
     // -----------------------------------------------------------
-    auto wheel_material = chrono_types::make_shared<ChMaterialSurfaceSMC>();
+    auto wheel_material = chrono_types::make_shared<ChContactMaterialSMC>();
     wheel_material->SetFriction(mu_t);
     wheel_material->SetYoungModulus(Y_t);
     wheel_material->SetRestitution(cr_t);
@@ -281,12 +275,12 @@ int main(int argc, char* argv[]) {
     ////                                10);  // number of concentric vertex selections subject to erosion
 
     // Optionally, enable moving patch feature (single patch around vehicle chassis)
-    terrain.AddMovingPatch(hmmwv.GetChassisBody(), ChVector<>(0, 0, 0), ChVector<>(5, 3, 1));
+    terrain.AddMovingPatch(hmmwv.GetChassisBody(), ChVector3d(0, 0, 0), ChVector3d(5, 3, 1));
 
     // Optionally, enable moving patch feature (multiple patches around each wheel)
     ////for (auto& axle : hmmwv.GetVehicle().GetAxles()) {
-    ////    terrain.AddMovingPatch(axle->m_wheels[0]->GetSpindle(), ChVector<>(0, 0, 0), ChVector<>(1, 0.5, 1));
-    ////    terrain.AddMovingPatch(axle->m_wheels[1]->GetSpindle(), ChVector<>(0, 0, 0), ChVector<>(1, 0.5, 1));
+    ////    terrain.AddMovingPatch(axle->m_wheels[0]->GetSpindle(), ChVector3d(0, 0, 0), ChVector3d(1, 0.5, 1));
+    ////    terrain.AddMovingPatch(axle->m_wheels[1]->GetSpindle(), ChVector3d(0, 0, 0), ChVector3d(1, 0.5, 1));
     ////}
 
     switch (patch_type) {
@@ -348,13 +342,14 @@ int main(int argc, char* argv[]) {
 #ifdef CHRONO_VSG
             auto vis_vsg = chrono_types::make_shared<ChWheeledVehicleVisualSystemVSG>();
             vis_vsg->SetWindowTitle("Wheeled vehicle on SCM deformable terrain");
-            vis_vsg->SetWindowSize(ChVector2<int>(1000, 800));
-            vis_vsg->SetWindowPosition(ChVector2<int>(100, 100));
+            vis_vsg->SetWindowSize(ChVector2i(1000, 800));
+            vis_vsg->SetWindowPosition(ChVector2i(100, 100));
             vis_vsg->SetUseSkyBox(true);
             vis_vsg->SetCameraAngleDeg(40);
             vis_vsg->SetLightIntensity(1.0f);
             vis_vsg->SetChaseCamera(track_point, 10.0, 0.5);
             vis_vsg->AttachVehicle(&hmmwv.GetVehicle());
+            vis_vsg->AttachTerrain(&terrain);
             vis_vsg->AddGuiColorbar("Sinkage (m)", 0.0, 0.1);
             vis_vsg->Initialize();
 
@@ -367,6 +362,9 @@ int main(int argc, char* argv[]) {
     // -----------------
     // Initialize output
     // -----------------
+    const std::string out_dir = GetChronoOutputPath() + "HMMWV_DEF_SOIL";
+    const std::string img_dir = out_dir + "/IMG";
+
     if (!filesystem::create_directory(filesystem::path(out_dir))) {
         std::cout << "Error creating directory " << out_dir << std::endl;
         return 1;
@@ -384,7 +382,8 @@ int main(int argc, char* argv[]) {
     std::cout << "Total vehicle mass: " << hmmwv.GetVehicle().GetMass() << std::endl;
 
     // Solver settings.
-    system->SetSolverMaxIterations(50);
+    system->SetSolverType(ChSolver::Type::BARZILAIBORWEIN);
+    system->GetSolver()->AsIterative()->SetMaxIterations(150);
 
     // Number of simulation steps between two 3D view render frames
     int render_steps = (int)std::ceil(render_step_size / step_size);
@@ -417,9 +416,10 @@ int main(int argc, char* argv[]) {
         vis->EndScene();
 
         if (img_output && step_number % render_steps == 0) {
-            char filename[100];
-            sprintf(filename, "%s/img_%03d.jpg", img_dir.c_str(), render_frame + 1);
-            vis->WriteImageToFile(filename);
+            // Zero-pad frame numbers in file names for postprocessing
+            std::ostringstream filename;
+            filename << img_dir << "/img_" << std::setw(4) << std::setfill('0') << render_frame + 1 << ".jpg";
+            vis->WriteImageToFile(filename.str());
             render_frame++;
         }
 

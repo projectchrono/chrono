@@ -1,0 +1,15 @@
+{
+  "Name": "Audi Manual Transmission",
+  "Type": "Transmission",
+  "Template": "ManualTransmissionShafts",
+
+  "Transmission Block Inertia": 0.3,
+  "Input Shaft Inertia": 0.02,
+  "Motorshaft Inertia": 0.08,
+  "Driveshaft Inertia": 0.02,
+  "Clutch Torque Limit": 400,
+  "Gear Box": {
+    "Reverse Gear Ratio": -0.272,
+    "Forward Gear Ratios": [0.294, 0.364, 0.565, 1.075, 1.429, 1.516]
+  }
+}

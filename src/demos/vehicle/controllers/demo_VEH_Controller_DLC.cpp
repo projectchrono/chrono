@@ -37,9 +37,10 @@
 #include "chrono/ChConfig.h"
 #include "chrono/utils/ChFilters.h"
 #include "chrono/utils/ChUtilsInputOutput.h"
+#include "chrono/utils/ChUtils.h"
 #include "chrono/core/ChTimer.h"
-#include "chrono/assets/ChBoxShape.h"
-#include "chrono/assets/ChConeShape.h"
+#include "chrono/assets/ChVisualShapeBox.h"
+#include "chrono/assets/ChVisualShapeCone.h"
 #include "chrono_vehicle/ChConfigVehicle.h"
 #include "chrono_vehicle/ChVehicleModelData.h"
 #include "chrono_vehicle/driver/ChPathFollowerDriver.h"
@@ -62,6 +63,8 @@ using namespace chrono::irrlicht;
 using namespace chrono::vsg3d;
 #endif
 
+#include "chrono_thirdparty/filesystem/path.h"
+
 using namespace chrono;
 using namespace chrono::vehicle;
 using namespace chrono::vehicle::hmmwv;
@@ -78,22 +81,22 @@ class ISO3888_Wrapper {
     ISO3888_Wrapper(double xmin, double acc_length, double vehicle_width, DLC_Variant variant, bool left_turn);
     ~ISO3888_Wrapper() {}
 
-    bool GateTestLeft(ChVector<>& p);
-    bool GateTestRight(ChVector<>& p);
+    bool GateTestLeft(ChVector3d& p);
+    bool GateTestRight(ChVector3d& p);
 
-    const std::vector<ChVector<>>& GetLeftConePositions() const { return m_leftCones; }
-    const std::vector<ChVector<>>& GetRightConePositions() const { return m_rightCones; }
+    const std::vector<ChVector3d>& GetLeftConePositions() const { return m_leftCones; }
+    const std::vector<ChVector3d>& GetRightConePositions() const { return m_rightCones; }
 
     double GetManeuverLength() { return m_lineL[5].x() - m_lineL[0].x(); }
     double GetXmax() { return m_lineL[5].x(); }
     std::shared_ptr<ChBezierCurve> GetPath() { return m_path; }
 
   private:
-    std::vector<ChVector<>> m_lineL;
-    std::vector<ChVector<>> m_lineC;
-    std::vector<ChVector<>> m_lineR;
-    std::vector<ChVector<>> m_leftCones;
-    std::vector<ChVector<>> m_rightCones;
+    std::vector<ChVector3d> m_lineL;
+    std::vector<ChVector3d> m_lineC;
+    std::vector<ChVector3d> m_lineR;
+    std::vector<ChVector3d> m_leftCones;
+    std::vector<ChVector3d> m_rightCones;
     double m_widthA;
     double m_lengthA;
     double m_widthB;
@@ -104,8 +107,8 @@ class ISO3888_Wrapper {
     double m_lengthBC;
     double m_ofsB;
     double m_ofsC;
-    std::vector<ChVector<>> m_inCV;
-    std::vector<ChVector<>> m_outCV;
+    std::vector<ChVector3d> m_inCV;
+    std::vector<ChVector3d> m_outCV;
     std::shared_ptr<ChBezierCurve> m_path;
 };
 
@@ -125,7 +128,7 @@ VisualizationType tire_vis_type = VisualizationType::MESH;
 EngineModelType engine_model = EngineModelType::SHAFTS;
 
 // Type of transmission model (SHAFTS, SIMPLE_MAP)
-TransmissionModelType transmission_model = TransmissionModelType::SHAFTS;
+TransmissionModelType transmission_model = TransmissionModelType::AUTOMATIC_SHAFTS;
 
 // Drive type (FWD, RWD, or AWD)
 DrivelineTypeWV drive_type = DrivelineTypeWV::AWD;
@@ -149,16 +152,16 @@ void CreateSceneObjects(std::shared_ptr<ChVehicleVisualSystem> vis,
                         int& sentinelID,
                         int& targetID) {
     // Add visualization of controller points (sentinel & target)
-    auto ballS = chrono_types::make_shared<ChSphereShape>(0.1);
-    auto ballT = chrono_types::make_shared<ChSphereShape>(0.1);
+    auto ballS = chrono_types::make_shared<ChVisualShapeSphere>(0.1);
+    auto ballT = chrono_types::make_shared<ChVisualShapeSphere>(0.1);
     ballS->SetColor(ChColor(1, 0, 0));
     ballT->SetColor(ChColor(0, 1, 0));
     sentinelID = vis->AddVisualModel(ballS, ChFrame<>());
     targetID = vis->AddVisualModel(ballT, ChFrame<>());
 
     // Add the road cones
-    ChVector<> cone_offset(0, 0.21, 0);
-    auto cone = chrono_types::make_shared<ChModelFileShape>();
+    ChVector3d cone_offset(0, 0.21, 0);
+    auto cone = chrono_types::make_shared<ChVisualShapeModelFile>();
     cone->SetFilename(GetChronoDataFile("models/traffic_cone/trafficCone750mm.obj"));
     cone->SetColor(ChColor(0.8f, 0.8f, 0.8f));
     for (const auto& pos : dlc.GetLeftConePositions())
@@ -206,20 +209,21 @@ int main(int argc, char* argv[]) {
 
     // Create the HMMWV vehicle, set parameters, and initialize.
     // Typical aerodynamic drag for HMMWV: Cd = 0.5 and area ~5 m2
-    HMMWV_Full my_hmmwv;
-    my_hmmwv.SetContactMethod(ChContactMethod::SMC);
-    my_hmmwv.SetChassisFixed(false);
-    my_hmmwv.SetInitPosition(ChCoordsys<>(ChVector<>(-terrainLength / 2 + 5, 0, 0.7), ChQuaternion<>(1, 0, 0, 0)));
-    my_hmmwv.SetEngineType(engine_model);
-    my_hmmwv.SetTransmissionType(transmission_model);
-    my_hmmwv.SetDriveType(drive_type);
-    my_hmmwv.SetTireType(tire_model);
-    my_hmmwv.SetTireStepSize(tire_step_size);
-    my_hmmwv.SetAerodynamicDrag(0.5, 5.0, 1.2);
-    my_hmmwv.Initialize();
+    HMMWV_Full hmmwv;
+    hmmwv.SetCollisionSystemType(ChCollisionSystem::Type::BULLET);
+    hmmwv.SetContactMethod(ChContactMethod::SMC);
+    hmmwv.SetChassisFixed(false);
+    hmmwv.SetInitPosition(ChCoordsys<>(ChVector3d(-terrainLength / 2 + 5, 0, 0.7), ChQuaternion<>(1, 0, 0, 0)));
+    hmmwv.SetEngineType(engine_model);
+    hmmwv.SetTransmissionType(transmission_model);
+    hmmwv.SetDriveType(drive_type);
+    hmmwv.SetTireType(tire_model);
+    hmmwv.SetTireStepSize(tire_step_size);
+    hmmwv.SetAerodynamicDrag(0.5, 5.0, 1.2);
+    hmmwv.Initialize();
 
     // important vehicle data
-    double wheel_base = my_hmmwv.GetVehicle().GetWheelbase();
+    double wheel_base = hmmwv.GetVehicle().GetWheelbase();
     double vehicle_width = 2.16;
     double steering_gear_ratio = 3.5 * 360.0 / 2;  // caution: estimated value 3.5 revolutions from left to right
 
@@ -227,18 +231,18 @@ int main(int argc, char* argv[]) {
     if (tire_model == TireModelType::RIGID_MESH)
         tire_vis_type = VisualizationType::MESH;
 
-    my_hmmwv.SetChassisVisualizationType(chassis_vis_type);
-    my_hmmwv.SetSuspensionVisualizationType(suspension_vis_type);
-    my_hmmwv.SetSteeringVisualizationType(steering_vis_type);
-    my_hmmwv.SetWheelVisualizationType(wheel_vis_type);
-    my_hmmwv.SetTireVisualizationType(tire_vis_type);
+    hmmwv.SetChassisVisualizationType(chassis_vis_type);
+    hmmwv.SetSuspensionVisualizationType(suspension_vis_type);
+    hmmwv.SetSteeringVisualizationType(steering_vis_type);
+    hmmwv.SetWheelVisualizationType(wheel_vis_type);
+    hmmwv.SetTireVisualizationType(tire_vis_type);
 
     ISO3888_Wrapper dlc(-accelerationLength + 5.0, accelerationLength, vehicle_width, dlc_mode, left_turn);
     ////cout << "Maneuver Length = " << helper.GetManeuverLength() << " m" << endl;
 
     // Create the terrain
-    RigidTerrain terrain(my_hmmwv.GetSystem());
-    auto patch_mat = chrono_types::make_shared<ChMaterialSurfaceSMC>();
+    RigidTerrain terrain(hmmwv.GetSystem());
+    auto patch_mat = chrono_types::make_shared<ChContactMaterialSMC>();
     patch_mat->SetFriction(0.9f);
     patch_mat->SetRestitution(0.01f);
     patch_mat->SetYoungModulus(2e7f);
@@ -253,7 +257,7 @@ int main(int argc, char* argv[]) {
     // ---------------------------------------------------
 
     auto path = dlc.GetPath();
-    ChPathFollowerDriver driver(my_hmmwv.GetVehicle(), path, "my_path", target_speed);
+    ChPathFollowerDriver driver(hmmwv.GetVehicle(), path, "my_path", target_speed);
     driver.GetSteeringController().SetLookAheadDistance(5.0);
     driver.GetSteeringController().SetGains(0.5, 0, 0);
     driver.GetSpeedController().SetGains(0.4, 0, 0);
@@ -280,12 +284,12 @@ int main(int argc, char* argv[]) {
 #ifdef CHRONO_IRRLICHT
             auto vis_irr = chrono_types::make_shared<ChWheeledVehicleVisualSystemIrrlicht>();
             vis_irr->SetWindowTitle(title);
-            vis_irr->SetChaseCamera(ChVector<>(0.0, 0.0, 1.75), 6.0, 0.5);
+            vis_irr->SetChaseCamera(ChVector3d(0.0, 0.0, 1.75), 6.0, 0.5);
             vis_irr->Initialize();
             vis_irr->AddLightDirectional();
             vis_irr->AddSkyBox();
             vis_irr->AddLogo();
-            vis_irr->AttachVehicle(&my_hmmwv.GetVehicle());
+            vis_irr->AttachVehicle(&hmmwv.GetVehicle());
             CreateSceneObjects(vis_irr, dlc, sentinelID, targetID);
 
             vis = vis_irr;
@@ -297,9 +301,11 @@ int main(int argc, char* argv[]) {
 #ifdef CHRONO_VSG
             auto vis_vsg = chrono_types::make_shared<ChWheeledVehicleVisualSystemVSG>();
             vis_vsg->SetWindowTitle(title);
-            vis_vsg->SetChaseCamera(ChVector<>(0.0, 0.0, 1.75), 6.0, 0.5);
-            vis_vsg->AttachVehicle(&my_hmmwv.GetVehicle());
+            vis_vsg->SetChaseCamera(ChVector3d(0.0, 0.0, 1.75), 6.0, 0.5);
+            vis_vsg->AttachVehicle(&hmmwv.GetVehicle());
             CreateSceneObjects(vis_vsg, dlc, sentinelID, targetID);
+            vis_vsg->SetLightDirection(1.5 * CH_PI_2, CH_PI_4);
+            vis_vsg->SetShadows(true);
             vis_vsg->Initialize();
 
             vis = vis_vsg;
@@ -316,42 +322,42 @@ int main(int argc, char* argv[]) {
     utils::ChRunningAverage speed_filter(500);
 
     // Running average of vehicle lateral acceleration
-    utils::ChButterworth_Lowpass accel_filter(4, step_size, 2.0);
+    utils::ChButterworthLowpass accel_filter(4, step_size, 2.0);
 
     // Running average of vehicle steering wheel angle
-    utils::ChButterworth_Lowpass steer_filter(4, step_size, 2.0);
+    utils::ChButterworthLowpass steer_filter(4, step_size, 2.0);
 
     // Differentiate steering signal
     utils::ChFilterD ang_diff(step_size);
 
     // Record vehicle speed
-    ChFunction_Recorder speed_recorder;
+    ChFunctionInterp speed_recorder;
 
     // Record lateral vehicle acceleration
-    ChFunction_Recorder accel_recorder;
+    ChFunctionInterp accel_recorder;
 
     // Record lateral vehicle steering wheel angle
-    ChFunction_Recorder steer_recorder;
+    ChFunctionInterp steer_recorder;
 
     // Record lateral vehicle steering wheel angular speed
-    ChFunction_Recorder angspeed_recorder;
+    ChFunctionInterp angspeed_recorder;
 
     // Initialize simulation frame counter and simulation time
     int step_number = 0;
 
     while (vis->Run()) {
-        double time = my_hmmwv.GetSystem()->GetChTime();
-        double speed = speed_filter.Add(my_hmmwv.GetVehicle().GetSpeed());
+        double time = hmmwv.GetSystem()->GetChTime();
+        double speed = speed_filter.Add(hmmwv.GetVehicle().GetSpeed());
         double accel =
-            accel_filter.Filter(my_hmmwv.GetVehicle().GetPointAcceleration(ChVector<>(-wheel_base / 2, 0, 0)).y());
+            accel_filter.Filter(hmmwv.GetVehicle().GetPointAcceleration(ChVector3d(-wheel_base / 2, 0, 0)).y());
 
         speed_recorder.AddPoint(time, speed);
         accel_recorder.AddPoint(time, accel);
 
-        ChVector<> pFrontLeft = my_hmmwv.GetVehicle().GetPointLocation(ChVector<>(0, vehicle_width / 2, 1));
-        ChVector<> pRearLeft = my_hmmwv.GetVehicle().GetPointLocation(ChVector<>(-wheel_base, vehicle_width / 2, 1));
-        ChVector<> pFrontRight = my_hmmwv.GetVehicle().GetPointLocation(ChVector<>(0, -vehicle_width / 2, 1));
-        ChVector<> pRearRight = my_hmmwv.GetVehicle().GetPointLocation(ChVector<>(-wheel_base, -vehicle_width / 2, 1));
+        ChVector3d pFrontLeft = hmmwv.GetVehicle().GetPointLocation(ChVector3d(0, vehicle_width / 2, 1));
+        ChVector3d pRearLeft = hmmwv.GetVehicle().GetPointLocation(ChVector3d(-wheel_base, vehicle_width / 2, 1));
+        ChVector3d pFrontRight = hmmwv.GetVehicle().GetPointLocation(ChVector3d(0, -vehicle_width / 2, 1));
+        ChVector3d pRearRight = hmmwv.GetVehicle().GetPointLocation(ChVector3d(-wheel_base, -vehicle_width / 2, 1));
         if (!dlc.GateTestLeft(pFrontLeft)) {
             cout << "Test Failure: vehicle left the course with the front left wheel." << endl;
             break;
@@ -370,7 +376,7 @@ int main(int argc, char* argv[]) {
             break;
         }
 
-        if (time >= 100 || my_hmmwv.GetVehicle().GetPos().x() > dlc.GetXmax()) {
+        if (time >= 100 || hmmwv.GetVehicle().GetPos().x() > dlc.GetXmax()) {
             cout << "Test Run: terminated normally." << endl;
             break;
         }
@@ -394,13 +400,13 @@ int main(int argc, char* argv[]) {
         // Update modules (process inputs from other modules)
         driver.Synchronize(time);
         terrain.Synchronize(time);
-        my_hmmwv.Synchronize(time, driver_inputs, terrain);
+        hmmwv.Synchronize(time, driver_inputs, terrain);
         vis->Synchronize(time, driver_inputs);
 
         // Advance simulation for one timestep for all modules
         driver.Advance(step_size);
         terrain.Advance(step_size);
-        my_hmmwv.Advance(step_size);
+        hmmwv.Advance(step_size);
         vis->Advance(step_size);
 
         // Increment frame number
@@ -408,37 +414,44 @@ int main(int argc, char* argv[]) {
     }
 
 #ifdef CHRONO_POSTPROCESS
+    const std::string out_dir = GetChronoOutputPath() + "DEMO_CONTROLLER_DLC";
+    if (!filesystem::create_directory(filesystem::path(out_dir))) {
+        std::cout << "Error creating directory " << out_dir << std::endl;
+        return 1;
+    }
+
+
     std::string test_title = std::string(dlc_mode == ISO3888_1 ? "1" : "2") +
                              std::string(left_turn ? " left turn test" : " right turn test");
 
-    postprocess::ChGnuPlot gplot;
+    postprocess::ChGnuPlot gplot(out_dir + "/speed.gpl");
     gplot.SetGrid();
     std::string speed_title = "Speed at ISO3888-" + test_title;
-    gplot.SetTitle(speed_title.c_str());
+    gplot.SetTitle(speed_title);
     gplot.SetLabelX("time (s)");
     gplot.SetLabelY("speed (m/s)");
     gplot.Plot(speed_recorder, "", " with lines lt -1 lc rgb'#00AAEE' ");
 
-    postprocess::ChGnuPlot gplot_acc("_tmp2_gnuplot.gpl");
+    postprocess::ChGnuPlot gplot_acc(out_dir + "/lateral_acceleration.gpl");
     gplot_acc.SetGrid();
     std::string accel_title = "Lateral Acceleration at ISO3888-" + test_title;
-    gplot_acc.SetTitle(accel_title.c_str());
+    gplot_acc.SetTitle(accel_title);
     gplot_acc.SetLabelX("time (s)");
     gplot_acc.SetLabelY("lateral acceleration (m/s^2)");
     gplot_acc.Plot(accel_recorder, "", " with lines lt -1 lc rgb'#00AAEE' ");
 
-    postprocess::ChGnuPlot gplot_steer("_tmp3_gnuplot.gpl");
+    postprocess::ChGnuPlot gplot_steer(out_dir + "/steering_angle.gpl");
     gplot_steer.SetGrid();
     std::string steer_title = "Steering Wheel Angle at ISO3888-" + test_title;
-    gplot_steer.SetTitle(steer_title.c_str());
+    gplot_steer.SetTitle(steer_title);
     gplot_steer.SetLabelX("time (s)");
     gplot_steer.SetLabelY("steering wheel angle (degrees)");
     gplot_steer.Plot(steer_recorder, "", " with lines lt -1 lc rgb'#00AAEE' ");
 
-    postprocess::ChGnuPlot gplot_angspeed("_tmp4_gnuplot.gpl");
+    postprocess::ChGnuPlot gplot_angspeed(out_dir + "/steering_angular_vel.gpl");
     gplot_angspeed.SetGrid();
     std::string angspeed_title = "Steering Wheel Angular Speed at ISO3888-" + test_title;
-    gplot_angspeed.SetTitle(angspeed_title.c_str());
+    gplot_angspeed.SetTitle(angspeed_title);
     gplot_angspeed.SetLabelX("time (s)");
     gplot_angspeed.SetLabelY("steering wheel angle (degrees/s)");
     gplot_angspeed.Plot(angspeed_recorder, "", " with lines lt -1 lc rgb'#00AAEE' ");
@@ -553,7 +566,7 @@ ISO3888_Wrapper::ISO3888_Wrapper(double xmin,
     m_rightCones.push_back(m_lineR[5]);
 
     // Prepare path spline definition
-    ChVector<> offset(m_lengthB / 3, 0, 0);
+    ChVector3d offset(m_lengthB / 3, 0, 0);
     for (size_t i = 0; i < m_lineC.size(); i++) {
         m_inCV.push_back(m_lineC[i] - offset);
         m_outCV.push_back(m_lineC[i] + offset);
@@ -561,7 +574,7 @@ ISO3888_Wrapper::ISO3888_Wrapper(double xmin,
     m_path = chrono_types::make_shared<ChBezierCurve>(m_lineC, m_inCV, m_outCV);
 }
 
-bool ISO3888_Wrapper::GateTestLeft(ChVector<>& p) {
+bool ISO3888_Wrapper::GateTestLeft(ChVector3d& p) {
     if (p.x() >= m_lineL[0].x() && p.x() <= m_lineL[1].x())
         return p.y() <= m_lineL[0].y();
     if (p.x() >= m_lineL[2].x() && p.x() <= m_lineL[3].x())
@@ -571,7 +584,7 @@ bool ISO3888_Wrapper::GateTestLeft(ChVector<>& p) {
     return true;
 }
 
-bool ISO3888_Wrapper::GateTestRight(ChVector<>& p) {
+bool ISO3888_Wrapper::GateTestRight(ChVector3d& p) {
     if (p.x() >= m_lineL[0].x() && p.x() <= m_lineL[1].x())
         return p.y() >= m_lineR[0].y();
     if (p.x() >= m_lineL[2].x() && p.x() <= m_lineL[3].x())

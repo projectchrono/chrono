@@ -25,36 +25,32 @@
 #include "chrono/solver/ChSystemDescriptor.h"
 #include "chrono/solver/ChIterativeSolverLS.h"
 
-#include "chrono/collision/ChCollisionSystemBullet.h"
-
 namespace chrono {
 
 // Register into the object factory, to enable run-time dynamic creation and persistence
 CH_FACTORY_REGISTER(ChSystemSMC)
 
-ChSystemSMC::ChSystemSMC(bool use_material_properties)
+ChSystemSMC::ChSystemSMC()
     : ChSystem(),
-      m_use_mat_props(use_material_properties),
+      m_use_mat_props(true),
       m_contact_model(Hertz),
       m_adhesion_model(AdhesionForceModel::Constant),
       m_tdispl_model(OneStep),
       m_stiff_contact(false),
-      m_force_algo(new ChDefaultContactForceSMC) {
+      m_force_algo(new ChDefaultContactForceTorqueSMC) {
+    // Set the system descriptor
     descriptor = chrono_types::make_shared<ChSystemDescriptor>();
 
+    // Set default solver
     SetSolverType(ChSolver::Type::PSOR);
 
-    collision_system = chrono_types::make_shared<collision::ChCollisionSystemBullet>();
-    collision_system->SetNumThreads(nthreads_collision);
-    collision_system->SetSystem(this);
-    collision_system_type = collision::ChCollisionSystemType::BULLET;
+    // Set default contact container
+    contact_container = chrono_types::make_shared<ChContactContainerSMC>();
+    contact_container->SetSystem(this);
 
     // For default SMC there is no need to create contacts 'in advance'
     // when models are closer than the safety envelope, so set default envelope to 0
-    collision::ChCollisionModel::SetDefaultSuggestedEnvelope(0);
-
-    contact_container = chrono_types::make_shared<ChContactContainerSMC>();
-    contact_container->SetSystem(this);
+    ChCollisionModel::SetDefaultSuggestedEnvelope(0);
 
     m_minSlipVelocity = 1e-4;
     m_characteristicVelocity = 1;
@@ -71,13 +67,13 @@ void ChSystemSMC::SetSlipVelocityThreshold(double vel) {
     m_minSlipVelocity = std::max(vel, std::numeric_limits<double>::epsilon());
 }
 
-void ChSystemSMC::SetContactForceAlgorithm(std::unique_ptr<ChContactForceSMC>&& algorithm) {
+void ChSystemSMC::SetContactForceTorqueAlgorithm(std::unique_ptr<ChContactForceTorqueSMC>&& algorithm) {
     m_force_algo = std::move(algorithm);
 }
 
 // Trick to avoid putting the following mapper macro inside the class definition in .h file:
-// enclose macros in local 'my_enum_mappers', just to avoid avoiding cluttering of the parent class.
-class my_enum_mappers : public ChSystemSMC {
+// enclose macros in local 'ChSystemSMC_Properties_enum_mapper', just to avoid avoiding cluttering of the parent class.
+class ChSystemSMC_Properties_enum_mapper : public ChSystemSMC {
   public:
     CH_ENUM_MAPPER_BEGIN(ContactForceModel);
     CH_ENUM_VAL(Hooke);
@@ -99,45 +95,45 @@ class my_enum_mappers : public ChSystemSMC {
     CH_ENUM_MAPPER_END(TangentialDisplacementModel);
 };
 
-void ChSystemSMC::ArchiveOut(ChArchiveOut& marchive) {
+void ChSystemSMC::ArchiveOut(ChArchiveOut& archive_out) {
     // version number
-    marchive.VersionWrite<ChSystemSMC>();
+    archive_out.VersionWrite<ChSystemSMC>();
 
     // serialize parent class
-    ChSystem::ArchiveOut(marchive);
+    ChSystem::ArchiveOut(archive_out);
 
     // serialize all member data:
-    marchive << CHNVP(m_use_mat_props);
-    marchive << CHNVP(m_minSlipVelocity);
-    marchive << CHNVP(m_characteristicVelocity);
-    my_enum_mappers::ContactForceModel_mapper mmodel_mapper;
-    marchive << CHNVP(mmodel_mapper(m_contact_model), "contact_model");
-    my_enum_mappers::AdhesionForceModel_mapper madhesion_mapper;
-    marchive << CHNVP(madhesion_mapper(m_adhesion_model), "adhesion_model");
-    my_enum_mappers::TangentialDisplacementModel_mapper mtangential_mapper;
-    marchive << CHNVP(mtangential_mapper(m_tdispl_model), "tangential_model");
-    //***TODO*** complete...
+    archive_out << CHNVP(m_use_mat_props);
+    archive_out << CHNVP(m_minSlipVelocity);
+    archive_out << CHNVP(m_characteristicVelocity);
+    ChSystemSMC_Properties_enum_mapper::ContactForceModel_mapper mmodel_mapper;
+    archive_out << CHNVP(mmodel_mapper(m_contact_model), "contact_model");
+    ChSystemSMC_Properties_enum_mapper::AdhesionForceModel_mapper madhesion_mapper;
+    archive_out << CHNVP(madhesion_mapper(m_adhesion_model), "adhesion_model");
+    ChSystemSMC_Properties_enum_mapper::TangentialDisplacementModel_mapper mtangential_mapper;
+    archive_out << CHNVP(mtangential_mapper(m_tdispl_model), "tangential_model");
+    //// TODO  complete...
 }
 
 /// Method to allow de serialization of transient data from archives.
-void ChSystemSMC::ArchiveIn(ChArchiveIn& marchive) {
+void ChSystemSMC::ArchiveIn(ChArchiveIn& archive_in) {
     // version number
-    /*int version =*/marchive.VersionRead<ChSystemSMC>();
+    /*int version =*/archive_in.VersionRead<ChSystemSMC>();
 
     // deserialize parent class
-    ChSystem::ArchiveIn(marchive);
+    ChSystem::ArchiveIn(archive_in);
 
     // stream in all member data:
-    marchive >> CHNVP(m_use_mat_props);
-    marchive >> CHNVP(m_minSlipVelocity);
-    marchive >> CHNVP(m_characteristicVelocity);
-    my_enum_mappers::ContactForceModel_mapper mmodel_mapper;
-    marchive >> CHNVP(mmodel_mapper(m_contact_model), "contact_model");
-    my_enum_mappers::AdhesionForceModel_mapper madhesion_mapper;
-    marchive >> CHNVP(madhesion_mapper(m_adhesion_model), "adhesion_model");
-    my_enum_mappers::TangentialDisplacementModel_mapper mtangential_mapper;
-    marchive >> CHNVP(mtangential_mapper(m_tdispl_model), "tangential_model");
-    //***TODO*** complete...
+    archive_in >> CHNVP(m_use_mat_props);
+    archive_in >> CHNVP(m_minSlipVelocity);
+    archive_in >> CHNVP(m_characteristicVelocity);
+    ChSystemSMC_Properties_enum_mapper::ContactForceModel_mapper mmodel_mapper;
+    archive_in >> CHNVP(mmodel_mapper(m_contact_model), "contact_model");
+    ChSystemSMC_Properties_enum_mapper::AdhesionForceModel_mapper madhesion_mapper;
+    archive_in >> CHNVP(madhesion_mapper(m_adhesion_model), "adhesion_model");
+    ChSystemSMC_Properties_enum_mapper::TangentialDisplacementModel_mapper mtangential_mapper;
+    archive_in >> CHNVP(mtangential_mapper(m_tdispl_model), "tangential_model");
+    //// TODO  complete...
 
     // Recompute statistics, offsets, etc.
     this->Setup();

@@ -40,7 +40,7 @@ class CH_VEHICLE_API RigidTire : public ChRigidTire {
     virtual double GetRadius() const override { return m_radius; }
     virtual double GetWidth() const override { return m_width; }
     virtual double GetTireMass() const override { return m_mass; }
-    virtual ChVector<> GetTireInertia() const override { return m_inertia; }
+    virtual ChVector3d GetTireInertia() const override { return m_inertia; }
 
   private:
     virtual void Create(const rapidjson::Document& d) override;
@@ -51,12 +51,12 @@ class CH_VEHICLE_API RigidTire : public ChRigidTire {
     double m_radius;
     double m_width;
     double m_mass;
-    ChVector<> m_inertia;
+    ChVector3d m_inertia;
 
     bool m_has_mesh;
     std::string m_meshFile_left;
     std::string m_meshFile_right;
-    std::shared_ptr<ChTriangleMeshShape> m_trimesh_shape;
+    std::shared_ptr<ChVisualShapeTriangleMesh> m_trimesh_shape;
 
     ChContactMaterialData m_mat_info;
 };

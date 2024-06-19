@@ -23,7 +23,6 @@
 
 #include "chrono/utils/ChUtilsCreators.h"
 #include "chrono/utils/ChUtilsGenerators.h"
-#include "chrono/assets/ChTriangleMeshShape.h"
 
 #include "chrono/fea/ChElementCableANCF.h"
 #include "chrono/fea/ChElementShellANCF_3423.h"
@@ -519,19 +518,19 @@ void ChSystemFsi::SetSPHMethod(FluidDynamics SPH_method, SolverType lin_solver) 
     m_paramsH->LinearSolver = lin_solver;
 }
 
-void ChSystemFsi::SetContainerDim(const ChVector<>& boxDim) {
+void ChSystemFsi::SetContainerDim(const ChVector3d& boxDim) {
     m_paramsH->boxDimX = boxDim.x();
     m_paramsH->boxDimY = boxDim.y();
     m_paramsH->boxDimZ = boxDim.z();
 }
 
-void ChSystemFsi::SetBoundaries(const ChVector<>& cMin, const ChVector<>& cMax) {
+void ChSystemFsi::SetBoundaries(const ChVector3d& cMin, const ChVector3d& cMax) {
     m_paramsH->cMin = utils::ToReal3(cMin);
     m_paramsH->cMax = utils::ToReal3(cMax);
     m_paramsH->use_default_limits = false;
 }
 
-void ChSystemFsi::SetActiveDomain(const ChVector<>& boxHalfDim) {
+void ChSystemFsi::SetActiveDomain(const ChVector3d& boxHalfDim) {
     m_paramsH->bodyActiveDomain = utils::ToReal3(boxHalfDim);
 }
 
@@ -548,13 +547,13 @@ void ChSystemFsi::SetInitPressure(const double height) {
     m_paramsH->use_init_pressure = true;
 }
 
-void ChSystemFsi::Set_G_acc(const ChVector<>& gravity) {
+void ChSystemFsi::SetGravitationalAcceleration(const ChVector3d& gravity) {
     m_paramsH->gravity.x = gravity.x();
     m_paramsH->gravity.y = gravity.y();
     m_paramsH->gravity.z = gravity.z();
 }
 
-void ChSystemFsi::SetBodyForce(const ChVector<>& force) {
+void ChSystemFsi::SetBodyForce(const ChVector3d& force) {
     m_paramsH->bodyForce3.x = force.x();
     m_paramsH->bodyForce3.y = force.y();
     m_paramsH->bodyForce3.z = force.z();
@@ -629,8 +628,8 @@ ChSystemFsi::ElasticMaterialProperties::ElasticMaterialProperties()
       mu_fric_s(0.7),
       mu_fric_2(0.7),
       average_diam(0.005),
-      friction_angle(CH_C_PI / 10),
-      dilation_angle(CH_C_PI / 10),
+      friction_angle(CH_PI / 10),
+      dilation_angle(CH_PI / 10),
       cohesion_coeff(0),
       kernel_threshold(0.8) {}
 
@@ -755,7 +754,7 @@ void ChSystemFsi::AddFsiMesh2D(std::shared_ptr<fea::ChMesh> mesh, bool centered)
     // Create maps from pointer-based to index-based for the nodes in the mesh contact surface.
     // These maps index only the nodes that are in the contact surface (and not all nodes in the given FEA mesh).
     int vertex_index = 0;
-    for (const auto& tri : contact_surface->GetTriangleList()) {
+    for (const auto& tri : contact_surface->GetTrianglesXYZ()) {
         if (fsi_mesh.ptr2ind_map.insert({tri->GetNode(0), vertex_index}).second) {
             fsi_mesh.ind2ptr_map.insert({vertex_index, tri->GetNode(0)});
             ++vertex_index;
@@ -774,7 +773,7 @@ void ChSystemFsi::AddFsiMesh2D(std::shared_ptr<fea::ChMesh> mesh, bool centered)
     assert(fsi_mesh.ind2ptr_map.size() == contact_surface->GetNumVertices());
 
     // Load index-based mesh connectivity (append to global list of 1-D flex segments)
-    for (const auto& tri : contact_surface->GetTriangleList()) {
+    for (const auto& tri : contact_surface->GetTrianglesXYZ()) {
         auto node0_index = fsi_mesh.ptr2ind_map[tri->GetNode(0)];
         auto node1_index = fsi_mesh.ptr2ind_map[tri->GetNode(1)];
         auto node2_index = fsi_mesh.ptr2ind_map[tri->GetNode(2)];
@@ -1142,43 +1141,43 @@ void ChSystemFsi::PrintFsiInfoToFile(const std::string& dir, double time) const 
 
 //--------------------------------------------------------------------------------------------------------------------------------
 
-void ChSystemFsi::AddSPHParticle(const ChVector<>& point,
+void ChSystemFsi::AddSPHParticle(const ChVector3d& point,
                                  double rho0,
                                  double pres0,
                                  double mu0,
-                                 const ChVector<>& velocity,
-                                 const ChVector<>& tauXxYyZz,
-                                 const ChVector<>& tauXyXzYz) {
+                                 const ChVector3d& velocity,
+                                 const ChVector3d& tauXxYyZz,
+                                 const ChVector3d& tauXyXzYz) {
     Real h = m_paramsH->HSML;
     m_sysFSI->AddSPHParticle(utils::ToReal4(point, h), mR4(rho0, pres0, mu0, -1), utils::ToReal3(velocity),
                              utils::ToReal3(tauXxYyZz), utils::ToReal3(tauXyXzYz));
 }
 
-void ChSystemFsi::AddSPHParticle(const ChVector<>& point,
-                                 const ChVector<>& velocity,
-                                 const ChVector<>& tauXxYyZz,
-                                 const ChVector<>& tauXyXzYz) {
+void ChSystemFsi::AddSPHParticle(const ChVector3d& point,
+                                 const ChVector3d& velocity,
+                                 const ChVector3d& tauXxYyZz,
+                                 const ChVector3d& tauXyXzYz) {
     AddSPHParticle(point, m_paramsH->rho0, m_paramsH->BASEPRES, m_paramsH->mu0, velocity, tauXxYyZz, tauXyXzYz);
 }
 
-void ChSystemFsi::AddBoxSPH(const ChVector<>& boxCenter, const ChVector<>& boxHalfDim) {
+void ChSystemFsi::AddBoxSPH(const ChVector3d& boxCenter, const ChVector3d& boxHalfDim) {
     // Use a chrono sampler to create a bucket of points
-    chrono::utils::GridSampler<> sampler(m_paramsH->INITSPACE);
-    std::vector<ChVector<>> points = sampler.SampleBox(boxCenter, boxHalfDim);
+    chrono::utils::ChGridSampler<> sampler(m_paramsH->INITSPACE);
+    std::vector<ChVector3d> points = sampler.SampleBox(boxCenter, boxHalfDim);
 
     // Add fluid particles from the sampler points to the FSI system
     int numPart = (int)points.size();
     for (int i = 0; i < numPart; i++) {
         AddSPHParticle(points[i], m_paramsH->rho0, 0, m_paramsH->mu0,
-                       ChVector<>(0),   // initial velocity
-                       ChVector<>(0),   // tauxxyyzz
-                       ChVector<>(0));  // tauxyxzyz
+                       ChVector3d(0),   // initial velocity
+                       ChVector3d(0),   // tauxxyyzz
+                       ChVector3d(0));  // tauxyxzyz
     }
 }
 
 //--------------------------------------------------------------------------------------------------------------------------------
 
-void ChSystemFsi::AddWallBCE(std::shared_ptr<ChBody> body, const ChFrame<>& frame, const ChVector2<> size) {
+void ChSystemFsi::AddWallBCE(std::shared_ptr<ChBody> body, const ChFrame<>& frame, const ChVector2d size) {
     thrust::host_vector<Real4> bce;
     CreateBCE_wall(mR2(size.x(), size.y()), bce);
     AddBCE_body(body, bce, frame, false, false, false);
@@ -1186,46 +1185,45 @@ void ChSystemFsi::AddWallBCE(std::shared_ptr<ChBody> body, const ChFrame<>& fram
 
 void ChSystemFsi::AddBoxContainerBCE(std::shared_ptr<ChBody> body,
                                      const ChFrame<>& frame,
-                                     const ChVector<>& size,
-                                     const ChVector<int> faces) {
+                                     const ChVector3d& size,
+                                     const ChVector3i faces) {
     Real spacing = m_paramsH->MULT_INITSPACE * m_paramsH->HSML;
-    Real buffer = 2 * m_paramsH->NUM_BOUNDARY_LAYERS * spacing;
+    Real buffer = 2 * (m_paramsH->NUM_BOUNDARY_LAYERS - 1) * spacing;
 
-    ChVector<> hsize = size / 2;
+    ChVector3d hsize = size / 2;
 
-    // Wall center positions
-    ChVector<> xn(-hsize.x() - spacing, 0, 0);
-    ChVector<> xp(+hsize.x() + spacing, 0, 0);
-    ChVector<> yn(0, -hsize.y() - spacing, 0);
-    ChVector<> yp(0, +hsize.y() + spacing, 0);
-    ChVector<> zn(0, 0, -hsize.z() - spacing);
-    ChVector<> zp(0, 0, +hsize.z() + spacing);
+    ChVector3d xn(-hsize.x(), 0, 0);
+    ChVector3d xp(+hsize.x(), 0, 0);
+    ChVector3d yn(0, -hsize.y(), 0);
+    ChVector3d yp(0, +hsize.y(), 0);
+    ChVector3d zn(0, 0, -hsize.z());
+    ChVector3d zp(0, 0, +hsize.z());
 
     // Z- wall
     if (faces.z() == -1 || faces.z() == 2)
         AddWallBCE(body, frame * ChFrame<>(zn, QUNIT), {size.x(), size.y()});
     // Z+ wall
     if (faces.z() == +1 || faces.z() == 2)
-        AddWallBCE(body, frame * ChFrame<>(zp, Q_from_AngX(CH_C_PI)), {size.x(), size.y()});
+        AddWallBCE(body, frame * ChFrame<>(zp, QuatFromAngleX(CH_PI)), {size.x(), size.y()});
 
     // X- wall
     if (faces.x() == -1 || faces.x() == 2)
-        AddWallBCE(body, frame * ChFrame<>(xn, Q_from_AngY(+CH_C_PI_2)), {size.z() + buffer, size.y()});
+        AddWallBCE(body, frame * ChFrame<>(xn, QuatFromAngleY(+CH_PI_2)), {size.z() + buffer, size.y()});
     // X+ wall
     if (faces.x() == +1 || faces.x() == 2)
-        AddWallBCE(body, frame * ChFrame<>(xp, Q_from_AngY(-CH_C_PI_2)), {size.z() + buffer, size.y()});
+        AddWallBCE(body, frame * ChFrame<>(xp, QuatFromAngleY(-CH_PI_2)), {size.z() + buffer, size.y()});
 
     // Y- wall
     if (faces.y() == -1 || faces.y() == 2)
-        AddWallBCE(body, frame * ChFrame<>(yn, Q_from_AngX(-CH_C_PI_2)), {size.x() + buffer, size.z() + buffer});
+        AddWallBCE(body, frame * ChFrame<>(yn, QuatFromAngleX(-CH_PI_2)), {size.x() + buffer, size.z() + buffer});
     // Y+ wall
     if (faces.y() == +1 || faces.y() == 2)
-        AddWallBCE(body, frame * ChFrame<>(yp, Q_from_AngX(+CH_C_PI_2)), {size.x() + buffer, size.z() + buffer});
+        AddWallBCE(body, frame * ChFrame<>(yp, QuatFromAngleX(+CH_PI_2)), {size.x() + buffer, size.z() + buffer});
 }
 
 size_t ChSystemFsi::AddBoxBCE(std::shared_ptr<ChBody> body,
                               const ChFrame<>& frame,
-                              const ChVector<>& size,
+                              const ChVector3d& size,
                               bool solid) {
     thrust::host_vector<Real4> bce;
     CreateBCE_box(utils::ToReal3(size), solid, bce);
@@ -1283,7 +1281,7 @@ size_t ChSystemFsi::AddConeBCE(std::shared_ptr<ChBody> body,
 }
 
 size_t ChSystemFsi::AddPointsBCE(std::shared_ptr<ChBody> body,
-                                 const std::vector<ChVector<>>& points,
+                                 const std::vector<ChVector3d>& points,
                                  const ChFrame<>& frame,
                                  bool solid) {
     thrust::host_vector<Real4> bce;
@@ -1295,7 +1293,7 @@ size_t ChSystemFsi::AddPointsBCE(std::shared_ptr<ChBody> body,
 
 //--------------------------------------------------------------------------------------------------------------------------------
 
-const Real pi = Real(CH_C_PI);
+const Real pi = Real(CH_PI);
 
 void ChSystemFsi::CreateBCE_wall(const Real2& size, thrust::host_vector<Real4>& bce) {
     Real kernel_h = m_paramsH->HSML;
@@ -1469,7 +1467,7 @@ void ChSystemFsi::CreateBCE_cylinder(Real rad,
         }
 
         if (capped) {
-            rad_max = rad_min - delta_r;
+            rad_max = rad_min - num_layers * delta_r;
             np_r = (int)std::round(rad_max / spacing);
             delta_r = rad_max / np_r;
 
@@ -1685,8 +1683,8 @@ void ChSystemFsi::AddBCE_body(std::shared_ptr<ChBody> body,
     for (const auto& p : bce) {
         auto pos_shape = utils::ToChVector(p);
         auto pos_body = rel_frame.TransformPointLocalToParent(pos_shape);
-        auto pos_abs = body->GetFrame_REF_to_abs().TransformPointLocalToParent(pos_body);
-        auto vel_abs = body->GetFrame_REF_to_abs().PointSpeedLocalToParent(pos_body);
+        auto pos_abs = body->GetFrameRefToAbs().TransformPointLocalToParent(pos_body);
+        auto vel_abs = body->GetFrameRefToAbs().PointSpeedLocalToParent(pos_body);
 
         m_sysFSI->sphMarkers_H->posRadH.push_back(mR4(utils::ToReal3(pos_abs), p.w));
         m_sysFSI->sphMarkers_H->velMasH.push_back(utils::ToReal3(vel_abs));
@@ -1722,8 +1720,8 @@ unsigned int ChSystemFsi::AddBCE_mesh1D(unsigned int meshID, const ChFsiInterfac
         const auto& P0 = seg->GetNode(0)->GetPos();  // vertex 0 position (absolute coordinates)
         const auto& P1 = seg->GetNode(1)->GetPos();  // vertex 1 position (absolute coordinates)
 
-        const auto& V0 = seg->GetNode(0)->GetPos_dt();  // vertex 0 velocity (absolute coordinates)
-        const auto& V1 = seg->GetNode(1)->GetPos_dt();  // vertex 1 velocity (absolute coordinates)
+        const auto& V0 = seg->GetNode(0)->GetPosDt();  // vertex 0 velocity (absolute coordinates)
+        const auto& V1 = seg->GetNode(1)->GetPosDt();  // vertex 1 velocity (absolute coordinates)
 
         auto x_dir = P1 - P0;       // segment direction
         auto len = x_dir.Length();  // segment direction
@@ -1732,9 +1730,9 @@ unsigned int ChSystemFsi::AddBCE_mesh1D(unsigned int meshID, const ChFsiInterfac
         int n = (int)std::ceil(len / spacing);  // required divisions on segment
 
         // Create two directions orthogonal to 'x_dir'
-        ChVector<> y_dir(-x_dir.y() - x_dir.z(), x_dir.x() - x_dir.z(), x_dir.x() + x_dir.y());
+        ChVector3<> y_dir(-x_dir.y() - x_dir.z(), x_dir.x() - x_dir.z(), x_dir.x() + x_dir.y());
         y_dir.Normalize();
-        ChVector<> z_dir = Vcross(x_dir, y_dir);
+        ChVector3<> z_dir = Vcross(x_dir, y_dir);
 
         double yz_start = (num_layers - 1) * spacing / 2;
 
@@ -1792,18 +1790,18 @@ unsigned int ChSystemFsi::AddBCE_mesh2D(unsigned int meshID, const ChFsiInterfac
     //   (largest number that results in a discretization no coarser than the initial spacing on each edge)
     // - generate barycentric coordinates for a uniform grid over the triangular face
     // - generate locations of BCE points on triangular face
-    unsigned int num_tri = (int)surface->GetTriangleList().size();
+    unsigned int num_tri = (int)surface->GetTrianglesXYZ().size();
     unsigned int num_bce = 0;
     for (unsigned int triID = 0; triID < num_tri; triID++) {
-        const auto& tri = surface->GetTriangleList()[triID];
+        const auto& tri = surface->GetTrianglesXYZ()[triID];
 
         const auto& P0 = tri->GetNode(0)->GetPos();  // vertex 0 position (absolute coordinates)
         const auto& P1 = tri->GetNode(1)->GetPos();  // vertex 1 position (absolute coordinates)
         const auto& P2 = tri->GetNode(2)->GetPos();  // vertex 2 position (absolute coordinates)
 
-        const auto& V0 = tri->GetNode(0)->GetPos_dt();  // vertex 0 velocity (absolute coordinates)
-        const auto& V1 = tri->GetNode(1)->GetPos_dt();  // vertex 1 velocity (absolute coordinates)
-        const auto& V2 = tri->GetNode(2)->GetPos_dt();  // vertex 2 velocity (absolute coordinates)
+        const auto& V0 = tri->GetNode(0)->GetPosDt();  // vertex 0 velocity (absolute coordinates)
+        const auto& V1 = tri->GetNode(1)->GetPosDt();  // vertex 1 velocity (absolute coordinates)
+        const auto& V2 = tri->GetNode(2)->GetPosDt();  // vertex 2 velocity (absolute coordinates)
 
         auto normal = Vcross(P1 - P0, P2 - P1);  // triangle normal
         normal.Normalize();
@@ -1831,7 +1829,7 @@ unsigned int ChSystemFsi::AddBCE_mesh2D(unsigned int meshID, const ChFsiInterfac
 
             for (int j = 0; j <= n - i; j++) {
                 int k = n - i - j;
-                auto lambda = ChVector<>(i, j, k) / n;  // barycentric coordinates of BCE marker
+                auto lambda = ChVector3<>(i, j, k) / n;  // barycentric coordinates of BCE marker
 
                 if (j == n && !tri->OwnsNode(1))  // triangle does not own vertex v1
                     continue;
@@ -1879,15 +1877,13 @@ unsigned int ChSystemFsi::AddBCE_mesh2D(unsigned int meshID, const ChFsiInterfac
 
 //--------------------------------------------------------------------------------------------------------------------------------
 
-void ChSystemFsi::CreateMeshPoints(geometry::ChTriangleMeshConnected& mesh,
-                                   double delta,
-                                   std::vector<ChVector<>>& point_cloud) {
+void ChSystemFsi::CreateMeshPoints(ChTriangleMeshConnected& mesh, double delta, std::vector<ChVector3d>& point_cloud) {
     mesh.RepairDuplicateVertexes(1e-9);  // if meshes are not watertight
-    auto bbox = mesh.GetBoundingBox(ChMatrix33<>(1));
+    auto bbox = mesh.GetBoundingBox();
 
     const double EPSI = 1e-6;
 
-    ChVector<> ray_origin;
+    ChVector3d ray_origin;
     for (double x = bbox.min.x(); x < bbox.max.x(); x += delta) {
         ray_origin.x() = x + 1e-9;
         for (double y = bbox.min.y(); y < bbox.max.y(); y += delta) {
@@ -1895,7 +1891,7 @@ void ChSystemFsi::CreateMeshPoints(geometry::ChTriangleMeshConnected& mesh,
             for (double z = bbox.min.z(); z < bbox.max.z(); z += delta) {
                 ray_origin.z() = z + 1e-9;
 
-                ChVector<> ray_dir[2] = {ChVector<>(5, 0.5, 0.25), ChVector<>(-3, 0.7, 10)};
+                ChVector3d ray_dir[2] = {ChVector3d(5, 0.5, 0.25), ChVector3d(-3, 0.7, 10)};
                 int intersectCounter[2] = {0, 0};
 
                 for (unsigned int i = 0; i < mesh.m_face_v_indices.size(); ++i) {
@@ -1959,7 +1955,7 @@ void ChSystemFsi::CreateMeshPoints(geometry::ChTriangleMeshConnected& mesh,
                 }
 
                 if (((intersectCounter[0] % 2) == 1) && ((intersectCounter[1] % 2) == 1))  // inside mesh
-                    point_cloud.push_back(ChVector<>(x, y, z));
+                    point_cloud.push_back(ChVector3d(x, y, z));
             }
         }
     }
@@ -1979,8 +1975,8 @@ int ChSystemFsi::GetNumBoundaryLayers() const {
     return m_paramsH->NUM_BOUNDARY_LAYERS;
 }
 
-ChVector<> ChSystemFsi::GetContainerDim() const {
-    return ChVector<>(m_paramsH->boxDimX, m_paramsH->boxDimY, m_paramsH->boxDimZ);
+ChVector3d ChSystemFsi::GetContainerDim() const {
+    return ChVector3d(m_paramsH->boxDimX, m_paramsH->boxDimY, m_paramsH->boxDimZ);
 }
 
 double ChSystemFsi::GetDensity() const {
@@ -1999,16 +1995,16 @@ double ChSystemFsi::GetParticleMass() const {
     return m_paramsH->markerMass;
 }
 
-ChVector<> ChSystemFsi::Get_G_acc() const {
-    return ChVector<>(m_paramsH->gravity.x, m_paramsH->gravity.y, m_paramsH->gravity.z);
+ChVector3d ChSystemFsi::GetGravitationalAcceleration() const {
+    return ChVector3d(m_paramsH->gravity.x, m_paramsH->gravity.y, m_paramsH->gravity.z);
 }
 
 double ChSystemFsi::GetSoundSpeed() const {
     return m_paramsH->Cs;
 }
 
-ChVector<> ChSystemFsi::GetBodyForce() const {
-    return ChVector<>(m_paramsH->bodyForce3.x, m_paramsH->bodyForce3.y, m_paramsH->bodyForce3.z);
+ChVector3d ChSystemFsi::GetBodyForce() const {
+    return ChVector3d(m_paramsH->bodyForce3.x, m_paramsH->bodyForce3.y, m_paramsH->bodyForce3.z);
 }
 
 double ChSystemFsi::GetStepSize() const {
@@ -2047,45 +2043,48 @@ std::vector<std::shared_ptr<ChBody>>& ChSystemFsi::GetFsiBodies() const {
 
 //--------------------------------------------------------------------------------------------------------------------------------
 
-std::vector<ChVector<>> ChSystemFsi::GetParticlePositions() const {
+std::vector<ChVector3d> ChSystemFsi::GetParticlePositions() const {
     thrust::host_vector<Real4> posRadH = m_sysFSI->sphMarkers2_D->posRadD;
-    std::vector<ChVector<>> pos;
+    std::vector<ChVector3d> pos;
+
     for (size_t i = 0; i < posRadH.size(); i++) {
         pos.push_back(utils::ToChVector(posRadH[i]));
     }
     return pos;
 }
 
-std::vector<ChVector<>> ChSystemFsi::GetParticleFluidProperties() const {
+std::vector<ChVector3d> ChSystemFsi::GetParticleFluidProperties() const {
     thrust::host_vector<Real4> rhoPresMuH = m_sysFSI->sphMarkers2_D->rhoPresMuD;
-    std::vector<ChVector<>> props;
+    std::vector<ChVector3d> props;
+
     for (size_t i = 0; i < rhoPresMuH.size(); i++) {
         props.push_back(utils::ToChVector(rhoPresMuH[i]));
     }
     return props;
 }
 
-std::vector<ChVector<>> ChSystemFsi::GetParticleVelocities() const {
+std::vector<ChVector3d> ChSystemFsi::GetParticleVelocities() const {
     thrust::host_vector<Real3> velH = m_sysFSI->sphMarkers2_D->velMasD;
-    std::vector<ChVector<>> vel;
+    std::vector<ChVector3d> vel;
+
     for (size_t i = 0; i < velH.size(); i++) {
         vel.push_back(utils::ToChVector(velH[i]));
     }
     return vel;
 }
 
-std::vector<ChVector<>> ChSystemFsi::GetParticleAccelerations() const {
+std::vector<ChVector3d> ChSystemFsi::GetParticleAccelerations() const {
     thrust::host_vector<Real4> accH = m_sysFSI->GetParticleAccelerations();
-    std::vector<ChVector<>> acc;
+    std::vector<ChVector3d> acc;
     for (size_t i = 0; i < accH.size(); i++) {
         acc.push_back(utils::ToChVector(accH[i]));
     }
     return acc;
 }
 
-std::vector<ChVector<>> ChSystemFsi::GetParticleForces() const {
+std::vector<ChVector3d> ChSystemFsi::GetParticleForces() const {
     thrust::host_vector<Real4> frcH = m_sysFSI->GetParticleForces();
-    std::vector<ChVector<>> frc;
+    std::vector<ChVector3d> frc;
     for (size_t i = 0; i < frcH.size(); i++) {
         frc.push_back(utils::ToChVector(frcH[i]));
     }
@@ -2094,11 +2093,11 @@ std::vector<ChVector<>> ChSystemFsi::GetParticleForces() const {
 
 //--------------------------------------------------------------------------------------------------------------------------------
 
-thrust::device_vector<int> ChSystemFsi::FindParticlesInBox(const ChFrame<>& frame, const ChVector<>& size) {
-    const ChVector<>& Pos = frame.GetPos();
-    ChVector<> Ax = frame.GetA().Get_A_Xaxis();
-    ChVector<> Ay = frame.GetA().Get_A_Yaxis();
-    ChVector<> Az = frame.GetA().Get_A_Zaxis();
+thrust::device_vector<int> ChSystemFsi::FindParticlesInBox(const ChFrame<>& frame, const ChVector3d& size) {
+    const ChVector3d& Pos = frame.GetPos();
+    ChVector3d Ax = frame.GetRotMat().GetAxisX();
+    ChVector3d Ay = frame.GetRotMat().GetAxisY();
+    ChVector3d Az = frame.GetRotMat().GetAxisZ();
 
     auto hsize = 0.5 * mR3(size.x(), size.y(), size.z());
     auto pos = mR3(Pos.x(), Pos.y(), Pos.z());

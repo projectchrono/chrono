@@ -27,7 +27,7 @@ namespace chrono {
 namespace vehicle {
 namespace duro {
 
-/// @addtogroup vehicle_models_Duro
+/// @addtogroup vehicle_models_duro
 /// @{
 
 /// Shafts-based HMMWV brake subsystem (uses a clutch between two shafts).
@@ -44,7 +44,7 @@ class CH_MODELS_API Duro_BrakeShafts : public ChBrakeShafts {
     static const double m_shaft_inertia;
 };
 
-/// @} vehicle_models_Duro
+/// @} vehicle_models_duro
 
 }  // namespace duro
 }  // end namespace vehicle

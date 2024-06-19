@@ -58,6 +58,7 @@ class CH_MODELS_API MAN_7t {
     ~MAN_7t();
 
     void SetContactMethod(ChContactMethod val) { m_contactMethod = val; }
+    void SetCollisionSystemType(ChCollisionSystem::Type collsys_type) { m_collsysType = collsys_type; }
 
     void SetChassisFixed(bool val) { m_fixed = val; }
     void SetChassisCollisionType(CollisionType val) { m_chassisCollisionType = val; }
@@ -99,6 +100,7 @@ class CH_MODELS_API MAN_7t {
 
   protected:
     ChContactMethod m_contactMethod;
+    ChCollisionSystem::Type m_collsysType;
     CollisionType m_chassisCollisionType;
     bool m_fixed;
     bool m_brake_locking;

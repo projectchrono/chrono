@@ -36,18 +36,18 @@ class CH_MODELS_API Marder_TrackAssemblySinglePin : public ChTrackAssemblySingle
   public:
     Marder_TrackAssemblySinglePin(VehicleSide side, BrakeType brake_type);
 
-    virtual const ChVector<> GetSprocketLocation() const override;
-    virtual const ChVector<> GetIdlerLocation() const override;
-    virtual const ChVector<> GetRoadWhelAssemblyLocation(int which) const override;
-    virtual const ChVector<> GetRollerLocation(int which) const override;
+    virtual const ChVector3d GetSprocketLocation() const override;
+    virtual const ChVector3d GetIdlerLocation() const override;
+    virtual const ChVector3d GetRoadWhelAssemblyLocation(int which) const override;
+    virtual const ChVector3d GetRollerLocation(int which) const override;
 
   private:
-    static const ChVector<> m_sprocket_loc;
-    static const ChVector<> m_idler_loc;
-    static const ChVector<> m_susp_locs_L[6];
-    static const ChVector<> m_susp_locs_R[6];
-    static const ChVector<> m_supp_locs_L[3];
-    static const ChVector<> m_supp_locs_R[3];
+    static const ChVector3d m_sprocket_loc;
+    static const ChVector3d m_idler_loc;
+    static const ChVector3d m_susp_locs_L[6];
+    static const ChVector3d m_susp_locs_R[6];
+    static const ChVector3d m_supp_locs_L[3];
+    static const ChVector3d m_supp_locs_R[3];
 
     static const double m_right_x_offset;
 };

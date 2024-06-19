@@ -23,6 +23,8 @@
 //
 // =============================================================================
 
+#include "chrono/utils/ChUtils.h"
+
 #include "chrono_models/vehicle/feda/FEDA_DoubleWishbone.h"
 
 namespace chrono {
@@ -39,21 +41,24 @@ const double FEDA_DoubleWishboneFront::m_UCAMass = 8.45;
 const double FEDA_DoubleWishboneFront::m_LCAMass = 31.55;
 const double FEDA_DoubleWishboneFront::m_uprightMass = 36.27;
 const double FEDA_DoubleWishboneFront::m_spindleMass = 13.08;
+const double FEDA_DoubleWishboneFront::m_tierodMass = 6.0;
 
 const double FEDA_DoubleWishboneFront::m_spindleRadius = 0.10;
 const double FEDA_DoubleWishboneFront::m_spindleWidth = 0.06;
 const double FEDA_DoubleWishboneFront::m_LCARadius = 0.03;
 const double FEDA_DoubleWishboneFront::m_UCARadius = 0.02;
 const double FEDA_DoubleWishboneFront::m_uprightRadius = 0.04;
+const double FEDA_DoubleWishboneFront::m_tierodRadius = 0.02;
 
 // TODO: Fix these values
-const ChVector<> FEDA_DoubleWishboneFront::m_spindleInertia(5.32e-4, 5.52E-04, 5.32e-4);
-const ChVector<> FEDA_DoubleWishboneFront::m_UCAInertiaMoments(0.03, 0.03, 0.06276);
-const ChVector<> FEDA_DoubleWishboneFront::m_UCAInertiaProducts(0.0, 0.0, 0.0);
-const ChVector<> FEDA_DoubleWishboneFront::m_LCAInertiaMoments(0.4, 0.4, 0.8938);
-const ChVector<> FEDA_DoubleWishboneFront::m_LCAInertiaProducts(0.0, 0.0, 0.0);
-const ChVector<> FEDA_DoubleWishboneFront::m_uprightInertiaMoments(0.1656, 0.1934, 0.04367);
-const ChVector<> FEDA_DoubleWishboneFront::m_uprightInertiaProducts(0.0, 0.0, 0.0);
+const ChVector3d FEDA_DoubleWishboneFront::m_spindleInertia(5.32e-4, 5.52E-04, 5.32e-4);
+const ChVector3d FEDA_DoubleWishboneFront::m_UCAInertiaMoments(0.03, 0.03, 0.06276);
+const ChVector3d FEDA_DoubleWishboneFront::m_UCAInertiaProducts(0.0, 0.0, 0.0);
+const ChVector3d FEDA_DoubleWishboneFront::m_LCAInertiaMoments(0.4, 0.4, 0.8938);
+const ChVector3d FEDA_DoubleWishboneFront::m_LCAInertiaProducts(0.0, 0.0, 0.0);
+const ChVector3d FEDA_DoubleWishboneFront::m_uprightInertiaMoments(0.1656, 0.1934, 0.04367);
+const ChVector3d FEDA_DoubleWishboneFront::m_uprightInertiaProducts(0.0, 0.0, 0.0);
+const ChVector3d FEDA_DoubleWishboneFront::m_tierodInertia(0.05, 0.05, 0.5);
 
 const double FEDA_DoubleWishboneFront::m_axleInertia = 0.4;
 
@@ -73,21 +78,24 @@ const double FEDA_DoubleWishboneRear::m_UCAMass = 8.45;
 const double FEDA_DoubleWishboneRear::m_LCAMass = 31.55;
 const double FEDA_DoubleWishboneRear::m_uprightMass = 36.27;
 const double FEDA_DoubleWishboneRear::m_spindleMass = 13.08;
+const double FEDA_DoubleWishboneRear::m_tierodMass = 6.0;
 
 const double FEDA_DoubleWishboneRear::m_spindleRadius = 0.10;
 const double FEDA_DoubleWishboneRear::m_spindleWidth = 0.06;
 const double FEDA_DoubleWishboneRear::m_LCARadius = 0.03;
 const double FEDA_DoubleWishboneRear::m_UCARadius = 0.02;
 const double FEDA_DoubleWishboneRear::m_uprightRadius = 0.04;
+const double FEDA_DoubleWishboneRear::m_tierodRadius = 0.02;
 
 // TODO: Fix these values
-const ChVector<> FEDA_DoubleWishboneRear::m_spindleInertia(5.32e-4, 5.52E-04, 5.32e-4);
-const ChVector<> FEDA_DoubleWishboneRear::m_UCAInertiaMoments(0.03, 0.03, 0.06276);
-const ChVector<> FEDA_DoubleWishboneRear::m_UCAInertiaProducts(0.0, 0.0, 0.0);
-const ChVector<> FEDA_DoubleWishboneRear::m_LCAInertiaMoments(0.4, 0.4, 0.8938);
-const ChVector<> FEDA_DoubleWishboneRear::m_LCAInertiaProducts(0.0, 0.0, 0.0);
-const ChVector<> FEDA_DoubleWishboneRear::m_uprightInertiaMoments(0.1656, 0.1934, 0.04367);
-const ChVector<> FEDA_DoubleWishboneRear::m_uprightInertiaProducts(0.0, 0.0, 0.0);
+const ChVector3d FEDA_DoubleWishboneRear::m_spindleInertia(5.32e-4, 5.52E-04, 5.32e-4);
+const ChVector3d FEDA_DoubleWishboneRear::m_UCAInertiaMoments(0.03, 0.03, 0.06276);
+const ChVector3d FEDA_DoubleWishboneRear::m_UCAInertiaProducts(0.0, 0.0, 0.0);
+const ChVector3d FEDA_DoubleWishboneRear::m_LCAInertiaMoments(0.4, 0.4, 0.8938);
+const ChVector3d FEDA_DoubleWishboneRear::m_LCAInertiaProducts(0.0, 0.0, 0.0);
+const ChVector3d FEDA_DoubleWishboneRear::m_uprightInertiaMoments(0.1656, 0.1934, 0.04367);
+const ChVector3d FEDA_DoubleWishboneRear::m_uprightInertiaProducts(0.0, 0.0, 0.0);
+const ChVector3d FEDA_DoubleWishboneRear::m_tierodInertia(0.05, 0.05, 0.5);
 
 const double FEDA_DoubleWishboneRear::m_axleInertia = 0.4;
 
@@ -117,10 +125,10 @@ class AirCoilSpringBistopForce : public ChLinkTSDA::ForceFunctor {
           m_coilSpringF0(coilSpringF0),
           m_P0(p0) {
         // percalculations
-        double A0 = pow(m_piston_radius, 2.0) * CH_C_PI;
+        double A0 = pow(m_piston_radius, 2.0) * CH_PI;
         double V0 = m_cylinder_compression_length * A0;
         m_airSpringF0 = m_P0 * A0;
-        GetLog() << "Fzero = " << m_airSpringF0 << "N\n";
+        std::cout << "Fzero = " << m_airSpringF0 << "N\n";
         m_hf0 = m_P0 * V0 / m_airSpringF0;
 
         // From ADAMS/Car example
@@ -166,12 +174,12 @@ class AirCoilSpringBistopForce : public ChLinkTSDA::ForceFunctor {
 
         if (length > m_max_length) {
             defl_rebound = length - m_max_length;
-            // GetLog() << "Rebound Deflection: " << defl_rebound << " m\n";
+            // std::cout << "Rebound Deflection: " << defl_rebound << " m\n";
         }
 
         force = m_airSpringF0 * pow(m_hf0, m_kappa) / pow(m_hf0 - defl_spring, m_kappa) + defl_spring * m_k +
-                m_coilSpringF0 + m_bump.Get_y(defl_bump) - m_rebound.Get_y(defl_rebound);
-        // GetLog() << "d =" << defl_spring << " m\n";
+                m_coilSpringF0 + m_bump.GetVal(defl_bump) - m_rebound.GetVal(defl_rebound);
+        // std::cout << "d =" << defl_spring << " m\n";
         return force;
     }
 
@@ -189,8 +197,8 @@ class AirCoilSpringBistopForce : public ChLinkTSDA::ForceFunctor {
     double m_hf0;          // value to ease the calculation [m]
     double m_airSpringF0;  // gas force at design position [N]
 
-    ChFunction_Recorder m_bump;
-    ChFunction_Recorder m_rebound;
+    ChFunctionInterp m_bump;
+    ChFunctionInterp m_rebound;
 };
 
 // -----------------------------------------------------------------------------
@@ -249,7 +257,7 @@ class FEDA_ShockODE : public ChLinkTSDA::ODE {
         m_lf_damper_table.AddPoint(5.0, 74851.94949);  // found by linear extrapolation
     }
 
-    virtual int GetNumStates() const override { return 2; }
+    virtual unsigned int GetNumStates() const override { return 2; }
     virtual void SetInitialConditions(ChVectorDynamic<>& states,  // output vector containig initial conditions
                                       const ChLinkTSDA& link      // associated link
                                       ) override {
@@ -276,8 +284,8 @@ class FEDA_ShockODE : public ChLinkTSDA::ODE {
         double force_hf, force_lf;
         if (m_use_damper_tables) {
             // use lookup tables
-            force_hf = m_hf_damper_table.Get_y(vel);
-            force_lf = m_lf_damper_table.Get_y(vel_min);
+            force_hf = m_hf_damper_table.GetVal(vel);
+            force_lf = m_lf_damper_table.GetVal(vel_min);
         } else {
             // use continuous funktions (derived from the tables)
             force_hf = HF_DamperForce(vel);
@@ -299,8 +307,8 @@ class FEDA_ShockODE : public ChLinkTSDA::ODE {
 
   private:
     bool m_use_damper_tables;
-    ChFunction_Recorder m_hf_damper_table;
-    ChFunction_Recorder m_lf_damper_table;
+    ChFunctionInterp m_hf_damper_table;
+    ChFunctionInterp m_lf_damper_table;
     // these functions shouldn't better not be used, only for testing
     // there are to few data available to make a meaningful
     // curve fit
@@ -330,10 +338,10 @@ class FEDA_ShockODE : public ChLinkTSDA::ODE {
 // Constructors
 // -----------------------------------------------------------------------------
 FEDA_DoubleWishboneFront::FEDA_DoubleWishboneFront(const std::string& name, int ride_height_mode, int damperMode)
-    : ChDoubleWishbone(name), m_damper_mode(damperMode) {
+    : ChDoubleWishbone(name), m_damper_mode(damperMode), m_use_tierod_bodies(true) {
     m_ride_height_mode = ChClamp(ride_height_mode, 0, 2);
-    GetLog() << "Ride Height Front = " << m_ride_height_mode << " (Pressure = " << m_air_pressure[m_ride_height_mode]
-             << " Pas)\n";
+    std::cout << "Ride Height Front = " << m_ride_height_mode << " (Pressure = " << m_air_pressure[m_ride_height_mode]
+              << " Pas)\n";
     m_springForceCB = chrono_types::make_shared<AirCoilSpringBistopForce>(
         m_springCoefficient, m_springRestLength - m_bumpstop_clearance, m_springRestLength + m_reboundstop_clearance,
         m_springF0, m_air_pressure[m_ride_height_mode]);
@@ -341,11 +349,11 @@ FEDA_DoubleWishboneFront::FEDA_DoubleWishboneFront(const std::string& name, int 
         case 1:
             // FSD mode f(frequency selective damper)
             m_shockForceCB = chrono_types::make_shared<FEDA_ShockForce>();
-            GetLog() << "FEDA_DoubleWishboneFront(): FSD mode selected.\n";
+            std::cout << "FEDA_DoubleWishboneFront(): FSD mode selected.\n";
             break;
         case 2: {
             // passive damper with low damping effect
-            GetLog() << "FEDA_DoubleWishboneFront(): passive low damping selected.\n";
+            std::cout << "FEDA_DoubleWishboneFront(): passive low damping selected.\n";
             const double c_expansion = 38097.1;
             const double degr_expansion = 2.83566;
             const double c_compression = 38097.1;
@@ -355,7 +363,7 @@ FEDA_DoubleWishboneFront::FEDA_DoubleWishboneFront(const std::string& name, int 
         } break;
         case 3: {
             // passive damper with high damping effect
-            GetLog() << "FEDA_DoubleWishboneFront(): passive high damping selected.\n";
+            std::cout << "FEDA_DoubleWishboneFront(): passive high damping selected.\n";
             const double c_expansion = 160650;
             const double degr_expansion = 7.46883;
             const double c_compression = 160650;
@@ -367,10 +375,10 @@ FEDA_DoubleWishboneFront::FEDA_DoubleWishboneFront(const std::string& name, int 
 }
 
 FEDA_DoubleWishboneRear::FEDA_DoubleWishboneRear(const std::string& name, int ride_height_mode, int damperMode)
-    : ChDoubleWishbone(name), m_damper_mode(damperMode) {
+    : ChDoubleWishbone(name), m_damper_mode(damperMode), m_use_tierod_bodies(true) {
     m_ride_height_mode = ChClamp(ride_height_mode, 0, 2);
-    GetLog() << "Ride Height Rear = " << m_ride_height_mode << " (Pressure = " << m_air_pressure[m_ride_height_mode]
-             << " Pas)\n";
+    std::cout << "Ride Height Rear = " << m_ride_height_mode << " (Pressure = " << m_air_pressure[m_ride_height_mode]
+              << " Pas)\n";
     m_springForceCB = chrono_types::make_shared<AirCoilSpringBistopForce>(
         m_springCoefficient, m_springRestLength - m_bumpstop_clearance, m_springRestLength + m_reboundstop_clearance,
         m_springF0, m_air_pressure[m_ride_height_mode]);
@@ -378,11 +386,11 @@ FEDA_DoubleWishboneRear::FEDA_DoubleWishboneRear(const std::string& name, int ri
         case 1:
             // FSD mode f(frequency selective damper)
             m_shockForceCB = chrono_types::make_shared<FEDA_ShockForce>();
-            GetLog() << "FEDA_DoubleWishboneRear(): FSD mode selected.\n";
+            std::cout << "FEDA_DoubleWishboneRear(): FSD mode selected.\n";
             break;
         case 2: {
             // passive damper with low damping effect
-            GetLog() << "FEDA_DoubleWishboneRear(): passive low damping selected.\n";
+            std::cout << "FEDA_DoubleWishboneRear(): passive low damping selected.\n";
             const double c_expansion = 38097.1;
             const double degr_expansion = 2.83566;
             const double c_compression = 38097.1;
@@ -392,7 +400,7 @@ FEDA_DoubleWishboneRear::FEDA_DoubleWishboneRear(const std::string& name, int ri
         } break;
         case 3: {
             // passive damper with high damping effect
-            GetLog() << "FEDA_DoubleWishboneRear(): passive high damping selected.\n";
+            std::cout << "FEDA_DoubleWishboneRear(): passive high damping selected.\n";
             const double c_expansion = 160650;
             const double degr_expansion = 7.46883;
             const double c_compression = 160650;
@@ -407,19 +415,23 @@ FEDA_DoubleWishboneRear::FEDA_DoubleWishboneRear(const std::string& name, int ri
 // Destructors
 // -----------------------------------------------------------------------------
 FEDA_DoubleWishboneFront::~FEDA_DoubleWishboneFront() {
+    /* what happens here?
     if (m_shockODE)
         delete m_shockODE;
+     */
 }
 
 FEDA_DoubleWishboneRear::~FEDA_DoubleWishboneRear() {
+    /* what happens here?
     if (m_shockODE)
         delete m_shockODE;
+     */
 }
 
 void FEDA_DoubleWishboneFront::Initialize(std::shared_ptr<ChChassis> chassis,
                                           std::shared_ptr<ChSubchassis> subchassis,
                                           std::shared_ptr<ChSteering> steering,
-                                          const ChVector<>& location,
+                                          const ChVector3d& location,
                                           double left_ang_vel,
                                           double right_ang_vel) {
     ChDoubleWishbone::Initialize(chassis, subchassis, steering, location, left_ang_vel, right_ang_vel);
@@ -434,7 +446,7 @@ void FEDA_DoubleWishboneFront::Initialize(std::shared_ptr<ChChassis> chassis,
 void FEDA_DoubleWishboneRear::Initialize(std::shared_ptr<ChChassis> chassis,
                                          std::shared_ptr<ChSubchassis> subchassis,
                                          std::shared_ptr<ChSteering> steering,
-                                         const ChVector<>& location,
+                                         const ChVector3d& location,
                                          double left_ang_vel,
                                          double right_ang_vel) {
     ChDoubleWishbone::Initialize(chassis, subchassis, steering, location, left_ang_vel, right_ang_vel);
@@ -449,81 +461,81 @@ void FEDA_DoubleWishboneRear::Initialize(std::shared_ptr<ChChassis> chassis,
 // Implementations of the getLocation() virtual methods.
 // -----------------------------------------------------------------------------
 
-const ChVector<> FEDA_DoubleWishboneFront::getLocation(PointId which) {
+const ChVector3d FEDA_DoubleWishboneFront::getLocation(PointId which) {
     switch (which) {
         case SPINDLE:
-            return ChVector<>(0.0, 0.97663, 0);
+            return ChVector3d(0.0, 0.97663, 0);
         case UPRIGHT:
-            return ChVector<>(0, 0.87, 0);
+            return ChVector3d(0, 0.87, 0);
         case UCA_F:
-            return ChVector<>(0.0478, 0.2324, 0.3469);
+            return ChVector3d(0.0478, 0.2324, 0.3469);
         case UCA_B:
-            return ChVector<>(-0.3215, 0.2324, 0.3469);
+            return ChVector3d(-0.3215, 0.2324, 0.3469);
         case UCA_U:
-            return ChVector<>(-0.01759, 0.6744, 0.30589);
+            return ChVector3d(-0.01759, 0.6744, 0.30589);
         case UCA_CM:
-            return ChVector<>(-0.0971018, 0.379784667, 0.333246667);
+            return ChVector3d(-0.0971018, 0.379784667, 0.333246667);
         case LCA_F:
-            return ChVector<>(0.16781, 0.2245, -0.08);
+            return ChVector3d(0.16781, 0.2245, -0.08);
         case LCA_B:
-            return ChVector<>(-0.45219, 0.22245, -0.119);
+            return ChVector3d(-0.45219, 0.22245, -0.119);
         case LCA_U:
-            return ChVector<>(0.00789, 0.80719, -0.13904);
+            return ChVector3d(0.00789, 0.80719, -0.13904);
         case LCA_CM:
-            return ChVector<>(-0.092163333, 0.418393333, -0.1128);
+            return ChVector3d(-0.092163333, 0.418393333, -0.1128);
         case SHOCK_C:
-            return ChVector<>(0.09397, 0.493925, 0.46209);
+            return ChVector3d(0.09397, 0.493925, 0.46209);
         case SHOCK_A:
-            return ChVector<>(0.09397, 0.65153, -0.119);
+            return ChVector3d(0.09397, 0.65153, -0.119);
         case SPRING_C:
-            return ChVector<>(0.09397, 0.493925, 0.46209);
+            return ChVector3d(0.09397, 0.493925, 0.46209);
         case SPRING_A:
-            return ChVector<>(0.09397, 0.65153, -0.119);
+            return ChVector3d(0.09397, 0.65153, -0.119);
         case TIEROD_C:
-            return ChVector<>(-0.24078, 0.379095, 0.04);
+            return ChVector3d(-0.24078, 0.379095, 0.04);
         case TIEROD_U:
-            return ChVector<>(-0.207, 0.82618, 0);
+            return ChVector3d(-0.207, 0.82618, 0);
         default:
-            return ChVector<>(0, 0, 0);
+            return ChVector3d(0, 0, 0);
     }
 }
 
-const ChVector<> FEDA_DoubleWishboneRear::getLocation(PointId which) {
+const ChVector3d FEDA_DoubleWishboneRear::getLocation(PointId which) {
     switch (which) {
         case SPINDLE:
-            return ChVector<>(0.0, 0.97663, 0);
+            return ChVector3d(0.0, 0.97663, 0);
         case UPRIGHT:
-            return ChVector<>(0, 0.87, 0);
+            return ChVector3d(0, 0.87, 0);
         case UCA_F:
-            return ChVector<>(0.0478, 0.2324, 0.3469);
+            return ChVector3d(0.0478, 0.2324, 0.3469);
         case UCA_B:
-            return ChVector<>(-0.3215, 0.2324, 0.3469);
+            return ChVector3d(-0.3215, 0.2324, 0.3469);
         case UCA_U:
-            return ChVector<>(-0.01759, 0.6744, 0.30589);
+            return ChVector3d(-0.01759, 0.6744, 0.30589);
         case UCA_CM:
-            return ChVector<>(-0.0971018, 0.379784667, 0.333246667);
+            return ChVector3d(-0.0971018, 0.379784667, 0.333246667);
         case LCA_F:
-            return ChVector<>(0.16781, 0.2245, -0.08);
+            return ChVector3d(0.16781, 0.2245, -0.08);
         case LCA_B:
-            return ChVector<>(-0.45219, 0.22245, -0.119);
+            return ChVector3d(-0.45219, 0.22245, -0.119);
         case LCA_U:
-            return ChVector<>(0.00789, 0.80719, -0.13904);
+            return ChVector3d(0.00789, 0.80719, -0.13904);
         case LCA_CM:
-            return ChVector<>(-0.092163333, 0.418393333, -0.1128);
+            return ChVector3d(-0.092163333, 0.418393333, -0.1128);
         case SHOCK_C:
-            return ChVector<>(-0.09397, 0.493925, 0.46209);
+            return ChVector3d(-0.09397, 0.493925, 0.46209);
         case SHOCK_A:
-            return ChVector<>(-0.09397, 0.65153, -0.119);
+            return ChVector3d(-0.09397, 0.65153, -0.119);
         case SPRING_C:
-            return ChVector<>(-0.09397, 0.493925, 0.46209);
+            return ChVector3d(-0.09397, 0.493925, 0.46209);
         case SPRING_A:
-            return ChVector<>(-0.09397, 0.65153, -0.119);
+            return ChVector3d(-0.09397, 0.65153, -0.119);
         case TIEROD_C:
-            return ChVector<>(0.24078, 0.379095, 0.04);
+            return ChVector3d(0.24078, 0.379095, 0.04);
         case TIEROD_U:
-            return ChVector<>(0.207, 0.82618, 0);
+            return ChVector3d(0.207, 0.82618, 0);
         default:
-            return ChVector<>(0, 0, 0);
+            return ChVector3d(0, 0, 0);
     }
 }
 

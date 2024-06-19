@@ -42,7 +42,7 @@ void ChTrackTestRigRoadDriver::Initialize(size_t num_posts, const std::vector<do
     std::vector<double> vx;  // road profile x
     std::vector<double> vz;  // road profile z
 
-    std::ifstream ifile(m_filename.c_str());
+    std::ifstream ifile(m_filename);
     std::string line;
     while (std::getline(ifile, line)) {
         std::istringstream iss(line);

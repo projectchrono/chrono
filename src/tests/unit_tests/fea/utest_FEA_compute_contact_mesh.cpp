@@ -15,7 +15,7 @@
 // Unit test for ComputeContactForces utility: NodeCloud, Mesh Vs Body Contact.
 // Method system->GetContactContainer()->ComputeContactForces() iterates over
 // all bodies/meshes into contact and stores resultant contact force in an unordered map.
-// Upon invocation of myBody->GetContactForce(), the user can retrieve the resultant
+// Upon invocation of body->GetContactForce(), the user can retrieve the resultant
 // of all (!) contact forces acting on the body from the NodeCloud SMC contact.
 // In this unit test, the overall contact force applied to a box (from mesh) is compared
 // to the total weight of the ANCF shell mesh.
@@ -85,7 +85,6 @@ int numDiv_z = 1;
 // Parameters for ANCF shell element mesh
 // ---------------------------------
 
-int binId = 0;
 double bin_width = 20;
 double bin_length = 20;
 double bin_thickness = 0.1;
@@ -97,9 +96,13 @@ int main(int argc, char* argv[]) {
     system.UseMaterialProperties(use_mat_properties);
     system.SetContactForceModel(force_model);
     system.SetTangentialDisplacementModel(tdispl_model);
-    system.SetStiffContact(stiff_contact);
+    system.SetContactStiff(stiff_contact);
 
-    auto material = chrono_types::make_shared<ChMaterialSurfaceSMC>();
+    system.SetGravitationalAcceleration(ChVector3d(0, 0, gravity));
+
+    system.SetCollisionSystemType(ChCollisionSystem::Type::BULLET);
+
+    auto material = chrono_types::make_shared<ChContactMaterialSMC>();
     material->SetYoungModulus(young_modulus);
     material->SetRestitution(restitution);
     material->SetFriction(friction);
@@ -109,11 +112,9 @@ int main(int argc, char* argv[]) {
     material->SetKt(kt);
     material->SetGt(gt);
 
-    system.Set_G_acc(ChVector<>(0, 0, gravity));
-
     // Create the ANCF shell element mesh
 
-    auto my_mesh = chrono_types::make_shared<ChMesh>();
+    auto mesh = chrono_types::make_shared<ChMesh>();
 
     // Geometry of the plate
     double plate_lenght_x = 0.5;
@@ -139,14 +140,14 @@ int main(int argc, char* argv[]) {
         double loc_x = (i % (numDiv_x + 1)) * dx;
         double loc_y = (i / (numDiv_x + 1)) % (numDiv_y + 1) * dy;
         double loc_z = (i) / ((numDiv_x + 1) * (numDiv_y + 1)) * dz;
-        std::cout << "  " << i << "|  " << ChVector<>(loc_x, loc_y, loc_z) << std::endl;
+        std::cout << "  " << i << "|  " << ChVector3d(loc_x, loc_y, loc_z) << std::endl;
 
         // Create the node
-        auto node = chrono_types::make_shared<ChNodeFEAxyzD>(ChVector<>(loc_x, loc_y, loc_z), ChVector<>(0, 0, 1));
+        auto node = chrono_types::make_shared<ChNodeFEAxyzD>(ChVector3d(loc_x, loc_y, loc_z), ChVector3d(0, 0, 1));
         node->SetMass(0);
 
         // Add node to mesh
-        my_mesh->AddNode(node);
+        mesh->AddNode(node);
     }
 
     // Create an isotropic material
@@ -167,10 +168,10 @@ int main(int argc, char* argv[]) {
 
         // Create the element and set its nodes.
         auto element = chrono_types::make_shared<ChElementShellANCF_3423>();
-        element->SetNodes(std::dynamic_pointer_cast<ChNodeFEAxyzD>(my_mesh->GetNode(node0)),
-                          std::dynamic_pointer_cast<ChNodeFEAxyzD>(my_mesh->GetNode(node1)),
-                          std::dynamic_pointer_cast<ChNodeFEAxyzD>(my_mesh->GetNode(node2)),
-                          std::dynamic_pointer_cast<ChNodeFEAxyzD>(my_mesh->GetNode(node3)));
+        element->SetNodes(std::dynamic_pointer_cast<ChNodeFEAxyzD>(mesh->GetNode(node0)),
+                          std::dynamic_pointer_cast<ChNodeFEAxyzD>(mesh->GetNode(node1)),
+                          std::dynamic_pointer_cast<ChNodeFEAxyzD>(mesh->GetNode(node2)),
+                          std::dynamic_pointer_cast<ChNodeFEAxyzD>(mesh->GetNode(node3)));
 
         // Element length is a fixed number in both direction. (uniform distribution of nodes in both directions)
         element->SetDimensions(dy, dx);
@@ -179,30 +180,30 @@ int main(int argc, char* argv[]) {
         // Set other element properties
         element->SetAlphaDamp(0.05);  // Structural damping for this
         // Add element to mesh
-        my_mesh->AddElement(element);
+        mesh->AddElement(element);
     }
-    auto nodeRef = std::dynamic_pointer_cast<ChNodeFEAxyzD>(my_mesh->GetNode(0));
+    auto nodeRef = std::dynamic_pointer_cast<ChNodeFEAxyzD>(mesh->GetNode(0));
 
     // Create node cloud for contact with box
-    double m_contact_node_radius = 0.0015;
-    auto mysurfmaterial = chrono_types::make_shared<ChMaterialSurfaceSMC>();
+    double contact_node_radius = 0.0015;
+    auto contact_material = chrono_types::make_shared<ChContactMaterialSMC>();
 
-    mysurfmaterial->SetKn(kn);
-    mysurfmaterial->SetKt(kt);
-    mysurfmaterial->SetGn(gn);
-    mysurfmaterial->SetGt(gt);
+    contact_material->SetKn(kn);
+    contact_material->SetKt(kt);
+    contact_material->SetGn(gn);
+    contact_material->SetGt(gt);
 
-    auto contact_surf = chrono_types::make_shared<ChContactSurfaceNodeCloud>(mysurfmaterial);
-    my_mesh->AddContactSurface(contact_surf);
-    contact_surf->AddAllNodes(m_contact_node_radius);
+    auto contact_surf = chrono_types::make_shared<ChContactSurfaceNodeCloud>(contact_material);
+    mesh->AddContactSurface(contact_surf);
+    contact_surf->AddAllNodes(contact_node_radius);
 
     // Remember to add the mesh to the system!
-    system.Add(my_mesh);
+    system.Add(mesh);
 
     // Create container box
-    auto ground = utils::CreateBoxContainer(&system, binId, material,                                    //
-                                            ChVector<>(bin_width, bin_length, 200 * dy), bin_thickness,  //
-                                            ChVector<>(0, 0, -1.5 * m_contact_node_radius), QUNIT);      //
+    auto ground = utils::CreateBoxContainer(&system, material,                                           //
+                                            ChVector3d(bin_width, bin_length, 200 * dy), bin_thickness,  //
+                                            ChVector3d(0, 0, -1.5 * contact_node_radius), QUNIT);        //
 
     // -------------------
     // Setup linear solver
@@ -210,20 +211,20 @@ int main(int argc, char* argv[]) {
 
     switch (solver_type) {
         case DEFAULT_SOLVER: {
-            GetLog() << "Using DEFAULT solver.\n";
-            system.SetSolverMaxIterations(100);
-            system.SetSolverForceTolerance(1e-6);
+            std::cout << "Using DEFAULT solver.\n";
+            system.SetSolverType(ChSolver::Type::PSOR);
+            system.GetSolver()->AsIterative()->SetMaxIterations(100);
+            system.GetSolver()->AsIterative()->SetTolerance(time_step * 1e-6);
             break;
         }
         case MINRES_SOLVER: {
-            GetLog() << "Using MINRES solver.\n";
+            std::cout << "Using MINRES solver.\n";
             auto solver = chrono_types::make_shared<ChSolverMINRES>();
             system.SetSolver(solver);
             solver->SetMaxIterations(100);
             solver->SetTolerance(1e-8);
             solver->EnableDiagonalPreconditioner(true);
             solver->SetVerbose(false);
-            system.SetSolverForceTolerance(1e-6);
             break;
         }
         default:
@@ -234,10 +235,10 @@ int main(int argc, char* argv[]) {
     // Setup integrator
     // ----------------
 
-    GetLog() << "Using HHT integrator.\n";
+    std::cout << "Using HHT integrator.\n";
     auto integrator = chrono_types::make_shared<ChTimestepperHHT>(&system);
     integrator->SetAlpha(0.0);
-    integrator->SetMaxiters(100);
+    integrator->SetMaxIters(100);
     integrator->SetAbsTolerances(1e-08);
 
     // ---------------
@@ -250,22 +251,23 @@ int main(int argc, char* argv[]) {
         system.DoStepDynamics(time_step);
 
         system.GetContactContainer()->ComputeContactForces();
-        ChVector<> contact_force = ground->GetContactForce();
-        GetLog() << "t = " << system.GetChTime() << " num contacts = " << system.GetContactContainer()->GetNcontacts()
-                 << "  force =  " << contact_force.z() << "\n";
-        GetLog() << "Vertical Displacement of a Node: " << nodeRef->GetPos().z() << "\n";
-        GetLog() << "Total Weight of Shell: " << total_weight << "\n";
+        ChVector3d contact_force = ground->GetContactForce();
+        std::cout << "t = " << system.GetChTime()
+                  << " num contacts = " << system.GetContactContainer()->GetNumContacts()
+                  << "  force =  " << contact_force.z() << "\n";
+        std::cout << "Vertical Displacement of a Node: " << nodeRef->GetPos().z() << "\n";
+        std::cout << "Total Weight of Shell: " << total_weight << "\n";
 
         if (system.GetChTime() > start_time) {
             if (std::abs(1 - std::abs(contact_force.z()) / total_weight) > rtol) {
-                GetLog() << "t = " << system.GetChTime() << "  force =  " << contact_force.z() << "\n";
+                std::cout << "t = " << system.GetChTime() << "  force =  " << contact_force.z() << "\n";
                 passed = false;
                 break;
             }
         }
     }
 
-    GetLog() << "Test " << (passed ? "PASSED" : "FAILED") << "\n\n\n";
+    std::cout << "Test " << (passed ? "PASSED" : "FAILED") << "\n\n\n";
 
     return !passed;
 }

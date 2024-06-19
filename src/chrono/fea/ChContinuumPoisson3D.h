@@ -31,16 +31,14 @@ class ChApi ChContinuumPoisson3D : public ChContinuumMaterial {
     ChMatrixDynamic<> ConstitutiveMatrix;  // constitutive matrix
 
   public:
-    ChContinuumPoisson3D() {
-        ConstitutiveMatrix.setIdentity(3,3);
-    }
+    ChContinuumPoisson3D() { ConstitutiveMatrix.setIdentity(3, 3); }
     ChContinuumPoisson3D(const ChContinuumPoisson3D& other) : ChContinuumMaterial(other) {
         ConstitutiveMatrix = other.ConstitutiveMatrix;
     }
     virtual ~ChContinuumPoisson3D() {}
 
     /// Get the constitutive matrix [C] to compute the bilinear form in the weak formulation
-    ChMatrixDynamic<>& Get_ConstitutiveMatrix() { return ConstitutiveMatrix; }
+    ChMatrixDynamic<>& GetConstitutiveMatrix() { return ConstitutiveMatrix; }
 
     /// Get the rho multiplier for the 'rho dP/dt term', if any (default, none)
     virtual double Get_DtMultiplier() { return 0; }

@@ -53,7 +53,9 @@ class HMMWV_Setup : public Setup {
   public:
     virtual std::string VehicleJSON() const override { return "hmmwv/vehicle/HMMWV_Vehicle.json"; }
     virtual std::string EngineJSON() const override { return "hmmwv/powertrain/HMMWV_EngineShafts.json"; }
-    virtual std::string TransmissionJSON() const override { return "hmmwv/powertrain/HMMWV_AutomaticTransmissionShafts.json"; }
+    virtual std::string TransmissionJSON() const override {
+        return "hmmwv/powertrain/HMMWV_AutomaticTransmissionShafts.json";
+    }
     virtual std::string TireJSON() const override { return "hmmwv/tire/HMMWV_TMeasyTire.json"; }
 };
 
@@ -73,7 +75,7 @@ ChVehicle* CreateVehicle(ChSystem* sys, bool is_wheeled) {
     if (is_wheeled) {
         // Create the wheeled vehicle system
         auto vehicle = new WheeledVehicle(sys, vehicle::GetDataFile(setup.VehicleJSON()));
-        vehicle->Initialize(ChCoordsys<>(ChVector<>(0, 0, 0.75), QUNIT));
+        vehicle->Initialize(ChCoordsys<>(ChVector3d(0, 0, 0.75), QUNIT));
         vehicle->GetChassis()->SetFixed(chassis_fixed);
         vehicle->SetChassisVisualizationType(VisualizationType::MESH);
         vehicle->SetSuspensionVisualizationType(VisualizationType::PRIMITIVES);
@@ -98,7 +100,7 @@ ChVehicle* CreateVehicle(ChSystem* sys, bool is_wheeled) {
     } else {
         // Create the tracked vehicle system
         auto vehicle = new TrackedVehicle(sys, vehicle::GetDataFile(setup.VehicleJSON()));
-        vehicle->Initialize(ChCoordsys<>(ChVector<>(0, 0, 0.85), QUNIT));
+        vehicle->Initialize(ChCoordsys<>(ChVector3d(0, 0, 0.85), QUNIT));
         vehicle->GetChassis()->SetFixed(chassis_fixed);
         vehicle->SetChassisVisualizationType(VisualizationType::MESH);
         vehicle->SetSprocketVisualizationType(VisualizationType::MESH);
@@ -157,15 +159,13 @@ class JSONStats : public opengl::ChOpenGLStats {
     JSONStats() : ChOpenGLStats() {}
     virtual void GenerateStats(ChSystem& sys) override {
         char buffer[150];
-        sprintf(buffer, "JSON FILE:  %s", json_file.c_str());
-        text.Render(buffer, screen.LEFT, screen.TOP - 1 * screen.SPACING, screen.SX, screen.SY);
+        text.Render("JSON FILE: " + json_file, screen.LEFT, screen.TOP - 1 * screen.SPACING, screen.SX, screen.SY);
 
-        sprintf(buffer, "TIME:       %04f", sys.GetChTime());
+        snprintf(buffer, sizeof(buffer), "TIME:       %04f", sys.GetChTime());
         text.Render(buffer, screen.LEFT, screen.TOP - 3 * screen.SPACING, screen.SX, screen.SY);
 
-        sprintf(buffer, "FPS:        %04d", int(fps));
+        snprintf(buffer, sizeof(buffer), "FPS:        %04d", int(fps));
         text.Render(buffer, screen.LEFT, screen.TOP - 4 * screen.SPACING, screen.SX, screen.SY);
-
     }
     std::string json_file;
 };
@@ -173,7 +173,7 @@ class JSONStats : public opengl::ChOpenGLStats {
 // =============================================================================
 
 int main(int argc, char* argv[]) {
-    GetLog() << "Copyright (c) 2017 projectchrono.org\nChrono version: " << CHRONO_VERSION << "\n\n";
+    std::cout << "Copyright (c) 2017 projectchrono.org\nChrono version: " << CHRONO_VERSION << std::endl;
 
     // Peek in vehicle JSON file and infer type
     rapidjson::Document d;
@@ -188,7 +188,8 @@ int main(int argc, char* argv[]) {
 
     // Create containing system and vehicle
     ChSystemSMC sys;
-    sys.Set_G_acc(enable_gravity ? ChVector<>(0, 0, -9.81) : VNULL);
+    sys.SetCollisionSystemType(ChCollisionSystem::Type::BULLET);
+    sys.SetGravitationalAcceleration(enable_gravity ? ChVector3d(0, 0, -9.81) : VNULL);
     auto vehicle = CreateVehicle(&sys, is_wheeled);
 
     // (Constant) driver inputs
@@ -216,7 +217,7 @@ int main(int argc, char* argv[]) {
     vis.SetWindowTitle("JSON visualization");
     vis.SetWindowSize(1280, 720);
     vis.SetRenderMode(opengl::SOLID);
-    vis.AddCamera(factor * ChVector<>(-1, -1, 0.75), ChVector<>(0, 0, 0.5));
+    vis.AddCamera(factor * ChVector3d(-1, -1, 0.75), ChVector3d(0, 0, 0.5));
     vis.SetCameraVertical(CameraVerticalDir::Z);
     vis.Initialize();
     vis.AttachSystem(&sys);

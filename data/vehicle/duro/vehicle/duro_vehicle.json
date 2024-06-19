@@ -1,0 +1,47 @@
+{
+  "Name": "Duro",
+  "Type": "Vehicle",
+  "Template": "WheeledVehicle",
+
+  "Chassis": {
+    "Input File": "duro/chassis/duro_chassis.json"
+  },
+
+  "Axles": [
+    {
+      "Suspension Input File": "duro/suspension/duro_toebar_dedion.json",
+      "Suspension Location": [ 0, 0, 0 ],
+      "Steering Index": 0,
+      "Left Wheel Input File": "duro/wheels/duro_wheel.json",
+      "Right Wheel Input File": "duro/wheels/duro_wheel.json",
+      "Left Brake Input File": "duro/brakes/duro_brake_shafts.json",
+      "Right Brake Input File": "duro/brakes/duro_brake_shafts.json"
+    },
+
+    {
+      "Suspension Input File": "duro/suspension/duro_dedion_axle.json",
+      "Suspension Location": [ -3.88, 0, 0 ],
+      "Left Wheel Input File": "duro/wheels/duro_wheel.json",
+      "Right Wheel Input File": "duro/wheels/duro_wheel.json",
+      "Left Brake Input File": "duro/brakes/duro_brake_shafts.json",
+      "Right Brake Input File": "duro/brakes/duro_brake_shafts.json"
+    }
+  ],
+
+  "Steering Subsystems": [
+    {
+      "Input File": "duro/steering/duro_steering.json",
+      "Location": [ 0, 0, 0 ],
+      "Orientation": [ 1, 0, 0, 0 ]
+    }
+  ],
+
+  "Wheelbase": 3.88,
+  "Minimum Turning Radius": 8.0,
+  "Maximum Steering Angle (deg)": 27,
+
+  "Driveline": {
+    "Input File": "duro/drivelines/duro_driveline_4x4.json",
+    "Suspension Indexes": [ 0, 1 ]
+  }
+}

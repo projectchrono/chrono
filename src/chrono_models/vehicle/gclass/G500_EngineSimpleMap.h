@@ -30,7 +30,7 @@ namespace chrono {
 namespace vehicle {
 namespace gclass {
 
-/// @addtogroup vehicle_models_uaz
+/// @addtogroup vehicle_models_gclass
 /// @{
 
 /// Simple UAZBUS powertrain subsystem (based on engine speed-torque maps).
@@ -43,17 +43,16 @@ class CH_MODELS_API G500_EngineSimpleMap : public ChEngineSimpleMap {
 
     /// Set the engine speed-torque maps.
     /// A concrete class must add the speed-torque points to the provided maps,
-    /// using the ChFunction_Recorder::AddPoint() function.
-    virtual void SetEngineTorqueMaps(ChFunction_Recorder& map0,  ///< [out] engine map at zero throttle
-                                     ChFunction_Recorder& mapF   ///< [out] engine map at full throttle
+    /// using the ChFunctionInterp::AddPoint() function.
+    virtual void SetEngineTorqueMaps(ChFunctionInterp& map0,  ///< [out] engine map at zero throttle
+                                     ChFunctionInterp& mapF   ///< [out] engine map at full throttle
                                      ) override;
 };
 
-/// @} vehicle_models_uaz
+/// @} vehicle_models_gclass
 
-}  // namespace uaz
+}  // namespace gclass
 }  // end namespace vehicle
 }  // end namespace chrono
 
 #endif
-

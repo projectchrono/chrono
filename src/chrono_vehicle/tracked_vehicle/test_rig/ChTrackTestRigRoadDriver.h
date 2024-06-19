@@ -45,11 +45,11 @@ class CH_VEHICLE_API ChTrackTestRigRoadDriver : public ChTrackTestRigDriver {
   public:
     /// Construct using data from the specified file.
     ChTrackTestRigRoadDriver(const std::string& filename,  ///< name of data file
-                    double speed                  ///< translation speed
+                             double speed                  ///< translation speed
     );
 
     ~ChTrackTestRigRoadDriver();
-    
+
     /// Return true when driver stopped producing inputs (end of data).
     virtual bool Ended() const override;
 

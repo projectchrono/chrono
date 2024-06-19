@@ -112,7 +112,7 @@ class CH_VEHICLE_API ChTrackTestRig : public ChVehicle {
 
     /// Set collision flags for the various subsystems.
     /// By default, collision is enabled for sprocket, idler, road wheels, and track shoes.
-    void SetCollide(int flags) { m_collide_flags = flags; }
+    void EnableCollision(int flags) { m_collide_flags = flags; }
 
     /// Enable/disable collision for the rig posts (default: true).
     void SetPostCollide(bool flag);
@@ -136,7 +136,7 @@ class CH_VEHICLE_API ChTrackTestRig : public ChVehicle {
 
     /// Return estimated resistive torque on the specified sprocket.
     /// This torque is available only if monitoring of contacts for that sprocket is enabled.
-    ChVector<> GetSprocketResistiveTorque(VehicleSide side) const {
+    ChVector3d GetSprocketResistiveTorque(VehicleSide side) const {
         return m_contact_manager->GetSprocketResistiveTorque(side);
     }
 
@@ -216,9 +216,9 @@ class CH_VEHICLE_API ChTrackTestRig : public ChVehicle {
     std::vector<std::shared_ptr<ChLinkMotorLinearPosition>> m_post_linact;  ///< post linear actuators
 
     std::shared_ptr<ChTrackTestRigDriver> m_driver;  ///< driver system
-    double m_throttle_input;                ///< current driver throttle input
-    std::vector<double> m_displ_input;      ///< current post displacement inputs
-    std::string m_driver_logfile;           ///< name of optioinal driver log file
+    double m_throttle_input;                         ///< current driver throttle input
+    std::vector<double> m_displ_input;               ///< current post displacement inputs
+    std::string m_driver_logfile;                    ///< name of optioinal driver log file
 
     double m_ride_height;   ///< ride height
     double m_displ_offset;  ///< post displacement offset (to set reference position)
@@ -242,7 +242,7 @@ class CH_VEHICLE_API ChTrackTestRig : public ChVehicle {
     bool m_plot_output;
     double m_plot_output_step;
     double m_next_plot_output_time;
-    utils::CSV_writer* m_csv;
+    utils::ChWriterCSV* m_csv;
 
     friend class ChTrackTestRigVisualSystemIrrlicht;
 };

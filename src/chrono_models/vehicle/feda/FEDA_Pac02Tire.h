@@ -19,7 +19,7 @@
 #ifndef FEDA_PAC02_TIRE_H
 #define FEDA_PAC02_TIRE_H
 
-#include "chrono/assets/ChTriangleMeshShape.h"
+#include "chrono/assets/ChVisualShapeTriangleMesh.h"
 
 #include "chrono_vehicle/wheeled_vehicle/tire/ChPac02Tire.h"
 
@@ -39,7 +39,7 @@ class CH_MODELS_API FEDA_Pac02Tire : public ChPac02Tire {
     ~FEDA_Pac02Tire() {}
 
     virtual double GetTireMass() const override { return m_mass; }
-    virtual ChVector<> GetTireInertia() const override { return m_inertia; }
+    virtual ChVector3d GetTireInertia() const override { return m_inertia; }
 
     virtual double GetVisualizationWidth() const override { return m_par.WIDTH; }
 
@@ -50,11 +50,11 @@ class CH_MODELS_API FEDA_Pac02Tire : public ChPac02Tire {
 
   private:
     static const double m_mass;
-    static const ChVector<> m_inertia;
+    static const ChVector3d m_inertia;
 
     static const std::string m_meshFile_left;
     static const std::string m_meshFile_right;
-    std::shared_ptr<ChTriangleMeshShape> m_trimesh_shape;
+    std::shared_ptr<ChVisualShapeTriangleMesh> m_trimesh_shape;
 };
 
 /// @} vehicle_models_hmmwv

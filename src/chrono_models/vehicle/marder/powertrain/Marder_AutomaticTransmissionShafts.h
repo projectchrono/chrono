@@ -28,7 +28,7 @@ namespace chrono {
 namespace vehicle {
 namespace marder {
 
-/// @addtogroup vehicle_models_Marder
+/// @addtogroup vehicle_models_marder
 /// @{
 
 /// Shafts-based powertrain model for the Marder vehicle.
@@ -47,8 +47,8 @@ class CH_MODELS_API Marder_AutomaticTransmissionShafts : public ChAutomaticTrans
     virtual double GetUpshiftRPM() const override { return m_upshift_RPM; }
     virtual double GetDownshiftRPM() const override { return m_downshift_RPM; }
 
-    virtual void SetTorqueConverterCapacityFactorMap(std::shared_ptr<ChFunction_Recorder>& map) override;
-    virtual void SetTorqeConverterTorqueRatioMap(std::shared_ptr<ChFunction_Recorder>& map) override;
+    virtual void SetTorqueConverterCapacityFactorMap(std::shared_ptr<ChFunctionInterp>& map) override;
+    virtual void SetTorqeConverterTorqueRatioMap(std::shared_ptr<ChFunctionInterp>& map) override;
 
   private:
     // Shaft inertias.
@@ -62,9 +62,9 @@ class CH_MODELS_API Marder_AutomaticTransmissionShafts : public ChAutomaticTrans
     static const double m_downshift_RPM;
 };
 
-/// @} vehicle_models_Marder
+/// @} vehicle_models_marder
 
-}  // end namespace Marder
+}  // end namespace marder
 }  // end namespace vehicle
 }  // end namespace chrono
 

@@ -8,7 +8,7 @@
 # Check backward compatibility
 #-----------------------------------------------------------------------------
 
-cmake_minimum_required(VERSION 3.10)
+cmake_minimum_required(VERSION 3.18)
 
 #-----------------------------------------------------------------------------
 # Prevent in-source builds.
@@ -24,7 +24,7 @@ endif(${CMAKE_SOURCE_DIR} STREQUAL ${CMAKE_BINARY_DIR})
 if(COMMAND cmake_policy)
     cmake_policy(SET CMP0003 NEW)
     cmake_policy(SET CMP0048 NEW)
-    #cmake_policy(SET CMP0091 NEW)
+    cmake_policy(SET CMP0091 NEW)
 endif(COMMAND cmake_policy)
 
 #-----------------------------------------------------------------------------
@@ -37,7 +37,7 @@ set_property(GLOBAL PROPERTY USE_FOLDERS Off)
 # Define project name and specify version information
 #-----------------------------------------------------------------------------
 
-set(CHRONO_VERSION_MAJOR 8)
+set(CHRONO_VERSION_MAJOR 9)
 set(CHRONO_VERSION_MINOR 0)
 set(CHRONO_VERSION_PATCH 0)
 
@@ -51,7 +51,7 @@ set(CPACK_PACKAGE_VERSION_MINOR "${CHRONO_VERSION_MINOR}")
 set(CPACK_PACKAGE_VERSION_PATCH "${CHRONO_VERSION_PATCH}")
 
 # Version as a hexadecimal integer of the form 0x00MMmmPP
-set(CH_VERSION 0x00080000)
+set(CH_VERSION 0x00090000)
 
 #-----------------------------------------------------------------------------
 # Detect operating system and processor for host and target
@@ -133,6 +133,7 @@ if(MSVC OR XCODE_VERSION)
 else()
     set(CMAKE_BUILD_TYPE Release CACHE STRING "Choose the type of build.")
     set_property(CACHE CMAKE_BUILD_TYPE PROPERTY STRINGS Debug Release MinSizeRel RelWithDebInfo)
+    set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/bin)
     set(CPACK_BUILD_TYPE ${CMAKE_BUILD_TYPE})
 endif()
 

@@ -43,7 +43,7 @@ if "%~1" NEQ "" (
 @if %DOWNLOAD% EQU ON (
     echo "Downloading sources from sourceforge.net"
 
-    rmdir /S/Q download_gl 2>null
+    rmdir /S/Q download_gl 2>nul
     mkdir download_gl
 
     echo "  ... GLEW"
@@ -66,7 +66,7 @@ if "%~1" NEQ "" (
 
 @rem ------------------------------------------------------------------------
 
-rmdir /S/Q %GL_INSTALL_DIR% 2>null
+rmdir /S/Q %GL_INSTALL_DIR% 2>nul
 
 rem --- GLM ----------------------------------------------------------------
 
@@ -74,7 +74,7 @@ xcopy /S/E/I %GLM_SOURCE_DIR%\glm %GL_INSTALL_DIR%\include\glm
 
 rem --- GLEW ---------------------------------------------------------------
 
-rmdir /S/Q build_glew 2>null
+rmdir /S/Q build_glew 2>nul
 cmake -B build_glew -S %GLEW_SOURCE_DIR%/build/cmake ^
       -DBUILD_SHARED_LIBS:BOOL=%BUILDSHARED% ^
       -DCMAKE_DEBUG_POSTFIX=_d
@@ -90,7 +90,7 @@ if %BUILDDEBUG% EQU ON (
 
 rem --- GLFW ---------------------------------------------------------------
 
-rmdir /S/Q build_glfw 2>null
+rmdir /S/Q build_glfw 2>nul
 cmake -B build_glfw -S %GLFW_SOURCE_DIR% ^
       -DBUILD_SHARED_LIBS:BOOL=%BUILDSHARED% ^
       -DCMAKE_DEBUG_POSTFIX=_d

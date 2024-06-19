@@ -36,7 +36,7 @@
 #include <vector>
 
 #include "chrono/physics/ChBody.h"
-#include "chrono/assets/ChCylinderShape.h"
+#include "chrono/assets/ChVisualShapeCylinder.h"
 
 #include "chrono_vehicle/wheeled_vehicle/tire/ChForceElementTire.h"
 #include "chrono_vehicle/ChTerrain.h"
@@ -61,7 +61,7 @@ class CH_VEHICLE_API ChPac02Tire : public ChForceElementTire {
     virtual double GetRadius() const override { return m_states.R_eff; }
 
     /// Set the limit for camber angle (in degrees).  Default: 3 degrees.
-    void SetGammaLimit(double gamma_limit) { m_gamma_limit = gamma_limit; }
+    void SetGammaLimit(double gamma_limit) { m_gamma_limit = CH_DEG_TO_RAD * gamma_limit; }
 
     /// Get the width of the tire.
     virtual double GetWidth() const override { return m_par.WIDTH; }
@@ -86,23 +86,17 @@ class CH_VEHICLE_API ChPac02Tire : public ChForceElementTire {
 
     // retrieve the road friction value the tire 'sees'
     double GetMuRoad() { return m_states.mu_road; }
-    
+
     // experimental for tire sound support
     double GetLongitudinalGripSaturation();
     double GetLateralGripSaturation();
-    
+
   protected:
     double CalcMx(double Fy, double Fz, double gamma);  // get overturning couple
     double CalcMy(double Fx, double Fz, double gamma);  // get rolling resistance moment
-    void CalcFxyMz(double& Fx,
-                   double& Fy,
-                   double& Mz,
-                   double kappa,
-                   double alpha,
-                   double Fz,
-                   double gamma);
-    double CalcSigmaK(double Fz);   // relaxation length longitudinal
-    double CalcSigmaA(double Fz);   // relaxation length lateral
+    void CalcFxyMz(double& Fx, double& Fy, double& Mz, double kappa, double alpha, double Fz, double gamma);
+    double CalcSigmaK(double Fz);  // relaxation length longitudinal
+    double CalcSigmaA(double Fz);  // relaxation length lateral
     void CombinedCoulombForces(double& fx, double& fy, double fz);
 
     // TIR file (ADAMS compatible) loader routines
@@ -123,7 +117,7 @@ class CH_VEHICLE_API ChPac02Tire : public ChForceElementTire {
     // returns false, if section could not be found
     bool FindSectionStart(const std::string& sectName, FILE* fp);
 
-    ChFunction_Recorder m_bott_map;
+    ChFunctionInterp m_bott_map;
 
     /// Set the parameters in the Pac02 model.
     virtual void SetMFParams() = 0;
@@ -142,9 +136,9 @@ class CH_VEHICLE_API ChPac02Tire : public ChForceElementTire {
     bool m_tire_conditions_found = false;
     bool m_vertical_table_found = false;
     bool m_bottoming_table_found = false;
-    
+
     bool m_use_friction_ellipsis = true;
-    
+
     double m_g = 9.81;  // gravitational constant on earth m/s
 
     unsigned int m_use_mode;
@@ -361,6 +355,9 @@ class CH_VEHICLE_API ChPac02Tire : public ChForceElementTire {
         double SSZ4 = 0;   // Variation of distance s/R0 with load and camber
         double QTZ1 = 0;   // Gyration torque constant
         double MBELT = 0;  // Belt mass of the wheel
+        // Non-Pacejka Parameters
+        double sigma0{100000.0};  ///< bristle stiffness for Dahl friction model
+        double sigma1{5000.0};    ///< bristle damping for Dahl friction model
     };
 
     MFCoeff m_par;
@@ -393,7 +390,9 @@ class CH_VEHICLE_API ChPac02Tire : public ChForceElementTire {
         double dfz0;             // normalized vertical force
         double Pi0_prime;        // scaled inflation pressure
         double dpi;              // normalized inflation pressure
-        ChVector<> disc_normal;  //(temporary for debug)
+        double brx{0};           // bristle deformation x
+        double bry{0};           // bristle deformation y
+        ChVector3d disc_normal;  //(temporary for debug)
     };
 
     TireStates m_states;

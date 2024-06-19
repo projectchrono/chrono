@@ -24,7 +24,7 @@ namespace chrono {
 namespace vehicle {
 namespace gclass {
 
-const double rpm2rads = CH_C_PI / 30;
+const double rpm2rads = CH_PI / 30;
 
 G500_AutomaticTransmissionSimpleMap::G500_AutomaticTransmissionSimpleMap(const std::string& name)
     : ChAutomaticTransmissionSimpleMap(name) {}
@@ -51,7 +51,6 @@ void G500_AutomaticTransmissionSimpleMap::SetShiftPoints(std::vector<std::pair<d
     shift_bands.push_back(std::pair<double, double>(1200 * rpm2rads, 5700 * rpm2rads));
 }
 
-}  // namespace uaz
+}  // namespace gclass
 }  // end namespace vehicle
 }  // end namespace chrono
-

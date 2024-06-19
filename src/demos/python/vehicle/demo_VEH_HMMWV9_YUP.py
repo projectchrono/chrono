@@ -31,31 +31,33 @@ def main():
     veh.ChWorldFrame.SetYUP()
 
     #  Create the HMMWV vehicle, set parameters, and initialize
-    my_hmmwv = veh.HMMWV_Reduced()
-    my_hmmwv.SetContactMethod(chrono.ChContactMethod_NSC)
-    my_hmmwv.SetChassisCollisionType(veh.CollisionType_NONE)
-    my_hmmwv.SetChassisFixed(False) 
-    my_hmmwv.SetInitPosition(chrono.ChCoordsysD(initLoc, chrono.Q_from_AngY(initYaw)))
-    my_hmmwv.SetEngineType(veh.EngineModelType_SIMPLE)
-    my_hmmwv.SetTransmissionType(veh.TransmissionModelType_SIMPLE_MAP)
-    my_hmmwv.SetDriveType(veh.DrivelineTypeWV_AWD)
-    my_hmmwv.SetTireType(tire_model)
-    my_hmmwv.SetTireStepSize(tire_step_size)
-    my_hmmwv.Initialize()
+    hmmwv = veh.HMMWV_Reduced()
+    hmmwv.SetContactMethod(chrono.ChContactMethod_NSC)
+    hmmwv.SetChassisCollisionType(veh.CollisionType_NONE)
+    hmmwv.SetChassisFixed(False) 
+    hmmwv.SetInitPosition(chrono.ChCoordsysd(initLoc, chrono.QuatFromAngleY(initYaw)))
+    hmmwv.SetEngineType(veh.EngineModelType_SIMPLE)
+    hmmwv.SetTransmissionType(veh.TransmissionModelType_AUTOMATIC_SIMPLE_MAP)
+    hmmwv.SetDriveType(veh.DrivelineTypeWV_AWD)
+    hmmwv.SetTireType(tire_model)
+    hmmwv.SetTireStepSize(tire_step_size)
+    hmmwv.Initialize()
 
-    my_hmmwv.SetChassisVisualizationType(chassis_vis_type)
-    my_hmmwv.SetSuspensionVisualizationType(suspension_vis_type)
-    my_hmmwv.SetSteeringVisualizationType(steering_vis_type)
-    my_hmmwv.SetWheelVisualizationType(wheel_vis_type)
-    my_hmmwv.SetTireVisualizationType(tire_vis_type)
+    hmmwv.SetChassisVisualizationType(chassis_vis_type)
+    hmmwv.SetSuspensionVisualizationType(suspension_vis_type)
+    hmmwv.SetSteeringVisualizationType(steering_vis_type)
+    hmmwv.SetWheelVisualizationType(wheel_vis_type)
+    hmmwv.SetTireVisualizationType(tire_vis_type)
+
+    hmmwv.GetSystem().SetCollisionSystemType(chrono.ChCollisionSystem.Type_BULLET)
 
     # Create the terrain
 
-    terrain = veh.RigidTerrain(my_hmmwv.GetSystem())
-    patch_mat = chrono.ChMaterialSurfaceNSC()
+    terrain = veh.RigidTerrain(hmmwv.GetSystem())
+    patch_mat = chrono.ChContactMaterialNSC()
     patch_mat.SetFriction(0.9)
     patch = terrain.AddPatch(patch_mat, 
-                             chrono.ChCoordsysD(chrono.VNULL, chrono.Q_from_AngX(-m.pi / 2)), 
+                             chrono.ChCoordsysd(chrono.VNULL, chrono.QuatFromAngleX(-m.pi / 2)), 
                              200.0, 100.0)
     patch.SetTexture(veh.GetDataFile("terrain/textures/tile4.jpg"), 200, 200)
     patch.SetColor(chrono.ChColor(0.8, 0.8, 0.5))
@@ -66,12 +68,12 @@ def main():
     vis.SetCameraVertical(chrono.CameraVerticalDir_Y)
     vis.SetWindowTitle('HMMWV-9 YUP world frame')
     vis.SetWindowSize(1280, 1024)
-    vis.SetChaseCamera(chrono.ChVectorD(0.0, 0.0, 0.75), 6.0, 0.5)
+    vis.SetChaseCamera(chrono.ChVector3d(0.0, 0.0, 0.75), 6.0, 0.5)
     vis.Initialize()
     vis.AddLogo(chrono.GetChronoDataFile('logo_pychrono_alpha.png'))
-    vis.AddLightDirectional()
+    vis.AddLightDirectional(-60, 300)
     vis.AddSkyBox()
-    vis.AttachVehicle(my_hmmwv.GetVehicle())
+    vis.AttachVehicle(hmmwv.GetVehicle())
 
     # Create the interactive driver system
     driver = veh.ChInteractiveDriverIRR(vis)
@@ -82,10 +84,10 @@ def main():
 
     # Simulation loop
     
-    my_hmmwv.GetVehicle().EnableRealtime(True)
+    hmmwv.GetVehicle().EnableRealtime(True)
 
     while vis.Run() :
-        time = my_hmmwv.GetSystem().GetChTime()
+        time = hmmwv.GetSystem().GetChTime()
 
         vis.BeginScene()
         vis.Render()
@@ -97,13 +99,13 @@ def main():
         # Update modules (process inputs from other modules)
         driver.Synchronize(time)
         terrain.Synchronize(time)
-        my_hmmwv.Synchronize(time, driver_inputs, terrain)
+        hmmwv.Synchronize(time, driver_inputs, terrain)
         vis.Synchronize(time, driver_inputs)
 
         # Advance simulation for one timestep for all modules
         driver.Advance(step_size)
         terrain.Advance(step_size)
-        my_hmmwv.Advance(step_size)
+        hmmwv.Advance(step_size)
         vis.Advance(step_size)
 
     return 0
@@ -117,7 +119,7 @@ def main():
 veh.SetDataPath(chrono.GetChronoDataPath() + 'vehicle/')
 
 # Initial vehicle location and orientation
-initLoc = chrono.ChVectorD(0, 1, 10)
+initLoc = chrono.ChVector3d(0, 1, 10)
 initYaw = 0
 
 # Visualization type for vehicle parts (PRIMITIVES, MESH, or NONE)

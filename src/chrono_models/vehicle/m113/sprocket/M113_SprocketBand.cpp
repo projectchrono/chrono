@@ -17,7 +17,7 @@
 // =============================================================================
 
 #include "chrono/assets/ChColor.h"
-#include "chrono/assets/ChTriangleMeshShape.h"
+#include "chrono/assets/ChVisualShapeTriangleMesh.h"
 #include "chrono/utils/ChUtilsInputOutput.h"
 
 #include "chrono_vehicle/ChVehicleModelData.h"
@@ -34,7 +34,7 @@ namespace m113 {
 // Static variables
 // -----------------------------------------------------------------------------
 const double M113_SprocketBand::m_gear_mass = 27.68;
-const ChVector<> M113_SprocketBand::m_gear_inertia(0.646, 0.883, 0.646);
+const ChVector3d M113_SprocketBand::m_gear_inertia(0.646, 0.883, 0.646);
 const double M113_SprocketBand::m_axle_inertia = 0.4;
 const double M113_SprocketBand::m_separation = 0.278;
 
@@ -67,9 +67,9 @@ void M113_SprocketBand::CreateContactMaterial(ChContactMethod contact_method) {
 
 void M113_SprocketBand::AddVisualizationAssets(VisualizationType vis) {
     if (vis == VisualizationType::MESH) {
-        auto trimesh = geometry::ChTriangleMeshConnected::CreateFromWavefrontFile(GetMeshFile(), false, false);
+        auto trimesh = ChTriangleMeshConnected::CreateFromWavefrontFile(GetMeshFile(), false, false);
         ////auto trimesh = CreateVisualizationMesh(0.15, 0.03, 0.02);
-        auto trimesh_shape = chrono_types::make_shared<ChTriangleMeshShape>();
+        auto trimesh_shape = chrono_types::make_shared<ChVisualShapeTriangleMesh>();
         trimesh_shape->SetMesh(trimesh);
         trimesh_shape->SetName(filesystem::path(GetMeshFile()).stem());
         trimesh_shape->SetMutable(false);

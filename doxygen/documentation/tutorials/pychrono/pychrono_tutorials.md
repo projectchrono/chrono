@@ -180,38 +180,10 @@ Simulate vehicle dynamics in Python, using complete pre-built wheeled vehicle mo
 	- fetch parts and recerences from the STEP document, and create joints between them.
 	- assign a ChLinkTrajectory to a part
 
-	
-## Tutorials using the SolidWorks add-in
-	
-- **solidworks/demo_SW_irrlicht.py**
 
-    Import a SolidWorks scene into your PyChrono program, and simulate it. The Chrono::Solidworks add-in can be used in SolidWorks to export an assembly into a .py file that can be later load and simulated.
-    - use the Chrono::SolidWorks Add-In for exporting a mechanical system
-    - load the system in PyChrono and simulate it
-    - visualize it in Irrlicht
-
-<br>
-
-- **solidworks/demo_SW_povray.py**
-
-    Import a SolidWorks scene into your PyChrono program, and simulate it.
-    - use the Chrono::SolidWorks Add-In for exporting a mechanical system
-    - load the system in PyChrono and simulate it
-    - visualize it with POVray scripts for rendering a 3D animation 
-
-<br>
-
-- Spider robot demo
-
-    Import a SolidWorks model of a crawling robot into your PyChrono program, and simulate it.
-    - use the Chrono::SolidWorks Add-In for exporting a mechanical system
-    - load the system in PyChrono
-    - add actuators and additional items not modeled in CAD
-    - show the simulation in an Irrlicht 3D view
-    - [Additional details](@ref tutorial_pychrono_demo_spider_robot)
 
 	
-## Machine learning tutorials
+## Machine Learning Tutorials
 
 - Using PyChrono with TensorFlow
 

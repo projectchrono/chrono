@@ -65,11 +65,11 @@ class MyEventReceiver : public IEventReceiver {
                         s32 pos = ((IGUIScrollBar*)event.GUIEvent.Caller)->getPos();
                         double newspeed = 10 * (double)pos / 100.0;
                         // set the speed into motor object
-                        if (auto mfun = std::dynamic_pointer_cast<ChFunction_Const>(mmotor->GetSpeedFunction()))
-                            mfun->Set_yconst(newspeed);
+                        if (auto mfun = std::dynamic_pointer_cast<ChFunctionConst>(mmotor->GetSpeedFunction()))
+                            mfun->SetConstant(newspeed);
                         // show speed as formatted text in interface screen
                         char message[50];
-                        sprintf(message, "Motor speed: %g [rad/s]", newspeed);
+                        snprintf(message, sizeof(message), "Motor speed: %g [rad/s]", newspeed);
                         text_motorspeed->setText(core::stringw(message).c_str());
                     }
                     break;
@@ -88,7 +88,7 @@ class MyEventReceiver : public IEventReceiver {
 };
 
 int main(int argc, char* argv[]) {
-    GetLog() << "Copyright (c) 2017 projectchrono.org\nChrono version: " << CHRONO_VERSION << "\n\n";
+    std::cout << "Copyright (c) 2017 projectchrono.org\nChrono version: " << CHRONO_VERSION << std::endl;
 
     // 1- Create a Chrono physical system
     ChSystemNSC sys;
@@ -100,46 +100,46 @@ int main(int argc, char* argv[]) {
     // ..the truss
     auto my_body_A = chrono_types::make_shared<ChBody>();
     sys.AddBody(my_body_A);
-    my_body_A->SetBodyFixed(true);  // truss does not move!
+    my_body_A->SetFixed(true);  // truss does not move!
 
     // ..the flywheel
     auto my_body_B = chrono_types::make_shared<ChBody>();
     sys.AddBody(my_body_B);
-    my_body_B->SetPos(ChVector<>(0, 0, 0));  // position of COG of flywheel
+    my_body_B->SetPos(ChVector3d(0, 0, 0));  // position of COG of flywheel
 
     // ..the rod
     auto my_body_C = chrono_types::make_shared<ChBody>();
     sys.AddBody(my_body_C);
-    my_body_C->SetPos(ChVector<>(4, 0, 0));  // position of COG of rod
+    my_body_C->SetPos(ChVector3d(4, 0, 0));  // position of COG of rod
 
     // ..the rocker
     auto my_body_D = chrono_types::make_shared<ChBody>();
     sys.AddBody(my_body_D);
-    my_body_D->SetPos(ChVector<>(8, -4, 0));  // position of COG of rod
+    my_body_D->SetPos(ChVector3d(8, -4, 0));  // position of COG of rod
 
     // 3- Create constraints: the mechanical joints between the
     //    rigid bodies. Doesn't matter if some constraints are redundant.
 
     // .. a motor between flywheel and truss
     auto my_link_AB = chrono_types::make_shared<ChLinkMotorRotationSpeed>();
-    my_link_AB->Initialize(my_body_A, my_body_B, ChFrame<>(ChVector<>(0, 0, 0)));
+    my_link_AB->Initialize(my_body_A, my_body_B, ChFrame<>(ChVector3d(0, 0, 0)));
     sys.AddLink(my_link_AB);
-    auto my_speed_function = chrono_types::make_shared<ChFunction_Const>(CH_C_PI);  // speed w=3.145 rad/sec
+    auto my_speed_function = chrono_types::make_shared<ChFunctionConst>(CH_PI);  // speed w=3.145 rad/sec
     my_link_AB->SetSpeedFunction(my_speed_function);
 
     // .. a revolute joint between flywheel and rod
     auto my_link_BC = chrono_types::make_shared<ChLinkLockRevolute>();
-    my_link_BC->Initialize(my_body_B, my_body_C, ChCoordsys<>(ChVector<>(2, 0, 0)));
+    my_link_BC->Initialize(my_body_B, my_body_C, ChFrame<>(ChVector3d(2, 0, 0)));
     sys.AddLink(my_link_BC);
 
     // .. a revolute joint between rod and rocker
     auto my_link_CD = chrono_types::make_shared<ChLinkLockRevolute>();
-    my_link_CD->Initialize(my_body_C, my_body_D, ChCoordsys<>(ChVector<>(8, 0, 0)));
+    my_link_CD->Initialize(my_body_C, my_body_D, ChFrame<>(ChVector3d(8, 0, 0)));
     sys.AddLink(my_link_CD);
 
     // .. a revolute joint between rocker and truss
     auto my_link_DA = chrono_types::make_shared<ChLinkLockRevolute>();
-    my_link_DA->Initialize(my_body_D, my_body_A, ChCoordsys<>(ChVector<>(8, -8, 0)));
+    my_link_DA->Initialize(my_body_D, my_body_A, ChFrame<>(ChVector3d(8, -8, 0)));
     sys.AddLink(my_link_DA);
 
     // Create the Irrlicht visualization system
@@ -150,7 +150,7 @@ int main(int argc, char* argv[]) {
     vis->Initialize();
     vis->AddLogo();
     vis->AddSkyBox();
-    vis->AddCamera(ChVector<>(0, 0, -8));
+    vis->AddCamera(ChVector3d(0, 0, -8));
     vis->AddTypicalLights();
 
     // ..add a GUI text and GUI slider to control motor of mechanism via mouse
@@ -179,7 +179,7 @@ int main(int argc, char* argv[]) {
     //
 
     // use this array of points to store trajectory of a rod-point
-    std::vector<chrono::ChVector<> > mtrajectory;
+    std::vector<chrono::ChVector3d> mtrajectory;
 
     while (vis->Run()) {
         vis->BeginScene();
@@ -188,24 +188,24 @@ int main(int argc, char* argv[]) {
         // .. draw a grid
         tools::drawGrid(vis.get(), 0.5, 0.5);
         // .. draw a circle representing flywheel
-        tools::drawCircle(vis.get(), 2.1, ChCoordsys<>(ChVector<>(0, 0, 0), QUNIT));
+        tools::drawCircle(vis.get(), 2.1, ChCoordsys<>(ChVector3d(0, 0, 0), QUNIT));
         // .. draw a small circle representing joint BC
-        tools::drawCircle(vis.get(), 0.06, ChCoordsys<>(my_link_BC->GetMarker1()->GetAbsCoord().pos, QUNIT));
+        tools::drawCircle(vis.get(), 0.06, ChCoordsys<>(my_link_BC->GetMarker1()->GetAbsCoordsys().pos, QUNIT));
         // .. draw a small circle representing joint CD
-        tools::drawCircle(vis.get(), 0.06, ChCoordsys<>(my_link_CD->GetMarker1()->GetAbsCoord().pos, QUNIT));
+        tools::drawCircle(vis.get(), 0.06, ChCoordsys<>(my_link_CD->GetMarker1()->GetAbsCoordsys().pos, QUNIT));
         // .. draw a small circle representing joint DA
-        tools::drawCircle(vis.get(), 0.06, ChCoordsys<>(my_link_DA->GetMarker1()->GetAbsCoord().pos, QUNIT));
+        tools::drawCircle(vis.get(), 0.06, ChCoordsys<>(my_link_DA->GetMarker1()->GetAbsCoordsys().pos, QUNIT));
         // .. draw the rod (from joint BC to joint CD)
-        tools::drawSegment(vis.get(), my_link_BC->GetMarker1()->GetAbsCoord().pos,
-                           my_link_CD->GetMarker1()->GetAbsCoord().pos, ChColor(0, 1, 0));
+        tools::drawSegment(vis.get(), my_link_BC->GetMarker1()->GetAbsCoordsys().pos,
+                           my_link_CD->GetMarker1()->GetAbsCoordsys().pos, ChColor(0, 1, 0));
         // .. draw the rocker (from joint CD to joint DA)
-        tools::drawSegment(vis.get(), my_link_CD->GetMarker1()->GetAbsCoord().pos,
-                           my_link_DA->GetMarker1()->GetAbsCoord().pos, ChColor(1, 0, 0));
+        tools::drawSegment(vis.get(), my_link_CD->GetMarker1()->GetAbsCoordsys().pos,
+                           my_link_DA->GetMarker1()->GetAbsCoordsys().pos, ChColor(1, 0, 0));
         // .. draw the trajectory of the rod-point
         tools::drawPolyline(vis.get(), mtrajectory, ChColor(0, 0.5f, 0));
 
         // We need to add another point to the array of 3d points describing the trajectory to be drawn..
-        mtrajectory.push_back(my_body_C->Point_Body2World(ChVector<>(1, 1, 0)));
+        mtrajectory.push_back(my_body_C->TransformPointLocalToParent(ChVector3d(1, 1, 0)));
         // keep only last 150 points..
         if (mtrajectory.size() > 150)
             mtrajectory.erase(mtrajectory.begin());

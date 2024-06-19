@@ -37,12 +37,6 @@ if(ENABLE_MODULE_VEHICLE_MODELS)
 
 endif()
 
-#if(ENABLE_MODULE_DISTRIBUTED)
-#  set(PROGRAMS ${PROGRAMS}
-#      demo_VEH_Cosim_WheelRig_DistributedTerrain
-#      )
-#endif()
-
 include_directories(${CH_VEHCOSIM_INCLUDES})
 list(APPEND LIBRARIES ChronoEngine_vehicle_cosim)
 list(APPEND LIBRARIES ${CH_VEHCOSIM_LIBRARIES})

@@ -2,8 +2,7 @@
 #define SYN_LOG_H
 
 #include "chrono_synchrono/SynApi.h"
-
-#include "chrono/core/ChLog.h"
+#include <ostream>
 
 /// @addtogroup synchrono_utils
 /// @{
@@ -15,9 +14,9 @@ namespace synchrono {
 /// That way, the logger will print the correct node id
 SYN_API void SetLogNodeID(int node_id);
 
-/// "Overriden" global function to get the current ChLog object
+/// "Overriden" global function to get the current std::cout object
 /// Will prepend any output with the global id set from SetLogNodeID
-SYN_API ChStreamOutAscii& SynLog();
+SYN_API std::ostream& SynLog();
 
 }  // namespace synchrono
 }  // namespace chrono

@@ -22,7 +22,7 @@ namespace chrono {
 
 /// @addtogroup chrono_solver
 /// @{
-    
+
 /** \class ChIterativeSolverVI
 \brief Base class for iterative solvers aimed at solving complementarity problems arising from QP optimization problems.
 
@@ -68,10 +68,13 @@ class ChApi ChIterativeSolverVI : public ChIterativeSolver, public ChSolverVI {
     /// value is in the 0.8 ... 1.0 range (lower values improve accuracy but at the cost of slower convergence)
     void SetSharpnessLambda(double mval);
 
+    /// Set the maximum number of iterations.
+    virtual void SetMaxIterations(int max_iterations) override;
+
     /// Enable/disable recording of the constraint violation history.
     /// If enabled, the maximum constraint violation at the end of each iteration is stored in a vector (see
     /// GetViolationHistory).
-    void SetRecordViolation(bool mval) { record_violation_history = mval; }
+    void SetRecordViolation(bool mval);
 
     /// Return the current value of the overrelaxation factor.
     double GetOmega() const { return m_omega; }
@@ -91,12 +94,16 @@ class ChApi ChIterativeSolverVI : public ChIterativeSolver, public ChSolverVI {
     const std::vector<double>& GetDeltalambdaHistory() const { return dlambda_history; }
 
     /// Method to allow serialization of transient data to archives.
-    virtual void ArchiveOut(ChArchiveOut& marchive) override;
+    virtual void ArchiveOut(ChArchiveOut& archive_out) override;
 
     /// Method to allow de-serialization of transient data from archives.
-    virtual void ArchiveIn(ChArchiveIn& marchive) override;
+    virtual void ArchiveIn(ChArchiveIn& archive_in) override;
 
   protected:
+    virtual bool IsIterative() const override { return true; }
+    virtual bool IsDirect() const override { return false; }
+    virtual ChIterativeSolver* AsIterative() override { return this; }
+
     /// This method MUST be called by all iterative methods INSIDE their iteration loops
     /// (at the end). If history recording is enabled, this function will store the
     /// current values as passed as arguments.
@@ -109,7 +116,7 @@ class ChApi ChIterativeSolverVI : public ChIterativeSolver, public ChSolverVI {
     /// the matrix-vector operations).
     virtual bool SolveRequiresMatrix() const override { return true; }
 
-    int m_iterations;   ///< total number of iterations performed by the solver
+    int m_iterations;   ///< number of iterations performed by the solver during last call to Solve()
     double m_omega;     ///< over-relaxation factor
     double m_shlambda;  ///< sharpness factor
 

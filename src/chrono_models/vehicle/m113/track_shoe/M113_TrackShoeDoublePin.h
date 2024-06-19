@@ -50,19 +50,19 @@ class CH_MODELS_API M113_TrackShoeDoublePin : public ChTrackShoeDoublePin {
     /// Return the mass of the shoe body.
     virtual double GetShoeMass() const override { return m_shoe_mass; }
     /// Return the moments of inertia of the shoe body.
-    virtual const ChVector<>& GetShoeInertia() const override { return m_shoe_inertia; }
+    virtual const ChVector3d& GetShoeInertia() const override { return m_shoe_inertia; }
     /// Return shoe length (distance between pins).
     virtual double GetShoeLength() const override { return m_shoe_length; }
     /// Return shoe width (separation between connectors).
     virtual double GetShoeWidth() const override { return m_shoe_width; }
 
     /// Return the location of the guiding pin center, expressed in the shoe reference frame.
-    virtual ChVector<> GetLateralContactPoint() const override { return m_pin_center; }
+    virtual ChVector3d GetLateralContactPoint() const override { return m_pin_center; }
 
     /// Return the mass of a connector body.
     virtual double GetConnectorMass() const override { return m_connector_mass; }
     /// Return the moments of inertia of a connector body.
-    virtual const ChVector<>& GetConnectorInertia() const override { return m_connector_inertia; }
+    virtual const ChVector3d& GetConnectorInertia() const override { return m_connector_inertia; }
     /// Return the length of a connector body.
     virtual double GetConnectorLength() const override { return m_connector_length; }
     /// Return the radius of a connector body.
@@ -75,15 +75,15 @@ class CH_MODELS_API M113_TrackShoeDoublePin : public ChTrackShoeDoublePin {
 
   private:
     static const double m_shoe_mass;
-    static const ChVector<> m_shoe_inertia;
+    static const ChVector3d m_shoe_inertia;
     static const double m_shoe_length;
     static const double m_shoe_width;
     static const double m_shoe_height;
 
-    static const ChVector<> m_pin_center;
+    static const ChVector3d m_pin_center;
 
     static const double m_connector_mass;
-    static const ChVector<> m_connector_inertia;
+    static const ChVector3d m_connector_inertia;
     static const double m_connector_radius;
     static const double m_connector_length;
     static const double m_connector_width;

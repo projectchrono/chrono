@@ -59,7 +59,7 @@ class CH_VEHICLE_API ChTransmission : public ChPart {
     int GetCurrentGear() const { return m_current_gear; }
 
     /// Return the highest available gear.
-    int GetMaxGear() const { return((int) m_gear_ratios.size() - 1); }
+    int GetMaxGear() const { return ((int)m_gear_ratios.size() - 1); }
 
     /// Shift to the specified gear.
     /// Reverse gear is -1, neutral is 0, forward gears are 1, 2, ..., Gmax.
@@ -117,7 +117,6 @@ class CH_VEHICLE_API ChTransmission : public ChPart {
 
     /// Advance the state of this powertrain system by the specified time step.
     virtual void Advance(double step) {}
-
 
     std::vector<double> m_gear_ratios;  ///< gear ratios (0: reverse, 1+: forward)
     int m_current_gear;                 ///< current transmission gear (0: reverse, 1+: forward)

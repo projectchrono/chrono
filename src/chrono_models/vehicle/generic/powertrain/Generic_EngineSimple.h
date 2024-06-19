@@ -12,13 +12,12 @@
 // Authors: Radu Serban, Marcel Offermans
 // =============================================================================
 //
-// Generic simple powertrain model for a vehicle.
-// - trivial speed-torque curve
+// Generic simple engine model based on hyperbolical speed-torque curve (CVT)
 //
 // =============================================================================
 
-#ifndef GENERIC_ENGINESIMPLE_H
-#define GENERIC_ENGINESIMPLE_H
+#ifndef GENERIC_ENGINE_SIMPLE_H
+#define GENERIC_ENGINE_SIMPLE_H
 
 #include "chrono_vehicle/powertrain/ChEngineSimple.h"
 
@@ -36,9 +35,14 @@ class CH_MODELS_API Generic_EngineSimple : public ChEngineSimple {
   public:
     Generic_EngineSimple(const std::string& name);
 
-    double GetMaxTorque() const override { return 365.0; }
-    double GetMaxSpeed() const override { return 5000.0; }
-    double GetMaxPower() const override { return 60000.0; } // TODO verify (~80bhp)
+    virtual double GetMaxTorque() const override { return m_max_torque; }
+    virtual double GetMaxPower() const override { return m_max_power; }
+    virtual double GetMaxSpeed() const override { return m_max_speed; }
+
+  private:
+    static const double m_max_torque;  ///< maximum motor torque
+    static const double m_max_power;   ///< maximum motor power
+    static const double m_max_speed;   ///< maximum engine speed
 };
 
 /// @} vehicle_models_generic

@@ -36,7 +36,7 @@ namespace fsi {
 /// @addtogroup fsi_solver
 /// @{
 
-/// Base class for solving linear systems on GPUs. 
+/// Base class for solving linear systems on GPUs.
 /// Specific solution methods are implemented in derived classes.
 class ChFsiLinearSolver {
   public:
@@ -69,7 +69,7 @@ class ChFsiLinearSolver {
     Real GetResidual() { return residual; }
 
     /// Return the number of current Iterations.
-    int GetNumIterations() { return Iterations; }
+    unsigned int GetNumIterations() { return Iterations; }
 
     /// Set the maximum number of iterations.
     void SetIterationLimit(int numIter) { max_iter = numIter; }
@@ -98,12 +98,12 @@ class ChFsiLinearSolver {
     virtual void Solve(int SIZE, int NNZ, Real* A, unsigned int* ArowIdx, unsigned int* AcolIdx, Real* x, Real* b) = 0;
 
   protected:
-    Real rel_res = 1e-3;
-    Real abs_res = 1e-6;
+    Real rel_res = Real(1e-3);
+    Real abs_res = Real(1e-6);
+    Real residual = Real(1e5);
     int max_iter = 500;
     bool verbose = false;
     int Iterations = 0;
-    Real residual = 1e5;
     int solver_status = 0;
 
   private:

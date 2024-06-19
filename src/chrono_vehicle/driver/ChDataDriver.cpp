@@ -36,10 +36,14 @@ ChDataDriver::ChDataDriver(ChVehicle& vehicle, const std::string& filename, bool
     bool auto_transmission = vehicle.GetPowertrainAssembly() && vehicle.GetPowertrainAssembly()->GetTransmission() &&
                              vehicle.GetPowertrainAssembly()->GetTransmission()->IsAutomatic();
 
-    std::ifstream ifile(filename.c_str());
+    std::ifstream ifile(filename);
     std::string line;
 
     while (std::getline(ifile, line)) {
+        // skip empty line, if present
+        if (line.empty())
+            continue;
+
         std::istringstream iss(line);
 
         double time, steering, throttle, braking;
@@ -61,7 +65,7 @@ ChDataDriver::ChDataDriver(ChVehicle& vehicle, const std::string& filename, bool
     if (!sorted)
         std::sort(m_data.begin(), m_data.end(), ChDataDriver::compare);
 
-    GetLog() << "Loaded driver file: " << filename.c_str() << "\n";
+    std::cout << "Loaded driver file: " << filename << std::endl;
 }
 
 ChDataDriver::ChDataDriver(ChVehicle& vehicle, const std::vector<Entry>& data, bool sorted)

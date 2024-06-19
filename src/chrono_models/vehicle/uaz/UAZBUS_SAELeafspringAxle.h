@@ -38,7 +38,7 @@ class CH_MODELS_API UAZBUS_SAELeafspringAxle : public ChSAELeafspringAxle {
     ~UAZBUS_SAELeafspringAxle();
 
   protected:
-    virtual const ChVector<> getLocation(PointId which) override;
+    virtual const ChVector3d getLocation(PointId which) override;
 
     virtual double getCamberAngle() const override { return 0; }
     virtual double getToeAngle() const override { return 0; }
@@ -54,14 +54,14 @@ class CH_MODELS_API UAZBUS_SAELeafspringAxle : public ChSAELeafspringAxle {
     virtual double getSpindleRadius() const override { return m_spindleRadius; }
     virtual double getSpindleWidth() const override { return m_spindleWidth; }
 
-    virtual const ChVector<> getAxleTubeCOM() const override { return ChVector<>(0, 0, 0); }
+    virtual const ChVector3d getAxleTubeCOM() const override { return ChVector3d(0, 0, 0); }
 
-    virtual const ChVector<>& getAxleTubeInertia() const override { return m_axleTubeInertia; }
-    virtual const ChVector<>& getSpindleInertia() const override { return m_spindleInertia; }
-    virtual const ChVector<>& getFrontLeafInertia() const override { return m_frontleafInertia; }
-    virtual const ChVector<>& getRearLeafInertia() const override { return m_rearleafInertia; }
-    virtual const ChVector<>& getClampInertia() const override { return m_clampInertia; }
-    virtual const ChVector<>& getShackleInertia() const override { return m_shackleInertia; }
+    virtual const ChVector3d& getAxleTubeInertia() const override { return m_axleTubeInertia; }
+    virtual const ChVector3d& getSpindleInertia() const override { return m_spindleInertia; }
+    virtual const ChVector3d& getFrontLeafInertia() const override { return m_frontleafInertia; }
+    virtual const ChVector3d& getRearLeafInertia() const override { return m_rearleafInertia; }
+    virtual const ChVector3d& getClampInertia() const override { return m_clampInertia; }
+    virtual const ChVector3d& getShackleInertia() const override { return m_shackleInertia; }
 
     virtual double getAxleInertia() const override { return m_axleShaftInertia; }
 
@@ -79,7 +79,7 @@ class CH_MODELS_API UAZBUS_SAELeafspringAxle : public ChSAELeafspringAxle {
     virtual std::shared_ptr<ChLinkRSDA::TorqueFunctor> getLatTorqueFunctorB() const override {
         return m_latRotSpringCBB;
     }
- 
+
     virtual std::shared_ptr<ChLinkRSDA::TorqueFunctor> getVertTorqueFunctorA() const override {
         return m_vertRotSpringCBA;
     }
@@ -110,12 +110,12 @@ class CH_MODELS_API UAZBUS_SAELeafspringAxle : public ChSAELeafspringAxle {
     static const double m_spindleRadius;
     static const double m_spindleWidth;
 
-    static const ChVector<> m_axleTubeInertia;
-    static const ChVector<> m_spindleInertia;
-    static const ChVector<> m_frontleafInertia;
-    static const ChVector<> m_rearleafInertia;
-    static const ChVector<> m_clampInertia;
-    static const ChVector<> m_shackleInertia;
+    static const ChVector3d m_axleTubeInertia;
+    static const ChVector3d m_spindleInertia;
+    static const ChVector3d m_frontleafInertia;
+    static const ChVector3d m_rearleafInertia;
+    static const ChVector3d m_clampInertia;
+    static const ChVector3d m_shackleInertia;
 
     static const double m_auxSpringCoefficient;
     static const double m_auxSpringRestLength;

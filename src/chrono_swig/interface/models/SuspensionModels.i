@@ -4,7 +4,7 @@
 
 #include <string>
 #include <vector>
-#include "chrono/core/ChVector.h"
+#include "chrono/core/ChVector3.h"
 #include "chrono/core/ChFrame.h"
 #include "chrono/assets/ChColor.h"
 #include "chrono/geometry/ChTriangleMeshConnected.h"
@@ -15,11 +15,6 @@
 #include "chrono/physics/ChShaft.h"
 #include "chrono_vehicle/ChPart.h"
 #include "chrono_vehicle/wheeled_vehicle/ChSuspension.h"
-
-#include "chrono_models/vehicle/generic/suspension/Generic_RigidSuspension.h"
-#include "chrono_models/vehicle/generic/suspension/Generic_RigidPinnedAxle.h"
-#include "chrono_models/vehicle/generic/suspension/Generic_MultiLink.h"
-#include "chrono_models/vehicle/generic/suspension/Generic_DoubleWishbone.h"
 
 #include "chrono_models/vehicle/hmmwv/suspension/HMMWV_DoubleWishbone.h"
 #include "chrono_models/vehicle/hmmwv/suspension/HMMWV_DoubleWishboneReduced.h"
@@ -45,15 +40,10 @@
 #include "chrono_models/vehicle/artcar/ARTcar_DoubleWishbone.h"
 
 #include "chrono_models/vehicle/feda/FEDA_DoubleWishbone.h"
+
+#include "chrono_models/vehicle/bmw/BMW_E90_MacPhersonStrut.h"
+#include "chrono_models/vehicle/bmw/BMW_E90_DoubleWishbone.h"
 %}
-
-
-%shared_ptr(chrono::vehicle::generic::Generic_RigidSuspension)
-%shared_ptr(chrono::vehicle::generic::Generic_RigidPinnedAxle)
-%shared_ptr(chrono::vehicle::generic::Generic_MultiLink)
-%shared_ptr(chrono::vehicle::generic::Generic_DoubleWishbone)
-%shared_ptr(chrono::vehicle::generic::Generic_DoubleWishboneFront)
-%shared_ptr(chrono::vehicle::generic::Generic_DoubleWishboneRear)
 
 %shared_ptr(chrono::vehicle::hmmwv::HMMWV_DoubleWishbone)
 %shared_ptr(chrono::vehicle::hmmwv::HMMWV_DoubleWishboneReduced)
@@ -89,15 +79,13 @@
 %shared_ptr(chrono::vehicle::feda::FEDA_DoubleWishboneRear)
 %shared_ptr(chrono::vehicle::feda::FEDA_DoubleWishboneFront)
 
+%shared_ptr(chrono::vehicle::bmw::BMW_E90_MacPhersonStrut)
+%shared_ptr(chrono::vehicle::bmw::BMW_E90_DoubleWishbone)
+
 /* Parse the header file to generate wrappers */
 %import "chrono_swig/interface/vehicle/ChSuspension.i"
 
 // Model:
-%include "../../../chrono_models/vehicle/generic/suspension/Generic_RigidSuspension.h"
-%include "../../../chrono_models/vehicle/generic/suspension/Generic_RigidPinnedAxle.h"
-%include "../../../chrono_models/vehicle/generic/suspension/Generic_MultiLink.h"
-%include "../../../chrono_models/vehicle/generic/suspension/Generic_DoubleWishbone.h"
-
 %include "../../../chrono_models/vehicle/hmmwv/suspension/HMMWV_DoubleWishbone.h"
 %include "../../../chrono_models/vehicle/hmmwv/suspension/HMMWV_DoubleWishboneReduced.h"
 
@@ -122,3 +110,6 @@
 %include "../../../chrono_models/vehicle/artcar/ARTcar_DoubleWishbone.h"
 
 %include "../../../chrono_models/vehicle/feda/FEDA_DoubleWishbone.h"
+
+%include "../../../chrono_models/vehicle/bmw/BMW_E90_MacPhersonStrut.h"
+%include "../../../chrono_models/vehicle/bmw/BMW_E90_DoubleWishbone.h"

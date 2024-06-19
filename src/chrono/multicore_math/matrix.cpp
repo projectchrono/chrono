@@ -450,12 +450,12 @@ CUDA_HOST_DEVICE ChApi Mat33 operator-(const Mat33& M, const Mat33& N) {
                  M[10] - N[10]);
 }
 
-CUDA_HOST_DEVICE ChApi OPERATOR_EQUALSALT(*, real, Mat33)   //
-CUDA_HOST_DEVICE ChApi OPERATOR_EQUALSALT(*, Mat33, Mat33)  //
-CUDA_HOST_DEVICE ChApi OPERATOR_EQUALSALT(+, Mat33, Mat33)  //
-CUDA_HOST_DEVICE ChApi OPERATOR_EQUALSALT(-, Mat33, Mat33)  //
+CUDA_HOST_DEVICE ChApi OPERATOR_EQUALSALT(*, real, Mat33)       //
+    CUDA_HOST_DEVICE ChApi OPERATOR_EQUALSALT(*, Mat33, Mat33)  //
+    CUDA_HOST_DEVICE ChApi OPERATOR_EQUALSALT(+, Mat33, Mat33)  //
+    CUDA_HOST_DEVICE ChApi OPERATOR_EQUALSALT(-, Mat33, Mat33)  //
 
-CUDA_HOST_DEVICE ChApi Mat33
+    CUDA_HOST_DEVICE ChApi Mat33
     operator-(const Mat33& M) {
     return Mat33(-M[0], -M[1], -M[2], -M[4], -M[5], -M[6], -M[8], -M[9], -M[10]);
 }

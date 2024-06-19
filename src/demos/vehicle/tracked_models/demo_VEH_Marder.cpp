@@ -45,7 +45,7 @@ using std::endl;
 // USER SETTINGS
 // =============================================================================
 // Initial vehicle position
-ChVector<> initLoc(-40, 0, 0.9);
+ChVector3d initLoc(-40, 0, 0.9);
 
 // Initial vehicle orientation
 ChQuaternion<> initRot(1, 0, 0, 0);
@@ -69,12 +69,7 @@ bool use_mkl = false;
 double render_step_size = 1.0 / 120;  // FPS = 120
 
 // Point on chassis tracked by the camera
-ChVector<> trackPoint(0.0, 0.0, 0.0);
-
-// Output directories
-const std::string out_dir = GetChronoOutputPath() + "Marder";
-const std::string pov_dir = out_dir + "/POVRAY";
-const std::string img_dir = out_dir + "/IMG";
+ChVector3d trackPoint(0.0, 0.0, 0.0);
 
 // Output
 bool povray_output = false;
@@ -89,7 +84,7 @@ void AddFallingObjects(ChSystem* system);
 
 // =============================================================================
 int main(int argc, char* argv[]) {
-    GetLog() << "Copyright (c) 2017 projectchrono.org\nChrono version: " << CHRONO_VERSION << "\n\n";
+    std::cout << "Copyright (c) 2017 projectchrono.org\nChrono version: " << CHRONO_VERSION << std::endl;
 
     // --------------------------
     // Construct the M113 vehicle
@@ -101,7 +96,7 @@ int main(int argc, char* argv[]) {
     ////DrivelineTypeTV driveline_type = DrivelineTypeTV::SIMPLE;
     BrakeType brake_type = BrakeType::SIMPLE;
     EngineModelType engine_type = EngineModelType::SIMPLE;
-    TransmissionModelType transmission_type = TransmissionModelType::SIMPLE_MAP;
+    TransmissionModelType transmission_type = TransmissionModelType::AUTOMATIC_SIMPLE_MAP;
 
     Marder marder;
     marder.SetContactMethod(contact_method);
@@ -119,7 +114,7 @@ int main(int argc, char* argv[]) {
     ////marder.GetDriveline()->SetGyrationMode(true);
 
     // Change collision detection system
-    ////marder.SetCollisionSystemType(collision::ChCollisionSystemType::CHRONO);
+    ////marder.SetCollisionSystemType(ChCollisionSystem::Type::MULTICORE);
 
     // Change collision shape for road wheels, idlers, and rollers (true: cylinder; false: cylshell)
     ////marder.SetWheelCollisionType(false, false, false);
@@ -142,7 +137,7 @@ int main(int argc, char* argv[]) {
     marder.SetTrackShoeVisualizationType(VisualizationType::PRIMITIVES);
 
     // Disable gravity in this simulation
-    ////marder.GetSystem()->Set_G_acc(ChVector<>(0, 0, 0));
+    ////marder.GetSystem()->SetGravitationalAcceleration(ChVector3d(0, 0, 0));
 
     // Change (SMC) contact force model
     ////if (contact_method == ChContactMethod::SMC) {
@@ -154,10 +149,10 @@ int main(int argc, char* argv[]) {
     // --------------------------------------------------
 
     // Enable contact on all tracked vehicle parts, except the left sprocket
-    ////marder.GetVehicle().SetCollide(TrackedCollisionFlag::ALL & (~TrackedCollisionFlag::SPROCKET_LEFT));
+    ////marder.GetVehicle().EnableCollision(TrackedCollisionFlag::ALL & (~TrackedCollisionFlag::SPROCKET_LEFT));
 
     // Disable contact for all tracked vehicle parts
-    ////marder.GetVehicle().SetCollide(TrackedCollisionFlag::NONE);
+    ////marder.GetVehicle().EnableCollision(TrackedCollisionFlag::NONE);
 
     // Disable all contacts for vehicle chassis (if chassis collision was defined)
     ////marder.GetVehicle().SetChassisCollide(false);
@@ -213,7 +208,7 @@ int main(int argc, char* argv[]) {
     auto vis = chrono_types::make_shared<ChTrackedVehicleVisualSystemIrrlicht>();
     vis->SetWindowTitle("Marder Vehicle Demo");
     vis->SetChaseCamera(trackPoint, 10.0, 0.5);
-    ////vis->SetChaseCameraPosition(vehicle.GetPos() + ChVector<>(0, 2, 0));
+    ////vis->SetChaseCameraPosition(vehicle.GetPos() + ChVector3d(0, 2, 0));
     vis->SetChaseCameraMultipliers(1e-4, 10);
     vis->Initialize();
     vis->AddLightDirectional();
@@ -241,6 +236,10 @@ int main(int argc, char* argv[]) {
     // -----------------
     // Initialize output
     // -----------------
+
+    const std::string out_dir = GetChronoOutputPath() + "Marder";
+    const std::string pov_dir = out_dir + "/POVRAY";
+    const std::string img_dir = out_dir + "/IMG";
 
     if (!filesystem::create_directory(filesystem::path(out_dir))) {
         std::cout << "Error creating directory " << out_dir << std::endl;
@@ -301,7 +300,7 @@ int main(int argc, char* argv[]) {
         marder.GetSystem()->SetTimestepperType(ChTimestepper::Type::HHT);
         auto integrator = std::static_pointer_cast<ChTimestepperHHT>(marder.GetSystem()->GetTimestepper());
         integrator->SetAlpha(-0.2);
-        integrator->SetMaxiters(50);
+        integrator->SetMaxIters(50);
         integrator->SetAbsTolerances(1e-4, 1e2);
         integrator->SetStepControl(false);
         integrator->SetModifiedNewton(false);
@@ -315,7 +314,6 @@ int main(int argc, char* argv[]) {
         marder.GetSystem()->SetSolver(solver);
 
         marder.GetSystem()->SetMaxPenetrationRecoverySpeed(1.5);
-        marder.GetSystem()->SetMinBounceSpeed(2.0);
     }
 
     // ---------------
@@ -336,23 +334,23 @@ int main(int argc, char* argv[]) {
             auto track_L = marder.GetVehicle().GetTrackAssembly(LEFT);
             auto track_R = marder.GetVehicle().GetTrackAssembly(RIGHT);
             cout << "Time: " << marder.GetSystem()->GetChTime() << endl;
-            cout << "      Num. contacts: " << marder.GetSystem()->GetNcontacts() << endl;
-            const ChFrameMoving<>& c_ref = marder.GetChassisBody()->GetFrame_REF_to_abs();
-            const ChVector<>& c_pos = marder.GetVehicle().GetPos();
+            cout << "      Num. contacts: " << marder.GetSystem()->GetNumContacts() << endl;
+            const ChFrameMoving<>& c_ref = marder.GetChassisBody()->GetFrameRefToAbs();
+            const ChVector3d& c_pos = marder.GetVehicle().GetPos();
             cout << "      chassis:    " << c_pos.x() << "  " << c_pos.y() << "  " << c_pos.z() << endl;
             {
-                const ChVector<>& i_pos_abs = track_L->GetIdler()->GetWheelBody()->GetPos();
-                const ChVector<>& s_pos_abs = track_L->GetSprocket()->GetGearBody()->GetPos();
-                ChVector<> i_pos_rel = c_ref.TransformPointParentToLocal(i_pos_abs);
-                ChVector<> s_pos_rel = c_ref.TransformPointParentToLocal(s_pos_abs);
+                const ChVector3d& i_pos_abs = track_L->GetIdler()->GetWheelBody()->GetPos();
+                const ChVector3d& s_pos_abs = track_L->GetSprocket()->GetGearBody()->GetPos();
+                ChVector3d i_pos_rel = c_ref.TransformPointParentToLocal(i_pos_abs);
+                ChVector3d s_pos_rel = c_ref.TransformPointParentToLocal(s_pos_abs);
                 cout << "      L idler:    " << i_pos_rel.x() << "  " << i_pos_rel.y() << "  " << i_pos_rel.z() << endl;
                 cout << "      L sprocket: " << s_pos_rel.x() << "  " << s_pos_rel.y() << "  " << s_pos_rel.z() << endl;
             }
             {
-                const ChVector<>& i_pos_abs = track_R->GetIdler()->GetWheelBody()->GetPos();
-                const ChVector<>& s_pos_abs = track_R->GetSprocket()->GetGearBody()->GetPos();
-                ChVector<> i_pos_rel = c_ref.TransformPointParentToLocal(i_pos_abs);
-                ChVector<> s_pos_rel = c_ref.TransformPointParentToLocal(s_pos_abs);
+                const ChVector3d& i_pos_abs = track_R->GetIdler()->GetWheelBody()->GetPos();
+                const ChVector3d& s_pos_abs = track_R->GetSprocket()->GetGearBody()->GetPos();
+                ChVector3d i_pos_rel = c_ref.TransformPointParentToLocal(i_pos_abs);
+                ChVector3d s_pos_rel = c_ref.TransformPointParentToLocal(s_pos_abs);
                 cout << "      R idler:    " << i_pos_rel.x() << "  " << i_pos_rel.y() << "  " << i_pos_rel.z() << endl;
                 cout << "      R sprocket: " << s_pos_rel.x() << "  " << s_pos_rel.y() << "  " << s_pos_rel.z() << endl;
             }
@@ -374,15 +372,16 @@ int main(int argc, char* argv[]) {
             vis->Render();
             vis->EndScene();
 
+            // Zero-pad frame numbers in file names for postprocessing
             if (povray_output) {
-                char filename[100];
-                sprintf(filename, "%s/data_%03d.dat", pov_dir.c_str(), render_frame + 1);
-                utils::WriteVisualizationAssets(marder.GetSystem(), filename);
+                std::ostringstream filename;
+                filename << pov_dir << "/data_" << std::setw(4) << std::setfill('0') << render_frame + 1 << ".dat";
+                utils::WriteVisualizationAssets(marder.GetSystem(), filename.str());
             }
             if (img_output && step_number > 200) {
-                char filename[100];
-                sprintf(filename, "%s/img_%03d.jpg", img_dir.c_str(), render_frame + 1);
-                vis->WriteImageToFile(filename);
+                std::ostringstream filename;
+                filename << img_dir << "/img_" << std::setw(4) << std::setfill('0') << render_frame + 1 << ".jpg";
+                vis->WriteImageToFile(filename.str());
             }
             render_frame++;
         }
@@ -422,15 +421,15 @@ void AddFixedObstacles(ChSystem* system) {
     double radius = 2.2;
     double length = 6;
 
-    auto obstacle = std::shared_ptr<ChBody>(system->NewBody());
-    obstacle->SetPos(ChVector<>(10, 0, -1.8));
-    obstacle->SetBodyFixed(true);
-    obstacle->SetCollide(true);
+    auto obstacle = chrono_types::make_shared<ChBody>();
+    obstacle->SetPos(ChVector3d(10, 0, -1.8));
+    obstacle->SetFixed(true);
+    obstacle->EnableCollision(true);
 
     // Visualization
-    auto shape = chrono_types::make_shared<ChCylinderShape>(radius, length);
-    shape->SetTexture(vehicle::GetDataFile("terrain/textures/tile4.jpg"), 10, 10);
-    obstacle->AddVisualShape(shape, ChFrame<>(VNULL, Q_from_AngX(CH_C_PI_2)));
+    auto vis_shape = chrono_types::make_shared<ChVisualShapeCylinder>(radius, length);
+    vis_shape->SetTexture(vehicle::GetDataFile("terrain/textures/tile4.jpg"), 10, 10);
+    obstacle->AddVisualShape(vis_shape, ChFrame<>(VNULL, QuatFromAngleX(CH_PI_2)));
 
     // Contact
     ChContactMaterialData minfo;
@@ -439,9 +438,8 @@ void AddFixedObstacles(ChSystem* system) {
     minfo.Y = 2e7f;
     auto obst_mat = minfo.CreateMaterial(system->GetContactMethod());
 
-    obstacle->GetCollisionModel()->ClearModel();
-    obstacle->GetCollisionModel()->AddCylinder(obst_mat, radius, length, VNULL, Q_from_AngX(CH_C_PI_2));
-    obstacle->GetCollisionModel()->BuildModel();
+    auto ct_shape = chrono_types::make_shared<ChCollisionShapeCylinder>(obst_mat, radius, length);
+    obstacle->AddCollisionShape(ct_shape, ChFrame<>(VNULL, QuatFromAngleX(CH_PI_2)));
 
     system->AddBody(obstacle);
 }
@@ -451,25 +449,24 @@ void AddFallingObjects(ChSystem* system) {
     double radius = 0.1;
     double mass = 10;
 
-    auto ball = std::shared_ptr<ChBody>(system->NewBody());
+    auto ball = chrono_types::make_shared<ChBody>();
     ball->SetMass(mass);
-    ball->SetInertiaXX(0.4 * mass * radius * radius * ChVector<>(1, 1, 1));
-    ball->SetPos(initLoc + ChVector<>(-3, 0, 2));
+    ball->SetInertiaXX(0.4 * mass * radius * radius * ChVector3d(1, 1, 1));
+    ball->SetPos(initLoc + ChVector3d(-3, 0, 2));
     ball->SetRot(ChQuaternion<>(1, 0, 0, 0));
-    ball->SetPos_dt(ChVector<>(3, 0, 0));
-    ball->SetBodyFixed(false);
+    ball->SetPosDt(ChVector3d(3, 0, 0));
+    ball->SetFixed(false);
 
     ChContactMaterialData minfo;
     auto obst_mat = minfo.CreateMaterial(system->GetContactMethod());
 
-    ball->SetCollide(true);
-    ball->GetCollisionModel()->ClearModel();
-    ball->GetCollisionModel()->AddSphere(obst_mat, radius);
-    ball->GetCollisionModel()->BuildModel();
+    ball->EnableCollision(true);
+    auto ct_shape = chrono_types::make_shared<ChCollisionShapeSphere>(obst_mat, radius);
+    ball->AddCollisionShape(ct_shape);
 
-    auto sphere = chrono_types::make_shared<ChSphereShape>(radius);
-    sphere->SetTexture(GetChronoDataFile("textures/bluewhite.png"));
-    ball->AddVisualShape(sphere);
+    auto vis_shape = chrono_types::make_shared<ChVisualShapeSphere>(radius);
+    vis_shape->SetTexture(GetChronoDataFile("textures/bluewhite.png"));
+    ball->AddVisualShape(vis_shape);
 
     system->AddBody(ball);
 }

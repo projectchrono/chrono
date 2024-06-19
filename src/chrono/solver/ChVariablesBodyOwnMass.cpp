@@ -38,13 +38,11 @@ ChVariablesBodyOwnMass& ChVariablesBodyOwnMass::operator=(const ChVariablesBodyO
     return *this;
 }
 
-// Set the inertia matrix
 void ChVariablesBodyOwnMass::SetBodyInertia(const ChMatrix33<>& minertia) {
     inertia = minertia;
     inv_inertia = inertia.inverse();
 }
 
-// Set the mass associated with translation of body
 void ChVariablesBodyOwnMass::SetBodyMass(const double mmass) {
     mass = mmass;
     if (mass)
@@ -53,10 +51,9 @@ void ChVariablesBodyOwnMass::SetBodyMass(const double mmass) {
         inv_mass = 1e32;
 }
 
-// Computes the product of the inverse mass matrix by a vector, and set in result: result = [invMb]*vect
-void ChVariablesBodyOwnMass::Compute_invMb_v(ChVectorRef result, ChVectorConstRef vect) const {
-    assert(vect.size() == Get_ndof());
-    assert(result.size() == Get_ndof());
+void ChVariablesBodyOwnMass::ComputeMassInverseTimesVector(ChVectorRef result, ChVectorConstRef vect) const {
+    assert(vect.size() == ndof);
+    assert(result.size() == ndof);
 
     // optimized unrolled operations
     result(0) = inv_mass * vect(0);
@@ -67,24 +64,9 @@ void ChVariablesBodyOwnMass::Compute_invMb_v(ChVectorRef result, ChVectorConstRe
     result(5) = inv_inertia(2, 0) * vect(3) + inv_inertia(2, 1) * vect(4) + inv_inertia(2, 2) * vect(5);
 }
 
-// Computes the product of the inverse mass matrix by a vector, and increment result: result += [invMb]*vect
-void ChVariablesBodyOwnMass::Compute_inc_invMb_v(ChVectorRef result, ChVectorConstRef vect) const {
-    assert(vect.size() == Get_ndof());
-    assert(result.size() == Get_ndof());
-
-    // optimized unrolled operations
-    result(0) += inv_mass * vect(0);
-    result(1) += inv_mass * vect(1);
-    result(2) += inv_mass * vect(2);
-    result(3) += inv_inertia(0, 0) * vect(3) + inv_inertia(0, 1) * vect(4) + inv_inertia(0, 2) * vect(5);
-    result(4) += inv_inertia(1, 0) * vect(3) + inv_inertia(1, 1) * vect(4) + inv_inertia(1, 2) * vect(5);
-    result(5) += inv_inertia(2, 0) * vect(3) + inv_inertia(2, 1) * vect(4) + inv_inertia(2, 2) * vect(5);
-}
-
-// Computes the product of the mass matrix by a vector, and set in result: result = [Mb]*vect
-void ChVariablesBodyOwnMass::Compute_inc_Mb_v(ChVectorRef result, ChVectorConstRef vect) const {
-    assert(result.size() == Get_ndof());
-    assert(vect.size() == Get_ndof());
+void ChVariablesBodyOwnMass::AddMassTimesVector(ChVectorRef result, ChVectorConstRef vect) const {
+    assert(result.size() == ndof);
+    assert(vect.size() == ndof);
 
     // optimized unrolled operations
     result(0) += mass * vect(0);
@@ -95,69 +77,61 @@ void ChVariablesBodyOwnMass::Compute_inc_Mb_v(ChVectorRef result, ChVectorConstR
     result(5) += (inertia(2, 0) * vect(3) + inertia(2, 1) * vect(4) + inertia(2, 2) * vect(5));
 }
 
-// Computes the product of the corresponding block in the system matrix (ie. the mass matrix) by 'vect', scale by c_a,
-// and add to 'result'.
-// NOTE: the 'vect' and 'result' vectors must already have the size of the total variables&constraints in the system;
-// the procedure will use the ChVariable offsets (that must be already updated) to know the indexes in result and vect.
-void ChVariablesBodyOwnMass::MultiplyAndAdd(ChVectorRef result, ChVectorConstRef vect, const double c_a) const {
+void ChVariablesBodyOwnMass::AddMassTimesVectorInto(ChVectorRef result, ChVectorConstRef vect, const double ca) const {
     // optimized unrolled operations
-    double q0 = vect(this->offset + 0);
-    double q1 = vect(this->offset + 1);
-    double q2 = vect(this->offset + 2);
-    double q3 = vect(this->offset + 3);
-    double q4 = vect(this->offset + 4);
-    double q5 = vect(this->offset + 5);
-    double scaledmass = c_a * mass;
-    result(this->offset + 0) += scaledmass * q0;
-    result(this->offset + 1) += scaledmass * q1;
-    result(this->offset + 2) += scaledmass * q2;
-    result(this->offset + 3) += c_a * (inertia(0, 0) * q3 + inertia(0, 1) * q4 + inertia(0, 2) * q5);
-    result(this->offset + 4) += c_a * (inertia(1, 0) * q3 + inertia(1, 1) * q4 + inertia(1, 2) * q5);
-    result(this->offset + 5) += c_a * (inertia(2, 0) * q3 + inertia(2, 1) * q4 + inertia(2, 2) * q5);
+    double q0 = vect(offset + 0);
+    double q1 = vect(offset + 1);
+    double q2 = vect(offset + 2);
+    double q3 = vect(offset + 3);
+    double q4 = vect(offset + 4);
+    double q5 = vect(offset + 5);
+    double scaledmass = ca * mass;
+    result(offset + 0) += scaledmass * q0;
+    result(offset + 1) += scaledmass * q1;
+    result(offset + 2) += scaledmass * q2;
+    result(offset + 3) += ca * (inertia(0, 0) * q3 + inertia(0, 1) * q4 + inertia(0, 2) * q5);
+    result(offset + 4) += ca * (inertia(1, 0) * q3 + inertia(1, 1) * q4 + inertia(1, 2) * q5);
+    result(offset + 5) += ca * (inertia(2, 0) * q3 + inertia(2, 1) * q4 + inertia(2, 2) * q5);
 }
 
-// Add the diagonal of the mass matrix scaled by c_a to 'result'.
-// NOTE: the 'result' vector must already have the size of system unknowns, ie the size of the total variables &
-// constraints in the system; the procedure will use the ChVariable offset (that must be already updated) as index.
-void ChVariablesBodyOwnMass::DiagonalAdd(ChVectorRef result, const double c_a) const {
-    result(this->offset + 0) += c_a * mass;
-    result(this->offset + 1) += c_a * mass;
-    result(this->offset + 2) += c_a * mass;
-    result(this->offset + 3) += c_a * inertia(0, 0);
-    result(this->offset + 4) += c_a * inertia(1, 1);
-    result(this->offset + 5) += c_a * inertia(2, 2);
+void ChVariablesBodyOwnMass::AddMassDiagonalInto(ChVectorRef result, const double ca) const {
+    result(offset + 0) += ca * mass;
+    result(offset + 1) += ca * mass;
+    result(offset + 2) += ca * mass;
+    result(offset + 3) += ca * inertia(0, 0);
+    result(offset + 4) += ca * inertia(1, 1);
+    result(offset + 5) += ca * inertia(2, 2);
 }
 
-// Build the mass matrix (for these variables) scaled by c_a, storing
-// it in 'storage' sparse matrix, at given column/row offset.
-// Note, most iterative solvers don't need to know mass matrix explicitly.
-// Optimized: doesn't fill unneeded elements except mass and 3x3 inertia.
-void ChVariablesBodyOwnMass::Build_M(ChSparseMatrix& storage, int insrow, int inscol, const double c_a) {
-    storage.SetElement(insrow + 0, inscol + 0, c_a * mass);
-    storage.SetElement(insrow + 1, inscol + 1, c_a * mass);
-    storage.SetElement(insrow + 2, inscol + 2, c_a * mass);
-    ChMatrix33<> scaledJ = inertia * c_a;
-    PasteMatrix(storage, scaledJ, insrow + 3, inscol + 3);
+void ChVariablesBodyOwnMass::PasteMassInto(ChSparseMatrix& mat,
+                                           unsigned int start_row,
+                                           unsigned int start_col,
+                                           const double ca) const {
+    mat.SetElement(offset + start_row + 0, offset + start_col + 0, ca * mass);
+    mat.SetElement(offset + start_row + 1, offset + start_col + 1, ca * mass);
+    mat.SetElement(offset + start_row + 2, offset + start_col + 2, ca * mass);
+    ChMatrix33<> scaledJ = inertia * ca;
+    PasteMatrix(mat, scaledJ, offset + start_row + 3, offset + start_col + 3);
 }
 
-void ChVariablesBodyOwnMass::ArchiveOut(ChArchiveOut& marchive) {
+void ChVariablesBodyOwnMass::ArchiveOut(ChArchiveOut& archive_out) {
     // version number
-    marchive.VersionWrite<ChVariablesBodyOwnMass>();
+    archive_out.VersionWrite<ChVariablesBodyOwnMass>();
     // serialize parent class
-    ChVariablesBody::ArchiveOut(marchive);
+    ChVariablesBody::ArchiveOut(archive_out);
     // serialize all member data:
-    marchive << CHNVP(mass);
-    marchive << CHNVP(inertia);
+    archive_out << CHNVP(mass);
+    archive_out << CHNVP(inertia);
 }
 
-void ChVariablesBodyOwnMass::ArchiveIn(ChArchiveIn& marchive) {
+void ChVariablesBodyOwnMass::ArchiveIn(ChArchiveIn& archive_in) {
     // version number
-    /*int version =*/ marchive.VersionRead<ChVariablesBodyOwnMass>();
+    /*int version =*/archive_in.VersionRead<ChVariablesBodyOwnMass>();
     // deserialize parent class
-    ChVariablesBody::ArchiveIn(marchive);
+    ChVariablesBody::ArchiveIn(archive_in);
     // stream in all member data:
-    marchive >> CHNVP(mass);
-    marchive >> CHNVP(inertia);
+    archive_in >> CHNVP(mass);
+    archive_in >> CHNVP(inertia);
     SetBodyMass(mass);
     SetBodyInertia(inertia);
 }

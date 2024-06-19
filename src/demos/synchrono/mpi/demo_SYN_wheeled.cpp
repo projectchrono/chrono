@@ -45,7 +45,7 @@ using namespace chrono::vehicle;
 // =============================================================================
 
 // Initial vehicle location and orientation
-ChVector<> initLoc(0, 0, 1.0);
+ChVector3d initLoc(0, 0, 1.0);
 ChQuaternion<> initRot(1, 0, 0, 0);
 
 // Visualization type for vehicle parts (PRIMITIVES, MESH, or NONE)
@@ -62,7 +62,7 @@ TireModelType tire_model = TireModelType::TMEASY;
 enum VehicleType { SEDAN, HMMWV, UAZ, CITYBUS, MAN };
 
 // Point on chassis tracked by the camera
-ChVector<> trackPoint(0.0, 0.0, 1.75);
+ChVector3d trackPoint(0.0, 0.0, 1.75);
 
 // Contact method
 ChContactMethod contact_method = ChContactMethod::SMC;
@@ -213,6 +213,9 @@ int main(int argc, char* argv[]) {
             vehicle.InitializeTire(tire, wheel, tire_vis_type);
         }
     }
+
+    // Set associated collision detection system
+    vehicle.GetSystem()->SetCollisionSystemType(ChCollisionSystem::Type::BULLET);
 
     // Add vehicle as an agent and initialize SynChronoManager
     auto agent = chrono_types::make_shared<SynWheeledVehicleAgent>(&vehicle, zombie_filename);

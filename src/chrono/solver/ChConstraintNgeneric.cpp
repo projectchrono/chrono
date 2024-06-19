@@ -53,8 +53,8 @@ void ChConstraintNgeneric::SetVariables(std::vector<ChVariables*> mvars) {
             return;
         }
 
-        Cq.push_back(ChRowVectorDynamic<double>(variables[i]->Get_ndof()));
-        Eq.push_back(ChRowVectorDynamic<double>(variables[i]->Get_ndof()));
+        Cq.push_back(ChRowVectorDynamic<double>(variables[i]->GetDOF()));
+        Eq.push_back(ChRowVectorDynamic<double>(variables[i]->GetDOF()));
 
         Cq.back().setZero();
     }
@@ -66,15 +66,15 @@ void ChConstraintNgeneric::Update_auxiliary() {
 
     for (size_t i = 0; i < variables.size(); ++i) {
         if (variables[i]->IsActive())
-            if (variables[i]->Get_ndof()) {
-                variables[i]->Compute_invMb_v(Eq[i], Cq[i].transpose());
+            if (variables[i]->GetDOF()) {
+                variables[i]->ComputeMassInverseTimesVector(Eq[i], Cq[i].transpose());
             }
     }
 
     // 2- Compute g_i = [Cq_i]*[invM_i]*[Cq_i]' + cfm_i
     g_i = 0;
     for (size_t i = 0; i < variables.size(); ++i) {
-        if (variables[i]->IsActive() && variables[i]->Get_ndof() > 0) {
+        if (variables[i]->IsActive() && variables[i]->GetDOF() > 0) {
             g_i += Cq[i] * Eq[i];
         }
     }
@@ -84,27 +84,27 @@ void ChConstraintNgeneric::Update_auxiliary() {
         g_i += cfm_i;
 }
 
-double ChConstraintNgeneric::Compute_Cq_q() {
+double ChConstraintNgeneric::ComputeJacobianTimesState() {
     double ret = 0;
 
     for (size_t i = 0; i < variables.size(); ++i) {
         if (variables[i]->IsActive()) {
-            ret += Cq[i] * variables[i]->Get_qb();
+            ret += Cq[i] * variables[i]->State();
         }
     }
 
     return ret;
 }
 
-void ChConstraintNgeneric::Increment_q(const double deltal) {
+void ChConstraintNgeneric::IncrementState(double deltal) {
     for (size_t i = 0; i < variables.size(); ++i) {
         if (variables[i]->IsActive()) {
-            variables[i]->Get_qb() += Eq[i] * deltal;
+            variables[i]->State() += Eq[i] * deltal;
         }
     }
 }
 
-void ChConstraintNgeneric::MultiplyAndAdd(double& result, const ChVectorDynamic<double>& vect) const {
+void ChConstraintNgeneric::AddJacobianTimesVectorInto(double& result, ChVectorConstRef vect) const {
     for (size_t i = 0; i < variables.size(); ++i) {
         if (variables[i]->IsActive()) {
             result += Cq[i] * vect.segment(variables[i]->GetOffset(), Cq[i].size());
@@ -112,7 +112,7 @@ void ChConstraintNgeneric::MultiplyAndAdd(double& result, const ChVectorDynamic<
     }
 }
 
-void ChConstraintNgeneric::MultiplyTandAdd(ChVectorDynamic<double>& result, double l) {
+void ChConstraintNgeneric::AddJacobianTransposedTimesScalarInto(ChVectorRef result, double l) const {
     for (size_t i = 0; i < variables.size(); ++i) {
         if (variables[i]->IsActive()) {
             result.segment(variables[i]->GetOffset(), Cq[i].size()) += Cq[i].transpose() * l;
@@ -120,37 +120,41 @@ void ChConstraintNgeneric::MultiplyTandAdd(ChVectorDynamic<double>& result, doub
     }
 }
 
-void ChConstraintNgeneric::Build_Cq(ChSparseMatrix& storage, int insrow) {
+void ChConstraintNgeneric::PasteJacobianInto(ChSparseMatrix& mat,
+                                             unsigned int start_row,
+                                             unsigned int start_col) const {
     for (size_t i = 0; i < variables.size(); ++i) {
         if (variables[i]->IsActive())
-            PasteMatrix(storage, Cq[i], insrow, variables[i]->GetOffset());
+            PasteMatrix(mat, Cq[i], start_row, variables[i]->GetOffset() + start_col);
     }
 }
 
-void ChConstraintNgeneric::Build_CqT(ChSparseMatrix& storage, int inscol) {
+void ChConstraintNgeneric::PasteJacobianTransposedInto(ChSparseMatrix& mat,
+                                                       unsigned int start_row,
+                                                       unsigned int start_col) const {
     for (size_t i = 0; i < variables.size(); ++i) {
         if (variables[i]->IsActive())
-            PasteMatrix(storage, Cq[i].transpose(), variables[i]->GetOffset(), inscol);
+            PasteMatrix(mat, Cq[i].transpose(), variables[i]->GetOffset() + start_row, start_col);
     }
 }
 
-void ChConstraintNgeneric::ArchiveOut(ChArchiveOut& marchive) {
+void ChConstraintNgeneric::ArchiveOut(ChArchiveOut& archive_out) {
     // version number
-    marchive.VersionWrite<ChConstraintNgeneric>();
+    archive_out.VersionWrite<ChConstraintNgeneric>();
 
     // serialize the parent class data too
-    ChConstraint::ArchiveOut(marchive);
+    ChConstraint::ArchiveOut(archive_out);
 
     // serialize all member data:
     // NOTHING INTERESTING TO SERIALIZE
 }
 
-void ChConstraintNgeneric::ArchiveIn(ChArchiveIn& marchive) {
+void ChConstraintNgeneric::ArchiveIn(ChArchiveIn& archive_in) {
     // version number
-    /*int version =*/ marchive.VersionRead<ChConstraintNgeneric>();
+    /*int version =*/archive_in.VersionRead<ChConstraintNgeneric>();
 
     // deserialize the parent class data too
-    ChConstraint::ArchiveIn(marchive);
+    ChConstraint::ArchiveIn(archive_in);
 
     // deserialize all member data:
     // NOTHING INTERESTING TO SERIALIZE

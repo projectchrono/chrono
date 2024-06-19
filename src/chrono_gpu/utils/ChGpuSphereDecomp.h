@@ -18,7 +18,7 @@
 #include <vector>
 #include <map>
 
-#include "chrono/core/ChVector.h"
+#include "chrono/core/ChVector3.h"
 #include "chrono/core/ChMatrix33.h"
 #include "chrono/geometry/ChTriangle.h"
 #include "chrono/geometry/ChTriangleMeshConnected.h"
@@ -33,38 +33,38 @@ namespace gpu {
 /// The mesh must be stored in OBJ format and must consist of only triangles.
 /// Returns the number of spheres added as a result of the decomposition.
 template <typename Real>
-std::vector<ChVector<Real>> MeshSphericalDecomposition(
+std::vector<ChVector3<Real>> MeshSphericalDecomposition(
     std::string objfilename,  ///< OBJ mesh file path
-    ChVector<Real> scaling,   ///< Scaling vector to apply to the mesh before decomposition
-    ChVector<Real> offset,    ///< Displacement to apply to the mesh before decomposition
+    ChVector3<Real> scaling,  ///< Scaling vector to apply to the mesh before decomposition
+    ChVector3<Real> offset,   ///< Displacement to apply to the mesh before decomposition
     Real sphere_radius        ///< Radius to use for all spheres in the decomposition
 ) {
-    std::vector<ChVector<Real>> sphere_points;
+    std::vector<ChVector3<Real>> sphere_points;
     std::string mesh_filename = objfilename;
-    geometry::ChTriangleMeshConnected mesh;
+    ChTriangleMeshConnected mesh;
     mesh.LoadWavefrontMesh(mesh_filename, true, false);
-    mesh.Transform(offset, ChMatrix33<>(ChVector<>(scaling.x(), scaling.y(), scaling.z())));
+    mesh.Transform(offset, ChMatrix33<>(ChVector3d(scaling.x(), scaling.y(), scaling.z())));
 
     // For each triangle in the mesh, label the vertices as A,B,C
     // Fill in successive parallel lines starting at BC and advancing toward A
-    int n_triangles_mesh = mesh.getNumTriangles();
-    for (int i = 0; i < n_triangles_mesh; i++) {
-        geometry::ChTriangle tri = mesh.getTriangle(i);
-        ChVector<Real> A = tri.p1;
-        ChVector<Real> B = tri.p2;
-        ChVector<Real> C = tri.p3;
+    unsigned int n_triangles_mesh = mesh.GetNumTriangles();
+    for (unsigned int i = 0; i < n_triangles_mesh; i++) {
+        ChTriangle tri = mesh.GetTriangle(i);
+        ChVector3<Real> A = tri.p1;
+        ChVector3<Real> B = tri.p2;
+        ChVector3<Real> C = tri.p3;
 
         // Order so that A has the smallest angle
-        ChVector<Real> ab = B - A;
-        ChVector<Real> ac = C - A;
-        ChVector<Real> bc = C - B;
+        ChVector3<Real> ab = B - A;
+        ChVector3<Real> ac = C - A;
+        ChVector3<Real> bc = C - B;
         Real theta_A = std::abs(std::acos(ab.Dot(ac) / (ab.Length() * ac.Length())));
         Real theta_B = std::abs(std::acos(bc.Dot(-ab) / (bc.Length() * ab.Length())));
-        Real theta_C = (Real)CH_C_PI - (theta_A + theta_B);
+        Real theta_C = (Real)CH_PI - (theta_A + theta_B);
 
         int small_i = (theta_A <= theta_C) ? ((theta_A <= theta_B) ? 0 : 1) : ((theta_C <= theta_B) ? 2 : 1);
 
-        std::map<int, ChVector<float>> i_to_vertex;
+        std::map<int, ChVector3f> i_to_vertex;
         i_to_vertex[0] = A;
         i_to_vertex[1] = B;
         i_to_vertex[2] = C;
@@ -73,25 +73,25 @@ std::vector<ChVector<Real>> MeshSphericalDecomposition(
         B = i_to_vertex[(small_i + 1) % 3];
         C = i_to_vertex[(small_i + 2) % 3];
 
-        ChVector<Real> BC = C - B;
+        ChVector3<Real> BC = C - B;
         BC.Normalize();
 
-        ChVector<Real> BA = A - B;
+        ChVector3<Real> BA = A - B;
         BA.Normalize();
 
-        ChVector<Real> CA = A - C;
+        ChVector3<Real> CA = A - C;
         CA.Normalize();
 
-        ChVector<Real> n_tilde = (-BA).Cross(BC);  // Right hand normal to the triangle plane
-        ChVector<Real> n = BC.Cross(n_tilde);      // normal to the triangle edge in the plane
+        ChVector3<Real> n_tilde = (-BA).Cross(BC);  // Right hand normal to the triangle plane
+        ChVector3<Real> n = BC.Cross(n_tilde);      // normal to the triangle edge in the plane
         n.Normalize();
 
-        const ChVector<Real> B_star = B + (BC + BA) * sphere_radius;
-        const ChVector<Real> C_star = C + (CA - BC) * sphere_radius;
+        const ChVector3<Real> B_star = B + (BC + BA) * sphere_radius;
+        const ChVector3<Real> C_star = C + (CA - BC) * sphere_radius;
 
         // Endpoints of current working line
-        ChVector<Real> start = B_star;
-        ChVector<Real> end = C_star;
+        ChVector3<Real> start = B_star;
+        ChVector3<Real> end = C_star;
 
         // Fill parallel lines until the width is too small
         while ((start - end).Length() > 1.5 * sphere_radius) {
@@ -110,8 +110,8 @@ std::vector<ChVector<Real>> MeshSphericalDecomposition(
         }
 
         // Fill remaining space as a single line to the last vertex
-        ChVector<Real> A_star = (start + end) * 0.5;
-        ChVector<Real> A_starA = (A - A_star);
+        ChVector3<Real> A_star = (start + end) * 0.5;
+        ChVector3<Real> A_starA = (A - A_star);
         A_starA.Normalize();
 
         start = A_star;

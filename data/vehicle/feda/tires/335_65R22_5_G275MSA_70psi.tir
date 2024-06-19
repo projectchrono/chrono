@@ -227,3 +227,10 @@ SSZ3                  =    0.0000e+000        $Variation of distance s/R0 with c
 SSZ4                  =    0.0000e+000        $Variation of distance s/R0 with load and camber
 QTZ1                  =    0.0000e+000        $Gyration torque constant
 MBELT                 =    0.0000e+000        $Belt mass of the wheel
+$------------------------------------------------nonlinear vertical stiffness
+[DEFLECTION_LOAD_CURVE]
+{pen        fz}
+0.0	0.0
+0.028694561	17714.23021
+0.044635983	30091.32229
+

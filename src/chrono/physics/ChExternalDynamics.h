@@ -21,7 +21,7 @@
 
 #include "chrono/physics/ChPhysicsItem.h"
 #include "chrono/solver/ChVariablesGenericDiagonalMass.h"
-#include "chrono/solver/ChKblockGeneric.h"
+#include "chrono/solver/ChKRMBlock.h"
 
 namespace chrono {
 
@@ -36,7 +36,14 @@ class ChApi ChExternalDynamics : public ChPhysicsItem {
     virtual ChExternalDynamics* Clone() const override;
 
     /// Initialize the physics item.
-    void Initialize();
+    virtual void Initialize();
+
+    /// Declare as stiff (default: false).
+    /// If stiff, Jacobian information will be generated.
+    virtual bool IsStiff() const { return false; }
+
+    /// Get number of states (dimension of y).
+    virtual unsigned int GetNumStates() const { return 0; }
 
     /// Get the initial values (state at initial time).
     ChVectorDynamic<> GetInitialStates();
@@ -44,15 +51,11 @@ class ChApi ChExternalDynamics : public ChPhysicsItem {
     /// Get current states.
     const ChVectorDynamic<>& GetStates() const { return m_states; }
 
+    /// Get current RHS.
+    const ChVectorDynamic<>& GetRHS() const { return m_rhs; }
+
   protected:
     ChExternalDynamics();
-
-    /// Declare as stiff (default: false).
-    /// If stiff, Jacobian information will be generated.
-    virtual bool IsStiff() const { return false; }
-
-    /// Specify number of states (dimension of y).
-    virtual int GetNumStates() const { return 0; }
 
     /// Set initial conditions.
     /// Must load y0 = y(0).
@@ -80,13 +83,13 @@ class ChApi ChExternalDynamics : public ChPhysicsItem {
 
     virtual void Update(double time, bool update_assets = true) override;
 
-    virtual int GetDOF() override { return m_nstates; }
+    virtual unsigned int GetNumCoordsPosLevel() override { return m_nstates; }
 
     ChVariables& Variables() { return *m_variables; }
 
     // Interface to solver
     virtual void InjectVariables(ChSystemDescriptor& descriptor) override;
-    virtual void InjectKRMmatrices(ChSystemDescriptor& descriptor) override;
+    virtual void InjectKRMMatrices(ChSystemDescriptor& descriptor) override;
 
     virtual void IntStateGather(const unsigned int off_x,
                                 ChState& x,
@@ -106,6 +109,10 @@ class ChApi ChExternalDynamics : public ChPhysicsItem {
                                     ChVectorDynamic<>& R,
                                     const ChVectorDynamic<>& v,
                                     const double c) override;
+    virtual void IntLoadLumpedMass_Md(const unsigned int off,
+                                      ChVectorDynamic<>& Md,
+                                      double& err,
+                                      const double c) override;
     virtual void IntToDescriptor(const unsigned int off_v,
                                  const ChStateDelta& v,
                                  const ChVectorDynamic<>& R,
@@ -117,7 +124,7 @@ class ChApi ChExternalDynamics : public ChPhysicsItem {
                                    const unsigned int off_L,
                                    ChVectorDynamic<>& L) override;
 
-    virtual void KRMmatricesLoad(double Kfactor, double Rfactor, double Mfactor) override;
+    virtual void LoadKRMMatrices(double Kfactor, double Rfactor, double Mfactor) override;
 
     // Interface to the solver (old style)
     virtual void VariablesFbReset() override;
@@ -139,7 +146,7 @@ class ChApi ChExternalDynamics : public ChPhysicsItem {
     ChVectorDynamic<> m_rhs;  ///< generalized forcing terms (ODE RHS)
     ChMatrixDynamic<> m_jac;  ///< Jacobian of ODE right-hand side w.r.t. ODE states
 
-    ChKblockGeneric m_KRM;  ///< linear combination of K, R, M for the variables associated with item
+    ChKRMBlock m_KRM;  ///< linear combination of K, R, M for the variables associated with item
 
     static const double m_FD_delta;  ///< perturbation for finite-difference Jacobian approximation
 };

@@ -37,7 +37,7 @@ Chrono::Vehicle Reference Manual {#manual_vehicle}
 
 **Additional documentation pages**
 
-* [Chrono Reference Manual](@ref manual_root)
+* [Chrono Core User Manual](@ref manual_core)
 	
 * [PyChrono](@ref pychrono_introduction)
 

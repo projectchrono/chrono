@@ -36,9 +36,13 @@ if(VULKAN_SDK)
     set(ENV{VULKAN_SDK} ${VULKAN_SDK})
 endif()
 
-find_package(vsg REQUIRED)
+find_package(vsg 1.1.0 REQUIRED)
+find_package(vsgXchange 1.1.0 REQUIRED)
 find_package(vsgImGui REQUIRED)
-find_package(vsgXchange REQUIRED)
+
+message(STATUS "vsg version:        ${vsg_VERSION}")
+message(STATUS "vsgXchange version: ${vsgXchange_VERSION}")
+message(STATUS "vsgImGui version:   ${vsgImGui_VERSION}")
 
 # Check if vsgXchange is a static library. 
 # If yes, we assume it includes STB and we do not add those files in the the Chrono library
@@ -64,30 +68,22 @@ set(CE_VSG_BASE_FILES
 )
 
 set(CE_VSG_SHAPES_FILES
-    shapes/GetBoxShapeData.cpp
-    shapes/GetBoxShapeData.h
-    shapes/GetCapsuleShapeData.cpp
-    shapes/GetCapsuleShapeData.h
-    shapes/GetConeShapeData.cpp
-    shapes/GetConeShapeData.h
-    shapes/GetCylinderShapeData.cpp
-    shapes/GetCylinderShapeData.h
-    shapes/GetDiceShapeData.cpp
-    shapes/GetDiceShapeData.h
-    shapes/GetSphereShapeData.cpp
-    shapes/GetSphereShapeData.h
     shapes/GetSurfaceShapeData.cpp
     shapes/GetSurfaceShapeData.h
+    shapes/ShaderUtils.cpp
+    shapes/ShaderUtils.h
     shapes/ShapeBuilder.cpp
     shapes/ShapeBuilder.h
 )
 
 set(CE_VSG_RESOURCES_FILES
-    resources/lineShader_frag.h
-    resources/lineShader_vert.h
-    resources/cubemapShaders.h
+    resources/chronoLineShader_frag.h
+    resources/chronoLineShader_vert.h
+    resources/chronoPbrShader_frag.h
+    resources/chronoPbrShader_vert.h
     resources/pcShader_frag.h
     resources/pcShader_vert.h
+    resources/cubemapShaders.h
 )
 
 set(CE_VSG_UTILS_FILES

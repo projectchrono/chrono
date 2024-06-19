@@ -30,7 +30,7 @@ namespace chrono {
 namespace vehicle {
 namespace m113 {
 
-/// @addtogroup vehicle_models_M113
+/// @addtogroup vehicle_models_m113
 /// @{
 
 /// M113 automatic transmission model template based on a simple gear-shifting model.
@@ -49,7 +49,7 @@ class CH_MODELS_API M113_AutomaticTransmissionSimpleMap : public ChAutomaticTran
         ) override;
 };
 
-/// @} vehicle_models_M113
+/// @} vehicle_models_m113
 
 }  // end namespace M113
 }  // end namespace vehicle

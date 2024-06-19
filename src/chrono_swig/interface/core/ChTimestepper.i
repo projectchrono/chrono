@@ -7,25 +7,28 @@
 
 // First, ensure that these functions are not marked as 'overrides' in the generated C# code.
 
-%csmethodmodifiers chrono::ChTimestepperHHT::SetMaxiters "public"
+%csmethodmodifiers chrono::ChTimestepperHHT::SetMaxIters "public"
 %csmethodmodifiers chrono::ChTimestepperHHT::SetRelTolerance "public"
 %csmethodmodifiers chrono::ChTimestepperHHT::SetAbsTolerances "public"
 %csmethodmodifiers chrono::ChTimestepperHHT::GetNumIterations "public"
 %csmethodmodifiers chrono::ChTimestepperHHT::GetNumSetupCalls "public"
 %csmethodmodifiers chrono::ChTimestepperHHT::GetNumSolveCalls "public"
 
-%csmethodmodifiers chrono::ChTimestepperEulerImplicit::SetMaxiters "public"
+%csmethodmodifiers chrono::ChTimestepperEulerImplicit::SetMaxIters "public"
 %csmethodmodifiers chrono::ChTimestepperEulerImplicit::SetRelTolerance "public"
 %csmethodmodifiers chrono::ChTimestepperEulerImplicit::SetAbsTolerances "public"
 %csmethodmodifiers chrono::ChTimestepperEulerImplicit::GetNumIterations "public"
 %csmethodmodifiers chrono::ChTimestepperEulerImplicit::GetNumSetupCalls "public"
 %csmethodmodifiers chrono::ChTimestepperEulerImplicit::GetNumSolveCalls "public"
 
+%csmethodmodifiers chrono::ChTimestepper::GetType "public virtual new"
+
+
 // Second, extend ChTimestepperHHT and ChTimestepperEulerImplicit with implementations of these functions
 
 %extend chrono::ChTimestepperHHT
 {
-    void SetMaxiters(int iters)                             {$self->SetMaxiters(iters);}
+    void SetMaxIters(int iters)                             {$self->SetMaxIters(iters);}
     void SetRelTolerance(double rel_tol)                    {$self->SetRelTolerance(rel_tol);}
     void SetAbsTolerances(double abs_tolS, double abs_tolL) {$self->SetAbsTolerances(abs_tolS, abs_tolL);}
     void SetAbsTolerances(double abs_tol)                   {$self->SetAbsTolerances(abs_tol);}
@@ -36,7 +39,7 @@
 
 %extend chrono::ChTimestepperEulerImplicit
 {
-    void SetMaxiters(int iters)                             {$self->SetMaxiters(iters);}
+    void SetMaxIters(int iters)                             {$self->SetMaxIters(iters);}
     void SetRelTolerance(double rel_tol)                    {$self->SetRelTolerance(rel_tol);}
     void SetAbsTolerances(double abs_tolS, double abs_tolL) {$self->SetAbsTolerances(abs_tolS, abs_tolL);}
     void SetAbsTolerances(double abs_tol)                   {$self->SetAbsTolerances(abs_tol);}
@@ -51,16 +54,12 @@
 #include <cmath>
 #include <cstdlib>
 #include "chrono/core/ChApiCE.h"
-#include "chrono/core/ChMath.h"
+#include "chrono/core/ChFrame.h"
 #include "chrono/serialization/ChArchive.h"
 #include "chrono/timestepper/ChIntegrable.h"
 #include "chrono/timestepper/ChState.h"
 #include "chrono/timestepper/ChTimestepper.h"
 #include "chrono/timestepper/ChTimestepperHHT.h"
-#include "chrono/core/ChApiCE.h"
-#include "chrono/core/ChMath.h"
-#include "chrono/timestepper/ChState.h"
-#include "chrono/timestepper/ChIntegrable.h"
 
 using namespace chrono;
 %}
@@ -90,7 +89,8 @@ using namespace chrono;
 %shared_ptr(chrono::ChTimestepperHHT)
 %shared_ptr(chrono::ChImplicitIterativeTimestepper)
 %shared_ptr(chrono::ChImplicitTimestepper)
-  
+%shared_ptr(chrono::ChExplicitTimestepper)  
+
 %include "../../../chrono/timestepper/ChState.h"
 %include "../../../chrono/timestepper/ChIntegrable.h"
 %include "../../../chrono/timestepper/ChTimestepper.h"

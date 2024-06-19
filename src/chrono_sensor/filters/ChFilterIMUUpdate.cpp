@@ -30,7 +30,7 @@ ChFilterAccelerometerUpdate::ChFilterAccelerometerUpdate(std::shared_ptr<ChNoise
 
 CH_SENSOR_API void ChFilterAccelerometerUpdate::Apply() {
     // default sensor values
-    ChVector<double> acc = {0, 0, 0};
+    ChVector3d acc = {0, 0, 0};
 
     if (m_accSensor->m_keyframes.size() > 0) {
         for (auto c : m_accSensor->m_keyframes) {
@@ -76,7 +76,7 @@ ChFilterGyroscopeUpdate::ChFilterGyroscopeUpdate(std::shared_ptr<ChNoiseModel> n
 
 CH_SENSOR_API void ChFilterGyroscopeUpdate::Apply() {
     // default sensor values
-    ChVector<double> ang_vel = {0, 0, 0};
+    ChVector3d ang_vel = {0, 0, 0};
 
     if (m_gyroSensor->m_keyframes.size() > 0) {
         for (auto c : m_gyroSensor->m_keyframes) {
@@ -117,12 +117,12 @@ CH_SENSOR_API void ChFilterGyroscopeUpdate::Initialize(std::shared_ptr<ChSensor>
 }
 
 ChFilterMagnetometerUpdate::ChFilterMagnetometerUpdate(std::shared_ptr<ChNoiseModel> noise_model,
-                                                       ChVector<double> gps_reference)
+                                                       ChVector3d gps_reference)
     : m_noise_model(noise_model), ChFilter("Magnetometer Updater"), m_gps_reference(gps_reference) {}
 
 CH_SENSOR_API void ChFilterMagnetometerUpdate::Apply() {
     // default sensor values
-    ChVector<double> pos = {0, 0, 0};
+    ChVector3d pos = {0, 0, 0};
     if (m_magSensor->m_keyframes.size() > 0) {
         for (auto c : m_magSensor->m_keyframes) {
             pos += c.GetPos();
@@ -131,9 +131,9 @@ CH_SENSOR_API void ChFilterMagnetometerUpdate::Apply() {
     }
 
     Cartesian2GPS(pos, m_gps_reference);
-    double phi = pos.x() * CH_C_DEG_TO_RAD;    // longitude
-    double theta = pos.y() * CH_C_DEG_TO_RAD;  // latitude
-    double h = pos.z();                        // altitude
+    double phi = pos.x() * CH_DEG_TO_RAD;    // longitude
+    double theta = pos.y() * CH_DEG_TO_RAD;  // latitude
+    double h = pos.z();                      // altitude
 
     double cos_theta_m = cos(theta) * cos(theta_0) + sin(theta) * sin(theta_0) * cos(phi - phi_0);
     double sin_theta_m = sin(acos(cos_theta_m));
@@ -151,12 +151,12 @@ CH_SENSOR_API void ChFilterMagnetometerUpdate::Apply() {
 
     // get magnetic field in sensor frame
     double H = B_abs * cos(alpha);
-    ChVector<double> mag_field = {H * cos(beta), H * sin(beta), B_abs * sin(alpha)};
+    ChVector3d mag_field = {H * cos(beta), H * sin(beta), B_abs * sin(alpha)};
 
     double ang;
-    ChVector<double> axis;
-    m_magSensor->m_keyframes[0].GetRot().Q_to_AngAxis(ang, axis);
-    ChVector<double> mag_field_sensor = m_magSensor->m_keyframes[0].GetRot().Rotate(mag_field);
+    ChVector3d axis;
+    m_magSensor->m_keyframes[0].GetRot().GetAngleAxis(ang, axis);
+    ChVector3d mag_field_sensor = m_magSensor->m_keyframes[0].GetRot().Rotate(mag_field);
 
     if (m_noise_model) {
         m_noise_model->AddNoise(mag_field_sensor);

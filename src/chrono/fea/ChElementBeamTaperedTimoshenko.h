@@ -52,11 +52,11 @@ class ChApi ChElementBeamTaperedTimoshenko : public ChElementBeam,
 
     ~ChElementBeamTaperedTimoshenko() {}
 
-    virtual int GetNnodes() override { return 2; }
-    virtual int GetNdofs() override { return 2 * 6; }
-    virtual int GetNodeNdofs(int n) override { return 6; }
+    virtual unsigned int GetNumNodes() override { return 2; }
+    virtual unsigned int GetNumCoordsPosLevel() override { return 2 * 6; }
+    virtual unsigned int GetNodeNumCoordsPosLevel(unsigned int n) override { return 6; }
 
-    virtual std::shared_ptr<ChNodeFEAbase> GetNodeN(int n) override { return nodes[n]; }
+    virtual std::shared_ptr<ChNodeFEAbase> GetNode(unsigned int n) override { return nodes[n]; }
 
     virtual void SetNodes(std::shared_ptr<ChNodeFEAxyzrot> nodeA, std::shared_ptr<ChNodeFEAxyzrot> nodeB);
 
@@ -125,14 +125,14 @@ class ChApi ChElementBeamTaperedTimoshenko : public ChElementBeam,
     /// Please refer to ANSYS theory document for more information.
     void SetUseRs(bool md) { this->use_Rs = md; }
 
-    /// Set this as true to use a simplified correction model for the case of inclined shear axis. 
-    /// By default it is false. This option may affect the bending-twist coupling of Timoshenko 
+    /// Set this as true to use a simplified correction model for the case of inclined shear axis.
+    /// By default it is false. This option may affect the bending-twist coupling of Timoshenko
     /// beam element, especially when the inclined angle of shear center axis is obvious with
     /// respect to the centerline.
     void SetUseSimplifiedCorrectionForInclinedShearAxis(bool md) {
         this->use_simplified_correction_for_inclined_shear_axis = md;
     }
-    
+
     /// Shape functions for Timoshenko beam.
     /// Please refer to the textbook:
     /// J. S. Przemieniecki, Theory of Matrix Structural Analysis-Dover Publications (1985).
@@ -145,23 +145,27 @@ class ChApi ChElementBeamTaperedTimoshenko : public ChElementBeam,
     virtual void UpdateRotation() override;
 
     /// Fills the D vector with the current field values at the nodes of the element, with proper ordering.
-    /// If the D vector has not the size of this->GetNdofs(), it will be resized.
+    /// If the D vector has not the size of this->GetNumCoordsPosLevel(), it will be resized.
     /// For corotational elements, field is assumed in local reference!
     /// Given that this element includes rotations at nodes, this gives:
     ///  {x_a y_a z_a Rx_a Ry_a Rz_a x_b y_b z_b Rx_b Ry_b Rz_b}
     virtual void GetStateBlock(ChVectorDynamic<>& mD) override;
 
     /// Fills the Ddt vector with the current time derivatives of field values at the nodes of the element, with proper
-    /// ordering. If the D vector has not the size of this->GetNdofs(), it will be resized. For corotational elements,
-    /// field is assumed in local reference! Give that this element includes rotations at nodes, this gives:
+    /// ordering. If the D vector has not the size of this->GetNumCoordsPosLevel(), it will be resized. For corotational
+    /// elements, field is assumed in local reference! Give that this element includes rotations at nodes, this gives:
     ///  {v_a v_a v_a wx_a wy_a wz_a v_b v_b v_b wx_b wy_b wz_b}
-    void GetField_dt(ChVectorDynamic<>& mD_dt);
+    void GetFieldDt(ChVectorDynamic<>& mD_dt);
 
     /// Fills the Ddtdt vector with the current time derivatives of field values at the nodes of the element, with
-    /// proper ordering. If the D vector has not the size of this->GetNdofs(), it will be resized. For corotational
-    /// elements, field is assumed in local reference! Give that this element includes rotations at nodes, this gives:
+    /// proper ordering. If the D vector has not the size of this->GetNumCoordsPosLevel(), it will be resized. For
+    /// corotational elements, field is assumed in local reference! Give that this element includes rotations at nodes,
+    /// this gives:
     ///  {acc_a acc_a acc_a accx_a accy_a accz_a acc_b acc_b acc_b accx_b accy_b accz_b}
-    void GetField_dtdt(ChVectorDynamic<>& mD_dtdt);
+    void GetFieldDt2(ChVectorDynamic<>& mD_dtdt);
+
+    /// Add contribution of element inertia to total nodal masses
+    virtual void ComputeNodalMass() override;
 
     /// Computes the local (material) stiffness matrix of the element:
     /// K = integral( [B]' * [D] * [B] ),
@@ -220,7 +224,7 @@ class ChApi ChElementBeamTaperedTimoshenko : public ChElementBeam,
     virtual void ComputeInternalForces(ChVectorDynamic<>& Fi, bool Mfactor, bool Kfactor, bool Rfactor, bool Gfactor);
 
     /// Compute gravity forces, grouped in the Fg vector, one node after the other
-    virtual void ComputeGravityForces(ChVectorDynamic<>& Fg, const ChVector<>& G_acc) override;
+    virtual void ComputeGravityForces(ChVectorDynamic<>& Fg, const ChVector3d& G_acc) override;
 
     //
     // Beam-specific functions
@@ -230,36 +234,36 @@ class ChApi ChElementBeamTaperedTimoshenko : public ChElementBeam,
     /// and the rotation RxRyRz of section plane, at abscyssa 'eta'.
     /// Note, eta=-1 at node1, eta=+1 at node2.
     /// Results are not corotated.
-    virtual void EvaluateSectionDisplacement(const double eta, ChVector<>& u_displ, ChVector<>& u_rotaz) override;
+    virtual void EvaluateSectionDisplacement(const double eta, ChVector3d& u_displ, ChVector3d& u_rotaz) override;
 
     /// Gets the absolute xyz position of a point on the beam line,
     /// and the absolute rotation of section plane, at abscissa 'eta'.
     /// Note, eta=-1 at node1, eta=+1 at node2.
     /// Results are corotated (expressed in world reference)
-    virtual void EvaluateSectionFrame(const double eta, ChVector<>& point, ChQuaternion<>& rot) override;
+    virtual void EvaluateSectionFrame(const double eta, ChVector3d& point, ChQuaternion<>& rot) override;
 
     /// Gets the force (traction x, shear y, shear z) and the
     /// torque (torsion on x, bending on y, on bending on z) at a section along
     /// the beam line, at abscissa 'eta'.
     /// Note, eta=-1 at node1, eta=+1 at node2.
     /// Results are not corotated, and are expressed in the reference system of beam.
-    virtual void EvaluateSectionForceTorque(const double eta, ChVector<>& Fforce, ChVector<>& Mtorque) override;
+    virtual void EvaluateSectionForceTorque(const double eta, ChVector3d& Fforce, ChVector3d& Mtorque) override;
 
     /* To be completed: Created to be consistent with base class implementation*/
-    virtual void EvaluateSectionStrain(const double eta, ChVector<>& StrainV) override {}
+    virtual void EvaluateSectionStrain(const double eta, ChVector3d& StrainV) override {}
 
     /// Gets the strains(traction along x, shear along y, along shear z, torsion about x, bending about y, on bending
     /// about z) at a section along the beam line, at abscissa 'eta'. It's evaluated at the elastic center. Note, eta=-1
     /// at node1, eta=+1 at node2. Results are not corotated, and are expressed in the reference system of beam.
-    virtual void EvaluateSectionStrain(const double eta, ChVector<>& StrainV_trans, ChVector<>& StrainV_rot);
+    virtual void EvaluateSectionStrain(const double eta, ChVector3d& StrainV_trans, ChVector3d& StrainV_rot);
 
     /// Gets the elastic strain energy(traction along x, shear along y, along shear z, torsion about x, bending about
     /// y, on bending about z) in the element.
-    virtual void EvaluateElementStrainEnergy(ChVector<>& StrainEnergyV_trans, ChVector<>& StrainEnergyV_rot);
+    virtual void EvaluateElementStrainEnergy(ChVector3d& StrainEnergyV_trans, ChVector3d& StrainEnergyV_rot);
 
     /// Gets the damping dissipated energy(traction along x, shear along y, along shear z, torsion about x, bending
     /// about y, on bending about z) in the element.
-    virtual void EvaluateElementDampingEnergy(ChVector<>& DampingEnergyV_trans, ChVector<>& DampingEnergyV_rot);
+    virtual void EvaluateElementDampingEnergy(ChVector3d& DampingEnergyV_trans, ChVector3d& DampingEnergyV_rot);
 
     //
     // Functions for interfacing to the solver
@@ -270,16 +274,16 @@ class ChApi ChElementBeamTaperedTimoshenko : public ChElementBeam,
     //
 
     /// Gets the number of DOFs affected by this element (position part)
-    virtual int LoadableGet_ndof_x() override { return 2 * 7; }
+    virtual unsigned int GetLoadableNumCoordsPosLevel() override { return 2 * 7; }
 
     /// Gets the number of DOFs affected by this element (speed part)
-    virtual int LoadableGet_ndof_w() override { return 2 * 6; }
+    virtual unsigned int GetLoadableNumCoordsVelLevel() override { return 2 * 6; }
 
     /// Gets all the DOFs packed in a single vector (position part)
-    virtual void LoadableGetStateBlock_x(int block_offset, ChState& mD) override;
+    virtual void LoadableGetStateBlockPosLevel(int block_offset, ChState& mD) override;
 
     /// Gets all the DOFs packed in a single vector (speed part)
-    virtual void LoadableGetStateBlock_w(int block_offset, ChStateDelta& mD) override;
+    virtual void LoadableGetStateBlockVelLevel(int block_offset, ChStateDelta& mD) override;
 
     /// Increment all DOFs using a delta.
     virtual void LoadableStateIncrement(const unsigned int off_x,
@@ -290,19 +294,21 @@ class ChApi ChElementBeamTaperedTimoshenko : public ChElementBeam,
 
     /// Number of coordinates in the interpolated field, ex=3 for a
     /// tetrahedron finite element or a cable, = 1 for a thermal problem, etc.
-    virtual int Get_field_ncoords() override { return 6; }
+    virtual unsigned int GetNumFieldCoords() override { return 6; }
 
     /// Get the number of DOFs sub-blocks.
-    virtual int GetSubBlocks() override { return 2; }
+    virtual unsigned int GetNumSubBlocks() override { return 2; }
 
     /// Get the offset of the specified sub-block of DOFs in global vector.
-    virtual unsigned int GetSubBlockOffset(int nblock) override { return nodes[nblock]->NodeGetOffsetW(); }
+    virtual unsigned int GetSubBlockOffset(unsigned int nblock) override {
+        return nodes[nblock]->NodeGetOffsetVelLevel();
+    }
 
     /// Get the size of the specified sub-block of DOFs in global vector.
-    virtual unsigned int GetSubBlockSize(int nblock) override { return 6; }
+    virtual unsigned int GetSubBlockSize(unsigned int nblock) override { return 6; }
 
     /// Check if the specified sub-block of DOFs is active.
-    virtual bool IsSubBlockActive(int nblock) const override { return !nodes[nblock]->IsFixed(); }
+    virtual bool IsSubBlockActive(unsigned int nblock) const override { return !nodes[nblock]->IsFixed(); }
 
     /// Get the pointers to the contained ChVariables, appending to the mvars vector.
     virtual void LoadableGetVariables(std::vector<ChVariables*>& mvars) override;
@@ -366,7 +372,8 @@ class ChApi ChElementBeamTaperedTimoshenko : public ChElementBeam,
     bool use_geometric_stiffness;  ///< whether include geometric stiffness matrix
     bool use_Rc;                   ///< whether use the transformation matrix for elastic axis orientation
     bool use_Rs;                   ///< whether use the transformation matrix for shear axis orientation
-    bool use_simplified_correction_for_inclined_shear_axis = false;///< whether use the simplified correction model for shear axis orientation, it's false as default.
+    bool use_simplified_correction_for_inclined_shear_axis =
+        false;  ///< whether use the simplified correction model for shear axis orientation, it's false as default.
 
     // Flag that turns on/off the computation of the [Ri] 'gyroscopic' inertial damping matrix.
     // If false, Ri=0. Can be used for cpu speedup, profiling, tests. Default: true.
