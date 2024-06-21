@@ -82,7 +82,7 @@ class ChFsiInterface : public ChFsiBase {
     };
 
     ChSystemFsi_impl& m_sysFSI;  ///< FSI system
-    bool m_verbose;              ///< enable/disable m_verbose terminal output (default: true)
+    bool m_verbose;              ///< terminal output (default: true)
 
     std::vector<std::shared_ptr<ChBody>> m_fsi_bodies;  ///< rigid bodies exposed to the FSI system
     std::vector<FsiMesh1D> m_fsi_meshes1D;              ///< FEA meshes with 1-D segments exposed to the FSI system

@@ -58,11 +58,11 @@ void ChFsiInterface::LoadBodyState_Chrono2Fsi(std::shared_ptr<FsiBodyStateD> fsi
     for (size_t i = 0; i < num_fsiBodies_Rigids; i++) {
         std::shared_ptr<ChBody> bodyPtr = m_fsi_bodies[i];
         m_sysFSI.fsiBodyState_H->pos[i] = utils::ToReal3(bodyPtr->GetPos());
-        m_sysFSI.fsiBodyState_H->lin_vel[i] = utils::ToReal4(bodyPtr->GetPos_dt(), bodyPtr->GetMass());
-        m_sysFSI.fsiBodyState_H->lin_acc[i] = utils::ToReal3(bodyPtr->GetPos_dtdt());
+        m_sysFSI.fsiBodyState_H->lin_vel[i] = utils::ToReal4(bodyPtr->GetPosDt(), bodyPtr->GetMass());
+        m_sysFSI.fsiBodyState_H->lin_acc[i] = utils::ToReal3(bodyPtr->GetPosDt2());
         m_sysFSI.fsiBodyState_H->rot[i] = utils::ToReal4(bodyPtr->GetRot());
-        m_sysFSI.fsiBodyState_H->ang_vel[i] = utils::ToReal3(bodyPtr->GetWvel_loc());
-        m_sysFSI.fsiBodyState_H->ang_acc[i] = utils::ToReal3(bodyPtr->GetWacc_loc());
+        m_sysFSI.fsiBodyState_H->ang_vel[i] = utils::ToReal3(bodyPtr->GetAngVelLocal());
+        m_sysFSI.fsiBodyState_H->ang_acc[i] = utils::ToReal3(bodyPtr->GetAngAccLocal());
     }
     fsiBodyStateD->CopyFromH(*m_sysFSI.fsiBodyState_H);
 }
@@ -109,8 +109,8 @@ void ChFsiInterface::LoadMesh1DState_Chrono2Fsi(std::shared_ptr<FsiMeshStateD> f
         for (int i = 0; i < num_nodes; i++) {
             const auto& node = fsi_mesh.ind2ptr_map.at(i);
             m_sysFSI.fsiMesh1DState_H->pos_fsi_fea_H[counter] = utils::ToReal3(node->GetPos());
-            m_sysFSI.fsiMesh1DState_H->vel_fsi_fea_H[counter] = utils::ToReal3(node->GetPos_dt());
-            m_sysFSI.fsiMesh1DState_H->acc_fsi_fea_H[counter] = utils::ToReal3(node->GetPos_dtdt());
+            m_sysFSI.fsiMesh1DState_H->vel_fsi_fea_H[counter] = utils::ToReal3(node->GetPosDt());
+            m_sysFSI.fsiMesh1DState_H->acc_fsi_fea_H[counter] = utils::ToReal3(node->GetPosDt2());
             counter++;
         }
     }
@@ -127,8 +127,8 @@ void ChFsiInterface::LoadMesh2DState_Chrono2Fsi(std::shared_ptr<FsiMeshStateD> f
         for (int i = 0; i < num_nodes; i++) {
             const auto& node = fsi_mesh.ind2ptr_map.at(i);
             m_sysFSI.fsiMesh2DState_H->pos_fsi_fea_H[counter] = utils::ToReal3(node->GetPos());
-            m_sysFSI.fsiMesh2DState_H->vel_fsi_fea_H[counter] = utils::ToReal3(node->GetPos_dt());
-            m_sysFSI.fsiMesh2DState_H->acc_fsi_fea_H[counter] = utils::ToReal3(node->GetPos_dtdt());
+            m_sysFSI.fsiMesh2DState_H->vel_fsi_fea_H[counter] = utils::ToReal3(node->GetPosDt());
+            m_sysFSI.fsiMesh2DState_H->acc_fsi_fea_H[counter] = utils::ToReal3(node->GetPosDt2());
             counter++;
         }
     }
