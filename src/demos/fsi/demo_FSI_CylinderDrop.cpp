@@ -31,6 +31,10 @@
     #include "chrono_fsi/visualization/ChFsiVisualizationVSG.h"
 #endif
 
+#ifdef CHRONO_POSTPROCESS
+    #include "chrono_postprocess/ChGnuPlot.h"
+#endif
+
 #include "chrono_thirdparty/filesystem/path.h"
 
 using namespace chrono;
@@ -128,10 +132,8 @@ void WriteCylinderVTK(const std::string& filename, double radius, double length,
     }
 }
 
-//------------------------------------------------------------------
 // Create the objects of the MBD system. Rigid bodies, and if FSI,
 // their BCE representation are created and added to the systems
-//------------------------------------------------------------------
 void CreateSolidPhase(ChSystemSMC& sysMBS, ChSystemFsi& sysFSI) {
     // Set gravity to the rigid body system in chrono
     sysMBS.SetGravitationalAcceleration(sysFSI.GetGravitationalAcceleration());
@@ -202,7 +204,8 @@ void CreateSolidPhase(ChSystemSMC& sysMBS, ChSystemFsi& sysFSI) {
     sysFSI.AddCylinderBCE(cylinder, ChFrame<>(VNULL, QuatFromAngleX(CH_PI_2)), cyl_radius, cyl_length, true);
 }
 
-// =============================================================================
+// -----------------------------------------------------------------
+
 int main(int argc, char* argv[]) {
     // Create oputput directories
     if (!filesystem::create_directory(filesystem::path(out_dir))) {
@@ -320,6 +323,9 @@ int main(int argc, char* argv[]) {
         visFSI->Initialize();
     }
 
+    // Record cylinder height
+    ChFunctionInterp height_recorder;
+
     // Start the simulation
     double dT = sysFSI.GetStepSize();
     unsigned int output_steps = (unsigned int)round(1 / (out_fps * dT));
@@ -346,8 +352,10 @@ int main(int argc, char* argv[]) {
                 break;
         }
 
+        auto cylinder_height = sysMBS.GetBodies()[1]->GetPos().z();
         std::cout << "step: " << current_step << "\ttime: " << time << "\tRTF: " << sysFSI.GetRTF()
-                  << "\tcyl z: " << sysMBS.GetBodies()[1]->GetPos().z() << std::endl;
+                  << "\tcyl z: " << cylinder_height << std::endl;
+        height_recorder.AddPoint(time, cylinder_height);
 
         // Call the FSI solver
         sysFSI.DoStepDynamics_FSI();
@@ -356,6 +364,16 @@ int main(int argc, char* argv[]) {
     }
     timer.stop();
     std::cout << "\nSimulation time: " << timer() << " seconds\n" << std::endl;
+
+#ifdef CHRONO_POSTPROCESS
+    postprocess::ChGnuPlot gplot(out_dir + "/height.gpl");
+    gplot.SetGrid();
+    std::string speed_title = "Cylinder height";
+    gplot.SetTitle(speed_title);
+    gplot.SetLabelX("time (s)");
+    gplot.SetLabelY("height (m)");
+    gplot.Plot(height_recorder, "", " with lines lt -1 lw 2 lc rgb'#3333BB' ");
+#endif
 
     return 0;
 }
