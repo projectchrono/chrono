@@ -338,6 +338,16 @@ class ChNameValue {
 // that can be later referenced by pointer too.
 static const char NVP_TRACK_OBJECT = (1 << 0);
 
+// Flag to mark a ChNameValue for a C++ class member serialized by pointer or shared pointer,
+// whose serialization could be skipped (and deserialized as nullptr) if the optional SetCutShallowPointers(true) is used.
+static const char NVP_SHALLOW = (1 << 1);
+
+// Flag to mark a ChNameValue for a C++ class member container (std::vector, std::unordered_map, std::list etc.),
+// whose serialization could be set to zero elements if the optional SetEmptyShallowContainers(true) is used. This because
+// you may want to serialize/deserialize contained items later, in incremental stages.
+static const char NVP_SHALLOWCONTAINER = (1 << 2);
+
+
 template <class T>
 ChNameValue<T> make_ChNameValue(const std::string& auto_name,
                                 const T& t,
@@ -421,7 +431,7 @@ class ChValue {
     /// Tell if the underlying original type is a pointer.
     virtual bool IsPointer() = 0;
 
-    /// Access the data by a raw pointer, given as static_cast
+    /// Access the data by a raw pointer, given as static_cast<void*>, or dynamic_cast<void*> for polymorphic
     virtual void* GetRawPtr() = 0;
 
     /// Get name of property
@@ -829,11 +839,15 @@ class ChApi ChArchiveOut : public ChArchive {
     std::unordered_set<void*> cut_pointers;
 
     bool cut_all_pointers;
+    bool cut_shallow_pointers;
+    bool empty_shallow_containers;
     bool use_gettag_as_id;
 
   public:
     ChArchiveOut() {
         cut_all_pointers = false;
+        cut_shallow_pointers = false;
+        empty_shallow_containers = false;
         use_gettag_as_id = false;
 
         internal_ptr_id.clear();
@@ -846,8 +860,21 @@ class ChApi ChArchiveOut : public ChArchive {
     /// If you enable  SetCutAllPointers(true), no serialization happens for
     /// objects referenced via pointers. This can be useful to save a single object,
     /// regardless of the fact that it contains pointers to other 'children' objects.
+    /// For a more fine grained control on cutting the propagation of serialization 
+    /// through pointers, one could also consider SetCutShallowPointers() or CutPointers().
     /// Cut pointers are turned into null pointers.
     void SetCutAllPointers(bool mcut) { this->cut_all_pointers = mcut; }
+
+    /// If you enable  SetCutShallowPointers(true), no serialization happens for
+    /// objects referenced via pointers that were marked with the NVP_SHALLOW flag
+    /// in the CHNVP macro, ex: 
+    ///    archive_out << CHNVP(m_body,"my_body",NPV_SHALLOW);
+    /// This can be useful to save a single object, regardless of the fact that it 
+    /// contains pointers to other 'children' objects. 
+    /// Default behaviour is SetCutShallowPointers(false), so serialization is
+    /// propagated also to the pointers, even if marked as NPV_SHALLOW.
+    /// Cut pointers are turned into null pointers.
+    void SetCutShallowPointers(bool mcut) { this->cut_shallow_pointers = mcut; }
 
     /// Access the container of pointers that must not be serialized.
     /// This is in case SetCutAllPointers(true) is too extreme. So you can
@@ -859,18 +886,32 @@ class ChApi ChArchiveOut : public ChArchive {
     /// The cut pointers are serialized as null pointers.
     std::unordered_set<void*>& CutPointers() { return cut_pointers; }
 
-    /// Use the following to declare pointer(s) that must not be de-serialized
+    /// Use the following to declare pointer(s) that must not be serialized
     /// but rather be 'unbind' and be saved just as unique IDs.
     /// Note, the IDs can be whatever integer > 0. Use unique IDs per each pointer.
     /// Note, the same IDs must be used when de-serializing pointers in ArchiveIn.
     void UnbindExternalPointer(void* mptr, size_t ID) { external_ptr_id[mptr] = ID; }
 
-    /// Use the following to declare pointer(s) that must not be de-serialized
+    /// Use the following to declare pointer(s) that must not be serialized
     /// but rather be 'unbind' and be saved just as unique IDs.
     /// Note, the IDs can be whatever integer > 0. Use unique IDs per each pointer.
     /// Note, the same IDs must be used when de-serializing pointers in ArchiveIn.
     void UnbindExternalPointer(std::shared_ptr<void> mptr, size_t ID) { external_ptr_id[mptr.get()] = ID; }
 
+    /// Access the map of pointer(s) that must not be serialized
+    /// but rather be 'unbind' and be saved just as unique IDs.
+    std::unordered_map<void*, size_t>& ExternalPointersMap() { return external_ptr_id;  }
+
+    /// If you enable  SetEmptyShallowContainers(true), no serialization happens for
+    /// objects inside containers (std::list, std::vector, std::unordered_map etc) that
+    /// are marked as NVP_SHALLOWCONTAINER flag in the CHNVP macro, ex: 
+    ///    archive_out << CHNVP(m_vector,"my_vector",NVP_SHALLOWCONTAINER);
+    /// This can be useful to save a single object, regardless of the fact that it 
+    /// contains pointers to other 'children' objects in containers. 
+    /// Default behaviour is SetEmptyShallowContainers(false), so serialization is
+    /// propagated also to objects in containers, even if marked as NVP_SHALLOWCONTAINER.
+    /// Shallow containers, when this function is turned on, are not filled when deserialized.
+    void SetEmptyShallowContainers(bool mcut) { this->empty_shallow_containers = mcut; }
 
     /// When deserializing N pointers to the same object, an ID is used in the archive to 
     /// mark the object, and the N pointers just serialize such ID. By default the ID is an
@@ -948,6 +989,9 @@ class ChApi ChArchiveOut : public ChArchive {
         size_t arraysize = sizeof(bVal.value()) / sizeof(T);
         ChValueSpecific<T[N]> specVal(bVal.value(), bVal.name(), bVal.flags(), bVal.GetCausality(),
                                       bVal.GetVariability());
+        if (this->empty_shallow_containers && (bVal.flags() & NVP_SHALLOWCONTAINER)) {
+            this->out_array_pre(specVal, 0);this->out_array_end(specVal, 0); return;
+        }
         this->out_array_pre(specVal, arraysize);
         for (size_t i = 0; i < arraysize; ++i) {
             ChNameValue<T> array_val(std::to_string(i), bVal.value()[i]);
@@ -962,6 +1006,9 @@ class ChApi ChArchiveOut : public ChArchive {
     void out(ChNameValue<std::vector<T>> bVal) {
         ChValueSpecific<std::vector<T>> specVal(bVal.value(), bVal.name(), bVal.flags(), bVal.GetCausality(),
                                                 bVal.GetVariability());
+        if (this->empty_shallow_containers && (bVal.flags() & NVP_SHALLOWCONTAINER)) {
+            this->out_array_pre(specVal, 0);this->out_array_end(specVal, 0); return;
+        }
         this->out_array_pre(specVal, bVal.value().size());
         for (size_t i = 0; i < bVal.value().size(); ++i) {
             ChNameValue<T> array_val(std::to_string(i), bVal.value()[i]);
@@ -976,6 +1023,9 @@ class ChApi ChArchiveOut : public ChArchive {
     void out(ChNameValue<std::list<T>> bVal) {
         ChValueSpecific<std::list<T>> specVal(bVal.value(), bVal.name(), bVal.flags(), bVal.GetCausality(),
                                               bVal.GetVariability());
+        if (this->empty_shallow_containers && (bVal.flags() & NVP_SHALLOWCONTAINER)) {
+            this->out_array_pre(specVal, 0);this->out_array_end(specVal, 0); return;
+        }
         this->out_array_pre(specVal, bVal.value().size());
         typename std::list<T>::iterator iter;
         size_t i = 0;
@@ -1000,6 +1050,9 @@ class ChApi ChArchiveOut : public ChArchive {
     void out(ChNameValue<std::unordered_map<T, Tv>> bVal) {
         ChValueSpecific<std::unordered_map<T, Tv>> specVal(bVal.value(), bVal.name(), bVal.flags(), bVal.GetCausality(),
                                                            bVal.GetVariability());
+        if (this->empty_shallow_containers && (bVal.flags() & NVP_SHALLOWCONTAINER)) {
+            this->out_array_pre(specVal, 0);this->out_array_end(specVal, 0); return;
+        }
         this->out_array_pre(specVal, bVal.value().size());
         int i = 0;
         for (auto it = bVal.value().begin(); it != bVal.value().end(); ++it) {
@@ -1016,6 +1069,9 @@ class ChApi ChArchiveOut : public ChArchive {
     void out(ChNameValue<std::map<T, Tv>> bVal) {
         ChValueSpecific<std::map<T, Tv>> specVal(bVal.value(), bVal.name(), bVal.flags(), bVal.GetCausality(),
                                                  bVal.GetVariability());
+        if (this->empty_shallow_containers && (bVal.flags() & NVP_SHALLOWCONTAINER)) {
+            this->out_array_pre(specVal, 0);this->out_array_end(specVal, 0); return;
+        }
         this->out_array_pre(specVal, bVal.value().size());
         int i = 0;
         for (auto it = bVal.value().begin(); it != bVal.value().end(); ++it) {
@@ -1033,7 +1089,10 @@ class ChApi ChArchiveOut : public ChArchive {
         T* mptr = bVal.value().get();
         void* idptr = getVoidPointer<T>(mptr);
 
-        if (this->cut_all_pointers || this->cut_pointers.find(idptr) != this->cut_pointers.end())
+        if (this->cut_all_pointers || 
+            this->cut_pointers.find(idptr) != this->cut_pointers.end()  || 
+            (this->cut_shallow_pointers && (bVal.flags() & NVP_SHALLOW)) 
+            )
             return;
 
         bool already_stored = false;
@@ -1043,7 +1102,9 @@ class ChApi ChArchiveOut : public ChArchive {
             already_stored = true;
             ext_ID = external_ptr_id[idptr];
         } else {
-            PutPointer(idptr, already_stored, obj_ID);
+            //PutPointer(idptr, already_stored, obj_ID);
+            ChValueSpecific<T> val(*mptr,"",0);       
+            PutPointer(val, already_stored, obj_ID);
         }
         ChValueSpecific<T> specVal(
             *mptr, bVal.name(), bVal.flags(), bVal.GetCausality(),
@@ -1058,7 +1119,10 @@ class ChApi ChArchiveOut : public ChArchive {
         T* mptr = bVal.value();
         void* idptr = getVoidPointer<T>(mptr);
 
-        if (this->cut_all_pointers || this->cut_pointers.find(idptr) != this->cut_pointers.end())
+        if (this->cut_all_pointers || 
+            this->cut_pointers.find(idptr) != this->cut_pointers.end() ||
+            (this->cut_shallow_pointers && (bVal.flags() & NVP_SHALLOW))
+            )
             return;
 
         bool already_stored = false;
@@ -1169,6 +1233,10 @@ class ChApi ChArchiveIn : public ChArchive {
         shared_ptr_map.emplace(std::make_pair(mptr.get(), shared_pair_type(mptr, "")));
     }
 
+    /// Access the map of pointer(s) that were not be serialized
+    /// but rather saved just as unique IDs for rebinding at de-serialization.
+    std::unordered_map<size_t, void*>& ExternalPointersMap() { return external_id_ptr; }
+
     /// Returns true if the class can tolerate missing tokes;
     /// on the contrary the archive must contain a complete set of info about the object that is going to be loaded
     bool CanTolerateMissingTokens() const { return can_tolerate_missing_tokens; }
@@ -1182,7 +1250,7 @@ class ChApi ChArchiveIn : public ChArchive {
     bool GetTolerateMissingTokens() const { return try_tolerate_missing_tokens; }
 
   protected:
-    /// Find a pointer in pointer map: eventually add it to map i f it
+    /// Find a pointer in pointer map: eventually add it to map if it
     /// was not previously inserted. Returns already_stored=false if was
     /// already inserted. Return 'obj_ID' offset in vector in any case.
     /// For null pointers, always return 'already_stored'=true, and 'obj_ID'=0.

@@ -157,6 +157,10 @@ class myEmployeeBoss : public myEmployee {
             archive_in >> CHNVP(slave);  // this added only from version >1
         }
     }
+    
+    // optional: implement GetTag() to override automatic generation of the object ID
+    int mtag=20;
+    int GetTag() const { return mtag; }
 };
 
 CH_FACTORY_REGISTER(myEmployeeBoss)  // optional CLASS FACTORY
@@ -306,6 +310,7 @@ void my_serialization_example(ChArchiveOut& archive_out) {
     // In order to use this feature, classes must use the CH_FACTORY_REGISTER macros,
     // and must implement ArchiveIn() and ArchiveOut().
     myEmployeeBoss* a_boss = new myEmployeeBoss(64, 22356, false);
+    a_boss->mtag = 12;
     a_boss->slave.age = 24;
     archive_out << CHNVP(a_boss);  //  object was referenced by pointer.
 
@@ -672,6 +677,9 @@ int main(int argc, char* argv[]) {
 
         // Use a JSON archive object to serialize C++ objects into the file
         ChArchiveOutJSON archive_out(mfileo);
+
+        // test: if a class implements GetTag(), use it to generate _object_ID
+        archive_out.SetUseGetTagAsID(true); 
 
         my_serialization_example(archive_out);
     }
