@@ -60,6 +60,16 @@ class ChApi ChMeshSurface {
     /// Scan all the finite elements already added in the parent ChMesh and add the faces that are not shared.
     virtual void AddFacesFromBoundary();
 
+    //
+    // SERIALIZATION
+    //
+
+    /// Method to allow serialization of transient data to archives.
+    virtual void ArchiveOut(ChArchiveOut& archive_out);
+
+    /// Method to allow deserialization of transient data from archives.
+    virtual void ArchiveIn(ChArchiveIn& archive_in);
+
   private:
     std::vector<std::shared_ptr<ChLoadableUV> > faces;  ///< mesh faces
     ChMesh* mmesh;                                      ///< parent mesh

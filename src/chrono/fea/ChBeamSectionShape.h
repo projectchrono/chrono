@@ -61,14 +61,26 @@ class ChApi ChBeamSectionShape {
     /// We provide a fallback default implementation that iterates over all points thanks to GetPoints(),
     /// but one could override this if a more efficient implementaiton is possible (ex for circular beams, etc.)
     virtual void GetAABB(double& ymin, double& ymax, double& zmin, double& zmax) const;
+
+    //
+    // SERIALIZATION
+    //
+
+    /// Method to allow serialization of transient data to archives.
+    virtual void ArchiveOut(ChArchiveOut& archive_out) ;
+
+    /// Method to allow deserialization of transient data from archives.
+    virtual void ArchiveIn(ChArchiveIn& archive_in);
 };
+
+
 
 /// A ready-to-use class for drawing properties of circular beams.
 /// Used as a component of ChBeamSection
 
 class ChApi ChBeamSectionShapeCircular : public ChBeamSectionShape {
   public:
-    ChBeamSectionShapeCircular(double mradius, int mresolution = 10) {
+    ChBeamSectionShapeCircular(double mradius=0.1, int mresolution = 10) {
         radius = mradius;
         resolution = mresolution;
         this->UpdateProfile();
@@ -100,6 +112,17 @@ class ChApi ChBeamSectionShapeCircular : public ChBeamSectionShape {
     /// This functions has many uses, ex.for drawing, optimizations, collisions.
     virtual void GetAABB(double& ymin, double& ymax, double& zmin, double& zmax) const override;
 
+
+    //
+    // SERIALIZATION
+    //
+
+    /// Method to allow serialization of transient data to archives.
+    virtual void ArchiveOut(ChArchiveOut& archive_out);
+
+    /// Method to allow deserialization of transient data from archives.
+    virtual void ArchiveIn(ChArchiveIn& archive_in);
+
   private:
     // internal: update internal precomputed vertex arrays
     void UpdateProfile();
@@ -115,7 +138,7 @@ class ChApi ChBeamSectionShapeCircular : public ChBeamSectionShape {
 
 class ChApi ChBeamSectionShapeRectangular : public ChBeamSectionShape {
   public:
-    ChBeamSectionShapeRectangular(double y_width, double z_width) {
+    ChBeamSectionShapeRectangular(double y_width=0.1, double z_width=0.1) {
         z_thick = z_width;
         y_thick = y_width;
         this->UpdateProfile();
@@ -144,6 +167,16 @@ class ChApi ChBeamSectionShapeRectangular : public ChBeamSectionShape {
     /// Returns the axis-aligned bounding box (assuming axes of local reference of the section)
     virtual void GetAABB(double& ymin, double& ymax, double& zmin, double& zmax) const override;
 
+    //
+    // SERIALIZATION
+    //
+
+    /// Method to allow serialization of transient data to archives.
+    virtual void ArchiveOut(ChArchiveOut& archive_out);
+
+    /// Method to allow deserialization of transient data from archives.
+    virtual void ArchiveIn(ChArchiveIn& archive_in);
+
   private:
     // internal: update internal precomputed vertex arrays
     void UpdateProfile();
@@ -165,6 +198,7 @@ class ChApi ChBeamSectionShapePolyline : public ChBeamSectionShape {
         this->ml_points = polyline_points;
         this->UpdateProfile();
     }
+    ChBeamSectionShapePolyline() {};
 
     //
     // Functions for drawing the shape via triangulation:
@@ -187,6 +221,16 @@ class ChApi ChBeamSectionShapePolyline : public ChBeamSectionShape {
     virtual void GetNormals(unsigned int i_line, std::vector<ChVector3d>& mnormals) const override {
         mnormals = ml_normals[i_line];
     }
+
+    //
+    // SERIALIZATION
+    //
+
+    /// Method to allow serialization of transient data to archives.
+    virtual void ArchiveOut(ChArchiveOut& archive_out);
+
+    /// Method to allow deserialization of transient data from archives.
+    virtual void ArchiveIn(ChArchiveIn& archive_in);
 
   private:
     // internal: update internal precomputed vertex arrays, computing normals by smoothing segments

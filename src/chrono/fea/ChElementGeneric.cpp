@@ -146,5 +146,31 @@ void ChElementGeneric::VariablesFbIncrementMq() {
     throw(std::runtime_error("ChElementGeneric::VariablesFbIncrementMq is deprecated"));
 }
 
+
+
+void ChElementGeneric::ArchiveOut(ChArchiveOut& archive_out) {
+    // version number
+    archive_out.VersionWrite<ChElementGeneric>();
+
+    // serialize parent class
+    //ChElementBase::ArchiveOut(archive_out);
+
+    // serialize all member data:
+    archive_out << CHNVP(this->Kmatr);
+}
+
+/// Method to allow de serialization of transient data from archives.
+void ChElementGeneric::ArchiveIn(ChArchiveIn& archive_in) {
+    // version number
+    /*int version =*/archive_in.VersionRead<ChElementGeneric>();
+
+    // deserialize parent class:
+    //ChElementBase::ArchiveIn(archive_in);
+
+    // deserialize all member data:
+    archive_in >> CHNVP(this->Kmatr);
+}
+
+
 }  // end namespace fea
 }  // end namespace chrono

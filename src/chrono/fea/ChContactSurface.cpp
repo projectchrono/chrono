@@ -15,6 +15,9 @@
 namespace chrono {
 namespace fea {
 
+// Register into the object factory, to enable run-time dynamic creation and persistence
+CH_FACTORY_REGISTER(ChContactSurface)
+
 ChContactSurface::ChContactSurface(std::shared_ptr<ChContactMaterial> material, ChPhysicsItem* physics_item)
     : m_material(material), m_physics_item(physics_item), m_self_collide(true) {}
 
@@ -22,6 +25,37 @@ void ChContactSurface::DisableSelfCollisions(int family) {
     m_self_collide = false;
     m_collision_family = family;
 }
+
+
+void ChContactSurface::ArchiveOut(ChArchiveOut& archive_out) {
+    // version number
+    archive_out.VersionWrite<ChContactSurface>();
+
+    // serialize parent class
+    //..::ArchiveOut(archive_out);
+
+    // serialize all member data:
+    archive_out << CHNVP(this->m_material);
+    archive_out << CHNVP(this->m_physics_item);
+    archive_out << CHNVP(this->m_collision_family);
+    archive_out << CHNVP(this->m_self_collide);
+}
+
+/// Method to allow de serialization of transient data from archives.
+void ChContactSurface::ArchiveIn(ChArchiveIn& archive_in) {
+    // version number
+    /*int version =*/archive_in.VersionRead<ChContactSurface>();
+
+    // deserialize parent class:
+    //...::ArchiveIn(archive_in);
+
+    // deserialize all member data:
+    archive_in >> CHNVP(this->m_material);
+    archive_in >> CHNVP(this->m_physics_item);
+    archive_in >> CHNVP(this->m_collision_family);
+    archive_in >> CHNVP(this->m_self_collide);
+}
+
 
 }  // end namespace fea
 }  // end namespace chrono

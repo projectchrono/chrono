@@ -110,6 +110,16 @@ class ChApi ChElementBar : public ChElementGeneric {
     // Functions for interfacing to the solver
     //            (***not needed, thank to bookkeeping in parent class ChElementGeneric)
 
+    //
+    // SERIALIZATION
+    //
+
+    /// Method to allow serialization of transient data to archives.
+    virtual void ArchiveOut(ChArchiveOut& archive_out) override;
+
+    /// Method to allow deserialization of transient data from archives.
+    virtual void ArchiveIn(ChArchiveIn& archive_in) override;
+
   private:
     /// Initial setup. Precompute mass and matrices that do not change during the simulation, such as the local tangent
     /// stiffness Kl of each element, if needed, etc.

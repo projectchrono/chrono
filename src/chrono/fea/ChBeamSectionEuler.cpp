@@ -136,6 +136,44 @@ void ChBeamSectionEuler::ComputeInertialForce(
     mTi = ChVector3d(Fipp.segment(3, 3)) + mT_quadratic;
 }
 
+
+
+void ChBeamSectionEuler::ArchiveOut(ChArchiveOut& archive_out) {
+    // version number
+    archive_out.VersionWrite<ChBeamSectionEuler>();
+
+    // serialize parent class
+    ChBeamSection::ArchiveOut(archive_out);
+
+    // serialize all member data:
+    archive_out << CHNVP(this->compute_inertia_damping_matrix);
+    archive_out << CHNVP(this->compute_inertia_stiffness_matrix);
+    archive_out << CHNVP(this->compute_Ri_Ki_by_num_diff);
+    archive_out << CHNVP(this->JzzJyy_factor);
+    archive_out << CHNVP(this->rdamping_alpha);
+    archive_out << CHNVP(this->rdamping_beta);
+}
+
+/// Method to allow de serialization of transient data from archives.
+void ChBeamSectionEuler::ArchiveIn(ChArchiveIn& archive_in) {
+    // version number
+    /*int version =*/archive_in.VersionRead<ChBeamSectionEuler>();
+
+    // deserialize parent class:
+    ChBeamSection::ArchiveIn(archive_in);
+
+    // deserialize all member data:
+    archive_in >> CHNVP(this->compute_inertia_damping_matrix);
+    archive_in >> CHNVP(this->compute_inertia_stiffness_matrix);
+    archive_in >> CHNVP(this->compute_Ri_Ki_by_num_diff);
+    archive_in >> CHNVP(this->JzzJyy_factor);
+    archive_in >> CHNVP(this->rdamping_alpha);
+    archive_in >> CHNVP(this->rdamping_beta);
+}
+
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+
 void ChBeamSectionEulerSimple::ComputeInertiaMatrix(ChMatrix66d& M) {
     M.setZero();
     M(0, 0) = this->Area * this->density;
@@ -190,6 +228,91 @@ void ChBeamSectionEulerSimple::ComputeQuadraticTerms(ChVector3d& mF, ChVector3d&
     mF = VNULL;
     mT = VNULL;
 }
+
+
+// Register into the object factory, to enable run-time dynamic creation and persistence
+CH_FACTORY_REGISTER(ChBeamSectionEulerSimple)
+
+void ChBeamSectionEulerSimple::ArchiveOut(ChArchiveOut& archive_out) {
+    // version number
+    archive_out.VersionWrite<ChBeamSectionEulerSimple>();
+
+    // serialize parent class
+    ChBeamSectionEuler::ArchiveOut(archive_out);
+
+    // serialize all member data:
+    archive_out << CHNVP(this->Area);
+    archive_out << CHNVP(this->Iyy);
+    archive_out << CHNVP(this->Izz);
+    archive_out << CHNVP(this->J);
+    archive_out << CHNVP(this->G);
+    archive_out << CHNVP(this->E);
+    archive_out << CHNVP(this->density);
+    archive_out << CHNVP(this->Ks_y);
+    archive_out << CHNVP(this->Ks_z);
+}
+
+/// Method to allow de serialization of transient data from archives.
+void ChBeamSectionEulerSimple::ArchiveIn(ChArchiveIn& archive_in) {
+    // version number
+    /*int version =*/archive_in.VersionRead<ChBeamSectionEulerSimple>();
+
+    // deserialize parent class:
+    ChBeamSectionEuler::ArchiveIn(archive_in);
+
+    // deserialize all member data:
+    archive_in >> CHNVP(this->Area);
+    archive_in >> CHNVP(this->Iyy);
+    archive_in >> CHNVP(this->Izz);
+    archive_in >> CHNVP(this->J);
+    archive_in >> CHNVP(this->G);
+    archive_in >> CHNVP(this->E);
+    archive_in >> CHNVP(this->density);
+    archive_in >> CHNVP(this->Ks_y);
+    archive_in >> CHNVP(this->Ks_z);
+}
+
+
+////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+
+// Register into the object factory, to enable run-time dynamic creation and persistence
+CH_FACTORY_REGISTER(ChBeamSectionEulerAdvanced)
+
+void ChBeamSectionEulerAdvanced::ArchiveOut(ChArchiveOut& archive_out) {
+    // version number
+    archive_out.VersionWrite<ChBeamSectionEulerAdvanced>();
+
+    // serialize parent class
+    ChBeamSectionEulerSimple::ArchiveOut(archive_out);
+
+    // serialize all member data:
+    archive_out << CHNVP(this->alpha);
+    archive_out << CHNVP(this->Cy);
+    archive_out << CHNVP(this->Cz);
+    archive_out << CHNVP(this->Sy);
+    archive_out << CHNVP(this->Sz);
+}
+
+/// Method to allow de serialization of transient data from archives.
+void ChBeamSectionEulerAdvanced::ArchiveIn(ChArchiveIn& archive_in) {
+    // version number
+    /*int version =*/archive_in.VersionRead<ChBeamSectionEulerAdvanced>();
+
+    // deserialize parent class:
+    ChBeamSectionEulerSimple::ArchiveIn(archive_in);
+
+    // deserialize all member data:
+    archive_in >> CHNVP(this->alpha);
+    archive_in >> CHNVP(this->Cy);
+    archive_in >> CHNVP(this->Cz);
+    archive_in >> CHNVP(this->Sy);
+    archive_in >> CHNVP(this->Sz);
+}
+
+
+////////////////////////////////////////////////////////////////////////////////////////////////////////
+
 
 void ChBeamSectionEulerAdvancedGeneric::ComputeInertiaMatrix(ChMatrix66d& M) {
     M.setZero();
@@ -281,6 +404,61 @@ void ChBeamSectionEulerAdvancedGeneric::ComputeQuadraticTerms(
     mT = Vcross(mW, ChVector3d(this->GetInertiaJxxPerUnitLength() * mW.x(), 0, 0));
 }
 
+
+// Register into the object factory, to enable run-time dynamic creation and persistence
+CH_FACTORY_REGISTER(ChBeamSectionEulerAdvancedGeneric)
+
+void ChBeamSectionEulerAdvancedGeneric::ArchiveOut(ChArchiveOut& archive_out) {
+    // version number
+    archive_out.VersionWrite<ChBeamSectionEulerAdvancedGeneric>();
+
+    // serialize parent class
+    ChBeamSectionEuler::ArchiveOut(archive_out);
+
+    // serialize all member data:
+    archive_out << CHNVP(this->Ax);
+    archive_out << CHNVP(this->Txx);
+    archive_out << CHNVP(this->Byy);
+    archive_out << CHNVP(this->Bzz);
+    archive_out << CHNVP(this->alpha);
+    archive_out << CHNVP(this->Cy);
+    archive_out << CHNVP(this->Cz);
+    archive_out << CHNVP(this->Sy);
+    archive_out << CHNVP(this->Sz);
+    archive_out << CHNVP(this->mu);
+    archive_out << CHNVP(this->Jxx);
+    archive_out << CHNVP(this->My);
+    archive_out << CHNVP(this->Mz);
+
+}
+
+/// Method to allow de serialization of transient data from archives.
+void ChBeamSectionEulerAdvancedGeneric::ArchiveIn(ChArchiveIn& archive_in) {
+    // version number
+    /*int version =*/archive_in.VersionRead<ChBeamSectionEulerAdvancedGeneric>();
+
+    // deserialize parent class:
+    ChBeamSectionEuler::ArchiveIn(archive_in);
+
+    // deserialize all member data:
+    archive_in >> CHNVP(this->Ax);
+    archive_in >> CHNVP(this->Txx);
+    archive_in >> CHNVP(this->Byy);
+    archive_in >> CHNVP(this->Bzz);
+    archive_in >> CHNVP(this->alpha);
+    archive_in >> CHNVP(this->Cy);
+    archive_in >> CHNVP(this->Cz);
+    archive_in >> CHNVP(this->Sy);
+    archive_in >> CHNVP(this->Sz);
+    archive_in >> CHNVP(this->mu);
+    archive_in >> CHNVP(this->Jxx);
+    archive_in >> CHNVP(this->My);
+    archive_in >> CHNVP(this->Mz);
+}
+
+// /////////////////////////////////////////////////////////////////////////////////////////////////////
+
+
 ChBeamSectionEulerEasyRectangular::ChBeamSectionEulerEasyRectangular(double width_y,
                                                                      double width_z,
                                                                      double myE,
@@ -301,6 +479,8 @@ ChBeamSectionEulerEasyCircular::ChBeamSectionEulerEasyCircular(double diameter,
     this->SetDensity(mydensity);
     this->SetAsCircularSection(diameter);
 }
+
+/////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 void ChBeamSectionRayleighSimple::ComputeInertiaMatrix(ChMatrix66d& M) {
     // inherit
@@ -357,6 +537,33 @@ void ChBeamSectionRayleighSimple::ComputeQuadraticTerms(
                                (JzzJyy_factor * this->Area * this->density + this->Iyy * this->density) * mW.y(),
                                (JzzJyy_factor * this->Area * this->density + this->Izz * this->density) * mW.z()));
 }
+
+
+// Register into the object factory, to enable run-time dynamic creation and persistence
+CH_FACTORY_REGISTER(ChBeamSectionRayleighSimple)
+
+void ChBeamSectionRayleighSimple::ArchiveOut(ChArchiveOut& archive_out) {
+    // version number
+    archive_out.VersionWrite<ChBeamSectionRayleighSimple>();
+
+    // serialize parent class
+    ChBeamSectionEulerSimple::ArchiveOut(archive_out);
+
+    // serialize all member data:
+}
+
+/// Method to allow de serialization of transient data from archives.
+void ChBeamSectionRayleighSimple::ArchiveIn(ChArchiveIn& archive_in) {
+    // version number
+    /*int version =*/archive_in.VersionRead<ChBeamSectionRayleighSimple>();
+
+    // deserialize parent class:
+    ChBeamSectionEulerSimple::ArchiveIn(archive_in);
+
+    // deserialize all member data:
+}
+
+
 
 ChBeamSectionRayleighEasyRectangular::ChBeamSectionRayleighEasyRectangular(double mwidth_y,
                                                                            double mwidth_z,
@@ -500,6 +707,41 @@ void ChBeamSectionRayleighAdvancedGeneric::ComputeQuadraticTerms(
                                (this->Jyy + JzzJyy_factor * this->mu) * mW.y() - this->Jyz * mW.z(),
                                (this->Jzz + JzzJyy_factor * this->mu) * mW.z() - this->Jyz * mW.y()));
 }
+
+
+// Register into the object factory, to enable run-time dynamic creation and persistence
+CH_FACTORY_REGISTER(ChBeamSectionRayleighAdvancedGeneric)
+
+void ChBeamSectionRayleighAdvancedGeneric::ArchiveOut(ChArchiveOut& archive_out) {
+    // version number
+    archive_out.VersionWrite<ChBeamSectionRayleighAdvancedGeneric>();
+
+    // serialize parent class
+    ChBeamSectionEulerAdvancedGeneric::ArchiveOut(archive_out);
+
+    // serialize all member data:
+    archive_out << CHNVP(this->Jyy);
+    archive_out << CHNVP(this->Jzz);
+    archive_out << CHNVP(this->Jyz);
+
+}
+
+/// Method to allow de serialization of transient data from archives.
+void ChBeamSectionRayleighAdvancedGeneric::ArchiveIn(ChArchiveIn& archive_in) {
+    // version number
+    /*int version =*/archive_in.VersionRead<ChBeamSectionRayleighAdvancedGeneric>();
+
+    // deserialize parent class:
+    ChBeamSectionEulerAdvancedGeneric::ArchiveIn(archive_in);
+
+    // deserialize all member data:
+    archive_in >> CHNVP(this->Jyy);
+    archive_in >> CHNVP(this->Jzz);
+    archive_in >> CHNVP(this->Jyz);
+}
+
+
+
 
 }  // end namespace fea
 }  // end namespace chrono

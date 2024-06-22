@@ -44,6 +44,32 @@ void ChBeamSectionShape::GetAABB(double& ymin, double& ymax, double& zmin, doubl
     }
 }
 
+void ChBeamSectionShape::ArchiveOut(ChArchiveOut& archive_out) {
+    // version number
+    archive_out.VersionWrite<ChBeamSectionShape>();
+
+    // serialize parent class
+    //...::ArchiveOut(archive_out);
+
+    // serialize all member data:
+    //archive_out << CHNVP(this->...);
+}
+
+/// Method to allow de serialization of transient data from archives.
+void ChBeamSectionShape::ArchiveIn(ChArchiveIn& archive_in) {
+    // version number
+    /*int version =*/archive_in.VersionRead<ChBeamSectionShape>();
+
+    // deserialize parent class:
+    //...::ArchiveIn(archive_in);
+
+    // deserialize all member data:
+    //archive_in >> CHNVP(this->...);
+}
+
+
+//-----------------------------------------------------------------------------------------
+
 /// Returns the axis-aligned bounding box (assuming axes of local reference of the section)
 /// This functions has many uses, ex.for drawing, optimizations, collisions.
 
@@ -65,6 +91,42 @@ void ChBeamSectionShapeCircular::UpdateProfile() {
         normals[is] = ChVector3d(0, cos(sangle), sin(sangle));
     }
 }
+
+// Register into the object factory, to enable run-time dynamic creation and persistence
+CH_FACTORY_REGISTER(ChBeamSectionShapeCircular)
+
+void ChBeamSectionShapeCircular::ArchiveOut(ChArchiveOut& archive_out) {
+    // version number
+    archive_out.VersionWrite<ChBeamSectionShapeCircular>();
+
+    // serialize parent class
+    ChBeamSectionShape::ArchiveOut(archive_out);
+
+    // serialize all member data:
+    archive_out << CHNVP(this->radius);
+    archive_out << CHNVP(this->resolution);
+    archive_out << CHNVP(this->points);
+    archive_out << CHNVP(this->normals);
+}
+
+/// Method to allow de serialization of transient data from archives.
+void ChBeamSectionShapeCircular::ArchiveIn(ChArchiveIn& archive_in) {
+    // version number
+    /*int version =*/archive_in.VersionRead<ChBeamSectionShapeCircular>();
+
+    // deserialize parent class:
+    ChBeamSectionShape::ArchiveIn(archive_in);
+
+    // deserialize all member data:
+    archive_in >> CHNVP(this->radius);
+    archive_in >> CHNVP(this->resolution);
+    archive_in >> CHNVP(this->points);
+    archive_in >> CHNVP(this->normals);
+}
+
+
+
+
 
 /// Returns the axis-aligned bounding box (assuming axes of local reference of the section)
 
@@ -117,6 +179,44 @@ void ChBeamSectionShapeRectangular::UpdateProfile() {
     ml_normals[3][1].Set(0, -1, 0);
 }
 
+
+// Register into the object factory, to enable run-time dynamic creation and persistence
+CH_FACTORY_REGISTER(ChBeamSectionShapeRectangular)
+
+void ChBeamSectionShapeRectangular::ArchiveOut(ChArchiveOut& archive_out) {
+    // version number
+    archive_out.VersionWrite<ChBeamSectionShapeRectangular>();
+
+    // serialize parent class
+    ChBeamSectionShape::ArchiveOut(archive_out);
+
+    // serialize all member data:
+    archive_out << CHNVP(this->y_thick);
+    archive_out << CHNVP(this->z_thick);
+    archive_out << CHNVP(this->ml_points);
+    archive_out << CHNVP(this->ml_normals);
+}
+
+/// Method to allow de serialization of transient data from archives.
+void ChBeamSectionShapeRectangular::ArchiveIn(ChArchiveIn& archive_in) {
+    // version number
+    /*int version =*/archive_in.VersionRead<ChBeamSectionShapeRectangular>();
+
+    // deserialize parent class:
+    ChBeamSectionShape::ArchiveIn(archive_in);
+
+    // deserialize all member data:
+    archive_in >> CHNVP(this->y_thick);
+    archive_in >> CHNVP(this->z_thick);
+    archive_in >> CHNVP(this->ml_points);
+    archive_in >> CHNVP(this->ml_normals);
+}
+
+
+//----------------------------------------------------------------------------------------
+
+
+
 // internal: update internal precomputed vertex arrays, computing normals by smoothing segments
 
 void ChBeamSectionShapePolyline::UpdateProfile() {
@@ -144,6 +244,35 @@ void ChBeamSectionShapePolyline::UpdateProfile() {
         ml_normals[il][ml_points[il].size() - 1].z() = dy / len;
     }
 }
+
+// Register into the object factory, to enable run-time dynamic creation and persistence
+CH_FACTORY_REGISTER(ChBeamSectionShapePolyline)
+
+void ChBeamSectionShapePolyline::ArchiveOut(ChArchiveOut& archive_out) {
+    // version number
+    archive_out.VersionWrite<ChBeamSectionShapePolyline>();
+
+    // serialize parent class
+    ChBeamSectionShape::ArchiveOut(archive_out);
+
+    // serialize all member data:
+    archive_out << CHNVP(this->ml_points);
+    archive_out << CHNVP(this->ml_normals);
+}
+
+/// Method to allow de serialization of transient data from archives.
+void ChBeamSectionShapePolyline::ArchiveIn(ChArchiveIn& archive_in) {
+    // version number
+    /*int version =*/archive_in.VersionRead<ChBeamSectionShapePolyline>();
+
+    // deserialize parent class:
+    ChBeamSectionShape::ArchiveIn(archive_in);
+
+    // deserialize all member data:
+    archive_in >> CHNVP(this->ml_points);
+    archive_in >> CHNVP(this->ml_normals);
+}
+
 
 }  // end namespace fea
 }  // end namespace chrono

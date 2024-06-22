@@ -169,6 +169,16 @@ class ChApi ChBeamSectionEuler : public ChBeamSection {
     /// an analytical expression is provided. Children calsses must take care of this. Default: false.
     bool compute_Ri_Ki_by_num_diff = false;
 
+    //
+    // SERIALIZATION
+    //
+
+    /// Method to allow serialization of transient data to archives.
+    virtual void ArchiveOut(ChArchiveOut& archive_out) override;
+
+    /// Method to allow deserialization of transient data from archives.
+    virtual void ArchiveIn(ChArchiveIn& archive_in) override;
+
   protected:
     double rdamping_beta;
     double rdamping_alpha;
@@ -345,6 +355,17 @@ class ChApi ChBeamSectionEulerSimple : public ChBeamSectionEuler {
     /// frame of the section at centerline. Note: it automatically follows Jxx=Jyy+Jzz for the polar theorem. Also,
     /// Jxx=density*Ixx if constant density.
     virtual double GetInertiaJxxPerUnitLength() const override { return (this->Iyy + this->Izz) * this->density; }
+
+    //
+    // SERIALIZATION
+    //
+
+    /// Method to allow serialization of transient data to archives.
+    virtual void ArchiveOut(ChArchiveOut& archive_out) override;
+
+    /// Method to allow deserialization of transient data from archives.
+    virtual void ArchiveIn(ChArchiveIn& archive_in) override;
+
 };
 
 // for backward compatibility - note it WILL BE DEPRECATED
@@ -401,6 +422,16 @@ class ChApi ChBeamSectionEulerAdvanced : public ChBeamSectionEulerSimple {
 
     virtual double GetShearCenterY() const override { return this->Sy; }
     virtual double GetShearCenterZ() const override { return this->Sz; }
+
+    //
+    // SERIALIZATION
+    //
+
+    /// Method to allow serialization of transient data to archives.
+    virtual void ArchiveOut(ChArchiveOut& archive_out) override;
+
+    /// Method to allow deserialization of transient data from archives.
+    virtual void ArchiveIn(ChArchiveIn& archive_in) override;
 };
 
 // for backward compatibility - note it WILL BE DEPRECATED
@@ -587,6 +618,16 @@ class ChApi ChBeamSectionEulerAdvancedGeneric : public ChBeamSectionEuler {
 
     /// Get the Jxx component of the inertia per unit length (polar inertia), at centerline.
     virtual double GetInertiaJxxPerUnitLength() const override { return this->Jxx; }
+
+    //
+    // SERIALIZATION
+    //
+
+    /// Method to allow serialization of transient data to archives.
+    virtual void ArchiveOut(ChArchiveOut& archive_out) override;
+
+    /// Method to allow deserialization of transient data from archives.
+    virtual void ArchiveIn(ChArchiveIn& archive_in) override;
 };
 
 /// A simple specialization of ChBeamSectionEuler if you just need the simplest model
@@ -661,6 +702,16 @@ class ChApi ChBeamSectionRayleighSimple : public ChBeamSectionEulerSimple {
 
     /// Compute the centrifugal term and gyroscopic term
     virtual void ComputeQuadraticTerms(ChVector3d& mF, ChVector3d& mT, const ChVector3d& mW) override;
+
+    //
+    // SERIALIZATION
+    //
+
+     /// Method to allow serialization of transient data to archives.
+    virtual void ArchiveOut(ChArchiveOut& archive_out) override;
+
+    /// Method to allow deserialization of transient data from archives.
+    virtual void ArchiveIn(ChArchiveIn& archive_in) override;
 };
 
 /// This works exactly as ChBeamSectionEulerEasyRectangular,
@@ -776,6 +827,16 @@ class ChApi ChBeamSectionRayleighAdvancedGeneric : public ChBeamSectionEulerAdva
 
     /// Compute the centrifugal term and gyroscopic term
     virtual void ComputeQuadraticTerms(ChVector3d& mF, ChVector3d& mT, const ChVector3d& mW) override;
+
+    //
+    // SERIALIZATION
+    //
+
+    /// Method to allow serialization of transient data to archives.
+    virtual void ArchiveOut(ChArchiveOut& archive_out) override;
+
+    /// Method to allow deserialization of transient data from archives.
+    virtual void ArchiveIn(ChArchiveIn& archive_in) override;
 };
 
 /// @} fea_utils

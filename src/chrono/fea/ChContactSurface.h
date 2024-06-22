@@ -59,6 +59,16 @@ class ChApi ChContactSurface {
     virtual void AddCollisionModelsToSystem(ChCollisionSystem* coll_sys) const = 0;
     virtual void RemoveCollisionModelsFromSystem(ChCollisionSystem* coll_sys) const = 0;
 
+    //
+    // SERIALIZATION
+    //
+
+    /// Method to allow serialization of transient data to archives.
+    virtual void ArchiveOut(ChArchiveOut& archive_out);
+
+    /// Method to allow deserialization of transient data from archives.
+    virtual void ArchiveIn(ChArchiveIn& archive_in);
+
   protected:
     std::shared_ptr<ChContactMaterial> m_material;  ///< contact material properties
     ChPhysicsItem* m_physics_item;                  ///< associated physics item (e.g., an FEA mesh)
@@ -69,6 +79,9 @@ class ChApi ChContactSurface {
 /// @} fea_contact
 
 }  // end namespace fea
+
+CH_CLASS_VERSION(fea::ChContactSurface, 0)
+
 }  // end namespace chrono
 
 #endif

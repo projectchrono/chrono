@@ -80,6 +80,16 @@ class ChApi ChBeamSection {
     /// OBSOLETE only for backward compability
     void SetCircular(bool ic) {}
 
+    //
+    // SERIALIZATION
+    //
+
+    /// Method to allow serialization of transient data to archives.
+    virtual void ArchiveOut(ChArchiveOut& archive_out);
+
+    /// Method to allow deserialization of transient data from archives.
+    virtual void ArchiveIn(ChArchiveIn& archive_in);
+
   private:
     std::shared_ptr<ChBeamSectionShape> draw_shape;
 };

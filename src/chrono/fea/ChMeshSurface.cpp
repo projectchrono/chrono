@@ -145,5 +145,33 @@ void ChMeshSurface::AddFacesFromBoundary() {
     }
 }
 
+
+void ChMeshSurface::ArchiveOut(ChArchiveOut& archive_out) {
+    // version number
+    archive_out.VersionWrite<ChMeshSurface>();
+
+    // serialize parent class
+    //...::ArchiveOut(archive_out);
+
+    // serialize all member data:
+    archive_out << CHNVP(this->mmesh, "mesh");
+    //archive_out << CHNVP(this->faces, "faces", NVP_SHALLOWCONTAINER); //***TODO
+}
+
+/// Method to allow de serialization of transient data from archives.
+void ChMeshSurface::ArchiveIn(ChArchiveIn& archive_in) {
+    // version number
+    /*int version =*/archive_in.VersionRead<ChMeshSurface>();
+
+    // deserialize parent class:
+    //...::ArchiveIn(archive_in);
+
+    // deserialize all member data:
+    archive_in >> CHNVP(this->mmesh, "mesh");
+    //archive_in >> CHNVP(this->faces, "faces", NVP_SHALLOWCONTAINER); //***TODO
+}
+
+
+
 }  // end namespace fea
 }  // end namespace chrono

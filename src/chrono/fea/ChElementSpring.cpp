@@ -99,5 +99,46 @@ double ChElementSpring::GetCurrentForce() {
     return internal_Kforce_local + internal_Rforce_local;
 }
 
+
+// Register into the object factory, to enable run-time dynamic creation and persistence
+CH_FACTORY_REGISTER(ChElementSpring)
+
+void ChElementSpring::ArchiveOut(ChArchiveOut& archive_out) {
+    // version number
+    archive_out.VersionWrite<ChElementSpring>();
+
+    // serialize parent class
+    ChElementGeneric::ArchiveOut(archive_out);
+
+    // serialize all member data:
+    archive_out << CHNVP(this->nodes);
+    archive_out << CHNVP(this->damper_r);
+    archive_out << CHNVP(this->spring_k);
+}
+
+/// Method to allow de serialization of transient data from archives.
+void ChElementSpring::ArchiveIn(ChArchiveIn& archive_in) {
+    // version number
+    /*int version =*/archive_in.VersionRead<ChElementSpring>();
+
+    // deserialize parent class:
+    ChElementGeneric::ArchiveIn(archive_in);
+
+    // deserialize all member data:
+    archive_in >> CHNVP(this->nodes);
+    archive_in >> CHNVP(this->damper_r);
+    archive_in >> CHNVP(this->spring_k);
+
+    // The following because ChElementGeneric does not serialize Kmatr for better performance
+    std::vector<ChVariables*> mvars;
+    mvars.push_back(&nodes[0]->Variables());
+    mvars.push_back(&nodes[1]->Variables());
+    this->Kmatr.SetVariables(mvars);
+}
+
+
+
+
+
 }  // end namespace fea
 }  // end namespace chrono

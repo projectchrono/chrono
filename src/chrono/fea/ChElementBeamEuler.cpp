@@ -1062,5 +1062,57 @@ double ChElementBeamEuler::GetDensity() {
     return this->section->GetMassPerUnitLength();
 }
 
+
+
+// Register into the object factory, to enable run-time dynamic creation and persistence
+CH_FACTORY_REGISTER(ChElementBeamEuler)
+
+void ChElementBeamEuler::ArchiveOut(ChArchiveOut& archive_out) {
+    // version number
+    archive_out.VersionWrite<ChElementBeamEuler>();
+
+    // serialize parent class
+    ChElementBeam::ArchiveOut(archive_out);
+
+    // serialize all member data:
+    archive_out << CHNVP(this->nodes);
+    archive_out << CHNVP(this->section);
+    archive_out << CHNVP(this->q_refrotA);
+    archive_out << CHNVP(this->q_refrotB);
+    archive_out << CHNVP(this->q_element_abs_rot);
+    archive_out << CHNVP(this->q_element_ref_rot);
+    archive_out << CHNVP(this->disable_corotate);
+    archive_out << CHNVP(this->force_symmetric_stiffness);
+    archive_out << CHNVP(this->use_geometric_stiffness);
+}
+
+/// Method to allow de serialization of transient data from archives.
+void ChElementBeamEuler::ArchiveIn(ChArchiveIn& archive_in) {
+    // version number
+    /*int version =*/archive_in.VersionRead<ChElementBeamEuler>();
+
+    // deserialize parent class:
+    ChElementBeam::ArchiveIn(archive_in);
+
+    // deserialize all member data:
+    archive_in >> CHNVP(this->nodes);
+    archive_in >> CHNVP(this->section);
+    archive_in >> CHNVP(this->q_refrotA);
+    archive_in >> CHNVP(this->q_refrotB);
+    archive_in >> CHNVP(this->q_element_abs_rot);
+    archive_in >> CHNVP(this->q_element_ref_rot);
+    archive_in >> CHNVP(this->disable_corotate);
+    archive_in >> CHNVP(this->force_symmetric_stiffness);
+    archive_in >> CHNVP(this->use_geometric_stiffness);
+
+    // The following because parent ChElementGeneric does not serialize Kmatr for better performance
+    std::vector<ChVariables*> mvars;
+    mvars.push_back(&nodes[0]->Variables());
+    mvars.push_back(&nodes[1]->Variables());
+    this->Kmatr.SetVariables(mvars);
+}
+
+
+
 }  // end namespace fea
 }  // end namespace chrono

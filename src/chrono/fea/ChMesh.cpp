@@ -30,7 +30,13 @@
 #include "chrono/fea/ChNodeFEAxyzrot.h"
 
 namespace chrono {
-namespace fea {
+
+using namespace fea;
+
+// Register into the object factory, to enable run-time dynamic creation and persistence
+CH_FACTORY_REGISTER(ChMesh)
+
+
 
 ChMesh::ChMesh(const ChMesh& other) : ChIndexedNodes(other) {
     vnodes = other.vnodes;
@@ -528,5 +534,42 @@ void ChMesh::InjectVariables(ChSystemDescriptor& descriptor) {
         vnodes[ie]->InjectVariables(descriptor);
 }
 
-}  // end namespace fea
+void ChMesh::ArchiveOut(ChArchiveOut& archive_out) {
+    // version number
+    archive_out.VersionWrite<ChMesh>();
+
+    // serialize parent class
+    ChIndexedNodes::ArchiveOut(archive_out);
+
+    // serialize all member data:
+    archive_out << CHNVP(this->vnodes, "nodes", NVP_SHALLOWCONTAINER);
+    archive_out << CHNVP(this->velements, "elements", NVP_SHALLOWCONTAINER);
+    archive_out << CHNVP(this->n_dofs);
+    archive_out << CHNVP(this->n_dofs_w);
+    archive_out << CHNVP(this->vcontactsurfaces, "contactsurfaces", NVP_SHALLOWCONTAINER);
+    archive_out << CHNVP(this->vmeshsurfaces, "meshsurfaces", NVP_SHALLOWCONTAINER);
+    archive_out << CHNVP(this->automatic_gravity_load);
+    archive_out << CHNVP(this->num_points_gravity);
+}
+
+/// Method to allow de serialization of transient data from archives.
+void ChMesh::ArchiveIn(ChArchiveIn& archive_in) {
+    // version number
+    /*int version =*/archive_in.VersionRead<ChMesh>();
+
+    // deserialize parent class:
+    ChIndexedNodes::ArchiveIn(archive_in);
+
+    // deserialize all member data:
+    archive_in >> CHNVP(this->vnodes, "nodes", NVP_SHALLOW);
+    archive_in >> CHNVP(this->velements, "elements", NVP_SHALLOW);
+    archive_in >> CHNVP(this->n_dofs);
+    archive_in >> CHNVP(this->n_dofs_w);
+    archive_in >> CHNVP(this->vcontactsurfaces, "contactsurfaces", NVP_SHALLOW);
+    archive_in >> CHNVP(this->vmeshsurfaces, "meshsurfaces", NVP_SHALLOW);
+    archive_in >> CHNVP(this->automatic_gravity_load);
+    archive_in >> CHNVP(this->num_points_gravity);
+}
+
+
 }  // end namespace chrono

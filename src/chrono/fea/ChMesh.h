@@ -266,6 +266,16 @@ class ChApi ChMesh : public ChIndexedNodes {
     /// Register with the given system descriptor any ChVariable objects associated with this item.
     virtual void InjectVariables(ChSystemDescriptor& descriptor) override;
 
+    //
+    // SERIALIZATION
+    //
+
+    /// Method to allow serialization of transient data to archives.
+    virtual void ArchiveOut(ChArchiveOut& archive_out) override;
+
+    /// Method to allow deserialization of transient data from archives.
+    virtual void ArchiveIn(ChArchiveIn& archive_in) override;
+
   private:
     /// Initial setup (before analysis).
     /// This function is called from ChSystem::SetupInitial, marking a point where system
@@ -301,6 +311,9 @@ class ChApi ChMesh : public ChIndexedNodes {
 /// @} chrono_fea
 
 }  // end namespace fea
+
+CH_CLASS_VERSION(fea::ChMesh, 0)
+
 }  // end namespace chrono
 
 #endif

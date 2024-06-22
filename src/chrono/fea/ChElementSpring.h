@@ -80,6 +80,16 @@ class ChApi ChElementSpring : public ChElementGeneric {
     // Functions for interfacing to the solver
     //            (***not needed, thank to bookkeeping in parent class ChElementGeneric)
 
+    //
+    // SERIALIZATION
+    //
+
+    /// Method to allow serialization of transient data to archives.
+    virtual void ArchiveOut(ChArchiveOut& archive_out) override;
+
+    /// Method to allow deserialization of transient data from archives.
+    virtual void ArchiveIn(ChArchiveIn& archive_in) override;
+
   private:
     /// Initial setup.
     /// No override needed for the spring element because global K is computed on-the-fly in

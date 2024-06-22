@@ -120,5 +120,49 @@ double ChElementBar::GetCurrentForce() {
     return internal_Kforce_local + internal_Rforce_local;
 }
 
+
+// Register into the object factory, to enable run-time dynamic creation and persistence
+CH_FACTORY_REGISTER(ChElementBar)
+
+void ChElementBar::ArchiveOut(ChArchiveOut& archive_out) {
+    // version number
+    archive_out.VersionWrite<ChElementBar>();
+
+    // serialize parent class
+    ChElementGeneric::ArchiveOut(archive_out);
+
+    // serialize all member data:
+    archive_out << CHNVP(this->nodes);
+    archive_out << CHNVP(this->density);
+    archive_out << CHNVP(this->E);
+    archive_out << CHNVP(this->rdamping);
+    archive_out << CHNVP(this->mass);
+    archive_out << CHNVP(this->length);
+}
+
+/// Method to allow de serialization of transient data from archives.
+void ChElementBar::ArchiveIn(ChArchiveIn& archive_in) {
+    // version number
+    /*int version =*/archive_in.VersionRead<ChElementBar>();
+
+    // deserialize parent class:
+    ChElementGeneric::ArchiveIn(archive_in);
+
+    // deserialize all member data:
+    archive_in >> CHNVP(this->nodes);
+    archive_in >> CHNVP(this->density);
+    archive_in >> CHNVP(this->E);
+    archive_in >> CHNVP(this->rdamping);
+    archive_in >> CHNVP(this->mass);
+    archive_in >> CHNVP(this->length);
+
+    // The following because ChElementGeneric does not serialize Kmatr for better performance
+    std::vector<ChVariables*> mvars;
+    mvars.push_back(&nodes[0]->Variables());
+    mvars.push_back(&nodes[1]->Variables());
+    this->Kmatr.SetVariables(mvars);
+}
+
+
 }  // end namespace fea
 }  // end namespace chrono

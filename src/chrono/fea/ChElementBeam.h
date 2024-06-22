@@ -71,6 +71,32 @@ class ChApi ChElementBeam : public ChElementGeneric {
     /// when SetupInitial is called on beams element, given the current state, but one
     /// might need to override this, ex for precompressed beams etc).
     void SetRestLength(double ml) { this->length = ml; }
+
+    //
+    // SERIALIZATION
+    //
+
+    /// Method to allow serialization of transient data to archives.
+    virtual void ArchiveOut(ChArchiveOut& archive_out) override {
+        // version number
+        archive_out.VersionWrite<ChElementBeam>();
+        // serialize parent class
+        ChElementGeneric::ArchiveOut(archive_out);
+        // serialize all member data:
+        archive_out << CHNVP(this->length);
+        archive_out << CHNVP(this->mass);
+    }
+
+    /// Method to allow deserialization of transient data from archives.
+    virtual void ArchiveIn(ChArchiveIn& archive_in) override {
+        // version number
+        /*int version =*/archive_in.VersionRead<ChElementBeam>();
+        // deserialize parent class:
+        ChElementGeneric::ArchiveIn(archive_in);
+        // deserialize all member data:
+        archive_in >> CHNVP(this->length);
+        archive_in >> CHNVP(this->mass);
+    }
 };
 
 /// @} fea_elements
