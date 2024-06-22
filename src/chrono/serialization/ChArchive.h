@@ -1063,6 +1063,25 @@ class ChApi ChArchiveOut : public ChArchive {
         this->out_array_end(specVal, bVal.value().size());
     }
 
+    // trick to wrap std::unordered_set container
+    template <class T>
+    void out(ChNameValue<std::unordered_set<T>> bVal) {
+        ChValueSpecific<std::unordered_set<T>> specVal(bVal.value(), bVal.name(), bVal.flags(), bVal.GetCausality(),
+            bVal.GetVariability());
+        if (this->empty_shallow_containers && (bVal.flags() & NVP_SHALLOWCONTAINER)) {
+            this->out_array_pre(specVal, 0);this->out_array_end(specVal, 0); return;
+        }
+        this->out_array_pre(specVal, bVal.value().size());
+        int i = 0;
+        for (auto it = bVal.value().begin(); it != bVal.value().end(); ++it) {
+            ChNameValue<T> array_key(std::to_string(i), (*it));
+            this->out(array_key);
+            this->out_array_between(specVal, bVal.value().size());
+            ++i;
+        }
+        this->out_array_end(specVal, bVal.value().size());
+    }
+
     // trick to wrap std::map container
     template <class T, class Tv>
     void out(ChNameValue<std::map<T, Tv>> bVal) {
@@ -1379,6 +1398,25 @@ class ChApi ChArchiveIn : public ChArchive {
             this->in(array_val);
             // store in map; constant time:
             bVal.value()[mpair.first] = mpair.second;
+            this->in_array_between(bVal.name());
+        }
+        this->in_array_end(bVal.name());
+        return true;
+    }
+
+    // trick to wrap std::unordered_set container
+    template <class T>
+    bool in(ChNameValue<std::unordered_set<T>> bVal) {
+        bVal.value().clear();
+        size_t arraysize;
+        if (!this->in_array_pre(bVal.name(), arraysize))
+            return false;
+        for (size_t i = 0; i < arraysize; ++i) {
+            T melement;
+            ChNameValue<T> array_val(std::to_string(i), melement);
+            this->in(array_val);
+            // store in map; constant time:
+            bVal.value().insert(melement);
             this->in_array_between(bVal.name());
         }
         this->in_array_end(bVal.name());
