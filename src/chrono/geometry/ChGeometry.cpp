@@ -54,7 +54,7 @@ ChAABB ChGeometry::GetBoundingBox() const {
 void ChGeometry::InflateBoundingBox(ChAABB& bbox) const {
     auto this_bbox = GetBoundingBox();
     bbox.min = Vmin(bbox.min, this_bbox.min);
-    bbox.max = Vmin(bbox.max, this_bbox.max);
+    bbox.max = Vmax(bbox.max, this_bbox.max);
 }
 
 double ChGeometry::GetBoundingSphereRadius() const {
