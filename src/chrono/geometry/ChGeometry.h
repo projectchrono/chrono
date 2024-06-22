@@ -50,6 +50,12 @@ struct ChApi ChAABB {
     /// Return true foir an inverted bounding box.
     bool IsInverted() const;
 
+    /// Resize this AABB to contain the other AABB
+    void Inflate(const ChAABB& other);
+
+    /// Resize this AABB to contain the point
+    void Inflate(const ChVector3d& point);
+
     ChVector3d min;  ///< low AABB corner
     ChVector3d max;  ///< high AABB corner
 };

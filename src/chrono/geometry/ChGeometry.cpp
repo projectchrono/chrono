@@ -97,4 +97,15 @@ bool ChAABB::IsInverted() const {
     return min > max;
 }
 
+void ChAABB::Inflate(const ChAABB& other) {
+    this->min = Vmin(this->min, other.min);
+    this->max = Vmax(this->max, other.max);
+}
+
+void ChAABB::Inflate(const ChVector3d& other) {
+    this->min = Vmin(this->min, other);
+    this->max = Vmax(this->max, other);
+}
+
+
 }  // end namespace chrono
