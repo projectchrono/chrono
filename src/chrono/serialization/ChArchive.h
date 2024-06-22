@@ -852,7 +852,7 @@ class ChApi ChArchiveOut : public ChArchive {
 
         internal_ptr_id.clear();
         internal_ptr_id[nullptr] = (0);  // ID=0 -> null pointer.
-        currentID = 0;
+        currentID = 1e9; // start with 1e9 offset to avoid overlapping with user defined if GetTag() is used
     };
 
     virtual ~ChArchiveOut(){};
@@ -928,7 +928,6 @@ class ChApi ChArchiveOut : public ChArchive {
     /// was not previously inserted. Returns already_stored=false if was
     /// already inserted. Return 'obj_ID' offset in vector in any case.
     /// For null pointers, always return 'already_stored'=true, and 'obj_ID'=0.
-    //void PutPointer(void* object, bool& already_stored, size_t& obj_ID);
     void PutPointer(ChValue& val, bool& already_stored, size_t& obj_ID);
 
   public:
