@@ -102,6 +102,9 @@ class ChApi ChClassRegistrationBase {
 
     /// Tells if it implements the function
     virtual bool has_ArchiveOut() = 0;
+
+    /// Tells if it implements the function
+    virtual bool has_GetTag() = 0;
 };
 
 /// \class ChCastingMap
@@ -399,6 +402,10 @@ CH_CREATE_MEMBER_DETECTOR(ArchiveIn)
 /// templates, to select which specialized template to use
 CH_CREATE_MEMBER_DETECTOR(ArchiveContainerName)
 
+/// Macro to create a  ChDetect_GetTag that can be used in
+/// templates, to select which specialized template to use
+CH_CREATE_MEMBER_DETECTOR(GetTag)
+
 /// Class for registration data of classes
 /// whose objects can be created via a class factory.
 
@@ -449,6 +456,7 @@ class ChClassRegistration : public ChClassRegistrationBase {
     virtual bool has_ArchiveIn() override { return _has_ArchiveIn(); }
     virtual bool has_ArchiveOutConstructor() override { return _has_ArchiveOutConstructor(); }
     virtual bool has_ArchiveOut() override { return _has_ArchiveOut(); }
+    virtual bool has_GetTag() override { return _has_GetTag(); }
 
   protected:
     template <class Tc = t>
@@ -535,6 +543,14 @@ class ChClassRegistration : public ChClassRegistrationBase {
     }
     template <class Tc = t>
     typename enable_if<!ChDetect_ArchiveOut<Tc>::value, bool>::type _has_ArchiveOut() {
+        return false;
+    }
+    template <class Tc = t>
+    typename enable_if<ChDetect_GetTag<Tc>::value, bool>::type _has_GetTag() {
+        return true;
+    }
+    template <class Tc = t>
+    typename enable_if<!ChDetect_GetTag<Tc>::value, bool>::type _has_GetTag() {
         return false;
     }
 

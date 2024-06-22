@@ -470,8 +470,14 @@ class ChValue {
     /// Tell if the object has the ArchiveContainerName() function; if so you might call CallArchiveContainerName
     virtual bool HasArchiveContainerName() = 0;
 
+    /// Tell if the object has the GetTag() function; if so you might call CallGetTag
+    virtual bool HasGetTag() = 0;
+
     /// Use this to call ArchiveContainerName member function, if present
     virtual std::string& CallArchiveContainerName() = 0;
+
+    /// Use this to call GetTag() member function, if present
+    virtual int  CallGetTag() = 0;
 
     virtual void CallOut(ChArchiveOut& archive_out) = 0;
 
@@ -545,11 +551,15 @@ class ChValueSpecific : public ChValue {
 
     virtual bool HasArchiveContainerName() { return this->_has_get_name_string(); };
 
+    virtual bool HasGetTag() { return this->_has_get_tag(); };
+
     virtual std::string& CallArchiveContainerName() { return this->_get_name_string(); }
 
     virtual void CallArchiveOut(ChArchiveOut& archive_out) { this->_archive_out(archive_out); }
 
     virtual void CallArchiveOutConstructor(ChArchiveOut& archive_out) { this->_archive_out_constructor(archive_out); }
+
+    virtual int  CallGetTag() { return this->_get_tag(); }
 
     virtual void CallOut(ChArchiveOut& archive_out);
 
@@ -603,12 +613,32 @@ class ChValueSpecific : public ChValue {
     }
 
     template <class Tc = TClass>
+    typename enable_if<ChDetect_GetTag<Tc>::value, int>::type _get_tag() {
+        return this->_ptr_to_val->GetTag();
+    }
+
+    template <class Tc = TClass>
+    typename enable_if<!ChDetect_GetTag<Tc>::value, int>::type _get_tag() {
+        throw(std::exception()); // should not be called.
+    }
+
+    template <class Tc = TClass>
     typename enable_if<ChDetect_ArchiveContainerName<Tc>::value, bool>::type _has_get_name_string() {
         return true;
     }
 
     template <class Tc = TClass>
     typename enable_if<!ChDetect_ArchiveContainerName<Tc>::value, bool>::type _has_get_name_string() {
+        return false;  // nothing to do if not provided
+    }
+
+    template <class Tc = TClass>
+    typename enable_if<ChDetect_GetTag<Tc>::value, bool>::type _has_get_tag() {
+        return true;
+    }
+
+    template <class Tc = TClass>
+    typename enable_if<!ChDetect_GetTag<Tc>::value, bool>::type _has_get_tag() {
         return false;  // nothing to do if not provided
     }
 
@@ -799,10 +829,12 @@ class ChApi ChArchiveOut : public ChArchive {
     std::unordered_set<void*> cut_pointers;
 
     bool cut_all_pointers;
+    bool use_gettag_as_id;
 
   public:
     ChArchiveOut() {
         cut_all_pointers = false;
+        use_gettag_as_id = false;
 
         internal_ptr_id.clear();
         internal_ptr_id[nullptr] = (0);  // ID=0 -> null pointer.
@@ -839,12 +871,24 @@ class ChApi ChArchiveOut : public ChArchive {
     /// Note, the same IDs must be used when de-serializing pointers in ArchiveIn.
     void UnbindExternalPointer(std::shared_ptr<void> mptr, size_t ID) { external_ptr_id[mptr.get()] = ID; }
 
+
+    /// When deserializing N pointers to the same object, an ID is used in the archive to 
+    /// mark the object, and the N pointers just serialize such ID. By default the ID is an
+    /// incremental number managed by this archive. Optionally, turning SetGetTagAsID(true), 
+    /// if some object implement a int GetTag() function, such tag ID is used instead (saved
+    /// with negative sign to avoid overlapping with the default behavior for objects not 
+    /// implementing the GetTag function). 
+    /// This makes things easier when using UnbindExternalPointer and RebindExternalPointer. 
+    /// Warning! If so, check your objects do not have a same tag, and never use 0 as tag.
+    void SetUseGetTagAsID(bool mt) { this->use_gettag_as_id = mt; }
+
   protected:
     /// Find a pointer in pointer map: eventually add it to map if it
     /// was not previously inserted. Returns already_stored=false if was
     /// already inserted. Return 'obj_ID' offset in vector in any case.
     /// For null pointers, always return 'already_stored'=true, and 'obj_ID'=0.
-    void PutPointer(void* object, bool& already_stored, size_t& obj_ID);
+    //void PutPointer(void* object, bool& already_stored, size_t& obj_ID);
+    void PutPointer(ChValue& val, bool& already_stored, size_t& obj_ID);
 
   public:
     //---------------------------------------------------
@@ -1025,7 +1069,9 @@ class ChApi ChArchiveOut : public ChArchive {
             already_stored = true;
             ext_ID = external_ptr_id[idptr];
         } else {
-            PutPointer(idptr, already_stored, obj_ID);
+            //PutPointer(idptr, already_stored, obj_ID);
+            ChValueSpecific<T> val(*mptr, "", 0);
+            PutPointer(val, already_stored, obj_ID);
         }
         ChValueSpecific<T> specVal(*mptr, bVal.name(), bVal.flags(), bVal.GetCausality(), bVal.GetVariability());
         this->out_ref(specVal, already_stored, obj_ID,
@@ -1040,8 +1086,10 @@ class ChApi ChArchiveOut : public ChArchive {
         if (bVal.flags() & NVP_TRACK_OBJECT) {
             bool already_stored;
             T* mptr = &bVal.value();
-            void* idptr = getVoidPointer<T>(mptr);
-            PutPointer(idptr, already_stored, obj_ID);
+            //void* idptr = getVoidPointer<T>(mptr);
+            //PutPointer(idptr, already_stored, obj_ID);
+            ChValueSpecific<T> val(*mptr, "", 0);
+            PutPointer(val, already_stored, obj_ID);
             if (already_stored) {
                 throw std::runtime_error("Cannot serialize tracked object '" + std::string(bVal.name()) +
                                          "' by value, AFTER already serialized by pointer.");

@@ -15,7 +15,7 @@ void ChArchive::SetUseVersions(bool muse) {
 void ChArchive::SetClusterClassVersions(bool mcl) {
     this->cluster_class_versions = mcl;
 }
-
+/*
 void ChArchiveOut::PutPointer(void* object, bool& already_stored, size_t& obj_ID) {
     if (this->internal_ptr_id.find(static_cast<void*>(object)) != this->internal_ptr_id.end()) {
         already_stored = true;
@@ -26,6 +26,27 @@ void ChArchiveOut::PutPointer(void* object, bool& already_stored, size_t& obj_ID
     // wasn't in list.. add to it
     ++currentID;
     obj_ID = currentID;
+    internal_ptr_id[static_cast<void*>(object)] = obj_ID;
+    already_stored = false;
+    return;
+}
+*/
+void ChArchiveOut::PutPointer(ChValue& val, bool& already_stored, size_t& obj_ID) {
+    void* object = val.GetRawPtr();
+    if (this->internal_ptr_id.find(static_cast<void*>(object)) != this->internal_ptr_id.end()) {
+        already_stored = true;
+        obj_ID = internal_ptr_id[static_cast<void*>(object)];
+        return;
+    }
+    // wasn't in list.. add to it
+    if (val.HasGetTag() && this->use_gettag_as_id) {
+        obj_ID = 1e9 + val.CallGetTag(); // use 1e9 offset to not overlap with IDs of objects where val.HasGetTag()==false
+        // to do: should check that tag is unique, and should avoid 0 as tag
+    }
+    else {
+        ++currentID;
+        obj_ID = currentID;
+    }
     internal_ptr_id[static_cast<void*>(object)] = obj_ID;
     already_stored = false;
     return;
