@@ -139,9 +139,18 @@ class ChApi ChNodeBase {
     /// Method to allow de-serialization of transient data from archives.
     virtual void ArchiveIn(ChArchiveIn& archive_in);
 
+    /// Set an object integer tag (default: -1).
+    /// Unlike the object identifier, this tag is completely under user control and not used anywhere else in Chrono.
+    /// Tags are serialized and de-serialized.
+    void SetTag(int tag) { m_tag = tag; }
+
+    /// Get the tag of this object.
+    int GetTag() const { return m_tag; }
+
   protected:
     unsigned int offset_x;  ///< offset in vector of state (position part)
     unsigned int offset_w;  ///< offset in vector of state (speed part)
+    int m_tag = -1;
 };
 
 CH_CLASS_VERSION(ChNodeBase, 0)
