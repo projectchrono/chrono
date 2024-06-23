@@ -18,6 +18,7 @@
 
 #include "chrono/physics/ChSystemSMC.h"
 #include "chrono/physics/ChLinkMotorRotationSpeed.h"
+#include "chrono/physics/ChBodyEasy.h"
 #include "chrono/serialization/ChArchiveBinary.h"
 
 #include "chrono_irrlicht/ChVisualSystemIrrlicht.h"
@@ -163,8 +164,7 @@ int main(int argc, char* argv[]) {
 
     ChDomainManagerSharedmemory domain_manager;
     ChDomainBuilderSlices       domain_builder(
-                                        2,              // how many domains 
-                                        -20, 20,        // interval to slice
+                                        std::vector<double>{0},  // positions of cuts along axis to slice, ex {-1,0,2} generates 5 domains
                                         ChAxis::X);     // axis about whom one needs the space slicing
 
 
@@ -185,12 +185,27 @@ int main(int argc, char* argv[]) {
                                         1       // rank of this domain 
                                        ));
 
-    domain_manager.DoUpdateSharedLeaving();
-    domain_manager.DoDomainsSendReceive();
-    domain_manager.DoUpdateSharedReceived();
+    auto mat = chrono_types::make_shared<ChContactMaterialSMC>();
+    mat->SetFriction(0.1);
+    auto mrigidBody = chrono_types::make_shared<ChBodyEasyBox>(2, 2, 2,  // x,y,z size
+        100,         // density
+        true,        // visualization?
+        false,        // collision?
+        mat);        // contact material
+    mrigidBody->SetPos(ChVector3d(-3,0,0));
+    mrigidBody->SetTag(101); // for multidomain, each item must have an unique tag!
+    sys_0.AddBody(mrigidBody);
+    //sys_0.GetCollisionSystem()->BindItem(mrigidBody);
 
+    for (int i = 0; i < 10; ++i) {
+        mrigidBody->SetPos(ChVector3d(-2+i*0.55, 0, 0)); // change pos of body as in simulation
+        sys_0.ComputeCollisions(); // to force the AABB of bodies
+        sys_1.ComputeCollisions(); // to force the AABB of bodies
+        domain_manager.DoUpdateSharedLeaving();
+        domain_manager.DoDomainsSendReceive();
+        domain_manager.DoUpdateSharedReceived();
+    }
 
-    system("pause");
     return 0;
 
 
