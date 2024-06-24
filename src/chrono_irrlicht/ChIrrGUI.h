@@ -121,7 +121,7 @@ class ChApiIrr ChIrrGUI {
     void SetPlotConvergence(bool val) { g_plot_convergence->setChecked(val); }
 
     /// Set the scale for symbol drawing (link frames, COGs, etc.)
-    void SetSymbolscale(double val);
+    void SetSymbolScale(double val);
 
     bool initialized;
 

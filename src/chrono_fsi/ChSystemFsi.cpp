@@ -1047,17 +1047,16 @@ void ChSystemFsi::AddBoxContainerBCE(std::shared_ptr<ChBody> body,
                                      const ChVector3d& size,
                                      const ChVector3i faces) {
     Real spacing = m_paramsH->MULT_INITSPACE * m_paramsH->HSML;
-    Real buffer = 2 * m_paramsH->NUM_BOUNDARY_LAYERS * spacing;
+    Real buffer = 2 * (m_paramsH->NUM_BOUNDARY_LAYERS - 1) * spacing;
 
     ChVector3d hsize = size / 2;
 
-    // Wall center positions
-    ChVector3d xn(-hsize.x() - spacing, 0, 0);
-    ChVector3d xp(+hsize.x() + spacing, 0, 0);
-    ChVector3d yn(0, -hsize.y() - spacing, 0);
-    ChVector3d yp(0, +hsize.y() + spacing, 0);
-    ChVector3d zn(0, 0, -hsize.z() - spacing);
-    ChVector3d zp(0, 0, +hsize.z() + spacing);
+    ChVector3d xn(-hsize.x(), 0, 0);
+    ChVector3d xp(+hsize.x(), 0, 0);
+    ChVector3d yn(0, -hsize.y(), 0);
+    ChVector3d yp(0, +hsize.y(), 0);
+    ChVector3d zn(0, 0, -hsize.z());
+    ChVector3d zp(0, 0, +hsize.z());
 
     // Z- wall
     if (faces.z() == -1 || faces.z() == 2)
@@ -1439,7 +1438,7 @@ void ChSystemFsi::CreateBCE_cylinder(Real rad,
         }
 
         if (capped) {
-            rad_max = rad_min - delta_r;
+            rad_max = rad_min - num_layers * delta_r;
             np_r = (int)std::round(rad_max / spacing);
             delta_r = rad_max / np_r;
 
