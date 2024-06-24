@@ -76,20 +76,18 @@ class ChApiModal callback_Ax_sparse_complexshiftinvert : public callback_Ax {
         const chrono::ChSparseMatrix& As,  ///< unshifted matrix A
         const chrono::ChSparseMatrix& Bs,  ///< unshifted matrix B
         std::complex<double> shift,        ///< shift (sigma in the equation)
-        ChDirectSolverLScomplex* mlinear_solver =
-            0  ///< optional direct solver/factorization. Default is ChSolverSparseComplexQR
+        std::shared_ptr<ChDirectSolverLScomplex> linear_solver ///< optional direct solver/factorization. Default is ChSolverSparseComplexQR
     );
 
-    ~callback_Ax_sparse_complexshiftinvert();
+    ~callback_Ax_sparse_complexshiftinvert(){};
 
     void compute(chrono::ChVectorDynamic<std::complex<double>>& A_x,     ///< output: result of A*x
                  const chrono::ChVectorDynamic<std::complex<double>>& x  ///< input:  x in A*x
                  ) override;
 
-    ChDirectSolverLScomplex* linear_solver;
+    std::shared_ptr<ChDirectSolverLScomplex> m_linear_solver;
     Eigen::SparseMatrix<std::complex<double>, Eigen::ColMajor> Bd;
-    float default_solver;
-    std::complex<double> sigma;
+    std::complex<double> m_sigma;
 };
 
 /// Compute (complex) eigenvalues and eigenvectors
