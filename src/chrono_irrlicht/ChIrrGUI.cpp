@@ -124,6 +124,24 @@ bool ChIrrEventReceiver::OnEvent(const irr::SEvent& event) {
         }
     }
 
+    // Process GUI events
+    if (event.EventType == irr::EET_GUI_EVENT) {
+        irr::s32 id = event.GUIEvent.Caller->getID();
+
+        switch (event.GUIEvent.EventType) {
+            case irr::gui::EGET_EDITBOX_ENTER:
+                switch (id) {
+                    case 9921: {
+                        double val = atof(
+                            irr::core::stringc(((irr::gui::IGUIEditBox*)event.GUIEvent.Caller)->getText()).c_str());
+                        m_gui->SetSymbolscale(val);
+                    } break;
+                }
+                break;
+            default:
+                break;
+        }
+    }
 
     return false;
 }
