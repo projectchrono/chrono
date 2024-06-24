@@ -124,45 +124,6 @@ bool ChIrrEventReceiver::OnEvent(const irr::SEvent& event) {
         }
     }
 
-    // Process GUI events
-    if (event.EventType == irr::EET_GUI_EVENT) {
-        irr::s32 id = event.GUIEvent.Caller->getID();
-
-        switch (event.GUIEvent.EventType) {
-            case irr::gui::EGET_EDITBOX_ENTER:
-                switch (id) {
-                    case 9921: {
-                        double val = atof(
-                            irr::core::stringc(((irr::gui::IGUIEditBox*)event.GUIEvent.Caller)->getText()).c_str());
-                        m_gui->SetSymbolscale(val);
-                    } break;
-                    case 9927: {
-                        double val = atof(
-                            irr::core::stringc(((irr::gui::IGUIEditBox*)event.GUIEvent.Caller)->getText()).c_str());
-                        m_gui->SetModalAmplitude(val);
-
-                    } break;
-                    case 9928: {
-                        double val = atof(
-                            irr::core::stringc(((irr::gui::IGUIEditBox*)event.GUIEvent.Caller)->getText()).c_str());
-                        m_gui->SetModalSpeed(val);
-
-                    } break;
-                }
-                break;
-
-            case irr::gui::EGET_SCROLL_BAR_CHANGED:
-                switch (id) {
-                    case 9926:
-                        m_gui->modal_mode_n = ((irr::gui::IGUIScrollBar*)event.GUIEvent.Caller)->getPos();
-                        break;
-                }
-                break;
-
-            default:
-                break;
-        }
-    }
 
     return false;
 }
@@ -200,14 +161,6 @@ ChIrrGUI::ChIrrGUI()
       show_explorer(false),
       show_infos(false),
       show_profiler(false),
-      modal_show(false),
-      modal_mode_n(0),
-      modal_amplitude(0.1),
-      modal_speed(1),
-      modal_phi(0),
-      modal_current_mode_n(0),
-      modal_current_freq(0),
-      modal_current_dampingfactor(0),
       symbolscale(1),
       camera_auto_rotate_speed(0) {
 #ifdef CHRONO_POSTPROCESS
@@ -251,7 +204,6 @@ void ChIrrGUI::Initialize(ChVisualSystemIrrlicht* vis) {
     // Create GUI gadgets
     g_tabbed = guienv->addTabControl(irr::core::rect<irr::s32>(2, 70, 220, 550), 0, true, true);
     auto g_tab1 = g_tabbed->addTab(L"Dynamic");
-    auto g_tab2 = g_tabbed->addTab(L"Modal");
     auto g_tab3 = g_tabbed->addTab(L"Help");
 
     g_textFPS = guienv->addStaticText(L"FPS", irr::core::rect<irr::s32>(10, 10, 200, 230), true, true, g_tab1);
@@ -315,23 +267,6 @@ void ChIrrGUI::Initialize(ChVisualSystemIrrlicht* vis) {
     g_symbolscale = guienv->addEditBox(L"", irr::core::rect<irr::s32>(170, 345, 200, 345 + 15), true, g_tab1, 9921);
     SetSymbolscale(symbolscale);
 
-    // -- g_tab2
-
-    guienv->addStaticText(L"Amplitude", irr::core::rect<irr::s32>(10, 10, 80, 10 + 15), false, false, g_tab2);
-    g_modal_amplitude = guienv->addEditBox(L"", irr::core::rect<irr::s32>(80, 10, 120, 10 + 15), true, g_tab2, 9927);
-    SetModalAmplitude(modal_amplitude);
-    guienv->addStaticText(L"Speed", irr::core::rect<irr::s32>(10, 25, 80, 25 + 15), false, false, g_tab2);
-    g_modal_speed = guienv->addEditBox(L"", irr::core::rect<irr::s32>(80, 25, 120, 25 + 15), true, g_tab2, 9928);
-    SetModalSpeed(modal_speed);
-
-    guienv->addStaticText(L"Mode", irr::core::rect<irr::s32>(10, 50, 100, 50 + 15), false, false, g_tab2);
-    g_modal_mode_n =
-        GetGUIEnvironment()->addScrollBar(true, irr::core::rect<irr::s32>(10, 65, 120, 65 + 15), g_tab2, 9926);
-    g_modal_mode_n->setMax(25);
-    g_modal_mode_n->setSmallStep(1);
-    g_modal_mode_n_info =
-        GetGUIEnvironment()->addStaticText(L"", irr::core::rect<irr::s32>(130, 65, 340, 65 + 45), false, false, g_tab2);
-
     // -- g_tab3
 
     g_textHelp = guienv->addStaticText(L"FPS", irr::core::rect<irr::s32>(10, 10, 200, 380), true, true, g_tab3);
@@ -364,6 +299,11 @@ void ChIrrGUI::Initialize(ChVisualSystemIrrlicht* vis) {
     child->setExpanded(true);
 }
 
+irr::gui::IGUITab* ChIrrGUI::AddTab(const wchar_t* caption)
+{
+    return g_tabbed->addTab(caption);
+}
+
 void ChIrrGUI::AddUserEventReceiver(irr::IEventReceiver* receiver) {
     m_user_receivers.push_back(receiver);
 }
@@ -373,27 +313,6 @@ void ChIrrGUI::SetSymbolscale(double val) {
     char message[50];
     snprintf(message, sizeof(message), "%g", symbolscale);
     g_symbolscale->setText(irr::core::stringw(message).c_str());
-}
-
-void ChIrrGUI::SetModalAmplitude(double val) {
-    modal_amplitude = std::max(0.0, val);
-    char message[50];
-    snprintf(message, sizeof(message), "%g", modal_amplitude);
-    g_modal_amplitude->setText(irr::core::stringw(message).c_str());
-}
-
-void ChIrrGUI::SetModalSpeed(double val) {
-    modal_speed = std::max(0.0, val);
-    char message[50];
-    snprintf(message, sizeof(message), "%g", modal_speed);
-    g_modal_speed->setText(irr::core::stringw(message).c_str());
-}
-
-void ChIrrGUI::SetModalModesMax(int maxModes) {
-    int newMaxModes = std::max(maxModes, 1);
-    g_modal_mode_n->setMax(newMaxModes);
-    modal_mode_n = std::min(modal_mode_n, newMaxModes);
-    modal_phi = 0.0;
 }
 
 // -----------------------------------------------------------------------------
@@ -550,22 +469,6 @@ void ChIrrGUI::Render() {
     if (show_explorer) {
         chrono::ChValueSpecific<ChSystem> root(*m_system, "system", 0);
         recurse_update_tree_node(&root, g_treeview->getRoot());
-    }
-
-    g_modal_mode_n->setEnabled(modal_show);
-    g_modal_mode_n_info->setEnabled(modal_show);
-    g_modal_amplitude->setEnabled(modal_show);
-    g_modal_speed->setEnabled(modal_show);
-    if (modal_show) {
-        char message[50];
-        if (modal_current_dampingfactor)
-            snprintf(message, sizeof(message), "n = %i\nf = %.3g Hz\nz = %.2g", modal_mode_n, modal_current_freq,
-                     modal_current_dampingfactor);
-        else
-            snprintf(message, sizeof(message), "n = %i\nf = %.3g Hz", modal_mode_n, modal_current_freq);
-        g_modal_mode_n_info->setText(irr::core::stringw(message).c_str());
-
-        g_modal_mode_n->setPos(modal_mode_n);
     }
 
     GetGUIEnvironment()->drawAll();
