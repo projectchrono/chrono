@@ -70,7 +70,7 @@ class ChApiModal ChUnsymGenEigenvalueSolver : public ChGeneralizedEigenvalueSolv
 /// - shift-and-invert with complex shift
 class ChApiModal ChUnsymGenEigenvalueSolverKrylovSchur : public ChUnsymGenEigenvalueSolver {
   public:
-    /// Default: uses Eigen::SparseQR as factorization for the shift&invert,
+    /// Default: uses Eigen::SparseLU as factorization for the shift&invert,
     /// otherwise pass a custom complex sparse solver for faster factorization (ex. ChSolverComplexPardisoMKL)
     ChUnsymGenEigenvalueSolverKrylovSchur(
         std::shared_ptr<ChDirectSolverLScomplex> linear_solver = chrono_types::make_shared<ChSolverSparseComplexLU>());

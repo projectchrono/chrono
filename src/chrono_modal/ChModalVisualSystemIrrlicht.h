@@ -368,9 +368,11 @@ void ChModalVisualSystemIrrlicht<ScalarType>::UpdateModes(const ChMatrixDynamic<
 }
 
 template <typename ScalarType>
-void ChModalVisualSystemIrrlicht<ScalarType>::UpdateModes(const ChMatrixDynamic<ScalarType>& eigvects,
-                                                          const ChVectorDynamic<double>& freq,
-                                                          const ChVectorDynamic<double>& damping_ratios) {
+template <typename U>
+typename std::enable_if<std::is_same<U, std::complex<double>>::value, void>::type
+ChModalVisualSystemIrrlicht<ScalarType>::UpdateModes(const ChMatrixDynamic<ScalarType>& eigvects,
+                                                     const ChVectorDynamic<double>& freq,
+                                                     const ChVectorDynamic<double>& damping_ratios) {
     m_damping_ratios = &damping_ratios;
     UpdateModes(eigvects, freq);
 

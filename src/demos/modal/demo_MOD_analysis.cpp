@@ -102,7 +102,7 @@ void MakeAndRunDemoCantilever(ChSystem& sys, bool base_fixed) {
 
     builder.BuildBeam(mesh,                      // the mesh where to put the created nodes and elements
                       section,                   // the ChBeamSectionEuler to use for the ChElementBeamEuler elements
-                      2,                         // the number of ChElementBeamEuler to create
+                      20,                         // the number of ChElementBeamEuler to create
                       ChVector3d(0, 0, 0),       // the 'A' point in space (beginning of beam)
                       ChVector3d(beam_L, 0, 0),  // the 'B' point in space (end of beam)
                       ChVector3d(0, 1, 0)        // the 'Y' up direction of the section for the beam
