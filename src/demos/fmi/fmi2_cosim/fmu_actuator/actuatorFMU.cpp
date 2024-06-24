@@ -27,13 +27,13 @@ using namespace chrono::fmi2;
 // -----------------------------------------------------------------------------
 
 // Create an instance of this FMU
-::fmi2::FmuComponentBase* ::fmi2::fmi2Instantiate_getPointer(fmi2String instanceName,
-                                                             fmi2Type fmuType,
-                                                             fmi2String fmuGUID,
-                                                             fmi2String fmuResourceLocation,
-                                                             const fmi2CallbackFunctions* functions,
-                                                             fmi2Boolean visible,
-                                                             fmi2Boolean loggingOn) {
+::fmi2::FmuComponentBase* ::fmi2::fmi2InstantiateIMPL(fmi2String instanceName,
+                                                      fmi2Type fmuType,
+                                                      fmi2String fmuGUID,
+                                                      fmi2String fmuResourceLocation,
+                                                      const fmi2CallbackFunctions* functions,
+                                                      fmi2Boolean visible,
+                                                      fmi2Boolean loggingOn) {
     return new FmuComponent(instanceName, fmuType, fmuGUID, fmuResourceLocation, functions, visible, loggingOn);
 }
 
@@ -111,15 +111,15 @@ void FmuComponent::CalculateValvePosition() {
     U = m_actuator->GetValvePosition();
 }
 
-void FmuComponent::_preModelDescriptionExport() {
-    _exitInitializationMode();
+void FmuComponent::preModelDescriptionExport() {
+    exitInitializationModeIMPL();
 }
 
-void FmuComponent::_postModelDescriptionExport() {}
+void FmuComponent::postModelDescriptionExport() {}
 
-void FmuComponent::_enterInitializationMode() {}
+void FmuComponent::enterInitializationModeIMPL() {}
 
-void FmuComponent::_exitInitializationMode() {
+void FmuComponent::exitInitializationModeIMPL() {
     // 1. Construct hydraulic actuator (must have parameters)
 
     // Set gravitational acceleration
@@ -150,9 +150,9 @@ void FmuComponent::_exitInitializationMode() {
     sys.DoAssembly(AssemblyLevel::FULL);
 }
 
-fmi2Status FmuComponent::_doStep(fmi2Real currentCommunicationPoint,
-                                 fmi2Real communicationStepSize,
-                                 fmi2Boolean noSetFMUStatePriorToCurrentPoint) {
+fmi2Status FmuComponent::doStepIMPL(fmi2Real currentCommunicationPoint,
+                                    fmi2Real communicationStepSize,
+                                    fmi2Boolean noSetFMUStatePriorToCurrentPoint) {
     // Set initial actuator length at t=0
     if (!have_s0) {
         std::cout << "Setting s0 = " << s << std::endl;

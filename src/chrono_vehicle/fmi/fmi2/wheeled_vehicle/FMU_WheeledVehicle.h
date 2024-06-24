@@ -55,26 +55,26 @@ class FmuComponent : public chrono::fmi2::FmuChronoComponentBase {
     ~FmuComponent() {}
 
     /// Advance dynamics.
-    virtual fmi2Status _doStep(fmi2Real currentCommunicationPoint,
+    virtual fmi2Status doStepIMPL(fmi2Real currentCommunicationPoint,
                                fmi2Real communicationStepSize,
                                fmi2Boolean noSetFMUStatePriorToCurrentPoint) override;
 
   private:
-    virtual void _enterInitializationMode() override;
-    virtual void _exitInitializationMode() override;
+    virtual void enterInitializationModeIMPL() override;
+    virtual void exitInitializationModeIMPL() override;
 
-    virtual void _preModelDescriptionExport() override;
-    virtual void _postModelDescriptionExport() override;
+    virtual void preModelDescriptionExport() override;
+    virtual void postModelDescriptionExport() override;
 
     virtual bool is_cosimulation_available() const override { return true; }
     virtual bool is_modelexchange_available() const override { return false; }
 
     /// Create the vehicle system.
-    /// This function is invoked in _exitInitializationMode(), once FMU parameters are set.
+    /// This function is invoked in exitInitializationModeIMPL(), once FMU parameters are set.
     void CreateVehicle();
 
     /// Configure the underlying Chrono system.
-    /// This function is invoked in _exitInitializationMode(), once FMU parameters are set.
+    /// This function is invoked in exitInitializationModeIMPL(), once FMU parameters are set.
     void ConfigureSystem();
 
     /// Update vehicle system with current FMU continuous inputs.

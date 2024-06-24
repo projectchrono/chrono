@@ -30,13 +30,13 @@ using namespace chrono::fmi2;
 // -----------------------------------------------------------------------------
 
 // Create an instance of this FMU
-::fmi2::FmuComponentBase* ::fmi2::fmi2Instantiate_getPointer(fmi2String instanceName,
-                                                             fmi2Type fmuType,
-                                                             fmi2String fmuGUID,
-                                                             fmi2String fmuResourceLocation,
-                                                             const fmi2CallbackFunctions* functions,
-                                                             fmi2Boolean visible,
-                                                             fmi2Boolean loggingOn) {
+::fmi2::FmuComponentBase* ::fmi2::fmi2InstantiateIMPL(fmi2String instanceName,
+                                                      fmi2Type fmuType,
+                                                      fmi2String fmuGUID,
+                                                      fmi2String fmuResourceLocation,
+                                                      const fmi2CallbackFunctions* functions,
+                                                      fmi2Boolean visible,
+                                                      fmi2Boolean loggingOn) {
     return new FmuComponent(instanceName, fmuType, fmuGUID, fmuResourceLocation, functions, visible, loggingOn);
 }
 
@@ -178,19 +178,19 @@ void FmuComponent::CalculateTireOutputs() {
     query_point = wheel_state.pos;
 }
 
-void FmuComponent::_preModelDescriptionExport() {}
+void FmuComponent::preModelDescriptionExport() {}
 
-void FmuComponent::_postModelDescriptionExport() {}
+void FmuComponent::postModelDescriptionExport() {}
 
-void FmuComponent::_enterInitializationMode() {}
+void FmuComponent::enterInitializationModeIMPL() {}
 
-void FmuComponent::_exitInitializationMode() {
+void FmuComponent::exitInitializationModeIMPL() {
     CreateTire();
 }
 
-fmi2Status FmuComponent::_doStep(fmi2Real currentCommunicationPoint,
-                                 fmi2Real communicationStepSize,
-                                 fmi2Boolean noSetFMUStatePriorToCurrentPoint) {
+fmi2Status FmuComponent::doStepIMPL(fmi2Real currentCommunicationPoint,
+                                    fmi2Real communicationStepSize,
+                                    fmi2Boolean noSetFMUStatePriorToCurrentPoint) {
     while (m_time < currentCommunicationPoint + communicationStepSize) {
         fmi2Real h = std::min((currentCommunicationPoint + communicationStepSize - m_time),
                               std::min(communicationStepSize, step_size));

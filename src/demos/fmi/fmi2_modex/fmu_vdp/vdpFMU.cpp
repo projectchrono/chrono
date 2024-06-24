@@ -25,13 +25,13 @@ using namespace fmi2;
 // -----------------------------------------------------------------------------
 
 // Create an instance of this FMU
-::fmi2::FmuComponentBase* ::fmi2::fmi2Instantiate_getPointer(fmi2String instanceName,
-                                                             fmi2Type fmuType,
-                                                             fmi2String fmuGUID,
-                                                             fmi2String fmuResourceLocation,
-                                                             const fmi2CallbackFunctions* functions,
-                                                             fmi2Boolean visible,
-                                                             fmi2Boolean loggingOn) {
+::fmi2::FmuComponentBase* ::fmi2::fmi2InstantiateIMPL(fmi2String instanceName,
+                                                      fmi2Type fmuType,
+                                                      fmi2String fmuGUID,
+                                                      fmi2String fmuResourceLocation,
+                                                      const fmi2CallbackFunctions* functions,
+                                                      fmi2Boolean visible,
+                                                      fmi2Boolean loggingOn) {
     return new FmuComponent(instanceName, fmuType, fmuGUID, fmuResourceLocation, functions, visible, loggingOn);
 }
 
@@ -121,11 +121,11 @@ void FmuComponent::calcAcceleration() {
 
 // -----------------------------------------------------------------------------
 
-void FmuComponent::_enterInitializationMode() {}
+void FmuComponent::enterInitializationModeIMPL() {}
 
-void FmuComponent::_exitInitializationMode() {}
+void FmuComponent::exitInitializationModeIMPL() {}
 
-fmi2Status FmuComponent::_getContinuousStates(fmi2Real x[], size_t nx) {
+fmi2Status FmuComponent::getContinuousStatesIMPL(fmi2Real x[], size_t nx) {
     for (size_t i = 0; i < nx; i++) {
         x[i] = q[i];
     }
@@ -133,7 +133,7 @@ fmi2Status FmuComponent::_getContinuousStates(fmi2Real x[], size_t nx) {
     return fmi2Status::fmi2OK;
 }
 
-fmi2Status FmuComponent::_setContinuousStates(const fmi2Real x[], size_t nx) {
+fmi2Status FmuComponent::setContinuousStatesIMPL(const fmi2Real x[], size_t nx) {
     for (size_t i = 0; i < nx; i++) {
         q[i] = x[i];
     }
@@ -141,7 +141,7 @@ fmi2Status FmuComponent::_setContinuousStates(const fmi2Real x[], size_t nx) {
     return fmi2Status::fmi2OK;
 }
 
-fmi2Status FmuComponent::_getDerivatives(fmi2Real derivatives[], size_t nx) {
+fmi2Status FmuComponent::getDerivativesIMPL(fmi2Real derivatives[], size_t nx) {
     derivatives[0] = q[1];
     derivatives[1] = mu * (1 - q[0] * q[0]) * q[1] - q[0] + u;
 

@@ -56,16 +56,16 @@ class FmuComponent : public chrono::fmi2::FmuChronoComponentBase {
     ~FmuComponent() {}
 
     /// Advance dynamics.
-    virtual fmi2Status _doStep(fmi2Real currentCommunicationPoint,
-                               fmi2Real communicationStepSize,
-                               fmi2Boolean noSetFMUStatePriorToCurrentPoint) override;
+    virtual fmi2Status doStepIMPL(fmi2Real currentCommunicationPoint,
+                                  fmi2Real communicationStepSize,
+                                  fmi2Boolean noSetFMUStatePriorToCurrentPoint) override;
 
   private:
-    virtual void _enterInitializationMode() override;
-    virtual void _exitInitializationMode() override;
+    virtual void enterInitializationModeIMPL() override;
+    virtual void exitInitializationModeIMPL() override;
 
-    virtual void _preModelDescriptionExport() override;
-    virtual void _postModelDescriptionExport() override;
+    virtual void preModelDescriptionExport() override;
+    virtual void postModelDescriptionExport() override;
 
     virtual bool is_cosimulation_available() const override { return true; }
     virtual bool is_modelexchange_available() const override { return false; }
@@ -74,7 +74,7 @@ class FmuComponent : public chrono::fmi2::FmuChronoComponentBase {
     void SynchronizeTire(double time);
     void CalculateTireOutputs();
 
-    /// Local terrain system to intermediate tire FMU datab exchange.
+    /// Local terrain system to intermediate tire FMU data exchange.
     /// This represents a locally-flat terrain patch, with the plane updated at each synchronization time.
     class LocalTerrain : public chrono::vehicle::ChTerrain {
       public:
