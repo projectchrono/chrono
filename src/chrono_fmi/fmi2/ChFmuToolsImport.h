@@ -28,9 +28,12 @@
 #include "fmi2/FmuToolsImport.h"
 
 namespace chrono {
+namespace fmi2 {
+
+using FmuVariable = ::fmi2::FmuVariable;
 
 /// Extension of FmuUnit class for Chrono FMUs.
-class FmuChronoUnit : public FmuUnit {
+class FmuChronoUnit : public ::fmi2::FmuUnit {
   public:
     FmuChronoUnit() : FmuUnit() {}
 
@@ -163,6 +166,7 @@ class FmuChronoUnit : public FmuUnit {
     }
 };
 
+}  // end namespace fmi2
 }  // end namespace chrono
 
 #endif

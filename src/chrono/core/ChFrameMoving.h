@@ -19,6 +19,10 @@
 
 namespace chrono {
 
+namespace fmi2 {
+class FmuChronoComponentBase;
+}
+
 /// Representation of a moving 3D.
 /// A ChFrameMoving is a ChFrame that also keeps track of the frame velocity and acceleration.
 ///
@@ -470,7 +474,7 @@ class ChFrameMoving : public ChFrame<Real> {
     ChCoordsys<Real> m_csys_dt;    ///< rotation and position velocity, as vector + quaternion
     ChCoordsys<Real> m_csys_dtdt;  ///< rotation and position acceleration, as vector + quaternion
 
-    friend class FmuChronoComponentBase;
+    friend class chrono::fmi2::FmuChronoComponentBase;
 };
 
 CH_CLASS_VERSION(ChFrameMoving<double>, 0)

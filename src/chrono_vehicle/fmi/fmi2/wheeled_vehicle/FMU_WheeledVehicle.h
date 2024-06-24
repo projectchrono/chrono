@@ -43,7 +43,7 @@
     #include "chrono_vehicle/wheeled_vehicle/ChWheeledVehicleVisualSystemIrrlicht.h"
 #endif
 
-class FmuComponent : public chrono::FmuChronoComponentBase {
+class FmuComponent : public chrono::fmi2::FmuChronoComponentBase {
   public:
     FmuComponent(fmi2String instanceName,
                  fmi2Type fmuType,
@@ -124,14 +124,3 @@ class FmuComponent : public chrono::FmuChronoComponentBase {
 
     int render_frame;  ///< counter for rendered frames
 };
-
-// Create an instance of this FMU
-FmuComponentBase* fmi2Instantiate_getPointer(fmi2String instanceName,
-                                             fmi2Type fmuType,
-                                             fmi2String fmuGUID,
-                                             fmi2String fmuResourceLocation,
-                                             const fmi2CallbackFunctions* functions,
-                                             fmi2Boolean visible,
-                                             fmi2Boolean loggingOn) {
-    return new FmuComponent(instanceName, fmuType, fmuGUID, fmuResourceLocation, functions, visible, loggingOn);
-}

@@ -44,7 +44,7 @@
 
 #include "chrono_fmi/fmi2/ChFmuToolsExport.h"
 
-class FmuComponent : public chrono::FmuChronoComponentBase {
+class FmuComponent : public chrono::fmi2::FmuChronoComponentBase {
   public:
     FmuComponent(fmi2String instanceName,
                  fmi2Type fmuType,
@@ -109,14 +109,3 @@ class FmuComponent : public chrono::FmuChronoComponentBase {
     chrono::ChVector3d terrain_normal;
     double terrain_mu;
 };
-
-// Create an instance of this FMU
-FmuComponentBase* fmi2Instantiate_getPointer(fmi2String instanceName,
-                                             fmi2Type fmuType,
-                                             fmi2String fmuGUID,
-                                             fmi2String fmuResourceLocation,
-                                             const fmi2CallbackFunctions* functions,
-                                             fmi2Boolean visible,
-                                             fmi2Boolean loggingOn) {
-    return new FmuComponent(instanceName, fmuType, fmuGUID, fmuResourceLocation, functions, visible, loggingOn);
-}
