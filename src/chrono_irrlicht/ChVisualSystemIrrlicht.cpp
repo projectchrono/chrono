@@ -161,7 +161,7 @@ CameraVerticalDir ChVisualSystemIrrlicht::GetCameraVertical() {
 void ChVisualSystemIrrlicht::SetSymbolScale(double scale) {
     m_gui->symbolscale = scale;
     if (m_gui->initialized)
-        m_gui->SetSymbolscale(scale);
+        m_gui->SetSymbolScale(scale);
 }
 
 // -----------------------------------------------------------------------------
