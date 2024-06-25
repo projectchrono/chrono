@@ -33,9 +33,9 @@
 #include "chrono/solver/ChDirectSolverLScomplex.h"
 
 #include "chrono_thirdparty/filesystem/path.h"
-#include <iomanip>
+#include "chrono_thirdparty/fast_matrix_market/app/Eigen.hpp"
 
-#include "fast_matrix_market/app/Eigen.hpp"
+#include <iomanip>
 
 #include "gtest/gtest.h"
 
