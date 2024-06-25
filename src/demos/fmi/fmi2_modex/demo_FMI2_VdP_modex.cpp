@@ -88,7 +88,7 @@ int main(int argc, char* argv[]) {
     // NOTE: this is the only step specific to a particular FMU
     fmu_wrapper->SetInitialCondition("x", 2.5);
     fmu_wrapper->SetRealParameterValue("mu", 1.5);
-    fmu_wrapper->SetRealInputFunction("u(t)", [](double time) { return std::sin(time); });
+    fmu_wrapper->SetRealInputFunction("u", [](double time) { return std::sin(time); });
 
     // Initialize the FMU and Chrono wrapper
     fmu_wrapper->Initialize();

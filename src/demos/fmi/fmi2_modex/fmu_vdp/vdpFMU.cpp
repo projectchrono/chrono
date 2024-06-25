@@ -93,7 +93,7 @@ FmuComponent::FmuComponent(fmi2String instanceName,
                    FmuVariable::CausalityType::local, FmuVariable::VariabilityType::continuous,   //
                    FmuVariable::InitialType::calculated);                                         //
 
-    AddFmuVariable(&u, "u(t)", FmuVariable::Type::Real, "1", "forcing term",                     //
+    AddFmuVariable(&u, "u", FmuVariable::Type::Real, "1", "forcing term",                        //
                    FmuVariable::CausalityType::input, FmuVariable::VariabilityType::continuous,  //
                    FmuVariable::InitialType::none);                                              //
 
