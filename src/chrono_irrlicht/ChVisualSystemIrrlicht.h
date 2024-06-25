@@ -104,7 +104,7 @@ class ChApiIrr ChVisualSystemIrrlicht : virtual public ChVisualSystem {
     void SetLogLevel(irr::ELOG_LEVEL log_level);
 
     /// Set the scale for symbol drawing (default: 1).
-    void SetSymbolScale(double scale);
+    void SetSymbolscale(double scale);
 
     /// Initialize the visualization system.
     /// This creates the Irrlicht device using the current values for the optional device parameters.
