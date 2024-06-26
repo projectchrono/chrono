@@ -20,6 +20,8 @@
 #include "chrono/core/ChTimer.h"
 #include "chrono/physics/ChAssembly.h"
 
+#include <Eigen/Core>
+
 #include <complex>
 #include <functional>
 #include <numeric>
@@ -52,15 +54,15 @@ int Solve(EigSolverType& eig_solver,
           ChMatrixDynamic<typename EigSolverType::ScalarType>& eigvects,
           ChVectorDynamic<typename EigSolverType::ScalarType>& eigvals,
           const std::list<std::pair<int, typename EigSolverType::ScalarType>>& eig_requests,
-          bool uniquify,
-          int eigvects_clipping_length);
+          bool uniquify = true,
+          int eigvects_clipping_length = 0);
 
 /// Base interface class for generalized eigenvalue solvers A*x = lambda*B*x.
 /// Currently it is implied that the derived eigensolvers are iterative.
 template <typename ScalarT>
 class ChGeneralizedEigenvalueSolver {
   public:
-    using ScalarType = typename ScalarT;
+    using ScalarType = ScalarT;
 
     ChGeneralizedEigenvalueSolver() {}
 
@@ -96,7 +98,7 @@ class ChGeneralizedEigenvalueSolver {
         ChVectorDynamic<ScalarType> residuals_col;
         for (int i = 0; i < eigvects.cols(); i++) {
             residuals_col = A * eigvects.col(i) - eigvals(i) * B * eigvects.col(i);
-            double cur_residual = residuals_col.lpNorm<Eigen::Infinity>();
+            double cur_residual = residuals_col.template lpNorm<Eigen::Infinity>();
             max_residual = std::max(cur_residual, max_residual);
         }
 
@@ -115,8 +117,8 @@ class ChGeneralizedEigenvalueSolver {
             double cur_residual_state =
                 (K * eigvects.col(nv).topRows(n) + Cq.transpose() * eigvects.col(nv).bottomRows(m) +
                  eigvals(nv) * M * eigvects.col(nv).topRows(n))
-                    .lpNorm<Eigen::Infinity>();
-            double cur_residual_lambda = (Cq * eigvects.col(nv).topRows(n)).lpNorm<Eigen::Infinity>();
+                    .template lpNorm<Eigen::Infinity>();
+            double cur_residual_lambda = (Cq * eigvects.col(nv).topRows(n)).template lpNorm<Eigen::Infinity>();
             double cur_residual = std::max(cur_residual_state, cur_residual_lambda);
             if (cur_residual > max_residual) {
                 max_residual = cur_residual;
@@ -137,13 +139,13 @@ class ChGeneralizedEigenvalueSolver {
         double max_residual = 0;
         for (auto nv = 0; nv < eigvals.size(); nv++) {
             double cur_residual_state_p =
-                (eigvects.col(nv).segment(n, n) - eigvals(nv) * eigvects.col(nv).topRows(n)).lpNorm<Eigen::Infinity>();
+                (eigvects.col(nv).segment(n, n) - eigvals(nv) * eigvects.col(nv).topRows(n)).template lpNorm<Eigen::Infinity>();
 
             double cur_residual_state_v =
                 (K * eigvects.col(nv).topRows(n) + R * eigvects.col(nv).segment(n, n) +
                  Cq.transpose() * eigvects.col(nv).bottomRows(m) + eigvals(nv) * M * eigvects.col(nv).segment(n, n))
-                    .lpNorm<Eigen::Infinity>();
-            double cur_residual_lambda = (Cq * eigvects.col(nv).topRows(n)).lpNorm<Eigen::Infinity>();
+                    .template lpNorm<Eigen::Infinity>();
+            double cur_residual_lambda = (Cq * eigvects.col(nv).topRows(n)).template lpNorm<Eigen::Infinity>();
             double cur_residual = std::max(std::max(cur_residual_state_p, cur_residual_state_v), cur_residual_lambda);
             if (cur_residual > max_residual) {
                 max_residual = cur_residual;
@@ -376,8 +378,8 @@ int Solve(EigSolverType& eig_solver,
           ChMatrixDynamic<typename EigSolverType::ScalarType>& eigvects,
           ChVectorDynamic<typename EigSolverType::ScalarType>& eigvals,
           const std::list<std::pair<int, typename EigSolverType::ScalarType>>& eig_requests,
-          bool uniquify = true,
-          int eigvects_clipping_length = 0) {
+          bool uniquify,
+          int eigvects_clipping_length) {
     bool eigvects_clipping = eigvects_clipping_length > 0;
 
     int num_modes_total = 0;
