@@ -9,7 +9,7 @@
 // http://projectchrono.org/license-chrono.txt.
 //
 // =============================================================================
-// Authors: Alessandro Tasora
+// Authors: Alessandro Tasora, Dario Mangoni
 // =============================================================================
 
 #ifndef CHMODALSOLVER_H

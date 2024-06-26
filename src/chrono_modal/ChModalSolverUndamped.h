@@ -9,7 +9,7 @@
 // http://projectchrono.org/license-chrono.txt.
 //
 // =============================================================================
-// Authors: Alessandro Tasora
+// Authors: Alessandro Tasora, Dario Mangoni
 // =============================================================================
 
 #ifndef CHMODALSOLVERUNDAMPED_H
@@ -19,6 +19,7 @@
 #include "chrono/core/ChMatrix.h"
 #include "chrono/core/ChTimer.h"
 #include "chrono/physics/ChAssembly.h"
+#include "chrono/physics/ChSystem.h"
 #include "chrono/core/ChSparsityPatternLearner.h"
 #include "chrono_modal/ChGeneralizedEigenvalueSolver.h"
 #include "chrono_modal/ChModalSolver.h"
