@@ -296,7 +296,7 @@ int main(int argc, char* argv[]) {
     double ch_time = 0;
 
     if (contact_vis) {
-        app.SetSymbolscale(1e-4);
+        app.SetSymbolScale(1e-4);
         app.SetContactsDrawMode(ChIrrTools::eCh_ContactsDrawMode::CONTACT_FORCES);
     }
 
