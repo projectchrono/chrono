@@ -223,9 +223,11 @@ void FmuComponent::preModelDescriptionExport() {}
 
 void FmuComponent::postModelDescriptionExport() {}
 
-void FmuComponent::enterInitializationModeIMPL() {}
+fmi2Status FmuComponent::enterInitializationModeIMPL() {
+    return fmi2Status::fmi2OK;
+}
 
-void FmuComponent::exitInitializationModeIMPL() {
+fmi2Status FmuComponent::exitInitializationModeIMPL() {
     // Create the driver system
     CreateDriver();
 
@@ -263,6 +265,7 @@ void FmuComponent::exitInitializationModeIMPL() {
         iballT = vis_sys->AddVisualModel(target_shape, ChFrame<>());
     }
 #endif
+    return fmi2Status::fmi2OK;
 }
 
 fmi2Status FmuComponent::doStepIMPL(fmi2Real currentCommunicationPoint,

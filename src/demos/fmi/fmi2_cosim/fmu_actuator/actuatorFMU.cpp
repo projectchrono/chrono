@@ -117,9 +117,11 @@ void FmuComponent::preModelDescriptionExport() {
 
 void FmuComponent::postModelDescriptionExport() {}
 
-void FmuComponent::enterInitializationModeIMPL() {}
+fmi2Status FmuComponent::enterInitializationModeIMPL() {
+    return fmi2Status::fmi2OK;
+}
 
-void FmuComponent::exitInitializationModeIMPL() {
+fmi2Status FmuComponent::exitInitializationModeIMPL() {
     // 1. Construct hydraulic actuator (must have parameters)
 
     // Set gravitational acceleration
@@ -148,6 +150,8 @@ void FmuComponent::exitInitializationModeIMPL() {
     CalculateValvePosition();
 
     sys.DoAssembly(AssemblyLevel::FULL);
+
+    return fmi2Status::fmi2OK;
 }
 
 fmi2Status FmuComponent::doStepIMPL(fmi2Real currentCommunicationPoint,

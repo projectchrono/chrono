@@ -41,8 +41,8 @@ class FmuComponent : public fmi2::FmuComponentBase {
     virtual bool is_cosimulation_available() const override { return false; }
     virtual bool is_modelexchange_available() const override { return true; }
 
-    virtual void enterInitializationModeIMPL() override;
-    virtual void exitInitializationModeIMPL() override;
+    virtual fmi2Status enterInitializationModeIMPL() override;
+    virtual fmi2Status exitInitializationModeIMPL() override;
 
     virtual fmi2Status getContinuousStatesIMPL(fmi2Real x[], size_t nx) override;
     virtual fmi2Status setContinuousStatesIMPL(const fmi2Real x[], size_t nx) override;

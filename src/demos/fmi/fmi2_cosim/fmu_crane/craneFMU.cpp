@@ -131,9 +131,11 @@ void FmuComponent::preModelDescriptionExport() {
 
 void FmuComponent::postModelDescriptionExport() {}
 
-void FmuComponent::enterInitializationModeIMPL() {}
+fmi2Status FmuComponent::enterInitializationModeIMPL() {
+    return fmi2Status::fmi2OK;
+}
 
-void FmuComponent::exitInitializationModeIMPL() {
+fmi2Status FmuComponent::exitInitializationModeIMPL() {
     // Hardcoded mount points
     m_point_ground = ChVector3d(std::sqrt(3.0) / 2, 0, 0);
     m_point_crane = ChVector3d(0, 0, 0);
@@ -227,6 +229,8 @@ void FmuComponent::exitInitializationModeIMPL() {
 #endif
 
     sys.DoAssembly(AssemblyLevel::FULL);
+
+    return fmi2Status::fmi2OK;
 }
 
 fmi2Status FmuComponent::doStepIMPL(fmi2Real currentCommunicationPoint,

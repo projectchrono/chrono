@@ -121,9 +121,13 @@ void FmuComponent::calcAcceleration() {
 
 // -----------------------------------------------------------------------------
 
-void FmuComponent::enterInitializationModeIMPL() {}
+fmi2Status FmuComponent::enterInitializationModeIMPL() {
+    return fmi2Status::fmi2OK;
+}
 
-void FmuComponent::exitInitializationModeIMPL() {}
+fmi2Status FmuComponent::exitInitializationModeIMPL() {
+    return fmi2Status::fmi2OK;
+}
 
 fmi2Status FmuComponent::getContinuousStatesIMPL(fmi2Real x[], size_t nx) {
     for (size_t i = 0; i < nx; i++) {

@@ -61,8 +61,8 @@ class FmuComponent : public chrono::fmi2::FmuChronoComponentBase {
                                   fmi2Boolean noSetFMUStatePriorToCurrentPoint) override;
 
   private:
-    virtual void enterInitializationModeIMPL() override;
-    virtual void exitInitializationModeIMPL() override;
+    virtual fmi2Status enterInitializationModeIMPL() override;
+    virtual fmi2Status exitInitializationModeIMPL() override;
 
     virtual void preModelDescriptionExport() override;
     virtual void postModelDescriptionExport() override;
