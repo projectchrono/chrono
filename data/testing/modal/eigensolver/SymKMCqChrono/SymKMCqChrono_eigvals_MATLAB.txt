@@ -1,0 +1,7 @@
+%%MatrixMarket matrix array real general
+5 1
+ 0.031862063
+ 1.1470334
+ 3.2080294
+ 4.2096875
+ 27.081213
