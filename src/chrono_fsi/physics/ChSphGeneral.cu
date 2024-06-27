@@ -26,7 +26,9 @@ namespace fsi {
 void CopyParams_NumberOfObjects(std::shared_ptr<SimParams> paramsH, 
     std::shared_ptr<ChCounters> numObjectsH) {
     cudaMemcpyToSymbolAsync(paramsD, paramsH.get(), sizeof(SimParams));
+    cudaCheckError();
     cudaMemcpyToSymbolAsync(numObjectsD, numObjectsH.get(), sizeof(ChCounters));
+    cudaCheckError();
     cudaDeviceSynchronize();
 }
 
