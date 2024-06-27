@@ -278,7 +278,7 @@ int main(int argc, char* argv[]) {
     auto factorization = chrono_types::make_shared<ChSolverComplexPardisoMKL>();
     factorization->GetMklEngine().pardisoParameterArray()[12] = 1;  // custom setting for Pardiso
 #else
-    ChSolverSparseComplexQR factorization;
+    auto factorization = chrono_types::make_shared<ChSolverSparseComplexQR>();
 #endif
 
     auto eig_solver = chrono_types::make_shared<ChUnsymGenEigenvalueSolverKrylovSchur>(factorization);
