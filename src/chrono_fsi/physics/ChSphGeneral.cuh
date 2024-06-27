@@ -306,12 +306,10 @@ inline __device__ void BCE_Vel_Acc(int i_idx,
                                    Real3* omegaAccLRF_fsiBodies_D,
                                    uint* rigid_BCEsolids_D,
 
-                                   Real3* flex1D_vel_fsi_fea_D,  // velo of fea 1d element
-                                   Real3* flex1D_acc_fsi_fea_D,  //  acc of fea 1d element
-                                   Real3* flex2D_vel_fsi_fea_D,  // velo of fea 2d element
-                                   Real3* flex2D_acc_fsi_fea_D,  //  acc of fea 2d element
-
-                                   const int numFlex1D,
+                                   Real3* flex1D_vel_fsi_fea_D,  // vel of fea 1d element
+                                   Real3* flex1D_acc_fsi_fea_D,  // acc of fea 1d element
+                                   Real3* flex2D_vel_fsi_fea_D,  // vel of fea 2d element
+                                   Real3* flex2D_acc_fsi_fea_D,  // acc of fea 2d element
 
                                    uint2* flex1D_Nodes_D,      // segment node indices
                                    uint3* flex1D_BCEsolids_D,  // association of flex BCEs with a mesh and segment
@@ -359,12 +357,12 @@ inline __device__ void BCE_Vel_Acc(int i_idx,
         int FlexIndex = Original_idx - updatePortion.z; // offset index for bce markers on flex bodies
 
         // FlexIndex iterates through both 1D and 2D ones
-        if (FlexIndex < numFlex1D) {
+        if (FlexIndex < numObjectsD.numFlexMarkers1D) {
             // 1D element case
             uint3 flex_solid = flex1D_BCEsolids_D[FlexIndex];  // associated flex mesh and segment
             // Luning TODO: do we need flex_mesh and flex_mesh_seg?
-            uint flex_mesh = flex_solid.x;                 // index of associated mesh
-            uint flex_mesh_seg = flex_solid.y;             // index of segment in associated mesh
+            ////uint flex_mesh = flex_solid.x;                 // index of associated mesh
+            ////uint flex_mesh_seg = flex_solid.y;             // index of segment in associated mesh
             uint flex_seg = flex_solid.z;                  // index of segment in global list
 
             uint2 seg_nodes = flex1D_Nodes_D[flex_seg];  // indices of the 2 nodes on associated segment
@@ -382,12 +380,12 @@ inline __device__ void BCE_Vel_Acc(int i_idx,
             myAcc =        A0 * lambda0 + A1 * lambda1;
 
         }
-        if (FlexIndex >= numFlex1D) {
-            int flex2d_index = FlexIndex - numFlex1D;
+        if (FlexIndex >= numObjectsD.numFlexMarkers1D) {
+            int flex2d_index = FlexIndex - numObjectsD.numFlexMarkers1D;
 
             uint3 flex_solid = flex2D_BCEsolids_D[flex2d_index];  // associated flex mesh and face
-            uint flex_mesh = flex_solid.x;                 // index of associated mesh
-            uint flex_mesh_tri = flex_solid.y;             // index of triangle in associated mesh
+            ////uint flex_mesh = flex_solid.x;                 // index of associated mesh
+            ////uint flex_mesh_tri = flex_solid.y;             // index of triangle in associated mesh
             uint flex_tri = flex_solid.z;                  // index of triangle in global list
 
             auto tri_nodes = flex2D_Nodes_D[flex_tri];  // indices of the 3 nodes on associated face

@@ -307,7 +307,6 @@ __global__ void V_star_Predictor(Real4* sortedPosRad,  // input: sorted position
                     omegaAccLRF_fsiBodies_D, rigid_BCEsolids_D, 
                     flex1D_vel_fsi_fea_D, flex1D_acc_fsi_fea_D, 
                     flex2D_vel_fsi_fea_D, flex2D_acc_fsi_fea_D, 
-                    numFlex1D, 
                     flex1D_Nodes_D, flex1D_BCEsolids_D, flex1D_BCEcoords_D, 
                     flex2D_Nodes_D, flex2D_BCEsolids_D, flex2D_BCEcoords_D);
 
@@ -478,7 +477,6 @@ __global__ void Pressure_Equation(Real4* sortedPosRad,  // input: sorted positio
                     omegaAccLRF_fsiBodies_D, rigid_BCEsolids_D, 
                     flex1D_vel_fsi_fea_D, flex1D_acc_fsi_fea_D, 
                     flex2D_vel_fsi_fea_D, flex2D_acc_fsi_fea_D, 
-                    numFlex1D, 
                     flex1D_Nodes_D, flex1D_BCEsolids_D, flex1D_BCEcoords_D, 
                     flex2D_Nodes_D, flex2D_BCEsolids_D, flex2D_BCEcoords_D);
 

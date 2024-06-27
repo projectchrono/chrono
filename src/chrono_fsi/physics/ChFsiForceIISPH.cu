@@ -493,7 +493,7 @@ __device__ void Calc_BC_aij_Bi(const uint i_idx,
                                Real3* flex1D_acc_fsi_fea_D,
                                Real3* flex2D_vel_fsi_fea_D,
                                Real3* flex2D_acc_fsi_fea_D,
-                               const int numFlex1D,
+
                                uint2* flex1D_Nodes_D,
                                uint3* flex1D_BCEsolids_D,
                                Real3* flex1D_BCEcoords_D,
@@ -531,7 +531,6 @@ __device__ void Calc_BC_aij_Bi(const uint i_idx,
                 omegaAccLRF_fsiBodies_D, rigid_BCEsolids_D, 
                 flex1D_vel_fsi_fea_D, flex1D_acc_fsi_fea_D, 
                 flex2D_vel_fsi_fea_D, flex2D_acc_fsi_fea_D,
-                numFlex1D, 
                 flex1D_Nodes_D, flex1D_BCEsolids_D, flex1D_BCEcoords_D, 
                 flex2D_Nodes_D, flex2D_BCEsolids_D, flex2D_BCEcoords_D);
 
@@ -846,12 +845,11 @@ __global__ void FormAXB(Real* csrValA,
                         Real3* omegaAccLRF_fsiBodies_D,
                         uint* rigid_BCEsolids_D,
 
-                        Real3* flex1D_vel_fsi_fea_D,  // velo of fea 1d element
-                        Real3* flex1D_acc_fsi_fea_D,  //  acc of fea 1d element
-                        Real3* flex2D_vel_fsi_fea_D,  // velo of fea 2d element
-                        Real3* flex2D_acc_fsi_fea_D,  //  acc of fea 2d element
+                        Real3* flex1D_vel_fsi_fea_D,  // vel of fea 1d element
+                        Real3* flex1D_acc_fsi_fea_D,  // acc of fea 1d element
+                        Real3* flex2D_vel_fsi_fea_D,  // vel of fea 2d element
+                        Real3* flex2D_acc_fsi_fea_D,  // acc of fea 2d element
 
-                        const int numFlex1D,
                         uint2* flex1D_Nodes_D,
                         uint3* flex1D_BCEsolids_D,
                         Real3* flex1D_BCEcoords_D,
@@ -901,7 +899,6 @@ __global__ void FormAXB(Real* csrValA,
 
                        flex1D_vel_fsi_fea_D, flex1D_acc_fsi_fea_D, 
                        flex2D_vel_fsi_fea_D, flex2D_acc_fsi_fea_D, 
-                       numFlex1D, 
                        flex1D_Nodes_D, flex1D_BCEsolids_D, flex1D_BCEcoords_D, flex2D_Nodes_D, flex2D_BCEsolids_D, flex2D_BCEcoords_D,
                        updatePortion, gridMarkerIndexD, cellStart, cellEnd, numAllMarkers, true);
 }
@@ -979,7 +976,6 @@ __global__ void Calc_Pressure(Real* a_ii,     // Read
                               Real3* flex2D_vel_fsi_fea_D,
                               Real3* flex2D_acc_fsi_fea_D,
 
-                              const int numFlex1D,
                               uint2* flex1D_Nodes_D,
                               uint3* flex1D_BCEsolids_D,
                               Real3* flex1D_BCEcoords_D,
@@ -1088,7 +1084,6 @@ __global__ void Calc_Pressure(Real* a_ii,     // Read
                     omegaAccLRF_fsiBodies_D, rigid_BCEsolids_D, 
                     flex1D_vel_fsi_fea_D, flex1D_acc_fsi_fea_D, 
                     flex2D_vel_fsi_fea_D, flex2D_acc_fsi_fea_D,
-                    numFlex1D, 
                     flex1D_Nodes_D, flex1D_BCEsolids_D, flex1D_BCEcoords_D, flex2D_Nodes_D,
                     flex2D_BCEsolids_D, flex2D_BCEcoords_D);
         Real3 numeratorv = mR3(0);
@@ -1511,17 +1506,18 @@ void ChFsiForceIISPH::calcPressureIISPH(std::shared_ptr<FsiBodyStateD> fsiBodySt
         FormAXB<<<numBlocks, numThreads>>>(
             R1CAST(csrValA), U1CAST(csrColIndA), LU1CAST(GlobalcsrColIndA), U1CAST(numContacts), R1CAST(a_ij),
             R1CAST(B_i), mR3CAST(d_ii), R1CAST(a_ii), mR3CAST(summGradW), mR4CAST(sortedSphMarkers_D->posRadD),
-            mR3CAST(sortedSphMarkers_D->velMasD), mR4CAST(sortedSphMarkers_D->rhoPresMuD), mR3CAST(V_new), R1CAST(p_old),
-            mR3CAST(Normals), R1CAST(G_i), R1CAST(sumWij_inv), R1CAST(rho_np),
+            mR3CAST(sortedSphMarkers_D->velMasD), mR4CAST(sortedSphMarkers_D->rhoPresMuD), mR3CAST(V_new),
+            R1CAST(p_old), mR3CAST(Normals), R1CAST(G_i), R1CAST(sumWij_inv), R1CAST(rho_np),
 
             mR4CAST(fsiBodyStateD->rot), mR3CAST(fsiData->rigid_BCEcoords_D), mR3CAST(fsiBodyStateD->pos),
             mR4CAST(fsiBodyStateD->lin_vel), mR3CAST(fsiBodyStateD->ang_vel), mR3CAST(fsiBodyStateD->lin_acc),
             mR3CAST(fsiBodyStateD->ang_acc), U1CAST(fsiData->rigid_BCEsolids_D),
 
-            mR3CAST(fsiMesh1DState_D->vel_fsi_fea_D), mR3CAST(fsiMesh1DState_D->acc_fsi_fea_D), mR3CAST(fsiMesh2DState_D->vel_fsi_fea_D), mR3CAST(fsiMesh2DState_D->acc_fsi_fea_D), 
-            (int)(numObjectsD.startFlexMarkers2D - numObjectsD.startFlexMarkers1D), U2CAST(fsiData->flex1D_Nodes_D),
-            U3CAST(fsiData->flex1D_BCEsolids_D), mR3CAST(fsiData->flex1D_BCEcoords_D),
-            U3CAST(fsiData->flex2D_BCEcoords_D), U3CAST(fsiData->flex2D_BCEsolids_D), mR3CAST(fsiData->flex2D_Nodes_D),
+            mR3CAST(fsiMesh1DState_D->vel_fsi_fea_D), mR3CAST(fsiMesh1DState_D->acc_fsi_fea_D),
+            mR3CAST(fsiMesh2DState_D->vel_fsi_fea_D), mR3CAST(fsiMesh2DState_D->acc_fsi_fea_D),
+
+            U2CAST(fsiData->flex1D_Nodes_D), U3CAST(fsiData->flex1D_BCEsolids_D), mR3CAST(fsiData->flex1D_BCEcoords_D),
+            U3CAST(fsiData->flex2D_Nodes_D), U3CAST(fsiData->flex2D_BCEsolids_D), mR3CAST(fsiData->flex2D_BCEcoords_D),
 
             updatePortion, U1CAST(markersProximity_D->gridMarkerIndexD), U1CAST(markersProximity_D->cellStartD),
             U1CAST(markersProximity_D->cellEndD), paramsH->dT, numAllMarkers, SPARSE_FLAG, isErrorD);
@@ -1600,24 +1596,31 @@ void ChFsiForceIISPH::calcPressureIISPH(std::shared_ptr<FsiBodyStateD> fsiBodySt
 
                 *isErrorH = false;
                 cudaMemcpy(isErrorD, isErrorH, sizeof(bool), cudaMemcpyHostToDevice);
-                Calc_Pressure<<<numBlocks, numThreads>>>(
-                    R1CAST(a_ii), mR3CAST(d_ii), mR3CAST(dij_pj), R1CAST(rho_np), R1CAST(rho_p), R1CAST(Residuals),
-                    mR3CAST(F_p), mR4CAST(sortedSphMarkers_D->posRadD), mR3CAST(sortedSphMarkers_D->velMasD),
-                    mR4CAST(sortedSphMarkers_D->rhoPresMuD),
-
-                    mR4CAST(fsiBodyStateD->rot), mR3CAST(fsiData->rigid_BCEcoords_D), mR3CAST(fsiBodyStateD->pos),
-                    mR4CAST(fsiBodyStateD->lin_vel), mR3CAST(fsiBodyStateD->ang_vel), mR3CAST(fsiBodyStateD->lin_acc),
-                    mR3CAST(fsiBodyStateD->ang_acc), U1CAST(fsiData->rigid_BCEsolids_D),
-
-                    mR3CAST(fsiMesh1DState_D->vel_fsi_fea_D), mR3CAST(fsiMesh1DState_D->acc_fsi_fea_D),
-                    mR3CAST(fsiMesh2DState_D->vel_fsi_fea_D), mR3CAST(fsiMesh2DState_D->acc_fsi_fea_D),
-                    (int)(numObjectsD.startFlexMarkers2D - numObjectsD.startFlexMarkers1D),
-                    U2CAST(fsiData->flex1D_Nodes_D), U3CAST(fsiData->flex1D_BCEsolids_D),
-                    mR3CAST(fsiData->flex1D_BCEcoords_D), U3CAST(fsiData->flex2D_BCEcoords_D),
-                    U3CAST(fsiData->flex2D_BCEsolids_D), mR3CAST(fsiData->flex2D_Nodes_D), updatePortion,
-                    U1CAST(markersProximity_D->gridMarkerIndexD), R1CAST(p_old), mR3CAST(V_new),
-                    U1CAST(markersProximity_D->cellStartD), U1CAST(markersProximity_D->cellEndD), paramsH->dT,
-                    numAllMarkers, isErrorD);
+                Calc_Pressure<<<numBlocks, numThreads>>>(                                                           //
+                    R1CAST(a_ii), mR3CAST(d_ii), mR3CAST(dij_pj), R1CAST(rho_np), R1CAST(rho_p),                    //
+                    R1CAST(Residuals),                                                                              //
+                    mR3CAST(F_p),                                                                                   //
+                    mR4CAST(sortedSphMarkers_D->posRadD), mR3CAST(sortedSphMarkers_D->velMasD),                     //
+                    mR4CAST(sortedSphMarkers_D->rhoPresMuD),                                                        //
+                                                                                                                    //
+                    mR4CAST(fsiBodyStateD->rot), mR3CAST(fsiData->rigid_BCEcoords_D), mR3CAST(fsiBodyStateD->pos),  //
+                    mR4CAST(fsiBodyStateD->lin_vel), mR3CAST(fsiBodyStateD->ang_vel),                               //
+                    mR3CAST(fsiBodyStateD->lin_acc), mR3CAST(fsiBodyStateD->ang_acc),                               //
+                    U1CAST(fsiData->rigid_BCEsolids_D),                                                             //
+                                                                                                                    //
+                    mR3CAST(fsiMesh1DState_D->vel_fsi_fea_D), mR3CAST(fsiMesh1DState_D->acc_fsi_fea_D),             //
+                    mR3CAST(fsiMesh2DState_D->vel_fsi_fea_D), mR3CAST(fsiMesh2DState_D->acc_fsi_fea_D),             //
+                                                                                                                    //
+                    U2CAST(fsiData->flex1D_Nodes_D),                                                                //
+                    U3CAST(fsiData->flex1D_BCEsolids_D), mR3CAST(fsiData->flex1D_BCEcoords_D),                      //
+                    U3CAST(fsiData->flex2D_Nodes_D),                                                                //
+                    U3CAST(fsiData->flex2D_BCEsolids_D), mR3CAST(fsiData->flex2D_BCEcoords_D),                      //
+                                                                                                                    //
+                    updatePortion,                                                                                  //
+                    U1CAST(markersProximity_D->gridMarkerIndexD),                                                   //
+                    R1CAST(p_old), mR3CAST(V_new),                                                                  //
+                    U1CAST(markersProximity_D->cellStartD), U1CAST(markersProximity_D->cellEndD),                   //
+                    paramsH->dT, numAllMarkers, isErrorD);
 
                 cudaDeviceSynchronize();
                 cudaCheckError();
