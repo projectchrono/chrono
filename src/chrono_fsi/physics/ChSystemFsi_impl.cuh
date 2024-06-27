@@ -196,10 +196,10 @@ struct FsiData {
     thrust::device_vector<Real3> flex1D_FSIforces_D;  ///< surface-integrated forces on FEA 1-D segment nodes
     thrust::device_vector<Real3> flex2D_FSIforces_D;  ///< surface-integrated forces on FEA 2-D face nodes
 
-    thrust::host_vector<int2> flex1D_Nodes_H;  ///< node indices for each 1-D flex segment (host)
-    thrust::host_vector<int2> flex1D_Nodes_D;  ///< node indices for each 1-D flex segment (device)
-    thrust::host_vector<int3> flex2D_Nodes_H;  ///< node indices for each 2-D flex face (host)
-    thrust::host_vector<int3> flex2D_Nodes_D;  ///< node indices for each 2-D flex face (device)
+    thrust::host_vector<int2> flex1D_Nodes_H;    ///< node indices for each 1-D flex segment (host)
+    thrust::device_vector<int2> flex1D_Nodes_D;  ///< node indices for each 1-D flex segment (device)
+    thrust::host_vector<int3> flex2D_Nodes_H;    ///< node indices for each 2-D flex face (host)
+    thrust::device_vector<int3> flex2D_Nodes_D;  ///< node indices for each 2-D flex face (device)
 };
 
 /// Underlying implementation of an FSI system.
