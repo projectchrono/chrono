@@ -116,8 +116,8 @@ __global__ void CalcFlex1DForces_D(Real3* flex1D_FSIforces_D,  // FEA node force
 
     uint flex_index = index + numObjectsD.startFlexMarkers1D;  // index for current 1-D flex BCE marker
     uint3 flex_solid = flex1D_BCEsolids_D[index];              // associated flex mesh and segment
-    uint flex_mesh = flex_solid.x;                             // index of associated mesh
-    uint flex_mesh_seg = flex_solid.y;                         // index of segment in associated mesh
+    ////uint flex_mesh = flex_solid.x;                             // index of associated mesh
+    ////uint flex_mesh_seg = flex_solid.y;                         // index of segment in associated mesh
     uint flex_seg = flex_solid.z;                              // index of segment in global list
 
     // Fluid force on BCE marker
@@ -165,8 +165,8 @@ __global__ void CalcFlex2DForces_D(Real3* flex2D_FSIforces_D,  // FEA node force
 
     uint flex_index = index + numObjectsD.startFlexMarkers2D;  // index for current 2-D flex BCE marker
     uint3 flex_solid = flex2D_BCEsolids_D[index];              // associated flex mesh and face
-    uint flex_mesh = flex_solid.x;                             // index of associated mesh
-    uint flex_mesh_tri = flex_solid.y;                         // index of triangle in associated mesh
+    ////uint flex_mesh = flex_solid.x;                             // index of associated mesh
+    ////uint flex_mesh_tri = flex_solid.y;                         // index of triangle in associated mesh
     uint flex_tri = flex_solid.z;                              // index of triangle in global list
 
     // Fluid force on BCE marker
@@ -431,8 +431,8 @@ __global__ void CalcMeshMarker1DAcceleration_D(
 
     uint flex_index = index + numObjectsD.startFlexMarkers1D;  // index for current 1-D flex BCE marker
     uint3 flex_solid = flex1D_BCEsolids_D[index];              // associated flex mesh and segment
-    uint flex_mesh = flex_solid.x;                             // index of associated mesh
-    uint flex_mesh_seg = flex_solid.y;                         // index of segment in associated mesh
+    ////uint flex_mesh = flex_solid.x;                             // index of associated mesh
+    ////uint flex_mesh_seg = flex_solid.y;                         // index of segment in associated mesh
     uint flex_seg = flex_solid.z;                              // index of segment in global list
 
     uint2 seg_nodes = flex1D_Nodes_D[flex_seg];  // indices of the 2 nodes on associated segment
@@ -458,8 +458,8 @@ __global__ void CalcMeshMarker2DAcceleration_D(
 
     uint flex_index = index + numObjectsD.startFlexMarkers2D;  // index for current 2-D flex BCE marker
     uint3 flex_solid = flex2D_BCEsolids_D[index];              // associated flex mesh and face
-    uint flex_mesh = flex_solid.x;                             // index of associated mesh
-    uint flex_mesh_tri = flex_solid.y;                         // index of triangle in associated mesh
+    ////uint flex_mesh = flex_solid.x;                             // index of associated mesh
+    ////uint flex_mesh_tri = flex_solid.y;                         // index of triangle in associated mesh
     uint flex_tri = flex_solid.z;                              // index of triangle in global list
 
     auto tri_nodes = flex2D_Nodes_D[flex_tri];  // indices of the 3 nodes on associated face
@@ -526,8 +526,8 @@ __global__ void UpdateMeshMarker1DState_D(
 
     uint flex_index = index + numObjectsD.startFlexMarkers1D;  // index for current 1-D flex BCE marker
     uint3 flex_solid = flex1D_BCEsolids_D[index];              // associated flex mesh and segment
-    uint flex_mesh = flex_solid.x;                             // index of associated mesh
-    uint flex_mesh_seg = flex_solid.y;                         // index of segment in associated mesh
+    ////uint flex_mesh = flex_solid.x;                             // index of associated mesh
+    ////uint flex_mesh_seg = flex_solid.y;                         // index of segment in associated mesh
     uint flex_seg = flex_solid.z;                              // index of segment in global list
 
     uint2 seg_nodes = flex1D_Nodes_D[flex_seg];  // indices of the 2 nodes on associated segment
@@ -569,8 +569,8 @@ __global__ void UpdateMeshMarker2DState_D(
 
     uint flex_index = index + numObjectsD.startFlexMarkers2D;  // index for current 2-D flex BCE marker
     uint3 flex_solid = flex2D_BCEsolids_D[index];              // associated flex mesh and face
-    uint flex_mesh = flex_solid.x;                             // index of associated mesh
-    uint flex_mesh_tri = flex_solid.y;                         // index of triangle in associated mesh
+    ////uint flex_mesh = flex_solid.x;                             // index of associated mesh
+    ////uint flex_mesh_tri = flex_solid.y;                         // index of triangle in associated mesh
     uint flex_tri = flex_solid.z;                              // index of triangle in global list
 
     auto tri_nodes = flex2D_Nodes_D[flex_tri];  // indices of the 3 nodes on associated face
@@ -665,15 +665,22 @@ void ChBce::Initialize(std::shared_ptr<SphMarkerDataD> sphMarkers_D,
     tauXyXzYz_ModifiedBCE.resize(numFlexRigidBoundaryMarkers);
 
     // Populate local position of BCE markers - on rigid bodies
-    if (haveRigid)
+    if (haveRigid) {
         Populate_RigidSPH_MeshPos_LRF(sphMarkers_D, fsiBodyState_D, fsiBodyBceNum);
+        UpdateBodyMarkerState(sphMarkers_D, fsiBodyState_D);
+    }
 
     // Populate local position of BCE markers - on flexible bodies
     if (haveFlex1D) {
+        m_fsiData->flex1D_Nodes_D = m_fsiData->flex1D_Nodes_H;
+        m_fsiData->flex1D_BCEsolids_D = m_fsiData->flex1D_BCEsolids_H;
         m_fsiData->flex1D_BCEcoords_D = m_fsiData->flex1D_BCEcoords_H;
         UpdateMeshMarker1DState(sphMarkers_D, fsiMesh1DState_D);
     }
+
     if (haveFlex2D) {
+        m_fsiData->flex2D_Nodes_D = m_fsiData->flex2D_Nodes_H;
+        m_fsiData->flex2D_BCEsolids_D = m_fsiData->flex2D_BCEsolids_H;
         m_fsiData->flex2D_BCEcoords_D = m_fsiData->flex2D_BCEcoords_H;
         UpdateMeshMarker2DState(sphMarkers_D, fsiMesh2DState_D);
     }
@@ -702,8 +709,6 @@ void ChBce::Populate_RigidSPH_MeshPos_LRF(std::shared_ptr<SphMarkerDataD> sphMar
 
     cudaDeviceSynchronize();
     cudaCheckError();
-
-    UpdateBodyMarkerState(sphMarkers_D, fsiBodyState_D);
 }
 
 // -----------------------------------------------------------------------------
