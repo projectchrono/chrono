@@ -260,7 +260,7 @@ void test_pendulum() {
               << "\tz:  " << my_mass->GetPos().z() << std::endl;
 
     // First, perform a full assembly to calculate the reaction forces/torques at the initial system configuration
-    sys.DoAssembly(AssemblyLevel::FULL);
+    sys.DoAssembly(AssemblyAnalysis::Level::FULL);
 
     // Second, perform the static analysis using the solver ChStaticNonLinearRigidMotion()
     sys.DoStaticAnalysis(rigid_static_analysis);
@@ -479,7 +479,7 @@ void test_anchorchain() {
                   << anchorC->GetPos().z() << std::endl;
 
         // First, perform a full assembly to calculate the reaction forces/torques at the initial system configuration
-        sys.DoAssembly(AssemblyLevel::FULL);
+        sys.DoAssembly(AssemblyAnalysis::Level::FULL);
 
         // Second, perform the static analysis using the solver ChStaticNonLinearRigidMotion()
         sys.DoStaticAnalysis(rigid_static_analysis);
