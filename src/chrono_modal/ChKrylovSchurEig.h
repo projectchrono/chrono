@@ -76,7 +76,8 @@ class ChApiModal callback_Ax_sparse_complexshiftinvert : public callback_Ax {
         const chrono::ChSparseMatrix& As,  ///< unshifted matrix A
         const chrono::ChSparseMatrix& Bs,  ///< unshifted matrix B
         std::complex<double> shift,        ///< shift (sigma in the equation)
-        std::shared_ptr<ChDirectSolverLScomplex> linear_solver ///< optional direct solver/factorization. Default is ChSolverSparseComplexQR
+        std::shared_ptr<ChDirectSolverLScomplex>
+            linear_solver  ///< optional direct solver/factorization. Default is ChSolverSparseComplexQR
     );
 
     ~callback_Ax_sparse_complexshiftinvert(){};
@@ -92,10 +93,9 @@ class ChApiModal callback_Ax_sparse_complexshiftinvert : public callback_Ax {
 
 /// Compute (complex) eigenvalues and eigenvectors
 /// using the Krylov-Schur algorithm.
-/// Adapted from Matlab code at  https://github.com/dingxiong/KrylovSchur
+/// Adapted from Matlab code at https://github.com/dingxiong/KrylovSchur
 /// Use one of the chrono::modal::callback_Ax provided above depending on the type
 /// of problem that you must solve.
-
 class ChApiModal ChKrylovSchurEig {
   public:
     // Construct and compute results, returned in v and eig.

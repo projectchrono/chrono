@@ -138,8 +138,8 @@ class ChGeneralizedEigenvalueSolver {
         int m = Cq.rows();
         double max_residual = 0;
         for (auto nv = 0; nv < eigvals.size(); nv++) {
-            double cur_residual_state_p =
-                (eigvects.col(nv).segment(n, n) - eigvals(nv) * eigvects.col(nv).topRows(n)).template lpNorm<Eigen::Infinity>();
+            double cur_residual_state_p = (eigvects.col(nv).segment(n, n) - eigvals(nv) * eigvects.col(nv).topRows(n))
+                                              .template lpNorm<Eigen::Infinity>();
 
             double cur_residual_state_v =
                 (K * eigvects.col(nv).topRows(n) + R * eigvects.col(nv).segment(n, n) +
@@ -315,7 +315,7 @@ class ChGeneralizedEigenvalueSolver {
                                       std::function<double(ScalarType)> freq_from_eigval_fun,
                                       int& found_eigs,
                                       int num_eigvals_source,
-                                      double equal_freq_tolerance = 1e-6) {
+                                      double equal_freq_tolerance = 1e-4) {
         assert(num_eigvals_source <= eigvects_source.cols() &&
                "num_eigvals_source must be either less or equal to the number of eigenpairs in the sources.");
         assert(found_eigs <= eigvects_total.cols() &&
@@ -424,6 +424,9 @@ int Solve(EigSolverType& eig_solver,
     } else {
         eigvects.resize(eigvects_clipping ? eigvects_clipping_length : A.rows(), num_modes_total);
 
+        // total number of found eigenvalues; might exceed num_modes_total, usually when complex pairs are found
+        int total_found_eigs = 0;
+
         // for each freq_spans finds the closest modes to i-th input frequency:
         for (const auto& eig_req : eig_requests) {
             eig_solver.m_timer_matrix_assembly.start();
@@ -441,26 +444,28 @@ int Solve(EigSolverType& eig_solver,
 
             eig_solver.m_timer_solution_postprocessing.start();
 
-            int min_converged_eigs = std::min(eig_req.first, converged_eigs);
             if (uniquify)
                 eig_solver.InsertUniqueRitzPairs(
                     eigvals_singlespan,
                     eigvects_clipping ? eigvects_singlespan.topRows(eigvects_clipping_length) : eigvects_singlespan,
-                    eigvals, eigvects, eig_solver.GetNaturalFrequency, found_eigs, min_converged_eigs);
+                    eigvals, eigvects, eig_solver.GetNaturalFrequency, total_found_eigs, converged_eigs);
             else {
-                for (auto eig = 0; eig < min_converged_eigs; eig++) {
-                    eigvals[found_eigs] = eigvals_singlespan[eig];
+                for (auto eig = 0; eig < converged_eigs; eig++) {
+                    eigvals[total_found_eigs] = eigvals_singlespan[eig];
                     if (eigvects_clipping)
-                        eigvects.col(found_eigs) = eigvects_singlespan.col(eig).topRows(eigvects_clipping_length);
+                        eigvects.col(total_found_eigs) = eigvects_singlespan.col(eig).topRows(eigvects_clipping_length);
                     else
-                        eigvects.col(found_eigs) = eigvects_singlespan.col(eig);
-                    found_eigs++;
+                        eigvects.col(total_found_eigs) = eigvects_singlespan.col(eig);
+                    total_found_eigs++;
                 }
             }
 
             eig_solver.m_timer_solution_postprocessing.stop();
         }
         eig_solver.m_timer_solution_postprocessing.start();
+
+        // clamp the number of found eigenvalues to the requested number of modes
+        found_eigs = std::min(num_modes_total, total_found_eigs);
 
         if (found_eigs != num_modes_total)
             eigvects.conservativeResize(Eigen::NoChange_t::NoChange, found_eigs);
