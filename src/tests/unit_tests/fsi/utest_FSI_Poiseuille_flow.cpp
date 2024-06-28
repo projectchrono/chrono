@@ -9,103 +9,143 @@
 // http://projectchrono.org/license-chrono.txt.
 //
 // =============================================================================
-// Authors: Wei Hu
+// Authors: Wei Hu, Radu Serban
 // =============================================================================
 //
-// Unit test for poiseuille flow. This unit test uses analytical solution to
-// verify the implementation
+// Unit test for Poiseuille flow.
+// Use an analytical solution to verify the numerical simulation.
+// Start with a partially developed Poiseuille flow (i.e., at some t_start > 0).
+//
 // =============================================================================
 
 #include <assert.h>
 #include <stdlib.h>
-#include <ctime>
+#include <cmath>
+#include <valarray>
 
 #include "chrono/physics/ChSystemSMC.h"
 #include "chrono/utils/ChUtilsGenerators.h"
+#include "chrono/core/ChTimer.h"
 
 #include "chrono_fsi/ChSystemFsi.h"
 
-// Chrono namespaces
+#include "chrono_fsi/visualization/ChFsiVisualization.h"
+#ifdef CHRONO_VSG
+    #include "chrono_fsi/visualization/ChFsiVisualizationVSG.h"
+#endif
+
 using namespace chrono;
 using namespace chrono::fsi;
 
-// Set a tolerance to control the test
-const double rel_Tol = 1.0e-2;
-double error_rel;
+//------------------------------------------------------------------
 
-//------------------------------------------------------------------
-// dimension of the computational domain
-//------------------------------------------------------------------
+// Run-time visualization system (OpenGL or VSG)
+ChVisualSystem::Type vis_type = ChVisualSystem::Type::VSG;
+
+bool render = false;
+bool verbose = true;
+
+// Test tolerances
+const double v_tolerance = 5e-3;
+const double d_tolerance = 1e-4;
+
+// Dimensions of the computational domain
 double bxDim = 0.2;
 double byDim = 0.1;
 double bzDim = 0.2;
 
+// Start time, step size, number of steps, forcing term, initial spacing
+double t_start = 1.0;
+double dt = 2e-3;
+double num_steps = 500;
+double force = 0.05;
+double init_spacing = 0.01;
+
+typedef std::valarray<double> DataVector;
+
 //------------------------------------------------------------------
-// Analytical solution of the poiseuille flow
-//------------------------------------------------------------------
+
+// Analytical solution for the unsteady plane Poiseuille flow (flow between two parallel plates).
 double PoiseuilleAnalytical(double Z, double L, double time, ChSystemFsi& sysFSI) {
     double nu = sysFSI.GetViscosity() / sysFSI.GetDensity();
     double F = sysFSI.GetBodyForce().x();
+
+    // Adjust plate separation and boundary locations for analytical formula. This accounts for the fact that
+    // Chrono::FSI enforces the wall no-slip condition at the mid-point between the last BCE layer and SPH particles
+    // closest to the wall.
     double initSpace0 = sysFSI.GetInitialSpacing();
-    double pi = 3.1415926;
+    L -= initSpace0;
+    Z -= 0.5 * initSpace0;
 
-    double L_modify = L + initSpace0;
-    double Z_modify = Z + 0.5 * initSpace0;
-
-    double theory = 1.0 / (2.0 * nu) * F * Z_modify * (L_modify - Z_modify);
-
+    // Truncate infinite series to 50 terms
+    double v = 1.0 / (2.0 * nu) * F * Z * (L - Z);
     for (int n = 0; n < 50; n++) {
-        theory = theory - 4.0 * F * pow(L_modify, 2) / (nu * pow(pi, 3) * pow(2 * n + 1, 3)) *
-                              sin(pi * Z_modify * (2 * n + 1) / L_modify) *
-                              exp(-pow(2 * n + 1, 2) * pow(pi, 2) * nu * time / pow(L_modify, 2));
+        v = v - 4.0 * F * pow(L, 2) / (nu * pow(CH_PI, 3) * pow(2 * n + 1, 3)) * sin(CH_PI * Z * (2 * n + 1) / L) *
+                    exp(-pow(2 * n + 1, 2) * pow(CH_PI, 2) * nu * time / pow(L, 2));
     }
 
-    return theory;
+    return v;
 }
 
-//------------------------------------------------------------------
 // Create the wall boundary and the BCE particles
-//------------------------------------------------------------------
 void CreateSolidPhase(ChSystemSMC& sysMBS, ChSystemFsi& sysFSI) {
-    auto mysurfmaterial = chrono_types::make_shared<ChContactMaterialSMC>();
-
-    // Set common material Properties
-    mysurfmaterial->SetYoungModulus(6e4);
-    mysurfmaterial->SetFriction(0.3f);
-    mysurfmaterial->SetRestitution(0.2f);
-    mysurfmaterial->SetAdhesion(0);
-
-    // Create a body for the wall
+    // Create ground body
     auto body = chrono_types::make_shared<ChBody>();
     body->SetFixed(true);
-    body->EnableCollision(true);
-
-    // Size and position of the bottom and top walls
-    auto initSpace0 = sysFSI.GetInitialSpacing();
-    ChVector3d size_XY(bxDim, byDim, 4 * initSpace0);
-    ChVector3d pos_zn(0, 0, -3 * initSpace0);
-    ChVector3d pos_zp(0, 0, bzDim + 1 * initSpace0);
-
-    // Add a geometry to the body and set the collision model
-    chrono::utils::AddBoxGeometry(body.get(), mysurfmaterial, size_XY, pos_zn, QUNIT, true);
+    body->EnableCollision(false);
     sysMBS.AddBody(body);
 
-    // Add BCE particles to the bottom and top wall boundary
+    // Add BCE particles to the bottom and top wall boundaries
     sysFSI.AddBoxContainerBCE(body,                                           //
                               ChFrame<>(ChVector3d(0, 0, bzDim / 2), QUNIT),  //
                               ChVector3d(bxDim, byDim, bzDim),                //
                               ChVector3i(0, 0, 2));
 }
 
-// ===============================
+// Create run-time visualization system
+std::shared_ptr<ChFsiVisualization> CreateVisSys(ChSystemFsi& sysFSI) {
+#if !defined(CHRONO_VSG)
+    render = false;
+#endif
+
+    std::shared_ptr<ChFsiVisualization> visFSI;
+
+    if (render) {
+        // Estimate max particle velocity over entire simulation
+        auto v_max = PoiseuilleAnalytical(bzDim / 2, bzDim, t_start + num_steps * dt, sysFSI);
+
+#ifdef CHRONO_VSG
+        visFSI = chrono_types::make_shared<ChFsiVisualizationVSG>(&sysFSI);
+#endif
+
+        visFSI->SetTitle("Chrono::FSI Poiseuille flow");
+        visFSI->AddCamera(ChVector3d(0, -5 * byDim, 0.5 * bzDim), ChVector3d(0, 0, 0.5 * bzDim));
+        visFSI->SetCameraMoveScale(1.0f);
+        visFSI->EnableFluidMarkers(true);
+        visFSI->EnableBoundaryMarkers(true);
+        visFSI->SetRenderMode(ChFsiVisualization::RenderMode::SOLID);
+        visFSI->SetSPHColorCallback(chrono_types::make_shared<VelocityColorCallback>(0, v_max));
+        visFSI->Initialize();
+    }
+
+    return visFSI;
+}
+
+//------------------------------------------------------------------
+
 int main(int argc, char* argv[]) {
-    // Create a physical system and a corresponding FSI system
+    // Create a physics system and a corresponding FSI system
     ChSystemSMC sysMBS;
     ChSystemFsi sysFSI(&sysMBS);
 
     // Initialize the parameters using an input JSON file
     std::string myJson = GetChronoDataFile("fsi/input_json/demo_FSI_Poiseuille_flow_Explicit.json");
     sysFSI.ReadParametersFromFile(myJson);
+
+    // Override parameter settings
+    sysFSI.SetStepSize(dt);
+    sysFSI.SetInitialSpacing(init_spacing);
+    sysFSI.SetBodyForce(ChVector3d(force, 0, 0));
 
     // Reset the domain size to handle periodic boundary condition
     auto initSpace0 = sysFSI.GetInitialSpacing();
@@ -114,50 +154,94 @@ int main(int argc, char* argv[]) {
     sysFSI.SetBoundaries(cMin, cMax);
 
     // Create SPH particles for the fluid domain
+    ChVector3d boxCenter(0, 0, bzDim / 2);
+    ChVector3d boxHalfDim(bxDim / 2, byDim / 2, bzDim / 2 - initSpace0);
     chrono::utils::ChGridSampler<> sampler(initSpace0);
-    ChVector3d boxCenter(0, 0, bzDim * 0.5);
-    ChVector3d boxHalfDim(bxDim / 2, byDim / 2, bzDim / 2);
     std::vector<ChVector3d> points = sampler.SampleBox(boxCenter, boxHalfDim);
-    size_t numPart = points.size();
-    for (int i = 0; i < numPart; i++) {
-        double v_x = PoiseuilleAnalytical(points[i].z(), bzDim, 0.5, sysFSI);
-        sysFSI.AddSPHParticle(points[i], ChVector3d(v_x, 0.0, 0.0));
+    auto num_particles = points.size();
+    for (const auto& point : points) {
+        double v_x = PoiseuilleAnalytical(point.z(), bzDim, t_start, sysFSI);
+        sysFSI.AddSPHParticle(point, ChVector3d(v_x, 0.0, 0.0));
     }
 
-    // Create SPH particles for the solid domain
+    // Create BCE markers for the solid domain
     CreateSolidPhase(sysMBS, sysFSI);
 
     // Complete construction of the FSI system
     sysFSI.Initialize();
 
-    double dT = sysFSI.GetStepSize();
-    double time = 0;
-    int stepEnd = 200;
-    for (int tStep = 0; tStep < stepEnd + 1; tStep++) {
+    // Create the run-time visualization system
+    auto visFSI = CreateVisSys(sysFSI);
+
+    // Simulation loop
+    DataVector v(num_particles);
+    DataVector va(num_particles);
+    DataVector d(num_particles);
+    DataVector p(num_particles);
+
+    bool passed = true;
+    double time = t_start;
+
+    ChTimer timer;
+    timer.start();
+    for (int step = 0; step < num_steps; step++) {
         sysFSI.DoStepDynamics_FSI();
-        time += dT;
+
+        if (render && !visFSI->Render())
+            break;
+
+        time += dt;
 
         // Copy data from device to host
-        auto pos = sysFSI.GetParticlePositions();
-        auto vel = sysFSI.GetParticleVelocities();
+        auto pos = sysFSI.GetParticlePositions();        // particle positions
+        auto vel = sysFSI.GetParticleVelocities();       // particle velocities
+        auto dpv = sysFSI.GetParticleFluidProperties();  // particle properties (density, pressure, viscosity)
 
-        // Calculate the relative error of the solution
-        double error = 0.0;
-        double abs_val = 0.0;
-        for (int i = 0; i < numPart; i++) {
-            double pos_Z = pos[i].z();
-            double vel_X = vel[i].x();
-            double vel_X_ana = PoiseuilleAnalytical(pos_Z, bzDim, time + 0.5, sysFSI);
-            error = error + pow(vel_X - vel_X_ana, 2);
-            abs_val = abs_val + pow(vel_X_ana, 2);
+        // Extract information in arrays
+        for (size_t i = 0; i < num_particles; i++) {
+            v[i] = vel[i].x();                                              // velocity in flow direction
+            va[i] = PoiseuilleAnalytical(pos[i].z(), bzDim, time, sysFSI);  // analytical velocity
+            d[i] = dpv[i].x();                                              // density at particle location
+            p[i] = dpv[i].y();                                              // pressure at particle location
         }
-        error_rel = sqrt(error / abs_val);
-        if ((tStep > 1) && (error_rel > rel_Tol)) {
-            printf("\n step = %d, error_rel =  %0.8f \n", tStep, error_rel);
-            return 1;
+
+        auto v_max = v.max();
+        auto v_min = v.min();
+        auto va_max = va.max();
+        auto va_min = va.min();
+
+        auto d_max = d.max();
+        auto d_min = d.min();
+
+        auto v_err = v - va;
+        ////auto v_err_INF = std::abs(v_err).max();
+        ////auto v_err_L2 = std::sqrt((v_err * v_err).sum());
+        auto v_err_RMS = std::sqrt((v_err * v_err).sum() / v_err.size());
+
+        auto v_rel_err = v_err_RMS / va_max;
+        auto d_rel_err = (d_max - d_min) / sysFSI.GetDensity();
+
+        if (verbose) {
+            std::cout << "step: " << step << " time: " << time << std::endl;
+            std::cout << "  v_min: " << v_min << " v_max: " << v_max << std::endl;
+            std::cout << "  va_min: " << va_min << " va_max: " << va_max << std::endl;
+            std::cout << "  d_min: " << d_min << " d_max: " << d_max << std::endl;
+            std::cout << "    velocity rel err: " << v_rel_err << std::endl;
+            std::cout << "    density rel err:  " << d_rel_err << std::endl;
+        }
+
+        if (v_rel_err > v_tolerance || d_rel_err > d_tolerance) {
+            passed = false;
+            break;
         }
     }
+    std::cout << "\nSimulated time: " << time - t_start << "\nRun time: " << timer() << std::endl;
 
-    printf("\n  error_rel =  %0.8f \n", error_rel);
+    if (!passed) {
+        std::cout << "Test failed" << std::endl;
+        return 1;
+    }
+
+    std::cout << "Test succeeded" << std::endl;
     return 0;
 }

@@ -279,7 +279,7 @@ void ChTMsimpleTire::TMcombinedForces(double& fx, double& fy, double sx, double 
     double K = F_max;
     double B = CH_PI - asin(Qcrit);
     double A = K * B / dF0;
-    double Fa = K * sin(B * (1.0 - exp(-s / A)));
+    double Fa = muscale * K * sin(B * (1.0 - exp(-s / A)));
 
     fx = Fa * cbeta;
     fy = Fa * sbeta;

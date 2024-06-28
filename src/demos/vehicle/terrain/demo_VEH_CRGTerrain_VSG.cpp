@@ -88,9 +88,9 @@ DriverModelType DriverModelFromString(const std::string& str) {
         return DriverModelType::SR;
     if (str == "XT")
         return DriverModelType::XT;
-    std::cerr << "String \"" + str +
-                     "\" does not represent a valid DriverModelType (HUMAN/PID/STANLEY/PP/SR/XT) - returned DriverModelType::HUMAN"
-              << std::endl;
+
+    std::cerr << str + "is not a valid DriverModelType (HUMAN/PID/STANLEY/PP/SR/XT)." << std::endl;
+    std::cerr << "Fall back on DriverModelType::HUMAN" << std::endl;
     return DriverModelType::HUMAN;
 }
 

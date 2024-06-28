@@ -720,7 +720,7 @@ void ChVisualSystemVSG::Initialize() {
         uint32_t numShadowsPerLight = 10;
         auto shadowSettings = vsg::HardShadows::create(numShadowsPerLight);
         directionalLight->shadowSettings = shadowSettings;
-        directionalLight->intensity *= 0.8; // try to avoid saturation due to additional lights
+        directionalLight->intensity *= 0.8f; // try to avoid saturation due to additional lights
     }
 
     double se = std::sin(m_elevation);
@@ -1253,8 +1253,6 @@ void ChVisualSystemVSG::BindMesh(const std::shared_ptr<ChPhysicsItem>& item) {
     if (!vis_model)
         return;
 
-    item->UpdateVisualModel();
-
     for (auto& shape_instance : vis_model->GetShapeInstances()) {
         auto& shape = shape_instance.first;
 
@@ -1512,6 +1510,7 @@ void ChVisualSystemVSG::BindItem(std::shared_ptr<ChPhysicsItem> item) {
     }
 
     if (auto mesh = std::dynamic_pointer_cast<fea::ChMesh>(item)) {
+        mesh->UpdateVisualModel();
         BindMesh(mesh);
         return;
     }
@@ -1542,6 +1541,7 @@ void ChVisualSystemVSG::BindAll() {
 
         // Bind visual models associated with FEA meshes
         for (const auto& mesh : sys->GetAssembly().GetMeshes()) {
+            mesh->UpdateVisualModel();
             BindMesh(mesh);
         }
 
