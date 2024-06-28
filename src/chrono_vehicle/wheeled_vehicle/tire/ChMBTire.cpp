@@ -142,7 +142,9 @@ void ChMBTire::Advance(double step) {
 
 TerrainForce ChMBTire::ReportTireForce(ChTerrain* terrain) const {
     TerrainForce terrain_force;
-    //// TODO
+    terrain_force.force = m_model->m_wheel_force;
+    terrain_force.moment = m_model->m_wheel_torque;
+    terrain_force.point = m_wheel->GetPos();
     return terrain_force;
 }
 
@@ -1848,8 +1850,6 @@ void MBTireModel::IntLoadResidual_F(const unsigned int off, ChVectorDynamic<>& R
         node->NodeIntLoadResidual_F(off + local_off_v, R, c);
         local_off_v += node->GetNumCoordsVelLevelActive();
     }
-
-    ////std::cout << m_tire->GetName() << "   " << m_wheel_force << "             " << m_wheel_torque << std::endl;
 
     // Load wheel body forces into R
     if (m_wheel->Variables().IsActive()) {
