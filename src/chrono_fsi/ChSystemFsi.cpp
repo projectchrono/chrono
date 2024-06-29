@@ -1743,7 +1743,7 @@ unsigned int ChSystemFsi::AddBCE_mesh1D(unsigned int meshID, const ChFsiInterfac
             if (i == n && !seg->OwnsNode(1))  // segment does not own vertex 1
                 continue;
 
-            auto lambda = ChVector2<>(i, n - i) / n;
+            auto lambda = ChVector2<>(n - i, i) / n;
 
             auto P = P0 * lambda[0] + P1 * lambda[1];
             auto V = V0 * lambda[0] + V1 * lambda[1];
