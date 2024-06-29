@@ -43,7 +43,7 @@ class ChCollisionSystemFsi : public ChFsiBase {
     /// Destructor of the ChCollisionSystemFsi class
     ~ChCollisionSystemFsi();
 
-    /// Encapsulate calcHash and reaorderDataAndFindCellStart
+    /// Encapsulate calcHash, findCellStartEndD, and reorderDataD
     void ArrangeData(std::shared_ptr<SphMarkerDataD> sphMarkersD);
 
     /// Complete construction.
@@ -55,14 +55,9 @@ class ChCollisionSystemFsi : public ChFsiBase {
     std::shared_ptr<ProximityDataD> m_markersProximityD;  ///< Proximity information of the system
     std::shared_ptr<FsiData> m_fsiData;                   ///< Pointer to the SPH general data
 
-    void ResetCellSize(int s);
-
     /// calcHash is the wrapper function for calcHashD. calcHashD is a kernel
     /// function, which means that all the code in it is executed in parallel on the GPU.
     void calcHash();
-
-    /// Wrapper function for reorderDataAndFindCellStartD
-    void reorderDataAndFindCellStart();
 };
 
 /// @} fsi_collision
