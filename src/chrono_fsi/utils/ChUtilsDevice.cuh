@@ -105,6 +105,28 @@ typedef unsigned int uint;
         }                                                                                    \
     }
 
+#define cudaResetErrorFlag(error_flag_D)                                               \
+    {                                                                                  \
+        bool error_flag_H = false;                                                     \
+        cudaMemcpy(error_flag_D, &error_flag_H, sizeof(bool), cudaMemcpyHostToDevice); \
+    }
+
+#define cudaCheckErrorFlag(error_flag_D, kernel_name)                                             \
+    {                                                                                             \
+        bool error_flag_H;                                                                        \
+        cudaDeviceSynchronize();                                                                  \
+        cudaMemcpy(&error_flag_H, error_flag_D, sizeof(bool), cudaMemcpyDeviceToHost);            \
+        if (error_flag_H) {                                                                       \
+            printf("Error flag intercepted in %s:%d from %s\n", __FILE__, __LINE__, kernel_name); \
+            exit(0);                                                                              \
+        }                                                                                         \
+        cudaError_t e = cudaGetLastError();                                                       \
+        if (e != cudaSuccess) {                                                                   \
+            printf("Cuda failure %s:%d: '%s'\n", __FILE__, __LINE__, cudaGetErrorString(e));      \
+            exit(0);                                                                              \
+        }                                                                                         \
+    }
+
 /// Time recorder for cuda events.
 /// This utility class encapsulates a simple timer for recording the time between a start and stop event.
 class GpuTimer {
@@ -137,7 +159,7 @@ class CH_FSI_API ChUtilsDevice {
     static void FillVector(thrust::device_vector<Real4>& vector, const Real4& value);
 
     /// Error check.
-    static void Sync_CheckError(bool* isErrorH, bool* isErrorD, std::string carshReport);
+    static void Sync_CheckError(bool* isErrorH, bool* isErrorD, std::string crashReport);
 };
 
 /// @} fsi_physics
