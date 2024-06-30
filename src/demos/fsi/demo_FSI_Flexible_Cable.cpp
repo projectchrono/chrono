@@ -92,9 +92,7 @@ float render_fps = 100;
 
 // -----------------------------------------------------------------
 
-std::vector<std::vector<int>> NodeNeighborElement_mesh;
-
-void Create_MB_FE(ChSystemSMC& sysMBS, ChSystemFsi& sysFSI);
+std::shared_ptr<fea::ChMesh> Create_MB_FE(ChSystemSMC& sysMBS, ChSystemFsi& sysFSI);
 
 // -----------------------------------------------------------------
 
@@ -162,9 +160,10 @@ int main(int argc, char* argv[]) {
     }
 
     // Create solids
-    Create_MB_FE(sysMBS, sysFSI);
+    auto my_mesh = Create_MB_FE(sysMBS, sysFSI);
+
+    // Initialize FSI system
     sysFSI.Initialize();
-    auto my_mesh = sysFSI.GetFsiMesh();
 
     // Create a run-tme visualizer
 #ifndef CHRONO_OPENGL
@@ -267,7 +266,7 @@ int main(int argc, char* argv[]) {
 //--------------------------------------------------------------------
 // Create the objects of the MBD system. Rigid/flexible bodies, and if
 // fsi, their bce representation are created and added to the systems
-void Create_MB_FE(ChSystemSMC& sysMBS, ChSystemFsi& sysFSI) {
+std::shared_ptr<fea::ChMesh> Create_MB_FE(ChSystemSMC& sysMBS, ChSystemFsi& sysFSI) {
     sysMBS.SetGravitationalAcceleration(ChVector3d(0, 0, 0));
     sysFSI.SetGravitationalAcceleration(ChVector3d(0, 0, -9.81));
 
@@ -276,7 +275,7 @@ void Create_MB_FE(ChSystemSMC& sysMBS, ChSystemFsi& sysFSI) {
     ground->EnableCollision(false);
     sysMBS.AddBody(ground);
 
-    // Fluid representation of walls
+    // FSI representation of walls
     sysFSI.AddBoxContainerBCE(ground,                                         //
                               ChFrame<>(ChVector3d(0, 0, bzDim / 2), QUNIT),  //
                               ChVector3d(bxDim, byDim, bzDim),                //
@@ -284,11 +283,10 @@ void Create_MB_FE(ChSystemSMC& sysMBS, ChSystemFsi& sysFSI) {
 
     auto initSpace0 = sysFSI.GetInitialSpacing();
 
-    // ******************************* Flexible bodies ***********************************
-    // Create a mesh, that is a container for groups of elements and their referenced nodes.
+    // Create an FEA mesh representing a cantilever beam modeled with ANCF cable elements
     auto my_mesh = chrono_types::make_shared<fea::ChMesh>();
     std::vector<std::vector<int>> _1D_elementsNodes_mesh;
-    /*================== Cable Elements =================*/
+
     auto msection_cable = chrono_types::make_shared<ChBeamSectionCable>();
     msection_cable->SetDiameter(initSpace0);
     msection_cable->SetYoungModulus(E);
@@ -296,13 +294,14 @@ void Create_MB_FE(ChSystemSMC& sysMBS, ChSystemFsi& sysFSI) {
     msection_cable->SetRayleighDamping(BeamRayleighDamping);
 
     ChBuilderCableANCF builder;
+    std::vector<std::vector<int>> node_nbrs;
     builder.BuildBeam(my_mesh,                               // FEA mesh with nodes and elements
                       msection_cable,                        // section material for cable elements
                       num_cable_element,                     // number of elements in the segment
                       ChVector3d(loc_x, 0.0, length_cable),  // beam start point
                       ChVector3d(loc_x, 0.0, initSpace0),    // beam end point
                       _1D_elementsNodes_mesh,                // node indices
-                      NodeNeighborElement_mesh               // neighbor node indices
+                      node_nbrs                              // neighbor node indices
     );
 
     auto node = std::dynamic_pointer_cast<ChNodeFEAxyzD>(builder.GetLastBeamNodes().back());
@@ -315,15 +314,12 @@ void Create_MB_FE(ChSystemSMC& sysMBS, ChSystemFsi& sysFSI) {
     dir_const->SetDirectionInAbsoluteCoords(node->GetSlope1());
     sysMBS.Add(dir_const);
 
-    // Add the mesh to the system
+    // Add the mesh to the MBS system
     sysMBS.Add(my_mesh);
-
-    // fluid representation of flexible bodies
-    bool multilayer = true;
-    bool removeMiddleLayer = true;
-    sysFSI.AddFEAmeshBCE(my_mesh, NodeNeighborElement_mesh, _1D_elementsNodes_mesh, std::vector<std::vector<int>>(),
-                         true, false, multilayer, removeMiddleLayer, 1, 0);
-
-    sysFSI.AddFsiMesh(my_mesh, _1D_elementsNodes_mesh, std::vector<std::vector<int>>());
     fea::ChMeshExporter::WriteMesh(my_mesh, MESH_CONNECTIVITY);
+
+    // Add the mesh to the FSI system (only these meshes interact with the fluid)
+    sysFSI.AddFsiMesh1D(my_mesh);
+
+    return my_mesh;
 }

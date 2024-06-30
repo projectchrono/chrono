@@ -270,9 +270,6 @@ class CH_FSI_API ChSystemFsi {
     /// FSI bodies are the ones seen by the fluid dynamics system.
     std::vector<std::shared_ptr<ChBody>>& GetFsiBodies() const;
 
-    //// OBSOLETE
-    std::shared_ptr<fea::ChMesh> GetFsiMesh() const { return nullptr; }
-
     /// Complete construction of the FSI system (fluid and BDE objects).
     /// Use parameters read from JSON file and/or specified through various Set functions.
     void Initialize();
@@ -402,25 +399,6 @@ class CH_FSI_API ChSystemFsi {
 
     /// Add an FEA mesh with surface contact to the FSI system.
     void AddFsiMesh2D(std::shared_ptr<fea::ChMesh> mesh, bool centered = false);
-
-    /// Add an FEA mesh to the FSI system.
-    //// OBSOLETE
-    void AddFsiMesh(std::shared_ptr<fea::ChMesh> mesh,
-                    const std::vector<std::vector<int>>& beam_elements,
-                    const std::vector<std::vector<int>>& shell_elements) {}
-
-    /// Add BCE markers from mesh.
-    //// OBSOLETE
-    void AddFEAmeshBCE(std::shared_ptr<fea::ChMesh> my_mesh,
-                       const std::vector<std::vector<int>>& NodeNeighborElement,
-                       const std::vector<std::vector<int>>& _1D_elementsNodes,
-                       const std::vector<std::vector<int>>& _2D_elementsNodes,
-                       bool add1DElem,
-                       bool add2DElem,
-                       bool multiLayer,
-                       bool removeMiddleLayer,
-                       int SIDE,
-                       int SIZE2D) {}
 
     // ----------- Utility functions for extracting information at specific SPH particles
 

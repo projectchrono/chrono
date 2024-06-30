@@ -54,8 +54,7 @@ using namespace chrono::fsi;
 ChVisualSystem::Type vis_type = ChVisualSystem::Type::VSG;
 
 // Set the output directory
-const std::string out_dir = GetChronoOutputPath() + "FSI_Flexible_Flat_Plate/";
-std::string MESH_CONNECTIVITY = out_dir + "Flex_MESH.vtk";
+const std::string out_dir = GetChronoOutputPath() + "FSI_Flexible_Flat_Plate";
 
 // Dimension of the domain
 double smalldis = 1.0e-9;
@@ -81,11 +80,7 @@ float render_fps = 500;
 
 // -----------------------------------------------------------------
 
-std::vector<std::vector<int>> NodeNeighborElement_mesh;
-
-// -----------------------------------------------------------------
-
-void Create_MB_FE(ChSystemSMC& sysMBS, ChSystemFsi& sysFSI);
+std::shared_ptr<fea::ChMesh> Create_MB_FE(ChSystemSMC& sysMBS, ChSystemFsi& sysFSI);
 
 // -----------------------------------------------------------------
 
@@ -153,9 +148,10 @@ int main(int argc, char* argv[]) {
     }
 
     // Create solids
-    Create_MB_FE(sysMBS, sysFSI);
+    auto my_mesh = Create_MB_FE(sysMBS, sysFSI);
+
+    // Initialize FSI system
     sysFSI.Initialize();
-    auto my_mesh = sysFSI.GetFsiMesh();
 
     // Create a run-tme visualizer
 #ifndef CHRONO_OPENGL
@@ -234,7 +230,7 @@ int main(int argc, char* argv[]) {
             sysFSI.PrintFsiInfoToFile(out_dir + "/fsi", time);
             static int counter = 0;
             std::string filename = out_dir + "/vtk/flex_body." + std::to_string(counter++) + ".vtk";
-            fea::ChMeshExporter::WriteFrame(my_mesh, MESH_CONNECTIVITY, filename);
+            fea::ChMeshExporter::WriteFrame(my_mesh, out_dir + "/Flex_MESH.vtk", filename);
         }
 
         // Render FSI system
@@ -257,7 +253,7 @@ int main(int argc, char* argv[]) {
 //--------------------------------------------------------------------
 // Create the objects of the MBD system. Rigid/flexible bodies, and if
 // fsi, their bce representation are created and added to the systems
-void Create_MB_FE(ChSystemSMC& sysMBS, ChSystemFsi& sysFSI) {
+std::shared_ptr<fea::ChMesh> Create_MB_FE(ChSystemSMC& sysMBS, ChSystemFsi& sysFSI) {
     sysMBS.SetGravitationalAcceleration(ChVector3d(0, 0, 0));
     sysFSI.SetGravitationalAcceleration(ChVector3d(0, 0, -9.81));
 
@@ -266,7 +262,7 @@ void Create_MB_FE(ChSystemSMC& sysMBS, ChSystemFsi& sysFSI) {
     ground->EnableCollision(false);
     sysMBS.AddBody(ground);
 
-    // Fluid representation of walls
+    // FSI representation of walls
     sysFSI.AddBoxContainerBCE(ground,                                         //
                               ChFrame<>(ChVector3d(0, 0, bzDim / 2), QUNIT),  //
                               ChVector3d(bxDim, byDim, bzDim),                //
@@ -274,10 +270,9 @@ void Create_MB_FE(ChSystemSMC& sysMBS, ChSystemFsi& sysFSI) {
 
     auto initSpace0 = sysFSI.GetInitialSpacing();
 
-    // ******************************* Flexible bodies ***********************************
-    // Create a mesh, that is a container for groups of elements and their referenced nodes.
+    // Create an FEA mesh representing a cantilever plate modeled with ANCF shell elements
     auto my_mesh = chrono_types::make_shared<fea::ChMesh>();
-    std::vector<std::vector<int>> _2D_elementsNodes_mesh;
+
     // Geometry of the plate
     double plate_lenght_x = 0.02;
     double plate_lenght_y = byDim;
@@ -293,17 +288,10 @@ void Create_MB_FE(ChSystemSMC& sysMBS, ChSystemFsi& sysFSI) {
     int N_y = numDiv_y + 1;
     int N_z = numDiv_z + 1;
 
-    // Number of elements in the z direction is considered as 1
-    int TotalNumElements = numDiv_y * numDiv_z;
-    int TotalNumNodes = (numDiv_y + 1) * (numDiv_z + 1);
-
     // For uniform mesh
     double dx = plate_lenght_x / numDiv_x;
     double dy = plate_lenght_y / numDiv_y;
     double dz = plate_lenght_z / numDiv_z;
-
-    _2D_elementsNodes_mesh.resize(TotalNumElements);
-    NodeNeighborElement_mesh.resize(TotalNumNodes);
 
     // Create and add the nodes
     ChVector3d loc;
@@ -325,14 +313,13 @@ void Create_MB_FE(ChSystemSMC& sysMBS, ChSystemFsi& sysFSI) {
         }
     }
 
-    // Create an isotropic material.
-    // All layers for all elements share the same material.
+    // Create an isotropic material; all layers for all elements share the same material
     double rho = 8000;
     double E = 2e7;
     double nu = 0.3;
     auto mat = chrono_types::make_shared<ChMaterialShellANCF>(rho, E, nu);
-    // Create the elements
 
+    // Create the elements
     int num_elem = 0;
     for (int k = 0; k < numDiv_z; k++) {
         for (int j = 0; j < numDiv_y; j++) {
@@ -340,15 +327,6 @@ void Create_MB_FE(ChSystemSMC& sysMBS, ChSystemFsi& sysFSI) {
             int node1 = (j + 1) + N_y * (k + 0);
             int node2 = (j + 1) + N_y * (k + 1);
             int node3 = (j + 0) + N_y * (k + 1);
-
-            _2D_elementsNodes_mesh[num_elem].push_back(node0);
-            _2D_elementsNodes_mesh[num_elem].push_back(node1);
-            _2D_elementsNodes_mesh[num_elem].push_back(node2);
-            _2D_elementsNodes_mesh[num_elem].push_back(node3);
-            NodeNeighborElement_mesh[node0].push_back(num_elem);
-            NodeNeighborElement_mesh[node1].push_back(num_elem);
-            NodeNeighborElement_mesh[node2].push_back(num_elem);
-            NodeNeighborElement_mesh[node3].push_back(num_elem);
 
             // Create the element and set its nodes.
             auto element = chrono_types::make_shared<ChElementShellANCF_3423>();
@@ -360,7 +338,7 @@ void Create_MB_FE(ChSystemSMC& sysMBS, ChSystemFsi& sysFSI) {
             // Set element dimensions
             element->SetDimensions(dy, dz);
 
-            // Add a single layers with a fiber angle of 0 degrees.
+            // Add a single layers with a fiber angle of 0 degrees
             element->AddLayer(dx, 0 * CH_DEG_TO_RAD, mat);
 
             // Set structural damping for this element
@@ -375,16 +353,12 @@ void Create_MB_FE(ChSystemSMC& sysMBS, ChSystemFsi& sysFSI) {
             num_elem++;
         }
     }
-    // Add the mesh to the system
+
+    // Add the mesh to the MBS system
     sysMBS.Add(my_mesh);
-    fea::ChMeshExporter::WriteMesh(my_mesh, MESH_CONNECTIVITY);
 
-    // fluid representation of flexible bodies
-    bool multilayer = true;
-    bool removeMiddleLayer = true;
-    sysFSI.AddFsiMesh(my_mesh, std::vector<std::vector<int>>(), _2D_elementsNodes_mesh);
-    sysFSI.AddFEAmeshBCE(my_mesh, NodeNeighborElement_mesh, std::vector<std::vector<int>>(), _2D_elementsNodes_mesh,
-                         false, true, multilayer, removeMiddleLayer, 0, 0);
+    // Add the mesh to the FSI system (only these meshes interact with the fluid)
+    sysFSI.AddFsiMesh2D(my_mesh, true);
 
-    ////sysFSI.AddFsiMesh2D(my_mesh, false);
+    return my_mesh;
 }
