@@ -419,21 +419,20 @@ __global__ void CalcRigidBceAccelerationD(Real3* bceAcc,
 }
 
 __global__ void CalcMeshMarker1DAcceleration_D(
-    Real3* bceAcc,              // marker accelerations (output)
-    Real3* acc_fsi_fea_D,       // accelerations of FEA 1-D segment nodes
-    uint2* flex1D_Nodes_D,      // segment node indices
-    uint3* flex1D_BCEsolids_D,  // association of flex BCEs with a mesh and segment
-    Real3* flex1D_BCEcoords_D   // local coordinates of BCE markers on FEA 1-D segments
+    Real3* bceAcc,              // [num BCEs on all solids]  marker accelerations (output)
+    Real3* acc_fsi_fea_D,       // [num nodes]               accelerations of FEA 1D nodes
+    uint2* flex1D_Nodes_D,      // [num segments]            node indices for each 1D segment
+    uint3* flex1D_BCEsolids_D,  // [num BCEs on 1D segments] association of flex BCEs with a mesh and segment
+    Real3* flex1D_BCEcoords_D   // [num BCEs on 1D segments] local coordinates of BCE markers on FEA 1-D segments
 ) {
     uint index = blockIdx.x * blockDim.x + threadIdx.x;
     if (index >= numObjectsD.numFlexMarkers1D)
         return;
 
-    uint flex_index = index + numObjectsD.startFlexMarkers1D;  // index for current 1-D flex BCE marker
-    uint3 flex_solid = flex1D_BCEsolids_D[index];              // associated flex mesh and segment
-    ////uint flex_mesh = flex_solid.x;                             // index of associated mesh
-    ////uint flex_mesh_seg = flex_solid.y;                         // index of segment in associated mesh
-    uint flex_seg = flex_solid.z;                              // index of segment in global list
+    uint3 flex_solid = flex1D_BCEsolids_D[index];  // associated flex mesh and segment
+    ////uint flex_mesh = flex_solid.x;                 // index of associated mesh
+    ////uint flex_mesh_seg = flex_solid.y;             // index of segment in associated mesh
+    uint flex_seg = flex_solid.z;                  // index of segment in global list
 
     uint2 seg_nodes = flex1D_Nodes_D[flex_seg];  // indices of the 2 nodes on associated segment
     Real3 A0 = acc_fsi_fea_D[seg_nodes.x];       // (absolute) acceleration of node 0
@@ -442,25 +441,24 @@ __global__ void CalcMeshMarker1DAcceleration_D(
     Real lambda0 = flex1D_BCEcoords_D[index].x;  // segment coordinate
     Real lambda1 = 1 - lambda0;                  // segment coordinate
 
-    bceAcc[flex_index] = A0 * lambda0 + A1 * lambda1;
+    bceAcc[index + numObjectsD.numRigidMarkers] = A0 * lambda0 + A1 * lambda1;
 }
 
 __global__ void CalcMeshMarker2DAcceleration_D(
-    Real3* bceAcc,              // marker accelerations (output)
-    Real3* acc_fsi_fea_D,       // accelerations of FEA 2-D face nodes
-    uint3* flex2D_Nodes_D,      // triangle node indices
-    uint3* flex2D_BCEsolids_D,  // association of flex BCEs with a mesh and face
-    Real3* flex2D_BCEcoords_D   // local coordinates of BCE markers on FEA 2-D faces
+    Real3* bceAcc,              // [num BCEs on all solids]  marker accelerations (output)
+    Real3* acc_fsi_fea_D,       // [num nodes]               accelerations of FEA 2D nodes
+    uint3* flex2D_Nodes_D,      // [num triangles]           triangle node indices
+    uint3* flex2D_BCEsolids_D,  // [num BCEs on 1D segments] association of flex BCEs with a mesh and face
+    Real3* flex2D_BCEcoords_D   // [num BCEs on 1D segments] local coordinates of BCE markers on FEA 2-D faces
 ) {
     uint index = blockIdx.x * blockDim.x + threadIdx.x;
     if (index >= numObjectsD.numFlexMarkers2D)
         return;
 
-    uint flex_index = index + numObjectsD.startFlexMarkers2D;  // index for current 2-D flex BCE marker
-    uint3 flex_solid = flex2D_BCEsolids_D[index];              // associated flex mesh and face
-    ////uint flex_mesh = flex_solid.x;                             // index of associated mesh
-    ////uint flex_mesh_tri = flex_solid.y;                         // index of triangle in associated mesh
-    uint flex_tri = flex_solid.z;                              // index of triangle in global list
+    uint3 flex_solid = flex2D_BCEsolids_D[index];  // associated flex mesh and face
+    ////uint flex_mesh = flex_solid.x;                 // index of associated mesh
+    ////uint flex_mesh_tri = flex_solid.y;             // index of triangle in associated mesh
+    uint flex_tri = flex_solid.z;                  // index of triangle in global list
 
     auto tri_nodes = flex2D_Nodes_D[flex_tri];  // indices of the 3 nodes on associated face
     Real3 A0 = acc_fsi_fea_D[tri_nodes.x];      // (absolute) acceleration of node 0
@@ -471,7 +469,8 @@ __global__ void CalcMeshMarker2DAcceleration_D(
     Real lambda1 = flex2D_BCEcoords_D[index].y;  // barycentric coordinate
     Real lambda2 = 1 - lambda0 - lambda1;        // barycentric coordinate
 
-    bceAcc[flex_index] = A0 * lambda0 + A1 * lambda1 + A2 * lambda2;
+    bceAcc[index + numObjectsD.numRigidMarkers + numObjectsD.startFlexMarkers1D] =
+        A0 * lambda0 + A1 * lambda1 + A2 * lambda2;
 }
 
 // -----------------------------------------------------------------------------
@@ -798,6 +797,9 @@ void ChBce::CalcMeshMarker1DAcceleration(thrust::device_vector<Real3>& bceAcc,
         U3CAST(m_fsiData->flex1D_BCEsolids_D),              //
         mR3CAST(m_fsiData->flex1D_BCEcoords_D)              //
     );
+
+    cudaDeviceSynchronize();
+    cudaCheckError();
 }
 
 void ChBce::CalcMeshMarker2DAcceleration(thrust::device_vector<Real3>& bceAcc,
@@ -815,6 +817,9 @@ void ChBce::CalcMeshMarker2DAcceleration(thrust::device_vector<Real3>& bceAcc,
         U3CAST(m_fsiData->flex2D_BCEsolids_D),              //
         mR3CAST(m_fsiData->flex2D_BCEcoords_D)              //
     );
+
+    cudaDeviceSynchronize();
+    cudaCheckError();
 }
 
 // -----------------------------------------------------------------------------
