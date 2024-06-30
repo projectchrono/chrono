@@ -17,12 +17,16 @@ MESSAGE(STATUS "\n==== Chrono Modal module ====\n")
 MARK_AS_ADVANCED(CLEAR SPECTRA_INCLUDE_DIR)
 
 #-----------------------------------------------------------------------------
-# LIST THE FILES THAT MAKE THE MODAL LIBRARY
 
 SET(ChronoEngine_MODAL_SOURCES 
     ChModalAssembly.cpp
     ChModalDamping.cpp
-    ChEigenvalueSolver.cpp
+    ChSymGenEigenvalueSolver.cpp
+    ChModalSolverUndamped.cpp
+    ChGeneralizedEigenvalueSolver.cpp
+    ChUnsymGenEigenvalueSolver.cpp
+    ChModalSolver.cpp
+    ChModalSolverDamped.cpp
     ChKrylovSchurEig.cpp
 )
 
@@ -30,7 +34,12 @@ SET(ChronoEngine_MODAL_HEADERS
     ChApiModal.h 
     ChModalAssembly.h
     ChModalDamping.h
-    ChEigenvalueSolver.h
+    ChGeneralizedEigenvalueSolver.h
+    ChSymGenEigenvalueSolver.h
+    ChModalSolverUndamped.h
+    ChUnsymGenEigenvalueSolver.h
+    ChModalSolverDamped.h
+    ChModalSolver.h
     ChKrylovSchurEig.h
 )
 
@@ -79,5 +88,3 @@ INSTALL(TARGETS ChronoEngine_modal
 
 INSTALL(FILES ${ChronoEngine_MODAL_HEADERS}
         DESTINATION include/chrono_modal)
-
-

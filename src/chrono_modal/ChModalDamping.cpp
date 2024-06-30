@@ -16,7 +16,7 @@
 
 #include "chrono_modal/ChModalDamping.h"
 #include "chrono_modal/ChModalAssembly.h"
-#include "chrono_modal/ChEigenvalueSolver.h"
+#include "chrono_modal/ChGeneralizedEigenvalueSolver.h"
 #include "chrono/physics/ChSystem.h"
 #include "chrono/fea/ChNodeFEAxyz.h"
 #include "chrono/fea/ChNodeFEAxyzrot.h"
@@ -28,7 +28,7 @@ using namespace fea;
 namespace modal {
 
 ChModalDampingReductionR::ChModalDampingReductionR(ChModalAssembly& massembly) {
-    massembly.GetSubassemblyDampingMatrix(&full_R);
+    massembly.GetSubassemblyMatrices(nullptr, &full_R, nullptr, nullptr);
 }
 
 void ChModalDampingFactorRmm::ComputeR(ChModalAssembly& assembly,
@@ -91,14 +91,11 @@ void ChModalDampingFactorAssembly::ComputeR(ChModalAssembly& assembly,
     ChMatrixDynamic<std::complex<double>> modes_V_reduced(n_bou_mod_coords, n_eff_modes);
     ChVectorDynamic<std::complex<double>> eig_reduced(n_eff_modes);
     ChVectorDynamic<> freq_reduced(n_eff_modes);
-    ChSparseMatrix M_reduced;
-    assembly.GetSubassemblyMassMatrix(&M_reduced);
-    ChSparseMatrix K_reduced;
-    assembly.GetSubassemblyStiffnessMatrix(&K_reduced);
-    ChSparseMatrix Cq_reduced;
-    assembly.GetSubassemblyConstraintJacobianMatrix(&Cq_reduced);
+    ChSparseMatrix K_reduced, M_reduced, Cq_reduced;
 
-    if (true) {
+    assembly.GetSubassemblyMatrices(&K_reduced, nullptr, &M_reduced, &Cq_reduced);
+
+    if (false) {
         std::ofstream fileM("dump_modalreduced_M.dat");
         fileM << std::setprecision(12) << std::scientific;
         StreamOut(M_reduced, fileM);
@@ -118,7 +115,7 @@ void ChModalDampingFactorAssembly::ComputeR(ChModalAssembly& assembly,
     be all modes n_bou_mod_coords-Cq_reduced.rows(), not only first ones, but Krylov and Lanczos do not allow it..;
     */
 
-    // ChModalSolveUndamped eigsolver(
+    // ChModalSolverUndamped eigsolver(
     //     6,      // n of lower modes (***TODO*** make parametric)
     //     0.01,   // lower freq, for shift&invert. (***TODO*** lower value of sigma working in Debug but not in
     //     Release!?) 500,    // upper limit for the number of iterations, if iterative solver 1e-10,  // tolerance for
@@ -129,7 +126,7 @@ void ChModalDampingFactorAssembly::ComputeR(ChModalAssembly& assembly,
     /*
     // The iterative solver above does not work well. Since the size of the M_reduced K_reduced is already small (as
     // this is a modal assembly that already went through modal reduction) we can just use a direct solver for finding
-    eigs: ChQuadraticEigenvalueSolverNullspaceDirect eigsolver; ChSparseMatrix R_null; R_null.resize(M_reduced.rows(),
+    eigs: ChUnsymGenEigenvalueSolverNullspaceDirect eigsolver; ChSparseMatrix R_null; R_null.resize(M_reduced.rows(),
     M_reduced.rows()); R_null.setZero(); ChVectorDynamic<> damp_factors(M_reduced.rows());
     // Note that we might enforce symmetry of M_reduced and K_reduced via 0.5*(M+M.transpose()) bacause even small
     unsymmetry causes modes_V_reduced to have some imaginary part. eigsolver.Solve(M_reduced, R_null, K_reduced,
@@ -138,16 +135,21 @@ void ChModalDampingFactorAssembly::ComputeR(ChModalAssembly& assembly,
 
     // TODO: implement an eigensolver using Eigen::Dense matrix directly, without Nullspace transformation,
     // because the null space transforamtion is not safe in general.
-    ChQuadraticEigenvalueSolverNullspaceDirect eigsolver;
+
+    ChUnsymGenEigenvalueSolverKrylovSchur eigsolver;
     ChSparseMatrix R_null;
     R_null.resize(M_reduced.rows(), M_reduced.rows());
     R_null.setZero();
     ChVectorDynamic<> damp_factors(M_reduced.rows());
-    eigsolver.Solve(M_reduced, R_null, K_reduced, Cq_reduced, modes_V_reduced, eig_reduced, freq_reduced, damp_factors,
-                    n_eff_modes);
+    ChSparseMatrix A, B;
+    eigsolver.BuildDampedSystem(M_reduced, R_null, K_reduced, Cq_reduced, A, B, true);
+    eigsolver.Solve(A, B, modes_V_reduced, eig_reduced, 6, 1e-6);
 
-    ChVectorDynamic<> omegas = CH_2PI * freq_reduced;
+    ChUnsymGenEigenvalueSolver::GetNaturalFrequencies(eig_reduced, freq_reduced);
+    ChUnsymGenEigenvalueSolver::GetDampingRatios(eig_reduced, damp_factors);
+
     ChVectorDynamic<> zetas;
+    ChVectorDynamic<> omegas = CH_2PI * freq_reduced;
     zetas.setZero(n_eff_modes);
 
     if (this->damping_factors.size() == n_eff_modes)
@@ -163,7 +165,7 @@ void ChModalDampingFactorAssembly::ComputeR(ChModalAssembly& assembly,
 
     modal_R.setZero(modal_M.rows(), modal_M.cols());
 
-    //// NOTE: when using ChQuadraticEigenvalueSolverNullspaceDirect the V eigenvectors are normalized in the complex
+    //// NOTE: when using ChUnsymGenEigenvalueSolverNullspaceDirect the V eigenvectors are normalized in the complex
     /// sense,
     // but real part of eigenvectors may be not (If using ChGeneralizedEigenvalueSolverLanczos no issue). So do this
     // hack:

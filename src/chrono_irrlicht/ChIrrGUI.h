@@ -53,6 +53,9 @@ class ChApiIrr ChIrrGUI {
     /// Perform operations before closing the Irrlicht scene for the current frame.
     void EndScene();
 
+    /// Add a new tab to the GUI
+    irr::gui::IGUITab* AddTab(const wchar_t* caption);
+
 #ifdef CHRONO_POSTPROCESS
 
     /// If set to true, each frame of the animation will be saved on the disk
@@ -90,15 +93,6 @@ class ChApiIrr ChIrrGUI {
     /// Set the active tab on the info panel.
     void SetInfoTab(int ntab) { g_tabbed->setActiveTab(ntab); }
 
-    /// Set the amplitude of the shown mode (only if some ChModalAssembly is found).
-    void SetModalAmplitude(double val);
-
-    /// Set the speed of the shown mode (only if some ChModalAssembly is found).
-    void SetModalSpeed(double val);
-
-    /// Set the total number of modes available from the scrollbar
-    void SetModalModesMax(int maxModes);
-
     /// Set the label mode for contacts
     void SetContactsLabelMode(ContactsLabelMode mm) { g_labelcontacts->setSelected((int)mm); }
     /// Set the draw mode for contacts
@@ -121,7 +115,7 @@ class ChApiIrr ChIrrGUI {
     void SetPlotConvergence(bool val) { g_plot_convergence->setChecked(val); }
 
     /// Set the scale for symbol drawing (link frames, COGs, etc.)
-    void SetSymbolscale(double val);
+    void SetSymbolScale(double val);
 
     bool initialized;
 
@@ -132,15 +126,6 @@ class ChApiIrr ChIrrGUI {
     double symbolscale;
 
     double camera_auto_rotate_speed;
-
-    bool modal_show;
-    int modal_mode_n;
-    double modal_amplitude;
-    double modal_speed;
-    double modal_phi;
-    double modal_current_mode_n;
-    double modal_current_freq;
-    double modal_current_dampingfactor;
 
     ChVisualSystemIrrlicht* m_vis;
     ChSystem* m_system;
@@ -167,11 +152,6 @@ class ChApiIrr ChIrrGUI {
 
     irr::gui::IGUIEditBox* g_symbolscale;
     irr::gui::IGUIStaticText* g_textHelp;
-
-    irr::gui::IGUIScrollBar* g_modal_mode_n;
-    irr::gui::IGUIStaticText* g_modal_mode_n_info;
-    irr::gui::IGUIEditBox* g_modal_amplitude;
-    irr::gui::IGUIEditBox* g_modal_speed;
 
     irr::gui::IGUITreeView* g_treeview;
 
