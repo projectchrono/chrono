@@ -9,11 +9,14 @@
 // http://projectchrono.org/license-chrono.txt.
 //
 // =============================================================================
-// Author: Arman Pazouki, Milad Rakhsha, Wei Hu
+// Author: Arman Pazouki, Milad Rakhsha, Wei Hu, Luning Bakke
 // =============================================================================
 //
 // Base class for processing boundary condition enforcing (bce) markers forces
 // in FSI system.
+// TODO: There need to be a better way to compute bce marker forces for different solvers.
+// For explicit solver, it is essentially derivVelRhoD_old times the marker mass,
+// For I2SPH, it is derivVelRhoD_old only
 // =============================================================================
 
 #include "chrono_fsi/physics/ChBce.cuh"
@@ -145,8 +148,18 @@ __global__ void Calc_Rigid_FSI_Forces_Torques_D(Real3* rigid_FSI_ForcesD,
 
     int RigidIndex = rigidIdentifierD[index];
     uint rigidMarkerIndex = index + numObjectsD.startRigidMarkers;
-    Real3 Force = (mR3(derivVelRhoD[rigidMarkerIndex]) * paramsD.Beta + 
-        mR3(derivVelRhoD_old[rigidMarkerIndex]) * (1 - paramsD.Beta)) * paramsD.markerMass;
+
+    Real3 Force;
+    if (paramsD.fluid_dynamic_type == FluidDynamics::WCSPH) {
+        Force = (mR3(derivVelRhoD[rigidMarkerIndex]) * paramsD.Beta +
+                      mR3(derivVelRhoD_old[rigidMarkerIndex]) * (1 - paramsD.Beta)) * paramsD.markerMass;
+        
+    }
+    // TODO: check IISPH
+    else {
+        Force = mR3(derivVelRhoD[rigidMarkerIndex]) * paramsD.Beta +
+                mR3(derivVelRhoD_old[rigidMarkerIndex]) * (1 - paramsD.Beta);
+    }
 
     if (std::is_same<Real, double>::value) {
         atomicAdd_double((double*)&(rigid_FSI_ForcesD[RigidIndex].x), Force.x);
@@ -186,8 +199,18 @@ __global__ void Calc_Flex_FSI_ForcesD(Real3* FlexSPH_MeshPos_LRF_D,
 
     int FlexIndex = FlexIdentifierD[index];
     uint FlexMarkerIndex = index + numObjectsD.startFlexMarkers;
-    Real3 Force = (mR3(derivVelRhoD[FlexMarkerIndex]) * paramsD.Beta + 
-        mR3(derivVelRhoD_old[FlexMarkerIndex]) * (1 - paramsD.Beta)) * paramsD.markerMass;
+    Real3 Force;
+    if (paramsD.fluid_dynamic_type == FluidDynamics::WCSPH) {
+        Force = (mR3(derivVelRhoD[FlexMarkerIndex]) * paramsD.Beta +
+                 mR3(derivVelRhoD_old[FlexMarkerIndex]) * (1 - paramsD.Beta)) *
+                paramsD.markerMass;
+
+    }
+    // TODO: check IISPH
+    else {
+        Force = mR3(derivVelRhoD[FlexMarkerIndex]) * paramsD.Beta +
+                mR3(derivVelRhoD_old[FlexMarkerIndex]) * (1 - paramsD.Beta);
+    }
 
     int numFlex1D = numObjectsD.numFlexBodies1D;
 
