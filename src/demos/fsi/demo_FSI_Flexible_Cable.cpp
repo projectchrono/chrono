@@ -55,8 +55,7 @@ using namespace chrono::fsi;
 ChVisualSystem::Type vis_type = ChVisualSystem::Type::VSG;
 
 // Set the output directory
-const std::string out_dir = GetChronoOutputPath() + "FSI_Flexible_Cable/";
-std::string MESH_CONNECTIVITY = out_dir + "Flex_MESH.vtk";
+std::string out_dir = GetChronoOutputPath() + "FSI_Flexible_Cable";
 
 // Dimension of the domain
 double smalldis = 1.0e-9;
@@ -97,24 +96,6 @@ std::shared_ptr<fea::ChMesh> Create_MB_FE(ChSystemSMC& sysMBS, ChSystemFsi& sysF
 // -----------------------------------------------------------------
 
 int main(int argc, char* argv[]) {
-    // Create oputput directories
-    if (!filesystem::create_directory(filesystem::path(out_dir))) {
-        std::cerr << "Error creating directory " << out_dir << std::endl;
-        return 1;
-    }
-    if (!filesystem::create_directory(filesystem::path(out_dir + "/particles"))) {
-        std::cerr << "Error creating directory " << out_dir + "/particles" << std::endl;
-        return 1;
-    }
-    if (!filesystem::create_directory(filesystem::path(out_dir + "/fsi"))) {
-        std::cerr << "Error creating directory " << out_dir + "/fsi" << std::endl;
-        return 1;
-    }
-    if (!filesystem::create_directory(filesystem::path(out_dir + "/vtk"))) {
-        std::cerr << "Error creating directory " << out_dir + "/vtk" << std::endl;
-        return 1;
-    }
-
     // Create a physics system and an FSI system
     ChSystemSMC sysMBS;
     ChSystemFsi sysFSI(&sysMBS);
@@ -164,6 +145,29 @@ int main(int argc, char* argv[]) {
 
     // Initialize FSI system
     sysFSI.Initialize();
+
+    // Create oputput directories
+    if (!filesystem::create_directory(filesystem::path(out_dir))) {
+        std::cerr << "Error creating directory " << out_dir << std::endl;
+        return 1;
+    }
+    out_dir = out_dir + "/" + sysFSI.GetPhysicsProblemString() + "_" + sysFSI.GetSphSolverTypeString();
+    if (!filesystem::create_directory(filesystem::path(out_dir))) {
+        std::cerr << "Error creating directory " << out_dir << std::endl;
+        return 1;
+    }
+    if (!filesystem::create_directory(filesystem::path(out_dir + "/particles"))) {
+        std::cerr << "Error creating directory " << out_dir + "/particles" << std::endl;
+        return 1;
+    }
+    if (!filesystem::create_directory(filesystem::path(out_dir + "/fsi"))) {
+        std::cerr << "Error creating directory " << out_dir + "/fsi" << std::endl;
+        return 1;
+    }
+    if (!filesystem::create_directory(filesystem::path(out_dir + "/vtk"))) {
+        std::cerr << "Error creating directory " << out_dir + "/vtk" << std::endl;
+        return 1;
+    }
 
     // Create a run-tme visualizer
 #ifndef CHRONO_OPENGL
@@ -243,7 +247,7 @@ int main(int argc, char* argv[]) {
             sysFSI.PrintFsiInfoToFile(out_dir + "/fsi", time);
             static int counter = 0;
             std::string filename = out_dir + "/vtk/flex_body." + std::to_string(counter++) + ".vtk";
-            fea::ChMeshExporter::WriteFrame(my_mesh, MESH_CONNECTIVITY, filename);
+            fea::ChMeshExporter::WriteFrame(my_mesh, out_dir + "/Flex_MESH.vtk", filename);
         }
 
         // Render FSI system
@@ -316,7 +320,6 @@ std::shared_ptr<fea::ChMesh> Create_MB_FE(ChSystemSMC& sysMBS, ChSystemFsi& sysF
 
     // Add the mesh to the MBS system
     sysMBS.Add(my_mesh);
-    fea::ChMeshExporter::WriteMesh(my_mesh, MESH_CONNECTIVITY);
 
     // Add the mesh to the FSI system (only these meshes interact with the fluid)
     sysFSI.AddFsiMesh1D(my_mesh);
