@@ -30,10 +30,11 @@ class FSIStatsVSG : public vsg3d::ChGuiComponentVSG {
 
     virtual void render() override {
         ImGui::SetNextWindowSize(ImVec2(0.0f, 0.0f));
-        ImGui::Begin("SPH");
+        ImGui::Begin(m_vsysFSI->m_systemFSI->GetPhysicsProblemString().c_str());
 
         if (ImGui::BeginTable("SPH", 2, ImGuiTableFlags_BordersOuter | ImGuiTableFlags_SizingFixedFit,
                               ImVec2(0.0f, 0.0f))) {
+            ImGui::TableNextRow();
             ImGui::TableNextColumn();
             ImGui::TextUnformatted("SPH particles:");
             ImGui::TableNextColumn();
