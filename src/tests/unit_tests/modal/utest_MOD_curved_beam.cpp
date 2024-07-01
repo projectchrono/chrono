@@ -223,13 +223,15 @@ void RunCurvedBeam(bool do_modal_reduction, bool use_herting, ChVector3d& res) {
 
     // Do modal reduction for all modal assemblies
     if (do_modal_reduction) {
-        ChGeneralizedEigenvalueSolverKrylovSchur eigen_solver;
+        auto eigen_solver = chrono_types::make_shared<ChUnsymGenEigenvalueSolverKrylovSchur>();
 
-        auto modes_settings = ChModalSolveUndamped(12, 1e-5, 500, 1e-10, false, eigen_solver);
+        // The success of eigen solve is sensitive to the frequency shift (1e-4). If the eigen solver fails, try to
+        // tune the shift value.
+        ChModalSolverUndamped<ChUnsymGenEigenvalueSolverKrylovSchur> modal_solver(12, 1e-4, true, false, eigen_solver);
         auto damping_beam = ChModalDampingRayleigh(damping_alpha, damping_beta);
 
         for (int i_part = 0; i_part < n_parts; i_part++) {
-            modal_assembly_list.at(i_part)->DoModalReduction(modes_settings, damping_beam);
+            modal_assembly_list.at(i_part)->DoModalReduction(modal_solver, damping_beam);
         }
     }
 

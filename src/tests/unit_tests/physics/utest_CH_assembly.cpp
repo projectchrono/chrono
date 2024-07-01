@@ -58,7 +58,7 @@ TEST(FullAssembly, Assemble) {
     // Integrator settings
     sys.SetTimestepperType(ChTimestepper::Type::EULER_IMPLICIT_LINEARIZED);
     sys.SetSolverType(ChSolver::Type::PSOR);
-    sys.GetSolver()->AsIterative()->SetMaxIterations(100);
+    sys.GetSolver()->AsIterative()->SetMaxIterations(300);
     sys.GetSolver()->AsIterative()->SetTolerance(1e-10);
 
     // Create the ground body
@@ -87,7 +87,7 @@ TEST(FullAssembly, Assemble) {
     sys.AddLink(revoluteJoint);
 
     // Perform a full system assembly
-    sys.DoAssembly(AssemblyLevel::FULL);
+    sys.DoAssembly(AssemblyAnalysis::Level::FULL);
 
     // Extract position, velocity, and acceleration of pendulum body.
     ChVector3d pos = pendulum->GetPos();

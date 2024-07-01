@@ -1,0 +1,3 @@
+%%MatrixMarket matrix array real symmetric
+1 1
+-0.1

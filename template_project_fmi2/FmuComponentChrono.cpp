@@ -141,7 +141,7 @@ void FmuComponent::_exitInitializationMode() {
     pendulum_rev->SetName("pendulum_rev");
     sys.Add(pendulum_rev);
 
-    sys.DoAssembly(AssemblyLevel::FULL);
+    sys.DoAssembly(AssemblyAnalysis::Level::FULL);
 
 #ifdef CHRONO_IRRLICHT
     if (vis)

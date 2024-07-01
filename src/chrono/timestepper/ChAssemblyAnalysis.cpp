@@ -22,21 +22,21 @@ ChAssemblyAnalysis::ChAssemblyAnalysis(ChIntegrableIIorder& mintegrable) {
     X.setZero(1, &mintegrable);
     V.setZero(1, &mintegrable);
     A.setZero(1, &mintegrable);
-    max_assembly_iters = 4;
 }
 
-void ChAssemblyAnalysis::AssemblyAnalysis(int action, double dt) {
+AssemblyAnalysis::ExitFlag ChAssemblyAnalysis::AssemblyAnalysis(int action, double dt) {
     ChVectorDynamic<> R;
     ChVectorDynamic<> Qc;
     double T;
 
     // Set up main vectors
     integrable->StateSetup(X, V, A);
+    AssemblyAnalysis::ExitFlag exit_flag = AssemblyAnalysis::ExitFlag::NOT_CONVERGED;
 
-    if (action & AssemblyLevel::POSITION) {
+    if (action & AssemblyAnalysis::Level::POSITION) {
         ChStateDelta Dx;
 
-        for (unsigned int m_iter = 0; m_iter < max_assembly_iters; m_iter++) {
+        for (m_last_num_iters = 0; m_last_num_iters < m_max_assembly_iters; m_last_num_iters++) {
             // Set up auxiliary vectors
             Dx.setZero(integrable->GetNumCoordsVelLevel(), GetIntegrable());
             R.setZero(integrable->GetNumCoordsVelLevel());
@@ -47,15 +47,20 @@ void ChAssemblyAnalysis::AssemblyAnalysis(int action, double dt) {
 
             // Solve:
             //
-            // [M          Cq' ] [ dx  ] = [  0]
+            // [ M         Cq' ] [ dx  ] = [  0]
             // [ Cq        0   ] [ -l  ] = [ -C]
 
             integrable->LoadConstraint_C(Qc, 1.0);  // sign flipped later in StateSolveCorrection
 
+            if (Qc.lpNorm<Eigen::Infinity>() < m_abs_tol_residual) {
+                exit_flag = AssemblyAnalysis::ExitFlag::ABSTOL_RESIDUAL;
+                break;
+            }
+
             integrable->StateSolveCorrection(Dx, L, R, Qc,
-                                             1.0,      // factor for  M
-                                             0,        // factor for  dF/dv
-                                             0,        // factor for  dF/dx (the stiffness matrix)
+                                             1.0,      // factor for M
+                                             0,        // factor for dF/dv
+                                             0,        // factor for dF/dx (the stiffness matrix)
                                              X, V, T,  // not needed
                                              false,    // do not scatter Xnew Vnew T+dt before computing correction
                                              false,    // full update? (not used, since no scatter)
@@ -65,10 +70,30 @@ void ChAssemblyAnalysis::AssemblyAnalysis(int action, double dt) {
             X += Dx;
 
             integrable->StateScatter(X, V, T, true);  // state -> system
+
+            double m_last_update_norm = Dx.lpNorm<Eigen::Infinity>();
+
+            if (m_last_update_norm < m_abs_tol_update) {
+                exit_flag = AssemblyAnalysis::ExitFlag::ABSTOL_UPDATE;
+                break;
+            }
+
+            double rel_update_norm = Dx.cwiseQuotient(X).lpNorm<Eigen::Infinity>();
+
+            if (rel_update_norm == rel_update_norm && rel_update_norm < m_rel_tol_update) {
+                exit_flag = AssemblyAnalysis::ExitFlag::RELTOL_UPDATE;
+                break;
+            }
         }
     }
 
-    if ((action & AssemblyLevel::VELOCITY) || (action & AssemblyLevel::ACCELERATION)) {
+    if ((action & AssemblyAnalysis::Level::VELOCITY) || (action & AssemblyAnalysis::Level::ACCELERATION)) {
+
+        if (!(action & AssemblyAnalysis::Level::POSITION)) {
+            // no risk of not meeting any termination criteria, only position-level assembly can not converge
+            exit_flag = AssemblyAnalysis::ExitFlag::SUCCESS;
+        }
+
         ChStateDelta Vold;
 
         // setup auxiliary vectors
@@ -105,13 +130,15 @@ void ChAssemblyAnalysis::AssemblyAnalysis(int action, double dt) {
 
         L *= (1.0 / dt);  // Note it is not -(1.0/dt) because we assume StateSolveCorrection already flips sign of L
 
-        if (action & AssemblyLevel::ACCELERATION) {
+        if (action & AssemblyAnalysis::Level::ACCELERATION) {
             integrable->StateScatterAcceleration(
                 (V - Vold) * (1 / dt));  // -> system auxiliary data (i.e acceleration as measure, fits DVI/MDI)
 
             integrable->StateScatterReactions(L);  // -> system auxiliary data
         }
     }
+
+    return exit_flag;
 }
 
 }  // end namespace chrono

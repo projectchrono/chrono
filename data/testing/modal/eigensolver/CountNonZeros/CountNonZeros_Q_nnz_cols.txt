@@ -1,0 +1,12 @@
+%%MatrixMarket matrix array integer general
+10 1
+2
+4
+1
+0
+1
+2
+2
+2
+3
+1

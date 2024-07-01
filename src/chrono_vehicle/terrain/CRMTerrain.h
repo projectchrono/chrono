@@ -132,7 +132,6 @@ class CH_VEHICLE_API CRMTerrain : public ChTerrain {
             size_t h2 = std::hash<int>()(p.y());
             size_t h3 = std::hash<int>()(p.z());
             return (h1 ^ (h2 << 1)) ^ h3;
-            return p.x() * 31 + p.y();
         }
     };
 

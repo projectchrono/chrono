@@ -120,6 +120,9 @@ foreach(PROGRAM ${DEMOS})
   source_group(""  FILES  "${PROGRAM}.cpp")
 
   set_target_properties(${PROGRAM} PROPERTIES FOLDER demos COMPILE_FLAGS "${COMPILER_FLAGS}" LINK_FLAGS "${LINKER_FLAGS}")
+  if(MSVC)
+    target_compile_options(${PROGRAM} PRIVATE /bigobj)
+  endif()
   if(APPLE)
     set_target_properties(${PROGRAM} PROPERTIES MACOSX_BUNDLE_INFO_PLIST ${MACOSX_BUNDLE_INFO_PLIST})
   endif()
@@ -128,7 +131,3 @@ foreach(PROGRAM ${DEMOS})
 
   install(TARGETS ${PROGRAM} DESTINATION ${CH_INSTALL_DEMO})
 endforeach()
-
-if(MSVC)
-  target_compile_options(demo_MBS_link_mate PRIVATE /bigobj)
-endif()

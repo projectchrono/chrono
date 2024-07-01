@@ -1,0 +1,7 @@
+%%MatrixMarket matrix array complex general
+5 1
+ 0.11690192  0
+ 0.58243072  0
+-1.259791  0
+ 1.4658393  0
+ 0.083862053  1.7169272
