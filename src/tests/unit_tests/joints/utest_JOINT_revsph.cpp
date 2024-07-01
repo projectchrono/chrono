@@ -153,7 +153,7 @@ bool TestRevSpherical(
 
     sys.SetTimestepperType(ChTimestepper::Type::EULER_IMPLICIT_LINEARIZED);
     sys.SetSolverType(ChSolver::Type::PSOR);
-    sys.GetSolver()->AsIterative()->SetMaxIterations(100);
+    sys.GetSolver()->AsIterative()->SetMaxIterations(300);
     sys.GetSolver()->AsIterative()->SetTolerance(simTimeStep * 1e-4);
 
     // Create the ground body
@@ -261,7 +261,7 @@ bool TestRevSpherical(
               << "Cnstr_2" << std::endl;
 
     // Perform a system assembly to ensure we have the correct accelerations at the initial time.
-    sys.DoAssembly(AssemblyLevel::FULL);
+    sys.DoAssembly(AssemblyAnalysis::Level::FULL);
 
     // Total energy at initial time.
     ChMatrix33<> inertia = pendulum->GetInertia();

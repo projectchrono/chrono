@@ -62,7 +62,7 @@ int main() {
     system.SetSolver(solver);
 
     // Perform a system assembly to ensure we have the correct accelerations at the initial time.
-    system.DoAssembly(AssemblyLevel::FULL);
+    system.DoAssembly(AssemblyAnalysis::Level::FULL);
 
     // analytic solution (assuming constraint between body and the origin)
     double contact_height = -sqrt(max_dist * max_dist - body_pos0.x() * body_pos0.x());

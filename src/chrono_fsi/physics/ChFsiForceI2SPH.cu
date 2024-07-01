@@ -1248,7 +1248,7 @@ void ChFsiForceI2SPH::ForceSPH(std::shared_ptr<SphMarkerDataD> otherSphMarkersD,
     ChUtilsDevice::Sync_CheckError(isErrorH, isErrorD, "Velocity_Correction_and_update");
 
     CopySortedToOriginal_NonInvasive_R3(fsiData->vis_vel_SPH_D, vel_vis_Sorted_D, markersProximity_D->gridMarkerIndexD);
-    CopySortedToOriginal_NonInvasive_R4(fsiData->derivVelRhoD, derivVelRhoD_Sorted_D,
+    CopySortedToOriginal_NonInvasive_R4(fsiData->derivVelRhoD_old, derivVelRhoD_Sorted_D,
                                         markersProximity_D->gridMarkerIndexD);
     CopySortedToOriginal_NonInvasive_R3(sphMarkersD->velMasD, sortedSphMarkers_D->velMasD,
                                         markersProximity_D->gridMarkerIndexD);
@@ -1260,6 +1260,7 @@ void ChFsiForceI2SPH::ForceSPH(std::shared_ptr<SphMarkerDataD> otherSphMarkersD,
                                         markersProximity_D->gridMarkerIndexD);
     CopySortedToOriginal_NonInvasive_R3(sphMarkersD->tauXyXzYzD, sortedSphMarkers_D->tauXyXzYzD,
                                         markersProximity_D->gridMarkerIndexD);
+
     fsiCollisionSystem->ArrangeData(sphMarkersD);
     ChFsiForceI2SPH::PreProcessor(sortedSphMarkers_D, false);
 

@@ -16,8 +16,8 @@
     "XSPH Coefficient":               0.5,
     "Shifting Coefficient":           0.0,
     "Density Reinitialization":       200,
-    "Conservative Discretization":    true
-
+    "Conservative Discretization":    true,
+    "Epsilon":                        0.001
   },
 
   "Time Stepping":

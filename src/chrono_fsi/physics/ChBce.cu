@@ -9,11 +9,14 @@
 // http://projectchrono.org/license-chrono.txt.
 //
 // =============================================================================
-// Author: Arman Pazouki, Milad Rakhsha, Wei Hu
+// Author: Arman Pazouki, Milad Rakhsha, Wei Hu, Luning Bakke
 // =============================================================================
 //
 // Base class for processing boundary condition enforcing (bce) markers forces
 // in FSI system.
+// TODO: There need to be a better way to compute bce marker forces for different solvers.
+// For explicit solver, it is essentially derivVelRhoD_old times the marker mass,
+// For I2SPH, it is derivVelRhoD_old only
 // =============================================================================
 
 #include "chrono_fsi/physics/ChBce.cuh"
@@ -76,9 +79,18 @@ __global__ void CalcRigidForces_D(Real3* rigid_FSI_ForcesD,
 
     int RigidIndex = rigid_BCEsolids_D[index];
     uint rigidMarkerIndex = index + numObjectsD.startRigidMarkers;
-    Real3 Force = (mR3(derivVelRhoD[rigidMarkerIndex]) * paramsD.Beta +
-                   mR3(derivVelRhoD_old[rigidMarkerIndex]) * (1 - paramsD.Beta)) *
-                  paramsD.markerMass;
+
+    Real3 Force;
+    if (paramsD.fluid_dynamic_type == FluidDynamics::WCSPH) {
+        Force = (mR3(derivVelRhoD[rigidMarkerIndex]) * paramsD.Beta +
+                      mR3(derivVelRhoD_old[rigidMarkerIndex]) * (1 - paramsD.Beta)) * paramsD.markerMass;
+        
+    }
+    // TODO: check IISPH
+    else {
+        Force = mR3(derivVelRhoD[rigidMarkerIndex]) * paramsD.Beta +
+                mR3(derivVelRhoD_old[rigidMarkerIndex]) * (1 - paramsD.Beta);
+    }
 
     if (std::is_same<Real, double>::value) {
         atomicAdd_double((double*)&(rigid_FSI_ForcesD[RigidIndex].x), Force.x);
@@ -121,9 +133,14 @@ __global__ void CalcFlex1DForces_D(Real3* flex1D_FSIforces_D,  // FEA node force
     uint flex_seg = flex_solid.z;                              // index of segment in global list
 
     // Fluid force on BCE marker
-    Real3 Force =
-        (mR3(derivVelRhoD[flex_index]) * paramsD.Beta + mR3(derivVelRhoD_old[flex_index]) * (1 - paramsD.Beta)) *
-        paramsD.markerMass;
+    Real3 Force;
+    if (paramsD.fluid_dynamic_type == FluidDynamics::WCSPH) {
+        Force =
+            (mR3(derivVelRhoD[flex_index]) * paramsD.Beta + mR3(derivVelRhoD_old[flex_index]) * (1 - paramsD.Beta)) *
+            paramsD.markerMass;
+    } else {
+        Force = (mR3(derivVelRhoD[flex_index]) * paramsD.Beta + mR3(derivVelRhoD_old[flex_index]) * (1 - paramsD.Beta));
+    }
 
     uint2 seg_nodes = flex1D_Nodes_D[flex_seg];  // indices of the 2 nodes on associated segment
     uint n0 = seg_nodes.x;
@@ -170,9 +187,14 @@ __global__ void CalcFlex2DForces_D(Real3* flex2D_FSIforces_D,  // FEA node force
     uint flex_tri = flex_solid.z;                              // index of triangle in global list
 
     // Fluid force on BCE marker
-    Real3 Force =
-        (mR3(derivVelRhoD[flex_index]) * paramsD.Beta + mR3(derivVelRhoD_old[flex_index]) * (1 - paramsD.Beta)) *
-        paramsD.markerMass;
+    Real3 Force;
+    if (paramsD.fluid_dynamic_type == FluidDynamics::WCSPH) {
+        Force =
+            (mR3(derivVelRhoD[flex_index]) * paramsD.Beta + mR3(derivVelRhoD_old[flex_index]) * (1 - paramsD.Beta)) *
+            paramsD.markerMass;
+    } else {
+        Force = (mR3(derivVelRhoD[flex_index]) * paramsD.Beta + mR3(derivVelRhoD_old[flex_index]) * (1 - paramsD.Beta));
+    }
 
     auto tri_nodes = flex2D_Nodes_D[flex_tri];  // indices of the 3 nodes on associated face
     uint n0 = tri_nodes.x;
