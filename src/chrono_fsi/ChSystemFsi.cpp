@@ -665,6 +665,23 @@ void ChSystemFsi::SetElasticSPH(const ElasticMaterialProperties mat_props) {
 
 //--------------------------------------------------------------------------------------------------------------------------------
 
+std::string ChSystemFsi::GetPhysicsProblemString() const {
+    return (m_paramsH->elastic_SPH ? "CRM" : "CFD");
+}
+
+std::string ChSystemFsi::GetSphSolverTypeString() const {
+    switch (m_paramsH->fluid_dynamic_type) {
+        case FluidDynamics::WCSPH:
+            return "WCSPH";
+        case FluidDynamics::IISPH:
+            return "IISPH";
+        case FluidDynamics::I2SPH:
+            return "I2SPH";
+    }
+}
+
+//--------------------------------------------------------------------------------------------------------------------------------
+
 void ChSystemFsi::AddFsiBody(std::shared_ptr<ChBody> body) {
     m_fsi_interface->m_fsi_bodies.push_back(body);
 }
