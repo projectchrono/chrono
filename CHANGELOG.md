@@ -4,6 +4,9 @@
 Change Log
 ==========
 
+- [Release 9.0.1 (2024-07-03)](#release-901-2024-07-03)
+  - [\[Fixed\] Bug fixes in FSI solver ](#fixed-bug-fixes-in-fsi-solver)
+  - [\[Fixed\] Miscellaneous bug fixes](#fixed-miscellaneous-bug-fixes)
 - [Release 9.0.0 (2024-05-20)](#release-900-2024-05-20)
   - [\[Changed\] Default number of threads](#changed-default-number-of-threads)
   - [\[Changed\] Refactoring of class and function names](#changed-refactoring-of-class-and-function-names)
@@ -105,6 +108,23 @@ Change Log
   - [\[Changed\] Eigen sparse matrices and updates to direct sparse linear solvers](#changed-eigen-sparse-matrices-and-updates-to-direct-sparse-linear-solvers)
 - [Release 4.0.0 (2019-02-22)](#release-400-2019-02-22)
 
+# Release 9.0.1 (2024-07-03)
+
+## [Fixed] Bug fixes in FSI solver 
+
+- Use different formulas for computing BCE marker forces for the explicit and implicit SPH solvers (intermediate vector represents particle accelerations in the explicit solver, but represents particle forces in the implicit solvers).
+- Fix GridSampler to generate points fully covering the specified sampling domain.
+- Fix Chrono::FSI demos related to solid inertia properties, collision shapes, and BCE marker generation.
+- Add missing velocity setting for FSI particle visualization.
+
+## [Fixed] Miscellaneous bug fixes
+
+- Add checks for CUDA and Thrust versions at configuration time (latest supported versions are CUDA 12.3.2 and Thrust 2.2.0). Disable Chrono::Multicore and GPU-based Chrono modules for newer versions.
+- Fix calculation of relative position, velocity, and acceleration for `ChLinkMate`.
+- Fix calculation of relative frames on connected bodies for `ChLinkDistance`.
+- Implement tolerance-based stopping criteria for the Barzilai-Borwein solver.
+- Fix bug in inflating the axis-aligned bounding box for a `ChGeometry` object.
+- Fix bug in `ChTimer::GetTimeMilliseconds` which was previously reporting the elapsed time in microseconds.
 
 # Release 9.0.0 (2024-05-20)
 
