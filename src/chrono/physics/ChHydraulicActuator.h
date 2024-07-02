@@ -70,7 +70,7 @@ class ChApi ChHydraulicActuatorBase : public ChExternalDynamics {
 
     /// Initialize the hydraulic actuator stand-alone.
     /// In this case, actuator position and rate are supposed to be provided from the outside.
-    virtual void Initialize() override;
+    void Initialize();
 
     /// Initialize this hydraulic actuator by connecting it between the two specified bodies.
     void Initialize(std::shared_ptr<ChBody> body1,  ///< first connected body
