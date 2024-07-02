@@ -167,7 +167,7 @@ void CreateSolidPhase(ChSystemSMC& sysMBS, ChSystemFsi& sysFSI) {
     sysFSI.AddBoxContainerBCE(box,                                            //
                               ChFrame<>(ChVector3d(0, 0, bzDim / 2), QUNIT),  //
                               ChVector3d(bxDim, byDim, bzDim),                //
-                              ChVector3i(2, 2, 2));
+                              ChVector3i(2, 2, -1));
 
     // Create a falling cylinder
     auto cylinder = chrono_types::make_shared<ChBody>();
