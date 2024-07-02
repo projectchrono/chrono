@@ -731,8 +731,8 @@ void ChSystem::IntToDescriptor(const unsigned int off_v,
     assembly.IntToDescriptor(off_v, v, R, off_L, L, Qc);
 
     // Use also on contact container:
-    unsigned int displ_L = off_L - assembly.offset_L;
-    unsigned int displ_v = off_v - assembly.offset_w;
+    int displ_L = off_L - assembly.offset_L;
+    int displ_v = off_v - assembly.offset_w;
     contact_container->IntToDescriptor(displ_v + contact_container->GetOffset_w(), v, R,
                                        displ_L + contact_container->GetOffset_L(), L, Qc);
 }
@@ -745,8 +745,8 @@ void ChSystem::IntFromDescriptor(const unsigned int off_v,
     assembly.IntFromDescriptor(off_v, v, off_L, L);
 
     // Use also on contact container:
-    unsigned int displ_L = off_L - assembly.offset_L;
-    unsigned int displ_v = off_v - assembly.offset_w;
+    int displ_L = off_L - assembly.offset_L;
+    int displ_v = off_v - assembly.offset_w;
     contact_container->IntFromDescriptor(displ_v + contact_container->GetOffset_w(), v,
                                          displ_L + contact_container->GetOffset_L(), L);
 }
