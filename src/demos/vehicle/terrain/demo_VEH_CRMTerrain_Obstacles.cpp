@@ -159,18 +159,19 @@ int main(int argc, char* argv[]) {
         switch (vis_type) {
             case ChVisualSystem::Type::OpenGL:
 #ifdef CHRONO_OPENGL
-                visFSI = chrono_types::make_shared<ChFsiVisualizationGL>(&sysFSI, verbose);
+                visFSI = chrono_types::make_shared<ChFsiVisualizationGL>(&sysFSI);
 #endif
                 break;
             case ChVisualSystem::Type::VSG: {
 #ifdef CHRONO_VSG
-                visFSI = chrono_types::make_shared<ChFsiVisualizationVSG>(&sysFSI, verbose);
+                visFSI = chrono_types::make_shared<ChFsiVisualizationVSG>(&sysFSI);
 #endif
                 break;
             }
         }
 
         visFSI->SetTitle("CRM deformable terrain");
+        visFSI->SetVerbose(verbose);
         visFSI->SetSize(1280, 720);
         visFSI->AddCamera(ChVector3d(2, 1, 0.5), ChVector3d(0, 0, 0));
         visFSI->SetCameraMoveScale(0.2f);

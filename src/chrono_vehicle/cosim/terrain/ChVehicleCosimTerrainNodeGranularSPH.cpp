@@ -317,14 +317,15 @@ void ChVehicleCosimTerrainNodeGranularSPH::OnInitialize(unsigned int num_objects
     // Initialize run-time visualization
     if (m_renderRT) {
 #if defined(CHRONO_VSG)
-        auto vsys_VSG = chrono_types::make_shared<ChFsiVisualizationVSG>(&sysFSI, false);
+        auto vsys_VSG = chrono_types::make_shared<ChFsiVisualizationVSG>(&sysFSI);
         vsys_VSG->SetClearColor(ChColor(0.455f, 0.525f, 0.640f));
         m_vsys = vsys_VSG;
 #elif defined(CHRONO_OPENGL)
-        m_vsys = chrono_types::make_shared<ChFsiVisualizationGL>(&sysFSI, false);
+        m_vsys = chrono_types::make_shared<ChFsiVisualizationGL>(&sysFSI);
 #endif
         if (m_vsys) {
             m_vsys->SetTitle("Terrain Node (GranularSPH)");
+            m_vsys->SetVerbose(false);
             m_vsys->SetSize(1280, 720);
             m_vsys->AddCamera(m_cam_pos, ChVector3d(0, 0, 0));
             m_vsys->SetCameraMoveScale(0.2f);

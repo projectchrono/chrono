@@ -43,6 +43,9 @@ class CH_FSI_API ChFsiVisualization {
 
     virtual ~ChFsiVisualization();
 
+    /// Enable/disable information terminal output during initialization (default: false).
+    void SetVerbose(bool verbose);
+
     /// Set title of the visualization window (default: "").
     virtual void SetTitle(const std::string& title);
 
