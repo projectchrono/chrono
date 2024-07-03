@@ -40,7 +40,7 @@
 using namespace chrono;
 using namespace chrono::fsi;
 
-// -----------------------------------------------------------------
+// -----------------------------------------------------------------------------
 
 // Run-time visualization system (OpenGL or VSG)
 ChVisualSystem::Type vis_type = ChVisualSystem::Type::VSG;
@@ -70,140 +70,16 @@ float render_fps = 1000;
 
 // Visibility flags
 bool show_rigid = true;
-bool show_rigid_bce = false;
+bool show_rigid_bce = true;
 bool show_boundary_bce = false;
 bool show_particles_sph = true;
 
-//------------------------------------------------------------------
-// Function to save cylinder to Paraview VTK files
-//------------------------------------------------------------------
-void WriteCylinderVTK(const std::string& filename, double radius, double length, const ChFrame<>& frame, int res) {
-    std::ofstream outf;
-    outf.open(filename, std::ios::app);
-    outf << "# vtk DataFile Version 1.0\nUnstructured Grid Example\nASCII\n\n" << std::endl;
-    outf << "DATASET UNSTRUCTURED_GRID\nPOINTS " << 2 * res << " float\n";
+// -----------------------------------------------------------------------------
 
-    for (int i = 0; i < res; i++) {
-        auto w = frame.TransformPointLocalToParent(
-            ChVector3d(radius * cos(2 * i * 3.1415 / res), -1 * length / 2, radius * sin(2 * i * 3.1415 / res)));
-        outf << w.x() << " " << w.y() << " " << w.z() << "\n";
-    }
+void CreateSolidPhase(ChSystemSMC& sysMBS, ChSystemFsi& sysFSI);
+void WriteCylinderVTK(const std::string& filename, double radius, double length, const ChFrame<>& frame, int res);
 
-    for (int i = 0; i < res; i++) {
-        auto w = frame.TransformPointLocalToParent(
-            ChVector3d(radius * cos(2 * i * 3.1415 / res), +1 * length / 2, radius * sin(2 * i * 3.1415 / res)));
-        outf << w.x() << " " << w.y() << " " << w.z() << "\n";
-    }
-
-    outf << "\n\nCELLS " << res + res << "\t" << 5 * (res + res) << "\n";
-
-    for (int i = 0; i < res - 1; i++) {
-        outf << "4 " << i << " " << i + 1 << " " << i + res + 1 << " " << i + res << "\n";
-    }
-    outf << "4 " << res - 1 << " " << 0 << " " << res << " " << 2 * res - 1 << "\n";
-
-    for (int i = 0; i < res / 4; i++) {
-        outf << "4 " << i << " " << i + 1 << " " << +res / 2 - i - 1 << " " << +res / 2 - i << "\n";
-    }
-
-    for (int i = 0; i < res / 4; i++) {
-        outf << "4 " << i + res << " " << i + 1 + res << " " << +res / 2 - i - 1 + res << " " << +res / 2 - i + res
-             << "\n";
-    }
-
-    outf << "4 " << +res / 2 << " " << 1 + res / 2 << " " << +res - 1 << " " << 0 << "\n";
-
-    for (int i = 1; i < res / 4; i++) {
-        outf << "4 " << i + res / 2 << " " << i + 1 + res / 2 << " " << +res / 2 - i - 1 + res / 2 << " "
-             << +res / 2 - i + res / 2 << "\n";
-    }
-
-    outf << "4 " << 3 * res / 2 << " " << 1 + 3 * res / 2 << " " << +2 * res - 1 << " " << +res << "\n";
-
-    for (int i = 1; i < res / 4; i++) {
-        outf << "4 " << i + 3 * res / 2 << " " << i + 1 + 3 * res / 2 << " " << +2 * res - i - 1 << " " << +2 * res - i
-             << "\n";
-    }
-
-    outf << "\nCELL_TYPES " << res + res << "\n";
-
-    for (int iele = 0; iele < (res + res); iele++) {
-        outf << "9\n";
-    }
-}
-
-// Create the objects of the MBD system. Rigid bodies, and if FSI,
-// their BCE representation are created and added to the systems
-void CreateSolidPhase(ChSystemSMC& sysMBS, ChSystemFsi& sysFSI) {
-    // Set gravity to the rigid body system in chrono
-    sysMBS.SetGravitationalAcceleration(sysFSI.GetGravitationalAcceleration());
-
-    // Set common material Properties
-    auto cmaterial = chrono_types::make_shared<ChContactMaterialSMC>();
-    cmaterial->SetYoungModulus(1e8);
-    cmaterial->SetFriction(0.2f);
-    cmaterial->SetRestitution(0.05f);
-    cmaterial->SetAdhesion(0);
-
-    // Get particle spacing in the simulation
-    auto initSpace0 = sysFSI.GetInitialSpacing();
-
-    // Create a container
-    auto box = chrono_types::make_shared<ChBody>();
-    box->SetPos(ChVector3d(0.0, 0.0, 0.0));
-    box->SetRot(ChQuaternion<>(1, 0, 0, 0));
-    box->SetFixed(true);
-    sysMBS.AddBody(box);
-
-    // Add collision geometry for the container walls
-    chrono::utils::AddBoxContainer(box, cmaterial,                                 //
-                                   ChFrame<>(ChVector3d(0, 0, bzDim / 2), QUNIT),  //
-                                   ChVector3d(bxDim, byDim, bzDim), 0.1,           //
-                                   ChVector3i(2, 2, -1),                           //
-                                   false);
-    box->EnableCollision(false);
-
-    // Add BCE particles attached on the walls into FSI system
-    sysFSI.AddBoxContainerBCE(box,                                            //
-                              ChFrame<>(ChVector3d(0, 0, bzDim / 2), QUNIT),  //
-                              ChVector3d(bxDim, byDim, bzDim),                //
-                              ChVector3i(2, 2, -1));
-
-    // Create a falling cylinder
-    auto cylinder = chrono_types::make_shared<ChBody>();
-
-    // Set the general properties of the cylinder
-    double volume = ChCylinder::GetVolume(cyl_radius, cyl_length);
-    double density = sysFSI.GetDensity() * 0.5;
-    double mass = density * volume;
-    ChVector3d cyl_pos = ChVector3d(0, 0, bzDim + cyl_radius + 2 * initSpace0);
-    ChVector3d cyl_vel = ChVector3d(0.0, 0.0, 0.0);
-    ChVector3d gyration = ChCylinder::GetGyration(cyl_radius, cyl_length / 2).diagonal();
-    cylinder->SetPos(cyl_pos);
-    cylinder->SetPosDt(cyl_vel);
-    cylinder->SetMass(mass);
-    cylinder->SetInertiaXX(mass * gyration);
-
-    // Set visualization geometry
-    cylinder->SetFixed(false);
-    chrono::utils::AddCylinderGeometry(cylinder.get(), cmaterial, cyl_radius, cyl_length, VNULL,
-                                       QuatFromAngleX(CH_PI_2), show_rigid);
-    cylinder->GetCollisionModel()->SetSafeMargin(initSpace0);
-
-    if (show_rigid)
-        cylinder->GetVisualShape(0)->SetColor(ChColor(0.65f, 0.20f, 0.10f));
-
-    // Add this body to chrono system
-    sysMBS.AddBody(cylinder);
-
-    // Add this body to the FSI system (only those have inetraction with fluid)
-    sysFSI.AddFsiBody(cylinder);
-
-    // Add BCE particles attached on the cylinder into FSI system
-    sysFSI.AddCylinderBCE(cylinder, ChFrame<>(VNULL, QuatFromAngleX(CH_PI_2)), cyl_radius, cyl_length, true);
-}
-
-// -----------------------------------------------------------------
+// -----------------------------------------------------------------------------
 
 int main(int argc, char* argv[]) {
     // Create a physics system and an FSI system
@@ -378,4 +254,134 @@ int main(int argc, char* argv[]) {
 #endif
 
     return 0;
+}
+
+// -----------------------------------------------------------------------------
+// Create the solid objects in the MBD system and their counterparts in the FSI system
+
+void CreateSolidPhase(ChSystemSMC& sysMBS, ChSystemFsi& sysFSI) {
+    // Set gravity to the rigid body system in chrono
+    sysMBS.SetGravitationalAcceleration(sysFSI.GetGravitationalAcceleration());
+
+    // Set common material Properties
+    auto cmaterial = chrono_types::make_shared<ChContactMaterialSMC>();
+    cmaterial->SetYoungModulus(1e8);
+    cmaterial->SetFriction(0.2f);
+    cmaterial->SetRestitution(0.05f);
+    cmaterial->SetAdhesion(0);
+
+    // Get particle spacing in the simulation
+    auto initSpace0 = sysFSI.GetInitialSpacing();
+
+    // Create a container
+    auto box = chrono_types::make_shared<ChBody>();
+    box->SetPos(ChVector3d(0.0, 0.0, 0.0));
+    box->SetRot(ChQuaternion<>(1, 0, 0, 0));
+    box->SetFixed(true);
+    sysMBS.AddBody(box);
+
+    // Add collision geometry for the container walls
+    chrono::utils::AddBoxContainer(box, cmaterial,                                 //
+                                   ChFrame<>(ChVector3d(0, 0, bzDim / 2), QUNIT),  //
+                                   ChVector3d(bxDim, byDim, bzDim), 0.1,           //
+                                   ChVector3i(2, 2, -1),                           //
+                                   false);
+    box->EnableCollision(false);
+
+    // Add BCE particles attached on the walls into FSI system
+    sysFSI.AddBoxContainerBCE(box,                                            //
+                              ChFrame<>(ChVector3d(0, 0, bzDim / 2), QUNIT),  //
+                              ChVector3d(bxDim, byDim, bzDim),                //
+                              ChVector3i(2, 2, -1));
+
+    // Create a falling cylinder
+    auto cylinder = chrono_types::make_shared<ChBody>();
+
+    // Set the general properties of the cylinder
+    double volume = ChCylinder::GetVolume(cyl_radius, cyl_length);
+    double density = sysFSI.GetDensity() * 0.5;
+    double mass = density * volume;
+    ChVector3d cyl_pos = ChVector3d(0, 0, bzDim + cyl_radius + 2 * initSpace0);
+    ChVector3d cyl_vel = ChVector3d(0.0, 0.0, 0.0);
+    ChVector3d gyration = ChCylinder::GetGyration(cyl_radius, cyl_length / 2).diagonal();
+    cylinder->SetPos(cyl_pos);
+    cylinder->SetPosDt(cyl_vel);
+    cylinder->SetMass(mass);
+    cylinder->SetInertiaXX(mass * gyration);
+
+    // Set visualization geometry
+    cylinder->SetFixed(false);
+    chrono::utils::AddCylinderGeometry(cylinder.get(), cmaterial, cyl_radius, cyl_length, VNULL,
+                                       QuatFromAngleX(CH_PI_2), show_rigid);
+    cylinder->GetCollisionModel()->SetSafeMargin(initSpace0);
+
+    if (show_rigid)
+        cylinder->GetVisualShape(0)->SetColor(ChColor(0.65f, 0.20f, 0.10f));
+
+    // Add this body to chrono system
+    sysMBS.AddBody(cylinder);
+
+    // Add this body to the FSI system (only those have interaction with fluid)
+    sysFSI.AddFsiBody(cylinder);
+
+    // Add BCE particles attached on the cylinder into FSI system
+    sysFSI.AddCylinderBCE(cylinder, ChFrame<>(VNULL, QuatFromAngleX(CH_PI_2)), cyl_radius, cyl_length, true);
+}
+
+// -----------------------------------------------------------------------------
+// Function to save cylinder to Paraview VTK files
+
+void WriteCylinderVTK(const std::string& filename, double radius, double length, const ChFrame<>& frame, int res) {
+    std::ofstream outf;
+    outf.open(filename, std::ios::app);
+    outf << "# vtk DataFile Version 1.0\nUnstructured Grid Example\nASCII\n\n" << std::endl;
+    outf << "DATASET UNSTRUCTURED_GRID\nPOINTS " << 2 * res << " float\n";
+
+    for (int i = 0; i < res; i++) {
+        auto w = frame.TransformPointLocalToParent(
+            ChVector3d(radius * cos(2 * i * 3.1415 / res), -1 * length / 2, radius * sin(2 * i * 3.1415 / res)));
+        outf << w.x() << " " << w.y() << " " << w.z() << "\n";
+    }
+
+    for (int i = 0; i < res; i++) {
+        auto w = frame.TransformPointLocalToParent(
+            ChVector3d(radius * cos(2 * i * 3.1415 / res), +1 * length / 2, radius * sin(2 * i * 3.1415 / res)));
+        outf << w.x() << " " << w.y() << " " << w.z() << "\n";
+    }
+
+    outf << "\n\nCELLS " << res + res << "\t" << 5 * (res + res) << "\n";
+
+    for (int i = 0; i < res - 1; i++) {
+        outf << "4 " << i << " " << i + 1 << " " << i + res + 1 << " " << i + res << "\n";
+    }
+    outf << "4 " << res - 1 << " " << 0 << " " << res << " " << 2 * res - 1 << "\n";
+
+    for (int i = 0; i < res / 4; i++) {
+        outf << "4 " << i << " " << i + 1 << " " << +res / 2 - i - 1 << " " << +res / 2 - i << "\n";
+    }
+
+    for (int i = 0; i < res / 4; i++) {
+        outf << "4 " << i + res << " " << i + 1 + res << " " << +res / 2 - i - 1 + res << " " << +res / 2 - i + res
+             << "\n";
+    }
+
+    outf << "4 " << +res / 2 << " " << 1 + res / 2 << " " << +res - 1 << " " << 0 << "\n";
+
+    for (int i = 1; i < res / 4; i++) {
+        outf << "4 " << i + res / 2 << " " << i + 1 + res / 2 << " " << +res / 2 - i - 1 + res / 2 << " "
+             << +res / 2 - i + res / 2 << "\n";
+    }
+
+    outf << "4 " << 3 * res / 2 << " " << 1 + 3 * res / 2 << " " << +2 * res - 1 << " " << +res << "\n";
+
+    for (int i = 1; i < res / 4; i++) {
+        outf << "4 " << i + 3 * res / 2 << " " << i + 1 + 3 * res / 2 << " " << +2 * res - i - 1 << " " << +2 * res - i
+             << "\n";
+    }
+
+    outf << "\nCELL_TYPES " << res + res << "\n";
+
+    for (int iele = 0; iele < (res + res); iele++) {
+        outf << "9\n";
+    }
 }
