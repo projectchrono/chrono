@@ -101,7 +101,7 @@ bool GetProblemSpecs(int argc,
 
 int main(int argc, char* argv[]) {
     // Parse command line arguments
-    std::string inputJSON = GetChronoDataFile("fsi/input_json/demo_FSI_Flexible_Flat_Plate_Explicit.json");
+    std::string inputJSON = GetChronoDataFile("fsi/input_json/demo_FSI_Flexible_Cable_Granular.json");
     double t_end = 10.0;
     bool verbose = true;
     bool output = false;
@@ -401,4 +401,6 @@ bool GetProblemSpecs(int argc,
 
     output_fps = cli.GetAsType<double>("output_fps");
     render_fps = cli.GetAsType<double>("render_fps");
+
+    return true;
 }
