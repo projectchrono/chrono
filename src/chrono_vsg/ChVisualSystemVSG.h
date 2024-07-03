@@ -156,9 +156,6 @@ class CH_VSG_API ChVisualSystemVSG : virtual public ChVisualSystem {
     /// Get estimated FPS.
     double GetRenderingFPS() const { return m_fps; }
 
-    /// Enable/disable VSG information terminal output during initialization (default: false).
-    void SetVerbose(bool verbose) { m_verbose = verbose; }
-
     /// Enable/disable rendering of shadows.
     /// This function must be called before Initialize().
     void SetShadows(bool yesno = false) { m_use_shadows = yesno; }
@@ -263,7 +260,6 @@ class CH_VSG_API ChVisualSystemVSG : virtual public ChVisualSystem {
     vsg::ref_ptr<vsg::Builder> m_vsgBuilder;
     vsg::ref_ptr<ShapeBuilder> m_shapeBuilder;
 
-    bool m_verbose;               ///< VSG terminal initialization output
     bool m_wireframe;             ///< draw as wireframes
     bool m_capture_image;         ///< export current frame to image file
     std::string m_imageFilename;  ///< name of file to export current frame

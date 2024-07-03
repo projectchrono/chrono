@@ -408,8 +408,7 @@ ChVisualSystemVSG::ChVisualSystemVSG(int num_divs)
       m_time_total(0),
       m_old_time(0),
       m_current_time(0),
-      m_fps(0),
-      m_verbose(false) {
+      m_fps(0) {
     m_windowTitle = string("Window Title");
     m_clearColor = ChColor(0, 0, 0);
     m_skyboxPath = string("vsg/textures/chrono_skybox.ktx2");
@@ -778,7 +777,7 @@ void ChVisualSystemVSG::Initialize() {
     const auto& prop = m_window->getOrCreatePhysicalDevice()->getProperties();
 
     if (m_verbose) {
-        std::cout << "****************************************************" << std::endl;
+        std::cout << "----------------------------------------------------" << std::endl;
         std::cout << "* Chrono::VSG Vulkan Scene Graph 3D-Visualization" << std::endl;
         std::cout << "* GPU Name: " << prop.deviceName << std::endl;
         switch (prop.deviceType) {
@@ -804,7 +803,7 @@ void ChVisualSystemVSG::Initialize() {
                   << VK_API_VERSION_PATCH(VK_HEADER_VERSION_COMPLETE) << std::endl;
         std::cout << "* Vulkan Scene Graph Version: " << VSG_VERSION_STRING << std::endl;
         std::cout << "* Graphic Output Possible on: " << vsg::Device::maxNumDevices() << " Screens." << std::endl;
-        std::cout << "****************************************************" << std::endl;
+        std::cout << "----------------------------------------------------" << std::endl;
     }
 
     m_window->clearColor() = VkClearColorValue{{m_clearColor.R, m_clearColor.G, m_clearColor.B, 1}};
