@@ -58,6 +58,14 @@ class FSIStatsVSG : public vsg3d::ChGuiComponentVSG {
             ImGui::TableNextColumn();
             ImGui::Text("%lu", static_cast<unsigned long>(m_vsysFSI->m_systemFSI->GetNumFlexBodyMarkers()));
 
+            ImGui::TableNextRow();
+
+            ImGui::TableNextRow();
+            ImGui::TableNextColumn();
+            ImGui::TextUnformatted("MBS ratio:");
+            ImGui::TableNextColumn();
+            ImGui::Text("%.3f", m_vsysFSI->m_systemFSI->GetRatioMBS());
+
             ImGui::EndTable();
         }
 

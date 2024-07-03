@@ -106,6 +106,9 @@ class CH_FSI_API ChSystemFsi {
     /// Get current estimated RTF (real time factor).
     double GetRTF() const { return m_RTF; }
 
+    /// Get ratio of simulation time spent in MBS integration.
+    double GetRatioMBS() const { return m_ratio_MBS; }
+
     /// Enable/disable verbose terminal output.
     void SetVerbose(bool verbose);
 
@@ -532,7 +535,9 @@ class CH_FSI_API ChSystemFsi {
     double m_time;          ///< current simulation time
 
     ChTimer m_timer_step;  ///< timer for integration step
+    ChTimer m_timer_MBS;   ///< timer for MBS integration
     double m_RTF;          ///< real-time factor (simulation time / simulated time)
+    double m_ratio_MBS;    ///< fraction of step simulation time for MBS integration 
 
     friend class ChFsiVisualizationGL;
     friend class ChFsiVisualizationVSG;

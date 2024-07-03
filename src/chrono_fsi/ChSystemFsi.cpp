@@ -63,6 +63,7 @@ ChSystemFsi::ChSystemFsi(ChSystem* sysMBS)
       m_integrate_SPH(true),
       m_time(0),
       m_RTF(0),
+      m_ratio_MBS(0),
       m_write_mode(OutputMode::NONE) {
     m_paramsH = chrono_types::make_shared<SimParams>();
     m_sysFSI = chrono_types::make_unique<ChSystemFsi_impl>(m_paramsH);
@@ -1031,6 +1032,8 @@ void ChSystemFsi::DoStepDynamics_FSI() {
     }
 
     m_timer_step.reset();
+    m_timer_MBS.reset();
+
     m_timer_step.start();
 
     if (m_fluid_dynamics->GetIntegratorType() == TimeIntegrator::EXPLICITSPH) {
@@ -1057,6 +1060,8 @@ void ChSystemFsi::DoStepDynamics_FSI() {
 
         // Advance dynamics of the associated MBS system (if provided)
         if (m_sysMBS) {
+            m_timer_MBS.start();
+            
             m_fsi_interface->ApplyBodyForce_Fsi2Chrono();
             m_fsi_interface->ApplyMesh1DForce_Fsi2Chrono();
             m_fsi_interface->ApplyMesh2DForce_Fsi2Chrono();
@@ -1069,6 +1074,8 @@ void ChSystemFsi::DoStepDynamics_FSI() {
             for (int t = 0; t < sync; t++) {
                 m_sysMBS->DoStepDynamics(m_paramsH->dT / sync);
             }
+
+            m_timer_MBS.stop();
         }
 
         m_fsi_interface->LoadBodyState_Chrono2Fsi(m_sysFSI->fsiBodyState2_D);
@@ -1094,6 +1101,8 @@ void ChSystemFsi::DoStepDynamics_FSI() {
 
         // Advance dynamics of the associated MBS system (if provided)
         if (m_sysMBS) {
+            m_timer_MBS.start();
+
             m_fsi_interface->ApplyBodyForce_Fsi2Chrono();
             m_fsi_interface->ApplyMesh1DForce_Fsi2Chrono();
             m_fsi_interface->ApplyMesh2DForce_Fsi2Chrono();
@@ -1108,6 +1117,8 @@ void ChSystemFsi::DoStepDynamics_FSI() {
             for (int t = 0; t < sync; t++) {
                 m_sysMBS->DoStepDynamics(m_paramsH->dT / sync);
             }
+
+            m_timer_MBS.stop();
         }
 
         m_fsi_interface->LoadBodyState_Chrono2Fsi(m_sysFSI->fsiBodyState2_D);
@@ -1124,6 +1135,8 @@ void ChSystemFsi::DoStepDynamics_FSI() {
 
     m_timer_step.stop();
     m_RTF = m_timer_step() / m_paramsH->dT;
+    if (m_sysMBS)
+        m_ratio_MBS = m_timer_MBS() / m_timer_step();
 }
 
 //--------------------------------------------------------------------------------------------------------------------------------
