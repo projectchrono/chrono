@@ -440,4 +440,6 @@ bool GetProblemSpecs(int argc,
 
     output_fps = cli.GetAsType<double>("output_fps");
     render_fps = cli.GetAsType<double>("render_fps");
+
+    return true;
 }
