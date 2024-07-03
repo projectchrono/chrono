@@ -182,6 +182,9 @@ void ChVisualSystemIrrlicht::Initialize() {
     if (m_initialized)
         return;
 
+    if (!m_verbose)
+        m_device_params.LoggingLevel = irr::ELL_NONE;
+
     // Create Irrlicht device using current parameter values.
     m_device = irr::createDeviceEx(m_device_params);
     if (!m_device) {
