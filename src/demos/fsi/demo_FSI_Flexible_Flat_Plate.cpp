@@ -61,16 +61,14 @@ ChVisualSystem::Type vis_type = ChVisualSystem::Type::VSG;
 // Set the output directory
 std::string out_dir = GetChronoOutputPath() + "FSI_Flexible_Flat_Plate";
 
-// Dimension of the domain
-double smalldis = 1.0e-9;
-double bxDim = 3.0 + smalldis;
-double byDim = 0.2 + smalldis;
-double bzDim = 2.0 + smalldis;
+// Dimensions of the boundary and fluid domains
+double Lx_bndry = 3;
+double Ly_bndry = 0.2;
+double Lz_bndry = 2.0;
 
-// Dimension of the fluid domain
-double fxDim = 1.0 + smalldis;
-double fyDim = 0.2 + smalldis;
-double fzDim = 1.0 + smalldis;
+double Lx_fluid = 1.0;
+double Ly_fluid = Ly_bndry;
+double Lz_fluid = 1.0;
 
 // -----------------------------------------------------------------------------
 
@@ -112,11 +110,11 @@ int main(int argc, char* argv[]) {
     sysFSI.ReadParametersFromFile(inputJSON);
 
     // Set simulation domain
-    sysFSI.SetContainerDim(ChVector3d(bxDim, byDim, bzDim));
+    sysFSI.SetContainerDim(ChVector3d(Lx_bndry, Ly_bndry, Lz_bndry));
 
     auto initSpace0 = sysFSI.GetInitialSpacing();
-    ChVector3d cMin = ChVector3d(-5 * bxDim, -byDim / 2.0 - initSpace0 / 2.0, -5 * bzDim);
-    ChVector3d cMax = ChVector3d(5 * bxDim, byDim / 2.0 + initSpace0 / 2.0, 5 * bzDim);
+    ChVector3d cMin = ChVector3d(-5 * Lx_bndry, -Ly_bndry / 2 - initSpace0 / 2, -5 * Lz_bndry);
+    ChVector3d cMax = ChVector3d(+5 * Lx_bndry, +Ly_bndry / 2 + initSpace0 / 2, +5 * Lz_bndry);
     sysFSI.SetBoundaries(cMin, cMax);
 
     // Set SPH discretization type, consistent or inconsistent
@@ -130,8 +128,8 @@ int main(int argc, char* argv[]) {
 
     // Create SPH particles of fluid region
     chrono::utils::ChGridSampler<> sampler(initSpace0);
-    ChVector3d boxCenter(-bxDim / 2 + fxDim / 2, 0, fzDim / 2);
-    ChVector3d boxHalfDim(fxDim / 2 - initSpace0, fyDim / 2, fzDim / 2 - initSpace0);
+    ChVector3d boxCenter(-Lx_bndry / 2 + Lx_fluid / 2, 0, Lz_fluid / 2);
+    ChVector3d boxHalfDim(Lx_fluid / 2 - initSpace0, Ly_fluid / 2, Lz_fluid / 2 - initSpace0);
     chrono::utils::ChGenerator::PointVector points = sampler.SampleBox(boxCenter, boxHalfDim);
     size_t numPart = points.size();
     for (int i = 0; i < numPart; i++) {
@@ -211,7 +209,8 @@ int main(int argc, char* argv[]) {
         visFSI->SetColorFlexBodyMarkers(ChColor(1, 1, 1));
         visFSI->SetRenderMode(ChFsiVisualization::RenderMode::SOLID);
         visFSI->SetParticleRenderMode(ChFsiVisualization::RenderMode::SOLID);
-        visFSI->SetSPHColorCallback(chrono_types::make_shared<VelocityColorCallback>(0, 2.5));
+        visFSI->SetSPHColorCallback(
+            chrono_types::make_shared<VelocityColorCallback>(0, 2.5, VelocityColorCallback::Component::NORM));
         visFSI->AttachSystem(&sysMBS);
         visFSI->Initialize();
     }
@@ -298,9 +297,9 @@ std::shared_ptr<fea::ChMesh> Create_MB_FE(ChSystemSMC& sysMBS, ChSystemFsi& sysF
     sysMBS.AddBody(ground);
 
     // FSI representation of walls
-    sysFSI.AddBoxContainerBCE(ground,                                         //
-                              ChFrame<>(ChVector3d(0, 0, bzDim / 2), QUNIT),  //
-                              ChVector3d(bxDim, byDim, bzDim),                //
+    sysFSI.AddBoxContainerBCE(ground,                                            //
+                              ChFrame<>(ChVector3d(0, 0, Lz_bndry / 2), QUNIT),  //
+                              ChVector3d(Lx_bndry, Ly_bndry, Lz_bndry),          //
                               ChVector3i(2, 0, -1));
 
     auto initSpace0 = sysFSI.GetInitialSpacing();
@@ -309,12 +308,12 @@ std::shared_ptr<fea::ChMesh> Create_MB_FE(ChSystemSMC& sysMBS, ChSystemFsi& sysF
     auto mesh = chrono_types::make_shared<fea::ChMesh>();
 
     // Geometry of the plate
-    double plate_lenght_x = 0.02;
-    double plate_lenght_y = byDim;
-    double plate_lenght_z = initSpace0 * 40;
+    double x_plate = 0.02;
+    double y_plate = Ly_fluid;
+    double z_plate = 0.75 * Lz_fluid;
 
-    ChVector3d center_plate(0.0, 0.0, plate_lenght_z / 2 + 1 * initSpace0);
-    ////ChVector3d center_plate(-0.25, 0.0, plate_lenght_z / 2 + 1 * initSpace0);
+    ChVector3d center_plate(0.0, 0.0, z_plate / 2 + initSpace0);
+    ////ChVector3d center_plate(-0.25, 0.0, z_plate / 2 + initSpace0);
 
     // Specification of the mesh
     int numDiv_x = 1;
@@ -324,9 +323,9 @@ std::shared_ptr<fea::ChMesh> Create_MB_FE(ChSystemSMC& sysMBS, ChSystemFsi& sysF
     int N_z = numDiv_z + 1;
 
     // For uniform mesh
-    double dx = plate_lenght_x / numDiv_x;
-    double dy = plate_lenght_y / numDiv_y;
-    double dz = plate_lenght_z / numDiv_z;
+    double dx = x_plate / numDiv_x;
+    double dy = y_plate / numDiv_y;
+    double dz = z_plate / numDiv_z;
 
     // Create and add the nodes
     ChVector3d loc;
@@ -334,8 +333,8 @@ std::shared_ptr<fea::ChMesh> Create_MB_FE(ChSystemSMC& sysMBS, ChSystemFsi& sysF
     for (int k = 0; k < N_z; k++) {
         for (int j = 0; j < N_y; j++) {
             loc.x() = center_plate.x();
-            loc.y() = j * dy - plate_lenght_y / 2 + center_plate.y();
-            loc.z() = k * dz - plate_lenght_z / 2 + center_plate.z();
+            loc.y() = j * dy - y_plate / 2 + center_plate.y();
+            loc.z() = k * dz - z_plate / 2 + center_plate.z();
 
             auto node = chrono_types::make_shared<ChNodeFEAxyzD>(loc, dir);
             node->SetMass(0);
