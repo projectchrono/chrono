@@ -268,6 +268,8 @@ int main(int argc, char* argv[]) {
             vis_vsg->SetLightIntensity(1.0f);
             vis_vsg->SetLightDirection(1.5 * CH_PI_2, CH_PI_4);
             vis_vsg->SetShadows(true);
+            vis_vsg->SetLogoVisible(true);
+            vis_vsg->SetLogoHeight(128.0f);
             vis_vsg->Initialize();
 
             // Create the interactive VSG driver system

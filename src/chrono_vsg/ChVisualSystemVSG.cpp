@@ -32,6 +32,69 @@ namespace vsg3d {
 using namespace std;
 
 // -----------------------------------------------------------------------------
+class MainGui : public vsg::Inherit<vsg::Command, MainGui> {
+  public:
+    vsg::ref_ptr<vsgImGui::Texture> texture;
+
+    MainGui(ChVisualSystemVSG* app, vsg::ref_ptr<vsg::Options> options = {}, float tex_height = 128.0f)
+        : m_app(app), m_tex_height(tex_height) {
+        auto texData = vsg::read_cast<vsg::Data>("logo_chronoengine_alpha.png", options);
+        texture = vsgImGui::Texture::create_if(texData, texData);
+    }
+
+    // we need to compile textures before we can use them for rendering
+    void compile(vsg::Context& context) override {
+        if (texture)
+            texture->compile(context);
+    }
+
+    // Example here taken from the Dear imgui comments (mostly)
+    void record(vsg::CommandBuffer& cb) const override {
+        size_t numGui = m_app->GetNumberGuiComponents();
+        for (size_t iGui = 0; iGui < numGui; iGui++) {
+            if (m_app->IsGuiVisible() && m_app->GetGuiComponent(iGui)->IsVisible())
+                m_app->GetGuiComponent(iGui)->render();
+        }
+
+        // UV in the logo texture - usually rectangular
+        if (texture) {
+            ImVec2 squareUV(1.0f, 1.0f);
+
+            if (m_app->IsLogoVisible()) {
+                // Copied from imgui_demo.cpp simple overlay
+                ImGuiWindowFlags window_flags = ImGuiWindowFlags_NoDecoration | ImGuiWindowFlags_AlwaysAutoResize |
+                                                ImGuiWindowFlags_NoSavedSettings | ImGuiWindowFlags_NoFocusOnAppearing |
+                                                ImGuiWindowFlags_NoNav;
+                const float PAD = 10.0f;
+                const ImGuiViewport* viewport = ImGui::GetMainViewport();
+                ImVec2 work_pos = viewport->WorkPos;  // Use work area to avoid menu-bar/task-bar, if any!
+                ImVec2 work_size = viewport->WorkSize;
+                ImVec2 window_pos, window_pos_pivot;
+                window_pos.x = work_pos.x + PAD;
+                window_pos.y = work_pos.y + work_size.y - PAD;
+                window_pos_pivot.x = 0.0f;
+                window_pos_pivot.y = 1.0f;
+                ImGui::SetNextWindowPos(window_pos, ImGuiCond_Always, window_pos_pivot);
+                window_flags |= ImGuiWindowFlags_NoMove;
+                ImGui::SetNextWindowBgAlpha(0.0f);  // Transparent background
+                ImGui::PushStyleVar(ImGuiStyleVar_WindowBorderSize, 0.0f);
+                ImGui::Begin("vsgCS UI", nullptr, window_flags);
+
+                // Display a square from the VSG logo
+                const float sizey = m_tex_height;
+                const float sizex = sizey * static_cast<float>(texture->width) / texture->height;
+                ImGui::Image(texture->id(cb.deviceID), ImVec2(sizex, sizey), ImVec2(0.0f, 0.0f), squareUV);
+
+                ImGui::End();
+                ImGui::PopStyleVar();
+            }
+        }
+    }
+    ChVisualSystemVSG* m_app;
+    float m_tex_height;
+};
+
+// -----------------------------------------------------------------------------
 
 class GuiComponentWrapper {
   public:
@@ -392,7 +455,9 @@ struct LoadOperation : public vsg::Inherit<vsg::Operation, LoadOperation> {
 // -----------------------------------------------------------------------------
 
 ChVisualSystemVSG::ChVisualSystemVSG(int num_divs)
-    : m_yup(false),
+    : m_show_logo(false),
+      m_logo_height(128.0),
+      m_yup(false),
       m_useSkybox(false),
       m_capture_image(false),
       m_wireframe(false),
@@ -715,11 +780,11 @@ void ChVisualSystemVSG::Initialize() {
     directionalLight->name = "sun light";
     directionalLight->color.set(1.0f, 1.0f, 1.0f);
     directionalLight->intensity = m_lightIntensity;
-    if(m_use_shadows) {
+    if (m_use_shadows) {
         uint32_t numShadowsPerLight = 10;
         auto shadowSettings = vsg::HardShadows::create(numShadowsPerLight);
         directionalLight->shadowSettings = shadowSettings;
-        directionalLight->intensity *= 0.8f; // try to avoid saturation due to additional lights
+        directionalLight->intensity *= 0.8f;  // try to avoid saturation due to additional lights
     }
 
     double se = std::sin(m_elevation);
@@ -857,11 +922,13 @@ void ChVisualSystemVSG::Initialize() {
         }
 #ifdef __APPLE__
     } else {
+        m_logo_height /= 2.0f;
         // ignore loadable ttf font
         std::cout << "App runs with standard resolution on the Mac. Font size setting ignored." << std::endl;
     }
 #endif
 
+    /* 'Old' way of gui
     // Include the base GUI component
     m_base_gui = chrono_types::make_shared<ChBaseGuiComponentVSG>(this);
     m_base_gui->SetVisibility(m_show_base_gui);
@@ -881,10 +948,32 @@ void ChVisualSystemVSG::Initialize() {
 
     // Add the ImGui event handler first to handle events early
     m_viewer->addEventHandler(vsgImGui::SendEventsToImGui::create());
+    ... 'Old' gui */
+
+    // Create the new ImGui node and add it to the renderGraph
+    /* Old and new gui definitions cannot coexist!
+     * Old gui classes can be added as children to the rendergraph but will be
+     * ignored, as soon the MainGui sits in the rendergraph.
+     * Only ONE MainGui-like instance is allowed! Additional MainGui-like instances
+     * block the gui.
+     */
+    auto renderImGui = vsgImGui::RenderImGui::create(m_window, MainGui::create(this, m_options, m_logo_height));
+    renderGraph->addChild(renderImGui);
+
+    m_base_gui = chrono_types::make_shared<ChBaseGuiComponentVSG>(this);
+    m_base_gui->SetVisibility(m_show_base_gui);
+    AddGuiComponent(m_base_gui);
+
+    // Add the camera info GUI component (initially invisible)
+    m_camera_gui = AddGuiComponent(chrono_types::make_shared<ChCameraGuiComponentVSG>(this));
+
+    // ImGui events shall have priority to other events
+    m_viewer->addEventHandler(vsgImGui::SendEventsToImGui::create());
 
     // Add the base keyboard event handler
     auto base_kbhandler = chrono_types::make_shared<ChBaseEventHandlerVSG>(this);
     auto base_kbhandler_wrapper = EventHandlerWrapper::create(base_kbhandler, this);
+
     m_viewer->addEventHandler(base_kbhandler_wrapper);
 
     // Add all user-specified event handlers

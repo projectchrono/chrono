@@ -22,7 +22,9 @@
 #include <vsgXchange/all.h>
 #include <vsgImGui/RenderImGui.h>
 #include <vsgImGui/SendEventsToImGui.h>
+#include <vsgImGui/Texture.h>
 #include <vsgImGui/imgui.h>
+#include <vsgImGui/implot.h>
 
 #include "chrono/assets/ChVisualSystem.h"
 #include "chrono/assets/ChVisualModel.h"
@@ -131,6 +133,9 @@ class CH_VSG_API ChVisualSystemVSG : virtual public ChVisualSystem {
     /// Set the camera up vector (default: Z).
     void SetCameraVertical(CameraVerticalDir upDir);
 
+    /// Get Number of GuiComponents
+    size_t GetNumberGuiComponents() { return m_gui.size(); }
+
     /// Add a camera to the VSG scene.
     /// Note that currently only one camera is supported.
     virtual int AddCamera(const ChVector3d& pos, ChVector3d targ = VNULL) override;
@@ -196,6 +201,15 @@ class CH_VSG_API ChVisualSystemVSG : virtual public ChVisualSystem {
     /// Return boolean indicating whether or not GUI are visible.
     bool IsGuiVisible() const { return m_show_gui; }
 
+    /// Return boolean indicating whether or not logo is visible.
+    bool IsLogoVisible() const { return m_show_logo; }
+
+    /// Set logo visible.
+    void SetLogoVisible(bool yesno) { m_show_logo = yesno; }
+
+    /// Set logo display height (Pixels).
+    void SetLogoHeight(float height) { m_logo_height = height; }
+
     /// Set visibility for the default (base) GUI component (default: true).
     void SetBaseGuiVisibility(bool show_gui);
 
@@ -222,6 +236,8 @@ class CH_VSG_API ChVisualSystemVSG : virtual public ChVisualSystem {
     vsg::ref_ptr<vsg::Viewer> m_viewer;  ///< high-level VSG rendering manager
     vsg::ref_ptr<vsg::RenderGraph> m_renderGraph;
 
+    bool m_show_logo;
+    float m_logo_height;
     bool m_show_gui;                                              ///< flag to toggle global GUI visibility
     bool m_show_base_gui;                                         ///< flag to toggle base GUI visibility
     size_t m_camera_gui;                                          ///< identifier for the camera info GUI component
