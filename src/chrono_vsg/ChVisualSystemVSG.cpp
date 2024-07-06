@@ -50,14 +50,10 @@ class MainGui : public vsg::Inherit<vsg::Command, MainGui> {
 
     // Example here taken from the Dear imgui comments (mostly)
     void record(vsg::CommandBuffer& cb) const override {
-        size_t numGui = m_app->GetNumberGuiComponents();
-        for (size_t iGui = 0; iGui < numGui; iGui++) {
-            if (m_app->IsGuiVisible() && m_app->GetGuiComponent(iGui)->IsVisible())
-                m_app->GetGuiComponent(iGui)->render();
-        }
-
-        // UV in the logo texture - usually rectangular
+        // Display logo first, so gui elements can cover it.
+        // When the logo covers gui elements, sometimes gui malfunctions occur.
         if (texture) {
+            // UV in the logo texture - usually rectangular
             ImVec2 squareUV(1.0f, 1.0f);
 
             if (m_app->IsLogoVisible()) {
@@ -88,6 +84,12 @@ class MainGui : public vsg::Inherit<vsg::Command, MainGui> {
                 ImGui::End();
                 ImGui::PopStyleVar();
             }
+        }
+        // execute gui code
+        size_t numGui = m_app->GetNumberGuiComponents();
+        for (size_t iGui = 0; iGui < numGui; iGui++) {
+            if (m_app->IsGuiVisible() && m_app->GetGuiComponent(iGui)->IsVisible())
+                m_app->GetGuiComponent(iGui)->render();
         }
     }
     ChVisualSystemVSG* m_app;
