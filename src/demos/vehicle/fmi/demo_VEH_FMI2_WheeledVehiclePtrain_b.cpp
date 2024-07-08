@@ -12,9 +12,10 @@
 // Authors: Radu Serban
 // =============================================================================
 //
-// Demo illkustrating the co-simulation of a Chrono wheeled vehicle FMU, 4 tire
+// Demo illustrating the co-simulation of a Chrono wheeled vehicle FMU, 4 tire
 // FMUs, and a path-follower driver FMU.
 //
+// The wheeled vehicle FMU used here is assumed to include a powertrain model.
 // =============================================================================
 
 #include <array>
@@ -180,7 +181,7 @@ void CreateTireFMU(FmuChronoUnit& tire_fmu,
 int main(int argc, char* argv[]) {
 #ifdef FMU_EXPORT_SUPPORT
     // FMUs generated in current build
-    std::string vehicle_fmu_model_identifier = "FMU2_WheeledVehicle";
+    std::string vehicle_fmu_model_identifier = "FMU2_WheeledVehiclePtrain";
     std::string driver_fmu_model_identfier = "FMU2_PathFollowerDriver";
     std::string tire_fmu_model_identifier = "FMU2_ForceElementTire";
 
@@ -194,8 +195,7 @@ int main(int argc, char* argv[]) {
 #else
     // Expect fully qualified FMU filenames as program arguments
     if (argc != 4) {
-        std::cout << "Usage: ./demo_VEH_FMI2_WheeledVehicle_b [vehicle_FMU_filename] [driver_FMU_filename] [tire_FMU_filename]"
-                  << std::endl;
+        std::cout << "Usage: ./demo_VEH_FMI2_WheeledVehiclePtrain_b [vehicle_FMU] [driver_FMU] [tire_FMU]" << std::endl;
         return 1;
     }
     std::string vehicle_fmu_filename = argv[1];
@@ -204,17 +204,17 @@ int main(int argc, char* argv[]) {
 #endif
 
     // FMU unpack directories
-    std::string vehicle_unpack_dir = CHRONO_VEHICLE_FMU_DIR + std::string("tmp_unpack_vehicle/");
+    std::string vehicle_unpack_dir = CHRONO_VEHICLE_FMU_DIR + std::string("tmp_unpack_vehicle_ptrain/");
     std::string driver_unpack_dir = CHRONO_VEHICLE_FMU_DIR + std::string("tmp_unpack_driver/");
     std::string tire_unpack_dir = CHRONO_VEHICLE_FMU_DIR + std::string("tmp_unpack_tire/");
 
     // Names of FMU instances
-    std::string vehicle_instance_name = "WheeledVehicleFmuComponent";
-    std::string driver_instance_name = "DriverFmuComponent";
-    std::string tire_instance_name = "HandlingTireFmuComponent";
+    std::string vehicle_instance_name = "WheeledVehiclePtrainFMU";
+    std::string driver_instance_name = "DriverFMU";
+    std::string tire_instance_name = "HandlingTireFMU";
 
     // Create (if needed) output directories
-    std::string out_dir = GetChronoOutputPath() + "./DEMO_WHEELEDVEHICLE_FMI_COSIM_B";
+    std::string out_dir = GetChronoOutputPath() + "./DEMO_WHEELEDVEHICLEPTRAIN_FMI_COSIM_B";
     std::string vehicle_out_dir = out_dir + "/" + vehicle_instance_name;
     std::string driver_out_dir = out_dir + "/" + driver_instance_name;
     std::string tire_out_dir = out_dir + "/" + tire_instance_name;

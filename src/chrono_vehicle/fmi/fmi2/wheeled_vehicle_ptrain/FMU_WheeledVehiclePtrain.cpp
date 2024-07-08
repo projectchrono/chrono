@@ -26,7 +26,7 @@
 #include "chrono_vehicle/ChVehicleModelData.h"
 #include "chrono_vehicle/utils/ChUtilsJSON.h"
 
-#include "FMU_WheeledVehicle.h"
+#include "FMU_WheeledVehiclePtrain.h"
 
 using namespace chrono;
 using namespace chrono::vehicle;

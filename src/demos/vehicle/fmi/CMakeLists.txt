@@ -10,8 +10,8 @@ endif()
 #--------------------------------------------------------------
 
 set(DEMOS
-demo_VEH_FMI2_WheeledVehicle_a
-demo_VEH_FMI2_WheeledVehicle_b
+demo_VEH_FMI2_WheeledVehiclePtrain_a
+demo_VEH_FMI2_WheeledVehiclePtrain_b
 )
 
 #--------------------------------------------------------------
@@ -41,6 +41,6 @@ foreach(PROGRAM ${DEMOS})
 endforeach()
 
 if (${FMU_EXPORT_SUPPORT})
-  add_dependencies(demo_VEH_FMI2_WheeledVehicle_a FMU2_WheeledVehicle FMU2_PathFollowerDriver)
-  add_dependencies(demo_VEH_FMI2_WheeledVehicle_b FMU2_WheeledVehicle FMU2_PathFollowerDriver FMU2_ForceElementTire)
+  add_dependencies(demo_VEH_FMI2_WheeledVehiclePtrain_a FMU2_WheeledVehiclePtrain)
+  add_dependencies(demo_VEH_FMI2_WheeledVehiclePtrain_b FMU2_WheeledVehiclePtrain FMU2_PathFollowerDriver FMU2_ForceElementTire)
 endif()

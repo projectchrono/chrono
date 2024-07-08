@@ -15,6 +15,7 @@
 // Demo illustrating the co-simulation of a Chrono wheeled vehicle FMU with
 // external subsystems for terrain, tires, and driver.
 //
+// The wheeled vehicle FMU used here is assumed to include a powertrain model.
 // =============================================================================
 
 #include <array>
@@ -185,7 +186,7 @@ void DriverSystem::DoStep(double time, double step_size) {
 
 class TireSystem {
   public:
-    TireSystem(ChSystem& sys, const std::string& input_filename);
+    TireSystem(ChSystem& sys, const std::string& tire_JSON);
     void Synchronize(double time, FmuChronoUnit& vehicle_fmu, ChTerrain& terrain);
     void DoStep(double time, double step_size);
 
@@ -206,7 +207,7 @@ class TireSystem {
     std::array<std::shared_ptr<ChTire>, 4> tires;
 };
 
-TireSystem::TireSystem(ChSystem& sys, const std::string& input_filename) {
+TireSystem::TireSystem(ChSystem& sys, const std::string& tire_JSON) {
     ids = {"wheel_FL", "wheel_FR", "wheel_RL", "wheel_RR"};
 
     for (int i = 0; i < 4; i++) {
@@ -216,7 +217,7 @@ TireSystem::TireSystem(ChSystem& sys, const std::string& input_filename) {
         auto wheel = chrono_types::make_shared<Wheel>();
         wheel->Initialize(nullptr, spindle, LEFT);
 
-        tires[i] = ReadTireJSON(input_filename);
+        tires[i] = ReadTireJSON(tire_JSON);
         tires[i]->Initialize(wheel);
         wheel->SetTire(tires[i]);
     }
@@ -242,7 +243,7 @@ void TireSystem::Synchronize(double time, FmuChronoUnit& vehicle_fmu, ChTerrain&
         spindle->SetAngVelParent(state.ang_vel);
         tires[i]->Synchronize(time, terrain);
 
-        // Set tire force to vehicle FMU
+        // Set tire force on vehicle FMU
         vehicle_fmu.SetVecVariable(ids[i] + ".point", force.point);
         vehicle_fmu.SetVecVariable(ids[i] + ".force", force.force);
         vehicle_fmu.SetVecVariable(ids[i] + ".moment", force.moment);
@@ -260,26 +261,26 @@ void TireSystem::DoStep(double time, double step_size) {
 int main(int argc, char* argv[]) {
 #ifdef FMU_EXPORT_SUPPORT
     // Use the FMU generated in current build
-    std::string vehicle_fmu_model_identifier = "FMU2_WheeledVehicle";
+    std::string vehicle_fmu_model_identifier = "FMU2_WheeledVehiclePtrain";
     std::string vehicle_fmu_dir = CHRONO_VEHICLE_FMU_DIR + vehicle_fmu_model_identifier + std::string("/");
     std::string vehicle_fmu_filename = vehicle_fmu_dir + vehicle_fmu_model_identifier + std::string(".fmu");
 #else
     // Expect fully qualified FMU filename as program argument
     if (argc != 2) {
-        std::cout << "Usage: ./demo_VEH_FMI2_WheeledVehicle_a [vehicle_FMU_filename" << std::endl;
+        std::cout << "Usage: ./demo_VEH_FMI2_WheeledVehiclePtrain_a [vehicle_FMU]" << std::endl;
         return 1;
     }
     std::string vehicle_fmu_filename = argv[1];
 #endif
 
     // FMU unpack directory
-    std::string vehicle_unpack_dir = CHRONO_VEHICLE_FMU_DIR + std::string("tmp_unpack_vehicle/");
+    std::string vehicle_unpack_dir = CHRONO_VEHICLE_FMU_DIR + std::string("tmp_unpack_vehicle_ptrain/");
 
     // Names of FMU instance
-    std::string vehicle_instance_name = "WheeledVehicleFmuComponent";
+    std::string vehicle_instance_name = "WheeledVehiclePtrainFMU";
 
     // Create output directory
-    std::string out_dir = GetChronoOutputPath() + "./DEMO_WHEELEDVEHICLE_FMI_COSIM_A";
+    std::string out_dir = GetChronoOutputPath() + "./DEMO_WHEELEDVEHICLEPTRAIN_FMI_COSIM_A";
     std::string vehicle_out_dir = out_dir + "/" + vehicle_instance_name;
 
     if (!filesystem::create_directory(filesystem::path(out_dir))) {
