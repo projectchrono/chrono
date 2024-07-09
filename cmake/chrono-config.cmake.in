@@ -235,9 +235,6 @@ if(Chrono_IRRLICHT_REQUESTED AND Chrono_IRRLICHT_AVAILABLE)
   if(Chrono_POSTPROCESS_AVAILABLE)
     set(Chrono_FIND_COMPONENTS "${Chrono_FIND_COMPONENTS};Postprocess")
   endif()
-  if(Chrono_MODAL_AVAILABLE)
-    set(Chrono_FIND_COMPONENTS "${Chrono_FIND_COMPONENTS};Modal")
-  endif()
 endif()
 
 #-------------------------------------------------------------------------------
