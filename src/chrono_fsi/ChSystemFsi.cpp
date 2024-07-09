@@ -1840,7 +1840,12 @@ unsigned int ChSystemFsi::AddBCE_mesh2D(unsigned int meshID, const ChFsiInterfac
         int n0 = (int)std::ceil((P2 - P1).Length() / spacing);  // required divisions on edge 0
         int n1 = (int)std::ceil((P0 - P2).Length() / spacing);  // required divisions on edge 1
         int n2 = (int)std::ceil((P1 - P0).Length() / spacing);  // required divisions on edge 2
-        int n = std::max(n0, std::max(n1, n2));                 // number of divisions on each edge
+
+        int n_median = max(min(n0, n1), min(max(n0, n1), n2));  // number of divisions on each edge (median)
+        int n_max = std::max(n0, std::max(n1, n2));             // number of divisions on each edge (max)
+
+        ////cout << "(" << n0 << " " << n1 << " " << n2 << ")   Median: " << n_median << "   Max: " << n_max << endl;
+        int n = n_median;
 
         ////ofile << P0 << endl;
         ////ofile << P1 << endl;
