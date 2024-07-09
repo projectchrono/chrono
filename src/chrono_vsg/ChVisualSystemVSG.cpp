@@ -458,7 +458,7 @@ struct LoadOperation : public vsg::Inherit<vsg::Operation, LoadOperation> {
 
 ChVisualSystemVSG::ChVisualSystemVSG(int num_divs)
     : m_show_logo(false),
-      m_logo_height(128.0),
+      m_logo_height(64.0),
       m_yup(false),
       m_useSkybox(false),
       m_capture_image(false),
@@ -930,35 +930,6 @@ void ChVisualSystemVSG::Initialize() {
     }
 #endif
 
-    /* 'Old' way of gui
-    // Include the base GUI component
-    m_base_gui = chrono_types::make_shared<ChBaseGuiComponentVSG>(this);
-    m_base_gui->SetVisibility(m_show_base_gui);
-    GuiComponentWrapper base_gui_wrapper(m_base_gui, this);
-    auto rg = vsgImGui::RenderImGui::create(m_window, base_gui_wrapper);
-
-    // Add the camera info GUI component (initially invisible)
-    m_camera_gui = AddGuiComponent(chrono_types::make_shared<ChCameraGuiComponentVSG>(this));
-
-    // Loop through all specified GUI components, wrap them and add them to the renderGraph
-    for (const auto& gui : m_gui) {
-        GuiComponentWrapper gui_wrapper(gui, this);
-        rg->add(gui_wrapper);
-    }
-
-    renderGraph->addChild(rg);
-
-    // Add the ImGui event handler first to handle events early
-    m_viewer->addEventHandler(vsgImGui::SendEventsToImGui::create());
-    ... 'Old' gui */
-
-    // Create the new ImGui node and add it to the renderGraph
-    /* Old and new gui definitions cannot coexist!
-     * Old gui classes can be added as children to the rendergraph but will be
-     * ignored, as soon the MainGui sits in the rendergraph.
-     * Only ONE MainGui-like instance is allowed! Additional MainGui-like instances
-     * block the gui.
-     */
     auto renderImGui = vsgImGui::RenderImGui::create(m_window, MainGui::create(this, m_options, m_logo_height));
     renderGraph->addChild(renderImGui);
 

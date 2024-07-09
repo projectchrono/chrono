@@ -315,7 +315,7 @@ void ChVehicleGuiComponentVSG::render() {
         ImGui::TableNextRow();
         ImGui::TableNextColumn();
         ImGui::TextUnformatted("Vehicle Attitude");
-        
+
         if (terrain) {
             ImGui::TableNextColumn();
             ImGui::RadioButton("absolute", &e, 0);
@@ -357,6 +357,7 @@ void ChVehicleGuiComponentVSG::render() {
 
     // Display information from powertrain system
     const auto& powertrain = m_app->GetVehicle().GetPowertrainAssembly();
+
     if (powertrain) {
         const auto& engine = powertrain->GetEngine();
         const auto& transmission = powertrain->GetTransmission();
@@ -472,17 +473,22 @@ ChVehicleVisualSystemVSG::ChVehicleVisualSystemVSG() : ChVisualSystemVSG(), m_dr
 ChVehicleVisualSystemVSG::~ChVehicleVisualSystemVSG() {}
 
 void ChVehicleVisualSystemVSG::Initialize() {
-    // Create vehicle-specific GUI and let derived classes append to it
-    m_gui.push_back(chrono_types::make_shared<ChVehicleGuiComponentVSG>(this));
+    // For an unknown reason, this method is called twice. This results in a weird
+    // GUI behavior
+    if(!m_vsg_initialized) {
+        // Do not create a VSG camera trackball controller
+        m_camera_trackball = false;
 
-    // Add keyboard handler
-    m_evhandler.push_back(chrono_types::make_shared<ChVehicleKeyboardHandlerVSG>(this));
+        // Invoke the base Initialize method
+        ChVisualSystemVSG::Initialize();
 
-    // Do not create a VSG camera trackball controller
-    m_camera_trackball = false;
+        // Create vehicle-specific GUI and let derived classes append to it
+        m_gui.push_back(chrono_types::make_shared<ChVehicleGuiComponentVSG>(this));
 
-    // Invoke the base Initialize method
-    ChVisualSystemVSG::Initialize();
+        // Add keyboard handler
+        m_evhandler.push_back(chrono_types::make_shared<ChVehicleKeyboardHandlerVSG>(this));
+        m_vsg_initialized = true;
+    }
 }
 
 void ChVehicleVisualSystemVSG::Advance(double step) {
