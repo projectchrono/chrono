@@ -98,24 +98,6 @@ class MainGui : public vsg::Inherit<vsg::Command, MainGui> {
 
 // -----------------------------------------------------------------------------
 
-class GuiComponentWrapper {
-  public:
-    GuiComponentWrapper(std::shared_ptr<ChGuiComponentVSG> component, ChVisualSystemVSG* app)
-        : m_component(component), m_app(app) {}
-
-    bool operator()() {
-        if (m_app->IsGuiVisible() && m_component->IsVisible()) {
-            m_component->render();
-            return true;
-        }
-        return false;
-    }
-
-  private:
-    std::shared_ptr<ChGuiComponentVSG> m_component;
-    ChVisualSystemVSG* m_app;
-};
-
 class ChBaseGuiComponentVSG : public ChGuiComponentVSG {
   public:
     ChBaseGuiComponentVSG(ChVisualSystemVSG* app) : m_app(app) {}
