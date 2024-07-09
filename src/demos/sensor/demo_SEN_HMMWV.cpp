@@ -293,7 +293,7 @@ int main(int argc, char* argv[]) {
     double time = 0;
 
     if (contact_vis) {
-        vis->SetSymbolscale(1e-4);
+        vis->SetSymbolScale(1e-4);
         vis->EnableContactDrawing(ContactsDrawMode::CONTACT_FORCES);
     }
 
