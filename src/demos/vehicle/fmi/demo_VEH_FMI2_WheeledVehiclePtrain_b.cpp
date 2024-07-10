@@ -14,11 +14,10 @@
 //
 // Demo illustrating the co-simulation of:
 // - a Chrono wheeled vehicle FMU,
-// - a powertrain (engine+transmission) FMU,
 // - a path-follower driver FMU, and
 // - 4 tire FMUs.
 //
-// The wheeled vehicle FMU is assumed to not include a powertrain model.
+// The wheeled vehicle FMU is assumed to include a powertrain model.
 // =============================================================================
 
 #include <array>
@@ -81,52 +80,17 @@ void CreateVehicleFMU(FmuChronoUnit& vehicle_fmu,
     // Set fixed parameters - use vehicle JSON files from the Chrono::Vehicle data directory
     std::string data_path = "../data/vehicle/";
     std::string vehicle_JSON = vehicle::GetDataFile("hmmwv/vehicle/HMMWV_Vehicle.json");
+    std::string engine_JSON = vehicle::GetDataFile("hmmwv/powertrain/HMMWV_EngineShafts.json");
+    std::string transmission_JSON = vehicle::GetDataFile("hmmwv/powertrain/HMMWV_AutomaticTransmissionShafts.json");
 
     vehicle_fmu.SetVariable("data_path", data_path);
     vehicle_fmu.SetVariable("vehicle_JSON", vehicle_JSON);
+    vehicle_fmu.SetVariable("engine_JSON", engine_JSON);
+    vehicle_fmu.SetVariable("transmission_JSON", transmission_JSON);
     vehicle_fmu.SetVariable("step_size", step_size, FmuVariable::Type::Real);
-}
 
-// -----------------------------------------------------------------------------
-
-void CreatePowertrainFMU(FmuChronoUnit& powertrain_fmu,
-                         const std::string& instance_name,
-                         const std::string& fmu_filename,
-                         const std::string& fmu_unpack_dir,
-                         double step_size,
-                         double start_time,
-                         double stop_time,
-                         const std::vector<std::string>& logCategories,
-                         const std::string& out_path) {
-    try {
-        powertrain_fmu.Load(fmi2Type::fmi2CoSimulation, fmu_filename, fmu_unpack_dir);
-    } catch (std::exception& e) {
-        throw e;
-    }
-    std::cout << "Powertrain FMU version:  " << powertrain_fmu.GetVersion() << std::endl;
-    std::cout << "Powertrain FMU platform: " << powertrain_fmu.GetTypesPlatform() << std::endl;
-
-    // Instantiate FMU
-    powertrain_fmu.Instantiate(instance_name);
-
-    // Set debug logging
-    powertrain_fmu.SetDebugLogging(fmi2True, logCategories);
-
-    // Initialize FMU
-    powertrain_fmu.SetupExperiment(fmi2False, 0.0,         // define tolerance
-                                   start_time,             // start time
-                                   fmi2False, stop_time);  // use stop time
-    // Set I/O fixed parameters
-    powertrain_fmu.SetVariable("out_path", out_path);
-
-    // Set fixed parameters
-    ////std::string engine_JSON = vehicle::GetDataFile("hmmwv/powertrain/HMMWV_EngineShafts.json");
-    ////std::string transmission_JSON = vehicle::GetDataFile("hmmwv/powertrain/HMMWV_AutomaticTransmissionShafts.json");
-    std::string engine_JSON = vehicle::GetDataFile("hmmwv/powertrain/HMMWV_EngineSimpleMap.json");
-    std::string transmission_JSON = vehicle::GetDataFile("hmmwv/powertrain/HMMWV_AutomaticTransmissionSimpleMap.json");
-
-    powertrain_fmu.SetVariable("engine_JSON", engine_JSON);
-    powertrain_fmu.SetVariable("transmission_JSON", transmission_JSON);
+    ////ChVector3d g_acc(0, 0, 0);
+    ////vehicle_fmu.SetVecVariable("g_acc", g_acc);
 }
 
 // -----------------------------------------------------------------------------
@@ -222,50 +186,41 @@ int main(int argc, char* argv[]) {
 
 #ifdef FMU_EXPORT_SUPPORT
     // FMUs generated in current build
-    std::string vehicle_fmu_model_identifier = "FMU2_WheeledVehicle";
-    std::string powertrain_fmu_model_identifier = "FMU2_Powertrain";
+    std::string vehicle_fmu_model_identifier = "FMU2_WheeledVehiclePtrain";
     std::string driver_fmu_model_identfier = "FMU2_PathFollowerDriver";
     std::string tire_fmu_model_identifier = "FMU2_ForceElementTire";
 
     std::string vehicle_fmu_dir = CHRONO_VEHICLE_FMU_DIR + vehicle_fmu_model_identifier + std::string("/");
-    std::string powertrain_fmu_dir = CHRONO_VEHICLE_FMU_DIR + powertrain_fmu_model_identifier + std::string("/");
     std::string driver_fmu_dir = CHRONO_VEHICLE_FMU_DIR + driver_fmu_model_identfier + std::string("/");
     std::string tire_fmu_dir = CHRONO_VEHICLE_FMU_DIR + tire_fmu_model_identifier + std::string("/");
 
     std::string vehicle_fmu_filename = vehicle_fmu_dir + vehicle_fmu_model_identifier + std::string(".fmu");
-    std::string powertrain_fmu_filename = powertrain_fmu_dir + powertrain_fmu_model_identifier + std::string(".fmu");
     std::string driver_fmu_filename = driver_fmu_dir + driver_fmu_model_identfier + std::string(".fmu");
     std::string tire_fmu_filename = tire_fmu_dir + tire_fmu_model_identifier + std::string(".fmu");
 #else
     // Expect fully qualified FMU filenames as program arguments
-    if (argc != 5) {
-        std::cout << "Usage: ./demo_VEH_FMI2_WheeledVehicle_b [vehicle_FMU] [powertrain_FMU] [driver_FMU] [tire_FMU]"
-                  << std::endl;
+    if (argc != 4) {
+        std::cout << "Usage: ./demo_VEH_FMI2_WheeledVehiclePtrain_b [vehicle_FMU] [driver_FMU] [tire_FMU]" << std::endl;
         return 1;
     }
     std::string vehicle_fmu_filename = argv[1];
-    std::string powertrain_fmu_filename = argv[2];
-    std::string driver_fmu_filename = argv[3];
-    std::string tire_fmu_filename = argv[4];
+    std::string driver_fmu_filename = argv[2];
+    std::string tire_fmu_filename = argv[3];
 #endif
 
     // FMU unpack directories
-    std::string vehicle_unpack_dir = CHRONO_VEHICLE_FMU_DIR + std::string("tmp_unpack_vehicle/");
-    std::string powertrain_unpack_dir = CHRONO_VEHICLE_FMU_DIR + std::string("tmp_unpack_powertrain/");
+    std::string vehicle_unpack_dir = CHRONO_VEHICLE_FMU_DIR + std::string("tmp_unpack_vehicle_ptrain/");
     std::string driver_unpack_dir = CHRONO_VEHICLE_FMU_DIR + std::string("tmp_unpack_driver/");
     std::string tire_unpack_dir = CHRONO_VEHICLE_FMU_DIR + std::string("tmp_unpack_tire/");
 
     // Names of FMU instances
-    std::string vehicle_instance_name = "WheeledVehicleFMU";
-    std::string powertrain_instance_name = "PowertrainFMU";
+    std::string vehicle_instance_name = "WheeledVehiclePtrainFMU";
     std::string driver_instance_name = "DriverFMU";
     std::string tire_instance_name = "HandlingTireFMU";
 
     // Create (if needed) output directories
-    std::string out_dir = GetChronoOutputPath() + "./DEMO_WHEELEDVEHICLE_FMI_COSIM_B";
-
+    std::string out_dir = GetChronoOutputPath() + "./DEMO_WHEELEDVEHICLEPTRAIN_FMI_COSIM_B";
     std::string vehicle_out_dir = out_dir + "/" + vehicle_instance_name;
-    std::string powertrain_out_dir = out_dir + "/" + powertrain_instance_name;
     std::string driver_out_dir = out_dir + "/" + driver_instance_name;
     std::string tire_out_dir = out_dir + "/" + tire_instance_name;
 
@@ -275,10 +230,6 @@ int main(int argc, char* argv[]) {
     }
     if (!filesystem::create_directory(filesystem::path(vehicle_out_dir))) {
         std::cout << "Error creating directory " << vehicle_out_dir << std::endl;
-        return 1;
-    }
-    if (!filesystem::create_directory(filesystem::path(powertrain_out_dir))) {
-        std::cout << "Error creating directory " << powertrain_out_dir << std::endl;
         return 1;
     }
     if (!filesystem::create_directory(filesystem::path(driver_out_dir))) {
@@ -304,18 +255,15 @@ int main(int argc, char* argv[]) {
     double fps = 60;
     bool save_img = false;
 
-    // Create the 7 FMU instances
-    ////std::cout << "Vehicle FMU filename:    >" << vehicle_fmu_filename << "<" << std::endl;
-    ////std::cout << "Powertrain FMU filename: >" << powertrain_fmu_filename << "<" << std::endl;
-    ////std::cout << "Tire FMU filename:       >" << tire_fmu_filename << "<" << std::endl;
-    ////std::cout << "Driver FMU filename:     >" << driver_fmu_filename << "<" << std::endl;
-    ////std::cout << "Vehicle FMU unpack directory:     >" << vehicle_unpack_dir << "<" << std::endl;
-    ////std::cout << "Powertrain FMU unpack directory:  >" << powertrain_unpack_dir << "<" << std::endl;
-    ////std::cout << "Tire FMU unpack directory:        >" << tire_unpack_dir << "<" << std::endl;
-    ////std::cout << "Driver FMU unpack directory:      >" << driver_unpack_dir << "<" << std::endl;
+    // Create the 6 FMUs
+    ////std::cout << "Vehicle FMU filename: >" << vehicle_fmu_filename << "<" << std::endl;
+    ////std::cout << "Tire FMU filename:    >" << tire_fmu_filename << "<" << std::endl;
+    ////std::cout << "Driver FMU filename:  >" << driver_fmu_filename << "<" << std::endl;
+    ////std::cout << "Vehicle FMU unpack directory: >" << vehicle_unpack_dir << "<" << std::endl;
+    ////std::cout << "Tire FMU unpack directory:    >" << tire_unpack_dir << "<" << std::endl;
+    ////std::cout << "Driver FMU unpack directory:  >" << driver_unpack_dir << "<" << std::endl;
 
     FmuChronoUnit vehicle_fmu;
-    FmuChronoUnit powertrain_fmu;
     FmuChronoUnit driver_fmu;
     FmuChronoUnit tire_fmu[4];
     try {
@@ -325,15 +273,6 @@ int main(int argc, char* argv[]) {
                          logCategories, vehicle_out_dir, vehicle_visible, fps);            //
     } catch (std::exception& e) {
         std::cout << "ERROR loading vehicle FMU: " << e.what() << "\n";
-        return 1;
-    }
-    try {
-        CreatePowertrainFMU(powertrain_fmu,                                                            //
-                            powertrain_instance_name, powertrain_fmu_filename, powertrain_unpack_dir,  //
-                            step_size, start_time, stop_time,                                          //
-                            logCategories, driver_out_dir);                                            //
-    } catch (std::exception& e) {
-        std::cout << "ERROR loading powertrain FMU: " << e.what() << "\n";
         return 1;
     }
     try {
@@ -372,9 +311,6 @@ int main(int argc, char* argv[]) {
         vehicle_fmu.SetVariable("init_yaw", init_yaw, FmuVariable::Type::Real);
     }
     vehicle_fmu.ExitInitializationMode();
-
-    powertrain_fmu.EnterInitializationMode();
-    powertrain_fmu.ExitInitializationMode();
 
     for (int i = 0; i < 4; i++) {
         tire_fmu[i].EnterInitializationMode();
@@ -421,18 +357,6 @@ int main(int argc, char* argv[]) {
         vehicle_fmu.GetFrameMovingVariable("ref_frame", ref_frame);
         driver_fmu.SetFrameMovingVariable("ref_frame", ref_frame);
 
-        // --------- Exchange data between powertrain and driver FMUs
-        powertrain_fmu.SetVariable("throttle", throttle, FmuVariable::Type::Real);
-
-        // --------- Exchange data between vehicle and powertrain FMUs
-        double driveshaft_torque;
-        powertrain_fmu.GetVariable("driveshaft_torque", driveshaft_torque, FmuVariable::Type::Real);
-        vehicle_fmu.SetVariable("driveshaft_torque", driveshaft_torque, FmuVariable::Type::Real);
-
-        double driveshaft_speed;
-        vehicle_fmu.GetVariable("driveshaft_speed", driveshaft_speed, FmuVariable::Type::Real);
-        powertrain_fmu.SetVariable("driveshaft_speed", driveshaft_speed, FmuVariable::Type::Real);
-
         // ----------- Exchange data between vehicle and tire FMUs
         for (int i = 0; i < 4; i++) {
             WheelState state;
@@ -472,9 +396,8 @@ int main(int argc, char* argv[]) {
 
         // ----------- Advance FMUs
         auto status_vehicle = vehicle_fmu.DoStep(time, step_size, fmi2True);
-        auto status_powertrain = powertrain_fmu.DoStep(time, step_size, fmi2True);
         auto status_driver = driver_fmu.DoStep(time, step_size, fmi2True);
-        if (status_vehicle == fmi2Discard || status_powertrain == fmi2Discard || status_driver == fmi2Discard)
+        if (status_vehicle == fmi2Discard || status_driver == fmi2Discard)
             break;
         for (int i = 0; i < 4; i++) {
             auto status_tire = tire_fmu[i].DoStep(time, step_size, fmi2True);

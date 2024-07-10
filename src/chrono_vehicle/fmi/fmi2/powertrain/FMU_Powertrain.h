@@ -12,19 +12,16 @@
 // Authors: Radu Serban
 // =============================================================================
 //
-// Co-simulation FMU encapsulating a "force element" (handling) tire system.
+// Co-simulation FMU encapsulating a powertrain system.
 //
-// The wrapped Chrono::Vehicle tire model is defined through a JSON specification
-// file which is assumed to define a tire of ChForceElementTire type.
+// The wrapped Chrono::Vehicle powertrain model is defined through JSON specification
+// files for the engine and the transmission.
 //
-// This tire FMU must be co-simulated with a vehicle system which provides
-// the current wheel state (of type WheelState) and a terrain system which provides
-// local terrain information (height, normal, and coefficient of friction) at a
-// single query point.
+// This powertrain FMU must be co-simulated with a vehicle system which provides
+// the current chassis state (of type WheelState) and the driveshaft angular speed.
 //
-// This tire FMU defines continuous output variables for:
-//   - wheel tire/terrain load (of type TerrainForce)
-//   - location of the terrain query point (of type ChVector)
+// This powertrain FMU defines continuous output variables for:
+//   - motor torque on the driveshaft
 //
 // =============================================================================
 
@@ -37,7 +34,9 @@
 #include "chrono/physics/ChSystemSMC.h"
 
 #include "chrono_vehicle/ChConfigVehicle.h"
-#include "chrono_vehicle/wheeled_vehicle/tire/ChForceElementTire.h"
+#include "chrono_vehicle/ChEngine.h"
+#include "chrono_vehicle/ChTransmission.h"
+#include "chrono_vehicle/ChPowertrainAssembly.h"
 
 #include "chrono_fmi/fmi2/ChFmuToolsExport.h"
 
@@ -67,44 +66,30 @@ class FmuComponent : public chrono::FmuChronoComponentBase {
     virtual bool is_cosimulation_available() const override { return true; }
     virtual bool is_modelexchange_available() const override { return false; }
 
-    void CreateTire();
-    void SynchronizeTire(double time);
-    void CalculateTireOutputs();
+    void CreatePowertrain();
+    void SynchronizePowertrain(double time);
+    void CalculatePowertrainOutputs();
 
-    /// Local terrain system to intermediate tire FMU data exchange.
-    /// This represents a locally-flat terrain patch, with the plane updated at each synchronization time.
-    class LocalTerrain : public chrono::vehicle::ChTerrain {
-      public:
-        LocalTerrain() : height(0), normal(chrono::ChVector3d(0, 0, 1)), mu(0.8) {}
-        virtual double GetHeight(const chrono::ChVector3d& loc) const override { return height; }
-        virtual chrono::ChVector3d GetNormal(const chrono::ChVector3d& loc) const override { return normal; }
-        virtual float GetCoefficientFriction(const chrono::ChVector3d& loc) const override { return (float)mu; }
-        double height;
-        chrono::ChVector3d normal;
-        double mu;
-    };
-
-    std::shared_ptr<chrono::vehicle::ChTire> tire;    ///< underlying tire
-    std::shared_ptr<chrono::vehicle::ChWheel> wheel;  ///< associated wheel
-    LocalTerrain terrain;                             ///< associated terrain object
-    chrono::ChSystemSMC sys;                          ///< containing system
+    std::shared_ptr<chrono::vehicle::ChEngine> engine;                  ///< underlying engine
+    std::shared_ptr<chrono::vehicle::ChTransmission> transmission;      ///< underlying transmission
+    std::shared_ptr<chrono::vehicle::ChPowertrainAssembly> powertrain;  ///< underlying powertrain
+    chrono::ChSystemSMC sys;                                            ///< containing system
 
     // FMU I/O parameters
     std::string out_path;  ///< output directory
 
     // FMU parameters
-    std::string tire_JSON;  ///< JSON tire specification file
-    double step_size;       ///< integration step size
+    std::string engine_JSON;        ///< JSON engine specification file
+    std::string transmission_JSON;  ///< JSON transmission specification file
+    double step_size;               ///< integration step size
 
-    // FMU inputs and outputs (vehicle side)
-    chrono::vehicle::WheelState wheel_state;   ///< state of associated wheel (input)
-    chrono::vehicle::TerrainForce wheel_load;  ///< tire loads on associated wheel (output)
-
-    // FMU inputs and outputs (terrain side)
-    chrono::ChVector3d query_point;
-    double terrain_height;
-    chrono::ChVector3d terrain_normal;
-    double terrain_mu;
+    // FMU inputs and outputs
+    double throttle;               ///< throttle driver command, in [0,1] (input)
+    double clutch;                 ///< clutch driver command, in [0,1] (input)
+    double driveshaft_speed;       ///< driveshaft angular speed (input)
+    double driveshaft_torque;      ///< driveshaft motor torque (output)
+    double engine_reaction;        ///< engine reaction torque on chassis (output)
+    double transmission_reaction;  ///< transmission reaction torque on chassis (output)
 };
 
 // Create an instance of this FMU

@@ -131,6 +131,10 @@ class CH_VEHICLE_API ChTire : public ChPart {
     /// An empty string is returned if no mesh was specified.
     const std::string& GetMeshFilename() const { return m_vis_mesh_file; }
 
+    /// Get the associated wheel.
+    /// Note that a tire is associated with a wheel only during initialization.
+    std::shared_ptr<ChWheel> GetWheel() const { return m_wheel; }
+
   public:
     // NOTE: Typically, users should not directly call these functions. They are public for use in special cases and to
     // allow extensions to Chrono::Vehicle in user code.

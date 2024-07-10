@@ -13,7 +13,7 @@
 // =============================================================================
 //
 // Co-simulation FMU encapsulating a wheeled vehicle system with 4 wheels.
-// The vehicle does not include an engine, transmission, or tires.
+// The vehicle includes a powertrain and transmission, but no tires.
 //
 // =============================================================================
 
@@ -26,7 +26,7 @@
 #include "chrono_vehicle/ChVehicleModelData.h"
 #include "chrono_vehicle/utils/ChUtilsJSON.h"
 
-#include "FMU_WheeledVehicle.h"
+#include "FMU_WheeledVehiclePtrain.h"
 
 using namespace chrono;
 using namespace chrono::vehicle;
@@ -48,14 +48,6 @@ FmuComponent::FmuComponent(fmi2String instanceName,
     init_loc = {0, 0, 0};
     init_yaw = 0;
 
-    engineblock_dir = {1, 0, 0};
-    transmissionblock_dir = {1, 0, 0};
-
-    driveshaft_speed = 0;
-    driveshaft_torque = 0;
-    engine_reaction = 0;
-    transmission_reaction = 0;
-
     system_SMC = 1;
     step_size = 1e-3;
 
@@ -67,6 +59,8 @@ FmuComponent::FmuComponent(fmi2String instanceName,
     auto resources_dir = std::string(fmuResourceLocation).erase(0, 8);
     data_path = resources_dir + "/";
     vehicle_JSON = resources_dir + "/Vehicle.json";
+    engine_JSON = resources_dir + "/EngineShafts.json";
+    transmission_JSON = resources_dir + "/AutomaticTransmissionShafts.json";
 
     // Set wheel identifier strings
     wheel_data[0].identifier = "FL";
@@ -86,8 +80,12 @@ FmuComponent::FmuComponent(fmi2String instanceName,
     AddFmuVariable(&data_path, "data_path", FmuVariable::Type::String, "1", "vehicle data path",  //
                    FmuVariable::CausalityType::parameter, FmuVariable::VariabilityType::fixed);   //
 
-    AddFmuVariable(&vehicle_JSON, "vehicle_JSON", FmuVariable::Type::String, "1", "vehicle JSON",  //
-                   FmuVariable::CausalityType::parameter, FmuVariable::VariabilityType::fixed);    //
+    AddFmuVariable(&vehicle_JSON, "vehicle_JSON", FmuVariable::Type::String, "1", "vehicle JSON",                 //
+                   FmuVariable::CausalityType::parameter, FmuVariable::VariabilityType::fixed);                   //
+    AddFmuVariable(&engine_JSON, "engine_JSON", FmuVariable::Type::String, "1", "engine JSON",                    //
+                   FmuVariable::CausalityType::parameter, FmuVariable::VariabilityType::fixed);                   //
+    AddFmuVariable(&transmission_JSON, "transmission_JSON", FmuVariable::Type::String, "1", "transmission JSON",  //
+                   FmuVariable::CausalityType::parameter, FmuVariable::VariabilityType::fixed);                   //
 
     AddFmuVariable(&system_SMC, "system_SMC", FmuVariable::Type::Boolean, "1", "use SMC system",  //
                    FmuVariable::CausalityType::parameter, FmuVariable::VariabilityType::fixed);   //
@@ -96,11 +94,6 @@ FmuComponent::FmuComponent(fmi2String instanceName,
                       FmuVariable::CausalityType::parameter, FmuVariable::VariabilityType::fixed);  //
     AddFmuVariable(&init_yaw, "init_yaw", FmuVariable::Type::Real, "rad", "initial location Z",     //
                    FmuVariable::CausalityType::parameter, FmuVariable::VariabilityType::fixed);     //
-
-    AddFmuVecVariable(engineblock_dir, "engineblock_dir", "1", "engine block mounting direction",                    //
-                      FmuVariable::CausalityType::parameter, FmuVariable::VariabilityType::fixed);                   //
-    AddFmuVecVariable(transmissionblock_dir, "transmissionblock_dir", "1", "transmission block mounting direction",  //
-                      FmuVariable::CausalityType::parameter, FmuVariable::VariabilityType::fixed);                   //
 
     AddFmuVecVariable(g_acc, "g_acc", "m/s2", "gravitational acceleration",                         //
                       FmuVariable::CausalityType::parameter, FmuVariable::VariabilityType::fixed);  //
@@ -131,22 +124,6 @@ FmuComponent::FmuComponent(fmi2String instanceName,
     // Set CONTINUOUS OUTPUTS for this FMU (vehicle reference frame)
     AddFmuFrameMovingVariable(ref_frame, "ref_frame", "m", "m/s", "reference frame",                          //
                               FmuVariable::CausalityType::output, FmuVariable::VariabilityType::continuous);  //
-
-    // Set CONTINOUS INPUTS and OUTPUTS for this FMU (driveshaft speed and torque for co-simulation)
-    AddFmuVariable(&driveshaft_torque, "driveshaft_torque", FmuVariable::Type::Real,              //
-                   "Nm", "driveshaft motor torque",                                               //
-                   FmuVariable::CausalityType::input, FmuVariable::VariabilityType::continuous);  //
-    AddFmuVariable(&driveshaft_speed, "driveshaft_speed", FmuVariable::Type::Real,                //
-                   "rad/s", "driveshaft angular speed",                                           //
-                   FmuVariable::CausalityType::output, FmuVariable::VariabilityType::continuous,  //
-                   FmuVariable::InitialType::exact);                                              //
-
-    AddFmuVariable(&engine_reaction, "engine_reaction", FmuVariable::Type::Real,                  //
-                   "Nm", "engine reaction torque",                                                //
-                   FmuVariable::CausalityType::input, FmuVariable::VariabilityType::continuous);  //
-    AddFmuVariable(&transmission_reaction, "transmission_reaction", FmuVariable::Type::Real,      //
-                   "Nm", "transmission reaction torque",                                          //
-                   FmuVariable::CausalityType::input, FmuVariable::VariabilityType::continuous);  //
 
     // Set CONTINOUS INPUTS and OUTPUTS for this FMU (wheel state and forces for co-simulation)
     for (int iw = 0; iw < 4; iw++) {
@@ -193,6 +170,8 @@ void FmuComponent::CreateVehicle() {
     std::cout << "Create vehicle FMU" << std::endl;
     std::cout << " Data path:         " << data_path << std::endl;
     std::cout << " Vehicle JSON:      " << vehicle_JSON << std::endl;
+    std::cout << " Engine JSON:       " << engine_JSON << std::endl;
+    std::cout << " Transmission JSON: " << transmission_JSON << std::endl;
     std::cout << " Initial location:  " << init_loc << std::endl;
     std::cout << " Initial yaw:       " << init_yaw << std::endl;
 
@@ -219,6 +198,12 @@ void FmuComponent::CreateVehicle() {
     vehicle->SetSuspensionVisualizationType(VisualizationType::PRIMITIVES);
     vehicle->SetSteeringVisualizationType(VisualizationType::PRIMITIVES);
     vehicle->SetWheelVisualizationType(VisualizationType::MESH);
+
+    // Create and initialize the powertrain system
+    auto engine = ReadEngineJSON(engine_JSON);
+    auto transmission = ReadTransmissionJSON(transmission_JSON);
+    auto powertrain = chrono_types::make_shared<ChPowertrainAssembly>(engine, transmission);
+    vehicle->InitializePowertrain(powertrain);
 }
 
 void FmuComponent::ConfigureSystem() {
@@ -247,22 +232,16 @@ void FmuComponent::ConfigureSystem() {
 
 void FmuComponent::SynchronizeVehicle(double time) {
     // 1. synchronize the vehicle system.
-    // ATTENTION: this version of 'Synchronize' does not apply tire forces to the vehicle wheels.
+    // ATTENTION: this versionof 'Synchronize'  does not apply tire forces to the vehicle wheels.
     vehicle->Synchronize(time, driver_inputs);
 
-    //2. apply tire forces (received from outside) to wheel bodies.
+    // 2. apply tire forces (received from outside) to wheel bodies.
     // ATTENTION: this must be done AFTER vehicle synchronization (which may empty wheel force accumulators).
     for (int iw = 0; iw < 4; iw++) {
         wheel_data[iw].wheel->Synchronize(wheel_data[iw].load);
     }
 
-    // 3. apply driveshaft torque (received from outside) to the driveline.
-    vehicle->GetDriveline()->Synchronize(time, driver_inputs, driveshaft_torque);
-
-    // 4. apply reaction torques from engine and transmission.
-    //// TODO
-
-    // 5. Synchronize the run-time visualization (if available and enabled)
+    // 3. Synchronize the run-time visualization (if available and enabled)
 #ifdef CHRONO_IRRLICHT
     if (vis_sys) {
         vis_sys->Synchronize(time, driver_inputs);
@@ -278,8 +257,6 @@ void FmuComponent::CalculateVehicleOutputs() {
 
     // Update the vehicle reference frame
     ref_frame = vehicle->GetRefFrame();
-
-    driveshaft_speed = vehicle->GetDriveline()->GetOutputDriveshaftSpeed();
 
     //// TODO - other vehicle outputs...
 }
