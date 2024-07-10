@@ -473,22 +473,23 @@ ChVehicleVisualSystemVSG::ChVehicleVisualSystemVSG() : ChVisualSystemVSG(), m_dr
 ChVehicleVisualSystemVSG::~ChVehicleVisualSystemVSG() {}
 
 void ChVehicleVisualSystemVSG::Initialize() {
-    // For an unknown reason, this method is called twice. This results in a weird
-    // GUI behavior
-    if(!m_vsg_initialized) {
-        // Do not create a VSG camera trackball controller
-        m_camera_trackball = false;
+    if (m_vsg_initialized)
+        return;
 
-        // Invoke the base Initialize method
-        ChVisualSystemVSG::Initialize();
+    // Do not create a VSG camera trackball controller
+    m_camera_trackball = false;
 
-        // Create vehicle-specific GUI and let derived classes append to it
-        m_gui.push_back(chrono_types::make_shared<ChVehicleGuiComponentVSG>(this));
+    // Create vehicle-specific GUI and let derived classes append to it
+    m_gui.push_back(chrono_types::make_shared<ChVehicleGuiComponentVSG>(this));
 
-        // Add keyboard handler
-        m_evhandler.push_back(chrono_types::make_shared<ChVehicleKeyboardHandlerVSG>(this));
-        m_vsg_initialized = true;
-    }
+    // Add keyboard handler
+    m_evhandler.push_back(chrono_types::make_shared<ChVehicleKeyboardHandlerVSG>(this));
+
+    // Invoke the base Initialize method
+    // Note: this must occur only *after* adding custom GUI components and event handlers
+    ChVisualSystemVSG::Initialize();
+
+    m_vsg_initialized = true;
 }
 
 void ChVehicleVisualSystemVSG::Advance(double step) {
