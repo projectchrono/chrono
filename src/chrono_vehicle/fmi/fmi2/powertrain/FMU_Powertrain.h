@@ -70,7 +70,6 @@ class FmuComponent : public chrono::FmuChronoComponentBase {
     void SynchronizePowertrain(double time);
     void CalculatePowertrainOutputs();
 
-    std::shared_ptr<chrono::vehicle::ChChassis> chassis;                ///< associated chassis
     std::shared_ptr<chrono::vehicle::ChEngine> engine;                  ///< underlying engine
     std::shared_ptr<chrono::vehicle::ChTransmission> transmission;      ///< underlying transmission
     std::shared_ptr<chrono::vehicle::ChPowertrainAssembly> powertrain;  ///< underlying powertrain

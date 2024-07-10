@@ -40,7 +40,12 @@ FmuComponent::FmuComponent(fmi2String instanceName,
     // Set initial/default values for FMU variables
     throttle = 0;
     clutch = 0;
-    
+
+    driveshaft_speed = 0;
+    driveshaft_torque = 0;
+    engine_reaction = 0;
+    transmission_reaction = 0;
+
     step_size = 1e-3;
 
     out_path = ".";
@@ -80,11 +85,13 @@ FmuComponent::FmuComponent(fmi2String instanceName,
                    FmuVariable::InitialType::exact);                                              //
 
     // Set coupling CONTINUOUS INPUTS AND OUTPUTS for this FMU (vehicle side)
-    AddFmuVariable(&driveshaft_speed, "driveshaft_speed", FmuVariable::Type::Real, "1", "driveshaft angular speed",   //
-                   FmuVariable::CausalityType::input, FmuVariable::VariabilityType::continuous);                      //
-    AddFmuVariable(&driveshaft_torque, "driveshaft_torque", FmuVariable::Type::Real, "1", "driveshaft motor torque",  //
-                   FmuVariable::CausalityType::output, FmuVariable::VariabilityType::continuous,                      //
-                   FmuVariable::InitialType::exact);                                                                  //
+    AddFmuVariable(&driveshaft_speed, "driveshaft_speed", FmuVariable::Type::Real,                //
+                   "rad/s", "driveshaft angular speed",                                           //
+                   FmuVariable::CausalityType::input, FmuVariable::VariabilityType::continuous);  //
+    AddFmuVariable(&driveshaft_torque, "driveshaft_torque", FmuVariable::Type::Real,              //
+                   "Nm", "driveshaft motor torque",                                               //
+                   FmuVariable::CausalityType::output, FmuVariable::VariabilityType::continuous,  //
+                   FmuVariable::InitialType::exact);                                              //
 
     // Specify functions to process input variables (at beginning of step)
     AddPreStepFunction([this]() { this->SynchronizePowertrain(this->GetTime()); });
@@ -115,7 +122,7 @@ void FmuComponent::CreatePowertrain() {
     powertrain = chrono_types::make_shared<ChPowertrainAssembly>(engine, transmission);
 
     // Create a placeholder chassis (fixed)
-    chassis = chrono_types::make_shared<Chassis>();
+    auto chassis = chrono_types::make_shared<Chassis>();
     chassis->Initialize(&sys, ChCoordsysd(), 0.0);
     chassis->SetFixed(true);
 
@@ -129,6 +136,7 @@ void FmuComponent::SynchronizePowertrain(double time) {
     driver_inputs.m_clutch = clutch;
     driver_inputs.m_steering = 0;
     driver_inputs.m_throttle = throttle;
+
     powertrain->Synchronize(time, driver_inputs, driveshaft_speed);
 }
 
