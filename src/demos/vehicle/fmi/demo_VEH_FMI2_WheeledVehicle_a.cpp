@@ -13,9 +13,9 @@
 // =============================================================================
 //
 // Demo illustrating the co-simulation of a Chrono wheeled vehicle FMU with
-// external subsystems for terrain, tires, and driver.
+// external subsystems for terrain, tires, powertrain, and driver.
 //
-// The wheeled vehicle FMU used here is assumed to include a powertrain model.
+// The wheeled vehicle FMU used here is assumed to not include a powertrain model.
 // =============================================================================
 
 #include <array>
@@ -86,13 +86,9 @@ void CreateVehicleFMU(FmuChronoUnit& vehicle_fmu,
     // Set fixed parameters - use vehicle JSON files from the Chrono::Vehicle data directory
     std::string data_path = "../data/vehicle/";
     std::string vehicle_JSON = vehicle::GetDataFile("hmmwv/vehicle/HMMWV_Vehicle.json");
-    std::string engine_JSON = vehicle::GetDataFile("hmmwv/powertrain/HMMWV_EngineShafts.json");
-    std::string transmission_JSON = vehicle::GetDataFile("hmmwv/powertrain/HMMWV_AutomaticTransmissionShafts.json");
 
     vehicle_fmu.SetVariable("data_path", data_path);
     vehicle_fmu.SetVariable("vehicle_JSON", vehicle_JSON);
-    vehicle_fmu.SetVariable("engine_JSON", engine_JSON);
-    vehicle_fmu.SetVariable("transmission_JSON", transmission_JSON);
     vehicle_fmu.SetVariable("step_size", step_size, FmuVariable::Type::Real);
 }
 
@@ -109,6 +105,10 @@ class DriverSystem {
     const ChVector3d& GetInitLoc() const { return init_loc; }
     double GetInitYaw() const { return init_yaw; }
     const ChFrameMoving<>& GetRefFrame() const { return ref_frame; }
+
+    double GetSteering() const { return steering; }
+    double GetThrottle() const { return throttle; }
+    double GetBraking() const { return braking; }
 
   private:
     std::shared_ptr<chrono::vehicle::ChPathSteeringController> steeringPID;
@@ -258,32 +258,97 @@ void TireSystem::DoStep(double time, double step_size) {
 
 // -----------------------------------------------------------------------------
 
+class PowertrainSystem {
+  public:
+    PowertrainSystem(ChSystem& sys, const std::string& engine_json, const std::string& transmission_json);
+    void Synchronize(double time, FmuChronoUnit& vehicle_fmu, double throttle);
+    void DoStep(double time, double step_size);
+
+  private:
+    std::shared_ptr<chrono::vehicle::ChEngine> engine;
+    std::shared_ptr<chrono::vehicle::ChTransmission> transmission;
+    std::shared_ptr<chrono::vehicle::ChPowertrainAssembly> powertrain;
+
+    class Chassis : public ChChassis {
+      public:
+        Chassis() : ChChassis("chassis") {}
+        virtual std::string GetTemplateName() const override { return ""; }
+        virtual ChCoordsys<> GetLocalDriverCoordsys() const override { return ChCoordsysd(); }
+        virtual void EnableCollision(bool state) override {}
+
+        virtual double GetBodyMass() const override { return 1; }
+        virtual ChFrame<> GetBodyCOMFrame() const override { return ChFramed(); }
+        virtual ChMatrix33<> GetBodyInertia() const override { return ChMatrix33<>(1); }
+    };
+};
+
+PowertrainSystem::PowertrainSystem(ChSystem& sys,
+                                   const std::string& engine_JSON,
+                                   const std::string& transmission_JSON) {
+    engine = ReadEngineJSON(engine_JSON);
+    transmission = ReadTransmissionJSON(transmission_JSON);
+    powertrain = chrono_types::make_shared<ChPowertrainAssembly>(engine, transmission);
+
+    auto chassis = chrono_types::make_shared<Chassis>();
+    chassis->Initialize(&sys, ChCoordsysd(), 0.0);
+    chassis->SetFixed(true);
+
+    powertrain->Initialize(chassis);
+}
+
+void PowertrainSystem::Synchronize(double time, FmuChronoUnit& vehicle_fmu, double throttle) {
+    // Get driveshaft speed from vehicle FMU
+    double driveshaft_speed;
+    vehicle_fmu.GetVariable("driveshaft_speed", driveshaft_speed, FmuVariable::Type::Real);
+
+    // Synchronize the powertrain assembly
+    DriverInputs driver_inputs;
+    driver_inputs.m_braking = 0;
+    driver_inputs.m_clutch = 0;
+    driver_inputs.m_steering = 0;
+    driver_inputs.m_throttle = throttle;
+    powertrain->Synchronize(time, driver_inputs, driveshaft_speed);
+
+    // Set the driveshaft torque on vehicle FMU
+    vehicle_fmu.SetVariable("driveshaft_torque", transmission->GetOutputDriveshaftTorque(), FmuVariable::Type::Real);
+
+    // Set the engine and transmission reaction torques on vehicle FMU
+    vehicle_fmu.SetVariable("engine_reaction", engine->GetChassisReactionTorque(), FmuVariable::Type::Real);
+    vehicle_fmu.SetVariable("transmission_reaction", transmission->GetChassisReactionTorque(), FmuVariable::Type::Real);
+}
+
+void PowertrainSystem::DoStep(double time, double step_size) {
+    powertrain->Advance(step_size);
+}
+
+// -----------------------------------------------------------------------------
+
 int main(int argc, char* argv[]) {
     std::cout << filesystem::path(argv[0]).filename() << std::endl;
     std::cout << "Copyright (c) 2024 projectchrono.org\nChrono version: " << CHRONO_VERSION << "\n" << std::endl;
 
 #ifdef FMU_EXPORT_SUPPORT
     // Use the FMU generated in current build
-    std::string vehicle_fmu_model_identifier = "FMU2_WheeledVehiclePtrain";
+    std::string vehicle_fmu_model_identifier = "FMU2_WheeledVehicle";
     std::string vehicle_fmu_dir = CHRONO_VEHICLE_FMU_DIR + vehicle_fmu_model_identifier + std::string("/");
     std::string vehicle_fmu_filename = vehicle_fmu_dir + vehicle_fmu_model_identifier + std::string(".fmu");
 #else
     // Expect fully qualified FMU filename as program argument
     if (argc != 2) {
-        std::cout << "Usage: ./demo_VEH_FMI2_WheeledVehiclePtrain_a [vehicle_FMU]" << std::endl;
+        std::cout << "Usage: ./demo_VEH_FMI2_WheeledVehicle_a [vehicle_FMU_filename]" << std::endl;
         return 1;
     }
     std::string vehicle_fmu_filename = argv[1];
 #endif
 
     // FMU unpack directory
-    std::string vehicle_unpack_dir = CHRONO_VEHICLE_FMU_DIR + std::string("tmp_unpack_vehicle_ptrain/");
+    std::string vehicle_unpack_dir = CHRONO_VEHICLE_FMU_DIR + std::string("tmp_unpack_vehicle/");
 
     // Names of FMU instance
-    std::string vehicle_instance_name = "WheeledVehiclePtrainFMU";
+    std::string vehicle_instance_name = "WheeledVehicleFMU";
 
     // Create output directory
-    std::string out_dir = GetChronoOutputPath() + "./DEMO_WHEELEDVEHICLEPTRAIN_FMI_COSIM_A";
+    std::string out_dir = GetChronoOutputPath() + "./DEMO_WHEELEDVEHICLE_FMI_COSIM_A";
     std::string vehicle_out_dir = out_dir + "/" + vehicle_instance_name;
 
     if (!filesystem::create_directory(filesystem::path(out_dir))) {
@@ -295,11 +360,15 @@ int main(int argc, char* argv[]) {
         return 1;
     }
 
-    // Create external subsystems (terrain, tires, driver)
+    // Create external subsystems (terrain, driver, powertrain, and tires)
     ChSystemSMC sys;
     FlatTerrain terrain_sys(0.0, 0.8f);
-    TireSystem tire_sys(sys, vehicle::GetDataFile("hmmwv/tire/HMMWV_TMeasyTire.json"));
     DriverSystem driver_sys(sys, vehicle::GetDataFile("paths/ISO_double_lane_change.txt"));
+    TireSystem tire_sys(sys, vehicle::GetDataFile("hmmwv/tire/HMMWV_TMeasyTire.json"));
+    ////PowertrainSystem powertrain_sys(sys, vehicle::GetDataFile("hmmwv/powertrain/HMMWV_EngineShafts.json"),
+    ////                                vehicle::GetDataFile("hmmwv/powertrain/HMMWV_AutomaticTransmissionShafts.json"));
+    PowertrainSystem powertrain_sys(sys, vehicle::GetDataFile("hmmwv/powertrain/HMMWV_EngineSimpleMap.json"),
+                                    vehicle::GetDataFile("hmmwv/powertrain/HMMWV_AutomaticTransmissionSimpleMap.json"));
 
     driver_sys.SetTargetSpeed(12);
 
@@ -354,8 +423,9 @@ int main(int argc, char* argv[]) {
         ////driver_sys.SetTargetSpeed(12);
 
         // Exchange data between vehicle FMU and external subsystems
-        tire_sys.Synchronize(time, vehicle_fmu, terrain_sys);
         driver_sys.Synchronize(time, vehicle_fmu);
+        tire_sys.Synchronize(time, vehicle_fmu, terrain_sys);
+        powertrain_sys.Synchronize(time, vehicle_fmu, driver_sys.GetThrottle());
 
         // Save output
         csv << time << driver_sys.GetRefFrame().GetPos() << std::endl;
@@ -366,8 +436,9 @@ int main(int argc, char* argv[]) {
             break;
 
         // Advance external subsystems
-        tire_sys.DoStep(time, step_size);
         driver_sys.DoStep(time, step_size);
+        tire_sys.DoStep(time, step_size);
+        powertrain_sys.DoStep(time, step_size);
         sys.DoStepDynamics(step_size);
 
         time += step_size;
