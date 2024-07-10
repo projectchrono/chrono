@@ -4,7 +4,7 @@ Chrono::Blender {#introduction_chrono_blender}
 Chrono::Blender is an add-on tool for the widespread 
 [Blender](http://www.blender.org) modeling and rendering software.
 Thanks to this add-on, you can generate high quality photorealistic
-animations of chrono simulations.
+animations of Chrono simulations.
 
 ![](http://projectchrono.org/assets/manual/blender_addin.jpg)
 
@@ -27,11 +27,11 @@ If you want to test the following features on your PC, first you must do these s
 
 - if not yet enabled, turn on *ENABLE_MODULE_POSTPROCESSING* in CMake and rebuild Chrono
 
-- build *demo_POST_blender1* (also, look at the comments in the source *demo_POST_blender.cpp* in order to learn)
+- build *demo_POST_* (also, look at the comments in the source *demo_POST_blender.cpp* in order to learn)
 
-- run **demo_POST_blender1.exe** 
+- run **demo_POST_blender.exe** 
 
-After the executable has run, you will find new files in the subdirectory  /DEMO_OUTPUT/BLENDER_1  , residing in your executable directory.
+After the executable has run, you will find new files in the subdirectory '/DEMO_OUTPUT/BLENDER', residing in your executable directory.
 Those files are:
 
 - **exported.assets.py**, this file contains all the global settings such as render size etc., plus the definition of all assets that are persistent

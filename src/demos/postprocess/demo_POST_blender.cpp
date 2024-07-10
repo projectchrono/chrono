@@ -16,7 +16,7 @@
 // the 3D postprocessing, by using Blender.
 //
 // - The chrono_import.py add-on must be installed in Blender add-ons.
-// - run this exe to generate files in ./DEMO_OUTPUT/BLENDER_ directory
+// - run this exe to generate files in ./DEMO_OUTPUT/BLENDER directory
 // - Use the Blender menu File/Import/Chrono Import to load the assets.py file saved by this exe.
 //
 // =============================================================================
@@ -53,7 +53,7 @@ int main(int argc, char* argv[]) {
 
     // Set the path where it will save all files, a directory will be created if not
     // existing
-    blender_exporter.SetBasePath(GetChronoOutputPath() + "BLENDER_1");
+    blender_exporter.SetBasePath(GetChronoOutputPath() + "BLENDER");
 
     // Optional: change the default naming of the generated files:
     // blender_exporter.SetOutputDataFilebase("state");
@@ -309,7 +309,7 @@ int main(int argc, char* argv[]) {
     /// [Example 3]
     /* End example */
 
-    // Export all existing visual shapes to POV-Ray
+    // Export all existing visual shapes to Blender
     blender_exporter.AddAll();
 
     // (Optional: tell selectively which physical items you

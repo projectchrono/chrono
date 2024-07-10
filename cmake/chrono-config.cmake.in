@@ -231,12 +231,6 @@ if(Chrono_VEHICLECOSIM_REQUESTED AND Chrono_VEHICLECOSIM_AVAILABLE)
   endif()
 endif()
 
-if(Chrono_IRRLICHT_REQUESTED AND Chrono_IRRLICHT_AVAILABLE)
-  if(Chrono_POSTPROCESS_AVAILABLE)
-    set(Chrono_FIND_COMPONENTS "${Chrono_FIND_COMPONENTS};Postprocess")
-  endif()
-endif()
-
 #-------------------------------------------------------------------------------
 # Rebuild list of requested component flags
 #-------------------------------------------------------------------------------
