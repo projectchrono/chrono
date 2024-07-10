@@ -168,6 +168,7 @@ int main(int argc, char* argv[]) {
         vis->AddVisualModel(polaris, ChFrame<>(polaris_pos, QUNIT));
     }
 
+    vis->SetLogoVisible(true);
     vis->Initialize();
 
     while (vis->Run()) {

@@ -47,6 +47,7 @@ int main(int argc, char* argv[]) {
         vis->AddVisualModel(shape, ChFrame<>(VNULL, QuatFromAngleX(CH_PI_2)));
     }
 
+    vis->SetLogoVisible(true);
     vis->Initialize();
 
     while (vis->Run()) {
