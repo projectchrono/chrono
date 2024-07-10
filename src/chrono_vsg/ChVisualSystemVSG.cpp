@@ -32,13 +32,14 @@ namespace vsg3d {
 using namespace std;
 
 // -----------------------------------------------------------------------------
-class MainGui : public vsg::Inherit<vsg::Command, MainGui> {
+
+class ChMainGuiVSG : public vsg::Inherit<vsg::Command, ChMainGuiVSG> {
   public:
     vsg::ref_ptr<vsgImGui::Texture> texture;
 
-    MainGui(ChVisualSystemVSG* app, vsg::ref_ptr<vsg::Options> options = {}, float tex_height = 128.0f)
+    ChMainGuiVSG(ChVisualSystemVSG* app, vsg::ref_ptr<vsg::Options> options = {}, float tex_height = 64)
         : m_app(app), m_tex_height(tex_height) {
-        auto texData = vsg::read_cast<vsg::Data>("logo_chronoengine_alpha.png", options);
+        auto texData = vsg::read_cast<vsg::Data>(m_app->m_logo_filename, options);
         texture = vsgImGui::Texture::create_if(texData, texData);
     }
 
@@ -56,18 +57,21 @@ class MainGui : public vsg::Inherit<vsg::Command, MainGui> {
             // UV in the logo texture - usually rectangular
             ImVec2 squareUV(1.0f, 1.0f);
 
-            if (m_app->IsLogoVisible()) {
+            if (m_app->m_show_logo) {
+                const float sizey = m_tex_height;
+                const float sizex = sizey * static_cast<float>(texture->width) / texture->height;
+                const float pad = 10;
+
                 // Copied from imgui_demo.cpp simple overlay
                 ImGuiWindowFlags window_flags = ImGuiWindowFlags_NoDecoration | ImGuiWindowFlags_AlwaysAutoResize |
                                                 ImGuiWindowFlags_NoSavedSettings | ImGuiWindowFlags_NoFocusOnAppearing |
                                                 ImGuiWindowFlags_NoNav;
-                const float PAD = 10.0f;
                 const ImGuiViewport* viewport = ImGui::GetMainViewport();
                 ImVec2 work_pos = viewport->WorkPos;  // Use work area to avoid menu-bar/task-bar, if any!
                 ImVec2 work_size = viewport->WorkSize;
                 ImVec2 window_pos, window_pos_pivot;
-                window_pos.x = work_pos.x + PAD;
-                window_pos.y = work_pos.y + work_size.y - PAD;
+                window_pos.x = work_pos.x + work_size.x - sizex - m_app->m_logo_pos.x() - pad;
+                window_pos.y = work_pos.y + sizey + m_app->m_logo_pos.y() + pad;
                 window_pos_pivot.x = 0.0f;
                 window_pos_pivot.y = 1.0f;
                 ImGui::SetNextWindowPos(window_pos, ImGuiCond_Always, window_pos_pivot);
@@ -76,21 +80,22 @@ class MainGui : public vsg::Inherit<vsg::Command, MainGui> {
                 ImGui::PushStyleVar(ImGuiStyleVar_WindowBorderSize, 0.0f);
                 ImGui::Begin("vsgCS UI", nullptr, window_flags);
 
-                // Display a square from the VSG logo
-                const float sizey = m_tex_height;
-                const float sizex = sizey * static_cast<float>(texture->width) / texture->height;
+                // Display a rectangle from the VSG logo
                 ImGui::Image(texture->id(cb.deviceID), ImVec2(sizex, sizey), ImVec2(0.0f, 0.0f), squareUV);
 
                 ImGui::End();
                 ImGui::PopStyleVar();
             }
         }
-        // execute gui code
-        size_t numGui = m_app->GetNumberGuiComponents();
-        for (size_t iGui = 0; iGui < numGui; iGui++) {
-            if (m_app->IsGuiVisible() && m_app->GetGuiComponent(iGui)->IsVisible())
-                m_app->GetGuiComponent(iGui)->render();
+
+        // Render GUI
+        if (m_app->m_show_gui) {
+            for (auto& gui : m_app->m_gui) {
+                if (gui->IsVisible())
+                    gui->render();
+            }
         }
+
     }
     ChVisualSystemVSG* m_app;
     float m_tex_height;
@@ -439,8 +444,9 @@ struct LoadOperation : public vsg::Inherit<vsg::Operation, LoadOperation> {
 // -----------------------------------------------------------------------------
 
 ChVisualSystemVSG::ChVisualSystemVSG(int num_divs)
-    : m_show_logo(false),
-      m_logo_height(64.0),
+    : m_show_logo(true),
+      m_logo_pos({10, 10}),
+      m_logo_height(64),
       m_yup(false),
       m_useSkybox(false),
       m_capture_image(false),
@@ -462,6 +468,8 @@ ChVisualSystemVSG::ChVisualSystemVSG(int num_divs)
     m_clearColor = ChColor(0, 0, 0);
     m_skyboxPath = string("vsg/textures/chrono_skybox.ktx2");
     m_cameraUpVector = vsg::dvec3(0, 0, 1);
+
+    m_logo_filename = GetChronoDataFile("logo_chronoengine_alpha.png");
 
     // creation here allows to set entries before initialize
     m_bodyScene = vsg::Group::create();
@@ -485,7 +493,7 @@ ChVisualSystemVSG::ChVisualSystemVSG(int num_divs)
     m_vsgBuilder->options = m_options;
 
     // make some default settings
-    SetWindowTitle("VSG: Vehicle Demo");
+    SetWindowTitle("");
     SetWindowSize(ChVector2i(800, 600));
     SetWindowPosition(ChVector2i(50, 50));
     SetUseSkyBox(true);
@@ -912,7 +920,7 @@ void ChVisualSystemVSG::Initialize() {
     }
 #endif
 
-    auto renderImGui = vsgImGui::RenderImGui::create(m_window, MainGui::create(this, m_options, m_logo_height));
+    auto renderImGui = vsgImGui::RenderImGui::create(m_window, ChMainGuiVSG::create(this, m_options, m_logo_height));
     renderGraph->addChild(renderImGui);
 
     m_base_gui = chrono_types::make_shared<ChBaseGuiComponentVSG>(this);

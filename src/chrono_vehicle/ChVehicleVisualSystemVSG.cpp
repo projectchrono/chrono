@@ -468,7 +468,9 @@ void ChVehicleGuiComponentVSG::render() {
 
 // -----------------------------------------------------------------------------
 
-ChVehicleVisualSystemVSG::ChVehicleVisualSystemVSG() : ChVisualSystemVSG(), m_driver(nullptr) {}
+ChVehicleVisualSystemVSG::ChVehicleVisualSystemVSG() : ChVisualSystemVSG(), m_driver(nullptr) {
+    m_logo_filename = vehicle::GetDataFile("logo_chronovehicle_alpha.png");
+}
 
 ChVehicleVisualSystemVSG::~ChVehicleVisualSystemVSG() {}
 
