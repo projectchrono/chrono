@@ -22,7 +22,9 @@
 #include <vsgXchange/all.h>
 #include <vsgImGui/RenderImGui.h>
 #include <vsgImGui/SendEventsToImGui.h>
+#include <vsgImGui/Texture.h>
 #include <vsgImGui/imgui.h>
+#include <vsgImGui/implot.h>
 
 #include "chrono/assets/ChVisualSystem.h"
 #include "chrono/assets/ChVisualModel.h"
@@ -156,9 +158,6 @@ class CH_VSG_API ChVisualSystemVSG : virtual public ChVisualSystem {
     /// Get estimated FPS.
     double GetRenderingFPS() const { return m_fps; }
 
-    /// Enable/disable VSG information terminal output during initialization (default: false).
-    void SetVerbose(bool verbose) { m_verbose = verbose; }
-
     /// Enable/disable rendering of shadows.
     /// This function must be called before Initialize().
     void SetShadows(bool yesno = false) { m_use_shadows = yesno; }
@@ -208,6 +207,20 @@ class CH_VSG_API ChVisualSystemVSG : virtual public ChVisualSystem {
     /// Return boolean indicating whether or not the default (base) GUI is visible.
     bool IsBaseGuiVisible() const { return m_show_base_gui; }
 
+    /// Set logo visible (default: true).
+    void SetLogoVisible(bool yesno) { m_show_logo = yesno; }
+
+    /// Set logo display height (in pixels, default: 64).
+    void SetLogoHeight(float height) { m_logo_height = height; }
+
+    /// Set logo position (default: [10,10]).
+    /// This is the position of the right-top corner of the logo image (in pixels)
+    /// relative to the right-top corner of the rendering window.
+    void SetLogoPosition(const ChVector2f& position) { m_logo_pos = position; }
+
+    /// Return boolean indicating whether or not logo is visible.
+    bool IsLogoVisible() const { return m_show_logo; }
+
     /// Add a user-defined VSG event handler.
     void AddEventHandler(std::shared_ptr<ChEventHandlerVSG> eh);
 
@@ -224,6 +237,11 @@ class CH_VSG_API ChVisualSystemVSG : virtual public ChVisualSystem {
     vsg::ref_ptr<vsg::Window> m_window;
     vsg::ref_ptr<vsg::Viewer> m_viewer;  ///< high-level VSG rendering manager
     vsg::ref_ptr<vsg::RenderGraph> m_renderGraph;
+
+    bool m_show_logo;
+    float m_logo_height;
+    ChVector2f m_logo_pos;
+    std::string m_logo_filename;
 
     bool m_show_gui;                                              ///< flag to toggle global GUI visibility
     bool m_show_base_gui;                                         ///< flag to toggle base GUI visibility
@@ -263,7 +281,6 @@ class CH_VSG_API ChVisualSystemVSG : virtual public ChVisualSystem {
     vsg::ref_ptr<vsg::Builder> m_vsgBuilder;
     vsg::ref_ptr<ShapeBuilder> m_shapeBuilder;
 
-    bool m_verbose;               ///< VSG terminal initialization output
     bool m_wireframe;             ///< draw as wireframes
     bool m_capture_image;         ///< export current frame to image file
     std::string m_imageFilename;  ///< name of file to export current frame
@@ -358,6 +375,7 @@ class CH_VSG_API ChVisualSystemVSG : virtual public ChVisualSystem {
     double m_old_time, m_current_time, m_time_total;  ///< render times
     double m_fps;                                     ///< estimated FPS (moving average)
 
+    friend class ChMainGuiVSG;
     friend class ChBaseGuiComponentVSG;
     friend class ChBaseEventHandlerVSG;
 };

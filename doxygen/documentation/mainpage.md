@@ -37,6 +37,10 @@ Instructions on **how to set up a project** that uses Chrono.
   
   tools to import external models and to interact with other languages
 
+- [Chrono::Modal](@ref manual_modal)
+  
+  Modal reduction and eigenvalue analysis of the Chrono systems and assemblies
+
 - [PyChrono](@ref pychrono_introduction)
 
   Overview of PyChrono, the Python API to Chrono libraries

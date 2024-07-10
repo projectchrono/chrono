@@ -242,8 +242,8 @@ void test_pendulum() {
     sys.SetSolver(mkl_solver);
 
     // The pendulum has one rigid-motion degree of freedom. We need to use the
-    // static solver: ChStaticNonLinearRigidMotion().
-    ChStaticNonLinearRigidMotion rigid_static_analysis;
+    // static solver: ChStaticNonLinearAnalysis().
+    ChStaticNonLinearAnalysis rigid_static_analysis;
     rigid_static_analysis.SetIncrementalSteps(10);
     rigid_static_analysis.SetMaxIterations(100);
     rigid_static_analysis.SetResidualTolerance(1e-16);
@@ -260,9 +260,9 @@ void test_pendulum() {
               << "\tz:  " << my_mass->GetPos().z() << std::endl;
 
     // First, perform a full assembly to calculate the reaction forces/torques at the initial system configuration
-    sys.DoAssembly(AssemblyLevel::FULL);
+    sys.DoAssembly(AssemblyAnalysis::Level::FULL);
 
-    // Second, perform the static analysis using the solver ChStaticNonLinearRigidMotion()
+    // Second, perform the static analysis using the solver ChStaticNonLinearAnalysis()
     sys.DoStaticAnalysis(rigid_static_analysis);
 
     while (vis->Run()) {
@@ -459,7 +459,7 @@ void test_anchorchain() {
         std::cout << "\n\n******** Static analysis ******** \n" << std::endl;
 
         // Set solver for static analysis
-        ChStaticNonLinearRigidMotion rigid_static_analysis;
+        ChStaticNonLinearAnalysis rigid_static_analysis;
         rigid_static_analysis.SetCorrectionTolerance(1e-16, 1e-16);
         rigid_static_analysis.SetIncrementalSteps(10);
         rigid_static_analysis.SetMaxIterations(100);
@@ -479,9 +479,9 @@ void test_anchorchain() {
                   << anchorC->GetPos().z() << std::endl;
 
         // First, perform a full assembly to calculate the reaction forces/torques at the initial system configuration
-        sys.DoAssembly(AssemblyLevel::FULL);
+        sys.DoAssembly(AssemblyAnalysis::Level::FULL);
 
-        // Second, perform the static analysis using the solver ChStaticNonLinearRigidMotion()
+        // Second, perform the static analysis using the solver ChStaticNonLinearAnalysis()
         sys.DoStaticAnalysis(rigid_static_analysis);
 
         std::cout << "\nAfter doing the static nonlinear analysis:" << std::endl;

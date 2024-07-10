@@ -4,7 +4,7 @@
 message(STATUS "Unit tests for Chrono::Modal...")
 
 set(TESTS
-    utest_MOD_eigensolve
+    utest_MOD_eigensolver
     utest_MOD_curved_beam
 )
 
@@ -44,6 +44,7 @@ foreach(PROGRAM ${TESTS})
     COMPILE_FLAGS "${COMPILER_FLAGS}"
     LINK_FLAGS "${LINKER_FLAGS}")
   set_property(TARGET ${PROGRAM} PROPERTY VS_DEBUGGER_WORKING_DIRECTORY "$<TARGET_FILE_DIR:${PROGRAM}>")
+  target_include_directories(${PROGRAM} PRIVATE "${CMAKE_SOURCE_DIR}/src/chrono_thirdparty")
   target_link_libraries(${PROGRAM} ${LIBRARIES} gtest_main)
 
   install(TARGETS ${PROGRAM} DESTINATION ${CH_INSTALL_DEMO})

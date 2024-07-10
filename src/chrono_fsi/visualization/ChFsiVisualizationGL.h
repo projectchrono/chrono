@@ -73,7 +73,8 @@ class CH_FSI_API ChFsiVisualizationGL : public ChFsiVisualization {
     /// Returns false if the visualization window was closed.
     virtual bool Render() override;
 
-    opengl::ChVisualSystemOpenGL& GetVisualSystem() const { return *m_vsys; }
+    /// Return the underlying OpenGL visualization system.
+    virtual ChVisualSystem* GetVisualSystem() const override { return m_vsys; }
 
   private:
     opengl::ChVisualSystemOpenGL* m_vsys;  ///< OpenGL visualization system

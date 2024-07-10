@@ -24,10 +24,6 @@
 
 using namespace Eigen;
 
-using Matrix = Eigen::MatrixXd;
-using Vector = Eigen::VectorXd;
-using SpMatrix = Eigen::SparseMatrix<double>;
-
 namespace chrono {
 
 namespace modal {
@@ -77,31 +73,20 @@ callback_Ax_sparse_complexshiftinvert::callback_Ax_sparse_complexshiftinvert(
     const chrono::ChSparseMatrix& As,
     const chrono::ChSparseMatrix& Bs,
     std::complex<double> shift,
-    ChDirectSolverLScomplex* mlinear_solver  // optional direct solver/factorization. Default is ChSolverSparseComplexQR
+    std::shared_ptr<ChDirectSolverLScomplex>
+        linear_solver  // optional direct solver/factorization. Default is ChSolverSparseComplexQR
     )
-    : Bd(Bs.cast<std::complex<double>>()), sigma(shift), linear_solver(mlinear_solver) {
-    if (!linear_solver) {
-        linear_solver = new ChSolverSparseComplexQR();
-        default_solver = true;
-    } else {
-        default_solver = false;
-    }
-
-    linear_solver->A() = (As.cast<std::complex<double>>() - (shift * Bs.cast<std::complex<double>>()));
+    : Bd(Bs.cast<std::complex<double>>()), m_sigma(shift), m_linear_solver(linear_solver) {
+    linear_solver->A() = (As.cast<std::complex<double>>() - (m_sigma * Bs.cast<std::complex<double>>()));
     linear_solver->Setup();  // factorize
-}
-
-callback_Ax_sparse_complexshiftinvert::~callback_Ax_sparse_complexshiftinvert() {
-    if (default_solver)
-        delete linear_solver;
 }
 
 void callback_Ax_sparse_complexshiftinvert::compute(
     chrono::ChVectorDynamic<std::complex<double>>& A_x,     // output: result of A*x
     const chrono::ChVectorDynamic<std::complex<double>>& x  // input:  x in A*x
 ) {
-    linear_solver->Solve(Bd * x);
-    A_x = linear_solver->x();
+    m_linear_solver->Solve(Bd * x);
+    A_x = m_linear_solver->x();
 };
 
 //-------------------------------------------------------------------------------------------------------------------
@@ -154,8 +139,8 @@ int testConverge(ChMatrixDynamic<std::complex<double>>& H, int k, int i, double 
     % H is the hessenberg matrix after truncation
     % The test rule is
     %    | b_i | < max( ||H(1:k, 1:k)||_F * epsilon, tol * | \lambda_i | )
-    % Return:
-    % flag - 1 : not converge
+    % Return flag:
+    % -1 : not converge
     % 1 : real eigenvalue converges
     % 2 : complex eigenvalue pair converges
     %
@@ -239,11 +224,11 @@ void sortSchur(ChMatrixDynamic<std::complex<double>>& US,
     int k2 = ix[k + 1];
     // here must use k2 not k1+1 because k1+1 maybe out of bounds
     // Also, there is a degeneracy problem.
-    // Alex: since  we did a Eigen::ComplexSchur(), then all eigens are on the diagonal as complexes, not 2x2 diag
+    // Alex: since we did a Eigen::ComplexSchur(), then all eigens are on the diagonal as complexes, not 2x2 diag
     // blocks, so do instead:
     double delta = pow(T(k1, k1).real() - T(k2, k2).real(), 2) + 4 * T(k1, k1).imag() * T(k2, k2).imag();
     if ((k2 - k1 == 1) && (delta < 0)) {
-        isC = 1;  // DARIO: using ComplexSchur I assume we should never hit this branch
+        isC = 1;  // DARIOM: using ComplexSchur I assume we should never hit this branch
     } else {
         isC = 0;
     }
@@ -398,7 +383,7 @@ ChKrylovSchurEig::ChKrylovSchurEig(
     const double tol                            // tolerance
 ) {
     ChMatrixDynamic<std::complex<double>> Q;  // orthonormal matrix with dimension [n x k+1] or [n x k+2]
-    ChMatrixDynamic<std::complex<double>> H;  // `Hessenberg' matrix with dimension [k+1 x k] or [k+2 x k+1]
+    ChMatrixDynamic<std::complex<double>> H;  // Hessenberg matrix with dimension [k+1 x k] or [k+2 x k+1]
     KrylovSchur(Q, H, isC, flag, nc, ni, Ax_function, v1, n, k, m, maxIt, tol);
     Eigen::ComplexEigenSolver<ChMatrixDynamic<std::complex<double>>> es(H.topLeftCorner(k + isC, k + isC), true);
     eig = es.eigenvalues();

@@ -33,23 +33,75 @@ using namespace std;
 
 // -----------------------------------------------------------------------------
 
-class GuiComponentWrapper {
+class ChMainGuiVSG : public vsg::Inherit<vsg::Command, ChMainGuiVSG> {
   public:
-    GuiComponentWrapper(std::shared_ptr<ChGuiComponentVSG> component, ChVisualSystemVSG* app)
-        : m_component(component), m_app(app) {}
+    vsg::ref_ptr<vsgImGui::Texture> texture;
 
-    bool operator()() {
-        if (m_app->IsGuiVisible() && m_component->IsVisible()) {
-            m_component->render();
-            return true;
-        }
-        return false;
+    ChMainGuiVSG(ChVisualSystemVSG* app, vsg::ref_ptr<vsg::Options> options = {}, float tex_height = 64)
+        : m_app(app), m_tex_height(tex_height) {
+        auto texData = vsg::read_cast<vsg::Data>(m_app->m_logo_filename, options);
+        texture = vsgImGui::Texture::create_if(texData, texData);
     }
 
-  private:
-    std::shared_ptr<ChGuiComponentVSG> m_component;
+    // we need to compile textures before we can use them for rendering
+    void compile(vsg::Context& context) override {
+        if (texture)
+            texture->compile(context);
+    }
+
+    // Example here taken from the Dear imgui comments (mostly)
+    void record(vsg::CommandBuffer& cb) const override {
+        // Display logo first, so gui elements can cover it.
+        // When the logo covers gui elements, sometimes gui malfunctions occur.
+        if (texture) {
+            // UV in the logo texture - usually rectangular
+            ImVec2 squareUV(1.0f, 1.0f);
+
+            if (m_app->m_show_logo) {
+                const float sizey = m_tex_height;
+                const float sizex = sizey * static_cast<float>(texture->width) / texture->height;
+                const float pad = 10;
+
+                // Copied from imgui_demo.cpp simple overlay
+                ImGuiWindowFlags window_flags = ImGuiWindowFlags_NoDecoration | ImGuiWindowFlags_AlwaysAutoResize |
+                                                ImGuiWindowFlags_NoSavedSettings | ImGuiWindowFlags_NoFocusOnAppearing |
+                                                ImGuiWindowFlags_NoNav;
+                const ImGuiViewport* viewport = ImGui::GetMainViewport();
+                ImVec2 work_pos = viewport->WorkPos;  // Use work area to avoid menu-bar/task-bar, if any!
+                ImVec2 work_size = viewport->WorkSize;
+                ImVec2 window_pos, window_pos_pivot;
+                window_pos.x = work_pos.x + work_size.x - sizex - m_app->m_logo_pos.x() - pad;
+                window_pos.y = work_pos.y + sizey + m_app->m_logo_pos.y() + pad;
+                window_pos_pivot.x = 0.0f;
+                window_pos_pivot.y = 1.0f;
+                ImGui::SetNextWindowPos(window_pos, ImGuiCond_Always, window_pos_pivot);
+                window_flags |= ImGuiWindowFlags_NoMove;
+                ImGui::SetNextWindowBgAlpha(0.0f);  // Transparent background
+                ImGui::PushStyleVar(ImGuiStyleVar_WindowBorderSize, 0.0f);
+                ImGui::Begin("vsgCS UI", nullptr, window_flags);
+
+                // Display a rectangle from the VSG logo
+                ImGui::Image(texture->id(cb.deviceID), ImVec2(sizex, sizey), ImVec2(0.0f, 0.0f), squareUV);
+
+                ImGui::End();
+                ImGui::PopStyleVar();
+            }
+        }
+
+        // Render GUI
+        if (m_app->m_show_gui) {
+            for (auto& gui : m_app->m_gui) {
+                if (gui->IsVisible())
+                    gui->render();
+            }
+        }
+
+    }
     ChVisualSystemVSG* m_app;
+    float m_tex_height;
 };
+
+// -----------------------------------------------------------------------------
 
 class ChBaseGuiComponentVSG : public ChGuiComponentVSG {
   public:
@@ -392,7 +444,10 @@ struct LoadOperation : public vsg::Inherit<vsg::Operation, LoadOperation> {
 // -----------------------------------------------------------------------------
 
 ChVisualSystemVSG::ChVisualSystemVSG(int num_divs)
-    : m_yup(false),
+    : m_show_logo(true),
+      m_logo_pos({10, 10}),
+      m_logo_height(64),
+      m_yup(false),
       m_useSkybox(false),
       m_capture_image(false),
       m_wireframe(false),
@@ -408,12 +463,13 @@ ChVisualSystemVSG::ChVisualSystemVSG(int num_divs)
       m_time_total(0),
       m_old_time(0),
       m_current_time(0),
-      m_fps(0),
-      m_verbose(false) {
+      m_fps(0) {
     m_windowTitle = string("Window Title");
     m_clearColor = ChColor(0, 0, 0);
     m_skyboxPath = string("vsg/textures/chrono_skybox.ktx2");
     m_cameraUpVector = vsg::dvec3(0, 0, 1);
+
+    m_logo_filename = GetChronoDataFile("logo_chronoengine_alpha.png");
 
     // creation here allows to set entries before initialize
     m_bodyScene = vsg::Group::create();
@@ -437,7 +493,7 @@ ChVisualSystemVSG::ChVisualSystemVSG(int num_divs)
     m_vsgBuilder->options = m_options;
 
     // make some default settings
-    SetWindowTitle("VSG: Vehicle Demo");
+    SetWindowTitle("");
     SetWindowSize(ChVector2i(800, 600));
     SetWindowPosition(ChVector2i(50, 50));
     SetUseSkyBox(true);
@@ -716,11 +772,11 @@ void ChVisualSystemVSG::Initialize() {
     directionalLight->name = "sun light";
     directionalLight->color.set(1.0f, 1.0f, 1.0f);
     directionalLight->intensity = m_lightIntensity;
-    if(m_use_shadows) {
+    if (m_use_shadows) {
         uint32_t numShadowsPerLight = 10;
         auto shadowSettings = vsg::HardShadows::create(numShadowsPerLight);
         directionalLight->shadowSettings = shadowSettings;
-        directionalLight->intensity *= 0.8f; // try to avoid saturation due to additional lights
+        directionalLight->intensity *= 0.8f;  // try to avoid saturation due to additional lights
     }
 
     double se = std::sin(m_elevation);
@@ -778,7 +834,7 @@ void ChVisualSystemVSG::Initialize() {
     const auto& prop = m_window->getOrCreatePhysicalDevice()->getProperties();
 
     if (m_verbose) {
-        std::cout << "****************************************************" << std::endl;
+        std::cout << "----------------------------------------------------" << std::endl;
         std::cout << "* Chrono::VSG Vulkan Scene Graph 3D-Visualization" << std::endl;
         std::cout << "* GPU Name: " << prop.deviceName << std::endl;
         switch (prop.deviceType) {
@@ -804,7 +860,7 @@ void ChVisualSystemVSG::Initialize() {
                   << VK_API_VERSION_PATCH(VK_HEADER_VERSION_COMPLETE) << std::endl;
         std::cout << "* Vulkan Scene Graph Version: " << VSG_VERSION_STRING << std::endl;
         std::cout << "* Graphic Output Possible on: " << vsg::Device::maxNumDevices() << " Screens." << std::endl;
-        std::cout << "****************************************************" << std::endl;
+        std::cout << "----------------------------------------------------" << std::endl;
     }
 
     m_window->clearColor() = VkClearColorValue{{m_clearColor.R, m_clearColor.G, m_clearColor.B, 1}};
@@ -858,34 +914,29 @@ void ChVisualSystemVSG::Initialize() {
         }
 #ifdef __APPLE__
     } else {
+        m_logo_height /= 2.0f;
         // ignore loadable ttf font
         std::cout << "App runs with standard resolution on the Mac. Font size setting ignored." << std::endl;
     }
 #endif
 
-    // Include the base GUI component
+    auto renderImGui = vsgImGui::RenderImGui::create(m_window, ChMainGuiVSG::create(this, m_options, m_logo_height));
+    renderGraph->addChild(renderImGui);
+
     m_base_gui = chrono_types::make_shared<ChBaseGuiComponentVSG>(this);
     m_base_gui->SetVisibility(m_show_base_gui);
-    GuiComponentWrapper base_gui_wrapper(m_base_gui, this);
-    auto rg = vsgImGui::RenderImGui::create(m_window, base_gui_wrapper);
+    AddGuiComponent(m_base_gui);
 
     // Add the camera info GUI component (initially invisible)
     m_camera_gui = AddGuiComponent(chrono_types::make_shared<ChCameraGuiComponentVSG>(this));
 
-    // Loop through all specified GUI components, wrap them and add them to the renderGraph
-    for (const auto& gui : m_gui) {
-        GuiComponentWrapper gui_wrapper(gui, this);
-        rg->add(gui_wrapper);
-    }
-
-    renderGraph->addChild(rg);
-
-    // Add the ImGui event handler first to handle events early
+    // ImGui events shall have priority to other events
     m_viewer->addEventHandler(vsgImGui::SendEventsToImGui::create());
 
     // Add the base keyboard event handler
     auto base_kbhandler = chrono_types::make_shared<ChBaseEventHandlerVSG>(this);
     auto base_kbhandler_wrapper = EventHandlerWrapper::create(base_kbhandler, this);
+
     m_viewer->addEventHandler(base_kbhandler_wrapper);
 
     // Add all user-specified event handlers

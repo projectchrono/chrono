@@ -129,6 +129,9 @@ class CH_FSI_API ChFsiVisualization {
     /// Return the internal Chrono system that holds visualization shapes.
     ChSystem* GetSystem() const { return m_system; }
 
+    /// Return the underlying visualization system.
+    virtual ChVisualSystem* GetVisualSystem() const = 0;
+
   protected:
     ChSystemFsi* m_systemFSI;  ///< associated Chrono::FSI system
     ChSystem* m_system;        ///< internal Chrono system (holds proxies)

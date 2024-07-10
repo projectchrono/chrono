@@ -120,9 +120,9 @@ FmuComponent::FmuComponent(fmi2String instanceName,
     AddPostStepFunction([this]() { this->CalculateTireOutputs(); });
 }
 
-class DummyWheel : public ChWheel {
+class Wheel : public ChWheel {
   public:
-    DummyWheel() : ChWheel("tire_wheel"), m_inertia(ChVector3d(0)) {}
+    Wheel() : ChWheel("tire_wheel"), m_inertia(ChVector3d(0)) {}
     virtual double GetWheelMass() const override { return 0; }
     virtual const ChVector3d& GetWheelInertia() const override { return m_inertia; }
     virtual double GetRadius() const override { return 1; }
@@ -146,7 +146,7 @@ void FmuComponent::CreateTire() {
     auto spindle = chrono_types::make_shared<ChBody>();
     sys.AddBody(spindle);
 
-    wheel = chrono_types::make_shared<DummyWheel>();
+    wheel = chrono_types::make_shared<Wheel>();
     wheel->Initialize(nullptr, spindle, LEFT);
 
     wheel->SetTire(tire);

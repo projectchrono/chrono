@@ -161,20 +161,20 @@ void CreateSolidPhase(ChSystemSMC& sysMBS, ChSystemFsi& sysFSI) {
                                    ChVector3d(bxDim, byDim, bzDim), 0.1,           //
                                    ChVector3i(2, 2, -1),                           //
                                    false);
-    box->EnableCollision(true);
+    box->EnableCollision(false);
 
     // Add BCE particles attached on the walls into FSI system
     sysFSI.AddBoxContainerBCE(box,                                            //
                               ChFrame<>(ChVector3d(0, 0, bzDim / 2), QUNIT),  //
                               ChVector3d(bxDim, byDim, bzDim),                //
-                              ChVector3i(2, 2, 2));
+                              ChVector3i(2, 2, -1));
 
     // Create a falling cylinder
     auto cylinder = chrono_types::make_shared<ChBody>();
 
     // Set the general properties of the cylinder
-    double volume = ChCylinder::GetVolume(cyl_radius, cyl_length / 2);
-    double density = sysFSI.GetDensity() * 2.0;
+    double volume = ChCylinder::GetVolume(cyl_radius, cyl_length);
+    double density = sysFSI.GetDensity() * 0.5;
     double mass = density * volume;
     ChVector3d cyl_pos = ChVector3d(0, 0, bzDim + cyl_radius + 2 * initSpace0);
     ChVector3d cyl_vel = ChVector3d(0.0, 0.0, 0.0);
@@ -184,8 +184,7 @@ void CreateSolidPhase(ChSystemSMC& sysMBS, ChSystemFsi& sysFSI) {
     cylinder->SetMass(mass);
     cylinder->SetInertiaXX(mass * gyration);
 
-    // Set the collision and visualization geometry
-    cylinder->EnableCollision(true);
+    // Set visualization geometry
     cylinder->SetFixed(false);
     chrono::utils::AddCylinderGeometry(cylinder.get(), cmaterial, cyl_radius, cyl_length, VNULL,
                                        QuatFromAngleX(CH_PI_2), show_rigid);
@@ -229,8 +228,6 @@ int main(int argc, char* argv[]) {
     ChSystemSMC sysMBS;
     ChSystemFsi sysFSI(&sysMBS);
 
-    sysMBS.SetCollisionSystemType(ChCollisionSystem::Type::BULLET);
-
     std::string inputJson = GetChronoDataFile("fsi/input_json/demo_FSI_CylinderDrop_Explicit.json");
     if (argc == 1) {
         std::cout << "Use the default JSON file" << std::endl;
@@ -246,8 +243,8 @@ int main(int argc, char* argv[]) {
 
     // Set the periodic boundary condition (if not, set relative larger values)
     auto initSpace0 = sysFSI.GetInitialSpacing();
-    ChVector3d cMin(-bxDim / 2 * 10, -byDim / 2 * 10, -bzDim * 10);
-    ChVector3d cMax(bxDim / 2 * 10, byDim / 2 * 10, bzDim * 10);
+    ChVector3d cMin(-bxDim / 2 * 1.2, -byDim / 2 * 1.2, -bzDim);
+    ChVector3d cMax( bxDim / 2 * 1.2,  byDim / 2 * 1.2,  bzDim);
     sysFSI.SetBoundaries(cMin, cMax);
 
     // Create SPH particle locations using a regular grid sampler

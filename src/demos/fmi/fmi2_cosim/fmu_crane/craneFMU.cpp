@@ -228,7 +228,7 @@ fmi2Status FmuComponent::exitInitializationModeIMPL() {
     }
 #endif
 
-    sys.DoAssembly(AssemblyLevel::FULL);
+    sys.DoAssembly(AssemblyAnalysis::Level::FULL);
 
     return fmi2Status::fmi2OK;
 }

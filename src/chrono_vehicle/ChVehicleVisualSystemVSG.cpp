@@ -315,7 +315,7 @@ void ChVehicleGuiComponentVSG::render() {
         ImGui::TableNextRow();
         ImGui::TableNextColumn();
         ImGui::TextUnformatted("Vehicle Attitude");
-        
+
         if (terrain) {
             ImGui::TableNextColumn();
             ImGui::RadioButton("absolute", &e, 0);
@@ -357,6 +357,7 @@ void ChVehicleGuiComponentVSG::render() {
 
     // Display information from powertrain system
     const auto& powertrain = m_app->GetVehicle().GetPowertrainAssembly();
+
     if (powertrain) {
         const auto& engine = powertrain->GetEngine();
         const auto& transmission = powertrain->GetTransmission();
@@ -467,22 +468,30 @@ void ChVehicleGuiComponentVSG::render() {
 
 // -----------------------------------------------------------------------------
 
-ChVehicleVisualSystemVSG::ChVehicleVisualSystemVSG() : ChVisualSystemVSG(), m_driver(nullptr) {}
+ChVehicleVisualSystemVSG::ChVehicleVisualSystemVSG() : ChVisualSystemVSG(), m_driver(nullptr) {
+    m_logo_filename = vehicle::GetDataFile("logo_chronovehicle_alpha.png");
+}
 
 ChVehicleVisualSystemVSG::~ChVehicleVisualSystemVSG() {}
 
 void ChVehicleVisualSystemVSG::Initialize() {
+    if (m_vsg_initialized)
+        return;
+
+    // Do not create a VSG camera trackball controller
+    m_camera_trackball = false;
+
     // Create vehicle-specific GUI and let derived classes append to it
     m_gui.push_back(chrono_types::make_shared<ChVehicleGuiComponentVSG>(this));
 
     // Add keyboard handler
     m_evhandler.push_back(chrono_types::make_shared<ChVehicleKeyboardHandlerVSG>(this));
 
-    // Do not create a VSG camera trackball controller
-    m_camera_trackball = false;
-
     // Invoke the base Initialize method
+    // Note: this must occur only *after* adding custom GUI components and event handlers
     ChVisualSystemVSG::Initialize();
+
+    m_vsg_initialized = true;
 }
 
 void ChVehicleVisualSystemVSG::Advance(double step) {
