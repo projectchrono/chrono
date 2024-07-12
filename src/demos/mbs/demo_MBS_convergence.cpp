@@ -193,12 +193,13 @@ int main(int argc, char* argv[]) {
     // also affects reaction forces, thus it must be deactivated (or used as a very large value)
     sys.SetMaxPenetrationRecoverySpeed(1e6);
 
+    vis->ShowConvergencePlot(true);
+
+
     // Simulation loop
     while (vis->Run()) {
         vis->BeginScene();
         vis->Render();
-
-        tools::drawHUDviolation(vis.get());
 
         vis->EndScene();
 

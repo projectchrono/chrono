@@ -532,6 +532,10 @@ void ChVisualSystemIrrlicht::ShowExplorer(bool val) {
     m_gui->show_explorer = val;
 }
 
+void ChVisualSystemIrrlicht::ShowConvergencePlot(bool val) {
+    m_gui->SetPlotConvergence(val);
+}
+
 // -----------------------------------------------------------------------------
 
 // Clean canvas at beginning of scene.

@@ -89,7 +89,7 @@ class ChApiIrr ChIrrGUI {
     void SetPlotCollisionShapes(bool val) { g_plot_collisionshapes->setChecked(val); }
     /// Set if the link frames will be plotted
     void SetPlotLinkFrames(bool val) { g_plot_linkframes->setChecked(val); }
-    /// Set if the COG frames will be plotted
+    /// Set if the convergence plot will be plotted
     void SetPlotConvergence(bool val) { g_plot_convergence->setChecked(val); }
 
     /// Set the scale for symbol drawing (link frames, COGs, etc.)

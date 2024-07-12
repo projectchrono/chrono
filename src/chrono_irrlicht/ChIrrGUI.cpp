@@ -166,8 +166,7 @@ ChIrrGUI::ChIrrGUI()
       show_infos(false),
       show_profiler(false),
       symbolscale(1),
-      camera_auto_rotate_speed(0) {
-}
+      camera_auto_rotate_speed(0) {}
 
 ChIrrGUI::~ChIrrGUI() {
     delete m_receiver;
@@ -298,8 +297,7 @@ void ChIrrGUI::Initialize(ChVisualSystemIrrlicht* vis) {
     child->setExpanded(true);
 }
 
-irr::gui::IGUITab* ChIrrGUI::AddTab(const wchar_t* caption)
-{
+irr::gui::IGUITab* ChIrrGUI::AddTab(const wchar_t* caption) {
     return g_tabbed->addTab(caption);
 }
 
