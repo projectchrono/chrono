@@ -31,6 +31,7 @@
 #include "chrono/assets/ChVisualShapeTriangleMesh.h"
 #include "chrono/assets/ChVisualShapePointPoint.h"
 #include "chrono/geometry/ChTriangleMeshConnected.h"
+#include "chrono/physics/ChHydraulicActuator.h"
 
 namespace chrono {
 namespace vsg3d {
@@ -91,6 +92,11 @@ class CH_VSG_API ShapeBuilder : public vsg::Inherit<vsg::Object, ShapeBuilder> {
                                                std::shared_ptr<ChVisualShapeSpring> ss);
 
     vsg::ref_ptr<vsg::Group> CreateUnitSegment(std::shared_ptr<ChLinkBase> link,
+                                               ChVisualModel::ShapeInstance shapeInstance,
+                                               std::shared_ptr<ChVisualMaterial> material,
+                                               vsg::ref_ptr<vsg::MatrixTransform> transform);
+
+    vsg::ref_ptr<vsg::Group> CreateUnitSegment(std::shared_ptr<ChHydraulicActuatorBase> link,
                                                ChVisualModel::ShapeInstance shapeInstance,
                                                std::shared_ptr<ChVisualMaterial> material,
                                                vsg::ref_ptr<vsg::MatrixTransform> transform);

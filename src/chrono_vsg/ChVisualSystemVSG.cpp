@@ -95,7 +95,6 @@ class ChMainGuiVSG : public vsg::Inherit<vsg::Command, ChMainGuiVSG> {
                     gui->render();
             }
         }
-
     }
     ChVisualSystemVSG* m_app;
     float m_tex_height;
@@ -476,6 +475,7 @@ ChVisualSystemVSG::ChVisualSystemVSG(int num_divs)
     m_cogFrameScene = vsg::Switch::create();
     m_jointFrameScene = vsg::Switch::create();
     m_linkScene = vsg::Group::create();
+    m_actuatorScene = vsg::Group::create();
     m_particleScene = vsg::Group::create();
     m_decoScene = vsg::Group::create();
     m_deformableScene = vsg::Group::create();
@@ -815,6 +815,7 @@ void ChVisualSystemVSG::Initialize() {
     m_scene->addChild(m_cogFrameScene);
     m_scene->addChild(m_jointFrameScene);
     m_scene->addChild(m_linkScene);
+    m_scene->addChild(m_actuatorScene);
     m_scene->addChild(m_particleScene);
     m_scene->addChild(m_decoScene);
     m_scene->addChild(m_deformableScene);
@@ -1514,6 +1515,38 @@ void ChVisualSystemVSG::BindLinkDistance(const std::shared_ptr<ChLinkDistance>& 
     }
 }
 
+void ChVisualSystemVSG::BindActuatorSegment(const std::shared_ptr<ChHydraulicActuatorBase>& dist) {
+    const auto& vis_model = dist->GetVisualModel();
+
+    if (!vis_model)
+        return;
+
+    for (auto& shape_instance : vis_model->GetShapeInstances()) {
+        auto& shape = shape_instance.first;
+        if (auto segshape = std::dynamic_pointer_cast<ChVisualShapeSegment>(shape)) {
+            double length;
+            auto X = PointPointFrame(dist->GetPoint1Abs(), dist->GetPoint2Abs(), length);
+            if (length <= 0.0) {
+                std::cout << __func__ << "(): Segment length = 0!" << std::endl;
+                std::cout << "Endpoints from actuator:" << std::endl;
+                std::cout << "  P1 = " << dist->GetPoint1Abs() << std::endl;
+                std::cout << "  P2 = " << dist->GetPoint2Abs() << std::endl;
+                std::cout << "Endpoints from shape geometry:" << std::endl;
+                std::cout << "  A  = " << segshape->GetLineGeometry()->GetEndA() << std::endl;
+                std::cout << "  B  = " << segshape->GetLineGeometry()->GetEndB() << std::endl;
+                std::cout << "Visualization impossible!" << std::endl;
+                continue;
+            }
+            std::shared_ptr<ChVisualMaterial> material =
+                shape->GetMaterials().empty() ? ChVisualMaterial::Default() : shape->GetMaterial(0);
+
+            auto transform = vsg::MatrixTransform::create();
+            transform->matrix = vsg::dmat4CH(X, ChVector3d(0, length, 0));
+            m_actuatorScene->addChild(m_shapeBuilder->CreateUnitSegment(dist, shape_instance, material, transform));
+        }
+    }
+}
+
 void ChVisualSystemVSG::BindBodyFrame(const std::shared_ptr<ChBody>& body) {
     auto cog_transform = vsg::MatrixTransform::create();
     cog_transform->matrix = vsg::dmat4CH(body->GetFrameCOMToAbs(), m_cog_frame_scale);
@@ -1601,6 +1634,10 @@ void ChVisualSystemVSG::BindAll() {
             BindMesh(item);
             if (const auto& pcloud = std::dynamic_pointer_cast<ChParticleCloud>(item))
                 BindParticleCloud(pcloud);
+            if (const auto& actuator = std::dynamic_pointer_cast<ChHydraulicActuatorBase>(item)) {
+                BindActuatorSegment(actuator);
+                std::cout << "Hydraulic Actuator." << std::endl;
+            }
         }
     }  // end loop over systems
 }
@@ -1655,6 +1692,30 @@ void ChVisualSystemVSG::UpdateFromMBS() {
         if (!child->getValue("Transform", transform))
             continue;
         transform->matrix = vsg::dmat4CH(body->GetVisualModelFrame(), 1.0);
+    }
+
+    // Update VSG nodes for actuator visualization
+    for (const auto& child : m_actuatorScene->children) {
+        std::shared_ptr<ChHydraulicActuatorBase> act;
+        ChVisualModel::ShapeInstance shapeInstance;
+        vsg::ref_ptr<vsg::MatrixTransform> transform;
+        if (!child->getValue("Actuator", act))
+            continue;
+        if (!child->getValue("ShapeInstance", shapeInstance))
+            continue;
+        if (!child->getValue("Transform", transform))
+            continue;
+        if (!act->GetVisualModel())
+            continue;
+
+        auto& shape = shapeInstance.first;
+        if (auto dist = std::dynamic_pointer_cast<ChHydraulicActuatorBase>(act)) {
+            if (auto segshape = std::dynamic_pointer_cast<ChVisualShapeSegment>(shape)) {
+                double length;
+                auto X = PointPointFrame(dist->GetPoint1Abs(), dist->GetPoint2Abs(), length);
+                transform->matrix = vsg::dmat4CH(X, ChVector3d(0, length, 0));
+            }
+        }
     }
 
     // Update VSG nodes for link visualization

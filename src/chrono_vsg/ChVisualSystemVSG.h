@@ -43,6 +43,7 @@
 #include "chrono/assets/ChVisualShapePath.h"
 
 #include "chrono/physics/ChBody.h"
+#include "chrono/physics/ChHydraulicActuator.h"
 #include "chrono/physics/ChLinkMarkers.h"
 #include "chrono/physics/ChLinkMate.h"
 #include "chrono/physics/ChLoadContainer.h"
@@ -262,6 +263,8 @@ class CH_VSG_API ChVisualSystemVSG : virtual public ChVisualSystem {
     //                            |
     //                            +- m_linkScene
     //                            |
+    //                            +- m_actuatorScene
+    //                            |
     //                            +- m_particleScene
     //                            |
     //                            +- m_decoScene
@@ -270,6 +273,7 @@ class CH_VSG_API ChVisualSystemVSG : virtual public ChVisualSystem {
     vsg::ref_ptr<vsg::Group> m_scene;
     vsg::ref_ptr<vsg::Group> m_bodyScene;
     vsg::ref_ptr<vsg::Group> m_linkScene;
+    vsg::ref_ptr<vsg::Group> m_actuatorScene;
     vsg::ref_ptr<vsg::Group> m_particleScene;
     vsg::ref_ptr<vsg::Group> m_deformableScene;
     vsg::ref_ptr<vsg::Group> m_decoScene;
@@ -326,6 +330,9 @@ class CH_VSG_API ChVisualSystemVSG : virtual public ChVisualSystem {
 
     /// Bind the visual asset assoicated with a distance constraint.
     void BindLinkDistance(const std::shared_ptr<ChLinkDistance>& dist);
+
+    /// Bind the visual asset assoicated with an actuator.
+    void BindActuatorSegment(const std::shared_ptr<ChHydraulicActuatorBase>& dist);
 
     /// Bind the body COG frame.
     void BindBodyFrame(const std::shared_ptr<ChBody>& body);
