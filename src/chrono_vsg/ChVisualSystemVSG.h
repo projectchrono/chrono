@@ -43,7 +43,6 @@
 #include "chrono/assets/ChVisualShapePath.h"
 
 #include "chrono/physics/ChBody.h"
-#include "chrono/physics/ChHydraulicActuator.h"
 #include "chrono/physics/ChLinkMarkers.h"
 #include "chrono/physics/ChLinkMate.h"
 #include "chrono/physics/ChLoadContainer.h"
@@ -261,9 +260,7 @@ class CH_VSG_API ChVisualSystemVSG : virtual public ChVisualSystem {
     //                            |
     //                            +- m_cogScene
     //                            |
-    //                            +- m_linkScene
-    //                            |
-    //                            +- m_actuatorScene
+    //                            +- m_pointpointScene
     //                            |
     //                            +- m_particleScene
     //                            |
@@ -272,8 +269,7 @@ class CH_VSG_API ChVisualSystemVSG : virtual public ChVisualSystem {
     //                            +- m_deformableScene
     vsg::ref_ptr<vsg::Group> m_scene;
     vsg::ref_ptr<vsg::Group> m_bodyScene;
-    vsg::ref_ptr<vsg::Group> m_linkScene;
-    vsg::ref_ptr<vsg::Group> m_actuatorScene;
+    vsg::ref_ptr<vsg::Group> m_pointpointScene;
     vsg::ref_ptr<vsg::Group> m_particleScene;
     vsg::ref_ptr<vsg::Group> m_deformableScene;
     vsg::ref_ptr<vsg::Group> m_decoScene;
@@ -319,20 +315,14 @@ class CH_VSG_API ChVisualSystemVSG : virtual public ChVisualSystem {
     /// Bind the visual model associated with a body.
     void BindBody(const std::shared_ptr<ChBody>& body);
 
-    /// Bind meshes in the visual model associated with the given physics item.
-    void BindMesh(const std::shared_ptr<ChPhysicsItem>& item);
+    /// Bind deformable meshes in the visual model associated with the given physics item.
+    void BindDeformableMesh(const std::shared_ptr<ChPhysicsItem>& item);
+
+    /// Bind point-point visual assets in the visual model associated with the given physics item.
+    void BindPointPoint(const std::shared_ptr<ChPhysicsItem>& item);
 
     /// Bind the visual model assoicated with a particle cloud.
     void BindParticleCloud(const std::shared_ptr<ChParticleCloud>& pcloud);
-
-    /// Bind the visual model associated with a TSDA.
-    void BindTSDA(const std::shared_ptr<ChLinkTSDA>& tsda);
-
-    /// Bind the visual asset assoicated with a distance constraint.
-    void BindLinkDistance(const std::shared_ptr<ChLinkDistance>& dist);
-
-    /// Bind the visual asset assoicated with an actuator.
-    void BindActuatorSegment(const std::shared_ptr<ChHydraulicActuatorBase>& dist);
 
     /// Bind the body COG frame.
     void BindBodyFrame(const std::shared_ptr<ChBody>& body);
