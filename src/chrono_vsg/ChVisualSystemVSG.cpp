@@ -1502,19 +1502,9 @@ void ChVisualSystemVSG::BindBodyFrame(const std::shared_ptr<ChBody>& body) {
     m_cogFrameScene->addChild(mask, cog_node);
 }
 
-void ChVisualSystemVSG::BindLinkFrame(const std::shared_ptr<ChLinkBase>& link) {
-    ChFrame<> frameA;
-    ChFrame<> frameB;
-    if (auto link_markers = std::dynamic_pointer_cast<ChLinkMarkers>(link)) {
-        frameA = *link_markers->GetMarker1() >> *link_markers->GetBody1();
-        frameB = *link_markers->GetMarker2() >> *link_markers->GetBody2();
-    } else if (auto link_mate = std::dynamic_pointer_cast<ChLinkMateGeneric>(link)) {
-        frameA = link_mate->GetFrame1Rel() >> *link_mate->GetBody1();
-        frameB = link_mate->GetFrame2Rel() >> *link_mate->GetBody2();
-    }
-
+void ChVisualSystemVSG::BindLinkFrame(const std::shared_ptr<ChLink>& link) {
     auto joint_transform = vsg::MatrixTransform::create();
-    joint_transform->matrix = vsg::dmat4CH(frameB, m_joint_frame_scale);
+    joint_transform->matrix = vsg::dmat4CH(link->GetFrame1Abs(), m_joint_frame_scale);
     vsg::Mask mask = m_show_cog_frames;
     auto joint_node = m_shapeBuilder->createFrameSymbol(joint_transform, 0.5f);
     joint_node->setValue("Joint", link);
@@ -1529,7 +1519,7 @@ void ChVisualSystemVSG::BindItem(std::shared_ptr<ChPhysicsItem> item) {
         return;
     }
 
-    if (auto link = std::dynamic_pointer_cast<ChLinkBase>(item)) {
+    if (auto link = std::dynamic_pointer_cast<ChLink>(item)) {
         BindLinkFrame(link);
         BindPointPoint(link);
         return;
@@ -1559,8 +1549,10 @@ void ChVisualSystemVSG::BindAll() {
 
         // Bind visual models associated with links in the system
         for (const auto& link : sys->GetLinks()) {
-            BindLinkFrame(link);
-            BindPointPoint(link);
+            if (auto link1 = std::dynamic_pointer_cast<ChLink>(link)) {
+                BindLinkFrame(link1);
+                BindPointPoint(link1);
+            }
         }
 
         // Bind visual models associated with FEA meshes
@@ -1599,24 +1591,14 @@ void ChVisualSystemVSG::UpdateFromMBS() {
     // Update VSG nodes for joint frame visualization
     if (m_show_joint_frames) {
         for (auto& child : m_jointFrameScene->children) {
-            std::shared_ptr<ChLinkBase> link;
+            std::shared_ptr<ChLink> link;
             vsg::ref_ptr<vsg::MatrixTransform> transform;
             if (!child.node->getValue("Joint", link))
                 continue;
             if (!child.node->getValue("Transform", transform))
                 continue;
 
-            ChFrame<> frameA;
-            ChFrame<> frameB;
-            if (auto link_markers = std::dynamic_pointer_cast<ChLinkMarkers>(link)) {
-                frameA = *link_markers->GetMarker1() >> *link_markers->GetBody1();
-                frameB = *link_markers->GetMarker2() >> *link_markers->GetBody2();
-            } else if (auto link_mate = std::dynamic_pointer_cast<ChLinkMateGeneric>(link)) {
-                frameA = link_mate->GetFrame1Rel() >> *link_mate->GetBody1();
-                frameB = link_mate->GetFrame2Rel() >> *link_mate->GetBody2();
-            }
-
-            transform->matrix = vsg::dmat4CH(frameB, m_joint_frame_scale);
+            transform->matrix = vsg::dmat4CH(link->GetFrame1Abs(), m_joint_frame_scale);
         }
     }
 

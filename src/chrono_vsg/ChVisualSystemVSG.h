@@ -43,8 +43,7 @@
 #include "chrono/assets/ChVisualShapePath.h"
 
 #include "chrono/physics/ChBody.h"
-#include "chrono/physics/ChLinkMarkers.h"
-#include "chrono/physics/ChLinkMate.h"
+#include "chrono/physics/ChLink.h"
 #include "chrono/physics/ChLoadContainer.h"
 #include "chrono/physics/ChParticleCloud.h"
 
@@ -328,7 +327,7 @@ class CH_VSG_API ChVisualSystemVSG : virtual public ChVisualSystem {
     void BindBodyFrame(const std::shared_ptr<ChBody>& body);
 
     /// Bind the joint frames.
-    void BindLinkFrame(const std::shared_ptr<ChLinkBase>& link);
+    void BindLinkFrame(const std::shared_ptr<ChLink>& link);
 
     /// Utility function to populate a VSG group with shape groups (from the given visual model).
     /// The visual model may or may not be associated with a Chrono physics item.
