@@ -84,7 +84,7 @@ class CH_VEHICLE_API ChAutomaticTransmissionShafts : public ChAutomaticTransmiss
     virtual double GetOutputMotorshaftSpeed() const override;
 
     /// Return the reaction torque on the chassis body.
-    virtual double GetChassisReactionTorque() const { return -m_transmissionblock_to_body->GetTorqueReactionOnShaft(); }
+    virtual double GetChassisReactionTorque() const override { return -m_transmissionblock_to_body->GetTorqueReactionOnShaft(); }
 
   protected:
     /// Set inertia of the transmission block.
