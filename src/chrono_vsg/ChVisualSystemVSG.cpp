@@ -1503,13 +1503,27 @@ void ChVisualSystemVSG::BindBodyFrame(const std::shared_ptr<ChBody>& body) {
 }
 
 void ChVisualSystemVSG::BindLinkFrame(const std::shared_ptr<ChLink>& link) {
-    auto joint_transform = vsg::MatrixTransform::create();
-    joint_transform->matrix = vsg::dmat4CH(link->GetFrame1Abs(), m_joint_frame_scale);
     vsg::Mask mask = m_show_cog_frames;
-    auto joint_node = m_shapeBuilder->createFrameSymbol(joint_transform, 0.5f);
-    joint_node->setValue("Joint", link);
-    joint_node->setValue("Transform", joint_transform);
-    m_jointFrameScene->addChild(mask, joint_node);
+
+    {
+        auto joint_transform = vsg::MatrixTransform::create();
+        joint_transform->matrix = vsg::dmat4CH(link->GetFrame1Abs(), m_joint_frame_scale);
+        auto joint_node = m_shapeBuilder->createFrameSymbol(joint_transform, 0.75f);
+        joint_node->setValue("Joint", link);
+        joint_node->setValue("Body", 1);
+        joint_node->setValue("Transform", joint_transform);
+        m_jointFrameScene->addChild(mask, joint_node);
+    }
+
+    {
+        auto joint_transform = vsg::MatrixTransform::create();
+        joint_transform->matrix = vsg::dmat4CH(link->GetFrame2Abs(), m_joint_frame_scale);
+        auto joint_node = m_shapeBuilder->createFrameSymbol(joint_transform, 0.5f);
+        joint_node->setValue("Joint", link);
+        joint_node->setValue("Body", 2);
+        joint_node->setValue("Transform", joint_transform);
+        m_jointFrameScene->addChild(mask, joint_node);
+    }
 }
 
 void ChVisualSystemVSG::BindItem(std::shared_ptr<ChPhysicsItem> item) {
@@ -1593,12 +1607,18 @@ void ChVisualSystemVSG::UpdateFromMBS() {
         for (auto& child : m_jointFrameScene->children) {
             std::shared_ptr<ChLink> link;
             vsg::ref_ptr<vsg::MatrixTransform> transform;
+            int body;
             if (!child.node->getValue("Joint", link))
                 continue;
             if (!child.node->getValue("Transform", transform))
                 continue;
+            if (!child.node->getValue("Body", body))
+                continue;
 
-            transform->matrix = vsg::dmat4CH(link->GetFrame1Abs(), m_joint_frame_scale);
+            if (body == 1)
+                transform->matrix = vsg::dmat4CH(link->GetFrame1Abs(), m_joint_frame_scale);
+            else
+                transform->matrix = vsg::dmat4CH(link->GetFrame2Abs(), m_joint_frame_scale);
         }
     }
 
