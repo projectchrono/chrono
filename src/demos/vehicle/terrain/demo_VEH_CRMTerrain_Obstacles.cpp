@@ -53,6 +53,18 @@ const std::string out_dir = GetChronoOutputPath() + "SPH_TERRAIN_OBSTACLE";
 
 // -----------------------------------------------------------------------------
 
+class PositionVisibilityCallback : public ChParticleCloud::VisibilityCallback {
+  public:
+    PositionVisibilityCallback() {}
+
+    virtual bool get(unsigned int n, const ChParticleCloud& cloud) const override {
+        auto p = cloud.GetParticlePos(n);
+        return p.x() < 0 || p.y() < 0;
+    };
+};
+
+// -----------------------------------------------------------------------------
+
 int main(int argc, char* argv[]) {
     // Parse command line arguments
     double density = 1700;
@@ -180,6 +192,7 @@ int main(int argc, char* argv[]) {
         visFSI->SetRenderMode(ChFsiVisualization::RenderMode::SOLID);
         visFSI->SetParticleRenderMode(ChFsiVisualization::RenderMode::SOLID);
         visFSI->SetSPHColorCallback(chrono_types::make_shared<HeightColorCallback>(-0.3, 0.3));
+        visFSI->SetSPHVisibilityCallback(chrono_types::make_shared<PositionVisibilityCallback>());
         visFSI->AttachSystem(&sys);
         visFSI->Initialize();
     }

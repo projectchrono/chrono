@@ -240,6 +240,23 @@ class ChApi ChParticleCloud : public ChIndexedParticles {
     /// Return the color given by a ColorCallback, if one was provided. Otherwise return a default color.
     ChColor GetVisualColor(unsigned int n) const;
 
+    /// Class to be used as a callback interface for dynamic visibility of particles in a cloud.
+    class ChApi VisibilityCallback {
+      public:
+        virtual ~VisibilityCallback() {}
+
+        /// Return a boolean indicating whether or not the given particle is visible or not.
+        virtual bool get(unsigned int n, const ChParticleCloud& cloud) const = 0;
+    };
+
+    /// Set callback to dynamically set particle visibility (default: none).
+    /// If enabled, a visualization system could use this for conditionally rendering particles in a cloud.
+    void RegisterVisibilityCallback(std::shared_ptr<VisibilityCallback> callback) { m_vis_fun = callback; }
+
+    /// Return a boolean indicating whether or not the specified particle is visible.
+    /// Return the result given by a VisibilityCallback, if one was provided. Otherwise return true.
+    bool IsVisible(unsigned int n) const;
+
     // STATE FUNCTIONS
 
     // (override/implement interfaces for global state vectors, see ChPhysicsItem for comments.)
@@ -376,7 +393,8 @@ class ChApi ChParticleCloud : public ChIndexedParticles {
     std::vector<ChParticle*> particles;  ///< the particles
     ChSharedMassBody particle_mass;      ///< shared mass of particles
 
-    std::shared_ptr<ColorCallback> m_color_fun;  ///< callback for dynamic coloring
+    std::shared_ptr<ColorCallback> m_color_fun;     ///< callback for dynamic coloring
+    std::shared_ptr<VisibilityCallback> m_vis_fun;  ///< callback for particle visibility
 
     std::shared_ptr<ChCollisionModel> particle_collision_model;  ///< sample collision model
 

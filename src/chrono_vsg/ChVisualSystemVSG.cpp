@@ -1006,11 +1006,18 @@ void ChVisualSystemVSG::Render() {
     m_viewer->update();
 
     // Dynamic data transfer CPU->GPU for point clouds
+    auto hide_pos = m_lookAt->eye - (m_lookAt->center - m_lookAt->eye) * 0.1;
+
     for (const auto& cloud : m_clouds) {
         if (cloud.dynamic_positions) {
             unsigned int k = 0;
-            for (auto& p : *cloud.positions)
-                p = vsg::vec3CH(cloud.pcloud->Particle(k++).GetPos());
+            for (auto& p : *cloud.positions) {
+                if (cloud.pcloud->IsVisible(k))
+                    p = vsg::vec3CH(cloud.pcloud->Particle(k).GetPos());
+                else
+                    p = hide_pos;//vsg::vec3(0, 0, 0);
+                k++;
+            }
             cloud.positions->dirty();
         }
         if (cloud.dynamic_colors) {

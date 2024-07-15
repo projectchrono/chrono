@@ -142,6 +142,7 @@ void ChFsiVisualizationVSG::Initialize() {
         sph->SetColor(ChColor(0.10f, 0.40f, 0.65f));
         m_sph_cloud->AddVisualShape(sph);
         m_sph_cloud->RegisterColorCallback(m_color_fun);
+        m_sph_cloud->RegisterVisibilityCallback(m_vis_fun);
         m_system->Add(m_sph_cloud);
     }
 
