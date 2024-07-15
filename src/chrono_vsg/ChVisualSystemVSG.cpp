@@ -33,23 +33,74 @@ using namespace std;
 
 // -----------------------------------------------------------------------------
 
-class GuiComponentWrapper {
+class ChMainGuiVSG : public vsg::Inherit<vsg::Command, ChMainGuiVSG> {
   public:
-    GuiComponentWrapper(std::shared_ptr<ChGuiComponentVSG> component, ChVisualSystemVSG* app)
-        : m_component(component), m_app(app) {}
+    vsg::ref_ptr<vsgImGui::Texture> texture;
 
-    bool operator()() {
-        if (m_app->IsGuiVisible() && m_component->IsVisible()) {
-            m_component->render();
-            return true;
-        }
-        return false;
+    ChMainGuiVSG(ChVisualSystemVSG* app, vsg::ref_ptr<vsg::Options> options = {}, float tex_height = 64)
+        : m_app(app), m_tex_height(tex_height) {
+        auto texData = vsg::read_cast<vsg::Data>(m_app->m_logo_filename, options);
+        texture = vsgImGui::Texture::create_if(texData, texData);
     }
 
-  private:
-    std::shared_ptr<ChGuiComponentVSG> m_component;
+    // we need to compile textures before we can use them for rendering
+    void compile(vsg::Context& context) override {
+        if (texture)
+            texture->compile(context);
+    }
+
+    // Example here taken from the Dear imgui comments (mostly)
+    void record(vsg::CommandBuffer& cb) const override {
+        // Display logo first, so gui elements can cover it.
+        // When the logo covers gui elements, sometimes gui malfunctions occur.
+        if (texture) {
+            // UV in the logo texture - usually rectangular
+            ImVec2 squareUV(1.0f, 1.0f);
+
+            if (m_app->m_show_logo) {
+                const float sizey = m_tex_height;
+                const float sizex = sizey * static_cast<float>(texture->width) / texture->height;
+                const float pad = 10;
+
+                // Copied from imgui_demo.cpp simple overlay
+                ImGuiWindowFlags window_flags = ImGuiWindowFlags_NoDecoration | ImGuiWindowFlags_AlwaysAutoResize |
+                                                ImGuiWindowFlags_NoSavedSettings | ImGuiWindowFlags_NoFocusOnAppearing |
+                                                ImGuiWindowFlags_NoNav;
+                const ImGuiViewport* viewport = ImGui::GetMainViewport();
+                ImVec2 work_pos = viewport->WorkPos;  // Use work area to avoid menu-bar/task-bar, if any!
+                ImVec2 work_size = viewport->WorkSize;
+                ImVec2 window_pos, window_pos_pivot;
+                window_pos.x = work_pos.x + work_size.x - sizex - m_app->m_logo_pos.x() - pad;
+                window_pos.y = work_pos.y + sizey + m_app->m_logo_pos.y() + pad;
+                window_pos_pivot.x = 0.0f;
+                window_pos_pivot.y = 1.0f;
+                ImGui::SetNextWindowPos(window_pos, ImGuiCond_Always, window_pos_pivot);
+                window_flags |= ImGuiWindowFlags_NoMove;
+                ImGui::SetNextWindowBgAlpha(0.0f);  // Transparent background
+                ImGui::PushStyleVar(ImGuiStyleVar_WindowBorderSize, 0.0f);
+                ImGui::Begin("vsgCS UI", nullptr, window_flags);
+
+                // Display a rectangle from the VSG logo
+                ImGui::Image(texture->id(cb.deviceID), ImVec2(sizex, sizey), ImVec2(0.0f, 0.0f), squareUV);
+
+                ImGui::End();
+                ImGui::PopStyleVar();
+            }
+        }
+
+        // Render GUI
+        if (m_app->m_show_gui) {
+            for (auto& gui : m_app->m_gui) {
+                if (gui->IsVisible())
+                    gui->render();
+            }
+        }
+    }
     ChVisualSystemVSG* m_app;
+    float m_tex_height;
 };
+
+// -----------------------------------------------------------------------------
 
 class ChBaseGuiComponentVSG : public ChGuiComponentVSG {
   public:
@@ -392,7 +443,10 @@ struct LoadOperation : public vsg::Inherit<vsg::Operation, LoadOperation> {
 // -----------------------------------------------------------------------------
 
 ChVisualSystemVSG::ChVisualSystemVSG(int num_divs)
-    : m_yup(false),
+    : m_show_logo(true),
+      m_logo_pos({10, 10}),
+      m_logo_height(64),
+      m_yup(false),
       m_useSkybox(false),
       m_capture_image(false),
       m_wireframe(false),
@@ -414,11 +468,13 @@ ChVisualSystemVSG::ChVisualSystemVSG(int num_divs)
     m_skyboxPath = string("vsg/textures/chrono_skybox.ktx2");
     m_cameraUpVector = vsg::dvec3(0, 0, 1);
 
+    m_logo_filename = GetChronoDataFile("logo_chronoengine_alpha.png");
+
     // creation here allows to set entries before initialize
     m_bodyScene = vsg::Group::create();
     m_cogFrameScene = vsg::Switch::create();
     m_jointFrameScene = vsg::Switch::create();
-    m_linkScene = vsg::Group::create();
+    m_pointpointScene = vsg::Group::create();
     m_particleScene = vsg::Group::create();
     m_decoScene = vsg::Group::create();
     m_deformableScene = vsg::Group::create();
@@ -436,7 +492,7 @@ ChVisualSystemVSG::ChVisualSystemVSG(int num_divs)
     m_vsgBuilder->options = m_options;
 
     // make some default settings
-    SetWindowTitle("VSG: Vehicle Demo");
+    SetWindowTitle("");
     SetWindowSize(ChVector2i(800, 600));
     SetWindowPosition(ChVector2i(50, 50));
     SetUseSkyBox(true);
@@ -715,11 +771,11 @@ void ChVisualSystemVSG::Initialize() {
     directionalLight->name = "sun light";
     directionalLight->color.set(1.0f, 1.0f, 1.0f);
     directionalLight->intensity = m_lightIntensity;
-    if(m_use_shadows) {
+    if (m_use_shadows) {
         uint32_t numShadowsPerLight = 10;
         auto shadowSettings = vsg::HardShadows::create(numShadowsPerLight);
         directionalLight->shadowSettings = shadowSettings;
-        directionalLight->intensity *= 0.8f; // try to avoid saturation due to additional lights
+        directionalLight->intensity *= 0.8f;  // try to avoid saturation due to additional lights
     }
 
     double se = std::sin(m_elevation);
@@ -757,7 +813,7 @@ void ChVisualSystemVSG::Initialize() {
     m_scene->addChild(m_bodyScene);
     m_scene->addChild(m_cogFrameScene);
     m_scene->addChild(m_jointFrameScene);
-    m_scene->addChild(m_linkScene);
+    m_scene->addChild(m_pointpointScene);
     m_scene->addChild(m_particleScene);
     m_scene->addChild(m_decoScene);
     m_scene->addChild(m_deformableScene);
@@ -857,34 +913,29 @@ void ChVisualSystemVSG::Initialize() {
         }
 #ifdef __APPLE__
     } else {
+        m_logo_height /= 2.0f;
         // ignore loadable ttf font
         std::cout << "App runs with standard resolution on the Mac. Font size setting ignored." << std::endl;
     }
 #endif
 
-    // Include the base GUI component
+    auto renderImGui = vsgImGui::RenderImGui::create(m_window, ChMainGuiVSG::create(this, m_options, m_logo_height));
+    renderGraph->addChild(renderImGui);
+
     m_base_gui = chrono_types::make_shared<ChBaseGuiComponentVSG>(this);
     m_base_gui->SetVisibility(m_show_base_gui);
-    GuiComponentWrapper base_gui_wrapper(m_base_gui, this);
-    auto rg = vsgImGui::RenderImGui::create(m_window, base_gui_wrapper);
+    AddGuiComponent(m_base_gui);
 
     // Add the camera info GUI component (initially invisible)
     m_camera_gui = AddGuiComponent(chrono_types::make_shared<ChCameraGuiComponentVSG>(this));
 
-    // Loop through all specified GUI components, wrap them and add them to the renderGraph
-    for (const auto& gui : m_gui) {
-        GuiComponentWrapper gui_wrapper(gui, this);
-        rg->add(gui_wrapper);
-    }
-
-    renderGraph->addChild(rg);
-
-    // Add the ImGui event handler first to handle events early
+    // ImGui events shall have priority to other events
     m_viewer->addEventHandler(vsgImGui::SendEventsToImGui::create());
 
     // Add the base keyboard event handler
     auto base_kbhandler = chrono_types::make_shared<ChBaseEventHandlerVSG>(this);
     auto base_kbhandler_wrapper = EventHandlerWrapper::create(base_kbhandler, this);
+
     m_viewer->addEventHandler(base_kbhandler_wrapper);
 
     // Add all user-specified event handlers
@@ -955,11 +1006,18 @@ void ChVisualSystemVSG::Render() {
     m_viewer->update();
 
     // Dynamic data transfer CPU->GPU for point clouds
+    auto hide_pos = m_lookAt->eye - (m_lookAt->center - m_lookAt->eye) * 0.1;
+
     for (const auto& cloud : m_clouds) {
         if (cloud.dynamic_positions) {
             unsigned int k = 0;
-            for (auto& p : *cloud.positions)
-                p = vsg::vec3CH(cloud.pcloud->Particle(k++).GetPos());
+            for (auto& p : *cloud.positions) {
+                if (cloud.pcloud->IsVisible(k))
+                    p = vsg::vec3CH(cloud.pcloud->Particle(k).GetPos());
+                else
+                    p = hide_pos;//vsg::vec3(0, 0, 0);
+                k++;
+            }
             cloud.positions->dirty();
         }
         if (cloud.dynamic_colors) {
@@ -1246,7 +1304,7 @@ void ChVisualSystemVSG::BindBody(const std::shared_ptr<ChBody>& body) {
     m_bodyScene->addChild(modelGroup);
 }
 
-void ChVisualSystemVSG::BindMesh(const std::shared_ptr<ChPhysicsItem>& item) {
+void ChVisualSystemVSG::BindDeformableMesh(const std::shared_ptr<ChPhysicsItem>& item) {
     const auto& vis_model = item->GetVisualModel();
 
     if (!vis_model)
@@ -1299,6 +1357,38 @@ void ChVisualSystemVSG::BindMesh(const std::shared_ptr<ChPhysicsItem>& item) {
         }
 
         m_def_meshes.push_back(def_mesh);
+    }
+}
+
+void ChVisualSystemVSG::BindPointPoint(const std::shared_ptr<ChPhysicsItem>& item) {
+    const auto& vis_model = item->GetVisualModel();
+
+    if (!vis_model)
+        return;
+
+    for (auto& shape_instance : vis_model->GetShapeInstances()) {
+        auto& shape = shape_instance.first;
+        if (auto segshape = std::dynamic_pointer_cast<ChVisualShapeSegment>(shape)) {
+            double length;
+            auto X = PointPointFrame(segshape->GetPoint1Abs(), segshape->GetPoint2Abs(), length);
+            std::shared_ptr<ChVisualMaterial> material =
+                shape->GetMaterials().empty() ? ChVisualMaterial::Default() : shape->GetMaterial(0);
+
+            auto transform = vsg::MatrixTransform::create();
+            transform->matrix = vsg::dmat4CH(X, ChVector3d(0, length, 0));
+            m_pointpointScene->addChild(m_shapeBuilder->CreateUnitSegment(shape_instance, material, transform));
+        } else if (auto sprshape = std::dynamic_pointer_cast<ChVisualShapeSpring>(shape)) {
+            double rad = sprshape->GetRadius();
+            double length;
+            auto X = PointPointFrame(sprshape->GetPoint1Abs(), sprshape->GetPoint2Abs(), length);
+            std::shared_ptr<ChVisualMaterial> material =
+                shape->GetMaterials().empty() ? ChVisualMaterial::Default() : shape->GetMaterial(0);
+
+            auto transform = vsg::MatrixTransform::create();
+            transform->matrix = vsg::dmat4CH(X, ChVector3d(rad, length, rad));
+            m_pointpointScene->addChild(
+                m_shapeBuilder->CreateSpringShape(shape_instance, material, transform, sprshape));
+        }
     }
 }
 
@@ -1409,59 +1499,6 @@ void ChVisualSystemVSG::BindParticleCloud(const std::shared_ptr<ChParticleCloud>
     m_clouds.push_back(cloud);
 }
 
-void ChVisualSystemVSG::BindTSDA(const std::shared_ptr<ChLinkTSDA>& tsda) {
-    const auto& vis_model = tsda->GetVisualModel();
-
-    if (!vis_model)
-        return;
-
-    for (auto& shape_instance : vis_model->GetShapeInstances()) {
-        auto& shape = shape_instance.first;
-        if (auto segshape = std::dynamic_pointer_cast<ChVisualShapeSegment>(shape)) {
-            double length;
-            auto X = PointPointFrame(tsda->GetPoint1Abs(), tsda->GetPoint2Abs(), length);
-            std::shared_ptr<ChVisualMaterial> material =
-                shape->GetMaterials().empty() ? ChVisualMaterial::Default() : shape->GetMaterial(0);
-
-            auto transform = vsg::MatrixTransform::create();
-            transform->matrix = vsg::dmat4CH(X, ChVector3d(0, length, 0));
-            m_linkScene->addChild(m_shapeBuilder->CreateUnitSegment(tsda, shape_instance, material, transform));
-        } else if (auto sprshape = std::dynamic_pointer_cast<ChVisualShapeSpring>(shape)) {
-            double rad = sprshape->GetRadius();
-            double length;
-            auto X = PointPointFrame(tsda->GetPoint1Abs(), tsda->GetPoint2Abs(), length);
-            std::shared_ptr<ChVisualMaterial> material =
-                shape->GetMaterials().empty() ? ChVisualMaterial::Default() : shape->GetMaterial(0);
-
-            auto transform = vsg::MatrixTransform::create();
-            transform->matrix = vsg::dmat4CH(X, ChVector3d(rad, length, rad));
-            m_linkScene->addChild(
-                m_shapeBuilder->CreateSpringShape(tsda, shape_instance, material, transform, sprshape));
-        }
-    }
-}
-
-void ChVisualSystemVSG::BindLinkDistance(const std::shared_ptr<ChLinkDistance>& dist) {
-    const auto& vis_model = dist->GetVisualModel();
-
-    if (!vis_model)
-        return;
-
-    for (auto& shape_instance : vis_model->GetShapeInstances()) {
-        auto& shape = shape_instance.first;
-        if (auto segshape = std::dynamic_pointer_cast<ChVisualShapeSegment>(shape)) {
-            double length;
-            auto X = PointPointFrame(dist->GetEndPoint1Abs(), dist->GetEndPoint2Abs(), length);
-            std::shared_ptr<ChVisualMaterial> material =
-                shape->GetMaterials().empty() ? ChVisualMaterial::Default() : shape->GetMaterial(0);
-
-            auto transform = vsg::MatrixTransform::create();
-            transform->matrix = vsg::dmat4CH(X, ChVector3d(0, length, 0));
-            m_linkScene->addChild(m_shapeBuilder->CreateUnitSegment(dist, shape_instance, material, transform));
-        }
-    }
-}
-
 void ChVisualSystemVSG::BindBodyFrame(const std::shared_ptr<ChBody>& body) {
     auto cog_transform = vsg::MatrixTransform::create();
     cog_transform->matrix = vsg::dmat4CH(body->GetFrameCOMToAbs(), m_cog_frame_scale);
@@ -1472,24 +1509,28 @@ void ChVisualSystemVSG::BindBodyFrame(const std::shared_ptr<ChBody>& body) {
     m_cogFrameScene->addChild(mask, cog_node);
 }
 
-void ChVisualSystemVSG::BindLinkFrame(const std::shared_ptr<ChLinkBase>& link) {
-    ChFrame<> frameA;
-    ChFrame<> frameB;
-    if (auto link_markers = std::dynamic_pointer_cast<ChLinkMarkers>(link)) {
-        frameA = *link_markers->GetMarker1() >> *link_markers->GetBody1();
-        frameB = *link_markers->GetMarker2() >> *link_markers->GetBody2();
-    } else if (auto link_mate = std::dynamic_pointer_cast<ChLinkMateGeneric>(link)) {
-        frameA = link_mate->GetFrame1Rel() >> *link_mate->GetBody1();
-        frameB = link_mate->GetFrame2Rel() >> *link_mate->GetBody2();
+void ChVisualSystemVSG::BindLinkFrame(const std::shared_ptr<ChLink>& link) {
+    vsg::Mask mask = m_show_cog_frames;
+
+    {
+        auto joint_transform = vsg::MatrixTransform::create();
+        joint_transform->matrix = vsg::dmat4CH(link->GetFrame1Abs(), m_joint_frame_scale);
+        auto joint_node = m_shapeBuilder->createFrameSymbol(joint_transform, 0.75f);
+        joint_node->setValue("Joint", link);
+        joint_node->setValue("Body", 1);
+        joint_node->setValue("Transform", joint_transform);
+        m_jointFrameScene->addChild(mask, joint_node);
     }
 
-    auto joint_transform = vsg::MatrixTransform::create();
-    joint_transform->matrix = vsg::dmat4CH(frameB, m_joint_frame_scale);
-    vsg::Mask mask = m_show_cog_frames;
-    auto joint_node = m_shapeBuilder->createFrameSymbol(joint_transform, 0.5f);
-    joint_node->setValue("Joint", link);
-    joint_node->setValue("Transform", joint_transform);
-    m_jointFrameScene->addChild(mask, joint_node);
+    {
+        auto joint_transform = vsg::MatrixTransform::create();
+        joint_transform->matrix = vsg::dmat4CH(link->GetFrame2Abs(), m_joint_frame_scale);
+        auto joint_node = m_shapeBuilder->createFrameSymbol(joint_transform, 0.5f);
+        joint_node->setValue("Joint", link);
+        joint_node->setValue("Body", 2);
+        joint_node->setValue("Transform", joint_transform);
+        m_jointFrameScene->addChild(mask, joint_node);
+    }
 }
 
 void ChVisualSystemVSG::BindItem(std::shared_ptr<ChPhysicsItem> item) {
@@ -1499,23 +1540,21 @@ void ChVisualSystemVSG::BindItem(std::shared_ptr<ChPhysicsItem> item) {
         return;
     }
 
-    if (auto link = std::dynamic_pointer_cast<ChLinkBase>(item)) {
+    if (auto link = std::dynamic_pointer_cast<ChLink>(item)) {
         BindLinkFrame(link);
-        if (const auto& tsda = std::dynamic_pointer_cast<ChLinkTSDA>(link))
-            BindTSDA(tsda);
-        else if (const auto& dist = std::dynamic_pointer_cast<ChLinkDistance>(link))
-            BindLinkDistance(dist);
+        BindPointPoint(link);
         return;
     }
 
     if (auto mesh = std::dynamic_pointer_cast<fea::ChMesh>(item)) {
         mesh->UpdateVisualModel();
-        BindMesh(mesh);
+        BindDeformableMesh(mesh);
         return;
     }
 
     if (item->GetVisualModel()) {
-        BindMesh(item);
+        BindDeformableMesh(item);
+        BindPointPoint(item);
         if (const auto& pcloud = std::dynamic_pointer_cast<ChParticleCloud>(item))
             BindParticleCloud(pcloud);
     }
@@ -1531,22 +1570,22 @@ void ChVisualSystemVSG::BindAll() {
 
         // Bind visual models associated with links in the system
         for (const auto& link : sys->GetLinks()) {
-            BindLinkFrame(link);
-            if (const auto& tsda = std::dynamic_pointer_cast<ChLinkTSDA>(link))
-                BindTSDA(tsda);
-            else if (const auto& dist = std::dynamic_pointer_cast<ChLinkDistance>(link))
-                BindLinkDistance(dist);
+            if (auto link1 = std::dynamic_pointer_cast<ChLink>(link)) {
+                BindLinkFrame(link1);
+                BindPointPoint(link1);
+            }
         }
 
         // Bind visual models associated with FEA meshes
         for (const auto& mesh : sys->GetAssembly().GetMeshes()) {
             mesh->UpdateVisualModel();
-            BindMesh(mesh);
+            BindDeformableMesh(mesh);
         }
 
         // Bind visual models associated with other physics items in the system
         for (const auto& item : sys->GetOtherPhysicsItems()) {
-            BindMesh(item);
+            BindDeformableMesh(item);
+            BindPointPoint(item);
             if (const auto& pcloud = std::dynamic_pointer_cast<ChParticleCloud>(item))
                 BindParticleCloud(pcloud);
         }
@@ -1573,24 +1612,20 @@ void ChVisualSystemVSG::UpdateFromMBS() {
     // Update VSG nodes for joint frame visualization
     if (m_show_joint_frames) {
         for (auto& child : m_jointFrameScene->children) {
-            std::shared_ptr<ChLinkBase> link;
+            std::shared_ptr<ChLink> link;
             vsg::ref_ptr<vsg::MatrixTransform> transform;
+            int body;
             if (!child.node->getValue("Joint", link))
                 continue;
             if (!child.node->getValue("Transform", transform))
                 continue;
+            if (!child.node->getValue("Body", body))
+                continue;
 
-            ChFrame<> frameA;
-            ChFrame<> frameB;
-            if (auto link_markers = std::dynamic_pointer_cast<ChLinkMarkers>(link)) {
-                frameA = *link_markers->GetMarker1() >> *link_markers->GetBody1();
-                frameB = *link_markers->GetMarker2() >> *link_markers->GetBody2();
-            } else if (auto link_mate = std::dynamic_pointer_cast<ChLinkMateGeneric>(link)) {
-                frameA = link_mate->GetFrame1Rel() >> *link_mate->GetBody1();
-                frameB = link_mate->GetFrame2Rel() >> *link_mate->GetBody2();
-            }
-
-            transform->matrix = vsg::dmat4CH(frameB, m_joint_frame_scale);
+            if (body == 1)
+                transform->matrix = vsg::dmat4CH(link->GetFrame1Abs(), m_joint_frame_scale);
+            else
+                transform->matrix = vsg::dmat4CH(link->GetFrame2Abs(), m_joint_frame_scale);
         }
     }
 
@@ -1605,40 +1640,26 @@ void ChVisualSystemVSG::UpdateFromMBS() {
         transform->matrix = vsg::dmat4CH(body->GetVisualModelFrame(), 1.0);
     }
 
-    // Update VSG nodes for link visualization
-    for (const auto& child : m_linkScene->children) {
-        std::shared_ptr<ChLinkBase> link;
+    // Update all VSG nodes with point-point visualization assets
+    for (const auto& child : m_pointpointScene->children) {
         ChVisualModel::ShapeInstance shapeInstance;
         vsg::ref_ptr<vsg::MatrixTransform> transform;
-        if (!child->getValue("Link", link))
-            continue;
         if (!child->getValue("ShapeInstance", shapeInstance))
             continue;
         if (!child->getValue("Transform", transform))
             continue;
 
-        if (!link->GetVisualModel())
-            continue;
-
         auto& shape = shapeInstance.first;
 
-        if (auto tsda = std::dynamic_pointer_cast<ChLinkTSDA>(link)) {
-            if (auto segshape = std::dynamic_pointer_cast<ChVisualShapeSegment>(shape)) {
-                double length;
-                auto X = PointPointFrame(tsda->GetPoint1Abs(), tsda->GetPoint2Abs(), length);
-                transform->matrix = vsg::dmat4CH(X, ChVector3d(0, length, 0));
-            } else if (auto sprshape = std::dynamic_pointer_cast<ChVisualShapeSpring>(shape)) {
-                double rad = sprshape->GetRadius();
-                double length;
-                auto X = PointPointFrame(tsda->GetPoint1Abs(), tsda->GetPoint2Abs(), length);
-                transform->matrix = vsg::dmat4CH(X, ChVector3d(rad, length, rad));
-            }
-        } else if (auto dist = std::dynamic_pointer_cast<ChLinkDistance>(link)) {
-            if (auto segshape = std::dynamic_pointer_cast<ChVisualShapeSegment>(shape)) {
-                double length;
-                auto X = PointPointFrame(dist->GetEndPoint1Abs(), dist->GetEndPoint2Abs(), length);
-                transform->matrix = vsg::dmat4CH(X, ChVector3d(0, length, 0));
-            }
+        if (auto segshape = std::dynamic_pointer_cast<ChVisualShapeSegment>(shape)) {
+            double length;
+            auto X = PointPointFrame(segshape->GetPoint1Abs(), segshape->GetPoint2Abs(), length);
+            transform->matrix = vsg::dmat4CH(X, ChVector3d(0, length, 0));
+        } else if (auto sprshape = std::dynamic_pointer_cast<ChVisualShapeSpring>(shape)) {
+            double rad = sprshape->GetRadius();
+            double length;
+            auto X = PointPointFrame(sprshape->GetPoint1Abs(), sprshape->GetPoint2Abs(), length);
+            transform->matrix = vsg::dmat4CH(X, ChVector3d(rad, length, rad));
         }
     }
 }

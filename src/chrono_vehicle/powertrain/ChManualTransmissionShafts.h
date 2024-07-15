@@ -62,6 +62,9 @@ class CH_VEHICLE_API ChManualTransmissionShafts : public ChManualTransmission {
     /// This represents the output from the transmision subsystem that is passed to the engine subsystem.
     virtual double GetOutputMotorshaftSpeed() const override;
 
+    /// Return the reaction torque on the chassis body.
+    virtual double GetChassisReactionTorque() const override { return -m_transmissionblock_to_body->GetTorqueReactionOnShaft(); }
+
   protected:
     /// Set inertia of the transmission block.
     virtual double GetTransmissionBlockInertia() const = 0;

@@ -30,10 +30,10 @@ ChLinkLockClearance::ChLinkLockClearance() {
     contact_F_abs = VNULL;
     contact_V_abs = VNULL;
 
-    limit_X->SetActive(true);
-    limit_X->SetMax(clearance);
-    limit_X->SetSpringCoefficientMax(c_restitution);
-    limit_X->SetMin(-1000.0);
+    LimitX().SetActive(true);
+    LimitX().SetMax(clearance);
+    LimitX().SetSpringCoefficientMax(c_restitution);
+    LimitX().SetMin(-1000.0);
 
     // Mask: initialize our LinkMaskLF (lock formulation mask)
     mask.SetLockMask(false, false, false, false, true, true, false);
@@ -48,6 +48,9 @@ ChLinkLockClearance::ChLinkLockClearance(const ChLinkLockClearance& other) : ChL
 
     contact_F_abs = other.contact_F_abs;
     contact_V_abs = other.contact_V_abs;
+
+    if (other.limit_X)
+        limit_X.reset(other.limit_X->Clone());
 }
 
 double ChLinkLockClearance::GetEccentricity() const {

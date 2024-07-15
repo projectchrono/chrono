@@ -154,7 +154,7 @@ CameraVerticalDir ChVisualSystemIrrlicht::GetCameraVertical() {
     return (m_yup == true ? CameraVerticalDir::Y : CameraVerticalDir::Z);
 }
 
-void ChVisualSystemIrrlicht::SetSymbolscale(double scale) {
+void ChVisualSystemIrrlicht::SetSymbolScale(double scale) {
     m_gui->symbolscale = scale;
     if (m_gui->initialized)
         m_gui->SetSymbolScale(scale);
@@ -530,6 +530,10 @@ void ChVisualSystemIrrlicht::ShowProfiler(bool val) {
 
 void ChVisualSystemIrrlicht::ShowExplorer(bool val) {
     m_gui->show_explorer = val;
+}
+
+void ChVisualSystemIrrlicht::ShowConvergencePlot(bool val) {
+    m_gui->SetPlotConvergence(val);
 }
 
 // -----------------------------------------------------------------------------

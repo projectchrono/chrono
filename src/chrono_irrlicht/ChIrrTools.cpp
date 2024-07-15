@@ -11,10 +11,12 @@
 // =============================================================================
 
 #include "chrono/solver/ChIterativeSolverVI.h"
+#include "chrono/solver/ChIterativeSolverLS.h"
 #include "chrono/physics/ChContactContainer.h"
 #include "chrono/physics/ChLinkMate.h"
 #include "chrono/assets/ChColor.h"
 #include "chrono/utils/ChProfiler.h"
+#include "chrono/utils/ChUtils.h"
 
 #include "chrono_irrlicht/ChIrrTools.h"
 #include "chrono_irrlicht/ChVisualSystemIrrlicht.h"
@@ -556,24 +558,32 @@ int drawAllLinkframes(ChVisualSystemIrrlicht* vis, double scale) {
 // -----------------------------------------------------------------------------
 // -----------------------------------------------------------------------------
 void drawHUDviolation(ChVisualSystemIrrlicht* vis, int pos_x, int pos_y, int width, int height) {
-    auto solver = std::dynamic_pointer_cast<ChIterativeSolverVI>(vis->GetSystem(0).GetSolver());
-    if (!solver)
+    auto solver = std::dynamic_pointer_cast<ChIterativeSolver>(vis->GetSystem(0).GetSolver());
+    if (!solver || solver->GetIterations() == 0)
         return;
 
-    solver->SetRecordViolation(true);
+    auto solver_vi = std::dynamic_pointer_cast<ChIterativeSolverVI>(solver);
+
+    if (solver_vi)
+        solver_vi->SetRecordViolation(true);
 
     double solver_tol = solver->GetTolerance();
-    int tolerance_line_y = (int)(height * 0.75);
+    int tolerance_line_y = (int)(height * 0.66);
     // the iterative solvers have a default tolerance of 0, so we need to have a guard against division by zero
     if (solver->GetTolerance() == 0) {
         tolerance_line_y = height - 1;
         solver_tol = 1e-6;
     }
-    double deltalambda_max =
-        *std::max_element(solver->GetDeltalambdaHistory().begin(), solver->GetDeltalambdaHistory().end());
 
-    int num_bars = std::min((int)solver->GetViolationHistory().size(), 50);
-    double num_it_per_bar = (double)solver->GetViolationHistory().size() / (double)num_bars;
+    double deltalambda_max =
+        solver_vi ? *std::max_element(solver_vi->GetDeltalambdaHistory().begin(),
+                                      solver_vi->GetDeltalambdaHistory().begin() + solver->GetIterations())
+                  : 1.0;
+
+
+    // WARNING: here it is assumed that non-VI solvers have no error history
+    int num_bars = solver_vi ? std::min((int)solver->GetMaxIterations(), 50) : 1;
+    double num_it_per_bar = solver_vi ? (double)solver->GetMaxIterations() / (double)num_bars : 1;
     // width = num_spacings*spacing_width + num_bars*viol_bar_width
     // num_spacings = num_bars + 1
     // spacing_width = 1/4*viol_bar_width;
@@ -587,26 +597,34 @@ void drawHUDviolation(ChVisualSystemIrrlicht* vis, int pos_x, int pos_y, int wid
     irr::core::rect<s32> mrect(pos_x, pos_y, pos_x + actual_width, pos_y + height);
     vis->GetVideoDriver()->draw2DRectangle(irr::video::SColor(100, 200, 200, 230), mrect);
     int cur_bar = -1;
-    double cur_violation = 0;
+    double cur_error = 0;
     double cur_deltalambda = 0;
 
-    for (auto i = 0; i < solver->GetViolationHistory().size(); i++) {
-        cur_deltalambda = std::max(cur_deltalambda, solver->GetDeltalambdaHistory()[i]);
+    std::function<double(int)> getErrorI;
+    if (solver_vi)
+        getErrorI = [solver_vi](int i) { return solver_vi->GetViolationHistory().at(i); };
+    else
+        getErrorI = [solver](int i) { return solver->GetError(); };
 
-        if (i >= num_it_per_bar * (cur_bar + 1) || i == solver->GetViolationHistory().size() - 1) {
-            cur_violation = solver->GetViolationHistory()[i];
+    for (auto i = 0; i < solver->GetIterations(); i++) {
+
+        cur_deltalambda = solver_vi ? std::max(cur_deltalambda, solver_vi->GetDeltalambdaHistory().at(i)) : 0;
+
+        if (i >= num_it_per_bar * (cur_bar + 1) || i == solver->GetIterations() - 1) {
+
+            cur_error = ChClamp(getErrorI(i), solver_tol / 10.0, solver_tol * 100.0);
 
             cur_bar++;
 
             int pos_rect_x_start = spacing_width + cur_bar * (viol_bar_width + spacing_width);
 
-            // printing the violation bar
+            int bar_height = (int)(height * ((1.0 - std::log10(solver_tol) + std::log10(cur_error)) / 3.0));
+
+            // printing the error bar
             vis->GetVideoDriver()->draw2DRectangle(
                 irr::video::SColor(90, 255, 0, 0),
-                irr::core::rect<s32>(
-                    pos_x + pos_rect_x_start,
-                    pos_y + height - std::min(height, (int)(0.25 * height * (cur_violation / solver_tol))),
-                    pos_x + pos_rect_x_start + viol_bar_width, pos_y + height),
+                irr::core::rect<s32>(pos_x + pos_rect_x_start, pos_y + height - std::min(height, bar_height),
+                                     pos_x + pos_rect_x_start + viol_bar_width, pos_y + height),
                 &mrect);
 
             // printing the tolerance line
@@ -615,14 +633,16 @@ void drawHUDviolation(ChVisualSystemIrrlicht* vis, int pos_x, int pos_y, int wid
                 irr::core::position2d<s32>(pos_x + actual_width, pos_y + tolerance_line_y),
                 irr::video::SColor(90, 255, 0, 20));
 
-            // printing the delta lambda bar
-            vis->GetVideoDriver()->draw2DRectangle(
-                irr::video::SColor(100, 255, 255, 0),
-                irr::core::rect<s32>(
-                    pos_x + pos_rect_x_start,
-                    pos_y + height - std::min(height, (int)((double)height * (cur_deltalambda / deltalambda_max))),
-                    pos_x + pos_rect_x_start + lamb_bar_width, pos_y + height),
-                &mrect);
+            if (solver_vi) {
+                // printing the delta lambda bar
+                vis->GetVideoDriver()->draw2DRectangle(
+                    irr::video::SColor(100, 255, 255, 0),
+                    irr::core::rect<s32>(
+                        pos_x + pos_rect_x_start,
+                        pos_y + height - std::min(height, (int)((double)height * (cur_deltalambda / deltalambda_max))),
+                        pos_x + pos_rect_x_start + lamb_bar_width, pos_y + height),
+                    &mrect);
+            }
 
             // reset counters
             cur_deltalambda = 0;
@@ -633,7 +653,8 @@ void drawHUDviolation(ChVisualSystemIrrlicht* vis, int pos_x, int pos_y, int wid
         gui::IGUIFont* font = vis->GetDevice()->getGUIEnvironment()->getBuiltInFont();
         if (font) {
             char buffer[100];
-            snprintf(buffer, sizeof(buffer), "Violation %g", solver->GetViolationHistory().back());
+            int it = solver->GetIterations();
+            snprintf(buffer, sizeof(buffer), "Error %g", solver->GetError());
             font->draw(irr::core::stringw(buffer).c_str(),
                        irr::core::rect<s32>(pos_x, pos_y, pos_x + actual_width, pos_y + 10),
                        irr::video::SColor(200, 100, 0, 0));
@@ -645,11 +666,14 @@ void drawHUDviolation(ChVisualSystemIrrlicht* vis, int pos_x, int pos_y, int wid
                                             pos_y + tolerance_line_y + 2),
                        irr::video::SColor(200, 100, 0, 0));
 
-            char buffer3[100];
-            snprintf(buffer3, sizeof(buffer3), "DLambda %g", solver->GetDeltalambdaHistory().back());
-            font->draw(irr::core::stringw(buffer3).c_str(),
-                       irr::core::rect<s32>(pos_x, pos_y + 10, pos_x + actual_width, pos_y + 20),
-                       irr::video::SColor(200, 200, 200, 0));
+            if (solver_vi) {
+                char buffer3[100];
+                snprintf(buffer3, sizeof(buffer3), "DLambda %g",
+                         solver_vi->GetDeltalambdaHistory().at(solver->GetIterations() - 1));
+                font->draw(irr::core::stringw(buffer3).c_str(),
+                           irr::core::rect<s32>(pos_x, pos_y + 10, pos_x + actual_width, pos_y + 20),
+                           irr::video::SColor(200, 200, 200, 0));
+            }
         }
     }
 }

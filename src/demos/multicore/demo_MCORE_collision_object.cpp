@@ -303,9 +303,9 @@ int main(int argc, char* argv[]) {
     vis->AddTypicalLights();
 
     // Render contact forces or normals
-    vis->SetSymbolscale(5e-4);
+    vis->SetSymbolScale(5e-4);
     vis->EnableContactDrawing(ContactsDrawMode::CONTACT_FORCES);
-    ////vis->SetSymbolscale(1);
+    ////vis->SetSymbolScale(1);
     ////vis->EnableContactDrawing(ContactsDrawMode::CONTACT_NORMALS);
 
     auto cmanager = chrono_types::make_shared<ContactManager>();

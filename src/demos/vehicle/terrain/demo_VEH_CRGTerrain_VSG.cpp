@@ -379,6 +379,7 @@ int main(int argc, char* argv[]) {
     int sentinelID = vis->AddVisualModel(sentinel, ChFrame<>());
     int targetID = vis->AddVisualModel(target, ChFrame<>());
 
+    vis->SetLogoVisible(true);
     vis->Initialize();
 
     // ---------------

@@ -367,6 +367,7 @@ int main(int argc, char* argv[]) {
     vis->AddVisualModel(chrono_types::make_shared<ChVisualShapeSphere>(0.03),
                         ChFrame<>(ChVector3d(-6, 1, -5 + 0.4), QUNIT));
     vis->SetShadows(true);
+    vis->SetLogoVisible(true);
     vis->Initialize();
 
     // Create output directory

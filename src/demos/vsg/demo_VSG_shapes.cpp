@@ -86,6 +86,7 @@ int main(int argc, char* argv[]) {
     vis->SetLightIntensity(0.9f);
     vis->SetLightDirection(0.5 * CH_PI_2, CH_PI_4);
     vis->SetWireFrameMode(false);
+    vis->SetLogoVisible(true);
     vis->Initialize();
 
     while (vis->Run()) {

@@ -22,7 +22,9 @@
 #include <vsgXchange/all.h>
 #include <vsgImGui/RenderImGui.h>
 #include <vsgImGui/SendEventsToImGui.h>
+#include <vsgImGui/Texture.h>
 #include <vsgImGui/imgui.h>
+#include <vsgImGui/implot.h>
 
 #include "chrono/assets/ChVisualSystem.h"
 #include "chrono/assets/ChVisualModel.h"
@@ -41,8 +43,7 @@
 #include "chrono/assets/ChVisualShapePath.h"
 
 #include "chrono/physics/ChBody.h"
-#include "chrono/physics/ChLinkMarkers.h"
-#include "chrono/physics/ChLinkMate.h"
+#include "chrono/physics/ChLink.h"
 #include "chrono/physics/ChLoadContainer.h"
 #include "chrono/physics/ChParticleCloud.h"
 
@@ -205,6 +206,20 @@ class CH_VSG_API ChVisualSystemVSG : virtual public ChVisualSystem {
     /// Return boolean indicating whether or not the default (base) GUI is visible.
     bool IsBaseGuiVisible() const { return m_show_base_gui; }
 
+    /// Set logo visible (default: true).
+    void SetLogoVisible(bool yesno) { m_show_logo = yesno; }
+
+    /// Set logo display height (in pixels, default: 64).
+    void SetLogoHeight(float height) { m_logo_height = height; }
+
+    /// Set logo position (default: [10,10]).
+    /// This is the position of the right-top corner of the logo image (in pixels)
+    /// relative to the right-top corner of the rendering window.
+    void SetLogoPosition(const ChVector2f& position) { m_logo_pos = position; }
+
+    /// Return boolean indicating whether or not logo is visible.
+    bool IsLogoVisible() const { return m_show_logo; }
+
     /// Add a user-defined VSG event handler.
     void AddEventHandler(std::shared_ptr<ChEventHandlerVSG> eh);
 
@@ -221,6 +236,11 @@ class CH_VSG_API ChVisualSystemVSG : virtual public ChVisualSystem {
     vsg::ref_ptr<vsg::Window> m_window;
     vsg::ref_ptr<vsg::Viewer> m_viewer;  ///< high-level VSG rendering manager
     vsg::ref_ptr<vsg::RenderGraph> m_renderGraph;
+
+    bool m_show_logo;
+    float m_logo_height;
+    ChVector2f m_logo_pos;
+    std::string m_logo_filename;
 
     bool m_show_gui;                                              ///< flag to toggle global GUI visibility
     bool m_show_base_gui;                                         ///< flag to toggle base GUI visibility
@@ -239,7 +259,7 @@ class CH_VSG_API ChVisualSystemVSG : virtual public ChVisualSystem {
     //                            |
     //                            +- m_cogScene
     //                            |
-    //                            +- m_linkScene
+    //                            +- m_pointpointScene
     //                            |
     //                            +- m_particleScene
     //                            |
@@ -248,7 +268,7 @@ class CH_VSG_API ChVisualSystemVSG : virtual public ChVisualSystem {
     //                            +- m_deformableScene
     vsg::ref_ptr<vsg::Group> m_scene;
     vsg::ref_ptr<vsg::Group> m_bodyScene;
-    vsg::ref_ptr<vsg::Group> m_linkScene;
+    vsg::ref_ptr<vsg::Group> m_pointpointScene;
     vsg::ref_ptr<vsg::Group> m_particleScene;
     vsg::ref_ptr<vsg::Group> m_deformableScene;
     vsg::ref_ptr<vsg::Group> m_decoScene;
@@ -294,23 +314,20 @@ class CH_VSG_API ChVisualSystemVSG : virtual public ChVisualSystem {
     /// Bind the visual model associated with a body.
     void BindBody(const std::shared_ptr<ChBody>& body);
 
-    /// Bind meshes in the visual model associated with the given physics item.
-    void BindMesh(const std::shared_ptr<ChPhysicsItem>& item);
+    /// Bind deformable meshes in the visual model associated with the given physics item.
+    void BindDeformableMesh(const std::shared_ptr<ChPhysicsItem>& item);
+
+    /// Bind point-point visual assets in the visual model associated with the given physics item.
+    void BindPointPoint(const std::shared_ptr<ChPhysicsItem>& item);
 
     /// Bind the visual model assoicated with a particle cloud.
     void BindParticleCloud(const std::shared_ptr<ChParticleCloud>& pcloud);
-
-    /// Bind the visual model associated with a TSDA.
-    void BindTSDA(const std::shared_ptr<ChLinkTSDA>& tsda);
-
-    /// Bind the visual asset assoicated with a distance constraint.
-    void BindLinkDistance(const std::shared_ptr<ChLinkDistance>& dist);
 
     /// Bind the body COG frame.
     void BindBodyFrame(const std::shared_ptr<ChBody>& body);
 
     /// Bind the joint frames.
-    void BindLinkFrame(const std::shared_ptr<ChLinkBase>& link);
+    void BindLinkFrame(const std::shared_ptr<ChLink>& link);
 
     /// Utility function to populate a VSG group with shape groups (from the given visual model).
     /// The visual model may or may not be associated with a Chrono physics item.
@@ -354,6 +371,7 @@ class CH_VSG_API ChVisualSystemVSG : virtual public ChVisualSystem {
     double m_old_time, m_current_time, m_time_total;  ///< render times
     double m_fps;                                     ///< estimated FPS (moving average)
 
+    friend class ChMainGuiVSG;
     friend class ChBaseGuiComponentVSG;
     friend class ChBaseEventHandlerVSG;
 };

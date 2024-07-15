@@ -39,9 +39,6 @@
 #include "chrono_vehicle/ChConfigVehicle.h"
 #include "chrono_vehicle/wheeled_vehicle/tire/ChForceElementTire.h"
 
-#include "chrono_vehicle/utils/ChSpeedController.h"
-#include "chrono_vehicle/utils/ChSteeringController.h"
-
 #include "chrono_fmi/fmi2/ChFmuToolsExport.h"
 
 class FmuComponent : public chrono::FmuChronoComponentBase {
@@ -74,7 +71,7 @@ class FmuComponent : public chrono::FmuChronoComponentBase {
     void SynchronizeTire(double time);
     void CalculateTireOutputs();
 
-    /// Local terrain system to intermediate tire FMU datab exchange.
+    /// Local terrain system to intermediate tire FMU data exchange.
     /// This represents a locally-flat terrain patch, with the plane updated at each synchronization time.
     class LocalTerrain : public chrono::vehicle::ChTerrain {
       public:

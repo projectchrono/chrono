@@ -31,31 +31,33 @@ class ChApi ChVisualShapePointPoint : public ChVisualShapeLine {
   public:
     ChVisualShapePointPoint() = default;
 
-    // Call UpdateLineGeometry() if updater has any pair of points.
-    // (at this point, only ChLink and its derivatives are supported.)
+    // Update the underlying line geometry and set current locations of the end points.
     virtual void Update(ChPhysicsItem* updater, const ChFrame<>& coords) override;
+
+    const ChVector3d& GetPoint1Abs() const { return point1; }
+    const ChVector3d& GetPoint2Abs() const { return point2; }
 
   private:
     // Update underlying line geometry from given two endpoints.
     // This method will be called on Update() call and should be implemented by derived classes.
     virtual void UpdateLineGeometry(const ChVector3d& endpoint1, const ChVector3d& endpoint2) = 0;
+
+    ChVector3d point1;  ///< location of 1st end point (in global frame)
+    ChVector3d point2;  ///< location of 2nd end point (in global frame)
 };
 
 /// Shape for visualizing a line segment between two moving points related to the parent ChPhysicsItem.
-/// - Currently, only ChLink and its derivatives are supported.
-/// - An instance of this class should not be shared among multiple ChPhysicsItem instances. Otherwise drawing may
-///   broken since each physics item will try to update geometry of the line and causes race conditions.
+/// An instance of this class should not be shared among multiple ChPhysicsItem instances. Otherwise drawing may broken
+/// since each physics item will try to update geometry of the line and causes race conditions.
 class ChApi ChVisualShapeSegment : public ChVisualShapePointPoint {
   private:
-    // Set line geometry as segment between two end point
+    /// Set line geometry as segment between two end points (assumed in local frame).
     virtual void UpdateLineGeometry(const ChVector3d& endpoint1, const ChVector3d& endpoint2) override;
 };
 
 /// Shape for visualizing a coil spring between two moving points related to the parent ChPhysicsItem.
-/// Notes:
-/// - Currently, only ChLink and its derivatives are supported.
-/// - An instance of this class should not be shared among multiple ChPhysicsItem instances. Otherwise drawing may
-///   broken since each physics item will try to update geometry of the line and causes race conditions.
+/// An instance of this class should not be shared among multiple ChPhysicsItem instances. Otherwise drawing may broken
+/// since each physics item will try to update geometry of the line and causes race conditions.
 class ChApi ChVisualShapeSpring : public ChVisualShapePointPoint {
   public:
     ChVisualShapeSpring(double mradius = 0.05, int mresolution = 65, double mturns = 5.)
@@ -65,7 +67,7 @@ class ChApi ChVisualShapeSpring : public ChVisualShapePointPoint {
     double GetTurns() { return turns; }
 
   private:
-    // Set line geometry as coil between two end point
+    /// Set line geometry as coil between two end points (assumed in local frame).
     virtual void UpdateLineGeometry(const ChVector3d& endpoint1, const ChVector3d& endpoint2) override;
 
   private:

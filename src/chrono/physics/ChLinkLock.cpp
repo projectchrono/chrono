@@ -37,27 +37,43 @@ ChLinkLock::ChLinkLock()
 ChLinkLock::ChLinkLock(const ChLinkLock& other) : ChLinkMarkers(other) {
     mask = other.mask;
 
-    force_D.reset(other.force_D->Clone());
-    force_R.reset(other.force_R->Clone());
-    force_X.reset(other.force_X->Clone());
-    force_Y.reset(other.force_Y->Clone());
-    force_Z.reset(other.force_Z->Clone());
-    force_Rx.reset(other.force_Rx->Clone());
-    force_Ry.reset(other.force_Ry->Clone());
-    force_Rz.reset(other.force_Rz->Clone());
+    if (other.force_D)
+        force_D.reset(other.force_D->Clone());
+    if (other.force_R)
+        force_R.reset(other.force_R->Clone());
+    if (other.force_X)
+        force_X.reset(other.force_X->Clone());
+    if (other.force_Y)
+        force_Y.reset(other.force_Y->Clone());
+    if (other.force_Z)
+        force_Z.reset(other.force_Z->Clone());
+    if (other.force_Rx)
+        force_Rx.reset(other.force_Rx->Clone());
+    if (other.force_Ry)
+        force_Ry.reset(other.force_Ry->Clone());
+    if (other.force_Rz)
+        force_Rz.reset(other.force_Rz->Clone());
 
     d_restlength = other.d_restlength;
 
     type = other.type;
 
-    limit_X.reset(other.limit_X->Clone());
-    limit_Y.reset(other.limit_Y->Clone());
-    limit_Z.reset(other.limit_Z->Clone());
-    limit_Rx.reset(other.limit_Rx->Clone());
-    limit_Ry.reset(other.limit_Ry->Clone());
-    limit_Rz.reset(other.limit_Rz->Clone());
-    limit_Rp.reset(other.limit_Rp->Clone());
-    limit_D.reset(other.limit_D->Clone());
+    if (other.limit_X)
+        limit_X.reset(other.limit_X->Clone());
+    if (other.limit_Y)
+        limit_Y.reset(other.limit_Y->Clone());
+    if (other.limit_Z)
+        limit_Z.reset(other.limit_Z->Clone());
+    if (other.limit_Rx)
+        limit_Rx.reset(other.limit_Rx->Clone());
+    if (other.limit_Ry)
+        limit_Ry.reset(other.limit_Ry->Clone());
+    if (other.limit_Rz)
+        limit_Rz.reset(other.limit_Rz->Clone());
+    if (other.limit_Rp)
+        limit_Rp.reset(other.limit_Rp->Clone());
+    if (other.limit_D)
+        limit_D.reset(other.limit_D->Clone());
 
     Ct_temp = other.Ct_temp;
 

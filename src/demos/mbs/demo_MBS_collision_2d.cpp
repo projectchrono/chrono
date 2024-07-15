@@ -229,7 +229,7 @@ int main(int argc, char* argv[]) {
     vis->AddTypicalLights();
 
     // This means that contactforces will be shown in Irrlicht application
-    vis->SetSymbolscale(0.2);
+    vis->SetSymbolScale(0.2);
     vis->EnableContactDrawing(ContactsDrawMode::CONTACT_NORMALS);
 
     // Simulation loop

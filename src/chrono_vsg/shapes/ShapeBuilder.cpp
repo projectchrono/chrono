@@ -648,14 +648,12 @@ vsg::ref_ptr<vsg::Group> ShapeBuilder::CreatePathShape(ChVisualModel::ShapeInsta
     return scenegraph;
 }
 
-vsg::ref_ptr<vsg::Group> ShapeBuilder::CreateSpringShape(std::shared_ptr<ChLinkBase> link,
-                                                         ChVisualModel::ShapeInstance shapeInstance,
+vsg::ref_ptr<vsg::Group> ShapeBuilder::CreateSpringShape(ChVisualModel::ShapeInstance shapeInstance,
                                                          std::shared_ptr<ChVisualMaterial> material,
                                                          vsg::ref_ptr<vsg::MatrixTransform> transform,
                                                          std::shared_ptr<ChVisualShapeSpring> ss) {
     auto scenegraph = vsg::Group::create();
     // store some information for easier update
-    scenegraph->setValue("Link", link);
     scenegraph->setValue("ShapeInstance", shapeInstance);
     scenegraph->setValue("Transform", transform);
 
@@ -705,13 +703,11 @@ vsg::ref_ptr<vsg::Group> ShapeBuilder::CreateSpringShape(std::shared_ptr<ChLinkB
     return scenegraph;
 }
 
-vsg::ref_ptr<vsg::Group> ShapeBuilder::CreateUnitSegment(std::shared_ptr<ChLinkBase> link,
-                                                         ChVisualModel::ShapeInstance shapeInstance,
+vsg::ref_ptr<vsg::Group> ShapeBuilder::CreateUnitSegment(ChVisualModel::ShapeInstance shapeInstance,
                                                          std::shared_ptr<ChVisualMaterial> material,
                                                          vsg::ref_ptr<vsg::MatrixTransform> transform) {
     auto scenegraph = vsg::Group::create();
     // store some information for easier update
-    scenegraph->setValue("Link", link);
     scenegraph->setValue("ShapeInstance", shapeInstance);
     scenegraph->setValue("Transform", transform);
 

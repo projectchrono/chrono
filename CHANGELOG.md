@@ -5,6 +5,7 @@ Change Log
 ==========
 
 - [Unreleased (development branch)](#unreleased-development-branch)
+  - [\[Changed\] Eigensolvers refactoring](#eigensolvers-refactoring)
 - [Release 9.0.1 (2024-07-03)](#release-901-2024-07-03)
   - [\[Fixed\] Bug fixes in FSI solver](#fixed-bug-fixes-in-fsi-solver)
   - [\[Fixed\] Miscellaneous bug fixes](#fixed-miscellaneous-bug-fixes)
@@ -110,6 +111,23 @@ Change Log
 - [Release 4.0.0 (2019-02-22)](#release-400-2019-02-22)
 
 # Unreleased (development branch)
+
+## [Changed] Eigensolvers refactoring
+
+All Chrono eingesolvers share some common features:
+- solve *generalized* eigenvalue problems i.e. `A*v = lambda*B*v`
+- are iterative and based on shift-and-invert methods
+- deal with real-valued matrices, but may have complex shifts and/or eigenpairs
+
+but they differ depending if the `A` and `B` matrices are *symmetric* (`ChSym____`) or not (`ChUnsym____`).
+
+The name pattern is now changed to `Ch[Sym|Unsym]GenEigenvalueSolver` to clarify this difference.
+
+These eigenvalue solvers are meant to deal directly with *matrices*, not with Chrono `ChSystem`s nor with `ChAssembly`s. This is indeed a task for `ChModalSolver` classes.
+
+The modal solvers are split into undamped and damped versions but, while the undamped case can generate either symmetric or unsymmetric problems, the damped case matrices are always unsymmetric. Because of this, different modal solvers may be equipped with different eigensolvers.
+
+Further details are explained in the documentation.
 
 # Release 9.0.1 (2024-07-03)
 

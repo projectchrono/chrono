@@ -87,6 +87,10 @@ class CH_FSI_API ChFsiVisualization {
     /// If none provided, SPH particles are rendered with a default color.
     void SetSPHColorCallback(std::shared_ptr<ChParticleCloud::ColorCallback> functor) { m_color_fun = functor; }
 
+    /// Set a callback for dynamic visibility of SPH particles.
+    /// If none provided, all SPH particles are visible.
+    void SetSPHVisibilityCallback(std::shared_ptr<ChParticleCloud::VisibilityCallback> functor) { m_vis_fun = functor; }
+
     /// Set output directory for saving frame snapshots (default: ".").
     void SetImageOutputDirectory(const std::string& dir) { m_image_dir = dir; }
 
@@ -155,7 +159,8 @@ class CH_FSI_API ChFsiVisualization {
     ChColor m_rigid_bce_color;  ///< color for BCE markers on rigid bodies
     ChColor m_flex_bce_color;   ///< color for BCE markers on flex bodies
 
-    std::shared_ptr<ChParticleCloud::ColorCallback> m_color_fun;  ///< dynamic color functor for SPH particles
+    std::shared_ptr<ChParticleCloud::ColorCallback> m_color_fun;     ///< dynamic color functor for SPH particles
+    std::shared_ptr<ChParticleCloud::VisibilityCallback> m_vis_fun;  ///< dynamic visibility functor for SPH particles
 
     bool m_write_images;      ///< if true, save snapshots
     std::string m_image_dir;  ///< directory for image files
