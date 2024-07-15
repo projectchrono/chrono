@@ -45,8 +45,10 @@ ChLinkRevoluteSpherical::ChLinkRevoluteSpherical(const ChLinkRevoluteSpherical& 
     m_cur_dist = other.m_cur_dist;
     m_cur_dot = other.m_cur_dot;
 
-    m_cnstr_dist.SetVariables(&other.m_body1->Variables(), &other.m_body2->Variables());
-    m_cnstr_dot.SetVariables(&other.m_body1->Variables(), &other.m_body2->Variables());
+    if (other.m_body1 && other.m_body2) {
+        m_cnstr_dist.SetVariables(&other.m_body1->Variables(), &other.m_body2->Variables());
+        m_cnstr_dot.SetVariables(&other.m_body1->Variables(), &other.m_body2->Variables());
+    }
 
     m_multipliers[0] = other.m_multipliers[0];
     m_multipliers[1] = other.m_multipliers[1];

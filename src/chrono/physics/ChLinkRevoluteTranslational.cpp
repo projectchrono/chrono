@@ -54,10 +54,12 @@ ChLinkRevoluteTranslational::ChLinkRevoluteTranslational(const ChLinkRevoluteTra
     m_cur_dot = other.m_cur_dot;
     m_cur_dist = other.m_cur_dist;
 
-    m_cnstr_par1.SetVariables(&other.m_body1->Variables(), &other.m_body2->Variables());
-    m_cnstr_par2.SetVariables(&other.m_body1->Variables(), &other.m_body2->Variables());
-    m_cnstr_dot.SetVariables(&other.m_body1->Variables(), &other.m_body2->Variables());
-    m_cnstr_dist.SetVariables(&other.m_body1->Variables(), &other.m_body2->Variables());
+    if (other.m_body1 && other.m_body2) {
+        m_cnstr_par1.SetVariables(&other.m_body1->Variables(), &other.m_body2->Variables());
+        m_cnstr_par2.SetVariables(&other.m_body1->Variables(), &other.m_body2->Variables());
+        m_cnstr_dot.SetVariables(&other.m_body1->Variables(), &other.m_body2->Variables());
+        m_cnstr_dist.SetVariables(&other.m_body1->Variables(), &other.m_body2->Variables());
+    }
 
     for (int i = 0; i < 4; i++) {
         m_multipliers[i] = other.m_multipliers[i];
