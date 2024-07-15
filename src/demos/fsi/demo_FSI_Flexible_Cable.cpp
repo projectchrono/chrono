@@ -99,6 +99,18 @@ bool GetProblemSpecs(int argc,
 
 // -----------------------------------------------------------------------------
 
+class PositionVisibilityCallback : public ChParticleCloud::VisibilityCallback {
+  public:
+    PositionVisibilityCallback() {}
+
+    virtual bool get(unsigned int n, const ChParticleCloud& cloud) const override {
+        auto p = cloud.GetParticlePos(n);
+        return p.y() > 0;
+    };
+};
+
+// -----------------------------------------------------------------------------
+
 int main(int argc, char* argv[]) {
     // Parse command line arguments
     std::string inputJSON = GetChronoDataFile("fsi/input_json/demo_FSI_Flexible_Cable_Granular.json");
@@ -223,6 +235,7 @@ int main(int argc, char* argv[]) {
         visFSI->SetRenderMode(ChFsiVisualization::RenderMode::SOLID);
         visFSI->SetParticleRenderMode(ChFsiVisualization::RenderMode::SOLID);
         visFSI->SetSPHColorCallback(chrono_types::make_shared<VelocityColorCallback>(0, 2.5));
+        visFSI->SetSPHVisibilityCallback(chrono_types::make_shared<PositionVisibilityCallback>());
         visFSI->AttachSystem(&sysMBS);
         visFSI->Initialize();
     }
