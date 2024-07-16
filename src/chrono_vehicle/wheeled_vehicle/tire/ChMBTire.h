@@ -234,8 +234,11 @@ class MBTireModel : public ChPhysicsItem {
     // Return -1 if out-of-bounds ring and use a cyclic index for divisions on the ring.
     int RimNodeIndex(int ir, int id) const;
 
-    // Get normal and elemental area for the node with current ring and division indices.
-    void CalcNormal(int ir, int id, ChVector3d& normal, double& area);
+    // Calculate area of tire surface.
+    double CalculateArea() const;
+
+    // Get normal and elemental area for the node with specified ring and division indices.
+    void CalculateNormal(int ir, int id, ChVector3d& normal, double& area);
 
     unsigned int m_dofs;    // total degrees of freedom (position level)
     unsigned int m_dofs_w;  // total degrees of freedom (velocity level)
@@ -267,16 +270,39 @@ class MBTireModel : public ChPhysicsItem {
     std::shared_ptr<fea::ChContactSurface> m_contact_surf;        // contact surface
     std::shared_ptr<ChVisualShapeTriangleMesh> m_trimesh_shape;   // mesh visualization asset
 
-    // Base class for all springs in an MBTire model.
-    struct Spring {
+    // Base class for all force elements (loads) in an MBTire model.
+    // A load can generate forces on 1, 2, or 3 nodes in the system.
+    struct Load {
         virtual void CalculateForce() = 0;
         virtual void CalculateJacobian(double Kfactor, double Rfactor) = 0;
         virtual void CalculateJacobianFD(double Kfactor, double Rfactor) = 0;
     };
 
+    // Pressure load acting on a single FEA node.
+    struct NodePressure : public Load {
+        int inode;  // index of associated node
+
+        fea::ChNodeFEAxyz* node;
+
+        ChBody* wheel;
+
+        double p_times_a;
+        ChVector3d force;
+
+        ChKRMBlock KRM;
+        ChMatrixDynamic<double> J_fd;
+
+        void Initialize(bool stiff);
+        virtual void CalculateForce() override;
+        virtual void CalculateJacobian(double Kfactor, double Rfactor) override;
+        virtual void CalculateJacobianFD(double Kfactor, double Rfactor) override;
+
+        ChMatrix33<> CalculateJacobianBlock(double Kfactor, double Rfactor);
+    };
+
     // Linear spring between two FEA nodes.
     // Spring forces include both stiffness and damping.
-    struct Spring2 : public Spring {
+    struct Spring2 : public Load {
         int inode1;  // index of first node
         int inode2;  // index of second node
 
@@ -303,7 +329,7 @@ class MBTireModel : public ChPhysicsItem {
 
     // Rotational spring between three FEA nodes.
     // Spring forces include only stiffness (no velocity-dependence).
-    struct Spring3 : public Spring {
+    struct Spring3 : public Load {
         int inode_p;  // index of previous node
         int inode_c;  // index of central node
         int inode_n;  // index of next node
@@ -379,18 +405,20 @@ class MBTireModel : public ChPhysicsItem {
         ChVector3d torque_wheel;
     };
 
+    std::vector<std::shared_ptr<NodePressure>> m_pressure_loads;   // node pressure loads
     std::vector<std::shared_ptr<GridSpring2>> m_grid_lin_springs;  // node-node translational springs
     std::vector<std::shared_ptr<EdgeSpring2>> m_edge_lin_springs;  // node-rim translational springs
     std::vector<std::shared_ptr<GridSpring3>> m_grid_rot_springs;  // node-node torsional springs
     std::vector<std::shared_ptr<EdgeSpring3>> m_edge_rot_springs;  // node-rim torsional springs
 
+    int m_num_pressure_loads;    // number of node pressure loads
     int m_num_grid_lin_springs;  // number of node-node translational springs
     int m_num_edge_lin_springs;  // number of node-rim translational springs (first and last ring)
     int m_num_grid_rot_springs;  // number of node-node torsional springs
     int m_num_edge_rot_springs;  // number of node-rim torsional springs (first and last ring)
 
-    std::vector<std::shared_ptr<Spring>> m_springs;  // all springs in the system
-    int m_num_springs;                               // number of all springs in the system
+    std::vector<std::shared_ptr<Load>> m_loads;  // all loads in the system
+    int m_num_loads;                             // number of all loads in the system
 
     std::shared_ptr<ChBody> m_wheel;  // associated wheel body
     ChVector3d m_wheel_force;         // applied wheel spindle force (in global frame)

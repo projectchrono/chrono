@@ -190,11 +190,12 @@ std::vector<std::shared_ptr<fea::ChNodeFEAxyz>>& ChMBTire::GetRimNodes() const {
 // =============================================================================
 
 MBTireModel::MBTireModel()
-    : m_num_grid_lin_springs(0),
+    : m_num_pressure_loads(0),
+      m_num_grid_lin_springs(0),
       m_num_edge_lin_springs(0),
       m_num_grid_rot_springs(0),
       m_num_edge_rot_springs(0),
-      m_num_springs(0) {}
+      m_num_loads(0) {}
 
 int MBTireModel::NodeIndex(int ir, int id) const {
     // If ring index out-of-bounds, return -1
@@ -223,7 +224,20 @@ int MBTireModel::RimNodeIndex(int ir, int id) const {
     return ir_local * m_num_divs + (id % m_num_divs);
 }
 
-void MBTireModel::CalcNormal(int ir, int id, ChVector3d& normal, double& area) {
+// Calculate total tire area as sum of side areas of truncated cones
+double MBTireModel::CalculateArea() const {
+    double area = 0;
+
+    for (int ir = 0; ir < m_num_rings - 1; ir++) {
+        double l2 = (m_radii[ir + 1] - m_radii[ir]) * (m_radii[ir + 1] - m_radii[ir]) +
+                    (m_offsets[ir + 1] - m_offsets[ir]) * (m_offsets[ir + 1] - m_offsets[ir]);
+        area += CH_PI * (m_radii[ir + 1] + m_radii[ir]) * std::sqrt(l2);
+    }
+
+    return area;
+}
+
+void MBTireModel::CalculateNormal(int ir, int id, ChVector3d& normal, double& area) {
     // Get locations of previous and next nodes in the two directions
     const auto& posS = m_nodes[NodeIndex(ir, id - 1)]->GetPos();
     const auto& posN = m_nodes[NodeIndex(ir, id + 1)]->GetPos();
@@ -232,17 +246,14 @@ void MBTireModel::CalcNormal(int ir, int id, ChVector3d& normal, double& area) {
     const auto& posW = (ir == m_num_rings - 1) ? m_rim_nodes[RimNodeIndex(m_num_rings - 1, id)]->GetPos()  //
                                                : m_nodes[NodeIndex(ir + 1, id)]->GetPos();
 
-    // Notes:
-    // 1. normal could be approximated better, by averaging the normals of the 4 incident triangular faces
-    // 2. if using the current approximation, might as well return the scaled direction (if only used for pressure
-    // forces)
+    // Note: the normal could be approximated better, by averaging the normals of the 4 incident triangular faces
     ChVector3d dir = Vcross(posN - posS, posE - posW);
-    area = dir.Length();
-    normal = dir / area;
+    area = 0.25 * dir.Length();
+    normal = dir / dir.Length();  // normal vector
 }
 
 // -----------------------------------------------------------------------------
-// Spring forces and Jacobians
+// Implementation of MBTire load classes (Forces and Jacobians)
 //
 // Jacobian matrices are linear combination of the form:
 //    Kfactor * [K] + Rfactor * [R]
@@ -258,6 +269,129 @@ static constexpr double zero_angle = 1e-3;
 
 // Perturbation for FD Jacobian approximation
 static constexpr double FD_step = 1e-3;
+
+void MBTireModel::NodePressure::Initialize(bool stiff) {
+    if (stiff) {
+        std::vector<ChVariables*> vars;
+        vars.push_back(&node->Variables());
+        vars.push_back(&wheel->Variables());
+        KRM.SetVariables(vars);
+    }
+}
+
+void MBTireModel::NodePressure::CalculateForce() {
+    const auto& pos = node->GetPos();     // node position
+    const auto& w_pos = wheel->GetPos();  // wheel body position
+
+    //// RADU TODO ---> a better approximation of the normal?
+
+    auto n = pos - w_pos;     // vector from wheel center to node
+    double l = n.Length();    //
+    assert(l > zero_length);  //
+    n /= l;                   // unit normal approximation at node
+    force = p_times_a * n;    // nodal force due to inner pressure
+}
+
+// Calculate a 3x3 block used in assembling Jacobians for SpringAir
+ChMatrix33<> MBTireModel::NodePressure::CalculateJacobianBlock(double Kfactor, double Rfactor) {
+    const auto& pos = node->GetPos();
+    ChVector3d w_pos = wheel->GetPos();  // wheel body position
+
+    auto n = pos - w_pos;     // vector from wheel center to node
+    double l = n.Length();    //
+    assert(l > zero_length);  //
+    n /= l;                   // unit normal approximation at node
+
+    ChVectorN<double, 3> n_vec = n.eigen();
+    ChMatrix33<> N = n_vec * n_vec.transpose();
+    ChMatrix33<> A = Kfactor * p_times_a / l * (ChMatrix33<>::Identity() - N);
+
+    return A;
+}
+
+void MBTireModel::NodePressure::CalculateJacobian(double Kfactor, double Rfactor) {
+    ChMatrixRef J = KRM.GetMatrix();
+    if (Kfactor == 0 && Rfactor == 0) {
+        J.setZero();
+        return;
+    }
+
+    ////std::cout << "Node pressure " << inode;
+    ////std::cout << "  J size: " << J.rows() << "x" << J.cols() << std::endl;
+
+    auto A = CalculateJacobianBlock(Kfactor, Rfactor);
+
+    J.block(0, 0, 3, 3) = A;        // block for F and node
+    J.block(0, 3, 3, 3) = -A;       // block for F and wheel translational states
+    J.block(0, 6, 3, 3).setZero();  // block for and wheel rotational states
+
+    /*
+    CalculateJacobianFD(Kfactor, Rfactor);
+    std::cout << "NodePressure " << inode << std::endl;
+    std::cout << "-------\n";
+    std::cout << J << std::endl;
+    std::cout << "-------\n";
+    std::cout << J_fd << std::endl;
+    std::cout << "-------\n";
+    std::cout << "err_2 = " << (J_fd - J).norm() / J.norm() << "\t";
+    std::cout << "err_1 = " << (J_fd - J).lpNorm<1>() / J.lpNorm<1>() << "\t";
+    std::cout << "err_inf = " << (J_fd - J).lpNorm<Eigen::Infinity>() / J.lpNorm<Eigen::Infinity>() << "\n";
+    std::cout << "=======" << std::endl;
+    */
+}
+
+void MBTireModel::NodePressure::CalculateJacobianFD(double Kfactor, double Rfactor) {
+    ChMatrixNM<double, 9, 9> K;
+
+    K.setZero();
+
+    ChVector3d w_pos = wheel->GetPos();
+    ChVector3d pos = node->GetPos();
+
+    CalculateForce();
+    auto force_0 = force;
+
+    // node states (columms 1,2,3)
+    for (int i = 0; i < 3; i++) {
+        pos[i] += FD_step;
+        node->SetPos(pos);
+        CalculateForce();
+        K.col(i).segment(0, 3) = (force.eigen() - force_0.eigen()) / FD_step;
+        pos[i] -= FD_step;
+        node->SetPos(pos);
+    }
+
+    // wheel states (columms 3,4,5)
+    for (int i = 0; i < 3; i++) {
+        w_pos[i] += FD_step;
+        wheel->SetPos(w_pos);
+        CalculateForce();
+        K.col(3 + i).segment(0, 3) = (force.eigen() - force_0.eigen()) / FD_step;
+        w_pos[i] -= FD_step;
+        wheel->SetPos(w_pos);
+    }
+
+    J_fd = Kfactor * K;
+}
+
+void MBTireModel::Spring2::CalculateForce() {
+    const auto& pos1 = node1->GetPos();
+    const auto& pos2 = node2->GetPos();
+    const auto& vel1 = node1->GetPosDt();
+    const auto& vel2 = node2->GetPosDt();
+
+    auto d = pos2 - pos1;
+    double l = d.Length();
+    assert(l > zero_length);
+    d /= l;
+    double ld = Vdot(vel2 - vel1, d);
+
+    double f = k * (l - l0) + c * ld;
+
+    ChVector3d vforce = f * d;
+    force1 = +vforce;
+    force2 = -vforce;
+}
 
 void MBTireModel::Spring2::Initialize() {
     const auto& pos1 = node1->GetPos();
@@ -284,25 +418,6 @@ void MBTireModel::EdgeSpring2::Initialize(bool stiff) {
         vars.push_back(&node2->Variables());
         KRM.SetVariables(vars);
     }
-}
-
-void MBTireModel::Spring2::CalculateForce() {
-    const auto& pos1 = node1->GetPos();
-    const auto& pos2 = node2->GetPos();
-    const auto& vel1 = node1->GetPosDt();
-    const auto& vel2 = node2->GetPosDt();
-
-    auto d = pos2 - pos1;
-    double l = d.Length();
-    assert(l > zero_length);
-    d /= l;
-    double ld = Vdot(vel2 - vel1, d);
-
-    double f = k * (l - l0) + c * ld;
-
-    ChVector3d vforce = f * d;
-    force1 = +vforce;
-    force2 = -vforce;
 }
 
 // Calculate a 3x3 block used in assembling Jacobians for Spring2
@@ -354,17 +469,19 @@ void MBTireModel::GridSpring2::CalculateJacobian(double Kfactor, double Rfactor)
     J.block(3, 0, 3, 3) = A;   // block for F2 and node1
     J.block(3, 3, 3, 3) = -A;  // block for F2 and node2
 
-    ////CalculateJacobianFD(Kfactor, Rfactor);
-    ////std::cout << "Grid spring2 " << inode1 << "-" << inode2 << std::endl;
-    ////std::cout << "-------\n";
-    ////std::cout << J << std::endl;
-    ////std::cout << "-------\n";
-    ////std::cout << J_fd << std::endl;
-    ////std::cout << "-------\n";
-    ////std::cout << "err_2 = " << (J_fd - J).norm() / J.norm() << "\t";
-    ////std::cout << "err_1 = " << (J_fd - J).lpNorm<1>() / J.lpNorm<1>() << "\t";
-    ////std::cout << "err_inf = " << (J_fd - J).lpNorm<Eigen::Infinity>() / J.lpNorm<Eigen::Infinity>() << "\n";
-    ////std::cout << "=======" << std::endl;
+    /*
+    CalculateJacobianFD(Kfactor, Rfactor);
+    std::cout << "Grid spring2 " << inode1 << "-" << inode2 << std::endl;
+    std::cout << "-------\n";
+    std::cout << J << std::endl;
+    std::cout << "-------\n";
+    std::cout << J_fd << std::endl;
+    std::cout << "-------\n";
+    std::cout << "err_2 = " << (J_fd - J).norm() / J.norm() << "\t";
+    std::cout << "err_1 = " << (J_fd - J).lpNorm<1>() / J.lpNorm<1>() << "\t";
+    std::cout << "err_inf = " << (J_fd - J).lpNorm<Eigen::Infinity>() / J.lpNorm<Eigen::Infinity>() << "\n";
+    std::cout << "=======" << std::endl;
+    */
 }
 
 void MBTireModel::GridSpring2::CalculateJacobianFD(double Kfactor, double Rfactor) {
@@ -469,17 +586,19 @@ void MBTireModel::EdgeSpring2::CalculateJacobian(double Kfactor, double Rfactor)
     J.block(3, 0, 3, 9) = skew_rp * J.block(0, 0, 3, 9);  // block of torque
     J.block(6, 0, 3, 9) = -J.block(0, 0, 3, 9);           // block for F2 and node1
 
-    ////CalculateJacobianFD(Kfactor, Rfactor);
-    ////std::cout << "Edge spring2 " << inode1 << "-" << inode2 << std::endl;
-    ////std::cout << "-------\n";
-    ////std::cout << J << std::endl;
-    ////std::cout << "-------\n";
-    ////std::cout << J_fd << std::endl;
-    ////std::cout << "-------\n";
-    ////std::cout << "err_2   = " << (J_fd - J).norm() / J.norm() << "\n";
-    ////std::cout << "err_1   = " << (J_fd - J).lpNorm<1>() / J.lpNorm<1>() << "\n";
-    ////std::cout << "err_inf = " << (J_fd - J).lpNorm<Eigen::Infinity>() / J.lpNorm<Eigen::Infinity>() << "\n";
-    ////std::cout << "=======" << std::endl;
+    /*
+    CalculateJacobianFD(Kfactor, Rfactor);
+    std::cout << "Edge spring2 " << inode1 << "-" << inode2 << std::endl;
+    std::cout << "-------\n";
+    std::cout << J << std::endl;
+    std::cout << "-------\n";
+    std::cout << J_fd << std::endl;
+    std::cout << "-------\n";
+    std::cout << "err_2   = " << (J_fd - J).norm() / J.norm() << "\n";
+    std::cout << "err_1   = " << (J_fd - J).lpNorm<1>() / J.lpNorm<1>() << "\n";
+    std::cout << "err_inf = " << (J_fd - J).lpNorm<Eigen::Infinity>() / J.lpNorm<Eigen::Infinity>() << "\n";
+    std::cout << "=======" << std::endl;
+    */
 }
 
 void MBTireModel::EdgeSpring2::CalculateJacobianFD(double Kfactor, double Rfactor) {
@@ -811,17 +930,19 @@ void MBTireModel::GridSpring3::CalculateJacobian(double Kfactor, double Rfactor)
     J.block(3, 0, 3, 9) = Jp + Jn;
     J.block(6, 0, 3, 9) = -Jn;
 
-    ////CalculateJacobianFD(Kfactor);
-    ////std::cout << "Grid spring3 " << inode_p << "-" << inode_c << "-" << inode_n << std::endl;
-    ////std::cout << "-------\n";
-    ////std::cout << J << std::endl;
-    ////std::cout << "-------\n";
-    ////std::cout << J_fd << std::endl;
-    ////std::cout << "-------\n";
-    ////std::cout << "err_2   = " << (J_fd - J).norm() / J.norm() << "\n";
-    ////std::cout << "err_1   = " << (J_fd - J).lpNorm<1>() / J.lpNorm<1>() << "\n";
-    ////std::cout << "err_inf = " << (J_fd - J).lpNorm<Eigen::Infinity>() / J.lpNorm<Eigen::Infinity>() << "\n";
-    ////std::cout << "=======" << std::endl;
+    /*
+    CalculateJacobianFD(Kfactor);
+    std::cout << "Grid spring3 " << inode_p << "-" << inode_c << "-" << inode_n << std::endl;
+    std::cout << "-------\n";
+    std::cout << J << std::endl;
+    std::cout << "-------\n";
+    std::cout << J_fd << std::endl;
+    std::cout << "-------\n";
+    std::cout << "err_2   = " << (J_fd - J).norm() / J.norm() << "\n";
+    std::cout << "err_1   = " << (J_fd - J).lpNorm<1>() / J.lpNorm<1>() << "\n";
+    std::cout << "err_inf = " << (J_fd - J).lpNorm<Eigen::Infinity>() / J.lpNorm<Eigen::Infinity>() << "\n";
+    std::cout << "=======" << std::endl;
+    */
 }
 
 // Note: Rfactor not used here (no damping)
@@ -936,17 +1057,19 @@ void MBTireModel::EdgeSpring3::CalculateJacobian(double Kfactor, double Rfactor)
     J.block(6, 0, 3, 12) = Jp + Jn;
     J.block(9, 0, 3, 12) = -Jn;
 
-    ////CalculateJacobianFD(Kfactor);
-    ////std::cout << "Edge spring3 " << inode_p << "-" << inode_c << "-" << inode_n << std::endl;
-    ////std::cout << "-------\n";
-    ////std::cout << J << std::endl;
-    ////std::cout << "-------\n";
-    ////std::cout << J_fd << std::endl;
-    ////std::cout << "-------\n";
-    ////std::cout << "err_2   = " << (J_fd - J).norm() / J.norm() << "\n";
-    ////std::cout << "err_1   = " << (J_fd - J).lpNorm<1>() / J.lpNorm<1>() << "\n";
-    ////std::cout << "err_inf = " << (J_fd - J).lpNorm<Eigen::Infinity>() / J.lpNorm<Eigen::Infinity>() << "\n";
-    ////std::cout << "=======" << std::endl;
+    /*
+    CalculateJacobianFD(Kfactor);
+    std::cout << "Edge spring3 " << inode_p << "-" << inode_c << "-" << inode_n << std::endl;
+    std::cout << "-------\n";
+    std::cout << J << std::endl;
+    std::cout << "-------\n";
+    std::cout << J_fd << std::endl;
+    std::cout << "-------\n";
+    std::cout << "err_2   = " << (J_fd - J).norm() / J.norm() << "\n";
+    std::cout << "err_1   = " << (J_fd - J).lpNorm<1>() / J.lpNorm<1>() << "\n";
+    std::cout << "err_inf = " << (J_fd - J).lpNorm<Eigen::Infinity>() / J.lpNorm<Eigen::Infinity>() << "\n";
+    std::cout << "=======" << std::endl;
+    */
 }
 
 // Note: Rfactor not used here (no damping)
@@ -1096,6 +1219,31 @@ void MBTireModel::Construct(ChTire::ContactSurfaceType surface_type, double surf
         }
     }
 
+    // ------------ Pressure loads
+
+    double tire_area = CalculateArea();
+    double node_area = tire_area / (m_num_rings * m_num_divs);
+    double p_times_a = m_tire->GetPressure() * node_area;
+
+    for (int id = 0; id < m_num_divs; id++) {
+        for (int ir = 0; ir < m_num_rings; ir++) {
+            int inode = NodeIndex(ir, id);
+            auto load = chrono_types::make_shared<NodePressure>();
+            load->inode = inode;
+            load->node = m_nodes[inode].get();
+            load->wheel = m_wheel.get();
+            load->p_times_a = p_times_a;
+
+            load->Initialize(m_stiff || m_force_jac);
+
+            m_pressure_loads.push_back(load);
+            m_num_pressure_loads++;
+
+            m_loads.push_back(load);
+            m_num_loads++;
+        }
+    }
+
     // ------------ Springs
 
     // Create circumferential linear springs (node-node)
@@ -1118,8 +1266,8 @@ void MBTireModel::Construct(ChTire::ContactSurfaceType surface_type, double surf
             m_grid_lin_springs.push_back(spring);
             m_num_grid_lin_springs++;
 
-            m_springs.push_back(spring);
-            m_num_springs++;
+            m_loads.push_back(spring);
+            m_num_loads++;
         }
     }
 
@@ -1146,8 +1294,8 @@ void MBTireModel::Construct(ChTire::ContactSurfaceType surface_type, double surf
             m_edge_lin_springs.push_back(spring);
             m_num_edge_lin_springs++;
 
-            m_springs.push_back(spring);
-            m_num_springs++;
+            m_loads.push_back(spring);
+            m_num_loads++;
         }
 
         // node-node springs
@@ -1169,8 +1317,8 @@ void MBTireModel::Construct(ChTire::ContactSurfaceType surface_type, double surf
             m_grid_lin_springs.push_back(spring);
             m_num_grid_lin_springs++;
 
-            m_springs.push_back(spring);
-            m_num_springs++;
+            m_loads.push_back(spring);
+            m_num_loads++;
         }
 
         // radial springs connected to the rim at last ring
@@ -1194,8 +1342,8 @@ void MBTireModel::Construct(ChTire::ContactSurfaceType surface_type, double surf
             m_edge_lin_springs.push_back(spring);
             m_num_edge_lin_springs++;
 
-            m_springs.push_back(spring);
-            m_num_springs++;
+            m_loads.push_back(spring);
+            m_num_loads++;
         }
     }
 
@@ -1223,8 +1371,8 @@ void MBTireModel::Construct(ChTire::ContactSurfaceType surface_type, double surf
             m_grid_rot_springs.push_back(spring);
             m_num_grid_rot_springs++;
 
-            m_springs.push_back(spring);
-            m_num_springs++;
+            m_loads.push_back(spring);
+            m_num_loads++;
         }
     }
 
@@ -1258,8 +1406,8 @@ void MBTireModel::Construct(ChTire::ContactSurfaceType surface_type, double surf
             m_edge_rot_springs.push_back(spring);
             m_num_edge_rot_springs++;
 
-            m_springs.push_back(spring);
-            m_num_springs++;
+            m_loads.push_back(spring);
+            m_num_loads++;
         }
 
         // node-node torsional springs
@@ -1285,8 +1433,8 @@ void MBTireModel::Construct(ChTire::ContactSurfaceType surface_type, double surf
             m_grid_rot_springs.push_back(spring);
             m_num_grid_rot_springs++;
 
-            m_springs.push_back(spring);
-            m_num_springs++;
+            m_loads.push_back(spring);
+            m_num_loads++;
         }
 
         // torsional springs connected to the rim at last ring
@@ -1314,11 +1462,12 @@ void MBTireModel::Construct(ChTire::ContactSurfaceType surface_type, double surf
             m_edge_rot_springs.push_back(spring);
             m_num_edge_rot_springs++;
 
-            m_springs.push_back(spring);
-            m_num_springs++;
+            m_loads.push_back(spring);
+            m_num_loads++;
         }
     }
 
+    assert(m_num_pressure_loads == m_num_rings * m_num_divs);
     assert(m_num_grid_lin_springs == (int)m_grid_lin_springs.size());
     assert(m_num_grid_rot_springs == (int)m_grid_rot_springs.size());
     assert(m_num_edge_lin_springs == (int)m_edge_lin_springs.size());
@@ -1470,41 +1619,34 @@ void MBTireModel::CalculateForces() {
     m_wheel_force = VNULL;   // body force, expressed in global frame
     m_wheel_torque = VNULL;  // body torque, expressed in local frame
 
-    // ------------ Gravitational and pressure forces
+    // ------------ Gravitational nodal forces
 
     ChVector3d gforce = m_node_mass * GetSystem()->GetGravitationalAcceleration();
-    bool pressure_enabled = m_tire->IsPressureEnabled();
-    double pressure = m_tire->GetPressure();
-    ChVector3d normal;
-    double area;
     for (int ir = 0; ir < m_num_rings; ir++) {
         for (int id = 0; id < m_num_divs; id++) {
             int k = NodeIndex(ir, id);
             nodal_forces[k] = gforce;
-
-            if (pressure_enabled) {
-                //// TODO: revisit pressure forces when springs are in place (to hold the mesh together)
-
-                // Option 1
-                CalcNormal(ir, id, normal, area);
-                nodal_forces[k] += (0.5 * pressure * area) * normal;
-
-                // Option 2
-                ////normal = (m_nodes[k]->GetPos() - w_pos).GetNormalized();
-                ////nodal_forces[k] += (pressure * area) * normal;
-            }
         }
     }
 
-    // ------------ Spring forces
+    // ------------ Load nodal forces
 
 #if defined(FORCE_SEQUENTIAL)
+
+    // Pressure loads
+    if (m_tire->IsPressureEnabled()) {
+        for (auto& load : m_pressure_loads) {
+            load->CalculateForce();
+            nodal_forces[load->inode] += load->force;
+        }
+    }
 
     // Forces in mesh linear springs (node-node)
     for (auto& spring : m_grid_lin_springs) {
         spring->CalculateForce();
         nodal_forces[spring->inode1] += spring->force1;
         nodal_forces[spring->inode2] += spring->force2;
+        // std::cout << spring->force1 << std::endl;
     }
 
     // Forces in edge linear springs (rim node: node1)
@@ -1536,10 +1678,15 @@ void MBTireModel::CalculateForces() {
 
     int nthreads = GetSystem()->GetNumThreadsChrono();
 
-    // Loop through all springs in the system and let them evaluate forces
+    // Loop through all loads in the system and let them evaluate forces
     #pragma omp parallel for schedule(dynamic, 4) num_threads(nthreads)
-    for (int is = 0; is < m_num_springs; is++) {
-        m_springs[is]->CalculateForce();
+    for (int is = 0; is < m_num_loads; is++) {
+        m_loads[is]->CalculateForce();
+    }
+
+    // Loop through pressure loads and load nodal force
+    for (auto& load : m_pressure_loads) {
+        nodal_forces[load->inode] += load->force;
     }
 
     // Loop through each type of spring and load nodal and wheel forces
@@ -1570,6 +1717,17 @@ void MBTireModel::CalculateForces() {
 #elif defined(FORCE_OMP_CRITICAL_SECTION)
 
     int nthreads = GetSystem()->GetNumThreadsChrono();
+
+    // Pressure forces
+    #pragma omp parallel for schedule(dynamic, 4) num_threads(nthreads)
+    for (int is = 0; is < m_num_pressure_loads; is++) {
+        auto& load = m_pressure_loads[is];
+        load->CalculateForce();
+    #pragma omp critical
+        {
+            nodal_forces[load->inode] += load->force;
+        }
+    }
 
     // Forces in mesh linear springs (node-node)
     #pragma omp parallel for schedule(dynamic, 4) num_threads(nthreads)
@@ -1733,7 +1891,8 @@ void MBTireModel::InjectVariables(ChSystemDescriptor& descriptor) {
 void MBTireModel::InjectKRMMatrices(ChSystemDescriptor& descriptor) {
     if (!m_stiff)
         return;
-
+    for (auto& load : m_pressure_loads)
+        descriptor.InsertKRMBlock(&load->KRM);
     for (auto& spring : m_grid_lin_springs)
         descriptor.InsertKRMBlock(&spring->KRM);
     for (auto& spring : m_edge_lin_springs)
@@ -1748,6 +1907,8 @@ void MBTireModel::LoadKRMMatrices(double Kfactor, double Rfactor, double Mfactor
     if (!m_stiff && !m_force_jac)
         return;
 
+    for (auto& load : m_pressure_loads)
+        load->CalculateJacobian(Kfactor, Rfactor);
     for (auto& spring : m_grid_lin_springs)
         spring->CalculateJacobian(Kfactor, Rfactor);
     for (auto& spring : m_edge_lin_springs)
