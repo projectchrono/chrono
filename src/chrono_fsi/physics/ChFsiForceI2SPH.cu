@@ -153,10 +153,10 @@ __global__ void V_star_Predictor(Real4* sortedPosRad,  // input: sorted position
                                  Real3* omegaAccLRF_fsiBodies_D,
                                  uint* rigid_BCEsolids_D,
 
-                                 Real3* flex1D_vel_fsi_fea_D,
-                                 Real3* flex1D_acc_fsi_fea_D,
-                                 Real3* flex2D_vel_fsi_fea_D,
-                                 Real3* flex2D_acc_fsi_fea_D,
+                                 Real3* flex1D_vel_fsi_fea_D,  // vel of fea 1d element 
+                                 Real3* flex1D_acc_fsi_fea_D,  // acc of fea 1d element
+                                 Real3* flex2D_vel_fsi_fea_D,  // vel of fea 2d element
+                                 Real3* flex2D_acc_fsi_fea_D,  // acc of fea 2d element
 
                                  size_t numFlex1D,
 
@@ -944,7 +944,6 @@ void ChFsiForceI2SPH::ForceSPH(std::shared_ptr<SphMarkerDataD> otherSphMarkersD,
                                std::shared_ptr<FsiMeshStateD> fsiMesh2DStateD) {
     //// RADU TODO
 
-    /*
     if (paramsH->bceType == BceVersion::ADAMI && !paramsH->USE_NonIncrementalProjection) {
         throw std::runtime_error(
             "\nADAMI boundary condition is only applicable to non-incremental Projection method. Please "
@@ -989,7 +988,7 @@ void ChFsiForceI2SPH::ForceSPH(std::shared_ptr<SphMarkerDataD> otherSphMarkersD,
     size_t end_fluid = numObjectsH->numGhostMarkers + numObjectsH->numHelperMarkers + numObjectsH->numFluidMarkers;
     size_t end_bndry = end_fluid + numObjectsH->numBoundaryMarkers;
     size_t end_rigid = end_bndry + numObjectsH->numRigidMarkers;
-    size_t end_flex = end_rigid + numObjectsH->numFlexMarkers;
+    size_t end_flex = end_rigid + numObjectsH->numFlexMarkers1D + numObjectsH->numFlexMarkers2D;
     int4 updatePortion = mI4((int)end_fluid, (int)end_bndry, (int)end_rigid, (int)end_flex);
 
     if (verbose)
@@ -1038,12 +1037,18 @@ void ChFsiForceI2SPH::ForceSPH(std::shared_ptr<SphMarkerDataD> otherSphMarkersD,
         mR4CAST(fsiBodyStateD->lin_vel), mR3CAST(fsiBodyStateD->ang_vel), mR3CAST(fsiBodyStateD->lin_acc),
         mR3CAST(fsiBodyStateD->ang_acc), U1CAST(fsiData->rigid_BCEsolids_D),
 
-        mR3CAST(fsiMeshStateD->pos_fsi_fea_D), mR3CAST(fsiMeshStateD->vel_fsi_fea_D),
-        mR3CAST(fsiMeshStateD->acc_fsi_fea_D), U1CAST(fsiData->FlexIdentifierD),
+        mR3CAST(fsiMesh1DStateD->vel_fsi_fea_D), mR3CAST(fsiMesh1DStateD->acc_fsi_fea_D),
+        mR3CAST(fsiMesh2DStateD->vel_fsi_fea_D), mR3CAST(fsiMesh2DStateD->acc_fsi_fea_D),
 
-        numObjectsH->numFlexBodies1D, U2CAST(fsiData->CableElementsNodesD), U4CAST(fsiData->ShellElementsNodesD),
+        numObjectsH->numFlexBodies1D, 
+        
+        U2CAST(fsiData->flex1D_Nodes_D), U3CAST(fsiData->flex1D_BCEsolids_D), mR3CAST(fsiData->flex1D_BCEcoords_D),
+        U3CAST(fsiData->flex2D_Nodes_D), U3CAST(fsiData->flex2D_BCEsolids_D), mR3CAST(fsiData->flex2D_BCEcoords_D),
+
         updatePortion, U1CAST(markersProximity_D->gridMarkerIndexD), numAllMarkers, paramsH->dT, isErrorD);
     ChUtilsDevice::Sync_CheckError(isErrorH, isErrorD, "V_star_Predictor");
+
+    
 
     int Iteration = 0;
     Real MaxRes = 100;
@@ -1111,10 +1116,14 @@ void ChFsiForceI2SPH::ForceSPH(std::shared_ptr<SphMarkerDataD> otherSphMarkersD,
         mR4CAST(fsiBodyStateD->lin_vel), mR3CAST(fsiBodyStateD->ang_vel), mR3CAST(fsiBodyStateD->lin_acc),
         mR3CAST(fsiBodyStateD->ang_acc), U1CAST(fsiData->rigid_BCEsolids_D),
 
-        mR3CAST(fsiMeshStateD->pos_fsi_fea_D), mR3CAST(fsiMeshStateD->vel_fsi_fea_D),
-        mR3CAST(fsiMeshStateD->acc_fsi_fea_D), U1CAST(fsiData->FlexIdentifierD),
+        mR3CAST(fsiMesh1DStateD->vel_fsi_fea_D), mR3CAST(fsiMesh1DStateD->acc_fsi_fea_D),
+        mR3CAST(fsiMesh2DStateD->vel_fsi_fea_D), mR3CAST(fsiMesh2DStateD->acc_fsi_fea_D),
 
-        numObjectsH->numFlexBodies1D, U2CAST(fsiData->CableElementsNodesD), U4CAST(fsiData->ShellElementsNodesD),
+        numObjectsH->numFlexBodies1D, 
+        U2CAST(fsiData->flex1D_Nodes_D), U3CAST(fsiData->flex1D_BCEsolids_D),
+        mR3CAST(fsiData->flex1D_BCEcoords_D), U3CAST(fsiData->flex2D_Nodes_D), U3CAST(fsiData->flex2D_BCEsolids_D),
+        mR3CAST(fsiData->flex2D_BCEcoords_D),
+
         updatePortion, U1CAST(markersProximity_D->gridMarkerIndexD), numAllMarkers, numObjectsH->numFluidMarkers,
         paramsH->dT, isErrorD);
     ChUtilsDevice::Sync_CheckError(isErrorH, isErrorD, "Pressure_Equation");
@@ -1313,7 +1322,6 @@ void ChFsiForceI2SPH::ForceSPH(std::shared_ptr<SphMarkerDataD> otherSphMarkersD,
     AMatrix.clear();
     Contact_i.clear();
     csrColInd.clear();
-    */
 }
 
 

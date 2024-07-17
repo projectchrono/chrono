@@ -292,8 +292,8 @@ inline __device__ Real Herschel_Bulkley_mu_eff(Real Strain_rate, Real k, Real n,
 }
 ////--------------------------------------------------------------------------------------------------------------------------------
 inline __device__ void BCE_Vel_Acc(int i_idx,
-                                   Real3& myAcc,
-                                   Real3& V_prescribed,
+                                   Real3& myAcc,                  // output: BCE marker acceleration
+                                   Real3& V_prescribed,           // output: BCE marker velocity
                                    Real4* sortedPosRad,
                                    int4 updatePortion,
                                    uint* gridMarkerIndexD,
