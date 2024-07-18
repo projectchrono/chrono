@@ -62,6 +62,16 @@ class FSIStatsVSG : public vsg3d::ChGuiComponentVSG {
 
             ImGui::TableNextRow();
             ImGui::TableNextColumn();
+            ImGui::TextUnformatted(m_vsysFSI->m_systemFSI->GetSphSolverTypeString().c_str());
+
+            ImGui::TableNextRow();
+            ImGui::TableNextColumn();
+            ImGui::TextUnformatted("Step size:");
+            ImGui::TableNextColumn();
+            ImGui::Text("%.1e", m_vsysFSI->m_systemFSI->GetStepSize());
+
+            ImGui::TableNextRow();
+            ImGui::TableNextColumn();
             ImGui::TextUnformatted("MBS ratio:");
             ImGui::TableNextColumn();
             ImGui::Text("%.3f", m_vsysFSI->m_systemFSI->GetRatioMBS());
@@ -171,7 +181,7 @@ void ChFsiVisualizationVSG::Initialize() {
         for (int i = 0; i < m_systemFSI->GetNumRigidBodyMarkers(); i++) {
             m_rigid_bce_cloud->AddParticle(CSYSNULL);
         }
-        auto sph = chrono_types::make_shared<ChVisualShapeSphere>(m_systemFSI->GetInitialSpacing() / 4);
+        auto sph = chrono_types::make_shared<ChVisualShapeSphere>(m_systemFSI->GetInitialSpacing() / 2);
         sph->SetColor(m_rigid_bce_color);
         m_rigid_bce_cloud->AddVisualShape(sph);
         m_system->Add(m_rigid_bce_cloud);
@@ -183,7 +193,7 @@ void ChFsiVisualizationVSG::Initialize() {
         for (int i = 0; i < m_systemFSI->GetNumFlexBodyMarkers(); i++) {
             m_flex_bce_cloud->AddParticle(CSYSNULL);
         }
-        auto sph = chrono_types::make_shared<ChVisualShapeSphere>(m_systemFSI->GetInitialSpacing() / 4);
+        auto sph = chrono_types::make_shared<ChVisualShapeSphere>(m_systemFSI->GetInitialSpacing() / 2);
         sph->SetColor(m_flex_bce_color);
         m_flex_bce_cloud->AddVisualShape(sph);
         m_system->Add(m_flex_bce_cloud);
