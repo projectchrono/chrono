@@ -209,8 +209,7 @@ int main(int argc, char* argv[]) {
         visFSI->SetColorFlexBodyMarkers(ChColor(1, 1, 1));
         visFSI->SetRenderMode(ChFsiVisualization::RenderMode::SOLID);
         visFSI->SetParticleRenderMode(ChFsiVisualization::RenderMode::SOLID);
-        visFSI->SetSPHColorCallback(
-            chrono_types::make_shared<VelocityColorCallback>(0, 2.5, VelocityColorCallback::Component::NORM));
+        visFSI->SetSPHColorCallback(chrono_types::make_shared<VelocityColorCallback>(0, 2.5));
         visFSI->AttachSystem(&sysMBS);
         visFSI->Initialize();
     }
@@ -393,7 +392,7 @@ std::shared_ptr<fea::ChMesh> Create_MB_FE(ChSystemSMC& sysMBS, ChSystemFsi& sysF
     sysMBS.Add(mesh);
 
     // Add the mesh to the FSI system (only these meshes interact with the fluid)
-    sysFSI.AddFsiMesh2D(mesh, true);
+    sysFSI.AddFsiMesh2D(mesh, BcePatternMesh2D::CENTERED, false);
 
     return mesh;
 }

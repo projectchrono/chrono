@@ -28,6 +28,43 @@ namespace fsi {
 /// Approach to handle BCE particles
 enum class BceVersion { ADAMI = 0, ORIGINAL = 1 };
 
+/// BCE pattern in cross section of 1-D flexible elements.
+/// The available patterns are illustrated below (assuming 3 BCE layers):
+/// <pre>
+/// FULL:
+///      X--X--X
+///      X--X--X
+///      X--X--X
+/// STAR:
+///      ---X---
+///      X--X--X
+///      ---X---
+/// </pre>
+enum class BcePatternMesh1D {FULL, STAR};
+
+/// BCE pattern along normal of 2-D surface of flexible elements.
+/// The choices are illustrated below (assuming 3 BCE layers):
+/// <pre>
+/// OUTWARD:
+///    ^ n
+///    |    ...--X--X--X--...
+///    |    ...--X--X--X--...
+/// ---|---------X--X--X-------- surface
+///
+/// CENTERED:
+///    ^ n
+///    |    ...--X--X--X--...
+/// ---|---------X--X--X-------- surface
+///    |    ...--X--X--X--...
+///
+/// INWARD:
+///    ^ n
+/// ---|---------X--X--X-------- surface
+///    |    ...--X--X--X--...
+///    |    ...--X--X--X--...
+/// </pre>
+enum class BcePatternMesh2D {CENTERED, OUTWARD, INWARD};
+
 /// PPE solution type
 enum class PPESolutionType { MATRIX_FREE, FORM_SPARSE_MATRIX };
 

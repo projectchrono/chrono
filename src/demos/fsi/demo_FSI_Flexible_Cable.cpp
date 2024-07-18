@@ -113,13 +113,13 @@ class PositionVisibilityCallback : public ChParticleCloud::VisibilityCallback {
 
 int main(int argc, char* argv[]) {
     // Parse command line arguments
-    std::string inputJSON = GetChronoDataFile("fsi/input_json/demo_FSI_Flexible_Cable_Granular.json");
+    std::string inputJSON = GetChronoDataFile("fsi/input_json/demo_FSI_Flexible_Cable_Explicit.json");
     double t_end = 10.0;
     bool verbose = true;
     bool output = false;
     double output_fps = 20;
     bool render = true;
-    double render_fps = 100;
+    double render_fps = 400;
     bool snapshots = false;
     if (!GetProblemSpecs(argc, argv, inputJSON, t_end, verbose, output, output_fps, render, render_fps, snapshots)) {
         return 1;
@@ -364,7 +364,7 @@ std::shared_ptr<fea::ChMesh> Create_MB_FE(ChSystemSMC& sysMBS, ChSystemFsi& sysF
     sysMBS.Add(mesh);
 
     // Add the mesh to the FSI system (only these meshes interact with the fluid)
-    sysFSI.AddFsiMesh1D(mesh);
+    sysFSI.AddFsiMesh1D(mesh, BcePatternMesh1D::STAR, false);
 
     return mesh;
 }

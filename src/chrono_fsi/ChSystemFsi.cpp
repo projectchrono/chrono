@@ -688,10 +688,10 @@ void ChSystemFsi::AddFsiBody(std::shared_ptr<ChBody> body) {
     m_fsi_interface->m_fsi_bodies.push_back(body);
 }
 
-void ChSystemFsi::AddFsiMesh1D(std::shared_ptr<fea::ChMesh> mesh) {
+void ChSystemFsi::AddFsiMesh1D(std::shared_ptr<fea::ChMesh> mesh, BcePatternMesh1D pattern, bool remove_center) {
     ChFsiInterface::FsiMesh1D fsi_mesh;
 
-    // Traverse all elements in the provided mesh and extract the ANCF cable elements.
+    // Traverse all elements in the provided mesh and extract the 1-D elements elements.
     // Keep track of node ownership
     std::set<fea::ChNodeFEAxyz*> assigned;
     for (const auto& element : mesh->GetElements()) {
@@ -737,7 +737,7 @@ void ChSystemFsi::AddFsiMesh1D(std::shared_ptr<fea::ChMesh> mesh) {
 
     // Create the BCE markers based on the mesh contact segments
     unsigned int meshID = (unsigned int)m_fsi_interface->m_fsi_meshes1D.size();
-    fsi_mesh.num_bce = AddBCE_mesh1D(meshID, fsi_mesh);
+    fsi_mesh.num_bce = AddBCE_mesh1D(meshID, fsi_mesh, pattern, remove_center);
 
     // Update total number of flex 1-D segments and associated nodes
     m_num_flex1D_elements += fsi_mesh.segments.size();
@@ -747,7 +747,7 @@ void ChSystemFsi::AddFsiMesh1D(std::shared_ptr<fea::ChMesh> mesh) {
     m_fsi_interface->m_fsi_meshes1D.push_back(fsi_mesh);
 }
 
-void ChSystemFsi::AddFsiMesh2D(std::shared_ptr<fea::ChMesh> mesh, bool centered) {
+void ChSystemFsi::AddFsiMesh2D(std::shared_ptr<fea::ChMesh> mesh, BcePatternMesh2D pattern, bool remove_center) {
     std::shared_ptr<fea::ChContactSurfaceMesh> contact_surface;
 
     // Search for a contact surface mesh associated with the FEA mesh
@@ -801,7 +801,7 @@ void ChSystemFsi::AddFsiMesh2D(std::shared_ptr<fea::ChMesh> mesh, bool centered)
 
     // Create the BCE markers based on the mesh contact surface
     unsigned int meshID = (unsigned int)m_fsi_interface->m_fsi_meshes2D.size();
-    fsi_mesh.num_bce = AddBCE_mesh2D(meshID, fsi_mesh, centered);
+    fsi_mesh.num_bce = AddBCE_mesh2D(meshID, fsi_mesh, pattern, remove_center);
 
     // Update total number of flex 2-D faces and associated nodes
     m_num_flex2D_elements += fsi_mesh.contact_surface->GetNumTriangles();
@@ -1730,7 +1730,10 @@ void ChSystemFsi::AddBCE_body(std::shared_ptr<ChBody> body,
         m_fsi_bodies_bce_num.push_back((int)bce.size());
 }
 
-unsigned int ChSystemFsi::AddBCE_mesh1D(unsigned int meshID, const ChFsiInterface::FsiMesh1D& fsi_mesh) {
+unsigned int ChSystemFsi::AddBCE_mesh1D(unsigned int meshID,
+                                        const ChFsiInterface::FsiMesh1D& fsi_mesh,
+                                        BcePatternMesh1D pattern,
+                                        bool remove_center) {
     const auto& segments = fsi_mesh.segments;
 
     Real kernel_h = m_paramsH->HSML;
@@ -1765,8 +1768,6 @@ unsigned int ChSystemFsi::AddBCE_mesh1D(unsigned int meshID, const ChFsiInterfac
         y_dir.Normalize();
         ChVector3<> z_dir = Vcross(x_dir, y_dir);
 
-        double yz_start = (num_layers - 1) * spacing / 2;
-
         unsigned int n_bce = 0;  // number of BCE markers on segment
         for (int i = 0; i <= n; i++) {
             if (i == 0 && !seg->OwnsNode(0))  // segment does not own vertex 0
@@ -1779,10 +1780,14 @@ unsigned int ChSystemFsi::AddBCE_mesh1D(unsigned int meshID, const ChFsiInterfac
             auto P = P0 * lambda[0] + P1 * lambda[1];
             auto V = V0 * lambda[0] + V1 * lambda[1];
 
-            for (int j = 0; j < num_layers; j++) {
-                double y_val = yz_start - j * spacing;
-                for (int k = 0; k < num_layers; k++) {
-                    auto z_val = yz_start - k * spacing;
+            for (int j = -num_layers + 1; j <= num_layers - 1; j += 2) {
+                for (int k = -num_layers + 1; k <= num_layers - 1; k += 2) {
+                    if (remove_center && j == 0 && k == 0)
+                        continue;
+                    if (pattern == BcePatternMesh1D::STAR && std::abs(j) + std::abs(k) > num_layers)
+                        continue;
+                    double y_val = j * spacing / 2;
+                    double z_val = k * spacing / 2;
                     auto Q = P + y_val * y_dir + z_val * z_dir;
                     m_sysFSI->sphMarkers_H->posRadH.push_back(mR4(utils::ToReal3(Q), kernel_h));
                     m_sysFSI->sphMarkers_H->velMasH.push_back(utils::ToReal3(V));
@@ -1794,17 +1799,17 @@ unsigned int ChSystemFsi::AddBCE_mesh1D(unsigned int meshID, const ChFsiInterfac
             }
         }
 
-        // Add the number of BCE markers for this segment.
-        // The maximum value on each layer is (n+1).
+        // Add the number of BCE markers for this segment
         num_bce += n_bce;
-
-        //// TODO - load necessary structures and arrays
     }
 
     return num_bce;
 }
 
-unsigned int ChSystemFsi::AddBCE_mesh2D(unsigned int meshID, const ChFsiInterface::FsiMesh2D& fsi_mesh, bool centered) {
+unsigned int ChSystemFsi::AddBCE_mesh2D(unsigned int meshID,
+                                        const ChFsiInterface::FsiMesh2D& fsi_mesh,
+                                        BcePatternMesh2D pattern,
+                                        bool remove_center) {
     const auto& surface = fsi_mesh.contact_surface;
 
     Real kernel_h = m_paramsH->HSML;
@@ -1854,7 +1859,27 @@ unsigned int ChSystemFsi::AddBCE_mesh2D(unsigned int meshID, const ChFsiInterfac
         ////ofile << tri->OwnsEdge(0) << " " << tri->OwnsEdge(1) << " " << tri->OwnsEdge(2) << endl;
         ////ofile << n << endl;
 
-        double z_start = centered ? (num_layers - 1) * spacing / 2 : 0;  // start layer z (along normal)
+        int m_start = 0;
+        int m_end = 0;
+        switch (pattern) {
+            case BcePatternMesh2D::INWARD:
+                m_start = -2 * (num_layers - 1);
+                m_end = 0;
+                remove_center = false;
+                break;
+            case BcePatternMesh2D::CENTERED:
+                m_start = -(num_layers - 1);
+                m_end = +(num_layers - 1);
+                break;
+            case BcePatternMesh2D::OUTWARD:
+                m_start = 0;
+                m_end = +2 * (num_layers - 1);
+                remove_center = false;
+                break;
+        }
+
+
+        ////double z_start = centered ? (num_layers - 1) * spacing / 2 : 0;  // start layer z (along normal)
 
         unsigned int n_bce = 0;  // number of BCE markers on triangle
         for (int i = 0; i <= n; i++) {
@@ -1880,7 +1905,23 @@ unsigned int ChSystemFsi::AddBCE_mesh2D(unsigned int meshID, const ChFsiInterfac
                 auto P = lambda[0] * P0 + lambda[1] * P1 + lambda[2] * P2;  // absolute coordinates of BCE marker
                 auto V = lambda[0] * V0 + lambda[1] * V1 + lambda[2] * V2;  // absolute velocity of BCE marker
 
-                // Create layers in negative normal direction
+                // Create layers in normal direction
+                for (int m = m_start; m <= m_end; m += 2) {
+                    if (remove_center && m == 0)
+                        continue;
+                    double z_val = m * spacing / 2;
+                    auto Q = P + z_val * normal;
+                    m_sysFSI->sphMarkers_H->posRadH.push_back(mR4(utils::ToReal3(Q), kernel_h));
+                    m_sysFSI->sphMarkers_H->velMasH.push_back(utils::ToReal3(V));
+                    m_sysFSI->sphMarkers_H->rhoPresMuH.push_back(rhoPresMuH);
+                    m_sysFSI->fsiData->flex2D_BCEcoords_H.push_back(utils::ToReal3({lambda[0], lambda[1], z_val}));
+                    m_sysFSI->fsiData->flex2D_BCEsolids_H.push_back(mU3(meshID, triID, m_num_flex2D_elements + triID));
+                    n_bce++;
+
+                    ////ofile << Q << endl;
+                }
+
+                /*
                 for (int m = 0; m < num_layers; m++) {
                     auto z_val = z_start - m * spacing;
                     auto Q = P + z_val * normal;
@@ -1893,17 +1934,15 @@ unsigned int ChSystemFsi::AddBCE_mesh2D(unsigned int meshID, const ChFsiInterfac
 
                     ////ofile << Q << endl;
                 }
+                */
             }
         }
 
         ////ofile << n_bce << endl;
         ////ofile << endl;
 
-        // Add the number of BCE markers for this triangle.
-        // The maximum value on each layer is (n+1)*(n+2)/2.
+        // Add the number of BCE markers for this triangle
         num_bce += n_bce;
-
-        //// TODO - load necessary structures and arrays
     }
 
     ////ofile.close();

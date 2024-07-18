@@ -398,10 +398,16 @@ class CH_FSI_API ChSystemFsi {
     // ----------- Functions for adding FEA meshes and associated BCE markers
 
     /// Add an FEA mesh with segment contact to the FSI system.
-    void AddFsiMesh1D(std::shared_ptr<fea::ChMesh> mesh);
+    void AddFsiMesh1D(std::shared_ptr<fea::ChMesh> mesh,                  ///< FEA mesh with 1-D flexible elements
+                      BcePatternMesh1D pattern = BcePatternMesh1D::FULL,  ///< BCE marker pattern in cross-section
+                      bool remove_center = false                          ///< eliminate BCE markers on center line
+    );
 
     /// Add an FEA mesh with surface contact to the FSI system.
-    void AddFsiMesh2D(std::shared_ptr<fea::ChMesh> mesh, bool centered = false);
+    void AddFsiMesh2D(std::shared_ptr<fea::ChMesh> mesh,                      ///< FEA mesh with 2-D contact surfaces
+                      BcePatternMesh2D pattern = BcePatternMesh2D::CENTERED,  ///< BCE locations along normal
+                      bool remove_center = false                              ///< eliminate BCE markers on surface
+    );
 
     // ----------- Utility functions for extracting information at specific SPH particles
 
@@ -499,11 +505,17 @@ class CH_FSI_API ChSystemFsi {
 
     /// Create and add BCE markers associated with the given set of contact segments.
     /// The BCE markers are created in the absolute coordinate frame.
-    unsigned int AddBCE_mesh1D(unsigned int meshID, const ChFsiInterface::FsiMesh1D& fsi_mesh);
+    unsigned int AddBCE_mesh1D(unsigned int meshID,
+                               const ChFsiInterface::FsiMesh1D& fsi_mesh,
+                               BcePatternMesh1D pattern,
+                               bool remove_center);
 
     /// Create and add BCE markers associated with the given mesh contact surface.
     /// The BCE markers are created in the absolute coordinate frame.
-    unsigned int AddBCE_mesh2D(unsigned int meshID, const ChFsiInterface::FsiMesh2D& fsi_mesh, bool centered);
+    unsigned int AddBCE_mesh2D(unsigned int meshID,
+                               const ChFsiInterface::FsiMesh2D& fsi_mesh,
+                               BcePatternMesh2D pattern,
+                               bool remove_center);
 
     /// Function to initialize the midpoint device data of the fluid system by copying from the full step.
     void CopyDeviceDataToHalfStep();
