@@ -43,10 +43,14 @@ ChExternalFmu::ChExternalFmu(const std::string& instance_name,
     }
 
     // Instantiate the FMU
-    if (resources_dir.empty())
-        m_fmu->Instantiate(instance_name, logging, false);
-    else
-        m_fmu->Instantiate(instance_name, resources_dir, logging, false);
+    try {
+        if (resources_dir.empty())
+            m_fmu->Instantiate(instance_name, logging, false);
+        else
+            m_fmu->Instantiate(instance_name, resources_dir, logging, false);
+    } catch (std::exception& my_exception) {
+        std::cout << "ERROR instantiating FMU: " << my_exception.what() << "\n";
+    }
 
     // Set up an experiment
     m_fmu->SetupExperiment(fmi2False,  // no tolerance defined
