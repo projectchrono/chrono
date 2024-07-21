@@ -12,8 +12,8 @@
 // Authors: Radu Serban
 // =============================================================================
 //
-// Demo code for using a hydraulic actuator FMU co-simulated with a simple crane
-// multibody mechanical system FMU.
+// Demo illustrating the co-simulation of 2 FMUs (FMI 2.0), a hydraulic actuator
+// and a simple crane multibody system.
 //
 // =============================================================================
 

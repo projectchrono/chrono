@@ -220,7 +220,7 @@ fmi2Status FmuComponent::exitInitializationModeIMPL() {
         sendToLog("Enable run-time visualization", fmi2Status::fmi2OK, "logAll");
         vis_sys->AttachSystem(&sys);
         vis_sys->SetWindowSize(800, 600);
-        vis_sys->SetWindowTitle("Hydraulic crane");
+        vis_sys->SetWindowTitle("Hydraulic crane FMU (FMI 2.0)");
         vis_sys->SetCameraVertical(CameraVerticalDir::Z);
         vis_sys->Initialize();
         vis_sys->AddCamera(ChVector3d(0.5, -1, 0.5), ChVector3d(0.5, 0, 0.5));
@@ -245,7 +245,7 @@ fmi2Status FmuComponent::doStepIMPL(fmi2Real currentCommunicationPoint,
         if (vis_sys) {
             auto status = vis_sys->Run();
             if (!status)
-                return fmi2Discard;
+                return fmi2Status::fmi2Discard;
             vis_sys->BeginScene(true, true, ChColor(0.33f, 0.6f, 0.78f));
             vis_sys->Render();
             vis_sys->EndScene();

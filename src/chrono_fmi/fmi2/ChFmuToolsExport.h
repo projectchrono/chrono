@@ -16,8 +16,8 @@
 //
 // =============================================================================
 
-#ifndef CH_FMU_TOOLS_EXPORT_H
-#define CH_FMU_TOOLS_EXPORT_H
+#ifndef CH_FMU2_TOOLS_EXPORT_H
+#define CH_FMU2_TOOLS_EXPORT_H
 
 #include <stack>
 #include <fstream>

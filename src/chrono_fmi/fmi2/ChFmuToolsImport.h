@@ -16,8 +16,8 @@
 //
 // =============================================================================
 
-#ifndef CH_FMU_TOOLS_IMPORT_H
-#define CH_FMU_TOOLS_IMPORT_H
+#ifndef CH_FMU2_TOOLS_IMPORT_H
+#define CH_FMU2_TOOLS_IMPORT_H
 
 #include <string>
 
