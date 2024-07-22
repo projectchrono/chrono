@@ -25,7 +25,7 @@
 
 #include "chrono_fmi/ChApiFMI.h"
 #include "chrono/physics/ChExternalDynamics.h"
-#include "fmi2/FmuToolsCommon.h"
+#include "fmi2/FmuToolsVariable.h"
 
 namespace fmi2 {
 class FmuUnit;

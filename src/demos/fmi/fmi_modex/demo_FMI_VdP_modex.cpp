@@ -34,11 +34,11 @@
 
 #include <cmath>
 
-#include "chrono_fmi/ChConfigFMI.h"
-
 #include "chrono/physics/ChSystemSMC.h"
-#include "chrono_fmi/fmi2/ChExternalFmu.h"
 #include "chrono/utils/ChUtilsInputOutput.h"
+
+#include "chrono_fmi/ChConfigFMI.h"
+#include "chrono_fmi/fmi2/ChExternalFmu.h"
 
 #ifdef CHRONO_POSTPROCESS
     #include "chrono_postprocess/ChGnuPlot.h"
