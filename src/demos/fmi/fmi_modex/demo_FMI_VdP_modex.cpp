@@ -38,7 +38,7 @@
 #include "chrono/utils/ChUtilsInputOutput.h"
 
 #include "chrono_fmi/ChConfigFMI.h"
-#include "chrono_fmi/fmi2/ChExternalFmu.h"
+#include "chrono_fmi/ChExternalFmu.h"
 
 #ifdef CHRONO_POSTPROCESS
     #include "chrono_postprocess/ChGnuPlot.h"

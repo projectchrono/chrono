@@ -16,7 +16,7 @@
 // 
 // =============================================================================
 
-#include "chrono_fmi/fmi2/ChExternalFmu.h"
+#include "chrono_fmi/ChExternalFmu.h"
 
 #include "fmi2/FmuToolsImport.h"
 
