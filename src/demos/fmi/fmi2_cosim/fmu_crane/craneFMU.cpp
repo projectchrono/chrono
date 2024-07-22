@@ -28,13 +28,13 @@ using namespace chrono::fmi2;
 // -----------------------------------------------------------------------------
 
 // Create an instance of this FMU
-::fmi2::FmuComponentBase* ::fmi2::fmi2InstantiateIMPL(fmi2String instanceName,
-                                                      fmi2Type fmuType,
-                                                      fmi2String fmuGUID,
-                                                      fmi2String fmuResourceLocation,
-                                                      const fmi2CallbackFunctions* functions,
-                                                      fmi2Boolean visible,
-                                                      fmi2Boolean loggingOn) {
+fmu_tools::fmi2::FmuComponentBase* fmu_tools::fmi2::fmi2InstantiateIMPL(fmi2String instanceName,
+                                                                        fmi2Type fmuType,
+                                                                        fmi2String fmuGUID,
+                                                                        fmi2String fmuResourceLocation,
+                                                                        const fmi2CallbackFunctions* functions,
+                                                                        fmi2Boolean visible,
+                                                                        fmi2Boolean loggingOn) {
     return new FmuComponent(instanceName, fmuType, fmuGUID, fmuResourceLocation, functions, visible, loggingOn);
 }
 

@@ -27,13 +27,13 @@
 #include "chrono/physics/ChExternalDynamics.h"
 #include "fmi2/FmuToolsVariable.h"
 
-namespace fmi2 {
+namespace fmu_tools::fmi2 {
 class FmuUnit;
 }
 
 namespace chrono {
 
-using FmuVariable = ::fmi2::FmuVariable;
+using FmuVariable = fmu_tools::fmi2::FmuVariable;
 
 /// Chrono physics item that wraps a model exchange FMU.
 /// This class allows importing the underlying model in the associated FMU and encapsulate it into a ChExternalDynamics
@@ -124,7 +124,7 @@ class ChApiFMI ChExternalFmu : public ChExternalDynamics {
     bool checkParam(const std::string& name, FmuVariable::Type type, std::string& err_msg) const;
     bool checkInput(const std::string& name, FmuVariable::Type type, std::string& err_msg) const;
 
-    std::unique_ptr<::fmi2::FmuUnit> m_fmu;
+    std::unique_ptr<fmu_tools::fmi2::FmuUnit> m_fmu;
     bool m_initialized;
     unsigned int m_num_states;
 

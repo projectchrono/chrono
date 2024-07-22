@@ -27,21 +27,21 @@ using namespace chrono::fmi3;
 // -----------------------------------------------------------------------------
 
 // Create an instance of this FMU
-::fmi3::FmuComponentBase* ::fmi3::fmi3InstantiateIMPL(FmuType fmiInterfaceType,
-                                                      fmi3String instanceName,
-                                                      fmi3String instantiationToken,
-                                                      fmi3String resourcePath,
-                                                      fmi3Boolean visible,
-                                                      fmi3Boolean loggingOn,
-                                                      fmi3InstanceEnvironment instanceEnvironment,
-                                                      fmi3LogMessageCallback logMessage) {
+fmu_tools::fmi3::FmuComponentBase* fmu_tools::fmi3::fmi3InstantiateIMPL(fmu_tools::fmi3::FmuType fmiInterfaceType,
+                                                                        fmi3String instanceName,
+                                                                        fmi3String instantiationToken,
+                                                                        fmi3String resourcePath,
+                                                                        fmi3Boolean visible,
+                                                                        fmi3Boolean loggingOn,
+                                                                        fmi3InstanceEnvironment instanceEnvironment,
+                                                                        fmi3LogMessageCallback logMessage) {
     return new FmuComponent(fmiInterfaceType, instanceName, instantiationToken, resourcePath, visible, loggingOn,
                             instanceEnvironment, logMessage);
 }
 
 // -----------------------------------------------------------------------------
 
-FmuComponent::FmuComponent(FmuType fmiInterfaceType,
+FmuComponent::FmuComponent(fmu_tools::fmi3::FmuType fmiInterfaceType,
                            fmi3String instanceName,
                            fmi3String instantiationToken,
                            fmi3String resourcePath,

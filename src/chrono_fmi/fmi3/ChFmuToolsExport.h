@@ -42,7 +42,7 @@
 namespace chrono {
 namespace fmi3 {
 
-using FmuVariable = ::fmi3::FmuVariable;
+using FmuVariable = fmu_tools::fmi3::FmuVariable;
 
 /*
 #define ADD_BVAL_AS_FMU_GETSET(returnType, codeGet, codeSet)                                         \
@@ -234,9 +234,9 @@ class ChOutputFMU : public ChArchiveOut {
 // -----------------------------------------------------------------------------
 
 /// Extension of FmuComponentBase class for Chrono FMUs.
-class FmuChronoComponentBase : public ::fmi3::FmuComponentBase {
+class FmuChronoComponentBase : public fmu_tools::fmi3::FmuComponentBase {
   public:
-    FmuChronoComponentBase(FmuType fmiInterfaceType,
+    FmuChronoComponentBase(fmu_tools::fmi3::FmuType fmiInterfaceType,
                            fmi3String instanceName,
                            fmi3String instantiationToken,
                            fmi3String resourcePath,

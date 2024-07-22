@@ -29,7 +29,7 @@ ChExternalFmu::ChExternalFmu(const std::string& instance_name,
                              const std::string& resources_dir)
     : m_initialized(false), m_num_states(0) {
     // Create the underlying FMU
-    m_fmu = chrono_types::make_unique<::fmi2::FmuUnit>();
+    m_fmu = chrono_types::make_unique<fmu_tools::fmi2::FmuUnit>();
     ////m_fmu->SetVerbose(true);
 
     // Load the FMU from the specified file

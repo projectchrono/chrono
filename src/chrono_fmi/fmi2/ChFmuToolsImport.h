@@ -30,10 +30,10 @@
 namespace chrono {
 namespace fmi2 {
 
-using FmuVariable = ::fmi2::FmuVariable;
+using FmuVariable = fmu_tools::fmi2::FmuVariable;
 
 /// Extension of FmuUnit class for Chrono FMUs.
-class FmuChronoUnit : public ::fmi2::FmuUnit {
+class FmuChronoUnit : public fmu_tools::fmi2::FmuUnit {
   public:
     FmuChronoUnit() : FmuUnit() {}
 

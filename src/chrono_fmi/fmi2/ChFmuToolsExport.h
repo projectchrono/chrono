@@ -42,7 +42,7 @@
 namespace chrono {
 namespace fmi2 {
 
-using FmuVariable = ::fmi2::FmuVariable;
+using FmuVariable = fmu_tools::fmi2::FmuVariable;
 
 #define ADD_BVAL_AS_FMU_GETSET(returnType, codeGet, codeSet)                                         \
     _fmucomp->AddFmuVariable(                                                                        \
@@ -78,7 +78,7 @@ const std::unordered_map<chrono::ChCausalityType, FmuVariable::CausalityType> Ca
 /// Class for serializing variables to FmuComponentBase.
 class ChOutputFMU : public ChArchiveOut {
   public:
-    ChOutputFMU(::fmi2::FmuComponentBase& fmucomp) {
+    ChOutputFMU(fmu_tools::fmi2::FmuComponentBase& fmucomp) {
         _fmucomp = &fmucomp;
 
         tablevel = 0;
@@ -223,7 +223,7 @@ class ChOutputFMU : public ChArchiveOut {
     }
 
     int tablevel;
-    ::fmi2::FmuComponentBase* _fmucomp;
+    fmu_tools::fmi2::FmuComponentBase* _fmucomp;
     std::stack<int> nitems;
     std::deque<bool> is_array;
     std::deque<std::string> parent_names;
@@ -232,7 +232,7 @@ class ChOutputFMU : public ChArchiveOut {
 // -----------------------------------------------------------------------------
 
 /// Extension of FmuComponentBase class for Chrono FMUs.
-class FmuChronoComponentBase : public ::fmi2::FmuComponentBase {
+class FmuChronoComponentBase : public fmu_tools::fmi2::FmuComponentBase {
   public:
     FmuChronoComponentBase(fmi2String instanceName,
                            fmi2Type fmuType,
