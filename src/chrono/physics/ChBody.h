@@ -32,6 +32,7 @@ namespace chrono {
 // Forward references (for parent hierarchy pointer)
 
 class ChSystem;
+namespace multidomain { class ChDomain; };
 
 /// Class for Rigid Bodies
 ///
@@ -641,6 +642,7 @@ class ChApi ChBody : public ChPhysicsItem, public ChBodyFrame, public ChContacta
     friend class ChAssembly;
     friend class modal::ChModalAssembly;
     friend class ChConveyor;
+    friend class multidomain::ChDomain;
 };
 
 CH_CLASS_VERSION(ChBody, 0)
