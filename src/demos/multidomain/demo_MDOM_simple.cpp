@@ -30,6 +30,11 @@ using namespace irrlicht;
 using namespace postprocess;
 using namespace multidomain;
 
+// For multi domain simulations, each item (body, link, fea element or node, etc.) must have
+// an unique ID, to be set via SetTag(). Here we use a static counter to help with the generation
+// of unique IDs.
+static int unique_ID = 1;
+
 
 void AddFallingItems(ChSystemSMC& sys) {
     // Shared contact material for falling objects
@@ -42,6 +47,7 @@ void AddFallingItems(ChSystemSMC& sys) {
                 double mass = 1;
                 double radius = 1.1;
                 auto body = chrono_types::make_shared<ChBody>();
+                body->SetTag(unique_ID); unique_ID++;
                 body->SetInertiaXX((2.0 / 5.0) * mass * pow(radius, 2) * ChVector3d(1, 1, 1));
                 body->SetMass(mass);
                 body->SetPos(ChVector3d(4.0 * ix + 0.1, 4.0, 4.0 * iz));
@@ -62,6 +68,7 @@ void AddFallingItems(ChSystemSMC& sys) {
                 double mass = 1;
                 ChVector3d size(1.5, 1.5, 1.5);
                 auto body = chrono_types::make_shared<ChBody>();
+                body->SetTag(unique_ID); unique_ID++;
 
                 body->SetMass(mass);
                 body->SetPos(ChVector3d(4.0 * ix, 6.0, 4.0 * iz));
@@ -88,6 +95,7 @@ void AddContainerWall(std::shared_ptr<ChBody> body,
                       bool visible = true) {
     auto coll_shape = chrono_types::make_shared<ChCollisionShapeBox>(mat, size.x(), size.y(), size.z());
     body->AddCollisionShape(coll_shape, ChFrame<>(pos, QUNIT));
+    body->SetTag(unique_ID); unique_ID++;
 
     if (visible) {
         auto vis_shape = chrono_types::make_shared<ChVisualShapeBox>(size);
@@ -187,13 +195,14 @@ int main(int argc, char* argv[]) {
 
     auto mat = chrono_types::make_shared<ChContactMaterialSMC>();
     mat->SetFriction(0.1);
+
     auto mrigidBody = chrono_types::make_shared<ChBodyEasyBox>(2, 2, 2,  // x,y,z size
         100,         // density
         true,        // visualization?
         false,        // collision?
         mat);        // contact material
     mrigidBody->SetPos(ChVector3d(-3,0,0));
-    mrigidBody->SetTag(101); // for multidomain, each item must have an unique tag!
+    mrigidBody->SetTag(unique_ID); unique_ID++; // for multidomain, each item must have an unique tag!
     sys_0.AddBody(mrigidBody);
     //sys_0.GetCollisionSystem()->BindItem(mrigidBody);
 
