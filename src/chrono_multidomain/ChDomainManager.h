@@ -23,6 +23,7 @@
 #include "chrono/physics/ChSystem.h"
 #include "chrono/fea/ChMesh.h"
 #include "chrono/geometry/ChGeometry.h"
+#include "chrono/solver/ChVariables.h"
 #include "chrono_multidomain/ChApiMultiDomain.h"
 
 namespace chrono {
@@ -275,7 +276,6 @@ public:
     ChDomainInterface(const ChDomainInterface& other) {
         side_IN = other.side_IN;
         side_OUT = other.side_OUT;
-        shared_bodies = other.shared_bodies;
         shared_items = other.shared_items;
         shared_nodes = other.shared_nodes;
         buffer_sending << other.buffer_sending.rdbuf();
@@ -284,7 +284,6 @@ public:
     ChDomainInterface& operator =(const ChDomainInterface& other) {
         side_IN = other.side_IN;
         side_OUT = other.side_OUT;
-        shared_bodies = other.shared_bodies;
         shared_items = other.shared_items;
         shared_nodes = other.shared_nodes;
         buffer_sending << other.buffer_sending.rdbuf();
@@ -295,12 +294,19 @@ public:
     ChDomain* side_IN = nullptr;
     std::shared_ptr<ChDomain> side_OUT;
 
-    std::unordered_map<int, std::shared_ptr<ChBody>>        shared_bodies;
+    // Maps of shared graph nodes:
+    //std::unordered_map<int, std::shared_ptr<ChBody>>        shared_bodies;
     std::unordered_map<int, std::shared_ptr<ChPhysicsItem>> shared_items;
     std::unordered_map<int, std::shared_ptr<ChNodeBase>>    shared_nodes;
+    
+    // Maps of shared graph edges: 
+    // -no edge sharing by design-
 
     std::stringstream buffer_sending;
     std::stringstream buffer_receiving;
+
+    // for the system descriptor:
+    std::unordered_set<ChVariables*> shared_vars;
 
 private:
 };
