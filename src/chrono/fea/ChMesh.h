@@ -60,6 +60,12 @@ class ChApi ChMesh : public ChIndexedNodes {
     void ClearNodes();
     void ClearElements();
 
+    /// Remove node from the mesh (O(n) time complexity)
+    void RemoveNode(std::shared_ptr<ChNodeFEAbase> node);
+
+    /// Remove element from the mesh (O(n) time complexity)
+    void RemoveElement(std::shared_ptr<ChElementBase> node);
+
     /// Get the array of nodes of this mesh.
     const std::vector<std::shared_ptr<ChNodeFEAbase>>& GetNodes() const { return vnodes; }
 

@@ -131,6 +131,32 @@ void ChMesh::ClearNodes() {
     }
 }
 
+void ChMesh::RemoveNode(std::shared_ptr<ChNodeFEAbase> node) {
+    auto itr = std::find(std::begin(vnodes), std::end(vnodes), node);
+    assert(itr != vnodes.end());
+
+    vnodes.erase(itr);
+    //node->SetMesh(nullptr);
+
+    // If the mesh is already added to a system, mark the system out-of-date
+    if (system) {
+        system->is_updated = false;
+    }
+}
+
+void ChMesh::RemoveElement(std::shared_ptr<ChElementBase> elem) {
+    auto itr = std::find(std::begin(velements), std::end(velements), elem);
+    assert(itr != velements.end());
+
+    velements.erase(itr);
+    //elem->SetMesh(nullptr);
+
+    // If the mesh is already added to a system, mark the system out-of-date
+    if (system) {
+        system->is_updated = false;
+    }
+}
+
 void ChMesh::AddContactSurface(std::shared_ptr<ChContactSurface> m_surf) {
     m_surf->SetPhysicsItem(this);
     vcontactsurfaces.push_back(m_surf);
