@@ -18,11 +18,13 @@ MESSAGE(STATUS "\n==== Chrono MultiDomain module ====\n")
 
 SET(ChronoEngine_MULTIDOMAIN_SOURCES 
     ChDomainManager.cpp
+    ChSystemDescriptorMultidomain.cpp
 )
 
 SET(ChronoEngine_MULTIDOMAIN_HEADERS
     ChApiMultiDomain.h 
     ChDomainManager.h
+    ChSystemDescriptorMultidomain.h
 )
 
 SOURCE_GROUP("" FILES 
