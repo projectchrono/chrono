@@ -547,7 +547,7 @@ void  ChDomain::DoUpdateSharedReceived() {
 				if (const auto nodexyzrot = std::dynamic_pointer_cast<ChNodeFEAxyzrot>(node))
 					node_pos = nodexyzrot->GetPos();
 				bool is_overlapping_IN = this->IsInto(node_pos);
-				bool is_sharing = (set_of_domainshared.find(node->GetTag()) == set_of_domainshared.end());
+				bool is_sharing = (set_of_domainshared.find(node->GetTag()) != set_of_domainshared.end());
 				if (!is_overlapping_IN && !is_sharing){
 					mmesh->RemoveNode(node);
 				}
@@ -559,9 +559,9 @@ void  ChDomain::DoUpdateSharedReceived() {
 					reference = nodexyz->GetPos();
 				if (const auto nodexyzrot = std::dynamic_pointer_cast<ChNodeFEAxyzrot>(element->GetNode(0)))
 					reference = nodexyzrot->GetPos();
-				bool is_overlapping_IN = this->IsInto(reference);
-				//bool is_sharing = (set_of_domainshared.find(element->GetTag()) == set_of_domainshared.end());
-				if (!is_overlapping_IN) {
+				bool is_reference_IN = this->IsInto(reference);
+				//bool is_sharing = (set_of_domainshared.find(element->GetTag()) != set_of_domainshared.end());
+				if (!is_reference_IN) {
 					mmesh->RemoveElement(element);
 				}
 			}
@@ -570,7 +570,7 @@ void  ChDomain::DoUpdateSharedReceived() {
 		// remove the generic physics item spilling outside (could be a ChMesh container)
 		auto mabb = oitem->GetTotalAABB();
 		bool is_overlapping_IN = this->IsOverlap(mabb); 
-		bool is_sharing = (set_of_domainshared.find(oitem->GetTag()) == set_of_domainshared.end());
+		bool is_sharing = (set_of_domainshared.find(oitem->GetTag()) != set_of_domainshared.end());
 		if (!is_overlapping_IN && !is_sharing)
 		{
 			system->RemoveOtherPhysicsItem(oitem);
@@ -584,7 +584,7 @@ void  ChDomain::DoUpdateSharedReceived() {
 	for (const auto& body : system->GetBodies()) {
 		auto mabb = body->GetTotalAABB();
 		bool is_overlapping_IN = this->IsOverlap(mabb) || this->IsInto(body->GetPos()); // if aabb is empty (reversed) use center
-		bool is_sharing = (set_of_domainshared.find(body->GetTag()) == set_of_domainshared.end());
+		bool is_sharing = (set_of_domainshared.find(body->GetTag()) != set_of_domainshared.end());
 		if (!is_overlapping_IN && !is_sharing)
 		{
 			system->RemoveBody(body);
