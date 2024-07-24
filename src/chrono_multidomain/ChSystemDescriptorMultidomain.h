@@ -26,9 +26,9 @@ namespace multidomain {
 /// but here adds the possibility that the system matrices/vectors/variables/constraints etc.
 /// are distributed on multiple domains.
 
-class ChApiMultiDomain ChSystemDescriptorMultidomain {
+class ChApiMultiDomain ChSystemDescriptorMultidomain : public ChSystemDescriptor {
   public:
-      ChSystemDescriptorMultidomain() {};
+      ChSystemDescriptorMultidomain(std::shared_ptr<ChDomain> mdomain = nullptr, ChDomainManager* mdomain_manager = nullptr);
       virtual ~ChSystemDescriptorMultidomain() {};
     /*
     /// Access the vector of constraints.
@@ -74,9 +74,11 @@ class ChApiMultiDomain ChSystemDescriptorMultidomain {
     /// - also updates the offsets of all constraints in 'l' global vector (see GetOffset() in ChConstraint).
     virtual unsigned int CountActiveConstraints() const;
 
+    */
     /// Update counts of scalar variables and scalar constraints.
     virtual void UpdateCountsAndOffsets();
-
+    
+    /*
     /// Set the c_a coefficient (default=1) used for scaling the M masses of the m_variables.
     /// Used when performing SchurComplementProduct(), SystemProduct(), BuildSystemMatrix().
     virtual void SetMassFactor(const double mc_a) { c_a = mc_a; }
@@ -334,7 +336,25 @@ class ChApiMultiDomain ChSystemDescriptorMultidomain {
     bool freeze_count;         ///< cache the number of active variables and constraints
     */
 
+    // Set vectors of shared_states to zero. Each interface of domain has a vector. 
+    virtual void SharedStatesToZero();
+
+    // Set vectors of shared_states to the current variables State() value. 
+    virtual void SharedStatesSyncToCurrentDomainStates();
+
+    // SEND the delta ((current variables State) - (last shared_states)) to the neighbouring domains, 
+    // where the delta is ADDED to the corresponding variables State(). 
+    // This operation requires a network-expensive SEND and RECEIVE operation.
+    // It is expected that all domains will execute this operation, otherwise deadlock.
+    // Finally, set vectors of shared_states to the current variables State() value.
+    virtual void SharedStatesDeltaAddToMultidomainAndSync();
+
+  private:
+
     std::shared_ptr<ChDomain> domain;
+    ChDomainManager* domain_manager = nullptr;
+
+    std::unordered_map<int, ChVectorDynamic<>> shared_states;
 
 };
 

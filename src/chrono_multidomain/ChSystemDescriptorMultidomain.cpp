@@ -26,6 +26,77 @@ namespace multidomain {
 // dynamic creation and persistence
 CH_FACTORY_REGISTER(ChSystemDescriptorMultidomain)
 
+ChSystemDescriptorMultidomain::ChSystemDescriptorMultidomain(std::shared_ptr<ChDomain> mdomain, ChDomainManager* mdomain_manager) {
+    this->domain = mdomain;
+    this->domain_manager = mdomain_manager;
+}
+
+
+void ChSystemDescriptorMultidomain::UpdateCountsAndOffsets() {
+    // parent class update
+    ChSystemDescriptor::UpdateCountsAndOffsets();
+
+    shared_states.reserve(this->domain->GetInterfaces().size() * 5);
+    for (auto& interf : this->domain->GetInterfaces()) {
+        int nsharedv = 0;
+        for (auto avar : interf.second.shared_vars) {
+            nsharedv += avar->GetDOF();
+        }
+        shared_states[interf.second.side_OUT->GetRank()].setZero(nsharedv);
+    }
+}
+
+void ChSystemDescriptorMultidomain::SharedStatesToZero() {
+    for (auto& interf : this->domain->GetInterfaces()) {
+        shared_states[interf.second.side_OUT->GetRank()].setZero();
+    }
+}
+
+void ChSystemDescriptorMultidomain::SharedStatesSyncToCurrentDomainStates() {
+    for (auto& interf : this->domain->GetInterfaces()) {
+        int nrank = interf.second.side_OUT->GetRank();
+        int offset = 0;
+        for (auto avar : interf.second.shared_vars) {
+            shared_states[nrank].segment(offset, avar->GetDOF()) = avar->State();
+            offset += avar->GetDOF();
+        }
+    }
+}
+
+void ChSystemDescriptorMultidomain::SharedStatesDeltaAddToMultidomainAndSync() {
+
+    for (auto& interf : this->domain->GetInterfaces()) {
+        int nrank = interf.second.side_OUT->GetRank();
+        ChVectorDynamic<> Dv_shared(shared_states[nrank].size());
+        int offset = 0;
+        for (auto avar : interf.second.shared_vars) {
+            // compute delta as current variable state - last synced shared_state
+            Dv_shared.segment(offset, avar->GetDOF()) = avar->State() - shared_states[nrank].segment(offset, avar->GetDOF());
+            offset += avar->GetDOF();
+        }
+        ChArchiveOutBinary serializer(interf.second.buffer_sending);
+        serializer << CHNVP(Dv_shared);
+    }
+
+    this->domain_manager->DoDomainsSendReceive();   // ***COMM***
+
+    for (auto& interf : this->domain->GetInterfaces()) {
+        int nrank = interf.second.side_OUT->GetRank();
+        ChVectorDynamic<> Dv_shared(shared_states[nrank].size());
+        ChArchiveInBinary deserializer(interf.second.buffer_receiving);
+        deserializer >> CHNVP(Dv_shared);
+        int offset = 0;
+        for (auto avar : interf.second.shared_vars) {
+            // increment state as state + delta received from neighbour
+            avar->State() += Dv_shared.segment(offset, avar->GetDOF());
+            // last, sync the shared_states to updates var state
+            shared_states[nrank].segment(offset, avar->GetDOF()) = avar->State();
+            offset += avar->GetDOF();
+        }
+    }
+}
+
+
 
 
 /*
@@ -90,12 +161,7 @@ unsigned int ChSystemDescriptor::CountActiveConstraints() const {
     return n_c;
 }
 
-void ChSystemDescriptor::UpdateCountsAndOffsets() {
-    freeze_count = false;
-    CountActiveVariables();
-    CountActiveConstraints();
-    freeze_count = true;
-}
+
 
 void ChSystemDescriptor::PasteMassKRMMatrixInto(ChSparseMatrix& Z,
                                                 unsigned int start_row,
