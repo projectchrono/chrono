@@ -57,7 +57,10 @@ public:
     virtual bool DoDomainsSendReceive();
     virtual bool DoUpdateSharedReceived();
 
-    /// As soon as you create a domain via a ChDomainBuilder, you must add it here:
+    /// As soon as you create a domain via a ChDomainBuilder, you must add it via this method.
+    /// Also, this method also takes care of replacing the system descriptor of the system
+    /// so that it is of ChSystemDescriptorMultidomain, which is needed when using multidomain
+    /// solvers. 
     void AddDomain(std::shared_ptr<ChDomain> mdomain);
 
     std::unordered_map<int, std::shared_ptr<ChDomain>> domains;
@@ -146,6 +149,9 @@ public:
 
     /// Set rank of this domain
     void SetRank(int mrank) { rank = mrank; };
+
+    /// Get system used by this domain
+    ChSystem* GetSystem() { return system; }
 
 private:
     int rank = 0;
@@ -295,13 +301,13 @@ public:
     std::shared_ptr<ChDomain> side_OUT;
 
     // Maps of shared graph nodes:
-    //std::unordered_map<int, std::shared_ptr<ChBody>>        shared_bodies;
     std::unordered_map<int, std::shared_ptr<ChPhysicsItem>> shared_items;
     std::unordered_map<int, std::shared_ptr<ChNodeBase>>    shared_nodes;
-    
+
     // Maps of shared graph edges: 
     // -no edge sharing by design-
 
+    // This is used to cast inter-domain messages
     std::stringstream buffer_sending;
     std::stringstream buffer_receiving;
 

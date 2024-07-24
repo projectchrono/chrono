@@ -14,9 +14,13 @@
 
 
 #include "chrono_multidomain/ChDomainManager.h"
+#include "chrono_multidomain/ChSystemDescriptorMultidomain.h"
 #include "chrono/fea/ChNodeFEAxyzrot.h"
 #include "chrono/fea/ChNodeFEAxyz.h"
 #include "chrono/fea/ChElementBase.h"
+#include "chrono/serialization/ChArchiveJSON.h"
+#include "chrono/serialization/ChArchiveXML.h"
+#include "chrono/serialization/ChArchiveBinary.h"
 
 namespace chrono {
 namespace multidomain {
@@ -51,6 +55,10 @@ bool ChDomainManagerSharedmemory::DoUpdateSharedReceived() {
 
 void ChDomainManagerSharedmemory::AddDomain(std::shared_ptr<ChDomain> mdomain) {
 	domains[mdomain->GetRank()] = mdomain;
+	
+	// Always ensure that the system descriptor is of multidomain type.
+	auto multidomain_descriptor = chrono_types::make_shared<ChSystemDescriptorMultidomain>(mdomain, this);
+	mdomain->GetSystem()->SetSystemDescriptor(multidomain_descriptor);
 }
 
 //////////////////////////////////////////////////////////////////////////////////////////////
@@ -113,9 +121,20 @@ std::shared_ptr<ChDomain> ChDomainBuilderSlices::BuildDomain(
 
 // helper structures for managing incremental serialization
 template<class T>
-struct ChIncrementalObj {
+class ChIncrementalObj {
+public:
 	int container_ID =0;
 	std::shared_ptr<T> obj;
+	void ArchiveOut(ChArchiveOut& archive_out)  // for Chrono serialization
+	{
+		archive_out << CHNVP(container_ID);
+		archive_out << CHNVP(obj);
+	}
+	void ArchiveIn(ChArchiveIn& archive_in)  // for Chrono serialization
+	{
+		archive_in >> CHNVP(container_ID);
+		archive_in >> CHNVP(obj);
+	}
 };
 
 // helper function to add graph node info in interfaces
@@ -133,8 +152,11 @@ void InterfaceManageNodeSharedLeaving(
 	) {
 
 	bool is_sharing = (interface_sharedmap.find(mtag) != interface_sharedmap.end());
+	bool is_sent    = (sent_ids.find(mtag) != sent_ids.end());
+
 	// if jumps completely in B domain without passing in shared state:
-	if (is_overlapping_OUT && !is_overlapping_IN && !is_sharing) {
+	if (is_overlapping_OUT && !is_overlapping_IN && !is_sharing && !is_sent) {
+		// migrate to neighbour
 		objs_to_send.push_back(ChIncrementalObj<T_node_serial>{ parent_tag, obj });
 		sent_ids.insert(mtag);
 	}
@@ -144,13 +166,18 @@ void InterfaceManageNodeSharedLeaving(
 		if (!is_sharing) {
 			// enter shared state
 			interface_sharedmap[mtag] = obj;
-			objs_to_send.push_back(ChIncrementalObj<T_node_serial>{ parent_tag, obj });
-			sent_ids.insert(mtag);
+			// migrate to neighbour
+			if (!is_sent) {
+				objs_to_send.push_back(ChIncrementalObj<T_node_serial>{ parent_tag, obj });
+				sent_ids.insert(mtag);
+			}
 		}
 	}
-	else if (is_sharing) {
-		// exit shared state
-		interface_sharedmap.erase(mtag);
+	else {
+		if (is_sharing) {
+			// exit shared state
+			interface_sharedmap.erase(mtag);
+		}
 	}
 
 }
@@ -165,18 +192,21 @@ void ChDomain::DoUpdateSharedLeaving() {
 		std::unordered_set<int> sent_ids;
 
 		// prepare the serializer
+		interf.second.buffer_sending.str("");
 		interf.second.buffer_sending.clear();
+		interf.second.buffer_receiving.str("");
 		interf.second.buffer_receiving.clear();
-		ChArchiveOutBinary serializer(interf.second.buffer_sending);
+		//ChArchiveOutBinary serializer(interf.second.buffer_sending);
+		ChArchiveOutJSON serializer(interf.second.buffer_sending); //***TODO*** revert to binary for performance
 		serializer.SetEmptyShallowContainers(true);		// we will take care of contained items one by one
 		serializer.SetUseGetTagAsID(true);				// GetTag of items, when available, will be used to generate unique IDs in serialization
 		serializer.CutPointers().insert(this->system);  // avoid propagation of serialization to parent system
 
-		std::vector<ChIncrementalObj<ChBody>>		bodies_to_send;
-		std::vector<ChIncrementalObj<ChPhysicsItem>>items_to_send;
-		std::vector<ChIncrementalObj<ChLinkBase>>	links_to_send;
-		std::vector<ChIncrementalObj<ChNodeBase>>   nodes_to_send;
-		std::vector<ChIncrementalObj<ChElementBase>>elements_to_send;
+		std::vector<ChIncrementalObj<ChBody>>		bodies_migrating;
+		std::vector<ChIncrementalObj<ChPhysicsItem>>items_migrating;
+		std::vector<ChIncrementalObj<ChLinkBase>>	links_migrating;
+		std::vector<ChIncrementalObj<ChNodeBase>>   nodes_migrating;
+		std::vector<ChIncrementalObj<ChElementBase>>elements_migrating;
 
 		// 1-BODIES overlapping because of collision shapes, or just their center of mass
 
@@ -193,7 +223,7 @@ void ChDomain::DoUpdateSharedLeaving() {
 				system->GetAssembly().GetTag(),
 				shared_ids,
 				sent_ids,
-				bodies_to_send,
+				bodies_migrating,
 				interf.second.shared_items
 			);
 		
@@ -227,7 +257,7 @@ void ChDomain::DoUpdateSharedLeaving() {
 							system->GetAssembly().GetTag(),
 							shared_ids,
 							sent_ids,
-							bodies_to_send,
+							bodies_migrating,
 							interf.second.shared_items
 						);
 					}
@@ -252,7 +282,7 @@ void ChDomain::DoUpdateSharedLeaving() {
 							system->GetAssembly().GetTag(),
 							shared_ids,
 							sent_ids,
-							nodes_to_send,
+							nodes_migrating,
 							interf.second.shared_nodes
 						);
 					}
@@ -261,7 +291,7 @@ void ChDomain::DoUpdateSharedLeaving() {
 				// Serialize the link when needed. Links are never shared.
 				if (is_referencein_OUT) {
 					if (sent_ids.find(link->GetTag()) == sent_ids.end()) {
-						links_to_send.push_back(ChIncrementalObj<ChLinkBase>{system->GetAssembly().GetTag(), link});
+						links_migrating.push_back(ChIncrementalObj<ChLinkBase>{system->GetAssembly().GetTag(), link});
 						sent_ids.insert(link->GetTag());
 					}
 				}
@@ -285,7 +315,7 @@ void ChDomain::DoUpdateSharedLeaving() {
 				system->GetAssembly().GetTag(),
 				shared_ids,
 				sent_ids,
-				items_to_send,
+				items_migrating,
 				interf.second.shared_items
 			);
 
@@ -312,7 +342,7 @@ void ChDomain::DoUpdateSharedLeaving() {
 						parent_tag,
 						shared_ids,
 						sent_ids,
-						nodes_to_send,
+						nodes_migrating,
 						interf.second.shared_nodes
 					);
 				}
@@ -330,10 +360,8 @@ void ChDomain::DoUpdateSharedLeaving() {
 					if (is_referencein_OUT) {
 
 						// Serialize the element. Elements are never shared.
-						//if (sent_ids.find(element->GetTag()) == sent_ids.end()) {
-						elements_to_send.push_back(ChIncrementalObj<ChElementBase>{system->GetAssembly().GetTag(), element});
-						//	sent_ids.insert(element->GetTag());
-						//}
+						elements_migrating.push_back(ChIncrementalObj<ChElementBase>{system->GetAssembly().GetTag(), element});
+
 					}
 
 					// Also serialize and manage shared lists of the connected nodes.
@@ -356,7 +384,7 @@ void ChDomain::DoUpdateSharedLeaving() {
 							parent_tag,
 							shared_ids,
 							sent_ids,
-							nodes_to_send,
+							nodes_migrating,
 							interf.second.shared_nodes
 						);
 					}
@@ -372,17 +400,18 @@ void ChDomain::DoUpdateSharedLeaving() {
 
 		// - SERIALIZE
 
-		// Serialize outbound bodies
-		serializer << CHNVP(bodies_to_send);
-		// Serialize outbound links
-		serializer << CHNVP(links_to_send);
-		// Serialize outbound otherphysics items
-		serializer << CHNVP(items_to_send);
-		// Serialize outbound nodes 
-		serializer << CHNVP(nodes_to_send);
-		// Serialize outbound elements 
-		serializer << CHNVP(elements_to_send);
+		
 
+		// Serialize outbound bodies
+		serializer << CHNVP(bodies_migrating);
+		// Serialize outbound links
+		serializer << CHNVP(links_migrating);
+		// Serialize outbound otherphysics items
+		serializer << CHNVP(items_migrating);
+		// Serialize outbound nodes 
+		serializer << CHNVP(nodes_migrating);
+		// Serialize outbound elements 
+		serializer << CHNVP(elements_migrating);
 
 
 		// N-HANDSHAKE IDS
@@ -393,7 +422,11 @@ void ChDomain::DoUpdateSharedLeaving() {
 		// case of nodes or bodies connected by a ChLink or a ChElement, where the link or element is in the 
 		// other domain). [To do: avoid storing in shared_ids the items that are aabb-overlapping on the interface, 
 		// as this can be inferred also by the neighbouring domain.]
-		serializer << CHNVP(shared_ids);
+		serializer << CHNVP(shared_ids, "shared_ids");
+		ChVectorDynamic<> avect(5);
+		serializer << CHNVP(avect);
+		std::cout << "\nSERIALIZE domain " << this->GetRank() << " to interface " << interf.second.side_OUT->GetRank() << "\n"; //***DEBUG
+		std::cout << interf.second.buffer_sending.str(); //***DEBUG
 		
 	}
 
@@ -408,31 +441,34 @@ void  ChDomain::DoUpdateSharedReceived() {
 
 	for (auto& interf : this->interfaces) {
 
-		std::vector<ChIncrementalObj<ChBody>>		bodies_to_receive;
-		std::vector<ChIncrementalObj<ChPhysicsItem>>items_to_receive;
-		std::vector<ChIncrementalObj<ChLinkBase>>	links_to_receive;
-		std::vector<ChIncrementalObj<ChNodeBase>>   nodes_to_receive;
-		std::vector<ChIncrementalObj<ChElementBase>>elements_to_receive;
+		std::vector<ChIncrementalObj<ChBody>>		bodies_migrating;
+		std::vector<ChIncrementalObj<ChPhysicsItem>>items_migrating;
+		std::vector<ChIncrementalObj<ChLinkBase>>	links_migrating;
+		std::vector<ChIncrementalObj<ChNodeBase>>   nodes_migrating;
+		std::vector<ChIncrementalObj<ChElementBase>>elements_migrating;
 
 		// - DESERIALIZE
 		
 		// prepare the deserializer
-		ChArchiveInBinary deserializer(interf.second.buffer_receiving);
+		//ChArchiveInBinary deserializer(interf.second.buffer_receiving);
+		ChArchiveInJSON deserializer(interf.second.buffer_receiving); //***TODO*** revert to binary for performance
+		std::cout << "\nDESERIALIZE domain " << this->GetRank() << " from interface " << interf.second.side_OUT->GetRank() << "\n"; //***DEBUG
+		std::cout << interf.second.buffer_receiving.str(); //***DEBUG
 
 		// Deserialize inbound bodies
-		deserializer >> CHNVP(bodies_to_receive);
+		deserializer >> CHNVP(bodies_migrating);
 		// Deserialize outbound links
-		deserializer >> CHNVP(links_to_receive);
+		deserializer >> CHNVP(links_migrating);
 		// Deserialize outbound otherphysics items
-		deserializer >> CHNVP(items_to_receive);
+		deserializer >> CHNVP(items_migrating);
 		// Deserialize outbound nodes 
-		deserializer >> CHNVP(nodes_to_receive);
+		deserializer >> CHNVP(nodes_migrating);
 		// Deserialize outbound elements 
-		deserializer >> CHNVP(elements_to_receive);
+		deserializer >> CHNVP(elements_migrating);
 
 		// 1-BODIES
 
-		for (const auto& ibody : bodies_to_receive) {
+		for (const auto& ibody : bodies_migrating) {
 			std::shared_ptr<ChBody> body = ibody.obj;
 			//std::shared_ptr<ChAssembly> assembly = std::dynamic_pointer_cast<ChAssembly>(interf.second.shared_items[ibody.container_ID]);
 			system->AddBody(body);
@@ -441,7 +477,7 @@ void  ChDomain::DoUpdateSharedReceived() {
 		
 		// 2-LINKS
 
-		for (const auto& ilink : links_to_receive) {
+		for (const auto& ilink : links_migrating) {
 			std::shared_ptr<ChLinkBase> link = ilink.obj;
 			//std::shared_ptr<ChAssembly> assembly = std::dynamic_pointer_cast<ChAssembly>(interf.second.shared_items[ilink.container_ID]);
 			system->AddLink(link);
@@ -449,7 +485,7 @@ void  ChDomain::DoUpdateSharedReceived() {
 
 		// 3-OTHER PHYSICS ITEMS
 
-		for (const auto& iitem : items_to_receive) {
+		for (const auto& iitem : items_migrating) {
 			std::shared_ptr<ChPhysicsItem> oitem = iitem.obj;
 			//std::shared_ptr<ChAssembly> assembly = std::dynamic_pointer_cast<ChAssembly>(interf.second.shared_items[ilink.container_ID]);
 			system->AddOtherPhysicsItem(oitem);
@@ -457,7 +493,7 @@ void  ChDomain::DoUpdateSharedReceived() {
 		}
 
 		// 4-NODES
-		for (const auto& inode : nodes_to_receive) {
+		for (const auto& inode : nodes_migrating) {
 			std::shared_ptr<ChNodeBase> onode = inode.obj;
 			std::shared_ptr<ChMesh> mmesh = std::dynamic_pointer_cast<ChMesh>(interf.second.shared_items[inode.container_ID]);
 			if (auto feanode = std::dynamic_pointer_cast<ChNodeFEAbase>(onode))
@@ -466,7 +502,7 @@ void  ChDomain::DoUpdateSharedReceived() {
 		}
 
 		// 5-ELEMENTS
-		for (const auto& ielement : elements_to_receive) {
+		for (const auto& ielement : elements_migrating) {
 			std::shared_ptr<ChElementBase> oelem = ielement.obj;
 			std::shared_ptr<ChMesh> mmesh = std::dynamic_pointer_cast<ChMesh>(interf.second.shared_items[ielement.container_ID]);
 			mmesh->AddElement(oelem);
@@ -482,7 +518,10 @@ void  ChDomain::DoUpdateSharedReceived() {
 		// ChLink or a ChElement, where the link or element is in the other domain).
 
 		std::unordered_set<int> shared_ids_incoming;
-		deserializer >> CHNVP(shared_ids_incoming);
+		deserializer >> CHNVP(shared_ids_incoming,"shared_ids");
+
+		ChVectorDynamic<> avect(5);
+		deserializer >> CHNVP(avect);
 
 		for (const auto& body : system->GetBodies()) {
 			if (shared_ids_incoming.find(body->GetTag()) != shared_ids_incoming.end())

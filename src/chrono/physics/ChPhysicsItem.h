@@ -121,7 +121,7 @@ class ChApi ChPhysicsItem : public ChObj {
 
     /// Get the axis-aligned bounding box (AABB) of this object.
     /// The AABB must enclose all collision models, if any.
-    /// By default, returns an infinite AABB.
+    /// By default, returns an inverted AABB.
     virtual ChAABB GetTotalAABB() const;
 
     /// Get a symbolic 'center' of the object. 
