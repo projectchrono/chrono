@@ -247,12 +247,14 @@ void ChArchiveOutJSON::out_ref(ChValue& bVal, bool already_inserted, size_t obj_
     m_ostream << "}";
     ++nitems.top();
 }
-ChArchiveInJSON::ChArchiveInJSON(std::ifstream& stream_in) : m_istream(stream_in) {
+ChArchiveInJSON::ChArchiveInJSON(std::istream& stream_in) : m_istream(stream_in) {
+
     std::stringstream buffer;
     buffer << m_istream.rdbuf();
     std::string mstr = buffer.str();
+    buffer.str().push_back('\0');
     const char* stringbuffer = mstr.c_str();
-
+    
     document.Parse<0>(stringbuffer);
     if (document.HasParseError()) {
         std::string errstrA((const char*)(&stringbuffer[std::max((int)document.GetErrorOffset() - 10, 0)]));

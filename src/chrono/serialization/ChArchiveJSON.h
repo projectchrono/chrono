@@ -73,7 +73,7 @@ class ChApi ChArchiveOutJSON : public ChArchiveOut {
 
 class ChApi ChArchiveInJSON : public ChArchiveIn {
   public:
-    ChArchiveInJSON(std::ifstream& stream_in);
+    ChArchiveInJSON(std::istream& stream_in);
 
     virtual ~ChArchiveInJSON();
 
@@ -108,7 +108,7 @@ class ChApi ChArchiveInJSON : public ChArchiveIn {
   protected:
     void token_notfound(const std::string& mname);
 
-    std::ifstream& m_istream;
+    std::istream& m_istream;
     rapidjson::Document document;
     rapidjson::Value* level;
     std::stack<rapidjson::Value*> levels;
