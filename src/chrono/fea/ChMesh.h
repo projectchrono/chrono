@@ -163,6 +163,12 @@ class ChApi ChMesh : public ChIndexedNodes {
     // Synchronize the position and bounding box of the mesh contact surfaces (if any).
     virtual void SyncCollisionModels() override;
 
+    /// Get the axis-aligned bounding box (AABB).
+    /// By default, returns an infinite AABB. Future implementation might be optimized to wrap only nodes&elements
+    ChAABB GetTotalAABB() const override {
+        return ChAABB(ChVector3d(-std::numeric_limits<double>::max()), ChVector3d(+std::numeric_limits<double>::max()));
+    }
+
     /// If true, as by default, this mesh will add automatically a gravity load
     /// to all contained elements (that support gravity) using the G value from the ChSystem.
     /// So this saves you from adding many ChLoad<ChLoaderGravity> to all elements.
