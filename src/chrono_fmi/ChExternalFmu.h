@@ -28,7 +28,30 @@
 
 namespace chrono {
 
-class ChFmuWrapper;
+/// Abstract interface to a model exchange FMU.
+class ChFmuWrapper {
+  public:
+    virtual ~ChFmuWrapper() = default;
+
+    virtual void SetDebugLogging(bool logging, const std::vector<std::string>& log_categories) = 0;
+    virtual unsigned int GetNumStates() const = 0;
+    virtual std::unordered_set<std::string> GetStatesList() const = 0;
+    virtual std::unordered_set<std::string> GetRealParametersList() const = 0;
+    virtual std::unordered_set<std::string> GetIntParametersList() const = 0;
+    virtual std::unordered_set<std::string> GetRealInputsList() const = 0;
+    virtual void Initialize(const std::unordered_map<std::string, double>& initial_conditions,
+                            const std::unordered_map<std::string, double>& parameters_real,
+                            const std::unordered_map<std::string, int>& parameters_int) = 0;
+    virtual bool checkState(const std::string& name, std::string& err_msg) const = 0;
+    virtual bool checkInput(const std::string& name, std::string& err_msg) const = 0;
+    virtual bool checkParamReal(const std::string& name, std::string& err_msg) const = 0;
+    virtual bool checkParamInt(const std::string& name, std::string& err_msg) const = 0;
+    virtual void SetInputs(const std::unordered_map<std::string, double>& inputs_real) = 0;
+    virtual void SetContinuousStates(const std::vector<double>& states) = 0;
+    virtual void GetContinuousStates(std::vector<double>& states) = 0;
+    virtual void GetContinuousDerivatives(std::vector<double>& derivs) = 0;
+    virtual void PrintFmuVariables() const = 0;
+};
 
 /// Chrono physics item that wraps a model exchange FMU.
 /// This class allows importing the underlying model in the associated FMU and encapsulate it into a ChExternalDynamics

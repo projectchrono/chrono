@@ -23,31 +23,6 @@
 
 namespace chrono {
 
-/// Abstract interface to a model exchange FMU.
-class ChFmuWrapper {
-  public:
-    virtual ~ChFmuWrapper() = default;
-
-    virtual void SetDebugLogging(bool logging, const std::vector<std::string>& log_categories) = 0;
-    virtual unsigned int GetNumStates() const = 0;
-    virtual std::unordered_set<std::string> GetStatesList() const = 0;
-    virtual std::unordered_set<std::string> GetRealParametersList() const = 0;
-    virtual std::unordered_set<std::string> GetIntParametersList() const = 0;
-    virtual std::unordered_set<std::string> GetRealInputsList() const = 0;
-    virtual void Initialize(const std::unordered_map<std::string, double>& initial_conditions,
-                            const std::unordered_map<std::string, double>& parameters_real,
-                            const std::unordered_map<std::string, int>& parameters_int) = 0;
-    virtual bool checkState(const std::string& name, std::string& err_msg) const = 0;
-    virtual bool checkInput(const std::string& name, std::string& err_msg) const = 0;
-    virtual bool checkParamReal(const std::string& name, std::string& err_msg) const = 0;
-    virtual bool checkParamInt(const std::string& name, std::string& err_msg) const = 0;
-    virtual void SetInputs(const std::unordered_map<std::string, double>& inputs_real) = 0;
-    virtual void SetContinuousStates(const std::vector<double>& states) = 0;
-    virtual void GetContinuousStates(std::vector<double>& states) = 0;
-    virtual void GetContinuousDerivatives(std::vector<double>& derivs) = 0;
-    virtual void PrintFmuVariables() const = 0;
-};
-
 // =============================================================================
 // Definition of the interface to an FMI 2.0 model exchange FMU
 
@@ -85,7 +60,7 @@ class ChFmu2Wrapper : public ChFmuWrapper {
 
     bool checkParam(const std::string& name, FmuVariable::Type type, std::string& err_msg) const;
 
-    std::unique_ptr<fmu_tools::fmi2::FmuUnit> m_fmu;
+    fmu_tools::fmi2::FmuUnit m_fmu;
 };
 
 // =============================================================================
@@ -123,7 +98,7 @@ class ChFmu3Wrapper : public ChFmuWrapper {
     virtual void GetContinuousDerivatives(std::vector<double>& derivs) override;
     virtual void PrintFmuVariables() const override;
 
-    std::unique_ptr<fmu_tools::fmi3::FmuUnit> m_fmu;
+    fmu_tools::fmi3::FmuUnit m_fmu;
 };
 
 // =============================================================================
@@ -315,15 +290,14 @@ ChFmu2Wrapper::ChFmu2Wrapper(const std::string& instance_name,
                              const std::string& resources_dir,
                              bool verbose) {
     // Create the underlying FMU
-    m_fmu = chrono_types::make_unique<fmu_tools::fmi2::FmuUnit>();
-    m_fmu->SetVerbose(verbose);
+    m_fmu.SetVerbose(verbose);
 
     // Load the FMU from the specified file
     try {
         if (unpack_dir.empty())
-            m_fmu->Load(fmi2Type::fmi2ModelExchange, fmu_filename);
+            m_fmu.Load(fmi2Type::fmi2ModelExchange, fmu_filename);
         else
-            m_fmu->Load(fmi2Type::fmi2ModelExchange, fmu_filename, unpack_dir);
+            m_fmu.Load(fmi2Type::fmi2ModelExchange, fmu_filename, unpack_dir);
     } catch (std::exception&) {
         throw;
     }
@@ -331,15 +305,15 @@ ChFmu2Wrapper::ChFmu2Wrapper(const std::string& instance_name,
     // Instantiate the FMU
     try {
         if (resources_dir.empty())
-            m_fmu->Instantiate(instance_name, logging, false);
+            m_fmu.Instantiate(instance_name, logging, false);
         else
-            m_fmu->Instantiate(instance_name, resources_dir, logging, false);
+            m_fmu.Instantiate(instance_name, resources_dir, logging, false);
     } catch (std::exception&) {
         throw;
     }
 
     // Set up an experiment
-    m_fmu->SetupExperiment(fmi2False,  // no tolerance defined
+    m_fmu.SetupExperiment(fmi2False,  // no tolerance defined
                            0.0,        // tolerance (dummy)
                            0.0,        // start time
                            fmi2False,  // do not use stop time
@@ -349,18 +323,18 @@ ChFmu2Wrapper::ChFmu2Wrapper(const std::string& instance_name,
 
 void ChFmu2Wrapper::SetDebugLogging(bool logging, const std::vector<std::string>& log_categories) {
     if (logging)
-        m_fmu->SetDebugLogging(fmi2True, log_categories);
+        m_fmu.SetDebugLogging(fmi2True, log_categories);
 }
 
 unsigned int ChFmu2Wrapper::GetNumStates() const {
-    return (unsigned int)m_fmu->GetNumStates();
+    return (unsigned int)m_fmu.GetNumStates();
 }
 
 std::unordered_set<std::string> ChFmu2Wrapper::GetStatesList() const {
     std::unordered_set<std::string> list;
     std::string err_msg;
 
-    for (const auto& v : m_fmu->GetVariablesList()) {
+    for (const auto& v : m_fmu.GetVariablesList()) {
         bool ok = checkState(v.first, err_msg);
         if (ok)
             list.insert(v.first);
@@ -373,7 +347,7 @@ std::unordered_set<std::string> ChFmu2Wrapper::GetRealParametersList() const {
     std::unordered_set<std::string> list;
     std::string err_msg;
 
-    for (const auto& v : m_fmu->GetVariablesList()) {
+    for (const auto& v : m_fmu.GetVariablesList()) {
         bool ok = checkParam(v.first, FmuVariable::Type::Real, err_msg);
         if (ok)
             list.insert(v.first);
@@ -386,7 +360,7 @@ std::unordered_set<std::string> ChFmu2Wrapper::GetIntParametersList() const {
     std::unordered_set<std::string> list;
     std::string err_msg;
 
-    for (const auto& v : m_fmu->GetVariablesList()) {
+    for (const auto& v : m_fmu.GetVariablesList()) {
         bool ok = checkParam(v.first, FmuVariable::Type::Integer, err_msg);
         if (ok)
             list.insert(v.first);
@@ -399,7 +373,7 @@ std::unordered_set<std::string> ChFmu2Wrapper::GetRealInputsList() const {
     std::unordered_set<std::string> list;
     std::string err_msg;
 
-    for (const auto& v : m_fmu->GetVariablesList()) {
+    for (const auto& v : m_fmu.GetVariablesList()) {
         bool ok = checkInput(v.first, err_msg);
         if (ok)
             list.insert(v.first);
@@ -412,24 +386,24 @@ std::unordered_set<std::string> ChFmu2Wrapper::GetRealInputsList() const {
 void ChFmu2Wrapper::Initialize(const std::unordered_map<std::string, double>& initial_conditions,
                                const std::unordered_map<std::string, double>& parameters_real,
                                const std::unordered_map<std::string, int>& parameters_int) {
-    m_fmu->EnterInitializationMode();
+    m_fmu.EnterInitializationMode();
 
     // Set initial conditions
     for (const auto& v : initial_conditions)
-        m_fmu->SetVariable(v.first, v.second, FmuVariable::Type::Real);
+        m_fmu.SetVariable(v.first, v.second, FmuVariable::Type::Real);
 
     // Set real and integer parameters
     for (const auto& v : parameters_real)
-        m_fmu->SetVariable(v.first, v.second, FmuVariable::Type::Real);
+        m_fmu.SetVariable(v.first, v.second, FmuVariable::Type::Real);
     for (const auto& v : parameters_int)
-        m_fmu->SetVariable(v.first, v.second, FmuVariable::Type::Integer);
+        m_fmu.SetVariable(v.first, v.second, FmuVariable::Type::Integer);
 
-    m_fmu->ExitInitializationMode();
+    m_fmu.ExitInitializationMode();
 }
 
 // Check that the FMU variable with given name is a state
 bool ChFmu2Wrapper::checkState(const std::string& name, std::string& err_msg) const {
-    const auto& variables = m_fmu->GetVariablesList();
+    const auto& variables = m_fmu.GetVariablesList();
     auto search = variables.find(name);
     if (search == variables.end()) {
         err_msg = "variable '" + name + "' does not exist";
@@ -449,7 +423,7 @@ bool ChFmu2Wrapper::checkState(const std::string& name, std::string& err_msg) co
 
 // Check that the FMU variable with given name is a floating point "input"
 bool ChFmu2Wrapper::checkInput(const std::string& name, std::string& err_msg) const {
-    const auto& variables = m_fmu->GetVariablesList();
+    const auto& variables = m_fmu.GetVariablesList();
     auto search = variables.find(name);
     if (search == variables.end()) {
         err_msg = "variable '" + name + "' does not exist";
@@ -480,7 +454,7 @@ bool ChFmu2Wrapper::checkParamInt(const std::string& name, std::string& err_msg)
 
 // Check that an FMU variable with given name is a "parameter" with specified type
 bool ChFmu2Wrapper::checkParam(const std::string& name, FmuVariable::Type type, std::string& err_msg) const {
-    const auto& variables = m_fmu->GetVariablesList();
+    const auto& variables = m_fmu.GetVariablesList();
     auto search = variables.find(name);
     if (search == variables.end()) {
         err_msg = "variable '" + name + "' does not exist";
@@ -503,24 +477,24 @@ bool ChFmu2Wrapper::checkParam(const std::string& name, FmuVariable::Type type, 
 
 void ChFmu2Wrapper::SetInputs(const std::unordered_map<std::string, double>& inputs_real) {
     for (const auto& v : inputs_real) {
-        m_fmu->SetVariable(v.first, v.second, FmuVariable::Type::Real);
+        m_fmu.SetVariable(v.first, v.second, FmuVariable::Type::Real);
     }
 }
 
 void ChFmu2Wrapper::SetContinuousStates(const std::vector<double>& states) {
-    m_fmu->SetContinuousStates(states.data(), states.size());
+    m_fmu.SetContinuousStates(states.data(), states.size());
 }
 
 void ChFmu2Wrapper::GetContinuousStates(std::vector<double>& states) {
-    m_fmu->GetContinuousStates(states.data(), states.size());
+    m_fmu.GetContinuousStates(states.data(), states.size());
 }
 
 void ChFmu2Wrapper::GetContinuousDerivatives(std::vector<double>& derivs) {
-    m_fmu->GetDerivatives(derivs.data(), derivs.size());
+    m_fmu.GetDerivatives(derivs.data(), derivs.size());
 }
 
 void ChFmu2Wrapper::PrintFmuVariables() const {
-    const auto& variables = m_fmu->GetVariablesList();
+    const auto& variables = m_fmu.GetVariablesList();
     for (const auto& v : variables) {
         std::cout << v.first << "\t";
         std::cout << "type: " << FmuVariable::Type_toString(v.second.GetType()) << "  index: " << v.second.GetIndex()
@@ -538,15 +512,14 @@ ChFmu3Wrapper::ChFmu3Wrapper(const std::string& instance_name,
                              bool logging,
                              const std::string& resources_dir,
                              bool verbose) {
-    m_fmu = chrono_types::make_unique<fmu_tools::fmi3::FmuUnit>();
-    m_fmu->SetVerbose(verbose);
+    m_fmu.SetVerbose(verbose);
 
     // Load the FMU from the specified file
     try {
         if (unpack_dir.empty())
-            m_fmu->Load(fmu_tools::fmi3::FmuType::MODEL_EXCHANGE, fmu_filename);
+            m_fmu.Load(fmu_tools::fmi3::FmuType::MODEL_EXCHANGE, fmu_filename);
         else
-            m_fmu->Load(fmu_tools::fmi3::FmuType::MODEL_EXCHANGE, fmu_filename, unpack_dir);
+            m_fmu.Load(fmu_tools::fmi3::FmuType::MODEL_EXCHANGE, fmu_filename, unpack_dir);
     } catch (std::exception&) {
         throw;
     }
@@ -554,9 +527,9 @@ ChFmu3Wrapper::ChFmu3Wrapper(const std::string& instance_name,
     // Instantiate the FMU
     try {
         if (resources_dir.empty())
-            m_fmu->Instantiate(instance_name, logging, false);
+            m_fmu.Instantiate(instance_name, logging, false);
         else
-            m_fmu->Instantiate(instance_name, resources_dir, logging, false);
+            m_fmu.Instantiate(instance_name, resources_dir, logging, false);
     } catch (std::exception&) {
         throw;
     }
@@ -564,18 +537,18 @@ ChFmu3Wrapper::ChFmu3Wrapper(const std::string& instance_name,
 
 void ChFmu3Wrapper::SetDebugLogging(bool logging, const std::vector<std::string>& log_categories) {
     if (logging)
-        m_fmu->SetDebugLogging(fmi2True, log_categories);
+        m_fmu.SetDebugLogging(fmi2True, log_categories);
 }
 
 unsigned int ChFmu3Wrapper::GetNumStates() const {
-    return (unsigned int)m_fmu->GetNumStates();
+    return (unsigned int)m_fmu.GetNumStates();
 }
 
 std::unordered_set<std::string> ChFmu3Wrapper::GetStatesList() const {
     std::unordered_set<std::string> list;
     std::string err_msg;
 
-    for (const auto& v : m_fmu->GetVariablesList()) {
+    for (const auto& v : m_fmu.GetVariablesList()) {
         bool ok = checkState(v.second.GetName(), err_msg);
         if (ok)
             list.insert(v.second.GetName());
@@ -588,7 +561,7 @@ std::unordered_set<std::string> ChFmu3Wrapper::GetRealParametersList() const {
     std::unordered_set<std::string> list;
     std::string err_msg;
 
-    for (const auto& v : m_fmu->GetVariablesList()) {
+    for (const auto& v : m_fmu.GetVariablesList()) {
         bool ok = checkParamReal(v.second.GetName(), err_msg);
         if (ok)
             list.insert(v.second.GetName());
@@ -601,7 +574,7 @@ std::unordered_set<std::string> ChFmu3Wrapper::GetIntParametersList() const {
     std::unordered_set<std::string> list;
     std::string err_msg;
 
-    for (const auto& v : m_fmu->GetVariablesList()) {
+    for (const auto& v : m_fmu.GetVariablesList()) {
         bool ok = checkParamInt(v.second.GetName(), err_msg);
         if (ok)
             list.insert(v.second.GetName());
@@ -614,7 +587,7 @@ std::unordered_set<std::string> ChFmu3Wrapper::GetRealInputsList() const {
     std::unordered_set<std::string> list;
     std::string err_msg;
 
-    for (const auto& v : m_fmu->GetVariablesList()) {
+    for (const auto& v : m_fmu.GetVariablesList()) {
         bool ok = checkInput(v.second.GetName(), err_msg);
         if (ok)
             list.insert(v.second.GetName());
@@ -627,7 +600,7 @@ std::unordered_set<std::string> ChFmu3Wrapper::GetRealInputsList() const {
 void ChFmu3Wrapper::Initialize(const std::unordered_map<std::string, double>& initial_conditions,
                                const std::unordered_map<std::string, double>& parameters_real,
                                const std::unordered_map<std::string, int>& parameters_int) {
-    m_fmu->EnterInitializationMode(fmi3False,  // no tolerance defined
+    m_fmu.EnterInitializationMode(fmi3False,  // no tolerance defined
                                    0.0,        // tolerance (dummy)
                                    0.0,        // start time
                                    fmi3False,  // do not use stop time
@@ -636,26 +609,26 @@ void ChFmu3Wrapper::Initialize(const std::unordered_map<std::string, double>& in
 
     // Set initial conditions
     for (const auto& v : initial_conditions)
-        m_fmu->SetVariable(v.first, &v.second);
+        m_fmu.SetVariable(v.first, &v.second);
 
     // Set real and integer parameters
     for (const auto& v : parameters_real)
-        m_fmu->SetVariable(v.first, &v.second);
+        m_fmu.SetVariable(v.first, &v.second);
     for (const auto& v : parameters_int)
-        m_fmu->SetVariable(v.first, &v.second);
+        m_fmu.SetVariable(v.first, &v.second);
 
-    m_fmu->ExitInitializationMode();
+    m_fmu.ExitInitializationMode();
 }
 
 // Check that the FMU variable with given name is a state
 bool ChFmu3Wrapper::checkState(const std::string& name, std::string& err_msg) const {
     fmi3ValueReference vr;
-    if (!m_fmu->GetValueReference(name, vr)) {
+    if (!m_fmu.GetValueReference(name, vr)) {
         err_msg = "variable '" + name + "' does not exist";
         return false;
     }
 
-    const auto& var = m_fmu->GetVariablesList().at(vr);
+    const auto& var = m_fmu.GetVariablesList().at(vr);
     auto var_type = var.GetType();
 
     bool ok = (var_type == FmuVariable::Type::Float32 || var_type == FmuVariable::Type::Float64) &&  //
@@ -672,12 +645,12 @@ bool ChFmu3Wrapper::checkState(const std::string& name, std::string& err_msg) co
 // Check that the FMU variable with given name is a floating point "input"
 bool ChFmu3Wrapper::checkInput(const std::string& name, std::string& err_msg) const {
     fmi3ValueReference vr;
-    if (!m_fmu->GetValueReference(name, vr)) {
+    if (!m_fmu.GetValueReference(name, vr)) {
         err_msg = "variable '" + name + "' does not exist";
         return false;
     }
 
-    const auto& var = m_fmu->GetVariablesList().at(vr);
+    const auto& var = m_fmu.GetVariablesList().at(vr);
     auto var_type = var.GetType();
 
     bool ok = (var_type == FmuVariable::Type::Float32 || var_type == FmuVariable::Type::Float64) &&  //
@@ -695,12 +668,12 @@ bool ChFmu3Wrapper::checkInput(const std::string& name, std::string& err_msg) co
 // Check that an FMU variable with given name is a "parameter" with specified type
 bool ChFmu3Wrapper::checkParamReal(const std::string& name, std::string& err_msg) const {
     fmi3ValueReference vr;
-    if (!m_fmu->GetValueReference(name, vr)) {
+    if (!m_fmu.GetValueReference(name, vr)) {
         err_msg = "variable '" + name + "' does not exist";
         return false;
     }
 
-    const auto& var = m_fmu->GetVariablesList().at(vr);
+    const auto& var = m_fmu.GetVariablesList().at(vr);
     auto var_type = var.GetType();
 
     bool ok = (var_type == FmuVariable::Type::Float32 || var_type == FmuVariable::Type::Float64) &&  //
@@ -720,12 +693,12 @@ bool ChFmu3Wrapper::checkParamReal(const std::string& name, std::string& err_msg
 // Check that an FMU variable with given name is a "parameter" with specified type
 bool ChFmu3Wrapper::checkParamInt(const std::string& name, std::string& err_msg) const {
     fmi3ValueReference vr;
-    if (!m_fmu->GetValueReference(name, vr)) {
+    if (!m_fmu.GetValueReference(name, vr)) {
         err_msg = "variable '" + name + "' does not exist";
         return false;
     }
 
-    const auto& var = m_fmu->GetVariablesList().at(vr);
+    const auto& var = m_fmu.GetVariablesList().at(vr);
     auto var_type = var.GetType();
 
     bool ok = (var_type == FmuVariable::Type::Int32 || var_type == FmuVariable::Type::UInt32 ||
@@ -745,24 +718,24 @@ bool ChFmu3Wrapper::checkParamInt(const std::string& name, std::string& err_msg)
 
 void ChFmu3Wrapper::SetInputs(const std::unordered_map<std::string, double>& inputs_real) {
     for (const auto& v : inputs_real) {
-        m_fmu->SetVariable(v.first, &v.second);
+        m_fmu.SetVariable(v.first, &v.second);
     }
 }
 
 void ChFmu3Wrapper::SetContinuousStates(const std::vector<double>& states) {
-    m_fmu->SetContinuousStates(states.data(), states.size());
+    m_fmu.SetContinuousStates(states.data(), states.size());
 }
 
 void ChFmu3Wrapper::GetContinuousStates(std::vector<double>& states) {
-    m_fmu->GetContinuousStates(states.data(), states.size());
+    m_fmu.GetContinuousStates(states.data(), states.size());
 }
 
 void ChFmu3Wrapper::GetContinuousDerivatives(std::vector<double>& derivs) {
-    m_fmu->GetContinuousStateDerivatives(derivs.data(), derivs.size());
+    m_fmu.GetContinuousStateDerivatives(derivs.data(), derivs.size());
 }
 
 void ChFmu3Wrapper::PrintFmuVariables() const {
-    const auto& variables = m_fmu->GetVariablesList();
+    const auto& variables = m_fmu.GetVariablesList();
     for (const auto& v : variables) {
         std::cout << v.second.GetName() << "\t";
         std::cout << "type: " << FmuVariable::Type_toString(v.second.GetType()) << "  val ref: " << v.first << "\t";
