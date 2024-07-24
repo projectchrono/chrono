@@ -42,6 +42,7 @@
 
 using namespace chrono;
 using namespace chrono::vehicle;
+using namespace chrono::fmi2;
 
 // -----------------------------------------------------------------------------
 
@@ -58,14 +59,18 @@ void CreateVehicleFMU(FmuChronoUnit& vehicle_fmu,
                       double fps) {
     try {
         vehicle_fmu.Load(fmi2Type::fmi2CoSimulation, fmu_filename, fmu_unpack_dir);
-    } catch (std::exception& e) {
-        throw e;
+    } catch (std::exception&) {
+        throw;
     }
     std::cout << "Vehicle FMU version:  " << vehicle_fmu.GetVersion() << std::endl;
     std::cout << "Vehicle FMU platform: " << vehicle_fmu.GetTypesPlatform() << std::endl;
 
     // Instantiate FMU
-    vehicle_fmu.Instantiate(instance_name, false, visible);
+    try {
+        vehicle_fmu.Instantiate(instance_name, false, visible);
+    } catch (std::exception&) {
+        throw;
+    }
 
     // Set debug logging
     vehicle_fmu.SetDebugLogging(fmi2True, logCategories);
@@ -100,14 +105,18 @@ void CreatePowertrainFMU(FmuChronoUnit& powertrain_fmu,
                          const std::string& out_path) {
     try {
         powertrain_fmu.Load(fmi2Type::fmi2CoSimulation, fmu_filename, fmu_unpack_dir);
-    } catch (std::exception& e) {
-        throw e;
+    } catch (std::exception&) {
+        throw;
     }
     std::cout << "Powertrain FMU version:  " << powertrain_fmu.GetVersion() << std::endl;
     std::cout << "Powertrain FMU platform: " << powertrain_fmu.GetTypesPlatform() << std::endl;
 
     // Instantiate FMU
-    powertrain_fmu.Instantiate(instance_name);
+    try {
+        powertrain_fmu.Instantiate(instance_name);
+    } catch (std::exception&) {
+        throw;
+    }
 
     // Set debug logging
     powertrain_fmu.SetDebugLogging(fmi2True, logCategories);
@@ -144,14 +153,18 @@ void CreateDriverFMU(FmuChronoUnit& driver_fmu,
                      double fps) {
     try {
         driver_fmu.Load(fmi2Type::fmi2CoSimulation, fmu_filename, fmu_unpack_dir);
-    } catch (std::exception& e) {
-        throw e;
+    } catch (std::exception&) {
+        throw;
     }
     std::cout << "Driver FMU version:  " << driver_fmu.GetVersion() << "\n";
     std::cout << "Driver FMU platform: " << driver_fmu.GetTypesPlatform() << "\n";
 
     // Instantiate FMU
-    driver_fmu.Instantiate(instance_name, false, visible);
+    try {
+        driver_fmu.Instantiate(instance_name, false, visible);
+    } catch (std::exception&) {
+        throw;
+    }
 
     // Set debug logging
     driver_fmu.SetDebugLogging(fmi2True, logCategories);
@@ -189,14 +202,18 @@ void CreateTireFMU(FmuChronoUnit& tire_fmu,
                    const std::string& out_path) {
     try {
         tire_fmu.Load(fmi2Type::fmi2CoSimulation, fmu_filename, fmu_unpack_dir);
-    } catch (std::exception& e) {
-        throw e;
+    } catch (std::exception&) {
+        throw;
     }
     std::cout << "Tire FMU version:  " << tire_fmu.GetVersion() << std::endl;
     std::cout << "Tire FMU platform: " << tire_fmu.GetTypesPlatform() << std::endl;
 
     // Instantiate FMU
-    tire_fmu.Instantiate(instance_name);
+    try {
+        tire_fmu.Instantiate(instance_name);
+    } catch (std::exception&) {
+        throw;
+    }
 
     // Set debug logging
     tire_fmu.SetDebugLogging(fmi2True, logCategories);

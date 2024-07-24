@@ -1,7 +1,7 @@
 // =============================================================================
 // PROJECT CHRONO - http://projectchrono.org
 //
-// Copyright (c) 2023 projectchrono.org
+// Copyright (c) 2024 projectchrono.org
 // All rights reserved.
 //
 // Use of this source code is governed by a BSD-style license that can be found
@@ -18,27 +18,32 @@
 #include "chrono/physics/ChHydraulicActuator.h"
 #include "chrono/functions/ChFunction.h"
 
-#include "chrono_fmi/fmi2/ChFmuToolsExport.h"
+#include "chrono_fmi/fmi3/ChFmuToolsExport.h"
 
-class FmuComponent : public chrono::fmi2::FmuChronoComponentBase {
+class FmuComponent : public chrono::fmi3::FmuChronoComponentBase {
   public:
-    FmuComponent(fmi2String instanceName,
-                 fmi2Type fmuType,
-                 fmi2String fmuGUID,
-                 fmi2String fmuResourceLocation,
-                 const fmi2CallbackFunctions* functions,
-                 fmi2Boolean visible,
-                 fmi2Boolean loggingOn);
+    FmuComponent(fmu_tools::fmi3::FmuType fmiInterfaceType,
+                 fmi3String instanceName,
+                 fmi3String instantiationToken,
+                 fmi3String resourcePath,
+                 fmi3Boolean visible,
+                 fmi3Boolean loggingOn,
+                 fmi3InstanceEnvironment instanceEnvironment,
+                 fmi3LogMessageCallback logMessage);
     virtual ~FmuComponent() {}
 
     /// Advance dynamics
-    virtual fmi2Status doStepIMPL(fmi2Real currentCommunicationPoint,
-                                  fmi2Real communicationStepSize,
-                                  fmi2Boolean noSetFMUStatePriorToCurrentPoint) override;
+    virtual fmi3Status doStepIMPL(fmi3Float64 currentCommunicationPoint,
+                                  fmi3Float64 communicationStepSize,
+                                  fmi3Boolean noSetFMUStatePriorToCurrentPoint,
+                                  fmi3Boolean* eventHandlingNeeded,
+                                  fmi3Boolean* terminateSimulation,
+                                  fmi3Boolean* earlyReturn,
+                                  fmi3Float64* lastSuccessfulTime) override;
 
   protected:
-    virtual fmi2Status enterInitializationModeIMPL() override;
-    virtual fmi2Status exitInitializationModeIMPL() override;
+    virtual fmi3Status enterInitializationModeIMPL() override;
+    virtual fmi3Status exitInitializationModeIMPL() override;
 
     virtual void preModelDescriptionExport() override;
     virtual void postModelDescriptionExport() override;

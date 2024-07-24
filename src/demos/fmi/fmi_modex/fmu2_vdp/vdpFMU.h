@@ -24,7 +24,7 @@
 
 #include "fmi2/FmuToolsExport.h"
 
-class FmuComponent : public FmuComponentBase {
+class FmuComponent : public fmu_tools::fmi2::FmuComponentBase {
   public:
     FmuComponent(fmi2String instanceName,
                  fmi2Type fmuType,
@@ -41,12 +41,12 @@ class FmuComponent : public FmuComponentBase {
     virtual bool is_cosimulation_available() const override { return false; }
     virtual bool is_modelexchange_available() const override { return true; }
 
-    virtual void _enterInitializationMode() override;
-    virtual void _exitInitializationMode() override;
+    virtual fmi2Status enterInitializationModeIMPL() override;
+    virtual fmi2Status exitInitializationModeIMPL() override;
 
-    virtual fmi2Status _getContinuousStates(fmi2Real x[], size_t nx) override;
-    virtual fmi2Status _setContinuousStates(const fmi2Real x[], size_t nx) override;
-    virtual fmi2Status _getDerivatives(fmi2Real derivatives[], size_t nx) override;
+    virtual fmi2Status getContinuousStatesIMPL(fmi2Real x[], size_t nx) override;
+    virtual fmi2Status setContinuousStatesIMPL(const fmi2Real x[], size_t nx) override;
+    virtual fmi2Status getDerivativesIMPL(fmi2Real derivatives[], size_t nx) override;
 
     void calcAcceleration();
 

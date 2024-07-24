@@ -34,11 +34,11 @@
 
 #include <cmath>
 
-#include "chrono_fmi/ChConfigFMI.h"
-
 #include "chrono/physics/ChSystemSMC.h"
-#include "chrono_fmi/fmi2/ChExternalFmu.h"
 #include "chrono/utils/ChUtilsInputOutput.h"
+
+#include "chrono_fmi/ChConfigFMI.h"
+#include "chrono_fmi/ChExternalFmu.h"
 
 #ifdef CHRONO_POSTPROCESS
     #include "chrono_postprocess/ChGnuPlot.h"
@@ -58,14 +58,20 @@ int main(int argc, char* argv[]) {
     // --------------------------------
 
 #ifdef FMU_EXPORT_SUPPORT
-    // FMU generated in current build
-    std::string fmu_filename = VDP_FMU_FILENAME;
-    if (argc == 2)
-        fmu_filename = argv[1];
+    // Use an FMU generated in current build
+    int which = 0;
+    std::cout << "Options:\n";
+    std::cout << "   2. Van der Pol FMU for FMI 2.0\n";
+    std::cout << "   3. Van der Pol FMU for FMI 3.0\n";
+    while (which != 2 && which != 3) {
+        std::cout << "Select FMU: ";
+        std::cin >> which;
+    }
+    std::string fmu_filename = (which == 2 ? VDP_FMU2_FILENAME : VDP_FMU3_FILENAME);
 #else
     // Expect a fully qualified FMU filename as program argument
     if (argc != 2) {
-        std::cout << "Usage: ./demo_FMI2_integration_modex [FMU_filename]" << std::endl;
+        std::cout << "Usage: ./demo_FMI_VdP_modex [FMU_filename]" << std::endl;
         return 1;
     }
     std::string fmu_filename = argv[1];
@@ -79,7 +85,14 @@ int main(int argc, char* argv[]) {
     // ---------------------------------------------------
 
     // Create the Chrono FMU wrapper
-    auto fmu_wrapper = chrono_types::make_shared<ChExternalFmu>("my_fmu", fmu_filename, unpack_dir);
+    auto fmu_wrapper = chrono_types::make_shared<ChExternalFmu>();
+    fmu_wrapper->SetVerbose(true);
+    try {
+        fmu_wrapper->Load("my_fmu", fmu_filename, unpack_dir);
+    } catch (std::exception& e) {
+        std::cerr << "ERROR loading FMU: " << e.what() << std::endl;
+        return 1;
+    }
 
     // Print FMU info
     PrintInfo(*fmu_wrapper);
@@ -88,7 +101,7 @@ int main(int argc, char* argv[]) {
     // NOTE: this is the only step specific to a particular FMU
     fmu_wrapper->SetInitialCondition("x", 2.5);
     fmu_wrapper->SetRealParameterValue("mu", 1.5);
-    fmu_wrapper->SetRealInputFunction("u(t)", [](double time) { return std::sin(time); });
+    fmu_wrapper->SetRealInputFunction("u", [](double time) { return std::sin(time); });
 
     // Initialize the FMU and Chrono wrapper
     fmu_wrapper->Initialize();
