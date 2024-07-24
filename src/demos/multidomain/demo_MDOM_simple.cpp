@@ -20,6 +20,7 @@
 #include "chrono/physics/ChLinkMotorRotationSpeed.h"
 #include "chrono/physics/ChBodyEasy.h"
 #include "chrono/serialization/ChArchiveBinary.h"
+#include "chrono/fea/ChNodeFEAxyzrot.h"
 
 #include "chrono_irrlicht/ChVisualSystemIrrlicht.h"
 #include "chrono_multidomain/ChDomainManager.h"
@@ -160,6 +161,53 @@ std::shared_ptr<ChBody> AddContainer(ChSystemSMC& sys) {
     return rotatingBody;
 }
 
+void PrintDebugDomainInfo(std::shared_ptr<ChDomain> domain) {
+    std::cout <<     "DOMAIN ---- rank: " << domain->GetRank()  << "-----------------------------\n";
+
+    for (auto body : domain->GetSystem()->GetBodies()) {
+        std::cout << "  ChBody " << body->GetTag() << std::endl;
+    }
+    for (auto link : domain->GetSystem()->GetLinks()) {
+        std::cout << "  ChLink " << link->GetTag() << std::endl;
+        if (auto blink = std::dynamic_pointer_cast<ChLink>(link)) {
+            auto mbo1 = dynamic_cast<ChBody*>(blink->GetBody1());
+            auto mbo2 = dynamic_cast<ChBody*>(blink->GetBody2());
+            if (mbo1 && mbo2) {
+                std::cout << "       ChBody*  " << mbo1->GetTag() << std::endl;
+                std::cout << "       ChBody*  " << mbo2->GetTag() << std::endl;
+            }
+            auto mnod1 = dynamic_cast<fea::ChNodeFEAxyzrot*>(blink->GetBody1());
+            auto mnod2 = dynamic_cast<fea::ChNodeFEAxyzrot*>(blink->GetBody2());
+            if (mnod1 && mnod2) {
+                std::cout << "       ChNodeFEAxyzrot*  " << mnod1->GetTag() << std::endl;
+                std::cout << "       ChNodeFEAxyzrot*  " << mnod2->GetTag() << std::endl;
+            }
+        }
+    }
+    for (auto item : domain->GetSystem()->GetOtherPhysicsItems()) {
+        if (auto mesh = std::dynamic_pointer_cast<fea::ChMesh>(item)) {
+            std::cout << "  ChMesh " << mesh->GetTag() << std::endl;
+            for (auto node : mesh->GetNodes()) {
+                std::cout << "      ChNodeFEAbase " << node->GetTag() << std::endl;
+            }
+            for (auto el : mesh->GetElements()) {
+                std::cout << "      ChElementBase " << std::endl;
+                for (int i = 0; i < el->GetNumNodes(); ++i) {
+                    std::cout << "          ChNodeFEABase " << el->GetNode(i)->GetTag() << std::endl;
+                }
+            }
+        }
+    }
+    for (auto& interf : domain->GetInterfaces()) {
+        std::cout << " interface to domain rank " << interf.second.side_OUT->GetRank() << " ...... \n";
+        for (auto& item : interf.second.shared_items)
+            std::cout << "  shared item tag " << item.first << std::endl;
+        for (auto& node : interf.second.shared_nodes)
+            std::cout << "  shared node tag " << node.first << std::endl;
+    }
+    std::cout << std::endl;
+}
+
 int main(int argc, char* argv[]) {
     std::cout << "Copyright (c) 2024 projectchrono.org\nChrono version: " << CHRONO_VERSION << std::endl;
 
@@ -174,7 +222,9 @@ int main(int argc, char* argv[]) {
     ChDomainBuilderSlices       domain_builder(
                                         std::vector<double>{0},  // positions of cuts along axis to slice, ex {-1,0,2} generates 5 domains
                                         ChAxis::X);     // axis about whom one needs the space slicing
-
+    
+    // Now one can know how many domains are expected to build, using domain_builder.GetTotRanks();
+    // In this case we already know we split into 2 domains. So we build them as:
 
     ChSystemSMC sys_0;
     sys_0.SetCollisionSystemType(ChCollisionSystem::Type::BULLET);
@@ -193,28 +243,42 @@ int main(int argc, char* argv[]) {
                                         1       // rank of this domain 
                                        ));
 
+    // Now we populate the n domains with bodies, links, meshes, nodes, etc. Each item must be 
+    // added to the ChSystem of the domain that the item overlaps with. In case of body shapes that overlap
+    // with multiple domains, add to all of them.
+
     auto mat = chrono_types::make_shared<ChContactMaterialSMC>();
     mat->SetFriction(0.1);
-
+ 
     auto mrigidBody = chrono_types::make_shared<ChBodyEasyBox>(2, 2, 2,  // x,y,z size
         100,         // density
         true,        // visualization?
-        false,        // collision?
+        true,        // collision?
         mat);        // contact material
     mrigidBody->SetPos(ChVector3d(-3,0,0));
     mrigidBody->SetTag(unique_ID); unique_ID++; // for multidomain, each item must have an unique tag!
     sys_0.AddBody(mrigidBody);
-    //sys_0.GetCollisionSystem()->BindItem(mrigidBody);
+    sys_0.GetCollisionSystem()->BindItem(mrigidBody); 
 
-    for (int i = 0; i < 10; ++i) {
-        mrigidBody->SetPos(ChVector3d(-2+i*0.55, 0, 0)); // change pos of body as in simulation
-        sys_0.ComputeCollisions(); // to force the AABB of bodies
-        sys_1.ComputeCollisions(); // to force the AABB of bodies
-        domain_manager.DoUpdateSharedLeaving();
-        domain_manager.DoDomainsSendReceive();
-        domain_manager.DoUpdateSharedReceived();
+    try {
+        for (int i = 0; i < 10; ++i) {
+            mrigidBody->SetPos(ChVector3d(-2 + i * 0.55, 0, 0)); // change pos of body as in simulation
+            sys_0.ComputeCollisions(); // to force the AABB of bodies
+            sys_1.ComputeCollisions(); // to force the AABB of bodies
+
+            domain_manager.DoUpdateSharedLeaving();
+            domain_manager.DoDomainsSendReceive();
+            domain_manager.DoUpdateSharedReceived();
+
+            for (auto& mdomain : domain_manager.domains)
+                PrintDebugDomainInfo(mdomain.second);
+            std::cout << std::endl;
+            system("pause");
+        }
     }
-
+    catch (std::exception ex) {
+        std::cout << ex.what() << std::endl;
+    }
     return 0;
 
 
