@@ -30,6 +30,22 @@
 
 using namespace chrono;
 using namespace chrono::vehicle;
+using namespace chrono::fmi2;
+
+// -----------------------------------------------------------------------------
+
+// Create an instance of this FMU
+fmu_tools::fmi2::FmuComponentBase* fmu_tools::fmi2::fmi2InstantiateIMPL(fmi2String instanceName,
+                                                                        fmi2Type fmuType,
+                                                                        fmi2String fmuGUID,
+                                                                        fmi2String fmuResourceLocation,
+                                                                        const fmi2CallbackFunctions* functions,
+                                                                        fmi2Boolean visible,
+                                                                        fmi2Boolean loggingOn) {
+    return new FmuComponent(instanceName, fmuType, fmuGUID, fmuResourceLocation, functions, visible, loggingOn);
+}
+
+// -----------------------------------------------------------------------------
 
 FmuComponent::FmuComponent(fmi2String instanceName,
                            fmi2Type fmuType,
@@ -38,7 +54,8 @@ FmuComponent::FmuComponent(fmi2String instanceName,
                            const fmi2CallbackFunctions* functions,
                            fmi2Boolean visible,
                            fmi2Boolean loggingOn)
-    : FmuChronoComponentBase(instanceName, fmuType, fmuGUID, fmuResourceLocation, functions, visible, loggingOn), render_frame(0) {
+    : FmuChronoComponentBase(instanceName, fmuType, fmuGUID, fmuResourceLocation, functions, visible, loggingOn),
+      render_frame(0) {
     // Initialize FMU type
     initializeType(fmuType);
 
@@ -250,8 +267,8 @@ void FmuComponent::SynchronizeVehicle(double time) {
     // ATTENTION: this version of 'Synchronize' does not apply tire forces to the vehicle wheels.
     vehicle->Synchronize(time, driver_inputs);
 
-    //2. apply tire forces (received from outside) to wheel bodies.
-    // ATTENTION: this must be done AFTER vehicle synchronization (which may empty wheel force accumulators).
+    // 2. apply tire forces (received from outside) to wheel bodies.
+    //  ATTENTION: this must be done AFTER vehicle synchronization (which may empty wheel force accumulators).
     for (int iw = 0; iw < 4; iw++) {
         wheel_data[iw].wheel->Synchronize(wheel_data[iw].load);
     }
@@ -284,13 +301,15 @@ void FmuComponent::CalculateVehicleOutputs() {
     //// TODO - other vehicle outputs...
 }
 
-void FmuComponent::_preModelDescriptionExport() {}
+void FmuComponent::preModelDescriptionExport() {}
 
-void FmuComponent::_postModelDescriptionExport() {}
+void FmuComponent::postModelDescriptionExport() {}
 
-void FmuComponent::_enterInitializationMode() {}
+fmi2Status FmuComponent::enterInitializationModeIMPL() {
+    return fmi2Status::fmi2OK;
+}
 
-void FmuComponent::_exitInitializationMode() {
+fmi2Status FmuComponent::exitInitializationModeIMPL() {
     // Create the vehicle system
     CreateVehicle();
 
@@ -314,11 +333,12 @@ void FmuComponent::_exitInitializationMode() {
         vis_sys->AttachVehicle(vehicle.get());
     }
 #endif
+    return fmi2Status::fmi2OK;
 }
 
-fmi2Status FmuComponent::_doStep(fmi2Real currentCommunicationPoint,
-                                 fmi2Real communicationStepSize,
-                                 fmi2Boolean noSetFMUStatePriorToCurrentPoint) {
+fmi2Status FmuComponent::doStepIMPL(fmi2Real currentCommunicationPoint,
+                                    fmi2Real communicationStepSize,
+                                    fmi2Boolean noSetFMUStatePriorToCurrentPoint) {
     while (m_time < currentCommunicationPoint + communicationStepSize) {
         fmi2Real h = std::min((currentCommunicationPoint + communicationStepSize - m_time),
                               std::min(communicationStepSize, step_size));

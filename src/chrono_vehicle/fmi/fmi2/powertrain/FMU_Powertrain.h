@@ -40,7 +40,7 @@
 
 #include "chrono_fmi/fmi2/ChFmuToolsExport.h"
 
-class FmuComponent : public chrono::FmuChronoComponentBase {
+class FmuComponent : public chrono::fmi2::FmuChronoComponentBase {
   public:
     FmuComponent(fmi2String instanceName,
                  fmi2Type fmuType,
@@ -52,16 +52,16 @@ class FmuComponent : public chrono::FmuChronoComponentBase {
     ~FmuComponent() {}
 
     /// Advance dynamics.
-    virtual fmi2Status _doStep(fmi2Real currentCommunicationPoint,
-                               fmi2Real communicationStepSize,
-                               fmi2Boolean noSetFMUStatePriorToCurrentPoint) override;
+    virtual fmi2Status doStepIMPL(fmi2Real currentCommunicationPoint,
+                                  fmi2Real communicationStepSize,
+                                  fmi2Boolean noSetFMUStatePriorToCurrentPoint) override;
 
   private:
-    virtual void _enterInitializationMode() override;
-    virtual void _exitInitializationMode() override;
+    virtual fmi2Status enterInitializationModeIMPL() override;
+    virtual fmi2Status exitInitializationModeIMPL() override;
 
-    virtual void _preModelDescriptionExport() override;
-    virtual void _postModelDescriptionExport() override;
+    virtual void preModelDescriptionExport() override;
+    virtual void postModelDescriptionExport() override;
 
     virtual bool is_cosimulation_available() const override { return true; }
     virtual bool is_modelexchange_available() const override { return false; }
@@ -91,14 +91,3 @@ class FmuComponent : public chrono::FmuChronoComponentBase {
     double engine_reaction;        ///< engine reaction torque on chassis (output)
     double transmission_reaction;  ///< transmission reaction torque on chassis (output)
 };
-
-// Create an instance of this FMU
-FmuComponentBase* fmi2Instantiate_getPointer(fmi2String instanceName,
-                                             fmi2Type fmuType,
-                                             fmi2String fmuGUID,
-                                             fmi2String fmuResourceLocation,
-                                             const fmi2CallbackFunctions* functions,
-                                             fmi2Boolean visible,
-                                             fmi2Boolean loggingOn) {
-    return new FmuComponent(instanceName, fmuType, fmuGUID, fmuResourceLocation, functions, visible, loggingOn);
-}

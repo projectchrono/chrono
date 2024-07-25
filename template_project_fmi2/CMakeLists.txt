@@ -111,7 +111,7 @@ target_include_directories(${DEMO} PRIVATE "${CMAKE_SOURCES_DIR}")
 target_compile_definitions(${DEMO} PUBLIC FMU_UNPACK_DIRECTORY="${FMU_DIRECTORY}/tmp_unpack")
 target_compile_definitions(${DEMO} PUBLIC FMU_DIRECTORY="${FMU_DIRECTORY}")
 target_compile_definitions(${DEMO} PUBLIC FMU_FILENAME="${FMU_FILENAME}")
-target_compile_definitions(${DEMO} PUBLIC FMU_OS_SUFFIX="${FMI_PLATFORM}")
+target_compile_definitions(${DEMO} PUBLIC FMI2_PLATFORM="${FMI2_PLATFORM}")
 target_compile_definitions(${DEMO} PUBLIC SHARED_LIBRARY_SUFFIX="${CMAKE_SHARED_LIBRARY_SUFFIX}")
 target_include_directories(${DEMO} PUBLIC ${CHRONO_INCLUDE_DIRS})
 

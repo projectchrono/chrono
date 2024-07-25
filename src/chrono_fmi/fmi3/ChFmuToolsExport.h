@@ -1,7 +1,7 @@
 // =============================================================================
 // PROJECT CHRONO - http://projectchrono.org
 //
-// Copyright (c) 2023 projectchrono.org
+// Copyright (c) 2024 projectchrono.org
 // All rights reserved.
 //
 // Use of this source code is governed by a BSD-style license that can be found
@@ -12,12 +12,12 @@
 // Authors: Dario Mangoni, Radu Serban
 // =============================================================================
 //
-// Chrono wrappers to fmu_tools FMU export classes for FMI standard 2.0.
+// Chrono wrappers to fmu_tools FMU export classes for FMI standard 3.0.
 //
 // =============================================================================
 
-#ifndef CH_FMU2_TOOLS_EXPORT_H
-#define CH_FMU2_TOOLS_EXPORT_H
+#ifndef CH_FMU3_TOOLS_EXPORT_H
+#define CH_FMU3_TOOLS_EXPORT_H
 
 #include <stack>
 #include <fstream>
@@ -37,13 +37,14 @@
 
 // fmu_tools
 // #include "rapidxml_ext.hpp"
-#include "fmi2/FmuToolsExport.h"
+#include "fmi3/FmuToolsExport.h"
 
 namespace chrono {
-namespace fmi2 {
+namespace fmi3 {
 
-using FmuVariable = fmu_tools::fmi2::FmuVariable;
+using FmuVariable = fmu_tools::fmi3::FmuVariable;
 
+/*
 #define ADD_BVAL_AS_FMU_GETSET(returnType, codeGet, codeSet)                                         \
     _fmucomp->AddFmuVariable(                                                                        \
         std::make_pair(std::function<fmi2##returnType(void)>([bVal]() -> fmi2##returnType codeGet),  \
@@ -78,7 +79,7 @@ const std::unordered_map<chrono::ChCausalityType, FmuVariable::CausalityType> Ca
 /// Class for serializing variables to FmuComponentBase.
 class ChOutputFMU : public ChArchiveOut {
   public:
-    ChOutputFMU(fmu_tools::fmi2::FmuComponentBase& fmucomp) {
+    ChOutputFMU(::fmi3::FmuComponentBase& fmucomp) {
         _fmucomp = &fmucomp;
 
         tablevel = 0;
@@ -93,23 +94,23 @@ class ChOutputFMU : public ChArchiveOut {
 
     virtual void out(ChNameValue<bool> bVal) override {
         ADD_BVAL_AS_FMU_GETSET(
-            Boolean, { return static_cast<fmi2Boolean>(bVal.value()); }, { bVal.value() = val; })
+            Boolean, { return static_cast<fmi3Boolean>(bVal.value()); }, { bVal.value() = val; })
 
         ++nitems.top();
     }
     virtual void out(ChNameValue<int> bVal) {
-        ADD_BVAL_AS_FMU_POINTER(Integer)
+        ADD_BVAL_AS_FMU_POINTER(Int32)
 
         ++nitems.top();
     }
     virtual void out(ChNameValue<double> bVal) override {
-        ADD_BVAL_AS_FMU_POINTER(Real)
+        ADD_BVAL_AS_FMU_POINTER(Float64)
 
         ++nitems.top();
     }
     virtual void out(ChNameValue<float> bVal) override {
         ADD_BVAL_AS_FMU_GETSET(
-            Real, { return static_cast<fmi2Real>(bVal.value()); }, { bVal.value() = static_cast<float>(val); })
+            Float32, { return static_cast<fmi3Float32>(bVal.value()); }, { bVal.value() = static_cast<float>(val); })
 
         ++nitems.top();
     }
@@ -223,32 +224,35 @@ class ChOutputFMU : public ChArchiveOut {
     }
 
     int tablevel;
-    fmu_tools::fmi2::FmuComponentBase* _fmucomp;
+    ::fmi2::FmuComponentBase* _fmucomp;
     std::stack<int> nitems;
     std::deque<bool> is_array;
     std::deque<std::string> parent_names;
 };
+*/
 
 // -----------------------------------------------------------------------------
 
 /// Extension of FmuComponentBase class for Chrono FMUs.
-class FmuChronoComponentBase : public fmu_tools::fmi2::FmuComponentBase {
+class FmuChronoComponentBase : public fmu_tools::fmi3::FmuComponentBase {
   public:
-    FmuChronoComponentBase(fmi2String instanceName,
-                           fmi2Type fmuType,
-                           fmi2String fmuGUID,
-                           fmi2String fmuResourceLocation,
-                           const fmi2CallbackFunctions* functions,
-                           fmi2Boolean visible,
-                           fmi2Boolean loggingOn)
+    FmuChronoComponentBase(fmu_tools::fmi3::FmuType fmiInterfaceType,
+                           fmi3String instanceName,
+                           fmi3String instantiationToken,
+                           fmi3String resourcePath,
+                           fmi3Boolean visible,
+                           fmi3Boolean loggingOn,
+                           fmi3InstanceEnvironment instanceEnvironment,
+                           fmi3LogMessageCallback logMessage)
         : FmuComponentBase(
+              fmiInterfaceType,
               instanceName,
-              fmuType,
-              fmuGUID,
-              fmuResourceLocation,
-              functions,
+              instantiationToken,
+              resourcePath,
               visible,
               loggingOn,
+              instanceEnvironment,
+              logMessage,
               {{"logEvents", true},
                {"logSingularLinearSystems", true},
                {"logNonlinearSystems", true},
@@ -259,14 +263,18 @@ class FmuChronoComponentBase : public fmu_tools::fmi2::FmuComponentBase {
                {"logStatusDiscard", true},
                {"logStatusFatal", true},
                {"logAll", true}},
-              {"logStatusWarning", "logStatusDiscard", "logStatusError", "logStatusFatal", "logStatusPending"}),
-          variables_serializer(*this) {}
+              {"logStatusWarning", "logStatusDiscard", "logStatusError", "logStatusFatal", "logStatusPending"})
+    /*
+    ,
+    variables_serializer(*this)
+    */
+    {}
 
     virtual ~FmuChronoComponentBase() {}
 
     /// Add FMU variables corresponding to the specified ChVector3d.
     /// This function creates 3 FMU variables, one for each component of the ChVector3d, with names "name.x", "name.y",
-    /// and "name.z", all of type FmuVariable::Type::Real.
+    /// and "name.z", all of type FmuVariable::Type::Float64.
     void AddFmuVecVariable(ChVector3d& v,
                            const std::string& name,
                            const std::string& unit_name,
@@ -279,7 +287,7 @@ class FmuChronoComponentBase : public fmu_tools::fmi2::FmuComponentBase {
 
     /// Add FMU variables corresponding to the specified ChQuaternion.
     /// This function creates 4 FMU variables, one for each component of the ChVector3d, with names "name.e0",
-    /// "name.e1", "name.e2", and "name.e3", all of type FmuVariable::Type::Real.
+    /// "name.e1", "name.e2", and "name.e3", all of type FmuVariable::Type::Float64.
     void AddFmuQuatVariable(ChQuaternion<>& q,
                             const std::string& name,
                             const std::string& unit_name,
@@ -292,7 +300,7 @@ class FmuChronoComponentBase : public fmu_tools::fmi2::FmuComponentBase {
 
     /// Add FMU variables corresponding to the specified ChCoordsys.
     /// This function creates 7 FMU variables, one for each component of the position ChVector3d and one for each
-    /// component of the rotation quaternion, all of type FmuVariable::Type::Real.
+    /// component of the rotation quaternion, all of type FmuVariable::Type::Float64.
     void AddFmuCsysVariable(ChCoordsysd& s,
                             const std::string& name,
                             const std::string& unit_name,
@@ -305,7 +313,7 @@ class FmuChronoComponentBase : public fmu_tools::fmi2::FmuComponentBase {
 
     /// Add FMU variables corresponding to the specified ChFrame.
     /// This function creates 7 FMU variables, one for each component of the position ChVector3d and one for each
-    /// component of the rotation quaternion, all of type FmuVariable::Type::Real.
+    /// component of the rotation quaternion, all of type FmuVariable::Type::Float64.
     void AddFmuFrameVariable(ChFrame<>& s,
                              const std::string& name,
                              const std::string& unit_name,
@@ -318,7 +326,7 @@ class FmuChronoComponentBase : public fmu_tools::fmi2::FmuComponentBase {
 
     /// Add FMU variables corresponding to the specified ChFrameMoving.
     /// This function creates 7 FMU variables for the pose, one for each component of the position ChVector3d and one
-    /// for each component of the rotation quaternion, all of type FmuVariable::Type::Real.  Additionally, 7 FMU
+    /// for each component of the rotation quaternion, all of type FmuVariable::Type::Float64.  Additionally, 7 FMU
     /// variables are created to encode the position and orientation time derivatives.
     void AddFmuFrameMovingVariable(ChFrameMoving<>& s,
                                    const std::string& name,
@@ -331,6 +339,7 @@ class FmuChronoComponentBase : public fmu_tools::fmi2::FmuComponentBase {
         addFmuFrameMovingVariable(s, name, unit_name, unit_name_dt, description, causality, variability, initial, true);
     }
 
+    /*
     /// Add FMU variables corresponding to the visual shapes attached to the specified ChPhysicsItem.
     /// Variables with the following names are created for each visual shape:
     /// - VISUALIZER[i].frame.pos.[x|y|z]: position from global to shape local frame in global reference frame
@@ -345,7 +354,7 @@ class FmuChronoComponentBase : public fmu_tools::fmi2::FmuComponentBase {
     /// Add FMU variables corresponding to the visual shapes attached to the specified ChAssembly.
     /// Refer to the AddFmuVisualShapes(ChPhysicsItem) function for details on the variables created.
     void AddFmuVisualShapes(const ChAssembly& ass);
-
+    */
   protected:
     std::unordered_set<std::string> variables_vec;     ///< list of ChVector3 "variables"
     std::unordered_set<std::string> variables_quat;    ///< list of ChQuaternion "variables"
@@ -362,7 +371,7 @@ class FmuChronoComponentBase : public fmu_tools::fmi2::FmuComponentBase {
                            bool cache) {
         std::string comp[3] = {"x", "y", "z"};
         for (int i = 0; i < 3; i++) {
-            AddFmuVariable(&v.data()[i], name + "." + comp[i], FmuVariable::Type::Real, unit_name,
+            AddFmuVariable(&v.data()[i], name + "." + comp[i], FmuVariable::Type::Float64, unit_name,
                            description + " (" + comp[i] + ")", causality, variability, initial);
         }
 
@@ -380,7 +389,7 @@ class FmuChronoComponentBase : public fmu_tools::fmi2::FmuComponentBase {
                             bool cache) {
         std::string comp[4] = {"e0", "e1", "e2", "e3"};
         for (int i = 0; i < 4; i++) {
-            AddFmuVariable(&q.data()[i], name + "." + comp[i], FmuVariable::Type::Real, unit_name,
+            AddFmuVariable(&q.data()[i], name + "." + comp[i], FmuVariable::Type::Float64, unit_name,
                            description + " (" + comp[i] + ")", causality, variability, initial);
         }
 
@@ -613,6 +622,7 @@ class FmuChronoComponentBase : public fmu_tools::fmi2::FmuComponentBase {
         }
     }
 
+    /*
     /// add variables to the FMU component by leveraging the serialization mechanism
     ChOutputFMU variables_serializer;
 
@@ -631,10 +641,12 @@ class FmuChronoComponentBase : public fmu_tools::fmi2::FmuComponentBase {
 
     /// total number of visualizers (not unsigned to keep compatibility with FMU standard types)
     fmi2Integer visualizers_counter = 0;
+    */
 };
 
 // -----------------------------------------------------------------------------
 
+/*
 void FmuChronoComponentBase::AddFmuVisualShapes(const ChPhysicsItem& pi, std::string custom_pi_name) {
     if (!pi.GetVisualModel())
         return;
@@ -835,8 +847,9 @@ const std::unordered_set<std::string> FmuChronoComponentBase::supported_shape_ty
     "ChVisualShapeUNKNOWN"};
 
 // -----------------------------------------------------------------------------
+*/
 
-}  // end namespace fmi2
+}  // end namespace fmi3
 }  // end namespace chrono
 
 #endif

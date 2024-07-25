@@ -55,40 +55,52 @@ cmake_dependent_option(FMU_TESTING "Enable FMU testing" ON "ENABLE_FMU_EXPORT" O
 # -------------------------------------------------
 # Set Architecture and Operating System Flags
 # -------------------------------------------------
+
 set(UNKNOWN_TARGET_SYSTEM FALSE)
+
 if(WIN32)
-    set(FMI_PLATFORM "win")
+    set(FMI2_SYS "win")
+    set(FMI3_SYS "windows")
 elseif(APPLE)
-    set(FMI_PLATFORM "darwin")
-elseif(CYGWIN)
-    set(FMI_PLATFORM "cygwin")
+    set(FMI2_SYS "darwin")
+    set(FMI3_SYS "darwin")
 elseif(UNIX)
-    set(FMI_PLATFORM "linux")
+    set(FMI2_SYS "linux")
+    set(FMI3_SYS "linux")
 else()
     set(UNKNOWN_TARGET_SYSTEM TRUE)
 endif()
 
 if(CMAKE_SIZEOF_VOID_P EQUAL 8)
-    set(FMI_PLATFORM "${FMI_PLATFORM}64")
+    set(FMI2_ARCH "64")
+    set(FMI3_ARCH "x86_64")
 elseif(CMAKE_SIZEOF_VOID_P EQUAL 4)
-    set(FMI_PLATFORM "${FMI_PLATFORM}32")
+    set(FMI2_ARCH "32")
+    set(FMI3_ARCH "x86")
 else()
     set(UNKNOWN_TARGET_SYSTEM TRUE)
 endif()
 
 if(UNKNOWN_TARGET_SYSTEM)
-    message(WARNING "Cannot retrieve target operating system or architecture. Please specify it manually through TARGET_SYSTEM variable (e.g. win64)")
-    set(TARGET_SYSTEM "win64" CACHE STRING "Target operating system and architecture (e.g. win64, linux32, ...)")
-    mark_as_advanced(CLEAR TARGET_SYSTEM)
+    message(WARNING "Cannot retrieve target operating system or architecture. Please manually specify the FMI2_PLATFORM (e.g. win64) and the FMI3_PLATFORM (e.g. x86_64-windows)")
+    set(FMI2_PLATFORM "win64" CACHE STRING "Target operating system and architecture for FMI 2.0 (e.g. win64, linux32, ...)")
+    set(FMI3_PLATFORM "x86_64-windows" CACHE STRING "Target operating system and architecture for FMI 3.0 (e.g. x86_64-windows, x86-linux, ...)")
+    mark_as_advanced(CLEAR FMI2_PLATFORM)
+    mark_as_advanced(CLEAR FMI3_PLATFORM)
 else()
-    mark_as_advanced(FORCE TARGET_SYSTEM)
+    set(FMI2_PLATFORM ${FMI2_SYS}${FMI2_ARCH})
+    set(FMI3_PLATFORM ${FMI3_ARCH}-${FMI3_SYS})
+    mark_as_advanced(FORCE FMI2_PLATFORM)
+    mark_as_advanced(FORCE FMI3_PLATFORM)
 endif()
 
-set(FMI_PLATFORM "${FMI_PLATFORM}" PARENT_SCOPE)
+set(FMI2_PLATFORM "${FMI2_PLATFORM}" PARENT_SCOPE)
+set(FMI3_PLATFORM "${FMI3_PLATFORM}" PARENT_SCOPE)
 
-message(STATUS "FMI target version:   ${FMI_VERSION}")
-message(STATUS "FMI platform:         ${FMI_PLATFORM}")
-message(STATUS "FMU Tools directory:  ${FMU_TOOLS_DIR}")
+message(STATUS "FMI2 platform:        ${FMI2_PLATFORM}")
+message(STATUS "FMI3 platform:        ${FMI3_PLATFORM}")
+message(STATUS "fmu_tools directory:  ${FMU_TOOLS_DIR}")
+message(STATUS "FMU export:           ${FMU_EXPORT_SUPPORT}")
 
 if(FMU_EXPORT_SUPPORT)
   include(FetchContent)
@@ -113,13 +125,14 @@ install(FILES "${PROJECT_BINARY_DIR}/chrono_fmi/ChConfigFMI.h"
 # Create the Chrono::FMI library
 
 set(ChronoEngine_FMI_SOURCES 
-    fmi2/ChExternalFmu.cpp
+    ChExternalFmu.cpp
 )
 
 set(ChronoEngine_FMI_HEADERS
     ChApiFMI.h 
+    ChExternalFmu.h
     fmi2/ChFmuToolsImport.h
-    fmi2/ChExternalFmu.h
+    fmi3/ChFmuToolsImport.h
 )
 
 source_group("" FILES 
@@ -141,7 +154,8 @@ target_include_directories(ChronoEngine_fmi PUBLIC ${FMU_TOOLS_DIR})
 target_compile_definitions(ChronoEngine_fmi PRIVATE "CH_API_COMPILE_FMI")
 target_compile_definitions(ChronoEngine_fmi PRIVATE "CH_IGNORE_DEPRECATED")
 
-target_compile_definitions(ChronoEngine_fmi PUBLIC FMU_OS_SUFFIX="${FMI_PLATFORM}")
+target_compile_definitions(ChronoEngine_fmi PUBLIC FMI2_PLATFORM="${FMI2_PLATFORM}")
+target_compile_definitions(ChronoEngine_fmi PUBLIC FMI3_PLATFORM="${FMI3_PLATFORM}")
 target_compile_definitions(ChronoEngine_fmi PUBLIC SHARED_LIBRARY_SUFFIX="${CMAKE_SHARED_LIBRARY_SUFFIX}")
 
 target_link_libraries(ChronoEngine_fmi ChronoEngine)

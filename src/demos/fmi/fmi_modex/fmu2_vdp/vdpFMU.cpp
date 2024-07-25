@@ -20,16 +20,18 @@
 
 #include "vdpFMU.h"
 
+using namespace fmu_tools::fmi2;
+
 // -----------------------------------------------------------------------------
 
 // Create an instance of this FMU
-FmuComponentBase* fmi2Instantiate_getPointer(fmi2String instanceName,
-                                             fmi2Type fmuType,
-                                             fmi2String fmuGUID,
-                                             fmi2String fmuResourceLocation,
-                                             const fmi2CallbackFunctions* functions,
-                                             fmi2Boolean visible,
-                                             fmi2Boolean loggingOn) {
+FmuComponentBase* fmu_tools::fmi2::fmi2InstantiateIMPL(fmi2String instanceName,
+                                                       fmi2Type fmuType,
+                                                       fmi2String fmuGUID,
+                                                       fmi2String fmuResourceLocation,
+                                                       const fmi2CallbackFunctions* functions,
+                                                       fmi2Boolean visible,
+                                                       fmi2Boolean loggingOn) {
     return new FmuComponent(instanceName, fmuType, fmuGUID, fmuResourceLocation, functions, visible, loggingOn);
 }
 
@@ -91,7 +93,7 @@ FmuComponent::FmuComponent(fmi2String instanceName,
                    FmuVariable::CausalityType::local, FmuVariable::VariabilityType::continuous,   //
                    FmuVariable::InitialType::calculated);                                         //
 
-    AddFmuVariable(&u, "u(t)", FmuVariable::Type::Real, "1", "forcing term",                     //
+    AddFmuVariable(&u, "u", FmuVariable::Type::Real, "1", "forcing term",                        //
                    FmuVariable::CausalityType::input, FmuVariable::VariabilityType::continuous,  //
                    FmuVariable::InitialType::none);                                              //
 
@@ -119,11 +121,15 @@ void FmuComponent::calcAcceleration() {
 
 // -----------------------------------------------------------------------------
 
-void FmuComponent::_enterInitializationMode() {}
+fmi2Status FmuComponent::enterInitializationModeIMPL() {
+    return fmi2Status::fmi2OK;
+}
 
-void FmuComponent::_exitInitializationMode() {}
+fmi2Status FmuComponent::exitInitializationModeIMPL() {
+    return fmi2Status::fmi2OK;
+}
 
-fmi2Status FmuComponent::_getContinuousStates(fmi2Real x[], size_t nx) {
+fmi2Status FmuComponent::getContinuousStatesIMPL(fmi2Real x[], size_t nx) {
     for (size_t i = 0; i < nx; i++) {
         x[i] = q[i];
     }
@@ -131,7 +137,7 @@ fmi2Status FmuComponent::_getContinuousStates(fmi2Real x[], size_t nx) {
     return fmi2Status::fmi2OK;
 }
 
-fmi2Status FmuComponent::_setContinuousStates(const fmi2Real x[], size_t nx) {
+fmi2Status FmuComponent::setContinuousStatesIMPL(const fmi2Real x[], size_t nx) {
     for (size_t i = 0; i < nx; i++) {
         q[i] = x[i];
     }
@@ -139,7 +145,7 @@ fmi2Status FmuComponent::_setContinuousStates(const fmi2Real x[], size_t nx) {
     return fmi2Status::fmi2OK;
 }
 
-fmi2Status FmuComponent::_getDerivatives(fmi2Real derivatives[], size_t nx) {
+fmi2Status FmuComponent::getDerivativesIMPL(fmi2Real derivatives[], size_t nx) {
     derivatives[0] = q[1];
     derivatives[1] = mu * (1 - q[0] * q[0]) * q[1] - q[0] + u;
 

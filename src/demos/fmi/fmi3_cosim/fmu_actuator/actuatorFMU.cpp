@@ -1,7 +1,7 @@
 // =============================================================================
 // PROJECT CHRONO - http://projectchrono.org
 //
-// Copyright (c) 2023 projectchrono.org
+// Copyright (c) 2024 projectchrono.org
 // All rights reserved.
 //
 // Use of this source code is governed by a BSD-style license that can be found
@@ -22,33 +22,44 @@
 #include "actuatorFMU.h"
 
 using namespace chrono;
-using namespace chrono::fmi2;
+using namespace chrono::fmi3;
 
 // -----------------------------------------------------------------------------
 
 // Create an instance of this FMU
-fmu_tools::fmi2::FmuComponentBase* fmu_tools::fmi2::fmi2InstantiateIMPL(fmi2String instanceName,
-                                                                        fmi2Type fmuType,
-                                                                        fmi2String fmuGUID,
-                                                                        fmi2String fmuResourceLocation,
-                                                                        const fmi2CallbackFunctions* functions,
-                                                                        fmi2Boolean visible,
-                                                                        fmi2Boolean loggingOn) {
-    return new FmuComponent(instanceName, fmuType, fmuGUID, fmuResourceLocation, functions, visible, loggingOn);
+fmu_tools::fmi3::FmuComponentBase* fmu_tools::fmi3::fmi3InstantiateIMPL(fmu_tools::fmi3::FmuType fmiInterfaceType,
+                                                                        fmi3String instanceName,
+                                                                        fmi3String instantiationToken,
+                                                                        fmi3String resourcePath,
+                                                                        fmi3Boolean visible,
+                                                                        fmi3Boolean loggingOn,
+                                                                        fmi3InstanceEnvironment instanceEnvironment,
+                                                                        fmi3LogMessageCallback logMessage) {
+    return new FmuComponent(fmiInterfaceType, instanceName, instantiationToken, resourcePath, visible, loggingOn,
+                            instanceEnvironment, logMessage);
 }
 
 // -----------------------------------------------------------------------------
 
-FmuComponent::FmuComponent(fmi2String instanceName,
-                           fmi2Type fmuType,
-                           fmi2String fmuGUID,
-                           fmi2String fmuResourceLocation,
-                           const fmi2CallbackFunctions* functions,
-                           fmi2Boolean visible,
-                           fmi2Boolean loggingOn)
-    : FmuChronoComponentBase(instanceName, fmuType, fmuGUID, fmuResourceLocation, functions, visible, loggingOn), have_s0(false) {
+FmuComponent::FmuComponent(fmu_tools::fmi3::FmuType fmiInterfaceType,
+                           fmi3String instanceName,
+                           fmi3String instantiationToken,
+                           fmi3String resourcePath,
+                           fmi3Boolean visible,
+                           fmi3Boolean loggingOn,
+                           fmi3InstanceEnvironment instanceEnvironment,
+                           fmi3LogMessageCallback logMessage)
+    : FmuChronoComponentBase(fmiInterfaceType,
+                             instanceName,
+                             instantiationToken,
+                             resourcePath,
+                             visible,
+                             loggingOn,
+                             instanceEnvironment,
+                             logMessage),
+      have_s0(false) {
     // Initialize FMU type
-    initializeType(fmuType);
+    initializeType(fmiInterfaceType);
 
     // Set start values for FMU input and output variables
     init_F = 0;
@@ -58,27 +69,27 @@ FmuComponent::FmuComponent(fmi2String instanceName,
     F = 0;
 
     // Set FIXED PARAMETERS for this FMU
-    AddFmuVariable(&init_F, "init_F", FmuVariable::Type::Real, "N", "initial load",              //
+    AddFmuVariable(&init_F, "init_F", FmuVariable::Type::Float64, "N", "initial load",           //
                    FmuVariable::CausalityType::parameter, FmuVariable::VariabilityType::fixed);  //
 
     // Set CONTINOUS INPUTS for this FMU
-    AddFmuVariable(&s, "s", FmuVariable::Type::Real, "m", "actuator length",                       //
-                   FmuVariable::CausalityType::input, FmuVariable::VariabilityType::continuous);   //
-    AddFmuVariable(&sd, "sd", FmuVariable::Type::Real, "m/s", "actuator length rate",              //
-                   FmuVariable::CausalityType::input, FmuVariable::VariabilityType::continuous);   //
-    AddFmuVariable(&Uref, "Uref", FmuVariable::Type::Real, "1", "input signal",                    //
-                   FmuVariable::CausalityType::input, FmuVariable::VariabilityType::continuous);   //
+    AddFmuVariable(&s, "s", FmuVariable::Type::Float64, "m", "actuator length",                   //
+                   FmuVariable::CausalityType::input, FmuVariable::VariabilityType::continuous);  //
+    AddFmuVariable(&sd, "sd", FmuVariable::Type::Float64, "m/s", "actuator length rate",          //
+                   FmuVariable::CausalityType::input, FmuVariable::VariabilityType::continuous);  //
+    AddFmuVariable(&Uref, "Uref", FmuVariable::Type::Float64, "1", "input signal",                //
+                   FmuVariable::CausalityType::input, FmuVariable::VariabilityType::continuous);  //
 
     // Set CONTINUOUS OUTPUTS from this FMU
-    AddFmuVariable(&F, "F", FmuVariable::Type::Real, "N", "actuator force",                        //
+    AddFmuVariable(&F, "F", FmuVariable::Type::Float64, "N", "actuator force",                     //
                    FmuVariable::CausalityType::output, FmuVariable::VariabilityType::continuous);  //
-    AddFmuVariable(&p1, "p1", FmuVariable::Type::Real, "N/m2", "piston pressure 1",                //
+    AddFmuVariable(&p1, "p1", FmuVariable::Type::Float64, "N/m2", "piston pressure 1",             //
                    FmuVariable::CausalityType::output, FmuVariable::VariabilityType::continuous);  //
-    AddFmuVariable(&p2, "p2", FmuVariable::Type::Real, "N/m2", "piston pressure 2",                //
+    AddFmuVariable(&p2, "p2", FmuVariable::Type::Float64, "N/m2", "piston pressure 2",             //
                    FmuVariable::CausalityType::output, FmuVariable::VariabilityType::continuous);  //
 
     // Set CONTINUOUS LOCALS for this FMU
-    AddFmuVariable(&U, "U", FmuVariable::Type::Real, "1", "valve position",                       //
+    AddFmuVariable(&U, "U", FmuVariable::Type::Float64, "1", "valve position",                     //
                    FmuVariable::CausalityType::output, FmuVariable::VariabilityType::continuous);  //
 
     // Specify variable dependencies
@@ -117,11 +128,11 @@ void FmuComponent::preModelDescriptionExport() {
 
 void FmuComponent::postModelDescriptionExport() {}
 
-fmi2Status FmuComponent::enterInitializationModeIMPL() {
-    return fmi2Status::fmi2OK;
+fmi3Status FmuComponent::enterInitializationModeIMPL() {
+    return fmi3Status::fmi3OK;
 }
 
-fmi2Status FmuComponent::exitInitializationModeIMPL() {
+fmi3Status FmuComponent::exitInitializationModeIMPL() {
     // 1. Construct hydraulic actuator (must have parameters)
 
     // Set gravitational acceleration
@@ -151,12 +162,16 @@ fmi2Status FmuComponent::exitInitializationModeIMPL() {
 
     sys.DoAssembly(AssemblyAnalysis::Level::FULL);
 
-    return fmi2Status::fmi2OK;
+    return fmi3Status::fmi3OK;
 }
 
-fmi2Status FmuComponent::doStepIMPL(fmi2Real currentCommunicationPoint,
-                                    fmi2Real communicationStepSize,
-                                    fmi2Boolean noSetFMUStatePriorToCurrentPoint) {
+fmi3Status FmuComponent::doStepIMPL(fmi3Float64 currentCommunicationPoint,
+                                    fmi3Float64 communicationStepSize,
+                                    fmi3Boolean noSetFMUStatePriorToCurrentPoint,
+                                    fmi3Boolean* eventHandlingNeeded,
+                                    fmi3Boolean* terminateSimulation,
+                                    fmi3Boolean* earlyReturn,
+                                    fmi3Float64* lastSuccessfulTime) {
     // Set initial actuator length at t=0
     if (!have_s0) {
         std::cout << "Setting s0 = " << s << std::endl;
@@ -166,8 +181,8 @@ fmi2Status FmuComponent::doStepIMPL(fmi2Real currentCommunicationPoint,
 
     // Advance FMU state to next communication point
     while (m_time < currentCommunicationPoint + communicationStepSize) {
-        fmi2Real step_size = std::min((currentCommunicationPoint + communicationStepSize - m_time),
-                                      std::min(communicationStepSize, m_stepSize));
+        fmi3Float64 step_size = std::min((currentCommunicationPoint + communicationStepSize - m_time),
+                                         std::min(communicationStepSize, m_stepSize));
 
         sys.DoStepDynamics(step_size);
         ////sendToLog("time: " + std::to_string(m_time) + "\n", fmi2Status::fmi2OK, "logAll");
@@ -175,5 +190,5 @@ fmi2Status FmuComponent::doStepIMPL(fmi2Real currentCommunicationPoint,
         m_time += step_size;
     }
 
-    return fmi2Status::fmi2OK;
+    return fmi3Status::fmi3OK;
 }
