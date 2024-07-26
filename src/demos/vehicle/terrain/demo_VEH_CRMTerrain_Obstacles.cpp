@@ -182,6 +182,9 @@ int main(int argc, char* argv[]) {
             }
         }
 
+        auto col_callback = chrono_types::make_shared<HeightColorCallback>(-0.3, 0.3);
+        auto vis_callback = chrono_types::make_shared<PositionVisibilityCallback>();
+
         visFSI->SetTitle("CRM deformable terrain");
         visFSI->SetVerbose(verbose);
         visFSI->SetSize(1280, 720);
@@ -192,8 +195,9 @@ int main(int argc, char* argv[]) {
         visFSI->EnableRigidBodyMarkers(run_time_vis_bce);
         visFSI->SetRenderMode(ChFsiVisualization::RenderMode::SOLID);
         visFSI->SetParticleRenderMode(ChFsiVisualization::RenderMode::SOLID);
-        visFSI->SetSPHColorCallback(chrono_types::make_shared<HeightColorCallback>(-0.3, 0.3));
-        visFSI->SetSPHVisibilityCallback(chrono_types::make_shared<PositionVisibilityCallback>());
+        visFSI->SetSPHColorCallback(col_callback);
+        visFSI->SetSPHVisibilityCallback(vis_callback);
+        visFSI->SetBCEVisibilityCallback(vis_callback);
         visFSI->AttachSystem(&sys);
         visFSI->Initialize();
     }

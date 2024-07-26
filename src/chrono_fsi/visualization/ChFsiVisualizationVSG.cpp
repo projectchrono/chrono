@@ -159,7 +159,7 @@ void ChFsiVisualizationVSG::Initialize() {
         sph->SetColor(ChColor(0.10f, 0.40f, 0.65f));
         m_sph_cloud->AddVisualShape(sph);
         m_sph_cloud->RegisterColorCallback(m_color_fun);
-        m_sph_cloud->RegisterVisibilityCallback(m_vis_fun);
+        m_sph_cloud->RegisterVisibilityCallback(m_vis_sph_fun);
         m_system->Add(m_sph_cloud);
     }
 
@@ -172,6 +172,7 @@ void ChFsiVisualizationVSG::Initialize() {
         auto sph = chrono_types::make_shared<ChVisualShapeSphere>(m_systemFSI->GetInitialSpacing() / 4);
         sph->SetColor(m_bndry_bce_color);
         m_bndry_bce_cloud->AddVisualShape(sph);
+        m_bndry_bce_cloud->RegisterVisibilityCallback(m_vis_bndry_fun);
         m_system->Add(m_bndry_bce_cloud);
     }
 
