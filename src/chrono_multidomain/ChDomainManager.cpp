@@ -12,9 +12,10 @@
 // Authors: Alessandro Tasora
 // =============================================================================
 
-
+#include<array>
 #include "chrono_multidomain/ChDomainManager.h"
 #include "chrono_multidomain/ChSystemDescriptorMultidomain.h"
+#include "chrono_multidomain/ChSolverPSORmultidomain.h"
 #include "chrono/fea/ChNodeFEAxyzrot.h"
 #include "chrono/fea/ChNodeFEAxyz.h"
 #include "chrono/fea/ChElementBase.h"
@@ -28,14 +29,121 @@ namespace multidomain {
 using namespace fea;
 
 
-bool ChDomainManagerSharedmemory::DoUpdateSharedLeaving() {
+bool ChDomainManagerSharedmemory::DoDomainSendReceive(int mrank) {
+#pragma omp barrier
+	if (this->domains.find(mrank) != this->domains.end()) {
+		auto& mdomain = domains[mrank];
+		for (auto& minterface : mdomain->GetInterfaces()) {
+			// receive from neighbour domain to this domain:
+			minterface.second.buffer_receiving << this->domains[minterface.second.side_OUT->GetRank()]->GetInterfaces()[mdomain->GetRank()].buffer_sending.rdbuf();
+			// send from this domain to neighbour domain: not needed because done when the previous line will be called for the neighbour. 
+		}
+	}
+#pragma omp barrier
+	return true;
+}
+
+bool ChDomainManagerSharedmemory::DoDomainPartitionUpdate(int mrank) {
+	if (this->domains.find(mrank) != this->domains.end()) {
+		auto& mdomain = domains[mrank];
+		// 1 serialize outgoing items, update shared items
+		mdomain->DoUpdateSharedLeaving();
+		// 2 send/receive buffers 
+		this->DoDomainSendReceive(mrank); //***COMM+BARRIER***
+		// 3 serialize outgoing items, update shared items
+		mdomain->DoUpdateSharedReceived();
+	}
+	return true;
+}
+
+
+void PrintDebugDomainInfo(std::shared_ptr<ChDomain> domain) {
+	std::cout << "DOMAIN ---- rank: " << domain->GetRank() << "-----------------------------\n";
+
+	for (auto body : domain->GetSystem()->GetBodies()) {
+		std::cout << "  ChBody " << body->GetTag() << std::endl;
+	}
+	for (auto link : domain->GetSystem()->GetLinks()) {
+		std::cout << "  ChLink " << link->GetTag() << std::endl;
+		if (auto blink = std::dynamic_pointer_cast<ChLink>(link)) {
+			auto mbo1 = dynamic_cast<ChBody*>(blink->GetBody1());
+			auto mbo2 = dynamic_cast<ChBody*>(blink->GetBody2());
+			if (mbo1 && mbo2) {
+				std::cout << "       ChBody*  " << mbo1->GetTag() << std::endl;
+				std::cout << "       ChBody*  " << mbo2->GetTag() << std::endl;
+			}
+			auto mnod1 = dynamic_cast<fea::ChNodeFEAxyzrot*>(blink->GetBody1());
+			auto mnod2 = dynamic_cast<fea::ChNodeFEAxyzrot*>(blink->GetBody2());
+			if (mnod1 && mnod2) {
+				std::cout << "       ChNodeFEAxyzrot*  " << mnod1->GetTag() << std::endl;
+				std::cout << "       ChNodeFEAxyzrot*  " << mnod2->GetTag() << std::endl;
+			}
+		}
+	}
+	for (auto item : domain->GetSystem()->GetOtherPhysicsItems()) {
+		if (auto mesh = std::dynamic_pointer_cast<fea::ChMesh>(item)) {
+			std::cout << "  ChMesh " << mesh->GetTag() << std::endl;
+			for (auto node : mesh->GetNodes()) {
+				std::cout << "      ChNodeFEAbase " << node->GetTag() << std::endl;
+			}
+			for (auto el : mesh->GetElements()) {
+				std::cout << "      ChElementBase " << std::endl;
+				for (int i = 0; i < el->GetNumNodes(); ++i) {
+					std::cout << "          ChNodeFEABase " << el->GetNode(i)->GetTag() << std::endl;
+				}
+			}
+		}
+	}
+	for (auto& interf : domain->GetInterfaces()) {
+		std::cout << " interface to domain rank " << interf.second.side_OUT->GetRank() << " ...... \n";
+		for (auto& item : interf.second.shared_items)
+			std::cout << "  shared item tag " << item.first << std::endl;
+		for (auto& node : interf.second.shared_nodes)
+			std::cout << "  shared node tag " << node.first << std::endl;
+	}
+	std::cout << std::endl;
+}
+
+
+
+bool ChDomainManagerSharedmemory::DoAllDomainPartitionUpdate() {
+	std::vector<std::shared_ptr<ChDomain>> vdomains;
+	for (auto& ido : this->domains) 
+		vdomains.push_back(ido.second);
+
+	#pragma omp parallel num_threads((int)vdomains.size())
+	{
+			int i = omp_get_thread_num();
+			this->DoDomainPartitionUpdate(vdomains[i]->GetRank()); //***COMM+BARRIER***
+	}
+
+	if (this->verbose_partition)
+		for (auto& ido : this->domains)
+			PrintDebugDomainInfo(ido.second);
+}
+
+bool ChDomainManagerSharedmemory::DoAllStepDynamics(double timestep) {
+	std::vector<std::shared_ptr<ChDomain>> vdomains;
+	for (auto& ido : this->domains) 
+		vdomains.push_back(ido.second);
+
+	#pragma omp parallel num_threads((int)vdomains.size())
+	{
+		int i = omp_get_thread_num();
+		vdomains[i]->GetSystem()->DoStepDynamics(timestep); //***COMM+BARRIER*** cause maybe DoDomainSendReceive in solver
+	}
+}
+
+
+/*
+bool ChDomainManagerSharedmemory::DoAllUpdateSharedLeaving() {
 	for (auto& mdomain : this->domains) {
 		mdomain.second->DoUpdateSharedLeaving();
 	}
 	return true;
 }
 
-bool ChDomainManagerSharedmemory::DoDomainsSendReceive() {
+bool ChDomainManagerSharedmemory::DoAllDomainsSendReceive() {
 	for (auto& mdomain : this->domains) {
 		for (auto& minterface : mdomain.second->GetInterfaces()) {
 			// receive from neighbour domain to this domain:
@@ -46,22 +154,122 @@ bool ChDomainManagerSharedmemory::DoDomainsSendReceive() {
 	return true;
 }
 
-bool ChDomainManagerSharedmemory::DoUpdateSharedReceived() {
+bool ChDomainManagerSharedmemory::DoAllUpdateSharedReceived() {
 	for (auto& mdomain : this->domains) {
 		mdomain.second->DoUpdateSharedReceived();
 	}
 	return true;
 }
+*/
+
+
+
 
 void ChDomainManagerSharedmemory::AddDomain(std::shared_ptr<ChDomain> mdomain) {
 	domains[mdomain->GetRank()] = mdomain;
 	
-	// Always ensure that the system descriptor is of multidomain type.
+	// Always change the system descriptor is of multidomain type.
 	auto multidomain_descriptor = chrono_types::make_shared<ChSystemDescriptorMultidomain>(mdomain, this);
 	mdomain->GetSystem()->SetSystemDescriptor(multidomain_descriptor);
+
+	// By default, change the default solver to be PSOR for multidomain:
+	auto multidomain_solver_PSOR = chrono_types::make_shared<ChSolverPSORmultidomain>();
+	mdomain->GetSystem()->SetSolver(multidomain_solver_PSOR);
 }
 
 //////////////////////////////////////////////////////////////////////////////////////////////
+
+
+ChDomainManagerMPI::ChDomainManagerMPI(int* argc, char** argv[]) {
+	this->mpi_engine.Init(argc,argv);
+}
+
+ChDomainManagerMPI::~ChDomainManagerMPI() {
+	this->mpi_engine.Finalize();
+}
+
+void ChDomainManagerMPI::SetDomain(std::shared_ptr<ChDomain> mdomain) {
+	domain = mdomain;
+
+	// Always change the system descriptor is of multidomain type.
+	auto multidomain_descriptor = chrono_types::make_shared<ChSystemDescriptorMultidomain>(mdomain, this);
+	mdomain->GetSystem()->SetSystemDescriptor(multidomain_descriptor);
+
+	// By default, change the default solver to be PSOR for multidomain:
+	auto multidomain_solver_PSOR = chrono_types::make_shared<ChSolverPSORmultidomain>();
+	mdomain->GetSystem()->SetSolver(multidomain_solver_PSOR);
+}
+
+
+bool ChDomainManagerMPI::DoDomainSendReceive(int mrank) {
+	assert(mrank == domain->GetRank());
+
+	for (auto& minterface : domain->GetInterfaces()) {
+		int other_rank = minterface.second.side_OUT->GetRank();
+
+		// A)
+		// non-blocking MPI send from this domain to neighbour domain:
+		// equivalent:   MPI_Isend
+		ChMPIrequest mrequest1;
+		std::string send_string;
+		send_string = minterface.second.buffer_sending.rdbuf()->str();
+		mpi_engine.SendString_nonblocking(other_rank, send_string, ChMPI::eCh_mpiCommMode::MPI_STANDARD, &mrequest1);
+
+		// B)
+		// blocking MPI receive from neighbour domain to this domain:
+		// equivalent:  MPI_Probe+MPI_Recv   WILL BLOCK! at each interface. No need for later MPI_WaitAll
+		ChMPIstatus mstatus2;
+		std::string receive_string;
+		mpi_engine.ReceiveString_blocking(other_rank, receive_string, &mstatus2);
+		minterface.second.buffer_receiving << receive_string;
+	}
+
+
+	return true;
+}
+
+bool ChDomainManagerMPI::DoDomainPartitionUpdate(int mrank) {
+	assert(mrank == domain->GetRank());
+
+	// 1 serialize outgoing items, update shared items
+	domain->DoUpdateSharedLeaving();
+	// 2 send/receive buffers 
+	this->DoDomainSendReceive(mrank); //***COMM+BARRIER***
+	// 3 serialize outgoing items, update shared items
+	domain->DoUpdateSharedReceived();
+
+	if (this->verbose_partition)
+		for (int i = 0; i < GetMPItotranks(); i++) {
+			this->mpi_engine.Barrier();
+			if (i == GetMPIrank()) {
+				PrintDebugDomainInfo(domain);
+				std::cout.flush();
+			}
+			std::cout.flush();
+			this->mpi_engine.Barrier();
+		}
+
+	return true;
+}
+
+
+
+int ChDomainManagerMPI::GetMPIrank() {
+	return mpi_engine.CommRank();
+}
+int ChDomainManagerMPI::GetMPItotranks() {
+	return mpi_engine.CommSize();
+}
+
+
+
+
+
+
+
+
+//////////////////////////////////////////////////////////////////////////////////////////////
+
 
 
 
@@ -197,7 +405,7 @@ void ChDomain::DoUpdateSharedLeaving() {
 		interf.second.buffer_receiving.str("");
 		interf.second.buffer_receiving.clear();
 		//ChArchiveOutBinary serializer(interf.second.buffer_sending);
-		ChArchiveOutJSON serializer(interf.second.buffer_sending); //***TODO*** revert to binary for performance
+		ChArchiveOutXML serializer(interf.second.buffer_sending); //***TODO*** revert to binary for performance
 		serializer.SetEmptyShallowContainers(true);		// we will take care of contained items one by one
 		serializer.SetUseGetTagAsID(true);				// GetTag of items, when available, will be used to generate unique IDs in serialization
 		serializer.CutPointers().insert(this->system);  // avoid propagation of serialization to parent system
@@ -365,7 +573,7 @@ void ChDomain::DoUpdateSharedLeaving() {
 					}
 
 					// Also serialize and manage shared lists of the connected nodes.
-					for (int i = 0; i < element->GetNumNodes(); ++i) {
+					for (int i = 0; i < (int)element->GetNumNodes(); ++i) {
 						const auto ref_node = element->GetNode(i);
 						int ref_tag = ref_node->GetTag();
 						ChVector3d node_pos;
@@ -423,10 +631,10 @@ void ChDomain::DoUpdateSharedLeaving() {
 		// other domain). [To do: avoid storing in shared_ids the items that are aabb-overlapping on the interface, 
 		// as this can be inferred also by the neighbouring domain.]
 		serializer << CHNVP(shared_ids, "shared_ids");
-		ChVectorDynamic<> avect(5);
-		serializer << CHNVP(avect);
-		std::cout << "\nSERIALIZE domain " << this->GetRank() << " to interface " << interf.second.side_OUT->GetRank() << "\n"; //***DEBUG
-		std::cout << interf.second.buffer_sending.str(); //***DEBUG
+
+
+		//std::cout << "\nSERIALIZE domain " << this->GetRank() << " to interface " << interf.second.side_OUT->GetRank() << "\n"; //***DEBUG
+		//std::cout << interf.second.buffer_sending.str(); //***DEBUG
 		
 	}
 
@@ -451,9 +659,9 @@ void  ChDomain::DoUpdateSharedReceived() {
 		
 		// prepare the deserializer
 		//ChArchiveInBinary deserializer(interf.second.buffer_receiving);
-		ChArchiveInJSON deserializer(interf.second.buffer_receiving); //***TODO*** revert to binary for performance
-		std::cout << "\nDESERIALIZE domain " << this->GetRank() << " from interface " << interf.second.side_OUT->GetRank() << "\n"; //***DEBUG
-		std::cout << interf.second.buffer_receiving.str(); //***DEBUG
+		ChArchiveInXML deserializer(interf.second.buffer_receiving); //***TODO*** revert to binary for performance
+		//std::cout << "\nDESERIALIZE domain " << this->GetRank() << " from interface " << interf.second.side_OUT->GetRank() << "\n"; //***DEBUG
+		//std::cout << interf.second.buffer_receiving.str(); //***DEBUG
 
 		// Deserialize inbound bodies
 		deserializer >> CHNVP(bodies_migrating);
@@ -519,9 +727,6 @@ void  ChDomain::DoUpdateSharedReceived() {
 
 		std::unordered_set<int> shared_ids_incoming;
 		deserializer >> CHNVP(shared_ids_incoming,"shared_ids");
-
-		ChVectorDynamic<> avect(5);
-		deserializer >> CHNVP(avect);
 
 		for (const auto& body : system->GetBodies()) {
 			if (shared_ids_incoming.find(body->GetTag()) != shared_ids_incoming.end())
