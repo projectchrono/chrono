@@ -13,13 +13,24 @@ ENDIF()
 
 MESSAGE(STATUS "\n==== Chrono MultiDomain module ====\n")
 
+# Return now if MPI is not available
+
+if(NOT MPI_FOUND)
+	message("Chrono::Multidomain requires MPI, but MPI not found. Disabling Chrono::Multidomain")
+	set(ENABLE_MODULE_MULTIDOMAIN OFF CACHE BOOL "Enable the Multidomain module" FORCE)
+	return()
+endif()
+
 #-----------------------------------------------------------------------------
 # LIST THE FILES THAT MAKE THE MULTIDOMAIN LIBRARY
+
+
 
 SET(ChronoEngine_MULTIDOMAIN_SOURCES 
     ChDomainManager.cpp
     ChSystemDescriptorMultidomain.cpp
     ChSolverPSORmultidomain.cpp
+    ChMpi.cpp
 )
 
 SET(ChronoEngine_MULTIDOMAIN_HEADERS
@@ -27,6 +38,7 @@ SET(ChronoEngine_MULTIDOMAIN_HEADERS
     ChDomainManager.h
     ChSystemDescriptorMultidomain.h
     ChSolverPSORmultidomain.h
+    ChMpi.h
 )
 
 SOURCE_GROUP("" FILES 
@@ -38,6 +50,8 @@ SOURCE_GROUP("" FILES
 
 # The MULTIDOMAIN library is added to the project,
 # and some custom properties of this target are set.
+
+include_directories(${MPI_CXX_HEADER_DIR})
 
 ADD_LIBRARY(ChronoEngine_multidomain 
 			${ChronoEngine_MULTIDOMAIN_SOURCES}
@@ -51,7 +65,8 @@ target_compile_definitions(ChronoEngine_multidomain PRIVATE "CH_API_COMPILE_MULT
 target_compile_definitions(ChronoEngine_multidomain PRIVATE "CH_IGNORE_DEPRECATED")
 
 TARGET_LINK_LIBRARIES(ChronoEngine_multidomain 
-	                  ChronoEngine)
+	                  ChronoEngine
+					  ${MPI_LIBRARIES})
 	
 ADD_DEPENDENCIES(ChronoEngine_multidomain ChronoEngine)
 	
