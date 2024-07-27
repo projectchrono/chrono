@@ -65,6 +65,7 @@ int main(int argc, char* argv[]) {
     ChDomainManagerMPI domain_manager(&argc,&argv);
 
     domain_manager.verbose_partition = true; // will print  partitioning in std::cout
+    domain_manager.verbose_variable_updates = true; // will print all messages in std::cout
 
     // 2- the domain builder.
     // You must define how the 3D space is divided in domains. 

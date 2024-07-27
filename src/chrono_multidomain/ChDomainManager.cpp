@@ -224,6 +224,23 @@ bool ChDomainManagerMPI::DoDomainSendReceive(int mrank) {
 		minterface.second.buffer_receiving << receive_string;
 	}
 
+	if (this->verbose_variable_updates)
+		for (int i = 0; i < GetMPItotranks(); i++) {
+			this->mpi_engine.Barrier();
+			if (i == GetMPIrank()) {
+				for (auto& interf : domain->GetInterfaces())
+				{
+					std::cout << "\nBUFFERS  in domain " << this->domain->GetRank() << "\n -> sent to domain " << interf.second.side_OUT->GetRank() << "\n"; 
+					std::cout << interf.second.buffer_sending.str(); 
+					std::cout << "\n <- received from domain " << interf.second.side_OUT->GetRank() << "\n";
+					std::cout << interf.second.buffer_receiving.str();
+					std::cout.flush();
+				}
+			}
+			std::cout.flush();
+			this->mpi_engine.Barrier();
+		}
+
 
 	return true;
 }
