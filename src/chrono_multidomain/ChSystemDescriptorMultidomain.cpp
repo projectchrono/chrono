@@ -16,6 +16,9 @@
 #include "chrono/solver/ChConstraintTwoTuplesContactN.h"
 #include "chrono/solver/ChConstraintTwoTuplesFrictionT.h"
 #include "chrono/core/ChMatrix.h"
+#include "chrono/serialization/ChArchiveJSON.h"
+#include "chrono/serialization/ChArchiveXML.h"
+#include "chrono/serialization/ChArchiveBinary.h"
 
 #include "chrono_multidomain/ChSystemDescriptorMultidomain.h"
 
@@ -80,16 +83,20 @@ void ChSystemDescriptorMultidomain::SharedStatesDeltaAddToMultidomainAndSync() {
             Dv_shared.segment(offset, avar->GetDOF()) = avar->State() - shared_states[nrank].segment(offset, avar->GetDOF());
             offset += avar->GetDOF();
         }
-        ChArchiveOutBinary serializer(interf.second.buffer_sending);
+        ChArchiveOutXML serializer(interf.second.buffer_sending);
         serializer << CHNVP(Dv_shared);
+        //std::cout << "\nVAR SERIALIZE domain " << this->domain->GetRank() << " from interface " << interf.second.side_OUT->GetRank() << "\n"; //***DEBUG
+        //std::cout << interf.second.buffer_sending.str(); //***DEBUG
     }
 
-    this->domain_manager->DoDomainsSendReceive();   // ***COMM***
+    this->domain_manager->DoDomainSendReceive(this->domain->GetRank());   // *** COMM + MULTITHREAD BARRIER ***
 
     for (auto& interf : this->domain->GetInterfaces()) {
         int nrank = interf.second.side_OUT->GetRank();
         ChVectorDynamic<> Dv_shared(shared_states[nrank].size());
-        ChArchiveInBinary deserializer(interf.second.buffer_receiving);
+        //std::cout << "\nVAR DESERIALIZE domain " << this->domain->GetRank() << " from interface " << interf.second.side_OUT->GetRank() << "\n"; //***DEBUG
+        //std::cout << interf.second.buffer_receiving.str(); //***DEBUG
+        ChArchiveInXML deserializer(interf.second.buffer_receiving);
         deserializer >> CHNVP(Dv_shared);
         int offset = 0;
         for (auto avar : interf.second.shared_vars) {
