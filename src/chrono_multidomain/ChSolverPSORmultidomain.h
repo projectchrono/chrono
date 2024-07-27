@@ -22,8 +22,6 @@
 namespace chrono {
 namespace multidomain {
 
-/// @addtogroup chrono_solver
-/// @{
 
 /// An iterative solver based on projective fixed point method, with overrelaxation and immediate variable update as in
 /// SOR methods. At each iteration is shares data with multidomain domain decomposition. \n
@@ -32,7 +30,7 @@ namespace multidomain {
 
 class ChApiMultiDomain ChSolverPSORmultidomain : public ChIterativeSolverVI {
   public:
-    ChSolverPSORmultidomain(std::shared_ptr<ChDomain> mdomain = nullptr, ChDomainManager* mdomain_manager = nullptr);
+    ChSolverPSORmultidomain();
 
     ~ChSolverPSORmultidomain() {}
 
@@ -49,9 +47,6 @@ class ChApiMultiDomain ChSolverPSORmultidomain : public ChIterativeSolverVI {
 
   private:
     double maxviolation;
-
-    std::shared_ptr<ChDomain> domain;
-    ChDomainManager* domain_manager = nullptr;
 };
 
 /// @} chrono_solver

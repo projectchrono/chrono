@@ -23,10 +23,8 @@ namespace multidomain {
 CH_FACTORY_REGISTER(ChSolverPSORmultidomain)
 CH_UPCASTING(ChSolverPSORmultidomain, ChIterativeSolverVI)
 
-ChSolverPSORmultidomain::ChSolverPSORmultidomain(std::shared_ptr<ChDomain> mdomain, ChDomainManager* mdomain_manager) 
-    : maxviolation(0),
-      domain(mdomain),
-      domain_manager(mdomain_manager)
+ChSolverPSORmultidomain::ChSolverPSORmultidomain() 
+    : maxviolation(0)
 {}
 
 double ChSolverPSORmultidomain::Solve(ChSystemDescriptor& sysd) {
