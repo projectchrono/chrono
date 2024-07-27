@@ -772,6 +772,7 @@ void  ChDomain::DoUpdateSharedReceived() {
 			}
 		}
 
+		interf.second.shared_vars.clear();
 		interf.second.shared_vars.insert(temp_descr.GetVariables().begin(), temp_descr.GetVariables().end());
 
 	}
