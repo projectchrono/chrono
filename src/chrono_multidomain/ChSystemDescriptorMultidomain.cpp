@@ -66,6 +66,12 @@ void ChSystemDescriptorMultidomain::SharedStatesSyncToCurrentDomainStates() {
 void ChSystemDescriptorMultidomain::SharedStatesDeltaAddToMultidomainAndSync() {
 
     for (auto& interf : this->domain->GetInterfaces()) {
+        // prepare the serializer
+        interf.second.buffer_sending.str("");
+        interf.second.buffer_sending.clear();
+        interf.second.buffer_receiving.str("");
+        interf.second.buffer_receiving.clear();
+
         int nrank = interf.second.side_OUT->GetRank();
         ChVectorDynamic<> Dv_shared(shared_states[nrank].size());
         int offset = 0;
