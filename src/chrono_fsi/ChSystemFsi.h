@@ -69,6 +69,17 @@ class CH_FSI_API ChSystemFsi {
         NONE   ///< none
     };
 
+    /// Structure with fluid properties.
+    /// Used if solving a CFD problem.
+    struct CH_FSI_API FluidProperties {
+        double density;      ///< fluid density
+        double viscosity;    ///< fluid viscosity
+        double kappa;        ///< surface tension kappa
+        double char_length;  ///< characteristic length
+
+        FluidProperties();
+    };
+
     /// Structure with elastic material properties.
     /// Used if solving an SPH continuum representation of granular dynamics.
     struct CH_FSI_API ElasticMaterialProperties {
@@ -182,6 +193,9 @@ class CH_FSI_API ChSystemFsi {
 
     /// Set the SPH method and, optionally, the linear solver type.
     void SetSPHMethod(FluidDynamics SPH_method, SolverType lin_solver = SolverType::BICGSTAB);
+
+    /// Enable solution of a CFD problem.
+    void SetCfdSPH(const FluidProperties& fluid_props);
 
     /// Enable solution of elastic SPH (for continuum representation of granular dynamics).
     /// By default, a ChSystemFSI solves an SPH fluid dynamics problem.

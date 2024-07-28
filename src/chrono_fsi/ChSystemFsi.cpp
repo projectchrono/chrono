@@ -620,6 +620,8 @@ void ChSystemFsi::SetCohesionForce(double Fc) {
     m_paramsH->Coh_coeff = Fc;
 }
 
+ChSystemFsi::FluidProperties::FluidProperties() : density(1000), viscosity(0.1), kappa(0), char_length(1) {}
+
 ChSystemFsi::ElasticMaterialProperties::ElasticMaterialProperties()
     : Young_modulus(1e6),
       Poisson_ratio(0.3),
@@ -634,6 +636,16 @@ ChSystemFsi::ElasticMaterialProperties::ElasticMaterialProperties()
       dilation_angle(CH_PI / 10),
       cohesion_coeff(0),
       kernel_threshold(0.8) {}
+
+void ChSystemFsi::SetCfdSPH(const FluidProperties& fluid_props) {
+    m_paramsH->elastic_SPH = false;
+
+    SetDensity(fluid_props.density);
+
+    m_paramsH->mu0 = Real(fluid_props.viscosity);
+    m_paramsH->kappa = Real(fluid_props.kappa);
+    m_paramsH->L_Characteristic = Real(fluid_props.char_length);
+}
 
 void ChSystemFsi::SetElasticSPH(const ElasticMaterialProperties mat_props) {
     m_paramsH->elastic_SPH = true;
