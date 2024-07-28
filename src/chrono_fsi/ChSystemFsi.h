@@ -332,7 +332,7 @@ class CH_FSI_API ChSystemFsi {
     /// BCE markers are created in a number of layers corresponding to system parameters.
     /// X-Y BCE layers are created in the negative Z direction of the plate orientation frame.
     /// Such a plate is assumed to be used as boundary.
-    void AddWallBCE(std::shared_ptr<ChBody> body, const ChFrame<>& frame, const ChVector2d size);
+    void AddWallBCE(std::shared_ptr<ChBody> body, const ChFrame<>& frame, const ChVector2d& size);
 
     /// Add BCE markers for a box container of specified dimensions and associate them with the given body.
     /// The center of the box volume is at the origin of the given frame and the the container is aligned with the frame
@@ -404,9 +404,10 @@ class CH_FSI_API ChSystemFsi {
 
     /// Add BCE markers from a set of points and associate them with the given body.
     /// The points are assumed to be provided relative to the specified frame.
+    /// The BCE markers are created in the absolute coordinate frame.
     size_t AddPointsBCE(std::shared_ptr<ChBody> body,
                         const std::vector<ChVector3d>& points,
-                        const ChFrame<>& frame,
+                        const ChFrame<>& rel_frame,
                         bool solid);
 
     // ----------- Functions for adding FEA meshes and associated BCE markers
@@ -451,18 +452,18 @@ class CH_FSI_API ChSystemFsi {
     /// Create BCE markers on a rectangular plate of specified X-Y dimensions, assumed centered at the origin.
     /// BCE markers are created in a number of layers corresponding to system parameters.
     /// BCE layers are created in the negative Z direction.
-    void CreateBCE_wall(const Real2& size, thrust::host_vector<Real4>& bce);
+    void CreateBCE_wall(const ChVector2d& size, std::vector<ChVector3d>& bce);
 
     /// Create BCE markers for a box of specified dimensions, assumed centered at the origin.
     /// BCE markers are created inside the box if solid=true, and outside the box otherwise.
     /// BCE markers are created in a number of layers corresponding to system parameters.
-    void CreateBCE_box(const Real3& size, bool solid, thrust::host_vector<Real4>& bce);
+    void CreateBCE_box(const ChVector3d& size, bool solid, std::vector<ChVector3d>& bce);
 
     /// Create BCE markers for a sphere of specified radius, assumed centered at the origin.
     /// BCE markers are created inside the sphere if solid=true, and outside the sphere otherwise.
     /// BCE markers are created in a number of layers corresponding to system parameters.
     /// BCE markers are created using spherical coordinates (polar=true), or else on a uniform Cartesian grid.
-    void CreateBCE_sphere(Real rad, bool solid, bool polar, thrust::host_vector<Real4>& bce);
+    void CreateBCE_sphere(double rad, bool solid, bool polar, std::vector<ChVector3d>& bce);
 
     /// Create BCE markers for a cylinder of specified radius and height.
     /// The cylinder is assumed centered at the origin and aligned with the Z axis.
@@ -470,22 +471,22 @@ class CH_FSI_API ChSystemFsi {
     /// BCE markers are created inside the cylinder if solid=true, and outside the cylinder otherwise.
     /// BCE markers are created in a number of layers corresponding to system parameters.
     /// BCE markers are created using cylinderical coordinates (polar=true), or else on a uniform Cartesian grid.
-    void CreateBCE_cylinder(Real rad,
-                            Real height,
+    void CreateBCE_cylinder(double rad,
+                            double height,
                             bool solid,
                             bool capped,
                             bool polar,
-                            thrust::host_vector<Real4>& bce);
+                            std::vector<ChVector3d>& bce);
 
     /// Create BCE particles for a cylindrical annulus of specified radii and height.
     /// The cylinder annulus is assumed centered at the origin and aligned with the Z axis.
     /// BCE markers are created in a number of layers corresponding to system parameters.
     /// BCE markers are created using cylinderical coordinates (polar=true), or else on a uniform Cartesian grid.
-    void CreateBCE_cylinder_annulus(Real rad_in,
-                                    Real rad_out,
-                                    Real height,
+    void CreateBCE_cylinder_annulus(double rad_in,
+                                    double rad_out,
+                                    double height,
                                     bool polar,
-                                    thrust::host_vector<Real4>& bce);
+                                    std::vector<ChVector3d>& bce);
 
     /// Create BCE particles for a cone of specified radius and height.
     /// The cone is assumed centered at the origin and aligned with the Z axis.
@@ -493,11 +494,11 @@ class CH_FSI_API ChSystemFsi {
     /// BCE markers are created inside the cone if solid=true, and outside the cone otherwise.
     /// BCE markers are created in a number of layers corresponding to system parameters.
     /// BCE markers are created using cylinderical coordinates (polar=true), or else on a uniform Cartesian grid.
-    void CreateBCE_cone(Real rad, Real height, bool solid, bool capped, bool polar, thrust::host_vector<Real4>& bce);
+    void CreateBCE_cone(double rad, double height, bool solid, bool capped, bool polar, std::vector<ChVector3d>& bce);
 
     /// Utility function for creating points filling a closed mesh.
     //// RADU TODO eliminate delta (use initspacing)
-    static void CreateMeshPoints(ChTriangleMeshConnected& mesh, double delta, std::vector<ChVector3d>& point_cloud);
+    static void CreateMeshPoints(ChTriangleMeshConnected& mesh, double delta, std::vector<ChVector3d>& points);
 
   public:
     std::string GetPhysicsProblemString() const;
@@ -506,16 +507,6 @@ class CH_FSI_API ChSystemFsi {
   private:
     /// Initialize simulation parameters with default values.
     void InitParams();
-
-    /// Create and add BCE markers associated with the given rigid body, expressed in the global frame.
-    /// The input positions are assumed to be given in a frame relative to the body reference frame.
-    /// The BCE markers are created in the absolute coordinate frame.
-    void AddBCE_body(std::shared_ptr<ChBody> body,
-                     const thrust::host_vector<Real4>& bce,
-                     const ChFrame<>& rel_frame,
-                     bool solid,
-                     bool add_to_fluid_helpers,
-                     bool add_to_previous);
 
     /// Create and add BCE markers associated with the given set of contact segments.
     /// The BCE markers are created in the absolute coordinate frame.
