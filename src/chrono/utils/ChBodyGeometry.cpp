@@ -33,7 +33,9 @@ namespace chrono {
 namespace utils {
 
 ChBodyGeometry::ChBodyGeometry()
-    : has_primitives(false), has_obj(false), has_mesh(false), has_collision(false), has_colors(false) {}
+    : color_boxes(ChColor(0.5f, 0.5f, 0.5f)),
+      color_spheres(ChColor(0.5f, 0.5f, 0.5f)),
+      color_cylinders(ChColor(0.5f, 0.5f, 0.5f)) {}
 
 ChBodyGeometry::BoxShape::BoxShape(const ChVector3d& pos, const ChQuaternion<>& rot, const ChVector3d& dims, int matID)
     : pos(pos), rot(rot), dims(dims), matID(matID) {}
@@ -67,9 +69,16 @@ ChBodyGeometry::ConvexHullsShape::ConvexHullsShape(const std::string& filename, 
     utils::LoadConvexHulls(GetChronoDataFile(filename), mesh, hulls);
 }
 
-ChBodyGeometry::TrimeshShape::TrimeshShape(const ChVector3d& pos, const std::string& filename, double radius, int matID)
+ChBodyGeometry::TrimeshShape::TrimeshShape(const ChVector3d& pos,
+                                           const std::string& filename,
+                                           double scale,
+                                           double radius,
+                                           int matID)
     : radius(radius), pos(pos), matID(matID) {
     trimesh = ChTriangleMeshConnected::CreateFromWavefrontFile(GetChronoDataFile(filename), true, false);
+    for (auto& v : trimesh->GetCoordsVertices()) {
+        v *= scale;
+    }
 }
 
 ChBodyGeometry::TrimeshShape::TrimeshShape(const ChVector3d& pos,
@@ -91,9 +100,7 @@ std::shared_ptr<ChVisualShape> ChBodyGeometry::AddVisualizationCylinder(std::sha
     return cyl;
 }
 
-void ChBodyGeometry::CreateVisualizationAssets(std::shared_ptr<ChBody> body,
-                                               VisualizationType vis,
-                                               bool visualize_collision) {
+void ChBodyGeometry::CreateVisualizationAssets(std::shared_ptr<ChBody> body, VisualizationType vis) {
     if (vis == VisualizationType::NONE)
         return;
 
@@ -102,19 +109,25 @@ void ChBodyGeometry::CreateVisualizationAssets(std::shared_ptr<ChBody> body,
         body->AddVisualModel(model);
     }
 
-    if (visualize_collision) {
+    if (vis == VisualizationType::COLLISION) {
+        auto coll_mat = chrono_types::make_shared<ChVisualMaterial>();
+        coll_mat->SetDiffuseColor({0.8f, 0.56f, 0.0f});
+
         for (auto& sphere : coll_spheres) {
             auto sphere_shape = chrono_types::make_shared<ChVisualShapeSphere>(sphere.radius);
+            sphere_shape->AddMaterial(coll_mat);
             body->AddVisualShape(sphere_shape, ChFrame<>(sphere.pos));
         }
 
         for (auto& box : coll_boxes) {
             auto box_shape = chrono_types::make_shared<ChVisualShapeBox>(box.dims);
+            box_shape->AddMaterial(coll_mat);
             body->AddVisualShape(box_shape, ChFrame<>(box.pos, box.rot));
         }
 
         for (auto& cyl : coll_cylinders) {
             auto cyl_shape = chrono_types::make_shared<ChVisualShapeCylinder>(cyl.radius, cyl.length);
+            cyl_shape->AddMaterial(coll_mat);
             body->AddVisualShape(cyl_shape, ChFrame<>(cyl.pos, cyl.rot));
         }
 
@@ -122,20 +135,21 @@ void ChBodyGeometry::CreateVisualizationAssets(std::shared_ptr<ChBody> body,
             auto trimesh_shape = chrono_types::make_shared<ChVisualShapeTriangleMesh>();
             trimesh_shape->SetMesh(mesh.trimesh);
             trimesh_shape->SetMutable(false);
+            trimesh_shape->AddMaterial(coll_mat);
             body->AddVisualShape(trimesh_shape, ChFrame<>());
         }
 
         return;
     }
 
-    if (vis == VisualizationType::MESH && has_obj) {
+    if (vis == VisualizationType::MODEL_FILE && !vis_mesh_file.empty()) {
         auto obj_shape = chrono_types::make_shared<ChVisualShapeModelFile>();
         obj_shape->SetFilename(GetChronoDataFile(vis_mesh_file));
         body->AddVisualShape(obj_shape, ChFrame<>());
         return;
     }
 
-    if (vis == VisualizationType::MESH && has_mesh) {
+    if (vis == VisualizationType::MESH && !vis_mesh_file.empty()) {
         auto trimesh = ChTriangleMeshConnected::CreateFromWavefrontFile(GetChronoDataFile(vis_mesh_file), true, true);
         auto trimesh_shape = chrono_types::make_shared<ChVisualShapeTriangleMesh>();
         trimesh_shape->SetMesh(trimesh);
@@ -146,47 +160,39 @@ void ChBodyGeometry::CreateVisualizationAssets(std::shared_ptr<ChBody> body,
     }
 
     // If no mesh specified, default to primitives
-    if (has_primitives) {
-        if (!has_colors) {
-            color_boxes = ChColor(0.5f, 0.5f, 0.5f);
-            color_spheres = ChColor(0.5f, 0.5f, 0.5f);
-            color_cylinders = ChColor(0.5f, 0.5f, 0.5f);
-        }
+    auto box_mat = chrono_types::make_shared<ChVisualMaterial>();
+    auto sph_mat = chrono_types::make_shared<ChVisualMaterial>();
+    auto cyl_mat = chrono_types::make_shared<ChVisualMaterial>();
 
-        auto box_mat = chrono_types::make_shared<ChVisualMaterial>();
-        auto sph_mat = chrono_types::make_shared<ChVisualMaterial>();
-        auto cyl_mat = chrono_types::make_shared<ChVisualMaterial>();
+    box_mat->SetDiffuseColor({color_boxes.R, color_boxes.G, color_boxes.B});
+    sph_mat->SetDiffuseColor({color_spheres.R, color_spheres.G, color_spheres.B});
+    cyl_mat->SetDiffuseColor({color_cylinders.R, color_cylinders.G, color_cylinders.B});
 
-        box_mat->SetDiffuseColor({color_boxes.R, color_boxes.G, color_boxes.B});
-        sph_mat->SetDiffuseColor({color_spheres.R, color_spheres.G, color_spheres.B});
-        cyl_mat->SetDiffuseColor({color_cylinders.R, color_cylinders.G, color_cylinders.B});
-
-        for (auto& sphere : vis_spheres) {
-            auto sphere_shape = chrono_types::make_shared<ChVisualShapeSphere>(sphere.radius);
-            sphere_shape->AddMaterial(sph_mat);
-            body->AddVisualShape(sphere_shape, ChFrame<>(sphere.pos));
-        }
-
-        for (auto& box : vis_boxes) {
-            auto box_shape = chrono_types::make_shared<ChVisualShapeBox>(box.dims);
-            box_shape->AddMaterial(box_mat);
-            body->AddVisualShape(box_shape, ChFrame<>(box.pos, box.rot));
-        }
-
-        for (auto& cyl : vis_cylinders) {
-            auto cyl_shape = chrono_types::make_shared<ChVisualShapeCylinder>(cyl.radius, cyl.length);
-            cyl_shape->AddMaterial(cyl_mat);
-            body->AddVisualShape(cyl_shape, ChFrame<>(cyl.pos, cyl.rot));
-        }
-
-        for (auto& line : vis_lines) {
-            auto line_shape = chrono_types::make_shared<ChVisualShapeLine>();
-            line_shape->SetLineGeometry(line.line);
-            body->AddVisualShape(line_shape, ChFrame<>(line.pos, line.rot));
-        }
-
-        return;
+    for (auto& sphere : vis_spheres) {
+        auto sphere_shape = chrono_types::make_shared<ChVisualShapeSphere>(sphere.radius);
+        sphere_shape->AddMaterial(sph_mat);
+        body->AddVisualShape(sphere_shape, ChFrame<>(sphere.pos));
     }
+
+    for (auto& box : vis_boxes) {
+        auto box_shape = chrono_types::make_shared<ChVisualShapeBox>(box.dims);
+        box_shape->AddMaterial(box_mat);
+        body->AddVisualShape(box_shape, ChFrame<>(box.pos, box.rot));
+    }
+
+    for (auto& cyl : vis_cylinders) {
+        auto cyl_shape = chrono_types::make_shared<ChVisualShapeCylinder>(cyl.radius, cyl.length);
+        cyl_shape->AddMaterial(cyl_mat);
+        body->AddVisualShape(cyl_shape, ChFrame<>(cyl.pos, cyl.rot));
+    }
+
+    for (auto& line : vis_lines) {
+        auto line_shape = chrono_types::make_shared<ChVisualShapeLine>();
+        line_shape->SetLineGeometry(line.line);
+        body->AddVisualShape(line_shape, ChFrame<>(line.pos, line.rot));
+    }
+
+    return;
 }
 
 void ChBodyGeometry::CreateCollisionShapes(std::shared_ptr<ChBody> body,
@@ -284,7 +290,7 @@ ChAABB ChBodyGeometry::CalculateAABB() {
 
 // -----------------------------------------------------------------------------
 
-ChTSDAGeometry::ChTSDAGeometry() : has_color(false), vis_segment(nullptr), vis_spring(nullptr) {}
+ChTSDAGeometry::ChTSDAGeometry() : color(ChColor(1.0f, 1.0f, 1.0f)), vis_segment(nullptr), vis_spring(nullptr) {}
 
 ChTSDAGeometry::SpringShape::SpringShape(double radius, int resolution, double turns)
     : radius(radius), turns(turns), resolution(resolution) {}
@@ -295,9 +301,6 @@ void ChTSDAGeometry::CreateVisualizationAssets(std::shared_ptr<ChLinkTSDA> tsda)
         tsda->AddVisualModel(model);
     }
 
-    if (!has_color) {
-        color = ChColor(1.0f, 1.0f, 1.0f);
-    }
     auto mat = chrono_types::make_shared<ChVisualMaterial>();
     mat->SetDiffuseColor(color);
 
