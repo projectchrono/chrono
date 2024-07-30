@@ -76,6 +76,18 @@ bool show_particles_sph = true;
 
 // -----------------------------------------------------------------------------
 
+class PositionVisibilityCallback : public ChParticleCloud::VisibilityCallback {
+  public:
+    PositionVisibilityCallback() {}
+
+    virtual bool get(unsigned int n, const ChParticleCloud& cloud) const override {
+        auto p = cloud.GetParticlePos(n);
+        return p.x() < 0 || p.y() < 0;
+    };
+};
+
+// -----------------------------------------------------------------------------
+
 void CreateSolidPhase(ChSystemSMC& sysMBS, ChSystemFsi& sysFSI);
 void WriteCylinderVTK(const std::string& filename, double radius, double length, const ChFrame<>& frame, int res);
 
@@ -184,19 +196,23 @@ int main(int argc, char* argv[]) {
             }
         }
 
-        auto origin = sysMBS.GetBodies()[1]->GetPos();
+        const auto& origin = ChVector3d(0, 0, 0.6 * bzDim);
+
+        auto col_callback = chrono_types::make_shared<VelocityColorCallback>(0, 1.0);
+        auto vis_callback = chrono_types::make_shared<PositionVisibilityCallback>();
 
         visFSI->SetTitle("Chrono::FSI cylinder drop");
         visFSI->SetSize(1280, 720);
-        visFSI->AddCamera(origin - ChVector3d(2 * bxDim, 2 * byDim, 0), origin);
+        visFSI->AddCamera(origin + ChVector3d(2 * bxDim, 2 * byDim, 0), origin);
         visFSI->SetCameraMoveScale(0.1f);
         visFSI->EnableFluidMarkers(show_particles_sph);
         visFSI->EnableBoundaryMarkers(show_boundary_bce);
         visFSI->EnableRigidBodyMarkers(show_rigid_bce);
         visFSI->SetRenderMode(ChFsiVisualization::RenderMode::SOLID);
         visFSI->SetParticleRenderMode(ChFsiVisualization::RenderMode::SOLID);
-        ////visFSI->SetSPHColorCallback(chrono_types::make_shared<HeightColorCallback>(0, 1.2));
-        visFSI->SetSPHColorCallback(chrono_types::make_shared<VelocityColorCallback>(0, 1.0));
+        visFSI->SetSPHColorCallback(col_callback);
+        visFSI->SetSPHVisibilityCallback(vis_callback);
+        visFSI->SetBCEVisibilityCallback(vis_callback);
         visFSI->AttachSystem(&sysMBS);
         visFSI->Initialize();
     }
