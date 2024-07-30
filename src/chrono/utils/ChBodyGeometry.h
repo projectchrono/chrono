@@ -42,8 +42,10 @@ class ChApi ChBodyGeometry {
     /// Body visualization mode.
     enum class VisualizationType {
         NONE,        ///< no visualization
-        PRIMITIVES,  ///< use primitve shapes
-        MESH         ///< use meshes
+        PRIMITIVES,  ///< use primitve shapes (create primitive ChVisualShape objects)
+        MESH,        ///< use meshes (create a ChVisualShapeTriangleMesh)
+        MODEL_FILE,  ///< use a data file (create a ChVisualShapeModelFile)
+        COLLISION    ///< visualize collision shapes
     };
 
     ChBodyGeometry();
@@ -93,10 +95,10 @@ class ChApi ChBodyGeometry {
 
     /// Tri-mesh shape for collision.
     struct ChApi TrimeshShape {
-        TrimeshShape(const ChVector3d& pos, const std::string& filename, double radius, int matID = -1);
+        TrimeshShape(const ChVector3d& pos, const std::string& filename, double scale, double radius = 0, int matID = -1);
         TrimeshShape(const ChVector3d& pos,
                      std::shared_ptr<ChTriangleMeshConnected> trimesh,
-                     double radius,
+                     double radius = 0,
                      int matID = -1);
         std::shared_ptr<ChTriangleMeshConnected> trimesh;  ///< triangular mesh
         double radius;                                     ///< radius of sweeping sphere
@@ -104,7 +106,6 @@ class ChApi ChBodyGeometry {
         int matID;                                         ///< index in contact material list
     };
 
-    bool has_collision;                            ///< true if body has a collision model
     std::vector<ChContactMaterialData> materials;  ///< list of contact materials
     std::vector<BoxShape> coll_boxes;              ///< list of collision boxes
     std::vector<SphereShape> coll_spheres;         ///< list of collision spheres
@@ -112,25 +113,19 @@ class ChApi ChBodyGeometry {
     std::vector<ConvexHullsShape> coll_hulls;      ///< list of collision convex hulls
     std::vector<TrimeshShape> coll_meshes;         ///< list of collision trimeshes
 
-    bool has_primitives;                       ///< true if the body uses visualization primitives
     std::vector<BoxShape> vis_boxes;           ///< list of visualization boxes
     std::vector<SphereShape> vis_spheres;      ///< list of visualization spheres
     std::vector<CylinderShape> vis_cylinders;  ///< list of visualization cylinders
     std::vector<LineShape> vis_lines;          ///< list of visualization lines
 
-    bool has_colors;          ///< true if primitive colors were provided
     ChColor color_boxes;      ///< visualization color
     ChColor color_spheres;    ///< visualization color
     ChColor color_cylinders;  ///< visualization color
 
-    bool has_obj;               ///< true if the body uses visualization from an OBJ
-    bool has_mesh;              ///< true if the body uses a visualization mesh
     std::string vis_mesh_file;  ///< name of Wavefront OBJ file with visualization mesh
 
     /// Create visualization assets for the specified body.
-    void CreateVisualizationAssets(std::shared_ptr<ChBody> body,
-                                   VisualizationType vis,
-                                   bool visualize_collision = false);
+    void CreateVisualizationAssets(std::shared_ptr<ChBody> body, VisualizationType vis = VisualizationType::MODEL_FILE);
 
     /// Create collision shapes for the specified body.
     void CreateCollisionShapes(std::shared_ptr<ChBody> body, int collision_family, ChContactMethod contact_method);
@@ -168,7 +163,6 @@ class ChApi ChTSDAGeometry {
 
     std::shared_ptr<SegmentShape> vis_segment;  ///< visualization segment
     std::shared_ptr<SpringShape> vis_spring;    ///< visualization spring
-    bool has_color;                             ///< true if visualization color was provided
     ChColor color;                              ///< visualization color
 
     /// Create visualization assets for the specified TSDA.
