@@ -269,6 +269,19 @@ void CRMTerrain::Construct(const std::string& heightmap_file,
     double dx = length / (nx - 1);
     double dy = width / (ny - 1);
 
+    // Create a matrix with gray levels (g = 0x0000 is black, g = 0xffff is white)
+    unsigned short g_min = +std::numeric_limits<unsigned short>::max();
+    unsigned short g_max = -std::numeric_limits<unsigned short>::max();
+    ChMatrixDynamic<unsigned short> gmap(nx + 1, ny + 1);
+    for (int ix = 0; ix <= nx; ix++) {
+        for (int iy = 0; iy <= ny; iy++) {
+            auto gray = hmap.Gray(ix < nx ? ix : nx - 1, iy < ny ? iy : ny - 1);
+            gmap(ix, iy) = gray;
+            g_min = std::min(g_min, gray);
+            g_max = std::max(g_max, gray);
+        }
+    }
+
     // Calculate height scaling (black->hMin, white->hMax)
     double h_scale = (height_range[1] - height_range[0]) / hmap.GetRange();
 
@@ -302,10 +315,10 @@ void CRMTerrain::Construct(const std::string& heightmap_file,
             int iy = (int)std::round(y / dy);       // y location between pixels iy and iy+1
             double wy1 = ((iy + 1) * dy - y) / dy;  // weight for bi-linear interpolation
             double wy2 = (y - iy * dy) / dy;        // weight for bi-linear interpolation
-
+            
             // Calculate surface height at current location (bi-linear interpolation)
-            auto h1 = wx1 * hmap.Gray(ix + 0, iy + 0) + wx2 * hmap.Gray(ix + 1, iy + 0);
-            auto h2 = wx1 * hmap.Gray(ix + 0, iy + 1) + wx2 * hmap.Gray(ix + 1, iy + 1);
+            auto h1 = wx1 * gmap(ix + 0, iy + 0) + wx2 * gmap(ix + 1, iy + 0);
+            auto h2 = wx1 * gmap(ix + 0, iy + 1) + wx2 * gmap(ix + 1, iy + 1);
             auto z = height_range[0] + (wy1 * h1 + wy2 * h2) * h_scale;
             int Iz = (int)std::round(z / m_spacing);
 
