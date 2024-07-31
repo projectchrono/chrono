@@ -122,9 +122,11 @@ install(FILES "${PROJECT_BINARY_DIR}/chrono_fsi/ChConfigFSI.h"
 
 set(ChronoEngine_FSI_FILES
     ChApiFsi.h
-    ChSystemFsi.h
     ChDefinitionsFsi.h
+    ChSystemFsi.h
     ChSystemFsi.cpp
+    ChFsiProblem.h
+    ChFsiProblem.cpp
 )
 
 source_group("" FILES ${ChronoEngine_FSI_FILES})
@@ -207,6 +209,15 @@ endif()
 
 source_group(visualization FILES ${ChronoEngine_FSI_VIS_FILES})
 
+set(ChronoEngine_FSI_STB_FILES
+    ${CMAKE_SOURCE_DIR}/src/chrono_thirdparty/stb/stb.h
+    ${CMAKE_SOURCE_DIR}/src/chrono_thirdparty/stb/stb_image.h
+    ${CMAKE_SOURCE_DIR}/src/chrono_thirdparty/stb/stb_image.cpp
+    ${CMAKE_SOURCE_DIR}/src/chrono_thirdparty/stb/stb_image_write.h
+    ${CMAKE_SOURCE_DIR}/src/chrono_thirdparty/stb/stb_image_write.cpp
+)
+source_group("utils\\stb" FILES ${ChronoEngine_FSI_STB_FILES})
+
 #-----------------------------------------------------------------------------
 # Create the ChronoEngine_fsi library
 #-----------------------------------------------------------------------------
@@ -217,6 +228,7 @@ cuda_add_library(ChronoEngine_fsi
     ${ChronoEngine_FSI_MATH_FILES}
     ${ChronoEngine_FSI_UTILS_FILES}
     ${ChronoEngine_FSI_VIS_FILES}
+    ${ChronoEngine_FSI_STB_FILES}
 )
 
 set_target_properties(ChronoEngine_fsi PROPERTIES
