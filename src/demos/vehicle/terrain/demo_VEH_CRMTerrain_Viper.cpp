@@ -80,7 +80,8 @@ int main(int argc, char* argv[]) {
     sys.SetCollisionSystemType(ChCollisionSystem::Type::BULLET);
 
     // Create the CRM terrain system
-    CRMTerrain terrain(sys, 0.03);
+    double initial_spacing = 0.03;
+    CRMTerrain terrain(sys, initial_spacing);
     terrain.SetVerbose(verbose);
     ChSystemFsi& sysFSI = terrain.GetSystemFSI();
 
@@ -90,6 +91,7 @@ int main(int argc, char* argv[]) {
     sys.SetGravitationalAcceleration(gravity);
 
     ChSystemFsi::ElasticMaterialProperties mat_props;
+    mat_props.density = density;
     mat_props.Young_modulus = youngs_modulus;
     mat_props.Poisson_ratio = poisson_ratio;
     mat_props.stress = 0;  // default
@@ -101,18 +103,22 @@ int main(int argc, char* argv[]) {
     mat_props.average_diam = 0.005;
     mat_props.friction_angle = CH_PI / 10;  // default
     mat_props.dilation_angle = CH_PI / 10;  // default
-    mat_props.cohesion_coeff = 0;           // default
-    mat_props.kernel_threshold = 0.8;
+    mat_props.cohesion_coeff = cohesion;
 
     sysFSI.SetElasticSPH(mat_props);
-    sysFSI.SetDensity(density);
-    sysFSI.SetCohesionForce(cohesion);
+
+    ChSystemFsi::SPHParameters sph_params;
+    sph_params.sph_solver = FluidDynamics::WCSPH;
+    sph_params.wall_bc_type = BceVersion::ADAMI;
+    sph_params.kernel_h = initial_spacing;
+    sph_params.initial_spacing = initial_spacing;
+    sph_params.kernel_threshold = 0.8;
+
+    sysFSI.SetSPHParameters(sph_params);
+    sysFSI.SetDiscreType(false, false);
+    sysFSI.SetStepSize(step_size);
 
     sysFSI.SetActiveDomain(ChVector3d(active_box_hdim));
-    sysFSI.SetDiscreType(false, false);
-    sysFSI.SetWallBC(BceVersion::ADAMI);
-    sysFSI.SetSPHMethod(FluidDynamics::WCSPH);
-    sysFSI.SetStepSize(step_size);
 
     sysFSI.SetOutputLength(0);
 

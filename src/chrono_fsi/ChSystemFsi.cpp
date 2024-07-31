@@ -17,6 +17,9 @@
 //
 // =============================================================================
 
+//// TODO:
+////   - use SimParams::C_Wi (kernel threshold) for both CFD and CRM (currently, only CRM)
+
 #include <cmath>
 
 #include "chrono/core/ChTypes.h"
@@ -622,21 +625,6 @@ void ChSystemFsi::SetCohesionForce(double Fc) {
 
 ChSystemFsi::FluidProperties::FluidProperties() : density(1000), viscosity(0.1), kappa(0), char_length(1) {}
 
-ChSystemFsi::ElasticMaterialProperties::ElasticMaterialProperties()
-    : Young_modulus(1e6),
-      Poisson_ratio(0.3),
-      stress(0),
-      viscosity_alpha(0.5),
-      viscosity_beta(0),
-      mu_I0(0.03),
-      mu_fric_s(0.7),
-      mu_fric_2(0.7),
-      average_diam(0.005),
-      friction_angle(CH_PI / 10),
-      dilation_angle(CH_PI / 10),
-      cohesion_coeff(0),
-      kernel_threshold(0.8) {}
-
 void ChSystemFsi::SetCfdSPH(const FluidProperties& fluid_props) {
     m_paramsH->elastic_SPH = false;
 
@@ -647,8 +635,25 @@ void ChSystemFsi::SetCfdSPH(const FluidProperties& fluid_props) {
     m_paramsH->L_Characteristic = Real(fluid_props.char_length);
 }
 
-void ChSystemFsi::SetElasticSPH(const ElasticMaterialProperties mat_props) {
+ChSystemFsi::ElasticMaterialProperties::ElasticMaterialProperties()
+    : density(1000),
+      Young_modulus(1e6),
+      Poisson_ratio(0.3),
+      stress(0),
+      viscosity_alpha(0.5),
+      viscosity_beta(0),
+      mu_I0(0.03),
+      mu_fric_s(0.7),
+      mu_fric_2(0.7),
+      average_diam(0.005),
+      friction_angle(CH_PI / 10),
+      dilation_angle(CH_PI / 10),
+      cohesion_coeff(0) {}
+
+void ChSystemFsi::SetElasticSPH(const ElasticMaterialProperties& mat_props) {
     m_paramsH->elastic_SPH = true;
+
+    SetDensity(mat_props.density);
 
     m_paramsH->E_young = Real(mat_props.Young_modulus);
     m_paramsH->Nu_poisson = Real(mat_props.Poisson_ratio);
@@ -662,7 +667,6 @@ void ChSystemFsi::SetElasticSPH(const ElasticMaterialProperties mat_props) {
     m_paramsH->Fri_angle = Real(mat_props.friction_angle);
     m_paramsH->Dil_angle = Real(mat_props.dilation_angle);
     m_paramsH->Coh_coeff = Real(mat_props.cohesion_coeff);
-    m_paramsH->C_Wi = Real(mat_props.kernel_threshold);
 
     m_paramsH->G_shear = m_paramsH->E_young / (2.0 * (1.0 + m_paramsH->Nu_poisson));
     m_paramsH->INV_G_shear = 1.0 / m_paramsH->G_shear;
@@ -677,7 +681,42 @@ void ChSystemFsi::SetElasticSPH(const ElasticMaterialProperties mat_props) {
     m_paramsH->K_FA = 6 * m_paramsH->Coh_coeff * cfri / (sqrt(3) * (3 + sfri));
 }
 
+ChSystemFsi::SPHParameters::SPHParameters()
+    : sph_solver(FluidDynamics::WCSPH),
+      lin_solver(SolverType::BICGSTAB),
+      kernel_h(0.01),
+      initial_spacing(0.01),
+      max_velocity(1.0),
+      xsph_coefficient(0.5),
+      shifting_coefficient(1.0),
+      density_reinit_steps(2e8),
+      wall_bc_type(BceVersion::ADAMI),
+      solid_bc_type(BceVersion::ADAMI),
+      kernel_threshold(0.8) {}
+
+void ChSystemFsi::SetSPHParameters(const SPHParameters& sph_params) {
+    m_paramsH->fluid_dynamic_type = sph_params.sph_solver;
+    m_paramsH->LinearSolver = sph_params.lin_solver;
+
+    m_paramsH->HSML = sph_params.kernel_h;
+    m_paramsH->INITSPACE = sph_params.initial_spacing;
+
+    m_paramsH->v_Max = sph_params.max_velocity;
+    m_paramsH->EPS_XSPH = sph_params.xsph_coefficient;
+    m_paramsH->beta_shifting = sph_params.shifting_coefficient;
+    m_paramsH->densityReinit = sph_params.density_reinit_steps;
+
+    m_paramsH->bceTypeWall = sph_params.wall_bc_type;
+    m_paramsH->bceType = sph_params.solid_bc_type;
+
+    m_paramsH->C_Wi = Real(sph_params.kernel_threshold);
+}
+
 //--------------------------------------------------------------------------------------------------------------------------------
+
+ChSystemFsi::PhysicsProblem ChSystemFsi::GetPhysicsProblem() const {
+    return (m_paramsH->elastic_SPH ? PhysicsProblem::CRM : PhysicsProblem::CFD);
+}
 
 std::string ChSystemFsi::GetPhysicsProblemString() const {
     return (m_paramsH->elastic_SPH ? "CRM" : "CFD");
@@ -821,8 +860,6 @@ void ChSystemFsi::AddFsiMesh2D(std::shared_ptr<fea::ChMesh> mesh, BcePatternMesh
 
     // Store the mesh contact surface
     m_fsi_interface->m_fsi_meshes2D.push_back(fsi_mesh);
-
-    //// TODO - load necessary structures and arrays
 }
 
 //--------------------------------------------------------------------------------------------------------------------------------
@@ -1010,7 +1047,7 @@ void ChSystemFsi::Initialize() {
     m_fluid_dynamics->GetForceSystem()->SetLinearSolver(m_paramsH->LinearSolver);
 
     // Initialize worker objects
-    m_bce_manager->Initialize(m_sysFSI->sphMarkers1_D,                                  //
+    m_bce_manager->Initialize(m_sysFSI->sphMarkers1_D,                                 //
                               m_sysFSI->fsiBodyState1_D,                               //
                               m_sysFSI->fsiMesh1DState_D, m_sysFSI->fsiMesh2DState_D,  //
                               m_fsi_bodies_bce_num);
@@ -1056,11 +1093,11 @@ void ChSystemFsi::DoStepDynamics_FSI() {
         ChUtilsDevice::FillVector(m_sysFSI->fsiData->derivVelRhoD, mR4(0));
 
         if (m_integrate_SPH) {
-            m_fluid_dynamics->IntegrateSPH(m_sysFSI->sphMarkers2_D, m_sysFSI->sphMarkers1_D,          //
+            m_fluid_dynamics->IntegrateSPH(m_sysFSI->sphMarkers2_D, m_sysFSI->sphMarkers1_D,        //
                                            m_sysFSI->fsiBodyState2_D,                               //
                                            m_sysFSI->fsiMesh1DState_D, m_sysFSI->fsiMesh2DState_D,  //
                                            0.5 * m_paramsH->dT, m_time);
-            m_fluid_dynamics->IntegrateSPH(m_sysFSI->sphMarkers1_D, m_sysFSI->sphMarkers2_D,          //
+            m_fluid_dynamics->IntegrateSPH(m_sysFSI->sphMarkers1_D, m_sysFSI->sphMarkers2_D,        //
                                            m_sysFSI->fsiBodyState2_D,                               //
                                            m_sysFSI->fsiMesh1DState_D, m_sysFSI->fsiMesh2DState_D,  //
                                            1.0 * m_paramsH->dT, m_time);
@@ -1073,7 +1110,7 @@ void ChSystemFsi::DoStepDynamics_FSI() {
         // Advance dynamics of the associated MBS system (if provided)
         if (m_sysMBS) {
             m_timer_MBS.start();
-            
+
             m_fsi_interface->ApplyBodyForce_Fsi2Chrono();
             m_fsi_interface->ApplyMesh1DForce_Fsi2Chrono();
             m_fsi_interface->ApplyMesh2DForce_Fsi2Chrono();
@@ -1101,7 +1138,7 @@ void ChSystemFsi::DoStepDynamics_FSI() {
     } else {
         // A different coupling scheme is used for implicit SPH formulations
         if (m_integrate_SPH) {
-            m_fluid_dynamics->IntegrateSPH(m_sysFSI->sphMarkers2_D, m_sysFSI->sphMarkers2_D,          //
+            m_fluid_dynamics->IntegrateSPH(m_sysFSI->sphMarkers2_D, m_sysFSI->sphMarkers2_D,        //
                                            m_sysFSI->fsiBodyState2_D,                               //
                                            m_sysFSI->fsiMesh1DState_D, m_sysFSI->fsiMesh2DState_D,  //
                                            0.0, m_time);
@@ -1869,7 +1906,6 @@ unsigned int ChSystemFsi::AddBCE_mesh2D(unsigned int meshID,
                 remove_center = false;
                 break;
         }
-
 
         ////double z_start = centered ? (num_layers - 1) * spacing / 2 : 0;  // start layer z (along normal)
 

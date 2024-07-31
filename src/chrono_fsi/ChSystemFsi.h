@@ -62,6 +62,9 @@ struct ChCounters;
 /// owns other objects to handle the interface between the two systems, boundary condition enforcing markers, and data.
 class CH_FSI_API ChSystemFsi {
   public:
+    /// Physics problem type.
+    enum class PhysicsProblem { CFD, CRM };
+
     /// Output mode.
     enum class OutputMode {
         CSV,   ///< comma-separated value
@@ -83,21 +86,38 @@ class CH_FSI_API ChSystemFsi {
     /// Structure with elastic material properties.
     /// Used if solving an SPH continuum representation of granular dynamics.
     struct CH_FSI_API ElasticMaterialProperties {
-        double Young_modulus;     ///< Young's modulus
-        double Poisson_ratio;     ///< Poisson's ratio
-        double stress;            ///< Artifical stress
-        double viscosity_alpha;   ///< Artifical viscosity coefficient
-        double viscosity_beta;    ///< Artifical viscosity coefficient
-        double mu_I0;             ///< Reference Inertia number
-        double mu_fric_s;         ///< friction mu_s
-        double mu_fric_2;         ///< mu_2 constant in mu=mu(I)
-        double average_diam;      ///< average particle diameter
-        double friction_angle;    ///< Frictional angle of granular material
-        double dilation_angle;    ///< Dilate angle of granular material
-        double cohesion_coeff;    ///< Cohesion coefficient
-        double kernel_threshold;  ///< Threshold of the integration of the kernel function
+        double density;          ///< bulk density
+        double Young_modulus;    ///< Young's modulus
+        double Poisson_ratio;    ///< Poisson's ratio
+        double stress;           ///< Artifical stress
+        double viscosity_alpha;  ///< Artifical viscosity coefficient
+        double viscosity_beta;   ///< Artifical viscosity coefficient
+        double mu_I0;            ///< Reference Inertia number
+        double mu_fric_s;        ///< friction mu_s
+        double mu_fric_2;        ///< mu_2 constant in mu=mu(I)
+        double average_diam;     ///< average particle diameter
+        double friction_angle;   ///< Frictional angle of granular material
+        double dilation_angle;   ///< Dilate angle of granular material
+        double cohesion_coeff;   ///< Cohesion coefficient
 
         ElasticMaterialProperties();
+    };
+
+    /// Structure with SPH method parameters.
+    struct CH_FSI_API SPHParameters {
+        FluidDynamics sph_solver;     ///< SPH solver type
+        SolverType lin_solver;        ///< linear solver type (implicit SPH only)
+        BceVersion wall_bc_type;      ///< type of boundary conditions at walls
+        BceVersion solid_bc_type;     ///< type of boundary conditions at fluid-solid interface
+        double kernel_h;              ///< kernel separation
+        double initial_spacing;       ///< initial particle spacing
+        double max_velocity;          ///< maximum velocity
+        double xsph_coefficient;      ///< XSPH coefficient
+        double shifting_coefficient;  ///< Shifting beta coefficient
+        int density_reinit_steps;     ///< Number of steps between density reinitializations
+        double kernel_threshold;      ///< Threshold for identifying free surface (currently, only for elasticSPH)
+
+        SPHParameters();
     };
 
     /// Constructor for FSI system.
@@ -189,9 +209,11 @@ class CH_FSI_API ChSystemFsi {
     void SetCohesionForce(double Fc);
 
     /// Set the linear system solver for implicit methods.
+    //// TODO: OBSOLETE
     void SetSPHLinearSolver(SolverType lin_solver);
 
     /// Set the SPH method and, optionally, the linear solver type.
+    //// TODO: OBSOLETE
     void SetSPHMethod(FluidDynamics SPH_method, SolverType lin_solver = SolverType::BICGSTAB);
 
     /// Enable solution of a CFD problem.
@@ -199,7 +221,10 @@ class CH_FSI_API ChSystemFsi {
 
     /// Enable solution of elastic SPH (for continuum representation of granular dynamics).
     /// By default, a ChSystemFSI solves an SPH fluid dynamics problem.
-    void SetElasticSPH(const ElasticMaterialProperties mat_props);
+    void SetElasticSPH(const ElasticMaterialProperties& mat_props);
+
+    /// Set SPH method parameters.
+    void SetSPHParameters(const SPHParameters& sph_params);
 
     /// Set simulation data output length
     void SetOutputLength(int OutputLength);
@@ -501,6 +526,7 @@ class CH_FSI_API ChSystemFsi {
     static void CreateMeshPoints(ChTriangleMeshConnected& mesh, double delta, std::vector<ChVector3d>& points);
 
   public:
+    PhysicsProblem GetPhysicsProblem() const;
     std::string GetPhysicsProblemString() const;
     std::string GetSphSolverTypeString() const;
 
@@ -554,7 +580,7 @@ class CH_FSI_API ChSystemFsi {
     ChTimer m_timer_step;  ///< timer for integration step
     ChTimer m_timer_MBS;   ///< timer for MBS integration
     double m_RTF;          ///< real-time factor (simulation time / simulated time)
-    double m_ratio_MBS;    ///< fraction of step simulation time for MBS integration 
+    double m_ratio_MBS;    ///< fraction of step simulation time for MBS integration
 
     friend class ChFsiVisualizationGL;
     friend class ChFsiVisualizationVSG;
