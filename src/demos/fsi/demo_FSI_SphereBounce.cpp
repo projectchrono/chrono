@@ -53,28 +53,29 @@ std::string out_dir = GetChronoOutputPath() + "FSI_Sphere_Bounce";
 bool output = false;
 double output_fps = 20;
 
-// Dimension of the space domain
-double bxDim = 1.0;
-double byDim = 0.6;
-double bzDim = 1.2;
+// Container dimensions
+ChVector3d csize(0.8, 0.8, 1.6);
+
+// Size of initial volume of SPH material
+ChVector3d fsize(0.8, 0.8, 1.2);
 
 // Object initial height
-double initial_height = 0.75 * bzDim;
+double initial_height = 0.8 * fsize.z();
 
 // Final simulation time
-double t_end = 4.0;
+double t_end = 5.0;
 
 // Enable/disable run-time visualization
 bool render = true;
-float render_fps = 300;
+float render_fps = 400;
 
 // Enable saving snapshots
-bool snapshots = false;
+bool snapshots = true;
 
 // Visibility flags
 bool show_rigid = true;
 bool show_rigid_bce = false;
-bool show_boundary_bce = true;
+bool show_boundary_bce = false;
 bool show_particles_sph = true;
 
 // -----------------------------------------------------------------------------
@@ -113,7 +114,7 @@ int main(int argc, char* argv[]) {
     // Set CFD fluid properties
     ChSystemFsi::FluidProperties fluid_props;
     fluid_props.density = 1000;
-    fluid_props.viscosity = 10;
+    fluid_props.viscosity = 1;
     sysFSI.SetCfdSPH(fluid_props);
 
     // Set SPH solution parameters
@@ -132,7 +133,7 @@ int main(int argc, char* argv[]) {
     sysFSI.SetStepSize(step_size);
 
     // Create a rigid body
-    double density = 300;
+    double density = 500;
     double radius = 0.15;
     auto mass = density * ChSphere::GetVolume(radius);
     auto inertia = mass * ChSphere::GetGyration(radius);
@@ -157,14 +158,18 @@ int main(int argc, char* argv[]) {
     fsi.AddRigidBody(body, geometry, VNULL);
 
     // Enable height-based initial pressure for SPH particles
-    fsi.RegisterParticlePorpertiesCallback(chrono_types::make_shared<DepthPressurePropertiesCallback>(sysFSI, bzDim));
+    fsi.RegisterParticlePropertiesCallback(
+        chrono_types::make_shared<DepthPressurePropertiesCallback>(sysFSI, fsize.z()));
 
-    // Create SPH fluid particles and BCE boundary markers
-    fsi.Construct({bxDim, byDim, bzDim},  // length x width x depth
-                  ChVector3d(0, 0, 0),    // position of bottom origin
-                  true,                   // bottom wall?
-                  true                    // side walls?
+    // Create SPH material (do not create boundary BCEs)
+    fsi.Construct(fsize,                // length x width x depth
+                  ChVector3d(0, 0, 0),  // position of bottom origin
+                  false,                // bottom wall?
+                  false                 // side walls?
     );
+
+    // Add box container (with side walls)
+    fsi.AddBoxContainer(csize, ChVector3d(0, 0, 0), true);
 
     fsi.Initialize();
 
@@ -226,14 +231,13 @@ int main(int argc, char* argv[]) {
             }
         }
 
-        const auto& origin = ChVector3d(0, 0, 0.6 * bzDim);
-
         auto col_callback = chrono_types::make_shared<VelocityColorCallback>(0, 1.0);
         auto vis_callback = chrono_types::make_shared<PositionVisibilityCallback>();
 
         visFSI->SetTitle("Chrono::FSI cylinder drop");
         visFSI->SetSize(1280, 720);
-        visFSI->AddCamera(origin + ChVector3d(2 * bxDim, 2 * byDim, 0), origin);
+        visFSI->AddCamera(ChVector3d(2.5 * fsize.x(), 2.5 * fsize.y(), 1.5 * fsize.z()),
+                          ChVector3d(0, 0, 0.5 * fsize.z()));
         visFSI->SetCameraMoveScale(0.1f);
         visFSI->EnableFluidMarkers(show_particles_sph);
         visFSI->EnableBoundaryMarkers(show_boundary_bce);
@@ -284,7 +288,7 @@ int main(int argc, char* argv[]) {
             render_frame++;
         }
 
-        auto body_height = sysMBS.GetBodies()[1]->GetPos().z();
+        auto body_height = body->GetPos().z();
         height_recorder.AddPoint(time, body_height);
         ////cout << "step: " << sim_frame << "\ttime: " << time << "\tRTF: " << sysFSI.GetRTF()
         ////     << "\tbody z: " << body_height << endl;
@@ -298,15 +302,15 @@ int main(int argc, char* argv[]) {
     timer.stop();
     cout << "\nSimulation time: " << timer() << " seconds\n" << endl;
 
-    #ifdef CHRONO_POSTPROCESS
-        postprocess::ChGnuPlot gplot(out_dir + "/height.gpl");
-        gplot.SetGrid();
-        std::string speed_title = "Sphere height";
-        gplot.SetTitle(speed_title);
-        gplot.SetLabelX("time (s)");
-        gplot.SetLabelY("height (m)");
-        gplot.Plot(height_recorder, "", " with lines lt -1 lw 2 lc rgb'#3333BB' ");
-    #endif
+#ifdef CHRONO_POSTPROCESS
+    postprocess::ChGnuPlot gplot(out_dir + "/height.gpl");
+    gplot.SetGrid();
+    std::string speed_title = "Sphere height";
+    gplot.SetTitle(speed_title);
+    gplot.SetLabelX("time (s)");
+    gplot.SetLabelY("height (m)");
+    gplot.Plot(height_recorder, "", " with lines lt -1 lw 2 lc rgb'#3333BB' ");
+#endif
 
     return 0;
 }

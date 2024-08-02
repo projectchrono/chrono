@@ -206,7 +206,7 @@ int main(int argc, char* argv[]) {
 
     // Enable height-based initial pressure for SPH particles
     ChVector3 v0(2, 0, 0);
-    fsi.RegisterParticlePorpertiesCallback(chrono_types::make_shared<SPHPropertiesCallback>(sysFSI, fsize.z(), v0));
+    fsi.RegisterParticlePropertiesCallback(chrono_types::make_shared<SPHPropertiesCallback>(sysFSI, fsize.z(), v0));
 
     // Create SPH material (do not create boundary BCEs)
     fsi.Construct(fsize,                                                                          // box dimensions

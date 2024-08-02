@@ -36,12 +36,7 @@ namespace chrono {
 namespace fsi {
 
 ChFsiProblem::ChFsiProblem(ChSystem& sys, double spacing)
-    : m_sys(sys),
-      m_spacing(spacing),
-      m_initialized(false),
-      m_offset_sph(VNULL),
-      m_offset_bce(VNULL),
-      m_verbose(false) {
+    : m_sys(sys), m_spacing(spacing), m_initialized(false), m_offset_sph(VNULL), m_offset_bce(VNULL), m_verbose(false) {
     // Create ground body
     m_ground = chrono_types::make_shared<ChBody>();
     m_ground->SetFixed(true);
@@ -59,9 +54,9 @@ void ChFsiProblem::SetVerbose(bool verbose) {
     m_verbose = verbose;
 }
 
-void ChFsiProblem::AddRigidBody(std::shared_ptr<ChBody> body,
-                                const utils::ChBodyGeometry& geometry,
-                                const ChVector3d& interior_point) {
+size_t ChFsiProblem::AddRigidBody(std::shared_ptr<ChBody> body,
+                                  const utils::ChBodyGeometry& geometry,
+                                  const ChVector3d& interior_point) {
     if (m_verbose) {
         cout << "Add FSI rigid body " << body->GetName() << endl;
     }
@@ -109,42 +104,44 @@ void ChFsiProblem::AddRigidBody(std::shared_ptr<ChBody> body,
     if (m_verbose) {
         cout << "  Cummulative num. BCE markers: " << b.bce.size() << endl;
     }
+
+    return b.bce.size();
 }
 
-void ChFsiProblem::AddRigidBodySphere(std::shared_ptr<ChBody> body, const ChVector3d& pos, double radius) {
+size_t ChFsiProblem::AddRigidBodySphere(std::shared_ptr<ChBody> body, const ChVector3d& pos, double radius) {
     utils::ChBodyGeometry geometry;
     geometry.materials.push_back(ChContactMaterialData());
     geometry.coll_spheres.push_back(utils::ChBodyGeometry::SphereShape(pos, radius, 0));
-    AddRigidBody(body, geometry, pos);
+    return AddRigidBody(body, geometry, pos);
 }
 
-void ChFsiProblem::AddRigidBodyBox(std::shared_ptr<ChBody> body, const ChFramed& frame, const ChVector3d& size) {
+size_t ChFsiProblem::AddRigidBodyBox(std::shared_ptr<ChBody> body, const ChFramed& frame, const ChVector3d& size) {
     utils::ChBodyGeometry geometry;
     geometry.materials.push_back(ChContactMaterialData());
     geometry.coll_boxes.push_back(utils::ChBodyGeometry::BoxShape(frame.GetPos(), frame.GetRot(), size, 0));
-    AddRigidBody(body, geometry, frame.GetPos());
+    return AddRigidBody(body, geometry, frame.GetPos());
 }
 
-void ChFsiProblem::AddRigidBodyCylinderX(std::shared_ptr<ChBody> body,
-                                         const ChFramed& frame,
-                                         double radius,
-                                         double length) {
+size_t ChFsiProblem::AddRigidBodyCylinderX(std::shared_ptr<ChBody> body,
+                                           const ChFramed& frame,
+                                           double radius,
+                                           double length) {
     utils::ChBodyGeometry geometry;
     geometry.materials.push_back(ChContactMaterialData());
     geometry.coll_cylinders.push_back(
         utils::ChBodyGeometry::CylinderShape(frame.GetPos(), frame.GetRotMat().GetAxisX(), radius, length, 0));
-    AddRigidBody(body, geometry, frame.GetPos());
+    return AddRigidBody(body, geometry, frame.GetPos());
 }
 
-void ChFsiProblem::AddRigidBodyMesh(std::shared_ptr<ChBody> body,
-                                    const ChVector3d& pos,
-                                    const std::string& obj_filename,
-                                    double scale,
-                                    const ChVector3d& interior_point) {
+size_t ChFsiProblem::AddRigidBodyMesh(std::shared_ptr<ChBody> body,
+                                      const ChVector3d& pos,
+                                      const std::string& obj_filename,
+                                      double scale,
+                                      const ChVector3d& interior_point) {
     utils::ChBodyGeometry geometry;
     geometry.materials.push_back(ChContactMaterialData());
     geometry.coll_meshes.push_back(utils::ChBodyGeometry::TrimeshShape(pos, obj_filename, scale, 0.0, 0));
-    AddRigidBody(body, geometry, interior_point);
+    return AddRigidBody(body, geometry, interior_point);
 }
 
 void ChFsiProblem::Construct(const std::string& sph_file, const std::string& bce_file, const ChVector3d& pos) {
@@ -243,7 +240,6 @@ void ChFsiProblem::Construct(const ChVector3d& box_size, const ChVector3d& pos, 
         m_sph.insert(p);
     }
     for (auto& p : bce) {
-        p.y() = (Ny - 1) - p.y();
         m_bce.insert(p);
     }
 
@@ -428,8 +424,6 @@ void ChFsiProblem::AddBoxContainer(const ChVector3d& box_size,  // box dimension
     int Nz = std::round(box_size.z() / m_spacing) + 1;
 
     int num_bce = Nx * Ny * bce_layers;
-
-    // Bottom wall
     if (side_walls)
         num_bce += (Nx + Ny + 2 * bce_layers) * 2 * bce_layers * Nz;
 
@@ -467,7 +461,6 @@ void ChFsiProblem::AddBoxContainer(const ChVector3d& box_size,  // box dimension
 
     // Insert in cached sets
     for (auto& p : bce) {
-        p.y() = (Ny - 1) - p.y();
         m_bce.insert(p);
     }
 

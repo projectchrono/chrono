@@ -53,18 +53,18 @@ class CH_FSI_API ChFsiProblem {
     /// BCE markers are created for the provided geometry (which may or may not match the body collision geometry).
     /// Note: this function allows creation of FSI bodies embedded in the fluid phase (SPH markers inside the body
     /// geometry volume are pruned). This function must be called before Initialize().
-    void AddRigidBody(std::shared_ptr<ChBody> body,
-                      const utils::ChBodyGeometry& geometry,
-                      const ChVector3d& interior_point);
+    size_t AddRigidBody(std::shared_ptr<ChBody> body,
+                        const utils::ChBodyGeometry& geometry,
+                        const ChVector3d& interior_point);
 
-    void AddRigidBodySphere(std::shared_ptr<ChBody> body, const ChVector3d& pos, double radius);
-    void AddRigidBodyBox(std::shared_ptr<ChBody> body, const ChFramed& pos, const ChVector3d& size);
-    void AddRigidBodyCylinderX(std::shared_ptr<ChBody> body, const ChFramed& pos, double radius, double length);
-    void AddRigidBodyMesh(std::shared_ptr<ChBody> body,
-                          const ChVector3d& pos,
-                          const std::string& obj_file,
-                          double scale,
-                          const ChVector3d& interior_point);
+    size_t AddRigidBodySphere(std::shared_ptr<ChBody> body, const ChVector3d& pos, double radius);
+    size_t AddRigidBodyBox(std::shared_ptr<ChBody> body, const ChFramed& pos, const ChVector3d& size);
+    size_t AddRigidBodyCylinderX(std::shared_ptr<ChBody> body, const ChFramed& pos, double radius, double length);
+    size_t AddRigidBodyMesh(std::shared_ptr<ChBody> body,
+                            const ChVector3d& pos,
+                            const std::string& obj_file,
+                            double scale,
+                            const ChVector3d& interior_point);
 
     /// Construct using information from the specified files.
     /// The SPH particle and BCE marker locations are assumed to be provided on an integer grid.
@@ -107,9 +107,10 @@ class CH_FSI_API ChFsiProblem {
     );
 
     /// Add fixed BCE markers, representing a container for the computational domain.
-    /// The specified 'box_size' represents the dimensions of the *interior* of the box. Boundary BCE markers are
-    /// created outside this volume, in layers, starting at a distance equal to the spacing.  Currently, it is the
-    /// caller responsibility to ensure that the container BCE markers do not overlap with any SPH particles.
+    /// The specified 'box_size' represents the dimensions of the *interior* of the box.
+    /// The reference position is the center of the bottom face of the box.
+    /// Boundary BCE markers are created outside this volume, in layers, starting at a distance equal to the spacing.
+    /// It is the caller responsibility to ensure that the container BCE markers do not overlap with any SPH particles.
     void AddBoxContainer(const ChVector3d& box_size,  ///< box dimensions
                          const ChVector3d& pos,       ///< reference position
                          bool side_walls = true       ///< create side boundaries
@@ -139,7 +140,7 @@ class CH_FSI_API ChFsiProblem {
     };
 
     /// Register a callback for setting SPH particle initial properties.
-    void RegisterParticlePorpertiesCallback(std::shared_ptr<ParticlePropertiesCallback> callback) {
+    void RegisterParticlePropertiesCallback(std::shared_ptr<ParticlePropertiesCallback> callback) {
         m_props_cb = callback;
     }
 
@@ -157,7 +158,6 @@ class CH_FSI_API ChFsiProblem {
     void SaveInitialMarkers(const std::string& out_dir) const;
 
   protected:
-
     /// Hash function for a 3D integer grid coordinate.
     struct CoordHash {
         std::size_t operator()(const ChVector3i& p) const {
