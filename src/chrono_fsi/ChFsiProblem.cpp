@@ -24,6 +24,8 @@
 #include <sstream>
 #include <queue>
 
+#include "chrono/physics/ChLinkMotorLinearPosition.h"
+
 #include "chrono_fsi/ChFsiProblem.h"
 
 #include "chrono_thirdparty/stb/stb.h"
@@ -470,6 +472,96 @@ void ChFsiProblem::AddBoxContainer(const ChVector3d& box_size,  // box dimension
     }
 
     m_offset_bce = pos - ChVector3d(box_size.x() / 2, box_size.y() / 2, 0);
+}
+
+void ChFsiProblem::AddWaveMaker(const ChVector3d& box_size,             // box dimensions
+                                const ChVector3d& pos,                  // reference position
+                                std::shared_ptr<ChFunction> piston_fun  // piston actuation function
+) {
+    if (m_verbose) {
+        cout << "Construct piston wavemaker" << endl;
+    }
+
+    // Number of BCE layers
+    int bce_layers = m_sysFSI.GetNumBoundaryLayers();
+
+    int Nx = std::round(box_size.x() / m_spacing) + 1;
+    int Ny = std::round(box_size.y() / m_spacing) + 1;
+    int Nz = std::round(box_size.z() / m_spacing) + 1;
+
+    int num_bce = Nx * Ny * bce_layers;                      // bottom
+    num_bce += (Nx + 2 * bce_layers) * 2 * bce_layers * Nz;  // -y and +y
+    num_bce += (Ny + 2 * bce_layers) * bce_layers * Nz;      // +x
+
+    std::vector<ChVector3i> bce;
+    bce.reserve(num_bce);
+
+    // Bottom BCE points
+    for (int Ix = -bce_layers; Ix < Nx; Ix++) {
+        for (int Iy = 0; Iy < Ny; Iy++) {
+            for (int Iz = 1; Iz <= bce_layers; Iz++) {
+                bce.push_back(ChVector3d(Ix, Iy, -Iz));  // BCE markers below 0
+            }
+        }
+    }
+
+    // Generate side BCE points
+    for (int Ix = -bce_layers; Ix < Nx + bce_layers; Ix++) {
+        for (int Iy = -bce_layers; Iy < 0; Iy++) {
+            for (int Iz = -bce_layers; Iz < Nz + bce_layers; Iz++) {
+                bce.push_back(ChVector3d(Ix, Iy, Iz));
+                bce.push_back(ChVector3d(Ix, Ny - 1 - Iy, Iz));
+            }
+        }
+    }
+    for (int Iy = 0; Iy < Ny; Iy++) {
+        for (int Ix = -bce_layers; Ix < 0; Ix++) {
+            for (int Iz = -bce_layers; Iz < Nz + bce_layers; Iz++) {
+                bce.push_back(ChVector3d(Nx - 1 - Ix, Iy, Iz));
+            }
+        }
+    }
+
+    // Insert in cached sets
+    for (auto& p : bce) {
+        m_bce.insert(p);
+    }
+
+    if (m_verbose) {
+        cout << "  Particle grid size:      " << Nx << " " << Ny << " " << Nz << endl;
+        cout << "  Num. bndry. BCE markers: " << m_bce.size() << " (" << bce.size() << ")" << endl;
+    }
+
+    m_offset_bce = pos - ChVector3d(box_size.x() / 2, box_size.y() / 2, 0);
+
+    // Create the piston body and a linear motor
+    double thickness = (bce_layers - 1) * m_spacing;
+    ChVector3d piston_size(thickness, box_size.y(), box_size.z());
+    ChVector3d piston_pos(-box_size.x() / 2 - thickness / 2, 0, box_size.z() / 2);
+
+    auto piston = chrono_types::make_shared<ChBody>();
+    piston->SetPos(pos + piston_pos);
+    piston->SetRot(QUNIT);
+    piston->SetFixed(false);
+    piston->EnableCollision(false);
+    m_sys.AddBody(piston);
+
+    utils::ChBodyGeometry geometry;
+    geometry.coll_boxes.push_back(utils::ChBodyGeometry::BoxShape(VNULL, QUNIT, piston_size));
+    geometry.CreateVisualizationAssets(piston, utils::ChBodyGeometry::VisualizationType::COLLISION);
+
+    auto motor = chrono_types::make_shared<ChLinkMotorLinearPosition>();
+    motor->Initialize(piston, m_ground, ChFrame<>(piston->GetPos(), Q_ROTATE_Z_TO_X));
+    motor->SetMotionFunction(piston_fun);
+    m_sys.AddLink(motor);
+
+    // Add piston as FSI body
+    auto num_piston_bce = AddRigidBody(piston, geometry, VNULL);
+
+    if (m_verbose) {
+        cout << "  Piston initialized at:   " << piston->GetPos() << endl;
+        cout << "  Num. BCE markers:        " << num_piston_bce << endl;
+    }
 }
 
 void ChFsiProblem::Initialize() {

@@ -23,6 +23,7 @@
 
 #include "chrono/physics/ChSystem.h"
 #include "chrono/utils/ChBodyGeometry.h"
+#include "chrono/functions/ChFunction.h"
 
 #include "chrono_fsi/ChApiFsi.h"
 #include "chrono_fsi/ChSystemFsi.h"
@@ -114,6 +115,12 @@ class CH_FSI_API ChFsiProblem {
     void AddBoxContainer(const ChVector3d& box_size,  ///< box dimensions
                          const ChVector3d& pos,       ///< reference position
                          bool side_walls = true       ///< create side boundaries
+    );
+
+    /// Add a piston-type wavemaker.
+    void AddWaveMaker(const ChVector3d& box_size,             ///< box dimensions
+                      const ChVector3d& pos,                  ///< reference position
+                      std::shared_ptr<ChFunction> piston_fun  ///<
     );
 
     /// Interface for callback to set initial particle pressure, density, and velocity.
