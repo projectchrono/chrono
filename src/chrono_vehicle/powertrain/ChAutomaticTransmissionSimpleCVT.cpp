@@ -72,7 +72,7 @@ void ChAutomaticTransmissionSimpleCVT::Synchronize(double time,
                                                    double motorshaft_torque,
                                                    double driveshaft_speed) {
     // Automatic gear ratio calculation for current driveshaft speed
-    m_current_gear_ratio = m_cvt_gear_ratios.GetVal(driveshaft_speed);
+    m_current_gear_ratio = m_cvt_gear_ratios.GetVal(std::abs(driveshaft_speed));
 
     // Set speed of the motorshaft (transmission output to the engine)
     m_motorshaft_speed = std::abs(driveshaft_speed) / m_current_gear_ratio;
