@@ -63,14 +63,14 @@ ChVector3d fsize(0.8, 0.8, 1.2);
 double initial_height = 0.8 * fsize.z();
 
 // Final simulation time
-double t_end = 5.0;
+double t_end = 3.0;
 
 // Enable/disable run-time visualization
 bool render = true;
 float render_fps = 400;
 
 // Enable saving snapshots
-bool snapshots = true;
+bool snapshots = false;
 
 // Visibility flags
 bool show_rigid = true;
@@ -120,6 +120,7 @@ int main(int argc, char* argv[]) {
     // Set SPH solution parameters
     ChSystemFsi::SPHParameters sph_params;
     sph_params.sph_solver = FluidDynamics::WCSPH;
+    sph_params.num_bce_layers = 4;
     sph_params.wall_bc_type = BceVersion::ADAMI;
     sph_params.kernel_h = initial_spacing;
     sph_params.initial_spacing = initial_spacing;
@@ -134,7 +135,7 @@ int main(int argc, char* argv[]) {
 
     // Create a rigid body
     double density = 500;
-    double radius = 0.15;
+    double radius = 0.12;
     auto mass = density * ChSphere::GetVolume(radius);
     auto inertia = mass * ChSphere::GetGyration(radius);
 
@@ -154,8 +155,8 @@ int main(int argc, char* argv[]) {
     if (show_rigid)
         geometry.CreateVisualizationAssets(body, utils::ChBodyGeometry::VisualizationType::COLLISION);
 
-    // Add as an FSI body
-    fsi.AddRigidBody(body, geometry, VNULL);
+    // Add as an FSI body (create BCE markers on a grid)
+    fsi.AddRigidBody(body, geometry, VNULL, true);
 
     // Enable height-based initial pressure for SPH particles
     fsi.RegisterParticlePropertiesCallback(
@@ -169,7 +170,7 @@ int main(int argc, char* argv[]) {
     );
 
     // Add box container (with side walls)
-    fsi.AddBoxContainer(csize, ChVector3d(0, 0, 0), true);
+    fsi.AddBoxContainer(csize, ChVector3d(0, 0, 0), true, true);
 
     fsi.Initialize();
 

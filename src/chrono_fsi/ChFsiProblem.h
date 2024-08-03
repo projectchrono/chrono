@@ -52,15 +52,25 @@ class CH_FSI_API ChFsiProblem {
 
     /// Add a rigid body to the FSI problem.
     /// BCE markers are created for the provided geometry (which may or may not match the body collision geometry).
-    /// Note: this function allows creation of FSI bodies embedded in the fluid phase (SPH markers inside the body
-    /// geometry volume are pruned). This function must be called before Initialize().
+    /// By default, where applicable, BCE markers are created using polar coordinates (in layers starting from the shape
+    /// surface). Generation of BCE markers on a uniform Cartesian grid can be enforced setting use_grid_bce=true.
+    /// Creation of FSI bodies embedded in the fluid phase is allowed (SPH markers inside the body geometry volume are
+    /// pruned). This function must be called before Initialize().
     size_t AddRigidBody(std::shared_ptr<ChBody> body,
                         const utils::ChBodyGeometry& geometry,
-                        const ChVector3d& interior_point);
+                        const ChVector3d& interior_point,
+                        bool use_grid_bce = false);
 
-    size_t AddRigidBodySphere(std::shared_ptr<ChBody> body, const ChVector3d& pos, double radius);
+    size_t AddRigidBodySphere(std::shared_ptr<ChBody> body,
+                              const ChVector3d& pos,
+                              double radius,
+                              bool use_grid_bce = false);
     size_t AddRigidBodyBox(std::shared_ptr<ChBody> body, const ChFramed& pos, const ChVector3d& size);
-    size_t AddRigidBodyCylinderX(std::shared_ptr<ChBody> body, const ChFramed& pos, double radius, double length);
+    size_t AddRigidBodyCylinderX(std::shared_ptr<ChBody> body,
+                                 const ChFramed& pos,
+                                 double radius,
+                                 double length,
+                                 bool use_grid_bce = false);
     size_t AddRigidBodyMesh(std::shared_ptr<ChBody> body,
                             const ChVector3d& pos,
                             const std::string& obj_file,
@@ -114,7 +124,8 @@ class CH_FSI_API ChFsiProblem {
     /// It is the caller responsibility to ensure that the container BCE markers do not overlap with any SPH particles.
     void AddBoxContainer(const ChVector3d& box_size,  ///< box dimensions
                          const ChVector3d& pos,       ///< reference position
-                         bool side_walls = true       ///< create side boundaries
+                         bool side_walls = true,      ///< create side boundaries
+                         bool top_wall = false        ///< create top boundary
     );
 
     /// Add a piston-type wavemaker.

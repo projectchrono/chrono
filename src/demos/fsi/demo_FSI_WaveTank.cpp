@@ -67,7 +67,7 @@ bool render = true;
 float render_fps = 400;
 
 // Enable saving snapshots
-bool snapshots = true;
+bool snapshots = false;
 
 // Visibility flags
 bool show_rigid = true;
