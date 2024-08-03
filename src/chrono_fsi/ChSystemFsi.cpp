@@ -690,6 +690,7 @@ ChSystemFsi::SPHParameters::SPHParameters()
       xsph_coefficient(0.5),
       shifting_coefficient(1.0),
       density_reinit_steps(2e8),
+      num_bce_layers(3),
       wall_bc_type(BceVersion::ADAMI),
       solid_bc_type(BceVersion::ADAMI),
       kernel_threshold(0.8) {}
@@ -706,6 +707,7 @@ void ChSystemFsi::SetSPHParameters(const SPHParameters& sph_params) {
     m_paramsH->beta_shifting = sph_params.shifting_coefficient;
     m_paramsH->densityReinit = sph_params.density_reinit_steps;
 
+    m_paramsH->NUM_BCE_LAYERS = sph_params.num_bce_layers;
     m_paramsH->bceTypeWall = sph_params.wall_bc_type;
     m_paramsH->bceType = sph_params.solid_bc_type;
 
@@ -891,7 +893,6 @@ void ChSystemFsi::Initialize() {
     }
 
     // Set up subdomains for faster neighbor particle search
-    m_paramsH->NUM_BOUNDARY_LAYERS = 3;
     m_paramsH->Apply_BC_U = false;  // You should go to custom_math.h all the way to end of file and set your function
     int3 side0 = mI3((int)floor((m_paramsH->cMax.x - m_paramsH->cMin.x) / (RESOLUTION_LENGTH_MULT * m_paramsH->HSML)),
                      (int)floor((m_paramsH->cMax.y - m_paramsH->cMin.y) / (RESOLUTION_LENGTH_MULT * m_paramsH->HSML)),

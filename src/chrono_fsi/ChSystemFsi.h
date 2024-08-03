@@ -107,6 +107,7 @@ class CH_FSI_API ChSystemFsi {
     struct CH_FSI_API SPHParameters {
         FluidDynamics sph_solver;     ///< SPH solver type
         SolverType lin_solver;        ///< linear solver type (implicit SPH only)
+        int num_bce_layers;           ///< number of BCE layers (boundary and solids)
         BceVersion wall_bc_type;      ///< type of boundary conditions at walls
         BceVersion solid_bc_type;     ///< type of boundary conditions at fluid-solid interface
         double kernel_h;              ///< kernel separation
