@@ -36,7 +36,6 @@
   {
     "Linear solver":           "Jacobi",
     "Poisson source term":     "Density-Based",
-    "Projection method":       "Non-Incremental",
     "Under-relaxation":         1.0,
     "Clamp Pressure":           true,
     "Alpha Source Term":        1.0,

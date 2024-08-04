@@ -33,7 +33,6 @@
   {
     "Linear solver":           "Jacobi",
     "Poisson source term":     "Density-Based",
-    "Projection method":       "Non-Incremental",
     "Under-relaxation":         0.5,
     "Clamp Pressure":           true,
     "Absolute residual":        1e-8,

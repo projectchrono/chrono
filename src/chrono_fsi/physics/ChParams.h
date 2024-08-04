@@ -144,8 +144,7 @@ struct SimParams {
     bool USE_Consistent_G;  ///< Use consistent discretization for gradient operator
     bool USE_Consistent_L;  ///< Use consistent discretization for laplacian operator
 
-    bool USE_NonIncrementalProjection;  ///< Used in the I2SPH implementation
-    bool DensityBaseProjetion;          ///< Set true to use density based projetion scheme in ISPH solver
+    bool DensityBaseProjetion;  ///< Set true to use density based projetion scheme in ISPH solver
 
     bool USE_LinearSolver;     ///< If a linear solver should be used to solve Ax=b, otherwise basics methods such as
                                ///< Jacobi-SOR are used

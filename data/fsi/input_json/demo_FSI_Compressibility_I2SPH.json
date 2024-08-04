@@ -34,7 +34,6 @@
   {
     "Linear solver":           "Jacobi",
     "Poisson source term":     "Density-Based",
-    "Projection method":       "Non-Incremental",
     "Under-relaxation":         0.98,
     "Alpha Source Term":        0.01,
     "Absolute residual":        1e-10,

@@ -268,7 +268,6 @@ __global__ void V_star_Predictor(Real4* sortedPosRad,  // input: sorted position
             }
             A_Matrix[csrStartIdx] += rhoi / delta_t;
             Bi[i_idx] += rhoi * sortedVelMas[i_idx] / delta_t +                     // forward euler term from lhs
-                         -gradP * !paramsD.USE_NonIncrementalProjection             // Pressure Gradient
                          + (1 - CN) * mu_i * Laplacian_u                            // viscous term;
                          + (1 - CN2) * paramsD.non_newtonian * grad_mu_dot_gradu_u  // Non-Newtonian term
                          + paramsD.non_newtonian * grad_mu_dot_gradu_uT             // Non - Newtonian term
@@ -316,9 +315,6 @@ __global__ void V_star_Predictor(Real4* sortedPosRad,  // input: sorted position
         } else {
             A_Matrix[csrStartIdx] = den;
             Bi[i_idx] = 2 * V_prescribed * den;
-
-            //                       + gradP / sortedRhoPreMu[i_idx].x * delta_t * paramsD.USE_NonIncrementalProjection
-            //                       * den;
         }
     }
 
@@ -440,7 +436,7 @@ __global__ void Pressure_Equation(Real4* sortedPosRad,  // input: sorted positio
         }
 
         //======================= Boundary Adami===========================
-    } else if (Boundary_Marker && paramsD.USE_NonIncrementalProjection) {
+    } else if (Boundary_Marker) {
         Real h_i = sortedPosRad[i_idx].w;
         //        Real Vi = sumWij_inv[i_idx];
         Real3 posRadA = mR3(sortedPosRad[i_idx]);
@@ -628,10 +624,7 @@ __global__ void Velocity_Correction_and_update(Real4* sortedPosRad,
     //    Real3 m_dv_dt = m_i * (V_new - sortedVelMas_old[i_idx]) / delta_t;
     //    derivVelRho[i_idx] = mR4(-m_dv_dt, 0);
 
-    if (paramsD.USE_NonIncrementalProjection)
-        sortedRhoPreMu[i_idx].y = (q_i[i_idx]) / TIME_SCALE;
-    else
-        sortedRhoPreMu[i_idx].y += q_i[i_idx] + dot(grad_p_nPlus1, mR3(x_new - sortedPosRad_old[i_idx]));
+    sortedRhoPreMu[i_idx].y = (q_i[i_idx]) / TIME_SCALE;
 
     Real3 updatedTauXxYyZz = sortedTauXxYyZz[i_idx];
     Real3 updatedTauXyXzYz = sortedTauXyXzYz[i_idx];
@@ -918,12 +911,6 @@ void ChFsiForceI2SPH::ForceSPH(std::shared_ptr<SphMarkerDataD> otherSphMarkersD,
                                std::shared_ptr<FsiMeshStateD> fsiMesh2DStateD) {
     //// RADU TODO
 
-    if (!paramsH->USE_NonIncrementalProjection) {
-        throw std::runtime_error(
-            "\nADAMI boundary condition is only applicable to non-incremental Projection method. Please "
-            "revise the BC scheme or set USE_NonIncrementalProjection to true.!\n");
-    }
-
     CopyParams_NumberOfObjects(paramsH, numObjectsH);
 
     sphMarkersD = otherSphMarkersD;
@@ -1110,19 +1097,6 @@ void ChFsiForceI2SPH::ForceSPH(std::shared_ptr<SphMarkerDataD> otherSphMarkersD,
         Real Ave_after = thrust::reduce(b1Vector.begin(), b1Vector.end(), 0.0) / numAllMarkers;
         printf("Ave RHS =%f, Ave after removing null space=%f\n", Ave_RHS, Ave_after);
     }
-    //    if (paramsH->Pressure_Constraint) {
-    //        uint csrStartIdx = Contact_i[0];
-    //        uint csrEndIdx = Contact_i[1] - 1;
-    //        // The average q should be zero for incremental projection method
-    //        b1Vector[numAllMarkers] = paramsH->BASEPRES * paramsH->USE_NonIncrementalProjection;
-    //        int Start_last = Contact_i[numAllMarkers];
-    //        for (int count = csrStartIdx; count < csrEndIdx; count++) {
-    //            int j = csrColInd[count];
-    //            AMatrix[j + Start_last] += AMatrix[count];
-    //        }
-    //        b1Vector[numAllMarkers] += b1Vector[0];
-    //        AMatrix[Start_last] = 1;
-    //    }
 
     if (paramsH->USE_LinearSolver) {
         if (paramsH->PPE_Solution_type != PPESolutionType::FORM_SPARSE_MATRIX) {

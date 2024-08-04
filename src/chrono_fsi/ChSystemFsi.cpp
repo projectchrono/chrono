@@ -338,14 +338,6 @@ void ChSystemFsi::ReadParametersFromFile(const std::string& json_file) {
                 m_paramsH->DensityBaseProjetion = false;
         }
 
-        if (doc["Pressure Equation"].HasMember("Projection method")) {
-            std::string source = doc["Pressure Equation"]["Projection method"].GetString();
-            if (source == "Incremental")
-                m_paramsH->USE_NonIncrementalProjection = false;
-            else
-                m_paramsH->USE_NonIncrementalProjection = true;
-        }
-
         if (doc["Pressure Equation"].HasMember("Alpha Source Term"))
             m_paramsH->Alpha = doc["Pressure Equation"]["Alpha Source Term"].GetDouble();
 
@@ -947,7 +939,6 @@ void ChSystemFsi::Initialize() {
         cout << "  K_bulk: " << m_paramsH->K_bulk << endl;
         cout << "  C_Wi: " << m_paramsH->C_Wi << endl;
 
-        cout << "  USE_NonIncrementalProjection : " << m_paramsH->USE_NonIncrementalProjection << endl;
         cout << "  PPE_relaxation: " << m_paramsH->PPE_relaxation << endl;
         cout << "  Conservative_Form: " << m_paramsH->Conservative_Form << endl;
         cout << "  Pressure_Constraint: " << m_paramsH->Pressure_Constraint << endl;

@@ -33,7 +33,6 @@
   {
     "Linear solver":           "Jacobi",//Jacobi, BICGSTAB, GMRES
     "Poisson source term":     "Density-Based",
-    "Projection method":       "Non-Incremental",
     // "Alpha Source Term":        0.05,
     "Under-relaxation":         0.99,
     "Clamp Pressure":           true,
