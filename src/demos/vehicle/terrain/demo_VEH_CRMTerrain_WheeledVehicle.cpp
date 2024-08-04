@@ -129,7 +129,6 @@ int main(int argc, char* argv[]) {
 
     ChSystemFsi::SPHParameters sph_params;
     sph_params.sph_solver = FluidDynamics::WCSPH;
-    sph_params.wall_bc_type = BceVersion::ORIGINAL;
     sph_params.kernel_h = spacing;
     sph_params.initial_spacing = spacing;
     sph_params.kernel_threshold = 0.8;

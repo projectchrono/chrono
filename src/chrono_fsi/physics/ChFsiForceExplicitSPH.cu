@@ -1294,7 +1294,7 @@ __global__ void NS_SSR(uint* activityIdentifierD,
             TauXxYyZzB = tauXxYyZz_ModifiedBCE[bceIndexB];
             TauXyXzYzB = tauXyXzYz_ModifiedBCE[bceIndexB];
             // Extrapolated from velocity of fluid particle
-            if (rhoPresMuB.w > 0.5 && paramsD.bceType == BceVersion::ADAMI) {
+            if (rhoPresMuB.w > 0.5) {
                 velMasB = sortedVelMas[j];
                 Real chi_A = sortedKernelSupport[index].y / sortedKernelSupport[index].x;
                 Real chi_B = sortedKernelSupport[j].y / sortedKernelSupport[j].x;
@@ -1310,7 +1310,7 @@ __global__ void NS_SSR(uint* activityIdentifierD,
                 Real3 velMasB_new = dAB * (velMasB - velMasA) + velMasB;
                 velMasB = velMasB_new;
             }
-            if (rhoPresMuB.w < 0.5 && paramsD.bceTypeWall == BceVersion::ADAMI) {
+            if (rhoPresMuB.w < 0.5) {
                 velMasB = sortedVelMas[j];
                 Real chi_A = sortedKernelSupport[index].y / sortedKernelSupport[index].x;
                 Real chi_B = sortedKernelSupport[j].y / sortedKernelSupport[j].x;
@@ -1611,13 +1611,11 @@ void ChFsiForceExplicitSPH::CollideWrapper() {
     sortedXSPHandShift.resize(numObjectsH->numAllMarkers);
 
     // Calculate the kernel support of each particle
-    if (paramsH->bceTypeWall == BceVersion::ADAMI || paramsH->bceType == BceVersion::ADAMI) {
-        cudaResetErrorFlag(isErrorD);
-        calcKernelSupport<<<numBlocks, numThreads>>>(
-            mR4CAST(sortedSphMarkers_D->posRadD), mR4CAST(sortedSphMarkers_D->rhoPresMuD), mR3CAST(sortedKernelSupport),
-            U1CAST(markersProximity_D->cellStartD), U1CAST(markersProximity_D->cellEndD), isErrorD);
-        cudaCheckErrorFlag(isErrorD, "calcKernelSupport");
-    }
+    cudaResetErrorFlag(isErrorD);
+    calcKernelSupport<<<numBlocks, numThreads>>>(
+        mR4CAST(sortedSphMarkers_D->posRadD), mR4CAST(sortedSphMarkers_D->rhoPresMuD), mR3CAST(sortedKernelSupport),
+        U1CAST(markersProximity_D->cellStartD), U1CAST(markersProximity_D->cellEndD), isErrorD);
+    cudaCheckErrorFlag(isErrorD, "calcKernelSupport");
 
     // Re-Initialize the density after several time steps
     if (density_initialization >= paramsH->densityReinit) {

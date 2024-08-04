@@ -29,7 +29,6 @@
 
   "Pressure Equation":
   {
-    "Boundary Conditions":     "Generalized Wall BC",
     "Linear solver":           "BICGSTAB",
     "Under-relaxation":         0.4,
     "Absolute residual":        1e-10,

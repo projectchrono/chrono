@@ -31,7 +31,6 @@
 
   "Pressure Equation":
   {
-    "Boundary Conditions":     "Generalized Wall BC",//Generalized Wall BC, Original
     "Linear solver":           "Jacobi",//Jacobi, BICGSTAB, GMRES
     "Poisson source term":     "Density-Based",
     "Projection method":       "Non-Incremental",

@@ -25,9 +25,6 @@ namespace fsi {
 /// @addtogroup fsi_physics
 /// @{
 
-/// Approach to handle BCE particles
-enum class BceVersion { ADAMI = 0, ORIGINAL = 1 };
-
 /// BCE pattern in cross section of 1-D flexible elements.
 /// The available patterns are illustrated below (assuming 3 BCE layers):
 /// <pre>

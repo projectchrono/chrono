@@ -177,9 +177,6 @@ int main(int argc, char* argv[]) {
     // Set SPH discretization type, consistent or inconsistent
     sysFSI.SetDiscreType(false, false);
 
-    // Set wall boundary condition
-    sysFSI.SetWallBC(BceVersion::ADAMI);
-
     // Setup the solver based on the input value of the prameters
     sysFSI.SetSPHMethod(FluidDynamics::WCSPH);
 

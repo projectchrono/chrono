@@ -26,7 +26,6 @@
 
   "Pressure Equation":
   {
-    "Boundary Conditions":     "Generalized Wall BC",
     "Linear solver":           "Jacobi",
     "Under-relaxation":         0.5,
     "Absolute residual":        1e-1,

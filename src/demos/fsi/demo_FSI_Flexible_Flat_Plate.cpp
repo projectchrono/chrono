@@ -120,12 +120,6 @@ int main(int argc, char* argv[]) {
     // Set SPH discretization type, consistent or inconsistent
     sysFSI.SetDiscreType(false, false);
 
-    // Set wall boundary condition
-    sysFSI.SetWallBC(BceVersion::ADAMI);
-
-    // Set rigid body boundary condition
-    sysFSI.SetRigidBodyBC(BceVersion::ADAMI);
-
     // Create SPH particles of fluid region
     chrono::utils::ChGridSampler<> sampler(initSpace0);
     ChVector3d boxCenter(-Lx_bndry / 2 + Lx_fluid / 2, 0, Lz_fluid / 2);

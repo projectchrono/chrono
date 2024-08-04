@@ -305,8 +305,6 @@ __global__ void BCE_VelocityPressureStress(Real3* velMas_ModifiedBCE,
         return;
 
     uint bceIndex = index;
-    if (paramsD.bceTypeWall == BceVersion::ORIGINAL)
-        bceIndex = index + numObjectsD.numBoundaryMarkers;
 
     uint idA = mapOriginalToSorted[sphIndex];
 
@@ -647,7 +645,7 @@ void ChBce::Initialize(std::shared_ptr<SphMarkerDataD> sphMarkers_D,
     cudaMemcpyToSymbolAsync(numObjectsD, numObjectsH.get(), sizeof(ChCounters));
     CopyParams_NumberOfObjects(paramsH, numObjectsH);
 
-    // Resizing the arrays used to modify the BCE velocity and pressure according to ADAMI
+    // Resizing the arrays used to modify the BCE velocity and pressure according to Adami
     m_totalForceRigid.resize(numObjectsH->numRigidBodies);
     m_totalTorqueRigid.resize(numObjectsH->numRigidBodies);
 
@@ -663,14 +661,6 @@ void ChBce::Initialize(std::shared_ptr<SphMarkerDataD> sphMarkers_D,
 
     if (m_verbose) {
         printf("Total number of BCE particles = %d\n", numFlexRigidBoundaryMarkers);
-        if (paramsH->bceType == BceVersion::ADAMI)
-            printf("Boundary condition for rigid and flexible body is: ADAMI\n");
-        if (paramsH->bceType == BceVersion::ORIGINAL)
-            printf("Boundary condition for rigid and flexible body is: ORIGINAL\n");
-        if (paramsH->bceTypeWall == BceVersion::ADAMI)
-            printf("Boundary condition for fixed wall is: ADAMI\n");
-        if (paramsH->bceTypeWall == BceVersion::ORIGINAL)
-            printf("Boundary condition for fixed wall is: ORIGINAL\n");
     }
 
     auto numAllBce = numObjectsH->numBoundaryMarkers + numObjectsH->numRigidMarkers +  //
@@ -757,11 +747,6 @@ void ChBce::ReCalcVelocityPressureStress_BCE(thrust::device_vector<Real3>& velMa
 
     // thread per particle
     int2 newPortion = mI2(updatePortion.x, updatePortion.w);
-    if (paramsH->bceTypeWall == BceVersion::ORIGINAL) {
-        // Only implement ADAMI BC for rigid body boundary.
-        // Implement a simple BC for fixed wall to avoid unnecessary cost.
-        newPortion = mI2(updatePortion.y, updatePortion.w);
-    }
     uint numBCE = newPortion.y - newPortion.x;
     uint numThreads, numBlocks;
     computeGridSize(numBCE, 256, numBlocks, numThreads);
@@ -884,72 +869,32 @@ void ChBce::ModifyBceVelocityPressureStress(std::shared_ptr<SphMarkerDataD> sphM
     if (size_ref == 3)
         updatePortion.w = m_fsiData->referenceArray[2].y;
 
-    if (paramsH->bceType == BceVersion::ADAMI) {
-        // ADAMI boundary condition (wall, rigid, flexible)
+    // Adami boundary condition (wall, rigid, flexible)
 
-        // Calculate the acceleration of rigid/flexible BCE particles if exist, used for ADAMI BC
-        thrust::device_vector<Real3> bceAcc(N_solid);
+    // Calculate the acceleration of rigid/flexible BCE particles if exist
+    thrust::device_vector<Real3> bceAcc(N_solid);
 
-        // Acceleration of rigid BCE particles
-        if (numObjectsH->numRigidMarkers > 0) {
-            CalcRigidBceAcceleration(bceAcc, fsiBodyState_D->rot, fsiBodyState_D->lin_acc, fsiBodyState_D->ang_vel,
-                                     fsiBodyState_D->ang_acc, m_fsiData->rigid_BCEcoords_D,
-                                     m_fsiData->rigid_BCEsolids_D);
-        }
-        // Acceleration of flexible BCE particles
-        if (numObjectsH->numFlexMarkers1D > 0) {
-            CalcMeshMarker1DAcceleration(bceAcc, fsiMesh1DState_D);
-        }
-        if (numObjectsH->numFlexMarkers2D > 0) {
-            CalcMeshMarker1DAcceleration(bceAcc, fsiMesh2DState_D);
-        }
-
-        if (paramsH->bceTypeWall == BceVersion::ORIGINAL) {
-            // ADAMI BC for rigid/flexible body, ORIGINAL BC for fixed wall
-            thrust::copy(sphMarkers_D->velMasD.begin() + updatePortion.x,
-                         sphMarkers_D->velMasD.begin() + updatePortion.y, velMas_ModifiedBCE.begin());
-            thrust::copy(sphMarkers_D->rhoPresMuD.begin() + updatePortion.x,
-                         sphMarkers_D->rhoPresMuD.begin() + updatePortion.y, rhoPreMu_ModifiedBCE.begin());
-            if (paramsH->elastic_SPH) {
-                thrust::copy(sphMarkers_D->tauXxYyZzD.begin() + updatePortion.x,
-                             sphMarkers_D->tauXxYyZzD.begin() + updatePortion.y, tauXxYyZz_ModifiedBCE.begin());
-                thrust::copy(sphMarkers_D->tauXyXzYzD.begin() + updatePortion.x,
-                             sphMarkers_D->tauXyXzYzD.begin() + updatePortion.y, tauXyXzYz_ModifiedBCE.begin());
-            }
-            if (N_solid > 0) {
-                ReCalcVelocityPressureStress_BCE(
-                    velMas_ModifiedBCE, rhoPreMu_ModifiedBCE, tauXxYyZz_ModifiedBCE, tauXyXzYz_ModifiedBCE,
-                    m_sortedSphMarkersD->posRadD, m_sortedSphMarkersD->velMasD, m_sortedSphMarkersD->rhoPresMuD,
-                    m_sortedSphMarkersD->tauXxYyZzD, m_sortedSphMarkersD->tauXyXzYzD, m_markersProximityD->cellStartD,
-                    m_markersProximityD->cellEndD, m_markersProximityD->mapOriginalToSorted,
-                    m_fsiData->extendedActivityIdD, bceAcc, updatePortion);
-            }
-        } else if (paramsH->bceTypeWall == BceVersion::ADAMI) {
-            // ADAMI BC for both rigid/flexible body and fixed wall
-
-            ReCalcVelocityPressureStress_BCE(
-                velMas_ModifiedBCE, rhoPreMu_ModifiedBCE, tauXxYyZz_ModifiedBCE, tauXyXzYz_ModifiedBCE,
-                m_sortedSphMarkersD->posRadD, m_sortedSphMarkersD->velMasD, m_sortedSphMarkersD->rhoPresMuD,
-                m_sortedSphMarkersD->tauXxYyZzD, m_sortedSphMarkersD->tauXyXzYzD, m_markersProximityD->cellStartD,
-                m_markersProximityD->cellEndD, m_markersProximityD->mapOriginalToSorted, m_fsiData->extendedActivityIdD,
-                bceAcc, updatePortion);
-        }
-
-        bceAcc.clear();
-    } else {
-        // ORIGINAL boundary condition for all boundaries (wall, rigid, flexible)
-
-        thrust::copy(sphMarkers_D->velMasD.begin() + updatePortion.x, sphMarkers_D->velMasD.begin() + updatePortion.w,
-                     velMas_ModifiedBCE.begin());
-        thrust::copy(sphMarkers_D->rhoPresMuD.begin() + updatePortion.x,
-                     sphMarkers_D->rhoPresMuD.begin() + updatePortion.w, rhoPreMu_ModifiedBCE.begin());
-        if (paramsH->elastic_SPH) {
-            thrust::copy(sphMarkers_D->tauXxYyZzD.begin() + updatePortion.x,
-                         sphMarkers_D->tauXxYyZzD.begin() + updatePortion.w, tauXxYyZz_ModifiedBCE.begin());
-            thrust::copy(sphMarkers_D->tauXyXzYzD.begin() + updatePortion.x,
-                         sphMarkers_D->tauXyXzYzD.begin() + updatePortion.w, tauXyXzYz_ModifiedBCE.begin());
-        }
+    // Acceleration of rigid BCE particles
+    if (numObjectsH->numRigidMarkers > 0) {
+        CalcRigidBceAcceleration(bceAcc, fsiBodyState_D->rot, fsiBodyState_D->lin_acc, fsiBodyState_D->ang_vel,
+                                 fsiBodyState_D->ang_acc, m_fsiData->rigid_BCEcoords_D, m_fsiData->rigid_BCEsolids_D);
     }
+    // Acceleration of flexible BCE particles
+    if (numObjectsH->numFlexMarkers1D > 0) {
+        CalcMeshMarker1DAcceleration(bceAcc, fsiMesh1DState_D);
+    }
+    if (numObjectsH->numFlexMarkers2D > 0) {
+        CalcMeshMarker1DAcceleration(bceAcc, fsiMesh2DState_D);
+    }
+
+    ReCalcVelocityPressureStress_BCE(velMas_ModifiedBCE, rhoPreMu_ModifiedBCE, tauXxYyZz_ModifiedBCE,
+                                     tauXyXzYz_ModifiedBCE, m_sortedSphMarkersD->posRadD, m_sortedSphMarkersD->velMasD,
+                                     m_sortedSphMarkersD->rhoPresMuD, m_sortedSphMarkersD->tauXxYyZzD,
+                                     m_sortedSphMarkersD->tauXyXzYzD, m_markersProximityD->cellStartD,
+                                     m_markersProximityD->cellEndD, m_markersProximityD->mapOriginalToSorted,
+                                     m_fsiData->extendedActivityIdD, bceAcc, updatePortion);
+
+    bceAcc.clear();
 }
 
 // -----------------------------------------------------------------------------

@@ -108,8 +108,6 @@ class CH_FSI_API ChSystemFsi {
         FluidDynamics sph_solver;     ///< SPH solver type
         SolverType lin_solver;        ///< linear solver type (implicit SPH only)
         int num_bce_layers;           ///< number of BCE layers (boundary and solids)
-        BceVersion wall_bc_type;      ///< type of boundary conditions at walls
-        BceVersion solid_bc_type;     ///< type of boundary conditions at fluid-solid interface
         double kernel_h;              ///< kernel separation
         double initial_spacing;       ///< initial particle spacing
         double max_velocity;          ///< maximum velocity
@@ -199,12 +197,6 @@ class CH_FSI_API ChSystemFsi {
 
     /// Set SPH discretization type, consistent or inconsistent
     void SetDiscreType(bool useGmatrix, bool useLmatrix);
-
-    /// Set wall boundary condition
-    void SetWallBC(BceVersion wallBC);
-
-    /// Set rigid body boundary condition
-    void SetRigidBodyBC(BceVersion rigidBodyBC);
 
     /// Set cohesion force of the granular material
     void SetCohesionForce(double Fc);

@@ -29,7 +29,6 @@
 
   "Pressure Equation":
   {
-    "Boundary Conditions":     "Generalized Wall BC",
     "Linear solver":           "BICGSTAB",
     "Poisson source term":     "Density-Based",
     "Projection method":       "Non-Incremental",

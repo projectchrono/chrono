@@ -180,9 +180,6 @@ void ChVehicleCosimTerrainNodeGranularSPH::Construct() {
     // Set the time integration type and the linear solver type (only for ISPH)
     sysFSI.SetSPHMethod(FluidDynamics::WCSPH);
 
-    // Set boundary condition for the fixed wall
-    sysFSI.SetWallBC(BceVersion::ORIGINAL);
-
     // Construct the CRMTerrain (generate SPH particles and boundary BCE markers)
     switch (m_terrain_type) {
         case ConstructionMethod::PATCH:

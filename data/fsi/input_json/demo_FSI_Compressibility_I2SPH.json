@@ -32,7 +32,6 @@
 
   "Pressure Equation":
   {
-    "Boundary Conditions":     "Original",
     "Linear solver":           "Jacobi",
     "Poisson source term":     "Density-Based",
     "Projection method":       "Non-Incremental",

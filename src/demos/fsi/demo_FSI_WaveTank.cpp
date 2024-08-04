@@ -140,7 +140,6 @@ int main(int argc, char* argv[]) {
     // Set SPH solution parameters
     ChSystemFsi::SPHParameters sph_params;
     sph_params.sph_solver = FluidDynamics::WCSPH;
-    sph_params.wall_bc_type = BceVersion::ADAMI;
     sph_params.kernel_h = initial_spacing;
     sph_params.initial_spacing = initial_spacing;
     sph_params.max_velocity = 1.0;

@@ -359,7 +359,7 @@ __global__ void CalcNumber_Contacts(uint* numContacts,
                             numCol[counter] = j;
                             counter++;
                             // Do not count BCE-BCE interactions...
-                            if (myType >= 0 && sortedRhoPreMu[j].w >= 0 && paramsD.bceType == BceVersion::ADAMI)
+                            if (myType >= 0 && sortedRhoPreMu[j].w >= 0)
                                 counter--;
                         }
 
@@ -574,30 +574,15 @@ __device__ void Calc_BC_aij_Bi(const uint i_idx,
                         Real Wd = W3h(d, h_ij);
                         Real3 Vel_j = sortedVelMas[j];
 
-                        if (paramsD.bceType != BceVersion::ADAMI) {
-                            if (sortedRhoPreMu[j].w == -1.0 || dot(my_normal, mR3(pos_i - pos_j)) > 0) {
-                                Real3 grad_i_wij = GradWh(dist3, h_ij);
-                                csrValA[csrStartIdx - 1] += dot(grad_i_wij, my_normal);
-                                csrValA[counter + csrStartIdx] = -dot(grad_i_wij, my_normal);
-                                csrColIndA[counter + csrStartIdx] = j;
-                                GlobalcsrColIndA[counter + csrStartIdx] = j + numAllMarkers * i_idx;
-                                counter++;
-                                if (sortedRhoPreMu[j].w != -1)
-                                    continue;
-                                numeratorv += Vel_j * Wd;
-                                denumenator += Wd;
-                            }
-                        } else {
-                            if (sortedRhoPreMu[j].w != -1 || sortedRhoPreMu[j].w <= -2)
-                                continue;
-                            numeratorv += Vel_j * Wd;
-                            denumenator += Wd;
-                            pRHS += dot(source_term - myAcc, dist3) * sortedRhoPreMu[j].x * Wd;
-                            csrValA[counter + csrStartIdx] = -Wd;
-                            csrColIndA[counter + csrStartIdx] = j;
-                            GlobalcsrColIndA[counter + csrStartIdx] = j + numAllMarkers * i_idx;
-                            counter++;
-                        }
+                        if (sortedRhoPreMu[j].w != -1 || sortedRhoPreMu[j].w <= -2)
+                            continue;
+                        numeratorv += Vel_j * Wd;
+                        denumenator += Wd;
+                        pRHS += dot(source_term - myAcc, dist3) * sortedRhoPreMu[j].x * Wd;
+                        csrValA[counter + csrStartIdx] = -Wd;
+                        csrColIndA[counter + csrStartIdx] = j;
+                        GlobalcsrColIndA[counter + csrStartIdx] = j + numAllMarkers * i_idx;
+                        counter++;
                     }
                 }
             }
@@ -607,60 +592,28 @@ __device__ void Calc_BC_aij_Bi(const uint i_idx,
     if (abs(denumenator) < EPSILON) {
         V_new[i_idx] = 2 * V_prescribed;
         B_i[i_idx] = 0;
-        if (paramsD.bceType == BceVersion::ADAMI) {
-            csrValA[csrStartIdx - 1] = a_ii[i_idx];
-            csrColIndA[csrStartIdx - 1] = i_idx;
-            GlobalcsrColIndA[csrStartIdx - 1] = i_idx + numAllMarkers * i_idx;
-        }
+        csrValA[csrStartIdx - 1] = a_ii[i_idx];
+        csrColIndA[csrStartIdx - 1] = i_idx;
+        GlobalcsrColIndA[csrStartIdx - 1] = i_idx + numAllMarkers * i_idx;
     } else {
         Real Scaling = a_ii[i_idx] / denumenator;
         V_new[i_idx] = 2 * V_prescribed - numeratorv / denumenator;
 
-        if (paramsD.bceType == BceVersion::ADAMI) {
-            B_i[i_idx] = pRHS;
-            csrValA[csrStartIdx - 1] = denumenator;
-            csrColIndA[csrStartIdx - 1] = i_idx;
-            GlobalcsrColIndA[csrStartIdx - 1] = i_idx + numAllMarkers * i_idx;
+        B_i[i_idx] = pRHS;
+        csrValA[csrStartIdx - 1] = denumenator;
+        csrColIndA[csrStartIdx - 1] = i_idx;
+        GlobalcsrColIndA[csrStartIdx - 1] = i_idx + numAllMarkers * i_idx;
 
-            for (int i = csrStartIdx - 1; i < csrEndIdx; i++)
-                csrValA[i] *= Scaling;
-            B_i[i_idx] *= Scaling;
-        }
-    }
-
-    if (paramsD.bceType != BceVersion::ADAMI) {
-        Real Scaling = a_ii[i_idx];
-        if (abs(csrValA[csrStartIdx - 1]) > EPSILON) {
-            Scaling = a_ii[i_idx];  // csrValA[csrStartIdx - 1];
-            for (int count = csrStartIdx - 1; count < csrEndIdx; count++)
-                csrValA[count] *= Scaling;
-        } else {
-            clearRow(i_idx, csrStartIdx - 1, csrEndIdx, csrValA, B_i);
-            for (int count = csrStartIdx - 1; count < csrEndIdx; count++) {
-                int j = csrColIndA[counter];
-                Real3 pos_j = mR3(sortedPosRad[j]);
-                Real3 dist3 = Distance(pos_i, pos_j);
-                Real d = length(dist3);
-                if (d > RESOLUTION_LENGTH_MULT * h_i || j == i_idx) {
-                    csrValA[count] = 0.0;
-                    continue;
-                }
-                Real h_j = sortedPosRad[j].w;
-                Real h_ij = 0.5 * (h_j + h_i);
-                Real Wd = W3h(d, h_ij);
-                csrValA[count] = sumWij_inv[j] * Wd * Scaling;
-            }
-            csrValA[csrStartIdx - 1] -= 1.0 * Scaling;
-        }
-
-        B_i[i_idx] = 0.0 * Scaling;
+        for (int i = csrStartIdx - 1; i < csrEndIdx; i++)
+            csrValA[i] *= Scaling;
+        B_i[i_idx] *= Scaling;
     }
 
     sortedVelMas[i_idx] = V_new[i_idx];
-}  // namespace fsi
-//--------------------------------------------------------------------------------------------------------------------------------
+}
 
 //--------------------------------------------------------------------------------------------------------------------------------
+
 __device__ void Calc_fluid_aij_Bi(const uint i_idx,
                                   Real* csrValA,
                                   uint* csrColIndA,
@@ -1555,9 +1508,8 @@ void ChFsiForceIISPH::calcPressureIISPH(std::shared_ptr<FsiBodyStateD> fsiBodySt
     if (paramsH->USE_LinearSolver) {
         if (paramsH->PPE_Solution_type != PPESolutionType::FORM_SPARSE_MATRIX) {
             printf(
-                "You should paramsH->PPE_Solution_type == FORM_SPARSE_MATRIX in order to use the "
-                "chrono_fsi linear "
-                "solvers\n");
+                "You should set paramsH->PPE_Solution_type == FORM_SPARSE_MATRIX in order to use the "
+                "chrono_fsi linear solvers\n");
             exit(0);
         }
 

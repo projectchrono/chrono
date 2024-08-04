@@ -439,34 +439,8 @@ __global__ void Pressure_Equation(Real4* sortedPosRad,  // input: sorted positio
             A_Matrix[csrStartIdx] = 1.0;
         }
 
-        //======================= Boundary ===========================
-    } else if (Boundary_Marker && paramsD.bceType != BceVersion::ADAMI) {
-        Real3 my_normal = Normals[i_idx];
-        for (int count = csrStartIdx; count < csrEndIdx; count++) {
-            uint j = csrColInd[count];
-
-            if (sortedRhoPreMu[j].w == -1.0 || dot(my_normal, mR3(sortedPosRad[i_idx] - sortedPosRad[j])) > 0) {
-                A_Matrix[count] = -dot(A_G[count], my_normal);
-                A_Matrix[csrStartIdx] += +dot(A_G[count], my_normal);
-            }
-        }
-
-        Bi[i_idx] = 0;
-        if (abs(A_Matrix[csrStartIdx]) < EPSILON) {
-            clearRow(i_idx, csrStartIdx, csrEndIdx, A_Matrix, Bi);
-            for (int count = csrStartIdx; count < csrEndIdx; count++)
-                A_Matrix[count] = A_f[count];
-            A_Matrix[csrStartIdx] -= 1.0;
-            Bi[i_idx] = 0.0;
-        }
-
-        //        Real Scale = A_Matrix[csrStartIdx];
-        //        if (abs(Scale) > EPSILON)
-        //            for (int count = csrStartIdx; count < csrEndIdx; count++)
-        //                A_Matrix[count] = A_Matrix[count] / Scale;
-
         //======================= Boundary Adami===========================
-    } else if (Boundary_Marker && paramsD.bceType == BceVersion::ADAMI && paramsD.USE_NonIncrementalProjection) {
+    } else if (Boundary_Marker && paramsD.USE_NonIncrementalProjection) {
         Real h_i = sortedPosRad[i_idx].w;
         //        Real Vi = sumWij_inv[i_idx];
         Real3 posRadA = mR3(sortedPosRad[i_idx]);
@@ -944,7 +918,7 @@ void ChFsiForceI2SPH::ForceSPH(std::shared_ptr<SphMarkerDataD> otherSphMarkersD,
                                std::shared_ptr<FsiMeshStateD> fsiMesh2DStateD) {
     //// RADU TODO
 
-    if (paramsH->bceType == BceVersion::ADAMI && !paramsH->USE_NonIncrementalProjection) {
+    if (!paramsH->USE_NonIncrementalProjection) {
         throw std::runtime_error(
             "\nADAMI boundary condition is only applicable to non-incremental Projection method. Please "
             "revise the BC scheme or set USE_NonIncrementalProjection to true.!\n");

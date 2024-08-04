@@ -149,9 +149,6 @@ void ChSystemFsi::InitParams() {
     m_paramsH->BASEPRES = Real(0.0);
     m_paramsH->ClampPressure = false;
 
-    m_paramsH->bceType = BceVersion::ADAMI;
-    m_paramsH->bceTypeWall = BceVersion::ADAMI;
-
     // Elastic SPH
     m_paramsH->C_Wi = Real(0.8);
 
@@ -375,14 +372,6 @@ void ChSystemFsi::ReadParametersFromFile(const std::string& json_file) {
 
         if (doc["Pressure Equation"].HasMember("Clamp Pressure"))
             m_paramsH->ClampPressure = doc["Pressure Equation"]["Clamp Pressure"].GetBool();
-
-        if (doc["Pressure Equation"].HasMember("Boundary Conditions")) {
-            std::string BC = doc["Pressure Equation"]["Boundary Conditions"].GetString();
-            if (BC == "Generalized Wall BC")
-                m_paramsH->bceType = BceVersion::ADAMI;
-            else
-                m_paramsH->bceType = BceVersion::ORIGINAL;
-        }
     }
 
     // this part is for modeling granular material dynamics using elastic SPH
@@ -611,14 +600,6 @@ void ChSystemFsi::SetOutputLength(int OutputLength) {
     m_paramsH->output_length = OutputLength;
 }
 
-void ChSystemFsi::SetWallBC(BceVersion wallBC) {
-    m_paramsH->bceTypeWall = wallBC;
-}
-
-void ChSystemFsi::SetRigidBodyBC(BceVersion rigidBodyBC) {
-    m_paramsH->bceType = rigidBodyBC;
-}
-
 void ChSystemFsi::SetCohesionForce(double Fc) {
     m_paramsH->Coh_coeff = Fc;
 }
@@ -691,8 +672,6 @@ ChSystemFsi::SPHParameters::SPHParameters()
       shifting_coefficient(1.0),
       density_reinit_steps(2e8),
       num_bce_layers(3),
-      wall_bc_type(BceVersion::ADAMI),
-      solid_bc_type(BceVersion::ADAMI),
       kernel_threshold(0.8) {}
 
 void ChSystemFsi::SetSPHParameters(const SPHParameters& sph_params) {
@@ -708,8 +687,6 @@ void ChSystemFsi::SetSPHParameters(const SPHParameters& sph_params) {
     m_paramsH->densityReinit = sph_params.density_reinit_steps;
 
     m_paramsH->NUM_BCE_LAYERS = sph_params.num_bce_layers;
-    m_paramsH->bceTypeWall = sph_params.wall_bc_type;
-    m_paramsH->bceType = sph_params.solid_bc_type;
 
     m_paramsH->C_Wi = Real(sph_params.kernel_threshold);
 }
@@ -970,7 +947,6 @@ void ChSystemFsi::Initialize() {
         cout << "  K_bulk: " << m_paramsH->K_bulk << endl;
         cout << "  C_Wi: " << m_paramsH->C_Wi << endl;
 
-        cout << "  bceType: " << (int)m_paramsH->bceType << endl;
         cout << "  USE_NonIncrementalProjection : " << m_paramsH->USE_NonIncrementalProjection << endl;
         cout << "  PPE_relaxation: " << m_paramsH->PPE_relaxation << endl;
         cout << "  Conservative_Form: " << m_paramsH->Conservative_Form << endl;
