@@ -134,7 +134,7 @@ class CH_FSI_API ChFsiProblem {
                       std::shared_ptr<ChFunction> piston_fun  ///<
     );
 
-    /// Interface for callback to set initial particle pressure, density, and velocity.
+    /// Interface for callback to set initial particle pressure, density, viscosity, and velocity.
     class CH_FSI_API ParticlePropertiesCallback {
       public:
         ParticlePropertiesCallback(const ChSystemFsi& sysFSI) : sysFSI(sysFSI), p0(0), rho0(0), mu0(0), v0(VNULL) {}
@@ -143,6 +143,7 @@ class CH_FSI_API ChFsiProblem {
 
         /// Set values for particle properties.
         /// The default implementation sets pressure and velocity to zero and constant density and viscosity.
+        /// If an override is provided, it must set *all* particle properties.
         virtual void set(const ChVector3d& pos) {
             p0 = 0;
             rho0 = sysFSI.GetDensity();
@@ -162,6 +163,10 @@ class CH_FSI_API ChFsiProblem {
         m_props_cb = callback;
     }
 
+    /// Explicitly set the computational domain limits.
+    /// By default, this is set so that it encompasses all SPH particles and BCE markers.
+    void SetComputationalDomainSize(ChAABB aabb) { m_aabb = aabb; }
+
     /// Complete construction of the FSI problem and initialize the FSI system.
     /// After this call, no additional solid bodies should be added to the FSI problem.
     void Initialize();
@@ -169,8 +174,11 @@ class CH_FSI_API ChFsiProblem {
     /// Get the ground body.
     std::shared_ptr<ChBody> GetGroundBody() const { return m_ground; }
 
-    /// Get the AABB of all SPH particles.
-    const ChAABB& GetBoundingBox() const { return m_aabb; }
+    /// Get number of SPH particles.
+    size_t GetNumSPHParticles() const { return m_sph.size(); }
+
+    /// Get number of boundary BCE markers.
+    size_t GetNumBoundaryBCEMarkers() const { return m_bce.size(); }
 
     /// Save the set of initial SPH and BCE grid locations to files in the specified output directory.
     void SaveInitialMarkers(const std::string& out_dir) const;
@@ -216,7 +224,7 @@ class CH_FSI_API ChFsiProblem {
     GridPoints m_bce;                  ///< boundary BCE marker grid locations
     ChVector3d m_offset_sph;           ///< SPH particles offset
     ChVector3d m_offset_bce;           ///< boundary BCE particles offset
-    ChAABB m_aabb;                     ///< AABB of SPH particles and boundary BCE markers
+    ChAABB m_aabb;                     ///< computational domain
     std::vector<RigidBody> m_bodies;   ///< list of FSI rigid bodies
 
     std::shared_ptr<ParticlePropertiesCallback> m_props_cb;  ///< callback for particle properties

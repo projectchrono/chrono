@@ -585,14 +585,15 @@ void ChFsiProblem::Initialize() {
     }
 
     // Convert SPH and boundary BCE grid points to real coordinates and apply patch transformation
+    ChAABB aabb;
     RealPoints sph_points;
     sph_points.reserve(m_sph.size());
     for (const auto& p : m_sph) {
         ChVector3d point(m_spacing * p.x(), m_spacing * p.y(), m_spacing * p.z());
         point += m_offset_sph;
         sph_points.push_back(point);
-        m_aabb.min = Vmin(m_aabb.min, point);
-        m_aabb.max = Vmax(m_aabb.max, point);
+        aabb.min = Vmin(aabb.min, point);
+        aabb.max = Vmax(aabb.max, point);
     }
     RealPoints bce_points;
     bce_points.reserve(m_bce.size());
@@ -600,29 +601,34 @@ void ChFsiProblem::Initialize() {
         ChVector3d point(m_spacing * p.x(), m_spacing * p.y(), m_spacing * p.z());
         point += m_offset_bce;
         bce_points.push_back(point);
-        m_aabb.min = Vmin(m_aabb.min, point);
-        m_aabb.max = Vmax(m_aabb.max, point);
+        aabb.min = Vmin(aabb.min, point);
+        aabb.max = Vmax(aabb.max, point);
     }
 
     // Include body BCE markers in AABB
     for (auto& b : m_bodies) {
         for (const auto& p : b.bce) {
             auto point = b.body->TransformPointLocalToParent(p);
-            m_aabb.min = Vmin(m_aabb.min, point);
-            m_aabb.max = Vmax(m_aabb.max, point);
+            aabb.min = Vmin(aabb.min, point);
+            aabb.max = Vmax(aabb.max, point);
         }
     }
 
     if (m_verbose) {
         cout << "AABB of SPH particles + BCE markers" << endl;
-        cout << "  min: " << m_aabb.min << endl;
-        cout << "  max: " << m_aabb.max << endl;
+        cout << "  min: " << aabb.min << endl;
+        cout << "  max: " << aabb.max << endl;
     }
 
     // Set computational domain
-    int bce_layers = m_sysFSI.GetNumBoundaryLayers();
-    ChVector3d aabb_dim = m_aabb.Size();
-    m_sysFSI.SetBoundaries(m_aabb.min - bce_layers * m_spacing, m_aabb.max + bce_layers * m_spacing);
+    if (!m_aabb.IsInverted()) {
+        // Use provided computational domain
+        m_sysFSI.SetBoundaries(m_aabb.min, m_aabb.max);
+    } else {
+        // Set computational domain based on actual AABB
+        int bce_layers = m_sysFSI.GetNumBCELayers();
+        m_sysFSI.SetBoundaries(aabb.min - bce_layers * m_spacing, aabb.max + bce_layers * m_spacing);
+    }
 
     // Callback for setting initial particle properties
     if (!m_props_cb)
@@ -631,20 +637,18 @@ void ChFsiProblem::Initialize() {
     // Create SPH particles
     switch (m_sysFSI.GetPhysicsProblem()) {
         case ChSystemFsi::PhysicsProblem::CFD: {
-            for (const auto& p : sph_points) {
-                m_props_cb->set(p);
-                m_sysFSI.AddSPHParticle(p, m_props_cb->rho0, m_props_cb->p0, m_props_cb->mu0, m_props_cb->v0);
+            for (const auto& pos : sph_points) {
+                m_props_cb->set(pos);
+                m_sysFSI.AddSPHParticle(pos, m_props_cb->rho0, m_props_cb->p0, m_props_cb->mu0, m_props_cb->v0);
             }
             break;
         }
         case ChSystemFsi::PhysicsProblem::CRM: {
-            //// TODO -- provide additional options for CRM initialization?
-
-            ChVector3d tau_diag(0);
             ChVector3d tau_offdiag(0);
-            for (const auto& p : sph_points) {
-                m_props_cb->set(p);
-                m_sysFSI.AddSPHParticle(p, m_props_cb->rho0, m_props_cb->p0, m_props_cb->mu0, m_props_cb->v0,  //
+            for (const auto& pos : sph_points) {
+                m_props_cb->set(pos);
+                ChVector3d tau_diag(-m_props_cb->p0);
+                m_sysFSI.AddSPHParticle(pos, m_props_cb->rho0, m_props_cb->p0, m_props_cb->mu0, m_props_cb->v0,  //
                                         tau_diag, tau_offdiag);
             }
             break;
