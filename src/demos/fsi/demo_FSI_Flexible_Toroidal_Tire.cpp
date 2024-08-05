@@ -127,7 +127,7 @@ int main(int argc, char* argv[]) {
     sysFSI.SetBoundaries(cMin, cMax);
 
     // Set SPH discretization type, consistent or inconsistent
-    sysFSI.SetDiscreType(false, false);
+    sysFSI.SetConsistentDerivativeDiscretization(false, false);
 
     // Set cohsion of the granular material
     sysFSI.SetCohesionForce(2000.0);

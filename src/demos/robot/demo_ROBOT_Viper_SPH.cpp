@@ -175,7 +175,7 @@ int main(int argc, char* argv[]) {
     sysFSI.SetContainerDim(ChVector3d(bxDim, byDim, bzDim));
 
     // Set SPH discretization type, consistent or inconsistent
-    sysFSI.SetDiscreType(false, false);
+    sysFSI.SetConsistentDerivativeDiscretization(false, false);
 
     // Setup the solver based on the input value of the prameters
     sysFSI.SetSPHMethod(FluidDynamics::WCSPH);

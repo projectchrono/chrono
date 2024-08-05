@@ -170,7 +170,7 @@ void ChVehicleCosimTerrainNodeGranularSPH::Construct() {
 
     // Reload simulation parameters to FSI system
     sysFSI.SetStepSize(m_step_size);
-    sysFSI.SetDiscreType(false, false);
+    sysFSI.SetConsistentDerivativeDiscretization(false, false);
     sysFSI.SetOutputLength(0);
 
     sysFSI.SetGravitationalAcceleration(ChVector3d(0, 0, m_gacc));

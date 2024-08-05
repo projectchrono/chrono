@@ -132,9 +132,10 @@ int main(int argc, char* argv[]) {
     sph_params.kernel_h = spacing;
     sph_params.initial_spacing = spacing;
     sph_params.kernel_threshold = 0.8;
+    sph_params.consistent_gradient_discretization = false;
+    sph_params.consistent_laplacian_discretization = false;
 
     sysFSI.SetSPHParameters(sph_params);
-    sysFSI.SetDiscreType(false, false);
     sysFSI.SetStepSize(step_size);
 
     sysFSI.SetActiveDomain(ChVector3d(active_box_hdim));

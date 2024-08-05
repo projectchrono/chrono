@@ -579,9 +579,9 @@ void ChSystemFsi::SetDensity(double rho0) {
     m_paramsH->markerMass = m_paramsH->volume0 * m_paramsH->rho0;
 }
 
-void ChSystemFsi::SetDiscreType(bool useGmatrix, bool useLmatrix) {
-    m_paramsH->USE_Consistent_G = useGmatrix;
-    m_paramsH->USE_Consistent_L = useLmatrix;
+void ChSystemFsi::SetConsistentDerivativeDiscretization(bool consistent_gradient, bool consistent_Laplacian) {
+    m_paramsH->USE_Consistent_G = consistent_gradient;
+    m_paramsH->USE_Consistent_L = consistent_Laplacian;
 }
 
 void ChSystemFsi::SetOutputLength(int OutputLength) {
@@ -660,6 +660,8 @@ ChSystemFsi::SPHParameters::SPHParameters()
       shifting_coefficient(1.0),
       density_reinit_steps(2e8),
       num_bce_layers(3),
+      consistent_gradient_discretization(false),
+      consistent_laplacian_discretization(false),
       kernel_threshold(0.8) {}
 
 void ChSystemFsi::SetSPHParameters(const SPHParameters& sph_params) {
@@ -668,6 +670,8 @@ void ChSystemFsi::SetSPHParameters(const SPHParameters& sph_params) {
 
     m_paramsH->HSML = sph_params.kernel_h;
     m_paramsH->INITSPACE = sph_params.initial_spacing;
+    m_paramsH->MULT_INITSPACE = m_paramsH->INITSPACE / m_paramsH->HSML;
+    m_paramsH->INVHSML = 1 / m_paramsH->HSML;
 
     m_paramsH->v_Max = sph_params.max_velocity;
     m_paramsH->Cs = 10 * m_paramsH->v_Max;
@@ -676,6 +680,9 @@ void ChSystemFsi::SetSPHParameters(const SPHParameters& sph_params) {
     m_paramsH->densityReinit = sph_params.density_reinit_steps;
 
     m_paramsH->NUM_BCE_LAYERS = sph_params.num_bce_layers;
+
+    m_paramsH->USE_Consistent_G = sph_params.consistent_gradient_discretization;
+    m_paramsH->USE_Consistent_L = sph_params.consistent_laplacian_discretization;
 
     m_paramsH->C_Wi = Real(sph_params.kernel_threshold);
 }

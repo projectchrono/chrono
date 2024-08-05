@@ -105,16 +105,18 @@ class CH_FSI_API ChSystemFsi {
 
     /// Structure with SPH method parameters.
     struct CH_FSI_API SPHParameters {
-        FluidDynamics sph_solver;     ///< SPH solver type
-        SolverType lin_solver;        ///< linear solver type (implicit SPH only)
-        int num_bce_layers;           ///< number of BCE layers (boundary and solids)
-        double kernel_h;              ///< kernel separation
-        double initial_spacing;       ///< initial particle spacing
-        double max_velocity;          ///< maximum velocity
-        double xsph_coefficient;      ///< XSPH coefficient
-        double shifting_coefficient;  ///< Shifting beta coefficient
-        int density_reinit_steps;     ///< Number of steps between density reinitializations
-        double kernel_threshold;      ///< Threshold for identifying free surface (currently, only for elasticSPH)
+        FluidDynamics sph_solver;                  ///< SPH solver type (default: WCSPH)
+        SolverType lin_solver;                     ///< linear solver type (implicit SPH only, default: BICGSTAB)
+        int num_bce_layers;                        ///< number of BCE layers (boundary and solids, default: 3)
+        double kernel_h;                           ///< kernel separation (default: 0.01)
+        double initial_spacing;                    ///< initial particle spacing (default: 0.01)
+        double max_velocity;                       ///< maximum velocity
+        double xsph_coefficient;                   ///< XSPH coefficient
+        double shifting_coefficient;               ///< Shifting beta coefficient
+        int density_reinit_steps;                  ///< Number of steps between density reinitializations
+        bool consistent_gradient_discretization;   ///< Calculate G matrix in SPH gradient approximation
+        bool consistent_laplacian_discretization;  ///< Calculate L matrix in SPH Laplacian approximation
+        double kernel_threshold;  ///< Threshold for identifying free surface (currently, only for elasticSPH)
 
         SPHParameters();
     };
@@ -196,7 +198,7 @@ class CH_FSI_API ChSystemFsi {
     void SetSPHintegration(bool runSPH);
 
     /// Set SPH discretization type, consistent or inconsistent
-    void SetDiscreType(bool useGmatrix, bool useLmatrix);
+    void SetConsistentDerivativeDiscretization(bool consistent_gradient, bool consistent_Laplacian);
 
     /// Set cohesion force of the granular material
     void SetCohesionForce(double Fc);

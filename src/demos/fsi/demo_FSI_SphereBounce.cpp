@@ -115,6 +115,7 @@ int main(int argc, char* argv[]) {
     ChSystemFsi::FluidProperties fluid_props;
     fluid_props.density = 1000;
     fluid_props.viscosity = 1;
+
     sysFSI.SetCfdSPH(fluid_props);
 
     // Set SPH solution parameters
@@ -127,9 +128,10 @@ int main(int argc, char* argv[]) {
     sph_params.xsph_coefficient = 0.5;
     sph_params.shifting_coefficient = 0.0;
     sph_params.density_reinit_steps = 1000;
-    sysFSI.SetSPHParameters(sph_params);
+    sph_params.consistent_gradient_discretization = false;
+    sph_params.consistent_laplacian_discretization = false;
 
-    sysFSI.SetDiscreType(false, false);
+    sysFSI.SetSPHParameters(sph_params);
     sysFSI.SetStepSize(step_size);
 
     // Create a rigid body

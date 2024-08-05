@@ -127,9 +127,10 @@ int main(int argc, char* argv[]) {
     sph_params.kernel_h = initial_spacing;
     sph_params.initial_spacing = initial_spacing;
     sph_params.kernel_threshold = 0.8;
+    sph_params.consistent_gradient_discretization = false;
+    sph_params.consistent_laplacian_discretization = false;
 
     sysFSI.SetSPHParameters(sph_params);
-    sysFSI.SetDiscreType(false, false);
     sysFSI.SetStepSize(step_size);
 
     // Add obstacles
