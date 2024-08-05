@@ -188,7 +188,7 @@ void ChFsiProblem::Construct(const ChVector3d& box_size, const ChVector3d& pos, 
     }
 
     // Number of BCE layers
-    int bce_layers = m_sysFSI.GetNumBoundaryLayers();
+    int bce_layers = m_sysFSI.GetNumBCELayers();
 
     // Number of points in each direction
     int Nx = std::round(box_size.x() / m_spacing) + 1;
@@ -321,7 +321,7 @@ void ChFsiProblem::Construct(const std::string& heightmap_file,
     int Nz = (int)std::floor(depth / m_spacing);
 
     // Number of BCE layers
-    int bce_layers = m_sysFSI.GetNumBoundaryLayers();
+    int bce_layers = m_sysFSI.GetNumBCELayers();
 
     // Reserve space for containers
     std::vector<ChVector3i> sph;
@@ -425,7 +425,7 @@ void ChFsiProblem::AddBoxContainer(const ChVector3d& box_size,  // box dimension
     }
 
     // Number of BCE layers
-    int bce_layers = m_sysFSI.GetNumBoundaryLayers();
+    int bce_layers = m_sysFSI.GetNumBCELayers();
 
     int Nx = std::round(box_size.x() / m_spacing) + 1;
     int Ny = std::round(box_size.y() / m_spacing) + 1;
@@ -490,7 +490,7 @@ void ChFsiProblem::AddWaveMaker(const ChVector3d& box_size,             // box d
     }
 
     // Number of BCE layers
-    int bce_layers = m_sysFSI.GetNumBoundaryLayers();
+    int bce_layers = m_sysFSI.GetNumBCELayers();
 
     int Nx = std::round(box_size.x() / m_spacing) + 1;
     int Ny = std::round(box_size.y() / m_spacing) + 1;

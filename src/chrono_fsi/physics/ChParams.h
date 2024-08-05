@@ -14,7 +14,7 @@
 //
 // Structure to hold the simulation parameters.
 //
-// For more informaiton about these parameters see the following:
+// For more information about these parameters see the following:
 //
 // - Using a half-implicit integration scheme for the SPH-based solution of
 //   fluid-solid interaction problems,
@@ -46,33 +46,26 @@ struct SimParams {
     FluidDynamics fluid_dynamic_type;  ///< Type of SPH mehtod (WCSPH, IISPH, or I2SPH)
     int output_length;  ///< Output length (0:short, 1:middle, 2:long) information of SPH particles into data files
 
-    int3 gridSize;        ///< dx, dy, dz distances between particle centers.
-    Real3 worldOrigin;    ///< Origin point.
-    Real3 cellSize;       ///< Size of the neighbor particle searching cell.
-    uint numBodies;       ///< Number of FSI bodies.
-    Real3 boxDims;        ///< Dimensions of the domain. How big is the box that the domain is in.
-    Real HSML;            ///< Interaction Radius (or h)
-    Real INVHSML;         ///< 1.0 / h
-    Real INITSPACE;       ///< Initial separation of the fluid particles
-    Real INV_INIT;        ///< 1.0 / INITSPACE
-    Real MULT_INITSPACE;  ///< Multiplier to hsml to determine the initial separation of the fluid particles and the
-                          ///< fixed separation for the boundary particles. This means that the separation will always
-                          ///< be a multiple of hsml. Default value = 1.0.
-    Real MULT_INITSPACE_Cables;  ///< Multiplier to hsml in cable elements.
-    Real MULT_INITSPACE_Shells;  ///< Multiplier to hsml in shell elements.
-    int num_neighbors;           ///< Number of neighbor particles.
-    Real epsMinMarkersDis;       ///< epsilon mult for minimum distance between markers (d_min = eps * HSML)
-    int NUM_BOUNDARY_LAYERS;     ///< Number of particles layers that will be used in the boundary. Default value = 3.
+    int3 gridSize;          ///< dx, dy, dz distances between particle centers.
+    Real3 worldOrigin;      ///< Origin point.
+    Real3 cellSize;         ///< Size of the neighbor particle searching cell.
+    uint numBodies;         ///< Number of FSI bodies.
+    Real3 boxDims;          ///< Dimensions of the domain. How big is the box that the domain is in.
+    Real HSML;              ///< Interaction Radius (or h)
+    Real INVHSML;           ///< 1.0 / h
+    Real INITSPACE;         ///< Initial separation of the fluid particles
+    Real INV_INIT;          ///< 1.0 / INITSPACE
+    Real MULT_INITSPACE;    ///< Multiplier to hsml to determine the initial separation of the fluid particles and the
+                            ///< fixed separation for the boundary particles. This means that the separation will always
+                            ///< be a multiple of hsml. Default value = 1.0.
+    int num_neighbors;      ///< Number of neighbor particles.
+    Real epsMinMarkersDis;  ///< epsilon mult for minimum distance between markers (d_min = eps * HSML)
+    int NUM_BCE_LAYERS;     ///< Number of BCE marker layers attached to boundary and solid surfaces. Default value = 3.
     Real
         toleranceZone;  ///< Helps determine the particles that are in the domain but are outside the boundaries, so
                         ///< they are not considered fluid particles and are dropped at the beginning of the simulation.
-    int NUM_BCE_LAYERS;  ///< Number of fixed particle layers to rigid/flexible bodies which act as the boundaries.
-                         ///< Default value = 2.
 
     Real BASEPRES;    ///< Relative value of pressure applied to the whole domain.
-    Real LARGE_PRES;  ///< Artificial pressure for boundary particles. Make sure fluid particles do not go through the
-                      ///< boundaries.Note that if time step is not small enough particles near the boundaries might
-                      ///< build up huge pressures and will make the simulation unstable.
 
     Real3 deltaPress;  ///< Change in Pressure. This is needed for periodic BC. The change in pressure of a particle
                        ///< when it moves from end boundary to beginning.
@@ -135,8 +128,6 @@ struct SimParams {
                         /// in getting more accurate incompressible fluid, but more stable solution is obtained for
                         /// larger densityReinit
 
-    int contactBoundary;  ///< 0: straight channel, 1: serpentine
-
     bool Conservative_Form;  ///< Whether conservative or consistent discretization should be used
     int gradient_type;       ///< Type of the gradient operator.
     int laplacian_type;      ///< Type of the laplacian operator.
@@ -144,7 +135,7 @@ struct SimParams {
     bool USE_Consistent_G;  ///< Use consistent discretization for gradient operator
     bool USE_Consistent_L;  ///< Use consistent discretization for laplacian operator
 
-    bool DensityBaseProjetion;  ///< Set true to use density based projetion scheme in ISPH solver
+    bool DensityBaseProjection;  ///< Set true to use density based projetion scheme in ISPH solver
 
     bool USE_LinearSolver;     ///< If a linear solver should be used to solve Ax=b, otherwise basics methods such as
                                ///< Jacobi-SOR are used

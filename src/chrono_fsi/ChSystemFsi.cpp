@@ -112,7 +112,6 @@ void ChSystemFsi::InitParams() {
     m_paramsH->INITSPACE = m_paramsH->HSML;
     m_paramsH->volume0 = cube(m_paramsH->INITSPACE);
     m_paramsH->INV_INIT = 1 / m_paramsH->INITSPACE;
-    m_paramsH->MULT_INITSPACE_Shells = Real(1.0);
     m_paramsH->v_Max = Real(1.0);
     m_paramsH->EPS_XSPH = Real(0.5);
     m_paramsH->beta_shifting = Real(1.0);
@@ -122,10 +121,12 @@ void ChSystemFsi::InitParams() {
     m_paramsH->laplacian_type = 0;
     m_paramsH->USE_Consistent_L = false;
     m_paramsH->USE_Consistent_G = false;
+    
+    m_paramsH->epsMinMarkersDis = 0.01;
 
     m_paramsH->markerMass = m_paramsH->volume0 * m_paramsH->rho0;
 
-    m_paramsH->NUM_BOUNDARY_LAYERS = 3;
+    m_paramsH->NUM_BCE_LAYERS = 3;
 
     // Time stepping
     m_paramsH->Adaptive_time_stepping = false;
@@ -138,6 +139,7 @@ void ChSystemFsi::InitParams() {
 
     // Pressure equation
     m_paramsH->PPE_Solution_type = PPESolutionType::MATRIX_FREE;
+    m_paramsH->DensityBaseProjection = false;
     m_paramsH->Alpha = m_paramsH->HSML;
     m_paramsH->PPE_relaxation = Real(1.0);
     m_paramsH->LinearSolver = SolverType::BICGSTAB;
@@ -253,14 +255,8 @@ void ChSystemFsi::ReadParametersFromFile(const std::string& json_file) {
         if (doc["SPH Parameters"].HasMember("Initial Spacing"))
             m_paramsH->INITSPACE = doc["SPH Parameters"]["Initial Spacing"].GetDouble();
 
-        if (doc["SPH Parameters"].HasMember("Initial Spacing Solid"))
-            m_paramsH->MULT_INITSPACE_Shells =
-                doc["SPH Parameters"]["Initial Spacing Solid"].GetDouble() / m_paramsH->HSML;
-
         if (doc["SPH Parameters"].HasMember("Epsilon"))
             m_paramsH->epsMinMarkersDis = doc["SPH Parameters"]["Epsilon"].GetDouble();
-        else
-            m_paramsH->epsMinMarkersDis = 0.01;
 
         if (doc["SPH Parameters"].HasMember("Maximum Velocity"))
             m_paramsH->v_Max = doc["SPH Parameters"]["Maximum Velocity"].GetDouble();
@@ -333,9 +329,9 @@ void ChSystemFsi::ReadParametersFromFile(const std::string& json_file) {
         if (doc["Pressure Equation"].HasMember("Poisson source term")) {
             std::string source = doc["Pressure Equation"]["Poisson source term"].GetString();
             if (source == "Density-Based")
-                m_paramsH->DensityBaseProjetion = true;
+                m_paramsH->DensityBaseProjection = true;
             else
-                m_paramsH->DensityBaseProjetion = false;
+                m_paramsH->DensityBaseProjection = false;
         }
 
         if (doc["Pressure Equation"].HasMember("Alpha Source Term"))
@@ -524,8 +520,8 @@ void ChSystemFsi::SetActiveDomainDelay(double duration) {
     m_paramsH->settlingTime = duration;
 }
 
-void ChSystemFsi::SetNumBoundaryLayers(int num_layers) {
-    m_paramsH->NUM_BOUNDARY_LAYERS = num_layers;
+void ChSystemFsi::SetNumBCELayers(int num_layers) {
+    m_paramsH->NUM_BCE_LAYERS = num_layers;
 }
 
 void ChSystemFsi::SetInitPressure(const double height) {
@@ -674,6 +670,7 @@ void ChSystemFsi::SetSPHParameters(const SPHParameters& sph_params) {
     m_paramsH->INITSPACE = sph_params.initial_spacing;
 
     m_paramsH->v_Max = sph_params.max_velocity;
+    m_paramsH->Cs = 10 * m_paramsH->v_Max;
     m_paramsH->EPS_XSPH = sph_params.xsph_coefficient;
     m_paramsH->beta_shifting = sph_params.shifting_coefficient;
     m_paramsH->densityReinit = sph_params.density_reinit_steps;
@@ -900,7 +897,7 @@ void ChSystemFsi::Initialize() {
         cout << "  INITSPACE: " << m_paramsH->INITSPACE << endl;
         cout << "  INV_INIT: " << m_paramsH->INV_INIT << endl;
         cout << "  MULT_INITSPACE: " << m_paramsH->MULT_INITSPACE << endl;
-        cout << "  NUM_BOUNDARY_LAYERS: " << m_paramsH->NUM_BOUNDARY_LAYERS << endl;
+        cout << "  NUM_BCE_LAYERS: " << m_paramsH->NUM_BCE_LAYERS << endl;
         cout << "  epsMinMarkersDis: " << m_paramsH->epsMinMarkersDis << endl;
         cout << "  markerMass: " << m_paramsH->markerMass << endl;
         cout << "  volume0: " << m_paramsH->volume0 << endl;
@@ -1236,7 +1233,7 @@ void ChSystemFsi::AddBoxContainerBCE(std::shared_ptr<ChBody> body,
                                      const ChVector3d& size,
                                      const ChVector3i faces) {
     Real spacing = m_paramsH->MULT_INITSPACE * m_paramsH->HSML;
-    Real buffer = 2 * (m_paramsH->NUM_BOUNDARY_LAYERS - 1) * spacing;
+    Real buffer = 2 * (m_paramsH->NUM_BCE_LAYERS - 1) * spacing;
 
     ChVector3d hsize = size / 2;
 
@@ -1363,7 +1360,7 @@ const Real pi = Real(CH_PI);
 
 void ChSystemFsi::CreateBCE_wall(const ChVector2d& size, std::vector<ChVector3d>& bce) {
     Real spacing = m_paramsH->MULT_INITSPACE * m_paramsH->HSML;
-    int num_layers = m_paramsH->NUM_BOUNDARY_LAYERS;
+    int num_layers = m_paramsH->NUM_BCE_LAYERS;
 
     // Calculate actual spacing in x-y directions
     ChVector2d hsize = size / 2;
@@ -1381,7 +1378,7 @@ void ChSystemFsi::CreateBCE_wall(const ChVector2d& size, std::vector<ChVector3d>
 
 void ChSystemFsi::CreateBCE_box(const ChVector3d& size, bool solid, std::vector<ChVector3d>& bce) {
     Real spacing = m_paramsH->MULT_INITSPACE * m_paramsH->HSML;
-    int num_layers = m_paramsH->NUM_BOUNDARY_LAYERS;
+    int num_layers = m_paramsH->NUM_BCE_LAYERS;
 
     // Calculate actual spacing in all 3 directions
     ChVector3d hsize = size / 2;
@@ -1424,7 +1421,7 @@ void ChSystemFsi::CreateBCE_box(const ChVector3d& size, bool solid, std::vector<
 
 void ChSystemFsi::CreateBCE_sphere(double rad, bool solid, bool polar, std::vector<ChVector3d>& bce) {
     double spacing = m_paramsH->MULT_INITSPACE * m_paramsH->HSML;
-    int num_layers = m_paramsH->NUM_BOUNDARY_LAYERS;
+    int num_layers = m_paramsH->NUM_BCE_LAYERS;
 
     // Use polar coordinates
     if (polar) {
@@ -1493,7 +1490,7 @@ void ChSystemFsi::CreateBCE_cylinder(double rad,
                                      bool polar,
                                      std::vector<ChVector3d>& bce) {
     double spacing = m_paramsH->MULT_INITSPACE * m_paramsH->HSML;
-    int num_layers = m_paramsH->NUM_BOUNDARY_LAYERS;
+    int num_layers = m_paramsH->NUM_BCE_LAYERS;
 
     // Calculate actual spacing
     double hheight = height / 2;
@@ -1648,7 +1645,7 @@ void ChSystemFsi::CreateBCE_cone(double rad,
                                  bool polar,
                                  std::vector<ChVector3d>& bce) {
     double spacing = m_paramsH->MULT_INITSPACE * m_paramsH->HSML;
-    int num_layers = m_paramsH->NUM_BOUNDARY_LAYERS;
+    int num_layers = m_paramsH->NUM_BCE_LAYERS;
 
     // Calculate actual spacing
     int np_h = (int)std::round(height / spacing);
@@ -1736,7 +1733,7 @@ unsigned int ChSystemFsi::AddBCE_mesh1D(unsigned int meshID,
     Real kernel_h = m_paramsH->HSML;
     Real spacing = m_paramsH->MULT_INITSPACE * m_paramsH->HSML;
     Real4 rhoPresMuH = {m_paramsH->rho0, m_paramsH->BASEPRES, m_paramsH->mu0, 2};  // BCE markers of type 2
-    int num_layers = m_paramsH->NUM_BOUNDARY_LAYERS;
+    int num_layers = m_paramsH->NUM_BCE_LAYERS;
 
     // Traverse the contact segments:
     // - calculate their discretization number n
@@ -1812,7 +1809,7 @@ unsigned int ChSystemFsi::AddBCE_mesh2D(unsigned int meshID,
     Real kernel_h = m_paramsH->HSML;
     Real spacing = m_paramsH->MULT_INITSPACE * m_paramsH->HSML;
     Real4 rhoPresMuH = {m_paramsH->rho0, m_paramsH->BASEPRES, m_paramsH->mu0, 3};  // BCE markers of type 3
-    int num_layers = m_paramsH->NUM_BOUNDARY_LAYERS;
+    int num_layers = m_paramsH->NUM_BCE_LAYERS;
 
     ////std::ofstream ofile("mesh2D.txt");
     ////ofile << mesh->GetNumTriangles() << endl;
@@ -2042,8 +2039,8 @@ double ChSystemFsi::GetInitialSpacing() const {
     return m_paramsH->INITSPACE;
 }
 
-int ChSystemFsi::GetNumBoundaryLayers() const {
-    return m_paramsH->NUM_BOUNDARY_LAYERS;
+int ChSystemFsi::GetNumBCELayers() const {
+    return m_paramsH->NUM_BCE_LAYERS;
 }
 
 ChVector3d ChSystemFsi::GetContainerDim() const {

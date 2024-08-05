@@ -12,7 +12,6 @@
     "Method":                         "IISPH",
     "Kernel h":                       0.05,
     "Initial Spacing":                0.05,
-    "Initial Spacing Solid":          0.05,
     "Maximum Velocity":               1.5,
     "XSPH Coefficient":               0.2,
     "Shifting Coefficient":           0.00,

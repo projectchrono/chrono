@@ -346,7 +346,7 @@ void CreateTrackBCEMarkers(std::shared_ptr<TrackedVehicle> vehicle, ChSystemFsi&
     auto geometry = vehicle->GetTrackShoe(VehicleSide::LEFT, 0)->GetGroundContactGeometry();
 
     // Consider only collision boxes that are large enough
-    auto min_length = 2 * (sysFSI.GetNumBoundaryLayers() - 1) * sysFSI.GetInitialSpacing();
+    auto min_length = 2 * (sysFSI.GetNumBCELayers() - 1) * sysFSI.GetInitialSpacing();
     std::vector<ChVehicleGeometry::BoxShape> coll_boxes;
     for (const auto& box : geometry.m_coll_boxes) {
         if (box.m_dims.x() > min_length && box.m_dims.y() > min_length && box.m_dims.z() < min_length)

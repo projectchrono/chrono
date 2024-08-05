@@ -117,15 +117,6 @@ int2 CreateFluidMarkers(std::shared_ptr<SphMarkerDataH> sphMarkers_H,
                         sphMarkers_H->velMasH.push_back(mR3(0));
                         sphMarkers_H->rhoPresMuH.push_back(mR4(paramsH->rho0, paramsH->BASEPRES, paramsH->mu0, -1));
                     }
-                } else {
-                    //					num_BoundaryMarkers++;
-                    //					mPosRadBoundary.push_back(posRad);
-                    //					mVelMasBoundary.push_back(mR4(0, 0, 0,
-                    // paramsH->markerMass));
-                    //					mRhoPresMuBoundary.push_back(mR4(paramsH->rho0,
-                    // paramsH->LARGE_PRES,
-                    // paramsH->mu0,
-                    // 0));
                 }
             }
         }

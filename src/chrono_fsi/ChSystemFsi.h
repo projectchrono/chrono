@@ -167,8 +167,8 @@ class CH_FSI_API ChSystemFsi {
     /// This parameter is used for settling operations where all particles must be active through the settling process.
     void SetActiveDomainDelay(double duration);
 
-    /// Set number of boundary layers (default: 3).
-    void SetNumBoundaryLayers(int num_layers);
+    /// Set number of BCE marker layers (default: 3).
+    void SetNumBCELayers(int num_layers);
 
     /// Set (initial) density.
     void SetDensity(double rho0);
@@ -232,7 +232,7 @@ class CH_FSI_API ChSystemFsi {
     double GetInitialSpacing() const;
 
     /// Return the number of BCE layers.
-    int GetNumBoundaryLayers() const;
+    int GetNumBCELayers() const;
 
     /// Set the fluid container dimension
     ChVector3d GetContainerDim() const;
