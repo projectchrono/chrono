@@ -207,6 +207,8 @@ struct SimParams {
 
     Real3 bodyActiveDomain;  ///< Size of the active domain that influenced by an FSI body
     Real settlingTime;       ///< Time for the granular to settle down
+
+    int numProximitySearchSteps;  ///< Proximity search is performed every "numProximitySearchSteps" time steps
 };
 
 /// @} fsi_physics

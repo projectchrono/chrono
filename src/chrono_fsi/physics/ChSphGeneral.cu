@@ -883,6 +883,340 @@ __global__ void UpdateDensity(Real3* vis_vel,
         printf("(UpdateDensity-1)too large/small density marker %d, "
             "type=%f\n", i_idx, sortedRhoPreMu[i_idx].w);
 }
+//--------------------------------------------------------------------------------------------------------------------------------
+__global__ void fillCenterBufferCellID(const uint* nonZeroIndices,
+                                       const uint* activityIdentifierSDD,
+                                       uint* SDCenter,
+                                       uint* SDBuffer,
+                                       volatile bool* isErrorD) {
+    uint SDIndex = nonZeroIndices[blockIdx.x];
+    if (activityIdentifierSDD[SDIndex] == 0) {
+        return;
+    }
+    uint whichCorner = threadIdx.x;
+    uint bufferCellIDs[7];
+    uint centerCellID;
+    calcCenterBufferCellIDFromSD(SDIndex, whichCorner, centerCellID, bufferCellIDs);
+    SDCenter[blockIdx.x * 8 + threadIdx.x] = centerCellID;
+    for (int i = 0; i < 7; ++i) {
+        SDBuffer[blockIdx.x * 56 + threadIdx.x * 7 + i] = bufferCellIDs[i];
+    }
+}
+//--------------------------------------------------------------------------------------------------------------------------------
+__global__ void findNumPartsInBufferCells(const uint* SDCenter,
+                                          const uint* SDBuffer,
+                                          const uint* cellStart,
+                                          const uint* cellEnd,
+                                          const uint* nonZeroIndices,
+                                          const uint* activityIdentifierSDD,
+                                          uint* numPartsInCenterCells,
+                                          uint* numPartsInBufferCells,
+                                          uint* centerCellKeys,
+                                          uint* bufferCellKeys,
+                                          volatile bool* isErrorD) {
+    uint SDIndex = nonZeroIndices[blockIdx.x];
+    if (activityIdentifierSDD[SDIndex] == 0) {
+        return;
+    }
+
+    if (threadIdx.x < 56) {
+        uint cellID = SDBuffer[blockIdx.x * 56 + threadIdx.x];
+        numPartsInBufferCells[blockIdx.x * 56 + threadIdx.x] =
+            (cellID < paramsD.gridSize.x * paramsD.gridSize.y * paramsD.gridSize.z)
+                ? cellEnd[cellID] - cellStart[cellID]
+                : 0;
+        bufferCellKeys[blockIdx.x * 56 + threadIdx.x] = blockIdx.x;
+    } else {
+        uint currCell = threadIdx.x - 56;
+        uint cellID = SDCenter[blockIdx.x * 8 + currCell];
+        numPartsInCenterCells[blockIdx.x * 8 + currCell] =
+            (cellID < paramsD.gridSize.x * paramsD.gridSize.y * paramsD.gridSize.z)
+                ? cellEnd[cellID] - cellStart[cellID]
+                : 0;
+        centerCellKeys[blockIdx.x * 8 + currCell] = blockIdx.x;
+    }
+}
+//--------------------------------------------------------------------------------------------------------------------------------
+__global__ void neighborSearchNum(const Real4* sortedPosRad,
+                                  const Real4* sortedRhoPreMu,
+                                  const uint* cellStart,
+                                  const uint* cellEnd,
+                                  const uint* SDCenter,
+                                  const uint* SDBuffer,
+                                  const uint* numPartsInCenterCells,
+                                  const uint* numPartsInBufferCells,
+                                  const uint* neighborCellIndices,
+                                  const uint* activityIdentifierSDD,
+                                  const uint* nonZeroIndices,
+                                  uint* numNeighborsPerPart,
+                                  volatile bool* isErrorD) {
+    uint SDIndex = nonZeroIndices[blockIdx.x];
+    if (activityIdentifierSDD[SDIndex] == 0) {
+        return;
+    }
+
+    uint totalCenterParts = numPartsInCenterCells[blockIdx.x * 8 + 7];
+    uint totalBufferParts = numPartsInBufferCells[blockIdx.x * 56 + 55];
+
+    // allocate shared memory for SD and buffer of SD
+    extern __shared__ int shMemPos[];
+    Real3* centerPos = (Real3*)&shMemPos[0];
+    Real3* bufferPos = &centerPos[totalCenterParts];
+    uint* shMemID = (uint*)&bufferPos[totalBufferParts];
+    uint* centerID = shMemID;
+    uint* bufferOffset = &centerID[totalCenterParts];
+
+    if (threadIdx.x < 8) {
+        // load center particle positions (within SD)
+        uint cellID = SDCenter[8 * blockIdx.x + threadIdx.x];
+        int iter = 0;
+        uint cellOffset = (threadIdx.x == 0) ? 0 : numPartsInCenterCells[blockIdx.x * 8 + threadIdx.x - 1];
+        for (int j = cellStart[cellID]; j < cellEnd[cellID]; ++j) {
+            centerPos[cellOffset + iter] = mR3(sortedPosRad[j]);
+            centerID[cellOffset + iter] = j;
+            iter++;
+        }
+    }
+    if (threadIdx.x >= 32 && threadIdx.x < 88) {
+        // load buffer particle positions
+        uint currCell = threadIdx.x - 32;
+        uint cellID = SDBuffer[56 * blockIdx.x + currCell];
+        int iter = 0;
+        uint cellOffset = (currCell == 0) ? 0 : numPartsInBufferCells[blockIdx.x * 56 + currCell - 1];
+        bufferOffset[currCell] = cellOffset;
+        if (currCell == 55) {
+            bufferOffset[56] = numPartsInBufferCells[blockIdx.x * 56 + currCell];
+        }
+        for (int j = cellStart[cellID]; j < cellEnd[cellID]; ++j) {
+            bufferPos[cellOffset + iter] = mR3(sortedPosRad[j]);
+            iter++;
+        }
+    }
+    __syncthreads();
+
+    if (threadIdx.x >= totalCenterParts) {
+        return;
+    }
+    uint index = centerID[threadIdx.x];
+    // if (sortedRhoPreMu[index].w > -0.5f && sortedRhoPreMu[index].w < 0.5f)
+    //     return;
+
+    Real3 posRadA = centerPos[threadIdx.x];
+    uint centerCellID = getCenterCellID(&numPartsInCenterCells[blockIdx.x * 8], threadIdx.x);
+    Real SuppRadii = 2.0f * paramsD.HSML;
+    Real SqRadii = SuppRadii * SuppRadii;
+    uint j_num = 0;
+
+    // center cells are all neighbor cells
+    for (int j = 0; j < totalCenterParts; ++j) {
+        Real3 posRadB = centerPos[j];
+        Real3 dist3 = Distance(posRadA, posRadB);
+        Real dd = dist3.x * dist3.x + dist3.y * dist3.y + dist3.z * dist3.z;
+        if (dd < SqRadii) {
+            j_num++;
+        }
+    }
+    // the rest 19 neighbor cells
+    for (int j = 0; j < 19; ++j) {
+        uint nbCellID = neighborCellIndices[centerCellID * 19 + j];
+        uint cellLeft = bufferOffset[nbCellID];
+        uint cellRight = bufferOffset[nbCellID + 1];
+        for (int k = cellLeft; k < cellRight; ++k) {
+            Real3 posRadB = bufferPos[k];
+            Real3 dist3 = Distance(posRadA, posRadB);
+            Real dd = dist3.x * dist3.x + dist3.y * dist3.y + dist3.z * dist3.z;
+            if (dd < SqRadii) {
+                j_num++;
+            }
+        }
+    }
+    numNeighborsPerPart[index] = j_num;
+}
+//--------------------------------------------------------------------------------------------------------------------------------
+__global__ void neighborSearchID(const Real4* sortedPosRad,
+                                 const Real4* sortedRhoPreMu,
+                                 const uint* cellStart,
+                                 const uint* cellEnd,
+                                 const uint* SDCenter,
+                                 const uint* SDBuffer,
+                                 const uint* numPartsInCenterCells,
+                                 const uint* numPartsInBufferCells,
+                                 const uint* neighborCellIndices,
+                                 const uint* numNeighborsPerPart,
+                                 const uint* activityIdentifierSDD,
+                                 const uint* nonZeroIndices,
+                                 uint* neighborList,
+                                 volatile bool* isErrorD) {
+    uint SDIndex = nonZeroIndices[blockIdx.x];
+    if (activityIdentifierSDD[SDIndex] == 0) {
+        return;
+    }
+
+    uint totalCenterParts = numPartsInCenterCells[blockIdx.x * 8 + 7];
+    uint totalBufferParts = numPartsInBufferCells[blockIdx.x * 56 + 55];
+
+    // allocate shared memory for SD and buffer of SD
+    extern __shared__ int shMemPos[];
+    Real3* centerPos = (Real3*)&shMemPos[0];
+    Real3* bufferPos = &centerPos[totalCenterParts];
+    uint* shMemID = (uint*)&bufferPos[totalBufferParts];
+    uint* centerID = shMemID;
+    uint* bufferID = &centerID[totalCenterParts];
+    uint* bufferOffset = &bufferID[totalBufferParts];
+
+    if (threadIdx.x < 8) {
+        // load center particle positions (within SD)
+        uint cellID = SDCenter[8 * blockIdx.x + threadIdx.x];
+        int iter = 0;
+        uint cellOffset = (threadIdx.x == 0) ? 0 : numPartsInCenterCells[blockIdx.x * 8 + threadIdx.x - 1];
+        for (int j = cellStart[cellID]; j < cellEnd[cellID]; ++j) {
+            centerPos[cellOffset + iter] = mR3(sortedPosRad[j]);
+            centerID[cellOffset + iter] = j;
+            iter++;
+        }
+    }
+    if (threadIdx.x >= 32 && threadIdx.x < 88) {
+        // load buffer particle positions
+        uint currCell = threadIdx.x - 32;
+        uint cellID = SDBuffer[56 * blockIdx.x + currCell];
+        int iter = 0;
+        uint cellOffset = (currCell == 0) ? 0 : numPartsInBufferCells[blockIdx.x * 56 + currCell - 1];
+        bufferOffset[currCell] = cellOffset;
+        if (currCell == 55) {
+            bufferOffset[56] = numPartsInBufferCells[blockIdx.x * 56 + currCell];
+        }
+        for (int j = cellStart[cellID]; j < cellEnd[cellID]; ++j) {
+            bufferPos[cellOffset + iter] = mR3(sortedPosRad[j]);
+            bufferID[cellOffset + iter] = j;
+            iter++;
+        }
+    }
+    __syncthreads();
+
+    if (threadIdx.x >= totalCenterParts) {
+        return;
+    }
+    uint index = centerID[threadIdx.x];
+    // if (sortedRhoPreMu[index].w > -0.5f && sortedRhoPreMu[index].w < 0.5f)
+    //     return;
+
+    Real3 posRadA = centerPos[threadIdx.x];
+    uint centerCellID = getCenterCellID(&numPartsInCenterCells[blockIdx.x * 8], threadIdx.x);
+    Real SuppRadii = 2.0f * paramsD.HSML;
+    Real SqRadii = SuppRadii * SuppRadii;
+    uint j_num = 1;
+    neighborList[numNeighborsPerPart[index]] = index;
+
+    for (int j = 0; j < totalCenterParts; ++j) {
+        Real3 posRadB = centerPos[j];
+        Real3 dist3 = Distance(posRadA, posRadB);
+        Real dd = dist3.x * dist3.x + dist3.y * dist3.y + dist3.z * dist3.z;
+        if (dd < SqRadii && shMemID[j] != index) {
+            neighborList[numNeighborsPerPart[index] + j_num] = shMemID[j];
+            j_num++;
+        }
+    }
+    for (int j = 0; j < 19; ++j) {
+        uint nbCellID = neighborCellIndices[centerCellID * 19 + j];
+        uint cellLeft = bufferOffset[nbCellID];
+        uint cellRight = bufferOffset[nbCellID + 1];
+        for (int k = cellLeft; k < cellRight; ++k) {
+            Real3 posRadB = bufferPos[k];
+            Real3 dist3 = Distance(posRadA, posRadB);
+            Real dd = dist3.x * dist3.x + dist3.y * dist3.y + dist3.z * dist3.z;
+            if (dd < SqRadii) {
+                neighborList[numNeighborsPerPart[index] + j_num] = bufferID[k];
+                j_num++;
+            }
+        }
+    }
+}
+//--------------------------------------------------------------------------------------------------------------------------------
+__global__ void neighborSearchNum_plain(const Real4* sortedPosRad,
+                                        const Real4* sortedRhoPreMu,
+                                        const uint* cellStart,
+                                        const uint* cellEnd,
+                                        const uint* activityIdentifierD,
+                                        uint* numNeighborsPerPart,
+                                        volatile bool* isErrorD) {
+    uint index = blockIdx.x * blockDim.x + threadIdx.x;
+    if (index >= numObjectsD.numAllMarkers) {
+        return;
+    }
+    if (activityIdentifierD[index] == 0) {
+        return;
+    }
+    Real3 posRadA = mR3(sortedPosRad[index]);
+    int3 gridPos = calcGridPos(posRadA);
+    Real SuppRadii = 2.0f * paramsD.HSML;
+    Real SqRadii = SuppRadii * SuppRadii;
+    uint j_num = 0;
+
+    for (int x = -1; x <= 1; x++) {
+        for (int y = -1; y <= 1; y++) {
+            for (int z = -1; z <= 1; z++) {
+                int3 neighborPos = gridPos + mI3(x, y, z);
+                uint gridHash = calcGridHash(neighborPos);
+                uint startIndex = cellStart[gridHash];
+                uint endIndex = cellEnd[gridHash];
+                for (uint j = startIndex; j < endIndex; j++) {
+                    Real3 posRadB = mR3(sortedPosRad[j]);
+                    Real3 dist3 = Distance(posRadA, posRadB);
+                    Real dd = dist3.x * dist3.x + dist3.y * dist3.y + dist3.z * dist3.z;
+                    if (dd < SqRadii) {
+                        j_num++;
+                    }
+                }
+            }
+        }
+    }
+    numNeighborsPerPart[index] = j_num;
+}
+//--------------------------------------------------------------------------------------------------------------------------------
+__global__ void neighborSearchID_plain(const Real4* sortedPosRad,
+                                       const Real4* sortedRhoPreMu,
+                                       const uint* cellStart,
+                                       const uint* cellEnd,
+                                       const uint* activityIdentifierD,
+                                       const uint* numNeighborsPerPart,
+                                       uint* neighborList,
+                                       volatile bool* isErrorD) {
+    uint index = blockIdx.x * blockDim.x + threadIdx.x;
+    if (index >= numObjectsD.numAllMarkers) {
+        return;
+    }
+    if (activityIdentifierD[index] == 0) {
+        return;
+    }
+    Real3 posRadA = mR3(sortedPosRad[index]);
+    int3 gridPos = calcGridPos(posRadA);
+    Real SuppRadii = 2.0f * paramsD.HSML;
+    Real SqRadii = SuppRadii * SuppRadii;
+    uint j_num = 1;
+    neighborList[numNeighborsPerPart[index]] = index;
+
+    for (int x = -1; x <= 1; x++) {
+        for (int y = -1; y <= 1; y++) {
+            for (int z = -1; z <= 1; z++) {
+                int3 neighborPos = gridPos + mI3(x, y, z);
+                uint gridHash = calcGridHash(neighborPos);
+                uint startIndex = cellStart[gridHash];
+                uint endIndex = cellEnd[gridHash];
+                for (uint j = startIndex; j < endIndex; j++) {
+                    if (j != index) {
+                        Real3 posRadB = mR3(sortedPosRad[j]);
+                        Real3 dist3 = Distance(posRadA, posRadB);
+                        Real dd = dist3.x * dist3.x + dist3.y * dist3.y + dist3.z * dist3.z;
+                        if (dd < SqRadii) {
+                            neighborList[numNeighborsPerPart[index] + j_num] = j;
+                            j_num++;
+                        }
+                    }
+                }
+            }
+        }
+    }
+}
 
 }  // namespace fsi
 }  // namespace chrono

@@ -158,6 +158,12 @@ class CH_FSI_API ChUtilsDevice {
     /// Fills out a thrust vector of Real4 on the device with a specific Real4 value.
     static void FillVector(thrust::device_vector<Real4>& vector, const Real4& value);
 
+    /// Fills out a thrust vector of uint on the device with a specific uint value.
+    static void FillVector(thrust::device_vector<uint>& vector, const uint& value);
+
+    /// Fills out a thrust vector of Real on the device with a specific Real value.
+    static void FillVector(thrust::device_vector<Real>& vector, const Real& value);
+
     /// Error check.
     static void Sync_CheckError(bool* isErrorH, bool* isErrorD, std::string crashReport);
 };

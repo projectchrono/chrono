@@ -58,10 +58,10 @@ CH_FSI_API void PrintFsiInfoToFile(const thrust::device_vector<Real3>& posRigidD
                                    const thrust::device_vector<Real3>& pos2DNodeD,
                                    const thrust::device_vector<Real3>& vel1DNodeD,
                                    const thrust::device_vector<Real3>& vel2DNodeD,
-                                   const thrust::host_vector<Real3>& forceRigid,
-                                   const thrust::host_vector<Real3>& torqueRigid,
-                                   const thrust::host_vector<Real3>& force1DNode,
-                                   const thrust::host_vector<Real3>& force2DNode,
+                                   const thrust::device_vector<Real3>& forceRigidD,
+                                   const thrust::device_vector<Real3>& torqueRigidD,
+                                   const thrust::device_vector<Real3>& force1DNodeD,
+                                   const thrust::device_vector<Real3>& force2DNodeD,
                                    const std::string& dir,
                                    const double time);
 
