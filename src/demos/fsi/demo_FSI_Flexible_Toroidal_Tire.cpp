@@ -86,7 +86,7 @@ double t_end = 10.0;
 
 // Output frequency
 bool output = true;
-double out_fps = 20;
+double output_fps = 20;
 
 // Enable/disable run-time visualization (if Chrono::OpenGL is available)
 bool render = true;
@@ -199,39 +199,39 @@ int main(int argc, char* argv[]) {
 
     // Simulation loop
     double dT = sysFSI.GetStepSize();
-
-    unsigned int output_steps = (unsigned int)round(1 / (out_fps * dT));
-    unsigned int render_steps = (unsigned int)round(1 / (render_fps * dT));
-
     double time = 0.0;
-    int current_step = 0;
+    int sim_frame = 0;
+    int out_frame = 0;
+    int render_frame = 0;
 
     ChTimer timer;
     timer.start();
     while (time < t_end) {
-        std::cout << current_step << " time: " << time << std::endl;
+        std::cout << sim_frame << " time: " << time << std::endl;
 
-        if (output && current_step % output_steps == 0) {
+        if (output && time >= out_frame / output_fps) {
             std::cout << "-------- Output" << std::endl;
             sysFSI.PrintParticleToFile(out_dir + "/particles");
             sysFSI.PrintFsiInfoToFile(out_dir + "/fsi", time);
             static int counter = 0;
             std::string filename = out_dir + "/vtk/flex_body." + std::to_string(counter++) + ".vtk";
             fea::ChMeshExporter::WriteFrame(mesh, out_dir + "/Flex_MESH.vtk", filename);
+            out_frame++;
         }
 
 #ifdef CHRONO_OPENGL
         // Render SPH particles
-        if (render && current_step % render_steps == 0) {
+        if (render && time >= render_frame / render_fps) {
             if (!fsi_vis.Render())
                 break;
+            render_frame++;
         }
 #endif
 
         sysFSI.DoStepDynamics_FSI();
 
         time += dT;
-        current_step++;
+        sim_frame++;
     }
     timer.stop();
     std::cout << "\nSimulation time: " << timer() << " seconds\n" << std::endl;
