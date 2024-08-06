@@ -269,6 +269,8 @@ set(CV_POVERTRAIN_FILES
     powertrain/ManualTransmissionShafts.cpp
         powertrain/ChAutomaticTransmissionSimpleCVT.cpp
         powertrain/ChAutomaticTransmissionSimpleCVT.h
+        powertrain/AutomaticTransmissionSimpleCVT.cpp
+        powertrain/AutomaticTransmissionSimpleCVT.h
 )
 source_group("powertrain" FILES ${CV_POVERTRAIN_FILES})
 

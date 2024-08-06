@@ -41,12 +41,6 @@ HMMWV_AutomaticTransmissionSimpleCVT::HMMWV_AutomaticTransmissionSimpleCVT(const
     SetOperationRange(omega_start, ratio_start, omega_end, ratio_end, eff);
 }
 
-void HMMWV_AutomaticTransmissionSimpleCVT::SetGearRatios(std::vector<double>& fwd, double& rev) {
-    // we must set dummy values for these unused values to pass the assertions in debug mode
-    rev = -1.0;
-    fwd.push_back(1.0);
-}
-
 }  // namespace hmmwv
 }  // namespace vehicle
 }  // namespace chrono

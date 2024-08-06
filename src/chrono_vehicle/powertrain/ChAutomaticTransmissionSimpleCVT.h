@@ -74,6 +74,9 @@ class CH_VEHICLE_API ChAutomaticTransmissionSimpleCVT : public ChAutomaticTransm
                            double gearbox_efficiency = 1.0  // optional efficency setting
     );
 
+    /// Set the transmission gear ratios (one or more forward gear ratios and a single reverse gear ratio).
+    virtual void SetGearRatios(std::vector<double>& fwd, double& rev) override;
+
   protected:
     ChAutomaticTransmissionSimpleCVT(const std::string& name);
 

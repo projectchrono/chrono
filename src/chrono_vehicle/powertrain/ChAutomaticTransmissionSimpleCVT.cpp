@@ -23,8 +23,7 @@ namespace chrono {
 namespace vehicle {
 
 ChAutomaticTransmissionSimpleCVT::ChAutomaticTransmissionSimpleCVT(const std::string& name)
-    : ChAutomaticTransmission(name), m_motorshaft_speed(0), m_driveshaft_torque(0) {
-}
+    : ChAutomaticTransmission(name), m_motorshaft_speed(0), m_driveshaft_torque(0) {}
 
 void ChAutomaticTransmissionSimpleCVT::Initialize(std::shared_ptr<ChChassis> chassis) {
     ChTransmission::Initialize(chassis);
@@ -78,7 +77,7 @@ void ChAutomaticTransmissionSimpleCVT::Synchronize(double time,
     m_motorshaft_speed = std::abs(driveshaft_speed) / m_current_gear_ratio;
 
     double sgn = 0.0;
-    switch(GetDriveMode()) {
+    switch (GetDriveMode()) {
         case DriveMode::FORWARD:
             sgn = 1.0;
             break;
@@ -91,6 +90,12 @@ void ChAutomaticTransmissionSimpleCVT::Synchronize(double time,
     }
     // Set torque at driveshaft (transmission output to the driveline)
     m_driveshaft_torque = sgn * m_efficiency * motorshaft_torque / m_current_gear_ratio;
+}
+
+void ChAutomaticTransmissionSimpleCVT::SetGearRatios(std::vector<double>& fwd, double& rev) {
+    // we must set dummy values for these unused values to pass the assertions in debug mode
+    rev = -1.0;
+    fwd.push_back(1.0);
 }
 
 }  // namespace vehicle

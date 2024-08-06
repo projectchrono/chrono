@@ -35,8 +35,6 @@ class CH_MODELS_API HMMWV_AutomaticTransmissionSimpleCVT : public ChAutomaticTra
   public:
     HMMWV_AutomaticTransmissionSimpleCVT(const std::string& name);
     ~HMMWV_AutomaticTransmissionSimpleCVT() {}
-    /// Set the transmission gear ratios (one or more forward gear ratios and a single reverse gear ratio).
-    virtual void SetGearRatios(std::vector<double>& fwd, double& rev) override;
 };
 
 }  // namespace hmmwv
