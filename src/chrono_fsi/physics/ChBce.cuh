@@ -61,33 +61,42 @@ class ChBce : public ChFsiBase {
     ~ChBce();
 
     /// Updates the position and velocity of the particles on the rigid bodies based on the state of the body.
-    void UpdateBodyMarkerState(std::shared_ptr<SphMarkerDataD> sphMarkers_D,
+    void UpdateBodyMarkerState(std::shared_ptr<FsiBodyStateD> fsiBodyState_D);
+
+    /// Updates the position and velocity of the particles on the flexible solids based on the state of the mesh.
+    void UpdateMeshMarker1DState(std::shared_ptr<FsiMeshStateD> fsiMesh1DState_D);
+    void UpdateMeshMarker2DState(std::shared_ptr<FsiMeshStateD> fsiMesh2DState_D);
+
+    /// Updates the position and velocity of the particles on the rigid bodies based on the state of the body.
+    void UpdateBodyMarkerStateInitial(std::shared_ptr<SphMarkerDataD> sphMarkers_D,
                                std::shared_ptr<FsiBodyStateD> fsiBodyState_D);
 
     /// Updates the position and velocity of the particles on the flexible solids based on the state of the mesh.
-    void UpdateMeshMarker1DState(std::shared_ptr<SphMarkerDataD> sphMarkers_D,
+    void UpdateMeshMarker1DStateInitial(std::shared_ptr<SphMarkerDataD> sphMarkers_D,
                                  std::shared_ptr<FsiMeshStateD> fsiMesh1DState_D);
-    void UpdateMeshMarker2DState(std::shared_ptr<SphMarkerDataD> sphMarkers_D,
+    void UpdateMeshMarker2DStateInitial(std::shared_ptr<SphMarkerDataD> sphMarkers_D,
                                  std::shared_ptr<FsiMeshStateD> fsiMesh2DState_D);
 
     /// Calculates the forces from the fluid/granular dynamics system to the FSI system on rigid bodies.
-    void Rigid_Forces_Torques(std::shared_ptr<SphMarkerDataD> sphMarkers_D,
-                              std::shared_ptr<FsiBodyStateD> fsiBodyState_D);
+    void Rigid_Forces_Torques(std::shared_ptr<FsiBodyStateD> fsiBodyState_D);
 
     /// Calculates the forces from the fluid/granular dynamics system to the FSI system on flexible bodies.
-    void Flex1D_Forces(std::shared_ptr<SphMarkerDataD> sphMarkers_D, std::shared_ptr<FsiMeshStateD> fsiMesh1DState_D);
-    void Flex2D_Forces(std::shared_ptr<SphMarkerDataD> sphMarkers_D, std::shared_ptr<FsiMeshStateD> fsiMesh2DState_D);
+    void Flex1D_Forces(std::shared_ptr<FsiMeshStateD> fsiMesh1DState_D);
+    void Flex2D_Forces(std::shared_ptr<FsiMeshStateD> fsiMesh2DState_D);
 
     void CalcMeshMarker1DAcceleration(thrust::device_vector<Real3>& bceAcc,
                                       std::shared_ptr<FsiMeshStateD> fsiMesh1DState_D);
     void CalcMeshMarker2DAcceleration(thrust::device_vector<Real3>& bceAcc,
                                       std::shared_ptr<FsiMeshStateD> fsiMesh2DState_D);
+    void updateBCEAcc(std::shared_ptr<FsiBodyStateD> fsiBodyState_D,
+                             std::shared_ptr<FsiMeshStateD> fsiMesh1DState_D,
+                             std::shared_ptr<FsiMeshStateD> fsiMesh2DState_D);
 
     /// Modify the velocity, pressure, stress of BCE particles according to the SPH particles around.
     void ModifyBceVelocityPressureStress(std::shared_ptr<SphMarkerDataD> sphMarkers_D,
-                                         std::shared_ptr<FsiBodyStateD> fsiBodyState_D,
-                                         std::shared_ptr<FsiMeshStateD> fsiMesh1DState_D,
-                                         std::shared_ptr<FsiMeshStateD> fsiMesh2DState_D);
+                                            std::shared_ptr<FsiBodyStateD> fsiBodyState_D,
+                                             std::shared_ptr<FsiMeshStateD> fsiMesh1DState_D,
+                                             std::shared_ptr<FsiMeshStateD> fsiMesh2DState_D);
 
     /// Populates the BCE particles on the rigid bodies at the initial configuration of the system.
     /// The local coordinates w.r.t to the coordinate system of the rigid bodies is saved and is used

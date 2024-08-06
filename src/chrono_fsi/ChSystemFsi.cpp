@@ -173,6 +173,7 @@ void ChSystemFsi::InitParams() {
 
     m_paramsH->use_default_limits = true;
     m_paramsH->use_init_pressure = false;
+    m_paramsH->numProximitySearchSteps = 4;
 }
 
 //--------------------------------------------------------------------------------------------------------------------------------
@@ -193,7 +194,7 @@ void ChSystemFsi::ReadParametersFromFile(const std::string& json_file) {
         return;
     }
 
-    char readBuffer[32768];
+    char readBuffer[65536];
     FileReadStream is(fp, readBuffer, sizeof(readBuffer));
     fclose(fp);
 
@@ -917,7 +918,8 @@ void ChSystemFsi::Initialize() {
         cout << "  densityReinit: " << m_paramsH->densityReinit << endl;
 
         cout << "  Adaptive_time_stepping: " << m_paramsH->Adaptive_time_stepping << endl;
-        cout << "  Co_number: " << m_paramsH->Co_number << endl;
+        cout << "Proximity search performed every " << m_paramsH->numProximitySearchSteps << " steps" << endl;
+             << "  Co_number: " << m_paramsH->Co_number << endl;
         cout << "  dT: " << m_paramsH->dT << endl;
         cout << "  INV_dT: " << m_paramsH->INV_dT << endl;
         cout << "  dT_Max: " << m_paramsH->dT_Max << endl;
@@ -1000,8 +1002,8 @@ void ChSystemFsi::Initialize() {
     m_sysFSI->fsiBodyState2_D = m_sysFSI->fsiBodyState1_D;
 
     // Create BCE and SPH worker objects
-    m_bce_manager = chrono_types::make_shared<ChBce>(m_sysFSI->sortedSphMarkers_D, m_sysFSI->markersProximity_D,
-                                                     m_sysFSI->fsiData, m_paramsH, m_sysFSI->numObjectsH, m_verbose);
+    m_bce_manager = chrono_types::make_shared<ChBce>(m_sysFSI->sortedSphMarkers2_D, m_sysFSI->markersProximityD,
+                                                     m_sysFSI->fsiGeneralData, m_paramsH, m_num_objectsH, m_verbose);
 
     switch (m_paramsH->fluid_dynamic_type) {
         case FluidDynamics::IISPH:
@@ -1019,7 +1021,7 @@ void ChSystemFsi::Initialize() {
     m_fluid_dynamics->GetForceSystem()->SetLinearSolver(m_paramsH->LinearSolver);
 
     // Initialize worker objects
-    m_bce_manager->Initialize(m_sysFSI->sphMarkers1_D,                                 //
+    m_bce_manager->Initialize(m_sysFSI->sphMarkersD,                                 //
                               m_sysFSI->fsiBodyState1_D,                               //
                               m_sysFSI->fsiMesh1DState_D, m_sysFSI->fsiMesh2DState_D,  //
                               m_fsi_bodies_bce_num);
@@ -1032,17 +1034,17 @@ void ChSystemFsi::Initialize() {
 //--------------------------------------------------------------------------------------------------------------------------------
 
 void ChSystemFsi::CopyDeviceDataToHalfStep() {
-    thrust::copy(m_sysFSI->sphMarkers2_D->posRadD.begin(), m_sysFSI->sphMarkers2_D->posRadD.end(),
-                 m_sysFSI->sphMarkers1_D->posRadD.begin());
-    thrust::copy(m_sysFSI->sphMarkers2_D->velMasD.begin(), m_sysFSI->sphMarkers2_D->velMasD.end(),
-                 m_sysFSI->sphMarkers1_D->velMasD.begin());
-    thrust::copy(m_sysFSI->sphMarkers2_D->rhoPresMuD.begin(), m_sysFSI->sphMarkers2_D->rhoPresMuD.end(),
-                 m_sysFSI->sphMarkers1_D->rhoPresMuD.begin());
+    thrust::copy(m_sysFSI->sortedSphMarkers2_D->posRadD.begin(), m_sysFSI->sortedSphMarkers2_D->posRadD.end(),
+                 m_sysFSI->sortedSphMarkers1_D->posRadD.begin());
+    thrust::copy(m_sysFSI->sortedSphMarkers2_D->velMasD.begin(), m_sysFSI->sortedSphMarkers2_D->velMasD.end(),
+                 m_sysFSI->sortedSphMarkers1_D->velMasD.begin());
+    thrust::copy(m_sysFSI->sortedSphMarkers2_D->rhoPresMuD.begin(), m_sysFSI->sortedSphMarkers2_D->rhoPresMuD.end(),
+                 m_sysFSI->sortedSphMarkers1_D->rhoPresMuD.begin());
     if (m_paramsH->elastic_SPH) {
-        thrust::copy(m_sysFSI->sphMarkers2_D->tauXxYyZzD.begin(), m_sysFSI->sphMarkers2_D->tauXxYyZzD.end(),
-                     m_sysFSI->sphMarkers1_D->tauXxYyZzD.begin());
-        thrust::copy(m_sysFSI->sphMarkers2_D->tauXyXzYzD.begin(), m_sysFSI->sphMarkers2_D->tauXyXzYzD.end(),
-                     m_sysFSI->sphMarkers1_D->tauXyXzYzD.begin());
+        thrust::copy(m_sysFSI->sortedSphMarkers2_D->tauXxYyZzD.begin(), m_sysFSI->sortedSphMarkers2_D->tauXxYyZzD.end(),
+                     m_sysFSI->sortedSphMarkers1_D->tauXxYyZzD.begin());
+        thrust::copy(m_sysFSI->sortedSphMarkers2_D->tauXyXzYzD.begin(), m_sysFSI->sortedSphMarkers2_D->tauXyXzYzD.end(),
+                     m_sysFSI->sortedSphMarkers1_D->tauXyXzYzD.begin());
     }
 }
 
@@ -1058,26 +1060,33 @@ void ChSystemFsi::DoStepDynamics_FSI() {
     m_timer_step.start();
 
     if (m_fluid_dynamics->GetIntegratorType() == TimeIntegrator::EXPLICITSPH) {
+        if (m_time < 1e-6 || int(round(m_time / m_paramsH->dT)) % m_paramsH->numProximitySearchSteps == 0) {
+            m_fluid_dynamics->SortParticles();
+        }
         // The following is used to execute the Explicit WCSPH
         CopyDeviceDataToHalfStep();
-        thrust::copy(m_sysFSI->fsiData->derivVelRhoD.begin(), m_sysFSI->fsiData->derivVelRhoD.end(),
-                     m_sysFSI->fsiData->derivVelRhoD_old.begin());
         ChUtilsDevice::FillVector(m_sysFSI->fsiData->derivVelRhoD, mR4(0));
+        // TODO (Huzaifa): Unsure if these required to be set to 0
+        ChUtilsDevice::FillVector(m_sysFSI->fsiGeneralData->sr_tau_I_mu_i, mR4(0));
+        ChUtilsDevice::FillVector(m_sysFSI->fsiGeneralData->freeSurfaceIdD, 0);
+        ChUtilsDevice::FillVector(m_sysFSI->fsiGeneralData->derivTauXxYyZzD, mR3(0));
+        ChUtilsDevice::FillVector(m_sysFSI->fsiGeneralData->derivTauXyXzYzD, mR3(0));
+        ChUtilsDevice::FillVector(m_sysFSI->fsiGeneralData->vel_XSPH_D, mR3(0));
 
         if (m_integrate_SPH) {
-            m_fluid_dynamics->IntegrateSPH(m_sysFSI->sphMarkers2_D, m_sysFSI->sphMarkers1_D,        //
+            m_fluid_dynamics->IntegrateSPH(m_sysFSI->sortedSphMarkers2_D, m_sysFSI->sortedSphMarkers1_D,        //
                                            m_sysFSI->fsiBodyState2_D,                               //
                                            m_sysFSI->fsiMesh1DState_D, m_sysFSI->fsiMesh2DState_D,  //
                                            0.5 * m_paramsH->dT, m_time);
-            m_fluid_dynamics->IntegrateSPH(m_sysFSI->sphMarkers1_D, m_sysFSI->sphMarkers2_D,        //
+            m_fluid_dynamics->IntegrateSPH(m_sysFSI->sortedSphMarkers1_D, m_sysFSI->sortedSphMarkers2_D,        //
                                            m_sysFSI->fsiBodyState2_D,                               //
                                            m_sysFSI->fsiMesh1DState_D, m_sysFSI->fsiMesh2DState_D,  //
                                            1.0 * m_paramsH->dT, m_time);
         }
 
-        m_bce_manager->Rigid_Forces_Torques(m_sysFSI->sphMarkers2_D, m_sysFSI->fsiBodyState2_D);
-        m_bce_manager->Flex1D_Forces(m_sysFSI->sphMarkers2_D, m_sysFSI->fsiMesh1DState_D);
-        m_bce_manager->Flex2D_Forces(m_sysFSI->sphMarkers2_D, m_sysFSI->fsiMesh2DState_D);
+        m_bce_manager->Rigid_Forces_Torques(m_sysFSI->fsiBodyState2_D);
+        m_bce_manager->Flex1D_Forces(m_sysFSI->fsiMesh1DState_D);
+        m_bce_manager->Flex2D_Forces(m_sysFSI->fsiMesh2DState_D);
 
         // Advance dynamics of the associated MBS system (if provided)
         if (m_sysMBS) {
@@ -1100,13 +1109,15 @@ void ChSystemFsi::DoStepDynamics_FSI() {
         }
 
         m_fsi_interface->LoadBodyState_Chrono2Fsi(m_sysFSI->fsiBodyState2_D);
-        m_bce_manager->UpdateBodyMarkerState(m_sysFSI->sphMarkers2_D, m_sysFSI->fsiBodyState2_D);
+        m_bce_manager->UpdateBodyMarkerState(m_sysFSI->fsiBodyState2_D);
 
         m_fsi_interface->LoadMesh1DState_Chrono2Fsi(m_sysFSI->fsiMesh1DState_D);
-        m_bce_manager->UpdateMeshMarker1DState(m_sysFSI->sphMarkers2_D, m_sysFSI->fsiMesh1DState_D);
+        m_bce_manager->UpdateMeshMarker1DState(m_sysFSI->fsiMesh1DState_D);
 
         m_fsi_interface->LoadMesh2DState_Chrono2Fsi(m_sysFSI->fsiMesh2DState_D);
-        m_bce_manager->UpdateMeshMarker2DState(m_sysFSI->sphMarkers2_D, m_sysFSI->fsiMesh2DState_D);
+        m_bce_manager->UpdateMeshMarker2DState(m_sysFSI->fsiMesh2DState_D);
+        m_fluid_dynamics->CopySortedToOriginal(m_sysFSI->sortedSphMarkers2_D, m_sysFSI->sphMarkersD);
+
     } else {
         // A different coupling scheme is used for implicit SPH formulations
         if (m_integrate_SPH) {
@@ -1116,9 +1127,9 @@ void ChSystemFsi::DoStepDynamics_FSI() {
                                            0.0, m_time);
         }
 
-        m_bce_manager->Rigid_Forces_Torques(m_sysFSI->sphMarkers2_D, m_sysFSI->fsiBodyState2_D);
-        m_bce_manager->Flex1D_Forces(m_sysFSI->sphMarkers2_D, m_sysFSI->fsiMesh1DState_D);
-        m_bce_manager->Flex2D_Forces(m_sysFSI->sphMarkers2_D, m_sysFSI->fsiMesh2DState_D);
+        m_bce_manager->Rigid_Forces_Torques(m_sysFSI->fsiBodyState2_D);
+        m_bce_manager->Flex1D_Forces(m_sysFSI->fsiMesh1DState_D);
+        m_bce_manager->Flex2D_Forces(m_sysFSI->fsiMesh2DState_D);
 
         // Advance dynamics of the associated MBS system (if provided)
         if (m_sysMBS) {
@@ -1143,13 +1154,15 @@ void ChSystemFsi::DoStepDynamics_FSI() {
         }
 
         m_fsi_interface->LoadBodyState_Chrono2Fsi(m_sysFSI->fsiBodyState2_D);
-        m_bce_manager->UpdateBodyMarkerState(m_sysFSI->sphMarkers2_D, m_sysFSI->fsiBodyState2_D);
+        m_bce_manager->UpdateBodyMarkerState(m_sysFSI->fsiBodyState2_D);
 
         m_fsi_interface->LoadMesh1DState_Chrono2Fsi(m_sysFSI->fsiMesh1DState_D);
-        m_bce_manager->UpdateMeshMarker1DState(m_sysFSI->sphMarkers2_D, m_sysFSI->fsiMesh1DState_D);
+        m_bce_manager->UpdateMeshMarker1DState(m_sysFSI->fsiMesh1DState_D);
 
         m_fsi_interface->LoadMesh2DState_Chrono2Fsi(m_sysFSI->fsiMesh2DState_D);
-        m_bce_manager->UpdateMeshMarker2DState(m_sysFSI->sphMarkers2_D, m_sysFSI->fsiMesh2DState_D);
+        m_bce_manager->UpdateMeshMarker2DState(m_sysFSI->fsiMesh2DState_D);
+
+        m_fluid_dynamics->CopySortedToOriginal(m_sysFSI->sortedSphMarkers2_D, m_sysFSI->sphMarkersD);
     }
 
     m_time += m_paramsH->dT;
@@ -1164,18 +1177,18 @@ void ChSystemFsi::DoStepDynamics_FSI() {
 
 void ChSystemFsi::WriteParticleFile(const std::string& outfilename) const {
     if (m_write_mode == OutputMode::CSV) {
-        utils::WriteCsvParticlesToFile(m_sysFSI->sphMarkers2_D->posRadD, m_sysFSI->sphMarkers2_D->velMasD,
-                                       m_sysFSI->sphMarkers2_D->rhoPresMuD, m_sysFSI->fsiData->referenceArray,
+        utils::WriteCsvParticlesToFile(m_sysFSI->sphMarkersD->posRadD, m_sysFSI->sphMarkersD->velMasD,
+                                       m_sysFSI->sphMarkersD->rhoPresMuD, m_sysFSI->fsiData->referenceArray,
                                        outfilename);
     } else if (m_write_mode == OutputMode::CHPF) {
-        utils::WriteChPFParticlesToFile(m_sysFSI->sphMarkers2_D->posRadD, m_sysFSI->fsiData->referenceArray,
+        utils::WriteChPFParticlesToFile(m_sysFSI->sphMarkersD->posRadD, m_sysFSI->fsiData->referenceArray,
                                         outfilename);
     }
 }
 
 void ChSystemFsi::PrintParticleToFile(const std::string& dir) const {
-    utils::PrintParticleToFile(m_sysFSI->sphMarkers2_D->posRadD, m_sysFSI->sphMarkers2_D->velMasD,
-                               m_sysFSI->sphMarkers2_D->rhoPresMuD, m_sysFSI->fsiData->sr_tau_I_mu_i,
+    utils::PrintParticleToFile(m_sysFSI->sphMarkersD->posRadD, m_sysFSI->sphMarkersD->velMasD,
+                               m_sysFSI->sphMarkersD->rhoPresMuD, m_sysFSI->fsiData->sr_tau_I_mu_i,
                                m_sysFSI->fsiData->derivVelRhoD, m_sysFSI->fsiData->referenceArray,
                                m_sysFSI->fsiData->referenceArray_FEA, dir, m_paramsH);
 }
@@ -2119,7 +2132,7 @@ std::vector<std::shared_ptr<ChBody>>& ChSystemFsi::GetFsiBodies() const {
 //--------------------------------------------------------------------------------------------------------------------------------
 
 std::vector<ChVector3d> ChSystemFsi::GetParticlePositions() const {
-    thrust::host_vector<Real4> posRadH = m_sysFSI->sphMarkers2_D->posRadD;
+    thrust::host_vector<Real4> posRadH = m_sysFSI->sphMarkersD->posRadD;
     std::vector<ChVector3d> pos;
 
     for (size_t i = 0; i < posRadH.size(); i++) {
@@ -2129,7 +2142,7 @@ std::vector<ChVector3d> ChSystemFsi::GetParticlePositions() const {
 }
 
 std::vector<ChVector3d> ChSystemFsi::GetParticleFluidProperties() const {
-    thrust::host_vector<Real4> rhoPresMuH = m_sysFSI->sphMarkers2_D->rhoPresMuD;
+    thrust::host_vector<Real4> rhoPresMuH = m_sysFSI->sphMarkersD->rhoPresMuD;
     std::vector<ChVector3d> props;
 
     for (size_t i = 0; i < rhoPresMuH.size(); i++) {
@@ -2139,7 +2152,7 @@ std::vector<ChVector3d> ChSystemFsi::GetParticleFluidProperties() const {
 }
 
 std::vector<ChVector3d> ChSystemFsi::GetParticleVelocities() const {
-    thrust::host_vector<Real3> velH = m_sysFSI->sphMarkers2_D->velMasD;
+    thrust::host_vector<Real3> velH = m_sysFSI->sphMarkersD->velMasD;
     std::vector<ChVector3d> vel;
 
     for (size_t i = 0; i < velH.size(); i++) {
