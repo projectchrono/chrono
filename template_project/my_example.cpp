@@ -99,7 +99,7 @@ int main(int argc, char* argv[]) {
         vis.Render();
         vis.EndScene();
 
-        // Perform the integration stpe
+        // Perform the integration step
         sys.DoStepDynamics(step_size);
 
         // Spin in place to maintain soft real-time
