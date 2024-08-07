@@ -127,6 +127,9 @@ class ChApi ChLinkMateGeneric : public ChLinkMate {
     virtual unsigned int GetNumConstraintsBilateral() override { return m_num_constr_bil; }
     virtual unsigned int GetNumConstraintsUnilateral() override { return m_num_constr_uni; }
 
+    /// Return link mask.
+    ChLinkMask& GetLinkMask() { return mask; }
+
     // LINK VIOLATIONS
     // Get the constraint violations, i.e. the residual of the constraint equations and their time derivatives (TODO)
 
