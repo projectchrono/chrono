@@ -47,7 +47,6 @@ class ChFluidDynamics : public ChFsiBase {
                     ChSystemFsi_impl& sysFSI,                ///< implementatin FSI system
                     std::shared_ptr<SimParams> params,       ///< simulation parameters
                     std::shared_ptr<ChCounters> numObjects,  ///< problem counters
-                    TimeIntegrator otherIntegrator,          ///< integration type (only for ISPH)
                     bool verb                                ///< verbose output
     );
 
@@ -81,16 +80,12 @@ class ChFluidDynamics : public ChFsiBase {
     /// This function needs to be called once the host data are modified.
     void Initialize();
 
-    /// Return the integrator type used in the simulation.
-    TimeIntegrator GetIntegratorType() { return integrator_type; }
-
     /// Return the ChFsiForce type used in the simulation.
     std::shared_ptr<ChFsiForce> GetForceSystem() { return forceSystem; }
 
   protected:
     ChSystemFsi_impl& fsiSystem;              ///< FSI data; values are maintained externally
     std::shared_ptr<ChFsiForce> forceSystem;  ///< force system object; calculates the force between particles
-    TimeIntegrator integrator_type;           ///< integrator type
 
     bool verbose;
 

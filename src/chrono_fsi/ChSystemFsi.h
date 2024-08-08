@@ -549,7 +549,6 @@ class CH_FSI_API ChSystemFsi {
     ChSystem* m_sysMBS;  ///< multibody system
 
     std::shared_ptr<SimParams> m_paramsH;  ///< pointer to the simulation parameters
-    TimeIntegrator fluidIntegrator;        ///< 
 
     bool m_verbose;           ///< enable/disable m_verbose terminal output (default: true)
     std::string m_outdir;     ///< output directory

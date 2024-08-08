@@ -74,9 +74,6 @@ enum class FrictionLaw { CONSTANT, LINEAR, NONLINEAR };
 /// Dynamics solver type for fluid/granular
 enum class FluidDynamics { I2SPH, WCSPH };
 
-/// Time integration method
-enum class TimeIntegrator { EXPLICITSPH, I2SPH };
-
 /// Linear solver type
 enum class SolverType { JACOBI, BICGSTAB, GMRES, CR, CG, SAP };
 

@@ -560,14 +560,13 @@ ChFluidDynamics::ChFluidDynamics(std::shared_ptr<ChBce> otherBceWorker,
                                  ChSystemFsi_impl& otherFsiSystem,
                                  std::shared_ptr<SimParams> otherParamsH,
                                  std::shared_ptr<ChCounters> otherNumObjects,
-                                 TimeIntegrator type,
                                  bool verb)
-    : ChFsiBase(otherParamsH, otherNumObjects), fsiSystem(otherFsiSystem), integrator_type(type), verbose(verb) {
-    switch (integrator_type) {
+    : ChFsiBase(otherParamsH, otherNumObjects), fsiSystem(otherFsiSystem), verbose(verb) {
+    switch (paramsH->fluid_dynamic_type) {
         default:
             cout << "Selected integrator type not implemented, reverting to WCSPH" << endl;
 
-        case TimeIntegrator::EXPLICITSPH:
+        case FluidDynamics::WCSPH:
             forceSystem = chrono_types::make_shared<ChFsiForceExplicitSPH>(
                 otherBceWorker, fsiSystem.sortedSphMarkers_D, fsiSystem.markersProximity_D, fsiSystem.fsiData, paramsH,
                 numObjectsH, verb);
@@ -577,7 +576,7 @@ ChFluidDynamics::ChFluidDynamics(std::shared_ptr<ChBce> otherBceWorker,
 
             break;
 
-        case TimeIntegrator::I2SPH:
+        case FluidDynamics::I2SPH:
             forceSystem = chrono_types::make_shared<ChFsiForceI2SPH>(otherBceWorker, fsiSystem.sortedSphMarkers_D,
                                                                      fsiSystem.markersProximity_D, fsiSystem.fsiData,
                                                                      paramsH, numObjectsH, verb);
@@ -608,16 +607,17 @@ void ChFluidDynamics::IntegrateSPH(std::shared_ptr<SphMarkerDataD> sphMarkers2_D
                                    std::shared_ptr<FsiMeshStateD> fsiMesh2DState_D,
                                    Real dT,
                                    Real time) {
-    if (GetIntegratorType() == TimeIntegrator::EXPLICITSPH) {
-        this->UpdateActivity(sphMarkers1_D, sphMarkers2_D, fsiBodyState_D, fsiMesh1DState_D, fsiMesh2DState_D, time);
+    if (paramsH->fluid_dynamic_type == FluidDynamics::WCSPH) {
+        // Explicit SPH
+        UpdateActivity(sphMarkers1_D, sphMarkers2_D, fsiBodyState_D, fsiMesh1DState_D, fsiMesh2DState_D, time);
         forceSystem->ForceSPH(sphMarkers2_D, fsiBodyState_D, fsiMesh1DState_D, fsiMesh2DState_D);
-    } else
+        UpdateFluid(sphMarkers1_D, dT);
+    } else {
+        // Implicit SPH
         forceSystem->ForceSPH(sphMarkers1_D, fsiBodyState_D, fsiMesh1DState_D, fsiMesh2DState_D);
+    }
 
-    if (GetIntegratorType() == TimeIntegrator::EXPLICITSPH)
-        this->UpdateFluid(sphMarkers1_D, dT);
-
-    this->ApplyBoundarySPH_Markers(sphMarkers2_D);
+    ApplyBoundarySPH_Markers(sphMarkers2_D);
 }
 
 // -----------------------------------------------------------------------------
