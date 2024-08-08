@@ -83,11 +83,9 @@ __global__ void CalcRigidForces_D(Real3* rigid_FSI_ForcesD,
     Real3 Force;
     if (paramsD.fluid_dynamic_type == FluidDynamics::WCSPH) {
         Force = (mR3(derivVelRhoD[rigidMarkerIndex]) * paramsD.Beta +
-                      mR3(derivVelRhoD_old[rigidMarkerIndex]) * (1 - paramsD.Beta)) * paramsD.markerMass;
-        
-    }
-    // TODO: check IISPH
-    else {
+                 mR3(derivVelRhoD_old[rigidMarkerIndex]) * (1 - paramsD.Beta)) *
+                paramsD.markerMass;
+    } else {
         Force = mR3(derivVelRhoD[rigidMarkerIndex]) * paramsD.Beta +
                 mR3(derivVelRhoD_old[rigidMarkerIndex]) * (1 - paramsD.Beta);
     }

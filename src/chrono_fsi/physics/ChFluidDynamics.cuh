@@ -23,10 +23,7 @@
 #include "chrono_fsi/utils/ChUtilsDevice.cuh"
 #include "chrono_fsi/physics/ChFsiForceExplicitSPH.cuh"
 #include "chrono_fsi/physics/ChFsiForceI2SPH.cuh"
-#include "chrono_fsi/physics/ChFsiForceIISPH.cuh"
 #include "chrono_fsi/physics/ChSystemFsi_impl.cuh"
-
-using chrono::fsi::TimeIntegrator;
 
 namespace chrono {
 namespace fsi {
@@ -108,9 +105,6 @@ class ChFluidDynamics : public ChFsiBase {
 
     /// Update SPH particles data for explicit integration.
     void UpdateFluid(std::shared_ptr<SphMarkerDataD> sphMarkersD, Real dT);
-
-    /// Update SPH particles data for implicit integration.
-    void UpdateFluid_Implicit(std::shared_ptr<SphMarkerDataD> sphMarkersD);
 
     /// Apply periodic boundary to the normal SPH particles.
     void ApplyBoundarySPH_Markers(std::shared_ptr<SphMarkerDataD> sphMarkersD);

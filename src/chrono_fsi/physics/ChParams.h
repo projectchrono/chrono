@@ -43,7 +43,7 @@ namespace fsi {
 
 /// Structure with FSI simulation parameters.
 struct SimParams {
-    FluidDynamics fluid_dynamic_type;  ///< Type of SPH mehtod (WCSPH, IISPH, or I2SPH)
+    FluidDynamics fluid_dynamic_type;  ///< Type of SPH mehtod (WCSPH, or I2SPH)
     int output_length;  ///< Output length (0:short, 1:middle, 2:long) information of SPH particles into data files
 
     int3 gridSize;          ///< dx, dy, dz distances between particle centers.
@@ -155,11 +155,11 @@ struct SimParams {
                                         ///< omega relaxation in the pressure equation, something less than 0.5 is
                                         ///< necessary for Jacobi solver
     Real PPE_relaxation;                ///< PPE_relaxation
-    bool ClampPressure;  ///< Clamp pressure to 0 if negative, based on the IISPH paper by Ihmsen et al. (2013)
+    bool ClampPressure;  ///< Clamp pressure to 0 if negative, based on the ISPH paper by Ihmsen et al. (2013)
     Real IncompressibilityFactor;  ///< Incompressibility factor, default = 1
     Real Cs;                       ///< Speed of sound.
 
-    bool Adaptive_time_stepping;  ///< Works only with IISPH for now, use Co_number can be used as the criteria for
+    bool Adaptive_time_stepping;  ///< Works only with ISPH for now, use Co_number can be used as the criteria for
                                   ///< adaptivity. dT_Max is set either from the Co_number, or the time step the is
                                   ///< required for outputting data
     bool Apply_BC_U;              ///< This option lets you apply a velocity BC on the BCE markers

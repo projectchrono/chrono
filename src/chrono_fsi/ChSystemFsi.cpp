@@ -238,8 +238,6 @@ void ChSystemFsi::ReadParametersFromFile(const std::string& json_file) {
                 cout << "Modeling method is: " << SPH << endl;
             if (SPH == "I2SPH")
                 m_paramsH->fluid_dynamic_type = FluidDynamics::I2SPH;
-            else if (SPH == "IISPH")
-                m_paramsH->fluid_dynamic_type = FluidDynamics::IISPH;
             else if (SPH == "WCSPH")
                 m_paramsH->fluid_dynamic_type = FluidDynamics::WCSPH;
             else {
@@ -701,8 +699,6 @@ std::string ChSystemFsi::GetSphSolverTypeString() const {
     switch (m_paramsH->fluid_dynamic_type) {
         case FluidDynamics::WCSPH:
             return "WCSPH";
-        case FluidDynamics::IISPH:
-            return "IISPH";
         case FluidDynamics::I2SPH:
             return "I2SPH";
     }
@@ -1004,9 +1000,6 @@ void ChSystemFsi::Initialize() {
                                                      m_sysFSI->fsiData, m_paramsH, m_sysFSI->numObjectsH, m_verbose);
 
     switch (m_paramsH->fluid_dynamic_type) {
-        case FluidDynamics::IISPH:
-            fluidIntegrator = TimeIntegrator::IISPH;
-            break;
         case FluidDynamics::WCSPH:
             fluidIntegrator = TimeIntegrator::EXPLICITSPH;
             break;

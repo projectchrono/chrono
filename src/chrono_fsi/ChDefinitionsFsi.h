@@ -68,16 +68,14 @@ enum class PPESolutionType { MATRIX_FREE, FORM_SPARSE_MATRIX };
 /// Rheology type
 enum class Rheology { INERTIA_RHEOLOGY, NONLOCAL_FLUIDITY };
 
-////enum fluidity_model { frictional_plasticity, Inertia_rheology, nonlocal_fluidity };
-
 /// Friction law in ISPH
 enum class FrictionLaw { CONSTANT, LINEAR, NONLINEAR };
 
 /// Dynamics solver type for fluid/granular
-enum class FluidDynamics { IISPH, I2SPH, WCSPH };
+enum class FluidDynamics { I2SPH, WCSPH };
 
 /// Time integration method
-enum class TimeIntegrator { EXPLICITSPH, IISPH, I2SPH };
+enum class TimeIntegrator { EXPLICITSPH, I2SPH };
 
 /// Linear solver type
 enum class SolverType { JACOBI, BICGSTAB, GMRES, CR, CG, SAP };
