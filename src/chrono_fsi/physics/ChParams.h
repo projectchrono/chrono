@@ -209,6 +209,7 @@ struct SimParams {
     Real settlingTime;       ///< Time for the granular to settle down
 
     int numProximitySearchSteps;  ///< Proximity search is performed every "numProximitySearchSteps" time steps
+    bool sharedProximitySearch;   ///< Use shared memory for proximity search
 };
 
 /// @} fsi_physics

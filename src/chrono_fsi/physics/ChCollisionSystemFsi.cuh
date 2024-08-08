@@ -35,6 +35,7 @@ class ChCollisionSystemFsi : public ChFsiBase {
     ChCollisionSystemFsi(
         std::shared_ptr<SphMarkerDataD> sortedSphMarkers_D,  ///< Information of the particles in the sorted array
         std::shared_ptr<ProximityDataD> markersProximity_D,  ///< Proximity information of the system
+        std::shared_ptr<ProximityDataD> markersProximityWide_D, ///< Proximity information for the grid of subdomains - needed if shared memory is used for proximity search
         std::shared_ptr<FsiData> fsiData,                   ///< Pointer to the SPH general data
         std::shared_ptr<SimParams> paramsH,                 ///< Parameters of the simulation
         std::shared_ptr<ChCounters> numObjects              ///< Size of different objects in the system
@@ -53,11 +54,9 @@ class ChCollisionSystemFsi : public ChFsiBase {
     std::shared_ptr<SphMarkerDataD> m_sphMarkersD;        ///< Information of the particles in the original array
     std::shared_ptr<SphMarkerDataD> m_sortedSphMarkersD;  ///< Information of the particles in the sorted array
     std::shared_ptr<ProximityDataD> m_markersProximityD;  ///< Proximity information of the system
+    std::shared_ptr<ProximityDataD> m_markersProximityWideD; ///< Proximity information for the grid of subdomains - needed if shared memory is used for proximity search
     std::shared_ptr<FsiData> m_fsiData;                   ///< Pointer to the SPH general data
 
-    /// calcHash is the wrapper function for calcHashD. calcHashD is a kernel
-    /// function, which means that all the code in it is executed in parallel on the GPU.
-    void calcHash();
 };
 
 /// @} fsi_collision

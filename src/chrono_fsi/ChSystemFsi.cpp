@@ -174,6 +174,7 @@ void ChSystemFsi::InitParams() {
     m_paramsH->use_default_limits = true;
     m_paramsH->use_init_pressure = false;
     m_paramsH->numProximitySearchSteps = 4;
+    m_paramsH->sharedProximitySearch = false;
 }
 
 //--------------------------------------------------------------------------------------------------------------------------------
@@ -310,6 +311,12 @@ void ChSystemFsi::ReadParametersFromFile(const std::string& json_file) {
 
         if (doc["Time Stepping"].HasMember("Maximum time step"))
             m_paramsH->dT_Max = doc["Time Stepping"]["Maximum time step"].GetDouble();
+
+        if (doc["Time Stepping"].HasMember("Use shared memory for proximity search"))
+            m_paramsH->sharedProximitySearch = doc["Time Stepping"]["Use shared memory for proximity search"].GetBool();
+
+        if (doc["Time Stepping"].HasMember("Time steps per proximity search"))
+            m_paramsH->numProximitySearchSteps = doc["Time Stepping"]["Time steps per proximity search"].GetInt();
     }
 
     if (doc.HasMember("Pressure Equation")) {
@@ -919,7 +926,8 @@ void ChSystemFsi::Initialize() {
 
         cout << "  Adaptive_time_stepping: " << m_paramsH->Adaptive_time_stepping << endl;
         cout << "Proximity search performed every " << m_paramsH->numProximitySearchSteps << " steps" << endl;
-             << "  Co_number: " << m_paramsH->Co_number << endl;
+        cout << "Is shared memory used for proximity search? " << m_paramsH->sharedProximitySearch << endl;
+        cout << "  Co_number: " << m_paramsH->Co_number << endl;
         cout << "  dT: " << m_paramsH->dT << endl;
         cout << "  INV_dT: " << m_paramsH->INV_dT << endl;
         cout << "  dT_Max: " << m_paramsH->dT_Max << endl;
