@@ -15,6 +15,7 @@
 #include <cassert>
 #include <cstdlib>
 #include <ctime>
+#include <iomanip>
 
 #include "chrono/physics/ChSystemNSC.h"
 
