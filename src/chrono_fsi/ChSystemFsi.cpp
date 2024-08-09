@@ -106,7 +106,7 @@ void ChSystemFsi::InitParams() {
     m_paramsH->L_Characteristic = Real(1.0);
 
     // SPH parameters
-    m_paramsH->fluid_dynamic_type = FluidDynamics::WCSPH;
+    m_paramsH->sph_method = SPHMethod::WCSPH;
     m_paramsH->HSML = Real(0.01);
     m_paramsH->INVHSML = 1 / m_paramsH->HSML;
     m_paramsH->INITSPACE = m_paramsH->HSML;
@@ -121,7 +121,7 @@ void ChSystemFsi::InitParams() {
     m_paramsH->laplacian_type = 0;
     m_paramsH->USE_Consistent_L = false;
     m_paramsH->USE_Consistent_G = false;
-    
+
     m_paramsH->epsMinMarkersDis = 0.01;
 
     m_paramsH->markerMass = m_paramsH->volume0 * m_paramsH->rho0;
@@ -237,13 +237,13 @@ void ChSystemFsi::ReadParametersFromFile(const std::string& json_file) {
             if (m_verbose)
                 cout << "Modeling method is: " << SPH << endl;
             if (SPH == "I2SPH")
-                m_paramsH->fluid_dynamic_type = FluidDynamics::I2SPH;
+                m_paramsH->sph_method = SPHMethod::I2SPH;
             else if (SPH == "WCSPH")
-                m_paramsH->fluid_dynamic_type = FluidDynamics::WCSPH;
+                m_paramsH->sph_method = SPHMethod::WCSPH;
             else {
                 cerr << "Incorrect SPH method in the JSON file: " << SPH << endl;
                 cerr << "Falling back to WCSPH " << endl;
-                m_paramsH->fluid_dynamic_type = FluidDynamics::WCSPH;
+                m_paramsH->sph_method = SPHMethod::WCSPH;
             }
         }
 
@@ -493,8 +493,8 @@ void ChSystemFsi::SetSPHLinearSolver(SolverType lin_solver) {
     m_paramsH->LinearSolver = lin_solver;
 }
 
-void ChSystemFsi::SetSPHMethod(FluidDynamics SPH_method, SolverType lin_solver) {
-    m_paramsH->fluid_dynamic_type = SPH_method;
+void ChSystemFsi::SetSPHMethod(SPHMethod SPH_method, SolverType lin_solver) {
+    m_paramsH->sph_method = SPH_method;
     m_paramsH->LinearSolver = lin_solver;
 }
 
@@ -649,7 +649,7 @@ void ChSystemFsi::SetElasticSPH(const ElasticMaterialProperties& mat_props) {
 }
 
 ChSystemFsi::SPHParameters::SPHParameters()
-    : sph_solver(FluidDynamics::WCSPH),
+    : sph_method(SPHMethod::WCSPH),
       lin_solver(SolverType::BICGSTAB),
       kernel_h(0.01),
       initial_spacing(0.01),
@@ -663,7 +663,7 @@ ChSystemFsi::SPHParameters::SPHParameters()
       kernel_threshold(0.8) {}
 
 void ChSystemFsi::SetSPHParameters(const SPHParameters& sph_params) {
-    m_paramsH->fluid_dynamic_type = sph_params.sph_solver;
+    m_paramsH->sph_method = sph_params.sph_method;
     m_paramsH->LinearSolver = sph_params.lin_solver;
 
     m_paramsH->HSML = sph_params.kernel_h;
@@ -695,11 +695,11 @@ std::string ChSystemFsi::GetPhysicsProblemString() const {
     return (m_paramsH->elastic_SPH ? "CRM" : "CFD");
 }
 
-std::string ChSystemFsi::GetSphSolverTypeString() const {
-    switch (m_paramsH->fluid_dynamic_type) {
-        case FluidDynamics::WCSPH:
+std::string ChSystemFsi::GetSphMethodTypeString() const {
+    switch (m_paramsH->sph_method) {
+        case SPHMethod::WCSPH:
             return "WCSPH";
-        case FluidDynamics::I2SPH:
+        case SPHMethod::I2SPH:
             return "I2SPH";
     }
 }
@@ -1042,8 +1042,8 @@ void ChSystemFsi::DoStepDynamics_FSI() {
 
     m_timer_step.start();
 
-    switch (m_paramsH->fluid_dynamic_type) {
-        case FluidDynamics::WCSPH: {
+    switch (m_paramsH->sph_method) {
+        case SPHMethod::WCSPH: {
             CopyDeviceDataToHalfStep();
             thrust::copy(m_sysFSI->fsiData->derivVelRhoD.begin(), m_sysFSI->fsiData->derivVelRhoD.end(),
                          m_sysFSI->fsiData->derivVelRhoD_old.begin());
@@ -1096,7 +1096,7 @@ void ChSystemFsi::DoStepDynamics_FSI() {
             break;
         }
 
-        case FluidDynamics::I2SPH: {
+        case SPHMethod::I2SPH: {
             // A different coupling scheme is used for implicit SPH formulations
             if (m_integrate_SPH) {
                 m_fluid_dynamics->IntegrateSPH(m_sysFSI->sphMarkers2_D, m_sysFSI->sphMarkers2_D,        //

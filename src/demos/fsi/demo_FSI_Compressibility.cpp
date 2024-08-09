@@ -136,7 +136,7 @@ int main(int argc, char* argv[]) {
         std::cerr << "Error creating directory " << out_dir << std::endl;
         return 1;
     }
-    out_dir = out_dir + "/" + sysFSI.GetPhysicsProblemString() + "_" + sysFSI.GetSphSolverTypeString();
+    out_dir = out_dir + "/" + sysFSI.GetPhysicsProblemString() + "_" + sysFSI.GetSphMethodTypeString();
     if (!filesystem::create_directory(filesystem::path(out_dir))) {
         std::cerr << "Error creating directory " << out_dir << std::endl;
         return 1;

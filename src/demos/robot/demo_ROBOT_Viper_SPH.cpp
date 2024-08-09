@@ -177,8 +177,8 @@ int main(int argc, char* argv[]) {
     // Set SPH discretization type, consistent or inconsistent
     sysFSI.SetConsistentDerivativeDiscretization(false, false);
 
-    // Setup the solver based on the input value of the prameters
-    sysFSI.SetSPHMethod(FluidDynamics::WCSPH);
+    // Set the SPH method
+    sysFSI.SetSPHMethod(SPHMethod::WCSPH);
 
     // Set the periodic boundary condition
     double initSpace0 = sysFSI.GetInitialSpacing();

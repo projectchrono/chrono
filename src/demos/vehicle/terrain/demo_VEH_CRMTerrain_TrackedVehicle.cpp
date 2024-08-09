@@ -125,7 +125,7 @@ int main(int argc, char* argv[]) {
     sysFSI.SetElasticSPH(mat_props);
 
     ChSystemFsi::SPHParameters sph_params;
-    sph_params.sph_solver = FluidDynamics::WCSPH;
+    sph_params.sph_method = SPHMethod::WCSPH;
     sph_params.kernel_h = initial_spacing;
     sph_params.initial_spacing = initial_spacing;
     sph_params.kernel_threshold = 0.8;

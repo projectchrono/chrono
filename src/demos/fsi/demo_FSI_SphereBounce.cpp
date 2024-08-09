@@ -120,7 +120,7 @@ int main(int argc, char* argv[]) {
 
     // Set SPH solution parameters
     ChSystemFsi::SPHParameters sph_params;
-    sph_params.sph_solver = FluidDynamics::WCSPH;
+    sph_params.sph_method = SPHMethod::WCSPH;
     sph_params.num_bce_layers = 4;
     sph_params.kernel_h = initial_spacing;
     sph_params.initial_spacing = initial_spacing;
@@ -180,7 +180,7 @@ int main(int argc, char* argv[]) {
         cerr << "Error creating directory " << out_dir << endl;
         return 1;
     }
-    out_dir = out_dir + "/" + sysFSI.GetPhysicsProblemString() + "_" + sysFSI.GetSphSolverTypeString();
+    out_dir = out_dir + "/" + sysFSI.GetPhysicsProblemString() + "_" + sysFSI.GetSphMethodTypeString();
     if (!filesystem::create_directory(filesystem::path(out_dir))) {
         cerr << "Error creating directory " << out_dir << endl;
         return 1;

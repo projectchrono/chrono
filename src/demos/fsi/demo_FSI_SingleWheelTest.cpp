@@ -310,7 +310,7 @@ int main(int argc, char* argv[]) {
     sysFSI.SetCohesionForce(1.0e2);
 
     // Setup the SPH method
-    sysFSI.SetSPHMethod(FluidDynamics::WCSPH);
+    sysFSI.SetSPHMethod(SPHMethod::WCSPH);
 
     // Set up the periodic boundary condition (if not, set relative larger values)
     ChVector3d cMin(-bxDim / 2 * 10, -byDim / 2 - 0.5 * iniSpacing, -bzDim * 10);

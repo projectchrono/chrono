@@ -177,8 +177,8 @@ void ChVehicleCosimTerrainNodeGranularSPH::Construct() {
     sysFSI.SetDensity(m_density);
     sysFSI.SetCohesionForce(m_cohesion);
 
-    // Set the time integration type and the linear solver type (only for ISPH)
-    sysFSI.SetSPHMethod(FluidDynamics::WCSPH);
+    // Set the SPH method
+    sysFSI.SetSPHMethod(SPHMethod::WCSPH);
 
     // Construct the CRMTerrain (generate SPH particles and boundary BCE markers)
     switch (m_terrain_type) {

@@ -562,11 +562,11 @@ ChFluidDynamics::ChFluidDynamics(std::shared_ptr<ChBce> otherBceWorker,
                                  std::shared_ptr<ChCounters> otherNumObjects,
                                  bool verb)
     : ChFsiBase(otherParamsH, otherNumObjects), fsiSystem(otherFsiSystem), verbose(verb) {
-    switch (paramsH->fluid_dynamic_type) {
+    switch (paramsH->sph_method) {
         default:
             cout << "Selected integrator type not implemented, reverting to WCSPH" << endl;
 
-        case FluidDynamics::WCSPH:
+        case SPHMethod::WCSPH:
             forceSystem = chrono_types::make_shared<ChFsiForceExplicitSPH>(
                 otherBceWorker, fsiSystem.sortedSphMarkers_D, fsiSystem.markersProximity_D, fsiSystem.fsiData, paramsH,
                 numObjectsH, verb);
@@ -576,7 +576,7 @@ ChFluidDynamics::ChFluidDynamics(std::shared_ptr<ChBce> otherBceWorker,
 
             break;
 
-        case FluidDynamics::I2SPH:
+        case SPHMethod::I2SPH:
             forceSystem = chrono_types::make_shared<ChFsiForceI2SPH>(otherBceWorker, fsiSystem.sortedSphMarkers_D,
                                                                      fsiSystem.markersProximity_D, fsiSystem.fsiData,
                                                                      paramsH, numObjectsH, verb);
@@ -607,7 +607,7 @@ void ChFluidDynamics::IntegrateSPH(std::shared_ptr<SphMarkerDataD> sphMarkers2_D
                                    std::shared_ptr<FsiMeshStateD> fsiMesh2DState_D,
                                    Real dT,
                                    Real time) {
-    if (paramsH->fluid_dynamic_type == FluidDynamics::WCSPH) {
+    if (paramsH->sph_method == SPHMethod::WCSPH) {
         // Explicit SPH
         UpdateActivity(sphMarkers1_D, sphMarkers2_D, fsiBodyState_D, fsiMesh1DState_D, fsiMesh2DState_D, time);
         forceSystem->ForceSPH(sphMarkers2_D, fsiBodyState_D, fsiMesh1DState_D, fsiMesh2DState_D);
