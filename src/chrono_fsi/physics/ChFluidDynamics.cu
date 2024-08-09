@@ -434,42 +434,6 @@ __global__ void UpdateFluidD(Real4* posRadD,
     // derivVelRhoD[index] *= paramsD.markerMass;
 }
 
-//------------------------------------------------------------------------------
-__global__ void Update_Fluid_State(Real3* new_vel,
-                                   Real4* posRad,
-                                   Real3* velMas,
-                                   Real4* rhoPreMu,
-                                   int4 updatePortion,
-                                   double dT,
-                                   volatile bool* isErrorD) {
-    uint i_idx = blockIdx.x * blockDim.x + threadIdx.x;
-    if (i_idx >= updatePortion.y)
-        return;
-
-    velMas[i_idx] = new_vel[i_idx];
-
-    Real3 newpos = mR3(posRad[i_idx]) + dT * velMas[i_idx];
-    Real h = posRad[i_idx].w;
-    posRad[i_idx] = mR4(newpos, h);
-
-    if (!(isfinite(posRad[i_idx].x) && 
-        isfinite(posRad[i_idx].y) && isfinite(posRad[i_idx].z))) {
-        printf("Error! particle %d position is NAN: thrown from UpdateFluidDKernel  %f,%f,%f,%f\n",
-            i_idx, posRad[i_idx].x, posRad[i_idx].y, posRad[i_idx].z, posRad[i_idx].w);
-    }
-    if (!(isfinite(rhoPreMu[i_idx].x) && 
-        isfinite(rhoPreMu[i_idx].y) && isfinite(rhoPreMu[i_idx].z))) {
-        printf("Error! particle %d rhoPreMu is NAN: thrown from UpdateFluidDKernel ! %f,%f,%f,%f\n",
-            i_idx, rhoPreMu[i_idx].x, rhoPreMu[i_idx].y, rhoPreMu[i_idx].z, rhoPreMu[i_idx].w);
-    }
-
-    if (!(isfinite(velMas[i_idx].x) && 
-        isfinite(velMas[i_idx].y) && isfinite(velMas[i_idx].z))) {
-        printf("Error! particle %d velocity is NAN: thrown from UpdateFluidDKernel !%f,%f,%f\n",
-            i_idx, velMas[i_idx].x, velMas[i_idx].y, velMas[i_idx].z);
-    }
-}
-
 // -----------------------------------------------------------------------------
 // Kernel for updating the density.
 // It calculates the density of the particle. It does include the normalization
@@ -596,43 +560,31 @@ ChFluidDynamics::ChFluidDynamics(std::shared_ptr<ChBce> otherBceWorker,
                                  ChSystemFsi_impl& otherFsiSystem,
                                  std::shared_ptr<SimParams> otherParamsH,
                                  std::shared_ptr<ChCounters> otherNumObjects,
-                                 TimeIntegrator type,
                                  bool verb)
-    : ChFsiBase(otherParamsH, otherNumObjects), fsiSystem(otherFsiSystem), integrator_type(type), verbose(verb) {
-    switch (integrator_type) {
-        case TimeIntegrator::I2SPH:
-            forceSystem = chrono_types::make_shared<ChFsiForceI2SPH>(
-                otherBceWorker, fsiSystem.sortedSphMarkers_D, fsiSystem.markersProximity_D, 
-                fsiSystem.fsiData, paramsH, numObjectsH, verb);
-            if (verbose) {
-                cout << "====== Created an I2SPH framework" << endl;
-            }
-            break;
+    : ChFsiBase(otherParamsH, otherNumObjects), fsiSystem(otherFsiSystem), verbose(verb) {
+    switch (paramsH->sph_method) {
+        default:
+            cout << "Selected integrator type not implemented, reverting to WCSPH" << endl;
 
-        case TimeIntegrator::IISPH:
-            forceSystem = chrono_types::make_shared<ChFsiForceIISPH>(
-                otherBceWorker, fsiSystem.sortedSphMarkers_D, fsiSystem.markersProximity_D,
-                fsiSystem.fsiData, paramsH, numObjectsH, verb);
-            if (verbose) {
-                cout << "====== Created an IISPH framework" << endl;
-            }
-            break;
-
-        case TimeIntegrator::EXPLICITSPH:
+        case SPHMethod::WCSPH:
             forceSystem = chrono_types::make_shared<ChFsiForceExplicitSPH>(
-                otherBceWorker, fsiSystem.sortedSphMarkers_D, fsiSystem.markersProximity_D, 
-                fsiSystem.fsiData, paramsH, numObjectsH, verb);
+                otherBceWorker, fsiSystem.sortedSphMarkers_D, fsiSystem.markersProximity_D, fsiSystem.fsiData, paramsH,
+                numObjectsH, verb);
             if (verbose) {
                 cout << "====== Created a WCSPH framework" << endl;
             }
+
             break;
 
-        // Extend this function with your own linear solvers
-        default:
-            forceSystem = chrono_types::make_shared<ChFsiForceExplicitSPH>(
-                otherBceWorker, fsiSystem.sortedSphMarkers_D, fsiSystem.markersProximity_D, 
-                fsiSystem.fsiData, paramsH, numObjectsH, verb);
-            cout << "Selected integrator type not implemented, reverting back to WCSPH" << endl;
+        case SPHMethod::I2SPH:
+            forceSystem = chrono_types::make_shared<ChFsiForceI2SPH>(otherBceWorker, fsiSystem.sortedSphMarkers_D,
+                                                                     fsiSystem.markersProximity_D, fsiSystem.fsiData,
+                                                                     paramsH, numObjectsH, verb);
+            if (verbose) {
+                cout << "====== Created an I2SPH framework" << endl;
+            }
+
+            break;
     }
 }
 
@@ -655,18 +607,17 @@ void ChFluidDynamics::IntegrateSPH(std::shared_ptr<SphMarkerDataD> sphMarkers2_D
                                    std::shared_ptr<FsiMeshStateD> fsiMesh2DState_D,
                                    Real dT,
                                    Real time) {
-    if (GetIntegratorType() == TimeIntegrator::EXPLICITSPH) {
-        this->UpdateActivity(sphMarkers1_D, sphMarkers2_D, fsiBodyState_D, fsiMesh1DState_D, fsiMesh2DState_D, time);
+    if (paramsH->sph_method == SPHMethod::WCSPH) {
+        // Explicit SPH
+        UpdateActivity(sphMarkers1_D, sphMarkers2_D, fsiBodyState_D, fsiMesh1DState_D, fsiMesh2DState_D, time);
         forceSystem->ForceSPH(sphMarkers2_D, fsiBodyState_D, fsiMesh1DState_D, fsiMesh2DState_D);
-    } else
+        UpdateFluid(sphMarkers1_D, dT);
+    } else {
+        // Implicit SPH
         forceSystem->ForceSPH(sphMarkers1_D, fsiBodyState_D, fsiMesh1DState_D, fsiMesh2DState_D);
+    }
 
-    if (integrator_type == TimeIntegrator::IISPH)
-        this->UpdateFluid_Implicit(sphMarkers2_D);
-    else if (GetIntegratorType() == TimeIntegrator::EXPLICITSPH)
-        this->UpdateFluid(sphMarkers1_D, dT);
-
-    this->ApplyBoundarySPH_Markers(sphMarkers2_D);
+    ApplyBoundarySPH_Markers(sphMarkers2_D);
 }
 
 // -----------------------------------------------------------------------------
@@ -741,37 +692,6 @@ void ChFluidDynamics::UpdateFluid(std::shared_ptr<SphMarkerDataD> sphMarkersD, R
     cudaMemcpy(isErrorH, isErrorD, sizeof(bool), cudaMemcpyDeviceToHost);
     if (*isErrorH == true)
         throw std::runtime_error("Error! program crashed in UpdateFluidD!\n");
-    cudaFree(isErrorD);
-    free(isErrorH);
-}
-
-// -----------------------------------------------------------------------------
-void ChFluidDynamics::UpdateFluid_Implicit(std::shared_ptr<SphMarkerDataD> sphMarkersD) {
-    uint numThreads, numBlocks;
-    computeGridSize((int)numObjectsH->numAllMarkers, 256, numBlocks, numThreads);
-
-    int haveGhost = (numObjectsH->numGhostMarkers > 0) ? 1 : 0;
-    int haveHelper = (numObjectsH->numHelperMarkers > 0) ? 1 : 0;
-
-    int4 updatePortion = mI4(fsiSystem.fsiData->referenceArray[haveHelper].x,
-        fsiSystem.fsiData->referenceArray[haveHelper + haveGhost].y, 0, 0);
-
-    cout << "time step in UpdateFluid_Implicit " << paramsH->dT << endl;
-    bool *isErrorH, *isErrorD;
-    isErrorH = (bool*)malloc(sizeof(bool));
-    cudaMalloc((void**)&isErrorD, sizeof(bool));
-    *isErrorH = false;
-    cudaMemcpy(isErrorD, isErrorH, sizeof(bool), cudaMemcpyHostToDevice);
-    Update_Fluid_State<<<numBlocks, numThreads>>>(
-        mR3CAST(fsiSystem.fsiData->vel_XSPH_D), 
-        mR4CAST(sphMarkersD->posRadD), mR3CAST(sphMarkersD->velMasD), 
-        mR4CAST(sphMarkersD->rhoPresMuD), updatePortion, paramsH->dT, isErrorD);
-    cudaDeviceSynchronize();
-    cudaCheckError();
-
-    cudaMemcpy(isErrorH, isErrorD, sizeof(bool), cudaMemcpyDeviceToHost);
-    if (*isErrorH == true)
-        throw std::runtime_error("Error! program crashed in Update_Fluid_State!\n");
     cudaFree(isErrorD);
     free(isErrorH);
 }

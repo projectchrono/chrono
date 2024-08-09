@@ -83,10 +83,11 @@ __global__ void CalcRigidForces_D(Real3* rigid_FSI_ForcesD,
     uint sortedIndex = mapOriginalToSorted[rigidMarkerIndex];
 
     Real3 Force;
-    if (paramsD.fluid_dynamic_type == FluidDynamics::WCSPH) {
+
+    if (paramsD.sph_method == SPHMethod::WCSPH) {
         Force = (mR3(derivVelRhoD[sortedIndex]) * paramsD.Beta +
                       mR3(derivVelRhoD_old[sortedIndex]) * (1 - paramsD.Beta)) * paramsD.markerMass;
-        
+
     }
     // TODO: check IISPH
     else {
@@ -138,7 +139,7 @@ __global__ void CalcFlex1DForces_D(Real3* flex1D_FSIforces_D,  // FEA node force
 
     // Fluid force on BCE marker
     Real3 Force;
-    if (paramsD.fluid_dynamic_type == FluidDynamics::WCSPH) {
+    if (paramsD.sph_method == SPHMethod::WCSPH) {
         Force =
             (mR3(derivVelRhoD[sortedIndex]) * paramsD.Beta + mR3(derivVelRhoD_old[sortedIndex]) * (1 - paramsD.Beta)) *
             paramsD.markerMass;
@@ -194,7 +195,7 @@ __global__ void CalcFlex2DForces_D(Real3* flex2D_FSIforces_D,  // FEA node force
 
     // Fluid force on BCE marker
     Real3 Force;
-    if (paramsD.fluid_dynamic_type == FluidDynamics::WCSPH) {
+    if (paramsD.sph_method == SPHMethod::WCSPH) {
         Force =
             (mR3(derivVelRhoD[sortedIndex]) * paramsD.Beta + mR3(derivVelRhoD_old[sortedIndex]) * (1 - paramsD.Beta)) *
             paramsD.markerMass;

@@ -23,10 +23,7 @@
 #include "chrono_fsi/utils/ChUtilsDevice.cuh"
 #include "chrono_fsi/physics/ChFsiForceExplicitSPH.cuh"
 #include "chrono_fsi/physics/ChFsiForceI2SPH.cuh"
-#include "chrono_fsi/physics/ChFsiForceIISPH.cuh"
 #include "chrono_fsi/physics/ChSystemFsi_impl.cuh"
-
-using chrono::fsi::TimeIntegrator;
 
 namespace chrono {
 namespace fsi {
@@ -50,7 +47,6 @@ class ChFluidDynamics : public ChFsiBase {
                     ChSystemFsi_impl& sysFSI,                ///< implementatin FSI system
                     std::shared_ptr<SimParams> params,       ///< simulation parameters
                     std::shared_ptr<ChCounters> numObjects,  ///< problem counters
-                    TimeIntegrator otherIntegrator,          ///< integration type (only for ISPH)
                     bool verb                                ///< verbose output
     );
 
@@ -84,16 +80,12 @@ class ChFluidDynamics : public ChFsiBase {
     /// This function needs to be called once the host data are modified.
     void Initialize();
 
-    /// Return the integrator type used in the simulation.
-    TimeIntegrator GetIntegratorType() { return integrator_type; }
-
     /// Return the ChFsiForce type used in the simulation.
     std::shared_ptr<ChFsiForce> GetForceSystem() { return forceSystem; }
 
   protected:
     ChSystemFsi_impl& fsiSystem;              ///< FSI data; values are maintained externally
     std::shared_ptr<ChFsiForce> forceSystem;  ///< force system object; calculates the force between particles
-    TimeIntegrator integrator_type;           ///< integrator type
 
     bool verbose;
 
@@ -108,9 +100,6 @@ class ChFluidDynamics : public ChFsiBase {
 
     /// Update SPH particles data for explicit integration.
     void UpdateFluid(std::shared_ptr<SphMarkerDataD> sphMarkersD, Real dT);
-
-    /// Update SPH particles data for implicit integration.
-    void UpdateFluid_Implicit(std::shared_ptr<SphMarkerDataD> sphMarkersD);
 
     /// Apply periodic boundary to the normal SPH particles.
     void ApplyBoundarySPH_Markers(std::shared_ptr<SphMarkerDataD> sphMarkersD);

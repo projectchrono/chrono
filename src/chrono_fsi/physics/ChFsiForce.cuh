@@ -106,10 +106,8 @@ class ChFsiForce : public ChFsiBase {
     virtual ~ChFsiForce();
 
     /// Function to calculate forces on SPH particles.
-    /// This is a virtual method that needs to be overridden by the
-    /// child classes to compute forces in an implicit integrator
-    /// using ISPH method (see ChFsiForceI2SPH and ChFsiForceIISPH) or an
-    /// explicit integrator using WCPSH method (see ChFsiForceExplicitSPH).
+    /// Implemented by derived classes to compute forces in an implicit integrator using ISPH method (see
+    /// ChFsiForceI2SPH) or an explicit integrator using WCPSH method (see ChFsiForceExplicitSPH).
     virtual void ForceSPH(std::shared_ptr<SphMarkerDataD> otherSphMarkersD,
                           std::shared_ptr<FsiBodyStateD> fsiBodyStateD,
                           std::shared_ptr<FsiMeshStateD> fsiMesh1DStateD,
@@ -154,8 +152,7 @@ class ChFsiForce : public ChFsiBase {
                                                     thrust::device_vector<Real4>& sorted,
                                                     const thrust::device_vector<uint>& gridMarkerIndex);
 
-    /// Function to set the linear solver type for the solver implemented
-    /// using the ISPH method (ChFsiForceI2SPH and ChFsiForceIISPH)
+    /// Function to set the linear solver type for the solver implemented using the ISPH method (ChFsiForceI2SPH).
     void SetLinearSolver(SolverType type);
 
   protected:

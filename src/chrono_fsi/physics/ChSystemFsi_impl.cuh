@@ -171,7 +171,7 @@ struct FsiData {
     thrust::device_vector<Real3> derivTauXxYyZzD;   ///< d(tau)/dt for particles
     thrust::device_vector<Real3> derivTauXyXzYzD;   ///< d(tau)/dt for particles
     thrust::device_vector<Real3> vel_XSPH_D;        ///< XSPH velocity for particles
-    thrust::device_vector<Real3> vis_vel_SPH_D;     ///< IISPH velocity for particles
+    thrust::device_vector<Real3> vis_vel_SPH_D;     ///< ISPH velocity for particles
     thrust::device_vector<Real4> sr_tau_I_mu_i;     ///< I2SPH strain-rate, stress, inertia number, friction
     thrust::device_vector<Real4> sr_tau_I_mu_i_Original;  ///< I2SPH strain-rate, stress, inertia number, friction - unsorted for writing
 

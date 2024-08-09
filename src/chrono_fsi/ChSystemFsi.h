@@ -75,10 +75,10 @@ class CH_FSI_API ChSystemFsi {
     /// Structure with fluid properties.
     /// Used if solving a CFD problem.
     struct CH_FSI_API FluidProperties {
-        double density;      ///< fluid density
-        double viscosity;    ///< fluid viscosity
-        double kappa;        ///< surface tension kappa
-        double char_length;  ///< characteristic length
+        double density;      ///< fluid density (default: 1000.0)
+        double viscosity;    ///< fluid viscosity (default: 0.1)
+        double kappa;        ///< surface tension kappa (default: 0)
+        double char_length;  ///< characteristic length (default: 1.0)
 
         FluidProperties();
     };
@@ -86,37 +86,37 @@ class CH_FSI_API ChSystemFsi {
     /// Structure with elastic material properties.
     /// Used if solving an SPH continuum representation of granular dynamics.
     struct CH_FSI_API ElasticMaterialProperties {
-        double density;          ///< bulk density
-        double Young_modulus;    ///< Young's modulus
-        double Poisson_ratio;    ///< Poisson's ratio
-        double stress;           ///< Artifical stress
-        double viscosity_alpha;  ///< Artifical viscosity coefficient
-        double viscosity_beta;   ///< Artifical viscosity coefficient
-        double mu_I0;            ///< Reference Inertia number
-        double mu_fric_s;        ///< friction mu_s
-        double mu_fric_2;        ///< mu_2 constant in mu=mu(I)
-        double average_diam;     ///< average particle diameter
-        double friction_angle;   ///< Frictional angle of granular material
-        double dilation_angle;   ///< Dilate angle of granular material
-        double cohesion_coeff;   ///< Cohesion coefficient
+        double density;          ///< bulk density (default: 1000.0)
+        double Young_modulus;    ///< Young's modulus (default: 1e6)
+        double Poisson_ratio;    ///< Poisson's ratio (default: 0.3)
+        double stress;           ///< artifical stress (default: 0)
+        double viscosity_alpha;  ///< artifical viscosity coefficient (default: 0.5)
+        double viscosity_beta;   ///< artifical viscosity coefficient (default: 0)
+        double mu_I0;            ///< reference inertia number (default: 0.03)
+        double mu_fric_s;        ///< friction mu_s (default: 0.7)
+        double mu_fric_2;        ///< mu_2 constant in mu=mu(I) (default: 0.7)
+        double average_diam;     ///< average particle diameter (default: 0.005)
+        double friction_angle;   ///< frictional angle of granular material (default: pi/10)
+        double dilation_angle;   ///< dilate angle of granular material (default: pi/10)
+        double cohesion_coeff;   ///< cohesion coefficient (default: 0)
 
         ElasticMaterialProperties();
     };
 
     /// Structure with SPH method parameters.
     struct CH_FSI_API SPHParameters {
-        FluidDynamics sph_solver;                  ///< SPH solver type (default: WCSPH)
+        SPHMethod sph_method;                      ///< SPH method (default: WCSPH)
         SolverType lin_solver;                     ///< linear solver type (implicit SPH only, default: BICGSTAB)
         int num_bce_layers;                        ///< number of BCE layers (boundary and solids, default: 3)
         double kernel_h;                           ///< kernel separation (default: 0.01)
         double initial_spacing;                    ///< initial particle spacing (default: 0.01)
-        double max_velocity;                       ///< maximum velocity
-        double xsph_coefficient;                   ///< XSPH coefficient
-        double shifting_coefficient;               ///< Shifting beta coefficient
-        int density_reinit_steps;                  ///< Number of steps between density reinitializations
-        bool consistent_gradient_discretization;   ///< Calculate G matrix in SPH gradient approximation
-        bool consistent_laplacian_discretization;  ///< Calculate L matrix in SPH Laplacian approximation
-        double kernel_threshold;  ///< Threshold for identifying free surface (currently, only for elasticSPH)
+        double max_velocity;                       ///< maximum velocity (default: 1.0)
+        double xsph_coefficient;                   ///< XSPH coefficient (default: 0.5)
+        double shifting_coefficient;               ///< shifting beta coefficient (default: 1.0)
+        int density_reinit_steps;                  ///< number of steps between density reinitializations (default: 2e8)
+        bool consistent_gradient_discretization;   ///< use G matrix in SPH gradient approximation (default: false)
+        bool consistent_laplacian_discretization;  ///< use L matrix in SPH Laplacian approximation (default: false)
+        double kernel_threshold;                   ///< threshold for identifying free surface (CRM only, default: 0.8)
 
         SPHParameters();
     };
@@ -209,7 +209,7 @@ class CH_FSI_API ChSystemFsi {
 
     /// Set the SPH method and, optionally, the linear solver type.
     //// TODO: OBSOLETE
-    void SetSPHMethod(FluidDynamics SPH_method, SolverType lin_solver = SolverType::BICGSTAB);
+    void SetSPHMethod(SPHMethod SPH_method, SolverType lin_solver = SolverType::BICGSTAB);
 
     /// Enable solution of a CFD problem.
     void SetCfdSPH(const FluidProperties& fluid_props);
@@ -523,7 +523,7 @@ class CH_FSI_API ChSystemFsi {
   public:
     PhysicsProblem GetPhysicsProblem() const;
     std::string GetPhysicsProblemString() const;
-    std::string GetSphSolverTypeString() const;
+    std::string GetSphMethodTypeString() const;
 
   private:
     /// Initialize simulation parameters with default values.
@@ -549,7 +549,6 @@ class CH_FSI_API ChSystemFsi {
     ChSystem* m_sysMBS;  ///< multibody system
 
     std::shared_ptr<SimParams> m_paramsH;  ///< pointer to the simulation parameters
-    TimeIntegrator fluidIntegrator;        ///< IISPH by default
 
     bool m_verbose;           ///< enable/disable m_verbose terminal output (default: true)
     std::string m_outdir;     ///< output directory

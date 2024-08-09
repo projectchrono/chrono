@@ -142,7 +142,6 @@ set(ChronoEngine_FSI_PHYSICS_FILES
     physics/ChFsiForce.cuh    
     physics/ChFsiForceExplicitSPH.cuh
     physics/ChFsiForceI2SPH.cuh
-    physics/ChFsiForceIISPH.cuh
     physics/ChSphGeneral.cuh
 
     physics/ChFsiInterface.cpp
@@ -153,7 +152,6 @@ set(ChronoEngine_FSI_PHYSICS_FILES
     physics/ChFsiForce.cu
     physics/ChFsiForceExplicitSPH.cu
     physics/ChFsiForceI2SPH.cu
-    physics/ChFsiForceIISPH.cu
     physics/ChFsiBase.cpp
     physics/ChSphGeneral.cu
 )

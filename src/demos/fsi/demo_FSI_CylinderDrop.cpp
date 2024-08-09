@@ -50,7 +50,7 @@ std::string out_dir = GetChronoOutputPath() + "FSI_Cylinder_Drop";
 
 // Output frequency
 bool output = true;
-double out_fps = 20;
+double output_fps = 20;
 
 // Dimension of the space domain
 double bxDim = 1.0;
@@ -149,7 +149,7 @@ int main(int argc, char* argv[]) {
         std::cerr << "Error creating directory " << out_dir << std::endl;
         return 1;
     }
-    out_dir = out_dir + "/" + sysFSI.GetPhysicsProblemString() + "_" + sysFSI.GetSphSolverTypeString();
+    out_dir = out_dir + "/" + sysFSI.GetPhysicsProblemString() + "_" + sysFSI.GetSphMethodTypeString();
     if (!filesystem::create_directory(filesystem::path(out_dir))) {
         std::cerr << "Error creating directory " << out_dir << std::endl;
         return 1;
@@ -222,39 +222,40 @@ int main(int argc, char* argv[]) {
 
     // Start the simulation
     double dT = sysFSI.GetStepSize();
-    unsigned int output_steps = (unsigned int)round(1 / (out_fps * dT));
-    unsigned int render_steps = (unsigned int)round(1 / (render_fps * dT));
-
     double time = 0.0;
-    int current_step = 0;
+    int sim_frame = 0;
+    int out_frame = 0;
+    int render_frame = 0;
 
     ChTimer timer;
     timer.start();
     while (time < t_end) {
-        if (output && current_step % output_steps == 0) {
+        if (output && time >= out_frame / output_fps) {
             std::cout << "-------- Output" << std::endl;
             sysFSI.PrintParticleToFile(out_dir + "/particles");
             sysFSI.PrintFsiInfoToFile(out_dir + "/fsi", time);
             static int counter = 0;
             std::string filename = out_dir + "/vtk/cylinder." + std::to_string(counter++) + ".vtk";
             WriteCylinderVTK(filename, cyl_radius, cyl_length, sysFSI.GetFsiBodies()[0]->GetFrameRefToAbs(), 100);
+            out_frame++;
         }
 
         // Render FSI system
-        if (render && current_step % render_steps == 0) {
+        if (render && time >= render_frame / render_fps) {
             if (!visFSI->Render())
                 break;
+            render_frame++;
         }
 
         auto cylinder_height = sysMBS.GetBodies()[1]->GetPos().z();
-        std::cout << "step: " << current_step << "\ttime: " << time << "\tRTF: " << sysFSI.GetRTF()
+        std::cout << "step: " << sim_frame << "\ttime: " << time << "\tRTF: " << sysFSI.GetRTF()
                   << "\tcyl z: " << cylinder_height << std::endl;
         height_recorder.AddPoint(time, cylinder_height);
 
         // Call the FSI solver
         sysFSI.DoStepDynamics_FSI();
         time += dT;
-        current_step++;
+        sim_frame++;
     }
     timer.stop();
     std::cout << "\nSimulation time: " << timer() << " seconds\n" << std::endl;
