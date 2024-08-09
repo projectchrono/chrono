@@ -282,7 +282,7 @@ class ChSystemFsi_impl : public ChFsiBase {
     std::shared_ptr<FsiData> fsiData;  ///< simulation FSI data
 
     std::shared_ptr<ProximityDataD> markersProximity_D;  ///< Information of neighbor search on the device
-    std::shared_ptr<ProximityDataD> markersProximityWideD;  ///< Information of neighbor search on the device
+    std::shared_ptr<ProximityDataD> markersProximityWide_D;  ///< Information of neighbor search on the device
 
   private:
     void ArrangeDataManager();

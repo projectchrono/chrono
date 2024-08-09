@@ -523,16 +523,21 @@ __global__ void calcRho_kernel(Real4* sortedPosRad,
 }
 
 //--------------------------------------------------------------------------------------------------------------------------------
-__global__ void calcKernelSupport(Real4* sortedPosRad,
-                                  Real4* sortedRhoPreMu,
+__global__ void calcKernelSupport(const Real4* sortedPosRad,
+                                  const Real4* sortedRhoPreMu,
                                   Real3* sortedKernelSupport,
-                                  uint* cellStart,
-                                  uint* cellEnd,
+                                  const uint* cellStart,
+                                  const uint* cellEnd,
+                                  const uint* mapOriginalToSorted,
+                                  const uint* numNeighborsPerPart,
+                                  const uint* neighborList,
                                   volatile bool* isErrorD) {
     uint index = blockIdx.x * blockDim.x + threadIdx.x;
     if (index >= numObjectsD.numAllMarkers)
         return;
 
+    uint NLStart = numNeighborsPerPart[index];
+    uint NLEnd = numNeighborsPerPart[index + 1];
     Real h_i = sortedPosRad[index].w;
     Real SuppRadii = RESOLUTION_LENGTH_MULT * paramsD.HSML;
     Real SqRadii = SuppRadii * SuppRadii;
@@ -542,34 +547,23 @@ __global__ void calcKernelSupport(Real4* sortedPosRad,
     Real sum_W_all = W0;
     Real sum_W_identical = W0;
 
-    // get address in grid
-    int3 gridPos = calcGridPos(posRadA);
-    for (int z = -1; z <= 1; z++) {
-        for (int y = -1; y <= 1; y++) {
-            for (int x = -1; x <= 1; x++) {
-                int3 neighbourPos = gridPos + mI3(x, y, z);
-                uint gridHash = calcGridHash(neighbourPos);
-                uint startIndex = cellStart[gridHash];
-                if (startIndex != 0xffffffff) {
-                    uint endIndex = cellEnd[gridHash];
-                    for (uint j = startIndex; j < endIndex; j++) {
-                        Real3 posRadB = mR3(sortedPosRad[j]);
-                        Real3 dist3 = Distance(posRadA, posRadB);
-                        Real dd = dist3.x * dist3.x + dist3.y * dist3.y + dist3.z * dist3.z;
-                        if (dd > SqRadii)
-                            continue;
-                        Real d = length(dist3);
-                        Real h_j = sortedPosRad[j].w;
-                        Real W3 = W3h(d, 0.5 * (h_j + h_i));
-                        sum_W_all += W3;
-                        if (abs(sortedRhoPreMu[index].w - sortedRhoPreMu[j].w) < 0.001) {
-                            sum_W_identical += W3;
-                        }
-                    }
-                }
-            }
+    // Use the neighbors list
+    for (int i = NLStart; i < NLEnd; i++) {
+        uint j = neighborList[i];
+        Real3 posRadB = mR3(sortedPosRad[j]);
+        Real3 dist3 = Distance(posRadA, posRadB);
+        Real dd = dist3.x * dist3.x + dist3.y * dist3.y + dist3.z * dist3.z;
+
+        if (dd > SqRadii)
+            continue;
+        Real d = sqrt(dd);
+        Real W3 = W3h(d, h_i);
+        sum_W_all += W3;
+        if (abs(sortedRhoPreMu[index].w - sortedRhoPreMu[j].w) < 0.001) {
+            sum_W_identical += W3;
         }
     }
+
     sortedKernelSupport[index].x = sum_W_all;
     sortedKernelSupport[index].y = sum_W_identical;
 }
@@ -579,10 +573,10 @@ __device__ __inline__ void modifyPressure(Real4& rhoPresMuB, const Real3& dist3A
     // body force in x direction
     rhoPresMuB.y = (dist3Alpha.x > 0.5 * paramsD.boxDims.x) ? (rhoPresMuB.y - paramsD.deltaPress.x) : rhoPresMuB.y;
     rhoPresMuB.y = (dist3Alpha.x < -0.5 * paramsD.boxDims.x) ? (rhoPresMuB.y + paramsD.deltaPress.x) : rhoPresMuB.y;
-    // body force in x direction
+    // body force in y direction
     rhoPresMuB.y = (dist3Alpha.y > 0.5 * paramsD.boxDims.y) ? (rhoPresMuB.y - paramsD.deltaPress.y) : rhoPresMuB.y;
     rhoPresMuB.y = (dist3Alpha.y < -0.5 * paramsD.boxDims.y) ? (rhoPresMuB.y + paramsD.deltaPress.y) : rhoPresMuB.y;
-    // body force in x direction
+    // body force in z direction
     rhoPresMuB.y = (dist3Alpha.z > 0.5 * paramsD.boxDims.z) ? (rhoPresMuB.y - paramsD.deltaPress.z) : rhoPresMuB.y;
     rhoPresMuB.y = (dist3Alpha.z < -0.5 * paramsD.boxDims.z) ? (rhoPresMuB.y + paramsD.deltaPress.z) : rhoPresMuB.y;
 }
@@ -953,14 +947,13 @@ __global__ void EOS(Real4* sortedRhoPreMu, volatile bool* isErrorD) {
 }
 
 //--------------------------------------------------------------------------------------------------------------------------------
+// TODO (Huzaifa): Make this kernel also use the precomputed neighbors list
 __global__ void Navier_Stokes(uint* indexOfIndex,
                               Real4* sortedDerivVelRho,
                               Real3* sortedXSPHandShift,
                               Real4* sortedPosRad,
                               Real3* sortedVelMas,
                               Real4* sortedRhoPreMu,
-                              Real3* velMas_ModifiedBCE,
-                              Real4* rhoPreMu_ModifiedBCE,
                               uint* gridMarkerIndex,
                               uint* cellStart,
                               uint* cellEnd,
@@ -1056,14 +1049,7 @@ __global__ void Navier_Stokes(uint* indexOfIndex,
                         //     printf("Error! particle rhoPresMuB is NAN: thrown from modifyPressure !\n");
                         // }
                         Real3 velMasB = sortedVelMas[j];
-                        if (rhoPresMuB.w > -0.5) {
-                            int bceIndexB = gridMarkerIndex[j] - numObjectsD.numFluidMarkers;
-                            if (bceIndexB < 0 || bceIndexB >= numObjectsD.numBceMarkers) {
-                                printf("Error! bceIndex out of bound, Navier_Stokes !\n");
-                            }
-                            rhoPresMuB = rhoPreMu_ModifiedBCE[bceIndexB];
-                            velMasB = velMas_ModifiedBCE[bceIndexB];
-                        }
+
                         Real multViscosit = 1;
 
                         derivVelRho += DifVelocityRho(Gi, dist3, d, sortedPosRad[index], sortedPosRad[j], velMasA,
@@ -1137,80 +1123,112 @@ __global__ void Navier_Stokes(uint* indexOfIndex,
 }
 
 //--------------------------------------------------------------------------------------------------------------------------------
-__global__ void NS_SSR(uint* activityIdentifierD,
+__global__ void updateBoundaryPres(const uint* activityIdentifierD,
+                                   const uint* numNeighborsPerPart,
+                                   const uint* neighborList,
+                                   const Real4* sortedPosRadD,
+                                   Real3* bceAcc,
+                                   Real4* sortedRhoPresMuD,
+                                   Real3* sortedVelMasD,
+                                   Real3* sortedTauXxYyZz,
+                                   Real3* sortedTauXyXzYz,
+                                   volatile bool* isErrorD) {
+    uint index = blockIdx.x * blockDim.x + threadIdx.x;
+    if (index >= numObjectsD.numAllMarkers)
+        return;
+
+    if (activityIdentifierD[index] == 0) {
+        return;
+    }
+    // Ignore all fluid particles
+    if (sortedRhoPresMuD[index].w < -0.5f) {
+        return;
+    }
+
+    Real3 posRadA = mR3(sortedPosRadD[index]);
+    Real h_i = sortedPosRadD[index].w;
+    uint NLStart = numNeighborsPerPart[index];
+    uint NLEnd = numNeighborsPerPart[index + 1];
+    Real sum_pw = 0.0f;
+    Real3 sum_rhorw = mR3(0.0);
+    Real sum_w = 0.0f;
+    Real3 sum_vw = mR3(0.0);
+    Real3 sum_tauD = mR3(0.0);
+    Real3 sum_tauO = mR3(0.0);
+
+    for (int n = NLStart + 1; n < NLEnd; n++) {
+        uint j = neighborList[n];
+        // only consider fluid neighbors
+        if (sortedRhoPresMuD[j].w > -0.5f) {
+            continue;
+        }
+        Real3 posRadB = mR3(sortedPosRadD[j]);
+        Real3 rij = Distance(posRadA, posRadB);
+        Real d = length(rij);
+        Real W3 = W3h(d, h_i);
+        sum_w += W3;
+        sum_pw += sortedRhoPresMuD[j].y * W3;
+        sum_rhorw += sortedRhoPresMuD[j].x * rij * W3;
+        sum_vw += sortedVelMasD[j] * W3;
+        sum_tauD += sortedTauXxYyZz[j] * W3;
+        sum_tauO += sortedTauXyXzYz[j] * W3;
+    }
+    Real3 prescribedVel;
+    if (sum_w > EPSILON) {
+        sortedRhoPresMuD[index].y = (sum_pw + dot(paramsD.gravity - bceAcc[index], sum_rhorw)) / sum_w;
+        sortedRhoPresMuD[index].x = InvEos(sortedRhoPresMuD[index].y);
+        // Applies ADAMI to only Rigid/Flexible markers
+        prescribedVel = (sortedRhoPresMuD[index].w > 0.5f) ? (2.0f * sortedVelMasD[index]) : mR3(0.0);
+        // prescribedVel = 2.0f * sortedVelMasD[index];
+        sortedVelMasD[index] = prescribedVel - sum_vw / sum_w;
+        sortedTauXxYyZz[index] = (sum_tauD + dot(paramsD.gravity - bceAcc[index], sum_rhorw)) / sum_w;
+        sortedTauXyXzYz[index] = sum_tauO / sum_w;
+
+    } else {
+        sortedRhoPresMuD[index].y = 0.0f;
+        sortedVelMasD[index] = mR3(0.0);
+        sortedTauXxYyZz[index] = mR3(0.0);
+        sortedTauXyXzYz[index] = mR3(0.0);
+    }
+}
+//--------------------------------------------------------------------------------------------------------------------------------
+__global__ void NS_SSR(const uint* activityIdentifierD,
+                       const Real4* sortedPosRad,
+                       const Real3* sortedVelMas,
+                       const Real4* sortedRhoPreMu,
+                       const Real3* sortedTauXxYyZz,
+                       const Real3* sortedTauXyXzYz,
+                       const uint* numNeighborsPerPart,
+                       const uint* neighborList,
                        Real4* sortedDerivVelRho,
                        Real3* sortedDerivTauXxYyZz,
                        Real3* sortedDerivTauXyXzYz,
                        Real3* sortedXSPHandShift,
                        Real3* sortedKernelSupport,
-                       Real4* sortedPosRad,
-                       Real3* sortedVelMas,
-                       Real4* sortedRhoPreMu,
-                       Real3* velMas_ModifiedBCE,
-                       Real4* rhoPreMu_ModifiedBCE,
-                       Real3* tauXxYyZz_ModifiedBCE,
-                       Real3* tauXyXzYz_ModifiedBCE,
-                       Real3* sortedTauXxYyZz,
-                       Real3* sortedTauXyXzYz,
-                       uint* gridMarkerIndex,
-                       uint* cellStart,
-                       uint* cellEnd,
-                       uint* mapOriginalToSorted,
                        uint* sortedFreeSurfaceIdD,
                        volatile bool* isErrorD) {
     uint id = blockIdx.x * blockDim.x + threadIdx.x;
     if (id >= numObjectsD.numAllMarkers)
         return;
 
-    // no need to do anything if it is not an active particle
-    uint activity = activityIdentifierD[id];
-    if (activity == 0)
+    // uint index = sortedActivityIdD[id];
+    uint index = id;
+    if (activityIdentifierD[index] == 0) {
+        return;
+    }
+
+    if (sortedRhoPreMu[index].w > -0.5f && sortedRhoPreMu[index].w < 0.5f)
         return;
 
-    // map original to sorted
-    uint index = mapOriginalToSorted[id];
-
-    if (sortedRhoPreMu[index].w > -0.5 && sortedRhoPreMu[index].w < 0.5)
-        return;
-
-    Real hA = sortedPosRad[index].w;
     Real3 posRadA = mR3(sortedPosRad[index]);
+    Real hA = sortedPosRad[index].w;
     Real3 velMasA = sortedVelMas[index];
     Real4 rhoPresMuA = sortedRhoPreMu[index];
     Real3 TauXxYyZzA = sortedTauXxYyZz[index];
     Real3 TauXyXzYzA = sortedTauXyXzYz[index];
+    Real SuppRadii = RESOLUTION_LENGTH_MULT * paramsD.HSML;
     Real4 derivVelRho = mR4(0.0);
     Real3 deltaV = mR3(0.0);
-    Real SuppRadii = RESOLUTION_LENGTH_MULT * paramsD.HSML;
-    Real SqRadii = SuppRadii * SuppRadii;
-
-    uint j_list[150];
-    uint j_num = 0;
-
-    // Get address in grid
-    int3 gridPos = calcGridPos(posRadA);
-    // Find the neighbor particle list
-    for (int x = -1; x <= 1; x++) {
-        for (int y = -1; y <= 1; y++) {
-            for (int z = -1; z <= 1; z++) {
-                int3 neighbourPos = gridPos + mI3(x, y, z);
-                uint gridHash = calcGridHash(neighbourPos);
-                uint startIndex = cellStart[gridHash];
-                uint endIndex = cellEnd[gridHash];
-                for (uint j = startIndex; j < endIndex; j++) {
-                    if (j != index) {
-                        Real3 posRadB = mR3(sortedPosRad[j]);
-                        Real3 dist3 = Distance(posRadA, posRadB);
-                        Real dd = dist3.x * dist3.x + dist3.y * dist3.y + dist3.z * dist3.z;
-                        if (dd < SqRadii) {
-                            j_list[j_num] = j;
-                            j_num++;
-                        }
-                    }
-                }
-            }
-        }
-    }
 
     Real tauxx = sortedTauXxYyZz[index].x;
     Real tauyy = sortedTauXxYyZz[index].y;
@@ -1218,19 +1236,21 @@ __global__ void NS_SSR(uint* activityIdentifierD,
     Real tauxy = sortedTauXyXzYz[index].x;
     Real tauxz = sortedTauXyXzYz[index].y;
     Real tauyz = sortedTauXyXzYz[index].z;
-    Real dTauxx = 0.0;
-    Real dTauyy = 0.0;
-    Real dTauzz = 0.0;
-    Real dTauxy = 0.0;
-    Real dTauxz = 0.0;
-    Real dTauyz = 0.0;
+    Real dTauxx = 0.0f;
+    Real dTauyy = 0.0f;
+    Real dTauzz = 0.0f;
+    Real dTauxy = 0.0f;
+    Real dTauxz = 0.0f;
+    Real dTauyz = 0.0f;
+    uint NLStart = numNeighborsPerPart[index];
+    uint NLEnd = numNeighborsPerPart[index + 1];
 
     // Calculate the correction matrix for gradient operator
     Real G_i[9] = {1.0, 0.0, 0.0, 0.0, 1.0, 0.0, 0.0, 0.0, 1.0};
     if (paramsD.USE_Consistent_G) {
         Real mGi[9] = {0.0};
-        for (uint n = 0; n < j_num; n++) {
-            uint j = j_list[n];
+        for (int n = NLStart; n < NLEnd; n++) {
+            uint j = neighborList[n];
             Real3 posRadB = mR3(sortedPosRad[j]);
             Real3 rij = Distance(posRadA, posRadB);
             Real3 grad_i_wij = GradWh(rij, hA);
@@ -1261,72 +1281,63 @@ __global__ void NS_SSR(uint* activityIdentifierD,
         }
     }
 
-    Real radii = paramsD.INITSPACE * 1.241;          // 1.129;//1.241
-    Real invRadii = 1.0 / 1.241 * paramsD.INV_INIT;  // 1.0 / radii
+    Real radii = paramsD.INITSPACE * 1.241f;           // 1.129;//1.241
+    Real invRadii = 1.0f / 1.241f * paramsD.INV_INIT;  // 1.0 / radii
 
     Real vA = length(velMasA);
     Real vAdT = vA * paramsD.dT;
     Real bs_vAdT = paramsD.beta_shifting * vAdT;
 
     Real3 inner_sum = mR3(0.0);
-    Real sum_w_i = W3h(0.0, hA) * paramsD.volume0;
-    Real w_ini_inv = 1.0 / W3h(paramsD.INITSPACE, hA);
+    Real sum_w_i = W3h(0.0f, hA) * paramsD.volume0;
+    Real w_ini_inv = 1.0f / W3h(paramsD.INITSPACE, hA);
     int N_ = 1;
     int N_s = 0;
 
     // Get the interaction from neighbor particles
-    for (uint n = 0; n < j_num; n++) {
-        uint j = j_list[n];
+    for (int n = NLStart; n < NLEnd; n++) {
+        uint j = neighborList[n];
+        if (j == index) {
+            continue;
+        }
+        // uint j = neighborListSorted[n];
         Real4 rhoPresMuB = sortedRhoPreMu[j];
-        if (rhoPresMuA.w > -0.5 && rhoPresMuB.w > -0.5)
+        if (rhoPresMuA.w > -0.5f && rhoPresMuB.w > -0.5f)
             continue;  // No BCE-BCE interaction
         Real3 posRadB = mR3(sortedPosRad[j]);
         Real3 dist3 = Distance(posRadA, posRadB);
         Real d = length(dist3);
-        Real invd = 1.0 / d;
+        Real invd = 1.0f / d;
         Real3 velMasB = sortedVelMas[j];
         Real3 TauXxYyZzB = sortedTauXxYyZz[j];
         Real3 TauXyXzYzB = sortedTauXyXzYz[j];
+
+        velMasB = sortedVelMas[j];
+
+        // TODO: Might need to eliminate this double application of ADAMI BC based on what Wei says
         if (rhoPresMuB.w > -0.5) {
-            int bceIndexB = gridMarkerIndex[j] - numObjectsD.numFluidMarkers;
-            rhoPresMuB = rhoPreMu_ModifiedBCE[bceIndexB];
-            velMasB = velMas_ModifiedBCE[bceIndexB];
-            TauXxYyZzB = tauXxYyZz_ModifiedBCE[bceIndexB];
-            TauXyXzYzB = tauXyXzYz_ModifiedBCE[bceIndexB];
-            // Extrapolated from velocity of fluid particle
-            if (rhoPresMuB.w > 0.5) {
-                velMasB = sortedVelMas[j];
-                Real chi_A = sortedKernelSupport[index].y / sortedKernelSupport[index].x;
-                Real chi_B = sortedKernelSupport[j].y / sortedKernelSupport[j].x;
-                Real dA = SuppRadii * (2.0 * chi_A - 1.0);
-                if (dA < 0.0)
-                    dA = 0.01 * SuppRadii;
-                Real dB = SuppRadii * (2.0 * chi_B - 1.0);
-                if (dB < 0.0)
-                    dB = 0.01 * SuppRadii;
-                Real dAB = dB / dA;
-                if (dAB > 0.5)
-                    dAB = 0.5;
-                Real3 velMasB_new = dAB * (velMasB - velMasA) + velMasB;
-                velMasB = velMasB_new;
-            }
-            if (rhoPresMuB.w < 0.5) {
-                velMasB = sortedVelMas[j];
-                Real chi_A = sortedKernelSupport[index].y / sortedKernelSupport[index].x;
-                Real chi_B = sortedKernelSupport[j].y / sortedKernelSupport[j].x;
-                Real dA = SuppRadii * (2.0 * chi_A - 1.0);
-                if (dA < 0.0)
-                    dA = 0.01 * SuppRadii;
-                Real dB = SuppRadii * (2.0 * chi_B - 1.0);
-                if (dB < 0.0)
-                    dB = 0.01 * SuppRadii;
-                Real dAB = dB / dA;
-                if (dAB > 0.5)
-                    dAB = 0.5;
-                Real3 velMasB_new = dAB * (velMasB - velMasA) + velMasB;
-                velMasB = velMasB_new;
-            }
+            Real chi_A = sortedKernelSupport[index].y / sortedKernelSupport[index].x;
+            Real chi_B = sortedKernelSupport[j].y / sortedKernelSupport[j].x;
+            Real dA = SuppRadii * (2.0 * chi_A - 1.0);
+            Real dB = SuppRadii * (2.0 * chi_B - 1.0);
+
+            int predicateA = (dA < 0.0);
+            dA = predicateA ? 0.01 * SuppRadii : dA;
+
+            int predicateB = (dB < 0.0);
+            dB = predicateB ? 0.01 * SuppRadii : dB;
+
+            Real dAB = dB / dA;
+
+            // Use predication to avoid branching
+            int predicateAB = (dAB > 0.5);
+            dAB = predicateAB ? 0.5 : dAB;
+
+            Real3 velMasB_new = dAB * (velMasB - velMasA) + velMasB;
+
+            velMasB = velMasB_new;
         }
+
         // Correct the kernel function gradient
         Real w_AB = W3h(d, hA);
         Real3 gradW = GradWh(dist3, hA);
@@ -1342,14 +1353,14 @@ __global__ void NS_SSR(uint* activityIdentifierD,
                                                  sortedPosRad[j], velMasA, velMasB, rhoPresMuA, rhoPresMuB, TauXxYyZzA,
                                                  TauXyXzYzA, TauXxYyZzB, TauXyXzYzB);
         // Calculate dsigma/dt
-        if (sortedRhoPreMu[index].w < -0.5) {
+        if (sortedRhoPreMu[index].w < -0.5f) {
             // start to calculate the stress rate
             Real3 vAB = velMasA - velMasB;
-            Real3 vAB_h = 0.5 * vAB * paramsD.volume0;
+            Real3 vAB_h = 0.5f * vAB * paramsD.volume0;
             // entries of strain rate tensor
-            Real exx = -2.0 * vAB_h.x * gradW.x;
-            Real eyy = -2.0 * vAB_h.y * gradW.y;
-            Real ezz = -2.0 * vAB_h.z * gradW.z;
+            Real exx = -2.0f * vAB_h.x * gradW.x;
+            Real eyy = -2.0f * vAB_h.y * gradW.y;
+            Real ezz = -2.0f * vAB_h.z * gradW.z;
             Real exy = -vAB_h.x * gradW.y - vAB_h.y * gradW.x;
             Real exz = -vAB_h.x * gradW.z - vAB_h.z * gradW.x;
             Real eyz = -vAB_h.y * gradW.z - vAB_h.z * gradW.y;
@@ -1358,37 +1369,37 @@ __global__ void NS_SSR(uint* activityIdentifierD,
             Real wxz = -vAB_h.x * gradW.z + vAB_h.z * gradW.x;
             Real wyz = -vAB_h.y * gradW.z + vAB_h.z * gradW.y;
 
-            Real edia = 0.3333333333333 * (exx + eyy + ezz);
-            Real twoG = 2.0 * paramsD.G_shear;
+            Real edia = 0.3333333333333f * (exx + eyy + ezz);
+            Real twoG = 2.0f * paramsD.G_shear;
             Real K_edia = paramsD.K_bulk * 1.0 * edia;
-            dTauxx += twoG * (exx - edia) + 2.0 * (tauxy * wxy + tauxz * wxz) + K_edia;
-            dTauyy += twoG * (eyy - edia) - 2.0 * (tauxy * wxy - tauyz * wyz) + K_edia;
-            dTauzz += twoG * (ezz - edia) - 2.0 * (tauxz * wxz + tauyz * wyz) + K_edia;
+            dTauxx += twoG * (exx - edia) + 2.0f * (tauxy * wxy + tauxz * wxz) + K_edia;
+            dTauyy += twoG * (eyy - edia) - 2.0f * (tauxy * wxy - tauyz * wyz) + K_edia;
+            dTauzz += twoG * (ezz - edia) - 2.0f * (tauxz * wxz + tauyz * wyz) + K_edia;
             dTauxy += twoG * exy - (tauxx * wxy - tauxz * wyz) + (wxy * tauyy + wxz * tauyz);
             dTauxz += twoG * exz - (tauxx * wxz + tauxy * wyz) + (wxy * tauyz + wxz * tauzz);
             dTauyz += twoG * eyz - (tauxy * wxz + tauyy * wyz) - (wxy * tauxz - wyz * tauzz);
         }
         // Do integration for the kernel function, calculate the XSPH term
-        if (d > paramsD.HSML * 1.0e-9) {
+        if (d > paramsD.HSML * 1.0e-9f) {
             Real Wab = W3h(d, hA);
             // Integration of the kernel function
             sum_w_i += Wab * paramsD.volume0;
             // XSPH
-            if (rhoPresMuB.w > -1.5 && rhoPresMuB.w < -0.5)
+            if (rhoPresMuB.w > -1.5f && rhoPresMuB.w < -0.5f)
                 deltaV += paramsD.volume0 * (velMasB - velMasA) * Wab;
             N_ = N_ + 1;
         }
         // Find particles that have contact with this particle
-        if (d < 1.25 * radii && rhoPresMuB.w < -0.5) {
+        if (d < 1.25f * radii && rhoPresMuB.w < -0.5f) {
             Real Pen = (radii - d) * invRadii;
             Real3 r_0 = bs_vAdT * invd * dist3;
             Real3 r_s = r_0 * Pen;
-            if (d < 1.0 * radii) {
-                inner_sum += 3.0 * r_s;
-            } else if (d < 1.1 * radii) {
-                inner_sum += 1.0 * r_s;
+            if (d < 1.0f * radii) {
+                inner_sum += 3.0f * r_s;
+            } else if (d < 1.1f * radii) {
+                inner_sum += 1.0f * r_s;
             } else {
-                inner_sum += 0.1 * 1.0 * (-r_0);
+                inner_sum += 0.1f * 1.0f * (-r_0);
             }
             N_s = N_s + 1;
         }
@@ -1402,12 +1413,12 @@ __global__ void NS_SSR(uint* activityIdentifierD,
     }
 
     // Calculate the shifting vector
-    Real det_r_max = 0.05 * vAdT;
+    Real det_r_max = 0.05f * vAdT;
     Real det_r_A = length(inner_sum);
     if (det_r_A < det_r_max) {
         sortedXSPHandShift[index] = inner_sum;
     } else {
-        sortedXSPHandShift[index] = inner_sum * det_r_max / (det_r_A + 1e-9);
+        sortedXSPHandShift[index] = inner_sum * det_r_max / (det_r_A + 1e-9f);
     }
 
     // Add the XSPH term into the shifting vector
@@ -1417,17 +1428,18 @@ __global__ void NS_SSR(uint* activityIdentifierD,
     sortedXSPHandShift[index] = sortedXSPHandShift[index] * paramsD.INV_dT;
 
     // Add gravity and other body force to fluid markers
-    if (rhoPresMuA.w > -1.5 && rhoPresMuA.w < -0.5) {
+    if (rhoPresMuA.w > -1.5f && rhoPresMuA.w < -0.5f) {
         Real3 totalFluidBodyForce3 = paramsD.bodyForce3 + paramsD.gravity;
-        derivVelRho += mR4(totalFluidBodyForce3, 0.0);
+        derivVelRho += mR4(totalFluidBodyForce3, 0.0f);
     }
 
     sortedDerivVelRho[index] = derivVelRho;
     sortedDerivTauXxYyZz[index] = mR3(dTauxx, dTauyy, dTauzz);
     sortedDerivTauXyXzYz[index] = mR3(dTauxy, dTauxz, dTauyz);
 }
-
 //--------------------------------------------------------------------------------------------------------------------------------
+// TODO (Huzaifa): Update this to use neighbors list - This is only used in the Implicit solver, for the explicit solver
+// the XSPH velocity is computed in NS_SSR (this might need some reconsideration)
 __global__ void CalcVel_XSPH_D(uint* indexOfIndex,
                                Real3* vel_XSPH_Sorted_D,
                                Real4* sortedPosRad,
@@ -1495,17 +1507,18 @@ __global__ void CalcVel_XSPH_D(uint* indexOfIndex,
 }
 
 //--------------------------------------------------------------------------------------------------------------------------------
-__global__ void CopySortedToOriginal_D(Real4* sortedDerivVelRho,
-                                       Real3* sortedDerivTauXxYyZz,
-                                       Real3* sortedDerivTauXyXzYz,
+// TODO (Huzaifa): Why have so many seperate SortedToOriginal function (one below this and one in ChFluidDynamics.cu) - Can these be combined?
+__global__ void CopySortedToOriginal_D(const Real4* sortedDerivVelRho,
+                                       const Real3* sortedDerivTauXxYyZz,
+                                       const Real3* sortedDerivTauXyXzYz,
                                        Real4* originalDerivVelRho,
                                        Real3* originalDerivTauXxYyZz,
                                        Real3* originalDerivTauXyXzYz,
-                                       uint* gridMarkerIndex,
-                                       uint* activityIdentifierD,
-                                       uint* mapOriginalToSorted,
-                                       uint* originalFreeSurfaceId,
-                                       uint* sortedFreeSurfaceId) {
+                                       const uint* gridMarkerIndex,
+                                       const uint* activityIdentifierD,
+                                       const uint* mapOriginalToSorted,
+                                       const uint* originalFreeSurfaceId,
+                                       const uint* sortedFreeSurfaceId) {
     uint id = blockIdx.x * blockDim.x + threadIdx.x;
     if (id >= numObjectsD.numAllMarkers)
         return;
@@ -1527,11 +1540,11 @@ __global__ void CopySortedToOriginal_D(Real4* sortedDerivVelRho,
 }
 
 //--------------------------------------------------------------------------------------------------------------------------------
-__global__ void CopySortedToOriginal_XSPH_D(Real3* sortedXSPH,
+__global__ void CopySortedToOriginal_XSPH_D(const Real3* sortedXSPH,
                                             Real3* originalXSPH,
-                                            uint* gridMarkerIndex,
-                                            uint* activityIdentifierD,
-                                            uint* mapOriginalToSorted) {
+                                            const uint* gridMarkerIndex,
+                                            const uint* activityIdentifierD,
+                                            const uint* mapOriginalToSorted) {
     uint id = blockIdx.x * blockDim.x + threadIdx.x;
     if (id >= numObjectsD.numAllMarkers)
         return;
@@ -1546,19 +1559,21 @@ __global__ void CopySortedToOriginal_XSPH_D(Real3* sortedXSPH,
     originalXSPH[id] = sortedXSPH[index];
 }
 
-// =============================================================================================================================== 
+// ===============================================================================================================================
 
 ChFsiForceExplicitSPH::ChFsiForceExplicitSPH(std::shared_ptr<ChBce> otherBceWorker,
                                              std::shared_ptr<SphMarkerDataD> otherSortedSphMarkersD,
                                              std::shared_ptr<ProximityDataD> otherMarkersProximityD,
-                                             std::shared_ptr<FsiData> otherFsiGeneralData,
+                                             std::shared_ptr<ProximityDataD> otherMarkersProximityWideD,
+                                             std::shared_ptr<FsiData> otherFsiData,
                                              std::shared_ptr<SimParams> params,
                                              std::shared_ptr<ChCounters> numObjects,
                                              bool verb)
     : ChFsiForce(otherBceWorker,
                  otherSortedSphMarkersD,
                  otherMarkersProximityD,
-                 otherFsiGeneralData,
+                 otherMarkersProximityWideD,
+                 otherFsiData,
                  params,
                  numObjects,
                  verb) {
@@ -1578,20 +1593,152 @@ void ChFsiForceExplicitSPH::Initialize() {
 }
 
 //--------------------------------------------------------------------------------------------------------------------------------
-void ChFsiForceExplicitSPH::ForceSPH(std::shared_ptr<SphMarkerDataD> otherSphMarkersD,
+void ChFsiForceExplicitSPH::ForceSPH(std::shared_ptr<SphMarkerDataD> otherSortedSphMarkersD,
                                      std::shared_ptr<FsiBodyStateD> fsiBodyStateD,
                                      std::shared_ptr<FsiMeshStateD> fsiMesh1DStateD,
-                                     std::shared_ptr<FsiMeshStateD> fsiMesh2DStateD) {
+                                     std::shared_ptr<FsiMeshStateD> fsiMesh2DStateD,
+                                     Real time, 
+                                     bool firstHalfStep) {
     sphMarkersD = otherSphMarkersD;
-    fsiCollisionSystem->ArrangeData(sphMarkersD);
-    bceWorker->ModifyBceVelocityPressureStress(sphMarkersD, fsiBodyStateD, fsiMesh1DStateD, fsiMesh2DStateD);
-    CollideWrapper();
+    bceWorker->updateBCEAcc(fsiBodyStateD, fsiMesh1DStateD, fsiMesh2DStateD);
+    CollideWrapper(time, firstHalfStep);
     CalculateXSPH_velocity();
-    // AddGravityToFluid();
 }
 
 //--------------------------------------------------------------------------------------------------------------------------------
-void ChFsiForceExplicitSPH::CollideWrapper() {
+void ChFsiForceExplicitSPH::neighborSearchPlain() {
+    bool *isErrorH, *isErrorD;
+    isErrorH = (bool*)malloc(sizeof(bool));
+    cudaMalloc((void**)&isErrorD, sizeof(bool));
+    *isErrorH = false;
+    cudaMemcpy(isErrorD, isErrorH, sizeof(bool), cudaMemcpyHostToDevice);
+    // thread per particle
+    uint numBlocksShort, numThreadsShort;
+    computeGridSize(numObjectsH->numAllMarkers, 256, numBlocksShort, numThreadsShort);
+    // Execute the kernel
+    *isErrorH = false;
+    cudaMemcpy(isErrorD, isErrorH, sizeof(bool), cudaMemcpyHostToDevice);
+    thrust::fill(fsiData->numNeighborsPerPart.begin(), fsiData->numNeighborsPerPart.end(), 0);
+
+    // start neighbor search
+    // first pass
+    neighborSearchNum_plain<<<numBlocksShort, numThreadsShort>>>(
+        mR4CAST(sortedSphMarkers_D->posRadD), mR4CAST(sortedSphMarkers_D->rhoPresMuD),
+        U1CAST(markersProximity_D->cellStartD), U1CAST(markersProximity_D->cellEndD),
+        U1CAST(fsiData->activityIdentifierD), U1CAST(fsiData->numNeighborsPerPart), isErrorD);
+    ChUtilsDevice::Sync_CheckError(isErrorH, isErrorD, "neighborSearchNum_plain");
+
+    // in-place exclusive scan for num of neighbors
+    thrust::exclusive_scan(fsiData->numNeighborsPerPart.begin(), fsiData->numNeighborsPerPart.end(),
+                           fsiData->numNeighborsPerPart.begin());
+    // std::cout << "numNeighbors: " << fsiData->numNeighborsPerPart.back() << std::endl;
+    fsiData->neighborList.resize(fsiData->numNeighborsPerPart.back());
+    thrust::fill(fsiData->neighborList.begin(), fsiData->neighborList.end(), 0);
+
+    // second pass
+    neighborSearchID_plain<<<numBlocksShort, numThreadsShort>>>(
+        mR4CAST(sortedSphMarkers_D->posRadD), mR4CAST(sortedSphMarkers_D->rhoPresMuD),
+        U1CAST(markersProximity_D->cellStartD), U1CAST(markersProximity_D->cellEndD),
+        U1CAST(fsiData->activityIdentifierD), U1CAST(fsiData->numNeighborsPerPart),
+        U1CAST(fsiData->neighborList), isErrorD);
+    ChUtilsDevice::Sync_CheckError(isErrorH, isErrorD, "neighborSearchID_plain");
+}
+
+void ChFsiForceExplicitSPH::neighborSearchShared() {
+    bool *isErrorH, *isErrorD;
+    isErrorH = (bool*)malloc(sizeof(bool));
+    cudaMalloc((void**)&isErrorD, sizeof(bool));
+    *isErrorH = false;
+    cudaMemcpy(isErrorD, isErrorH, sizeof(bool), cudaMemcpyHostToDevice);
+    // thread per particle
+    uint numBlocksShort, numThreadsShort;
+    // Execute the kernel
+    *isErrorH = false;
+    cudaMemcpy(isErrorD, isErrorH, sizeof(bool), cudaMemcpyHostToDevice);
+    uint numNeighborCells = 19 * 8;
+    uint neighborCellsH[19 * 8] = {
+        0,  1,  2,  3,  4,  5,  6,  7,  9,  11, 14, 15, 18, 21, 28, 29, 30, 35, 42, 1,  3,  5,  7,  8,  9,  10,
+        11, 12, 13, 15, 21, 22, 25, 29, 35, 36, 37, 49, 2,  3,  6,  9,  14, 15, 16, 17, 18, 19, 20, 21, 23, 26,
+        30, 42, 43, 44, 50, 3,  9,  10, 13, 15, 17, 20, 21, 22, 23, 24, 25, 26, 27, 37, 44, 49, 50, 51, 4,  5,
+        6,  11, 18, 28, 29, 30, 31, 32, 33, 34, 35, 38, 40, 42, 45, 46, 52, 5,  11, 12, 13, 25, 29, 32, 34, 35,
+        36, 37, 38, 39, 40, 41, 46, 49, 52, 53, 6,  18, 19, 20, 26, 30, 33, 34, 40, 42, 43, 44, 45, 46, 47, 48,
+        50, 52, 54, 13, 20, 25, 26, 27, 34, 37, 40, 41, 44, 46, 48, 49, 50, 51, 52, 53, 54, 55};
+    thrust::device_vector<uint> neighborCellIndices(neighborCellsH, neighborCellsH + numNeighborCells);
+
+    thrust::device_vector<uint> cellEndStartDiff(markersProximityWide_D->cellStartD.size());
+    thrust::transform(markersProximityWide_D->cellEndD.begin(), markersProximityWide_D->cellEndD.end(),
+                      markersProximityWide_D->cellStartD.begin(), cellEndStartDiff.begin(), thrust::minus<uint>());
+    thrust::device_vector<uint> nonZeroIndices(cellEndStartDiff.size());
+    auto indices_end = thrust::copy_if(thrust::make_counting_iterator((uint)0),
+                                       thrust::make_counting_iterator((uint)cellEndStartDiff.size()),
+                                       cellEndStartDiff.begin(), nonZeroIndices.begin(), thrust::identity<uint>());
+
+    numBlocksShort = thrust::distance(nonZeroIndices.begin(), indices_end);
+    // std::cout << numBlocksShort << std::endl;
+    // numBlocksShort = paramsH->gridSize.x * paramsH->gridSize.y * paramsH->gridSize.z / 8;
+    numThreadsShort = 128;
+    uint numThreadsSD = 8;
+
+    // each one of the 8 cells in the SD will populate its 7 corresponding neighbor cells' ID
+    thrust::device_vector<uint> SDCenter(numBlocksShort * 8);
+    thrust::device_vector<uint> SDBuffer(numBlocksShort * 56);
+    fillCenterBufferCellID<<<numBlocksShort, numThreadsSD>>>(U1CAST(nonZeroIndices),
+                                                             U1CAST(fsiData->activityIdentifierSDD),
+                                                             U1CAST(SDCenter), U1CAST(SDBuffer), isErrorD);
+    ChUtilsDevice::Sync_CheckError(isErrorH, isErrorD, "fillCenterBufferCellID");
+
+    // find number of particles in buffer cells
+    thrust::device_vector<uint> numPartsInCenterCells(numBlocksShort * 8);
+    thrust::device_vector<uint> numPartsInBufferCells(numBlocksShort * 56);
+    thrust::device_vector<uint> centerCellKeys(numBlocksShort * 8);
+    thrust::device_vector<uint> bufferCellKeys(numBlocksShort * 56);
+    findNumPartsInBufferCells<<<numBlocksShort, 64>>>(
+        U1CAST(SDCenter), U1CAST(SDBuffer), U1CAST(markersProximity_D->cellStartD), U1CAST(markersProximity_D->cellEndD),
+        U1CAST(nonZeroIndices), U1CAST(fsiData->activityIdentifierSDD), U1CAST(numPartsInCenterCells),
+        U1CAST(numPartsInBufferCells), U1CAST(centerCellKeys), U1CAST(bufferCellKeys), isErrorD);
+    ChUtilsDevice::Sync_CheckError(isErrorH, isErrorD, "findNumPartsInBufferCells");
+
+    thrust::inclusive_scan_by_key(centerCellKeys.begin(), centerCellKeys.end(), numPartsInCenterCells.begin(),
+                                  numPartsInCenterCells.begin(), thrust::equal_to<uint>(), thrust::plus<uint>());
+    thrust::inclusive_scan_by_key(bufferCellKeys.begin(), bufferCellKeys.end(), numPartsInBufferCells.begin(),
+                                  numPartsInBufferCells.begin(), thrust::equal_to<uint>(), thrust::plus<uint>());
+
+    auto max_numCenterPts = thrust::max_element(cellEndStartDiff.begin(), cellEndStartDiff.end());
+    // thrust::device_vector<uint> numNeighborsPerPart(numObjectsH->numAllMarkers, 0);
+    // std::cout << numPartsInCenterCells.size() << std::endl;
+    thrust::fill(fsiData->numNeighborsPerPart.begin(), fsiData->numNeighborsPerPart.end(), 0);
+    cudaDeviceSynchronize();
+
+    // start neighbor search
+    uint shMemSize = 730 * (sizeof(Real3)) + (125 + 57) * sizeof(uint);
+    // first pass
+    neighborSearchNum<<<numBlocksShort, numThreadsShort, shMemSize>>>(
+        mR4CAST(sortedSphMarkers_D->posRadD), mR4CAST(sortedSphMarkers_D->rhoPresMuD),
+        U1CAST(markersProximity_D->cellStartD), U1CAST(markersProximity_D->cellEndD), U1CAST(SDCenter), U1CAST(SDBuffer),
+        U1CAST(numPartsInCenterCells), U1CAST(numPartsInBufferCells), U1CAST(neighborCellIndices),
+        U1CAST(fsiData->activityIdentifierSDD), U1CAST(nonZeroIndices),
+        U1CAST(fsiData->numNeighborsPerPart), isErrorD);
+    ChUtilsDevice::Sync_CheckError(isErrorH, isErrorD, "neighborSearchNum");
+
+    // in-place exclusive scan for num of neighbors
+    thrust::exclusive_scan(fsiData->numNeighborsPerPart.begin(), fsiData->numNeighborsPerPart.end(),
+                           fsiData->numNeighborsPerPart.begin());
+    fsiData->neighborList.resize(fsiData->numNeighborsPerPart.back());
+    thrust::fill(fsiData->neighborList.begin(), fsiData->neighborList.end(), 0);
+
+    shMemSize = 730 * (sizeof(Real3) + sizeof(uint));
+    // second pass
+    neighborSearchID<<<numBlocksShort, numThreadsShort, shMemSize>>>(
+        mR4CAST(sortedSphMarkers_D->posRadD), mR4CAST(sortedSphMarkers_D->rhoPresMuD),
+        U1CAST(markersProximity_D->cellStartD), U1CAST(markersProximity_D->cellEndD), U1CAST(SDCenter), U1CAST(SDBuffer),
+        U1CAST(numPartsInCenterCells), U1CAST(numPartsInBufferCells), U1CAST(neighborCellIndices),
+        U1CAST(fsiData->numNeighborsPerPart), U1CAST(fsiData->activityIdentifierSDD),
+        U1CAST(nonZeroIndices), U1CAST(fsiData->neighborList), isErrorD);
+    ChUtilsDevice::Sync_CheckError(isErrorH, isErrorD, "neighborSearchID");
+}
+
+//--------------------------------------------------------------------------------------------------------------------------------
+void ChFsiForceExplicitSPH::CollideWrapper(Real time, bool firstHalfStep) {
     bool *isErrorD;
     cudaMalloc((void**)&isErrorD, sizeof(bool));
 
@@ -1602,22 +1749,7 @@ void ChFsiForceExplicitSPH::CollideWrapper() {
     computeGridSize((int)numObjectsH->numAllMarkers - (int)numObjectsH->numBoundaryMarkers, 256, numBlocks1,
                     numThreads1);
 
-    // Execute the kernel
-    thrust::device_vector<Real4> sortedDerivVelRho(numObjectsH->numAllMarkers);
-    thrust::device_vector<Real3> sortedDerivTauXxYyZz(numObjectsH->numAllMarkers);
-    thrust::device_vector<Real3> sortedDerivTauXyXzYz(numObjectsH->numAllMarkers);
-    thrust::device_vector<Real3> sortedKernelSupport(numObjectsH->numAllMarkers);
-    thrust::device_vector<uint> sortedFreeSurfaceId(numObjectsH->numAllMarkers);
-    sortedXSPHandShift.resize(numObjectsH->numAllMarkers);
-
-    // Calculate the kernel support of each particle
-    cudaResetErrorFlag(isErrorD);
-    calcKernelSupport<<<numBlocks, numThreads>>>(
-        mR4CAST(sortedSphMarkers_D->posRadD), mR4CAST(sortedSphMarkers_D->rhoPresMuD), mR3CAST(sortedKernelSupport),
-        U1CAST(markersProximity_D->cellStartD), U1CAST(markersProximity_D->cellEndD), isErrorD);
-    cudaCheckErrorFlag(isErrorD, "calcKernelSupport");
-
-    // Re-Initialize the density after several time steps
+    // Re-Initialize the density after several time steps if needed
     if (density_initialization >= paramsH->densityReinit) {
         thrust::device_vector<Real4> rhoPresMuD_old = sortedSphMarkers_D->rhoPresMuD;
         printf("Re-initializing density after %d steps.\n", paramsH->densityReinit);
@@ -1631,20 +1763,47 @@ void ChFsiForceExplicitSPH::CollideWrapper() {
     }
     density_initialization++;
 
+    // TODO (Huzaifa): I suppose this can be removed - make sure this is the case
+    sortedXSPHandShift.resize(numObjectsH->numAllMarkers);
+
+    // Perform Proxmity search at desired frequency and using desired GPU memory
+    if (firstHalfStep && (time < 1e-6 || int(round(time / paramsH->dT)) % paramsH->numProximitySearchSteps == 0)) {
+        if(paramsH->sharedProximitySearch){
+            neighborSearchShared();
+        }
+        else{
+            neighborSearchPlain();
+        }
+    }
+
+    thrust::device_vector<Real3> sortedKernelSupport(numObjectsH->numAllMarkers);
+    // Calculate the kernel support of each particle
+    cudaResetErrorFlag(isErrorD);
+    calcKernelSupport<<<numBlocks, numThreads>>>(
+        mR4CAST(sortedSphMarkers_D->posRadD), mR4CAST(sortedSphMarkers_D->rhoPresMuD), mR3CAST(sortedKernelSupport),
+        U1CAST(markersProximity_D->cellStartD), U1CAST(markersProximity_D->cellEndD), isErrorD);
+    cudaCheckErrorFlag(isErrorD, "calcKernelSupport");
+
+    cudaResetErrorFlag(isErrorD);
+    updateBoundaryPres<<<numBlocks, numThreads>>>(
+        U1CAST(fsiData->activityIdentifierD), U1CAST(fsiData->numNeighborsPerPart),
+        U1CAST(fsiData->neighborList), mR4CAST(sortedSphMarkers_D->posRadD), mR3CAST(fsiData->bceAcc),
+        mR4CAST(sortedSphMarkers_D->rhoPresMuD), mR3CAST(sortedSphMarkers_D->velMasD),
+        mR3CAST(sortedSphMarkers_D->tauXxYyZzD), mR3CAST(sortedSphMarkers_D->tauXyXzYzD), isErrorD);
+    cudaCheckErrorFlag(isErrorD, "updateBoundaryPres");
+
     // Execute the kernel
     if (paramsH->elastic_SPH) {  // For granular material
         // execute the kernel Navier_Stokes and Shear_Stress_Rate in one kernel
         cudaResetErrorFlag(isErrorD);
         NS_SSR<<<numBlocks, numThreads>>>(
-            U1CAST(fsiData->activityIdentifierD), mR4CAST(sortedDerivVelRho), mR3CAST(sortedDerivTauXxYyZz),
-            mR3CAST(sortedDerivTauXyXzYz), mR3CAST(sortedXSPHandShift), mR3CAST(sortedKernelSupport),
-            mR4CAST(sortedSphMarkers_D->posRadD), mR3CAST(sortedSphMarkers_D->velMasD),
-            mR4CAST(sortedSphMarkers_D->rhoPresMuD), mR3CAST(bceWorker->velMas_ModifiedBCE),
-            mR4CAST(bceWorker->rhoPreMu_ModifiedBCE), mR3CAST(bceWorker->tauXxYyZz_ModifiedBCE),
-            mR3CAST(bceWorker->tauXyXzYz_ModifiedBCE), mR3CAST(sortedSphMarkers_D->tauXxYyZzD),
-            mR3CAST(sortedSphMarkers_D->tauXyXzYzD), U1CAST(markersProximity_D->gridMarkerIndexD),
-            U1CAST(markersProximity_D->cellStartD), U1CAST(markersProximity_D->cellEndD),
-            U1CAST(markersProximity_D->mapOriginalToSorted), U1CAST(sortedFreeSurfaceId), isErrorD);
+            U1CAST(fsiData->activityIdentifierD), mR4CAST(sortedSphMarkers_D->posRadD),
+            mR3CAST(sortedSphMarkers_D->velMasD), mR4CAST(sortedSphMarkers_D->rhoPresMuD),
+            mR3CAST(sortedSphMarkers_D->tauXxYyZzD), mR3CAST(sortedSphMarkers_D->tauXyXzYzD),
+            U1CAST(fsiData->numNeighborsPerPart), U1CAST(fsiData->neighborList),
+            mR4CAST(fsiData->derivVelRhoD), mR3CAST(fsiData->derivTauXxYyZzD),
+            mR3CAST(fsiData->derivTauXyXzYzD), mR3CAST(fsiData->vel_XSPH_D), mR3CAST(sortedKernelSupport),
+            U1CAST(fsiData->freeSurfaceIdD), isErrorD);
         cudaCheckErrorFlag(isErrorD, "NS_SSR");
     } else {  // For fluid
 
@@ -1657,32 +1816,22 @@ void ChFsiForceExplicitSPH::CollideWrapper() {
 
         // execute the kernel
         cudaResetErrorFlag(isErrorD);
+        // TOUnderstand: Why is the blocks NumBlocks1 and threads NumThreads1?
         Navier_Stokes<<<numBlocks1, numThreads1>>>(
-            U1CAST(indexOfIndex), mR4CAST(sortedDerivVelRho), mR3CAST(sortedXSPHandShift),
+            U1CAST(indexOfIndex), mR4CAST(fsiData->derivVelRhoD), mR3CAST(fsiData->vel_XSPH_D),
             mR4CAST(sortedSphMarkers_D->posRadD), mR3CAST(sortedSphMarkers_D->velMasD),
-            mR4CAST(sortedSphMarkers_D->rhoPresMuD), mR3CAST(bceWorker->velMas_ModifiedBCE),
-            mR4CAST(bceWorker->rhoPreMu_ModifiedBCE), U1CAST(markersProximity_D->gridMarkerIndexD),
+            mR4CAST(sortedSphMarkers_D->rhoPresMuD), U1CAST(markersProximity_D->gridMarkerIndexD),
             U1CAST(markersProximity_D->cellStartD), U1CAST(markersProximity_D->cellEndD), isErrorD);
         cudaCheckErrorFlag(isErrorD, "Navier_Stokes");
     }
 
-    // Launch a kernel to copy data from sorted arrays to original arrays.
-    // This is faster than using thrust::sort_by_key()
-    CopySortedToOriginal_D<<<numBlocks, numThreads>>>(
-        mR4CAST(sortedDerivVelRho), mR3CAST(sortedDerivTauXxYyZz), mR3CAST(sortedDerivTauXyXzYz),
-        mR4CAST(fsiData->derivVelRhoD), mR3CAST(fsiData->derivTauXxYyZzD), mR3CAST(fsiData->derivTauXyXzYzD),
-        U1CAST(markersProximity_D->gridMarkerIndexD), U1CAST(fsiData->activityIdentifierD),
-        U1CAST(markersProximity_D->mapOriginalToSorted), U1CAST(fsiData->freeSurfaceIdD), U1CAST(sortedFreeSurfaceId));
-
-    sortedDerivVelRho.clear();
-    sortedDerivTauXxYyZz.clear();
-    sortedDerivTauXyXzYz.clear();
     sortedKernelSupport.clear();
-    sortedFreeSurfaceId.clear();
     cudaFree(isErrorD);
 }
 
 //--------------------------------------------------------------------------------------------------------------------------------
+// TODO (Huzaifa): This needs to be checked for the non elastic SPH but explicit solver case
+// Nothing happens in this function for elastic SPH since NS_SSR (which is called only for elastic SPH) computes the XSPH velocity
 void ChFsiForceExplicitSPH::CalculateXSPH_velocity() {
     // Calculate vel_XSPH
     if (vel_XSPH_Sorted_D.size() != numObjectsH->numAllMarkers) {
@@ -1701,12 +1850,7 @@ void ChFsiForceExplicitSPH::CalculateXSPH_velocity() {
     computeGridSize((int)numObjectsH->numAllMarkers, 256, numBlocks, numThreads);
 
     //------------------------------------------------------------------------
-    if (paramsH->elastic_SPH) {
-        // The XSPH vector already included in the shifting vector
-        CopySortedToOriginal_XSPH_D<<<numBlocks, numThreads>>>(
-            mR3CAST(sortedXSPHandShift), mR3CAST(fsiData->vel_XSPH_D), U1CAST(markersProximity_D->gridMarkerIndexD),
-            U1CAST(fsiData->activityIdentifierD), U1CAST(markersProximity_D->mapOriginalToSorted));
-    } else {
+    if (!paramsH->elastic_SPH) {
         uint numBlocks1, numThreads1;
         computeGridSize((int)numObjectsH->numAllMarkers - (int)numObjectsH->numBoundaryMarkers, 256, numBlocks1,
                         numThreads1);
@@ -1740,19 +1884,6 @@ void ChFsiForceExplicitSPH::CalculateXSPH_velocity() {
     cudaFree(isErrorD);
 }
 
-//--------------------------------------------------------------------------------------------------------------------------------
-void ChFsiForceExplicitSPH::AddGravityToFluid() {
-    // add gravity to fluid markers
-    /* Add outside forces. Don't add gravity to rigids, BCE, and boundaries, it is
-     * added in ChSystem */
-    Real3 totalFluidBodyForce3 = paramsH->bodyForce3 + paramsH->gravity;
-    thrust::device_vector<Real4> bodyForceD(numObjectsH->numAllMarkers);
-    thrust::fill(bodyForceD.begin(), bodyForceD.end(), mR4(totalFluidBodyForce3));
-    thrust::transform(fsiData->derivVelRhoD.begin() + fsiData->referenceArray[0].x,
-                      fsiData->derivVelRhoD.begin() + fsiData->referenceArray[0].y, bodyForceD.begin(),
-                      fsiData->derivVelRhoD.begin() + fsiData->referenceArray[0].x, thrust::plus<Real4>());
-    bodyForceD.clear();
-}
 
 }  // namespace fsi
 }  // namespace chrono

@@ -172,7 +172,7 @@ ChSystemFsi_impl::ChSystemFsi_impl(std::shared_ptr<SimParams> params) : ChFsiBas
 
     fsiData = chrono_types::make_shared<FsiData>();
     markersProximity_D = chrono_types::make_shared<ProximityDataD>();
-    markersProximityWideD = chrono_types::make_shared<ProximityDataD>(); // For shared memory proximity search
+    markersProximityWide_D = chrono_types::make_shared<ProximityDataD>(); // For shared memory proximity search
 }
 
 ChSystemFsi_impl::~ChSystemFsi_impl() {}
@@ -342,7 +342,7 @@ void ChSystemFsi_impl::Initialize(size_t numRigidBodies,
     sortedSphMarkers2_D->resize(numObjectsH->numAllMarkers);
     sphMarkers_H->resize(numObjectsH->numAllMarkers);
     markersProximity_D->resize(numObjectsH->numAllMarkers);
-    markersProximityWideD->resize(numObjects->numAllMarkers);
+    markersProximityWide_D->resize(numObjects->numAllMarkers);
 
     fsiData->derivVelRhoD.resize(numObjectsH->numAllMarkers); // sorted
     fsiData->derivVelRhoD_old.resize(numObjectsH->numAllMarkers); // sorted

@@ -53,6 +53,9 @@ class ChFluidDynamics : public ChFsiBase {
     /// Destructor of the fluid/granular dynamics class.
     ~ChFluidDynamics();
 
+    /// Sort particles
+    void SortParticles();
+
     /// Integrate the fluid/granular system in time.
     /// The underlying SPH method implementation goes inside this function.
     /// In a explicit scheme, to perform the integration, the force system
@@ -61,14 +64,19 @@ class ChFluidDynamics : public ChFsiBase {
     /// time, the latter is used to update the pressure from an equation of
     /// state. In the implicit scheme, the pressures are updated instead of density.
     void IntegrateSPH(
-        std::shared_ptr<SphMarkerDataD> sphMarkers2_D,    ///< SPH particle information at the second half step
-        std::shared_ptr<SphMarkerDataD> sphMarkers1_D,    ///< SPH particle information at the first half step
+        std::shared_ptr<SphMarkerDataD> sortedSphMarkers2_D,    ///< SPH particle information at the second half step
+        std::shared_ptr<SphMarkerDataD> sortedSphMarkers1_D,    ///< SPH particle information at the first half step
         std::shared_ptr<FsiBodyStateD> fsiBodyState_D,    ///< nformation on rigid bodies
         std::shared_ptr<FsiMeshStateD> fsiMesh1DState_D,  ///< information of 1-D flexible mesh
         std::shared_ptr<FsiMeshStateD> fsiMesh2DState_D,  ///< information of 2-D flexible mesh
         Real dT,                                          ///< simulation stepsize
         Real time                                         ///< simulation time
+        bool firstHalfStep = true,                        ///< flag to indicate the first half step in case of explicit integration
     );
+
+    /// Copy from sorted to original
+    void CopySortedToOriginal(std::shared_ptr<SphMarkerDataD> sortedSphMarkersD2,
+                              std::shared_ptr<SphMarkerDataD> sphMarkersD);
 
     /// Function to Shepard Filtering.
     /// It calculates the densities directly, not based on the derivative of the
@@ -83,7 +91,7 @@ class ChFluidDynamics : public ChFsiBase {
     /// Return the ChFsiForce type used in the simulation.
     std::shared_ptr<ChFsiForce> GetForceSystem() { return forceSystem; }
 
-  protected:
+  protected: 
     ChSystemFsi_impl& fsiSystem;              ///< FSI data; values are maintained externally
     std::shared_ptr<ChFsiForce> forceSystem;  ///< force system object; calculates the force between particles
 
@@ -91,20 +99,21 @@ class ChFluidDynamics : public ChFsiBase {
 
     /// Update activity of SPH particles.
     /// SPH particles which are in an active domain (e.g., close to a solid) are set as active particles.
-    void UpdateActivity(std::shared_ptr<SphMarkerDataD> sphMarkers1_D,
-                        std::shared_ptr<SphMarkerDataD> sphMarkers2_D,
+    void UpdateActivity(std::shared_ptr<SphMarkerDataD> sortedSphMarkers1_D,
+                        std::shared_ptr<SphMarkerDataD> sortedSphMarkers2_D,
                         std::shared_ptr<FsiBodyStateD> fsiBodyState_D,
                         std::shared_ptr<FsiMeshStateD> fsiMesh1DState_D,
                         std::shared_ptr<FsiMeshStateD> fsiMesh2DState_D,
                         Real time);
 
     /// Update SPH particles data for explicit integration.
-    void UpdateFluid(std::shared_ptr<SphMarkerDataD> sphMarkersD, Real dT);
+    void UpdateFluid(std::shared_ptr<SphMarkerDataD> sortedSphMarkersD, Real dT);
 
     /// Apply periodic boundary to the normal SPH particles.
-    void ApplyBoundarySPH_Markers(std::shared_ptr<SphMarkerDataD> sphMarkersD);
+    void ApplyBoundarySPH_Markers(std::shared_ptr<SphMarkerDataD> sortedSphMarkersD);
 
     /// Mpodify the velocity of BCE particles.
+    /// TODO (Huzaifa) - Might need to deprecated this function.
     void ApplyModifiedBoundarySPH_Markers(std::shared_ptr<SphMarkerDataD> sphMarkersD);
 };
 

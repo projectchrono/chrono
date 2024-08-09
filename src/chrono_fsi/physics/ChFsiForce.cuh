@@ -49,6 +49,11 @@ struct compare_Real4_w {
 struct compare_Real3_mag {
     __host__ __device__ bool operator()(Real3 lhs, Real3 rhs) { return length(lhs) < length(rhs); }
 };
+struct equal_invalid {
+    uint invalidParticleID;
+    equal_invalid(uint y) { invalidParticleID = y; }
+    __host__ __device__ bool operator()(const uint& x) { return x == invalidParticleID; }
+};
 struct Real4_x {
     const Real rest_val;
     Real4_x(Real _a) : rest_val(_a) {}
@@ -56,10 +61,24 @@ struct Real4_x {
         return (input.w != -1.0) ? 0.0 : abs(input.x - rest_val);
     }
 };
+struct saxpy_functor {
+    const Real a;
+    saxpy_functor(Real _a) : a(_a) {}
+    __host__ __device__ Real operator()(const Real& x, const Real& y) const { return x + a * y; }
+};
+template <typename T>
+struct square_functor {
+    __host__ __device__ T operator()(const T& x) const { return x * x; }
+};
 struct Real4_z {
     Real4_z() {}
     __host__ __device__ Real operator()(const Real4& input) const { return (input.w == -1) ? input.z : 0; }
 };
+
+struct Real4_boundary {
+    __host__ __device__ bool operator()(const Real4& input) const { return input.w == 1.0; }
+};
+
 struct Real4_y {
     __host__ __device__ Real operator()(const Real4& input) const { return (input.w != -1.0) ? 0.0 : input.y; }
 };
@@ -96,10 +115,12 @@ class ChFsiForce : public ChFsiBase {
         std::shared_ptr<ChBce> otherBceWorker,                   ///< object that handles BCE particles
         std::shared_ptr<SphMarkerDataD> otherSortedSphMarkersD,  ///< information of particle in the sorted device array
         std::shared_ptr<ProximityDataD> otherMarkersProximityD,  ///< object that holds device proximity info
-        std::shared_ptr<FsiData> otherFsiGeneralData,            ///< SPH general data
-        std::shared_ptr<SimParams> params,                       ///< simulation parameters
-        std::shared_ptr<ChCounters> numObjects,                  ///< problem counters
-        bool verb                                                ///< verbose output
+        std::shared_ptr<ProximityDataD>
+            otherMarkersProximityWideD,  ///< object that holds device proximity info but for the sub Domain (SD)
+        std::shared_ptr<FsiData> otherFsiData,  ///< SPH general data
+        std::shared_ptr<SimParams> params,             ///< simulation parameters
+        std::shared_ptr<ChCounters> numObjects,        ///< problem counters
+        bool verb                                      ///< verbose output
     );
 
     /// Destructor of the ChFsiForce.
@@ -108,10 +129,12 @@ class ChFsiForce : public ChFsiBase {
     /// Function to calculate forces on SPH particles.
     /// Implemented by derived classes to compute forces in an implicit integrator using ISPH method (see
     /// ChFsiForceI2SPH) or an explicit integrator using WCPSH method (see ChFsiForceExplicitSPH).
-    virtual void ForceSPH(std::shared_ptr<SphMarkerDataD> otherSphMarkersD,
+    virtual void ForceSPH(std::shared_ptr<SphMarkerDataD> otherSortedSphMarkersD,
                           std::shared_ptr<FsiBodyStateD> fsiBodyStateD,
                           std::shared_ptr<FsiMeshStateD> fsiMesh1DStateD,
-                          std::shared_ptr<FsiMeshStateD> fsiMesh2DStateD) = 0;
+                          std::shared_ptr<FsiMeshStateD> fsiMesh2DStateD,
+                          Real time,
+                          bool firstHalfStep) = 0;
 
     /// Synchronize the copy of the data (parameters and number of objects)
     /// between device (GPU) and host (CPU).
@@ -165,7 +188,8 @@ class ChFsiForce : public ChFsiBase {
     std::shared_ptr<SphMarkerDataD> sphMarkersD;         ///< device copy of the SPH particles data
     std::shared_ptr<SphMarkerDataD> sortedSphMarkers_D;  ///< device copy of the sorted sph particles data
     std::shared_ptr<ProximityDataD> markersProximity_D;  ///< pointer object that holds the proximity of the particles
-    std::shared_ptr<FsiData> fsiData;                    ///< pointer to sph general data
+    std::shared_ptr<ProximityDataD> markersProximityWide_D; ///< pointer object that holds the proximity of the particles in the shared memory subdomain
+    std::shared_ptr<FsiData> fsiData;  ///< pointer to sph general data
 
     thrust::device_vector<Real3> vel_vis_Sorted_D;       ///< sorted visualization velocity data
     thrust::device_vector<Real3> vel_XSPH_Sorted_D;      ///< sorted xsph velocity data
