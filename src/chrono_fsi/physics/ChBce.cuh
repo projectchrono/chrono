@@ -93,10 +93,10 @@ class ChBce : public ChFsiBase {
                              std::shared_ptr<FsiMeshStateD> fsiMesh2DState_D);
 
     /// Modify the velocity, pressure, stress of BCE particles according to the SPH particles around.
-    void ModifyBceVelocityPressureStress(std::shared_ptr<SphMarkerDataD> sphMarkers_D,
-                                            std::shared_ptr<FsiBodyStateD> fsiBodyState_D,
-                                             std::shared_ptr<FsiMeshStateD> fsiMesh1DState_D,
-                                             std::shared_ptr<FsiMeshStateD> fsiMesh2DState_D);
+    // void ModifyBceVelocityPressureStress(std::shared_ptr<SphMarkerDataD> sphMarkers_D,
+    //                                         std::shared_ptr<FsiBodyStateD> fsiBodyState_D,
+    //                                          std::shared_ptr<FsiMeshStateD> fsiMesh1DState_D,
+    //                                          std::shared_ptr<FsiMeshStateD> fsiMesh2DState_D);
 
     /// Populates the BCE particles on the rigid bodies at the initial configuration of the system.
     /// The local coordinates w.r.t to the coordinate system of the rigid bodies is saved and is used
@@ -134,21 +134,21 @@ class ChBce : public ChFsiBase {
     );
 
     /// Calculates pressure and velocity of the BCE particles.
-    void ReCalcVelocityPressureStress_BCE(thrust::device_vector<Real3>& velMas_ModifiedBCE,
-                                          thrust::device_vector<Real4>& rhoPreMu_ModifiedBCE,
-                                          thrust::device_vector<Real3>& tauXxYyZz_ModifiedBCE,
-                                          thrust::device_vector<Real3>& tauXyXzYz_ModifiedBCE,
-                                          const thrust::device_vector<Real4>& sortedPosRad,
-                                          const thrust::device_vector<Real3>& sortedVelMas,
-                                          const thrust::device_vector<Real4>& sortedRhoPreMu,
-                                          const thrust::device_vector<Real3>& sortedTauXxYyZz,
-                                          const thrust::device_vector<Real3>& sortedTauXyXzYz,
-                                          const thrust::device_vector<uint>& cellStart,
-                                          const thrust::device_vector<uint>& cellEnd,
-                                          const thrust::device_vector<uint>& mapOriginalToSorted,
-                                          const thrust::device_vector<uint>& extendedActivityIdD,
-                                          const thrust::device_vector<Real3>& bceAcc,
-                                          int4 updatePortion);
+    // void ReCalcVelocityPressureStress_BCE(thrust::device_vector<Real3>& velMas_ModifiedBCE,
+    //                                       thrust::device_vector<Real4>& rhoPreMu_ModifiedBCE,
+    //                                       thrust::device_vector<Real3>& tauXxYyZz_ModifiedBCE,
+    //                                       thrust::device_vector<Real3>& tauXyXzYz_ModifiedBCE,
+    //                                       const thrust::device_vector<Real4>& sortedPosRad,
+    //                                       const thrust::device_vector<Real3>& sortedVelMas,
+    //                                       const thrust::device_vector<Real4>& sortedRhoPreMu,
+    //                                       const thrust::device_vector<Real3>& sortedTauXxYyZz,
+    //                                       const thrust::device_vector<Real3>& sortedTauXyXzYz,
+    //                                       const thrust::device_vector<uint>& cellStart,
+    //                                       const thrust::device_vector<uint>& cellEnd,
+    //                                       const thrust::device_vector<uint>& mapOriginalToSorted,
+    //                                       const thrust::device_vector<uint>& extendedActivityIdD,
+    //                                       const thrust::device_vector<Real3>& bceAcc,
+    //                                       int4 updatePortion);
 };
 
 /// @} fsi_physics

@@ -478,7 +478,7 @@ __global__ void ReCalcDensityD_F1(Real4* dummySortedRhoPreMu,
 // -----------------------------------------------------------------------------
 // Kernel for updating the activity of all particles.
 __global__ void UpdateActivityD(const Real4* posRadD,
-                                const Real3* velMasD,
+                                Real3* velMasD,
                                 const Real3* pos_bodies_D,
                                 const Real3* pos_nodes1D_D,
                                 const Real3* pos_nodes2D_D,
@@ -555,8 +555,9 @@ __global__ void UpdateActivityD(const Real4* posRadD,
 }
 
 // -----------------------------------------------------------------------------
-__global__ void UpdateActivitySDD(const Real3* posRigidBodiesD,
-                                  const Real3* pos_fsi_fea_D,
+__global__ void UpdateActivitySDD(const Real3* pos_bodies_D,
+                                  const Real3* pos_nodes1D_D,
+                                  const Real3* pos_nodes2D_D,
                                   uint* activityIdentifierSDD,
                                   uint* extendedActivityIdSDD,
                                   const uint numSD,
@@ -582,11 +583,10 @@ __global__ void UpdateActivitySDD(const Real3* posRigidBodiesD,
     SDPos.x = gridPos.x * 2 * paramsD.cellSize.x + paramsD.worldOrigin.x + paramsD.cellSize.x;
     SDPos.y = gridPos.y * 2 * paramsD.cellSize.y + paramsD.worldOrigin.y + paramsD.cellSize.y;
     SDPos.z = gridPos.z * 2 * paramsD.cellSize.z + paramsD.worldOrigin.z + paramsD.cellSize.z;
-
     size_t numRigidBodies = numObjectsD.numRigidBodies;
-    size_t numFlexNodes = numObjectsD.numFlexNodes;
-    size_t numTotal = numRigidBodies + numFlexNodes;
-
+    size_t numFlexNodes1D = numObjectsD.numFlexNodes1D;
+    size_t numFlexNodes2D = numObjectsD.numFlexNodes2D;
+    size_t numTotal = numRigidBodies + numFlexNodes1D + numFlexNodes2D;
     // Check the activity of this entire subdomain
     uint isNotActive = 0;
     uint isNotExtended = 0;
@@ -681,7 +681,7 @@ ChFluidDynamics::ChFluidDynamics(std::shared_ptr<ChBce> otherBceWorker,
 
         case SPHMethod::WCSPH:
             forceSystem = chrono_types::make_shared<ChFsiForceExplicitSPH>(
-                otherBceWorker, fsiSystem.sortedSphMarkers_D, fsiSystem.markersProximity_D, fsiSystem.markersProximityWide_D, fsiSystem.fsiData, paramsH,
+                otherBceWorker, fsiSystem.sortedSphMarkers2_D, fsiSystem.markersProximity_D, fsiSystem.markersProximityWide_D, fsiSystem.fsiData, paramsH,
                 numObjectsH, verb);
             if (verbose) {
                 cout << "====== Created a WCSPH framework" << endl;
@@ -691,7 +691,7 @@ ChFluidDynamics::ChFluidDynamics(std::shared_ptr<ChBce> otherBceWorker,
 
         case SPHMethod::I2SPH:
             forceSystem = chrono_types::make_shared<ChFsiForceI2SPH>(
-                otherBceWorker, fsiSystem.sortedSphMarkers_D, fsiSystem.markersProximity_D,
+                otherBceWorker, fsiSystem.sortedSphMarkers2_D, fsiSystem.markersProximity_D,
                 fsiSystem.markersProximityWide_D, fsiSystem.fsiData, paramsH, numObjectsH, verb);
             if (verbose) {
                 cout << "====== Created an I2SPH framework" << endl;
@@ -714,7 +714,7 @@ void ChFluidDynamics::Initialize() {
 
 // -----------------------------------------------------------------------------
 void ChFluidDynamics::SortParticles() {
-    forceSystem->fsiCollisionSystem->ArrangeData();
+    forceSystem->fsiCollisionSystem->ArrangeData(fsiSystem.sphMarkers_D);
 }
 
 // -----------------------------------------------------------------------------
@@ -729,11 +729,11 @@ void ChFluidDynamics::IntegrateSPH(std::shared_ptr<SphMarkerDataD> sortedSphMark
     if (paramsH->sph_method == SPHMethod::WCSPH) {
         // Explicit SPH
         UpdateActivity(sortedSphMarkers1_D, sortedSphMarkers2_D, fsiBodyState_D, fsiMesh1DState_D, fsiMesh2DState_D, time);
-        forceSystem->ForceSPH(sortedSphMarkers2_D, fsiBodyState_D, fsiMesh1DState_D, fsiMesh2DState_D, firstHalfStep);
+        forceSystem->ForceSPH(sortedSphMarkers2_D, fsiBodyState_D, fsiMesh1DState_D, fsiMesh2DState_D, time, firstHalfStep);
         UpdateFluid(sortedSphMarkers1_D, dT);
     } else {
         // Implicit SPH
-        forceSystem->ForceSPH(sortedSphMarkers1_D, fsiBodyState_D, fsiMesh1DState_D, fsiMesh2DState_D);
+        forceSystem->ForceSPH(sortedSphMarkers1_D, fsiBodyState_D, fsiMesh1DState_D, fsiMesh2DState_D, time, firstHalfStep);
     }
     ApplyBoundarySPH_Markers(sortedSphMarkers2_D);
 }
@@ -773,7 +773,7 @@ void ChFluidDynamics::UpdateActivity(std::shared_ptr<SphMarkerDataD> sortedSphMa
         computeGridSize(numSD, 256, numBlocks, numThreads);
         UpdateActivitySDD<<<numBlocks, numThreads>>>(
             mR3CAST(fsiBodyState_D->pos), mR3CAST(fsiMesh1DState_D->pos_fsi_fea_D),
-            mR3CAST(fsiMesh2DState_D->pos_fsi_fea_D), U1CAST(fsiSystem.fsiData->activityIdentifierDSDD),
+            mR3CAST(fsiMesh2DState_D->pos_fsi_fea_D), U1CAST(fsiSystem.fsiData->activityIdentifierSDD),
             U1CAST(fsiSystem.fsiData->extendedActivityIdSDD), numSD, time, isErrorD);
     }
     cudaDeviceSynchronize();

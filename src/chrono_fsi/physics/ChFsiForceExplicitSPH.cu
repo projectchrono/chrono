@@ -1517,7 +1517,7 @@ __global__ void CopySortedToOriginal_D(const Real4* sortedDerivVelRho,
                                        const uint* gridMarkerIndex,
                                        const uint* activityIdentifierD,
                                        const uint* mapOriginalToSorted,
-                                       const uint* originalFreeSurfaceId,
+                                       uint* originalFreeSurfaceId,
                                        const uint* sortedFreeSurfaceId) {
     uint id = blockIdx.x * blockDim.x + threadIdx.x;
     if (id >= numObjectsD.numAllMarkers)
@@ -1599,7 +1599,7 @@ void ChFsiForceExplicitSPH::ForceSPH(std::shared_ptr<SphMarkerDataD> otherSorted
                                      std::shared_ptr<FsiMeshStateD> fsiMesh2DStateD,
                                      Real time, 
                                      bool firstHalfStep) {
-    sphMarkersD = otherSphMarkersD;
+    sortedSphMarkers_D = otherSortedSphMarkersD;
     bceWorker->updateBCEAcc(fsiBodyStateD, fsiMesh1DStateD, fsiMesh2DStateD);
     CollideWrapper(time, firstHalfStep);
     CalculateXSPH_velocity();
@@ -1781,7 +1781,9 @@ void ChFsiForceExplicitSPH::CollideWrapper(Real time, bool firstHalfStep) {
     cudaResetErrorFlag(isErrorD);
     calcKernelSupport<<<numBlocks, numThreads>>>(
         mR4CAST(sortedSphMarkers_D->posRadD), mR4CAST(sortedSphMarkers_D->rhoPresMuD), mR3CAST(sortedKernelSupport),
-        U1CAST(markersProximity_D->cellStartD), U1CAST(markersProximity_D->cellEndD), isErrorD);
+        U1CAST(markersProximity_D->cellStartD), U1CAST(markersProximity_D->cellEndD),
+        U1CAST(markersProximity_D->mapOriginalToSorted), U1CAST(fsiData->numNeighborsPerPart),
+        U1CAST(fsiData->neighborList), isErrorD);
     cudaCheckErrorFlag(isErrorD, "calcKernelSupport");
 
     cudaResetErrorFlag(isErrorD);

@@ -789,6 +789,7 @@ __global__ void Shifting(Real4* sortedPosRad,
 ChFsiForceI2SPH::ChFsiForceI2SPH(std::shared_ptr<ChBce> otherBceWorker,
                                  std::shared_ptr<SphMarkerDataD> otherSortedSphMarkersD,
                                  std::shared_ptr<ProximityDataD> otherMarkersProximityD,
+                                 std::shared_ptr<ProximityDataD> otherMarkersProximityWideD,
                                  std::shared_ptr<FsiData> otherFsiGeneralData,
                                  std::shared_ptr<SimParams> params,
                                  std::shared_ptr<ChCounters> numObjects,
@@ -796,6 +797,7 @@ ChFsiForceI2SPH::ChFsiForceI2SPH(std::shared_ptr<ChBce> otherBceWorker,
     : ChFsiForce(otherBceWorker,
                  otherSortedSphMarkersD,
                  otherMarkersProximityD,
+                 otherMarkersProximityWideD,
                  otherFsiGeneralData,
                  params,
                  numObjects,
@@ -905,16 +907,18 @@ void ChFsiForceI2SPH::PreProcessor(std::shared_ptr<SphMarkerDataD> otherSphMarke
 //==========================================================================================================================================
 //==========================================================================================================================================
 //==========================================================================================================================================
-void ChFsiForceI2SPH::ForceSPH(std::shared_ptr<SphMarkerDataD> otherSphMarkersD,
+void ChFsiForceI2SPH::ForceSPH(std::shared_ptr<SphMarkerDataD> otherSortedSphMarkersD,
                                std::shared_ptr<FsiBodyStateD> fsiBodyStateD,
                                std::shared_ptr<FsiMeshStateD> fsiMesh1DStateD,
-                               std::shared_ptr<FsiMeshStateD> fsiMesh2DStateD) {
+                               std::shared_ptr<FsiMeshStateD> fsiMesh2DStateD,
+                               Real time,
+                               bool firstHalfStep) {
     //// RADU TODO
 
     CopyParams_NumberOfObjects(paramsH, numObjectsH);
 
-    sphMarkersD = otherSphMarkersD;
-    fsiCollisionSystem->ArrangeData(sphMarkersD);
+    // sphMarkersD = otherSphMarkersD;
+    // fsiCollisionSystem->ArrangeData(sphMarkersD);
 
     thrust::device_vector<Real3>::iterator iter =
         thrust::max_element(sortedSphMarkers_D->velMasD.begin(), sortedSphMarkers_D->velMasD.end(), compare_Real3_mag());
@@ -1211,7 +1215,7 @@ void ChFsiForceI2SPH::ForceSPH(std::shared_ptr<SphMarkerDataD> otherSphMarkersD,
     CopySortedToOriginal_NonInvasive_R3(sphMarkersD->tauXyXzYzD, sortedSphMarkers_D->tauXyXzYzD,
                                         markersProximity_D->gridMarkerIndexD);
 
-    fsiCollisionSystem->ArrangeData(sphMarkersD);
+    // fsiCollisionSystem->ArrangeData(sphMarkersD);
     ChFsiForceI2SPH::PreProcessor(sortedSphMarkers_D, false);
 
     rhoPresMuD_old = sortedSphMarkers_D->rhoPresMuD;

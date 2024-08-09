@@ -342,11 +342,11 @@ void ChSystemFsi_impl::Initialize(size_t numRigidBodies,
     sortedSphMarkers2_D->resize(numObjectsH->numAllMarkers);
     sphMarkers_H->resize(numObjectsH->numAllMarkers);
     markersProximity_D->resize(numObjectsH->numAllMarkers);
-    markersProximityWide_D->resize(numObjects->numAllMarkers);
+    markersProximityWide_D->resize(numObjectsH->numAllMarkers);
 
     fsiData->derivVelRhoD.resize(numObjectsH->numAllMarkers); // sorted
     fsiData->derivVelRhoD_old.resize(numObjectsH->numAllMarkers); // sorted
-    fsiData->derivVelRhoOriginalD.resize(numObjects->numAllMarkers); // unsorted
+    fsiData->derivVelRhoOriginalD.resize(numObjectsH->numAllMarkers); // unsorted
 
     fsiData->derivTauXxYyZzD.resize(numObjectsH->numAllMarkers);
     fsiData->derivTauXyXzYzD.resize(numObjectsH->numAllMarkers);
@@ -354,15 +354,15 @@ void ChSystemFsi_impl::Initialize(size_t numRigidBodies,
     fsiData->vel_XSPH_D.resize(numObjectsH->numAllMarkers); // TODO (Huzaifa): Check if this is always sorted or not
     fsiData->vis_vel_SPH_D.resize(numObjectsH->numAllMarkers, mR3(1e-20));
     fsiData->sr_tau_I_mu_i.resize(numObjectsH->numAllMarkers, mR4(1e-20)); // sorted
-    fsiData->sr_tau_I_mu_i_Original.resize(numObjects->numAllMarkers, mR4(1e-20)); // unsorted
-    fsiData->bceAcc.resize(numObjects->numAllMarkers, mR3(0.0)); // Rigid/flex body accelerations from motion
+    fsiData->sr_tau_I_mu_i_Original.resize(numObjectsH->numAllMarkers, mR4(1e-20)); // unsorted
+    fsiData->bceAcc.resize(numObjectsH->numAllMarkers, mR3(0.0)); // Rigid/flex body accelerations from motion
 
     fsiData->activityIdentifierD.resize(numObjectsH->numAllMarkers, 1);
     fsiData->extendedActivityIdD.resize(numObjectsH->numAllMarkers, 1);
     fsiData->activityIdentifierSDD.resize(numSD, 1); // Same as above but for Sub Domains
     fsiData->extendedActivityIdSDD.resize(numSD, 1); // Same as above but for Sub Domains
 
-    fsiData->numNeighborsPerPart.resize(numObjects->numAllMarkers + 1, 0); // Stores the number of neighbors the particle given by the index has
+    fsiData->numNeighborsPerPart.resize(numObjectsH->numAllMarkers + 1, 0); // Stores the number of neighbors the particle given by the index has
     fsiData->freeSurfaceIdD.resize(numObjectsH->numAllMarkers, 0);
 
     thrust::copy(sphMarkers_H->posRadH.begin(), sphMarkers_H->posRadH.end(), sphMarkers_D->posRadD.begin());

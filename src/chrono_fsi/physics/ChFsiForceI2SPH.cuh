@@ -32,6 +32,7 @@ class ChFsiForceI2SPH : public ChFsiForce {
         std::shared_ptr<ChBce> otherBceWorker,                   ///< object that handles BCE particles
         std::shared_ptr<SphMarkerDataD> otherSortedSphMarkersD,  ///< information of particle in the sorted device array
         std::shared_ptr<ProximityDataD> otherMarkersProximityD,  ///< object that holds device proximity info
+        std::shared_ptr<ProximityDataD> otherMarkersProximityWideD,  ///< object that holds device proximity info for the subdomains
         std::shared_ptr<FsiData> otherFsiGeneralData,            ///< SPH general data
         std::shared_ptr<SimParams> params,                       ///< simulation parameters
         std::shared_ptr<ChCounters> numObjects,                  ///< problem counters
@@ -64,10 +65,12 @@ class ChFsiForceI2SPH : public ChFsiForce {
     size_t numAllMarkers;
     int NNZ;
 
-    void ForceSPH(std::shared_ptr<SphMarkerDataD> otherSphMarkersD,
+    void ForceSPH(std::shared_ptr<SphMarkerDataD> otherSortedSphMarkersD,
                   std::shared_ptr<FsiBodyStateD> fsiBodyStateD,
                   std::shared_ptr<FsiMeshStateD> fsiMesh1DStateD,
-                  std::shared_ptr<FsiMeshStateD> fsiMesh2DStateD) override;
+                  std::shared_ptr<FsiMeshStateD> fsiMesh2DStateD,
+                  Real time,
+                  bool firstHalfStep) override;
 
     void PreProcessor(std::shared_ptr<SphMarkerDataD> otherSphMarkersD, bool calcLaplacianOperator = true);
 };

@@ -304,7 +304,7 @@ void PrintFsiInfoToFile(const thrust::device_vector<Real3>& posRigidD,
     thrust::host_vector<Real3> forceRigidH = forceRigidD;
     thrust::host_vector<Real3> torqueRigidH = torqueRigidD;
     thrust::host_vector<Real3> force1DNodeH = force1DNodeD;
-    thrust::host_vector<Real3> force2DNode = force2DNodeD;
+    thrust::host_vector<Real3> force2DNodeH = force2DNodeD;
 
     size_t numRigids = posRigidH.size();
     for (size_t i = 0; i < numRigids; i++) {

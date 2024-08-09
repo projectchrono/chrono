@@ -70,8 +70,8 @@ class ChFluidDynamics : public ChFsiBase {
         std::shared_ptr<FsiMeshStateD> fsiMesh1DState_D,  ///< information of 1-D flexible mesh
         std::shared_ptr<FsiMeshStateD> fsiMesh2DState_D,  ///< information of 2-D flexible mesh
         Real dT,                                          ///< simulation stepsize
-        Real time                                         ///< simulation time
-        bool firstHalfStep = true,                        ///< flag to indicate the first half step in case of explicit integration
+        Real time,                                         ///< simulation time
+        bool firstHalfStep = true                       ///< flag to indicate the first half step in case of explicit integration
     );
 
     /// Copy from sorted to original

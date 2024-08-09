@@ -54,7 +54,7 @@ class ChFsiForceExplicitSPH : public ChFsiForce {
     void ForceSPH(std::shared_ptr<SphMarkerDataD> otherSortedSphMarkersD,
                   std::shared_ptr<FsiBodyStateD> fsiBodyStateD,
                   std::shared_ptr<FsiMeshStateD> fsiMesh1DStateD,
-                  std::shared_ptr<FsiMeshStateD> fsiMesh2DStateD
+                  std::shared_ptr<FsiMeshStateD> fsiMesh2DStateD,
                   Real time,
                   bool firstHalfStep) override;
     /// Proximity search using shared memory
