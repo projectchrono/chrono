@@ -264,7 +264,6 @@ class ChSystemFsi_impl : public ChFsiBase {
     /// The return value is a device thrust vector.
     thrust::device_vector<Real4> GetParticleAccelerations(const thrust::device_vector<int>& indices);
 
-    std::shared_ptr<SimParams> paramsH;  ///< Parameters of the simulation
 
     std::shared_ptr<SphMarkerDataD> sphMarkers_D;       ///< Information of SPH particles at state 1 on device
     std::shared_ptr<SphMarkerDataD> sortedSphMarkers1_D;       ///< Information of SPH particles at state 2 on device
