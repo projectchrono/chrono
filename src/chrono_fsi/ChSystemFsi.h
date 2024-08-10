@@ -117,7 +117,8 @@ class CH_FSI_API ChSystemFsi {
         bool consistent_gradient_discretization;   ///< use G matrix in SPH gradient approximation (default: false)
         bool consistent_laplacian_discretization;  ///< use L matrix in SPH Laplacian approximation (default: false)
         double kernel_threshold;                   ///< threshold for identifying free surface (CRM only, default: 0.8)
-
+        int numProximitySearchSteps; ///< Number of time-steps after which proximity search is performed (default: 4)
+        bool sharedProximitySearch; ///< use shared memory for proximity search (default: false)
         SPHParameters();
     };
 

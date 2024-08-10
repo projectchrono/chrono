@@ -69,8 +69,8 @@ ChSystemFsi::ChSystemFsi(ChSystem* sysMBS)
       m_ratio_MBS(0),
       m_write_mode(OutputMode::NONE) {
     m_paramsH = chrono_types::make_shared<SimParams>();
-    m_sysFSI = chrono_types::make_unique<ChSystemFsi_impl>(m_paramsH);
     InitParams();
+    m_sysFSI = chrono_types::make_unique<ChSystemFsi_impl>(m_paramsH);
 
     m_num_flex1D_elements = 0;
     m_num_flex2D_elements = 0;
@@ -668,7 +668,9 @@ ChSystemFsi::SPHParameters::SPHParameters()
       num_bce_layers(3),
       consistent_gradient_discretization(false),
       consistent_laplacian_discretization(false),
-      kernel_threshold(0.8) {}
+      kernel_threshold(0.8),
+      numProximitySearchSteps(4),
+      sharedProximitySearch(false) {}
 
 void ChSystemFsi::SetSPHParameters(const SPHParameters& sph_params) {
     m_paramsH->sph_method = sph_params.sph_method;
@@ -691,6 +693,10 @@ void ChSystemFsi::SetSPHParameters(const SPHParameters& sph_params) {
     m_paramsH->USE_Consistent_L = sph_params.consistent_laplacian_discretization;
 
     m_paramsH->C_Wi = Real(sph_params.kernel_threshold);
+
+    m_paramsH->numProximitySearchSteps = sph_params.numProximitySearchSteps;
+    m_paramsH->sharedProximitySearch = sph_params.sharedProximitySearch;
+
 }
 
 //--------------------------------------------------------------------------------------------------------------------------------
