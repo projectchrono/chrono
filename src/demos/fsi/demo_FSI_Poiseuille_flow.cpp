@@ -12,9 +12,10 @@
 // Author: Milad Rakhsha, Wei Hu
 // =============================================================================
 
-#include <assert.h>
-#include <stdlib.h>
+#include <cassert>
+#include <cstdlib>
 #include <ctime>
+#include <iomanip>
 
 #include "chrono/physics/ChSystemSMC.h"
 #include "chrono/utils/ChUtilsCreators.h"

@@ -69,8 +69,9 @@ ChSystemFsi::ChSystemFsi(ChSystem* sysMBS)
       m_ratio_MBS(0),
       m_write_mode(OutputMode::NONE) {
     m_paramsH = chrono_types::make_shared<SimParams>();
-    m_sysFSI = chrono_types::make_unique<ChSystemFsi_impl>(m_paramsH);
     InitParams();
+
+    m_sysFSI = chrono_types::make_unique<ChSystemFsi_impl>(m_paramsH);
 
     m_num_flex1D_elements = 0;
     m_num_flex2D_elements = 0;
