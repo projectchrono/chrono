@@ -164,7 +164,6 @@ struct FsiData {
 
     // Fluid data (device)
     thrust::device_vector<Real4> derivVelRhoD;      ///< dv/dt and d(rho)/dt for particles
-    thrust::device_vector<Real4> derivVelRhoD_old;  ///< dv/dt and d(rho)/dt for particles
     thrust::device_vector<Real3> derivTauXxYyZzD;   ///< d(tau)/dt for particles
     thrust::device_vector<Real3> derivTauXyXzYzD;   ///< d(tau)/dt for particles
     thrust::device_vector<Real3> vel_XSPH_D;        ///< XSPH velocity for particles

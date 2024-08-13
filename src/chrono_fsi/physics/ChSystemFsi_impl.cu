@@ -339,7 +339,6 @@ void ChSystemFsi_impl::Initialize(size_t numRigidBodies,
     markersProximity_D->resize(numObjectsH->numAllMarkers);
 
     fsiData->derivVelRhoD.resize(numObjectsH->numAllMarkers);
-    fsiData->derivVelRhoD_old.resize(numObjectsH->numAllMarkers);
 
     fsiData->derivTauXxYyZzD.resize(numObjectsH->numAllMarkers);
     fsiData->derivTauXyXzYzD.resize(numObjectsH->numAllMarkers);

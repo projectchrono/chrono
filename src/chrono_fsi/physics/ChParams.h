@@ -143,7 +143,6 @@ struct SimParams {
     SolverType LinearSolver;   ///< Type of the linear solver
 
     Real Alpha;  ///< Poisson Pressure Equation source term constant. Used to control the noise in the FS forces
-    Real Beta;   ///< Moving exponential weighted average coefficient. 1: highly damped force; 0: no force modification
 
     Real LinearSolver_Abs_Tol;  ///< Poisson Pressure Equation residual
     Real LinearSolver_Rel_Tol;  ///< Poisson Pressure Equation Absolute residual

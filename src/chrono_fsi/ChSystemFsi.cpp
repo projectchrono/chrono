@@ -132,7 +132,6 @@ void ChSystemFsi::InitParams() {
     // Time stepping
     m_paramsH->Adaptive_time_stepping = false;
     m_paramsH->Co_number = Real(0.1);
-    m_paramsH->Beta = Real(0.0);
     m_paramsH->dT = Real(0.0001);
     m_paramsH->INV_dT = 1 / m_paramsH->dT;
     m_paramsH->dT_Flex = m_paramsH->dT;
@@ -294,9 +293,6 @@ void ChSystemFsi::ReadParametersFromFile(const std::string& json_file) {
 
         if (doc["Time Stepping"].HasMember("CFL number"))
             m_paramsH->Co_number = doc["Time Stepping"]["CFL number"].GetDouble();
-
-        if (doc["Time Stepping"].HasMember("Beta"))
-            m_paramsH->Beta = doc["Time Stepping"]["Beta"].GetDouble();
 
         if (doc["Time Stepping"].HasMember("Fluid time step"))
             m_paramsH->dT = doc["Time Stepping"]["Fluid time step"].GetDouble();
@@ -1059,8 +1055,6 @@ void ChSystemFsi::DoStepDynamics_FSI() {
     switch (m_paramsH->sph_method) {
         case SPHMethod::WCSPH: {
             CopyDeviceDataToHalfStep();
-            thrust::copy(m_sysFSI->fsiData->derivVelRhoD.begin(), m_sysFSI->fsiData->derivVelRhoD.end(),
-                         m_sysFSI->fsiData->derivVelRhoD_old.begin());
             ChUtilsDevice::FillVector(m_sysFSI->fsiData->derivVelRhoD, mR4(0));
 
             if (m_integrate_SPH) {
