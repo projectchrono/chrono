@@ -13,6 +13,7 @@ set(DEMOS ${DEMOS}
    demo_FSI_WaveTank
    demo_FSI_EmbeddedObstacle
    demo_FSI_BaffleFlow
+   demo_FSI_CouetteFlow
 )
 
 if(ENABLE_MODULE_PARDISO_MKL)

@@ -122,7 +122,7 @@ void ChSystemFsi::InitParams() {
     m_paramsH->USE_Consistent_L = false;
     m_paramsH->USE_Consistent_G = false;
 
-    m_paramsH->epsMinMarkersDis = 0.01;
+    m_paramsH->epsMinMarkersDis = 0.001;
 
     m_paramsH->markerMass = m_paramsH->volume0 * m_paramsH->rho0;
 
@@ -139,13 +139,13 @@ void ChSystemFsi::InitParams() {
 
     // Pressure equation
     m_paramsH->PPE_Solution_type = PPESolutionType::MATRIX_FREE;
-    m_paramsH->DensityBaseProjection = false;
+    m_paramsH->DensityBaseProjection = true;
     m_paramsH->Alpha = m_paramsH->HSML;
     m_paramsH->PPE_relaxation = Real(1.0);
     m_paramsH->LinearSolver = SolverType::BICGSTAB;
     m_paramsH->LinearSolver_Abs_Tol = Real(0.0);
     m_paramsH->LinearSolver_Rel_Tol = Real(0.0);
-    m_paramsH->LinearSolver_Max_Iter = 1000;
+    m_paramsH->LinearSolver_Max_Iter = 200;
     m_paramsH->Verbose_monitoring = false;
     m_paramsH->Pressure_Constraint = false;
     m_paramsH->BASEPRES = Real(0.0);
