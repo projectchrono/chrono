@@ -95,7 +95,8 @@ __global__ void CalcRigidForces_D(Real3* rigid_FSI_ForcesD,
         atomicAdd((float*)&(rigid_FSI_ForcesD[RigidIndex].y), Force.y);
         atomicAdd((float*)&(rigid_FSI_ForcesD[RigidIndex].z), Force.z);
     }
-    Real3 dist3 = Distance(mR3(posRadD[rigidMarkerIndex]), posRigidD[RigidIndex]);
+
+    Real3 dist3 = mR3(posRadD[rigidMarkerIndex]) - posRigidD[RigidIndex];
     Real3 mtorque = cross(dist3, Force);
 
     if (std::is_same<Real, double>::value) {
