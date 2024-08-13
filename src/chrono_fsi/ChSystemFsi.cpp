@@ -123,7 +123,7 @@ void ChSystemFsi::InitParams() {
     m_paramsH->USE_Consistent_L = false;
     m_paramsH->USE_Consistent_G = false;
 
-    m_paramsH->epsMinMarkersDis = 0.001;
+    m_paramsH->epsMinMarkersDis = 0.01;
 
     m_paramsH->markerMass = m_paramsH->volume0 * m_paramsH->rho0;
 
@@ -140,13 +140,13 @@ void ChSystemFsi::InitParams() {
 
     // Pressure equation
     m_paramsH->PPE_Solution_type = PPESolutionType::MATRIX_FREE;
-    m_paramsH->DensityBaseProjection = true;
+    m_paramsH->DensityBaseProjection = false;
     m_paramsH->Alpha = m_paramsH->HSML;
     m_paramsH->PPE_relaxation = Real(1.0);
     m_paramsH->LinearSolver = SolverType::BICGSTAB;
     m_paramsH->LinearSolver_Abs_Tol = Real(0.0);
     m_paramsH->LinearSolver_Rel_Tol = Real(0.0);
-    m_paramsH->LinearSolver_Max_Iter = 200;
+    m_paramsH->LinearSolver_Max_Iter = 1000;
     m_paramsH->Verbose_monitoring = false;
     m_paramsH->Pressure_Constraint = false;
     m_paramsH->BASEPRES = Real(0.0);
@@ -651,13 +651,14 @@ void ChSystemFsi::SetElasticSPH(const ElasticMaterialProperties& mat_props) {
 
 ChSystemFsi::SPHParameters::SPHParameters()
     : sph_method(SPHMethod::WCSPH),
-      lin_solver(SolverType::BICGSTAB),
       kernel_h(0.01),
       initial_spacing(0.01),
       max_velocity(1.0),
       xsph_coefficient(0.5),
       shifting_coefficient(1.0),
+      min_distance_coefficient(0.01),
       density_reinit_steps(2e8),
+      use_density_based_projection(false),
       num_bce_layers(3),
       consistent_gradient_discretization(false),
       consistent_laplacian_discretization(false),
@@ -665,7 +666,6 @@ ChSystemFsi::SPHParameters::SPHParameters()
 
 void ChSystemFsi::SetSPHParameters(const SPHParameters& sph_params) {
     m_paramsH->sph_method = sph_params.sph_method;
-    m_paramsH->LinearSolver = sph_params.lin_solver;
 
     m_paramsH->HSML = sph_params.kernel_h;
     m_paramsH->INITSPACE = sph_params.initial_spacing;
@@ -676,7 +676,10 @@ void ChSystemFsi::SetSPHParameters(const SPHParameters& sph_params) {
     m_paramsH->Cs = 10 * m_paramsH->v_Max;
     m_paramsH->EPS_XSPH = sph_params.xsph_coefficient;
     m_paramsH->beta_shifting = sph_params.shifting_coefficient;
+    m_paramsH->epsMinMarkersDis = sph_params.min_distance_coefficient;
+
     m_paramsH->densityReinit = sph_params.density_reinit_steps;
+    m_paramsH->DensityBaseProjection = sph_params.use_density_based_projection;
 
     m_paramsH->NUM_BCE_LAYERS = sph_params.num_bce_layers;
 
@@ -684,6 +687,16 @@ void ChSystemFsi::SetSPHParameters(const SPHParameters& sph_params) {
     m_paramsH->USE_Consistent_L = sph_params.consistent_laplacian_discretization;
 
     m_paramsH->C_Wi = Real(sph_params.kernel_threshold);
+}
+
+ChSystemFsi::LinSolverParameters::LinSolverParameters()
+    : type(SolverType::BICGSTAB), atol(0.0), rtol(0.0), max_num_iters(1000) {}
+
+void ChSystemFsi::SetLinSolverParameters(const LinSolverParameters& linsolv_params) {
+    m_paramsH->LinearSolver = linsolv_params.type;
+    m_paramsH->LinearSolver_Abs_Tol = linsolv_params.atol;
+    m_paramsH->LinearSolver_Rel_Tol = linsolv_params.rtol;
+    m_paramsH->LinearSolver_Max_Iter = linsolv_params.max_num_iters;
 }
 
 //--------------------------------------------------------------------------------------------------------------------------------

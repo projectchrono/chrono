@@ -105,20 +105,31 @@ class CH_FSI_API ChSystemFsi {
 
     /// Structure with SPH method parameters.
     struct CH_FSI_API SPHParameters {
-        SPHMethod sph_method;                      ///< SPH method (default: WCSPH)
-        SolverType lin_solver;                     ///< linear solver type (implicit SPH only, default: BICGSTAB)
-        int num_bce_layers;                        ///< number of BCE layers (boundary and solids, default: 3)
-        double kernel_h;                           ///< kernel separation (default: 0.01)
-        double initial_spacing;                    ///< initial particle spacing (default: 0.01)
-        double max_velocity;                       ///< maximum velocity (default: 1.0)
-        double xsph_coefficient;                   ///< XSPH coefficient (default: 0.5)
-        double shifting_coefficient;               ///< shifting beta coefficient (default: 1.0)
-        int density_reinit_steps;                  ///< number of steps between density reinitializations (default: 2e8)
+        SPHMethod sph_method;             ///< SPH method (default: WCSPH)
+        int num_bce_layers;               ///< number of BCE layers (boundary and solids, default: 3)
+        double kernel_h;                  ///< kernel separation (default: 0.01)
+        double initial_spacing;           ///< initial particle spacing (default: 0.01)
+        double max_velocity;              ///< maximum velocity (default: 1.0)
+        double xsph_coefficient;          ///< XSPH coefficient (default: 0.5)
+        double shifting_coefficient;      ///< shifting beta coefficient (default: 1.0)
+        double min_distance_coefficient;  ///< min inter-particle distance as fraction of kernel radius (default: 0.01)
+        int density_reinit_steps;         ///< number of steps between density reinitializations (default: 2e8)
+        bool use_density_based_projection;         ///< (ISPH only, default: false)
         bool consistent_gradient_discretization;   ///< use G matrix in SPH gradient approximation (default: false)
         bool consistent_laplacian_discretization;  ///< use L matrix in SPH Laplacian approximation (default: false)
         double kernel_threshold;                   ///< threshold for identifying free surface (CRM only, default: 0.8)
 
         SPHParameters();
+    };
+
+    /// Structure with linear solver parameters (used only for implicit SPH).
+    struct CH_FSI_API LinSolverParameters {
+        SolverType type;    ///< linear solver type (implicit SPH only, default: BICGSTAB)
+        double atol;        ///< absolute tolerance
+        double rtol;        ///< relative tolerance
+        int max_num_iters;  ///< maximum number of iterations
+
+        LinSolverParameters();
     };
 
     /// Constructor for FSI system.
@@ -220,6 +231,9 @@ class CH_FSI_API ChSystemFsi {
 
     /// Set SPH method parameters.
     void SetSPHParameters(const SPHParameters& sph_params);
+
+    /// Set linear solver parameters (used only for implicit SPH).
+    void SetLinSolverParameters(const LinSolverParameters& linsolv_params);
 
     /// Set simulation data output length
     void SetOutputLength(int OutputLength);
