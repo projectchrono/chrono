@@ -1,13 +1,15 @@
 // =============================================================================
 // PROJECT CHRONO - http://projectchrono.org
 //
-// Copyright (c) 2014 projectchrono.org
+// Copyright (c) 2024 projectchrono.org
 // All rights reserved.
 //
 // Use of this source code is governed by a BSD-style license that can be found
 // in the LICENSE file at the top level of the distribution and at
 // http://projectchrono.org/license-chrono.txt.
 //
+// =============================================================================
+// Authors: Luning Bakke, Radu Serban
 // =============================================================================
 // Couette Flow simulation with coaxial cylinders.
 // Outer cylinder spins at a constatn speed and the inner cylinder is fixed.
@@ -65,16 +67,16 @@ ChVisualSystem::Type vis_type = ChVisualSystem::Type::VSG;
 // Output directories
 std::string out_dir = GetChronoOutputPath() + "FSI_Couette_Flow";
 
-// 
+// Angular speed of outer cylinder
 double omega = 62.0 / 60;
 
 // Save data as csv files to see the results off-line using Paraview
-bool output = false;
-int output_fps = 50;
+bool output = true;
+double output_fps = 50;
 
 // Enable/disable run-time visualization
 bool render = true;
-float render_fps = 500;
+double render_fps = 500;
 
 // Enable saving snapshots
 bool snapshots = false;
@@ -153,7 +155,7 @@ int main(int argc, char* argv[]) {
 
     // Set linear solver parameters
     ChSystemFsi::LinSolverParameters linsolv_params;
-    linsolv_params.type = SolverType::BICGSTAB;
+    linsolv_params.type = SolverType::JACOBI;
     linsolv_params.atol = 0;
     linsolv_params.rtol = 0;
     linsolv_params.max_num_iters = 200;
@@ -186,7 +188,7 @@ int main(int argc, char* argv[]) {
         }
     }
 
-    // Add cylinder bottom
+    // Add cylinder bottom plate
     ChVector2d bottom_plate_size(outer_cylinder_radius * 2.5, outer_cylinder_radius * 2.5);
     auto bottom_plate = chrono_types::make_shared<ChBody>();
     bottom_plate->SetPos(ChVector3d(0, -fluid_height / 2 - initial_spacing, 0));
@@ -201,13 +203,14 @@ int main(int argc, char* argv[]) {
     auto inner_cylinder = chrono_types::make_shared<ChBody>();
     inner_cylinder->SetFixed(true);
     inner_cylinder->EnableCollision(false);
+    sysMBS.AddBody(inner_cylinder);
+
     sysFSI.AddCylinderBCE(inner_cylinder,                               //
                           ChFrame<>(cylinder_center, Q_ROTATE_Z_TO_Y),  //
                           inner_cylinder_radius - initial_spacing / 2,  //
                           cylinder_height,                              //
                           true, false, true);
     sysFSI.AddFsiBody(inner_cylinder);
-    sysMBS.AddBody(inner_cylinder);
 
     // Create outer cylinder that spins
     double outer_cylinder_mass = 1.0;
@@ -329,7 +332,7 @@ int main(int argc, char* argv[]) {
     while (time < time_end) {
         // Get the infomation of the spinning cylinder
         auto angvel = outer_cylinder->GetAngVelParent().y();
-        auto torque = motor->GetMotorTorque();
+        auto torque = -motor->GetMotorTorque();
 
         if (verbose) {
             cout << "  time: " << time << endl;

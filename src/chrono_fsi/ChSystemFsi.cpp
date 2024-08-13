@@ -138,11 +138,10 @@ void ChSystemFsi::InitParams() {
     m_paramsH->dT_Max = Real(1.0);
 
     // Pressure equation
-    m_paramsH->PPE_Solution_type = PPESolutionType::MATRIX_FREE;
     m_paramsH->DensityBaseProjection = false;
     m_paramsH->Alpha = m_paramsH->HSML;
     m_paramsH->PPE_relaxation = Real(1.0);
-    m_paramsH->LinearSolver = SolverType::BICGSTAB;
+    m_paramsH->LinearSolver = SolverType::JACOBI;
     m_paramsH->LinearSolver_Abs_Tol = Real(0.0);
     m_paramsH->LinearSolver_Rel_Tol = Real(0.0);
     m_paramsH->LinearSolver_Max_Iter = 1000;
@@ -308,17 +307,15 @@ void ChSystemFsi::ReadParametersFromFile(const std::string& json_file) {
 
     if (doc.HasMember("Pressure Equation")) {
         if (doc["Pressure Equation"].HasMember("Linear solver")) {
-            m_paramsH->PPE_Solution_type = PPESolutionType::FORM_SPARSE_MATRIX;
             std::string solver = doc["Pressure Equation"]["Linear solver"].GetString();
             if (solver == "Jacobi") {
-                m_paramsH->USE_LinearSolver = false;
-            } else {
-                m_paramsH->USE_LinearSolver = true;
-                if (solver == "BICGSTAB")
-                    m_paramsH->LinearSolver = SolverType::BICGSTAB;
-                if (solver == "GMRES")
-                    m_paramsH->LinearSolver = SolverType::GMRES;
-            }
+                m_paramsH->LinearSolver = SolverType::JACOBI;
+            } else if (solver == "BICGSTAB") {
+                m_paramsH->LinearSolver = SolverType::BICGSTAB;
+            } else if (solver == "GMRES")
+                m_paramsH->LinearSolver = SolverType::GMRES;
+        } else {
+            m_paramsH->LinearSolver = SolverType::JACOBI;
         }
 
         if (doc["Pressure Equation"].HasMember("Poisson source term")) {
@@ -490,9 +487,8 @@ void ChSystemFsi::SetSPHLinearSolver(SolverType lin_solver) {
     m_paramsH->LinearSolver = lin_solver;
 }
 
-void ChSystemFsi::SetSPHMethod(SPHMethod SPH_method, SolverType lin_solver) {
+void ChSystemFsi::SetSPHMethod(SPHMethod SPH_method) {
     m_paramsH->sph_method = SPH_method;
-    m_paramsH->LinearSolver = lin_solver;
 }
 
 void ChSystemFsi::SetContainerDim(const ChVector3d& boxDim) {
@@ -686,7 +682,7 @@ void ChSystemFsi::SetSPHParameters(const SPHParameters& sph_params) {
 }
 
 ChSystemFsi::LinSolverParameters::LinSolverParameters()
-    : type(SolverType::BICGSTAB), atol(0.0), rtol(0.0), max_num_iters(1000) {}
+    : type(SolverType::JACOBI), atol(0.0), rtol(0.0), max_num_iters(1000) {}
 
 void ChSystemFsi::SetLinSolverParameters(const LinSolverParameters& linsolv_params) {
     m_paramsH->LinearSolver = linsolv_params.type;

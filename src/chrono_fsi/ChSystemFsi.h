@@ -124,7 +124,7 @@ class CH_FSI_API ChSystemFsi {
 
     /// Structure with linear solver parameters (used only for implicit SPH).
     struct CH_FSI_API LinSolverParameters {
-        SolverType type;    ///< linear solver type (implicit SPH only, default: BICGSTAB)
+        SolverType type;    ///< linear solver type (implicit SPH only, default: JACOBI)
         double atol;        ///< absolute tolerance
         double rtol;        ///< relative tolerance
         int max_num_iters;  ///< maximum number of iterations
@@ -220,7 +220,7 @@ class CH_FSI_API ChSystemFsi {
 
     /// Set the SPH method and, optionally, the linear solver type.
     //// TODO: OBSOLETE
-    void SetSPHMethod(SPHMethod SPH_method, SolverType lin_solver = SolverType::BICGSTAB);
+    void SetSPHMethod(SPHMethod SPH_method);
 
     /// Enable solution of a CFD problem.
     void SetCfdSPH(const FluidProperties& fluid_props);

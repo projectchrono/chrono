@@ -137,8 +137,6 @@ struct SimParams {
 
     bool DensityBaseProjection;  ///< Set true to use density based projetion scheme in ISPH solver
 
-    bool USE_LinearSolver;     ///< If a linear solver should be used to solve Ax=b, otherwise basics methods such as
-                               ///< Jacobi-SOR are used
     bool Pressure_Constraint;  ///< Whether the singularity of the pressure equation should be fixed
     SolverType LinearSolver;   ///< Type of the linear solver
 
@@ -149,14 +147,11 @@ struct SimParams {
     int LinearSolver_Max_Iter;  ///< Linear Solver maximum number of iteration
     bool Verbose_monitoring;    ///< Poisson Pressure Equation Absolute residual
 
-    Real Max_Pressure;                  ///< Max Pressure in the pressure solver
-    PPESolutionType PPE_Solution_type;  ///< MATRIX_FREE, FORM_SPARSE_MATRIX see Rakhsha et al. 2018 paper for details
-                                        ///< omega relaxation in the pressure equation, something less than 0.5 is
-                                        ///< necessary for Jacobi solver
-    Real PPE_relaxation;                ///< PPE_relaxation
-    bool ClampPressure;  ///< Clamp pressure to 0 if negative, based on the ISPH paper by Ihmsen et al. (2013)
+    Real Max_Pressure;             ///< Max Pressure in the pressure solver
+    Real PPE_relaxation;           ///< PPE_relaxation
+    bool ClampPressure;            ///< Clamp pressure to 0 if negative, based on the ISPH paper by Ihmsen et al. (2013)
     Real IncompressibilityFactor;  ///< Incompressibility factor, default = 1
-    Real Cs;                       ///< Speed of sound.
+    Real Cs;                       ///< Speed of sound
 
     bool Adaptive_time_stepping;  ///< Works only with ISPH for now, use Co_number can be used as the criteria for
                                   ///< adaptivity. dT_Max is set either from the Co_number, or the time step the is
