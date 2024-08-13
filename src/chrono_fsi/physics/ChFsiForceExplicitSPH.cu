@@ -1880,9 +1880,7 @@ void ChFsiForceExplicitSPH::CalculateXSPH_velocity() {
             U1CAST(fsiData->activityIdentifierD), U1CAST(markersProximity_D->mapOriginalToSorted));
     }
 
-    if (density_initialization % paramsH->densityReinit == 0)
-        CopySortedToOriginal_NonInvasive_R4(sphMarkersD->rhoPresMuD, sortedSphMarkers_D->rhoPresMuD,
-                                            markersProximity_D->gridMarkerIndexD);
+
     cudaFree(isErrorD);
 }
 
