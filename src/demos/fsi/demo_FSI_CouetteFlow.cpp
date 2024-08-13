@@ -9,8 +9,8 @@
 // http://projectchrono.org/license-chrono.txt.
 //
 // =============================================================================
-// Couette Flow simulation with coaxial cylinders. 
-// Outer cylinder spins at a constatn speed and the inner cylinder is fixed. 
+// Couette Flow simulation with coaxial cylinders.
+// Outer cylinder spins at a constatn speed and the inner cylinder is fixed.
 // Motor torque is recorded and saved to a file
 // =============================================================================
 
@@ -25,23 +25,14 @@
 #include "chrono/ChConfig.h"
 
 #include "chrono/physics/ChSystemNSC.h"
-#include "chrono/physics/ChBody.h"
 #include "chrono/physics/ChInertiaUtils.h"
 #include "chrono/physics/ChLinkMotorRotationSpeed.h"
 #include "chrono/physics/ChLinkMotionImposed.h"
-#include "chrono/physics/ChLinkMate.h"
 
 #include "chrono/utils/ChUtilsGeometry.h"
 #include "chrono/utils/ChUtilsCreators.h"
 #include "chrono/utils/ChUtilsGenerators.h"
 #include "chrono/utils/ChUtilsInputOutput.h"
-
-#include "chrono/assets/ChVisualShapeTriangleMesh.h"
-
-#include "chrono/core/ChTimer.h"
-
-#include "chrono/functions/ChFunctionPositionXYZFunctions.h"
-#include "chrono/functions/ChFunctionRotationAxis.h"
 
 #include "chrono_fsi/ChSystemFsi.h"
 
@@ -53,42 +44,47 @@
     #include "chrono_fsi/visualization/ChFsiVisualizationVSG.h"
 #endif
 
+#ifdef CHRONO_POSTPROCESS
+    #include "chrono_postprocess/ChGnuPlot.h"
+#endif
+
 #include "chrono_thirdparty/filesystem/path.h"
 
-// Chrono namespaces
 using namespace chrono;
 using namespace chrono::fsi;
-// using namespace chrono::geometry;
-// using namespace chrono::particlefactory;
+
+using std::cout;
+using std::cerr;
+using std::endl;
+
+// -----------------------------------------------------------------------------
 
 // Run-time visualization system (OpenGL or VSG)
-ChVisualSystem::Type vis_type = ChVisualSystem::Type::OpenGL;
-// Output directories and settings
+ChVisualSystem::Type vis_type = ChVisualSystem::Type::VSG;
+
+// Output directories
 std::string out_dir = GetChronoOutputPath() + "FSI_Couette_Flow";
 
+// 
+double omega = 62.0 / 60;
+
+// Save data as csv files to see the results off-line using Paraview
+bool output = false;
+int output_fps = 50;
 
 // Enable/disable run-time visualization
 bool render = true;
-float render_fps = 100;
+float render_fps = 500;
 
-// Physical properties of the liquid
-double density_steel = 0.0078;  // g/mm3
-double density = 0.001;         // g/mm3
+// Enable saving snapshots
+bool snapshots = false;
 
-double bxDim = 14.0;  // mm
-double byDim = 10.0;  // mm
-double bzDim = 14.0;   // mm
+// Visibility flags
+bool show_rigid_bce = true;
+bool show_boundary_bce = true;
+bool show_particles_sph = true;
 
-// auto motor = chrono_types::make_shared<ChLinkMotorRotationAngle>();
-auto motor = chrono_types::make_shared<ChLinkMotorRotationSpeed>();
-
-// Save data as csv files to see the results off-line using Paraview
-bool output = true;
-int out_fps = 50;
-
-// Verbose terminal output
-bool verbose_fsi = true;
-bool verbose = true;
+// -----------------------------------------------------------------------------
 
 class PositionVisibilityCallback : public ChParticleCloud::VisibilityCallback {
   public:
@@ -100,9 +96,18 @@ class PositionVisibilityCallback : public ChParticleCloud::VisibilityCallback {
     };
 };
 
-
+// -----------------------------------------------------------------------------
 
 int main(int argc, char* argv[]) {
+    cout << "Copyright (c) 2024 projectchrono.org\nChrono version: " << CHRONO_VERSION << "\n\n";
+
+    double step_size = 5e-4;
+    double time_end = 10;
+    double initial_spacing = 0.15;  // mm
+    double density = 0.001;         // g/mm3
+    double viscosity = 0.001;       // g/(mm.s2)
+    double g = 9810.0;              // mm/s2
+    bool verbose = true;
 
     ChSystemNSC sysMBS;
     sysMBS.SetCollisionSystemType(ChCollisionSystem::Type::BULLET);
@@ -111,142 +116,152 @@ int main(int argc, char* argv[]) {
     ChSystemFsi sysFSI(&sysMBS);
     sysFSI.SetVerbose(verbose);
 
-    double step_size = 5e-4;
-    double time_end = 10;
-    double initial_spacing = 0.15;
-    double kernel_h = initial_spacing;      // mm
-    double density = 0.001;         // g/mm3
-    double viscosity = 1e-3;                // for I2SPH
-
-    // cylinder radius
+    // cylinderical container
+    // container needs to be higher than fluid, otherwise water spills from the top
     double outer_cylinder_radius = 5.0;  // mm
     double inner_cylinder_radius = 3.8;  // mm
     double fluid_height = 2.0;
-    double cylinder_height = 2 * fluid_height;  // container needs to be higher than fluid, otherwise water spills from the top
+    double cylinder_height = 1.2 * fluid_height;
 
-
-    bool verbose = true;
+    double bxDim = 14.0;  // mm
+    double byDim = 10.0;  // mm
+    double bzDim = 14.0;  // mm
 
     // Set gravitational acceleration
-    const ChVector3d gravity(0, -9810, 0);
+    const ChVector3d gravity(0, -g, 0);
     sysFSI.SetGravitationalAcceleration(gravity);
     sysMBS.SetGravitationalAcceleration(gravity);
 
     // Set CFD fluid properties
     ChSystemFsi::FluidProperties fluid_props;
     fluid_props.density = density;
-    fluid_props.viscosity = viscosity;  // for I2SPH
-
+    fluid_props.viscosity = viscosity;
     sysFSI.SetCfdSPH(fluid_props);
 
     // Set SPH solution parameters
     ChSystemFsi::SPHParameters sph_params;
-    sph_params.sph_method = SPHMethod::I2SPH;   
+    sph_params.sph_method = SPHMethod::I2SPH;
     sph_params.num_bce_layers = 3;
     sph_params.kernel_h = initial_spacing;
     sph_params.initial_spacing = initial_spacing;
-    sph_params.max_velocity = 1;  // default is 1
-    sph_params.xsph_coefficient = 0.1;   // default is 0.5
-    sph_params.shifting_coefficient = 0.0;  // default is 0.1
-    // TODO : add API for modifying Epsilon number, default is 0.01, I use 0.001, otherwise fluid surface is asymmetric, variable name, epsMinMarkersDis
-
+    sph_params.max_velocity = 1;                     // default: 1.0
+    sph_params.xsph_coefficient = 0.1;               // default: 0.5
+    sph_params.shifting_coefficient = 0.0;           // default: 0.1
+    sph_params.min_distance_coefficient = 0.001;     // default: 0.01, use 0.001, otherwise fluid surface is asymmetric
+    sph_params.use_density_based_projection = true;  // default: false
     sysFSI.SetSPHParameters(sph_params);
+
+    // Set linear solver parameters
+    ChSystemFsi::LinSolverParameters linsolv_params;
+    linsolv_params.type = SolverType::BICGSTAB;
+    linsolv_params.atol = 0;
+    linsolv_params.rtol = 0;
+    linsolv_params.max_num_iters = 200;
+    sysFSI.SetLinSolverParameters(linsolv_params);
+
     sysFSI.SetStepSize(step_size);
 
     // Set the terrain container size
     sysFSI.SetContainerDim(ChVector3<>(bxDim, byDim, bzDim));
     ChVector3<> cMin(-bxDim / 2 * 1.2, -byDim * 1.2, -bzDim / 2 * 1.2);
-    ChVector3<> cMax( bxDim / 2 * 1.2,  byDim * 1.2,  bzDim / 2 * 1.2);
+    ChVector3<> cMax(bxDim / 2 * 1.2, byDim * 1.2, bzDim / 2 * 1.2);
     sysFSI.SetBoundaries(cMin, cMax);
 
     chrono::utils::ChGridSampler<> sampler(initial_spacing);
 
     // Use sampler to create SPH particles that fill the annulus area between the inner and outer cylinders
     ChVector3<> boxCenter(0, 0, 0);
-    ChVector3<> boxHalfDim(outer_cylinder_radius, fluid_height/2., outer_cylinder_radius);
+    ChVector3<> boxHalfDim(outer_cylinder_radius, fluid_height / 2, outer_cylinder_radius);
     std::vector<ChVector3d> points = sampler.SampleBox(boxCenter, boxHalfDim);
 
     // Add SPH particles from the sampler points to the FSI system
-    double gz = std::abs(sysFSI.GetGravitationalAcceleration().y());
     for (int i = 0; i < points.size(); i++) {
         double x = points[i].x();
         double z = points[i].z();
         double r = std::sqrt(std::pow(x, 2) + std::pow(z, 2));
-        double p = gz * fluid_props.density * (fluid_height - points[i].y());  // hydrostatic pressure
+        double p = g * fluid_props.density * (fluid_height - points[i].y());  // hydrostatic pressure
         // Only add particles in the annulus area
         if (r > inner_cylinder_radius + initial_spacing && r < outer_cylinder_radius - initial_spacing) {
-        sysFSI.AddSPHParticle(points[i], fluid_props.density, p, fluid_props.viscosity);
+            sysFSI.AddSPHParticle(points[i], fluid_props.density, p, fluid_props.viscosity);
         }
     }
 
-
-    // Add cylinder bottom 
-    ChVector2d bottom_plate_size(outer_cylinder_radius * 2.5, outer_cylinder_radius * 2.5);  
+    // Add cylinder bottom
+    ChVector2d bottom_plate_size(outer_cylinder_radius * 2.5, outer_cylinder_radius * 2.5);
     auto bottom_plate = chrono_types::make_shared<ChBody>();
-    bottom_plate->SetPos(ChVector3d(0, -fluid_height / 2. - kernel_h, 0));
+    bottom_plate->SetPos(ChVector3d(0, -fluid_height / 2 - initial_spacing, 0));
     bottom_plate->SetFixed(true);
-    sysFSI.AddWallBCE(bottom_plate,
-                      ChFrame<>(VNULL, Q_ROTATE_Z_TO_Y),
-                      bottom_plate_size);
+    sysFSI.AddWallBCE(bottom_plate, ChFrame<>(VNULL, Q_ROTATE_Z_TO_Y), bottom_plate_size);
     sysMBS.AddBody(bottom_plate);
+
+    // Cylinder center
+    ChVector3d cylinder_center(0, cylinder_height / 2 - fluid_height / 2, 0);
 
     // Create inner cylinder, fixed
     auto inner_cylinder = chrono_types::make_shared<ChBody>();
     inner_cylinder->SetFixed(true);
     inner_cylinder->EnableCollision(false);
-    sysFSI.AddCylinderBCE(inner_cylinder, ChFrame<>(ChVector3d(0, fluid_height/2., 0), Q_ROTATE_Z_TO_Y),
-                          inner_cylinder_radius - initial_spacing / 2., fluid_height * 2., true, false, true);
+    sysFSI.AddCylinderBCE(inner_cylinder,                               //
+                          ChFrame<>(cylinder_center, Q_ROTATE_Z_TO_Y),  //
+                          inner_cylinder_radius - initial_spacing / 2,  //
+                          cylinder_height,                              //
+                          true, false, true);
     sysFSI.AddFsiBody(inner_cylinder);
     sysMBS.AddBody(inner_cylinder);
 
     // Create outer cylinder that spins
     double outer_cylinder_mass = 1.0;
-    // Set the abs orientation, position and velocity
     auto outer_cylinder = chrono_types::make_shared<ChBody>();
     sysMBS.AddBody(outer_cylinder);
     outer_cylinder->SetFixed(false);
     outer_cylinder->EnableCollision(false);
-    // assign mass & inertia
     outer_cylinder->SetMass(outer_cylinder_mass);
-    outer_cylinder->SetInertia(ChMatrix33d(ChVector3d(1,1,1)));
-    //Outer cylinder modeled as an annulus ring with a thickness of 3 * initial_spacing
-    sysFSI.AddCylinderAnnulusBCE(outer_cylinder, ChFrame<>(ChVector3d(0, fluid_height/2., 0), Q_ROTATE_Z_TO_Y),
-        outer_cylinder_radius + initial_spacing/2., outer_cylinder_radius + 3 * initial_spacing, fluid_height * 2., true);
+    outer_cylinder->SetInertia(ChMatrix33d(ChVector3d(1, 1, 1)));
+
+    // Outer cylinder modeled as an annulus ring with a thickness of 3 * initial_spacing
+    sysFSI.AddCylinderAnnulusBCE(outer_cylinder,                               //
+                                 ChFrame<>(cylinder_center, Q_ROTATE_Z_TO_Y),  //
+                                 outer_cylinder_radius + initial_spacing / 2,  //
+                                 outer_cylinder_radius + 3 * initial_spacing,  //
+                                 cylinder_height,                              //
+                                 true);
     sysFSI.AddFsiBody(outer_cylinder);
 
-
     // Add motor between outer cylinder and plate
-    motor->Initialize(outer_cylinder, bottom_plate, ChFrame<>(VNULL, Q_ROTATE_Z_TO_Y));  
-    
-
-    motor->SetSpeedFunction(chrono_types::make_shared<ChFunctionConst>(62. / 60.));
+    auto motor = chrono_types::make_shared<ChLinkMotorRotationSpeed>();
+    motor->SetSpeedFunction(chrono_types::make_shared<ChFunctionConst>(omega));
+    motor->Initialize(outer_cylinder, bottom_plate, ChFrame<>(VNULL, Q_ROTATE_Z_TO_Y));
     sysMBS.AddLink(motor);
 
     // Construction of the FSI system must be finalized before running
     sysFSI.Initialize();
 
+    // Create oputput directories
     if (!filesystem::create_directory(filesystem::path(out_dir))) {
-        std::cerr << "Error creating directory " << out_dir << std::endl;
+        cerr << "Error creating directory " << out_dir << endl;
         return 1;
     }
     out_dir = out_dir + "/" + sysFSI.GetPhysicsProblemString() + "_" + sysFSI.GetSphMethodTypeString();
     if (!filesystem::create_directory(filesystem::path(out_dir))) {
-        std::cerr << "Error creating directory " << out_dir << std::endl;
+        cerr << "Error creating directory " << out_dir << endl;
         return 1;
     }
     if (!filesystem::create_directory(filesystem::path(out_dir + "/particles"))) {
-        std::cerr << "Error creating directory " << out_dir + "/particles" << std::endl;
+        cerr << "Error creating directory " << out_dir + "/particles" << endl;
         return 1;
     }
     if (!filesystem::create_directory(filesystem::path(out_dir + "/fsi"))) {
-        std::cerr << "Error creating directory " << out_dir + "/fsi" << std::endl;
+        cerr << "Error creating directory " << out_dir + "/fsi" << endl;
         return 1;
     }
     if (!filesystem::create_directory(filesystem::path(out_dir + "/vtk"))) {
-        std::cerr << "Error creating directory " << out_dir + "/vtk" << std::endl;
+        cerr << "Error creating directory " << out_dir + "/vtk" << endl;
         return 1;
     }
-
+    if (!filesystem::create_directory(filesystem::path(out_dir + "/snapshots"))) {
+        cerr << "Error creating directory " << out_dir + "/snapshots" << endl;
+        return 1;
+    }
 
     // Create a run-tme visualizer
 #ifndef CHRONO_OPENGL
@@ -277,84 +292,100 @@ int main(int argc, char* argv[]) {
             }
         }
 
-        auto origin = sysMBS.GetBodies()[1]->GetPos();
+        auto v_max = omega * outer_cylinder_radius;
+        auto col_callback = chrono_types::make_shared<VelocityColorCallback>(0, v_max);
         auto vis_callback = chrono_types::make_shared<PositionVisibilityCallback>();
 
         visFSI->SetTitle("Chrono::FSI BMC Simulation");
         visFSI->SetSize(1280, 720);
         visFSI->SetCameraVertical(CameraVerticalDir::Y);
-        visFSI->AddCamera(origin + ChVector3<>(2 * bxDim, 2 * byDim, 2 * bzDim * 0), origin);
-        visFSI->SetCameraMoveScale(100);  // mm
-        visFSI->EnableBoundaryMarkers(false);
-        visFSI->EnableRigidBodyMarkers(true);
+        visFSI->AddCamera(ChVector3<>(1.1 * bxDim, 1.8 * byDim, 0), VNULL);
+        visFSI->SetCameraMoveScale(100);
+        visFSI->EnableFluidMarkers(show_particles_sph);
+        visFSI->EnableBoundaryMarkers(show_boundary_bce);
+        visFSI->EnableRigidBodyMarkers(show_rigid_bce);
         visFSI->SetRenderMode(ChFsiVisualization::RenderMode::SOLID);
         visFSI->SetParticleRenderMode(ChFsiVisualization::RenderMode::SOLID);
+        visFSI->SetSPHColorCallback(col_callback);
         visFSI->SetBCEVisibilityCallback(vis_callback);
-        visFSI->SetSPHColorCallback(chrono_types::make_shared<VelocityColorCallback>(0, 10));  // mm
         visFSI->SetSPHVisibilityCallback(vis_callback);
         visFSI->AttachSystem(&sysMBS);
         visFSI->Initialize();
     }
 
-    ChVector3<> torque_m;
-    ChVector3<> angvel;
-
     // Write the information into a txt file
-    std::ofstream myFile;
-    if (output) {
-        myFile.open(out_dir + "/results.txt", std::ios::trunc);
-    }
+    std::string out_file = out_dir + "/results.txt";
+    std::ofstream ofile;
+    ofile.open(out_file, std::ios::trunc);
 
-    // Start the simulation//
-    unsigned int output_steps = (unsigned int)round(1 / (out_fps * step_size));
-    unsigned int render_steps = (unsigned int)round(1 / (render_fps * step_size));
-
+    // Start the simulation
     double time = 0.0;
-    int current_step = 0;
+    int sim_frame = 0;
+    int out_frame = 0;
+    int render_frame = 0;
 
     ChTimer timer;
     timer.start();
-
-    std::cout << "Copyright (c) 2017 projectchrono.org\nChrono version: " << CHRONO_VERSION << "\n\n";
-
     while (time < time_end) {
         // Get the infomation of the spinning cylinder
-        angvel = outer_cylinder->GetAngVelParent();
-        torque_m = motor->GetMotorTorque();
+        auto angvel = outer_cylinder->GetAngVelParent().y();
+        auto torque = motor->GetMotorTorque();
 
         if (verbose) {
-            std::cout << "  time: " << time << std::endl;
-            std::cout << "  cylinder angular velocity: " << angvel.y() << std::endl;
-            std::cout << "  motor torque:              " << torque_m.y() << std::endl;
+            cout << "  time: " << time << endl;
+            cout << "  cylinder angular velocity: " << angvel << endl;
+            cout << "  motor torque:              " << torque << endl;
         }
 
-        if (output) {
-            myFile << time << "\t" << angvel.y() << "\t" << torque_m.y() << "\n";        }
+        ofile << time << "\t" << angvel << "\t" << torque << "\n";
 
-        if (output && current_step % output_steps == 0) {
-            std::cout << "-------- Output" << std::endl;
+        if (output && time >= out_frame / output_fps) {
+            cout << "-------- Output" << endl;
             sysFSI.PrintParticleToFile(out_dir + "/particles");
             sysFSI.PrintFsiInfoToFile(out_dir + "/fsi", time);
+            out_frame++;
         }
 
         // Render SPH particles
-        if (render && current_step % render_steps == 0) {
+        if (render && time >= render_frame / render_fps) {
             if (!visFSI->Render())
                 break;
+
+            if (snapshots) {
+                if (verbose)
+                    cout << " -- Snapshot frame " << render_frame << " at t = " << time << endl;
+                std::ostringstream filename;
+                filename << out_dir << "/snapshots/img_" << std::setw(5) << std::setfill('0') << render_frame + 1
+                         << ".bmp";
+                visFSI->GetVisualSystem()->WriteImageToFile(filename.str());
+            }
+
+            render_frame++;
         }
 
         // Call the FSI solver
         sysFSI.DoStepDynamics_FSI();
         time += step_size;
-        current_step++;
+        sim_frame++;
     }
-
     timer.stop();
-    std::cout << "\nSimulation time: " << timer() << " seconds\n" << std::endl;
+    cout << "\nSimulation time: " << timer() << " seconds\n" << endl;
 
-    if (output) {
-        myFile.close();
-    }
+    ofile.close();
+
+#ifdef CHRONO_POSTPROCESS
+    postprocess::ChGnuPlot gplot(out_dir + "/results.gpl");
+    gplot.SetGrid();
+    std::string speed_title = "Angular velocity and torque";
+    gplot.SetTitle(speed_title);
+    gplot << "set xlabel 'time'";
+    gplot << "set ylabel 'angular velocity'";
+    gplot << "set y2label 'torque'";
+    gplot << "set ytics nomirror tc lt 1";
+    gplot << "set y2tics nomirror tc lt 2";
+    gplot.Plot(out_file, 1, 2, "angvel", " every ::5 axis x1y1 with lines lt 1 lw 2");
+    gplot.Plot(out_file, 1, 3, "torque", " every ::5 axis x1y2 with lines lt 2 lw 2");
+#endif
 
     return 0;
 }

@@ -50,21 +50,24 @@ ChVisualSystem::Type vis_type = ChVisualSystem::Type::VSG;
 // Output directories and settings
 std::string out_dir = GetChronoOutputPath() + "FSI_Sphere_Bounce";
 
-// Output frequency
-bool output = false;
-double output_fps = 20;
-
 // Container dimensions
 ChVector3d csize(0.8, 0.8, 1.6);
 
 // Size of initial volume of SPH material
 ChVector3d fsize(0.8, 0.8, 1.2);
 
-// Object initial height
+// Sphere density
+double density = 500;
+
+// Sphere initial height
 double initial_height = 0.8 * fsize.z();
 
 // Final simulation time
 double t_end = 3.0;
+
+// Output frequency
+bool output = false;
+double output_fps = 20;
 
 // Enable/disable run-time visualization
 bool render = true;
@@ -136,7 +139,6 @@ int main(int argc, char* argv[]) {
     sysFSI.SetStepSize(step_size);
 
     // Create a rigid body
-    double density = 500;
     double radius = 0.12;
     auto mass = density * ChSphere::GetVolume(radius);
     auto inertia = mass * ChSphere::GetGyration(radius);
