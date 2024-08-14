@@ -34,36 +34,37 @@ ChFsiInterface::~ChFsiInterface() {}
 //-----------------------Chrono rigid body Specifics----------------------------------
 
 void ChFsiInterface::ApplyBodyForce_Fsi2Chrono() {
-    size_t numRigids = m_fsi_bodies.size();
+    size_t num_bodies = m_fsi_bodies.size();
 
     thrust::host_vector<Real3> forcesH = m_sysFSI.fsiData->rigid_FSI_ForcesD;
     thrust::host_vector<Real3> torquesH = m_sysFSI.fsiData->rigid_FSI_TorquesD;
 
-    for (size_t i = 0; i < numRigids; i++) {
-        ChVector3d mforce = utils::ToChVector(forcesH[i]);
-        ChVector3d mtorque = utils::ToChVector(torquesH[i]);
+    for (size_t i = 0; i < num_bodies; i++) {
+        std::shared_ptr<ChBody> body = m_fsi_bodies[i].body;
 
-        std::shared_ptr<ChBody> body = m_fsi_bodies[i];
+        m_fsi_bodies[i].fsi_force = utils::ToChVector(forcesH[i]);
+        m_fsi_bodies[i].fsi_torque = utils::ToChVector(torquesH[i]);
 
-        // note: when this FSI body goes back to Chrono system, the gravity
-        // will be automaticly added. Here only accumulate force from fluid
         body->EmptyAccumulators();
-        body->AccumulateForce(mforce, body->GetPos(), false);
-        body->AccumulateTorque(mtorque, false);
+        body->AccumulateForce(m_fsi_bodies[i].fsi_force, body->GetPos(), false);
+        body->AccumulateTorque(m_fsi_bodies[i].fsi_torque, false);
     }
 }
 
 void ChFsiInterface::LoadBodyState_Chrono2Fsi(std::shared_ptr<FsiBodyStateD> fsiBodyStateD) {
-    size_t num_fsiBodies_Rigids = m_fsi_bodies.size();
-    for (size_t i = 0; i < num_fsiBodies_Rigids; i++) {
-        std::shared_ptr<ChBody> bodyPtr = m_fsi_bodies[i];
-        m_sysFSI.fsiBodyState_H->pos[i] = utils::ToReal3(bodyPtr->GetPos());
-        m_sysFSI.fsiBodyState_H->lin_vel[i] = utils::ToReal4(bodyPtr->GetPosDt(), bodyPtr->GetMass());
-        m_sysFSI.fsiBodyState_H->lin_acc[i] = utils::ToReal3(bodyPtr->GetPosDt2());
-        m_sysFSI.fsiBodyState_H->rot[i] = utils::ToReal4(bodyPtr->GetRot());
-        m_sysFSI.fsiBodyState_H->ang_vel[i] = utils::ToReal3(bodyPtr->GetAngVelLocal());
-        m_sysFSI.fsiBodyState_H->ang_acc[i] = utils::ToReal3(bodyPtr->GetAngAccLocal());
+    size_t num_bodies = m_fsi_bodies.size();
+
+    for (size_t i = 0; i < num_bodies; i++) {
+        std::shared_ptr<ChBody> body = m_fsi_bodies[i].body;
+
+        m_sysFSI.fsiBodyState_H->pos[i] = utils::ToReal3(body->GetPos());
+        m_sysFSI.fsiBodyState_H->lin_vel[i] = utils::ToReal4(body->GetPosDt(), body->GetMass());
+        m_sysFSI.fsiBodyState_H->lin_acc[i] = utils::ToReal3(body->GetPosDt2());
+        m_sysFSI.fsiBodyState_H->rot[i] = utils::ToReal4(body->GetRot());
+        m_sysFSI.fsiBodyState_H->ang_vel[i] = utils::ToReal3(body->GetAngVelLocal());
+        m_sysFSI.fsiBodyState_H->ang_acc[i] = utils::ToReal3(body->GetAngAccLocal());
     }
+    
     fsiBodyStateD->CopyFromH(*m_sysFSI.fsiBodyState_H);
 }
 

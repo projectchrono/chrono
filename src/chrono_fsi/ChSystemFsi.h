@@ -272,6 +272,7 @@ class CH_FSI_API ChSystemFsi {
     double GetSoundSpeed() const;
 
     /// Return the constant force applied to the fluid (if any).
+    /// TODO: RENAME
     ChVector3d GetBodyForce() const;
 
     /// Return the FSI integration step size.
@@ -317,9 +318,13 @@ class CH_FSI_API ChSystemFsi {
     /// For each SPH particle, the 3-dimensional array contains density, pressure, and viscosity.
     std::vector<ChVector3d> GetParticleFluidProperties() const;
 
-    /// Get a reference to the FSI bodies.
-    /// FSI bodies are the ones seen by the fluid dynamics system.
-    std::vector<std::shared_ptr<ChBody>>& GetFsiBodies() const;
+    /// Return the FSI applied force on the body with specified index (as returned by AddFsiBody).
+    /// The force is applied at the body COM and is expressed in the absolute frame.
+    const ChVector3d& GetFsiBodyForce(size_t i) const;
+
+    /// Return the FSI applied torque on the body with specified index (as returned by AddFsiBody).
+    /// The torque is expressed in the absolute frame.
+    const ChVector3d& GetFsiBodyTorque(size_t i) const;
 
     /// Complete construction of the FSI system (fluid and BDE objects).
     /// Use parameters read from JSON file and/or specified through various Set functions.
@@ -360,7 +365,8 @@ class CH_FSI_API ChSystemFsi {
     // ----------- Functions for adding bodies and associated BCE markers for different shapes
 
     /// Add a rigid body to the FSI system.
-    void AddFsiBody(std::shared_ptr<ChBody> body);
+    /// Returns the index of the FSI body in the internal list.
+    size_t AddFsiBody(std::shared_ptr<ChBody> body);
 
     /// Add BCE markers for a rectangular plate of specified X-Y dimensions and associate them with the given body.
     /// BCE markers are created in a number of layers corresponding to system parameters.
@@ -447,15 +453,17 @@ class CH_FSI_API ChSystemFsi {
     // ----------- Functions for adding FEA meshes and associated BCE markers
 
     /// Add an FEA mesh with segment contact to the FSI system.
-    void AddFsiMesh1D(std::shared_ptr<fea::ChMesh> mesh,                  ///< FEA mesh with 1-D flexible elements
-                      BcePatternMesh1D pattern = BcePatternMesh1D::FULL,  ///< BCE marker pattern in cross-section
-                      bool remove_center = false                          ///< eliminate BCE markers on center line
+    /// Returns the index of the FSI mesh in the internal list.
+    size_t AddFsiMesh1D(std::shared_ptr<fea::ChMesh> mesh,                  ///< FEA mesh with 1-D flexible elements
+                        BcePatternMesh1D pattern = BcePatternMesh1D::FULL,  ///< BCE marker pattern in cross-section
+                        bool remove_center = false                          ///< eliminate BCE markers on center line
     );
 
     /// Add an FEA mesh with surface contact to the FSI system.
-    void AddFsiMesh2D(std::shared_ptr<fea::ChMesh> mesh,                      ///< FEA mesh with 2-D contact surfaces
-                      BcePatternMesh2D pattern = BcePatternMesh2D::CENTERED,  ///< BCE locations along normal
-                      bool remove_center = false                              ///< eliminate BCE markers on surface
+    /// Returns the index of the FSI mesh in the internal list.
+    size_t AddFsiMesh2D(std::shared_ptr<fea::ChMesh> mesh,                      ///< FEA mesh with 2-D contact surfaces
+                        BcePatternMesh2D pattern = BcePatternMesh2D::CENTERED,  ///< BCE locations along normal
+                        bool remove_center = false                              ///< eliminate BCE markers on surface
     );
 
     // ----------- Utility functions for extracting information at specific SPH particles

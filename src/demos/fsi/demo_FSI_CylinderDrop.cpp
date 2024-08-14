@@ -88,7 +88,7 @@ class PositionVisibilityCallback : public ChParticleCloud::VisibilityCallback {
 
 // -----------------------------------------------------------------------------
 
-void CreateSolidPhase(ChSystemSMC& sysMBS, ChSystemFsi& sysFSI);
+std::shared_ptr<ChBody> CreateSolidPhase(ChSystemSMC& sysMBS, ChSystemFsi& sysFSI);
 void WriteCylinderVTK(const std::string& filename, double radius, double length, const ChFrame<>& frame, int res);
 
 // -----------------------------------------------------------------------------
@@ -132,7 +132,7 @@ int main(int argc, char* argv[]) {
     }
 
     // Create MBD and BCE particles for the solid domain
-    CreateSolidPhase(sysMBS, sysFSI);
+    auto cylinder = CreateSolidPhase(sysMBS, sysFSI);
 
     // Complete construction of the FSI system
     sysFSI.Initialize();
@@ -236,7 +236,7 @@ int main(int argc, char* argv[]) {
             sysFSI.PrintFsiInfoToFile(out_dir + "/fsi", time);
             static int counter = 0;
             std::string filename = out_dir + "/vtk/cylinder." + std::to_string(counter++) + ".vtk";
-            WriteCylinderVTK(filename, cyl_radius, cyl_length, sysFSI.GetFsiBodies()[0]->GetFrameRefToAbs(), 100);
+            WriteCylinderVTK(filename, cyl_radius, cyl_length, cylinder->GetFrameRefToAbs(), 100);
             out_frame++;
         }
 
@@ -276,7 +276,7 @@ int main(int argc, char* argv[]) {
 // -----------------------------------------------------------------------------
 // Create the solid objects in the MBD system and their counterparts in the FSI system
 
-void CreateSolidPhase(ChSystemSMC& sysMBS, ChSystemFsi& sysFSI) {
+std::shared_ptr<ChBody> CreateSolidPhase(ChSystemSMC& sysMBS, ChSystemFsi& sysFSI) {
     // Set gravity to the rigid body system in chrono
     sysMBS.SetGravitationalAcceleration(sysFSI.GetGravitationalAcceleration());
 
@@ -343,6 +343,8 @@ void CreateSolidPhase(ChSystemSMC& sysMBS, ChSystemFsi& sysFSI) {
 
     // Add BCE particles attached on the cylinder into FSI system
     sysFSI.AddCylinderBCE(cylinder, ChFrame<>(VNULL, QuatFromAngleX(CH_PI_2)), cyl_radius, cyl_length, true);
+
+    return cylinder;
 }
 
 // -----------------------------------------------------------------------------

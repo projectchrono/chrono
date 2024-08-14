@@ -215,10 +215,6 @@ int main(int argc, char* argv[]) {
     // Complete construction of the FSI system
     sysFSI.Initialize();
 
-    // Get the body from the FSI system for visualization
-    std::vector<std::shared_ptr<ChBody>>& FSI_Bodies = sysFSI.GetFsiBodies();
-    auto Rover = FSI_Bodies[0];
-
     // Write position and velocity to file
     std::ofstream ofile;
     if (output)

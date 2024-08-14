@@ -712,11 +712,20 @@ std::string ChSystemFsi::GetSphMethodTypeString() const {
 
 //--------------------------------------------------------------------------------------------------------------------------------
 
-void ChSystemFsi::AddFsiBody(std::shared_ptr<ChBody> body) {
-    m_fsi_interface->m_fsi_bodies.push_back(body);
+size_t ChSystemFsi::AddFsiBody(std::shared_ptr<ChBody> body) {
+    ChFsiInterface::FsiBody fsi_body;
+
+    fsi_body.body = body;
+    fsi_body.fsi_force = VNULL;
+    fsi_body.fsi_torque = VNULL;
+
+    size_t index = m_fsi_interface->m_fsi_bodies.size();
+    m_fsi_interface->m_fsi_bodies.push_back(fsi_body);
+
+    return index;
 }
 
-void ChSystemFsi::AddFsiMesh1D(std::shared_ptr<fea::ChMesh> mesh, BcePatternMesh1D pattern, bool remove_center) {
+size_t ChSystemFsi::AddFsiMesh1D(std::shared_ptr<fea::ChMesh> mesh, BcePatternMesh1D pattern, bool remove_center) {
     ChFsiInterface::FsiMesh1D fsi_mesh;
 
     // Traverse all elements in the provided mesh and extract the 1-D elements elements.
@@ -772,10 +781,13 @@ void ChSystemFsi::AddFsiMesh1D(std::shared_ptr<fea::ChMesh> mesh, BcePatternMesh
     m_num_flex1D_nodes += fsi_mesh.ind2ptr_map.size();
 
     // Store the mesh contact surface
+    size_t index = m_fsi_interface->m_fsi_meshes1D.size();
     m_fsi_interface->m_fsi_meshes1D.push_back(fsi_mesh);
+
+    return index;
 }
 
-void ChSystemFsi::AddFsiMesh2D(std::shared_ptr<fea::ChMesh> mesh, BcePatternMesh2D pattern, bool remove_center) {
+size_t ChSystemFsi::AddFsiMesh2D(std::shared_ptr<fea::ChMesh> mesh, BcePatternMesh2D pattern, bool remove_center) {
     std::shared_ptr<fea::ChContactSurfaceMesh> contact_surface;
 
     // Search for a contact surface mesh associated with the FEA mesh
@@ -836,7 +848,10 @@ void ChSystemFsi::AddFsiMesh2D(std::shared_ptr<fea::ChMesh> mesh, BcePatternMesh
     m_num_flex2D_nodes += fsi_mesh.ind2ptr_map.size();
 
     // Store the mesh contact surface
+    size_t index = m_fsi_interface->m_fsi_meshes1D.size();
     m_fsi_interface->m_fsi_meshes2D.push_back(fsi_mesh);
+
+    return index;
 }
 
 //--------------------------------------------------------------------------------------------------------------------------------
@@ -2108,12 +2123,6 @@ size_t ChSystemFsi::GetNumBoundaryMarkers() const {
 
 //--------------------------------------------------------------------------------------------------------------------------------
 
-std::vector<std::shared_ptr<ChBody>>& ChSystemFsi::GetFsiBodies() const {
-    return m_fsi_interface->m_fsi_bodies;
-}
-
-//--------------------------------------------------------------------------------------------------------------------------------
-
 std::vector<ChVector3d> ChSystemFsi::GetParticlePositions() const {
     thrust::host_vector<Real4> posRadH = m_sysFSI->sphMarkers2_D->posRadD;
     std::vector<ChVector3d> pos;
@@ -2160,6 +2169,16 @@ std::vector<ChVector3d> ChSystemFsi::GetParticleForces() const {
         frc.push_back(utils::ToChVector(frcH[i]));
     }
     return frc;
+}
+
+//--------------------------------------------------------------------------------------------------------------------------------
+
+const ChVector3d& ChSystemFsi::GetFsiBodyForce(size_t i) const {
+    return m_fsi_interface->m_fsi_bodies[i].fsi_force;
+}
+
+const ChVector3d& ChSystemFsi::GetFsiBodyTorque(size_t i) const {
+    return m_fsi_interface->m_fsi_bodies[i].fsi_torque;
 }
 
 //--------------------------------------------------------------------------------------------------------------------------------

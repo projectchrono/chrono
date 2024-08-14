@@ -71,7 +71,7 @@ std::string out_dir = GetChronoOutputPath() + "FSI_Couette_Flow";
 double omega = 62.0 / 60;
 
 // Save data as csv files to see the results off-line using Paraview
-bool output = true;
+bool output = false;
 double output_fps = 50;
 
 // Enable/disable run-time visualization
@@ -210,7 +210,7 @@ int main(int argc, char* argv[]) {
                           inner_cylinder_radius - initial_spacing / 2,  //
                           cylinder_height,                              //
                           true, false, true);
-    sysFSI.AddFsiBody(inner_cylinder);
+    auto inner_cylinder_index = sysFSI.AddFsiBody(inner_cylinder);
 
     // Create outer cylinder that spins
     double outer_cylinder_mass = 1.0;
@@ -228,7 +228,7 @@ int main(int argc, char* argv[]) {
                                  outer_cylinder_radius + 3 * initial_spacing,  //
                                  cylinder_height,                              //
                                  true);
-    sysFSI.AddFsiBody(outer_cylinder);
+    auto outer_cylinder_index = sysFSI.AddFsiBody(outer_cylinder);
 
     // Add motor between outer cylinder and plate
     auto motor = chrono_types::make_shared<ChLinkMotorRotationSpeed>();
@@ -331,16 +331,19 @@ int main(int argc, char* argv[]) {
     timer.start();
     while (time < time_end) {
         // Get the infomation of the spinning cylinder
-        auto angvel = outer_cylinder->GetAngVelParent().y();
-        auto torque = -motor->GetMotorTorque();
+        auto torque_motor = -motor->GetMotorTorque();
+        auto angvel_outer = outer_cylinder->GetAngVelParent().y();
+        auto torque_inner = sysFSI.GetFsiBodyTorque(inner_cylinder_index).y();
+        auto torque_outer = sysFSI.GetFsiBodyTorque(outer_cylinder_index).y();
 
         if (verbose) {
             cout << "  time: " << time << endl;
-            cout << "  cylinder angular velocity: " << angvel << endl;
-            cout << "  motor torque:              " << torque << endl;
+            cout << "  cylinder angular velocity: " << angvel_outer << endl;
+            cout << "  motor torque:              " << torque_motor << endl;
         }
 
-        ofile << time << "\t" << angvel << "\t" << torque << "\n";
+        ofile << time << "\t" << angvel_outer << "\t";
+        ofile << torque_motor << "\t" << torque_inner << "\t" << torque_outer << "\n";
 
         if (output && time >= out_frame / output_fps) {
             cout << "-------- Output" << endl;
@@ -379,15 +382,12 @@ int main(int argc, char* argv[]) {
 #ifdef CHRONO_POSTPROCESS
     postprocess::ChGnuPlot gplot(out_dir + "/results.gpl");
     gplot.SetGrid();
-    std::string speed_title = "Angular velocity and torque";
-    gplot.SetTitle(speed_title);
-    gplot << "set xlabel 'time'";
-    gplot << "set ylabel 'angular velocity'";
-    gplot << "set y2label 'torque'";
-    gplot << "set ytics nomirror tc lt 1";
-    gplot << "set y2tics nomirror tc lt 2";
-    gplot.Plot(out_file, 1, 2, "angvel", " every ::5 axis x1y1 with lines lt 1 lw 2");
-    gplot.Plot(out_file, 1, 3, "torque", " every ::5 axis x1y2 with lines lt 2 lw 2");
+    gplot.SetLabelX("time (s)");
+    gplot.SetLabelY("torque (g * mm^2 / s^2");
+    gplot.SetTitle("Torques");
+    gplot.Plot(out_file, 1, 3, "motor", " every ::5 with lines lt -1 lw 2");
+    gplot.Plot(out_file, 1, 4, "inner", " every ::5 with lines lt 1 lw 2");
+    gplot.Plot(out_file, 1, 5, "outer", " every ::5 with lines lt 2 lw 2");
 #endif
 
     return 0;
