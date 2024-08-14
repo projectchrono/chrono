@@ -183,7 +183,7 @@ int main(int argc, char* argv[]) {
         double r = std::sqrt(std::pow(x, 2) + std::pow(z, 2));
         double p = g * fluid_props.density * (fluid_height - points[i].y());  // hydrostatic pressure
         // Only add particles in the annulus area
-        if (r > inner_cylinder_radius + initial_spacing && r < outer_cylinder_radius - initial_spacing) {
+        if (r >= inner_cylinder_radius + initial_spacing / 2 && r <= outer_cylinder_radius - initial_spacing / 2) {
             sysFSI.AddSPHParticle(points[i], fluid_props.density, p, fluid_props.viscosity);
         }
     }
@@ -380,11 +380,12 @@ int main(int argc, char* argv[]) {
     ofile.close();
 
 #ifdef CHRONO_POSTPROCESS
+    std::string title = "Couette flow - Torques (" + sysFSI.GetSphMethodTypeString() + ")";
     postprocess::ChGnuPlot gplot(out_dir + "/results.gpl");
     gplot.SetGrid();
     gplot.SetLabelX("time (s)");
     gplot.SetLabelY("torque (g * mm^2 / s^2");
-    gplot.SetTitle("Torques");
+    gplot.SetTitle(title);
     gplot.Plot(out_file, 1, 3, "motor", " every ::5 with lines lt -1 lw 2");
     gplot.Plot(out_file, 1, 4, "inner", " every ::5 with lines lt 1 lw 2");
     gplot.Plot(out_file, 1, 5, "outer", " every ::5 with lines lt 2 lw 2");
