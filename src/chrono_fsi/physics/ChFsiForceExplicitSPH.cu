@@ -18,6 +18,7 @@
 
 #include "chrono_fsi/physics/ChFsiForceExplicitSPH.cuh"
 #include "chrono_fsi/physics/ChSphGeneral.cuh"
+#include "chrono_fsi/math/ExactLinearSolvers.cuh"
 
 namespace chrono {
 namespace fsi {

@@ -19,6 +19,7 @@
 #define CH_SPH_GENERAL_CU
 
 #include "chrono_fsi/physics/ChSphGeneral.cuh"
+#include "chrono_fsi/math/ExactLinearSolvers.cuh"
 
 namespace chrono {
 namespace fsi {

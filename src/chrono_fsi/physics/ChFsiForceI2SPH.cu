@@ -23,8 +23,11 @@
 #include <thrust/sort.h>
 
 #include "cublas_v2.h"
+
 #include "chrono_fsi/physics/ChFsiForceI2SPH.cuh"
 #include "chrono_fsi/physics/ChSphGeneral.cuh"
+#include "chrono_fsi/math/ChFsiLinearSolverBiCGStab.h"
+#include "chrono_fsi/math/ChFsiLinearSolverGMRES.h"
 
 using std::cout;
 using std::cerr;
@@ -811,6 +814,22 @@ ChFsiForceI2SPH::~ChFsiForceI2SPH() {}
 
 void ChFsiForceI2SPH::Initialize() {
     ChFsiForce::Initialize();
+
+    // Create linear solver object
+    switch (paramsH->LinearSolver) {
+        case SolverType::BICGSTAB:
+            myLinearSolver = chrono_types::make_shared<ChFsiLinearSolverBiCGStab>();
+            break;
+        case SolverType::GMRES:
+            myLinearSolver = chrono_types::make_shared<ChFsiLinearSolverGMRES>();
+            break;
+        case SolverType::JACOBI:
+            break;
+        default:
+            std::cout << "The ChFsiLinearSolver you chose has not been implemented, reverting to JACOBI";
+            break;
+    }
+
     cudaMemcpyToSymbolAsync(paramsD, paramsH.get(), sizeof(SimParams));
     cudaMemcpyToSymbolAsync(numObjectsD, numObjectsH.get(), sizeof(ChCounters));
     cudaMemcpyFromSymbol(paramsH.get(), paramsD, sizeof(SimParams));

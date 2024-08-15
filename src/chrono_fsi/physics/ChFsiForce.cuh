@@ -23,13 +23,10 @@
 #include <cstring>
 #include <fstream>
 #include <sstream>
+
 #include "chrono_fsi/physics/ChBce.cuh"
 #include "chrono_fsi/physics/ChSystemFsi_impl.cuh"
 #include "chrono_fsi/physics/ChCollisionSystemFsi.cuh"
-#include "chrono_fsi/math/ChFsiLinearSolver.h"
-#include "chrono_fsi/math/ChFsiLinearSolverBiCGStab.h"
-#include "chrono_fsi/math/ChFsiLinearSolverGMRES.h"
-#include "chrono_fsi/math/ExactLinearSolvers.cuh"
 
 namespace chrono {
 namespace fsi {
@@ -152,12 +149,7 @@ class ChFsiForce : public ChFsiBase {
                                                     thrust::device_vector<Real4>& sorted,
                                                     const thrust::device_vector<uint>& gridMarkerIndex);
 
-    /// Function to set the linear solver type for the solver implemented using the ISPH method (ChFsiForceI2SPH).
-    void SetLinearSolver(SolverType type);
-
   protected:
-    std::shared_ptr<ChFsiLinearSolver> myLinearSolver;  ///< pointer to the linear solver type
-
     std::shared_ptr<ChBce> bceWorker;  ///< pointer to Boundary Condition Enforcing particles class
 
     std::shared_ptr<ChCollisionSystemFsi> fsiCollisionSystem;  ///< collision system for building neighbors list

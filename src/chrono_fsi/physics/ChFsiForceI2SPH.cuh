@@ -15,8 +15,8 @@
 #ifndef CH_FSI_FORCEI2SPH_H_
 #define CH_FSI_FORCEI2SPH_H_
 
-#include "chrono_fsi/ChApiFsi.h"
 #include "chrono_fsi/physics/ChFsiForce.cuh"
+#include "chrono_fsi/math/ChFsiLinearSolver.h"
 
 namespace chrono {
 namespace fsi {
@@ -39,9 +39,11 @@ class ChFsiForceI2SPH : public ChFsiForce {
     );
 
     ~ChFsiForceI2SPH();
-    void Initialize() override;
+    virtual void Initialize() override;
 
   private:
+    std::shared_ptr<ChFsiLinearSolver> myLinearSolver;
+
     thrust::device_vector<Real> _sumWij_inv;
     thrust::device_vector<uint> Contact_i;
     thrust::device_vector<Real> G_i;
@@ -64,10 +66,10 @@ class ChFsiForceI2SPH : public ChFsiForce {
     size_t numAllMarkers;
     int NNZ;
 
-    void ForceSPH(std::shared_ptr<SphMarkerDataD> otherSphMarkersD,
-                  std::shared_ptr<FsiBodyStateD> fsiBodyStateD,
-                  std::shared_ptr<FsiMeshStateD> fsiMesh1DStateD,
-                  std::shared_ptr<FsiMeshStateD> fsiMesh2DStateD) override;
+    virtual void ForceSPH(std::shared_ptr<SphMarkerDataD> otherSphMarkersD,
+                          std::shared_ptr<FsiBodyStateD> fsiBodyStateD,
+                          std::shared_ptr<FsiMeshStateD> fsiMesh1DStateD,
+                          std::shared_ptr<FsiMeshStateD> fsiMesh2DStateD) override;
 
     void PreProcessor(std::shared_ptr<SphMarkerDataD> otherSphMarkersD, bool calcLaplacianOperator = true);
 };

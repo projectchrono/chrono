@@ -1022,8 +1022,6 @@ void ChSystemFsi::Initialize() {
 
     m_fluid_dynamics = chrono_types::make_unique<ChFluidDynamics>(m_bce_manager, *m_sysFSI, m_paramsH,
                                                                   m_sysFSI->numObjectsH, m_verbose);
-    m_fluid_dynamics->GetForceSystem()->SetLinearSolver(m_paramsH->LinearSolver);
-
     // Initialize worker objects
     m_bce_manager->Initialize(m_sysFSI->sphMarkers1_D,                                 //
                               m_sysFSI->fsiBodyState1_D,                               //

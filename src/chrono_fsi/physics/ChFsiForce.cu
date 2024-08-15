@@ -54,21 +54,6 @@ void ChFsiForce::Initialize() {
 
 ChFsiForce::~ChFsiForce() {}
 
-void ChFsiForce::SetLinearSolver(SolverType type) {
-    switch (type) {
-        case SolverType::BICGSTAB:
-            myLinearSolver = chrono_types::make_shared<ChFsiLinearSolverBiCGStab>();
-            break;
-        case SolverType::GMRES:
-            myLinearSolver = chrono_types::make_shared<ChFsiLinearSolverGMRES>();
-            break;
-        default:
-            myLinearSolver = chrono_types::make_shared<ChFsiLinearSolverBiCGStab>();
-            std::cout << "The ChFsiLinearSolver you chose has not been implemented, reverting back to "
-                         "ChFsiLinearSolverBiCGStab\n";
-    }
-}
-
 // Use invasive to avoid one extra copy.
 // However, keep in mind that sorted is changed.
 void ChFsiForce::CopySortedToOriginal_Invasive_R3(thrust::device_vector<Real3>& original,
