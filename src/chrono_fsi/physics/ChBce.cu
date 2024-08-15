@@ -644,25 +644,12 @@ void ChBce::Initialize(std::shared_ptr<SphMarkerDataD> sphMarkers_D,
     int haveFlex1D = (numObjectsH->numFlexBodies1D > 0) ? 1 : 0;
     int haveFlex2D = (numObjectsH->numFlexBodies2D > 0) ? 1 : 0;
 
-    int num = haveHelper + haveGhost + haveRigid + haveFlex1D + haveFlex2D + 1;
-    int numFlexRigidBoundaryMarkers =
-        m_fsiData->referenceArray[num].y - m_fsiData->referenceArray[haveHelper + haveGhost].y;
-
-    if (m_verbose) {
-        printf("Total number of BCE particles = %d\n", numFlexRigidBoundaryMarkers);
-    }
-
     auto numAllBce = numObjectsH->numBoundaryMarkers + numObjectsH->numRigidMarkers +  //
                      numObjectsH->numFlexMarkers1D + numObjectsH->numFlexMarkers2D;
-    if ((int)numAllBce != numFlexRigidBoundaryMarkers) {
-        throw std::runtime_error(
-            "Error! number of flex and rigid and "
-            "boundary markers are saved incorrectly!\n");
-    }
-    velMas_ModifiedBCE.resize(numFlexRigidBoundaryMarkers);
-    rhoPreMu_ModifiedBCE.resize(numFlexRigidBoundaryMarkers);
-    tauXxYyZz_ModifiedBCE.resize(numFlexRigidBoundaryMarkers);
-    tauXyXzYz_ModifiedBCE.resize(numFlexRigidBoundaryMarkers);
+    velMas_ModifiedBCE.resize(numAllBce);
+    rhoPreMu_ModifiedBCE.resize(numAllBce);
+    tauXxYyZz_ModifiedBCE.resize(numAllBce);
+    tauXyXzYz_ModifiedBCE.resize(numAllBce);
 
     // Populate local position of BCE markers - on rigid bodies
     if (haveRigid) {
