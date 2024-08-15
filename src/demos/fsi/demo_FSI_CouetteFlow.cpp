@@ -118,7 +118,7 @@ int main(int argc, char* argv[]) {
     ChSystemFsi sysFSI(&sysMBS);
     sysFSI.SetVerbose(verbose);
 
-    // cylinderical container
+    // cylindrical container
     // container needs to be higher than fluid, otherwise water spills from the top
     double outer_cylinder_radius = 5.0;  // mm
     double inner_cylinder_radius = 3.8;  // mm
@@ -169,23 +169,20 @@ int main(int argc, char* argv[]) {
     ChVector3<> cMax(bxDim / 2 * 1.2, byDim * 1.2, bzDim / 2 * 1.2);
     sysFSI.SetBoundaries(cMin, cMax);
 
-    chrono::utils::ChGridSampler<> sampler(initial_spacing);
+    bool use_polar_coords = true;
 
-    // Use sampler to create SPH particles that fill the annulus area between the inner and outer cylinders
-    ChVector3<> boxCenter(0, 0, 0);
-    ChVector3<> boxHalfDim(outer_cylinder_radius, fluid_height / 2, outer_cylinder_radius);
-    std::vector<ChVector3d> points = sampler.SampleBox(boxCenter, boxHalfDim);
-
-    // Add SPH particles from the sampler points to the FSI system
-    for (int i = 0; i < points.size(); i++) {
-        double x = points[i].x();
-        double z = points[i].z();
-        double r = std::sqrt(std::pow(x, 2) + std::pow(z, 2));
-        double p = g * fluid_props.density * (fluid_height - points[i].y());  // hydrostatic pressure
-        // Only add particles in the annulus area
-        if (r >= inner_cylinder_radius + initial_spacing / 2 && r <= outer_cylinder_radius - initial_spacing / 2) {
-            sysFSI.AddSPHParticle(points[i], fluid_props.density, p, fluid_props.viscosity);
-        }
+    std::vector<ChVector3d> points;
+    sysFSI.CreateCylinderAnnulusPoints(inner_cylinder_radius + initial_spacing / 2,  //
+                                       outer_cylinder_radius - initial_spacing / 2,  //
+                                       fluid_height,                                 //
+                                       use_polar_coords, initial_spacing,            //
+                                       points);
+    for (const auto& p : points) {
+        double x = p.x();
+        double y = p.z();
+        double z = -p.y();
+        double pressure = g * fluid_props.density * (fluid_height - y);
+        sysFSI.AddSPHParticle({x, y, z}, fluid_props.density, pressure, fluid_props.viscosity);
     }
 
     // Add cylinder bottom plate
@@ -193,8 +190,9 @@ int main(int argc, char* argv[]) {
     auto bottom_plate = chrono_types::make_shared<ChBody>();
     bottom_plate->SetPos(ChVector3d(0, -fluid_height / 2 - initial_spacing, 0));
     bottom_plate->SetFixed(true);
-    sysFSI.AddWallBCE(bottom_plate, ChFrame<>(VNULL, Q_ROTATE_Z_TO_Y), bottom_plate_size);
     sysMBS.AddBody(bottom_plate);
+
+    sysFSI.AddWallBCE(bottom_plate, ChFrame<>(VNULL, Q_ROTATE_Z_TO_Y), bottom_plate_size);
 
     // Cylinder center
     ChVector3d cylinder_center(0, cylinder_height / 2 - fluid_height / 2, 0);
@@ -384,7 +382,7 @@ int main(int argc, char* argv[]) {
     postprocess::ChGnuPlot gplot(out_dir + "/results.gpl");
     gplot.SetGrid();
     gplot.SetLabelX("time (s)");
-    gplot.SetLabelY("torque (g * mm^2 / s^2");
+    gplot.SetLabelY("torque (g * mm^2 / s^2)");
     gplot.SetTitle(title);
     gplot.Plot(out_file, 1, 3, "motor", " every ::5 with lines lt -1 lw 2");
     gplot.Plot(out_file, 1, 4, "inner", " every ::5 with lines lt 1 lw 2");

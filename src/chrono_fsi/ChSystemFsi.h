@@ -520,16 +520,6 @@ class CH_FSI_API ChSystemFsi {
                             bool polar,
                             std::vector<ChVector3d>& bce);
 
-    /// Create BCE particles for a cylindrical annulus of specified radii and height.
-    /// The cylinder annulus is assumed centered at the origin and aligned with the Z axis.
-    /// BCE markers are created in a number of layers corresponding to system parameters.
-    /// BCE markers are created using cylinderical coordinates (polar=true), or else on a uniform Cartesian grid.
-    void CreateBCE_cylinder_annulus(double rad_in,
-                                    double rad_out,
-                                    double height,
-                                    bool polar,
-                                    std::vector<ChVector3d>& bce);
-
     /// Create BCE particles for a cone of specified radius and height.
     /// The cone is assumed centered at the origin and aligned with the Z axis.
     /// The end-cap is created if capped = true, otherwise the cone is open.
@@ -538,8 +528,19 @@ class CH_FSI_API ChSystemFsi {
     /// BCE markers are created using cylinderical coordinates (polar=true), or else on a uniform Cartesian grid.
     void CreateBCE_cone(double rad, double height, bool solid, bool capped, bool polar, std::vector<ChVector3d>& bce);
 
+    // ----------- Utility functions for creating points filling various volumes
+
+    /// Utility function to create points inside a cylindrical annulus of specified radii and height.
+    /// The cylinder annulus is assumed centered at the origin and aligned with the Z axis. If polar = true, points are
+    /// created in cylindrical coordinates; otherwise points are created on a uniform Cartesian grid.
+    static void CreateCylinderAnnulusPoints(double rad_inner,
+                                            double rad_outer,
+                                            double height,
+                                            bool polar,
+                                            double delta,
+                                            std::vector<ChVector3d>& points);
+
     /// Utility function for creating points filling a closed mesh.
-    //// RADU TODO eliminate delta (use initspacing)
     static void CreateMeshPoints(ChTriangleMeshConnected& mesh, double delta, std::vector<ChVector3d>& points);
 
   public:

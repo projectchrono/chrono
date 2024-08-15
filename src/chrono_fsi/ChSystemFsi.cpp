@@ -1321,8 +1321,9 @@ size_t ChSystemFsi::AddCylinderAnnulusBCE(std::shared_ptr<ChBody> body,
                                           double radius_outer,
                                           double height,
                                           bool polar) {
+    auto delta = m_paramsH->MULT_INITSPACE * m_paramsH->HSML;
     std::vector<ChVector3d> points;
-    CreateBCE_cylinder_annulus(radius_inner, radius_outer, height, polar, points);
+    CreateCylinderAnnulusPoints(radius_inner, radius_outer, height, polar, delta, points);
     return AddPointsBCE(body, points, frame, true);
 }
 
@@ -1596,60 +1597,6 @@ void ChSystemFsi::CreateBCE_cylinder(double rad,
                     double z = hheight - iz * delta_h;
                     bce.push_back({x, y, -z});
                     bce.push_back({x, y, +z});
-                }
-            }
-        }
-    }
-}
-
-void ChSystemFsi::CreateBCE_cylinder_annulus(double rad_in,
-                                             double rad_out,
-                                             double height,
-                                             bool polar,
-                                             std::vector<ChVector3d>& bce) {
-    double spacing = m_paramsH->MULT_INITSPACE * m_paramsH->HSML;
-
-    // Calculate actual spacing
-    double hheight = height / 2;
-    int np_h = (int)std::round(hheight / spacing);
-    double delta_h = hheight / np_h;
-
-    // Use polar coordinates
-    if (polar) {
-        int np_r = (int)std::round((rad_out - rad_in) / spacing);
-        double delta_r = (rad_out - rad_in) / np_r;
-        for (int ir = 0; ir <= np_r; ir++) {
-            double r = rad_in + ir * delta_r;
-            int np_th = (int)std::round(2 * pi * r / spacing);
-            double delta_th = (2 * pi) / np_th;
-            for (int it = 0; it < np_th; it++) {
-                double theta = it * delta_th;
-                double x = r * cos(theta);
-                double y = r * sin(theta);
-                for (int iz = -np_h; iz <= np_h; iz++) {
-                    double z = iz * delta_h;
-                    bce.push_back({x, y, z});
-                }
-            }
-        }
-        return;
-    }
-
-    // Use a regular grid and accept/reject points
-    int np_r = (int)std::round(rad_out / spacing);
-    double delta_r = rad_out / np_r;
-
-    double r_in2 = rad_in * rad_in;
-    double r_out2 = rad_out * rad_out;
-    for (int ix = -np_r; ix <= np_r; ix++) {
-        double x = ix * delta_r;
-        for (int iy = -np_r; iy <= np_r; iy++) {
-            double y = iy * delta_r;
-            double r2 = x * x + y * y;
-            if (r2 >= r_in2 && r2 <= r_out2) {
-                for (int iz = -np_h; iz <= np_h; iz++) {
-                    double z = iz * delta_h;
-                    bce.push_back({x, y, z});
                 }
             }
         }
@@ -1962,6 +1909,59 @@ unsigned int ChSystemFsi::AddBCE_mesh2D(unsigned int meshID,
 }
 
 //--------------------------------------------------------------------------------------------------------------------------------
+
+void ChSystemFsi::CreateCylinderAnnulusPoints(double rad_inner,
+                                              double rad_outer,
+                                              double height,
+                                              bool polar,
+                                              double delta,
+                                              std::vector<ChVector3d>& points) {
+    // Calculate actual spacing
+    double hheight = height / 2;
+    int np_h = (int)std::round(hheight / delta);
+    double delta_h = hheight / np_h;
+
+    // Use polar coordinates
+    if (polar) {
+        int np_r = (int)std::round((rad_outer - rad_inner) / delta);
+        double delta_r = (rad_outer - rad_inner) / np_r;
+        for (int ir = 0; ir <= np_r; ir++) {
+            double r = rad_inner + ir * delta_r;
+            int np_th = (int)std::round(2 * pi * r / delta);
+            double delta_th = (2 * pi) / np_th;
+            for (int it = 0; it < np_th; it++) {
+                double theta = it * delta_th;
+                double x = r * cos(theta);
+                double y = r * sin(theta);
+                for (int iz = -np_h; iz <= np_h; iz++) {
+                    double z = iz * delta_h;
+                    points.push_back({x, y, z});
+                }
+            }
+        }
+        return;
+    }
+
+    // Use a regular grid and accept/reject points
+    int np_r = (int)std::round(rad_outer / delta);
+    double delta_r = rad_outer / np_r;
+
+    double r_in2 = rad_inner * rad_inner;
+    double r_out2 = rad_outer * rad_outer;
+    for (int ix = -np_r; ix <= np_r; ix++) {
+        double x = ix * delta_r;
+        for (int iy = -np_r; iy <= np_r; iy++) {
+            double y = iy * delta_r;
+            double r2 = x * x + y * y;
+            if (r2 >= r_in2 && r2 <= r_out2) {
+                for (int iz = -np_h; iz <= np_h; iz++) {
+                    double z = iz * delta_h;
+                    points.push_back({x, y, z});
+                }
+            }
+        }
+    }
+}
 
 void ChSystemFsi::CreateMeshPoints(ChTriangleMeshConnected& mesh, double delta, std::vector<ChVector3d>& points) {
     mesh.RepairDuplicateVertexes(1e-9);  // if meshes are not watertight

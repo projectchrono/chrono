@@ -37,8 +37,10 @@ int main(int argc, char* argv[]) {
     ChSystemSMC sysMBS;
     ChSystemFsi sysFSI(&sysMBS);
 
-    sysFSI.SetInitialSpacing(0.025);
-    sysFSI.SetKernelLength(0.025);
+    double spacing = 0.025;
+
+    sysFSI.SetInitialSpacing(spacing);
+    sysFSI.SetKernelLength(spacing);
 
     // Dummy body
 
@@ -173,7 +175,7 @@ int main(int argc, char* argv[]) {
     double ca_height = 0.2;
 
     bce.clear();
-    sysFSI.CreateBCE_cylinder_annulus(ca_radius_inner, ca_radius_outer, ca_height, true, bce);
+    sysFSI.CreateCylinderAnnulusPoints(ca_radius_inner, ca_radius_outer, ca_height, true, spacing, bce);
     std::cout << "cylinder annulus polar nBCE = " << bce.size() << std::endl;
     fbce.open((out_dir + "/cyl_annulus_polar.txt"), std::ios::trunc);
     for (int i = 0; i < bce.size(); i++) {
@@ -183,7 +185,7 @@ int main(int argc, char* argv[]) {
     sysFSI.AddCylinderAnnulusBCE(body, frame, ca_radius_inner, ca_radius_outer, ca_height, true);
 
     bce.clear();
-    sysFSI.CreateBCE_cylinder_annulus(ca_radius_inner, ca_radius_outer, ca_height, false, bce);
+    sysFSI.CreateCylinderAnnulusPoints(ca_radius_inner, ca_radius_outer, ca_height, false, spacing, bce);
     std::cout << "cylinder annulus cartesian nBCE = " << bce.size() << std::endl;
     fbce.open((out_dir + "/cyl_annulus_cartesian.txt"), std::ios::trunc);
     for (int i = 0; i < bce.size(); i++) {
