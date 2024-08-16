@@ -600,6 +600,17 @@ void ChSystemFsi::SetCohesionForce(double Fc) {
 
 ChSystemFsi::FluidProperties::FluidProperties() : density(1000), viscosity(0.1), kappa(0), char_length(1) {}
 
+void ChSystemFsi::SetNumProximitySearchSteps(int steps) {
+    m_paramsH->numProximitySearchSteps = steps;
+}
+
+void ChSystemFsi::SetSharedProximitySearch(bool shared) {
+    m_paramsH->sharedProximitySearch = shared;
+}
+
+ChSystemFsi::FluidProperties::FluidProperties()
+    : density(1000), viscosity(0.1), kappa(0), char_length(1) {}
+
 void ChSystemFsi::SetCfdSPH(const FluidProperties& fluid_props) {
     m_paramsH->elastic_SPH = false;
 
@@ -2085,6 +2096,14 @@ double ChSystemFsi::GetMaxStepSize() const {
 
 bool ChSystemFsi::GetAdaptiveTimeStepping() const {
     return m_paramsH->Adaptive_time_stepping;
+}
+
+int ChSystemFsi::GetNumProximitySearchSteps() const{
+    return m_paramsH->numProximitySearchSteps;
+}
+
+bool ChSystemFsi::GetSharedProximitySearch() const {
+    return m_paramsH->sharedProximitySearch;
 }
 
 size_t ChSystemFsi::GetNumFluidMarkers() const {

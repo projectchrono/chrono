@@ -212,6 +212,10 @@ class CH_FSI_API ChSystemFsi {
     //// TODO: OBSOLETE
     void SetSPHMethod(SPHMethod SPH_method, SolverType lin_solver = SolverType::BICGSTAB);
 
+    void SetNumProximitySearchSteps(int steps);
+
+    void SetSharedProximitySearch(bool shared);
+
     /// Enable solution of a CFD problem.
     void SetCfdSPH(const FluidProperties& fluid_props);
 
@@ -269,6 +273,10 @@ class CH_FSI_API ChSystemFsi {
 
     /// Return a flag inicating whether adaptive time stepping is enabled.
     bool GetAdaptiveTimeStepping() const;
+
+    int GetNumProximitySearchSteps() const;
+
+    bool GetSharedProximitySearch() const;
 
     /// Return the current system parameters (debugging only).
     const SimParams& GetParams() const { return *m_paramsH; }
