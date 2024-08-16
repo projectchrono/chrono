@@ -598,8 +598,6 @@ void ChSystemFsi::SetCohesionForce(double Fc) {
     m_paramsH->Coh_coeff = Fc;
 }
 
-ChSystemFsi::FluidProperties::FluidProperties() : density(1000), viscosity(0.1), kappa(0), char_length(1) {}
-
 void ChSystemFsi::SetNumProximitySearchSteps(int steps) {
     m_paramsH->numProximitySearchSteps = steps;
 }
