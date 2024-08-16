@@ -27,14 +27,18 @@ __device__ __inline__ void calc_G_Matrix(Real4* sortedPosRad,
                                          Real3* sortedVelMas,
                                          Real4* sortedRhoPreMu,
                                          Real* G_i,
-                                         uint* cellStart,
-                                         uint* cellEnd,
+                                         const uint* numNeighborsPerPart,
+                                         const uint* neighborList,
                                          uint* indexOfIndex) {
     uint id = blockIdx.x * blockDim.x + threadIdx.x;
-    if (id >= numObjectsD.numAllMarkers - numObjectsD.numBoundaryMarkers)
+    if (id >= numObjectsD.numAllMarkers)
         return;
 
-    uint index = indexOfIndex[id];
+    // uint index = indexOfIndex[id];
+    uint index  = id;
+
+    if (sortedRhoPreMu[index].w > -0.5f && sortedRhoPreMu[index].w < 0.5f)
+        return;
 
     Real3 posRadA = mR3(sortedPosRad[index]);
     Real h_i = sortedPosRad[index].w;
@@ -45,36 +49,33 @@ __device__ __inline__ void calc_G_Matrix(Real4* sortedPosRad,
     int3 gridPos = calcGridPos(posRadA);
     // This is the elements of inverse of G
     Real mGi[9] = {0.0};
+
+    uint NLStart = numNeighborsPerPart[index];
+    uint NLEnd = numNeighborsPerPart[index + 1];
     // examine neighbouring cells
-    for (int z = -1; z <= 1; z++)
-        for (int y = -1; y <= 1; y++)
-            for (int x = -1; x <= 1; x++) {
-                int3 neighbourPos = gridPos + mI3(x, y, z);
-                uint gridHash = calcGridHash(neighbourPos);
-                // get start of bucket for this cell50
-                uint startIndex = cellStart[gridHash];
-                if (startIndex != 0xffffffff) {  // cell is not empty
-                    uint endIndex = cellEnd[gridHash];
-                    for (uint j = startIndex; j < endIndex; j++) {
-                        Real3 posRadB = mR3(sortedPosRad[j]);
-                        Real3 rij = Distance(posRadA, posRadB);
-                        Real dd = rij.x * rij.x + rij.y * rij.y + rij.z * rij.z;
-                        if (dd > SqRadii || sortedRhoPreMu[j].w < -1.5)
-                            continue;
-                        Real3 grad_i_wij = GradWh(rij, h_i);
-                        Real3 grw_vj = grad_i_wij * paramsD.volume0;
-                        mGi[0] -= rij.x * grw_vj.x;
-                        mGi[1] -= rij.x * grw_vj.y;
-                        mGi[2] -= rij.x * grw_vj.z;
-                        mGi[3] -= rij.y * grw_vj.x;
-                        mGi[4] -= rij.y * grw_vj.y;
-                        mGi[5] -= rij.y * grw_vj.z;
-                        mGi[6] -= rij.z * grw_vj.x;
-                        mGi[7] -= rij.z * grw_vj.y;
-                        mGi[8] -= rij.z * grw_vj.z;
-                    }
-                }
-            }
+    for (int n = NLStart; n < NLEnd; n++) {
+        uint j = neighborList[n];
+        if (j == index) {
+            continue;
+        }
+        Real3 posRadB = mR3(sortedPosRad[j]);
+        Real3 rij = Distance(posRadA, posRadB);
+        Real dd = rij.x * rij.x + rij.y * rij.y + rij.z * rij.z;
+        if (dd > SqRadii || sortedRhoPreMu[j].w < -1.5)
+            continue;
+        Real3 grad_i_wij = GradWh(rij, h_i);
+        Real3 grw_vj = grad_i_wij * paramsD.volume0;
+        mGi[0] -= rij.x * grw_vj.x;
+        mGi[1] -= rij.x * grw_vj.y;
+        mGi[2] -= rij.x * grw_vj.z;
+        mGi[3] -= rij.y * grw_vj.x;
+        mGi[4] -= rij.y * grw_vj.y;
+        mGi[5] -= rij.y * grw_vj.z;
+        mGi[6] -= rij.z * grw_vj.x;
+        mGi[7] -= rij.z * grw_vj.y;
+        mGi[8] -= rij.z * grw_vj.z;
+    }
+
     Real Det = (mGi[0] * mGi[4] * mGi[8] - mGi[0] * mGi[5] * mGi[7] - mGi[1] * mGi[3] * mGi[8] +
                 mGi[1] * mGi[5] * mGi[6] + mGi[2] * mGi[3] * mGi[7] - mGi[2] * mGi[4] * mGi[6]);
     if (abs(Det) > 0.01) {
@@ -104,14 +105,18 @@ __device__ __inline__ void calc_A_Matrix(Real4* sortedPosRad,
                                          Real4* sortedRhoPreMu,
                                          Real* A_i,
                                          Real* G_i,
-                                         uint* cellStart,
-                                         uint* cellEnd,
+                                         const uint* numNeighborsPerPart,
+                                         const uint* neighborList,
                                          uint* indexOfIndex) {
     uint id = blockIdx.x * blockDim.x + threadIdx.x;
-    if (id >= numObjectsD.numAllMarkers - numObjectsD.numBoundaryMarkers)
+    if (id >= numObjectsD.numAllMarkers)
         return;
 
-    uint index = indexOfIndex[id];
+    // uint index = indexOfIndex[id];
+    uint index = id;
+
+    if (sortedRhoPreMu[index].w > -0.5f && sortedRhoPreMu[index].w < 0.5f)
+        return;
 
     Real3 posRadA = mR3(sortedPosRad[index]);
     Real h_i = sortedPosRad[index].w;
@@ -120,60 +125,56 @@ __device__ __inline__ void calc_A_Matrix(Real4* sortedPosRad,
 
     // get address in grid
     int3 gridPos = calcGridPos(posRadA);
+
+    uint NLStart = numNeighborsPerPart[index];
+    uint NLEnd = numNeighborsPerPart[index + 1];
     // examine neighbouring cells
-    for (int z = -1; z <= 1; z++)
-        for (int y = -1; y <= 1; y++)
-            for (int x = -1; x <= 1; x++) {
-                int3 neighbourPos = gridPos + mI3(x, y, z);
-                uint gridHash = calcGridHash(neighbourPos);
-                // get start of bucket for this cell50
-                uint startIndex = cellStart[gridHash];
-                if (startIndex != 0xffffffff) {  // cell is not empty
-                    uint endIndex = cellEnd[gridHash];
-                    for (uint j = startIndex; j < endIndex; j++) {
-                        Real3 posRadB = mR3(sortedPosRad[j]);
-                        Real3 rij = Distance(posRadA, posRadB);
-                        Real dd = rij.x * rij.x + rij.y * rij.y + rij.z * rij.z;
-                        if (dd > SqRadii || sortedRhoPreMu[j].w < -1.5)
-                            continue;
-                        Real h_j = sortedPosRad[j].w;
-                        Real h_ij = 0.5 * (h_j + h_i);
-                        Real3 grad_ij = GradWh(rij, h_ij);
-                        Real V_j = paramsD.markerMass / paramsD.rho0;
-                        Real com_part = 0;
-                        com_part = (G_i[0] * grad_ij.x + G_i[1] * grad_ij.y + G_i[2] * grad_ij.z) * V_j;
-                        A_i[0] += rij.x * rij.x * com_part;  // 111
-                        A_i[1] += rij.x * rij.y * com_part;  // 112
-                        A_i[2] += rij.x * rij.z * com_part;  // 113
-                        A_i[3] += rij.y * rij.x * com_part;  // 121
-                        A_i[4] += rij.y * rij.y * com_part;  // 122
-                        A_i[5] += rij.y * rij.z * com_part;  // 123
-                        A_i[6] += rij.z * rij.x * com_part;  // 131
-                        A_i[7] += rij.z * rij.y * com_part;  // 132
-                        A_i[8] += rij.z * rij.z * com_part;  // 133
-                        com_part = (G_i[3] * grad_ij.x + G_i[4] * grad_ij.y + G_i[5] * grad_ij.z) * V_j;
-                        A_i[9] += rij.x * rij.x * com_part;   // 211
-                        A_i[10] += rij.x * rij.y * com_part;  // 212
-                        A_i[11] += rij.x * rij.z * com_part;  // 213
-                        A_i[12] += rij.y * rij.x * com_part;  // 221
-                        A_i[13] += rij.y * rij.y * com_part;  // 222
-                        A_i[14] += rij.y * rij.z * com_part;  // 223
-                        A_i[15] += rij.z * rij.x * com_part;  // 231
-                        A_i[16] += rij.z * rij.y * com_part;  // 232
-                        A_i[17] += rij.z * rij.z * com_part;  // 233
-                        com_part = (G_i[6] * grad_ij.x + G_i[7] * grad_ij.y + G_i[8] * grad_ij.z) * V_j;
-                        A_i[18] += rij.x * rij.x * com_part;  // 311
-                        A_i[19] += rij.x * rij.y * com_part;  // 312
-                        A_i[20] += rij.x * rij.z * com_part;  // 313
-                        A_i[21] += rij.y * rij.x * com_part;  // 321
-                        A_i[22] += rij.y * rij.y * com_part;  // 322
-                        A_i[23] += rij.y * rij.z * com_part;  // 323
-                        A_i[24] += rij.z * rij.x * com_part;  // 331
-                        A_i[25] += rij.z * rij.y * com_part;  // 332
-                        A_i[26] += rij.z * rij.z * com_part;  // 333
-                    }
-                }
-            }
+    for (int n = NLStart; n < NLEnd; n++) {
+        uint j = neighborList[n];
+        if (j == index) {
+            continue;
+        }
+        Real3 posRadB = mR3(sortedPosRad[j]);
+        Real3 rij = Distance(posRadA, posRadB);
+        Real dd = rij.x * rij.x + rij.y * rij.y + rij.z * rij.z;
+        if (dd > SqRadii || sortedRhoPreMu[j].w < -1.5)
+            continue;
+        Real h_j = sortedPosRad[j].w;
+        Real h_ij = 0.5 * (h_j + h_i);
+        Real3 grad_ij = GradWh(rij, h_ij);
+        Real V_j = paramsD.markerMass / paramsD.rho0;
+        Real com_part = 0;
+        com_part = (G_i[0] * grad_ij.x + G_i[1] * grad_ij.y + G_i[2] * grad_ij.z) * V_j;
+        A_i[0] += rij.x * rij.x * com_part;  // 111
+        A_i[1] += rij.x * rij.y * com_part;  // 112
+        A_i[2] += rij.x * rij.z * com_part;  // 113
+        A_i[3] += rij.y * rij.x * com_part;  // 121
+        A_i[4] += rij.y * rij.y * com_part;  // 122
+        A_i[5] += rij.y * rij.z * com_part;  // 123
+        A_i[6] += rij.z * rij.x * com_part;  // 131
+        A_i[7] += rij.z * rij.y * com_part;  // 132
+        A_i[8] += rij.z * rij.z * com_part;  // 133
+        com_part = (G_i[3] * grad_ij.x + G_i[4] * grad_ij.y + G_i[5] * grad_ij.z) * V_j;
+        A_i[9] += rij.x * rij.x * com_part;   // 211
+        A_i[10] += rij.x * rij.y * com_part;  // 212
+        A_i[11] += rij.x * rij.z * com_part;  // 213
+        A_i[12] += rij.y * rij.x * com_part;  // 221
+        A_i[13] += rij.y * rij.y * com_part;  // 222
+        A_i[14] += rij.y * rij.z * com_part;  // 223
+        A_i[15] += rij.z * rij.x * com_part;  // 231
+        A_i[16] += rij.z * rij.y * com_part;  // 232
+        A_i[17] += rij.z * rij.z * com_part;  // 233
+        com_part = (G_i[6] * grad_ij.x + G_i[7] * grad_ij.y + G_i[8] * grad_ij.z) * V_j;
+        A_i[18] += rij.x * rij.x * com_part;  // 311
+        A_i[19] += rij.x * rij.y * com_part;  // 312
+        A_i[20] += rij.x * rij.z * com_part;  // 313
+        A_i[21] += rij.y * rij.x * com_part;  // 321
+        A_i[22] += rij.y * rij.y * com_part;  // 322
+        A_i[23] += rij.y * rij.z * com_part;  // 323
+        A_i[24] += rij.z * rij.x * com_part;  // 331
+        A_i[25] += rij.z * rij.y * com_part;  // 332
+        A_i[26] += rij.z * rij.z * com_part;  // 333
+    }
 }
 
 //--------------------------------------------------------------------------------------------------------------------------------
@@ -183,14 +184,18 @@ __device__ __inline__ void calc_L_Matrix(Real4* sortedPosRad,
                                          Real* A_i,
                                          Real* L_i,
                                          Real* G_i,
-                                         uint* cellStart,
-                                         uint* cellEnd,
+                                         const uint* numNeighborsPerPart,
+                                         const uint* neighborList,
                                          uint* indexOfIndex) {
     uint id = blockIdx.x * blockDim.x + threadIdx.x;
-    if (id >= numObjectsD.numAllMarkers - numObjectsD.numBoundaryMarkers)
+    if (id >= numObjectsD.numAllMarkers)
         return;
 
-    uint index = indexOfIndex[id];
+    // uint index = indexOfIndex[id];
+    uint index = id;
+
+    if (sortedRhoPreMu[index].w > -0.5f && sortedRhoPreMu[index].w < 0.5f)
+        return;
 
     Real3 posRadA = mR3(sortedPosRad[index]);
     Real h_i = sortedPosRad[index].w;
@@ -202,94 +207,89 @@ __device__ __inline__ void calc_L_Matrix(Real4* sortedPosRad,
 
     // get address in grid
     int3 gridPos = calcGridPos(posRadA);
+    uint NLStart = numNeighborsPerPart[index];
+    uint NLEnd = numNeighborsPerPart[index + 1];
     // examine neighbouring cells
-    for (int z = -1; z <= 1; z++)
-        for (int y = -1; y <= 1; y++)
-            for (int x = -1; x <= 1; x++) {
-                int3 neighbourPos = gridPos + mI3(x, y, z);
-                uint gridHash = calcGridHash(neighbourPos);
-                // get start of bucket for this cell50
-                uint startIndex = cellStart[gridHash];
-                if (startIndex != 0xffffffff) {  // cell is not empty
-                    uint endIndex = cellEnd[gridHash];
-                    for (uint j = startIndex; j < endIndex; j++) {
-                        Real3 posRadB = mR3(sortedPosRad[j]);
-                        Real3 rij = Distance(posRadA, posRadB);
-                        Real dd = rij.x * rij.x + rij.y * rij.y + rij.z * rij.z;
-                        if (dd > SqRadii || sortedRhoPreMu[j].w < -1.5)
-                            continue;
-                        Real d = length(rij);
-                        Real3 eij = rij / d;
+    for (int n = NLStart; n < NLEnd; n++) {
+        uint j = neighborList[n];
+        if (j == index) {
+            continue;
+        }
+        Real3 posRadB = mR3(sortedPosRad[j]);
+        Real3 rij = Distance(posRadA, posRadB);
+        Real dd = rij.x * rij.x + rij.y * rij.y + rij.z * rij.z;
+        if (dd > SqRadii || sortedRhoPreMu[j].w < -1.5)
+            continue;
+        Real d = length(rij);
+        Real3 eij = rij / d;
 
-                        Real h_j = sortedPosRad[j].w;
-                        // Real m_j = paramsD.markerMass;
-                        Real h_ij = 0.5 * (h_j + h_i);
-                        Real3 grad_ij = GradWh(rij, h_ij);
-                        Real V_j = paramsD.markerMass / paramsD.rho0;
-                        Real com_part = 0;
-                        // mn=11
+        Real h_j = sortedPosRad[j].w;
+        // Real m_j = paramsD.markerMass;
+        Real h_ij = 0.5 * (h_j + h_i);
+        Real3 grad_ij = GradWh(rij, h_ij);
+        Real V_j = paramsD.markerMass / paramsD.rho0;
+        Real com_part = 0;
+        // mn=11
 
-                        Real XX = (eij.x * grad_ij.x);
-                        Real XY = (eij.x * grad_ij.y + eij.y * grad_ij.x);
-                        Real XZ = (eij.x * grad_ij.z + eij.z * grad_ij.x);
-                        Real YY = (eij.y * grad_ij.y);
-                        Real YZ = (eij.y * grad_ij.z + eij.z * grad_ij.y);
-                        Real ZZ = (eij.z * grad_ij.z);
+        Real XX = (eij.x * grad_ij.x);
+        Real XY = (eij.x * grad_ij.y + eij.y * grad_ij.x);
+        Real XZ = (eij.x * grad_ij.z + eij.z * grad_ij.x);
+        Real YY = (eij.y * grad_ij.y);
+        Real YZ = (eij.y * grad_ij.z + eij.z * grad_ij.y);
+        Real ZZ = (eij.z * grad_ij.z);
 
-                        com_part = (A_i[0] * eij.x + A_i[9] * eij.y + A_i[18] * eij.z + rij.x * eij.x) * V_j;
-                        B[6 * 0 + 0] += com_part * XX;  // 11
-                        B[6 * 0 + 1] += com_part * XY;  // 12
-                        B[6 * 0 + 2] += com_part * XZ;  // 13
-                        B[6 * 0 + 3] += com_part * YY;  // 14
-                        B[6 * 0 + 4] += com_part * YZ;  // 15
-                        B[6 * 0 + 5] += com_part * ZZ;  // 15
-                        // mn=12
-                        com_part = (A_i[1] * eij.x + A_i[10] * eij.y + A_i[19] * eij.z + rij.x * eij.y) * V_j;
-                        B[6 * 1 + 0] += com_part * XX;  // 21
-                        B[6 * 1 + 1] += com_part * XY;  // 22
-                        B[6 * 1 + 2] += com_part * XZ;  // 23
-                        B[6 * 1 + 3] += com_part * YY;  // 24
-                        B[6 * 1 + 4] += com_part * YZ;  // 25
-                        B[6 * 1 + 5] += com_part * ZZ;  // 25
+        com_part = (A_i[0] * eij.x + A_i[9] * eij.y + A_i[18] * eij.z + rij.x * eij.x) * V_j;
+        B[6 * 0 + 0] += com_part * XX;  // 11
+        B[6 * 0 + 1] += com_part * XY;  // 12
+        B[6 * 0 + 2] += com_part * XZ;  // 13
+        B[6 * 0 + 3] += com_part * YY;  // 14
+        B[6 * 0 + 4] += com_part * YZ;  // 15
+        B[6 * 0 + 5] += com_part * ZZ;  // 15
+        // mn=12
+        com_part = (A_i[1] * eij.x + A_i[10] * eij.y + A_i[19] * eij.z + rij.x * eij.y) * V_j;
+        B[6 * 1 + 0] += com_part * XX;  // 21
+        B[6 * 1 + 1] += com_part * XY;  // 22
+        B[6 * 1 + 2] += com_part * XZ;  // 23
+        B[6 * 1 + 3] += com_part * YY;  // 24
+        B[6 * 1 + 4] += com_part * YZ;  // 25
+        B[6 * 1 + 5] += com_part * ZZ;  // 25
 
-                        // mn=13
-                        com_part = (A_i[2] * eij.x + A_i[11] * eij.y + A_i[20] * eij.z + rij.x * eij.z) * V_j;
-                        B[6 * 2 + 0] += com_part * XX;  // 31
-                        B[6 * 2 + 1] += com_part * XY;  // 32
-                        B[6 * 2 + 2] += com_part * XZ;  // 33
-                        B[6 * 2 + 3] += com_part * YY;  // 34
-                        B[6 * 2 + 4] += com_part * YZ;  // 35
-                        B[6 * 2 + 5] += com_part * ZZ;  // 36
+        // mn=13
+        com_part = (A_i[2] * eij.x + A_i[11] * eij.y + A_i[20] * eij.z + rij.x * eij.z) * V_j;
+        B[6 * 2 + 0] += com_part * XX;  // 31
+        B[6 * 2 + 1] += com_part * XY;  // 32
+        B[6 * 2 + 2] += com_part * XZ;  // 33
+        B[6 * 2 + 3] += com_part * YY;  // 34
+        B[6 * 2 + 4] += com_part * YZ;  // 35
+        B[6 * 2 + 5] += com_part * ZZ;  // 36
 
-                        // Note that we skip mn=21 since it is similar to mn=12
-                        // mn=22
-                        com_part = (A_i[4] * eij.x + A_i[13] * eij.y + A_i[22] * eij.z + rij.y * eij.y) * V_j;
-                        B[6 * 3 + 0] += com_part * XX;  // 41
-                        B[6 * 3 + 1] += com_part * XY;  // 42
-                        B[6 * 3 + 2] += com_part * XZ;  // 43
-                        B[6 * 3 + 3] += com_part * YY;  // 44
-                        B[6 * 3 + 4] += com_part * YZ;  // 45
-                        B[6 * 3 + 5] += com_part * ZZ;  // 46
+        // Note that we skip mn=21 since it is similar to mn=12
+        // mn=22
+        com_part = (A_i[4] * eij.x + A_i[13] * eij.y + A_i[22] * eij.z + rij.y * eij.y) * V_j;
+        B[6 * 3 + 0] += com_part * XX;  // 41
+        B[6 * 3 + 1] += com_part * XY;  // 42
+        B[6 * 3 + 2] += com_part * XZ;  // 43
+        B[6 * 3 + 3] += com_part * YY;  // 44
+        B[6 * 3 + 4] += com_part * YZ;  // 45
+        B[6 * 3 + 5] += com_part * ZZ;  // 46
 
-                        // mn=23
-                        com_part = (A_i[5] * eij.x + A_i[14] * eij.y + A_i[23] * eij.z + rij.y * eij.z) * V_j;
-                        B[6 * 4 + 0] += com_part * XX;  // 51
-                        B[6 * 4 + 1] += com_part * XY;  // 52
-                        B[6 * 4 + 2] += com_part * XZ;  // 53
-                        B[6 * 4 + 3] += com_part * YY;  // 54
-                        B[6 * 4 + 4] += com_part * YZ;  // 55
-                        B[6 * 4 + 5] += com_part * ZZ;  // 56
-                        // mn=33
-                        com_part = (A_i[8] * eij.x + A_i[17] * eij.y + A_i[26] * eij.z + rij.z * eij.z) * V_j;
-                        B[6 * 5 + 0] += com_part * XX;  // 61
-                        B[6 * 5 + 1] += com_part * XY;  // 62
-                        B[6 * 5 + 2] += com_part * XZ;  // 63
-                        B[6 * 5 + 3] += com_part * YY;  // 64
-                        B[6 * 5 + 4] += com_part * YZ;  // 65
-                        B[6 * 5 + 5] += com_part * ZZ;  // 66
-                    }
-                }
-            }
+        // mn=23
+        com_part = (A_i[5] * eij.x + A_i[14] * eij.y + A_i[23] * eij.z + rij.y * eij.z) * V_j;
+        B[6 * 4 + 0] += com_part * XX;  // 51
+        B[6 * 4 + 1] += com_part * XY;  // 52
+        B[6 * 4 + 2] += com_part * XZ;  // 53
+        B[6 * 4 + 3] += com_part * YY;  // 54
+        B[6 * 4 + 4] += com_part * YZ;  // 55
+        B[6 * 4 + 5] += com_part * ZZ;  // 56
+        // mn=33
+        com_part = (A_i[8] * eij.x + A_i[17] * eij.y + A_i[26] * eij.z + rij.z * eij.z) * V_j;
+        B[6 * 5 + 0] += com_part * XX;  // 61
+        B[6 * 5 + 1] += com_part * XY;  // 62
+        B[6 * 5 + 2] += com_part * XZ;  // 63
+        B[6 * 5 + 3] += com_part * YY;  // 64
+        B[6 * 5 + 4] += com_part * YZ;  // 65
+        B[6 * 5 + 5] += com_part * ZZ;  // 66
+    }
 
     inv6xdelta_mn(B, L);
     L_i[0] = L[0];
@@ -345,7 +345,7 @@ __global__ void Shear_Stress_Rate(uint* indexOfIndex,
                                   uint* cellStart,
                                   uint* cellEnd) {
     uint id = blockIdx.x * blockDim.x + threadIdx.x;
-    if (id >= numObjectsD.numAllMarkers - numObjectsD.numBoundaryMarkers)
+    if (id >= numObjectsD.numAllMarkers)
         return;
 
     uint index = indexOfIndex[id];
@@ -955,14 +955,15 @@ __global__ void Navier_Stokes(uint* indexOfIndex,
                               Real3* sortedVelMas,
                               Real4* sortedRhoPreMu,
                               uint* gridMarkerIndex,
-                              uint* cellStart,
-                              uint* cellEnd,
+                              const uint* numNeighborsPerPart,
+                              const uint* neighborList,
                               volatile bool* isErrorD) {
     uint id = blockIdx.x * blockDim.x + threadIdx.x;
-    if (id >= numObjectsD.numAllMarkers - numObjectsD.numBoundaryMarkers)
+    if (id >= numObjectsD.numAllMarkers)
         return;
 
-    uint index = indexOfIndex[id];
+    // uint index = indexOfIndex[id];
+    uint index = id;
 
     // Do nothing for fixed wall BCE particles
     if (sortedRhoPreMu[index].w > -0.5 && sortedRhoPreMu[index].w < 0.5) {
@@ -977,15 +978,18 @@ __global__ void Navier_Stokes(uint* indexOfIndex,
     Real SuppRadii = RESOLUTION_LENGTH_MULT * paramsD.HSML;
     Real SqRadii = SuppRadii * SuppRadii;
 
+    uint NLStart = numNeighborsPerPart[index];
+    uint NLEnd = numNeighborsPerPart[index + 1];
+
     Real G_i[9] = {1.0, 0.0, 0.0, 0.0, 1.0, 0.0, 0.0, 0.0, 1.0};
     Real L_i[9] = {1.0, 0.0, 0.0, 0.0, 1.0, 0.0, 0.0, 0.0, 1.0};
     if (paramsD.USE_Consistent_G)
-        calc_G_Matrix(sortedPosRad, sortedVelMas, sortedRhoPreMu, G_i, cellStart, cellEnd, indexOfIndex);
+        calc_G_Matrix(sortedPosRad, sortedVelMas, sortedRhoPreMu, G_i, numNeighborsPerPart, neighborList, indexOfIndex);
 
     if (paramsD.USE_Consistent_L) {
         Real A_i[27] = {0.0};
-        calc_A_Matrix(sortedPosRad, sortedVelMas, sortedRhoPreMu, A_i, G_i, cellStart, cellEnd, indexOfIndex);
-        calc_L_Matrix(sortedPosRad, sortedVelMas, sortedRhoPreMu, A_i, L_i, G_i, cellStart, cellEnd, indexOfIndex);
+        calc_A_Matrix(sortedPosRad, sortedVelMas, sortedRhoPreMu, A_i, G_i, numNeighborsPerPart, neighborList, indexOfIndex);
+        calc_L_Matrix(sortedPosRad, sortedVelMas, sortedRhoPreMu, A_i, L_i, G_i, numNeighborsPerPart, neighborList, indexOfIndex);
     }
     float Gi[9] = {1.0, 0.0, 0.0, 0.0, 1.0, 0.0, 0.0, 0.0, 1.0};
     float Li[9] = {1.0, 0.0, 0.0, 0.0, 1.0, 0.0, 0.0, 0.0, 1.0};
@@ -1024,57 +1028,51 @@ __global__ void Navier_Stokes(uint* indexOfIndex,
     Real3 inner_sum = mR3(0.0);
     Real sum_w_i = W3h(0.0, sortedPosRad[index].w) * paramsD.volume0;
 
-    for (int x = -1; x <= 1; x++) {
-        for (int y = -1; y <= 1; y++) {
-            for (int z = -1; z <= 1; z++) {
-                int3 neighbourPos = gridPos + mI3(x, y, z);
-                uint gridHash = calcGridHash(neighbourPos);
-                uint startIndex = cellStart[gridHash];
-                uint endIndex = cellEnd[gridHash];
-                for (uint j = startIndex; j < endIndex; j++) {
-                    if (j != index) {
-                        Real3 posRadB = mR3(sortedPosRad[j]);
-                        Real3 dist3 = Distance(posRadA, posRadB);
-                        Real dd = dist3.x * dist3.x + dist3.y * dist3.y + dist3.z * dist3.z;
-                        if (dd > SqRadii)
-                            continue;
-                        Real4 rhoPresMuB = sortedRhoPreMu[j];
-
-                        // no rigid-rigid force
-                        if (rhoPresMuA.w > -0.5 && rhoPresMuB.w > -0.5)
-                            continue;
-                        Real d = length(dist3);
-                        // modifyPressure(rhoPresMuB, dist3Alpha);
-                        // if (!(isfinite(rhoPresMuB.x) && isfinite(rhoPresMuB.y) && isfinite(rhoPresMuB.z))) {
-                        //     printf("Error! particle rhoPresMuB is NAN: thrown from modifyPressure !\n");
-                        // }
-                        Real3 velMasB = sortedVelMas[j];
-
-                        Real multViscosit = 1;
-
-                        derivVelRho += DifVelocityRho(Gi, dist3, d, sortedPosRad[index], sortedPosRad[j], velMasA,
-                                                      velMasB, rhoPresMuA, rhoPresMuB, multViscosit);
-                        preGra += GradientOperator(Gi, dist3, sortedPosRad[index], sortedPosRad[j], -rhoPresMuA.y,
-                                                   rhoPresMuB.y, rhoPresMuA, rhoPresMuB);
-                        velxGra += GradientOperator(Gi, dist3, sortedPosRad[index], sortedPosRad[j], velMasA.x,
-                                                    velMasB.x, rhoPresMuA, rhoPresMuB);
-                        velyGra += GradientOperator(Gi, dist3, sortedPosRad[index], sortedPosRad[j], velMasA.y,
-                                                    velMasB.y, rhoPresMuA, rhoPresMuB);
-                        velzGra += GradientOperator(Gi, dist3, sortedPosRad[index], sortedPosRad[j], velMasA.z,
-                                                    velMasB.z, rhoPresMuA, rhoPresMuB);
-                        velxLap += LaplacianOperator(Gi, Li, dist3, sortedPosRad[index], sortedPosRad[j], velMasA.x,
-                                                     velMasB.x, rhoPresMuA, rhoPresMuB);
-                        velyLap += LaplacianOperator(Gi, Li, dist3, sortedPosRad[index], sortedPosRad[j], velMasA.y,
-                                                     velMasB.y, rhoPresMuA, rhoPresMuB);
-                        velzLap += LaplacianOperator(Gi, Li, dist3, sortedPosRad[index], sortedPosRad[j], velMasA.z,
-                                                     velMasB.z, rhoPresMuA, rhoPresMuB);
-
-                        if (d > paramsD.HSML * 1.0e-9)
-                            sum_w_i = sum_w_i + W3h(d, sortedPosRad[index].w) * paramsD.volume0;
-                    }
-                }
-            }
+    for (int n = NLStart; n < NLEnd; n++){
+        uint j = neighborList[n];
+        if (j == index) {
+            continue;
         }
+        Real3 posRadB = mR3(sortedPosRad[j]);
+        Real3 dist3 = Distance(posRadA, posRadB);
+        Real dd = dist3.x * dist3.x + dist3.y * dist3.y + dist3.z * dist3.z;
+        if (dd > SqRadii)
+            continue;
+        Real4 rhoPresMuB = sortedRhoPreMu[j];
+
+        // no rigid-rigid force
+        if (rhoPresMuA.w > -0.5 && rhoPresMuB.w > -0.5)
+            continue;
+        Real d = length(dist3);
+
+        // modifyPressure(rhoPresMuB, dist3Alpha);
+        // if (!(isfinite(rhoPresMuB.x) && isfinite(rhoPresMuB.y) && isfinite(rhoPresMuB.z))) {
+        //     printf("Error! particle rhoPresMuB is NAN: thrown from modifyPressure !\n");
+        // }
+        Real3 velMasB = sortedVelMas[j];
+
+        Real multViscosit = 1;
+
+        derivVelRho += DifVelocityRho(Gi, dist3, d, sortedPosRad[index], sortedPosRad[j], velMasA, velMasB, rhoPresMuA,
+                                      rhoPresMuB, multViscosit);
+
+        preGra += GradientOperator(Gi, dist3, sortedPosRad[index], sortedPosRad[j], -rhoPresMuA.y, rhoPresMuB.y,
+                                   rhoPresMuA, rhoPresMuB);
+        velxGra += GradientOperator(Gi, dist3, sortedPosRad[index], sortedPosRad[j], velMasA.x, velMasB.x, rhoPresMuA,
+                                    rhoPresMuB);
+        velyGra += GradientOperator(Gi, dist3, sortedPosRad[index], sortedPosRad[j], velMasA.y, velMasB.y, rhoPresMuA,
+                                    rhoPresMuB);
+        velzGra += GradientOperator(Gi, dist3, sortedPosRad[index], sortedPosRad[j], velMasA.z, velMasB.z, rhoPresMuA,
+                                    rhoPresMuB);
+        velxLap += LaplacianOperator(Gi, Li, dist3, sortedPosRad[index], sortedPosRad[j], velMasA.x, velMasB.x,
+                                     rhoPresMuA, rhoPresMuB);
+        velyLap += LaplacianOperator(Gi, Li, dist3, sortedPosRad[index], sortedPosRad[j], velMasA.y, velMasB.y,
+                                     rhoPresMuA, rhoPresMuB);
+        velzLap += LaplacianOperator(Gi, Li, dist3, sortedPosRad[index], sortedPosRad[j], velMasA.z, velMasB.z,
+                                     rhoPresMuA, rhoPresMuB);
+
+        if (d > paramsD.HSML * 1.0e-9)
+            sum_w_i = sum_w_i + W3h(d, sortedPosRad[index].w) * paramsD.volume0;
     }
 
     Real nu = paramsD.mu0 / paramsD.rho0;
@@ -1098,10 +1096,6 @@ __global__ void Navier_Stokes(uint* indexOfIndex,
 
     if (!(isfinite(derivVelRho.x) && isfinite(derivVelRho.y) && isfinite(derivVelRho.z))) {
         printf("Error! particle derivVel is NAN: thrown from ChFsiForceExplicitSPH.cu, collideD !\n");
-        *isErrorD = true;
-    }
-    if (!(isfinite(derivVelRho.w))) {
-        printf("Error! particle derivRho is NAN: thrown from ChFsiForceExplicitSPH.cu, collideD !\n");
         *isErrorD = true;
     }
 
@@ -1443,21 +1437,28 @@ __global__ void CalcVel_XSPH_D(uint* indexOfIndex,
                                Real4* sortedPosRad,
                                Real3* sortedVelMas,
                                Real4* sortedRhoPreMu,
-                               Real3* sortedXSPHandShift,
                                uint* gridMarkerIndex,
-                               uint* cellStart,
-                               uint* cellEnd,
+                               const uint* numNeighborsPerPart,
+                               const uint* neighborList,
                                volatile bool* isErrorD) {
     uint id = blockIdx.x * blockDim.x + threadIdx.x;
-    if (id >= numObjectsD.numAllMarkers - numObjectsD.numBoundaryMarkers)
+    if (id >= numObjectsD.numAllMarkers)
         return;
 
-    uint index = indexOfIndex[id];
+    // uint index = indexOfIndex[id];
+    uint index = id;
+
+    // Do nothing for wall
+    if (sortedRhoPreMu[index].w > -0.5 && sortedRhoPreMu[index].w < 0.5) {
+        return;
+    }
 
     Real4 rhoPreMuA = sortedRhoPreMu[index];
     Real3 velMasA = sortedVelMas[index];
     Real SuppRadii = RESOLUTION_LENGTH_MULT * paramsD.HSML;
     Real SqRadii = SuppRadii * SuppRadii;
+    uint NLStart = numNeighborsPerPart[index];
+    uint NLEnd = numNeighborsPerPart[index + 1];
 
     Real3 posRadA = mR3(sortedPosRad[index]);
     Real3 deltaV = mR3(0);
@@ -1468,34 +1469,26 @@ __global__ void CalcVel_XSPH_D(uint* indexOfIndex,
     // Real mi_bar = 0.0, r0 = 0.0;
     Real3 dV = mR3(0.0f);
     // examine neighbouring cells
-    for (int z = -1; z <= 1; z++) {
-        for (int y = -1; y <= 1; y++) {
-            for (int x = -1; x <= 1; x++) {
-                int3 neighbourPos = gridPos + mI3(x, y, z);
-                uint gridHash = calcGridHash(neighbourPos);
-                uint startIndex = cellStart[gridHash];
-                uint endIndex = cellEnd[gridHash];
-                for (uint j = startIndex; j < endIndex; j++) {
-                    if (j != index) {  // check not colliding with self
-                        Real3 posRadB = mR3(sortedPosRad[j]);
-                        Real3 dist3 = Distance(posRadA, posRadB);
-                        Real dd = dist3.x * dist3.x + dist3.y * dist3.y + dist3.z * dist3.z;
-                        if (dd > SqRadii)
-                            continue;
-                        Real4 rhoPresMuB = sortedRhoPreMu[j];
-                        if (rhoPresMuB.w > -0.5 || rhoPresMuB.w < -1.5)
-                            continue;
-                        Real3 velMasB = sortedVelMas[j];
-                        Real rho_bar = 0.5 * (rhoPreMuA.x + rhoPresMuB.x);
-                        Real d = length(dist3);
-                        deltaV += paramsD.markerMass * (velMasB - velMasA) * W3h(d, paramsD.HSML) / rho_bar;
-                    }
-                }
-            }
+    for (int n = NLStart; n < NLEnd; n++) {
+        uint j = neighborList[n];
+        if (j == index) {
+            continue;
         }
+        Real3 posRadB = mR3(sortedPosRad[j]);
+        Real3 dist3 = Distance(posRadA, posRadB);
+        Real dd = dist3.x * dist3.x + dist3.y * dist3.y + dist3.z * dist3.z;
+        if (dd > SqRadii)
+            continue;
+        Real4 rhoPresMuB = sortedRhoPreMu[j];
+        if (rhoPresMuB.w > -0.5 || rhoPresMuB.w < -1.5)
+            continue;
+        Real3 velMasB = sortedVelMas[j];
+        Real rho_bar = 0.5 * (rhoPreMuA.x + rhoPresMuB.x);
+        Real d = length(dist3);
+        deltaV += paramsD.markerMass * (velMasB - velMasA) * W3h(d, paramsD.HSML) / rho_bar;
     }
 
-    vel_XSPH_Sorted_D[index] = paramsD.EPS_XSPH * deltaV + sortedXSPHandShift[index] * paramsD.INV_dT;
+    vel_XSPH_Sorted_D[index] = paramsD.EPS_XSPH * deltaV + vel_XSPH_Sorted_D[index] * paramsD.INV_dT;
 
     if (!(isfinite(vel_XSPH_Sorted_D[index].x) && isfinite(vel_XSPH_Sorted_D[index].y) &&
           isfinite(vel_XSPH_Sorted_D[index].z))) {
@@ -1743,9 +1736,6 @@ void ChFsiForceExplicitSPH::CollideWrapper(Real time, bool firstHalfStep) {
     // thread per particle
     uint numBlocks, numThreads;
     computeGridSize((int)numObjectsH->numAllMarkers, 256, numBlocks, numThreads);
-    uint numBlocks1, numThreads1;
-    computeGridSize((int)numObjectsH->numAllMarkers - (int)numObjectsH->numBoundaryMarkers, 256, numBlocks1,
-                    numThreads1);
 
     // Re-Initialize the density after several time steps if needed
     if (density_initialization >= paramsH->densityReinit) {
@@ -1817,11 +1807,11 @@ void ChFsiForceExplicitSPH::CollideWrapper(Real time, bool firstHalfStep) {
         // execute the kernel
         cudaResetErrorFlag(isErrorD);
         // TOUnderstand: Why is the blocks NumBlocks1 and threads NumThreads1?
-        Navier_Stokes<<<numBlocks1, numThreads1>>>(
+        Navier_Stokes<<<numBlocks, numThreads>>>(
             U1CAST(indexOfIndex), mR4CAST(fsiData->derivVelRhoD), mR3CAST(fsiData->vel_XSPH_D),
             mR4CAST(sortedSphMarkers_D->posRadD), mR3CAST(sortedSphMarkers_D->velMasD),
             mR4CAST(sortedSphMarkers_D->rhoPresMuD), U1CAST(markersProximity_D->gridMarkerIndexD),
-            U1CAST(markersProximity_D->cellStartD), U1CAST(markersProximity_D->cellEndD), isErrorD);
+            U1CAST(fsiData->numNeighborsPerPart), U1CAST(fsiData->neighborList), isErrorD);
         cudaCheckErrorFlag(isErrorD, "Navier_Stokes");
     }
 
@@ -1834,28 +1824,26 @@ void ChFsiForceExplicitSPH::CollideWrapper(Real time, bool firstHalfStep) {
 // Nothing happens in this function for elastic SPH since NS_SSR (which is called only for elastic SPH) computes the XSPH velocity
 void ChFsiForceExplicitSPH::CalculateXSPH_velocity() {
     // Calculate vel_XSPH
-    if (vel_XSPH_Sorted_D.size() != numObjectsH->numAllMarkers) {
-        printf("vel_XSPH_Sorted_D.size() %zd numObjectsH->numAllMarkers %zd \n", vel_XSPH_Sorted_D.size(),
+    if (fsiData->vel_XSPH_D.size() != numObjectsH->numAllMarkers) {
+        printf("fsiData->vel_XSPH_D.size() %zd numObjectsH->numAllMarkers %zd \n", fsiData->vel_XSPH_D.size(),
                numObjectsH->numAllMarkers);
         throw std::runtime_error(
-            "Error! size error vel_XSPH_Sorted_D Thrown from "
+            "Error! size error fsiData->vel_XSPH_D Thrown from "
             "CalculateXSPH_velocity!\n");
     }
 
     bool *isErrorD;
     cudaMalloc((void**)&isErrorD, sizeof(bool));
 
-    // thread per particle
-    uint numBlocks, numThreads;
-    computeGridSize((int)numObjectsH->numAllMarkers, 256, numBlocks, numThreads);
+
 
     //------------------------------------------------------------------------
     if (!paramsH->elastic_SPH) {
-        uint numBlocks1, numThreads1;
-        computeGridSize((int)numObjectsH->numAllMarkers - (int)numObjectsH->numBoundaryMarkers, 256, numBlocks1,
-                        numThreads1);
+        // thread per particle
+        uint numBlocks, numThreads;
+        computeGridSize((int)numObjectsH->numAllMarkers, 256, numBlocks, numThreads);
 
-        thrust::fill(vel_XSPH_Sorted_D.begin(), vel_XSPH_Sorted_D.end(), mR3(0.0));
+        thrust::fill(fsiData->vel_XSPH_D.begin(), fsiData->vel_XSPH_D.end(), mR3(0.0));
 
         // Find the index which is related to the wall boundary particle
         thrust::device_vector<uint> indexOfIndex(numObjectsH->numAllMarkers);
@@ -1866,16 +1854,12 @@ void ChFsiForceExplicitSPH::CalculateXSPH_velocity() {
 
         // Execute the kernel
         cudaResetErrorFlag(isErrorD);
-        CalcVel_XSPH_D<<<numBlocks1, numThreads1>>>(
-            U1CAST(indexOfIndex), mR3CAST(vel_XSPH_Sorted_D), mR4CAST(sortedSphMarkers_D->posRadD),
-            mR3CAST(sortedSphMarkers_D->velMasD), mR4CAST(sortedSphMarkers_D->rhoPresMuD), mR3CAST(sortedXSPHandShift),
-            U1CAST(markersProximity_D->gridMarkerIndexD), U1CAST(markersProximity_D->cellStartD),
-            U1CAST(markersProximity_D->cellEndD), isErrorD);
+        CalcVel_XSPH_D<<<numBlocks, numThreads>>>(
+            U1CAST(indexOfIndex), mR3CAST(fsiData->vel_XSPH_D), mR4CAST(sortedSphMarkers_D->posRadD),
+            mR3CAST(sortedSphMarkers_D->velMasD), mR4CAST(sortedSphMarkers_D->rhoPresMuD),
+            U1CAST(markersProximity_D->gridMarkerIndexD), U1CAST(fsiData->numNeighborsPerPart),
+            U1CAST(fsiData->neighborList), isErrorD);
         cudaCheckErrorFlag(isErrorD, "CalcVel_XSPH_D");
-
-        CopySortedToOriginal_XSPH_D<<<numBlocks, numThreads>>>(
-            mR3CAST(vel_XSPH_Sorted_D), mR3CAST(fsiData->vel_XSPH_D), U1CAST(markersProximity_D->gridMarkerIndexD),
-            U1CAST(fsiData->activityIdentifierD), U1CAST(markersProximity_D->mapOriginalToSorted));
     }
 
 
