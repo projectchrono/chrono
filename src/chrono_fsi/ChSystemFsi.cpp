@@ -1066,6 +1066,7 @@ void ChSystemFsi::DoStepDynamics_FSI() {
             // The following is used to execute the Explicit WCSPH
             CopyDeviceDataToHalfStep();
             ChUtilsDevice::FillVector(m_sysFSI->fsiData->derivVelRhoD, mR4(0));
+            ChUtilsDevice::FillVector(m_sysFSI->fsiData->derivVelRhoOriginalD, mR4(0));
             // TODO (Huzaifa): Unsure if these required to be set to 0
             ChUtilsDevice::FillVector(m_sysFSI->fsiData->sr_tau_I_mu_i, mR4(0));
             ChUtilsDevice::FillVector(m_sysFSI->fsiData->freeSurfaceIdD, 0);
@@ -1077,11 +1078,11 @@ void ChSystemFsi::DoStepDynamics_FSI() {
                 m_fluid_dynamics->IntegrateSPH(m_sysFSI->sortedSphMarkers2_D, m_sysFSI->sortedSphMarkers1_D,  //
                                                m_sysFSI->fsiBodyState2_D,                                     //
                                                m_sysFSI->fsiMesh1DState_D, m_sysFSI->fsiMesh2DState_D,        //
-                                               0.5 * m_paramsH->dT, m_time);
+                                               0.5 * m_paramsH->dT, m_time, true);
                 m_fluid_dynamics->IntegrateSPH(m_sysFSI->sortedSphMarkers1_D, m_sysFSI->sortedSphMarkers2_D,  //
                                                m_sysFSI->fsiBodyState2_D,                                     //
                                                m_sysFSI->fsiMesh1DState_D, m_sysFSI->fsiMesh2DState_D,        //
-                                               1.0 * m_paramsH->dT, m_time);
+                                               1.0 * m_paramsH->dT, m_time, false);
             }
 
             m_bce_manager->Rigid_Forces_Torques(m_sysFSI->fsiBodyState2_D);
@@ -1175,14 +1176,13 @@ void ChSystemFsi::DoStepDynamics_FSI() {
                 break;
 
             }
-
-                m_time += m_paramsH->dT;
-
-                m_timer_step.stop();
-                m_RTF = m_timer_step() / m_paramsH->dT;
-                if (m_sysMBS)
-                    m_ratio_MBS = m_timer_MBS() / m_timer_step();
         }
+        m_time += m_paramsH->dT;
+
+        m_timer_step.stop();
+        m_RTF = m_timer_step() / m_paramsH->dT;
+        if (m_sysMBS)
+            m_ratio_MBS = m_timer_MBS() / m_timer_step();
 }
 
 //--------------------------------------------------------------------------------------------------------------------------------
@@ -1200,8 +1200,8 @@ void ChSystemFsi::WriteParticleFile(const std::string& outfilename) const {
 
 void ChSystemFsi::PrintParticleToFile(const std::string& dir) const {
     utils::PrintParticleToFile(m_sysFSI->sphMarkers_D->posRadD, m_sysFSI->sphMarkers_D->velMasD,
-                                m_sysFSI->sphMarkers_D->rhoPresMuD, m_sysFSI->fsiData->sr_tau_I_mu_i,
-                                m_sysFSI->fsiData->derivVelRhoD, m_sysFSI->fsiData->referenceArray,
+                                m_sysFSI->sphMarkers_D->rhoPresMuD, m_sysFSI->fsiData->sr_tau_I_mu_i_Original,
+                                m_sysFSI->fsiData->derivVelRhoOriginalD, m_sysFSI->fsiData->referenceArray,
                                 m_sysFSI->fsiData->referenceArray_FEA, dir, m_paramsH);
 }
 

@@ -790,7 +790,7 @@ void ChFluidDynamics::UpdateActivity(std::shared_ptr<SphMarkerDataD> sortedSphMa
 // -----------------------------------------------------------------------------
 void ChFluidDynamics::UpdateFluid(std::shared_ptr<SphMarkerDataD> sortedSphMarkersD, Real dT) {
     // Update portion of the SPH particles (should be fluid particles only here)
-    int2 updatePortion = mI2(0, fsiSystem.fsiData->referenceArray[0].y);
+    int2 updatePortion = mI2(0, (int)numObjectsH->numAllMarkers);
 
     bool *isErrorH, *isErrorD;
     isErrorH = (bool*)malloc(sizeof(bool));

@@ -1312,8 +1312,6 @@ __global__ void NS_SSR(const uint* activityIdentifierD,
         Real3 TauXxYyZzB = sortedTauXxYyZz[j];
         Real3 TauXyXzYzB = sortedTauXyXzYz[j];
 
-        velMasB = sortedVelMas[j];
-
         // TODO: Might need to eliminate this double application of ADAMI BC based on what Wei says
         if (rhoPresMuB.w > -0.5) {
             Real chi_A = sortedKernelSupport[index].y / sortedKernelSupport[index].x;

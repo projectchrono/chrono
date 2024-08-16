@@ -253,8 +253,9 @@ __global__ void CalcRigidBceAccelerationD(Real3* bceAcc,
     uint bceIndex = blockIdx.x * blockDim.x + threadIdx.x;
     if (bceIndex >= numObjectsD.numRigidMarkers)
         return;
-    
-    uint sortedIndex = mapOriginalToSorted[bceIndex];
+
+    uint rigidMarkerIndex = bceIndex + numObjectsD.startRigidMarkers;
+    uint sortedIndex = mapOriginalToSorted[rigidMarkerIndex];
 
     int rigidBodyIndex = rigid_BCEsolids_D[bceIndex];
 
