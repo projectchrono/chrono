@@ -85,14 +85,12 @@ __global__ void CalcRigidForces_D(Real3* rigid_FSI_ForcesD,
     Real3 Force;
 
     if (paramsD.sph_method == SPHMethod::WCSPH) {
-        Force = (mR3(derivVelRhoD[sortedIndex]) * paramsD.Beta +
-                      mR3(derivVelRhoD_old[sortedIndex]) * (1 - paramsD.Beta)) * paramsD.markerMass;
+        Force = mR3(derivVelRhoD[sortedIndex]) * paramsD.markerMass;
 
     }
     // TODO: check IISPH
     else {
-        Force = mR3(derivVelRhoD[sortedIndex]) * paramsD.Beta +
-                mR3(derivVelRhoD_old[sortedIndex]) * (1 - paramsD.Beta);
+        Force = mR3(derivVelRhoD[sortedIndex]);
     }
 
     if (std::is_same<Real, double>::value) {
@@ -140,11 +138,9 @@ __global__ void CalcFlex1DForces_D(Real3* flex1D_FSIforces_D,  // FEA node force
     // Fluid force on BCE marker
     Real3 Force;
     if (paramsD.sph_method == SPHMethod::WCSPH) {
-        Force =
-            (mR3(derivVelRhoD[sortedIndex]) * paramsD.Beta + mR3(derivVelRhoD_old[sortedIndex]) * (1 - paramsD.Beta)) *
-            paramsD.markerMass;
+        Force = mR3(derivVelRhoD[sortedIndex]) * paramsD.markerMass
     } else {
-        Force = (mR3(derivVelRhoD[sortedIndex]) * paramsD.Beta + mR3(derivVelRhoD_old[sortedIndex]) * (1 - paramsD.Beta));
+        Force = mR3(derivVelRhoD[sortedIndex]);
     }
 
     uint2 seg_nodes = flex1D_Nodes_D[flex_seg];  // indices of the 2 nodes on associated segment
@@ -196,11 +192,9 @@ __global__ void CalcFlex2DForces_D(Real3* flex2D_FSIforces_D,  // FEA node force
     // Fluid force on BCE marker
     Real3 Force;
     if (paramsD.sph_method == SPHMethod::WCSPH) {
-        Force =
-            (mR3(derivVelRhoD[sortedIndex]) * paramsD.Beta + mR3(derivVelRhoD_old[sortedIndex]) * (1 - paramsD.Beta)) *
-            paramsD.markerMass;
+        Force = mR3(derivVelRhoD[sortedIndex]) * paramsD.markerMass;
     } else {
-        Force = (mR3(derivVelRhoD[sortedIndex]) * paramsD.Beta + mR3(derivVelRhoD_old[sortedIndex]) * (1 - paramsD.Beta));
+        Force = mR3(derivVelRhoD[sortedIndex])
     }
 
     auto tri_nodes = flex2D_Nodes_D[flex_tri];  // indices of the 3 nodes on associated face
