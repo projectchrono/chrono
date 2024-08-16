@@ -138,7 +138,7 @@ __global__ void CalcFlex1DForces_D(Real3* flex1D_FSIforces_D,  // FEA node force
     // Fluid force on BCE marker
     Real3 Force;
     if (paramsD.sph_method == SPHMethod::WCSPH) {
-        Force = mR3(derivVelRhoD[sortedIndex]) * paramsD.markerMass
+        Force = mR3(derivVelRhoD[sortedIndex]) * paramsD.markerMass;
     } else {
         Force = mR3(derivVelRhoD[sortedIndex]);
     }
@@ -194,7 +194,7 @@ __global__ void CalcFlex2DForces_D(Real3* flex2D_FSIforces_D,  // FEA node force
     if (paramsD.sph_method == SPHMethod::WCSPH) {
         Force = mR3(derivVelRhoD[sortedIndex]) * paramsD.markerMass;
     } else {
-        Force = mR3(derivVelRhoD[sortedIndex])
+        Force = mR3(derivVelRhoD[sortedIndex]);
     }
 
     auto tri_nodes = flex2D_Nodes_D[flex_tri];  // indices of the 3 nodes on associated face
