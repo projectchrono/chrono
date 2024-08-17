@@ -81,7 +81,7 @@ bool snapshots = false;
 // Visibility flags
 bool show_rigid = true;
 bool show_rigid_bce = false;
-bool show_boundary_bce = false;
+bool show_boundary_bce = true;
 bool show_particles_sph = true;
 
 // ----------------------------------------------------------------------------
@@ -162,7 +162,7 @@ int main(int argc, char* argv[]) {
     sysMBS.SetCollisionSystemType(ChCollisionSystem::Type::BULLET);
 
     // Create the FSI problem
-    ChFsiProblem fsi(sysMBS, initial_spacing);
+    ChFsiProblemCartesian fsi(sysMBS, initial_spacing);
     fsi.SetVerbose(verbose);
     ChSystemFsi& sysFSI = fsi.GetSystemFSI();
 
@@ -218,7 +218,9 @@ int main(int argc, char* argv[]) {
     bool side_walls = false;
     fsi.AddBoxContainer(csize,                // length x width x height
                         ChVector3d(0, 0, 0),  // reference location
-                        side_walls            // side walls
+                        true,                 // bottom wall
+                        side_walls,           // side walls
+                        false                 // top wall
     );
 
     if (show_rigid) {

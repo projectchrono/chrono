@@ -194,6 +194,11 @@ int main(int argc, char* argv[]) {
 
     sysFSI.AddWallBCE(bottom_plate, ChFrame<>(VNULL, Q_ROTATE_Z_TO_Y), bottom_plate_size);
 
+    ////sysFSI.AddWallBCE(bottom_plate, ChFrame<>(ChVector3d(0, -fluid_height, 0), Q_ROTATE_Z_TO_Y), ChVector2d(0.2, 0.2));
+    ////sysFSI.AddBoxBCE(bottom_plate, ChFramed(ChVector3d(0, -2 * initial_spacing, 0), QNULL),
+    ////                 ChVector3d(outer_cylinder_radius * 2.5, 4 * initial_spacing, outer_cylinder_radius * 2.5), true);
+    ////auto bottom_plate_index = sysFSI.AddFsiBody(bottom_plate);
+
     // Cylinder center
     ChVector3d cylinder_center(0, cylinder_height / 2 - fluid_height / 2, 0);
 
@@ -333,6 +338,7 @@ int main(int argc, char* argv[]) {
         auto angvel_outer = outer_cylinder->GetAngVelParent().y();
         auto torque_inner = sysFSI.GetFsiBodyTorque(inner_cylinder_index).y();
         auto torque_outer = sysFSI.GetFsiBodyTorque(outer_cylinder_index).y();
+        ////auto torque_plate = sysFSI.GetFsiBodyTorque(bottom_plate_index).y();
 
         if (verbose) {
             cout << "  time: " << time << endl;
@@ -342,6 +348,7 @@ int main(int argc, char* argv[]) {
 
         ofile << time << "\t" << angvel_outer << "\t";
         ofile << torque_motor << "\t" << torque_inner << "\t" << torque_outer << "\n";
+        ////ofile << torque_motor << "\t" << torque_inner << "\t" << torque_outer << "\t" << torque_plate << "\n";
 
         if (output && time >= out_frame / output_fps) {
             cout << "-------- Output" << endl;
@@ -387,6 +394,7 @@ int main(int argc, char* argv[]) {
     gplot.Plot(out_file, 1, 3, "motor", " every ::5 with lines lt -1 lw 2");
     gplot.Plot(out_file, 1, 4, "inner", " every ::5 with lines lt 1 lw 2");
     gplot.Plot(out_file, 1, 5, "outer", " every ::5 with lines lt 2 lw 2");
+    ////gplot.Plot(out_file, 1, 6, "plate", " every ::5 with lines lt 3 lw 2");
 #endif
 
     return 0;

@@ -10,6 +10,7 @@ set(DEMOS ${DEMOS}
    demo_FSI_BCE
    demo_FSI_CylinderDrop
    demo_FSI_SphereBounce
+   demo_FSI_CylindricalTank
    demo_FSI_WaveTank
    demo_FSI_EmbeddedObstacle
    demo_FSI_BaffleFlow

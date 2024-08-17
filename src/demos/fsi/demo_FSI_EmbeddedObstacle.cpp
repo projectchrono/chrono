@@ -97,7 +97,7 @@ int main(int argc, char* argv[]) {
     sysMBS.SetCollisionSystemType(ChCollisionSystem::Type::BULLET);
 
     // Create the FSI problem
-    ChFsiProblem fsi(sysMBS, initial_spacing);
+    ChFsiProblemCartesian fsi(sysMBS, initial_spacing);
     fsi.SetVerbose(verbose);
     ChSystemFsi& sysFSI = fsi.GetSystemFSI();
 
