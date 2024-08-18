@@ -211,8 +211,8 @@ class CH_FSI_API ChFsiProblemCartesian : public ChFsiProblem {
     /// If created, the BCE markers for the bottom and side walls are adjacent to the SPH domain.
     void Construct(const ChVector3d& box_size,  ///< box dimensions
                    const ChVector3d& pos,       ///< reference position
-                   bool bottom_wall = true,     ///< create bottom boundary
-                   bool side_walls = true       ///< create side boundaries
+                   bool bottom_wall,            ///< create bottom boundary
+                   bool side_walls              ///< create side boundaries
     );
 
     /// Construct SPH particles and optionally BCE markers from a given heightmap.
@@ -232,8 +232,8 @@ class CH_FSI_API ChFsiProblemCartesian : public ChFsiProblem {
                    double depth,                       ///< fluid phase depth
                    bool uniform_depth,                 ///< if true, bottom follows surface
                    const ChVector3d& pos,              ///< reference position
-                   bool bottom_wall = true,            ///< create bottom boundary
-                   bool side_walls = true              ///< create side boundaries
+                   bool bottom_wall,                   ///< create bottom boundary
+                   bool side_walls                     ///< create side boundaries
     );
 
     /// Add fixed BCE markers, representing a container for the computational domain.
@@ -243,9 +243,9 @@ class CH_FSI_API ChFsiProblemCartesian : public ChFsiProblem {
     /// It is the caller responsibility to ensure that the container BCE markers do not overlap with any SPH particles.
     void AddBoxContainer(const ChVector3d& box_size,  ///< box dimensions
                          const ChVector3d& pos,       ///< reference position
-                         bool bottom_wall = true,     ///< create bottom boundary
-                         bool side_walls = true,      ///< create side boundaries
-                         bool top_wall = false        ///< create top boundary
+                         bool bottom_wall,            ///< create bottom boundary
+                         bool side_walls,             ///< create side boundaries
+                         bool top_wall                ///< create top boundary
     );
 
     /// Add a piston-type wavemaker.
@@ -282,13 +282,13 @@ class CH_FSI_API ChFsiProblemCylindrical : public ChFsiProblem {
     /// Set inner radius to zero to create a cylindrical container.
     /// The cylinder is constructed with its axis along the global Z axis.
     /// The specified dimensions refer to the *interior* of the cylindrical annulus.
-    void AddCylindricalContainer(double radius_inner,      ///< inner radius
-                                 double radius_outer,      ///< outer radius
-                                 double height,            ///< height
-                                 const ChVector3d& pos,    ///< reference position
-                                 bool bottom_wall = true,  ///< create bottom boundary
-                                 bool side_walls = true,   ///< create side boundaries
-                                 bool top_wall = false     ///< create top boundary
+    void AddCylindricalContainer(double radius_inner,    ///< inner radius
+                                 double radius_outer,    ///< outer radius
+                                 double height,          ///< height
+                                 const ChVector3d& pos,  ///< reference position
+                                 bool bottom_wall,       ///< create bottom boundary
+                                 bool side_walls,        ///< create side boundaries
+                                 bool top_wall           ///< create top boundary
     );
 
   private:

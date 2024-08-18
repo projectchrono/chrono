@@ -164,7 +164,7 @@ int main(int argc, char* argv[]) {
                       0.3,                                                       // depth
                       true,                                                      // uniform depth
                       ChVector3d(0, 0, 0),                                       // patch center
-                      true,                                                      // bottom wall
+                      true,                                                      // bottom wall?
                       false                                                      // side walls?
     );
 

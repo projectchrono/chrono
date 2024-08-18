@@ -173,7 +173,7 @@ int main(int argc, char* argv[]) {
                   false                 // side walls?
     );
 
-    // Add box container (with side walls)
+    // Add box container (with bottom, side, and top walls)
     fsi.AddBoxContainer(csize, ChVector3d(0, 0, 0), true, true, true);
 
     fsi.Initialize();

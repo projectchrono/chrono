@@ -159,7 +159,7 @@ int main(int argc, char* argv[]) {
         geometry.CreateVisualizationAssets(body, utils::ChBodyGeometry::VisualizationType::COLLISION);
 
     // Add as an FSI body (create BCE markers on a grid)
-    fsi.AddRigidBody(body, geometry, true, true);
+    fsi.AddRigidBody(body, geometry, true, false);
 
     // Enable height-based initial pressure for SPH particles
     fsi.RegisterParticlePropertiesCallback(
