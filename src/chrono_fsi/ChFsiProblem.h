@@ -56,7 +56,6 @@ class CH_FSI_API ChFsiProblem {
     size_t AddRigidBody(std::shared_ptr<ChBody> body,
                         const chrono::utils::ChBodyGeometry& geometry,
                         bool check_embedded,
-                        const ChVector3d& interior_point,
                         bool use_grid_bce = false);
 
     size_t AddRigidBodySphere(std::shared_ptr<ChBody> body,
@@ -72,8 +71,8 @@ class CH_FSI_API ChFsiProblem {
     size_t AddRigidBodyMesh(std::shared_ptr<ChBody> body,
                             const ChVector3d& pos,
                             const std::string& obj_file,
-                            double scale,
-                            const ChVector3d& interior_point);
+                            const ChVector3d& interior_point,
+                            double scale);
 
     /// Interface for callback to set initial particle pressure, density, viscosity, and velocity.
     class CH_FSI_API ParticlePropertiesCallback {
@@ -156,7 +155,6 @@ class CH_FSI_API ChFsiProblem {
         std::shared_ptr<ChBody> body;            ///< associated body
         chrono::utils::ChBodyGeometry geometry;  ///< geometry for body BCE
         bool check_embedded;                     ///< if true, check for overlapping SPH particles
-        ChVector3d interior_point;               ///< location of an interior point
         RealPoints bce;                          ///< body BCE marker locations
         ChVector3d oobb_center;                  ///< center of bounding box
         ChVector3d oobb_dims;                    ///< dimensions of bounding box
@@ -169,7 +167,7 @@ class CH_FSI_API ChFsiProblem {
     /// Prune SPH markers that are inside a body mesh volume.
     /// Voxelize the body mesh (at the scaling resolution) and identify grid nodes inside the boundary
     /// defined by the body BCEs. Note that this assumes the BCE markers form a watertight boundary.
-    int ProcessBodyMesh(RigidBody& b, ChTriangleMeshConnected trimesh);
+    int ProcessBodyMesh(RigidBody& b, ChTriangleMeshConnected trimesh, const ChVector3d& interior_point);
 
     ChSystemFsi m_sysFSI;              ///< underlying Chrono FSI system
     ChSystem& m_sys;                   ///< associated Chrono MBS system

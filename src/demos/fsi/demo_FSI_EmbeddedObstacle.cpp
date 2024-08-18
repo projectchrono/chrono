@@ -156,12 +156,12 @@ int main(int argc, char* argv[]) {
     utils::ChBodyGeometry geometry;
     geometry.materials.push_back(ChContactMaterialData());
     ////geometry.coll_spheres.push_back(utils::ChBodyGeometry::SphereShape(VNULL, radius, 0));
-    geometry.coll_meshes.push_back(utils::ChBodyGeometry::TrimeshShape(VNULL, mesh_filename, radius));
+    geometry.coll_meshes.push_back(utils::ChBodyGeometry::TrimeshShape(VNULL, mesh_filename, VNULL, radius));
     if (show_rigid)
         geometry.CreateVisualizationAssets(body, utils::ChBodyGeometry::VisualizationType::COLLISION);
 
     // Add as an FSI body
-    fsi.AddRigidBody(body, geometry, true, VNULL);
+    fsi.AddRigidBody(body, geometry, true);
 
     // Create SPH fluid particles and BCE boundary markers
     fsi.Construct(GetChronoDataFile("vehicle/terrain/height_maps/bump64.bmp"),  // height map image file

@@ -16,9 +16,6 @@
 //
 // =============================================================================
 
-//// TODO:
-//// - interior point is only needed for mesh collision geometry --> consider moving to ChBodyGeometry
-
 #include <fstream>
 #include <iostream>
 #include <sstream>
@@ -67,7 +64,6 @@ void ChFsiProblem::SetVerbose(bool verbose) {
 size_t ChFsiProblem::AddRigidBody(std::shared_ptr<ChBody> body,
                                   const utils::ChBodyGeometry& geometry,
                                   bool check_embedded,
-                                  const ChVector3d& interior_point,
                                   bool use_grid) {
     if (m_verbose) {
         cout << "Add FSI rigid body " << body->GetName() << endl;
@@ -77,7 +73,6 @@ size_t ChFsiProblem::AddRigidBody(std::shared_ptr<ChBody> body,
     b.body = body;
     b.geometry = geometry;
     b.check_embedded = check_embedded;
-    b.interior_point = interior_point;
 
     //// TODO: eliminate duplicate BCE markers (from multiple volumes).
     ////       easiest if BCE created on a grid!
@@ -126,16 +121,14 @@ size_t ChFsiProblem::AddRigidBodySphere(std::shared_ptr<ChBody> body,
                                         double radius,
                                         bool use_grid) {
     utils::ChBodyGeometry geometry;
-    geometry.materials.push_back(ChContactMaterialData());
-    geometry.coll_spheres.push_back(utils::ChBodyGeometry::SphereShape(pos, radius, 0));
-    return AddRigidBody(body, geometry, true, pos, use_grid);
+    geometry.coll_spheres.push_back(utils::ChBodyGeometry::SphereShape(pos, radius));
+    return AddRigidBody(body, geometry, true, use_grid);
 }
 
 size_t ChFsiProblem::AddRigidBodyBox(std::shared_ptr<ChBody> body, const ChFramed& frame, const ChVector3d& size) {
     utils::ChBodyGeometry geometry;
-    geometry.materials.push_back(ChContactMaterialData());
-    geometry.coll_boxes.push_back(utils::ChBodyGeometry::BoxShape(frame.GetPos(), frame.GetRot(), size, 0));
-    return AddRigidBody(body, geometry, true, frame.GetPos(), true);
+    geometry.coll_boxes.push_back(utils::ChBodyGeometry::BoxShape(frame.GetPos(), frame.GetRot(), size));
+    return AddRigidBody(body, geometry, true, true);
 }
 
 size_t ChFsiProblem::AddRigidBodyCylinderX(std::shared_ptr<ChBody> body,
@@ -144,21 +137,19 @@ size_t ChFsiProblem::AddRigidBodyCylinderX(std::shared_ptr<ChBody> body,
                                            double length,
                                            bool use_grid) {
     utils::ChBodyGeometry geometry;
-    geometry.materials.push_back(ChContactMaterialData());
     geometry.coll_cylinders.push_back(
-        utils::ChBodyGeometry::CylinderShape(frame.GetPos(), frame.GetRotMat().GetAxisX(), radius, length, 0));
-    return AddRigidBody(body, geometry, true, frame.GetPos(), use_grid);
+        utils::ChBodyGeometry::CylinderShape(frame.GetPos(), frame.GetRotMat().GetAxisX(), radius, length));
+    return AddRigidBody(body, geometry, true, use_grid);
 }
 
 size_t ChFsiProblem::AddRigidBodyMesh(std::shared_ptr<ChBody> body,
                                       const ChVector3d& pos,
                                       const std::string& obj_filename,
-                                      double scale,
-                                      const ChVector3d& interior_point) {
+                                      const ChVector3d& interior_point,
+                                      double scale) {
     utils::ChBodyGeometry geometry;
-    geometry.materials.push_back(ChContactMaterialData());
-    geometry.coll_meshes.push_back(utils::ChBodyGeometry::TrimeshShape(pos, obj_filename, scale, 0.0, 0));
-    return AddRigidBody(body, geometry, true, interior_point, true);
+    geometry.coll_meshes.push_back(utils::ChBodyGeometry::TrimeshShape(pos, obj_filename, interior_point, scale));
+    return AddRigidBody(body, geometry, true, true);
 }
 
 // ----------------------------------------------------------------------------
@@ -339,7 +330,7 @@ void ChFsiProblem::ProcessBody(RigidBody& b) {
 
     // Treat mesh shapes spearately
     for (const auto& mesh : b.geometry.coll_meshes) {
-        auto num_removed_mesh = ProcessBodyMesh(b, *mesh.trimesh);
+        auto num_removed_mesh = ProcessBodyMesh(b, *mesh.trimesh, mesh.int_point);
         num_removed += num_removed_mesh;
     }
 
@@ -360,7 +351,7 @@ static const std::vector<ChVector3i> nbr3D{
 };
 
 // Prune SPH particles inside a body mesh volume.
-int ChFsiProblem::ProcessBodyMesh(RigidBody& b, ChTriangleMeshConnected trimesh) {
+int ChFsiProblem::ProcessBodyMesh(RigidBody& b, ChTriangleMeshConnected trimesh, const ChVector3d& interior_point) {
     // Transform mesh in ChFsiProblem frame
     // (to address any roundoff issues that may result in a set of BCE markers that are not watertight)
     for (auto& v : trimesh.GetCoordsVertices()) {
@@ -379,9 +370,9 @@ int ChFsiProblem::ProcessBodyMesh(RigidBody& b, ChTriangleMeshConnected trimesh)
     }
 
     // Express the provided interior point in ChFsiProblem grid coordinates
-    auto c_abs = b.body->TransformPointLocalToParent(b.interior_point);  // interior point in absolute frame
-    auto c_sph = c_abs - m_offset_sph;                                   // interior point in ChFsiProblem frame
-    auto c = Snap2Grid(c_sph);                                           // interior point in integer grid coordinates
+    auto c_abs = b.body->TransformPointLocalToParent(interior_point);  // interior point in absolute frame
+    auto c_sph = c_abs - m_offset_sph;                                 // interior point in ChFsiProblem frame
+    auto c = Snap2Grid(c_sph);                                         // interior point in integer grid coordinates
 
     // Calculate the (integer) mesh AABB
     ChVector3i aabb_min(+std::numeric_limits<int>::max());
@@ -882,7 +873,7 @@ void ChFsiProblemCartesian::AddWaveMaker(const ChVector3d& box_size,            
     m_sys.AddLink(motor);
 
     // Add piston as FSI body
-    auto num_piston_bce = AddRigidBody(piston, geometry, true, VNULL);
+    auto num_piston_bce = AddRigidBody(piston, geometry, true);
 
     if (m_verbose) {
         cout << "  Piston initialized at:   " << piston->GetPos() << endl;
