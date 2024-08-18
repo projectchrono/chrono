@@ -79,6 +79,26 @@ int main(int argc, char* argv[]) {
     ChSystemNSC sys;
     sys.SetCollisionSystemType(ChCollisionSystem::Type::BULLET);
 
+    // Create rover
+    cout << "Create rover..." << endl;
+    ViperWheelType wheel_type = ViperWheelType::RealWheel;
+    ChContactMaterialData wheel_mat(0.4f,   // mu
+                                    0.2f,   // cr
+                                    2e7f,   // Y
+                                    0.3f,   // nu
+                                    2e5f,   // kn
+                                    40.0f,  // gn
+                                    2e5f,   // kt
+                                    20.0f   // gt
+    );
+    ChVector3d init_loc(-1, 0.0, 2.4);
+
+    auto driver = chrono_types::make_shared<ViperDCMotorControl>();
+    auto rover = chrono_types::make_shared<Viper>(&sys, wheel_type);
+    rover->SetDriver(driver);
+    rover->SetWheelContactMaterial(wheel_mat.CreateMaterial(sys.GetContactMethod()));
+    rover->Initialize(ChFrame<>(init_loc, QUNIT));
+
     // Create the CRM terrain system
     double initial_spacing = 0.03;
     CRMTerrain terrain(sys, initial_spacing);
@@ -122,69 +142,42 @@ int main(int argc, char* argv[]) {
 
     sysFSI.SetOutputLength(0);
 
-    // Set the simulation domain size
-    //// TODO: needed?
-    ////sysFSI.SetContainerDim(ChVector3d(4, 2, 0.1));
+    // Add rover wheels as FSI bodies
+    cout << "Create wheel BCE markers..." << endl;
+    std::string mesh_filename = GetChronoDataFile("robot/viper/obj/viper_wheel.obj");
+    utils::ChBodyGeometry geometry;
+    geometry.materials.push_back(ChContactMaterialData());
+    geometry.coll_meshes.push_back(utils::ChBodyGeometry::TrimeshShape(VNULL, mesh_filename, VNULL));
 
+    //// TODO: FIX ChFsiProblem to allow rotating geometry on body!!
+    for (int i = 0; i < 4; i++) {
+        auto wheel_body = rover->GetWheels()[i]->GetBody();
+        auto yaw = (i % 2 == 0) ? QuatFromAngleZ(CH_PI) : QUNIT;
+        terrain.AddRigidBody(wheel_body, geometry, false);
+    }
+
+    // Construct the terrain
     cout << "Create terrain..." << endl;
     terrain.Construct(vehicle::GetDataFile("terrain/height_maps/terrain3.bmp"),  // height map image file
                       4, 4,                                                      // length (X) and width (Y)
                       {0, 2.55},                                                 // height range
                       0.3,                                                       // depth
-                      3,                                                         // number of BCE layers
+                      true,                                                      // uniform depth
                       ChVector3d(0, 0, 0),                                       // patch center
-                      0.0,                                                       // patch yaw rotation
+                      true,                                                      // bottom wall
                       false                                                      // side walls?
     );
 
-    // Create rover
-    cout << "Create rover..." << endl;
-    ViperWheelType wheel_type = ViperWheelType::RealWheel;
-    std::string wheel_obj = "robot/viper/obj/viper_wheel.obj";
-    ChContactMaterialData wheel_mat(0.4f,   // mu
-                                    0.2f,   // cr
-                                    2e7f,   // Y
-                                    0.3f,   // nu
-                                    2e5f,   // kn
-                                    40.0f,  // gn
-                                    2e5f,   // kt
-                                    20.0f   // gt
-    );
-    ChVector3d init_loc(-1, 0.0, 2.4);
 
-    auto driver = chrono_types::make_shared<ViperDCMotorControl>();
-    auto rover = chrono_types::make_shared<Viper>(&sys, wheel_type);
-    rover->SetDriver(driver);
-    rover->SetWheelContactMaterial(wheel_mat.CreateMaterial(sys.GetContactMethod()));
-    rover->Initialize(ChFrame<>(init_loc, QUNIT));
-
-    // Create the wheel BCE markers
-    cout << "Create wheel BCE markers..." << endl;
-    auto trimesh = chrono_types::make_shared<ChTriangleMeshConnected>();
-    double scale_ratio = 1.0;
-    trimesh->LoadWavefrontMesh(GetChronoDataFile(wheel_obj), false, true);
-    trimesh->Transform(ChVector3d(0, 0, 0), ChMatrix33<>(scale_ratio));  // scale to a different size
-    trimesh->RepairDuplicateVertexes(1e-9);                              // if meshes are not watertight
-
-    std::vector<ChVector3d> BCE_wheel;
-    sysFSI.CreateMeshPoints(*trimesh, sysFSI.GetInitialSpacing(), BCE_wheel);
-
-    // Add BCE particles and mesh of wheels to the system
-    for (int i = 0; i < 4; i++) {
-        auto wheel_body = rover->GetWheels()[i]->GetBody();
-        auto yaw = (i % 2 == 0) ? QuatFromAngleZ(CH_PI) : QUNIT;
-        sysFSI.AddFsiBody(wheel_body);
-        sysFSI.AddPointsBCE(wheel_body, BCE_wheel, ChFrame<>(VNULL, yaw), true);
-    }
 
     // Initialize the terrain system
     cout << "Initialize CRM terrain..." << endl;
     terrain.Initialize();
 
-    auto aabb = terrain.GetBoundingBox();
+    auto aabb = terrain.GetSPHBoundingBox();
     cout << "  SPH particles:     " << sysFSI.GetNumFluidMarkers() << endl;
     cout << "  Bndry BCE markers: " << sysFSI.GetNumBoundaryMarkers() << endl;
-    cout << "  AABB:              " << aabb.min << "   " << aabb.max << endl;
+    cout << "  SPH AABB:          " << aabb.min << "   " << aabb.max << endl;
 
     // Create run-time visualization
 #ifndef CHRONO_OPENGL

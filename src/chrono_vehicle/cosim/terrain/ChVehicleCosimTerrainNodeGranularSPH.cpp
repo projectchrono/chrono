@@ -186,10 +186,10 @@ void ChVehicleCosimTerrainNodeGranularSPH::Construct() {
             m_terrain->Construct(m_dimX, m_dimY, m_depth);
             break;
         case ConstructionMethod::FILES:
-            m_terrain->Construct(m_sph_filename, m_bce_filename);
+            m_terrain->Construct(m_sph_filename, m_bce_filename, VNULL);
             break;
     }
-    m_aabb_particles = m_terrain->GetBoundingBox();
+    m_aabb_particles = m_terrain->GetSPHBoundingBox();
 
     /*
     //// TODO
