@@ -185,7 +185,7 @@ int main(int argc, char* argv[]) {
                   false,                              // bottom wall?
                   false                               // side walls?
     );
-    fsi.AddBoxContainer(fsize, ChVector3d(0, 0, initial_spacing), false, true);
+    fsi.AddBoxContainer(fsize, ChVector3d(0, 0, initial_spacing), true, false, true);
 
     // Explicitly set computational domain
     ChVector3d c_min(-bxDim / 2 - initial_spacing / 2, -byDim / 2 - initial_spacing / 2, -10.0 * initial_spacing);

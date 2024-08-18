@@ -66,6 +66,7 @@ void ChFsiProblem::SetVerbose(bool verbose) {
 
 size_t ChFsiProblem::AddRigidBody(std::shared_ptr<ChBody> body,
                                   const utils::ChBodyGeometry& geometry,
+                                  bool check_embedded,
                                   const ChVector3d& interior_point,
                                   bool use_grid) {
     if (m_verbose) {
@@ -75,6 +76,7 @@ size_t ChFsiProblem::AddRigidBody(std::shared_ptr<ChBody> body,
     RigidBody b;
     b.body = body;
     b.geometry = geometry;
+    b.check_embedded = check_embedded;
     b.interior_point = interior_point;
 
     //// TODO: eliminate duplicate BCE markers (from multiple volumes).
@@ -126,14 +128,14 @@ size_t ChFsiProblem::AddRigidBodySphere(std::shared_ptr<ChBody> body,
     utils::ChBodyGeometry geometry;
     geometry.materials.push_back(ChContactMaterialData());
     geometry.coll_spheres.push_back(utils::ChBodyGeometry::SphereShape(pos, radius, 0));
-    return AddRigidBody(body, geometry, pos, use_grid);
+    return AddRigidBody(body, geometry, true, pos, use_grid);
 }
 
 size_t ChFsiProblem::AddRigidBodyBox(std::shared_ptr<ChBody> body, const ChFramed& frame, const ChVector3d& size) {
     utils::ChBodyGeometry geometry;
     geometry.materials.push_back(ChContactMaterialData());
     geometry.coll_boxes.push_back(utils::ChBodyGeometry::BoxShape(frame.GetPos(), frame.GetRot(), size, 0));
-    return AddRigidBody(body, geometry, frame.GetPos(), true);
+    return AddRigidBody(body, geometry, true, frame.GetPos(), true);
 }
 
 size_t ChFsiProblem::AddRigidBodyCylinderX(std::shared_ptr<ChBody> body,
@@ -145,7 +147,7 @@ size_t ChFsiProblem::AddRigidBodyCylinderX(std::shared_ptr<ChBody> body,
     geometry.materials.push_back(ChContactMaterialData());
     geometry.coll_cylinders.push_back(
         utils::ChBodyGeometry::CylinderShape(frame.GetPos(), frame.GetRotMat().GetAxisX(), radius, length, 0));
-    return AddRigidBody(body, geometry, frame.GetPos(), use_grid);
+    return AddRigidBody(body, geometry, true, frame.GetPos(), use_grid);
 }
 
 size_t ChFsiProblem::AddRigidBodyMesh(std::shared_ptr<ChBody> body,
@@ -156,7 +158,7 @@ size_t ChFsiProblem::AddRigidBodyMesh(std::shared_ptr<ChBody> body,
     utils::ChBodyGeometry geometry;
     geometry.materials.push_back(ChContactMaterialData());
     geometry.coll_meshes.push_back(utils::ChBodyGeometry::TrimeshShape(pos, obj_filename, scale, 0.0, 0));
-    return AddRigidBody(body, geometry, interior_point, true);
+    return AddRigidBody(body, geometry, true, interior_point, true);
 }
 
 // ----------------------------------------------------------------------------
@@ -168,7 +170,8 @@ void ChFsiProblem::Initialize() {
             cout << "Remove SPH particles inside obstacle volumes" << endl;
 
         for (auto& b : m_bodies)
-            ProcessBody(b);
+            if (b.check_embedded)
+                ProcessBody(b);
 
         if (m_verbose)
             cout << "  Num. SPH particles: " << m_sph.size() << endl;
@@ -185,6 +188,10 @@ void ChFsiProblem::Initialize() {
         aabb.min = Vmin(aabb.min, point);
         aabb.max = Vmax(aabb.max, point);
     }
+
+    m_sph_aabb = aabb;
+
+    // Include boundary BCE markers in AABB
     RealPoints bce_points;
     bce_points.reserve(m_bce.size());
     for (const auto& p : m_bce) {
@@ -205,19 +212,23 @@ void ChFsiProblem::Initialize() {
     }
 
     if (m_verbose) {
+        cout << "AABB of SPH particles:" << endl;
+        cout << "  min: " << m_sph_aabb.min << endl;
+        cout << "  max: " << m_sph_aabb.max << endl;
         cout << "AABB of SPH particles + BCE markers" << endl;
         cout << "  min: " << aabb.min << endl;
         cout << "  max: " << aabb.max << endl;
     }
 
     // Set computational domain
-    if (!m_aabb.IsInverted()) {
+    if (!m_domain_aabb.IsInverted()) {
         // Use provided computational domain
-        m_sysFSI.SetBoundaries(m_aabb.min, m_aabb.max);
+        m_sysFSI.SetBoundaries(m_domain_aabb.min, m_domain_aabb.max);
     } else {
-        // Set computational domain based on actual AABB
+        // Set computational domain based on actual AABB of all markers
         int bce_layers = m_sysFSI.GetNumBCELayers();
-        m_sysFSI.SetBoundaries(aabb.min - bce_layers * m_spacing, aabb.max + bce_layers * m_spacing);
+        m_domain_aabb = ChAABB(aabb.min - bce_layers * m_spacing, aabb.max + bce_layers * m_spacing);
+        m_sysFSI.SetBoundaries(m_domain_aabb.min, m_domain_aabb.max);
     }
 
     // Callback for setting initial particle properties
@@ -348,7 +359,7 @@ static const std::vector<ChVector3i> nbr3D{
     ChVector3i(0, 0, +1)   //
 };
 
-// PRune SPH particles inside a body mesh volume.
+// Prune SPH particles inside a body mesh volume.
 int ChFsiProblem::ProcessBodyMesh(RigidBody& b, ChTriangleMeshConnected trimesh) {
     // Transform mesh in ChFsiProblem frame
     // (to address any roundoff issues that may result in a set of BCE markers that are not watertight)
@@ -852,7 +863,7 @@ void ChFsiProblemCartesian::AddWaveMaker(const ChVector3d& box_size,            
     // Create the piston body and a linear motor
     double thickness = (bce_layers - 1) * m_spacing;
     ChVector3d piston_size(thickness, box_size.y(), box_size.z());
-    ChVector3d piston_pos(-box_size.x() / 2 - thickness / 2, 0, box_size.z() / 2);
+    ChVector3d piston_pos(-box_size.x() / 2 - thickness / 2 - m_spacing, 0, box_size.z() / 2);
 
     auto piston = chrono_types::make_shared<ChBody>();
     piston->SetPos(pos + piston_pos);
@@ -871,7 +882,7 @@ void ChFsiProblemCartesian::AddWaveMaker(const ChVector3d& box_size,            
     m_sys.AddLink(motor);
 
     // Add piston as FSI body
-    auto num_piston_bce = AddRigidBody(piston, geometry, VNULL);
+    auto num_piston_bce = AddRigidBody(piston, geometry, true, VNULL);
 
     if (m_verbose) {
         cout << "  Piston initialized at:   " << piston->GetPos() << endl;

@@ -161,7 +161,7 @@ int main(int argc, char* argv[]) {
         geometry.CreateVisualizationAssets(body, utils::ChBodyGeometry::VisualizationType::COLLISION);
 
     // Add as an FSI body
-    fsi.AddRigidBody(body, geometry, VNULL);
+    fsi.AddRigidBody(body, geometry, true, VNULL);
 
     // Create SPH fluid particles and BCE boundary markers
     fsi.Construct(GetChronoDataFile("vehicle/terrain/height_maps/bump64.bmp"),  // height map image file

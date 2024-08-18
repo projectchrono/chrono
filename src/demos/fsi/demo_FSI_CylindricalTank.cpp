@@ -73,7 +73,7 @@ bool render = true;
 float render_fps = 400;
 
 // Enable saving snapshots
-bool snapshots = true;
+bool snapshots = false;
 
 // Visibility flags
 bool show_rigid = true;
@@ -159,7 +159,7 @@ int main(int argc, char* argv[]) {
         geometry.CreateVisualizationAssets(body, utils::ChBodyGeometry::VisualizationType::COLLISION);
 
     // Add as an FSI body (create BCE markers on a grid)
-    fsi.AddRigidBody(body, geometry, VNULL, true);
+    fsi.AddRigidBody(body, geometry, true, VNULL, true);
 
     // Enable height-based initial pressure for SPH particles
     fsi.RegisterParticlePropertiesCallback(

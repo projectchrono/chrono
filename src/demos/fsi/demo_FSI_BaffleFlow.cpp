@@ -81,7 +81,7 @@ bool snapshots = false;
 // Visibility flags
 bool show_rigid = true;
 bool show_rigid_bce = false;
-bool show_boundary_bce = true;
+bool show_boundary_bce = false;
 bool show_particles_sph = true;
 
 // ----------------------------------------------------------------------------
@@ -129,7 +129,7 @@ void CreateBaffles(ChFsiProblem& fsi) {
     sysMBS.AddBody(baffle1);
     if (show_rigid)
         geometry.CreateVisualizationAssets(baffle1, utils::ChBodyGeometry::VisualizationType::COLLISION);
-    fsi.AddRigidBody(baffle1, geometry, VNULL);
+    fsi.AddRigidBody(baffle1, geometry, false, VNULL);
 
     auto baffle2 = chrono_types::make_shared<ChBody>();
     baffle2->SetPos(bloc2);
@@ -138,7 +138,7 @@ void CreateBaffles(ChFsiProblem& fsi) {
     sysMBS.AddBody(baffle2);
     if (show_rigid)
         geometry.CreateVisualizationAssets(baffle2, utils::ChBodyGeometry::VisualizationType::COLLISION);
-    fsi.AddRigidBody(baffle2, geometry, VNULL);
+    fsi.AddRigidBody(baffle2, geometry, false, VNULL);
 
     auto baffle3 = chrono_types::make_shared<ChBody>();
     baffle3->SetPos(bloc3);
@@ -147,7 +147,7 @@ void CreateBaffles(ChFsiProblem& fsi) {
     sysMBS.AddBody(baffle3);
     if (show_rigid)
         geometry.CreateVisualizationAssets(baffle3, utils::ChBodyGeometry::VisualizationType::COLLISION);
-    fsi.AddRigidBody(baffle3, geometry, VNULL);
+    fsi.AddRigidBody(baffle3, geometry, false, VNULL);
 }
 
 // ----------------------------------------------------------------------------

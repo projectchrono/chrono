@@ -51,9 +51,11 @@ class CH_FSI_API ChFsiProblem {
     /// By default, where applicable, BCE markers are created using polar coordinates (in layers starting from the shape
     /// surface). Generation of BCE markers on a uniform Cartesian grid can be enforced setting use_grid_bce=true.
     /// Creation of FSI bodies embedded in the fluid phase is allowed (SPH markers inside the body geometry volume are
-    /// pruned). This function must be called before Initialize().
+    /// pruned). To check for possible overlap with SPH particles, set 'check_embedded=true'.
+    /// This function must be called before Initialize().
     size_t AddRigidBody(std::shared_ptr<ChBody> body,
-                        const utils::ChBodyGeometry& geometry,
+                        const chrono::utils::ChBodyGeometry& geometry,
+                        bool check_embedded,
                         const ChVector3d& interior_point,
                         bool use_grid_bce = false);
 
@@ -104,7 +106,7 @@ class CH_FSI_API ChFsiProblem {
 
     /// Explicitly set the computational domain limits.
     /// By default, this is set so that it encompasses all SPH particles and BCE markers.
-    void SetComputationalDomainSize(ChAABB aabb) { m_aabb = aabb; }
+    void SetComputationalDomainSize(ChAABB aabb) { m_domain_aabb = aabb; }
 
     /// Complete construction of the FSI problem and initialize the FSI system.
     /// After this call, no additional solid bodies should be added to the FSI problem.
@@ -118,6 +120,12 @@ class CH_FSI_API ChFsiProblem {
 
     /// Get number of boundary BCE markers.
     size_t GetNumBoundaryBCEMarkers() const { return m_bce.size(); }
+
+    /// Get limits of computational domain.
+    const ChAABB& GetComputationalDomainSize() const { return m_domain_aabb; }
+
+    /// Get limits of SPH volume
+    const ChAABB& GetSPHBoundingBox() const { return m_sph_aabb; }
 
     /// Save the set of initial SPH and BCE grid locations to files in the specified output directory.
     void SaveInitialMarkers(const std::string& out_dir) const;
@@ -145,12 +153,13 @@ class CH_FSI_API ChFsiProblem {
 
     /// Specification of an FSI rigid body.
     struct RigidBody {
-        std::shared_ptr<ChBody> body;    ///< associated body
-        utils::ChBodyGeometry geometry;  ///< geometry for body BCE
-        ChVector3d interior_point;       ///< location of an interior point
-        RealPoints bce;                  ///< body BCE marker locations
-        ChVector3d oobb_center;          ///< center of bounding box
-        ChVector3d oobb_dims;            ///< dimensions of bounding box
+        std::shared_ptr<ChBody> body;            ///< associated body
+        chrono::utils::ChBodyGeometry geometry;  ///< geometry for body BCE
+        bool check_embedded;                     ///< if true, check for overlapping SPH particles
+        ChVector3d interior_point;               ///< location of an interior point
+        RealPoints bce;                          ///< body BCE marker locations
+        ChVector3d oobb_center;                  ///< center of bounding box
+        ChVector3d oobb_dims;                    ///< dimensions of bounding box
     };
 
     /// Prune SPH markers that are inside the solid body volume.
@@ -170,7 +179,8 @@ class CH_FSI_API ChFsiProblem {
     GridPoints m_bce;                  ///< boundary BCE marker grid locations
     ChVector3d m_offset_sph;           ///< SPH particles offset
     ChVector3d m_offset_bce;           ///< boundary BCE particles offset
-    ChAABB m_aabb;                     ///< computational domain
+    ChAABB m_domain_aabb;              ///< computational domain bounding box
+    ChAABB m_sph_aabb;                 ///< SPH volume bounding box
     std::vector<RigidBody> m_bodies;   ///< list of FSI rigid bodies
 
     std::shared_ptr<ParticlePropertiesCallback> m_props_cb;  ///< callback for particle properties
