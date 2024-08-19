@@ -133,6 +133,8 @@ int main(int argc, char* argv[]) {
     sph_params.density_reinit_steps = 1000;
     sph_params.consistent_gradient_discretization = false;
     sph_params.consistent_laplacian_discretization = false;
+    sph_params.numProximitySearchSteps = 1;
+    sph_params.sharedProximitySearch = false;
 
     sysFSI.SetSPHParameters(sph_params);
     sysFSI.SetStepSize(step_size);
