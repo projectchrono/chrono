@@ -461,8 +461,8 @@ __global__ void Shear_Stress_Rate(uint* indexOfIndex,
 __global__ void calcRho_kernel(Real4* sortedPosRad,
                                Real4* sortedRhoPreMu,
                                Real4* sortedRhoPreMu_old,
-                               uint* cellStart,
-                               uint* cellEnd,
+                               const uint* numNeighborsPerPart,
+                               const uint* neighborList,
                                int density_reinit,
                                volatile bool* isErrorD) {
     uint index = blockIdx.x * blockDim.x + threadIdx.x;
@@ -482,35 +482,29 @@ __global__ void calcRho_kernel(Real4* sortedPosRad,
     Real sum_mW = 0;
     Real sum_mW_rho = 0.0000001;
     Real sum_W = 0.0;
+    uint NLStart = numNeighborsPerPart[index];
+    uint NLEnd = numNeighborsPerPart[index + 1];
 
     // get address in grid
     int3 gridPos = calcGridPos(posRadA);
-    for (int z = -1; z <= 1; z++) {
-        for (int y = -1; y <= 1; y++) {
-            for (int x = -1; x <= 1; x++) {
-                int3 neighbourPos = gridPos + mI3(x, y, z);
-                uint gridHash = calcGridHash(neighbourPos);
-                uint startIndex = cellStart[gridHash];
-                if (startIndex != 0xffffffff) {
-                    uint endIndex = cellEnd[gridHash];
-                    for (uint j = startIndex; j < endIndex; j++) {
-                        Real3 posRadB = mR3(sortedPosRad[j]);
-                        Real3 dist3 = Distance(posRadA, posRadB);
-                        Real dd = dist3.x * dist3.x + dist3.y * dist3.y + dist3.z * dist3.z;
-                        if (dd > SqRadii)
-                            continue;
-                        if (sortedRhoPreMu_old[j].w > -1.5 && sortedRhoPreMu_old[j].w < -0.5) {
-                            Real h_j = sortedPosRad[j].w;
-                            Real m_j = paramsD.markerMass;
-                            Real d = length(dist3);
-                            Real W3 = W3h(d, 0.5 * (h_j + h_i));
-                            sum_mW += m_j * W3;
-                            sum_W += W3;
-                            sum_mW_rho += m_j * W3 / sortedRhoPreMu_old[j].x;
-                        }
-                    }
-                }
-            }
+    for (int n = NLStart; n < NLEnd; n++) {
+        uint j = neighborList[n];
+        if (j == index) {
+            continue;
+        }
+        Real3 posRadB = mR3(sortedPosRad[j]);
+        Real3 dist3 = Distance(posRadA, posRadB);
+        Real dd = dist3.x * dist3.x + dist3.y * dist3.y + dist3.z * dist3.z;
+        if (dd > SqRadii)
+            continue;
+        if (sortedRhoPreMu_old[j].w > -1.5 && sortedRhoPreMu_old[j].w < -0.5) {
+            Real h_j = sortedPosRad[j].w;
+            Real m_j = paramsD.markerMass;
+            Real d = length(dist3);
+            Real W3 = W3h(d, 0.5 * (h_j + h_i));
+            sum_mW += m_j * W3;
+            sum_W += W3;
+            sum_mW_rho += m_j * W3 / sortedRhoPreMu_old[j].x;
         }
     }
 
@@ -1745,8 +1739,7 @@ void ChFsiForceExplicitSPH::CollideWrapper(Real time, bool firstHalfStep) {
         cudaResetErrorFlag(isErrorD);
         calcRho_kernel<<<numBlocks, numThreads>>>(
             mR4CAST(sortedSphMarkers_D->posRadD), mR4CAST(sortedSphMarkers_D->rhoPresMuD), mR4CAST(rhoPresMuD_old),
-            U1CAST(markersProximity_D->cellStartD), U1CAST(markersProximity_D->cellEndD), density_initialization,
-            isErrorD);
+            U1CAST(fsiData->numNeighborsPerPart), U1CAST(fsiData->neighborList), density_initialization, isErrorD);
         cudaCheckErrorFlag(isErrorD, "calcRho_kernel");
         density_initialization = 0;
     }
