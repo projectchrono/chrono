@@ -65,7 +65,7 @@ PatchType patch_type = PatchType::HEIGHT_MAP;
 
 std::shared_ptr<WheeledVehicle> CreateVehicle(ChSystem& sys, const ChCoordsys<>& init_pos);
 std::shared_ptr<ChBezierCurve> CreatePath(const std::string& path_file);
-void CreateWheelBCEMarkers(std::shared_ptr<WheeledVehicle> vehicle, ChSystemFsi& sysFSI);
+void CreateWheelBCEMarkers(std::shared_ptr<WheeledVehicle> vehicle, CRMTerrain& terrain);
 
 // ===================================================================================================================
 
@@ -99,6 +99,11 @@ int main(int argc, char* argv[]) {
     // Create the Chrono system and associated collision system
     ChSystemNSC sys;
     sys.SetCollisionSystemType(ChCollisionSystem::Type::BULLET);
+
+    // Create vehicle
+    cout << "Create vehicle..." << endl;
+    ChVector3d veh_init_pos(3.2, 0, 0.25);
+    auto vehicle = CreateVehicle(sys, ChCoordsys<>(veh_init_pos, QUNIT));
 
     // Create the CRM terrain system
     CRMTerrain terrain(sys, spacing);
@@ -142,24 +147,25 @@ int main(int argc, char* argv[]) {
 
     sysFSI.SetOutputLength(0);
 
+    // Add rover wheels as FSI bodies
+    CreateWheelBCEMarkers(vehicle, terrain);
+
     // Construct the terrain
     cout << "Create terrain..." << endl;
     switch (patch_type) {
         case PatchType::RECTANGULAR:
             // Create a rectangular terrain patch
-            terrain.Construct(10.0, 3.0,            // length X width
-                              0.25,                 // depth
-                              3,                    // number BCE layers
+            terrain.Construct({10.0, 3.0, 0.25},    // length X width X height
                               ChVector3d(5, 0, 0),  // patch center
-                              0.0,                  // patch orientation angle
-                              true                  // create side boundaries
+                              true,                 // bottom wall?
+                              true                  // side walls?
             );
             break;
         case PatchType::MARKER_DATA:
             // Create a patch using SPH particles and BCE markers from files
             terrain.Construct(vehicle::GetDataFile(terrain_dir + "/sph_particles.txt"),  // SPH marker locations
-                              vehicle::GetDataFile(terrain_dir + "/bce_markers.txt")     // BCE marker locations
-            );
+                              vehicle::GetDataFile(terrain_dir + "/bce_markers.txt"),    // BCE marker locations
+                              VNULL);
             break;
         case PatchType::HEIGHT_MAP:
             // Create a patch from a heigh field map image
@@ -167,29 +173,21 @@ int main(int argc, char* argv[]) {
                               10.0, 3.0,                                               // length (X) and width (Y)
                               {0, 0.3},                                                // height range
                               0.25,                                                    // depth
-                              3,                                                       // number of BCE layers
+                              true,                                                    // uniform depth
                               ChVector3d(5, 0, 0),                                     // patch center
-                              0.0,                                                     // patch yaw rotation
+                              true,                                                    // bottom wall?
                               false                                                    // side walls?
             );
             break;
     }
 
-    // Create vehicle
-    cout << "Create vehicle..." << endl;
-    ChVector3d veh_init_pos(3.0, 0, 0.25);
-    auto vehicle = CreateVehicle(sys, ChCoordsys<>(veh_init_pos, QUNIT));
-
-    // Create the wheel BCE markers
-    CreateWheelBCEMarkers(vehicle, sysFSI);
-
     // Initialize the terrain system
     terrain.Initialize();
 
-    auto aabb = terrain.GetBoundingBox();
+    auto aabb = terrain.GetSPHBoundingBox();
     cout << "  SPH particles:     " << sysFSI.GetNumFluidMarkers() << endl;
     cout << "  Bndry BCE markers: " << sysFSI.GetNumBoundaryMarkers() << endl;
-    cout << "  AABB:              " << aabb.min << "   " << aabb.max << endl;
+    cout << "  SPH AABB:          " << aabb.min << "   " << aabb.max << endl;
 
     // Set maximum vehicle X location (based on CRM patch size)
     double x_max = aabb.max.x() - 3.0;
@@ -377,20 +375,15 @@ std::shared_ptr<ChBezierCurve> CreatePath(const std::string& path_file) {
     return std::shared_ptr<ChBezierCurve>(new ChBezierCurve(points));
 }
 
-void CreateWheelBCEMarkers(std::shared_ptr<WheeledVehicle> vehicle, ChSystemFsi& sysFSI) {
-    // Create BCE markers for a tire
-    std::string tire_coll_obj = "Polaris/meshes/Polaris_tire_collision.obj";
+void CreateWheelBCEMarkers(std::shared_ptr<WheeledVehicle> vehicle, CRMTerrain& terrain) {
+    std::string mesh_filename = vehicle::GetDataFile("Polaris/meshes/Polaris_tire_collision.obj");
+    utils::ChBodyGeometry geometry;
+    geometry.materials.push_back(ChContactMaterialData());
+    geometry.coll_meshes.push_back(utils::ChBodyGeometry::TrimeshShape(VNULL, mesh_filename, VNULL));
 
-    ChTriangleMeshConnected trimesh;
-    trimesh.LoadWavefrontMesh(vehicle::GetDataFile(tire_coll_obj));
-    std::vector<ChVector3d> point_cloud;
-    sysFSI.CreateMeshPoints(trimesh, sysFSI.GetInitialSpacing(), point_cloud);
-
-    // Create and initialize the tires
     for (auto& axle : vehicle->GetAxles()) {
         for (auto& wheel : axle->GetWheels()) {
-            sysFSI.AddFsiBody(wheel->GetSpindle());
-            sysFSI.AddPointsBCE(wheel->GetSpindle(), point_cloud, ChFrame<>(), true);
+            terrain.AddRigidBody(wheel->GetSpindle(), geometry, false);
         }
     }
 }

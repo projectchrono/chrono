@@ -62,9 +62,6 @@ enum class BcePatternMesh1D { FULL, STAR };
 /// </pre>
 enum class BcePatternMesh2D { CENTERED, OUTWARD, INWARD };
 
-/// PPE solution type.
-enum class PPESolutionType { MATRIX_FREE, FORM_SPARSE_MATRIX };
-
 /// Rheology type.
 enum class Rheology { INERTIA_RHEOLOGY, NONLOCAL_FLUIDITY };
 

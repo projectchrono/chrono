@@ -23,8 +23,15 @@
 #include <thrust/sort.h>
 
 #include "cublas_v2.h"
+
 #include "chrono_fsi/physics/ChFsiForceI2SPH.cuh"
 #include "chrono_fsi/physics/ChSphGeneral.cuh"
+#include "chrono_fsi/math/ChFsiLinearSolverBiCGStab.h"
+#include "chrono_fsi/math/ChFsiLinearSolverGMRES.h"
+
+using std::cout;
+using std::cerr;
+using std::endl;
 
 namespace chrono {
 namespace fsi {
@@ -809,6 +816,22 @@ ChFsiForceI2SPH::~ChFsiForceI2SPH() {}
 
 void ChFsiForceI2SPH::Initialize() {
     ChFsiForce::Initialize();
+
+    // Create linear solver object
+    switch (paramsH->LinearSolver) {
+        case SolverType::BICGSTAB:
+            myLinearSolver = chrono_types::make_shared<ChFsiLinearSolverBiCGStab>();
+            break;
+        case SolverType::GMRES:
+            myLinearSolver = chrono_types::make_shared<ChFsiLinearSolverGMRES>();
+            break;
+        case SolverType::JACOBI:
+            break;
+        default:
+            std::cout << "The ChFsiLinearSolver you chose has not been implemented, reverting to JACOBI";
+            break;
+    }
+
     cudaMemcpyToSymbolAsync(paramsD, paramsH.get(), sizeof(SimParams));
     cudaMemcpyToSymbolAsync(numObjectsD, numObjectsH.get(), sizeof(ChCounters));
     cudaMemcpyFromSymbol(paramsH.get(), paramsD, sizeof(SimParams));
@@ -957,8 +980,8 @@ void ChFsiForceI2SPH::ForceSPH(std::shared_ptr<SphMarkerDataD> otherSortedSphMar
     int4 updatePortion = mI4((int)end_fluid, (int)end_bndry, (int)end_rigid, (int)end_flex);
 
     if (verbose)
-        std::cout << "update portion: " << updatePortion.x << " " << updatePortion.y << " " << updatePortion.z << " "
-                  << updatePortion.w << std::endl;
+        cout << "update portion: " << updatePortion.x << " " << updatePortion.y << " " << updatePortion.z << " "
+             << updatePortion.w << endl;
 
     //=====calcRho_kernel=== calc_A_tensor==calc_L_tensor==Function_Gradient_Laplacian_Operator=================
     ChFsiForceI2SPH::PreProcessor(sortedSphMarkers_D);
@@ -1044,6 +1067,7 @@ void ChFsiForceI2SPH::ForceSPH(std::shared_ptr<SphMarkerDataD> otherSortedSphMar
     double V_star_Predictor = (clock() - LinearSystemClock_V) / (double)CLOCKS_PER_SEC;
     printf("| V_star_Predictor Equation: %f (sec) - Final Residual=%.3e - #Iter=%d\n", V_star_Predictor, MaxRes,
            Iteration);
+
     //==================================================Pressure_Equation==============================================
     Iteration = 0;
     MaxRes = 100;
@@ -1102,14 +1126,7 @@ void ChFsiForceI2SPH::ForceSPH(std::shared_ptr<SphMarkerDataD> otherSortedSphMar
         printf("Ave RHS =%f, Ave after removing null space=%f\n", Ave_RHS, Ave_after);
     }
 
-    if (paramsH->USE_LinearSolver) {
-        if (paramsH->PPE_Solution_type != PPESolutionType::FORM_SPARSE_MATRIX) {
-            printf(
-                "You should paramsH->PPE_Solution_type == FORM_SPARSE_MATRIX in order to use the "
-                "chrono_fsi linear "
-                "solvers\n");
-            exit(0);
-        }
+    if (paramsH->LinearSolver != SolverType::JACOBI) {
         myLinearSolver->SetVerbose(paramsH->Verbose_monitoring);
         myLinearSolver->SetAbsRes(paramsH->LinearSolver_Abs_Tol);
         myLinearSolver->SetRelRes(paramsH->LinearSolver_Rel_Tol);
@@ -1121,16 +1138,19 @@ void ChFsiForceI2SPH::ForceSPH(std::shared_ptr<SphMarkerDataD> otherSortedSphMar
         cudaCheckError();
         MaxRes = myLinearSolver->GetResidual();
         Iteration = myLinearSolver->GetNumIterations();
+
         if (myLinearSolver->GetSolverStatus()) {
-            std::cout << " Linear solver converged to " << myLinearSolver->GetResidual() << " tolerance";
-            std::cout << " after " << myLinearSolver->GetNumIterations() << " iterations" << std::endl;
+            if (verbose) {
+                cout << " Linear solver converged to " << myLinearSolver->GetResidual() << " tolerance";
+                cout << " after " << myLinearSolver->GetNumIterations() << " iterations" << endl;
+            }
         } else {
-            std::cout << "Failed to converge after " << myLinearSolver->GetNumIterations() << " iterations"
-                      << std::endl;
+            cerr << " Failed to converge after " << myLinearSolver->GetNumIterations() << " iterations" << endl;
+            cerr << " Falling back on Jacobi" << endl;
         }
     }
 
-    if (!paramsH->USE_LinearSolver || !myLinearSolver->GetSolverStatus()) {
+    if (paramsH->LinearSolver == SolverType::JACOBI || !myLinearSolver->GetSolverStatus()) {
         thrust::fill(Residuals.begin(), Residuals.end(), 0.0);
         while ((MaxRes > paramsH->LinearSolver_Abs_Tol || Iteration < 3) &&
                Iteration < paramsH->LinearSolver_Max_Iter) {
@@ -1176,11 +1196,13 @@ void ChFsiForceI2SPH::ForceSPH(std::shared_ptr<SphMarkerDataD> otherSortedSphMar
 
     thrust::for_each(b1Vector.begin(), b1Vector.end(), mf);
     Real Ave_after = thrust::reduce(b1Vector.begin(), b1Vector.end(), 0.0) / numAllMarkers;
-    printf("Ave RHS =%.3e, Ave after removing null space=%.3e\n", Ave_RHS, Ave_after);
+    if (verbose) {
+        double Pressure_Computation = (clock() - LinearSystemClock_p) / (double)CLOCKS_PER_SEC;
+        printf("Ave RHS =%.3e, Ave after removing null space=%.3e\n", Ave_RHS, Ave_after);
+        printf("| Pressure Poisson Equation: %f (sec) - Final Residual=%.3e - #Iter=%d, Ave_p=%.3e\n",
+               Pressure_Computation, MaxRes, Iteration, Ave_pressure);
+    }
 
-    double Pressure_Computation = (clock() - LinearSystemClock_p) / (double)CLOCKS_PER_SEC;
-    printf("| Pressure Poisson Equation: %f (sec) - Final Residual=%.3e - #Iter=%d, Ave_p=%.3e\n", Pressure_Computation,
-           MaxRes, Iteration, Ave_pressure);
     //==================================Velocity_Correction_and_update============================================
     double updateClock = clock();
     rhoPresMuD_old = sortedSphMarkers_D->rhoPresMuD;
@@ -1202,7 +1224,7 @@ void ChFsiForceI2SPH::ForceSPH(std::shared_ptr<SphMarkerDataD> otherSortedSphMar
     ChUtilsDevice::Sync_CheckError(isErrorH, isErrorD, "Velocity_Correction_and_update");
 
     CopySortedToOriginal_NonInvasive_R3(fsiData->vis_vel_SPH_D, vel_vis_Sorted_D, markersProximity_D->gridMarkerIndexD);
-    CopySortedToOriginal_NonInvasive_R4(fsiData->derivVelRhoD_old, derivVelRhoD_Sorted_D,
+    CopySortedToOriginal_NonInvasive_R4(fsiData->derivVelRhoD, derivVelRhoD_Sorted_D,
                                         markersProximity_D->gridMarkerIndexD);
     CopySortedToOriginal_NonInvasive_R3(sphMarkersD->velMasD, sortedSphMarkers_D->velMasD,
                                         markersProximity_D->gridMarkerIndexD);

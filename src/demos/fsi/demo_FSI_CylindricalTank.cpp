@@ -48,19 +48,18 @@ using std::endl;
 ChVisualSystem::Type vis_type = ChVisualSystem::Type::VSG;
 
 // Output directories and settings
-std::string out_dir = GetChronoOutputPath() + "FSI_Sphere_Bounce";
-
-// Container dimensions
-ChVector3d csize(0.8, 0.8, 1.6);
+std::string out_dir = GetChronoOutputPath() + "FSI_Cylindrical_Tank";
 
 // Dimensions of fluid domain
-ChVector3d fsize(0.8, 0.8, 1.2);
+double r_inner = 0.2;
+double r_outer = 0.8;
+double height = 1.0;
 
 // Sphere density
-double density = 500;
+double density = 300;
 
 // Sphere initial height
-double initial_height = 0.95;
+double initial_height = 0.7;
 
 // Final simulation time
 double t_end = 3.0;
@@ -106,7 +105,7 @@ int main(int argc, char* argv[]) {
     sysMBS.SetCollisionSystemType(ChCollisionSystem::Type::BULLET);
 
     // Create the FSI problem
-    ChFsiProblemCartesian fsi(sysMBS, initial_spacing);
+    ChFsiProblemCylindrical fsi(sysMBS, initial_spacing);
     fsi.SetVerbose(verbose);
     ChSystemFsi& sysFSI = fsi.GetSystemFSI();
 
@@ -125,7 +124,7 @@ int main(int argc, char* argv[]) {
     // Set SPH solution parameters
     ChSystemFsi::SPHParameters sph_params;
     sph_params.sph_method = SPHMethod::WCSPH;
-    sph_params.num_bce_layers = 4;
+    sph_params.num_bce_layers = 3;
     sph_params.kernel_h = initial_spacing;
     sph_params.initial_spacing = initial_spacing;
     sph_params.max_velocity = 1.0;
@@ -145,7 +144,7 @@ int main(int argc, char* argv[]) {
 
     auto body = chrono_types::make_shared<ChBody>();
     body->SetName("ball");
-    body->SetPos(ChVector3d(0, 0, initial_height));
+    body->SetPos(ChVector3d(0, (r_inner + r_outer) / 2, initial_height));
     body->SetRot(QUNIT);
     body->SetMass(mass);
     body->SetInertia(inertia);
@@ -160,21 +159,21 @@ int main(int argc, char* argv[]) {
         geometry.CreateVisualizationAssets(body, utils::ChBodyGeometry::VisualizationType::COLLISION);
 
     // Add as an FSI body (create BCE markers on a grid)
-    fsi.AddRigidBody(body, geometry, true, true);
+    fsi.AddRigidBody(body, geometry, true, false);
 
     // Enable height-based initial pressure for SPH particles
     fsi.RegisterParticlePropertiesCallback(
-        chrono_types::make_shared<DepthPressurePropertiesCallback>(sysFSI, fsize.z()));
+        chrono_types::make_shared<DepthPressurePropertiesCallback>(sysFSI, height));
 
     // Create SPH material (do not create boundary BCEs)
-    fsi.Construct(fsize,                // length x width x depth
-                  ChVector3d(0, 0, 0),  // position of bottom origin
-                  false,                // bottom wall?
-                  false                 // side walls?
+    fsi.Construct(r_inner, r_outer, height,  //
+                  ChVector3d(0, 0, 0),       // position of bottom origin
+                  false,                     // bottom wall?
+                  false                      // side walls?
     );
 
-    // Add box container (with bottom, side, and top walls)
-    fsi.AddBoxContainer(csize, ChVector3d(0, 0, 0), true, true, true);
+    // Create a matching cylindrical container (with bottom, side, and top walls)
+    fsi.AddCylindricalContainer(r_inner, r_outer, height + 0.4, ChVector3d(0, 0, 0), true, true, true);
 
     fsi.Initialize();
 
@@ -241,8 +240,7 @@ int main(int argc, char* argv[]) {
 
         visFSI->SetTitle("Chrono::FSI cylinder drop");
         visFSI->SetSize(1280, 720);
-        visFSI->AddCamera(ChVector3d(2.5 * fsize.x(), 2.5 * fsize.y(), 1.5 * fsize.z()),
-                          ChVector3d(0, 0, 0.5 * fsize.z()));
+        visFSI->AddCamera(ChVector3d(2.5 * r_outer, 2.5 * r_outer, 1.5 * height), ChVector3d(0, 0, 0.5 * height));
         visFSI->SetCameraMoveScale(0.1f);
         visFSI->EnableFluidMarkers(show_particles_sph);
         visFSI->EnableBoundaryMarkers(show_boundary_bce);
@@ -295,6 +293,7 @@ int main(int argc, char* argv[]) {
 
         auto body_height = body->GetPos().z();
         height_recorder.AddPoint(time, body_height);
+
         ////cout << "step: " << sim_frame << "\ttime: " << time << "\tRTF: " << sysFSI.GetRTF()
         ////     << "\tbody z: " << body_height << endl;
 
@@ -310,7 +309,7 @@ int main(int argc, char* argv[]) {
 #ifdef CHRONO_POSTPROCESS
     postprocess::ChGnuPlot gplot(out_dir + "/height.gpl");
     gplot.SetGrid();
-    std::string speed_title = "Sphere height";
+    std::string speed_title = "Sphere height (cylindrical tank)";
     gplot.SetTitle(speed_title);
     gplot.SetLabelX("time (s)");
     gplot.SetLabelY("height (m)");

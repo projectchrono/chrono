@@ -164,7 +164,6 @@ struct FsiData {
 
     // Fluid data (device)
     thrust::device_vector<Real4> derivVelRhoD;      ///< dv/dt and d(rho)/dt for particles
-    thrust::device_vector<Real4> derivVelRhoD_old;  ///< dv/dt and d(rho)/dt for particles but from the previous step - TODO (Huzaifa): This needs to be deperecated as it has no physical meaning to average the accelerations between current and previous steps before accumulating on the rigid body
     thrust::device_vector<Real4>
         derivVelRhoOriginalD;  ///< dv/dt and d(rho)/dt used for writing partilces in file - unsorted
 

@@ -71,6 +71,7 @@ ChBodyGeometry::ConvexHullsShape::ConvexHullsShape(const std::string& filename, 
 
 ChBodyGeometry::TrimeshShape::TrimeshShape(const ChVector3d& pos,
                                            const std::string& filename,
+                                           const ChVector3d& interior_point,
                                            double scale,
                                            double radius,
                                            int matID)
@@ -79,13 +80,17 @@ ChBodyGeometry::TrimeshShape::TrimeshShape(const ChVector3d& pos,
     for (auto& v : trimesh->GetCoordsVertices()) {
         v *= scale;
     }
+    int_point = pos + scale * interior_point;
 }
 
 ChBodyGeometry::TrimeshShape::TrimeshShape(const ChVector3d& pos,
                                            std::shared_ptr<ChTriangleMeshConnected> trimesh,
+                                           const ChVector3d& interior_point,
                                            double radius,
                                            int matID)
-    : trimesh(trimesh), radius(radius), pos(pos), matID(matID) {}
+    : trimesh(trimesh), radius(radius), pos(pos), matID(matID) {
+    int_point = pos + interior_point;
+}
 
 std::shared_ptr<ChVisualShape> ChBodyGeometry::AddVisualizationCylinder(std::shared_ptr<ChBody> body,
                                                                         const ChVector3d& p1,

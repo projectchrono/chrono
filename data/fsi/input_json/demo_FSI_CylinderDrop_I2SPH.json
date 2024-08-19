@@ -23,7 +23,6 @@
   "Time Stepping":
   {
     "Adaptive Time stepping":        false,
-    "Beta":                          0.0,
     "CFL number":                    0.2,
     "Fluid time step":               2e-4,
     "Solid time step":               2e-4

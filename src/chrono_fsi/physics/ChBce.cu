@@ -15,8 +15,8 @@
 // Base class for processing boundary condition enforcing (bce) markers forces
 // in FSI system.
 // TODO: There need to be a better way to compute bce marker forces for different solvers.
-// For explicit solver, it is essentially derivVelRhoD_old times the marker mass,
-// For I2SPH, it is derivVelRhoD_old only
+// For explicit solver, it is essentially derivVelRhoD times the marker mass,
+// For I2SPH, it is derivVelRhoD only
 // =============================================================================
 
 #include "chrono_fsi/physics/ChBce.cuh"
@@ -68,7 +68,6 @@ __global__ void Populate_RigidSPH_MeshPos_LRF_D(Real3* rigid_BCEcoords_D,
 __global__ void CalcRigidForces_D(Real3* rigid_FSI_ForcesD,
                                   Real3* rigid_FSI_TorquesD,
                                   Real4* derivVelRhoD,
-                                  Real4* derivVelRhoD_old,
                                   Real4* posRadD,
                                   uint* rigid_BCEsolids_D,
                                   Real3* posRigidD,
@@ -102,7 +101,8 @@ __global__ void CalcRigidForces_D(Real3* rigid_FSI_ForcesD,
         atomicAdd((float*)&(rigid_FSI_ForcesD[RigidIndex].y), Force.y);
         atomicAdd((float*)&(rigid_FSI_ForcesD[RigidIndex].z), Force.z);
     }
-    Real3 dist3 = Distance(mR3(posRadD[sortedIndex]), posRigidD[RigidIndex]);
+
+    Real3 dist3 = mR3(posRadD[sortedIndex]) - posRigidD[RigidIndex];
     Real3 mtorque = cross(dist3, Force);
 
     if (std::is_same<Real, double>::value) {
@@ -118,7 +118,6 @@ __global__ void CalcRigidForces_D(Real3* rigid_FSI_ForcesD,
 
 __global__ void CalcFlex1DForces_D(Real3* flex1D_FSIforces_D,  // FEA node forces (output)
                                    Real4* derivVelRhoD,        // dv/dt
-                                   Real4* derivVelRhoD_old,    // dv/dt
                                    uint2* flex1D_Nodes_D,      // segment node indices
                                    uint3* flex1D_BCEsolids_D,  // association of flex BCEs with a mesh and segment
                                    Real3* flex1D_BCEcoords_D,   // local coordinates of BCE markers on FEA 1-D segments
@@ -172,7 +171,6 @@ __global__ void CalcFlex1DForces_D(Real3* flex1D_FSIforces_D,  // FEA node force
 
 __global__ void CalcFlex2DForces_D(Real3* flex2D_FSIforces_D,  // FEA node forces (output)
                                    Real4* derivVelRhoD,        // dv/dt
-                                   Real4* derivVelRhoD_old,    // dv/dt
                                    uint3* flex2D_Nodes_D,      // triangle node indices
                                    uint3* flex2D_BCEsolids_D,  // association of flex BCEs with a mesh and face
                                    Real3* flex2D_BCEcoords_D,   // local coordinates of BCE markers on FEA 2-D faces
@@ -625,25 +623,12 @@ void ChBce::Initialize(std::shared_ptr<SphMarkerDataD> sphMarkers_D,
     int haveFlex1D = (numObjectsH->numFlexBodies1D > 0) ? 1 : 0;
     int haveFlex2D = (numObjectsH->numFlexBodies2D > 0) ? 1 : 0;
 
-    int num = haveHelper + haveGhost + haveRigid + haveFlex1D + haveFlex2D + 1;
-    int numFlexRigidBoundaryMarkers =
-        m_fsiData->referenceArray[num].y - m_fsiData->referenceArray[haveHelper + haveGhost].y;
-
-    if (m_verbose) {
-        printf("Total number of BCE particles = %d\n", numFlexRigidBoundaryMarkers);
-    }
-
     auto numAllBce = numObjectsH->numBoundaryMarkers + numObjectsH->numRigidMarkers +  //
                      numObjectsH->numFlexMarkers1D + numObjectsH->numFlexMarkers2D;
-    if ((int)numAllBce != numFlexRigidBoundaryMarkers) {
-        throw std::runtime_error(
-            "Error! number of flex and rigid and "
-            "boundary markers are saved incorrectly!\n");
-    }
-    velMas_ModifiedBCE.resize(numFlexRigidBoundaryMarkers);
-    rhoPreMu_ModifiedBCE.resize(numFlexRigidBoundaryMarkers);
-    tauXxYyZz_ModifiedBCE.resize(numFlexRigidBoundaryMarkers);
-    tauXyXzYz_ModifiedBCE.resize(numFlexRigidBoundaryMarkers);
+    velMas_ModifiedBCE.resize(numAllBce);
+    rhoPreMu_ModifiedBCE.resize(numAllBce);
+    tauXxYyZz_ModifiedBCE.resize(numAllBce);
+    tauXyXzYz_ModifiedBCE.resize(numAllBce);
 
     // Populate local position of BCE markers - on rigid bodies
     if (haveRigid) {
@@ -931,8 +916,7 @@ void ChBce::Rigid_Forces_Torques(std::shared_ptr<FsiBodyStateD> fsiBodyState_D) 
     computeGridSize((uint)numObjectsH->numRigidMarkers, 256, nBlocks, nThreads);
 
     CalcRigidForces_D<<<nBlocks, nThreads>>>(
-        mR3CAST(m_fsiData->rigid_FSI_ForcesD), mR3CAST(m_fsiData->rigid_FSI_TorquesD), mR4CAST(m_fsiData->derivVelRhoD),
-        mR4CAST(m_fsiData->derivVelRhoD_old), mR4CAST(m_sortedSphMarkersD->posRadD),
+        mR3CAST(m_fsiData->rigid_FSI_ForcesD), mR3CAST(m_fsiData->rigid_FSI_TorquesD), mR4CAST(m_fsiData->derivVelRhoD), mR4CAST(m_sortedSphMarkersD->posRadD),
         U1CAST(m_fsiData->rigid_BCEsolids_D), mR3CAST(fsiBodyState_D->pos), mR3CAST(m_fsiData->rigid_BCEcoords_D),
         U1CAST(m_markersProximityD->mapOriginalToSorted));
 
@@ -952,7 +936,7 @@ void ChBce::Flex1D_Forces(std::shared_ptr<FsiMeshStateD> fsiMesh1DState_D) {
 
     CalcFlex1DForces_D<<<nBlocks, nThreads>>>(                                   //
         mR3CAST(m_fsiData->flex1D_FSIforces_D),                                  //
-        mR4CAST(m_fsiData->derivVelRhoD), mR4CAST(m_fsiData->derivVelRhoD_old),  //
+        mR4CAST(m_fsiData->derivVelRhoD),                                        //
         U2CAST(m_fsiData->flex1D_Nodes_D),                                       //
         U3CAST(m_fsiData->flex1D_BCEsolids_D),                                   //
         mR3CAST(m_fsiData->flex1D_BCEcoords_D),
@@ -975,7 +959,7 @@ void ChBce::Flex2D_Forces(std::shared_ptr<FsiMeshStateD> fsiMesh2DState_D) {
 
     CalcFlex2DForces_D<<<nBlocks, nThreads>>>(                                   //
         mR3CAST(m_fsiData->flex2D_FSIforces_D),                                  //
-        mR4CAST(m_fsiData->derivVelRhoD), mR4CAST(m_fsiData->derivVelRhoD_old),  //
+        mR4CAST(m_fsiData->derivVelRhoD),  //
         U3CAST(m_fsiData->flex2D_Nodes_D),                                       //
         U3CAST(m_fsiData->flex2D_BCEsolids_D),                                   //
         mR3CAST(m_fsiData->flex2D_BCEcoords_D),

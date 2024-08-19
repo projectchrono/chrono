@@ -129,7 +129,7 @@ void CreateBaffles(ChFsiProblem& fsi) {
     sysMBS.AddBody(baffle1);
     if (show_rigid)
         geometry.CreateVisualizationAssets(baffle1, utils::ChBodyGeometry::VisualizationType::COLLISION);
-    fsi.AddRigidBody(baffle1, geometry, VNULL);
+    fsi.AddRigidBody(baffle1, geometry, false);
 
     auto baffle2 = chrono_types::make_shared<ChBody>();
     baffle2->SetPos(bloc2);
@@ -138,7 +138,7 @@ void CreateBaffles(ChFsiProblem& fsi) {
     sysMBS.AddBody(baffle2);
     if (show_rigid)
         geometry.CreateVisualizationAssets(baffle2, utils::ChBodyGeometry::VisualizationType::COLLISION);
-    fsi.AddRigidBody(baffle2, geometry, VNULL);
+    fsi.AddRigidBody(baffle2, geometry, false);
 
     auto baffle3 = chrono_types::make_shared<ChBody>();
     baffle3->SetPos(bloc3);
@@ -147,7 +147,7 @@ void CreateBaffles(ChFsiProblem& fsi) {
     sysMBS.AddBody(baffle3);
     if (show_rigid)
         geometry.CreateVisualizationAssets(baffle3, utils::ChBodyGeometry::VisualizationType::COLLISION);
-    fsi.AddRigidBody(baffle3, geometry, VNULL);
+    fsi.AddRigidBody(baffle3, geometry, false);
 }
 
 // ----------------------------------------------------------------------------
@@ -162,7 +162,7 @@ int main(int argc, char* argv[]) {
     sysMBS.SetCollisionSystemType(ChCollisionSystem::Type::BULLET);
 
     // Create the FSI problem
-    ChFsiProblem fsi(sysMBS, initial_spacing);
+    ChFsiProblemCartesian fsi(sysMBS, initial_spacing);
     fsi.SetVerbose(verbose);
     ChSystemFsi& sysFSI = fsi.GetSystemFSI();
 
@@ -218,7 +218,9 @@ int main(int argc, char* argv[]) {
     bool side_walls = false;
     fsi.AddBoxContainer(csize,                // length x width x height
                         ChVector3d(0, 0, 0),  // reference location
-                        side_walls            // side walls
+                        true,                 // bottom wall
+                        side_walls,           // side walls
+                        false                 // top wall
     );
 
     if (show_rigid) {

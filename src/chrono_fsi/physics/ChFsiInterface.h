@@ -65,10 +65,17 @@ class ChFsiInterface : public ChFsiBase {
     void ApplyMesh2DForce_Fsi2Chrono();
 
   private:
+    /// Description of a rigid body exposed to the FSI system.
+    struct FsiBody {
+        std::shared_ptr<ChBody> body;  ///< rigid body exposed to FSI system
+        ChVector3d fsi_force;          ///< fluid force at body COM (expressed in absolute frame)
+        ChVector3d fsi_torque;         ///< induced torque (expressed in absolute frame)
+    };
+
     /// Description of an FEA mesh with 1-D segments exposed to the FSI system.
     struct FsiMesh1D {
         std::vector<std::shared_ptr<fea::ChContactSegmentXYZ>> segments;  ///< contact segments (pairs of FEA nodes)
-        std::map<std::shared_ptr<fea::ChNodeFEAxyz>, int> ptr2ind_map;    ///< pointer-based index-based mapping
+        std::map<std::shared_ptr<fea::ChNodeFEAxyz>, int> ptr2ind_map;    ///< pointer-based to index-based mapping
         std::map<int, std::shared_ptr<fea::ChNodeFEAxyz>> ind2ptr_map;    ///< index-based to pointer-based mapping
         int num_bce;                                                      ///< number of BCE markers for this mesh
     };
@@ -76,7 +83,7 @@ class ChFsiInterface : public ChFsiBase {
     /// Description of an FEA mesh with 2-D faces exposed to the FSI system.
     struct FsiMesh2D {
         std::shared_ptr<fea::ChContactSurfaceMesh> contact_surface;     ///< FEA mesh skin
-        std::map<std::shared_ptr<fea::ChNodeFEAxyz>, int> ptr2ind_map;  ///< pointer-based index-based mapping
+        std::map<std::shared_ptr<fea::ChNodeFEAxyz>, int> ptr2ind_map;  ///< pointer-based to index-based mapping
         std::map<int, std::shared_ptr<fea::ChNodeFEAxyz>> ind2ptr_map;  ///< index-based to pointer-based mapping
         int num_bce;                                                    ///< number of BCE markers for this mesh
     };
@@ -84,9 +91,9 @@ class ChFsiInterface : public ChFsiBase {
     ChSystemFsi_impl& m_sysFSI;  ///< FSI system
     bool m_verbose;              ///< terminal output (default: true)
 
-    std::vector<std::shared_ptr<ChBody>> m_fsi_bodies;  ///< rigid bodies exposed to the FSI system
-    std::vector<FsiMesh1D> m_fsi_meshes1D;              ///< FEA meshes with 1-D segments exposed to the FSI system
-    std::vector<FsiMesh2D> m_fsi_meshes2D;              ///< FEA meshes with 2-D faces exposed to the FSI system
+    std::vector<FsiBody> m_fsi_bodies;      ///< rigid bodies exposed to the FSI system
+    std::vector<FsiMesh1D> m_fsi_meshes1D;  ///< FEA meshes with 1-D segments exposed to the FSI system
+    std::vector<FsiMesh2D> m_fsi_meshes2D;  ///< FEA meshes with 2-D faces exposed to the FSI system
 
     friend class ChSystemFsi;
 };

@@ -15,8 +15,8 @@
 #ifndef CH_FSI_FORCEI2SPH_H_
 #define CH_FSI_FORCEI2SPH_H_
 
-#include "chrono_fsi/ChApiFsi.h"
 #include "chrono_fsi/physics/ChFsiForce.cuh"
+#include "chrono_fsi/math/ChFsiLinearSolver.h"
 
 namespace chrono {
 namespace fsi {
@@ -40,9 +40,11 @@ class ChFsiForceI2SPH : public ChFsiForce {
     );
 
     ~ChFsiForceI2SPH();
-    void Initialize() override;
+    virtual void Initialize() override;
 
   private:
+    std::shared_ptr<ChFsiLinearSolver> myLinearSolver;
+
     thrust::device_vector<Real> _sumWij_inv;
     thrust::device_vector<uint> Contact_i;
     thrust::device_vector<Real> G_i;

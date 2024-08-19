@@ -232,15 +232,12 @@ void ChSystemFsi_impl::CalcNumObjects() {
                 break;
             case 1:
                 numObjectsH->numRigidMarkers += numMarkers;
-                numObjectsH->numRigidBodies++;
                 break;
             case 2:
                 numObjectsH->numFlexMarkers1D += numMarkers;
-                numObjectsH->numFlexBodies1D++;
                 break;
             case 3:
                 numObjectsH->numFlexMarkers2D += numMarkers;
-                numObjectsH->numFlexBodies2D++;
                 break;
             default:
                 std::cerr << "ERROR (CalcNumObjects): particle type not defined." << std::endl;
@@ -265,12 +262,14 @@ void ChSystemFsi_impl::ConstructReferenceArray() {
     thrust::host_vector<int> numComponentMarkers(numAllMarkers);
     thrust::fill(numComponentMarkers.begin(), numComponentMarkers.end(), 1);
     thrust::host_vector<Real4> dummyRhoPresMuH = sphMarkers_H->rhoPresMuH;
-    thrust::copy(sphMarkers_H->rhoPresMuH.begin(), sphMarkers_H->rhoPresMuH.end(), dummyRhoPresMuH.begin());
-    size_t numberOfComponents =
-        (thrust::reduce_by_key(dummyRhoPresMuH.begin(), dummyRhoPresMuH.end(), numComponentMarkers.begin(),
-                               dummyRhoPresMuH.begin(), numComponentMarkers.begin(), sphTypeCompEqual()))
-            .first -
-        dummyRhoPresMuH.begin();
+
+    auto new_end = thrust::reduce_by_key(dummyRhoPresMuH.begin(), dummyRhoPresMuH.end(),  // keys first, last
+                                         numComponentMarkers.begin(),                     // values first
+                                         dummyRhoPresMuH.begin(),                         // keys out
+                                         numComponentMarkers.begin(),                     // values out
+                                         sphTypeCompEqual());
+
+    size_t numberOfComponents = new_end.first - dummyRhoPresMuH.begin();
 
     dummyRhoPresMuH.resize(numberOfComponents);
     numComponentMarkers.resize(numberOfComponents);
@@ -345,7 +344,6 @@ void ChSystemFsi_impl::Initialize(size_t numRigidBodies,
     markersProximityWide_D->resize(numObjectsH->numAllMarkers);
 
     fsiData->derivVelRhoD.resize(numObjectsH->numAllMarkers); // sorted
-    fsiData->derivVelRhoD_old.resize(numObjectsH->numAllMarkers); // sorted
     fsiData->derivVelRhoOriginalD.resize(numObjectsH->numAllMarkers); // unsorted
 
     fsiData->derivTauXxYyZzD.resize(numObjectsH->numAllMarkers);

@@ -131,18 +131,16 @@ void ChSystemFsi::InitParams() {
     // Time stepping
     m_paramsH->Adaptive_time_stepping = false;
     m_paramsH->Co_number = Real(0.1);
-    m_paramsH->Beta = Real(0.0);
     m_paramsH->dT = Real(0.0001);
     m_paramsH->INV_dT = 1 / m_paramsH->dT;
     m_paramsH->dT_Flex = m_paramsH->dT;
     m_paramsH->dT_Max = Real(1.0);
 
     // Pressure equation
-    m_paramsH->PPE_Solution_type = PPESolutionType::MATRIX_FREE;
     m_paramsH->DensityBaseProjection = false;
     m_paramsH->Alpha = m_paramsH->HSML;
     m_paramsH->PPE_relaxation = Real(1.0);
-    m_paramsH->LinearSolver = SolverType::BICGSTAB;
+    m_paramsH->LinearSolver = SolverType::JACOBI;
     m_paramsH->LinearSolver_Abs_Tol = Real(0.0);
     m_paramsH->LinearSolver_Rel_Tol = Real(0.0);
     m_paramsH->LinearSolver_Max_Iter = 1000;
@@ -296,9 +294,6 @@ void ChSystemFsi::ReadParametersFromFile(const std::string& json_file) {
         if (doc["Time Stepping"].HasMember("CFL number"))
             m_paramsH->Co_number = doc["Time Stepping"]["CFL number"].GetDouble();
 
-        if (doc["Time Stepping"].HasMember("Beta"))
-            m_paramsH->Beta = doc["Time Stepping"]["Beta"].GetDouble();
-
         if (doc["Time Stepping"].HasMember("Fluid time step"))
             m_paramsH->dT = doc["Time Stepping"]["Fluid time step"].GetDouble();
 
@@ -319,17 +314,15 @@ void ChSystemFsi::ReadParametersFromFile(const std::string& json_file) {
 
     if (doc.HasMember("Pressure Equation")) {
         if (doc["Pressure Equation"].HasMember("Linear solver")) {
-            m_paramsH->PPE_Solution_type = PPESolutionType::FORM_SPARSE_MATRIX;
             std::string solver = doc["Pressure Equation"]["Linear solver"].GetString();
             if (solver == "Jacobi") {
-                m_paramsH->USE_LinearSolver = false;
-            } else {
-                m_paramsH->USE_LinearSolver = true;
-                if (solver == "BICGSTAB")
-                    m_paramsH->LinearSolver = SolverType::BICGSTAB;
-                if (solver == "GMRES")
-                    m_paramsH->LinearSolver = SolverType::GMRES;
-            }
+                m_paramsH->LinearSolver = SolverType::JACOBI;
+            } else if (solver == "BICGSTAB") {
+                m_paramsH->LinearSolver = SolverType::BICGSTAB;
+            } else if (solver == "GMRES")
+                m_paramsH->LinearSolver = SolverType::GMRES;
+        } else {
+            m_paramsH->LinearSolver = SolverType::JACOBI;
         }
 
         if (doc["Pressure Equation"].HasMember("Poisson source term")) {
@@ -501,9 +494,8 @@ void ChSystemFsi::SetSPHLinearSolver(SolverType lin_solver) {
     m_paramsH->LinearSolver = lin_solver;
 }
 
-void ChSystemFsi::SetSPHMethod(SPHMethod SPH_method, SolverType lin_solver) {
+void ChSystemFsi::SetSPHMethod(SPHMethod SPH_method) {
     m_paramsH->sph_method = SPH_method;
-    m_paramsH->LinearSolver = lin_solver;
 }
 
 void ChSystemFsi::SetContainerDim(const ChVector3d& boxDim) {
@@ -667,13 +659,14 @@ void ChSystemFsi::SetElasticSPH(const ElasticMaterialProperties& mat_props) {
 
 ChSystemFsi::SPHParameters::SPHParameters()
     : sph_method(SPHMethod::WCSPH),
-      lin_solver(SolverType::BICGSTAB),
       kernel_h(0.01),
       initial_spacing(0.01),
       max_velocity(1.0),
       xsph_coefficient(0.5),
       shifting_coefficient(1.0),
+      min_distance_coefficient(0.01),
       density_reinit_steps(2e8),
+      use_density_based_projection(false),
       num_bce_layers(3),
       consistent_gradient_discretization(false),
       consistent_laplacian_discretization(false),
@@ -683,7 +676,6 @@ ChSystemFsi::SPHParameters::SPHParameters()
 
 void ChSystemFsi::SetSPHParameters(const SPHParameters& sph_params) {
     m_paramsH->sph_method = sph_params.sph_method;
-    m_paramsH->LinearSolver = sph_params.lin_solver;
 
     m_paramsH->HSML = sph_params.kernel_h;
     m_paramsH->INITSPACE = sph_params.initial_spacing;
@@ -694,7 +686,10 @@ void ChSystemFsi::SetSPHParameters(const SPHParameters& sph_params) {
     m_paramsH->Cs = 10 * m_paramsH->v_Max;
     m_paramsH->EPS_XSPH = sph_params.xsph_coefficient;
     m_paramsH->beta_shifting = sph_params.shifting_coefficient;
+    m_paramsH->epsMinMarkersDis = sph_params.min_distance_coefficient;
+
     m_paramsH->densityReinit = sph_params.density_reinit_steps;
+    m_paramsH->DensityBaseProjection = sph_params.use_density_based_projection;
 
     m_paramsH->NUM_BCE_LAYERS = sph_params.num_bce_layers;
 
@@ -706,6 +701,16 @@ void ChSystemFsi::SetSPHParameters(const SPHParameters& sph_params) {
     m_paramsH->numProximitySearchSteps = sph_params.numProximitySearchSteps;
     m_paramsH->sharedProximitySearch = sph_params.sharedProximitySearch;
 
+}
+
+ChSystemFsi::LinSolverParameters::LinSolverParameters()
+    : type(SolverType::JACOBI), atol(0.0), rtol(0.0), max_num_iters(1000) {}
+
+void ChSystemFsi::SetLinSolverParameters(const LinSolverParameters& linsolv_params) {
+    m_paramsH->LinearSolver = linsolv_params.type;
+    m_paramsH->LinearSolver_Abs_Tol = linsolv_params.atol;
+    m_paramsH->LinearSolver_Rel_Tol = linsolv_params.rtol;
+    m_paramsH->LinearSolver_Max_Iter = linsolv_params.max_num_iters;
 }
 
 //--------------------------------------------------------------------------------------------------------------------------------
@@ -729,11 +734,20 @@ std::string ChSystemFsi::GetSphMethodTypeString() const {
 
 //--------------------------------------------------------------------------------------------------------------------------------
 
-void ChSystemFsi::AddFsiBody(std::shared_ptr<ChBody> body) {
-    m_fsi_interface->m_fsi_bodies.push_back(body);
+size_t ChSystemFsi::AddFsiBody(std::shared_ptr<ChBody> body) {
+    ChFsiInterface::FsiBody fsi_body;
+
+    fsi_body.body = body;
+    fsi_body.fsi_force = VNULL;
+    fsi_body.fsi_torque = VNULL;
+
+    size_t index = m_fsi_interface->m_fsi_bodies.size();
+    m_fsi_interface->m_fsi_bodies.push_back(fsi_body);
+
+    return index;
 }
 
-void ChSystemFsi::AddFsiMesh1D(std::shared_ptr<fea::ChMesh> mesh, BcePatternMesh1D pattern, bool remove_center) {
+size_t ChSystemFsi::AddFsiMesh1D(std::shared_ptr<fea::ChMesh> mesh, BcePatternMesh1D pattern, bool remove_center) {
     ChFsiInterface::FsiMesh1D fsi_mesh;
 
     // Traverse all elements in the provided mesh and extract the 1-D elements elements.
@@ -789,10 +803,13 @@ void ChSystemFsi::AddFsiMesh1D(std::shared_ptr<fea::ChMesh> mesh, BcePatternMesh
     m_num_flex1D_nodes += fsi_mesh.ind2ptr_map.size();
 
     // Store the mesh contact surface
+    size_t index = m_fsi_interface->m_fsi_meshes1D.size();
     m_fsi_interface->m_fsi_meshes1D.push_back(fsi_mesh);
+
+    return index;
 }
 
-void ChSystemFsi::AddFsiMesh2D(std::shared_ptr<fea::ChMesh> mesh, BcePatternMesh2D pattern, bool remove_center) {
+size_t ChSystemFsi::AddFsiMesh2D(std::shared_ptr<fea::ChMesh> mesh, BcePatternMesh2D pattern, bool remove_center) {
     std::shared_ptr<fea::ChContactSurfaceMesh> contact_surface;
 
     // Search for a contact surface mesh associated with the FEA mesh
@@ -853,7 +870,10 @@ void ChSystemFsi::AddFsiMesh2D(std::shared_ptr<fea::ChMesh> mesh, BcePatternMesh
     m_num_flex2D_nodes += fsi_mesh.ind2ptr_map.size();
 
     // Store the mesh contact surface
+    size_t index = m_fsi_interface->m_fsi_meshes1D.size();
     m_fsi_interface->m_fsi_meshes2D.push_back(fsi_mesh);
+
+    return index;
 }
 
 //--------------------------------------------------------------------------------------------------------------------------------
@@ -1026,8 +1046,6 @@ void ChSystemFsi::Initialize() {
 
     m_fluid_dynamics = chrono_types::make_unique<ChFluidDynamics>(m_bce_manager, *m_sysFSI, m_paramsH,
                                                                   m_sysFSI->numObjectsH, m_verbose);
-    m_fluid_dynamics->GetForceSystem()->SetLinearSolver(m_paramsH->LinearSolver);
-
     // Initialize worker objects
     m_bce_manager->Initialize(m_sysFSI->sphMarkers_D,                                 //
                               m_sysFSI->fsiBodyState1_D,                               //
@@ -1323,11 +1341,16 @@ size_t ChSystemFsi::AddCylinderBCE(std::shared_ptr<ChBody> body, const ChFrame<>
     return AddPointsBCE(body, points, frame, solid);
 }
 
-size_t ChSystemFsi::AddCylinderAnnulusBCE(std::shared_ptr<ChBody> body, const ChFrame<>& frame,
-                                            double radius_inner, double radius_outer, double height,
-                                            bool polar) {
+
+size_t ChSystemFsi::AddCylinderAnnulusBCE(std::shared_ptr<ChBody> body,
+                                          const ChFrame<>& frame,
+                                          double radius_inner,
+                                          double radius_outer,
+                                          double height,
+                                          bool polar) {
+    auto delta = m_paramsH->MULT_INITSPACE * m_paramsH->HSML;
     std::vector<ChVector3d> points;
-    CreateBCE_cylinder_annulus(radius_inner, radius_outer, height, polar, points);
+    CreateCylinderAnnulusPoints(radius_inner, radius_outer, height, polar, delta, points);
     return AddPointsBCE(body, points, frame, true);
 }
 
@@ -1596,59 +1619,12 @@ void ChSystemFsi::CreateBCE_cylinder(double rad, double height, bool solid, bool
     }
 }
 
-void ChSystemFsi::CreateBCE_cylinder_annulus(double rad_in, double rad_out, double height, bool polar,
-                                                std::vector<ChVector3d>& bce) {
-    double spacing = m_paramsH->MULT_INITSPACE * m_paramsH->HSML;
-
-    // Calculate actual spacing
-    double hheight = height / 2;
-    int np_h = (int)std::round(hheight / spacing);
-    double delta_h = hheight / np_h;
-
-    // Use polar coordinates
-    if (polar) {
-        int np_r = (int)std::round((rad_out - rad_in) / spacing);
-        double delta_r = (rad_out - rad_in) / np_r;
-        for (int ir = 0; ir <= np_r; ir++) {
-            double r = rad_in + ir * delta_r;
-            int np_th = (int)std::round(2 * pi * r / spacing);
-            double delta_th = (2 * pi) / np_th;
-            for (int it = 0; it < np_th; it++) {
-                double theta = it * delta_th;
-                double x = r * cos(theta);
-                double y = r * sin(theta);
-                for (int iz = -np_h; iz <= np_h; iz++) {
-                    double z = iz * delta_h;
-                    bce.push_back({x, y, z});
-                }
-            }
-        }
-        return;
-    }
-
-    // Use a regular grid and accept/reject points
-    int np_r = (int)std::round(rad_out / spacing);
-    double delta_r = rad_out / np_r;
-
-    double r_in2 = rad_in * rad_in;
-    double r_out2 = rad_out * rad_out;
-    for (int ix = -np_r; ix <= np_r; ix++) {
-        double x = ix * delta_r;
-        for (int iy = -np_r; iy <= np_r; iy++) {
-            double y = iy * delta_r;
-            double r2 = x * x + y * y;
-            if (r2 >= r_in2 && r2 <= r_out2) {
-                for (int iz = -np_h; iz <= np_h; iz++) {
-                    double z = iz * delta_h;
-                    bce.push_back({x, y, z});
-                }
-            }
-        }
-    }
-}
-
-void ChSystemFsi::CreateBCE_cone(double rad, double height, bool solid, bool capped, bool polar,
-                                    std::vector<ChVector3d>& bce) {
+void ChSystemFsi::CreateBCE_cone(double rad,
+                                 double height,
+                                 bool solid,
+                                 bool capped,
+                                 bool polar,
+                                 std::vector<ChVector3d>& bce) {
     double spacing = m_paramsH->MULT_INITSPACE * m_paramsH->HSML;
     int num_layers = m_paramsH->NUM_BCE_LAYERS;
 
@@ -1953,8 +1929,60 @@ unsigned int ChSystemFsi::AddBCE_mesh2D(unsigned int meshID, const ChFsiInterfac
 
 //--------------------------------------------------------------------------------------------------------------------------------
 
-void ChSystemFsi::CreateMeshPoints(ChTriangleMeshConnected & mesh, double delta,
-                                    std::vector<ChVector3d>& points) {
+void ChSystemFsi::CreateCylinderAnnulusPoints(double rad_inner,
+                                              double rad_outer,
+                                              double height,
+                                              bool polar,
+                                              double delta,
+                                              std::vector<ChVector3d>& points) {
+    // Calculate actual spacing
+    double hheight = height / 2;
+    int np_h = (int)std::round(hheight / delta);
+    double delta_h = hheight / np_h;
+
+    // Use polar coordinates
+    if (polar) {
+        int np_r = (int)std::round((rad_outer - rad_inner) / delta);
+        double delta_r = (rad_outer - rad_inner) / np_r;
+        for (int ir = 0; ir <= np_r; ir++) {
+            double r = rad_inner + ir * delta_r;
+            int np_th = (int)std::round(2 * pi * r / delta);
+            double delta_th = (2 * pi) / np_th;
+            for (int it = 0; it < np_th; it++) {
+                double theta = it * delta_th;
+                double x = r * cos(theta);
+                double y = r * sin(theta);
+                for (int iz = -np_h; iz <= np_h; iz++) {
+                    double z = iz * delta_h;
+                    points.push_back({x, y, z});
+                }
+            }
+        }
+        return;
+    }
+
+    // Use a regular grid and accept/reject points
+    int np_r = (int)std::round(rad_outer / delta);
+    double delta_r = rad_outer / np_r;
+
+    double r_in2 = rad_inner * rad_inner;
+    double r_out2 = rad_outer * rad_outer;
+    for (int ix = -np_r; ix <= np_r; ix++) {
+        double x = ix * delta_r;
+        for (int iy = -np_r; iy <= np_r; iy++) {
+            double y = iy * delta_r;
+            double r2 = x * x + y * y;
+            if (r2 >= r_in2 && r2 <= r_out2) {
+                for (int iz = -np_h; iz <= np_h; iz++) {
+                    double z = iz * delta_h;
+                    points.push_back({x, y, z});
+                }
+            }
+        }
+    }
+}
+
+void ChSystemFsi::CreateMeshPoints(ChTriangleMeshConnected& mesh, double delta, std::vector<ChVector3d>& points) {
     mesh.RepairDuplicateVertexes(1e-9);  // if meshes are not watertight
     auto bbox = mesh.GetBoundingBox();
 
@@ -2122,12 +2150,6 @@ size_t ChSystemFsi::GetNumBoundaryMarkers() const {
 
 //--------------------------------------------------------------------------------------------------------------------------------
 
-std::vector<std::shared_ptr<ChBody>>& ChSystemFsi::GetFsiBodies() const {
-    return m_fsi_interface->m_fsi_bodies;
-}
-
-//--------------------------------------------------------------------------------------------------------------------------------
-
 std::vector<ChVector3d> ChSystemFsi::GetParticlePositions() const {
     thrust::host_vector<Real4> posRadH = m_sysFSI->sphMarkers_D->posRadD;
     std::vector<ChVector3d> pos;
@@ -2174,6 +2196,16 @@ std::vector<ChVector3d> ChSystemFsi::GetParticleForces() const {
         frc.push_back(utils::ToChVector(frcH[i]));
     }
     return frc;
+}
+
+//--------------------------------------------------------------------------------------------------------------------------------
+
+const ChVector3d& ChSystemFsi::GetFsiBodyForce(size_t i) const {
+    return m_fsi_interface->m_fsi_bodies[i].fsi_force;
+}
+
+const ChVector3d& ChSystemFsi::GetFsiBodyTorque(size_t i) const {
+    return m_fsi_interface->m_fsi_bodies[i].fsi_torque;
 }
 
 //--------------------------------------------------------------------------------------------------------------------------------
