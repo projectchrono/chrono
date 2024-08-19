@@ -135,34 +135,6 @@ bool ChDomainManagerSharedmemory::DoAllStepDynamics(double timestep) {
 }
 
 
-/*
-bool ChDomainManagerSharedmemory::DoAllUpdateSharedLeaving() {
-	for (auto& mdomain : this->domains) {
-		mdomain.second->DoUpdateSharedLeaving();
-	}
-	return true;
-}
-
-bool ChDomainManagerSharedmemory::DoAllDomainsSendReceive() {
-	for (auto& mdomain : this->domains) {
-		for (auto& minterface : mdomain.second->GetInterfaces()) {
-			// receive from neighbour domain to this domain:
-			minterface.second.buffer_receiving << this->domains[minterface.second.side_OUT->GetRank()]->GetInterfaces()[mdomain.second->GetRank()].buffer_sending.rdbuf();
-			// send from this domain to neighbour domain: not needed because done when the previous line will be called for the neighbour. 
-		}
-	}
-	return true;
-}
-
-bool ChDomainManagerSharedmemory::DoAllUpdateSharedReceived() {
-	for (auto& mdomain : this->domains) {
-		mdomain.second->DoUpdateSharedReceived();
-	}
-	return true;
-}
-*/
-
-
 
 
 void ChDomainManagerSharedmemory::AddDomain(std::shared_ptr<ChDomain> mdomain) {
