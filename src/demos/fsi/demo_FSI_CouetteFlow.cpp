@@ -104,7 +104,7 @@ int main(int argc, char* argv[]) {
     cout << "Copyright (c) 2024 projectchrono.org\nChrono version: " << CHRONO_VERSION << "\n\n";
 
     double step_size = 5e-4;
-    double time_end = 10;
+    double time_end = 1;
     double initial_spacing = 0.15;  // mm
     double density = 0.001;         // g/mm3
     double viscosity = 0.001;       // g/(mm.s2)
@@ -151,6 +151,8 @@ int main(int argc, char* argv[]) {
     sph_params.shifting_coefficient = 0.0;           // default: 0.1
     sph_params.min_distance_coefficient = 0.001;     // default: 0.01, use 0.001, otherwise fluid surface is asymmetric
     sph_params.use_density_based_projection = true;  // default: false
+    sph_params.numProximitySearchSteps = 1;
+    sph_params.sharedProximitySearch = false;
     sysFSI.SetSPHParameters(sph_params);
 
     // Set linear solver parameters

@@ -940,6 +940,7 @@ void ChFsiForceI2SPH::ForceSPH(std::shared_ptr<SphMarkerDataD> otherSortedSphMar
 
     CopyParams_NumberOfObjects(paramsH, numObjectsH);
 
+    sortedSphMarkers_D = otherSortedSphMarkersD;
     // sphMarkersD = otherSphMarkersD;
     // fsiCollisionSystem->ArrangeData(sphMarkersD);
 
@@ -992,7 +993,6 @@ void ChFsiForceI2SPH::ForceSPH(std::shared_ptr<SphMarkerDataD> otherSortedSphMar
     thrust::device_vector<Real4> rhoPresMuD_old = sortedSphMarkers_D->rhoPresMuD;
     thrust::device_vector<Real4> posRadD_old = sortedSphMarkers_D->posRadD;
     thrust::device_vector<Real3> velMasD_old = sortedSphMarkers_D->velMasD;
-    thrust::device_vector<Real4> sr_tau_I_mu_i(numAllMarkers, mR4(0.0));
 
     thrust::fill(V_star_old.begin(), V_star_old.end(), mR3(0.0));
     thrust::fill(V_star_new.begin(), V_star_new.end(), mR3(0.0));
@@ -1004,7 +1004,7 @@ void ChFsiForceI2SPH::ForceSPH(std::shared_ptr<SphMarkerDataD> otherSortedSphMar
         Viscosity_correction<<<numBlocks, numThreads>>>(
             mR4CAST(sortedSphMarkers_D->posRadD), mR3CAST(sortedSphMarkers_D->velMasD),
             mR4CAST(sortedSphMarkers_D->rhoPresMuD), mR4CAST(rhoPresMuD_old), mR3CAST(sortedSphMarkers_D->tauXxYyZzD),
-            mR3CAST(sortedSphMarkers_D->tauXyXzYzD), mR4CAST(sr_tau_I_mu_i), R1CAST(csrValLaplacian),
+            mR3CAST(sortedSphMarkers_D->tauXyXzYzD), mR4CAST(fsiData->sr_tau_I_mu_i), R1CAST(csrValLaplacian),
             mR3CAST(csrValGradient), R1CAST(csrValFunction), R1CAST(_sumWij_inv), U1CAST(csrColInd), U1CAST(Contact_i),
 
             updatePortion, U1CAST(markersProximity_D->gridMarkerIndexD), numAllMarkers, paramsH->dT, yeild_strain,
@@ -1209,33 +1209,17 @@ void ChFsiForceI2SPH::ForceSPH(std::shared_ptr<SphMarkerDataD> otherSortedSphMar
     posRadD_old = sortedSphMarkers_D->posRadD;
     velMasD_old = sortedSphMarkers_D->velMasD;
 
-    thrust::fill(vel_vis_Sorted_D.begin(), vel_vis_Sorted_D.end(), mR3(0.0));
-
-    // should not be initialized to zero since moving weighted average is going to be applied
-    thrust::fill(derivVelRhoD_Sorted_D.begin(), derivVelRhoD_Sorted_D.end(), mR4(0.0));
+    thrust::fill(fsiData->vis_vel_SPH_D.begin(), fsiData->vis_vel_SPH_D.end(), mR3(0.0));
 
     Velocity_Correction_and_update<<<numBlocks, numThreads>>>(
         mR4CAST(sortedSphMarkers_D->posRadD), mR4CAST(posRadD_old), mR4CAST(sortedSphMarkers_D->rhoPresMuD),
         mR4CAST(rhoPresMuD_old), mR3CAST(sortedSphMarkers_D->velMasD), mR3CAST(velMasD_old),
-        mR3CAST(sortedSphMarkers_D->tauXxYyZzD), mR3CAST(sortedSphMarkers_D->tauXyXzYzD), mR4CAST(sr_tau_I_mu_i),
-        mR3CAST(vel_vis_Sorted_D), mR4CAST(derivVelRhoD_Sorted_D), mR3CAST(V_star_new), R1CAST(q_new),
-        R1CAST(csrValFunction), mR3CAST(csrValGradient), R1CAST(csrValLaplacian), U1CAST(csrColInd), U1CAST(Contact_i),
-        numAllMarkers, MaxVel, paramsH->dT, isErrorD);
+        mR3CAST(sortedSphMarkers_D->tauXxYyZzD), mR3CAST(sortedSphMarkers_D->tauXyXzYzD),
+        mR4CAST(fsiData->sr_tau_I_mu_i), mR3CAST(fsiData->vis_vel_SPH_D), mR4CAST(fsiData->derivVelRhoD),
+        mR3CAST(V_star_new), R1CAST(q_new), R1CAST(csrValFunction), mR3CAST(csrValGradient), R1CAST(csrValLaplacian),
+        U1CAST(csrColInd), U1CAST(Contact_i), numAllMarkers, MaxVel, paramsH->dT, isErrorD);
     ChUtilsDevice::Sync_CheckError(isErrorH, isErrorD, "Velocity_Correction_and_update");
 
-    CopySortedToOriginal_NonInvasive_R3(fsiData->vis_vel_SPH_D, vel_vis_Sorted_D, markersProximity_D->gridMarkerIndexD);
-    CopySortedToOriginal_NonInvasive_R4(fsiData->derivVelRhoD, derivVelRhoD_Sorted_D,
-                                        markersProximity_D->gridMarkerIndexD);
-    CopySortedToOriginal_NonInvasive_R3(sphMarkersD->velMasD, sortedSphMarkers_D->velMasD,
-                                        markersProximity_D->gridMarkerIndexD);
-    CopySortedToOriginal_NonInvasive_R4(sphMarkersD->rhoPresMuD, sortedSphMarkers_D->rhoPresMuD,
-                                        markersProximity_D->gridMarkerIndexD);
-    CopySortedToOriginal_NonInvasive_R4(sphMarkersD->posRadD, sortedSphMarkers_D->posRadD,
-                                        markersProximity_D->gridMarkerIndexD);
-    CopySortedToOriginal_NonInvasive_R3(sphMarkersD->tauXxYyZzD, sortedSphMarkers_D->tauXxYyZzD,
-                                        markersProximity_D->gridMarkerIndexD);
-    CopySortedToOriginal_NonInvasive_R3(sphMarkersD->tauXyXzYzD, sortedSphMarkers_D->tauXyXzYzD,
-                                        markersProximity_D->gridMarkerIndexD);
 
     // fsiCollisionSystem->ArrangeData(sphMarkersD);
     ChFsiForceI2SPH::PreProcessor(sortedSphMarkers_D, false);
@@ -1246,9 +1230,9 @@ void ChFsiForceI2SPH::ForceSPH(std::shared_ptr<SphMarkerDataD> otherSortedSphMar
     //
     Shifting<<<numBlocks, numThreads>>>(
         mR4CAST(sortedSphMarkers_D->posRadD), mR4CAST(posRadD_old), mR4CAST(sortedSphMarkers_D->rhoPresMuD),
-        mR4CAST(rhoPresMuD_old), mR3CAST(sortedSphMarkers_D->velMasD), mR3CAST(velMasD_old), mR3CAST(vel_vis_Sorted_D),
-        R1CAST(csrValFunction), mR3CAST(csrValGradient), U1CAST(csrColInd), U1CAST(Contact_i), numAllMarkers, MaxVel,
-        paramsH->dT, isErrorD);
+        mR4CAST(rhoPresMuD_old), mR3CAST(sortedSphMarkers_D->velMasD), mR3CAST(velMasD_old),
+        mR3CAST(fsiData->vis_vel_SPH_D), R1CAST(csrValFunction), mR3CAST(csrValGradient), U1CAST(csrColInd),
+        U1CAST(Contact_i), numAllMarkers, MaxVel, paramsH->dT, isErrorD);
     ChUtilsDevice::Sync_CheckError(isErrorH, isErrorD, "Shifting");
     Real4_x unary_op(paramsH->rho0);
     thrust::plus<Real> binary_op;
@@ -1264,24 +1248,14 @@ void ChFsiForceI2SPH::ForceSPH(std::shared_ptr<SphMarkerDataD> otherSortedSphMar
 
     // post-processing for conservative formulation
     if (paramsH->Conservative_Form && paramsH->ClampPressure) {
-        Real minP = thrust::transform_reduce(sphMarkersD->rhoPresMuD.begin(), sphMarkersD->rhoPresMuD.end(),
-                                             Real4_y_min(), 1e9, thrust::minimum<Real>());
+        Real minP =
+            thrust::transform_reduce(sortedSphMarkers_D->rhoPresMuD.begin(), sortedSphMarkers_D->rhoPresMuD.end(),
+                                     Real4_y_min(), 1e9, thrust::minimum<Real>());
         my_Functor_real4y negate(minP);
         thrust::for_each(sortedSphMarkers_D->rhoPresMuD.begin(), sortedSphMarkers_D->rhoPresMuD.end(), negate);
         printf("Shifting min pressure of %.3e to 0\n", minP);
     }
     //============================================================================================================
-    CopySortedToOriginal_NonInvasive_R4(fsiData->sr_tau_I_mu_i, sr_tau_I_mu_i, markersProximity_D->gridMarkerIndexD);
-    CopySortedToOriginal_NonInvasive_R3(sphMarkersD->velMasD, sortedSphMarkers_D->velMasD,
-                                        markersProximity_D->gridMarkerIndexD);
-    CopySortedToOriginal_NonInvasive_R4(sphMarkersD->rhoPresMuD, sortedSphMarkers_D->rhoPresMuD,
-                                        markersProximity_D->gridMarkerIndexD);
-    CopySortedToOriginal_NonInvasive_R4(sphMarkersD->posRadD, sortedSphMarkers_D->posRadD,
-                                        markersProximity_D->gridMarkerIndexD);
-    //    CopySortedToOriginal_NonInvasive_R3(sphMarkersD->tauXxYyZzD, sortedSphMarkers_D->tauXxYyZzD,
-    //                                        markersProximity_D->gridMarkerIndexD);
-    //    CopySortedToOriginal_NonInvasive_R3(sphMarkersD->tauXyXzYzD, sortedSphMarkers_D->tauXyXzYzD,
-    //                                        markersProximity_D->gridMarkerIndexD);
 
     csrValGradient.clear();
     csrValLaplacian.clear();

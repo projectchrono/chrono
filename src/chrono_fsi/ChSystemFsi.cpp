@@ -1150,10 +1150,17 @@ void ChSystemFsi::DoStepDynamics_FSI() {
             }
 
             case SPHMethod::I2SPH: {
+                if (m_time < 1e-6 || int(round(m_time / m_paramsH->dT)) % m_paramsH->numProximitySearchSteps == 0) {
+                    m_fluid_dynamics->SortParticles();
+                }
                 ChUtilsDevice::FillVector(m_sysFSI->fsiData->derivVelRhoOriginalD, mR4(0));
                 ChUtilsDevice::FillVector(m_sysFSI->fsiData->derivVelRhoD, mR4(0));
                 ChUtilsDevice::FillVector(m_sysFSI->fsiData->freeSurfaceIdD, 0);
                 ChUtilsDevice::FillVector(m_sysFSI->fsiData->bceAcc, mR3(0));
+                ChUtilsDevice::FillVector(m_sysFSI->fsiData->sr_tau_I_mu_i, mR4(0));
+
+                m_bce_manager->updateBCEAcc(m_sysFSI->fsiBodyState2_D, m_sysFSI->fsiMesh1DState_D,
+                                            m_sysFSI->fsiMesh2DState_D);
 
                 // A different coupling scheme is used for implicit SPH formulations
                 if (m_integrate_SPH) {
@@ -1201,7 +1208,6 @@ void ChSystemFsi::DoStepDynamics_FSI() {
                 m_fluid_dynamics->CopySortedToOriginal(m_sysFSI->sortedSphMarkers2_D, m_sysFSI->sphMarkers_D);
 
                 break;
-
             }
         }
         m_time += m_paramsH->dT;
