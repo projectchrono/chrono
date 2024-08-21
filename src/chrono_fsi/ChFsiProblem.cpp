@@ -254,8 +254,9 @@ void ChFsiProblem::Initialize() {
     // Create the body BCE markers
     // (ATTENTION: BCE markers for moving objects must be created after the fixed BCE markers!)
     for (const auto& b : m_bodies) {
-        m_sysFSI.AddFsiBody(b.body);
+        auto body_index = m_sysFSI.AddFsiBody(b.body);
         m_sysFSI.AddPointsBCE(b.body, b.bce, ChFrame<>(), true);
+        m_fsi_bodies[b.body] = body_index;
     }
 
     // Initialize the underlying FSI system
@@ -441,6 +442,16 @@ void ChFsiProblem::SaveInitialMarkers(const std::string& out_dir) const {
         for (const auto& p : b.bce)
             obs_bce << p << std::endl;
     }
+}
+
+const ChVector3d& ChFsiProblem::GetFsiBodyForce(std::shared_ptr<ChBody> body) const {
+    auto index = m_fsi_bodies.at(body);
+    return m_sysFSI.GetFsiBodyForce(index);
+}
+
+const ChVector3d& ChFsiProblem::GetFsiBodyTorque(std::shared_ptr<ChBody> body) const {
+    auto index = m_fsi_bodies.at(body);
+    return m_sysFSI.GetFsiBodyTorque(index);
 }
 
 // ----------------------------------------------------------------------------
@@ -712,11 +723,11 @@ void ChFsiProblemCartesian::Construct(const std::string& heightmap_file,
         m_offset_bce = m_offset_sph;
 }
 
-void ChFsiProblemCartesian::AddBoxContainer(const ChVector3d& box_size,  // box dimensions
-                                            const ChVector3d& pos,       // reference positions
-                                            bool bottom_wall,            // create bottom boundary
-                                            bool side_walls,             // create side boundaries
-                                            bool top_wall                // create top boundary
+size_t ChFsiProblemCartesian::AddBoxContainer(const ChVector3d& box_size,  // box dimensions
+                                              const ChVector3d& pos,       // reference positions
+                                              bool bottom_wall,            // create bottom boundary
+                                              bool side_walls,             // create side boundaries
+                                              bool top_wall                // create top boundary
 ) {
     if (m_verbose) {
         cout << "Construct box container" << endl;
@@ -789,11 +800,14 @@ void ChFsiProblemCartesian::AddBoxContainer(const ChVector3d& box_size,  // box 
     }
 
     m_offset_bce = pos - ChVector3d(box_size.x() / 2, box_size.y() / 2, 0);
+
+    return m_bce.size();
 }
 
-void ChFsiProblemCartesian::AddWaveMaker(const ChVector3d& box_size,             // box dimensions
-                                         const ChVector3d& pos,                  // reference position
-                                         std::shared_ptr<ChFunction> piston_fun  // piston actuation function
+std::shared_ptr<ChBody> ChFsiProblemCartesian::AddWaveMaker(
+    const ChVector3d& box_size,             // box dimensions
+    const ChVector3d& pos,                  // reference position
+    std::shared_ptr<ChFunction> piston_fun  // piston actuation function
 ) {
     if (m_verbose) {
         cout << "Construct piston wavemaker" << endl;
@@ -879,6 +893,8 @@ void ChFsiProblemCartesian::AddWaveMaker(const ChVector3d& box_size,            
         cout << "  Piston initialized at:   " << piston->GetPos() << endl;
         cout << "  Num. BCE markers:        " << num_piston_bce << endl;
     }
+
+    return piston;
 }
 
 ChVector3i ChFsiProblemCartesian::Snap2Grid(const ChVector3d& point) {
@@ -993,13 +1009,13 @@ void ChFsiProblemCylindrical::Construct(double radius_inner,
         m_offset_bce = m_offset_sph;
 }
 
-void ChFsiProblemCylindrical::AddCylindricalContainer(double radius_inner,
-                                                      double radius_outer,
-                                                      double height,
-                                                      const ChVector3d& pos,
-                                                      bool bottom_wall,
-                                                      bool side_walls,
-                                                      bool top_wall) {
+size_t ChFsiProblemCylindrical::AddCylindricalContainer(double radius_inner,
+                                                        double radius_outer,
+                                                        double height,
+                                                        const ChVector3d& pos,
+                                                        bool bottom_wall,
+                                                        bool side_walls,
+                                                        bool top_wall) {
     if (m_verbose) {
         cout << "Construct cylinder container" << endl;
     }
@@ -1085,6 +1101,14 @@ void ChFsiProblemCylindrical::AddCylindricalContainer(double radius_inner,
             }
         }
     }
+
+    if (m_verbose) {
+        cout << "  Num. bndry. BCE markers: " << m_bce.size() << " (" << m_bce.size() << ")" << endl;
+    }
+
+    m_offset_bce = pos;
+
+    return m_bce.size();
 }
 
 ChVector3i ChFsiProblemCylindrical::Snap2Grid(const ChVector3d& point) {
