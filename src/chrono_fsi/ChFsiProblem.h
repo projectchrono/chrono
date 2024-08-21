@@ -20,6 +20,7 @@
 #define CH_FSI_PROBLEM_H
 
 #include <unordered_set>
+#include <unordered_map>
 
 #include "chrono/physics/ChSystem.h"
 #include "chrono/utils/ChBodyGeometry.h"
@@ -126,6 +127,16 @@ class CH_FSI_API ChFsiProblem {
     /// Get limits of SPH volume
     const ChAABB& GetSPHBoundingBox() const { return m_sph_aabb; }
 
+    /// Return the FSI applied force on the specified body (as returned by AddRigidBody).
+    /// The force is applied at the body COM and is expressed in the absolute frame.
+    /// An exception is thrown if the given body was not added through AddRigidBody.
+    const ChVector3d& GetFsiBodyForce(std::shared_ptr<ChBody> body) const;
+
+    /// Return the FSI applied torque on on the specified body (as returned by AddRigidBody).
+    /// The torque is expressed in the absolute frame.
+    /// An exception is thrown if the given body was not added through AddRigidBody.
+    const ChVector3d& GetFsiBodyTorque(std::shared_ptr<ChBody> body) const;
+
     /// Save the set of initial SPH and BCE grid locations to files in the specified output directory.
     void SaveInitialMarkers(const std::string& out_dir) const;
 
@@ -180,6 +191,8 @@ class CH_FSI_API ChFsiProblem {
     ChAABB m_domain_aabb;              ///< computational domain bounding box
     ChAABB m_sph_aabb;                 ///< SPH volume bounding box
     std::vector<RigidBody> m_bodies;   ///< list of FSI rigid bodies
+
+    std::unordered_map<std::shared_ptr<ChBody>, size_t> m_fsi_bodies;
 
     std::shared_ptr<ParticlePropertiesCallback> m_props_cb;  ///< callback for particle properties
 
@@ -241,17 +254,18 @@ class CH_FSI_API ChFsiProblemCartesian : public ChFsiProblem {
     /// The reference position is the center of the bottom face of the box.
     /// Boundary BCE markers are created outside this volume, in layers, starting at a distance equal to the spacing.
     /// It is the caller responsibility to ensure that the container BCE markers do not overlap with any SPH particles.
-    void AddBoxContainer(const ChVector3d& box_size,  ///< box dimensions
-                         const ChVector3d& pos,       ///< reference position
-                         bool bottom_wall,            ///< create bottom boundary
-                         bool side_walls,             ///< create side boundaries
-                         bool top_wall                ///< create top boundary
+    size_t AddBoxContainer(const ChVector3d& box_size,  ///< box dimensions
+                           const ChVector3d& pos,       ///< reference position
+                           bool bottom_wall,            ///< create bottom boundary
+                           bool side_walls,             ///< create side boundaries
+                           bool top_wall                ///< create top boundary
     );
 
     /// Add a piston-type wavemaker.
-    void AddWaveMaker(const ChVector3d& box_size,             ///< box dimensions
-                      const ChVector3d& pos,                  ///< reference position
-                      std::shared_ptr<ChFunction> piston_fun  ///<
+    /// Returns the piston body.
+    std::shared_ptr<ChBody> AddWaveMaker(const ChVector3d& box_size,             ///< box dimensions
+                                         const ChVector3d& pos,                  ///< reference position
+                                         std::shared_ptr<ChFunction> piston_fun  ///< piston actuation function
     );
 
   private:
@@ -282,13 +296,13 @@ class CH_FSI_API ChFsiProblemCylindrical : public ChFsiProblem {
     /// Set inner radius to zero to create a cylindrical container.
     /// The cylinder is constructed with its axis along the global Z axis.
     /// The specified dimensions refer to the *interior* of the cylindrical annulus.
-    void AddCylindricalContainer(double radius_inner,    ///< inner radius
-                                 double radius_outer,    ///< outer radius
-                                 double height,          ///< height
-                                 const ChVector3d& pos,  ///< reference position
-                                 bool bottom_wall,       ///< create bottom boundary
-                                 bool side_walls,        ///< create side boundaries
-                                 bool top_wall           ///< create top boundary
+    size_t AddCylindricalContainer(double radius_inner,    ///< inner radius
+                                   double radius_outer,    ///< outer radius
+                                   double height,          ///< height
+                                   const ChVector3d& pos,  ///< reference position
+                                   bool bottom_wall,       ///< create bottom boundary
+                                   bool side_walls,        ///< create side boundaries
+                                   bool top_wall           ///< create top boundary
     );
 
   private:

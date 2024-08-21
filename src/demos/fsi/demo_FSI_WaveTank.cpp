@@ -166,7 +166,7 @@ int main(int argc, char* argv[]) {
 
     // Create a piston wavemaker mechanism
     auto fun = chrono_types::make_shared<WaveFunction>(0.05, 0.2, 1);
-    fsi.AddWaveMaker(csize, ChVector3d(0, 0, 0), fun);
+    auto piston_body = fsi.AddWaveMaker(csize, ChVector3d(0, 0, 0), fun);
 
     fsi.Initialize();
 
@@ -255,6 +255,11 @@ int main(int argc, char* argv[]) {
         visFSI->Initialize();
     }
 
+    // Write results to a txt file
+    std::string out_file = out_dir + "/results.txt";
+    std::ofstream ofile;
+    ofile.open(out_file, std::ios::trunc);
+
     // Start the simulation
     double time = 0.0;
     int sim_frame = 0;
@@ -264,6 +269,10 @@ int main(int argc, char* argv[]) {
     ChTimer timer;
     timer.start();
     while (time < t_end) {
+        // Extract FSI force on piston body
+        auto force_piston = fsi.GetFsiBodyForce(piston_body).x();
+        ofile << time << "\t" << force_piston << "\n";
+
         if (output && time >= out_frame / output_fps) {
             if (verbose)
                 cout << " -- Output frame " << out_frame << " at t = " << time << endl;
@@ -297,6 +306,18 @@ int main(int argc, char* argv[]) {
     }
     timer.stop();
     cout << "\nSimulation time: " << timer() << " seconds\n" << endl;
+
+    ofile.close();
+
+#ifdef CHRONO_POSTPROCESS
+    postprocess::ChGnuPlot gplot(out_dir + "/results.gpl");
+    gplot.SetGrid();
+    std::string speed_title = "Piston FSI force";
+    gplot.SetTitle(speed_title);
+    gplot.SetLabelX("time (s)");
+    gplot.SetLabelY("force (N)");
+    gplot.Plot(out_file, 1, 2, "", " with lines lt -1 lw 2 lc rgb'#3333BB' ");
+#endif
 
     return 0;
 }
