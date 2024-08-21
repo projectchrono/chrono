@@ -285,6 +285,12 @@ void ChSystemFsi::ReadParametersFromFile(const std::string& json_file) {
 
         if (doc["SPH Parameters"].HasMember("Consistent Discretization for Gradient"))
             m_paramsH->USE_Consistent_G = doc["SPH Parameters"]["Consistent Discretization for Gradient"].GetBool();
+
+        if (doc["SPH Parameters"].HasMember("Use shared memory for proximity search"))
+            m_paramsH->sharedProximitySearch = doc["SPH Parameters"]["Use shared memory for proximity search"].GetBool();
+
+        if (doc["SPH Parameters"].HasMember("Time steps per proximity search"))
+            m_paramsH->numProximitySearchSteps = doc["SPH Parameters"]["Time steps per proximity search"].GetInt();
     }
 
     if (doc.HasMember("Time Stepping")) {
@@ -305,11 +311,6 @@ void ChSystemFsi::ReadParametersFromFile(const std::string& json_file) {
         if (doc["Time Stepping"].HasMember("Maximum time step"))
             m_paramsH->dT_Max = doc["Time Stepping"]["Maximum time step"].GetDouble();
 
-        if (doc["Time Stepping"].HasMember("Use shared memory for proximity search"))
-            m_paramsH->sharedProximitySearch = doc["Time Stepping"]["Use shared memory for proximity search"].GetBool();
-
-        if (doc["Time Stepping"].HasMember("Time steps per proximity search"))
-            m_paramsH->numProximitySearchSteps = doc["Time Stepping"]["Time steps per proximity search"].GetInt();
     }
 
     if (doc.HasMember("Pressure Equation")) {
