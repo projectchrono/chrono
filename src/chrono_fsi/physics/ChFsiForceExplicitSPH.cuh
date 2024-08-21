@@ -48,8 +48,7 @@ class ChFsiForceExplicitSPH : public ChFsiForce {
 
   private:
     int density_initialization;
-    thrust::device_vector<Real3> sortedXSPHandShift;
-
+    
     /// Function to find neighbor particles and calculate the interactions between SPH particles
     void ForceSPH(std::shared_ptr<SphMarkerDataD> otherSortedSphMarkersD,
                   std::shared_ptr<FsiBodyStateD> fsiBodyStateD,

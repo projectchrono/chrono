@@ -680,52 +680,6 @@ void ChBce::Populate_RigidSPH_MeshPos_LRF(std::shared_ptr<SphMarkerDataD> sphMar
     cudaCheckError();
 }
 
-// -----------------------------------------------------------------------------
-
-// void ChBce::ReCalcVelocityPressureStress_BCE(thrust::device_vector<Real3>& velMas_ModifiedBCE,
-//                                              thrust::device_vector<Real4>& rhoPreMu_ModifiedBCE,
-//                                              thrust::device_vector<Real3>& tauXxYyZz_ModifiedBCE,
-//                                              thrust::device_vector<Real3>& tauXyXzYz_ModifiedBCE,
-//                                              const thrust::device_vector<Real4>& sortedPosRad,
-//                                              const thrust::device_vector<Real3>& sortedVelMas,
-//                                              const thrust::device_vector<Real4>& sortedRhoPreMu,
-//                                              const thrust::device_vector<Real3>& sortedTauXxYyZz,
-//                                              const thrust::device_vector<Real3>& sortedTauXyXzYz,
-//                                              const thrust::device_vector<uint>& cellStart,
-//                                              const thrust::device_vector<uint>& cellEnd,
-//                                              const thrust::device_vector<uint>& mapOriginalToSorted,
-//                                              const thrust::device_vector<uint>& extendedActivityIdD,
-//                                              const thrust::device_vector<Real3>& bceAcc,
-//                                              int4 updatePortion) {
-//     bool *isErrorH, *isErrorD;
-//     isErrorH = (bool*)malloc(sizeof(bool));
-//     cudaMalloc((void**)&isErrorD, sizeof(bool));
-//     *isErrorH = false;
-//     cudaMemcpy(isErrorD, isErrorH, sizeof(bool), cudaMemcpyHostToDevice);
-
-//     // thread per particle
-//     int2 newPortion = mI2(updatePortion.x, updatePortion.w);
-//     uint numBCE = newPortion.y - newPortion.x;
-//     uint numThreads, numBlocks;
-//     computeGridSize(numBCE, 256, numBlocks, numThreads);
-
-//     BCE_VelocityPressureStress<<<numBlocks, numThreads>>>(
-//         mR3CAST(velMas_ModifiedBCE), mR4CAST(rhoPreMu_ModifiedBCE), mR3CAST(tauXxYyZz_ModifiedBCE),
-//         mR3CAST(tauXyXzYz_ModifiedBCE), mR4CAST(sortedPosRad), mR3CAST(sortedVelMas), mR4CAST(sortedRhoPreMu),
-//         mR3CAST(sortedTauXxYyZz), mR3CAST(sortedTauXyXzYz), U1CAST(cellStart), U1CAST(cellEnd),
-//         U1CAST(mapOriginalToSorted), U1CAST(extendedActivityIdD), mR3CAST(bceAcc), newPortion, isErrorD);
-
-//     cudaDeviceSynchronize();
-//     cudaCheckError();
-
-//     cudaMemcpy(isErrorH, isErrorD, sizeof(bool), cudaMemcpyDeviceToHost);
-//     if (*isErrorH == true)
-//         throw std::runtime_error("Error! program crashed in new_BCE_VelocityPressure!\n");
-
-//     cudaFree(isErrorD);
-//     free(isErrorH);
-// }
-
 //--------------------------------------------------------------------------------------------------------------------------------
 
 void ChBce::CalcRigidBceAcceleration(thrust::device_vector<Real3>& bceAcc,
@@ -801,7 +755,7 @@ void ChBce::updateBCEAcc(std::shared_ptr<FsiBodyStateD> fsiBodyState_D,
     if (N_all != numBceMarkers) {
         throw std::runtime_error(
             "Error! Number of rigid, flexible and boundary markers are "
-            "saved incorrectly. Thrown from ModifyBceVelocityPressureStress!\n");
+            "saved incorrectly. Thrown from updateBCEAcc!\n");
     }
 
     // Update portion set to boundary, rigid, and flexible BCE particles
@@ -834,74 +788,6 @@ void ChBce::updateBCEAcc(std::shared_ptr<FsiBodyStateD> fsiBodyState_D,
         CalcMeshMarker1DAcceleration(m_fsiData->bceAcc, fsiMesh1DState_D);
     }
 }
-
-// -----------------------------------------------------------------------------
-
-// void ChBce::ModifyBceVelocityPressureStress(std::shared_ptr<SphMarkerDataD> sphMarkers_D,
-//                                             std::shared_ptr<FsiBodyStateD> fsiBodyState_D,
-//                                             std::shared_ptr<FsiMeshStateD> fsiMesh1DState_D,
-//                                             std::shared_ptr<FsiMeshStateD> fsiMesh2DState_D) {
-//     auto size_ref = m_fsiData->referenceArray.size();
-//     auto numBceMarkers = m_fsiData->referenceArray[size_ref - 1].y - m_fsiData->referenceArray[0].y;
-
-//     auto N_solid = numObjectsH->numRigidMarkers + numObjectsH->numFlexMarkers1D + numObjectsH->numFlexMarkers2D;
-//     auto N_all = N_solid + numObjectsH->numBoundaryMarkers;
-
-//     if ((int)N_all != numBceMarkers) {
-//         throw std::runtime_error(
-//             "Error! Number of rigid, flexible and boundary markers are "
-//             "saved incorrectly. Thrown from ModifyBceVelocityPressureStress!\n");
-//     }
-
-//     if (!(velMas_ModifiedBCE.size() == numBceMarkers && rhoPreMu_ModifiedBCE.size() == numBceMarkers &&
-//           tauXxYyZz_ModifiedBCE.size() == numBceMarkers && tauXyXzYz_ModifiedBCE.size() == numBceMarkers)) {
-//         throw std::runtime_error(
-//             "Error! Size error velMas_ModifiedBCE and "
-//             "tauXxYyZz_ModifiedBCE and tauXyXzYz_ModifiedBCE and "
-//             "rhoPreMu_ModifiedBCE. Thrown from ModifyBceVelocityPressureStress!\n");
-//     }
-
-//     // Update portion set to boundary, rigid, and flexible BCE particles
-//     int4 updatePortion = mI4(m_fsiData->referenceArray[0].y, m_fsiData->referenceArray[1].y,
-//                              m_fsiData->referenceArray[2].y, m_fsiData->referenceArray[3].y);
-
-//     // Only update boundary BCE particles if no rigid/flexible particles
-//     if (size_ref == 2) {
-//         updatePortion.z = m_fsiData->referenceArray[1].y;
-//         updatePortion.w = m_fsiData->referenceArray[1].y;
-//     }
-
-//     // Update boundary and rigid/flexible BCE particles
-//     if (size_ref == 3)
-//         updatePortion.w = m_fsiData->referenceArray[2].y;
-
-//     // Adami boundary condition (wall, rigid, flexible)
-
-//     // Calculate the acceleration of rigid/flexible BCE particles if exist
-//     thrust::device_vector<Real3> bceAcc(N_solid);
-
-//     // Acceleration of rigid BCE particles
-//     if (numObjectsH->numRigidMarkers > 0) {
-//         CalcRigidBceAcceleration(bceAcc, fsiBodyState_D->rot, fsiBodyState_D->lin_acc, fsiBodyState_D->ang_vel,
-//                                  fsiBodyState_D->ang_acc, m_fsiData->rigid_BCEcoords_D, m_fsiData->rigid_BCEsolids_D);
-//     }
-//     // Acceleration of flexible BCE particles
-//     if (numObjectsH->numFlexMarkers1D > 0) {
-//         CalcMeshMarker1DAcceleration(bceAcc, fsiMesh1DState_D);
-//     }
-//     if (numObjectsH->numFlexMarkers2D > 0) {
-//         CalcMeshMarker1DAcceleration(bceAcc, fsiMesh2DState_D);
-//     }
-
-//     ReCalcVelocityPressureStress_BCE(velMas_ModifiedBCE, rhoPreMu_ModifiedBCE, tauXxYyZz_ModifiedBCE,
-//                                      tauXyXzYz_ModifiedBCE, m_sortedSphMarkersD->posRadD, m_sortedSphMarkersD->velMasD,
-//                                      m_sortedSphMarkersD->rhoPresMuD, m_sortedSphMarkersD->tauXxYyZzD,
-//                                      m_sortedSphMarkersD->tauXyXzYzD, m_markersProximityD->cellStartD,
-//                                      m_markersProximityD->cellEndD, m_markersProximityD->mapOriginalToSorted,
-//                                      m_fsiData->extendedActivityIdD, bceAcc, updatePortion);
-
-//     bceAcc.clear();
-// }
 
 // -----------------------------------------------------------------------------
 

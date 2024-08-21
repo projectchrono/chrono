@@ -942,7 +942,6 @@ __global__ void EOS(Real4* sortedRhoPreMu, volatile bool* isErrorD) {
 }
 
 //--------------------------------------------------------------------------------------------------------------------------------
-// TODO (Huzaifa): Make this kernel also use the precomputed neighbors list
 __global__ void Navier_Stokes(uint* indexOfIndex,
                               Real4* sortedDerivVelRho,
                               Real3* sortedXSPHandShift,
@@ -1425,8 +1424,6 @@ __global__ void NS_SSR(const uint* activityIdentifierD,
     sortedDerivTauXyXzYz[index] = mR3(dTauxy, dTauxz, dTauyz);
 }
 //--------------------------------------------------------------------------------------------------------------------------------
-// TODO (Huzaifa): Update this to use neighbors list - This is only used in the Implicit solver, for the explicit solver
-// the XSPH velocity is computed in NS_SSR (this might need some reconsideration)
 __global__ void CalcVel_XSPH_D(uint* indexOfIndex,
                                Real3* vel_XSPH_Sorted_D,
                                Real4* sortedPosRad,
@@ -1745,9 +1742,6 @@ void ChFsiForceExplicitSPH::CollideWrapper(Real time, bool firstHalfStep) {
     }
     density_initialization++;
 
-    // TODO (Huzaifa): I suppose this can be removed - make sure this is the case
-    sortedXSPHandShift.resize(numObjectsH->numAllMarkers);
-
     // Perform Proxmity search at desired frequency and using desired GPU memory
     if (firstHalfStep && (time < 1e-6 || int(round(time / paramsH->dT)) % paramsH->numProximitySearchSteps == 0)) {
         if(paramsH->sharedProximitySearch){
@@ -1814,8 +1808,6 @@ void ChFsiForceExplicitSPH::CollideWrapper(Real time, bool firstHalfStep) {
 }
 
 //--------------------------------------------------------------------------------------------------------------------------------
-// TODO (Huzaifa): This needs to be checked for the non elastic SPH but explicit solver case
-// Nothing happens in this function for elastic SPH since NS_SSR (which is called only for elastic SPH) computes the XSPH velocity
 void ChFsiForceExplicitSPH::CalculateXSPH_velocity() {
     // Calculate vel_XSPH
     if (fsiData->vel_XSPH_D.size() != numObjectsH->numAllMarkers) {
