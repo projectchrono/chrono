@@ -17,7 +17,9 @@
     "XSPH Coefficient":               0.5,
     "Shifting Coefficient":           0.0,
     "Density Reinitialization":       200,
-    "Conservative Discretization":    true
+    "Conservative Discretization":    true,
+    "Time steps per proximity search": 1,
+    "Use shared memory for proximity search": false
   },
 
   "Time Stepping":

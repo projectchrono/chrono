@@ -15,7 +15,9 @@
     "Maximum Velocity":               1.0,
     "XSPH Coefficient":               0.0,
     "Shifting Coefficient":           0.0,
-    "Density Reinitialization":       2
+    "Density Reinitialization":       2,
+    "Time steps per proximity search": 1,
+    "Use shared memory for proximity search": false
   },
 
   "Time Stepping":

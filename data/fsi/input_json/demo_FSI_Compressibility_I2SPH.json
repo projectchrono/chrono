@@ -17,7 +17,9 @@
     "Shifting Coefficient":           0.00,
     "Density Reinitialization":       200,
     "Conservative Discretization":    true,
-    "Epsilon":                        0.001
+    "Epsilon":                        0.001,
+    "Time steps per proximity search": 1,
+    "Use shared memory for proximity search": false
   },
 
   "Time Stepping":

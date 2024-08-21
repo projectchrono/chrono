@@ -19,7 +19,9 @@
     "Density Reinitialization":       0,
     "Conservative Discretization":    true,
     "Gradient Discretization Type":    2,
-    "Laplacian Discretization Type":   2
+    "Laplacian Discretization Type":   2,
+    "Time steps per proximity search": 1,
+    "Use shared memory for proximity search": false
   },
 
   "Time Stepping":
