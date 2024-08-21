@@ -1692,8 +1692,9 @@ void ChFsiForceExplicitSPH::neighborSearchShared() {
     thrust::fill(fsiData->numNeighborsPerPart.begin(), fsiData->numNeighborsPerPart.end(), 0);
     cudaDeviceSynchronize();
 
+    // TODO (Huzaifa): 730 changed to 1730 as a temporary fix - need to calculate upper limit of shared memory required
     // start neighbor search
-    uint shMemSize = 730 * (sizeof(Real3)) + (125 + 57) * sizeof(uint);
+    uint shMemSize = 1730 * (sizeof(Real3)) + (125 + 57) * sizeof(uint);
     // first pass
     neighborSearchNum<<<numBlocksShort, numThreadsShort, shMemSize>>>(
         mR4CAST(sortedSphMarkers_D->posRadD), mR4CAST(sortedSphMarkers_D->rhoPresMuD),
@@ -1708,8 +1709,9 @@ void ChFsiForceExplicitSPH::neighborSearchShared() {
                            fsiData->numNeighborsPerPart.begin());
     fsiData->neighborList.resize(fsiData->numNeighborsPerPart.back());
     thrust::fill(fsiData->neighborList.begin(), fsiData->neighborList.end(), 0);
-
-    shMemSize = 730 * (sizeof(Real3) + sizeof(uint));
+    
+    // TODO (Huzaifa): 730 changed to 1730 as a temporary fix - need to calculate upper limit of shared memory required
+    shMemSize = 1730 * (sizeof(Real3) + sizeof(uint));
     // second pass
     neighborSearchID<<<numBlocksShort, numThreadsShort, shMemSize>>>(
         mR4CAST(sortedSphMarkers_D->posRadD), mR4CAST(sortedSphMarkers_D->rhoPresMuD),
