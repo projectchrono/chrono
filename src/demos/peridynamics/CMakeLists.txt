@@ -8,6 +8,7 @@ set(PERI_DEMOS
 set(PERI_DEMOS_IRR
     demo_PERI_elastic
 	demo_PERI_fracture
+    demo_PERI_implicit
 	)
 
 #--------------------------------------------------------------

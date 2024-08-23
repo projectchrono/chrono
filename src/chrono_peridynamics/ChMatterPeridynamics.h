@@ -47,7 +47,7 @@ public:
     ChNodePeri* nodeA = nullptr;
     ChNodePeri* nodeB = nullptr;
 
-    void Initialize(ChNodePeri* mA, ChNodePeri* mB) {
+    virtual void Initialize(ChNodePeri* mA, ChNodePeri* mB) {
         nodeA = mA;
         nodeB = mB;
     };
@@ -109,6 +109,48 @@ public:
     /// some state data, if so you can implement this function, otherwise leave as empty.
     virtual void SetupInitial() {};
 
+    /// CONSTITUTIVE MODEL - INTERFACE TO IMPLEMENT: (optionally) 
+    /// This function is called at each time step. Maybe your constitutive law has to initialize
+    /// some state data, if so you can implement this function, otherwise leave as empty.
+    virtual void Setup() {};
+
+    // STATE
+
+    /// Get the number of scalar constraints (maybe used for implicit materials)
+    virtual unsigned int GetNumConstraints() { return 0; }
+
+    virtual void IntLoadResidual_CqL(const unsigned int off_L,    ///< offset in L multipliers
+        ChVectorDynamic<>& R,        ///< result: the R residual, R += c*Cq'*L
+        const ChVectorDynamic<>& L,  ///< the L vector
+        const double c               ///< a scaling factor
+    ) {}
+
+    /// Takes the term C, scale and adds to Qc at given offset:
+    ///    Qc += c*C
+    virtual void IntLoadConstraint_C(const unsigned int off,  ///< offset in Qc residual
+        ChVectorDynamic<>& Qc,   ///< result: the Qc residual, Qc += c*C
+        const double c,          ///< a scaling factor
+        bool do_clamp,           ///< apply clamping to c*C?
+        double recovery_clamp    ///< value for min/max clamping of c*C
+    ) {}
+
+    /// Register with the given system descriptor any ChConstraint objects associated with this item.
+    virtual void InjectConstraints(ChSystemDescriptor& descriptor) {}
+
+    /// Compute and load current Jacobians in encapsulated ChConstraint objects.
+    virtual void LoadConstraintJacobians() {}
+
+    virtual void IntToDescriptor(const unsigned int off_v,
+        const ChStateDelta& v,
+        const ChVectorDynamic<>& R,
+        const unsigned int off_L,
+        const ChVectorDynamic<>& L,
+        const ChVectorDynamic<>& Qc) {}
+
+    virtual void IntFromDescriptor(const unsigned int off_v,
+        ChStateDelta& v,
+        const unsigned int off_L,
+        ChVectorDynamic<>& L) {}
 
 
     // -------

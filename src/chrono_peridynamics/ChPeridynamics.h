@@ -159,7 +159,11 @@ class ChApiPeridynamics ChPeridynamics : public ChProximityContainer {
     /// Get the number of scalar coordinates (variables), if any, in this item, excluding those that are in fixed state.
     virtual unsigned int GetNumCoordsPosLevel() override { return n_dofs; }
 
+    /// Get the number of scalar constraints.
+    virtual unsigned int GetNumConstraints() override { return n_constr; }
+
  
+
     virtual void IntStateGather(const unsigned int off_x,
                                 ChState& x,
                                 const unsigned int off_v,
@@ -262,6 +266,48 @@ class ChApiPeridynamics ChPeridynamics : public ChProximityContainer {
         }
     }
 
+    /// Takes the term Cq'*L, scale and adds to R at given offset:
+    ///    R += c*Cq'*L
+    virtual void IntLoadResidual_CqL(const unsigned int off_L,    ///< offset in L multipliers
+        ChVectorDynamic<>& R,        ///< result: the R residual, R += c*Cq'*L
+        const ChVectorDynamic<>& L,  ///< the L vector
+        const double c               ///< a scaling factor
+    ) override {
+        unsigned int local_off = 0;
+        for (auto& mymat : this->materials) {
+            mymat->IntLoadResidual_CqL(off_L + local_off, R, L, c);
+            local_off += mymat->GetNumConstraints();
+        }
+    }
+
+    /// Takes the term C, scale and adds to Qc at given offset:
+    ///    Qc += c*C
+    virtual void IntLoadConstraint_C(const unsigned int off,  ///< offset in Qc residual
+        ChVectorDynamic<>& Qc,   ///< result: the Qc residual, Qc += c*C
+        const double c,          ///< a scaling factor
+        bool do_clamp,           ///< apply clamping to c*C?
+        double recovery_clamp    ///< value for min/max clamping of c*C
+    ) override {
+        unsigned int local_off = 0;
+        for (auto& mymat : this->materials) {
+            mymat->IntLoadConstraint_C(off + local_off, Qc, c, do_clamp, recovery_clamp);
+            local_off += mymat->GetNumConstraints();
+        }
+    }
+
+    /// Register with the given system descriptor any ChConstraint objects associated with this item.
+    virtual void InjectConstraints(ChSystemDescriptor& descriptor) override {
+        for (auto& mymat : this->materials) {
+            mymat->InjectConstraints(descriptor);
+        }
+    }
+    /// Compute and load current Jacobians in encapsulated ChConstraint objects.
+    virtual void LoadConstraintJacobians() override {
+        for (auto& mymat : this->materials) {
+            mymat->LoadConstraintJacobians();
+        }
+    }
+
     virtual void IntToDescriptor(const unsigned int off_v,
                                  const ChStateDelta& v,
                                  const ChVectorDynamic<>& R,
@@ -275,6 +321,11 @@ class ChApiPeridynamics ChPeridynamics : public ChProximityContainer {
                 local_off += 3;
             }
         }
+        unsigned int local_Loff = 0;
+        for (auto& mymat : this->materials) {
+            mymat->IntToDescriptor(off_v + local_off, v, R, off_L + local_Loff, L, Qc);
+            local_off += mymat->GetNumConstraints();
+        }
     }
     virtual void IntFromDescriptor(const unsigned int off_v,
                                    ChStateDelta& v,
@@ -286,6 +337,11 @@ class ChApiPeridynamics ChPeridynamics : public ChProximityContainer {
                 node->NodeIntFromDescriptor(off_v + local_off, v);
                 local_off += 3;
             }
+        }
+        unsigned int local_Loff = 0;
+        for (auto& mymat : this->materials) {
+            mymat->IntFromDescriptor(off_v + local_off, v, off_L + local_Loff, L);
+            local_off += mymat->GetNumConstraints();
         }
     }
 
@@ -357,6 +413,8 @@ class ChApiPeridynamics ChPeridynamics : public ChProximityContainer {
         }
     }
 
+    
+
     // Other functions
 
     /// Set no speed and no accelerations (but does not change the position).
@@ -409,6 +467,7 @@ protected:
     int n_added;
     bool is_updated;
     unsigned int n_dofs;    ///< total degrees of freedom
+    unsigned int n_constr;    ///< total degrees of constraints
 };
 
 

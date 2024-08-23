@@ -12,12 +12,8 @@
 // Authors: Alessandro Tasora
 // =============================================================================
 //
-// Demo code explaining how to create a deformable solid using peridynamics. 
-// Peridynamics allow an efficient handling of fracturing and cracks, working as
-// a meshless framework: differently from conventional FEA it does not need 
-// that the solid is preprocessed as a tetrahedral mesh. In the peridynamics 
-// context, the solid is made with a node cloud, where nodes are connected
-// each other (if withing a small distance called 'horizon') by microscopic bounds. 
+// Demo code explaining how to create a deformable solid using peridynamics
+// with an implicit material, so that larger time steps can be used.
 //
 // =============================================================================
 
@@ -25,6 +21,7 @@
 #include "chrono/core/ChRealtimeStep.h"
 #include "chrono/physics/ChBodyEasy.h"
 #include "chrono/fea/ChLinkNodeFrame.h"
+#include "chrono/solver/ChSolverBB.h"
 
 #include "chrono_peridynamics/ChMatterPeriSprings.h"
 #include "chrono_peridynamics/ChMatterPeriBulkElastic.h"
@@ -91,15 +88,12 @@ int main(int argc, char* argv[]) {
     // This is a very simple one: a linear bond-based elastic material, defined
     // via the bulk elasticity modulus. The Poisson ratio is fixed to 1/4. 
     
-    auto my_perimaterial = chrono_types::make_shared<ChMatterPeriBulkElastic>();
-    my_perimaterial->k_bulk =  20000000;    // bulk stiffness (unit N/m^2)
-    my_perimaterial->r_bulk = 50000;      // bulk damping (unit Ns/m^3)
-    /*
-    auto my_perimaterial = chrono_types::make_shared<ChMatterPeriLinearElastic>();
-    my_perimaterial->k_bulk = 2e8;    // bulk stiffness (unit N/m^2)
-    my_perimaterial->poisson = 0.25;
-    my_perimaterial->r_bulk = 0;      // bulk damping (unit Ns/m^3)
-    */
+    auto my_perimaterial = chrono_types::make_shared<ChMatterPeriBulkImplicit>();
+    my_perimaterial->k_bulk = 9e9;    // bulk stiffness (unit N/m^2)
+    my_perimaterial->r_bulk = 2000;        // damping 
+    my_perimaterial->max_stretch_fracture = 0.002; // beyond this, fracture happens (bonds still in place, but become unilateral)
+    my_perimaterial->max_stretch_break    = 0.04; // beyond this, bull break happens (bonds removed, collision surface generated)
+
     // IMPORTANT!
     // This contains all the peridynamics particles and their materials. 
     auto my_peridynamics = chrono_types::make_shared<ChPeridynamics>();
@@ -111,7 +105,7 @@ int main(int argc, char* argv[]) {
     my_peridynamics->FillBox(
         my_perimaterial,
         ChVector3d(3, 1.5, 3),                        // size of box
-        4.0 / 15.0,                                   // resolution step
+        4.0 / 20.0,                                   // resolution step
         1000,                                         // initial density
         ChCoordsys<>(ChVector3d(0, -3.4, 0), QUNIT),  // position & rotation of box
         false,                                        // do a centered cubic lattice initial arrangement
@@ -130,17 +124,17 @@ int main(int argc, char* argv[]) {
     // nodes and bonds with dots, lines etc. Suggestion: use the Blender importer add-on 
     // for rendering properties in falsecolor and other advanced features.
     
-    auto mglyphs_nodes = chrono_types::make_shared<ChVisualPeriBulkElastic>(my_perimaterial);
+    auto mglyphs_nodes = chrono_types::make_shared<ChVisualPeriBulkImplicit>(my_perimaterial);
     my_peridynamics->AddVisualShape(mglyphs_nodes);
     mglyphs_nodes->SetGlyphsSize(0.04);
     mglyphs_nodes->AttachVelocity(0, 20, "Vel"); // postprocessing tools can exploit this. Also suggest a min-max for falsecolor rendering.
     
-    /*
-    auto mglyphs_bounds = chrono_types::make_shared<ChVisualPeriBulkElasticBounds>(my_perimaterial);
-    mglyphs_bounds->draw_unbroken = false;
+    auto mglyphs_bounds = chrono_types::make_shared<ChVisualPeriBulkImplicitBounds>(my_perimaterial);
+    mglyphs_bounds->draw_active = false;
     mglyphs_bounds->draw_broken = true;
+    mglyphs_bounds->draw_fractured = true;
     my_peridynamics->AddVisualShape(mglyphs_bounds);
-    */
+    
 
     // -----Blender postprocess, optional
 
@@ -174,8 +168,9 @@ int main(int argc, char* argv[]) {
 
 
     // Modify some setting of the physical system for the simulation, if you want
+    mphysicalSystem.SetSolverType(ChSolver::Type::PSOR);
     if (mphysicalSystem.GetSolver()->IsIterative()) {
-        mphysicalSystem.GetSolver()->AsIterative()->SetMaxIterations(25);
+        mphysicalSystem.GetSolver()->AsIterative()->SetMaxIterations(10);
     }
 
     //
@@ -184,7 +179,7 @@ int main(int argc, char* argv[]) {
 
     // Set timestep, that is smaller and smaller as stiffness of material increases 
     // and or mesh spacing decreases.
-    double timestep = 0.0005;
+    double timestep = 0.0002;
 
     while (vsys->Run()) {
         vsys->BeginScene();
@@ -194,7 +189,7 @@ int main(int argc, char* argv[]) {
         vsys->EndScene();
         
         mphysicalSystem.DoStepDynamics(timestep);
-        
+
         if (mphysicalSystem.GetNumSteps() % 20 == 0)
             blender_exporter.ExportData();
     }

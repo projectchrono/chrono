@@ -45,7 +45,7 @@ static double W_sq_visco(double r, double h) {
 // Register into the object factory, to enable run-time dynamic creation and persistence
 CH_FACTORY_REGISTER(ChPeridynamics)
 
-ChPeridynamics::ChPeridynamics() : n_added(0), is_updated(true), n_dofs(0) {
+ChPeridynamics::ChPeridynamics() : n_added(0), is_updated(true), n_dofs(0), n_constr(0) {
 }
 
 ChPeridynamics::ChPeridynamics(const ChPeridynamics& other)
@@ -55,6 +55,7 @@ ChPeridynamics::ChPeridynamics(const ChPeridynamics& other)
     is_updated = other.is_updated;
     materials = other.materials;
     n_dofs = other.n_dofs;
+    n_constr = other.n_constr;
 }
 
 ChPeridynamics::~ChPeridynamics() {
@@ -111,6 +112,7 @@ void ChPeridynamics::ReportAllProximities(ReportProximityCallback* mcallback) {
 
 void ChPeridynamics::SetupInitial() {
     n_dofs = 0;
+    n_constr = 0;
 
     for (unsigned int i = 0; i < vnodes.size(); i++) {
         if (!vnodes[i]->IsFixed()) {
@@ -126,15 +128,20 @@ void ChPeridynamics::SetupInitial() {
 
 void ChPeridynamics::Setup() {
     n_dofs = 0;
+    n_constr = 0;
 
     for (unsigned int i = 0; i < vnodes.size(); i++) {
         // Set node offsets in state vectors (based on the offsets of the containing mesh)
-        vnodes[i]->NodeSetOffsetPosLevel(GetOffset_x() + n_dofs);;
+        vnodes[i]->NodeSetOffsetPosLevel(GetOffset_x() + n_dofs);
 
         // Count the actual degrees of freedom (consider only nodes that are not fixed)
         if (!vnodes[i]->IsFixed()) {
             n_dofs += vnodes[i]->GetNumCoordsPosLevelActive();
         }
+    }
+    for (auto& mat : this->materials) {
+        mat->Setup();
+        n_constr += mat->GetNumConstraints();
     }
 }
 

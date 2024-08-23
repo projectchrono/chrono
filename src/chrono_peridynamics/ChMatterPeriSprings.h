@@ -99,6 +99,8 @@ public:
 
                 double stretch = (vdist.Length() - old_vdist.Length()) / old_vdist.Length();
                 if (stretch > max_stretch) {
+                    mbound.nodeA->F_peridyn = 0;
+                    mbound.nodeB->F_peridyn = 0;
                     mbound.broken = true;
                     // the following will propagate the fracture geometry so that broken parts can collide
                     mbound.nodeA->is_boundary = true; 
@@ -148,7 +150,7 @@ protected:
         unsigned int i = 0;
         for (const auto& anode : mmatter->GetMapOfNodes()) {
             this->SetGlyphPoint(i, anode.first->GetPos());
-            if (vel_property)
+            if (vel_property) 
                 vel_property->data[i] = anode.first->GetPosDt();
             if (acc_property)
                 acc_property->data[i] = anode.first->GetPosDt2();
@@ -173,14 +175,26 @@ protected:
     virtual void Update(ChPhysicsItem* updater, const ChFrame<>& frame) {
         if (!mmatter)
             return;
-        this->Reserve(mmatter->GetNbounds());
+
+        unsigned int count = 0;
+        for (const auto& abound : mmatter->GetMapOfBounds()) {
+            if (abound.second.broken && draw_broken)
+                ++count;
+            if (!abound.second.broken && draw_unbroken)
+                ++count;
+        }
+        this->Reserve(count);
+
         unsigned int i = 0;
         for (const auto& anode : mmatter->GetMapOfBounds()) {
-            if (anode.second.broken && draw_broken)
-                this->SetGlyphVector(i, anode.second.nodeA->GetPos(), anode.second.nodeB->GetPos()-anode.second.nodeA->GetPos(),ChColor(1,0,0));
-            if (!anode.second.broken && draw_unbroken)
-                this->SetGlyphVector(i, anode.second.nodeA->GetPos(), anode.second.nodeB->GetPos() - anode.second.nodeA->GetPos(),ChColor(0, 0, 1));
-            ++i;
+            if (anode.second.broken && draw_broken) {
+                this->SetGlyphVector(i, anode.second.nodeA->GetPos(), anode.second.nodeB->GetPos() - anode.second.nodeA->GetPos(), ChColor(1, 0, 0));
+                ++i;
+            }
+            if (!anode.second.broken && draw_unbroken) {
+                this->SetGlyphVector(i, anode.second.nodeA->GetPos(), anode.second.nodeB->GetPos() - anode.second.nodeA->GetPos(), ChColor(0, 0, 1));
+                ++i;
+            }
         }
     }
 
