@@ -33,8 +33,8 @@ namespace fsi {
 __global__ void calcHashD(
     uint* gridMarkerHashD,   // gridMarkerHash Store particle hash here
     uint* gridMarkerIndexD,  // gridMarkerIndex Store particle index here
-    const Real4* posRad,           // posRad Vector containing the positions of all particles (SPH and BCE)
-    const int multiplier,          // multiplier = 2 means that the Sub Domain grid is twice the size of the original grid
+    const Real4* posRad,     // posRad Vector containing the positions of all particles (SPH and BCE)
+    const int multiplier,    // multiplier = 2 means that the Sub Domain grid is twice the size of the original grid
     volatile bool* isErrorD) {
     // Calculate the index of where the particle is stored in posRad.
     uint index = blockIdx.x * blockDim.x + threadIdx.x;
@@ -144,9 +144,9 @@ __global__ void reorderDataD(uint* gridMarkerIndexD,     // input: sorted partic
     uint originalIndex = id;
 
     // no need to do anything if it is not an active particle
-    uint activity = extendedActivityIdD[originalIndex];
-    if (activity == 0)
-        return;
+    // uint activity = extendedActivityIdD[originalIndex];
+    // if (activity == 0)
+    //     return;
 
     // map original to sorted
     uint index = mapOriginalToSorted[originalIndex];
@@ -238,9 +238,10 @@ void ChCollisionSystemFsi::ArrangeData(std::shared_ptr<SphMarkerDataD> sphMarker
     int numCells = cellsDim.x * cellsDim.y * cellsDim.z;
 
     int numCellsSD = ((cellsDim.x + multiplier - 1) / multiplier) * ((cellsDim.y + multiplier - 1) / multiplier) *
-                           ((cellsDim.z + multiplier - 1) / multiplier);
+                     ((cellsDim.z + multiplier - 1) / multiplier);
 
-    // CUDA streams - incase shared proximity search is used, the 2 kernels can run concurrently on 2 streams if the GPU is beefy enough
+    // CUDA streams - incase shared proximity search is used, the 2 kernels can run concurrently on 2 streams if the GPU
+    // is beefy enough
     cudaStream_t stream1, stream2;
     cudaStreamCreate(&stream1);
     cudaStreamCreate(&stream2);
@@ -273,8 +274,8 @@ void ChCollisionSystemFsi::ArrangeData(std::shared_ptr<SphMarkerDataD> sphMarker
 
     // Execute Kernel
     calcHashD<<<numBlocks, numThreads, 0, stream1>>>(U1CAST(m_markersProximityD->gridMarkerHashD),
-                                         U1CAST(m_markersProximityD->gridMarkerIndexD), mR4CAST(m_sphMarkersD->posRadD), 1,
-                                        isErrorD);
+                                                     U1CAST(m_markersProximityD->gridMarkerIndexD),
+                                                     mR4CAST(m_sphMarkersD->posRadD), 1, isErrorD);
 
     cudaMemcpy(isErrorH, isErrorD, sizeof(bool), cudaMemcpyDeviceToHost);
     if (*isErrorH == true)
@@ -310,13 +311,13 @@ void ChCollisionSystemFsi::ArrangeData(std::shared_ptr<SphMarkerDataD> sphMarker
     // Launch a kernel to find the location of original particles in the sorted arrays.
     // This is faster than using thrust::sort_by_key()
     // =========================================================================================================
-    OriginalToSortedD<<<numBlocks, numThreads, 0 , stream1>>>(U1CAST(m_markersProximityD->mapOriginalToSorted),
-                                                 U1CAST(m_markersProximityD->gridMarkerIndexD));
+    OriginalToSortedD<<<numBlocks, numThreads, 0, stream1>>>(U1CAST(m_markersProximityD->mapOriginalToSorted),
+                                                             U1CAST(m_markersProximityD->gridMarkerIndexD));
 
     // =========================================================================================================
     // Reorder the arrays according to the sorted index of all particles
     // =========================================================================================================
-    reorderDataD<<<numBlocks, numThreads, 0 , stream1>>>(
+    reorderDataD<<<numBlocks, numThreads, 0, stream1>>>(
         U1CAST(m_markersProximityD->gridMarkerIndexD), U1CAST(m_fsiData->extendedActivityIdD),
         U1CAST(m_markersProximityD->mapOriginalToSorted), mR4CAST(m_sortedSphMarkersD->posRadD),
         mR3CAST(m_sortedSphMarkersD->velMasD), mR4CAST(m_sortedSphMarkersD->rhoPresMuD),
@@ -325,7 +326,7 @@ void ChCollisionSystemFsi::ArrangeData(std::shared_ptr<SphMarkerDataD> sphMarker
         mR3CAST(m_sphMarkersD->tauXxYyZzD), mR3CAST(m_sphMarkersD->tauXyXzYzD));
 
     // If we have shared memory proximity search, we have to run the kernels again for the subdomain grid
-    if (isShared){
+    if (isShared) {
         m_markersProximityWideD->cellStartD.resize(numCellsSD);
         m_markersProximityWideD->cellEndD.resize(numCellsSD);
 
@@ -350,8 +351,8 @@ void ChCollisionSystemFsi::ArrangeData(std::shared_ptr<SphMarkerDataD> sphMarker
 
         // Execute Kernel
         calcHashD<<<numBlocks, numThreads, 0, stream2>>>(U1CAST(m_markersProximityWideD->gridMarkerHashD),
-                                             U1CAST(m_markersProximityWideD->gridMarkerIndexD),
-                                             mR4CAST(m_sphMarkersD->posRadD), multiplier, isErrorD);
+                                                         U1CAST(m_markersProximityWideD->gridMarkerIndexD),
+                                                         mR4CAST(m_sphMarkersD->posRadD), multiplier, isErrorD);
 
         cudaMemcpy(isErrorH, isErrorD, sizeof(bool), cudaMemcpyDeviceToHost);
         if (*isErrorH == true)
@@ -363,13 +364,15 @@ void ChCollisionSystemFsi::ArrangeData(std::shared_ptr<SphMarkerDataD> sphMarker
         // Sort Particles based on Hash
         // =========================================================================================================
         thrust::sort_by_key(thrust::cuda::par.on(stream2), m_markersProximityWideD->gridMarkerHashD.begin(),
-                            m_markersProximityWideD->gridMarkerHashD.end(), m_markersProximityWideD->gridMarkerIndexD.begin());
+                            m_markersProximityWideD->gridMarkerHashD.end(),
+                            m_markersProximityWideD->gridMarkerIndexD.begin());
 
         // =========================================================================================================
         // Find the start index and the end index of the sorted array in each cell
         // =========================================================================================================
         // Reset proximity cell data
-        if (!(m_markersProximityWideD->cellStartD.size() == numCellsSD && m_markersProximityWideD->cellEndD.size() == numCellsSD)) {
+        if (!(m_markersProximityWideD->cellStartD.size() == numCellsSD &&
+              m_markersProximityWideD->cellEndD.size() == numCellsSD)) {
             throw std::runtime_error("Error! size error, ArrangeData!\n");
         }
 
@@ -381,7 +384,6 @@ void ChCollisionSystemFsi::ArrangeData(std::shared_ptr<SphMarkerDataD> sphMarker
         findCellStartEndD<<<numBlocks, numThreads, smemSize, stream2>>>(
             U1CAST(m_markersProximityWideD->cellStartD), U1CAST(m_markersProximityWideD->cellEndD),
             U1CAST(m_markersProximityWideD->gridMarkerHashD), U1CAST(m_markersProximityWideD->gridMarkerIndexD));
-
     }
 
     cudaStreamSynchronize(stream1);
