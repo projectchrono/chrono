@@ -64,11 +64,7 @@ CH_CLASS_VERSION(ChFseqNode, 0)
 ///   `y = sequence_of_functions(f1(y), f2(y), f3(y))`
 /// All other function types can be inserted into this.
 class ChApi ChFunctionSequence : public ChFunction {
-  private:
-    std::list<ChFseqNode> m_functions;  ///< the list of sub functions
-    double m_start;                     ///< start time for sequence
-
-  public:
+public:
     ChFunctionSequence() : m_start(0) {}
     ChFunctionSequence(const ChFunctionSequence& other);
     ~ChFunctionSequence() {}
@@ -145,6 +141,10 @@ class ChApi ChFunctionSequence : public ChFunction {
 
     /// Method to allow de-serialization of transient data from archives.
     virtual void ArchiveIn(ChArchiveIn& archive_in) override;
+
+protected:
+    std::list<ChFseqNode> m_functions;  ///< the list of sub functions
+    double m_start;                     ///< start time for sequence
 };
 
 /// @} chrono_functions
