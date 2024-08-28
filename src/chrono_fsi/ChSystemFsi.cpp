@@ -1543,7 +1543,6 @@ void ChSystemFsi::CreateBCE_cylinder(double rad,
         }
 
         if (capped) {
-            rad_max = rad_min - num_layers * delta_r;
             np_r = (int)std::round(rad_max / spacing);
             delta_r = rad_max / np_r;
 
