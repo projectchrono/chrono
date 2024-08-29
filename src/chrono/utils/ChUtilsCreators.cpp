@@ -634,6 +634,7 @@ std::shared_ptr<ChBody> CreateBoxContainer(ChSystem* system,
     auto body = chrono_types::make_shared<ChBody>();
 
     // Set body properties and geometry.
+    body->SetName("container_body");
     body->SetPos(pos);
     body->SetRot(rot);
     body->EnableCollision(collide);
