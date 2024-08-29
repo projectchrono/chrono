@@ -36,7 +36,7 @@ __device__ __inline__ void calc_G_Matrix(Real4* sortedPosRad,
         return;
 
     // uint index = indexOfIndex[id];
-    uint index  = id;
+    uint index = id;
 
     if (sortedRhoPreMu[index].w > -0.5f && sortedRhoPreMu[index].w < 0.5f)
         return;
@@ -521,8 +521,6 @@ __global__ void calcRho_kernel(Real4* sortedPosRad,
 __global__ void calcKernelSupport(const Real4* sortedPosRad,
                                   const Real4* sortedRhoPreMu,
                                   Real3* sortedKernelSupport,
-                                  const uint* cellStart,
-                                  const uint* cellEnd,
                                   const uint* mapOriginalToSorted,
                                   const uint* numNeighborsPerPart,
                                   const uint* neighborList,
@@ -982,8 +980,10 @@ __global__ void Navier_Stokes(uint* indexOfIndex,
 
     if (paramsD.USE_Consistent_L) {
         Real A_i[27] = {0.0};
-        calc_A_Matrix(sortedPosRad, sortedVelMas, sortedRhoPreMu, A_i, G_i, numNeighborsPerPart, neighborList, indexOfIndex);
-        calc_L_Matrix(sortedPosRad, sortedVelMas, sortedRhoPreMu, A_i, L_i, G_i, numNeighborsPerPart, neighborList, indexOfIndex);
+        calc_A_Matrix(sortedPosRad, sortedVelMas, sortedRhoPreMu, A_i, G_i, numNeighborsPerPart, neighborList,
+                      indexOfIndex);
+        calc_L_Matrix(sortedPosRad, sortedVelMas, sortedRhoPreMu, A_i, L_i, G_i, numNeighborsPerPart, neighborList,
+                      indexOfIndex);
     }
     float Gi[9] = {1.0, 0.0, 0.0, 0.0, 1.0, 0.0, 0.0, 0.0, 1.0};
     float Li[9] = {1.0, 0.0, 0.0, 0.0, 1.0, 0.0, 0.0, 0.0, 1.0};
@@ -1022,7 +1022,7 @@ __global__ void Navier_Stokes(uint* indexOfIndex,
     Real3 inner_sum = mR3(0.0);
     Real sum_w_i = W3h(0.0, sortedPosRad[index].w) * paramsD.volume0;
 
-    for (int n = NLStart; n < NLEnd; n++){
+    for (int n = NLStart; n < NLEnd; n++) {
         uint j = neighborList[n];
         if (j == index) {
             continue;
@@ -1490,7 +1490,8 @@ __global__ void CalcVel_XSPH_D(uint* indexOfIndex,
 }
 
 //--------------------------------------------------------------------------------------------------------------------------------
-// TODO (Huzaifa): Why have so many seperate SortedToOriginal function (one below this and one in ChFluidDynamics.cu) - Can these be combined?
+// TODO (Huzaifa): Why have so many seperate SortedToOriginal function (one below this and one in ChFluidDynamics.cu) -
+// Can these be combined?
 __global__ void CopySortedToOriginal_D(const Real4* sortedDerivVelRho,
                                        const Real3* sortedDerivTauXxYyZz,
                                        const Real3* sortedDerivTauXyXzYz,
@@ -1580,7 +1581,7 @@ void ChFsiForceExplicitSPH::ForceSPH(std::shared_ptr<SphMarkerDataD> otherSorted
                                      std::shared_ptr<FsiBodyStateD> fsiBodyStateD,
                                      std::shared_ptr<FsiMeshStateD> fsiMesh1DStateD,
                                      std::shared_ptr<FsiMeshStateD> fsiMesh2DStateD,
-                                     Real time, 
+                                     Real time,
                                      bool firstHalfStep) {
     sortedSphMarkers_D = otherSortedSphMarkersD;
     bceWorker->updateBCEAcc(fsiBodyStateD, fsiMesh1DStateD, fsiMesh2DStateD);
@@ -1622,8 +1623,8 @@ void ChFsiForceExplicitSPH::neighborSearchPlain() {
     neighborSearchID_plain<<<numBlocksShort, numThreadsShort>>>(
         mR4CAST(sortedSphMarkers_D->posRadD), mR4CAST(sortedSphMarkers_D->rhoPresMuD),
         U1CAST(markersProximity_D->cellStartD), U1CAST(markersProximity_D->cellEndD),
-        U1CAST(fsiData->activityIdentifierD), U1CAST(fsiData->numNeighborsPerPart),
-        U1CAST(fsiData->neighborList), isErrorD);
+        U1CAST(fsiData->activityIdentifierD), U1CAST(fsiData->numNeighborsPerPart), U1CAST(fsiData->neighborList),
+        isErrorD);
     ChUtilsDevice::Sync_CheckError(isErrorH, isErrorD, "neighborSearchID_plain");
 }
 
@@ -1665,9 +1666,8 @@ void ChFsiForceExplicitSPH::neighborSearchShared() {
     // each one of the 8 cells in the SD will populate its 7 corresponding neighbor cells' ID
     thrust::device_vector<uint> SDCenter(numBlocksShort * 8);
     thrust::device_vector<uint> SDBuffer(numBlocksShort * 56);
-    fillCenterBufferCellID<<<numBlocksShort, numThreadsSD>>>(U1CAST(nonZeroIndices),
-                                                             U1CAST(fsiData->activityIdentifierSDD),
-                                                             U1CAST(SDCenter), U1CAST(SDBuffer), isErrorD);
+    fillCenterBufferCellID<<<numBlocksShort, numThreadsSD>>>(
+        U1CAST(nonZeroIndices), U1CAST(fsiData->activityIdentifierSDD), U1CAST(SDCenter), U1CAST(SDBuffer), isErrorD);
     ChUtilsDevice::Sync_CheckError(isErrorH, isErrorD, "fillCenterBufferCellID");
 
     // find number of particles in buffer cells
@@ -1676,9 +1676,10 @@ void ChFsiForceExplicitSPH::neighborSearchShared() {
     thrust::device_vector<uint> centerCellKeys(numBlocksShort * 8);
     thrust::device_vector<uint> bufferCellKeys(numBlocksShort * 56);
     findNumPartsInBufferCells<<<numBlocksShort, 64>>>(
-        U1CAST(SDCenter), U1CAST(SDBuffer), U1CAST(markersProximity_D->cellStartD), U1CAST(markersProximity_D->cellEndD),
-        U1CAST(nonZeroIndices), U1CAST(fsiData->activityIdentifierSDD), U1CAST(numPartsInCenterCells),
-        U1CAST(numPartsInBufferCells), U1CAST(centerCellKeys), U1CAST(bufferCellKeys), isErrorD);
+        U1CAST(SDCenter), U1CAST(SDBuffer), U1CAST(markersProximity_D->cellStartD),
+        U1CAST(markersProximity_D->cellEndD), U1CAST(nonZeroIndices), U1CAST(fsiData->activityIdentifierSDD),
+        U1CAST(numPartsInCenterCells), U1CAST(numPartsInBufferCells), U1CAST(centerCellKeys), U1CAST(bufferCellKeys),
+        isErrorD);
     ChUtilsDevice::Sync_CheckError(isErrorH, isErrorD, "findNumPartsInBufferCells");
 
     thrust::inclusive_scan_by_key(centerCellKeys.begin(), centerCellKeys.end(), numPartsInCenterCells.begin(),
@@ -1698,10 +1699,9 @@ void ChFsiForceExplicitSPH::neighborSearchShared() {
     // first pass
     neighborSearchNum<<<numBlocksShort, numThreadsShort, shMemSize>>>(
         mR4CAST(sortedSphMarkers_D->posRadD), mR4CAST(sortedSphMarkers_D->rhoPresMuD),
-        U1CAST(markersProximity_D->cellStartD), U1CAST(markersProximity_D->cellEndD), U1CAST(SDCenter), U1CAST(SDBuffer),
-        U1CAST(numPartsInCenterCells), U1CAST(numPartsInBufferCells), U1CAST(neighborCellIndices),
-        U1CAST(fsiData->activityIdentifierSDD), U1CAST(nonZeroIndices),
-        U1CAST(fsiData->numNeighborsPerPart), isErrorD);
+        U1CAST(markersProximity_D->cellStartD), U1CAST(markersProximity_D->cellEndD), U1CAST(SDCenter),
+        U1CAST(SDBuffer), U1CAST(numPartsInCenterCells), U1CAST(numPartsInBufferCells), U1CAST(neighborCellIndices),
+        U1CAST(fsiData->activityIdentifierSDD), U1CAST(nonZeroIndices), U1CAST(fsiData->numNeighborsPerPart), isErrorD);
     ChUtilsDevice::Sync_CheckError(isErrorH, isErrorD, "neighborSearchNum");
 
     // in-place exclusive scan for num of neighbors
@@ -1709,22 +1709,22 @@ void ChFsiForceExplicitSPH::neighborSearchShared() {
                            fsiData->numNeighborsPerPart.begin());
     fsiData->neighborList.resize(fsiData->numNeighborsPerPart.back());
     thrust::fill(fsiData->neighborList.begin(), fsiData->neighborList.end(), 0);
-    
+
     // TODO (Huzaifa): 730 changed to 1730 as a temporary fix - need to calculate upper limit of shared memory required
     shMemSize = 1730 * (sizeof(Real3) + sizeof(uint));
     // second pass
     neighborSearchID<<<numBlocksShort, numThreadsShort, shMemSize>>>(
         mR4CAST(sortedSphMarkers_D->posRadD), mR4CAST(sortedSphMarkers_D->rhoPresMuD),
-        U1CAST(markersProximity_D->cellStartD), U1CAST(markersProximity_D->cellEndD), U1CAST(SDCenter), U1CAST(SDBuffer),
-        U1CAST(numPartsInCenterCells), U1CAST(numPartsInBufferCells), U1CAST(neighborCellIndices),
-        U1CAST(fsiData->numNeighborsPerPart), U1CAST(fsiData->activityIdentifierSDD),
-        U1CAST(nonZeroIndices), U1CAST(fsiData->neighborList), isErrorD);
+        U1CAST(markersProximity_D->cellStartD), U1CAST(markersProximity_D->cellEndD), U1CAST(SDCenter),
+        U1CAST(SDBuffer), U1CAST(numPartsInCenterCells), U1CAST(numPartsInBufferCells), U1CAST(neighborCellIndices),
+        U1CAST(fsiData->numNeighborsPerPart), U1CAST(fsiData->activityIdentifierSDD), U1CAST(nonZeroIndices),
+        U1CAST(fsiData->neighborList), isErrorD);
     ChUtilsDevice::Sync_CheckError(isErrorH, isErrorD, "neighborSearchID");
 }
 
 //--------------------------------------------------------------------------------------------------------------------------------
 void ChFsiForceExplicitSPH::CollideWrapper(Real time, bool firstHalfStep) {
-    bool *isErrorD;
+    bool* isErrorD;
     cudaMalloc((void**)&isErrorD, sizeof(bool));
 
     // thread per particle
@@ -1746,10 +1746,9 @@ void ChFsiForceExplicitSPH::CollideWrapper(Real time, bool firstHalfStep) {
 
     // Perform Proxmity search at desired frequency and using desired GPU memory
     if (firstHalfStep && (time < 1e-6 || int(round(time / paramsH->dT)) % paramsH->numProximitySearchSteps == 0)) {
-        if(paramsH->sharedProximitySearch){
+        if (paramsH->sharedProximitySearch) {
             neighborSearchShared();
-        }
-        else{
+        } else {
             neighborSearchPlain();
         }
     }
@@ -1759,17 +1758,16 @@ void ChFsiForceExplicitSPH::CollideWrapper(Real time, bool firstHalfStep) {
     cudaResetErrorFlag(isErrorD);
     calcKernelSupport<<<numBlocks, numThreads>>>(
         mR4CAST(sortedSphMarkers_D->posRadD), mR4CAST(sortedSphMarkers_D->rhoPresMuD), mR3CAST(sortedKernelSupport),
-        U1CAST(markersProximity_D->cellStartD), U1CAST(markersProximity_D->cellEndD),
         U1CAST(markersProximity_D->mapOriginalToSorted), U1CAST(fsiData->numNeighborsPerPart),
         U1CAST(fsiData->neighborList), isErrorD);
     cudaCheckErrorFlag(isErrorD, "calcKernelSupport");
 
     cudaResetErrorFlag(isErrorD);
     updateBoundaryPres<<<numBlocks, numThreads>>>(
-        U1CAST(fsiData->activityIdentifierD), U1CAST(fsiData->numNeighborsPerPart),
-        U1CAST(fsiData->neighborList), mR4CAST(sortedSphMarkers_D->posRadD), mR3CAST(fsiData->bceAcc),
-        mR4CAST(sortedSphMarkers_D->rhoPresMuD), mR3CAST(sortedSphMarkers_D->velMasD),
-        mR3CAST(sortedSphMarkers_D->tauXxYyZzD), mR3CAST(sortedSphMarkers_D->tauXyXzYzD), isErrorD);
+        U1CAST(fsiData->activityIdentifierD), U1CAST(fsiData->numNeighborsPerPart), U1CAST(fsiData->neighborList),
+        mR4CAST(sortedSphMarkers_D->posRadD), mR3CAST(fsiData->bceAcc), mR4CAST(sortedSphMarkers_D->rhoPresMuD),
+        mR3CAST(sortedSphMarkers_D->velMasD), mR3CAST(sortedSphMarkers_D->tauXxYyZzD),
+        mR3CAST(sortedSphMarkers_D->tauXyXzYzD), isErrorD);
     cudaCheckErrorFlag(isErrorD, "updateBoundaryPres");
 
     // Execute the kernel
@@ -1780,10 +1778,9 @@ void ChFsiForceExplicitSPH::CollideWrapper(Real time, bool firstHalfStep) {
             U1CAST(fsiData->activityIdentifierD), mR4CAST(sortedSphMarkers_D->posRadD),
             mR3CAST(sortedSphMarkers_D->velMasD), mR4CAST(sortedSphMarkers_D->rhoPresMuD),
             mR3CAST(sortedSphMarkers_D->tauXxYyZzD), mR3CAST(sortedSphMarkers_D->tauXyXzYzD),
-            U1CAST(fsiData->numNeighborsPerPart), U1CAST(fsiData->neighborList),
-            mR4CAST(fsiData->derivVelRhoD), mR3CAST(fsiData->derivTauXxYyZzD),
-            mR3CAST(fsiData->derivTauXyXzYzD), mR3CAST(fsiData->vel_XSPH_D), mR3CAST(sortedKernelSupport),
-            U1CAST(fsiData->freeSurfaceIdD), isErrorD);
+            U1CAST(fsiData->numNeighborsPerPart), U1CAST(fsiData->neighborList), mR4CAST(fsiData->derivVelRhoD),
+            mR3CAST(fsiData->derivTauXxYyZzD), mR3CAST(fsiData->derivTauXyXzYzD), mR3CAST(fsiData->vel_XSPH_D),
+            mR3CAST(sortedKernelSupport), U1CAST(fsiData->freeSurfaceIdD), isErrorD);
         cudaCheckErrorFlag(isErrorD, "NS_SSR");
     } else {  // For fluid
 
@@ -1820,10 +1817,8 @@ void ChFsiForceExplicitSPH::CalculateXSPH_velocity() {
             "CalculateXSPH_velocity!\n");
     }
 
-    bool *isErrorD;
+    bool* isErrorD;
     cudaMalloc((void**)&isErrorD, sizeof(bool));
-
-
 
     //------------------------------------------------------------------------
     if (!paramsH->elastic_SPH) {
@@ -1850,10 +1845,8 @@ void ChFsiForceExplicitSPH::CalculateXSPH_velocity() {
         cudaCheckErrorFlag(isErrorD, "CalcVel_XSPH_D");
     }
 
-
     cudaFree(isErrorD);
 }
-
 
 }  // namespace fsi
 }  // namespace chrono
