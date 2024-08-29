@@ -14,6 +14,7 @@
 #define CH_UTILS_H
 
 #include <algorithm>
+#include <cmath>
 
 #include "chrono/core/ChApiCE.h"
 #include "chrono/utils/ChConstants.h"
