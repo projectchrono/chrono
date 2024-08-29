@@ -16,6 +16,7 @@
 #include <algorithm>
 
 #include "chrono/core/ChApiCE.h"
+#include "chrono/utils/ChConstants.h"
 
 namespace chrono {
 
