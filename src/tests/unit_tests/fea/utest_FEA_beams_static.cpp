@@ -59,7 +59,7 @@ double AnalyticalSol(double tip_load) {
     return analytical_timoshenko_displ;
 }
 
-double ANCF_test(ChSystem& sys, double tip_load, int nelements) {
+double ANCF3243_test(ChSystem& sys, double tip_load, int nelements) {
     // Clear previous demo, if any:
     sys.Clear();
     sys.SetChTime(0);
@@ -72,7 +72,36 @@ double ANCF_test(ChSystem& sys, double tip_load, int nelements) {
 
     auto material = chrono_types::make_shared<ChMaterialBeamANCF>(density, E_mod, nu_rat, E_mod * nu_rat, k1, k2);
 
-    ChBuilderBeamANCF builder;
+    ChBuilderBeamANCF_3243 builder;
+    builder.BuildBeam(mesh, material, nelements, ChVector3d(0, 0, 0), ChVector3d(beamL, 0, 0), beam_wy, beam_wz, VECT_X,
+                      VECT_Y, VECT_Z);
+    builder.GetLastBeamNodes().front()->SetFixed(true);
+    builder.GetLastBeamNodes().back()->SetForce(ChVector3d(0, tip_load, 0));
+
+    double y_init = builder.GetLastBeamNodes().back()->GetPos().y();
+
+    // Do a linear static analysis.
+    sys.DoStaticLinear();
+
+    double numerical_displ = builder.GetLastBeamNodes().back()->GetPos().y() - y_init;
+
+    return numerical_displ;
+}
+
+double ANCF3333_test(ChSystem& sys, double tip_load, int nelements) {
+    // Clear previous demo, if any:
+    sys.Clear();
+    sys.SetChTime(0);
+
+    // Create a mesh, that is a container for groups of elements and their referenced nodes.
+    // Remember to add it to the system.
+    auto mesh = chrono_types::make_shared<ChMesh>();
+    mesh->SetAutomaticGravity(false);
+    sys.Add(mesh);
+
+    auto material = chrono_types::make_shared<ChMaterialBeamANCF>(density, E_mod, nu_rat, E_mod * nu_rat, k1, k2);
+
+    ChBuilderBeamANCF_3333 builder;
     builder.BuildBeam(mesh, material, nelements, ChVector3d(0, 0, 0), ChVector3d(beamL, 0, 0), beam_wy, beam_wz, VECT_Y,
                       VECT_Z);
     builder.GetLastBeamNodes().front()->SetFixed(true);
@@ -422,20 +451,23 @@ int main(int argc, char* argv[]) {
         std::cout << "============================\nTest # " << i << std::endl;
         double load = i * beam_tip_init_load;
         double analytical_displ = AnalyticalSol(load);
-        double ancf_displ = ANCF_test(sys, load, i + 2);
+        double ancf3243_displ = ANCF3243_test(sys, load, i + 2);
+        double ancf3333_displ = ANCF3333_test(sys, load, i + 2);
         double iga_displ = IGA_test(sys, load, i + 2, 3);
         double igaoffset_displ = IGA_test_offset(sys, load, i + 2, 3);
         double igaoffset_displ_rigidity = IGA_test_offset_rigidity(sys, load, i + 2, 3);
-        double ancf_err = fabs((ancf_displ - analytical_displ) / analytical_displ);
+        double ancf3243_err = fabs((ancf3243_displ - analytical_displ) / analytical_displ);
+        double ancf3333_err = fabs((ancf3333_displ - analytical_displ) / analytical_displ);
         double iga_err = fabs((iga_displ - analytical_displ) / analytical_displ);
         double igaoffset_err = fabs((igaoffset_displ - analytical_displ) / analytical_displ);
         double igaoffsetrigidity_err = fabs((igaoffset_displ_rigidity - analytical_displ) / analytical_displ);
         std::cout << "Kirchhoff beam models" << std::endl;
-        std::cout << "analytical: " << analytical_displ << std::endl;
-        std::cout << "      ANCF: " << ancf_displ << "  err: " << ancf_err << std::endl;
-        std::cout << "       IGA: " << iga_displ << "  err: " << iga_err << std::endl;
-        std::cout << "  IGAoffs.: " << igaoffset_displ << "  err: " << igaoffset_err << std::endl;
-        std::cout << " IGAoffsr.: " << igaoffset_displ_rigidity << "  err: " << igaoffsetrigidity_err << std::endl;
+        std::cout << "  analytical: " << analytical_displ << std::endl;
+        std::cout << "   ANCF 3243: " << ancf3243_displ << "  err: " << ancf3243_err << std::endl;
+        std::cout << "   ANCF 3333: " << ancf3333_displ << "  err: " << ancf3333_err << std::endl;
+        std::cout << "         IGA: " << iga_displ << "  err: " << iga_err << std::endl;
+        std::cout << "    IGA offs: " << igaoffset_displ << "  err: " << igaoffset_err << std::endl;
+        std::cout << "   IGA offsr: " << igaoffset_displ_rigidity << "  err: " << igaoffsetrigidity_err << std::endl;
 
         double euler_displ = EULER_test(sys, load, i + 2);
         double euleroffset_displ = EULER_test_offset(sys, load, i + 2);
@@ -446,11 +478,11 @@ int main(int argc, char* argv[]) {
         double euler_err = fabs((euler_displ - analytical_displ_euler) / analytical_displ);
         double euleroffset_err = fabs((euleroffset_displ - analytical_displ_euler) / analytical_displ);
         std::cout << "Euler-Bernoulli beam models" << std::endl;
-        std::cout << "analytical: " << analytical_displ_euler << std::endl;
-        std::cout << "     EULER: " << euler_displ << "  err: " << euler_err << std::endl;
-        std::cout << "     E.offs:" << euleroffset_displ << "  err: " << euleroffset_err << std::endl;
+        std::cout << "  analytical: " << analytical_displ_euler << std::endl;
+        std::cout << "       Euler: " << euler_displ << "  err: " << euler_err << std::endl;
+        std::cout << "  Euler offs: " << euleroffset_displ << "  err: " << euleroffset_err << std::endl;
 
-        if (ancf_err > threshold || iga_err > threshold || igaoffset_err > threshold ||
+        if (ancf3243_err > threshold || ancf3333_err > threshold || iga_err > threshold || igaoffset_err > threshold ||
             igaoffsetrigidity_err > threshold || euler_err > threshold || euleroffset_err > threshold) {
             std::cout << "\n\nTest failed" << std::endl;
             return 1;
