@@ -38,6 +38,7 @@
 #include "chrono_models/vehicle/hmmwv/powertrain/HMMWV_EngineSimple.h"
 #include "chrono_models/vehicle/hmmwv/powertrain/HMMWV_AutomaticTransmissionShafts.h"
 #include "chrono_models/vehicle/hmmwv/powertrain/HMMWV_AutomaticTransmissionSimpleMap.h"
+#include "chrono_models/vehicle/hmmwv/powertrain/HMMWV_AutomaticTransmissionSimpleCVT.h"
 
 namespace chrono {
 namespace vehicle {
@@ -147,6 +148,9 @@ void HMMWV::Initialize() {
             break;
         case TransmissionModelType::AUTOMATIC_SIMPLE_MAP:
             transmission = chrono_types::make_shared<HMMWV_AutomaticTransmissionSimpleMap>("Transmission");
+            break;
+        case TransmissionModelType::AUTOMATIC_SIMPLE_CVT:
+            transmission = chrono_types::make_shared<HMMWV_AutomaticTransmissionSimpleCVT>("Transmission");
             break;
         default:
             break;

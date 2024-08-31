@@ -618,6 +618,9 @@ void ChSystem::DescriptorPrepareInject(ChSystemDescriptor& sys_descriptor) {
 // allocates or reallocate bookkeeping data/vectors, if any,
 
 void ChSystem::Setup() {
+    if (!is_initialized)
+        assembly.SetupInitial();
+
     CH_PROFILE("Setup");
 
     timer_setup.start();

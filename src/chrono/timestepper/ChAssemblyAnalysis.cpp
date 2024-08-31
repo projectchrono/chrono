@@ -78,11 +78,16 @@ AssemblyAnalysis::ExitFlag ChAssemblyAnalysis::AssemblyAnalysis(int action, doub
                 break;
             }
 
-            double rel_update_norm = Dx.cwiseQuotient(X).lpNorm<Eigen::Infinity>();
+            if (Dx.size() == X.size()) {
+                bool has_zero = (Dx.array() == 0.0).any(); // check against division by zero
+                if (!has_zero) {
+                    double rel_update_norm = Dx.cwiseQuotient(X).lpNorm<Eigen::Infinity>();
 
-            if (rel_update_norm == rel_update_norm && rel_update_norm < m_rel_tol_update) {
-                exit_flag = AssemblyAnalysis::ExitFlag::RELTOL_UPDATE;
-                break;
+                    if (rel_update_norm == rel_update_norm && rel_update_norm < m_rel_tol_update) {
+                        exit_flag = AssemblyAnalysis::ExitFlag::RELTOL_UPDATE;
+                        break;
+                    }
+                }
             }
         }
     }

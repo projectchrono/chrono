@@ -434,6 +434,7 @@ enum class EngineModelType {
 enum class TransmissionModelType {
     AUTOMATIC_SHAFTS,      ///< automatic transmission model based of ChShaft elements
     AUTOMATIC_SIMPLE_MAP,  ///< automatic transmission model based on TC maps
+    AUTOMATIC_SIMPLE_CVT,  ///< automatic transmission model based on CVT design
     MANUAL_SHAFTS          ///< manual transmission model based on ChShaft elements
 };
 
