@@ -26,6 +26,7 @@
 #include "chrono/collision/ChCollisionShapeEllipsoid.h"
 #include "chrono/collision/ChCollisionShapePath2D.h"
 #include "chrono/collision/ChCollisionShapePoint.h"
+#include "chrono/collision/ChCollisionShapeSegment.h"
 #include "chrono/collision/ChCollisionShapeRoundedBox.h"
 #include "chrono/collision/ChCollisionShapeRoundedCylinder.h"
 #include "chrono/collision/ChCollisionShapeSegment2D.h"
