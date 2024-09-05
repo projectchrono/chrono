@@ -27,12 +27,6 @@
 #include "chrono/utils/ChUtilsCreators.h"
 #include "chrono/utils/ChUtilsGenerators.h"
 
-#include "chrono/fea/ChElementCableANCF.h"
-#include "chrono/fea/ChElementShellANCF_3423.h"
-#include "chrono/fea/ChMesh.h"
-#include "chrono/fea/ChNodeFEAxyzD.h"
-#include "chrono/fea/ChContactSurfaceMesh.h"
-
 #include "chrono_fsi/ChSystemFsi.h"
 #include "chrono_fsi/physics/ChParams.h"
 #include "chrono_fsi/physics/ChSystemFsi_impl.cuh"
@@ -67,6 +61,10 @@ ChSystemFsi::ChSystemFsi(ChSystem* sysMBS)
       m_time(0),
       m_RTF(0),
       m_ratio_MBS(0),
+      m_pattern1D(BcePatternMesh1D::FULL),
+      m_pattern2D(BcePatternMesh2D::CENTERED),
+      m_remove_center1D(false),
+      m_remove_center2D(false),
       m_write_mode(OutputMode::NONE) {
     m_paramsH = chrono_types::make_shared<SimParams>();
     InitParams();
@@ -725,36 +723,65 @@ size_t ChSystemFsi::AddFsiBody(std::shared_ptr<ChBody> body) {
     return index;
 }
 
-size_t ChSystemFsi::AddFsiMesh1D(std::shared_ptr<fea::ChMesh> mesh, BcePatternMesh1D pattern, bool remove_center) {
-    ChFsiInterface::FsiMesh1D fsi_mesh;
+void ChSystemFsi::SetBcePattern1D(BcePatternMesh1D pattern, bool remove_center) {
+    m_pattern1D = pattern;
+    m_remove_center1D = remove_center;
+}
 
-    // Traverse all elements in the provided mesh and extract the 1-D elements elements.
-    // Keep track of node ownership
-    std::set<fea::ChNodeFEAxyz*> assigned;
-    for (const auto& element : mesh->GetElements()) {
-        if (auto cable_el = std::dynamic_pointer_cast<fea::ChElementCableANCF>(element)) {
-            std::shared_ptr<fea::ChNodeFEAxyz> node0 = cable_el->GetNodeA();
-            std::shared_ptr<fea::ChNodeFEAxyz> node1 = cable_el->GetNodeB();
-            ChVector2<bool> owns_node = {false, false};
-            if (assigned.count(node0.get()) == 0) {
-                assigned.insert(node0.get());
-                owns_node[0] = true;
-            }
-            if (assigned.count(node1.get()) == 0) {
-                assigned.insert(node1.get());
-                owns_node[1] = true;
-            }
-            auto segment = chrono_types::make_shared<fea::ChContactSegmentXYZ>();
-            segment->SetNodes({{node0, node1}});
-            segment->SetNodeOwnership(owns_node);
-            fsi_mesh.segments.push_back(segment);
+void ChSystemFsi::SetBcePattern2D(BcePatternMesh2D pattern, bool remove_center) {
+    m_pattern2D = pattern;
+    m_remove_center2D = remove_center;
+}
+
+void ChSystemFsi::AddFsiMesh(std::shared_ptr<fea::ChMesh> mesh) {
+    bool has_contact1D = false;
+    bool has_contact2D = false;
+
+    // Search for contact surfaces associated with the FEA mesh
+    for (const auto& surface : mesh->GetContactSurfaces()) {
+        if (auto surface_segs = std::dynamic_pointer_cast<fea::ChContactSurfaceSegmentSet>(surface)) {
+            AddFsiMesh1D(surface_segs);
+            has_contact1D = true;
+        } else if (auto surface_mesh = std::dynamic_pointer_cast<fea::ChContactSurfaceMesh>(surface)) {
+            AddFsiMesh2D(surface_mesh);
+            has_contact2D = true;
         }
     }
+
+    // If no 1D surface contact found, create one with a default contact material and add segments from cable and beam
+    // elements in the FEA mesh
+    if (!has_contact1D) {
+        ChContactMaterialData contact_material_data;  // default contact material
+        auto surface_segs = chrono_types::make_shared<fea::ChContactSurfaceSegmentSet>(
+            contact_material_data.CreateMaterial(ChContactMethod::SMC));
+        mesh->AddContactSurface(surface_segs);
+        surface_segs->AddAllSegments(0);
+        AddFsiMesh1D(surface_segs);
+    }
+
+    // If no 2D surface contact found, create one with a default contact material and extract the boundary faces of the
+    // FEA mesh
+    if (!has_contact2D) {
+        ChContactMaterialData contact_material_data;  // default contact material
+        auto surface_mesh = chrono_types::make_shared<fea::ChContactSurfaceMesh>(
+            contact_material_data.CreateMaterial(ChContactMethod::SMC));
+        mesh->AddContactSurface(surface_mesh);
+        surface_mesh->AddFacesFromBoundary(0, true, false, false);  // do not include cable and beam elements
+        AddFsiMesh2D(surface_mesh);
+    }
+}
+
+void ChSystemFsi::AddFsiMesh1D(std::shared_ptr<fea::ChContactSurfaceSegmentSet> surface) {
+    if (surface->GetNumSegments() == 0)
+        return;
+
+    ChFsiInterface::FsiMesh1D fsi_mesh;
+    fsi_mesh.contact_surface = surface;
 
     // Create maps from pointer-based to index-based for the nodes in the mesh contact segments.
     // These maps index only the nodes that are in ANCF cable elements (and not all nodes in the given FEA mesh).
     int vertex_index = 0;
-    for (const auto& seg : fsi_mesh.segments) {
+    for (const auto& seg : surface->GetSegmentsXYZ()) {
         if (fsi_mesh.ptr2ind_map.insert({seg->GetNode(0), vertex_index}).second) {
             fsi_mesh.ind2ptr_map.insert({vertex_index, seg->GetNode(0)});
             ++vertex_index;
@@ -766,7 +793,7 @@ size_t ChSystemFsi::AddFsiMesh1D(std::shared_ptr<fea::ChMesh> mesh, BcePatternMe
     }
 
     // Load index-based mesh connectivity (append to global list of 1-D flex segments)
-    for (const auto& seg : fsi_mesh.segments) {
+    for (const auto& seg : surface->GetSegmentsXYZ()) {
         auto node0_index = fsi_mesh.ptr2ind_map[seg->GetNode(0)];
         auto node1_index = fsi_mesh.ptr2ind_map[seg->GetNode(1)];
         m_sysFSI->fsiData->flex1D_Nodes_H.push_back(mI2(node0_index, node1_index));
@@ -774,46 +801,27 @@ size_t ChSystemFsi::AddFsiMesh1D(std::shared_ptr<fea::ChMesh> mesh, BcePatternMe
 
     // Create the BCE markers based on the mesh contact segments
     unsigned int meshID = (unsigned int)m_fsi_interface->m_fsi_meshes1D.size();
-    fsi_mesh.num_bce = AddBCE_mesh1D(meshID, fsi_mesh, pattern, remove_center);
+    fsi_mesh.num_bce = AddBCE_mesh1D(meshID, fsi_mesh);
 
     // Update total number of flex 1-D segments and associated nodes
-    m_num_flex1D_elements += fsi_mesh.segments.size();
+    m_num_flex1D_elements += fsi_mesh.contact_surface->GetNumSegments();
     m_num_flex1D_nodes += fsi_mesh.ind2ptr_map.size();
 
     // Store the mesh contact surface
-    size_t index = m_fsi_interface->m_fsi_meshes1D.size();
     m_fsi_interface->m_fsi_meshes1D.push_back(fsi_mesh);
-
-    return index;
 }
 
-size_t ChSystemFsi::AddFsiMesh2D(std::shared_ptr<fea::ChMesh> mesh, BcePatternMesh2D pattern, bool remove_center) {
-    std::shared_ptr<fea::ChContactSurfaceMesh> contact_surface;
-
-    // Search for a contact surface mesh associated with the FEA mesh
-    for (const auto& surface : mesh->GetContactSurfaces()) {
-        if (auto surface_mesh = std::dynamic_pointer_cast<fea::ChContactSurfaceMesh>(surface)) {
-            contact_surface = surface_mesh;
-            break;
-        }
-    }
-
-    // If none found, create one with a default contact material and extract the boundary faces of the FEA mesh
-    if (!contact_surface) {
-        ChContactMaterialData contact_material_data;  // default contact material
-        contact_surface = chrono_types::make_shared<fea::ChContactSurfaceMesh>(
-            contact_material_data.CreateMaterial(ChContactMethod::SMC));
-        mesh->AddContactSurface(contact_surface);
-        contact_surface->AddFacesFromBoundary(0.1);
-    }
+void ChSystemFsi::AddFsiMesh2D(std::shared_ptr<fea::ChContactSurfaceMesh> surface) {
+    if (surface->GetNumTriangles() == 0)
+        return;
 
     ChFsiInterface::FsiMesh2D fsi_mesh;
-    fsi_mesh.contact_surface = contact_surface;
+    fsi_mesh.contact_surface = surface;
 
     // Create maps from pointer-based to index-based for the nodes in the mesh contact surface.
     // These maps index only the nodes that are in the contact surface (and not all nodes in the given FEA mesh).
     int vertex_index = 0;
-    for (const auto& tri : contact_surface->GetTrianglesXYZ()) {
+    for (const auto& tri : surface->GetTrianglesXYZ()) {
         if (fsi_mesh.ptr2ind_map.insert({tri->GetNode(0), vertex_index}).second) {
             fsi_mesh.ind2ptr_map.insert({vertex_index, tri->GetNode(0)});
             ++vertex_index;
@@ -828,11 +836,11 @@ size_t ChSystemFsi::AddFsiMesh2D(std::shared_ptr<fea::ChMesh> mesh, BcePatternMe
         }
     }
 
-    assert(fsi_mesh.ptr2ind_map.size() == contact_surface->GetNumVertices());
-    assert(fsi_mesh.ind2ptr_map.size() == contact_surface->GetNumVertices());
+    assert(fsi_mesh.ptr2ind_map.size() == surface->GetNumVertices());
+    assert(fsi_mesh.ind2ptr_map.size() == surface->GetNumVertices());
 
     // Load index-based mesh connectivity (append to global list of 1-D flex segments)
-    for (const auto& tri : contact_surface->GetTrianglesXYZ()) {
+    for (const auto& tri : surface->GetTrianglesXYZ()) {
         auto node0_index = fsi_mesh.ptr2ind_map[tri->GetNode(0)];
         auto node1_index = fsi_mesh.ptr2ind_map[tri->GetNode(1)];
         auto node2_index = fsi_mesh.ptr2ind_map[tri->GetNode(2)];
@@ -841,17 +849,14 @@ size_t ChSystemFsi::AddFsiMesh2D(std::shared_ptr<fea::ChMesh> mesh, BcePatternMe
 
     // Create the BCE markers based on the mesh contact surface
     unsigned int meshID = (unsigned int)m_fsi_interface->m_fsi_meshes2D.size();
-    fsi_mesh.num_bce = AddBCE_mesh2D(meshID, fsi_mesh, pattern, remove_center);
+    fsi_mesh.num_bce = AddBCE_mesh2D(meshID, fsi_mesh);
 
     // Update total number of flex 2-D faces and associated nodes
     m_num_flex2D_elements += fsi_mesh.contact_surface->GetNumTriangles();
     m_num_flex2D_nodes += fsi_mesh.ind2ptr_map.size();
 
-    // Store the mesh contact surface
-    size_t index = m_fsi_interface->m_fsi_meshes1D.size();
+    // Store the FSI mesh contact surface
     m_fsi_interface->m_fsi_meshes2D.push_back(fsi_mesh);
-
-    return index;
 }
 
 //--------------------------------------------------------------------------------------------------------------------------------
@@ -1686,11 +1691,8 @@ void ChSystemFsi::CreateBCE_cone(double rad,
 
 //--------------------------------------------------------------------------------------------------------------------------------
 
-unsigned int ChSystemFsi::AddBCE_mesh1D(unsigned int meshID,
-                                        const ChFsiInterface::FsiMesh1D& fsi_mesh,
-                                        BcePatternMesh1D pattern,
-                                        bool remove_center) {
-    const auto& segments = fsi_mesh.segments;
+unsigned int ChSystemFsi::AddBCE_mesh1D(unsigned int meshID, const ChFsiInterface::FsiMesh1D& fsi_mesh) {
+    const auto& surface = fsi_mesh.contact_surface;
 
     Real kernel_h = m_paramsH->HSML;
     Real spacing = m_paramsH->MULT_INITSPACE * m_paramsH->HSML;
@@ -1702,10 +1704,10 @@ unsigned int ChSystemFsi::AddBCE_mesh1D(unsigned int meshID,
     //   (largest number that results in a discretization no coarser than the initial spacing)
     // - generate segment coordinates for a uniform grid over the segment
     // - generate locations of BCE points on segment
-    unsigned int num_seg = (unsigned int)segments.size();
+    unsigned int num_seg = (unsigned int)surface->GetSegmentsXYZ().size();
     unsigned int num_bce = 0;
     for (unsigned int segID = 0; segID < num_seg; segID++) {
-        const auto& seg = segments[segID];
+        const auto& seg = surface->GetSegmentsXYZ()[segID];
 
         const auto& P0 = seg->GetNode(0)->GetPos();  // vertex 0 position (absolute coordinates)
         const auto& P1 = seg->GetNode(1)->GetPos();  // vertex 1 position (absolute coordinates)
@@ -1738,9 +1740,9 @@ unsigned int ChSystemFsi::AddBCE_mesh1D(unsigned int meshID,
 
             for (int j = -num_layers + 1; j <= num_layers - 1; j += 2) {
                 for (int k = -num_layers + 1; k <= num_layers - 1; k += 2) {
-                    if (remove_center && j == 0 && k == 0)
+                    if (m_remove_center1D && j == 0 && k == 0)
                         continue;
-                    if (pattern == BcePatternMesh1D::STAR && std::abs(j) + std::abs(k) > num_layers)
+                    if (m_pattern1D == BcePatternMesh1D::STAR && std::abs(j) + std::abs(k) > num_layers)
                         continue;
                     double y_val = j * spacing / 2;
                     double z_val = k * spacing / 2;
@@ -1762,10 +1764,7 @@ unsigned int ChSystemFsi::AddBCE_mesh1D(unsigned int meshID,
     return num_bce;
 }
 
-unsigned int ChSystemFsi::AddBCE_mesh2D(unsigned int meshID,
-                                        const ChFsiInterface::FsiMesh2D& fsi_mesh,
-                                        BcePatternMesh2D pattern,
-                                        bool remove_center) {
+unsigned int ChSystemFsi::AddBCE_mesh2D(unsigned int meshID, const ChFsiInterface::FsiMesh2D& fsi_mesh) {
     const auto& surface = fsi_mesh.contact_surface;
 
     Real kernel_h = m_paramsH->HSML;
@@ -1815,9 +1814,10 @@ unsigned int ChSystemFsi::AddBCE_mesh2D(unsigned int meshID,
         ////ofile << tri->OwnsEdge(0) << " " << tri->OwnsEdge(1) << " " << tri->OwnsEdge(2) << endl;
         ////ofile << n << endl;
 
+        bool remove_center = m_remove_center2D; 
         int m_start = 0;
         int m_end = 0;
-        switch (pattern) {
+        switch (m_pattern2D) {
             case BcePatternMesh2D::INWARD:
                 m_start = -2 * (num_layers - 1);
                 m_end = 0;

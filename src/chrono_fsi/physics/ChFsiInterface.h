@@ -19,22 +19,14 @@
 
 #include "chrono/ChConfig.h"
 #include "chrono/physics/ChSystem.h"
+#include "chrono/fea/ChContactSurfaceMesh.h"
+#include "chrono/fea/ChContactSurfaceSegmentSet.h"
+
 #include "chrono_fsi/ChApiFsi.h"
 #include "chrono_fsi/physics/ChSystemFsi_impl.cuh"
 #include "chrono_fsi/physics/ChFsiBase.h"
 
 namespace chrono {
-
-// Forward declarations
-namespace fea {
-class ChContactSurfaceMesh;
-class ChContactSegmentXYZ;
-class ChNodeFEAxyzD;
-class ChMesh;
-class ChElementCableANCF;
-class ChElementShellANCF_3423;
-}  // namespace fea
-
 namespace fsi {
 
 /// @addtogroup fsi_physics
@@ -74,15 +66,15 @@ class ChFsiInterface : public ChFsiBase {
 
     /// Description of an FEA mesh with 1-D segments exposed to the FSI system.
     struct FsiMesh1D {
-        std::vector<std::shared_ptr<fea::ChContactSegmentXYZ>> segments;  ///< contact segments (pairs of FEA nodes)
-        std::map<std::shared_ptr<fea::ChNodeFEAxyz>, int> ptr2ind_map;    ///< pointer-based to index-based mapping
-        std::map<int, std::shared_ptr<fea::ChNodeFEAxyz>> ind2ptr_map;    ///< index-based to pointer-based mapping
-        int num_bce;                                                      ///< number of BCE markers for this mesh
+        std::shared_ptr<fea::ChContactSurfaceSegmentSet> contact_surface;  ///< FEA contact segments
+        std::map<std::shared_ptr<fea::ChNodeFEAxyz>, int> ptr2ind_map;     ///< pointer-based to index-based mapping
+        std::map<int, std::shared_ptr<fea::ChNodeFEAxyz>> ind2ptr_map;     ///< index-based to pointer-based mapping
+        int num_bce;                                                       ///< number of BCE markers for this mesh
     };
 
     /// Description of an FEA mesh with 2-D faces exposed to the FSI system.
     struct FsiMesh2D {
-        std::shared_ptr<fea::ChContactSurfaceMesh> contact_surface;     ///< FEA mesh skin
+        std::shared_ptr<fea::ChContactSurfaceMesh> contact_surface;     ///< FEA trimesh skin
         std::map<std::shared_ptr<fea::ChNodeFEAxyz>, int> ptr2ind_map;  ///< pointer-based to index-based mapping
         std::map<int, std::shared_ptr<fea::ChNodeFEAxyz>> ind2ptr_map;  ///< index-based to pointer-based mapping
         int num_bce;                                                    ///< number of BCE markers for this mesh
