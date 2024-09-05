@@ -22,6 +22,8 @@
 #include "chrono/collision/bullet/BulletCollision/CollisionShapes/cbt2DShape.h"
 #include "chrono/collision/bullet/BulletCollision/CollisionShapes/cbtBarrelShape.h"
 #include "chrono/collision/bullet/BulletCollision/CollisionShapes/cbtCEtriangleShape.h"
+#include "chrono/collision/bullet/BulletCollision/CollisionShapes/cbtPointShape.h"
+#include "chrono/collision/bullet/BulletCollision/CollisionShapes/cbtSegmentShape.h"
 #include "chrono/collision/bullet/cbtBulletCollisionCommon.h"
 #include "chrono/collision/gimpact/GIMPACT/Bullet/cbtGImpactCollisionAlgorithm.h"
 #include "chrono/collision/gimpact/GIMPACTUtils/cbtGImpactConvexDecompositionShape.h"
@@ -55,12 +57,6 @@ ChCollisionModelBullet::~ChCollisionModelBullet() {
 }
 
 // -----------------------------------------------------------------------------
-
-// Utility class to convert a Chrono ChVector into a Bullet vector3.
-class cbtVector3CH : public cbtVector3 {
-  public:
-    cbtVector3CH(const chrono::ChVector3d& p) { setValue((cbtScalar)p.x(), (cbtScalar)p.y(), (cbtScalar)p.z()); }
-};
 
 // Utility class to convert a Chrono frame into a Bullet transform.
 class cbtTransformCH : public cbtTransform {
@@ -193,6 +189,11 @@ void ChCollisionModelBullet::Populate() {
                 auto bt_shape = chrono_types::make_shared<cbtPointShape>((cbtScalar)(radius + envelope));
                 bt_shape->setMargin((cbtScalar)full_margin);
                 injectShape(shape, bt_shape, frame);
+                break;
+            }
+            case ChCollisionShape::Type::SEGMENT: {
+                auto shape_seg = std::static_pointer_cast<ChCollisionShapeSegment>(shape);
+                injectSegmentProxy(shape_seg);
                 break;
             }
             case ChCollisionShape::Type::PATH2D: {
@@ -631,6 +632,16 @@ void ChCollisionModelBullet::injectTriangleProxy(std::shared_ptr<ChCollisionShap
     bt_shape->setMargin((cbtScalar)GetSuggestedFullMargin());
 
     injectShape(shape_triangle, bt_shape, ChFrame<>());
+}
+
+void ChCollisionModelBullet::injectSegmentProxy(std::shared_ptr<ChCollisionShapeSegment> shape_seg) {
+    model->SetSafeMargin(shape_seg->radius);
+
+    auto bt_shape = chrono_types::make_shared<cbtSegmentShape>(shape_seg->P1, shape_seg->P2, shape_seg->ownsP1,
+                                                               shape_seg->ownsP2, shape_seg->radius);
+    bt_shape->setMargin((cbtScalar)GetSuggestedFullMargin());
+
+    injectShape(shape_seg, bt_shape, ChFrame<>());
 }
 
 // -----------------------------------------------------------------------------

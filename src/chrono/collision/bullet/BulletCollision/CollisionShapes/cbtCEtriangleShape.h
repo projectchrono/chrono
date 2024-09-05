@@ -20,8 +20,8 @@ software.
 #ifndef BT_CE_TRIANGLE_SHAPE_H
 #define BT_CE_TRIANGLE_SHAPE_H
 
-#include "cbtConvexInternalShape.h"
-#include "BulletCollision/BroadphaseCollision/cbtBroadphaseProxy.h"  // for the types
+#include "BulletCollision/CollisionShapes/cbtConvexInternalShape.h"
+#include "BulletCollision/BroadphaseCollision/cbtBroadphaseProxy.h"
 #include "LinearMath/cbtVector3.h"
 #include "chrono/core/ChVector3.h"
 
@@ -34,21 +34,6 @@ software.
 /// S.Rasmus Tamstorf, D.Manocha1
 
 class cbtCEtriangleShape : public cbtConvexInternalShape {
-  private:
-    const chrono::ChVector3d* p1;
-    const chrono::ChVector3d* p2;
-    const chrono::ChVector3d* p3;
-    const chrono::ChVector3d* e1;
-    const chrono::ChVector3d* e2;
-    const chrono::ChVector3d* e3;
-    bool owns_vertex_1;
-    bool owns_vertex_2;
-    bool owns_vertex_3;
-    bool owns_edge_1;
-    bool owns_edge_2;
-    bool owns_edge_3;
-    double sphereswept_rad;
-
   public:
     cbtCEtriangleShape(const chrono::ChVector3d* mp1,
                        const chrono::ChVector3d* mp2,
@@ -64,42 +49,54 @@ class cbtCEtriangleShape : public cbtConvexInternalShape {
                        bool mowns_edge_3,
                        double msphereswept_rad = 0);
 
-    /// CollisionShape Interface
+    // cbtCollisionShape interface
+    virtual const char* getName() const { return "CEtriangleShape"; }
     virtual void calculateLocalInertia(cbtScalar mass, cbtVector3& inertia) const;
+    virtual void getAabb(const cbtTransform& t, cbtVector3& aabbMin, cbtVector3& aabbMax) const;
 
-    /// cbtConvexShape Interface
+    /// cbtConvexShape interface
     virtual cbtVector3 localGetSupportingVertexWithoutMargin(const cbtVector3& vec) const;
-
     virtual void batchedUnitVectorGetSupportingVertexWithoutMargin(const cbtVector3* vectors,
                                                                    cbtVector3* supportVerticesOut,
                                                                    int numVectors) const;
 
-    virtual const char* getName() const { return "CEtriangleShape"; }
-
-    virtual void getAabb(const cbtTransform& t, cbtVector3& aabbMin, cbtVector3& aabbMax) const;
-
-    /// access vertex points  of triangle
+    // access vertex points  of triangle
     const chrono::ChVector3d* get_p1() const { return p1; }
     const chrono::ChVector3d* get_p2() const { return p2; }
     const chrono::ChVector3d* get_p3() const { return p3; }
 
-    /// access points of neighbouring triangles at edges, if any (if no neighbour, is null ptr)
+    // access points of neighbouring triangles at edges, if any (if no neighbour, is null ptr)
     const chrono::ChVector3d* get_e1() const { return e1; }
     const chrono::ChVector3d* get_e2() const { return e2; }
     const chrono::ChVector3d* get_e3() const { return e3; }
 
-    /// tell if the representative triangle owns the vertex
+    // tell if the representative triangle owns the vertex
     bool owns_v1() const { return owns_vertex_1; }
     bool owns_v2() const { return owns_vertex_2; }
     bool owns_v3() const { return owns_vertex_3; }
 
-    /// tell if the representative triangle owns the edge
+    // tell if the representative triangle owns the edge
     bool owns_e1() const { return owns_edge_1; }
     bool owns_e2() const { return owns_edge_2; }
     bool owns_e3() const { return owns_edge_3; }
 
-    /// thickness, for sphere-swept triangles.
+    // thickness, for sphere-swept triangles.
     double sphereswept_r() const { return sphereswept_rad; }
+
+  private:
+    const chrono::ChVector3d* p1;
+    const chrono::ChVector3d* p2;
+    const chrono::ChVector3d* p3;
+    const chrono::ChVector3d* e1;
+    const chrono::ChVector3d* e2;
+    const chrono::ChVector3d* e3;
+    bool owns_vertex_1;
+    bool owns_vertex_2;
+    bool owns_vertex_3;
+    bool owns_edge_1;
+    bool owns_edge_2;
+    bool owns_edge_3;
+    double sphereswept_rad;
 };
 
 #endif

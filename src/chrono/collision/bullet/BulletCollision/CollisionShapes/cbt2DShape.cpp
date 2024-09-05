@@ -29,9 +29,9 @@ cbt2DarcShape::cbt2DarcShape(cbtScalar mx, cbtScalar my, cbtScalar mradius, cbtS
 	radius = mradius;
 	angle1 = mangle1;
 	angle2 = mangle2;
-	m_shapeType = ARC_SHAPE_PROXYTYPE;
-    counterclock = mcounterclock;
-    zthickness = mzthickness;
+	m_shapeType = ARC2D_SHAPE_PROXYTYPE;
+	counterclock = mcounterclock;
+	zthickness = mzthickness;
 }
 
 #include <stdio.h>
@@ -39,12 +39,12 @@ cbt2DarcShape::cbt2DarcShape(cbtScalar mx, cbtScalar my, cbtScalar mradius, cbtS
 {
 	cbtVector3 supVec(0,0,0);
 	
-    cbtVector3 O1(x,y,0);
+	cbtVector3 O1(x, y, 0);
 	
-    cbtVector3 D( supVec-O1 );
-    D.normalize();
+	cbtVector3 D( supVec-O1 );
+	D.normalize();
 
-    supVec = D * radius;
+	supVec = D * radius;
 
 	return supVec;
 }
@@ -112,8 +112,8 @@ cbt2DsegmentShape::cbt2DsegmentShape(const cbtVector3& mP1, const cbtVector3& mP
 {
 	P1 = mP1;
 	P2 = mP2;
-	m_shapeType = SEGMENT_SHAPE_PROXYTYPE;
-    zthickness = mzthickness;
+	m_shapeType = SEGMENT2D_SHAPE_PROXYTYPE;
+	zthickness = mzthickness;
 }
 
 #include <stdio.h>
@@ -121,13 +121,13 @@ cbt2DsegmentShape::cbt2DsegmentShape(const cbtVector3& mP1, const cbtVector3& mP
 {
 	cbtVector3 supVec(0,0,0);
 	
-    cbtScalar L1 = (vec0-P1).length();
-    cbtScalar L2 = (vec0-P2).length();
-    
-    if(L1<L2)
-        return P1;
-       
-    return P2;
+	cbtScalar L1 = (vec0-P1).length();
+	cbtScalar L2 = (vec0-P2).length();
+	
+	if(L1<L2)
+	  return P1;
+
+	return P2;
 }
 
  void	cbt2DsegmentShape::batchedUnitVectorGetSupportingVertexWithoutMargin(const cbtVector3* vectors,cbtVector3* supportVerticesOut,int numVectors) const
@@ -170,13 +170,13 @@ void	cbt2DsegmentShape::calculateLocalInertia(cbtScalar mass,cbtVector3& inertia
 
 void cbt2DsegmentShape::getAabb(const cbtTransform& t,cbtVector3& aabbMin,cbtVector3& aabbMax) const
 {
-    cbtVector3 P1w = t*P1;
-    cbtVector3 P2w = t*P2;
-    cbtVector3 vminabs (std::min(P1w.x(),P2w.x()), std::min(P1w.y(),P2w.y()),  P1w.z()-(zthickness*0.5f));
-    cbtVector3 vmaxabs (std::max(P1w.x(),P2w.x()), std::max(P1w.y(),P2w.y()),  P1w.z()+(zthickness*0.5f));
-    vminabs -= cbtVector3(getMargin(),getMargin(),0);
-    vmaxabs += cbtVector3(getMargin(),getMargin(),0);
-    aabbMin = vminabs;
-    aabbMax = vmaxabs;
+	cbtVector3 P1w = t*P1;
+	cbtVector3 P2w = t*P2;
+	cbtVector3 vminabs (std::min(P1w.x(),P2w.x()), std::min(P1w.y(),P2w.y()),  P1w.z()-(zthickness*0.5f));
+	cbtVector3 vmaxabs (std::max(P1w.x(),P2w.x()), std::max(P1w.y(),P2w.y()),  P1w.z()+(zthickness*0.5f));
+	vminabs -= cbtVector3(getMargin(),getMargin(),0);
+	vmaxabs += cbtVector3(getMargin(),getMargin(),0);
+	aabbMin = vminabs;
+	aabbMax = vmaxabs;
 }
 
