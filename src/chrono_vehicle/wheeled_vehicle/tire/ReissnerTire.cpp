@@ -17,6 +17,7 @@
 // =============================================================================
 
 #include "chrono/core/ChCubicSpline.h"
+#include "chrono/utils/ChUtilsGeometry.h"
 #include "chrono/fea/ChElementHexaCorot_8.h"
 #include "chrono/fea/ChLinkNodeFace.h"
 
