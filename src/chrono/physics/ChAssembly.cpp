@@ -990,6 +990,64 @@ void ChAssembly::IntLoadResidual_Mv(const unsigned int off,      ///< offset in 
     }
 }
 
+void ChAssembly::IntLoadResidual_F_domain(const unsigned int off,  ///< offset in R residual
+    ChVectorDynamic<>& R,    ///< result: the R residual, R += c*F
+    const double c,          ///< a scaling factor
+    const ChOverlapTest& filter ///< only items whose GetCenter() are inside, will add force, otherwise add zero.
+) {
+    unsigned int displ_v = off - this->offset_w;
+
+    for (auto& body : bodylist) {
+        if (body->IsActive())
+            body->IntLoadResidual_F_domain(displ_v + body->GetOffset_w(), R, c, filter);
+    }
+    for (auto& shaft : shaftlist) {
+        if (shaft->IsActive())
+            shaft->IntLoadResidual_F_domain(displ_v + shaft->GetOffset_w(), R, c, filter);
+    }
+    for (auto& link : linklist) {
+        if (link->IsActive())
+            link->IntLoadResidual_F_domain(displ_v + link->GetOffset_w(), R, c, filter);
+    }
+    for (auto& mesh : meshlist) {
+        mesh->IntLoadResidual_F_domain(displ_v + mesh->GetOffset_w(), R, c, filter);
+    }
+    for (auto& item : otherphysicslist) {
+        if (item->IsActive())
+            item->IntLoadResidual_F_domain(displ_v + item->GetOffset_w(), R, c, filter);
+    }
+}
+
+void ChAssembly::IntLoadResidual_Mv_domain(const unsigned int off,      ///< offset in R residual
+    ChVectorDynamic<>& R,        ///< result: the R residual, R += c*M*v
+    const ChVectorDynamic<>& w,  ///< the w vector
+    const double c,               ///< a scaling factor
+    const ChOverlapTest& filter ///< only items whose GetCenter() are inside, will add force, otherwise add zero.
+) {
+    unsigned int displ_v = off - this->offset_w;
+
+    for (auto& body : bodylist) {
+        if (body->IsActive())
+            body->IntLoadResidual_Mv_domain(displ_v + body->GetOffset_w(), R, w, c, filter);
+    }
+    for (auto& shaft : shaftlist) {
+        if (shaft->IsActive())
+            shaft->IntLoadResidual_Mv_domain(displ_v + shaft->GetOffset_w(), R, w, c, filter);
+    }
+    for (auto& link : linklist) {
+        if (link->IsActive())
+            link->IntLoadResidual_Mv_domain(displ_v + link->GetOffset_w(), R, w, c, filter);
+    }
+    for (auto& mesh : meshlist) {
+        mesh->IntLoadResidual_Mv_domain(displ_v + mesh->GetOffset_w(), R, w, c, filter);
+    }
+    for (auto& item : otherphysicslist) {
+        if (item->IsActive())
+            item->IntLoadResidual_Mv_domain(displ_v + item->GetOffset_w(), R, w, c, filter);
+    }
+}
+
+
 void ChAssembly::IntLoadLumpedMass_Md(const unsigned int off, ChVectorDynamic<>& Md, double& err, const double c) {
     unsigned int displ_v = off - this->offset_w;
 
@@ -1013,6 +1071,7 @@ void ChAssembly::IntLoadLumpedMass_Md(const unsigned int off, ChVectorDynamic<>&
             item->IntLoadLumpedMass_Md(displ_v + item->GetOffset_w(), Md, err, c);
     }
 }
+
 
 void ChAssembly::IntLoadResidual_CqL(const unsigned int off_L,    ///< offset in L multipliers
                                      ChVectorDynamic<>& R,        ///< result: the R residual, R += c*Cq'*L

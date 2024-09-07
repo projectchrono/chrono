@@ -55,6 +55,28 @@ void ChNodeBase::NodeIntStateGetIncrement(const unsigned int off_x,
     }
 }
 
+void ChNodeBase::NodeIntLoadResidual_F_domain(const unsigned int off,
+    ChVectorDynamic<>& R,
+    const double c,
+    const ChOverlapTest& filter
+) {
+    if (filter.IsInto(this->GetCenter()))
+        this->NodeIntLoadResidual_F(off, R, c);
+}
+
+void ChNodeBase::NodeIntLoadResidual_Mv_domain(const unsigned int off,
+    ChVectorDynamic<>& R,
+    const ChVectorDynamic<>& w,
+    const double c,
+    const ChOverlapTest& filter
+) {
+    if (filter.IsInto(this->GetCenter()))
+        this->NodeIntLoadResidual_Mv(off, R, w, c);
+}
+
+
+
+
 void ChNodeBase::ArchiveOut(ChArchiveOut& archive_out) {
     // version number
     archive_out.VersionWrite<ChNodeBase>();

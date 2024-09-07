@@ -88,6 +88,37 @@ ChVector3d ChPhysicsItem::GetCenter() const {
     return (bbox.min + bbox.max) * 0.5;
 }
 
+
+/// Takes the F force term, scale and adds to R at given offset:
+///    R += c*F
+/// This is a filtered version of IntLoadResidual_F, where some items are skipped if not inside a volume.
+/// Most children classes do not need to implement this: here a default fallback is implemented.
+void ChPhysicsItem::IntLoadResidual_F_domain(const unsigned int off,  ///< offset in R residual
+    ChVectorDynamic<>& R,    ///< result: the R residual, R += c*F
+    const double c,          ///< a scaling factor
+    const ChOverlapTest& filter ///< only items whose GetCenter() are inside, will add force, otherwise add zero.
+) {
+    if (filter.IsInto(this->GetCenter()))
+        this->IntLoadResidual_F(off, R, c);
+}
+
+
+/// Takes the M*v  term,  multiplying mass by a vector, scale and adds to R at given offset:
+///    R += c*M*w
+/// This is a filtered version of IntLoadResidual_Mv, where some items are skipped if not inside a volume.
+/// Most children classes do not need to implement this: here a default fallback is implemented.
+void ChPhysicsItem::IntLoadResidual_Mv_domain(const unsigned int off,      ///< offset in R residual
+    ChVectorDynamic<>& R,        ///< result: the R residual, R += c*M*v
+    const ChVectorDynamic<>& w,  ///< the w vector
+    const double c,               ///< a scaling factor
+    const ChOverlapTest& filter ///< only items whose GetCenter() are inside, will add force, otherwise add zero.
+) {
+    if (filter.IsInto(this->GetCenter()))
+        this->IntLoadResidual_Mv(off, R, w, c);
+}
+
+
+
 void ChPhysicsItem::Update(double time, bool update_assets) {
     ChTime = time;
 

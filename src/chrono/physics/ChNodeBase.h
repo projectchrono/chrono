@@ -92,6 +92,17 @@ class ChApi ChNodeBase {
                                         ChVectorDynamic<>& R,
                                         const ChVectorDynamic<>& w,
                                         const double c) {}
+    virtual void NodeIntLoadResidual_F_domain(const unsigned int off, 
+                                        ChVectorDynamic<>& R,  
+                                        const double c,        
+                                        const ChOverlapTest& filter 
+                                    );
+    virtual void NodeIntLoadResidual_Mv_domain(const unsigned int off,   
+                                        ChVectorDynamic<>& R,      
+                                        const ChVectorDynamic<>& w, 
+                                        const double c,           
+                                        const ChOverlapTest& filter
+                                    );
     virtual void NodeIntLoadLumpedMass_Md(const unsigned int off,
                                           ChVectorDynamic<>& Md,
                                           double& error,

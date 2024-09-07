@@ -258,6 +258,17 @@ class ChApi ChAssembly : public ChPhysicsItem {
                                       ChVectorDynamic<>& Md,
                                       double& err,
                                       const double c) override;
+    virtual void IntLoadResidual_F_domain(const unsigned int off, 
+                                    ChVectorDynamic<>& R,   
+                                    const double c,   
+                                    const ChOverlapTest& filter 
+                                ) override;
+    virtual void IntLoadResidual_Mv_domain(const unsigned int off,  
+                                    ChVectorDynamic<>& R,      
+                                    const ChVectorDynamic<>& w,
+                                    const double c,          
+                                    const ChOverlapTest& filter 
+                                ) override;
     virtual void IntLoadResidual_CqL(const unsigned int off_L,
                                      ChVectorDynamic<>& R,
                                      const ChVectorDynamic<>& L,
