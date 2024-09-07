@@ -28,16 +28,22 @@ endif()
 
 SET(ChronoEngine_MULTIDOMAIN_SOURCES 
     ChDomainManager.cpp
+    ChDomainManagerSharedmemory.cpp
+    ChDomainManagerMPI.cpp
     ChSystemDescriptorMultidomain.cpp
     ChSolverPSORmultidomain.cpp
+    ChSystemMultidomain.cpp
     ChMpi.cpp
 )
 
 SET(ChronoEngine_MULTIDOMAIN_HEADERS
-    ChApiMultiDomain.h 
+    ChApiMultiDomain.h
     ChDomainManager.h
+    ChDomainManagerSharedmemory.h
+    ChDomainManagerMPI.h
     ChSystemDescriptorMultidomain.h
     ChSolverPSORmultidomain.h
+    ChSystemMultidomain.h
     ChMpi.h
 )
 

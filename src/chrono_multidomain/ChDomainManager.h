@@ -67,114 +67,12 @@ public:
     bool verbose_partition = false;
     bool verbose_variable_updates = false;
     bool verbose_state_matching = false;
-};
 
-/// A simple domain manager for multithreaded shared parallelism based on OpenMP.
-/// The simpliest form of multidomain communication: domains are residing in the 
-/// same memory, so this single stucture handles pointers to all domains. This also
-/// means that this must be instanced once and shared among different threads on a single cpu.
-
-class ChApiMultiDomain ChDomainManagerSharedmemory : public ChDomainManager {
-public:
-    ChDomainManagerSharedmemory() {};
-    virtual ~ChDomainManagerSharedmemory() {};
-
-    /// As soon as you create a domain via a ChDomainBuilder, you must add it via this method.
-    /// Also, this method also takes care of replacing the system descriptor of the system
-    /// so that it is of ChSystemDescriptorMultidomain, which is needed when using multidomain
-    /// solvers. 
-    void AddDomain(std::shared_ptr<ChDomain> mdomain);
-
-    // PER-PROCESS FUNCTIONS
-    //
-    // These are designed to be called in parallel by multiple domains, in OpenMP 
-
-    /// For a given domain, send all data in buffer_sending to the 
-    /// buffer_receiving of the neighbour domains, and at the same time
-    /// it receives into  buffer_receiving the data in buffer_sending of the neighbours.
-    /// NOTE: This function is expected to be called in OpenMP parallelism by all domains, by code
-    /// running inside a #pragma omp parallel where each thread handles one domain.
-    /// NOTE: it contains two OpenMP synchronization barriers.
-    virtual bool DoDomainSendReceive(int mrank);
-
-    /// For a given domain, 
-    /// - prepare outgoing serialization calling DoUpdateSharedLeaving()
-    /// - send/receive serialization calling DoDomainSendReceive()
-    /// - deserialize incoming items and delete outgoing, via DoUpdateSharedLeaving()
-    /// NOTE: This function is expected to be called in parallel by all domains.
-    /// NOTE: it contains two OpenMP synchronization barriers.
-    virtual bool DoDomainPartitionUpdate(int mrank);
-
-    // GLOBAL FUNCTIONS
-    // 
-    // These are utility functions to invoke functions at once on all domains
-    // of this domain manager in a while{...} simulation loop, to avoid
-    // using the #pragma omp parallel.. from the user side.
-    // NOTE: these contain the OpenMP parallelization
-
-    /// For all domains, call DoDomainPartitionUpdate() using a OpenMP parallelization.
-    /// This function might be called before each simulation time step (or periodically)
-    /// to migrate bodies, links, nodes, elements between neighbouring nodes.
-    virtual bool DoAllDomainPartitionUpdate();
-
-    /// For all domains, call DoStepDynamics() using a OpenMP parallelization.
-    /// This function must be called at each simulation time step.
-    virtual bool DoAllStepDynamics(double timestep);
-
-
-    std::unordered_map<int, std::shared_ptr<ChDomain>> domains;
+    void PrintDebugDomainInfo(std::shared_ptr<ChDomain> domain);
 };
 
 
-
-
-/// A domain manager for distributed memory parallelism based on MPI.
-/// This must be instantiated per each process. 
-
-class ChApiMultiDomain ChDomainManagerMPI : public ChDomainManager {
-public:
-    /// Create a domain manager based on MPI. One domain manager must be built
-    /// per each domain. When built, it calls MPI_Init(), hence the need for the two
-    /// argc argv parameters, i.e. those used in main() of the program (but also optional).
-    ChDomainManagerMPI(int* argc, char** argv[]);
-    virtual ~ChDomainManagerMPI();
-
-    /// As soon as you create a domain via a ChDomainBuilder, you must add it via this method.
-    /// Also, this method also takes care of replacing the system descriptor of the system
-    /// so that it is of ChSystemDescriptorMultidomain, which is needed when using multidomain
-    /// solvers. 
-    void SetDomain(std::shared_ptr<ChDomain> mdomain);
-
-    // PER-PROCESS FUNCTIONS
-    //
-    // These are designed to be called in parallel by multiple domains, each domain
-    // being managed by a corresponding process spawn by MPI. 
-
-    /// For a given domain, send all data in buffer_sending to the 
-    /// buffer_receiving of the neighbour domains, and at the same time
-    /// it receives into  buffer_receiving the data in buffer_sending of the neighbours.
-    /// NOTE: This function is expected to be called in MPI parallelism by all domains, by code
-    /// where each MPI process handles one domain.
-    /// NOTE: it contains MPI synchronization barriers.
-    virtual bool DoDomainSendReceive(int mrank);
-
-    /// For a given domain, 
-    /// - prepare outgoing serialization calling DoUpdateSharedLeaving()
-    /// - send/receive serialization calling DoDomainSendReceive()
-    /// - deserialize incoming items and delete outgoing, via DoUpdateSharedLeaving()
-    /// NOTE: This function is expected to be called in parallel by all domains.
-    /// NOTE: it contains two OpenMP synchronization barriers.
-    virtual bool DoDomainPartitionUpdate(int mrank);
-
-    int GetMPIrank();
-    int GetMPItotranks();
-
-    std::shared_ptr<ChDomain> domain;
-
-private:
-    ChMPI mpi_engine;
-};
-
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 
 
@@ -222,20 +120,13 @@ class ChDomainInterface; // forward decl.
 /// Base class for managing a single domain, that is a container for a ChSystem
 /// that will communicate with other domains to migrate physics items, nodes, elements, etc.
 
-class ChApiMultiDomain ChDomain {
+class ChApiMultiDomain ChDomain : public ChOverlapTest {
 public:
     ChDomain(ChSystem* msystem, int mrank) {
         system = msystem;
         rank = mrank;
     }
     virtual ~ChDomain() {}
-
-    /// Test if some item, with axis-aligned bounding box, must be included in this domain.
-    /// Children classes must implement this, depending on the shape of the domain.
-    virtual bool IsOverlap(ChAABB abox) = 0;
-
-    /// Test if some item, represented by a single point, must be included in this domain.
-    virtual bool IsInto(ChVector3d apoint) = 0;
 
     /// Prepare serialization of with items to send to neighbours, storing in 
     /// the buffer_sending  of the domain interfaces.
@@ -286,7 +177,7 @@ class ChApiMultiDomain ChDomainSlice : public ChDomain {
     virtual ~ChDomainSlice() {}
 
     /// Test if some item, with axis-aligned bounding box, must be included in this domain
-    virtual bool IsOverlap(ChAABB abox) override {
+    virtual bool IsOverlap(const ChAABB& abox) const override {
         switch (axis) {
         case ChAxis::X:
             if (min <= abox.max.x() && abox.min.x() < max)
@@ -309,7 +200,7 @@ class ChApiMultiDomain ChDomainSlice : public ChDomain {
     }
 
     /// Test if some item, represented by a single point, must be included in this domain.
-    virtual bool IsInto(ChVector3d apoint) override {
+    virtual bool IsInto(const ChVector3d& apoint) const override {
         switch (axis) {
         case ChAxis::X:
             if (min <= apoint.x() && apoint.x() < max)
@@ -348,7 +239,7 @@ public:
     virtual ~ChDomainBox() {}
 
     /// Test if some item, with axis-aligned bounding box, must be included in this domain
-    virtual bool IsOverlap(ChAABB abox) override {
+    virtual bool IsOverlap(const ChAABB& abox) const override {
         if ((aabb.min.x() <= abox.max.x() && abox.min.x() < aabb.max.x()) &&
             (aabb.min.y() <= abox.max.y() && abox.min.y() < aabb.max.y()) &&
             (aabb.min.z() <= abox.max.z() && abox.min.z() < aabb.max.z()))
@@ -358,7 +249,7 @@ public:
     }
 
     /// Test if some item, represented by a single point, must be included in this domain.
-    virtual bool IsInto(ChVector3d apoint) override {
+    virtual bool IsInto(const ChVector3d& apoint) const override {
         if ((aabb.min.x() <= apoint.x() && apoint.x() < apoint.x()) &&
             (aabb.min.y() <= apoint.y() && apoint.y() < apoint.y()) &&
             (aabb.min.z() <= apoint.z() && apoint.z() < apoint.z()))
