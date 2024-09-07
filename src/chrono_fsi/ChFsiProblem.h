@@ -38,6 +38,9 @@ namespace fsi {
 /// Base class to set up a Chrono::FSI problem.
 class CH_FSI_API ChFsiProblem {
   public:
+    /// Wave generator types.
+    enum class WavemakerType { PISTON, FLAP };
+
     /// Enable verbose output during construction of ChFsiProblem (default: false).
     void SetVerbose(bool verbose);
 
@@ -261,9 +264,9 @@ class CH_FSI_API ChFsiProblemCartesian : public ChFsiProblem {
                            bool top_wall                ///< create top boundary
     );
 
-    /// Add a piston-type wavemaker.
-    /// Returns the piston body.
-    std::shared_ptr<ChBody> AddWaveMaker(const ChVector3d& box_size,             ///< box dimensions
+    /// Add a rigid-body wavemaker (piston-type or flap-type).
+    std::shared_ptr<ChBody> AddWaveMaker(WavemakerType type,                     ///< wave generator type
+                                         const ChVector3d& box_size,             ///< box dimensions
                                          const ChVector3d& pos,                  ///< reference position
                                          std::shared_ptr<ChFunction> piston_fun  ///< piston actuation function
     );
