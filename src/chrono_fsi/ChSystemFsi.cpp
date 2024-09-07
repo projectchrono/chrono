@@ -170,7 +170,6 @@ void ChSystemFsi::InitParams() {
     m_paramsH->use_default_limits = true;
     m_paramsH->use_init_pressure = false;
     m_paramsH->numProximitySearchSteps = 4;
-    m_paramsH->sharedProximitySearch = false;
 }
 
 //--------------------------------------------------------------------------------------------------------------------------------
@@ -283,10 +282,6 @@ void ChSystemFsi::ReadParametersFromFile(const std::string& json_file) {
 
         if (doc["SPH Parameters"].HasMember("Consistent Discretization for Gradient"))
             m_paramsH->USE_Consistent_G = doc["SPH Parameters"]["Consistent Discretization for Gradient"].GetBool();
-
-        if (doc["SPH Parameters"].HasMember("Use shared memory for proximity search"))
-            m_paramsH->sharedProximitySearch =
-                doc["SPH Parameters"]["Use shared memory for proximity search"].GetBool();
 
         if (doc["SPH Parameters"].HasMember("Time steps per proximity search"))
             m_paramsH->numProximitySearchSteps = doc["SPH Parameters"]["Time steps per proximity search"].GetInt();
@@ -593,10 +588,6 @@ void ChSystemFsi::SetNumProximitySearchSteps(int steps) {
     m_paramsH->numProximitySearchSteps = steps;
 }
 
-void ChSystemFsi::SetSharedProximitySearch(bool shared) {
-    m_paramsH->sharedProximitySearch = shared;
-}
-
 ChSystemFsi::FluidProperties::FluidProperties() : density(1000), viscosity(0.1), kappa(0), char_length(1) {}
 
 void ChSystemFsi::SetCfdSPH(const FluidProperties& fluid_props) {
@@ -669,8 +660,7 @@ ChSystemFsi::SPHParameters::SPHParameters()
       consistent_gradient_discretization(false),
       consistent_laplacian_discretization(false),
       kernel_threshold(0.8),
-      numProximitySearchSteps(4),
-      sharedProximitySearch(false) {}
+      numProximitySearchSteps(4) {}
 
 void ChSystemFsi::SetSPHParameters(const SPHParameters& sph_params) {
     m_paramsH->sph_method = sph_params.sph_method;
@@ -697,7 +687,6 @@ void ChSystemFsi::SetSPHParameters(const SPHParameters& sph_params) {
     m_paramsH->C_Wi = Real(sph_params.kernel_threshold);
 
     m_paramsH->numProximitySearchSteps = sph_params.numProximitySearchSteps;
-    m_paramsH->sharedProximitySearch = sph_params.sharedProximitySearch;
 }
 
 ChSystemFsi::LinSolverParameters::LinSolverParameters()
@@ -961,7 +950,6 @@ void ChSystemFsi::Initialize() {
 
         cout << "  Adaptive_time_stepping: " << m_paramsH->Adaptive_time_stepping << endl;
         cout << "Proximity search performed every " << m_paramsH->numProximitySearchSteps << " steps" << endl;
-        cout << "Is shared memory used for proximity search? " << m_paramsH->sharedProximitySearch << endl;
         cout << "  Co_number: " << m_paramsH->Co_number << endl;
         cout << "  dT: " << m_paramsH->dT << endl;
         cout << "  INV_dT: " << m_paramsH->INV_dT << endl;
@@ -2151,10 +2139,6 @@ bool ChSystemFsi::GetAdaptiveTimeStepping() const {
 
 int ChSystemFsi::GetNumProximitySearchSteps() const {
     return m_paramsH->numProximitySearchSteps;
-}
-
-bool ChSystemFsi::GetSharedProximitySearch() const {
-    return m_paramsH->sharedProximitySearch;
 }
 
 size_t ChSystemFsi::GetNumFluidMarkers() const {

@@ -110,8 +110,7 @@ class CH_FSI_API ChSystemFsi {
         bool consistent_gradient_discretization;   ///< use G matrix in SPH gradient approximation (default: false)
         bool consistent_laplacian_discretization;  ///< use L matrix in SPH Laplacian approximation (default: false)
         double kernel_threshold;                   ///< threshold for identifying free surface (CRM only, default: 0.8)
-        int numProximitySearchSteps; ///< Number of time-steps after which proximity search is performed (default: 4)
-        bool sharedProximitySearch; ///< use shared memory for proximity search (default: false)
+        int numProximitySearchSteps;  ///< Number of time-steps after which proximity search is performed (default: 4)
         SPHParameters();
     };
 
@@ -217,8 +216,6 @@ class CH_FSI_API ChSystemFsi {
 
     void SetNumProximitySearchSteps(int steps);
 
-    void SetSharedProximitySearch(bool shared);
-
     /// Enable solution of a CFD problem.
     void SetCfdSPH(const FluidProperties& fluid_props);
 
@@ -282,8 +279,6 @@ class CH_FSI_API ChSystemFsi {
     bool GetAdaptiveTimeStepping() const;
 
     int GetNumProximitySearchSteps() const;
-
-    bool GetSharedProximitySearch() const;
 
     /// Return the current system parameters (debugging only).
     const SimParams& GetParams() const { return *m_paramsH; }
@@ -565,13 +560,11 @@ class CH_FSI_API ChSystemFsi {
 
     /// Create and add BCE markers associated with the given set of contact segments.
     /// The BCE markers are created in the absolute coordinate frame.
-    unsigned int AddBCE_mesh1D(unsigned int meshID,
-                               const ChFsiInterface::FsiMesh1D& fsi_mesh);
+    unsigned int AddBCE_mesh1D(unsigned int meshID, const ChFsiInterface::FsiMesh1D& fsi_mesh);
 
     /// Create and add BCE markers associated with the given mesh contact surface.
     /// The BCE markers are created in the absolute coordinate frame.
-    unsigned int AddBCE_mesh2D(unsigned int meshID,
-                               const ChFsiInterface::FsiMesh2D& fsi_mesh);
+    unsigned int AddBCE_mesh2D(unsigned int meshID, const ChFsiInterface::FsiMesh2D& fsi_mesh);
 
     /// Function to initialize the midpoint device data of the fluid system by copying from the full step.
     void CopyDeviceDataToHalfStep();

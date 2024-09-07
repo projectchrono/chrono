@@ -27,7 +27,6 @@ namespace fsi {
 ChFsiForce::ChFsiForce(std::shared_ptr<ChBce> otherBceWorker,
                        std::shared_ptr<SphMarkerDataD> otherSortedSphMarkersD,
                        std::shared_ptr<ProximityDataD> otherMarkersProximityD,
-                       std::shared_ptr<ProximityDataD> otherMarkersProximityWideD,
                        std::shared_ptr<FsiData> otherFsiData,
                        std::shared_ptr<SimParams> params,
                        std::shared_ptr<ChCounters> numObjects,
@@ -36,11 +35,10 @@ ChFsiForce::ChFsiForce(std::shared_ptr<ChBce> otherBceWorker,
       bceWorker(otherBceWorker),
       sortedSphMarkers_D(otherSortedSphMarkersD),
       markersProximity_D(otherMarkersProximityD),
-      markersProximityWide_D(otherMarkersProximityWideD),
       fsiData(otherFsiData),
       verbose(verb) {
     fsiCollisionSystem = chrono_types::make_shared<ChCollisionSystemFsi>(
-        otherSortedSphMarkersD, otherMarkersProximityD, otherMarkersProximityWideD, otherFsiData, paramsH, numObjectsH);
+        otherSortedSphMarkersD, otherMarkersProximityD, otherFsiData, paramsH, numObjectsH);
     sphMarkersD = NULL;
 }
 

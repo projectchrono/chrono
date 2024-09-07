@@ -152,7 +152,6 @@ int main(int argc, char* argv[]) {
     sph_params.min_distance_coefficient = 0.001;     // default: 0.01, use 0.001, otherwise fluid surface is asymmetric
     sph_params.use_density_based_projection = true;  // default: false
     sph_params.numProximitySearchSteps = 1;
-    sph_params.sharedProximitySearch = false;
     sysFSI.SetSPHParameters(sph_params);
 
     // Set linear solver parameters
@@ -196,10 +195,10 @@ int main(int argc, char* argv[]) {
 
     sysFSI.AddWallBCE(bottom_plate, ChFrame<>(VNULL, Q_ROTATE_Z_TO_Y), bottom_plate_size);
 
-    ////sysFSI.AddWallBCE(bottom_plate, ChFrame<>(ChVector3d(0, -fluid_height, 0), Q_ROTATE_Z_TO_Y), ChVector2d(0.2, 0.2));
-    ////sysFSI.AddBoxBCE(bottom_plate, ChFramed(ChVector3d(0, -2 * initial_spacing, 0), QNULL),
-    ////                 ChVector3d(outer_cylinder_radius * 2.5, 4 * initial_spacing, outer_cylinder_radius * 2.5), true);
-    ////auto bottom_plate_index = sysFSI.AddFsiBody(bottom_plate);
+    ////sysFSI.AddWallBCE(bottom_plate, ChFrame<>(ChVector3d(0, -fluid_height, 0), Q_ROTATE_Z_TO_Y), ChVector2d(0.2,
+    /// 0.2)); /sysFSI.AddBoxBCE(bottom_plate, ChFramed(ChVector3d(0, -2 * initial_spacing, 0), QNULL), /
+    /// ChVector3d(outer_cylinder_radius * 2.5, 4 * initial_spacing, outer_cylinder_radius * 2.5), true); /auto
+    /// bottom_plate_index = sysFSI.AddFsiBody(bottom_plate);
 
     // Cylinder center
     ChVector3d cylinder_center(0, cylinder_height / 2 - fluid_height / 2, 0);

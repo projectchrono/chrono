@@ -24,8 +24,7 @@
 namespace chrono {
 namespace fsi {
 
-void CopyParams_NumberOfObjects(std::shared_ptr<SimParams> paramsH, 
-    std::shared_ptr<ChCounters> numObjectsH) {
+void CopyParams_NumberOfObjects(std::shared_ptr<SimParams> paramsH, std::shared_ptr<ChCounters> numObjectsH) {
     cudaMemcpyToSymbolAsync(paramsD, paramsH.get(), sizeof(SimParams));
     cudaCheckError();
     cudaMemcpyToSymbolAsync(numObjectsD, numObjectsH.get(), sizeof(ChCounters));
@@ -111,7 +110,6 @@ __global__ void calc_A_tensor(Real* A_tensor,
 
     for (int i = 0; i < 27; i++)
         A_tensor[i_idx * 9 + i] = A_ijk[i];
-
 }
 //--------------------------------------------------------------------------------------------------------------------------------
 __global__ void calc_L_tensor(Real* A_tensor,
@@ -176,8 +174,7 @@ __global__ void calc_L_tensor(Real* A_tensor,
         Real YZ = (eij.y * grad_ij.z + eij.z * grad_ij.y);
         Real ZZ = (eij.z * grad_ij.z);
 
-        com_part = (A_ijk[0] * eij.x + A_ijk[9] * eij.y + 
-            A_ijk[18] * eij.z + rij.x * eij.x) * V_j;
+        com_part = (A_ijk[0] * eij.x + A_ijk[9] * eij.y + A_ijk[18] * eij.z + rij.x * eij.x) * V_j;
         B[6 * 0 + 0] += com_part * XX;  // 11
         B[6 * 0 + 1] += com_part * XY;  // 12
         B[6 * 0 + 2] += com_part * XZ;  // 13
@@ -185,8 +182,7 @@ __global__ void calc_L_tensor(Real* A_tensor,
         B[6 * 0 + 4] += com_part * YZ;  // 15
         B[6 * 0 + 5] += com_part * ZZ;  // 15
         // mn=12
-        com_part = (A_ijk[1] * eij.x + A_ijk[10] * eij.y + 
-            A_ijk[19] * eij.z + rij.x * eij.y) * V_j;
+        com_part = (A_ijk[1] * eij.x + A_ijk[10] * eij.y + A_ijk[19] * eij.z + rij.x * eij.y) * V_j;
         B[6 * 1 + 0] += com_part * XX;  // 21
         B[6 * 1 + 1] += com_part * XY;  // 22
         B[6 * 1 + 2] += com_part * XZ;  // 23
@@ -195,8 +191,7 @@ __global__ void calc_L_tensor(Real* A_tensor,
         B[6 * 1 + 5] += com_part * ZZ;  // 25
 
         // mn=13
-        com_part = (A_ijk[2] * eij.x + A_ijk[11] * eij.y + 
-            A_ijk[20] * eij.z + rij.x * eij.z) * V_j;
+        com_part = (A_ijk[2] * eij.x + A_ijk[11] * eij.y + A_ijk[20] * eij.z + rij.x * eij.z) * V_j;
         B[6 * 2 + 0] += com_part * XX;  // 31
         B[6 * 2 + 1] += com_part * XY;  // 32
         B[6 * 2 + 2] += com_part * XZ;  // 33
@@ -206,8 +201,7 @@ __global__ void calc_L_tensor(Real* A_tensor,
 
         // Note that we skip mn=21 since it is similar to mn=12
         // mn=22
-        com_part = (A_ijk[4] * eij.x + A_ijk[13] * eij.y + 
-            A_ijk[22] * eij.z + rij.y * eij.y) * V_j;
+        com_part = (A_ijk[4] * eij.x + A_ijk[13] * eij.y + A_ijk[22] * eij.z + rij.y * eij.y) * V_j;
         B[6 * 3 + 0] += com_part * XX;  // 41
         B[6 * 3 + 1] += com_part * XY;  // 42
         B[6 * 3 + 2] += com_part * XZ;  // 43
@@ -216,8 +210,7 @@ __global__ void calc_L_tensor(Real* A_tensor,
         B[6 * 3 + 5] += com_part * ZZ;  // 46
 
         // mn=23
-        com_part = (A_ijk[5] * eij.x + A_ijk[14] * eij.y + 
-            A_ijk[23] * eij.z + rij.y * eij.z) * V_j;
+        com_part = (A_ijk[5] * eij.x + A_ijk[14] * eij.y + A_ijk[23] * eij.z + rij.y * eij.z) * V_j;
         B[6 * 4 + 0] += com_part * XX;  // 51
         B[6 * 4 + 1] += com_part * XY;  // 52
         B[6 * 4 + 2] += com_part * XZ;  // 53
@@ -225,8 +218,7 @@ __global__ void calc_L_tensor(Real* A_tensor,
         B[6 * 4 + 4] += com_part * YZ;  // 55
         B[6 * 4 + 5] += com_part * ZZ;  // 56
         // mn=33
-        com_part = (A_ijk[8] * eij.x + A_ijk[17] * eij.y + 
-            A_ijk[26] * eij.z + rij.z * eij.z) * V_j;
+        com_part = (A_ijk[8] * eij.x + A_ijk[17] * eij.y + A_ijk[26] * eij.z + rij.z * eij.z) * V_j;
         B[6 * 5 + 0] += com_part * XX;  // 61
         B[6 * 5 + 1] += com_part * XY;  // 62
         B[6 * 5 + 2] += com_part * XZ;  // 63
@@ -295,11 +287,11 @@ __global__ void calcRho_kernel(Real4* sortedPosRad,
     sumWij_inv[i_idx] = m_i / sum_mW;
     sortedRhoPreMu[i_idx].x = sum_mW;
 
-    if ((sortedRhoPreMu[i_idx].x > 2 * paramsD.rho0 || 
-        sortedRhoPreMu[i_idx].x < 0) && sortedRhoPreMu[i_idx].w == -1)
-        printf("(calcRho_kernel)too large/small density marker "
-            "%d, rho=%f, sum_W=%f, m_i=%f\n", i_idx,
-            sortedRhoPreMu[i_idx].x, sum_W, m_i);
+    if ((sortedRhoPreMu[i_idx].x > 2 * paramsD.rho0 || sortedRhoPreMu[i_idx].x < 0) && sortedRhoPreMu[i_idx].w == -1)
+        printf(
+            "(calcRho_kernel)too large/small density marker "
+            "%d, rho=%f, sum_W=%f, m_i=%f\n",
+            i_idx, sortedRhoPreMu[i_idx].x, sum_W, m_i);
 }
 
 //--------------------------------------------------------------------------------------------------------------------------------
@@ -420,7 +412,6 @@ __global__ void calcNormalizedRho_kernel(Real4* sortedPosRad,
             "calcNormalizedRho_kernel-- sortedRhoPreMu[i_idx].w=%f, h=%f, sum_mW=%f, "
             "sum_W_sumWij_inv=%.4e, sortedRhoPreMu[i_idx].x=%.4e\n",
             sortedRhoPreMu[i_idx].w, sortedPosRad[i_idx].w, sum_mW, sum_Wij_inv, sortedRhoPreMu[i_idx].x);
-
 }
 
 //--------------------------------------------------------------------------------------------------------------------------------
@@ -555,13 +546,11 @@ __global__ void calcNormalizedRho_Gi_fillInMatrixIndices(Real4* sortedPosRad,
     //    sortedRhoPreMu[i_idx].x = sum_mW / sum_W;
     //    sortedRhoPreMu[i_idx].x = sum_mW;
 
-    if ((sortedRhoPreMu[i_idx].x > 5 * RHO_0 || 
-        sortedRhoPreMu[i_idx].x < RHO_0 / 5) && sortedRhoPreMu[i_idx].w > -2)
+    if ((sortedRhoPreMu[i_idx].x > 5 * RHO_0 || sortedRhoPreMu[i_idx].x < RHO_0 / 5) && sortedRhoPreMu[i_idx].w > -2)
         printf(
             "calcNormalizedRho_kernel-- sortedRhoPreMu[i_idx].w=%f, h=%f, sum_mW=%f, "
             "sum_W_sumWij_inv=%.4e, sortedRhoPreMu[i_idx].x=%.4e\n",
-            sortedRhoPreMu[i_idx].w, sortedPosRad[i_idx].w, sum_mW, sum_W_sumWij_inv, 
-            sortedRhoPreMu[i_idx].x);
+            sortedRhoPreMu[i_idx].w, sortedPosRad[i_idx].w, sum_mW, sum_W_sumWij_inv, sortedRhoPreMu[i_idx].x);
 }
 //--------------------------------------------------------------------------------------------------------------------------------
 __global__ void Function_Gradient_Laplacian_Operator(Real4* sortedPosRad,
@@ -639,25 +628,18 @@ __global__ void Function_Gradient_Laplacian_Operator(Real4* sortedPosRad,
                 A_G[count] = 1.0 / (sortedRhoPreMu[j].x * sortedRhoPreMu[j].x) * comm;
                 A_G[csrStartIdx] += 1.0 / (rhoi * rhoi) * comm;
             } else {
-                Real3 comm = 1.0 / V_i * (V_j * V_j + V_i * V_i) / 
-                    (rhoi + sortedRhoPreMu[j].x) * grad_i_wij;
+                Real3 comm = 1.0 / V_i * (V_j * V_j + V_i * V_i) / (rhoi + sortedRhoPreMu[j].x) * grad_i_wij;
                 A_G[count] = rhoi * comm;
                 A_G[csrStartIdx] += sortedRhoPreMu[j].x * comm;
             }
         } else {
             Real Coeff = V_j;
-            A_G[count].x = Coeff * (grad_i_wij.x * mGi[0] + 
-                grad_i_wij.y * mGi[1] + grad_i_wij.z * mGi[2]);
-            A_G[count].y = Coeff * (grad_i_wij.x * mGi[3] + 
-                grad_i_wij.y * mGi[4] + grad_i_wij.z * mGi[5]);
-            A_G[count].z = Coeff * (grad_i_wij.x * mGi[6] + 
-                grad_i_wij.y * mGi[7] + grad_i_wij.z * mGi[8]);
-            A_G[csrStartIdx].x -= Coeff * (grad_i_wij.x * mGi[0] + 
-                grad_i_wij.y * mGi[1] + grad_i_wij.z * mGi[2]);
-            A_G[csrStartIdx].y -= Coeff * (grad_i_wij.x * mGi[3] + 
-                grad_i_wij.y * mGi[4] + grad_i_wij.z * mGi[5]);
-            A_G[csrStartIdx].z -= Coeff * (grad_i_wij.x * mGi[6] + 
-                grad_i_wij.y * mGi[7] + grad_i_wij.z * mGi[8]);
+            A_G[count].x = Coeff * (grad_i_wij.x * mGi[0] + grad_i_wij.y * mGi[1] + grad_i_wij.z * mGi[2]);
+            A_G[count].y = Coeff * (grad_i_wij.x * mGi[3] + grad_i_wij.y * mGi[4] + grad_i_wij.z * mGi[5]);
+            A_G[count].z = Coeff * (grad_i_wij.x * mGi[6] + grad_i_wij.y * mGi[7] + grad_i_wij.z * mGi[8]);
+            A_G[csrStartIdx].x -= Coeff * (grad_i_wij.x * mGi[0] + grad_i_wij.y * mGi[1] + grad_i_wij.z * mGi[2]);
+            A_G[csrStartIdx].y -= Coeff * (grad_i_wij.x * mGi[3] + grad_i_wij.y * mGi[4] + grad_i_wij.z * mGi[5]);
+            A_G[csrStartIdx].z -= Coeff * (grad_i_wij.x * mGi[6] + grad_i_wij.y * mGi[7] + grad_i_wij.z * mGi[8]);
         }
     }
 
@@ -684,8 +666,7 @@ __global__ void Function_Gradient_Laplacian_Operator(Real4* sortedPosRad,
                     A_L[count_in] -= commonterm * dot(A_G[count_in], eij);  // k
                 }
             } else if (paramsD.laplacian_type == 1) {
-                Real comm = 2.0 / rhoi * m_j * dot(rij, grad_ij) / 
-                    (d * d + h_ij * h_ij * paramsD.epsMinMarkersDis);
+                Real comm = 2.0 / rhoi * m_j * dot(rij, grad_ij) / (d * d + h_ij * h_ij * paramsD.epsMinMarkersDis);
                 A_L[count] = -comm;        // j
                 A_L[csrStartIdx] += comm;  // i
             } else {
@@ -696,9 +677,9 @@ __global__ void Function_Gradient_Laplacian_Operator(Real4* sortedPosRad,
             }
         } else {
             Real commonterm = 1.0 / V_j * (V_j * V_j + V_i * V_i) *
-                (Li[0] * eij.x * grad_ij.x + Li[1] * eij.x * grad_ij.y + Li[2] * eij.x * grad_ij.z +
-                Li[1] * eij.y * grad_ij.x + Li[3] * eij.y * grad_ij.y + Li[4] * eij.y * grad_ij.z +
-                Li[2] * eij.z * grad_ij.x + Li[4] * eij.z * grad_ij.y + Li[5] * eij.z * grad_ij.z);
+                              (Li[0] * eij.x * grad_ij.x + Li[1] * eij.x * grad_ij.y + Li[2] * eij.x * grad_ij.z +
+                               Li[1] * eij.y * grad_ij.x + Li[3] * eij.y * grad_ij.y + Li[4] * eij.y * grad_ij.z +
+                               Li[2] * eij.z * grad_ij.x + Li[4] * eij.z * grad_ij.y + Li[5] * eij.z * grad_ij.z);
 
             A_L[count] -= commonterm / (d + h_ij * paramsD.epsMinMarkersDis);        // j
             A_L[csrStartIdx] += commonterm / (d + h_ij * paramsD.epsMinMarkersDis);  // i
@@ -793,11 +774,9 @@ __global__ void Initialize_Variables(Real4* sortedRhoPreMu,
     if (sortedRhoPreMu[i_idx].w <= -2)
         return;
 
-
     p_old[i_idx] = sortedRhoPreMu[i_idx].y;  // This needs consistency p_old is old but v_new is new !!
     if (sortedRhoPreMu[i_idx].w > -1)
         sortedVelMas[i_idx] = V_new[i_idx];
-
 }
 
 //--------------------------------------------------------------------------------------------------------------------------------
@@ -826,10 +805,11 @@ __global__ void UpdateDensity(Real3* vis_vel,
     Real3 Vel_i = sortedVelMas[i_idx];
 
     Real3 posi = mR3(sortedPosRad[i_idx]);
-    if ((sortedRhoPreMu[i_idx].x > 2 * paramsD.rho0 || 
-        sortedRhoPreMu[i_idx].x < 0) && sortedRhoPreMu[i_idx].w < 0)
-        printf("(UpdateDensity-0)too large/small density marker %d, "
-            "type=%f\n", i_idx, sortedRhoPreMu[i_idx].w);
+    if ((sortedRhoPreMu[i_idx].x > 2 * paramsD.rho0 || sortedRhoPreMu[i_idx].x < 0) && sortedRhoPreMu[i_idx].w < 0)
+        printf(
+            "(UpdateDensity-0)too large/small density marker %d, "
+            "type=%f\n",
+            i_idx, sortedRhoPreMu[i_idx].w);
     Real h_i = sortedPosRad[i_idx].w;
     int3 gridPos = calcGridPos(posi);
 
@@ -879,267 +859,20 @@ __global__ void UpdateDensity(Real3* vis_vel,
 
     sortedRhoPreMu[i_idx].x += rho_plus * dT;
 
-    if ((sortedRhoPreMu[i_idx].x > 2 * paramsD.rho0 || 
-        sortedRhoPreMu[i_idx].x < 0) && sortedRhoPreMu[i_idx].w < 0)
-        printf("(UpdateDensity-1)too large/small density marker %d, "
-            "type=%f\n", i_idx, sortedRhoPreMu[i_idx].w);
-}
-//--------------------------------------------------------------------------------------------------------------------------------
-__global__ void fillCenterBufferCellID(const uint* nonZeroIndices,
-                                       const uint* activityIdentifierSDD,
-                                       uint* SDCenter,
-                                       uint* SDBuffer,
-                                       volatile bool* isErrorD) {
-    uint SDIndex = nonZeroIndices[blockIdx.x];
-    if (activityIdentifierSDD[SDIndex] == 0) {
-        return;
-    }
-    uint whichCorner = threadIdx.x;
-    uint bufferCellIDs[7];
-    uint centerCellID;
-    calcCenterBufferCellIDFromSD(SDIndex, whichCorner, centerCellID, bufferCellIDs);
-    SDCenter[blockIdx.x * 8 + threadIdx.x] = centerCellID;
-    for (int i = 0; i < 7; ++i) {
-        SDBuffer[blockIdx.x * 56 + threadIdx.x * 7 + i] = bufferCellIDs[i];
-    }
-}
-//--------------------------------------------------------------------------------------------------------------------------------
-__global__ void findNumPartsInBufferCells(const uint* SDCenter,
-                                          const uint* SDBuffer,
-                                          const uint* cellStart,
-                                          const uint* cellEnd,
-                                          const uint* nonZeroIndices,
-                                          const uint* activityIdentifierSDD,
-                                          uint* numPartsInCenterCells,
-                                          uint* numPartsInBufferCells,
-                                          uint* centerCellKeys,
-                                          uint* bufferCellKeys,
-                                          volatile bool* isErrorD) {
-    uint SDIndex = nonZeroIndices[blockIdx.x];
-    if (activityIdentifierSDD[SDIndex] == 0) {
-        return;
-    }
-
-    if (threadIdx.x < 56) {
-        uint cellID = SDBuffer[blockIdx.x * 56 + threadIdx.x];
-        numPartsInBufferCells[blockIdx.x * 56 + threadIdx.x] =
-            (cellID < paramsD.gridSize.x * paramsD.gridSize.y * paramsD.gridSize.z)
-                ? cellEnd[cellID] - cellStart[cellID]
-                : 0;
-        bufferCellKeys[blockIdx.x * 56 + threadIdx.x] = blockIdx.x;
-    } else {
-        uint currCell = threadIdx.x - 56;
-        uint cellID = SDCenter[blockIdx.x * 8 + currCell];
-        numPartsInCenterCells[blockIdx.x * 8 + currCell] =
-            (cellID < paramsD.gridSize.x * paramsD.gridSize.y * paramsD.gridSize.z)
-                ? cellEnd[cellID] - cellStart[cellID]
-                : 0;
-        centerCellKeys[blockIdx.x * 8 + currCell] = blockIdx.x;
-    }
+    if ((sortedRhoPreMu[i_idx].x > 2 * paramsD.rho0 || sortedRhoPreMu[i_idx].x < 0) && sortedRhoPreMu[i_idx].w < 0)
+        printf(
+            "(UpdateDensity-1)too large/small density marker %d, "
+            "type=%f\n",
+            i_idx, sortedRhoPreMu[i_idx].w);
 }
 //--------------------------------------------------------------------------------------------------------------------------------
 __global__ void neighborSearchNum(const Real4* sortedPosRad,
                                   const Real4* sortedRhoPreMu,
                                   const uint* cellStart,
                                   const uint* cellEnd,
-                                  const uint* SDCenter,
-                                  const uint* SDBuffer,
-                                  const uint* numPartsInCenterCells,
-                                  const uint* numPartsInBufferCells,
-                                  const uint* neighborCellIndices,
-                                  const uint* activityIdentifierSDD,
-                                  const uint* nonZeroIndices,
+                                  const uint* activityIdentifierD,
                                   uint* numNeighborsPerPart,
                                   volatile bool* isErrorD) {
-    uint SDIndex = nonZeroIndices[blockIdx.x];
-    if (activityIdentifierSDD[SDIndex] == 0) {
-        return;
-    }
-
-    uint totalCenterParts = numPartsInCenterCells[blockIdx.x * 8 + 7];
-    uint totalBufferParts = numPartsInBufferCells[blockIdx.x * 56 + 55];
-
-    // allocate shared memory for SD and buffer of SD
-    extern __shared__ int shMemPos[];
-    Real3* centerPos = (Real3*)&shMemPos[0];
-    Real3* bufferPos = &centerPos[totalCenterParts];
-    uint* shMemID = (uint*)&bufferPos[totalBufferParts];
-    uint* centerID = shMemID;
-    uint* bufferOffset = &centerID[totalCenterParts];
-
-    if (threadIdx.x < 8) {
-        // load center particle positions (within SD)
-        uint cellID = SDCenter[8 * blockIdx.x + threadIdx.x];
-        int iter = 0;
-        uint cellOffset = (threadIdx.x == 0) ? 0 : numPartsInCenterCells[blockIdx.x * 8 + threadIdx.x - 1];
-        for (int j = cellStart[cellID]; j < cellEnd[cellID]; ++j) {
-            centerPos[cellOffset + iter] = mR3(sortedPosRad[j]);
-            centerID[cellOffset + iter] = j;
-            iter++;
-        }
-    }
-    if (threadIdx.x >= 32 && threadIdx.x < 88) {
-        // load buffer particle positions
-        uint currCell = threadIdx.x - 32;
-        uint cellID = SDBuffer[56 * blockIdx.x + currCell];
-        int iter = 0;
-        uint cellOffset = (currCell == 0) ? 0 : numPartsInBufferCells[blockIdx.x * 56 + currCell - 1];
-        bufferOffset[currCell] = cellOffset;
-        if (currCell == 55) {
-            bufferOffset[56] = numPartsInBufferCells[blockIdx.x * 56 + currCell];
-        }
-        for (int j = cellStart[cellID]; j < cellEnd[cellID]; ++j) {
-            bufferPos[cellOffset + iter] = mR3(sortedPosRad[j]);
-            iter++;
-        }
-    }
-    __syncthreads();
-
-    if (threadIdx.x >= totalCenterParts) {
-        return;
-    }
-    uint index = centerID[threadIdx.x];
-    // if (sortedRhoPreMu[index].w > -0.5f && sortedRhoPreMu[index].w < 0.5f)
-    //     return;
-
-    Real3 posRadA = centerPos[threadIdx.x];
-    uint centerCellID = getCenterCellID(&numPartsInCenterCells[blockIdx.x * 8], threadIdx.x);
-    Real SuppRadii = 2.0f * paramsD.HSML;
-    Real SqRadii = SuppRadii * SuppRadii;
-    uint j_num = 0;
-
-    // center cells are all neighbor cells
-    for (int j = 0; j < totalCenterParts; ++j) {
-        Real3 posRadB = centerPos[j];
-        Real3 dist3 = Distance(posRadA, posRadB);
-        Real dd = dist3.x * dist3.x + dist3.y * dist3.y + dist3.z * dist3.z;
-        if (dd < SqRadii) {
-            j_num++;
-        }
-    }
-    // the rest 19 neighbor cells
-    for (int j = 0; j < 19; ++j) {
-        uint nbCellID = neighborCellIndices[centerCellID * 19 + j];
-        uint cellLeft = bufferOffset[nbCellID];
-        uint cellRight = bufferOffset[nbCellID + 1];
-        for (int k = cellLeft; k < cellRight; ++k) {
-            Real3 posRadB = bufferPos[k];
-            Real3 dist3 = Distance(posRadA, posRadB);
-            Real dd = dist3.x * dist3.x + dist3.y * dist3.y + dist3.z * dist3.z;
-            if (dd < SqRadii) {
-                j_num++;
-            }
-        }
-    }
-    numNeighborsPerPart[index] = j_num;
-}
-//--------------------------------------------------------------------------------------------------------------------------------
-__global__ void neighborSearchID(const Real4* sortedPosRad,
-                                 const Real4* sortedRhoPreMu,
-                                 const uint* cellStart,
-                                 const uint* cellEnd,
-                                 const uint* SDCenter,
-                                 const uint* SDBuffer,
-                                 const uint* numPartsInCenterCells,
-                                 const uint* numPartsInBufferCells,
-                                 const uint* neighborCellIndices,
-                                 const uint* numNeighborsPerPart,
-                                 const uint* activityIdentifierSDD,
-                                 const uint* nonZeroIndices,
-                                 uint* neighborList,
-                                 volatile bool* isErrorD) {
-    uint SDIndex = nonZeroIndices[blockIdx.x];
-    if (activityIdentifierSDD[SDIndex] == 0) {
-        return;
-    }
-
-    uint totalCenterParts = numPartsInCenterCells[blockIdx.x * 8 + 7];
-    uint totalBufferParts = numPartsInBufferCells[blockIdx.x * 56 + 55];
-
-    // allocate shared memory for SD and buffer of SD
-    extern __shared__ int shMemPos[];
-    Real3* centerPos = (Real3*)&shMemPos[0];
-    Real3* bufferPos = &centerPos[totalCenterParts];
-    uint* shMemID = (uint*)&bufferPos[totalBufferParts];
-    uint* centerID = shMemID;
-    uint* bufferID = &centerID[totalCenterParts];
-    uint* bufferOffset = &bufferID[totalBufferParts];
-
-    if (threadIdx.x < 8) {
-        // load center particle positions (within SD)
-        uint cellID = SDCenter[8 * blockIdx.x + threadIdx.x];
-        int iter = 0;
-        uint cellOffset = (threadIdx.x == 0) ? 0 : numPartsInCenterCells[blockIdx.x * 8 + threadIdx.x - 1];
-        for (int j = cellStart[cellID]; j < cellEnd[cellID]; ++j) {
-            centerPos[cellOffset + iter] = mR3(sortedPosRad[j]);
-            centerID[cellOffset + iter] = j;
-            iter++;
-        }
-    }
-    if (threadIdx.x >= 32 && threadIdx.x < 88) {
-        // load buffer particle positions
-        uint currCell = threadIdx.x - 32;
-        uint cellID = SDBuffer[56 * blockIdx.x + currCell];
-        int iter = 0;
-        uint cellOffset = (currCell == 0) ? 0 : numPartsInBufferCells[blockIdx.x * 56 + currCell - 1];
-        bufferOffset[currCell] = cellOffset;
-        if (currCell == 55) {
-            bufferOffset[56] = numPartsInBufferCells[blockIdx.x * 56 + currCell];
-        }
-        for (int j = cellStart[cellID]; j < cellEnd[cellID]; ++j) {
-            bufferPos[cellOffset + iter] = mR3(sortedPosRad[j]);
-            bufferID[cellOffset + iter] = j;
-            iter++;
-        }
-    }
-    __syncthreads();
-
-    if (threadIdx.x >= totalCenterParts) {
-        return;
-    }
-    uint index = centerID[threadIdx.x];
-    // if (sortedRhoPreMu[index].w > -0.5f && sortedRhoPreMu[index].w < 0.5f)
-    //     return;
-
-    Real3 posRadA = centerPos[threadIdx.x];
-    uint centerCellID = getCenterCellID(&numPartsInCenterCells[blockIdx.x * 8], threadIdx.x);
-    Real SuppRadii = 2.0f * paramsD.HSML;
-    Real SqRadii = SuppRadii * SuppRadii;
-    uint j_num = 1;
-    neighborList[numNeighborsPerPart[index]] = index;
-
-    for (int j = 0; j < totalCenterParts; ++j) {
-        Real3 posRadB = centerPos[j];
-        Real3 dist3 = Distance(posRadA, posRadB);
-        Real dd = dist3.x * dist3.x + dist3.y * dist3.y + dist3.z * dist3.z;
-        if (dd < SqRadii && shMemID[j] != index) {
-            neighborList[numNeighborsPerPart[index] + j_num] = shMemID[j];
-            j_num++;
-        }
-    }
-    for (int j = 0; j < 19; ++j) {
-        uint nbCellID = neighborCellIndices[centerCellID * 19 + j];
-        uint cellLeft = bufferOffset[nbCellID];
-        uint cellRight = bufferOffset[nbCellID + 1];
-        for (int k = cellLeft; k < cellRight; ++k) {
-            Real3 posRadB = bufferPos[k];
-            Real3 dist3 = Distance(posRadA, posRadB);
-            Real dd = dist3.x * dist3.x + dist3.y * dist3.y + dist3.z * dist3.z;
-            if (dd < SqRadii) {
-                neighborList[numNeighborsPerPart[index] + j_num] = bufferID[k];
-                j_num++;
-            }
-        }
-    }
-}
-//--------------------------------------------------------------------------------------------------------------------------------
-__global__ void neighborSearchNum_plain(const Real4* sortedPosRad,
-                                        const Real4* sortedRhoPreMu,
-                                        const uint* cellStart,
-                                        const uint* cellEnd,
-                                        const uint* activityIdentifierD,
-                                        uint* numNeighborsPerPart,
-                                        volatile bool* isErrorD) {
     uint index = blockIdx.x * blockDim.x + threadIdx.x;
     if (index >= numObjectsD.numAllMarkers) {
         return;
@@ -1174,7 +907,7 @@ __global__ void neighborSearchNum_plain(const Real4* sortedPosRad,
     numNeighborsPerPart[index] = j_num;
 }
 //--------------------------------------------------------------------------------------------------------------------------------
-__global__ void neighborSearchID_plain(const Real4* sortedPosRad,
+__global__ void neighborSearchID(const Real4* sortedPosRad,
                                        const Real4* sortedRhoPreMu,
                                        const uint* cellStart,
                                        const uint* cellEnd,

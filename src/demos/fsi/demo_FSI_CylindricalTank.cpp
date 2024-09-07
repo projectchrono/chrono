@@ -134,7 +134,6 @@ int main(int argc, char* argv[]) {
     sph_params.consistent_gradient_discretization = false;
     sph_params.consistent_laplacian_discretization = false;
     sph_params.numProximitySearchSteps = 1;
-    sph_params.sharedProximitySearch = false;
 
     sysFSI.SetSPHParameters(sph_params);
     sysFSI.SetStepSize(step_size);
@@ -164,8 +163,7 @@ int main(int argc, char* argv[]) {
     fsi.AddRigidBody(body, geometry, true, false);
 
     // Enable height-based initial pressure for SPH particles
-    fsi.RegisterParticlePropertiesCallback(
-        chrono_types::make_shared<DepthPressurePropertiesCallback>(sysFSI, height));
+    fsi.RegisterParticlePropertiesCallback(chrono_types::make_shared<DepthPressurePropertiesCallback>(sysFSI, height));
 
     // Create SPH material (do not create boundary BCEs)
     fsi.Construct(r_inner, r_outer, height,  //

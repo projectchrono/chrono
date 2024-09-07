@@ -34,11 +34,10 @@ class ChFsiForceExplicitSPH : public ChFsiForce {
         std::shared_ptr<ChBce> otherBceWorker,                   ///< object that handles BCE particles
         std::shared_ptr<SphMarkerDataD> otherSortedSphMarkersD,  ///< information of particle in the sorted device array
         std::shared_ptr<ProximityDataD> otherMarkersProximityD,  ///< object that holds device proximity info
-        std::shared_ptr<ProximityDataD> otherMarkersProximityWideD,  ///< object that holds device proximity info for the subdomains
-        std::shared_ptr<FsiData> otherFsiData,            ///< SPH general data
-        std::shared_ptr<SimParams> params,                       ///< simulation parameters
-        std::shared_ptr<ChCounters> numObjects,                  ///< problem counters
-        bool verb                                                ///< verbose terminal output
+        std::shared_ptr<FsiData> otherFsiData,   ///< SPH general data
+        std::shared_ptr<SimParams> params,       ///< simulation parameters
+        std::shared_ptr<ChCounters> numObjects,  ///< problem counters
+        bool verb                                ///< verbose terminal output
     );
 
     /// Destructor of the ChFsiForceExplicitSPH class
@@ -48,7 +47,7 @@ class ChFsiForceExplicitSPH : public ChFsiForce {
 
   private:
     int density_initialization;
-    
+
     /// Function to find neighbor particles and calculate the interactions between SPH particles
     void ForceSPH(std::shared_ptr<SphMarkerDataD> otherSortedSphMarkersD,
                   std::shared_ptr<FsiBodyStateD> fsiBodyStateD,
@@ -56,10 +55,8 @@ class ChFsiForceExplicitSPH : public ChFsiForce {
                   std::shared_ptr<FsiMeshStateD> fsiMesh2DStateD,
                   Real time,
                   bool firstHalfStep) override;
-    /// Proximity search using shared memory
-    void neighborSearchShared();
-    /// Proximity search using VRAM
-    void neighborSearchPlain();
+
+    void neighborSearch();
 
     /// Function to calculate the XSPH velocity of the particles.
     /// XSPH velocity is a compromise between Eulerian and Lagrangian velocities, used

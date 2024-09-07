@@ -112,8 +112,6 @@ class ChFsiForce : public ChFsiBase {
         std::shared_ptr<ChBce> otherBceWorker,                   ///< object that handles BCE particles
         std::shared_ptr<SphMarkerDataD> otherSortedSphMarkersD,  ///< information of particle in the sorted device array
         std::shared_ptr<ProximityDataD> otherMarkersProximityD,  ///< object that holds device proximity info
-        std::shared_ptr<ProximityDataD>
-            otherMarkersProximityWideD,  ///< object that holds device proximity info but for the sub Domain (SD)
         std::shared_ptr<FsiData> otherFsiData,  ///< SPH general data
         std::shared_ptr<SimParams> params,             ///< simulation parameters
         std::shared_ptr<ChCounters> numObjects,        ///< problem counters
@@ -184,7 +182,6 @@ class ChFsiForce : public ChFsiBase {
     std::shared_ptr<SphMarkerDataD> sphMarkersD;         ///< device copy of the SPH particles data
     std::shared_ptr<SphMarkerDataD> sortedSphMarkers_D;  ///< device copy of the sorted sph particles data
     std::shared_ptr<ProximityDataD> markersProximity_D;  ///< pointer object that holds the proximity of the particles
-    std::shared_ptr<ProximityDataD> markersProximityWide_D; ///< pointer object that holds the proximity of the particles in the shared memory subdomain
     std::shared_ptr<FsiData> fsiData;  ///< pointer to sph general data
 
     thrust::device_vector<Real3> vel_vis_Sorted_D;       ///< sorted visualization velocity data

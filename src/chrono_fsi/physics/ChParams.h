@@ -65,7 +65,7 @@ struct SimParams {
         toleranceZone;  ///< Helps determine the particles that are in the domain but are outside the boundaries, so
                         ///< they are not considered fluid particles and are dropped at the beginning of the simulation.
 
-    Real BASEPRES;    ///< Relative value of pressure applied to the whole domain.
+    Real BASEPRES;  ///< Relative value of pressure applied to the whole domain.
 
     Real3 deltaPress;  ///< Change in Pressure. This is needed for periodic BC. The change in pressure of a particle
                        ///< when it moves from end boundary to beginning.
@@ -203,7 +203,6 @@ struct SimParams {
     Real settlingTime;       ///< Time for the granular to settle down
 
     int numProximitySearchSteps;  ///< Proximity search is performed every "numProximitySearchSteps" time steps
-    bool sharedProximitySearch;   ///< Use shared memory for proximity search
 };
 
 /// @} fsi_physics

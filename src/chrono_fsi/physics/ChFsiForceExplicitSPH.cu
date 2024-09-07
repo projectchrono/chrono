@@ -1548,7 +1548,6 @@ __global__ void CopySortedToOriginal_XSPH_D(const Real3* sortedXSPH,
 ChFsiForceExplicitSPH::ChFsiForceExplicitSPH(std::shared_ptr<ChBce> otherBceWorker,
                                              std::shared_ptr<SphMarkerDataD> otherSortedSphMarkersD,
                                              std::shared_ptr<ProximityDataD> otherMarkersProximityD,
-                                             std::shared_ptr<ProximityDataD> otherMarkersProximityWideD,
                                              std::shared_ptr<FsiData> otherFsiData,
                                              std::shared_ptr<SimParams> params,
                                              std::shared_ptr<ChCounters> numObjects,
@@ -1556,7 +1555,6 @@ ChFsiForceExplicitSPH::ChFsiForceExplicitSPH(std::shared_ptr<ChBce> otherBceWork
     : ChFsiForce(otherBceWorker,
                  otherSortedSphMarkersD,
                  otherMarkersProximityD,
-                 otherMarkersProximityWideD,
                  otherFsiData,
                  params,
                  numObjects,
@@ -1590,7 +1588,7 @@ void ChFsiForceExplicitSPH::ForceSPH(std::shared_ptr<SphMarkerDataD> otherSorted
 }
 
 //--------------------------------------------------------------------------------------------------------------------------------
-void ChFsiForceExplicitSPH::neighborSearchPlain() {
+void ChFsiForceExplicitSPH::neighborSearch() {
     bool *isErrorH, *isErrorD;
     isErrorH = (bool*)malloc(sizeof(bool));
     cudaMalloc((void**)&isErrorD, sizeof(bool));
@@ -1606,11 +1604,11 @@ void ChFsiForceExplicitSPH::neighborSearchPlain() {
 
     // start neighbor search
     // first pass
-    neighborSearchNum_plain<<<numBlocksShort, numThreadsShort>>>(
+    neighborSearchNum<<<numBlocksShort, numThreadsShort>>>(
         mR4CAST(sortedSphMarkers_D->posRadD), mR4CAST(sortedSphMarkers_D->rhoPresMuD),
         U1CAST(markersProximity_D->cellStartD), U1CAST(markersProximity_D->cellEndD),
         U1CAST(fsiData->activityIdentifierD), U1CAST(fsiData->numNeighborsPerPart), isErrorD);
-    ChUtilsDevice::Sync_CheckError(isErrorH, isErrorD, "neighborSearchNum_plain");
+    ChUtilsDevice::Sync_CheckError(isErrorH, isErrorD, "neighborSearchNum");
 
     // in-place exclusive scan for num of neighbors
     thrust::exclusive_scan(fsiData->numNeighborsPerPart.begin(), fsiData->numNeighborsPerPart.end(),
@@ -1620,105 +1618,11 @@ void ChFsiForceExplicitSPH::neighborSearchPlain() {
     thrust::fill(fsiData->neighborList.begin(), fsiData->neighborList.end(), 0);
 
     // second pass
-    neighborSearchID_plain<<<numBlocksShort, numThreadsShort>>>(
+    neighborSearchID<<<numBlocksShort, numThreadsShort>>>(
         mR4CAST(sortedSphMarkers_D->posRadD), mR4CAST(sortedSphMarkers_D->rhoPresMuD),
         U1CAST(markersProximity_D->cellStartD), U1CAST(markersProximity_D->cellEndD),
         U1CAST(fsiData->activityIdentifierD), U1CAST(fsiData->numNeighborsPerPart), U1CAST(fsiData->neighborList),
         isErrorD);
-    ChUtilsDevice::Sync_CheckError(isErrorH, isErrorD, "neighborSearchID_plain");
-}
-
-void ChFsiForceExplicitSPH::neighborSearchShared() {
-    bool *isErrorH, *isErrorD;
-    isErrorH = (bool*)malloc(sizeof(bool));
-    cudaMalloc((void**)&isErrorD, sizeof(bool));
-    *isErrorH = false;
-    cudaMemcpy(isErrorD, isErrorH, sizeof(bool), cudaMemcpyHostToDevice);
-    // thread per particle
-    uint numBlocksShort, numThreadsShort;
-    // Execute the kernel
-    *isErrorH = false;
-    cudaMemcpy(isErrorD, isErrorH, sizeof(bool), cudaMemcpyHostToDevice);
-    uint numNeighborCells = 19 * 8;
-    uint neighborCellsH[19 * 8] = {
-        0,  1,  2,  3,  4,  5,  6,  7,  9,  11, 14, 15, 18, 21, 28, 29, 30, 35, 42, 1,  3,  5,  7,  8,  9,  10,
-        11, 12, 13, 15, 21, 22, 25, 29, 35, 36, 37, 49, 2,  3,  6,  9,  14, 15, 16, 17, 18, 19, 20, 21, 23, 26,
-        30, 42, 43, 44, 50, 3,  9,  10, 13, 15, 17, 20, 21, 22, 23, 24, 25, 26, 27, 37, 44, 49, 50, 51, 4,  5,
-        6,  11, 18, 28, 29, 30, 31, 32, 33, 34, 35, 38, 40, 42, 45, 46, 52, 5,  11, 12, 13, 25, 29, 32, 34, 35,
-        36, 37, 38, 39, 40, 41, 46, 49, 52, 53, 6,  18, 19, 20, 26, 30, 33, 34, 40, 42, 43, 44, 45, 46, 47, 48,
-        50, 52, 54, 13, 20, 25, 26, 27, 34, 37, 40, 41, 44, 46, 48, 49, 50, 51, 52, 53, 54, 55};
-    thrust::device_vector<uint> neighborCellIndices(neighborCellsH, neighborCellsH + numNeighborCells);
-
-    thrust::device_vector<uint> cellEndStartDiff(markersProximityWide_D->cellStartD.size());
-    thrust::transform(markersProximityWide_D->cellEndD.begin(), markersProximityWide_D->cellEndD.end(),
-                      markersProximityWide_D->cellStartD.begin(), cellEndStartDiff.begin(), thrust::minus<uint>());
-    thrust::device_vector<uint> nonZeroIndices(cellEndStartDiff.size());
-    auto indices_end = thrust::copy_if(thrust::make_counting_iterator((uint)0),
-                                       thrust::make_counting_iterator((uint)cellEndStartDiff.size()),
-                                       cellEndStartDiff.begin(), nonZeroIndices.begin(), thrust::identity<uint>());
-
-    numBlocksShort = thrust::distance(nonZeroIndices.begin(), indices_end);
-    // std::cout << numBlocksShort << std::endl;
-    // numBlocksShort = paramsH->gridSize.x * paramsH->gridSize.y * paramsH->gridSize.z / 8;
-    numThreadsShort = 128;
-    uint numThreadsSD = 8;
-
-    // each one of the 8 cells in the SD will populate its 7 corresponding neighbor cells' ID
-    thrust::device_vector<uint> SDCenter(numBlocksShort * 8);
-    thrust::device_vector<uint> SDBuffer(numBlocksShort * 56);
-    fillCenterBufferCellID<<<numBlocksShort, numThreadsSD>>>(
-        U1CAST(nonZeroIndices), U1CAST(fsiData->activityIdentifierSDD), U1CAST(SDCenter), U1CAST(SDBuffer), isErrorD);
-    ChUtilsDevice::Sync_CheckError(isErrorH, isErrorD, "fillCenterBufferCellID");
-
-    // find number of particles in buffer cells
-    thrust::device_vector<uint> numPartsInCenterCells(numBlocksShort * 8);
-    thrust::device_vector<uint> numPartsInBufferCells(numBlocksShort * 56);
-    thrust::device_vector<uint> centerCellKeys(numBlocksShort * 8);
-    thrust::device_vector<uint> bufferCellKeys(numBlocksShort * 56);
-    findNumPartsInBufferCells<<<numBlocksShort, 64>>>(
-        U1CAST(SDCenter), U1CAST(SDBuffer), U1CAST(markersProximity_D->cellStartD),
-        U1CAST(markersProximity_D->cellEndD), U1CAST(nonZeroIndices), U1CAST(fsiData->activityIdentifierSDD),
-        U1CAST(numPartsInCenterCells), U1CAST(numPartsInBufferCells), U1CAST(centerCellKeys), U1CAST(bufferCellKeys),
-        isErrorD);
-    ChUtilsDevice::Sync_CheckError(isErrorH, isErrorD, "findNumPartsInBufferCells");
-
-    thrust::inclusive_scan_by_key(centerCellKeys.begin(), centerCellKeys.end(), numPartsInCenterCells.begin(),
-                                  numPartsInCenterCells.begin(), thrust::equal_to<uint>(), thrust::plus<uint>());
-    thrust::inclusive_scan_by_key(bufferCellKeys.begin(), bufferCellKeys.end(), numPartsInBufferCells.begin(),
-                                  numPartsInBufferCells.begin(), thrust::equal_to<uint>(), thrust::plus<uint>());
-
-    auto max_numCenterPts = thrust::max_element(cellEndStartDiff.begin(), cellEndStartDiff.end());
-    // thrust::device_vector<uint> numNeighborsPerPart(numObjectsH->numAllMarkers, 0);
-    // std::cout << numPartsInCenterCells.size() << std::endl;
-    thrust::fill(fsiData->numNeighborsPerPart.begin(), fsiData->numNeighborsPerPart.end(), 0);
-    cudaDeviceSynchronize();
-
-    // TODO (Huzaifa): 730 changed to 1730 as a temporary fix - need to calculate upper limit of shared memory required
-    // start neighbor search
-    uint shMemSize = 1730 * (sizeof(Real3)) + (125 + 57) * sizeof(uint);
-    // first pass
-    neighborSearchNum<<<numBlocksShort, numThreadsShort, shMemSize>>>(
-        mR4CAST(sortedSphMarkers_D->posRadD), mR4CAST(sortedSphMarkers_D->rhoPresMuD),
-        U1CAST(markersProximity_D->cellStartD), U1CAST(markersProximity_D->cellEndD), U1CAST(SDCenter),
-        U1CAST(SDBuffer), U1CAST(numPartsInCenterCells), U1CAST(numPartsInBufferCells), U1CAST(neighborCellIndices),
-        U1CAST(fsiData->activityIdentifierSDD), U1CAST(nonZeroIndices), U1CAST(fsiData->numNeighborsPerPart), isErrorD);
-    ChUtilsDevice::Sync_CheckError(isErrorH, isErrorD, "neighborSearchNum");
-
-    // in-place exclusive scan for num of neighbors
-    thrust::exclusive_scan(fsiData->numNeighborsPerPart.begin(), fsiData->numNeighborsPerPart.end(),
-                           fsiData->numNeighborsPerPart.begin());
-    fsiData->neighborList.resize(fsiData->numNeighborsPerPart.back());
-    thrust::fill(fsiData->neighborList.begin(), fsiData->neighborList.end(), 0);
-
-    // TODO (Huzaifa): 730 changed to 1730 as a temporary fix - need to calculate upper limit of shared memory required
-    shMemSize = 1730 * (sizeof(Real3) + sizeof(uint));
-    // second pass
-    neighborSearchID<<<numBlocksShort, numThreadsShort, shMemSize>>>(
-        mR4CAST(sortedSphMarkers_D->posRadD), mR4CAST(sortedSphMarkers_D->rhoPresMuD),
-        U1CAST(markersProximity_D->cellStartD), U1CAST(markersProximity_D->cellEndD), U1CAST(SDCenter),
-        U1CAST(SDBuffer), U1CAST(numPartsInCenterCells), U1CAST(numPartsInBufferCells), U1CAST(neighborCellIndices),
-        U1CAST(fsiData->numNeighborsPerPart), U1CAST(fsiData->activityIdentifierSDD), U1CAST(nonZeroIndices),
-        U1CAST(fsiData->neighborList), isErrorD);
     ChUtilsDevice::Sync_CheckError(isErrorH, isErrorD, "neighborSearchID");
 }
 
@@ -1745,13 +1649,8 @@ void ChFsiForceExplicitSPH::CollideWrapper(Real time, bool firstHalfStep) {
     density_initialization++;
 
     // Perform Proxmity search at desired frequency and using desired GPU memory
-    if (firstHalfStep && (time < 1e-6 || int(round(time / paramsH->dT)) % paramsH->numProximitySearchSteps == 0)) {
-        if (paramsH->sharedProximitySearch) {
-            neighborSearchShared();
-        } else {
-            neighborSearchPlain();
-        }
-    }
+    if (firstHalfStep && (time < 1e-6 || int(round(time / paramsH->dT)) % paramsH->numProximitySearchSteps == 0))
+        neighborSearch();
 
     thrust::device_vector<Real3> sortedKernelSupport(numObjectsH->numAllMarkers);
     // Calculate the kernel support of each particle

@@ -76,7 +76,7 @@ __device__ inline Real W3h_Quintic(Real d, Real h) {  // d is positive. h is the
                                                       // the document) d is the distance of 2 particles
     Real invh = paramsD.INVHSML;
     Real q = fabs(d) * invh;
-    Real coeff = 8.35655e-3; // 3/359
+    Real coeff = 8.35655e-3;  // 3/359
     if (q < 1) {
         return (coeff * INVPI * cube(invh) * (quintic(3 - q) - 6 * quintic(2 - q) + 15 * quintic(1 - q)));
     }
@@ -121,7 +121,7 @@ __device__ inline Real3 W3h_Quintic(Real3 d, Real h) {  // d is positive. h is t
     Real q = length(d) * invh;
     if (fabs(q) < 1e-10)
         return mR3(0.0);
-    Real coeff = -4.178273e-2; // -15/359
+    Real coeff = -4.178273e-2;  // -15/359
     if (q < 1) {
         return (coeff * (INVPI * quintic(invh) / q) * d * (quartic(3 - q) - 6 * quartic(2 - q) + 15 * quartic(1 - q)));
     }
@@ -171,7 +171,7 @@ __device__ inline Real3 Modify_Local_PosB(Real3& b, Real3 a) {
 
     dist3 = a - b;
     // modifying the markers perfect overlap
-    Real dd = dist3.x*dist3.x + dist3.y*dist3.y + dist3.z*dist3.z;
+    Real dd = dist3.x * dist3.x + dist3.y * dist3.y + dist3.z * dist3.z;
     Real MinD = paramsD.epsMinMarkersDis * paramsD.HSML;
     Real sq_MinD = MinD * MinD;
     if (dd < sq_MinD) {
@@ -202,30 +202,27 @@ __device__ inline Real3 InverseRotate_By_RotationMatrix_DeviceHost(const Real3& 
                A1.z * r3.x + A2.z * r3.y + A3.z * r3.z);
 }
 //--------------------------------------------------------------------------------------------------------------------------------
-__device__ inline int3 calcGridPos(Real3 p, Real multiplier = 1.0) {
+__device__ inline int3 calcGridPos(Real3 p) {
     int3 gridPos;
     if (paramsD.cellSize.x * paramsD.cellSize.y * paramsD.cellSize.z == 0)
         printf("calcGridPos=%f,%f,%f\n", paramsD.cellSize.x, paramsD.cellSize.y, paramsD.cellSize.z);
 
-    gridPos.x = (int)floor((p.x - paramsD.worldOrigin.x) / (multiplier * paramsD.cellSize.x));
-    gridPos.y = (int)floor((p.y - paramsD.worldOrigin.y) / (multiplier * paramsD.cellSize.y));
-    gridPos.z = (int)floor((p.z - paramsD.worldOrigin.z) / (multiplier * paramsD.cellSize.z));
+    gridPos.x = (int)floor((p.x - paramsD.worldOrigin.x) / (paramsD.cellSize.x));
+    gridPos.y = (int)floor((p.y - paramsD.worldOrigin.y) / (paramsD.cellSize.y));
+    gridPos.z = (int)floor((p.z - paramsD.worldOrigin.z) / (paramsD.cellSize.z));
     return gridPos;
 }
 //--------------------------------------------------------------------------------------------------------------------------------
-__device__ inline uint calcGridHash(int3 gridPos, int multiplier = 1) {
-    int round_x = paramsD.gridSize.x + multiplier - 1;
-    int round_y = paramsD.gridSize.y + multiplier - 1;
-    int round_z = paramsD.gridSize.z + multiplier - 1;
-    gridPos.x -= ((gridPos.x >= round_x / multiplier) ? round_x / multiplier : 0);
-    gridPos.y -= ((gridPos.y >= round_y / multiplier) ? round_y / multiplier : 0);
-    gridPos.z -= ((gridPos.z >= round_z / multiplier) ? round_z / multiplier : 0);
+__device__ inline uint calcGridHash(int3 gridPos) {
+    gridPos.x -= ((gridPos.x >= paramsD.gridSize.x) ? paramsD.gridSize.x : 0);
+    gridPos.y -= ((gridPos.y >= paramsD.gridSize.y) ? paramsD.gridSize.y : 0);
+    gridPos.z -= ((gridPos.z >= paramsD.gridSize.z) ? paramsD.gridSize.z : 0);
 
-    gridPos.x += ((gridPos.x < 0) ? round_x / multiplier : 0);
-    gridPos.y += ((gridPos.y < 0) ? round_y / multiplier : 0);
-    gridPos.z += ((gridPos.z < 0) ? round_z / multiplier : 0);
+    gridPos.x += ((gridPos.x < 0) ? paramsD.gridSize.x : 0);
+    gridPos.y += ((gridPos.y < 0) ? paramsD.gridSize.y : 0);
+    gridPos.z += ((gridPos.z < 0) ? paramsD.gridSize.z : 0);
 
-    return gridPos.z * (round_y / multiplier) * (round_x / multiplier) + gridPos.y * (round_x / multiplier) + gridPos.x;
+    return gridPos.z * paramsD.gridSize.y * paramsD.gridSize.x + gridPos.y * paramsD.gridSize.x + gridPos.x;
 }
 
 //--------------------------------------------------------------------------------------------------------------------------------
@@ -239,16 +236,6 @@ __device__ inline uint calcCellID(uint3 cellPos) {
 }
 
 //--------------------------------------------------------------------------------------------------------------------------------
-__device__ inline uint3 calcGridPosFromSDIndex(uint SDIndex) {
-    uint total_x = (paramsD.gridSize.x + 1) / 2;
-    uint total_y = (paramsD.gridSize.y + 1) / 2;
-    uint zPos = SDIndex / (total_x * total_y);
-    uint yPos = (SDIndex % (total_x * total_y)) / total_x;
-    uint xPos = (SDIndex % (total_x * total_y)) % total_x;
-    return mU3(xPos, yPos, zPos);
-}
-
-//--------------------------------------------------------------------------------------------------------------------------------
 __device__ inline uint getCellPos(int trialCellPos, uint ub) {
     if (trialCellPos >= 0 && trialCellPos < ub) {
         return (uint)trialCellPos;
@@ -258,187 +245,6 @@ __device__ inline uint getCellPos(int trialCellPos, uint ub) {
         return (uint)(trialCellPos - ub);
     }
     return (uint)trialCellPos;
-}
-
-//--------------------------------------------------------------------------------------------------------------------------------
-__device__ inline void calcCenterBufferCellIDFromSD(uint SDIndex,
-                                                    uint whichCorner,
-                                                    uint& centerCellID,
-                                                    uint* bufferCellIDs) {
-    uint3 gridPos = calcGridPosFromSDIndex(SDIndex);
-    int iter;
-    switch (whichCorner) {
-        case 0:
-            iter = 0;
-            for (int k = -1; k <= 0; ++k) {
-                for (int j = -1; j <= 0; ++j) {
-                    for (int i = -1; i <= 0; ++i) {
-                        uint cellPosX = getCellPos((int)gridPos.x * 2 + i, paramsD.gridSize.x);
-                        uint cellPosY = getCellPos((int)gridPos.y * 2 + j, paramsD.gridSize.y);
-                        uint cellPosZ = getCellPos((int)gridPos.z * 2 + k, paramsD.gridSize.z);
-                        uint3 currCellPos = mU3(cellPosX, cellPosY, cellPosZ);
-
-                        if (!(i == 0 && j == 0 && k == 0)) {
-                            bufferCellIDs[iter] = calcCellID(currCellPos);
-                            iter++;
-                        } else {
-                            centerCellID = calcCellID(currCellPos);
-                        }
-                    }
-                }
-            }
-            break;
-        case 1:
-            iter = 0;
-            for (int k = -1; k <= 0; ++k) {
-                for (int j = -1; j <= 0; ++j) {
-                    for (int i = 0; i <= 1; ++i) {
-                        uint cellPosX = getCellPos((int)gridPos.x * 2 + i + 1, paramsD.gridSize.x);
-                        uint cellPosY = getCellPos((int)gridPos.y * 2 + j, paramsD.gridSize.y);
-                        uint cellPosZ = getCellPos((int)gridPos.z * 2 + k, paramsD.gridSize.z);
-
-                        uint3 currCellPos = mU3(cellPosX, cellPosY, cellPosZ);
-
-                        if (!(i == 0 && j == 0 && k == 0)) {
-                            bufferCellIDs[iter] = calcCellID(currCellPos);
-                            iter++;
-                        } else {
-                            centerCellID = calcCellID(currCellPos);
-                        }
-                    }
-                }
-            }
-            break;
-        case 2:
-            iter = 0;
-            for (int k = -1; k <= 0; ++k) {
-                for (int j = 0; j <= 1; ++j) {
-                    for (int i = -1; i <= 0; ++i) {
-                        uint cellPosX = getCellPos((int)gridPos.x * 2 + i, paramsD.gridSize.x);
-                        uint cellPosY = getCellPos((int)gridPos.y * 2 + j + 1, paramsD.gridSize.y);
-                        uint cellPosZ = getCellPos((int)gridPos.z * 2 + k, paramsD.gridSize.z);
-
-                        uint3 currCellPos = mU3(cellPosX, cellPosY, cellPosZ);
-
-                        if (!(i == 0 && j == 0 && k == 0)) {
-                            bufferCellIDs[iter] = calcCellID(currCellPos);
-                            iter++;
-                        } else {
-                            centerCellID = calcCellID(currCellPos);
-                        }
-                    }
-                }
-            }
-            break;
-        case 3:
-            iter = 0;
-            for (int k = -1; k <= 0; ++k) {
-                for (int j = 0; j <= 1; ++j) {
-                    for (int i = 0; i <= 1; ++i) {
-                        uint cellPosX = getCellPos((int)gridPos.x * 2 + i + 1, paramsD.gridSize.x);
-                        uint cellPosY = getCellPos((int)gridPos.y * 2 + j + 1, paramsD.gridSize.y);
-                        uint cellPosZ = getCellPos((int)gridPos.z * 2 + k, paramsD.gridSize.z);
-
-                        uint3 currCellPos = mU3(cellPosX, cellPosY, cellPosZ);
-
-                        if (!(i == 0 && j == 0 && k == 0)) {
-                            bufferCellIDs[iter] = calcCellID(currCellPos);
-                            iter++;
-                        } else {
-                            centerCellID = calcCellID(currCellPos);
-                        }
-                    }
-                }
-            }
-            break;
-        case 4:
-            iter = 0;
-            for (int k = 0; k <= 1; ++k) {
-                for (int j = -1; j <= 0; ++j) {
-                    for (int i = -1; i <= 0; ++i) {
-                        uint cellPosX = getCellPos((int)gridPos.x * 2 + i, paramsD.gridSize.x);
-                        uint cellPosY = getCellPos((int)gridPos.y * 2 + j, paramsD.gridSize.y);
-                        uint cellPosZ = getCellPos((int)gridPos.z * 2 + k + 1, paramsD.gridSize.z);
-
-                        uint3 currCellPos = mU3(cellPosX, cellPosY, cellPosZ);
-
-                        if (!(i == 0 && j == 0 && k == 0)) {
-                            bufferCellIDs[iter] = calcCellID(currCellPos);
-                            iter++;
-                        } else {
-                            centerCellID = calcCellID(currCellPos);
-                        }
-                    }
-                }
-            }
-            break;
-        case 5:
-            iter = 0;
-            for (int k = 0; k <= 1; ++k) {
-                for (int j = -1; j <= 0; ++j) {
-                    for (int i = 0; i <= 1; ++i) {
-                        uint cellPosX = getCellPos((int)gridPos.x * 2 + i + 1, paramsD.gridSize.x);
-                        uint cellPosY = getCellPos((int)gridPos.y * 2 + j, paramsD.gridSize.y);
-                        uint cellPosZ = getCellPos((int)gridPos.z * 2 + k + 1, paramsD.gridSize.z);
-
-                        uint3 currCellPos = mU3(cellPosX, cellPosY, cellPosZ);
-
-                        if (!(i == 0 && j == 0 && k == 0)) {
-                            bufferCellIDs[iter] = calcCellID(currCellPos);
-                            iter++;
-                        } else {
-                            centerCellID = calcCellID(currCellPos);
-                        }
-                    }
-                }
-            }
-            break;
-        case 6:
-            iter = 0;
-            for (int k = 0; k <= 1; ++k) {
-                for (int j = 0; j <= 1; ++j) {
-                    for (int i = -1; i <= 0; ++i) {
-                        uint cellPosX = getCellPos((int)gridPos.x * 2 + i, paramsD.gridSize.x);
-                        uint cellPosY = getCellPos((int)gridPos.y * 2 + j + 1, paramsD.gridSize.y);
-                        uint cellPosZ = getCellPos((int)gridPos.z * 2 + k + 1, paramsD.gridSize.z);
-
-                        uint3 currCellPos = mU3(cellPosX, cellPosY, cellPosZ);
-
-                        if (!(i == 0 && j == 0 && k == 0)) {
-                            bufferCellIDs[iter] = calcCellID(currCellPos);
-                            iter++;
-                        } else {
-                            centerCellID = calcCellID(currCellPos);
-                        }
-                    }
-                }
-            }
-            break;
-        case 7:
-            iter = 0;
-            for (int k = 0; k <= 1; ++k) {
-                for (int j = 0; j <= 1; ++j) {
-                    for (int i = 0; i <= 1; ++i) {
-                        uint cellPosX = getCellPos((int)gridPos.x * 2 + i + 1, paramsD.gridSize.x);
-                        uint cellPosY = getCellPos((int)gridPos.y * 2 + j + 1, paramsD.gridSize.y);
-                        uint cellPosZ = getCellPos((int)gridPos.z * 2 + k + 1, paramsD.gridSize.z);
-
-                        uint3 currCellPos = mU3(cellPosX, cellPosY, cellPosZ);
-
-                        if (!(i == 0 && j == 0 && k == 0)) {
-                            bufferCellIDs[iter] = calcCellID(currCellPos);
-                            iter++;
-                        } else {
-                            centerCellID = calcCellID(currCellPos);
-                        }
-                    }
-                }
-            }
-            break;
-
-        default:
-            break;
-    }
 }
 
 //--------------------------------------------------------------------------------------------------------------------------------
@@ -528,8 +334,8 @@ inline __device__ Real Herschel_Bulkley_mu_eff(Real Strain_rate, Real k, Real n,
 }
 ////--------------------------------------------------------------------------------------------------------------------------------
 inline __device__ void BCE_Vel_Acc(int i_idx,
-                                   Real3& myAcc,                  // output: BCE marker acceleration
-                                   Real3& V_prescribed,           // output: BCE marker velocity
+                                   Real3& myAcc,         // output: BCE marker acceleration
+                                   Real3& V_prescribed,  // output: BCE marker velocity
                                    Real4* sortedPosRad,
                                    int4 updatePortion,
                                    uint* gridMarkerIndexD,
@@ -549,10 +355,10 @@ inline __device__ void BCE_Vel_Acc(int i_idx,
 
                                    uint2* flex1D_Nodes_D,      // segment node indices
                                    uint3* flex1D_BCEsolids_D,  // association of flex BCEs with a mesh and segment
-                                   Real3* flex1D_BCEcoords_D,   // local coordinates of BCE markers on FEA 1-D segments
+                                   Real3* flex1D_BCEcoords_D,  // local coordinates of BCE markers on FEA 1-D segments
                                    uint3* flex2D_Nodes_D,      // triangle node indices
                                    uint3* flex2D_BCEsolids_D,  // association of flex BCEs with a mesh and face
-                                   Real3* flex2D_BCEcoords_D  // local coordinates of BCE markers on FEA 2-D faces
+                                   Real3* flex2D_BCEcoords_D   // local coordinates of BCE markers on FEA 2-D faces
 ) {
     int Original_idx = gridMarkerIndexD[i_idx];
 
@@ -590,7 +396,7 @@ inline __device__ void BCE_Vel_Acc(int i_idx,
 
         // Or not, Flexible bodies for sure
     } else if (Original_idx >= updatePortion.z && Original_idx < updatePortion.w) {
-        int FlexIndex = Original_idx - updatePortion.z; // offset index for bce markers on flex bodies
+        int FlexIndex = Original_idx - updatePortion.z;  // offset index for bce markers on flex bodies
 
         // FlexIndex iterates through both 1D and 2D ones
         if (FlexIndex < numObjectsD.numFlexMarkers1D) {
@@ -599,22 +405,20 @@ inline __device__ void BCE_Vel_Acc(int i_idx,
             // Luning TODO: do we need flex_mesh and flex_mesh_seg?
             ////uint flex_mesh = flex_solid.x;                 // index of associated mesh
             ////uint flex_mesh_seg = flex_solid.y;             // index of segment in associated mesh
-            uint flex_seg = flex_solid.z;                  // index of segment in global list
+            uint flex_seg = flex_solid.z;  // index of segment in global list
 
-            uint2 seg_nodes = flex1D_Nodes_D[flex_seg];  // indices of the 2 nodes on associated segment
+            uint2 seg_nodes = flex1D_Nodes_D[flex_seg];    // indices of the 2 nodes on associated segment
             Real3 A0 = flex1D_acc_fsi_fea_D[seg_nodes.x];  // (absolute) acceleration of node 0
             Real3 A1 = flex1D_acc_fsi_fea_D[seg_nodes.y];  // (absolute) acceleration of node 1
 
             Real3 V0 = flex1D_vel_fsi_fea_D[seg_nodes.x];  // (absolute) acceleration of node 0
             Real3 V1 = flex1D_vel_fsi_fea_D[seg_nodes.y];  // (absolute) acceleration of node 1
 
-
             Real lambda0 = flex1D_BCEcoords_D[FlexIndex].x;  // segment coordinate
-            Real lambda1 = 1 - lambda0;                  // segment coordinate
+            Real lambda1 = 1 - lambda0;                      // segment coordinate
 
             V_prescribed = V0 * lambda0 + V1 * lambda1;
-            myAcc =        A0 * lambda0 + A1 * lambda1;
-
+            myAcc = A0 * lambda0 + A1 * lambda1;
         }
         if (FlexIndex >= numObjectsD.numFlexMarkers1D) {
             int flex2d_index = FlexIndex - numObjectsD.numFlexMarkers1D;
@@ -622,9 +426,9 @@ inline __device__ void BCE_Vel_Acc(int i_idx,
             uint3 flex_solid = flex2D_BCEsolids_D[flex2d_index];  // associated flex mesh and face
             ////uint flex_mesh = flex_solid.x;                 // index of associated mesh
             ////uint flex_mesh_tri = flex_solid.y;             // index of triangle in associated mesh
-            uint flex_tri = flex_solid.z;                  // index of triangle in global list
+            uint flex_tri = flex_solid.z;  // index of triangle in global list
 
-            auto tri_nodes = flex2D_Nodes_D[flex_tri];  // indices of the 3 nodes on associated face
+            auto tri_nodes = flex2D_Nodes_D[flex_tri];     // indices of the 3 nodes on associated face
             Real3 A0 = flex2D_acc_fsi_fea_D[tri_nodes.x];  // (absolute) acceleration of node 0
             Real3 A1 = flex2D_acc_fsi_fea_D[tri_nodes.y];  // (absolute) acceleration of node 1
             Real3 A2 = flex2D_acc_fsi_fea_D[tri_nodes.z];  // (absolute) acceleration of node 2
@@ -635,13 +439,12 @@ inline __device__ void BCE_Vel_Acc(int i_idx,
 
             Real lambda0 = flex2D_BCEcoords_D[flex2d_index].x;  // barycentric coordinate
             Real lambda1 = flex2D_BCEcoords_D[flex2d_index].y;  // barycentric coordinate
-            Real lambda2 = 1 - lambda0 - lambda1;        // barycentric coordinate
+            Real lambda2 = 1 - lambda0 - lambda1;               // barycentric coordinate
 
-            V_prescribed =  V0 * lambda0 + V1 * lambda1 + V2 * lambda2;
-            myAcc =         A0 * lambda0 + A1 * lambda1 + A2 * lambda2;
+            V_prescribed = V0 * lambda0 + V1 * lambda1 + V2 * lambda2;
+            myAcc = A0 * lambda0 + A1 * lambda1 + A2 * lambda2;
         }
 
-        
     } else {
         printf("i_idx=%d, Original_idx:%d was not found \n\n", i_idx, Original_idx);
     }
@@ -761,36 +564,12 @@ __global__ void UpdateDensity(Real3* vis_vel,
                               uint* cellEnd,
                               size_t numAllMarkers,
                               volatile bool* isErrorD);
-//--------------------------------------------------------------------------------------------------------------------------------
-__global__ void fillCenterBufferCellID(const uint* nonZeroIndices,
-                                       const uint* activityIdentifierSDD,
-                                       uint* SDCenter,
-                                       uint* SDBuffer,
-                                       volatile bool* isErrorD);
-
-__global__ void findNumPartsInBufferCells(const uint* SDCenter,
-                                          const uint* SDBuffer,
-                                          const uint* cellStart,
-                                          const uint* cellEnd,
-                                          const uint* nonZeroIndices,
-                                          const uint* activityIdentifierSDD,
-                                          uint* numPartsInCenterCells,
-                                          uint* numPartsInBufferCells,
-                                          uint* centerCellKeys,
-                                          uint* bufferCellKeys,
-                                          volatile bool* isErrorD);
 
 __global__ void neighborSearchNum(const Real4* sortedPosRad,
                                   const Real4* sortedRhoPreMu,
                                   const uint* cellStart,
                                   const uint* cellEnd,
-                                  const uint* SDCenter,
-                                  const uint* SDBuffer,
-                                  const uint* numPartsInCenterCells,
-                                  const uint* numPartsInBufferCells,
-                                  const uint* neighborCellIndices,
-                                  const uint* activityIdentifierSDD,
-                                  const uint* nonZeroIndices,
+                                  const uint* activityIdentifierD,
                                   uint* numNeighborsPerPart,
                                   volatile bool* isErrorD);
 
@@ -798,34 +577,10 @@ __global__ void neighborSearchID(const Real4* sortedPosRad,
                                  const Real4* sortedRhoPreMu,
                                  const uint* cellStart,
                                  const uint* cellEnd,
-                                 const uint* SDCenter,
-                                 const uint* SDBuffer,
-                                 const uint* numPartsInCenterCells,
-                                 const uint* numPartsInBufferCells,
-                                 const uint* neighborCellIndices,
+                                 const uint* activityIdentifierD,
                                  const uint* numNeighborsPerPart,
-                                 const uint* activityIdentifierSDD,
-                                 const uint* nonZeroIndices,
                                  uint* neighborList,
                                  volatile bool* isErrorD);
-
-__global__ void neighborSearchNum_plain(const Real4* sortedPosRad,
-                                        const Real4* sortedRhoPreMu,
-                                        const uint* cellStart,
-                                        const uint* cellEnd,
-                                        const uint* activityIdentifierD,
-                                        uint* numNeighborsPerPart,
-                                        volatile bool* isErrorD);
-
-__global__ void neighborSearchID_plain(const Real4* sortedPosRad,
-                                       const Real4* sortedRhoPreMu,
-                                       const uint* cellStart,
-                                       const uint* cellEnd,
-                                       const uint* activityIdentifierD,
-                                       const uint* numNeighborsPerPart,
-                                       uint* neighborList,
-                                       volatile bool* isErrorD);
-
 
 }  // namespace fsi
 }  // namespace chrono
