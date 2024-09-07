@@ -346,11 +346,7 @@ void ChDomain::DoUpdateSharedLeaving() {
 
 				// FEA NODES
 				for (const auto& node : mmesh->GetNodes()) {
-					ChVector3d node_pos;
-					if (const auto nodexyz = std::dynamic_pointer_cast<ChNodeFEAxyz>(node)) 
-						node_pos = nodexyz->GetPos();	
-					if (const auto nodexyzrot = std::dynamic_pointer_cast<ChNodeFEAxyzrot>(node)) 
-						node_pos = nodexyzrot->GetPos();
+					ChVector3d node_pos = node->GetCenter();
 					is_overlapping_IN  = interf.second.side_IN->IsInto(node_pos);
 					is_overlapping_OUT = interf.second.side_OUT->IsInto(node_pos);
 					int mtag = node->GetTag();
@@ -370,11 +366,7 @@ void ChDomain::DoUpdateSharedLeaving() {
 
 				// FEA ELEMENTS
 				for (const auto& element : mmesh->GetElements()) {
-					ChVector3d reference;
-					if (const auto nodexyz = std::dynamic_pointer_cast<ChNodeFEAxyz>(element->GetNode(0))) 
-						reference = nodexyz->GetPos();
-					if (const auto nodexyzrot = std::dynamic_pointer_cast<ChNodeFEAxyzrot>(element->GetNode(0)))
-						reference = nodexyzrot->GetPos();
+					ChVector3d reference = element->GetNode(0)->GetCenter();
 					bool is_referencein_IN  = interf.second.side_IN->IsInto(reference);
 					bool is_referencein_OUT = interf.second.side_OUT->IsInto(reference);
 
@@ -599,11 +591,7 @@ void  ChDomain::DoUpdateSharedReceived() {
 		if (auto mmesh = std::dynamic_pointer_cast<fea::ChMesh>(oitem)) {
 			// remove nodes spilling outside
 			for (const auto& node : mmesh->GetNodes()) {
-				ChVector3d node_pos;
-				if (const auto nodexyz = std::dynamic_pointer_cast<ChNodeFEAxyz>(node))
-					node_pos = nodexyz->GetPos();
-				if (const auto nodexyzrot = std::dynamic_pointer_cast<ChNodeFEAxyzrot>(node))
-					node_pos = nodexyzrot->GetPos();
+				ChVector3d node_pos = node->GetCenter();
 				bool is_overlapping_IN = this->IsInto(node_pos);
 				bool is_sharing = (set_of_domainshared.find(node->GetTag()) != set_of_domainshared.end());
 				if (!is_overlapping_IN && !is_sharing){
@@ -612,11 +600,7 @@ void  ChDomain::DoUpdateSharedReceived() {
 			}
 			// remove elements spilling outside
 			for (const auto& element : mmesh->GetElements()) {
-				ChVector3d reference;
-				if (const auto nodexyz = std::dynamic_pointer_cast<ChNodeFEAxyz>(element->GetNode(0)))
-					reference = nodexyz->GetPos();
-				if (const auto nodexyzrot = std::dynamic_pointer_cast<ChNodeFEAxyzrot>(element->GetNode(0)))
-					reference = nodexyzrot->GetPos();
+				ChVector3d reference = element->GetNode(0)->GetCenter();
 				bool is_reference_IN = this->IsInto(reference);
 				//bool is_sharing = (set_of_domainshared.find(element->GetTag()) != set_of_domainshared.end());
 				if (!is_reference_IN) {
