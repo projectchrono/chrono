@@ -379,6 +379,16 @@ void ChSystem::SetNumThreads(int num_threads_chrono, int num_threads_collision, 
         collision_system->SetNumThreads(nthreads_collision);
 }
 
+
+void ChSystem::EnableResidualFilteringByDomain(bool enable, ChOverlapTest* mtester) {
+    if (enable) {
+        this->limit_residuals_Mv_F_to_domain = true;
+        this->overlap_domain_test = mtester;
+    } else
+        this->limit_residuals_Mv_F_to_domain = false;
+}
+
+
 // -----------------------------------------------------------------------------
 
 // Initial system setup before analysis. Must be called once the system construction is completed.
@@ -1143,12 +1153,23 @@ ChVector3d ChSystem::GetBodyAppliedTorque(ChBody* body) {
 void ChSystem::LoadResidual_F(ChVectorDynamic<>& R, const double c) {
     unsigned int off = 0;
 
-    // Operate on assembly sub-objects (bodies, links, etc.)
-    assembly.IntLoadResidual_F(off, R, c);
+    if (!this->limit_residuals_Mv_F_to_domain) {
+        // Operate on assembly sub-objects (bodies, links, etc.)
+        assembly.IntLoadResidual_F(off, R, c);
 
-    // Use also on contact container:
-    unsigned int displ_v = off - assembly.offset_w;
-    contact_container->IntLoadResidual_F(displ_v + contact_container->GetOffset_w(), R, c);
+        // Use also on contact container:
+        unsigned int displ_v = off - assembly.offset_w;
+        contact_container->IntLoadResidual_F(displ_v + contact_container->GetOffset_w(), R, c);
+    }
+    else {
+        // Operate on assembly sub-objects (bodies, links, etc.)
+        assembly.IntLoadResidual_F_domain(off, R, c, *this->overlap_domain_test);
+
+        // Use also on contact container:
+        unsigned int displ_v = off - assembly.offset_w;
+        contact_container->IntLoadResidual_F_domain(displ_v + contact_container->GetOffset_w(), R, c, *this->overlap_domain_test);
+    }
+
 }
 
 // Increment a vector R with a term that has M multiplied a given vector w:
@@ -1156,12 +1177,23 @@ void ChSystem::LoadResidual_F(ChVectorDynamic<>& R, const double c) {
 void ChSystem::LoadResidual_Mv(ChVectorDynamic<>& R, const ChVectorDynamic<>& w, const double c) {
     unsigned int off = 0;
 
-    // Operate on assembly sub-objects (bodies, links, etc.)
-    assembly.IntLoadResidual_Mv(off, R, w, c);
+    if (!this->limit_residuals_Mv_F_to_domain) {
+        // Operate on assembly sub-objects (bodies, links, etc.)
+        assembly.IntLoadResidual_Mv(off, R, w, c);
 
-    // Use also on contact container:
-    unsigned int displ_v = off - assembly.offset_w;
-    contact_container->IntLoadResidual_Mv(displ_v + contact_container->GetOffset_w(), R, w, c);
+        // Use also on contact container:
+        unsigned int displ_v = off - assembly.offset_w;
+        contact_container->IntLoadResidual_Mv(displ_v + contact_container->GetOffset_w(), R, w, c);
+    }
+    else {
+        // Operate on assembly sub-objects (bodies, links, etc.)
+        assembly.IntLoadResidual_Mv_domain(off, R, w, c, *this->overlap_domain_test);
+
+        // Use also on contact container:
+        unsigned int displ_v = off - assembly.offset_w;
+        contact_container->IntLoadResidual_Mv_domain(displ_v + contact_container->GetOffset_w(), R, w, c, *this->overlap_domain_test);
+    }
+
 }
 
 // Adds the lumped mass to a Md vector, representing a mass diagonal matrix. Used by lumped explicit integrators.

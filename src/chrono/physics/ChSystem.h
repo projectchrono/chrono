@@ -156,6 +156,10 @@ class ChApi ChSystem : public ChIntegrableIIorder {
     /// Set (overwrite) the simulation time of this system.
     void SetChTime(double time) { ch_time = time; }
 
+    /// If turned on, LoadResidual_F and LoadResidual_Mv will call 
+    /// LoadResidual_F_domain and LoadResidual_Mv_domain instead, skipping items that do not pass the test. 
+    void EnableResidualFilteringByDomain(bool enable, ChOverlapTest* mtester);
+
   public:
     /// Gets the current time step used for integration (dynamic and kinematic simulation).
     /// The value is set automatically when a dynamic or kinematic simulation is run.
@@ -849,6 +853,9 @@ class ChApi ChSystem : public ChIntegrableIIorder {
 
     ChVectorDynamic<> applied_forces;  ///< system-wide vector of applied forces (lazy evaluation)
     bool applied_forces_current;       ///< indicates if system-wide vector of forces is up-to-date
+
+    bool limit_residuals_Mv_F_to_domain; // if true, LoadResidual_F and LoadResidual_Mv will call LoadResidual_F_domain and LoadResidual_Mv_domain instead.
+    ChOverlapTest* overlap_domain_test = nullptr;
 
     // Friend class declarations
 
