@@ -349,6 +349,11 @@ class ChApiMultiDomain ChSystemDescriptorMultidomain : public ChSystemDescriptor
     // Finally, set vectors of shared_states to the current variables State() value.
     virtual void SharedStatesDeltaAddToMultidomainAndSync();
 
+    /// Get domain
+    std::shared_ptr<ChDomain> GetDomain() { return domain; }
+    /// Get domain manager
+    ChDomainManager* GetDomainManager() { return domain_manager; }
+
   private:
 
     std::shared_ptr<ChDomain> domain;

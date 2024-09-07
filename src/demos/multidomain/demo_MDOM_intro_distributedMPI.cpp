@@ -24,7 +24,7 @@
 #include "chrono/serialization/ChArchiveBinary.h"
 #include "chrono/fea/ChNodeFEAxyzrot.h"
 
-#include "chrono_multidomain/ChDomainManager.h"
+#include "chrono_multidomain/ChDomainManagerMPI.h"
 #include "chrono_multidomain/ChSolverPSORmultidomain.h"
 
 using namespace chrono;
@@ -64,7 +64,7 @@ int main(int argc, char* argv[]) {
 
     ChDomainManagerMPI domain_manager(&argc,&argv);
 
-    domain_manager.verbose_partition = true; // will print  partitioning in std::cout
+    domain_manager.verbose_partition = false; // will print  partitioning in std::cout
     domain_manager.verbose_variable_updates = true; // will print all messages in std::cout
 
     // 2- the domain builder.
@@ -83,6 +83,7 @@ int main(int argc, char* argv[]) {
 
     ChSystemSMC sys;
     sys.SetCollisionSystemType(ChCollisionSystem::Type::BULLET);
+    sys.GetSolver()->AsIterative()->SetMaxIterations(5);
 
     domain_manager.SetDomain(domain_builder.BuildDomain(
                                         &sys, // physical system of this domain
@@ -121,7 +122,7 @@ int main(int argc, char* argv[]) {
     for (int i = 0; i < 12; ++i) {
 
         if (domain_manager.GetMPIrank()==0) 
-            std::cout << "============= Time step " << i << std::endl << std::endl;
+            std::cout << "\n\n\n============= Time step " << i << std::endl << std::endl;
 
         // MULTIDOMAIN AUTOMATIC ITEM MIGRATION!
         domain_manager.DoDomainPartitionUpdate(domain_manager.GetMPIrank());

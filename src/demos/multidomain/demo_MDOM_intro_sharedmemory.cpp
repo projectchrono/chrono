@@ -23,7 +23,7 @@
 #include "chrono/serialization/ChArchiveBinary.h"
 #include "chrono/fea/ChNodeFEAxyzrot.h"
 
-#include "chrono_multidomain/ChDomainManager.h"
+#include "chrono_multidomain/ChDomainManagerSharedmemory.h"
 #include "chrono_multidomain/ChSolverPSORmultidomain.h"
 
 using namespace chrono;
@@ -58,6 +58,7 @@ int main(int argc, char* argv[]) {
 
     ChDomainManagerSharedmemory domain_manager;
     domain_manager.verbose_partition = true; // will print  partitioning in std::cout
+    domain_manager.verbose_variable_updates = true; // will print all messages in std::cout
 
     // 2- the domain builder.
     // You must define how the 3D space is divided in domains. 
@@ -75,6 +76,7 @@ int main(int argc, char* argv[]) {
 
     ChSystemSMC sys_0;
     sys_0.SetCollisionSystemType(ChCollisionSystem::Type::BULLET);
+    sys_0.GetSolver()->AsIterative()->SetMaxIterations(5);
 
     domain_manager.AddDomain(domain_builder.BuildDomain(
                                         &sys_0, // physical system of this domain
@@ -84,6 +86,7 @@ int main(int argc, char* argv[]) {
    
     ChSystemSMC sys_1;
     sys_1.SetCollisionSystemType(ChCollisionSystem::Type::BULLET);
+    sys_1.GetSolver()->AsIterative()->SetMaxIterations(5);
 
     domain_manager.AddDomain(domain_builder.BuildDomain(
                                         &sys_1, // physical system of this domain
@@ -114,7 +117,7 @@ int main(int argc, char* argv[]) {
 
 
     for (int i = 0; i < 12; ++i) {
-        std::cout << "============= Time step " << i << std::endl << std::endl;
+        std::cout << "\n\n\n============= Time step " << i << std::endl << std::endl;
 
         // MULTIDOMAIN AUTOMATIC ITEM MIGRATION!
         domain_manager.DoAllDomainPartitionUpdate();
