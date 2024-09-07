@@ -166,9 +166,9 @@ int main(int argc, char* argv[]) {
                   false                 // no side walls
     );
 
-    // Create a piston wavemaker mechanism
-    auto fun = chrono_types::make_shared<WaveFunction>(0.05, 0.2, 1);
-    auto piston_body = fsi.AddWaveMaker(csize, ChVector3d(0, 0, 0), fun);
+    // Create a wave tank
+    auto fun = chrono_types::make_shared<WaveFunction>(0.25, 0.2, 1);
+    auto piston_body = fsi.AddWaveMaker(ChFsiProblem::WavemakerType::PISTON, csize, ChVector3d(0, 0, 0), fun);
 
     fsi.Initialize();
 
@@ -243,7 +243,7 @@ int main(int argc, char* argv[]) {
 
         visFSI->SetTitle("Chrono::FSI cylinder drop");
         visFSI->SetSize(1280, 720);
-        visFSI->AddCamera(ChVector3d(0, -9 * fsize.y(), fsize.z()), ChVector3d(0, 0, fsize.z()));
+        visFSI->AddCamera(ChVector3d(0, -9 * fsize.y(), fsize.z() / 2), ChVector3d(0, 0, fsize.z() / 2));
         visFSI->SetCameraMoveScale(0.1f);
         visFSI->EnableFluidMarkers(show_particles_sph);
         visFSI->EnableBoundaryMarkers(show_boundary_bce);

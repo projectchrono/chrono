@@ -431,7 +431,7 @@ std::shared_ptr<fea::ChMesh> Create_MB_FE(ChSystemSMC& sysMBS, ChSystemFsi& sysF
     sysMBS.Add(mesh);
 
     // Add the mesh to the FSI system (only these meshes interact with the fluid)
-    sysFSI.AddFsiMesh2D(mesh, BcePatternMesh2D::CENTERED, false);
+    sysFSI.AddFsiMesh(mesh);
 
     return mesh;
 }

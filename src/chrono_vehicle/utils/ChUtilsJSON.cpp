@@ -30,6 +30,7 @@
 #include "chrono_vehicle/powertrain/EngineSimple.h"
 #include "chrono_vehicle/powertrain/EngineSimpleMap.h"
 #include "chrono_vehicle/powertrain/EngineShafts.h"
+#include "chrono_vehicle/powertrain/AutomaticTransmissionSimpleCVT.h"
 #include "chrono_vehicle/powertrain/AutomaticTransmissionSimpleMap.h"
 #include "chrono_vehicle/powertrain/AutomaticTransmissionShafts.h"
 #include "chrono_vehicle/powertrain/ManualTransmissionShafts.h"
@@ -779,6 +780,8 @@ std::shared_ptr<ChTransmission> ReadTransmissionJSON(const std::string& filename
     // Create the transmission using the appropriate template.
     if (subtype.compare("AutomaticTransmissionSimpleMap") == 0) {
         transmission = chrono_types::make_shared<AutomaticTransmissionSimpleMap>(d);
+    } else if (subtype.compare("AutomaticTransmissionSimpleCVT") == 0) {
+        transmission = chrono_types::make_shared<AutomaticTransmissionSimpleCVT>(d);
     } else if (subtype.compare("AutomaticTransmissionShafts") == 0) {
         transmission = chrono_types::make_shared<AutomaticTransmissionShafts>(d);
     } else if (subtype.compare("ManualTransmissionShafts") == 0) {

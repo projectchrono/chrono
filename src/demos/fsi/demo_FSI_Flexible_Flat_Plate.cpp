@@ -103,7 +103,7 @@ int main(int argc, char* argv[]) {
     if (!GetProblemSpecs(argc, argv, inputJSON, t_end, verbose, output, output_fps, render, render_fps, snapshots)) {
         return 1;
     }
-
+    snapshots = true;
     // Create a physics system and an FSI system
     ChSystemSMC sysMBS;
     ChSystemFsi sysFSI(&sysMBS);
@@ -411,7 +411,7 @@ std::shared_ptr<fea::ChMesh> Create_MB_FE(ChSystemSMC& sysMBS, ChSystemFsi& sysF
     sysMBS.Add(mesh);
 
     // Add the mesh to the FSI system (only these meshes interact with the fluid)
-    sysFSI.AddFsiMesh2D(mesh, BcePatternMesh2D::CENTERED, false);
+    sysFSI.AddFsiMesh(mesh);
 
     return mesh;
 }

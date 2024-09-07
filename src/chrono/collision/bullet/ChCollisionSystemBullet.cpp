@@ -58,35 +58,39 @@ ChCollisionSystemBullet::ChCollisionSystemBullet() : m_debug_drawer(nullptr) {
     /// m_collision_sph_cyl); /bt_dispatcher->registerCollisionCreateFunc(CYLINDER_SHAPE_PROXYTYPE,
     /// SPHERE_SHAPE_PROXYTYPE, m_collision_cyl_sph);
 
-    // custom collision for capsule-box case
+    // custom collision for capsule-box
     m_collision_capsule_box = new cbtCapsuleBoxCollisionAlgorithm::CreateFunc;
     m_collision_box_capsule = new cbtCapsuleBoxCollisionAlgorithm::CreateFunc;
     m_collision_box_capsule->m_swapped = true;
     bt_dispatcher->registerCollisionCreateFunc(CAPSULE_SHAPE_PROXYTYPE, BOX_SHAPE_PROXYTYPE, m_collision_capsule_box);
     bt_dispatcher->registerCollisionCreateFunc(BOX_SHAPE_PROXYTYPE, CAPSULE_SHAPE_PROXYTYPE, m_collision_box_capsule);
 
-    // custom collision for cylshell-box case
+    // custom collision for cylshell-box
     m_collision_cylshell_box = new cbtCylshellBoxCollisionAlgorithm::CreateFunc;
     m_collision_box_cylshell = new cbtCylshellBoxCollisionAlgorithm::CreateFunc;
     m_collision_box_cylshell->m_swapped = true;
     bt_dispatcher->registerCollisionCreateFunc(CYLSHELL_SHAPE_PROXYTYPE, BOX_SHAPE_PROXYTYPE, m_collision_cylshell_box);
     bt_dispatcher->registerCollisionCreateFunc(BOX_SHAPE_PROXYTYPE, CYLSHELL_SHAPE_PROXYTYPE, m_collision_box_cylshell);
 
-    // custom collision for 2D arc-segment case
+    // custom collision for 2D arc-segment
     m_collision_arc_seg = new cbtArcSegmentCollisionAlgorithm::CreateFunc;
     m_collision_seg_arc = new cbtArcSegmentCollisionAlgorithm::CreateFunc;
     m_collision_seg_arc->m_swapped = true;
-    bt_dispatcher->registerCollisionCreateFunc(ARC_SHAPE_PROXYTYPE, SEGMENT_SHAPE_PROXYTYPE, m_collision_arc_seg);
-    bt_dispatcher->registerCollisionCreateFunc(SEGMENT_SHAPE_PROXYTYPE, ARC_SHAPE_PROXYTYPE, m_collision_seg_arc);
+    bt_dispatcher->registerCollisionCreateFunc(ARC2D_SHAPE_PROXYTYPE, SEGMENT2D_SHAPE_PROXYTYPE, m_collision_arc_seg);
+    bt_dispatcher->registerCollisionCreateFunc(SEGMENT2D_SHAPE_PROXYTYPE, ARC2D_SHAPE_PROXYTYPE, m_collision_seg_arc);
 
-    // custom collision for 2D arc-arc case
+    // custom collision for 2D arc-arc
     m_collision_arc_arc = new cbtArcArcCollisionAlgorithm::CreateFunc;
-    bt_dispatcher->registerCollisionCreateFunc(ARC_SHAPE_PROXYTYPE, ARC_SHAPE_PROXYTYPE, m_collision_arc_arc);
+    bt_dispatcher->registerCollisionCreateFunc(ARC2D_SHAPE_PROXYTYPE, ARC2D_SHAPE_PROXYTYPE, m_collision_arc_arc);
 
-    // custom collision for C::E triangles:
+    // custom collision for CE triangles
     m_collision_cetri_cetri = new cbtCEtriangleShapeCollisionAlgorithm::CreateFunc;
     bt_dispatcher->registerCollisionCreateFunc(CE_TRIANGLE_SHAPE_PROXYTYPE, CE_TRIANGLE_SHAPE_PROXYTYPE,
                                                m_collision_cetri_cetri);
+
+    // custom collision for segment-segment
+    m_collision_seg_seg = new cbtSegmentSegmentCollisionAlgorithm::CreateFunc;
+    bt_dispatcher->registerCollisionCreateFunc(SEGMENT_SHAPE_PROXYTYPE, SEGMENT_SHAPE_PROXYTYPE, m_collision_seg_seg);
 
     // custom collision for point-point case (in point clouds, just never create point-point contacts)
     // cbtCollisionAlgorithmCreateFunc* m_collision_point_point = new cbtPointPointCollisionAlgorithm::CreateFunc;

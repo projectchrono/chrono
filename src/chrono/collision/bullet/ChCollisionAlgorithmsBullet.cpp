@@ -25,6 +25,7 @@
 #include "chrono/collision/bullet/BulletCollision/CollisionShapes/cbtCapsuleShape.h"
 #include "chrono/collision/bullet/BulletCollision/CollisionShapes/cbt2DShape.h"
 #include "chrono/collision/bullet/BulletCollision/CollisionShapes/cbtCEtriangleShape.h"
+#include "chrono/collision/bullet/BulletCollision/CollisionShapes/cbtSegmentShape.h"
 
 namespace chrono {
 
@@ -1063,7 +1064,7 @@ void cbtCEtriangleShapeCollisionAlgorithm::processCollision(const cbtCollisionOb
 
     resultOut->setPersistentManifold(m_manifoldPtr);
 
-    // avoid persistence of contacts in manifold:
+    // Avoid persistence of contacts in manifold
     resultOut->getPersistentManifold()->clearManifold();
 
     const cbtCEtriangleShape* triA = (cbtCEtriangleShape*)triObj1Wrap->getCollisionShape();
@@ -1071,9 +1072,8 @@ void cbtCEtriangleShapeCollisionAlgorithm::processCollision(const cbtCollisionOb
     ChCollisionModelBullet* triModelA = (ChCollisionModelBullet*)triA->getUserPointer();
     ChCollisionModelBullet* triModelB = (ChCollisionModelBullet*)triB->getUserPointer();
 
-    // brute force discard of connected triangles
-    // ***TODO*** faster approach based on collision families that can bypass the
-    // check at the broadphase level?
+    // Discard collisions between connected triangles
+    //// TODO: use collision families to bypass during broadphase?
     if (triA->get_p1() == triB->get_p1() || triA->get_p1() == triB->get_p2() || triA->get_p1() == triB->get_p3())
         return;
     if (triA->get_p2() == triB->get_p1() || triA->get_p2() == triB->get_p2() || triA->get_p2() == triB->get_p3())
@@ -1561,6 +1561,104 @@ cbtCollisionAlgorithm* cbtCEtriangleShapeCollisionAlgorithm::CreateFunc::CreateC
         return new (mem) cbtCEtriangleShapeCollisionAlgorithm(0, ci, body0Wrap, body1Wrap, false);
     } else {
         return new (mem) cbtCEtriangleShapeCollisionAlgorithm(0, ci, body0Wrap, body1Wrap, true);
+    }
+}
+
+// ================================================================================================
+
+cbtSegmentSegmentCollisionAlgorithm::cbtSegmentSegmentCollisionAlgorithm(
+    cbtPersistentManifold* mf,
+    const cbtCollisionAlgorithmConstructionInfo& ci,
+    const cbtCollisionObjectWrapper* col0,
+    const cbtCollisionObjectWrapper* col1,
+    bool isSwapped)
+    : cbtActivatingCollisionAlgorithm(ci, col0, col1), m_ownManifold(false), m_manifoldPtr(mf), m_isSwapped(isSwapped) {
+    const cbtCollisionObjectWrapper* triObj1Wrap = m_isSwapped ? col1 : col0;
+    const cbtCollisionObjectWrapper* triObj2Wrap = m_isSwapped ? col0 : col1;
+
+    if (!m_manifoldPtr &&
+        m_dispatcher->needsCollision(triObj1Wrap->getCollisionObject(), triObj2Wrap->getCollisionObject())) {
+        m_manifoldPtr =
+            m_dispatcher->getNewManifold(triObj1Wrap->getCollisionObject(), triObj2Wrap->getCollisionObject());
+        m_ownManifold = true;
+    }
+}
+
+cbtSegmentSegmentCollisionAlgorithm::cbtSegmentSegmentCollisionAlgorithm(
+    const cbtCollisionAlgorithmConstructionInfo& ci)
+    : cbtActivatingCollisionAlgorithm(ci) {}
+
+cbtSegmentSegmentCollisionAlgorithm ::~cbtSegmentSegmentCollisionAlgorithm() {
+    if (m_ownManifold) {
+        if (m_manifoldPtr)
+            m_dispatcher->releaseManifold(m_manifoldPtr);
+    }
+}
+
+void cbtSegmentSegmentCollisionAlgorithm::processCollision(const cbtCollisionObjectWrapper* body0,
+                                                           const cbtCollisionObjectWrapper* body1,
+                                                           const cbtDispatcherInfo& dispatchInfo,
+                                                           cbtManifoldResult* resultOut) {
+    (void)dispatchInfo;
+    (void)resultOut;
+    if (!m_manifoldPtr)
+        return;
+
+    const cbtCollisionObjectWrapper* triObj1Wrap = m_isSwapped ? body1 : body0;
+    const cbtCollisionObjectWrapper* triObj2Wrap = m_isSwapped ? body0 : body1;
+
+    resultOut->setPersistentManifold(m_manifoldPtr);
+
+    // Avoid persistence of contacts in manifold
+    resultOut->getPersistentManifold()->clearManifold();
+
+    const cbtSegmentShape* segA = (cbtSegmentShape*)triObj1Wrap->getCollisionShape();
+    const cbtSegmentShape* segB = (cbtSegmentShape*)triObj2Wrap->getCollisionShape();
+    ChCollisionModelBullet* segModelA = (ChCollisionModelBullet*)segA->getUserPointer();
+    ChCollisionModelBullet* segModelB = (ChCollisionModelBullet*)segB->getUserPointer();
+
+    // Discard collisions between connected segments
+    //// TODO: use collision families to bypass during broadphase?
+    if (segA->get_p1() == segB->get_p1() || segA->get_p1() == segB->get_p2())
+        return;
+    if (segA->get_p2() == segB->get_p1() || segA->get_p2() == segB->get_p2())
+        return;
+
+    //// TODO
+    return;
+}
+
+cbtScalar cbtSegmentSegmentCollisionAlgorithm::calculateTimeOfImpact(cbtCollisionObject* body0,
+                                                                     cbtCollisionObject* body1,
+                                                                     const cbtDispatcherInfo& dispatchInfo,
+                                                                     cbtManifoldResult* resultOut) {
+    // not yet
+    return cbtScalar(1.);
+}
+
+void cbtSegmentSegmentCollisionAlgorithm::getAllContactManifolds(cbtManifoldArray& manifoldArray) {
+    if (m_manifoldPtr && m_ownManifold) {
+        manifoldArray.push_back(m_manifoldPtr);
+    }
+}
+void cbtSegmentSegmentCollisionAlgorithm::_add_contact(const ChVector3d& candid_pA,
+                                                       const ChVector3d& candid_pB,
+                                                       const double dist,
+                                                       cbtManifoldResult* resultOut,
+                                                       const double offsetA,
+                                                       const double offsetB) {
+    //// TODO
+}
+
+cbtCollisionAlgorithm* cbtSegmentSegmentCollisionAlgorithm::CreateFunc::CreateCollisionAlgorithm(
+    cbtCollisionAlgorithmConstructionInfo& ci,
+    const cbtCollisionObjectWrapper* body0Wrap,
+    const cbtCollisionObjectWrapper* body1Wrap) {
+    void* mem = ci.m_dispatcher1->allocateCollisionAlgorithm(sizeof(cbtSegmentSegmentCollisionAlgorithm));
+    if (!m_swapped) {
+        return new (mem) cbtSegmentSegmentCollisionAlgorithm(0, ci, body0Wrap, body1Wrap, false);
+    } else {
+        return new (mem) cbtSegmentSegmentCollisionAlgorithm(0, ci, body0Wrap, body1Wrap, true);
     }
 }
 

@@ -18,10 +18,6 @@
 #include "chrono_fsi/physics/ChFsiInterface.h"
 #include "chrono_fsi/utils/ChUtilsDevice.cuh"
 #include "chrono_fsi/utils/ChUtilsTypeConvert.h"
-#include "chrono/fea/ChElementCableANCF.h"
-#include "chrono/fea/ChElementShellANCF_3423.h"
-#include "chrono/fea/ChMesh.h"
-#include "chrono/fea/ChNodeFEAxyzD.h"
 
 namespace chrono {
 namespace fsi {
