@@ -60,6 +60,34 @@ struct ChApi ChAABB {
     ChVector3d max;  ///< high AABB corner
 };
 
+
+/// Utility class to test if a point or an AABB overlaps with some volume
+/// to be defined by the inherited classes.
+class ChApi ChOverlapTest {
+public:
+    /// returns true if mpoint is inside the volume
+    virtual bool IsInto(const ChVector3d& mpoint) const = 0;
+
+    /// returns true if mAABB is inside the volume
+    virtual bool IsOverlap(const ChAABB& mAABB) const = 0;
+};
+
+/// Utility class to test if a point or an AABB overlaps with an AABB
+class ChApi ChOverlapTestAABB : public ChOverlapTest {
+public:
+    ChOverlapTestAABB() {};
+    ChOverlapTestAABB(ChAABB& maabb) : aabb(maabb) {};
+
+    /// returns true if mpoint is inside the volume
+    virtual bool IsInto(const ChVector3d& mpoint) const;
+
+    /// returns true if mAABB is inside the volume
+    virtual bool IsOverlap(const ChAABB& mAABB) const;
+
+    ChAABB aabb; 
+};
+
+
 /// Base class for geometric objects used for collisions and visualization.
 class ChApi ChGeometry {
   public:
