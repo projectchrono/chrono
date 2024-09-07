@@ -98,6 +98,9 @@ class ChApi ChNodeFEAxyzrot : public ChNodeFEAbase,
     /// Get the number of degrees of freedom, derivative (6 because angular velocity for rotation derivative).
     virtual unsigned int GetNumCoordsVelLevel() const override { return 6; }
 
+    /// Get a symbolic 'center' of the node (the position). 
+    virtual ChVector3d GetCenter() const { return this->m_csys.pos; }
+
     /// Method to allow serialization of transient data to archives.
     virtual void ArchiveOut(ChArchiveOut& archive_out) override;
 

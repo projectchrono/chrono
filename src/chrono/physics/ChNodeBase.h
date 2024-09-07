@@ -147,6 +147,10 @@ class ChApi ChNodeBase {
     /// Get the tag of this object.
     int GetTag() const { return m_tag; }
 
+    /// Get a symbolic 'center' of the node (ex. the position). 
+    /// Derived classes must override this.
+    virtual ChVector3d GetCenter() const =0;
+
   protected:
     unsigned int offset_x;  ///< offset in vector of state (position part)
     unsigned int offset_w;  ///< offset in vector of state (speed part)
