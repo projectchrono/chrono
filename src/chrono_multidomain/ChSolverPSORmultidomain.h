@@ -45,8 +45,16 @@ class ChApiMultiDomain ChSolverPSORmultidomain : public ChIterativeSolverVI {
     /// For the PSOR solver, this is the maximum constraint violation.
     virtual double GetError() const override { return maxviolation; }
 
+
+    /// SetThis to 1 for exchanging solution vector during each iteration of the refinement,
+    /// Set this to N for exchanging solution vector each Nth iteration of the refinement, and at the last iteration anyway.
+    void SetCommunicationEachIteration(int mi) {
+        this->communication_each = mi;
+    }
+
   private:
     double maxviolation;
+    int    communication_each;
 };
 
 /// @} chrono_solver

@@ -24,7 +24,7 @@ CH_FACTORY_REGISTER(ChSolverPSORmultidomain)
 CH_UPCASTING(ChSolverPSORmultidomain, ChIterativeSolverVI)
 
 ChSolverPSORmultidomain::ChSolverPSORmultidomain() 
-    : maxviolation(0)
+    : maxviolation(0), communication_each(1)
 {}
 
 double ChSolverPSORmultidomain::Solve(ChSystemDescriptor& sysd) {
@@ -74,11 +74,6 @@ double ChSolverPSORmultidomain::Solve(ChSystemDescriptor& sysd) {
             mvariables[iv]->ComputeMassInverseTimesVector(mvariables[iv]->State(), mvariables[iv]->Force());  // q = [M]'*fb  = Dv
     }
 
-    // MULTIDOMAIN******************
-    // fetch and add the Dv = [M]'*fb  that was computed by neighbouring domains and add it to shared vars
-    descriptor.SharedStatesDeltaAddToMultidomainAndSync();
-
-
     // 3)  For all items with variables, add the effect of initial (guessed)
     //     lagrangian reactions of constraints, if a warm start is desired.
     //     Otherwise, if no warm start, simply resets initial lagrangians to zero.
@@ -90,6 +85,11 @@ double ChSolverPSORmultidomain::Solve(ChSystemDescriptor& sysd) {
         for (unsigned int ic = 0; ic < mconstraints.size(); ic++)
             mconstraints[ic]->SetLagrangeMultiplier(0.);
     }
+
+    // MULTIDOMAIN******************
+    // fetch and add the Dv = [M]'*fb  that was computed by neighbouring domains and add it to shared vars
+    descriptor.SharedStatesDeltaAddToMultidomainAndSync();
+
 
     // 4)  Perform the iteration loops
     //
@@ -214,15 +214,22 @@ double ChSolverPSORmultidomain::Solve(ChSystemDescriptor& sysd) {
 
         m_iterations++;
 
-        // Terminate the loop if violation in constraints has been successfully limited.
-        if (maxviolation < m_tolerance)
-            break;
+        // Terminate the loop if violation in constraints has been successfully limited. 
+        // **NO** there is a multidomain barrier below, so all nodes must run same number of iterations. 
+        // **TODO** a global flag so that if all domain converged in iterations, stop all together, before m_max_iterations
+        
+        //if (maxviolation < m_tolerance)
+        //  break;
+
+        // MULTIDOMAIN******************
+        // fetch and add the Dv = [M]'*fb  that was computed by neighbouring domains and add it to shared vars
+        if ((iter % communication_each == 0) || (iter == m_max_iterations-1))
+            descriptor.SharedStatesDeltaAddToMultidomainAndSync();
+
 
     }  // end iteration loop
 
-    // MULTIDOMAIN******************
-    // fetch and add the Dv that was incremented by neighbouring domains respect to last comm, and add it to shared vars
-    descriptor.SharedStatesDeltaAddToMultidomainAndSync();
+
 
     return maxviolation;
 }
