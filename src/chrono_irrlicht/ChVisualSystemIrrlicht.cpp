@@ -286,6 +286,19 @@ void ChVisualSystemIrrlicht::PurgeIrrNodes() {
         m_nodes.erase(item);
 }
 
+void ChVisualSystemIrrlicht::RemoveAllIrrNodes() {
+    // Remove Irrlicht nodes associated with a deleted physics item
+    std::vector<ChPhysicsItem*> items_to_remove;
+    for (auto& node : m_nodes) {
+        node.second->removeAll();
+        node.second->remove();
+        items_to_remove.emplace_back(node.first);
+    }
+
+    for (auto&& item : items_to_remove)
+        m_nodes.erase(item);
+}
+
 // -----------------------------------------------------------------------------
 
 int ChVisualSystemIrrlicht::AddCamera(const ChVector3d& pos, ChVector3d targ) {

@@ -343,6 +343,9 @@ class ChApiIrr ChVisualSystemIrrlicht : virtual public ChVisualSystem {
     /// Get list of cameras defined for the scene
     std::vector<std::shared_ptr<RTSCamera>> GetCameras() const { return m_cameras; }
 
+    /// Remove all Irrlicht nodes.
+    void RemoveAllIrrNodes();
+
   private:
     /// Irrlicht scene node for a visual model not associated with a physics item.
     class ChIrrNodeVisual : public irr::scene::ISceneNode {
