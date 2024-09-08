@@ -126,10 +126,10 @@ void ChRackPinion::AddVisualizationAssets(VisualizationType vis) {
 
     double length = GetSteeringLinkLength();
 
-    ChVehicleGeometry::AddVisualizationCylinder(m_link,                         //
-                                                ChVector3d(0, length / 2, 0),   //
-                                                ChVector3d(0, -length / 2, 0),  //
-                                                GetSteeringLinkRadius());
+    utils::ChBodyGeometry::AddVisualizationCylinder(m_link,                         //
+                                                    ChVector3d(0, length / 2, 0),   //
+                                                    ChVector3d(0, -length / 2, 0),  //
+                                                    GetSteeringLinkRadius());
 }
 
 void ChRackPinion::RemoveVisualizationAssets() {

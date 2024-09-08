@@ -279,9 +279,9 @@ void ChVehicleCosimTerrainNodeSCM::CreateMeshProxy(unsigned int i) {
     auto proxy = chrono_types::make_shared<ProxyMesh>();
 
     // Note: it is assumed that there is one and only one mesh defined!
-    const auto& trimesh_shape = m_geometry[i_shape].m_coll_meshes[0];
-    const auto& trimesh = trimesh_shape.m_trimesh;
-    auto material = m_geometry[i_shape].m_materials[trimesh_shape.m_matID].CreateMaterial(m_method);
+    const auto& trimesh_shape = m_geometry[i_shape].coll_meshes[0];
+    const auto& trimesh = trimesh_shape.trimesh;
+    auto material = m_geometry[i_shape].materials[trimesh_shape.matID].CreateMaterial(m_method);
 
     //// RADU TODO:  better approximation of mass / inertia?
     ////double mass_p = m_load_mass[i_shape] / trimesh->GetNumTriangles();
@@ -342,11 +342,11 @@ void ChVehicleCosimTerrainNodeSCM::CreateRigidProxy(unsigned int i) {
     body->EnableCollision(true);
 
     // Create visualization asset (use collision shapes)
-    m_geometry[i_shape].CreateVisualizationAssets(body, VisualizationType::PRIMITIVES, true);
+    m_geometry[i_shape].CreateVisualizationAssets(body, VisualizationType::COLLISION);
 
     // Create collision shapes
-    for (auto& mesh : m_geometry[i_shape].m_coll_meshes)
-        mesh.m_radius = m_radius_p;
+    for (auto& mesh : m_geometry[i_shape].coll_meshes)
+        mesh.radius = m_radius_p;
     m_geometry[i_shape].CreateCollisionShapes(body, 1, m_method);
     body->GetCollisionModel()->SetFamily(1);
     body->GetCollisionModel()->DisallowCollisionsWith(1);

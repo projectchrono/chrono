@@ -127,11 +127,11 @@ void ChTranslationalIdler::AddVisualizationAssets(VisualizationType vis) {
     double radius = GetCarrierVisRadius();
 
     if ((m_pW - m_pC).Length2() > threshold2) {
-        ChVehicleGeometry::AddVisualizationCylinder(m_carrier, m_pW, m_pC, radius);
+        utils::ChBodyGeometry::AddVisualizationCylinder(m_carrier, m_pW, m_pC, radius);
     }
 
     if ((m_pC - m_pT).Length2() > threshold2) {
-        ChVehicleGeometry::AddVisualizationCylinder(m_carrier, m_pC, m_pT, radius);
+        utils::ChBodyGeometry::AddVisualizationCylinder(m_carrier, m_pC, m_pT, radius);
     }
 
     auto box = chrono_types::make_shared<ChVisualShapeBox>(6 * radius, 2 * radius, 2 * radius);

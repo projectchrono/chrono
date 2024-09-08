@@ -542,8 +542,8 @@ void ChDoubleWishbone::AddVisualizationControlArm(std::shared_ptr<ChBody> arm,
     ChVector3d p_B = arm->TransformPointParentToLocal(pt_B);
     ChVector3d p_U = arm->TransformPointParentToLocal(pt_U);
 
-    ChVehicleGeometry::AddVisualizationCylinder(arm, p_F, p_U, radius);
-    ChVehicleGeometry::AddVisualizationCylinder(arm, p_B, p_U, radius);
+    utils::ChBodyGeometry::AddVisualizationCylinder(arm, p_F, p_U, radius);
+    utils::ChBodyGeometry::AddVisualizationCylinder(arm, p_B, p_U, radius);
 }
 
 void ChDoubleWishbone::AddVisualizationUpright(std::shared_ptr<ChBody> upright,
@@ -561,15 +561,15 @@ void ChDoubleWishbone::AddVisualizationUpright(std::shared_ptr<ChBody> upright,
     ChVector3d p_T = upright->TransformPointParentToLocal(pt_T);
 
     if ((p_L - p_C).Length2() > threshold2) {
-        ChVehicleGeometry::AddVisualizationCylinder(upright, p_L, p_C, radius);
+        utils::ChBodyGeometry::AddVisualizationCylinder(upright, p_L, p_C, radius);
     }
 
     if ((p_U - p_C).Length2() > threshold2) {
-        ChVehicleGeometry::AddVisualizationCylinder(upright, p_U, p_C, radius);
+        utils::ChBodyGeometry::AddVisualizationCylinder(upright, p_U, p_C, radius);
     }
 
     if ((p_T - p_C).Length2() > threshold2) {
-        ChVehicleGeometry::AddVisualizationCylinder(upright, p_T, p_C, radius);
+        utils::ChBodyGeometry::AddVisualizationCylinder(upright, p_T, p_C, radius);
     }
 }
 
@@ -581,7 +581,7 @@ void ChDoubleWishbone::AddVisualizationTierod(std::shared_ptr<ChBody> tierod,
     ChVector3d p_C = tierod->TransformPointParentToLocal(pt_C);
     ChVector3d p_U = tierod->TransformPointParentToLocal(pt_U);
 
-    ChVehicleGeometry::AddVisualizationCylinder(tierod, p_C, p_U, radius);
+    utils::ChBodyGeometry::AddVisualizationCylinder(tierod, p_C, p_U, radius);
 }
 
 // -----------------------------------------------------------------------------

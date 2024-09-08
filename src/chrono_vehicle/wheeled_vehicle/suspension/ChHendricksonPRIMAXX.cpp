@@ -604,7 +604,7 @@ void ChHendricksonPRIMAXX::AddVisualizationLink(std::shared_ptr<ChBody> body,
     ChVector3d p_1 = body->TransformPointParentToLocal(pt_1);
     ChVector3d p_2 = body->TransformPointParentToLocal(pt_2);
 
-    ChVehicleGeometry::AddVisualizationCylinder(body, p_1, p_2, radius);
+    utils::ChBodyGeometry::AddVisualizationCylinder(body, p_1, p_2, radius);
 }
 
 void ChHendricksonPRIMAXX::AddVisualizationLowerBeam(std::shared_ptr<ChBody> body,
@@ -618,8 +618,8 @@ void ChHendricksonPRIMAXX::AddVisualizationLowerBeam(std::shared_ptr<ChBody> bod
     ChVector3d p_AH = body->TransformPointParentToLocal(pt_AH);
     ChVector3d p_TB = body->TransformPointParentToLocal(pt_TB);
 
-    ChVehicleGeometry::AddVisualizationCylinder(body, p_C, p_AH, radius);
-    ChVehicleGeometry::AddVisualizationCylinder(body, p_AH, p_TB, radius);
+    utils::ChBodyGeometry::AddVisualizationCylinder(body, p_C, p_AH, radius);
+    utils::ChBodyGeometry::AddVisualizationCylinder(body, p_AH, p_TB, radius);
 }
 
 void ChHendricksonPRIMAXX::AddVisualizationKnuckle(std::shared_ptr<ChBody> knuckle,
@@ -637,15 +637,15 @@ void ChHendricksonPRIMAXX::AddVisualizationKnuckle(std::shared_ptr<ChBody> knuck
     ChVector3d p_T = knuckle->TransformPointParentToLocal(pt_T);
 
     if (p_L.Length2() > threshold2) {
-        ChVehicleGeometry::AddVisualizationCylinder(knuckle, p_L, VNULL, radius);
+        utils::ChBodyGeometry::AddVisualizationCylinder(knuckle, p_L, VNULL, radius);
     }
 
     if (p_U.Length2() > threshold2) {
-        ChVehicleGeometry::AddVisualizationCylinder(knuckle, p_U, VNULL, radius);
+        utils::ChBodyGeometry::AddVisualizationCylinder(knuckle, p_U, VNULL, radius);
     }
 
     if (p_T.Length2() > threshold2) {
-        ChVehicleGeometry::AddVisualizationCylinder(knuckle, p_T, VNULL, radius);
+        utils::ChBodyGeometry::AddVisualizationCylinder(knuckle, p_T, VNULL, radius);
     }
 }
 
@@ -657,7 +657,7 @@ void ChHendricksonPRIMAXX::AddVisualizationTierod(std::shared_ptr<ChBody> tierod
     ChVector3d p_C = tierod->TransformPointParentToLocal(pt_C);
     ChVector3d p_U = tierod->TransformPointParentToLocal(pt_U);
 
-    ChVehicleGeometry::AddVisualizationCylinder(tierod, p_C, p_U, radius);
+    utils::ChBodyGeometry::AddVisualizationCylinder(tierod, p_C, p_U, radius);
 }
 
 // -----------------------------------------------------------------------------

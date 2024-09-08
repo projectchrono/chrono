@@ -68,8 +68,8 @@ void Kraz_tractor_Tire::GenerateCharacteristicPlots(const std::string& dirname) 
 
 // -----------------------------------------------------------------------------
 // -----------------------------------------------------------------------------
-void Kraz_tractor_Tire::AddVisualizationAssets(chrono::vehicle::VisualizationType vis) {
-    if (vis == chrono::vehicle::VisualizationType::MESH) {
+void Kraz_tractor_Tire::AddVisualizationAssets(VisualizationType vis) {
+    if (vis == VisualizationType::MESH) {
         m_trimesh_shape = AddVisualizationMesh(m_meshFile,   // left side
                                                m_meshFile);  // right side
     } else {

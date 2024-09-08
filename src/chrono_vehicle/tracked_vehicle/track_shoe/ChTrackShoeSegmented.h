@@ -57,7 +57,7 @@ class CH_VEHICLE_API ChTrackShoeSegmented : public ChTrackShoe {
     /// Remove visualization assets for the track shoe subsystem.
     virtual void RemoveVisualizationAssets() override;
 
-    ChVehicleGeometry m_geometry;             ///< collection of visualization and collision shapes
+    utils::ChBodyGeometry m_geometry;         ///< collection of visualization and collision shapes
     ChContactMaterialData m_shoe_sprk_minfo;  ///< data for contact material for shoe shape contacting sprocket
 
   private:

@@ -25,6 +25,8 @@
 #include "chrono/physics/ChLinkRSDA.h"
 #include "chrono/physics/ChLinkTSDA.h"
 
+#include "chrono/utils/ChBodyGeometry.h"
+
 #include "chrono_vehicle/ChApiVehicle.h"
 
 namespace chrono {
@@ -402,12 +404,7 @@ class CH_VEHICLE_API NonlinearSpringDamperTorque : public ChLinkRSDA::TorqueFunc
 // Enums and flags for wheeled and tracked vehicles
 // -----------------------------------------------------------------------------
 
-/// Enum for visualization types.
-enum class VisualizationType {
-    NONE,        ///< no visualization
-    PRIMITIVES,  ///< use primitve shapes
-    MESH         ///< use meshes
-};
+using VisualizationType = chrono::utils::ChBodyGeometry::VisualizationType;
 
 /// Enum for available tire models.
 enum class TireModelType {

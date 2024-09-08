@@ -149,10 +149,10 @@ void ChWheel::AddVisualizationAssets(VisualizationType vis) {
     if (GetRadius() == 0 || GetWidth() == 0)
         return;
 
-    m_cyl_shape = ChVehicleGeometry::AddVisualizationCylinder(m_spindle,                                    //
-                                                              ChVector3d(0, m_offset + GetWidth() / 2, 0),  //
-                                                              ChVector3d(0, m_offset - GetWidth() / 2, 0),  //
-                                                              GetRadius());
+    m_cyl_shape = utils::ChBodyGeometry::AddVisualizationCylinder(m_spindle,                                    //
+                                                                  ChVector3d(0, m_offset + GetWidth() / 2, 0),  //
+                                                                  ChVector3d(0, m_offset - GetWidth() / 2, 0),  //
+                                                                  GetRadius());
 }
 
 void ChWheel::RemoveVisualizationAssets() {

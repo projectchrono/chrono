@@ -297,15 +297,15 @@ void ChDoubleWishboneReduced::AddVisualizationUpright(std::shared_ptr<ChBody> up
     ChVector3d p_T = upright->TransformPointParentToLocal(pt_T);
 
     if ((p_L - p_C).Length2() > threshold2) {
-        ChVehicleGeometry::AddVisualizationCylinder(upright, p_L, p_C, radius);
+        utils::ChBodyGeometry::AddVisualizationCylinder(upright, p_L, p_C, radius);
     }
 
     if ((p_U - p_C).Length2() > threshold2) {
-        ChVehicleGeometry::AddVisualizationCylinder(upright, p_U, p_C, radius);
+        utils::ChBodyGeometry::AddVisualizationCylinder(upright, p_U, p_C, radius);
     }
 
     if ((p_T - p_C).Length2() > threshold2) {
-        ChVehicleGeometry::AddVisualizationCylinder(upright, p_T, p_C, radius);
+        utils::ChBodyGeometry::AddVisualizationCylinder(upright, p_T, p_C, radius);
     }
 }
 

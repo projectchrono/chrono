@@ -142,10 +142,11 @@ void ChTrackShoeBandBushing::AddWebVisualization(std::shared_ptr<ChBody> segment
     segment->AddVisualShape(box);
 
     double radius = GetWebThickness() / 4;
-    ChVehicleGeometry::AddVisualizationCylinder(segment,                                                            //
-                                                ChVector3d(m_seg_length / 2, -GetBeltWidth() / 2 - 2 * radius, 0),  //
-                                                ChVector3d(m_seg_length / 2, +GetBeltWidth() / 2 + 2 * radius, 0),  //
-                                                radius);
+    utils::ChBodyGeometry::AddVisualizationCylinder(
+        segment,                                                            //
+        ChVector3d(m_seg_length / 2, -GetBeltWidth() / 2 - 2 * radius, 0),  //
+        ChVector3d(m_seg_length / 2, +GetBeltWidth() / 2 + 2 * radius, 0),  //
+        radius);
 }
 
 // -----------------------------------------------------------------------------
