@@ -883,7 +883,7 @@ std::shared_ptr<ChBody> ChFsiProblemCartesian::AddWaveMaker(
 
             utils::ChBodyGeometry geometry;
             geometry.coll_boxes.push_back(utils::ChBodyGeometry::BoxShape(VNULL, QUNIT, piston_size));
-            geometry.CreateVisualizationAssets(piston, utils::ChBodyGeometry::VisualizationType::COLLISION);
+            geometry.CreateVisualizationAssets(piston, VisualizationType::COLLISION);
 
             auto motor = chrono_types::make_shared<ChLinkMotorLinearPosition>();
             motor->Initialize(piston, m_ground, ChFramed(piston->GetPos(), Q_ROTATE_Z_TO_X));
@@ -915,7 +915,7 @@ std::shared_ptr<ChBody> ChFsiProblemCartesian::AddWaveMaker(
 
             utils::ChBodyGeometry geometry;
             geometry.coll_boxes.push_back(utils::ChBodyGeometry::BoxShape(VNULL, QUNIT, flap_size));
-            geometry.CreateVisualizationAssets(flap, utils::ChBodyGeometry::VisualizationType::COLLISION);
+            geometry.CreateVisualizationAssets(flap, VisualizationType::COLLISION);
 
             auto rev_pos = pos + flap_pos - ChVector3d(0, 0, box_size.z() / 2);
             auto motor = chrono_types::make_shared<ChLinkMotorRotationAngle>();

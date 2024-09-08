@@ -128,7 +128,7 @@ void CreateBaffles(ChFsiProblem& fsi) {
     baffle1->SetFixed(true);
     sysMBS.AddBody(baffle1);
     if (show_rigid)
-        geometry.CreateVisualizationAssets(baffle1, utils::ChBodyGeometry::VisualizationType::COLLISION);
+        geometry.CreateVisualizationAssets(baffle1, VisualizationType::COLLISION);
     fsi.AddRigidBody(baffle1, geometry, false);
 
     auto baffle2 = chrono_types::make_shared<ChBody>();
@@ -137,7 +137,7 @@ void CreateBaffles(ChFsiProblem& fsi) {
     baffle2->SetFixed(true);
     sysMBS.AddBody(baffle2);
     if (show_rigid)
-        geometry.CreateVisualizationAssets(baffle2, utils::ChBodyGeometry::VisualizationType::COLLISION);
+        geometry.CreateVisualizationAssets(baffle2, VisualizationType::COLLISION);
     fsi.AddRigidBody(baffle2, geometry, false);
 
     auto baffle3 = chrono_types::make_shared<ChBody>();
@@ -146,7 +146,7 @@ void CreateBaffles(ChFsiProblem& fsi) {
     baffle3->SetFixed(true);
     sysMBS.AddBody(baffle3);
     if (show_rigid)
-        geometry.CreateVisualizationAssets(baffle3, utils::ChBodyGeometry::VisualizationType::COLLISION);
+        geometry.CreateVisualizationAssets(baffle3, VisualizationType::COLLISION);
     fsi.AddRigidBody(baffle3, geometry, false);
 }
 

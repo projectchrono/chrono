@@ -158,7 +158,7 @@ int main(int argc, char* argv[]) {
     geometry.materials.push_back(ChContactMaterialData());
     geometry.coll_spheres.push_back(utils::ChBodyGeometry::SphereShape(VNULL, radius, 0));
     if (show_rigid)
-        geometry.CreateVisualizationAssets(body, utils::ChBodyGeometry::VisualizationType::COLLISION);
+        geometry.CreateVisualizationAssets(body, VisualizationType::COLLISION);
 
     // Add as an FSI body (create BCE markers on a grid)
     fsi.AddRigidBody(body, geometry, true, true);

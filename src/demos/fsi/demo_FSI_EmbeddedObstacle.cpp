@@ -158,7 +158,7 @@ int main(int argc, char* argv[]) {
     ////geometry.coll_spheres.push_back(utils::ChBodyGeometry::SphereShape(VNULL, radius, 0));
     geometry.coll_meshes.push_back(utils::ChBodyGeometry::TrimeshShape(VNULL, mesh_filename, VNULL, radius));
     if (show_rigid)
-        geometry.CreateVisualizationAssets(body, utils::ChBodyGeometry::VisualizationType::COLLISION);
+        geometry.CreateVisualizationAssets(body, VisualizationType::COLLISION);
 
     // Add as an FSI body
     fsi.AddRigidBody(body, geometry, true);

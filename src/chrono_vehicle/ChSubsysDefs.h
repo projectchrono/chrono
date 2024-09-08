@@ -404,8 +404,6 @@ class CH_VEHICLE_API NonlinearSpringDamperTorque : public ChLinkRSDA::TorqueFunc
 // Enums and flags for wheeled and tracked vehicles
 // -----------------------------------------------------------------------------
 
-using VisualizationType = chrono::utils::ChBodyGeometry::VisualizationType;
-
 /// Enum for available tire models.
 enum class TireModelType {
     RIGID,       ///< rigid tire (cylindrical)

@@ -38,6 +38,15 @@ namespace chrono {
 class ChBody;
 class ChLinkTSDA;
 
+/// Body visualization mode.
+enum class VisualizationType {
+    NONE,        ///< no visualization
+    PRIMITIVES,  ///< use primitve shapes (create primitive ChVisualShape objects)
+    MESH,        ///< use meshes (create a ChVisualShapeTriangleMesh)
+    MODEL_FILE,  ///< use a data file (create a ChVisualShapeModelFile)
+    COLLISION    ///< visualize collision shapes
+};
+
 namespace utils {
 
 /// @addtogroup chrono_utils
@@ -49,15 +58,6 @@ namespace utils {
 /// the list of contact materials.
 class ChApi ChBodyGeometry {
   public:
-    /// Body visualization mode.
-    enum class VisualizationType {
-        NONE,        ///< no visualization
-        PRIMITIVES,  ///< use primitve shapes (create primitive ChVisualShape objects)
-        MESH,        ///< use meshes (create a ChVisualShapeTriangleMesh)
-        MODEL_FILE,  ///< use a data file (create a ChVisualShapeModelFile)
-        COLLISION    ///< visualize collision shapes
-    };
-
     ChBodyGeometry();
 
     /// Box shape for visualization and/or collision.
