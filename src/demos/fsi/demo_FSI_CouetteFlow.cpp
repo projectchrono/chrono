@@ -151,7 +151,7 @@ int main(int argc, char* argv[]) {
     sph_params.shifting_coefficient = 0.0;           // default: 0.1
     sph_params.min_distance_coefficient = 0.001;     // default: 0.01, use 0.001, otherwise fluid surface is asymmetric
     sph_params.use_density_based_projection = true;  // default: false
-    sph_params.numProximitySearchSteps = 1;
+    sph_params.num_proximity_search_steps = 1;
     sysFSI.SetSPHParameters(sph_params);
 
     // Set linear solver parameters

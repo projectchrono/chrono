@@ -1648,8 +1648,8 @@ void ChFsiForceExplicitSPH::CollideWrapper(Real time, bool firstHalfStep) {
     }
     density_initialization++;
 
-    // Perform Proxmity search at desired frequency and using desired GPU memory
-    if (firstHalfStep && (time < 1e-6 || int(round(time / paramsH->dT)) % paramsH->numProximitySearchSteps == 0))
+    // Perform Proxmity search at specified frequency
+    if (firstHalfStep && (time < 1e-6 || int(round(time / paramsH->dT)) % paramsH->num_proximity_search_steps == 0))
         neighborSearch();
 
     thrust::device_vector<Real3> sortedKernelSupport(numObjectsH->numAllMarkers);

@@ -110,7 +110,8 @@ class CH_FSI_API ChSystemFsi {
         bool consistent_gradient_discretization;   ///< use G matrix in SPH gradient approximation (default: false)
         bool consistent_laplacian_discretization;  ///< use L matrix in SPH Laplacian approximation (default: false)
         double kernel_threshold;                   ///< threshold for identifying free surface (CRM only, default: 0.8)
-        int numProximitySearchSteps;  ///< Number of time-steps after which proximity search is performed (default: 4)
+        int num_proximity_search_steps;            ///< number of steps between updates to neighbor lists (default: 4)
+
         SPHParameters();
     };
 
@@ -214,6 +215,7 @@ class CH_FSI_API ChSystemFsi {
     //// TODO: OBSOLETE
     void SetSPHMethod(SPHMethod SPH_method);
 
+    /// Set the number of steps between successive updates to neighbor lists (default: 4).
     void SetNumProximitySearchSteps(int steps);
 
     /// Enable solution of a CFD problem.
@@ -278,6 +280,7 @@ class CH_FSI_API ChSystemFsi {
     /// Return a flag inicating whether adaptive time stepping is enabled.
     bool GetAdaptiveTimeStepping() const;
 
+    /// Get the number of steps between successive updates to neighbor lists.
     int GetNumProximitySearchSteps() const;
 
     /// Return the current system parameters (debugging only).

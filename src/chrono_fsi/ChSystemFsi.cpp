@@ -169,7 +169,8 @@ void ChSystemFsi::InitParams() {
 
     m_paramsH->use_default_limits = true;
     m_paramsH->use_init_pressure = false;
-    m_paramsH->numProximitySearchSteps = 4;
+
+    m_paramsH->num_proximity_search_steps = 4;
 }
 
 //--------------------------------------------------------------------------------------------------------------------------------
@@ -284,7 +285,7 @@ void ChSystemFsi::ReadParametersFromFile(const std::string& json_file) {
             m_paramsH->USE_Consistent_G = doc["SPH Parameters"]["Consistent Discretization for Gradient"].GetBool();
 
         if (doc["SPH Parameters"].HasMember("Time steps per proximity search"))
-            m_paramsH->numProximitySearchSteps = doc["SPH Parameters"]["Time steps per proximity search"].GetInt();
+            m_paramsH->num_proximity_search_steps = doc["SPH Parameters"]["Time steps per proximity search"].GetInt();
     }
 
     if (doc.HasMember("Time Stepping")) {
@@ -585,7 +586,7 @@ void ChSystemFsi::SetCohesionForce(double Fc) {
 }
 
 void ChSystemFsi::SetNumProximitySearchSteps(int steps) {
-    m_paramsH->numProximitySearchSteps = steps;
+    m_paramsH->num_proximity_search_steps = steps;
 }
 
 ChSystemFsi::FluidProperties::FluidProperties() : density(1000), viscosity(0.1), kappa(0), char_length(1) {}
@@ -660,7 +661,7 @@ ChSystemFsi::SPHParameters::SPHParameters()
       consistent_gradient_discretization(false),
       consistent_laplacian_discretization(false),
       kernel_threshold(0.8),
-      numProximitySearchSteps(4) {}
+      num_proximity_search_steps(4) {}
 
 void ChSystemFsi::SetSPHParameters(const SPHParameters& sph_params) {
     m_paramsH->sph_method = sph_params.sph_method;
@@ -686,7 +687,7 @@ void ChSystemFsi::SetSPHParameters(const SPHParameters& sph_params) {
 
     m_paramsH->C_Wi = Real(sph_params.kernel_threshold);
 
-    m_paramsH->numProximitySearchSteps = sph_params.numProximitySearchSteps;
+    m_paramsH->num_proximity_search_steps = sph_params.num_proximity_search_steps;
 }
 
 ChSystemFsi::LinSolverParameters::LinSolverParameters()
@@ -949,7 +950,7 @@ void ChSystemFsi::Initialize() {
         cout << "  densityReinit: " << m_paramsH->densityReinit << endl;
 
         cout << "  Adaptive_time_stepping: " << m_paramsH->Adaptive_time_stepping << endl;
-        cout << "Proximity search performed every " << m_paramsH->numProximitySearchSteps << " steps" << endl;
+        cout << "  Proximity search performed every " << m_paramsH->num_proximity_search_steps << " steps" << endl;
         cout << "  Co_number: " << m_paramsH->Co_number << endl;
         cout << "  dT: " << m_paramsH->dT << endl;
         cout << "  INV_dT: " << m_paramsH->INV_dT << endl;
@@ -1079,7 +1080,7 @@ void ChSystemFsi::DoStepDynamics_FSI() {
 
     switch (m_paramsH->sph_method) {
         case SPHMethod::WCSPH: {
-            if (m_time < 1e-6 || int(round(m_time / m_paramsH->dT)) % m_paramsH->numProximitySearchSteps == 0) {
+            if (m_time < 1e-6 || int(round(m_time / m_paramsH->dT)) % m_paramsH->num_proximity_search_steps == 0) {
                 m_fluid_dynamics->SortParticles();
             }
             // The following is used to execute the Explicit WCSPH
@@ -1141,7 +1142,7 @@ void ChSystemFsi::DoStepDynamics_FSI() {
         }
 
         case SPHMethod::I2SPH: {
-            if (m_time < 1e-6 || int(round(m_time / m_paramsH->dT)) % m_paramsH->numProximitySearchSteps == 0) {
+            if (m_time < 1e-6 || int(round(m_time / m_paramsH->dT)) % m_paramsH->num_proximity_search_steps == 0) {
                 m_fluid_dynamics->SortParticles();
             }
             ChUtilsDevice::FillVector(m_sysFSI->fsiData->derivVelRhoOriginalD, mR4(0));
@@ -2138,7 +2139,7 @@ bool ChSystemFsi::GetAdaptiveTimeStepping() const {
 }
 
 int ChSystemFsi::GetNumProximitySearchSteps() const {
-    return m_paramsH->numProximitySearchSteps;
+    return m_paramsH->num_proximity_search_steps;
 }
 
 size_t ChSystemFsi::GetNumFluidMarkers() const {
