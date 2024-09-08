@@ -2,12 +2,12 @@
 
 # List of demos with no additional dependencies 
 set(MULTIDOMAIN_DEMOS
-    demo_MDOM_intro_sharedmemory
     demo_MDOM_intro_distributedMPI
 	)
 
 # List of demos requiring the Chrono::Irrlicht module
 set(MULTIDOMAIN_DEMOS_IRR
+    demo_MDOM_intro_sharedmemory
 	)
 
 #--------------------------------------------------------------

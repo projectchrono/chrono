@@ -18,6 +18,7 @@
 // =============================================================================
 
 #include "chrono/physics/ChSystemSMC.h"
+#include "chrono/physics/ChSystemNSC.h"
 #include "chrono/physics/ChLinkMotorRotationSpeed.h"
 #include "chrono/physics/ChBodyEasy.h"
 #include "chrono/serialization/ChArchiveBinary.h"
@@ -25,9 +26,11 @@
 
 #include "chrono_multidomain/ChDomainManagerSharedmemory.h"
 #include "chrono_multidomain/ChSolverPSORmultidomain.h"
+#include "chrono_irrlicht/ChVisualSystemIrrlicht.h"
 
 using namespace chrono;
 using namespace multidomain;
+using namespace chrono::irrlicht;
 
 // For multi domain simulations, each item (body, link, fea element or node, etc.) must have
 // an unique ID, to be set via SetTag(). Here we use a static counter to help with the generation
@@ -58,7 +61,7 @@ int main(int argc, char* argv[]) {
 
     ChDomainManagerSharedmemory domain_manager;
     domain_manager.verbose_partition = true; // will print  partitioning in std::cout
-    domain_manager.verbose_variable_updates = true; // will print all messages in std::cout
+    domain_manager.verbose_variable_updates = false; // will print all messages in std::cout
 
     // 2- the domain builder.
     // You must define how the 3D space is divided in domains. 
@@ -74,19 +77,18 @@ int main(int argc, char* argv[]) {
     // Now one can know how many domains are expected to build, using domain_builder.GetTotRanks();
     // But in this case we already know we split into 2 domains. So we build them as:
 
-    ChSystemSMC sys_0;
+    ChSystemNSC sys_0;
     sys_0.SetCollisionSystemType(ChCollisionSystem::Type::BULLET);
-    sys_0.GetSolver()->AsIterative()->SetMaxIterations(5);
+    sys_0.GetSolver()->AsIterative()->SetMaxIterations(15);
 
     domain_manager.AddDomain(domain_builder.BuildDomain(
                                         &sys_0, // physical system of this domain
                                         0       // rank of this domain 
                                        ));
 
-   
-    ChSystemSMC sys_1;
+    ChSystemNSC sys_1;
     sys_1.SetCollisionSystemType(ChCollisionSystem::Type::BULLET);
-    sys_1.GetSolver()->AsIterative()->SetMaxIterations(5);
+    sys_1.GetSolver()->AsIterative()->SetMaxIterations(15);
 
     domain_manager.AddDomain(domain_builder.BuildDomain(
                                         &sys_1, // physical system of this domain
@@ -94,9 +96,15 @@ int main(int argc, char* argv[]) {
                                        ));
 
     // 4- we populate the n domains with bodies, links, meshes, nodes, etc. 
-    // Each item must be added to the ChSystem of the domain that the item overlaps with. 
+    // - Each "node" item (ChBody, ChNode stuff) must be added to the ChSystem of the domain that 
+    //   the AABB of item overlaps with. Even added into multiple domains, then, becoming shared. 
+    // - Each "edge" item (ChLink constraints, ChElement finite elements) must be added to the 
+    //   domain where the reference point (1st node of fea element, master body in links) is inside.
+    //   Hence edges are always into a single domain, and never shared among domains.
+    // - If an edge is in the domain and references a node that is not overlapping with domain, 
+    //   then such node(s) must be added too to the domain anyway, becoming shared with surrounding domain(s).
 
-    auto mat = chrono_types::make_shared<ChContactMaterialSMC>();
+    auto mat = chrono_types::make_shared<ChContactMaterialNSC>();
     mat->SetFriction(0.1);
  
     auto mrigidBody = chrono_types::make_shared<ChBodyEasyBox>(2, 2, 2,  // x,y,z size
@@ -110,14 +118,55 @@ int main(int argc, char* argv[]) {
     // 5- a very important thing: for multidomain, each item (body, mesh, link, node, FEA element)
     // must have an unique tag! This SetTag() is needed because items might be shared between neighbouring domains. 
     mrigidBody->SetTag(unique_ID); unique_ID++; 
-    
 
-    sys_0.GetCollisionSystem()->BindItem(mrigidBody); // HACK force update of AABB of bodies, already in StepDynamics() but here for first DoAllDomainPartitionUpdate()
+    auto mrigidBodyb = chrono_types::make_shared<ChBodyEasyBox>(0.7, 0.7, 0.7,  // x,y,z size
+        400,         // density
+        true,        // visualization?
+        true,        // collision?
+        mat);        // contact material
+    sys_1.AddBody(mrigidBodyb);
+    mrigidBodyb->SetPos(ChVector3d(1.5, 0, 0));
+    mrigidBodyb->SetTag(unique_ID); unique_ID++;
 
+    // HACK force update of AABB of bodies, already in StepDynamics() but here for first DoAllDomainPartitionUpdate()
+    sys_0.GetCollisionSystem()->BindItem(mrigidBody); 
+    sys_1.GetCollisionSystem()->BindItem(mrigidBodyb);
 
+    // For debugging: open two 3D realtime view windows, each per domain:
+    auto vis_irr_0 = chrono_types::make_shared<ChVisualSystemIrrlicht>();
+    vis_irr_0->AttachSystem(&sys_0);
+    vis_irr_0->SetWindowTitle("Domain 0");
+    vis_irr_0->Initialize();
+    vis_irr_0->AddSkyBox();
+    vis_irr_0->AddCamera(ChVector3d(1, 2, 6), ChVector3d(0, 2, 0));
+    vis_irr_0->AddTypicalLights();
+    //vis_irr_0->BindAll();
+    auto vis_irr_1 = chrono_types::make_shared<ChVisualSystemIrrlicht>();
+    vis_irr_1->AttachSystem(&sys_1);
+    vis_irr_1->SetWindowTitle("Domain 1");
+    vis_irr_1->Initialize();
+    vis_irr_1->AddSkyBox();
+    vis_irr_1->AddCamera(ChVector3d(1, 2, 6), ChVector3d(0, 2, 0));
+    vis_irr_1->AddTypicalLights();
+    //vis_irr_1->BindAll();
 
-    for (int i = 0; i < 12; ++i) {
+    for (int i = 0; i < 25; ++i) {
         std::cout << "\n\n\n============= Time step " << i << std::endl << std::endl;
+       
+        // For debugging: open two 3D realtime view windows, each per domain:
+        vis_irr_0->RemoveAllIrrNodes();
+        vis_irr_0->BindAll();
+        vis_irr_0->Run();
+        vis_irr_0->BeginScene();
+        vis_irr_0->Render();
+        vis_irr_0->EndScene();
+        vis_irr_0->RemoveAllIrrNodes();
+        vis_irr_1->BindAll();
+        vis_irr_1->Run();
+        vis_irr_1->BeginScene();
+        vis_irr_1->Render();
+        vis_irr_1->EndScene();
+
 
         // MULTIDOMAIN AUTOMATIC ITEM MIGRATION!
         domain_manager.DoAllDomainPartitionUpdate();
