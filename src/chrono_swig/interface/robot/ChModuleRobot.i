@@ -224,9 +224,6 @@ using namespace chrono::copter;
 
 %rename(CollisionFamily_CHASSIS) chrono::robosimian::CollisionFamily::CHASSIS;
 %rename(CollisionFamily_SLED) chrono::robosimian::CollisionFamily::SLED;
-%rename(VisualizationType_NONE) chrono::robosimian::VisualizationType::NONE;
-%rename(VisualizationType_MESH) chrono::robosimian::VisualizationType::MESH;
-%rename(VisualizationType_COLLISION) chrono::robosimian::VisualizationType::COLLISION;
 %rename(CollisionFlags_COLLISION) chrono::robosimian::CollisionFlags::CHASSIS;
 
 %ignore chrono::robosimian::RS_Driver::GetCurrentPhase;
