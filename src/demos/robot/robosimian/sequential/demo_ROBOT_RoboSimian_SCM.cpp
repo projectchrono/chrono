@@ -326,15 +326,15 @@ int main(int argc, char* argv[]) {
 
     // Set visualization modes (default: all COLLISION)
 
-    ////robot.SetVisualizationTypeChassis(robosimian::VisualizationType::MESH);
-    ////robot.SetVisualizationTypeLimb(robosimian::FL, robosimian::VisualizationType::COLLISION);
-    ////robot.SetVisualizationTypeLimb(robosimian::FR, robosimian::VisualizationType::COLLISION);
-    ////robot.SetVisualizationTypeLimb(robosimian::RL, robosimian::VisualizationType::COLLISION);
-    ////robot.SetVisualizationTypeLimb(robosimian::RR, robosimian::VisualizationType::COLLISION);
-    ////robot.SetVisualizationTypeLimbs(robosimian::VisualizationType::NONE);
-    ////robot.SetVisualizationTypeChassis(robosimian::VisualizationType::MESH);
-    ////robot.SetVisualizationTypeSled(robosimian::VisualizationType::MESH);
-    ////robot.SetVisualizationTypeLimbs(robosimian::VisualizationType::MESH);
+    ////robot.SetVisualizationTypeChassis(VisualizationType::MESH);
+    ////robot.SetVisualizationTypeLimb(robosimian::FL, VisualizationType::COLLISION);
+    ////robot.SetVisualizationTypeLimb(robosimian::FR, VisualizationType::COLLISION);
+    ////robot.SetVisualizationTypeLimb(robosimian::RL, VisualizationType::COLLISION);
+    ////robot.SetVisualizationTypeLimb(robosimian::RR, VisualizationType::COLLISION);
+    ////robot.SetVisualizationTypeLimbs(VisualizationType::NONE);
+    ////robot.SetVisualizationTypeChassis(VisualizationType::MESH);
+    ////robot.SetVisualizationTypeSled(VisualizationType::MESH);
+    ////robot.SetVisualizationTypeLimbs(VisualizationType::MESH);
 
     // Initialize Robosimian robot
 

@@ -43,11 +43,11 @@ using namespace chrono::fsi;
 ChVisualSystem::Type vis_type = ChVisualSystem::Type::VSG;
 
 // Output directories and settings
-const std::string out_dir = GetChronoOutputPath() + "FSI_Dam_Break/";
+std::string out_dir = GetChronoOutputPath() + "FSI_Dam_Break";
 
 // Output frequency
 bool output = true;
-double out_fps = 20;
+double output_fps = 20;
 
 // Dimension of the space domain
 double bxDim = 6.0;
@@ -87,16 +87,6 @@ void CreateSolidPhase(ChSystemSMC& sysMBS, ChSystemFsi& sysFSI) {
 // =============================================================================
 
 int main(int argc, char* argv[]) {
-    // Create oputput directories
-    if (!filesystem::create_directory(filesystem::path(out_dir))) {
-        std::cerr << "Error creating directory " << out_dir << std::endl;
-        return 1;
-    }
-    if (!filesystem::create_directory(filesystem::path(out_dir + "/particles"))) {
-        std::cerr << "Error creating directory " << out_dir + "/particles" << std::endl;
-        return 1;
-    }
-
     // Create a physics system and an FSI system
     ChSystemSMC sysMBS;
     ChSystemFsi sysFSI(&sysMBS);
@@ -145,6 +135,21 @@ int main(int argc, char* argv[]) {
     // Complete construction of the FSI system
     sysFSI.Initialize();
 
+    // Create oputput directories
+    if (!filesystem::create_directory(filesystem::path(out_dir))) {
+        std::cerr << "Error creating directory " << out_dir << std::endl;
+        return 1;
+    }
+    out_dir = out_dir + "/" + sysFSI.GetPhysicsProblemString() + "_" + sysFSI.GetSphMethodTypeString();
+    if (!filesystem::create_directory(filesystem::path(out_dir))) {
+        std::cerr << "Error creating directory " << out_dir << std::endl;
+        return 1;
+    }
+    if (!filesystem::create_directory(filesystem::path(out_dir + "/particles"))) {
+        std::cerr << "Error creating directory " << out_dir + "/particles" << std::endl;
+        return 1;
+    }
+
     // Create a run-tme visualizer
 #ifndef CHRONO_OPENGL
     if (vis_type == ChVisualSystem::Type::OpenGL)
@@ -186,34 +191,35 @@ int main(int argc, char* argv[]) {
 
     // Start the simulation
     double dT = sysFSI.GetStepSize();
-    unsigned int output_steps = (unsigned int)round(1 / (out_fps * dT));
-    unsigned int render_steps = (unsigned int)round(1 / (render_fps * dT));
-
     double time = 0;
-    int current_step = 0;
+    int sim_frame = 0;
+    int out_frame = 0;
+    int render_frame = 0;
 
     ChTimer timer;
     timer.start();
     while (time < t_end) {
-        std::cout << "step: " << current_step << "  time: " << time << std::endl;
+        std::cout << "step: " << sim_frame << "  time: " << time << std::endl;
 
         // Save data of the simulation
-        if (output && current_step % output_steps == 0) {
+        if (output && time >= out_frame / output_fps) {
             std::cout << "------- OUTPUT" << std::endl;
             sysFSI.PrintParticleToFile(out_dir + "/particles");
+            out_frame++;
         }
 
         // Render FSI system
-        if (render && current_step % render_steps == 0) {
+        if (render && time >= render_frame / render_fps) {
             if (!visFSI->Render())
                 break;
+            render_frame++;
         }
 
         // Call the FSI solver
         sysFSI.DoStepDynamics_FSI();
 
         time += dT;
-        current_step++;
+        sim_frame++;
     }
     timer.stop();
     std::cout << "\nSimulation time: " << timer() << " seconds\n" << std::endl;

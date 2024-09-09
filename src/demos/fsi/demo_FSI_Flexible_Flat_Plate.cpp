@@ -12,9 +12,10 @@
 // Author: Milad Rakhsha, Wei Hu, Pei Li, Radu Serban
 // =============================================================================
 
-#include <assert.h>
-#include <stdlib.h>
+#include <cassert>
+#include <cstdlib>
 #include <ctime>
+#include <iomanip>
 
 #include "chrono/physics/ChSystemSMC.h"
 
@@ -40,6 +41,9 @@
 #endif
 #ifdef CHRONO_VSG
     #include "chrono_fsi/visualization/ChFsiVisualizationVSG.h"
+#endif
+#ifdef CHRONO_POSTPROCESS
+    #include "chrono_postprocess/ChGnuPlot.h"
 #endif
 
 #include "chrono_thirdparty/cxxopts/ChCLI.h"
@@ -99,7 +103,7 @@ int main(int argc, char* argv[]) {
     if (!GetProblemSpecs(argc, argv, inputJSON, t_end, verbose, output, output_fps, render, render_fps, snapshots)) {
         return 1;
     }
-
+    snapshots = true;
     // Create a physics system and an FSI system
     ChSystemSMC sysMBS;
     ChSystemFsi sysFSI(&sysMBS);
@@ -118,13 +122,7 @@ int main(int argc, char* argv[]) {
     sysFSI.SetBoundaries(cMin, cMax);
 
     // Set SPH discretization type, consistent or inconsistent
-    sysFSI.SetDiscreType(false, false);
-
-    // Set wall boundary condition
-    sysFSI.SetWallBC(BceVersion::ADAMI);
-
-    // Set rigid body boundary condition
-    sysFSI.SetRigidBodyBC(BceVersion::ADAMI);
+    sysFSI.SetConsistentDerivativeDiscretization(false, false);
 
     // Create SPH particles of fluid region
     chrono::utils::ChGridSampler<> sampler(initSpace0);
@@ -147,7 +145,7 @@ int main(int argc, char* argv[]) {
         cerr << "Error creating directory " << out_dir << endl;
         return 1;
     }
-    out_dir = out_dir + "/" + sysFSI.GetPhysicsProblemString() + "_" + sysFSI.GetSphSolverTypeString();
+    out_dir = out_dir + "/" + sysFSI.GetPhysicsProblemString() + "_" + sysFSI.GetSphMethodTypeString();
     if (!filesystem::create_directory(filesystem::path(out_dir))) {
         cerr << "Error creating directory " << out_dir << endl;
         return 1;
@@ -201,6 +199,7 @@ int main(int argc, char* argv[]) {
         }
 
         visFSI->SetTitle("Chrono::FSI flexible plate");
+        visFSI->SetVerbose(verbose);
         visFSI->SetSize(1920, 1200);
         visFSI->SetCameraMoveScale(1.0f);
         visFSI->EnableBoundaryMarkers(true);
@@ -208,8 +207,7 @@ int main(int argc, char* argv[]) {
         visFSI->SetColorFlexBodyMarkers(ChColor(1, 1, 1));
         visFSI->SetRenderMode(ChFsiVisualization::RenderMode::SOLID);
         visFSI->SetParticleRenderMode(ChFsiVisualization::RenderMode::SOLID);
-        visFSI->SetSPHColorCallback(
-            chrono_types::make_shared<VelocityColorCallback>(0, 2.5, VelocityColorCallback::Component::NORM));
+        visFSI->SetSPHColorCallback(chrono_types::make_shared<VelocityColorCallback>(0, 2.5));
         visFSI->AttachSystem(&sysMBS);
         visFSI->Initialize();
     }
@@ -234,6 +232,14 @@ int main(int argc, char* argv[]) {
     int sim_frame = 0;
     int out_frame = 0;
     int render_frame = 0;
+
+    // Initial position of top node at the (approx) middle of the plate in x and y
+    auto node = std::dynamic_pointer_cast<ChNodeFEAxyzD>(mesh->GetNode(15));
+    std::cout << "Initial position of node: " << node->GetPos().x() << " " << node->GetPos().y() << " "
+              << node->GetPos().z() << std::endl;
+    ChVector3d init_pos = node->GetPos();
+    ChFunctionInterp displacement_recorder;
+    double displacement = 0;
 
     ChTimer timer;
     timer.start();
@@ -268,9 +274,14 @@ int main(int argc, char* argv[]) {
                          << ".bmp";
                 visFSI->GetVisualSystem()->WriteImageToFile(filename.str());
             }
-
             render_frame++;
         }
+
+        ChVector3d pos = node->GetPos();
+        displacement =
+            sqrt(pow(pos.x() - init_pos.x(), 2) + pow(pos.y() - init_pos.y(), 2) + pow(pos.z() - init_pos.z(), 2));
+
+        displacement_recorder.AddPoint(time, displacement);
 
         sysFSI.DoStepDynamics_FSI();
 
@@ -279,7 +290,15 @@ int main(int argc, char* argv[]) {
     }
     timer.stop();
     cout << "\nSimulation time: " << timer() << " seconds\n" << endl;
-
+#ifdef CHRONO_POSTPROCESS
+    postprocess::ChGnuPlot gplot(out_dir + "/height.gpl");
+    gplot.SetGrid();
+    std::string speed_title = "Displacement of a node in the top row of the plate";
+    gplot.SetTitle(speed_title);
+    gplot.SetLabelX("time (s)");
+    gplot.SetLabelY("displacement (m)");
+    gplot.Plot(displacement_recorder, "", " with lines lt -1 lw 2 lc rgb'#3333BB' ");
+#endif
     return 0;
 }
 
@@ -353,13 +372,6 @@ std::shared_ptr<fea::ChMesh> Create_MB_FE(ChSystemSMC& sysMBS, ChSystemFsi& sysF
     auto mat = chrono_types::make_shared<ChMaterialShellANCF>(rho, E, nu);
 
     // Create the elements
-    std::vector<std::vector<int>> _2D_elementsNodes_mesh;
-    std::vector<std::vector<int>> NodeNeighborElement_mesh;
-    int TotalNumElements = numDiv_y * numDiv_z;
-    int TotalNumNodes = (numDiv_y + 1) * (numDiv_z + 1);
-    _2D_elementsNodes_mesh.resize(TotalNumElements);
-    NodeNeighborElement_mesh.resize(TotalNumNodes);
-
     int num_elem = 0;
     for (int k = 0; k < numDiv_z; k++) {
         for (int j = 0; j < numDiv_y; j++) {
@@ -367,15 +379,6 @@ std::shared_ptr<fea::ChMesh> Create_MB_FE(ChSystemSMC& sysMBS, ChSystemFsi& sysF
             int node1 = (j + 1) + N_y * (k + 0);
             int node2 = (j + 1) + N_y * (k + 1);
             int node3 = (j + 0) + N_y * (k + 1);
-
-            _2D_elementsNodes_mesh[num_elem].push_back(node0);
-            _2D_elementsNodes_mesh[num_elem].push_back(node1);
-            _2D_elementsNodes_mesh[num_elem].push_back(node2);
-            _2D_elementsNodes_mesh[num_elem].push_back(node3);
-            NodeNeighborElement_mesh[node0].push_back(num_elem);
-            NodeNeighborElement_mesh[node1].push_back(num_elem);
-            NodeNeighborElement_mesh[node2].push_back(num_elem);
-            NodeNeighborElement_mesh[node3].push_back(num_elem);
 
             // Create the element and set its nodes.
             auto element = chrono_types::make_shared<ChElementShellANCF_3423>();
@@ -407,13 +410,8 @@ std::shared_ptr<fea::ChMesh> Create_MB_FE(ChSystemSMC& sysMBS, ChSystemFsi& sysF
     // Add the mesh to the MBS system
     sysMBS.Add(mesh);
 
-    // fluid representation of flexible bodies
-    bool multilayer = true;
-    bool removeMiddleLayer = true;
-    sysFSI.AddFEAmeshBCE(mesh, NodeNeighborElement_mesh, std::vector<std::vector<int>>(), _2D_elementsNodes_mesh, false,
-                         true, multilayer, removeMiddleLayer, 0, 0);
-
-    sysFSI.AddFsiMesh(mesh, std::vector<std::vector<int>>(), _2D_elementsNodes_mesh);
+    // Add the mesh to the FSI system (only these meshes interact with the fluid)
+    sysFSI.AddFsiMesh(mesh);
 
     return mesh;
 }

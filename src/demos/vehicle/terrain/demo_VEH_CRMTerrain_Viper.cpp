@@ -79,62 +79,9 @@ int main(int argc, char* argv[]) {
     ChSystemNSC sys;
     sys.SetCollisionSystemType(ChCollisionSystem::Type::BULLET);
 
-    // Create the CRM terrain system
-    CRMTerrain terrain(sys, 0.03);
-    terrain.SetVerbose(verbose);
-    ChSystemFsi& sysFSI = terrain.GetSystemFSI();
-
-    // Set SPH parameters and soil material properties
-    const ChVector3d gravity(0, 0, -9.81);
-    sysFSI.SetGravitationalAcceleration(gravity);
-    sys.SetGravitationalAcceleration(gravity);
-
-    ChSystemFsi::ElasticMaterialProperties mat_props;
-    mat_props.Young_modulus = youngs_modulus;
-    mat_props.Poisson_ratio = poisson_ratio;
-    mat_props.stress = 0;  // default
-    mat_props.viscosity_alpha = 0.5;
-    mat_props.viscosity_beta = 0.0;
-    mat_props.mu_I0 = 0.04;
-    mat_props.mu_fric_s = friction;
-    mat_props.mu_fric_2 = friction;
-    mat_props.average_diam = 0.005;
-    mat_props.friction_angle = CH_PI / 10;  // default
-    mat_props.dilation_angle = CH_PI / 10;  // default
-    mat_props.cohesion_coeff = 0;           // default
-    mat_props.kernel_threshold = 0.8;
-
-    sysFSI.SetElasticSPH(mat_props);
-    sysFSI.SetDensity(density);
-    sysFSI.SetCohesionForce(cohesion);
-
-    sysFSI.SetActiveDomain(ChVector3d(active_box_hdim));
-    sysFSI.SetDiscreType(false, false);
-    sysFSI.SetWallBC(BceVersion::ADAMI);
-    sysFSI.SetSPHMethod(FluidDynamics::WCSPH);
-    sysFSI.SetStepSize(step_size);
-
-    sysFSI.SetOutputLength(0);
-
-    // Set the simulation domain size
-    //// TODO: needed?
-    ////sysFSI.SetContainerDim(ChVector3d(4, 2, 0.1));
-
-    cout << "Create terrain..." << endl;
-    terrain.Construct(vehicle::GetDataFile("terrain/height_maps/terrain3.bmp"),  // height map image file
-                      4, 4,                                                      // length (X) and width (Y)
-                      {0, 2.55},                                                 // height range
-                      0.3,                                                       // depth
-                      3,                                                         // number of BCE layers
-                      ChVector3d(0, 0, 0),                                       // patch center
-                      0.0,                                                       // patch yaw rotation
-                      false                                                      // side walls?
-    );
-
     // Create rover
     cout << "Create rover..." << endl;
     ViperWheelType wheel_type = ViperWheelType::RealWheel;
-    std::string wheel_obj = "robot/viper/obj/viper_wheel.obj";
     ChContactMaterialData wheel_mat(0.4f,   // mu
                                     0.2f,   // cr
                                     2e7f,   // Y
@@ -152,33 +99,85 @@ int main(int argc, char* argv[]) {
     rover->SetWheelContactMaterial(wheel_mat.CreateMaterial(sys.GetContactMethod()));
     rover->Initialize(ChFrame<>(init_loc, QUNIT));
 
-    // Create the wheel BCE markers
+    // Create the CRM terrain system
+    double initial_spacing = 0.03;
+    CRMTerrain terrain(sys, initial_spacing);
+    terrain.SetVerbose(verbose);
+    ChSystemFsi& sysFSI = terrain.GetSystemFSI();
+
+    // Set SPH parameters and soil material properties
+    const ChVector3d gravity(0, 0, -9.81);
+    sysFSI.SetGravitationalAcceleration(gravity);
+    sys.SetGravitationalAcceleration(gravity);
+
+    ChSystemFsi::ElasticMaterialProperties mat_props;
+    mat_props.density = density;
+    mat_props.Young_modulus = youngs_modulus;
+    mat_props.Poisson_ratio = poisson_ratio;
+    mat_props.stress = 0;  // default
+    mat_props.viscosity_alpha = 0.5;
+    mat_props.viscosity_beta = 0.0;
+    mat_props.mu_I0 = 0.04;
+    mat_props.mu_fric_s = friction;
+    mat_props.mu_fric_2 = friction;
+    mat_props.average_diam = 0.005;
+    mat_props.friction_angle = CH_PI / 10;  // default
+    mat_props.dilation_angle = CH_PI / 10;  // default
+    mat_props.cohesion_coeff = cohesion;
+
+    sysFSI.SetElasticSPH(mat_props);
+
+    ChSystemFsi::SPHParameters sph_params;
+    sph_params.sph_method = SPHMethod::WCSPH;
+    sph_params.kernel_h = initial_spacing;
+    sph_params.initial_spacing = initial_spacing;
+    sph_params.kernel_threshold = 0.8;
+    sph_params.consistent_gradient_discretization = false;
+    sph_params.consistent_laplacian_discretization = false;
+
+    sysFSI.SetSPHParameters(sph_params);
+    sysFSI.SetStepSize(step_size);
+
+    sysFSI.SetActiveDomain(ChVector3d(active_box_hdim));
+
+    sysFSI.SetOutputLength(0);
+
+    // Add rover wheels as FSI bodies
     cout << "Create wheel BCE markers..." << endl;
-    auto trimesh = chrono_types::make_shared<ChTriangleMeshConnected>();
-    double scale_ratio = 1.0;
-    trimesh->LoadWavefrontMesh(GetChronoDataFile(wheel_obj), false, true);
-    trimesh->Transform(ChVector3d(0, 0, 0), ChMatrix33<>(scale_ratio));  // scale to a different size
-    trimesh->RepairDuplicateVertexes(1e-9);                              // if meshes are not watertight
+    std::string mesh_filename = GetChronoDataFile("robot/viper/obj/viper_wheel.obj");
+    utils::ChBodyGeometry geometry;
+    geometry.materials.push_back(ChContactMaterialData());
+    geometry.coll_meshes.push_back(utils::ChBodyGeometry::TrimeshShape(VNULL, mesh_filename, VNULL));
 
-    std::vector<ChVector3d> BCE_wheel;
-    sysFSI.CreateMeshPoints(*trimesh, sysFSI.GetInitialSpacing(), BCE_wheel);
-
-    // Add BCE particles and mesh of wheels to the system
+    //// TODO: FIX ChFsiProblem to allow rotating geometry on body!!
     for (int i = 0; i < 4; i++) {
         auto wheel_body = rover->GetWheels()[i]->GetBody();
         auto yaw = (i % 2 == 0) ? QuatFromAngleZ(CH_PI) : QUNIT;
-        sysFSI.AddFsiBody(wheel_body);
-        sysFSI.AddPointsBCE(wheel_body, BCE_wheel, ChFrame<>(VNULL, yaw), true);
+        terrain.AddRigidBody(wheel_body, geometry, false);
     }
+
+    // Construct the terrain
+    cout << "Create terrain..." << endl;
+    terrain.Construct(vehicle::GetDataFile("terrain/height_maps/terrain3.bmp"),  // height map image file
+                      4, 4,                                                      // length (X) and width (Y)
+                      {0, 2.55},                                                 // height range
+                      0.3,                                                       // depth
+                      true,                                                      // uniform depth
+                      ChVector3d(0, 0, 0),                                       // patch center
+                      true,                                                      // bottom wall?
+                      false                                                      // side walls?
+    );
+
+
 
     // Initialize the terrain system
     cout << "Initialize CRM terrain..." << endl;
     terrain.Initialize();
 
-    auto aabb = terrain.GetBoundingBox();
+    auto aabb = terrain.GetSPHBoundingBox();
     cout << "  SPH particles:     " << sysFSI.GetNumFluidMarkers() << endl;
     cout << "  Bndry BCE markers: " << sysFSI.GetNumBoundaryMarkers() << endl;
-    cout << "  AABB:              " << aabb.min << "   " << aabb.max << endl;
+    cout << "  SPH AABB:          " << aabb.min << "   " << aabb.max << endl;
 
     // Create run-time visualization
 #ifndef CHRONO_OPENGL
@@ -195,18 +194,19 @@ int main(int argc, char* argv[]) {
         switch (vis_type) {
             case ChVisualSystem::Type::OpenGL:
 #ifdef CHRONO_OPENGL
-                visFSI = chrono_types::make_shared<ChFsiVisualizationGL>(&sysFSI, verbose);
+                visFSI = chrono_types::make_shared<ChFsiVisualizationGL>(&sysFSI);
 #endif
                 break;
             case ChVisualSystem::Type::VSG: {
 #ifdef CHRONO_VSG
-                visFSI = chrono_types::make_shared<ChFsiVisualizationVSG>(&sysFSI, verbose);
+                visFSI = chrono_types::make_shared<ChFsiVisualizationVSG>(&sysFSI);
 #endif
                 break;
             }
         }
 
         visFSI->SetTitle("Viper rover on CRM deformable terrain");
+        visFSI->SetVerbose(verbose);
         visFSI->SetSize(1280, 720);
         visFSI->AddCamera(init_loc + ChVector3d(0, 6, 0.5), init_loc);
         visFSI->SetCameraMoveScale(0.2f);

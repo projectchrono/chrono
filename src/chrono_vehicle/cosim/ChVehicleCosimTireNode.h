@@ -174,7 +174,7 @@ class CH_VEHICLE_API ChVehicleCosimTireNode : public ChVehicleCosimBaseNode {
     std::shared_ptr<ChTire> m_tire;     ///< tire subsystem
 
     // Communication data (loaded by derived classes)
-    ChVehicleGeometry m_geometry;  ///< tire geometry and contact material
+    utils::ChBodyGeometry m_geometry;  ///< tire geometry and contact material
 
   private:
     virtual ChSystem* GetSystemPostprocess() const override { return m_system; }

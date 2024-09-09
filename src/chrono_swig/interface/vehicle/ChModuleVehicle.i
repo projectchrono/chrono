@@ -352,10 +352,11 @@ Before adding a shared_ptr, mark as shared ptr all its inheritance tree in the m
 %include "ChEngine.i"
 %include "ChTransmission.i"
 
+%include "../core/ChBodyGeometry.i"
+
 %include "../../../chrono_vehicle/ChVehicle.h"
 %include "ChDriver.i"
 %include "ChTerrain.i"
-%include "ChVehicleGeometry.i"
 // Place these after the ChEngine and ChTransmission and ChPowertrain base wraps
 %include "chrono_swig/interface/models/PowertrainModels.i"
 

@@ -44,14 +44,14 @@
 
 #include "chrono_thirdparty/filesystem/path.h"
 
-// Chrono namespaces
 using namespace chrono;
 using namespace chrono::fea;
 using namespace chrono::fsi;
 
+// -----------------------------------------------------------------
+
 // Set the output directory
-const std::string out_dir = GetChronoOutputPath() + "FSI_Flexible_Toroidal_Tire/";
-std::string MESH_CONNECTIVITY = out_dir + "Flex_MESH.vtk";
+std::string out_dir = GetChronoOutputPath() + "FSI_Flexible_Toroidal_Tire";
 
 // Dimension of the domain
 double smalldis = 1.0e-9;
@@ -81,45 +81,25 @@ double m_alpha = 0.15;
 ChVector3d wheel_IniPos(-bxDim / 2 + 1.5 * wheel_radius, 0.0, 1.5 * wheel_radius + bzDim);
 ChVector3d wheel_IniVel(0.0, 0.0, 0.0);
 
-// Simulation time and stepsize
+// Simulation time
 double t_end = 10.0;
 
 // Output frequency
 bool output = true;
-double out_fps = 20;
+double output_fps = 20;
 
 // Enable/disable run-time visualization (if Chrono::OpenGL is available)
 bool render = true;
 float render_fps = 100;
 
-// linear actuator and angular actuator
-auto actuator = chrono_types::make_shared<ChLinkLockLinActuator>();
-auto motor = chrono_types::make_shared<ChLinkMotorRotationAngle>();
+// -----------------------------------------------------------------
 
-std::vector<std::vector<int>> NodeNeighborElement_mesh;
+std::shared_ptr<fea::ChMesh> Create_MB_FE(ChSystemSMC& sysMBS, ChSystemFsi& sysFSI);
 
-void Create_MB_FE(ChSystemSMC& sysMBS, ChSystemFsi& sysFSI);
+// -----------------------------------------------------------------
 
 int main(int argc, char* argv[]) {
-    // Create oputput directories
-    if (!filesystem::create_directory(filesystem::path(out_dir))) {
-        std::cerr << "Error creating directory " << out_dir << std::endl;
-        return 1;
-    }
-    if (!filesystem::create_directory(filesystem::path(out_dir + "/particles"))) {
-        std::cerr << "Error creating directory " << out_dir + "/particles" << std::endl;
-        return 1;
-    }
-    if (!filesystem::create_directory(filesystem::path(out_dir + "/fsi"))) {
-        std::cerr << "Error creating directory " << out_dir + "/fsi" << std::endl;
-        return 1;
-    }
-    if (!filesystem::create_directory(filesystem::path(out_dir + "/vtk"))) {
-        std::cerr << "Error creating directory " << out_dir + "/vtk" << std::endl;
-        return 1;
-    }
-
-    // Create a physics system and an FSI system
+    // Create an MBS system and an FSI system
     ChSystemSMC sysMBS;
     ChSystemFsi sysFSI(&sysMBS);
 
@@ -147,13 +127,7 @@ int main(int argc, char* argv[]) {
     sysFSI.SetBoundaries(cMin, cMax);
 
     // Set SPH discretization type, consistent or inconsistent
-    sysFSI.SetDiscreType(false, false);
-
-    // Set wall boundary condition
-    sysFSI.SetWallBC(BceVersion::ADAMI);
-
-    // Set rigid body boundary condition
-    sysFSI.SetRigidBodyBC(BceVersion::ADAMI);
+    sysFSI.SetConsistentDerivativeDiscretization(false, false);
 
     // Set cohsion of the granular material
     sysFSI.SetCohesionForce(2000.0);
@@ -169,9 +143,33 @@ int main(int argc, char* argv[]) {
     }
 
     // Create solids
-    Create_MB_FE(sysMBS, sysFSI);
+    auto mesh = Create_MB_FE(sysMBS, sysFSI);
+
+    // Initialize FSI system
     sysFSI.Initialize();
-    auto my_mesh = sysFSI.GetFsiMesh();
+
+    // Create oputput directories
+    if (!filesystem::create_directory(filesystem::path(out_dir))) {
+        std::cerr << "Error creating directory " << out_dir << std::endl;
+        return 1;
+    }
+    out_dir = out_dir + "/" + sysFSI.GetPhysicsProblemString() + "_" + sysFSI.GetSphMethodTypeString();
+    if (!filesystem::create_directory(filesystem::path(out_dir))) {
+        std::cerr << "Error creating directory " << out_dir << std::endl;
+        return 1;
+    }
+    if (!filesystem::create_directory(filesystem::path(out_dir + "/particles"))) {
+        std::cerr << "Error creating directory " << out_dir + "/particles" << std::endl;
+        return 1;
+    }
+    if (!filesystem::create_directory(filesystem::path(out_dir + "/fsi"))) {
+        std::cerr << "Error creating directory " << out_dir + "/fsi" << std::endl;
+        return 1;
+    }
+    if (!filesystem::create_directory(filesystem::path(out_dir + "/vtk"))) {
+        std::cerr << "Error creating directory " << out_dir + "/vtk" << std::endl;
+        return 1;
+    }
 
 #ifdef CHRONO_OPENGL
     // Create a run-tme visualizer
@@ -201,39 +199,39 @@ int main(int argc, char* argv[]) {
 
     // Simulation loop
     double dT = sysFSI.GetStepSize();
-
-    unsigned int output_steps = (unsigned int)round(1 / (out_fps * dT));
-    unsigned int render_steps = (unsigned int)round(1 / (render_fps * dT));
-
     double time = 0.0;
-    int current_step = 0;
+    int sim_frame = 0;
+    int out_frame = 0;
+    int render_frame = 0;
 
     ChTimer timer;
     timer.start();
     while (time < t_end) {
-        std::cout << current_step << " time: " << time << std::endl;
+        std::cout << sim_frame << " time: " << time << std::endl;
 
-        if (output && current_step % output_steps == 0) {
+        if (output && time >= out_frame / output_fps) {
             std::cout << "-------- Output" << std::endl;
             sysFSI.PrintParticleToFile(out_dir + "/particles");
             sysFSI.PrintFsiInfoToFile(out_dir + "/fsi", time);
             static int counter = 0;
             std::string filename = out_dir + "/vtk/flex_body." + std::to_string(counter++) + ".vtk";
-            fea::ChMeshExporter::WriteFrame(my_mesh, MESH_CONNECTIVITY, filename);
+            fea::ChMeshExporter::WriteFrame(mesh, out_dir + "/Flex_MESH.vtk", filename);
+            out_frame++;
         }
 
 #ifdef CHRONO_OPENGL
         // Render SPH particles
-        if (render && current_step % render_steps == 0) {
+        if (render && time >= render_frame / render_fps) {
             if (!fsi_vis.Render())
                 break;
+            render_frame++;
         }
 #endif
 
         sysFSI.DoStepDynamics_FSI();
 
         time += dT;
-        current_step++;
+        sim_frame++;
     }
     timer.stop();
     std::cout << "\nSimulation time: " << timer() << " seconds\n" << std::endl;
@@ -244,7 +242,7 @@ int main(int argc, char* argv[]) {
 //--------------------------------------------------------------------
 // Create the objects of the MBD system. Rigid/flexible bodies, and if
 // fsi, their bce representation are created and added to the systems
-void Create_MB_FE(ChSystemSMC& sysMBS, ChSystemFsi& sysFSI) {
+std::shared_ptr<fea::ChMesh> Create_MB_FE(ChSystemSMC& sysMBS, ChSystemFsi& sysFSI) {
     sysMBS.SetGravitationalAcceleration(ChVector3d(0, 0, -9.81));
     sysFSI.SetGravitationalAcceleration(ChVector3d(0, 0, -9.81));
 
@@ -271,8 +269,7 @@ void Create_MB_FE(ChSystemSMC& sysMBS, ChSystemFsi& sysFSI) {
                               ChVector3d(bxDim, byDim, bzDim),                //
                               ChVector3i(2, 0, -1));
 
-    // ******************************* Rigid bodies ***********************************
-    // set the abs orientation, position and velocity
+    // Create a wheel rigid body
     auto wheel = chrono_types::make_shared<ChBodyAuxRef>();
     ChQuaternion<> Body_rot = QUNIT;
     ChVector3d Body_pos = wheel_IniPos;
@@ -306,46 +303,46 @@ void Create_MB_FE(ChSystemSMC& sysMBS, ChSystemFsi& sysFSI) {
     axle->SetFixed(false);
     sysMBS.AddBody(axle);
 
-    // Connect the chassis to the ground through a translational joint and create a linear actuator.
+    // Connect the chassis to the ground through a translational joint and create a linear actuator
     auto prismatic1 = chrono_types::make_shared<ChLinkLockPrismatic>();
     prismatic1->Initialize(ground, chassis, ChFrame<>(chassis->GetPos(), QuatFromAngleY(CH_PI_2)));
     prismatic1->SetName("prismatic_chassis_ground");
     sysMBS.AddLink(prismatic1);
 
-    // double velocity = wheel_AngVel * wheel_radius * (1.0 - wheel_slip);
-    // auto actuator_fun = chrono_types::make_shared<ChFunctionRamp>(0.0, velocity);
+    ////double velocity = wheel_AngVel * wheel_radius * (1.0 - wheel_slip);
+    ////auto actuator_fun = chrono_types::make_shared<ChFunctionRamp>(0.0, velocity);
 
-    // actuator->Initialize(ground, chassis, false, ChCoordsys<>(chassis->GetPos(), QUNIT),
-    //     ChCoordsys<>(chassis->GetPos() + ChVector3d(1, 0, 0), QUNIT));
-    // actuator->SetName("actuator");
-    // actuator->SetDistanceOffset(1);
-    // actuator->SetActuatorFunction(actuator_fun);
-    // sysMBS.AddLink(actuator);
+    ////auto actuator = chrono_types::make_shared<ChLinkLockLinActuator>();
+    ////actuator->Initialize(ground, chassis, false, ChFrame<>(chassis->GetPos(), QUNIT),
+    ////                     ChFrame<>(chassis->GetPos() + ChVector3d(1, 0, 0), QUNIT));
+    ////actuator->SetName("actuator");
+    ////actuator->SetDistanceOffset(1);
+    ////actuator->SetActuatorFunction(actuator_fun);
+    ////sysMBS.AddLink(actuator);
 
-    // Connect the axle to the chassis through a vertical translational joint.
+    // Connect the axle to the chassis through a vertical translational joint
     auto prismatic2 = chrono_types::make_shared<ChLinkLockPrismatic>();
     prismatic2->Initialize(chassis, axle, ChFrame<>(chassis->GetPos(), QUNIT));
     prismatic2->SetName("prismatic_axle_chassis");
     sysMBS.AddLink(prismatic2);
 
-    // Connect the wheel to the axle through a engine joint.
+    // Connect the wheel to the axle through a motor link
+    auto motor = chrono_types::make_shared<ChLinkMotorRotationAngle>();
     motor->SetName("engine_wheel_axle");
     motor->Initialize(wheel, axle, ChFrame<>(wheel->GetPos(), chrono::QuatFromAngleX(-CH_PI_2)));
     motor->SetAngleFunction(chrono_types::make_shared<ChFunctionRamp>(0, wheel_AngVel));
     sysMBS.AddLink(motor);
 
-    // ******************************* Flexible bodies ***********************************
-    // Create a mesh, that is a container for groups of elements and their referenced nodes.
-    auto my_mesh = chrono_types::make_shared<fea::ChMesh>();
-    std::vector<std::vector<int>> _2D_elementsNodes_mesh;
+    // Create an FEA mesh representing a cantilever plate modeled with ANCF shell elements
+    auto mesh = chrono_types::make_shared<fea::ChMesh>();
 
     // Add the tire
     {
         auto mat = chrono_types::make_shared<ChMaterialShellANCF>(2000, 1.0e7, 0.3);
 
-        // Create the mesh nodes.
+        // Create the mesh nodes
         // The nodes are first created in the wheel local frame, assuming Y as the tire axis,
-        // and are then transformed to the global frame.
+        // and are then transformed to the global frame
         for (unsigned int i = 0; i < m_div_circumference; i++) {
             double phi = (CH_2PI * i) / m_div_circumference;
             for (unsigned int j = 0; j <= m_div_width; j++) {
@@ -363,7 +360,7 @@ void Create_MB_FE(ChSystemSMC& sysMBS, ChSystemFsi& sysFSI) {
 
                 auto node = chrono_types::make_shared<ChNodeFEAxyzD>(loc, dir);
                 node->SetMass(0.0);
-                my_mesh->AddNode(node);
+                mesh->AddNode(node);
 
                 // Fix the edge node on the wheel
                 if (j == 0 || j == m_div_width) {
@@ -373,12 +370,6 @@ void Create_MB_FE(ChSystemSMC& sysMBS, ChSystemFsi& sysFSI) {
                 }
             }
         }
-
-        unsigned int TotalNumElements = m_div_circumference * m_div_width;  // my_mesh->GetNumElements();
-        unsigned int TotalNumNodes = my_mesh->GetNumNodes();
-
-        _2D_elementsNodes_mesh.resize(TotalNumElements);
-        NodeNeighborElement_mesh.resize(TotalNumNodes);
 
         // Element thickness
         double dz = m_thickness;
@@ -399,21 +390,12 @@ void Create_MB_FE(ChSystemSMC& sysMBS, ChSystemFsi& sysFSI) {
                     inode3 = j + 1 + (i + 1) * (m_div_width + 1);
                 }
 
-                auto node0 = std::dynamic_pointer_cast<ChNodeFEAxyzD>(my_mesh->GetNode(inode0));
-                auto node1 = std::dynamic_pointer_cast<ChNodeFEAxyzD>(my_mesh->GetNode(inode1));
-                auto node2 = std::dynamic_pointer_cast<ChNodeFEAxyzD>(my_mesh->GetNode(inode2));
-                auto node3 = std::dynamic_pointer_cast<ChNodeFEAxyzD>(my_mesh->GetNode(inode3));
+                auto node0 = std::dynamic_pointer_cast<ChNodeFEAxyzD>(mesh->GetNode(inode0));
+                auto node1 = std::dynamic_pointer_cast<ChNodeFEAxyzD>(mesh->GetNode(inode1));
+                auto node2 = std::dynamic_pointer_cast<ChNodeFEAxyzD>(mesh->GetNode(inode2));
+                auto node3 = std::dynamic_pointer_cast<ChNodeFEAxyzD>(mesh->GetNode(inode3));
 
-                _2D_elementsNodes_mesh[num_elem].push_back(inode0);
-                _2D_elementsNodes_mesh[num_elem].push_back(inode1);
-                _2D_elementsNodes_mesh[num_elem].push_back(inode2);
-                _2D_elementsNodes_mesh[num_elem].push_back(inode3);
-                NodeNeighborElement_mesh[inode0].push_back(num_elem);
-                NodeNeighborElement_mesh[inode1].push_back(num_elem);
-                NodeNeighborElement_mesh[inode2].push_back(num_elem);
-                NodeNeighborElement_mesh[inode3].push_back(num_elem);
-
-                // Create the element and set its nodes.
+                // Create the element and set its nodes
                 auto element = chrono_types::make_shared<ChElementShellANCF_3423>();
                 element->SetNodes(node0, node1, node2, node3);
 
@@ -426,14 +408,14 @@ void Create_MB_FE(ChSystemSMC& sysMBS, ChSystemFsi& sysFSI) {
                 // Set element dimensions
                 element->SetDimensions(dx, dy);
 
-                // Add a single layers with a fiber angle of 0 degrees.
+                // Add a single layers with a fiber angle of 0 degrees
                 element->AddLayer(dz, 0 * CH_DEG_TO_RAD, mat);
 
                 // Set other element properties
                 element->SetAlphaDamp(m_alpha);
 
                 // Add element to mesh
-                my_mesh->AddElement(element);
+                mesh->AddElement(element);
 
                 ChVector3d center = 0.25 * (element->GetNodeA()->GetPos() + element->GetNodeB()->GetPos() +
                                             element->GetNodeC()->GetPos() + element->GetNodeD()->GetPos());
@@ -445,15 +427,11 @@ void Create_MB_FE(ChSystemSMC& sysMBS, ChSystemFsi& sysFSI) {
         }
     }
 
-    // Add the mesh to the system
-    sysMBS.Add(my_mesh);
+    // Add the mesh to the MBS system
+    sysMBS.Add(mesh);
 
-    // fluid representation of flexible bodies
-    bool multilayer = true;
-    bool removeMiddleLayer = true;
-    sysFSI.AddFEAmeshBCE(my_mesh, NodeNeighborElement_mesh, std::vector<std::vector<int>>(), _2D_elementsNodes_mesh,
-                         false, true, multilayer, removeMiddleLayer, 0, 0);
+    // Add the mesh to the FSI system (only these meshes interact with the fluid)
+    sysFSI.AddFsiMesh(mesh);
 
-    sysFSI.AddFsiMesh(my_mesh, std::vector<std::vector<int>>(), _2D_elementsNodes_mesh);
-    fea::ChMeshExporter::WriteMesh(my_mesh, MESH_CONNECTIVITY);
+    return mesh;
 }

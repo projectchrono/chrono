@@ -20,6 +20,7 @@
 
 #include "chrono/core/ChQuaternion.h"
 #include "chrono/core/ChVector3.h"
+#include "chrono/core/ChVector2.h"
 
 #include "chrono_fsi/ChApiFsi.h"
 #include "chrono_fsi/math/custom_math.h"
@@ -43,8 +44,11 @@ CH_FSI_API ChVector3d ToChVector(const Real4& p4);
 /// Convert a Real4 data structure to a ChQuaternion data structure.
 CH_FSI_API ChQuaternion<> ToChQuaternion(const Real4& q4);
 
-/// Convert a ChVector3d data structure to a Real3 data structure.
-CH_FSI_API Real3 ToReal3(const ChVector3d& v3);
+// Convert a ChVector2 data structure to a Real2 data structure.
+Real2 ToReal2(const ChVector2<>& v2);
+
+/// Convert a ChVector data structure to a Real3 data structure.
+CH_FSI_API Real3 ToReal3(const ChVector3<>& v3);
 
 /// Convert a ChVector3d and a scalar to a Real4 data structure.
 CH_FSI_API Real4 ToReal4(const ChVector3d& v3, Real m);

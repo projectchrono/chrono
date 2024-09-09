@@ -52,13 +52,16 @@ CH_FSI_API void PrintParticleToFile(const thrust::device_vector<Real4>& posRadD,
 /// velocity, orientation of rigid bosied and position, velocity
 /// of nodes on flexible bodies.
 CH_FSI_API void PrintFsiInfoToFile(const thrust::device_vector<Real3>& posRigidD,
-                                   const thrust::device_vector<Real4>& velRigidD,
                                    const thrust::device_vector<Real4>& qRigidD,
-                                   const thrust::device_vector<Real3>& posNodeD,
-                                   const thrust::device_vector<Real3>& velNodeD,
-                                   const thrust::host_vector<Real3>& forceRigid,
-                                   const thrust::host_vector<Real3>& torqueRigid,
-                                   const thrust::host_vector<Real3>& forceNode,
+                                   const thrust::device_vector<Real4>& velRigidD,
+                                   const thrust::device_vector<Real3>& pos1DNodeD,
+                                   const thrust::device_vector<Real3>& pos2DNodeD,
+                                   const thrust::device_vector<Real3>& vel1DNodeD,
+                                   const thrust::device_vector<Real3>& vel2DNodeD,
+                                   const thrust::device_vector<Real3>& forceRigidD,
+                                   const thrust::device_vector<Real3>& torqueRigidD,
+                                   const thrust::device_vector<Real3>& force1DNodeD,
+                                   const thrust::device_vector<Real3>& force2DNodeD,
                                    const std::string& dir,
                                    const double time);
 

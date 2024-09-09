@@ -38,6 +38,10 @@ ChFsiVisualization::~ChFsiVisualization() {
     delete m_system;
 }
 
+void ChFsiVisualization::SetVerbose(bool verbose) {
+    GetVisualSystem()->SetVerbose(verbose);
+}
+
 void ChFsiVisualization::SetSize(int width, int height) {}
 
 void ChFsiVisualization::SetTitle(const std::string& title) {}

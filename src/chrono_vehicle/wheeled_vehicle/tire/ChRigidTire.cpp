@@ -114,10 +114,10 @@ void ChRigidTire::AddVisualizationAssets(VisualizationType vis) {
     if (vis == VisualizationType::NONE)
         return;
 
-    m_cyl_shape = ChVehicleGeometry::AddVisualizationCylinder(m_wheel->GetSpindle(),                           //
-                                                              ChVector3d(0, GetOffset() + GetWidth() / 2, 0),  //
-                                                              ChVector3d(0, GetOffset() - GetWidth() / 2, 0),  //
-                                                              GetRadius());
+    m_cyl_shape = utils::ChBodyGeometry::AddVisualizationCylinder(m_wheel->GetSpindle(),                           //
+                                                                  ChVector3d(0, GetOffset() + GetWidth() / 2, 0),  //
+                                                                  ChVector3d(0, GetOffset() - GetWidth() / 2, 0),  //
+                                                                  GetRadius());
     m_cyl_shape->SetTexture(GetChronoDataFile("textures/greenwhite.png"));
 }
 

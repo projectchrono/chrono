@@ -1,51 +1,45 @@
 {
-
-  "Physical Properties of Fluid":
-  {
-    "Density":                1000,
-    "Viscosity":              0.001,
-    "Gravity":                [0.0, 0.0, -9.81]
+  "Physical Properties of Fluid": {
+    "Density": 1000,
+    "Viscosity": 0.001,
+    "Gravity": [
+      0.0,
+      0.0,
+      -9.81
+    ]
   },
-
-  "SPH Parameters":
-  {
-    "Method":                         "I2SPH",
-    "Kernel h":                       0.1,
-    "Initial Spacing":                0.1,
-    "Epsilon":                        0.01,
-    "Maximum Velocity":               1.0,
-    "XSPH Coefficient":               0.1,
-    "Shifting Coefficient":           0.00,
-    "Density Reinitialization":       0,
-    "Conservative Discretization":    true,
-    "Gradient Discretization Type":    2,
-    "Laplacian Discretization Type":   2
+  "SPH Parameters": {
+    "Method": "I2SPH",
+    "Kernel h": 0.1,
+    "Initial Spacing": 0.1,
+    "Epsilon": 0.01,
+    "Maximum Velocity": 1.0,
+    "XSPH Coefficient": 0.1,
+    "Shifting Coefficient": 0.00,
+    "Density Reinitialization": 0,
+    "Conservative Discretization": true,
+    "Gradient Discretization Type": 2,
+    "Laplacian Discretization Type": 2,
+    "Time steps per proximity search": 1
   },
-
-  "Time Stepping":
-  {
-    "Adaptive Time stepping":        false,
-    "CFL number":                    0.2,
-    "Fluid time step":               0.001,
-    "Solid time step":               0.001,
-    "Maximum time step":             0.001
+  "Time Stepping": {
+    "Adaptive Time stepping": false,
+    "CFL number": 0.2,
+    "Fluid time step": 0.001,
+    "Solid time step": 0.001,
+    "Maximum time step": 0.001
   },
-
-
-  "Pressure Equation":
-  {
-    "Boundary Conditions":     "Generalized Wall BC",
-    "Linear solver":           "Jacobi",
-    "Poisson source term":     "Density-Based",
-    "Projection method":       "Non-Incremental",
-    "Under-relaxation":         1.0,
-    "Clamp Pressure":           true,
-    "Alpha Source Term":        1.0,
-    "Absolute residual":        1e-8,
-    "Relative residual":        0.0,
-    "Maximum Iterations":       1000,
-    "Verbose monitoring":       false,
-    "Constraint Pressure":      false,
-    "Average Pressure":         0.0
+  "Pressure Equation": {
+    "Linear solver": "Jacobi",
+    "Poisson source term": "Density-Based",
+    "Under-relaxation": 1.0,
+    "Clamp Pressure": true,
+    "Alpha Source Term": 1.0,
+    "Absolute residual": 1e-8,
+    "Relative residual": 0.0,
+    "Maximum Iterations": 1000,
+    "Verbose monitoring": false,
+    "Constraint Pressure": false,
+    "Average Pressure": 0.0
   }
 }

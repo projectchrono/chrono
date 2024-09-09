@@ -27,7 +27,6 @@
 #include "chrono_fsi/physics/ChSystemFsi_impl.cuh"
 #include "chrono_fsi/physics/ChParams.h"
 #include "chrono_fsi/math/ChFsiLinearSolver.h"
-#include "chrono_fsi/math/ExactLinearSolvers.cuh"
 #include "chrono_fsi/math/custom_math.h"
 
 namespace chrono {
@@ -77,7 +76,7 @@ __device__ inline Real W3h_Quintic(Real d, Real h) {  // d is positive. h is the
                                                       // the document) d is the distance of 2 particles
     Real invh = paramsD.INVHSML;
     Real q = fabs(d) * invh;
-    Real coeff = 8.35655e-3; // 3/359
+    Real coeff = 8.35655e-3;  // 3/359
     if (q < 1) {
         return (coeff * INVPI * cube(invh) * (quintic(3 - q) - 6 * quintic(2 - q) + 15 * quintic(1 - q)));
     }
@@ -122,7 +121,7 @@ __device__ inline Real3 W3h_Quintic(Real3 d, Real h) {  // d is positive. h is t
     Real q = length(d) * invh;
     if (fabs(q) < 1e-10)
         return mR3(0.0);
-    Real coeff = -4.178273e-2; // -15/359
+    Real coeff = -4.178273e-2;  // -15/359
     if (q < 1) {
         return (coeff * (INVPI * quintic(invh) / q) * d * (quartic(3 - q) - 6 * quartic(2 - q) + 15 * quartic(1 - q)));
     }
@@ -172,7 +171,7 @@ __device__ inline Real3 Modify_Local_PosB(Real3& b, Real3 a) {
 
     dist3 = a - b;
     // modifying the markers perfect overlap
-    Real dd = dist3.x*dist3.x + dist3.y*dist3.y + dist3.z*dist3.z;
+    Real dd = dist3.x * dist3.x + dist3.y * dist3.y + dist3.z * dist3.z;
     Real MinD = paramsD.epsMinMarkersDis * paramsD.HSML;
     Real sq_MinD = MinD * MinD;
     if (dd < sq_MinD) {
@@ -208,9 +207,9 @@ __device__ inline int3 calcGridPos(Real3 p) {
     if (paramsD.cellSize.x * paramsD.cellSize.y * paramsD.cellSize.z == 0)
         printf("calcGridPos=%f,%f,%f\n", paramsD.cellSize.x, paramsD.cellSize.y, paramsD.cellSize.z);
 
-    gridPos.x = (int)floor((p.x - paramsD.worldOrigin.x) / paramsD.cellSize.x);
-    gridPos.y = (int)floor((p.y - paramsD.worldOrigin.y) / paramsD.cellSize.y);
-    gridPos.z = (int)floor((p.z - paramsD.worldOrigin.z) / paramsD.cellSize.z);
+    gridPos.x = (int)floor((p.x - paramsD.worldOrigin.x) / (paramsD.cellSize.x));
+    gridPos.y = (int)floor((p.y - paramsD.worldOrigin.y) / (paramsD.cellSize.y));
+    gridPos.z = (int)floor((p.z - paramsD.worldOrigin.z) / (paramsD.cellSize.z));
     return gridPos;
 }
 //--------------------------------------------------------------------------------------------------------------------------------
@@ -224,6 +223,49 @@ __device__ inline uint calcGridHash(int3 gridPos) {
     gridPos.z += ((gridPos.z < 0) ? paramsD.gridSize.z : 0);
 
     return gridPos.z * paramsD.gridSize.y * paramsD.gridSize.x + gridPos.y * paramsD.gridSize.x + gridPos.x;
+}
+
+//--------------------------------------------------------------------------------------------------------------------------------
+__device__ inline uint calcCellID(uint3 cellPos) {
+    if (cellPos.x < paramsD.gridSize.x && cellPos.y < paramsD.gridSize.y && cellPos.z < paramsD.gridSize.z) {
+        return cellPos.z * paramsD.gridSize.x * paramsD.gridSize.y + cellPos.y * paramsD.gridSize.x + cellPos.x;
+    } else {
+        printf("shouldn't be here\n");
+        return paramsD.gridSize.x * paramsD.gridSize.y * paramsD.gridSize.z;
+    }
+}
+
+//--------------------------------------------------------------------------------------------------------------------------------
+__device__ inline uint getCellPos(int trialCellPos, uint ub) {
+    if (trialCellPos >= 0 && trialCellPos < ub) {
+        return (uint)trialCellPos;
+    } else if (trialCellPos < 0) {
+        return (uint)(trialCellPos + ub);
+    } else {
+        return (uint)(trialCellPos - ub);
+    }
+    return (uint)trialCellPos;
+}
+
+//--------------------------------------------------------------------------------------------------------------------------------
+inline __device__ uint getCenterCellID(const uint* numPartsInCenterCells, const uint threadID) {
+    uint offsets[9] = {0};
+    for (int i = 0; i < 8; ++i) {
+        offsets[i + 1] = numPartsInCenterCells[i];
+    }
+    uint left = 0;
+    uint right = 8;
+    while (left < right) {
+        uint mid = (left + right) / 2;
+        if (offsets[mid] < threadID) {
+            left = mid + 1;
+        } else if (offsets[mid] > threadID) {
+            right = mid;
+        } else {
+            return mid;
+        }
+    }
+    return left - 1;
 }
 
 ////--------------------------------------------------------------------------------------------------------------------------------
@@ -292,26 +334,32 @@ inline __device__ Real Herschel_Bulkley_mu_eff(Real Strain_rate, Real k, Real n,
 }
 ////--------------------------------------------------------------------------------------------------------------------------------
 inline __device__ void BCE_Vel_Acc(int i_idx,
-                                   Real3& myAcc,
-                                   Real3& V_prescribed,
+                                   Real3& myAcc,         // output: BCE marker acceleration
+                                   Real3& V_prescribed,  // output: BCE marker velocity
                                    Real4* sortedPosRad,
                                    int4 updatePortion,
                                    uint* gridMarkerIndexD,
                                    Real4* qD,
-                                   Real3* rigidSPH_MeshPos_LRF_D,
+                                   Real3* rigid_BCEcoords_D,
                                    Real3* posRigid_fsiBodies_D,
                                    Real4* velMassRigid_fsiBodies_D,
                                    Real3* omegaVelLRF_fsiBodies_D,
                                    Real3* accRigid_fsiBodies_D,
                                    Real3* omegaAccLRF_fsiBodies_D,
-                                   uint* rigidIdentifierD,
-                                   Real3* pos_fsi_fea_D,
-                                   Real3* vel_fsi_fea_D,
-                                   Real3* acc_fsi_fea_D,
-                                   uint* FlexIdentifierD,
-                                   const int numFlex1D,
-                                   uint2* CableElementsNodesD,
-                                   uint4* ShellElementsNodesD) {
+                                   uint* rigid_BCEsolids_D,
+
+                                   Real3* flex1D_vel_fsi_fea_D,  // vel of fea 1d element
+                                   Real3* flex1D_acc_fsi_fea_D,  // acc of fea 1d element
+                                   Real3* flex2D_vel_fsi_fea_D,  // vel of fea 2d element
+                                   Real3* flex2D_acc_fsi_fea_D,  // acc of fea 2d element
+
+                                   uint2* flex1D_Nodes_D,      // segment node indices
+                                   uint3* flex1D_BCEsolids_D,  // association of flex BCEs with a mesh and segment
+                                   Real3* flex1D_BCEcoords_D,  // local coordinates of BCE markers on FEA 1-D segments
+                                   uint3* flex2D_Nodes_D,      // triangle node indices
+                                   uint3* flex2D_BCEsolids_D,  // association of flex BCEs with a mesh and face
+                                   Real3* flex2D_BCEcoords_D   // local coordinates of BCE markers on FEA 2-D faces
+) {
     int Original_idx = gridMarkerIndexD[i_idx];
 
     // See if this belongs to a fixed boundary
@@ -321,12 +369,12 @@ inline __device__ void BCE_Vel_Acc(int i_idx,
         if (paramsD.Apply_BC_U)
             V_prescribed = user_BC_U(mR3(sortedPosRad[i_idx]));
     } else if (Original_idx >= updatePortion.y && Original_idx < updatePortion.z) {
-        int rigidIndex = rigidIdentifierD[Original_idx - updatePortion.y];
+        int rigidIndex = rigid_BCEsolids_D[Original_idx - updatePortion.y];
 
         Real4 q4 = qD[rigidIndex];
         Real3 a1, a2, a3;
         RotationMatirixFromQuaternion(a1, a2, a3, q4);
-        Real3 rigidSPH_MeshPos_LRF__ = rigidSPH_MeshPos_LRF_D[Original_idx - updatePortion.y];
+        Real3 rigidSPH_MeshPos_LRF__ = rigid_BCEcoords_D[Original_idx - updatePortion.y];
 
         // Real3 p_com = mR3(posRigid_fsiBodies_D[rigidIndex]);
         Real3 v_com = mR3(velMassRigid_fsiBodies_D[rigidIndex]);
@@ -348,80 +396,55 @@ inline __device__ void BCE_Vel_Acc(int i_idx,
 
         // Or not, Flexible bodies for sure
     } else if (Original_idx >= updatePortion.z && Original_idx < updatePortion.w) {
-        int FlexIndex = FlexIdentifierD[Original_idx - updatePortion.z];
+        int FlexIndex = Original_idx - updatePortion.z;  // offset index for bce markers on flex bodies
 
-        if (FlexIndex < numFlex1D) {
-            int nA = CableElementsNodesD[FlexIndex].x;
-            int nB = CableElementsNodesD[FlexIndex].y;
+        // FlexIndex iterates through both 1D and 2D ones
+        if (FlexIndex < numObjectsD.numFlexMarkers1D) {
+            // 1D element case
+            uint3 flex_solid = flex1D_BCEsolids_D[FlexIndex];  // associated flex mesh and segment
+            // Luning TODO: do we need flex_mesh and flex_mesh_seg?
+            ////uint flex_mesh = flex_solid.x;                 // index of associated mesh
+            ////uint flex_mesh_seg = flex_solid.y;             // index of segment in associated mesh
+            uint flex_seg = flex_solid.z;  // index of segment in global list
 
-            Real3 pos_fsi_fea_D_nA = pos_fsi_fea_D[nA];
-            Real3 pos_fsi_fea_D_nB = pos_fsi_fea_D[nB];
+            uint2 seg_nodes = flex1D_Nodes_D[flex_seg];    // indices of the 2 nodes on associated segment
+            Real3 A0 = flex1D_acc_fsi_fea_D[seg_nodes.x];  // (absolute) acceleration of node 0
+            Real3 A1 = flex1D_acc_fsi_fea_D[seg_nodes.y];  // (absolute) acceleration of node 1
 
-            Real3 vel_fsi_fea_D_nA = vel_fsi_fea_D[nA];
-            Real3 vel_fsi_fea_D_nB = vel_fsi_fea_D[nB];
+            Real3 V0 = flex1D_vel_fsi_fea_D[seg_nodes.x];  // (absolute) acceleration of node 0
+            Real3 V1 = flex1D_vel_fsi_fea_D[seg_nodes.y];  // (absolute) acceleration of node 1
 
-            Real3 acc_fsi_fea_D_nA = acc_fsi_fea_D[nA];
-            Real3 acc_fsi_fea_D_nB = acc_fsi_fea_D[nB];
+            Real lambda0 = flex1D_BCEcoords_D[FlexIndex].x;  // segment coordinate
+            Real lambda1 = 1 - lambda0;                      // segment coordinate
 
-            Real3 dist3 = mR3(sortedPosRad[i_idx]) - pos_fsi_fea_D_nA;
-            Real3 x_dir = (pos_fsi_fea_D_nB - pos_fsi_fea_D_nA);
-            Real Cable_x = length(x_dir);
-            x_dir = x_dir / length(x_dir);
-            Real dx = dot(dist3, x_dir);
-
-            // Real2 N_cable = Cables_ShapeFunctions(dx / Cable_x);
-            // Real NA = N_cable.x;
-            // Real NB = N_cable.y;
-            Real NA = 1 - dx / Cable_x;
-            Real NB = dx / Cable_x;
-
-            V_prescribed = NA * vel_fsi_fea_D_nA + NB * vel_fsi_fea_D_nB;
-            myAcc = NA * acc_fsi_fea_D_nA + NB * acc_fsi_fea_D_nB;
-
+            V_prescribed = V0 * lambda0 + V1 * lambda1;
+            myAcc = A0 * lambda0 + A1 * lambda1;
         }
-        if (FlexIndex >= numFlex1D) {
-            int nA = ShellElementsNodesD[FlexIndex - numFlex1D].x;
-            int nB = ShellElementsNodesD[FlexIndex - numFlex1D].y;
-            int nC = ShellElementsNodesD[FlexIndex - numFlex1D].z;
-            int nD = ShellElementsNodesD[FlexIndex - numFlex1D].w;
+        if (FlexIndex >= numObjectsD.numFlexMarkers1D) {
+            int flex2d_index = FlexIndex - numObjectsD.numFlexMarkers1D;
 
-            Real3 pos_fsi_fea_D_nA = pos_fsi_fea_D[nA];
-            Real3 pos_fsi_fea_D_nB = pos_fsi_fea_D[nB];
-            Real3 pos_fsi_fea_D_nC = pos_fsi_fea_D[nC];
-            Real3 pos_fsi_fea_D_nD = pos_fsi_fea_D[nD];
+            uint3 flex_solid = flex2D_BCEsolids_D[flex2d_index];  // associated flex mesh and face
+            ////uint flex_mesh = flex_solid.x;                 // index of associated mesh
+            ////uint flex_mesh_tri = flex_solid.y;             // index of triangle in associated mesh
+            uint flex_tri = flex_solid.z;  // index of triangle in global list
 
-            Real3 vel_fsi_fea_D_nA = vel_fsi_fea_D[nA];
-            Real3 vel_fsi_fea_D_nB = vel_fsi_fea_D[nB];
-            Real3 vel_fsi_fea_D_nC = vel_fsi_fea_D[nC];
-            Real3 vel_fsi_fea_D_nD = vel_fsi_fea_D[nD];
+            auto tri_nodes = flex2D_Nodes_D[flex_tri];     // indices of the 3 nodes on associated face
+            Real3 A0 = flex2D_acc_fsi_fea_D[tri_nodes.x];  // (absolute) acceleration of node 0
+            Real3 A1 = flex2D_acc_fsi_fea_D[tri_nodes.y];  // (absolute) acceleration of node 1
+            Real3 A2 = flex2D_acc_fsi_fea_D[tri_nodes.z];  // (absolute) acceleration of node 2
 
-            Real3 acc_fsi_fea_D_nA = acc_fsi_fea_D[nA];
-            Real3 acc_fsi_fea_D_nB = acc_fsi_fea_D[nB];
-            Real3 acc_fsi_fea_D_nC = acc_fsi_fea_D[nC];
-            Real3 acc_fsi_fea_D_nD = acc_fsi_fea_D[nD];
+            Real3 V0 = flex2D_vel_fsi_fea_D[tri_nodes.x];  // (absolute) acceleration of node 0
+            Real3 V1 = flex2D_vel_fsi_fea_D[tri_nodes.y];  // (absolute) acceleration of node 1
+            Real3 V2 = flex2D_vel_fsi_fea_D[tri_nodes.z];  // (absolute) acceleration of node 2
 
-            Real3 Shell_center = 0.25 * (pos_fsi_fea_D_nA + pos_fsi_fea_D_nB + pos_fsi_fea_D_nC + pos_fsi_fea_D_nD);
+            Real lambda0 = flex2D_BCEcoords_D[flex2d_index].x;  // barycentric coordinate
+            Real lambda1 = flex2D_BCEcoords_D[flex2d_index].y;  // barycentric coordinate
+            Real lambda2 = 1 - lambda0 - lambda1;               // barycentric coordinate
 
-            // Note that this must be the i_idx itself not the Original_idx
-            Real3 dist3 = mR3(sortedPosRad[i_idx]) - Shell_center;
-
-            Real Shell_x =
-                0.25 * (length(pos_fsi_fea_D_nB - pos_fsi_fea_D_nA) + length(pos_fsi_fea_D_nC - pos_fsi_fea_D_nD));
-            Real Shell_y =
-                0.25 * (length(pos_fsi_fea_D_nD - pos_fsi_fea_D_nA) + length(pos_fsi_fea_D_nC - pos_fsi_fea_D_nB));
-
-            Real2 FlexSPH_MeshPos_Natural = mR2(dist3.x / Shell_x, dist3.y / Shell_y);
-
-            Real4 N_shell = Shells_ShapeFunctions(FlexSPH_MeshPos_Natural.x, FlexSPH_MeshPos_Natural.y);
-            Real NA = N_shell.x;
-            Real NB = N_shell.y;
-            Real NC = N_shell.z;
-            Real ND = N_shell.w;
-            V_prescribed =
-                NA * vel_fsi_fea_D_nA + NB * vel_fsi_fea_D_nB + NC * vel_fsi_fea_D_nC + ND * vel_fsi_fea_D_nD;
-            myAcc = NA * acc_fsi_fea_D_nA + NB * acc_fsi_fea_D_nB + NC * acc_fsi_fea_D_nC + ND * acc_fsi_fea_D_nD;
-
+            V_prescribed = V0 * lambda0 + V1 * lambda1 + V2 * lambda2;
+            myAcc = A0 * lambda0 + A1 * lambda1 + A2 * lambda2;
         }
+
     } else {
         printf("i_idx=%d, Original_idx:%d was not found \n\n", i_idx, Original_idx);
     }
@@ -541,6 +564,23 @@ __global__ void UpdateDensity(Real3* vis_vel,
                               uint* cellEnd,
                               size_t numAllMarkers,
                               volatile bool* isErrorD);
+
+__global__ void neighborSearchNum(const Real4* sortedPosRad,
+                                  const Real4* sortedRhoPreMu,
+                                  const uint* cellStart,
+                                  const uint* cellEnd,
+                                  const uint* activityIdentifierD,
+                                  uint* numNeighborsPerPart,
+                                  volatile bool* isErrorD);
+
+__global__ void neighborSearchID(const Real4* sortedPosRad,
+                                 const Real4* sortedRhoPreMu,
+                                 const uint* cellStart,
+                                 const uint* cellEnd,
+                                 const uint* activityIdentifierD,
+                                 const uint* numNeighborsPerPart,
+                                 uint* neighborList,
+                                 volatile bool* isErrorD);
 
 }  // namespace fsi
 }  // namespace chrono

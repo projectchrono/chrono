@@ -175,13 +175,10 @@ int main(int argc, char* argv[]) {
     sysFSI.SetContainerDim(ChVector3d(bxDim, byDim, bzDim));
 
     // Set SPH discretization type, consistent or inconsistent
-    sysFSI.SetDiscreType(false, false);
+    sysFSI.SetConsistentDerivativeDiscretization(false, false);
 
-    // Set wall boundary condition
-    sysFSI.SetWallBC(BceVersion::ADAMI);
-
-    // Setup the solver based on the input value of the prameters
-    sysFSI.SetSPHMethod(FluidDynamics::WCSPH);
+    // Set the SPH method
+    sysFSI.SetSPHMethod(SPHMethod::WCSPH);
 
     // Set the periodic boundary condition
     double initSpace0 = sysFSI.GetInitialSpacing();
@@ -217,10 +214,6 @@ int main(int argc, char* argv[]) {
 
     // Complete construction of the FSI system
     sysFSI.Initialize();
-
-    // Get the body from the FSI system for visualization
-    std::vector<std::shared_ptr<ChBody>>& FSI_Bodies = sysFSI.GetFsiBodies();
-    auto Rover = FSI_Bodies[0];
 
     // Write position and velocity to file
     std::ofstream ofile;

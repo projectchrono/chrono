@@ -65,7 +65,7 @@ PatchType patch_type = PatchType::HEIGHT_MAP;
 
 std::shared_ptr<WheeledVehicle> CreateVehicle(ChSystem& sys, const ChCoordsys<>& init_pos);
 std::shared_ptr<ChBezierCurve> CreatePath(const std::string& path_file);
-void CreateWheelBCEMarkers(std::shared_ptr<WheeledVehicle> vehicle, ChSystemFsi& sysFSI);
+void CreateWheelBCEMarkers(std::shared_ptr<WheeledVehicle> vehicle, CRMTerrain& terrain);
 
 // ===================================================================================================================
 
@@ -100,6 +100,11 @@ int main(int argc, char* argv[]) {
     ChSystemNSC sys;
     sys.SetCollisionSystemType(ChCollisionSystem::Type::BULLET);
 
+    // Create vehicle
+    cout << "Create vehicle..." << endl;
+    ChVector3d veh_init_pos(3.2, 0, 0.25);
+    auto vehicle = CreateVehicle(sys, ChCoordsys<>(veh_init_pos, QUNIT));
+
     // Create the CRM terrain system
     CRMTerrain terrain(sys, spacing);
     terrain.SetVerbose(verbose);
@@ -111,6 +116,7 @@ int main(int argc, char* argv[]) {
     sys.SetGravitationalAcceleration(gravity);
 
     ChSystemFsi::ElasticMaterialProperties mat_props;
+    mat_props.density = density;
     mat_props.Young_modulus = youngs_modulus;
     mat_props.Poisson_ratio = poisson_ratio;
     mat_props.stress = 0;  // default
@@ -122,39 +128,44 @@ int main(int argc, char* argv[]) {
     mat_props.average_diam = 0.005;
     mat_props.friction_angle = CH_PI / 10;  // default
     mat_props.dilation_angle = CH_PI / 10;  // default
-    mat_props.cohesion_coeff = 0;           // default
-    mat_props.kernel_threshold = 0.8;
+    mat_props.cohesion_coeff = cohesion;
 
     sysFSI.SetElasticSPH(mat_props);
-    sysFSI.SetDensity(density);
-    sysFSI.SetCohesionForce(cohesion);
 
-    sysFSI.SetActiveDomain(ChVector3d(active_box_hdim));
-    sysFSI.SetDiscreType(false, false);
-    sysFSI.SetWallBC(BceVersion::ORIGINAL);
-    sysFSI.SetSPHMethod(FluidDynamics::WCSPH);
+    ChSystemFsi::SPHParameters sph_params;
+    sph_params.sph_method = SPHMethod::WCSPH;
+    sph_params.kernel_h = spacing;
+    sph_params.initial_spacing = spacing;
+    sph_params.kernel_threshold = 0.8;
+    sph_params.consistent_gradient_discretization = false;
+    sph_params.consistent_laplacian_discretization = false;
+
+    sysFSI.SetSPHParameters(sph_params);
     sysFSI.SetStepSize(step_size);
 
+    sysFSI.SetActiveDomain(ChVector3d(active_box_hdim));
+
     sysFSI.SetOutputLength(0);
+
+    // Add rover wheels as FSI bodies
+    CreateWheelBCEMarkers(vehicle, terrain);
 
     // Construct the terrain
     cout << "Create terrain..." << endl;
     switch (patch_type) {
         case PatchType::RECTANGULAR:
             // Create a rectangular terrain patch
-            terrain.Construct(10.0, 3.0,            // length X width
-                              0.25,                 // depth
-                              3,                    // number BCE layers
+            terrain.Construct({10.0, 3.0, 0.25},    // length X width X height
                               ChVector3d(5, 0, 0),  // patch center
-                              0.0,                  // patch orientation angle
-                              true                  // create side boundaries
+                              true,                 // bottom wall?
+                              true                  // side walls?
             );
             break;
         case PatchType::MARKER_DATA:
             // Create a patch using SPH particles and BCE markers from files
             terrain.Construct(vehicle::GetDataFile(terrain_dir + "/sph_particles.txt"),  // SPH marker locations
-                              vehicle::GetDataFile(terrain_dir + "/bce_markers.txt")     // BCE marker locations
-            );
+                              vehicle::GetDataFile(terrain_dir + "/bce_markers.txt"),    // BCE marker locations
+                              VNULL);
             break;
         case PatchType::HEIGHT_MAP:
             // Create a patch from a heigh field map image
@@ -162,29 +173,21 @@ int main(int argc, char* argv[]) {
                               10.0, 3.0,                                               // length (X) and width (Y)
                               {0, 0.3},                                                // height range
                               0.25,                                                    // depth
-                              3,                                                       // number of BCE layers
+                              true,                                                    // uniform depth
                               ChVector3d(5, 0, 0),                                     // patch center
-                              0.0,                                                     // patch yaw rotation
+                              true,                                                    // bottom wall?
                               false                                                    // side walls?
             );
             break;
     }
 
-    // Create vehicle
-    cout << "Create vehicle..." << endl;
-    ChVector3d veh_init_pos(3.0, 0, 0.25);
-    auto vehicle = CreateVehicle(sys, ChCoordsys<>(veh_init_pos, QUNIT));
-
-    // Create the wheel BCE markers
-    CreateWheelBCEMarkers(vehicle, sysFSI);
-
     // Initialize the terrain system
     terrain.Initialize();
 
-    auto aabb = terrain.GetBoundingBox();
+    auto aabb = terrain.GetSPHBoundingBox();
     cout << "  SPH particles:     " << sysFSI.GetNumFluidMarkers() << endl;
     cout << "  Bndry BCE markers: " << sysFSI.GetNumBoundaryMarkers() << endl;
-    cout << "  AABB:              " << aabb.min << "   " << aabb.max << endl;
+    cout << "  SPH AABB:          " << aabb.min << "   " << aabb.max << endl;
 
     // Set maximum vehicle X location (based on CRM patch size)
     double x_max = aabb.max.x() - 3.0;
@@ -213,18 +216,19 @@ int main(int argc, char* argv[]) {
         switch (vis_type) {
             case ChVisualSystem::Type::OpenGL:
 #ifdef CHRONO_OPENGL
-                visFSI = chrono_types::make_shared<ChFsiVisualizationGL>(&sysFSI, verbose);
+                visFSI = chrono_types::make_shared<ChFsiVisualizationGL>(&sysFSI);
 #endif
                 break;
             case ChVisualSystem::Type::VSG: {
 #ifdef CHRONO_VSG
-                visFSI = chrono_types::make_shared<ChFsiVisualizationVSG>(&sysFSI, verbose);
+                visFSI = chrono_types::make_shared<ChFsiVisualizationVSG>(&sysFSI);
 #endif
                 break;
             }
         }
 
         visFSI->SetTitle("Wheeled vehicle on CRM deformable terrain");
+        visFSI->SetVerbose(verbose);
         visFSI->SetSize(1280, 720);
         visFSI->AddCamera(ChVector3d(0, 8, 1.5), ChVector3d(0, -1, 0));
         visFSI->SetCameraMoveScale(0.2f);
@@ -371,20 +375,15 @@ std::shared_ptr<ChBezierCurve> CreatePath(const std::string& path_file) {
     return std::shared_ptr<ChBezierCurve>(new ChBezierCurve(points));
 }
 
-void CreateWheelBCEMarkers(std::shared_ptr<WheeledVehicle> vehicle, ChSystemFsi& sysFSI) {
-    // Create BCE markers for a tire
-    std::string tire_coll_obj = "Polaris/meshes/Polaris_tire_collision.obj";
+void CreateWheelBCEMarkers(std::shared_ptr<WheeledVehicle> vehicle, CRMTerrain& terrain) {
+    std::string mesh_filename = vehicle::GetDataFile("Polaris/meshes/Polaris_tire_collision.obj");
+    utils::ChBodyGeometry geometry;
+    geometry.materials.push_back(ChContactMaterialData());
+    geometry.coll_meshes.push_back(utils::ChBodyGeometry::TrimeshShape(VNULL, mesh_filename, VNULL));
 
-    ChTriangleMeshConnected trimesh;
-    trimesh.LoadWavefrontMesh(vehicle::GetDataFile(tire_coll_obj));
-    std::vector<ChVector3d> point_cloud;
-    sysFSI.CreateMeshPoints(trimesh, sysFSI.GetInitialSpacing(), point_cloud);
-
-    // Create and initialize the tires
     for (auto& axle : vehicle->GetAxles()) {
         for (auto& wheel : axle->GetWheels()) {
-            sysFSI.AddFsiBody(wheel->GetSpindle());
-            sysFSI.AddPointsBCE(wheel->GetSpindle(), point_cloud, ChFrame<>(), true);
+            terrain.AddRigidBody(wheel->GetSpindle(), geometry, false);
         }
     }
 }

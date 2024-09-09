@@ -38,7 +38,11 @@ ChQuaternion<> ToChQuaternion(const Real4& q4) {
     return ChQuaternion<>(q4.x, q4.y, q4.z, q4.w);
 }
 
-Real3 ToReal3(const ChVector3d& v3) {
+Real2 ToReal2(const ChVector2<>& v2) {
+    return mR2(v2.x(), v2.y());
+}
+
+Real3 ToReal3(const ChVector3<>& v3) {
     return mR3(v3.x(), v3.y(), v3.z());
 }
 

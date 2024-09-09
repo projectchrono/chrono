@@ -25,21 +25,16 @@
 
 #include "chrono/ChConfig.h"
 #include "chrono/physics/ChSystem.h"
+#include "chrono/fea/ChMesh.h"
+#include "chrono/fea/ChContactSurfaceMesh.h"
+#include "chrono/fea/ChContactSurfaceSegmentSet.h"
 
 #include "chrono_fsi/ChApiFsi.h"
 #include "chrono_fsi/ChDefinitionsFsi.h"
+#include "chrono_fsi/physics/ChFsiInterface.h"
 #include "chrono_fsi/math/custom_math.h"
 
 namespace chrono {
-
-// Forward declarations
-namespace fea {
-class ChNodeFEAxyzD;
-class ChMesh;
-class ChElementCableANCF;
-class ChElementShellANCF_3423;
-}  // namespace fea
-
 namespace fsi {
 
 class ChSystemFsi_impl;
@@ -52,38 +47,82 @@ struct ChCounters;
 /// @addtogroup fsi_physics
 /// @{
 
-/// @brief Physical system for fluid-solid interaction problems.
+/// Physical system for fluid-solid interaction problems.
 ///
 /// This class is used to represent fluid-solid interaction problems consisting of fluid dynamics and multibody system.
 /// Each of the two underlying physics is an independent object owned and instantiated by this class. The FSI system
 /// owns other objects to handle the interface between the two systems, boundary condition enforcing markers, and data.
 class CH_FSI_API ChSystemFsi {
   public:
+    /// Physics problem type.
+    enum class PhysicsProblem { CFD, CRM };
+
     /// Output mode.
-    enum class OutpuMode {
+    enum class OutputMode {
         CSV,   ///< comma-separated value
         CHPF,  ///< binary
         NONE   ///< none
     };
 
+    /// Structure with fluid properties.
+    /// Used if solving a CFD problem.
+    struct CH_FSI_API FluidProperties {
+        double density;      ///< fluid density (default: 1000.0)
+        double viscosity;    ///< fluid viscosity (default: 0.1)
+        double kappa;        ///< surface tension kappa (default: 0)
+        double char_length;  ///< characteristic length (default: 1.0)
+
+        FluidProperties();
+    };
+
     /// Structure with elastic material properties.
     /// Used if solving an SPH continuum representation of granular dynamics.
     struct CH_FSI_API ElasticMaterialProperties {
-        double Young_modulus;     ///< Young's modulus
-        double Poisson_ratio;     ///< Poisson's ratio
-        double stress;            ///< Artifical stress
-        double viscosity_alpha;   ///< Artifical viscosity coefficient
-        double viscosity_beta;    ///< Artifical viscosity coefficient
-        double mu_I0;             ///< Reference Inertia number
-        double mu_fric_s;         ///< friction mu_s
-        double mu_fric_2;         ///< mu_2 constant in mu=mu(I)
-        double average_diam;      ///< average particle diameter
-        double friction_angle;    ///< Frictional angle of granular material
-        double dilation_angle;    ///< Dilate angle of granular material
-        double cohesion_coeff;    ///< Cohesion coefficient
-        double kernel_threshold;  ///< Threshold of the integration of the kernel function
+        double density;          ///< bulk density (default: 1000.0)
+        double Young_modulus;    ///< Young's modulus (default: 1e6)
+        double Poisson_ratio;    ///< Poisson's ratio (default: 0.3)
+        double stress;           ///< artifical stress (default: 0)
+        double viscosity_alpha;  ///< artifical viscosity coefficient (default: 0.5)
+        double viscosity_beta;   ///< artifical viscosity coefficient (default: 0)
+        double mu_I0;            ///< reference inertia number (default: 0.03)
+        double mu_fric_s;        ///< friction mu_s (default: 0.7)
+        double mu_fric_2;        ///< mu_2 constant in mu=mu(I) (default: 0.7)
+        double average_diam;     ///< average particle diameter (default: 0.005)
+        double friction_angle;   ///< frictional angle of granular material (default: pi/10)
+        double dilation_angle;   ///< dilate angle of granular material (default: pi/10)
+        double cohesion_coeff;   ///< cohesion coefficient (default: 0)
 
         ElasticMaterialProperties();
+    };
+
+    /// Structure with SPH method parameters.
+    struct CH_FSI_API SPHParameters {
+        SPHMethod sph_method;             ///< SPH method (default: WCSPH)
+        int num_bce_layers;               ///< number of BCE layers (boundary and solids, default: 3)
+        double kernel_h;                  ///< kernel separation (default: 0.01)
+        double initial_spacing;           ///< initial particle spacing (default: 0.01)
+        double max_velocity;              ///< maximum velocity (default: 1.0)
+        double xsph_coefficient;          ///< XSPH coefficient (default: 0.5)
+        double shifting_coefficient;      ///< shifting beta coefficient (default: 1.0)
+        double min_distance_coefficient;  ///< min inter-particle distance as fraction of kernel radius (default: 0.01)
+        int density_reinit_steps;         ///< number of steps between density reinitializations (default: 2e8)
+        bool use_density_based_projection;         ///< (ISPH only, default: false)
+        bool consistent_gradient_discretization;   ///< use G matrix in SPH gradient approximation (default: false)
+        bool consistent_laplacian_discretization;  ///< use L matrix in SPH Laplacian approximation (default: false)
+        double kernel_threshold;                   ///< threshold for identifying free surface (CRM only, default: 0.8)
+        int num_proximity_search_steps;            ///< number of steps between updates to neighbor lists (default: 4)
+
+        SPHParameters();
+    };
+
+    /// Structure with linear solver parameters (used only for implicit SPH).
+    struct CH_FSI_API LinSolverParameters {
+        SolverType type;    ///< linear solver type (implicit SPH only, default: JACOBI)
+        double atol;        ///< absolute tolerance
+        double rtol;        ///< relative tolerance
+        int max_num_iters;  ///< maximum number of iterations
+
+        LinSolverParameters();
     };
 
     /// Constructor for FSI system.
@@ -102,6 +141,9 @@ class CH_FSI_API ChSystemFsi {
 
     /// Get current estimated RTF (real time factor).
     double GetRTF() const { return m_RTF; }
+
+    /// Get ratio of simulation time spent in MBS integration.
+    double GetRatioMBS() const { return m_ratio_MBS; }
 
     /// Enable/disable verbose terminal output.
     void SetVerbose(bool verbose);
@@ -131,8 +173,8 @@ class CH_FSI_API ChSystemFsi {
     /// This parameter is used for settling operations where all particles must be active through the settling process.
     void SetActiveDomainDelay(double duration);
 
-    /// Set number of boundary layers (default: 3).
-    void SetNumBoundaryLayers(int num_layers);
+    /// Set number of BCE marker layers (default: 3).
+    void SetNumBCELayers(int num_layers);
 
     /// Set (initial) density.
     void SetDensity(double rho0);
@@ -160,32 +202,40 @@ class CH_FSI_API ChSystemFsi {
     void SetSPHintegration(bool runSPH);
 
     /// Set SPH discretization type, consistent or inconsistent
-    void SetDiscreType(bool useGmatrix, bool useLmatrix);
-
-    /// Set wall boundary condition
-    void SetWallBC(BceVersion wallBC);
-
-    /// Set rigid body boundary condition
-    void SetRigidBodyBC(BceVersion rigidBodyBC);
+    void SetConsistentDerivativeDiscretization(bool consistent_gradient, bool consistent_Laplacian);
 
     /// Set cohesion force of the granular material
     void SetCohesionForce(double Fc);
 
     /// Set the linear system solver for implicit methods.
+    //// TODO: OBSOLETE
     void SetSPHLinearSolver(SolverType lin_solver);
 
     /// Set the SPH method and, optionally, the linear solver type.
-    void SetSPHMethod(FluidDynamics SPH_method, SolverType lin_solver = SolverType::BICGSTAB);
+    //// TODO: OBSOLETE
+    void SetSPHMethod(SPHMethod SPH_method);
+
+    /// Set the number of steps between successive updates to neighbor lists (default: 4).
+    void SetNumProximitySearchSteps(int steps);
+
+    /// Enable solution of a CFD problem.
+    void SetCfdSPH(const FluidProperties& fluid_props);
 
     /// Enable solution of elastic SPH (for continuum representation of granular dynamics).
     /// By default, a ChSystemFSI solves an SPH fluid dynamics problem.
-    void SetElasticSPH(const ElasticMaterialProperties mat_props);
+    void SetElasticSPH(const ElasticMaterialProperties& mat_props);
+
+    /// Set SPH method parameters.
+    void SetSPHParameters(const SPHParameters& sph_params);
+
+    /// Set linear solver parameters (used only for implicit SPH).
+    void SetLinSolverParameters(const LinSolverParameters& linsolv_params);
 
     /// Set simulation data output length
     void SetOutputLength(int OutputLength);
 
     /// Set the FSI system output mode (default: NONE).
-    void SetParticleOutputMode(OutpuMode mode) { m_write_mode = mode; }
+    void SetParticleOutputMode(OutputMode mode) { m_write_mode = mode; }
 
     /// Return the SPH kernel length of kernel function.
     double GetKernelLength() const;
@@ -194,7 +244,7 @@ class CH_FSI_API ChSystemFsi {
     double GetInitialSpacing() const;
 
     /// Return the number of BCE layers.
-    int GetNumBoundaryLayers() const;
+    int GetNumBCELayers() const;
 
     /// Set the fluid container dimension
     ChVector3d GetContainerDim() const;
@@ -218,6 +268,7 @@ class CH_FSI_API ChSystemFsi {
     double GetSoundSpeed() const;
 
     /// Return the constant force applied to the fluid (if any).
+    /// TODO: RENAME
     ChVector3d GetBodyForce() const;
 
     /// Return the FSI integration step size.
@@ -228,6 +279,9 @@ class CH_FSI_API ChSystemFsi {
 
     /// Return a flag inicating whether adaptive time stepping is enabled.
     bool GetAdaptiveTimeStepping() const;
+
+    /// Get the number of steps between successive updates to neighbor lists.
+    int GetNumProximitySearchSteps() const;
 
     /// Return the current system parameters (debugging only).
     const SimParams& GetParams() const { return *m_paramsH; }
@@ -263,24 +317,13 @@ class CH_FSI_API ChSystemFsi {
     /// For each SPH particle, the 3-dimensional array contains density, pressure, and viscosity.
     std::vector<ChVector3d> GetParticleFluidProperties() const;
 
-    /// Get a reference to the FSI bodies.
-    /// FSI bodies are the ones seen by the fluid dynamics system.
-    std::vector<std::shared_ptr<ChBody>>& GetFsiBodies() const;
+    /// Return the FSI applied force on the body with specified index (as returned by AddFsiBody).
+    /// The force is applied at the body COM and is expressed in the absolute frame.
+    const ChVector3d& GetFsiBodyForce(size_t i) const;
 
-    /// Return the FSI mesh for flexible elements.
-    std::shared_ptr<fea::ChMesh> GetFsiMesh() const;
-
-    /// Get a reference to the FSI ChNodeFEAxyzD.
-    /// FSI ChNodeFEAxyzD are the ones seen by the fluid dynamics system.
-    std::vector<std::shared_ptr<fea::ChNodeFEAxyzD>>& GetFsiNodes() const;
-
-    /// Add a rigid body to the FsiSystem.
-    void AddFsiBody(std::shared_ptr<ChBody> body);
-
-    /// Add an FEA mesh to the FSI system.
-    void AddFsiMesh(std::shared_ptr<fea::ChMesh> mesh,
-                    const std::vector<std::vector<int>>& beam_elements,
-                    const std::vector<std::vector<int>>& shell_elements);
+    /// Return the FSI applied torque on the body with specified index (as returned by AddFsiBody).
+    /// The torque is expressed in the absolute frame.
+    const ChVector3d& GetFsiBodyTorque(size_t i) const;
 
     /// Complete construction of the FSI system (fluid and BDE objects).
     /// Use parameters read from JSON file and/or specified through various Set functions.
@@ -318,13 +361,17 @@ class CH_FSI_API ChSystemFsi {
     /// The SPH particles are created on a uniform grid with resolution equal to the FSI initial separation.
     void AddBoxSPH(const ChVector3d& boxCenter, const ChVector3d& boxHalfDim);
 
-    // ----------- Functions for adding BCE markers in various volumes
+    // ----------- Functions for adding bodies and associated BCE markers for different shapes
+
+    /// Add a rigid body to the FSI system.
+    /// Returns the index of the FSI body in the internal list.
+    size_t AddFsiBody(std::shared_ptr<ChBody> body);
 
     /// Add BCE markers for a rectangular plate of specified X-Y dimensions and associate them with the given body.
     /// BCE markers are created in a number of layers corresponding to system parameters.
     /// X-Y BCE layers are created in the negative Z direction of the plate orientation frame.
     /// Such a plate is assumed to be used as boundary.
-    void AddWallBCE(std::shared_ptr<ChBody> body, const ChFrame<>& frame, const ChVector2d size);
+    void AddWallBCE(std::shared_ptr<ChBody> body, const ChFrame<>& frame, const ChVector2d& size);
 
     /// Add BCE markers for a box container of specified dimensions and associate them with the given body.
     /// The center of the box volume is at the origin of the given frame and the the container is aligned with the frame
@@ -333,6 +380,7 @@ class CH_FSI_API ChSystemFsi {
     /// of -1 indicates the face in the negative direction, a value of +1 indicates the face in the positive direction,
     /// and a value of 2 indicates both faces. Setting a value of 0 does not create container faces in that direction.
     /// BCE markers are created in a number of layers corresponding to system parameters.
+    /// Such a container is assumed to be used as a fixed boundary and the associated body is not tracked in FSI.
     void AddBoxContainerBCE(std::shared_ptr<ChBody> body,
                             const ChFrame<>& frame,
                             const ChVector3d& size,
@@ -395,23 +443,31 @@ class CH_FSI_API ChSystemFsi {
 
     /// Add BCE markers from a set of points and associate them with the given body.
     /// The points are assumed to be provided relative to the specified frame.
+    /// The BCE markers are created in the absolute coordinate frame.
     size_t AddPointsBCE(std::shared_ptr<ChBody> body,
                         const std::vector<ChVector3d>& points,
-                        const ChFrame<>& frame,
+                        const ChFrame<>& rel_frame,
                         bool solid);
 
-    /// Add BCE markers from mesh.
-    //// RADU TODO
-    void AddFEAmeshBCE(std::shared_ptr<fea::ChMesh> my_mesh,
-                       const std::vector<std::vector<int>>& NodeNeighborElement,
-                       const std::vector<std::vector<int>>& _1D_elementsNodes,
-                       const std::vector<std::vector<int>>& _2D_elementsNodes,
-                       bool add1DElem,
-                       bool add2DElem,
-                       bool multiLayer,
-                       bool removeMiddleLayer,
-                       int SIDE,
-                       int SIZE2D);
+    // ----------- Functions for adding FEA meshes and associated BCE markers
+
+    /// Set the BCE marker pattern for 1D flexible solids for subsequent calls to AddFsiMesh.
+    /// By default, a full set of BCE markers is used across each section, including a central marker.
+    void SetBcePattern1D(BcePatternMesh1D pattern,   ///< marker pattern in cross-section
+                         bool remove_center = false  ///< eliminate markers on center line
+    );
+
+    /// Set the BCE marker pattern for 2D flexible solids for subsequent calls to AddFsiMesh.
+    /// By default, BCE markers are created centered on the mesh surface, with a layer of BCEs on the surface.
+    void SetBcePattern2D(BcePatternMesh2D pattern,   ///< pattern of marker locations along normal
+                         bool remove_center = false  ///< eliminate markers on surface
+    );
+
+    /// Add an FEA mesh to the FSI system.
+    /// Contact surfaces (of type segment_set or tri_mesh) already defined for the FEA mesh are used to generate the BCE
+    /// markers for the flexible solid. If none are defined, one contact surface of each type is created (as needed) for
+    /// the purpose of creating the BCE markers, but these are not attached to the given FEA mesh.
+    void AddFsiMesh(std::shared_ptr<fea::ChMesh> mesh);
 
     // ----------- Utility functions for extracting information at specific SPH particles
 
@@ -441,18 +497,18 @@ class CH_FSI_API ChSystemFsi {
     /// Create BCE markers on a rectangular plate of specified X-Y dimensions, assumed centered at the origin.
     /// BCE markers are created in a number of layers corresponding to system parameters.
     /// BCE layers are created in the negative Z direction.
-    void CreateBCE_wall(const Real2& size, thrust::host_vector<Real4>& bce);
+    void CreateBCE_wall(const ChVector2d& size, std::vector<ChVector3d>& bce);
 
     /// Create BCE markers for a box of specified dimensions, assumed centered at the origin.
     /// BCE markers are created inside the box if solid=true, and outside the box otherwise.
     /// BCE markers are created in a number of layers corresponding to system parameters.
-    void CreateBCE_box(const Real3& size, bool solid, thrust::host_vector<Real4>& bce);
+    void CreateBCE_box(const ChVector3d& size, bool solid, std::vector<ChVector3d>& bce);
 
     /// Create BCE markers for a sphere of specified radius, assumed centered at the origin.
     /// BCE markers are created inside the sphere if solid=true, and outside the sphere otherwise.
     /// BCE markers are created in a number of layers corresponding to system parameters.
     /// BCE markers are created using spherical coordinates (polar=true), or else on a uniform Cartesian grid.
-    void CreateBCE_sphere(Real rad, bool solid, bool polar, thrust::host_vector<Real4>& bce);
+    void CreateBCE_sphere(double rad, bool solid, bool polar, std::vector<ChVector3d>& bce);
 
     /// Create BCE markers for a cylinder of specified radius and height.
     /// The cylinder is assumed centered at the origin and aligned with the Z axis.
@@ -460,22 +516,12 @@ class CH_FSI_API ChSystemFsi {
     /// BCE markers are created inside the cylinder if solid=true, and outside the cylinder otherwise.
     /// BCE markers are created in a number of layers corresponding to system parameters.
     /// BCE markers are created using cylinderical coordinates (polar=true), or else on a uniform Cartesian grid.
-    void CreateBCE_cylinder(Real rad,
-                            Real height,
+    void CreateBCE_cylinder(double rad,
+                            double height,
                             bool solid,
                             bool capped,
                             bool polar,
-                            thrust::host_vector<Real4>& bce);
-
-    /// Create BCE particles for a cylindrical annulus of specified radii and height.
-    /// The cylinder annulus is assumed centered at the origin and aligned with the Z axis.
-    /// BCE markers are created in a number of layers corresponding to system parameters.
-    /// BCE markers are created using cylinderical coordinates (polar=true), or else on a uniform Cartesian grid.
-    void CreateBCE_cylinder_annulus(Real rad_in,
-                                    Real rad_out,
-                                    Real height,
-                                    bool polar,
-                                    thrust::host_vector<Real4>& bce);
+                            std::vector<ChVector3d>& bce);
 
     /// Create BCE particles for a cone of specified radius and height.
     /// The cone is assumed centered at the origin and aligned with the Z axis.
@@ -483,51 +529,45 @@ class CH_FSI_API ChSystemFsi {
     /// BCE markers are created inside the cone if solid=true, and outside the cone otherwise.
     /// BCE markers are created in a number of layers corresponding to system parameters.
     /// BCE markers are created using cylinderical coordinates (polar=true), or else on a uniform Cartesian grid.
-    void CreateBCE_cone(Real rad, Real height, bool solid, bool capped, bool polar, thrust::host_vector<Real4>& bce);
+    void CreateBCE_cone(double rad, double height, bool solid, bool capped, bool polar, std::vector<ChVector3d>& bce);
 
-    /// Create BCE particles from a cable element.
-    //// RADU TODO
-    void CreateBCE_cable(thrust::host_vector<Real4>& posRadBCE,
-                         std::shared_ptr<chrono::fea::ChElementCableANCF> cable,
-                         std::vector<int> remove,
-                         bool multiLayer,
-                         bool removeMiddleLayer,
-                         int SIDE);
+    // ----------- Utility functions for creating points filling various volumes
 
-    /// Create BCE particles from a shell element.
-    //// RADU TODO
-    void CreateBCE_shell(thrust::host_vector<Real4>& posRadBCE,
-                         std::shared_ptr<chrono::fea::ChElementShellANCF_3423> shell,
-                         std::vector<int> remove,
-                         std::vector<int> remove_s,
-                         bool multiLayer,
-                         bool removeMiddleLayer,
-                         int SIDE);
+    /// Utility function to create points inside a cylindrical annulus of specified radii and height.
+    /// The cylinder annulus is assumed centered at the origin and aligned with the Z axis. If polar = true, points are
+    /// created in cylindrical coordinates; otherwise points are created on a uniform Cartesian grid.
+    static void CreateCylinderAnnulusPoints(double rad_inner,
+                                            double rad_outer,
+                                            double height,
+                                            bool polar,
+                                            double delta,
+                                            std::vector<ChVector3d>& points);
 
     /// Utility function for creating points filling a closed mesh.
-    //// RADU TODO eliminate delta (use initspacing)
-    static void CreateMeshPoints(ChTriangleMeshConnected& mesh, double delta, std::vector<ChVector3d>& point_cloud);
+    static void CreateMeshPoints(ChTriangleMeshConnected& mesh, double delta, std::vector<ChVector3d>& points);
 
   public:
+    PhysicsProblem GetPhysicsProblem() const;
     std::string GetPhysicsProblemString() const;
-    std::string GetSphSolverTypeString() const;
+    std::string GetSphMethodTypeString() const;
 
   private:
     /// Initialize simulation parameters with default values.
     void InitParams();
 
-    /// Add the provided BCE markers, expressed in the global frame, to the system.
-    /// The BCE markers are assumed to be given in a frame relative to the body reference frame.
-    void AddBCE(std::shared_ptr<ChBody> body,
-                const thrust::host_vector<Real4>& bce,
-                const ChFrame<>& rel_frame,
-                bool solid,
-                bool add_to_fluid_helpers,
-                bool add_to_previous);
+    /// Add a flexible solid with segment set contact to the FSI system.
+    void AddFsiMesh1D(std::shared_ptr<fea::ChContactSurfaceSegmentSet> surface);
 
-    void AddBCE_cable(const thrust::host_vector<Real4>& posRadBCE, std::shared_ptr<fea::ChElementCableANCF> cable);
+    /// Add a flexible solid with surface mesh contact to the FSI system.
+    void AddFsiMesh2D(std::shared_ptr<fea::ChContactSurfaceMesh> surface);
 
-    void AddBCE_shell(const thrust::host_vector<Real4>& posRadBCE, std::shared_ptr<fea::ChElementShellANCF_3423> shell);
+    /// Create and add BCE markers associated with the given set of contact segments.
+    /// The BCE markers are created in the absolute coordinate frame.
+    unsigned int AddBCE_mesh1D(unsigned int meshID, const ChFsiInterface::FsiMesh1D& fsi_mesh);
+
+    /// Create and add BCE markers associated with the given mesh contact surface.
+    /// The BCE markers are created in the absolute coordinate frame.
+    unsigned int AddBCE_mesh2D(unsigned int meshID, const ChFsiInterface::FsiMesh2D& fsi_mesh);
 
     /// Function to initialize the midpoint device data of the fluid system by copying from the full step.
     void CopyDeviceDataToHalfStep();
@@ -535,34 +575,37 @@ class CH_FSI_API ChSystemFsi {
     ChSystem* m_sysMBS;  ///< multibody system
 
     std::shared_ptr<SimParams> m_paramsH;  ///< pointer to the simulation parameters
-    TimeIntegrator fluidIntegrator;        ///< IISPH by default
 
-    bool m_verbose;          ///< enable/disable m_verbose terminal output (default: true)
-    std::string m_outdir;    ///< output directory
-    OutpuMode m_write_mode;  ///< FSI particle output type (CSV, ChPF, or NONE)
+    bool m_verbose;           ///< enable/disable m_verbose terminal output (default: true)
+    std::string m_outdir;     ///< output directory
+    OutputMode m_write_mode;  ///< FSI particle output type (CSV, ChPF, or NONE)
 
     std::unique_ptr<ChSystemFsi_impl> m_sysFSI;         ///< underlying system implementation
     std::unique_ptr<ChFluidDynamics> m_fluid_dynamics;  ///< fluid system
     std::unique_ptr<ChFsiInterface> m_fsi_interface;    ///< FSI interface system
     std::shared_ptr<ChBce> m_bce_manager;               ///< BCE manager
 
-    std::shared_ptr<ChCounters> m_num_objectsH;       ///< number of objects, fluid, bce, and boundary markers
-    std::vector<std::vector<int>> m_fea_shell_nodes;  ///< indices of nodes of each shell element
-    std::vector<std::vector<int>> m_fea_cable_nodes;  ///< indices of nodes of each cable element
+    unsigned int m_num_flex1D_elements;  ///< number of 1-D flexible segments (across all meshes)
+    unsigned int m_num_flex2D_elements;  ///< number of 2-D flexible faces (across all meshes)
 
-    size_t m_num_cable_elements;
-    size_t m_num_shell_elements;
+    unsigned int m_num_flex1D_nodes;  ///< number of 1-D flexible segments (across all meshes)
+    unsigned int m_num_flex2D_nodes;  ///< number of 2-D flexible faces (across all meshes)
 
-    std::vector<int> m_fsi_bodies_bce_num;  ///< number of BCE particles of each fsi body
-    std::vector<int> m_fsi_cables_bce_num;  ///< number of BCE particles of each fsi cable
-    std::vector<int> m_fsi_shells_bce_num;  ///< number of BCE particles of each fsi shell
+    std::vector<int> m_fsi_bodies_bce_num;  ///< number of BCE particles on each fsi body
+
+    BcePatternMesh1D m_pattern1D;
+    BcePatternMesh2D m_pattern2D;
+    bool m_remove_center1D;
+    bool m_remove_center2D;
 
     bool m_is_initialized;  ///< set to true once the Initialize function is called
     bool m_integrate_SPH;   ///< set to true if needs to integrate the fsi solver
     double m_time;          ///< current simulation time
 
     ChTimer m_timer_step;  ///< timer for integration step
+    ChTimer m_timer_MBS;   ///< timer for MBS integration
     double m_RTF;          ///< real-time factor (simulation time / simulated time)
+    double m_ratio_MBS;    ///< fraction of step simulation time for MBS integration
 
     friend class ChFsiVisualizationGL;
     friend class ChFsiVisualizationVSG;

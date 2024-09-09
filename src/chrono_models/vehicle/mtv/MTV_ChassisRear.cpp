@@ -43,7 +43,7 @@ MTV_ChassisRear::MTV_ChassisRear(const std::string& name, CollisionType chassis_
     : ChRigidChassisRear(name) {
     // In this model, we use a single material with default properties.
     ChContactMaterialData minfo;
-    m_geometry.m_materials.push_back(minfo);
+    m_geometry.materials.push_back(minfo);
 
     m_body_inertia(0, 0) = m_body_inertiaXX.x();
     m_body_inertia(1, 1) = m_body_inertiaXX.y();
@@ -66,35 +66,32 @@ MTV_ChassisRear::MTV_ChassisRear(const std::string& name, CollisionType chassis_
     double heightFrame = 0.2;
 
     ChVector3d rearBoxPos((-5.5 + joint_pos_x) / 2, 0, joint_pos_z);
-    ChVehicleGeometry::BoxShape box(rearBoxPos, ChQuaternion<>(1, 0, 0, 0),
+    utils::ChBodyGeometry::BoxShape box(rearBoxPos, ChQuaternion<>(1, 0, 0, 0),
                                     ChVector3d(joint_pos_x + 5.5, widthFrame, heightFrame));
-    ChVehicleGeometry::CylinderShape cyl_torsion(m_connector_loc, ChVector3d(1, 0, 0), 0.1, 0.2);
+    utils::ChBodyGeometry::CylinderShape cyl_torsion(m_connector_loc, ChVector3d(1, 0, 0), 0.1, 0.2);
 
-    m_geometry.m_has_primitives = true;
-    m_geometry.m_vis_boxes.push_back(box);
-    m_geometry.m_vis_cylinders.push_back(cyl_torsion);
+    m_geometry.vis_boxes.push_back(box);
+    m_geometry.vis_cylinders.push_back(cyl_torsion);
 
-    m_geometry.m_has_colors = true;
-    m_geometry.m_color_boxes = ChColor(0.4f, 0.2f, 0.2f);
-    m_geometry.m_color_cylinders = ChColor(0.4f, 0.2f, 0.2f);
+    m_geometry.color_boxes = ChColor(0.4f, 0.2f, 0.2f);
+    m_geometry.color_cylinders = ChColor(0.4f, 0.2f, 0.2f);
 
-    m_geometry.m_has_mesh = true;
-    m_geometry.m_vis_mesh_file = "mtv/meshes/m1083_rear.obj";
+    m_geometry.vis_mesh_file = vehicle::GetDataFile("mtv/meshes/m1083_rear.obj");
 
-    m_geometry.m_has_collision = (chassis_collision_type != CollisionType::NONE);
     switch (chassis_collision_type) {
         case CollisionType::PRIMITIVES:
-            box.m_matID = 0;
-            m_geometry.m_coll_boxes.push_back(box);
+            box.matID = 0;
+            m_geometry.coll_boxes.push_back(box);
             break;
         case CollisionType::HULLS: {
-            ChVehicleGeometry::ConvexHullsShape hull("mtv/meshes/m1083_rear.obj", 0);
-            m_geometry.m_coll_hulls.push_back(hull);
+            utils::ChBodyGeometry::ConvexHullsShape hull(vehicle::GetDataFile("mtv/meshes/m1083_rear.obj"), 0);
+            m_geometry.coll_hulls.push_back(hull);
             break;
         }
         case CollisionType::MESH: {
-            ChVehicleGeometry::TrimeshShape trimesh(ChVector3d(), "mtv/meshes/m1083_rear.obj", 0.005, 0);
-            m_geometry.m_coll_meshes.push_back(trimesh);
+            utils::ChBodyGeometry::TrimeshShape trimesh(ChVector3d(), vehicle::GetDataFile("mtv/meshes/m1083_rear.obj"),
+                                                        0.005, 0);
+            m_geometry.coll_meshes.push_back(trimesh);
             break;
         }
         default:

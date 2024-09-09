@@ -58,6 +58,24 @@ class FSIStatsVSG : public vsg3d::ChGuiComponentVSG {
             ImGui::TableNextColumn();
             ImGui::Text("%lu", static_cast<unsigned long>(m_vsysFSI->m_systemFSI->GetNumFlexBodyMarkers()));
 
+            ImGui::TableNextRow();
+
+            ImGui::TableNextRow();
+            ImGui::TableNextColumn();
+            ImGui::TextUnformatted(m_vsysFSI->m_systemFSI->GetSphMethodTypeString().c_str());
+
+            ImGui::TableNextRow();
+            ImGui::TableNextColumn();
+            ImGui::TextUnformatted("Step size:");
+            ImGui::TableNextColumn();
+            ImGui::Text("%.1e", m_vsysFSI->m_systemFSI->GetStepSize());
+
+            ImGui::TableNextRow();
+            ImGui::TableNextColumn();
+            ImGui::TextUnformatted("MBS ratio:");
+            ImGui::TableNextColumn();
+            ImGui::Text("%.3f", m_vsysFSI->m_systemFSI->GetRatioMBS());
+
             ImGui::EndTable();
         }
 
@@ -70,9 +88,8 @@ class FSIStatsVSG : public vsg3d::ChGuiComponentVSG {
 
 // -----------------------------------------------------------------------------
 
-ChFsiVisualizationVSG::ChFsiVisualizationVSG(ChSystemFsi* sysFSI, bool verbose) : ChFsiVisualization(sysFSI) {
+ChFsiVisualizationVSG::ChFsiVisualizationVSG(ChSystemFsi* sysFSI) : ChFsiVisualization(sysFSI) {
     m_vsys = new vsg3d::ChVisualSystemVSG();
-    m_vsys->SetVerbose(verbose);
     m_vsys->AttachSystem(m_system);
     m_vsys->SetWindowTitle("");
     m_vsys->SetWindowSize(1280, 720);
@@ -142,7 +159,7 @@ void ChFsiVisualizationVSG::Initialize() {
         sph->SetColor(ChColor(0.10f, 0.40f, 0.65f));
         m_sph_cloud->AddVisualShape(sph);
         m_sph_cloud->RegisterColorCallback(m_color_fun);
-        m_sph_cloud->RegisterVisibilityCallback(m_vis_fun);
+        m_sph_cloud->RegisterVisibilityCallback(m_vis_sph_fun);
         m_system->Add(m_sph_cloud);
     }
 
@@ -155,6 +172,7 @@ void ChFsiVisualizationVSG::Initialize() {
         auto sph = chrono_types::make_shared<ChVisualShapeSphere>(m_systemFSI->GetInitialSpacing() / 4);
         sph->SetColor(m_bndry_bce_color);
         m_bndry_bce_cloud->AddVisualShape(sph);
+        m_bndry_bce_cloud->RegisterVisibilityCallback(m_vis_bndry_fun);
         m_system->Add(m_bndry_bce_cloud);
     }
 
@@ -164,7 +182,7 @@ void ChFsiVisualizationVSG::Initialize() {
         for (int i = 0; i < m_systemFSI->GetNumRigidBodyMarkers(); i++) {
             m_rigid_bce_cloud->AddParticle(CSYSNULL);
         }
-        auto sph = chrono_types::make_shared<ChVisualShapeSphere>(m_systemFSI->GetInitialSpacing() / 4);
+        auto sph = chrono_types::make_shared<ChVisualShapeSphere>(m_systemFSI->GetInitialSpacing() / 2);
         sph->SetColor(m_rigid_bce_color);
         m_rigid_bce_cloud->AddVisualShape(sph);
         m_system->Add(m_rigid_bce_cloud);
@@ -176,7 +194,7 @@ void ChFsiVisualizationVSG::Initialize() {
         for (int i = 0; i < m_systemFSI->GetNumFlexBodyMarkers(); i++) {
             m_flex_bce_cloud->AddParticle(CSYSNULL);
         }
-        auto sph = chrono_types::make_shared<ChVisualShapeSphere>(m_systemFSI->GetInitialSpacing() / 4);
+        auto sph = chrono_types::make_shared<ChVisualShapeSphere>(m_systemFSI->GetInitialSpacing() / 2);
         sph->SetColor(m_flex_bce_color);
         m_flex_bce_cloud->AddVisualShape(sph);
         m_system->Add(m_flex_bce_cloud);
@@ -201,8 +219,8 @@ bool ChFsiVisualizationVSG::Render() {
 
     if (m_vsys->Run()) {
         // Copy SPH particle positions from device to host
-        thrust::host_vector<Real4> posH = m_systemFSI->m_sysFSI->sphMarkersD2->posRadD;
-        thrust::host_vector<Real3> velH = m_systemFSI->m_sysFSI->sphMarkersD2->velMasD;
+        thrust::host_vector<Real4> posH = m_systemFSI->m_sysFSI->sphMarkers_D->posRadD;
+        thrust::host_vector<Real3> velH = m_systemFSI->m_sysFSI->sphMarkers_D->velMasD;
 
         // List of proxy bodies
         ////const auto& blist = m_system->GetBodies();

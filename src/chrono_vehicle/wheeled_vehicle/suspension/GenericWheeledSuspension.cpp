@@ -127,7 +127,7 @@ void GenericWheeledSuspension::Create(const rapidjson::Document& d) {
             auto mass = body["Mass"].GetDouble();
             auto inertia_moments = ReadVectorJSON(body["Moments of Inertia"]);
             auto inertia_products = ReadVectorJSON(body["Products of Inertia"]);
-            auto geometry = std::make_shared<ChVehicleGeometry>(ReadVehicleGeometryJSON(body));
+            auto geometry = std::make_shared<utils::ChBodyGeometry>(ReadVehicleGeometryJSON(body));
             DefineBody(name, mirrored, pos, rot, mass, inertia_moments, inertia_products, geometry);
         }
     }
@@ -177,7 +177,7 @@ void GenericWheeledSuspension::Create(const rapidjson::Document& d) {
             auto point2 = ReadVectorJSON(tsda["Point2"]);
             double free_length;
             auto force = ReadTSDAFunctorJSON(tsda, free_length);
-            auto geometry = std::make_shared<ChTSDAGeometry>(ReadTSDAGeometryJSON(tsda));
+            auto geometry = std::make_shared<utils::ChTSDAGeometry>(ReadTSDAGeometryJSON(tsda));
             DefineTSDA(name, mirrored, body1, body2, point1, point2, free_length, force, geometry);
         }
     }

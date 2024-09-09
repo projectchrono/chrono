@@ -54,7 +54,7 @@
 
         @defgroup fsi_solver Linear solvers
         @brief Class for solving a linear linear system via iterative methods.
-        Only works when I2SPH or IISPH is set to solve the fluid dynamics.
+        Only used when I2SPH is set to solve the fluid dynamics.
 
         @defgroup fsi_utils Modeling utilities
         @brief Handles utilities including creating BCE particles, setting

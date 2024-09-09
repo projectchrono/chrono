@@ -12,9 +12,10 @@
 // Author: Milad Rakhsha, Wei Hu, Pei Li, Radu Serban
 // =============================================================================
 
-#include <assert.h>
-#include <stdlib.h>
+#include <cassert>
+#include <cstdlib>
 #include <ctime>
+#include <iomanip>
 
 #include "chrono/physics/ChSystemSMC.h"
 
@@ -41,6 +42,9 @@
 #endif
 #ifdef CHRONO_VSG
     #include "chrono_fsi/visualization/ChFsiVisualizationVSG.h"
+#endif
+#ifdef CHRONO_POSTPROCESS
+    #include "chrono_postprocess/ChGnuPlot.h"
 #endif
 
 #include "chrono_thirdparty/cxxopts/ChCLI.h"
@@ -99,15 +103,27 @@ bool GetProblemSpecs(int argc,
 
 // -----------------------------------------------------------------------------
 
+class PositionVisibilityCallback : public ChParticleCloud::VisibilityCallback {
+  public:
+    PositionVisibilityCallback() {}
+
+    virtual bool get(unsigned int n, const ChParticleCloud& cloud) const override {
+        auto p = cloud.GetParticlePos(n);
+        return p.y() > 0;
+    };
+};
+
+// -----------------------------------------------------------------------------
+
 int main(int argc, char* argv[]) {
     // Parse command line arguments
-    std::string inputJSON = GetChronoDataFile("fsi/input_json/demo_FSI_Flexible_Cable_Granular.json");
+    std::string inputJSON = GetChronoDataFile("fsi/input_json/demo_FSI_Flexible_Cable_Explicit.json");
     double t_end = 10.0;
     bool verbose = true;
     bool output = false;
     double output_fps = 20;
     bool render = true;
-    double render_fps = 100;
+    double render_fps = 400;
     bool snapshots = false;
     if (!GetProblemSpecs(argc, argv, inputJSON, t_end, verbose, output, output_fps, render, render_fps, snapshots)) {
         return 1;
@@ -131,13 +147,7 @@ int main(int argc, char* argv[]) {
     sysFSI.SetBoundaries(cMin, cMax);
 
     // Set SPH discretization type, consistent or inconsistent
-    sysFSI.SetDiscreType(false, false);
-
-    // Set wall boundary condition
-    sysFSI.SetWallBC(BceVersion::ADAMI);
-
-    // Set rigid body boundary condition
-    sysFSI.SetRigidBodyBC(BceVersion::ADAMI);
+    sysFSI.SetConsistentDerivativeDiscretization(false, false);
 
     // Create SPH particles of fluid region
     chrono::utils::ChGridSampler<> sampler(initSpace0);
@@ -160,7 +170,7 @@ int main(int argc, char* argv[]) {
         cerr << "Error creating directory " << out_dir << endl;
         return 1;
     }
-    out_dir = out_dir + "/" + sysFSI.GetPhysicsProblemString() + "_" + sysFSI.GetSphSolverTypeString();
+    out_dir = out_dir + "/" + sysFSI.GetPhysicsProblemString() + "_" + sysFSI.GetSphMethodTypeString();
     if (!filesystem::create_directory(filesystem::path(out_dir))) {
         cerr << "Error creating directory " << out_dir << endl;
         return 1;
@@ -214,6 +224,7 @@ int main(int argc, char* argv[]) {
         }
 
         visFSI->SetTitle("Chrono::FSI flexible cable");
+        visFSI->SetVerbose(verbose);
         visFSI->SetSize(1920, 1200);
         visFSI->SetCameraMoveScale(1.0f);
         visFSI->EnableBoundaryMarkers(true);
@@ -222,6 +233,7 @@ int main(int argc, char* argv[]) {
         visFSI->SetRenderMode(ChFsiVisualization::RenderMode::SOLID);
         visFSI->SetParticleRenderMode(ChFsiVisualization::RenderMode::SOLID);
         visFSI->SetSPHColorCallback(chrono_types::make_shared<VelocityColorCallback>(0, 2.5));
+        visFSI->SetSPHVisibilityCallback(chrono_types::make_shared<PositionVisibilityCallback>());
         visFSI->AttachSystem(&sysMBS);
         visFSI->Initialize();
     }
@@ -247,6 +259,15 @@ int main(int argc, char* argv[]) {
     int out_frame = 0;
     int render_frame = 0;
 
+    // Initial position of top most node
+    auto node = std::dynamic_pointer_cast<ChNodeFEAxyzD>(mesh->GetNode(0));
+    std::cout << "Initial position of top node: " << node->GetPos().x() << " " << node->GetPos().y() << " "
+              << node->GetPos().z() << std::endl;
+    ChVector3d init_pos = node->GetPos();
+
+    // Record Top node displacement
+    ChFunctionInterp displacement_recorder;
+    double displacement = 0;
     ChTimer timer;
     timer.start();
     while (time < t_end) {
@@ -283,6 +304,11 @@ int main(int argc, char* argv[]) {
 
             render_frame++;
         }
+        ChVector3d pos = node->GetPos();
+        displacement =
+            sqrt(pow(pos.x() - init_pos.x(), 2) + pow(pos.y() - init_pos.y(), 2) + pow(pos.z() - init_pos.z(), 2));
+
+        displacement_recorder.AddPoint(time, displacement);
 
         sysFSI.DoStepDynamics_FSI();
 
@@ -293,6 +319,16 @@ int main(int argc, char* argv[]) {
     cout << "\nSimulation time: " << timer() << " seconds\n" << endl;
 
     return 0;
+
+#ifdef CHRONO_POSTPROCESS
+    postprocess::ChGnuPlot gplot(out_dir + "/height.gpl");
+    gplot.SetGrid();
+    std::string speed_title = "Displacement of top node in cable";
+    gplot.SetTitle(speed_title);
+    gplot.SetLabelX("time (s)");
+    gplot.SetLabelY("displacement (m)");
+    gplot.Plot(displacement_recorder, "", " with lines lt -1 lw 2 lc rgb'#3333BB' ");
+#endif
 }
 
 // -----------------------------------------------------------------------------
@@ -349,13 +385,9 @@ std::shared_ptr<fea::ChMesh> Create_MB_FE(ChSystemSMC& sysMBS, ChSystemFsi& sysF
     // Add the mesh to the MBS system
     sysMBS.Add(mesh);
 
-    // fluid representation of flexible bodies
-    bool multilayer = true;
-    bool removeMiddleLayer = true;
-    sysFSI.AddFEAmeshBCE(mesh, node_nbrs, _1D_elementsNodes_mesh, std::vector<std::vector<int>>(),
-                         true, false, multilayer, removeMiddleLayer, 1, 0);
-
-    sysFSI.AddFsiMesh(mesh, _1D_elementsNodes_mesh, std::vector<std::vector<int>>());
+    // Add the mesh to the FSI system (only these meshes interact with the fluid)
+    sysFSI.SetBcePattern1D(BcePatternMesh1D::STAR, false);
+    sysFSI.AddFsiMesh(mesh);
 
     return mesh;
 }
