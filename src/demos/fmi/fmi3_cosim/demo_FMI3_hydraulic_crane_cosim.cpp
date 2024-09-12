@@ -66,11 +66,11 @@ void CreateCraneFMU(FmuChronoUnit& crane_fmu,
     fmi3Float64 pend_length = 0.3;
     fmi3Float64 crane_angle = CH_PI / 6;
 
-    crane_fmu.SetVariable("crane_mass", &crane_mass);
-    crane_fmu.SetVariable("crane_length", &crane_length);
-    crane_fmu.SetVariable("pend_mass", &pend_mass);
-    crane_fmu.SetVariable("pend_length", &pend_length);
-    crane_fmu.SetVariable("crane_angle", &crane_angle);
+    crane_fmu.SetVariable("crane_mass", crane_mass);
+    crane_fmu.SetVariable("crane_length", crane_length);
+    crane_fmu.SetVariable("pend_mass", pend_mass);
+    crane_fmu.SetVariable("pend_length", pend_length);
+    crane_fmu.SetVariable("crane_angle", crane_angle);
 }
 
 // -----------------------------------------------------------------------------
@@ -196,23 +196,23 @@ int main(int argc, char* argv[]) {
         fmi3Float64 s;   // Actuator length [crane] -> [actuator]
         fmi3Float64 sd;  // Actuator length rate [crane] -> [actuator]
 
-        actuator_fmu.GetVariable("F", &F);
-        crane_fmu.GetVariable("s", &s);
-        crane_fmu.GetVariable("sd", &sd);
+        actuator_fmu.GetVariable("F", F);
+        crane_fmu.GetVariable("s", s);
+        crane_fmu.GetVariable("sd", sd);
 
-        crane_fmu.SetVariable("F", &F);
-        actuator_fmu.SetVariable("s", &s);
-        actuator_fmu.SetVariable("sd", &sd);
-        actuator_fmu.SetVariable("Uref", &Uref);
+        crane_fmu.SetVariable("F", F);
+        actuator_fmu.SetVariable("s", s);
+        actuator_fmu.SetVariable("sd", sd);
+        actuator_fmu.SetVariable("Uref", Uref);
 
 
         // ----------- Current actuator state information
         fmi3Float64 p1;
-        actuator_fmu.GetVariable("p1", &p1);
+        actuator_fmu.GetVariable("p1", p1);
         fmi3Float64 p2;
-        actuator_fmu.GetVariable("p2", &p2);
+        actuator_fmu.GetVariable("p2", p2);
         fmi3Float64 U;
-        actuator_fmu.GetVariable("U", &U);
+        actuator_fmu.GetVariable("U", U);
 
 
         // ----------- Advance FMUs

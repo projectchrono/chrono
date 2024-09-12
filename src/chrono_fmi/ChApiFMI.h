@@ -50,8 +50,11 @@ namespace chrono {
 /// @addtogroup fmi_module
 /// @{
 
-/// Namespace with classes for the FMI module.
-namespace fmi {}
+/// Namespace with classes for the FMI module (FMI 2.0 support).
+namespace fmi2 {}
+
+/// Namespace with classes for the FMI module (FMI 3.0 support).
+namespace fmi3 {}
 
 /// @}
 }  // namespace chrono

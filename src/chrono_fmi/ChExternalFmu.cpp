@@ -406,7 +406,7 @@ bool ChFmu2Wrapper::checkState(const std::string& name, std::string& err_msg) co
     const auto& variables = m_fmu.GetVariablesList();
     auto search = variables.find(name);
     if (search == variables.end()) {
-        err_msg = "variable '" + name + "' does not exist";
+        err_msg = "[ChFmu2Wrapper::checkState] variable '" + name + "' does not exist";
         return false;
     }
 
@@ -414,7 +414,7 @@ bool ChFmu2Wrapper::checkState(const std::string& name, std::string& err_msg) co
     bool ok = var.GetType() == FmuVariable::Type::Real && var.IsState();
 
     if (!ok) {
-        err_msg = "illegal to set variable '" + name + "'";
+        err_msg = "[ChFmu2Wrapper::checkState] illegal to set variable '" + name + "'";
         return false;
     }
 
@@ -426,7 +426,7 @@ bool ChFmu2Wrapper::checkInput(const std::string& name, std::string& err_msg) co
     const auto& variables = m_fmu.GetVariablesList();
     auto search = variables.find(name);
     if (search == variables.end()) {
-        err_msg = "variable '" + name + "' does not exist";
+        err_msg = "[ChFmu2Wrapper::checkInput] variable '" + name + "' does not exist";
         return false;
     }
 
@@ -435,7 +435,7 @@ bool ChFmu2Wrapper::checkInput(const std::string& name, std::string& err_msg) co
               var.GetVariability() == FmuVariable::VariabilityType::continuous;
 
     if (!ok) {
-        err_msg = "illegal to set variable '" + name + "'";
+        err_msg = "[ChFmu2Wrapper::checkInput] illegal to set variable '" + name + "'";
         return false;
     }
 
@@ -457,7 +457,7 @@ bool ChFmu2Wrapper::checkParam(const std::string& name, FmuVariable::Type type, 
     const auto& variables = m_fmu.GetVariablesList();
     auto search = variables.find(name);
     if (search == variables.end()) {
-        err_msg = "variable '" + name + "' does not exist";
+        err_msg = "[ChFmu2Wrapper::checkParam] variable '" + name + "' does not exist";
         return false;
     }
 
@@ -468,7 +468,7 @@ bool ChFmu2Wrapper::checkParam(const std::string& name, FmuVariable::Type type, 
                var.GetCausality() == FmuVariable::CausalityType::input);
 
     if (!ok) {
-        err_msg = "illegal to set variable '" + name + "'";
+        err_msg = "[ChFmu2Wrapper::checkParam] illegal to set variable '" + name + "'";
         return false;
     }
 
@@ -609,13 +609,13 @@ void ChFmu3Wrapper::Initialize(const std::unordered_map<std::string, double>& in
 
     // Set initial conditions
     for (const auto& v : initial_conditions)
-        m_fmu.SetVariable(v.first, &v.second);
+        m_fmu.SetVariable(v.first, v.second);
 
     // Set real and integer parameters
     for (const auto& v : parameters_real)
-        m_fmu.SetVariable(v.first, &v.second);
+        m_fmu.SetVariable(v.first, v.second);
     for (const auto& v : parameters_int)
-        m_fmu.SetVariable(v.first, &v.second);
+        m_fmu.SetVariable(v.first, v.second);
 
     m_fmu.ExitInitializationMode();
 }
@@ -624,7 +624,7 @@ void ChFmu3Wrapper::Initialize(const std::unordered_map<std::string, double>& in
 bool ChFmu3Wrapper::checkState(const std::string& name, std::string& err_msg) const {
     fmi3ValueReference vr;
     if (!m_fmu.GetValueReference(name, vr)) {
-        err_msg = "variable '" + name + "' does not exist";
+        err_msg = "[ChFmu3Wrapper::checkState] variable '" + name + "' does not exist";
         return false;
     }
 
@@ -635,7 +635,7 @@ bool ChFmu3Wrapper::checkState(const std::string& name, std::string& err_msg) co
               var.IsState();
 
     if (!ok) {
-        err_msg = "illegal to set variable '" + name + "'";
+        err_msg = "[ChFmu3Wrapper::checkState] illegal to set variable '" + name + "'";
         return false;
     }
 
@@ -646,7 +646,7 @@ bool ChFmu3Wrapper::checkState(const std::string& name, std::string& err_msg) co
 bool ChFmu3Wrapper::checkInput(const std::string& name, std::string& err_msg) const {
     fmi3ValueReference vr;
     if (!m_fmu.GetValueReference(name, vr)) {
-        err_msg = "variable '" + name + "' does not exist";
+        err_msg = "[ChFmu3Wrapper::checkInput] variable '" + name + "' does not exist";
         return false;
     }
 
@@ -658,7 +658,7 @@ bool ChFmu3Wrapper::checkInput(const std::string& name, std::string& err_msg) co
               var.GetVariability() == FmuVariable::VariabilityType::continuous;
 
     if (!ok) {
-        err_msg = "illegal to set variable '" + name + "'";
+        err_msg = "[ChFmu3Wrapper::checkInput] illegal to set variable '" + name + "'";
         return false;
     }
 
@@ -669,7 +669,7 @@ bool ChFmu3Wrapper::checkInput(const std::string& name, std::string& err_msg) co
 bool ChFmu3Wrapper::checkParamReal(const std::string& name, std::string& err_msg) const {
     fmi3ValueReference vr;
     if (!m_fmu.GetValueReference(name, vr)) {
-        err_msg = "variable '" + name + "' does not exist";
+        err_msg = "[ChFmu3Wrapper::checkParamReal] variable '" + name + "' does not exist";
         return false;
     }
 
@@ -683,7 +683,7 @@ bool ChFmu3Wrapper::checkParamReal(const std::string& name, std::string& err_msg
                var.GetCausality() == FmuVariable::CausalityType::input);
 
     if (!ok) {
-        err_msg = "illegal to set variable '" + name + "'";
+        err_msg = "[ChFmu3Wrapper::checkParamReal] illegal to set variable '" + name + "'";
         return false;
     }
 
@@ -694,7 +694,7 @@ bool ChFmu3Wrapper::checkParamReal(const std::string& name, std::string& err_msg
 bool ChFmu3Wrapper::checkParamInt(const std::string& name, std::string& err_msg) const {
     fmi3ValueReference vr;
     if (!m_fmu.GetValueReference(name, vr)) {
-        err_msg = "variable '" + name + "' does not exist";
+        err_msg = "[ChFmu3Wrapper::checkParamInt] variable '" + name + "' does not exist";
         return false;
     }
 
@@ -709,7 +709,7 @@ bool ChFmu3Wrapper::checkParamInt(const std::string& name, std::string& err_msg)
                var.GetCausality() == FmuVariable::CausalityType::input);
 
     if (!ok) {
-        err_msg = "illegal to set variable '" + name + "'";
+        err_msg = "[ChFmu3Wrapper::checkParamInt] illegal to set variable '" + name + "'";
         return false;
     }
 
@@ -718,7 +718,7 @@ bool ChFmu3Wrapper::checkParamInt(const std::string& name, std::string& err_msg)
 
 void ChFmu3Wrapper::SetInputs(const std::unordered_map<std::string, double>& inputs_real) {
     for (const auto& v : inputs_real) {
-        m_fmu.SetVariable(v.first, &v.second);
+        m_fmu.SetVariable(v.first, v.second);
     }
 }
 
