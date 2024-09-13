@@ -25,8 +25,10 @@
 #include "chrono_modal/ChModalSolver.h"
 
 namespace chrono {
-
 namespace modal {
+
+/// @addtogroup modal
+/// @{
 
 /// Utility function to build the A and B matrices for the undamped eigenvalue problem.
 void ChApiModal BuildUndampedEigenProblemMatrices(ChAssembly& assembly,
@@ -253,8 +255,9 @@ int ChModalSolverUndamped<EigenvalueSolverType>::Solve(const ChSparseMatrix& K,
     return found_eigs;
 }
 
-}  // end namespace modal
+/// @} modal
 
+}  // end namespace modal
 }  // end namespace chrono
 
 #endif

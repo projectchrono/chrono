@@ -30,22 +30,25 @@
 #endif
 
 /**
-    @defgroup modal_module MODAL module
+    @defgroup modal MODAL module
     @brief Modal analysis and substructuring
 
-    Using this module, you can perform modal analysis directly in 
-	Chrono. This can be useful for computing natural frequencies, for
-	computing stability (complex eigenvalue analysis, with damping matrices),
-	for substructuring (where subassemblies are replaced by modal bodies).
+    Using this module, you can perform modal analysis directly in Chrono.
+    This can be useful for computing natural frequencies, for computing stability (complex eigenvalue analysis, with
+    damping matrices), or for substructuring (where subassemblies are replaced by modal bodies).
 
     For additional information, see:
     - the [installation guide](@ref module_modal_installation)
     - the [tutorials](@ref tutorial_root)
+
+    @{
+        @defgroup modal_vis Run-time visualization
+    @}
 */
 
 namespace chrono {
 
-/// @addtogroup modal_module
+/// @addtogroup modal
 /// @{
 
 /// Namespace with classes for the modal module.

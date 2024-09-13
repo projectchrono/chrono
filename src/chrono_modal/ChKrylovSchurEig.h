@@ -24,6 +24,9 @@
 namespace chrono {
 namespace modal {
 
+/// @addtogroup modal
+/// @{
+
 /// Generic A*x callback.
 /// Inherit from this class to define how to compute A*x
 class ChApiModal callback_Ax {
@@ -117,8 +120,9 @@ class ChApiModal ChKrylovSchurEig {
     );
 };
 
-}  // end namespace modal
+/// @} modal
 
+}  // end namespace modal
 }  // end namespace chrono
 
 #endif

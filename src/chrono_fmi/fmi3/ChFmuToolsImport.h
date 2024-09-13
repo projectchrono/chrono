@@ -30,6 +30,9 @@
 namespace chrono {
 namespace fmi3 {
 
+/// @addtogroup chrono_fmi3
+/// @{
+
 using FmuVariable = fmu_tools::fmi3::FmuVariable;
 
 /// Extension of FmuUnit class for Chrono FMUs.
@@ -161,6 +164,8 @@ class FmuChronoUnit : public fmu_tools::fmi3::FmuUnit {
         return fmi3Status::fmi3OK;
     }
 };
+
+/// @} chrono_fmi3
 
 }  // end namespace fmi3
 }  // end namespace chrono

@@ -30,6 +30,9 @@ class ChDirectSolverLS;
 
 namespace modal {
 
+/// @addtogroup modal
+/// @{
+
 /// Base interface class for iterative eigenvalue solvers for generalized problem with real symmetric matrices.
 /// The interfaces assumes shift-and-invert methods.
 class ChApiModal ChSymGenEigenvalueSolver : public ChGeneralizedEigenvalueSolver<double> {
@@ -105,8 +108,9 @@ class ChApiModal ChSymGenEigenvalueSolverLanczos : public ChSymGenEigenvalueSolv
                       ScalarType shift) const override;
 };
 
-}  // end namespace modal
+/// @} modal
 
+}  // end namespace modal
 }  // end namespace chrono
 
 #endif

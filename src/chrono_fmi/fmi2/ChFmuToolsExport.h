@@ -27,10 +27,11 @@
 #include <unordered_map>
 #include <iostream>
 #include <fstream>
+#include <memory>
 
 #include "chrono/serialization/ChArchive.h"
 #include "chrono/core/ChFrameMoving.h"
-#include <memory>
+#include "chrono/physics/ChAssembly.h"
 
 #include "chrono/assets/ChVisualModel.h"
 #include "chrono/assets/ChVisualShapes.h"
@@ -41,6 +42,9 @@
 
 namespace chrono {
 namespace fmi2 {
+
+/// @addtogroup chrono_fmi2
+/// @{
 
 using FmuVariable = fmu_tools::fmi2::FmuVariable;
 
@@ -834,7 +838,7 @@ const std::unordered_set<std::string> FmuChronoComponentBase::supported_shape_ty
     "ChVisualShapePath",      "ChVisualShapeLine",
     "ChVisualShapeUNKNOWN"};
 
-// -----------------------------------------------------------------------------
+/// @} chrono_fmi2
 
 }  // end namespace fmi2
 }  // end namespace chrono

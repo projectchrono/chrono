@@ -28,6 +28,9 @@
 
 namespace chrono {
 
+/// @addtogroup chrono_fmi
+/// @{
+
 /// Abstract interface to a model exchange FMU.
 class ChFmuWrapper {
   public:
@@ -154,6 +157,8 @@ class ChApiFMI ChExternalFmu : public ChExternalDynamics {
     std::unordered_map<std::string, int> m_parameters_int;
     std::unordered_map<std::string, std::function<double(double)>> m_inputs_real;
 };
+
+/// @} chrono_fmi
 
 }  // end namespace chrono
 
