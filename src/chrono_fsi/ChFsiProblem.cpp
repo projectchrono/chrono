@@ -891,6 +891,11 @@ std::shared_ptr<ChBody> ChFsiProblemCartesian::AddWaveMaker(
         }
         case WavemakerType::FLAP: {
             // Create the flap body and a rotational motor
+            auto rev_pos = pos + body_pos - ChVector3d(0, 0, box_size.z() / 2);
+
+            body_pos.z() -= body_thickness / 2;
+            body_size.z() += body_thickness;
+
             body = chrono_types::make_shared<ChBody>();
             body->SetPos(pos + body_pos);
             body->SetRot(QUNIT);
@@ -898,7 +903,6 @@ std::shared_ptr<ChBody> ChFsiProblemCartesian::AddWaveMaker(
             body->EnableCollision(false);
             m_sys.AddBody(body);
 
-            auto rev_pos = pos + body_pos - ChVector3d(0, 0, box_size.z() / 2);
             auto motor = chrono_types::make_shared<ChLinkMotorRotationAngle>();
             motor->Initialize(body, m_ground, ChFramed(rev_pos, Q_ROTATE_Z_TO_Y));
             motor->SetMotorFunction(piston_fun);

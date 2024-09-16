@@ -73,7 +73,7 @@ bool snapshots = false;
 // Visibility flags
 bool show_rigid = true;
 bool show_rigid_bce = false;
-bool show_boundary_bce = false;
+bool show_boundary_bce = true;
 bool show_particles_sph = true;
 
 // -----------------------------------------------------------------------------
@@ -166,7 +166,9 @@ int main(int argc, char* argv[]) {
 
     // Create a wave tank
     auto fun = chrono_types::make_shared<WaveFunction>(0.25, 0.2, 1);
-    auto piston_body = fsi.AddWaveMaker(ChFsiProblem::WavemakerType::PISTON, csize, ChVector3d(0, 0, 0), fun);
+    auto body = fsi.AddWaveMaker(ChFsiProblem::WavemakerType::PISTON, csize, ChVector3d(0, 0, 0), fun);
+    ////auto fun = chrono_types::make_shared<WaveFunction>(0.25, 0.4, 1.25);
+    ////auto body = fsi.AddWaveMaker(ChFsiProblem::WavemakerType::FLAP, csize, ChVector3d(0, 0, 0), fun);   
 
     fsi.Initialize();
 
@@ -270,7 +272,7 @@ int main(int argc, char* argv[]) {
     timer.start();
     while (time < t_end) {
         // Extract FSI force on piston body
-        auto force_piston = fsi.GetFsiBodyForce(piston_body).x();
+        auto force_piston = fsi.GetFsiBodyForce(body).x();
         ofile << time << "\t" << force_piston << "\n";
 
         if (output && time >= out_frame / output_fps) {
