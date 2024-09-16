@@ -414,7 +414,7 @@ int ChFsiProblem::ProcessBodyMesh(RigidBody& b, ChTriangleMeshConnected trimesh,
     }
 
     // Loop through the set of nodes and remove any SPH particle at one of these locations
-    size_t num_removed = 0;
+    int num_removed = 0;
     for (const auto& p : list) {
         auto iter = m_sph.find(p);
         if (iter != m_sph.end()) {
@@ -867,73 +867,60 @@ std::shared_ptr<ChBody> ChFsiProblemCartesian::AddWaveMaker(
 
     m_offset_bce = pos - ChVector3d(box_size.x() / 2, box_size.y() / 2, 0);
 
+    std::shared_ptr<ChBody> body;
+    double body_thickness = (bce_layers - 1) * m_spacing;
+    ChVector3d body_size(body_thickness, box_size.y(), box_size.z());
+    ChVector3d body_pos(-box_size.x() / 2 - body_thickness / 2 - m_spacing, 0, box_size.z() / 2);
+
     switch (type) {
         case WavemakerType::PISTON: {
             // Create the piston body and a linear motor
-            double thickness = (bce_layers - 1) * m_spacing;
-            ChVector3d piston_size(thickness, box_size.y(), box_size.z());
-            ChVector3d piston_pos(-box_size.x() / 2 - thickness / 2 - m_spacing, 0, box_size.z() / 2);
-
-            auto piston = chrono_types::make_shared<ChBody>();
-            piston->SetPos(pos + piston_pos);
-            piston->SetRot(QUNIT);
-            piston->SetFixed(false);
-            piston->EnableCollision(false);
-            m_sys.AddBody(piston);
-
-            utils::ChBodyGeometry geometry;
-            geometry.coll_boxes.push_back(utils::ChBodyGeometry::BoxShape(VNULL, QUNIT, piston_size));
-            geometry.CreateVisualizationAssets(piston, VisualizationType::COLLISION);
+            body = chrono_types::make_shared<ChBody>();
+            body->SetPos(pos + body_pos);
+            body->SetRot(QUNIT);
+            body->SetFixed(false);
+            body->EnableCollision(false);
+            m_sys.AddBody(body);
 
             auto motor = chrono_types::make_shared<ChLinkMotorLinearPosition>();
-            motor->Initialize(piston, m_ground, ChFramed(piston->GetPos(), Q_ROTATE_Z_TO_X));
+            motor->Initialize(body, m_ground, ChFramed(body->GetPos(), Q_ROTATE_Z_TO_X));
             motor->SetMotorFunction(piston_fun);
             m_sys.AddLink(motor);
 
-            // Add piston as FSI body
-            auto num_piston_bce = AddRigidBody(piston, geometry, true);
-
-            if (m_verbose) {
-                cout << "  Piston initialized at:   " << piston->GetPos() << endl;
-                cout << "  Num. BCE markers:        " << num_piston_bce << endl;
-            }
-
-            return piston;
+            break;
         }
         case WavemakerType::FLAP: {
-            // Create the piston body and a linear motor
-            double thickness = (bce_layers - 1) * m_spacing;
-            ChVector3d flap_size(thickness, box_size.y(), box_size.z());
-            ChVector3d flap_pos(-box_size.x() / 2 - thickness / 2 - m_spacing, 0, box_size.z() / 2);
+            // Create the flap body and a rotational motor
+            body = chrono_types::make_shared<ChBody>();
+            body->SetPos(pos + body_pos);
+            body->SetRot(QUNIT);
+            body->SetFixed(false);
+            body->EnableCollision(false);
+            m_sys.AddBody(body);
 
-            auto flap = chrono_types::make_shared<ChBody>();
-            flap->SetPos(pos + flap_pos);
-            flap->SetRot(QUNIT);
-            flap->SetFixed(false);
-            flap->EnableCollision(false);
-            m_sys.AddBody(flap);
-
-            utils::ChBodyGeometry geometry;
-            geometry.coll_boxes.push_back(utils::ChBodyGeometry::BoxShape(VNULL, QUNIT, flap_size));
-            geometry.CreateVisualizationAssets(flap, VisualizationType::COLLISION);
-
-            auto rev_pos = pos + flap_pos - ChVector3d(0, 0, box_size.z() / 2);
+            auto rev_pos = pos + body_pos - ChVector3d(0, 0, box_size.z() / 2);
             auto motor = chrono_types::make_shared<ChLinkMotorRotationAngle>();
-            motor->Initialize(flap, m_ground, ChFramed(rev_pos, Q_ROTATE_Z_TO_Y));
+            motor->Initialize(body, m_ground, ChFramed(rev_pos, Q_ROTATE_Z_TO_Y));
             motor->SetMotorFunction(piston_fun);
             m_sys.AddLink(motor);
 
-            // Add flap as FSI body
-            auto num_piston_bce = AddRigidBody(flap, geometry, true);
-
-            if (m_verbose) {
-                cout << "  Flap initialized at:   " << flap->GetPos() << endl;
-                cout << "  Num. BCE markers:       " << num_piston_bce << endl;
-            }
-
-            return flap;
+            break;
         }
     }
+
+    utils::ChBodyGeometry geometry;
+    geometry.coll_boxes.push_back(utils::ChBodyGeometry::BoxShape(VNULL, QUNIT, body_size));
+    geometry.CreateVisualizationAssets(body, VisualizationType::COLLISION);
+
+    // Add wavemaker body as FSI body
+    auto num_piston_bce = AddRigidBody(body, geometry, true);
+
+    if (m_verbose) {
+        cout << "  Body initialized at:   " << body->GetPos() << endl;
+        cout << "  Num. BCE markers:        " << num_piston_bce << endl;
+    }
+
+    return body;
 }
 
 ChVector3i ChFsiProblemCartesian::Snap2Grid(const ChVector3d& point) {

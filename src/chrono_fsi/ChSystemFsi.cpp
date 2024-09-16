@@ -120,7 +120,7 @@ void ChSystemFsi::InitParams() {
     m_paramsH->USE_Consistent_L = false;
     m_paramsH->USE_Consistent_G = false;
 
-    m_paramsH->epsMinMarkersDis = 0.01;
+    m_paramsH->epsMinMarkersDis = Real(0.01);
 
     m_paramsH->markerMass = m_paramsH->volume0 * m_paramsH->rho0;
 
@@ -711,12 +711,17 @@ std::string ChSystemFsi::GetPhysicsProblemString() const {
 }
 
 std::string ChSystemFsi::GetSphMethodTypeString() const {
+    std::string method = "";
     switch (m_paramsH->sph_method) {
         case SPHMethod::WCSPH:
-            return "WCSPH";
+            method = "WCSPH";
+            break;
         case SPHMethod::I2SPH:
-            return "I2SPH";
+            method = "I2SPH";
+            break;
     }
+
+    return method;
 }
 
 //--------------------------------------------------------------------------------------------------------------------------------
@@ -816,7 +821,7 @@ void ChSystemFsi::AddFsiMesh1D(std::shared_ptr<fea::ChContactSurfaceSegmentSet> 
 
     // Update total number of flex 1-D segments and associated nodes
     m_num_flex1D_elements += fsi_mesh.contact_surface->GetNumSegments();
-    m_num_flex1D_nodes += fsi_mesh.ind2ptr_map.size();
+    m_num_flex1D_nodes += (unsigned int)fsi_mesh.ind2ptr_map.size();
 
     // Store the mesh contact surface
     m_fsi_interface->m_fsi_meshes1D.push_back(fsi_mesh);
@@ -864,7 +869,7 @@ void ChSystemFsi::AddFsiMesh2D(std::shared_ptr<fea::ChContactSurfaceMesh> surfac
 
     // Update total number of flex 2-D faces and associated nodes
     m_num_flex2D_elements += fsi_mesh.contact_surface->GetNumTriangles();
-    m_num_flex2D_nodes += fsi_mesh.ind2ptr_map.size();
+    m_num_flex2D_nodes += (unsigned int)fsi_mesh.ind2ptr_map.size();
 
     // Store the FSI mesh contact surface
     m_fsi_interface->m_fsi_meshes2D.push_back(fsi_mesh);
@@ -1837,10 +1842,11 @@ unsigned int ChSystemFsi::AddBCE_mesh2D(unsigned int meshID, const ChFsiInterfac
         int n2 = (int)std::ceil((P1 - P0).Length() / spacing);  // required divisions on edge 2
 
         int n_median = max(min(n0, n1), min(max(n0, n1), n2));  // number of divisions on each edge (median)
-        int n_max = std::max(n0, std::max(n1, n2));             // number of divisions on each edge (max)
+        ////int n_max = std::max(n0, std::max(n1, n2));             // number of divisions on each edge (max)
 
-        ////cout << "(" << n0 << " " << n1 << " " << n2 << ")   Median: " << n_median << "   Max: " << n_max
-        ///<< endl;
+        ////cout << "(" << n0 << " " << n1 << " " << n2 << ")";
+        ////cout << "  Median : " << n_median << " Max : " << n_max << endl;
+
         int n = n_median;
 
         ////ofile << P0 << endl;
