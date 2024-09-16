@@ -173,6 +173,8 @@ fmi2Status FmuComponent::exitInitializationModeIMPL() {
 
     // it is also possible to parse automatically an entire ChAssembly
     AddFmuVisualShapes(sys.GetAssembly());
+
+    return fmi2Status::fmi2OK;
 };
 
 fmi2Status FmuComponent::doStepIMPL(fmi2Real currentCommunicationPoint,
