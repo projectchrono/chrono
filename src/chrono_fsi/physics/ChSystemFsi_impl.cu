@@ -161,8 +161,7 @@ ChSystemFsi_impl::ChSystemFsi_impl(std::shared_ptr<SimParams> params) : ChFsiBas
     sortedSphMarkers2_D = chrono_types::make_shared<SphMarkerDataD>();
     sphMarkers_H = chrono_types::make_shared<SphMarkerDataH>();
 
-    fsiBodyState1_D = chrono_types::make_shared<FsiBodyStateD>();
-    fsiBodyState2_D = chrono_types::make_shared<FsiBodyStateD>();
+    fsiBodyState_D = chrono_types::make_shared<FsiBodyStateD>();
     fsiBodyState_H = chrono_types::make_shared<FsiBodyStateH>();
 
     fsiMesh1DState_D = chrono_types::make_shared<FsiMeshStateD>();
@@ -362,8 +361,7 @@ void ChSystemFsi_impl::Initialize(size_t numRigidBodies,
     thrust::copy(sphMarkers_H->tauXxYyZzH.begin(), sphMarkers_H->tauXxYyZzH.end(), sphMarkers_D->tauXxYyZzD.begin());
     thrust::copy(sphMarkers_H->tauXyXzYzH.begin(), sphMarkers_H->tauXyXzYzH.end(), sphMarkers_D->tauXyXzYzD.begin());
 
-    fsiBodyState1_D->resize(numObjectsH->numRigidBodies);
-    fsiBodyState2_D->resize(numObjectsH->numRigidBodies);
+    fsiBodyState_D->resize(numObjectsH->numRigidBodies);
     fsiBodyState_H->resize(numObjectsH->numRigidBodies);
 
     fsiData->rigid_FSI_ForcesD.resize(numObjectsH->numRigidBodies);

@@ -42,19 +42,17 @@ class ChFsiInterface : public ChFsiBase {
     ~ChFsiInterface();
 
     /// Copy rigid body states from ChSystem to FsiSystem, then to the GPU memory.
-    void LoadBodyState_Chrono2Fsi(std::shared_ptr<FsiBodyStateD> fsiBodyStateD);
+    void LoadBodyStates();
 
     /// Copy FEA mesh states from ChSystem to FsiSystem, then to the GPU memory.
-    void LoadMesh1DState_Chrono2Fsi(std::shared_ptr<FsiMeshStateD> fsiMesh1DState_D);
-    void LoadMesh2DState_Chrono2Fsi(std::shared_ptr<FsiMeshStateD> fsiMesh2DState_D);
+    void LoadMeshStates();
 
     /// Read the surface-integrated pressure and viscous forces form the fluid/granular dynamics system,
     /// and add these forces and torques as external forces to the ChSystem rigid bodies.
-    void ApplyBodyForce_Fsi2Chrono();
+    void ApplyBodyForces();
 
     /// Add forces and torques as external forces to the ChSystem flexible bodies.
-    void ApplyMesh1DForce_Fsi2Chrono();
-    void ApplyMesh2DForce_Fsi2Chrono();
+    void ApplyMeshForces();
 
   private:
     /// Description of a rigid body exposed to the FSI system.
