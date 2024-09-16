@@ -39,7 +39,7 @@ __global__ void calcHashD(uint* gridMarkerHashD,   // gridMarkerHash Store parti
 
     Real3 p = mR3(posRad[index]);
 
-    if (!(isfinite(p.x) && isfinite(p.y) && isfinite(p.z))) {
+    if (!IsFinite(p)) {
         printf(
             "Error! particle position is NAN: thrown from "
             "ChCollisionSystemFsi.cu, calcHashD !\n");
@@ -151,17 +151,17 @@ __global__ void reorderDataD(uint* gridMarkerIndexD,     // input: sorted partic
     Real3 velMas = velMasD[originalIndex];
     Real4 rhoPreMu = rhoPresMuD[originalIndex];
 
-    if (!(isfinite(posRad.x) && isfinite(posRad.y) && isfinite(posRad.z))) {
+    if (!IsFinite(posRad)) {
         printf(
             "Error! particle position is NAN: thrown from "
             "ChCollisionSystemFsi.cu, reorderDataD !\n");
     }
-    if (!(isfinite(velMas.x) && isfinite(velMas.y) && isfinite(velMas.z))) {
+    if (!IsFinite(velMas)) {
         printf(
             "Error! particle velocity is NAN: thrown from "
             "ChCollisionSystemFsi.cu, reorderDataD !\n");
     }
-    if (!(isfinite(rhoPreMu.x) && isfinite(rhoPreMu.y) && isfinite(rhoPreMu.z) && isfinite(rhoPreMu.w))) {
+    if (!IsFinite(rhoPreMu)) {
         printf(
             "Error! particle rhoPreMu is NAN: thrown from "
             "ChCollisionSystemFsi.cu, reorderDataD !\n");
@@ -175,12 +175,12 @@ __global__ void reorderDataD(uint* gridMarkerIndexD,     // input: sorted partic
     if (paramsD.elastic_SPH) {
         Real3 tauXxYyZz = tauXxYyZzD[originalIndex];
         Real3 tauXyXzYz = tauXyXzYzD[originalIndex];
-        if (!(isfinite(tauXxYyZz.x) && isfinite(tauXxYyZz.y) && isfinite(tauXxYyZz.z))) {
+        if (!IsFinite(tauXxYyZz)) {
             printf(
                 "Error! particle tauXxYyZz is NAN: thrown from "
                 "ChCollisionSystemFsi.cu, reorderDataD !\n");
         }
-        if (!(isfinite(tauXyXzYz.x) && isfinite(tauXyXzYz.y) && isfinite(tauXyXzYz.z))) {
+        if (!IsFinite(tauXyXzYz)) {
             printf(
                 "Error! particle tauXyXzYz is NAN: thrown from "
                 "ChCollisionSystemFsi.cu, reorderDataD !\n");

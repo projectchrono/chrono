@@ -1635,6 +1635,14 @@ __host__ __device__ inline Real3 user_BC_U(Real3 Pos) {
     return vel;
 }
 
+__host__ __device__ inline bool IsFinite(Real3 v) {
+    return isfinite(v.x) && isfinite(v.y) && isfinite(v.z);
+}
+
+__host__ __device__ inline bool IsFinite(Real4 v) {
+    return isfinite(v.x) && isfinite(v.y) && isfinite(v.z) && isfinite(v.w);
+}
+
 /// @} fsi_math
 
 }  // end namespace fsi

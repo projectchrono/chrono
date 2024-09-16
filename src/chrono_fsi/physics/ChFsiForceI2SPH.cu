@@ -644,20 +644,17 @@ __global__ void Velocity_Correction_and_update(Real4* sortedPosRad,
         sortedPosRad[i_idx] = x_new;
     }
 
-    //    if (!(isfinite(sortedPosRad[i_idx].x) && isfinite(sortedPosRad[i_idx].y) && isfinite(sortedPosRad[i_idx].z)))
-    //    {
+    //    if (!IsFinite(sortedPosRad[i_idx])) {
     //        printf("Error! particle %d position is NAN: thrown from ChFsiForceI2SPH.cu  %f,%f,%f,%f\n", i_idx,
     //               sortedPosRad[i_idx].x, sortedPosRad[i_idx].y, sortedPosRad[i_idx].z, sortedPosRad[i_idx].w);
     //    }
-    //    if (!(isfinite(sortedRhoPreMu[i_idx].x) && isfinite(sortedRhoPreMu[i_idx].y) &&
-    //          isfinite(sortedRhoPreMu[i_idx].z))) {
+    //    if (!IsFinite(sortedRhoPreMu[i_idx])) {
     //        printf("Error! particle %d rhoPreMu is NAN: thrown from ChFsiForceI2SPH.cu %f,%f,%f,%f\n", i_idx,
     //               sortedRhoPreMu[i_idx].x, sortedRhoPreMu[i_idx].y, sortedRhoPreMu[i_idx].z,
     //               sortedRhoPreMu[i_idx].w);
     //    }
     //
-    //    if (!(isfinite(sortedVelMas[i_idx].x) && isfinite(sortedVelMas[i_idx].y) && isfinite(sortedVelMas[i_idx].z)))
-    //    {
+    //    if (!IsFinite(sortedVelMas[i_idx])) {
     //        printf("Error! particle %d velocity is NAN: thrown from ChFsiForceI2SPH.cu %f,%f,%f\n", i_idx,
     //               sortedVelMas[i_idx].x, sortedVelMas[i_idx].y, sortedVelMas[i_idx].z);
     //    }
@@ -688,21 +685,18 @@ __global__ void Shifting(Real4* sortedPosRad,
     Real3 inner_sum = mR3(0.0), shift_r = mR3(0.0);
     Real mi_bar = 0.0, r0 = 0.0;  // v_bar = 0.0;
     Real3 xSPH_Sum = mR3(0.0);
-    if (!(isfinite(sortedPosRad_old[i_idx].x) && isfinite(sortedPosRad_old[i_idx].y) &&
-          isfinite(sortedPosRad_old[i_idx].z))) {
+    if (!IsFinite(sortedPosRad_old[i_idx])) {
         printf("Error! particle %d position is NAN: thrown from 1 Shifting ChFsiForceI2SPH.cu  %f,%f,%f,%f\n", i_idx,
                sortedPosRad_old[i_idx].x, sortedPosRad_old[i_idx].y, sortedPosRad_old[i_idx].z,
                sortedPosRad_old[i_idx].w);
     }
-    if (!(isfinite(sortedRhoPreMu_old[i_idx].x) && isfinite(sortedRhoPreMu[i_idx].y) &&
-          isfinite(sortedRhoPreMu_old[i_idx].z))) {
+    if (!IsFinite(sortedRhoPreMu_old[i_idx])) {
         printf("Error! particle %d rhoPreMu is NAN: thrown from 1 Shifting ChFsiForceI2SPH.cu %f,%f,%f,%f\n", i_idx,
                sortedRhoPreMu_old[i_idx].x, sortedRhoPreMu_old[i_idx].y, sortedRhoPreMu_old[i_idx].z,
                sortedRhoPreMu_old[i_idx].w);
     }
 
-    if (!(isfinite(sortedVelMas_old[i_idx].x) && isfinite(sortedVelMas_old[i_idx].y) &&
-          isfinite(sortedVelMas_old[i_idx].z))) {
+    if (!IsFinite(sortedVelMas_old[i_idx])) {
         printf("Error! particle %d velocity is NAN: thrown from 1 Shifting ChFsiForceI2SPH.cu %f,%f,%f\n", i_idx,
                sortedVelMas_old[i_idx].x, sortedVelMas_old[i_idx].y, sortedVelMas_old[i_idx].z);
     }
@@ -775,17 +769,16 @@ __global__ void Shifting(Real4* sortedPosRad,
 
     sortedVisVel[i_idx] = vis_vel;
 
-    if (!(isfinite(sortedPosRad[i_idx].x) && isfinite(sortedPosRad[i_idx].y) && isfinite(sortedPosRad[i_idx].z))) {
+    if (!IsFinite(sortedPosRad[i_idx])) {
         printf("Error! particle %d position is NAN: thrown from Shifting ChFsiForceI2SPH.cu  %f,%f,%f,%f\n", i_idx,
                sortedPosRad[i_idx].x, sortedPosRad[i_idx].y, sortedPosRad[i_idx].z, sortedPosRad[i_idx].w);
     }
-    if (!(isfinite(sortedRhoPreMu[i_idx].x) && isfinite(sortedRhoPreMu[i_idx].y) &&
-          isfinite(sortedRhoPreMu[i_idx].z))) {
+    if (!IsFinite(sortedRhoPreMu[i_idx])) {
         printf("Error! particle %d rhoPreMu is NAN: thrown from Shifting ChFsiForceI2SPH.cu %f,%f,%f,%f\n", i_idx,
                sortedRhoPreMu[i_idx].x, sortedRhoPreMu[i_idx].y, sortedRhoPreMu[i_idx].z, sortedRhoPreMu[i_idx].w);
     }
 
-    if (!(isfinite(sortedVelMas[i_idx].x) && isfinite(sortedVelMas[i_idx].y) && isfinite(sortedVelMas[i_idx].z))) {
+    if (!IsFinite(sortedVelMas[i_idx])) {
         printf("Error! particle %d velocity is NAN: thrown from Shifting ChFsiForceI2SPH.cu %f,%f,%f\n", i_idx,
                sortedVelMas[i_idx].x, sortedVelMas[i_idx].y, sortedVelMas[i_idx].z);
     }

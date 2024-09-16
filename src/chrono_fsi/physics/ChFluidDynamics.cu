@@ -265,15 +265,17 @@ __global__ void UpdateFluidD(Real4* posRadD,
     if (activity == 0)
         return;
 
-    Real4 derivVelRho = derivVelRhoD[index];
     Real4 rhoPresMu = rhoPresMuD[index];
-    Real h = posRadD[index].w;
-    Real p_tr, p_n;
-    if (rhoPresMu.w > -0.5) {
+    if (IsBceMarker(rhoPresMu.w)) {
         return;
     }
 
+    Real4 derivVelRho = derivVelRhoD[index];
+    Real h = posRadD[index].w;
+
     // This is only implemented for granular material
+    Real p_tr, p_n;
+
     if (paramsD.elastic_SPH) {
         //--------------------------------
         // ** total stress tau
@@ -384,7 +386,7 @@ __global__ void UpdateFluidD(Real4* posRadD,
     Real3 vel_XSPH = velMasD[index] + vel_XSPH_D[index];  // paramsD.EPS_XSPH *
     Real3 posRad = mR3(posRadD[index]);
     Real3 updatedPositon = posRad + vel_XSPH * dT;
-    if (!(isfinite(updatedPositon.x) && isfinite(updatedPositon.y) && isfinite(updatedPositon.z))) {
+    if (!IsFinite(updatedPositon)) {
         printf("Error! particle position is NAN: thrown from ChFluidDynamics.cu, UpdateFluidDKernel !\n");
         *isErrorD = true;
         return;
@@ -411,7 +413,7 @@ __global__ void UpdateFluidD(Real4* posRadD,
         rhoPresMu.y = Eos(rho2, rhoPresMu.w);
         rhoPresMu.x = rho2;
     }
-    if (!(isfinite(rhoPresMu.x) && isfinite(rhoPresMu.y) && isfinite(rhoPresMu.z) && isfinite(rhoPresMu.w))) {
+    if (!IsFinite(rhoPresMu)) {
         printf("Error! particle rho pressure is NAN: thrown from ChFluidDynamics.cu, UpdateFluidDKernel !\n");
         *isErrorD = true;
         return;

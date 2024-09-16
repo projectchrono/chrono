@@ -351,7 +351,7 @@ __global__ void Shear_Stress_Rate(uint* indexOfIndex,
 
     uint index = indexOfIndex[id];
 
-    if (sortedRhoPreMu[index].w > -0.5)
+    if (IsBceMarker(sortedRhoPreMu[index].w))
         return;
 
     Real3 posRadA = mR3(sortedPosRad[index]);
@@ -397,7 +397,7 @@ __global__ void Shear_Stress_Rate(uint* indexOfIndex,
                             continue;
                         Real3 velMasB = sortedVelMas[j];
                         Real4 rhoPresMuB = sortedRhoPreMu[j];
-                        if (rhoPresMuB.w > -0.5) {
+                        if (IsBceMarker(rhoPresMuB.w)) {
                             int bceIndexB = gridMarkerIndex[j] - numObjectsD.numFluidMarkers;
                             if (bceIndexB < 0 || bceIndexB >= numObjectsD.numBceMarkers) {
                                 printf("Error! bceIndex out of bound, Shear_Stress_Rate !\n");
@@ -732,7 +732,7 @@ __device__ inline Real4 DifVelocityRho(float G_i[9],
                                        Real4 rhoPresMuA,
                                        Real4 rhoPresMuB,
                                        Real multViscosity) {
-    if (rhoPresMuA.w > -0.5 && rhoPresMuB.w > -0.5)
+    if (IsBceMarker(rhoPresMuA.w) && IsBceMarker(rhoPresMuB.w))
         return mR4(0.0);
 
     Real3 gradW = GradWh(dist3, (posRadA.w + posRadB.w) * 0.5);
@@ -784,7 +784,7 @@ __device__ inline Real4 DifVelocityRho_ElasticSPH(Real W_ini_inv,
                                                   Real3 tauXyXzYz_A_in,
                                                   Real3 tauXxYyZz_B_in,
                                                   Real3 tauXyXzYz_B_in) {
-    if (rhoPresMuA.w > -0.5 && rhoPresMuB.w > -0.5)
+    if (IsBceMarker(rhoPresMuA.w) && IsBceMarker(rhoPresMuB.w))
         return mR4(0.0);
 
     Real3 velMasA = velMasA_in;
@@ -794,12 +794,12 @@ __device__ inline Real4 DifVelocityRho_ElasticSPH(Real W_ini_inv,
     Real3 tauXyXzYz_A = tauXyXzYz_A_in;
     Real3 tauXyXzYz_B = tauXyXzYz_B_in;
 
-    /*if (rhoPresMuA.w < -0.5 && rhoPresMuB.w > -0.5) {
+    /*if (IsFluidParticle(rhoPresMuA.w) && IsBceMarker(rhoPresMuB.w)) {
         tauXxYyZz_B = tauXxYyZz_A;
         tauXyXzYz_B = tauXyXzYz_A;
         // velMasB = 2.0*velMasB - velMasA; // noslip BC
     }
-    if (rhoPresMuA.w > -0.5 && rhoPresMuB.w < -0.5) {
+    if (IsBceMarker(rhoPresMuA.w) && IsFluidParticle(rhoPresMuB.w)) {
         tauXxYyZz_A = tauXxYyZz_B;
         tauXyXzYz_A = tauXyXzYz_B;
         // velMasA = 2.0*velMasA - velMasB; // noslip BC
@@ -1034,13 +1034,14 @@ __global__ void Navier_Stokes(uint* indexOfIndex,
             continue;
         Real4 rhoPresMuB = sortedRhoPreMu[j];
 
-        // no rigid-rigid force
-        if (rhoPresMuA.w > -0.5 && rhoPresMuB.w > -0.5)
+        // no solid-solid force
+        if (IsBceMarker(rhoPresMuA.w) && IsBceMarker(rhoPresMuB.w))
             continue;
+
         Real d = length(dist3);
 
         // modifyPressure(rhoPresMuB, dist3Alpha);
-        // if (!(isfinite(rhoPresMuB.x) && isfinite(rhoPresMuB.y) && isfinite(rhoPresMuB.z))) {
+        // if (!IsFinite(rhoPresMuB)) {
         //     printf("Error! particle rhoPresMuB is NAN: thrown from modifyPressure !\n");
         // }
         Real3 velMasB = sortedVelMas[j];
@@ -1082,19 +1083,20 @@ __global__ void Navier_Stokes(uint* indexOfIndex,
                   Gi[2] * Gi[3] * Gi[7] - Gi[2] * Gi[4] * Gi[6]);
     Real Det_L = (Li[0] * Li[4] * Li[8] - Li[0] * Li[5] * Li[7] - Li[1] * Li[3] * Li[8] + Li[1] * Li[5] * Li[6] +
                   Li[2] * Li[3] * Li[7] - Li[2] * Li[4] * Li[6]);
-    if (rhoPresMuA.w > -1.5 && rhoPresMuA.w < -0.5) {
+
+    if (IsSphParticle(rhoPresMuA.w)) {
         if (Det_G > 0.9 && Det_G < 1.1 && Det_L > 0.9 && Det_L < 1.1 && sum_w_i > 0.9) {
             derivVelRho = mR4(dvxdt, dvydt, dvzdt, drhodt);
         }
     }
 
-    if (!(isfinite(derivVelRho.x) && isfinite(derivVelRho.y) && isfinite(derivVelRho.z))) {
+    if (!IsFinite(derivVelRho)) {
         printf("Error! particle derivVel is NAN: thrown from ChFsiForceExplicitSPH.cu, collideD !\n");
         *isErrorD = true;
     }
 
     // add gravity and other body force to fluid markers
-    if (rhoPresMuA.w > -1.5 && rhoPresMuA.w < -0.5) {
+    if (IsSphParticle(rhoPresMuA.w)) {
         Real3 totalFluidBodyForce3 = paramsD.bodyForce3 + paramsD.gravity;
         derivVelRho += mR4(totalFluidBodyForce3);
     }
@@ -1128,8 +1130,9 @@ __global__ void updateBoundaryPres(const uint* activityIdentifierD,
     if (activityIdentifierD[index] == 0) {
         return;
     }
+
     // Ignore all fluid particles
-    if (sortedRhoPresMuD[index].w < -0.5f) {
+    if (IsFluidParticle(sortedRhoPresMuD[index].w)) {
         return;
     }
 
@@ -1146,10 +1149,12 @@ __global__ void updateBoundaryPres(const uint* activityIdentifierD,
 
     for (int n = NLStart + 1; n < NLEnd; n++) {
         uint j = neighborList[n];
+
         // only consider fluid neighbors
-        if (sortedRhoPresMuD[j].w > -0.5f) {
+        if (IsBceMarker(sortedRhoPresMuD[j].w)) {
             continue;
         }
+
         Real3 posRadB = mR3(sortedPosRadD[j]);
         Real3 rij = Distance(posRadA, posRadB);
         Real d = length(rij);
@@ -1161,17 +1166,18 @@ __global__ void updateBoundaryPres(const uint* activityIdentifierD,
         sum_tauD += sortedTauXxYyZz[j] * W3;
         sum_tauO += sortedTauXyXzYz[j] * W3;
     }
-    Real3 prescribedVel;
+
     if (sum_w > EPSILON) {
         sortedRhoPresMuD[index].y = (sum_pw + dot(paramsD.gravity - bceAcc[index], sum_rhorw)) / sum_w;
         sortedRhoPresMuD[index].x = InvEos(sortedRhoPresMuD[index].y);
-        // Applies ADAMI to only Rigid/Flexible markers
-        prescribedVel = (sortedRhoPresMuD[index].w > 0.5f) ? (2.0f * sortedVelMasD[index]) : mR3(0.0);
+
+        // Applies ADAMI only to Rigid/Flexible markers
+        Real3 prescribedVel = (IsBceSolidMarker(sortedRhoPresMuD[index].w)) ? (2.0f * sortedVelMasD[index]) : mR3(0.0);
         // prescribedVel = 2.0f * sortedVelMasD[index];
+        
         sortedVelMasD[index] = prescribedVel - sum_vw / sum_w;
         sortedTauXxYyZz[index] = (sum_tauD + dot(paramsD.gravity - bceAcc[index], sum_rhorw)) / sum_w;
         sortedTauXyXzYz[index] = sum_tauO / sum_w;
-
     } else {
         sortedRhoPresMuD[index].y = 0.0f;
         sortedVelMasD[index] = mR3(0.0);
@@ -1288,10 +1294,10 @@ __global__ void NS_SSR(const uint* activityIdentifierD,
         if (j == index) {
             continue;
         }
-        // uint j = neighborListSorted[n];
         Real4 rhoPresMuB = sortedRhoPreMu[j];
-        if (rhoPresMuA.w > -0.5f && rhoPresMuB.w > -0.5f)
+        if (IsBceMarker(rhoPresMuA.w) && IsBceMarker(rhoPresMuB.w))
             continue;  // No BCE-BCE interaction
+
         Real3 posRadB = mR3(sortedPosRad[j]);
         Real3 dist3 = Distance(posRadA, posRadB);
         Real d = length(dist3);
@@ -1301,7 +1307,7 @@ __global__ void NS_SSR(const uint* activityIdentifierD,
         Real3 TauXyXzYzB = sortedTauXyXzYz[j];
 
         // TODO: Might need to eliminate this double application of ADAMI BC based on what Wei says
-        if (rhoPresMuB.w > -0.5) {
+        if (IsBceMarker(rhoPresMuB.w)) {
             Real chi_A = sortedKernelSupport[index].y / sortedKernelSupport[index].x;
             Real chi_B = sortedKernelSupport[j].y / sortedKernelSupport[j].x;
             Real dA = SuppRadii * (2.0 * chi_A - 1.0);
@@ -1365,18 +1371,23 @@ __global__ void NS_SSR(const uint* activityIdentifierD,
             dTauxz += twoG * exz - (tauxx * wxz + tauxy * wyz) + (wxy * tauyz + wxz * tauzz);
             dTauyz += twoG * eyz - (tauxy * wxz + tauyy * wyz) - (wxy * tauxz - wyz * tauzz);
         }
+
         // Do integration for the kernel function, calculate the XSPH term
         if (d > paramsD.HSML * 1.0e-9f) {
             Real Wab = W3h(d, hA);
+
             // Integration of the kernel function
             sum_w_i += Wab * paramsD.volume0;
+
             // XSPH
-            if (rhoPresMuB.w > -1.5f && rhoPresMuB.w < -0.5f)
+            if (IsSphParticle(rhoPresMuB.w))
                 deltaV += paramsD.volume0 * (velMasB - velMasA) * Wab;
+
             N_ = N_ + 1;
         }
+
         // Find particles that have contact with this particle
-        if (d < 1.25f * radii && rhoPresMuB.w < -0.5f) {
+        if (IsFluidParticle(rhoPresMuB.w) && d < 1.25f * radii) {
             Real Pen = (radii - d) * invRadii;
             Real3 r_0 = bs_vAdT * invd * dist3;
             Real3 r_s = r_0 * Pen;
@@ -1387,6 +1398,7 @@ __global__ void NS_SSR(const uint* activityIdentifierD,
             } else {
                 inner_sum += 0.1f * 1.0f * (-r_0);
             }
+
             N_s = N_s + 1;
         }
     }
@@ -1414,7 +1426,7 @@ __global__ void NS_SSR(const uint* activityIdentifierD,
     sortedXSPHandShift[index] = sortedXSPHandShift[index] * paramsD.INV_dT;
 
     // Add gravity and other body force to fluid markers
-    if (rhoPresMuA.w > -1.5f && rhoPresMuA.w < -0.5f) {
+    if (IsSphParticle(rhoPresMuA.w)) {
         Real3 totalFluidBodyForce3 = paramsD.bodyForce3 + paramsD.gravity;
         derivVelRho += mR4(totalFluidBodyForce3, 0.0f);
     }
@@ -1472,7 +1484,7 @@ __global__ void CalcVel_XSPH_D(uint* indexOfIndex,
         if (dd > SqRadii)
             continue;
         Real4 rhoPresMuB = sortedRhoPreMu[j];
-        if (rhoPresMuB.w > -0.5 || rhoPresMuB.w < -1.5)
+        if (!IsSphParticle(rhoPresMuB.w))
             continue;
         Real3 velMasB = sortedVelMas[j];
         Real rho_bar = 0.5 * (rhoPreMuA.x + rhoPresMuB.x);
@@ -1482,8 +1494,7 @@ __global__ void CalcVel_XSPH_D(uint* indexOfIndex,
 
     vel_XSPH_Sorted_D[index] = paramsD.EPS_XSPH * deltaV + vel_XSPH_Sorted_D[index] * paramsD.INV_dT;
 
-    if (!(isfinite(vel_XSPH_Sorted_D[index].x) && isfinite(vel_XSPH_Sorted_D[index].y) &&
-          isfinite(vel_XSPH_Sorted_D[index].z))) {
+    if (!IsFinite(vel_XSPH_Sorted_D[index])) {
         printf("Error! particle vXSPH is NAN: thrown from ChFsiForceExplicitSPH.cu, CalcVel_XSPH_D !\n");
         *isErrorD = true;
     }

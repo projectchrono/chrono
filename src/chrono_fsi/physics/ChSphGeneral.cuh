@@ -42,9 +42,52 @@ __constant__ static ChCounters numObjectsD;
 /// Short define of the kernel function gradient
 #define GradWh GradWh_Spline
 
+//--------------------------------------------------------------------------------------------------------------------------------
+
+/// Marker (SPH and BCE) type.
+enum class MarkerType { SPH_PARTICLE, SPH_HELPER, SPH_GHOST, BCE_WALL, BCE_RIGID, BCE_FLEX1D, BCE_FLEX2D };
+
+__host__ __device__ inline MarkerType GetMarkerType(Real code) {
+    if (code > 2.5)                       //
+        return MarkerType::BCE_FLEX2D;    // 3    |       |
+    else if (code > 1.5)                  //      |       |
+        return MarkerType::BCE_FLEX1D;    // 2    | solid |
+    else if (code > 0.5)                  //      |       | BCE
+        return MarkerType::BCE_RIGID;     // 1    |       |
+    else if (code > -0.5)                 // -----+       |
+        return MarkerType::BCE_WALL;      // 0    |       |
+    else if (code > -1.5)                 // -----+-------+
+        return MarkerType::SPH_PARTICLE;  // -1   |       |
+    else if (code > -2.5)                 //      |       |
+        return MarkerType::SPH_GHOST;     // -2   |       | Fluid
+    else                                  //      |       |
+        return MarkerType::SPH_HELPER;    // -3   |       |
+}
+
+__host__ __device__ inline bool IsSphParticle(Real code) {
+    return code < -0.5 && code > -1.5;
+}
+
+__host__ __device__ inline bool IsFluidParticle(Real code) {
+    return code < -0.5;
+}
+
+__host__ __device__ inline bool IsBceMarker(Real code) {
+    return code > -0.5;
+}
+
+__host__ __device__ inline bool IsBceWallMarker(Real code) {
+    return code > -0.5 && code < 0.5;
+}
+
+__host__ __device__ inline bool IsBceSolidMarker(Real code) {
+    return code > 0.5;
+}
+
+//--------------------------------------------------------------------------------------------------------------------------------
+
 void CopyParams_NumberOfObjects(std::shared_ptr<SimParams> paramsH, std::shared_ptr<ChCounters> numObjectsH);
 
-// 3D kernel function
 //--------------------------------------------------------------------------------------------------------------------------------
 // Cubic Spline SPH kernel function
 __device__ inline Real W3h_Spline(Real d, Real h) {  // d is positive. h is the sph kernel length (i.e. h in
@@ -59,6 +102,7 @@ __device__ inline Real W3h_Spline(Real d, Real h) {  // d is positive. h is the 
     }
     return 0;
 }
+
 //--------------------------------------------------------------------------------------------------------------------------------
 // Johnson kernel 1996b
 __device__ inline Real W3h_High(Real d, Real h) {  // d is positive. h is the sph kernel length (i.e. h in
@@ -70,6 +114,7 @@ __device__ inline Real W3h_High(Real d, Real h) {  // d is positive. h is the sp
     }
     return 0;
 }
+
 //--------------------------------------------------------------------------------------------------------------------------------
 // Quintic Spline SPH kernel function
 __device__ inline Real W3h_Quintic(Real d, Real h) {  // d is positive. h is the sph kernel length (i.e. h in
@@ -89,7 +134,6 @@ __device__ inline Real W3h_Quintic(Real d, Real h) {  // d is positive. h is the
     return 0;
 }
 
-// Gradient of the kernel function
 //--------------------------------------------------------------------------------------------------------------------------------
 // Gradient of Cubic Spline SPH kernel function
 __device__ inline Real3 GradWh_Spline(Real3 d, Real h) {  // d is positive. r is the sph kernel length (i.e. h
@@ -115,8 +159,8 @@ __device__ inline Real3 GradWh_High(Real3 d, Real h) {  // d is positive. r is t
 }
 //--------------------------------------------------------------------------------------------------------------------------------
 // Gradient of Quintic Spline SPH kernel function
-__device__ inline Real3 W3h_Quintic(Real3 d, Real h) {  // d is positive. h is the sph kernel length (i.e. h in
-                                                        // the document) d is the distance of 2 particles
+__device__ inline Real3 GradW3h_Quintic(Real3 d, Real h) {  // d is positive. h is the sph kernel length (i.e. h in
+                                                            // the document) d is the distance of 2 particles
     Real invh = paramsD.INVHSML;
     Real q = length(d) * invh;
     if (fabs(q) < 1e-10)
@@ -135,7 +179,7 @@ __device__ inline Real3 W3h_Quintic(Real3 d, Real h) {  // d is positive. h is t
 }
 
 //--------------------------------------------------------------------------------------------------------------------------------
-// fluid equation of state
+// Fluid equation of state
 __device__ inline Real Eos(Real rho, Real type) {
     // if (rho < paramsD.rho0) //
     //     rho = paramsD.rho0; //
@@ -144,12 +188,14 @@ __device__ inline Real Eos(Real rho, Real type) {
     // return B * (pow(rho / paramsD.rho0, gama) - 1) + paramsD.BASEPRES; //
     return paramsD.Cs * paramsD.Cs * (rho - paramsD.rho0);  //
 }
+
 //--------------------------------------------------------------------------------------------------------------------------------
 // Inverse of equation of state
 __device__ inline Real InvEos(Real pw) {
     Real rho = pw / (paramsD.Cs * paramsD.Cs) + paramsD.rho0;  //
     return rho;
 }
+
 //--------------------------------------------------------------------------------------------------------------------------------
 // ferrariCi
 __device__ inline Real FerrariCi(Real rho) {
@@ -157,6 +203,7 @@ __device__ inline Real FerrariCi(Real rho) {
     Real B = 100 * paramsD.rho0 * paramsD.v_Max * paramsD.v_Max / gama;
     return sqrt(gama * B / paramsD.rho0) * pow(rho / paramsD.rho0, 0.5 * (gama - 1));
 }
+
 //--------------------------------------------------------------------------------------------------------------------------------
 __device__ inline Real3 Modify_Local_PosB(Real3& b, Real3 a) {
     Real3 dist3 = a - b;
