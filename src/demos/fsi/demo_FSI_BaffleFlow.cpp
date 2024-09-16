@@ -18,9 +18,7 @@
 #include <iomanip>
 
 #include "chrono/physics/ChSystemSMC.h"
-#include "chrono/utils/ChUtilsCreators.h"
-#include "chrono/utils/ChUtilsGenerators.h"
-#include "chrono/utils/ChUtilsGeometry.h"
+#include "chrono/assets/ChVisualShapeBox.h"
 
 #include "chrono_fsi/ChSystemFsi.h"
 #include "chrono_fsi/ChFsiProblem.h"
