@@ -295,13 +295,15 @@ int main(int argc, char* argv[]) {
             }
         }
         if (snapshots) {
-            // Create output directories
-            if (!filesystem::create_directory(filesystem::path(out_dir))) {
-                std::cerr << "Error creating directory " << out_dir << std::endl;
-                return 1;
+            if (!output) {
+                // Create output directories
+                if (!filesystem::create_directory(filesystem::path(out_dir))) {
+                    std::cerr << "Error creating directory " << out_dir << std::endl;
+                    return 1;
+                }
             }
             if (!filesystem::create_directory(filesystem::path(out_dir + "/snapshots"))) {
-                cerr << "Error creating directory " << out_dir + "/snapshots" << endl;
+                std::cerr << "Error creating directory " << out_dir + "/snapshots" << std::endl;
                 return 1;
             }
         }

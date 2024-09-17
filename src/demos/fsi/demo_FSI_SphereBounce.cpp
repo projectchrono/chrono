@@ -225,8 +225,6 @@ int main(int argc, char* argv[]) {
 
     fsi.Initialize();
     // Output file for plotting the sphere vertical position using an external tool
-    std::string out_file = out_dir + "/results.txt";
-    std::ofstream ofile;
 
     if (output || snapshots) {
         if (output) {
@@ -252,18 +250,19 @@ int main(int argc, char* argv[]) {
                 cerr << "Error creating directory " << out_dir + "/vtk" << endl;
                 return 1;
             }
-            ofile.open(out_file, std::ios::trunc);
         }
         if (snapshots) {
-            // Create output directories if it does not exist
-            if (!filesystem::create_directory(filesystem::path(out_dir))) {
-                cerr << "Error creating directory " << out_dir << endl;
-                return 1;
-            }
-            out_dir = out_dir + "/" + sysFSI.GetPhysicsProblemString() + "_" + sysFSI.GetSphMethodTypeString();
-            if (!filesystem::create_directory(filesystem::path(out_dir))) {
-                cerr << "Error creating directory " << out_dir << endl;
-                return 1;
+            if (!output) {
+                // Create output directories if it does not exist
+                if (!filesystem::create_directory(filesystem::path(out_dir))) {
+                    cerr << "Error creating directory " << out_dir << endl;
+                    return 1;
+                }
+                out_dir = out_dir + "/" + sysFSI.GetPhysicsProblemString() + "_" + sysFSI.GetSphMethodTypeString();
+                if (!filesystem::create_directory(filesystem::path(out_dir))) {
+                    cerr << "Error creating directory " << out_dir << endl;
+                    return 1;
+                }
             }
             if (!filesystem::create_directory(filesystem::path(out_dir + "/snapshots"))) {
                 cerr << "Error creating directory " << out_dir + "/snapshots" << endl;
@@ -331,6 +330,12 @@ int main(int argc, char* argv[]) {
     int sim_frame = 0;
     int out_frame = 0;
     int render_frame = 0;
+
+    std::string out_file = out_dir + "/results.txt";
+    std::ofstream ofile;
+    if (output) {
+        ofile.open(out_file, std::ios::trunc);
+    }
 
     ChTimer timer;
     timer.start();

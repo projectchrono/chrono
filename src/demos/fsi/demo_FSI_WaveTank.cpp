@@ -238,16 +238,19 @@ int main(int argc, char* argv[]) {
             }
         }
         if (snapshots) {
-            // Create output directories if it does not exist
-            if (!filesystem::create_directory(filesystem::path(out_dir))) {
-                cerr << "Error creating directory " << out_dir << endl;
-                return 1;
+            if (!output) {
+                // Create output directories if it does not exist
+                if (!filesystem::create_directory(filesystem::path(out_dir))) {
+                    cerr << "Error creating directory " << out_dir << endl;
+                    return 1;
+                }
+                out_dir = out_dir + "/" + sysFSI.GetPhysicsProblemString() + "_" + sysFSI.GetSphMethodTypeString();
+                if (!filesystem::create_directory(filesystem::path(out_dir))) {
+                    cerr << "Error creating directory " << out_dir << endl;
+                    return 1;
+                }
             }
-            out_dir = out_dir + "/" + sysFSI.GetPhysicsProblemString() + "_" + sysFSI.GetSphMethodTypeString();
-            if (!filesystem::create_directory(filesystem::path(out_dir))) {
-                cerr << "Error creating directory " << out_dir << endl;
-                return 1;
-            }
+
             if (!filesystem::create_directory(filesystem::path(out_dir + "/snapshots"))) {
                 cerr << "Error creating directory " << out_dir + "/snapshots" << endl;
                 return 1;
