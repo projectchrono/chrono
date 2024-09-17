@@ -16,6 +16,8 @@
 //
 // =============================================================================
 
+#include <cmath>
+
 #include "chrono/physics/ChLinkLock.h"
 #include "chrono/physics/ChLinkMate.h"
 #include "chrono/physics/ChLinkMotorRotationAngle.h"
@@ -111,7 +113,7 @@ int main(int argc, char* argv[]) {
             if (x > 0.4)
                 return CH_PI;
             else
-                return -CH_PI * (1.0 - cos(CH_PI * x / 0.4)) / 2.0;
+                return -CH_PI * (1.0 - std::cos(CH_PI * x / 0.4)) / 2.0;
         }
     };
 

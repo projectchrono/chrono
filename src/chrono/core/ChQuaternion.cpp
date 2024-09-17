@@ -49,7 +49,7 @@ bool Qnotnull(const ChQuaterniond& qa) {
 }
 
 double Qlength(const ChQuaterniond& q) {
-    return (sqrt(pow(q.e0(), 2) + pow(q.e1(), 2) + pow(q.e2(), 2) + pow(q.e3(), 2)));
+    return (std::sqrt(std::pow(q.e0(), 2) + std::pow(q.e1(), 2) + std::pow(q.e2(), 2) + std::pow(q.e3(), 2)));
 }
 
 ChQuaterniond Qscale(const ChQuaterniond& q, double fact) {
@@ -158,7 +158,7 @@ ChQuaterniond QuatFromImaginary(const ChVector3d& im) {
     q.e1() = im.x();
     q.e2() = im.y();
     q.e3() = im.z();
-    q.e0() = sqrt(1 - q.e1() * q.e1() - q.e2() * q.e2() - q.e3() * q.e3());
+    q.e0() = std::sqrt(1 - q.e1() * q.e1() - q.e2() * q.e2() - q.e3() * q.e3());
     return q;
 }
 
@@ -194,7 +194,7 @@ ChQuaterniond QuatDt2FromImaginary(const ChVector3d& im_dtdt, const ChQuaternion
 // represents the alignment of the coordsystem.
 ChVector3d VaxisXfromQuat(const ChQuaterniond& quat) {
     ChVector3d res;
-    res.x() = (pow(quat.e0(), 2) + pow(quat.e1(), 2)) * 2 - 1;
+    res.x() = (std::pow(quat.e0(), 2) + std::pow(quat.e1(), 2)) * 2 - 1;
     res.y() = ((quat.e1() * quat.e2()) + (quat.e0() * quat.e3())) * 2;
     res.z() = ((quat.e1() * quat.e3()) - (quat.e0() * quat.e2())) * 2;
     return res;

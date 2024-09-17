@@ -248,7 +248,7 @@ void ChLinkNodeFace::LoadConstraintJacobians() {
         double t25 = mysgn(t7);
         double t26 = 1.0 / std::pow(t24, (3.0 / 2.0));
         double t27 = m_triangle.node2->pos.y() - m_triangle.node3->pos.y();
-        double t28 = 1.0 / sqrt(t24);
+        double t28 = 1.0 / std::sqrt(t24);
         double t29 = mysgn(t11);
         double t30 = m_triangle.node2->pos.x() - m_triangle.node3->pos.x();
         double t31 = mysgn(t17);
@@ -589,7 +589,7 @@ void ChLinkNodeFaceRot::LoadConstraintJacobians() {
         double t25 = mysgn(t7);
         double t26 = 1.0 / std::pow(t24, (3.0 / 2.0));
         double t27 = m_triangle.node2->GetPos().y() - m_triangle.node3->GetPos().y();
-        double t28 = 1.0 / sqrt(t24);
+        double t28 = 1.0 / std::sqrt(t24);
         double t29 = mysgn(t11);
         double t30 = m_triangle.node2->GetPos().x() - m_triangle.node3->GetPos().x();
         double t31 = mysgn(t17);

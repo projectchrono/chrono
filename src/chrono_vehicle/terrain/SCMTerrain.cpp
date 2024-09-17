@@ -1387,7 +1387,7 @@ void SCMLoader::ComputeInternalForces() {
         // Plastic correction (along local normal direction)
         if (nr.sigma > nr.sigma_yield) {
             // Bekker formula
-            nr.sigma = (contact_patches[patch_id].oob * Bekker_Kc + Bekker_Kphi) * pow(nr.sinkage, Bekker_n);
+            nr.sigma = (contact_patches[patch_id].oob * Bekker_Kc + Bekker_Kphi) * std::pow(nr.sinkage, Bekker_n);
             nr.sigma_yield = nr.sigma;
             double old_sinkage_plastic = nr.sinkage_plastic;
             nr.sinkage_plastic = nr.sinkage - nr.sigma / elastic_K;
@@ -1406,7 +1406,7 @@ void SCMLoader::ComputeInternalForces() {
         double tau_max = Mohr_cohesion + nr.sigma * Mohr_mu;
 
         // Janosi-Hanamoto (along local tangent direction)
-        nr.tau = tau_max * (1.0 - exp(-(nr.kshear / Janosi_shear)));
+        nr.tau = tau_max * (1.0 - std::exp(-(nr.kshear / Janosi_shear)));
 
         // Calculate normal and tangential forces (in local node directions).
         // If specified, combine properties for soil-contactable interaction and soil-soil interaction.
@@ -1418,7 +1418,7 @@ void SCMLoader::ComputeInternalForces() {
         if (auto cprops = contactable->GetUserData<vehicle::SCMContactableData>()) {
             // Use weighted sum of soil-contactable and soil-soil parameters
             double c_tau_max = cprops->Mohr_cohesion + nr.sigma * cprops->Mohr_mu;
-            double c_tau = c_tau_max * (1.0 - exp(-(nr.kshear / cprops->Janosi_shear)));
+            double c_tau = c_tau_max * (1.0 - std::exp(-(nr.kshear / cprops->Janosi_shear)));
             double ratio = cprops->area_ratio;
             Ft = T * m_area * ((1 - ratio) * nr.tau + ratio * c_tau);
         } else {

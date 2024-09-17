@@ -65,9 +65,9 @@ int main() {
     system.DoAssembly(AssemblyAnalysis::Level::FULL);
 
     // analytic solution (assuming constraint between body and the origin)
-    double contact_height = -sqrt(max_dist * max_dist - body_pos0.x() * body_pos0.x());
+    double contact_height = -std::sqrt(max_dist * max_dist - body_pos0.x() * body_pos0.x());
     double fall_height = body_pos0.y() - contact_height;
-    double expected_activation_time = sqrt(2 * fall_height / gravity);
+    double expected_activation_time = std::sqrt(2 * fall_height / gravity);
 
     // CHECK 1: check if the body is free falling until hitting the constraint, no side motion
     // a failure in this case can be due to wrong reaction forces or to an artificial clamping in IntLoadConstraint_C

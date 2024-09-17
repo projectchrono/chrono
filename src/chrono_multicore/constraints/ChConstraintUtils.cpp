@@ -67,7 +67,7 @@ void Compute_Jacobian_Rolling(const quaternion& quat,
 
 CH_MULTICORE_API
 bool Cone_generalized_rigid(real& gamma_n, real& gamma_u, real& gamma_v, real mu) {
-    real f_tang = sqrt(gamma_u * gamma_u + gamma_v * gamma_v);
+    real f_tang = std::sqrt(gamma_u * gamma_u + gamma_v * gamma_v);
 
     // inside upper cone? keep untouched!
     if (f_tang < (mu * gamma_n)) {

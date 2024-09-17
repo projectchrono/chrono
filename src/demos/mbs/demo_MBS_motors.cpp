@@ -16,6 +16,8 @@
 //
 // =============================================================================
 
+#include <cmath>
+
 #include "chrono/physics/ChSystemNSC.h"
 #include "chrono/physics/ChBodyEasy.h"
 #include "chrono/physics/ChLinkMotorRotationAngle.h"
@@ -270,7 +272,7 @@ int main(int argc, char* argv[]) {
             double w = mymotor->GetMotorAngleDt();
             double s = (ns - w) / ns;  // slip
             double T =
-                (3.0 / 2 * CH_PI * ns) * (s * E2 * E2 * R2) / (R2 * R2 + pow(s * X2, 2));  // electric torque curve
+                (3.0 / 2 * CH_PI * ns) * (s * E2 * E2 * R2) / (R2 * R2 + std::pow(s * X2, 2));  // electric torque curve
             T -= w * 5;  // simulate also a viscous brake
             return T;
         }
@@ -517,7 +519,7 @@ int main(int argc, char* argv[]) {
     // Alternative: just for fun, use a sine harmonic whose max force is F=M*A, where
     // M is the mass of the slider, A is the max acceleration of the previous examples,
     // so finally the motion should be quite the same - but without feedback, if hits a disturb, it goes crazy:
-    auto mF2 = chrono_types::make_shared<ChFunctionSine>(slider3->GetMass() * 1.6 * pow(0.5 * CH_2PI, 2), 0.5);
+    auto mF2 = chrono_types::make_shared<ChFunctionSine>(slider3->GetMass() * 1.6 * std::pow(0.5 * CH_2PI, 2), 0.5);
     // motor3->SetForceFunction(mF2); // uncomment to test this
 
     // EXAMPLE B.4
@@ -572,7 +574,7 @@ int main(int argc, char* argv[]) {
             if (time > last_time) {
                 double dt = time - last_time;
                 // for example, the position to chase is this sine formula:
-                double setpoint = setpoint_position_sine_amplitude * sin(setpoint_position_sine_freq * CH_2PI * x);
+                double setpoint = setpoint_position_sine_amplitude * std::sin(setpoint_position_sine_freq * CH_2PI * x);
                 double error = setpoint - linearmotor->GetMotorPos();
                 double error_dt = (error - last_error) / dt;
                 // for example, finally compute the force using the PID idea:
@@ -820,7 +822,7 @@ int main(int argc, char* argv[]) {
         // Example B.6 requires the setpoint to be changed in the simulation loop.
         // For example, use a clamped sinusoidal
         double t = sys.GetChTime();
-        double Sp = std::min(std::max(2.6 * sin(t * 1.8), -1.4), 1.4);
+        double Sp = std::min(std::max(2.6 * std::sin(t * 1.8), -1.4), 1.4);
         motor6setpoint->SetSetpoint(Sp, t);
 
         sys.DoStepDynamics(timestep);

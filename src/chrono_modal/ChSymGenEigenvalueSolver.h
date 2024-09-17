@@ -56,7 +56,7 @@ class ChApiModal ChSymGenEigenvalueSolver : public ChGeneralizedEigenvalueSolver
     static void GetNaturalFrequencies(const ChVectorDynamic<ScalarType>& eigvals, ChVectorDynamic<double>& freq);
 
     /// Retrieve the natural frequencies from an eigenvalue.
-    static double GetNaturalFrequency(ScalarType eigval) { return sqrt(std::abs(eigval)) / CH_2PI; };
+    static double GetNaturalFrequency(ScalarType eigval) { return std::sqrt(std::abs(eigval)) / CH_2PI; };
 
     /// Get the optimal shift corresponding to a given frequency.
     static ScalarType GetOptimalShift(double freq) { return -std::pow(freq * CH_2PI, 2); }

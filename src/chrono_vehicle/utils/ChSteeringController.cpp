@@ -28,6 +28,7 @@
 // =============================================================================
 
 #include <cstdio>
+#include <cmath>
 
 #include "chrono/utils/ChUtils.h"
 
@@ -344,7 +345,7 @@ double ChPathSteeringControllerXT::CalcAckermannAngle() {
     // delta = L/R = L * sin(alpha) / L
     //
     // alpha scales linearly with the steering input
-    return sin(m_res * m_max_wheel_turn_angle);
+    return std::sin(m_res * m_max_wheel_turn_angle);
 }
 
 double ChPathSteeringControllerXT::Advance(const ChFrameMoving<>& ref_frame, double time, double step) {
@@ -717,7 +718,7 @@ double ChPathSteeringControllerStanley::Advance(const ChFrameMoving<>& ref_frame
     if (m_deadZone > 0.0)
         w = ChFunctionSineStep::Eval(std::abs(err), m_deadZone, 0.0, 2.0 * m_deadZone, 1.0);
     err *= w;
-    double err_dot = -u * sin(atan(m_Kp * err / ChClamp(u, m_umin, u)));
+    double err_dot = -u * std::sin(std::atan(m_Kp * err / ChClamp(u, m_umin, u)));
     // Calculate the heading error
     ChVector3d veh_head = ref_frame.GetRotMat().GetAxisX();  // vehicle forward direction (ISO frame)
     ChVector3d path_head = m_ptangent;
@@ -731,7 +732,7 @@ double ChPathSteeringControllerStanley::Advance(const ChFrameMoving<>& ref_frame
     double h_err = CalcHeadingError(veh_head, path_head);
 
     // control law
-    m_delta = h_err + atan(m_Kp * err / ChClamp(u, m_umin, u)) + m_Kd * err_dot + m_Ki * m_erri;
+    m_delta = h_err + std::atan(m_Kp * err / ChClamp(u, m_umin, u)) + m_Kd * err_dot + m_Ki * m_erri;
     double steer = ChClamp(m_delta / m_delta_max, -1.0, 1.0);
     m_Treset -= step;
     if (m_Treset <= 0.0) {
@@ -884,7 +885,8 @@ double ChPathSteeringControllerPP::Advance(const ChFrameMoving<>& ref_frame, dou
 
     // the pure pursuit controller gets more and more aggressive with speed
     // to lower aggressivity the preview distance can be increased
-    double delta = atan(2.0 * m_L * sin(alpha) / (m_L + dist));  // predicted wheel turn angle to reach m_target
+    double delta =
+        std::atan(2.0 * m_L * std::sin(alpha) / (m_L + dist));  // predicted wheel turn angle to reach m_target
 
     delta = ChClamp(delta, -m_deltaMax, m_deltaMax);  // clamp to allowed values
 

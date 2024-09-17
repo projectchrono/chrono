@@ -90,8 +90,8 @@ int main(int argc, char** argv) {
 
     // Create some spheres that roll horizontally, with increasing rolling friction values
     double density = 1000;
-    double mass = density * (4.0 / 3.0) * CH_PI * pow(radius, 3);
-    double inertia = (2.0 / 5.0) * mass * pow(radius, 2);
+    double mass = density * (4.0 / 3.0) * CH_PI * std::pow(radius, 3);
+    double inertia = (2.0 / 5.0) * mass * std::pow(radius, 2);
     double initial_angspeed = 10;
     double initial_linspeed = initial_angspeed * radius;
 

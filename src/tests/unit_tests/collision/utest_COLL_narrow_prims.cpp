@@ -99,7 +99,7 @@ TEST(ChNarrowphasePRIMS, snap_to_cylinder) {
         real3 loc(2.0, 1.0, 0.5);
         int code = snap_to_cylinder(rad, hlen, loc);
         ASSERT_EQ(code, 2);
-        Assert_near(loc, real3(4 / sqrt(5.0), 2 / sqrt(5.0), 0.5), precision);
+        Assert_near(loc, real3(4 / std::sqrt(5.0), 2 / std::sqrt(5.0), 0.5), precision);
     }
 
     {
@@ -107,7 +107,7 @@ TEST(ChNarrowphasePRIMS, snap_to_cylinder) {
         real3 loc(2.0, 1.0, 2.0);
         int code = snap_to_cylinder(rad, hlen, loc);
         ASSERT_EQ(code, 3);
-        Assert_near(loc, real3(4 / sqrt(5.0), 2 / sqrt(5.0), 1.5), precision);
+        Assert_near(loc, real3(4 / std::sqrt(5.0), 2 / std::sqrt(5.0), 1.5), precision);
     }
 }
 
@@ -492,8 +492,9 @@ TEST_P(Collision, box_box) {
         ASSERT_EQ(nC, 3);
         CheckValueList(depth, nC, penetration);
         CheckPointList(norm, nC, real3(0, 0, 1));
-        CheckPointList(pt1, {real3(2, 2 - 2 * sqrt(2.0), 3), real3(2 - 2 * sqrt(2.0), 2, 3), real3(2, 2, 3)});
-        CheckPointList(pt2, {real3(2, 2 - 2 * sqrt(2.0), 3 + penetration), real3(2 - 2 * sqrt(2.0), 2, 3 + penetration),
+        CheckPointList(pt1, {real3(2, 2 - 2 * std::sqrt(2.0), 3), real3(2 - 2 * std::sqrt(2.0), 2, 3), real3(2, 2, 3)});
+        CheckPointList(pt2, {real3(2, 2 - 2 * std::sqrt(2.0), 3 + penetration),
+                             real3(2 - 2 * std::sqrt(2.0), 2, 3 + penetration),
                              real3(2, 2, 3 + penetration)});
 
         // penetrated, small penetration
@@ -503,8 +504,9 @@ TEST_P(Collision, box_box) {
         ASSERT_EQ(nC, 3);
         CheckValueList(depth, nC, penetration);
         CheckPointList(norm, nC, real3(0, 0, 1));
-        CheckPointList(pt1, {real3(2, 2 - 2 * sqrt(2.0), 3), real3(2 - 2 * sqrt(2.0), 2, 3), real3(2, 2, 3)});
-        CheckPointList(pt2, {real3(2, 2 - 2 * sqrt(2.0), 3 + penetration), real3(2 - 2 * sqrt(2.0), 2, 3 + penetration),
+        CheckPointList(pt1, {real3(2, 2 - 2 * std::sqrt(2.0), 3), real3(2 - 2 * std::sqrt(2.0), 2, 3), real3(2, 2, 3)});
+        CheckPointList(pt2, {real3(2, 2 - 2 * std::sqrt(2.0), 3 + penetration),
+                             real3(2 - 2 * std::sqrt(2.0), 2, 3 + penetration),
                              real3(2, 2, 3 + penetration)});
 
         // separated by less than 'separation'
@@ -515,9 +517,10 @@ TEST_P(Collision, box_box) {
             ASSERT_EQ(nC, 3);
             CheckValueList(depth, nC, penetration);
             CheckPointList(norm, nC, real3(0, 0, 1));
-            CheckPointList(pt1, {real3(2, 2 - 2 * sqrt(2.0), 3), real3(2 - 2 * sqrt(2.0), 2, 3), real3(2, 2, 3)});
-            CheckPointList(pt2, {real3(2, 2 - 2 * sqrt(2.0), 3 + penetration),
-                                 real3(2 - 2 * sqrt(2.0), 2, 3 + penetration), real3(2, 2, 3 + penetration)});
+            CheckPointList(pt1,
+                           {real3(2, 2 - 2 * std::sqrt(2.0), 3), real3(2 - 2 * std::sqrt(2.0), 2, 3), real3(2, 2, 3)});
+            CheckPointList(pt2, {real3(2, 2 - 2 * std::sqrt(2.0), 3 + penetration),
+                                 real3(2 - 2 * std::sqrt(2.0), 2, 3 + penetration), real3(2, 2, 3 + penetration)});
         } else {
             ASSERT_EQ(nC, 0);
         }
@@ -537,7 +540,7 @@ TEST_P(Collision, box_box) {
         quaternion rot1 = quaternion(1, 0, 0, 0);
 
         real3 hdims2(2.0, 2.0, 3.0);
-        real3 pos2(2 * sqrt(2.0), 2 * sqrt(2.0), 6.0);
+        real3 pos2(2 * std::sqrt(2.0), 2 * sqrt(2.0), 6.0);
         quaternion rot2 = FromChQuaternion(QuatFromAngleZ(CH_PI_4));
 
         ConvexShapeCustom* shape1 = new ConvexShapeCustom();
@@ -559,8 +562,9 @@ TEST_P(Collision, box_box) {
         ASSERT_EQ(nC, 3);
         CheckValueList(depth, nC, penetration);
         CheckPointList(norm, nC, real3(0, 0, 1));
-        CheckPointList(pt1, {real3(2, 2 * sqrt(2.0) - 2, 3), real3(2 * sqrt(2.0) - 2, 2, 3), real3(2, 2, 3)});
-        CheckPointList(pt2, {real3(2, 2 * sqrt(2.0) - 2, 3 + penetration), real3(2 * sqrt(2.0) - 2, 2, 3 + penetration),
+        CheckPointList(pt1, {real3(2, 2 * std::sqrt(2.0) - 2, 3), real3(2 * std::sqrt(2.0) - 2, 2, 3), real3(2, 2, 3)});
+        CheckPointList(pt2, {real3(2, 2 * std::sqrt(2.0) - 2, 3 + penetration),
+                             real3(2 * std::sqrt(2.0) - 2, 2, 3 + penetration),
                              real3(2, 2, 3 + penetration)});
 
         // penetrated, small penetration
@@ -570,8 +574,9 @@ TEST_P(Collision, box_box) {
         ASSERT_EQ(nC, 3);
         CheckValueList(depth, nC, penetration);
         CheckPointList(norm, nC, real3(0, 0, 1));
-        CheckPointList(pt1, {real3(2, 2 * sqrt(2.0) - 2, 3), real3(2 * sqrt(2.0) - 2, 2, 3), real3(2, 2, 3)});
-        CheckPointList(pt2, {real3(2, 2 * sqrt(2.0) - 2, 3 + penetration), real3(2 * sqrt(2.0) - 2, 2, 3 + penetration),
+        CheckPointList(pt1, {real3(2, 2 * std::sqrt(2.0) - 2, 3), real3(2 * std::sqrt(2.0) - 2, 2, 3), real3(2, 2, 3)});
+        CheckPointList(pt2, {real3(2, 2 * std::sqrt(2.0) - 2, 3 + penetration),
+                             real3(2 * std::sqrt(2.0) - 2, 2, 3 + penetration),
                              real3(2, 2, 3 + penetration)});
 
         // separated by less than 'separation'
@@ -582,9 +587,10 @@ TEST_P(Collision, box_box) {
             ASSERT_EQ(nC, 3);
             CheckValueList(depth, nC, penetration);
             CheckPointList(norm, nC, real3(0, 0, 1));
-            CheckPointList(pt1, {real3(2, 2 * sqrt(2.0) - 2, 3), real3(2 * sqrt(2.0) - 2, 2, 3), real3(2, 2, 3)});
-            CheckPointList(pt2, {real3(2, 2 * sqrt(2.0) - 2, 3 + penetration),
-                                 real3(2 * sqrt(2.0) - 2, 2, 3 + penetration), real3(2, 2, 3 + penetration)});
+            CheckPointList(pt1,
+                           {real3(2, 2 * std::sqrt(2.0) - 2, 3), real3(2 * std::sqrt(2.0) - 2, 2, 3), real3(2, 2, 3)});
+            CheckPointList(pt2, {real3(2, 2 * std::sqrt(2.0) - 2, 3 + penetration),
+                                 real3(2 * std::sqrt(2.0) - 2, 2, 3 + penetration), real3(2, 2, 3 + penetration)});
         } else {
             ASSERT_EQ(nC, 0);
         }
@@ -666,7 +672,7 @@ TEST_P(Collision, box_box) {
     // one large box at the bottom and a smaller one on top (rotated pi/4 about x)
     {
         real3 hdims1(1.0, 1.0, 1.0);
-        real3 pos1(0.0, 0.0, 2.0 + 1.0 * sqrt(2.0));
+        real3 pos1(0.0, 0.0, 2.0 + 1.0 * std::sqrt(2.0));
         quaternion rot1 = FromChQuaternion(QuatFromAngleX(CH_PI / 4));
 
         real3 hdims2(2.0, 2.0, 2.0);
@@ -731,7 +737,7 @@ TEST_P(Collision, box_box) {
     // translate small box in x and y so that its bottom edge intersects two edges of bottom box
     {
         real3 hdims1(1.0, 1.0, 1.0);
-        real3 pos1(sqrt(2.0), sqrt(2.0), 2.0 + 1.0 * sqrt(2.0));
+        real3 pos1(std::sqrt(2.0), std::sqrt(2.0), 2.0 + 1.0 * std::sqrt(2.0));
         quaternion rot1 = FromChQuaternion(QuatFromAngleX(CH_PI / 4));
 
         real3 hdims2(2.0, 2.0, 2.0);
@@ -757,9 +763,9 @@ TEST_P(Collision, box_box) {
         ASSERT_EQ(nC, 2);
         CheckValueList(depth, nC, penetration);
         CheckPointList(norm, nC, real3(0, 0, -1));
-        CheckPointList(
-            pt1, {real3(sqrt(2.0) - 1, sqrt(2.0), 2 + penetration), real3(sqrt(2.0), sqrt(2.0), 2 + penetration)});
-        CheckPointList(pt2, {real3(sqrt(2.0) - 1, sqrt(2.0), 2), real3(sqrt(2.0), sqrt(2.0), 2)});
+        CheckPointList(pt1, {real3(std::sqrt(2.0) - 1, std::sqrt(2.0), 2 + penetration),
+                             real3(std::sqrt(2.0), std::sqrt(2.0), 2 + penetration)});
+        CheckPointList(pt2, {real3(std::sqrt(2.0) - 1, std::sqrt(2.0), 2), real3(std::sqrt(2.0), std::sqrt(2.0), 2)});
 
         // penetrated, small penetration
         penetration = -1e-5;
@@ -768,9 +774,9 @@ TEST_P(Collision, box_box) {
         ASSERT_EQ(nC, 2);
         CheckValueList(depth, nC, penetration);
         CheckPointList(norm, nC, real3(0, 0, -1));
-        CheckPointList(
-            pt1, {real3(sqrt(2.0) - 1, sqrt(2.0), 2 + penetration), real3(sqrt(2.0), sqrt(2.0), 2 + penetration)});
-        CheckPointList(pt2, {real3(sqrt(2.0) - 1, sqrt(2.0), 2), real3(sqrt(2.0), sqrt(2.0), 2)});
+        CheckPointList(pt1, {real3(std::sqrt(2.0) - 1, std::sqrt(2.0), 2 + penetration),
+                             real3(std::sqrt(2.0), std::sqrt(2.0), 2 + penetration)});
+        CheckPointList(pt2, {real3(std::sqrt(2.0) - 1, std::sqrt(2.0), 2), real3(std::sqrt(2.0), std::sqrt(2.0), 2)});
 
         // separated by less than 'separation'
         penetration = +0.05;
@@ -780,9 +786,10 @@ TEST_P(Collision, box_box) {
             ASSERT_EQ(nC, 2);
             CheckValueList(depth, nC, penetration);
             CheckPointList(norm, nC, real3(0, 0, -1));
-            CheckPointList(
-                pt1, {real3(sqrt(2.0) - 1, sqrt(2.0), 2 + penetration), real3(sqrt(2.0), sqrt(2.0), 2 + penetration)});
-            CheckPointList(pt2, {real3(sqrt(2.0) - 1, sqrt(2.0), 2), real3(sqrt(2.0), sqrt(2.0), 2)});
+            CheckPointList(pt1, {real3(std::sqrt(2.0) - 1, std::sqrt(2.0), 2 + penetration),
+                                 real3(std::sqrt(2.0), std::sqrt(2.0), 2 + penetration)});
+            CheckPointList(pt2,
+                           {real3(std::sqrt(2.0) - 1, std::sqrt(2.0), 2), real3(std::sqrt(2.0), std::sqrt(2.0), 2)});
         } else {
             ASSERT_EQ(nC, 0);
         }
@@ -801,8 +808,9 @@ TEST_P(Collision, box_box) {
         quaternion rot1(1, 0, 0, 0);
 
         real3 hdims2(1.0, 1.0, 1.0);
-        real3 pos2(0.5, 0.5, 1.0 + sqrt(3.0));
-        quaternion rot2 = FromChQuaternion(QuatFromAngleAxis(atan(sqrt(2.0)), ChVector3d(1, 1, 0).GetNormalized()));
+        real3 pos2(0.5, 0.5, 1.0 + std::sqrt(3.0));
+        quaternion rot2 =
+            FromChQuaternion(QuatFromAngleAxis(std::atan(std::sqrt(2.0)), ChVector3d(1, 1, 0).GetNormalized()));
 
         ConvexShapeCustom* shape1 = new ConvexShapeCustom();
         shape1->type = ChCollisionShape::Type::BOX;
@@ -865,7 +873,7 @@ TEST_P(Collision, box_box) {
         quaternion rot1 = FromChQuaternion(QuatFromAngleY(CH_PI / 4));
 
         real3 hdims2(1.0, 1.0, 1.0);
-        real3 pos2(0.0, 0.0, 2 * sqrt(2.0));
+        real3 pos2(0.0, 0.0, 2 * std::sqrt(2.0));
         quaternion rot2 = FromChQuaternion(QuatFromAngleX(CH_PI / 4));
 
         ConvexShapeCustom* shape1 = new ConvexShapeCustom();
@@ -887,8 +895,8 @@ TEST_P(Collision, box_box) {
         ASSERT_EQ(nC, 1);
         CheckValueList(depth, nC, penetration);
         CheckPointList(norm, nC, real3(0, 0, 1));
-        CheckPointList(pt1, {real3(0, 0, sqrt(2.0))});
-        CheckPointList(pt2, {real3(0, 0, sqrt(2.0) + penetration)});
+        CheckPointList(pt1, {real3(0, 0, std::sqrt(2.0))});
+        CheckPointList(pt2, {real3(0, 0, std::sqrt(2.0) + penetration)});
 
         // penetrated, small penetration
         penetration = -1e-5;
@@ -897,8 +905,8 @@ TEST_P(Collision, box_box) {
         ASSERT_EQ(nC, 1);
         CheckValueList(depth, nC, penetration);
         CheckPointList(norm, nC, real3(0, 0, 1));
-        CheckPointList(pt1, {real3(0, 0, sqrt(2.0))});
-        CheckPointList(pt2, {real3(0, 0, sqrt(2.0) + penetration)});
+        CheckPointList(pt1, {real3(0, 0, std::sqrt(2.0))});
+        CheckPointList(pt2, {real3(0, 0, std::sqrt(2.0) + penetration)});
 
         // separated by less than 'separation'
         penetration = +0.05;
@@ -908,8 +916,8 @@ TEST_P(Collision, box_box) {
             ASSERT_EQ(nC, 1);
             CheckValueList(depth, nC, penetration);
             CheckPointList(norm, nC, real3(0, 0, 1));
-            CheckPointList(pt1, {real3(0, 0, sqrt(2.0))});
-            CheckPointList(pt2, {real3(0, 0, sqrt(2.0) + penetration)});
+            CheckPointList(pt1, {real3(0, 0, std::sqrt(2.0))});
+            CheckPointList(pt2, {real3(0, 0, std::sqrt(2.0) + penetration)});
         } else {
             ASSERT_EQ(nC, 0);
         }
@@ -931,11 +939,13 @@ TEST_P(Collision, box_box) {
     {
         real3 hdims1(1.0, 1.0, 1.0);
         real3 pos1(0.0, 0.0, 0.0);
-        quaternion rot1 = FromChQuaternion(QuatFromAngleAxis(atan(sqrt(2.0)), ChVector3d(1, 1, 0).GetNormalized()));
+        quaternion rot1 =
+            FromChQuaternion(QuatFromAngleAxis(std::atan(std::sqrt(2.0)), ChVector3d(1, 1, 0).GetNormalized()));
 
         real3 hdims2(1.0, 1.0, 1.0);
-        real3 pos2(0, 0, sqrt(3.0) + sqrt(3.0));
-        quaternion rot2 = FromChQuaternion(QuatFromAngleAxis(atan(sqrt(2.0)), ChVector3d(1, 1, 0).GetNormalized()));
+        real3 pos2(0, 0, std::sqrt(3.0) + std::sqrt(3.0));
+        quaternion rot2 =
+            FromChQuaternion(QuatFromAngleAxis(std::atan(std::sqrt(2.0)), ChVector3d(1, 1, 0).GetNormalized()));
 
         ConvexShapeCustom* shape1 = new ConvexShapeCustom();
         shape1->type = ChCollisionShape::Type::BOX;
@@ -1094,7 +1104,7 @@ TEST_P(Collision, box_sphere) {
     // Box position and orientation fixed for all tests.
     // Rotated by 45 degrees around Z axis and shifted by sqrt(2) in X direction.
     real3 b_hdims(1.0, 2.0, 3.0);
-    real3 b_pos(sqrt(2.0), 0.0, 0.0);
+    real3 b_pos(std::sqrt(2.0), 0.0, 0.0);
     quaternion b_rot = FromChQuaternion(QuatFromAngleZ(CH_PI_4));
 
     ConvexShapeCustom* shapeC = new ConvexShapeCustom();
@@ -1123,7 +1133,7 @@ TEST_P(Collision, box_sphere) {
     real eff_rad;
     int nC;
 
-    real oosqrt2 = sqrt(0.5);  // 1/sqrt(2)
+    real oosqrt2 = std::sqrt(0.5);  // 1/sqrt(2)
 
     // sphere center inside box
     {
@@ -1275,7 +1285,7 @@ TEST_P(Collision, capsule_sphere) {
     real eff_rad;
     int nC;
 
-    real oosqrt2 = sqrt(0.5);  // 1/sqrt(2)
+    real oosqrt2 = std::sqrt(0.5);  // 1/sqrt(2)
 
     // sphere center on capsule axis
     {
@@ -1297,7 +1307,7 @@ TEST_P(Collision, capsule_sphere) {
         ASSERT_TRUE(ChNarrowphase::PRIMSCollision(shapeC, shapeS, 0, &norm, &pt1, &pt2, &depth, &eff_rad, nC));
         ASSERT_EQ(nC, 1);
         Assert_near(norm, real3(oosqrt2, oosqrt2, 0), precision);
-        ASSERT_NEAR(depth, sqrt(2.0) - 1.5, precision);
+        ASSERT_NEAR(depth, std::sqrt(2.0) - 1.5, precision);
         Assert_near(pt1, real3(4.0 + 0.5 * oosqrt2, 0.5 * oosqrt2, 0), precision);
         Assert_near(pt2, real3(5.0 - oosqrt2, 1.0 - oosqrt2, 0), precision);
         ASSERT_NEAR(eff_rad, s_rad * c_rad / (s_rad + c_rad), precision);
@@ -1364,7 +1374,7 @@ TEST_P(Collision, cylinder_sphere) {
     real eff_rad;
     int nC;
 
-    real oosqrt2 = sqrt(0.5);  // 1/sqrt(2)
+    real oosqrt2 = std::sqrt(0.5);  // 1/sqrt(2)
 
     // sphere center inside cylinder
     {
@@ -1470,7 +1480,7 @@ TEST_P(Collision, roundedcyl_sphere) {
     real eff_rad;
     int nC;
 
-    real oosqrt2 = sqrt(0.5);  // 1/sqrt(2)
+    real oosqrt2 = std::sqrt(0.5);  // 1/sqrt(2)
 
     // sphere center inside cylinder
     {

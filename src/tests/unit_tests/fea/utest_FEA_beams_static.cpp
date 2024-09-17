@@ -53,7 +53,7 @@ double AnalyticalSol(double tip_load) {
 
     // (P*L^3)/(3*E*I) + (P*L)/(k*A*G)
     double analytical_timoshenko_displ =
-        (tip_load * pow(beamL, 3)) / (3 * E_mod * (1. / 12.) * beam_wz * pow(beam_wy, 3)) +
+        (tip_load * std::pow(beamL, 3)) / (3 * E_mod * (1. / 12.) * beam_wz * std::pow(beam_wy, 3)) +
         (tip_load * beamL) / (Ks_y * G_mod * beam_wz * beam_wy);
 
     return analytical_timoshenko_displ;
@@ -229,19 +229,20 @@ double EULER_test_offset(ChSystem& sys, double tip_load_y, int nelements) {
     double tip_load_z = 4;    // add also lateral bending on Z: just to test if this is not canceled in Y deflection
 
     auto material = chrono_types::make_shared<ChBeamSectionEulerAdvancedGeneric>(
-        E_mod * beam_wy * beam_wz,  ///< axial rigidity
+        E_mod * beam_wy * beam_wz,  // axial rigidity
         E_mod * nu_rat *
-            ((1. / 12) * beam_wz * pow(beam_wy, 3) + (1. / 12) * beam_wz * pow(beam_wy, 3)),  ///< torsion rigidity
-        E_mod * (1. / 12) * beam_wy * pow(beam_wz, 3),  ///< bending regidity about yy
-        E_mod * (1. / 12) * beam_wz * pow(beam_wy, 3),  ///< bending regidity about zz
-        0,                                              ///< section rotation about elastic center [rad]
-        Cy,                                             ///< elastic center y displacement respect to centerline
-        Cz,                                             ///< elastic center z displacement respect to centerline
-        Sy,                                             ///< shear center y displacement respect to centerline
-        Sz,                                             ///< shear center z displacement respect to centerline
-        density * beam_wy * beam_wz,                    ///< mass per unit length
-        density * ((1. / 12) * beam_wz * pow(beam_wy, 3) +
-                   (1. / 12) * beam_wz * pow(beam_wy, 3))  ///< polar inertia Jxx per unit lenght
+            ((1. / 12) * beam_wz * std::pow(beam_wy, 3) +
+             (1. / 12) * beam_wz * std::pow(beam_wy, 3)),    // torsion rigidity
+        E_mod * (1. / 12) * beam_wy * std::pow(beam_wz, 3),  // bending regidity about yy
+        E_mod * (1. / 12) * beam_wz * std::pow(beam_wy, 3),  // bending regidity about zz
+        0,                                                   // section rotation about elastic center [rad]
+        Cy,                                                  // elastic center y displacement respect to centerline
+        Cz,                                                  // elastic center z displacement respect to centerline
+        Sy,                                                  // shear center y displacement respect to centerline
+        Sz,                                                  // shear center z displacement respect to centerline
+        density * beam_wy * beam_wz,                         // mass per unit length
+        density * ((1. / 12) * beam_wz * std::pow(beam_wy, 3) +
+                   (1. / 12) * beam_wz * std::pow(beam_wy, 3))  // polar inertia Jxx per unit lenght
     );
 
     ChBuilderBeamEuler builder;
@@ -293,24 +294,25 @@ double IGA_test_offset(ChSystem& sys, double tip_load_y, int nsections, int orde
     double tip_load_z = 4;    // add also lateral bending on Z: just to test if this is not canceled in Y deflection
 
     auto section_inertia = chrono_types::make_shared<ChInertiaCosseratSimple>(
-        density, beam_wy * beam_wz, density * (1. / 12) * beam_wz * pow(beam_wy, 3),
-        density * (1. / 12) * beam_wz * pow(beam_wy, 3));  // not important
+        density, beam_wy * beam_wz, density * (1. / 12) * beam_wz * std::pow(beam_wy, 3),
+        density * (1. / 12) * beam_wz * std::pow(beam_wy, 3));  // not important
 
     auto section_elasticity = chrono_types::make_shared<ChElasticityCosseratAdvanced>(
-        (1. / 12) * beam_wy * pow(beam_wz, 3),                                            ///< Iyy
-        (1. / 12) * beam_wz * pow(beam_wy, 3),                                            ///< Izz
-        ((1. / 12) * beam_wz * pow(beam_wy, 3) + (1. / 12) * beam_wz * pow(beam_wy, 3)),  ///< torsion constant, approx.
-        E_mod * nu_rat,                                                                   ///< G shear modulus
-        E_mod,                                                                            ///< E young modulus
-        beam_wy * beam_wz,                                                                ///< A area
-        0.8,  ///< Timoshenko shear coefficient Ks for y shear
-        0.8,  ///< Timoshenko shear coefficient Ks for z shear
-        0,    ///< section rotation for which Iyy Izz are computed
-        Cy,   ///< Cy offset of elastic center about which Iyy Izz are computed
-        Cz,   ///< Cz offset of elastic center about which Iyy Izz are computed
-        0,    ///< section rotation for which Ks_y Ks_z are computed
-        Sy,   ///< Sy offset of shear center
-        Sz    ///< Sz offset of shear center
+        (1. / 12) * beam_wy * std::pow(beam_wz, 3),  // Iyy
+        (1. / 12) * beam_wz * std::pow(beam_wy, 3),  // Izz
+        ((1. / 12) * beam_wz * std::pow(beam_wy, 3) +
+         (1. / 12) * beam_wz * std::pow(beam_wy, 3)),  // torsion constant, approx.
+        E_mod * nu_rat,                                // G shear modulus
+        E_mod,                                         // E young modulus
+        beam_wy * beam_wz,                             // A area
+        0.8,                                           // Timoshenko shear coefficient Ks for y shear
+        0.8,                                           // Timoshenko shear coefficient Ks for z shear
+        0,                                             // section rotation for which Iyy Izz are computed
+        Cy,                                            // Cy offset of elastic center about which Iyy Izz are computed
+        Cz,                                            // Cz offset of elastic center about which Iyy Izz are computed
+        0,                                             // section rotation for which Ks_y Ks_z are computed
+        Sy,                                            // Sy offset of shear center
+        Sz                                             // Sz offset of shear center
     );
 
     auto section = chrono_types::make_shared<ChBeamSectionCosserat>(section_inertia, section_elasticity);
@@ -367,19 +369,19 @@ double IGA_test_offset_rigidity(ChSystem& sys, double tip_load_y, int nsections,
     double tip_load_z = 4;    // add also lateral bending on Z: just to test if this is not canceled in Y deflection
 
     auto section_inertia = chrono_types::make_shared<ChInertiaCosseratSimple>(
-        density, beam_wy * beam_wz, density * (1. / 12) * beam_wz * pow(beam_wy, 3),
-        density * (1. / 12) * beam_wz * pow(beam_wy, 3));  // not important
+        density, beam_wy * beam_wz, density * (1. / 12) * beam_wz * std::pow(beam_wy, 3),
+        density * (1. / 12) * beam_wz * std::pow(beam_wy, 3));  // not important
 
     auto section_elasticity = chrono_types::make_shared<ChElasticityCosseratAdvancedGeneric>(
         E_mod * beam_wy * beam_wz,  // Axial rigidity
         E_mod * nu_rat *
-            ((1. / 12) * beam_wz * pow(beam_wy, 3) +
-             (1. / 12) * beam_wz * pow(beam_wy, 3)),    // torsion rigidity, approx
-        E_mod * (1. / 12) * beam_wy * pow(beam_wz, 3),  // bending rigidity Byy
-        E_mod * (1. / 12) * beam_wz * pow(beam_wy, 3),  // bending rigidity Bzz
-        E_mod * nu_rat * 0.8 * beam_wy * beam_wz,       // shear rigidity Hyy
-        E_mod * nu_rat * 0.8 * beam_wy * beam_wz,       // shear rigidity Hzz
-        0,                                              ///< section rotation for which Iyy Izz are computed
+            ((1. / 12) * beam_wz * std::pow(beam_wy, 3) +
+             (1. / 12) * beam_wz * std::pow(beam_wy, 3)),    // torsion rigidity, approx
+        E_mod * (1. / 12) * beam_wy * std::pow(beam_wz, 3),  // bending rigidity Byy
+        E_mod * (1. / 12) * beam_wz * std::pow(beam_wy, 3),  // bending rigidity Bzz
+        E_mod * nu_rat * 0.8 * beam_wy * beam_wz,            // shear rigidity Hyy
+        E_mod * nu_rat * 0.8 * beam_wy * beam_wz,            // shear rigidity Hzz
+        0,                                                   ///< section rotation for which Iyy Izz are computed
         Cy,  ///< Cy offset of elastic center about which Iyy Izz are computed
         Cz,  ///< Cz offset of elastic center about which Iyy Izz are computed
         0,   ///< section rotation for which Ks_y Ks_z are computed
@@ -472,9 +474,9 @@ int main(int argc, char* argv[]) {
         double euler_displ = EULER_test(sys, load, i + 2);
         double euleroffset_displ = EULER_test_offset(sys, load, i + 2);
         double analytical_displ_euler =
-            (load * pow(beamL, 3)) /
+            (load * std::pow(beamL, 3)) /
             (3 * E_mod * (1. / 12.) * beam_wz *
-             pow(beam_wy, 3));  // (P*L^3)/(3*E*I) + (P*L)/(k*A*G) , note no Timoshenko, no shear effect
+             std::pow(beam_wy, 3));  // (P*L^3)/(3*E*I) + (P*L)/(k*A*G) , note no Timoshenko, no shear effect
         double euler_err = fabs((euler_displ - analytical_displ_euler) / analytical_displ);
         double euleroffset_err = fabs((euleroffset_displ - analytical_displ_euler) / analytical_displ);
         std::cout << "Euler-Bernoulli beam models" << std::endl;

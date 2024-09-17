@@ -429,13 +429,13 @@ ChVector3<RealA> Vmax(const ChVector3<RealA>& va, const ChVector3<RealA>& vb) {
 // Gets the zenith angle of a unit vector respect to YZ plane  ***OBSOLETE
 template <class RealA>
 double VangleYZplane(const ChVector3<RealA>& va) {
-    return asin(Vdot(va, ChVector3<RealA>(1, 0, 0)));
+    return std::asin(Vdot(va, ChVector3<RealA>(1, 0, 0)));
 }
 
 // Gets the zenith angle of a unit vector respect to YZ plane  ***OBSOLETE
 template <class RealA>
 double VangleYZplaneNorm(const ChVector3<RealA>& va) {
-    return acos(Vdot(va, ChVector3<RealA>(1, 0, 0)));
+    return std::acos(Vdot(va, ChVector3<RealA>(1, 0, 0)));
 }
 
 // Gets the angle of the projection on the YZ plane respect to
@@ -449,7 +449,7 @@ double VangleRX(const ChVector3<RealA>& va) {
     vproj = Vnorm(vproj);
     if (vproj.x() == 1)
         return 0;
-    return acos(vproj.y());
+    return std::acos(vproj.y());
 }
 
 // The reverse of the two previous functions, gets the vector
@@ -459,12 +459,12 @@ template <class RealA>
 ChVector3<RealA> VfromPolar(double norm_angle, double pol_angle) {
     ChVector3d res;
     double projlen;
-    res.x() = cos(norm_angle);  // 1) rot 'norm.angle'about z
-    res.y() = sin(norm_angle);
+    res.x() = std::cos(norm_angle);  // 1) rot 'norm.angle'about z
+    res.y() = std::sin(norm_angle);
     res.z() = 0;
     projlen = res.y();
-    res.y() = projlen * cos(pol_angle);
-    res.z() = projlen * sin(pol_angle);
+    res.y() = projlen * std::cos(pol_angle);
+    res.z() = projlen * std::sin(pol_angle);
     return res;
 }
 
@@ -845,7 +845,7 @@ inline Real ChVector3<Real>::Dot(const ChVector3<Real>& B) const {
 
 template <class Real>
 inline Real ChVector3<Real>::Length() const {
-    return sqrt(Length2());
+    return std::sqrt(Length2());
 }
 
 template <class Real>

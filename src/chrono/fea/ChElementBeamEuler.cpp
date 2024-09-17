@@ -14,6 +14,8 @@
 
 // #define BEAM_VERBOSE
 
+#include <cmath>
+
 #include "chrono/fea/ChElementBeamEuler.h"
 
 namespace chrono {
@@ -48,10 +50,10 @@ void ChElementBeamEuler::SetNodes(std::shared_ptr<ChNodeFEAxyzrot> nodeA, std::s
 void ChElementBeamEuler::ShapeFunctions(ShapeVector& N, double eta) {
     double Nx1 = (1. / 2.) * (1 - eta);
     double Nx2 = (1. / 2.) * (1 + eta);
-    double Ny1 = (1. / 4.) * pow((1 - eta), 2) * (2 + eta);
-    double Ny2 = (1. / 4.) * pow((1 + eta), 2) * (2 - eta);
-    double Nr1 = (this->length / 8.) * pow((1 - eta), 2) * (1 + eta);
-    double Nr2 = (this->length / 8.) * pow((1 + eta), 2) * (eta - 1);
+    double Ny1 = (1. / 4.) * std::pow((1 - eta), 2) * (2 + eta);
+    double Ny2 = (1. / 4.) * std::pow((1 + eta), 2) * (2 - eta);
+    double Nr1 = (this->length / 8.) * std::pow((1 - eta), 2) * (1 + eta);
+    double Nr2 = (this->length / 8.) * std::pow((1 + eta), 2) * (eta - 1);
     /*
     N(0) = Nx1;
     N(1) = Ny1;

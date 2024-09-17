@@ -254,7 +254,7 @@ int main(int argc, char** argv) {
     while (vis->Run()) {
         double time = vehicle.GetSystem()->GetChTime();
         double speed = vehicle.GetSpeed();
-        double acc_y = pow(speed, 2) / 50.0;
+        double acc_y = std::pow(speed, 2) / 50.0;
         double roll = vehicle.GetRoll() * CH_RAD_TO_DEG;
         double pitch = vehicle.GetPitch() * CH_RAD_TO_DEG;
         double veh_slip_angle = vehicle.GetSlipAngle() * CH_RAD_TO_DEG;
@@ -267,8 +267,8 @@ int main(int argc, char** argv) {
         auto targetPos = driver.GetSteeringController().GetTargetLocation();
         vis->UpdateVisualModel(sentinelID, ChFrame<>(sentinelPos));
         vis->UpdateVisualModel(targetID, ChFrame<>(targetPos));
-        double deviation =
-            dev_filter.Add(sqrt(pow(sentinelPos[0] - targetPos[0], 2) + pow(sentinelPos[1] - targetPos[1], 2)));
+        double deviation = dev_filter.Add(
+            std::sqrt(std::pow(sentinelPos[0] - targetPos[0], 2) + std::pow(sentinelPos[1] - targetPos[1], 2)));
         if (time > 10)
             csv << time << speed << acc_y << deviation << std::endl;
         if (deviation > max_dev && time > 10) {

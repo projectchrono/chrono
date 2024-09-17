@@ -16,6 +16,8 @@
 //
 // =============================================================================
 
+#include <cmath>
+
 #include "chrono/physics/ChSystem.h"
 #include "chrono/physics/ChForce.h"
 #include "chrono/physics/ChLinkMotorRotationSpeed.h"
@@ -322,8 +324,8 @@ void Copter<nop>::Update(double timestep) {
     // update propeller forces/torques
     for (int i = 0; i < nop; i++) {
         double rps = motors[i]->GetMotorAngleDt() / CH_2PI;
-        thrusts[i]->SetMforce(Ct * rho * pow(rps, 2) * pow(Dp, 4));
-        backtorques[i]->SetMforce((1 / CH_2PI) * Cp * rho * pow(rps, 2) * pow(Dp, 5));
+        thrusts[i]->SetMforce(Ct * rho * std::pow(rps, 2) * std::pow(Dp, 4));
+        backtorques[i]->SetMforce((1 / CH_2PI) * Cp * rho * std::pow(rps, 2) * std::pow(Dp, 5));
     }
     // update linear drag / drag torque
     lin_drag->SetMforce(0.5 * Cd * Surf * rho * chassis->GetPosDt().Length2());
@@ -338,7 +340,7 @@ template <int nop>
 void Copter<nop>::UpdateAirData() {
     Altitude = Altitude0 + (chassis->GetPos() ^ up - h0);
     Temp = Temp0 - (6.5 * (Altitude / 1000));
-    pressure = pressure0 * pow((Temp0 / Temp), -5.255877);
+    pressure = pressure0 * std::pow((Temp0 / Temp), -5.255877);
 }
 
 template <int nop>

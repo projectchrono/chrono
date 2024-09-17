@@ -182,8 +182,8 @@ void DPCapPress(const std::string& out_dir) {
     }
     // Modified hardening parameter to be consistent with ABAQUS !!!
     for (int i = 0; i < RowN; i++) {
-        m_DPVector2(i) = (m_DPVector2(i) + 210926.0 / tan(51.7848 * 3.141592653589793 / 180.0)) /
-                         (0.5 * tan(51.7848 * 3.141592653589793 / 180.0) + 1.0);
+        m_DPVector2(i) = (m_DPVector2(i) + 210926.0 / std::tan(51.7848 * 3.141592653589793 / 180.0)) /
+                         (0.5 * std::tan(51.7848 * 3.141592653589793 / 180.0) + 1.0);
     }
 
     std::shared_ptr<ChContactMaterialSMC> my_surfacematerial(new ChContactMaterialSMC);
@@ -267,7 +267,7 @@ void DPCapPress(const std::string& out_dir) {
                     element->SetDPVector1(m_DPVector1);
                     element->SetDPVector2(m_DPVector2);
                     element->SetDPVectorSize(RowN);
-                    element->SetDPCapBeta(0.5 * tan(51.7848 * 3.141592653589793 / 180.0));
+                    element->SetDPCapBeta(0.5 * std::tan(51.7848 * 3.141592653589793 / 180.0));
                 }
             }
         }
@@ -1367,7 +1367,7 @@ void SoilBin(const std::string& out_dir) {
         double time = sys.GetChTime();
         if (time > 1)
             break;
-        plate_load->SetForce(ChVector3d(0, 0, -1500 * sin(time * CH_PI)), false);
+        plate_load->SetForce(ChVector3d(0, 0, -1500 * std::sin(time * CH_PI)), false);
         Plate->SetRot(ChQuaternion<>(1.0, 0.0, 0.0, 0.0));
 
         vis->BeginScene();

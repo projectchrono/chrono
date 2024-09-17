@@ -203,7 +203,7 @@ int main(int argc, char* argv[]) {
             double tc = 2;
             double Fz = Fmax;
             if (t < tc) {
-                Fz = 0.5 * Fmax * (1 - cos(CH_PI * t / tc));
+                Fz = 0.5 * Fmax * (1 - std::cos(CH_PI * t / tc));
             }
 
             F(2) = Fz;  // Apply the force along the global Z axis

@@ -46,9 +46,20 @@ using namespace chrono;
 using namespace chrono::fea;
 using namespace chrono::irrlicht;
 
-bool addGravity = true;
-double time_step = 5e-4;
-double dz = 0.01;
+
+// ------------------------------------------------------------
+
+class PrintContactInfo : public ChContactContainer::AddContactCallback {
+  public:
+    virtual void OnAddContact(const ChCollisionInfo& cinfo, ChContactMaterialComposite* const material) override {
+        auto contactableA = cinfo.modelA->GetContactable();
+        auto contactableB = cinfo.modelB->GetContactable();
+
+        std::cout << "  " << cinfo.vpA.z() << "  |  " << cinfo.vpB.z() << std::endl;
+    }
+};
+
+// ------------------------------------------------------------
 
 int main(int argc, char* argv[]) {
     std::cout << "Copyright (c) 2017 projectchrono.org\nChrono version: " << CHRONO_VERSION << std::endl;
@@ -66,10 +77,7 @@ int main(int argc, char* argv[]) {
     sys.SetGravitationalAcceleration(ChVector3d(0, 0, -9.8));
     sys.SetNumThreads(std::min(4, ChOMP::GetNumProcs()), 0, 1);
 
-    ChCollisionModel::SetDefaultSuggestedMargin(0.001);  // max inside penetration
-    // Use this value for an outward additional layer around meshes, that can improve
-    // robustness of mesh-mesh collision detection (at the cost of having unnatural inflate effect)
-    double sphere_swept_thickness = 0.008;
+    ChCollisionModel::SetDefaultSuggestedMargin(0.001);
     sys.SetCollisionSystemType(ChCollisionSystem::Type::BULLET);
 
     // --------------------------------------------------------
@@ -87,6 +95,7 @@ int main(int argc, char* argv[]) {
     // ---------------
 
     auto ground = chrono_types::make_shared<ChBodyEasyBox>(3, 3, 0.2, 8000, true, true, contact_material);
+    ground->SetPos(ChVector3d(0, 0, -0.1));
     ground->SetFixed(true);
     ground->GetVisualShape(0)->SetTexture(GetChronoDataFile("textures/concrete.jpg"));
     sys.Add(ground);
@@ -94,7 +103,7 @@ int main(int argc, char* argv[]) {
     // ------------------------------------------
     // Create a mesh with ShellANCF_3423 elements
     // ------------------------------------------
-
+    /*
     auto mesh_shells = chrono_types::make_shared<ChMesh>();
     auto mat_shells = chrono_types::make_shared<ChMaterialShellANCF>(1000, 1e8, 0.3);
 
@@ -114,6 +123,9 @@ int main(int argc, char* argv[]) {
         return 1;
     }
 
+    double sphere_swept_thickness = 0.008;
+    double dz = 0.01;
+
     ////auto contact_surf_shells = chrono_types::make_shared<ChContactSurfaceMesh>(contact_material);
     ////mesh_shells->AddContactSurface(contact_surf_shells);
     ////contact_surf_shells->AddFacesFromBoundary(sphere_swept_thickness);
@@ -129,7 +141,7 @@ int main(int argc, char* argv[]) {
     }
 
     // Switch on/off mesh class gravity
-    mesh_shells->SetAutomaticGravity(addGravity);
+    mesh_shells->SetAutomaticGravity(true);
 
     // Add the mesh to the system
     sys.Add(mesh_shells);
@@ -141,11 +153,11 @@ int main(int argc, char* argv[]) {
         fea_vis->SetWireframe(true);
         mesh_shells->AddVisualShapeFEA(fea_vis);
     }
-
+    */
     // ------------------------------------------
     // Create a mesh with CableANCF elements
     // ------------------------------------------
-
+    
     auto mesh_cables = chrono_types::make_shared<ChMesh>();
 
     auto section_cables = chrono_types::make_shared<ChBeamSectionCable>();
@@ -161,21 +173,23 @@ int main(int argc, char* argv[]) {
                       ChVector3d(+0.15, -0.1, 0.2),   // beam start point
                       ChVector3d(-0.15, -0.1, 0.3));  // beam end point
 
+    const auto& nodes_cables = builder.GetLastBeamNodes();
+
     ////auto contact_surf_cables = chrono_types::make_shared<ChContactSurfaceMesh>(contact_material);
     ////mesh_cables->AddContactSurface(contact_surf_cables);
     ////contact_surf_cables->AddFacesFromBoundary(0.01);
 
-    auto contact_surf_cables = chrono_types::make_shared<ChContactSurfaceNodeCloud>(contact_material);
-    mesh_cables->AddContactSurface(contact_surf_cables);
-    contact_surf_cables->AddAllNodes(0.01);
-
-    ////auto contact_surf_cables = chrono_types::make_shared<ChContactSurfaceSegmentSet>(contact_material);
+    ////auto contact_surf_cables = chrono_types::make_shared<ChContactSurfaceNodeCloud>(contact_material);
     ////mesh_cables->AddContactSurface(contact_surf_cables);
-    ////contact_surf_cables->AddAllSegments(0.01);
+    ////contact_surf_cables->AddAllNodes(0.01);
+
+    auto contact_surf_cables = chrono_types::make_shared<ChContactSurfaceSegmentSet>(contact_material);
+    mesh_cables->AddContactSurface(contact_surf_cables);
+    contact_surf_cables->AddAllSegments(0.01);
 
     // Add the mesh to the system
     sys.Add(mesh_cables);
-
+    
     // FEA visualization
     {
         auto fea_vis = chrono_types::make_shared<ChVisualShapeFEA>(mesh_cables);
@@ -184,6 +198,10 @@ int main(int argc, char* argv[]) {
         fea_vis->SetSmoothFaces(true);
         mesh_cables->AddVisualShapeFEA(fea_vis);
     }
+    
+    // Register callback for printing contact info
+    auto contact_callback = chrono_types::make_shared<PrintContactInfo>();
+    sys.GetContactContainer()->RegisterAddContactCallback(contact_callback);
 
     // ------------------------------------
     // Create run-time visualization system
@@ -232,11 +250,18 @@ int main(int argc, char* argv[]) {
     // ---------------
     // Simulation loop
     // ---------------
+    
+    double time_step = 5e-4;
 
     while (vsys->Run()) {
         vsys->BeginScene();
         vsys->Render();
         vsys->EndScene();
+
+        std::cout << "Time t = " << sys.GetChTime() << "s \n";
+        for (auto n : nodes_cables)
+            std::cout << n->GetPos().z() << "  ";
+        std::cout << std::endl;
 
         ////std::cout << "Time t = " << sys.GetChTime() << "s \t";
         ////std::cout << "n contacts: " << sys.GetNumContacts() << "\t";

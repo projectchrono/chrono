@@ -240,13 +240,13 @@ class ChApi ChBeamSectionEulerSimple : public ChBeamSectionEuler {
     /// with rectangular shape.
     void SetAsRectangularSection(double width_y, double width_z) {
         this->Area = width_y * width_z;
-        this->Izz = (1.0 / 12.0) * width_z * pow(width_y, 3);
-        this->Iyy = (1.0 / 12.0) * width_y * pow(width_z, 3);
+        this->Izz = (1.0 / 12.0) * width_z * std::pow(width_y, 3);
+        this->Iyy = (1.0 / 12.0) * width_y * std::pow(width_z, 3);
 
         // use Roark's formulas for torsion of rectangular sect:
         double t = std::min(width_y, width_z);
         double b = std::max(width_y, width_z);
-        this->J = b * pow(t, 3) * ((1.0 / 3.0) - 0.210 * (t / b) * (1.0 - (1.0 / 12.0) * pow((t / b), 4)));
+        this->J = b * std::pow(t, 3) * ((1.0 / 3.0) - 0.210 * (t / b) * (1.0 - (1.0 / 12.0) * std::pow((t / b), 4)));
 
         // set Ks using Timoshenko-Gere formula for solid rect.shapes
         double poisson = this->E / (2.0 * this->G) - 1.0;
@@ -260,8 +260,8 @@ class ChApi ChBeamSectionEulerSimple : public ChBeamSectionEuler {
     /// at once, given the diameter of the beam assumed
     /// with circular shape.
     void SetAsCircularSection(double diameter) {
-        this->Area = CH_PI * pow((0.5 * diameter), 2);
-        this->Izz = (CH_PI / 4.0) * pow((0.5 * diameter), 4);
+        this->Area = CH_PI * std::pow((0.5 * diameter), 2);
+        this->Izz = (CH_PI / 4.0) * std::pow((0.5 * diameter), 4);
         this->Iyy = Izz;
 
         // exact expression for circular beam J = Ixx ,

@@ -25,6 +25,8 @@
 // the number of brick elements to achieve convergence.
 // =============================================================================
 
+#include <cmath>
+
 #include "chrono/physics/ChSystemNSC.h"
 #include "chrono/solver/ChIterativeSolverLS.h"
 #include "chrono/utils/ChUtilsInputOutput.h"
@@ -258,7 +260,7 @@ int main(int argc, char* argv[]) {
         while (sys.GetChTime() < sim_time) {
             t_sim = sys.GetChTime();
             if (t_sim < T_F)
-                nodetip->SetForce(ChVector3d(0, 0, -50 / 2 * (1 - cos((t_sim / T_F) * 3.1415926535))));
+                nodetip->SetForce(ChVector3d(0, 0, -50 / 2 * (1 - std::cos((t_sim / T_F) * 3.1415926535))));
             else {
                 nodetip->SetForce(ChVector3d(0, 0, -50));
             }
@@ -279,7 +281,7 @@ int main(int argc, char* argv[]) {
         while (sys.GetChTime() < sim_time_UT) {
             t_sim = sys.GetChTime();
             if (t_sim < T_F)
-                nodetip->SetForce(ChVector3d(0, 0, -50 / 2 * (1 - cos((t_sim / T_F) * 3.1415926535))));
+                nodetip->SetForce(ChVector3d(0, 0, -50 / 2 * (1 - std::cos((t_sim / T_F) * 3.1415926535))));
             else {
                 nodetip->SetForce(ChVector3d(0, 0, -50));
             }

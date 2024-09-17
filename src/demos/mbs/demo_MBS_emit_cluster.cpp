@@ -191,7 +191,7 @@ int main(int argc, char* argv[]) {
                 auto abodyB = sys.GetBodies()[j];
                 ChVector3d D_attract = abodyB->GetPos() - abodyA->GetPos();
                 double r_attract = D_attract.Length();
-                double f_attract = G_constant * (abodyA->GetMass() * abodyB->GetMass()) / (pow(r_attract, 2));
+                double f_attract = G_constant * (abodyA->GetMass() * abodyB->GetMass()) / (std::pow(r_attract, 2));
                 ChVector3d F_attract = (D_attract / r_attract) * f_attract;
 
                 abodyA->AccumulateForce(F_attract, abodyA->GetPos(), false);

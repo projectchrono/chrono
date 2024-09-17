@@ -12,6 +12,8 @@
 // Authors: Alessandro Tasora
 // =============================================================================
 
+#include <cmath>
+
 #include "chrono/functions/ChFunctionPositionLine.h"
 #include "chrono/functions/ChFunctionRamp.h"
 #include "chrono/geometry/ChLineSegment.h"
@@ -65,7 +67,7 @@ ChVector3d ChFunctionPositionLine::GetLinAcc(double s) const {
     auto resultA = m_trajectory_line->Evaluate(tr_timeA);
     auto resultB = m_trajectory_line->Evaluate(tr_timeB);
 
-    return (resultA + resultB - result * 2) * (4 / pow(2 * tstep, 2));
+    return (resultA + resultB - result * 2) * (4 / std::pow(2 * tstep, 2));
 }
 
 void ChFunctionPositionLine::ArchiveOut(ChArchiveOut& archive_out) {

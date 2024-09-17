@@ -10,6 +10,8 @@
 //
 // =============================================================================
 
+#include <cmath>
+
 #include "chrono/solver/ChIterativeSolverVI.h"
 #include "chrono/solver/ChIterativeSolverLS.h"
 #include "chrono/physics/ChContactContainer.h"
@@ -188,6 +190,10 @@ class _draw_reporter_class : public ChContactContainer::ReportContactCallback {
                 break;
             case ContactsDrawMode::CONTACT_NORMALS:
                 v2 = pA + vn * clen;
+
+                v1 = pB;
+                v2 = pB - vn * clen;
+
                 mcol = irr::video::SColor(200, 0, 100, 255);
                 break;
             case ContactsDrawMode::CONTACT_FORCES_N:
@@ -790,8 +796,8 @@ void drawCircle(ChVisualSystemIrrlicht* vis,
 
     for (int iu = 1; iu <= resolution; iu++) {
         phaseB = CH_2PI * (double)iu / (double)resolution;
-        ChVector3d V1(radius * cos(phaseA), radius * sin(phaseA), 0);
-        ChVector3d V2(radius * cos(phaseB), radius * sin(phaseB), 0);
+        ChVector3d V1(radius * std::cos(phaseA), radius * std::sin(phaseA), 0);
+        ChVector3d V2(radius * std::cos(phaseB), radius * std::sin(phaseB), 0);
         drawSegment(vis, pos.TransformPointLocalToParent(V1), pos.TransformPointLocalToParent(V2), col, use_Zbuffer);
         phaseA = phaseB;
     }
@@ -830,8 +836,8 @@ void drawSpring(ChVisualSystemIrrlicht* vis,
     for (int iu = 1; iu <= resolution; iu++) {
         phaseB = turns * CH_2PI * (double)iu / (double)resolution;
         heightB = length * ((double)iu / (double)resolution);
-        ChVector3d V1(heightA, radius * cos(phaseA), radius * sin(phaseA));
-        ChVector3d V2(heightB, radius * cos(phaseB), radius * sin(phaseB));
+        ChVector3d V1(heightA, radius * std::cos(phaseA), radius * std::sin(phaseA));
+        ChVector3d V2(heightB, radius * std::cos(phaseB), radius * std::sin(phaseB));
         drawSegment(vis, pos.TransformPointLocalToParent(V1), pos.TransformPointLocalToParent(V2), col, use_Zbuffer);
         phaseA = phaseB;
         heightA = heightB;

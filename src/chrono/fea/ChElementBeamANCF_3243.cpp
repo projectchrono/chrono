@@ -307,9 +307,9 @@ double ChElementBeamANCF_3243::GetVonMissesStress(const double xi, const double 
     // Convert from 2ndPK Stress to Cauchy Stress
     ChMatrix33d S = (F * SPK2 * F.transpose()) / F.determinant();
     double SVonMises =
-        sqrt(0.5 * ((S(0, 0) - S(1, 1)) * (S(0, 0) - S(1, 1)) + (S(1, 1) - S(2, 2)) * (S(1, 1) - S(2, 2)) +
-                    (S(2, 2) - S(0, 0)) * (S(2, 2) - S(0, 0))) +
-             3 * (S(1, 2) * S(1, 2) + S(2, 0) * S(2, 0) + S(0, 1) * S(0, 1)));
+        std::sqrt(0.5 * ((S(0, 0) - S(1, 1)) * (S(0, 0) - S(1, 1)) + (S(1, 1) - S(2, 2)) * (S(1, 1) - S(2, 2)) +
+                         (S(2, 2) - S(0, 0)) * (S(2, 2) - S(0, 0))) +
+                  3 * (S(1, 2) * S(1, 2) + S(2, 0) * S(2, 0) + S(0, 1) * S(0, 1)));
 
     return (SVonMises);
 }

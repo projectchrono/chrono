@@ -79,8 +79,9 @@ double PoiseuilleAnalytical(double Z, double H, double time, const ChSystemFsi& 
     // Truncate infinite series to 50 terms
     double v = 1.0 / (2.0 * nu) * F * Z * (H - Z);
     for (int n = 0; n < 50; n++) {
-        v = v - 4.0 * F * pow(H, 2) / (nu * pow(CH_PI, 3) * pow(2 * n + 1, 3)) * sin(CH_PI * Z * (2 * n + 1) / H) *
-                    exp(-pow(2 * n + 1, 2) * pow(CH_PI, 2) * nu * time / pow(H, 2));
+        v = v - 4.0 * F * std::pow(H, 2) / (nu * std::pow(CH_PI, 3) * std::pow(2 * n + 1, 3)) *
+                    std::sin(CH_PI * Z * (2 * n + 1) / H) *
+                    std::exp(-pow(2 * n + 1, 2) * std::pow(CH_PI, 2) * nu * time / std::pow(H, 2));
     }
 
     return v;

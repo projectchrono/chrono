@@ -101,8 +101,8 @@ void ODEModel::Simulate(double step, int num_steps) {
 
     for (int it = 0; it < num_steps; it++) {
         m_data[0][it] = it * step;
-        m_data[1][it] = m_x1 + 0.5 * l2 * cos(m_phi2);
-        m_data[2][it] = 0.5 * l2 * sin(m_phi2);
+        m_data[1][it] = m_x1 + 0.5 * l2 * std::cos(m_phi2);
+        m_data[2][it] = 0.5 * l2 * std::sin(m_phi2);
         for (int it1 = 0; it1 < m_num_intermediate_steps; it1++) {
             CalcAcceleration();
             m_x1d += step1 * m_x1dd;
@@ -115,11 +115,11 @@ void ODEModel::Simulate(double step, int num_steps) {
 
 void ODEModel::CalcAcceleration() {
     double M11 = m1 + m2;
-    double M12 = -0.5 * m2 * l2 * sin(m_phi2);
+    double M12 = -0.5 * m2 * l2 * std::sin(m_phi2);
     double M22 = 0.25 * m2 * l2 * l2 + J2;
     double det = M11 * M22 - M12 * M12;
-    double f1 = 0.5 * m2 * l2 * cos(m_phi2) * m_phi2d * m_phi2d - k1 * m_x1;
-    double f2 = -0.5 * m2 * l2 * g * cos(m_phi2);
+    double f1 = 0.5 * m2 * l2 * std::cos(m_phi2) * m_phi2d * m_phi2d - k1 * m_x1;
+    double f2 = -0.5 * m2 * l2 * g * std::cos(m_phi2);
     m_x1dd = (M22 * f1 - M12 * f2) / det;
     m_phi2dd = (M11 * f2 - M12 * f1) / det;
 }
