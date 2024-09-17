@@ -18,6 +18,7 @@
 // =============================================================================
 
 #include <thrust/copy.h>
+#include <thrust/fill.h>
 #include <thrust/gather.h>
 #include <thrust/for_each.h>
 #include <thrust/iterator/counting_iterator.h>
@@ -182,10 +183,6 @@ void ChSystemFsi_impl::AddSPHParticle(Real4 pos, Real4 rhoPresMu, Real3 vel, Rea
     sphMarkers_H->tauXyXzYzH.push_back(tauXyXzYz);
     sphMarkers_H->tauXxYyZzH.push_back(tauXxYyZz);
 }
-void ChSystemFsi_impl::ArrangeDataManager() {
-    thrust::host_vector<Real4> dummyRhoPresMuH = sphMarkers_H->rhoPresMuH;
-    dummyRhoPresMuH.clear();
-}
 
 void ChSystemFsi_impl::InitNumObjects() {
     numObjectsH->numRigidBodies = 0;      // Number of rigid bodies
@@ -309,6 +306,42 @@ void ChSystemFsi_impl::ConstructReferenceArray() {
     numComponentMarkers.clear();
 }
 
+void ChSystemFsi_impl::CopyDeviceDataToHalfStep() {
+    thrust::copy(sortedSphMarkers2_D->posRadD.begin(), sortedSphMarkers2_D->posRadD.end(),
+                 sortedSphMarkers1_D->posRadD.begin());
+    thrust::copy(sortedSphMarkers2_D->velMasD.begin(), sortedSphMarkers2_D->velMasD.end(),
+                 sortedSphMarkers1_D->velMasD.begin());
+    thrust::copy(sortedSphMarkers2_D->rhoPresMuD.begin(), sortedSphMarkers2_D->rhoPresMuD.end(),
+                 sortedSphMarkers1_D->rhoPresMuD.begin());
+
+    if (paramsH->elastic_SPH) {
+        thrust::copy(sortedSphMarkers2_D->tauXxYyZzD.begin(), sortedSphMarkers2_D->tauXxYyZzD.end(),
+                     sortedSphMarkers1_D->tauXxYyZzD.begin());
+        thrust::copy(sortedSphMarkers2_D->tauXyXzYzD.begin(), sortedSphMarkers2_D->tauXyXzYzD.end(),
+                     sortedSphMarkers1_D->tauXyXzYzD.begin());
+    }
+}
+
+void ChSystemFsi_impl::ResetData() {
+    auto zero4 = mR4(0);
+    auto zero3 = mR3(0);
+
+    thrust::fill(fsiData->derivVelRhoD.begin(), fsiData->derivVelRhoD.end(), zero4);
+    thrust::fill(fsiData->derivVelRhoOriginalD.begin(), fsiData->derivVelRhoOriginalD.end(), zero4);
+    thrust::fill(fsiData->sr_tau_I_mu_i.begin(), fsiData->sr_tau_I_mu_i.end(), zero4);
+    thrust::fill(fsiData->freeSurfaceIdD.begin(), fsiData->freeSurfaceIdD.end(), 0);
+
+    //// TODO: WCSPH only
+    thrust::fill(fsiData->vel_XSPH_D.begin(), fsiData->vel_XSPH_D.end(), zero3);
+
+    //// TODO: ISPH only
+    thrust::fill(fsiData->bceAcc.begin(), fsiData->bceAcc.end(), zero3);
+
+    //// TODO: elasticSPH only
+    thrust::fill(fsiData->derivTauXxYyZzD.begin(), fsiData->derivTauXxYyZzD.end(), zero3);
+    thrust::fill(fsiData->derivTauXyXzYzD.begin(), fsiData->derivTauXyXzYzD.end(), zero3);
+}
+
 //--------------------------------------------------------------------------------------------------------------------------------
 void ChSystemFsi_impl::Initialize(size_t numRigidBodies,
                                   size_t numFlexBodies1D,
@@ -339,13 +372,18 @@ void ChSystemFsi_impl::Initialize(size_t numRigidBodies,
     fsiData->derivVelRhoD.resize(numObjectsH->numAllMarkers);          // sorted
     fsiData->derivVelRhoOriginalD.resize(numObjectsH->numAllMarkers);  // unsorted
 
+    //// TODO: why are these sized for both CFD and CRM?!?
     fsiData->derivTauXxYyZzD.resize(numObjectsH->numAllMarkers);
     fsiData->derivTauXyXzYzD.resize(numObjectsH->numAllMarkers);
 
+    //// TODO: why is this sized for both WCSPH and ISPH?!?
     fsiData->vel_XSPH_D.resize(numObjectsH->numAllMarkers);  // TODO (Huzaifa): Check if this is always sorted or not
+
     fsiData->vis_vel_SPH_D.resize(numObjectsH->numAllMarkers, mR3(1e-20));
     fsiData->sr_tau_I_mu_i.resize(numObjectsH->numAllMarkers, mR4(1e-20));           // sorted
     fsiData->sr_tau_I_mu_i_Original.resize(numObjectsH->numAllMarkers, mR4(1e-20));  // unsorted
+
+    //// TODO: why is this sized for both WCSPH and ISPH?!?
     fsiData->bceAcc.resize(numObjectsH->numAllMarkers, mR3(0.0));  // Rigid/flex body accelerations from motion
 
     fsiData->activityIdentifierD.resize(numObjectsH->numAllMarkers, 1);

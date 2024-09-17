@@ -45,22 +45,6 @@ float GpuTimer::Elapsed() {
     return elapsed;
 }
 
-void ChUtilsDevice::FillVector(thrust::device_vector<Real3>& vector, const Real3& value) {
-    thrust::fill(vector.begin(), vector.end(), value);
-}
-
-void ChUtilsDevice::FillVector(thrust::device_vector<Real4>& vector, const Real4& value) {
-    thrust::fill(vector.begin(), vector.end(), value);
-}
-
-void ChUtilsDevice::FillVector(thrust::device_vector<uint>& vector, const uint& value) {
-    thrust::fill(vector.begin(), vector.end(), value);
-}
-
-void ChUtilsDevice::FillVector(thrust::device_vector<Real>& vector, const Real& value) {
-    thrust::fill(vector.begin(), vector.end(), value);
-}
-
 void ChUtilsDevice::Sync_CheckError(bool* isErrorH, bool* isErrorD, std::string crashReport) {
     cudaDeviceSynchronize();
     cudaMemcpy(isErrorH, isErrorD, sizeof(bool), cudaMemcpyDeviceToHost);

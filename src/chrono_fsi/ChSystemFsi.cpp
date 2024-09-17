@@ -57,7 +57,6 @@ ChSystemFsi::ChSystemFsi(ChSystem* sysMBS)
     : m_sysMBS(sysMBS),
       m_verbose(true),
       m_is_initialized(false),
-      m_integrate_SPH(true),
       m_time(0),
       m_RTF(0),
       m_ratio_MBS(0),
@@ -562,10 +561,6 @@ void ChSystemFsi::SetAdaptiveTimeStepping(bool adaptive) {
     m_paramsH->Adaptive_time_stepping = adaptive;
 }
 
-void ChSystemFsi::SetSPHintegration(bool runSPH) {
-    m_integrate_SPH = runSPH;
-}
-
 void ChSystemFsi::SetDensity(double rho0) {
     m_paramsH->rho0 = rho0;
     m_paramsH->invrho0 = 1 / m_paramsH->rho0;
@@ -1053,21 +1048,6 @@ void ChSystemFsi::Initialize() {
 
 //--------------------------------------------------------------------------------------------------------------------------------
 
-void ChSystemFsi::CopyDeviceDataToHalfStep() {
-    thrust::copy(m_sysFSI->sortedSphMarkers2_D->posRadD.begin(), m_sysFSI->sortedSphMarkers2_D->posRadD.end(),
-                 m_sysFSI->sortedSphMarkers1_D->posRadD.begin());
-    thrust::copy(m_sysFSI->sortedSphMarkers2_D->velMasD.begin(), m_sysFSI->sortedSphMarkers2_D->velMasD.end(),
-                 m_sysFSI->sortedSphMarkers1_D->velMasD.begin());
-    thrust::copy(m_sysFSI->sortedSphMarkers2_D->rhoPresMuD.begin(), m_sysFSI->sortedSphMarkers2_D->rhoPresMuD.end(),
-                 m_sysFSI->sortedSphMarkers1_D->rhoPresMuD.begin());
-    if (m_paramsH->elastic_SPH) {
-        thrust::copy(m_sysFSI->sortedSphMarkers2_D->tauXxYyZzD.begin(), m_sysFSI->sortedSphMarkers2_D->tauXxYyZzD.end(),
-                     m_sysFSI->sortedSphMarkers1_D->tauXxYyZzD.begin());
-        thrust::copy(m_sysFSI->sortedSphMarkers2_D->tauXyXzYzD.begin(), m_sysFSI->sortedSphMarkers2_D->tauXyXzYzD.end(),
-                     m_sysFSI->sortedSphMarkers1_D->tauXyXzYzD.begin());
-    }
-}
-
 void ChSystemFsi::DoStepDynamics_FSI() {
     if (!m_is_initialized) {
         cout << "ERROR: FSI system not initialized!\n" << endl;
@@ -1079,124 +1059,68 @@ void ChSystemFsi::DoStepDynamics_FSI() {
 
     m_timer_step.start();
 
+    if (m_time < 1e-6 || int(round(m_time / m_paramsH->dT)) % m_paramsH->num_proximity_search_steps == 0) {
+        m_fluid_dynamics->SortParticles();
+    }
+
+    m_sysFSI->ResetData();
+
     switch (m_paramsH->sph_method) {
         case SPHMethod::WCSPH: {
-            if (m_time < 1e-6 || int(round(m_time / m_paramsH->dT)) % m_paramsH->num_proximity_search_steps == 0) {
-                m_fluid_dynamics->SortParticles();
-            }
-            // The following is used to execute the Explicit WCSPH
-            CopyDeviceDataToHalfStep();
-            ChUtilsDevice::FillVector(m_sysFSI->fsiData->derivVelRhoD, mR4(0));
-            ChUtilsDevice::FillVector(m_sysFSI->fsiData->derivVelRhoOriginalD, mR4(0));
-            // TODO (Huzaifa): Unsure if these required to be set to 0
-            ChUtilsDevice::FillVector(m_sysFSI->fsiData->sr_tau_I_mu_i, mR4(0));
-            ChUtilsDevice::FillVector(m_sysFSI->fsiData->freeSurfaceIdD, 0);
-            ChUtilsDevice::FillVector(m_sysFSI->fsiData->derivTauXxYyZzD, mR3(0));
-            ChUtilsDevice::FillVector(m_sysFSI->fsiData->derivTauXyXzYzD, mR3(0));
-            ChUtilsDevice::FillVector(m_sysFSI->fsiData->vel_XSPH_D, mR3(0));
-
-            if (m_integrate_SPH) {
-                m_fluid_dynamics->IntegrateSPH(m_sysFSI->sortedSphMarkers2_D, m_sysFSI->sortedSphMarkers1_D,  //
-                                               m_sysFSI->fsiBodyState_D,                                      //
-                                               m_sysFSI->fsiMesh1DState_D, m_sysFSI->fsiMesh2DState_D,        //
-                                               0.5 * m_paramsH->dT, m_time, true);
-                m_fluid_dynamics->IntegrateSPH(m_sysFSI->sortedSphMarkers1_D, m_sysFSI->sortedSphMarkers2_D,  //
-                                               m_sysFSI->fsiBodyState_D,                                      //
-                                               m_sysFSI->fsiMesh1DState_D, m_sysFSI->fsiMesh2DState_D,        //
-                                               1.0 * m_paramsH->dT, m_time, false);
-            }
-
-            m_bce_manager->Rigid_Forces_Torques(m_sysFSI->fsiBodyState_D);
-            m_bce_manager->Flex1D_Forces(m_sysFSI->fsiMesh1DState_D);
-            m_bce_manager->Flex2D_Forces(m_sysFSI->fsiMesh2DState_D);
-
-            // Advance dynamics of the associated MBS system (if provided)
-            if (m_sysMBS) {
-                m_timer_MBS.start();
-
-                m_fsi_interface->ApplyBodyForces();
-                m_fsi_interface->ApplyMeshForces();
-
-                if (m_paramsH->dT_Flex == 0)
-                    m_paramsH->dT_Flex = m_paramsH->dT;
-                int sync = int(m_paramsH->dT / m_paramsH->dT_Flex);
-                if (sync < 1)
-                    sync = 1;
-                for (int t = 0; t < sync; t++) {
-                    m_sysMBS->DoStepDynamics(m_paramsH->dT / sync);
-                }
-                m_timer_MBS.stop();
-            }
-
-            m_fsi_interface->LoadBodyStates();
-            m_bce_manager->UpdateBodyMarkerState(m_sysFSI->fsiBodyState_D);
-
-            m_fsi_interface->LoadMeshStates();
-            m_bce_manager->UpdateMeshMarker1DState(m_sysFSI->fsiMesh1DState_D);
-            m_bce_manager->UpdateMeshMarker2DState(m_sysFSI->fsiMesh2DState_D);
-
-            m_fluid_dynamics->CopySortedToOriginal(m_sysFSI->sortedSphMarkers2_D, m_sysFSI->sphMarkers_D);
-
+            m_sysFSI->CopyDeviceDataToHalfStep();
+            m_fluid_dynamics->IntegrateSPH(m_sysFSI->sortedSphMarkers2_D, m_sysFSI->sortedSphMarkers1_D,  //
+                                           m_sysFSI->fsiBodyState_D,                                      //
+                                           m_sysFSI->fsiMesh1DState_D, m_sysFSI->fsiMesh2DState_D,        //
+                                           0.5 * m_paramsH->dT, m_time, true);
+            m_fluid_dynamics->IntegrateSPH(m_sysFSI->sortedSphMarkers1_D, m_sysFSI->sortedSphMarkers2_D,  //
+                                           m_sysFSI->fsiBodyState_D,                                      //
+                                           m_sysFSI->fsiMesh1DState_D, m_sysFSI->fsiMesh2DState_D,        //
+                                           1.0 * m_paramsH->dT, m_time, false);
             break;
         }
 
         case SPHMethod::I2SPH: {
-            if (m_time < 1e-6 || int(round(m_time / m_paramsH->dT)) % m_paramsH->num_proximity_search_steps == 0) {
-                m_fluid_dynamics->SortParticles();
-            }
-            ChUtilsDevice::FillVector(m_sysFSI->fsiData->derivVelRhoOriginalD, mR4(0));
-            ChUtilsDevice::FillVector(m_sysFSI->fsiData->derivVelRhoD, mR4(0));
-            ChUtilsDevice::FillVector(m_sysFSI->fsiData->freeSurfaceIdD, 0);
-            ChUtilsDevice::FillVector(m_sysFSI->fsiData->bceAcc, mR3(0));
-            ChUtilsDevice::FillVector(m_sysFSI->fsiData->sr_tau_I_mu_i, mR4(0));
-
             m_bce_manager->updateBCEAcc(m_sysFSI->fsiBodyState_D, m_sysFSI->fsiMesh1DState_D,
                                         m_sysFSI->fsiMesh2DState_D);
-
-            // A different coupling scheme is used for implicit SPH formulations
-            if (m_integrate_SPH) {
-                m_fluid_dynamics->IntegrateSPH(m_sysFSI->sortedSphMarkers2_D, m_sysFSI->sortedSphMarkers2_D,  //
-                                               m_sysFSI->fsiBodyState_D,                                      //
-                                               m_sysFSI->fsiMesh1DState_D, m_sysFSI->fsiMesh2DState_D,        //
-                                               0.0, m_time, false);
-            }
-
-            m_bce_manager->Rigid_Forces_Torques(m_sysFSI->fsiBodyState_D);
-            m_bce_manager->Flex1D_Forces(m_sysFSI->fsiMesh1DState_D);
-            m_bce_manager->Flex2D_Forces(m_sysFSI->fsiMesh2DState_D);
-
-            // Advance dynamics of the associated MBS system (if provided)
-            if (m_sysMBS) {
-                m_timer_MBS.start();
-
-                m_fsi_interface->ApplyBodyForces();
-                m_fsi_interface->ApplyMeshForces();
-
-                if (m_paramsH->dT_Flex == 0)
-                    m_paramsH->dT_Flex = m_paramsH->dT;
-                int sync = int(m_paramsH->dT / m_paramsH->dT_Flex);
-                if (sync < 1)
-                    sync = 1;
-                if (m_verbose)
-                    cout << sync << " * Chrono StepDynamics with dt = " << m_paramsH->dT / sync << endl;
-                for (int t = 0; t < sync; t++) {
-                    m_sysMBS->DoStepDynamics(m_paramsH->dT / sync);
-                }
-                m_timer_MBS.stop();
-            }
-
-            m_fsi_interface->LoadBodyStates();
-            m_bce_manager->UpdateBodyMarkerState(m_sysFSI->fsiBodyState_D);
-
-            m_fsi_interface->LoadMeshStates();
-            m_bce_manager->UpdateMeshMarker1DState(m_sysFSI->fsiMesh1DState_D);
-            m_bce_manager->UpdateMeshMarker2DState(m_sysFSI->fsiMesh2DState_D);
-
-            m_fluid_dynamics->CopySortedToOriginal(m_sysFSI->sortedSphMarkers2_D, m_sysFSI->sphMarkers_D);
-
+            m_fluid_dynamics->IntegrateSPH(m_sysFSI->sortedSphMarkers2_D, m_sysFSI->sortedSphMarkers2_D,  //
+                                           m_sysFSI->fsiBodyState_D,                                      //
+                                           m_sysFSI->fsiMesh1DState_D, m_sysFSI->fsiMesh2DState_D,        //
+                                           0.0, m_time, false);
             break;
         }
     }
+
+    m_bce_manager->Rigid_Forces_Torques(m_sysFSI->fsiBodyState_D);
+    m_bce_manager->Flex1D_Forces(m_sysFSI->fsiMesh1DState_D);
+    m_bce_manager->Flex2D_Forces(m_sysFSI->fsiMesh2DState_D);
+
+    // Advance dynamics of the associated MBS system (if provided)
+    if (m_sysMBS) {
+        m_timer_MBS.start();
+
+        m_fsi_interface->ApplyBodyForces();
+        m_fsi_interface->ApplyMeshForces();
+
+        if (m_paramsH->dT_Flex == 0)
+            m_paramsH->dT_Flex = m_paramsH->dT;
+        int sync = int(m_paramsH->dT / m_paramsH->dT_Flex);
+        if (sync < 1)
+            sync = 1;
+        for (int t = 0; t < sync; t++) {
+            m_sysMBS->DoStepDynamics(m_paramsH->dT / sync);
+        }
+        m_timer_MBS.stop();
+    }
+
+    m_fsi_interface->LoadBodyStates();
+    m_bce_manager->UpdateBodyMarkerState(m_sysFSI->fsiBodyState_D);
+
+    m_fsi_interface->LoadMeshStates();
+    m_bce_manager->UpdateMeshMarker1DState(m_sysFSI->fsiMesh1DState_D);
+    m_bce_manager->UpdateMeshMarker2DState(m_sysFSI->fsiMesh2DState_D);
+
+    m_fluid_dynamics->CopySortedToOriginal(m_sysFSI->sortedSphMarkers2_D, m_sysFSI->sphMarkers_D);
+
     m_time += m_paramsH->dT;
 
     m_timer_step.stop();

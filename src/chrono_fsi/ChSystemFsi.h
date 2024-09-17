@@ -198,9 +198,6 @@ class CH_FSI_API ChSystemFsi {
     /// Enable/disable adaptive time stepping.
     void SetAdaptiveTimeStepping(bool adaptive);
 
-    /// Enable/disable SPH integration.
-    void SetSPHintegration(bool runSPH);
-
     /// Set SPH discretization type, consistent or inconsistent
     void SetConsistentDerivativeDiscretization(bool consistent_gradient, bool consistent_Laplacian);
 
@@ -569,9 +566,6 @@ class CH_FSI_API ChSystemFsi {
     /// The BCE markers are created in the absolute coordinate frame.
     unsigned int AddBCE_mesh2D(unsigned int meshID, const ChFsiInterface::FsiMesh2D& fsi_mesh);
 
-    /// Function to initialize the midpoint device data of the fluid system by copying from the full step.
-    void CopyDeviceDataToHalfStep();
-
     ChSystem* m_sysMBS;  ///< multibody system
 
     std::shared_ptr<SimParams> m_paramsH;  ///< pointer to the simulation parameters
@@ -599,7 +593,6 @@ class CH_FSI_API ChSystemFsi {
     bool m_remove_center2D;
 
     bool m_is_initialized;  ///< set to true once the Initialize function is called
-    bool m_integrate_SPH;   ///< set to true if needs to integrate the fsi solver
     double m_time;          ///< current simulation time
 
     ChTimer m_timer_step;  ///< timer for integration step

@@ -278,11 +278,18 @@ class ChSystemFsi_impl : public ChFsiBase {
     std::shared_ptr<FsiData> fsiData;  ///< simulation FSI data
 
     std::shared_ptr<ProximityDataD> markersProximity_D;  ///< Information of neighbor search on the device
+
   private:
-    void ArrangeDataManager();
     void ConstructReferenceArray();
     void InitNumObjects();
     void CalcNumObjects();
+
+    /// Initialize the midpoint device data of the fluid system by copying from the full step.
+    void CopyDeviceDataToHalfStep();
+
+    /// Reset device data at beginning of a step.
+    /// Initializes device vectors to zero.
+    void ResetData();
 
     friend class ChSystemFsi;
 };
