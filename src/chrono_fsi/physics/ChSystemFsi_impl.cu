@@ -27,7 +27,6 @@
 #include <thrust/transform.h>
 
 #include "chrono_fsi/physics/ChSystemFsi_impl.cuh"
-#include "chrono_fsi/physics/ChSphGeneral.cuh"
 
 namespace chrono {
 namespace fsi {
@@ -176,12 +175,30 @@ ChSystemFsi_impl::ChSystemFsi_impl(std::shared_ptr<SimParams> params) : ChFsiBas
 
 ChSystemFsi_impl::~ChSystemFsi_impl() {}
 
-void ChSystemFsi_impl::AddSPHParticle(Real4 pos, Real4 rhoPresMu, Real3 vel, Real3 tauXxYyZz, Real3 tauXyXzYz) {
-    sphMarkers_H->posRadH.push_back(pos);
+void ChSystemFsi_impl::AddSphParticle(Real3 pos,
+                                      Real rho,
+                                      Real pres,
+                                      Real mu,
+                                      Real3 vel,
+                                      Real3 tauXxYyZz,
+                                      Real3 tauXyXzYz) {
+    sphMarkers_H->posRadH.push_back(mR4(pos, paramsH->HSML));
     sphMarkers_H->velMasH.push_back(vel);
-    sphMarkers_H->rhoPresMuH.push_back(rhoPresMu);
+    sphMarkers_H->rhoPresMuH.push_back(mR4(rho, pres, mu, -1));
+
+    //// TODO: do this only for elasticSPH!
     sphMarkers_H->tauXyXzYzH.push_back(tauXyXzYz);
     sphMarkers_H->tauXxYyZzH.push_back(tauXxYyZz);
+}
+
+void ChSystemFsi_impl::AddBceMarker(MarkerType type, Real3 pos, Real3 vel) {
+    sphMarkers_H->posRadH.push_back(mR4(pos, paramsH->HSML));
+    sphMarkers_H->velMasH.push_back(vel);
+    sphMarkers_H->rhoPresMuH.push_back(mR4(paramsH->rho0, paramsH->BASEPRES, paramsH->mu0, GetMarkerCode(type)));
+
+    //// TODO: do this only for elasticSPH!
+    sphMarkers_H->tauXyXzYzH.push_back(mR3(0.0));
+    sphMarkers_H->tauXxYyZzH.push_back(mR3(0.0));
 }
 
 void ChSystemFsi_impl::InitNumObjects() {

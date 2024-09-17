@@ -44,48 +44,6 @@ __constant__ static ChCounters numObjectsD;
 
 //--------------------------------------------------------------------------------------------------------------------------------
 
-/// Marker (SPH and BCE) type.
-enum class MarkerType { SPH_PARTICLE, SPH_HELPER, SPH_GHOST, BCE_WALL, BCE_RIGID, BCE_FLEX1D, BCE_FLEX2D };
-
-__host__ __device__ inline MarkerType GetMarkerType(Real code) {
-    if (code > 2.5)                       //
-        return MarkerType::BCE_FLEX2D;    // 3    |       |
-    else if (code > 1.5)                  //      |       |
-        return MarkerType::BCE_FLEX1D;    // 2    | solid |
-    else if (code > 0.5)                  //      |       | BCE
-        return MarkerType::BCE_RIGID;     // 1    |       |
-    else if (code > -0.5)                 // -----+       |
-        return MarkerType::BCE_WALL;      // 0    |       |
-    else if (code > -1.5)                 // -----+-------+
-        return MarkerType::SPH_PARTICLE;  // -1   |       |
-    else if (code > -2.5)                 //      |       |
-        return MarkerType::SPH_GHOST;     // -2   |       | Fluid
-    else                                  //      |       |
-        return MarkerType::SPH_HELPER;    // -3   |       |
-}
-
-__host__ __device__ inline bool IsSphParticle(Real code) {
-    return code < -0.5 && code > -1.5;
-}
-
-__host__ __device__ inline bool IsFluidParticle(Real code) {
-    return code < -0.5;
-}
-
-__host__ __device__ inline bool IsBceMarker(Real code) {
-    return code > -0.5;
-}
-
-__host__ __device__ inline bool IsBceWallMarker(Real code) {
-    return code > -0.5 && code < 0.5;
-}
-
-__host__ __device__ inline bool IsBceSolidMarker(Real code) {
-    return code > 0.5;
-}
-
-//--------------------------------------------------------------------------------------------------------------------------------
-
 void CopyParams_NumberOfObjects(std::shared_ptr<SimParams> paramsH, std::shared_ptr<ChCounters> numObjectsH);
 
 //--------------------------------------------------------------------------------------------------------------------------------

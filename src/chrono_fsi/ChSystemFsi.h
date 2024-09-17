@@ -340,17 +340,17 @@ class CH_FSI_API ChSystemFsi {
     // ----------- Functions for adding SPH particles
 
     /// Add an SPH particle with given properties to the FSI system.
-    void AddSPHParticle(const ChVector3d& point,
-                        double rho0,
-                        double pres0,
-                        double mu0,
-                        const ChVector3d& velocity = ChVector3d(0),
+    void AddSPHParticle(const ChVector3d& pos,
+                        double rho,
+                        double pres,
+                        double mu,
+                        const ChVector3d& vel = ChVector3d(0),
                         const ChVector3d& tauXxYyZz = ChVector3d(0),
                         const ChVector3d& tauXyXzYz = ChVector3d(0));
 
     /// Add an SPH particle with current properties to the SPH system.
-    void AddSPHParticle(const ChVector3d& point,
-                        const ChVector3d& velocity = ChVector3d(0),
+    void AddSPHParticle(const ChVector3d& pos,
+                        const ChVector3d& vel = ChVector3d(0),
                         const ChVector3d& tauXxYyZz = ChVector3d(0),
                         const ChVector3d& tauXyXzYz = ChVector3d(0));
 

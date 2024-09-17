@@ -1162,23 +1162,22 @@ void ChSystemFsi::PrintFsiInfoToFile(const std::string& dir, double time) const 
 
 //--------------------------------------------------------------------------------------------------------------------------------
 
-void ChSystemFsi::AddSPHParticle(const ChVector3d& point,
-                                 double rho0,
-                                 double pres0,
-                                 double mu0,
-                                 const ChVector3d& velocity,
+void ChSystemFsi::AddSPHParticle(const ChVector3d& pos,
+                                 double rho,
+                                 double pres,
+                                 double mu,
+                                 const ChVector3d& vel,
                                  const ChVector3d& tauXxYyZz,
                                  const ChVector3d& tauXyXzYz) {
-    Real h = m_paramsH->HSML;
-    m_sysFSI->AddSPHParticle(utils::ToReal4(point, h), mR4(rho0, pres0, mu0, -1), utils::ToReal3(velocity),
+    m_sysFSI->AddSphParticle(utils::ToReal3(pos), rho, pres, mu, utils::ToReal3(vel),
                              utils::ToReal3(tauXxYyZz), utils::ToReal3(tauXyXzYz));
 }
 
-void ChSystemFsi::AddSPHParticle(const ChVector3d& point,
-                                 const ChVector3d& velocity,
+void ChSystemFsi::AddSPHParticle(const ChVector3d& pos,
+                                 const ChVector3d& vel,
                                  const ChVector3d& tauXxYyZz,
                                  const ChVector3d& tauXyXzYz) {
-    AddSPHParticle(point, m_paramsH->rho0, m_paramsH->BASEPRES, m_paramsH->mu0, velocity, tauXxYyZz, tauXyXzYz);
+    AddSPHParticle(pos, m_paramsH->rho0, m_paramsH->BASEPRES, m_paramsH->mu0, vel, tauXxYyZz, tauXyXzYz);
 }
 
 void ChSystemFsi::AddBoxSPH(const ChVector3d& boxCenter, const ChVector3d& boxHalfDim) {
@@ -1301,34 +1300,21 @@ size_t ChSystemFsi::AddPointsBCE(std::shared_ptr<ChBody> body,
                                  const std::vector<ChVector3d>& points,
                                  const ChFrame<>& rel_frame,
                                  bool solid) {
-    thrust::host_vector<Real4> bce;
-    for (const auto& p : points)
-        bce.push_back(mR4(p.x(), p.y(), p.z(), m_paramsH->HSML));
-
     // Set BCE marker type
-    int type = 0;
-    if (solid)
-        type = 1;
+    MarkerType type = solid ? MarkerType::BCE_RIGID : MarkerType::BCE_WALL;
 
-    for (const auto& p : bce) {
-        auto pos_shape = utils::ToChVector(p);
-        auto pos_body = rel_frame.TransformPointLocalToParent(pos_shape);
+    for (const auto& p : points) {
+        auto pos_body = rel_frame.TransformPointLocalToParent(p);
         auto pos_abs = body->GetFrameRefToAbs().TransformPointLocalToParent(pos_body);
         auto vel_abs = body->GetFrameRefToAbs().PointSpeedLocalToParent(pos_body);
 
-        m_sysFSI->sphMarkers_H->posRadH.push_back(mR4(utils::ToReal3(pos_abs), p.w));
-        m_sysFSI->sphMarkers_H->velMasH.push_back(utils::ToReal3(vel_abs));
-
-        m_sysFSI->sphMarkers_H->rhoPresMuH.push_back(
-            mR4(m_paramsH->rho0, m_paramsH->BASEPRES, m_paramsH->mu0, (double)type));
-        m_sysFSI->sphMarkers_H->tauXxYyZzH.push_back(mR3(0.0));
-        m_sysFSI->sphMarkers_H->tauXyXzYzH.push_back(mR3(0.0));
+        m_sysFSI->AddBceMarker(type, utils::ToReal3(pos_abs), utils::ToReal3(vel_abs));
     }
 
     if (solid)
-        m_fsi_bodies_bce_num.push_back((int)bce.size());
+        m_fsi_bodies_bce_num.push_back((int)points.size());
 
-    return bce.size();
+    return points.size();
 }
 
 //--------------------------------------------------------------------------------------------------------------------------------
@@ -1649,9 +1635,7 @@ void ChSystemFsi::CreateBCE_cone(double rad,
 unsigned int ChSystemFsi::AddBCE_mesh1D(unsigned int meshID, const ChFsiInterface::FsiMesh1D& fsi_mesh) {
     const auto& surface = fsi_mesh.contact_surface;
 
-    Real kernel_h = m_paramsH->HSML;
     Real spacing = m_paramsH->MULT_INITSPACE * m_paramsH->HSML;
-    Real4 rhoPresMuH = {m_paramsH->rho0, m_paramsH->BASEPRES, m_paramsH->mu0, 2};  // BCE markers of type 2
     int num_layers = m_paramsH->NUM_BCE_LAYERS;
 
     // Traverse the contact segments:
@@ -1702,9 +1686,9 @@ unsigned int ChSystemFsi::AddBCE_mesh1D(unsigned int meshID, const ChFsiInterfac
                     double y_val = j * spacing / 2;
                     double z_val = k * spacing / 2;
                     auto Q = P + y_val * y_dir + z_val * z_dir;
-                    m_sysFSI->sphMarkers_H->posRadH.push_back(mR4(utils::ToReal3(Q), kernel_h));
-                    m_sysFSI->sphMarkers_H->velMasH.push_back(utils::ToReal3(V));
-                    m_sysFSI->sphMarkers_H->rhoPresMuH.push_back(rhoPresMuH);
+
+                    m_sysFSI->AddBceMarker(MarkerType::BCE_FLEX1D, utils::ToReal3(Q), utils::ToReal3(V));
+
                     m_sysFSI->fsiData->flex1D_BCEcoords_H.push_back(utils::ToReal3({lambda[0], y_val, z_val}));
                     m_sysFSI->fsiData->flex1D_BCEsolids_H.push_back(mU3(meshID, segID, m_num_flex1D_elements + segID));
                     n_bce++;
@@ -1722,9 +1706,7 @@ unsigned int ChSystemFsi::AddBCE_mesh1D(unsigned int meshID, const ChFsiInterfac
 unsigned int ChSystemFsi::AddBCE_mesh2D(unsigned int meshID, const ChFsiInterface::FsiMesh2D& fsi_mesh) {
     const auto& surface = fsi_mesh.contact_surface;
 
-    Real kernel_h = m_paramsH->HSML;
     Real spacing = m_paramsH->MULT_INITSPACE * m_paramsH->HSML;
-    Real4 rhoPresMuH = {m_paramsH->rho0, m_paramsH->BASEPRES, m_paramsH->mu0, 3};  // BCE markers of type 3
     int num_layers = m_paramsH->NUM_BCE_LAYERS;
 
     ////std::ofstream ofile("mesh2D.txt");
@@ -1823,30 +1805,15 @@ unsigned int ChSystemFsi::AddBCE_mesh2D(unsigned int meshID, const ChFsiInterfac
                         continue;
                     double z_val = m * spacing / 2;
                     auto Q = P + z_val * normal;
-                    m_sysFSI->sphMarkers_H->posRadH.push_back(mR4(utils::ToReal3(Q), kernel_h));
-                    m_sysFSI->sphMarkers_H->velMasH.push_back(utils::ToReal3(V));
-                    m_sysFSI->sphMarkers_H->rhoPresMuH.push_back(rhoPresMuH);
+
+                    m_sysFSI->AddBceMarker(MarkerType::BCE_FLEX2D, utils::ToReal3(Q), utils::ToReal3(V));
+
                     m_sysFSI->fsiData->flex2D_BCEcoords_H.push_back(utils::ToReal3({lambda[0], lambda[1], z_val}));
                     m_sysFSI->fsiData->flex2D_BCEsolids_H.push_back(mU3(meshID, triID, m_num_flex2D_elements + triID));
                     n_bce++;
 
                     ////ofile << Q << endl;
                 }
-
-                /*
-                for (int m = 0; m < num_layers; m++) {
-                    auto z_val = z_start - m * spacing;
-                    auto Q = P + z_val * normal;
-                    m_sysFSI->sphMarkers_H->posRadH.push_back(mR4(utils::ToReal3(Q), kernel_h));
-                    m_sysFSI->sphMarkers_H->velMasH.push_back(utils::ToReal3(V));
-                    m_sysFSI->sphMarkers_H->rhoPresMuH.push_back(rhoPresMuH);
-                    m_sysFSI->fsiData->flex2D_BCEcoords_H.push_back(utils::ToReal3({lambda[0], lambda[1],
-                z_val})); m_sysFSI->fsiData->flex2D_BCEsolids_H.push_back(mU3(meshID, triID,
-                m_num_flex2D_elements + triID)); n_bce++;
-
-                    ////ofile << Q << endl;
-                }
-                */
             }
         }
 

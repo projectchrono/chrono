@@ -30,6 +30,7 @@
 #include <thrust/tuple.h>
 
 #include "chrono_fsi/physics/ChFsiBase.h"
+#include "chrono_fsi/physics/ChMarkerType.cuh"
 #include "chrono_fsi/math/custom_math.h"
 #include "chrono_fsi/utils/ChUtilsDevice.cuh"
 
@@ -219,11 +220,16 @@ class ChSystemFsi_impl : public ChFsiBase {
     virtual ~ChSystemFsi_impl();
 
     /// Add an SPH particle given its position, physical properties, velocity, and stress.
-    void AddSPHParticle(Real4 pos,
-                        Real4 rhoPresMu,
+    void AddSphParticle(Real3 pos,
+                        Real rho,
+                        Real pres,
+                        Real mu,
                         Real3 vel = mR3(0.0),
                         Real3 tauXxYyZz = mR3(0.0),
                         Real3 tauXyXzYz = mR3(0.0));
+
+    /// Add a BCE marker of given type at the specified position and with specified velocity.
+    void AddBceMarker(MarkerType type, Real3 pos, Real3 vel);
 
     /// Initialize the underlying FSU system.
     /// Set reference arrays, set counters, and resize simulation arrays.

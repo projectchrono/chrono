@@ -112,10 +112,10 @@ class ChFsiForce : public ChFsiBase {
         std::shared_ptr<ChBce> otherBceWorker,                   ///< object that handles BCE particles
         std::shared_ptr<SphMarkerDataD> otherSortedSphMarkersD,  ///< information of particle in the sorted device array
         std::shared_ptr<ProximityDataD> otherMarkersProximityD,  ///< object that holds device proximity info
-        std::shared_ptr<FsiData> otherFsiData,  ///< SPH general data
-        std::shared_ptr<SimParams> params,             ///< simulation parameters
-        std::shared_ptr<ChCounters> numObjects,        ///< problem counters
-        bool verb                                      ///< verbose output
+        std::shared_ptr<FsiData> otherFsiData,                   ///< SPH general data
+        std::shared_ptr<SimParams> params,                       ///< simulation parameters
+        std::shared_ptr<ChCounters> numObjects,                  ///< problem counters
+        bool verb                                                ///< verbose output
     );
 
     /// Destructor of the ChFsiForce.
