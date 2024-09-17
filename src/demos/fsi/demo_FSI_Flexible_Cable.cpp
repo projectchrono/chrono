@@ -99,7 +99,8 @@ bool GetProblemSpecs(int argc,
                      double& output_fps,
                      bool& render,
                      double& render_fps,
-                     bool& snapshots);
+                     bool& snapshots,
+                     int& ps_freq);
 
 // -----------------------------------------------------------------------------
 
@@ -125,7 +126,9 @@ int main(int argc, char* argv[]) {
     bool render = true;
     double render_fps = 400;
     bool snapshots = false;
-    if (!GetProblemSpecs(argc, argv, inputJSON, t_end, verbose, output, output_fps, render, render_fps, snapshots)) {
+    int ps_freq = 1;
+    if (!GetProblemSpecs(argc, argv, inputJSON, t_end, verbose, output, output_fps, render, render_fps, snapshots,
+                         ps_freq)) {
         return 1;
     }
 
@@ -162,34 +165,55 @@ int main(int argc, char* argv[]) {
     // Create solids
     auto mesh = Create_MB_FE(sysMBS, sysFSI);
 
+    sysFSI.SetNumProximitySearchSteps(ps_freq);
+
     // Initialize FSI system
     sysFSI.Initialize();
 
+    out_dir = out_dir + std::to_string(ps_freq);
+
     // Create oputput directories
-    if (!filesystem::create_directory(filesystem::path(out_dir))) {
-        cerr << "Error creating directory " << out_dir << endl;
-        return 1;
-    }
-    out_dir = out_dir + "/" + sysFSI.GetPhysicsProblemString() + "_" + sysFSI.GetSphMethodTypeString();
-    if (!filesystem::create_directory(filesystem::path(out_dir))) {
-        cerr << "Error creating directory " << out_dir << endl;
-        return 1;
-    }
-    if (!filesystem::create_directory(filesystem::path(out_dir + "/particles"))) {
-        cerr << "Error creating directory " << out_dir + "/particles" << endl;
-        return 1;
-    }
-    if (!filesystem::create_directory(filesystem::path(out_dir + "/fsi"))) {
-        cerr << "Error creating directory " << out_dir + "/fsi" << endl;
-        return 1;
-    }
-    if (!filesystem::create_directory(filesystem::path(out_dir + "/vtk"))) {
-        cerr << "Error creating directory " << out_dir + "/vtk" << endl;
-        return 1;
-    }
-    if (!filesystem::create_directory(filesystem::path(out_dir + "/snapshots"))) {
-        cerr << "Error creating directory " << out_dir + "/snapshots" << endl;
-        return 1;
+    if (output || snapshots) {
+        if (output) {
+            if (!filesystem::create_directory(filesystem::path(out_dir))) {
+                cerr << "Error creating directory " << out_dir << endl;
+                return 1;
+            }
+            out_dir = out_dir + "/" + sysFSI.GetPhysicsProblemString() + "_" + sysFSI.GetSphMethodTypeString();
+            if (!filesystem::create_directory(filesystem::path(out_dir))) {
+                cerr << "Error creating directory " << out_dir << endl;
+                return 1;
+            }
+
+            if (!filesystem::create_directory(filesystem::path(out_dir + "/particles"))) {
+                cerr << "Error creating directory " << out_dir + "/particles" << endl;
+                return 1;
+            }
+            if (!filesystem::create_directory(filesystem::path(out_dir + "/fsi"))) {
+                cerr << "Error creating directory " << out_dir + "/fsi" << endl;
+                return 1;
+            }
+            if (!filesystem::create_directory(filesystem::path(out_dir + "/vtk"))) {
+                cerr << "Error creating directory " << out_dir + "/vtk" << endl;
+                return 1;
+            }
+        }
+        if (snapshots) {
+            // Create output directories if it does not exist
+            if (!filesystem::create_directory(filesystem::path(out_dir))) {
+                cerr << "Error creating directory " << out_dir << endl;
+                return 1;
+            }
+            out_dir = out_dir + "/" + sysFSI.GetPhysicsProblemString() + "_" + sysFSI.GetSphMethodTypeString();
+            if (!filesystem::create_directory(filesystem::path(out_dir))) {
+                cerr << "Error creating directory " << out_dir << endl;
+                return 1;
+            }
+            if (!filesystem::create_directory(filesystem::path(out_dir + "/snapshots"))) {
+                cerr << "Error creating directory " << out_dir + "/snapshots" << endl;
+                return 1;
+            }
+        }
     }
 
     // Create a run-tme visualizer
@@ -270,6 +294,13 @@ int main(int argc, char* argv[]) {
     double displacement = 0;
     ChTimer timer;
     timer.start();
+
+    std::string out_file = out_dir + "/results.txt";
+    std::ofstream ofile;
+    if (output) {
+        ofile.open(out_file, std::ios::trunc);
+    }
+
     while (time < t_end) {
         if (verbose)
             cout << sim_frame << " time: " << time << endl;
@@ -309,6 +340,10 @@ int main(int argc, char* argv[]) {
             sqrt(pow(pos.x() - init_pos.x(), 2) + pow(pos.y() - init_pos.y(), 2) + pow(pos.z() - init_pos.z(), 2));
 
         displacement_recorder.AddPoint(time, displacement);
+
+        if (output) {
+            ofile << time << "\t" << pos.x() << "\t" << pos.y() << "\t" << pos.z() << "\n";
+        }
 
         sysFSI.DoStepDynamics_FSI();
 
@@ -403,8 +438,9 @@ bool GetProblemSpecs(int argc,
                      double& output_fps,
                      bool& render,
                      double& render_fps,
-                     bool& snapshots) {
-    ChCLI cli(argv[0], "Flexible plate FSI demo");
+                     bool& snapshots,
+                     int& ps_freq) {
+    ChCLI cli(argv[0], "Flexible cable FSI demo");
 
     cli.AddOption<std::string>("Input", "inputJSON", "Problem specification file [JSON format]", inputJSON);
     cli.AddOption<double>("Input", "t_end", "Simulation duration [s]", std::to_string(t_end));
@@ -417,6 +453,8 @@ bool GetProblemSpecs(int argc,
     cli.AddOption<bool>("Visualization", "no_vis", "Disable run-time visualization");
     cli.AddOption<double>("Visualization", "render_fps", "Render frequency [fps]", std::to_string(render_fps));
     cli.AddOption<bool>("Visualization", "snapshots", "Enable writing snapshot image files");
+
+    cli.AddOption<int>("Proximity Search", "ps_freq", "Frequency of Proximity Search", std::to_string(ps_freq));
 
     if (!cli.Parse(argc, argv)) {
         cli.Help();
@@ -433,6 +471,7 @@ bool GetProblemSpecs(int argc,
 
     output_fps = cli.GetAsType<double>("output_fps");
     render_fps = cli.GetAsType<double>("render_fps");
+    ps_freq = cli.GetAsType<int>("ps_freq");
 
     return true;
 }
