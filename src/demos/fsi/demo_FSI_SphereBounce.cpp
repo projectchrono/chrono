@@ -49,9 +49,6 @@ using std::endl;
 // Run-time visualization system (OpenGL or VSG)
 ChVisualSystem::Type vis_type = ChVisualSystem::Type::VSG;
 
-// Output directories and settings
-std::string out_dir = GetChronoOutputPath() + "FSI_Sphere_Bounce";
-
 // Container dimensions
 ChVector3d csize(0.8, 0.8, 1.6);
 
@@ -63,20 +60,6 @@ double density = 500;
 
 // Sphere initial height
 double initial_height = 0.95;
-
-// Final simulation time
-double t_end = 3.0;
-
-// Output frequency
-bool output = false;
-double output_fps = 20;
-
-// Enable/disable run-time visualization
-bool render = true;
-double render_fps = 400;
-
-// Enable saving snapshots
-bool snapshots = false;
 
 // Visibility flags
 bool show_rigid = true;
@@ -97,8 +80,10 @@ class PositionVisibilityCallback : public ChParticleCloud::VisibilityCallback {
 };
 
 // -----------------------------------------------------------------------------
+
 bool GetProblemSpecs(int argc,
                      char** argv,
+                     double& t_end,
                      bool& verbose,
                      bool& output,
                      double& output_fps,
@@ -107,6 +92,8 @@ bool GetProblemSpecs(int argc,
                      bool& snapshots,
                      int& ps_freq) {
     ChCLI cli(argv[0], "FSI Sphere Bounce demo");
+
+    cli.AddOption<double>("Input", "t_end", "Simulation duration [s]", std::to_string(t_end));
 
     cli.AddOption<bool>("Output", "quiet", "Disable verbose terminal output");
     cli.AddOption<bool>("Output", "output", "Enable collection of output files");
@@ -123,6 +110,8 @@ bool GetProblemSpecs(int argc,
         return false;
     }
 
+    t_end = cli.GetAsType<double>("t_end");
+
     verbose = !cli.GetAsType<bool>("quiet");
     output = cli.GetAsType<bool>("output");
     render = !cli.GetAsType<bool>("no_vis");
@@ -136,16 +125,24 @@ bool GetProblemSpecs(int argc,
     return true;
 }
 
+// -----------------------------------------------------------------------------
+
 int main(int argc, char* argv[]) {
     double initial_spacing = 0.025;
     double step_size = 1e-4;
-    bool verbose = true;
-    int ps_freq = 1;
 
-    if (!GetProblemSpecs(argc, argv, verbose, output, output_fps, render, render_fps, snapshots, ps_freq)) {
+    // Parse command line arguments
+    double t_end = 3.0;
+    bool output = false;
+    double output_fps = 20;
+    bool render = true;
+    double render_fps = 400;
+    bool verbose = true;
+    bool snapshots = false;
+    int ps_freq = 1;
+    if (!GetProblemSpecs(argc, argv, t_end, verbose, output, output_fps, render, render_fps, snapshots, ps_freq)) {
         return 1;
     }
-    out_dir = out_dir + std::to_string(ps_freq);
 
     // Create the Chrono system and associated collision system
     ChSystemNSC sysMBS;
@@ -224,20 +221,22 @@ int main(int argc, char* argv[]) {
     fsi.AddBoxContainer(csize, ChVector3d(0, 0, 0), true, true, true);
 
     fsi.Initialize();
-    // Output file for plotting the sphere vertical position using an external tool
+
+    // Output directories
+    std::string out_dir = GetChronoOutputPath() + "FSI_Sphere_Bounce" + std::to_string(ps_freq);
 
     if (output || snapshots) {
+        if (!filesystem::create_directory(filesystem::path(out_dir))) {
+            cerr << "Error creating directory " << out_dir << endl;
+            return 1;
+        }
+        out_dir = out_dir + "/" + sysFSI.GetPhysicsProblemString() + "_" + sysFSI.GetSphMethodTypeString();
+        if (!filesystem::create_directory(filesystem::path(out_dir))) {
+            cerr << "Error creating directory " << out_dir << endl;
+            return 1;
+        }
+
         if (output) {
-            // Create oputput directories
-            if (!filesystem::create_directory(filesystem::path(out_dir))) {
-                cerr << "Error creating directory " << out_dir << endl;
-                return 1;
-            }
-            out_dir = out_dir + "/" + sysFSI.GetPhysicsProblemString() + "_" + sysFSI.GetSphMethodTypeString();
-            if (!filesystem::create_directory(filesystem::path(out_dir))) {
-                cerr << "Error creating directory " << out_dir << endl;
-                return 1;
-            }
             if (!filesystem::create_directory(filesystem::path(out_dir + "/particles"))) {
                 cerr << "Error creating directory " << out_dir + "/particles" << endl;
                 return 1;
@@ -252,18 +251,6 @@ int main(int argc, char* argv[]) {
             }
         }
         if (snapshots) {
-            if (!output) {
-                // Create output directories if it does not exist
-                if (!filesystem::create_directory(filesystem::path(out_dir))) {
-                    cerr << "Error creating directory " << out_dir << endl;
-                    return 1;
-                }
-                out_dir = out_dir + "/" + sysFSI.GetPhysicsProblemString() + "_" + sysFSI.GetSphMethodTypeString();
-                if (!filesystem::create_directory(filesystem::path(out_dir))) {
-                    cerr << "Error creating directory " << out_dir << endl;
-                    return 1;
-                }
-            }
             if (!filesystem::create_directory(filesystem::path(out_dir + "/snapshots"))) {
                 cerr << "Error creating directory " << out_dir + "/snapshots" << endl;
                 return 1;

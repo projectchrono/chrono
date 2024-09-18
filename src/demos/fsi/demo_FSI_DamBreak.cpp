@@ -43,48 +43,6 @@ using namespace chrono::fsi;
 // Run-time visualization system (OpenGL or VSG)
 ChVisualSystem::Type vis_type = ChVisualSystem::Type::VSG;
 
-// Output directories and settings
-std::string out_dir = GetChronoOutputPath() + "FSI_Dam_Break";
-
-// Output frequency
-bool output = true;
-double output_fps = 20;
-
-// Dimension of the space domain
-double bxDim = 6.0;
-double byDim = 1.0;
-double bzDim = 4.0;
-
-// Dimension of the fluid domain
-double fxDim = 2.0;
-double fyDim = 1.0;
-double fzDim = 2.0;
-
-// Final simulation time
-double t_end = 10.0;
-
-// Enable/disable run-time visualization
-bool render = true;
-double render_fps = 100;
-
-//------------------------------------------------------------------
-// Create the objects of the MBD system. Rigid bodies, and if FSI,
-// their BCE representation are created and added to the systems
-//------------------------------------------------------------------
-void CreateSolidPhase(ChSystemSMC& sysMBS, ChSystemFsi& sysFSI) {
-    // General setting of ground body
-    auto ground = chrono_types::make_shared<ChBody>();
-    ground->SetFixed(true);
-    ground->EnableCollision(false);
-    sysMBS.AddBody(ground);
-
-    // Add BCE particles attached on the walls into FSI system
-    sysFSI.AddBoxContainerBCE(ground,                                         //
-                              ChFrame<>(ChVector3d(0, 0, bzDim / 2), QUNIT),  //
-                              ChVector3d(bxDim, byDim, bzDim),                //
-                              ChVector3i(2, 0, 2));
-}
-
 // =============================================================================
 
 bool GetProblemSpecs(int argc,
@@ -136,15 +94,30 @@ bool GetProblemSpecs(int argc,
 }
 
 int main(int argc, char* argv[]) {
-    // Use the default input file or you may enter your input parameters as a command line argument
+    // Parse command line arguments
     std::string inputJson = GetChronoDataFile("fsi/input_json/demo_FSI_DamBreak_Explicit.json");
+    double t_end = 10.0;
     bool verbose = true;
+    bool output = false;
+    double output_fps = 20;
+    bool render = true;
+    double render_fps = 100;
     bool snapshots = false;
     int ps_freq = 1;
     if (!GetProblemSpecs(argc, argv, inputJson, t_end, verbose, output, output_fps, render, render_fps, snapshots,
                          ps_freq)) {
         return 1;
     }
+
+    // Dimension of the space domain
+    double bxDim = 6.0;
+    double byDim = 1.0;
+    double bzDim = 4.0;
+
+    // Dimension of the fluid domain
+    double fxDim = 2.0;
+    double fyDim = 1.0;
+    double fzDim = 2.0;
 
     // Create a physics system and an FSI system
     ChSystemSMC sysMBS;
@@ -155,7 +128,8 @@ int main(int argc, char* argv[]) {
     // Use the specified input JSON file
     sysFSI.ReadParametersFromFile(inputJson);
 
-    out_dir = out_dir + std::to_string(ps_freq);
+    // Set frequency of proximity search
+    sysFSI.SetNumProximitySearchSteps(ps_freq);
 
     // Set up the periodic boundary condition (only in Y direction)
     auto initSpace0 = sysFSI.GetInitialSpacing();
@@ -181,50 +155,42 @@ int main(int argc, char* argv[]) {
         sysFSI.AddSPHParticle(points[i], rho_ini, pre_ini, sysFSI.GetViscosity());
     }
 
-    // Create Solid region and attach BCE SPH particles
-    CreateSolidPhase(sysMBS, sysFSI);
-    sysFSI.SetNumProximitySearchSteps(ps_freq);
+    // Create container and attach BCE SPH particles
+    auto ground = chrono_types::make_shared<ChBody>();
+    ground->SetFixed(true);
+    ground->EnableCollision(false);
+    sysMBS.AddBody(ground);
+
+    sysFSI.AddBoxContainerBCE(ground,                                         //
+                              ChFrame<>(ChVector3d(0, 0, bzDim / 2), QUNIT),  //
+                              ChVector3d(bxDim, byDim, bzDim),                //
+                              ChVector3i(2, 0, 2));
 
     // Complete construction of the FSI system
     sysFSI.Initialize();
 
-    std::cout << "Neighbor search steps: " << sysFSI.GetNumProximitySearchSteps() << std::endl;
+    // Output directories
+    std::string out_dir = GetChronoOutputPath() + "FSI_Dam_Break" + std::to_string(ps_freq);
+
     if (output || snapshots) {
+        if (!filesystem::create_directory(filesystem::path(out_dir))) {
+            std::cerr << "Error creating directory " << out_dir << std::endl;
+            return 1;
+        }
+        out_dir = out_dir + "/" + sysFSI.GetPhysicsProblemString() + "_" + sysFSI.GetSphMethodTypeString();
+
+        if (!filesystem::create_directory(filesystem::path(out_dir))) {
+            std::cerr << "Error creating directory " << out_dir << std::endl;
+            return 1;
+        }
+
         if (output) {
-            // Create output directories
-            if (!filesystem::create_directory(filesystem::path(out_dir))) {
-                std::cerr << "Error creating directory " << out_dir << std::endl;
-                return 1;
-            }
-            out_dir = out_dir + "/" + sysFSI.GetPhysicsProblemString() + "_" + sysFSI.GetSphMethodTypeString();
-
-            std::cout << "Output directory: " << out_dir << std::endl;
-
-            if (!filesystem::create_directory(filesystem::path(out_dir))) {
-                std::cerr << "Error creating directory " << out_dir << std::endl;
-                return 1;
-            }
             if (!filesystem::create_directory(filesystem::path(out_dir + "/particles"))) {
                 std::cerr << "Error creating directory " << out_dir + "/particles" << std::endl;
                 return 1;
             }
         }
         if (snapshots) {
-            if (!output) {
-                // Create output directories
-                if (!filesystem::create_directory(filesystem::path(out_dir))) {
-                    std::cerr << "Error creating directory " << out_dir << std::endl;
-                    return 1;
-                }
-                out_dir = out_dir + "/" + sysFSI.GetPhysicsProblemString() + "_" + sysFSI.GetSphMethodTypeString();
-
-                std::cout << "Output directory: " << out_dir << std::endl;
-
-                if (!filesystem::create_directory(filesystem::path(out_dir))) {
-                    std::cerr << "Error creating directory " << out_dir << std::endl;
-                    return 1;
-                }
-            }
             if (!filesystem::create_directory(filesystem::path(out_dir + "/snapshots"))) {
                 std::cerr << "Error creating directory " << out_dir + "/snapshots" << std::endl;
                 return 1;

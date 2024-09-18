@@ -63,9 +63,6 @@ using std::endl;
 // Run-time visualization system (OpenGL or VSG)
 ChVisualSystem::Type vis_type = ChVisualSystem::Type::VSG;
 
-// Set the output directory
-std::string out_dir = GetChronoOutputPath() + "FSI_Flexible_Cable";
-
 // Dimension of the domain
 double smalldis = 1.0e-9;
 double bxDim = 3.0 + smalldis;
@@ -141,6 +138,9 @@ int main(int argc, char* argv[]) {
     // Use the specified input JSON file
     sysFSI.ReadParametersFromFile(inputJSON);
 
+    // Set frequency of proximity search
+    sysFSI.SetNumProximitySearchSteps(ps_freq);
+
     // Set simulation domain
     sysFSI.SetContainerDim(ChVector3d(bxDim, byDim, bzDim));
 
@@ -165,26 +165,24 @@ int main(int argc, char* argv[]) {
     // Create solids
     auto mesh = Create_MB_FE(sysMBS, sysFSI);
 
-    sysFSI.SetNumProximitySearchSteps(ps_freq);
-
     // Initialize FSI system
     sysFSI.Initialize();
 
-    out_dir = out_dir + std::to_string(ps_freq);
-
     // Create oputput directories
-    if (output || snapshots) {
-        if (output) {
-            if (!filesystem::create_directory(filesystem::path(out_dir))) {
-                cerr << "Error creating directory " << out_dir << endl;
-                return 1;
-            }
-            out_dir = out_dir + "/" + sysFSI.GetPhysicsProblemString() + "_" + sysFSI.GetSphMethodTypeString();
-            if (!filesystem::create_directory(filesystem::path(out_dir))) {
-                cerr << "Error creating directory " << out_dir << endl;
-                return 1;
-            }
+    std::string out_dir = GetChronoOutputPath() + "FSI_Flexible_Cable" + std::to_string(ps_freq);
 
+    if (output || snapshots) {
+        if (!filesystem::create_directory(filesystem::path(out_dir))) {
+            cerr << "Error creating directory " << out_dir << endl;
+            return 1;
+        }
+        out_dir = out_dir + "/" + sysFSI.GetPhysicsProblemString() + "_" + sysFSI.GetSphMethodTypeString();
+        if (!filesystem::create_directory(filesystem::path(out_dir))) {
+            cerr << "Error creating directory " << out_dir << endl;
+            return 1;
+        }
+
+        if (output) {
             if (!filesystem::create_directory(filesystem::path(out_dir + "/particles"))) {
                 cerr << "Error creating directory " << out_dir + "/particles" << endl;
                 return 1;
@@ -198,19 +196,8 @@ int main(int argc, char* argv[]) {
                 return 1;
             }
         }
+
         if (snapshots) {
-            if (!output) {
-                // Create output directories if it does not exist
-                if (!filesystem::create_directory(filesystem::path(out_dir))) {
-                    cerr << "Error creating directory " << out_dir << endl;
-                    return 1;
-                }
-                out_dir = out_dir + "/" + sysFSI.GetPhysicsProblemString() + "_" + sysFSI.GetSphMethodTypeString();
-                if (!filesystem::create_directory(filesystem::path(out_dir))) {
-                    cerr << "Error creating directory " << out_dir << endl;
-                    return 1;
-                }
-            }
             if (!filesystem::create_directory(filesystem::path(out_dir + "/snapshots"))) {
                 cerr << "Error creating directory " << out_dir + "/snapshots" << endl;
                 return 1;

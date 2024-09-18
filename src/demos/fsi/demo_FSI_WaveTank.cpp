@@ -48,28 +48,11 @@ using std::endl;
 // Run-time visualization system (OpenGL or VSG)
 ChVisualSystem::Type vis_type = ChVisualSystem::Type::VSG;
 
-// Output directories and settings
-std::string out_dir = GetChronoOutputPath() + "FSI_Wave_Tank";
-
-// Output frequency
-bool output = false;
-double output_fps = 20;
-
 // Container dimensions
 ChVector3d csize(4.0, 0.4, 0.8);
 
 // Size of initial volume of SPH material
 ChVector3d fsize(4.0, 0.4, 0.4);
-
-// Final simulation time
-double t_end = 5.0;
-
-// Enable/disable run-time visualization
-bool render = true;
-double render_fps = 400;
-
-// Enable saving snapshots
-bool snapshots = false;
 
 // Visibility flags
 bool show_rigid = true;
@@ -116,6 +99,7 @@ class WaveFunction : public ChFunction {
 
 bool GetProblemSpecs(int argc,
                      char** argv,
+                     double& t_end,
                      bool& verbose,
                      bool& output,
                      double& output_fps,
@@ -125,12 +109,16 @@ bool GetProblemSpecs(int argc,
                      int& ps_freq) {
     ChCLI cli(argv[0], "Wave Tank FSI demo");
 
+    cli.AddOption<double>("Input", "t_end", "Simulation duration [s]", std::to_string(t_end));
+
     cli.AddOption<bool>("Output", "quiet", "Disable verbose terminal output");
     cli.AddOption<bool>("Output", "output", "Enable collection of output files");
     cli.AddOption<double>("Output", "output_fps", "Output frequency [fps]", std::to_string(output_fps));
+
     cli.AddOption<bool>("Visualization", "no_vis", "Disable run-time visualization");
     cli.AddOption<double>("Visualization", "render_fps", "Render frequency [fps]", std::to_string(render_fps));
     cli.AddOption<bool>("Visualization", "snapshots", "Enable writing snapshot image files");
+
     cli.AddOption<int>("Proximity Search", "ps_freq", "Frequency of Proximity Search", std::to_string(ps_freq));
 
     if (!cli.Parse(argc, argv)) {
@@ -138,13 +126,18 @@ bool GetProblemSpecs(int argc,
         return false;
     }
 
+    t_end = cli.GetAsType<double>("t_end");
+
     verbose = !cli.GetAsType<bool>("quiet");
     output = cli.GetAsType<bool>("output");
     render = !cli.GetAsType<bool>("no_vis");
     snapshots = cli.GetAsType<bool>("snapshots");
+
     output_fps = cli.GetAsType<double>("output_fps");
     render_fps = cli.GetAsType<double>("render_fps");
+
     ps_freq = cli.GetAsType<int>("ps_freq");
+
     return true;
 }
 
@@ -153,12 +146,19 @@ bool GetProblemSpecs(int argc,
 int main(int argc, char* argv[]) {
     double initial_spacing = 0.025;
     double step_size = 1e-4;
+
+    // Parse command line arguments
+    double t_end = 5.0;
     bool verbose = true;
+    bool output = false;
+    double output_fps = 20;
+    bool render = true;
+    double render_fps = 400;
+    bool snapshots = false;
     int ps_freq = 1;
-    if (!GetProblemSpecs(argc, argv, verbose, output, output_fps, render, render_fps, snapshots, ps_freq)) {
+    if (!GetProblemSpecs(argc, argv, t_end, verbose, output, output_fps, render, render_fps, snapshots, ps_freq)) {
         return 1;
     }
-    out_dir = out_dir + std::to_string(ps_freq);
 
     // Create the Chrono system and associated collision system
     ChSystemNSC sysMBS;
@@ -214,18 +214,20 @@ int main(int argc, char* argv[]) {
 
     fsi.Initialize();
 
+    // Output directories
+    std::string out_dir = GetChronoOutputPath() + "FSI_Wave_Tank" + std::to_string(ps_freq);
     if (output || snapshots) {
+        if (!filesystem::create_directory(filesystem::path(out_dir))) {
+            cerr << "Error creating directory " << out_dir << endl;
+            return 1;
+        }
+        out_dir = out_dir + "/" + sysFSI.GetPhysicsProblemString() + "_" + sysFSI.GetSphMethodTypeString();
+        if (!filesystem::create_directory(filesystem::path(out_dir))) {
+            cerr << "Error creating directory " << out_dir << endl;
+            return 1;
+        }
+
         if (output) {
-            // Create output directories
-            if (!filesystem::create_directory(filesystem::path(out_dir))) {
-                cerr << "Error creating directory " << out_dir << endl;
-                return 1;
-            }
-            out_dir = out_dir + "/" + sysFSI.GetPhysicsProblemString() + "_" + sysFSI.GetSphMethodTypeString();
-            if (!filesystem::create_directory(filesystem::path(out_dir))) {
-                cerr << "Error creating directory " << out_dir << endl;
-                return 1;
-            }
             if (!filesystem::create_directory(filesystem::path(out_dir + "/particles"))) {
                 cerr << "Error creating directory " << out_dir + "/particles" << endl;
                 return 1;
@@ -239,20 +241,8 @@ int main(int argc, char* argv[]) {
                 return 1;
             }
         }
-        if (snapshots) {
-            if (!output) {
-                // Create output directories if it does not exist
-                if (!filesystem::create_directory(filesystem::path(out_dir))) {
-                    cerr << "Error creating directory " << out_dir << endl;
-                    return 1;
-                }
-                out_dir = out_dir + "/" + sysFSI.GetPhysicsProblemString() + "_" + sysFSI.GetSphMethodTypeString();
-                if (!filesystem::create_directory(filesystem::path(out_dir))) {
-                    cerr << "Error creating directory " << out_dir << endl;
-                    return 1;
-                }
-            }
 
+        if (snapshots) {
             if (!filesystem::create_directory(filesystem::path(out_dir + "/snapshots"))) {
                 cerr << "Error creating directory " << out_dir + "/snapshots" << endl;
                 return 1;
