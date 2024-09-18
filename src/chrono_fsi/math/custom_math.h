@@ -21,9 +21,7 @@
 #define CHFSI_CUSTOM_MATH_H
 
 #include <cuda_runtime.h>
-#ifndef __CUDACC__
-    #include <cmath>
-#endif
+#include <cmath>
 #include "chrono_fsi/ChConfigFSI.h"
 
 namespace chrono {
@@ -1636,13 +1634,20 @@ __host__ __device__ inline Real3 user_BC_U(Real3 Pos) {
 }
 
 __host__ __device__ inline bool IsFinite(Real3 v) {
+#ifdef __CUDA_ARCH__
     return isfinite(v.x) && isfinite(v.y) && isfinite(v.z);
+#else
+    return std::isfinite(v.x) && std::isfinite(v.y) && std::isfinite(v.z);
+#endif
 }
 
 __host__ __device__ inline bool IsFinite(Real4 v) {
+#ifdef __CUDA_ARCH__
     return isfinite(v.x) && isfinite(v.y) && isfinite(v.z) && isfinite(v.w);
+#else
+    return std::isfinite(v.x) && std::isfinite(v.y) && std::isfinite(v.z) && std::isfinite(v.w);
+#endif
 }
-
 /// @} fsi_math
 
 }  // end namespace fsi
