@@ -32,6 +32,7 @@
 #endif
 
 #include "chrono_thirdparty/filesystem/path.h"
+#include "chrono_thirdparty/cxxopts/ChCLI.h"
 
 // Chrono namespaces
 using namespace chrono;
@@ -64,7 +65,7 @@ double t_end = 10.0;
 
 // Enable/disable run-time visualization
 bool render = true;
-float render_fps = 100;
+double render_fps = 100;
 
 //------------------------------------------------------------------
 // Create the objects of the MBD system. Rigid bodies, and if FSI,
@@ -86,24 +87,75 @@ void CreateSolidPhase(ChSystemSMC& sysMBS, ChSystemFsi& sysFSI) {
 
 // =============================================================================
 
+bool GetProblemSpecs(int argc,
+                     char** argv,
+                     std::string& inputJSON,
+                     double& t_end,
+                     bool& verbose,
+                     bool& output,
+                     double& output_fps,
+                     bool& render,
+                     double& render_fps,
+                     bool& snapshots,
+                     int& ps_freq) {
+    ChCLI cli(argv[0], "Dam Break FSI demo");
+
+    cli.AddOption<std::string>("Input", "inputJSON", "Problem specification file [JSON format]", inputJSON);
+    cli.AddOption<double>("Input", "t_end", "Simulation duration [s]", std::to_string(t_end));
+
+    cli.AddOption<bool>("Output", "quiet", "Disable verbose terminal output");
+
+    cli.AddOption<bool>("Output", "output", "Enable collection of output files");
+    cli.AddOption<double>("Output", "output_fps", "Output frequency [fps]", std::to_string(output_fps));
+
+    cli.AddOption<bool>("Visualization", "no_vis", "Disable run-time visualization");
+    cli.AddOption<double>("Visualization", "render_fps", "Render frequency [fps]", std::to_string(render_fps));
+    cli.AddOption<bool>("Visualization", "snapshots", "Enable writing snapshot image files");
+
+    cli.AddOption<int>("Proximity Search", "ps_freq", "Frequency of Proximity Search", std::to_string(ps_freq));
+
+    if (!cli.Parse(argc, argv)) {
+        cli.Help();
+        return false;
+    }
+
+    inputJSON = cli.Get("inputJSON").as<std::string>();
+    t_end = cli.GetAsType<double>("t_end");
+
+    verbose = !cli.GetAsType<bool>("quiet");
+    output = cli.GetAsType<bool>("output");
+    render = !cli.GetAsType<bool>("no_vis");
+    snapshots = cli.GetAsType<bool>("snapshots");
+
+    output_fps = cli.GetAsType<double>("output_fps");
+    render_fps = cli.GetAsType<double>("render_fps");
+
+    ps_freq = cli.GetAsType<int>("ps_freq");
+
+    return true;
+}
+
 int main(int argc, char* argv[]) {
+    // Use the default input file or you may enter your input parameters as a command line argument
+    std::string inputJson = GetChronoDataFile("fsi/input_json/demo_FSI_DamBreak_Explicit.json");
+    bool verbose = true;
+    bool snapshots = false;
+    int ps_freq = 1;
+    if (!GetProblemSpecs(argc, argv, inputJson, t_end, verbose, output, output_fps, render, render_fps, snapshots,
+                         ps_freq)) {
+        return 1;
+    }
+
     // Create a physics system and an FSI system
     ChSystemSMC sysMBS;
     ChSystemFsi sysFSI(&sysMBS);
 
-    // Use the default input file or you may enter your input parameters as a command line argument
-    std::string inputJson = GetChronoDataFile("fsi/input_json/demo_FSI_DamBreak_Explicit.json");
-    if (argc == 1) {
-        std::cout << "Use the default JSON file" << std::endl;
-    } else if (argc == 2) {
-        std::cout << "Use the specified JSON file" << std::endl;
-        std::string my_inputJson = std::string(argv[1]);
-        inputJson = my_inputJson;
-    } else {
-        std::cout << "usage: ./demo_FSI_DamBreak <json_file>" << std::endl;
-        return 1;
-    }
+    sysFSI.SetVerbose(verbose);
+
+    // Use the specified input JSON file
     sysFSI.ReadParametersFromFile(inputJson);
+
+    out_dir = out_dir + std::to_string(ps_freq);
 
     // Set up the periodic boundary condition (only in Y direction)
     auto initSpace0 = sysFSI.GetInitialSpacing();
@@ -131,23 +183,53 @@ int main(int argc, char* argv[]) {
 
     // Create Solid region and attach BCE SPH particles
     CreateSolidPhase(sysMBS, sysFSI);
+    sysFSI.SetNumProximitySearchSteps(ps_freq);
 
     // Complete construction of the FSI system
     sysFSI.Initialize();
 
-    // Create oputput directories
-    if (!filesystem::create_directory(filesystem::path(out_dir))) {
-        std::cerr << "Error creating directory " << out_dir << std::endl;
-        return 1;
-    }
-    out_dir = out_dir + "/" + sysFSI.GetPhysicsProblemString() + "_" + sysFSI.GetSphMethodTypeString();
-    if (!filesystem::create_directory(filesystem::path(out_dir))) {
-        std::cerr << "Error creating directory " << out_dir << std::endl;
-        return 1;
-    }
-    if (!filesystem::create_directory(filesystem::path(out_dir + "/particles"))) {
-        std::cerr << "Error creating directory " << out_dir + "/particles" << std::endl;
-        return 1;
+    std::cout << "Neighbor search steps: " << sysFSI.GetNumProximitySearchSteps() << std::endl;
+    if (output || snapshots) {
+        if (output) {
+            // Create output directories
+            if (!filesystem::create_directory(filesystem::path(out_dir))) {
+                std::cerr << "Error creating directory " << out_dir << std::endl;
+                return 1;
+            }
+            out_dir = out_dir + "/" + sysFSI.GetPhysicsProblemString() + "_" + sysFSI.GetSphMethodTypeString();
+
+            std::cout << "Output directory: " << out_dir << std::endl;
+
+            if (!filesystem::create_directory(filesystem::path(out_dir))) {
+                std::cerr << "Error creating directory " << out_dir << std::endl;
+                return 1;
+            }
+            if (!filesystem::create_directory(filesystem::path(out_dir + "/particles"))) {
+                std::cerr << "Error creating directory " << out_dir + "/particles" << std::endl;
+                return 1;
+            }
+        }
+        if (snapshots) {
+            if (!output) {
+                // Create output directories
+                if (!filesystem::create_directory(filesystem::path(out_dir))) {
+                    std::cerr << "Error creating directory " << out_dir << std::endl;
+                    return 1;
+                }
+                out_dir = out_dir + "/" + sysFSI.GetPhysicsProblemString() + "_" + sysFSI.GetSphMethodTypeString();
+
+                std::cout << "Output directory: " << out_dir << std::endl;
+
+                if (!filesystem::create_directory(filesystem::path(out_dir))) {
+                    std::cerr << "Error creating directory " << out_dir << std::endl;
+                    return 1;
+                }
+            }
+            if (!filesystem::create_directory(filesystem::path(out_dir + "/snapshots"))) {
+                std::cerr << "Error creating directory " << out_dir + "/snapshots" << std::endl;
+                return 1;
+            }
+        }
     }
 
     // Create a run-tme visualizer
@@ -212,6 +294,14 @@ int main(int argc, char* argv[]) {
         if (render && time >= render_frame / render_fps) {
             if (!visFSI->Render())
                 break;
+            if (snapshots) {
+                if (verbose)
+                    std::cout << " -- Snapshot frame " << render_frame << " at t = " << time << std::endl;
+                std::ostringstream filename;
+                filename << out_dir << "/snapshots/img_" << std::setw(5) << std::setfill('0') << render_frame + 1
+                         << ".bmp";
+                visFSI->GetVisualSystem()->WriteImageToFile(filename.str());
+            }
             render_frame++;
         }
 
@@ -222,6 +312,7 @@ int main(int argc, char* argv[]) {
         sim_frame++;
     }
     timer.stop();
+    std::cout << "End Time: " << t_end << std::endl;
     std::cout << "\nSimulation time: " << timer() << " seconds\n" << std::endl;
 
     return 0;

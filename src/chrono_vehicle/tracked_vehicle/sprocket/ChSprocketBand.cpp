@@ -242,8 +242,8 @@ void SprocketBandContactCB::OnCustomCollision(ChSystem* system) {
 
         // Broadphase collision distance squared check for tread tooth to sprocket contact
         m_gear_tread_broadphase_dist_squared = std::pow(
-            m_sprocket->GetOuterRadius() + sqrt(std::pow(shoe->GetToothBaseLength() / 2, 2) +
-                                                std::pow(shoe->GetToothHeight() + shoe->GetWebThickness() / 2, 2)),
+            m_sprocket->GetOuterRadius() + std::sqrt(std::pow(shoe->GetToothBaseLength() / 2, 2) +
+                                                     std::pow(shoe->GetToothHeight() + shoe->GetWebThickness() / 2, 2)),
             2);
 
         m_tread_center_p = shoe->m_center_p;                        // center of (+x) arc, in tread body x-z plane
@@ -742,7 +742,7 @@ std::shared_ptr<ChLinePath> ChSprocketBand::GetProfile() const {
 
         // Define the distance to project perpendicular to the tooth arc chord  at the chord's center
         // to reach the center of the tooth arc circles
-        double ToothArcChordRadiusSegmentLen = sqrt(ArcRad * ArcRad - std::pow(ToothArcChordLen / 2, 2));
+        double ToothArcChordRadiusSegmentLen = std::sqrt(ArcRad * ArcRad - std::pow(ToothArcChordLen / 2, 2));
 
         // Define the arc centers for the tooth concave profiles
         ChVector3d vec_Chord1 = ToothBaseWidthUpperPnt - ToothTipWidthUpperPnt;

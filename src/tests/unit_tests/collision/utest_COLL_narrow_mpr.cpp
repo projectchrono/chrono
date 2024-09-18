@@ -16,6 +16,8 @@
 //
 // =============================================================================
 
+#include <cmath>
+
 #include "chrono/collision/multicore/ChNarrowphase.h"
 #include "chrono/collision/multicore/ChCollisionUtils.h"
 
@@ -147,7 +149,7 @@ TEST(ChNarrowphaseMPR, sphere_sphere) {
 
         d = Dot(n, p2 - p1);
         // std::cout << n << p1 << p2 << d << std::endl;
-        real3 n_check = real3(sin(CH_PI / 4.0), -sin(CH_PI / 4.0), 0);
+        real3 n_check = real3(std::sin(CH_PI / 4.0), -std::sin(CH_PI / 4.0), 0);
         Assert_near(n, n_check, precision);
         Assert_near(p1, real3(1, 1, 0) + n_check * 1, precision);
         Assert_near(p2, real3(2, 0, 0) - n_check * 1, precision);
@@ -198,7 +200,7 @@ TEST(ChNarrowphaseMPR, ellipsoid_ellipsoid) {
         ChNarrowphase::MPRCollision(shapeA, shapeB, envelope, n, p1, p2, d);
         d = Dot(n, p2 - p1);
 
-        real3 n_check = real3(sin(CH_PI / 4.0), -sin(CH_PI / 4.0), 0);
+        real3 n_check = real3(std::sin(CH_PI / 4.0), -std::sin(CH_PI / 4.0), 0);
         Assert_near(n, n_check, precision);
         Assert_near(p1, real3(1, 1, 0) + n_check * 1, precision);
         Assert_near(p2, real3(2, 0, 0) - n_check * 1, precision);

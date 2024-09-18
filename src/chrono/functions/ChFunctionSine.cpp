@@ -12,6 +12,8 @@
 // Authors: Alessandro Tasora, Radu Serban
 // =============================================================================
 
+#include <cmath>
+
 #include "chrono/functions/ChFunctionSine.h"
 
 namespace chrono {
@@ -26,15 +28,15 @@ ChFunctionSine::ChFunctionSine(const ChFunctionSine& other) {
 }
 
 double ChFunctionSine::GetVal(double x) const {
-    return m_ampl * (sin(m_phase + m_angular_rate * x));
+    return m_ampl * (std::sin(m_phase + m_angular_rate * x));
 }
 
 double ChFunctionSine::GetDer(double x) const {
-    return m_ampl * m_angular_rate * (cos(m_phase + m_angular_rate * x));
+    return m_ampl * m_angular_rate * (std::cos(m_phase + m_angular_rate * x));
 }
 
 double ChFunctionSine::GetDer2(double x) const {
-    return m_ampl * -m_angular_rate * m_angular_rate * (sin(m_phase + m_angular_rate * x));
+    return m_ampl * -m_angular_rate * m_angular_rate * (std::sin(m_phase + m_angular_rate * x));
 }
 
 void ChFunctionSine::ArchiveOut(ChArchiveOut& archive_out) {

@@ -613,7 +613,7 @@ inline Real ChVector2<Real>::Dot(const ChVector2<Real>& B) const {
 
 template <class Real>
 inline Real ChVector2<Real>::Length() const {
-    return sqrt(Length2());
+    return std::sqrt(Length2());
 }
 
 template <class Real>

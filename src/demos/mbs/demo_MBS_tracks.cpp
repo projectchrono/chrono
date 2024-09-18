@@ -22,6 +22,8 @@
 //
 // =============================================================================
 
+#include <cmath>
+
 #include "chrono/core/ChRealtimeStep.h"
 #include "chrono/geometry/ChTriangleMeshSoup.h"
 #include "chrono/physics/ChBodyEasy.h"
@@ -340,8 +342,8 @@ class MySimpleTank {
             for (int nshoe = 0; nshoe < nwrap; nshoe++) {
                 double alpha = (CH_PI / ((double)(nwrap - 1.0))) * ((double)nshoe);
 
-                double lx = mx + shoelength + radiustrack * sin(alpha);
-                double ly = my + radiustrack - radiustrack * cos(alpha);
+                double lx = mx + shoelength + radiustrack * std::sin(alpha);
+                double ly = my + radiustrack - radiustrack * std::cos(alpha);
                 position.Set(lx, ly, mz);
                 rotation = chrono::QuatFromAngleZ(alpha);
                 auto rigidBodyShoe =
@@ -372,8 +374,8 @@ class MySimpleTank {
             for (int nshoe = 0; nshoe < nwrap; nshoe++) {
                 double alpha = CH_PI + (CH_PI / ((double)(nwrap - 1.0))) * ((double)nshoe);
 
-                double lx = mx + 0 + radiustrack * sin(alpha);
-                double ly = my + radiustrack - radiustrack * cos(alpha);
+                double lx = mx + 0 + radiustrack * std::sin(alpha);
+                double ly = my + radiustrack - radiustrack * std::cos(alpha);
                 position.Set(lx, ly, mz);
                 rotation = chrono::QuatFromAngleZ(alpha);
                 auto rigidBodyShoe =

@@ -12,6 +12,8 @@
 // Authors: Alessandro Tasora
 // =============================================================================
 
+#include <cmath>
+
 #include "chrono/fea/ChMaterialShellKirchhoff.h"
 
 namespace chrono {
@@ -86,8 +88,8 @@ void ChElasticityKirchhoffIsothropic::ComputeStress(ChVector3d& n,
     } else {
         double G = m_E / (2. * (1. + m_nu));
         double h1 = z_sup - z_inf;
-        double h2 = 0.5 * (pow(z_sup, 2) - pow(z_inf, 2));
-        double h3 = (1. / 3.) * (pow(z_sup, 3) - pow(z_inf, 3));
+        double h2 = 0.5 * (std::pow(z_sup, 2) - std::pow(z_inf, 2));
+        double h3 = (1. / 3.) * (std::pow(z_sup, 3) - std::pow(z_inf, 3));
         ChMatrix33<> Q;
         Q(0, 0) = m_E / (1. - m_nu * m_nu);
         Q(0, 1) = m_nu * Q(0, 0);
@@ -134,8 +136,8 @@ void ChElasticityKirchhoffIsothropic::ComputeStiffnessMatrix(ChMatrixRef mC,
     } else {
         double G = m_E / (2. * (1. + m_nu));
         double h1 = z_sup - z_inf;
-        double h2 = 0.5 * (pow(z_sup, 2) - pow(z_inf, 2));
-        double h3 = (1. / 3.) * (pow(z_sup, 3) - pow(z_inf, 3));
+        double h2 = 0.5 * (std::pow(z_sup, 2) - std::pow(z_inf, 2));
+        double h3 = (1. / 3.) * (std::pow(z_sup, 3) - std::pow(z_inf, 3));
         ChMatrix33<> Q;
         Q(0, 0) = m_E / (1. - m_nu * m_nu);
         Q(0, 1) = m_nu * Q(0, 0);
@@ -217,8 +219,8 @@ void ChElasticityKirchhoffOrthotropic::ComputeStiffnessMatrix(ChMatrixRef mC,
     Qm_local(2, 2) = G_xy;
 
     // Rotate Qm_local into Q, as Q = Ts'*Qm_local*Te
-    double Co = cos(angle);
-    double Si = sin(angle);
+    double Co = std::cos(angle);
+    double Si = std::sin(angle);
     double CC = Co * Co;
     double SS = Si * Si;
     double SC = Si * Co;
@@ -229,8 +231,8 @@ void ChElasticityKirchhoffOrthotropic::ComputeStiffnessMatrix(ChMatrixRef mC,
     ChMatrix33<> Q = Tm * Qm_local * Tm.transpose();
 
     double h1 = z_sup - z_inf;
-    double h2 = 0.5 * (pow(z_sup, 2) - pow(z_inf, 2));
-    double h3 = (1. / 3.) * (pow(z_sup, 3) - pow(z_inf, 3));
+    double h2 = 0.5 * (std::pow(z_sup, 2) - std::pow(z_inf, 2));
+    double h3 = (1. / 3.) * (std::pow(z_sup, 3) - std::pow(z_inf, 3));
 
     mC.block<3, 3>(0, 0) = Q * h1;
     mC.block<3, 3>(0, 3) = Q * h2;

@@ -99,7 +99,7 @@ int main(int argc, char* argv[]) {
         std::string datafilename = out_dir + "/test_gnuplot_data.dat";
         std::ofstream datafile(datafilename);
         for (double x = 0; x < 10; x += 0.1)
-            datafile << x << ", " << sin(x) << ", " << cos(x) << std::endl;
+            datafile << x << ", " << std::sin(x) << ", " << std::cos(x) << std::endl;
 
         // Step 2.
         // Create the plot.
@@ -132,7 +132,7 @@ int main(int argc, char* argv[]) {
         ChVectorDynamic<> my(100);
         for (int i = 0; i < 100; ++i) {
             double x = ((double)i / 100.0) * 12;
-            double y = sin(x) * exp(-x * 0.2);
+            double y = std::sin(x) * std::exp(-x * 0.2);
             mx(i) = x;
             my(i) = y;
         }
@@ -140,14 +140,14 @@ int main(int argc, char* argv[]) {
         ChFunctionInterp mfun;
         for (int i = 0; i < 100; ++i) {
             double x = ((double)i / 100.0) * 12;
-            double y = cos(x) * exp(-x * 0.4);
+            double y = std::cos(x) * std::exp(-x * 0.4);
             mfun.AddPoint(x, y);
         }
         // ..or create demo data in two columns of a ChMatrix
         ChMatrixDynamic<> matr(100, 10);
         for (int i = 0; i < 100; ++i) {
             double x = ((double)i / 100.0) * 12;
-            double y = cos(x) * exp(-x * 0.4);
+            double y = std::cos(x) * std::exp(-x * 0.4);
             matr(i, 2) = x;
             matr(i, 6) = y * 0.4;
         }

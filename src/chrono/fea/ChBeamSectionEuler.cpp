@@ -12,6 +12,8 @@
 // Authors: Alessandro Tasora
 // =============================================================================
 
+#include <cmath>
+
 #include "chrono/fea/ChBeamSectionEuler.h"
 #include "chrono/core/ChMatrixMBD.h"
 #include "chrono/core/ChMatrix33.h"
@@ -390,9 +392,9 @@ void ChBeamSectionRayleighAdvancedGeneric::SetInertiasPerUnitLength(const double
 }
 
 void ChBeamSectionRayleighAdvancedGeneric::SetMainInertiasInMassReference(double Jmyy, double Jmzz, double phi) {
-    double cc = pow(cos(-phi), 2);
-    double ss = pow(sin(-phi), 2);
-    double cs = cos(-phi) * sin(-phi);
+    double cc = std::pow(std::cos(-phi), 2);
+    double ss = std::pow(std::sin(-phi), 2);
+    double cs = std::cos(-phi) * std::sin(-phi);
     // generic 2x2 tensor rotation
     double Tyy_rot =
         cc * Jmyy + ss * Jmzz;  // + 2 * Jmyz * cs; //TODO: it seems the commented term has an opposite sign
@@ -414,15 +416,15 @@ void ChBeamSectionRayleighAdvancedGeneric::GetMainInertiasInMassReference(double
     double Tzz_rot = this->Jzz - this->mu * this->My * this->My;
     double Tyz_rot = -this->Jyz + this->mu * this->Mz * this->My;
     // tensor de-rotation up to principal axes
-    double argum = pow((Tyy_rot - Tzz_rot) * 0.5, 2) + pow(Tyz_rot, 2);
+    double argum = std::pow((Tyy_rot - Tzz_rot) * 0.5, 2) + std::pow(Tyz_rot, 2);
     if (argum <= 0) {
         phi = 0;
         Jmyy = 0.5 * (Tzz_rot + Tyy_rot);
         Jmzz = 0.5 * (Tzz_rot + Tyy_rot);
         return;
     }
-    double discr = sqrt(pow((Tyy_rot - Tzz_rot) * 0.5, 2) + pow(Tyz_rot, 2));
-    phi = -0.5 * atan2(Tyz_rot / discr, (Tzz_rot - Tyy_rot) / (2. * discr));
+    double discr = std::sqrt(std::pow((Tyy_rot - Tzz_rot) * 0.5, 2) + std::pow(Tyz_rot, 2));
+    phi = -0.5 * std::atan2(Tyz_rot / discr, (Tzz_rot - Tyy_rot) / (2. * discr));
     Jmyy = 0.5 * (Tzz_rot + Tyy_rot) - discr;
     Jmzz = 0.5 * (Tzz_rot + Tyy_rot) + discr;
 }

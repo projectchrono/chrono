@@ -12,7 +12,7 @@
 // Authors: Alessandro Tasora
 // =============================================================================
 
-#include <math.h>
+#include <cmath>
 
 #include "chrono/fea/ChBeamSectionCosserat.h"
 #include "chrono/core/ChMatrixMBD.h"
@@ -65,13 +65,13 @@ ChElasticityCosseratSimple::ChElasticityCosseratSimple()
 
 void ChElasticityCosseratSimple::SetAsRectangularSection(double width_y, double width_z) {
     this->A = width_y * width_z;
-    this->Izz = (1.0 / 12.0) * width_z * pow(width_y, 3);
-    this->Iyy = (1.0 / 12.0) * width_y * pow(width_z, 3);
+    this->Izz = (1.0 / 12.0) * width_z * std::pow(width_y, 3);
+    this->Iyy = (1.0 / 12.0) * width_y * std::pow(width_z, 3);
 
     // use Roark's formulas for torsion of rectangular sect:
     double t = std::min(width_y, width_z);
     double b = std::max(width_y, width_z);
-    this->J = b * pow(t, 3) * ((1.0 / 3.0) - 0.210 * (t / b) * (1.0 - (1.0 / 12.0) * pow((t / b), 4)));
+    this->J = b * std::pow(t, 3) * ((1.0 / 3.0) - 0.210 * (t / b) * (1.0 - (1.0 / 12.0) * std::pow((t / b), 4)));
 
     // set Ks using Timoshenko-Gere formula for solid rect.shapes
     double poisson = this->E / (2.0 * this->G) - 1.0;
@@ -80,8 +80,8 @@ void ChElasticityCosseratSimple::SetAsRectangularSection(double width_y, double 
 }
 
 void ChElasticityCosseratSimple::SetAsCircularSection(double diameter) {
-    this->A = CH_PI * pow((0.5 * diameter), 2);
-    this->Izz = (CH_PI / 4.0) * pow((0.5 * diameter), 4);
+    this->A = CH_PI * std::pow((0.5 * diameter), 2);
+    this->Izz = (CH_PI / 4.0) * std::pow((0.5 * diameter), 4);
     this->Iyy = Izz;
 
     // exact expression for circular beam J = Ixx ,
@@ -151,23 +151,23 @@ void ChElasticityCosseratAdvanced::ComputeStress(ChVector3d& stress_n,
                                                  ChVector3d& stress_m,
                                                  const ChVector3d& strain_n,
                                                  const ChVector3d& strain_m) {
-    double cos_alpha = cos(alpha);
-    double sin_alpha = sin(alpha);
+    double cos_alpha = std::cos(alpha);
+    double sin_alpha = std::sin(alpha);
     double a11 = E * A;
-    double a22 = E * (Iyy * pow(cos_alpha, 2.) + Izz * pow(sin_alpha, 2.) + Cz * Cz * A);
-    double a33 = E * (Izz * pow(cos_alpha, 2.) + Iyy * pow(sin_alpha, 2.) + Cy * Cy * A);
+    double a22 = E * (Iyy * std::pow(cos_alpha, 2.) + Izz * std::pow(sin_alpha, 2.) + Cz * Cz * A);
+    double a33 = E * (Izz * std::pow(cos_alpha, 2.) + Iyy * std::pow(sin_alpha, 2.) + Cy * Cy * A);
     double a12 = Cz * E * A;
     double a13 = -Cy * E * A;
     double a23 = (E * Iyy - E * Izz) * cos_alpha * sin_alpha - E * Cy * Cz * A;
     stress_n.x() = a11 * strain_n.x() + a12 * strain_m.y() + a13 * strain_m.z();
     stress_m.y() = a12 * strain_n.x() + a22 * strain_m.y() + a23 * strain_m.z();
     stress_m.z() = a13 * strain_n.x() + a23 * strain_m.y() + a33 * strain_m.z();
-    double cos_beta = cos(beta);
-    double sin_beta = sin(beta);
+    double cos_beta = std::cos(beta);
+    double sin_beta = std::sin(beta);
     double KsyGA = Ks_y * G * A;
     double KszGA = Ks_z * G * A;
-    double s11 = KsyGA * pow(cos_beta, 2.) + KszGA * pow(sin_beta, 2.);
-    double s22 = KsyGA * pow(sin_beta, 2.) + KszGA * pow(cos_beta, 2.);  // ..+s_loc_12*sin(beta)*cos(beta);
+    double s11 = KsyGA * std::pow(cos_beta, 2.) + KszGA * std::pow(sin_beta, 2.);
+    double s22 = KsyGA * std::pow(sin_beta, 2.) + KszGA * std::pow(cos_beta, 2.);  // ..+s_loc_12*sin(beta)*cos(beta);
     double s33 = G * J + Sz * Sz * KsyGA + Sy * Sy * KszGA;
     double s12 = (KszGA - KsyGA) * sin_beta * cos_beta;
     double s13 = Sy * KszGA * sin_beta - Sz * KsyGA * cos_beta;
@@ -181,20 +181,20 @@ void ChElasticityCosseratAdvanced::ComputeStiffnessMatrix(ChMatrix66d& K,
                                                           const ChVector3d& strain_n,
                                                           const ChVector3d& strain_m) {
     K.setZero(6, 6);
-    double cos_alpha = cos(alpha);
-    double sin_alpha = sin(alpha);
+    double cos_alpha = std::cos(alpha);
+    double sin_alpha = std::sin(alpha);
     double a11 = E * A;
-    double a22 = E * (Iyy * pow(cos_alpha, 2.) + Izz * pow(sin_alpha, 2.) + Cz * Cz * A);
-    double a33 = E * (Izz * pow(cos_alpha, 2.) + Iyy * pow(sin_alpha, 2.) + Cy * Cy * A);
+    double a22 = E * (Iyy * std::pow(cos_alpha, 2.) + Izz * std::pow(sin_alpha, 2.) + Cz * Cz * A);
+    double a33 = E * (Izz * std::pow(cos_alpha, 2.) + Iyy * std::pow(sin_alpha, 2.) + Cy * Cy * A);
     double a12 = Cz * E * A;
     double a13 = -Cy * E * A;
     double a23 = (E * Iyy - E * Izz) * cos_alpha * sin_alpha - E * Cy * Cz * A;
-    double cos_beta = cos(beta);
-    double sin_beta = sin(beta);
+    double cos_beta = std::cos(beta);
+    double sin_beta = std::sin(beta);
     double KsyGA = Ks_y * G * A;
     double KszGA = Ks_z * G * A;
-    double s11 = KsyGA * pow(cos_beta, 2.) + KszGA * pow(sin_beta, 2.);
-    double s22 = KsyGA * pow(sin_beta, 2.) + KszGA * pow(cos_beta, 2.);  // ..+s_loc_12*sin(beta)*cos(beta);
+    double s11 = KsyGA * std::pow(cos_beta, 2.) + KszGA * std::pow(sin_beta, 2.);
+    double s22 = KsyGA * std::pow(sin_beta, 2.) + KszGA * std::pow(cos_beta, 2.);  // ..+s_loc_12*sin(beta)*cos(beta);
     double s33 = G * J + Sz * Sz * KsyGA + Sy * Sy * KszGA;
     double s12 = (KszGA - KsyGA) * sin_beta * cos_beta;
     double s13 = Sy * KszGA * sin_beta - Sz * KsyGA * cos_beta;
@@ -226,23 +226,23 @@ void ChElasticityCosseratAdvancedGeneric::ComputeStress(ChVector3d& stress_n,
                                                         ChVector3d& stress_m,
                                                         const ChVector3d& strain_n,
                                                         const ChVector3d& strain_m) {
-    double cos_alpha = cos(alpha);
-    double sin_alpha = sin(alpha);
+    double cos_alpha = std::cos(alpha);
+    double sin_alpha = std::sin(alpha);
     double a11 = this->Ax;
-    double a22 = this->Byy * pow(cos_alpha, 2.) + this->Bzz * pow(sin_alpha, 2.) + Cz * Cz * this->Ax;
-    double a33 = this->Bzz * pow(cos_alpha, 2.) + this->Byy * pow(sin_alpha, 2.) + Cy * Cy * this->Ax;
+    double a22 = this->Byy * std::pow(cos_alpha, 2.) + this->Bzz * std::pow(sin_alpha, 2.) + Cz * Cz * this->Ax;
+    double a33 = this->Bzz * std::pow(cos_alpha, 2.) + this->Byy * std::pow(sin_alpha, 2.) + Cy * Cy * this->Ax;
     double a12 = Cz * this->Ax;
     double a13 = -Cy * this->Ax;
     double a23 = (this->Byy - this->Bzz) * cos_alpha * sin_alpha - Cy * Cz * this->Ax;
     stress_n.x() = a11 * strain_n.x() + a12 * strain_m.y() + a13 * strain_m.z();
     stress_m.y() = a12 * strain_n.x() + a22 * strain_m.y() + a23 * strain_m.z();
     stress_m.z() = a13 * strain_n.x() + a23 * strain_m.y() + a33 * strain_m.z();
-    double cos_beta = cos(beta);
-    double sin_beta = sin(beta);
+    double cos_beta = std::cos(beta);
+    double sin_beta = std::sin(beta);
     double KsyGA = this->Hyy;
     double KszGA = this->Hzz;
-    double s11 = KsyGA * pow(cos_beta, 2.) + KszGA * pow(sin_beta, 2.);
-    double s22 = KsyGA * pow(sin_beta, 2.) + KszGA * pow(cos_beta, 2.);  // ..+s_loc_12*sin(beta)*cos(beta);
+    double s11 = KsyGA * std::pow(cos_beta, 2.) + KszGA * std::pow(sin_beta, 2.);
+    double s22 = KsyGA * std::pow(sin_beta, 2.) + KszGA * std::pow(cos_beta, 2.);  // ..+s_loc_12*sin(beta)*cos(beta);
     double s33 = this->Txx + Sz * Sz * KsyGA + Sy * Sy * KszGA;
     double s12 = (KszGA - KsyGA) * sin_beta * cos_beta;
     double s13 = Sy * KszGA * sin_beta - Sz * KsyGA * cos_beta;
@@ -256,20 +256,20 @@ void ChElasticityCosseratAdvancedGeneric::ComputeStiffnessMatrix(ChMatrix66d& K,
                                                                  const ChVector3d& strain_n,
                                                                  const ChVector3d& strain_m) {
     K.setZero(6, 6);
-    double cos_alpha = cos(alpha);
-    double sin_alpha = sin(alpha);
+    double cos_alpha = std::cos(alpha);
+    double sin_alpha = std::sin(alpha);
     double a11 = this->Ax;
-    double a22 = this->Byy * pow(cos_alpha, 2.) + this->Bzz * pow(sin_alpha, 2.) + Cz * Cz * this->Ax;
-    double a33 = this->Bzz * pow(cos_alpha, 2.) + this->Byy * pow(sin_alpha, 2.) + Cy * Cy * this->Ax;
+    double a22 = this->Byy * std::pow(cos_alpha, 2.) + this->Bzz * std::pow(sin_alpha, 2.) + Cz * Cz * this->Ax;
+    double a33 = this->Bzz * std::pow(cos_alpha, 2.) + this->Byy * std::pow(sin_alpha, 2.) + Cy * Cy * this->Ax;
     double a12 = Cz * this->Ax;
     double a13 = -Cy * this->Ax;
     double a23 = (this->Byy - this->Bzz) * cos_alpha * sin_alpha - Cy * Cz * this->Ax;
-    double cos_beta = cos(beta);
-    double sin_beta = sin(beta);
+    double cos_beta = std::cos(beta);
+    double sin_beta = std::sin(beta);
     double KsyGA = this->Hyy;
     double KszGA = this->Hzz;
-    double s11 = KsyGA * pow(cos_beta, 2.) + KszGA * pow(sin_beta, 2.);
-    double s22 = KsyGA * pow(sin_beta, 2.) + KszGA * pow(cos_beta, 2.);  // ..+s_loc_12*sin(beta)*cos(beta);
+    double s11 = KsyGA * std::pow(cos_beta, 2.) + KszGA * std::pow(sin_beta, 2.);
+    double s22 = KsyGA * std::pow(sin_beta, 2.) + KszGA * std::pow(cos_beta, 2.);  // ..+s_loc_12*sin(beta)*cos(beta);
     double s33 = this->Txx + Sz * Sz * KsyGA + Sy * Sy * KszGA;
     double s12 = (KszGA - KsyGA) * sin_beta * cos_beta;
     double s13 = Sy * KszGA * sin_beta - Sz * KsyGA * cos_beta;
@@ -395,7 +395,7 @@ void ChElasticityCosseratMesh::SetAsCircularSection(double diameter) {
     int ntri = 12;
     for (int i = 0; i < ntri; ++i) {
         double alpha = (i + 1) * (CH_2PI / (double)ntri);
-        this->vertexes.push_back(ChVector2d(rad * cos(alpha), rad * sin(alpha)));
+        this->vertexes.push_back(ChVector2d(rad * std::cos(alpha), rad * std::sin(alpha)));
         this->triangles.push_back(ChVector3i(0, i + 1, i + 2));
     }
 
@@ -1077,14 +1077,14 @@ void ChInertiaCosseratSimple::ComputeQuadraticTerms(
 
 void ChInertiaCosseratSimple::SetAsRectangularSection(double width_y, double width_z, double density) {
     this->A = width_y * width_z;
-    this->Izz = (1.0 / 12.0) * width_z * pow(width_y, 3);
-    this->Iyy = (1.0 / 12.0) * width_y * pow(width_z, 3);
+    this->Izz = (1.0 / 12.0) * width_z * std::pow(width_y, 3);
+    this->Iyy = (1.0 / 12.0) * width_y * std::pow(width_z, 3);
     this->rho = density;
 }
 
 void ChInertiaCosseratSimple::SetAsCircularSection(double diameter, double density) {
-    this->A = CH_PI * pow((0.5 * diameter), 2);
-    this->Izz = (CH_PI / 4.0) * pow((0.5 * diameter), 4);
+    this->A = CH_PI * std::pow((0.5 * diameter), 2);
+    this->Izz = (CH_PI / 4.0) * std::pow((0.5 * diameter), 4);
     this->Iyy = Izz;
     this->rho = density;
 }
@@ -1186,9 +1186,9 @@ void ChInertiaCosseratAdvanced::ComputeQuadraticTerms(
 }
 
 void ChInertiaCosseratAdvanced::SetMainInertiasInMassReference(double Jmyy, double Jmzz, double phi) {
-    double cc = pow(cos(-phi), 2);
-    double ss = pow(sin(-phi), 2);
-    double cs = cos(-phi) * sin(-phi);
+    double cc = std::pow(std::cos(-phi), 2);
+    double ss = std::pow(std::sin(-phi), 2);
+    double cs = std::cos(-phi) * std::sin(-phi);
     // generic 2x2 tensor rotation
     double Tyy_rot = cc * Jmyy + ss * Jmzz;  // + 2 * Jmyz * cs;
     double Tzz_rot = ss * Jmyy + cc * Jmzz;  // - 2 * Jmyz * cs;
@@ -1205,15 +1205,15 @@ void ChInertiaCosseratAdvanced::GetMainInertiasInMassReference(double& Jmyy, dou
     double Tzz_rot = this->Jzz - this->mu * this->cm_y * this->cm_y;
     double Tyz_rot = -this->Jyz + this->mu * this->cm_z * this->cm_y;
     // tensor de-rotation up to principal axes
-    double argum = pow((Tyy_rot - Tzz_rot) * 0.5, 2) + pow(Tyz_rot, 2);
+    double argum = std::pow((Tyy_rot - Tzz_rot) * 0.5, 2) + std::pow(Tyz_rot, 2);
     if (argum <= 0) {
         phi = 0;
         Jmyy = 0.5 * (Tzz_rot + Tyy_rot);
         Jmzz = 0.5 * (Tzz_rot + Tyy_rot);
         return;
     }
-    double discr = sqrt(pow((Tyy_rot - Tzz_rot) * 0.5, 2) + pow(Tyz_rot, 2));
-    phi = -0.5 * atan2(Tyz_rot / discr, (Tzz_rot - Tyy_rot) / (2. * discr));
+    double discr = std::sqrt(std::pow((Tyy_rot - Tzz_rot) * 0.5, 2) + std::pow(Tyz_rot, 2));
+    phi = -0.5 * std::atan2(Tyz_rot / discr, (Tzz_rot - Tyy_rot) / (2. * discr));
     Jmyy = 0.5 * (Tzz_rot + Tyy_rot) - discr;
     Jmzz = 0.5 * (Tzz_rot + Tyy_rot) + discr;
 }

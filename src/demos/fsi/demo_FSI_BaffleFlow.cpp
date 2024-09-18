@@ -32,6 +32,7 @@
 #endif
 
 #include "chrono_thirdparty/filesystem/path.h"
+#include "chrono_thirdparty/cxxopts/ChCLI.h"
 
 using namespace chrono;
 using namespace chrono::fsi;
@@ -71,7 +72,7 @@ double t_end = 0.7;
 
 // Enable/disable run-time visualization
 bool render = true;
-float render_fps = 300;
+double render_fps = 300;
 
 // Enable saving snapshots
 bool snapshots = false;
@@ -150,10 +151,53 @@ void CreateBaffles(ChFsiProblem& fsi) {
 
 // ----------------------------------------------------------------------------
 
+bool GetProblemSpecs(int argc,
+                     char** argv,
+                     bool& verbose,
+                     bool& output,
+                     unsigned int& output_fps,
+                     bool& render,
+                     double& render_fps,
+                     bool& snapshots,
+                     int& ps_freq) {
+    ChCLI cli(argv[0], "Baffle Flow FSI demo");
+
+    cli.AddOption<bool>("Output", "quiet", "Disable verbose terminal output");
+    cli.AddOption<bool>("Output", "output", "Enable collection of output files");
+    cli.AddOption<unsigned int>("Output", "output_fps", "Output frequency [fps]", std::to_string(output_fps));
+    cli.AddOption<bool>("Visualization", "no_vis", "Disable run-time visualization");
+    cli.AddOption<double>("Visualization", "render_fps", "Render frequency [fps]", std::to_string(render_fps));
+    cli.AddOption<bool>("Visualization", "snapshots", "Enable writing snapshot image files");
+    cli.AddOption<int>("Proximity Search", "ps_freq", "Frequency of Proximity Search", std::to_string(ps_freq));
+
+    if (!cli.Parse(argc, argv)) {
+        cli.Help();
+        return false;
+    }
+
+    verbose = !cli.GetAsType<bool>("quiet");
+    output = cli.GetAsType<bool>("output");
+    render = !cli.GetAsType<bool>("no_vis");
+    snapshots = cli.GetAsType<bool>("snapshots");
+    output_fps = cli.GetAsType<unsigned int>("output_fps");
+    render_fps = cli.GetAsType<double>("render_fps");
+    ps_freq = cli.GetAsType<int>("ps_freq");
+
+    return true;
+}
+
+// ----------------------------------------------------------------------------
+
 int main(int argc, char* argv[]) {
     double initial_spacing = 0.01;
     double step_size = 1e-4;
     bool verbose = true;
+    int ps_freq = 1;  // Frequency of Proximity Search
+    if (!GetProblemSpecs(argc, argv, verbose, output, output_fps, render, render_fps, snapshots, ps_freq)) {
+        return 1;
+    }
+
+    out_dir = out_dir + std::to_string(ps_freq) + "/";
 
     // Create the Chrono system and associated collision system
     ChSystemSMC sysMBS;
@@ -195,6 +239,7 @@ int main(int argc, char* argv[]) {
     sph_params.xsph_coefficient = 0.5;
     sph_params.shifting_coefficient = 1.0;
     sph_params.kernel_threshold = 0.8;
+    sph_params.num_proximity_search_steps = ps_freq;
 
     sysFSI.SetSPHParameters(sph_params);
 
@@ -229,27 +274,39 @@ int main(int argc, char* argv[]) {
     }
 
     fsi.Initialize();
-
-    // Create output directories
-    if (!filesystem::create_directory(filesystem::path(out_dir))) {
-        std::cerr << "Error creating directory " << out_dir << std::endl;
-        return 1;
-    }
-    if (!filesystem::create_directory(filesystem::path(out_dir + "/particles"))) {
-        std::cerr << "Error creating directory " << out_dir + "/particles" << std::endl;
-        return 1;
-    }
-    if (!filesystem::create_directory(filesystem::path(out_dir + "/fsi"))) {
-        std::cerr << "Error creating directory " << out_dir + "/fsi" << std::endl;
-        return 1;
-    }
-    if (!filesystem::create_directory(filesystem::path(out_dir + "/vtk"))) {
-        std::cerr << "Error creating directory " << out_dir + "/vtk" << std::endl;
-        return 1;
-    }
-    if (!filesystem::create_directory(filesystem::path(out_dir + "/snapshots"))) {
-        cerr << "Error creating directory " << out_dir + "/snapshots" << endl;
-        return 1;
+    if (output || snapshots) {
+        if (output) {
+            // Create output directories
+            if (!filesystem::create_directory(filesystem::path(out_dir))) {
+                std::cerr << "Error creating directory " << out_dir << std::endl;
+                return 1;
+            }
+            if (!filesystem::create_directory(filesystem::path(out_dir + "/particles"))) {
+                std::cerr << "Error creating directory " << out_dir + "/particles" << std::endl;
+                return 1;
+            }
+            if (!filesystem::create_directory(filesystem::path(out_dir + "/fsi"))) {
+                std::cerr << "Error creating directory " << out_dir + "/fsi" << std::endl;
+                return 1;
+            }
+            if (!filesystem::create_directory(filesystem::path(out_dir + "/vtk"))) {
+                std::cerr << "Error creating directory " << out_dir + "/vtk" << std::endl;
+                return 1;
+            }
+        }
+        if (snapshots) {
+            if (!output) {
+                // Create output directories
+                if (!filesystem::create_directory(filesystem::path(out_dir))) {
+                    std::cerr << "Error creating directory " << out_dir << std::endl;
+                    return 1;
+                }
+            }
+            if (!filesystem::create_directory(filesystem::path(out_dir + "/snapshots"))) {
+                std::cerr << "Error creating directory " << out_dir + "/snapshots" << std::endl;
+                return 1;
+            }
+        }
     }
 
     // Create a run-time visualizer

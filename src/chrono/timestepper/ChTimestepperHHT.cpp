@@ -45,7 +45,7 @@ void ChTimestepperHHT::SetAlpha(double val) {
     if (alpha > 0)
         alpha = 0;
     gamma = (1.0 - 2.0 * alpha) / 2.0;
-    beta = pow((1.0 - alpha), 2) / 4.0;
+    beta = std::pow((1.0 - alpha), 2) / 4.0;
 }
 
 // Performs a step of HHT (generalized alpha) implicit for II order systems

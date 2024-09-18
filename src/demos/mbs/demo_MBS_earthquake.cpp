@@ -19,6 +19,8 @@
 //
 // =============================================================================
 
+#include <cmath>
+
 #include "chrono/physics/ChSystemNSC.h"
 #include "chrono/physics/ChBodyEasy.h"
 #include "chrono/functions/ChFunctionSine.h"
@@ -54,15 +56,15 @@ void create_column(ChSystemNSC& sys,
     std::vector<ChVector3d> mpoints;
     for (int i = 0; i < col_nedges; ++i) {
         double alpha = CH_2PI * ((double)i / (double)col_nedges);  // polar coord
-        double x = col_radius_hi * cos(alpha);
-        double z = col_radius_hi * sin(alpha);
+        double x = col_radius_hi * std::cos(alpha);
+        double z = col_radius_hi * std::sin(alpha);
         double y = col_base + col_height;
         mpoints.push_back(ChVector3d(x, y, z));
     }
     for (int i = 0; i < col_nedges; ++i) {
         double alpha = CH_2PI * ((double)i / (double)col_nedges);  // polar coord
-        double x = col_radius_lo * cos(alpha);
-        double z = col_radius_lo * sin(alpha);
+        double x = col_radius_lo * std::cos(alpha);
+        double z = col_radius_lo * std::sin(alpha);
         double y = col_base;
         mpoints.push_back(ChVector3d(x, y, z));
     }

@@ -100,7 +100,7 @@ inline ChMatrix33<> CalcBiSphereGyration(double radius, double c_dist) {
     double comp1 = 0.4 * radius * radius * (1 + cos_theta);
     double comp2 = -0.2 * radius * radius * (1. / 3. * (-cos_theta * cos_theta * cos_theta - 1) + (1 + cos_theta));
     double comp3 = 2. / 3. * z_prim * z_prim * (1 + cos_theta);
-    double comp4 = 0.5 * radius * z_prim * sqrt(1 - cos_theta * cos_theta);
+    double comp4 = 0.5 * radius * z_prim * std::sqrt(1 - cos_theta * cos_theta);
     double numerator = 2 * (comp1 + comp2 + comp3 + comp4);
     double denominator = 4. / 3. * (1 + cos_theta);
     double Jxx = numerator / denominator;

@@ -29,6 +29,8 @@
 // =============================================================================
 
 #include <iomanip>
+#include <cmath>
+
 #include "chrono/physics/ChSystemNSC.h"
 #include "chrono/physics/ChBodyEasy.h"
 #include "chrono/physics/ChLinkMotorRotationAngle.h"
@@ -278,7 +280,7 @@ void RunSlewingBeam(bool do_modal_reduction,
 
         double rot_angle = 0;
         if (tao < 1.0)
-            rot_angle = omega * T * (tao * tao / 2.0 + (cos(CH_2PI * tao) - 1.0) / pow(CH_2PI, 2.0));
+            rot_angle = omega * T * (tao * tao / 2.0 + (std::cos(CH_2PI * tao) - 1.0) / std::pow(CH_2PI, 2.0));
         else
             rot_angle = omega * T * (tao - 0.5);
 

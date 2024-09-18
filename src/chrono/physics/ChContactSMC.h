@@ -163,7 +163,7 @@ class ChDefaultContactForceTorqueSMC : public ChSystemSMC::ChContactForceTorqueS
                             forceN -= mat.adhesion_eff;
                             break;
                         case ChSystemSMC::AdhesionForceModel::DMT:
-                            forceN -= mat.adhesionMultDMT_eff * sqrt(eff_radius);
+                            forceN -= mat.adhesionMultDMT_eff * std::sqrt(eff_radius);
                             break;
                     }
                     ChVector3d force = forceN * normal_dir;
@@ -207,7 +207,7 @@ class ChDefaultContactForceTorqueSMC : public ChSystemSMC::ChContactForceTorqueS
                 forceN -= mat.adhesion_eff;
                 break;
             case ChSystemSMC::AdhesionForceModel::DMT:
-                forceN -= mat.adhesionMultDMT_eff * sqrt(eff_radius);
+                forceN -= mat.adhesionMultDMT_eff * std::sqrt(eff_radius);
                 break;
         }
 

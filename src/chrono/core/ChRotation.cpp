@@ -128,8 +128,8 @@ AngleAxis AngleAxisFromQuat(const ChQuaterniond& q) {
     ChVector3d axis;
 
     if (std::abs(q.e0()) < 0.99999999) {
-        double arg = acos(q.e0());
-        double invsine = 1 / sin(arg);
+        double arg = std::acos(q.e0());
+        double invsine = 1 / std::sin(arg);
         ChVector3d vtemp;
         vtemp.x() = invsine * q.e1();
         vtemp.y() = invsine * q.e2();
@@ -152,9 +152,9 @@ ChQuaterniond QuatFromAngleAxis(double angle, const ChVector3d& axis) {
     double sinhalf;
 
     halfang = angle / 2;
-    sinhalf = sin(halfang);
+    sinhalf = std::sin(halfang);
 
-    q.e0() = cos(halfang);
+    q.e0() = std::cos(halfang);
     q.e1() = axis.x() * sinhalf;
     q.e2() = axis.y() * sinhalf;
     q.e3() = axis.z() * sinhalf;
@@ -344,9 +344,9 @@ ChQuaterniond QuatFromVec2Vec(const ChVector3d& start, const ChVector3d& end) {
         // fr_vect & to_vect are not co-linear case
         axis.Normalize();
         halfang = 0.5 * std::atan2(sinangle, cosangle);
-        sinhalf = sin(halfang);
+        sinhalf = std::sin(halfang);
 
-        quat.e0() = cos(halfang);
+        quat.e0() = std::cos(halfang);
         quat.e1() = sinhalf * axis.x();
         quat.e2() = sinhalf * axis.y();
         quat.e3() = sinhalf * axis.z();

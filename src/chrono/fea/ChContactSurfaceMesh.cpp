@@ -17,6 +17,7 @@
 #include <set>
 #include <array>
 #include <algorithm>
+#include <cmath>
 
 #include "chrono/physics/ChSystem.h"
 #include "chrono/utils/ChUtilsGeometry.h"
@@ -856,7 +857,7 @@ void ChContactSurfaceMesh::AddFacesFromBoundary(double sphere_swept,
                         if (std::dynamic_pointer_cast<ChBeamSectionEulerEasyCircular>(mbeam->GetSection())) {
                             capsule_radius = 0.5 * std::max(std::abs(ymax - ymin), std::abs(zmax - zmin));
                         } else {
-                            capsule_radius = 0.5 * sqrt(pow(ymax - ymin, 2) + pow(zmax - zmin, 2));
+                            capsule_radius = 0.5 * std::sqrt(std::pow(ymax - ymin, 2) + std::pow(zmax - zmin, 2));
                         }
                     }
                 }
@@ -876,7 +877,7 @@ void ChContactSurfaceMesh::AddFacesFromBoundary(double sphere_swept,
                 std::shared_ptr<ChNodeFEAxyzD> nB = beam3243->GetNodeB();
 
                 double capsule_radius =
-                    0.5 * sqrt(pow(beam3243->GetThicknessY(), 2) + pow(beam3243->GetThicknessZ(), 2));
+                    0.5 * std::sqrt(std::pow(beam3243->GetThicknessY(), 2) + std::pow(beam3243->GetThicknessZ(), 2));
 
                 AddFace(nA, nB, nB,                 // vertices
                         nullptr, nullptr, nullptr,  // no wing vertexes
@@ -888,7 +889,7 @@ void ChContactSurfaceMesh::AddFacesFromBoundary(double sphere_swept,
                 std::shared_ptr<ChNodeFEAxyzD> nB = beam3333->GetNodeB();
 
                 double capsule_radius =
-                    0.5 * sqrt(pow(beam3333->GetThicknessY(), 2) + pow(beam3333->GetThicknessZ(), 2));
+                    0.5 * std::sqrt(std::pow(beam3333->GetThicknessY(), 2) + std::pow(beam3333->GetThicknessZ(), 2));
 
                 AddFace(nA, nB, nB,                 // vertices
                         nullptr, nullptr, nullptr,  // no wing vertexes
@@ -910,7 +911,7 @@ void ChContactSurfaceMesh::AddFacesFromBoundary(double sphere_swept,
                 if (auto mdrawshape = cableANCF->GetSection()->GetDrawShape()) {
                     double ymin, ymax, zmin, zmax;
                     mdrawshape->GetAABB(ymin, ymax, zmin, zmax);
-                    capsule_radius = 0.5 * sqrt(pow(ymax - ymin, 2) + pow(zmax - zmin, 2));
+                    capsule_radius = 0.5 * std::sqrt(std::pow(ymax - ymin, 2) + std::pow(zmax - zmin, 2));
                 }
 
                 AddFace(nA, nB, nB,                 // vertices

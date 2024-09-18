@@ -151,7 +151,7 @@ void ChTMeasyTire::Synchronize(double time, const ChTerrain& terrain) {
         double r_stat = m_unloaded_radius - m_data.depth;
         m_states.omega = wheel_state.omega;
         m_states.R_eff = (2.0 * m_unloaded_radius + r_stat) / 3.0;
-        m_states.P_len = 2.0 * sqrt(m_unloaded_radius * m_data.depth);
+        m_states.P_len = 2.0 * std::sqrt(m_unloaded_radius * m_data.depth);
         m_states.vta = m_states.R_eff * std::abs(m_states.omega) + m_vnum;
         m_states.vsx = m_data.vel.x() - m_states.omega * m_states.R_eff;
         m_states.vsy = m_data.vel.y();
@@ -224,8 +224,8 @@ void ChTMeasyTire::Advance(double step) {
         calpha = sx / sc;
         salpha = sy / sc;
     } else {
-        calpha = sqrt(2.0) / 2.0;
-        salpha = sqrt(2.0) / 2.0;
+        calpha = std::sqrt(2.0) / 2.0;
+        salpha = std::sqrt(2.0) / 2.0;
     }
 
     // Calculate resultant Curve Parameters
@@ -387,11 +387,11 @@ double ChTMeasyTire::AlignmentTorque(double fy) {
         if (sy_a <= synto0) {
             sy_n = sy_a / synto0;
             double nto1 = nto0 * (1.0 - sy_n);
-            double nto2 = nto0 * (1.0 - (3.0 - 2.0 * sy_n) * pow(sy_n, 2));
+            double nto2 = nto0 * (1.0 - (3.0 - 2.0 * sy_n) * std::pow(sy_n, 2));
             nto = (1.0 - wf) * nto1 + wf * nto2;
         } else {
             sy_n = (syntoE_loc - sy_a) / (syntoE_loc - synto0);
-            nto = -nto0 * (1.0 - wf) * (sy_a - synto0) / synto0 * pow(sy_n, 2);
+            nto = -nto0 * (1.0 - wf) * (sy_a - synto0) / synto0 * std::pow(sy_n, 2);
         }
     }
     return -fy * m_states.P_len * nto;
@@ -495,11 +495,11 @@ void ChTMeasyTire::GuessTruck80Par(double tireLoad,       // tire load force [N]
     double secth = tireWidth * ratio;  // tire section height
     double defl_max = 0.16 * secth;    // deflection at tire payload
 
-    m_par.pn = 0.5 * tireLoad * pow(pinfl_use / pinfl_li, 0.8);
+    m_par.pn = 0.5 * tireLoad * std::pow(pinfl_use / pinfl_li, 0.8);
     m_par.pn_max = 3.5 * m_par.pn;
 
     double CZ = tireLoad / defl_max;
-    double DZ = 2.0 * damping_ratio * sqrt(CZ * GetTireMass());
+    double DZ = 2.0 * damping_ratio * std::sqrt(CZ * GetTireMass());
 
     SetVerticalStiffness(CZ);
 
@@ -566,7 +566,7 @@ void ChTMeasyTire::GuessPassCar70Par(double tireLoad,       // tire load force [
     double secth = tireWidth * ratio;  // tire section height
     double defl_max = 0.16 * secth;    // deflection at tire payload
 
-    m_par.pn = 0.5 * tireLoad * pow(pinfl_use / pinfl_li, 0.8);
+    m_par.pn = 0.5 * tireLoad * std::pow(pinfl_use / pinfl_li, 0.8);
     m_par.pn_max = 3.5 * m_par.pn;
 
     m_width = tireWidth;
@@ -574,7 +574,7 @@ void ChTMeasyTire::GuessPassCar70Par(double tireLoad,       // tire load force [
     m_par.mu_0 = 0.8;
 
     double CZ = tireLoad / defl_max;
-    double DZ = 2.0 * damping_ratio * sqrt(CZ * GetTireMass());
+    double DZ = 2.0 * damping_ratio * std::sqrt(CZ * GetTireMass());
 
     SetVerticalStiffness(CZ);
 
