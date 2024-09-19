@@ -36,26 +36,12 @@ namespace fsi {
 /// system to the MBD system, and ii) displacement from the MBD system to the fluid dynamics system.
 class ChBce : public ChFsiBase {
   public:
-    /// Modified velocity information for BCE particles.
-    thrust::device_vector<Real3> velMas_ModifiedBCE;
-
-    /// Modified density, pressure information for BCE particles.
-    thrust::device_vector<Real4> rhoPreMu_ModifiedBCE;
-
-    /// Modified stress tensor for BCE particles, diagonal entries.
-    thrust::device_vector<Real3> tauXxYyZz_ModifiedBCE;
-
-    /// Modified stress tensor for BCE particles， non-diagonal entries.
-    thrust::device_vector<Real3> tauXyXzYz_ModifiedBCE;
-
-    /// Constructor of the ChBce class
     ChBce(FsiDataManager& data_mgr,                ///< FSI data
           std::shared_ptr<SimParams> paramsH,      ///< simulation parameters
           std::shared_ptr<ChCounters> numObjects,  ///< number of sph particles on each phase
           bool verbose                             ///< verbose terminal output
     );
 
-    /// Destructor of the ChBce class
     ~ChBce();
 
     /// Updates the position and velocity of the particles on the rigid bodies based on the state of the body.

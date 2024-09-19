@@ -615,13 +615,6 @@ void ChBce::Initialize(std::vector<int> fsiBodyBceNum) {
     int haveFlex1D = (numObjectsH->numFlexBodies1D > 0) ? 1 : 0;
     int haveFlex2D = (numObjectsH->numFlexBodies2D > 0) ? 1 : 0;
 
-    auto numAllBce = numObjectsH->numBoundaryMarkers + numObjectsH->numRigidMarkers +  //
-                     numObjectsH->numFlexMarkers1D + numObjectsH->numFlexMarkers2D;
-    velMas_ModifiedBCE.resize(numAllBce);
-    rhoPreMu_ModifiedBCE.resize(numAllBce);
-    tauXxYyZz_ModifiedBCE.resize(numAllBce);
-    tauXyXzYz_ModifiedBCE.resize(numAllBce);
-
     // Populate local position of BCE markers - on rigid bodies
     if (haveRigid) {
         Populate_RigidSPH_MeshPos_LRF(fsiBodyBceNum);
