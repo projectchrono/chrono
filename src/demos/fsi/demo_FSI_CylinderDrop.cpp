@@ -113,8 +113,8 @@ int main(int argc, char* argv[]) {
 
     // Set the periodic boundary condition (if not, set relative larger values)
     auto initSpace0 = sysFSI.GetInitialSpacing();
-    ChVector3d cMin(-bxDim / 2 * 1.2, -byDim / 2 * 1.2, -bzDim);
-    ChVector3d cMax( bxDim / 2 * 1.2,  byDim / 2 * 1.2,  bzDim);
+    ChVector3d cMin(-bxDim / 2 * 1.2, -byDim / 2 * 1.2, -0.5 * bzDim);
+    ChVector3d cMax( bxDim / 2 * 1.2,  byDim / 2 * 1.2,  1.3 * bzDim);
     sysFSI.SetBoundaries(cMin, cMax);
 
     // Create SPH particle locations using a regular grid sampler
