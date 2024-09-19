@@ -170,38 +170,35 @@ int main(int argc, char* argv[]) {
 
     // Create oputput directories
     std::string out_dir = GetChronoOutputPath() + "FSI_Flexible_Cable" + std::to_string(ps_freq);
+    if (!filesystem::create_directory(filesystem::path(out_dir))) {
+        cerr << "Error creating directory " << out_dir << endl;
+        return 1;
+    }
+    out_dir = out_dir + "/" + sysFSI.GetPhysicsProblemString() + "_" + sysFSI.GetSphMethodTypeString();
+    if (!filesystem::create_directory(filesystem::path(out_dir))) {
+        cerr << "Error creating directory " << out_dir << endl;
+        return 1;
+    }
 
-    if (output || snapshots) {
-        if (!filesystem::create_directory(filesystem::path(out_dir))) {
-            cerr << "Error creating directory " << out_dir << endl;
+    if (output) {
+        if (!filesystem::create_directory(filesystem::path(out_dir + "/particles"))) {
+            cerr << "Error creating directory " << out_dir + "/particles" << endl;
             return 1;
         }
-        out_dir = out_dir + "/" + sysFSI.GetPhysicsProblemString() + "_" + sysFSI.GetSphMethodTypeString();
-        if (!filesystem::create_directory(filesystem::path(out_dir))) {
-            cerr << "Error creating directory " << out_dir << endl;
+        if (!filesystem::create_directory(filesystem::path(out_dir + "/fsi"))) {
+            cerr << "Error creating directory " << out_dir + "/fsi" << endl;
             return 1;
         }
-
-        if (output) {
-            if (!filesystem::create_directory(filesystem::path(out_dir + "/particles"))) {
-                cerr << "Error creating directory " << out_dir + "/particles" << endl;
-                return 1;
-            }
-            if (!filesystem::create_directory(filesystem::path(out_dir + "/fsi"))) {
-                cerr << "Error creating directory " << out_dir + "/fsi" << endl;
-                return 1;
-            }
-            if (!filesystem::create_directory(filesystem::path(out_dir + "/vtk"))) {
-                cerr << "Error creating directory " << out_dir + "/vtk" << endl;
-                return 1;
-            }
+        if (!filesystem::create_directory(filesystem::path(out_dir + "/vtk"))) {
+            cerr << "Error creating directory " << out_dir + "/vtk" << endl;
+            return 1;
         }
+    }
 
-        if (snapshots) {
-            if (!filesystem::create_directory(filesystem::path(out_dir + "/snapshots"))) {
-                cerr << "Error creating directory " << out_dir + "/snapshots" << endl;
-                return 1;
-            }
+    if (snapshots) {
+        if (!filesystem::create_directory(filesystem::path(out_dir + "/snapshots"))) {
+            cerr << "Error creating directory " << out_dir + "/snapshots" << endl;
+            return 1;
         }
     }
 
@@ -278,18 +275,11 @@ int main(int argc, char* argv[]) {
               << node->GetPos().z() << std::endl;
     ChVector3d init_pos = node->GetPos();
 
-    // Record Top node displacement
-    ChFunctionInterp displacement_recorder;
-    double displacement = 0;
+    std::string out_file = out_dir + "/results.txt";
+    std::ofstream ofile(out_file, std::ios::trunc);
+
     ChTimer timer;
     timer.start();
-
-    std::string out_file = out_dir + "/results.txt";
-    std::ofstream ofile;
-    if (output) {
-        ofile.open(out_file, std::ios::trunc);
-    }
-
     while (time < t_end) {
         if (verbose)
             cout << sim_frame << " time: " << time << endl;
@@ -324,15 +314,10 @@ int main(int argc, char* argv[]) {
 
             render_frame++;
         }
+
         ChVector3d pos = node->GetPos();
-        displacement =
-            sqrt(pow(pos.x() - init_pos.x(), 2) + pow(pos.y() - init_pos.y(), 2) + pow(pos.z() - init_pos.z(), 2));
-
-        displacement_recorder.AddPoint(time, displacement);
-
-        if (output) {
-            ofile << time << "\t" << pos.x() << "\t" << pos.y() << "\t" << pos.z() << "\n";
-        }
+        double displacement = (pos - init_pos).Length();
+        ofile << time << "\t" << pos.x() << "\t" << pos.y() << "\t" << pos.z() << "\t" << displacement << "\n";
 
         sysFSI.DoStepDynamics_FSI();
 
@@ -342,7 +327,7 @@ int main(int argc, char* argv[]) {
     timer.stop();
     cout << "\nSimulation time: " << timer() << " seconds\n" << endl;
 
-    return 0;
+    ofile.close();
 
 #ifdef CHRONO_POSTPROCESS
     postprocess::ChGnuPlot gplot(out_dir + "/height.gpl");
@@ -351,8 +336,10 @@ int main(int argc, char* argv[]) {
     gplot.SetTitle(speed_title);
     gplot.SetLabelX("time (s)");
     gplot.SetLabelY("displacement (m)");
-    gplot.Plot(displacement_recorder, "", " with lines lt -1 lw 2 lc rgb'#3333BB' ");
+    gplot.Plot(out_file, 1, 5, "", " with lines lt -1 lw 2 lc rgb'#3333BB' ");
 #endif
+
+    return 0;
 }
 
 // -----------------------------------------------------------------------------

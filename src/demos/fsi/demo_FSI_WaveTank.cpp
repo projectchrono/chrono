@@ -216,37 +216,36 @@ int main(int argc, char* argv[]) {
 
     // Output directories
     std::string out_dir = GetChronoOutputPath() + "FSI_Wave_Tank" + std::to_string(ps_freq);
-    if (output || snapshots) {
-        if (!filesystem::create_directory(filesystem::path(out_dir))) {
-            cerr << "Error creating directory " << out_dir << endl;
+
+    if (!filesystem::create_directory(filesystem::path(out_dir))) {
+        cerr << "Error creating directory " << out_dir << endl;
+        return 1;
+    }
+    out_dir = out_dir + "/" + sysFSI.GetPhysicsProblemString() + "_" + sysFSI.GetSphMethodTypeString();
+    if (!filesystem::create_directory(filesystem::path(out_dir))) {
+        cerr << "Error creating directory " << out_dir << endl;
+        return 1;
+    }
+
+    if (output) {
+        if (!filesystem::create_directory(filesystem::path(out_dir + "/particles"))) {
+            cerr << "Error creating directory " << out_dir + "/particles" << endl;
             return 1;
         }
-        out_dir = out_dir + "/" + sysFSI.GetPhysicsProblemString() + "_" + sysFSI.GetSphMethodTypeString();
-        if (!filesystem::create_directory(filesystem::path(out_dir))) {
-            cerr << "Error creating directory " << out_dir << endl;
+        if (!filesystem::create_directory(filesystem::path(out_dir + "/fsi"))) {
+            cerr << "Error creating directory " << out_dir + "/fsi" << endl;
             return 1;
         }
-
-        if (output) {
-            if (!filesystem::create_directory(filesystem::path(out_dir + "/particles"))) {
-                cerr << "Error creating directory " << out_dir + "/particles" << endl;
-                return 1;
-            }
-            if (!filesystem::create_directory(filesystem::path(out_dir + "/fsi"))) {
-                cerr << "Error creating directory " << out_dir + "/fsi" << endl;
-                return 1;
-            }
-            if (!filesystem::create_directory(filesystem::path(out_dir + "/vtk"))) {
-                cerr << "Error creating directory " << out_dir + "/vtk" << endl;
-                return 1;
-            }
+        if (!filesystem::create_directory(filesystem::path(out_dir + "/vtk"))) {
+            cerr << "Error creating directory " << out_dir + "/vtk" << endl;
+            return 1;
         }
+    }
 
-        if (snapshots) {
-            if (!filesystem::create_directory(filesystem::path(out_dir + "/snapshots"))) {
-                cerr << "Error creating directory " << out_dir + "/snapshots" << endl;
-                return 1;
-            }
+    if (snapshots) {
+        if (!filesystem::create_directory(filesystem::path(out_dir + "/snapshots"))) {
+            cerr << "Error creating directory " << out_dir + "/snapshots" << endl;
+            return 1;
         }
     }
 
@@ -300,9 +299,7 @@ int main(int argc, char* argv[]) {
 
     // Write results to a txt file
     std::string out_file = out_dir + "/results.txt";
-    std::ofstream ofile;
-    if (output)
-        ofile.open(out_file, std::ios::trunc);
+    std::ofstream ofile(out_file, std::ios::trunc);
 
     // Start the simulation
     double time = 0.0;
@@ -315,8 +312,7 @@ int main(int argc, char* argv[]) {
     while (time < t_end) {
         // Extract FSI force on piston body
         auto force_body = fsi.GetFsiBodyForce(body).x();
-        if (output)
-            ofile << time << "\t" << force_body << "\n";
+        ofile << time << "\t" << force_body << "\n";
 
         if (output && time >= out_frame / output_fps) {
             if (verbose)
@@ -353,8 +349,7 @@ int main(int argc, char* argv[]) {
     std::cout << "End Time: " << t_end << std::endl;
     cout << "\nSimulation time: " << timer() << " seconds\n" << endl;
 
-    if (output)
-        ofile.close();
+    ofile.close();
 
 #ifdef CHRONO_POSTPROCESS
     postprocess::ChGnuPlot gplot(out_dir + "/results.gpl");

@@ -172,29 +172,27 @@ int main(int argc, char* argv[]) {
     // Output directories
     std::string out_dir = GetChronoOutputPath() + "FSI_Dam_Break" + std::to_string(ps_freq);
 
-    if (output || snapshots) {
-        if (!filesystem::create_directory(filesystem::path(out_dir))) {
-            std::cerr << "Error creating directory " << out_dir << std::endl;
+    if (!filesystem::create_directory(filesystem::path(out_dir))) {
+        std::cerr << "Error creating directory " << out_dir << std::endl;
+        return 1;
+    }
+    out_dir = out_dir + "/" + sysFSI.GetPhysicsProblemString() + "_" + sysFSI.GetSphMethodTypeString();
+
+    if (!filesystem::create_directory(filesystem::path(out_dir))) {
+        std::cerr << "Error creating directory " << out_dir << std::endl;
+        return 1;
+    }
+
+    if (output) {
+        if (!filesystem::create_directory(filesystem::path(out_dir + "/particles"))) {
+            std::cerr << "Error creating directory " << out_dir + "/particles" << std::endl;
             return 1;
         }
-        out_dir = out_dir + "/" + sysFSI.GetPhysicsProblemString() + "_" + sysFSI.GetSphMethodTypeString();
-
-        if (!filesystem::create_directory(filesystem::path(out_dir))) {
-            std::cerr << "Error creating directory " << out_dir << std::endl;
+    }
+    if (snapshots) {
+        if (!filesystem::create_directory(filesystem::path(out_dir + "/snapshots"))) {
+            std::cerr << "Error creating directory " << out_dir + "/snapshots" << std::endl;
             return 1;
-        }
-
-        if (output) {
-            if (!filesystem::create_directory(filesystem::path(out_dir + "/particles"))) {
-                std::cerr << "Error creating directory " << out_dir + "/particles" << std::endl;
-                return 1;
-            }
-        }
-        if (snapshots) {
-            if (!filesystem::create_directory(filesystem::path(out_dir + "/snapshots"))) {
-                std::cerr << "Error creating directory " << out_dir + "/snapshots" << std::endl;
-                return 1;
-            }
         }
     }
 
@@ -260,6 +258,7 @@ int main(int argc, char* argv[]) {
         if (render && time >= render_frame / render_fps) {
             if (!visFSI->Render())
                 break;
+
             if (snapshots) {
                 if (verbose)
                     std::cout << " -- Snapshot frame " << render_frame << " at t = " << time << std::endl;
@@ -268,6 +267,7 @@ int main(int argc, char* argv[]) {
                          << ".bmp";
                 visFSI->GetVisualSystem()->WriteImageToFile(filename.str());
             }
+
             render_frame++;
         }
 

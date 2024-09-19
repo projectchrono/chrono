@@ -253,21 +253,27 @@ int main(int argc, char* argv[]) {
         cerr << "Error creating directory " << out_dir << endl;
         return 1;
     }
-    if (!filesystem::create_directory(filesystem::path(out_dir + "/particles"))) {
-        cerr << "Error creating directory " << out_dir + "/particles" << endl;
-        return 1;
+
+    if (output) {
+        if (!filesystem::create_directory(filesystem::path(out_dir + "/particles"))) {
+            cerr << "Error creating directory " << out_dir + "/particles" << endl;
+            return 1;
+        }
+        if (!filesystem::create_directory(filesystem::path(out_dir + "/fsi"))) {
+            cerr << "Error creating directory " << out_dir + "/fsi" << endl;
+            return 1;
+        }
+        if (!filesystem::create_directory(filesystem::path(out_dir + "/vtk"))) {
+            cerr << "Error creating directory " << out_dir + "/vtk" << endl;
+            return 1;
+        }
     }
-    if (!filesystem::create_directory(filesystem::path(out_dir + "/fsi"))) {
-        cerr << "Error creating directory " << out_dir + "/fsi" << endl;
-        return 1;
-    }
-    if (!filesystem::create_directory(filesystem::path(out_dir + "/vtk"))) {
-        cerr << "Error creating directory " << out_dir + "/vtk" << endl;
-        return 1;
-    }
-    if (!filesystem::create_directory(filesystem::path(out_dir + "/snapshots"))) {
-        cerr << "Error creating directory " << out_dir + "/snapshots" << endl;
-        return 1;
+
+    if (snapshots) {
+        if (!filesystem::create_directory(filesystem::path(out_dir + "/snapshots"))) {
+            cerr << "Error creating directory " << out_dir + "/snapshots" << endl;
+            return 1;
+        }
     }
 
     // Create a run-tme visualizer
@@ -322,8 +328,7 @@ int main(int argc, char* argv[]) {
 
     // Write the information into a txt file
     std::string out_file = out_dir + "/results.txt";
-    std::ofstream ofile;
-    ofile.open(out_file, std::ios::trunc);
+    std::ofstream ofile(out_file, std::ios::trunc);
 
     // Start the simulation
     double time = 0.0;

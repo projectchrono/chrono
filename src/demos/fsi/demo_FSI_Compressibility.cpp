@@ -141,9 +141,12 @@ int main(int argc, char* argv[]) {
         std::cerr << "Error creating directory " << out_dir << std::endl;
         return 1;
     }
-    if (!filesystem::create_directory(filesystem::path(out_dir + "/particles"))) {
-        std::cerr << "Error creating directory " << out_dir + "/particles" << std::endl;
-        return 1;
+
+    if (output) {
+        if (!filesystem::create_directory(filesystem::path(out_dir + "/particles"))) {
+            std::cerr << "Error creating directory " << out_dir + "/particles" << std::endl;
+            return 1;
+        }
     }
 
     // Create a run-tme visualizer

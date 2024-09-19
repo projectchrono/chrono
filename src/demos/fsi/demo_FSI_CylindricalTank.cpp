@@ -187,21 +187,27 @@ int main(int argc, char* argv[]) {
         cerr << "Error creating directory " << out_dir << endl;
         return 1;
     }
-    if (!filesystem::create_directory(filesystem::path(out_dir + "/particles"))) {
-        cerr << "Error creating directory " << out_dir + "/particles" << endl;
-        return 1;
+
+    if (output) {
+        if (!filesystem::create_directory(filesystem::path(out_dir + "/particles"))) {
+            cerr << "Error creating directory " << out_dir + "/particles" << endl;
+            return 1;
+        }
+        if (!filesystem::create_directory(filesystem::path(out_dir + "/fsi"))) {
+            cerr << "Error creating directory " << out_dir + "/fsi" << endl;
+            return 1;
+        }
+        if (!filesystem::create_directory(filesystem::path(out_dir + "/vtk"))) {
+            cerr << "Error creating directory " << out_dir + "/vtk" << endl;
+            return 1;
+        }
     }
-    if (!filesystem::create_directory(filesystem::path(out_dir + "/fsi"))) {
-        cerr << "Error creating directory " << out_dir + "/fsi" << endl;
-        return 1;
-    }
-    if (!filesystem::create_directory(filesystem::path(out_dir + "/vtk"))) {
-        cerr << "Error creating directory " << out_dir + "/vtk" << endl;
-        return 1;
-    }
-    if (!filesystem::create_directory(filesystem::path(out_dir + "/snapshots"))) {
-        cerr << "Error creating directory " << out_dir + "/snapshots" << endl;
-        return 1;
+
+    if (snapshots) {
+        if (!filesystem::create_directory(filesystem::path(out_dir + "/snapshots"))) {
+            cerr << "Error creating directory " << out_dir + "/snapshots" << endl;
+            return 1;
+        }
     }
 
     ////fsi.SaveInitialMarkers(out_dir);
@@ -254,18 +260,21 @@ int main(int argc, char* argv[]) {
         visFSI->Initialize();
     }
 
-    // Record sphere height
-    ChFunctionInterp height_recorder;
-
     // Start the simulation
     double time = 0.0;
     int sim_frame = 0;
     int out_frame = 0;
     int render_frame = 0;
 
+    std::string out_file = out_dir + "/results.txt";
+    std::ofstream ofile(out_file, std::ios::trunc);
+
     ChTimer timer;
     timer.start();
     while (time < t_end) {
+        auto body_height = body->GetPos().z();
+        ofile << time << "\t" << body_height << "\n";
+
         if (output && time >= out_frame / output_fps) {
             if (verbose)
                 cout << " -- Output frame " << out_frame << " at t = " << time << endl;
@@ -291,12 +300,6 @@ int main(int argc, char* argv[]) {
             render_frame++;
         }
 
-        auto body_height = body->GetPos().z();
-        height_recorder.AddPoint(time, body_height);
-
-        ////cout << "step: " << sim_frame << "\ttime: " << time << "\tRTF: " << sysFSI.GetRTF()
-        ////     << "\tbody z: " << body_height << endl;
-
         // Call the FSI solver
         sysFSI.DoStepDynamics_FSI();
 
@@ -306,6 +309,8 @@ int main(int argc, char* argv[]) {
     timer.stop();
     cout << "\nSimulation time: " << timer() << " seconds\n" << endl;
 
+    ofile.close();
+
 #ifdef CHRONO_POSTPROCESS
     postprocess::ChGnuPlot gplot(out_dir + "/height.gpl");
     gplot.SetGrid();
@@ -313,7 +318,7 @@ int main(int argc, char* argv[]) {
     gplot.SetTitle(speed_title);
     gplot.SetLabelX("time (s)");
     gplot.SetLabelY("height (m)");
-    gplot.Plot(height_recorder, "", " with lines lt -1 lw 2 lc rgb'#3333BB' ");
+    gplot.Plot(out_file, 1, 2, "", " with lines lt -1 lw 2 lc rgb'#3333BB' ");
 #endif
 
     return 0;
