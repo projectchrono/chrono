@@ -596,8 +596,8 @@ void ChFsiProblemCartesian::Construct(const std::string& heightmap_file,
     double dy = width / (ny - 1);
 
     // Create a matrix with gray levels (g = 0x0000 is black, g = 0xffff is white)
-    unsigned short g_min = +std::numeric_limits<unsigned short>::max();
-    unsigned short g_max = -std::numeric_limits<unsigned short>::max();
+    unsigned short g_min = std::numeric_limits<unsigned short>::max();
+    unsigned short g_max = 0;
     ChMatrixDynamic<unsigned short> gmap(nx + 1, ny + 1);
     for (int ix = 0; ix <= nx; ix++) {
         for (int iy = 0; iy <= ny; iy++) {

@@ -24,22 +24,17 @@
 namespace chrono {
 namespace fsi {
 
-ChFsiForce::ChFsiForce(std::shared_ptr<ChBce> otherBceWorker,
-                       std::shared_ptr<SphMarkerDataD> otherSortedSphMarkersD,
-                       std::shared_ptr<ProximityDataD> otherMarkersProximityD,
-                       std::shared_ptr<FsiData> otherFsiData,
+ChFsiForce::ChFsiForce(FsiDataManager& data_mgr,
+                       std::shared_ptr<ChBce> otherBceWorker,
                        std::shared_ptr<SimParams> params,
                        std::shared_ptr<ChCounters> numObjects,
                        bool verb)
     : ChFsiBase(params, numObjects),
+      m_data_mgr(data_mgr),
       bceWorker(otherBceWorker),
-      sortedSphMarkers_D(otherSortedSphMarkersD),
-      markersProximity_D(otherMarkersProximityD),
-      fsiData(otherFsiData),
-      verbose(verb) {
-    fsiCollisionSystem = chrono_types::make_shared<ChCollisionSystemFsi>(
-        otherSortedSphMarkersD, otherMarkersProximityD, otherFsiData, paramsH, numObjectsH);
-    sphMarkersD = NULL;
+      verbose(verb),
+      sortedSphMarkers_D(nullptr) {
+    fsiCollisionSystem = chrono_types::make_shared<ChCollisionSystemFsi>(data_mgr, paramsH, numObjectsH);
 }
 
 void ChFsiForce::Initialize() {

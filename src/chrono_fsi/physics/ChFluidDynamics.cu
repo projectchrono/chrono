@@ -581,20 +581,19 @@ __global__ void CopySortedToOriginal_D(const Real4* sortedPosRad,
 // -----------------------------------------------------------------------------
 // CLASS FOR FLUID DYNAMICS SYSTEM
 // -----------------------------------------------------------------------------
-ChFluidDynamics::ChFluidDynamics(std::shared_ptr<ChBce> otherBceWorker,
-                                 ChSystemFsi_impl& otherFsiSystem,
+ChFluidDynamics::ChFluidDynamics(FsiDataManager& data_mgr,
+                                 std::shared_ptr<ChBce> otherBceWorker,
                                  std::shared_ptr<SimParams> otherParamsH,
                                  std::shared_ptr<ChCounters> otherNumObjects,
                                  bool verb)
-    : ChFsiBase(otherParamsH, otherNumObjects), fsiSystem(otherFsiSystem), verbose(verb) {
+    : ChFsiBase(otherParamsH, otherNumObjects), m_data_mgr(data_mgr), verbose(verb) {
     switch (paramsH->sph_method) {
         default:
             cout << "Selected integrator type not implemented, reverting to WCSPH" << endl;
 
         case SPHMethod::WCSPH:
-            forceSystem = chrono_types::make_shared<ChFsiForceExplicitSPH>(
-                otherBceWorker, fsiSystem.sortedSphMarkers2_D, fsiSystem.markersProximity_D, fsiSystem.fsiData, paramsH,
-                numObjectsH, verb);
+            forceSystem = chrono_types::make_shared<ChFsiForceExplicitSPH>(  //
+                m_data_mgr, otherBceWorker, paramsH, numObjectsH, verb);
             if (verbose) {
                 cout << "====== Created a WCSPH framework" << endl;
             }
@@ -602,9 +601,8 @@ ChFluidDynamics::ChFluidDynamics(std::shared_ptr<ChBce> otherBceWorker,
             break;
 
         case SPHMethod::I2SPH:
-            forceSystem = chrono_types::make_shared<ChFsiForceI2SPH>(otherBceWorker, fsiSystem.sortedSphMarkers2_D,
-                                                                     fsiSystem.markersProximity_D, fsiSystem.fsiData,
-                                                                     paramsH, numObjectsH, verb);
+            forceSystem = chrono_types::make_shared<ChFsiForceI2SPH>(  //
+                m_data_mgr, otherBceWorker, paramsH, numObjectsH, verb);
             if (verbose) {
                 cout << "====== Created an I2SPH framework" << endl;
             }
@@ -626,7 +624,7 @@ void ChFluidDynamics::Initialize() {
 
 // -----------------------------------------------------------------------------
 void ChFluidDynamics::SortParticles() {
-    forceSystem->fsiCollisionSystem->ArrangeData(fsiSystem.sphMarkers_D);
+    forceSystem->fsiCollisionSystem->ArrangeData(m_data_mgr.sphMarkers_D);
 }
 
 // -----------------------------------------------------------------------------
@@ -675,7 +673,7 @@ void ChFluidDynamics::UpdateActivity(std::shared_ptr<SphMarkerDataD> sortedSphMa
     UpdateActivityD<<<numBlocks, numThreads>>>(
         mR4CAST(sortedSphMarkers2_D->posRadD), mR3CAST(sortedSphMarkers1_D->velMasD), mR3CAST(fsiBodyState_D->pos),
         mR3CAST(fsiMesh1DState_D->pos_fsi_fea_D), mR3CAST(fsiMesh2DState_D->pos_fsi_fea_D),
-        U1CAST(fsiSystem.fsiData->activityIdentifierD), U1CAST(fsiSystem.fsiData->extendedActivityIdD), updatePortion,
+        U1CAST(m_data_mgr.activityIdentifierD), U1CAST(m_data_mgr.extendedActivityIdD), updatePortion,
         time, isErrorD);
     cudaDeviceSynchronize();
     cudaCheckError();
@@ -705,10 +703,9 @@ void ChFluidDynamics::UpdateFluid(std::shared_ptr<SphMarkerDataD> sortedSphMarke
     UpdateFluidD<<<numBlocks, numThreads>>>(
         mR4CAST(sortedSphMarkersD->posRadD), mR3CAST(sortedSphMarkersD->velMasD),
         mR4CAST(sortedSphMarkersD->rhoPresMuD), mR3CAST(sortedSphMarkersD->tauXxYyZzD),
-        mR3CAST(sortedSphMarkersD->tauXyXzYzD), mR3CAST(fsiSystem.fsiData->vel_XSPH_D),
-        mR4CAST(fsiSystem.fsiData->derivVelRhoD), mR3CAST(fsiSystem.fsiData->derivTauXxYyZzD),
-        mR3CAST(fsiSystem.fsiData->derivTauXyXzYzD), mR4CAST(fsiSystem.fsiData->sr_tau_I_mu_i),
-        U1CAST(fsiSystem.fsiData->activityIdentifierD), U1CAST(fsiSystem.fsiData->freeSurfaceIdD), updatePortion, dT,
+        mR3CAST(sortedSphMarkersD->tauXyXzYzD), mR3CAST(m_data_mgr.vel_XSPH_D), mR4CAST(m_data_mgr.derivVelRhoD),
+        mR3CAST(m_data_mgr.derivTauXxYyZzD), mR3CAST(m_data_mgr.derivTauXyXzYzD), mR4CAST(m_data_mgr.sr_tau_I_mu_i),
+        U1CAST(m_data_mgr.activityIdentifierD), U1CAST(m_data_mgr.freeSurfaceIdD), updatePortion, dT,
         isErrorD);
     cudaDeviceSynchronize();
     cudaCheckError();
@@ -737,12 +734,11 @@ void ChFluidDynamics::CopySortedToOriginal(std::shared_ptr<SphMarkerDataD> sorte
     CopySortedToOriginal_D<<<numBlocks, numThreads>>>(
         mR4CAST(sortedSphMarkersD->posRadD), mR3CAST(sortedSphMarkersD->velMasD),
         mR4CAST(sortedSphMarkersD->rhoPresMuD), mR3CAST(sortedSphMarkersD->tauXxYyZzD),
-        mR3CAST(sortedSphMarkersD->tauXyXzYzD), mR4CAST(fsiSystem.fsiData->derivVelRhoD),
-        mR4CAST(fsiSystem.fsiData->sr_tau_I_mu_i), mR4CAST(sphMarkersD->posRadD), mR3CAST(sphMarkersD->velMasD),
-        mR4CAST(sphMarkersD->rhoPresMuD), mR3CAST(sphMarkersD->tauXxYyZzD), mR3CAST(sphMarkersD->tauXyXzYzD),
-        mR4CAST(fsiSystem.fsiData->derivVelRhoOriginalD), mR4CAST(fsiSystem.fsiData->sr_tau_I_mu_i_Original),
-        U1CAST(fsiSystem.markersProximity_D->gridMarkerIndexD), U1CAST(fsiSystem.fsiData->activityIdentifierD),
-        isErrorD);
+        mR3CAST(sortedSphMarkersD->tauXyXzYzD), mR4CAST(m_data_mgr.derivVelRhoD), mR4CAST(m_data_mgr.sr_tau_I_mu_i),
+        mR4CAST(sphMarkersD->posRadD), mR3CAST(sphMarkersD->velMasD), mR4CAST(sphMarkersD->rhoPresMuD),
+        mR3CAST(sphMarkersD->tauXxYyZzD), mR3CAST(sphMarkersD->tauXyXzYzD), mR4CAST(m_data_mgr.derivVelRhoOriginalD),
+        mR4CAST(m_data_mgr.sr_tau_I_mu_i_Original), U1CAST(m_data_mgr.markersProximity_D->gridMarkerIndexD),
+        U1CAST(m_data_mgr.activityIdentifierD), isErrorD);
     cudaDeviceSynchronize();
     cudaCheckError();
 
@@ -761,19 +757,19 @@ void ChFluidDynamics::ApplyBoundarySPH_Markers(std::shared_ptr<SphMarkerDataD> s
     computeGridSize((int)numObjectsH->numAllMarkers, 256, numBlocks, numThreads);
     ApplyPeriodicBoundaryXKernel<<<numBlocks, numThreads>>>(mR4CAST(sortedSphMarkersD->posRadD),
                                                             mR4CAST(sortedSphMarkersD->rhoPresMuD),
-                                                            U1CAST(fsiSystem.fsiData->activityIdentifierD));
+                                                            U1CAST(m_data_mgr.activityIdentifierD));
     cudaDeviceSynchronize();
     cudaCheckError();
 
     ApplyPeriodicBoundaryYKernel<<<numBlocks, numThreads>>>(mR4CAST(sortedSphMarkersD->posRadD),
                                                             mR4CAST(sortedSphMarkersD->rhoPresMuD),
-                                                            U1CAST(fsiSystem.fsiData->activityIdentifierD));
+                                                            U1CAST(m_data_mgr.activityIdentifierD));
     cudaDeviceSynchronize();
     cudaCheckError();
 
     ApplyPeriodicBoundaryZKernel<<<numBlocks, numThreads>>>(mR4CAST(sortedSphMarkersD->posRadD),
                                                             mR4CAST(sortedSphMarkersD->rhoPresMuD),
-                                                            U1CAST(fsiSystem.fsiData->activityIdentifierD));
+                                                            U1CAST(m_data_mgr.activityIdentifierD));
     cudaDeviceSynchronize();
     cudaCheckError();
 
@@ -797,15 +793,13 @@ void ChFluidDynamics::ApplyModifiedBoundarySPH_Markers(std::shared_ptr<SphMarker
     cudaCheckError();
 
     // these are useful anyway for out of bound particles
-    ApplyPeriodicBoundaryYKernel<<<numBlocks, numThreads>>>(mR4CAST(sphMarkersD->posRadD),
-                                                            mR4CAST(sphMarkersD->rhoPresMuD),
-                                                            U1CAST(fsiSystem.fsiData->activityIdentifierD));
+    ApplyPeriodicBoundaryYKernel<<<numBlocks, numThreads>>>(
+        mR4CAST(sphMarkersD->posRadD), mR4CAST(sphMarkersD->rhoPresMuD), U1CAST(m_data_mgr.activityIdentifierD));
     cudaDeviceSynchronize();
     cudaCheckError();
 
-    ApplyPeriodicBoundaryZKernel<<<numBlocks, numThreads>>>(mR4CAST(sphMarkersD->posRadD),
-                                                            mR4CAST(sphMarkersD->rhoPresMuD),
-                                                            U1CAST(fsiSystem.fsiData->activityIdentifierD));
+    ApplyPeriodicBoundaryZKernel<<<numBlocks, numThreads>>>(
+        mR4CAST(sphMarkersD->posRadD), mR4CAST(sphMarkersD->rhoPresMuD), U1CAST(m_data_mgr.activityIdentifierD));
     cudaDeviceSynchronize();
     cudaCheckError();
 }
@@ -819,15 +813,15 @@ void ChFluidDynamics::DensityReinitialization() {
     thrust::fill(dummySortedRhoPreMu.begin(), dummySortedRhoPreMu.end(), mR4(0.0));
 
     ReCalcDensityD_F1<<<numBlocks, numThreads>>>(
-        mR4CAST(dummySortedRhoPreMu), mR4CAST(fsiSystem.sortedSphMarkers1_D->posRadD),
-        mR3CAST(fsiSystem.sortedSphMarkers1_D->velMasD), mR4CAST(fsiSystem.sortedSphMarkers1_D->rhoPresMuD),
-        U1CAST(fsiSystem.markersProximity_D->gridMarkerIndexD), U1CAST(fsiSystem.markersProximity_D->cellStartD),
-        U1CAST(fsiSystem.markersProximity_D->cellEndD));
+        mR4CAST(dummySortedRhoPreMu), mR4CAST(m_data_mgr.sortedSphMarkers1_D->posRadD),
+        mR3CAST(m_data_mgr.sortedSphMarkers1_D->velMasD), mR4CAST(m_data_mgr.sortedSphMarkers1_D->rhoPresMuD),
+        U1CAST(m_data_mgr.markersProximity_D->gridMarkerIndexD), U1CAST(m_data_mgr.markersProximity_D->cellStartD),
+        U1CAST(m_data_mgr.markersProximity_D->cellEndD));
 
     cudaDeviceSynchronize();
     cudaCheckError();
-    ChFsiForce::CopySortedToOriginal_NonInvasive_R4(fsiSystem.sphMarkers_D->rhoPresMuD, dummySortedRhoPreMu,
-                                                    fsiSystem.markersProximity_D->gridMarkerIndexD);
+    ChFsiForce::CopySortedToOriginal_NonInvasive_R4(m_data_mgr.sphMarkers_D->rhoPresMuD, dummySortedRhoPreMu,
+                                                    m_data_mgr.markersProximity_D->gridMarkerIndexD);
     dummySortedRhoPreMu.clear();
 }
 

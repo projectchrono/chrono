@@ -200,15 +200,11 @@ __global__ void OriginalToSortedD(uint* mapOriginalToSorted, uint* gridMarkerInd
     mapOriginalToSorted[index] = id;
 }
 // ------------------------------------------------------------------------------
-ChCollisionSystemFsi::ChCollisionSystemFsi(std::shared_ptr<SphMarkerDataD> sortedSphMarkers_D,
-                                           std::shared_ptr<ProximityDataD> markersProximity_D,
-                                           std::shared_ptr<FsiData> fsiData,
+ChCollisionSystemFsi::ChCollisionSystemFsi(FsiDataManager& data_mgr,
                                            std::shared_ptr<SimParams> paramsH,
                                            std::shared_ptr<ChCounters> numObjects)
     : ChFsiBase(paramsH, numObjects),
-      m_sortedSphMarkersD(sortedSphMarkers_D),
-      m_markersProximityD(markersProximity_D),
-      m_fsiData(fsiData),
+      m_data_mgr(data_mgr),
       m_sphMarkersD(nullptr) {}
 
 ChCollisionSystemFsi::~ChCollisionSystemFsi() {}
@@ -229,18 +225,19 @@ void ChCollisionSystemFsi::ArrangeData(std::shared_ptr<SphMarkerDataD> sphMarker
     computeGridSize((uint)numObjectsH->numAllMarkers, 256, numBlocks, numThreads);
 
     // Reset cell size
-    m_markersProximityD->cellStartD.resize(numCells);
-    m_markersProximityD->cellEndD.resize(numCells);
+    m_data_mgr.markersProximity_D->cellStartD.resize(numCells);
+    m_data_mgr.markersProximity_D->cellEndD.resize(numCells);
 
     // =========================================================================================================
     // Calculate Hash
     // =========================================================================================================
-    if (!(m_markersProximityD->gridMarkerHashD.size() == numObjectsH->numAllMarkers &&
-          m_markersProximityD->gridMarkerIndexD.size() == numObjectsH->numAllMarkers)) {
+    if (!(m_data_mgr.markersProximity_D->gridMarkerHashD.size() == numObjectsH->numAllMarkers &&
+          m_data_mgr.markersProximity_D->gridMarkerIndexD.size() == numObjectsH->numAllMarkers)) {
         printf(
             "mError! calcHash!, gridMarkerHashD.size() %zu "
             "gridMarkerIndexD.size() %zu numObjectsH->numAllMarkers %zu \n",
-            m_markersProximityD->gridMarkerHashD.size(), m_markersProximityD->gridMarkerIndexD.size(),
+            m_data_mgr.markersProximity_D->gridMarkerHashD.size(),
+            m_data_mgr.markersProximity_D->gridMarkerIndexD.size(),
             numObjectsH->numAllMarkers);
         throw std::runtime_error("Error! size error, calcHash!");
     }
@@ -252,8 +249,9 @@ void ChCollisionSystemFsi::ArrangeData(std::shared_ptr<SphMarkerDataD> sphMarker
     cudaMemcpy(isErrorD, isErrorH, sizeof(bool), cudaMemcpyHostToDevice);
 
     // Execute Kernel
-    calcHashD<<<numBlocks, numThreads>>>(U1CAST(m_markersProximityD->gridMarkerHashD),
-                                         U1CAST(m_markersProximityD->gridMarkerIndexD), mR4CAST(m_sphMarkersD->posRadD),
+    calcHashD<<<numBlocks, numThreads>>>(U1CAST(m_data_mgr.markersProximity_D->gridMarkerHashD),
+                                         U1CAST(m_data_mgr.markersProximity_D->gridMarkerIndexD),
+                                         mR4CAST(m_sphMarkersD->posRadD),
                                          isErrorD);
 
     cudaMemcpy(isErrorH, isErrorD, sizeof(bool), cudaMemcpyDeviceToHost);
@@ -265,40 +263,43 @@ void ChCollisionSystemFsi::ArrangeData(std::shared_ptr<SphMarkerDataD> sphMarker
     // =========================================================================================================
     // Sort Particles based on Hash
     // =========================================================================================================
-    thrust::sort_by_key(m_markersProximityD->gridMarkerHashD.begin(), m_markersProximityD->gridMarkerHashD.end(),
-                        m_markersProximityD->gridMarkerIndexD.begin());
+    thrust::sort_by_key(m_data_mgr.markersProximity_D->gridMarkerHashD.begin(),
+                        m_data_mgr.markersProximity_D->gridMarkerHashD.end(),
+                        m_data_mgr.markersProximity_D->gridMarkerIndexD.begin());
 
     // =========================================================================================================
     // Find the start index and the end index of the sorted array in each cell
     // =========================================================================================================
     // Reset proximity cell data
-    if (!(m_markersProximityD->cellStartD.size() == numCells && m_markersProximityD->cellEndD.size() == numCells)) {
+    if (!(m_data_mgr.markersProximity_D->cellStartD.size() == numCells &&
+          m_data_mgr.markersProximity_D->cellEndD.size() == numCells)) {
         throw std::runtime_error("Error! size error, ArrangeData!\n");
     }
 
-    thrust::fill(m_markersProximityD->cellStartD.begin(), m_markersProximityD->cellStartD.end(), 0);
-    thrust::fill(m_markersProximityD->cellEndD.begin(), m_markersProximityD->cellEndD.end(), 0);
+    thrust::fill(m_data_mgr.markersProximity_D->cellStartD.begin(), m_data_mgr.markersProximity_D->cellStartD.end(), 0);
+    thrust::fill(m_data_mgr.markersProximity_D->cellEndD.begin(), m_data_mgr.markersProximity_D->cellEndD.end(), 0);
 
     uint smemSize = sizeof(uint) * (numThreads + 1);
     findCellStartEndD<<<numBlocks, numThreads, smemSize>>>(
-        U1CAST(m_markersProximityD->cellStartD), U1CAST(m_markersProximityD->cellEndD),
-        U1CAST(m_markersProximityD->gridMarkerHashD), U1CAST(m_markersProximityD->gridMarkerIndexD));
+        U1CAST(m_data_mgr.markersProximity_D->cellStartD), U1CAST(m_data_mgr.markersProximity_D->cellEndD),
+                                                           U1CAST(m_data_mgr.markersProximity_D->gridMarkerHashD),
+                                                           U1CAST(m_data_mgr.markersProximity_D->gridMarkerIndexD));
 
     // =========================================================================================================
     // Launch a kernel to find the location of original particles in the sorted arrays.
     // This is faster than using thrust::sort_by_key()
     // =========================================================================================================
-    OriginalToSortedD<<<numBlocks, numThreads>>>(U1CAST(m_markersProximityD->mapOriginalToSorted),
-                                                 U1CAST(m_markersProximityD->gridMarkerIndexD));
+    OriginalToSortedD<<<numBlocks, numThreads>>>(U1CAST(m_data_mgr.markersProximity_D->mapOriginalToSorted),
+                                                 U1CAST(m_data_mgr.markersProximity_D->gridMarkerIndexD));
 
     // =========================================================================================================
     // Reorder the arrays according to the sorted index of all particles
     // =========================================================================================================
     reorderDataD<<<numBlocks, numThreads>>>(
-        U1CAST(m_markersProximityD->gridMarkerIndexD), U1CAST(m_fsiData->extendedActivityIdD),
-        U1CAST(m_markersProximityD->mapOriginalToSorted), mR4CAST(m_sortedSphMarkersD->posRadD),
-        mR3CAST(m_sortedSphMarkersD->velMasD), mR4CAST(m_sortedSphMarkersD->rhoPresMuD),
-        mR3CAST(m_sortedSphMarkersD->tauXxYyZzD), mR3CAST(m_sortedSphMarkersD->tauXyXzYzD),
+        U1CAST(m_data_mgr.markersProximity_D->gridMarkerIndexD), U1CAST(m_data_mgr.extendedActivityIdD),
+        U1CAST(m_data_mgr.markersProximity_D->mapOriginalToSorted), mR4CAST(m_data_mgr.sortedSphMarkers2_D->posRadD),
+        mR3CAST(m_data_mgr.sortedSphMarkers2_D->velMasD), mR4CAST(m_data_mgr.sortedSphMarkers2_D->rhoPresMuD),
+        mR3CAST(m_data_mgr.sortedSphMarkers2_D->tauXxYyZzD), mR3CAST(m_data_mgr.sortedSphMarkers2_D->tauXyXzYzD),
         mR4CAST(m_sphMarkersD->posRadD), mR3CAST(m_sphMarkersD->velMasD), mR4CAST(m_sphMarkersD->rhoPresMuD),
         mR3CAST(m_sphMarkersD->tauXxYyZzD), mR3CAST(m_sphMarkersD->tauXyXzYzD));
 

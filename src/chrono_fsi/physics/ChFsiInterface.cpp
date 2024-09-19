@@ -22,8 +22,8 @@
 namespace chrono {
 namespace fsi {
 
-ChFsiInterface::ChFsiInterface(ChSystemFsi_impl& fsi, std::shared_ptr<SimParams> params)
-    : ChFsiBase(params, nullptr), m_sysFSI(fsi), m_verbose(true) {}
+ChFsiInterface::ChFsiInterface(FsiDataManager& data_mgr, std::shared_ptr<SimParams> params)
+    : ChFsiBase(params, nullptr), m_data_mgr(data_mgr), m_verbose(true) {}
 
 ChFsiInterface::~ChFsiInterface() {}
 
@@ -32,8 +32,8 @@ ChFsiInterface::~ChFsiInterface() {}
 void ChFsiInterface::ApplyBodyForces() {
     size_t num_bodies = m_fsi_bodies.size();
 
-    thrust::host_vector<Real3> forcesH = m_sysFSI.fsiData->rigid_FSI_ForcesD;
-    thrust::host_vector<Real3> torquesH = m_sysFSI.fsiData->rigid_FSI_TorquesD;
+    thrust::host_vector<Real3> forcesH = m_data_mgr.rigid_FSI_ForcesD;
+    thrust::host_vector<Real3> torquesH = m_data_mgr.rigid_FSI_TorquesD;
 
     for (size_t i = 0; i < num_bodies; i++) {
         std::shared_ptr<ChBody> body = m_fsi_bodies[i].body;
@@ -53,15 +53,15 @@ void ChFsiInterface::LoadBodyStates() {
     for (size_t i = 0; i < num_bodies; i++) {
         std::shared_ptr<ChBody> body = m_fsi_bodies[i].body;
 
-        m_sysFSI.fsiBodyState_H->pos[i] = utils::ToReal3(body->GetPos());
-        m_sysFSI.fsiBodyState_H->lin_vel[i] = utils::ToReal4(body->GetPosDt(), body->GetMass());
-        m_sysFSI.fsiBodyState_H->lin_acc[i] = utils::ToReal3(body->GetPosDt2());
-        m_sysFSI.fsiBodyState_H->rot[i] = utils::ToReal4(body->GetRot());
-        m_sysFSI.fsiBodyState_H->ang_vel[i] = utils::ToReal3(body->GetAngVelLocal());
-        m_sysFSI.fsiBodyState_H->ang_acc[i] = utils::ToReal3(body->GetAngAccLocal());
+        m_data_mgr.fsiBodyState_H->pos[i] = utils::ToReal3(body->GetPos());
+        m_data_mgr.fsiBodyState_H->lin_vel[i] = utils::ToReal4(body->GetPosDt(), body->GetMass());
+        m_data_mgr.fsiBodyState_H->lin_acc[i] = utils::ToReal3(body->GetPosDt2());
+        m_data_mgr.fsiBodyState_H->rot[i] = utils::ToReal4(body->GetRot());
+        m_data_mgr.fsiBodyState_H->ang_vel[i] = utils::ToReal3(body->GetAngVelLocal());
+        m_data_mgr.fsiBodyState_H->ang_acc[i] = utils::ToReal3(body->GetAngAccLocal());
     }
     
-    m_sysFSI.fsiBodyState_D->CopyFromH(*m_sysFSI.fsiBodyState_H);
+    m_data_mgr.fsiBodyState_D->CopyFromH(*m_data_mgr.fsiBodyState_H);
 }
 
 //-----------------------Chrono FEA Specifics-----------------------------------------
@@ -69,7 +69,7 @@ void ChFsiInterface::LoadBodyStates() {
 void ChFsiInterface::ApplyMeshForces() {
     {
         // Transfer to host
-        thrust::host_vector<Real3> forces_H = m_sysFSI.fsiData->flex1D_FSIforces_D;
+        thrust::host_vector<Real3> forces_H = m_data_mgr.flex1D_FSIforces_D;
 
         // Apply to FEA nodes
         int counter = 0;
@@ -85,7 +85,7 @@ void ChFsiInterface::ApplyMeshForces() {
 
     {
         // Transfer to host
-        thrust::host_vector<Real3> forces_H = m_sysFSI.fsiData->flex2D_FSIforces_D;
+        thrust::host_vector<Real3> forces_H = m_data_mgr.flex2D_FSIforces_D;
 
         // Apply to FEA nodes
         int counter = 0;
@@ -108,15 +108,15 @@ void ChFsiInterface::LoadMeshStates() {
             int num_nodes = (int)fsi_mesh.ind2ptr_map.size();
             for (int i = 0; i < num_nodes; i++) {
                 const auto& node = fsi_mesh.ind2ptr_map.at(i);
-                m_sysFSI.fsiMesh1DState_H->pos_fsi_fea_H[counter] = utils::ToReal3(node->GetPos());
-                m_sysFSI.fsiMesh1DState_H->vel_fsi_fea_H[counter] = utils::ToReal3(node->GetPosDt());
-                m_sysFSI.fsiMesh1DState_H->acc_fsi_fea_H[counter] = utils::ToReal3(node->GetPosDt2());
+                m_data_mgr.fsiMesh1DState_H->pos_fsi_fea_H[counter] = utils::ToReal3(node->GetPos());
+                m_data_mgr.fsiMesh1DState_H->vel_fsi_fea_H[counter] = utils::ToReal3(node->GetPosDt());
+                m_data_mgr.fsiMesh1DState_H->acc_fsi_fea_H[counter] = utils::ToReal3(node->GetPosDt2());
                 counter++;
             }
         }
 
         // Transfer to device
-        m_sysFSI.fsiMesh1DState_D->CopyFromH(*m_sysFSI.fsiMesh1DState_H);
+        m_data_mgr.fsiMesh1DState_D->CopyFromH(*m_data_mgr.fsiMesh1DState_H);
     }
 
     {
@@ -126,15 +126,15 @@ void ChFsiInterface::LoadMeshStates() {
             int num_nodes = (int)fsi_mesh.ind2ptr_map.size();
             for (int i = 0; i < num_nodes; i++) {
                 const auto& node = fsi_mesh.ind2ptr_map.at(i);
-                m_sysFSI.fsiMesh2DState_H->pos_fsi_fea_H[counter] = utils::ToReal3(node->GetPos());
-                m_sysFSI.fsiMesh2DState_H->vel_fsi_fea_H[counter] = utils::ToReal3(node->GetPosDt());
-                m_sysFSI.fsiMesh2DState_H->acc_fsi_fea_H[counter] = utils::ToReal3(node->GetPosDt2());
+                m_data_mgr.fsiMesh2DState_H->pos_fsi_fea_H[counter] = utils::ToReal3(node->GetPos());
+                m_data_mgr.fsiMesh2DState_H->vel_fsi_fea_H[counter] = utils::ToReal3(node->GetPosDt());
+                m_data_mgr.fsiMesh2DState_H->acc_fsi_fea_H[counter] = utils::ToReal3(node->GetPosDt2());
                 counter++;
             }
         }
 
         // Transfer to device
-        m_sysFSI.fsiMesh2DState_D->CopyFromH(*m_sysFSI.fsiMesh2DState_H);
+        m_data_mgr.fsiMesh2DState_D->CopyFromH(*m_data_mgr.fsiMesh2DState_H);
     }
 }
 

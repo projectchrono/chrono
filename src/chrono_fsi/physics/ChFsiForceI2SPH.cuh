@@ -28,14 +28,11 @@ namespace fsi {
 class ChFsiForceI2SPH : public ChFsiForce {
   public:
     /// Force class implemented using incompressible SPH method with implicit integrator
-    ChFsiForceI2SPH(
-        std::shared_ptr<ChBce> otherBceWorker,                   ///< object that handles BCE particles
-        std::shared_ptr<SphMarkerDataD> otherSortedSphMarkersD,  ///< information of particle in the sorted device array
-        std::shared_ptr<ProximityDataD> otherMarkersProximityD,  ///< object that holds device proximity info
-        std::shared_ptr<FsiData> otherFsiGeneralData,            ///< SPH general data
-        std::shared_ptr<SimParams> params,                       ///< simulation parameters
-        std::shared_ptr<ChCounters> numObjects,                  ///< problem counters
-        bool verb                                                ///< verbose output
+    ChFsiForceI2SPH(FsiDataManager& data_mgr,                ///< FSI data manager
+                    std::shared_ptr<ChBce> otherBceWorker,   ///< object that handles BCE particles
+                    std::shared_ptr<SimParams> params,       ///< simulation parameters
+                    std::shared_ptr<ChCounters> numObjects,  ///< problem counters
+                    bool verb                                ///< verbose output
     );
 
     ~ChFsiForceI2SPH();

@@ -27,17 +27,13 @@ namespace fsi {
 /// Inter-particle force calculation for explicit schemes.
 class ChFsiForceExplicitSPH : public ChFsiForce {
   public:
-    /// Constructor of the ChFsiForceExplicitSPH class.
-    /// Force class implemented using WCSPH with explicit integretor,
-    /// supports for both fluid and granular material dynamics.
-    ChFsiForceExplicitSPH(
-        std::shared_ptr<ChBce> otherBceWorker,                   ///< object that handles BCE particles
-        std::shared_ptr<SphMarkerDataD> otherSortedSphMarkersD,  ///< information of particle in the sorted device array
-        std::shared_ptr<ProximityDataD> otherMarkersProximityD,  ///< object that holds device proximity info
-        std::shared_ptr<FsiData> otherFsiData,   ///< SPH general data
-        std::shared_ptr<SimParams> params,       ///< simulation parameters
-        std::shared_ptr<ChCounters> numObjects,  ///< problem counters
-        bool verb                                ///< verbose terminal output
+    /// Force class implemented using WCSPH with explicit integretor.
+    /// Supports for both fluid and granular material dynamics.
+    ChFsiForceExplicitSPH(FsiDataManager& data_mgr,                ///< FSI data manager
+                          std::shared_ptr<ChBce> otherBceWorker,   ///< object that handles BCE particles
+                          std::shared_ptr<SimParams> params,       ///< simulation parameters
+                          std::shared_ptr<ChCounters> numObjects,  ///< problem counters
+                          bool verb                                ///< verbose terminal output
     );
 
     /// Destructor of the ChFsiForceExplicitSPH class

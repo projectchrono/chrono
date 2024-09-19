@@ -135,7 +135,7 @@ set(ChronoEngine_FSI_PHYSICS_FILES
     physics/ChParams.h
     physics/ChFsiInterface.h
     physics/ChFsiBase.h
-    physics/ChSystemFsi_impl.cuh
+    physics/FsiDataManager.cuh
     physics/ChMarkerType.cuh
     physics/ChBce.cuh
     physics/ChFluidDynamics.cuh
@@ -146,7 +146,7 @@ set(ChronoEngine_FSI_PHYSICS_FILES
     physics/ChSphGeneral.cuh
 
     physics/ChFsiInterface.cpp
-    physics/ChSystemFsi_impl.cu
+    physics/FsiDataManager.cu
  	physics/ChBce.cu
     physics/ChFluidDynamics.cu
     physics/ChCollisionSystemFsi.cu

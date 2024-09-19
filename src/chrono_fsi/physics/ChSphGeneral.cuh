@@ -24,7 +24,7 @@
 
 #include "chrono_fsi/ChApiFsi.h"
 #include "chrono_fsi/utils/ChUtilsDevice.cuh"
-#include "chrono_fsi/physics/ChSystemFsi_impl.cuh"
+#include "chrono_fsi/physics/FsiDataManager.cuh"
 #include "chrono_fsi/physics/ChParams.h"
 #include "chrono_fsi/math/ChFsiLinearSolver.h"
 #include "chrono_fsi/math/custom_math.h"

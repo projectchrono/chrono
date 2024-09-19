@@ -25,7 +25,7 @@
 #include <sstream>
 
 #include "chrono_fsi/physics/ChBce.cuh"
-#include "chrono_fsi/physics/ChSystemFsi_impl.cuh"
+#include "chrono_fsi/physics/FsiDataManager.cuh"
 #include "chrono_fsi/physics/ChCollisionSystemFsi.cuh"
 
 namespace chrono {
@@ -108,14 +108,11 @@ class ChFsiForce : public ChFsiBase {
     /// Base constructor for the ChFsiForce class.
     /// The constructor instantiates the force system
     /// and initializes the pointer to external data.
-    ChFsiForce(
-        std::shared_ptr<ChBce> otherBceWorker,                   ///< object that handles BCE particles
-        std::shared_ptr<SphMarkerDataD> otherSortedSphMarkersD,  ///< information of particle in the sorted device array
-        std::shared_ptr<ProximityDataD> otherMarkersProximityD,  ///< object that holds device proximity info
-        std::shared_ptr<FsiData> otherFsiData,                   ///< SPH general data
-        std::shared_ptr<SimParams> params,                       ///< simulation parameters
-        std::shared_ptr<ChCounters> numObjects,                  ///< problem counters
-        bool verb                                                ///< verbose output
+    ChFsiForce(FsiDataManager& data_mgr,                ///< FSI data manager
+               std::shared_ptr<ChBce> otherBceWorker,   ///< object that handles BCE particles
+               std::shared_ptr<SimParams> params,       ///< simulation parameters
+               std::shared_ptr<ChCounters> numObjects,  ///< problem counters
+               bool verb                                ///< verbose output
     );
 
     /// Destructor of the ChFsiForce.
@@ -176,13 +173,11 @@ class ChFsiForce : public ChFsiBase {
     std::shared_ptr<ChCollisionSystemFsi> fsiCollisionSystem;  ///< collision system for building neighbors list
 
   protected:
+    FsiDataManager& m_data_mgr;  ///< FSI data manager
     std::shared_ptr<ChBce> bceWorker;  ///< pointer to Boundary Condition Enforcing particles class
 
-
-    std::shared_ptr<SphMarkerDataD> sphMarkersD;         ///< device copy of the SPH particles data
+    // NOTE: this is cached at each call to ForceSPH()
     std::shared_ptr<SphMarkerDataD> sortedSphMarkers_D;  ///< device copy of the sorted sph particles data
-    std::shared_ptr<ProximityDataD> markersProximity_D;  ///< pointer object that holds the proximity of the particles
-    std::shared_ptr<FsiData> fsiData;  ///< pointer to sph general data
 
     thrust::device_vector<Real3> vel_vis_Sorted_D;       ///< sorted visualization velocity data
     thrust::device_vector<Real3> vel_XSPH_Sorted_D;      ///< sorted xsph velocity data

@@ -37,7 +37,7 @@
 namespace chrono {
 namespace fsi {
 
-class ChSystemFsi_impl;
+class FsiDataManager;
 class ChFsiInterface;
 class ChFluidDynamics;
 class ChBce;
@@ -574,7 +574,7 @@ class CH_FSI_API ChSystemFsi {
     std::string m_outdir;     ///< output directory
     OutputMode m_write_mode;  ///< FSI particle output type (CSV, ChPF, or NONE)
 
-    std::unique_ptr<ChSystemFsi_impl> m_sysFSI;         ///< underlying system implementation
+    std::unique_ptr<FsiDataManager> m_data_mgr;         ///< FSI data manager
     std::unique_ptr<ChFluidDynamics> m_fluid_dynamics;  ///< fluid system
     std::unique_ptr<ChFsiInterface> m_fsi_interface;    ///< FSI interface system
     std::shared_ptr<ChBce> m_bce_manager;               ///< BCE manager

@@ -16,7 +16,7 @@
 #include "chrono/assets/ChVisualShapeBox.h"
 
 #include "chrono_fsi/visualization/ChFsiVisualizationGL.h"
-#include "chrono_fsi/physics/ChSystemFsi_impl.cuh"
+#include "chrono_fsi/physics/FsiDataManager.cuh"
 
 namespace chrono {
 namespace fsi {
@@ -190,7 +190,7 @@ bool ChFsiVisualizationGL::Render() {
 
     if (m_vsys->Run()) {
         // Copy SPH particle positions from device to host
-        thrust::host_vector<Real4> posH = m_systemFSI->m_sysFSI->sphMarkers_D->posRadD;
+        thrust::host_vector<Real4> posH = m_systemFSI->m_data_mgr->sphMarkers_D->posRadD;
 
         // List of proxy bodies
         const auto& blist = m_system->GetBodies();

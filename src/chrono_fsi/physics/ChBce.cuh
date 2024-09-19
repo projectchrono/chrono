@@ -22,7 +22,7 @@
 
 #include "chrono_fsi/ChApiFsi.h"
 #include "chrono_fsi/physics/ChFsiBase.h"
-#include "chrono_fsi/physics/ChSystemFsi_impl.cuh"
+#include "chrono_fsi/physics/FsiDataManager.cuh"
 
 namespace chrono {
 namespace fsi {
@@ -49,12 +49,10 @@ class ChBce : public ChFsiBase {
     thrust::device_vector<Real3> tauXyXzYz_ModifiedBCE;
 
     /// Constructor of the ChBce class
-    ChBce(std::shared_ptr<SphMarkerDataD> sortedSphMarkers_D,  ///< data for SPH particles
-          std::shared_ptr<ProximityDataD> markersProximity_D,  ///< information for neighbor search
-          std::shared_ptr<FsiData> fsiData,                    ///< general information, e.g, ordering of the phases
-          std::shared_ptr<SimParams> paramsH,                  ///< simulation parameters
-          std::shared_ptr<ChCounters> numObjects,              ///< number of sph particles on each phase
-          bool verbose                                         ///< verbose terminal output
+    ChBce(FsiDataManager& data_mgr,                ///< FSI data
+          std::shared_ptr<SimParams> paramsH,      ///< simulation parameters
+          std::shared_ptr<ChCounters> numObjects,  ///< number of sph particles on each phase
+          bool verbose                             ///< verbose terminal output
     );
 
     /// Destructor of the ChBce class
@@ -101,16 +99,11 @@ class ChBce : public ChFsiBase {
                                        std::vector<int> fsiBodyBceNum);
 
     /// Complete construction of the BCE at the intial configuration of the system.
-    void Initialize(std::shared_ptr<SphMarkerDataD> sphMarkers_D,
-                    std::shared_ptr<FsiBodyStateD> fsiBodyState_D,
-                    std::shared_ptr<FsiMeshStateD> fsiMesh1DState_D,
-                    std::shared_ptr<FsiMeshStateD> fsiMesh2DState_D,
-                    std::vector<int> fsiBodyBceNum);
+    void Initialize(std::vector<int> fsiBodyBceNum);
 
   private:
-    std::shared_ptr<FsiData> m_fsiData;                   ///< General information of the simulation
-    std::shared_ptr<SphMarkerDataD> m_sortedSphMarkersD;  ///< Particle state, properties, type
-    std::shared_ptr<ProximityDataD> m_markersProximityD;  ///< Information for neighbor search
+    FsiDataManager& m_data_mgr;  ///< FSI data manager
+
     thrust::device_vector<Real3> m_totalForceRigid;       ///< Total forces from fluid to bodies
     thrust::device_vector<Real3> m_totalTorqueRigid;      ///< Total torques from fluid to bodies
 

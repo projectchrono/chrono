@@ -23,7 +23,7 @@
 #include "chrono/fea/ChContactSurfaceSegmentSet.h"
 
 #include "chrono_fsi/ChApiFsi.h"
-#include "chrono_fsi/physics/ChSystemFsi_impl.cuh"
+#include "chrono_fsi/physics/FsiDataManager.cuh"
 #include "chrono_fsi/physics/ChFsiBase.h"
 
 namespace chrono {
@@ -36,7 +36,7 @@ namespace fsi {
 class ChFsiInterface : public ChFsiBase {
   public:
     /// Constructor of the FSI interface class.
-    ChFsiInterface(ChSystemFsi_impl& fsi, std::shared_ptr<SimParams> params);
+    ChFsiInterface(FsiDataManager& data_mgr, std::shared_ptr<SimParams> params);
 
     /// Destructor of the FSI interface class.
     ~ChFsiInterface();
@@ -78,7 +78,7 @@ class ChFsiInterface : public ChFsiBase {
         int num_bce;                                                    ///< number of BCE markers for this mesh
     };
 
-    ChSystemFsi_impl& m_sysFSI;  ///< FSI system
+    FsiDataManager& m_data_mgr;  ///< FSI data manager
     bool m_verbose;              ///< terminal output (default: true)
 
     std::vector<FsiBody> m_fsi_bodies;      ///< rigid bodies exposed to the FSI system

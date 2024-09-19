@@ -157,67 +157,13 @@ struct ProximityDataD {
     void resize(size_t s);
 };
 
-/// FSI system information information exchanged with the Chrono system.
-struct FsiData {
-    // fluidfsiBodiesIndex (host)
-    thrust::host_vector<int4> referenceArray;      ///< phases in the array of SPH particles
-    thrust::host_vector<int4> referenceArray_FEA;  ///< phases in the array of SPH particles for flexible elements
+// -----------------------------------------------------------------------------
 
-    // Fluid data (device)
-    thrust::device_vector<Real4> derivVelRhoD;  ///< dv/dt and d(rho)/dt for particles
-    thrust::device_vector<Real4>
-        derivVelRhoOriginalD;  ///< dv/dt and d(rho)/dt used for writing partilces in file - unsorted
-
-    thrust::device_vector<Real3> derivTauXxYyZzD;  ///< d(tau)/dt for particles
-    thrust::device_vector<Real3> derivTauXyXzYzD;  ///< d(tau)/dt for particles
-    thrust::device_vector<Real3> vel_XSPH_D;       ///< XSPH velocity for particles
-    thrust::device_vector<Real3> vis_vel_SPH_D;    ///< ISPH velocity for particles
-    thrust::device_vector<Real4> sr_tau_I_mu_i;    ///< I2SPH strain-rate, stress, inertia number, friction
-    thrust::device_vector<Real4>
-        sr_tau_I_mu_i_Original;  ///< I2SPH strain-rate, stress, inertia number, friction - unsorted for writing
-    thrust::device_vector<Real3> bceAcc;  ///< Acceleration for boundary/rigid/flex body particles
-
-    thrust::device_vector<uint> activityIdentifierD;  ///< Identifies if a particle is an active particle or not
-    thrust::device_vector<uint> extendedActivityIdD;  ///< Identifies if a particle is in an extended active domain
-    thrust::device_vector<uint>
-        numNeighborsPerPart;                   ///< Stores the number of neighbors the particle, given by the index, has
-    thrust::device_vector<uint> neighborList;  ///< Stores the neighbor list - all neighbors are just stored one by one
-                                               ///< - The above vector provides the info required to idenitfy which
-                                               ///< particles neighbors are stored at which index of neighborList
-
-    thrust::device_vector<uint> freeSurfaceIdD;  ///< Identifies if a particle is close to free surface
-
-    // BCE
-    thrust::device_vector<Real3> rigid_BCEcoords_D;   ///< Rigid body BCE position (local reference frame)
-    thrust::host_vector<Real3> flex1D_BCEcoords_H;    ///< local coords for BCE markers on 1-D flex segments (host)
-    thrust::device_vector<Real3> flex1D_BCEcoords_D;  ///< local coords for BCE markers on 1-D flex segments (device)
-    thrust::host_vector<Real3> flex2D_BCEcoords_H;    ///< local coords for BCE markers on 2-D flex faces (host)
-    thrust::device_vector<Real3> flex2D_BCEcoords_D;  ///< local coors for BCE markers on 2-D flex faces (device)
-
-    thrust::device_vector<uint> rigid_BCEsolids_D;    ///< associated body ID for BCE markers on rigid bodies
-    thrust::host_vector<uint3> flex1D_BCEsolids_H;    ///< associated mesh and segment for BCE markers on 1-D segments
-    thrust::device_vector<uint3> flex1D_BCEsolids_D;  ///< associated mesh and segment for BCE markers on 1-D segments
-    thrust::host_vector<uint3> flex2D_BCEsolids_H;    ///< associated mesh and face for BCE markers on 2-D faces
-    thrust::device_vector<uint3> flex2D_BCEsolids_D;  ///< associated mesh and face for BCE markers on 2-D faces
-
-    // FSI bodies
-    thrust::device_vector<Real3> rigid_FSI_ForcesD;   ///< Vector of the surface-integrated forces to rigid bodies
-    thrust::device_vector<Real3> rigid_FSI_TorquesD;  ///< Vector of the surface-integrated torques to rigid bodies
-
-    thrust::device_vector<Real3> flex1D_FSIforces_D;  ///< surface-integrated forces on FEA 1-D segment nodes
-    thrust::device_vector<Real3> flex2D_FSIforces_D;  ///< surface-integrated forces on FEA 2-D face nodes
-
-    thrust::host_vector<int2> flex1D_Nodes_H;    ///< node indices for each 1-D flex segment (host)
-    thrust::device_vector<int2> flex1D_Nodes_D;  ///< node indices for each 1-D flex segment (device)
-    thrust::host_vector<int3> flex2D_Nodes_H;    ///< node indices for each 2-D flex face (host)
-    thrust::device_vector<int3> flex2D_Nodes_D;  ///< node indices for each 2-D flex face (device)
-};
-
-/// Underlying implementation of an FSI system.
-class ChSystemFsi_impl : public ChFsiBase {
+/// Data manager for the SPH-based FSI system.
+class FsiDataManager : public ChFsiBase {
   public:
-    ChSystemFsi_impl(std::shared_ptr<SimParams> params);
-    virtual ~ChSystemFsi_impl();
+    FsiDataManager(std::shared_ptr<SimParams> params);
+    virtual ~FsiDataManager();
 
     /// Add an SPH particle given its position, physical properties, velocity, and stress.
     void AddSphParticle(Real3 pos,
@@ -281,9 +227,60 @@ class ChSystemFsi_impl : public ChFsiBase {
     std::shared_ptr<FsiMeshStateH> fsiMesh2DState_H;  ///< 2-D FEA mesh state (host)
     std::shared_ptr<FsiMeshStateD> fsiMesh2DState_D;  ///< 2-D FEA mesh state (device)
 
-    std::shared_ptr<FsiData> fsiData;  ///< simulation FSI data
-
     std::shared_ptr<ProximityDataD> markersProximity_D;  ///< Information of neighbor search on the device
+
+    // fluidfsiBodiesIndex (host)
+    thrust::host_vector<int4> referenceArray;      ///< phases in the array of SPH particles
+    thrust::host_vector<int4> referenceArray_FEA;  ///< phases in the array of SPH particles for flexible elements
+
+    // Fluid data (device)
+    thrust::device_vector<Real4> derivVelRhoD;  ///< dv/dt and d(rho)/dt for particles
+    thrust::device_vector<Real4>
+        derivVelRhoOriginalD;  ///< dv/dt and d(rho)/dt used for writing partilces in file - unsorted
+
+    thrust::device_vector<Real3> derivTauXxYyZzD;  ///< d(tau)/dt for particles
+    thrust::device_vector<Real3> derivTauXyXzYzD;  ///< d(tau)/dt for particles
+    thrust::device_vector<Real3> vel_XSPH_D;       ///< XSPH velocity for particles
+    thrust::device_vector<Real3> vis_vel_SPH_D;    ///< ISPH velocity for particles
+    thrust::device_vector<Real4> sr_tau_I_mu_i;    ///< I2SPH strain-rate, stress, inertia number, friction
+    thrust::device_vector<Real4>
+        sr_tau_I_mu_i_Original;  ///< I2SPH strain-rate, stress, inertia number, friction - unsorted for writing
+    thrust::device_vector<Real3> bceAcc;  ///< Acceleration for boundary/rigid/flex body particles
+
+    thrust::device_vector<uint> activityIdentifierD;  ///< Identifies if a particle is an active particle or not
+    thrust::device_vector<uint> extendedActivityIdD;  ///< Identifies if a particle is in an extended active domain
+    thrust::device_vector<uint>
+        numNeighborsPerPart;                   ///< Stores the number of neighbors the particle, given by the index, has
+    thrust::device_vector<uint> neighborList;  ///< Stores the neighbor list - all neighbors are just stored one by one
+                                               ///< - The above vector provides the info required to idenitfy which
+                                               ///< particles neighbors are stored at which index of neighborList
+
+    thrust::device_vector<uint> freeSurfaceIdD;  ///< Identifies if a particle is close to free surface
+
+    // BCE
+    thrust::device_vector<Real3> rigid_BCEcoords_D;   ///< Rigid body BCE position (local reference frame)
+    thrust::host_vector<Real3> flex1D_BCEcoords_H;    ///< local coords for BCE markers on 1-D flex segments (host)
+    thrust::device_vector<Real3> flex1D_BCEcoords_D;  ///< local coords for BCE markers on 1-D flex segments (device)
+    thrust::host_vector<Real3> flex2D_BCEcoords_H;    ///< local coords for BCE markers on 2-D flex faces (host)
+    thrust::device_vector<Real3> flex2D_BCEcoords_D;  ///< local coors for BCE markers on 2-D flex faces (device)
+
+    thrust::device_vector<uint> rigid_BCEsolids_D;    ///< associated body ID for BCE markers on rigid bodies
+    thrust::host_vector<uint3> flex1D_BCEsolids_H;    ///< associated mesh and segment for BCE markers on 1-D segments
+    thrust::device_vector<uint3> flex1D_BCEsolids_D;  ///< associated mesh and segment for BCE markers on 1-D segments
+    thrust::host_vector<uint3> flex2D_BCEsolids_H;    ///< associated mesh and face for BCE markers on 2-D faces
+    thrust::device_vector<uint3> flex2D_BCEsolids_D;  ///< associated mesh and face for BCE markers on 2-D faces
+
+    // FSI bodies
+    thrust::device_vector<Real3> rigid_FSI_ForcesD;   ///< Vector of the surface-integrated forces to rigid bodies
+    thrust::device_vector<Real3> rigid_FSI_TorquesD;  ///< Vector of the surface-integrated torques to rigid bodies
+
+    thrust::device_vector<Real3> flex1D_FSIforces_D;  ///< surface-integrated forces on FEA 1-D segment nodes
+    thrust::device_vector<Real3> flex2D_FSIforces_D;  ///< surface-integrated forces on FEA 2-D face nodes
+
+    thrust::host_vector<int2> flex1D_Nodes_H;    ///< node indices for each 1-D flex segment (host)
+    thrust::device_vector<int2> flex1D_Nodes_D;  ///< node indices for each 1-D flex segment (device)
+    thrust::host_vector<int3> flex2D_Nodes_H;    ///< node indices for each 2-D flex face (host)
+    thrust::device_vector<int3> flex2D_Nodes_D;  ///< node indices for each 2-D flex face (device)
 
   private:
     void ConstructReferenceArray();

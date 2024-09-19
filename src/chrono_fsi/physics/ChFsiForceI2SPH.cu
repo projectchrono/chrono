@@ -783,27 +783,21 @@ __global__ void Shifting(Real4* sortedPosRad,
                sortedVelMas[i_idx].x, sortedVelMas[i_idx].y, sortedVelMas[i_idx].z);
     }
 }
+
 //==========================================================================================================================================
-//==========================================================================================================================================
-//==========================================================================================================================================
-ChFsiForceI2SPH::ChFsiForceI2SPH(std::shared_ptr<ChBce> otherBceWorker,
-                                 std::shared_ptr<SphMarkerDataD> otherSortedSphMarkersD,
-                                 std::shared_ptr<ProximityDataD> otherMarkersProximityD,
-                                 std::shared_ptr<FsiData> otherFsiGeneralData,
+
+ChFsiForceI2SPH::ChFsiForceI2SPH(FsiDataManager& data_mgr,
+                                 std::shared_ptr<ChBce> otherBceWorker,
                                  std::shared_ptr<SimParams> params,
                                  std::shared_ptr<ChCounters> numObjects,
                                  bool verb)
-    : ChFsiForce(otherBceWorker,
-                 otherSortedSphMarkersD,
-                 otherMarkersProximityD,
-                 otherFsiGeneralData,
-                 params,
-                 numObjects,
-                 verb) {
+    : ChFsiForce(data_mgr, otherBceWorker, params, numObjects, verb) {
     CopyParams_NumberOfObjects(paramsH, numObjectsH);
 }
 
 ChFsiForceI2SPH::~ChFsiForceI2SPH() {}
+
+//--------------------------------------------------------------------------------------------------------------------------------
 
 void ChFsiForceI2SPH::Initialize() {
     ChFsiForce::Initialize();
@@ -866,7 +860,9 @@ void ChFsiForceI2SPH::PreProcessor(std::shared_ptr<SphMarkerDataD> otherSphMarke
     cudaMemcpy(isErrorD, isErrorH, sizeof(bool), cudaMemcpyHostToDevice);
     calcRho_kernel<<<numBlocks, numThreads>>>(
         mR4CAST(sortedSphMarkers_D->posRadD), mR4CAST(sortedSphMarkers_D->rhoPresMuD), R1CAST(_sumWij_inv),
-        U1CAST(markersProximity_D->cellStartD), U1CAST(markersProximity_D->cellEndD), U1CAST(Contact_i), numAllMarkers,
+        U1CAST(m_data_mgr.markersProximity_D->cellStartD), U1CAST(m_data_mgr.markersProximity_D->cellEndD),
+        U1CAST(Contact_i),
+        numAllMarkers,
         isErrorD);
     ChUtilsDevice::Sync_CheckError(isErrorH, isErrorD, "calcRho_kernel");
     uint LastVal = Contact_i[numAllMarkers - 1];
@@ -890,7 +886,9 @@ void ChFsiForceI2SPH::PreProcessor(std::shared_ptr<SphMarkerDataD> otherSphMarke
     calcNormalizedRho_Gi_fillInMatrixIndices<<<numBlocks, numThreads>>>(
         mR4CAST(sortedSphMarkers_D->posRadD), mR3CAST(sortedSphMarkers_D->velMasD),
         mR4CAST(sortedSphMarkers_D->rhoPresMuD), R1CAST(_sumWij_inv), R1CAST(G_i), mR3CAST(Normals), U1CAST(csrColInd),
-        U1CAST(Contact_i), U1CAST(markersProximity_D->cellStartD), U1CAST(markersProximity_D->cellEndD), numAllMarkers,
+        U1CAST(Contact_i), U1CAST(m_data_mgr.markersProximity_D->cellStartD),
+        U1CAST(m_data_mgr.markersProximity_D->cellEndD),
+        numAllMarkers,
         isErrorD);
     ChUtilsDevice::Sync_CheckError(isErrorH, isErrorD, "calcNormalizedRho_Gi_fillInMatrixIndices");
 
@@ -995,10 +993,11 @@ void ChFsiForceI2SPH::ForceSPH(std::shared_ptr<SphMarkerDataD> otherSortedSphMar
         Viscosity_correction<<<numBlocks, numThreads>>>(
             mR4CAST(sortedSphMarkers_D->posRadD), mR3CAST(sortedSphMarkers_D->velMasD),
             mR4CAST(sortedSphMarkers_D->rhoPresMuD), mR4CAST(rhoPresMuD_old), mR3CAST(sortedSphMarkers_D->tauXxYyZzD),
-            mR3CAST(sortedSphMarkers_D->tauXyXzYzD), mR4CAST(fsiData->sr_tau_I_mu_i), R1CAST(csrValLaplacian),
+            mR3CAST(sortedSphMarkers_D->tauXyXzYzD), mR4CAST(m_data_mgr.sr_tau_I_mu_i), R1CAST(csrValLaplacian),
             mR3CAST(csrValGradient), R1CAST(csrValFunction), R1CAST(_sumWij_inv), U1CAST(csrColInd), U1CAST(Contact_i),
 
-            updatePortion, U1CAST(markersProximity_D->gridMarkerIndexD), numAllMarkers, paramsH->dT, yeild_strain,
+            updatePortion, U1CAST(m_data_mgr.markersProximity_D->gridMarkerIndexD), numAllMarkers, paramsH->dT,
+            yeild_strain,
             isErrorD);
         ChUtilsDevice::Sync_CheckError(isErrorH, isErrorD, "Viscosity_correction");
     }
@@ -1012,19 +1011,19 @@ void ChFsiForceI2SPH::ForceSPH(std::shared_ptr<SphMarkerDataD> otherSortedSphMar
         R1CAST(csrValLaplacian), mR3CAST(csrValGradient), R1CAST(csrValFunction), R1CAST(_sumWij_inv), mR3CAST(Normals),
         U1CAST(csrColInd), U1CAST(Contact_i),
 
-        mR4CAST(fsiBodyStateD->rot), mR3CAST(fsiData->rigid_BCEcoords_D), mR3CAST(fsiBodyStateD->pos),
+        mR4CAST(fsiBodyStateD->rot), mR3CAST(m_data_mgr.rigid_BCEcoords_D), mR3CAST(fsiBodyStateD->pos),
         mR4CAST(fsiBodyStateD->lin_vel), mR3CAST(fsiBodyStateD->ang_vel), mR3CAST(fsiBodyStateD->lin_acc),
-        mR3CAST(fsiBodyStateD->ang_acc), U1CAST(fsiData->rigid_BCEsolids_D),
+        mR3CAST(fsiBodyStateD->ang_acc), U1CAST(m_data_mgr.rigid_BCEsolids_D),
 
         mR3CAST(fsiMesh1DStateD->vel_fsi_fea_D), mR3CAST(fsiMesh1DStateD->acc_fsi_fea_D),
         mR3CAST(fsiMesh2DStateD->vel_fsi_fea_D), mR3CAST(fsiMesh2DStateD->acc_fsi_fea_D),
 
         numObjectsH->numFlexBodies1D, 
         
-        U2CAST(fsiData->flex1D_Nodes_D), U3CAST(fsiData->flex1D_BCEsolids_D), mR3CAST(fsiData->flex1D_BCEcoords_D),
-        U3CAST(fsiData->flex2D_Nodes_D), U3CAST(fsiData->flex2D_BCEsolids_D), mR3CAST(fsiData->flex2D_BCEcoords_D),
+        U2CAST(m_data_mgr.flex1D_Nodes_D), U3CAST(m_data_mgr.flex1D_BCEsolids_D), mR3CAST(m_data_mgr.flex1D_BCEcoords_D),
+        U3CAST(m_data_mgr.flex2D_Nodes_D), U3CAST(m_data_mgr.flex2D_BCEsolids_D), mR3CAST(m_data_mgr.flex2D_BCEcoords_D),
 
-        updatePortion, U1CAST(markersProximity_D->gridMarkerIndexD), numAllMarkers, paramsH->dT, isErrorD);
+        updatePortion, U1CAST(m_data_mgr.markersProximity_D->gridMarkerIndexD), numAllMarkers, paramsH->dT, isErrorD);
     ChUtilsDevice::Sync_CheckError(isErrorH, isErrorD, "V_star_Predictor");
 
     
@@ -1092,19 +1091,20 @@ void ChFsiForceI2SPH::ForceSPH(std::shared_ptr<SphMarkerDataD> otherSortedSphMar
         R1CAST(csrValFunction), R1CAST(csrValLaplacian), mR3CAST(csrValGradient), R1CAST(_sumWij_inv), mR3CAST(Normals),
         U1CAST(csrColInd), U1CAST(Contact_i),
 
-        mR4CAST(fsiBodyStateD->rot), mR3CAST(fsiData->rigid_BCEcoords_D), mR3CAST(fsiBodyStateD->pos),
+        mR4CAST(fsiBodyStateD->rot), mR3CAST(m_data_mgr.rigid_BCEcoords_D), mR3CAST(fsiBodyStateD->pos),
         mR4CAST(fsiBodyStateD->lin_vel), mR3CAST(fsiBodyStateD->ang_vel), mR3CAST(fsiBodyStateD->lin_acc),
-        mR3CAST(fsiBodyStateD->ang_acc), U1CAST(fsiData->rigid_BCEsolids_D),
+        mR3CAST(fsiBodyStateD->ang_acc), U1CAST(m_data_mgr.rigid_BCEsolids_D),
 
         mR3CAST(fsiMesh1DStateD->vel_fsi_fea_D), mR3CAST(fsiMesh1DStateD->acc_fsi_fea_D),
         mR3CAST(fsiMesh2DStateD->vel_fsi_fea_D), mR3CAST(fsiMesh2DStateD->acc_fsi_fea_D),
 
         numObjectsH->numFlexBodies1D, 
-        U2CAST(fsiData->flex1D_Nodes_D), U3CAST(fsiData->flex1D_BCEsolids_D),
-        mR3CAST(fsiData->flex1D_BCEcoords_D), U3CAST(fsiData->flex2D_Nodes_D), U3CAST(fsiData->flex2D_BCEsolids_D),
-        mR3CAST(fsiData->flex2D_BCEcoords_D),
+        U2CAST(m_data_mgr.flex1D_Nodes_D), U3CAST(m_data_mgr.flex1D_BCEsolids_D),
+        mR3CAST(m_data_mgr.flex1D_BCEcoords_D), U3CAST(m_data_mgr.flex2D_Nodes_D), U3CAST(m_data_mgr.flex2D_BCEsolids_D),
+        mR3CAST(m_data_mgr.flex2D_BCEcoords_D),
 
-        updatePortion, U1CAST(markersProximity_D->gridMarkerIndexD), numAllMarkers, numObjectsH->numFluidMarkers,
+        updatePortion, U1CAST(m_data_mgr.markersProximity_D->gridMarkerIndexD), numAllMarkers,
+        numObjectsH->numFluidMarkers,
         paramsH->dT, isErrorD);
     ChUtilsDevice::Sync_CheckError(isErrorH, isErrorD, "Pressure_Equation");
 
@@ -1200,13 +1200,13 @@ void ChFsiForceI2SPH::ForceSPH(std::shared_ptr<SphMarkerDataD> otherSortedSphMar
     posRadD_old = sortedSphMarkers_D->posRadD;
     velMasD_old = sortedSphMarkers_D->velMasD;
 
-    thrust::fill(fsiData->vis_vel_SPH_D.begin(), fsiData->vis_vel_SPH_D.end(), mR3(0.0));
+    thrust::fill(m_data_mgr.vis_vel_SPH_D.begin(), m_data_mgr.vis_vel_SPH_D.end(), mR3(0.0));
 
     Velocity_Correction_and_update<<<numBlocks, numThreads>>>(
         mR4CAST(sortedSphMarkers_D->posRadD), mR4CAST(posRadD_old), mR4CAST(sortedSphMarkers_D->rhoPresMuD),
         mR4CAST(rhoPresMuD_old), mR3CAST(sortedSphMarkers_D->velMasD), mR3CAST(velMasD_old),
         mR3CAST(sortedSphMarkers_D->tauXxYyZzD), mR3CAST(sortedSphMarkers_D->tauXyXzYzD),
-        mR4CAST(fsiData->sr_tau_I_mu_i), mR3CAST(fsiData->vis_vel_SPH_D), mR4CAST(fsiData->derivVelRhoD),
+        mR4CAST(m_data_mgr.sr_tau_I_mu_i), mR3CAST(m_data_mgr.vis_vel_SPH_D), mR4CAST(m_data_mgr.derivVelRhoD),
         mR3CAST(V_star_new), R1CAST(q_new), R1CAST(csrValFunction), mR3CAST(csrValGradient), R1CAST(csrValLaplacian),
         U1CAST(csrColInd), U1CAST(Contact_i), numAllMarkers, MaxVel, paramsH->dT, isErrorD);
     ChUtilsDevice::Sync_CheckError(isErrorH, isErrorD, "Velocity_Correction_and_update");
@@ -1222,7 +1222,7 @@ void ChFsiForceI2SPH::ForceSPH(std::shared_ptr<SphMarkerDataD> otherSortedSphMar
     Shifting<<<numBlocks, numThreads>>>(
         mR4CAST(sortedSphMarkers_D->posRadD), mR4CAST(posRadD_old), mR4CAST(sortedSphMarkers_D->rhoPresMuD),
         mR4CAST(rhoPresMuD_old), mR3CAST(sortedSphMarkers_D->velMasD), mR3CAST(velMasD_old),
-        mR3CAST(fsiData->vis_vel_SPH_D), R1CAST(csrValFunction), mR3CAST(csrValGradient), U1CAST(csrColInd),
+        mR3CAST(m_data_mgr.vis_vel_SPH_D), R1CAST(csrValFunction), mR3CAST(csrValGradient), U1CAST(csrColInd),
         U1CAST(Contact_i), numAllMarkers, MaxVel, paramsH->dT, isErrorD);
     ChUtilsDevice::Sync_CheckError(isErrorH, isErrorD, "Shifting");
     Real4_x unary_op(paramsH->rho0);

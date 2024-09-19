@@ -23,7 +23,7 @@
 #include "chrono_fsi/utils/ChUtilsDevice.cuh"
 #include "chrono_fsi/physics/ChFsiForceExplicitSPH.cuh"
 #include "chrono_fsi/physics/ChFsiForceI2SPH.cuh"
-#include "chrono_fsi/physics/ChSystemFsi_impl.cuh"
+#include "chrono_fsi/physics/FsiDataManager.cuh"
 
 namespace chrono {
 namespace fsi {
@@ -43,8 +43,8 @@ class ChFluidDynamics : public ChFsiBase {
     /// - Instantiate ChFsiForce, i.e. force system;
     /// - Copy the pointer to SPH particle data, parameters,
     ///   and number of objects to member variables.
-    ChFluidDynamics(std::shared_ptr<ChBce> bce_manager,      ///< information on BCE particles
-                    ChSystemFsi_impl& sysFSI,                ///< implementatin FSI system
+    ChFluidDynamics(FsiDataManager& data_mgr,                ///< FSI data manager
+                    std::shared_ptr<ChBce> bce_manager,      ///< information on BCE particles
                     std::shared_ptr<SimParams> params,       ///< simulation parameters
                     std::shared_ptr<ChCounters> numObjects,  ///< problem counters
                     bool verb                                ///< verbose output
@@ -92,7 +92,7 @@ class ChFluidDynamics : public ChFsiBase {
     std::shared_ptr<ChFsiForce> GetForceSystem() { return forceSystem; }
 
   protected: 
-    ChSystemFsi_impl& fsiSystem;              ///< FSI data; values are maintained externally
+    FsiDataManager& m_data_mgr;               ///< FSI data manager
     std::shared_ptr<ChFsiForce> forceSystem;  ///< force system object; calculates the force between particles
 
     bool verbose;
