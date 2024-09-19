@@ -754,29 +754,44 @@ __device__ inline Real4 DifVelocityRho(float G_i[9],
     // Continuty equation
     Real derivRho = paramsD.markerMass * dot(velMasA - velMasB, gradW);
 
-    // Viscosity
-    Real rAB_Dot_GradWh = dot(dist3, gradW);
-    Real rAB_Dot_GradWh_OverDist = rAB_Dot_GradWh / (d * d + paramsD.epsMinMarkersDis * paramsD.HSML * paramsD.HSML);
-    Real3 derivV = -paramsD.markerMass *
-                       (rhoPresMuA.y / (rhoPresMuA.x * rhoPresMuA.x) + rhoPresMuB.y / (rhoPresMuB.x * rhoPresMuB.x)) *
-                       gradW +
-                   paramsD.markerMass * (8.0f * multViscosity) * paramsD.mu0 * rAB_Dot_GradWh_OverDist *
-                       (velMasA - velMasB) / square(rhoPresMuA.x + rhoPresMuB.x);
+    // Momentum equation, Arman's original implementation
+    //Real rAB_Dot_GradWh = dot(dist3, gradW);
+    //Real rAB_Dot_GradWh_OverDist = rAB_Dot_GradWh / (d * d + paramsD.epsMinMarkersDis * paramsD.HSML * paramsD.HSML);
+    //Real3 derivV = -paramsD.markerMass *
+    //                   (rhoPresMuA.y / (rhoPresMuA.x * rhoPresMuA.x) + rhoPresMuB.y / (rhoPresMuB.x * rhoPresMuB.x)) *
+    //                   gradW +
+    //               paramsD.markerMass * (8.0f * multViscosity) * paramsD.mu0 * rAB_Dot_GradWh_OverDist *
+    //                   (velMasA - velMasB) / square(rhoPresMuA.x + rhoPresMuB.x);
 
     // Artificial viscosity
-    Real vAB_Dot_rAB = dot(velMasA - velMasB, dist3);
+    //Real vAB_Dot_rAB = dot(velMasA - velMasB, dist3);
     // change to 1==1 if needs artificial viscosity
-    if ((vAB_Dot_rAB < 0.0) && (1 == 1)) {
-        Real alpha = paramsD.Ar_vis_alpha;
-        Real c_ab = paramsD.Cs;
-        Real rho = 0.5f * (rhoPresMuA.x * rhoPresMuB.x);
-        Real nu = -alpha * paramsD.HSML * c_ab / rho;
-        Real derivM1 =
-            -paramsD.markerMass * (nu * vAB_Dot_rAB / (d * d + paramsD.epsMinMarkersDis * paramsD.HSML * paramsD.HSML));
-        derivV.x += derivM1 * gradW.x;
-        derivV.y += derivM1 * gradW.y;
-        derivV.z += derivM1 * gradW.z;
+    //if ((vAB_Dot_rAB < 0.0) && (1 == 1)) {
+    //    Real alpha = paramsD.Ar_vis_alpha;
+    //    Real c_ab = paramsD.Cs;
+    //    Real rho = 0.5f * (rhoPresMuA.x * rhoPresMuB.x);
+    //    Real nu = -alpha * paramsD.HSML * c_ab / rho;
+    //    Real derivM1 =
+    //        -paramsD.markerMass * (nu * vAB_Dot_rAB / (d * d + paramsD.epsMinMarkersDis * paramsD.HSML * paramsD.HSML));
+    //    derivV.x += derivM1 * gradW.x;
+    //    derivV.y += derivM1 * gradW.y;
+    //    derivV.z += derivM1 * gradW.z;
+    //}
+
+    // Artificial viscosity formulation only
+    Real alpha = 0.05;
+    // pressure component
+    Real3 derivV = -paramsD.markerMass * (rhoPresMuA.y + rhoPresMuB.y) / (rhoPresMuA.x * rhoPresMuA.x) * gradW;
+    Real vAB_dot_rAB = dot(velMasA - velMasB, dist3);
+    // artificial viscosity part
+    if (vAB_dot_rAB < 0) {
+        Real c_ab = paramsD.Cs;    
+        Real Pi_ab = -alpha * paramsD.Cs * 2. / (rhoPresMuA.x + rhoPresMuB.x) * paramsD.markerMass;
+        derivV.x += Pi_ab * gradW.x;
+        derivV.y += Pi_ab * gradW.y;
+        derivV.z += Pi_ab * gradW.z;
     }
+
 
     return mR4(derivV, derivRho);
 }
@@ -1069,20 +1084,20 @@ __global__ void Navier_Stokes(uint* indexOfIndex,
 
                         derivVelRho += DifVelocityRho(Gi, dist3, d, sortedPosRad[index], sortedPosRad[j], velMasA,
                                                       velMasB, rhoPresMuA, rhoPresMuB, multViscosit);
-                        preGra += GradientOperator(Gi, dist3, sortedPosRad[index], sortedPosRad[j], -rhoPresMuA.y,
-                                                   rhoPresMuB.y, rhoPresMuA, rhoPresMuB);
-                        velxGra += GradientOperator(Gi, dist3, sortedPosRad[index], sortedPosRad[j], velMasA.x,
-                                                    velMasB.x, rhoPresMuA, rhoPresMuB);
-                        velyGra += GradientOperator(Gi, dist3, sortedPosRad[index], sortedPosRad[j], velMasA.y,
-                                                    velMasB.y, rhoPresMuA, rhoPresMuB);
-                        velzGra += GradientOperator(Gi, dist3, sortedPosRad[index], sortedPosRad[j], velMasA.z,
-                                                    velMasB.z, rhoPresMuA, rhoPresMuB);
-                        velxLap += LaplacianOperator(Gi, Li, dist3, sortedPosRad[index], sortedPosRad[j], velMasA.x,
-                                                     velMasB.x, rhoPresMuA, rhoPresMuB);
-                        velyLap += LaplacianOperator(Gi, Li, dist3, sortedPosRad[index], sortedPosRad[j], velMasA.y,
-                                                     velMasB.y, rhoPresMuA, rhoPresMuB);
-                        velzLap += LaplacianOperator(Gi, Li, dist3, sortedPosRad[index], sortedPosRad[j], velMasA.z,
-                                                     velMasB.z, rhoPresMuA, rhoPresMuB);
+                        //preGra += GradientOperator(Gi, dist3, sortedPosRad[index], sortedPosRad[j], -rhoPresMuA.y,
+                        //                           rhoPresMuB.y, rhoPresMuA, rhoPresMuB);
+                        //velxGra += GradientOperator(Gi, dist3, sortedPosRad[index], sortedPosRad[j], velMasA.x,
+                        //                            velMasB.x, rhoPresMuA, rhoPresMuB);
+                        //velyGra += GradientOperator(Gi, dist3, sortedPosRad[index], sortedPosRad[j], velMasA.y,
+                        //                            velMasB.y, rhoPresMuA, rhoPresMuB);
+                        //velzGra += GradientOperator(Gi, dist3, sortedPosRad[index], sortedPosRad[j], velMasA.z,
+                        //                            velMasB.z, rhoPresMuA, rhoPresMuB);
+                        //velxLap += LaplacianOperator(Gi, Li, dist3, sortedPosRad[index], sortedPosRad[j], velMasA.x,
+                        //                             velMasB.x, rhoPresMuA, rhoPresMuB);
+                        //velyLap += LaplacianOperator(Gi, Li, dist3, sortedPosRad[index], sortedPosRad[j], velMasA.y,
+                        //                             velMasB.y, rhoPresMuA, rhoPresMuB);
+                        //velzLap += LaplacianOperator(Gi, Li, dist3, sortedPosRad[index], sortedPosRad[j], velMasA.z,
+                                                     //velMasB.z, rhoPresMuA, rhoPresMuB);
 
                         if (d > paramsD.HSML * 1.0e-9)
                             sum_w_i = sum_w_i + W3h(d, sortedPosRad[index].w) * paramsD.volume0;
@@ -1092,24 +1107,29 @@ __global__ void Navier_Stokes(uint* indexOfIndex,
         }
     }
 
-    Real nu = paramsD.mu0 / paramsD.rho0;
-    Real dvxdt = -preGra.x / rhoPresMuA.x +
-                 (velxLap.x + velxGra.x * velxLap.y + velxGra.y * velxLap.z + velxGra.z * velxLap.w) * nu;
-    Real dvydt = -preGra.y / rhoPresMuA.x +
-                 (velyLap.x + velyGra.x * velyLap.y + velyGra.y * velyLap.z + velyGra.z * velyLap.w) * nu;
-    Real dvzdt = -preGra.z / rhoPresMuA.x +
-                 (velzLap.x + velzGra.x * velzLap.y + velzGra.y * velzLap.z + velzGra.z * velzLap.w) * nu;
-    Real drhodt = -paramsD.rho0 * (velxGra.x + velyGra.y + velzGra.z);
+    //Real nu = paramsD.mu0 / paramsD.rho0;
+    //Real dvxdt = -preGra.x / rhoPresMuA.x +
+    //             (velxLap.x + velxGra.x * velxLap.y + velxGra.y * velxLap.z + velxGra.z * velxLap.w) * nu;
+    //Real dvydt = -preGra.y / rhoPresMuA.x +
+    //             (velyLap.x + velyGra.x * velyLap.y + velyGra.y * velyLap.z + velyGra.z * velyLap.w) * nu;
+    //Real dvzdt = -preGra.z / rhoPresMuA.x +
+    //             (velzLap.x + velzGra.x * velzLap.y + velzGra.y * velzLap.z + velzGra.z * velzLap.w) * nu;
+    //Real drhodt = -paramsD.rho0 * (velxGra.x + velyGra.y + velzGra.z);
 
-    Real Det_G = (Gi[0] * Gi[4] * Gi[8] - Gi[0] * Gi[5] * Gi[7] - Gi[1] * Gi[3] * Gi[8] + Gi[1] * Gi[5] * Gi[6] +
-                  Gi[2] * Gi[3] * Gi[7] - Gi[2] * Gi[4] * Gi[6]);
-    Real Det_L = (Li[0] * Li[4] * Li[8] - Li[0] * Li[5] * Li[7] - Li[1] * Li[3] * Li[8] + Li[1] * Li[5] * Li[6] +
-                  Li[2] * Li[3] * Li[7] - Li[2] * Li[4] * Li[6]);
-    if (rhoPresMuA.w > -1.5 && rhoPresMuA.w < -0.5) {
-        if (Det_G > 0.9 && Det_G < 1.1 && Det_L > 0.9 && Det_L < 1.1 && sum_w_i > 0.9) {
-            derivVelRho = mR4(dvxdt, dvydt, dvzdt, drhodt);
-        }
-    }
+    //Real Det_G = (Gi[0] * Gi[4] * Gi[8] - Gi[0] * Gi[5] * Gi[7] - Gi[1] * Gi[3] * Gi[8] + Gi[1] * Gi[5] * Gi[6] +
+    //              Gi[2] * Gi[3] * Gi[7] - Gi[2] * Gi[4] * Gi[6]);
+    //Real Det_L = (Li[0] * Li[4] * Li[8] - Li[0] * Li[5] * Li[7] - Li[1] * Li[3] * Li[8] + Li[1] * Li[5] * Li[6] +
+    //              Li[2] * Li[3] * Li[7] - Li[2] * Li[4] * Li[6]);
+
+
+    //if (rhoPresMuA.w > -1.5 && rhoPresMuA.w < -0.5) {
+
+    //    if (Det_G > 0.9 && Det_G < 1.1 && Det_L > 0.9 && Det_L < 1.1 && sum_w_i > 0.9) {
+    //        //Real4 derivVelRho_old = derivVelRho;
+    //        ////derivVelRho = mR4(dvxdt, dvydt, dvzdt, drhodt);
+    //        //printf("derivVelRho diff: %e, %e, %e\n", derivVelRho.x - derivVelRho_old.x, derivVelRho.y - derivVelRho_old.y, derivVelRho.z - derivVelRho_old.z);
+    //    } 
+    //}
 
     if (!(isfinite(derivVelRho.x) && isfinite(derivVelRho.y) && isfinite(derivVelRho.z))) {
         printf("Error! particle derivVel is NAN: thrown from ChFsiForceExplicitSPH.cu, collideD !\n");
