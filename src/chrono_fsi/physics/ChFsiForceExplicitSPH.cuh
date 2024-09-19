@@ -30,7 +30,7 @@ class ChFsiForceExplicitSPH : public ChFsiForce {
     /// Force class implemented using WCSPH with explicit integretor.
     /// Supports for both fluid and granular material dynamics.
     ChFsiForceExplicitSPH(FsiDataManager& data_mgr,                ///< FSI data manager
-                          std::shared_ptr<ChBce> otherBceWorker,   ///< object that handles BCE particles
+                          std::shared_ptr<ChBce> bce_mgr,          ///< BCE manager
                           std::shared_ptr<SimParams> params,       ///< simulation parameters
                           std::shared_ptr<ChCounters> numObjects,  ///< problem counters
                           bool verb                                ///< verbose terminal output
@@ -44,9 +44,7 @@ class ChFsiForceExplicitSPH : public ChFsiForce {
     int density_initialization;
 
     /// Function to find neighbor particles and calculate the interactions between SPH particles
-    void ForceSPH(std::shared_ptr<SphMarkerDataD> otherSortedSphMarkersD,
-                  Real time,
-                  bool firstHalfStep) override;
+    void ForceSPH(std::shared_ptr<SphMarkerDataD> sortedSphMarkers_D, Real time, bool firstHalfStep) override;
 
     void neighborSearch();
 

@@ -25,15 +25,15 @@ namespace chrono {
 namespace fsi {
 
 ChFsiForce::ChFsiForce(FsiDataManager& data_mgr,
-                       std::shared_ptr<ChBce> otherBceWorker,
+                       std::shared_ptr<ChBce> bce_mgr,
                        std::shared_ptr<SimParams> params,
                        std::shared_ptr<ChCounters> numObjects,
                        bool verb)
     : ChFsiBase(params, numObjects),
       m_data_mgr(data_mgr),
-      bceWorker(otherBceWorker),
+      m_bce_mgr(bce_mgr),
       verbose(verb),
-      sortedSphMarkers_D(nullptr) {
+      m_sortedSphMarkers_D(nullptr) {
     fsiCollisionSystem = chrono_types::make_shared<ChCollisionSystemFsi>(data_mgr, paramsH, numObjectsH);
 }
 
@@ -41,9 +41,6 @@ void ChFsiForce::Initialize() {
     cudaMemcpyToSymbolAsync(paramsD, paramsH.get(), sizeof(SimParams));
     cudaMemcpyToSymbolAsync(numObjectsD, numObjectsH.get(), sizeof(ChCounters));
 
-    vel_XSPH_Sorted_D.resize(numObjectsH->numAllMarkers);
-    vel_vis_Sorted_D.resize(numObjectsH->numAllMarkers);
-    derivVelRhoD_Sorted_D.resize(numObjectsH->numAllMarkers);
     fsiCollisionSystem->Initialize();
 }
 

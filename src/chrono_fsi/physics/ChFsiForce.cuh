@@ -109,7 +109,7 @@ class ChFsiForce : public ChFsiBase {
     /// The constructor instantiates the force system
     /// and initializes the pointer to external data.
     ChFsiForce(FsiDataManager& data_mgr,                ///< FSI data manager
-               std::shared_ptr<ChBce> otherBceWorker,   ///< object that handles BCE particles
+               std::shared_ptr<ChBce> bce_mgr,          ///< BCE manager
                std::shared_ptr<SimParams> params,       ///< simulation parameters
                std::shared_ptr<ChCounters> numObjects,  ///< problem counters
                bool verb                                ///< verbose output
@@ -121,9 +121,7 @@ class ChFsiForce : public ChFsiBase {
     /// Function to calculate forces on SPH particles.
     /// Implemented by derived classes to compute forces in an implicit integrator using ISPH method (see
     /// ChFsiForceI2SPH) or an explicit integrator using WCPSH method (see ChFsiForceExplicitSPH).
-    virtual void ForceSPH(std::shared_ptr<SphMarkerDataD> otherSortedSphMarkersD,
-                          Real time,
-                          bool firstHalfStep) = 0;
+    virtual void ForceSPH(std::shared_ptr<SphMarkerDataD> sortedSphMarkers_D, Real time, bool firstHalfStep) = 0;
 
     /// Synchronize the copy of the data (parameters and number of objects)
     /// between device (GPU) and host (CPU).
@@ -170,15 +168,11 @@ class ChFsiForce : public ChFsiBase {
     std::shared_ptr<ChCollisionSystemFsi> fsiCollisionSystem;  ///< collision system for building neighbors list
 
   protected:
-    FsiDataManager& m_data_mgr;  ///< FSI data manager
-    std::shared_ptr<ChBce> bceWorker;  ///< pointer to Boundary Condition Enforcing particles class
+    FsiDataManager& m_data_mgr;        ///< FSI data manager
+    std::shared_ptr<ChBce> m_bce_mgr;  ///< BCE manager
 
     // NOTE: this is cached at each call to ForceSPH()
-    std::shared_ptr<SphMarkerDataD> sortedSphMarkers_D;  ///< device copy of the sorted sph particles data
-
-    thrust::device_vector<Real3> vel_vis_Sorted_D;       ///< sorted visualization velocity data
-    thrust::device_vector<Real3> vel_XSPH_Sorted_D;      ///< sorted xsph velocity data
-    thrust::device_vector<Real4> derivVelRhoD_Sorted_D;  ///< sorted derivVelRhoD
+    std::shared_ptr<SphMarkerDataD> m_sortedSphMarkers_D;  ///< device copy of the sorted sph particles data
 
     bool verbose;
 };

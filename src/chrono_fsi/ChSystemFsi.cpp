@@ -1030,12 +1030,12 @@ void ChSystemFsi::Initialize() {
     m_fsi_interface->LoadMeshStates();
 
     // Create BCE and SPH worker objects
-    m_bce_manager = chrono_types::make_shared<ChBce>(*m_data_mgr, m_paramsH, m_data_mgr->numObjectsH, m_verbose);
+    m_bce_mgr = chrono_types::make_shared<ChBce>(*m_data_mgr, m_paramsH, m_data_mgr->numObjectsH, m_verbose);
 
-    m_fluid_dynamics = chrono_types::make_unique<ChFluidDynamics>(*m_data_mgr, m_bce_manager, m_paramsH,
+    m_fluid_dynamics = chrono_types::make_unique<ChFluidDynamics>(*m_data_mgr, m_bce_mgr, m_paramsH,
                                                                   m_data_mgr->numObjectsH, m_verbose);
     // Initialize worker objects
-    m_bce_manager->Initialize(m_fsi_bodies_bce_num);
+    m_bce_mgr->Initialize(m_fsi_bodies_bce_num);
     m_fluid_dynamics->Initialize();
 
     // Mark system as initialized
@@ -1072,16 +1072,16 @@ void ChSystemFsi::DoStepDynamics_FSI() {
         }
 
         case SPHMethod::I2SPH: {
-            m_bce_manager->updateBCEAcc();
+            m_bce_mgr->updateBCEAcc();
             m_fluid_dynamics->IntegrateSPH(m_data_mgr->sortedSphMarkers2_D, m_data_mgr->sortedSphMarkers2_D,  //
                                            0.0, m_time, false);
             break;
         }
     }
 
-    m_bce_manager->Rigid_Forces_Torques();
-    m_bce_manager->Flex1D_Forces();
-    m_bce_manager->Flex2D_Forces();
+    m_bce_mgr->Rigid_Forces_Torques();
+    m_bce_mgr->Flex1D_Forces();
+    m_bce_mgr->Flex2D_Forces();
 
     // Advance dynamics of the associated MBS system (if provided)
     if (m_sysMBS) {
@@ -1102,11 +1102,11 @@ void ChSystemFsi::DoStepDynamics_FSI() {
     }
 
     m_fsi_interface->LoadBodyStates();
-    m_bce_manager->UpdateBodyMarkerState();
+    m_bce_mgr->UpdateBodyMarkerState();
 
     m_fsi_interface->LoadMeshStates();
-    m_bce_manager->UpdateMeshMarker1DState();
-    m_bce_manager->UpdateMeshMarker2DState();
+    m_bce_mgr->UpdateMeshMarker1DState();
+    m_bce_mgr->UpdateMeshMarker2DState();
 
     m_fluid_dynamics->CopySortedToOriginal(m_data_mgr->sortedSphMarkers2_D, m_data_mgr->sphMarkers_D);
 

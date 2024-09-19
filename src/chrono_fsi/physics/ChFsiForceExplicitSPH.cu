@@ -1048,7 +1048,7 @@ __global__ void updateBoundaryPres(const uint* activityIdentifierD,
         // Applies ADAMI only to Rigid/Flexible markers
         Real3 prescribedVel = (IsBceSolidMarker(sortedRhoPresMuD[index].w)) ? (2.0f * sortedVelMasD[index]) : mR3(0.0);
         // prescribedVel = 2.0f * sortedVelMasD[index];
-        
+
         sortedVelMasD[index] = prescribedVel - sum_vw / sum_w;
         sortedTauXxYyZz[index] = (sum_tauD + dot(paramsD.gravity - bceAcc[index], sum_rhorw)) / sum_w;
         sortedTauXyXzYz[index] = sum_tauO / sum_w;
@@ -1431,11 +1431,11 @@ __global__ void CopySortedToOriginal_XSPH_D(const Real3* sortedXSPH,
 // ===============================================================================================================================
 
 ChFsiForceExplicitSPH::ChFsiForceExplicitSPH(FsiDataManager& data_mgr,
-                                             std::shared_ptr<ChBce> otherBceWorker,
+                                             std::shared_ptr<ChBce> bce_mgr,
                                              std::shared_ptr<SimParams> params,
                                              std::shared_ptr<ChCounters> numObjects,
                                              bool verb)
-    : ChFsiForce(data_mgr, otherBceWorker, params, numObjects, verb) {
+    : ChFsiForce(data_mgr, bce_mgr, params, numObjects, verb) {
     CopyParams_NumberOfObjects(paramsH, numObjectsH);
     density_initialization = 0;
 }
@@ -1453,11 +1453,11 @@ void ChFsiForceExplicitSPH::Initialize() {
 }
 
 //--------------------------------------------------------------------------------------------------------------------------------
-void ChFsiForceExplicitSPH::ForceSPH(std::shared_ptr<SphMarkerDataD> otherSortedSphMarkersD,
+void ChFsiForceExplicitSPH::ForceSPH(std::shared_ptr<SphMarkerDataD> sortedSphMarkers_D,
                                      Real time,
                                      bool firstHalfStep) {
-    sortedSphMarkers_D = otherSortedSphMarkersD;
-    bceWorker->updateBCEAcc();
+    m_sortedSphMarkers_D = sortedSphMarkers_D;
+    m_bce_mgr->updateBCEAcc();
     CollideWrapper(time, firstHalfStep);
     CalculateXSPH_velocity();
 }
@@ -1480,7 +1480,7 @@ void ChFsiForceExplicitSPH::neighborSearch() {
     // start neighbor search
     // first pass
     neighborSearchNum<<<numBlocksShort, numThreadsShort>>>(
-        mR4CAST(sortedSphMarkers_D->posRadD), mR4CAST(sortedSphMarkers_D->rhoPresMuD),
+        mR4CAST(m_sortedSphMarkers_D->posRadD), mR4CAST(m_sortedSphMarkers_D->rhoPresMuD),
         U1CAST(m_data_mgr.markersProximity_D->cellStartD), U1CAST(m_data_mgr.markersProximity_D->cellEndD),
         U1CAST(m_data_mgr.activityIdentifierD), U1CAST(m_data_mgr.numNeighborsPerPart), isErrorD);
     ChUtilsDevice::Sync_CheckError(isErrorH, isErrorD, "neighborSearchNum");
@@ -1494,7 +1494,7 @@ void ChFsiForceExplicitSPH::neighborSearch() {
 
     // second pass
     neighborSearchID<<<numBlocksShort, numThreadsShort>>>(
-        mR4CAST(sortedSphMarkers_D->posRadD), mR4CAST(sortedSphMarkers_D->rhoPresMuD),
+        mR4CAST(m_sortedSphMarkers_D->posRadD), mR4CAST(m_sortedSphMarkers_D->rhoPresMuD),
         U1CAST(m_data_mgr.markersProximity_D->cellStartD), U1CAST(m_data_mgr.markersProximity_D->cellEndD),
         U1CAST(m_data_mgr.activityIdentifierD), U1CAST(m_data_mgr.numNeighborsPerPart), U1CAST(m_data_mgr.neighborList),
         isErrorD);
@@ -1512,11 +1512,11 @@ void ChFsiForceExplicitSPH::CollideWrapper(Real time, bool firstHalfStep) {
 
     // Re-Initialize the density after several time steps if needed
     if (density_initialization >= paramsH->densityReinit) {
-        thrust::device_vector<Real4> rhoPresMuD_old = sortedSphMarkers_D->rhoPresMuD;
+        thrust::device_vector<Real4> rhoPresMuD_old = m_sortedSphMarkers_D->rhoPresMuD;
         printf("Re-initializing density after %d steps.\n", paramsH->densityReinit);
         cudaResetErrorFlag(isErrorD);
         calcRho_kernel<<<numBlocks, numThreads>>>(
-            mR4CAST(sortedSphMarkers_D->posRadD), mR4CAST(sortedSphMarkers_D->rhoPresMuD), mR4CAST(rhoPresMuD_old),
+            mR4CAST(m_sortedSphMarkers_D->posRadD), mR4CAST(m_sortedSphMarkers_D->rhoPresMuD), mR4CAST(rhoPresMuD_old),
             U1CAST(m_data_mgr.numNeighborsPerPart), U1CAST(m_data_mgr.neighborList), density_initialization, isErrorD);
         cudaCheckErrorFlag(isErrorD, "calcRho_kernel");
         density_initialization = 0;
@@ -1531,7 +1531,7 @@ void ChFsiForceExplicitSPH::CollideWrapper(Real time, bool firstHalfStep) {
     // Calculate the kernel support of each particle
     cudaResetErrorFlag(isErrorD);
     calcKernelSupport<<<numBlocks, numThreads>>>(
-        mR4CAST(sortedSphMarkers_D->posRadD), mR4CAST(sortedSphMarkers_D->rhoPresMuD), mR3CAST(sortedKernelSupport),
+        mR4CAST(m_sortedSphMarkers_D->posRadD), mR4CAST(m_sortedSphMarkers_D->rhoPresMuD), mR3CAST(sortedKernelSupport),
         U1CAST(m_data_mgr.markersProximity_D->mapOriginalToSorted), U1CAST(m_data_mgr.numNeighborsPerPart),
         U1CAST(m_data_mgr.neighborList), isErrorD);
     cudaCheckErrorFlag(isErrorD, "calcKernelSupport");
@@ -1539,9 +1539,9 @@ void ChFsiForceExplicitSPH::CollideWrapper(Real time, bool firstHalfStep) {
     cudaResetErrorFlag(isErrorD);
     updateBoundaryPres<<<numBlocks, numThreads>>>(
         U1CAST(m_data_mgr.activityIdentifierD), U1CAST(m_data_mgr.numNeighborsPerPart), U1CAST(m_data_mgr.neighborList),
-        mR4CAST(sortedSphMarkers_D->posRadD), mR3CAST(m_data_mgr.bceAcc), mR4CAST(sortedSphMarkers_D->rhoPresMuD),
-        mR3CAST(sortedSphMarkers_D->velMasD), mR3CAST(sortedSphMarkers_D->tauXxYyZzD),
-        mR3CAST(sortedSphMarkers_D->tauXyXzYzD), isErrorD);
+        mR4CAST(m_sortedSphMarkers_D->posRadD), mR3CAST(m_data_mgr.bceAcc), mR4CAST(m_sortedSphMarkers_D->rhoPresMuD),
+        mR3CAST(m_sortedSphMarkers_D->velMasD), mR3CAST(m_sortedSphMarkers_D->tauXxYyZzD),
+        mR3CAST(m_sortedSphMarkers_D->tauXyXzYzD), isErrorD);
     cudaCheckErrorFlag(isErrorD, "updateBoundaryPres");
 
     // Execute the kernel
@@ -1549,9 +1549,9 @@ void ChFsiForceExplicitSPH::CollideWrapper(Real time, bool firstHalfStep) {
         // execute the kernel Navier_Stokes and Shear_Stress_Rate in one kernel
         cudaResetErrorFlag(isErrorD);
         NS_SSR<<<numBlocks, numThreads>>>(
-            U1CAST(m_data_mgr.activityIdentifierD), mR4CAST(sortedSphMarkers_D->posRadD),
-            mR3CAST(sortedSphMarkers_D->velMasD), mR4CAST(sortedSphMarkers_D->rhoPresMuD),
-            mR3CAST(sortedSphMarkers_D->tauXxYyZzD), mR3CAST(sortedSphMarkers_D->tauXyXzYzD),
+            U1CAST(m_data_mgr.activityIdentifierD), mR4CAST(m_sortedSphMarkers_D->posRadD),
+            mR3CAST(m_sortedSphMarkers_D->velMasD), mR4CAST(m_sortedSphMarkers_D->rhoPresMuD),
+            mR3CAST(m_sortedSphMarkers_D->tauXxYyZzD), mR3CAST(m_sortedSphMarkers_D->tauXyXzYzD),
             U1CAST(m_data_mgr.numNeighborsPerPart), U1CAST(m_data_mgr.neighborList), mR4CAST(m_data_mgr.derivVelRhoD),
             mR3CAST(m_data_mgr.derivTauXxYyZzD), mR3CAST(m_data_mgr.derivTauXyXzYzD), mR3CAST(m_data_mgr.vel_XSPH_D),
             mR3CAST(sortedKernelSupport), U1CAST(m_data_mgr.freeSurfaceIdD), isErrorD);
@@ -1570,8 +1570,8 @@ void ChFsiForceExplicitSPH::CollideWrapper(Real time, bool firstHalfStep) {
         // TOUnderstand: Why is the blocks NumBlocks1 and threads NumThreads1?
         Navier_Stokes<<<numBlocks, numThreads>>>(
             U1CAST(indexOfIndex), mR4CAST(m_data_mgr.derivVelRhoD), mR3CAST(m_data_mgr.vel_XSPH_D),
-            mR4CAST(sortedSphMarkers_D->posRadD), mR3CAST(sortedSphMarkers_D->velMasD),
-            mR4CAST(sortedSphMarkers_D->rhoPresMuD), U1CAST(m_data_mgr.markersProximity_D->gridMarkerIndexD),
+            mR4CAST(m_sortedSphMarkers_D->posRadD), mR3CAST(m_sortedSphMarkers_D->velMasD),
+            mR4CAST(m_sortedSphMarkers_D->rhoPresMuD), U1CAST(m_data_mgr.markersProximity_D->gridMarkerIndexD),
             U1CAST(m_data_mgr.numNeighborsPerPart), U1CAST(m_data_mgr.neighborList), isErrorD);
         cudaCheckErrorFlag(isErrorD, "Navier_Stokes");
     }
@@ -1581,6 +1581,7 @@ void ChFsiForceExplicitSPH::CollideWrapper(Real time, bool firstHalfStep) {
 }
 
 //--------------------------------------------------------------------------------------------------------------------------------
+
 void ChFsiForceExplicitSPH::CalculateXSPH_velocity() {
     // Calculate vel_XSPH
     if (m_data_mgr.vel_XSPH_D.size() != numObjectsH->numAllMarkers) {
@@ -1612,8 +1613,8 @@ void ChFsiForceExplicitSPH::CalculateXSPH_velocity() {
         // Execute the kernel
         cudaResetErrorFlag(isErrorD);
         CalcVel_XSPH_D<<<numBlocks, numThreads>>>(
-            U1CAST(indexOfIndex), mR3CAST(m_data_mgr.vel_XSPH_D), mR4CAST(sortedSphMarkers_D->posRadD),
-            mR3CAST(sortedSphMarkers_D->velMasD), mR4CAST(sortedSphMarkers_D->rhoPresMuD),
+            U1CAST(indexOfIndex), mR3CAST(m_data_mgr.vel_XSPH_D), mR4CAST(m_sortedSphMarkers_D->posRadD),
+            mR3CAST(m_sortedSphMarkers_D->velMasD), mR4CAST(m_sortedSphMarkers_D->rhoPresMuD),
             U1CAST(m_data_mgr.markersProximity_D->gridMarkerIndexD), U1CAST(m_data_mgr.numNeighborsPerPart),
             U1CAST(m_data_mgr.neighborList), isErrorD);
         cudaCheckErrorFlag(isErrorD, "CalcVel_XSPH_D");

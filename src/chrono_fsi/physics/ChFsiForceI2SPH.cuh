@@ -29,7 +29,7 @@ class ChFsiForceI2SPH : public ChFsiForce {
   public:
     /// Force class implemented using incompressible SPH method with implicit integrator
     ChFsiForceI2SPH(FsiDataManager& data_mgr,                ///< FSI data manager
-                    std::shared_ptr<ChBce> otherBceWorker,   ///< object that handles BCE particles
+                    std::shared_ptr<ChBce> bce_mgr,          ///< BCE manager
                     std::shared_ptr<SimParams> params,       ///< simulation parameters
                     std::shared_ptr<ChCounters> numObjects,  ///< problem counters
                     bool verb                                ///< verbose output
@@ -64,11 +64,9 @@ class ChFsiForceI2SPH : public ChFsiForce {
     size_t numAllMarkers;
     int NNZ;
 
-    void ForceSPH(std::shared_ptr<SphMarkerDataD> otherSortedSphMarkersD,
-                  Real time,
-                  bool firstHalfStep) override;
+    void ForceSPH(std::shared_ptr<SphMarkerDataD> sortedSphMarkers_D, Real time, bool firstHalfStep) override;
 
-    void PreProcessor(std::shared_ptr<SphMarkerDataD> otherSphMarkersD, bool calcLaplacianOperator = true);
+    void PreProcessor(bool calcLaplacianOperator);
 };
 
 /// @} fsi_physics

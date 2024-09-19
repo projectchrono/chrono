@@ -88,7 +88,7 @@ class ChFluidDynamics : public ChFsiBase {
     /// Return the ChFsiForce type used in the simulation.
     std::shared_ptr<ChFsiForce> GetForceSystem() { return forceSystem; }
 
-  protected: 
+  protected:
     FsiDataManager& m_data_mgr;               ///< FSI data manager
     std::shared_ptr<ChFsiForce> forceSystem;  ///< force system object; calculates the force between particles
 
