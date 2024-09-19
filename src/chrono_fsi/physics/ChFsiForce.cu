@@ -26,20 +26,17 @@ namespace fsi {
 
 ChFsiForce::ChFsiForce(FsiDataManager& data_mgr,
                        ChBce& bce_mgr,
-                       std::shared_ptr<SimParams> params,
-                       std::shared_ptr<ChCounters> numObjects,
                        bool verb)
-    : ChFsiBase(params, numObjects),
-      m_data_mgr(data_mgr),
+    : m_data_mgr(data_mgr),
       m_bce_mgr(bce_mgr),
       verbose(verb),
       m_sortedSphMarkers_D(nullptr) {
-    fsiCollisionSystem = chrono_types::make_shared<ChCollisionSystemFsi>(data_mgr, paramsH, numObjectsH);
+    fsiCollisionSystem = chrono_types::make_shared<ChCollisionSystemFsi>(data_mgr);
 }
 
 void ChFsiForce::Initialize() {
-    cudaMemcpyToSymbolAsync(paramsD, paramsH.get(), sizeof(SimParams));
-    cudaMemcpyToSymbolAsync(numObjectsD, numObjectsH.get(), sizeof(ChCounters));
+    cudaMemcpyToSymbolAsync(paramsD, m_data_mgr.paramsH.get(), sizeof(SimParams));
+    cudaMemcpyToSymbolAsync(numObjectsD, m_data_mgr.countersH.get(), sizeof(ChCounters));
 
     fsiCollisionSystem->Initialize();
 }

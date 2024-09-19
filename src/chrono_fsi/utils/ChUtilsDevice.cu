@@ -58,5 +58,11 @@ void ChUtilsDevice::Sync_CheckError(bool* isErrorH, bool* isErrorD, std::string 
     cudaCheckError();
 }
 
+void computeGridSize(uint n, uint blockSize, uint& numBlocks, uint& numThreads) {
+    uint n2 = (n == 0) ? 1 : n;
+    numThreads = min(blockSize, n2);
+    numBlocks = (n2 % numThreads != 0) ? (n2 / numThreads + 1) : (n2 / numThreads);
+}
+
 }  // end namespace fsi
 }  // end namespace chrono

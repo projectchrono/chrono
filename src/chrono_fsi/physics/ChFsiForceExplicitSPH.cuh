@@ -27,13 +27,11 @@ namespace fsi {
 /// Inter-particle force calculation for explicit schemes.
 class ChFsiForceExplicitSPH : public ChFsiForce {
   public:
-    /// Force class implemented using WCSPH with explicit integretor.
+    /// Force class implemented using WCSPH with explicit integrator.
     /// Supports for both fluid and granular material dynamics.
-    ChFsiForceExplicitSPH(FsiDataManager& data_mgr,                ///< FSI data manager
-                          ChBce& bce_mgr,                          ///< BCE manager
-                          std::shared_ptr<SimParams> params,       ///< simulation parameters
-                          std::shared_ptr<ChCounters> numObjects,  ///< problem counters
-                          bool verb                                ///< verbose terminal output
+    ChFsiForceExplicitSPH(FsiDataManager& data_mgr,  ///< FSI data manager
+                          ChBce& bce_mgr,            ///< BCE manager
+                          bool verb                  ///< verbose terminal output
     );
 
     ~ChFsiForceExplicitSPH();

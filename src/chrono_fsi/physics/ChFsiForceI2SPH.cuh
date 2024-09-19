@@ -27,12 +27,10 @@ namespace fsi {
 /// Inter-particle force calculation for the I2SPH method.
 class ChFsiForceI2SPH : public ChFsiForce {
   public:
-    /// Force class implemented using incompressible SPH method with implicit integrator
-    ChFsiForceI2SPH(FsiDataManager& data_mgr,                ///< FSI data manager
-                    ChBce& bce_mgr,                          ///< BCE manager
-                    std::shared_ptr<SimParams> params,       ///< simulation parameters
-                    std::shared_ptr<ChCounters> numObjects,  ///< problem counters
-                    bool verb                                ///< verbose output
+    /// Force class implemented using incompressible SPH method with implicit integrator.
+    ChFsiForceI2SPH(FsiDataManager& data_mgr,  ///< FSI data manager
+                    ChBce& bce_mgr,            ///< BCE manager
+                    bool verb                  ///< verbose output
     );
 
     ~ChFsiForceI2SPH();

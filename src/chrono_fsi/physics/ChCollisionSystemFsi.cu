@@ -200,29 +200,24 @@ __global__ void OriginalToSortedD(uint* mapOriginalToSorted, uint* gridMarkerInd
     mapOriginalToSorted[index] = id;
 }
 // ------------------------------------------------------------------------------
-ChCollisionSystemFsi::ChCollisionSystemFsi(FsiDataManager& data_mgr,
-                                           std::shared_ptr<SimParams> paramsH,
-                                           std::shared_ptr<ChCounters> numObjects)
-    : ChFsiBase(paramsH, numObjects),
-      m_data_mgr(data_mgr),
-      m_sphMarkersD(nullptr) {}
+ChCollisionSystemFsi::ChCollisionSystemFsi(FsiDataManager& data_mgr) : m_data_mgr(data_mgr), m_sphMarkersD(nullptr) {}
 
 ChCollisionSystemFsi::~ChCollisionSystemFsi() {}
 // ------------------------------------------------------------------------------
 void ChCollisionSystemFsi::Initialize() {
-    cudaMemcpyToSymbolAsync(paramsD, paramsH.get(), sizeof(SimParams));
-    cudaMemcpyToSymbolAsync(numObjectsD, numObjectsH.get(), sizeof(ChCounters));
+    cudaMemcpyToSymbolAsync(paramsD, m_data_mgr.paramsH.get(), sizeof(SimParams));
+    cudaMemcpyToSymbolAsync(numObjectsD, m_data_mgr.countersH.get(), sizeof(ChCounters));
 }
 
 // ------------------------------------------------------------------------------
 
 void ChCollisionSystemFsi::ArrangeData(std::shared_ptr<SphMarkerDataD> sphMarkersD) {
     m_sphMarkersD = sphMarkersD;
-    int3 cellsDim = paramsH->gridSize;
+    int3 cellsDim = m_data_mgr.paramsH->gridSize;
     int numCells = cellsDim.x * cellsDim.y * cellsDim.z;
 
     uint numThreads, numBlocks;
-    computeGridSize((uint)numObjectsH->numAllMarkers, 256, numBlocks, numThreads);
+    computeGridSize((uint)m_data_mgr.countersH->numAllMarkers, 256, numBlocks, numThreads);
 
     // Reset cell size
     m_data_mgr.markersProximity_D->cellStartD.resize(numCells);
@@ -231,14 +226,13 @@ void ChCollisionSystemFsi::ArrangeData(std::shared_ptr<SphMarkerDataD> sphMarker
     // =========================================================================================================
     // Calculate Hash
     // =========================================================================================================
-    if (!(m_data_mgr.markersProximity_D->gridMarkerHashD.size() == numObjectsH->numAllMarkers &&
-          m_data_mgr.markersProximity_D->gridMarkerIndexD.size() == numObjectsH->numAllMarkers)) {
+    if (!(m_data_mgr.markersProximity_D->gridMarkerHashD.size() == m_data_mgr.countersH->numAllMarkers &&
+          m_data_mgr.markersProximity_D->gridMarkerIndexD.size() == m_data_mgr.countersH->numAllMarkers)) {
         printf(
             "mError! calcHash!, gridMarkerHashD.size() %zu "
-            "gridMarkerIndexD.size() %zu numObjectsH->numAllMarkers %zu \n",
+            "gridMarkerIndexD.size() %zu countersH->numAllMarkers %zu \n",
             m_data_mgr.markersProximity_D->gridMarkerHashD.size(),
-            m_data_mgr.markersProximity_D->gridMarkerIndexD.size(),
-            numObjectsH->numAllMarkers);
+            m_data_mgr.markersProximity_D->gridMarkerIndexD.size(), m_data_mgr.countersH->numAllMarkers);
         throw std::runtime_error("Error! size error, calcHash!");
     }
 
@@ -251,8 +245,7 @@ void ChCollisionSystemFsi::ArrangeData(std::shared_ptr<SphMarkerDataD> sphMarker
     // Execute Kernel
     calcHashD<<<numBlocks, numThreads>>>(U1CAST(m_data_mgr.markersProximity_D->gridMarkerHashD),
                                          U1CAST(m_data_mgr.markersProximity_D->gridMarkerIndexD),
-                                         mR4CAST(m_sphMarkersD->posRadD),
-                                         isErrorD);
+                                         mR4CAST(m_sphMarkersD->posRadD), isErrorD);
 
     cudaMemcpy(isErrorH, isErrorD, sizeof(bool), cudaMemcpyDeviceToHost);
     if (*isErrorH == true)
@@ -280,8 +273,8 @@ void ChCollisionSystemFsi::ArrangeData(std::shared_ptr<SphMarkerDataD> sphMarker
     thrust::fill(m_data_mgr.markersProximity_D->cellEndD.begin(), m_data_mgr.markersProximity_D->cellEndD.end(), 0);
 
     uint smemSize = sizeof(uint) * (numThreads + 1);
-    findCellStartEndD<<<numBlocks, numThreads, smemSize>>>(
-        U1CAST(m_data_mgr.markersProximity_D->cellStartD), U1CAST(m_data_mgr.markersProximity_D->cellEndD),
+    findCellStartEndD<<<numBlocks, numThreads, smemSize>>>(U1CAST(m_data_mgr.markersProximity_D->cellStartD),
+                                                           U1CAST(m_data_mgr.markersProximity_D->cellEndD),
                                                            U1CAST(m_data_mgr.markersProximity_D->gridMarkerHashD),
                                                            U1CAST(m_data_mgr.markersProximity_D->gridMarkerIndexD));
 

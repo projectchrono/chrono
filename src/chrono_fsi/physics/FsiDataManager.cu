@@ -153,9 +153,10 @@ void ProximityDataD::resize(size_t s) {
 
 //---------------------------------------------------------------------------------------
 
-FsiDataManager::FsiDataManager(std::shared_ptr<SimParams> params) : ChFsiBase(params, nullptr) {
-    numObjectsH = chrono_types::make_shared<ChCounters>();
+FsiDataManager::FsiDataManager(std::shared_ptr<SimParams> params) : paramsH(params) {
+    countersH = chrono_types::make_shared<ChCounters>();
     InitNumObjects();
+
     sphMarkers_D = chrono_types::make_shared<SphMarkerDataD>();
     sortedSphMarkers1_D = chrono_types::make_shared<SphMarkerDataD>();
     sortedSphMarkers2_D = chrono_types::make_shared<SphMarkerDataD>();
@@ -175,12 +176,12 @@ FsiDataManager::FsiDataManager(std::shared_ptr<SimParams> params) : ChFsiBase(pa
 FsiDataManager::~FsiDataManager() {}
 
 void FsiDataManager::AddSphParticle(Real3 pos,
-                                      Real rho,
-                                      Real pres,
-                                      Real mu,
-                                      Real3 vel,
-                                      Real3 tauXxYyZz,
-                                      Real3 tauXyXzYz) {
+                                    Real rho,
+                                    Real pres,
+                                    Real mu,
+                                    Real3 vel,
+                                    Real3 tauXxYyZz,
+                                    Real3 tauXyXzYz) {
     sphMarkers_H->posRadH.push_back(mR4(pos, paramsH->HSML));
     sphMarkers_H->velMasH.push_back(vel);
     sphMarkers_H->rhoPresMuH.push_back(mR4(rho, pres, mu, -1));
@@ -201,23 +202,23 @@ void FsiDataManager::AddBceMarker(MarkerType type, Real3 pos, Real3 vel) {
 }
 
 void FsiDataManager::InitNumObjects() {
-    numObjectsH->numRigidBodies = 0;      // Number of rigid bodies
-    numObjectsH->numFlexBodies1D = 0;     // Number of 1D Flexible bodies
-    numObjectsH->numFlexBodies2D = 0;     // Number of 2D Flexible bodies
-    numObjectsH->numFlexNodes1D = 0;      // Number of 1D Flexible nodes
-    numObjectsH->numFlexNodes2D = 0;      // Number of 2D Flexible nodes
-    numObjectsH->numGhostMarkers = 0;     // Number of ghost particles
-    numObjectsH->numHelperMarkers = 0;    // Number of helper particles
-    numObjectsH->numFluidMarkers = 0;     // Number of fluid SPH particles
-    numObjectsH->numBoundaryMarkers = 0;  // Number of boundary BCE markers
-    numObjectsH->numRigidMarkers = 0;     // Number of rigid BCE markers
-    numObjectsH->numFlexMarkers1D = 0;    // Number of flexible 1-D segment BCE markers
-    numObjectsH->numFlexMarkers2D = 0;    // Number of flexible 2-D face BCE markers
-    numObjectsH->numBceMarkers = 0;       // Total number of BCE markers
-    numObjectsH->numAllMarkers = 0;       // Total number of SPH + BCE particles
-    numObjectsH->startRigidMarkers = 0;   // Start index of the rigid BCE markers
-    numObjectsH->startFlexMarkers1D = 0;  // Start index of the 1-D flexible BCE markers
-    numObjectsH->startFlexMarkers2D = 0;  // Start index of the 2-D flexible BCE markers
+    countersH->numRigidBodies = 0;      // Number of rigid bodies
+    countersH->numFlexBodies1D = 0;     // Number of 1D Flexible bodies
+    countersH->numFlexBodies2D = 0;     // Number of 2D Flexible bodies
+    countersH->numFlexNodes1D = 0;      // Number of 1D Flexible nodes
+    countersH->numFlexNodes2D = 0;      // Number of 2D Flexible nodes
+    countersH->numGhostMarkers = 0;     // Number of ghost particles
+    countersH->numHelperMarkers = 0;    // Number of helper particles
+    countersH->numFluidMarkers = 0;     // Number of fluid SPH particles
+    countersH->numBoundaryMarkers = 0;  // Number of boundary BCE markers
+    countersH->numRigidMarkers = 0;     // Number of rigid BCE markers
+    countersH->numFlexMarkers1D = 0;    // Number of flexible 1-D segment BCE markers
+    countersH->numFlexMarkers2D = 0;    // Number of flexible 2-D face BCE markers
+    countersH->numBceMarkers = 0;       // Total number of BCE markers
+    countersH->numAllMarkers = 0;       // Total number of SPH + BCE particles
+    countersH->startRigidMarkers = 0;   // Start index of the rigid BCE markers
+    countersH->startFlexMarkers1D = 0;  // Start index of the 1-D flexible BCE markers
+    countersH->startFlexMarkers2D = 0;  // Start index of the 2-D flexible BCE markers
 }
 
 void FsiDataManager::CalcNumObjects() {
@@ -230,25 +231,25 @@ void FsiDataManager::CalcNumObjects() {
 
         switch (rComp4.z) {
             case -3:
-                numObjectsH->numHelperMarkers += numMarkers;
+                countersH->numHelperMarkers += numMarkers;
                 break;
             case -2:
-                numObjectsH->numGhostMarkers += numMarkers;
+                countersH->numGhostMarkers += numMarkers;
                 break;
             case -1:
-                numObjectsH->numFluidMarkers += numMarkers;
+                countersH->numFluidMarkers += numMarkers;
                 break;
             case 0:
-                numObjectsH->numBoundaryMarkers += numMarkers;
+                countersH->numBoundaryMarkers += numMarkers;
                 break;
             case 1:
-                numObjectsH->numRigidMarkers += numMarkers;
+                countersH->numRigidMarkers += numMarkers;
                 break;
             case 2:
-                numObjectsH->numFlexMarkers1D += numMarkers;
+                countersH->numFlexMarkers1D += numMarkers;
                 break;
             case 3:
-                numObjectsH->numFlexMarkers2D += numMarkers;
+                countersH->numFlexMarkers2D += numMarkers;
                 break;
             default:
                 std::cerr << "ERROR (CalcNumObjects): particle type not defined." << std::endl;
@@ -257,14 +258,14 @@ void FsiDataManager::CalcNumObjects() {
         }
     }
 
-    numObjectsH->numFluidMarkers += numObjectsH->numGhostMarkers + numObjectsH->numHelperMarkers;
-    numObjectsH->numBceMarkers = numObjectsH->numBoundaryMarkers + numObjectsH->numRigidMarkers +  //
-                                 numObjectsH->numFlexMarkers1D + numObjectsH->numFlexMarkers2D;
-    numObjectsH->numAllMarkers = numObjectsH->numFluidMarkers + numObjectsH->numBceMarkers;
+    countersH->numFluidMarkers += countersH->numGhostMarkers + countersH->numHelperMarkers;
+    countersH->numBceMarkers = countersH->numBoundaryMarkers + countersH->numRigidMarkers +  //
+                               countersH->numFlexMarkers1D + countersH->numFlexMarkers2D;
+    countersH->numAllMarkers = countersH->numFluidMarkers + countersH->numBceMarkers;
 
-    numObjectsH->startRigidMarkers = numObjectsH->numFluidMarkers + numObjectsH->numBoundaryMarkers;
-    numObjectsH->startFlexMarkers1D = numObjectsH->startRigidMarkers + numObjectsH->numRigidMarkers;
-    numObjectsH->startFlexMarkers2D = numObjectsH->startFlexMarkers1D + numObjectsH->numFlexMarkers1D;
+    countersH->startRigidMarkers = countersH->numFluidMarkers + countersH->numBoundaryMarkers;
+    countersH->startFlexMarkers1D = countersH->startRigidMarkers + countersH->numRigidMarkers;
+    countersH->startFlexMarkers2D = countersH->startFlexMarkers1D + countersH->numFlexMarkers1D;
 }
 
 void FsiDataManager::ConstructReferenceArray() {
@@ -360,54 +361,54 @@ void FsiDataManager::ResetData() {
 
 //--------------------------------------------------------------------------------------------------------------------------------
 void FsiDataManager::Initialize(size_t numRigidBodies,
-                                  size_t numFlexBodies1D,
-                                  size_t numFlexBodies2D,
-                                  size_t numFlexNodes1D,
-                                  size_t numFlexNodes2D) {
+                                size_t numFlexBodies1D,
+                                size_t numFlexBodies2D,
+                                size_t numFlexNodes1D,
+                                size_t numFlexNodes2D) {
     ConstructReferenceArray();
     CalcNumObjects();
 
-    if (numObjectsH->numAllMarkers != sphMarkers_H->rhoPresMuH.size()) {
+    if (countersH->numAllMarkers != sphMarkers_H->rhoPresMuH.size()) {
         std::cerr << "ERROR (Initialize): mismatch in total number of markers." << std::endl;
         throw std::runtime_error("Mismatch in total number of markers.");
     }
 
     // Set number of interface objects
-    numObjectsH->numRigidBodies = numRigidBodies;
-    numObjectsH->numFlexBodies1D = numFlexBodies1D;
-    numObjectsH->numFlexBodies2D = numFlexBodies2D;
-    numObjectsH->numFlexNodes1D = numFlexNodes1D;
-    numObjectsH->numFlexNodes2D = numFlexNodes2D;
+    countersH->numRigidBodies = numRigidBodies;
+    countersH->numFlexBodies1D = numFlexBodies1D;
+    countersH->numFlexBodies2D = numFlexBodies2D;
+    countersH->numFlexNodes1D = numFlexNodes1D;
+    countersH->numFlexNodes2D = numFlexNodes2D;
 
-    sphMarkers_D->resize(numObjectsH->numAllMarkers);
-    sortedSphMarkers1_D->resize(numObjectsH->numAllMarkers);
-    sortedSphMarkers2_D->resize(numObjectsH->numAllMarkers);
-    sphMarkers_H->resize(numObjectsH->numAllMarkers);
-    markersProximity_D->resize(numObjectsH->numAllMarkers);
+    sphMarkers_D->resize(countersH->numAllMarkers);
+    sortedSphMarkers1_D->resize(countersH->numAllMarkers);
+    sortedSphMarkers2_D->resize(countersH->numAllMarkers);
+    sphMarkers_H->resize(countersH->numAllMarkers);
+    markersProximity_D->resize(countersH->numAllMarkers);
 
-    derivVelRhoD.resize(numObjectsH->numAllMarkers);          // sorted
-    derivVelRhoOriginalD.resize(numObjectsH->numAllMarkers);  // unsorted
+    derivVelRhoD.resize(countersH->numAllMarkers);          // sorted
+    derivVelRhoOriginalD.resize(countersH->numAllMarkers);  // unsorted
 
     //// TODO: why are these sized for both CFD and CRM?!?
-    derivTauXxYyZzD.resize(numObjectsH->numAllMarkers);
-    derivTauXyXzYzD.resize(numObjectsH->numAllMarkers);
+    derivTauXxYyZzD.resize(countersH->numAllMarkers);
+    derivTauXyXzYzD.resize(countersH->numAllMarkers);
 
     //// TODO: why is this sized for both WCSPH and ISPH?!?
-    vel_XSPH_D.resize(numObjectsH->numAllMarkers);  // TODO (Huzaifa): Check if this is always sorted or not
+    vel_XSPH_D.resize(countersH->numAllMarkers);  // TODO (Huzaifa): Check if this is always sorted or not
 
-    vis_vel_SPH_D.resize(numObjectsH->numAllMarkers, mR3(1e-20));
-    sr_tau_I_mu_i.resize(numObjectsH->numAllMarkers, mR4(1e-20));           // sorted
-    sr_tau_I_mu_i_Original.resize(numObjectsH->numAllMarkers, mR4(1e-20));  // unsorted
+    vis_vel_SPH_D.resize(countersH->numAllMarkers, mR3(1e-20));
+    sr_tau_I_mu_i.resize(countersH->numAllMarkers, mR4(1e-20));           // sorted
+    sr_tau_I_mu_i_Original.resize(countersH->numAllMarkers, mR4(1e-20));  // unsorted
 
     //// TODO: why is this sized for both WCSPH and ISPH?!?
-    bceAcc.resize(numObjectsH->numAllMarkers, mR3(0.0));  // Rigid/flex body accelerations from motion
+    bceAcc.resize(countersH->numAllMarkers, mR3(0.0));  // Rigid/flex body accelerations from motion
 
-    activityIdentifierD.resize(numObjectsH->numAllMarkers, 1);
-    extendedActivityIdD.resize(numObjectsH->numAllMarkers, 1);
+    activityIdentifierD.resize(countersH->numAllMarkers, 1);
+    extendedActivityIdD.resize(countersH->numAllMarkers, 1);
 
-    numNeighborsPerPart.resize(numObjectsH->numAllMarkers + 1,
+    numNeighborsPerPart.resize(countersH->numAllMarkers + 1,
                                0);  // Stores the number of neighbors the particle given by the index has
-    freeSurfaceIdD.resize(numObjectsH->numAllMarkers, 0);
+    freeSurfaceIdD.resize(countersH->numAllMarkers, 0);
 
     thrust::copy(sphMarkers_H->posRadH.begin(), sphMarkers_H->posRadH.end(), sphMarkers_D->posRadD.begin());
     thrust::copy(sphMarkers_H->velMasH.begin(), sphMarkers_H->velMasH.end(), sphMarkers_D->velMasD.begin());
@@ -415,22 +416,22 @@ void FsiDataManager::Initialize(size_t numRigidBodies,
     thrust::copy(sphMarkers_H->tauXxYyZzH.begin(), sphMarkers_H->tauXxYyZzH.end(), sphMarkers_D->tauXxYyZzD.begin());
     thrust::copy(sphMarkers_H->tauXyXzYzH.begin(), sphMarkers_H->tauXyXzYzH.end(), sphMarkers_D->tauXyXzYzD.begin());
 
-    fsiBodyState_D->resize(numObjectsH->numRigidBodies);
-    fsiBodyState_H->resize(numObjectsH->numRigidBodies);
+    fsiBodyState_D->resize(countersH->numRigidBodies);
+    fsiBodyState_H->resize(countersH->numRigidBodies);
 
-    rigid_FSI_ForcesD.resize(numObjectsH->numRigidBodies);
-    rigid_FSI_TorquesD.resize(numObjectsH->numRigidBodies);
+    rigid_FSI_ForcesD.resize(countersH->numRigidBodies);
+    rigid_FSI_TorquesD.resize(countersH->numRigidBodies);
 
-    rigid_BCEsolids_D.resize(numObjectsH->numRigidMarkers);
-    rigid_BCEcoords_D.resize(numObjectsH->numRigidMarkers);
+    rigid_BCEsolids_D.resize(countersH->numRigidMarkers);
+    rigid_BCEcoords_D.resize(countersH->numRigidMarkers);
 
-    fsiMesh1DState_D->resize(numObjectsH->numFlexNodes1D);
-    fsiMesh1DState_H->resize(numObjectsH->numFlexNodes1D);
-    fsiMesh2DState_D->resize(numObjectsH->numFlexNodes2D);
-    fsiMesh2DState_H->resize(numObjectsH->numFlexNodes2D);
+    fsiMesh1DState_D->resize(countersH->numFlexNodes1D);
+    fsiMesh1DState_H->resize(countersH->numFlexNodes1D);
+    fsiMesh2DState_D->resize(countersH->numFlexNodes2D);
+    fsiMesh2DState_H->resize(countersH->numFlexNodes2D);
 
-    flex1D_FSIforces_D.resize(numObjectsH->numFlexNodes1D);
-    flex2D_FSIforces_D.resize(numObjectsH->numFlexNodes2D);
+    flex1D_FSIforces_D.resize(countersH->numFlexNodes1D);
+    flex2D_FSIforces_D.resize(countersH->numFlexNodes2D);
 }
 
 //--------------------------------------------------------------------------------------------------------------------------------
@@ -442,7 +443,7 @@ struct scale_functor {
 };
 
 thrust::device_vector<Real4> FsiDataManager::GetParticleAccelerations() {
-    const auto n = numObjectsH->numFluidMarkers;
+    const auto n = countersH->numFluidMarkers;
 
     // Copy data for SPH particles only
     thrust::device_vector<Real4> accD(n);
@@ -484,10 +485,10 @@ struct in_box {
 };
 
 thrust::device_vector<int> FsiDataManager::FindParticlesInBox(const Real3& hsize,
-                                                                const Real3& pos,
-                                                                const Real3& ax,
-                                                                const Real3& ay,
-                                                                const Real3& az) {
+                                                              const Real3& pos,
+                                                              const Real3& ax,
+                                                              const Real3& ay,
+                                                              const Real3& az) {
     // Extract indices of SPH particles contained in the OBB
     auto& ref = referenceArray;
     auto& pos_D = sphMarkers_D->posRadD;

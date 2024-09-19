@@ -103,16 +103,14 @@ __device__ inline void clearRow3(uint i_idx, uint csrStartIdx, uint csrEndIdx, R
 /// This is an abstract class that defines an interface that various SPH methods should implement. The class owns a
 /// collision system fsi which takes care of GPU based proximity computation of the particles. It also holds a pointer
 /// to external data of SPH particles, proximity data, parameters, and numbers.
-class ChFsiForce : public ChFsiBase {
+class ChFsiForce {
   public:
     /// Base constructor for the ChFsiForce class.
     /// The constructor instantiates the force system
     /// and initializes the pointer to external data.
-    ChFsiForce(FsiDataManager& data_mgr,                ///< FSI data manager
-               ChBce& bce_mgr,                          ///< BCE manager
-               std::shared_ptr<SimParams> params,       ///< simulation parameters
-               std::shared_ptr<ChCounters> numObjects,  ///< problem counters
-               bool verb                                ///< verbose output
+    ChFsiForce(FsiDataManager& data_mgr,  ///< FSI data manager
+               ChBce& bce_mgr,            ///< BCE manager
+               bool verb                  ///< verbose output
     );
 
     /// Destructor of the ChFsiForce.

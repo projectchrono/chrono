@@ -29,7 +29,7 @@
 #include <thrust/iterator/zip_iterator.h>
 #include <thrust/tuple.h>
 
-#include "chrono_fsi/physics/ChFsiBase.h"
+#include "chrono_fsi/physics/ChParams.h"
 #include "chrono_fsi/physics/ChMarkerType.cuh"
 #include "chrono_fsi/math/custom_math.h"
 #include "chrono_fsi/utils/ChUtilsDevice.cuh"
@@ -159,8 +159,39 @@ struct ProximityDataD {
 
 // -----------------------------------------------------------------------------
 
+/// Number of rigid and flexible solid bodies, fluid SPH particles, solid SPH particles, boundary SPH particles.
+/// This structure holds the number of SPH particles and rigid/flexible bodies.
+///  Note that the order of makers in the memory is as follows:
+///  -  (1) fluid particles (type = -1)
+///  -  (2) particles attached to fixed objects (boundary particles with type = 0)
+///  -  (3) particles attached to rigid bodies (type = 1)
+///  -  (4) particles attached to flexible bodies (type = 2)
+struct ChCounters {
+    size_t numRigidBodies;   ///< number of rigid bodies
+    size_t numFlexNodes1D;   ///< number of nodes in 1-D FEA mesh segments
+    size_t numFlexNodes2D;   ///< number of nodes in 2-D flexible mesh faces
+    size_t numFlexBodies1D;  ///< number of 1-D flexible bodies; each FE segment is one body
+    size_t numFlexBodies2D;  ///< number of 2-D flexible bodies; each FE face is one body
+
+    size_t numGhostMarkers;     ///< number of Ghost SPH particles for Variable Resolution methods
+    size_t numHelperMarkers;    ///< number of helper SPH particles used for merging particles
+    size_t numFluidMarkers;     ///< number of fluid SPH particles
+    size_t numBoundaryMarkers;  ///< number of BCE markers on boundaries
+    size_t numRigidMarkers;     ///< number of BCE markers on rigid bodies
+    size_t numFlexMarkers1D;    ///< number of BCE markers on flexible segments
+    size_t numFlexMarkers2D;    ///< number of BCE markers on flexible faces
+    size_t numBceMarkers;       ///< total number of BCE markers
+    size_t numAllMarkers;       ///< total number of particles in the simulation
+
+    size_t startRigidMarkers;   ///< index of first BCE marker on first rigid body
+    size_t startFlexMarkers1D;  ///< index of first BCE marker on first flex segment
+    size_t startFlexMarkers2D;  ///< index of first BCE marker on first flex face
+};
+
+// -----------------------------------------------------------------------------
+
 /// Data manager for the SPH-based FSI system.
-class FsiDataManager : public ChFsiBase {
+class FsiDataManager {
   public:
     FsiDataManager(std::shared_ptr<SimParams> params);
     virtual ~FsiDataManager();
@@ -213,6 +244,9 @@ class FsiDataManager : public ChFsiBase {
     /// Extract accelerations of all SPH particles with indices in the provided array.
     /// The return value is a device thrust vector.
     thrust::device_vector<Real4> GetParticleAccelerations(const thrust::device_vector<int>& indices);
+
+    std::shared_ptr<SimParams> paramsH;     ///< simulation parameters (host)
+    std::shared_ptr<ChCounters> countersH;  ///< problem counters (host)
 
     std::shared_ptr<SphMarkerDataD> sphMarkers_D;         ///< Information of SPH particles at state 1 on device
     std::shared_ptr<SphMarkerDataD> sortedSphMarkers1_D;  ///< Information of SPH particles at state 2 on device

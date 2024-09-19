@@ -576,19 +576,14 @@ __global__ void CopySortedToOriginal_D(const Real4* sortedPosRad,
 // -----------------------------------------------------------------------------
 // CLASS FOR FLUID DYNAMICS SYSTEM
 // -----------------------------------------------------------------------------
-ChFluidDynamics::ChFluidDynamics(FsiDataManager& data_mgr,
-                                 ChBce& bce_mgr,
-                                 std::shared_ptr<SimParams> otherParamsH,
-                                 std::shared_ptr<ChCounters> otherNumObjects,
-                                 bool verb)
-    : ChFsiBase(otherParamsH, otherNumObjects), m_data_mgr(data_mgr), verbose(verb) {
-    switch (paramsH->sph_method) {
+ChFluidDynamics::ChFluidDynamics(FsiDataManager& data_mgr, ChBce& bce_mgr, bool verb)
+    : m_data_mgr(data_mgr), verbose(verb) {
+    switch (m_data_mgr.paramsH->sph_method) {
         default:
             cout << "Selected integrator type not implemented, reverting to WCSPH" << endl;
 
         case SPHMethod::WCSPH:
-            forceSystem =
-                chrono_types::make_shared<ChFsiForceExplicitSPH>(data_mgr, bce_mgr, paramsH, numObjectsH, verb);
+            forceSystem = chrono_types::make_shared<ChFsiForceExplicitSPH>(data_mgr, bce_mgr, verb);
             if (verbose) {
                 cout << "====== Created a WCSPH framework" << endl;
             }
@@ -596,7 +591,7 @@ ChFluidDynamics::ChFluidDynamics(FsiDataManager& data_mgr,
             break;
 
         case SPHMethod::I2SPH:
-            forceSystem = chrono_types::make_shared<ChFsiForceI2SPH>(data_mgr, bce_mgr, paramsH, numObjectsH, verb);
+            forceSystem = chrono_types::make_shared<ChFsiForceI2SPH>(data_mgr, bce_mgr, verb);
             if (verbose) {
                 cout << "====== Created an I2SPH framework" << endl;
             }
@@ -611,9 +606,9 @@ ChFluidDynamics::~ChFluidDynamics() {}
 // -----------------------------------------------------------------------------
 void ChFluidDynamics::Initialize() {
     forceSystem->Initialize();
-    cudaMemcpyToSymbolAsync(paramsD, paramsH.get(), sizeof(SimParams));
-    cudaMemcpyToSymbolAsync(numObjectsD, numObjectsH.get(), sizeof(ChCounters));
-    cudaMemcpyFromSymbol(paramsH.get(), paramsD, sizeof(SimParams));
+    cudaMemcpyToSymbolAsync(paramsD, m_data_mgr.paramsH.get(), sizeof(SimParams));
+    cudaMemcpyToSymbolAsync(numObjectsD, m_data_mgr.countersH.get(), sizeof(ChCounters));
+    cudaMemcpyFromSymbol(m_data_mgr.paramsH.get(), paramsD, sizeof(SimParams));
 }
 
 // -----------------------------------------------------------------------------
@@ -627,9 +622,9 @@ void ChFluidDynamics::IntegrateSPH(std::shared_ptr<SphMarkerDataD> sortedSphMark
                                    Real dT,
                                    Real time,
                                    bool firstHalfStep) {
-    if (paramsH->sph_method == SPHMethod::WCSPH) {
+    if (m_data_mgr.paramsH->sph_method == SPHMethod::WCSPH) {
         // During settling phase, all particles are active
-        if (time > paramsH->settlingTime)
+        if (time > m_data_mgr.paramsH->settlingTime)
             UpdateActivity(sortedSphMarkers1_D, sortedSphMarkers2_D);
         forceSystem->ForceSPH(sortedSphMarkers2_D, time, firstHalfStep);
         UpdateFluid(sortedSphMarkers1_D, dT);
@@ -644,7 +639,7 @@ void ChFluidDynamics::IntegrateSPH(std::shared_ptr<SphMarkerDataD> sortedSphMark
 void ChFluidDynamics::UpdateActivity(std::shared_ptr<SphMarkerDataD> sortedSphMarkers1_D,
                                      std::shared_ptr<SphMarkerDataD> sortedSphMarkers2_D) {
     // Update portion of the SPH particles (should be all particles here)
-    int2 updatePortion = mI2(0, (int)numObjectsH->numAllMarkers);
+    int2 updatePortion = mI2(0, (int)m_data_mgr.countersH->numAllMarkers);
 
     bool *isErrorH, *isErrorD;
     isErrorH = (bool*)malloc(sizeof(bool));
@@ -674,7 +669,7 @@ void ChFluidDynamics::UpdateActivity(std::shared_ptr<SphMarkerDataD> sortedSphMa
 // -----------------------------------------------------------------------------
 void ChFluidDynamics::UpdateFluid(std::shared_ptr<SphMarkerDataD> sortedSphMarkersD, Real dT) {
     // Update portion of the SPH particles (should be fluid particles only here)
-    int2 updatePortion = mI2(0, (int)numObjectsH->numAllMarkers);
+    int2 updatePortion = mI2(0, (int)m_data_mgr.countersH->numAllMarkers);
 
     bool *isErrorH, *isErrorD;
     isErrorH = (bool*)malloc(sizeof(bool));
@@ -705,7 +700,7 @@ void ChFluidDynamics::UpdateFluid(std::shared_ptr<SphMarkerDataD> sortedSphMarke
 // -----------------------------------------------------------------------------
 void ChFluidDynamics::CopySortedToOriginal(std::shared_ptr<SphMarkerDataD> sortedSphMarkersD,
                                            std::shared_ptr<SphMarkerDataD> sphMarkersD) {
-    int2 updatePortion = mI2(0, (int)numObjectsH->numAllMarkers);
+    int2 updatePortion = mI2(0, (int)m_data_mgr.countersH->numAllMarkers);
 
     bool *isErrorH, *isErrorD;
     isErrorH = (bool*)malloc(sizeof(bool));
@@ -739,7 +734,7 @@ void ChFluidDynamics::CopySortedToOriginal(std::shared_ptr<SphMarkerDataD> sorte
 void ChFluidDynamics::ApplyBoundarySPH_Markers(std::shared_ptr<SphMarkerDataD> sortedSphMarkersD) {
     uint numBlocks, numThreads;
 
-    computeGridSize((int)numObjectsH->numAllMarkers, 256, numBlocks, numThreads);
+    computeGridSize((int)m_data_mgr.countersH->numAllMarkers, 256, numBlocks, numThreads);
     ApplyPeriodicBoundaryXKernel<<<numBlocks, numThreads>>>(mR4CAST(sortedSphMarkersD->posRadD),
                                                             mR4CAST(sortedSphMarkersD->rhoPresMuD),
                                                             U1CAST(m_data_mgr.activityIdentifierD));
@@ -771,7 +766,7 @@ void ChFluidDynamics::ApplyBoundarySPH_Markers(std::shared_ptr<SphMarkerDataD> s
 // This functions needs to be tested.
 void ChFluidDynamics::ApplyModifiedBoundarySPH_Markers(std::shared_ptr<SphMarkerDataD> sphMarkersD) {
     uint numBlocks, numThreads;
-    computeGridSize((int)numObjectsH->numAllMarkers, 256, numBlocks, numThreads);
+    computeGridSize((int)m_data_mgr.countersH->numAllMarkers, 256, numBlocks, numThreads);
     ApplyInletBoundaryXKernel<<<numBlocks, numThreads>>>(mR4CAST(sphMarkersD->posRadD), mR3CAST(sphMarkersD->velMasD),
                                                          mR4CAST(sphMarkersD->rhoPresMuD));
     cudaDeviceSynchronize();
@@ -792,9 +787,9 @@ void ChFluidDynamics::ApplyModifiedBoundarySPH_Markers(std::shared_ptr<SphMarker
 // -----------------------------------------------------------------------------
 void ChFluidDynamics::DensityReinitialization() {
     uint numBlocks, numThreads;
-    computeGridSize((int)numObjectsH->numAllMarkers, 256, numBlocks, numThreads);
+    computeGridSize((int)m_data_mgr.countersH->numAllMarkers, 256, numBlocks, numThreads);
 
-    thrust::device_vector<Real4> dummySortedRhoPreMu(numObjectsH->numAllMarkers);
+    thrust::device_vector<Real4> dummySortedRhoPreMu(m_data_mgr.countersH->numAllMarkers);
     thrust::fill(dummySortedRhoPreMu.begin(), dummySortedRhoPreMu.end(), mR4(0.0));
 
     ReCalcDensityD_F1<<<numBlocks, numThreads>>>(

@@ -21,7 +21,6 @@
 #define CH_BCE_CUH_
 
 #include "chrono_fsi/ChApiFsi.h"
-#include "chrono_fsi/physics/ChFsiBase.h"
 #include "chrono_fsi/physics/FsiDataManager.cuh"
 
 namespace chrono {
@@ -34,12 +33,10 @@ namespace fsi {
 ///
 /// This class handles the Fluid-Solid Interaction by enforcing i) forces from the fluid/granular dynamics
 /// system to the MBD system, and ii) displacement from the MBD system to the fluid dynamics system.
-class ChBce : public ChFsiBase {
+class ChBce {
   public:
-    ChBce(FsiDataManager& data_mgr,                ///< FSI data
-          std::shared_ptr<SimParams> paramsH,      ///< simulation parameters
-          std::shared_ptr<ChCounters> numObjects,  ///< number of sph particles on each phase
-          bool verbose                             ///< verbose terminal output
+    ChBce(FsiDataManager& data_mgr,  ///< FSI data
+          bool verbose               ///< verbose terminal output
     );
 
     ~ChBce();

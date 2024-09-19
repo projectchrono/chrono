@@ -19,7 +19,6 @@
 #define CH_COLLISIONSYSTEM_FSI_H_
 
 #include "chrono_fsi/ChApiFsi.h"
-#include "chrono_fsi/physics/ChFsiBase.h"
 #include "chrono_fsi/physics/FsiDataManager.cuh"
 
 namespace chrono {
@@ -29,14 +28,9 @@ namespace fsi {
 /// @{
 
 /// Base class for processing proximity computation in an FSI system.
-class ChCollisionSystemFsi : public ChFsiBase {
+class ChCollisionSystemFsi {
   public:
-    ChCollisionSystemFsi(FsiDataManager& data_mgr,               ///< FSI data manager
-                         std::shared_ptr<SimParams> paramsH,     ///< Parameters of the simulation
-                         std::shared_ptr<ChCounters> numObjects  ///< Size of different objects in the system
-    );
-
-    /// Destructor of the ChCollisionSystemFsi class
+    ChCollisionSystemFsi(FsiDataManager& data_mgr);
     ~ChCollisionSystemFsi();
 
     /// Encapsulate calcHash, findCellStartEndD, and reorderDataD

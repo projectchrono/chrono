@@ -585,13 +585,7 @@ __global__ void UpdateMeshMarker2DStateUnsorted_D(
 
 // =============================================================================
 
-ChBce::ChBce(FsiDataManager& data_mgr,
-             std::shared_ptr<SimParams> paramsH,
-             std::shared_ptr<ChCounters> numObjects,
-             bool verbose)
-    : ChFsiBase(paramsH, numObjects),
-      m_data_mgr(data_mgr),
-      m_verbose(verbose) {
+ChBce::ChBce(FsiDataManager& data_mgr, bool verbose) : m_data_mgr(data_mgr), m_verbose(verbose) {
     m_totalForceRigid.resize(0);
     m_totalTorqueRigid.resize(0);
 }
@@ -601,19 +595,19 @@ ChBce::~ChBce() {}
 // -----------------------------------------------------------------------------
 
 void ChBce::Initialize(std::vector<int> fsiBodyBceNum) {
-    cudaMemcpyToSymbolAsync(paramsD, paramsH.get(), sizeof(SimParams));
-    cudaMemcpyToSymbolAsync(numObjectsD, numObjectsH.get(), sizeof(ChCounters));
-    CopyParams_NumberOfObjects(paramsH, numObjectsH);
+    cudaMemcpyToSymbolAsync(paramsD, m_data_mgr.paramsH.get(), sizeof(SimParams));
+    cudaMemcpyToSymbolAsync(numObjectsD, m_data_mgr.countersH.get(), sizeof(ChCounters));
+    CopyParams_NumberOfObjects(m_data_mgr.paramsH, m_data_mgr.countersH);
 
     // Resizing the arrays used to modify the BCE velocity and pressure according to Adami
-    m_totalForceRigid.resize(numObjectsH->numRigidBodies);
-    m_totalTorqueRigid.resize(numObjectsH->numRigidBodies);
+    m_totalForceRigid.resize(m_data_mgr.countersH->numRigidBodies);
+    m_totalTorqueRigid.resize(m_data_mgr.countersH->numRigidBodies);
 
-    int haveGhost = (numObjectsH->numGhostMarkers > 0) ? 1 : 0;
-    int haveHelper = (numObjectsH->numHelperMarkers > 0) ? 1 : 0;
-    int haveRigid = (numObjectsH->numRigidBodies > 0) ? 1 : 0;
-    int haveFlex1D = (numObjectsH->numFlexBodies1D > 0) ? 1 : 0;
-    int haveFlex2D = (numObjectsH->numFlexBodies2D > 0) ? 1 : 0;
+    int haveGhost = (m_data_mgr.countersH->numGhostMarkers > 0) ? 1 : 0;
+    int haveHelper = (m_data_mgr.countersH->numHelperMarkers > 0) ? 1 : 0;
+    int haveRigid = (m_data_mgr.countersH->numRigidBodies > 0) ? 1 : 0;
+    int haveFlex1D = (m_data_mgr.countersH->numFlexBodies1D > 0) ? 1 : 0;
+    int haveFlex2D = (m_data_mgr.countersH->numFlexBodies2D > 0) ? 1 : 0;
 
     // Populate local position of BCE markers - on rigid bodies
     if (haveRigid) {
@@ -653,7 +647,7 @@ void ChBce::Populate_RigidSPH_MeshPos_LRF(std::vector<int> fsiBodyBceNum) {
     }
 
     uint nBlocks, nThreads;
-    computeGridSize((uint)numObjectsH->numRigidMarkers, 256, nBlocks, nThreads);
+    computeGridSize((uint)m_data_mgr.countersH->numRigidMarkers, 256, nBlocks, nThreads);
 
     Populate_RigidSPH_MeshPos_LRF_D<<<nBlocks, nThreads>>>(
         mR3CAST(m_data_mgr.rigid_BCEcoords_D), mR4CAST(m_data_mgr.sphMarkers_D->posRadD), U1CAST(m_data_mgr.rigid_BCEsolids_D),
@@ -669,7 +663,7 @@ void ChBce::Populate_RigidSPH_MeshPos_LRF(std::vector<int> fsiBodyBceNum) {
 void ChBce::CalcRigidBceAcceleration() {
     // thread per particle
     uint numThreads, numBlocks;
-    computeGridSize((uint)numObjectsH->numRigidMarkers, 256, numBlocks, numThreads);
+    computeGridSize((uint)m_data_mgr.countersH->numRigidMarkers, 256, numBlocks, numThreads);
 
     CalcRigidBceAccelerationD<<<numBlocks, numThreads>>>(
         mR3CAST(m_data_mgr.bceAcc), mR4CAST(m_data_mgr.fsiBodyState_D->rot), mR3CAST(m_data_mgr.fsiBodyState_D->lin_acc),
@@ -682,11 +676,11 @@ void ChBce::CalcRigidBceAcceleration() {
 }
 
 void ChBce::CalcFlex1DBceAcceleration() {
-    if (numObjectsH->numFlexBodies1D == 0)
+    if (m_data_mgr.countersH->numFlexBodies1D == 0)
         return;
 
     uint nBlocks, nThreads;
-    computeGridSize((int)numObjectsH->numFlexMarkers1D, 256, nBlocks, nThreads);
+    computeGridSize((int)m_data_mgr.countersH->numFlexMarkers1D, 256, nBlocks, nThreads);
 
     CalcFlex1DBceAcceleration_D<<<nBlocks, nThreads>>>(             //
         mR3CAST(m_data_mgr.bceAcc),                                            //
@@ -702,11 +696,11 @@ void ChBce::CalcFlex1DBceAcceleration() {
 }
 
 void ChBce::CalcFlex2DBceAcceleration() {
-    if (numObjectsH->numFlexBodies2D == 0)
+    if (m_data_mgr.countersH->numFlexBodies2D == 0)
         return;
 
     uint nBlocks, nThreads;
-    computeGridSize((int)numObjectsH->numFlexMarkers2D, 256, nBlocks, nThreads);
+    computeGridSize((int)m_data_mgr.countersH->numFlexMarkers2D, 256, nBlocks, nThreads);
 
     CalcFlex2DBceAcceleration_D<<<nBlocks, nThreads>>>(             //
         mR3CAST(m_data_mgr.bceAcc),                                            //
@@ -725,8 +719,8 @@ void ChBce::CalcFlex2DBceAcceleration() {
 void ChBce::updateBCEAcc() {
     int size_ref = m_data_mgr.referenceArray.size();
     int numBceMarkers = m_data_mgr.referenceArray[size_ref - 1].y - m_data_mgr.referenceArray[0].y;
-    auto N_solid = numObjectsH->numRigidMarkers + numObjectsH->numFlexMarkers1D + numObjectsH->numFlexMarkers2D;
-    auto N_all = N_solid + numObjectsH->numBoundaryMarkers;
+    auto N_solid = m_data_mgr.countersH->numRigidMarkers + m_data_mgr.countersH->numFlexMarkers1D + m_data_mgr.countersH->numFlexMarkers2D;
+    auto N_all = N_solid + m_data_mgr.countersH->numBoundaryMarkers;
     if (N_all != numBceMarkers) {
         throw std::runtime_error(
             "Error! Number of rigid, flexible and boundary markers are "
@@ -748,13 +742,13 @@ void ChBce::updateBCEAcc() {
         updatePortion.w = m_data_mgr.referenceArray[2].y;
 
     // Calculate accelerations of solid BCE marker
-    if (numObjectsH->numRigidMarkers > 0) {
+    if (m_data_mgr.countersH->numRigidMarkers > 0) {
         CalcRigidBceAcceleration();
     }
-    if (numObjectsH->numFlexMarkers1D > 0) {
+    if (m_data_mgr.countersH->numFlexMarkers1D > 0) {
         CalcFlex1DBceAcceleration();
     }
-    if (numObjectsH->numFlexMarkers2D > 0) {
+    if (m_data_mgr.countersH->numFlexMarkers2D > 0) {
         CalcFlex2DBceAcceleration();
     }
 }
@@ -762,14 +756,14 @@ void ChBce::updateBCEAcc() {
 // -----------------------------------------------------------------------------
 
 void ChBce::Rigid_Forces_Torques() {
-    if (numObjectsH->numRigidBodies == 0)
+    if (m_data_mgr.countersH->numRigidBodies == 0)
         return;
 
     thrust::fill(m_data_mgr.rigid_FSI_ForcesD.begin(), m_data_mgr.rigid_FSI_ForcesD.end(), mR3(0));
     thrust::fill(m_data_mgr.rigid_FSI_TorquesD.begin(), m_data_mgr.rigid_FSI_TorquesD.end(), mR3(0));
 
     uint nBlocks, nThreads;
-    computeGridSize((uint)numObjectsH->numRigidMarkers, 256, nBlocks, nThreads);
+    computeGridSize((uint)m_data_mgr.countersH->numRigidMarkers, 256, nBlocks, nThreads);
 
     CalcRigidForces_D<<<nBlocks, nThreads>>>(
         mR3CAST(m_data_mgr.rigid_FSI_ForcesD), mR3CAST(m_data_mgr.rigid_FSI_TorquesD), mR4CAST(m_data_mgr.derivVelRhoD),
@@ -782,14 +776,14 @@ void ChBce::Rigid_Forces_Torques() {
 }
 
 void ChBce::Flex1D_Forces() {
-    if (numObjectsH->numFlexBodies1D == 0)
+    if (m_data_mgr.countersH->numFlexBodies1D == 0)
         return;
 
     // Initialize accumulator to zero
     thrust::fill(m_data_mgr.flex1D_FSIforces_D.begin(), m_data_mgr.flex1D_FSIforces_D.end(), mR3(0));
 
     uint nBlocks, nThreads;
-    computeGridSize((int)numObjectsH->numFlexMarkers1D, 256, nBlocks, nThreads);
+    computeGridSize((int)m_data_mgr.countersH->numFlexMarkers1D, 256, nBlocks, nThreads);
 
     CalcFlex1DForces_D<<<nBlocks, nThreads>>>(                      //
         mR3CAST(m_data_mgr.flex1D_FSIforces_D),                     //
@@ -805,14 +799,14 @@ void ChBce::Flex1D_Forces() {
 }
 
 void ChBce::Flex2D_Forces() {
-    if (numObjectsH->numFlexBodies2D == 0)
+    if (m_data_mgr.countersH->numFlexBodies2D == 0)
         return;
 
     // Initialize accumulator to zero
     thrust::fill(m_data_mgr.flex2D_FSIforces_D.begin(), m_data_mgr.flex2D_FSIforces_D.end(), mR3(0));
 
     uint nBlocks, nThreads;
-    computeGridSize((int)numObjectsH->numFlexMarkers2D, 256, nBlocks, nThreads);
+    computeGridSize((int)m_data_mgr.countersH->numFlexMarkers2D, 256, nBlocks, nThreads);
 
     CalcFlex2DForces_D<<<nBlocks, nThreads>>>(                      //
         mR3CAST(m_data_mgr.flex2D_FSIforces_D),                     //
@@ -830,11 +824,11 @@ void ChBce::Flex2D_Forces() {
 // -----------------------------------------------------------------------------
 
 void ChBce::UpdateBodyMarkerState() {
-    if (numObjectsH->numRigidBodies == 0)
+    if (m_data_mgr.countersH->numRigidBodies == 0)
         return;
 
     uint nBlocks, nThreads;
-    computeGridSize((int)numObjectsH->numRigidMarkers, 256, nBlocks, nThreads);
+    computeGridSize((int)m_data_mgr.countersH->numRigidMarkers, 256, nBlocks, nThreads);
 
     UpdateBodyMarkerState_D<<<nBlocks, nThreads>>>(
         mR4CAST(m_data_mgr.sortedSphMarkers2_D->posRadD), mR3CAST(m_data_mgr.sortedSphMarkers2_D->velMasD),
@@ -849,11 +843,11 @@ void ChBce::UpdateBodyMarkerState() {
 
 // This is applied only during BCE initialization
 void ChBce::UpdateBodyMarkerStateInitial() {
-    if (numObjectsH->numRigidBodies == 0)
+    if (m_data_mgr.countersH->numRigidBodies == 0)
         return;
 
     uint nBlocks, nThreads;
-    computeGridSize((int)numObjectsH->numRigidMarkers, 256, nBlocks, nThreads);
+    computeGridSize((int)m_data_mgr.countersH->numRigidMarkers, 256, nBlocks, nThreads);
 
     UpdateBodyMarkerStateUnsorted_D<<<nBlocks, nThreads>>>(
         mR4CAST(m_data_mgr.sphMarkers_D->posRadD), mR3CAST(m_data_mgr.sphMarkers_D->velMasD),
@@ -865,11 +859,11 @@ void ChBce::UpdateBodyMarkerStateInitial() {
 }
 
 void ChBce::UpdateMeshMarker1DState() {
-    if (numObjectsH->numFlexBodies1D == 0)
+    if (m_data_mgr.countersH->numFlexBodies1D == 0)
         return;
 
     uint nBlocks, nThreads;
-    computeGridSize((int)numObjectsH->numFlexMarkers1D, 256, nBlocks, nThreads);
+    computeGridSize((int)m_data_mgr.countersH->numFlexMarkers1D, 256, nBlocks, nThreads);
 
     UpdateMeshMarker1DState_D<<<nBlocks, nThreads>>>(                                                              //
         mR4CAST(m_data_mgr.sortedSphMarkers2_D->posRadD), mR3CAST(m_data_mgr.sortedSphMarkers2_D->velMasD),        //
@@ -885,11 +879,11 @@ void ChBce::UpdateMeshMarker1DState() {
 }
 
 void ChBce::UpdateMeshMarker1DStateInitial() {
-    if (numObjectsH->numFlexBodies1D == 0)
+    if (m_data_mgr.countersH->numFlexBodies1D == 0)
         return;
 
     uint nBlocks, nThreads;
-    computeGridSize((int)numObjectsH->numFlexMarkers1D, 256, nBlocks, nThreads);
+    computeGridSize((int)m_data_mgr.countersH->numFlexMarkers1D, 256, nBlocks, nThreads);
 
     UpdateMeshMarker1DStateUnsorted_D<<<nBlocks, nThreads>>>(                                                      //
         mR4CAST(m_data_mgr.sphMarkers_D->posRadD), mR3CAST(m_data_mgr.sphMarkers_D->velMasD),                      //
@@ -904,11 +898,11 @@ void ChBce::UpdateMeshMarker1DStateInitial() {
 }
 
 void ChBce::UpdateMeshMarker2DState() {
-    if (numObjectsH->numFlexBodies2D == 0)
+    if (m_data_mgr.countersH->numFlexBodies2D == 0)
         return;
 
     uint nBlocks, nThreads;
-    computeGridSize((int)numObjectsH->numFlexMarkers2D, 256, nBlocks, nThreads);
+    computeGridSize((int)m_data_mgr.countersH->numFlexMarkers2D, 256, nBlocks, nThreads);
 
     UpdateMeshMarker2DState_D<<<nBlocks, nThreads>>>(                                                              //
         mR4CAST(m_data_mgr.sortedSphMarkers2_D->posRadD), mR3CAST(m_data_mgr.sortedSphMarkers2_D->velMasD),        //
@@ -924,11 +918,11 @@ void ChBce::UpdateMeshMarker2DState() {
 }
 
 void ChBce::UpdateMeshMarker2DStateInitial() {
-    if (numObjectsH->numFlexBodies2D == 0)
+    if (m_data_mgr.countersH->numFlexBodies2D == 0)
         return;
 
     uint nBlocks, nThreads;
-    computeGridSize((int)numObjectsH->numFlexMarkers2D, 256, nBlocks, nThreads);
+    computeGridSize((int)m_data_mgr.countersH->numFlexMarkers2D, 256, nBlocks, nThreads);
 
     UpdateMeshMarker2DStateUnsorted_D<<<nBlocks, nThreads>>>(                                                      //
         mR4CAST(m_data_mgr.sphMarkers_D->posRadD), mR3CAST(m_data_mgr.sphMarkers_D->velMasD),                      //

@@ -24,7 +24,6 @@
 
 #include "chrono_fsi/ChApiFsi.h"
 #include "chrono_fsi/physics/FsiDataManager.cuh"
-#include "chrono_fsi/physics/ChFsiBase.h"
 
 namespace chrono {
 namespace fsi {
@@ -33,10 +32,10 @@ namespace fsi {
 /// @{
 
 /// Base class for processing the interface between Chrono and FSI modules.
-class ChFsiInterface : public ChFsiBase {
+class ChFsiInterface {
   public:
     /// Constructor of the FSI interface class.
-    ChFsiInterface(FsiDataManager& data_mgr, std::shared_ptr<SimParams> params);
+    ChFsiInterface(FsiDataManager& data_mgr);
 
     /// Destructor of the FSI interface class.
     ~ChFsiInterface();

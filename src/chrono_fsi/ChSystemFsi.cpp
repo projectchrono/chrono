@@ -67,6 +67,7 @@ ChSystemFsi::ChSystemFsi(ChSystem* sysMBS)
       m_write_mode(OutputMode::NONE) {
     m_paramsH = chrono_types::make_shared<SimParams>();
     InitParams();
+
     m_data_mgr = chrono_types::make_unique<FsiDataManager>(m_paramsH);
 
     m_num_flex1D_elements = 0;
@@ -75,7 +76,7 @@ ChSystemFsi::ChSystemFsi(ChSystem* sysMBS)
     m_num_flex1D_nodes = 0;
     m_num_flex2D_nodes = 0;
 
-    m_fsi_interface = chrono_types::make_unique<ChFsiInterface>(*m_data_mgr, m_paramsH);
+    m_fsi_interface = chrono_types::make_unique<ChFsiInterface>(*m_data_mgr);
 }
 
 ChSystemFsi::~ChSystemFsi() {}
@@ -992,27 +993,27 @@ void ChSystemFsi::Initialize() {
 
     // Initialize the underlying FSU system: set reference arrays, set counters, and resize simulation arrays
     m_data_mgr->Initialize(m_fsi_interface->m_fsi_bodies.size(),          //
-                         m_num_flex1D_elements, m_num_flex2D_elements,  //
-                         m_num_flex1D_nodes, m_num_flex2D_nodes);
+                           m_num_flex1D_elements, m_num_flex2D_elements,  //
+                           m_num_flex1D_nodes, m_num_flex2D_nodes);
 
     if (m_verbose) {
         cout << "Counters" << endl;
-        cout << "  numRigidBodies:     " << m_data_mgr->numObjectsH->numRigidBodies << endl;
-        cout << "  numFlexBodies1D:    " << m_data_mgr->numObjectsH->numFlexBodies1D << endl;
-        cout << "  numFlexBodies2D:    " << m_data_mgr->numObjectsH->numFlexBodies2D << endl;
-        cout << "  numFlexNodes1D:     " << m_data_mgr->numObjectsH->numFlexNodes1D << endl;
-        cout << "  numFlexNodes2D:     " << m_data_mgr->numObjectsH->numFlexNodes2D << endl;
-        cout << "  numGhostMarkers:    " << m_data_mgr->numObjectsH->numGhostMarkers << endl;
-        cout << "  numHelperMarkers:   " << m_data_mgr->numObjectsH->numHelperMarkers << endl;
-        cout << "  numFluidMarkers:    " << m_data_mgr->numObjectsH->numFluidMarkers << endl;
-        cout << "  numBoundaryMarkers: " << m_data_mgr->numObjectsH->numBoundaryMarkers << endl;
-        cout << "  numRigidMarkers:    " << m_data_mgr->numObjectsH->numRigidMarkers << endl;
-        cout << "  numFlexMarkers1D:   " << m_data_mgr->numObjectsH->numFlexMarkers1D << endl;
-        cout << "  numFlexMarkers2D:   " << m_data_mgr->numObjectsH->numFlexMarkers2D << endl;
-        cout << "  numAllMarkers:      " << m_data_mgr->numObjectsH->numAllMarkers << endl;
-        cout << "  startRigidMarkers:  " << m_data_mgr->numObjectsH->startRigidMarkers << endl;
-        cout << "  startFlexMarkers1D: " << m_data_mgr->numObjectsH->startFlexMarkers1D << endl;
-        cout << "  startFlexMarkers2D: " << m_data_mgr->numObjectsH->startFlexMarkers2D << endl;
+        cout << "  numRigidBodies:     " << m_data_mgr->countersH->numRigidBodies << endl;
+        cout << "  numFlexBodies1D:    " << m_data_mgr->countersH->numFlexBodies1D << endl;
+        cout << "  numFlexBodies2D:    " << m_data_mgr->countersH->numFlexBodies2D << endl;
+        cout << "  numFlexNodes1D:     " << m_data_mgr->countersH->numFlexNodes1D << endl;
+        cout << "  numFlexNodes2D:     " << m_data_mgr->countersH->numFlexNodes2D << endl;
+        cout << "  numGhostMarkers:    " << m_data_mgr->countersH->numGhostMarkers << endl;
+        cout << "  numHelperMarkers:   " << m_data_mgr->countersH->numHelperMarkers << endl;
+        cout << "  numFluidMarkers:    " << m_data_mgr->countersH->numFluidMarkers << endl;
+        cout << "  numBoundaryMarkers: " << m_data_mgr->countersH->numBoundaryMarkers << endl;
+        cout << "  numRigidMarkers:    " << m_data_mgr->countersH->numRigidMarkers << endl;
+        cout << "  numFlexMarkers1D:   " << m_data_mgr->countersH->numFlexMarkers1D << endl;
+        cout << "  numFlexMarkers2D:   " << m_data_mgr->countersH->numFlexMarkers2D << endl;
+        cout << "  numAllMarkers:      " << m_data_mgr->countersH->numAllMarkers << endl;
+        cout << "  startRigidMarkers:  " << m_data_mgr->countersH->startRigidMarkers << endl;
+        cout << "  startFlexMarkers1D: " << m_data_mgr->countersH->startFlexMarkers1D << endl;
+        cout << "  startFlexMarkers2D: " << m_data_mgr->countersH->startFlexMarkers2D << endl;
 
         cout << "Reference array (size: " << m_data_mgr->referenceArray.size() << ")" << endl;
         for (size_t i = 0; i < m_data_mgr->referenceArray.size(); i++) {
@@ -1030,10 +1031,9 @@ void ChSystemFsi::Initialize() {
     m_fsi_interface->LoadMeshStates();
 
     // Create BCE and SPH worker objects
-    m_bce_mgr = chrono_types::make_unique<ChBce>(*m_data_mgr, m_paramsH, m_data_mgr->numObjectsH, m_verbose);
+    m_bce_mgr = chrono_types::make_unique<ChBce>(*m_data_mgr, m_verbose);
+    m_fluid_dynamics = chrono_types::make_unique<ChFluidDynamics>(*m_data_mgr, *m_bce_mgr, m_verbose);
 
-    m_fluid_dynamics = chrono_types::make_unique<ChFluidDynamics>(*m_data_mgr, *m_bce_mgr, m_paramsH,
-                                                                  m_data_mgr->numObjectsH, m_verbose);
     // Initialize worker objects
     m_bce_mgr->Initialize(m_fsi_bodies_bce_num);
     m_fluid_dynamics->Initialize();
@@ -1123,11 +1123,9 @@ void ChSystemFsi::DoStepDynamics_FSI() {
 void ChSystemFsi::WriteParticleFile(const std::string& outfilename) const {
     if (m_write_mode == OutputMode::CSV) {
         utils::WriteCsvParticlesToFile(m_data_mgr->sphMarkers_D->posRadD, m_data_mgr->sphMarkers_D->velMasD,
-                                       m_data_mgr->sphMarkers_D->rhoPresMuD, m_data_mgr->referenceArray,
-                                       outfilename);
+                                       m_data_mgr->sphMarkers_D->rhoPresMuD, m_data_mgr->referenceArray, outfilename);
     } else if (m_write_mode == OutputMode::CHPF) {
-        utils::WriteChPFParticlesToFile(m_data_mgr->sphMarkers_D->posRadD, m_data_mgr->referenceArray,
-                                        outfilename);
+        utils::WriteChPFParticlesToFile(m_data_mgr->sphMarkers_D->posRadD, m_data_mgr->referenceArray, outfilename);
     }
 }
 
@@ -1139,13 +1137,13 @@ void ChSystemFsi::PrintParticleToFile(const std::string& dir) const {
 }
 
 void ChSystemFsi::PrintFsiInfoToFile(const std::string& dir, double time) const {
-    utils::PrintFsiInfoToFile(                                                                 //
+    utils::PrintFsiInfoToFile(                                                                     //
         m_data_mgr->fsiBodyState_D->pos, m_data_mgr->fsiBodyState_D->rot,                          //
-        m_data_mgr->fsiBodyState_D->lin_vel,                                                     //
+        m_data_mgr->fsiBodyState_D->lin_vel,                                                       //
         m_data_mgr->fsiMesh1DState_D->pos_fsi_fea_D, m_data_mgr->fsiMesh2DState_D->pos_fsi_fea_D,  //
         m_data_mgr->fsiMesh1DState_D->vel_fsi_fea_D, m_data_mgr->fsiMesh2DState_D->vel_fsi_fea_D,  //
-        m_data_mgr->rigid_FSI_ForcesD, m_data_mgr->rigid_FSI_TorquesD,           //
-        m_data_mgr->flex1D_FSIforces_D, m_data_mgr->flex2D_FSIforces_D,          //
+        m_data_mgr->rigid_FSI_ForcesD, m_data_mgr->rigid_FSI_TorquesD,                             //
+        m_data_mgr->flex1D_FSIforces_D, m_data_mgr->flex2D_FSIforces_D,                            //
         dir, time);
 }
 
@@ -1158,8 +1156,8 @@ void ChSystemFsi::AddSPHParticle(const ChVector3d& pos,
                                  const ChVector3d& vel,
                                  const ChVector3d& tauXxYyZz,
                                  const ChVector3d& tauXyXzYz) {
-    m_data_mgr->AddSphParticle(utils::ToReal3(pos), rho, pres, mu, utils::ToReal3(vel),
-                             utils::ToReal3(tauXxYyZz), utils::ToReal3(tauXyXzYz));
+    m_data_mgr->AddSphParticle(utils::ToReal3(pos), rho, pres, mu, utils::ToReal3(vel), utils::ToReal3(tauXxYyZz),
+                               utils::ToReal3(tauXyXzYz));
 }
 
 void ChSystemFsi::AddSPHParticle(const ChVector3d& pos,
@@ -2020,19 +2018,19 @@ int ChSystemFsi::GetNumProximitySearchSteps() const {
 }
 
 size_t ChSystemFsi::GetNumFluidMarkers() const {
-    return m_data_mgr->numObjectsH->numFluidMarkers;
+    return m_data_mgr->countersH->numFluidMarkers;
 }
 
 size_t ChSystemFsi::GetNumRigidBodyMarkers() const {
-    return m_data_mgr->numObjectsH->numRigidMarkers;
+    return m_data_mgr->countersH->numRigidMarkers;
 }
 
 size_t ChSystemFsi::GetNumFlexBodyMarkers() const {
-    return m_data_mgr->numObjectsH->numFlexMarkers1D + m_data_mgr->numObjectsH->numFlexMarkers2D;
+    return m_data_mgr->countersH->numFlexMarkers1D + m_data_mgr->countersH->numFlexMarkers2D;
 }
 
 size_t ChSystemFsi::GetNumBoundaryMarkers() const {
-    return m_data_mgr->numObjectsH->numBoundaryMarkers;
+    return m_data_mgr->countersH->numBoundaryMarkers;
 }
 
 //--------------------------------------------------------------------------------------------------------------------------------

@@ -127,6 +127,14 @@ typedef unsigned int uint;
         }                                                                                         \
     }
 
+/// Compute number of blocks and threads for calculation on GPU.
+/// This function calculates the number of blocks and threads for a given number of elements based on the blockSize.
+void computeGridSize(uint n,           ///< total number of elements
+                     uint blockSize,   ///< block size (threads per block)
+                     uint& numBlocks,  ///< number of blocks [output]
+                     uint& numThreads  ///< number of threads [output]
+);
+
 /// Time recorder for cuda events.
 /// This utility class encapsulates a simple timer for recording the time between a start and stop event.
 class GpuTimer {

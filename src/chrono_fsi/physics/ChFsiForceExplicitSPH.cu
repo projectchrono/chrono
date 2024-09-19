@@ -1430,13 +1430,9 @@ __global__ void CopySortedToOriginal_XSPH_D(const Real3* sortedXSPH,
 
 // ===============================================================================================================================
 
-ChFsiForceExplicitSPH::ChFsiForceExplicitSPH(FsiDataManager& data_mgr,
-                                             ChBce& bce_mgr,
-                                             std::shared_ptr<SimParams> params,
-                                             std::shared_ptr<ChCounters> numObjects,
-                                             bool verb)
-    : ChFsiForce(data_mgr, bce_mgr, params, numObjects, verb) {
-    CopyParams_NumberOfObjects(paramsH, numObjectsH);
+ChFsiForceExplicitSPH::ChFsiForceExplicitSPH(FsiDataManager& data_mgr, ChBce& bce_mgr, bool verb)
+    : ChFsiForce(data_mgr, bce_mgr, verb) {
+    CopyParams_NumberOfObjects(m_data_mgr.paramsH, m_data_mgr.countersH);
     density_initialization = 0;
 }
 
@@ -1446,9 +1442,9 @@ ChFsiForceExplicitSPH::~ChFsiForceExplicitSPH() {}
 
 void ChFsiForceExplicitSPH::Initialize() {
     ChFsiForce::Initialize();
-    cudaMemcpyToSymbolAsync(paramsD, paramsH.get(), sizeof(SimParams));
-    cudaMemcpyToSymbolAsync(numObjectsD, numObjectsH.get(), sizeof(ChCounters));
-    cudaMemcpyFromSymbol(paramsH.get(), paramsD, sizeof(SimParams));
+    cudaMemcpyToSymbolAsync(paramsD, m_data_mgr.paramsH.get(), sizeof(SimParams));
+    cudaMemcpyToSymbolAsync(numObjectsD, m_data_mgr.countersH.get(), sizeof(ChCounters));
+    cudaMemcpyFromSymbol(m_data_mgr.paramsH.get(), paramsD, sizeof(SimParams));
     cudaDeviceSynchronize();
 }
 
@@ -1471,7 +1467,7 @@ void ChFsiForceExplicitSPH::neighborSearch() {
     cudaMemcpy(isErrorD, isErrorH, sizeof(bool), cudaMemcpyHostToDevice);
     // thread per particle
     uint numBlocksShort, numThreadsShort;
-    computeGridSize(numObjectsH->numAllMarkers, 256, numBlocksShort, numThreadsShort);
+    computeGridSize(m_data_mgr.countersH->numAllMarkers, 256, numBlocksShort, numThreadsShort);
     // Execute the kernel
     *isErrorH = false;
     cudaMemcpy(isErrorD, isErrorH, sizeof(bool), cudaMemcpyHostToDevice);
@@ -1508,12 +1504,12 @@ void ChFsiForceExplicitSPH::CollideWrapper(Real time, bool firstHalfStep) {
 
     // thread per particle
     uint numBlocks, numThreads;
-    computeGridSize((int)numObjectsH->numAllMarkers, 256, numBlocks, numThreads);
+    computeGridSize((int)m_data_mgr.countersH->numAllMarkers, 256, numBlocks, numThreads);
 
     // Re-Initialize the density after several time steps if needed
-    if (density_initialization >= paramsH->densityReinit) {
+    if (density_initialization >= m_data_mgr.paramsH->densityReinit) {
         thrust::device_vector<Real4> rhoPresMuD_old = m_sortedSphMarkers_D->rhoPresMuD;
-        printf("Re-initializing density after %d steps.\n", paramsH->densityReinit);
+        printf("Re-initializing density after %d steps.\n", m_data_mgr.paramsH->densityReinit);
         cudaResetErrorFlag(isErrorD);
         calcRho_kernel<<<numBlocks, numThreads>>>(
             mR4CAST(m_sortedSphMarkers_D->posRadD), mR4CAST(m_sortedSphMarkers_D->rhoPresMuD), mR4CAST(rhoPresMuD_old),
@@ -1524,10 +1520,12 @@ void ChFsiForceExplicitSPH::CollideWrapper(Real time, bool firstHalfStep) {
     density_initialization++;
 
     // Perform Proxmity search at specified frequency
-    if (firstHalfStep && (time < 1e-6 || int(round(time / paramsH->dT)) % paramsH->num_proximity_search_steps == 0))
+    if (firstHalfStep &&
+        (time < 1e-6 ||
+         int(round(time / m_data_mgr.paramsH->dT)) % m_data_mgr.paramsH->num_proximity_search_steps == 0))
         neighborSearch();
 
-    thrust::device_vector<Real3> sortedKernelSupport(numObjectsH->numAllMarkers);
+    thrust::device_vector<Real3> sortedKernelSupport(m_data_mgr.countersH->numAllMarkers);
     // Calculate the kernel support of each particle
     cudaResetErrorFlag(isErrorD);
     calcKernelSupport<<<numBlocks, numThreads>>>(
@@ -1545,7 +1543,7 @@ void ChFsiForceExplicitSPH::CollideWrapper(Real time, bool firstHalfStep) {
     cudaCheckErrorFlag(isErrorD, "updateBoundaryPres");
 
     // Execute the kernel
-    if (paramsH->elastic_SPH) {  // For granular material
+    if (m_data_mgr.paramsH->elastic_SPH) {  // For granular material
         // execute the kernel Navier_Stokes and Shear_Stress_Rate in one kernel
         cudaResetErrorFlag(isErrorD);
         NS_SSR<<<numBlocks, numThreads>>>(
@@ -1559,8 +1557,8 @@ void ChFsiForceExplicitSPH::CollideWrapper(Real time, bool firstHalfStep) {
     } else {  // For fluid
 
         // Find the index which is related to the wall boundary particle
-        thrust::device_vector<uint> indexOfIndex(numObjectsH->numAllMarkers);
-        thrust::device_vector<uint> identityOfIndex(numObjectsH->numAllMarkers);
+        thrust::device_vector<uint> indexOfIndex(m_data_mgr.countersH->numAllMarkers);
+        thrust::device_vector<uint> identityOfIndex(m_data_mgr.countersH->numAllMarkers);
         calIndexOfIndex<<<numBlocks, numThreads>>>(U1CAST(indexOfIndex), U1CAST(identityOfIndex),
                                                    U1CAST(m_data_mgr.markersProximity_D->gridMarkerIndexD));
         thrust::remove_if(indexOfIndex.begin(), indexOfIndex.end(), identityOfIndex.begin(), thrust::identity<int>());
@@ -1584,9 +1582,9 @@ void ChFsiForceExplicitSPH::CollideWrapper(Real time, bool firstHalfStep) {
 
 void ChFsiForceExplicitSPH::CalculateXSPH_velocity() {
     // Calculate vel_XSPH
-    if (m_data_mgr.vel_XSPH_D.size() != numObjectsH->numAllMarkers) {
-        printf("m_data_mgr.vel_XSPH_D.size() %zd numObjectsH->numAllMarkers %zd \n", m_data_mgr.vel_XSPH_D.size(),
-               numObjectsH->numAllMarkers);
+    if (m_data_mgr.vel_XSPH_D.size() != m_data_mgr.countersH->numAllMarkers) {
+        printf("m_data_mgr.vel_XSPH_D.size() %zd countersH->numAllMarkers %zd \n", m_data_mgr.vel_XSPH_D.size(),
+               m_data_mgr.countersH->numAllMarkers);
         throw std::runtime_error(
             "Error! size error m_data_mgr.vel_XSPH_D Thrown from "
             "CalculateXSPH_velocity!\n");
@@ -1596,16 +1594,16 @@ void ChFsiForceExplicitSPH::CalculateXSPH_velocity() {
     cudaMalloc((void**)&isErrorD, sizeof(bool));
 
     //------------------------------------------------------------------------
-    if (!paramsH->elastic_SPH) {
+    if (!m_data_mgr.paramsH->elastic_SPH) {
         // thread per particle
         uint numBlocks, numThreads;
-        computeGridSize((int)numObjectsH->numAllMarkers, 256, numBlocks, numThreads);
+        computeGridSize((int)m_data_mgr.countersH->numAllMarkers, 256, numBlocks, numThreads);
 
         thrust::fill(m_data_mgr.vel_XSPH_D.begin(), m_data_mgr.vel_XSPH_D.end(), mR3(0.0));
 
         // Find the index which is related to the wall boundary particle
-        thrust::device_vector<uint> indexOfIndex(numObjectsH->numAllMarkers);
-        thrust::device_vector<uint> identityOfIndex(numObjectsH->numAllMarkers);
+        thrust::device_vector<uint> indexOfIndex(m_data_mgr.countersH->numAllMarkers);
+        thrust::device_vector<uint> identityOfIndex(m_data_mgr.countersH->numAllMarkers);
         calIndexOfIndex<<<numBlocks, numThreads>>>(U1CAST(indexOfIndex), U1CAST(identityOfIndex),
                                                    U1CAST(m_data_mgr.markersProximity_D->gridMarkerIndexD));
         thrust::remove_if(indexOfIndex.begin(), indexOfIndex.end(), identityOfIndex.begin(), thrust::identity<int>());

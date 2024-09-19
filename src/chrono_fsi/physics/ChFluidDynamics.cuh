@@ -37,7 +37,7 @@ namespace fsi {
 /// dynamics. This is a class designed for base SPH simulation. The class holds pointer to data, which is hold somewhere
 /// else. It also include a forceSystem, which takes care of the computation of force between particles. The forceSystem
 /// is owned by the class ChFsiForce.
-class ChFluidDynamics : public ChFsiBase {
+class ChFluidDynamics {
   public:
     /// Constructor of the fluid/granular dynamics class.
     /// - Instantiate ChFsiForce, i.e. force system;
@@ -45,8 +45,6 @@ class ChFluidDynamics : public ChFsiBase {
     ///   and number of objects to member variables.
     ChFluidDynamics(FsiDataManager& data_mgr,                ///< FSI data manager
                     ChBce& bce_mgr,                          ///< BCE manager
-                    std::shared_ptr<SimParams> params,       ///< simulation parameters
-                    std::shared_ptr<ChCounters> numObjects,  ///< problem counters
                     bool verb                                ///< verbose output
     );
 
