@@ -109,7 +109,7 @@ class ChFsiForce : public ChFsiBase {
     /// The constructor instantiates the force system
     /// and initializes the pointer to external data.
     ChFsiForce(FsiDataManager& data_mgr,                ///< FSI data manager
-               std::shared_ptr<ChBce> bce_mgr,          ///< BCE manager
+               ChBce& bce_mgr,                          ///< BCE manager
                std::shared_ptr<SimParams> params,       ///< simulation parameters
                std::shared_ptr<ChCounters> numObjects,  ///< problem counters
                bool verb                                ///< verbose output
@@ -168,8 +168,8 @@ class ChFsiForce : public ChFsiBase {
     std::shared_ptr<ChCollisionSystemFsi> fsiCollisionSystem;  ///< collision system for building neighbors list
 
   protected:
-    FsiDataManager& m_data_mgr;        ///< FSI data manager
-    std::shared_ptr<ChBce> m_bce_mgr;  ///< BCE manager
+    FsiDataManager& m_data_mgr;  ///< FSI data manager
+    ChBce& m_bce_mgr;            ///< BCE manager
 
     // NOTE: this is cached at each call to ForceSPH()
     std::shared_ptr<SphMarkerDataD> m_sortedSphMarkers_D;  ///< device copy of the sorted sph particles data

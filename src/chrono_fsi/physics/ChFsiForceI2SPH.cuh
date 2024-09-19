@@ -29,7 +29,7 @@ class ChFsiForceI2SPH : public ChFsiForce {
   public:
     /// Force class implemented using incompressible SPH method with implicit integrator
     ChFsiForceI2SPH(FsiDataManager& data_mgr,                ///< FSI data manager
-                    std::shared_ptr<ChBce> bce_mgr,          ///< BCE manager
+                    ChBce& bce_mgr,                          ///< BCE manager
                     std::shared_ptr<SimParams> params,       ///< simulation parameters
                     std::shared_ptr<ChCounters> numObjects,  ///< problem counters
                     bool verb                                ///< verbose output

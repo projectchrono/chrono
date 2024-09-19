@@ -577,7 +577,7 @@ __global__ void CopySortedToOriginal_D(const Real4* sortedPosRad,
 // CLASS FOR FLUID DYNAMICS SYSTEM
 // -----------------------------------------------------------------------------
 ChFluidDynamics::ChFluidDynamics(FsiDataManager& data_mgr,
-                                 std::shared_ptr<ChBce> otherBceWorker,
+                                 ChBce& bce_mgr,
                                  std::shared_ptr<SimParams> otherParamsH,
                                  std::shared_ptr<ChCounters> otherNumObjects,
                                  bool verb)
@@ -587,8 +587,8 @@ ChFluidDynamics::ChFluidDynamics(FsiDataManager& data_mgr,
             cout << "Selected integrator type not implemented, reverting to WCSPH" << endl;
 
         case SPHMethod::WCSPH:
-            forceSystem = chrono_types::make_shared<ChFsiForceExplicitSPH>(  //
-                m_data_mgr, otherBceWorker, paramsH, numObjectsH, verb);
+            forceSystem =
+                chrono_types::make_shared<ChFsiForceExplicitSPH>(data_mgr, bce_mgr, paramsH, numObjectsH, verb);
             if (verbose) {
                 cout << "====== Created a WCSPH framework" << endl;
             }
@@ -596,8 +596,7 @@ ChFluidDynamics::ChFluidDynamics(FsiDataManager& data_mgr,
             break;
 
         case SPHMethod::I2SPH:
-            forceSystem = chrono_types::make_shared<ChFsiForceI2SPH>(  //
-                m_data_mgr, otherBceWorker, paramsH, numObjectsH, verb);
+            forceSystem = chrono_types::make_shared<ChFsiForceI2SPH>(data_mgr, bce_mgr, paramsH, numObjectsH, verb);
             if (verbose) {
                 cout << "====== Created an I2SPH framework" << endl;
             }

@@ -791,7 +791,7 @@ __global__ void Shifting(Real4* sortedPosRad,
 //--------------------------------------------------------------------------------------------------------------------------------
 
 ChFsiForceI2SPH::ChFsiForceI2SPH(FsiDataManager& data_mgr,
-                                 std::shared_ptr<ChBce> bce_mgr,
+                                 ChBce& bce_mgr,
                                  std::shared_ptr<SimParams> params,
                                  std::shared_ptr<ChCounters> numObjects,
                                  bool verb)

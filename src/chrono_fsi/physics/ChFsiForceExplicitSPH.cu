@@ -1431,7 +1431,7 @@ __global__ void CopySortedToOriginal_XSPH_D(const Real3* sortedXSPH,
 // ===============================================================================================================================
 
 ChFsiForceExplicitSPH::ChFsiForceExplicitSPH(FsiDataManager& data_mgr,
-                                             std::shared_ptr<ChBce> bce_mgr,
+                                             ChBce& bce_mgr,
                                              std::shared_ptr<SimParams> params,
                                              std::shared_ptr<ChCounters> numObjects,
                                              bool verb)
@@ -1457,7 +1457,7 @@ void ChFsiForceExplicitSPH::ForceSPH(std::shared_ptr<SphMarkerDataD> sortedSphMa
                                      Real time,
                                      bool firstHalfStep) {
     m_sortedSphMarkers_D = sortedSphMarkers_D;
-    m_bce_mgr->updateBCEAcc();
+    m_bce_mgr.updateBCEAcc();
     CollideWrapper(time, firstHalfStep);
     CalculateXSPH_velocity();
 }

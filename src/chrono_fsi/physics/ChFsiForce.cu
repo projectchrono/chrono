@@ -25,7 +25,7 @@ namespace chrono {
 namespace fsi {
 
 ChFsiForce::ChFsiForce(FsiDataManager& data_mgr,
-                       std::shared_ptr<ChBce> bce_mgr,
+                       ChBce& bce_mgr,
                        std::shared_ptr<SimParams> params,
                        std::shared_ptr<ChCounters> numObjects,
                        bool verb)

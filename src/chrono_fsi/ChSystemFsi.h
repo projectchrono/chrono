@@ -577,7 +577,7 @@ class CH_FSI_API ChSystemFsi {
     std::unique_ptr<FsiDataManager> m_data_mgr;         ///< FSI data manager
     std::unique_ptr<ChFluidDynamics> m_fluid_dynamics;  ///< fluid system
     std::unique_ptr<ChFsiInterface> m_fsi_interface;    ///< FSI interface system
-    std::shared_ptr<ChBce> m_bce_mgr;                   ///< BCE manager
+    std::unique_ptr<ChBce> m_bce_mgr;                   ///< BCE manager
 
     unsigned int m_num_flex1D_elements;  ///< number of 1-D flexible segments (across all meshes)
     unsigned int m_num_flex2D_elements;  ///< number of 2-D flexible faces (across all meshes)

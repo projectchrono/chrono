@@ -30,7 +30,7 @@ class ChFsiForceExplicitSPH : public ChFsiForce {
     /// Force class implemented using WCSPH with explicit integretor.
     /// Supports for both fluid and granular material dynamics.
     ChFsiForceExplicitSPH(FsiDataManager& data_mgr,                ///< FSI data manager
-                          std::shared_ptr<ChBce> bce_mgr,          ///< BCE manager
+                          ChBce& bce_mgr,                          ///< BCE manager
                           std::shared_ptr<SimParams> params,       ///< simulation parameters
                           std::shared_ptr<ChCounters> numObjects,  ///< problem counters
                           bool verb                                ///< verbose terminal output

@@ -44,7 +44,7 @@ class ChFluidDynamics : public ChFsiBase {
     /// - Copy the pointer to SPH particle data, parameters,
     ///   and number of objects to member variables.
     ChFluidDynamics(FsiDataManager& data_mgr,                ///< FSI data manager
-                    std::shared_ptr<ChBce> bce_manager,      ///< information on BCE particles
+                    ChBce& bce_mgr,                          ///< BCE manager
                     std::shared_ptr<SimParams> params,       ///< simulation parameters
                     std::shared_ptr<ChCounters> numObjects,  ///< problem counters
                     bool verb                                ///< verbose output

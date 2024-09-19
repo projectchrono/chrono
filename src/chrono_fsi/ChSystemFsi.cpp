@@ -1030,9 +1030,9 @@ void ChSystemFsi::Initialize() {
     m_fsi_interface->LoadMeshStates();
 
     // Create BCE and SPH worker objects
-    m_bce_mgr = chrono_types::make_shared<ChBce>(*m_data_mgr, m_paramsH, m_data_mgr->numObjectsH, m_verbose);
+    m_bce_mgr = chrono_types::make_unique<ChBce>(*m_data_mgr, m_paramsH, m_data_mgr->numObjectsH, m_verbose);
 
-    m_fluid_dynamics = chrono_types::make_unique<ChFluidDynamics>(*m_data_mgr, m_bce_mgr, m_paramsH,
+    m_fluid_dynamics = chrono_types::make_unique<ChFluidDynamics>(*m_data_mgr, *m_bce_mgr, m_paramsH,
                                                                   m_data_mgr->numObjectsH, m_verbose);
     // Initialize worker objects
     m_bce_mgr->Initialize(m_fsi_bodies_bce_num);
