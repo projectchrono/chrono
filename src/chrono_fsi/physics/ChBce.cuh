@@ -59,44 +59,33 @@ class ChBce : public ChFsiBase {
     ~ChBce();
 
     /// Updates the position and velocity of the particles on the rigid bodies based on the state of the body.
-    void UpdateBodyMarkerState(std::shared_ptr<FsiBodyStateD> fsiBodyState_D);
+    void UpdateBodyMarkerState();
 
     /// Updates the position and velocity of the particles on the flexible solids based on the state of the mesh.
-    void UpdateMeshMarker1DState(std::shared_ptr<FsiMeshStateD> fsiMesh1DState_D);
-    void UpdateMeshMarker2DState(std::shared_ptr<FsiMeshStateD> fsiMesh2DState_D);
+    void UpdateMeshMarker1DState();
+    void UpdateMeshMarker2DState();
 
     /// Updates the position and velocity of the particles on the rigid bodies based on the state of the body.
-    void UpdateBodyMarkerStateInitial(std::shared_ptr<SphMarkerDataD> sphMarkers_D,
-                               std::shared_ptr<FsiBodyStateD> fsiBodyState_D);
+    void UpdateBodyMarkerStateInitial();
 
     /// Updates the position and velocity of the particles on the flexible solids based on the state of the mesh.
-    void UpdateMeshMarker1DStateInitial(std::shared_ptr<SphMarkerDataD> sphMarkers_D,
-                                 std::shared_ptr<FsiMeshStateD> fsiMesh1DState_D);
-    void UpdateMeshMarker2DStateInitial(std::shared_ptr<SphMarkerDataD> sphMarkers_D,
-                                 std::shared_ptr<FsiMeshStateD> fsiMesh2DState_D);
+    void UpdateMeshMarker1DStateInitial();
+    void UpdateMeshMarker2DStateInitial();
 
     /// Calculates the forces from the fluid/granular dynamics system to the FSI system on rigid bodies.
-    void Rigid_Forces_Torques(std::shared_ptr<FsiBodyStateD> fsiBodyState_D);
+    void Rigid_Forces_Torques();
 
     /// Calculates the forces from the fluid/granular dynamics system to the FSI system on flexible bodies.
-    void Flex1D_Forces(std::shared_ptr<FsiMeshStateD> fsiMesh1DState_D);
-    void Flex2D_Forces(std::shared_ptr<FsiMeshStateD> fsiMesh2DState_D);
+    void Flex1D_Forces();
+    void Flex2D_Forces();
 
-    void CalcMeshMarker1DAcceleration(thrust::device_vector<Real3>& bceAcc,
-                                      std::shared_ptr<FsiMeshStateD> fsiMesh1DState_D);
-    void CalcMeshMarker2DAcceleration(thrust::device_vector<Real3>& bceAcc,
-                                      std::shared_ptr<FsiMeshStateD> fsiMesh2DState_D);
-    void updateBCEAcc(std::shared_ptr<FsiBodyStateD> fsiBodyState_D,
-                             std::shared_ptr<FsiMeshStateD> fsiMesh1DState_D,
-                             std::shared_ptr<FsiMeshStateD> fsiMesh2DState_D);
+    void updateBCEAcc();
 
     /// Populates the BCE particles on the rigid bodies at the initial configuration of the system.
     /// The local coordinates w.r.t to the coordinate system of the rigid bodies is saved and is used
     /// during the update stage. In such a condition the position and orientation of the body is
     /// enough to update the position of all the particles attached to it.
-    void Populate_RigidSPH_MeshPos_LRF(std::shared_ptr<SphMarkerDataD> sphMarkers_D,
-                                       std::shared_ptr<FsiBodyStateD> fsiBodyState_D,
-                                       std::vector<int> fsiBodyBceNum);
+    void Populate_RigidSPH_MeshPos_LRF(std::vector<int> fsiBodyBceNum);
 
     /// Complete construction of the BCE at the intial configuration of the system.
     void Initialize(std::vector<int> fsiBodyBceNum);
@@ -109,16 +98,10 @@ class ChBce : public ChFsiBase {
 
     bool m_verbose;
 
-    /// Calculates the acceleration of the rigid BCE particles based on the information of the ChSystem.
-    void CalcRigidBceAcceleration(
-        thrust::device_vector<Real3>& bceAcc,                         ///< acceleration of BCE particles
-        const thrust::device_vector<Real4>& q_fsiBodies_D,            ///< quaternion of rigid bodies
-        const thrust::device_vector<Real3>& accRigid_fsiBodies_D,     ///< acceleration of rigid bodies
-        const thrust::device_vector<Real3>& omegaVelLRF_fsiBodies_D,  ///< body ang. vel. in local reference frame
-        const thrust::device_vector<Real3>& omegaAccLRF_fsiBodies_D,  ///< body ang. acc. in local reference frame
-        const thrust::device_vector<Real3>& rigid_BCEcoords_D,        ///< position of BCE in body local ref.
-        const thrust::device_vector<uint>& rigid_BCEsolids_D          ///< ID of associated body
-    );
+    // Calculate accelerations of solid BCE markers based on the information of the ChSystem.
+    void CalcRigidBceAcceleration();
+    void CalcFlex1DBceAcceleration();
+    void CalcFlex2DBceAcceleration();
 };
 
 /// @} fsi_physics

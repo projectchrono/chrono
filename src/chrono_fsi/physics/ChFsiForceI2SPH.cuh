@@ -36,6 +36,7 @@ class ChFsiForceI2SPH : public ChFsiForce {
     );
 
     ~ChFsiForceI2SPH();
+
     virtual void Initialize() override;
 
   private:
@@ -64,9 +65,6 @@ class ChFsiForceI2SPH : public ChFsiForce {
     int NNZ;
 
     void ForceSPH(std::shared_ptr<SphMarkerDataD> otherSortedSphMarkersD,
-                  std::shared_ptr<FsiBodyStateD> fsiBodyStateD,
-                  std::shared_ptr<FsiMeshStateD> fsiMesh1DStateD,
-                  std::shared_ptr<FsiMeshStateD> fsiMesh2DStateD,
                   Real time,
                   bool firstHalfStep) override;
 

@@ -64,14 +64,11 @@ class ChFluidDynamics : public ChFsiBase {
     /// time, the latter is used to update the pressure from an equation of
     /// state. In the implicit scheme, the pressures are updated instead of density.
     void IntegrateSPH(
-        std::shared_ptr<SphMarkerDataD> sortedSphMarkers2_D,    ///< SPH particle information at the second half step
-        std::shared_ptr<SphMarkerDataD> sortedSphMarkers1_D,    ///< SPH particle information at the first half step
-        std::shared_ptr<FsiBodyStateD> fsiBodyState_D,    ///< nformation on rigid bodies
-        std::shared_ptr<FsiMeshStateD> fsiMesh1DState_D,  ///< information of 1-D flexible mesh
-        std::shared_ptr<FsiMeshStateD> fsiMesh2DState_D,  ///< information of 2-D flexible mesh
-        Real dT,                                          ///< simulation stepsize
-        Real time,                                         ///< simulation time
-        bool firstHalfStep = true                       ///< flag to indicate the first half step in case of explicit integration
+        std::shared_ptr<SphMarkerDataD> sortedSphMarkers2_D,  ///< SPH particle information at the second half step
+        std::shared_ptr<SphMarkerDataD> sortedSphMarkers1_D,  ///< SPH particle information at the first half step
+        Real dT,                                              ///< simulation stepsize
+        Real time,                                            ///< simulation time
+        bool firstHalfStep = true  ///< flag to indicate the first half step in case of explicit integration
     );
 
     /// Copy from sorted to original
@@ -100,11 +97,7 @@ class ChFluidDynamics : public ChFsiBase {
     /// Update activity of SPH particles.
     /// SPH particles which are in an active domain (e.g., close to a solid) are set as active particles.
     void UpdateActivity(std::shared_ptr<SphMarkerDataD> sortedSphMarkers1_D,
-                        std::shared_ptr<SphMarkerDataD> sortedSphMarkers2_D,
-                        std::shared_ptr<FsiBodyStateD> fsiBodyState_D,
-                        std::shared_ptr<FsiMeshStateD> fsiMesh1DState_D,
-                        std::shared_ptr<FsiMeshStateD> fsiMesh2DState_D,
-                        Real time);
+                        std::shared_ptr<SphMarkerDataD> sortedSphMarkers2_D);
 
     /// Update SPH particles data for explicit integration.
     void UpdateFluid(std::shared_ptr<SphMarkerDataD> sortedSphMarkersD, Real dT);

@@ -1065,30 +1065,23 @@ void ChSystemFsi::DoStepDynamics_FSI() {
         case SPHMethod::WCSPH: {
             m_data_mgr->CopyDeviceDataToHalfStep();
             m_fluid_dynamics->IntegrateSPH(m_data_mgr->sortedSphMarkers2_D, m_data_mgr->sortedSphMarkers1_D,  //
-                                           m_data_mgr->fsiBodyState_D,                                      //
-                                           m_data_mgr->fsiMesh1DState_D, m_data_mgr->fsiMesh2DState_D,        //
                                            0.5 * m_paramsH->dT, m_time, true);
             m_fluid_dynamics->IntegrateSPH(m_data_mgr->sortedSphMarkers1_D, m_data_mgr->sortedSphMarkers2_D,  //
-                                           m_data_mgr->fsiBodyState_D,                                      //
-                                           m_data_mgr->fsiMesh1DState_D, m_data_mgr->fsiMesh2DState_D,        //
                                            1.0 * m_paramsH->dT, m_time, false);
             break;
         }
 
         case SPHMethod::I2SPH: {
-            m_bce_manager->updateBCEAcc(m_data_mgr->fsiBodyState_D, m_data_mgr->fsiMesh1DState_D,
-                                        m_data_mgr->fsiMesh2DState_D);
+            m_bce_manager->updateBCEAcc();
             m_fluid_dynamics->IntegrateSPH(m_data_mgr->sortedSphMarkers2_D, m_data_mgr->sortedSphMarkers2_D,  //
-                                           m_data_mgr->fsiBodyState_D,                                      //
-                                           m_data_mgr->fsiMesh1DState_D, m_data_mgr->fsiMesh2DState_D,        //
                                            0.0, m_time, false);
             break;
         }
     }
 
-    m_bce_manager->Rigid_Forces_Torques(m_data_mgr->fsiBodyState_D);
-    m_bce_manager->Flex1D_Forces(m_data_mgr->fsiMesh1DState_D);
-    m_bce_manager->Flex2D_Forces(m_data_mgr->fsiMesh2DState_D);
+    m_bce_manager->Rigid_Forces_Torques();
+    m_bce_manager->Flex1D_Forces();
+    m_bce_manager->Flex2D_Forces();
 
     // Advance dynamics of the associated MBS system (if provided)
     if (m_sysMBS) {
@@ -1109,11 +1102,11 @@ void ChSystemFsi::DoStepDynamics_FSI() {
     }
 
     m_fsi_interface->LoadBodyStates();
-    m_bce_manager->UpdateBodyMarkerState(m_data_mgr->fsiBodyState_D);
+    m_bce_manager->UpdateBodyMarkerState();
 
     m_fsi_interface->LoadMeshStates();
-    m_bce_manager->UpdateMeshMarker1DState(m_data_mgr->fsiMesh1DState_D);
-    m_bce_manager->UpdateMeshMarker2DState(m_data_mgr->fsiMesh2DState_D);
+    m_bce_manager->UpdateMeshMarker1DState();
+    m_bce_manager->UpdateMeshMarker2DState();
 
     m_fluid_dynamics->CopySortedToOriginal(m_data_mgr->sortedSphMarkers2_D, m_data_mgr->sphMarkers_D);
 

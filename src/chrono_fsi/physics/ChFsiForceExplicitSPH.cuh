@@ -36,7 +36,6 @@ class ChFsiForceExplicitSPH : public ChFsiForce {
                           bool verb                                ///< verbose terminal output
     );
 
-    /// Destructor of the ChFsiForceExplicitSPH class
     ~ChFsiForceExplicitSPH();
 
     void Initialize() override;
@@ -46,9 +45,6 @@ class ChFsiForceExplicitSPH : public ChFsiForce {
 
     /// Function to find neighbor particles and calculate the interactions between SPH particles
     void ForceSPH(std::shared_ptr<SphMarkerDataD> otherSortedSphMarkersD,
-                  std::shared_ptr<FsiBodyStateD> fsiBodyStateD,
-                  std::shared_ptr<FsiMeshStateD> fsiMesh1DStateD,
-                  std::shared_ptr<FsiMeshStateD> fsiMesh2DStateD,
                   Real time,
                   bool firstHalfStep) override;
 

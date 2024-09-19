@@ -1580,13 +1580,10 @@ void ChFsiForceExplicitSPH::Initialize() {
 
 //--------------------------------------------------------------------------------------------------------------------------------
 void ChFsiForceExplicitSPH::ForceSPH(std::shared_ptr<SphMarkerDataD> otherSortedSphMarkersD,
-                                     std::shared_ptr<FsiBodyStateD> fsiBodyStateD,
-                                     std::shared_ptr<FsiMeshStateD> fsiMesh1DStateD,
-                                     std::shared_ptr<FsiMeshStateD> fsiMesh2DStateD,
                                      Real time,
                                      bool firstHalfStep) {
     sortedSphMarkers_D = otherSortedSphMarkersD;
-    bceWorker->updateBCEAcc(fsiBodyStateD, fsiMesh1DStateD, fsiMesh2DStateD);
+    bceWorker->updateBCEAcc();
     CollideWrapper(time, firstHalfStep);
     CalculateXSPH_velocity();
 }

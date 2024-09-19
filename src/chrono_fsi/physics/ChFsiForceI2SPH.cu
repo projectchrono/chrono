@@ -920,13 +920,8 @@ void ChFsiForceI2SPH::PreProcessor(std::shared_ptr<SphMarkerDataD> otherSphMarke
 //==========================================================================================================================================
 //==========================================================================================================================================
 void ChFsiForceI2SPH::ForceSPH(std::shared_ptr<SphMarkerDataD> otherSortedSphMarkersD,
-                               std::shared_ptr<FsiBodyStateD> fsiBodyStateD,
-                               std::shared_ptr<FsiMeshStateD> fsiMesh1DStateD,
-                               std::shared_ptr<FsiMeshStateD> fsiMesh2DStateD,
                                Real time,
                                bool firstHalfStep) {
-    //// RADU TODO
-
     CopyParams_NumberOfObjects(paramsH, numObjectsH);
 
     sortedSphMarkers_D = otherSortedSphMarkersD;
@@ -1011,12 +1006,13 @@ void ChFsiForceI2SPH::ForceSPH(std::shared_ptr<SphMarkerDataD> otherSortedSphMar
         R1CAST(csrValLaplacian), mR3CAST(csrValGradient), R1CAST(csrValFunction), R1CAST(_sumWij_inv), mR3CAST(Normals),
         U1CAST(csrColInd), U1CAST(Contact_i),
 
-        mR4CAST(fsiBodyStateD->rot), mR3CAST(m_data_mgr.rigid_BCEcoords_D), mR3CAST(fsiBodyStateD->pos),
-        mR4CAST(fsiBodyStateD->lin_vel), mR3CAST(fsiBodyStateD->ang_vel), mR3CAST(fsiBodyStateD->lin_acc),
-        mR3CAST(fsiBodyStateD->ang_acc), U1CAST(m_data_mgr.rigid_BCEsolids_D),
+        mR4CAST(m_data_mgr.fsiBodyState_D->rot), mR3CAST(m_data_mgr.rigid_BCEcoords_D), mR3CAST(m_data_mgr.fsiBodyState_D->pos),
+        mR4CAST(m_data_mgr.fsiBodyState_D->lin_vel), mR3CAST(m_data_mgr.fsiBodyState_D->ang_vel), 
+        mR3CAST(m_data_mgr.fsiBodyState_D->lin_acc), mR3CAST(m_data_mgr.fsiBodyState_D->ang_acc),
+        U1CAST(m_data_mgr.rigid_BCEsolids_D),
 
-        mR3CAST(fsiMesh1DStateD->vel_fsi_fea_D), mR3CAST(fsiMesh1DStateD->acc_fsi_fea_D),
-        mR3CAST(fsiMesh2DStateD->vel_fsi_fea_D), mR3CAST(fsiMesh2DStateD->acc_fsi_fea_D),
+        mR3CAST(m_data_mgr.fsiMesh1DState_D->vel_fsi_fea_D), mR3CAST(m_data_mgr.fsiMesh1DState_D->acc_fsi_fea_D),
+        mR3CAST(m_data_mgr.fsiMesh2DState_D->vel_fsi_fea_D), mR3CAST(m_data_mgr.fsiMesh2DState_D->acc_fsi_fea_D),
 
         numObjectsH->numFlexBodies1D, 
         
@@ -1091,12 +1087,12 @@ void ChFsiForceI2SPH::ForceSPH(std::shared_ptr<SphMarkerDataD> otherSortedSphMar
         R1CAST(csrValFunction), R1CAST(csrValLaplacian), mR3CAST(csrValGradient), R1CAST(_sumWij_inv), mR3CAST(Normals),
         U1CAST(csrColInd), U1CAST(Contact_i),
 
-        mR4CAST(fsiBodyStateD->rot), mR3CAST(m_data_mgr.rigid_BCEcoords_D), mR3CAST(fsiBodyStateD->pos),
-        mR4CAST(fsiBodyStateD->lin_vel), mR3CAST(fsiBodyStateD->ang_vel), mR3CAST(fsiBodyStateD->lin_acc),
-        mR3CAST(fsiBodyStateD->ang_acc), U1CAST(m_data_mgr.rigid_BCEsolids_D),
+        mR4CAST(m_data_mgr.fsiBodyState_D->rot), mR3CAST(m_data_mgr.rigid_BCEcoords_D), mR3CAST(m_data_mgr.fsiBodyState_D->pos),
+        mR4CAST(m_data_mgr.fsiBodyState_D->lin_vel), mR3CAST(m_data_mgr.fsiBodyState_D->ang_vel), mR3CAST(m_data_mgr.fsiBodyState_D->lin_acc),
+        mR3CAST(m_data_mgr.fsiBodyState_D->ang_acc), U1CAST(m_data_mgr.rigid_BCEsolids_D),
 
-        mR3CAST(fsiMesh1DStateD->vel_fsi_fea_D), mR3CAST(fsiMesh1DStateD->acc_fsi_fea_D),
-        mR3CAST(fsiMesh2DStateD->vel_fsi_fea_D), mR3CAST(fsiMesh2DStateD->acc_fsi_fea_D),
+        mR3CAST(m_data_mgr.fsiMesh1DState_D->vel_fsi_fea_D), mR3CAST(m_data_mgr.fsiMesh1DState_D->acc_fsi_fea_D),
+        mR3CAST(m_data_mgr.fsiMesh2DState_D->vel_fsi_fea_D), mR3CAST(m_data_mgr.fsiMesh2DState_D->acc_fsi_fea_D),
 
         numObjectsH->numFlexBodies1D, 
         U2CAST(m_data_mgr.flex1D_Nodes_D), U3CAST(m_data_mgr.flex1D_BCEsolids_D),

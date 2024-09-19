@@ -476,7 +476,6 @@ __global__ void UpdateActivityD(const Real4* posRadD,
                                 uint* activityIdentifierD,
                                 uint* extendedActivityIdD,
                                 const int2 updatePortion,
-                                const Real Time,
                                 volatile bool* isErrorD) {
     uint index = blockIdx.x * blockDim.x + threadIdx.x;
     if (index >= updatePortion.y - updatePortion.x) {
@@ -486,10 +485,6 @@ __global__ void UpdateActivityD(const Real4* posRadD,
     // Set the particle as an active particle
     activityIdentifierD[index] = 1;
     extendedActivityIdD[index] = 1;
-
-    // If during the settling phase, all particles are active
-    if (Time < paramsD.settlingTime)
-        return;
 
     size_t numRigidBodies = numObjectsD.numRigidBodies;
     size_t numFlexNodes1D = numObjectsD.numFlexNodes1D;
@@ -630,34 +625,25 @@ void ChFluidDynamics::SortParticles() {
 // -----------------------------------------------------------------------------
 void ChFluidDynamics::IntegrateSPH(std::shared_ptr<SphMarkerDataD> sortedSphMarkers2_D,
                                    std::shared_ptr<SphMarkerDataD> sortedSphMarkers1_D,
-                                   std::shared_ptr<FsiBodyStateD> fsiBodyState_D,
-                                   std::shared_ptr<FsiMeshStateD> fsiMesh1DState_D,
-                                   std::shared_ptr<FsiMeshStateD> fsiMesh2DState_D,
                                    Real dT,
                                    Real time,
                                    bool firstHalfStep) {
     if (paramsH->sph_method == SPHMethod::WCSPH) {
-        // Explicit SPH
-        UpdateActivity(sortedSphMarkers1_D, sortedSphMarkers2_D, fsiBodyState_D, fsiMesh1DState_D, fsiMesh2DState_D,
-                       time);
-        forceSystem->ForceSPH(sortedSphMarkers2_D, fsiBodyState_D, fsiMesh1DState_D, fsiMesh2DState_D, time,
-                              firstHalfStep);
+        // During settling phase, all particles are active
+        if (time > paramsH->settlingTime)
+            UpdateActivity(sortedSphMarkers1_D, sortedSphMarkers2_D);
+        forceSystem->ForceSPH(sortedSphMarkers2_D, time, firstHalfStep);
         UpdateFluid(sortedSphMarkers1_D, dT);
     } else {
-        // Implicit SPH
-        forceSystem->ForceSPH(sortedSphMarkers1_D, fsiBodyState_D, fsiMesh1DState_D, fsiMesh2DState_D, time,
-                              firstHalfStep);
+        forceSystem->ForceSPH(sortedSphMarkers1_D, time, firstHalfStep);
     }
+
     ApplyBoundarySPH_Markers(sortedSphMarkers2_D);
 }
 
 // -----------------------------------------------------------------------------
 void ChFluidDynamics::UpdateActivity(std::shared_ptr<SphMarkerDataD> sortedSphMarkers1_D,
-                                     std::shared_ptr<SphMarkerDataD> sortedSphMarkers2_D,
-                                     std::shared_ptr<FsiBodyStateD> fsiBodyState_D,
-                                     std::shared_ptr<FsiMeshStateD> fsiMesh1DState_D,
-                                     std::shared_ptr<FsiMeshStateD> fsiMesh2DState_D,
-                                     Real time) {
+                                     std::shared_ptr<SphMarkerDataD> sortedSphMarkers2_D) {
     // Update portion of the SPH particles (should be all particles here)
     int2 updatePortion = mI2(0, (int)numObjectsH->numAllMarkers);
 
@@ -671,10 +657,10 @@ void ChFluidDynamics::UpdateActivity(std::shared_ptr<SphMarkerDataD> sortedSphMa
     uint numBlocks, numThreads;
     computeGridSize(updatePortion.y - updatePortion.x, 256, numBlocks, numThreads);
     UpdateActivityD<<<numBlocks, numThreads>>>(
-        mR4CAST(sortedSphMarkers2_D->posRadD), mR3CAST(sortedSphMarkers1_D->velMasD), mR3CAST(fsiBodyState_D->pos),
-        mR3CAST(fsiMesh1DState_D->pos_fsi_fea_D), mR3CAST(fsiMesh2DState_D->pos_fsi_fea_D),
+        mR4CAST(sortedSphMarkers2_D->posRadD), mR3CAST(sortedSphMarkers1_D->velMasD), mR3CAST(m_data_mgr.fsiBodyState_D->pos),
+        mR3CAST(m_data_mgr.fsiMesh1DState_D->pos_fsi_fea_D), mR3CAST(m_data_mgr.fsiMesh2DState_D->pos_fsi_fea_D),
         U1CAST(m_data_mgr.activityIdentifierD), U1CAST(m_data_mgr.extendedActivityIdD), updatePortion,
-        time, isErrorD);
+        isErrorD);
     cudaDeviceSynchronize();
     cudaCheckError();
     //------------------------

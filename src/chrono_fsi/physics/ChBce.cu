@@ -274,7 +274,7 @@ __global__ void CalcRigidBceAccelerationD(Real3* bceAcc,
     bceAcc[sortedIndex] = acc3;
 }
 
-__global__ void CalcMeshMarker1DAcceleration_D(
+__global__ void CalcFlex1DBceAcceleration_D(
     Real3* bceAcc,              // [num BCEs on all solids]  marker accelerations (output)
     Real3* acc_fsi_fea_D,       // [num nodes]               accelerations of FEA 1D nodes
     uint2* flex1D_Nodes_D,      // [num segments]            node indices for each 1D segment
@@ -303,7 +303,7 @@ __global__ void CalcMeshMarker1DAcceleration_D(
     bceAcc[sortedIndex] = A0 * lambda0 + A1 * lambda1;
 }
 
-__global__ void CalcMeshMarker2DAcceleration_D(
+__global__ void CalcFlex2DBceAcceleration_D(
     Real3* bceAcc,              // [num BCEs on all solids]  marker accelerations (output)
     Real3* acc_fsi_fea_D,       // [num nodes]               accelerations of FEA 2D nodes
     uint3* flex2D_Nodes_D,      // [num triangles]           triangle node indices
@@ -624,9 +624,9 @@ void ChBce::Initialize(std::vector<int> fsiBodyBceNum) {
 
     // Populate local position of BCE markers - on rigid bodies
     if (haveRigid) {
-        Populate_RigidSPH_MeshPos_LRF(m_data_mgr.sphMarkers_D, m_data_mgr.fsiBodyState_D, fsiBodyBceNum);
+        Populate_RigidSPH_MeshPos_LRF(fsiBodyBceNum);
         // TODO (Huzaifa): Try to see if this additional function is needed
-        UpdateBodyMarkerStateInitial(m_data_mgr.sphMarkers_D, m_data_mgr.fsiBodyState_D);
+        UpdateBodyMarkerStateInitial();
     }
 
     // Populate local position of BCE markers - on flexible bodies
@@ -635,7 +635,7 @@ void ChBce::Initialize(std::vector<int> fsiBodyBceNum) {
         m_data_mgr.flex1D_BCEsolids_D = m_data_mgr.flex1D_BCEsolids_H;
         m_data_mgr.flex1D_BCEcoords_D = m_data_mgr.flex1D_BCEcoords_H;
         // TODO (Huzaifa): Try to see if this additional function is needed
-        UpdateMeshMarker1DStateInitial(m_data_mgr.sphMarkers_D, m_data_mgr.fsiMesh1DState_D);
+        UpdateMeshMarker1DStateInitial();
     }
 
     if (haveFlex2D) {
@@ -643,15 +643,13 @@ void ChBce::Initialize(std::vector<int> fsiBodyBceNum) {
         m_data_mgr.flex2D_BCEsolids_D = m_data_mgr.flex2D_BCEsolids_H;
         m_data_mgr.flex2D_BCEcoords_D = m_data_mgr.flex2D_BCEcoords_H;
         // TODO (Huzaifa): Try to see if this additional function is needed
-        UpdateMeshMarker2DStateInitial(m_data_mgr.sphMarkers_D, m_data_mgr.fsiMesh2DState_D);
+        UpdateMeshMarker2DStateInitial();
     }
 }
 
 // -----------------------------------------------------------------------------
 
-void ChBce::Populate_RigidSPH_MeshPos_LRF(std::shared_ptr<SphMarkerDataD> sphMarkers_D,
-                                          std::shared_ptr<FsiBodyStateD> fsiBodyState_D,
-                                          std::vector<int> fsiBodyBceNum) {
+void ChBce::Populate_RigidSPH_MeshPos_LRF(std::vector<int> fsiBodyBceNum) {
     // Create map between a BCE on a rigid body and the associated body ID
     uint start_bce = 0;
     for (int irigid = 0; irigid < fsiBodyBceNum.size(); irigid++) {
@@ -665,46 +663,41 @@ void ChBce::Populate_RigidSPH_MeshPos_LRF(std::shared_ptr<SphMarkerDataD> sphMar
     computeGridSize((uint)numObjectsH->numRigidMarkers, 256, nBlocks, nThreads);
 
     Populate_RigidSPH_MeshPos_LRF_D<<<nBlocks, nThreads>>>(
-        mR3CAST(m_data_mgr.rigid_BCEcoords_D), mR4CAST(sphMarkers_D->posRadD), U1CAST(m_data_mgr.rigid_BCEsolids_D),
-        mR3CAST(fsiBodyState_D->pos), mR4CAST(fsiBodyState_D->rot));
+        mR3CAST(m_data_mgr.rigid_BCEcoords_D), mR4CAST(m_data_mgr.sphMarkers_D->posRadD), U1CAST(m_data_mgr.rigid_BCEsolids_D),
+        mR3CAST(m_data_mgr.fsiBodyState_D->pos), mR4CAST(m_data_mgr.fsiBodyState_D->rot));
 
     cudaDeviceSynchronize();
     cudaCheckError();
 }
 
 //--------------------------------------------------------------------------------------------------------------------------------
+// Calculate accelerations of solid BCE markers -> load m_data_mgr.bceAcc
 
-void ChBce::CalcRigidBceAcceleration(thrust::device_vector<Real3>& bceAcc,
-                                     const thrust::device_vector<Real4>& q_fsiBodies_D,
-                                     const thrust::device_vector<Real3>& accRigid_fsiBodies_D,
-                                     const thrust::device_vector<Real3>& omegaVelLRF_fsiBodies_D,
-                                     const thrust::device_vector<Real3>& omegaAccLRF_fsiBodies_D,
-                                     const thrust::device_vector<Real3>& rigid_BCEcoords_D,
-                                     const thrust::device_vector<uint>& rigid_BCEsolids_D) {
+void ChBce::CalcRigidBceAcceleration() {
     // thread per particle
     uint numThreads, numBlocks;
     computeGridSize((uint)numObjectsH->numRigidMarkers, 256, numBlocks, numThreads);
 
     CalcRigidBceAccelerationD<<<numBlocks, numThreads>>>(
-        mR3CAST(bceAcc), mR4CAST(q_fsiBodies_D), mR3CAST(accRigid_fsiBodies_D), mR3CAST(omegaVelLRF_fsiBodies_D),
-        mR3CAST(omegaAccLRF_fsiBodies_D), mR3CAST(rigid_BCEcoords_D), U1CAST(rigid_BCEsolids_D),
+        mR3CAST(m_data_mgr.bceAcc), mR4CAST(m_data_mgr.fsiBodyState_D->rot), mR3CAST(m_data_mgr.fsiBodyState_D->lin_acc),
+        mR3CAST(m_data_mgr.fsiBodyState_D->ang_vel), mR3CAST(m_data_mgr.fsiBodyState_D->ang_acc),
+        mR3CAST(m_data_mgr.rigid_BCEcoords_D), U1CAST(m_data_mgr.rigid_BCEsolids_D),
         U1CAST(m_data_mgr.markersProximity_D->mapOriginalToSorted));
 
     cudaDeviceSynchronize();
     cudaCheckError();
 }
 
-void ChBce::CalcMeshMarker1DAcceleration(thrust::device_vector<Real3>& bceAcc,
-                                         std::shared_ptr<FsiMeshStateD> fsiMesh1DState_D) {
+void ChBce::CalcFlex1DBceAcceleration() {
     if (numObjectsH->numFlexBodies1D == 0)
         return;
 
     uint nBlocks, nThreads;
     computeGridSize((int)numObjectsH->numFlexMarkers1D, 256, nBlocks, nThreads);
 
-    CalcMeshMarker1DAcceleration_D<<<nBlocks, nThreads>>>(          //
-        mR3CAST(bceAcc),                                            //
-        mR3CAST(fsiMesh1DState_D->acc_fsi_fea_D),                   //
+    CalcFlex1DBceAcceleration_D<<<nBlocks, nThreads>>>(             //
+        mR3CAST(m_data_mgr.bceAcc),                                            //
+        mR3CAST(m_data_mgr.fsiMesh1DState_D->acc_fsi_fea_D),        //
         U2CAST(m_data_mgr.flex1D_Nodes_D),                          //
         U3CAST(m_data_mgr.flex1D_BCEsolids_D),                      //
         mR3CAST(m_data_mgr.flex1D_BCEcoords_D),                     //
@@ -715,17 +708,16 @@ void ChBce::CalcMeshMarker1DAcceleration(thrust::device_vector<Real3>& bceAcc,
     cudaCheckError();
 }
 
-void ChBce::CalcMeshMarker2DAcceleration(thrust::device_vector<Real3>& bceAcc,
-                                         std::shared_ptr<FsiMeshStateD> fsiMesh2DState_D) {
+void ChBce::CalcFlex2DBceAcceleration() {
     if (numObjectsH->numFlexBodies2D == 0)
         return;
 
     uint nBlocks, nThreads;
     computeGridSize((int)numObjectsH->numFlexMarkers2D, 256, nBlocks, nThreads);
 
-    CalcMeshMarker2DAcceleration_D<<<nBlocks, nThreads>>>(          //
-        mR3CAST(bceAcc),                                            //
-        mR3CAST(fsiMesh2DState_D->acc_fsi_fea_D),                   //
+    CalcFlex2DBceAcceleration_D<<<nBlocks, nThreads>>>(             //
+        mR3CAST(m_data_mgr.bceAcc),                                            //
+        mR3CAST(m_data_mgr.fsiMesh2DState_D->acc_fsi_fea_D),        //
         U3CAST(m_data_mgr.flex2D_Nodes_D),                          //
         U3CAST(m_data_mgr.flex2D_BCEsolids_D),                      //
         mR3CAST(m_data_mgr.flex2D_BCEcoords_D),                     //
@@ -737,9 +729,7 @@ void ChBce::CalcMeshMarker2DAcceleration(thrust::device_vector<Real3>& bceAcc,
 }
 
 //--------------------------------------------------------------------------------------------------------------------------------
-void ChBce::updateBCEAcc(std::shared_ptr<FsiBodyStateD> fsiBodyState_D,
-                         std::shared_ptr<FsiMeshStateD> fsiMesh1DState_D,
-                         std::shared_ptr<FsiMeshStateD> fsiMesh2DState_D) {
+void ChBce::updateBCEAcc() {
     int size_ref = m_data_mgr.referenceArray.size();
     int numBceMarkers = m_data_mgr.referenceArray[size_ref - 1].y - m_data_mgr.referenceArray[0].y;
     auto N_solid = numObjectsH->numRigidMarkers + numObjectsH->numFlexMarkers1D + numObjectsH->numFlexMarkers2D;
@@ -764,26 +754,21 @@ void ChBce::updateBCEAcc(std::shared_ptr<FsiBodyStateD> fsiBodyState_D,
     if (size_ref == 3)
         updatePortion.w = m_data_mgr.referenceArray[2].y;
 
-    // Calculate the acceleration of rigid/flexible BCE particles if exist, used for ADAMI BC
-    // thrust::device_vector<Real3> bceAcc(numObjectsH->numRigidMarkers + numObjectsH->numFlexMarkers);
-
-    // Acceleration of rigid BCE particles
+    // Calculate accelerations of solid BCE marker
     if (numObjectsH->numRigidMarkers > 0) {
-        CalcRigidBceAcceleration(m_data_mgr.bceAcc, fsiBodyState_D->rot, fsiBodyState_D->lin_acc, fsiBodyState_D->ang_vel,
-                                 fsiBodyState_D->ang_acc, m_data_mgr.rigid_BCEcoords_D, m_data_mgr.rigid_BCEsolids_D);
+        CalcRigidBceAcceleration();
     }
-
     if (numObjectsH->numFlexMarkers1D > 0) {
-        CalcMeshMarker1DAcceleration(m_data_mgr.bceAcc, fsiMesh1DState_D);
+        CalcFlex1DBceAcceleration();
     }
     if (numObjectsH->numFlexMarkers2D > 0) {
-        CalcMeshMarker1DAcceleration(m_data_mgr.bceAcc, fsiMesh1DState_D);
+        CalcFlex2DBceAcceleration();
     }
 }
 
 // -----------------------------------------------------------------------------
 
-void ChBce::Rigid_Forces_Torques(std::shared_ptr<FsiBodyStateD> fsiBodyState_D) {
+void ChBce::Rigid_Forces_Torques() {
     if (numObjectsH->numRigidBodies == 0)
         return;
 
@@ -796,14 +781,14 @@ void ChBce::Rigid_Forces_Torques(std::shared_ptr<FsiBodyStateD> fsiBodyState_D) 
     CalcRigidForces_D<<<nBlocks, nThreads>>>(
         mR3CAST(m_data_mgr.rigid_FSI_ForcesD), mR3CAST(m_data_mgr.rigid_FSI_TorquesD), mR4CAST(m_data_mgr.derivVelRhoD),
         mR4CAST(m_data_mgr.sortedSphMarkers2_D->posRadD),
-        U1CAST(m_data_mgr.rigid_BCEsolids_D), mR3CAST(fsiBodyState_D->pos), mR3CAST(m_data_mgr.rigid_BCEcoords_D),
+        U1CAST(m_data_mgr.rigid_BCEsolids_D), mR3CAST(m_data_mgr.fsiBodyState_D->pos), mR3CAST(m_data_mgr.rigid_BCEcoords_D),
         U1CAST(m_data_mgr.markersProximity_D->mapOriginalToSorted));
 
     cudaDeviceSynchronize();
     cudaCheckError();
 }
 
-void ChBce::Flex1D_Forces(std::shared_ptr<FsiMeshStateD> fsiMesh1DState_D) {
+void ChBce::Flex1D_Forces() {
     if (numObjectsH->numFlexBodies1D == 0)
         return;
 
@@ -826,7 +811,7 @@ void ChBce::Flex1D_Forces(std::shared_ptr<FsiMeshStateD> fsiMesh1DState_D) {
     cudaCheckError();
 }
 
-void ChBce::Flex2D_Forces(std::shared_ptr<FsiMeshStateD> fsiMesh2DState_D) {
+void ChBce::Flex2D_Forces() {
     if (numObjectsH->numFlexBodies2D == 0)
         return;
 
@@ -851,7 +836,7 @@ void ChBce::Flex2D_Forces(std::shared_ptr<FsiMeshStateD> fsiMesh2DState_D) {
 
 // -----------------------------------------------------------------------------
 
-void ChBce::UpdateBodyMarkerState(std::shared_ptr<FsiBodyStateD> fsiBodyState_D) {
+void ChBce::UpdateBodyMarkerState() {
     if (numObjectsH->numRigidBodies == 0)
         return;
 
@@ -860,8 +845,9 @@ void ChBce::UpdateBodyMarkerState(std::shared_ptr<FsiBodyStateD> fsiBodyState_D)
 
     UpdateBodyMarkerState_D<<<nBlocks, nThreads>>>(
         mR4CAST(m_data_mgr.sortedSphMarkers2_D->posRadD), mR3CAST(m_data_mgr.sortedSphMarkers2_D->velMasD),
-        mR3CAST(m_data_mgr.rigid_BCEcoords_D), U1CAST(m_data_mgr.rigid_BCEsolids_D), mR3CAST(fsiBodyState_D->pos),
-        mR4CAST(fsiBodyState_D->lin_vel), mR3CAST(fsiBodyState_D->ang_vel), mR4CAST(fsiBodyState_D->rot),
+        mR3CAST(m_data_mgr.rigid_BCEcoords_D), U1CAST(m_data_mgr.rigid_BCEsolids_D),
+        mR3CAST(m_data_mgr.fsiBodyState_D->pos), mR4CAST(m_data_mgr.fsiBodyState_D->lin_vel),
+        mR3CAST(m_data_mgr.fsiBodyState_D->ang_vel), mR4CAST(m_data_mgr.fsiBodyState_D->rot),
         U1CAST(m_data_mgr.markersProximity_D->mapOriginalToSorted));
 
     cudaDeviceSynchronize();
@@ -869,8 +855,7 @@ void ChBce::UpdateBodyMarkerState(std::shared_ptr<FsiBodyStateD> fsiBodyState_D)
 }
 
 // This is applied only during BCE initialization
-void ChBce::UpdateBodyMarkerStateInitial(
-    std::shared_ptr<SphMarkerDataD> sphMarkers_D, std::shared_ptr<FsiBodyStateD> fsiBodyState_D) {
+void ChBce::UpdateBodyMarkerStateInitial() {
     if (numObjectsH->numRigidBodies == 0)
         return;
 
@@ -878,88 +863,86 @@ void ChBce::UpdateBodyMarkerStateInitial(
     computeGridSize((int)numObjectsH->numRigidMarkers, 256, nBlocks, nThreads);
 
     UpdateBodyMarkerStateUnsorted_D<<<nBlocks, nThreads>>>(
-        mR4CAST(sphMarkers_D->posRadD), mR3CAST(sphMarkers_D->velMasD),
-        mR3CAST(m_data_mgr.rigid_BCEcoords_D), U1CAST(m_data_mgr.rigid_BCEsolids_D), mR3CAST(fsiBodyState_D->pos),
-        mR4CAST(fsiBodyState_D->lin_vel), mR3CAST(fsiBodyState_D->ang_vel), mR4CAST(fsiBodyState_D->rot));
+        mR4CAST(m_data_mgr.sphMarkers_D->posRadD), mR3CAST(m_data_mgr.sphMarkers_D->velMasD),
+        mR3CAST(m_data_mgr.rigid_BCEcoords_D), U1CAST(m_data_mgr.rigid_BCEsolids_D), mR3CAST(m_data_mgr.fsiBodyState_D->pos),
+        mR4CAST(m_data_mgr.fsiBodyState_D->lin_vel), mR3CAST(m_data_mgr.fsiBodyState_D->ang_vel), mR4CAST(m_data_mgr.fsiBodyState_D->rot));
 
     cudaDeviceSynchronize();
     cudaCheckError();
 }
 
-void ChBce::UpdateMeshMarker1DState(std::shared_ptr<FsiMeshStateD> fsiMesh1DState_D) {
+void ChBce::UpdateMeshMarker1DState() {
     if (numObjectsH->numFlexBodies1D == 0)
         return;
 
     uint nBlocks, nThreads;
     computeGridSize((int)numObjectsH->numFlexMarkers1D, 256, nBlocks, nThreads);
 
-    UpdateMeshMarker1DState_D<<<nBlocks, nThreads>>>(                                                        //
-        mR4CAST(m_data_mgr.sortedSphMarkers2_D->posRadD), mR3CAST(m_data_mgr.sortedSphMarkers2_D->velMasD),  //
-        mR3CAST(fsiMesh1DState_D->pos_fsi_fea_D), mR3CAST(fsiMesh1DState_D->vel_fsi_fea_D),                  //
-        U2CAST(m_data_mgr.flex1D_Nodes_D),                                                                   //
-        U3CAST(m_data_mgr.flex1D_BCEsolids_D),                                                               //
-        mR3CAST(m_data_mgr.flex1D_BCEcoords_D),                                                              //
-        U1CAST(m_data_mgr.markersProximity_D->mapOriginalToSorted)                                           //
+    UpdateMeshMarker1DState_D<<<nBlocks, nThreads>>>(                                                              //
+        mR4CAST(m_data_mgr.sortedSphMarkers2_D->posRadD), mR3CAST(m_data_mgr.sortedSphMarkers2_D->velMasD),        //
+        mR3CAST(m_data_mgr.fsiMesh1DState_D->pos_fsi_fea_D), mR3CAST(m_data_mgr.fsiMesh1DState_D->vel_fsi_fea_D),  //
+        U2CAST(m_data_mgr.flex1D_Nodes_D),                                                                         //
+        U3CAST(m_data_mgr.flex1D_BCEsolids_D),                                                                     //
+        mR3CAST(m_data_mgr.flex1D_BCEcoords_D),                                                                    //
+        U1CAST(m_data_mgr.markersProximity_D->mapOriginalToSorted)                                                 //
     );
 
     cudaDeviceSynchronize();
     cudaCheckError();
 }
 
-void ChBce::UpdateMeshMarker1DStateInitial(
-    std::shared_ptr<SphMarkerDataD> sphMarkers_D, std::shared_ptr<FsiMeshStateD> fsiMesh1DState_D) {
+void ChBce::UpdateMeshMarker1DStateInitial() {
     if (numObjectsH->numFlexBodies1D == 0)
         return;
 
     uint nBlocks, nThreads;
     computeGridSize((int)numObjectsH->numFlexMarkers1D, 256, nBlocks, nThreads);
 
-    UpdateMeshMarker1DStateUnsorted_D<<<nBlocks, nThreads>>>(                                //
-        mR4CAST(sphMarkers_D->posRadD), mR3CAST(sphMarkers_D->velMasD),                      //
-        mR3CAST(fsiMesh1DState_D->pos_fsi_fea_D), mR3CAST(fsiMesh1DState_D->vel_fsi_fea_D),  //
-        U2CAST(m_data_mgr.flex1D_Nodes_D),                                                   //
-        U3CAST(m_data_mgr.flex1D_BCEsolids_D),                                               //
-        mR3CAST(m_data_mgr.flex1D_BCEcoords_D)                                               //
+    UpdateMeshMarker1DStateUnsorted_D<<<nBlocks, nThreads>>>(                                                      //
+        mR4CAST(m_data_mgr.sphMarkers_D->posRadD), mR3CAST(m_data_mgr.sphMarkers_D->velMasD),                      //
+        mR3CAST(m_data_mgr.fsiMesh1DState_D->pos_fsi_fea_D), mR3CAST(m_data_mgr.fsiMesh1DState_D->vel_fsi_fea_D),  //
+        U2CAST(m_data_mgr.flex1D_Nodes_D),                                                                         //
+        U3CAST(m_data_mgr.flex1D_BCEsolids_D),                                                                     //
+        mR3CAST(m_data_mgr.flex1D_BCEcoords_D)                                                                     //
     );
 
     cudaDeviceSynchronize();
     cudaCheckError();
 }
 
-void ChBce::UpdateMeshMarker2DState(std::shared_ptr<FsiMeshStateD> fsiMesh2DState_D) {
+void ChBce::UpdateMeshMarker2DState() {
     if (numObjectsH->numFlexBodies2D == 0)
         return;
 
     uint nBlocks, nThreads;
     computeGridSize((int)numObjectsH->numFlexMarkers2D, 256, nBlocks, nThreads);
 
-    UpdateMeshMarker2DState_D<<<nBlocks, nThreads>>>(                                                        //
-        mR4CAST(m_data_mgr.sortedSphMarkers2_D->posRadD), mR3CAST(m_data_mgr.sortedSphMarkers2_D->velMasD),  //
-        mR3CAST(fsiMesh2DState_D->pos_fsi_fea_D), mR3CAST(fsiMesh2DState_D->vel_fsi_fea_D),                  //
-        U3CAST(m_data_mgr.flex2D_Nodes_D),                                                                   //
-        U3CAST(m_data_mgr.flex2D_BCEsolids_D),                                                               //
-        mR3CAST(m_data_mgr.flex2D_BCEcoords_D),                                                              //
-        U1CAST(m_data_mgr.markersProximity_D->mapOriginalToSorted)                                           //
+    UpdateMeshMarker2DState_D<<<nBlocks, nThreads>>>(                                                              //
+        mR4CAST(m_data_mgr.sortedSphMarkers2_D->posRadD), mR3CAST(m_data_mgr.sortedSphMarkers2_D->velMasD),        //
+        mR3CAST(m_data_mgr.fsiMesh2DState_D->pos_fsi_fea_D), mR3CAST(m_data_mgr.fsiMesh2DState_D->vel_fsi_fea_D),  //
+        U3CAST(m_data_mgr.flex2D_Nodes_D),                                                                         //
+        U3CAST(m_data_mgr.flex2D_BCEsolids_D),                                                                     //
+        mR3CAST(m_data_mgr.flex2D_BCEcoords_D),                                                                    //
+        U1CAST(m_data_mgr.markersProximity_D->mapOriginalToSorted)                                                 //
     );
 
     cudaDeviceSynchronize();
     cudaCheckError();
 }
 
-void ChBce::UpdateMeshMarker2DStateInitial(
-    std::shared_ptr<SphMarkerDataD> sphMarkers_D, std::shared_ptr<FsiMeshStateD> fsiMesh2DState_D) {
+void ChBce::UpdateMeshMarker2DStateInitial() {
     if (numObjectsH->numFlexBodies2D == 0)
         return;
 
     uint nBlocks, nThreads;
     computeGridSize((int)numObjectsH->numFlexMarkers2D, 256, nBlocks, nThreads);
 
-    UpdateMeshMarker2DStateUnsorted_D<<<nBlocks, nThreads>>>(                                        //
-        mR4CAST(sphMarkers_D->posRadD), mR3CAST(sphMarkers_D->velMasD),        //
-        mR3CAST(fsiMesh2DState_D->pos_fsi_fea_D), mR3CAST(fsiMesh2DState_D->vel_fsi_fea_D),  //
-        U3CAST(m_data_mgr.flex2D_Nodes_D),                                                   //
-        U3CAST(m_data_mgr.flex2D_BCEsolids_D),                                               //
-        mR3CAST(m_data_mgr.flex2D_BCEcoords_D)                                               //
+    UpdateMeshMarker2DStateUnsorted_D<<<nBlocks, nThreads>>>(                                                      //
+        mR4CAST(m_data_mgr.sphMarkers_D->posRadD), mR3CAST(m_data_mgr.sphMarkers_D->velMasD),                      //
+        mR3CAST(m_data_mgr.fsiMesh2DState_D->pos_fsi_fea_D), mR3CAST(m_data_mgr.fsiMesh2DState_D->vel_fsi_fea_D),  //
+        U3CAST(m_data_mgr.flex2D_Nodes_D),                                                                         //
+        U3CAST(m_data_mgr.flex2D_BCEsolids_D),                                                                     //
+        mR3CAST(m_data_mgr.flex2D_BCEcoords_D)                                                                     //
     );
 
     cudaDeviceSynchronize();

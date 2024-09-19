@@ -122,9 +122,6 @@ class ChFsiForce : public ChFsiBase {
     /// Implemented by derived classes to compute forces in an implicit integrator using ISPH method (see
     /// ChFsiForceI2SPH) or an explicit integrator using WCPSH method (see ChFsiForceExplicitSPH).
     virtual void ForceSPH(std::shared_ptr<SphMarkerDataD> otherSortedSphMarkersD,
-                          std::shared_ptr<FsiBodyStateD> fsiBodyStateD,
-                          std::shared_ptr<FsiMeshStateD> fsiMesh1DStateD,
-                          std::shared_ptr<FsiMeshStateD> fsiMesh2DStateD,
                           Real time,
                           bool firstHalfStep) = 0;
 
