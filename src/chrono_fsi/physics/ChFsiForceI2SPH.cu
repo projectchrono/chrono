@@ -1075,11 +1075,11 @@ void ChFsiForceI2SPH::ForceSPH(std::shared_ptr<SphMarkerDataD> sortedSphMarkers_
         Jacobi_SOR_Iter<<<numBlocks, numThreads>>>(mR4CAST(m_sortedSphMarkers_D->rhoPresMuD), R1CAST(AMatrix),
                                                    mR3CAST(V_star_old), mR3CAST(V_star_new), mR3CAST(b3Vector),
                                                    R1CAST(q_old), R1CAST(q_new), R1CAST(b1Vector), U1CAST(csrColInd),
-                                                   U1CAST(Contact_i), numAllMarkers, true, isErrorD);
+                                                   U1CAST(Contact_i), true, isErrorD);
         ChUtilsDevice::Sync_CheckError(isErrorH, isErrorD, "Jacobi_SOR_Iter");
         Update_AND_Calc_Res<<<numBlocks, numThreads>>>(mR4CAST(m_sortedSphMarkers_D->rhoPresMuD), mR3CAST(V_star_old),
                                                        mR3CAST(V_star_new), R1CAST(q_old), R1CAST(q_new),
-                                                       R1CAST(Residuals), numAllMarkers, true, isErrorD);
+                                                       R1CAST(Residuals), true, isErrorD);
         ChUtilsDevice::Sync_CheckError(isErrorH, isErrorD, "Update_AND_Calc_Res");
         Iteration++;
         thrust::device_vector<Real>::iterator iter = thrust::max_element(Residuals.begin(), Residuals.end());
@@ -1187,7 +1187,7 @@ void ChFsiForceI2SPH::ForceSPH(std::shared_ptr<SphMarkerDataD> sortedSphMarkers_
             Jacobi_SOR_Iter<<<numBlocks, numThreads>>>(
                 mR4CAST(m_sortedSphMarkers_D->rhoPresMuD), R1CAST(AMatrix), mR3CAST(V_star_old), mR3CAST(V_star_new),
                 mR3CAST(b3Vector), R1CAST(q_old), R1CAST(q_new), R1CAST(b1Vector), U1CAST(csrColInd), U1CAST(Contact_i),
-                numAllMarkers, false, isErrorD);
+                false, isErrorD);
             ChUtilsDevice::Sync_CheckError(isErrorH, isErrorD, "Jacobi_SOR_Iter");
 
             //            if (pH->Pressure_Constraint) {
@@ -1203,7 +1203,7 @@ void ChFsiForceI2SPH::ForceSPH(std::shared_ptr<SphMarkerDataD> sortedSphMarkers_
             //            }mu_s_
             Update_AND_Calc_Res<<<numBlocks, numThreads>>>(
                 mR4CAST(m_sortedSphMarkers_D->rhoPresMuD), mR3CAST(V_star_old), mR3CAST(V_star_new), R1CAST(q_old),
-                R1CAST(q_new), R1CAST(Residuals), numAllMarkers + 0 * uint(pH->Pressure_Constraint), false, isErrorD);
+                R1CAST(q_new), R1CAST(Residuals), false, isErrorD);
             ChUtilsDevice::Sync_CheckError(isErrorH, isErrorD, "Update_AND_Calc_Res");
             Iteration++;
             thrust::device_vector<Real>::iterator iter = thrust::max_element(Residuals.begin(), Residuals.end());
@@ -1312,7 +1312,7 @@ void ChFsiForceI2SPH::PreProcessor(bool calcLaplacianOperator) {
     calcRho_kernel<<<numBlocks, numThreads>>>(
         mR4CAST(m_sortedSphMarkers_D->posRadD), mR4CAST(m_sortedSphMarkers_D->rhoPresMuD), R1CAST(_sumWij_inv),
         U1CAST(m_data_mgr.markersProximity_D->cellStartD), U1CAST(m_data_mgr.markersProximity_D->cellEndD),
-        U1CAST(Contact_i), numAllMarkers, isErrorD);
+        U1CAST(Contact_i), isErrorD);
     ChUtilsDevice::Sync_CheckError(isErrorH, isErrorD, "calcRho_kernel");
     uint LastVal = Contact_i[numAllMarkers - 1];
     thrust::exclusive_scan(Contact_i.begin(), Contact_i.end(), Contact_i.begin());
@@ -1336,7 +1336,7 @@ void ChFsiForceI2SPH::PreProcessor(bool calcLaplacianOperator) {
         mR4CAST(m_sortedSphMarkers_D->posRadD), mR3CAST(m_sortedSphMarkers_D->velMasD),
         mR4CAST(m_sortedSphMarkers_D->rhoPresMuD), R1CAST(_sumWij_inv), R1CAST(G_i), mR3CAST(Normals),
         U1CAST(csrColInd), U1CAST(Contact_i), U1CAST(m_data_mgr.markersProximity_D->cellStartD),
-        U1CAST(m_data_mgr.markersProximity_D->cellEndD), numAllMarkers, isErrorD);
+        U1CAST(m_data_mgr.markersProximity_D->cellEndD), isErrorD);
     ChUtilsDevice::Sync_CheckError(isErrorH, isErrorD, "calcNormalizedRho_Gi_fillInMatrixIndices");
 
     //
@@ -1346,12 +1346,12 @@ void ChFsiForceI2SPH::PreProcessor(bool calcLaplacianOperator) {
         printf("| calc_A_tensor+");
         calc_A_tensor<<<numBlocks, numThreads>>>(R1CAST(A_i), R1CAST(G_i), mR4CAST(m_sortedSphMarkers_D->posRadD),
                                                  mR4CAST(m_sortedSphMarkers_D->rhoPresMuD), R1CAST(_sumWij_inv),
-                                                 U1CAST(csrColInd), U1CAST(Contact_i), numAllMarkers, isErrorD);
+                                                 U1CAST(csrColInd), U1CAST(Contact_i), isErrorD);
         ChUtilsDevice::Sync_CheckError(isErrorH, isErrorD, "calc_A_tensor");
         calc_L_tensor<<<numBlocks, numThreads>>>(R1CAST(A_i), R1CAST(L_i), R1CAST(G_i),
                                                  mR4CAST(m_sortedSphMarkers_D->posRadD),
                                                  mR4CAST(m_sortedSphMarkers_D->rhoPresMuD), R1CAST(_sumWij_inv),
-                                                 U1CAST(csrColInd), U1CAST(Contact_i), numAllMarkers, isErrorD);
+                                                 U1CAST(csrColInd), U1CAST(Contact_i), isErrorD);
         ChUtilsDevice::Sync_CheckError(isErrorH, isErrorD, "calc_L_tensor");
     }
 
@@ -1359,7 +1359,7 @@ void ChFsiForceI2SPH::PreProcessor(bool calcLaplacianOperator) {
         mR4CAST(m_sortedSphMarkers_D->posRadD), mR3CAST(m_sortedSphMarkers_D->velMasD),
         mR4CAST(m_sortedSphMarkers_D->rhoPresMuD), R1CAST(_sumWij_inv), R1CAST(G_i), R1CAST(L_i),
         R1CAST(csrValLaplacian), mR3CAST(csrValGradient), R1CAST(csrValFunction), U1CAST(csrColInd), U1CAST(Contact_i),
-        numAllMarkers, isErrorD);
+        isErrorD);
     ChUtilsDevice::Sync_CheckError(isErrorH, isErrorD, "Gradient_Laplacian_Operator");
     double Gradient_Laplacian_Operator = (clock() - A_L_Tensor_GradLaplacian) / (double)CLOCKS_PER_SEC;
 }

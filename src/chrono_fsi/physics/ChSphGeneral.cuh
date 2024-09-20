@@ -346,7 +346,6 @@ __global__ void calc_A_tensor(Real* A_tensor,
                               Real* sumWij_inv,
                               uint* cellStart,
                               uint* cellEnd,
-                              const size_t numAllMarkers,
                               volatile bool* isErrorD);
 //--------------------------------------------------------------------------------------------------------------------------------
 __global__ void calc_L_tensor(Real* A_tensor,
@@ -357,7 +356,6 @@ __global__ void calc_L_tensor(Real* A_tensor,
                               Real* sumWij_inv,
                               uint* cellStart,
                               uint* cellEnd,
-                              const size_t numAllMarkers,
                               volatile bool* isErrorD);
 
 //--------------------------------------------------------------------------------------------------------------------------------
@@ -367,7 +365,6 @@ __global__ void calcRho_kernel(Real4* sortedPosRad,  // input: sorted positionsm
                                uint* cellStart,
                                uint* cellEnd,
                                uint* mynumContact,
-                               const size_t numAllMarkers,
                                volatile bool* isErrorD);
 
 //--------------------------------------------------------------------------------------------------------------------------------
@@ -380,7 +377,6 @@ __global__ void calcNormalizedRho_kernel(Real4* sortedPosRad,  // input: sorted 
                                          Real* Color,
                                          uint* cellStart,
                                          uint* cellEnd,
-                                         const size_t numAllMarkers,
                                          volatile bool* isErrorD);
 //--------------------------------------------------------------------------------------------------------------------------------
 __global__ void calcNormalizedRho_Gi_fillInMatrixIndices(Real4* sortedPosRad,  // input: sorted positions
@@ -393,7 +389,6 @@ __global__ void calcNormalizedRho_Gi_fillInMatrixIndices(Real4* sortedPosRad,  /
                                                          uint* numContacts,
                                                          uint* cellStart,
                                                          uint* cellEnd,
-                                                         const size_t numAllMarkers,
                                                          volatile bool* isErrorD);
 //--------------------------------------------------------------------------------------------------------------------------------
 __global__ void Function_Gradient_Laplacian_Operator(Real4* sortedPosRad,  // input: sorted positions
@@ -407,7 +402,6 @@ __global__ void Function_Gradient_Laplacian_Operator(Real4* sortedPosRad,  // in
                                                      Real* A_f,
                                                      uint* csrColInd,
                                                      uint* numContacts,
-                                                     const size_t numAllMarkers,
                                                      volatile bool* isErrorD);
 //--------------------------------------------------------------------------------------------------------------------------------
 __global__ void Jacobi_SOR_Iter(Real4* sortedRhoPreMu,
@@ -420,7 +414,6 @@ __global__ void Jacobi_SOR_Iter(Real4* sortedRhoPreMu,
                                 Real* b1vec,
                                 const uint* csrColInd,
                                 const uint* numContacts,
-                                size_t numAllMarkers,
                                 bool _3dvector,
                                 volatile bool* isErrorD);
 //--------------------------------------------------------------------------------------------------------------------------------
@@ -430,7 +423,6 @@ __global__ void Update_AND_Calc_Res(Real4* sortedRhoPreMu,
                                     Real* q_old,
                                     Real* q_new,
                                     Real* Residuals,
-                                    const size_t numAllMarkers,
                                     bool _3dvector,
                                     volatile bool* isErrorD);
 //--------------------------------------------------------------------------------------------------------------------------------
@@ -438,7 +430,6 @@ __global__ void Initialize_Variables(Real4* sortedRhoPreMu,
                                      Real* p_old,
                                      Real3* sortedVelMas,
                                      Real3* V_new,
-                                     const size_t numAllMarkers,
                                      volatile bool* isErrorD);
 
 //--------------------------------------------------------------------------------------------------------------------------------
@@ -450,7 +441,6 @@ __global__ void UpdateDensity(Real3* vis_vel,
                               Real* sumWij_inv,
                               uint* cellStart,
                               uint* cellEnd,
-                              size_t numAllMarkers,
                               volatile bool* isErrorD);
 
 __global__ void neighborSearchNum(const Real4* sortedPosRad,
