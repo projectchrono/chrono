@@ -47,7 +47,7 @@ using std::endl;
 ChVisualSystem::Type vis_type = ChVisualSystem::Type::VSG;
 
 // Container dimensions
-ChVector3d csize(1.6, 1.4, 0.16);
+ChVector3d csize(1.6, 1.4, 0.5);
 
 // Size of the baffles
 ChVector3d bsize(0.1, 0.1, 0.16);
@@ -246,7 +246,7 @@ int main(int argc, char* argv[]) {
     CreateBaffles(fsi);
 
     // Enable height-based initial pressure for SPH particles
-    ChVector3 v0(2, 0, 0);
+    ChVector3d v0(1.5, 0, 0);
     fsi.RegisterParticlePropertiesCallback(chrono_types::make_shared<SPHPropertiesCallback>(sysFSI, fsize.z(), v0));
 
     // Create SPH material (do not create boundary BCEs)
@@ -264,6 +264,11 @@ int main(int argc, char* argv[]) {
                         side_walls,           // side walls
                         false                 // top wall
     );
+
+    // Explicitly set computational domain (necessary if no side walls)
+    ChAABB aabb(ChVector3d(-csize.x() / 2, -csize.y() / 2, -0.1),
+                ChVector3d(+csize.x() / 2, +csize.y() / 2, +0.1 + csize.z()));
+    fsi.SetComputationalDomainSize(aabb);
 
     if (show_rigid) {
         ChVector3d ground_box_size(csize.x(), csize.y(), 0.02);
