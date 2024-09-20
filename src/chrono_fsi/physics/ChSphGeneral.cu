@@ -40,7 +40,7 @@ __global__ void calc_A_tensor(Real* A_tensor,
                               Real* sumWij_inv,
                               uint* csrColInd,
                               uint* numContacts,
-                              volatile bool* isErrorD) {
+                              volatile bool* error_flag) {
     uint i_idx = blockIdx.x * blockDim.x + threadIdx.x;
     if (i_idx >= countersD.numAllMarkers)
         return;
@@ -119,7 +119,7 @@ __global__ void calc_L_tensor(Real* A_tensor,
                               Real* sumWij_inv,
                               uint* csrColInd,
                               uint* numContacts,
-                              volatile bool* isErrorD) {
+                              volatile bool* error_flag) {
     uint i_idx = blockIdx.x * blockDim.x + threadIdx.x;
     if (i_idx >= countersD.numAllMarkers)
         return;
@@ -235,7 +235,7 @@ __global__ void calcRho_kernel(Real4* sortedPosRad,
                                uint* cellStart,
                                uint* cellEnd,
                                uint* mynumContact,
-                               volatile bool* isErrorD) {
+                               volatile bool* error_flag) {
     uint i_idx = blockIdx.x * blockDim.x + threadIdx.x;
     if (i_idx >= countersD.numAllMarkers)
         return;
@@ -301,7 +301,7 @@ __global__ void calcNormalizedRho_kernel(Real4* sortedPosRad,
                                          Real* Color,
                                          uint* cellStart,
                                          uint* cellEnd,
-                                         volatile bool* isErrorD) {
+                                         volatile bool* error_flag) {
     uint i_idx = blockIdx.x * blockDim.x + threadIdx.x;
     if (i_idx >= countersD.numAllMarkers || sortedRhoPreMu[i_idx].w <= -2)
         return;
@@ -421,7 +421,7 @@ __global__ void calcNormalizedRho_Gi_fillInMatrixIndices(Real4* sortedPosRad,
                                                          uint* numContacts,
                                                          uint* cellStart,
                                                          uint* cellEnd,
-                                                         volatile bool* isErrorD) {
+                                                         volatile bool* error_flag) {
     uint i_idx = blockIdx.x * blockDim.x + threadIdx.x;
     if (i_idx >= countersD.numAllMarkers)
         return;
@@ -561,7 +561,7 @@ __global__ void Function_Gradient_Laplacian_Operator(Real4* sortedPosRad,
                                                      // A_G* p gives gradp, A_L*p gives Delta^2p
                                                      uint* csrColInd,
                                                      uint* numContacts,
-                                                     volatile bool* isErrorD) {
+                                                     volatile bool* error_flag) {
     uint i_idx = blockIdx.x * blockDim.x + threadIdx.x;
     if (i_idx >= countersD.numAllMarkers)
         return;
@@ -700,7 +700,7 @@ __global__ void Jacobi_SOR_Iter(Real4* sortedRhoPreMu,
                                 const uint* csrColInd,
                                 const uint* numContacts,
                                 bool _3dvector,
-                                volatile bool* isErrorD) {
+                                volatile bool* error_flag) {
     uint i_idx = blockIdx.x * blockDim.x + threadIdx.x;
     if (i_idx >= countersD.numAllMarkers)
         return;
@@ -731,7 +731,7 @@ __global__ void Update_AND_Calc_Res(Real4* sortedRhoPreMu,
                                     Real* q_new,
                                     Real* Residuals,
                                     bool _3dvector,
-                                    volatile bool* isErrorD) {
+                                    volatile bool* error_flag) {
     uint i_idx = blockIdx.x * blockDim.x + threadIdx.x;
     if (i_idx >= countersD.numAllMarkers)
         return;
@@ -757,7 +757,7 @@ __global__ void Initialize_Variables(Real4* sortedRhoPreMu,
                                      Real* p_old,
                                      Real3* sortedVelMas,
                                      Real3* V_new,
-                                     volatile bool* isErrorD) {
+                                     volatile bool* error_flag) {
     const uint i_idx = blockIdx.x * blockDim.x + threadIdx.x;
     if (i_idx >= countersD.numAllMarkers)
         return;
@@ -779,7 +779,7 @@ __global__ void UpdateDensity(Real3* vis_vel,
                               Real* sumWij_inv,
                               uint* cellStart,
                               uint* cellEnd,
-                              volatile bool* isErrorD) {
+                              volatile bool* error_flag) {
     uint i_idx = blockIdx.x * blockDim.x + threadIdx.x;
     if (i_idx >= countersD.numAllMarkers)
         return;
@@ -862,7 +862,7 @@ __global__ void neighborSearchNum(const Real4* sortedPosRad,
                                   const uint* cellEnd,
                                   const uint* activityIdentifierD,
                                   uint* numNeighborsPerPart,
-                                  volatile bool* isErrorD) {
+                                  volatile bool* error_flag) {
     uint index = blockIdx.x * blockDim.x + threadIdx.x;
     if (index >= countersD.numAllMarkers) {
         return;
@@ -904,7 +904,7 @@ __global__ void neighborSearchID(const Real4* sortedPosRad,
                                        const uint* activityIdentifierD,
                                        const uint* numNeighborsPerPart,
                                        uint* neighborList,
-                                       volatile bool* isErrorD) {
+                                       volatile bool* error_flag) {
     uint index = blockIdx.x * blockDim.x + threadIdx.x;
     if (index >= countersD.numAllMarkers) {
         return;

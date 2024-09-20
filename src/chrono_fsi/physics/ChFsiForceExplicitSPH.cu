@@ -338,7 +338,7 @@ __global__ void calcRho_kernel(Real4* sortedPosRad,
                                const uint* numNeighborsPerPart,
                                const uint* neighborList,
                                int density_reinit,
-                               volatile bool* isErrorD) {
+                               volatile bool* error_flag) {
     uint index = blockIdx.x * blockDim.x + threadIdx.x;
     if (index >= countersD.numAllMarkers)
         return;
@@ -398,7 +398,7 @@ __global__ void calcKernelSupport(const Real4* sortedPosRad,
                                   const uint* mapOriginalToSorted,
                                   const uint* numNeighborsPerPart,
                                   const uint* neighborList,
-                                  volatile bool* isErrorD) {
+                                  volatile bool* error_flag) {
     uint index = blockIdx.x * blockDim.x + threadIdx.x;
     if (index >= countersD.numAllMarkers)
         return;
@@ -806,7 +806,7 @@ __device__ inline Real4 LaplacianOperator(float G_i[9],
 }
 
 //--------------------------------------------------------------------------------------------------------------------------------
-__global__ void EOS(Real4* sortedRhoPreMu, volatile bool* isErrorD) {
+__global__ void EOS(Real4* sortedRhoPreMu, volatile bool* error_flag) {
     uint index = blockIdx.x * blockDim.x + threadIdx.x;
     if (index >= countersD.numAllMarkers)
         return;
@@ -823,7 +823,7 @@ __global__ void Navier_Stokes(uint* indexOfIndex,
                               uint* gridMarkerIndex,
                               const uint* numNeighborsPerPart,
                               const uint* neighborList,
-                              volatile bool* isErrorD) {
+                              volatile bool* error_flag) {
     uint id = blockIdx.x * blockDim.x + threadIdx.x;
     if (id >= countersD.numAllMarkers)
         return;
@@ -966,7 +966,7 @@ __global__ void Navier_Stokes(uint* indexOfIndex,
 
     if (!IsFinite(derivVelRho)) {
         printf("Error! particle derivVel is NAN: thrown from ChFsiForceExplicitSPH.cu, collideD !\n");
-        *isErrorD = true;
+        *error_flag = true;
     }
 
     // add gravity and other body force to fluid markers
@@ -996,7 +996,7 @@ __global__ void updateBoundaryPres(const uint* activityIdentifierD,
                                    Real3* sortedVelMasD,
                                    Real3* sortedTauXxYyZz,
                                    Real3* sortedTauXyXzYz,
-                                   volatile bool* isErrorD) {
+                                   volatile bool* error_flag) {
     uint index = blockIdx.x * blockDim.x + threadIdx.x;
     if (index >= countersD.numAllMarkers)
         return;
@@ -1074,7 +1074,7 @@ __global__ void NS_SSR(const uint* activityIdentifierD,
                        Real3* sortedXSPHandShift,
                        Real3* sortedKernelSupport,
                        uint* sortedFreeSurfaceIdD,
-                       volatile bool* isErrorD) {
+                       volatile bool* error_flag) {
     uint id = blockIdx.x * blockDim.x + threadIdx.x;
     if (id >= countersD.numAllMarkers)
         return;
@@ -1318,7 +1318,7 @@ __global__ void CalcVel_XSPH_D(uint* indexOfIndex,
                                uint* gridMarkerIndex,
                                const uint* numNeighborsPerPart,
                                const uint* neighborList,
-                               volatile bool* isErrorD) {
+                               volatile bool* error_flag) {
     uint id = blockIdx.x * blockDim.x + threadIdx.x;
     if (id >= countersD.numAllMarkers)
         return;
@@ -1370,7 +1370,7 @@ __global__ void CalcVel_XSPH_D(uint* indexOfIndex,
 
     if (!IsFinite(vel_XSPH_Sorted_D[index])) {
         printf("Error! particle vXSPH is NAN: thrown from ChFsiForceExplicitSPH.cu, CalcVel_XSPH_D !\n");
-        *isErrorD = true;
+        *error_flag = true;
     }
 }
 
@@ -1458,17 +1458,15 @@ void ChFsiForceExplicitSPH::ForceSPH(std::shared_ptr<SphMarkerDataD> sortedSphMa
 
 //--------------------------------------------------------------------------------------------------------------------------------
 void ChFsiForceExplicitSPH::neighborSearch() {
-    bool *isErrorH, *isErrorD;
-    isErrorH = (bool*)malloc(sizeof(bool));
-    cudaMalloc((void**)&isErrorD, sizeof(bool));
-    *isErrorH = false;
-    cudaMemcpy(isErrorD, isErrorH, sizeof(bool), cudaMemcpyHostToDevice);
+    bool* error_flagD;
+    cudaMallocErrorFlag(error_flagD);
+    cudaResetErrorFlag(error_flagD);
+
     // thread per particle
     uint numBlocksShort, numThreadsShort;
     computeGridSize(m_data_mgr.countersH->numAllMarkers, 256, numBlocksShort, numThreadsShort);
+
     // Execute the kernel
-    *isErrorH = false;
-    cudaMemcpy(isErrorD, isErrorH, sizeof(bool), cudaMemcpyHostToDevice);
     thrust::fill(m_data_mgr.numNeighborsPerPart.begin(), m_data_mgr.numNeighborsPerPart.end(), 0);
 
     // start neighbor search
@@ -1476,8 +1474,8 @@ void ChFsiForceExplicitSPH::neighborSearch() {
     neighborSearchNum<<<numBlocksShort, numThreadsShort>>>(
         mR4CAST(m_sortedSphMarkers_D->posRadD), mR4CAST(m_sortedSphMarkers_D->rhoPresMuD),
         U1CAST(m_data_mgr.markersProximity_D->cellStartD), U1CAST(m_data_mgr.markersProximity_D->cellEndD),
-        U1CAST(m_data_mgr.activityIdentifierD), U1CAST(m_data_mgr.numNeighborsPerPart), isErrorD);
-    ChUtilsDevice::Sync_CheckError(isErrorH, isErrorD, "neighborSearchNum");
+        U1CAST(m_data_mgr.activityIdentifierD), U1CAST(m_data_mgr.numNeighborsPerPart), error_flagD);
+    cudaCheckErrorFlag(error_flagD, "neighborSearchNum");
 
     // in-place exclusive scan for num of neighbors
     thrust::exclusive_scan(m_data_mgr.numNeighborsPerPart.begin(), m_data_mgr.numNeighborsPerPart.end(),
@@ -1491,14 +1489,17 @@ void ChFsiForceExplicitSPH::neighborSearch() {
         mR4CAST(m_sortedSphMarkers_D->posRadD), mR4CAST(m_sortedSphMarkers_D->rhoPresMuD),
         U1CAST(m_data_mgr.markersProximity_D->cellStartD), U1CAST(m_data_mgr.markersProximity_D->cellEndD),
         U1CAST(m_data_mgr.activityIdentifierD), U1CAST(m_data_mgr.numNeighborsPerPart), U1CAST(m_data_mgr.neighborList),
-        isErrorD);
-    ChUtilsDevice::Sync_CheckError(isErrorH, isErrorD, "neighborSearchID");
+        error_flagD);
+    cudaCheckErrorFlag(error_flagD, "neighborSearchID");
+
+    cudaFreeErrorFlag(error_flagD);
 }
 
 //--------------------------------------------------------------------------------------------------------------------------------
 void ChFsiForceExplicitSPH::CollideWrapper(Real time, bool firstHalfStep) {
-    bool* isErrorD;
-    cudaMalloc((void**)&isErrorD, sizeof(bool));
+    bool* error_flagD;
+    cudaMallocErrorFlag(error_flagD);
+    cudaResetErrorFlag(error_flagD);
 
     // thread per particle
     uint numBlocks, numThreads;
@@ -1508,11 +1509,11 @@ void ChFsiForceExplicitSPH::CollideWrapper(Real time, bool firstHalfStep) {
     if (density_initialization >= m_data_mgr.paramsH->densityReinit) {
         thrust::device_vector<Real4> rhoPresMuD_old = m_sortedSphMarkers_D->rhoPresMuD;
         printf("Re-initializing density after %d steps.\n", m_data_mgr.paramsH->densityReinit);
-        cudaResetErrorFlag(isErrorD);
-        calcRho_kernel<<<numBlocks, numThreads>>>(
-            mR4CAST(m_sortedSphMarkers_D->posRadD), mR4CAST(m_sortedSphMarkers_D->rhoPresMuD), mR4CAST(rhoPresMuD_old),
-            U1CAST(m_data_mgr.numNeighborsPerPart), U1CAST(m_data_mgr.neighborList), density_initialization, isErrorD);
-        cudaCheckErrorFlag(isErrorD, "calcRho_kernel");
+        calcRho_kernel<<<numBlocks, numThreads>>>(mR4CAST(m_sortedSphMarkers_D->posRadD),
+                                                  mR4CAST(m_sortedSphMarkers_D->rhoPresMuD), mR4CAST(rhoPresMuD_old),
+                                                  U1CAST(m_data_mgr.numNeighborsPerPart),
+                                                  U1CAST(m_data_mgr.neighborList), density_initialization, error_flagD);
+        cudaCheckErrorFlag(error_flagD, "calcRho_kernel");
         density_initialization = 0;
     }
     density_initialization++;
@@ -1525,33 +1526,30 @@ void ChFsiForceExplicitSPH::CollideWrapper(Real time, bool firstHalfStep) {
 
     thrust::device_vector<Real3> sortedKernelSupport(m_data_mgr.countersH->numAllMarkers);
     // Calculate the kernel support of each particle
-    cudaResetErrorFlag(isErrorD);
     calcKernelSupport<<<numBlocks, numThreads>>>(
         mR4CAST(m_sortedSphMarkers_D->posRadD), mR4CAST(m_sortedSphMarkers_D->rhoPresMuD), mR3CAST(sortedKernelSupport),
         U1CAST(m_data_mgr.markersProximity_D->mapOriginalToSorted), U1CAST(m_data_mgr.numNeighborsPerPart),
-        U1CAST(m_data_mgr.neighborList), isErrorD);
-    cudaCheckErrorFlag(isErrorD, "calcKernelSupport");
+        U1CAST(m_data_mgr.neighborList), error_flagD);
+    cudaCheckErrorFlag(error_flagD, "calcKernelSupport");
 
-    cudaResetErrorFlag(isErrorD);
     updateBoundaryPres<<<numBlocks, numThreads>>>(
         U1CAST(m_data_mgr.activityIdentifierD), U1CAST(m_data_mgr.numNeighborsPerPart), U1CAST(m_data_mgr.neighborList),
         mR4CAST(m_sortedSphMarkers_D->posRadD), mR3CAST(m_data_mgr.bceAcc), mR4CAST(m_sortedSphMarkers_D->rhoPresMuD),
         mR3CAST(m_sortedSphMarkers_D->velMasD), mR3CAST(m_sortedSphMarkers_D->tauXxYyZzD),
-        mR3CAST(m_sortedSphMarkers_D->tauXyXzYzD), isErrorD);
-    cudaCheckErrorFlag(isErrorD, "updateBoundaryPres");
+        mR3CAST(m_sortedSphMarkers_D->tauXyXzYzD), error_flagD);
+    cudaCheckErrorFlag(error_flagD, "updateBoundaryPres");
 
     // Execute the kernel
     if (m_data_mgr.paramsH->elastic_SPH) {  // For granular material
         // execute the kernel Navier_Stokes and Shear_Stress_Rate in one kernel
-        cudaResetErrorFlag(isErrorD);
         NS_SSR<<<numBlocks, numThreads>>>(
             U1CAST(m_data_mgr.activityIdentifierD), mR4CAST(m_sortedSphMarkers_D->posRadD),
             mR3CAST(m_sortedSphMarkers_D->velMasD), mR4CAST(m_sortedSphMarkers_D->rhoPresMuD),
             mR3CAST(m_sortedSphMarkers_D->tauXxYyZzD), mR3CAST(m_sortedSphMarkers_D->tauXyXzYzD),
             U1CAST(m_data_mgr.numNeighborsPerPart), U1CAST(m_data_mgr.neighborList), mR4CAST(m_data_mgr.derivVelRhoD),
             mR3CAST(m_data_mgr.derivTauXxYyZzD), mR3CAST(m_data_mgr.derivTauXyXzYzD), mR3CAST(m_data_mgr.vel_XSPH_D),
-            mR3CAST(sortedKernelSupport), U1CAST(m_data_mgr.freeSurfaceIdD), isErrorD);
-        cudaCheckErrorFlag(isErrorD, "NS_SSR");
+            mR3CAST(sortedKernelSupport), U1CAST(m_data_mgr.freeSurfaceIdD), error_flagD);
+        cudaCheckErrorFlag(error_flagD, "NS_SSR");
     } else {  // For fluid
 
         // Find the index which is related to the wall boundary particle
@@ -1562,23 +1560,27 @@ void ChFsiForceExplicitSPH::CollideWrapper(Real time, bool firstHalfStep) {
         thrust::remove_if(indexOfIndex.begin(), indexOfIndex.end(), identityOfIndex.begin(), thrust::identity<int>());
 
         // execute the kernel
-        cudaResetErrorFlag(isErrorD);
         // TOUnderstand: Why is the blocks NumBlocks1 and threads NumThreads1?
         Navier_Stokes<<<numBlocks, numThreads>>>(
             U1CAST(indexOfIndex), mR4CAST(m_data_mgr.derivVelRhoD), mR3CAST(m_data_mgr.vel_XSPH_D),
             mR4CAST(m_sortedSphMarkers_D->posRadD), mR3CAST(m_sortedSphMarkers_D->velMasD),
             mR4CAST(m_sortedSphMarkers_D->rhoPresMuD), U1CAST(m_data_mgr.markersProximity_D->gridMarkerIndexD),
-            U1CAST(m_data_mgr.numNeighborsPerPart), U1CAST(m_data_mgr.neighborList), isErrorD);
-        cudaCheckErrorFlag(isErrorD, "Navier_Stokes");
+            U1CAST(m_data_mgr.numNeighborsPerPart), U1CAST(m_data_mgr.neighborList), error_flagD);
+        cudaCheckErrorFlag(error_flagD, "Navier_Stokes");
     }
 
     sortedKernelSupport.clear();
-    cudaFree(isErrorD);
+
+    cudaFreeErrorFlag(error_flagD);
 }
 
 //--------------------------------------------------------------------------------------------------------------------------------
 
 void ChFsiForceExplicitSPH::CalculateXSPH_velocity() {
+    bool* error_flagD;
+    cudaMallocErrorFlag(error_flagD);
+    cudaResetErrorFlag(error_flagD);
+
     // Calculate vel_XSPH
     if (m_data_mgr.vel_XSPH_D.size() != m_data_mgr.countersH->numAllMarkers) {
         printf("m_data_mgr.vel_XSPH_D.size() %zd countersH->numAllMarkers %zd \n", m_data_mgr.vel_XSPH_D.size(),
@@ -1588,10 +1590,6 @@ void ChFsiForceExplicitSPH::CalculateXSPH_velocity() {
             "CalculateXSPH_velocity!\n");
     }
 
-    bool* isErrorD;
-    cudaMalloc((void**)&isErrorD, sizeof(bool));
-
-    //------------------------------------------------------------------------
     if (!m_data_mgr.paramsH->elastic_SPH) {
         // thread per particle
         uint numBlocks, numThreads;
@@ -1607,16 +1605,15 @@ void ChFsiForceExplicitSPH::CalculateXSPH_velocity() {
         thrust::remove_if(indexOfIndex.begin(), indexOfIndex.end(), identityOfIndex.begin(), thrust::identity<int>());
 
         // Execute the kernel
-        cudaResetErrorFlag(isErrorD);
         CalcVel_XSPH_D<<<numBlocks, numThreads>>>(
             U1CAST(indexOfIndex), mR3CAST(m_data_mgr.vel_XSPH_D), mR4CAST(m_sortedSphMarkers_D->posRadD),
             mR3CAST(m_sortedSphMarkers_D->velMasD), mR4CAST(m_sortedSphMarkers_D->rhoPresMuD),
             U1CAST(m_data_mgr.markersProximity_D->gridMarkerIndexD), U1CAST(m_data_mgr.numNeighborsPerPart),
-            U1CAST(m_data_mgr.neighborList), isErrorD);
-        cudaCheckErrorFlag(isErrorD, "CalcVel_XSPH_D");
+            U1CAST(m_data_mgr.neighborList), error_flagD);
+        cudaCheckErrorFlag(error_flagD, "CalcVel_XSPH_D");
     }
 
-    cudaFree(isErrorD);
+    cudaFreeErrorFlag(error_flagD);
 }
 
 }  // namespace fsi

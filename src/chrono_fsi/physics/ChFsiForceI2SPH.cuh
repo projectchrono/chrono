@@ -58,7 +58,9 @@ class ChFsiForceI2SPH : public ChFsiForce {
     thrust::device_vector<Real> b1Vector;
     thrust::device_vector<Real3> b3Vector;
     thrust::device_vector<Real> Residuals;
-    bool *isErrorH, *isErrorD, *isErrorD2;
+
+    bool* error_flagD;
+    
     size_t numAllMarkers;
     int NNZ;
 

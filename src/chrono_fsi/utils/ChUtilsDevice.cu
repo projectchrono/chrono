@@ -9,7 +9,7 @@
 // http://projectchrono.org/license-chrono.txt.
 //
 // =============================================================================
-// Author: Milad Rakhsha, Arman Pazouki, RFadu Serban
+// Author: Milad Rakhsha, Arman Pazouki, Radu Serban
 // =============================================================================
 //
 // Utilities for changing device arrays in non-cuda files
@@ -43,19 +43,6 @@ float GpuTimer::Elapsed() {
     cudaEventSynchronize(m_stop);
     cudaEventElapsedTime(&elapsed, m_start, m_stop);
     return elapsed;
-}
-
-void ChUtilsDevice::Sync_CheckError(bool* isErrorH, bool* isErrorD, std::string crashReport) {
-    cudaDeviceSynchronize();
-    cudaMemcpy(isErrorH, isErrorD, sizeof(bool), cudaMemcpyDeviceToHost);
-    if (*isErrorH == true) {
-        throw std::runtime_error("Error! program crashed after " + crashReport + " !\n");
-    }
-    cudaError_t e = cudaGetLastError();
-    if (e != cudaSuccess) {
-        throw std::runtime_error("Error! program crashed after " + crashReport + " !\n");
-    }
-    cudaCheckError();
 }
 
 void computeGridSize(uint n, uint blockSize, uint& numBlocks, uint& numThreads) {

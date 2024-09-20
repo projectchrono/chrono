@@ -30,8 +30,8 @@ namespace fsi {
 // 4. Store hash and particle index associated with it.
 __global__ void calcHashD(uint* gridMarkerHashD,   // gridMarkerHash Store particle hash here
                           uint* gridMarkerIndexD,  // gridMarkerIndex Store particle index here
-                          const Real4* posRad,  // posRad Vector containing the positions of all particles (SPH and BCE)
-                          volatile bool* isErrorD) {
+                          const Real4* posRad,     // positions of all particles (SPH and BCE)
+                          volatile bool* error_flag) {
     // Calculate the index of where the particle is stored in posRad.
     uint index = blockIdx.x * blockDim.x + threadIdx.x;
     if (index >= countersD.numAllMarkers)
@@ -43,7 +43,7 @@ __global__ void calcHashD(uint* gridMarkerHashD,   // gridMarkerHash Store parti
         printf(
             "Error! particle position is NAN: thrown from "
             "ChCollisionSystemFsi.cu, calcHashD !\n");
-        *isErrorD = true;
+        *error_flag = true;
         return;
     }
 
@@ -54,7 +54,7 @@ __global__ void calcHashD(uint* gridMarkerHashD,   // gridMarkerHash Store parti
             "Out of Min Boundary, point %f %f %f, boundary min: %f %f %f. "
             "Thrown from ChCollisionSystemFsi.cu, calcHashD !\n",
             p.x, p.y, p.z, boxCorner.x, boxCorner.y, boxCorner.z);
-        *isErrorD = true;
+        *error_flag = true;
         return;
     }
     boxCorner = paramsD.worldOrigin + paramsD.boxDims + mR3(40 * paramsD.HSML);
@@ -63,7 +63,7 @@ __global__ void calcHashD(uint* gridMarkerHashD,   // gridMarkerHash Store parti
             "Out of max Boundary, point %f %f %f, boundary max: %f %f %f. "
             "Thrown from ChCollisionSystemFsi.cu, calcHashD !\n",
             p.x, p.y, p.z, boxCorner.x, boxCorner.y, boxCorner.z);
-        *isErrorD = true;
+        *error_flag = true;
         return;
     }
 
@@ -212,6 +212,10 @@ void ChCollisionSystemFsi::Initialize() {
 // ------------------------------------------------------------------------------
 
 void ChCollisionSystemFsi::ArrangeData(std::shared_ptr<SphMarkerDataD> sphMarkersD) {
+    bool* error_flagD;
+    cudaMallocErrorFlag(error_flagD);
+    cudaResetErrorFlag(error_flagD);
+
     m_sphMarkersD = sphMarkersD;
     int3 cellsDim = m_data_mgr.paramsH->gridSize;
     int numCells = cellsDim.x * cellsDim.y * cellsDim.z;
@@ -236,22 +240,11 @@ void ChCollisionSystemFsi::ArrangeData(std::shared_ptr<SphMarkerDataD> sphMarker
         throw std::runtime_error("Error! size error, calcHash!");
     }
 
-    bool *isErrorH, *isErrorD;
-    isErrorH = (bool*)malloc(sizeof(bool));
-    cudaMalloc((void**)&isErrorD, sizeof(bool));
-    *isErrorH = false;
-    cudaMemcpy(isErrorD, isErrorH, sizeof(bool), cudaMemcpyHostToDevice);
-
     // Execute Kernel
     calcHashD<<<numBlocks, numThreads>>>(U1CAST(m_data_mgr.markersProximity_D->gridMarkerHashD),
                                          U1CAST(m_data_mgr.markersProximity_D->gridMarkerIndexD),
-                                         mR4CAST(m_sphMarkersD->posRadD), isErrorD);
-
-    cudaMemcpy(isErrorH, isErrorD, sizeof(bool), cudaMemcpyDeviceToHost);
-    if (*isErrorH == true)
-        throw std::runtime_error("Error! program crashed in  calcHashD!\n");
-    cudaFree(isErrorD);
-    free(isErrorH);
+                                         mR4CAST(m_sphMarkersD->posRadD), error_flagD);
+    cudaCheckErrorFlag(error_flagD, "calcHashD");
 
     // =========================================================================================================
     // Sort Particles based on Hash
@@ -297,8 +290,9 @@ void ChCollisionSystemFsi::ArrangeData(std::shared_ptr<SphMarkerDataD> sphMarker
         mR3CAST(m_sphMarkersD->tauXxYyZzD), mR3CAST(m_sphMarkersD->tauXyXzYzD));
 
     cudaDeviceSynchronize();
-
     cudaCheckError();
+
+    cudaFreeErrorFlag(error_flagD);
 }
 
 }  // end namespace fsi

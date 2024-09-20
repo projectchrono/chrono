@@ -31,7 +31,7 @@
 namespace chrono {
 namespace fsi {
 
-/// @addtogroup fsi_physics
+/// @addtogroup fsi_utils
 /// @{
 
 // ----------------------------------------------------------------------------
@@ -87,14 +87,14 @@ typedef unsigned int uint;
 #endif
 
 // ----------------------------------------------------------------------------
-// Values
-// ----------------------------------------------------------------------------
 
 #define INVPI 0.3183098861837906715377675267450287240689192914809128f
 #define EPSILON 1e-8
 
 #define RESOLUTION_LENGTH_MULT 2.0
 //#define RESOLUTION_LENGTH_MULT 3.0
+
+// ----------------------------------------------------------------------------
 
 #define cudaCheckError()                                                                     \
     {                                                                                        \
@@ -105,27 +105,41 @@ typedef unsigned int uint;
         }                                                                                    \
     }
 
+// ----------------------------------------------------------------------------
+
+#define cudaMallocErrorFlag(error_flag_D) \
+    { cudaMalloc((void**)&error_flag_D, sizeof(bool)); }
+
+#define cudaFreeErrorFlag(error_flag_D) \
+    { cudaFree(error_flag_D); }
+
 #define cudaResetErrorFlag(error_flag_D)                                               \
     {                                                                                  \
         bool error_flag_H = false;                                                     \
         cudaMemcpy(error_flag_D, &error_flag_H, sizeof(bool), cudaMemcpyHostToDevice); \
     }
 
-#define cudaCheckErrorFlag(error_flag_D, kernel_name)                                             \
-    {                                                                                             \
-        bool error_flag_H;                                                                        \
-        cudaDeviceSynchronize();                                                                  \
-        cudaMemcpy(&error_flag_H, error_flag_D, sizeof(bool), cudaMemcpyDeviceToHost);            \
-        if (error_flag_H) {                                                                       \
-            printf("Error flag intercepted in %s:%d from %s\n", __FILE__, __LINE__, kernel_name); \
-            exit(0);                                                                              \
-        }                                                                                         \
-        cudaError_t e = cudaGetLastError();                                                       \
-        if (e != cudaSuccess) {                                                                   \
-            printf("Cuda failure %s:%d: '%s'\n", __FILE__, __LINE__, cudaGetErrorString(e));      \
-            exit(0);                                                                              \
-        }                                                                                         \
+#define cudaCheckErrorFlag(error_flag_D, kernel_name)                                                    \
+    {                                                                                                    \
+        bool error_flag_H;                                                                               \
+        cudaDeviceSynchronize();                                                                         \
+        cudaMemcpy(&error_flag_H, error_flag_D, sizeof(bool), cudaMemcpyDeviceToHost);                   \
+        if (error_flag_H) {                                                                              \
+            char buffer[256];                                                                            \
+            sprintf(buffer, "Error flag intercepted in %s:%d from %s", __FILE__, __LINE__, kernel_name); \
+            printf("%s\n", buffer);                                                                      \
+            throw std::runtime_error(buffer);                                                            \
+        }                                                                                                \
+        cudaError_t e = cudaGetLastError();                                                              \
+        if (e != cudaSuccess) {                                                                          \
+            char buffer[256];                                                                            \
+            sprintf(buffer, "CUDA failure in %s:%d from %s", __FILE__, __LINE__, cudaGetErrorString(e)); \
+            printf("%s\n", buffer);                                                                      \
+            throw std::runtime_error(buffer);                                                            \
+        }                                                                                                \
     }
+
+// ----------------------------------------------------------------------------
 
 /// Compute number of blocks and threads for calculation on GPU.
 /// This function calculates the number of blocks and threads for a given number of elements based on the blockSize.
@@ -134,6 +148,8 @@ void computeGridSize(uint n,           ///< total number of elements
                      uint& numBlocks,  ///< number of blocks [output]
                      uint& numThreads  ///< number of threads [output]
 );
+
+// ----------------------------------------------------------------------------
 
 /// Time recorder for cuda events.
 /// This utility class encapsulates a simple timer for recording the time between a start and stop event.
@@ -157,14 +173,7 @@ class GpuTimer {
     cudaEvent_t m_stop;
 };
 
-/// Utilities for thrust device vectors.
-class CH_FSI_API ChUtilsDevice {
-  public:
-    //// TODO: eliminate and replace with cudaCheckErrorFlag
-    static void Sync_CheckError(bool* isErrorH, bool* isErrorD, std::string crashReport);
-};
-
-/// @} fsi_physics
+/// @} fsi_utils
 
 }  // end namespace fsi
 }  // end namespace chrono

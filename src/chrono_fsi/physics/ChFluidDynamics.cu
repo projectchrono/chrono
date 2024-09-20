@@ -255,7 +255,7 @@ __global__ void UpdateFluidD(Real4* posRadD,
                              uint* freeSurfaceIdD,
                              int2 updatePortion,
                              Real dT,
-                             volatile bool* isErrorD) {
+                             volatile bool* error_flag) {
     uint index = blockIdx.x * blockDim.x + threadIdx.x;
     if (index >= updatePortion.y - updatePortion.x) {
         return;
@@ -388,7 +388,7 @@ __global__ void UpdateFluidD(Real4* posRadD,
     Real3 updatedPositon = posRad + vel_XSPH * dT;
     if (!IsFinite(updatedPositon)) {
         printf("Error! particle position is NAN: thrown from ChFluidDynamics.cu, UpdateFluidDKernel !\n");
-        *isErrorD = true;
+        *error_flag = true;
         return;
     }
     posRadD[index] = mR4(updatedPositon, h);
@@ -415,7 +415,7 @@ __global__ void UpdateFluidD(Real4* posRadD,
     }
     if (!IsFinite(rhoPresMu)) {
         printf("Error! particle rho pressure is NAN: thrown from ChFluidDynamics.cu, UpdateFluidDKernel !\n");
-        *isErrorD = true;
+        *error_flag = true;
         return;
     }
     rhoPresMuD[index] = rhoPresMu;
@@ -476,7 +476,7 @@ __global__ void UpdateActivityD(const Real4* posRadD,
                                 uint* activityIdentifierD,
                                 uint* extendedActivityIdD,
                                 const int2 updatePortion,
-                                volatile bool* isErrorD) {
+                                volatile bool* error_flag) {
     uint index = blockIdx.x * blockDim.x + threadIdx.x;
     if (index >= updatePortion.y - updatePortion.x) {
         return;
@@ -553,7 +553,7 @@ __global__ void CopySortedToOriginal_D(const Real4* sortedPosRad,
                                        Real4* sr_tau_I_mu_i_Original,
                                        uint* gridMarkerIndex,
                                        uint* activityIdentifierD,
-                                       volatile bool* isErrorD) {
+                                       volatile bool* error_flag) {
     uint id = blockIdx.x * blockDim.x + threadIdx.x;
     if (id >= countersD.numAllMarkers)
         return;
@@ -638,79 +638,63 @@ void ChFluidDynamics::IntegrateSPH(std::shared_ptr<SphMarkerDataD> sortedSphMark
 // -----------------------------------------------------------------------------
 void ChFluidDynamics::UpdateActivity(std::shared_ptr<SphMarkerDataD> sortedSphMarkers1_D,
                                      std::shared_ptr<SphMarkerDataD> sortedSphMarkers2_D) {
+    bool* error_flagD;
+    cudaMallocErrorFlag(error_flagD);
+    cudaResetErrorFlag(error_flagD);
+
     // Update portion of the SPH particles (should be all particles here)
     int2 updatePortion = mI2(0, (int)m_data_mgr.countersH->numAllMarkers);
-
-    bool *isErrorH, *isErrorD;
-    isErrorH = (bool*)malloc(sizeof(bool));
-    cudaMalloc((void**)&isErrorD, sizeof(bool));
-    *isErrorH = false;
-    cudaMemcpy(isErrorD, isErrorH, sizeof(bool), cudaMemcpyHostToDevice);
 
     //------------------------
     uint numBlocks, numThreads;
     computeGridSize(updatePortion.y - updatePortion.x, 256, numBlocks, numThreads);
+
     UpdateActivityD<<<numBlocks, numThreads>>>(
         mR4CAST(sortedSphMarkers2_D->posRadD), mR3CAST(sortedSphMarkers1_D->velMasD), mR3CAST(m_data_mgr.fsiBodyState_D->pos),
         mR3CAST(m_data_mgr.fsiMesh1DState_D->pos_fsi_fea_D), mR3CAST(m_data_mgr.fsiMesh2DState_D->pos_fsi_fea_D),
-        U1CAST(m_data_mgr.activityIdentifierD), U1CAST(m_data_mgr.extendedActivityIdD), updatePortion,
-        isErrorD);
-    cudaDeviceSynchronize();
-    cudaCheckError();
-    //------------------------
+        U1CAST(m_data_mgr.activityIdentifierD), U1CAST(m_data_mgr.extendedActivityIdD), updatePortion, error_flagD);
+    cudaCheckErrorFlag(error_flagD, "UpdateActivityD");
 
-    cudaMemcpy(isErrorH, isErrorD, sizeof(bool), cudaMemcpyDeviceToHost);
-    if (*isErrorH == true)
-        throw std::runtime_error("Error! program crashed in UpdateActivityD!\n");
-    cudaFree(isErrorD);
-    free(isErrorH);
+    cudaFreeErrorFlag(error_flagD);
 }
 
 // -----------------------------------------------------------------------------
 void ChFluidDynamics::UpdateFluid(std::shared_ptr<SphMarkerDataD> sortedSphMarkersD, Real dT) {
+    bool* error_flagD;
+    cudaMallocErrorFlag(error_flagD);
+    cudaResetErrorFlag(error_flagD);
+
     // Update portion of the SPH particles (should be fluid particles only here)
     int2 updatePortion = mI2(0, (int)m_data_mgr.countersH->numAllMarkers);
-
-    bool *isErrorH, *isErrorD;
-    isErrorH = (bool*)malloc(sizeof(bool));
-    cudaMalloc((void**)&isErrorD, sizeof(bool));
-    *isErrorH = false;
-    cudaMemcpy(isErrorD, isErrorH, sizeof(bool), cudaMemcpyHostToDevice);
 
     //------------------------
     uint numBlocks, numThreads;
     computeGridSize(updatePortion.y - updatePortion.x, 256, numBlocks, numThreads);
+
     UpdateFluidD<<<numBlocks, numThreads>>>(
         mR4CAST(sortedSphMarkersD->posRadD), mR3CAST(sortedSphMarkersD->velMasD),
         mR4CAST(sortedSphMarkersD->rhoPresMuD), mR3CAST(sortedSphMarkersD->tauXxYyZzD),
         mR3CAST(sortedSphMarkersD->tauXyXzYzD), mR3CAST(m_data_mgr.vel_XSPH_D), mR4CAST(m_data_mgr.derivVelRhoD),
         mR3CAST(m_data_mgr.derivTauXxYyZzD), mR3CAST(m_data_mgr.derivTauXyXzYzD), mR4CAST(m_data_mgr.sr_tau_I_mu_i),
-        U1CAST(m_data_mgr.activityIdentifierD), U1CAST(m_data_mgr.freeSurfaceIdD), updatePortion, dT,
-        isErrorD);
-    cudaDeviceSynchronize();
-    cudaCheckError();
-    //------------------------
-    cudaMemcpy(isErrorH, isErrorD, sizeof(bool), cudaMemcpyDeviceToHost);
-    if (*isErrorH == true)
-        throw std::runtime_error("Error! program crashed in UpdateFluidD!\n");
-    cudaFree(isErrorD);
-    free(isErrorH);
+        U1CAST(m_data_mgr.activityIdentifierD), U1CAST(m_data_mgr.freeSurfaceIdD), updatePortion, dT, error_flagD);
+    cudaCheckErrorFlag(error_flagD, "UpdateFluidD");
+
+    cudaFreeErrorFlag(error_flagD);
 }
 
 // -----------------------------------------------------------------------------
 void ChFluidDynamics::CopySortedToOriginal(std::shared_ptr<SphMarkerDataD> sortedSphMarkersD,
                                            std::shared_ptr<SphMarkerDataD> sphMarkersD) {
-    int2 updatePortion = mI2(0, (int)m_data_mgr.countersH->numAllMarkers);
+    bool* error_flagD;
+    cudaMallocErrorFlag(error_flagD);
+    cudaResetErrorFlag(error_flagD);
 
-    bool *isErrorH, *isErrorD;
-    isErrorH = (bool*)malloc(sizeof(bool));
-    cudaMalloc((void**)&isErrorD, sizeof(bool));
-    *isErrorH = false;
-    cudaMemcpy(isErrorD, isErrorH, sizeof(bool), cudaMemcpyHostToDevice);
+    int2 updatePortion = mI2(0, (int)m_data_mgr.countersH->numAllMarkers);
 
     //------------------------
     uint numBlocks, numThreads;
     computeGridSize(updatePortion.y - updatePortion.x, 256, numBlocks, numThreads);
+
     CopySortedToOriginal_D<<<numBlocks, numThreads>>>(
         mR4CAST(sortedSphMarkersD->posRadD), mR3CAST(sortedSphMarkersD->velMasD),
         mR4CAST(sortedSphMarkersD->rhoPresMuD), mR3CAST(sortedSphMarkersD->tauXxYyZzD),
@@ -718,15 +702,10 @@ void ChFluidDynamics::CopySortedToOriginal(std::shared_ptr<SphMarkerDataD> sorte
         mR4CAST(sphMarkersD->posRadD), mR3CAST(sphMarkersD->velMasD), mR4CAST(sphMarkersD->rhoPresMuD),
         mR3CAST(sphMarkersD->tauXxYyZzD), mR3CAST(sphMarkersD->tauXyXzYzD), mR4CAST(m_data_mgr.derivVelRhoOriginalD),
         mR4CAST(m_data_mgr.sr_tau_I_mu_i_Original), U1CAST(m_data_mgr.markersProximity_D->gridMarkerIndexD),
-        U1CAST(m_data_mgr.activityIdentifierD), isErrorD);
-    cudaDeviceSynchronize();
-    cudaCheckError();
-
-    cudaMemcpy(isErrorH, isErrorD, sizeof(bool), cudaMemcpyDeviceToHost);
-    if (*isErrorH == true)
-        throw std::runtime_error("Error! program crashed in CopySortedToOriginal!\n");
-    cudaFree(isErrorD);
-    free(isErrorH);
+        U1CAST(m_data_mgr.activityIdentifierD), error_flagD);
+    cudaCheckErrorFlag(error_flagD, "CopySortedToOriginal_D");
+ 
+    cudaFreeErrorFlag(error_flagD);
 }
 
 // -----------------------------------------------------------------------------
