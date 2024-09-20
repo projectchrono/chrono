@@ -26,7 +26,7 @@ The fastest way to consume the output of the SolidWorks add-in is by using the [
 
 Once installed (see the [dedicated installation guide](@ref chrono_solidworks_installation)) a new icon with the Chrono logo should appear in the SolidWorks *Task Pane* (i.e. the vertical set of icons on the right side of the SolidWorks display). All the following actions are performed through this panel.
 
-![chrono_solidworks_panel](http://projectchrono.org/assets/manual/chrono_solidworks_panel_1.png) ![chrono_solidworks_panel](http://projectchrono.org/assets/manual/chrono_solidworks_panel_2.png)
+![chrono_solidworks_panel_1](http://projectchrono.org/assets/manual/chrono_solidworks_panel_1.png) ![chrono_solidworks_panel_2](http://projectchrono.org/assets/manual/chrono_solidworks_panel_2.png)
 
 Some prior information should be known to successfully export the model:
 + run the export only from *Assemblies*, not from single *Parts*;
