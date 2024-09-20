@@ -48,11 +48,11 @@ __global__ void Populate_RigidSPH_MeshPos_LRF_D(Real3* rigid_BCEcoords_D,
                                                 Real3* posRigidD,
                                                 Real4* qD) {
     uint index = blockIdx.x * blockDim.x + threadIdx.x;
-    if (index >= numObjectsD.numRigidMarkers)
+    if (index >= countersD.numRigidMarkers)
         return;
 
     int rigidIndex = rigid_BCEsolids_D[index];
-    uint rigidMarkerIndex = index + numObjectsD.startRigidMarkers;
+    uint rigidMarkerIndex = index + countersD.startRigidMarkers;
     Real4 q4 = qD[rigidIndex];
     Real3 a1, a2, a3;
     RotationMatirixFromQuaternion(a1, a2, a3, q4);
@@ -74,11 +74,11 @@ __global__ void CalcRigidForces_D(Real3* rigid_FSI_ForcesD,
                                   Real3* rigid_BCEcoords_D,
                                   uint* mapOriginalToSorted) {
     uint index = blockIdx.x * blockDim.x + threadIdx.x;
-    if (index >= numObjectsD.numRigidMarkers)
+    if (index >= countersD.numRigidMarkers)
         return;
 
     int RigidIndex = rigid_BCEsolids_D[index];
-    uint rigidMarkerIndex = index + numObjectsD.startRigidMarkers;
+    uint rigidMarkerIndex = index + countersD.startRigidMarkers;
     uint sortedIndex = mapOriginalToSorted[rigidMarkerIndex];
 
     Real3 Force;
@@ -124,10 +124,10 @@ __global__ void CalcFlex1DForces_D(Real3* flex1D_FSIforces_D,  // FEA node force
                                    const uint* mapOriginalToSorted
 ) {
     uint index = blockIdx.x * blockDim.x + threadIdx.x;
-    if (index >= numObjectsD.numFlexMarkers1D)
+    if (index >= countersD.numFlexMarkers1D)
         return;
 
-    uint flex_index = index + numObjectsD.startFlexMarkers1D;  // index for current 1-D flex BCE marker
+    uint flex_index = index + countersD.startFlexMarkers1D;  // index for current 1-D flex BCE marker
     uint sortedIndex = mapOriginalToSorted[flex_index];
     uint3 flex_solid = flex1D_BCEsolids_D[index];              // associated flex mesh and segment
     ////uint flex_mesh = flex_solid.x;                             // index of associated mesh
@@ -177,10 +177,10 @@ __global__ void CalcFlex2DForces_D(Real3* flex2D_FSIforces_D,  // FEA node force
                                    const uint* mapOriginalToSorted
 ) {
     uint index = blockIdx.x * blockDim.x + threadIdx.x;
-    if (index >= numObjectsD.numFlexMarkers2D)
+    if (index >= countersD.numFlexMarkers2D)
         return;
 
-    uint flex_index = index + numObjectsD.startFlexMarkers2D;  // index for current 2-D flex BCE marker
+    uint flex_index = index + countersD.startFlexMarkers2D;  // index for current 2-D flex BCE marker
     uint sortedIndex = mapOriginalToSorted[flex_index];
     uint3 flex_solid = flex2D_BCEsolids_D[index];              // associated flex mesh and face
     ////uint flex_mesh = flex_solid.x;                             // index of associated mesh
@@ -243,10 +243,10 @@ __global__ void CalcRigidBceAccelerationD(Real3* bceAcc,
                                           const uint* rigid_BCEsolids_D,
                                           const uint* mapOriginalToSorted) {
     uint bceIndex = blockIdx.x * blockDim.x + threadIdx.x;
-    if (bceIndex >= numObjectsD.numRigidMarkers)
+    if (bceIndex >= countersD.numRigidMarkers)
         return;
 
-    uint rigidMarkerIndex = bceIndex + numObjectsD.startRigidMarkers;
+    uint rigidMarkerIndex = bceIndex + countersD.startRigidMarkers;
     uint sortedIndex = mapOriginalToSorted[rigidMarkerIndex];
 
     int rigidBodyIndex = rigid_BCEsolids_D[bceIndex];
@@ -283,10 +283,10 @@ __global__ void CalcFlex1DBceAcceleration_D(
     const uint* mapOriginalToSorted
 ) {
     uint index = blockIdx.x * blockDim.x + threadIdx.x;
-    if (index >= numObjectsD.numFlexMarkers1D)
+    if (index >= countersD.numFlexMarkers1D)
         return;
 
-    uint sortedIndex = mapOriginalToSorted[index + numObjectsD.startFlexMarkers1D];
+    uint sortedIndex = mapOriginalToSorted[index + countersD.startFlexMarkers1D];
 
     uint3 flex_solid = flex1D_BCEsolids_D[index];  // associated flex mesh and segment
     ////uint flex_mesh = flex_solid.x;                 // index of associated mesh
@@ -312,10 +312,10 @@ __global__ void CalcFlex2DBceAcceleration_D(
     const uint* mapOriginalToSorted
 ) {
     uint index = blockIdx.x * blockDim.x + threadIdx.x;
-    if (index >= numObjectsD.numFlexMarkers2D)
+    if (index >= countersD.numFlexMarkers2D)
         return;
 
-    uint sortedIndex = mapOriginalToSorted[index + numObjectsD.startFlexMarkers2D];
+    uint sortedIndex = mapOriginalToSorted[index + countersD.startFlexMarkers2D];
 
     uint3 flex_solid = flex2D_BCEsolids_D[index];  // associated flex mesh and face
     ////uint flex_mesh = flex_solid.x;                 // index of associated mesh
@@ -347,10 +347,10 @@ __global__ void UpdateBodyMarkerState_D(Real4* posRadD,
                                        Real4* qD,
                                        const uint* mapOriginalToSorted) {
     uint index = blockIdx.x * blockDim.x + threadIdx.x;
-    if (index >= numObjectsD.numRigidMarkers)
+    if (index >= countersD.numRigidMarkers)
         return;
 
-    uint rigidMarkerIndex = index + numObjectsD.startRigidMarkers;
+    uint rigidMarkerIndex = index + countersD.startRigidMarkers;
     uint sortedIndex = mapOriginalToSorted[rigidMarkerIndex];
     int rigidBodyIndex = rigid_BCEsolids_D[index];
 
@@ -385,10 +385,10 @@ __global__ void UpdateMeshMarker1DState_D(
     const uint* mapOriginalToSorted
 ) {
     uint index = blockIdx.x * blockDim.x + threadIdx.x;
-    if (index >= numObjectsD.numFlexMarkers1D)
+    if (index >= countersD.numFlexMarkers1D)
         return;
 
-    uint flex_index = index + numObjectsD.startFlexMarkers1D;  // index for current 1-D flex BCE marker
+    uint flex_index = index + countersD.startFlexMarkers1D;  // index for current 1-D flex BCE marker
     uint sortedIndex = mapOriginalToSorted[flex_index];
     uint3 flex_solid = flex1D_BCEsolids_D[index];              // associated flex mesh and segment
     ////uint flex_mesh = flex_solid.x;                             // index of associated mesh
@@ -430,10 +430,10 @@ __global__ void UpdateMeshMarker2DState_D(
     const uint* mapOriginalToSorted
 ) {
     uint index = blockIdx.x * blockDim.x + threadIdx.x;
-    if (index >= numObjectsD.numFlexMarkers2D)
+    if (index >= countersD.numFlexMarkers2D)
         return;
 
-    uint flex_index = index + numObjectsD.startFlexMarkers2D;  // index for current 2-D flex BCE marker
+    uint flex_index = index + countersD.startFlexMarkers2D;  // index for current 2-D flex BCE marker
     uint sortedIndex = mapOriginalToSorted[flex_index];
     uint3 flex_solid = flex2D_BCEsolids_D[index];              // associated flex mesh and face
     ////uint flex_mesh = flex_solid.x;                             // index of associated mesh
@@ -472,10 +472,10 @@ __global__ void UpdateBodyMarkerStateUnsorted_D(Real4* posRadD,
                                        Real3* omegaLRF_D,
                                        Real4* qD) {
     uint index = blockIdx.x * blockDim.x + threadIdx.x;
-    if (index >= numObjectsD.numRigidMarkers)
+    if (index >= countersD.numRigidMarkers)
         return;
 
-    uint rigidMarkerIndex = index + numObjectsD.startRigidMarkers;
+    uint rigidMarkerIndex = index + countersD.startRigidMarkers;
     int rigidBodyIndex = rigid_BCEsolids_D[index];
 
     Real4 q4 = qD[rigidBodyIndex];
@@ -508,10 +508,10 @@ __global__ void UpdateMeshMarker1DStateUnsorted_D(
     Real3* flex1D_BCEcoords_D  // local coordinates of BCE markers on FEA 1-D segments
     ) {
     uint index = blockIdx.x * blockDim.x + threadIdx.x;
-    if (index >= numObjectsD.numFlexMarkers1D)
+    if (index >= countersD.numFlexMarkers1D)
         return;
 
-    uint flex_index = index + numObjectsD.startFlexMarkers1D;  // index for current 1-D flex BCE marker
+    uint flex_index = index + countersD.startFlexMarkers1D;  // index for current 1-D flex BCE marker
     uint3 flex_solid = flex1D_BCEsolids_D[index];  // associated flex mesh and segment
     ////uint flex_mesh = flex_solid.x;                             // index of associated mesh
     ////uint flex_mesh_seg = flex_solid.y;                         // index of segment in associated mesh
@@ -551,10 +551,10 @@ __global__ void UpdateMeshMarker2DStateUnsorted_D(
     Real3* flex2D_BCEcoords_D  // local coordinates of BCE markers on FEA 2-D faces
     ) {
     uint index = blockIdx.x * blockDim.x + threadIdx.x;
-    if (index >= numObjectsD.numFlexMarkers2D)
+    if (index >= countersD.numFlexMarkers2D)
         return;
 
-    uint flex_index = index + numObjectsD.startFlexMarkers2D;  // index for current 2-D flex BCE marker
+    uint flex_index = index + countersD.startFlexMarkers2D;  // index for current 2-D flex BCE marker
     uint3 flex_solid = flex2D_BCEsolids_D[index];  // associated flex mesh and face
     ////uint flex_mesh = flex_solid.x;                             // index of associated mesh
     ////uint flex_mesh_tri = flex_solid.y;                         // index of triangle in associated mesh
@@ -596,8 +596,7 @@ ChBce::~ChBce() {}
 
 void ChBce::Initialize(std::vector<int> fsiBodyBceNum) {
     cudaMemcpyToSymbolAsync(paramsD, m_data_mgr.paramsH.get(), sizeof(SimParams));
-    cudaMemcpyToSymbolAsync(numObjectsD, m_data_mgr.countersH.get(), sizeof(ChCounters));
-    CopyParams_NumberOfObjects(m_data_mgr.paramsH, m_data_mgr.countersH);
+    cudaMemcpyToSymbolAsync(countersD, m_data_mgr.countersH.get(), sizeof(Counters));
 
     // Resizing the arrays used to modify the BCE velocity and pressure according to Adami
     m_totalForceRigid.resize(m_data_mgr.countersH->numRigidBodies);

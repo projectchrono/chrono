@@ -31,6 +31,7 @@
 
 #include "chrono_fsi/ChApiFsi.h"
 #include "chrono_fsi/ChDefinitionsFsi.h"
+#include "chrono_fsi/physics/ChParams.h"
 #include "chrono_fsi/physics/ChFsiInterface.h"
 #include "chrono_fsi/math/custom_math.h"
 
@@ -41,8 +42,6 @@ class FsiDataManager;
 class ChFsiInterface;
 class ChFluidDynamics;
 class ChBce;
-struct SimParams;
-struct ChCounters;
 
 /// @addtogroup fsi_physics
 /// @{

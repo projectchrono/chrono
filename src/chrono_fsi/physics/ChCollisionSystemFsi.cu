@@ -34,7 +34,7 @@ __global__ void calcHashD(uint* gridMarkerHashD,   // gridMarkerHash Store parti
                           volatile bool* isErrorD) {
     // Calculate the index of where the particle is stored in posRad.
     uint index = blockIdx.x * blockDim.x + threadIdx.x;
-    if (index >= numObjectsD.numAllMarkers)
+    if (index >= countersD.numAllMarkers)
         return;
 
     Real3 p = mR3(posRad[index]);
@@ -88,7 +88,7 @@ __global__ void findCellStartEndD(uint* cellStartD,       // output: cell start 
     uint index = blockIdx.x * blockDim.x + threadIdx.x;
     uint hash;
     // handle case when no. of particles not multiple of block size
-    if (index < numObjectsD.numAllMarkers) {
+    if (index < countersD.numAllMarkers) {
         hash = gridMarkerHashD[index];
         // Load hash data into shared memory so that we can look at neighboring
         // particle's hash value without loading two hash values per thread
@@ -101,7 +101,7 @@ __global__ void findCellStartEndD(uint* cellStartD,       // output: cell start 
 
     __syncthreads();
 
-    if (index < numObjectsD.numAllMarkers) {
+    if (index < countersD.numAllMarkers) {
         // If this particle has a different cell index to the previous
         // particle then it must be the first particle in the cell,
         // so store the index of this particle in the cell. As it
@@ -113,7 +113,7 @@ __global__ void findCellStartEndD(uint* cellStartD,       // output: cell start 
                 cellEndD[sharedHash[threadIdx.x]] = index;
         }
 
-        if (index == numObjectsD.numAllMarkers - 1)
+        if (index == countersD.numAllMarkers - 1)
             cellEndD[hash] = index + 1;
     }
 }
@@ -133,7 +133,7 @@ __global__ void reorderDataD(uint* gridMarkerIndexD,     // input: sorted partic
                              Real3* tauXyXzYzD           // input: original total stress xyzxyz
 ) {
     uint id = blockIdx.x * blockDim.x + threadIdx.x;
-    if (id >= numObjectsD.numAllMarkers)
+    if (id >= countersD.numAllMarkers)
         return;
 
     // Now use the sorted index to reorder the pos and vel data
@@ -192,7 +192,7 @@ __global__ void reorderDataD(uint* gridMarkerIndexD,     // input: sorted partic
 // ------------------------------------------------------------------------------
 __global__ void OriginalToSortedD(uint* mapOriginalToSorted, uint* gridMarkerIndex) {
     uint id = blockIdx.x * blockDim.x + threadIdx.x;
-    if (id >= numObjectsD.numAllMarkers)
+    if (id >= countersD.numAllMarkers)
         return;
 
     uint index = gridMarkerIndex[id];
@@ -206,7 +206,7 @@ ChCollisionSystemFsi::~ChCollisionSystemFsi() {}
 // ------------------------------------------------------------------------------
 void ChCollisionSystemFsi::Initialize() {
     cudaMemcpyToSymbolAsync(paramsD, m_data_mgr.paramsH.get(), sizeof(SimParams));
-    cudaMemcpyToSymbolAsync(numObjectsD, m_data_mgr.countersH.get(), sizeof(ChCounters));
+    cudaMemcpyToSymbolAsync(countersD, m_data_mgr.countersH.get(), sizeof(Counters));
 }
 
 // ------------------------------------------------------------------------------

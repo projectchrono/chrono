@@ -32,7 +32,7 @@ __device__ __inline__ void calc_G_Matrix(Real4* sortedPosRad,
                                          const uint* neighborList,
                                          uint* indexOfIndex) {
     uint id = blockIdx.x * blockDim.x + threadIdx.x;
-    if (id >= numObjectsD.numAllMarkers)
+    if (id >= countersD.numAllMarkers)
         return;
 
     // uint index = indexOfIndex[id];
@@ -110,7 +110,7 @@ __device__ __inline__ void calc_A_Matrix(Real4* sortedPosRad,
                                          const uint* neighborList,
                                          uint* indexOfIndex) {
     uint id = blockIdx.x * blockDim.x + threadIdx.x;
-    if (id >= numObjectsD.numAllMarkers)
+    if (id >= countersD.numAllMarkers)
         return;
 
     // uint index = indexOfIndex[id];
@@ -189,7 +189,7 @@ __device__ __inline__ void calc_L_Matrix(Real4* sortedPosRad,
                                          const uint* neighborList,
                                          uint* indexOfIndex) {
     uint id = blockIdx.x * blockDim.x + threadIdx.x;
-    if (id >= numObjectsD.numAllMarkers)
+    if (id >= countersD.numAllMarkers)
         return;
 
     // uint index = indexOfIndex[id];
@@ -319,12 +319,12 @@ __device__ __inline__ void calc_L_Matrix(Real4* sortedPosRad,
 //--------------------------------------------------------------------------------------------------------------------------------
 __global__ void calIndexOfIndex(uint* indexOfIndex, uint* identityOfIndex, uint* gridMarkerIndex) {
     uint id = blockIdx.x * blockDim.x + threadIdx.x;
-    if (id >= numObjectsD.numAllMarkers)
+    if (id >= countersD.numAllMarkers)
         return;
 
     indexOfIndex[id] = id;
-    if (gridMarkerIndex[id] >= numObjectsD.numFluidMarkers &&
-        gridMarkerIndex[id] < numObjectsD.numFluidMarkers + numObjectsD.numBoundaryMarkers) {
+    if (gridMarkerIndex[id] >= countersD.numFluidMarkers &&
+        gridMarkerIndex[id] < countersD.numFluidMarkers + countersD.numBoundaryMarkers) {
         identityOfIndex[id] = 1;
     } else {
         identityOfIndex[id] = 0;
@@ -340,7 +340,7 @@ __global__ void calcRho_kernel(Real4* sortedPosRad,
                                int density_reinit,
                                volatile bool* isErrorD) {
     uint index = blockIdx.x * blockDim.x + threadIdx.x;
-    if (index >= numObjectsD.numAllMarkers)
+    if (index >= countersD.numAllMarkers)
         return;
 
     if (sortedRhoPreMu[index].w > -0.5 && sortedRhoPreMu[index].w < 0.5)
@@ -400,7 +400,7 @@ __global__ void calcKernelSupport(const Real4* sortedPosRad,
                                   const uint* neighborList,
                                   volatile bool* isErrorD) {
     uint index = blockIdx.x * blockDim.x + threadIdx.x;
-    if (index >= numObjectsD.numAllMarkers)
+    if (index >= countersD.numAllMarkers)
         return;
 
     uint NLStart = numNeighborsPerPart[index];
@@ -808,7 +808,7 @@ __device__ inline Real4 LaplacianOperator(float G_i[9],
 //--------------------------------------------------------------------------------------------------------------------------------
 __global__ void EOS(Real4* sortedRhoPreMu, volatile bool* isErrorD) {
     uint index = blockIdx.x * blockDim.x + threadIdx.x;
-    if (index >= numObjectsD.numAllMarkers)
+    if (index >= countersD.numAllMarkers)
         return;
     sortedRhoPreMu[index].y = Eos(sortedRhoPreMu[index].x, sortedRhoPreMu[index].w);
 }
@@ -825,7 +825,7 @@ __global__ void Navier_Stokes(uint* indexOfIndex,
                               const uint* neighborList,
                               volatile bool* isErrorD) {
     uint id = blockIdx.x * blockDim.x + threadIdx.x;
-    if (id >= numObjectsD.numAllMarkers)
+    if (id >= countersD.numAllMarkers)
         return;
 
     // uint index = indexOfIndex[id];
@@ -998,7 +998,7 @@ __global__ void updateBoundaryPres(const uint* activityIdentifierD,
                                    Real3* sortedTauXyXzYz,
                                    volatile bool* isErrorD) {
     uint index = blockIdx.x * blockDim.x + threadIdx.x;
-    if (index >= numObjectsD.numAllMarkers)
+    if (index >= countersD.numAllMarkers)
         return;
 
     if (activityIdentifierD[index] == 0) {
@@ -1076,7 +1076,7 @@ __global__ void NS_SSR(const uint* activityIdentifierD,
                        uint* sortedFreeSurfaceIdD,
                        volatile bool* isErrorD) {
     uint id = blockIdx.x * blockDim.x + threadIdx.x;
-    if (id >= numObjectsD.numAllMarkers)
+    if (id >= countersD.numAllMarkers)
         return;
 
     // uint index = sortedActivityIdD[id];
@@ -1320,7 +1320,7 @@ __global__ void CalcVel_XSPH_D(uint* indexOfIndex,
                                const uint* neighborList,
                                volatile bool* isErrorD) {
     uint id = blockIdx.x * blockDim.x + threadIdx.x;
-    if (id >= numObjectsD.numAllMarkers)
+    if (id >= countersD.numAllMarkers)
         return;
 
     // uint index = indexOfIndex[id];
@@ -1389,7 +1389,7 @@ __global__ void CopySortedToOriginal_D(const Real4* sortedDerivVelRho,
                                        uint* originalFreeSurfaceId,
                                        const uint* sortedFreeSurfaceId) {
     uint id = blockIdx.x * blockDim.x + threadIdx.x;
-    if (id >= numObjectsD.numAllMarkers)
+    if (id >= countersD.numAllMarkers)
         return;
 
     // Check the activity of this particle
@@ -1415,7 +1415,7 @@ __global__ void CopySortedToOriginal_XSPH_D(const Real3* sortedXSPH,
                                             const uint* activityIdentifierD,
                                             const uint* mapOriginalToSorted) {
     uint id = blockIdx.x * blockDim.x + threadIdx.x;
-    if (id >= numObjectsD.numAllMarkers)
+    if (id >= countersD.numAllMarkers)
         return;
 
     // Check the activity of this particle
@@ -1432,7 +1432,7 @@ __global__ void CopySortedToOriginal_XSPH_D(const Real3* sortedXSPH,
 
 ChFsiForceExplicitSPH::ChFsiForceExplicitSPH(FsiDataManager& data_mgr, ChBce& bce_mgr, bool verb)
     : ChFsiForce(data_mgr, bce_mgr, verb) {
-    CopyParams_NumberOfObjects(m_data_mgr.paramsH, m_data_mgr.countersH);
+    CopyParametersToDevice(m_data_mgr.paramsH, m_data_mgr.countersH);
     density_initialization = 0;
 }
 
@@ -1443,9 +1443,7 @@ ChFsiForceExplicitSPH::~ChFsiForceExplicitSPH() {}
 void ChFsiForceExplicitSPH::Initialize() {
     ChFsiForce::Initialize();
     cudaMemcpyToSymbolAsync(paramsD, m_data_mgr.paramsH.get(), sizeof(SimParams));
-    cudaMemcpyToSymbolAsync(numObjectsD, m_data_mgr.countersH.get(), sizeof(ChCounters));
-    cudaMemcpyFromSymbol(m_data_mgr.paramsH.get(), paramsD, sizeof(SimParams));
-    cudaDeviceSynchronize();
+    cudaMemcpyToSymbolAsync(countersD, m_data_mgr.countersH.get(), sizeof(Counters));
 }
 
 //--------------------------------------------------------------------------------------------------------------------------------

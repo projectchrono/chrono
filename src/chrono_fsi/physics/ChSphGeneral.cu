@@ -24,10 +24,10 @@
 namespace chrono {
 namespace fsi {
 
-void CopyParams_NumberOfObjects(std::shared_ptr<SimParams> paramsH, std::shared_ptr<ChCounters> numObjectsH) {
+void CopyParametersToDevice(std::shared_ptr<SimParams> paramsH, std::shared_ptr<Counters> countersH) {
     cudaMemcpyToSymbolAsync(paramsD, paramsH.get(), sizeof(SimParams));
     cudaCheckError();
-    cudaMemcpyToSymbolAsync(numObjectsD, numObjectsH.get(), sizeof(ChCounters));
+    cudaMemcpyToSymbolAsync(countersD, countersH.get(), sizeof(Counters));
     cudaCheckError();
     cudaDeviceSynchronize();
 }
@@ -874,7 +874,7 @@ __global__ void neighborSearchNum(const Real4* sortedPosRad,
                                   uint* numNeighborsPerPart,
                                   volatile bool* isErrorD) {
     uint index = blockIdx.x * blockDim.x + threadIdx.x;
-    if (index >= numObjectsD.numAllMarkers) {
+    if (index >= countersD.numAllMarkers) {
         return;
     }
     if (activityIdentifierD[index] == 0) {
@@ -916,7 +916,7 @@ __global__ void neighborSearchID(const Real4* sortedPosRad,
                                        uint* neighborList,
                                        volatile bool* isErrorD) {
     uint index = blockIdx.x * blockDim.x + threadIdx.x;
-    if (index >= numObjectsD.numAllMarkers) {
+    if (index >= countersD.numAllMarkers) {
         return;
     }
     if (activityIdentifierD[index] == 0) {

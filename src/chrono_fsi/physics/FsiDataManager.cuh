@@ -17,8 +17,8 @@
 //
 // =============================================================================
 
-#ifndef CH_SYSTEMFSI_IMPL_H_
-#define CH_SYSTEMFSI_IMPL_H_
+#ifndef CH_FSI_DATAMANAGER_H
+#define CH_FSI_DATAMANAGER_H
 
 #include "chrono/ChConfig.h"
 
@@ -166,7 +166,7 @@ struct ProximityDataD {
 ///  -  (2) particles attached to fixed objects (boundary particles with type = 0)
 ///  -  (3) particles attached to rigid bodies (type = 1)
 ///  -  (4) particles attached to flexible bodies (type = 2)
-struct ChCounters {
+struct Counters {
     size_t numRigidBodies;   ///< number of rigid bodies
     size_t numFlexNodes1D;   ///< number of nodes in 1-D FEA mesh segments
     size_t numFlexNodes2D;   ///< number of nodes in 2-D flexible mesh faces
@@ -245,8 +245,8 @@ class FsiDataManager {
     /// The return value is a device thrust vector.
     thrust::device_vector<Real4> GetParticleAccelerations(const thrust::device_vector<int>& indices);
 
-    std::shared_ptr<SimParams> paramsH;     ///< simulation parameters (host)
-    std::shared_ptr<ChCounters> countersH;  ///< problem counters (host)
+    std::shared_ptr<SimParams> paramsH;   ///< simulation parameters (host)
+    std::shared_ptr<Counters> countersH;  ///< problem counters (host)
 
     std::shared_ptr<SphMarkerDataD> sphMarkers_D;         ///< Information of SPH particles at state 1 on device
     std::shared_ptr<SphMarkerDataD> sortedSphMarkers1_D;  ///< Information of SPH particles at state 2 on device
@@ -318,8 +318,7 @@ class FsiDataManager {
 
   private:
     void ConstructReferenceArray();
-    void InitNumObjects();
-    void CalcNumObjects();
+    void CalculateCounters();
 
     /// Initialize the midpoint device data of the fluid system by copying from the full step.
     void CopyDeviceDataToHalfStep();

@@ -31,10 +31,6 @@
 namespace chrono {
 namespace fsi {
 
-struct sphTypeCompEqual {
-    __host__ __device__ bool operator()(const Real4& o1, const Real4& o2) { return o1.w == o2.w; }
-};
-
 //---------------------------------------------------------------------------------------
 
 zipIterSphD SphMarkerDataD::iterator() {
@@ -145,6 +141,7 @@ void FsiBodyStateH::resize(size_t s) {
 }
 
 //---------------------------------------------------------------------------------------
+
 void ProximityDataD::resize(size_t s) {
     gridMarkerHashD.resize(s);
     gridMarkerIndexD.resize(s);
@@ -154,8 +151,7 @@ void ProximityDataD::resize(size_t s) {
 //---------------------------------------------------------------------------------------
 
 FsiDataManager::FsiDataManager(std::shared_ptr<SimParams> params) : paramsH(params) {
-    countersH = chrono_types::make_shared<ChCounters>();
-    InitNumObjects();
+    countersH = chrono_types::make_shared<Counters>();
 
     sphMarkers_D = chrono_types::make_shared<SphMarkerDataD>();
     sortedSphMarkers1_D = chrono_types::make_shared<SphMarkerDataD>();
@@ -201,7 +197,7 @@ void FsiDataManager::AddBceMarker(MarkerType type, Real3 pos, Real3 vel) {
     sphMarkers_H->tauXxYyZzH.push_back(mR3(0.0));
 }
 
-void FsiDataManager::InitNumObjects() {
+void FsiDataManager::CalculateCounters() {
     countersH->numRigidBodies = 0;      // Number of rigid bodies
     countersH->numFlexBodies1D = 0;     // Number of 1D Flexible bodies
     countersH->numFlexBodies2D = 0;     // Number of 2D Flexible bodies
@@ -219,10 +215,7 @@ void FsiDataManager::InitNumObjects() {
     countersH->startRigidMarkers = 0;   // Start index of the rigid BCE markers
     countersH->startFlexMarkers1D = 0;  // Start index of the 1-D flexible BCE markers
     countersH->startFlexMarkers2D = 0;  // Start index of the 2-D flexible BCE markers
-}
 
-void FsiDataManager::CalcNumObjects() {
-    InitNumObjects();
     size_t rSize = referenceArray.size();
 
     for (size_t i = 0; i < rSize; i++) {
@@ -252,7 +245,7 @@ void FsiDataManager::CalcNumObjects() {
                 countersH->numFlexMarkers2D += numMarkers;
                 break;
             default:
-                std::cerr << "ERROR (CalcNumObjects): particle type not defined." << std::endl;
+                std::cerr << "ERROR (CalculateCounters): particle type not defined." << std::endl;
                 throw std::runtime_error("Particle type not defined.");
                 break;
         }
@@ -267,6 +260,10 @@ void FsiDataManager::CalcNumObjects() {
     countersH->startFlexMarkers1D = countersH->startRigidMarkers + countersH->numRigidMarkers;
     countersH->startFlexMarkers2D = countersH->startFlexMarkers1D + countersH->numFlexMarkers1D;
 }
+
+struct sphTypeCompEqual {
+    __host__ __device__ bool operator()(const Real4& o1, const Real4& o2) { return o1.w == o2.w; }
+};
 
 void FsiDataManager::ConstructReferenceArray() {
     auto numAllMarkers = sphMarkers_H->rhoPresMuH.size();
@@ -366,7 +363,7 @@ void FsiDataManager::Initialize(size_t numRigidBodies,
                                 size_t numFlexNodes1D,
                                 size_t numFlexNodes2D) {
     ConstructReferenceArray();
-    CalcNumObjects();
+    CalculateCounters();
 
     if (countersH->numAllMarkers != sphMarkers_H->rhoPresMuH.size()) {
         std::cerr << "ERROR (Initialize): mismatch in total number of markers." << std::endl;

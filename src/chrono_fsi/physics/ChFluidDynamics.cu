@@ -59,7 +59,7 @@ __device__ void collideCellDensityReInit(Real& numerator,
 // Kernel to apply periodic BC along x
 __global__ void ApplyPeriodicBoundaryXKernel(Real4* posRadD, Real4* rhoPresMuD, uint* activityIdentifierD) {
     uint index = blockIdx.x * blockDim.x + threadIdx.x;
-    if (index >= numObjectsD.numAllMarkers)
+    if (index >= countersD.numAllMarkers)
         return;
 
     uint activity = activityIdentifierD[index];
@@ -93,7 +93,7 @@ __global__ void ApplyPeriodicBoundaryXKernel(Real4* posRadD, Real4* rhoPresMuD, 
 // Kernel to apply inlet/outlet BC along x
 __global__ void ApplyInletBoundaryXKernel(Real4* posRadD, Real3* VelMassD, Real4* rhoPresMuD) {
     uint index = blockIdx.x * blockDim.x + threadIdx.x;
-    if (index >= numObjectsD.numAllMarkers)
+    if (index >= countersD.numAllMarkers)
         return;
 
     Real4 rhoPresMu = rhoPresMuD[index];
@@ -132,7 +132,7 @@ __global__ void ApplyInletBoundaryXKernel(Real4* posRadD, Real3* VelMassD, Real4
 // Kernel to apply periodic BC along y
 __global__ void ApplyPeriodicBoundaryYKernel(Real4* posRadD, Real4* rhoPresMuD, uint* activityIdentifierD) {
     uint index = blockIdx.x * blockDim.x + threadIdx.x;
-    if (index >= numObjectsD.numAllMarkers)
+    if (index >= countersD.numAllMarkers)
         return;
 
     uint activity = activityIdentifierD[index];
@@ -170,7 +170,7 @@ __global__ void ApplyPeriodicBoundaryYKernel(Real4* posRadD, Real4* rhoPresMuD, 
 // Kernel to apply periodic BC along z
 __global__ void ApplyPeriodicBoundaryZKernel(Real4* posRadD, Real4* rhoPresMuD, uint* activityIdentifierD) {
     uint index = blockIdx.x * blockDim.x + threadIdx.x;
-    if (index >= numObjectsD.numAllMarkers)
+    if (index >= countersD.numAllMarkers)
         return;
 
     uint activity = activityIdentifierD[index];
@@ -208,7 +208,7 @@ __global__ void ApplyPeriodicBoundaryZKernel(Real4* posRadD, Real4* rhoPresMuD, 
 // Kernel to keep particle inside the simulation domain
 __global__ void ApplyOutOfBoundaryKernel(Real4* posRadD, Real4* rhoPresMuD, Real3* velMasD) {
     uint index = blockIdx.x * blockDim.x + threadIdx.x;
-    if (index >= numObjectsD.numAllMarkers)
+    if (index >= countersD.numAllMarkers)
         return;
 
     Real4 rhoPresMu = rhoPresMuD[index];
@@ -438,7 +438,7 @@ __global__ void ReCalcDensityD_F1(Real4* dummySortedRhoPreMu,
                                   uint* cellStart,
                                   uint* cellEnd) {
     uint index = blockIdx.x * blockDim.x + threadIdx.x;
-    if (index >= numObjectsD.numAllMarkers)
+    if (index >= countersD.numAllMarkers)
         return;
 
     // read particle data from sorted arrays
@@ -486,9 +486,9 @@ __global__ void UpdateActivityD(const Real4* posRadD,
     activityIdentifierD[index] = 1;
     extendedActivityIdD[index] = 1;
 
-    size_t numRigidBodies = numObjectsD.numRigidBodies;
-    size_t numFlexNodes1D = numObjectsD.numFlexNodes1D;
-    size_t numFlexNodes2D = numObjectsD.numFlexNodes2D;
+    size_t numRigidBodies = countersD.numRigidBodies;
+    size_t numFlexNodes1D = countersD.numFlexNodes1D;
+    size_t numFlexNodes2D = countersD.numFlexNodes2D;
     size_t numTotal = numRigidBodies + numFlexNodes1D + numFlexNodes2D;
 
     // Check the activity of this particle
@@ -555,7 +555,7 @@ __global__ void CopySortedToOriginal_D(const Real4* sortedPosRad,
                                        uint* activityIdentifierD,
                                        volatile bool* isErrorD) {
     uint id = blockIdx.x * blockDim.x + threadIdx.x;
-    if (id >= numObjectsD.numAllMarkers)
+    if (id >= countersD.numAllMarkers)
         return;
 
     // Check the activity of this particle
@@ -607,7 +607,7 @@ ChFluidDynamics::~ChFluidDynamics() {}
 void ChFluidDynamics::Initialize() {
     forceSystem->Initialize();
     cudaMemcpyToSymbolAsync(paramsD, m_data_mgr.paramsH.get(), sizeof(SimParams));
-    cudaMemcpyToSymbolAsync(numObjectsD, m_data_mgr.countersH.get(), sizeof(ChCounters));
+    cudaMemcpyToSymbolAsync(countersD, m_data_mgr.countersH.get(), sizeof(Counters));
     cudaMemcpyFromSymbol(m_data_mgr.paramsH.get(), paramsD, sizeof(SimParams));
 }
 

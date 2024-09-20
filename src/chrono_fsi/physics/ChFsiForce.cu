@@ -36,7 +36,7 @@ ChFsiForce::ChFsiForce(FsiDataManager& data_mgr,
 
 void ChFsiForce::Initialize() {
     cudaMemcpyToSymbolAsync(paramsD, m_data_mgr.paramsH.get(), sizeof(SimParams));
-    cudaMemcpyToSymbolAsync(numObjectsD, m_data_mgr.countersH.get(), sizeof(ChCounters));
+    cudaMemcpyToSymbolAsync(countersD, m_data_mgr.countersH.get(), sizeof(Counters));
 
     fsiCollisionSystem->Initialize();
 }
