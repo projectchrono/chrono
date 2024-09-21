@@ -21,7 +21,7 @@
 #include "chrono/utils/ChUtilsGenerators.h"
 #include "chrono/utils/ChUtilsGeometry.h"
 
-#include "chrono_fsi/ChSystemFsi.h"
+#include "chrono_fsi/ChFsiSystemSPH.h"
 
 #include "chrono_fsi/visualization/ChFsiVisualization.h"
 #ifdef CHRONO_OPENGL
@@ -88,7 +88,7 @@ class PositionVisibilityCallback : public ChParticleCloud::VisibilityCallback {
 
 // -----------------------------------------------------------------------------
 
-std::shared_ptr<ChBody> CreateSolidPhase(ChSystemSMC& sysMBS, ChSystemFsi& sysFSI);
+std::shared_ptr<ChBody> CreateSolidPhase(ChSystemSMC& sysMBS, ChFsiSystemSPH& sysFSI);
 void WriteCylinderVTK(const std::string& filename, double radius, double length, const ChFrame<>& frame, int res);
 
 // -----------------------------------------------------------------------------
@@ -96,7 +96,7 @@ void WriteCylinderVTK(const std::string& filename, double radius, double length,
 int main(int argc, char* argv[]) {
     // Create a physics system and an FSI system
     ChSystemSMC sysMBS;
-    ChSystemFsi sysFSI(&sysMBS);
+    ChFsiSystemSPH sysFSI(&sysMBS);
 
     std::string inputJson = GetChronoDataFile("fsi/input_json/demo_FSI_CylinderDrop_Explicit.json");
     if (argc == 1) {
@@ -279,7 +279,7 @@ int main(int argc, char* argv[]) {
 // -----------------------------------------------------------------------------
 // Create the solid objects in the MBD system and their counterparts in the FSI system
 
-std::shared_ptr<ChBody> CreateSolidPhase(ChSystemSMC& sysMBS, ChSystemFsi& sysFSI) {
+std::shared_ptr<ChBody> CreateSolidPhase(ChSystemSMC& sysMBS, ChFsiSystemSPH& sysFSI) {
     // Set gravity to the rigid body system in chrono
     sysMBS.SetGravitationalAcceleration(sysFSI.GetGravitationalAcceleration());
 

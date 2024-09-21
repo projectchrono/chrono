@@ -29,7 +29,7 @@
 #include "chrono/utils/ChUtilsInputOutput.h"
 #include "chrono/core/ChTimer.h"
 
-#include "chrono_fsi/ChSystemFsi.h"
+#include "chrono_fsi/ChFsiSystemSPH.h"
 
 #ifdef CHRONO_OPENGL
     #include "chrono_fsi/visualization/ChFsiVisualizationGL.h"
@@ -118,7 +118,7 @@ void WriteWheelVTK(const std::string& filename, ChTriangleMeshConnected& mesh, c
 // Create the objects of the MBD system. Rigid bodies, and if FSI,
 // their BCE representation are created and added to the systems
 //------------------------------------------------------------------
-void CreateSolidPhase(ChSystemSMC& sysMBS, ChSystemFsi& sysFSI) {
+void CreateSolidPhase(ChSystemSMC& sysMBS, ChFsiSystemSPH& sysFSI) {
     // Common contact material
     auto cmaterial = chrono_types::make_shared<ChContactMaterialSMC>();
     cmaterial->SetYoungModulus(1e8);
@@ -265,7 +265,7 @@ int main(int argc, char* argv[]) {
 
     // Create the MBS and FSI systems
     ChSystemSMC sysMBS;
-    ChSystemFsi sysFSI(&sysMBS);
+    ChFsiSystemSPH sysFSI(&sysMBS);
 
     sysMBS.SetCollisionSystemType(ChCollisionSystem::Type::BULLET);
 

@@ -122,9 +122,11 @@ install(FILES "${PROJECT_BINARY_DIR}/chrono_fsi/ChConfigFSI.h"
 
 set(ChronoEngine_FSI_FILES
     ChApiFsi.h
+    ChFsiSystem.h
+    ChFsiSystem.cpp
     ChDefinitionsFsi.h
-    ChSystemFsi.h
-    ChSystemFsi.cpp
+    ChFsiSystemSPH.h
+    ChFsiSystemSPH.cpp
     ChFsiProblem.h
     ChFsiProblem.cpp
 )
@@ -134,6 +136,7 @@ source_group("" FILES ${ChronoEngine_FSI_FILES})
 set(ChronoEngine_FSI_PHYSICS_FILES
     physics/ChParams.h
     physics/ChFsiInterface.h
+    physics/ChFsiInterfaceSPH.h
     physics/ChMarkerType.cuh
     physics/FsiDataManager.cuh
     physics/BceManager.cuh
@@ -145,6 +148,7 @@ set(ChronoEngine_FSI_PHYSICS_FILES
     physics/ChSphGeneral.cuh
 
     physics/ChFsiInterface.cpp
+    physics/ChFsiInterfaceSPH.cpp
     physics/FsiDataManager.cu
  	physics/BceManager.cu
     physics/ChFluidDynamics.cu

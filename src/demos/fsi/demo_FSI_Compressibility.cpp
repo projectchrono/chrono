@@ -19,7 +19,7 @@
 #include "chrono/physics/ChSystemSMC.h"
 #include "chrono/utils/ChUtilsGenerators.h"
 
-#include "chrono_fsi/ChSystemFsi.h"
+#include "chrono_fsi/ChFsiSystemSPH.h"
 
 #include "chrono_fsi/visualization/ChFsiVisualization.h"
 #ifdef CHRONO_OPENGL
@@ -68,7 +68,7 @@ float render_fps = 1000;
 // Create the objects of the MBD system. Rigid bodies, and if fsi, their
 // bce representation are created and added to the systems
 //------------------------------------------------------------------
-void CreateSolidPhase(ChSystemSMC& sysMBS, ChSystemFsi& sysFSI) {
+void CreateSolidPhase(ChSystemSMC& sysMBS, ChFsiSystemSPH& sysFSI) {
     // Ground body
     auto ground = chrono_types::make_shared<ChBody>();
     ground->SetFixed(true);
@@ -89,7 +89,7 @@ int main(int argc, char* argv[]) {
     ChSystemSMC sysMBS;
 
     // Create an FSI system to handle fluid dynamics
-    ChSystemFsi sysFSI(&sysMBS);
+    ChFsiSystemSPH sysFSI(&sysMBS);
 
     // Use the default input file or you may enter your input parameters as a command line argument
     std::string inputJson = GetChronoDataFile("fsi/input_json/demo_FSI_Compressibility_Explicit.json");

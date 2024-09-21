@@ -24,7 +24,7 @@
 
 #include "chrono/ChConfig.h"
 #include "chrono/physics/ChSystemSMC.h"
-#include "chrono_fsi/ChSystemFsi.h"
+#include "chrono_fsi/ChFsiSystemSPH.h"
 #include "chrono_fsi/visualization/ChFsiVisualization.h"
 
 #include "chrono_vehicle/terrain/CRMTerrain.h"

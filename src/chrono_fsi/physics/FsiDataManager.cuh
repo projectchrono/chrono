@@ -327,7 +327,7 @@ class FsiDataManager {
     /// Initializes device vectors to zero.
     void ResetData();
 
-    friend class ChSystemFsi;
+    friend class ChFsiSystemSPH;
 };
 
 /// @} fsi_physics

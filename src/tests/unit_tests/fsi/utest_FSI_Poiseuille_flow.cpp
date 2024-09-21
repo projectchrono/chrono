@@ -66,7 +66,7 @@ typedef std::valarray<double> DataVector;
 //------------------------------------------------------------------
 
 // Analytical solution for the unsteady plane Poiseuille flow (flow between two parallel plates).
-double PoiseuilleAnalytical(double Z, double H, double time, const ChSystemFsi& sysFSI) {
+double PoiseuilleAnalytical(double Z, double H, double time, const ChFsiSystemSPH& sysFSI) {
     double nu = sysFSI.GetViscosity() / sysFSI.GetDensity();
     double F = sysFSI.GetBodyForce().x();
 
@@ -92,7 +92,7 @@ double PoiseuilleAnalytical(double Z, double H, double time, const ChSystemFsi& 
 // Callback for setting initial SPH particle velocity
 class InitialVelocityCallback : public ChFsiProblem::ParticlePropertiesCallback {
   public:
-    InitialVelocityCallback(const ChSystemFsi& sysFSI, double fluid_height, double time)
+    InitialVelocityCallback(const ChFsiSystemSPH& sysFSI, double fluid_height, double time)
         : ParticlePropertiesCallback(sysFSI), height(fluid_height), time(time) {
     }
 
@@ -112,7 +112,7 @@ class InitialVelocityCallback : public ChFsiProblem::ParticlePropertiesCallback 
 
 // Create run-time visualization system
 #ifdef RUN_TIME_VISUALIZATION
-std::shared_ptr<ChFsiVisualization> CreateVisSys(ChSystemFsi& sysFSI) {
+std::shared_ptr<ChFsiVisualization> CreateVisSys(ChFsiSystemSPH& sysFSI) {
     #if !defined(CHRONO_VSG)
     render = false;
     #endif
@@ -148,7 +148,7 @@ int main(int argc, char* argv[]) {
     ChSystemSMC sysMBS;
     ChFsiProblemCartesian fsi(sysMBS, initial_spacing);
     fsi.SetVerbose(verbose);
-    ChSystemFsi& sysFSI = fsi.GetSystemFSI();
+    ChFsiSystemSPH& sysFSI = fsi.GetSystemFSI();
 
     // Set gravitational acceleration
     const ChVector3d gravity(0, 0, 0);
@@ -156,7 +156,7 @@ int main(int argc, char* argv[]) {
     sysMBS.SetGravitationalAcceleration(gravity);
 
     // Set CFD fluid properties
-    ChSystemFsi::FluidProperties fluid_props;
+    ChFsiSystemSPH::FluidProperties fluid_props;
     fluid_props.density = 1000;
     fluid_props.viscosity = 1;
     sysFSI.SetCfdSPH(fluid_props);
@@ -165,7 +165,7 @@ int main(int argc, char* argv[]) {
     sysFSI.SetBodyForce(ChVector3d(force, 0, 0));
 
     // Set SPH solution parameters
-    ChSystemFsi::SPHParameters sph_params;
+    ChFsiSystemSPH::SPHParameters sph_params;
     sph_params.sph_method = SPHMethod::WCSPH;
     sph_params.num_bce_layers = 3;
     sph_params.kernel_h = initial_spacing;

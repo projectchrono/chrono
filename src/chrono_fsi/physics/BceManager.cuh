@@ -86,7 +86,7 @@ class BceManager {
     void CalcFlex1DBceAcceleration();
     void CalcFlex2DBceAcceleration();
 
-    friend class ChSystemFsi;
+    friend class ChFsiSystemSPH;
 };
 
 /// @} fsi_physics

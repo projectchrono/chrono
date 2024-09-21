@@ -20,7 +20,7 @@
 #include "chrono/physics/ChSystemSMC.h"
 #include "chrono/assets/ChVisualShapeBox.h"
 
-#include "chrono_fsi/ChSystemFsi.h"
+#include "chrono_fsi/ChFsiSystemSPH.h"
 #include "chrono_fsi/ChFsiProblem.h"
 
 #include "chrono_fsi/visualization/ChFsiVisualization.h"
@@ -71,7 +71,7 @@ bool show_particles_sph = true;
 // Callback for setting initial SPH particle properties
 class SPHPropertiesCallback : public ChFsiProblem::ParticlePropertiesCallback {
   public:
-    SPHPropertiesCallback(const ChSystemFsi& sysFSI, double zero_height, const ChVector3d& init_velocity)
+    SPHPropertiesCallback(const ChFsiSystemSPH& sysFSI, double zero_height, const ChVector3d& init_velocity)
         : ParticlePropertiesCallback(sysFSI), zero_height(zero_height), init_velocity(init_velocity) {
         gz = std::abs(sysFSI.GetGravitationalAcceleration().z());
         c2 = sysFSI.GetSoundSpeed() * sysFSI.GetSoundSpeed();
@@ -205,7 +205,7 @@ int main(int argc, char* argv[]) {
     // Create the FSI problem
     ChFsiProblemCartesian fsi(sysMBS, initial_spacing);
     fsi.SetVerbose(verbose);
-    ChSystemFsi& sysFSI = fsi.GetSystemFSI();
+    ChFsiSystemSPH& sysFSI = fsi.GetSystemFSI();
 
     // Set gravitational acceleration
     const ChVector3d gravity(0, 0, -9.8);
@@ -213,7 +213,7 @@ int main(int argc, char* argv[]) {
     sysMBS.SetGravitationalAcceleration(gravity);
 
     // Set soil propertiees
-    ChSystemFsi::ElasticMaterialProperties mat_props;
+    ChFsiSystemSPH::ElasticMaterialProperties mat_props;
     mat_props.density = 1800;
     mat_props.Young_modulus = 2e6;
     mat_props.Poisson_ratio = 0.3;
@@ -231,7 +231,7 @@ int main(int argc, char* argv[]) {
     sysFSI.SetElasticSPH(mat_props);
 
     // Set SPH solution parameters
-    ChSystemFsi::SPHParameters sph_params;
+    ChFsiSystemSPH::SPHParameters sph_params;
     sph_params.sph_method = SPHMethod::WCSPH;
     sph_params.kernel_h = 0.012;
     sph_params.initial_spacing = initial_spacing;

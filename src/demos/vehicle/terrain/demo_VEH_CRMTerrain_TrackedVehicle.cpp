@@ -26,7 +26,7 @@
 #include "chrono/utils/ChUtilsInputOutput.h"
 #include "chrono/utils/ChUtils.h"
 
-#include "chrono_fsi/ChSystemFsi.h"
+#include "chrono_fsi/ChFsiSystemSPH.h"
 
 #include "chrono_vehicle/ChVehicleModelData.h"
 #include "chrono_vehicle/driver/ChPathFollowerDriver.h"
@@ -105,14 +105,14 @@ int main(int argc, char* argv[]) {
     double initial_spacing = 0.02;
     CRMTerrain terrain(sys, initial_spacing);
     terrain.SetVerbose(verbose);
-    ChSystemFsi& sysFSI = terrain.GetSystemFSI();
+    ChFsiSystemSPH& sysFSI = terrain.GetSystemFSI();
 
     // Set SPH parameters and soil material properties
     const ChVector3d gravity(0, 0, -9.81);
     sysFSI.SetGravitationalAcceleration(gravity);
     sys.SetGravitationalAcceleration(gravity);
 
-    ChSystemFsi::ElasticMaterialProperties mat_props;
+    ChFsiSystemSPH::ElasticMaterialProperties mat_props;
     mat_props.density = density;
     mat_props.Young_modulus = youngs_modulus;
     mat_props.Poisson_ratio = poisson_ratio;
@@ -129,7 +129,7 @@ int main(int argc, char* argv[]) {
 
     sysFSI.SetElasticSPH(mat_props);
 
-    ChSystemFsi::SPHParameters sph_params;
+    ChFsiSystemSPH::SPHParameters sph_params;
     sph_params.sph_method = SPHMethod::WCSPH;
     sph_params.kernel_h = initial_spacing;
     sph_params.initial_spacing = initial_spacing;

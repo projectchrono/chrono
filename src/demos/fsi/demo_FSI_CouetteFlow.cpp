@@ -36,7 +36,7 @@
 #include "chrono/utils/ChUtilsGenerators.h"
 #include "chrono/utils/ChUtilsInputOutput.h"
 
-#include "chrono_fsi/ChSystemFsi.h"
+#include "chrono_fsi/ChFsiSystemSPH.h"
 
 #include "chrono_fsi/visualization/ChFsiVisualization.h"
 #ifdef CHRONO_OPENGL
@@ -115,7 +115,7 @@ int main(int argc, char* argv[]) {
     sysMBS.SetCollisionSystemType(ChCollisionSystem::Type::BULLET);
 
     // Create the FSI problem
-    ChSystemFsi sysFSI(&sysMBS);
+    ChFsiSystemSPH sysFSI(&sysMBS);
     sysFSI.SetVerbose(verbose);
 
     // cylindrical container
@@ -135,13 +135,13 @@ int main(int argc, char* argv[]) {
     sysMBS.SetGravitationalAcceleration(gravity);
 
     // Set CFD fluid properties
-    ChSystemFsi::FluidProperties fluid_props;
+    ChFsiSystemSPH::FluidProperties fluid_props;
     fluid_props.density = density;
     fluid_props.viscosity = viscosity;
     sysFSI.SetCfdSPH(fluid_props);
 
     // Set SPH solution parameters
-    ChSystemFsi::SPHParameters sph_params;
+    ChFsiSystemSPH::SPHParameters sph_params;
     sph_params.sph_method = SPHMethod::I2SPH;
     sph_params.num_bce_layers = 3;
     sph_params.kernel_h = initial_spacing;
@@ -155,7 +155,7 @@ int main(int argc, char* argv[]) {
     sysFSI.SetSPHParameters(sph_params);
 
     // Set linear solver parameters
-    ChSystemFsi::LinSolverParameters linsolv_params;
+    ChFsiSystemSPH::LinSolverParameters linsolv_params;
     linsolv_params.type = SolverType::JACOBI;
     linsolv_params.atol = 0;
     linsolv_params.rtol = 0;

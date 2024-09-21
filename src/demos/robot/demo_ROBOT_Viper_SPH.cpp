@@ -25,7 +25,7 @@
 #include "chrono/physics/ChInertiaUtils.h"
 #include "chrono/geometry/ChTriangleMeshConnected.h"
 
-#include "chrono_fsi/ChSystemFsi.h"
+#include "chrono_fsi/ChFsiSystemSPH.h"
 #include "chrono_fsi/visualization/ChFsiVisualization.h"
 #include "chrono/assets/ChVisualSystem.h"
 #ifdef CHRONO_OPENGL
@@ -119,8 +119,8 @@ std::shared_ptr<ChContactMaterial> CustomWheelMaterial(ChContactMethod contact_m
 }
 
 // Forward declaration of helper functions
-void SaveParaViewFiles(ChSystemFsi& sysFSI, ChSystemNSC& sysMBS, double mTime);
-void CreateSolidPhase(ChSystemNSC& sysMBS, ChSystemFsi& sysFSI);
+void SaveParaViewFiles(ChFsiSystemSPH& sysFSI, ChSystemNSC& sysMBS, double mTime);
+void CreateSolidPhase(ChSystemNSC& sysMBS, ChFsiSystemSPH& sysFSI);
 
 int main(int argc, char* argv[]) {
     // Create oputput directories
@@ -143,7 +143,7 @@ int main(int argc, char* argv[]) {
 
     // Create a physical system and a corresponding FSI system
     ChSystemNSC sysMBS;
-    ChSystemFsi sysFSI(&sysMBS);
+    ChFsiSystemSPH sysFSI(&sysMBS);
 
     ChVector3d gravity = ChVector3d(0, 0, -9.81);
     sysMBS.SetGravitationalAcceleration(gravity);
@@ -313,7 +313,7 @@ int main(int argc, char* argv[]) {
 // Create the objects of the MBD system. Rigid bodies and their
 // BCE representations are created and added to the systems
 //------------------------------------------------------------------
-void CreateSolidPhase(ChSystemNSC& sysMBS, ChSystemFsi& sysFSI) {
+void CreateSolidPhase(ChSystemNSC& sysMBS, ChFsiSystemSPH& sysFSI) {
     // Create a body for the rigid soil container
     auto box = chrono_types::make_shared<ChBodyEasyBox>(10, 10, 0.02, 1000, false, false);
     box->SetPos(ChVector3d(0, 0, 0));
@@ -373,7 +373,7 @@ void CreateSolidPhase(ChSystemNSC& sysMBS, ChSystemFsi& sysFSI) {
 //------------------------------------------------------------------
 // Function to save the povray files of the MBD
 //------------------------------------------------------------------
-void SaveParaViewFiles(ChSystemFsi& sysFSI, ChSystemNSC& sysMBS, double mTime) {
+void SaveParaViewFiles(ChFsiSystemSPH& sysFSI, ChSystemNSC& sysMBS, double mTime) {
     std::string rover_dir = out_dir + "/rover";
     std::string filename;
     static int frame_number = -1;

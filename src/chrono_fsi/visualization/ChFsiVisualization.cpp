@@ -18,7 +18,7 @@
 namespace chrono {
 namespace fsi {
 
-ChFsiVisualization::ChFsiVisualization(ChSystemFsi* sysFSI)
+ChFsiVisualization::ChFsiVisualization(ChFsiSystemSPH* sysFSI)
     : m_systemFSI(sysFSI),
       m_user_system(nullptr),
       m_sph_markers(true),

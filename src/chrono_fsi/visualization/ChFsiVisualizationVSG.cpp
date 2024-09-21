@@ -88,7 +88,7 @@ class FSIStatsVSG : public vsg3d::ChGuiComponentVSG {
 
 // -----------------------------------------------------------------------------
 
-ChFsiVisualizationVSG::ChFsiVisualizationVSG(ChSystemFsi* sysFSI) : ChFsiVisualization(sysFSI) {
+ChFsiVisualizationVSG::ChFsiVisualizationVSG(ChFsiSystemSPH* sysFSI) : ChFsiVisualization(sysFSI) {
     m_vsys = new vsg3d::ChVisualSystemVSG();
     m_vsys->AttachSystem(m_system);
     m_vsys->SetWindowTitle("");

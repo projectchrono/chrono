@@ -12,56 +12,41 @@
 // Author: Milad Rakhsha, Arman Pazouki, Wei Hu, Radu Serban
 // =============================================================================
 //
-// Implementation of FSI system that includes all subclasses for proximity and
-// force calculation, and time integration.
+// Implementation of FSI system based on an SPH fluid solver.
 //
 // =============================================================================
 
-#ifndef CH_SYSTEM_FSI_H
-#define CH_SYSTEM_FSI_H
+#ifndef CH_FSI_SYSTEM_SPH_H
+#define CH_FSI_SYSTEM_SPH_H
 
 #include <thrust/host_vector.h>
 #include <thrust/device_vector.h>
 
-#include "chrono/ChConfig.h"
-#include "chrono/physics/ChSystem.h"
-#include "chrono/fea/ChMesh.h"
-#include "chrono/fea/ChContactSurfaceMesh.h"
-#include "chrono/fea/ChContactSurfaceSegmentSet.h"
+#include "chrono_fsi/ChFsiSystem.h"
 
-#include "chrono_fsi/ChApiFsi.h"
 #include "chrono_fsi/ChDefinitionsFsi.h"
 #include "chrono_fsi/physics/ChParams.h"
-#include "chrono_fsi/physics/ChFsiInterface.h"
 #include "chrono_fsi/math/custom_math.h"
 
 namespace chrono {
 namespace fsi {
 
 class FsiDataManager;
-class ChFsiInterface;
 class ChFluidDynamics;
 class BceManager;
 
 /// @addtogroup fsi_physics
 /// @{
 
-/// Physical system for fluid-solid interaction problems.
+/// Physical system for SPH-based fluid-solid interaction problems.
 ///
 /// This class is used to represent fluid-solid interaction problems consisting of fluid dynamics and multibody system.
 /// Each of the two underlying physics is an independent object owned and instantiated by this class. The FSI system
 /// owns other objects to handle the interface between the two systems, boundary condition enforcing markers, and data.
-class CH_FSI_API ChSystemFsi {
+class CH_FSI_API ChFsiSystemSPH : public ChFsiSystem {
   public:
     /// Physics problem type.
     enum class PhysicsProblem { CFD, CRM };
-
-    /// Output mode.
-    enum class OutputMode {
-        CSV,   ///< comma-separated value
-        CHPF,  ///< binary
-        NONE   ///< none
-    };
 
     /// Structure with fluid properties.
     /// Used if solving a CFD problem.
@@ -125,27 +110,18 @@ class CH_FSI_API ChSystemFsi {
     };
 
     /// Constructor for FSI system.
-    ChSystemFsi(ChSystem* sysMBS = nullptr);
+    ChFsiSystemSPH(ChSystem* sysMBS = nullptr);
 
     /// Destructor for the FSI system.
-    ~ChSystemFsi();
-
-    /// Attach Chrono MBS system.
-    void AttachSystem(ChSystem* sysMBS);
+    ~ChFsiSystemSPH();
 
     /// Function to integrate the FSI system in time.
     /// It uses a Runge-Kutta 2nd order algorithm to update both the fluid and multibody system dynamics. The midpoint
     /// data of MBS is needed for fluid dynamics update.
-    void DoStepDynamics_FSI();
-
-    /// Get current estimated RTF (real time factor).
-    double GetRTF() const { return m_RTF; }
-
-    /// Get ratio of simulation time spent in MBS integration.
-    double GetRatioMBS() const { return m_ratio_MBS; }
+    virtual void DoStepDynamics_FSI() override;
 
     /// Enable/disable verbose terminal output.
-    void SetVerbose(bool verbose);
+    virtual void SetVerbose(bool verbose) override;
 
     /// Read Chrono::FSI parameters from the specified JSON file.
     void ReadParametersFromFile(const std::string& json_file);
@@ -182,7 +158,7 @@ class CH_FSI_API ChSystemFsi {
     void SetInitPressure(const double fzDim);
 
     /// Set gravity for the FSI syatem.
-    void SetGravitationalAcceleration(const ChVector3d& gravity);
+    virtual void SetGravitationalAcceleration(const ChVector3d& gravity) override;
 
     /// Set a constant force applied to the fluid.
     /// Solid bodies are not explicitly affected by this force, but they are affected indirectly through the fluid.
@@ -313,17 +289,9 @@ class CH_FSI_API ChSystemFsi {
     /// For each SPH particle, the 3-dimensional array contains density, pressure, and viscosity.
     std::vector<ChVector3d> GetParticleFluidProperties() const;
 
-    /// Return the FSI applied force on the body with specified index (as returned by AddFsiBody).
-    /// The force is applied at the body COM and is expressed in the absolute frame.
-    const ChVector3d& GetFsiBodyForce(size_t i) const;
-
-    /// Return the FSI applied torque on the body with specified index (as returned by AddFsiBody).
-    /// The torque is expressed in the absolute frame.
-    const ChVector3d& GetFsiBodyTorque(size_t i) const;
-
     /// Complete construction of the FSI system (fluid and BDE objects).
     /// Use parameters read from JSON file and/or specified through various Set functions.
-    void Initialize();
+    virtual void Initialize() override;
 
     /// Write FSI system particle output.
     void WriteParticleFile(const std::string& outfilename) const;
@@ -361,7 +329,7 @@ class CH_FSI_API ChSystemFsi {
 
     /// Add a rigid body to the FSI system.
     /// Returns the index of the FSI body in the internal list.
-    size_t AddFsiBody(std::shared_ptr<ChBody> body);
+    virtual size_t AddFsiBody(std::shared_ptr<ChBody> body) override;
 
     /// Add BCE markers for a rectangular plate of specified X-Y dimensions and associate them with the given body.
     /// BCE markers are created in a number of layers corresponding to system parameters.
@@ -463,7 +431,7 @@ class CH_FSI_API ChSystemFsi {
     /// Contact surfaces (of type segment_set or tri_mesh) already defined for the FEA mesh are used to generate the BCE
     /// markers for the flexible solid. If none are defined, one contact surface of each type is created (as needed) for
     /// the purpose of creating the BCE markers, but these are not attached to the given FEA mesh.
-    void AddFsiMesh(std::shared_ptr<fea::ChMesh> mesh);
+    virtual void AddFsiMesh(std::shared_ptr<fea::ChMesh> mesh) override;
 
     // ----------- Utility functions for extracting information at specific SPH particles
 
@@ -565,17 +533,10 @@ class CH_FSI_API ChSystemFsi {
     /// The BCE markers are created in the absolute coordinate frame.
     unsigned int AddBCE_mesh2D(unsigned int meshID, const ChFsiInterface::FsiMesh2D& fsi_mesh);
 
-    ChSystem* m_sysMBS;  ///< multibody system
-
     std::shared_ptr<SimParams> m_paramsH;  ///< pointer to the simulation parameters
-
-    bool m_verbose;           ///< enable/disable m_verbose terminal output (default: true)
-    std::string m_outdir;     ///< output directory
-    OutputMode m_write_mode;  ///< FSI particle output type (CSV, ChPF, or NONE)
 
     std::unique_ptr<FsiDataManager> m_data_mgr;         ///< FSI data manager
     std::unique_ptr<ChFluidDynamics> m_fluid_dynamics;  ///< fluid system
-    std::unique_ptr<ChFsiInterface> m_fsi_interface;    ///< FSI interface system
     std::unique_ptr<BceManager> m_bce_mgr;              ///< BCE manager
 
     unsigned int m_num_flex1D_elements;  ///< number of 1-D flexible segments (across all meshes)
@@ -593,11 +554,6 @@ class CH_FSI_API ChSystemFsi {
 
     bool m_is_initialized;  ///< set to true once the Initialize function is called
     double m_time;          ///< current simulation time
-
-    ChTimer m_timer_step;  ///< timer for integration step
-    ChTimer m_timer_MBS;   ///< timer for MBS integration
-    double m_RTF;          ///< real-time factor (simulation time / simulated time)
-    double m_ratio_MBS;    ///< fraction of step simulation time for MBS integration
 
     friend class ChFsiVisualizationGL;
     friend class ChFsiVisualizationVSG;

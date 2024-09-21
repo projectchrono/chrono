@@ -162,7 +162,7 @@ void ChVehicleCosimTerrainNodeGranularSPH::Construct() {
     double initSpace0 = 2 * m_radius;
     m_terrain = new CRMTerrain(*m_system, initSpace0);
     //////m_terrain->SetVerbose(true);
-    ChSystemFsi& sysFSI = m_terrain->GetSystemFSI();
+    ChFsiSystemSPH& sysFSI = m_terrain->GetSystemFSI();
 
     // Let the FSI system read its parameters
     if (!m_specfile.empty())
@@ -248,7 +248,7 @@ void ChVehicleCosimTerrainNodeGranularSPH::Construct() {
 // -----------------------------------------------------------------------------
 
 void ChVehicleCosimTerrainNodeGranularSPH::CreateRigidProxy(unsigned int i) {
-    ChSystemFsi& sysFSI = m_terrain->GetSystemFSI();
+    ChFsiSystemSPH& sysFSI = m_terrain->GetSystemFSI();
 
     // Get shape associated with the given object
     int i_shape = m_obj_map[i];
@@ -308,7 +308,7 @@ void ChVehicleCosimTerrainNodeGranularSPH::OnInitialize(unsigned int num_objects
     ChVehicleCosimTerrainNodeChrono::OnInitialize(num_objects);
 
     // Initialize the SPH terrain
-    ChSystemFsi& sysFSI = m_terrain->GetSystemFSI();
+    ChFsiSystemSPH& sysFSI = m_terrain->GetSystemFSI();
     m_terrain->Initialize();
 
     // Initialize run-time visualization
@@ -402,7 +402,7 @@ void ChVehicleCosimTerrainNodeGranularSPH::OnOutputData(int frame) {
 
 void ChVehicleCosimTerrainNodeGranularSPH::OutputVisualizationData(int frame) {
     auto filename = OutputFilename(m_node_out_dir + "/visualization", "vis", "chpf", frame, 5);
-    m_terrain->GetSystemFSI().SetParticleOutputMode(ChSystemFsi::OutputMode::CHPF);
+    m_terrain->GetSystemFSI().SetParticleOutputMode(ChFsiSystemSPH::OutputMode::CHPF);
     m_terrain->GetSystemFSI().WriteParticleFile(filename);
     if (m_obstacles.size() > 0) {
         filename = OutputFilename(m_node_out_dir + "/visualization", "vis", "dat", frame, 5);

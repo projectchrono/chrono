@@ -22,7 +22,7 @@
 #include "chrono/assets/ChVisualSystem.h"
 
 #include "chrono_fsi/ChApiFsi.h"
-#include "chrono_fsi/ChSystemFsi.h"
+#include "chrono_fsi/ChFsiSystemSPH.h"
 
 namespace chrono {
 namespace fsi {
@@ -39,7 +39,7 @@ class CH_FSI_API ChFsiVisualization {
     enum class RenderMode { POINTS, WIREFRAME, SOLID };
 
     /// Create a run-time FSI visualization object associated with a given Chrono::Fsi system.
-    ChFsiVisualization(ChSystemFsi* sysFSI);
+    ChFsiVisualization(ChFsiSystemSPH* sysFSI);
 
     virtual ~ChFsiVisualization();
 
@@ -144,7 +144,7 @@ class CH_FSI_API ChFsiVisualization {
     virtual ChVisualSystem* GetVisualSystem() const = 0;
 
   protected:
-    ChSystemFsi* m_systemFSI;  ///< associated Chrono::FSI system
+    ChFsiSystemSPH* m_systemFSI;  ///< associated Chrono::FSI system
     ChSystem* m_system;        ///< internal Chrono system (holds proxies)
     ChSystem* m_user_system;   ///< optional user-provided system
 

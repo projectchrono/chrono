@@ -229,14 +229,14 @@ void ChFsiProblem::Initialize() {
 
     // Create SPH particles
     switch (m_sysFSI.GetPhysicsProblem()) {
-        case ChSystemFsi::PhysicsProblem::CFD: {
+        case ChFsiSystemSPH::PhysicsProblem::CFD: {
             for (const auto& pos : sph_points) {
                 m_props_cb->set(pos);
                 m_sysFSI.AddSPHParticle(pos, m_props_cb->rho0, m_props_cb->p0, m_props_cb->mu0, m_props_cb->v0);
             }
             break;
         }
-        case ChSystemFsi::PhysicsProblem::CRM: {
+        case ChFsiSystemSPH::PhysicsProblem::CRM: {
             ChVector3d tau_offdiag(0);
             for (const auto& pos : sph_points) {
                 m_props_cb->set(pos);

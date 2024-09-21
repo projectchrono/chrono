@@ -1,7 +1,7 @@
 // =============================================================================
 // PROJECT CHRONO - http://projectchrono.org
 //
-// Copyright (c) 2014 projectchrono.org
+// Copyright (c) 2024 projectchrono.org
 // All rights reserved.
 //
 // Use of this source code is governed by a BSD-style license that can be found
@@ -9,11 +9,12 @@
 // http://projectchrono.org/license-chrono.txt.
 //
 // =============================================================================
-// Author: Milad Rakhsha, Arman Pazouki, Wei Hu, Radu Serban
+// Author: Radu Serban
 // =============================================================================
 //
-// Base class for processing the interface between Chrono and FSI modules
+// Base class for interfacing between a Chrono system and an FSI system
 // =============================================================================
+
 #ifndef CH_FSI_INTERFACE_H
 #define CH_FSI_INTERFACE_H
 
@@ -23,7 +24,6 @@
 #include "chrono/fea/ChContactSurfaceSegmentSet.h"
 
 #include "chrono_fsi/ChApiFsi.h"
-#include "chrono_fsi/physics/FsiDataManager.cuh"
 
 namespace chrono {
 namespace fsi {
@@ -32,28 +32,8 @@ namespace fsi {
 /// @{
 
 /// Base class for processing the interface between Chrono and FSI modules.
-class ChFsiInterface {
+class CH_FSI_API ChFsiInterface {
   public:
-    /// Constructor of the FSI interface class.
-    ChFsiInterface(FsiDataManager& data_mgr, bool verbose);
-
-    /// Destructor of the FSI interface class.
-    ~ChFsiInterface();
-
-    /// Copy rigid body states from ChSystem to FsiSystem, then to the GPU memory.
-    void LoadBodyStates();
-
-    /// Copy FEA mesh states from ChSystem to FsiSystem, then to the GPU memory.
-    void LoadMeshStates();
-
-    /// Read the surface-integrated pressure and viscous forces form the fluid/granular dynamics system,
-    /// and add these forces and torques as external forces to the ChSystem rigid bodies.
-    void ApplyBodyForces();
-
-    /// Add forces and torques as external forces to the ChSystem flexible bodies.
-    void ApplyMeshForces();
-
-  private:
     /// Description of a rigid body exposed to the FSI system.
     struct FsiBody {
         std::shared_ptr<ChBody> body;  ///< rigid body exposed to FSI system
@@ -66,7 +46,6 @@ class ChFsiInterface {
         std::shared_ptr<fea::ChContactSurfaceSegmentSet> contact_surface;  ///< FEA contact segments
         std::map<std::shared_ptr<fea::ChNodeFEAxyz>, int> ptr2ind_map;     ///< pointer-based to index-based mapping
         std::map<int, std::shared_ptr<fea::ChNodeFEAxyz>> ind2ptr_map;     ///< index-based to pointer-based mapping
-        int num_bce;                                                       ///< number of BCE markers for this mesh
     };
 
     /// Description of an FEA mesh with 2-D faces exposed to the FSI system.
@@ -74,17 +53,57 @@ class ChFsiInterface {
         std::shared_ptr<fea::ChContactSurfaceMesh> contact_surface;     ///< FEA trimesh skin
         std::map<std::shared_ptr<fea::ChNodeFEAxyz>, int> ptr2ind_map;  ///< pointer-based to index-based mapping
         std::map<int, std::shared_ptr<fea::ChNodeFEAxyz>> ind2ptr_map;  ///< index-based to pointer-based mapping
-        int num_bce;                                                    ///< number of BCE markers for this mesh
     };
 
-    FsiDataManager& m_data_mgr;  ///< FSI data manager
-    bool m_verbose;              ///< terminal output (default: true)
+    /// Constructor of the FSI interface class.
+    ChFsiInterface(bool verbose);
+
+    /// Destructor of the FSI interface class.
+    ~ChFsiInterface();
+
+    // ------------
+
+    /// Add a rigid body.
+    FsiBody& AddFsiBody(std::shared_ptr<ChBody> body);
+
+    /// Add a flexible solid with segment set contact to the FSI system.
+    FsiMesh1D& AddFsiMesh1D(std::shared_ptr<fea::ChContactSurfaceSegmentSet> surface);
+
+    /// Add a flexible solid with surface mesh contact to the FSI system.
+    FsiMesh2D& AddFsiMesh2D(std::shared_ptr<fea::ChContactSurfaceMesh> surface);
+
+    /// Get the current number of FSI bodies.
+    unsigned int GetNumBodies() const;
+
+    /// Get the current number of FSI 1-D meshes.
+    unsigned int GetNumMeshes1D() const;
+
+    /// Get the current number of FSI 2-D meshes.
+    unsigned int GetNumMeshes2D() const;
+
+    // ------------
+
+    /// Extract and load states of all FSI bodies.
+    virtual void LoadBodyStates() = 0;
+
+    /// Extract and load states of FEA mesh nodes.
+    virtual void LoadMeshStates() = 0;
+
+    /// Apply fluid forces and torques as external loads to the FSI bodies.
+    virtual void ApplyBodyForces() = 0;
+
+    /// Add fluid forces and torques as external forces to the nodes of FSI meshes.
+    virtual void ApplyMeshForces() = 0;
+
+  protected:
+    bool m_verbose;
 
     std::vector<FsiBody> m_fsi_bodies;      ///< rigid bodies exposed to the FSI system
     std::vector<FsiMesh1D> m_fsi_meshes1D;  ///< FEA meshes with 1-D segments exposed to the FSI system
     std::vector<FsiMesh2D> m_fsi_meshes2D;  ///< FEA meshes with 2-D faces exposed to the FSI system
 
-    friend class ChSystemFsi;
+    friend class ChFsiSystem;
+    friend class ChFsiSystemSPH;  //// TODO: get rid of this one!
 };
 
 /// @} fsi_physics

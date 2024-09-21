@@ -36,7 +36,7 @@
 #include "chrono/fea/ChMeshExporter.h"
 #include "chrono/fea/ChBuilderBeam.h"
 
-#include "chrono_fsi/ChSystemFsi.h"
+#include "chrono_fsi/ChFsiSystemSPH.h"
 
 #ifdef CHRONO_OPENGL
     #include "chrono_fsi/visualization/ChFsiVisualizationGL.h"
@@ -94,14 +94,14 @@ float render_fps = 100;
 
 // -----------------------------------------------------------------
 
-std::shared_ptr<fea::ChMesh> Create_MB_FE(ChSystemSMC& sysMBS, ChSystemFsi& sysFSI);
+std::shared_ptr<fea::ChMesh> Create_MB_FE(ChSystemSMC& sysMBS, ChFsiSystemSPH& sysFSI);
 
 // -----------------------------------------------------------------
 
 int main(int argc, char* argv[]) {
     // Create an MBS system and an FSI system
     ChSystemSMC sysMBS;
-    ChSystemFsi sysFSI(&sysMBS);
+    ChFsiSystemSPH sysFSI(&sysMBS);
 
     sysMBS.SetCollisionSystemType(ChCollisionSystem::Type::BULLET);
 
@@ -242,7 +242,7 @@ int main(int argc, char* argv[]) {
 //--------------------------------------------------------------------
 // Create the objects of the MBD system. Rigid/flexible bodies, and if
 // fsi, their bce representation are created and added to the systems
-std::shared_ptr<fea::ChMesh> Create_MB_FE(ChSystemSMC& sysMBS, ChSystemFsi& sysFSI) {
+std::shared_ptr<fea::ChMesh> Create_MB_FE(ChSystemSMC& sysMBS, ChFsiSystemSPH& sysFSI) {
     sysMBS.SetGravitationalAcceleration(ChVector3d(0, 0, -9.81));
     sysFSI.SetGravitationalAcceleration(ChVector3d(0, 0, -9.81));
 

@@ -33,7 +33,7 @@
     #include "chrono_pardisomkl/ChSolverPardisoMKL.h"
 #endif
 
-#include "chrono_fsi/ChSystemFsi.h"
+#include "chrono_fsi/ChFsiSystemSPH.h"
 
 #include "chrono_fsi/visualization/ChFsiVisualization.h"
 #ifdef CHRONO_OPENGL
@@ -73,7 +73,7 @@ double Lz_fluid = 1.0;
 
 // -----------------------------------------------------------------------------
 
-std::shared_ptr<fea::ChMesh> Create_MB_FE(ChSystemSMC& sysMBS, ChSystemFsi& sysFSI, bool verbose);
+std::shared_ptr<fea::ChMesh> Create_MB_FE(ChSystemSMC& sysMBS, ChFsiSystemSPH& sysFSI, bool verbose);
 bool GetProblemSpecs(int argc,
                      char** argv,
                      std::string& inputJSON,
@@ -106,7 +106,7 @@ int main(int argc, char* argv[]) {
 
     // Create a physics system and an FSI system
     ChSystemSMC sysMBS;
-    ChSystemFsi sysFSI(&sysMBS);
+    ChFsiSystemSPH sysFSI(&sysMBS);
 
     sysFSI.SetVerbose(verbose);
 
@@ -319,7 +319,7 @@ int main(int argc, char* argv[]) {
 // -----------------------------------------------------------------------------
 // Create the solid objects in the MBD system and their counterparts in the FSI system
 
-std::shared_ptr<fea::ChMesh> Create_MB_FE(ChSystemSMC& sysMBS, ChSystemFsi& sysFSI, bool verbose) {
+std::shared_ptr<fea::ChMesh> Create_MB_FE(ChSystemSMC& sysMBS, ChFsiSystemSPH& sysFSI, bool verbose) {
     sysMBS.SetGravitationalAcceleration(ChVector3d(0, 0, 0));
     sysFSI.SetGravitationalAcceleration(ChVector3d(0, 0, -9.81));
 

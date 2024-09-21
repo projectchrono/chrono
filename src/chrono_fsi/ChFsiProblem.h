@@ -27,7 +27,7 @@
 #include "chrono/functions/ChFunction.h"
 
 #include "chrono_fsi/ChApiFsi.h"
-#include "chrono_fsi/ChSystemFsi.h"
+#include "chrono_fsi/ChFsiSystemSPH.h"
 
 namespace chrono {
 namespace fsi {
@@ -48,7 +48,7 @@ class CH_FSI_API ChFsiProblem {
     ChSystem& GetSystyemMBS() { return m_sys; }
 
     /// Access the underlying FSI system.
-    ChSystemFsi& GetSystemFSI() { return m_sysFSI; }
+    ChFsiSystemSPH& GetSystemFSI() { return m_sysFSI; }
 
     /// Add a rigid body to the FSI problem.
     /// BCE markers are created for the provided geometry (which may or may not match the body collision geometry).
@@ -81,7 +81,7 @@ class CH_FSI_API ChFsiProblem {
     /// Interface for callback to set initial particle pressure, density, viscosity, and velocity.
     class CH_FSI_API ParticlePropertiesCallback {
       public:
-        ParticlePropertiesCallback(const ChSystemFsi& sysFSI) : sysFSI(sysFSI), p0(0), rho0(0), mu0(0), v0(VNULL) {}
+        ParticlePropertiesCallback(const ChFsiSystemSPH& sysFSI) : sysFSI(sysFSI), p0(0), rho0(0), mu0(0), v0(VNULL) {}
         ParticlePropertiesCallback(const ParticlePropertiesCallback& other) = default;
         virtual ~ParticlePropertiesCallback() {}
 
@@ -95,7 +95,7 @@ class CH_FSI_API ChFsiProblem {
             v0 = VNULL;
         }
 
-        const ChSystemFsi& sysFSI;
+        const ChFsiSystemSPH& sysFSI;
         double p0;
         double rho0;
         double mu0;
@@ -183,7 +183,7 @@ class CH_FSI_API ChFsiProblem {
     /// defined by the body BCEs. Note that this assumes the BCE markers form a watertight boundary.
     int ProcessBodyMesh(RigidBody& b, ChTriangleMeshConnected trimesh, const ChVector3d& interior_point);
 
-    ChSystemFsi m_sysFSI;              ///< underlying Chrono FSI system
+    ChFsiSystemSPH m_sysFSI;              ///< underlying Chrono FSI system
     ChSystem& m_sys;                   ///< associated Chrono MBS system
     double m_spacing;                  ///< particle and marker spacing
     std::shared_ptr<ChBody> m_ground;  ///< ground body
@@ -318,7 +318,7 @@ class CH_FSI_API ChFsiProblemCylindrical : public ChFsiProblem {
 /// Predefined SPH particle initial properties callback (depth-based pressure).
 class CH_FSI_API DepthPressurePropertiesCallback : public ChFsiProblem::ParticlePropertiesCallback {
   public:
-    DepthPressurePropertiesCallback(const ChSystemFsi& sysFSI, double zero_height)
+    DepthPressurePropertiesCallback(const ChFsiSystemSPH& sysFSI, double zero_height)
         : ParticlePropertiesCallback(sysFSI), zero_height(zero_height) {
         gz = std::abs(sysFSI.GetGravitationalAcceleration().z());
         c2 = sysFSI.GetSoundSpeed() * sysFSI.GetSoundSpeed();

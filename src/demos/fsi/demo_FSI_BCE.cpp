@@ -18,7 +18,7 @@
 
 #include "chrono/physics/ChSystemSMC.h"
 
-#include "chrono_fsi/ChSystemFsi.h"
+#include "chrono_fsi/ChFsiSystemSPH.h"
 #include "chrono_fsi/utils/ChUtilsTypeConvert.h"
 
 #include "chrono_thirdparty/filesystem/path.h"
@@ -35,7 +35,7 @@ int main(int argc, char* argv[]) {
     }
 
     ChSystemSMC sysMBS;
-    ChSystemFsi sysFSI(&sysMBS);
+    ChFsiSystemSPH sysFSI(&sysMBS);
 
     double spacing = 0.025;
 

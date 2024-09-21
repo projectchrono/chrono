@@ -57,7 +57,7 @@ class FSIStatsGL : public opengl::ChOpenGLStats {
 
 // -----------------------------------------------------------------------------
 
-ChFsiVisualizationGL::ChFsiVisualizationGL(ChSystemFsi* sysFSI)
+ChFsiVisualizationGL::ChFsiVisualizationGL(ChFsiSystemSPH* sysFSI)
     : ChFsiVisualization(sysFSI), m_bce_start_index(0) {
     m_vsys = new opengl::ChVisualSystemOpenGL();
     m_vsys->AttachSystem(m_system);
