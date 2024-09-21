@@ -51,7 +51,7 @@ void CopyParametersToDevice(std::shared_ptr<SimParams> paramsH, std::shared_ptr<
 // Cubic Spline SPH kernel function
 // d > 0 is the distance between 2 particles. h is the sph kernel length
 
-__device__ inline Real W3h_Spline(Real d, Real h) {
+__device__ inline Real W3h_Spline(Real d) {
     Real invh = paramsD.INVHSML;
     Real q = fabs(d) * invh;
     if (q < 1) {
@@ -63,8 +63,7 @@ __device__ inline Real W3h_Spline(Real d, Real h) {
     return 0;
 }
 
-__device__ inline Real3 GradWh_Spline(Real3 d, Real h) {  // d is positive. r is the sph kernel length (i.e. h
-                                                          // in the document) d is the distance of 2 particles
+__device__ inline Real3 GradWh_Spline(Real3 d) {
     Real invh = paramsD.INVHSML;
     Real q = length(d) * invh;
     if (abs(q) < EPSILON)
@@ -78,7 +77,7 @@ __device__ inline Real3 GradWh_Spline(Real3 d, Real h) {  // d is positive. r is
 // Johnson kernel 1996b
 // d > 0 is the distance between 2 particles. h is the sph kernel length
 
-__device__ inline Real W3h_High(Real d, Real h) {
+__device__ inline Real W3h_High(Real d) {
     Real invh = paramsD.INVHSML;
     Real q = fabs(d) * invh;
     if (q < 2) {
@@ -87,8 +86,7 @@ __device__ inline Real W3h_High(Real d, Real h) {
     return 0;
 }
 
-__device__ inline Real3 GradWh_High(Real3 d, Real h) {  // d is positive. r is the sph kernel length (i.e. h
-                                                        // in the document) d is the distance of 2 particles
+__device__ inline Real3 GradWh_High(Real3 d, Real h) {
     Real invh = paramsD.INVHSML;
     Real q = length(d) * invh;
     if (abs(q) < EPSILON)
@@ -101,7 +99,7 @@ __device__ inline Real3 GradWh_High(Real3 d, Real h) {  // d is positive. r is t
 // Quintic Spline SPH kernel function
 // d > 0 is the distance between 2 particles. h is the sph kernel length
 
-__device__ inline Real W3h_Quintic(Real d, Real h) {
+__device__ inline Real W3h_Quintic(Real d) {
     Real invh = paramsD.INVHSML;
     Real q = fabs(d) * invh;
     Real coeff = 8.35655e-3;  // 3/359
@@ -117,8 +115,7 @@ __device__ inline Real W3h_Quintic(Real d, Real h) {
     return 0;
 }
 
-__device__ inline Real3 GradW3h_Quintic(Real3 d, Real h) {  // d is positive. h is the sph kernel length (i.e. h in
-                                                            // the document) d is the distance of 2 particles
+__device__ inline Real3 GradW3h_Quintic(Real3 d) {
     Real invh = paramsD.INVHSML;
     Real q = length(d) * invh;
     if (fabs(q) < 1e-10)

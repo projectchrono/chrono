@@ -189,7 +189,6 @@ __global__ void Viscosity_correction(Real4* sortedPosRad,  // input: sorted posi
     Real mu_ave = 0.0;
     Real p_ave = 0.0;
     Real3 posRadA = mR3(sortedPosRad[i_idx]);
-    Real h_i = sortedPosRad[i_idx].w;
     Real3 grad_ux = mR3(0.0), grad_uy = mR3(0.0), grad_uz = mR3(0.0);
     for (int count = csrStartIdx; count < csrEndIdx; count++) {
         int j = csrColInd[count];
@@ -199,8 +198,8 @@ __global__ void Viscosity_correction(Real4* sortedPosRad,  // input: sorted posi
         Real3 eij = rij / d;
         Real h_j = sortedPosRad[j].w;
         Real m_j = cube(h_j * paramsD.MULT_INITSPACE) * paramsD.rho0;
-        Real W3 = 0.5 * (W3h(d, h_i) + W3h(d, h_j));
-        Real3 grad_i_wij = 0.5 * (GradWh(rij, h_i) + GradWh(rij, h_j));
+        Real W3 = 0.5 * (W3h(d) + W3h(d));
+        Real3 grad_i_wij = 0.5 * (GradWh(rij) + GradWh(rij));
 
         if (sortedRhoPreMu_old[i_idx].w != -1)
             continue;
@@ -322,7 +321,6 @@ __global__ void V_star_Predictor(Real4* sortedPosRad,  // input: sorted position
     Real3 grad_ux = mR3(0.0), grad_uy = mR3(0.0), grad_uz = mR3(0.0);
     Real3 gradP = mR3(0.0), Laplacian_u = mR3(0.0);
     Real3 posRadA = mR3(sortedPosRad[i_idx]);
-    Real h_i = sortedPosRad[i_idx].w;
 
     //    bool full_support = (csrEndIdx - csrStartIdx) > 0.9 * paramsD.num_neighbors;
     //    bool full_support = (rhoi >= paramsD.rho0);
@@ -344,8 +342,8 @@ __global__ void V_star_Predictor(Real4* sortedPosRad,  // input: sorted position
         Real3 eij = rij / d;
         Real h_j = sortedPosRad[j].w;
         Real m_j = cube(h_j * paramsD.MULT_INITSPACE) * paramsD.rho0;
-        Real W3 = 0.5 * (W3h(d, h_i) + W3h(d, h_j));
-        Real3 grad_i_wij = 0.5 * (GradWh(rij, h_i) + GradWh(rij, h_j));
+        Real W3 = 0.5 * (W3h(d) + W3h(d));
+        Real3 grad_i_wij = 0.5 * (GradWh(rij) + GradWh(rij));
 
         Real3 coeff = -m_j / sortedRhoPreMu[j].x * grad_i_wij;
         grad_ux += coeff * (sortedVelMas[i_idx].x - sortedVelMas[j].x);
@@ -396,7 +394,6 @@ __global__ void V_star_Predictor(Real4* sortedPosRad,  // input: sorted position
 
     else if (Boundary_Marker) {  // ----- Boundary
 
-        Real h_i = sortedPosRad[i_idx].w;
         Real3 posRadA = mR3(sortedPosRad[i_idx]);
         Real den = 0.0;
 
@@ -406,9 +403,7 @@ __global__ void V_star_Predictor(Real4* sortedPosRad,  // input: sorted position
                 continue;
             Real3 posRadB = mR3(sortedPosRad[j]);
             Real3 rij = Distance(posRadA, posRadB);
-            Real h_j = sortedPosRad[j].w;
-            Real h_ij = 0.5 * (h_j + h_i);
-            Real W3 = W3h(length(rij), h_ij);
+            Real W3 = W3h(length(rij));
             A_Matrix[count] = W3;
             // A_Matrix[count] = A_f[count];
             den += W3;
@@ -553,8 +548,6 @@ __global__ void Pressure_Equation(Real4* sortedPosRad,  // input: sorted positio
 
     } else if (Boundary_Marker) {  // ----- Boundary Adami
 
-        Real h_i = sortedPosRad[i_idx].w;
-        //        Real Vi = sumWij_inv[i_idx];
         Real3 posRadA = mR3(sortedPosRad[i_idx]);
         Real3 myAcc = mR3(0);
         Real3 V_prescribed = mR3(0);
@@ -573,9 +566,7 @@ __global__ void Pressure_Equation(Real4* sortedPosRad,  // input: sorted positio
                 continue;
             Real3 posRadB = mR3(sortedPosRad[j]);
             Real3 rij = Distance(posRadA, posRadB);
-            Real h_j = sortedPosRad[j].w;
-            Real h_ij = 0.5 * (h_j + h_i);
-            Real W3 = W3h(length(rij), h_ij);
+            Real W3 = W3h(length(rij));
             // fluid pressures are actually p*TIME_SCALE, so divide by TIME_SCALE to get the actual formula
             A_Matrix[count] = -W3;
             // pressure of the boundary marker should be calculated as p*TIME_SCALE
@@ -672,7 +663,6 @@ __global__ void Velocity_Correction_and_update(Real4* sortedPosRad,
 
     Real divV_star = 0;
     Real rho_i = sortedRhoPreMu_old[i_idx].x;
-    Real h_i = sortedPosRad_old[i_idx].w;
     Real3 posA = mR3(sortedPosRad_old[i_idx]);
     Real3 grad_q_i_conservative = mR3(0.0), grad_q_i_consistent = mR3(0.0), laplacian_V = mR3(0.0);
     Real3 grad_ux = mR3(0.0), grad_uy = mR3(0.0), grad_uz = mR3(0.0);
@@ -683,9 +673,7 @@ __global__ void Velocity_Correction_and_update(Real4* sortedPosRad,
         Real m_j = paramsD.markerMass;
         Real rho_j = sortedRhoPreMu_old[j].x;
         Real3 rij = Distance(posA, mR3(sortedPosRad_old[j]));
-        Real h_j = sortedPosRad_old[j].w;
-        Real h_ij = 0.5 * (h_j + h_i);
-        Real3 gradW = GradWh(rij, h_ij);
+        Real3 gradW = GradWh(rij);
         bool fluid_j = sortedRhoPreMu_old[j].w == -1;
         bool fluid_i = sortedRhoPreMu_old[i_idx].w == -1;
 
@@ -818,8 +806,7 @@ __global__ void Shifting(Real4* sortedPosRad,
         Real m_j = paramsD.markerMass;
 
         if (sortedRhoPreMu_old[j].w == -1.0) {
-            Real h_ij = 0.5 * (sortedPosRad_old[j].w + sortedPosRad_old[i_idx].w);
-            Real Wd = W3h(d, h_ij);
+            Real Wd = W3h(d);
             Real rho_bar = 0.5 * (sortedRhoPreMu_old[i_idx].x + sortedRhoPreMu_old[j].x);
             xSPH_Sum += (sortedVelMas_old[j] - sortedVelMas_old[i_idx]) * Wd * m_j / rho_bar;
         }
