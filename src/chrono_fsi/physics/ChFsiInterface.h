@@ -35,7 +35,7 @@ namespace fsi {
 class ChFsiInterface {
   public:
     /// Constructor of the FSI interface class.
-    ChFsiInterface(FsiDataManager& data_mgr);
+    ChFsiInterface(FsiDataManager& data_mgr, bool verbose);
 
     /// Destructor of the FSI interface class.
     ~ChFsiInterface();

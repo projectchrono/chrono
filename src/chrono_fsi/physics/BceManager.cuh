@@ -17,8 +17,8 @@
 //
 // =============================================================================
 
-#ifndef CH_BCE_CUH_
-#define CH_BCE_CUH_
+#ifndef CH_BCE_MANAGER_H
+#define CH_BCE_MANAGER_H
 
 #include "chrono_fsi/ChApiFsi.h"
 #include "chrono_fsi/physics/FsiDataManager.cuh"
@@ -29,17 +29,17 @@ namespace fsi {
 /// @addtogroup fsi_physics
 /// @{
 
-/// @brief  Base class for processing boundary condition enforcing (BCE) particle forces in an FSI system.
-///
-/// This class handles the Fluid-Solid Interaction by enforcing i) forces from the fluid/granular dynamics
-/// system to the MBD system, and ii) displacement from the MBD system to the fluid dynamics system.
-class ChBce {
+/// Manager for processing boundary condition enforcing (BCE) particle forces in an FSI system.
+/// This class handles the Fluid-Solid Interaction by enforcing:
+/// - forces from the fluid/granular dynamics system to the MBD system
+/// - displacements from the MBD system to the fluid dynamics system
+class BceManager {
   public:
-    ChBce(FsiDataManager& data_mgr,  ///< FSI data
-          bool verbose               ///< verbose terminal output
+    BceManager(FsiDataManager& data_mgr,  ///< FSI data
+               bool verbose               ///< verbose terminal output
     );
 
-    ~ChBce();
+    ~BceManager();
 
     /// Updates the position and velocity of the particles on the rigid bodies based on the state of the body.
     void UpdateBodyMarkerState();
@@ -85,6 +85,8 @@ class ChBce {
     void CalcRigidBceAcceleration();
     void CalcFlex1DBceAcceleration();
     void CalcFlex2DBceAcceleration();
+
+    friend class ChSystemFsi;
 };
 
 /// @} fsi_physics

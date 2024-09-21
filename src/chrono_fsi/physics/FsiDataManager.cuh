@@ -17,8 +17,8 @@
 //
 // =============================================================================
 
-#ifndef CH_FSI_DATAMANAGER_H
-#define CH_FSI_DATAMANAGER_H
+#ifndef CH_FSI_DATA_MANAGER_H
+#define CH_FSI_DATA_MANAGER_H
 
 #include "chrono/ChConfig.h"
 

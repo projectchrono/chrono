@@ -29,8 +29,8 @@ class ChFsiForceI2SPH : public ChFsiForce {
   public:
     /// Force class implemented using incompressible SPH method with implicit integrator.
     ChFsiForceI2SPH(FsiDataManager& data_mgr,  ///< FSI data manager
-                    ChBce& bce_mgr,            ///< BCE manager
-                    bool verb                  ///< verbose output
+                    BceManager& bce_mgr,       ///< BCE manager
+                    bool verbose               ///< verbose output
     );
 
     ~ChFsiForceI2SPH();

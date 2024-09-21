@@ -16,15 +16,15 @@
 //
 // =============================================================================
 
-#ifndef CH_FSI_FORCE_H_
-#define CH_FSI_FORCE_H_
+#ifndef CH_FSI_FORCE_H
+#define CH_FSI_FORCE_H
 
 #include <cstdio>
 #include <cstring>
 #include <fstream>
 #include <sstream>
 
-#include "chrono_fsi/physics/ChBce.cuh"
+#include "chrono_fsi/physics/BceManager.cuh"
 #include "chrono_fsi/physics/FsiDataManager.cuh"
 #include "chrono_fsi/physics/ChCollisionSystemFsi.cuh"
 
@@ -109,8 +109,8 @@ class ChFsiForce {
     /// The constructor instantiates the force system
     /// and initializes the pointer to external data.
     ChFsiForce(FsiDataManager& data_mgr,  ///< FSI data manager
-               ChBce& bce_mgr,            ///< BCE manager
-               bool verb                  ///< verbose output
+               BceManager& bce_mgr,       ///< BCE manager
+               bool verbose               ///< verbose output
     );
 
     /// Destructor of the ChFsiForce.
@@ -167,12 +167,14 @@ class ChFsiForce {
 
   protected:
     FsiDataManager& m_data_mgr;  ///< FSI data manager
-    ChBce& m_bce_mgr;            ///< BCE manager
+    BceManager& m_bce_mgr;       ///< BCE manager
 
     // NOTE: this is cached at each call to ForceSPH()
     std::shared_ptr<SphMarkerDataD> m_sortedSphMarkers_D;  ///< device copy of the sorted sph particles data
 
-    bool verbose;
+    bool m_verbose;
+
+    friend class ChFluidDynamics;
 };
 
 /// @} fsi_physics

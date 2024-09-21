@@ -884,8 +884,8 @@ __global__ void Shifting(Real4* sortedPosRad,
 
 //--------------------------------------------------------------------------------------------------------------------------------
 
-ChFsiForceI2SPH::ChFsiForceI2SPH(FsiDataManager& data_mgr, ChBce& bce_mgr, bool verb)
-    : ChFsiForce(data_mgr, bce_mgr, verb) {
+ChFsiForceI2SPH::ChFsiForceI2SPH(FsiDataManager& data_mgr, BceManager& bce_mgr, bool verbose)
+    : ChFsiForce(data_mgr, bce_mgr, verbose) {
     CopyParametersToDevice(m_data_mgr.paramsH, m_data_mgr.countersH);
 }
 
@@ -972,7 +972,7 @@ void ChFsiForceI2SPH::ForceSPH(std::shared_ptr<SphMarkerDataD> sortedSphMarkers_
     Real dt = std::min(dt_body, std::min(dt_CFL, dt_nu));
 
     if (!pH->Adaptive_time_stepping) {
-        if (verbose)
+        if (m_verbose)
             printf("| time step=%.3e, dt_Max=%.3e, dt_CFL=%.3e (CFL=%.2g), dt_nu=%.3e, dt_body=%.3e\n", pH->dT,
                    pH->dT_Max, dt_CFL, pH->Co_number, dt_nu, dt_body);
     } else {
@@ -981,7 +981,7 @@ void ChFsiForceI2SPH::ForceSPH(std::shared_ptr<SphMarkerDataD> sortedSphMarkers_
         else
             pH->dT = std::min(dt, pH->dT_Max);
 
-        if (verbose)
+        if (m_verbose)
             printf("| time step=%.3e, dt_Max=%.3e, dt_CFL=%.3e (CFL=%.2g), dt_nu=%.3e, dt_body=%.3e\n", pH->dT,
                    pH->dT_Max, dt_CFL, pH->Co_number, dt_nu, dt_body);
 
@@ -994,7 +994,7 @@ void ChFsiForceI2SPH::ForceSPH(std::shared_ptr<SphMarkerDataD> sortedSphMarkers_
     size_t end_flex = end_rigid + cH->numFlexMarkers1D + cH->numFlexMarkers2D;
     int4 updatePortion = mI4((int)end_fluid, (int)end_bndry, (int)end_rigid, (int)end_flex);
 
-    if (verbose)
+    if (m_verbose)
         cout << "update portion: " << updatePortion.x << " " << updatePortion.y << " " << updatePortion.z << " "
              << updatePortion.w << endl;
 
@@ -1157,7 +1157,7 @@ void ChFsiForceI2SPH::ForceSPH(std::shared_ptr<SphMarkerDataD> sortedSphMarkers_
         Iteration = myLinearSolver->GetNumIterations();
 
         if (myLinearSolver->GetSolverStatus()) {
-            if (verbose) {
+            if (m_verbose) {
                 cout << " Linear solver converged to " << myLinearSolver->GetResidual() << " tolerance";
                 cout << " after " << myLinearSolver->GetNumIterations() << " iterations" << endl;
             }
@@ -1214,7 +1214,7 @@ void ChFsiForceI2SPH::ForceSPH(std::shared_ptr<SphMarkerDataD> sortedSphMarkers_
 
     thrust::for_each(b1Vector.begin(), b1Vector.end(), mf);
     Real Ave_after = thrust::reduce(b1Vector.begin(), b1Vector.end(), 0.0) / numAllMarkers;
-    if (verbose) {
+    if (m_verbose) {
         double Pressure_Computation = (clock() - LinearSystemClock_p) / (double)CLOCKS_PER_SEC;
         printf("Ave RHS =%.3e, Ave after removing null space=%.3e\n", Ave_RHS, Ave_after);
         printf("| Pressure Poisson Equation: %f (sec) - Final Residual=%.3e - #Iter=%d, Ave_p=%.3e\n",

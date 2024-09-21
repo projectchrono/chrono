@@ -576,34 +576,23 @@ __global__ void CopySortedToOriginal_D(const Real4* sortedPosRad,
 // -----------------------------------------------------------------------------
 // CLASS FOR FLUID DYNAMICS SYSTEM
 // -----------------------------------------------------------------------------
-ChFluidDynamics::ChFluidDynamics(FsiDataManager& data_mgr, ChBce& bce_mgr, bool verb)
-    : m_data_mgr(data_mgr), verbose(verb) {
+ChFluidDynamics::ChFluidDynamics(FsiDataManager& data_mgr, BceManager& bce_mgr, bool verbose)
+    : m_data_mgr(data_mgr), m_verbose(verbose) {
     switch (m_data_mgr.paramsH->sph_method) {
         default:
-            cout << "Selected integrator type not implemented, reverting to WCSPH" << endl;
-
         case SPHMethod::WCSPH:
-            forceSystem = chrono_types::make_shared<ChFsiForceExplicitSPH>(data_mgr, bce_mgr, verb);
-            if (verbose) {
-                cout << "====== Created a WCSPH framework" << endl;
-            }
-
+            forceSystem = chrono_types::make_shared<ChFsiForceExplicitSPH>(data_mgr, bce_mgr, verbose);
             break;
-
         case SPHMethod::I2SPH:
-            forceSystem = chrono_types::make_shared<ChFsiForceI2SPH>(data_mgr, bce_mgr, verb);
-            if (verbose) {
-                cout << "====== Created an I2SPH framework" << endl;
-            }
-
+            forceSystem = chrono_types::make_shared<ChFsiForceI2SPH>(data_mgr, bce_mgr, verbose);
             break;
     }
 }
 
-// -----------------------------------------------------------------------------
 ChFluidDynamics::~ChFluidDynamics() {}
 
 // -----------------------------------------------------------------------------
+
 void ChFluidDynamics::Initialize() {
     forceSystem->Initialize();
     cudaMemcpyToSymbolAsync(paramsD, m_data_mgr.paramsH.get(), sizeof(SimParams));

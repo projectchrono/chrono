@@ -19,7 +19,7 @@
 // For I2SPH, it is derivVelRhoD only
 // =============================================================================
 
-#include "chrono_fsi/physics/ChBce.cuh"
+#include "chrono_fsi/physics/BceManager.cuh"
 #include "chrono_fsi/physics/ChSphGeneral.cuh"
 #include <type_traits>
 
@@ -585,16 +585,16 @@ __global__ void UpdateMeshMarker2DStateUnsorted_D(
 
 // =============================================================================
 
-ChBce::ChBce(FsiDataManager& data_mgr, bool verbose) : m_data_mgr(data_mgr), m_verbose(verbose) {
+BceManager::BceManager(FsiDataManager& data_mgr, bool verbose) : m_data_mgr(data_mgr), m_verbose(verbose) {
     m_totalForceRigid.resize(0);
     m_totalTorqueRigid.resize(0);
 }
 
-ChBce::~ChBce() {}
+BceManager::~BceManager() {}
 
 // -----------------------------------------------------------------------------
 
-void ChBce::Initialize(std::vector<int> fsiBodyBceNum) {
+void BceManager::Initialize(std::vector<int> fsiBodyBceNum) {
     cudaMemcpyToSymbolAsync(paramsD, m_data_mgr.paramsH.get(), sizeof(SimParams));
     cudaMemcpyToSymbolAsync(countersD, m_data_mgr.countersH.get(), sizeof(Counters));
 
@@ -635,7 +635,7 @@ void ChBce::Initialize(std::vector<int> fsiBodyBceNum) {
 
 // -----------------------------------------------------------------------------
 
-void ChBce::Populate_RigidSPH_MeshPos_LRF(std::vector<int> fsiBodyBceNum) {
+void BceManager::Populate_RigidSPH_MeshPos_LRF(std::vector<int> fsiBodyBceNum) {
     // Create map between a BCE on a rigid body and the associated body ID
     uint start_bce = 0;
     for (int irigid = 0; irigid < fsiBodyBceNum.size(); irigid++) {
@@ -659,7 +659,7 @@ void ChBce::Populate_RigidSPH_MeshPos_LRF(std::vector<int> fsiBodyBceNum) {
 //--------------------------------------------------------------------------------------------------------------------------------
 // Calculate accelerations of solid BCE markers -> load m_data_mgr.bceAcc
 
-void ChBce::CalcRigidBceAcceleration() {
+void BceManager::CalcRigidBceAcceleration() {
     // thread per particle
     uint numThreads, numBlocks;
     computeGridSize((uint)m_data_mgr.countersH->numRigidMarkers, 256, numBlocks, numThreads);
@@ -674,7 +674,7 @@ void ChBce::CalcRigidBceAcceleration() {
     cudaCheckError();
 }
 
-void ChBce::CalcFlex1DBceAcceleration() {
+void BceManager::CalcFlex1DBceAcceleration() {
     if (m_data_mgr.countersH->numFlexBodies1D == 0)
         return;
 
@@ -694,7 +694,7 @@ void ChBce::CalcFlex1DBceAcceleration() {
     cudaCheckError();
 }
 
-void ChBce::CalcFlex2DBceAcceleration() {
+void BceManager::CalcFlex2DBceAcceleration() {
     if (m_data_mgr.countersH->numFlexBodies2D == 0)
         return;
 
@@ -715,7 +715,7 @@ void ChBce::CalcFlex2DBceAcceleration() {
 }
 
 //--------------------------------------------------------------------------------------------------------------------------------
-void ChBce::updateBCEAcc() {
+void BceManager::updateBCEAcc() {
     int size_ref = m_data_mgr.referenceArray.size();
     int numBceMarkers = m_data_mgr.referenceArray[size_ref - 1].y - m_data_mgr.referenceArray[0].y;
     auto N_solid = m_data_mgr.countersH->numRigidMarkers + m_data_mgr.countersH->numFlexMarkers1D + m_data_mgr.countersH->numFlexMarkers2D;
@@ -754,7 +754,7 @@ void ChBce::updateBCEAcc() {
 
 // -----------------------------------------------------------------------------
 
-void ChBce::Rigid_Forces_Torques() {
+void BceManager::Rigid_Forces_Torques() {
     if (m_data_mgr.countersH->numRigidBodies == 0)
         return;
 
@@ -774,7 +774,7 @@ void ChBce::Rigid_Forces_Torques() {
     cudaCheckError();
 }
 
-void ChBce::Flex1D_Forces() {
+void BceManager::Flex1D_Forces() {
     if (m_data_mgr.countersH->numFlexBodies1D == 0)
         return;
 
@@ -797,7 +797,7 @@ void ChBce::Flex1D_Forces() {
     cudaCheckError();
 }
 
-void ChBce::Flex2D_Forces() {
+void BceManager::Flex2D_Forces() {
     if (m_data_mgr.countersH->numFlexBodies2D == 0)
         return;
 
@@ -822,7 +822,7 @@ void ChBce::Flex2D_Forces() {
 
 // -----------------------------------------------------------------------------
 
-void ChBce::UpdateBodyMarkerState() {
+void BceManager::UpdateBodyMarkerState() {
     if (m_data_mgr.countersH->numRigidBodies == 0)
         return;
 
@@ -841,7 +841,7 @@ void ChBce::UpdateBodyMarkerState() {
 }
 
 // This is applied only during BCE initialization
-void ChBce::UpdateBodyMarkerStateInitial() {
+void BceManager::UpdateBodyMarkerStateInitial() {
     if (m_data_mgr.countersH->numRigidBodies == 0)
         return;
 
@@ -857,7 +857,7 @@ void ChBce::UpdateBodyMarkerStateInitial() {
     cudaCheckError();
 }
 
-void ChBce::UpdateMeshMarker1DState() {
+void BceManager::UpdateMeshMarker1DState() {
     if (m_data_mgr.countersH->numFlexBodies1D == 0)
         return;
 
@@ -877,7 +877,7 @@ void ChBce::UpdateMeshMarker1DState() {
     cudaCheckError();
 }
 
-void ChBce::UpdateMeshMarker1DStateInitial() {
+void BceManager::UpdateMeshMarker1DStateInitial() {
     if (m_data_mgr.countersH->numFlexBodies1D == 0)
         return;
 
@@ -896,7 +896,7 @@ void ChBce::UpdateMeshMarker1DStateInitial() {
     cudaCheckError();
 }
 
-void ChBce::UpdateMeshMarker2DState() {
+void BceManager::UpdateMeshMarker2DState() {
     if (m_data_mgr.countersH->numFlexBodies2D == 0)
         return;
 
@@ -916,7 +916,7 @@ void ChBce::UpdateMeshMarker2DState() {
     cudaCheckError();
 }
 
-void ChBce::UpdateMeshMarker2DStateInitial() {
+void BceManager::UpdateMeshMarker2DStateInitial() {
     if (m_data_mgr.countersH->numFlexBodies2D == 0)
         return;
 

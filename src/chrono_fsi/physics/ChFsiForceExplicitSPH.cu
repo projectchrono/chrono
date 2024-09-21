@@ -1417,8 +1417,8 @@ __global__ void CopySortedToOriginal_XSPH_D(const Real3* sortedXSPH,
 
 // ===============================================================================================================================
 
-ChFsiForceExplicitSPH::ChFsiForceExplicitSPH(FsiDataManager& data_mgr, ChBce& bce_mgr, bool verb)
-    : ChFsiForce(data_mgr, bce_mgr, verb) {
+ChFsiForceExplicitSPH::ChFsiForceExplicitSPH(FsiDataManager& data_mgr, BceManager& bce_mgr, bool verbose)
+    : ChFsiForce(data_mgr, bce_mgr, verbose) {
     CopyParametersToDevice(m_data_mgr.paramsH, m_data_mgr.countersH);
     density_initialization = 0;
 }

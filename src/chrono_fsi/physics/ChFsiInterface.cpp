@@ -22,8 +22,8 @@
 namespace chrono {
 namespace fsi {
 
-ChFsiInterface::ChFsiInterface(FsiDataManager& data_mgr)
-    : m_data_mgr(data_mgr), m_verbose(true) {}
+ChFsiInterface::ChFsiInterface(FsiDataManager& data_mgr, bool verbose)
+    : m_data_mgr(data_mgr), m_verbose(verbose) {}
 
 ChFsiInterface::~ChFsiInterface() {}
 

@@ -25,11 +25,11 @@ namespace chrono {
 namespace fsi {
 
 ChFsiForce::ChFsiForce(FsiDataManager& data_mgr,
-                       ChBce& bce_mgr,
-                       bool verb)
+                       BceManager& bce_mgr,
+                       bool verbose)
     : m_data_mgr(data_mgr),
       m_bce_mgr(bce_mgr),
-      verbose(verb),
+      m_verbose(verbose),
       m_sortedSphMarkers_D(nullptr) {
     fsiCollisionSystem = chrono_types::make_shared<ChCollisionSystemFsi>(data_mgr);
 }

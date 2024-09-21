@@ -43,9 +43,9 @@ class ChFluidDynamics {
     /// - Instantiate ChFsiForce, i.e. force system;
     /// - Copy the pointer to SPH particle data, parameters,
     ///   and number of objects to member variables.
-    ChFluidDynamics(FsiDataManager& data_mgr,                ///< FSI data manager
-                    ChBce& bce_mgr,                          ///< BCE manager
-                    bool verb                                ///< verbose output
+    ChFluidDynamics(FsiDataManager& data_mgr,  ///< FSI data manager
+                    BceManager& bce_mgr,       ///< BCE manager
+                    bool verbose               ///< verbose output
     );
 
     /// Destructor of the fluid/granular dynamics class.
@@ -90,7 +90,7 @@ class ChFluidDynamics {
     FsiDataManager& m_data_mgr;               ///< FSI data manager
     std::shared_ptr<ChFsiForce> forceSystem;  ///< force system object; calculates the force between particles
 
-    bool verbose;
+    bool m_verbose;
 
     /// Update activity of SPH particles.
     /// SPH particles which are in an active domain (e.g., close to a solid) are set as active particles.

@@ -134,9 +134,9 @@ source_group("" FILES ${ChronoEngine_FSI_FILES})
 set(ChronoEngine_FSI_PHYSICS_FILES
     physics/ChParams.h
     physics/ChFsiInterface.h
-    physics/FsiDataManager.cuh
     physics/ChMarkerType.cuh
-    physics/ChBce.cuh
+    physics/FsiDataManager.cuh
+    physics/BceManager.cuh
     physics/ChFluidDynamics.cuh
     physics/ChCollisionSystemFsi.cuh
     physics/ChFsiForce.cuh    
@@ -146,7 +146,7 @@ set(ChronoEngine_FSI_PHYSICS_FILES
 
     physics/ChFsiInterface.cpp
     physics/FsiDataManager.cu
- 	physics/ChBce.cu
+ 	physics/BceManager.cu
     physics/ChFluidDynamics.cu
     physics/ChCollisionSystemFsi.cu
     physics/ChFsiForce.cu

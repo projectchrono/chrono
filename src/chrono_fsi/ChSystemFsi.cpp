@@ -32,7 +32,7 @@
 #include "chrono_fsi/physics/FsiDataManager.cuh"
 #include "chrono_fsi/physics/ChFsiInterface.h"
 #include "chrono_fsi/physics/ChFluidDynamics.cuh"
-#include "chrono_fsi/physics/ChBce.cuh"
+#include "chrono_fsi/physics/BceManager.cuh"
 #include "chrono_fsi/utils/ChUtilsTypeConvert.h"
 #include "chrono_fsi/utils/ChUtilsGeneratorFluid.h"
 #include "chrono_fsi/utils/ChUtilsPrintSph.cuh"
@@ -68,15 +68,14 @@ ChSystemFsi::ChSystemFsi(ChSystem* sysMBS)
     m_paramsH = chrono_types::make_shared<SimParams>();
     InitParams();
 
-    m_data_mgr = chrono_types::make_unique<FsiDataManager>(m_paramsH);
-
     m_num_flex1D_elements = 0;
     m_num_flex2D_elements = 0;
 
     m_num_flex1D_nodes = 0;
     m_num_flex2D_nodes = 0;
 
-    m_fsi_interface = chrono_types::make_unique<ChFsiInterface>(*m_data_mgr);
+    m_data_mgr = chrono_types::make_unique<FsiDataManager>(m_paramsH);
+    m_fsi_interface = chrono_types::make_unique<ChFsiInterface>(*m_data_mgr, m_verbose);
 }
 
 ChSystemFsi::~ChSystemFsi() {}
@@ -1031,7 +1030,7 @@ void ChSystemFsi::Initialize() {
     m_fsi_interface->LoadMeshStates();
 
     // Create BCE and SPH worker objects
-    m_bce_mgr = chrono_types::make_unique<ChBce>(*m_data_mgr, m_verbose);
+    m_bce_mgr = chrono_types::make_unique<BceManager>(*m_data_mgr, m_verbose);
     m_fluid_dynamics = chrono_types::make_unique<ChFluidDynamics>(*m_data_mgr, *m_bce_mgr, m_verbose);
 
     // Initialize worker objects
