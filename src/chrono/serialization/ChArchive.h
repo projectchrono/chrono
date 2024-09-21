@@ -836,6 +836,8 @@ class ChApi ChArchiveOut : public ChArchive {
 
     std::unordered_map<void*, size_t> external_ptr_id;
 
+    std::unordered_set<size_t> external_tags;
+
     std::unordered_set<void*> cut_pointers;
 
     bool cut_all_pointers;
@@ -909,6 +911,11 @@ class ChApi ChArchiveOut : public ChArchive {
     /// Access the map of pointer(s) that must not be serialized
     /// but rather be 'unbind' and be saved just as unique IDs.
     std::unordered_map<void*, size_t>& ExternalPointersMap() { return external_ptr_id;  }
+
+    /// Access the map of tags for whom pointer must not be serialized
+    /// but rather be 'unbind' and be saved just as unique IDs (their tags). Objects 
+    /// need to implement the GetTag() function to leverage this feature.
+    std::unordered_set<size_t>& ExternalTags() { return external_tags; }
 
     /// If you enable  SetEmptyShallowContainers(true), no serialization happens for
     /// objects inside containers (std::list, std::vector, std::unordered_map etc) that
@@ -1124,12 +1131,19 @@ class ChApi ChArchiveOut : public ChArchive {
         bool already_stored = false;
         size_t obj_ID = 0;
         size_t ext_ID = 0;
+        ChValueSpecific<T> val(*mptr, "", 0);
         if (this->external_ptr_id.find(idptr) != this->external_ptr_id.end()) {
             already_stored = true;
             ext_ID = external_ptr_id[idptr];
-        } else {
-            //PutPointer(idptr, already_stored, obj_ID);
-            ChValueSpecific<T> val(*mptr,"",0);       
+        }
+        if (this->external_tags.size()) {
+            if (val.HasGetTag())
+                if (this->external_tags.find(val.CallGetTag()) != this->external_tags.end()) {
+                    already_stored = true;
+                    ext_ID = val.CallGetTag();
+                }
+        }
+        if (!already_stored) {    
             PutPointer(val, already_stored, obj_ID);
         }
         ChValueSpecific<T> specVal(
@@ -1154,13 +1168,19 @@ class ChApi ChArchiveOut : public ChArchive {
         bool already_stored = false;
         size_t obj_ID = 0;
         size_t ext_ID = 0;
-
+        ChValueSpecific<T> val(*mptr, "", 0);
         if (this->external_ptr_id.find(idptr) != this->external_ptr_id.end()) {
             already_stored = true;
             ext_ID = external_ptr_id[idptr];
-        } else {
-            //PutPointer(idptr, already_stored, obj_ID);
-            ChValueSpecific<T> val(*mptr, "", 0);
+        }
+        if (this->external_tags.size()) {
+            if (val.HasGetTag())
+                if (this->external_tags.find(val.CallGetTag()) != this->external_tags.end()) {
+                    already_stored = true;
+                    ext_ID = val.CallGetTag();
+                }
+        }
+        if (!already_stored) {
             PutPointer(val, already_stored, obj_ID);
         }
         ChValueSpecific<T> specVal(*mptr, bVal.name(), bVal.flags(), bVal.GetCausality(), bVal.GetVariability());
@@ -1176,8 +1196,6 @@ class ChApi ChArchiveOut : public ChArchive {
         if (bVal.flags() & NVP_TRACK_OBJECT) {
             bool already_stored;
             T* mptr = &bVal.value();
-            //void* idptr = getVoidPointer<T>(mptr);
-            //PutPointer(idptr, already_stored, obj_ID);
             ChValueSpecific<T> val(*mptr, "", 0);
             PutPointer(val, already_stored, obj_ID);
             if (already_stored) {
@@ -1489,8 +1507,8 @@ class ChApi ChArchiveIn : public ChArchive {
         // bVal must now be updated (in_ref just modified mtmp!)
         // Some additional complication respect to raw pointers:
         // it must properly increment shared count of shared pointers.
-        void* true_ptr = getVoidPointer<T>(mptr);
-        std::unordered_map<void*, shared_pair_type>::iterator existing_sh_ptr = shared_ptr_map.find(true_ptr);
+        void* idptr = getVoidPointer<T>(mptr);
+        std::unordered_map<void*, shared_pair_type>::iterator existing_sh_ptr = shared_ptr_map.find(idptr);
         if (newptr || existing_sh_ptr == shared_ptr_map.end()) {
             // CASE A: newly created object or object created through raw pointers.
             //   mptr (== *mtmp._value.pt2Object) has already been properly converted to type T
@@ -1500,7 +1518,7 @@ class ChApi ChArchiveIn : public ChArchive {
             // i.e. the address of the most derived type
             // and it holds a copy of a shared_prt so to be able to add to it if anyone else is going to refer to it
             shared_ptr_map.emplace(
-                std::make_pair(true_ptr, std::make_pair(std::static_pointer_cast<void>(bVal.value()), true_classname)));
+                std::make_pair(idptr, std::make_pair(std::static_pointer_cast<void>(bVal.value()), true_classname)));
         } else {
             // case B: existing object already referenced by a shared_ptr, so increment ref count
             std::shared_ptr<void> converted_shptr =
