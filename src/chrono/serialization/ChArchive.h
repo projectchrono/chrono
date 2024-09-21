@@ -1246,18 +1246,28 @@ class ChApi ChArchiveIn : public ChArchive {
     /// Note, the IDs can be whatever integer > 0. Use unique IDs per each pointer.
     /// Note, the same IDs must be used when serializing pointers in ArchiveOut.
     /// Note, there is no check on pointer types when rebinding!
+    template<typename Ty>
+    void RebindExternalPointer(Ty*   mptr, size_t ID) { external_id_ptr[ID] = getVoidPointer<Ty>(mptr); }
+    /*
     void RebindExternalPointer(void* mptr, size_t ID) { external_id_ptr[ID] = mptr; }
+    */
 
     /// Use the following to declare object IDs that must not be de-serialized
     /// but rather be 'rebind' to already-existing external shared pointers, given unique IDs.
     /// Note, the IDs can be whatever integer > 0. Use unique IDs per each pointer.
     /// Note, the same IDs must be used when serializing pointers in ArchiveOut.
     /// Note, there is no check on pointer types when rebinding!
+    template<typename Ty>
+    void RebindExternalPointer(std::shared_ptr<Ty> mptr, size_t ID) {
+        external_id_ptr[ID] = getVoidPointer<Ty>(mptr.get());
+        shared_ptr_map.emplace(std::make_pair(getVoidPointer<Ty>(mptr.get()), shared_pair_type(mptr, "")));
+    }
+    /*
     void RebindExternalPointer(std::shared_ptr<void> mptr, size_t ID) {
         external_id_ptr[ID] = mptr.get();
-        // shared_ptr_map[mptr.get()] = shared_pair_type(mptr, std::type_index(typeid(void)));
         shared_ptr_map.emplace(std::make_pair(mptr.get(), shared_pair_type(mptr, "")));
     }
+    */
 
     /// Access the map of pointer(s) that were not be serialized
     /// but rather saved just as unique IDs for rebinding at de-serialization.
