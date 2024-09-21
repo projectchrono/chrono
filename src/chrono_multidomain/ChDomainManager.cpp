@@ -240,7 +240,6 @@ void InterfaceManageNodeSharedLeaving(
 		shared_ids.insert(mtag);
 		if (!is_sharing) {
 			// enter shared state
-			interface_sharedmap[mtag] = obj;
 			// migrate to neighbour
 			if (!is_sent) {
 				objs_to_send.push_back(ChIncrementalObj<T_node_serial>{ parent_tag, obj });
@@ -248,13 +247,6 @@ void InterfaceManageNodeSharedLeaving(
 			}
 		}
 	}
-	else {
-		if (is_sharing) {
-			// exit shared state
-			interface_sharedmap.erase(mtag);
-		}
-	}
-
 }
 
 void ChDomain::DoUpdateSharedLeaving() {
@@ -276,7 +268,23 @@ void ChDomain::DoUpdateSharedLeaving() {
 		serializer.SetEmptyShallowContainers(true);		// we will take care of contained items one by one
 		serializer.SetUseGetTagAsID(true);				// GetTag of items, when available, will be used to generate unique IDs in serialization
 		serializer.CutPointers().insert(this->system);  // avoid propagation of serialization to parent system
-
+/*
+		// Prepare a map of pointers to shared items so that they are not serialized but just referenced
+		// by tag. For this reason we traverse all the pointers in the shared items.
+		ChArchiveOutPointerMap rebinding_pointers;
+		for (const auto& body : system->GetBodies()) {
+			if (interf.second.shared_items.find(body->GetTag()) != interf.second.shared_items.end())
+				rebinding_pointers << CHNVP(body);
+		}
+		for (const auto& oitem : system->GetOtherPhysicsItems()) {
+			if (interf.second.shared_items.find(oitem->GetTag()) != interf.second.shared_items.end())
+				rebinding_pointers << CHNVP(oitem);
+		}
+		serializer.ExternalPointersMap() = rebinding_pointers.pointer_map_ptr_id;
+		std::cout << "           serializer external size: " << rebinding_pointers.pointer_map_ptr_id.size() << "\n";
+		for (auto& m : serializer.ExternalPointersMap())
+			std::cout << "            serializer external: " << m.second << "\n";
+*/
 		std::vector<ChIncrementalObj<ChBody>>		bodies_migrating;
 		std::vector<ChIncrementalObj<ChPhysicsItem>>items_migrating;
 		std::vector<ChIncrementalObj<ChLinkBase>>	links_migrating;
@@ -462,7 +470,29 @@ void ChDomain::DoUpdateSharedLeaving() {
 
 		}
 
-		
+
+		// - Purge the shared object sets from those that are not shared anymore.
+		//   This is not very efficient. Can be optimized.
+
+		interf.second.shared_items.clear();
+		interf.second.shared_nodes.clear();
+
+		for (const auto& body : system->GetBodies()) {
+			if (shared_ids.find(body->GetTag()) != shared_ids.end())
+				interf.second.shared_items[body->GetTag()] = body;
+		}
+		for (const auto& oitem : system->GetOtherPhysicsItems()) {
+			if (shared_ids.find(oitem->GetTag()) != shared_ids.end())
+				interf.second.shared_items[oitem->GetTag()] = oitem;
+
+			if (auto mmesh = std::dynamic_pointer_cast<fea::ChMesh>(oitem)) {
+				for (const auto& node : mmesh->GetNodes()) {
+					if (shared_ids.find(node->GetTag()) != shared_ids.end())
+						interf.second.shared_nodes[node->GetTag()] = node;
+				}
+			}
+		}
+
 
 
 		// - SERIALIZE
@@ -521,6 +551,20 @@ void  ChDomain::DoUpdateSharedReceived() {
 		ChArchiveInXML deserializer(interf.second.buffer_receiving); //***TODO*** revert to binary for performance
 		//std::cout << "\nDESERIALIZE domain " << this->GetRank() << " from interface " << interf.second.side_OUT->GetRank() << "\n"; //***DEBUG
 		//std::cout << interf.second.buffer_receiving.str(); //***DEBUG
+		
+		// Prepare a map of pointers to already existing items that, if referenced by serializer as external IDs, just
+		// need to be rebind. 
+		// In this case for simplicity and safety we collect all the pointers in this->system, but future implemetation
+		// could just collect the pointers of the shared items.
+		/*
+		ChArchiveOutPointerMap rebinding_pointers;
+		rebinding_pointers << CHNVP(this->system);
+		deserializer.ExternalPointersMap() = rebinding_pointers.pointer_map_id_ptr;
+
+		std::cout << "           deserializer external size: " << rebinding_pointers.pointer_map_ptr_id.size() << "\n";
+		for (auto& m : deserializer.ExternalPointersMap())
+			std::cout << "            deserializer external: " << m.first << "\n";
+*/
 
 		// Deserialize inbound bodies
 		deserializer >> CHNVP(bodies_migrating);

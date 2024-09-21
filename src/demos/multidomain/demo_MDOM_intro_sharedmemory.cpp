@@ -20,6 +20,7 @@
 #include "chrono/physics/ChSystemSMC.h"
 #include "chrono/physics/ChSystemNSC.h"
 #include "chrono/physics/ChLinkMotorRotationSpeed.h"
+#include "chrono/physics/ChLinkDistance.h"
 #include "chrono/physics/ChBodyEasy.h"
 #include "chrono/serialization/ChArchiveBinary.h"
 #include "chrono/fea/ChNodeFEAxyzrot.h"
@@ -128,11 +129,39 @@ int main(int argc, char* argv[]) {
     mrigidBodyb->SetPos(ChVector3d(1.5, 0, 0));
     mrigidBodyb->SetTag(unique_ID); unique_ID++;
 
+    auto mrigidBodyc = chrono_types::make_shared<ChBodyEasyBox>(5, 0.5, 5,  // x,y,z size
+        400,         // density
+        true,        // visualization?
+        true,        // collision?
+        mat);        // contact material
+    sys_0.AddBody(mrigidBodyc);
+    mrigidBodyc->SetPos(ChVector3d(0, -1, 0));
+    mrigidBodyc->SetFixed(true);
+    mrigidBodyc->SetTag(unique_ID); unique_ID++;
+
+    auto mrigidBodyd = chrono_types::make_shared<ChBodyEasySphere>(0.6,  // rad
+        400,         // density
+        true,        // visualization?
+        true,        // collision?
+        mat);        // contact material
+    sys_0.AddBody(mrigidBodyd);
+    mrigidBodyd->SetPos(ChVector3d(-1.5, 2, 0));
+    mrigidBodyd->SetPosDt(ChVector3d(20, 0, 0));
+    mrigidBodyd->SetTag(unique_ID); unique_ID++;
+
+    auto linkdistance = chrono_types::make_shared<ChLinkDistance>();
+    sys_0.Add(linkdistance);
+    linkdistance->Initialize(mrigidBody, mrigidBodyd, true, ChVector3d(0,1,0), ChVector3d(0,0,0));
+    linkdistance->SetTag(unique_ID); unique_ID++;
+
+
     // HACK force update of AABB of bodies, already in StepDynamics() but here for first DoAllDomainPartitionUpdate()
     sys_0.GetCollisionSystem()->BindItem(mrigidBody); 
     sys_1.GetCollisionSystem()->BindItem(mrigidBodyb);
+    sys_0.GetCollisionSystem()->BindItem(mrigidBodyc);
 
     // For debugging: open two 3D realtime view windows, each per domain:
+    /*
     auto vis_irr_0 = chrono_types::make_shared<ChVisualSystemIrrlicht>();
     vis_irr_0->AttachSystem(&sys_0);
     vis_irr_0->SetWindowTitle("Domain 0");
@@ -149,11 +178,14 @@ int main(int argc, char* argv[]) {
     vis_irr_1->AddCamera(ChVector3d(1, 2, 6), ChVector3d(0, 2, 0));
     vis_irr_1->AddTypicalLights();
     //vis_irr_1->BindAll();
+    */
+    system("pause");
 
     for (int i = 0; i < 25; ++i) {
         std::cout << "\n\n\n============= Time step " << i << std::endl << std::endl;
        
         // For debugging: open two 3D realtime view windows, each per domain:
+        /*
         vis_irr_0->RemoveAllIrrNodes();
         vis_irr_0->BindAll();
         vis_irr_0->Run();
@@ -166,11 +198,10 @@ int main(int argc, char* argv[]) {
         vis_irr_1->BeginScene();
         vis_irr_1->Render();
         vis_irr_1->EndScene();
-
-
+        */
         // MULTIDOMAIN AUTOMATIC ITEM MIGRATION!
         domain_manager.DoAllDomainPartitionUpdate();
-
+        //system("pause");
         // MULTIDOMAIN TIME INTEGRATION
         domain_manager.DoAllStepDynamics(0.01);
 
