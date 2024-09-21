@@ -890,13 +890,21 @@ class ChApi ChArchiveOut : public ChArchive {
     /// but rather be 'unbind' and be saved just as unique IDs.
     /// Note, the IDs can be whatever integer > 0. Use unique IDs per each pointer.
     /// Note, the same IDs must be used when de-serializing pointers in ArchiveIn.
+    template <typename Ty>
+    void UnbindExternalPointer(Ty* mptr, size_t ID) { external_ptr_id[getVoidPointer<Ty>(mptr)] = ID; }
+    /*
     void UnbindExternalPointer(void* mptr, size_t ID) { external_ptr_id[mptr] = ID; }
+    */
 
     /// Use the following to declare pointer(s) that must not be serialized
     /// but rather be 'unbind' and be saved just as unique IDs.
     /// Note, the IDs can be whatever integer > 0. Use unique IDs per each pointer.
     /// Note, the same IDs must be used when de-serializing pointers in ArchiveIn.
+    template <typename Ty>
+    void UnbindExternalPointer(std::shared_ptr<Ty> mptr, size_t ID) { external_ptr_id[getVoidPointer<Ty>(mptr.get())] = ID; }
+    /*
     void UnbindExternalPointer(std::shared_ptr<void> mptr, size_t ID) { external_ptr_id[mptr.get()] = ID; }
+    */
 
     /// Access the map of pointer(s) that must not be serialized
     /// but rather be 'unbind' and be saved just as unique IDs.
