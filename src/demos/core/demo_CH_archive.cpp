@@ -262,6 +262,9 @@ void my_serialization_example(ChArchiveOut& archive_out) {
     m_stlunorderedmap[12] = 11.2;
     m_stlunorderedmap[41] = 44.8;
     m_stlunorderedmap[34] = 33.6;
+    std::unordered_set<int> m_stlunorderedset;
+    m_stlunorderedset.insert(8);
+    m_stlunorderedset.insert(32);
     ChMatrixDynamic<double> m_matr_dyn(3, 5);
     m_matr_dyn.fillRandom(0, 10);
     ChMatrixNM<double, 2, 3> m_matr_NM;
@@ -278,6 +281,7 @@ void my_serialization_example(ChArchiveOut& archive_out) {
     archive_out << CHNVP(m_stllist);
     archive_out << CHNVP(m_stlpair);
     archive_out << CHNVP(m_stlunorderedmap);
+    archive_out << CHNVP(m_stlunorderedset);
     archive_out << CHNVP(m_matr_dyn);
     archive_out << CHNVP(m_matr_NM);
     archive_out << CHNVP(m_vect);
@@ -365,6 +369,7 @@ void my_deserialization_example(ChArchiveIn& archive_in) {
     std::list<ChVector3d> m_stllist;
     std::pair<int, double> m_stlpair;
     std::unordered_map<int, double> m_stlunorderedmap;
+    std::unordered_set<int> m_stlunorderedset;
     ChMatrixDynamic<> m_matr_dyn;
     ChMatrixNM<double, 2, 3> m_matr_NM;
     ChVector3d m_vect;
@@ -382,6 +387,7 @@ void my_deserialization_example(ChArchiveIn& archive_in) {
     archive_in >> CHNVP(m_stllist);
     archive_in >> CHNVP(m_stlpair);
     archive_in >> CHNVP(m_stlunorderedmap);
+    archive_in >> CHNVP(m_stlunorderedset);
     archive_in >> CHNVP(m_matr_dyn);
     archive_in >> CHNVP(m_matr_NM);
     archive_in >> CHNVP(m_vect);
@@ -459,6 +465,7 @@ void my_deserialization_example(ChArchiveIn& archive_in) {
     archiveConsole << CHNVP(m_stlvector);
     archiveConsole << CHNVP(m_stlpair);
     archiveConsole << CHNVP(m_stlunorderedmap);
+    archiveConsole << CHNVP(m_stlunorderedset);
     archiveConsole << CHNVP(m_boss);
     archiveConsole << CHNVP(a_vect);
 
