@@ -44,11 +44,8 @@ class CH_FSI_API ChFsiSystem {
         NONE   ///< none
     };
 
-    /// Constructor for FSI system.
-    ChFsiSystem(ChSystem* sysMBS = nullptr);
-
     /// Destructor for the FSI system.
-    ~ChFsiSystem();
+    virtual ~ChFsiSystem();
 
     /// Attach Chrono MBS system.
     void AttachSystem(ChSystem* sysMBS);
@@ -98,6 +95,8 @@ class CH_FSI_API ChFsiSystem {
     //// TODO: add functions to get force on FEA nodes
 
   protected:
+    ChFsiSystem(ChSystem* sysMBS = nullptr);
+
     ChSystem* m_sysMBS;  ///< multibody system
 
     std::unique_ptr<ChFsiInterface> m_fsi_interface;  ///< FSI interface system

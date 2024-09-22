@@ -55,11 +55,8 @@ class CH_FSI_API ChFsiInterface {
         std::map<int, std::shared_ptr<fea::ChNodeFEAxyz>> ind2ptr_map;  ///< index-based to pointer-based mapping
     };
 
-    /// Constructor of the FSI interface class.
-    ChFsiInterface(bool verbose);
-
     /// Destructor of the FSI interface class.
-    ~ChFsiInterface();
+    virtual ~ChFsiInterface();
 
     // ------------
 
@@ -96,6 +93,8 @@ class CH_FSI_API ChFsiInterface {
     virtual void ApplyMeshForces() = 0;
 
   protected:
+    ChFsiInterface(bool verbose);
+
     bool m_verbose;
 
     std::vector<FsiBody> m_fsi_bodies;      ///< rigid bodies exposed to the FSI system

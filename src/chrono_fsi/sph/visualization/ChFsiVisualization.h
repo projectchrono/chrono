@@ -38,9 +38,6 @@ class CH_FSI_API ChFsiVisualization {
     /// Rendering mode for particles and mesh objects.
     enum class RenderMode { POINTS, WIREFRAME, SOLID };
 
-    /// Create a run-time FSI visualization object associated with a given Chrono::Fsi system.
-    ChFsiVisualization(ChFsiSystemSPH* sysFSI);
-
     virtual ~ChFsiVisualization();
 
     /// Enable/disable information terminal output during initialization (default: false).
@@ -144,6 +141,9 @@ class CH_FSI_API ChFsiVisualization {
     virtual ChVisualSystem* GetVisualSystem() const = 0;
 
   protected:
+    /// Create a run-time FSI visualization object associated with a given Chrono::Fsi system.
+    ChFsiVisualization(ChFsiSystemSPH* sysFSI);
+
     ChFsiSystemSPH* m_systemFSI;  ///< associated Chrono::FSI system
     ChSystem* m_system;        ///< internal Chrono system (holds proxies)
     ChSystem* m_user_system;   ///< optional user-provided system
