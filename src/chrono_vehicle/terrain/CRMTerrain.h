@@ -22,7 +22,7 @@
 #ifndef CRM_SPH_TERRAIN_H
 #define CRM_SPH_TERRAIN_H
 
-#include "chrono_fsi/ChFsiProblem.h"
+#include "chrono_fsi/sph/ChFsiProblemSPH.h"
 
 #include "chrono_vehicle/ChApiVehicle.h"
 #include "chrono_vehicle/ChTerrain.h"

@@ -36,10 +36,10 @@
 #include "chrono/fea/ChMeshExporter.h"
 #include "chrono/fea/ChBuilderBeam.h"
 
-#include "chrono_fsi/ChFsiSystemSPH.h"
+#include "chrono_fsi/sph/ChFsiSystemSPH.h"
 
 #ifdef CHRONO_OPENGL
-    #include "chrono_fsi/visualization/ChFsiVisualizationGL.h"
+    #include "chrono_fsi/sph/visualization/ChFsiVisualizationGL.h"
 #endif
 
 #include "chrono_thirdparty/filesystem/path.h"

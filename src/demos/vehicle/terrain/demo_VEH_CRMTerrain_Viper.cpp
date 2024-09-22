@@ -20,7 +20,7 @@
 #include "chrono/physics/ChSystemSMC.h"
 #include "chrono/utils/ChUtilsInputOutput.h"
 
-#include "chrono_fsi/ChFsiSystemSPH.h"
+#include "chrono_fsi/sph/ChFsiSystemSPH.h"
 
 #include "chrono_vehicle/ChVehicleModelData.h"
 #include "chrono_models/robot/viper/Viper.h"
@@ -36,12 +36,12 @@
 
 #include "chrono_thirdparty/filesystem/path.h"
 
-#include "chrono/assets/ChVisualSystem.h"
+#include "chrono_fsi/sph/visualization/ChFsiVisualization.h"
 #ifdef CHRONO_OPENGL
-    #include "chrono_fsi/visualization/ChFsiVisualizationGL.h"
+    #include "chrono_fsi/sph/visualization/ChFsiVisualizationGL.h"
 #endif
 #ifdef CHRONO_VSG
-    #include "chrono_fsi/visualization/ChFsiVisualizationVSG.h"
+    #include "chrono_fsi/sph/visualization/ChFsiVisualizationVSG.h"
 #endif
 
 using namespace chrono;
@@ -149,7 +149,7 @@ int main(int argc, char* argv[]) {
     geometry.materials.push_back(ChContactMaterialData());
     geometry.coll_meshes.push_back(utils::ChBodyGeometry::TrimeshShape(VNULL, mesh_filename, VNULL));
 
-    //// TODO: FIX ChFsiProblem to allow rotating geometry on body!!
+    //// TODO: FIX ChFsiProblemSPH to allow rotating geometry on body!!
     for (int i = 0; i < 4; i++) {
         auto wheel_body = rover->GetWheels()[i]->GetBody();
         auto yaw = (i % 2 == 0) ? QuatFromAngleZ(CH_PI) : QUNIT;

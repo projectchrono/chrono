@@ -26,7 +26,7 @@
 #include "chrono/physics/ChSystemSMC.h"
 #include "chrono/core/ChTimer.h"
 
-#include "chrono_fsi/ChFsiProblem.h"
+#include "chrono_fsi/sph/ChFsiProblemSPH.h"
 
 ////#define RUN_TIME_VISUALIZATION
 
@@ -90,7 +90,7 @@ double PoiseuilleAnalytical(double Z, double H, double time, const ChFsiSystemSP
 //------------------------------------------------------------------
 
 // Callback for setting initial SPH particle velocity
-class InitialVelocityCallback : public ChFsiProblem::ParticlePropertiesCallback {
+class InitialVelocityCallback : public ChFsiProblemSPH::ParticlePropertiesCallback {
   public:
     InitialVelocityCallback(const ChFsiSystemSPH& sysFSI, double fluid_height, double time)
         : ParticlePropertiesCallback(sysFSI), height(fluid_height), time(time) {

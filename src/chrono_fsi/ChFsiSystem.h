@@ -26,7 +26,7 @@
 #include "chrono/fea/ChContactSurfaceSegmentSet.h"
 
 #include "chrono_fsi/ChApiFsi.h"
-#include "chrono_fsi/physics/ChFsiInterface.h"
+#include "chrono_fsi/ChFsiInterface.h"
 
 namespace chrono {
 namespace fsi {

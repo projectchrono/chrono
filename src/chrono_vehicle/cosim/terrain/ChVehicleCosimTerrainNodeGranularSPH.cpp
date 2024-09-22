@@ -27,19 +27,18 @@
 #include "chrono/utils/ChUtilsCreators.h"
 #include "chrono/utils/ChUtilsGenerators.h"
 #include "chrono/utils/ChUtilsInputOutput.h"
-
 #include "chrono/assets/ChVisualShapeTriangleMesh.h"
 
-#include "chrono_fsi/utils/ChUtilsPrintSph.cuh"
 #include "chrono_vehicle/ChVehicleModelData.h"
-
 #include "chrono_vehicle/cosim/terrain/ChVehicleCosimTerrainNodeGranularSPH.h"
 
+#include "chrono_fsi/sph/utils/ChUtilsPrintSph.cuh"
+
 #ifdef CHRONO_OPENGL
-    #include "chrono_fsi/visualization/ChFsiVisualizationGL.h"
+    #include "chrono_fsi/sph/visualization/ChFsiVisualizationGL.h"
 #endif
 #ifdef CHRONO_VSG
-    #include "chrono_fsi/visualization/ChFsiVisualizationVSG.h"
+    #include "chrono_fsi/sph/visualization/ChFsiVisualizationVSG.h"
 #endif
 
 using std::cout;

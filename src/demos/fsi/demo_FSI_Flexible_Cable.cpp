@@ -34,15 +34,16 @@
     #include "chrono_pardisomkl/ChSolverPardisoMKL.h"
 #endif
 
-#include "chrono_fsi/ChFsiSystemSPH.h"
+#include "chrono_fsi/sph/ChFsiSystemSPH.h"
 
-#include "chrono_fsi/visualization/ChFsiVisualization.h"
+#include "chrono_fsi/sph/visualization/ChFsiVisualization.h"
 #ifdef CHRONO_OPENGL
-    #include "chrono_fsi/visualization/ChFsiVisualizationGL.h"
+    #include "chrono_fsi/sph/visualization/ChFsiVisualizationGL.h"
 #endif
 #ifdef CHRONO_VSG
-    #include "chrono_fsi/visualization/ChFsiVisualizationVSG.h"
+    #include "chrono_fsi/sph/visualization/ChFsiVisualizationVSG.h"
 #endif
+
 #ifdef CHRONO_POSTPROCESS
     #include "chrono_postprocess/ChGnuPlot.h"
 #endif
@@ -115,7 +116,7 @@ class PositionVisibilityCallback : public ChParticleCloud::VisibilityCallback {
 
 int main(int argc, char* argv[]) {
     // Parse command line arguments
-    std::string inputJSON = GetChronoDataFile("fsi/input_json/demo_FSI_Flexible_Cable_Explicit.json");
+    std::string inputJSON = GetChronoDataFile("fsi/input_json/demo_FSI_Flexible_Cable_Granular.json");
     double t_end = 10.0;
     bool verbose = true;
     bool output = false;
@@ -221,13 +222,13 @@ int main(int argc, char* argv[]) {
             case ChVisualSystem::Type::OpenGL:
 #ifdef CHRONO_OPENGL
                 visFSI = chrono_types::make_shared<ChFsiVisualizationGL>(&sysFSI);
-                visFSI->AddCamera(ChVector3d(0, -2, 0.25), ChVector3d(0, 0, 0.25));
+                visFSI->AddCamera(ChVector3d(0, -2, 0.75), ChVector3d(0, 0, 0.75));
 #endif
                 break;
             case ChVisualSystem::Type::VSG: {
 #ifdef CHRONO_VSG
                 visFSI = chrono_types::make_shared<ChFsiVisualizationVSG>(&sysFSI);
-                visFSI->AddCamera(ChVector3d(0, -4, 0.25), ChVector3d(0, 0, 0.25));
+                visFSI->AddCamera(ChVector3d(0, -3, 0.75), ChVector3d(0, 0, 0.75));
 #endif
                 break;
             }
@@ -235,7 +236,7 @@ int main(int argc, char* argv[]) {
 
         visFSI->SetTitle("Chrono::FSI flexible cable");
         visFSI->SetVerbose(verbose);
-        visFSI->SetSize(1920, 1200);
+        visFSI->SetSize(1280, 720);
         visFSI->SetCameraMoveScale(1.0f);
         visFSI->EnableBoundaryMarkers(true);
         visFSI->EnableFlexBodyMarkers(true);

@@ -20,15 +20,14 @@
 #include "chrono/physics/ChSystemSMC.h"
 #include "chrono/assets/ChVisualShapeBox.h"
 
-#include "chrono_fsi/ChFsiSystemSPH.h"
-#include "chrono_fsi/ChFsiProblem.h"
+#include "chrono_fsi/sph/ChFsiProblemSPH.h"
 
-#include "chrono_fsi/visualization/ChFsiVisualization.h"
+#include "chrono_fsi/sph/visualization/ChFsiVisualization.h"
 #ifdef CHRONO_OPENGL
-    #include "chrono_fsi/visualization/ChFsiVisualizationGL.h"
+    #include "chrono_fsi/sph/visualization/ChFsiVisualizationGL.h"
 #endif
 #ifdef CHRONO_VSG
-    #include "chrono_fsi/visualization/ChFsiVisualizationVSG.h"
+    #include "chrono_fsi/sph/visualization/ChFsiVisualizationVSG.h"
 #endif
 
 #include "chrono_thirdparty/filesystem/path.h"
@@ -69,7 +68,7 @@ bool show_particles_sph = true;
 // ----------------------------------------------------------------------------
 
 // Callback for setting initial SPH particle properties
-class SPHPropertiesCallback : public ChFsiProblem::ParticlePropertiesCallback {
+class SPHPropertiesCallback : public ChFsiProblemSPH::ParticlePropertiesCallback {
   public:
     SPHPropertiesCallback(const ChFsiSystemSPH& sysFSI, double zero_height, const ChVector3d& init_velocity)
         : ParticlePropertiesCallback(sysFSI), zero_height(zero_height), init_velocity(init_velocity) {
@@ -92,7 +91,7 @@ class SPHPropertiesCallback : public ChFsiProblem::ParticlePropertiesCallback {
 
 // ----------------------------------------------------------------------------
 
-void CreateBaffles(ChFsiProblem& fsi) {
+void CreateBaffles(ChFsiProblemSPH& fsi) {
     ChSystem& sysMBS = fsi.GetSystyemMBS();
 
     // Common contact material and geometry

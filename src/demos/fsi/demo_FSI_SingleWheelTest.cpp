@@ -29,10 +29,10 @@
 #include "chrono/utils/ChUtilsInputOutput.h"
 #include "chrono/core/ChTimer.h"
 
-#include "chrono_fsi/ChFsiSystemSPH.h"
+#include "chrono_fsi/sph/ChFsiSystemSPH.h"
 
 #ifdef CHRONO_OPENGL
-    #include "chrono_fsi/visualization/ChFsiVisualizationGL.h"
+    #include "chrono_fsi/sph/visualization/ChFsiVisualizationGL.h"
 #endif
 
 #include "chrono_thirdparty/filesystem/path.h"

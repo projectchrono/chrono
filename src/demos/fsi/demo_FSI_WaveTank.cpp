@@ -19,14 +19,14 @@
 
 #include "chrono/physics/ChSystemNSC.h"
 
-#include "chrono_fsi/ChFsiProblem.h"
+#include "chrono_fsi/sph/ChFsiProblemSPH.h"
 
-#include "chrono_fsi/visualization/ChFsiVisualization.h"
+#include "chrono_fsi/sph/visualization/ChFsiVisualization.h"
 #ifdef CHRONO_OPENGL
-    #include "chrono_fsi/visualization/ChFsiVisualizationGL.h"
+    #include "chrono_fsi/sph/visualization/ChFsiVisualizationGL.h"
 #endif
 #ifdef CHRONO_VSG
-    #include "chrono_fsi/visualization/ChFsiVisualizationVSG.h"
+    #include "chrono_fsi/sph/visualization/ChFsiVisualizationVSG.h"
 #endif
 
 #ifdef CHRONO_POSTPROCESS
@@ -208,9 +208,9 @@ int main(int argc, char* argv[]) {
 
     // Create a wave tank
     auto fun = chrono_types::make_shared<WaveFunction>(0.25, 0.2, 1);
-    auto body = fsi.AddWaveMaker(ChFsiProblem::WavemakerType::PISTON, csize, ChVector3d(0, 0, 0), fun);
+    auto body = fsi.AddWaveMaker(ChFsiProblemSPH::WavemakerType::PISTON, csize, ChVector3d(0, 0, 0), fun);
     ////auto fun = chrono_types::make_shared<WaveFunction>(0.25, 0.4, 1.25);
-    ////auto body = fsi.AddWaveMaker(ChFsiProblem::WavemakerType::FLAP, csize, ChVector3d(0, 0, 0), fun);   
+    ////auto body = fsi.AddWaveMaker(ChFsiProblemSPH::WavemakerType::FLAP, csize, ChVector3d(0, 0, 0), fun);   
 
     fsi.Initialize();
 

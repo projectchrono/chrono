@@ -25,14 +25,14 @@
 #include "chrono/physics/ChInertiaUtils.h"
 #include "chrono/geometry/ChTriangleMeshConnected.h"
 
-#include "chrono_fsi/ChFsiSystemSPH.h"
-#include "chrono_fsi/visualization/ChFsiVisualization.h"
-#include "chrono/assets/ChVisualSystem.h"
+#include "chrono_fsi/sph/ChFsiSystemSPH.h"
+
+#include "chrono_fsi/sph/visualization/ChFsiVisualization.h"
 #ifdef CHRONO_OPENGL
-    #include "chrono_fsi/visualization/ChFsiVisualizationGL.h"
+    #include "chrono_fsi/sph/visualization/ChFsiVisualizationGL.h"
 #endif
 #ifdef CHRONO_VSG
-    #include "chrono_fsi/visualization/ChFsiVisualizationVSG.h"
+    #include "chrono_fsi/sph/visualization/ChFsiVisualizationVSG.h"
 #endif
 
 #include "chrono_thirdparty/filesystem/path.h"

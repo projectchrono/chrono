@@ -24,7 +24,6 @@
 #include "chrono/utils/ChUtilsGenerators.h"
 
 #include "chrono_fsi/ChFsiSystem.h"
-#include "chrono_fsi/physics/ChFsiInterface.h"
 
 #include "chrono_thirdparty/filesystem/path.h"
 #include "chrono_thirdparty/filesystem/resolver.h"

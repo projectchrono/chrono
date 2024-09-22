@@ -18,8 +18,8 @@
 
 #include "chrono/physics/ChSystemSMC.h"
 
-#include "chrono_fsi/ChFsiSystemSPH.h"
-#include "chrono_fsi/utils/ChUtilsTypeConvert.h"
+#include "chrono_fsi/sph/ChFsiSystemSPH.h"
+#include "chrono_fsi/sph/utils/ChUtilsTypeConvert.h"
 
 #include "chrono_thirdparty/filesystem/path.h"
 
