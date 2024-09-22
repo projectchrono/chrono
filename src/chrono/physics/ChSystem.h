@@ -578,6 +578,13 @@ class ChApi ChSystem : public ChIntegrableIIorder {
 
     // ---- SERIALIZATION
 
+    /// Set a tag for this system (default: 0). Maybe used in serialization and when multiple systems are used.
+    void SetTag(int tag) { m_tag = tag; }
+
+    /// Get the tag of this system. Maybe used in serialization.
+    int GetTag() const { return m_tag; }
+
+
     /// Method to allow serialization of transient data to archives.
     virtual void ArchiveOut(ChArchiveOut& archive_out);
 
@@ -832,6 +839,8 @@ class ChApi ChSystem : public ChIntegrableIIorder {
     std::unique_ptr<ChContactMaterialCompositionStrategy> composition_strategy;  /// material composition strategy
 
     ChVisualSystem* visual_system;  ///< run-time visualization engine
+
+    int m_tag = 0;
 
     // OpenMP
     int nthreads_chrono;
