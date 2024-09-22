@@ -61,8 +61,12 @@ int main(int argc, char* argv[]) {
     // as a method for parallelism:
 
     ChDomainManagerSharedmemory domain_manager;
-    domain_manager.verbose_partition = true; // will print  partitioning in std::cout
-    domain_manager.verbose_variable_updates = false; // will print all messages in std::cout
+
+    // For debugging/logging:
+    domain_manager.verbose_partition = false; // will print partitioning in std::cout ?
+    domain_manager.verbose_serialization = false; // will print serialization buffers in std::cout ?
+    domain_manager.verbose_variable_updates = true; // will print all messages in std::cout ?
+    domain_manager.serializer_type = DomainSerializerFormat::JSON;
 
     // 2- the domain builder.
     // You must define how the 3D space is divided in domains. 

@@ -44,6 +44,8 @@ void ChDomainManagerMPI::SetDomain(std::shared_ptr<ChDomain> mdomain) {
 
 	// By default, skip adding forces F and M*v for nodes that are not "master", i.e. shared but not inside domain:
 	mdomain->GetSystem()->EnableResidualFilteringByDomain(true, mdomain.get());
+
+	mdomain->serializer_type = this->serializer_type;
 }
 
 
@@ -101,11 +103,20 @@ bool ChDomainManagerMPI::DoDomainPartitionUpdate(int mrank) {
 	// 3 deserialize incoming items, update shared items
 	domain->DoUpdateSharedReceived();
 
-	if (this->verbose_partition)
+	if (this->verbose_partition || this->verbose_serialization)
 		for (int i = 0; i < GetMPItotranks(); i++) {
-			this->mpi_engine.Barrier();
+			this->mpi_engine.Barrier(); // trick to force sequential std::cout if MPI on same shell
 			if (i == GetMPIrank()) {
-				PrintDebugDomainInfo(domain);
+				if (this->verbose_partition)
+					PrintDebugDomainInfo(domain);
+				if (this->verbose_serialization) {
+					std::cout << "\n\n::::::::::::: Serialization to domain " << domain->GetRank() << " :::::::::::\n";
+					for (auto& interf : domain->GetInterfaces()) {
+						std::cout << "\n\n::::::::::::: ....from interface " << interf.second.side_OUT->GetRank() << " ........\n";
+						std::cout << interf.second.buffer_receiving.str();
+						std::cout << "\n";
+					}
+				}
 				std::cout.flush();
 			}
 			std::cout.flush();

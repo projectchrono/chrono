@@ -33,7 +33,19 @@ namespace multidomain {
 // Forward decl
 class ChDomain;
 
+/// Formats for serialization buffers, when migrating objects 
+/// through domain boundaries.
+enum class DomainSerializerFormat {
+    BINARY = 0,
+    XML,
+    JSON
+};
+
 /// Base class of mechanisms that allow inter-domain communication. 
+/// This can be inherited for different schemes of inter-communication by
+/// implementing the DoDomainSendReceive and DoDomainPartitionUpdate
+/// functions. for example we have the MPI distributed-memory flavour, or the
+/// OpenMP shared memory version, etc.
 
 class ChApiMultiDomain ChDomainManager {
 public:
@@ -62,9 +74,15 @@ public:
     virtual bool DoDomainPartitionUpdate(int mrank) = 0;
 
 
+    /// For serializing-deserializing objects that cross domain boundaries, domains
+    /// will convert transient objects into buffers to be exchanged. The serialization in BINARY 
+    /// format is the fastest, whereas XML or JSON are slow and large but useful for debugging.
+    DomainSerializerFormat serializer_type = DomainSerializerFormat::XML;
+
     // FOR DEBUGGING 
 
     bool verbose_partition = false;
+    bool verbose_serialization = false;
     bool verbose_variable_updates = false;
     bool verbose_state_matching = false;
 
@@ -153,11 +171,19 @@ public:
     /// Get system used by this domain
     ChSystem* GetSystem() { return system; }
 
+    /// Set the type of serialization. Binary is the fastest, Json or XML are memory consuming
+    /// and slow, but better for debugging. NOTE! must be the same for all domains!
+    /// Anyway, ChDomainManager will automatically initialize this when doing SetDomain() to
+    /// make it equal to  ChDomainManager::serializer_type.
+    DomainSerializerFormat serializer_type = DomainSerializerFormat::XML; 
+
 private:
     int rank = 0;
     ChSystem* system = nullptr;
 
     std::unordered_map<int, ChDomainInterface>  interfaces; // key is rank of neighbour domain
+
+     
 };
 
 

@@ -263,12 +263,21 @@ void ChDomain::DoUpdateSharedLeaving() {
 		interf.second.buffer_sending.clear();
 		interf.second.buffer_receiving.str("");
 		interf.second.buffer_receiving.clear();
-		//ChArchiveOutBinary serializer(interf.second.buffer_sending);
-		ChArchiveOutXML serializer(interf.second.buffer_sending); //***TODO*** revert to binary for performance
-		serializer.SetEmptyShallowContainers(true);		// we will take care of contained items one by one
-		serializer.SetUseGetTagAsID(true);				// GetTag of items, when available, will be used to generate unique IDs in serialization
-		serializer.CutPointers().insert(this->system);  // avoid propagation of serialization to parent system
-/*
+
+		std::shared_ptr<ChArchiveOut> serializer;
+		switch (this->serializer_type) {
+		case DomainSerializerFormat::BINARY:
+			serializer = chrono_types::make_shared<ChArchiveOutBinary>(interf.second.buffer_sending); break;
+		case DomainSerializerFormat::JSON:
+			serializer = chrono_types::make_shared<ChArchiveOutJSON>(interf.second.buffer_sending); break;
+		case DomainSerializerFormat::XML:
+			serializer = chrono_types::make_shared<ChArchiveOutXML>(interf.second.buffer_sending); break;
+		default: break;
+		}
+
+		serializer->SetEmptyShallowContainers(true);	// we will take care of contained items one by one
+		serializer->SetUseGetTagAsID(true);				// GetTag of items, when available, will be used to generate unique IDs in serialization
+	
 		// Prepare a map of pointers to shared items so that they are not serialized but just referenced
 		// by tag. For this reason we traverse all the pointers in the shared items.
 		ChArchiveOutPointerMap rebinding_pointers;
@@ -280,11 +289,15 @@ void ChDomain::DoUpdateSharedLeaving() {
 			if (interf.second.shared_items.find(oitem->GetTag()) != interf.second.shared_items.end())
 				rebinding_pointers << CHNVP(oitem);
 		}
-		serializer.ExternalPointersMap() = rebinding_pointers.pointer_map_ptr_id;
-		std::cout << "           serializer external size: " << rebinding_pointers.pointer_map_ptr_id.size() << "\n";
-		for (auto& m : serializer.ExternalPointersMap())
-			std::cout << "            serializer external: " << m.second << "\n";
-*/
+		serializer->ExternalPointersMap() = rebinding_pointers.pointer_map_ptr_id;
+		// Avoid propagation of serialization to parent ChSystem when back pointers to system are found:
+		   serializer->CutPointers().insert(this->system);  //NO - better, assuming all domains already contain a ChSystem with same GetTag:
+		//serializer->UnbindExternalPointer(this->system, this->system->GetTag());
+
+		//std::cout << "           serializer ExternalPointersMap size: " << rebinding_pointers.pointer_map_ptr_id.size() << "\n";
+		//for (auto& m : rebinding_pointers.pointer_map_ptr_id)
+		//	std::cout << "            tags: " << m.second << "\n";
+
 		std::vector<ChIncrementalObj<ChBody>>		bodies_migrating;
 		std::vector<ChIncrementalObj<ChPhysicsItem>>items_migrating;
 		std::vector<ChIncrementalObj<ChLinkBase>>	links_migrating;
@@ -500,15 +513,15 @@ void ChDomain::DoUpdateSharedLeaving() {
 		
 
 		// Serialize outbound bodies
-		serializer << CHNVP(bodies_migrating);
+		*serializer << CHNVP(bodies_migrating);
 		// Serialize outbound links
-		serializer << CHNVP(links_migrating);
+		*serializer << CHNVP(links_migrating);
 		// Serialize outbound otherphysics items
-		serializer << CHNVP(items_migrating);
+		*serializer << CHNVP(items_migrating);
 		// Serialize outbound nodes 
-		serializer << CHNVP(nodes_migrating);
+		*serializer << CHNVP(nodes_migrating);
 		// Serialize outbound elements 
-		serializer << CHNVP(elements_migrating);
+		*serializer << CHNVP(elements_migrating);
 
 
 		// N-HANDSHAKE IDS
@@ -519,7 +532,7 @@ void ChDomain::DoUpdateSharedLeaving() {
 		// case of nodes or bodies connected by a ChLink or a ChElement, where the link or element is in the 
 		// other domain). [To do: avoid storing in shared_ids the items that are aabb-overlapping on the interface, 
 		// as this can be inferred also by the neighbouring domain.]
-		serializer << CHNVP(shared_ids, "shared_ids");
+		*serializer << CHNVP(shared_ids, "shared_ids");
 
 
 		//std::cout << "\nSERIALIZE domain " << this->GetRank() << " to interface " << interf.second.side_OUT->GetRank() << "\n"; //***DEBUG
@@ -547,35 +560,42 @@ void  ChDomain::DoUpdateSharedReceived() {
 		// - DESERIALIZE
 		
 		// prepare the deserializer
-		//ChArchiveInBinary deserializer(interf.second.buffer_receiving);
-		ChArchiveInXML deserializer(interf.second.buffer_receiving); //***TODO*** revert to binary for performance
-		//std::cout << "\nDESERIALIZE domain " << this->GetRank() << " from interface " << interf.second.side_OUT->GetRank() << "\n"; //***DEBUG
-		//std::cout << interf.second.buffer_receiving.str(); //***DEBUG
+		std::shared_ptr<ChArchiveIn> deserializer;
+		switch (this->serializer_type) {
+		case DomainSerializerFormat::BINARY:
+			deserializer = chrono_types::make_shared<ChArchiveInBinary>(interf.second.buffer_receiving); break;
+		case DomainSerializerFormat::JSON:
+			deserializer = chrono_types::make_shared<ChArchiveInJSON>(interf.second.buffer_receiving); break;
+		case DomainSerializerFormat::XML:
+			deserializer = chrono_types::make_shared<ChArchiveInXML>(interf.second.buffer_receiving); break;
+		default: break;
+		}
 		
 		// Prepare a map of pointers to already existing items that, if referenced by serializer as external IDs, just
 		// need to be rebind. 
 		// In this case for simplicity and safety we collect all the pointers in this->system, but future implemetation
 		// could just collect the pointers of the shared items.
-		/*
+		
 		ChArchiveOutPointerMap rebinding_pointers;
 		rebinding_pointers << CHNVP(this->system);
-		deserializer.ExternalPointersMap() = rebinding_pointers.pointer_map_id_ptr;
+		deserializer->ExternalPointersMap() = rebinding_pointers.pointer_map_id_ptr; // will rebuild all pointers between objects with GetTag()
+		//deserializer->RebindExternalPointer(this->system, this->system->GetTag()); // assuming all domains have ChSystem with same tag
 
-		std::cout << "           deserializer external size: " << rebinding_pointers.pointer_map_ptr_id.size() << "\n";
-		for (auto& m : deserializer.ExternalPointersMap())
-			std::cout << "            deserializer external: " << m.first << "\n";
-*/
+		//std::cout << "           deserializer ExternalPointersMap size: " << rebinding_pointers.pointer_map_ptr_id.size() << "\n";
+		//for (auto& m : rebinding_pointers.pointer_map_id_ptr)
+		//	std::cout << "             tag: " << m.first << "\n";
+
 
 		// Deserialize inbound bodies
-		deserializer >> CHNVP(bodies_migrating);
+		*deserializer >> CHNVP(bodies_migrating);
 		// Deserialize outbound links
-		deserializer >> CHNVP(links_migrating);
+		*deserializer >> CHNVP(links_migrating);
 		// Deserialize outbound otherphysics items
-		deserializer >> CHNVP(items_migrating);
+		*deserializer >> CHNVP(items_migrating);
 		// Deserialize outbound nodes 
-		deserializer >> CHNVP(nodes_migrating);
+		*deserializer >> CHNVP(nodes_migrating);
 		// Deserialize outbound elements 
-		deserializer >> CHNVP(elements_migrating);
+		*deserializer >> CHNVP(elements_migrating);
 
 		// 1-BODIES
 
@@ -629,7 +649,7 @@ void  ChDomain::DoUpdateSharedReceived() {
 		// ChLink or a ChElement, where the link or element is in the other domain).
 
 		std::unordered_set<int> shared_ids_incoming;
-		deserializer >> CHNVP(shared_ids_incoming,"shared_ids");
+		*deserializer >> CHNVP(shared_ids_incoming,"shared_ids");
 
 		for (const auto& body : system->GetBodies()) {
 			if (shared_ids_incoming.find(body->GetTag()) != shared_ids_incoming.end())

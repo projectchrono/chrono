@@ -85,9 +85,20 @@ bool ChDomainManagerSharedmemory::DoAllDomainPartitionUpdate() {
 			this->DoDomainPartitionUpdate(vdomains[i]->GetRank()); //***COMM+BARRIER***
 	}
 
-	if (this->verbose_partition)
-		for (auto& ido : this->domains)
-			PrintDebugDomainInfo(ido.second);
+	if (this->verbose_partition || this->verbose_serialization)
+		for (auto& ido : this->domains) {
+			if (this->verbose_partition)
+				PrintDebugDomainInfo(ido.second);
+			if (this->verbose_serialization) {
+				std::cout << "\n\n::::::::::::: Serialization to domain " << ido.second->GetRank() << " :::::::::::\n";
+				for (auto& interf : ido.second->GetInterfaces()) {
+					std::cout << "\n\n::::::::::::: ....from interface " << interf.second.side_OUT->GetRank() << " ........\n";
+					std::cout << interf.second.buffer_receiving.str();
+					std::cout << "\n";
+				}
+			}
+		}
+
 }
 
 bool ChDomainManagerSharedmemory::DoAllStepDynamics(double timestep) {
@@ -118,6 +129,7 @@ void ChDomainManagerSharedmemory::AddDomain(std::shared_ptr<ChDomain> mdomain) {
 	// By default, skip adding forces F and M*v for nodes that are not "master", i.e. shared but not inside domain:
 	mdomain->GetSystem()->EnableResidualFilteringByDomain(true, mdomain.get());
 
+	mdomain->serializer_type = this->serializer_type;
 }
 
 
