@@ -83,7 +83,7 @@ void ChSystemDescriptorMultidomain::SharedStatesDeltaAddToMultidomainAndSync() {
             Dv_shared.segment(offset, avar->GetDOF()) = avar->State() - shared_states[nrank].segment(offset, avar->GetDOF());
             offset += avar->GetDOF();
         }
-        ChArchiveOutXML serializer(interf.second.buffer_sending);
+        ChArchiveOutJSON serializer(interf.second.buffer_sending);  //**TO DO** use ChArchiveOutBinary
         serializer << CHNVP(Dv_shared);
         //std::cout << "\nVAR SERIALIZE domain " << this->domain->GetRank() << " from interface " << interf.second.side_OUT->GetRank() << "\n"; //***DEBUG
         //std::cout << interf.second.buffer_sending.str(); //***DEBUG
@@ -96,7 +96,7 @@ void ChSystemDescriptorMultidomain::SharedStatesDeltaAddToMultidomainAndSync() {
         ChVectorDynamic<> Dv_shared(shared_states[nrank].size());
         //std::cout << "\nVAR DESERIALIZE domain " << this->domain->GetRank() << " from interface " << interf.second.side_OUT->GetRank() << "\n"; //***DEBUG
         //std::cout << interf.second.buffer_receiving.str(); //***DEBUG
-        ChArchiveInXML deserializer(interf.second.buffer_receiving);
+        ChArchiveInJSON deserializer(interf.second.buffer_receiving);  //**TO DO** use ChArchiveInBinary
         deserializer >> CHNVP(Dv_shared);
         int offset = 0;
         for (auto avar : interf.second.shared_vars) {
