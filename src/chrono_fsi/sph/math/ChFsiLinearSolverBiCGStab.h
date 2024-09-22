@@ -31,6 +31,7 @@
 
 namespace chrono {
 namespace fsi {
+namespace sph {
 
 /// @addtogroup fsi_solver
 /// @{
@@ -54,6 +55,7 @@ class ChFsiLinearSolverBiCGStab : public ChFsiLinearSolver {
 
 /// @} fsi_solver
 
+}  // namespace sph
 }  // end namespace fsi
 }  // end namespace chrono
 

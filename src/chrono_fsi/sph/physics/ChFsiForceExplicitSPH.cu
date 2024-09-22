@@ -22,6 +22,7 @@
 
 namespace chrono {
 namespace fsi {
+namespace sph {
 
 //--------------------------------------------------------------------------------------------------------------------------------
 __device__ __inline__ void calc_G_Matrix(Real4* sortedPosRad,
@@ -1603,5 +1604,6 @@ void ChFsiForceExplicitSPH::CalculateXSPH_velocity() {
     cudaFreeErrorFlag(error_flagD);
 }
 
+}  // namespace sph
 }  // namespace fsi
 }  // namespace chrono

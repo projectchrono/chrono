@@ -111,7 +111,7 @@ set(ChronoEngine_FSI_PHYSICS_FILES
 source_group(physics FILES ${ChronoEngine_FSI_PHYSICS_FILES})
 
 set(ChronoEngine_FSI_MATH_FILES
-    math/custom_math.h
+    math/CustomMath.h
     math/ExactLinearSolvers.cuh
     math/ChFsiLinearSolver.h
     math/ChFsiLinearSolverBiCGStab.h
@@ -124,16 +124,13 @@ set(ChronoEngine_FSI_MATH_FILES
 source_group(math FILES ${ChronoEngine_FSI_MATH_FILES})
 
 set(ChronoEngine_FSI_UTILS_FILES
-    utils/ChUtilsGeneratorFluid.h
     utils/ChUtilsPrintStruct.h
     utils/ChUtilsPrintSph.cuh
     utils/ChUtilsDevice.cuh
     utils/ChUtilsTypeConvert.h
 
-    utils/ChUtilsGeneratorFluid.cpp
     utils/ChUtilsPrintSph.cu
     utils/ChUtilsDevice.cu
-    utils/ChUtilsTypeConvert.cpp
 )
 
 source_group(utils FILES ${ChronoEngine_FSI_UTILS_FILES})

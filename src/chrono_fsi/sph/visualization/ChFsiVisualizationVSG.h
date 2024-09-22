@@ -20,7 +20,7 @@
 namespace chrono {
 namespace fsi {
 
-/// @addtogroup fsi_utils
+/// @addtogroup fsi_visualization
 /// @{
 
 /// VSG-based run-time visualization system for SPH-based FSI systems.
@@ -87,7 +87,7 @@ class CH_FSI_API ChFsiVisualizationVSG : public ChFsiVisualization {
     friend class FSIStatsVSG;
 };
 
-/// @} fsi_utils
+/// @} fsi_visualization
 
 }  // namespace fsi
 }  // namespace chrono

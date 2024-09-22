@@ -19,13 +19,13 @@
 #define CH_FSI_UTILS_PRINTSTRUCT_H
 
 #include "chrono_fsi/ChApiFsi.h"
-#include "chrono_fsi/math/custom_math.h"
+#include "chrono_fsi/math/CustomMath.h"
 #include <thrust/device_vector.h>
 #include <thrust/host_vector.h>
 
 namespace chrono {
 namespace fsi {
-namespace utils {
+namespace sph {
 
 /// @addtogroup fsi_utils
 /// @{
@@ -74,7 +74,7 @@ void printStruct(struct int4& s) {
 
 /// @} fsi_utils
 
-}  // end namespace utils
+}  // end namespace sph
 }  // end namespace fsi
 }  // end namespace chrono
 

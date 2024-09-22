@@ -19,6 +19,7 @@
 
 namespace chrono {
 namespace fsi {
+namespace sph {
 
 GpuTimer::GpuTimer(cudaStream_t stream) : m_stream(stream) {
     cudaEventCreate(&m_start);
@@ -51,5 +52,6 @@ void computeGridSize(uint n, uint blockSize, uint& numBlocks, uint& numThreads) 
     numBlocks = (n2 % numThreads != 0) ? (n2 / numThreads + 1) : (n2 / numThreads);
 }
 
+}  // namespace sph
 }  // end namespace fsi
 }  // end namespace chrono

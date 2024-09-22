@@ -22,43 +22,58 @@
 #include "chrono/core/ChVector3.h"
 #include "chrono/core/ChVector2.h"
 
-#include "chrono_fsi/ChApiFsi.h"
-#include "chrono_fsi/sph/math/custom_math.h"
+#include "chrono_fsi/sph/utils/ChUtilsDevice.cuh"
 
 namespace chrono {
 namespace fsi {
-namespace utils {
+namespace sph {
 
 /// @addtogroup fsi_utils
 /// @{
 
 /// Convert a Real3 data structure to a ChVector3d data structure.
-CH_FSI_API ChVector3d ToChVector(const Real3& p3);
+inline ChVector3d ToChVector(const Real3& p3) {
+    return ChVector3d(p3.x, p3.y, p3.z);
+}
 
 /// Convert a Real2 data structure to a ChVector3d data structure.
-CH_FSI_API ChVector3d ToChVector(const Real2& p2);
+inline ChVector3d ToChVector(const Real2& p2) {
+    return ChVector3d(p2.x, p2.y, 0.0);
+}
 
 /// Convert the first 3 arguments of a Real4 data structure to a ChVector3d data structure.
-CH_FSI_API ChVector3d ToChVector(const Real4& p4);
+inline ChVector3d ToChVector(const Real4& p4) {
+    return ChVector3d(p4.x, p4.y, p4.z);
+}
 
 /// Convert a Real4 data structure to a ChQuaternion data structure.
-CH_FSI_API ChQuaternion<> ToChQuaternion(const Real4& q4);
+inline ChQuaternion<> ToChQuaternion(const Real4& q4) {
+    return ChQuaternion<>(q4.x, q4.y, q4.z, q4.w);
+}
 
 // Convert a ChVector2 data structure to a Real2 data structure.
-Real2 ToReal2(const ChVector2<>& v2);
+inline Real2 ToReal2(const ChVector2<>& v2) {
+    return mR2(v2.x(), v2.y());
+}
 
 /// Convert a ChVector data structure to a Real3 data structure.
-CH_FSI_API Real3 ToReal3(const ChVector3<>& v3);
+inline Real3 ToReal3(const ChVector3<>& v3) {
+    return mR3(v3.x(), v3.y(), v3.z());
+}
 
 /// Convert a ChVector3d and a scalar to a Real4 data structure.
-CH_FSI_API Real4 ToReal4(const ChVector3d& v3, Real m);
+inline Real4 ToReal4(const ChVector3d& v3, Real m) {
+    return mR4(v3.x(), v3.y(), v3.z(), m);
+}
 
 /// Convert a ChQuaternion data structure to a Real4 data structure.
-CH_FSI_API Real4 ToReal4(const ChQuaternion<>& q4);
+inline Real4 ToReal4(const ChQuaternion<>& q4) {
+    return mR4(q4.e0(), q4.e1(), q4.e2(), q4.e3());
+}
 
 /// @} fsi_utils
 
-}  // namespace utils
+}  // namespace sph
 }  // end namespace fsi
 }  // end namespace chrono
 

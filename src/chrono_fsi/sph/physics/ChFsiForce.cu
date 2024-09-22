@@ -24,6 +24,7 @@
 
 namespace chrono {
 namespace fsi {
+namespace sph {
 
 ChFsiForce::ChFsiForce(FsiDataManager& data_mgr,
                        BceManager& bce_mgr,
@@ -80,5 +81,6 @@ void ChFsiForce::CopySortedToOriginal_NonInvasive_R4(thrust::device_vector<Real4
     CopySortedToOriginal_Invasive_R4(original, dummySorted, gridMarkerIndex);
 }
 
+}  // namespace sph
 }  // namespace fsi
 }  // namespace chrono

@@ -21,10 +21,9 @@
 #include <thrust/device_vector.h>
 #include <thrust/host_vector.h>
 
-#include "chrono_fsi/ChApiFsi.h"
 #include "chrono_fsi/sph/utils/ChUtilsDevice.cuh"
 #include "chrono_fsi/sph/physics/ChParams.h"
-#include "chrono_fsi/sph/math/custom_math.h"
+#include "chrono_fsi/sph/math/CustomMath.h"
 
 #define FLOAT16_TYPE_AVAILABLE
 #include "chrono_thirdparty/chpf/particle_writer.hpp"
@@ -33,7 +32,7 @@ struct SimParams;
 
 namespace chrono {
 namespace fsi {
-namespace utils {
+namespace sph {
 
 /// @addtogroup fsi_utils
 /// @{
@@ -41,51 +40,51 @@ namespace utils {
 /// Helper function to save the SPH data into files.
 /// When called, this function creates three files to write fluid,
 /// boundary and BCE particles data into files.
-CH_FSI_API void PrintParticleToFile(const thrust::device_vector<Real4>& posRadD,
-                                    const thrust::device_vector<Real3>& velMasD,
-                                    const thrust::device_vector<Real4>& rhoPresMuD,
-                                    const thrust::device_vector<Real4>& sr_tau_I_mu_i,
-                                    const thrust::device_vector<Real4>& derivVelRhoD,
-                                    const thrust::host_vector<int4>& referenceArray,
-                                    const thrust::host_vector<int4>& referenceArrayFEA,
-                                    const std::string& dir,
-                                    const std::shared_ptr<SimParams>& paramsH);
-                                
+void PrintParticleToFile(const thrust::device_vector<Real4>& posRadD,
+                         const thrust::device_vector<Real3>& velMasD,
+                         const thrust::device_vector<Real4>& rhoPresMuD,
+                         const thrust::device_vector<Real4>& sr_tau_I_mu_i,
+                         const thrust::device_vector<Real4>& derivVelRhoD,
+                         const thrust::host_vector<int4>& referenceArray,
+                         const thrust::host_vector<int4>& referenceArrayFEA,
+                         const std::string& dir,
+                         const std::shared_ptr<SimParams>& paramsH);
+
 /// Helper function to save the FSI information into files.
 /// When called, this function creates files to write position,
 /// velocity, orientation of rigid bosied and position, velocity
 /// of nodes on flexible bodies.
-CH_FSI_API void PrintFsiInfoToFile(const thrust::device_vector<Real3>& posRigidD,
-                                   const thrust::device_vector<Real4>& qRigidD,
-                                   const thrust::device_vector<Real4>& velRigidD,
-                                   const thrust::device_vector<Real3>& pos1DNodeD,
-                                   const thrust::device_vector<Real3>& pos2DNodeD,
-                                   const thrust::device_vector<Real3>& vel1DNodeD,
-                                   const thrust::device_vector<Real3>& vel2DNodeD,
-                                   const thrust::device_vector<Real3>& forceRigidD,
-                                   const thrust::device_vector<Real3>& torqueRigidD,
-                                   const thrust::device_vector<Real3>& force1DNodeD,
-                                   const thrust::device_vector<Real3>& force2DNodeD,
-                                   const std::string& dir,
-                                   const double time);
+void PrintFsiInfoToFile(const thrust::device_vector<Real3>& posRigidD,
+                        const thrust::device_vector<Real4>& qRigidD,
+                        const thrust::device_vector<Real4>& velRigidD,
+                        const thrust::device_vector<Real3>& pos1DNodeD,
+                        const thrust::device_vector<Real3>& pos2DNodeD,
+                        const thrust::device_vector<Real3>& vel1DNodeD,
+                        const thrust::device_vector<Real3>& vel2DNodeD,
+                        const thrust::device_vector<Real3>& forceRigidD,
+                        const thrust::device_vector<Real3>& torqueRigidD,
+                        const thrust::device_vector<Real3>& force1DNodeD,
+                        const thrust::device_vector<Real3>& force2DNodeD,
+                        const std::string& dir,
+                        const double time);
 
-/// Helper function to save particle info from FSI system to a CSV files. 
+/// Helper function to save particle info from FSI system to a CSV files.
 /// This function saves particle positions, velocities, rho, pressure, and mu.
-CH_FSI_API void WriteCsvParticlesToFile(thrust::device_vector<Real4>& posRadD,
-                                        thrust::device_vector<Real3>& velMasD,
-                                        thrust::device_vector<Real4>& rhoPresMuD,
-                                        thrust::host_vector<int4>& referenceArray,
-                                        const std::string& outfilename);
+void WriteCsvParticlesToFile(thrust::device_vector<Real4>& posRadD,
+                             thrust::device_vector<Real3>& velMasD,
+                             thrust::device_vector<Real4>& rhoPresMuD,
+                             thrust::host_vector<int4>& referenceArray,
+                             const std::string& outfilename);
 
 /// Helper function to save particle info from FSI system to a ChPF binary files.
 /// This function saves only particle positions.
-CH_FSI_API void WriteChPFParticlesToFile(thrust::device_vector<Real4>& posRadD,
-                                         thrust::host_vector<int4>& referenceArray,
-                                         const std::string& outfilename);
+void WriteChPFParticlesToFile(thrust::device_vector<Real4>& posRadD,
+                              thrust::host_vector<int4>& referenceArray,
+                              const std::string& outfilename);
 
 /// @} fsi_utils
 
-}  // end namespace utils
+}  // end namespace sph
 }  // end namespace fsi
 }  // end namespace chrono
 

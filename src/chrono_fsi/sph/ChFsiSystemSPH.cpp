@@ -25,6 +25,7 @@
 
 #include "chrono/utils/ChUtilsCreators.h"
 #include "chrono/utils/ChUtilsGenerators.h"
+#include "chrono/utils/ChUtilsSamplers.h"
 
 #include "chrono_fsi/sph/ChFsiSystemSPH.h"
 #include "chrono_fsi/sph/ChFsiInterfaceSPH.h"
@@ -33,7 +34,6 @@
 #include "chrono_fsi/sph/physics/ChFluidDynamics.cuh"
 #include "chrono_fsi/sph/physics/BceManager.cuh"
 #include "chrono_fsi/sph/utils/ChUtilsTypeConvert.h"
-#include "chrono_fsi/sph/utils/ChUtilsGeneratorFluid.h"
 #include "chrono_fsi/sph/utils/ChUtilsPrintSph.cuh"
 #include "chrono_fsi/sph/utils/ChUtilsDevice.cuh"
 
@@ -51,6 +51,8 @@ using std::endl;
 
 namespace chrono {
 namespace fsi {
+
+using namespace sph;
 
 ChFsiSystemSPH::ChFsiSystemSPH(ChSystem* sysMBS)
     : ChFsiSystem(sysMBS),
@@ -489,13 +491,13 @@ void ChFsiSystemSPH::SetContainerDim(const ChVector3d& boxDim) {
 }
 
 void ChFsiSystemSPH::SetBoundaries(const ChVector3d& cMin, const ChVector3d& cMax) {
-    m_paramsH->cMin = utils::ToReal3(cMin);
-    m_paramsH->cMax = utils::ToReal3(cMax);
+    m_paramsH->cMin = ToReal3(cMin);
+    m_paramsH->cMax = ToReal3(cMax);
     m_paramsH->use_default_limits = false;
 }
 
 void ChFsiSystemSPH::SetActiveDomain(const ChVector3d& boxHalfDim) {
-    m_paramsH->bodyActiveDomain = utils::ToReal3(boxHalfDim);
+    m_paramsH->bodyActiveDomain = ToReal3(boxHalfDim);
 }
 
 void ChFsiSystemSPH::SetActiveDomainDelay(double duration) {
@@ -714,7 +716,7 @@ std::string ChFsiSystemSPH::GetSphMethodTypeString() const {
 size_t ChFsiSystemSPH::AddFsiBody(std::shared_ptr<ChBody> body) {
     size_t index = m_fsi_interface->GetNumBodies();
 
-    auto& fsi_body = m_fsi_interface->AddFsiBody(body);
+    /* auto& fsi_body =*/m_fsi_interface->AddFsiBody(body);
 
     return index;
 }
@@ -830,12 +832,37 @@ void ChFsiSystemSPH::AddFsiMesh2D(std::shared_ptr<fea::ChContactSurfaceMesh> sur
 
 //--------------------------------------------------------------------------------------------------------------------------------
 
+Real W3h_Spline(Real d, Real invh) {
+    Real q = std::abs(d) * invh;
+    if (q < 1)
+        return (0.25f * (INVPI * invh * invh * invh) * (cube(2 - q) - 4 * cube(1 - q)));
+    if (q < 2)
+        return (0.25f * (INVPI * invh * invh * invh) * cube(2 - q));
+    return 0;
+}
+
 void ChFsiSystemSPH::Initialize() {
     ChFsiSystem::Initialize();
 
-    // Calculate the initial neighour particle number
-    m_paramsH->markerMass = utils::massCalculator(m_paramsH->HSML, m_paramsH->INITSPACE, m_paramsH->rho0);
-    m_paramsH->num_neighbors = utils::IniNeiNum(m_paramsH->HSML, m_paramsH->INITSPACE);
+    // Initialize SPH particle mass and number of neighbors
+    {
+        Real sum = 0;
+        int count = 0;
+        int IDX = 10;
+        for (int i = -IDX; i <= IDX; i++) {
+            for (int j = -IDX; j <= IDX; j++) {
+                for (int k = -IDX; k <= IDX; k++) {
+                    Real3 pos = mR3(i, j, k) * m_paramsH->INITSPACE;
+                    Real W = W3h_Spline(length(pos), m_paramsH->INVHSML);
+                    sum += W;
+                    if (W > 0)
+                        count++;
+                }
+            }
+        }
+        m_paramsH->markerMass = m_paramsH->rho0 / sum;
+        m_paramsH->num_neighbors = count;
+    }
 
     if (m_paramsH->use_default_limits) {
         m_paramsH->cMin =
@@ -859,7 +886,7 @@ void ChFsiSystemSPH::Initialize() {
     }
 
     // Set up subdomains for faster neighbor particle search
-    m_paramsH->Apply_BC_U = false;  // You should go to custom_math.h all the way to end of file and set your function
+    m_paramsH->Apply_BC_U = false;  // You should go to CustomMath.h all the way to end of file and set your function
     int3 side0 = mI3((int)floor((m_paramsH->cMax.x - m_paramsH->cMin.x) / (RESOLUTION_LENGTH_MULT * m_paramsH->HSML)),
                      (int)floor((m_paramsH->cMax.y - m_paramsH->cMin.y) / (RESOLUTION_LENGTH_MULT * m_paramsH->HSML)),
                      (int)floor((m_paramsH->cMax.z - m_paramsH->cMin.z) / (RESOLUTION_LENGTH_MULT * m_paramsH->HSML)));
@@ -984,6 +1011,7 @@ void ChFsiSystemSPH::Initialize() {
             const int4& num = m_data_mgr->referenceArray_FEA[i];
             cout << "  " << i << ": " << num.x << " " << num.y << " " << num.z << " " << num.w << endl;
         }
+        cout << endl;
     }
 
     m_fsi_interface->LoadBodyStates();
@@ -1081,22 +1109,22 @@ void ChFsiSystemSPH::DoStepDynamics_FSI() {
 
 void ChFsiSystemSPH::WriteParticleFile(const std::string& outfilename) const {
     if (m_write_mode == OutputMode::CSV) {
-        utils::WriteCsvParticlesToFile(m_data_mgr->sphMarkers_D->posRadD, m_data_mgr->sphMarkers_D->velMasD,
+        WriteCsvParticlesToFile(m_data_mgr->sphMarkers_D->posRadD, m_data_mgr->sphMarkers_D->velMasD,
                                        m_data_mgr->sphMarkers_D->rhoPresMuD, m_data_mgr->referenceArray, outfilename);
     } else if (m_write_mode == OutputMode::CHPF) {
-        utils::WriteChPFParticlesToFile(m_data_mgr->sphMarkers_D->posRadD, m_data_mgr->referenceArray, outfilename);
+        WriteChPFParticlesToFile(m_data_mgr->sphMarkers_D->posRadD, m_data_mgr->referenceArray, outfilename);
     }
 }
 
 void ChFsiSystemSPH::PrintParticleToFile(const std::string& dir) const {
-    utils::PrintParticleToFile(m_data_mgr->sphMarkers_D->posRadD, m_data_mgr->sphMarkers_D->velMasD,
+    sph::PrintParticleToFile(m_data_mgr->sphMarkers_D->posRadD, m_data_mgr->sphMarkers_D->velMasD,
                                m_data_mgr->sphMarkers_D->rhoPresMuD, m_data_mgr->sr_tau_I_mu_i_Original,
                                m_data_mgr->derivVelRhoOriginalD, m_data_mgr->referenceArray,
                                m_data_mgr->referenceArray_FEA, dir, m_paramsH);
 }
 
 void ChFsiSystemSPH::PrintFsiInfoToFile(const std::string& dir, double time) const {
-    utils::PrintFsiInfoToFile(                                                                     //
+    sph::PrintFsiInfoToFile(                                                                     //
         m_data_mgr->fsiBodyState_D->pos, m_data_mgr->fsiBodyState_D->rot,                          //
         m_data_mgr->fsiBodyState_D->lin_vel,                                                       //
         m_data_mgr->fsiMesh1DState_D->pos_fsi_fea_D, m_data_mgr->fsiMesh2DState_D->pos_fsi_fea_D,  //
@@ -1115,8 +1143,8 @@ void ChFsiSystemSPH::AddSPHParticle(const ChVector3d& pos,
                                  const ChVector3d& vel,
                                  const ChVector3d& tauXxYyZz,
                                  const ChVector3d& tauXyXzYz) {
-    m_data_mgr->AddSphParticle(utils::ToReal3(pos), rho, pres, mu, utils::ToReal3(vel), utils::ToReal3(tauXxYyZz),
-                               utils::ToReal3(tauXyXzYz));
+    m_data_mgr->AddSphParticle(ToReal3(pos), rho, pres, mu, ToReal3(vel), ToReal3(tauXxYyZz),
+                               ToReal3(tauXyXzYz));
 }
 
 void ChFsiSystemSPH::AddSPHParticle(const ChVector3d& pos,
@@ -1128,7 +1156,7 @@ void ChFsiSystemSPH::AddSPHParticle(const ChVector3d& pos,
 
 void ChFsiSystemSPH::AddBoxSPH(const ChVector3d& boxCenter, const ChVector3d& boxHalfDim) {
     // Use a chrono sampler to create a bucket of points
-    chrono::utils::ChGridSampler<> sampler(m_paramsH->INITSPACE);
+    utils::ChGridSampler<> sampler(m_paramsH->INITSPACE);
     std::vector<ChVector3d> points = sampler.SampleBox(boxCenter, boxHalfDim);
 
     // Add fluid particles from the sampler points to the FSI system
@@ -1254,7 +1282,7 @@ size_t ChFsiSystemSPH::AddPointsBCE(std::shared_ptr<ChBody> body,
         auto pos_abs = body->GetFrameRefToAbs().TransformPointLocalToParent(pos_body);
         auto vel_abs = body->GetFrameRefToAbs().PointSpeedLocalToParent(pos_body);
 
-        m_data_mgr->AddBceMarker(type, utils::ToReal3(pos_abs), utils::ToReal3(vel_abs));
+        m_data_mgr->AddBceMarker(type, ToReal3(pos_abs), ToReal3(vel_abs));
     }
 
     if (solid)
@@ -1633,9 +1661,9 @@ unsigned int ChFsiSystemSPH::AddBCE_mesh1D(unsigned int meshID, const ChFsiInter
                     double z_val = k * spacing / 2;
                     auto Q = P + y_val * y_dir + z_val * z_dir;
 
-                    m_data_mgr->AddBceMarker(MarkerType::BCE_FLEX1D, utils::ToReal3(Q), utils::ToReal3(V));
+                    m_data_mgr->AddBceMarker(MarkerType::BCE_FLEX1D, ToReal3(Q), ToReal3(V));
 
-                    m_data_mgr->flex1D_BCEcoords_H.push_back(utils::ToReal3({lambda[0], y_val, z_val}));
+                    m_data_mgr->flex1D_BCEcoords_H.push_back(ToReal3({lambda[0], y_val, z_val}));
                     m_data_mgr->flex1D_BCEsolids_H.push_back(mU3(meshID, segID, m_num_flex1D_elements + segID));
                     n_bce++;
                 }
@@ -1752,9 +1780,9 @@ unsigned int ChFsiSystemSPH::AddBCE_mesh2D(unsigned int meshID, const ChFsiInter
                     double z_val = m * spacing / 2;
                     auto Q = P + z_val * normal;
 
-                    m_data_mgr->AddBceMarker(MarkerType::BCE_FLEX2D, utils::ToReal3(Q), utils::ToReal3(V));
+                    m_data_mgr->AddBceMarker(MarkerType::BCE_FLEX2D, ToReal3(Q), ToReal3(V));
 
-                    m_data_mgr->flex2D_BCEcoords_H.push_back(utils::ToReal3({lambda[0], lambda[1], z_val}));
+                    m_data_mgr->flex2D_BCEcoords_H.push_back(ToReal3({lambda[0], lambda[1], z_val}));
                     m_data_mgr->flex2D_BCEsolids_H.push_back(mU3(meshID, triID, m_num_flex2D_elements + triID));
                     n_bce++;
 
@@ -1999,7 +2027,7 @@ std::vector<ChVector3d> ChFsiSystemSPH::GetParticlePositions() const {
     std::vector<ChVector3d> pos;
 
     for (size_t i = 0; i < posRadH.size(); i++) {
-        pos.push_back(utils::ToChVector(posRadH[i]));
+        pos.push_back(ToChVector(posRadH[i]));
     }
     return pos;
 }
@@ -2009,7 +2037,7 @@ std::vector<ChVector3d> ChFsiSystemSPH::GetParticleFluidProperties() const {
     std::vector<ChVector3d> props;
 
     for (size_t i = 0; i < rhoPresMuH.size(); i++) {
-        props.push_back(utils::ToChVector(rhoPresMuH[i]));
+        props.push_back(ToChVector(rhoPresMuH[i]));
     }
     return props;
 }
@@ -2019,7 +2047,7 @@ std::vector<ChVector3d> ChFsiSystemSPH::GetParticleVelocities() const {
     std::vector<ChVector3d> vel;
 
     for (size_t i = 0; i < velH.size(); i++) {
-        vel.push_back(utils::ToChVector(velH[i]));
+        vel.push_back(ToChVector(velH[i]));
     }
     return vel;
 }
@@ -2028,7 +2056,7 @@ std::vector<ChVector3d> ChFsiSystemSPH::GetParticleAccelerations() const {
     thrust::host_vector<Real4> accH = m_data_mgr->GetParticleAccelerations();
     std::vector<ChVector3d> acc;
     for (size_t i = 0; i < accH.size(); i++) {
-        acc.push_back(utils::ToChVector(accH[i]));
+        acc.push_back(ToChVector(accH[i]));
     }
     return acc;
 }
@@ -2037,7 +2065,7 @@ std::vector<ChVector3d> ChFsiSystemSPH::GetParticleForces() const {
     thrust::host_vector<Real4> frcH = m_data_mgr->GetParticleForces();
     std::vector<ChVector3d> frc;
     for (size_t i = 0; i < frcH.size(); i++) {
-        frc.push_back(utils::ToChVector(frcH[i]));
+        frc.push_back(ToChVector(frcH[i]));
     }
     return frc;
 }

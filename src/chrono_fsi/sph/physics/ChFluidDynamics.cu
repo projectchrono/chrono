@@ -23,6 +23,7 @@ using std::endl;
 
 namespace chrono {
 namespace fsi {
+namespace sph {
 
 // -----------------------------------------------------------------------------
 // Device function to calculate the share of density influence on a given
@@ -773,5 +774,6 @@ void ChFluidDynamics::DensityReinitialization() {
     dummySortedRhoPreMu.clear();
 }
 
+}  // namespace sph
 }  // namespace fsi
 }  // end namespace chrono

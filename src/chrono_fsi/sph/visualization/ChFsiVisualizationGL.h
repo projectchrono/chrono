@@ -21,7 +21,7 @@
 namespace chrono {
 namespace fsi {
 
-/// @addtogroup fsi_utils
+/// @addtogroup fsi_visualization
 /// @{
 
 /// OpenGL-based run-time visualization system for SPH-based FSI systems.
@@ -81,7 +81,7 @@ class CH_FSI_API ChFsiVisualizationGL : public ChFsiVisualization {
     unsigned int m_bce_start_index;        ///< start index of BCE proxy bodies in m_system's body list
 };
 
-/// @} fsi_utils
+/// @} fsi_visualization
 
 }  // namespace fsi
 }  // namespace chrono

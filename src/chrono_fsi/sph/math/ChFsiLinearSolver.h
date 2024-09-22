@@ -28,10 +28,11 @@
 #include "cusparse_v2.h"
 
 #include "chrono_fsi/sph/ChFsiDefinitionsSPH.h"
-#include "chrono_fsi/sph/math/custom_math.h"
+#include "chrono_fsi/sph/math/CustomMath.h"
 
 namespace chrono {
 namespace fsi {
+namespace sph {
 
 /// @addtogroup fsi_solver
 /// @{
@@ -112,6 +113,7 @@ class ChFsiLinearSolver {
 
 /// @} fsi_solver
 
+}  // namespace sph
 }  // end namespace fsi
 }  // end namespace chrono
 

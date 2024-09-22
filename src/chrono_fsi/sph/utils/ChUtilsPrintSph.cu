@@ -26,7 +26,7 @@
 
 namespace chrono {
 namespace fsi {
-namespace utils {
+namespace sph {
 
 void PrintParticleToFile(const thrust::device_vector<Real4>& posRadD,
                          const thrust::device_vector<Real3>& velMasD,
@@ -450,6 +450,6 @@ void WriteChPFParticlesToFile(thrust::device_vector<Real4>& posRadD,
     pw.write(ptFile, ParticleFormatWriter::CompressionType::NONE, pos_x, pos_y, pos_z);
 }
 
-}  // end namespace utils
+}  // end namespace sph
 }  // end namespace fsi
 }  // end namespace chrono

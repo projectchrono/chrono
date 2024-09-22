@@ -21,6 +21,7 @@
 
 namespace chrono {
 namespace fsi {
+namespace sph {
 
 /// @addtogroup fsi_solver
 /// @{
@@ -1642,6 +1643,7 @@ static __host__ __device__ void inv6xdelta_mn(Real* B, Real* L) {
 
 /// @} fsi_solver
 
+}  // namespace sph
 }  // namespace fsi
 }  // namespace chrono
 

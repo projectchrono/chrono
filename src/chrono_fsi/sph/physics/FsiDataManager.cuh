@@ -31,11 +31,12 @@
 
 #include "chrono_fsi/sph/physics/ChParams.h"
 #include "chrono_fsi/sph/physics/ChMarkerType.cuh"
-#include "chrono_fsi/sph/math/custom_math.h"
+#include "chrono_fsi/sph/math/CustomMath.h"
 #include "chrono_fsi/sph/utils/ChUtilsDevice.cuh"
 
 namespace chrono {
 namespace fsi {
+namespace sph {
 
 /// @addtogroup fsi_physics
 /// @{
@@ -332,6 +333,7 @@ class FsiDataManager {
 
 /// @} fsi_physics
 
+}  // namespace sph
 }  // end namespace fsi
 }  // end namespace chrono
 

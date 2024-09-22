@@ -21,6 +21,8 @@
 namespace chrono {
 namespace fsi {
 
+using namespace sph;
+
 // -----------------------------------------------------------------------------
 
 // Custom stats overlay

@@ -33,11 +33,12 @@
 
 #include "chrono_fsi/sph/ChFsiDefinitionsSPH.h"
 #include "chrono_fsi/sph/math/ChFsiLinearSolver.h"
-#include "chrono_fsi/sph/math/custom_math.h"
+#include "chrono_fsi/sph/math/CustomMath.h"
 #include "chrono_fsi/sph/utils/ChUtilsDevice.cuh"
 
 namespace chrono {
 namespace fsi {
+namespace sph {
 
 /// @addtogroup fsi_physics
 /// @{
@@ -208,6 +209,7 @@ struct SimParams {
 
 /// @} fsi_physics
 
+}  // namespace sph
 }  // namespace fsi
 }  // namespace chrono
 

@@ -26,6 +26,7 @@
 
 namespace chrono {
 namespace fsi {
+namespace sph {
 
 // -----------------------------------------------------------------------------
 
@@ -936,5 +937,6 @@ void BceManager::UpdateMeshMarker2DStateInitial() {
     cudaCheckError();
 }
 
+}  // namespace sph
 }  // end namespace fsi
 }  // end namespace chrono

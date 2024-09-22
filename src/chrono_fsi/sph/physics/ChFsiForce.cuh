@@ -30,6 +30,7 @@
 
 namespace chrono {
 namespace fsi {
+namespace sph {
 
 struct compare_Real4_x {
     __host__ __device__ bool operator()(Real4 lhs, Real4 rhs) { return lhs.x < rhs.x; }
@@ -179,6 +180,7 @@ class ChFsiForce {
 
 /// @} fsi_physics
 
+}  // namespace sph
 }  // end namespace fsi
 }  // end namespace chrono
 

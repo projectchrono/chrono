@@ -197,7 +197,6 @@ int main(int argc, char* argv[]) {
         }
 
         visFSI->SetTitle("Tracked vehicle on CRM deformable terrain");
-        visFSI->SetVerbose(verbose);
         visFSI->SetSize(1280, 720);
         visFSI->AddCamera(ChVector3d(0, 8, 0.5), ChVector3d(0, -1, 0));
         visFSI->SetCameraMoveScale(0.2f);

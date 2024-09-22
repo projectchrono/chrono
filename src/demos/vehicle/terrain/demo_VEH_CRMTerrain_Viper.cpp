@@ -206,7 +206,6 @@ int main(int argc, char* argv[]) {
         }
 
         visFSI->SetTitle("Viper rover on CRM deformable terrain");
-        visFSI->SetVerbose(verbose);
         visFSI->SetSize(1280, 720);
         visFSI->AddCamera(init_loc + ChVector3d(0, 6, 0.5), init_loc);
         visFSI->SetCameraMoveScale(0.2f);

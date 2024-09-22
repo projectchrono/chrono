@@ -29,6 +29,7 @@
 
 namespace chrono {
 namespace fsi {
+namespace sph {
 
 void printMatrix(const Real* A, int Ny, int Nx) {
     printf("Matrix A(%d,%d):\n", Ny, Nx);
@@ -259,5 +260,6 @@ void ChFsiLinearSolverGMRES::Solve(int SIZE,
 #endif
 }
 
+}  // namespace sph
 }  // end namespace fsi
 }  // namespace chrono

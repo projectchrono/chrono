@@ -211,7 +211,6 @@ int main(int argc, char* argv[]) {
         }
 
         visFSI->SetTitle("Chrono::FSI flexible plate");
-        visFSI->SetVerbose(verbose);
         visFSI->SetSize(1280, 720);
         visFSI->SetCameraMoveScale(1.0f);
         visFSI->EnableBoundaryMarkers(true);
@@ -257,9 +256,6 @@ int main(int argc, char* argv[]) {
     ChTimer timer;
     timer.start();
     while (time < t_end) {
-        if (verbose)
-            cout << sim_frame << " time: " << time << endl;
-
         if (output && time >= out_frame / output_fps) {
             if (verbose)
                 cout << " -- Output frame " << out_frame << " at t = " << time << endl;

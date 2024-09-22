@@ -25,6 +25,7 @@
 
 namespace chrono {
 namespace fsi {
+namespace sph {
 
 /// @addtogroup fsi_physics
 /// @{
@@ -91,6 +92,7 @@ class BceManager {
 
 /// @} fsi_physics
 
+}  // namespace sph
 }  // end namespace fsi
 }  // end namespace chrono
 

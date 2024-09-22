@@ -26,14 +26,16 @@
 
 #include "chrono_fsi/sph/ChFsiDefinitionsSPH.h"
 #include "chrono_fsi/sph/physics/ChParams.h"
-#include "chrono_fsi/sph/math/custom_math.h"
+#include "chrono_fsi/sph/math/CustomMath.h"
 
 namespace chrono {
 namespace fsi {
 
+namespace sph {
 class FsiDataManager;
 class ChFluidDynamics;
 class BceManager;
+}
 
 /// @addtogroup fsi_physics
 /// @{
@@ -253,7 +255,7 @@ class CH_FSI_API ChFsiSystemSPH : public ChFsiSystem {
     int GetNumProximitySearchSteps() const;
 
     /// Return the current system parameters (debugging only).
-    const SimParams& GetParams() const { return *m_paramsH; }
+    const sph::SimParams& GetParams() const { return *m_paramsH; }
 
     /// Get the current number of fluid SPH particles.
     size_t GetNumFluidMarkers() const;
@@ -439,19 +441,19 @@ class CH_FSI_API ChFsiSystemSPH : public ChFsiSystem {
 
     /// Extract positions of all SPH particles with indices in the provided array.
     /// The return value is a device thrust vector.
-    thrust::device_vector<Real4> GetParticlePositions(const thrust::device_vector<int>& indices);
+    thrust::device_vector<sph::Real4> GetParticlePositions(const thrust::device_vector<int>& indices);
 
     /// Extract velocities of all SPH particles with indices in the provided array.
     /// The return value is a device thrust vector.
-    thrust::device_vector<Real3> GetParticleVelocities(const thrust::device_vector<int>& indices);
+    thrust::device_vector<sph::Real3> GetParticleVelocities(const thrust::device_vector<int>& indices);
 
     /// Extract forces applied to all SPH particles with indices in the provided array.
     /// The return value is a device thrust vector.
-    thrust::device_vector<Real4> GetParticleForces(const thrust::device_vector<int>& indices);
+    thrust::device_vector<sph::Real4> GetParticleForces(const thrust::device_vector<int>& indices);
 
     /// Extract accelerations of all SPH particles with indices in the provided array.
     /// The return value is a device thrust vector.
-    thrust::device_vector<Real4> GetParticleAccelerations(const thrust::device_vector<int>& indices);
+    thrust::device_vector<sph::Real4> GetParticleAccelerations(const thrust::device_vector<int>& indices);
 
     // ----------- Utility functions for creating BCE markers in various volumes
 
@@ -530,11 +532,11 @@ class CH_FSI_API ChFsiSystemSPH : public ChFsiSystem {
     /// The BCE markers are created in the absolute coordinate frame.
     unsigned int AddBCE_mesh2D(unsigned int meshID, const ChFsiInterface::FsiMesh2D& fsi_mesh);
 
-    std::shared_ptr<SimParams> m_paramsH;  ///< pointer to the simulation parameters
+    std::shared_ptr<sph::SimParams> m_paramsH;  ///< pointer to the simulation parameters
 
-    std::unique_ptr<FsiDataManager> m_data_mgr;         ///< FSI data manager
-    std::unique_ptr<ChFluidDynamics> m_fluid_dynamics;  ///< fluid system
-    std::unique_ptr<BceManager> m_bce_mgr;              ///< BCE manager
+    std::unique_ptr<sph::FsiDataManager> m_data_mgr;         ///< FSI data manager
+    std::unique_ptr<sph::ChFluidDynamics> m_fluid_dynamics;  ///< fluid system
+    std::unique_ptr<sph::BceManager> m_bce_mgr;              ///< BCE manager
 
     unsigned int m_num_flex1D_elements;  ///< number of 1-D flexible segments (across all meshes)
     unsigned int m_num_flex2D_elements;  ///< number of 2-D flexible faces (across all meshes)

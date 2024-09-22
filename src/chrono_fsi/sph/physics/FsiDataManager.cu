@@ -30,6 +30,7 @@
 
 namespace chrono {
 namespace fsi {
+namespace sph {
 
 //---------------------------------------------------------------------------------------
 
@@ -602,5 +603,6 @@ thrust::device_vector<Real4> FsiDataManager::GetParticleForces(const thrust::dev
     return forces;
 }
 
+}  // namespace sph
 }  // end namespace fsi
 }  // end namespace chrono

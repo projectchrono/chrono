@@ -21,6 +21,7 @@
 
 namespace chrono {
 namespace fsi {
+namespace sph {
 
 void CopyParametersToDevice(std::shared_ptr<SimParams> paramsH, std::shared_ptr<Counters> countersH) {
     cudaMemcpyToSymbolAsync(paramsD, paramsH.get(), sizeof(SimParams));
@@ -935,5 +936,6 @@ __global__ void neighborSearchID(const Real4* sortedPosRad,
     }
 }
 
+}  // namespace sph
 }  // namespace fsi
 }  // namespace chrono

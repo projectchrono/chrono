@@ -25,10 +25,11 @@
 
 #include "chrono/core/ChTypes.h"
 
-#include "chrono_fsi/sph/math/custom_math.h"
+#include "chrono_fsi/sph/math/CustomMath.h"
 
 namespace chrono {
 namespace fsi {
+namespace sph {
 
 /// @addtogroup fsi_utils
 /// @{
@@ -174,6 +175,7 @@ class GpuTimer {
 
 /// @} fsi_utils
 
+}  // namespace sph
 }  // end namespace fsi
 }  // end namespace chrono
 

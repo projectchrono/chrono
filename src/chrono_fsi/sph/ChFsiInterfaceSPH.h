@@ -33,7 +33,7 @@ namespace fsi {
 class ChFsiInterfaceSPH : public ChFsiInterface {
   public:
     /// Constructor of the FSI interface class.
-    ChFsiInterfaceSPH(FsiDataManager& data_mgr, bool verbose);
+    ChFsiInterfaceSPH(sph::FsiDataManager& data_mgr, bool verbose);
 
     /// Destructor of the FSI interface class.
     ~ChFsiInterfaceSPH();
@@ -53,7 +53,7 @@ class ChFsiInterfaceSPH : public ChFsiInterface {
 
   private:
 
-    FsiDataManager& m_data_mgr;  ///< FSI data manager
+    sph::FsiDataManager& m_data_mgr;  ///< FSI data manager
 
     friend class ChFsiSystemSPH;
 };

@@ -26,10 +26,11 @@
 #include "chrono_fsi/sph/utils/ChUtilsDevice.cuh"
 #include "chrono_fsi/sph/physics/FsiDataManager.cuh"
 #include "chrono_fsi/sph/math/ChFsiLinearSolver.h"
-#include "chrono_fsi/sph/math/custom_math.h"
+#include "chrono_fsi/sph/math/CustomMath.h"
 
 namespace chrono {
 namespace fsi {
+namespace sph {
 
 //--------------------------------------------------------------------------------------------------------------------------------
 
@@ -457,6 +458,8 @@ __global__ void neighborSearchID(const Real4* sortedPosRad,
                                  uint* neighborList,
                                  volatile bool* error_flag);
 
+}  // namespace sph
 }  // namespace fsi
 }  // namespace chrono
+
 #endif

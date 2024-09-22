@@ -35,6 +35,7 @@ using std::endl;
 
 namespace chrono {
 namespace fsi {
+namespace sph {
 
 __device__ void BCE_Vel_Acc(int i_idx,
                             Real3& myAcc,         // output: BCE marker acceleration
@@ -1355,5 +1356,6 @@ void ChFsiForceI2SPH::PreProcessor(bool calcLaplacianOperator) {
     double Gradient_Laplacian_Operator = (clock() - A_L_Tensor_GradLaplacian) / (double)CLOCKS_PER_SEC;
 }
 
+}  // namespace sph
 }  // namespace fsi
 }  // namespace chrono

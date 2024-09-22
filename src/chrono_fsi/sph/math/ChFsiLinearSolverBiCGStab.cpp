@@ -29,6 +29,7 @@
 
 namespace chrono {
 namespace fsi {
+namespace sph {
 
 void ChFsiLinearSolverBiCGStab::Solve(int SIZE,
                                       int NNZ,
@@ -371,5 +372,7 @@ void ChFsiLinearSolverBiCGStab::Solve(int SIZE,
     cusparseDestroyCsrsv2Info(info_U);
 #endif
 }
+
+}  // namespace sph
 }  // end namespace fsi
 }  // end namespace chrono

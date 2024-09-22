@@ -27,7 +27,7 @@
 namespace chrono {
 namespace fsi {
 
-/// @addtogroup fsi_utils
+/// @addtogroup fsi_visualization
 /// @{
 
 /// Base class for a run-time visualization system for SPH-based FSI systems.
@@ -171,7 +171,7 @@ class CH_FSI_API ChFsiVisualization {
     std::string m_image_dir;  ///< directory for image files
 };
 
-/// @} fsi_utils
+/// @} fsi_visualization
 
 }  // namespace fsi
 }  // namespace chrono

@@ -23,6 +23,7 @@
 
 namespace chrono {
 namespace fsi {
+namespace sph {
 
 /// @addtogroup fsi_collision
 /// @{
@@ -48,6 +49,7 @@ class ChCollisionSystemFsi {
 
 /// @} fsi_collision
 
+}  // namespace sph
 }  // end namespace fsi
 }  // end namespace chrono
 

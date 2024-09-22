@@ -27,6 +27,7 @@
 
 namespace chrono {
 namespace fsi {
+namespace sph {
 
 /// @addtogroup fsi_math
 /// @{
@@ -1651,6 +1652,7 @@ __host__ __device__ inline bool IsFinite(Real4 v) {
 }
 /// @} fsi_math
 
+}  // namespace sph
 }  // end namespace fsi
 }  // end namespace chrono
 

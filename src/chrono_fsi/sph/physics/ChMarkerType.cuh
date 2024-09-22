@@ -22,10 +22,11 @@
 #include <cuda_runtime_api.h>
 
 #include "chrono_fsi/ChApiFsi.h"
-#include "chrono_fsi/sph/math/custom_math.h"
+#include "chrono_fsi/sph/math/CustomMath.h"
 
 namespace chrono {
 namespace fsi {
+namespace sph {
 
 /// Marker (SPH and BCE) type.
 enum class MarkerType { SPH_PARTICLE, SPH_HELPER, SPH_GHOST, BCE_WALL, BCE_RIGID, BCE_FLEX1D, BCE_FLEX2D };
@@ -88,6 +89,7 @@ __host__ __device__ inline bool IsBceSolidMarker(Real code) {
     return code > 0.5;
 }
 
+}  // namespace sph
 }  // namespace fsi
 }  // namespace chrono
 

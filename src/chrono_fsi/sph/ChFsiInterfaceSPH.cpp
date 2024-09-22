@@ -22,6 +22,8 @@
 namespace chrono {
 namespace fsi {
 
+using namespace sph;
+
 ChFsiInterfaceSPH::ChFsiInterfaceSPH(FsiDataManager& data_mgr, bool verbose)
     : ChFsiInterface(verbose), m_data_mgr(data_mgr) {}
 
@@ -38,8 +40,8 @@ void ChFsiInterfaceSPH::ApplyBodyForces() {
     for (size_t i = 0; i < num_bodies; i++) {
         std::shared_ptr<ChBody> body = m_fsi_bodies[i].body;
 
-        m_fsi_bodies[i].fsi_force = utils::ToChVector(forcesH[i]);
-        m_fsi_bodies[i].fsi_torque = utils::ToChVector(torquesH[i]);
+        m_fsi_bodies[i].fsi_force = ToChVector(forcesH[i]);
+        m_fsi_bodies[i].fsi_torque = ToChVector(torquesH[i]);
 
         body->EmptyAccumulators();
         body->AccumulateForce(m_fsi_bodies[i].fsi_force, body->GetPos(), false);
@@ -53,12 +55,12 @@ void ChFsiInterfaceSPH::LoadBodyStates() {
     for (size_t i = 0; i < num_bodies; i++) {
         std::shared_ptr<ChBody> body = m_fsi_bodies[i].body;
 
-        m_data_mgr.fsiBodyState_H->pos[i] = utils::ToReal3(body->GetPos());
-        m_data_mgr.fsiBodyState_H->lin_vel[i] = utils::ToReal4(body->GetPosDt(), body->GetMass());
-        m_data_mgr.fsiBodyState_H->lin_acc[i] = utils::ToReal3(body->GetPosDt2());
-        m_data_mgr.fsiBodyState_H->rot[i] = utils::ToReal4(body->GetRot());
-        m_data_mgr.fsiBodyState_H->ang_vel[i] = utils::ToReal3(body->GetAngVelLocal());
-        m_data_mgr.fsiBodyState_H->ang_acc[i] = utils::ToReal3(body->GetAngAccLocal());
+        m_data_mgr.fsiBodyState_H->pos[i] = ToReal3(body->GetPos());
+        m_data_mgr.fsiBodyState_H->lin_vel[i] = ToReal4(body->GetPosDt(), body->GetMass());
+        m_data_mgr.fsiBodyState_H->lin_acc[i] = ToReal3(body->GetPosDt2());
+        m_data_mgr.fsiBodyState_H->rot[i] = ToReal4(body->GetRot());
+        m_data_mgr.fsiBodyState_H->ang_vel[i] = ToReal3(body->GetAngVelLocal());
+        m_data_mgr.fsiBodyState_H->ang_acc[i] = ToReal3(body->GetAngAccLocal());
     }
     
     m_data_mgr.fsiBodyState_D->CopyFromH(*m_data_mgr.fsiBodyState_H);
@@ -77,7 +79,7 @@ void ChFsiInterfaceSPH::ApplyMeshForces() {
             int num_nodes = (int)fsi_mesh.ind2ptr_map.size();
             for (int i = 0; i < num_nodes; i++) {
                 const auto& node = fsi_mesh.ind2ptr_map.at(i);
-                node->SetForce(utils::ToChVector(forces_H[counter]));
+                node->SetForce(ToChVector(forces_H[counter]));
                 counter++;
             }
         }
@@ -93,7 +95,7 @@ void ChFsiInterfaceSPH::ApplyMeshForces() {
             int num_nodes = (int)fsi_mesh.ind2ptr_map.size();
             for (int i = 0; i < num_nodes; i++) {
                 const auto& node = fsi_mesh.ind2ptr_map.at(i);
-                node->SetForce(utils::ToChVector(forces_H[counter]));
+                node->SetForce(ToChVector(forces_H[counter]));
                 counter++;
             }
         }
@@ -108,9 +110,9 @@ void ChFsiInterfaceSPH::LoadMeshStates() {
             int num_nodes = (int)fsi_mesh.ind2ptr_map.size();
             for (int i = 0; i < num_nodes; i++) {
                 const auto& node = fsi_mesh.ind2ptr_map.at(i);
-                m_data_mgr.fsiMesh1DState_H->pos_fsi_fea_H[counter] = utils::ToReal3(node->GetPos());
-                m_data_mgr.fsiMesh1DState_H->vel_fsi_fea_H[counter] = utils::ToReal3(node->GetPosDt());
-                m_data_mgr.fsiMesh1DState_H->acc_fsi_fea_H[counter] = utils::ToReal3(node->GetPosDt2());
+                m_data_mgr.fsiMesh1DState_H->pos_fsi_fea_H[counter] = ToReal3(node->GetPos());
+                m_data_mgr.fsiMesh1DState_H->vel_fsi_fea_H[counter] = ToReal3(node->GetPosDt());
+                m_data_mgr.fsiMesh1DState_H->acc_fsi_fea_H[counter] = ToReal3(node->GetPosDt2());
                 counter++;
             }
         }
@@ -126,9 +128,9 @@ void ChFsiInterfaceSPH::LoadMeshStates() {
             int num_nodes = (int)fsi_mesh.ind2ptr_map.size();
             for (int i = 0; i < num_nodes; i++) {
                 const auto& node = fsi_mesh.ind2ptr_map.at(i);
-                m_data_mgr.fsiMesh2DState_H->pos_fsi_fea_H[counter] = utils::ToReal3(node->GetPos());
-                m_data_mgr.fsiMesh2DState_H->vel_fsi_fea_H[counter] = utils::ToReal3(node->GetPosDt());
-                m_data_mgr.fsiMesh2DState_H->acc_fsi_fea_H[counter] = utils::ToReal3(node->GetPosDt2());
+                m_data_mgr.fsiMesh2DState_H->pos_fsi_fea_H[counter] = ToReal3(node->GetPos());
+                m_data_mgr.fsiMesh2DState_H->vel_fsi_fea_H[counter] = ToReal3(node->GetPosDt());
+                m_data_mgr.fsiMesh2DState_H->acc_fsi_fea_H[counter] = ToReal3(node->GetPosDt2());
                 counter++;
             }
         }

@@ -23,6 +23,7 @@
 
 namespace chrono {
 namespace fsi {
+namespace sph {
 
 // calcHashD :
 // 1. Get particle index determined by the block and thread we are in.
@@ -296,5 +297,6 @@ void ChCollisionSystemFsi::ArrangeData(std::shared_ptr<SphMarkerDataD> sphMarker
     cudaFreeErrorFlag(error_flagD);
 }
 
+}  // namespace sph
 }  // end namespace fsi
 }  // end namespace chrono
