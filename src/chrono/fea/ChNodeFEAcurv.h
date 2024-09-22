@@ -98,6 +98,9 @@ class ChApi ChNodeFEAcurv : public ChNodeFEAbase {
     /// Get the number of degrees of freedom, derivative.
     virtual unsigned int GetNumCoordsVelLevel() const override { return 9; }
 
+    /// Get a symbolic 'center' of the node (the position). 
+    virtual ChVector3d GetCenter() const override { return VNULL; } // note: there is no physical 3d position for this node class
+
     /// Method to allow serialization of transient data to archives.
     virtual void ArchiveOut(ChArchiveOut& archive_out) override;
 

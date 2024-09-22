@@ -75,7 +75,7 @@ class ChApi ChNodeFEAxyz : public ChNodeFEAbase, public ChNodeXYZ, public ChVari
     virtual unsigned int GetNumCoordsPosLevel() const override { return 3; }
 
     /// Get a symbolic 'center' of the node (the position). 
-    virtual ChVector3d GetCenter() const { return pos; }
+    virtual ChVector3d GetCenter() const override { return pos; }
 
     /// Method to allow serialization of transient data to archives.
     virtual void ArchiveOut(ChArchiveOut& archive) override;
