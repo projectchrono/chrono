@@ -36,6 +36,9 @@
 
 namespace chrono {
 namespace fsi {
+
+class ChFsiSystemSPH;
+
 namespace sph {
 
 /// @addtogroup fsi_physics
