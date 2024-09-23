@@ -67,7 +67,7 @@ set(CH_FSI_INCLUDES "${CH_FSI_INCLUDES}" PARENT_SCOPE)
 #-----------------------------------------------------------------------------
 
 set(ChronoEngine_FSI_BASE_FILES
-    ../ChApiFSI.h
+    ../ChApiFsi.h
     ../ChFsiSystem.h
     ../ChFsiSystem.cpp
     ../ChFsiInterface.h
