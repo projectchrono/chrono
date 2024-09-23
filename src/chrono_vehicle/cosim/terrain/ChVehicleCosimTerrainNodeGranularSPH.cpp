@@ -168,7 +168,8 @@ void ChVehicleCosimTerrainNodeGranularSPH::Construct() {
         sysFSI.ReadParametersFromFile(m_specfile);
 
     // Reload simulation parameters to FSI system
-    sysFSI.SetStepSize(m_step_size);
+    sysFSI.SetStepSizeCFD(m_step_size);
+    sysFSI.SetStepsizeMBD(m_step_size);
     sysFSI.SetConsistentDerivativeDiscretization(false, false);
     sysFSI.SetOutputLength(0);
 
@@ -372,7 +373,7 @@ void ChVehicleCosimTerrainNodeGranularSPH::OnAdvance(double step_size) {
     double t = 0;
     while (t < step_size) {
         double h = std::min<>(m_step_size, step_size - t);
-        m_terrain->GetSystemFSI().DoStepDynamics_FSI();
+        m_terrain->GetSystemFSI().DoStepDynamics(h);
         t += h;
     }
 }

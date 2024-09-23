@@ -23,11 +23,8 @@
     "Time steps per proximity search": 1
   },
   "Time Stepping": {
-    "Adaptive Time stepping": false,
     "CFL number": 0.2,
-    "Fluid time step": 0.001,
-    "Solid time step": 0.001,
-    "Maximum time step": 0.001
+    "Fluid time step": 0.001
   },
   "Pressure Equation": {
     "Linear solver": "Jacobi",

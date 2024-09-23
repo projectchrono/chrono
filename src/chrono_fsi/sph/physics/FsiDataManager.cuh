@@ -331,7 +331,7 @@ class FsiDataManager {
     /// Initializes device vectors to zero.
     void ResetData();
 
-    friend class ChFsiSystemSPH;
+    friend class chrono::fsi::ChFsiSystemSPH;
 };
 
 /// @} fsi_physics

@@ -298,7 +298,8 @@ int main(int argc, char* argv[]) {
     sysFSI.SetDensity(density);
 
     // Set the simulation stepsize
-    sysFSI.SetStepSize(dT);
+    sysFSI.SetStepSizeCFD(dT);
+    sysFSI.SetStepsizeMBD(dT);
 
     // Set the terrain container size
     sysFSI.SetContainerDim(ChVector3d(bxDim, byDim, bzDim));
@@ -413,7 +414,7 @@ int main(int argc, char* argv[]) {
 #endif
 
         // Call the FSI solver
-        sysFSI.DoStepDynamics_FSI();
+        sysFSI.DoStepDynamics(dT);
         time += dT;
         sim_frame++;
     }

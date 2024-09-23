@@ -138,7 +138,8 @@ int main(int argc, char* argv[]) {
     sph_params.consistent_laplacian_discretization = false;
 
     sysFSI.SetSPHParameters(sph_params);
-    sysFSI.SetStepSize(step_size);
+    sysFSI.SetStepSizeCFD(step_size);
+    sysFSI.SetStepsizeMBD(step_size);
 
     sysFSI.SetActiveDomain(ChVector3d(active_box_hdim));
 
@@ -261,7 +262,7 @@ int main(int argc, char* argv[]) {
 
         // Advance system state
         driver.Advance(step_size);
-        sysFSI.DoStepDynamics_FSI();
+        sysFSI.DoStepDynamics(step_size);
         t += step_size;
 
         frame++;

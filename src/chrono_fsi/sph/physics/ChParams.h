@@ -95,11 +95,7 @@ struct SimParams {
     Real dT;  ///< Time step. Depending on the model this will vary and the only way to determine what time step to use
               ///< is to run simulations multiple time and find which one is the largest dT that produces a stable
               ///< simulation.
-    Real INV_dT;  ///< 1.0 / dT
-
-    Real dT_Flex;    ///< Setpsize for the flexible bodies dynamics.
     Real Co_number;  ///< Constant in CFL condition.
-    Real dT_Max;     ///< Maximum setpsize.
 
     Real kdT;      ///< Implicit integration parameter. Not very important
     Real gammaBB;  ///< Equation of state parameter.
@@ -155,9 +151,6 @@ struct SimParams {
     Real IncompressibilityFactor;  ///< Incompressibility factor, default = 1
     Real Cs;                       ///< Speed of sound
 
-    bool Adaptive_time_stepping;  ///< Works only with ISPH for now, use Co_number can be used as the criteria for
-                                  ///< adaptivity. dT_Max is set either from the Co_number, or the time step the is
-                                  ///< required for outputting data
     bool Apply_BC_U;              ///< This option lets you apply a velocity BC on the BCE markers
     Real L_Characteristic;        ///< Some length characteristic for Re number computation
 

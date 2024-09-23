@@ -1285,7 +1285,7 @@ __global__ void NS_SSR(const uint* activityIdentifierD,
     sortedXSPHandShift[index] += paramsD.EPS_XSPH * deltaV * paramsD.dT;
 
     // Get the shifting velocity
-    sortedXSPHandShift[index] = sortedXSPHandShift[index] * paramsD.INV_dT;
+    sortedXSPHandShift[index] = sortedXSPHandShift[index] / paramsD.dT;
 
     // Add gravity and other body force to fluid markers
     if (IsSphParticle(rhoPresMuA.w)) {
@@ -1354,7 +1354,7 @@ __global__ void CalcVel_XSPH_D(uint* indexOfIndex,
         deltaV += paramsD.markerMass * (velMasB - velMasA) * W3h(d) / rho_bar;
     }
 
-    vel_XSPH_Sorted_D[index] = paramsD.EPS_XSPH * deltaV + vel_XSPH_Sorted_D[index] * paramsD.INV_dT;
+    vel_XSPH_Sorted_D[index] = paramsD.EPS_XSPH * deltaV + vel_XSPH_Sorted_D[index] / paramsD.dT;
 
     if (!IsFinite(vel_XSPH_Sorted_D[index])) {
         printf("Error! particle vXSPH is NAN: thrown from ChFsiForceExplicitSPH.cu, CalcVel_XSPH_D !\n");

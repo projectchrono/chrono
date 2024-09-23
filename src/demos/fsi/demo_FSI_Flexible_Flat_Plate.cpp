@@ -238,7 +238,7 @@ int main(int argc, char* argv[]) {
 #endif
 
     // Simulation loop
-    double dT = sysFSI.GetStepSize();
+    double dT = sysFSI.GetStepSizeCFD();
     double time = 0.0;
     int sim_frame = 0;
     int out_frame = 0;
@@ -290,7 +290,7 @@ int main(int argc, char* argv[]) {
         double displacement = (pos - init_pos).Length();
         ofile << time << "\t" << pos.x() << "\t" << pos.y() << "\t" << pos.z() << "\t" << displacement << "\n";
 
-        sysFSI.DoStepDynamics_FSI();
+        sysFSI.DoStepDynamics(dT);
 
         time += dT;
         sim_frame++;

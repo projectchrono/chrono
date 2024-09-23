@@ -114,14 +114,6 @@ class CH_FSI_API ChFsiSystemSPH : public ChFsiSystem {
     /// Destructor for the FSI system.
     ~ChFsiSystemSPH();
 
-    /// Function to integrate the FSI system in time.
-    /// It uses a Runge-Kutta 2nd order algorithm to update both the fluid and multibody system dynamics. The midpoint
-    /// data of MBS is needed for fluid dynamics update.
-    virtual void DoStepDynamics_FSI() override;
-
-    /// Enable/disable verbose terminal output.
-    virtual void SetVerbose(bool verbose) override;
-
     /// Read Chrono::FSI parameters from the specified JSON file.
     void ReadParametersFromFile(const std::string& json_file);
 
@@ -163,15 +155,6 @@ class CH_FSI_API ChFsiSystemSPH : public ChFsiSystem {
     /// Solid bodies are not explicitly affected by this force, but they are affected indirectly through the fluid.
     void SetBodyForce(const ChVector3d& force);
 
-    /// Set FSI integration step size.
-    void SetStepSize(double dT, double dT_Flex = 0);
-
-    /// Set the maximum allowable integration step size.
-    void SetMaxStepSize(double dT_max);
-
-    /// Enable/disable adaptive time stepping.
-    void SetAdaptiveTimeStepping(bool adaptive);
-
     /// Set SPH discretization type, consistent or inconsistent
     void SetConsistentDerivativeDiscretization(bool consistent_gradient, bool consistent_Laplacian);
 
@@ -208,6 +191,10 @@ class CH_FSI_API ChFsiSystemSPH : public ChFsiSystem {
     /// Set the FSI system output mode (default: NONE).
     void SetParticleOutputMode(OutputMode mode) { m_write_mode = mode; }
 
+    /// Complete construction of the FSI system (fluid and BDE objects).
+    /// Use parameters read from JSON file and/or specified through various Set functions.
+    virtual void Initialize() override;
+
     /// Return the SPH kernel length of kernel function.
     double GetKernelLength() const;
 
@@ -242,15 +229,6 @@ class CH_FSI_API ChFsiSystemSPH : public ChFsiSystem {
     /// TODO: RENAME
     ChVector3d GetBodyForce() const;
 
-    /// Return the FSI integration step size.
-    double GetStepSize() const;
-
-    /// Return the current value of the maximum allowable integration step size.
-    double GetMaxStepSize() const;
-
-    /// Return a flag inicating whether adaptive time stepping is enabled.
-    bool GetAdaptiveTimeStepping() const;
-
     /// Get the number of steps between successive updates to neighbor lists.
     int GetNumProximitySearchSteps() const;
 
@@ -269,9 +247,6 @@ class CH_FSI_API ChFsiSystemSPH : public ChFsiSystem {
     /// Get the current number of flexible body BCE markers.
     size_t GetNumFlexBodyMarkers() const;
 
-    /// Get current simulation time.
-    double GetSimTime() const { return m_time; }
-
     /// Return the SPH particle positions.
     std::vector<ChVector3d> GetParticlePositions() const;
 
@@ -287,10 +262,6 @@ class CH_FSI_API ChFsiSystemSPH : public ChFsiSystem {
     /// Return the SPH particle fluid properties.
     /// For each SPH particle, the 3-dimensional array contains density, pressure, and viscosity.
     std::vector<ChVector3d> GetParticleFluidProperties() const;
-
-    /// Complete construction of the FSI system (fluid and BDE objects).
-    /// Use parameters read from JSON file and/or specified through various Set functions.
-    virtual void Initialize() override;
 
     /// Write FSI system particle output.
     void WriteParticleFile(const std::string& outfilename) const;
@@ -324,11 +295,7 @@ class CH_FSI_API ChFsiSystemSPH : public ChFsiSystem {
     /// The SPH particles are created on a uniform grid with resolution equal to the FSI initial separation.
     void AddBoxSPH(const ChVector3d& boxCenter, const ChVector3d& boxHalfDim);
 
-    // ----------- Functions for adding bodies and associated BCE markers for different shapes
-
-    /// Add a rigid body to the FSI system.
-    /// Returns the index of the FSI body in the internal list.
-    virtual size_t AddFsiBody(std::shared_ptr<ChBody> body) override;
+    // ----------- Functions for adding BCE markers for different shapes
 
     /// Add BCE markers for a rectangular plate of specified X-Y dimensions and associate them with the given body.
     /// BCE markers are created in a number of layers corresponding to system parameters.
@@ -426,12 +393,6 @@ class CH_FSI_API ChFsiSystemSPH : public ChFsiSystem {
                          bool remove_center = false  ///< eliminate markers on surface
     );
 
-    /// Add an FEA mesh to the FSI system.
-    /// Contact surfaces (of type segment_set or tri_mesh) already defined for the FEA mesh are used to generate the BCE
-    /// markers for the flexible solid. If none are defined, one contact surface of each type is created (as needed) for
-    /// the purpose of creating the BCE markers, but these are not attached to the given FEA mesh.
-    virtual void AddFsiMesh(std::shared_ptr<fea::ChMesh> mesh) override;
-
     // ----------- Utility functions for extracting information at specific SPH particles
 
     /// Utility function for finding indices of SPH particles inside a given OBB.
@@ -518,11 +479,14 @@ class CH_FSI_API ChFsiSystemSPH : public ChFsiSystem {
     /// Initialize simulation parameters with default values.
     void InitParams();
 
+    /// Additional actions taken after adding a rigid body to the FSI system.
+    virtual void OnAddFsiBody(ChFsiInterface::FsiBody& fsi_body) override;
+
     /// Add a flexible solid with segment set contact to the FSI system.
-    void AddFsiMesh1D(std::shared_ptr<fea::ChContactSurfaceSegmentSet> surface);
+    virtual void OnAddFsiMesh1D(ChFsiInterface::FsiMesh1D& fsi_mesh) override;
 
     /// Add a flexible solid with surface mesh contact to the FSI system.
-    void AddFsiMesh2D(std::shared_ptr<fea::ChContactSurfaceMesh> surface);
+    virtual void OnAddFsiMesh2D(ChFsiInterface::FsiMesh2D& fsi_mesh) override;
 
     /// Create and add BCE markers associated with the given set of contact segments.
     /// The BCE markers are created in the absolute coordinate frame.
@@ -531,6 +495,16 @@ class CH_FSI_API ChFsiSystemSPH : public ChFsiSystem {
     /// Create and add BCE markers associated with the given mesh contact surface.
     /// The BCE markers are created in the absolute coordinate frame.
     unsigned int AddBCE_mesh2D(unsigned int meshID, const ChFsiInterface::FsiMesh2D& fsi_mesh);
+
+    /// Function to integrate the fluid FSI system in time.
+    /// It uses a Runge-Kutta 2nd order algorithm to update the fluid dynamics.
+    virtual void AdvanceFluidDynamics(double time, double step) override;
+
+    /// Additional actions taken before applying fluid forces to the solid phase.
+    virtual void OnApplySolidForces() override;
+
+    /// Additional actions taken after loading new solid phase states.
+    virtual void OnLoadSolidStates() override;
 
     std::shared_ptr<sph::SimParams> m_paramsH;  ///< pointer to the simulation parameters
 
@@ -550,9 +524,6 @@ class CH_FSI_API ChFsiSystemSPH : public ChFsiSystem {
     BcePatternMesh2D m_pattern2D;
     bool m_remove_center1D;
     bool m_remove_center2D;
-
-    bool m_is_initialized;  ///< set to true once the Initialize function is called
-    double m_time;          ///< current simulation time
 
     friend class ChFsiVisualizationGL;
     friend class ChFsiVisualizationVSG;

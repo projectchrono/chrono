@@ -162,7 +162,8 @@ int main(int argc, char* argv[]) {
     linsolv_params.max_num_iters = 200;
     sysFSI.SetLinSolverParameters(linsolv_params);
 
-    sysFSI.SetStepSize(step_size);
+    sysFSI.SetStepSizeCFD(step_size);
+    sysFSI.SetStepsizeMBD(step_size);
 
     // Set the terrain container size
     sysFSI.SetContainerDim(ChVector3<>(bxDim, byDim, bzDim));
@@ -381,7 +382,8 @@ int main(int argc, char* argv[]) {
         }
 
         // Call the FSI solver
-        sysFSI.DoStepDynamics_FSI();
+        sysFSI.DoStepDynamics(step_size);
+
         time += step_size;
         sim_frame++;
     }

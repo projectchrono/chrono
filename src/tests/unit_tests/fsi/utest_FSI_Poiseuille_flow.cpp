@@ -176,7 +176,8 @@ int main(int argc, char* argv[]) {
     sph_params.density_reinit_steps = 10000;
     sysFSI.SetSPHParameters(sph_params);
 
-    sysFSI.SetStepSize(dt);
+    sysFSI.SetStepSizeCFD(dt);
+    sysFSI.SetStepsizeMBD(dt);
 
     // Create SPH material (do not create boundary BCEs)
     // Add box container (only bottom and top walls)
@@ -217,7 +218,7 @@ int main(int argc, char* argv[]) {
     ChTimer timer;
     timer.start();
     for (int step = 0; step < num_steps; step++) {
-        sysFSI.DoStepDynamics_FSI();
+        sysFSI.DoStepDynamics(dt);
 
 #ifdef RUN_TIME_VISUALIZATION
         if (render && !visFSI->Render())

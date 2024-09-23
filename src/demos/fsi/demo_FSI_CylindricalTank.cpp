@@ -136,7 +136,8 @@ int main(int argc, char* argv[]) {
     sph_params.num_proximity_search_steps = 1;
 
     sysFSI.SetSPHParameters(sph_params);
-    sysFSI.SetStepSize(step_size);
+    sysFSI.SetStepSizeCFD(step_size);
+    sysFSI.SetStepsizeMBD(step_size);
 
     // Create a rigid body
     double radius = 0.12;
@@ -301,7 +302,7 @@ int main(int argc, char* argv[]) {
         }
 
         // Call the FSI solver
-        sysFSI.DoStepDynamics_FSI();
+        sysFSI.DoStepDynamics(step_size);
 
         time += step_size;
         sim_frame++;

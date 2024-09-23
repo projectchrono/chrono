@@ -70,7 +70,7 @@ class FSIStatsVSG : public vsg3d::ChGuiComponentVSG {
             ImGui::TableNextColumn();
             ImGui::TextUnformatted("Step size:");
             ImGui::TableNextColumn();
-            ImGui::Text("%.1e", m_vsysFSI->m_systemFSI->GetStepSize());
+            ImGui::Text("%.1e", m_vsysFSI->m_systemFSI->GetStepSizeCFD());
 
             ImGui::TableNextRow();
             ImGui::TableNextColumn();

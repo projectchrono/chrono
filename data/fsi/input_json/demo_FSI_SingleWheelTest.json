@@ -15,11 +15,6 @@
     "Shifting Coefficient": 1.0,
     "Time steps per proximity search": 1
   },
-  "Time Stepping": {
-    "Fluid time step": 2.5e-4,
-    "Solid time step": 2.5e-4,
-    "Maximum time step": 2.5e-4
-  },
   "Elastic SPH": {
     "Poisson ratio": 0.3,
     "Young modulus": 1.0e6,

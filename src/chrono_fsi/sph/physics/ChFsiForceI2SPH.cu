@@ -954,7 +954,6 @@ void ChFsiForceI2SPH::ForceSPH(std::shared_ptr<SphMarkerDataD> sortedSphMarkers_
     auto& pH = m_data_mgr.paramsH;
     auto& cH = m_data_mgr.countersH;
 
-    CopyParametersToDevice(pH, cH);
     cudaResetErrorFlag(error_flagD);
 
     m_sortedSphMarkers_D = sortedSphMarkers_D;
@@ -966,28 +965,6 @@ void ChFsiForceI2SPH::ForceSPH(std::shared_ptr<SphMarkerDataD> sortedSphMarkers_
     thrust::device_vector<Real4>::iterator iter_mu = thrust::max_element(
         m_sortedSphMarkers_D->rhoPresMuD.begin(), m_sortedSphMarkers_D->rhoPresMuD.end(), compare_Real4_z());
     Real Maxmu = length(*iter_mu);
-
-    Real dt_CFL = pH->Co_number * pH->HSML / 2.0 / MaxVel;
-    Real dt_nu = 0.2 * pH->HSML * pH->HSML / (pH->mu0 / pH->rho0);
-    Real dt_body = 0.1 * sqrt(pH->HSML / length(pH->bodyForce3 + pH->gravity));
-    Real dt = std::min(dt_body, std::min(dt_CFL, dt_nu));
-
-    if (!pH->Adaptive_time_stepping) {
-        if (m_verbose)
-            printf("| time step=%.3e, dt_Max=%.3e, dt_CFL=%.3e (CFL=%.2g), dt_nu=%.3e, dt_body=%.3e\n", pH->dT,
-                   pH->dT_Max, dt_CFL, pH->Co_number, dt_nu, dt_body);
-    } else {
-        if (dt / pH->dT_Max > 0.51 && dt < pH->dT_Max)
-            pH->dT = pH->dT_Max * 0.5;
-        else
-            pH->dT = std::min(dt, pH->dT_Max);
-
-        if (m_verbose)
-            printf("| time step=%.3e, dt_Max=%.3e, dt_CFL=%.3e (CFL=%.2g), dt_nu=%.3e, dt_body=%.3e\n", pH->dT,
-                   pH->dT_Max, dt_CFL, pH->Co_number, dt_nu, dt_body);
-
-        CopyParametersToDevice(pH, cH);
-    }
 
     size_t end_fluid = cH->numGhostMarkers + cH->numHelperMarkers + cH->numFluidMarkers;
     size_t end_bndry = end_fluid + cH->numBoundaryMarkers;

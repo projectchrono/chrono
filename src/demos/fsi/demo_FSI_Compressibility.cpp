@@ -194,7 +194,7 @@ int main(int argc, char* argv[]) {
     outf.open((out_dir + "/Analysis.txt"), std::ios::trunc);
     outf << "Time" << delim << "Rho_fluid" << delim << "k_fluid" << std::endl;
 
-    double dT = sysFSI.GetStepSize();
+    double dT = sysFSI.GetStepSizeCFD();
     double time = 0.0;
     int sim_frame = 0;
     int out_frame = 0;
@@ -219,7 +219,7 @@ int main(int argc, char* argv[]) {
             render_frame++;
         }
 
-        sysFSI.DoStepDynamics_FSI();
+        sysFSI.DoStepDynamics(dT);
 
         auto rhoPresMu = sysFSI.GetParticleFluidProperties();
         auto vel = sysFSI.GetParticleVelocities();

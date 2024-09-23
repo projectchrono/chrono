@@ -186,7 +186,7 @@ int main(int argc, char* argv[]) {
     }
 
     // Start the simulation
-    double dT = sysFSI.GetStepSize();
+    double dT = sysFSI.GetStepSizeCFD();
     double time = 0;
     int sim_frame = 0;
     int out_frame = 0;
@@ -222,7 +222,7 @@ int main(int argc, char* argv[]) {
         }
 
         // Call the FSI solver
-        sysFSI.DoStepDynamics_FSI();
+        sysFSI.DoStepDynamics(dT);
 
         time += dT;
         sim_frame++;
