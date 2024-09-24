@@ -133,25 +133,26 @@ int main(int argc, char* argv[]) {
     // Create a physics system and an FSI system
     ChSystemSMC sysMBS;
     ChFsiSystemSPH sysFSI(&sysMBS);
+    ChFluidSystemSPH& sysSPH = sysFSI.GetFluidSystemSPH();
 
     sysFSI.SetVerbose(verbose);
 
     // Use the specified input JSON file
-    sysFSI.ReadParametersFromFile(inputJSON);
+    sysSPH.ReadParametersFromFile(inputJSON);
 
     // Set frequency of proximity search
-    sysFSI.SetNumProximitySearchSteps(ps_freq);
+    sysSPH.SetNumProximitySearchSteps(ps_freq);
 
     // Set simulation domain
-    sysFSI.SetContainerDim(ChVector3d(bxDim, byDim, bzDim));
+    sysSPH.SetContainerDim(ChVector3d(bxDim, byDim, bzDim));
 
-    auto initSpace0 = sysFSI.GetInitialSpacing();
+    auto initSpace0 = sysSPH.GetInitialSpacing();
     ChVector3d cMin = ChVector3d(-5 * bxDim, -byDim / 2.0 - initSpace0 / 2.0, -5 * bzDim);
     ChVector3d cMax = ChVector3d(5 * bxDim, byDim / 2.0 + initSpace0 / 2.0, 5 * bzDim);
-    sysFSI.SetBoundaries(cMin, cMax);
+    sysSPH.SetBoundaries(cMin, cMax);
 
     // Set SPH discretization type, consistent or inconsistent
-    sysFSI.SetConsistentDerivativeDiscretization(false, false);
+    sysSPH.SetConsistentDerivativeDiscretization(false, false);
 
     // Create SPH particles of fluid region
     chrono::utils::ChGridSampler<> sampler(initSpace0);
@@ -160,7 +161,7 @@ int main(int argc, char* argv[]) {
     chrono::utils::ChGenerator::PointVector points = sampler.SampleBox(boxCenter, boxHalfDim);
     size_t numPart = points.size();
     for (int i = 0; i < numPart; i++) {
-        sysFSI.AddSPHParticle(points[i]);
+        sysSPH.AddSPHParticle(points[i]);
     }
 
     // Create solids
@@ -175,7 +176,7 @@ int main(int argc, char* argv[]) {
         cerr << "Error creating directory " << out_dir << endl;
         return 1;
     }
-    out_dir = out_dir + "/" + sysFSI.GetPhysicsProblemString() + "_" + sysFSI.GetSphMethodTypeString();
+    out_dir = out_dir + "/" + sysSPH.GetPhysicsProblemString() + "_" + sysSPH.GetSphMethodTypeString();
     if (!filesystem::create_directory(filesystem::path(out_dir))) {
         cerr << "Error creating directory " << out_dir << endl;
         return 1;
@@ -221,13 +222,13 @@ int main(int argc, char* argv[]) {
         switch (vis_type) {
             case ChVisualSystem::Type::OpenGL:
 #ifdef CHRONO_OPENGL
-                visFSI = chrono_types::make_shared<ChFsiVisualizationGL>(&sysFSI);
+                visFSI = chrono_types::make_shared<ChFsiVisualizationGL>(sysFSI);
                 visFSI->AddCamera(ChVector3d(0, -2, 0.75), ChVector3d(0, 0, 0.75));
 #endif
                 break;
             case ChVisualSystem::Type::VSG: {
 #ifdef CHRONO_VSG
-                visFSI = chrono_types::make_shared<ChFsiVisualizationVSG>(&sysFSI);
+                visFSI = chrono_types::make_shared<ChFsiVisualizationVSG>(sysFSI);
                 visFSI->AddCamera(ChVector3d(0, -3, 0.75), ChVector3d(0, 0, 0.75));
 #endif
                 break;
@@ -285,8 +286,8 @@ int main(int argc, char* argv[]) {
             if (verbose)
                 cout << " -- Output frame " << out_frame << " at t = " << time << endl;
 
-            sysFSI.PrintParticleToFile(out_dir + "/particles");
-            sysFSI.PrintFsiInfoToFile(out_dir + "/fsi", time);
+            sysSPH.PrintParticleToFile(out_dir + "/particles");
+            sysSPH.PrintFsiInfoToFile(out_dir + "/fsi", time);
 
             std::ostringstream filename;
             filename << out_dir << "/vtk/flex_body." << std::setw(5) << std::setfill('0') << out_frame + 1 << ".vtk";
@@ -343,6 +344,8 @@ int main(int argc, char* argv[]) {
 // Create the solid objects in the MBD system and their counterparts in the FSI system
 
 std::shared_ptr<fea::ChMesh> Create_MB_FE(ChSystemSMC& sysMBS, ChFsiSystemSPH& sysFSI) {
+    ChFluidSystemSPH& sysSPH = sysFSI.GetFluidSystemSPH();
+
     sysMBS.SetGravitationalAcceleration(ChVector3d(0, 0, 0));
     sysFSI.SetGravitationalAcceleration(ChVector3d(0, 0, -9.81));
 
@@ -352,12 +355,12 @@ std::shared_ptr<fea::ChMesh> Create_MB_FE(ChSystemSMC& sysMBS, ChFsiSystemSPH& s
     sysMBS.AddBody(ground);
 
     // FSI representation of walls
-    sysFSI.AddBoxContainerBCE(ground,                                         //
+    sysSPH.AddBoxContainerBCE(ground,                                         //
                               ChFrame<>(ChVector3d(0, 0, bzDim / 2), QUNIT),  //
                               ChVector3d(bxDim, byDim, bzDim),                //
                               ChVector3i(2, 0, -1));
 
-    auto initSpace0 = sysFSI.GetInitialSpacing();
+    auto initSpace0 = sysSPH.GetInitialSpacing();
 
     // Create an FEA mesh representing a cantilever beam modeled with ANCF cable elements
     auto mesh = chrono_types::make_shared<fea::ChMesh>();
@@ -394,7 +397,7 @@ std::shared_ptr<fea::ChMesh> Create_MB_FE(ChSystemSMC& sysMBS, ChFsiSystemSPH& s
     sysMBS.Add(mesh);
 
     // Add the mesh to the FSI system (only these meshes interact with the fluid)
-    sysFSI.SetBcePattern1D(BcePatternMesh1D::STAR, false);
+    sysSPH.SetBcePattern1D(BcePatternMesh1D::STAR, false);
     sysFSI.AddFsiMesh(mesh);
 
     return mesh;

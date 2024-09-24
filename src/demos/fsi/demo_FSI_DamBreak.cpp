@@ -122,20 +122,21 @@ int main(int argc, char* argv[]) {
     // Create a physics system and an FSI system
     ChSystemSMC sysMBS;
     ChFsiSystemSPH sysFSI(&sysMBS);
+    ChFluidSystemSPH& sysSPH = sysFSI.GetFluidSystemSPH();
 
     sysFSI.SetVerbose(verbose);
 
     // Use the specified input JSON file
-    sysFSI.ReadParametersFromFile(inputJson);
+    sysSPH.ReadParametersFromFile(inputJson);
 
     // Set frequency of proximity search
-    sysFSI.SetNumProximitySearchSteps(ps_freq);
+    sysSPH.SetNumProximitySearchSteps(ps_freq);
 
     // Set up the periodic boundary condition (only in Y direction)
-    auto initSpace0 = sysFSI.GetInitialSpacing();
+    auto initSpace0 = sysSPH.GetInitialSpacing();
     ChVector3d cMin = ChVector3d(-bxDim / 2 - 10.0 * initSpace0, -byDim / 2 - 1.0 * initSpace0 / 2.0, -2.0 * bzDim);
     ChVector3d cMax = ChVector3d(bxDim / 2 + 10.0 * initSpace0, byDim / 2 + 1.0 * initSpace0 / 2.0, 2.0 * bzDim);
-    sysFSI.SetBoundaries(cMin, cMax);
+    sysSPH.SetBoundaries(cMin, cMax);
 
     // Create Fluid region and discretize with SPH particles
     ChVector3d boxCenter(-bxDim / 2 + fxDim / 2, 0.0, fzDim / 2);
@@ -147,12 +148,12 @@ int main(int argc, char* argv[]) {
 
     // Add fluid particles from the sampler points to the FSI system
     size_t numPart = points.size();
-    double gz = std::abs(sysFSI.GetGravitationalAcceleration().z());
+    double gz = std::abs(sysSPH.GetGravitationalAcceleration().z());
     for (int i = 0; i < numPart; i++) {
         // Calculate the pressure of a steady state (p = rho*g*h)
-        auto pre_ini = sysFSI.GetDensity() * gz * (-points[i].z() + fzDim);
-        auto rho_ini = sysFSI.GetDensity() + pre_ini / (sysFSI.GetSoundSpeed() * sysFSI.GetSoundSpeed());
-        sysFSI.AddSPHParticle(points[i], rho_ini, pre_ini, sysFSI.GetViscosity());
+        auto pre_ini = sysSPH.GetDensity() * gz * (-points[i].z() + fzDim);
+        auto rho_ini = sysSPH.GetDensity() + pre_ini / (sysSPH.GetSoundSpeed() * sysSPH.GetSoundSpeed());
+        sysSPH.AddSPHParticle(points[i], rho_ini, pre_ini, sysSPH.GetViscosity());
     }
 
     // Create container and attach BCE SPH particles
@@ -161,7 +162,7 @@ int main(int argc, char* argv[]) {
     ground->EnableCollision(false);
     sysMBS.AddBody(ground);
 
-    sysFSI.AddBoxContainerBCE(ground,                                         //
+    sysSPH.AddBoxContainerBCE(ground,                                         //
                               ChFrame<>(ChVector3d(0, 0, bzDim / 2), QUNIT),  //
                               ChVector3d(bxDim, byDim, bzDim),                //
                               ChVector3i(2, 0, 2));
@@ -176,7 +177,7 @@ int main(int argc, char* argv[]) {
         std::cerr << "Error creating directory " << out_dir << std::endl;
         return 1;
     }
-    out_dir = out_dir + "/" + sysFSI.GetPhysicsProblemString() + "_" + sysFSI.GetSphMethodTypeString();
+    out_dir = out_dir + "/" + sysSPH.GetPhysicsProblemString() + "_" + sysSPH.GetSphMethodTypeString();
 
     if (!filesystem::create_directory(filesystem::path(out_dir))) {
         std::cerr << "Error creating directory " << out_dir << std::endl;
@@ -214,12 +215,12 @@ int main(int argc, char* argv[]) {
         switch (vis_type) {
             case ChVisualSystem::Type::OpenGL:
 #ifdef CHRONO_OPENGL
-                visFSI = chrono_types::make_shared<ChFsiVisualizationGL>(&sysFSI);
+                visFSI = chrono_types::make_shared<ChFsiVisualizationGL>(sysFSI);
 #endif
                 break;
             case ChVisualSystem::Type::VSG: {
 #ifdef CHRONO_VSG
-                visFSI = chrono_types::make_shared<ChFsiVisualizationVSG>(&sysFSI);
+                visFSI = chrono_types::make_shared<ChFsiVisualizationVSG>(sysFSI);
 #endif
                 break;
             }
@@ -245,12 +246,10 @@ int main(int argc, char* argv[]) {
     ChTimer timer;
     timer.start();
     while (time < t_end) {
-        std::cout << "step: " << sim_frame << "  time: " << time << std::endl;
-
         // Save data of the simulation
         if (output && time >= out_frame / output_fps) {
             std::cout << "------- OUTPUT" << std::endl;
-            sysFSI.PrintParticleToFile(out_dir + "/particles");
+            sysSPH.PrintParticleToFile(out_dir + "/particles");
             out_frame++;
         }
 

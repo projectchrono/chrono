@@ -135,18 +135,19 @@ class CH_FSI_API ChFsiVisualization {
     virtual bool Render() = 0;
 
     /// Return the internal Chrono system that holds visualization shapes.
-    ChSystem* GetSystem() const { return m_system; }
+    ChSystem* GetSystem() const { return m_sysMBS; }
 
     /// Return the underlying visualization system.
     virtual ChVisualSystem* GetVisualSystem() const = 0;
 
   protected:
     /// Create a run-time FSI visualization object associated with a given Chrono::Fsi system.
-    ChFsiVisualization(ChFsiSystemSPH* sysFSI);
+    ChFsiVisualization(ChFsiSystemSPH& sysFSI);
 
-    ChFsiSystemSPH* m_systemFSI;  ///< associated Chrono::FSI system
-    ChSystem* m_system;        ///< internal Chrono system (holds proxies)
-    ChSystem* m_user_system;   ///< optional user-provided system
+    ChFsiSystemSPH& m_sysFSI;    ///< associated FSI system
+    ChFluidSystemSPH& m_sysSPH;  ///< associated SPH system
+    ChSystem* m_sysMBS;          ///< internal Chrono system (holds proxies)
+    ChSystem* m_user_system;     ///< optional user-provided system
 
     bool m_sph_markers;        ///< render fluid SPH particles?
     bool m_bndry_bce_markers;  ///< render boundary BCE markers?

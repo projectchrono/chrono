@@ -100,14 +100,19 @@ int main(int argc, char* argv[]) {
     ChFsiProblemCartesian fsi(sysMBS, initial_spacing);
     fsi.SetVerbose(verbose);
     ChFsiSystemSPH& sysFSI = fsi.GetSystemFSI();
+    ChFluidSystemSPH& sysSPH = fsi.GetFluidSystemSPH();
 
     // Set gravitational acceleration
     const ChVector3d gravity(0, 0, -9.8);
     sysFSI.SetGravitationalAcceleration(gravity);
     sysMBS.SetGravitationalAcceleration(gravity);
 
+    // Set integration step size
+    sysFSI.SetStepSizeCFD(step_size);
+    sysFSI.SetStepsizeMBD(step_size);
+
     // Set soil propertiees
-    ChFsiSystemSPH::ElasticMaterialProperties mat_props;
+    ChFluidSystemSPH::ElasticMaterialProperties mat_props;
     mat_props.density = 1700;
     mat_props.Young_modulus = 1e6;
     mat_props.Poisson_ratio = 0.3;
@@ -122,10 +127,10 @@ int main(int argc, char* argv[]) {
     mat_props.dilation_angle = CH_PI / 10;  // default
     mat_props.cohesion_coeff = 1e3;           // default
 
-    sysFSI.SetElasticSPH(mat_props);
+    sysSPH.SetElasticSPH(mat_props);
 
     // Set SPH solution parameters
-    ChFsiSystemSPH::SPHParameters sph_params;
+    ChFluidSystemSPH::SPHParameters sph_params;
     sph_params.sph_method = SPHMethod::WCSPH;
     sph_params.kernel_h = initial_spacing;
     sph_params.initial_spacing = initial_spacing;
@@ -133,9 +138,7 @@ int main(int argc, char* argv[]) {
     sph_params.consistent_gradient_discretization = false;
     sph_params.consistent_laplacian_discretization = false;
 
-    sysFSI.SetSPHParameters(sph_params);
-    sysFSI.SetStepSizeCFD(step_size);
-    sysFSI.SetStepsizeMBD(step_size);
+    sysSPH.SetSPHParameters(sph_params);
 
     // Create a rigid body
     double density = 5000;
@@ -182,7 +185,7 @@ int main(int argc, char* argv[]) {
         cerr << "Error creating directory " << out_dir << endl;
         return 1;
     }
-    out_dir = out_dir + "/" + sysFSI.GetPhysicsProblemString() + "_" + sysFSI.GetSphMethodTypeString();
+    out_dir = out_dir + "/" + sysSPH.GetPhysicsProblemString() + "_" + sysSPH.GetSphMethodTypeString();
     if (!filesystem::create_directory(filesystem::path(out_dir))) {
         cerr << "Error creating directory " << out_dir << endl;
         return 1;
@@ -230,12 +233,12 @@ int main(int argc, char* argv[]) {
         switch (vis_type) {
             case ChVisualSystem::Type::OpenGL:
 #ifdef CHRONO_OPENGL
-                visFSI = chrono_types::make_shared<ChFsiVisualizationGL>(&sysFSI);
+                visFSI = chrono_types::make_shared<ChFsiVisualizationGL>(sysFSI);
 #endif
                 break;
             case ChVisualSystem::Type::VSG: {
 #ifdef CHRONO_VSG
-                visFSI = chrono_types::make_shared<ChFsiVisualizationVSG>(&sysFSI);
+                visFSI = chrono_types::make_shared<ChFsiVisualizationVSG>(sysFSI);
 #endif
                 break;
             }
@@ -271,8 +274,8 @@ int main(int argc, char* argv[]) {
     while (time < t_end) {
         if (output && time >= out_frame / output_fps) {
             cout << " -- Output frame " << out_frame << " at t = " << time << endl;
-            sysFSI.PrintParticleToFile(out_dir + "/particles");
-            sysFSI.PrintFsiInfoToFile(out_dir + "/fsi", time);
+            sysSPH.PrintParticleToFile(out_dir + "/particles");
+            sysSPH.PrintFsiInfoToFile(out_dir + "/fsi", time);
             out_frame++;
         }
 

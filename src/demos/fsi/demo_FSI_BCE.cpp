@@ -36,11 +36,12 @@ int main(int argc, char* argv[]) {
 
     ChSystemSMC sysMBS;
     ChFsiSystemSPH sysFSI(&sysMBS);
+    ChFluidSystemSPH& sysSPH = sysFSI.GetFluidSystemSPH();
 
     double spacing = 0.025;
 
-    sysFSI.SetInitialSpacing(spacing);
-    sysFSI.SetKernelLength(spacing);
+    sysSPH.SetInitialSpacing(spacing);
+    sysSPH.SetKernelLength(spacing);
 
     // Dummy body
 
@@ -59,68 +60,68 @@ int main(int argc, char* argv[]) {
     ChVector3d box_size(0.2, 0.4, 0.6);
 
     bce.clear();
-    sysFSI.CreateBCE_box(box_size, true, bce);
+    sysSPH.CreateBCE_box(box_size, true, bce);
     std::cout << "box solid nBCE = " << bce.size() << std::endl;
     fbce.open((out_dir + "/box_solid.txt"), std::ios::trunc);
     for (int i = 0; i < bce.size(); i++) {
         fbce << bce[i].x() << " " << bce[i].y() << " " << bce[i].z() << std::endl;
     }
     fbce.close();
-    sysFSI.AddBoxBCE(body, frame, box_size, true);
+    sysSPH.AddBoxBCE(body, frame, box_size, true);
 
     bce.clear();
-    sysFSI.CreateBCE_box(box_size, false, bce);
+    sysSPH.CreateBCE_box(box_size, false, bce);
     std::cout << "box bndry nBCE = " << bce.size() << std::endl;
     fbce.open((out_dir + "/box_bndry.txt"), std::ios::trunc);
     for (int i = 0; i < bce.size(); i++) {
         fbce << bce[i].x() << " " << bce[i].y() << " " << bce[i].z() << std::endl;
     }
     fbce.close();
-    sysFSI.AddBoxBCE(body, frame, box_size, false);
+    sysSPH.AddBoxBCE(body, frame, box_size, false);
 
     // Sphere
 
     double sph_radius = 0.25;
 
     bce.clear();
-    sysFSI.CreateBCE_sphere(sph_radius, true, true, bce);
+    sysSPH.CreateBCE_sphere(sph_radius, true, true, bce);
     std::cout << "sphere solid polar nBCE = " << bce.size() << std::endl;
     fbce.open((out_dir + "/sphere_solid_polar.txt"), std::ios::trunc);
     for (int i = 0; i < bce.size(); i++) {
         fbce << bce[i].x() << " " << bce[i].y() << " " << bce[i].z() << std::endl;
     }
     fbce.close();
-    sysFSI.AddSphereBCE(body, frame, sph_radius, true, true);
+    sysSPH.AddSphereBCE(body, frame, sph_radius, true, true);
 
     bce.clear();
-    sysFSI.CreateBCE_sphere(sph_radius, false, true, bce);
+    sysSPH.CreateBCE_sphere(sph_radius, false, true, bce);
     std::cout << "sphere bndry polar nBCE = " << bce.size() << std::endl;
     fbce.open((out_dir + "/sphere_bndry_polar.txt"), std::ios::trunc);
     for (int i = 0; i < bce.size(); i++) {
         fbce << bce[i].x() << " " << bce[i].y() << " " << bce[i].z() << std::endl;
     }
     fbce.close();
-    sysFSI.AddSphereBCE(body, frame, sph_radius, false, true);
+    sysSPH.AddSphereBCE(body, frame, sph_radius, false, true);
 
     bce.clear();
-    sysFSI.CreateBCE_sphere(sph_radius, true, false, bce);
+    sysSPH.CreateBCE_sphere(sph_radius, true, false, bce);
     std::cout << "sphere solid cartesian nBCE = " << bce.size() << std::endl;
     fbce.open((out_dir + "/sphere_solid_cartesian.txt"), std::ios::trunc);
     for (int i = 0; i < bce.size(); i++) {
         fbce << bce[i].x() << " " << bce[i].y() << " " << bce[i].z() << std::endl;
     }
     fbce.close();
-    sysFSI.AddSphereBCE(body, frame, sph_radius, true, false);
+    sysSPH.AddSphereBCE(body, frame, sph_radius, true, false);
 
     bce.clear();
-    sysFSI.CreateBCE_sphere(sph_radius, false, false, bce);
+    sysSPH.CreateBCE_sphere(sph_radius, false, false, bce);
     std::cout << "sphere bndry cartesian nBCE = " << bce.size() << std::endl;
     fbce.open((out_dir + "/sphere_bndry_cartesian.txt"), std::ios::trunc);
     for (int i = 0; i < bce.size(); i++) {
         fbce << bce[i].x() << " " << bce[i].y() << " " << bce[i].z() << std::endl;
     }
     fbce.close();
-    sysFSI.AddSphereBCE(body, frame, sph_radius, false, false);
+    sysSPH.AddSphereBCE(body, frame, sph_radius, false, false);
 
     // Cylinder
 
@@ -129,44 +130,44 @@ int main(int argc, char* argv[]) {
     bool cyl_capped = true;
 
     bce.clear();
-    sysFSI.CreateBCE_cylinder(cyl_radius, cyl_height, true, cyl_capped, true, bce);
+    sysSPH.CreateBCE_cylinder(cyl_radius, cyl_height, true, cyl_capped, true, bce);
     std::cout << "cylinder solid polar nBCE = " << bce.size() << std::endl;
     fbce.open((out_dir + "/cyl_solid_polar.txt"), std::ios::trunc);
     for (int i = 0; i < bce.size(); i++) {
         fbce << bce[i].x() << " " << bce[i].y() << " " << bce[i].z() << std::endl;
     }
     fbce.close();
-    sysFSI.AddCylinderBCE(body, frame, cyl_radius, cyl_height, true, cyl_capped, true);
+    sysSPH.AddCylinderBCE(body, frame, cyl_radius, cyl_height, true, cyl_capped, true);
 
     bce.clear();
-    sysFSI.CreateBCE_cylinder(cyl_radius, cyl_height, false, cyl_capped, true, bce);
+    sysSPH.CreateBCE_cylinder(cyl_radius, cyl_height, false, cyl_capped, true, bce);
     std::cout << "cylinder bndry polar nBCE = " << bce.size() << std::endl;
     fbce.open((out_dir + "/cyl_bndry_polar.txt"), std::ios::trunc);
     for (int i = 0; i < bce.size(); i++) {
         fbce << bce[i].x() << " " << bce[i].y() << " " << bce[i].z() << std::endl;
     }
     fbce.close();
-    sysFSI.AddCylinderBCE(body, frame, cyl_radius, cyl_height, false, cyl_capped, true);
+    sysSPH.AddCylinderBCE(body, frame, cyl_radius, cyl_height, false, cyl_capped, true);
 
     bce.clear();
-    sysFSI.CreateBCE_cylinder(cyl_radius, cyl_height, true, cyl_capped, false, bce);
+    sysSPH.CreateBCE_cylinder(cyl_radius, cyl_height, true, cyl_capped, false, bce);
     std::cout << "cylinder solid cartesian nBCE = " << bce.size() << std::endl;
     fbce.open((out_dir + "/cyl_solid_cartesian.txt"), std::ios::trunc);
     for (int i = 0; i < bce.size(); i++) {
         fbce << bce[i].x() << " " << bce[i].y() << " " << bce[i].z() << std::endl;
     }
     fbce.close();
-    sysFSI.AddCylinderBCE(body, frame, cyl_radius, cyl_height, true, cyl_capped, false);
+    sysSPH.AddCylinderBCE(body, frame, cyl_radius, cyl_height, true, cyl_capped, false);
 
     bce.clear();
-    sysFSI.CreateBCE_cylinder(cyl_radius, cyl_height, false, cyl_capped, false, bce);
+    sysSPH.CreateBCE_cylinder(cyl_radius, cyl_height, false, cyl_capped, false, bce);
     std::cout << "cylinder bndry cartesian nBCE = " << bce.size() << std::endl;
     fbce.open((out_dir + "/cyl_bndry_cartesian.txt"), std::ios::trunc);
     for (int i = 0; i < bce.size(); i++) {
         fbce << bce[i].x() << " " << bce[i].y() << " " << bce[i].z() << std::endl;
     }
     fbce.close();
-    sysFSI.AddCylinderBCE(body, frame, cyl_radius, cyl_height, false, cyl_capped, false);
+    sysSPH.AddCylinderBCE(body, frame, cyl_radius, cyl_height, false, cyl_capped, false);
 
     // Cylindrical annulus
 
@@ -175,24 +176,24 @@ int main(int argc, char* argv[]) {
     double ca_height = 0.2;
 
     bce.clear();
-    sysFSI.CreateCylinderAnnulusPoints(ca_radius_inner, ca_radius_outer, ca_height, true, spacing, bce);
+    sysSPH.CreateCylinderAnnulusPoints(ca_radius_inner, ca_radius_outer, ca_height, true, spacing, bce);
     std::cout << "cylinder annulus polar nBCE = " << bce.size() << std::endl;
     fbce.open((out_dir + "/cyl_annulus_polar.txt"), std::ios::trunc);
     for (int i = 0; i < bce.size(); i++) {
         fbce << bce[i].x() << " " << bce[i].y() << " " << bce[i].z() << std::endl;
     }
     fbce.close();
-    sysFSI.AddCylinderAnnulusBCE(body, frame, ca_radius_inner, ca_radius_outer, ca_height, true);
+    sysSPH.AddCylinderAnnulusBCE(body, frame, ca_radius_inner, ca_radius_outer, ca_height, true);
 
     bce.clear();
-    sysFSI.CreateCylinderAnnulusPoints(ca_radius_inner, ca_radius_outer, ca_height, false, spacing, bce);
+    sysSPH.CreateCylinderAnnulusPoints(ca_radius_inner, ca_radius_outer, ca_height, false, spacing, bce);
     std::cout << "cylinder annulus cartesian nBCE = " << bce.size() << std::endl;
     fbce.open((out_dir + "/cyl_annulus_cartesian.txt"), std::ios::trunc);
     for (int i = 0; i < bce.size(); i++) {
         fbce << bce[i].x() << " " << bce[i].y() << " " << bce[i].z() << std::endl;
     }
     fbce.close();
-    sysFSI.AddCylinderAnnulusBCE(body, frame, ca_radius_inner, ca_radius_outer, ca_height, false);
+    sysSPH.AddCylinderAnnulusBCE(body, frame, ca_radius_inner, ca_radius_outer, ca_height, false);
 
     // Cone
 
@@ -201,44 +202,44 @@ int main(int argc, char* argv[]) {
     bool cone_capped = false;
 
     bce.clear();
-    sysFSI.CreateBCE_cone(cone_radius, cone_height, true, cone_capped, true, bce);
+    sysSPH.CreateBCE_cone(cone_radius, cone_height, true, cone_capped, true, bce);
     std::cout << "cone solid polar nBCE = " << bce.size() << std::endl;
     fbce.open((out_dir + "/cone_solid_polar.txt"), std::ios::trunc);
     for (int i = 0; i < bce.size(); i++) {
         fbce << bce[i].x() << " " << bce[i].y() << " " << bce[i].z() << std::endl;
     }
     fbce.close();
-    sysFSI.AddConeBCE(body, frame, cone_radius, cone_height, true, cone_capped, true);
+    sysSPH.AddConeBCE(body, frame, cone_radius, cone_height, true, cone_capped, true);
 
     bce.clear();
-    sysFSI.CreateBCE_cone(cone_radius, cone_height, false, cone_capped, true, bce);
+    sysSPH.CreateBCE_cone(cone_radius, cone_height, false, cone_capped, true, bce);
     std::cout << "cone bndry polar nBCE = " << bce.size() << std::endl;
     fbce.open((out_dir + "/cone_bndry_polar.txt"), std::ios::trunc);
     for (int i = 0; i < bce.size(); i++) {
         fbce << bce[i].x() << " " << bce[i].y() << " " << bce[i].z() << std::endl;
     }
     fbce.close();
-    sysFSI.AddConeBCE(body, frame, cone_radius, cone_height, false, cone_capped, true);
+    sysSPH.AddConeBCE(body, frame, cone_radius, cone_height, false, cone_capped, true);
 
     bce.clear();
-    sysFSI.CreateBCE_cone(cone_radius, cone_height, true, cone_capped, false, bce);
+    sysSPH.CreateBCE_cone(cone_radius, cone_height, true, cone_capped, false, bce);
     std::cout << "cone solid cartesian nBCE = " << bce.size() << std::endl;
     fbce.open((out_dir + "/cone_solid_cartesian.txt"), std::ios::trunc);
     for (int i = 0; i < bce.size(); i++) {
         fbce << bce[i].x() << " " << bce[i].y() << " " << bce[i].z() << std::endl;
     }
     fbce.close();
-    sysFSI.AddConeBCE(body, frame, cone_radius, cone_height, true, cone_capped, false);
+    sysSPH.AddConeBCE(body, frame, cone_radius, cone_height, true, cone_capped, false);
 
     bce.clear();
-    sysFSI.CreateBCE_cone(cone_radius, cone_height, false, cone_capped, false, bce);
+    sysSPH.CreateBCE_cone(cone_radius, cone_height, false, cone_capped, false, bce);
     std::cout << "cone bndry cartesian nBCE = " << bce.size() << std::endl;
     fbce.open((out_dir + "/cone_bndry_cartesian.txt"), std::ios::trunc);
     for (int i = 0; i < bce.size(); i++) {
         fbce << bce[i].x() << " " << bce[i].y() << " " << bce[i].z() << std::endl;
     }
     fbce.close();
-    sysFSI.AddConeBCE(body, frame, cone_radius, cone_height, false, cone_capped, false);
+    sysSPH.AddConeBCE(body, frame, cone_radius, cone_height, false, cone_capped, false);
 
     return 0;
 }

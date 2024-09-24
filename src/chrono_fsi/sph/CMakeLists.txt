@@ -70,6 +70,8 @@ set(ChronoEngine_FSI_BASE_FILES
     ../ChApiFsi.h
     ../ChFsiSystem.h
     ../ChFsiSystem.cpp
+    ../ChFluidSystem.h
+    ../ChFluidSystem.cpp
     ../ChFsiInterface.h
     ../ChFsiInterface.cpp
 )
@@ -78,6 +80,8 @@ set(ChronoEngine_FSI_FILES
     ChFsiDefinitionsSPH.h
     ChFsiSystemSPH.h
     ChFsiSystemSPH.cpp
+    ChFluidSystemSPH.h
+    ChFluidSystemSPH.cpp
     ChFsiInterfaceSPH.h
     ChFsiInterfaceSPH.cpp
     ChFsiProblemSPH.h

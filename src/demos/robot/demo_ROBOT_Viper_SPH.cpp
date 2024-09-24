@@ -144,10 +144,15 @@ int main(int argc, char* argv[]) {
     // Create a physical system and a corresponding FSI system
     ChSystemNSC sysMBS;
     ChFsiSystemSPH sysFSI(&sysMBS);
+    ChFluidSystemSPH& sysSPH = sysFSI.GetFluidSystemSPH();
 
     ChVector3d gravity = ChVector3d(0, 0, -9.81);
     sysMBS.SetGravitationalAcceleration(gravity);
     sysFSI.SetGravitationalAcceleration(gravity);
+
+    // Set the simulation stepsize
+    sysFSI.SetStepSizeCFD(dT);
+    sysFSI.SetStepsizeMBD(dT);
 
     // Read JSON file with simulation parameters
     std::string inputJson = GetChronoDataFile("fsi/input_json/demo_FSI_Viper_granular_NSC.json");
@@ -157,38 +162,34 @@ int main(int argc, char* argv[]) {
         std::cout << "usage: ./demo_ROBOT_Viper_SPH <json_file>" << std::endl;
         return 1;
     }
-    sysFSI.ReadParametersFromFile(inputJson);
+    sysSPH.ReadParametersFromFile(inputJson);
 
     // Set the initial particle spacing
-    sysFSI.SetInitialSpacing(iniSpacing);
+    sysSPH.SetInitialSpacing(iniSpacing);
 
     // Set the SPH kernel length
-    sysFSI.SetKernelLength(kernelLength);
+    sysSPH.SetKernelLength(kernelLength);
 
     // Set the terrain density
-    sysFSI.SetDensity(density);
-
-    // Set the simulation stepsize
-    sysFSI.SetStepSizeCFD(dT);
-    sysFSI.SetStepsizeMBD(dT);
+    sysSPH.SetDensity(density);
 
     // Set the simulation domain size
-    sysFSI.SetContainerDim(ChVector3d(bxDim, byDim, bzDim));
+    sysSPH.SetContainerDim(ChVector3d(bxDim, byDim, bzDim));
 
     // Set SPH discretization type, consistent or inconsistent
-    sysFSI.SetConsistentDerivativeDiscretization(false, false);
+    sysSPH.SetConsistentDerivativeDiscretization(false, false);
 
     // Set the SPH method
-    sysFSI.SetSPHMethod(SPHMethod::WCSPH);
+    sysSPH.SetSPHMethod(SPHMethod::WCSPH);
 
     // Set the periodic boundary condition
-    double initSpace0 = sysFSI.GetInitialSpacing();
+    double initSpace0 = sysSPH.GetInitialSpacing();
     ChVector3d cMin(-bxDim / 2 * 2, -byDim / 2 - 0.5 * iniSpacing, -bzDim * 10);
     ChVector3d cMax(bxDim / 2 * 2, byDim / 2 + 0.5 * iniSpacing, bzDim * 20);
-    sysFSI.SetBoundaries(cMin, cMax);
+    sysSPH.SetBoundaries(cMin, cMax);
 
     // Set simulation data output length
-    sysFSI.SetOutputLength(0);
+    sysSPH.SetOutputLength(0);
 
     // Create an initial box for the terrain patch
     chrono::utils::ChGridSampler<> sampler(initSpace0);
@@ -201,8 +202,8 @@ int main(int argc, char* argv[]) {
     auto gz = std::abs(gravity.z());
     int numPart = (int)points.size();
     for (int i = 0; i < numPart; i++) {
-        double pre_ini = sysFSI.GetDensity() * gz * (-points[i].z() + bzDim);
-        sysFSI.AddSPHParticle(points[i], sysFSI.GetDensity(), 0, sysFSI.GetViscosity(),
+        double pre_ini = sysSPH.GetDensity() * gz * (-points[i].z() + bzDim);
+        sysSPH.AddSPHParticle(points[i], sysSPH.GetDensity(), 0, sysSPH.GetViscosity(),
                               ChVector3d(0),         // initial velocity
                               ChVector3d(-pre_ini),  // tauxxyyzz
                               ChVector3d(0)          // tauxyxzyz
@@ -240,12 +241,12 @@ int main(int argc, char* argv[]) {
         switch (vis_type) {
             case ChVisualSystem::Type::OpenGL:
 #ifdef CHRONO_OPENGL
-                visFSI = chrono_types::make_shared<ChFsiVisualizationGL>(&sysFSI);
+                visFSI = chrono_types::make_shared<ChFsiVisualizationGL>(sysFSI);
 #endif
                 break;
             case ChVisualSystem::Type::VSG: {
 #ifdef CHRONO_VSG
-                visFSI = chrono_types::make_shared<ChFsiVisualizationVSG>(&sysFSI);
+                visFSI = chrono_types::make_shared<ChFsiVisualizationVSG>(sysFSI);
 #endif
                 break;
             }
@@ -284,8 +285,8 @@ int main(int argc, char* argv[]) {
         if (output) {
             ofile << time << "  " << body->GetPos() << "    " << body->GetPosDt() << std::endl;
             if (current_step % output_steps == 0) {
-                sysFSI.PrintParticleToFile(out_dir + "/particles");
-                sysFSI.PrintFsiInfoToFile(out_dir + "/fsi", time);
+                sysSPH.PrintParticleToFile(out_dir + "/particles");
+                sysSPH.PrintFsiInfoToFile(out_dir + "/fsi", time);
                 SaveParaViewFiles(sysFSI, sysMBS, time);
             }
         }
@@ -315,6 +316,8 @@ int main(int argc, char* argv[]) {
 // BCE representations are created and added to the systems
 //------------------------------------------------------------------
 void CreateSolidPhase(ChSystemNSC& sysMBS, ChFsiSystemSPH& sysFSI) {
+    ChFluidSystemSPH& sysSPH = sysFSI.GetFluidSystemSPH();
+
     // Create a body for the rigid soil container
     auto box = chrono_types::make_shared<ChBodyEasyBox>(10, 10, 0.02, 1000, false, false);
     box->SetPos(ChVector3d(0, 0, 0));
@@ -322,10 +325,10 @@ void CreateSolidPhase(ChSystemNSC& sysMBS, ChFsiSystemSPH& sysFSI) {
     sysMBS.Add(box);
 
     // Get the initial SPH particle spacing
-    double initSpace0 = sysFSI.GetInitialSpacing();
+    double initSpace0 = sysSPH.GetInitialSpacing();
 
     // Fluid-Solid Coupling at the walls via BCE particles
-    sysFSI.AddBoxContainerBCE(box,                                        //
+    sysSPH.AddBoxContainerBCE(box,                                        //
                               ChFrame<>(ChVector3d(0, 0, bzDim), QUNIT),  //
                               ChVector3d(bxDim, byDim, 2 * bzDim),        //
                               ChVector3i(2, 0, -1));
@@ -344,7 +347,7 @@ void CreateSolidPhase(ChSystemNSC& sysMBS, ChFsiSystemSPH& sysFSI) {
     trimesh->RepairDuplicateVertexes(1e-9);                              // if meshes are not watertight
 
     std::vector<ChVector3d> BCE_wheel;
-    sysFSI.CreateMeshPoints(*trimesh, initSpace0, BCE_wheel);
+    sysSPH.CreateMeshPoints(*trimesh, initSpace0, BCE_wheel);
 
     // Add BCE particles and mesh of wheels to the system
     for (int i = 0; i < 4; i++) {
@@ -364,9 +367,9 @@ void CreateSolidPhase(ChSystemNSC& sysMBS, ChFsiSystemSPH& sysFSI) {
 
         sysFSI.AddFsiBody(wheel_body);
         if (i == 0 || i == 2) {
-            sysFSI.AddPointsBCE(wheel_body, BCE_wheel, ChFrame<>(VNULL, QuatFromAngleZ(CH_PI)), true);
+            sysSPH.AddPointsBCE(wheel_body, BCE_wheel, ChFrame<>(VNULL, QuatFromAngleZ(CH_PI)), true);
         } else {
-            sysFSI.AddPointsBCE(wheel_body, BCE_wheel, ChFrame<>(VNULL, QUNIT), true);
+            sysSPH.AddPointsBCE(wheel_body, BCE_wheel, ChFrame<>(VNULL, QUNIT), true);
         }
     }
 }

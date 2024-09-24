@@ -19,6 +19,6 @@
     "Time steps per proximity search": 1
   },
   "Time Stepping": {
-    "Fluid time step": 0.0001
+    "Time step": 0.0001
   }
 }

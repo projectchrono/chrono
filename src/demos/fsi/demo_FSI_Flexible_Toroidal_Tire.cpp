@@ -102,6 +102,7 @@ int main(int argc, char* argv[]) {
     // Create an MBS system and an FSI system
     ChSystemSMC sysMBS;
     ChFsiSystemSPH sysFSI(&sysMBS);
+    ChFluidSystemSPH& sysSPH = sysFSI.GetFluidSystemSPH();
 
     sysMBS.SetCollisionSystemType(ChCollisionSystem::Type::BULLET);
 
@@ -117,20 +118,20 @@ int main(int argc, char* argv[]) {
         std::cout << "usage: ./demo_FSI_Flexible_Toroidal_Tire_Granular <json_file>" << std::endl;
         return 1;
     }
-    sysFSI.ReadParametersFromFile(inputJson);
+    sysSPH.ReadParametersFromFile(inputJson);
 
-    sysFSI.SetContainerDim(ChVector3d(bxDim, byDim, bzDim));
+    sysSPH.SetContainerDim(ChVector3d(bxDim, byDim, bzDim));
 
-    auto initSpace0 = sysFSI.GetInitialSpacing();
+    auto initSpace0 = sysSPH.GetInitialSpacing();
     ChVector3d cMin = ChVector3d(-5 * bxDim, -byDim / 2.0 - initSpace0 / 2.0, -5 * bzDim);
     ChVector3d cMax = ChVector3d(5 * bxDim, byDim / 2.0 + initSpace0 / 2.0, 10 * bzDim);
-    sysFSI.SetBoundaries(cMin, cMax);
+    sysSPH.SetBoundaries(cMin, cMax);
 
     // Set SPH discretization type, consistent or inconsistent
-    sysFSI.SetConsistentDerivativeDiscretization(false, false);
+    sysSPH.SetConsistentDerivativeDiscretization(false, false);
 
     // Set cohsion of the granular material
-    sysFSI.SetCohesionForce(2000.0);
+    sysSPH.SetCohesionForce(2000.0);
 
     // Create SPH particles of fluid region
     chrono::utils::ChGridSampler<> sampler(initSpace0);
@@ -139,7 +140,7 @@ int main(int argc, char* argv[]) {
     chrono::utils::ChGenerator::PointVector points = sampler.SampleBox(boxCenter, boxHalfDim);
     size_t numPart = points.size();
     for (int i = 0; i < numPart; i++) {
-        sysFSI.AddSPHParticle(points[i]);
+        sysSPH.AddSPHParticle(points[i]);
     }
 
     // Create solids
@@ -153,7 +154,7 @@ int main(int argc, char* argv[]) {
         std::cerr << "Error creating directory " << out_dir << std::endl;
         return 1;
     }
-    out_dir = out_dir + "/" + sysFSI.GetPhysicsProblemString() + "_" + sysFSI.GetSphMethodTypeString();
+    out_dir = out_dir + "/" + sysSPH.GetPhysicsProblemString() + "_" + sysSPH.GetSphMethodTypeString();
     if (!filesystem::create_directory(filesystem::path(out_dir))) {
         std::cerr << "Error creating directory " << out_dir << std::endl;
         return 1;
@@ -173,7 +174,7 @@ int main(int argc, char* argv[]) {
 
 #ifdef CHRONO_OPENGL
     // Create a run-tme visualizer
-    ChFsiVisualizationGL fsi_vis(&sysFSI);
+    ChFsiVisualizationGL fsi_vis(sysFSI);
     if (render) {
         fsi_vis.SetTitle("Chrono::FSI Flexible Toroidal Tire Demo");
         fsi_vis.AddCamera(ChVector3d(bxDim / 8, -3, 0.25), ChVector3d(bxDim / 8, 0.0, 0.25));
@@ -211,8 +212,8 @@ int main(int argc, char* argv[]) {
 
         if (output && time >= out_frame / output_fps) {
             std::cout << "-------- Output" << std::endl;
-            sysFSI.PrintParticleToFile(out_dir + "/particles");
-            sysFSI.PrintFsiInfoToFile(out_dir + "/fsi", time);
+            sysSPH.PrintParticleToFile(out_dir + "/particles");
+            sysSPH.PrintFsiInfoToFile(out_dir + "/fsi", time);
             static int counter = 0;
             std::string filename = out_dir + "/vtk/flex_body." + std::to_string(counter++) + ".vtk";
             fea::ChMeshExporter::WriteFrame(mesh, out_dir + "/Flex_MESH.vtk", filename);
@@ -243,8 +244,10 @@ int main(int argc, char* argv[]) {
 // Create the objects of the MBD system. Rigid/flexible bodies, and if
 // fsi, their bce representation are created and added to the systems
 std::shared_ptr<fea::ChMesh> Create_MB_FE(ChSystemSMC& sysMBS, ChFsiSystemSPH& sysFSI) {
-    sysMBS.SetGravitationalAcceleration(ChVector3d(0, 0, -9.81));
+    ChFluidSystemSPH& sysSPH = sysFSI.GetFluidSystemSPH();
+
     sysFSI.SetGravitationalAcceleration(ChVector3d(0, 0, -9.81));
+    sysMBS.SetGravitationalAcceleration(ChVector3d(0, 0, -9.81));
 
     auto ground = chrono_types::make_shared<ChBody>();
     ground->SetFixed(true);
@@ -264,7 +267,7 @@ std::shared_ptr<fea::ChMesh> Create_MB_FE(ChSystemSMC& sysMBS, ChFsiSystemSPH& s
     ground->EnableCollision(true);
 
     // Fluid representation of walls
-    sysFSI.AddBoxContainerBCE(ground,                                         //
+    sysSPH.AddBoxContainerBCE(ground,                                         //
                               ChFrame<>(ChVector3d(0, 0, bzDim / 2), QUNIT),  //
                               ChVector3d(bxDim, byDim, bzDim),                //
                               ChVector3i(2, 0, -1));

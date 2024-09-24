@@ -45,13 +45,16 @@ ChFsiSystem::ChFsiSystem(ChSystem* sysMBS)
       m_step_CFD(-1),
       m_time(0),
       m_RTF(0),
-      m_ratio_MBS(0),
-      m_write_mode(OutputMode::NONE) {}
+      m_ratio_MBS(0) {}
 
 ChFsiSystem::~ChFsiSystem() {}
 
-void ChFsiSystem::AttachSystem(ChSystem* sysMBS) {
-    m_sysMBS = sysMBS;
+ChFluidSystem& ChFsiSystem::GetFluidSystem() const {
+    return *m_sysCFD;
+}
+
+ChFsiInterface& ChFsiSystem::GetFsiInterface() const {
+    return *m_fsi_interface;
 }
 
 void ChFsiSystem::SetVerbose(bool verbose) {
@@ -67,10 +70,15 @@ void ChFsiSystem::SetStepSizeCFD(double step) {
     m_step_CFD = step;
 }
 
+void ChFsiSystem::SetGravitationalAcceleration(const ChVector3d& gravity) {
+    m_sysCFD->SetGravitationalAcceleration(gravity);
+    m_sysMBS->SetGravitationalAcceleration(gravity);
+}
+
 size_t ChFsiSystem::AddFsiBody(std::shared_ptr<ChBody> body) {
     unsigned int index = m_fsi_interface->GetNumBodies();
     auto& fsi_body = m_fsi_interface->AddFsiBody(body);
-    OnAddFsiBody(index, fsi_body);
+    m_sysCFD->OnAddFsiBody(index, fsi_body);
     return index;
 }
 
@@ -119,22 +127,33 @@ void ChFsiSystem::AddFsiMesh(std::shared_ptr<fea::ChMesh> mesh) {
 void ChFsiSystem::AddFsiMesh1D(std::shared_ptr<fea::ChContactSurfaceSegmentSet> surface) {
     unsigned int index = m_fsi_interface->GetNumMeshes1D();
     auto& fsi_mesh = m_fsi_interface->AddFsiMesh1D(surface);
-    OnAddFsiMesh1D(index, fsi_mesh);
+    m_sysCFD->OnAddFsiMesh1D(index, fsi_mesh);
 }
 
 void ChFsiSystem::AddFsiMesh2D(std::shared_ptr<fea::ChContactSurfaceMesh> surface) {
     unsigned int index = m_fsi_interface->GetNumMeshes2D();
     auto& fsi_mesh = m_fsi_interface->AddFsiMesh2D(surface);
-    OnAddFsiMesh2D(index, fsi_mesh);
+    m_sysCFD->OnAddFsiMesh2D(index, fsi_mesh);
 }
 
 void ChFsiSystem::Initialize() {
+    if (!m_sysCFD) {
+        cout << "ERROR: No fluid system was created." << endl;
+        throw std::runtime_error("No fluid system was created.");    
+    }
+
+    if (!m_sysMBS) {
+        cout << "ERROR: No multibody system was specified." << endl;
+        throw std::runtime_error("No multibody system was specified.");    
+    }
+
     if (!m_fsi_interface) {
         cout << "ERROR: No FSI interface was created." << endl;
         throw std::runtime_error("No FSI interface was created.");
     }
 
-    m_fsi_interface->Initialize();
+    if (m_step_CFD < 0)
+        m_step_CFD = m_sysCFD->GetStepSize();
 
     if (m_step_CFD < 0) {
         cout << "ERROR: Integration step size for fluid dynamics not set." << endl;
@@ -144,6 +163,13 @@ void ChFsiSystem::Initialize() {
     if (m_step_MBD < 0) {
         m_step_MBD = m_step_CFD;
     }
+
+    m_fsi_interface->Initialize();
+
+    m_sysCFD->SetStepSize(m_step_CFD);
+    m_sysCFD->Initialize(m_fsi_interface->GetNumBodies(),                                        //
+                         m_fsi_interface->GetNumNodes1D(), m_fsi_interface->GetNumElements1D(),  //
+                         m_fsi_interface->GetNumNodes2D(), m_fsi_interface->GetNumElements2D());
 
     // Mark system as initialized
     m_is_initialized = true;
@@ -167,9 +193,6 @@ void ChFsiSystem::DoStepDynamics(double step) {
     double threshold_CFD = factor * m_step_CFD;
     double threshold_MBD = factor * m_step_MBD;
 
-    double timeCFD = m_time;
-    double timeMBD = m_time;
-
     m_timer_step.reset();
     m_timer_CFD.reset();
     m_timer_MBS.reset();
@@ -185,16 +208,15 @@ void ChFsiSystem::DoStepDynamics(double step) {
             double h = std::min<>(m_step_CFD, step - t);
             if (h <= threshold_CFD)
                 break;
-            AdvanceFluidDynamics(timeCFD, h);
+            m_sysCFD->DoStepDynamics(h);
             t += h;
-            timeCFD += h;
         }
     }
     m_timer_CFD.stop();
 
     // Apply fluid forces and torques on FSI solids
     m_timer_FSI.start();
-    OnApplySolidForces();
+    m_sysCFD->OnApplySolidForces();
     m_fsi_interface->ApplyBodyForces();
     m_fsi_interface->ApplyMeshForces();
     m_timer_FSI.stop();
@@ -209,7 +231,6 @@ void ChFsiSystem::DoStepDynamics(double step) {
                 break;
             m_sysMBS->DoStepDynamics(h);
             t += h;
-            timeMBD += h;
         }
     }
     m_timer_MBS.stop();
@@ -220,7 +241,7 @@ void ChFsiSystem::DoStepDynamics(double step) {
     m_timer_FSI.start();
     m_fsi_interface->LoadBodyStates();
     m_fsi_interface->LoadMeshStates();
-    OnLoadSolidStates();
+    m_sysCFD->OnLoadSolidStates();
     m_timer_FSI.stop();
 
     m_timer_step.stop();

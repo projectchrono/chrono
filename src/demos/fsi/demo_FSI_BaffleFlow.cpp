@@ -70,16 +70,16 @@ bool show_particles_sph = true;
 // Callback for setting initial SPH particle properties
 class SPHPropertiesCallback : public ChFsiProblemSPH::ParticlePropertiesCallback {
   public:
-    SPHPropertiesCallback(const ChFsiSystemSPH& sysFSI, double zero_height, const ChVector3d& init_velocity)
-        : ParticlePropertiesCallback(sysFSI), zero_height(zero_height), init_velocity(init_velocity) {
-        gz = std::abs(sysFSI.GetGravitationalAcceleration().z());
-        c2 = sysFSI.GetSoundSpeed() * sysFSI.GetSoundSpeed();
+    SPHPropertiesCallback(const ChFluidSystemSPH& sysSPH, double zero_height, const ChVector3d& init_velocity)
+        : ParticlePropertiesCallback(sysSPH), zero_height(zero_height), init_velocity(init_velocity) {
+        gz = std::abs(sysSPH.GetGravitationalAcceleration().z());
+        c2 = sysSPH.GetSoundSpeed() * sysSPH.GetSoundSpeed();
     }
 
     virtual void set(const ChVector3d& pos) override {
-        p0 = sysFSI.GetDensity() * gz * (zero_height - pos.z());
-        rho0 = sysFSI.GetDensity() + p0 / c2;
-        mu0 = sysFSI.GetViscosity();
+        p0 = sysSPH.GetDensity() * gz * (zero_height - pos.z());
+        rho0 = sysSPH.GetDensity() + p0 / c2;
+        mu0 = sysSPH.GetViscosity();
         v0 = init_velocity;
     }
 
@@ -205,6 +205,7 @@ int main(int argc, char* argv[]) {
     ChFsiProblemCartesian fsi(sysMBS, initial_spacing);
     fsi.SetVerbose(verbose);
     ChFsiSystemSPH& sysFSI = fsi.GetSystemFSI();
+    ChFluidSystemSPH& sysSPH = fsi.GetFluidSystemSPH();
 
     // Set gravitational acceleration
     const ChVector3d gravity(0, 0, -9.8);
@@ -216,7 +217,7 @@ int main(int argc, char* argv[]) {
     sysFSI.SetStepsizeMBD(step_size);
 
     // Set soil propertiees
-    ChFsiSystemSPH::ElasticMaterialProperties mat_props;
+    ChFluidSystemSPH::ElasticMaterialProperties mat_props;
     mat_props.density = 1800;
     mat_props.Young_modulus = 2e6;
     mat_props.Poisson_ratio = 0.3;
@@ -231,10 +232,10 @@ int main(int argc, char* argv[]) {
     mat_props.dilation_angle = CH_PI / 10;  // default
     mat_props.cohesion_coeff = 0;           // default
 
-    sysFSI.SetElasticSPH(mat_props);
+    sysSPH.SetElasticSPH(mat_props);
 
     // Set SPH solution parameters
-    ChFsiSystemSPH::SPHParameters sph_params;
+    ChFluidSystemSPH::SPHParameters sph_params;
     sph_params.sph_method = SPHMethod::WCSPH;
     sph_params.kernel_h = 0.012;
     sph_params.initial_spacing = initial_spacing;
@@ -243,14 +244,14 @@ int main(int argc, char* argv[]) {
     sph_params.kernel_threshold = 0.8;
     sph_params.num_proximity_search_steps = ps_freq;
 
-    sysFSI.SetSPHParameters(sph_params);
+    sysSPH.SetSPHParameters(sph_params);
 
     // Create rigid bodies
     CreateBaffles(fsi);
 
     // Enable height-based initial pressure for SPH particles
     ChVector3d v0(1.5, 0, 0);
-    fsi.RegisterParticlePropertiesCallback(chrono_types::make_shared<SPHPropertiesCallback>(sysFSI, fsize.z(), v0));
+    fsi.RegisterParticlePropertiesCallback(chrono_types::make_shared<SPHPropertiesCallback>(sysSPH, fsize.z(), v0));
 
     // Create SPH material (do not create boundary BCEs)
     fsi.Construct(fsize,                                                                          // box dimensions
@@ -332,12 +333,12 @@ int main(int argc, char* argv[]) {
         switch (vis_type) {
             case ChVisualSystem::Type::OpenGL:
 #ifdef CHRONO_OPENGL
-                visFSI = chrono_types::make_shared<ChFsiVisualizationGL>(&sysFSI);
+                visFSI = chrono_types::make_shared<ChFsiVisualizationGL>(sysFSI);
 #endif
                 break;
             case ChVisualSystem::Type::VSG: {
 #ifdef CHRONO_VSG
-                visFSI = chrono_types::make_shared<ChFsiVisualizationVSG>(&sysFSI);
+                visFSI = chrono_types::make_shared<ChFsiVisualizationVSG>(sysFSI);
 #endif
                 break;
             }
@@ -369,8 +370,8 @@ int main(int argc, char* argv[]) {
     timer.start();
     while (time < t_end) {
         if (output && time >= out_frame / output_fps) {
-            sysFSI.PrintParticleToFile(out_dir + "/particles");
-            sysFSI.PrintFsiInfoToFile(out_dir + "/fsi", time);
+            sysSPH.PrintParticleToFile(out_dir + "/particles");
+            sysSPH.PrintFsiInfoToFile(out_dir + "/fsi", time);
             out_frame++;
         }
 

@@ -19,14 +19,15 @@
 #ifndef CH_FSI_SYSTEM_H
 #define CH_FSI_SYSTEM_H
 
-#include "chrono/ChConfig.h"
 #include "chrono/physics/ChSystem.h"
 #include "chrono/fea/ChMesh.h"
 #include "chrono/fea/ChContactSurfaceMesh.h"
 #include "chrono/fea/ChContactSurfaceSegmentSet.h"
 
 #include "chrono_fsi/ChApiFsi.h"
+#include "chrono_fsi/ChConfigFsi.h"
 #include "chrono_fsi/ChFsiInterface.h"
+#include "chrono_fsi/ChFluidSystem.h"
 
 namespace chrono {
 namespace fsi {
@@ -35,27 +36,28 @@ namespace fsi {
 /// @{
 
 /// Base class for a system for fluid-solid interaction problems.
+///
+/// This class is used to represent fluid-solid interaction problems consisting of fluid dynamics and multibody system.
+/// Each of the two underlying physics is an independent object owned and instantiated by this class. The FSI system
+/// owns other objects to handle the interface between the two systems, boundary condition enforcing markers, and data.
 class CH_FSI_API ChFsiSystem {
   public:
-    /// Output mode.
-    enum class OutputMode {
-        CSV,   ///< comma-separated value
-        CHPF,  ///< binary
-        NONE   ///< none
-    };
-
     /// Destructor for the FSI system.
     virtual ~ChFsiSystem();
 
-    /// Attach Chrono MBS system.
-    void AttachSystem(ChSystem* sysMBS);
+    /// Access the associated fluid solver.
+    ChFluidSystem& GetFluidSystem() const; 
+
+    /// Access the associated FSI interface.
+    ChFsiInterface& GetFsiInterface() const;
 
     /// Enable/disable verbose terminal output (default: true).
     /// The default implementation sets the verbose mode for the FSI system and the underlying FSI interface.
     void SetVerbose(bool verbose);
 
-    /// Set gravity for the FSI syatem.
-    virtual void SetGravitationalAcceleration(const ChVector3d& gravity) = 0;
+    /// Set gravitational acceleration for the FSI syatem.
+    /// This function sets gravity for both the fluid and multibody systems.
+    void SetGravitationalAcceleration(const ChVector3d& gravity);
 
     /// Set integration step size for fluid dynamics.
     void SetStepSizeCFD(double step);
@@ -118,32 +120,12 @@ class CH_FSI_API ChFsiSystem {
     //// TODO: add functions to get force on FEA nodes
 
   protected:
-    ChFsiSystem(ChSystem* sysMBS = nullptr);
+    ChFsiSystem(ChSystem* sysMBS);
 
-    /// Additional actions taken after adding a rigid body to the FSI system.
-    virtual void OnAddFsiBody(unsigned int index, ChFsiInterface::FsiBody& fsi_body) = 0;
+    std::shared_ptr<ChFluidSystem> m_sysCFD;          ///< FSI fluid solver
+    std::shared_ptr<ChFsiInterface> m_fsi_interface;  ///< FSI interface system
 
-    /// Additional actions taken after adding a 1-D flexible mesh to the FSI system.
-    virtual void OnAddFsiMesh1D(unsigned int index, ChFsiInterface::FsiMesh1D& fsi_mesh) = 0;
-
-    /// Additional actions taken after adding a 2-D flexible mesh to the FSI system.
-    virtual void OnAddFsiMesh2D(unsigned int index, ChFsiInterface::FsiMesh2D& fsi_mesh) = 0;
-
-    /// Function to integrate the FSI fluid system in time.
-    virtual void AdvanceFluidDynamics(double time, double step) = 0;
-    
-    /// Additional actions taken before applying fluid forces to the solid phase.
-    virtual void OnApplySolidForces() = 0;
-
-    /// Additional actions taken after loading new solid phase states.
-    virtual void OnLoadSolidStates() = 0;
-
-    std::unique_ptr<ChFsiInterface> m_fsi_interface;  ///< FSI interface system
-
-    bool m_verbose;           ///< enable/disable m_verbose terminal output
-    std::string m_outdir;     ///< output directory
-    OutputMode m_write_mode;  ///< output type
-
+    bool m_verbose;         ///< enable/disable m_verbose terminal output
     bool m_is_initialized;  ///< set to true once the Initialize function is called
 
   private:
@@ -153,7 +135,7 @@ class CH_FSI_API ChFsiSystem {
     /// Add a flexible solid with surface mesh contact to the FSI system.
     void AddFsiMesh2D(std::shared_ptr<fea::ChContactSurfaceMesh> surface);
 
-    ChSystem* m_sysMBS;  ///< multibody system
+    ChSystem* m_sysMBS;       ///< multibody system
 
     double m_step_MBD;  ///< time step for multibody dynamics
     double m_step_CFD;  ///< time step for fluid dynamics

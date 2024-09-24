@@ -119,6 +119,8 @@ void WriteWheelVTK(const std::string& filename, ChTriangleMeshConnected& mesh, c
 // their BCE representation are created and added to the systems
 //------------------------------------------------------------------
 void CreateSolidPhase(ChSystemSMC& sysMBS, ChFsiSystemSPH& sysFSI) {
+    ChFluidSystemSPH& sysSPH = sysFSI.GetFluidSystemSPH();
+
     // Common contact material
     auto cmaterial = chrono_types::make_shared<ChContactMaterialSMC>();
     cmaterial->SetYoungModulus(1e8);
@@ -139,7 +141,7 @@ void CreateSolidPhase(ChSystemSMC& sysMBS, ChFsiSystemSPH& sysFSI) {
     ground->EnableCollision(true);
 
     // Add BCE particles attached on the walls into FSI system
-    sysFSI.AddBoxContainerBCE(ground,                                     //
+    sysSPH.AddBoxContainerBCE(ground,                                     //
                               ChFrame<>(ChVector3d(0, 0, bzDim), QUNIT),  //
                               ChVector3d(bxDim, byDim, 2 * bzDim),        //
                               ChVector3i(2, 0, -1));
@@ -187,8 +189,8 @@ void CreateSolidPhase(ChSystemSMC& sysMBS, ChFsiSystemSPH& sysFSI) {
 
     // Add this body to the FSI system
     std::vector<ChVector3d> BCE_wheel;
-    sysFSI.CreateMeshPoints(*trimesh, iniSpacing, BCE_wheel);
-    sysFSI.AddPointsBCE(wheel, BCE_wheel, ChFrame<>(), true);
+    sysSPH.CreateMeshPoints(*trimesh, iniSpacing, BCE_wheel);
+    sysSPH.AddPointsBCE(wheel, BCE_wheel, ChFrame<>(), true);
     sysFSI.AddFsiBody(wheel);
 
     // Create the chassis -- always THIRD body in the system
@@ -266,14 +268,15 @@ int main(int argc, char* argv[]) {
     // Create the MBS and FSI systems
     ChSystemSMC sysMBS;
     ChFsiSystemSPH sysFSI(&sysMBS);
+    ChFluidSystemSPH& sysSPH = sysFSI.GetFluidSystemSPH();
 
     sysMBS.SetCollisionSystemType(ChCollisionSystem::Type::BULLET);
 
     ChVector3d gravity = ChVector3d(0, 0, -9.81);
     sysMBS.SetGravitationalAcceleration(gravity);
-    sysFSI.SetGravitationalAcceleration(gravity);
+    sysSPH.SetGravitationalAcceleration(gravity);
 
-    sysFSI.SetVerbose(verbose_fsi);
+    sysSPH.SetVerbose(verbose_fsi);
 
     // Use the default input file or you may enter your input parameters as a command line argument
     std::string inputJson = GetChronoDataFile("fsi/input_json/demo_FSI_SingleWheelTest.json");
@@ -286,49 +289,49 @@ int main(int argc, char* argv[]) {
         return 1;
     }
 
-    sysFSI.ReadParametersFromFile(inputJson);
+    sysSPH.ReadParametersFromFile(inputJson);
 
     // Set the initial particle spacing
-    sysFSI.SetInitialSpacing(iniSpacing);
+    sysSPH.SetInitialSpacing(iniSpacing);
 
     // Set the SPH kernel length
-    sysFSI.SetKernelLength(kernelLength);
+    sysSPH.SetKernelLength(kernelLength);
 
     // Set the terrain density
-    sysFSI.SetDensity(density);
+    sysSPH.SetDensity(density);
 
     // Set the simulation stepsize
     sysFSI.SetStepSizeCFD(dT);
     sysFSI.SetStepsizeMBD(dT);
 
     // Set the terrain container size
-    sysFSI.SetContainerDim(ChVector3d(bxDim, byDim, bzDim));
+    sysSPH.SetContainerDim(ChVector3d(bxDim, byDim, bzDim));
 
     // Set SPH discretization type, consistent or inconsistent
-    sysFSI.SetConsistentDerivativeDiscretization(false, false);
+    sysSPH.SetConsistentDerivativeDiscretization(false, false);
 
     // Set cohsion of the granular material
-    sysFSI.SetCohesionForce(1.0e2);
+    sysSPH.SetCohesionForce(1.0e2);
 
     // Setup the SPH method
-    sysFSI.SetSPHMethod(SPHMethod::WCSPH);
+    sysSPH.SetSPHMethod(SPHMethod::WCSPH);
 
     // Set up the periodic boundary condition (if not, set relative larger values)
     ChVector3d cMin(-bxDim / 2 * 10, -byDim / 2 - 0.5 * iniSpacing, -bzDim * 10);
     ChVector3d cMax(bxDim / 2 * 10, byDim / 2 + 0.5 * iniSpacing, bzDim * 10);
-    sysFSI.SetBoundaries(cMin, cMax);
+    sysSPH.SetBoundaries(cMin, cMax);
 
     // Initialize the SPH particles
-    auto initSpace0 = sysFSI.GetInitialSpacing();
+    auto initSpace0 = sysSPH.GetInitialSpacing();
     ChVector3d boxCenter(0.0, 0.0, bzDim / 2);
     ChVector3d boxHalfDim(bxDim / 2 - initSpace0, byDim / 2, bzDim / 2 - initSpace0);
-    sysFSI.AddBoxSPH(boxCenter, boxHalfDim);
+    sysSPH.AddBoxSPH(boxCenter, boxHalfDim);
 
     // Create Solid region and attach BCE SPH particles
     CreateSolidPhase(sysMBS, sysFSI);
 
     // Set simulation data output length
-    sysFSI.SetOutputLength(0);
+    sysSPH.SetOutputLength(0);
 
     // Construction of the FSI system must be finalized before running
     sysFSI.Initialize();
@@ -350,7 +353,7 @@ int main(int argc, char* argv[]) {
 
     // Create a run-tme visualizer
 #ifdef CHRONO_OPENGL
-    ChFsiVisualizationGL fsi_vis(&sysFSI);
+    ChFsiVisualizationGL fsi_vis(sysFSI);
     if (render) {
         fsi_vis.SetTitle("Chrono::FSI single wheel demo");
         fsi_vis.AddCamera(ChVector3d(0, -5 * byDim, 5 * bzDim), ChVector3d(0, 0, 0));
@@ -396,8 +399,8 @@ int main(int argc, char* argv[]) {
 
         if (output && time >= out_frame / output_fps) {
             std::cout << "-------- Output" << std::endl;
-            sysFSI.PrintParticleToFile(out_dir + "/particles");
-            sysFSI.PrintFsiInfoToFile(out_dir + "/fsi", time);
+            sysSPH.PrintParticleToFile(out_dir + "/particles");
+            sysSPH.PrintFsiInfoToFile(out_dir + "/fsi", time);
             static int counter = 0;
             std::string filename = out_dir + "/vtk/wheel." + std::to_string(counter++) + ".vtk";
             WriteWheelVTK(filename, wheel_mesh, wheel->GetFrameRefToAbs());

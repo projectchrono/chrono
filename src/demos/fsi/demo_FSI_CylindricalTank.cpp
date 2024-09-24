@@ -108,21 +108,26 @@ int main(int argc, char* argv[]) {
     ChFsiProblemCylindrical fsi(sysMBS, initial_spacing);
     fsi.SetVerbose(verbose);
     ChFsiSystemSPH& sysFSI = fsi.GetSystemFSI();
+    ChFluidSystemSPH& sysSPH = fsi.GetFluidSystemSPH();
 
     // Set gravitational acceleration
     const ChVector3d gravity(0, 0, -9.8);
     sysFSI.SetGravitationalAcceleration(gravity);
     sysMBS.SetGravitationalAcceleration(gravity);
 
+    // Set integration step size
+    sysFSI.SetStepSizeCFD(step_size);
+    sysFSI.SetStepsizeMBD(step_size);
+
     // Set CFD fluid properties
-    ChFsiSystemSPH::FluidProperties fluid_props;
+    ChFluidSystemSPH::FluidProperties fluid_props;
     fluid_props.density = 1000;
     fluid_props.viscosity = 1;
 
-    sysFSI.SetCfdSPH(fluid_props);
+    sysSPH.SetCfdSPH(fluid_props);
 
     // Set SPH solution parameters
-    ChFsiSystemSPH::SPHParameters sph_params;
+    ChFluidSystemSPH::SPHParameters sph_params;
     sph_params.sph_method = SPHMethod::WCSPH;
     sph_params.num_bce_layers = 3;
     sph_params.kernel_h = initial_spacing;
@@ -135,9 +140,7 @@ int main(int argc, char* argv[]) {
     sph_params.consistent_laplacian_discretization = false;
     sph_params.num_proximity_search_steps = 1;
 
-    sysFSI.SetSPHParameters(sph_params);
-    sysFSI.SetStepSizeCFD(step_size);
-    sysFSI.SetStepsizeMBD(step_size);
+    sysSPH.SetSPHParameters(sph_params);
 
     // Create a rigid body
     double radius = 0.12;
@@ -164,7 +167,7 @@ int main(int argc, char* argv[]) {
     fsi.AddRigidBody(body, geometry, true, false);
 
     // Enable height-based initial pressure for SPH particles
-    fsi.RegisterParticlePropertiesCallback(chrono_types::make_shared<DepthPressurePropertiesCallback>(sysFSI, height));
+    fsi.RegisterParticlePropertiesCallback(chrono_types::make_shared<DepthPressurePropertiesCallback>(sysSPH, height));
 
     // Create SPH material (do not create boundary BCEs)
     fsi.Construct(r_inner, r_outer, height,  //
@@ -183,7 +186,7 @@ int main(int argc, char* argv[]) {
         cerr << "Error creating directory " << out_dir << endl;
         return 1;
     }
-    out_dir = out_dir + "/" + sysFSI.GetPhysicsProblemString() + "_" + sysFSI.GetSphMethodTypeString();
+    out_dir = out_dir + "/" + sysSPH.GetPhysicsProblemString() + "_" + sysSPH.GetSphMethodTypeString();
     if (!filesystem::create_directory(filesystem::path(out_dir))) {
         cerr << "Error creating directory " << out_dir << endl;
         return 1;
@@ -231,12 +234,12 @@ int main(int argc, char* argv[]) {
         switch (vis_type) {
             case ChVisualSystem::Type::OpenGL:
 #ifdef CHRONO_OPENGL
-                visFSI = chrono_types::make_shared<ChFsiVisualizationGL>(&sysFSI);
+                visFSI = chrono_types::make_shared<ChFsiVisualizationGL>(sysFSI);
 #endif
                 break;
             case ChVisualSystem::Type::VSG: {
 #ifdef CHRONO_VSG
-                visFSI = chrono_types::make_shared<ChFsiVisualizationVSG>(&sysFSI);
+                visFSI = chrono_types::make_shared<ChFsiVisualizationVSG>(sysFSI);
 #endif
                 break;
             }
@@ -279,8 +282,8 @@ int main(int argc, char* argv[]) {
         if (output && time >= out_frame / output_fps) {
             if (verbose)
                 cout << " -- Output frame " << out_frame << " at t = " << time << endl;
-            sysFSI.PrintParticleToFile(out_dir + "/particles");
-            sysFSI.PrintFsiInfoToFile(out_dir + "/fsi", time);
+            sysSPH.PrintParticleToFile(out_dir + "/particles");
+            sysSPH.PrintFsiInfoToFile(out_dir + "/fsi", time);
             out_frame++;
         }
 

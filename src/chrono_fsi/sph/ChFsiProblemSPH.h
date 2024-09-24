@@ -44,11 +44,14 @@ class CH_FSI_API ChFsiProblemSPH {
     /// Enable verbose output during construction of ChFsiProblemSPH (default: false).
     void SetVerbose(bool verbose);
 
-    /// Access the underlying MBS system.
-    ChSystem& GetSystyemMBS() { return m_sys; }
-
     /// Access the underlying FSI system.
     ChFsiSystemSPH& GetSystemFSI() { return m_sysFSI; }
+
+    /// Access the underlying SPH system.
+    ChFluidSystemSPH& GetFluidSystemSPH() { return m_sysSPH; }
+
+    /// Access the underlying MBS system.
+    ChSystem& GetSystyemMBS() { return m_sysMBS; }
 
     /// Add a rigid body to the FSI problem.
     /// BCE markers are created for the provided geometry (which may or may not match the body collision geometry).
@@ -81,7 +84,8 @@ class CH_FSI_API ChFsiProblemSPH {
     /// Interface for callback to set initial particle pressure, density, viscosity, and velocity.
     class CH_FSI_API ParticlePropertiesCallback {
       public:
-        ParticlePropertiesCallback(const ChFsiSystemSPH& sysFSI) : sysFSI(sysFSI), p0(0), rho0(0), mu0(0), v0(VNULL) {}
+        ParticlePropertiesCallback(const ChFluidSystemSPH& sysSPH)
+            : sysSPH(sysSPH), p0(0), rho0(0), mu0(0), v0(VNULL) {}
         ParticlePropertiesCallback(const ParticlePropertiesCallback& other) = default;
         virtual ~ParticlePropertiesCallback() {}
 
@@ -90,12 +94,12 @@ class CH_FSI_API ChFsiProblemSPH {
         /// If an override is provided, it must set *all* particle properties.
         virtual void set(const ChVector3d& pos) {
             p0 = 0;
-            rho0 = sysFSI.GetDensity();
-            mu0 = sysFSI.GetViscosity();
+            rho0 = sysSPH.GetDensity();
+            mu0 = sysSPH.GetViscosity();
             v0 = VNULL;
         }
 
-        const ChFsiSystemSPH& sysFSI;
+        const ChFluidSystemSPH& sysSPH;
         double p0;
         double rho0;
         double mu0;
@@ -184,7 +188,8 @@ class CH_FSI_API ChFsiProblemSPH {
     int ProcessBodyMesh(RigidBody& b, ChTriangleMeshConnected trimesh, const ChVector3d& interior_point);
 
     ChFsiSystemSPH m_sysFSI;           ///< underlying Chrono FSI system
-    ChSystem& m_sys;                   ///< associated Chrono MBS system
+    ChFluidSystemSPH& m_sysSPH;        ///< associated Chrono SPH system
+    ChSystem& m_sysMBS;                ///< associated Chrono MBS system
     double m_spacing;                  ///< particle and marker spacing
     std::shared_ptr<ChBody> m_ground;  ///< ground body
     GridPoints m_sph;                  ///< SPH particle grid locations
@@ -318,16 +323,16 @@ class CH_FSI_API ChFsiProblemCylindrical : public ChFsiProblemSPH {
 /// Predefined SPH particle initial properties callback (depth-based pressure).
 class CH_FSI_API DepthPressurePropertiesCallback : public ChFsiProblemSPH::ParticlePropertiesCallback {
   public:
-    DepthPressurePropertiesCallback(const ChFsiSystemSPH& sysFSI, double zero_height)
-        : ParticlePropertiesCallback(sysFSI), zero_height(zero_height) {
-        gz = std::abs(sysFSI.GetGravitationalAcceleration().z());
-        c2 = sysFSI.GetSoundSpeed() * sysFSI.GetSoundSpeed();
+    DepthPressurePropertiesCallback(const ChFluidSystemSPH& sysSPH, double zero_height)
+        : ParticlePropertiesCallback(sysSPH), zero_height(zero_height) {
+        gz = std::abs(sysSPH.GetGravitationalAcceleration().z());
+        c2 = sysSPH.GetSoundSpeed() * sysSPH.GetSoundSpeed();
     }
 
     virtual void set(const ChVector3d& pos) override {
-        p0 = sysFSI.GetDensity() * gz * (zero_height - pos.z());
-        rho0 = sysFSI.GetDensity() + p0 / c2;
-        mu0 = sysFSI.GetViscosity();
+        p0 = sysSPH.GetDensity() * gz * (zero_height - pos.z());
+        rho0 = sysSPH.GetDensity() + p0 / c2;
+        mu0 = sysSPH.GetViscosity();
         v0 = VNULL;
     }
 

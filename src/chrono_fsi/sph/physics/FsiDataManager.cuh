@@ -37,7 +37,7 @@
 namespace chrono {
 namespace fsi {
 
-class ChFsiSystemSPH;
+class ChFluidSystemSPH;
 
 namespace sph {
 
@@ -335,7 +335,7 @@ class FsiDataManager {
     /// Initializes device vectors to zero.
     void ResetData();
 
-    friend class chrono::fsi::ChFsiSystemSPH;
+    friend class chrono::fsi::ChFluidSystemSPH;
 };
 
 /// @} fsi_physics

@@ -59,15 +59,15 @@ class FSIStatsGL : public opengl::ChOpenGLStats {
 
 // -----------------------------------------------------------------------------
 
-ChFsiVisualizationGL::ChFsiVisualizationGL(ChFsiSystemSPH* sysFSI)
+ChFsiVisualizationGL::ChFsiVisualizationGL(ChFsiSystemSPH& sysFSI)
     : ChFsiVisualization(sysFSI), m_bce_start_index(0) {
     m_vsys = new opengl::ChVisualSystemOpenGL();
-    m_vsys->AttachSystem(m_system);
+    m_vsys->AttachSystem(m_sysMBS);
     m_vsys->SetWindowTitle("");
     m_vsys->SetWindowSize(1280, 720);
     m_vsys->SetCameraProperties(0.1f);
     m_vsys->SetRenderMode(opengl::WIREFRAME);
-    m_vsys->SetParticleRenderMode(opengl::SOLID, (float)sysFSI->GetInitialSpacing() / 2);
+    m_vsys->SetParticleRenderMode(opengl::SOLID, (float)m_sysSPH.GetInitialSpacing() / 2);
     m_vsys->AddCamera(ChVector3d(0, -3, 0), ChVector3d(0, 0, 0));
     m_vsys->SetCameraVertical(ChVector3d(0, 0, 1));
 }
@@ -104,7 +104,7 @@ void ChFsiVisualizationGL::SetCameraMoveScale(float scale) {
 
 void ChFsiVisualizationGL::SetParticleRenderMode(RenderMode mode) {
     opengl::RenderMode gl_mode = (mode == RenderMode::SOLID) ? opengl::SOLID : opengl::POINTS;
-    m_vsys->SetParticleRenderMode(gl_mode, (float)m_systemFSI->GetInitialSpacing() / 2);
+    m_vsys->SetParticleRenderMode(gl_mode, (float)m_sysSPH.GetInitialSpacing() / 2);
 }
 
 void ChFsiVisualizationGL::SetRenderMode(RenderMode mode) {
@@ -126,50 +126,50 @@ void ChFsiVisualizationGL::EnableInfoOverlay(bool val) {
 }
 
 void ChFsiVisualizationGL::Initialize() {
-    // Cache current number of bodies (if any) in m_system
-    m_bce_start_index = static_cast<unsigned int>(m_system->GetBodies().size());
+    // Cache current number of bodies (if any) in m_sysMBS
+    m_bce_start_index = static_cast<unsigned int>(m_sysMBS->GetBodies().size());
 
     if (m_sph_markers) {
         m_sph_cloud = chrono_types::make_shared<ChParticleCloud>();
         m_sph_cloud->SetFixed(true);
-        for (int i = 0; i < m_systemFSI->GetNumFluidMarkers(); i++) {
+        for (int i = 0; i < m_sysSPH.GetNumFluidMarkers(); i++) {
             m_sph_cloud->AddParticle(CSYSNULL);
         }
-        auto sph = chrono_types::make_shared<ChVisualShapeSphere>(m_systemFSI->GetInitialSpacing() / 2);
+        auto sph = chrono_types::make_shared<ChVisualShapeSphere>(m_sysSPH.GetInitialSpacing() / 2);
         m_sph_cloud->AddVisualShape(sph);
-        m_system->Add(m_sph_cloud);
+        m_sysMBS->Add(m_sph_cloud);
     }
 
     if (m_bndry_bce_markers) {
-        for (int i = 0; i < m_systemFSI->GetNumBoundaryMarkers(); i++) {
+        for (int i = 0; i < m_sysSPH.GetNumBoundaryMarkers(); i++) {
             auto body = chrono_types::make_shared<ChBody>();
             body->SetPos(ChVector3d(0, 0, 0));
             body->SetFixed(true);
-            auto sph = chrono_types::make_shared<ChVisualShapeBox>(ChVector3d(m_systemFSI->GetInitialSpacing() / 2));
+            auto sph = chrono_types::make_shared<ChVisualShapeBox>(ChVector3d(m_sysSPH.GetInitialSpacing() / 2));
             body->AddVisualShape(sph);
-            m_system->AddBody(body);
+            m_sysMBS->AddBody(body);
         }
     }
 
     if (m_rigid_bce_markers) {
-        for (int i = 0; i < m_systemFSI->GetNumRigidBodyMarkers(); i++) {
+        for (int i = 0; i < m_sysSPH.GetNumRigidBodyMarkers(); i++) {
             auto body = chrono_types::make_shared<ChBody>();
             body->SetPos(ChVector3d(0, 0, 0));
             body->SetFixed(true);
-            auto sph = chrono_types::make_shared<ChVisualShapeBox>(ChVector3d(m_systemFSI->GetInitialSpacing() / 2));
+            auto sph = chrono_types::make_shared<ChVisualShapeBox>(ChVector3d(m_sysSPH.GetInitialSpacing() / 2));
             body->AddVisualShape(sph);
-            m_system->AddBody(body);
+            m_sysMBS->AddBody(body);
         }
     }
 
     if (m_flex_bce_markers) {
-        for (int i = 0; i < m_systemFSI->GetNumFlexBodyMarkers(); i++) {
+        for (int i = 0; i < m_sysSPH.GetNumFlexBodyMarkers(); i++) {
             auto body = chrono_types::make_shared<ChBody>();
             body->SetPos(ChVector3d(0, 0, 0));
             body->SetFixed(true);
-            auto sph = chrono_types::make_shared<ChVisualShapeBox>(ChVector3d(m_systemFSI->GetInitialSpacing() / 2));
+            auto sph = chrono_types::make_shared<ChVisualShapeBox>(ChVector3d(m_sysSPH.GetInitialSpacing() / 2));
             body->AddVisualShape(sph);
-            m_system->AddBody(body);
+            m_sysMBS->AddBody(body);
         }
     }
 
@@ -178,51 +178,51 @@ void ChFsiVisualizationGL::Initialize() {
     m_vsys->Initialize();
 
     auto fsi_stats = chrono_types::make_shared<FSIStatsGL>();
-    fsi_stats->num_sph = static_cast<unsigned long>(m_systemFSI->GetNumFluidMarkers());
-    fsi_stats->num_bndry_bce = static_cast<unsigned long>(m_systemFSI->GetNumBoundaryMarkers());
-    fsi_stats->num_rigid_bce = static_cast<unsigned long>(m_systemFSI->GetNumRigidBodyMarkers());
-    fsi_stats->num_flex_bce = static_cast<unsigned long>(m_systemFSI->GetNumFlexBodyMarkers());
+    fsi_stats->num_sph = static_cast<unsigned long>(m_sysSPH.GetNumFluidMarkers());
+    fsi_stats->num_bndry_bce = static_cast<unsigned long>(m_sysSPH.GetNumBoundaryMarkers());
+    fsi_stats->num_rigid_bce = static_cast<unsigned long>(m_sysSPH.GetNumRigidBodyMarkers());
+    fsi_stats->num_flex_bce = static_cast<unsigned long>(m_sysSPH.GetNumFlexBodyMarkers());
     m_vsys->AttachStatsRenderer(fsi_stats);
 }
 
 bool ChFsiVisualizationGL::Render() {
     // For display in OpenGL GUI
-    m_system->SetChTime(m_systemFSI->GetSimTime());
-    m_system->SetRTF(m_systemFSI->GetRTF());
+    m_sysMBS->SetChTime(m_sysFSI.GetSimTime());
+    m_sysMBS->SetRTF(m_sysFSI.GetRTF());
 
     if (m_vsys->Run()) {
         // Copy SPH particle positions from device to host
-        thrust::host_vector<Real4> posH = m_systemFSI->m_data_mgr->sphMarkers_D->posRadD;
+        thrust::host_vector<Real4> posH = m_sysSPH.m_data_mgr->sphMarkers_D->posRadD;
 
         // List of proxy bodies
-        const auto& blist = m_system->GetBodies();
+        const auto& blist = m_sysMBS->GetBodies();
 
         size_t p = 0;
         size_t b = 0;
 
         if (m_sph_markers) {
-            for (unsigned int i = 0; i < m_systemFSI->GetNumFluidMarkers(); i++) {
+            for (unsigned int i = 0; i < m_sysSPH.GetNumFluidMarkers(); i++) {
                 m_sph_cloud->Particle(i).SetPos(ChVector3d(posH[p + i].x, posH[p + i].y, posH[p + i].z));
             }
         }
-        p += m_systemFSI->GetNumFluidMarkers();
+        p += m_sysSPH.GetNumFluidMarkers();
 
         if (m_bndry_bce_markers) {
-            for (size_t i = 0; i < m_systemFSI->GetNumBoundaryMarkers(); i++) {
+            for (size_t i = 0; i < m_sysSPH.GetNumBoundaryMarkers(); i++) {
                 blist[m_bce_start_index + b++]->SetPos(ChVector3d(posH[p + i].x, posH[p + i].y, posH[p + i].z));
             }
         }
-        p += m_systemFSI->GetNumBoundaryMarkers();
+        p += m_sysSPH.GetNumBoundaryMarkers();
 
         if (m_rigid_bce_markers) {
-            for (size_t i = 0; i < m_systemFSI->GetNumRigidBodyMarkers(); i++) {
+            for (size_t i = 0; i < m_sysSPH.GetNumRigidBodyMarkers(); i++) {
                 blist[m_bce_start_index + b++]->SetPos(ChVector3d(posH[p + i].x, posH[p + i].y, posH[p + i].z));
             }
         }
-        p += m_systemFSI->GetNumRigidBodyMarkers();
+        p += m_sysSPH.GetNumRigidBodyMarkers();
 
         if (m_flex_bce_markers) {
-            for (size_t i = 0; i < m_systemFSI->GetNumFlexBodyMarkers(); i++) {
+            for (size_t i = 0; i < m_sysSPH.GetNumFlexBodyMarkers(); i++) {
                 blist[m_bce_start_index + b++]->SetPos(ChVector3d(posH[p + i].x, posH[p + i].y, posH[p + i].z));
             }
         }

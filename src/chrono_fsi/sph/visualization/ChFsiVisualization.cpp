@@ -18,8 +18,9 @@
 namespace chrono {
 namespace fsi {
 
-ChFsiVisualization::ChFsiVisualization(ChFsiSystemSPH* sysFSI)
-    : m_systemFSI(sysFSI),
+ChFsiVisualization::ChFsiVisualization(ChFsiSystemSPH& sysFSI)
+    : m_sysFSI(sysFSI),
+      m_sysSPH(sysFSI.GetFluidSystemSPH()),
       m_user_system(nullptr),
       m_sph_markers(true),
       m_rigid_bce_markers(true),
@@ -31,11 +32,11 @@ ChFsiVisualization::ChFsiVisualization(ChFsiSystemSPH* sysFSI)
       m_flex_bce_color(ChColor(0.40f, 0.10f, 0.65f)),
       m_write_images(false),
       m_image_dir(".") {
-    m_system = new ChSystemSMC();
+    m_sysMBS = new ChSystemSMC();
 }
 
 ChFsiVisualization::~ChFsiVisualization() {
-    delete m_system;
+    delete m_sysMBS;
 }
 
 void ChFsiVisualization::SetVerbose(bool verbose) {
@@ -62,7 +63,7 @@ void ChFsiVisualization::EnableInfoOverlay(bool val) {}
 
 void ChFsiVisualization::AddProxyBody(std::shared_ptr<ChBody> body) {
     body->SetFixed(true);
-    m_system->AddBody(body);
+    m_sysMBS->AddBody(body);
 }
 
 void ChFsiVisualization::Initialize() {}

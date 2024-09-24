@@ -22,7 +22,7 @@
   }
   "Time Stepping": {
     "CFL number": 0.2,
-    "Fluid time step": 2e-4
+    "Time step": 2e-4
   },
   "Pressure Equation": {
     "Linear solver": "Jacobi", //Jacobi, BICGSTAB, GMRES

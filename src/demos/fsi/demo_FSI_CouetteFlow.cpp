@@ -118,6 +118,8 @@ int main(int argc, char* argv[]) {
     ChFsiSystemSPH sysFSI(&sysMBS);
     sysFSI.SetVerbose(verbose);
 
+    ChFluidSystemSPH& sysSPH = sysFSI.GetFluidSystemSPH();
+
     // cylindrical container
     // container needs to be higher than fluid, otherwise water spills from the top
     double outer_cylinder_radius = 5.0;  // mm
@@ -134,14 +136,18 @@ int main(int argc, char* argv[]) {
     sysFSI.SetGravitationalAcceleration(gravity);
     sysMBS.SetGravitationalAcceleration(gravity);
 
+    // Set integration step size
+    sysFSI.SetStepSizeCFD(step_size);
+    sysFSI.SetStepsizeMBD(step_size);
+
     // Set CFD fluid properties
-    ChFsiSystemSPH::FluidProperties fluid_props;
+    ChFluidSystemSPH::FluidProperties fluid_props;
     fluid_props.density = density;
     fluid_props.viscosity = viscosity;
-    sysFSI.SetCfdSPH(fluid_props);
+    sysSPH.SetCfdSPH(fluid_props);
 
     // Set SPH solution parameters
-    ChFsiSystemSPH::SPHParameters sph_params;
+    ChFluidSystemSPH::SPHParameters sph_params;
     sph_params.sph_method = SPHMethod::I2SPH;
     sph_params.num_bce_layers = 3;
     sph_params.kernel_h = initial_spacing;
@@ -152,29 +158,26 @@ int main(int argc, char* argv[]) {
     sph_params.min_distance_coefficient = 0.001;     // default: 0.01, use 0.001, otherwise fluid surface is asymmetric
     sph_params.use_density_based_projection = true;  // default: false
     sph_params.num_proximity_search_steps = 1;
-    sysFSI.SetSPHParameters(sph_params);
+    sysSPH.SetSPHParameters(sph_params);
 
     // Set linear solver parameters
-    ChFsiSystemSPH::LinSolverParameters linsolv_params;
+    ChFluidSystemSPH::LinSolverParameters linsolv_params;
     linsolv_params.type = SolverType::JACOBI;
     linsolv_params.atol = 0;
     linsolv_params.rtol = 0;
     linsolv_params.max_num_iters = 200;
-    sysFSI.SetLinSolverParameters(linsolv_params);
-
-    sysFSI.SetStepSizeCFD(step_size);
-    sysFSI.SetStepsizeMBD(step_size);
+    sysSPH.SetLinSolverParameters(linsolv_params);
 
     // Set the terrain container size
-    sysFSI.SetContainerDim(ChVector3<>(bxDim, byDim, bzDim));
+    sysSPH.SetContainerDim(ChVector3<>(bxDim, byDim, bzDim));
     ChVector3<> cMin(-bxDim / 2 * 1.2, -byDim * 1.2, -bzDim / 2 * 1.2);
     ChVector3<> cMax(bxDim / 2 * 1.2, byDim * 1.2, bzDim / 2 * 1.2);
-    sysFSI.SetBoundaries(cMin, cMax);
+    sysSPH.SetBoundaries(cMin, cMax);
 
     bool use_polar_coords = true;
 
     std::vector<ChVector3d> points;
-    sysFSI.CreateCylinderAnnulusPoints(inner_cylinder_radius + initial_spacing / 2,  //
+    sysSPH.CreateCylinderAnnulusPoints(inner_cylinder_radius + initial_spacing / 2,  //
                                        outer_cylinder_radius - initial_spacing / 2,  //
                                        fluid_height,                                 //
                                        use_polar_coords, initial_spacing,            //
@@ -184,7 +187,7 @@ int main(int argc, char* argv[]) {
         double y = p.z();
         double z = -p.y();
         double pressure = g * fluid_props.density * (fluid_height - y);
-        sysFSI.AddSPHParticle({x, y, z}, fluid_props.density, pressure, fluid_props.viscosity);
+        sysSPH.AddSPHParticle({x, y, z}, fluid_props.density, pressure, fluid_props.viscosity);
     }
 
     // Add cylinder bottom plate
@@ -194,7 +197,7 @@ int main(int argc, char* argv[]) {
     bottom_plate->SetFixed(true);
     sysMBS.AddBody(bottom_plate);
 
-    sysFSI.AddWallBCE(bottom_plate, ChFrame<>(VNULL, Q_ROTATE_Z_TO_Y), bottom_plate_size);
+    sysSPH.AddWallBCE(bottom_plate, ChFrame<>(VNULL, Q_ROTATE_Z_TO_Y), bottom_plate_size);
 
     ////sysFSI.AddWallBCE(bottom_plate, ChFrame<>(ChVector3d(0, -fluid_height, 0), Q_ROTATE_Z_TO_Y), ChVector2d(0.2,
     /// 0.2)); /sysFSI.AddBoxBCE(bottom_plate, ChFramed(ChVector3d(0, -2 * initial_spacing, 0), QNULL), /
@@ -210,7 +213,7 @@ int main(int argc, char* argv[]) {
     inner_cylinder->EnableCollision(false);
     sysMBS.AddBody(inner_cylinder);
 
-    sysFSI.AddCylinderBCE(inner_cylinder,                               //
+    sysSPH.AddCylinderBCE(inner_cylinder,                               //
                           ChFrame<>(cylinder_center, Q_ROTATE_Z_TO_Y),  //
                           inner_cylinder_radius - initial_spacing / 2,  //
                           cylinder_height,                              //
@@ -227,7 +230,7 @@ int main(int argc, char* argv[]) {
     outer_cylinder->SetInertia(ChMatrix33d(ChVector3d(1, 1, 1)));
 
     // Outer cylinder modeled as an annulus ring with a thickness of 3 * initial_spacing
-    sysFSI.AddCylinderAnnulusBCE(outer_cylinder,                               //
+    sysSPH.AddCylinderAnnulusBCE(outer_cylinder,                               //
                                  ChFrame<>(cylinder_center, Q_ROTATE_Z_TO_Y),  //
                                  outer_cylinder_radius + initial_spacing / 2,  //
                                  outer_cylinder_radius + 3 * initial_spacing,  //
@@ -249,7 +252,7 @@ int main(int argc, char* argv[]) {
         cerr << "Error creating directory " << out_dir << endl;
         return 1;
     }
-    out_dir = out_dir + "/" + sysFSI.GetPhysicsProblemString() + "_" + sysFSI.GetSphMethodTypeString();
+    out_dir = out_dir + "/" + sysSPH.GetPhysicsProblemString() + "_" + sysSPH.GetSphMethodTypeString();
     if (!filesystem::create_directory(filesystem::path(out_dir))) {
         cerr << "Error creating directory " << out_dir << endl;
         return 1;
@@ -295,12 +298,12 @@ int main(int argc, char* argv[]) {
         switch (vis_type) {
             case ChVisualSystem::Type::OpenGL:
 #ifdef CHRONO_OPENGL
-                visFSI = chrono_types::make_shared<ChFsiVisualizationGL>(&sysFSI);
+                visFSI = chrono_types::make_shared<ChFsiVisualizationGL>(sysFSI);
 #endif
                 break;
             case ChVisualSystem::Type::VSG: {
 #ifdef CHRONO_VSG
-                visFSI = chrono_types::make_shared<ChFsiVisualizationVSG>(&sysFSI);
+                visFSI = chrono_types::make_shared<ChFsiVisualizationVSG>(sysFSI);
 #endif
                 break;
             }
@@ -359,8 +362,8 @@ int main(int argc, char* argv[]) {
 
         if (output && time >= out_frame / output_fps) {
             cout << "-------- Output" << endl;
-            sysFSI.PrintParticleToFile(out_dir + "/particles");
-            sysFSI.PrintFsiInfoToFile(out_dir + "/fsi", time);
+            sysSPH.PrintParticleToFile(out_dir + "/particles");
+            sysSPH.PrintFsiInfoToFile(out_dir + "/fsi", time);
             out_frame++;
         }
 
@@ -393,7 +396,7 @@ int main(int argc, char* argv[]) {
     ofile.close();
 
 #ifdef CHRONO_POSTPROCESS
-    std::string title = "Couette flow - Torques (" + sysFSI.GetSphMethodTypeString() + ")";
+    std::string title = "Couette flow - Torques (" + sysSPH.GetSphMethodTypeString() + ")";
     postprocess::ChGnuPlot gplot(out_dir + "/results.gpl");
     gplot.SetGrid();
     gplot.SetLabelX("time (s)");

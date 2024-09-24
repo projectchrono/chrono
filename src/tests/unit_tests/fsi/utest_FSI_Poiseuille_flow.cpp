@@ -66,9 +66,9 @@ typedef std::valarray<double> DataVector;
 //------------------------------------------------------------------
 
 // Analytical solution for the unsteady plane Poiseuille flow (flow between two parallel plates).
-double PoiseuilleAnalytical(double Z, double H, double time, const ChFsiSystemSPH& sysFSI) {
-    double nu = sysFSI.GetViscosity() / sysFSI.GetDensity();
-    double F = sysFSI.GetBodyForce().x();
+double PoiseuilleAnalytical(double Z, double H, double time, const ChFluidSystemSPH& sysSPH) {
+    double nu = sysSPH.GetViscosity() / sysSPH.GetDensity();
+    double F = sysSPH.GetBodyForce().x();
 
     // Adjust plate separation and boundary locations for analytical formula. This accounts for the fact that
     // Chrono::FSI enforces the wall no-slip condition at the mid-point between the last BCE layer and SPH particles
@@ -92,15 +92,15 @@ double PoiseuilleAnalytical(double Z, double H, double time, const ChFsiSystemSP
 // Callback for setting initial SPH particle velocity
 class InitialVelocityCallback : public ChFsiProblemSPH::ParticlePropertiesCallback {
   public:
-    InitialVelocityCallback(const ChFsiSystemSPH& sysFSI, double fluid_height, double time)
-        : ParticlePropertiesCallback(sysFSI), height(fluid_height), time(time) {
+    InitialVelocityCallback(const ChFluidSystemSPH& sysSPH, double fluid_height, double time)
+        : ParticlePropertiesCallback(sysSPH), height(fluid_height), time(time) {
     }
 
     virtual void set(const ChVector3d& pos) override {
-        double v_x = PoiseuilleAnalytical(pos.z(), height, time, sysFSI);
+        double v_x = PoiseuilleAnalytical(pos.z(), height, time, sysSPH);
         p0 = 0;
-        rho0 = sysFSI.GetDensity();
-        mu0 = sysFSI.GetViscosity();
+        rho0 = sysSPH.GetDensity();
+        mu0 = sysSPH.GetViscosity();
         v0 = ChVector3d(v_x, 0, 0);
     }
 
@@ -149,6 +149,7 @@ int main(int argc, char* argv[]) {
     ChFsiProblemCartesian fsi(sysMBS, initial_spacing);
     fsi.SetVerbose(verbose);
     ChFsiSystemSPH& sysFSI = fsi.GetSystemFSI();
+    ChFluidSystemSPH& sysSPH = sysFSI.GetFluidSystemSPH();
 
     // Set gravitational acceleration
     const ChVector3d gravity(0, 0, 0);
@@ -156,16 +157,16 @@ int main(int argc, char* argv[]) {
     sysMBS.SetGravitationalAcceleration(gravity);
 
     // Set CFD fluid properties
-    ChFsiSystemSPH::FluidProperties fluid_props;
+    ChFluidSystemSPH::FluidProperties fluid_props;
     fluid_props.density = 1000;
     fluid_props.viscosity = 1;
-    sysFSI.SetCfdSPH(fluid_props);
+    sysSPH.SetCfdSPH(fluid_props);
 
     // Set forcing term
-    sysFSI.SetBodyForce(ChVector3d(force, 0, 0));
+    sysSPH.SetBodyForce(ChVector3d(force, 0, 0));
 
     // Set SPH solution parameters
-    ChFsiSystemSPH::SPHParameters sph_params;
+    ChFluidSystemSPH::SPHParameters sph_params;
     sph_params.sph_method = SPHMethod::WCSPH;
     sph_params.num_bce_layers = 3;
     sph_params.kernel_h = initial_spacing;
@@ -174,7 +175,7 @@ int main(int argc, char* argv[]) {
     sph_params.xsph_coefficient = 0.0;
     sph_params.shifting_coefficient = 0.0;
     sph_params.density_reinit_steps = 10000;
-    sysFSI.SetSPHParameters(sph_params);
+    sysSPH.SetSPHParameters(sph_params);
 
     sysFSI.SetStepSizeCFD(dt);
     sysFSI.SetStepsizeMBD(dt);
@@ -195,7 +196,7 @@ int main(int argc, char* argv[]) {
     fsi.SetComputationalDomainSize(ChAABB(c_min, c_max));
 
     // Set particle initial velocity
-    fsi.RegisterParticlePropertiesCallback(chrono_types::make_shared<InitialVelocityCallback>(sysFSI, bzDim, t_start));
+    fsi.RegisterParticlePropertiesCallback(chrono_types::make_shared<InitialVelocityCallback>(sysSPH, bzDim, t_start));
 
     // Initialize FSI problem
     fsi.Initialize();
@@ -228,14 +229,14 @@ int main(int argc, char* argv[]) {
         time += dt;
 
         // Copy data from device to host
-        auto pos = sysFSI.GetParticlePositions();        // particle positions
-        auto vel = sysFSI.GetParticleVelocities();       // particle velocities
-        auto dpv = sysFSI.GetParticleFluidProperties();  // particle properties (density, pressure, viscosity)
+        auto pos = sysSPH.GetParticlePositions();        // particle positions
+        auto vel = sysSPH.GetParticleVelocities();       // particle velocities
+        auto dpv = sysSPH.GetParticleFluidProperties();  // particle properties (density, pressure, viscosity)
 
         // Extract information in arrays
         for (size_t i = 0; i < num_particles; i++) {
             v[i] = vel[i].x();                                                  // velocity in flow direction
-            va[i] = PoiseuilleAnalytical(pos[i].z(), bzDim, time, sysFSI);      // analytical velocity
+            va[i] = PoiseuilleAnalytical(pos[i].z(), bzDim, time, sysSPH);      // analytical velocity
             d[i] = dpv[i].x();                                                  // density at particle location
             p[i] = dpv[i].y();                                                  // pressure at particle location
         }
@@ -254,7 +255,7 @@ int main(int argc, char* argv[]) {
         auto v_err_RMS = std::sqrt((v_err * v_err).sum() / v_err.size());
 
         auto v_rel_err = v_err_RMS / va_max;
-        auto d_rel_err = (d_max - d_min) / sysFSI.GetDensity();
+        auto d_rel_err = (d_max - d_min) / sysSPH.GetDensity();
 
         if (verbose) {
             std::cout << "step: " << step << " time: " << time << std::endl;
