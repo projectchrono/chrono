@@ -601,14 +601,14 @@ void BceManager::Initialize(std::vector<int> fsiBodyBceNum) {
     cudaMemcpyToSymbolAsync(countersD, m_data_mgr.countersH.get(), sizeof(Counters));
 
     // Resizing the arrays used to modify the BCE velocity and pressure according to Adami
-    m_totalForceRigid.resize(m_data_mgr.countersH->numRigidBodies);
-    m_totalTorqueRigid.resize(m_data_mgr.countersH->numRigidBodies);
+    m_totalForceRigid.resize(m_data_mgr.countersH->numFsiBodies);
+    m_totalTorqueRigid.resize(m_data_mgr.countersH->numFsiBodies);
 
     int haveGhost = (m_data_mgr.countersH->numGhostMarkers > 0) ? 1 : 0;
     int haveHelper = (m_data_mgr.countersH->numHelperMarkers > 0) ? 1 : 0;
-    int haveRigid = (m_data_mgr.countersH->numRigidBodies > 0) ? 1 : 0;
-    int haveFlex1D = (m_data_mgr.countersH->numFlexBodies1D > 0) ? 1 : 0;
-    int haveFlex2D = (m_data_mgr.countersH->numFlexBodies2D > 0) ? 1 : 0;
+    int haveRigid = (m_data_mgr.countersH->numFsiBodies > 0) ? 1 : 0;
+    int haveFlex1D = (m_data_mgr.countersH->numFsiElements1D > 0) ? 1 : 0;
+    int haveFlex2D = (m_data_mgr.countersH->numFsiElements2D > 0) ? 1 : 0;
 
     // Populate local position of BCE markers - on rigid bodies
     if (haveRigid) {
@@ -677,14 +677,14 @@ void BceManager::CalcRigidBceAcceleration() {
 }
 
 void BceManager::CalcFlex1DBceAcceleration() {
-    if (m_data_mgr.countersH->numFlexBodies1D == 0)
+    if (m_data_mgr.countersH->numFsiElements1D == 0)
         return;
 
     uint nBlocks, nThreads;
     computeGridSize((int)m_data_mgr.countersH->numFlexMarkers1D, 256, nBlocks, nThreads);
 
     CalcFlex1DBceAcceleration_D<<<nBlocks, nThreads>>>(             //
-        mR3CAST(m_data_mgr.bceAcc),                                            //
+        mR3CAST(m_data_mgr.bceAcc),                                 //
         mR3CAST(m_data_mgr.fsiMesh1DState_D->acc_fsi_fea_D),        //
         U2CAST(m_data_mgr.flex1D_Nodes_D),                          //
         U3CAST(m_data_mgr.flex1D_BCEsolids_D),                      //
@@ -697,14 +697,14 @@ void BceManager::CalcFlex1DBceAcceleration() {
 }
 
 void BceManager::CalcFlex2DBceAcceleration() {
-    if (m_data_mgr.countersH->numFlexBodies2D == 0)
+    if (m_data_mgr.countersH->numFsiElements2D == 0)
         return;
 
     uint nBlocks, nThreads;
     computeGridSize((int)m_data_mgr.countersH->numFlexMarkers2D, 256, nBlocks, nThreads);
 
     CalcFlex2DBceAcceleration_D<<<nBlocks, nThreads>>>(             //
-        mR3CAST(m_data_mgr.bceAcc),                                            //
+        mR3CAST(m_data_mgr.bceAcc),                                 //
         mR3CAST(m_data_mgr.fsiMesh2DState_D->acc_fsi_fea_D),        //
         U3CAST(m_data_mgr.flex2D_Nodes_D),                          //
         U3CAST(m_data_mgr.flex2D_BCEsolids_D),                      //
@@ -720,7 +720,8 @@ void BceManager::CalcFlex2DBceAcceleration() {
 void BceManager::updateBCEAcc() {
     int size_ref = m_data_mgr.referenceArray.size();
     int numBceMarkers = m_data_mgr.referenceArray[size_ref - 1].y - m_data_mgr.referenceArray[0].y;
-    auto N_solid = m_data_mgr.countersH->numRigidMarkers + m_data_mgr.countersH->numFlexMarkers1D + m_data_mgr.countersH->numFlexMarkers2D;
+    auto N_solid = m_data_mgr.countersH->numRigidMarkers + m_data_mgr.countersH->numFlexMarkers1D +
+                   m_data_mgr.countersH->numFlexMarkers2D;
     auto N_all = N_solid + m_data_mgr.countersH->numBoundaryMarkers;
     if (N_all != numBceMarkers) {
         throw std::runtime_error(
@@ -757,7 +758,7 @@ void BceManager::updateBCEAcc() {
 // -----------------------------------------------------------------------------
 
 void BceManager::Rigid_Forces_Torques() {
-    if (m_data_mgr.countersH->numRigidBodies == 0)
+    if (m_data_mgr.countersH->numFsiBodies == 0)
         return;
 
     thrust::fill(m_data_mgr.rigid_FSI_ForcesD.begin(), m_data_mgr.rigid_FSI_ForcesD.end(), mR3(0));
@@ -777,7 +778,7 @@ void BceManager::Rigid_Forces_Torques() {
 }
 
 void BceManager::Flex1D_Forces() {
-    if (m_data_mgr.countersH->numFlexBodies1D == 0)
+    if (m_data_mgr.countersH->numFsiElements1D == 0)
         return;
 
     // Initialize accumulator to zero
@@ -800,7 +801,7 @@ void BceManager::Flex1D_Forces() {
 }
 
 void BceManager::Flex2D_Forces() {
-    if (m_data_mgr.countersH->numFlexBodies2D == 0)
+    if (m_data_mgr.countersH->numFsiElements2D == 0)
         return;
 
     // Initialize accumulator to zero
@@ -825,7 +826,7 @@ void BceManager::Flex2D_Forces() {
 // -----------------------------------------------------------------------------
 
 void BceManager::UpdateBodyMarkerState() {
-    if (m_data_mgr.countersH->numRigidBodies == 0)
+    if (m_data_mgr.countersH->numFsiBodies == 0)
         return;
 
     uint nBlocks, nThreads;
@@ -844,7 +845,7 @@ void BceManager::UpdateBodyMarkerState() {
 
 // This is applied only during BCE initialization
 void BceManager::UpdateBodyMarkerStateInitial() {
-    if (m_data_mgr.countersH->numRigidBodies == 0)
+    if (m_data_mgr.countersH->numFsiBodies == 0)
         return;
 
     uint nBlocks, nThreads;
@@ -860,7 +861,7 @@ void BceManager::UpdateBodyMarkerStateInitial() {
 }
 
 void BceManager::UpdateMeshMarker1DState() {
-    if (m_data_mgr.countersH->numFlexBodies1D == 0)
+    if (m_data_mgr.countersH->numFsiElements1D == 0)
         return;
 
     uint nBlocks, nThreads;
@@ -880,7 +881,7 @@ void BceManager::UpdateMeshMarker1DState() {
 }
 
 void BceManager::UpdateMeshMarker1DStateInitial() {
-    if (m_data_mgr.countersH->numFlexBodies1D == 0)
+    if (m_data_mgr.countersH->numFsiElements1D == 0)
         return;
 
     uint nBlocks, nThreads;
@@ -899,7 +900,7 @@ void BceManager::UpdateMeshMarker1DStateInitial() {
 }
 
 void BceManager::UpdateMeshMarker2DState() {
-    if (m_data_mgr.countersH->numFlexBodies2D == 0)
+    if (m_data_mgr.countersH->numFsiElements2D == 0)
         return;
 
     uint nBlocks, nThreads;
@@ -919,7 +920,7 @@ void BceManager::UpdateMeshMarker2DState() {
 }
 
 void BceManager::UpdateMeshMarker2DStateInitial() {
-    if (m_data_mgr.countersH->numFlexBodies2D == 0)
+    if (m_data_mgr.countersH->numFsiElements2D == 0)
         return;
 
     uint nBlocks, nThreads;

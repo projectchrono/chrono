@@ -237,12 +237,14 @@ int main(int argc, char* argv[]) {
         ofile << time << "\t" << cylinder_height << "\n";
 
         if (output && time >= out_frame / output_fps) {
-            std::cout << "-------- Output" << std::endl;
+            std::cout << " -- Output frame " << out_frame << " at t = " << time << std::endl;
+
             sysFSI.PrintParticleToFile(out_dir + "/particles");
             sysFSI.PrintFsiInfoToFile(out_dir + "/fsi", time);
-            static int counter = 0;
-            std::string filename = out_dir + "/vtk/cylinder." + std::to_string(counter++) + ".vtk";
-            WriteCylinderVTK(filename, cyl_radius, cyl_length, cylinder->GetFrameRefToAbs(), 100);
+
+            std::ostringstream filename;
+            filename << out_dir << "/vtk/cylinder." << std::setw(5) << std::setfill('0') << out_frame + 1 << ".vtk";
+            WriteCylinderVTK(filename.str(), cyl_radius, cyl_length, cylinder->GetFrameRefToAbs(), 100);
             out_frame++;
         }
 

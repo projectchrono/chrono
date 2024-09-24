@@ -63,9 +63,9 @@ void ChFsiProblemSPH::SetVerbose(bool verbose) {
 }
 
 size_t ChFsiProblemSPH::AddRigidBody(std::shared_ptr<ChBody> body,
-                                  const utils::ChBodyGeometry& geometry,
-                                  bool check_embedded,
-                                  bool use_grid) {
+                                     const utils::ChBodyGeometry& geometry,
+                                     bool check_embedded,
+                                     bool use_grid) {
     if (m_verbose) {
         cout << "Add FSI rigid body " << body->GetName() << endl;
     }
@@ -118,9 +118,9 @@ size_t ChFsiProblemSPH::AddRigidBody(std::shared_ptr<ChBody> body,
 }
 
 size_t ChFsiProblemSPH::AddRigidBodySphere(std::shared_ptr<ChBody> body,
-                                        const ChVector3d& pos,
-                                        double radius,
-                                        bool use_grid) {
+                                           const ChVector3d& pos,
+                                           double radius,
+                                           bool use_grid) {
     utils::ChBodyGeometry geometry;
     geometry.coll_spheres.push_back(utils::ChBodyGeometry::SphereShape(pos, radius));
     return AddRigidBody(body, geometry, true, use_grid);
@@ -133,10 +133,10 @@ size_t ChFsiProblemSPH::AddRigidBodyBox(std::shared_ptr<ChBody> body, const ChFr
 }
 
 size_t ChFsiProblemSPH::AddRigidBodyCylinderX(std::shared_ptr<ChBody> body,
-                                           const ChFramed& frame,
-                                           double radius,
-                                           double length,
-                                           bool use_grid) {
+                                              const ChFramed& frame,
+                                              double radius,
+                                              double length,
+                                              bool use_grid) {
     utils::ChBodyGeometry geometry;
     geometry.coll_cylinders.push_back(
         utils::ChBodyGeometry::CylinderShape(frame.GetPos(), frame.GetRotMat().GetAxisX(), radius, length));
@@ -144,10 +144,10 @@ size_t ChFsiProblemSPH::AddRigidBodyCylinderX(std::shared_ptr<ChBody> body,
 }
 
 size_t ChFsiProblemSPH::AddRigidBodyMesh(std::shared_ptr<ChBody> body,
-                                      const ChVector3d& pos,
-                                      const std::string& obj_filename,
-                                      const ChVector3d& interior_point,
-                                      double scale) {
+                                         const ChVector3d& pos,
+                                         const std::string& obj_filename,
+                                         const ChVector3d& interior_point,
+                                         double scale) {
     utils::ChBodyGeometry geometry;
     geometry.coll_meshes.push_back(utils::ChBodyGeometry::TrimeshShape(pos, obj_filename, interior_point, scale));
     return AddRigidBody(body, geometry, true, true);

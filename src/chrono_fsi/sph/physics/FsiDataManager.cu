@@ -198,12 +198,17 @@ void FsiDataManager::AddBceMarker(MarkerType type, Real3 pos, Real3 vel) {
     sphMarkers_H->tauXxYyZzH.push_back(mR3(0.0));
 }
 
-void FsiDataManager::CalculateCounters() {
-    countersH->numRigidBodies = 0;      // Number of rigid bodies
-    countersH->numFlexBodies1D = 0;     // Number of 1D Flexible bodies
-    countersH->numFlexBodies2D = 0;     // Number of 2D Flexible bodies
-    countersH->numFlexNodes1D = 0;      // Number of 1D Flexible nodes
-    countersH->numFlexNodes2D = 0;      // Number of 2D Flexible nodes
+void FsiDataManager::SetCounters(unsigned int num_fsi_bodies,
+                                 unsigned int num_fsi_nodes1D,
+                                 unsigned int num_fsi_elements1D,
+                                 unsigned int num_fsi_nodes2D,
+                                 unsigned int num_fsi_elements2D) {
+    countersH->numFsiBodies = num_fsi_bodies;
+    countersH->numFsiElements1D = num_fsi_elements1D;
+    countersH->numFsiElements2D = num_fsi_elements2D;
+    countersH->numFsiNodes1D = num_fsi_nodes1D;
+    countersH->numFsiNodes2D = num_fsi_nodes2D;
+
     countersH->numGhostMarkers = 0;     // Number of ghost particles
     countersH->numHelperMarkers = 0;    // Number of helper particles
     countersH->numFluidMarkers = 0;     // Number of fluid SPH particles
@@ -246,8 +251,8 @@ void FsiDataManager::CalculateCounters() {
                 countersH->numFlexMarkers2D += numMarkers;
                 break;
             default:
-                std::cerr << "ERROR (CalculateCounters): particle type not defined." << std::endl;
-                throw std::runtime_error("Particle type not defined.");
+                std::cerr << "ERROR SetCounters: particle type not defined." << std::endl;
+                throw std::runtime_error("SetCounters: Particle type not defined.");
                 break;
         }
     }
@@ -358,25 +363,19 @@ void FsiDataManager::ResetData() {
 }
 
 //--------------------------------------------------------------------------------------------------------------------------------
-void FsiDataManager::Initialize(size_t numRigidBodies,
-                                size_t numFlexBodies1D,
-                                size_t numFlexBodies2D,
-                                size_t numFlexNodes1D,
-                                size_t numFlexNodes2D) {
+
+void FsiDataManager::Initialize(unsigned int num_fsi_bodies,
+                                unsigned int num_fsi_nodes1D,
+                                unsigned int num_fsi_elements1D,
+                                unsigned int num_fsi_nodes2D,
+                                unsigned int num_fsi_elements2D) {
     ConstructReferenceArray();
-    CalculateCounters();
+    SetCounters(num_fsi_bodies, num_fsi_nodes1D, num_fsi_elements1D, num_fsi_nodes2D, num_fsi_elements2D);
 
     if (countersH->numAllMarkers != sphMarkers_H->rhoPresMuH.size()) {
         std::cerr << "ERROR (Initialize): mismatch in total number of markers." << std::endl;
         throw std::runtime_error("Mismatch in total number of markers.");
     }
-
-    // Set number of interface objects
-    countersH->numRigidBodies = numRigidBodies;
-    countersH->numFlexBodies1D = numFlexBodies1D;
-    countersH->numFlexBodies2D = numFlexBodies2D;
-    countersH->numFlexNodes1D = numFlexNodes1D;
-    countersH->numFlexNodes2D = numFlexNodes2D;
 
     sphMarkers_D->resize(countersH->numAllMarkers);
     sortedSphMarkers1_D->resize(countersH->numAllMarkers);
@@ -414,22 +413,22 @@ void FsiDataManager::Initialize(size_t numRigidBodies,
     thrust::copy(sphMarkers_H->tauXxYyZzH.begin(), sphMarkers_H->tauXxYyZzH.end(), sphMarkers_D->tauXxYyZzD.begin());
     thrust::copy(sphMarkers_H->tauXyXzYzH.begin(), sphMarkers_H->tauXyXzYzH.end(), sphMarkers_D->tauXyXzYzD.begin());
 
-    fsiBodyState_D->resize(countersH->numRigidBodies);
-    fsiBodyState_H->resize(countersH->numRigidBodies);
+    fsiBodyState_D->resize(countersH->numFsiBodies);
+    fsiBodyState_H->resize(countersH->numFsiBodies);
 
-    rigid_FSI_ForcesD.resize(countersH->numRigidBodies);
-    rigid_FSI_TorquesD.resize(countersH->numRigidBodies);
+    rigid_FSI_ForcesD.resize(countersH->numFsiBodies);
+    rigid_FSI_TorquesD.resize(countersH->numFsiBodies);
 
     rigid_BCEsolids_D.resize(countersH->numRigidMarkers);
     rigid_BCEcoords_D.resize(countersH->numRigidMarkers);
 
-    fsiMesh1DState_D->resize(countersH->numFlexNodes1D);
-    fsiMesh1DState_H->resize(countersH->numFlexNodes1D);
-    fsiMesh2DState_D->resize(countersH->numFlexNodes2D);
-    fsiMesh2DState_H->resize(countersH->numFlexNodes2D);
+    fsiMesh1DState_D->resize(countersH->numFsiNodes1D);
+    fsiMesh1DState_H->resize(countersH->numFsiNodes1D);
+    fsiMesh2DState_D->resize(countersH->numFsiNodes2D);
+    fsiMesh2DState_H->resize(countersH->numFsiNodes2D);
 
-    flex1D_FSIforces_D.resize(countersH->numFlexNodes1D);
-    flex2D_FSIforces_D.resize(countersH->numFlexNodes2D);
+    flex1D_FSIforces_D.resize(countersH->numFsiNodes1D);
+    flex2D_FSIforces_D.resize(countersH->numFsiNodes2D);
 }
 
 //--------------------------------------------------------------------------------------------------------------------------------

@@ -1022,7 +1022,7 @@ void ChFsiForceI2SPH::ForceSPH(std::shared_ptr<SphMarkerDataD> sortedSphMarkers_
         mR3CAST(m_data_mgr.fsiMesh1DState_D->vel_fsi_fea_D), mR3CAST(m_data_mgr.fsiMesh1DState_D->acc_fsi_fea_D),
         mR3CAST(m_data_mgr.fsiMesh2DState_D->vel_fsi_fea_D), mR3CAST(m_data_mgr.fsiMesh2DState_D->acc_fsi_fea_D),
 
-        cH->numFlexBodies1D,
+        cH->numFsiElements1D,
 
         U2CAST(m_data_mgr.flex1D_Nodes_D), U3CAST(m_data_mgr.flex1D_BCEsolids_D),
         mR3CAST(m_data_mgr.flex1D_BCEcoords_D), U3CAST(m_data_mgr.flex2D_Nodes_D),
@@ -1104,7 +1104,7 @@ void ChFsiForceI2SPH::ForceSPH(std::shared_ptr<SphMarkerDataD> sortedSphMarkers_
         mR3CAST(m_data_mgr.fsiMesh1DState_D->vel_fsi_fea_D), mR3CAST(m_data_mgr.fsiMesh1DState_D->acc_fsi_fea_D),
         mR3CAST(m_data_mgr.fsiMesh2DState_D->vel_fsi_fea_D), mR3CAST(m_data_mgr.fsiMesh2DState_D->acc_fsi_fea_D),
 
-        cH->numFlexBodies1D, U2CAST(m_data_mgr.flex1D_Nodes_D), U3CAST(m_data_mgr.flex1D_BCEsolids_D),
+        cH->numFsiElements1D, U2CAST(m_data_mgr.flex1D_Nodes_D), U3CAST(m_data_mgr.flex1D_BCEsolids_D),
         mR3CAST(m_data_mgr.flex1D_BCEcoords_D), U3CAST(m_data_mgr.flex2D_Nodes_D),
         U3CAST(m_data_mgr.flex2D_BCEsolids_D), mR3CAST(m_data_mgr.flex2D_BCEcoords_D),
 

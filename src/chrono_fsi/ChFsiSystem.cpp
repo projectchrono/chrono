@@ -56,7 +56,7 @@ void ChFsiSystem::AttachSystem(ChSystem* sysMBS) {
 
 void ChFsiSystem::SetVerbose(bool verbose) {
     m_verbose = verbose;
-    m_fsi_interface->m_verbose = verbose;
+    m_fsi_interface->SetVerbose(verbose);
 }
 
 void ChFsiSystem::SetStepsizeMBD(double step) {
@@ -68,11 +68,9 @@ void ChFsiSystem::SetStepSizeCFD(double step) {
 }
 
 size_t ChFsiSystem::AddFsiBody(std::shared_ptr<ChBody> body) {
-    size_t index = m_fsi_interface->GetNumBodies();
-
+    unsigned int index = m_fsi_interface->GetNumBodies();
     auto& fsi_body = m_fsi_interface->AddFsiBody(body);
-    OnAddFsiBody(fsi_body);
-
+    OnAddFsiBody(index, fsi_body);
     return index;
 }
 
@@ -119,13 +117,15 @@ void ChFsiSystem::AddFsiMesh(std::shared_ptr<fea::ChMesh> mesh) {
 }
 
 void ChFsiSystem::AddFsiMesh1D(std::shared_ptr<fea::ChContactSurfaceSegmentSet> surface) {
+    unsigned int index = m_fsi_interface->GetNumMeshes1D();
     auto& fsi_mesh = m_fsi_interface->AddFsiMesh1D(surface);
-    OnAddFsiMesh1D(fsi_mesh);
+    OnAddFsiMesh1D(index, fsi_mesh);
 }
 
 void ChFsiSystem::AddFsiMesh2D(std::shared_ptr<fea::ChContactSurfaceMesh> surface) {
+    unsigned int index = m_fsi_interface->GetNumMeshes2D();
     auto& fsi_mesh = m_fsi_interface->AddFsiMesh2D(surface);
-    OnAddFsiMesh2D(fsi_mesh);
+    OnAddFsiMesh2D(index, fsi_mesh);
 }
 
 void ChFsiSystem::Initialize() {
@@ -133,6 +133,8 @@ void ChFsiSystem::Initialize() {
         cout << "ERROR: No FSI interface was created." << endl;
         throw std::runtime_error("No FSI interface was created.");
     }
+
+    m_fsi_interface->Initialize();
 
     if (m_step_CFD < 0) {
         cout << "ERROR: Integration step size for fluid dynamics not set." << endl;
@@ -148,11 +150,11 @@ void ChFsiSystem::Initialize() {
 }
 
 const ChVector3d& ChFsiSystem::GetFsiBodyForce(size_t i) const {
-    return m_fsi_interface->m_fsi_bodies[i].fsi_force;
+    return m_fsi_interface->GetFsiBodyForce(i);
 }
 
 const ChVector3d& ChFsiSystem::GetFsiBodyTorque(size_t i) const {
-    return m_fsi_interface->m_fsi_bodies[i].fsi_torque;
+    return m_fsi_interface->GetFsiBodyTorque(i);
 }
 
 void ChFsiSystem::DoStepDynamics(double step) {

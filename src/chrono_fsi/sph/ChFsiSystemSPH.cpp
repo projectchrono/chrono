@@ -59,15 +59,11 @@ ChFsiSystemSPH::ChFsiSystemSPH(ChSystem* sysMBS)
       m_pattern1D(BcePatternMesh1D::FULL),
       m_pattern2D(BcePatternMesh2D::CENTERED),
       m_remove_center1D(false),
-      m_remove_center2D(false) {
+      m_remove_center2D(false),
+      m_num_flex1D_elements(0),
+      m_num_flex2D_elements(0) {
     m_paramsH = chrono_types::make_shared<SimParams>();
     InitParams();
-
-    m_num_flex1D_elements = 0;
-    m_num_flex2D_elements = 0;
-
-    m_num_flex1D_nodes = 0;
-    m_num_flex2D_nodes = 0;
 
     m_data_mgr = chrono_types::make_unique<FsiDataManager>(m_paramsH);
     m_fsi_interface = chrono_types::make_unique<ChFsiInterfaceSPH>(*m_data_mgr, m_verbose);
@@ -676,7 +672,7 @@ std::string ChFsiSystemSPH::GetSphMethodTypeString() const {
 
 //--------------------------------------------------------------------------------------------------------------------------------
 
-void ChFsiSystemSPH::OnAddFsiBody(ChFsiInterface::FsiBody& fsi_body) {}
+void ChFsiSystemSPH::OnAddFsiBody(unsigned int index, ChFsiInterface::FsiBody& fsi_body) {}
 
 void ChFsiSystemSPH::ChFsiSystemSPH::SetBcePattern1D(BcePatternMesh1D pattern, bool remove_center) {
     m_pattern1D = pattern;
@@ -688,7 +684,7 @@ void ChFsiSystemSPH::SetBcePattern2D(BcePatternMesh2D pattern, bool remove_cente
     m_remove_center2D = remove_center;
 }
 
-void ChFsiSystemSPH::OnAddFsiMesh1D(ChFsiInterface::FsiMesh1D& fsi_mesh) {
+void ChFsiSystemSPH::OnAddFsiMesh1D(unsigned int index, ChFsiInterface::FsiMesh1D& fsi_mesh) {
     // Load index-based mesh connectivity (append to global list of 1-D flex segments)
     for (const auto& seg : fsi_mesh.contact_surface->GetSegmentsXYZ()) {
         auto node0_index = fsi_mesh.ptr2ind_map[seg->GetNode(0)];
@@ -697,24 +693,21 @@ void ChFsiSystemSPH::OnAddFsiMesh1D(ChFsiInterface::FsiMesh1D& fsi_mesh) {
     }
 
     // Create the BCE markers based on the mesh contact segments
-    unsigned int meshID = m_fsi_interface->GetNumMeshes1D() - 1;
-    auto num_bce = AddBCE_mesh1D(meshID, fsi_mesh);
+    auto num_bce = AddBCE_mesh1D(index, fsi_mesh);
 
     // Update total number of flex 1-D segments and associated nodes
-    auto num_elements = fsi_mesh.contact_surface->GetNumSegments();
-    auto num_nodes = (unsigned int)fsi_mesh.ind2ptr_map.size();
+    auto num_elements = fsi_mesh.GetNumElements();
     m_num_flex1D_elements += num_elements;
-    m_num_flex1D_nodes += num_nodes;
 
     if (m_verbose) {
         cout << "Add mesh1D" << endl;
-        cout << "  Num. nodes:       " << num_nodes << endl;
+        cout << "  Num. nodes:       " << fsi_mesh.GetNumNodes() << endl;
         cout << "  Num. segments:    " << num_elements << endl;
         cout << "  Num. BCE markers: " << num_bce << endl;
     }
 }
 
-void ChFsiSystemSPH::OnAddFsiMesh2D(ChFsiInterface::FsiMesh2D& fsi_mesh) {
+void ChFsiSystemSPH::OnAddFsiMesh2D(unsigned int index, ChFsiInterface::FsiMesh2D& fsi_mesh) {
     // Load index-based mesh connectivity (append to global list of 1-D flex segments)
     for (const auto& tri : fsi_mesh.contact_surface->GetTrianglesXYZ()) {
         auto node0_index = fsi_mesh.ptr2ind_map[tri->GetNode(0)];
@@ -724,18 +717,15 @@ void ChFsiSystemSPH::OnAddFsiMesh2D(ChFsiInterface::FsiMesh2D& fsi_mesh) {
     }
 
     // Create the BCE markers based on the mesh contact surface
-    unsigned int meshID = m_fsi_interface->GetNumMeshes2D() - 1;
-    auto num_bce = AddBCE_mesh2D(meshID, fsi_mesh);
+    auto num_bce = AddBCE_mesh2D(index, fsi_mesh);
 
     // Update total number of flex 2-D faces and associated nodes
-    auto num_elements = fsi_mesh.contact_surface->GetNumTriangles();
-    auto num_nodes = (unsigned int)fsi_mesh.ind2ptr_map.size();
+    auto num_elements = fsi_mesh.GetNumElements();
     m_num_flex2D_elements += num_elements;
-    m_num_flex2D_nodes += num_nodes;
 
     if (m_verbose) {
         cout << "Add mesh2D" << endl;
-        cout << "  Num. nodes:       " << num_nodes << endl;
+        cout << "  Num. nodes:       " << fsi_mesh.GetNumNodes() << endl;
         cout << "  Num. segments:    " << num_elements << endl;
         cout << "  Num. BCE markers: " << num_bce << endl;
     }
@@ -827,9 +817,11 @@ void ChFsiSystemSPH::Initialize() {
     m_paramsH->cellSize = mR3(mBinSize, mBinSize, mBinSize);
 
     // Initialize the underlying FSU system: set reference arrays, set counters, and resize simulation arrays
-    m_data_mgr->Initialize(m_fsi_interface->m_fsi_bodies.size(),          //
-                           m_num_flex1D_elements, m_num_flex2D_elements,  //
-                           m_num_flex1D_nodes, m_num_flex2D_nodes);
+    assert(m_num_elements1D == m_fsi_interface->GetNumElements1D());
+    assert(m_num_elements2D == m_fsi_interface->GetNumElements2D());
+    m_data_mgr->Initialize(m_fsi_interface->GetNumBodies(),                                        //
+                           m_fsi_interface->GetNumNodes1D(), m_fsi_interface->GetNumElements1D(),  //
+                           m_fsi_interface->GetNumNodes2D(), m_fsi_interface->GetNumElements2D());
 
     m_fsi_interface->LoadBodyStates();
     m_fsi_interface->LoadMeshStates();
@@ -913,11 +905,11 @@ void ChFsiSystemSPH::Initialize() {
         ////Real dt = std::min(dt_body, std::min(dt_CFL, dt_nu));
 
         cout << "Counters" << endl;
-        cout << "  numRigidBodies:     " << m_data_mgr->countersH->numRigidBodies << endl;
-        cout << "  numFlexBodies1D:    " << m_data_mgr->countersH->numFlexBodies1D << endl;
-        cout << "  numFlexBodies2D:    " << m_data_mgr->countersH->numFlexBodies2D << endl;
-        cout << "  numFlexNodes1D:     " << m_data_mgr->countersH->numFlexNodes1D << endl;
-        cout << "  numFlexNodes2D:     " << m_data_mgr->countersH->numFlexNodes2D << endl;
+        cout << "  numFsiBodies:     " << m_data_mgr->countersH->numFsiBodies << endl;
+        cout << "  numFsiElements1D:    " << m_data_mgr->countersH->numFsiElements1D << endl;
+        cout << "  numFsiElements2D:    " << m_data_mgr->countersH->numFsiElements2D << endl;
+        cout << "  numFsiNodes1D:     " << m_data_mgr->countersH->numFsiNodes1D << endl;
+        cout << "  numFsiNodes2D:     " << m_data_mgr->countersH->numFsiNodes2D << endl;
         cout << "  numGhostMarkers:    " << m_data_mgr->countersH->numGhostMarkers << endl;
         cout << "  numHelperMarkers:   " << m_data_mgr->countersH->numHelperMarkers << endl;
         cout << "  numFluidMarkers:    " << m_data_mgr->countersH->numFluidMarkers << endl;

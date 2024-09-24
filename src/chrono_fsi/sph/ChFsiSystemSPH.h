@@ -480,13 +480,13 @@ class CH_FSI_API ChFsiSystemSPH : public ChFsiSystem {
     void InitParams();
 
     /// Additional actions taken after adding a rigid body to the FSI system.
-    virtual void OnAddFsiBody(ChFsiInterface::FsiBody& fsi_body) override;
+    virtual void OnAddFsiBody(unsigned int index, ChFsiInterface::FsiBody& fsi_body) override;
 
     /// Add a flexible solid with segment set contact to the FSI system.
-    virtual void OnAddFsiMesh1D(ChFsiInterface::FsiMesh1D& fsi_mesh) override;
+    virtual void OnAddFsiMesh1D(unsigned int index, ChFsiInterface::FsiMesh1D& fsi_mesh) override;
 
     /// Add a flexible solid with surface mesh contact to the FSI system.
-    virtual void OnAddFsiMesh2D(ChFsiInterface::FsiMesh2D& fsi_mesh) override;
+    virtual void OnAddFsiMesh2D(unsigned int index, ChFsiInterface::FsiMesh2D& fsi_mesh) override;
 
     /// Create and add BCE markers associated with the given set of contact segments.
     /// The BCE markers are created in the absolute coordinate frame.
@@ -514,9 +514,6 @@ class CH_FSI_API ChFsiSystemSPH : public ChFsiSystem {
 
     unsigned int m_num_flex1D_elements;  ///< number of 1-D flexible segments (across all meshes)
     unsigned int m_num_flex2D_elements;  ///< number of 2-D flexible faces (across all meshes)
-
-    unsigned int m_num_flex1D_nodes;  ///< number of 1-D flexible segments (across all meshes)
-    unsigned int m_num_flex2D_nodes;  ///< number of 2-D flexible faces (across all meshes)
 
     std::vector<int> m_fsi_bodies_bce_num;  ///< number of BCE particles on each fsi body
 

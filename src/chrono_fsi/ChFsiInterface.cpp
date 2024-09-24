@@ -17,6 +17,10 @@
 
 #include "chrono_fsi/ChFsiInterface.h"
 
+using std::cout;
+using std::cerr;
+using std::endl;
+
 namespace chrono {
 namespace fsi {
 
@@ -36,6 +40,42 @@ unsigned int ChFsiInterface::GetNumMeshes1D() const {
 
 unsigned int ChFsiInterface::GetNumMeshes2D() const {
     return (unsigned int)m_fsi_meshes2D.size();
+}
+
+unsigned int ChFsiInterface::GetNumElements1D() const {
+    unsigned int n = 0;
+    for (const auto& m : m_fsi_meshes1D)
+        n += m.GetNumElements();
+    return n;
+}
+
+unsigned int ChFsiInterface::GetNumNodes1D() const {
+    unsigned int n = 0;
+    for (const auto& m : m_fsi_meshes1D)
+        n += m.GetNumNodes();
+    return n;
+}
+
+unsigned int ChFsiInterface::GetNumElements2D() const {
+    unsigned int n = 0;
+    for (const auto& m : m_fsi_meshes2D)
+        n += m.GetNumElements();
+    return n;
+}
+
+unsigned int ChFsiInterface::GetNumNodes2D() const {
+    unsigned int n = 0;
+    for (const auto& m : m_fsi_meshes2D)
+        n += m.GetNumNodes();
+    return n;
+}
+
+const ChVector3d& ChFsiInterface::GetFsiBodyForce(size_t i) const {
+    return m_fsi_bodies[i].fsi_force;
+}
+
+const ChVector3d& ChFsiInterface::GetFsiBodyTorque(size_t i) const {
+    return m_fsi_bodies[i].fsi_torque;
 }
 
 // -----------------------------------------------------------------------------
@@ -108,6 +148,37 @@ ChFsiInterface::FsiMesh2D& ChFsiInterface::AddFsiMesh2D(std::shared_ptr<fea::ChC
     m_fsi_meshes2D.push_back(fsi_mesh);
 
     return m_fsi_meshes2D.back();
+}
+
+void ChFsiInterface::Initialize() {
+    if (m_verbose) {
+        cout << "FSI interface solids" << endl;
+        cout << "  Num. bodies:     " << GetNumBodies() << endl;
+        cout << "  Num meshes 1D:   " << GetNumMeshes1D() << endl;
+        cout << "  Num nodes 1D:    " << GetNumNodes1D() << endl;
+        cout << "  Num elements 1D: " << GetNumElements1D() << endl;
+        cout << "  Num meshes 2D:   " << GetNumMeshes2D() << endl;
+        cout << "  Num nodes 2D:    " << GetNumNodes2D() << endl;
+        cout << "  Num elements 2D: " << GetNumElements2D() << endl;
+    }
+}
+
+// -----------------------------------------------------------------------------
+
+unsigned int ChFsiInterface::FsiMesh1D::GetNumElements() const {
+    return contact_surface->GetNumSegments();
+}
+
+unsigned int ChFsiInterface::FsiMesh1D::GetNumNodes() const {
+    return (unsigned int)ind2ptr_map.size();
+}
+
+unsigned int ChFsiInterface::FsiMesh2D::GetNumElements() const {
+    return contact_surface->GetNumTriangles();
+}
+
+unsigned int ChFsiInterface::FsiMesh2D::GetNumNodes() const {
+    return (unsigned int)ind2ptr_map.size();
 }
 
 }  // end namespace fsi

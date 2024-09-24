@@ -121,13 +121,13 @@ class CH_FSI_API ChFsiSystem {
     ChFsiSystem(ChSystem* sysMBS = nullptr);
 
     /// Additional actions taken after adding a rigid body to the FSI system.
-    virtual void OnAddFsiBody(ChFsiInterface::FsiBody& fsi_body) = 0;
+    virtual void OnAddFsiBody(unsigned int index, ChFsiInterface::FsiBody& fsi_body) = 0;
 
     /// Additional actions taken after adding a 1-D flexible mesh to the FSI system.
-    virtual void OnAddFsiMesh1D(ChFsiInterface::FsiMesh1D& fsi_mesh) = 0;
+    virtual void OnAddFsiMesh1D(unsigned int index, ChFsiInterface::FsiMesh1D& fsi_mesh) = 0;
 
     /// Additional actions taken after adding a 2-D flexible mesh to the FSI system.
-    virtual void OnAddFsiMesh2D(ChFsiInterface::FsiMesh2D& fsi_mesh) = 0;
+    virtual void OnAddFsiMesh2D(unsigned int index, ChFsiInterface::FsiMesh2D& fsi_mesh) = 0;
 
     /// Function to integrate the FSI fluid system in time.
     virtual void AdvanceFluidDynamics(double time, double step) = 0;

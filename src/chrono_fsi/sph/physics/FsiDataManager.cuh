@@ -171,11 +171,11 @@ struct ProximityDataD {
 ///  -  (3) particles attached to rigid bodies (type = 1)
 ///  -  (4) particles attached to flexible bodies (type = 2)
 struct Counters {
-    size_t numRigidBodies;   ///< number of rigid bodies
-    size_t numFlexNodes1D;   ///< number of nodes in 1-D FEA mesh segments
-    size_t numFlexNodes2D;   ///< number of nodes in 2-D flexible mesh faces
-    size_t numFlexBodies1D;  ///< number of 1-D flexible bodies; each FE segment is one body
-    size_t numFlexBodies2D;  ///< number of 2-D flexible bodies; each FE face is one body
+    size_t numFsiBodies;      ///< number of rigid bodies
+    size_t numFsiNodes1D;     ///< number of nodes in 1-D FEA mesh segments
+    size_t numFsiNodes2D;     ///< number of nodes in 2-D FEA mesh faces
+    size_t numFsiElements1D;  ///< number of 1-D FEA mesh segments
+    size_t numFsiElements2D;  ///< number of 2-D FEA mesh faces
 
     size_t numGhostMarkers;     ///< number of Ghost SPH particles for Variable Resolution methods
     size_t numHelperMarkers;    ///< number of helper SPH particles used for merging particles
@@ -214,11 +214,11 @@ class FsiDataManager {
 
     /// Initialize the underlying FSU system.
     /// Set reference arrays, set counters, and resize simulation arrays.
-    void Initialize(size_t numRigidBodies,
-                    size_t numFlexBodies1D,
-                    size_t numFlexBodies2D,
-                    size_t numFlexNodes1D,
-                    size_t numFlexNodes2D);
+    void Initialize(unsigned int num_fsi_bodies,
+                    unsigned int num_fsi_nodes1D,
+                    unsigned int num_fsi_elements1D,
+                    unsigned int num_fsi_nodes2D,
+                    unsigned int num_fsi_elements2D);
 
     /// Extract forces applied on all SPH particles.
     thrust::device_vector<Real4> GetParticleForces();
@@ -257,8 +257,8 @@ class FsiDataManager {
     std::shared_ptr<SphMarkerDataD> sortedSphMarkers2_D;  ///< Sorted information of SPH particles at state 1 on device
     std::shared_ptr<SphMarkerDataH> sphMarkers_H;         ///< Information of SPH particles on host
 
-    std::shared_ptr<FsiBodyStateH> fsiBodyState_H;  ///< Rigid body state (host)
-    std::shared_ptr<FsiBodyStateD> fsiBodyState_D;  ///< Rigid body state 2 (device)
+    std::shared_ptr<FsiBodyStateH> fsiBodyState_H;  ///< rigid body state (host)
+    std::shared_ptr<FsiBodyStateD> fsiBodyState_D;  ///< rigid body state 2 (device)
 
     std::shared_ptr<FsiMeshStateH> fsiMesh1DState_H;  ///< 1-D FEA mesh state (host)
     std::shared_ptr<FsiMeshStateD> fsiMesh1DState_D;  ///< 1-D FEA mesh state (device)
@@ -296,7 +296,7 @@ class FsiDataManager {
     thrust::device_vector<uint> freeSurfaceIdD;  ///< Identifies if a particle is close to free surface
 
     // BCE
-    thrust::device_vector<Real3> rigid_BCEcoords_D;   ///< Rigid body BCE position (local reference frame)
+    thrust::device_vector<Real3> rigid_BCEcoords_D;   ///< rigid body BCE position (local reference frame)
     thrust::host_vector<Real3> flex1D_BCEcoords_H;    ///< local coords for BCE markers on 1-D flex segments (host)
     thrust::device_vector<Real3> flex1D_BCEcoords_D;  ///< local coords for BCE markers on 1-D flex segments (device)
     thrust::host_vector<Real3> flex2D_BCEcoords_H;    ///< local coords for BCE markers on 2-D flex faces (host)
@@ -309,8 +309,8 @@ class FsiDataManager {
     thrust::device_vector<uint3> flex2D_BCEsolids_D;  ///< associated mesh and face for BCE markers on 2-D faces
 
     // FSI bodies
-    thrust::device_vector<Real3> rigid_FSI_ForcesD;   ///< Vector of the surface-integrated forces to rigid bodies
-    thrust::device_vector<Real3> rigid_FSI_TorquesD;  ///< Vector of the surface-integrated torques to rigid bodies
+    thrust::device_vector<Real3> rigid_FSI_ForcesD;   ///< surface-integrated forces to rigid bodies
+    thrust::device_vector<Real3> rigid_FSI_TorquesD;  ///< surface-integrated torques to rigid bodies
 
     thrust::device_vector<Real3> flex1D_FSIforces_D;  ///< surface-integrated forces on FEA 1-D segment nodes
     thrust::device_vector<Real3> flex2D_FSIforces_D;  ///< surface-integrated forces on FEA 2-D face nodes
@@ -322,7 +322,11 @@ class FsiDataManager {
 
   private:
     void ConstructReferenceArray();
-    void CalculateCounters();
+    void SetCounters(unsigned int num_fsi_bodies,
+                     unsigned int num_fsi_nodes1D,
+                     unsigned int num_fsi_elements1D,
+                     unsigned int num_fsi_nodes2D,
+                     unsigned int num_fsi_elements2D);
 
     /// Initialize the midpoint device data of the fluid system by copying from the full step.
     void CopyDeviceDataToHalfStep();

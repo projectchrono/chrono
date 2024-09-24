@@ -43,20 +43,29 @@ class CH_FSI_API ChFsiInterface {
 
     /// Description of an FEA mesh with 1-D segments exposed to the FSI system.
     struct FsiMesh1D {
-        std::shared_ptr<fea::ChContactSurfaceSegmentSet> contact_surface;  ///< FEA contact segments
+        unsigned int GetNumElements() const;
+        unsigned int GetNumNodes() const;
+
+      std::shared_ptr<fea::ChContactSurfaceSegmentSet> contact_surface;  ///< FEA contact segments
         std::map<std::shared_ptr<fea::ChNodeFEAxyz>, int> ptr2ind_map;     ///< pointer-based to index-based mapping
         std::map<int, std::shared_ptr<fea::ChNodeFEAxyz>> ind2ptr_map;     ///< index-based to pointer-based mapping
     };
 
     /// Description of an FEA mesh with 2-D faces exposed to the FSI system.
     struct FsiMesh2D {
+        unsigned int GetNumElements() const;
+        unsigned int GetNumNodes() const;
+
         std::shared_ptr<fea::ChContactSurfaceMesh> contact_surface;     ///< FEA trimesh skin
         std::map<std::shared_ptr<fea::ChNodeFEAxyz>, int> ptr2ind_map;  ///< pointer-based to index-based mapping
         std::map<int, std::shared_ptr<fea::ChNodeFEAxyz>> ind2ptr_map;  ///< index-based to pointer-based mapping
     };
 
-    /// Destructor of the FSI interface class.
+    // ------------
+
     virtual ~ChFsiInterface();
+
+    void SetVerbose(bool verbose) { m_verbose = verbose; }
 
     // ------------
 
@@ -69,14 +78,41 @@ class CH_FSI_API ChFsiInterface {
     /// Add a flexible solid with surface mesh contact to the FSI system.
     FsiMesh2D& AddFsiMesh2D(std::shared_ptr<fea::ChContactSurfaceMesh> surface);
 
-    /// Get the current number of FSI bodies.
+    /// Initialize the FSI interface.
+    virtual void Initialize();
+
+    // ------------
+
+    /// Get the number of FSI bodies.
     unsigned int GetNumBodies() const;
 
-    /// Get the current number of FSI 1-D meshes.
+    /// Get the number of FSI 1-D meshes.
     unsigned int GetNumMeshes1D() const;
 
-    /// Get the current number of FSI 2-D meshes.
+    /// Get the number of FSI 1-D mesh elements (segments).
+    unsigned int GetNumElements1D() const;
+
+    /// Get the number of FSI 1-D mesh nodes.
+    unsigned int GetNumNodes1D() const;
+
+    /// Get the number of FSI 2-D meshes.
     unsigned int GetNumMeshes2D() const;
+
+    /// Get the number of FSI 2-D mesh elements (segments).
+    unsigned int GetNumElements2D() const;
+
+    /// Get the number of FSI 2-D mesh nodes.
+    unsigned int GetNumNodes2D() const;
+
+    // ------------
+    
+    /// Return the FSI applied force on the body with specified index.
+    /// The force is applied at the body COM and is expressed in the absolute frame.
+    const ChVector3d& GetFsiBodyForce(size_t i) const;
+
+    /// Return the FSI applied torque on the body with specified index.
+    /// The torque is expressed in the absolute frame.
+    const ChVector3d& GetFsiBodyTorque(size_t i) const;
 
     // ------------
 
@@ -100,9 +136,6 @@ class CH_FSI_API ChFsiInterface {
     std::vector<FsiBody> m_fsi_bodies;      ///< rigid bodies exposed to the FSI system
     std::vector<FsiMesh1D> m_fsi_meshes1D;  ///< FEA meshes with 1-D segments exposed to the FSI system
     std::vector<FsiMesh2D> m_fsi_meshes2D;  ///< FEA meshes with 2-D faces exposed to the FSI system
-
-    friend class ChFsiSystem;
-    friend class ChFsiSystemSPH;  //// TODO: get rid of this one!
 };
 
 /// @} fsi_physics

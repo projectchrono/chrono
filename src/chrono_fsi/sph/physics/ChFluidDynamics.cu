@@ -487,10 +487,10 @@ __global__ void UpdateActivityD(const Real4* posRadD,
     activityIdentifierD[index] = 1;
     extendedActivityIdD[index] = 1;
 
-    size_t numRigidBodies = countersD.numRigidBodies;
-    size_t numFlexNodes1D = countersD.numFlexNodes1D;
-    size_t numFlexNodes2D = countersD.numFlexNodes2D;
-    size_t numTotal = numRigidBodies + numFlexNodes1D + numFlexNodes2D;
+    size_t numFsiBodies = countersD.numFsiBodies;
+    size_t numFsiNodes1D = countersD.numFsiNodes1D;
+    size_t numFsiNodes2D = countersD.numFsiNodes2D;
+    size_t numTotal = numFsiBodies + numFsiNodes1D + numFsiNodes2D;
 
     // Check the activity of this particle
     uint isNotActive = 0;
@@ -501,7 +501,7 @@ __global__ void UpdateActivityD(const Real4* posRadD,
 
     Real3 posRadA = mR3(posRadD[index]);
 
-    for (uint num = 0; num < numRigidBodies; num++) {
+    for (uint num = 0; num < numFsiBodies; num++) {
         Real3 detPos = posRadA - pos_bodies_D[num];
         if (abs(detPos.x) > Acdomain.x || abs(detPos.y) > Acdomain.y || abs(detPos.z) > Acdomain.z)
             isNotActive = isNotActive + 1;
@@ -509,7 +509,7 @@ __global__ void UpdateActivityD(const Real4* posRadD,
             isNotExtended = isNotExtended + 1;
     }
 
-    for (uint num = 0; num < numFlexNodes1D; num++) {
+    for (uint num = 0; num < numFsiNodes1D; num++) {
         Real3 detPos = posRadA - pos_nodes1D_D[num];
         if (abs(detPos.x) > Acdomain.x || abs(detPos.y) > Acdomain.y || abs(detPos.z) > Acdomain.z)
             isNotActive = isNotActive + 1;
@@ -517,7 +517,7 @@ __global__ void UpdateActivityD(const Real4* posRadD,
             isNotExtended = isNotExtended + 1;
     }
 
-    for (uint num = 0; num < numFlexNodes2D; num++) {
+    for (uint num = 0; num < numFsiNodes2D; num++) {
         Real3 detPos = posRadA - pos_nodes2D_D[num];
         if (abs(detPos.x) > Acdomain.x || abs(detPos.y) > Acdomain.y || abs(detPos.z) > Acdomain.z)
             isNotActive = isNotActive + 1;
