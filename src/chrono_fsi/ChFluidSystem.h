@@ -39,34 +39,42 @@ class CH_FSI_API ChFluidSystem {
         NONE   ///< none
     };
 
-    /// Destructor for the FSI system.
     virtual ~ChFluidSystem();
 
     /// Enable/disable verbose terminal output (default: true).
-    /// The default implementation sets the verbose mode for the FSI system and the underlying FSI interface.
     void SetVerbose(bool verbose);
 
-    /// Set gravity for the FSI syatem.
+    /// Set gravity for the fluid syatem.
     virtual void SetGravitationalAcceleration(const ChVector3d& gravity) = 0;
 
     /// Set integration step size.
     void SetStepSize(double step);
 
-    /// Initialize the FSI system.
-    /// A call to this function marks the completion of system construction.
-    /// The default implementation simply checks that an associated FSI interface was created and a value for
-    /// integration step size was provided.
+    /// Initialize the fluid system.
+    /// A call to this function marks completion of the fluid system construction.
     virtual void Initialize(unsigned int num_fsi_bodies,
                             unsigned int num_fsi_nodes1D,
                             unsigned int num_fsi_elements1D,
                             unsigned int num_fsi_nodes2D,
                             unsigned int num_fsi_elements2D);
 
+    /// Initialize the fluid system with no FSI support.
+    virtual void Initialize();
+
+    /// Function to integrate the FSI fluid system in time.
+    void DoStepDynamics(double step);
+
     /// Get current simulation time.
     double GetSimTime() const { return m_time; }
 
     /// Get the integration step size.
     double GetStepSize() const { return m_step; }
+
+    /// Get current estimated RTF (real time factor).
+    double GetRtf() const { return m_RTF; }
+
+    /// Return the time in seconds for fluid dynamics over the last step.
+    double GetTimerStep() const { return m_timer_step(); }
 
     /// Additional actions taken after adding a rigid body to the FSI system.
     virtual void OnAddFsiBody(unsigned int index, ChFsiInterface::FsiBody& fsi_body) = 0;
@@ -78,7 +86,8 @@ class CH_FSI_API ChFluidSystem {
     virtual void OnAddFsiMesh2D(unsigned int index, ChFsiInterface::FsiMesh2D& fsi_mesh) = 0;
 
     /// Function to integrate the FSI fluid system in time.
-    virtual void DoStepDynamics(double step) = 0;
+    /// Derived classes are responsible for updating the simulation time (m_time).
+    virtual void OnDoStepDynamics(double step) = 0;
 
     /// Additional actions taken before applying fluid forces to the solid phase.
     virtual void OnApplySolidForces() = 0;
@@ -97,6 +106,10 @@ class CH_FSI_API ChFluidSystem {
 
     double m_step;  ///< time step for fluid dynamics
     double m_time;  ///< current fluid dynamics simulation time
+
+  private:
+    ChTimer m_timer_step;  ///< timer for integration step
+    double m_RTF;          ///< real-time factor (simulation time / simulated time)
 };
 
 /// @} fsi_physics

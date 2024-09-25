@@ -222,13 +222,13 @@ int main(int argc, char* argv[]) {
         switch (vis_type) {
             case ChVisualSystem::Type::OpenGL:
 #ifdef CHRONO_OPENGL
-                visFSI = chrono_types::make_shared<ChFsiVisualizationGL>(sysFSI);
+                visFSI = chrono_types::make_shared<ChFsiVisualizationGL>(&sysFSI);
                 visFSI->AddCamera(ChVector3d(0, -2, 0.75), ChVector3d(0, 0, 0.75));
 #endif
                 break;
             case ChVisualSystem::Type::VSG: {
 #ifdef CHRONO_VSG
-                visFSI = chrono_types::make_shared<ChFsiVisualizationVSG>(sysFSI);
+                visFSI = chrono_types::make_shared<ChFsiVisualizationVSG>(&sysFSI);
                 visFSI->AddCamera(ChVector3d(0, -3, 0.75), ChVector3d(0, 0, 0.75));
 #endif
                 break;

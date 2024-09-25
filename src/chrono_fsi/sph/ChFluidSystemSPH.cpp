@@ -745,6 +745,10 @@ Real W3h_Spline(Real d, Real invh) {
     return 0;
 }
 
+void ChFluidSystemSPH::Initialize() {
+    Initialize(0, 0, 0, 0, 0);
+}
+
 void ChFluidSystemSPH::Initialize(unsigned int num_fsi_bodies,
                                   unsigned int num_fsi_nodes1D,
                                   unsigned int num_fsi_elements1D,
@@ -828,8 +832,10 @@ void ChFluidSystemSPH::Initialize(unsigned int num_fsi_bodies,
     assert(m_num_elements2D == num_fsi_elements2D);
     m_data_mgr->Initialize(num_fsi_bodies, num_fsi_nodes1D, num_fsi_elements1D, num_fsi_nodes2D, num_fsi_elements2D);
 
-    m_fsi_interface->LoadBodyStates();
-    m_fsi_interface->LoadMeshStates();
+    if (m_fsi_interface) {
+        m_fsi_interface->LoadBodyStates();
+        m_fsi_interface->LoadMeshStates();
+    }
 
     // Create BCE and SPH worker objects
     m_bce_mgr = chrono_types::make_unique<BceManager>(*m_data_mgr, m_verbose);
@@ -941,7 +947,7 @@ void ChFluidSystemSPH::Initialize(unsigned int num_fsi_bodies,
 
 //--------------------------------------------------------------------------------------------------------------------------------
 
-void ChFluidSystemSPH::DoStepDynamics(double step) {
+void ChFluidSystemSPH::OnDoStepDynamics(double step) {
     if (m_time < 1e-6 || int(round(m_time / m_paramsH->dT)) % m_paramsH->num_proximity_search_steps == 0) {
         m_fluid_dynamics->SortParticles();
     }

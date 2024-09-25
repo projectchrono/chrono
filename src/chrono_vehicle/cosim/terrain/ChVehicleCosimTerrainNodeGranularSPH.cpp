@@ -316,7 +316,7 @@ void ChVehicleCosimTerrainNodeGranularSPH::OnInitialize(unsigned int num_objects
     // Initialize run-time visualization
     if (m_renderRT) {
 #if defined(CHRONO_VSG)
-        auto vsys_VSG = chrono_types::make_shared<ChFsiVisualizationVSG>(sysFSI);
+        auto vsys_VSG = chrono_types::make_shared<ChFsiVisualizationVSG>(&sysFSI);
         vsys_VSG->SetClearColor(ChColor(0.455f, 0.525f, 0.640f));
         m_vsys = vsys_VSG;
 #elif defined(CHRONO_OPENGL)

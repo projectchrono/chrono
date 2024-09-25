@@ -18,9 +18,26 @@
 namespace chrono {
 namespace fsi {
 
-ChFsiVisualization::ChFsiVisualization(ChFsiSystemSPH& sysFSI)
+ChFsiVisualization::ChFsiVisualization(ChFsiSystemSPH* sysFSI)
     : m_sysFSI(sysFSI),
-      m_sysSPH(sysFSI.GetFluidSystemSPH()),
+      m_sysSPH(&sysFSI->GetFluidSystemSPH()),
+      m_user_system(nullptr),
+      m_sph_markers(true),
+      m_rigid_bce_markers(true),
+      m_flex_bce_markers(true),
+      m_bndry_bce_markers(false),
+      m_sph_color(ChColor(0.10f, 0.40f, 0.65f)),
+      m_bndry_bce_color(ChColor(0.65f, 0.30f, 0.03f)),
+      m_rigid_bce_color(ChColor(0.10f, 0.60f, 0.30f)),
+      m_flex_bce_color(ChColor(0.40f, 0.10f, 0.65f)),
+      m_write_images(false),
+      m_image_dir(".") {
+    m_sysMBS = new ChSystemSMC();
+}
+
+ChFsiVisualization::ChFsiVisualization(ChFluidSystemSPH* sysSPH)
+    : m_sysFSI(nullptr),
+      m_sysSPH(sysSPH),
       m_user_system(nullptr),
       m_sph_markers(true),
       m_rigid_bce_markers(true),

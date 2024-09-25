@@ -32,7 +32,7 @@ class FSIStatsVSG : public vsg3d::ChGuiComponentVSG {
 
     virtual void render() override {
         ImGui::SetNextWindowSize(ImVec2(0.0f, 0.0f));
-        ImGui::Begin(m_vsysFSI->m_sysSPH.GetPhysicsProblemString().c_str());
+        ImGui::Begin(m_vsysFSI->m_sysSPH->GetPhysicsProblemString().c_str());
 
         if (ImGui::BeginTable("SPH", 2, ImGuiTableFlags_BordersOuter | ImGuiTableFlags_SizingFixedFit,
                               ImVec2(0.0f, 0.0f))) {
@@ -40,43 +40,67 @@ class FSIStatsVSG : public vsg3d::ChGuiComponentVSG {
             ImGui::TableNextColumn();
             ImGui::TextUnformatted("SPH particles:");
             ImGui::TableNextColumn();
-            ImGui::Text("%lu", static_cast<unsigned long>(m_vsysFSI->m_sysSPH.GetNumFluidMarkers()));
+            ImGui::Text("%lu", static_cast<unsigned long>(m_vsysFSI->m_sysSPH->GetNumFluidMarkers()));
 
             ImGui::TableNextRow();
             ImGui::TableNextColumn();
             ImGui::TextUnformatted("Boundary BCE:");
             ImGui::TableNextColumn();
-            ImGui::Text("%lu", static_cast<unsigned long>(m_vsysFSI->m_sysSPH.GetNumBoundaryMarkers()));
+            ImGui::Text("%lu", static_cast<unsigned long>(m_vsysFSI->m_sysSPH->GetNumBoundaryMarkers()));
 
             ImGui::TableNextRow();
             ImGui::TableNextColumn();
             ImGui::TextUnformatted("Rigid body BCE:");
             ImGui::TableNextColumn();
-            ImGui::Text("%lu", static_cast<unsigned long>(m_vsysFSI->m_sysSPH.GetNumRigidBodyMarkers()));
+            ImGui::Text("%lu", static_cast<unsigned long>(m_vsysFSI->m_sysSPH->GetNumRigidBodyMarkers()));
 
             ImGui::TableNextRow();
             ImGui::TableNextColumn();
             ImGui::TextUnformatted("Flex body BCE:");
             ImGui::TableNextColumn();
-            ImGui::Text("%lu", static_cast<unsigned long>(m_vsysFSI->m_sysSPH.GetNumFlexBodyMarkers()));
+            ImGui::Text("%lu", static_cast<unsigned long>(m_vsysFSI->m_sysSPH->GetNumFlexBodyMarkers()));
 
             ImGui::TableNextRow();
 
             ImGui::TableNextRow();
             ImGui::TableNextColumn();
-            ImGui::TextUnformatted(m_vsysFSI->m_sysSPH.GetSphMethodTypeString().c_str());
+            ImGui::TextUnformatted(m_vsysFSI->m_sysSPH->GetSphMethodTypeString().c_str());
+
+            if (m_vsysFSI->m_sysFSI) {
+                ImGui::TableNextRow();
+                ImGui::TableNextColumn();
+                ImGui::TextUnformatted("Step size:");
+                ImGui::TableNextColumn();
+                ImGui::Text("%8.1e", m_vsysFSI->m_sysFSI->GetStepSizeCFD());
+            } else {
+                ImGui::TableNextRow();
+                ImGui::TableNextColumn();
+                ImGui::TextUnformatted("Step size:");
+                ImGui::TableNextColumn();
+                ImGui::Text("%8.1e", m_vsysFSI->m_sysSPH->GetStepSize());
+            }
 
             ImGui::TableNextRow();
             ImGui::TableNextColumn();
-            ImGui::TextUnformatted("Step size:");
+            ImGui::TextUnformatted("RTF (fluid):");
             ImGui::TableNextColumn();
-            ImGui::Text("%.1e", m_vsysFSI->m_sysFSI.GetStepSizeCFD());
+            ImGui::Text("%8.3f", m_vsysFSI->m_sysSPH->GetRtf());
 
-            ImGui::TableNextRow();
-            ImGui::TableNextColumn();
-            ImGui::TextUnformatted("MBS ratio:");
-            ImGui::TableNextColumn();
-            ImGui::Text("%.3f", m_vsysFSI->m_sysFSI.GetRatioMBS());
+            if (m_vsysFSI->m_sysFSI) {
+                ImGui::TableNextRow();
+                ImGui::TableNextColumn();
+                ImGui::TextUnformatted("RTF (solid):");
+                ImGui::TableNextColumn();
+                ImGui::Text("%8.3f", m_vsysFSI->m_sysFSI->GetRtfMBS());
+            }
+
+            if (m_vsysFSI->m_sysFSI) {
+                ImGui::TableNextRow();
+                ImGui::TableNextColumn();
+                ImGui::TextUnformatted("MBS/CFD ratio:");
+                ImGui::TableNextColumn();
+                ImGui::Text("%8.3f", m_vsysFSI->m_sysFSI->GetRatioMBS());
+            }
 
             ImGui::EndTable();
         }
@@ -90,7 +114,19 @@ class FSIStatsVSG : public vsg3d::ChGuiComponentVSG {
 
 // -----------------------------------------------------------------------------
 
-ChFsiVisualizationVSG::ChFsiVisualizationVSG(ChFsiSystemSPH& sysFSI) : ChFsiVisualization(sysFSI) {
+ChFsiVisualizationVSG::ChFsiVisualizationVSG(ChFsiSystemSPH* sysFSI) : ChFsiVisualization(sysFSI) {
+    m_vsys = new vsg3d::ChVisualSystemVSG();
+    m_vsys->AttachSystem(m_sysMBS);
+    m_vsys->SetWindowTitle("");
+    m_vsys->SetWindowSize(1280, 720);
+    m_vsys->SetWireFrameMode(true);
+    m_vsys->AddCamera(ChVector3d(0, -3, 0), ChVector3d(0, 0, 0));
+    m_vsys->SetCameraVertical(CameraVerticalDir::Z);
+    m_vsys->SetUseSkyBox(false);
+    m_vsys->SetClearColor(ChColor(18.0f / 255, 26.0f / 255, 32.0f / 255));
+}
+
+ChFsiVisualizationVSG::ChFsiVisualizationVSG(ChFluidSystemSPH* sysSPH) : ChFsiVisualization(sysSPH) {
     m_vsys = new vsg3d::ChVisualSystemVSG();
     m_vsys->AttachSystem(m_sysMBS);
     m_vsys->SetWindowTitle("");
@@ -154,10 +190,10 @@ void ChFsiVisualizationVSG::Initialize() {
     if (m_sph_markers) {
         m_sph_cloud = chrono_types::make_shared<ChParticleCloud>();
         m_sph_cloud->SetFixed(false);
-        for (int i = 0; i < m_sysSPH.GetNumFluidMarkers(); i++) {
+        for (int i = 0; i < m_sysSPH->GetNumFluidMarkers(); i++) {
             m_sph_cloud->AddParticle(CSYSNULL);
         }
-        auto sph = chrono_types::make_shared<ChVisualShapeSphere>(m_sysSPH.GetInitialSpacing() / 2);
+        auto sph = chrono_types::make_shared<ChVisualShapeSphere>(m_sysSPH->GetInitialSpacing() / 2);
         sph->SetColor(ChColor(0.10f, 0.40f, 0.65f));
         m_sph_cloud->AddVisualShape(sph);
         m_sph_cloud->RegisterColorCallback(m_color_fun);
@@ -168,10 +204,10 @@ void ChFsiVisualizationVSG::Initialize() {
     if (m_bndry_bce_markers) {
         m_bndry_bce_cloud = chrono_types::make_shared<ChParticleCloud>();
         m_bndry_bce_cloud->SetFixed(false);
-        for (int i = 0; i < m_sysSPH.GetNumBoundaryMarkers(); i++) {
+        for (int i = 0; i < m_sysSPH->GetNumBoundaryMarkers(); i++) {
             m_bndry_bce_cloud->AddParticle(CSYSNULL);
         }
-        auto sph = chrono_types::make_shared<ChVisualShapeSphere>(m_sysSPH.GetInitialSpacing() / 4);
+        auto sph = chrono_types::make_shared<ChVisualShapeSphere>(m_sysSPH->GetInitialSpacing() / 4);
         sph->SetColor(m_bndry_bce_color);
         m_bndry_bce_cloud->AddVisualShape(sph);
         m_bndry_bce_cloud->RegisterVisibilityCallback(m_vis_bndry_fun);
@@ -181,10 +217,10 @@ void ChFsiVisualizationVSG::Initialize() {
     if (m_rigid_bce_markers) {
         m_rigid_bce_cloud = chrono_types::make_shared<ChParticleCloud>();
         m_rigid_bce_cloud->SetFixed(false);
-        for (int i = 0; i < m_sysSPH.GetNumRigidBodyMarkers(); i++) {
+        for (int i = 0; i < m_sysSPH->GetNumRigidBodyMarkers(); i++) {
             m_rigid_bce_cloud->AddParticle(CSYSNULL);
         }
-        auto sph = chrono_types::make_shared<ChVisualShapeSphere>(m_sysSPH.GetInitialSpacing() / 2);
+        auto sph = chrono_types::make_shared<ChVisualShapeSphere>(m_sysSPH->GetInitialSpacing() / 2);
         sph->SetColor(m_rigid_bce_color);
         m_rigid_bce_cloud->AddVisualShape(sph);
         m_sysMBS->Add(m_rigid_bce_cloud);
@@ -193,10 +229,10 @@ void ChFsiVisualizationVSG::Initialize() {
     if (m_flex_bce_markers) {
         m_flex_bce_cloud = chrono_types::make_shared<ChParticleCloud>();
         m_flex_bce_cloud->SetFixed(false);
-        for (int i = 0; i < m_sysSPH.GetNumFlexBodyMarkers(); i++) {
+        for (int i = 0; i < m_sysSPH->GetNumFlexBodyMarkers(); i++) {
             m_flex_bce_cloud->AddParticle(CSYSNULL);
         }
-        auto sph = chrono_types::make_shared<ChVisualShapeSphere>(m_sysSPH.GetInitialSpacing() / 2);
+        auto sph = chrono_types::make_shared<ChVisualShapeSphere>(m_sysSPH->GetInitialSpacing() / 2);
         sph->SetColor(m_flex_bce_color);
         m_flex_bce_cloud->AddVisualShape(sph);
         m_sysMBS->Add(m_flex_bce_cloud);
@@ -216,13 +252,18 @@ void ChFsiVisualizationVSG::Initialize() {
 
 bool ChFsiVisualizationVSG::Render() {
     // For display in VSG GUI
-    m_sysMBS->SetChTime(m_sysFSI.GetSimTime());
-    m_sysMBS->SetRTF(m_sysFSI.GetRTF());
+    if (m_sysFSI) {
+        m_sysMBS->SetChTime(m_sysFSI->GetSimTime());
+        m_sysMBS->SetRTF(m_sysFSI->GetRtf());
+    } else {
+        m_sysMBS->SetChTime(m_sysSPH->GetSimTime());
+        m_sysMBS->SetRTF(m_sysSPH->GetRtf());    
+    }
 
     if (m_vsys->Run()) {
         // Copy SPH particle positions from device to host
-        thrust::host_vector<Real4> posH = m_sysSPH.m_data_mgr->sphMarkers_D->posRadD;
-        thrust::host_vector<Real3> velH = m_sysSPH.m_data_mgr->sphMarkers_D->velMasD;
+        thrust::host_vector<Real4> posH = m_sysSPH->m_data_mgr->sphMarkers_D->posRadD;
+        thrust::host_vector<Real3> velH = m_sysSPH->m_data_mgr->sphMarkers_D->velMasD;
 
         // List of proxy bodies
         ////const auto& blist = m_sysMBS->GetBodies();
@@ -230,29 +271,29 @@ bool ChFsiVisualizationVSG::Render() {
         size_t p = 0;
 
         if (m_sph_markers) {
-            for (unsigned int i = 0; i < m_sysSPH.GetNumFluidMarkers(); i++) {
+            for (unsigned int i = 0; i < m_sysSPH->GetNumFluidMarkers(); i++) {
                 m_sph_cloud->Particle(i).SetPos(ChVector3d(posH[p + i].x, posH[p + i].y, posH[p + i].z));
                 m_sph_cloud->Particle(i).SetPosDt(ChVector3d(velH[p + i].x, velH[p + i].y, velH[p + i].z));
             }
         }
-        p += m_sysSPH.GetNumFluidMarkers();
+        p += m_sysSPH->GetNumFluidMarkers();
 
         if (m_bndry_bce_markers) {
-            for (unsigned int i = 0; i < m_sysSPH.GetNumBoundaryMarkers(); i++) {
+            for (unsigned int i = 0; i < m_sysSPH->GetNumBoundaryMarkers(); i++) {
                 m_bndry_bce_cloud->Particle(i).SetPos(ChVector3d(posH[p + i].x, posH[p + i].y, posH[p + i].z));
             }
         }
-        p += m_sysSPH.GetNumBoundaryMarkers();
+        p += m_sysSPH->GetNumBoundaryMarkers();
 
         if (m_rigid_bce_markers) {
-            for (unsigned int i = 0; i < m_sysSPH.GetNumRigidBodyMarkers(); i++) {
+            for (unsigned int i = 0; i < m_sysSPH->GetNumRigidBodyMarkers(); i++) {
                 m_rigid_bce_cloud->Particle(i).SetPos(ChVector3d(posH[p + i].x, posH[p + i].y, posH[p + i].z));
             }
         }
-        p += m_sysSPH.GetNumRigidBodyMarkers();
+        p += m_sysSPH->GetNumRigidBodyMarkers();
 
         if (m_flex_bce_markers) {
-            for (unsigned int i = 0; i < m_sysSPH.GetNumFlexBodyMarkers(); i++) {
+            for (unsigned int i = 0; i < m_sysSPH->GetNumFlexBodyMarkers(); i++) {
                 m_flex_bce_cloud->Particle(i).SetPos(ChVector3d(posH[p + i].x, posH[p + i].y, posH[p + i].z));
             }
         }

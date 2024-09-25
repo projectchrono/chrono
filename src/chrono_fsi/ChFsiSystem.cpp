@@ -194,14 +194,11 @@ void ChFsiSystem::DoStepDynamics(double step) {
     double threshold_MBD = factor * m_step_MBD;
 
     m_timer_step.reset();
-    m_timer_CFD.reset();
-    m_timer_MBS.reset();
     m_timer_FSI.reset();
 
     m_timer_step.start();
 
     // Advance the dynamics of the fluid system
-    m_timer_CFD.start();
     {
         double t = 0;
         while (t < step) {
@@ -211,8 +208,8 @@ void ChFsiSystem::DoStepDynamics(double step) {
             m_sysCFD->DoStepDynamics(h);
             t += h;
         }
+        m_timer_CFD = m_sysCFD->GetTimerStep();
     }
-    m_timer_CFD.stop();
 
     // Apply fluid forces and torques on FSI solids
     m_timer_FSI.start();
@@ -222,7 +219,6 @@ void ChFsiSystem::DoStepDynamics(double step) {
     m_timer_FSI.stop();
 
     // Advance the dynamics of the multibody system
-    m_timer_MBS.start();
     {
         double t = 0;
         while (t < step) {
@@ -232,10 +228,8 @@ void ChFsiSystem::DoStepDynamics(double step) {
             m_sysMBS->DoStepDynamics(h);
             t += h;
         }
+        m_timer_MBS = m_sysMBS->GetTimerStep();
     }
-    m_timer_MBS.stop();
-
-    m_time += step;
 
     // Load new solid phase states
     m_timer_FSI.start();
@@ -246,9 +240,13 @@ void ChFsiSystem::DoStepDynamics(double step) {
 
     m_timer_step.stop();
 
+    // Calculate RTF
     m_RTF = m_timer_step() / step;
     if (m_sysMBS)
-        m_ratio_MBS = m_timer_MBS() / m_timer_step();
+        m_ratio_MBS = m_timer_MBS / m_timer_CFD;
+
+    // Update simulation time
+    m_time += step;
 }
 
 }  // end namespace fsi

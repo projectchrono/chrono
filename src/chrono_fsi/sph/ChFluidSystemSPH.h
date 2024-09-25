@@ -197,6 +197,9 @@ class CH_FSI_API ChFluidSystemSPH : public ChFluidSystem {
                             unsigned int num_fsi_nodes2D,
                             unsigned int num_fsi_elements2D) override;
 
+    /// Initialize the fluid system with no FSI support.
+    virtual void Initialize() override;
+
     /// Return the SPH kernel length of kernel function.
     double GetKernelLength() const;
 
@@ -498,9 +501,9 @@ class CH_FSI_API ChFluidSystemSPH : public ChFluidSystem {
     /// The BCE markers are created in the absolute coordinate frame.
     unsigned int AddBCE_mesh2D(unsigned int meshID, const ChFsiInterface::FsiMesh2D& fsi_mesh);
 
-    /// Function to integrate the fluid FSI system in time.
+    /// Function to integrate the fluid system in time.
     /// It uses a Runge-Kutta 2nd order algorithm to update the fluid dynamics.
-    virtual void DoStepDynamics(double step) override;
+    virtual void OnDoStepDynamics(double step) override;
 
     /// Additional actions taken before applying fluid forces to the solid phase.
     virtual void OnApplySolidForces() override;

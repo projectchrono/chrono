@@ -219,12 +219,12 @@ int main(int argc, char* argv[]) {
         switch (vis_type) {
             case ChVisualSystem::Type::OpenGL:
 #ifdef CHRONO_OPENGL
-                visFSI = chrono_types::make_shared<ChFsiVisualizationGL>(sysFSI);
+                visFSI = chrono_types::make_shared<ChFsiVisualizationGL>(&sysFSI);
 #endif
                 break;
             case ChVisualSystem::Type::VSG: {
 #ifdef CHRONO_VSG
-                visFSI = chrono_types::make_shared<ChFsiVisualizationVSG>(sysFSI);
+                visFSI = chrono_types::make_shared<ChFsiVisualizationVSG>(&sysFSI);
 #endif
                 break;
             }
@@ -284,7 +284,7 @@ int main(int argc, char* argv[]) {
                 break;
         }
         if (!visualization) {
-            std::cout << sysFSI.GetSimTime() << "  " << sysFSI.GetRTF() << std::endl;
+            std::cout << sysFSI.GetSimTime() << "  " << sysFSI.GetRtf() << std::endl;
         }
 
         // Synchronize systems

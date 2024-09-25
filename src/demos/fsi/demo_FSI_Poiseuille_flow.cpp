@@ -22,7 +22,7 @@
 #include "chrono/utils/ChUtilsGenerators.h"
 #include "chrono/utils/ChUtilsGeometry.h"
 
-#include "chrono_fsi/sph/ChFsiSystemSPH.h"
+#include "chrono_fsi/sph/ChFluidSystemSPH.h"
 
 #include "chrono_fsi/sph/visualization/ChFsiVisualization.h"
 #ifdef CHRONO_OPENGL
@@ -66,9 +66,7 @@ float render_fps = 100;
 // Create the objects of the MBD system. Rigid bodies, and if FSI,
 // their BCE representation are created and added to the systems
 //------------------------------------------------------------------
-void CreateSolidPhase(ChSystemSMC& sysMBS, ChFsiSystemSPH& sysFSI) {
-    ChFluidSystemSPH& sysSPH = sysFSI.GetFluidSystemSPH();
-
+void CreateSolidPhase(ChSystemSMC& sysMBS, ChFluidSystemSPH& sysSPH) {
     // General setting of ground body
     auto ground = chrono_types::make_shared<ChBody>();
     ground->SetFixed(true);
@@ -85,10 +83,9 @@ void CreateSolidPhase(ChSystemSMC& sysMBS, ChFsiSystemSPH& sysFSI) {
 // =============================================================================
 
 int main(int argc, char* argv[]) {
-    // Create a physics system and an FSI system
+    // Create a physics system and an SPH system
     ChSystemSMC sysMBS;
-    ChFsiSystemSPH sysFSI(&sysMBS);
-    ChFluidSystemSPH& sysSPH = sysFSI.GetFluidSystemSPH();
+    ChFluidSystemSPH sysSPH;
 
     // Use the default input file or you may enter your input parameters as a command line argument
     std::string inputJson = GetChronoDataFile("fsi/input_json/demo_FSI_Poiseuille_flow_Explicit.json");
@@ -125,10 +122,10 @@ int main(int argc, char* argv[]) {
     }
 
     // Create solid region and attach BCE SPH particles
-    CreateSolidPhase(sysMBS, sysFSI);
+    CreateSolidPhase(sysMBS, sysSPH);
 
-    // Complete construction of the FSI system
-    sysFSI.Initialize();
+    // Complete construction of the fluid system
+    sysSPH.Initialize();
 
     // Create oputput directories
     if (!filesystem::create_directory(filesystem::path(out_dir))) {
@@ -167,12 +164,12 @@ int main(int argc, char* argv[]) {
         switch (vis_type) {
             case ChVisualSystem::Type::OpenGL:
 #ifdef CHRONO_OPENGL
-                visFSI = chrono_types::make_shared<ChFsiVisualizationGL>(sysFSI);
+                visFSI = chrono_types::make_shared<ChFsiVisualizationGL>(&sysSPH);
 #endif
                 break;
             case ChVisualSystem::Type::VSG: {
 #ifdef CHRONO_VSG
-                visFSI = chrono_types::make_shared<ChFsiVisualizationVSG>(sysFSI);
+                visFSI = chrono_types::make_shared<ChFsiVisualizationVSG>(&sysSPH);
 #endif
                 break;
             }
@@ -189,7 +186,7 @@ int main(int argc, char* argv[]) {
     }
 
     // Start the simulation
-    double dT = sysFSI.GetStepSizeCFD();
+    double dT = sysSPH.GetStepSize();
     double time = 0;
     int sim_frame = 0;
     int out_frame = 0;
@@ -225,7 +222,7 @@ int main(int argc, char* argv[]) {
         }
 
         // Call the FSI solver
-        sysFSI.DoStepDynamics(dT);
+        sysSPH.DoStepDynamics(dT);
 
         time += dT;
         sim_frame++;

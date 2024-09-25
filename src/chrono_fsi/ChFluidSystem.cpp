@@ -38,7 +38,7 @@ namespace chrono {
 namespace fsi {
 
 ChFluidSystem::ChFluidSystem()
-    : m_is_initialized(false), m_verbose(true), m_step(-1), m_time(0), m_write_mode(OutputMode::NONE) {}
+    : m_is_initialized(false), m_verbose(true), m_step(-1), m_time(0), m_RTF(0), m_write_mode(OutputMode::NONE) {}
 
 ChFluidSystem::~ChFluidSystem() {}
 
@@ -57,6 +57,21 @@ void ChFluidSystem::Initialize(unsigned int num_fsi_bodies,
                                unsigned int num_fsi_elements2D) {
     // Mark system as initialized
     m_is_initialized = true;
+}
+
+void ChFluidSystem::Initialize() {
+    // Mark system as initialized
+    m_is_initialized = true;
+}
+
+void ChFluidSystem::DoStepDynamics(double step) {
+    m_timer_step.reset();
+    m_timer_step.start();
+
+    OnDoStepDynamics(step);
+
+    m_timer_step.stop();
+    m_RTF = m_timer_step() / step;
 }
 
 }  // end namespace fsi

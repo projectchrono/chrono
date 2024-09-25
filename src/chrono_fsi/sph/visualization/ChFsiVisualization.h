@@ -142,10 +142,13 @@ class CH_FSI_API ChFsiVisualization {
 
   protected:
     /// Create a run-time FSI visualization object associated with a given Chrono::Fsi system.
-    ChFsiVisualization(ChFsiSystemSPH& sysFSI);
+    ChFsiVisualization(ChFsiSystemSPH* sysFSI);
 
-    ChFsiSystemSPH& m_sysFSI;    ///< associated FSI system
-    ChFluidSystemSPH& m_sysSPH;  ///< associated SPH system
+    /// Create a run-time FSI visualization object associated with a given SPH fluid system.
+    ChFsiVisualization(ChFluidSystemSPH* sysSPH);
+
+    ChFsiSystemSPH* m_sysFSI;    ///< associated FSI system
+    ChFluidSystemSPH* m_sysSPH;  ///< associated SPH system
     ChSystem* m_sysMBS;          ///< internal Chrono system (holds proxies)
     ChSystem* m_user_system;     ///< optional user-provided system
 

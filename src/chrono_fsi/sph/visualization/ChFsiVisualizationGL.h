@@ -31,7 +31,10 @@ namespace fsi {
 class CH_FSI_API ChFsiVisualizationGL : public ChFsiVisualization {
   public:
     /// Create a run-time FSI visualization object associated with a given Chrono::Fsi system.
-    ChFsiVisualizationGL(ChFsiSystemSPH& sysFSI);
+    ChFsiVisualizationGL(ChFsiSystemSPH* sysFSI);
+
+    /// Create a run-time FSI visualization object associated with a given SPH fluid system.
+    ChFsiVisualizationGL(ChFluidSystemSPH* sysSPH);
 
     ~ChFsiVisualizationGL();
 

@@ -353,7 +353,7 @@ int main(int argc, char* argv[]) {
 
     // Create a run-tme visualizer
 #ifdef CHRONO_OPENGL
-    ChFsiVisualizationGL fsi_vis(sysFSI);
+    ChFsiVisualizationGL fsi_vis(&sysFSI);
     if (render) {
         fsi_vis.SetTitle("Chrono::FSI single wheel demo");
         fsi_vis.AddCamera(ChVector3d(0, -5 * byDim, 5 * bzDim), ChVector3d(0, 0, 0));

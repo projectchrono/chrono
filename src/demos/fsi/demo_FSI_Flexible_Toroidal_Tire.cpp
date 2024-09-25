@@ -174,7 +174,7 @@ int main(int argc, char* argv[]) {
 
 #ifdef CHRONO_OPENGL
     // Create a run-tme visualizer
-    ChFsiVisualizationGL fsi_vis(sysFSI);
+    ChFsiVisualizationGL fsi_vis(&sysFSI);
     if (render) {
         fsi_vis.SetTitle("Chrono::FSI Flexible Toroidal Tire Demo");
         fsi_vis.AddCamera(ChVector3d(bxDim / 8, -3, 0.25), ChVector3d(bxDim / 8, 0.0, 0.25));

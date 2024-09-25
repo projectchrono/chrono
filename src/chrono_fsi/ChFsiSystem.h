@@ -99,11 +99,31 @@ class CH_FSI_API ChFsiSystem {
     /// Get the integration step size for fluid dynamics.
     double GetStepSizeCFD() const { return m_step_CFD; }
 
-    /// Get current estimated RTF (real time factor).
-    double GetRTF() const { return m_RTF; }
+    /// Get current estimated RTF (real time factor) for the coupled problem.
+    double GetRtf() const { return m_RTF; }
+
+    /// Get current estimated RTF (real time factor) for the fluid system.
+    double GetRtfCFD() const { return m_sysCFD->GetRtf(); }
+
+    /// Get current estimated RTF (real time factor) for the multibody system.
+    double GetRtfMBS() const { return m_sysMBS->GetRTF(); }
 
     /// Get ratio of simulation time spent in MBS integration.
     double GetRatioMBS() const { return m_ratio_MBS; }
+
+    // ----------
+    
+    /// Return the time in seconds for for simulating the last step.
+    double GetTimerStep() const { return m_timer_step(); }
+    
+    /// Return the time in seconds for fluid dynamics over the last step.
+    double GetTimerCFD() const { return m_timer_CFD; }
+    
+    /// Return the time in seconds for multibody dynamics over the last step.
+    double GetTimerMBS() const { return m_timer_MBS; }
+    
+    /// Return the time in seconds for data exchange between phases over the last step.
+    double GetTimerFSI() const { return m_timer_FSI(); }
 
     // ----------
 
@@ -135,16 +155,16 @@ class CH_FSI_API ChFsiSystem {
     /// Add a flexible solid with surface mesh contact to the FSI system.
     void AddFsiMesh2D(std::shared_ptr<fea::ChContactSurfaceMesh> surface);
 
-    ChSystem* m_sysMBS;       ///< multibody system
+    ChSystem* m_sysMBS;  ///< multibody system
 
     double m_step_MBD;  ///< time step for multibody dynamics
     double m_step_CFD;  ///< time step for fluid dynamics
     double m_time;      ///< current fluid dynamics simulation time
 
     ChTimer m_timer_step;  ///< timer for integration step
-    ChTimer m_timer_CFD;   ///< timer for fluid dynamics integration
-    ChTimer m_timer_MBS;   ///< timer for multibody dynamics integration
     ChTimer m_timer_FSI;   ///< timer for FSI data exchange
+    double m_timer_CFD;    ///< timer for fluid dynamics integration
+    double m_timer_MBS;    ///< timer for multibody dynamics integration
     double m_RTF;          ///< real-time factor (simulation time / simulated time)
     double m_ratio_MBS;    ///< fraction of step simulation time for MBS integration
 };
