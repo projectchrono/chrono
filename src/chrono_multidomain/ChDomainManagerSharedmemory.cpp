@@ -88,11 +88,12 @@ bool ChDomainManagerSharedmemory::DoAllDomainInitialize() {
 
 		// update all AABBs (the initialize would be called automatically before DoStepDynamics(),
 		// but one needs AABBs before calling DoAllDomainPartitionUpdate() the first time, i.e before DoStepDynamics())
-		vdomains[i]->GetSystem()->GetCollisionSystem()->Initialize(); 
-
-		// Run the partitioning setup for the first run
-		//DoAllDomainPartitionUpdate();							//***COMM+BARRIER***
+		vdomains[i]->GetSystem()->Setup();
+		vdomains[i]->GetSystem()->Update();
 	}
+
+	// Run the partitioning setup for the first run
+	DoAllDomainPartitionUpdate();							//***COMM+BARRIER***
 }
 
 

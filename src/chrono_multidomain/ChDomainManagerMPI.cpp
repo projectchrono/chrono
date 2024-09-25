@@ -100,10 +100,11 @@ bool ChDomainManagerMPI::DoDomainInitialize(int mrank) {
 
 	// update all AABBs (the initialize would be called automatically before DoStepDynamics(),
 	// but one needs AABBs before calling DoDomainPartitionUpdate() the first time, i.e before DoStepDynamics())
-	domain->GetSystem()->GetCollisionSystem()->Initialize();
+	domain->GetSystem()->Setup();
+	domain->GetSystem()->Update();
 
 	// Run the partitioning setup for the first run
-	//DoDomainPartitionUpdate(mrank);					//***COMM+BARRIER***
+	DoDomainPartitionUpdate(mrank);					//***COMM+BARRIER***
 
 	return true;
 }
