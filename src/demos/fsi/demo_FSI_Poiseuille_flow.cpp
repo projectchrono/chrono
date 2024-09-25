@@ -59,7 +59,7 @@ double t_end = 10.0;
 
 // Enable/disable run-time visualization
 bool render = true;
-bool snapshots = true;
+bool snapshots = false;
 float render_fps = 100;
 
 //------------------------------------------------------------------
@@ -195,8 +195,6 @@ int main(int argc, char* argv[]) {
     ChTimer timer;
     timer.start();
     while (time < t_end) {
-        std::cout << sim_frame << " time: " << time << std::endl;
-
         // Save data of the simulation
         if (output && time >= out_frame / out_fps) {
             std::cout << " -- Output frame " << out_frame << " at t = " << time << std::endl;

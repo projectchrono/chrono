@@ -105,15 +105,11 @@ class CH_FSI_API ChFluidSystemSPH : public ChFluidSystem {
         LinSolverParameters();
     };
 
-    ChFluidSystemSPH(std::shared_ptr<ChFsiInterfaceSPH> fsi_interface = nullptr);
-
+    ChFluidSystemSPH();
     ~ChFluidSystemSPH();
 
     /// Read Chrono::FSI parameters from the specified JSON file.
     void ReadParametersFromFile(const std::string& json_file);
-
-    /// Set the FSI interface.
-    void SetFsiInterface(std::shared_ptr<ChFsiInterfaceSPH> fsi_interface) { m_fsi_interface = fsi_interface; }
 
     /// Set initial spacing.
     void SetInitialSpacing(double spacing);
@@ -189,15 +185,17 @@ class CH_FSI_API ChFluidSystemSPH : public ChFluidSystem {
     /// Set the FSI system output mode (default: NONE).
     void SetParticleOutputMode(OutputMode mode) { m_write_mode = mode; }
 
-    /// Complete construction of the FSI system (fluid and BDE objects).
-    /// Use parameters read from JSON file and/or specified through various Set functions.
+    /// Initialize the SPH fluid system with FSI support.
     virtual void Initialize(unsigned int num_fsi_bodies,
                             unsigned int num_fsi_nodes1D,
                             unsigned int num_fsi_elements1D,
                             unsigned int num_fsi_nodes2D,
-                            unsigned int num_fsi_elements2D) override;
+                            unsigned int num_fsi_elements2D,
+                            const std::vector<FsiBodyState>& body_states,
+                            const std::vector<FsiMeshState>& mesh1D_states,
+                            const std::vector<FsiMeshState>& mesh2D_states) override;
 
-    /// Initialize the fluid system with no FSI support.
+    /// Initialize the SPH fluid system with no FSI support.
     virtual void Initialize() override;
 
     /// Return the SPH kernel length of kernel function.
@@ -484,6 +482,11 @@ class CH_FSI_API ChFluidSystemSPH : public ChFluidSystem {
     /// Initialize simulation parameters with default values.
     void InitParams();
 
+    /// Load the given body and mesh node states in the data manager structures during initialization.
+    void LoadInitialSolidStates(const std::vector<FsiBodyState>& body_states,
+                                const std::vector<FsiMeshState>& mesh1D_states,
+                                const std::vector<FsiMeshState>& mesh2D_states);
+
     /// Additional actions taken after adding a rigid body to the FSI system.
     virtual void OnAddFsiBody(unsigned int index, ChFsiInterface::FsiBody& fsi_body) override;
 
@@ -511,8 +514,7 @@ class CH_FSI_API ChFluidSystemSPH : public ChFluidSystem {
     /// Additional actions taken after loading new solid phase states.
     virtual void OnLoadSolidStates() override;
 
-    std::shared_ptr<ChFsiInterfaceSPH> m_fsi_interface;  ///< FSI interface
-    std::shared_ptr<sph::SimParams> m_paramsH;           ///< simulation parameters
+    std::shared_ptr<sph::SimParams> m_paramsH;  ///< simulation parameters
 
     std::unique_ptr<sph::FsiDataManager> m_data_mgr;         ///< FSI data manager
     std::unique_ptr<sph::ChFluidDynamics> m_fluid_dynamics;  ///< fluid system

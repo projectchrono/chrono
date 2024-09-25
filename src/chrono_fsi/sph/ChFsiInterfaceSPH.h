@@ -32,30 +32,27 @@ namespace fsi {
 /// Class for processing the interface between Chrono and the SPH-based FSI module.
 class ChFsiInterfaceSPH : public ChFsiInterface {
   public:
-    /// Constructor of the FSI interface class.
     ChFsiInterfaceSPH(sph::FsiDataManager& data_mgr, bool verbose);
-
-    /// Destructor of the FSI interface class.
     ~ChFsiInterfaceSPH();
 
-    /// Copy rigid body states from ChSystem to FsiSystem, then to the GPU memory.
-    virtual void LoadBodyStates() override;
+    /// Extract FSI body states, copy to data manager on the host and then to GPU memory.
+    /// Directly access SPH data manager.
+    virtual void ApplyBodyStates() override;
 
-    /// Copy FEA mesh states from ChSystem to FsiSystem, then to the GPU memory.
-    virtual void LoadMeshStates() override;
+    /// Extract FSI mesh node states, copy to data manager on the host and then to GPU memory.
+    /// Directly access SPH data manager.
+    virtual void ApplyMeshStates() override;
 
-    /// Read the surface-integrated pressure and viscous forces form the fluid/granular dynamics system,
-    /// and add these forces and torques as external forces to the ChSystem rigid bodies.
+    /// Apply fluid forces and torques as external loads to the FSI bodies.
+    /// Directly access SPH data manager.
     virtual void ApplyBodyForces() override;
 
-    /// Add forces and torques as external forces to the ChSystem flexible bodies.
+    /// Apply fluid forces as external forces to the nodes of FSI meshes.
+    /// Directly access SPH data manager.
     virtual void ApplyMeshForces() override;
 
   private:
-
     sph::FsiDataManager& m_data_mgr;  ///< FSI data manager
-
-    friend class ChFsiSystemSPH;
 };
 
 /// @} fsi_physics

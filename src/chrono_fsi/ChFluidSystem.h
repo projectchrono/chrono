@@ -50,13 +50,16 @@ class CH_FSI_API ChFluidSystem {
     /// Set integration step size.
     void SetStepSize(double step);
 
-    /// Initialize the fluid system.
+    /// Initialize the fluid system using initial states of solid FSI objects.
     /// A call to this function marks completion of the fluid system construction.
     virtual void Initialize(unsigned int num_fsi_bodies,
                             unsigned int num_fsi_nodes1D,
                             unsigned int num_fsi_elements1D,
                             unsigned int num_fsi_nodes2D,
-                            unsigned int num_fsi_elements2D);
+                            unsigned int num_fsi_elements2D,
+                            const std::vector<FsiBodyState>& body_states,
+                            const std::vector<FsiMeshState>& mesh1D_states,
+                            const std::vector<FsiMeshState>& mesh2D_states);
 
     /// Initialize the fluid system with no FSI support.
     virtual void Initialize();

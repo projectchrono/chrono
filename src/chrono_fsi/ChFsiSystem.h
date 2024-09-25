@@ -46,7 +46,7 @@ class CH_FSI_API ChFsiSystem {
     virtual ~ChFsiSystem();
 
     /// Access the associated fluid solver.
-    ChFluidSystem& GetFluidSystem() const; 
+    ChFluidSystem& GetFluidSystem() const;
 
     /// Access the associated FSI interface.
     ChFsiInterface& GetFsiInterface() const;
@@ -88,8 +88,8 @@ class CH_FSI_API ChFsiSystem {
     /// - apply fluid forces on solid objects
     /// - advance multibody dynamics to new data exchange point
     /// - extract new states for FSI solid objects
-    void DoStepDynamics(double step); 
-    
+    void DoStepDynamics(double step);
+
     /// Get current simulation time.
     double GetSimTime() const { return m_time; }
 
@@ -112,16 +112,16 @@ class CH_FSI_API ChFsiSystem {
     double GetRatioMBS() const { return m_ratio_MBS; }
 
     // ----------
-    
+
     /// Return the time in seconds for for simulating the last step.
     double GetTimerStep() const { return m_timer_step(); }
-    
+
     /// Return the time in seconds for fluid dynamics over the last step.
     double GetTimerCFD() const { return m_timer_CFD; }
-    
+
     /// Return the time in seconds for multibody dynamics over the last step.
     double GetTimerMBS() const { return m_timer_MBS; }
-    
+
     /// Return the time in seconds for data exchange between phases over the last step.
     double GetTimerFSI() const { return m_timer_FSI(); }
 

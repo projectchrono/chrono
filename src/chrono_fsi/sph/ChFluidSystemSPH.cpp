@@ -17,7 +17,6 @@
 // =============================================================================
 
 //// TODO:
-////   - try to get rid of m_fsi_interface here!
 ////   - use SimParams::C_Wi (kernel threshold) for both CFD and CRM (currently, only CRM)
 
 #include <cmath>
@@ -55,9 +54,8 @@ namespace fsi {
 
 using namespace sph;
 
-ChFluidSystemSPH::ChFluidSystemSPH(std::shared_ptr<ChFsiInterfaceSPH> fsi_interface)
+ChFluidSystemSPH::ChFluidSystemSPH()
     : ChFluidSystem(),
-      m_fsi_interface(fsi_interface),
       m_pattern1D(BcePatternMesh1D::FULL),
       m_pattern2D(BcePatternMesh2D::CENTERED),
       m_remove_center1D(false),
@@ -675,6 +673,61 @@ std::string ChFluidSystemSPH::GetSphMethodTypeString() const {
 
 //--------------------------------------------------------------------------------------------------------------------------------
 
+void ChFluidSystemSPH::LoadInitialSolidStates(const std::vector<FsiBodyState>& body_states,
+                                              const std::vector<FsiMeshState>& mesh1D_states,
+                                              const std::vector<FsiMeshState>& mesh2D_states) {
+    {
+        size_t num_bodies = body_states.size();
+        for (size_t i = 0; i < num_bodies; i++) {
+            m_data_mgr->fsiBodyState_H->pos[i] = ToReal3(body_states[i].pos);
+            m_data_mgr->fsiBodyState_H->lin_vel[i] = ToReal4(body_states[i].lin_vel, 0.0);
+            m_data_mgr->fsiBodyState_H->lin_acc[i] = ToReal3(body_states[i].lin_acc);
+            m_data_mgr->fsiBodyState_H->rot[i] = ToReal4(body_states[i].rot);
+            m_data_mgr->fsiBodyState_H->ang_vel[i] = ToReal3(body_states[i].lin_acc);
+            m_data_mgr->fsiBodyState_H->ang_acc[i] = ToReal3(body_states[i].ang_acc);
+        }
+
+        if (num_bodies > 0)
+            m_data_mgr->fsiBodyState_D->CopyFromH(*m_data_mgr->fsiBodyState_H);
+    }
+
+    {
+        int index = 0;
+
+        size_t num_meshes = mesh1D_states.size();
+        for (size_t imesh = 0; imesh < num_meshes; imesh++) {
+            size_t num_nodes = mesh1D_states[imesh].pos.size();
+            for (size_t inode = 0; inode < num_nodes; inode++) {
+                m_data_mgr->fsiMesh1DState_H->pos_fsi_fea_H[index] = ToReal3(mesh1D_states[imesh].pos[inode]);
+                m_data_mgr->fsiMesh1DState_H->vel_fsi_fea_H[index] = ToReal3(mesh1D_states[imesh].vel[inode]);
+                m_data_mgr->fsiMesh1DState_H->acc_fsi_fea_H[index] = ToReal3(mesh1D_states[imesh].acc[inode]);
+                index++;
+            }
+        }
+
+        if (num_meshes > 0)
+            m_data_mgr->fsiMesh1DState_D->CopyFromH(*m_data_mgr->fsiMesh1DState_H);
+    }
+
+    {
+        int index = 0;
+
+        size_t num_meshes = mesh2D_states.size();
+        for (size_t imesh = 0; imesh < num_meshes; imesh++) {
+            size_t num_nodes = mesh2D_states[imesh].pos.size();
+            for (size_t inode = 0; inode < num_nodes; inode++) {
+                m_data_mgr->fsiMesh2DState_H->pos_fsi_fea_H[index] = ToReal3(mesh2D_states[imesh].pos[inode]);
+                m_data_mgr->fsiMesh2DState_H->vel_fsi_fea_H[index] = ToReal3(mesh2D_states[imesh].vel[inode]);
+                m_data_mgr->fsiMesh2DState_H->acc_fsi_fea_H[index] = ToReal3(mesh2D_states[imesh].acc[inode]);
+                index++;
+            }
+        }
+
+        if (num_meshes > 0)
+            m_data_mgr->fsiMesh2DState_D->CopyFromH(*m_data_mgr->fsiMesh2DState_H);
+    }
+}
+
 void ChFluidSystemSPH::OnAddFsiBody(unsigned int index, ChFsiInterface::FsiBody& fsi_body) {}
 
 void ChFluidSystemSPH::ChFluidSystemSPH::SetBcePattern1D(BcePatternMesh1D pattern, bool remove_center) {
@@ -746,16 +799,22 @@ Real W3h_Spline(Real d, Real invh) {
 }
 
 void ChFluidSystemSPH::Initialize() {
-    Initialize(0, 0, 0, 0, 0);
+    Initialize(0, 0, 0, 0, 0, std::vector<FsiBodyState>(), std::vector<FsiMeshState>(), std::vector<FsiMeshState>());
 }
 
 void ChFluidSystemSPH::Initialize(unsigned int num_fsi_bodies,
                                   unsigned int num_fsi_nodes1D,
                                   unsigned int num_fsi_elements1D,
                                   unsigned int num_fsi_nodes2D,
-                                  unsigned int num_fsi_elements2D) {
+                                  unsigned int num_fsi_elements2D,
+                                  const std::vector<FsiBodyState>& body_states,
+                                  const std::vector<FsiMeshState>& mesh1D_states,
+                                  const std::vector<FsiMeshState>& mesh2D_states) {
     // Invoke the base class method
-    ChFluidSystem::Initialize(num_fsi_bodies, num_fsi_nodes1D, num_fsi_elements1D, num_fsi_nodes2D, num_fsi_elements2D);
+    ChFluidSystem::Initialize(num_fsi_bodies,                              //
+                              num_fsi_nodes1D, num_fsi_elements1D,         //
+                              num_fsi_nodes2D, num_fsi_elements2D,         //
+                              body_states, mesh1D_states, mesh2D_states);  //
 
     // Hack to still allow time step size specified through JSON files
     if (m_paramsH->dT < 0) {
@@ -832,10 +891,8 @@ void ChFluidSystemSPH::Initialize(unsigned int num_fsi_bodies,
     assert(m_num_elements2D == num_fsi_elements2D);
     m_data_mgr->Initialize(num_fsi_bodies, num_fsi_nodes1D, num_fsi_elements1D, num_fsi_nodes2D, num_fsi_elements2D);
 
-    if (m_fsi_interface) {
-        m_fsi_interface->LoadBodyStates();
-        m_fsi_interface->LoadMeshStates();
-    }
+    // Load the initial body and mesh node states
+    LoadInitialSolidStates(body_states, mesh1D_states, mesh2D_states);
 
     // Create BCE and SPH worker objects
     m_bce_mgr = chrono_types::make_unique<BceManager>(*m_data_mgr, m_verbose);

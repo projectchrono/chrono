@@ -139,12 +139,12 @@ void ChFsiSystem::AddFsiMesh2D(std::shared_ptr<fea::ChContactSurfaceMesh> surfac
 void ChFsiSystem::Initialize() {
     if (!m_sysCFD) {
         cout << "ERROR: No fluid system was created." << endl;
-        throw std::runtime_error("No fluid system was created.");    
+        throw std::runtime_error("No fluid system was created.");
     }
 
     if (!m_sysMBS) {
         cout << "ERROR: No multibody system was specified." << endl;
-        throw std::runtime_error("No multibody system was specified.");    
+        throw std::runtime_error("No multibody system was specified.");
     }
 
     if (!m_fsi_interface) {
@@ -164,12 +164,21 @@ void ChFsiSystem::Initialize() {
         m_step_MBD = m_step_CFD;
     }
 
+    // Initialize the FSI interface and extract initial solid states
     m_fsi_interface->Initialize();
 
+    std::vector<FsiBodyState> body_states;
+    std::vector<FsiMeshState> mesh1D_states;
+    std::vector<FsiMeshState> mesh2D_states;
+    m_fsi_interface->AllocateStateVectors(body_states, mesh1D_states, mesh2D_states);
+    m_fsi_interface->LoadStateVectors(body_states, mesh1D_states, mesh2D_states);
+
+    // Initialize fluid system with initial solid states
     m_sysCFD->SetStepSize(m_step_CFD);
     m_sysCFD->Initialize(m_fsi_interface->GetNumBodies(),                                        //
                          m_fsi_interface->GetNumNodes1D(), m_fsi_interface->GetNumElements1D(),  //
-                         m_fsi_interface->GetNumNodes2D(), m_fsi_interface->GetNumElements2D());
+                         m_fsi_interface->GetNumNodes2D(), m_fsi_interface->GetNumElements2D(),  //
+                         body_states, mesh1D_states, mesh2D_states);                             //
 
     // Mark system as initialized
     m_is_initialized = true;
@@ -233,8 +242,8 @@ void ChFsiSystem::DoStepDynamics(double step) {
 
     // Load new solid phase states
     m_timer_FSI.start();
-    m_fsi_interface->LoadBodyStates();
-    m_fsi_interface->LoadMeshStates();
+    m_fsi_interface->ApplyBodyStates();
+    m_fsi_interface->ApplyMeshStates();
     m_sysCFD->OnLoadSolidStates();
     m_timer_FSI.stop();
 
