@@ -65,9 +65,15 @@ public:
     // GLOBAL FUNCTIONS
     // 
     // These are utility functions to invoke functions at once on all domains
-    // of this domain manager in a while{...} simulation loop, to avoid
+    // of this domain manager, especially in a while{...} simulation loop, to avoid
     // using the #pragma omp parallel.. from the user side.
     // NOTE: these contain the OpenMP parallelization
+
+    /// For all domains, call Initialize() for the contained ChSystem(), updating
+    /// all the AABBs of the collision models, then it calls the first setup of
+    /// partitioning using DoAllDomainPartitionUpdate().
+    /// This function might be called before starting the simulation loop.
+    virtual bool DoAllDomainInitialize();
 
     /// For all domains, call DoDomainPartitionUpdate() using a OpenMP parallelization.
     /// This function might be called before each simulation time step (or periodically)

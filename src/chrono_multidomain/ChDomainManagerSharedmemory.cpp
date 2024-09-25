@@ -74,6 +74,29 @@ bool ChDomainManagerSharedmemory::DoDomainPartitionUpdate(int mrank) {
 }
 
 
+
+
+
+bool ChDomainManagerSharedmemory::DoAllDomainInitialize() {
+	std::vector<std::shared_ptr<ChDomain>> vdomains;
+	for (auto& ido : this->domains)
+		vdomains.push_back(ido.second);
+
+#pragma omp parallel num_threads((int)vdomains.size())
+	{
+		int i = omp_get_thread_num();
+
+		// update all AABBs (the initialize would be called automatically before DoStepDynamics(),
+		// but one needs AABBs before calling DoAllDomainPartitionUpdate() the first time, i.e before DoStepDynamics())
+		vdomains[i]->GetSystem()->GetCollisionSystem()->Initialize(); 
+
+		// Run the partitioning setup for the first run
+		//DoAllDomainPartitionUpdate();							//***COMM+BARRIER***
+	}
+}
+
+
+
 bool ChDomainManagerSharedmemory::DoAllDomainPartitionUpdate() {
 	std::vector<std::shared_ptr<ChDomain>> vdomains;
 	for (auto& ido : this->domains) 

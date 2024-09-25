@@ -49,6 +49,12 @@ public:
     // These are designed to be called in parallel by multiple domains, each domain
     // being managed by a corresponding process spawn by MPI. 
 
+    /// For a given domain, call Initialize() for the contained ChSystem(), updating
+    /// all the AABBs of the collision models, then it calls the first setup of
+    /// partitioning using DoDomainPartitionUpdate().
+    /// This function might be called before starting the simulation loop.
+    virtual bool DoDomainInitialize(int mrank);
+
     /// For a given domain, send all data in buffer_sending to the 
     /// buffer_receiving of the neighbour domains, and at the same time
     /// it receives into  buffer_receiving the data in buffer_sending of the neighbours.
