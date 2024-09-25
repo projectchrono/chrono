@@ -48,7 +48,7 @@ using std::endl;
 ChVisualSystem::Type vis_type = ChVisualSystem::Type::VSG;
 
 // Output directories and settings
-std::string out_dir = GetChronoOutputPath() + "FSI_Flap_Arman";
+std::string out_dir = GetChronoOutputPath() + "FSI_Flap_Monaghan_2e-2_wave_Freq_new_eos";
 
 // Output frequency
 bool output = true;
@@ -119,6 +119,25 @@ class WaveFunction : public ChFunction {
     double omega;
 };
 
+
+class WaveFunctionDecay : public ChFunction {
+  public:
+    // stroke s0, period T, with an exponential decay
+    WaveFunctionDecay() : s0(0.1), T(1) {}
+    WaveFunctionDecay(double s0, double period) : s0(s0 / 2), T(period) {}
+
+    virtual WaveFunction* Clone() const override { return new WaveFunction(); }
+
+    virtual double GetVal(double t) const override {
+        return 0.5 * s0 * (1 - std::exp(-t / T)) * std::sin(2. * CH_PI / T * t);
+    }
+
+  private:
+    double s0;  // stroke
+    double T;   // period
+};
+
+
 // -----------------------------------------------------------------------------
 
 void CreateFlap(ChFsiProblem& fsi) {
@@ -153,7 +172,7 @@ void CreateFlap(ChFsiProblem& fsi) {
 
     sysMBS.AddBody(flap);
     if (show_rigid)
-        geometry.CreateVisualizationAssets(flap, utils::ChBodyGeometry::VisualizationType::COLLISION);
+        geometry.CreateVisualizationAssets(flap, VisualizationType::COLLISION);
     fsi.AddRigidBody(flap, geometry, true, true);
 
     // add ground 
@@ -201,12 +220,14 @@ int main(int argc, char* argv[]) {
     sph_params.sph_method = SPHMethod::WCSPH;
     sph_params.kernel_h = initial_spacing;
     sph_params.initial_spacing = initial_spacing;
-    sph_params.max_velocity = 3.6;
+    sph_params.max_velocity = 8;
     sph_params.xsph_coefficient = 0.5;
     sph_params.shifting_coefficient = 0.0;
-    sph_params.density_reinit_steps = 800;
+    //sph_params.density_reinit_steps = 800;
     sph_params.consistent_gradient_discretization = false;
     sph_params.consistent_laplacian_discretization = false;
+    sph_params.use_artificial_viscosity = true;
+    sph_params.artificial_viscosity = 0.02;
 
     sysFSI.SetSPHParameters(sph_params);
     sysFSI.SetStepSize(step_size);
@@ -228,10 +249,18 @@ int main(int argc, char* argv[]) {
     );
 
     // Create a piston wavemaker mechanism
-    double fun_amp = 0.6;
-    double freq = 0.5;
-    auto fun = chrono_types::make_shared<WaveFunction>(0.05, fun_amp, 0.2);
-    fsi.AddWaveMaker(csize, ChVector3d(0, 0, 0), fun);
+    //double fun_amp = 0.2;
+    //double freq = 1.0;
+    //auto fun = chrono_types::make_shared<WaveFunction>(0.05, fun_amp, freq);
+    //fsi.AddWaveMaker(ChFsiProblem::WavemakerType::PISTON, csize, ChVector3d(0, 0, 0), fun);
+
+    // Create a wave tank
+    double stroke = 0.1;
+    double period = 1.4;
+    auto fun = chrono_types::make_shared<WaveFunctionDecay>(stroke, period);
+    auto body = fsi.AddWaveMaker(ChFsiProblem::WavemakerType::PISTON, csize, ChVector3d(0, 0, 0), fun);
+
+
 
     // Initialize the FSI system
     fsi.Initialize();

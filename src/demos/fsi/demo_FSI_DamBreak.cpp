@@ -110,14 +110,14 @@ int main(int argc, char* argv[]) {
     }
 
     // Dimension of the space domain
-    double bxDim = 6.0;
+    double bxDim = 12.0;
     double byDim = 1.0;
-    double bzDim = 4.0;
+    double bzDim = 8.0;
 
     // Dimension of the fluid domain
-    double fxDim = 2.0;
+    double fxDim = 4.0;
     double fyDim = 1.0;
-    double fzDim = 2.0;
+    double fzDim = 4.0;
 
     // Create a physics system and an FSI system
     ChSystemSMC sysMBS;
@@ -170,7 +170,7 @@ int main(int argc, char* argv[]) {
     sysFSI.Initialize();
 
     // Output directories
-    std::string out_dir = GetChronoOutputPath() + "FSI_Dam_Break" + std::to_string(ps_freq);
+    std::string out_dir = GetChronoOutputPath() + "FSI_Dam_Break_" + std::to_string(ps_freq);
 
     if (output || snapshots) {
         if (!filesystem::create_directory(filesystem::path(out_dir))) {

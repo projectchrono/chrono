@@ -49,10 +49,10 @@ using std::endl;
 ChVisualSystem::Type vis_type = ChVisualSystem::Type::VSG;
 
 // Container dimensions
-ChVector3d csize(4.0, 0.4, 0.8);
+ChVector3d csize(4.0, 0.4, 1.5);
 
 // Size of initial volume of SPH material
-ChVector3d fsize(4.0, 0.4, 0.4);
+ChVector3d fsize(4.0, 0.4, 0.8);
 
 // Visibility flags
 bool show_rigid = true;
@@ -94,6 +94,26 @@ class WaveFunction : public ChFunction {
     double a2;
     double omega;
 };
+
+
+class WaveFunctionDecay : public ChFunction {
+  public:
+    // stroke s0, period T, with an exponential decay
+    WaveFunctionDecay() : s0(0.1), T(1) {}
+    WaveFunctionDecay(double s0, double period)
+        : s0(s0 / 2), T(period) {}
+
+    virtual WaveFunction* Clone() const override { return new WaveFunction(); }
+
+    virtual double GetVal(double t) const override {
+        return 0.5 * s0 * (1 - std::exp(-t/T)) * std::sin(2.* CH_PI/T * t);
+    }
+
+  private:
+    double s0;  // stroke
+    double T;   // period
+};
+
 
 // -----------------------------------------------------------------------------
 
@@ -148,17 +168,17 @@ int main(int argc, char* argv[]) {
     double step_size = 1e-4;
 
     // Parse command line arguments
-    double t_end = 5.0;
+    double t_end = 20.0;
     bool verbose = true;
-    bool output = false;
+    bool output = true;
     double output_fps = 20;
-    bool render = true;
+    bool render = false;
     double render_fps = 400;
     bool snapshots = false;
     int ps_freq = 1;
-    if (!GetProblemSpecs(argc, argv, t_end, verbose, output, output_fps, render, render_fps, snapshots, ps_freq)) {
-        return 1;
-    }
+    //if (!GetProblemSpecs(argc, argv, t_end, verbose, output, output_fps, render, render_fps, snapshots, ps_freq)) {
+    //    return 1;
+    //}
 
     // Create the Chrono system and associated collision system
     ChSystemNSC sysMBS;
@@ -185,15 +205,17 @@ int main(int argc, char* argv[]) {
     sph_params.sph_method = SPHMethod::WCSPH;
     sph_params.kernel_h = initial_spacing;
     sph_params.initial_spacing = initial_spacing;
-    sph_params.max_velocity = 1.0;
+    sph_params.max_velocity = 4.0;  // maximum velocity should be 2*sqrt(grav * fluid_height)
     sph_params.xsph_coefficient = 0.5;
     sph_params.shifting_coefficient = 0.0;
-    sph_params.density_reinit_steps = 1000;
+    //sph_params.density_reinit_steps = 1000;
     sph_params.consistent_gradient_discretization = false;
     sph_params.consistent_laplacian_discretization = false;
     sph_params.num_proximity_search_steps = ps_freq;
+    sph_params.artificial_viscosity = 0.02;
     sysFSI.SetSPHParameters(sph_params);
     sysFSI.SetStepSize(step_size);
+    sysFSI.SetNumBCELayers(5);
 
     // Enable height-based initial pressure for SPH particles
     fsi.RegisterParticlePropertiesCallback(
@@ -207,7 +229,10 @@ int main(int argc, char* argv[]) {
     );
 
     // Create a wave tank
-    auto fun = chrono_types::make_shared<WaveFunction>(0.25, 0.2, 1);
+    double stroke = 0.1;
+    double period = 1.4;
+    auto fun = chrono_types::make_shared<WaveFunctionDecay>(stroke, period);
+
     auto body = fsi.AddWaveMaker(ChFsiProblem::WavemakerType::PISTON, csize, ChVector3d(0, 0, 0), fun);
     ////auto fun = chrono_types::make_shared<WaveFunction>(0.25, 0.4, 1.25);
     ////auto body = fsi.AddWaveMaker(ChFsiProblem::WavemakerType::FLAP, csize, ChVector3d(0, 0, 0), fun);   
@@ -215,7 +240,7 @@ int main(int argc, char* argv[]) {
     fsi.Initialize();
 
     // Output directories
-    std::string out_dir = GetChronoOutputPath() + "FSI_Wave_Tank" + std::to_string(ps_freq);
+    std::string out_dir = GetChronoOutputPath() + "FSI_Wave_Tank_" + std::to_string(ps_freq) + "alpha_2e-2_decay_func_new_EOS_taller_17h";
     if (output || snapshots) {
         if (!filesystem::create_directory(filesystem::path(out_dir))) {
             cerr << "Error creating directory " << out_dir << endl;
@@ -279,7 +304,7 @@ int main(int argc, char* argv[]) {
             }
         }
 
-        auto col_callback = chrono_types::make_shared<VelocityColorCallback>(0, 1.0);
+        auto col_callback = chrono_types::make_shared<VelocityColorCallback>(0, 2.0);
         auto vis_callback = chrono_types::make_shared<PositionVisibilityCallback>();
 
         visFSI->SetTitle("Chrono::FSI Wave Tank");
