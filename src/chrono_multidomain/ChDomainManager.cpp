@@ -188,6 +188,39 @@ std::shared_ptr<ChDomain> ChDomainBuilderSlices::BuildDomain(
 		hi_interf.side_OUT = hi_domain;
 	}
 
+	/// Process collision pairs found by the narrow-phase collision step.
+	/// Filter out the contacts that are not inside the domain (it can happen
+	/// that two bodies are partially overlapping with this domain, ex. leaning out
+	/// to the right side: the collision engine of this domain would create contacts also 
+	/// between the geometry features that are outside, and at the same time the domain 
+	/// on the right would generate them as well, ending with duplicated contacts on a global level.
+	/// This filtering discards contacts whose main reference is not exactly contained in this 
+	/// domain. A NarrowphaseCallback is used for such filtering.
+	class ContactDomainFilter : public ChCollisionSystem::NarrowphaseCallback {
+	public:
+		virtual ~ContactDomainFilter() {}
+
+		virtual bool OnNarrowphase(ChCollisionInfo& contactinfo) {
+			// Trick: in the neighbour domain, vpA and vpB might be swapped, so
+			// here make the reference unique 
+			ChVector3d reference;
+			if (contactinfo.vpA.x() < contactinfo.vpB.x()) 
+				reference = contactinfo.vpA.x();
+			else
+				reference = contactinfo.vpB.x();
+			
+			// test if reference is inside domain
+			if (mdomain->IsInto(contactinfo.vpA))
+				return true;
+			else
+				return false;
+		}
+		ChDomain* mdomain;
+	};
+	auto mfilter = chrono_types::make_shared<ContactDomainFilter>();
+	mfilter->mdomain = domain.get();
+	msys->GetCollisionSystem()->RegisterNarrowphaseCallback(mfilter);
+
 	return domain;
 }
 
