@@ -109,8 +109,11 @@ class CH_FSI_API ChSystemFsi {
         bool use_density_based_projection;         ///< (ISPH only, default: false)
         bool consistent_gradient_discretization;   ///< use G matrix in SPH gradient approximation (default: false)
         bool consistent_laplacian_discretization;  ///< use L matrix in SPH Laplacian approximation (default: false)
+        bool use_artificial_viscosity;             ///< use artificial viscosity (default: true)
+        double artificial_viscosity;               ///< artificial viscosity coefficient (default: 0.02)
         double kernel_threshold;                   ///< threshold for identifying free surface (CRM only, default: 0.8)
         int num_proximity_search_steps;            ///< number of steps between updates to neighbor lists (default: 4)
+        
 
         SPHParameters();
     };
