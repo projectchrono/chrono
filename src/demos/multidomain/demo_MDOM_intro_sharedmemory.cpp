@@ -63,10 +63,10 @@ int main(int argc, char* argv[]) {
     ChDomainManagerSharedmemory domain_manager;
 
     // For debugging/logging:
-    domain_manager.verbose_partition = false; // will print partitioning in std::cout ?
+    domain_manager.verbose_partition = true; // will print partitioning in std::cout ?
     domain_manager.verbose_serialization = false; // will print serialization buffers in std::cout ?
-    domain_manager.verbose_variable_updates = true; // will print all messages in std::cout ?
-    domain_manager.serializer_type = DomainSerializerFormat::JSON;
+    domain_manager.verbose_variable_updates = false; // will print all messages in std::cout ?
+    domain_manager.serializer_type = DomainSerializerFormat::JSON; 
 
     // 2- the domain builder.
     // You must define how the 3D space is divided in domains. 
@@ -84,7 +84,7 @@ int main(int argc, char* argv[]) {
 
     ChSystemNSC sys_0;
     sys_0.SetCollisionSystemType(ChCollisionSystem::Type::BULLET);
-    sys_0.GetSolver()->AsIterative()->SetMaxIterations(15);
+    sys_0.GetSolver()->AsIterative()->SetMaxIterations(25);
 
     domain_manager.AddDomain(domain_builder.BuildDomain(
                                         &sys_0, // physical system of this domain
@@ -93,7 +93,7 @@ int main(int argc, char* argv[]) {
 
     ChSystemNSC sys_1;
     sys_1.SetCollisionSystemType(ChCollisionSystem::Type::BULLET);
-    sys_1.GetSolver()->AsIterative()->SetMaxIterations(15);
+    sys_1.GetSolver()->AsIterative()->SetMaxIterations(25);
 
     domain_manager.AddDomain(domain_builder.BuildDomain(
                                         &sys_1, // physical system of this domain
@@ -131,6 +131,7 @@ int main(int argc, char* argv[]) {
         mat);        // contact material
     sys_1.AddBody(mrigidBodyb);
     mrigidBodyb->SetPos(ChVector3d(1.5, 0, 0));
+    mrigidBodyb->SetFixed(true);
     mrigidBodyb->SetTag(unique_ID); unique_ID++;
 
     auto mrigidBodyc = chrono_types::make_shared<ChBodyEasyBox>(5, 0.5, 5,  // x,y,z size
@@ -139,9 +140,10 @@ int main(int argc, char* argv[]) {
         true,        // collision?
         mat);        // contact material
     sys_0.AddBody(mrigidBodyc);
-    mrigidBodyc->SetPos(ChVector3d(0, -1, 0));
+    mrigidBodyc->SetPos(ChVector3d(0, -1.15, 0));
     mrigidBodyc->SetFixed(true);
     mrigidBodyc->SetTag(unique_ID); unique_ID++;
+    
 
     auto mrigidBodyd = chrono_types::make_shared<ChBodyEasySphere>(0.6,  // rad
         400,         // density
@@ -159,13 +161,9 @@ int main(int argc, char* argv[]) {
     linkdistance->SetTag(unique_ID); unique_ID++;
 
 
-    // HACK force update of AABB of bodies, already in StepDynamics() but here for first DoAllDomainPartitionUpdate()
-    sys_0.GetCollisionSystem()->BindItem(mrigidBody); 
-    sys_1.GetCollisionSystem()->BindItem(mrigidBodyb);
-    sys_0.GetCollisionSystem()->BindItem(mrigidBodyc);
 
     // For debugging: open two 3D realtime view windows, each per domain:
-    /*
+    
     auto vis_irr_0 = chrono_types::make_shared<ChVisualSystemIrrlicht>();
     vis_irr_0->AttachSystem(&sys_0);
     vis_irr_0->SetWindowTitle("Domain 0");
@@ -182,14 +180,16 @@ int main(int argc, char* argv[]) {
     vis_irr_1->AddCamera(ChVector3d(1, 2, 6), ChVector3d(0, 2, 0));
     vis_irr_1->AddTypicalLights();
     //vis_irr_1->BindAll();
-    */
+    
     system("pause");
+
+    // INITIAL SETUP OF COLLISION AABBs AND INITIAL AUTOMATIC ITEMS MIGRATION!
+    domain_manager.DoAllDomainInitialize();
 
     for (int i = 0; i < 25; ++i) {
         std::cout << "\n\n\n============= Time step " << i << std::endl << std::endl;
        
         // For debugging: open two 3D realtime view windows, each per domain:
-        /*
         vis_irr_0->RemoveAllIrrNodes();
         vis_irr_0->BindAll();
         vis_irr_0->Run();
@@ -202,10 +202,10 @@ int main(int argc, char* argv[]) {
         vis_irr_1->BeginScene();
         vis_irr_1->Render();
         vis_irr_1->EndScene();
-        */
+        
         // MULTIDOMAIN AUTOMATIC ITEM MIGRATION!
         domain_manager.DoAllDomainPartitionUpdate();
-        //system("pause");
+
         // MULTIDOMAIN TIME INTEGRATION
         domain_manager.DoAllStepDynamics(0.01);
 

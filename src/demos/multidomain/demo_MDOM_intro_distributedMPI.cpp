@@ -115,11 +115,10 @@ int main(int argc, char* argv[]) {
         // 5- a very important thing: for multidomain, each item (body, mesh, link, node, FEA element)
         // must have an unique tag! This SetTag() is needed because items might be shared between neighbouring domains. 
         mrigidBody->SetTag(unique_ID); unique_ID++;
-
-
-        sys.GetCollisionSystem()->BindItem(mrigidBody); // HACK force update of AABB of bodies, already in StepDynamics() but here for first DoAllDomainPartitionUpdate()
     }
 
+    // INITIAL SETUP OF COLLISION AABBs 
+    domain_manager.DoDomainInitialize(domain_manager.GetMPIrank());
 
     for (int i = 0; i < 12; ++i) {
 
