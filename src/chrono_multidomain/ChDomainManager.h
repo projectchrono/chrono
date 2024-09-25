@@ -327,8 +327,8 @@ public:
     std::shared_ptr<ChDomain> side_OUT;
 
     // Maps of shared graph nodes:
-    std::unordered_map<int, std::shared_ptr<ChPhysicsItem>> shared_items;
-    std::unordered_map<int, std::shared_ptr<ChNodeBase>>    shared_nodes;
+    std::map<int, std::shared_ptr<ChPhysicsItem>> shared_items;
+    std::map<int, std::shared_ptr<ChNodeBase>>    shared_nodes;
 
     // Maps of shared graph edges: 
     // -no edge sharing by design-
@@ -338,7 +338,7 @@ public:
     std::stringstream buffer_receiving;
 
     // for the system descriptor:
-    std::unordered_set<ChVariables*> shared_vars;
+    std::vector<ChVariables*> shared_vars;
 
 private:
 };

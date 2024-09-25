@@ -256,7 +256,7 @@ void InterfaceManageNodeSharedLeaving(
 	std::unordered_set<int>& shared_ids,
 	std::unordered_set<int>& sent_ids,
 	std::vector<ChIncrementalObj<T_node_serial>>& objs_to_send,	
-	std::unordered_map<int, std::shared_ptr<T_node_sh>>& interface_sharedmap
+	std::map<int, std::shared_ptr<T_node_sh>>& interface_sharedmap
 	) {
 
 	bool is_sharing = (interface_sharedmap.find(mtag) != interface_sharedmap.end());
@@ -709,27 +709,24 @@ void  ChDomain::DoUpdateSharedReceived() {
 
 
 		// KEEP TRACK OF SHARED VARS
+		//
+		// This builds the list of shared variables (ChVariable objects used by system descriptors)
+		// by selecting only those that belong to items that are in the shared maps.
+		// The shared_items containers are of ordered type, ordered by tag ID, so we can be sure 
+		// that the order of the variables in shared_vars is the same also on the other side, in the
+		// neighbouring domain. 
 
 		ChSystemDescriptor temp_descr;
-
-		for (const auto& body : system->GetBodies()) {
-			if (interf.second.shared_items.find(body->GetTag()) != interf.second.shared_items.end())
-				body->InjectVariables(temp_descr);
+		
+		for (auto& mshitem : interf.second.shared_items) {
+			mshitem.second->InjectVariables(temp_descr);
 		}
-		for (const auto& oitem : system->GetOtherPhysicsItems()) {
-			//if (interf.second.shared_items..find(oitem->GetTag()) != interf.second.shared_items.end())
-			//	oitem->InjectVariables(temp_descr); // TODO maybe ChPhysicsItem is an obj with some vars too, that are NOT in th elist GetNodes()... ?
-
-			if (auto mmesh = std::dynamic_pointer_cast<fea::ChMesh>(oitem)) {
-				for (const auto& node : mmesh->GetNodes()) {
-					if (interf.second.shared_nodes.find(node->GetTag()) != interf.second.shared_nodes.end())
-						node->InjectVariables(temp_descr); 
-				}
-			}
+		for (auto& mshnode : interf.second.shared_nodes) {
+			mshnode.second->InjectVariables(temp_descr);
 		}
 
 		interf.second.shared_vars.clear();
-		interf.second.shared_vars.insert(temp_descr.GetVariables().begin(), temp_descr.GetVariables().end());
+		interf.second.shared_vars = temp_descr.GetVariables();
 
 	}
 
