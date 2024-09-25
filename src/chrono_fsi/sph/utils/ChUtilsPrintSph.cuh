@@ -56,7 +56,7 @@ void PrintParticleToFile(const thrust::device_vector<Real4>& posRadD,
 /// of nodes on flexible bodies.
 void PrintFsiInfoToFile(const thrust::device_vector<Real3>& posRigidD,
                         const thrust::device_vector<Real4>& qRigidD,
-                        const thrust::device_vector<Real4>& velRigidD,
+                        const thrust::device_vector<Real3>& velRigidD,
                         const thrust::device_vector<Real3>& pos1DNodeD,
                         const thrust::device_vector<Real3>& pos2DNodeD,
                         const thrust::device_vector<Real3>& vel1DNodeD,

@@ -50,7 +50,7 @@ void ChFsiInterfaceSPH::ApplyBodyStates() {
     int index = 0;
     for (const auto& fsi_body : m_fsi_bodies) {
         m_data_mgr.fsiBodyState_H->pos[index] = ToReal3(fsi_body.body->GetPos());
-        m_data_mgr.fsiBodyState_H->lin_vel[index] = ToReal4(fsi_body.body->GetPosDt(), fsi_body.body->GetMass());
+        m_data_mgr.fsiBodyState_H->lin_vel[index] = ToReal3(fsi_body.body->GetPosDt());
         m_data_mgr.fsiBodyState_H->lin_acc[index] = ToReal3(fsi_body.body->GetPosDt2());
         m_data_mgr.fsiBodyState_H->rot[index] = ToReal4(fsi_body.body->GetRot());
         m_data_mgr.fsiBodyState_H->ang_vel[index] = ToReal3(fsi_body.body->GetAngVelLocal());

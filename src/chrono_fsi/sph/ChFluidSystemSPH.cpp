@@ -680,7 +680,7 @@ void ChFluidSystemSPH::LoadInitialSolidStates(const std::vector<FsiBodyState>& b
         size_t num_bodies = body_states.size();
         for (size_t i = 0; i < num_bodies; i++) {
             m_data_mgr->fsiBodyState_H->pos[i] = ToReal3(body_states[i].pos);
-            m_data_mgr->fsiBodyState_H->lin_vel[i] = ToReal4(body_states[i].lin_vel, 0.0);
+            m_data_mgr->fsiBodyState_H->lin_vel[i] = ToReal3(body_states[i].lin_vel);
             m_data_mgr->fsiBodyState_H->lin_acc[i] = ToReal3(body_states[i].lin_acc);
             m_data_mgr->fsiBodyState_H->rot[i] = ToReal4(body_states[i].rot);
             m_data_mgr->fsiBodyState_H->ang_vel[i] = ToReal3(body_states[i].lin_acc);

@@ -46,28 +46,32 @@ namespace sph {
 
 /// typedef device iterators for shorthand SPH operation of thrust vectors of Real3
 typedef thrust::device_vector<Real3>::iterator r3IterD;
+
 /// typedef device iterators for shorthand SPH operation of thrust vectors of Real4
 typedef thrust::device_vector<Real4>::iterator r4IterD;
+
 /// typedef device tuple for holding SPH data pos,vel,[rho,pressure,mu,type]
 typedef thrust::tuple<r4IterD, r3IterD, r4IterD, r3IterD, r3IterD> iterTupleSphD;
 typedef thrust::zip_iterator<iterTupleSphD> zipIterSphD;
 
 /// typedef host iterators for shorthand SPH operation of thrust vectors of Real3
 typedef thrust::host_vector<Real3>::iterator r3IterH;
+
 /// typedef host iterators for shorthand SPH operation of thrust vectors of Real4
 typedef thrust::host_vector<Real4>::iterator r4IterH;
+
 /// typedef host tuple for holding SPH data pos,vel,[rho,pressure,mu,type]
 typedef thrust::tuple<r4IterH, r3IterH, r4IterH, r3IterH, r3IterH> iterTupleH;
 typedef thrust::zip_iterator<iterTupleH> zipIterSphH;
 
 /// typedef device iterators for shorthand rigid body states:
-/// pos,orientation in position, velocity and acceleration level
-typedef thrust::tuple<r3IterD, r4IterD, r3IterD, r4IterD, r3IterD, r3IterD> iterTupleRigidD;
+/// pos,lin_vel,lin_acc,rot,ang_Vel,ang_acc
+typedef thrust::tuple<r3IterD, r3IterD, r3IterD, r4IterD, r3IterD, r3IterD> iterTupleRigidD;
 typedef thrust::zip_iterator<iterTupleRigidD> zipIterRigidD;
 
 /// typedef host iterators for shorthand rigid body states:
-/// pos,orientation in position, velocity and acceleration level
-typedef thrust::tuple<r3IterH, r4IterH, r3IterH, r4IterH, r3IterH, r3IterH> iterTupleRigidH;
+/// pos,lin_vel,lin_acc,rot,ang_Vel,ang_acc
+typedef thrust::tuple<r3IterH, r3IterH, r3IterH, r4IterH, r3IterH, r3IterH> iterTupleRigidH;
 typedef thrust::zip_iterator<iterTupleRigidH> zipIterRigidH;
 
 /// typedef device iterators for shorthand chrono bodies operations
@@ -101,7 +105,7 @@ struct SphMarkerDataH {
 /// Rigid body states on host.
 struct FsiBodyStateH {
     thrust::host_vector<Real3> pos;      ///< body positions
-    thrust::host_vector<Real4> lin_vel;  ///< body linear velocities
+    thrust::host_vector<Real3> lin_vel;  ///< body linear velocities
     thrust::host_vector<Real3> lin_acc;  ///< body linear accelerations
     thrust::host_vector<Real4> rot;      ///< body orientations (quaternions)
     thrust::host_vector<Real3> ang_vel;  ///< body angular velocities (local frame)
@@ -114,7 +118,7 @@ struct FsiBodyStateH {
 ///  Rigid body states on device.
 struct FsiBodyStateD {
     thrust::device_vector<Real3> pos;      ///< body linear positions
-    thrust::device_vector<Real4> lin_vel;  ///< body linear velocities
+    thrust::device_vector<Real3> lin_vel;  ///< body linear velocities
     thrust::device_vector<Real3> lin_acc;  ///< body linear accelerations
     thrust::device_vector<Real4> rot;      ///< body orientations (quaternions)
     thrust::device_vector<Real3> ang_vel;  ///< body angular velocities (local frame)

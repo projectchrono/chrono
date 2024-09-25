@@ -285,7 +285,7 @@ void PrintParticleToFile(const thrust::device_vector<Real4>& posRadD,
 
 void PrintFsiInfoToFile(const thrust::device_vector<Real3>& posRigidD,
                         const thrust::device_vector<Real4>& qRigidD,
-                        const thrust::device_vector<Real4>& velRigidD,
+                        const thrust::device_vector<Real3>& velRigidD,
                         const thrust::device_vector<Real3>& pos1DNodeD,
                         const thrust::device_vector<Real3>& pos2DNodeD,
                         const thrust::device_vector<Real3>& vel1DNodeD,
@@ -301,7 +301,7 @@ void PrintFsiInfoToFile(const thrust::device_vector<Real3>& posRigidD,
 
     // Output FSI information for rigid bodies
     thrust::host_vector<Real3> posRigidH = posRigidD;
-    thrust::host_vector<Real4> velRigidH = velRigidD;
+    thrust::host_vector<Real3> velRigidH = velRigidD;
     thrust::host_vector<Real4> qRigidH = qRigidD;
     thrust::host_vector<Real3> forceRigidH = forceRigidD;
     thrust::host_vector<Real3> torqueRigidH = torqueRigidD;
@@ -314,7 +314,7 @@ void PrintFsiInfoToFile(const thrust::device_vector<Real3>& posRigidD,
         Real3 torque = torqueRigidH[i];
 
         Real3 pos = posRigidH[i];
-        Real4 vel = velRigidH[i];
+        Real3 vel = velRigidH[i];
         Real4 rot = qRigidH[i];
 
         std::string filename = dir + "/FSI_body" + std::to_string(i) + ".csv";

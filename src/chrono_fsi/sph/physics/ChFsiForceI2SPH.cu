@@ -46,7 +46,7 @@ __device__ void BCE_Vel_Acc(int i_idx,
                             Real4* qD,
                             Real3* rigid_BCEcoords_D,
                             Real3* posRigid_fsiBodies_D,
-                            Real4* velMassRigid_fsiBodies_D,
+                            Real3* velRigid_fsiBodies_D,
                             Real3* omegaVelLRF_fsiBodies_D,
                             Real3* accRigid_fsiBodies_D,
                             Real3* omegaAccLRF_fsiBodies_D,
@@ -81,7 +81,7 @@ __device__ void BCE_Vel_Acc(int i_idx,
         Real3 rigidSPH_MeshPos_LRF__ = rigid_BCEcoords_D[Original_idx - updatePortion.y];
 
         // Real3 p_com = mR3(posRigid_fsiBodies_D[rigidIndex]);
-        Real3 v_com = mR3(velMassRigid_fsiBodies_D[rigidIndex]);
+        Real3 v_com = velRigid_fsiBodies_D[rigidIndex];
         Real3 a_com = accRigid_fsiBodies_D[rigidIndex];
         Real3 angular_v_com = omegaVelLRF_fsiBodies_D[rigidIndex];
         Real3 angular_a_com = omegaAccLRF_fsiBodies_D[rigidIndex];
@@ -262,7 +262,7 @@ __global__ void V_star_Predictor(Real4* sortedPosRad,  // input: sorted position
                                  Real4* qD,
                                  Real3* rigid_BCEcoords_D,
                                  Real3* posRigid_fsiBodies_D,
-                                 Real4* velMassRigid_fsiBodies_D,
+                                 Real3* velRigid_fsiBodies_D,
                                  Real3* omegaVelLRF_fsiBodies_D,
                                  Real3* accRigid_fsiBodies_D,
                                  Real3* omegaAccLRF_fsiBodies_D,
@@ -414,7 +414,7 @@ __global__ void V_star_Predictor(Real4* sortedPosRad,  // input: sorted position
         Real3 V_prescribed = mR3(0);
 
         BCE_Vel_Acc(i_idx, myAcc, V_prescribed, sortedPosRad, updatePortion, gridMarkerIndexD, qD, rigid_BCEcoords_D,
-                    posRigid_fsiBodies_D, velMassRigid_fsiBodies_D, omegaVelLRF_fsiBodies_D, accRigid_fsiBodies_D,
+                    posRigid_fsiBodies_D, velRigid_fsiBodies_D, omegaVelLRF_fsiBodies_D, accRigid_fsiBodies_D,
                     omegaAccLRF_fsiBodies_D, rigid_BCEsolids_D, flex1D_vel_fsi_fea_D, flex1D_acc_fsi_fea_D,
                     flex2D_vel_fsi_fea_D, flex2D_acc_fsi_fea_D, flex1D_Nodes_D, flex1D_BCEsolids_D, flex1D_BCEcoords_D,
                     flex2D_Nodes_D, flex2D_BCEsolids_D, flex2D_BCEcoords_D);
@@ -456,7 +456,7 @@ __global__ void Pressure_Equation(Real4* sortedPosRad,  // input: sorted positio
                                   Real4* qD,
                                   Real3* rigid_BCEcoords_D,
                                   Real3* posRigid_fsiBodies_D,
-                                  Real4* velMassRigid_fsiBodies_D,
+                                  Real3* velRigid_fsiBodies_D,
                                   Real3* omegaVelLRF_fsiBodies_D,
                                   Real3* accRigid_fsiBodies_D,
                                   Real3* omegaAccLRF_fsiBodies_D,
@@ -553,7 +553,7 @@ __global__ void Pressure_Equation(Real4* sortedPosRad,  // input: sorted positio
         Real3 myAcc = mR3(0);
         Real3 V_prescribed = mR3(0);
         BCE_Vel_Acc(i_idx, myAcc, V_prescribed, sortedPosRad, updatePortion, gridMarkerIndexD, qD, rigid_BCEcoords_D,
-                    posRigid_fsiBodies_D, velMassRigid_fsiBodies_D, omegaVelLRF_fsiBodies_D, accRigid_fsiBodies_D,
+                    posRigid_fsiBodies_D, velRigid_fsiBodies_D, omegaVelLRF_fsiBodies_D, accRigid_fsiBodies_D,
                     omegaAccLRF_fsiBodies_D, rigid_BCEsolids_D, flex1D_vel_fsi_fea_D, flex1D_acc_fsi_fea_D,
                     flex2D_vel_fsi_fea_D, flex2D_acc_fsi_fea_D, flex1D_Nodes_D, flex1D_BCEsolids_D, flex1D_BCEcoords_D,
                     flex2D_Nodes_D, flex2D_BCEsolids_D, flex2D_BCEcoords_D);
@@ -1015,7 +1015,7 @@ void ChFsiForceI2SPH::ForceSPH(std::shared_ptr<SphMarkerDataD> sortedSphMarkers_
         U1CAST(csrColInd), U1CAST(Contact_i),
 
         mR4CAST(m_data_mgr.fsiBodyState_D->rot), mR3CAST(m_data_mgr.rigid_BCEcoords_D),
-        mR3CAST(m_data_mgr.fsiBodyState_D->pos), mR4CAST(m_data_mgr.fsiBodyState_D->lin_vel),
+        mR3CAST(m_data_mgr.fsiBodyState_D->pos), mR3CAST(m_data_mgr.fsiBodyState_D->lin_vel),
         mR3CAST(m_data_mgr.fsiBodyState_D->ang_vel), mR3CAST(m_data_mgr.fsiBodyState_D->lin_acc),
         mR3CAST(m_data_mgr.fsiBodyState_D->ang_acc), U1CAST(m_data_mgr.rigid_BCEsolids_D),
 
@@ -1097,7 +1097,7 @@ void ChFsiForceI2SPH::ForceSPH(std::shared_ptr<SphMarkerDataD> sortedSphMarkers_
         mR3CAST(Normals), U1CAST(csrColInd), U1CAST(Contact_i),
 
         mR4CAST(m_data_mgr.fsiBodyState_D->rot), mR3CAST(m_data_mgr.rigid_BCEcoords_D),
-        mR3CAST(m_data_mgr.fsiBodyState_D->pos), mR4CAST(m_data_mgr.fsiBodyState_D->lin_vel),
+        mR3CAST(m_data_mgr.fsiBodyState_D->pos), mR3CAST(m_data_mgr.fsiBodyState_D->lin_vel),
         mR3CAST(m_data_mgr.fsiBodyState_D->ang_vel), mR3CAST(m_data_mgr.fsiBodyState_D->lin_acc),
         mR3CAST(m_data_mgr.fsiBodyState_D->ang_acc), U1CAST(m_data_mgr.rigid_BCEsolids_D),
 

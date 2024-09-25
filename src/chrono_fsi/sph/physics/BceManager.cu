@@ -344,7 +344,7 @@ __global__ void UpdateBodyMarkerState_D(Real4* posRadD,
                                        Real3* rigid_BCEcoords_D,
                                        uint* rigid_BCEsolids_D,
                                        Real3* posRigidD,
-                                       Real4* velMassRigidD,
+                                       Real3* velRigidD,
                                        Real3* omegaLRF_D,
                                        Real4* qD,
                                        const uint* mapOriginalToSorted) {
@@ -370,10 +370,10 @@ __global__ void UpdateBodyMarkerState_D(Real4* posRadD,
     posRadD[sortedIndex] = mR4(pos, h);
 
     // velocity
-    Real4 vM_Rigid = velMassRigidD[rigidBodyIndex];
+    Real3 v_Rigid = velRigidD[rigidBodyIndex];
     Real3 omega3 = omegaLRF_D[rigidBodyIndex];
     Real3 omegaCrossS = cross(omega3, rigidSPH_MeshPos_LRF);
-    velMasD[sortedIndex] = mR3(vM_Rigid) + mR3(dot(a1, omegaCrossS), dot(a2, omegaCrossS), dot(a3, omegaCrossS));
+    velMasD[sortedIndex] = v_Rigid + mR3(dot(a1, omegaCrossS), dot(a2, omegaCrossS), dot(a3, omegaCrossS));
 }
 
 __global__ void UpdateMeshMarker1DState_D(
@@ -466,13 +466,13 @@ __global__ void UpdateMeshMarker2DState_D(
 }
 
 __global__ void UpdateBodyMarkerStateUnsorted_D(Real4* posRadD,
-                                       Real3* velMasD,
-                                       Real3* rigid_BCEcoords_D,
-                                       uint* rigid_BCEsolids_D,
-                                       Real3* posRigidD,
-                                       Real4* velMassRigidD,
-                                       Real3* omegaLRF_D,
-                                       Real4* qD) {
+                                                Real3* velMasD,
+                                                Real3* rigid_BCEcoords_D,
+                                                uint* rigid_BCEsolids_D,
+                                                Real3* posRigidD,
+                                                Real3* velRigidD,
+                                                Real3* omegaLRF_D,
+                                                Real4* qD) {
     uint index = blockIdx.x * blockDim.x + threadIdx.x;
     if (index >= countersD.numRigidMarkers)
         return;
@@ -494,10 +494,10 @@ __global__ void UpdateBodyMarkerStateUnsorted_D(Real4* posRadD,
     posRadD[rigidMarkerIndex] = mR4(pos, h);
 
     // velocity
-    Real4 vM_Rigid = velMassRigidD[rigidBodyIndex];
+    Real3 v_Rigid = velRigidD[rigidBodyIndex];
     Real3 omega3 = omegaLRF_D[rigidBodyIndex];
     Real3 omegaCrossS = cross(omega3, rigidSPH_MeshPos_LRF);
-    velMasD[rigidMarkerIndex] = mR3(vM_Rigid) + mR3(dot(a1, omegaCrossS), dot(a2, omegaCrossS), dot(a3, omegaCrossS));
+    velMasD[rigidMarkerIndex] = v_Rigid + mR3(dot(a1, omegaCrossS), dot(a2, omegaCrossS), dot(a3, omegaCrossS));
 }
 
 __global__ void UpdateMeshMarker1DStateUnsorted_D(
@@ -835,7 +835,7 @@ void BceManager::UpdateBodyMarkerState() {
     UpdateBodyMarkerState_D<<<nBlocks, nThreads>>>(
         mR4CAST(m_data_mgr.sortedSphMarkers2_D->posRadD), mR3CAST(m_data_mgr.sortedSphMarkers2_D->velMasD),
         mR3CAST(m_data_mgr.rigid_BCEcoords_D), U1CAST(m_data_mgr.rigid_BCEsolids_D),
-        mR3CAST(m_data_mgr.fsiBodyState_D->pos), mR4CAST(m_data_mgr.fsiBodyState_D->lin_vel),
+        mR3CAST(m_data_mgr.fsiBodyState_D->pos), mR3CAST(m_data_mgr.fsiBodyState_D->lin_vel),
         mR3CAST(m_data_mgr.fsiBodyState_D->ang_vel), mR4CAST(m_data_mgr.fsiBodyState_D->rot),
         U1CAST(m_data_mgr.markersProximity_D->mapOriginalToSorted));
 
@@ -854,7 +854,7 @@ void BceManager::UpdateBodyMarkerStateInitial() {
     UpdateBodyMarkerStateUnsorted_D<<<nBlocks, nThreads>>>(
         mR4CAST(m_data_mgr.sphMarkers_D->posRadD), mR3CAST(m_data_mgr.sphMarkers_D->velMasD),
         mR3CAST(m_data_mgr.rigid_BCEcoords_D), U1CAST(m_data_mgr.rigid_BCEsolids_D), mR3CAST(m_data_mgr.fsiBodyState_D->pos),
-        mR4CAST(m_data_mgr.fsiBodyState_D->lin_vel), mR3CAST(m_data_mgr.fsiBodyState_D->ang_vel), mR4CAST(m_data_mgr.fsiBodyState_D->rot));
+        mR3CAST(m_data_mgr.fsiBodyState_D->lin_vel), mR3CAST(m_data_mgr.fsiBodyState_D->ang_vel), mR4CAST(m_data_mgr.fsiBodyState_D->rot));
 
     cudaDeviceSynchronize();
     cudaCheckError();
