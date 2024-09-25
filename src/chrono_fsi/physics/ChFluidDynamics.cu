@@ -410,7 +410,7 @@ __global__ void UpdateFluidD(Real4* posRadD,
         rhoPresMu.x = paramsD.rho0;
     } else {
         Real rho2 = rhoPresMu.x + derivVelRho.w * dT;
-        rhoPresMu.y = Eos(rho2, rhoPresMu.w);
+        rhoPresMu.y = Eos(rho2);
         rhoPresMu.x = rho2;
     }
     if (!IsFinite(rhoPresMu)) {

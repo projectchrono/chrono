@@ -138,20 +138,39 @@ __device__ inline Real3 GradW3h_Quintic(Real3 d, Real h) {  // d is positive. h 
 
 //--------------------------------------------------------------------------------------------------------------------------------
 // Fluid equation of state
-__device__ inline Real Eos(Real rho, Real type) {
-    // if (rho < paramsD.rho0) //
-    //     rho = paramsD.rho0; //
-    // Real gama = 7;
-    // Real B = 100 * paramsD.rho0 * paramsD.v_Max * paramsD.v_Max / gama;
-    // return B * (pow(rho / paramsD.rho0, gama) - 1) + paramsD.BASEPRES; //
-    return paramsD.Cs * paramsD.Cs * (rho - paramsD.rho0);  //
+__device__ inline Real Eos(Real rho) {
+
+    // Luning TODO: more testing needed on this one, not sure what to do with 
+    // from https://pysph.readthedocs.io/en/latest/reference/equations.html#basic-wcsph-equations, it says
+    // it can avoid the particle sticking behavior.  
+    // Tait EOS with Hughes and Graham Correction
+    if (rho < paramsD.rho0) //
+         rho = paramsD.rho0; //   
+     Real gama = 7;
+     Real B = 100 * paramsD.rho0 * paramsD.v_Max * paramsD.v_Max / gama;
+     return B * (pow(rho / paramsD.rho0, gama) - 1) + paramsD.BASEPRES; //
+
+     // Isothermal equation of state
+     //return paramsD.Cs * paramsD.Cs * (rho - paramsD.rho0);  
 }
 
 //--------------------------------------------------------------------------------------------------------------------------------
 // Inverse of equation of state
 __device__ inline Real InvEos(Real pw) {
-    Real rho = pw / (paramsD.Cs * paramsD.Cs) + paramsD.rho0;  //
+    Real gama = 7;
+    Real B = 100 * paramsD.rho0 * paramsD.v_Max * paramsD.v_Max / gama;  // 200;//314e6; //c^2 * paramsD.rho0 / gama
+                                                                         // where c = 1484 m/s for water
+    Real powerComp = (pw - paramsD.BASEPRES) / B + 1.0;
+    Real rho = (powerComp > 0) ? paramsD.rho0 * pow(powerComp, 1.0 / gama)
+                               : -paramsD.rho0 * pow(fabs(powerComp),
+                                                     1.0 / gama);  // did this since CUDA is
+                                                                   // stupid and freaks out by
+                                                                   // negative^(1/gama)
     return rho;
+
+    // Isothermal equation of state
+    // Real rho = pw / (paramsD.Cs * paramsD.Cs) + paramsD.rho0;  //
+    //return rho;
 }
 
 //--------------------------------------------------------------------------------------------------------------------------------
