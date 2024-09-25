@@ -67,7 +67,7 @@ class CH_VEHICLE_API ChTrackShoe : public ChPart {
     virtual ChVector3d GetLateralContactPoint() const = 0;
 
     /// Return contact geometry and material for interaction with terrain.
-    virtual ChVehicleGeometry GetGroundContactGeometry() const { return ChVehicleGeometry(); }
+    virtual utils::ChBodyGeometry GetGroundContactGeometry() const { return utils::ChBodyGeometry(); }
 
     /// Turn on/off collision flag for the shoe body.
     void EnableCollision(bool val) { m_shoe->EnableCollision(val); }

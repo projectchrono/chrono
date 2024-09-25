@@ -12,6 +12,8 @@
 // Authors: Alessandro Tasora
 // =============================================================================
 
+#include <cmath>
+
 #include "chrono_modal/ChKrylovSchurEig.h"
 #include "chrono/solver/ChDirectSolverLS.h"
 #include "chrono/solver/ChDirectSolverLScomplex.h"
@@ -153,7 +155,7 @@ int testConverge(ChMatrixDynamic<std::complex<double>>& H, int k, int i, double 
 
     double epsilon = 2e-16;
     if (i < k) {
-        delta = pow(H(i - 1, i - 1).real() - H(i, i).real(), 2) +
+        delta = std::pow(H(i - 1, i - 1).real() - H(i, i).real(), 2) +
                 4 * H(i - 1, i - 1).imag() * H(i, i).imag();  // (H(i, i) - H(i+1, i+1))^2 + 4 * H(i+1, i) * H(i, i+ 1);
     } else {
         delta = 1;
@@ -166,7 +168,7 @@ int testConverge(ChMatrixDynamic<std::complex<double>>& H, int k, int i, double 
             flag = -1;
         }
     } else {  // complex case
-        std::complex<double> lambda(H(i - 1, i - 1).real() + H(i, i).real(), sqrt(-delta));
+        std::complex<double> lambda(H(i - 1, i - 1).real() + H(i, i).real(), std::sqrt(-delta));
         lambda *= 0.5;
         if (std::abs(H(k, i - 1)) < std::max(H.norm() * epsilon, std::abs(lambda) * tol)) {
             flag = 2;
@@ -226,7 +228,7 @@ void sortSchur(ChMatrixDynamic<std::complex<double>>& US,
     // Also, there is a degeneracy problem.
     // Alex: since we did a Eigen::ComplexSchur(), then all eigens are on the diagonal as complexes, not 2x2 diag
     // blocks, so do instead:
-    double delta = pow(T(k1, k1).real() - T(k2, k2).real(), 2) + 4 * T(k1, k1).imag() * T(k2, k2).imag();
+    double delta = std::pow(T(k1, k1).real() - T(k2, k2).real(), 2) + 4 * T(k1, k1).imag() * T(k2, k2).imag();
     if ((k2 - k1 == 1) && (delta < 0)) {
         isC = 1;  // DARIOM: using ComplexSchur I assume we should never hit this branch
     } else {

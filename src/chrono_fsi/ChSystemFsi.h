@@ -25,6 +25,9 @@
 
 #include "chrono/ChConfig.h"
 #include "chrono/physics/ChSystem.h"
+#include "chrono/fea/ChMesh.h"
+#include "chrono/fea/ChContactSurfaceMesh.h"
+#include "chrono/fea/ChContactSurfaceSegmentSet.h"
 
 #include "chrono_fsi/ChApiFsi.h"
 #include "chrono_fsi/ChDefinitionsFsi.h"
@@ -32,17 +35,6 @@
 #include "chrono_fsi/math/custom_math.h"
 
 namespace chrono {
-
-// Forward declarations
-namespace fea {
-class ChNodeFEAxyzD;
-class ChMesh;
-class ChContactSurfaceMesh;
-class ChContactSegmentXYZ;
-class ChElementCableANCF;
-class ChElementShellANCF_3423;
-}  // namespace fea
-
 namespace fsi {
 
 class ChSystemFsi_impl;
@@ -118,6 +110,7 @@ class CH_FSI_API ChSystemFsi {
         bool consistent_gradient_discretization;   ///< use G matrix in SPH gradient approximation (default: false)
         bool consistent_laplacian_discretization;  ///< use L matrix in SPH Laplacian approximation (default: false)
         double kernel_threshold;                   ///< threshold for identifying free surface (CRM only, default: 0.8)
+        int num_proximity_search_steps;            ///< number of steps between updates to neighbor lists (default: 4)
 
         SPHParameters();
     };
@@ -205,9 +198,6 @@ class CH_FSI_API ChSystemFsi {
     /// Enable/disable adaptive time stepping.
     void SetAdaptiveTimeStepping(bool adaptive);
 
-    /// Enable/disable SPH integration.
-    void SetSPHintegration(bool runSPH);
-
     /// Set SPH discretization type, consistent or inconsistent
     void SetConsistentDerivativeDiscretization(bool consistent_gradient, bool consistent_Laplacian);
 
@@ -221,6 +211,9 @@ class CH_FSI_API ChSystemFsi {
     /// Set the SPH method and, optionally, the linear solver type.
     //// TODO: OBSOLETE
     void SetSPHMethod(SPHMethod SPH_method);
+
+    /// Set the number of steps between successive updates to neighbor lists (default: 4).
+    void SetNumProximitySearchSteps(int steps);
 
     /// Enable solution of a CFD problem.
     void SetCfdSPH(const FluidProperties& fluid_props);
@@ -284,6 +277,9 @@ class CH_FSI_API ChSystemFsi {
     /// Return a flag inicating whether adaptive time stepping is enabled.
     bool GetAdaptiveTimeStepping() const;
 
+    /// Get the number of steps between successive updates to neighbor lists.
+    int GetNumProximitySearchSteps() const;
+
     /// Return the current system parameters (debugging only).
     const SimParams& GetParams() const { return *m_paramsH; }
 
@@ -344,17 +340,17 @@ class CH_FSI_API ChSystemFsi {
     // ----------- Functions for adding SPH particles
 
     /// Add an SPH particle with given properties to the FSI system.
-    void AddSPHParticle(const ChVector3d& point,
-                        double rho0,
-                        double pres0,
-                        double mu0,
-                        const ChVector3d& velocity = ChVector3d(0),
+    void AddSPHParticle(const ChVector3d& pos,
+                        double rho,
+                        double pres,
+                        double mu,
+                        const ChVector3d& vel = ChVector3d(0),
                         const ChVector3d& tauXxYyZz = ChVector3d(0),
                         const ChVector3d& tauXyXzYz = ChVector3d(0));
 
     /// Add an SPH particle with current properties to the SPH system.
-    void AddSPHParticle(const ChVector3d& point,
-                        const ChVector3d& velocity = ChVector3d(0),
+    void AddSPHParticle(const ChVector3d& pos,
+                        const ChVector3d& vel = ChVector3d(0),
                         const ChVector3d& tauXxYyZz = ChVector3d(0),
                         const ChVector3d& tauXyXzYz = ChVector3d(0));
 
@@ -452,19 +448,23 @@ class CH_FSI_API ChSystemFsi {
 
     // ----------- Functions for adding FEA meshes and associated BCE markers
 
-    /// Add an FEA mesh with segment contact to the FSI system.
-    /// Returns the index of the FSI mesh in the internal list.
-    size_t AddFsiMesh1D(std::shared_ptr<fea::ChMesh> mesh,                  ///< FEA mesh with 1-D flexible elements
-                        BcePatternMesh1D pattern = BcePatternMesh1D::FULL,  ///< BCE marker pattern in cross-section
-                        bool remove_center = false                          ///< eliminate BCE markers on center line
+    /// Set the BCE marker pattern for 1D flexible solids for subsequent calls to AddFsiMesh.
+    /// By default, a full set of BCE markers is used across each section, including a central marker.
+    void SetBcePattern1D(BcePatternMesh1D pattern,   ///< marker pattern in cross-section
+                         bool remove_center = false  ///< eliminate markers on center line
     );
 
-    /// Add an FEA mesh with surface contact to the FSI system.
-    /// Returns the index of the FSI mesh in the internal list.
-    size_t AddFsiMesh2D(std::shared_ptr<fea::ChMesh> mesh,                      ///< FEA mesh with 2-D contact surfaces
-                        BcePatternMesh2D pattern = BcePatternMesh2D::CENTERED,  ///< BCE locations along normal
-                        bool remove_center = false                              ///< eliminate BCE markers on surface
+    /// Set the BCE marker pattern for 2D flexible solids for subsequent calls to AddFsiMesh.
+    /// By default, BCE markers are created centered on the mesh surface, with a layer of BCEs on the surface.
+    void SetBcePattern2D(BcePatternMesh2D pattern,   ///< pattern of marker locations along normal
+                         bool remove_center = false  ///< eliminate markers on surface
     );
+
+    /// Add an FEA mesh to the FSI system.
+    /// Contact surfaces (of type segment_set or tri_mesh) already defined for the FEA mesh are used to generate the BCE
+    /// markers for the flexible solid. If none are defined, one contact surface of each type is created (as needed) for
+    /// the purpose of creating the BCE markers, but these are not attached to the given FEA mesh.
+    void AddFsiMesh(std::shared_ptr<fea::ChMesh> mesh);
 
     // ----------- Utility functions for extracting information at specific SPH particles
 
@@ -552,22 +552,19 @@ class CH_FSI_API ChSystemFsi {
     /// Initialize simulation parameters with default values.
     void InitParams();
 
+    /// Add a flexible solid with segment set contact to the FSI system.
+    void AddFsiMesh1D(std::shared_ptr<fea::ChContactSurfaceSegmentSet> surface);
+
+    /// Add a flexible solid with surface mesh contact to the FSI system.
+    void AddFsiMesh2D(std::shared_ptr<fea::ChContactSurfaceMesh> surface);
+
     /// Create and add BCE markers associated with the given set of contact segments.
     /// The BCE markers are created in the absolute coordinate frame.
-    unsigned int AddBCE_mesh1D(unsigned int meshID,
-                               const ChFsiInterface::FsiMesh1D& fsi_mesh,
-                               BcePatternMesh1D pattern,
-                               bool remove_center);
+    unsigned int AddBCE_mesh1D(unsigned int meshID, const ChFsiInterface::FsiMesh1D& fsi_mesh);
 
     /// Create and add BCE markers associated with the given mesh contact surface.
     /// The BCE markers are created in the absolute coordinate frame.
-    unsigned int AddBCE_mesh2D(unsigned int meshID,
-                               const ChFsiInterface::FsiMesh2D& fsi_mesh,
-                               BcePatternMesh2D pattern,
-                               bool remove_center);
-
-    /// Function to initialize the midpoint device data of the fluid system by copying from the full step.
-    void CopyDeviceDataToHalfStep();
+    unsigned int AddBCE_mesh2D(unsigned int meshID, const ChFsiInterface::FsiMesh2D& fsi_mesh);
 
     ChSystem* m_sysMBS;  ///< multibody system
 
@@ -588,10 +585,14 @@ class CH_FSI_API ChSystemFsi {
     unsigned int m_num_flex1D_nodes;  ///< number of 1-D flexible segments (across all meshes)
     unsigned int m_num_flex2D_nodes;  ///< number of 2-D flexible faces (across all meshes)
 
-    std::vector<int> m_fsi_bodies_bce_num;  ///< number of BCE particles of each fsi body
+    std::vector<int> m_fsi_bodies_bce_num;  ///< number of BCE particles on each fsi body
+
+    BcePatternMesh1D m_pattern1D;
+    BcePatternMesh2D m_pattern2D;
+    bool m_remove_center1D;
+    bool m_remove_center2D;
 
     bool m_is_initialized;  ///< set to true once the Initialize function is called
-    bool m_integrate_SPH;   ///< set to true if needs to integrate the fsi solver
     double m_time;          ///< current simulation time
 
     ChTimer m_timer_step;  ///< timer for integration step

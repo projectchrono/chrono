@@ -16,6 +16,8 @@
 //
 // =============================================================================
 
+#include <cmath>
+
 #include "chrono/core/ChMatrix.h"
 #include "chrono/core/ChQuadrature.h"
 #include "chrono/utils/ChConstants.h"
@@ -31,7 +33,7 @@ const double ABS_ERR = 1e-8;
 TEST(MathTest, quadrature) {
     class MySine1d : public ChIntegrand1D<double> {
       public:
-        void Evaluate(double& result, const double x) { result = sin(x); }
+        void Evaluate(double& result, const double x) { result = std::sin(x); }
     };
 
     MySine1d mfx;
@@ -42,7 +44,7 @@ TEST(MathTest, quadrature) {
 
     class MySine2d : public ChIntegrand2D<double> {
       public:
-        void Evaluate(double& result, const double x, const double y) { result = sin(x); }
+        void Evaluate(double& result, const double x, const double y) { result = std::sin(x); }
     };
 
     MySine2d mfx2d;

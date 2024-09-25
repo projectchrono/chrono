@@ -61,7 +61,7 @@ void example1(const std::string& out_dir) {
             if (force_state_scatter)
                 StateScatter(y, T, full_update);  // state -> system   (not needed here, btw.)
 
-            dydt(0) = exp(T);  // dx/dt=e^t
+            dydt(0) = std::exp(T);  // dx/dt=e^t
 
             return true;
         }
@@ -81,7 +81,7 @@ void example1(const std::string& out_dir) {
     while (mystepper.GetTime() < 4) {
         mystepper.Advance(0.1);
 
-        double exact_solution = exp(mystepper.GetTime()) - 1;
+        double exact_solution = std::exp(mystepper.GetTime()) - 1;
         std::cout << " T = " << mystepper.GetTime() << "  x=" << mystepper.GetState()(0)
                   << "  x_exact=" << exact_solution << std::endl;
         log_file1 << mystepper.GetTime() << ", " << mystepper.GetState()(0) << ", " << exact_solution << std::endl;
@@ -160,7 +160,7 @@ void example2(const std::string& out_dir) {
             if (force_state_scatter)
                 StateScatter(y, T, full_update);
 
-            double F = cos(T * 20) * 2;
+            double F = std::cos(T * 20) * 2;
 
             dydt(0) = v;                               // speed
             dydt(1) = (1. / M) * (F - K * x - R * v);  // acceleration
@@ -278,7 +278,7 @@ void example3(const std::string& out_dir) {
             if (force_state_scatter)
                 StateScatter(x, v, T, full_update);
 
-            double F = cos(T * 5) * 2;
+            double F = std::cos(T * 5) * 2;
             dvdt(0) = (1. / M) * (F - K * mx - R * mv);
 
             return true;
@@ -399,7 +399,7 @@ void example4(const std::string& out_dir) {
             ) override {
             if (force_state_scatter)
                 StateScatter(x, v, T, full_update);
-            double F = sin(mT * 20) * 0.02;
+            double F = std::sin(mT * 20) * 0.02;
             dvdt(0) = (1. / M) * (F - K * mx - R * mv);
 
             return true;
@@ -434,7 +434,7 @@ void example4(const std::string& out_dir) {
         void LoadResidual_F(ChVectorDynamic<>& R,  // result: the R residual, R += c*F
                             const double c         // a scaling factor
                             ) override {
-            R(0) += c * (sin(mT * 20) * 0.02 - this->K * mx - this->R * mv);
+            R(0) += c * (std::sin(mT * 20) * 0.02 - this->K * mx - this->R * mv);
         };
 
         //    R += c*M*w

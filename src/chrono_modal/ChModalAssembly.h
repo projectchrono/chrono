@@ -28,6 +28,9 @@
 namespace chrono {
 namespace modal {
 
+/// @addtogroup modal
+/// @{
+
 /// Class for assemblies of items, for example ChBody, ChLink, ChMesh, etc.
 /// This supports component mode synthesis (CMS) to do substructuring, hence an assembly becomes a "modal body"
 /// where many "internal" DOFs of finite elements will be reduced to few modal modes that are superimposed
@@ -894,6 +897,8 @@ void ChModalAssembly::DoModalReduction(ChSparseMatrix& full_M,
         StreamOut(R_red, fileR_red);
     }
 }
+
+/// @} modal
 
 }  // end namespace modal
 

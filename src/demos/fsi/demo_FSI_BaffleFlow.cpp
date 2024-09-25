@@ -18,9 +18,7 @@
 #include <iomanip>
 
 #include "chrono/physics/ChSystemSMC.h"
-#include "chrono/utils/ChUtilsCreators.h"
-#include "chrono/utils/ChUtilsGenerators.h"
-#include "chrono/utils/ChUtilsGeometry.h"
+#include "chrono/assets/ChVisualShapeBox.h"
 
 #include "chrono_fsi/ChSystemFsi.h"
 #include "chrono_fsi/ChFsiProblem.h"
@@ -34,6 +32,7 @@
 #endif
 
 #include "chrono_thirdparty/filesystem/path.h"
+#include "chrono_thirdparty/cxxopts/ChCLI.h"
 
 using namespace chrono;
 using namespace chrono::fsi;
@@ -46,13 +45,6 @@ using std::endl;
 
 // Run-time visualization system (VSG, OpenGL, or NONE)
 ChVisualSystem::Type vis_type = ChVisualSystem::Type::VSG;
-
-// Output directories and settings
-std::string out_dir = GetChronoOutputPath() + "FSI_Baffle_Flow";
-
-// Output frequency
-bool output = false;
-unsigned int output_fps = 100;
 
 // Container dimensions
 ChVector3d csize(1.6, 1.4, 0.16);
@@ -68,16 +60,6 @@ ChVector3d bloc3(0.4, 0, 0);
 // Initial size of SPH material
 ChVector3d fsize(0.2, 0.8, 0.14);
 
-// Final simulation time
-double t_end = 0.7;
-
-// Enable/disable run-time visualization
-bool render = true;
-float render_fps = 300;
-
-// Enable saving snapshots
-bool snapshots = false;
-
 // Visibility flags
 bool show_rigid = true;
 bool show_rigid_bce = false;
@@ -85,6 +67,7 @@ bool show_boundary_bce = false;
 bool show_particles_sph = true;
 
 // ----------------------------------------------------------------------------
+
 // Callback for setting initial SPH particle properties
 class SPHPropertiesCallback : public ChFsiProblem::ParticlePropertiesCallback {
   public:
@@ -128,7 +111,7 @@ void CreateBaffles(ChFsiProblem& fsi) {
     baffle1->SetFixed(true);
     sysMBS.AddBody(baffle1);
     if (show_rigid)
-        geometry.CreateVisualizationAssets(baffle1, utils::ChBodyGeometry::VisualizationType::COLLISION);
+        geometry.CreateVisualizationAssets(baffle1, VisualizationType::COLLISION);
     fsi.AddRigidBody(baffle1, geometry, false);
 
     auto baffle2 = chrono_types::make_shared<ChBody>();
@@ -137,7 +120,7 @@ void CreateBaffles(ChFsiProblem& fsi) {
     baffle2->SetFixed(true);
     sysMBS.AddBody(baffle2);
     if (show_rigid)
-        geometry.CreateVisualizationAssets(baffle2, utils::ChBodyGeometry::VisualizationType::COLLISION);
+        geometry.CreateVisualizationAssets(baffle2, VisualizationType::COLLISION);
     fsi.AddRigidBody(baffle2, geometry, false);
 
     auto baffle3 = chrono_types::make_shared<ChBody>();
@@ -146,8 +129,54 @@ void CreateBaffles(ChFsiProblem& fsi) {
     baffle3->SetFixed(true);
     sysMBS.AddBody(baffle3);
     if (show_rigid)
-        geometry.CreateVisualizationAssets(baffle3, utils::ChBodyGeometry::VisualizationType::COLLISION);
+        geometry.CreateVisualizationAssets(baffle3, VisualizationType::COLLISION);
     fsi.AddRigidBody(baffle3, geometry, false);
+}
+
+// ----------------------------------------------------------------------------
+
+bool GetProblemSpecs(int argc,
+                     char** argv,
+                     double& t_end,
+                     bool& verbose,
+                     bool& output,
+                     unsigned int& output_fps,
+                     bool& render,
+                     double& render_fps,
+                     bool& snapshots,
+                     int& ps_freq) {
+    ChCLI cli(argv[0], "Baffle Flow FSI demo");
+
+    cli.AddOption<double>("Input", "t_end", "Simulation duration [s]", std::to_string(t_end));
+
+    cli.AddOption<bool>("Output", "quiet", "Disable verbose terminal output");
+    cli.AddOption<bool>("Output", "output", "Enable collection of output files");
+    cli.AddOption<unsigned int>("Output", "output_fps", "Output frequency [fps]", std::to_string(output_fps));
+
+    cli.AddOption<bool>("Visualization", "no_vis", "Disable run-time visualization");
+    cli.AddOption<double>("Visualization", "render_fps", "Render frequency [fps]", std::to_string(render_fps));
+    cli.AddOption<bool>("Visualization", "snapshots", "Enable writing snapshot image files");
+
+    cli.AddOption<int>("Proximity Search", "ps_freq", "Frequency of Proximity Search", std::to_string(ps_freq));
+
+    if (!cli.Parse(argc, argv)) {
+        cli.Help();
+        return false;
+    }
+
+    t_end = cli.GetAsType<double>("t_end");
+
+    verbose = !cli.GetAsType<bool>("quiet");
+    output = cli.GetAsType<bool>("output");
+    render = !cli.GetAsType<bool>("no_vis");
+    snapshots = cli.GetAsType<bool>("snapshots");
+
+    output_fps = cli.GetAsType<unsigned int>("output_fps");
+    render_fps = cli.GetAsType<double>("render_fps");
+
+    ps_freq = cli.GetAsType<int>("ps_freq");
+
+    return true;
 }
 
 // ----------------------------------------------------------------------------
@@ -155,7 +184,19 @@ void CreateBaffles(ChFsiProblem& fsi) {
 int main(int argc, char* argv[]) {
     double initial_spacing = 0.01;
     double step_size = 1e-4;
+
+    // Parse command line arguments
+    double t_end = 0.7;
     bool verbose = true;
+    bool output = false;
+    unsigned int output_fps = 100;
+    bool render = true;
+    double render_fps = 300;
+    bool snapshots = false;
+    int ps_freq = 1;
+    if (!GetProblemSpecs(argc, argv, t_end, verbose, output, output_fps, render, render_fps, snapshots, ps_freq)) {
+        return 1;
+    }
 
     // Create the Chrono system and associated collision system
     ChSystemSMC sysMBS;
@@ -197,6 +238,7 @@ int main(int argc, char* argv[]) {
     sph_params.xsph_coefficient = 0.5;
     sph_params.shifting_coefficient = 1.0;
     sph_params.kernel_threshold = 0.8;
+    sph_params.num_proximity_search_steps = ps_freq;
 
     sysFSI.SetSPHParameters(sph_params);
 
@@ -232,26 +274,36 @@ int main(int argc, char* argv[]) {
 
     fsi.Initialize();
 
-    // Create output directories
-    if (!filesystem::create_directory(filesystem::path(out_dir))) {
-        std::cerr << "Error creating directory " << out_dir << std::endl;
-        return 1;
-    }
-    if (!filesystem::create_directory(filesystem::path(out_dir + "/particles"))) {
-        std::cerr << "Error creating directory " << out_dir + "/particles" << std::endl;
-        return 1;
-    }
-    if (!filesystem::create_directory(filesystem::path(out_dir + "/fsi"))) {
-        std::cerr << "Error creating directory " << out_dir + "/fsi" << std::endl;
-        return 1;
-    }
-    if (!filesystem::create_directory(filesystem::path(out_dir + "/vtk"))) {
-        std::cerr << "Error creating directory " << out_dir + "/vtk" << std::endl;
-        return 1;
-    }
-    if (!filesystem::create_directory(filesystem::path(out_dir + "/snapshots"))) {
-        cerr << "Error creating directory " << out_dir + "/snapshots" << endl;
-        return 1;
+    // Output directories
+    std::string out_dir = GetChronoOutputPath() + "FSI_Baffle_Flow" + std::to_string(ps_freq);
+
+    if (output || snapshots) {
+        if (!filesystem::create_directory(filesystem::path(out_dir))) {
+            std::cerr << "Error creating directory " << out_dir << std::endl;
+            return 1;
+        }
+
+        if (output) {
+            if (!filesystem::create_directory(filesystem::path(out_dir + "/particles"))) {
+                std::cerr << "Error creating directory " << out_dir + "/particles" << std::endl;
+                return 1;
+            }
+            if (!filesystem::create_directory(filesystem::path(out_dir + "/fsi"))) {
+                std::cerr << "Error creating directory " << out_dir + "/fsi" << std::endl;
+                return 1;
+            }
+            if (!filesystem::create_directory(filesystem::path(out_dir + "/vtk"))) {
+                std::cerr << "Error creating directory " << out_dir + "/vtk" << std::endl;
+                return 1;
+            }
+        }
+
+        if (snapshots) {
+            if (!filesystem::create_directory(filesystem::path(out_dir + "/snapshots"))) {
+                std::cerr << "Error creating directory " << out_dir + "/snapshots" << std::endl;
+                return 1;
+            }
+        }
     }
 
     // Create a run-time visualizer

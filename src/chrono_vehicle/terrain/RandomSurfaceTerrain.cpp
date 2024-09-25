@@ -404,7 +404,7 @@ void RandomSurfaceTerrain::CalculateSpectralCoefficientsCorr(double Phi_h0,
 double RandomSurfaceTerrain::CalculateAmplitudeLeft(double x) {
     double A = 0.0;
     for (int i = 0; i < m_ck.size(); i++) {
-        A += m_ck[i] * cos(m_wfft[i] * x + m_phase_left[i]);
+        A += m_ck[i] * std::cos(m_wfft[i] * x + m_phase_left[i]);
     }
     double fade =
         ChFunctionSineStep::Eval(x, 0, 0, 10.0, 1.0) * ChFunctionSineStep::Eval(x, m_xmax - 10.0, 1.0, m_xmax, 0.0);
@@ -414,7 +414,7 @@ double RandomSurfaceTerrain::CalculateAmplitudeLeft(double x) {
 double RandomSurfaceTerrain::CalculateAmplitudeRight(double x) {
     double A = 0.0;
     for (int i = 0; i < m_ck.size(); i++) {
-        A += m_ck[i] * cos(m_wfft[i] * x + m_phase_right[i]);
+        A += m_ck[i] * std::cos(m_wfft[i] * x + m_phase_right[i]);
     }
     double fade =
         ChFunctionSineStep::Eval(x, 0, 0, 10.0, 1.0) * ChFunctionSineStep::Eval(x, m_xmax - 10.0, 1.0, m_xmax, 0.0);

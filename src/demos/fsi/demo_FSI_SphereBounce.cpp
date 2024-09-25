@@ -16,6 +16,7 @@
 #include <cstdlib>
 #include <ctime>
 #include <iomanip>
+#include <fstream>
 
 #include "chrono/physics/ChSystemNSC.h"
 
@@ -34,6 +35,7 @@
 #endif
 
 #include "chrono_thirdparty/filesystem/path.h"
+#include "chrono_thirdparty/cxxopts/ChCLI.h"
 
 using namespace chrono;
 using namespace chrono::fsi;
@@ -47,9 +49,6 @@ using std::endl;
 // Run-time visualization system (OpenGL or VSG)
 ChVisualSystem::Type vis_type = ChVisualSystem::Type::VSG;
 
-// Output directories and settings
-std::string out_dir = GetChronoOutputPath() + "FSI_Sphere_Bounce";
-
 // Container dimensions
 ChVector3d csize(0.8, 0.8, 1.6);
 
@@ -61,20 +60,6 @@ double density = 500;
 
 // Sphere initial height
 double initial_height = 0.95;
-
-// Final simulation time
-double t_end = 3.0;
-
-// Output frequency
-bool output = false;
-double output_fps = 20;
-
-// Enable/disable run-time visualization
-bool render = true;
-float render_fps = 400;
-
-// Enable saving snapshots
-bool snapshots = false;
 
 // Visibility flags
 bool show_rigid = true;
@@ -96,10 +81,68 @@ class PositionVisibilityCallback : public ChParticleCloud::VisibilityCallback {
 
 // -----------------------------------------------------------------------------
 
+bool GetProblemSpecs(int argc,
+                     char** argv,
+                     double& t_end,
+                     bool& verbose,
+                     bool& output,
+                     double& output_fps,
+                     bool& render,
+                     double& render_fps,
+                     bool& snapshots,
+                     int& ps_freq) {
+    ChCLI cli(argv[0], "FSI Sphere Bounce demo");
+
+    cli.AddOption<double>("Input", "t_end", "Simulation duration [s]", std::to_string(t_end));
+
+    cli.AddOption<bool>("Output", "quiet", "Disable verbose terminal output");
+    cli.AddOption<bool>("Output", "output", "Enable collection of output files");
+    cli.AddOption<double>("Output", "output_fps", "Output frequency [fps]", std::to_string(output_fps));
+
+    cli.AddOption<bool>("Visualization", "no_vis", "Disable run-time visualization");
+    cli.AddOption<double>("Visualization", "render_fps", "Render frequency [fps]", std::to_string(render_fps));
+    cli.AddOption<bool>("Visualization", "snapshots", "Enable writing snapshot image files");
+
+    cli.AddOption<int>("Proximity Search", "ps_freq", "Frequency of Proximity Search", std::to_string(ps_freq));
+
+    if (!cli.Parse(argc, argv)) {
+        cli.Help();
+        return false;
+    }
+
+    t_end = cli.GetAsType<double>("t_end");
+
+    verbose = !cli.GetAsType<bool>("quiet");
+    output = cli.GetAsType<bool>("output");
+    render = !cli.GetAsType<bool>("no_vis");
+    snapshots = cli.GetAsType<bool>("snapshots");
+
+    output_fps = cli.GetAsType<double>("output_fps");
+    render_fps = cli.GetAsType<double>("render_fps");
+
+    ps_freq = cli.GetAsType<int>("ps_freq");
+
+    return true;
+}
+
+// -----------------------------------------------------------------------------
+
 int main(int argc, char* argv[]) {
     double initial_spacing = 0.025;
     double step_size = 1e-4;
+
+    // Parse command line arguments
+    double t_end = 3.0;
+    bool output = false;
+    double output_fps = 20;
+    bool render = true;
+    double render_fps = 400;
     bool verbose = true;
+    bool snapshots = false;
+    int ps_freq = 1;
+    if (!GetProblemSpecs(argc, argv, t_end, verbose, output, output_fps, render, render_fps, snapshots, ps_freq)) {
+        return 1;
+    }
 
     // Create the Chrono system and associated collision system
     ChSystemNSC sysMBS;
@@ -134,6 +177,7 @@ int main(int argc, char* argv[]) {
     sph_params.density_reinit_steps = 1000;
     sph_params.consistent_gradient_discretization = false;
     sph_params.consistent_laplacian_discretization = false;
+    sph_params.num_proximity_search_steps = ps_freq;
 
     sysFSI.SetSPHParameters(sph_params);
     sysFSI.SetStepSize(step_size);
@@ -157,7 +201,7 @@ int main(int argc, char* argv[]) {
     geometry.materials.push_back(ChContactMaterialData());
     geometry.coll_spheres.push_back(utils::ChBodyGeometry::SphereShape(VNULL, radius, 0));
     if (show_rigid)
-        geometry.CreateVisualizationAssets(body, utils::ChBodyGeometry::VisualizationType::COLLISION);
+        geometry.CreateVisualizationAssets(body, VisualizationType::COLLISION);
 
     // Add as an FSI body (create BCE markers on a grid)
     fsi.AddRigidBody(body, geometry, true, true);
@@ -178,31 +222,40 @@ int main(int argc, char* argv[]) {
 
     fsi.Initialize();
 
-    // Create oputput directories
-    if (!filesystem::create_directory(filesystem::path(out_dir))) {
-        cerr << "Error creating directory " << out_dir << endl;
-        return 1;
-    }
-    out_dir = out_dir + "/" + sysFSI.GetPhysicsProblemString() + "_" + sysFSI.GetSphMethodTypeString();
-    if (!filesystem::create_directory(filesystem::path(out_dir))) {
-        cerr << "Error creating directory " << out_dir << endl;
-        return 1;
-    }
-    if (!filesystem::create_directory(filesystem::path(out_dir + "/particles"))) {
-        cerr << "Error creating directory " << out_dir + "/particles" << endl;
-        return 1;
-    }
-    if (!filesystem::create_directory(filesystem::path(out_dir + "/fsi"))) {
-        cerr << "Error creating directory " << out_dir + "/fsi" << endl;
-        return 1;
-    }
-    if (!filesystem::create_directory(filesystem::path(out_dir + "/vtk"))) {
-        cerr << "Error creating directory " << out_dir + "/vtk" << endl;
-        return 1;
-    }
-    if (!filesystem::create_directory(filesystem::path(out_dir + "/snapshots"))) {
-        cerr << "Error creating directory " << out_dir + "/snapshots" << endl;
-        return 1;
+    // Output directories
+    std::string out_dir = GetChronoOutputPath() + "FSI_Sphere_Bounce" + std::to_string(ps_freq);
+
+    if (output || snapshots) {
+        if (!filesystem::create_directory(filesystem::path(out_dir))) {
+            cerr << "Error creating directory " << out_dir << endl;
+            return 1;
+        }
+        out_dir = out_dir + "/" + sysFSI.GetPhysicsProblemString() + "_" + sysFSI.GetSphMethodTypeString();
+        if (!filesystem::create_directory(filesystem::path(out_dir))) {
+            cerr << "Error creating directory " << out_dir << endl;
+            return 1;
+        }
+
+        if (output) {
+            if (!filesystem::create_directory(filesystem::path(out_dir + "/particles"))) {
+                cerr << "Error creating directory " << out_dir + "/particles" << endl;
+                return 1;
+            }
+            if (!filesystem::create_directory(filesystem::path(out_dir + "/fsi"))) {
+                cerr << "Error creating directory " << out_dir + "/fsi" << endl;
+                return 1;
+            }
+            if (!filesystem::create_directory(filesystem::path(out_dir + "/vtk"))) {
+                cerr << "Error creating directory " << out_dir + "/vtk" << endl;
+                return 1;
+            }
+        }
+        if (snapshots) {
+            if (!filesystem::create_directory(filesystem::path(out_dir + "/snapshots"))) {
+                cerr << "Error creating directory " << out_dir + "/snapshots" << endl;
+                return 1;
+            }
+        }
     }
 
     ////fsi.SaveInitialMarkers(out_dir);
@@ -239,7 +292,7 @@ int main(int argc, char* argv[]) {
         auto col_callback = chrono_types::make_shared<VelocityColorCallback>(0, 1.0);
         auto vis_callback = chrono_types::make_shared<PositionVisibilityCallback>();
 
-        visFSI->SetTitle("Chrono::FSI cylinder drop");
+        visFSI->SetTitle("Chrono::FSI Sphere Bounce Test");
         visFSI->SetSize(1280, 720);
         visFSI->AddCamera(ChVector3d(2.5 * fsize.x(), 2.5 * fsize.y(), 1.5 * fsize.z()),
                           ChVector3d(0, 0, 0.5 * fsize.z()));
@@ -265,6 +318,12 @@ int main(int argc, char* argv[]) {
     int out_frame = 0;
     int render_frame = 0;
 
+    std::string out_file = out_dir + "/results.txt";
+    std::ofstream ofile;
+    if (output) {
+        ofile.open(out_file, std::ios::trunc);
+    }
+
     ChTimer timer;
     timer.start();
     while (time < t_end) {
@@ -273,6 +332,10 @@ int main(int argc, char* argv[]) {
                 cout << " -- Output frame " << out_frame << " at t = " << time << endl;
             sysFSI.PrintParticleToFile(out_dir + "/particles");
             sysFSI.PrintFsiInfoToFile(out_dir + "/fsi", time);
+
+            auto body_height = body->GetPos().z();
+            ofile << time << "\t" << body_height << "\n";
+
             out_frame++;
         }
 
@@ -306,6 +369,9 @@ int main(int argc, char* argv[]) {
     }
     timer.stop();
     cout << "\nSimulation time: " << timer() << " seconds\n" << endl;
+
+    if (output)
+        ofile.close();
 
 #ifdef CHRONO_POSTPROCESS
     postprocess::ChGnuPlot gplot(out_dir + "/height.gpl");

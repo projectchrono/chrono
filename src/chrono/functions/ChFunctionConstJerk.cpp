@@ -108,7 +108,7 @@ void ChFunctionConstJerk::Setup(double q0, double q1, double vmax, double amax, 
         m_Tj2 = Tj;
         m_Ta = Tj + m_vmax_lim / m_amax_lim;
     } else {
-        Tj = sqrt(m_vmax_lim / m_jmax_lim);
+        Tj = std::sqrt(m_vmax_lim / m_jmax_lim);
         m_Tj1 = Tj;
         m_Tj2 = Tj;
         m_Ta = 2 * Tj;
@@ -120,13 +120,13 @@ void ChFunctionConstJerk::Setup(double q0, double q1, double vmax, double amax, 
     if (m_Tv <= 0) {
         m_Tv = 0;  // adjust
 
-        if (h >= 2 * pow(m_amax_lim, 3) / pow(m_jmax_lim, 2)) {
+        if (h >= 2 * std::pow(m_amax_lim, 3) / std::pow(m_jmax_lim, 2)) {
             Tj = m_amax_lim / m_jmax_lim;
             m_Tj1 = Tj;
             m_Tj2 = Tj;
-            m_Ta = 0.5 * Tj + sqrt(pow(0.5 * Tj, 2) + h / m_amax_lim);
+            m_Ta = 0.5 * Tj + std::sqrt(std::pow(0.5 * Tj, 2) + h / m_amax_lim);
         } else {
-            Tj = pow(h / (2 * m_jmax_lim), 1. / 3.);
+            Tj = std::pow(h / (2 * m_jmax_lim), 1. / 3.);
             m_Tj1 = Tj;
             m_Tj2 = Tj;
             m_Ta = 2 * Tj;
@@ -168,7 +168,7 @@ void ChFunctionConstJerk::Setup(bool& feasible,
     double amax2 = m_amax_lim * m_amax_lim;  // amax squared
 
     // Check motion law feasability --------------------
-    double Tj_star1 = sqrt(std::abs(m_v1 - m_v0) / m_jmax_lim);
+    double Tj_star1 = std::sqrt(std::abs(m_v1 - m_v0) / m_jmax_lim);
     double Tj_star2 = m_amax_lim / m_jmax_lim;
     double Tj_star = std::min(Tj_star1, Tj_star2);
 
@@ -202,7 +202,7 @@ void ChFunctionConstJerk::Setup(bool& feasible,
 
     // acceleration time intervals
     if ((m_vmax_lim - m_v0) * m_jmax_lim < amax2) {  // amax is not reached
-        m_Tj1 = sqrt((m_vmax_lim - m_v0) / m_jmax_lim);
+        m_Tj1 = std::sqrt((m_vmax_lim - m_v0) / m_jmax_lim);
         m_Ta = 2 * m_Tj1;
     } else {  // amax is reached
         m_Tj1 = amax / jmax;
@@ -211,7 +211,7 @@ void ChFunctionConstJerk::Setup(bool& feasible,
 
     // deceleration time intervals
     if ((m_vmax_lim - m_v1) * m_jmax_lim < amax2) {  // amin is not reached
-        m_Tj2 = sqrt((m_vmax_lim - m_v1) / m_jmax_lim);
+        m_Tj2 = std::sqrt((m_vmax_lim - m_v1) / m_jmax_lim);
         m_Td = 2 * m_Tj2;
     } else {  // amin is reached
         m_Tj2 = m_amax_lim / m_jmax_lim;
@@ -230,25 +230,25 @@ void ChFunctionConstJerk::Setup(bool& feasible,
         m_Tj1 = Tj;
         m_Tj2 = Tj;
 
-        double delta = pow(m_amax_lim, 4) / pow(m_jmax_lim, 2) + 2 * (pow(m_v0, 2) + pow(m_v1, 2)) +
+        double delta = std::pow(m_amax_lim, 4) / std::pow(m_jmax_lim, 2) + 2 * (std::pow(m_v0, 2) + std::pow(m_v1, 2)) +
                        m_amax_lim * (4 * h - 2 * m_amax_lim / m_jmax_lim * (m_v0 + m_v1));
-        m_Ta = (amax2 / m_jmax_lim - 2 * m_v0 + sqrt(delta)) / (2 * m_amax_lim);
-        m_Td = (amax2 / m_jmax_lim - 2 * m_v1 + sqrt(delta)) / (2 * m_amax_lim);
+        m_Ta = (amax2 / m_jmax_lim - 2 * m_v0 + std::sqrt(delta)) / (2 * m_amax_lim);
+        m_Td = (amax2 / m_jmax_lim - 2 * m_v1 + std::sqrt(delta)) / (2 * m_amax_lim);
     }
 
     if (m_Ta < 0 || m_Td < 0) {
         if (m_Ta < 0) {
             m_Ta = 0;  // adjust
             m_Td = 2 * h / (m_v1 + m_v0);
-            m_Tj2 =
-                (m_jmax_lim * h - sqrt(m_jmax_lim * (m_jmax_lim * pow(h, 2) + pow(m_v1 + m_v0, 2) * (m_v1 - m_v0)))) /
-                (m_jmax_lim * (m_v1 + m_v0));
+            m_Tj2 = (m_jmax_lim * h -
+                     std::sqrt(m_jmax_lim * (m_jmax_lim * std::pow(h, 2) + std::pow(m_v1 + m_v0, 2) * (m_v1 - m_v0)))) /
+                    (m_jmax_lim * (m_v1 + m_v0));
         } else if (m_Td < 0) {
             m_Td = 0;  // adjust
             m_Ta = 2 * h / (v1 + v0);
-            m_Tj1 =
-                (m_jmax_lim * h - sqrt(m_jmax_lim * (m_jmax_lim * pow(h, 2) - pow(m_v1 + m_v0, 2) * (m_v1 - m_v0)))) /
-                (m_jmax_lim * (m_v1 + m_v0));
+            m_Tj1 = (m_jmax_lim * h -
+                     std::sqrt(m_jmax_lim * (m_jmax_lim * std::pow(h, 2) - std::pow(m_v1 + m_v0, 2) * (m_v1 - m_v0)))) /
+                    (m_jmax_lim * (m_v1 + m_v0));
         }
     } else {
         if (m_Ta < 2 * m_Tj1 || m_Td < 2 * m_Tj1) {  // = Tj
@@ -270,24 +270,25 @@ double ChFunctionConstJerk::GetVal(double x) const {
 
     // Acceleration phase
     if (x >= 0 && x < m_Tj1)
-        y = m_q0 + m_v0 * x + m_jmax_lim * pow(x, 3) / 6.;
+        y = m_q0 + m_v0 * x + m_jmax_lim * std::pow(x, 3) / 6.;
     else if (x >= m_Tj1 && x < m_Ta - m_Tj1)
-        y = m_q0 + m_v0 * x + m_amax_reached / 6. * (3 * pow(x, 2) - 3 * m_Tj1 * x + pow(m_Tj1, 2));
+        y = m_q0 + m_v0 * x + m_amax_reached / 6. * (3 * std::pow(x, 2) - 3 * m_Tj1 * x + std::pow(m_Tj1, 2));
     else if (x >= m_Ta - m_Tj1 && x < m_Ta)
         y = m_q0 + (m_vmax_reached + m_v0) * m_Ta / 2. - m_vmax_reached * (m_Ta - x) +
-            m_jmax_lim * pow((m_Ta - x), 3) / 6.;  // +jmax = -jmin
+            m_jmax_lim * std::pow((m_Ta - x), 3) / 6.;  // +jmax = -jmin
     // Constant velocity phase
     else if (x >= m_Ta && x < m_Ta + m_Tv)
         y = m_q0 + (m_vmax_reached + m_v0) * m_Ta / 2. + m_vmax_reached * (x - m_Ta);
     // Deceleration phase
     else if (x >= m_T - m_Td && x < m_T - m_Td + m_Tj2)
         y = m_q1 - (m_vmax_reached + m_v1) * m_Td / 2. + m_vmax_reached * (x - m_T + m_Td) -
-            m_jmax_lim * pow((x - m_T + m_Td), 3) / 6.;
+            m_jmax_lim * std::pow((x - m_T + m_Td), 3) / 6.;
     else if (x >= m_T - m_Td + m_Tj2 && x < m_T - m_Tj2)
         y = m_q1 - (m_vmax_reached + m_v1) * m_Td / 2. + m_vmax_reached * (x - m_T + m_Td) +
-            m_amin_reached / 6. * (3 * pow((x - m_T + m_Td), 2) - 3 * m_Tj2 * (x - m_T + m_Td) + pow(m_Tj2, 2));
+            m_amin_reached / 6. *
+                (3 * std::pow((x - m_T + m_Td), 2) - 3 * m_Tj2 * (x - m_T + m_Td) + std::pow(m_Tj2, 2));
     else if (x >= m_T - m_Tj2 && x < m_T)
-        y = m_q1 - m_v1 * (m_T - x) - m_jmax_lim * pow((m_T - x), 3) / 6.;
+        y = m_q1 - m_v1 * (m_T - x) - m_jmax_lim * std::pow((m_T - x), 3) / 6.;
     else
         y = m_q1;  // clamp for x > motion time
 
@@ -299,21 +300,21 @@ double ChFunctionConstJerk::GetDer(double x) const {
 
     // Acceleration phase
     if (x >= 0 && x < m_Tj1)
-        y_dx = m_v0 + m_jmax_lim * pow(x, 2) / 2.;
+        y_dx = m_v0 + m_jmax_lim * std::pow(x, 2) / 2.;
     else if (x >= m_Tj1 && x < m_Ta - m_Tj1)
         y_dx = m_v0 + m_amax_reached * (x - m_Tj1 / 2.);
     else if (x >= m_Ta - m_Tj1 && x < m_Ta)
-        y_dx = m_vmax_reached - m_jmax_lim * pow(m_Ta - x, 2) / 2.;  // -jmax = +jmin
+        y_dx = m_vmax_reached - m_jmax_lim * std::pow(m_Ta - x, 2) / 2.;  // -jmax = +jmin
     // Constant velocity phase
     else if (x >= m_Ta && x < m_Ta + m_Tv)
         y_dx = m_vmax_reached;
     // Deceleration phase
     else if (x >= m_T - m_Td && x < m_T - m_Td + m_Tj2)
-        y_dx = m_vmax_reached - m_jmax_lim * pow(x - m_T + m_Td, 2) / 2.;
+        y_dx = m_vmax_reached - m_jmax_lim * std::pow(x - m_T + m_Td, 2) / 2.;
     else if (x >= m_T - m_Td + m_Tj2 && x < m_T - m_Tj2)
         y_dx = m_vmax_reached + m_amin_reached * (x - m_T + m_Td - m_Tj2 / 2.);
     else if (x >= m_T - m_Tj2 && x < m_T)
-        y_dx = m_v1 + m_jmax_lim * pow(m_T - x, 2) / 2.;
+        y_dx = m_v1 + m_jmax_lim * std::pow(m_T - x, 2) / 2.;
     else
         y_dx = m_v1;  // clamp for x > motion time
 

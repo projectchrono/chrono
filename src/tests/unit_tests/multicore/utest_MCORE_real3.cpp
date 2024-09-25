@@ -248,15 +248,15 @@ TEST(real3, functions) {
         // float 3 length
         real3 a(1.0, 2.0, -3.0);
         real c = Length(a);
-        ASSERT_NEAR(c, sqrt(14.0), precision);
+        ASSERT_NEAR(c, std::sqrt(14.0), precision);
     }
     {
         // float 3 normalize
         real3 a(1.0, 2.0, -3.0);
         real3 c = Normalize(a);
-        ASSERT_NEAR(c.x, 1.0 / sqrt(14.0), precision);
-        ASSERT_NEAR(c.y, 2.0 / sqrt(14.0), precision);
-        ASSERT_NEAR(c.z, -3.0 / sqrt(14.0), precision);
+        ASSERT_NEAR(c.x, 1.0 / std::sqrt(14.0), precision);
+        ASSERT_NEAR(c.y, 2.0 / std::sqrt(14.0), precision);
+        ASSERT_NEAR(c.z, -3.0 / std::sqrt(14.0), precision);
     }
     {
         // float 3 ==

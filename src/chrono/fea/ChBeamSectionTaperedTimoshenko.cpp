@@ -12,6 +12,8 @@
 // Authors: Alessandro Tasora
 // =============================================================================
 
+#include <cmath>
+
 #include "chrono/fea/ChBeamSectionTaperedTimoshenko.h"
 
 namespace chrono {
@@ -62,10 +64,10 @@ void ChBeamSectionTimoshenkoAdvancedGeneric::SetMainInertiasInMassReference(cons
     // Transformation matrix from the mass center coordinate system to the centerline of beam
     EigenMat5x5 Acog2cl;
     Acog2cl.setZero();
-    double cosphi = cos(mass_phi);
-    double sinphi = sin(mass_phi);
-    double cos2phi = cos(2. * mass_phi);
-    double sin2phi = sin(2. * mass_phi);
+    double cosphi = std::cos(mass_phi);
+    double sinphi = std::sin(mass_phi);
+    double cos2phi = std::cos(2. * mass_phi);
+    double sin2phi = std::sin(2. * mass_phi);
     double cosphi2 = cosphi * cosphi;
     double sinphi2 = sinphi * sinphi;
 
@@ -118,15 +120,15 @@ void ChBeamSectionTimoshenkoAdvancedGeneric::GetMainInertiasInMassReference(doub
     double Tzz_rot = this->Jzz - this->mu * this->My * this->My;
     double Tyz_rot = -this->Jyz + this->mu * this->Mz * this->My;
     // tensor de-rotation up to principal axes
-    double argum = pow((Tyy_rot - Tzz_rot) * 0.5, 2) + pow(Tyz_rot, 2);
+    double argum = std::pow((Tyy_rot - Tzz_rot) * 0.5, 2) + std::pow(Tyz_rot, 2);
     if (argum <= 0) {
         mass_phi = 0;
         // Jmyy = 0.5 * (Tzz_rot + Tyy_rot);
         // Jmzz = 0.5 * (Tzz_rot + Tyy_rot);
         // return;
     } else {
-        double discr = sqrt(pow((Tyy_rot - Tzz_rot) * 0.5, 2) + pow(Tyz_rot, 2));
-        mass_phi = -0.5 * atan2(Tyz_rot / discr, (Tzz_rot - Tyy_rot) / (2. * discr));
+        double discr = std::sqrt(std::pow((Tyy_rot - Tzz_rot) * 0.5, 2) + std::pow(Tyz_rot, 2));
+        mass_phi = -0.5 * std::atan2(Tyz_rot / discr, (Tzz_rot - Tyy_rot) / (2. * discr));
         // Jmyy = 0.5 * (Tzz_rot + Tyy_rot) - discr;
         // Jmzz = 0.5 * (Tzz_rot + Tyy_rot) + discr;
     }
@@ -143,10 +145,10 @@ void ChBeamSectionTimoshenkoAdvancedGeneric::GetMainInertiasInMassReference(doub
     // transformation matrix from the centerline of beam to the mass center coordinate system
     EigenMat5x5 Acl2cog;
     Acl2cog.setZero();
-    double cosphi = cos(mass_phi);
-    double sinphi = sin(mass_phi);
-    double cos2phi = cos(2. * mass_phi);
-    double sin2phi = sin(2. * mass_phi);
+    double cosphi = std::cos(mass_phi);
+    double sinphi = std::sin(mass_phi);
+    double cos2phi = std::cos(2. * mass_phi);
+    double sin2phi = std::sin(2. * mass_phi);
     double cosphi2 = cosphi * cosphi;
     double sinphi2 = sinphi * sinphi;
 
@@ -205,7 +207,7 @@ auto GetAverageValue3 = [](const double mv1, const double mv2) {
         // std::cerr << "WARNING: negative value, error!" << std::endl;
         return GetAverageValue(mv1, mv2);
     }
-    return (mv1 + pow(mv1 * mv2, 0.5) + mv2) / 3.0;
+    return (mv1 + std::pow(mv1 * mv2, 0.5) + mv2) / 3.0;
 };
 // For more information, please refer to ANSYS theory document in the chapters of tapered beam element.
 auto GetAverageValue5 = [](const double mv1, const double mv2) {
@@ -213,7 +215,8 @@ auto GetAverageValue5 = [](const double mv1, const double mv2) {
         // std::cerr << "WARNING: negative value, error!" << std::endl;
         return GetAverageValue(mv1, mv2);
     }
-    return (mv1 + pow(mv1 * mv1 * mv1 * mv2, 0.25) + pow(mv1 * mv2, 0.5) + pow(mv1 * mv2 * mv2 * mv2, 0.25) + mv2) /
+    return (mv1 + std::pow(mv1 * mv1 * mv1 * mv2, 0.25) + std::pow(mv1 * mv2, 0.5) +
+            std::pow(mv1 * mv2 * mv2 * mv2, 0.25) + mv2) /
            5.0;
 };
 
@@ -252,8 +255,8 @@ void ChBeamSectionTaperedTimoshenkoAdvancedGeneric::ComputeAverageSectionParamet
     this->sectionA->GetMainInertiasInMassReference(Jmyy1, Jmzz1, Jmyz1, mass_phi1, Qmy1, Qmz1);
     // double Jmxx1 = Jmyy1 + Jmzz1;
     // rotate the bending and shear stiffnesses from elastic axis to mass axis
-    double cosphi1 = cos(mass_phi1);
-    double sinphi1 = sin(mass_phi1);
+    double cosphi1 = std::cos(mass_phi1);
+    double sinphi1 = std::sin(mass_phi1);
     double EImyy1 = EIyy1 * cosphi1 + EIzz1 * sinphi1;
     double EImzz1 = -EIyy1 * sinphi1 + EIzz1 * cosphi1;
     double GAmyy1 = GAyy1 * cosphi1 + GAzz1 * sinphi1;
@@ -291,8 +294,8 @@ void ChBeamSectionTaperedTimoshenkoAdvancedGeneric::ComputeAverageSectionParamet
     this->sectionB->GetMainInertiasInMassReference(Jmyy2, Jmzz2, Jmyz2, mass_phi2, Qmy2, Qmz2);
     // double Jmxx2 = Jmyy2 + Jmzz2;
     // rotate the bending and shear stiffnesses from elastic axis to mass axis
-    double cosphi2 = cos(mass_phi2);
-    double sinphi2 = sin(mass_phi2);
+    double cosphi2 = std::cos(mass_phi2);
+    double sinphi2 = std::sin(mass_phi2);
     double EImyy2 = EIyy2 * cosphi2 + EIzz2 * sinphi2;
     double EImzz2 = -EIyy2 * sinphi2 + EIzz2 * cosphi2;
     double GAmyy2 = GAyy2 * cosphi2 + GAzz2 * sinphi2;
@@ -437,10 +440,10 @@ void ChBeamSectionTaperedTimoshenkoAdvancedGeneric::ComputeSimpleConsistentInert
 
     double phiy2 = phiy * phiy;
     double phiz2 = phiz * phiz;
-    double ry_L2 = pow(ry / L, 2.0);
-    double rz_L2 = pow(rz / L, 2.0);
-    double oneplusphiy2 = pow(1 + phiy, 2.0);
-    double oneplusphiz2 = pow(1 + phiz, 2.0);
+    double ry_L2 = std::pow(ry / L, 2.0);
+    double rz_L2 = std::pow(rz / L, 2.0);
+    double oneplusphiy2 = std::pow(1 + phiy, 2.0);
+    double oneplusphiz2 = std::pow(1 + phiz, 2.0);
     double mAz = (13. / 35. + 7. / 10. * phiy + 1. / 3. * phiy2 + 6. / 5. * rz_L2) / oneplusphiy2;
     double mAy = (13. / 35. + 7. / 10. * phiz + 1. / 3. * phiz2 + 6. / 5. * ry_L2) / oneplusphiz2;
     double mBy = (9. / 70. + 3. / 10. * phiy + 1. / 6. * phiy2 - 6. / 5. * rz_L2) / oneplusphiy2;

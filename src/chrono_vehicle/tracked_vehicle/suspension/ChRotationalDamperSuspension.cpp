@@ -177,29 +177,29 @@ void ChRotationalDamperSuspension::AddVisualizationAssets(VisualizationType vis)
     double radius = GetArmVisRadius();
 
     if ((m_pA - m_pAW).Length2() > threshold2) {
-        ChVehicleGeometry::AddVisualizationCylinder(m_arm, m_pA, m_pAW, radius);
+        utils::ChBodyGeometry::AddVisualizationCylinder(m_arm, m_pA, m_pAW, radius);
     }
 
     if ((m_pA - m_pAC).Length2() > threshold2) {
-        ChVehicleGeometry::AddVisualizationCylinder(m_arm, m_pA, m_pAC, radius);
+        utils::ChBodyGeometry::AddVisualizationCylinder(m_arm, m_pA, m_pAC, radius);
     }
 
     // Revolute joint (arm-chassis)
     {
-        ChVehicleGeometry::AddVisualizationCylinder(m_arm,                  //
-                                                    m_pAC - radius * m_dY,  //
-                                                    m_pAC + radius * m_dY,  //
-                                                    1.5 * radius);
+        utils::ChBodyGeometry::AddVisualizationCylinder(m_arm,                  //
+                                                        m_pAC - radius * m_dY,  //
+                                                        m_pAC + radius * m_dY,  //
+                                                        1.5 * radius);
     }
 
     // Revolute joint (arm-wheel)
     if ((m_pO - m_pAW).Length2() > threshold2) {
         auto cyl = chrono_types::make_shared<ChVisualShapeCylinder>();
         double len = (m_pO - m_pAW).Length();
-        ChVehicleGeometry::AddVisualizationCylinder(m_arm,                                  //
-                                                    m_pO,                                   //
-                                                    m_pAW + (m_pAW - m_pO) * radius / len,  //
-                                                    radius);
+        utils::ChBodyGeometry::AddVisualizationCylinder(m_arm,                                  //
+                                                        m_pO,                                   //
+                                                        m_pAW + (m_pAW - m_pO) * radius / len,  //
+                                                        radius);
     }
 }
 

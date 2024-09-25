@@ -175,7 +175,7 @@ void ChLinkLockGear::UpdateTime(double mytime) {
     ChMatrix33<> ma2 = ma1;
 
     // is a bevel gear?
-    double be = acos(Vdot(GetDirShaft1(), GetDirShaft2()));
+    double be = std::acos(Vdot(GetDirShaft1(), GetDirShaft2()));
     bool is_bevel = true;
     if (fabs(Vdot(GetDirShaft1(), GetDirShaft2())) > 0.96)
         is_bevel = false;
@@ -198,7 +198,7 @@ void ChLinkLockGear::UpdateTime(double mytime) {
         } else {
             gamma2 = be / (-tau + 1.0);
         }
-        double al = CH_PI - acos(Vdot(GetDirShaft2(), my));
+        double al = CH_PI - std::acos(Vdot(GetDirShaft2(), my));
         double te = CH_PI - al - be;
         double fd = sin(te) * (dist / sin(be));
         r2 = fd * tan(gamma2);

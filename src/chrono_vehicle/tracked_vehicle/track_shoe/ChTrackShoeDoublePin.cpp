@@ -244,15 +244,15 @@ void ChTrackShoeDoublePin::AddConnectorVisualization2(std::shared_ptr<ChBody> co
     double c_width = GetConnectorWidth();
     double c_radius = GetConnectorRadius();
 
-    ChVehicleGeometry::AddVisualizationCylinder(connector,                                       //
-                                                ChVector3d(-0.5 * c_length, -0.5 * c_width, 0),  //
-                                                ChVector3d(-0.5 * c_length, +0.5 * c_width, 0),  //
-                                                c_radius);
+    utils::ChBodyGeometry::AddVisualizationCylinder(connector,                                       //
+                                                    ChVector3d(-0.5 * c_length, -0.5 * c_width, 0),  //
+                                                    ChVector3d(-0.5 * c_length, +0.5 * c_width, 0),  //
+                                                    c_radius);
 
-    ChVehicleGeometry::AddVisualizationCylinder(connector,                                      //
-                                                ChVector3d(0.5 * c_length, -0.5 * c_width, 0),  //
-                                                ChVector3d(0.5 * c_length, +0.5 * c_width, 0),  //
-                                                c_radius);
+    utils::ChBodyGeometry::AddVisualizationCylinder(connector,                                      //
+                                                    ChVector3d(0.5 * c_length, -0.5 * c_width, 0),  //
+                                                    ChVector3d(0.5 * c_length, +0.5 * c_width, 0),  //
+                                                    c_radius);
 
     auto box = chrono_types::make_shared<ChVisualShapeBox>(c_length, c_width, 2 * c_radius);
     connector->AddVisualShape(box, ChFrame<>());
@@ -273,17 +273,17 @@ void ChTrackShoeDoublePin::AddConnectorVisualization1(std::shared_ptr<ChBody> co
     double c_radius = GetConnectorRadius();
 
     {
-        ChVehicleGeometry::AddVisualizationCylinder(connector,                                                //
-                                                    ChVector3d(-0.5 * c_length, +offset - 0.5 * c_width, 0),  //
-                                                    ChVector3d(-0.5 * c_length, +offset + 0.5 * c_width, 0),  //
-                                                    c_radius,                                                 //
-                                                    mat);
+        utils::ChBodyGeometry::AddVisualizationCylinder(connector,                                                //
+                                                        ChVector3d(-0.5 * c_length, +offset - 0.5 * c_width, 0),  //
+                                                        ChVector3d(-0.5 * c_length, +offset + 0.5 * c_width, 0),  //
+                                                        c_radius,                                                 //
+                                                        mat);
 
-        ChVehicleGeometry::AddVisualizationCylinder(connector,                                               //
-                                                    ChVector3d(0.5 * c_length, +offset - 0.5 * c_width, 0),  //
-                                                    ChVector3d(0.5 * c_length, +offset + 0.5 * c_width, 0),  //
-                                                    c_radius,                                                //
-                                                    mat);
+        utils::ChBodyGeometry::AddVisualizationCylinder(connector,                                               //
+                                                        ChVector3d(0.5 * c_length, +offset - 0.5 * c_width, 0),  //
+                                                        ChVector3d(0.5 * c_length, +offset + 0.5 * c_width, 0),  //
+                                                        c_radius,                                                //
+                                                        mat);
 
         auto box = chrono_types::make_shared<ChVisualShapeBox>(c_length, c_width, 2 * c_radius);
         box->AddMaterial(mat);
@@ -291,17 +291,17 @@ void ChTrackShoeDoublePin::AddConnectorVisualization1(std::shared_ptr<ChBody> co
     }
 
     {
-        ChVehicleGeometry::AddVisualizationCylinder(connector,                                                //
-                                                    ChVector3d(-0.5 * c_length, -offset - 0.5 * c_width, 0),  //
-                                                    ChVector3d(-0.5 * c_length, -offset + 0.5 * c_width, 0),  //
-                                                    c_radius,                                                 //
-                                                    mat);
+        utils::ChBodyGeometry::AddVisualizationCylinder(connector,                                                //
+                                                        ChVector3d(-0.5 * c_length, -offset - 0.5 * c_width, 0),  //
+                                                        ChVector3d(-0.5 * c_length, -offset + 0.5 * c_width, 0),  //
+                                                        c_radius,                                                 //
+                                                        mat);
 
-        ChVehicleGeometry::AddVisualizationCylinder(connector,                                               //
-                                                    ChVector3d(0.5 * c_length, -offset - 0.5 * c_width, 0),  //
-                                                    ChVector3d(0.5 * c_length, -offset + 0.5 * c_width, 0),  //
-                                                    c_radius,                                                //
-                                                    mat);
+        utils::ChBodyGeometry::AddVisualizationCylinder(connector,                                               //
+                                                        ChVector3d(0.5 * c_length, -offset - 0.5 * c_width, 0),  //
+                                                        ChVector3d(0.5 * c_length, -offset + 0.5 * c_width, 0),  //
+                                                        c_radius,                                                //
+                                                        mat);
 
         auto box = chrono_types::make_shared<ChVisualShapeBox>(c_length, c_width, 2 * c_radius);
         box->AddMaterial(mat);

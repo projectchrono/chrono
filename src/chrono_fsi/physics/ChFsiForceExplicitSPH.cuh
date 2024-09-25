@@ -34,10 +34,10 @@ class ChFsiForceExplicitSPH : public ChFsiForce {
         std::shared_ptr<ChBce> otherBceWorker,                   ///< object that handles BCE particles
         std::shared_ptr<SphMarkerDataD> otherSortedSphMarkersD,  ///< information of particle in the sorted device array
         std::shared_ptr<ProximityDataD> otherMarkersProximityD,  ///< object that holds device proximity info
-        std::shared_ptr<FsiData> otherFsiGeneralData,            ///< SPH general data
-        std::shared_ptr<SimParams> params,                       ///< simulation parameters
-        std::shared_ptr<ChCounters> numObjects,                  ///< problem counters
-        bool verb                                                ///< verbose terminal output
+        std::shared_ptr<FsiData> otherFsiData,   ///< SPH general data
+        std::shared_ptr<SimParams> params,       ///< simulation parameters
+        std::shared_ptr<ChCounters> numObjects,  ///< problem counters
+        bool verb                                ///< verbose terminal output
     );
 
     /// Destructor of the ChFsiForceExplicitSPH class
@@ -47,13 +47,16 @@ class ChFsiForceExplicitSPH : public ChFsiForce {
 
   private:
     int density_initialization;
-    thrust::device_vector<Real3> sortedXSPHandShift;
 
     /// Function to find neighbor particles and calculate the interactions between SPH particles
-    void ForceSPH(std::shared_ptr<SphMarkerDataD> otherSphMarkersD,
+    void ForceSPH(std::shared_ptr<SphMarkerDataD> otherSortedSphMarkersD,
                   std::shared_ptr<FsiBodyStateD> fsiBodyStateD,
                   std::shared_ptr<FsiMeshStateD> fsiMesh1DStateD,
-                  std::shared_ptr<FsiMeshStateD> fsiMesh2DStateD) override;
+                  std::shared_ptr<FsiMeshStateD> fsiMesh2DStateD,
+                  Real time,
+                  bool firstHalfStep) override;
+
+    void neighborSearch();
 
     /// Function to calculate the XSPH velocity of the particles.
     /// XSPH velocity is a compromise between Eulerian and Lagrangian velocities, used
@@ -63,10 +66,7 @@ class ChFsiForceExplicitSPH : public ChFsiForce {
     /// A wrapper around collide function.
     /// Calculates the force on particles, and copies the sorted XSPH velocities to the original.
     /// The latter is needed later for position update.
-    void CollideWrapper();
-
-    /// Function to add gravity force (acceleration) to other forces on SPH  particles.
-    void AddGravityToFluid();
+    void CollideWrapper(Real time, bool firstHalfStep);
 };
 
 /// @} fsi_physics

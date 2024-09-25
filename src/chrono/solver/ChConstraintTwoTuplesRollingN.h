@@ -126,8 +126,8 @@ class ChApi ChConstraintTwoTuplesRollingN : public ChConstraintTwoTuples<Ta, Tb>
         double t_n = this->GetLagrangeMultiplier();
         double t_u = constraint_U->GetLagrangeMultiplier();
         double t_v = constraint_V->GetLagrangeMultiplier();
-        double t_tang = sqrt(t_v * t_v + t_u * t_u);
-        double t_sptang = fabs(t_n);  // = sqrt(t_n*t_n);
+        double t_tang = std::sqrt(t_v * t_v + t_u * t_u);
+        double t_sptang = std::fabs(t_n);  // = sqrt(t_n*t_n);
 
         // A. Project the spinning friction (approximate - should do cone
         //   projection stuff as in B, but spinning friction is usually very low...)

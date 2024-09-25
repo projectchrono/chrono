@@ -113,14 +113,14 @@ int main(int argc, char* argv[]) {
     // Create and add the nodes
     for (int i = 0; i < TotalNumNodes; i++) {
         // Node location
-        double loc_x = cylRadius * sin((i % (numDiv_x + 1)) * (CH_PI / 2) / numDiv_x);
+        double loc_x = cylRadius * std::sin((i % (numDiv_x + 1)) * (CH_PI / 2) / numDiv_x);
         double loc_y = (i / (numDiv_x + 1)) % (numDiv_y + 1) * dy;
-        double loc_z = cylRadius * (1 - cos((i % (numDiv_x + 1)) * (CH_PI / 2) / numDiv_x));
+        double loc_z = cylRadius * (1 - std::cos((i % (numDiv_x + 1)) * (CH_PI / 2) / numDiv_x));
 
         // Node direction
-        double dir_x = -sin(CH_PI / 2 / numDiv_x * (i % (numDiv_x + 1)));
+        double dir_x = -std::sin(CH_PI / 2 / numDiv_x * (i % (numDiv_x + 1)));
         double dir_y = 0;
-        double dir_z = cos(CH_PI / 2 / numDiv_x * (i % (numDiv_x + 1)));
+        double dir_z = std::cos(CH_PI / 2 / numDiv_x * (i % (numDiv_x + 1)));
 
         // Create the node
         auto node =

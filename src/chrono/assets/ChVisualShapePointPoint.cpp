@@ -10,6 +10,8 @@
 //
 // =============================================================================
 
+#include <cmath>
+
 #include "chrono/assets/ChVisualShapePointPoint.h"
 #include "chrono/physics/ChLinkMarkers.h"
 #include "chrono/physics/ChLinkMate.h"
@@ -77,8 +79,8 @@ void ChVisualShapeSpring::UpdateLineGeometry(const ChVector3d& endpoint1, const 
     for (int iu = 1; iu <= resolution; iu++) {
         phaseB = turns * CH_2PI * (double)iu / (double)resolution;
         heightB = length * ((double)iu / (double)resolution);
-        ChVector3d V1(heightA, radius * cos(phaseA), radius * sin(phaseA));
-        ChVector3d V2(heightB, radius * cos(phaseB), radius * sin(phaseB));
+        ChVector3d V1(heightA, radius * std::cos(phaseA), radius * std::sin(phaseA));
+        ChVector3d V2(heightB, radius * std::cos(phaseB), radius * std::sin(phaseB));
 
         auto segment = ChLineSegment(mpos.TransformPointLocalToParent(V1), mpos.TransformPointLocalToParent(V2));
         linepath->AddSubLine(segment);

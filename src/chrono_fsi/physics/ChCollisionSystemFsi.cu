@@ -28,9 +28,9 @@ namespace fsi {
 // 2. From x, y, z position, determine which bin it is in.
 // 3. Calculate hash from bin index.
 // 4. Store hash and particle index associated with it.
-__global__ void calcHashD(uint* gridMarkerHashD,   // store particle hash here
-                          uint* gridMarkerIndexD,  // store particle index here
-                          Real4* posRad,           // vector containing the positions of all particles (SPH and BCE)
+__global__ void calcHashD(uint* gridMarkerHashD,   // gridMarkerHash Store particle hash here
+                          uint* gridMarkerIndexD,  // gridMarkerIndex Store particle index here
+                          const Real4* posRad,  // posRad Vector containing the positions of all particles (SPH and BCE)
                           volatile bool* isErrorD) {
     // Calculate the index of where the particle is stored in posRad.
     uint index = blockIdx.x * blockDim.x + threadIdx.x;
@@ -39,7 +39,7 @@ __global__ void calcHashD(uint* gridMarkerHashD,   // store particle hash here
 
     Real3 p = mR3(posRad[index]);
 
-    if (!(isfinite(p.x) && isfinite(p.y) && isfinite(p.z))) {
+    if (!IsFinite(p)) {
         printf(
             "Error! particle position is NAN: thrown from "
             "ChCollisionSystemFsi.cu, calcHashD !\n");
@@ -72,6 +72,7 @@ __global__ void calcHashD(uint* gridMarkerHashD,   // store particle hash here
     // Calculate a hash from the bin index
     uint hash = calcGridHash(gridPos);
     // Store grid hash
+    // grid hash is a scalar cell ID
     gridMarkerHashD[index] = hash;
     // Store particle index associated to the hash we stored in gridMarkerHashD
     gridMarkerIndexD[index] = index;
@@ -139,9 +140,9 @@ __global__ void reorderDataD(uint* gridMarkerIndexD,     // input: sorted partic
     uint originalIndex = id;
 
     // no need to do anything if it is not an active particle
-    uint activity = extendedActivityIdD[originalIndex];
-    if (activity == 0)
-        return;
+    // uint activity = extendedActivityIdD[originalIndex];
+    // if (activity == 0)
+    //     return;
 
     // map original to sorted
     uint index = mapOriginalToSorted[originalIndex];
@@ -150,17 +151,17 @@ __global__ void reorderDataD(uint* gridMarkerIndexD,     // input: sorted partic
     Real3 velMas = velMasD[originalIndex];
     Real4 rhoPreMu = rhoPresMuD[originalIndex];
 
-    if (!(isfinite(posRad.x) && isfinite(posRad.y) && isfinite(posRad.z))) {
+    if (!IsFinite(posRad)) {
         printf(
             "Error! particle position is NAN: thrown from "
             "ChCollisionSystemFsi.cu, reorderDataD !\n");
     }
-    if (!(isfinite(velMas.x) && isfinite(velMas.y) && isfinite(velMas.z))) {
+    if (!IsFinite(velMas)) {
         printf(
             "Error! particle velocity is NAN: thrown from "
             "ChCollisionSystemFsi.cu, reorderDataD !\n");
     }
-    if (!(isfinite(rhoPreMu.x) && isfinite(rhoPreMu.y) && isfinite(rhoPreMu.z) && isfinite(rhoPreMu.w))) {
+    if (!IsFinite(rhoPreMu)) {
         printf(
             "Error! particle rhoPreMu is NAN: thrown from "
             "ChCollisionSystemFsi.cu, reorderDataD !\n");
@@ -174,12 +175,12 @@ __global__ void reorderDataD(uint* gridMarkerIndexD,     // input: sorted partic
     if (paramsD.elastic_SPH) {
         Real3 tauXxYyZz = tauXxYyZzD[originalIndex];
         Real3 tauXyXzYz = tauXyXzYzD[originalIndex];
-        if (!(isfinite(tauXxYyZz.x) && isfinite(tauXxYyZz.y) && isfinite(tauXxYyZz.z))) {
+        if (!IsFinite(tauXxYyZz)) {
             printf(
                 "Error! particle tauXxYyZz is NAN: thrown from "
                 "ChCollisionSystemFsi.cu, reorderDataD !\n");
         }
-        if (!(isfinite(tauXyXzYz.x) && isfinite(tauXyXzYz.y) && isfinite(tauXyXzYz.z))) {
+        if (!IsFinite(tauXyXzYz)) {
             printf(
                 "Error! particle tauXyXzYz is NAN: thrown from "
                 "ChCollisionSystemFsi.cu, reorderDataD !\n");
@@ -216,8 +217,24 @@ void ChCollisionSystemFsi::Initialize() {
     cudaMemcpyToSymbolAsync(paramsD, paramsH.get(), sizeof(SimParams));
     cudaMemcpyToSymbolAsync(numObjectsD, numObjectsH.get(), sizeof(ChCounters));
 }
-//-------------------------------------------------------------------------------
-void ChCollisionSystemFsi::calcHash() {
+
+// ------------------------------------------------------------------------------
+
+void ChCollisionSystemFsi::ArrangeData(std::shared_ptr<SphMarkerDataD> sphMarkersD) {
+    m_sphMarkersD = sphMarkersD;
+    int3 cellsDim = paramsH->gridSize;
+    int numCells = cellsDim.x * cellsDim.y * cellsDim.z;
+
+    uint numThreads, numBlocks;
+    computeGridSize((uint)numObjectsH->numAllMarkers, 256, numBlocks, numThreads);
+
+    // Reset cell size
+    m_markersProximityD->cellStartD.resize(numCells);
+    m_markersProximityD->cellEndD.resize(numCells);
+
+    // =========================================================================================================
+    // Calculate Hash
+    // =========================================================================================================
     if (!(m_markersProximityD->gridMarkerHashD.size() == numObjectsH->numAllMarkers &&
           m_markersProximityD->gridMarkerIndexD.size() == numObjectsH->numAllMarkers)) {
         printf(
@@ -234,42 +251,26 @@ void ChCollisionSystemFsi::calcHash() {
     *isErrorH = false;
     cudaMemcpy(isErrorD, isErrorH, sizeof(bool), cudaMemcpyHostToDevice);
 
-    // Is there a need to optimize the number of threads used at once?
-    uint numThreads, numBlocks;
-    computeGridSize((int)numObjectsH->numAllMarkers, 256, numBlocks, numThreads);
-
     // Execute Kernel
     calcHashD<<<numBlocks, numThreads>>>(U1CAST(m_markersProximityD->gridMarkerHashD),
                                          U1CAST(m_markersProximityD->gridMarkerIndexD), mR4CAST(m_sphMarkersD->posRadD),
                                          isErrorD);
 
-    // Check for errors in kernel execution
-    cudaDeviceSynchronize();
-    cudaCheckError();
     cudaMemcpy(isErrorH, isErrorD, sizeof(bool), cudaMemcpyDeviceToHost);
     if (*isErrorH == true)
         throw std::runtime_error("Error! program crashed in  calcHashD!\n");
     cudaFree(isErrorD);
     free(isErrorH);
-}
 
-// ------------------------------------------------------------------------------
-
-void ChCollisionSystemFsi::ArrangeData(std::shared_ptr<SphMarkerDataD> sphMarkersD) {
-    m_sphMarkersD = sphMarkersD;
-    int3 cellsDim = paramsH->gridSize;
-    int numCells = cellsDim.x * cellsDim.y * cellsDim.z;
-
-    // Reset cell size
-    m_markersProximityD->cellStartD.resize(numCells);
-    m_markersProximityD->cellEndD.resize(numCells);
-    
-    // Calculate and cache cell (bin) identifier (hash) for each particle
-    calcHash();
-    
+    // =========================================================================================================
+    // Sort Particles based on Hash
+    // =========================================================================================================
     thrust::sort_by_key(m_markersProximityD->gridMarkerHashD.begin(), m_markersProximityD->gridMarkerHashD.end(),
                         m_markersProximityD->gridMarkerIndexD.begin());
-    
+
+    // =========================================================================================================
+    // Find the start index and the end index of the sorted array in each cell
+    // =========================================================================================================
     // Reset proximity cell data
     if (!(m_markersProximityD->cellStartD.size() == numCells && m_markersProximityD->cellEndD.size() == numCells)) {
         throw std::runtime_error("Error! size error, ArrangeData!\n");
@@ -278,23 +279,21 @@ void ChCollisionSystemFsi::ArrangeData(std::shared_ptr<SphMarkerDataD> sphMarker
     thrust::fill(m_markersProximityD->cellStartD.begin(), m_markersProximityD->cellStartD.end(), 0);
     thrust::fill(m_markersProximityD->cellEndD.begin(), m_markersProximityD->cellEndD.end(), 0);
 
-    uint numThreads, numBlocks;
-    computeGridSize((uint)numObjectsH->numAllMarkers, 256, numBlocks, numThreads);
-
     uint smemSize = sizeof(uint) * (numThreads + 1);
-    // Find the start index and the end index of the sorted array in each cell
     findCellStartEndD<<<numBlocks, numThreads, smemSize>>>(
         U1CAST(m_markersProximityD->cellStartD), U1CAST(m_markersProximityD->cellEndD),
         U1CAST(m_markersProximityD->gridMarkerHashD), U1CAST(m_markersProximityD->gridMarkerIndexD));
-    cudaDeviceSynchronize();
-    cudaCheckError();
 
+    // =========================================================================================================
     // Launch a kernel to find the location of original particles in the sorted arrays.
     // This is faster than using thrust::sort_by_key()
+    // =========================================================================================================
     OriginalToSortedD<<<numBlocks, numThreads>>>(U1CAST(m_markersProximityD->mapOriginalToSorted),
                                                  U1CAST(m_markersProximityD->gridMarkerIndexD));
 
+    // =========================================================================================================
     // Reorder the arrays according to the sorted index of all particles
+    // =========================================================================================================
     reorderDataD<<<numBlocks, numThreads>>>(
         U1CAST(m_markersProximityD->gridMarkerIndexD), U1CAST(m_fsiData->extendedActivityIdD),
         U1CAST(m_markersProximityD->mapOriginalToSorted), mR4CAST(m_sortedSphMarkersD->posRadD),
@@ -302,7 +301,9 @@ void ChCollisionSystemFsi::ArrangeData(std::shared_ptr<SphMarkerDataD> sphMarker
         mR3CAST(m_sortedSphMarkersD->tauXxYyZzD), mR3CAST(m_sortedSphMarkersD->tauXyXzYzD),
         mR4CAST(m_sphMarkersD->posRadD), mR3CAST(m_sphMarkersD->velMasD), mR4CAST(m_sphMarkersD->rhoPresMuD),
         mR3CAST(m_sphMarkersD->tauXxYyZzD), mR3CAST(m_sphMarkersD->tauXyXzYzD));
+
     cudaDeviceSynchronize();
+
     cudaCheckError();
 }
 

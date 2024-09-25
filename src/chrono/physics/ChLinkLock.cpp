@@ -16,6 +16,8 @@
 ////    Serialization/deserialization of unique_ptr members is currently commented
 ////    out until support for unique_ptr is implemented in ChArchive.
 
+#include <cmath>
+
 #include "chrono/physics/ChSystem.h"
 #include "chrono/physics/ChLinkLock.h"
 
@@ -1087,31 +1089,37 @@ void ChLinkLock::IntLoadConstraint_C(const unsigned int off_L,  // offset in Qc 
     }
     if (limit_Rx && limit_Rx->IsActive()) {
         if (limit_Rx->constr_lower.IsActive()) {
-            Qc(off_L + local_offset) += std::max(c * (-sin(0.5 * limit_Rx->GetMin()) + relM.rot.e1()), -recovery_clamp);
+            Qc(off_L + local_offset) +=
+                std::max(c * (-std::sin(0.5 * limit_Rx->GetMin()) + relM.rot.e1()), -recovery_clamp);
             ++local_offset;
         }
         if (limit_Rx->constr_upper.IsActive()) {
-            Qc(off_L + local_offset) += std::max(c * (sin(0.5 * limit_Rx->GetMax()) - relM.rot.e1()), -recovery_clamp);
+            Qc(off_L + local_offset) +=
+                std::max(c * (std::sin(0.5 * limit_Rx->GetMax()) - relM.rot.e1()), -recovery_clamp);
             ++local_offset;
         }
     }
     if (limit_Ry && limit_Ry->IsActive()) {
         if (limit_Ry->constr_lower.IsActive()) {
-            Qc(off_L + local_offset) += std::max(c * (-sin(0.5 * limit_Ry->GetMin()) + relM.rot.e2()), -recovery_clamp);
+            Qc(off_L + local_offset) +=
+                std::max(c * (-std::sin(0.5 * limit_Ry->GetMin()) + relM.rot.e2()), -recovery_clamp);
             ++local_offset;
         }
         if (limit_Ry->constr_upper.IsActive()) {
-            Qc(off_L + local_offset) += std::max(c * (sin(0.5 * limit_Ry->GetMax()) - relM.rot.e2()), -recovery_clamp);
+            Qc(off_L + local_offset) +=
+                std::max(c * (std::sin(0.5 * limit_Ry->GetMax()) - relM.rot.e2()), -recovery_clamp);
             ++local_offset;
         }
     }
     if (limit_Rz && limit_Rz->IsActive()) {
         if (limit_Rz->constr_lower.IsActive()) {
-            Qc(off_L + local_offset) += std::max(c * (-sin(0.5 * limit_Rz->GetMin()) + relM.rot.e3()), -recovery_clamp);
+            Qc(off_L + local_offset) +=
+                std::max(c * (-std::sin(0.5 * limit_Rz->GetMin()) + relM.rot.e3()), -recovery_clamp);
             ++local_offset;
         }
         if (limit_Rz->constr_upper.IsActive()) {
-            Qc(off_L + local_offset) += std::max(c * (sin(0.5 * limit_Rz->GetMax()) - relM.rot.e3()), -recovery_clamp);
+            Qc(off_L + local_offset) +=
+                std::max(c * (std::sin(0.5 * limit_Rz->GetMax()) - relM.rot.e3()), -recovery_clamp);
             ++local_offset;
         }
     }
@@ -1507,21 +1515,21 @@ void ChLinkLock::ConstraintsBiLoad_C(double factor, double recovery_clamp, bool 
         if (limit_Rx->constr_lower.IsActive()) {
             if (!do_clamp) {
                 limit_Rx->constr_lower.SetRightHandSide(limit_Rx->constr_lower.GetRightHandSide() +
-                                               factor * (-sin(0.5 * limit_Rx->GetMin()) + relM.rot.e1()));
+                                                        factor * (-std::sin(0.5 * limit_Rx->GetMin()) + relM.rot.e1()));
             } else {
                 limit_Rx->constr_lower.SetRightHandSide(
                     limit_Rx->constr_lower.GetRightHandSide() +
-                    std::max(factor * (-sin(0.5 * limit_Rx->GetMin()) + relM.rot.e1()), -recovery_clamp));
+                    std::max(factor * (-std::sin(0.5 * limit_Rx->GetMin()) + relM.rot.e1()), -recovery_clamp));
             }
         }
         if (limit_Rx->constr_upper.IsActive()) {
             if (!do_clamp) {
                 limit_Rx->constr_upper.SetRightHandSide(limit_Rx->constr_upper.GetRightHandSide() +
-                                               factor * (sin(0.5 * limit_Rx->GetMax()) - relM.rot.e1()));
+                                                        factor * (std::sin(0.5 * limit_Rx->GetMax()) - relM.rot.e1()));
             } else {
                 limit_Rx->constr_upper.SetRightHandSide(
                     limit_Rx->constr_upper.GetRightHandSide() +
-                    std::max(factor * (sin(0.5 * limit_Rx->GetMax()) - relM.rot.e1()), -recovery_clamp));
+                    std::max(factor * (std::sin(0.5 * limit_Rx->GetMax()) - relM.rot.e1()), -recovery_clamp));
             }
         }
     }
@@ -1529,21 +1537,21 @@ void ChLinkLock::ConstraintsBiLoad_C(double factor, double recovery_clamp, bool 
         if (limit_Ry->constr_lower.IsActive()) {
             if (!do_clamp) {
                 limit_Ry->constr_lower.SetRightHandSide(limit_Ry->constr_lower.GetRightHandSide() +
-                                               factor * (-sin(0.5 * limit_Ry->GetMin()) + relM.rot.e2()));
+                                                        factor * (-std::sin(0.5 * limit_Ry->GetMin()) + relM.rot.e2()));
             } else {
                 limit_Ry->constr_lower.SetRightHandSide(
                     limit_Ry->constr_lower.GetRightHandSide() +
-                    std::max(factor * (-sin(0.5 * limit_Ry->GetMin()) + relM.rot.e2()), -recovery_clamp));
+                    std::max(factor * (-std::sin(0.5 * limit_Ry->GetMin()) + relM.rot.e2()), -recovery_clamp));
             }
         }
         if (limit_Ry->constr_upper.IsActive()) {
             if (!do_clamp) {
                 limit_Ry->constr_upper.SetRightHandSide(limit_Ry->constr_upper.GetRightHandSide() +
-                                               factor * (sin(0.5 * limit_Ry->GetMax()) - relM.rot.e2()));
+                                                        factor * (std::sin(0.5 * limit_Ry->GetMax()) - relM.rot.e2()));
             } else {
                 limit_Ry->constr_upper.SetRightHandSide(
                     limit_Ry->constr_upper.GetRightHandSide() +
-                    std::max(factor * (sin(0.5 * limit_Ry->GetMax()) - relM.rot.e2()), -recovery_clamp));
+                    std::max(factor * (std::sin(0.5 * limit_Ry->GetMax()) - relM.rot.e2()), -recovery_clamp));
             }
         }
     }
@@ -1551,21 +1559,21 @@ void ChLinkLock::ConstraintsBiLoad_C(double factor, double recovery_clamp, bool 
         if (limit_Rz->constr_lower.IsActive()) {
             if (!do_clamp) {
                 limit_Rz->constr_lower.SetRightHandSide(limit_Rz->constr_lower.GetRightHandSide() +
-                                               factor * (-sin(0.5 * limit_Rz->GetMin()) + relM.rot.e3()));
+                                                        factor * (-std::sin(0.5 * limit_Rz->GetMin()) + relM.rot.e3()));
             } else {
                 limit_Rz->constr_lower.SetRightHandSide(
                     limit_Rz->constr_lower.GetRightHandSide() +
-                    std::max(factor * (-sin(0.5 * limit_Rz->GetMin()) + relM.rot.e3()), -recovery_clamp));
+                    std::max(factor * (-std::sin(0.5 * limit_Rz->GetMin()) + relM.rot.e3()), -recovery_clamp));
             }
         }
         if (limit_Rz->constr_upper.IsActive()) {
             if (!do_clamp) {
                 limit_Rz->constr_upper.SetRightHandSide(limit_Rz->constr_upper.GetRightHandSide() +
-                                               factor * (sin(0.5 * limit_Rz->GetMax()) - relM.rot.e3()));
+                                                        factor * (std::sin(0.5 * limit_Rz->GetMax()) - relM.rot.e3()));
             } else {
                 limit_Rz->constr_upper.SetRightHandSide(
                     limit_Rz->constr_upper.GetRightHandSide() +
-                    std::max(factor * (sin(0.5 * limit_Rz->GetMax()) - relM.rot.e3()), -recovery_clamp));
+                    std::max(factor * (std::sin(0.5 * limit_Rz->GetMax()) - relM.rot.e3()), -recovery_clamp));
             }
         }
     }

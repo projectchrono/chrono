@@ -16,6 +16,8 @@
 //
 // =============================================================================
 
+#include <cmath>
+
 #include "chrono/core/ChGlobal.h"
 #include "chrono/functions/ChFunction.h"
 
@@ -89,7 +91,7 @@ int main(int argc, char* argv[]) {
       public:
         virtual ChFunctionMyTest* Clone() const override { return new ChFunctionMyTest(); }
 
-        virtual double GetVal(double x) const override { return cos(x); }  // just for test: simple cosine
+        virtual double GetVal(double x) const override { return std::cos(x); }  // just for test: simple cosine
     };
 
     ChFunctionMyTest f_test;

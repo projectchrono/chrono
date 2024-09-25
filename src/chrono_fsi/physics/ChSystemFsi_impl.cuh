@@ -30,6 +30,7 @@
 #include <thrust/tuple.h>
 
 #include "chrono_fsi/physics/ChFsiBase.h"
+#include "chrono_fsi/physics/ChMarkerType.cuh"
 #include "chrono_fsi/math/custom_math.h"
 #include "chrono_fsi/utils/ChUtilsDevice.cuh"
 
@@ -163,15 +164,26 @@ struct FsiData {
     thrust::host_vector<int4> referenceArray_FEA;  ///< phases in the array of SPH particles for flexible elements
 
     // Fluid data (device)
-    thrust::device_vector<Real4> derivVelRhoD;      ///< dv/dt and d(rho)/dt for particles
-    thrust::device_vector<Real3> derivTauXxYyZzD;   ///< d(tau)/dt for particles
-    thrust::device_vector<Real3> derivTauXyXzYzD;   ///< d(tau)/dt for particles
-    thrust::device_vector<Real3> vel_XSPH_D;        ///< XSPH velocity for particles
-    thrust::device_vector<Real3> vis_vel_SPH_D;     ///< ISPH velocity for particles
-    thrust::device_vector<Real4> sr_tau_I_mu_i;     ///< I2SPH strain-rate, stress, inertia number, friction
+    thrust::device_vector<Real4> derivVelRhoD;  ///< dv/dt and d(rho)/dt for particles
+    thrust::device_vector<Real4>
+        derivVelRhoOriginalD;  ///< dv/dt and d(rho)/dt used for writing partilces in file - unsorted
+
+    thrust::device_vector<Real3> derivTauXxYyZzD;  ///< d(tau)/dt for particles
+    thrust::device_vector<Real3> derivTauXyXzYzD;  ///< d(tau)/dt for particles
+    thrust::device_vector<Real3> vel_XSPH_D;       ///< XSPH velocity for particles
+    thrust::device_vector<Real3> vis_vel_SPH_D;    ///< ISPH velocity for particles
+    thrust::device_vector<Real4> sr_tau_I_mu_i;    ///< I2SPH strain-rate, stress, inertia number, friction
+    thrust::device_vector<Real4>
+        sr_tau_I_mu_i_Original;  ///< I2SPH strain-rate, stress, inertia number, friction - unsorted for writing
+    thrust::device_vector<Real3> bceAcc;  ///< Acceleration for boundary/rigid/flex body particles
 
     thrust::device_vector<uint> activityIdentifierD;  ///< Identifies if a particle is an active particle or not
     thrust::device_vector<uint> extendedActivityIdD;  ///< Identifies if a particle is in an extended active domain
+    thrust::device_vector<uint>
+        numNeighborsPerPart;                   ///< Stores the number of neighbors the particle, given by the index, has
+    thrust::device_vector<uint> neighborList;  ///< Stores the neighbor list - all neighbors are just stored one by one
+                                               ///< - The above vector provides the info required to idenitfy which
+                                               ///< particles neighbors are stored at which index of neighborList
 
     thrust::device_vector<uint> freeSurfaceIdD;  ///< Identifies if a particle is close to free surface
 
@@ -208,11 +220,16 @@ class ChSystemFsi_impl : public ChFsiBase {
     virtual ~ChSystemFsi_impl();
 
     /// Add an SPH particle given its position, physical properties, velocity, and stress.
-    void AddSPHParticle(Real4 pos,
-                        Real4 rhoPresMu,
+    void AddSphParticle(Real3 pos,
+                        Real rho,
+                        Real pres,
+                        Real mu,
                         Real3 vel = mR3(0.0),
                         Real3 tauXxYyZz = mR3(0.0),
                         Real3 tauXyXzYz = mR3(0.0));
+
+    /// Add a BCE marker of given type at the specified position and with specified velocity.
+    void AddBceMarker(MarkerType type, Real3 pos, Real3 vel);
 
     /// Initialize the underlying FSU system.
     /// Set reference arrays, set counters, and resize simulation arrays.
@@ -251,14 +268,13 @@ class ChSystemFsi_impl : public ChFsiBase {
     /// The return value is a device thrust vector.
     thrust::device_vector<Real4> GetParticleAccelerations(const thrust::device_vector<int>& indices);
 
-    std::shared_ptr<SphMarkerDataD> sphMarkers1_D;       ///< Information of SPH particles at state 1 on device
-    std::shared_ptr<SphMarkerDataD> sphMarkers2_D;       ///< Information of SPH particles at state 2 on device
-    std::shared_ptr<SphMarkerDataD> sortedSphMarkers_D;  ///< Sorted information of SPH particles at state 1 on device
-    std::shared_ptr<SphMarkerDataH> sphMarkers_H;        ///< Information of SPH particles on host
+    std::shared_ptr<SphMarkerDataD> sphMarkers_D;         ///< Information of SPH particles at state 1 on device
+    std::shared_ptr<SphMarkerDataD> sortedSphMarkers1_D;  ///< Information of SPH particles at state 2 on device
+    std::shared_ptr<SphMarkerDataD> sortedSphMarkers2_D;  ///< Sorted information of SPH particles at state 1 on device
+    std::shared_ptr<SphMarkerDataH> sphMarkers_H;         ///< Information of SPH particles on host
 
-    std::shared_ptr<FsiBodyStateH> fsiBodyState_H;   ///< Rigid body state (host)
-    std::shared_ptr<FsiBodyStateD> fsiBodyState1_D;  ///< Rigid body state 1 (device)
-    std::shared_ptr<FsiBodyStateD> fsiBodyState2_D;  ///< Rigid body state 2 (device)
+    std::shared_ptr<FsiBodyStateH> fsiBodyState_H;  ///< Rigid body state (host)
+    std::shared_ptr<FsiBodyStateD> fsiBodyState_D;  ///< Rigid body state 2 (device)
 
     std::shared_ptr<FsiMeshStateH> fsiMesh1DState_H;  ///< 1-D FEA mesh state (host)
     std::shared_ptr<FsiMeshStateD> fsiMesh1DState_D;  ///< 1-D FEA mesh state (device)
@@ -270,10 +286,16 @@ class ChSystemFsi_impl : public ChFsiBase {
     std::shared_ptr<ProximityDataD> markersProximity_D;  ///< Information of neighbor search on the device
 
   private:
-    void ArrangeDataManager();
     void ConstructReferenceArray();
     void InitNumObjects();
     void CalcNumObjects();
+
+    /// Initialize the midpoint device data of the fluid system by copying from the full step.
+    void CopyDeviceDataToHalfStep();
+
+    /// Reset device data at beginning of a step.
+    /// Initializes device vectors to zero.
+    void ResetData();
 
     friend class ChSystemFsi;
 };

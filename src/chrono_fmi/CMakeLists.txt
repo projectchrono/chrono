@@ -133,6 +133,8 @@ set(ChronoEngine_FMI_HEADERS
     ChExternalFmu.h
     fmi2/ChFmuToolsImport.h
     fmi3/ChFmuToolsImport.h
+    fmi2/ChFmuToolsExport.h
+    fmi3/ChFmuToolsExport.h
 )
 
 source_group("" FILES 

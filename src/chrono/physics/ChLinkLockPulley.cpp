@@ -163,10 +163,10 @@ void ChLinkLockPulley::UpdateTime(double mytime) {
 
     ChVector3d U1_w = Vcross(GetDirShaft1(), D21_w);
 
-    double gamma1 = acos((r1 - r2) / shaft_dist);
+    double gamma1 = std::acos((r1 - r2) / shaft_dist);
 
-    ChVector3d Ru_w = D21_w * cos(gamma1) + U1_w * sin(gamma1);
-    ChVector3d Rl_w = D21_w * cos(gamma1) - U1_w * sin(gamma1);
+    ChVector3d Ru_w = D21_w * std::cos(gamma1) + U1_w * std::sin(gamma1);
+    ChVector3d Rl_w = D21_w * std::cos(gamma1) - U1_w * std::sin(gamma1);
 
     belt_up1 = GetPosShaft1() + Ru_w * r1;
     belt_low1 = GetPosShaft1() + Rl_w * r1;

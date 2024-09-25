@@ -323,10 +323,10 @@ void ChSemiTrailingArm::AddVisualizationArm(std::shared_ptr<ChBody> arm,
     ChVector3d p_AS = arm->TransformPointParentToLocal(pt_AS);
     ChVector3d p_S = arm->TransformPointParentToLocal(pt_S);
 
-    ChVehicleGeometry::AddVisualizationCylinder(arm, p_AC_O, p_AS, radius);
-    ChVehicleGeometry::AddVisualizationCylinder(arm, p_AC_I, p_AS, radius);
+    utils::ChBodyGeometry::AddVisualizationCylinder(arm, p_AC_O, p_AS, radius);
+    utils::ChBodyGeometry::AddVisualizationCylinder(arm, p_AC_I, p_AS, radius);
     if ((p_AS - p_S).Length2() > threshold2) {
-        ChVehicleGeometry::AddVisualizationCylinder(arm, p_AS, p_S, radius);
+        utils::ChBodyGeometry::AddVisualizationCylinder(arm, p_AS, p_S, radius);
     }
 }
 // -----------------------------------------------------------------------------

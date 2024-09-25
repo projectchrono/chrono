@@ -351,14 +351,14 @@ void CreateTrackBCEMarkers(std::shared_ptr<TrackedVehicle> vehicle, CRMTerrain& 
     // Consider only collision boxes that are large enough
     utils::ChBodyGeometry geometry;
     auto min_length = 2 * (terrain.GetSystemFSI().GetNumBCELayers() - 1) * sysFSI.GetInitialSpacing();
-    for (const auto& box : track_geometry.m_coll_boxes) {
-        if (box.m_dims.x() > min_length && box.m_dims.y() > min_length && box.m_dims.z() < min_length) {
-            geometry.coll_boxes.push_back(utils::ChBodyGeometry::BoxShape(box.m_pos, box.m_rot, box.m_dims));
+    for (const auto& box : track_geometry.coll_boxes) {
+        if (box.dims.x() > min_length && box.dims.y() > min_length && box.dims.z() < min_length) {
+            geometry.coll_boxes.push_back(utils::ChBodyGeometry::BoxShape(box.pos, box.rot, box.dims));
         }
     }
 
-    cout << "Consider " << geometry.coll_boxes.size() << " collision boxes out of "
-         << track_geometry.m_coll_boxes.size() << endl;
+    cout << "Consider " << geometry.coll_boxes.size() << " collision boxes out of " << track_geometry.coll_boxes.size()
+         << endl;
 
     // Add an FSI body and associated BCE markers for each track shoe
     size_t num_track_BCE = 0;

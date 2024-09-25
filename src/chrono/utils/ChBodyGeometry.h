@@ -23,11 +23,30 @@
 #include <vector>
 
 #include "chrono/core/ChApiCE.h"
+
+#include "chrono/geometry/ChLine.h"
+#include "chrono/geometry/ChTriangleMeshConnected.h"
+
+#include "chrono/physics/ChContactMaterial.h"
+
 #include "chrono/assets/ChColor.h"
 #include "chrono/assets/ChVisualShape.h"
 #include "chrono/geometry/ChGeometry.h"
 
 namespace chrono {
+
+class ChBody;
+class ChLinkTSDA;
+
+/// Body visualization mode.
+enum class VisualizationType {
+    NONE,        ///< no visualization
+    PRIMITIVES,  ///< use primitve shapes (create primitive ChVisualShape objects)
+    MESH,        ///< use meshes (create a ChVisualShapeTriangleMesh)
+    MODEL_FILE,  ///< use a data file (create a ChVisualShapeModelFile)
+    COLLISION    ///< visualize collision shapes
+};
+
 namespace utils {
 
 /// @addtogroup chrono_utils
@@ -39,15 +58,6 @@ namespace utils {
 /// the list of contact materials.
 class ChApi ChBodyGeometry {
   public:
-    /// Body visualization mode.
-    enum class VisualizationType {
-        NONE,        ///< no visualization
-        PRIMITIVES,  ///< use primitve shapes (create primitive ChVisualShape objects)
-        MESH,        ///< use meshes (create a ChVisualShapeTriangleMesh)
-        MODEL_FILE,  ///< use a data file (create a ChVisualShapeModelFile)
-        COLLISION    ///< visualize collision shapes
-    };
-
     ChBodyGeometry();
 
     /// Box shape for visualization and/or collision.
@@ -106,6 +116,12 @@ class ChApi ChBodyGeometry {
                      const ChVector3d& interior_point,
                      double radius = 0,
                      int matID = -1);
+        TrimeshShape(const ChVector3d& pos, const std::string& filename, double radius, int matID = -1);
+        TrimeshShape(const ChVector3d& pos,
+                     std::shared_ptr<ChTriangleMeshConnected> trimesh,
+                     double radius,
+                     int matID = -1);
+
         std::shared_ptr<ChTriangleMeshConnected> trimesh;  ///< triangular mesh
         ChVector3d int_point;                              ///< location of a point inside the mesh
         double radius;                                     ///< radius of sweeping sphere
@@ -129,6 +145,15 @@ class ChApi ChBodyGeometry {
 
     /// Calculate axis-aligned bounding box of all collision shapes.
     ChAABB CalculateAABB();
+
+    /// Indicate whether or not collision shapes are defined.
+    bool HasCollision() const;
+
+    /// Indicate whether or not visualization primitives are defined.
+    bool HasVisualizationPrimitives() const;
+
+    /// Indicate whether or not a visualization mesh is defined.
+    bool HasVisualizationMesh() const;
 
   public:
     std::vector<ChContactMaterialData> materials;  ///< list of contact materials

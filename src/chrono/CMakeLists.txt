@@ -376,6 +376,7 @@ set(ChronoEngine_fea_FILES
     fea/ChPolarDecomposition.cpp
     fea/ChMatrixCorotation.cpp
     fea/ChContactSurface.cpp
+    fea/ChContactSurfaceSegmentSet.cpp
     fea/ChContactSurfaceNodeCloud.cpp
     fea/ChContactSurfaceMesh.cpp
     fea/ChMeshSurface.cpp
@@ -394,6 +395,7 @@ set(ChronoEngine_fea_FILES
     fea/ChPolarDecomposition.h
     fea/ChMatrixCorotation.h
     fea/ChContactSurface.h
+    fea/ChContactSurfaceSegmentSet.h
     fea/ChContactSurfaceNodeCloud.h
     fea/ChContactSurfaceMesh.h
     fea/ChMeshSurface.h
@@ -721,6 +723,7 @@ set(ChronoEngine_collision_SOURCES
     collision/ChCollisionShapeRoundedBox.cpp
     collision/ChCollisionShapeRoundedCylinder.cpp
     collision/ChCollisionShapeSegment2D.cpp
+    collision/ChCollisionShapeSegment.cpp
     collision/ChCollisionShapeSphere.cpp
     collision/ChCollisionShapeTriangle.cpp
     collision/ChCollisionShapeMeshTriangle.cpp
@@ -749,6 +752,7 @@ set(ChronoEngine_collision_HEADERS
     collision/ChCollisionShapeRoundedBox.h
     collision/ChCollisionShapeRoundedCylinder.h
     collision/ChCollisionShapeSegment2D.h
+    collision/ChCollisionShapeSegment.h
     collision/ChCollisionShapeSphere.h
     collision/ChCollisionShapeTriangle.h
     collision/ChCollisionShapeMeshTriangle.h
@@ -841,6 +845,7 @@ set(ChronoEngine_collision_bullet_SOURCES
     collision/bullet/BulletCollision/CollisionShapes/cbtBarrelShape.cpp
     collision/bullet/BulletCollision/CollisionShapes/cbt2DShape.cpp
     collision/bullet/BulletCollision/CollisionShapes/cbtCEtriangleShape.cpp
+    collision/bullet/BulletCollision/CollisionShapes/cbtSegmentShape.cpp
     collision/bullet/BulletCollision/CollisionShapes/cbtBoxShape.cpp
     collision/bullet/BulletCollision/CollisionShapes/cbtTriangleMeshShape.cpp
     collision/bullet/BulletCollision/CollisionShapes/cbtBvhTriangleMeshShape.cpp

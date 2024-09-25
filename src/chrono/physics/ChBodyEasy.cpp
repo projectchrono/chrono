@@ -50,8 +50,8 @@ void ChBodyEasySphere::SetupBody(double radius,
                                  bool visualize,
                                  bool collide,
                                  std::shared_ptr<ChContactMaterial> material) {
-    double mmass = density * ((4.0 / 3.0) * CH_PI * pow(radius, 3));
-    double inertia = (2.0 / 5.0) * mmass * pow(radius, 2);
+    double mmass = density * ((4.0 / 3.0) * CH_PI * std::pow(radius, 3));
+    double inertia = (2.0 / 5.0) * mmass * std::pow(radius, 2);
 
     SetMass(mmass);
     SetInertiaXX(ChVector3d(inertia, inertia, inertia));
@@ -104,9 +104,9 @@ void ChBodyEasyEllipsoid::SetupBody(ChVector3d axes,
                                     bool collide,
                                     std::shared_ptr<ChContactMaterial> material) {
     double mmass = density * ((1 / 6.0) * CH_PI * axes.x() * axes.y() * axes.z());
-    double inertiax = (1 / 20.0) * mmass * (pow(axes.y(), 2) + pow(axes.z(), 2));
-    double inertiay = (1 / 20.0) * mmass * (pow(axes.x(), 2) + pow(axes.z(), 2));
-    double inertiaz = (1 / 20.0) * mmass * (pow(axes.x(), 2) + pow(axes.y(), 2));
+    double inertiax = (1 / 20.0) * mmass * (std::pow(axes.y(), 2) + std::pow(axes.z(), 2));
+    double inertiay = (1 / 20.0) * mmass * (std::pow(axes.x(), 2) + std::pow(axes.z(), 2));
+    double inertiaz = (1 / 20.0) * mmass * (std::pow(axes.x(), 2) + std::pow(axes.y(), 2));
 
     SetMass(mmass);
     SetInertiaXX(ChVector3d(inertiax, inertiay, inertiaz));
@@ -166,9 +166,9 @@ void ChBodyEasyCylinder::SetupBody(ChAxis direction,
                                    bool visualize,
                                    bool collide,
                                    std::shared_ptr<ChContactMaterial> material) {
-    double mass = density * (CH_PI * pow(radius, 2) * height);
-    double I_axis = 0.5 * mass * pow(radius, 2);
-    double I_orth = (1 / 12.0) * mass * (3 * pow(radius, 2) + pow(height, 2));
+    double mass = density * (CH_PI * std::pow(radius, 2) * height);
+    double I_axis = 0.5 * mass * std::pow(radius, 2);
+    double I_orth = (1 / 12.0) * mass * (3 * std::pow(radius, 2) + std::pow(height, 2));
     ChQuaternion<> rot;
 
     SetMass(mass);
@@ -248,9 +248,9 @@ void ChBodyEasyBox::SetupBody(double Xsize,
     double mmass = density * (Xsize * Ysize * Zsize);
 
     SetMass(mmass);
-    SetInertiaXX(ChVector3d((1.0 / 12.0) * mmass * (pow(Ysize, 2) + pow(Zsize, 2)),
-                            (1.0 / 12.0) * mmass * (pow(Xsize, 2) + pow(Zsize, 2)),
-                            (1.0 / 12.0) * mmass * (pow(Xsize, 2) + pow(Ysize, 2))));
+    SetInertiaXX(ChVector3d((1.0 / 12.0) * mmass * (std::pow(Ysize, 2) + std::pow(Zsize, 2)),
+                            (1.0 / 12.0) * mmass * (std::pow(Xsize, 2) + std::pow(Zsize, 2)),
+                            (1.0 / 12.0) * mmass * (std::pow(Xsize, 2) + std::pow(Ysize, 2))));
     if (collide) {
         assert(material);
         auto cshape = chrono_types::make_shared<ChCollisionShapeBox>(material, Xsize, Ysize, Zsize);
@@ -589,13 +589,13 @@ void ChBodyEasyClusterOfSpheres::SetupBody(std::vector<ChVector3d>& positions,
     ChVector3d baricenter = VNULL;
     totinertia.setZero();
     for (unsigned int i = 0; i < positions.size(); ++i) {
-        double sphmass = density * ((4.0 / 3.0) * CH_PI * pow(radii[i], 3));
+        double sphmass = density * ((4.0 / 3.0) * CH_PI * std::pow(radii[i], 3));
         baricenter = (baricenter * totmass + positions[i] * sphmass) / (totmass + sphmass);
         totmass += sphmass;
     }
     for (unsigned int i = 0; i < positions.size(); ++i) {
-        double sphmass = density * ((4.0 / 3.0) * CH_PI * pow(radii[i], 3));
-        double sphinertia = (2.0 / 5.0) * sphmass * pow(radii[i], 2);
+        double sphmass = density * ((4.0 / 3.0) * CH_PI * std::pow(radii[i], 3));
+        double sphinertia = (2.0 / 5.0) * sphmass * std::pow(radii[i], 2);
 
         // Huygens-Steiner parallel axis theorem:
         ChVector3d dist = positions[i] - baricenter;

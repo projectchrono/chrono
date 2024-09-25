@@ -53,10 +53,10 @@ void ChVehicleCosimTireNodeRigid::InitializeTire(std::shared_ptr<ChWheel> wheel,
     // Tire mesh geometry and contact material
     auto trimesh = m_tire_rgd->GetContactMesh();
     auto cmat = std::static_pointer_cast<ChContactMaterialSMC>(m_tire_rgd->GetContactMaterial());
-    m_geometry.m_coll_meshes.push_back(ChVehicleGeometry::TrimeshShape(VNULL, trimesh, 0.0, 0));
-    m_geometry.m_materials.push_back(ChContactMaterialData(cmat->GetSlidingFriction(), cmat->GetRestitution(),
-                                                           cmat->GetYoungModulus(), cmat->GetPoissonRatio(),
-                                                           cmat->GetKn(), cmat->GetGn(), cmat->GetKt(), cmat->GetGt()));
+    m_geometry.coll_meshes.push_back(utils::ChBodyGeometry::TrimeshShape(VNULL, trimesh, 0.0, 0));
+    m_geometry.materials.push_back(ChContactMaterialData(cmat->GetSlidingFriction(), cmat->GetRestitution(),
+                                                         cmat->GetYoungModulus(), cmat->GetPoissonRatio(),
+                                                         cmat->GetKn(), cmat->GetGn(), cmat->GetKt(), cmat->GetGt()));
 
     // Preprocess the tire mesh and store neighbor element information for each vertex.
     // Calculate mesh triangle areas.

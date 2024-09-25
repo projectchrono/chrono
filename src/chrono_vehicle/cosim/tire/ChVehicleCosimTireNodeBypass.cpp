@@ -32,7 +32,7 @@ namespace vehicle {
 
 ChVehicleCosimTireNodeBypass::ChVehicleCosimTireNodeBypass(int index, double mass, double radius, double width)
     : ChVehicleCosimTireNode(index), m_mass(mass), m_radius(radius), m_width(width) {
-    m_geometry = ChVehicleGeometry();  // empty geometry
+    m_geometry = utils::ChBodyGeometry();  // empty geometry
 }
 
 }  // namespace vehicle

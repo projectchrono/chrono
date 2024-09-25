@@ -445,16 +445,16 @@ void ChThreeLinkIRS::AddVisualizationArm(std::shared_ptr<ChBody> body,
     ChVector3d p_U = body->TransformPointParentToLocal(pt_U);
     ChVector3d p_L = body->TransformPointParentToLocal(pt_L);
 
-    ChVehicleGeometry::AddVisualizationCylinder(body, p_C, p_CM, radius);
+    utils::ChBodyGeometry::AddVisualizationCylinder(body, p_C, p_CM, radius);
 
-    ChVehicleGeometry::AddVisualizationCylinder(body, p_S, p_CM, radius);
+    utils::ChBodyGeometry::AddVisualizationCylinder(body, p_S, p_CM, radius);
 
     if ((p_S - p_U).Length2() > threshold2) {
-        ChVehicleGeometry::AddVisualizationCylinder(body, p_S, p_U, radius);
+        utils::ChBodyGeometry::AddVisualizationCylinder(body, p_S, p_U, radius);
     }
 
     if ((p_S - p_L).Length2() > threshold2) {
-        ChVehicleGeometry::AddVisualizationCylinder(body, p_S, p_L, radius);
+        utils::ChBodyGeometry::AddVisualizationCylinder(body, p_S, p_L, radius);
     }
 }
 
@@ -468,8 +468,8 @@ void ChThreeLinkIRS::AddVisualizationLink(std::shared_ptr<ChBody> body,
     ChVector3d p_2 = body->TransformPointParentToLocal(pt_2);
     ChVector3d p_CM = body->TransformPointParentToLocal(pt_CM);
 
-    ChVehicleGeometry::AddVisualizationCylinder(body, p_1, p_CM, radius);
-    ChVehicleGeometry::AddVisualizationCylinder(body, p_2, p_CM, radius);
+    utils::ChBodyGeometry::AddVisualizationCylinder(body, p_1, p_CM, radius);
+    utils::ChBodyGeometry::AddVisualizationCylinder(body, p_2, p_CM, radius);
 }
 
 // -----------------------------------------------------------------------------

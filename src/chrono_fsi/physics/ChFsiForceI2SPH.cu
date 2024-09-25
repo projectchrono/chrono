@@ -644,20 +644,17 @@ __global__ void Velocity_Correction_and_update(Real4* sortedPosRad,
         sortedPosRad[i_idx] = x_new;
     }
 
-    //    if (!(isfinite(sortedPosRad[i_idx].x) && isfinite(sortedPosRad[i_idx].y) && isfinite(sortedPosRad[i_idx].z)))
-    //    {
+    //    if (!IsFinite(sortedPosRad[i_idx])) {
     //        printf("Error! particle %d position is NAN: thrown from ChFsiForceI2SPH.cu  %f,%f,%f,%f\n", i_idx,
     //               sortedPosRad[i_idx].x, sortedPosRad[i_idx].y, sortedPosRad[i_idx].z, sortedPosRad[i_idx].w);
     //    }
-    //    if (!(isfinite(sortedRhoPreMu[i_idx].x) && isfinite(sortedRhoPreMu[i_idx].y) &&
-    //          isfinite(sortedRhoPreMu[i_idx].z))) {
+    //    if (!IsFinite(sortedRhoPreMu[i_idx])) {
     //        printf("Error! particle %d rhoPreMu is NAN: thrown from ChFsiForceI2SPH.cu %f,%f,%f,%f\n", i_idx,
     //               sortedRhoPreMu[i_idx].x, sortedRhoPreMu[i_idx].y, sortedRhoPreMu[i_idx].z,
     //               sortedRhoPreMu[i_idx].w);
     //    }
     //
-    //    if (!(isfinite(sortedVelMas[i_idx].x) && isfinite(sortedVelMas[i_idx].y) && isfinite(sortedVelMas[i_idx].z)))
-    //    {
+    //    if (!IsFinite(sortedVelMas[i_idx])) {
     //        printf("Error! particle %d velocity is NAN: thrown from ChFsiForceI2SPH.cu %f,%f,%f\n", i_idx,
     //               sortedVelMas[i_idx].x, sortedVelMas[i_idx].y, sortedVelMas[i_idx].z);
     //    }
@@ -688,21 +685,18 @@ __global__ void Shifting(Real4* sortedPosRad,
     Real3 inner_sum = mR3(0.0), shift_r = mR3(0.0);
     Real mi_bar = 0.0, r0 = 0.0;  // v_bar = 0.0;
     Real3 xSPH_Sum = mR3(0.0);
-    if (!(isfinite(sortedPosRad_old[i_idx].x) && isfinite(sortedPosRad_old[i_idx].y) &&
-          isfinite(sortedPosRad_old[i_idx].z))) {
+    if (!IsFinite(sortedPosRad_old[i_idx])) {
         printf("Error! particle %d position is NAN: thrown from 1 Shifting ChFsiForceI2SPH.cu  %f,%f,%f,%f\n", i_idx,
                sortedPosRad_old[i_idx].x, sortedPosRad_old[i_idx].y, sortedPosRad_old[i_idx].z,
                sortedPosRad_old[i_idx].w);
     }
-    if (!(isfinite(sortedRhoPreMu_old[i_idx].x) && isfinite(sortedRhoPreMu[i_idx].y) &&
-          isfinite(sortedRhoPreMu_old[i_idx].z))) {
+    if (!IsFinite(sortedRhoPreMu_old[i_idx])) {
         printf("Error! particle %d rhoPreMu is NAN: thrown from 1 Shifting ChFsiForceI2SPH.cu %f,%f,%f,%f\n", i_idx,
                sortedRhoPreMu_old[i_idx].x, sortedRhoPreMu_old[i_idx].y, sortedRhoPreMu_old[i_idx].z,
                sortedRhoPreMu_old[i_idx].w);
     }
 
-    if (!(isfinite(sortedVelMas_old[i_idx].x) && isfinite(sortedVelMas_old[i_idx].y) &&
-          isfinite(sortedVelMas_old[i_idx].z))) {
+    if (!IsFinite(sortedVelMas_old[i_idx])) {
         printf("Error! particle %d velocity is NAN: thrown from 1 Shifting ChFsiForceI2SPH.cu %f,%f,%f\n", i_idx,
                sortedVelMas_old[i_idx].x, sortedVelMas_old[i_idx].y, sortedVelMas_old[i_idx].z);
     }
@@ -775,17 +769,16 @@ __global__ void Shifting(Real4* sortedPosRad,
 
     sortedVisVel[i_idx] = vis_vel;
 
-    if (!(isfinite(sortedPosRad[i_idx].x) && isfinite(sortedPosRad[i_idx].y) && isfinite(sortedPosRad[i_idx].z))) {
+    if (!IsFinite(sortedPosRad[i_idx])) {
         printf("Error! particle %d position is NAN: thrown from Shifting ChFsiForceI2SPH.cu  %f,%f,%f,%f\n", i_idx,
                sortedPosRad[i_idx].x, sortedPosRad[i_idx].y, sortedPosRad[i_idx].z, sortedPosRad[i_idx].w);
     }
-    if (!(isfinite(sortedRhoPreMu[i_idx].x) && isfinite(sortedRhoPreMu[i_idx].y) &&
-          isfinite(sortedRhoPreMu[i_idx].z))) {
+    if (!IsFinite(sortedRhoPreMu[i_idx])) {
         printf("Error! particle %d rhoPreMu is NAN: thrown from Shifting ChFsiForceI2SPH.cu %f,%f,%f,%f\n", i_idx,
                sortedRhoPreMu[i_idx].x, sortedRhoPreMu[i_idx].y, sortedRhoPreMu[i_idx].z, sortedRhoPreMu[i_idx].w);
     }
 
-    if (!(isfinite(sortedVelMas[i_idx].x) && isfinite(sortedVelMas[i_idx].y) && isfinite(sortedVelMas[i_idx].z))) {
+    if (!IsFinite(sortedVelMas[i_idx])) {
         printf("Error! particle %d velocity is NAN: thrown from Shifting ChFsiForceI2SPH.cu %f,%f,%f\n", i_idx,
                sortedVelMas[i_idx].x, sortedVelMas[i_idx].y, sortedVelMas[i_idx].z);
     }
@@ -928,16 +921,19 @@ void ChFsiForceI2SPH::PreProcessor(std::shared_ptr<SphMarkerDataD> otherSphMarke
 //==========================================================================================================================================
 //==========================================================================================================================================
 //==========================================================================================================================================
-void ChFsiForceI2SPH::ForceSPH(std::shared_ptr<SphMarkerDataD> otherSphMarkersD,
+void ChFsiForceI2SPH::ForceSPH(std::shared_ptr<SphMarkerDataD> otherSortedSphMarkersD,
                                std::shared_ptr<FsiBodyStateD> fsiBodyStateD,
                                std::shared_ptr<FsiMeshStateD> fsiMesh1DStateD,
-                               std::shared_ptr<FsiMeshStateD> fsiMesh2DStateD) {
+                               std::shared_ptr<FsiMeshStateD> fsiMesh2DStateD,
+                               Real time,
+                               bool firstHalfStep) {
     //// RADU TODO
 
     CopyParams_NumberOfObjects(paramsH, numObjectsH);
 
-    sphMarkersD = otherSphMarkersD;
-    fsiCollisionSystem->ArrangeData(sphMarkersD);
+    sortedSphMarkers_D = otherSortedSphMarkersD;
+    // sphMarkersD = otherSphMarkersD;
+    // fsiCollisionSystem->ArrangeData(sphMarkersD);
 
     thrust::device_vector<Real3>::iterator iter =
         thrust::max_element(sortedSphMarkers_D->velMasD.begin(), sortedSphMarkers_D->velMasD.end(), compare_Real3_mag());
@@ -988,7 +984,6 @@ void ChFsiForceI2SPH::ForceSPH(std::shared_ptr<SphMarkerDataD> otherSphMarkersD,
     thrust::device_vector<Real4> rhoPresMuD_old = sortedSphMarkers_D->rhoPresMuD;
     thrust::device_vector<Real4> posRadD_old = sortedSphMarkers_D->posRadD;
     thrust::device_vector<Real3> velMasD_old = sortedSphMarkers_D->velMasD;
-    thrust::device_vector<Real4> sr_tau_I_mu_i(numAllMarkers, mR4(0.0));
 
     thrust::fill(V_star_old.begin(), V_star_old.end(), mR3(0.0));
     thrust::fill(V_star_new.begin(), V_star_new.end(), mR3(0.0));
@@ -1000,7 +995,7 @@ void ChFsiForceI2SPH::ForceSPH(std::shared_ptr<SphMarkerDataD> otherSphMarkersD,
         Viscosity_correction<<<numBlocks, numThreads>>>(
             mR4CAST(sortedSphMarkers_D->posRadD), mR3CAST(sortedSphMarkers_D->velMasD),
             mR4CAST(sortedSphMarkers_D->rhoPresMuD), mR4CAST(rhoPresMuD_old), mR3CAST(sortedSphMarkers_D->tauXxYyZzD),
-            mR3CAST(sortedSphMarkers_D->tauXyXzYzD), mR4CAST(sr_tau_I_mu_i), R1CAST(csrValLaplacian),
+            mR3CAST(sortedSphMarkers_D->tauXyXzYzD), mR4CAST(fsiData->sr_tau_I_mu_i), R1CAST(csrValLaplacian),
             mR3CAST(csrValGradient), R1CAST(csrValFunction), R1CAST(_sumWij_inv), U1CAST(csrColInd), U1CAST(Contact_i),
 
             updatePortion, U1CAST(markersProximity_D->gridMarkerIndexD), numAllMarkers, paramsH->dT, yeild_strain,
@@ -1205,35 +1200,19 @@ void ChFsiForceI2SPH::ForceSPH(std::shared_ptr<SphMarkerDataD> otherSphMarkersD,
     posRadD_old = sortedSphMarkers_D->posRadD;
     velMasD_old = sortedSphMarkers_D->velMasD;
 
-    thrust::fill(vel_vis_Sorted_D.begin(), vel_vis_Sorted_D.end(), mR3(0.0));
-
-    // should not be initialized to zero since moving weighted average is going to be applied
-    thrust::fill(derivVelRhoD_Sorted_D.begin(), derivVelRhoD_Sorted_D.end(), mR4(0.0));
+    thrust::fill(fsiData->vis_vel_SPH_D.begin(), fsiData->vis_vel_SPH_D.end(), mR3(0.0));
 
     Velocity_Correction_and_update<<<numBlocks, numThreads>>>(
         mR4CAST(sortedSphMarkers_D->posRadD), mR4CAST(posRadD_old), mR4CAST(sortedSphMarkers_D->rhoPresMuD),
         mR4CAST(rhoPresMuD_old), mR3CAST(sortedSphMarkers_D->velMasD), mR3CAST(velMasD_old),
-        mR3CAST(sortedSphMarkers_D->tauXxYyZzD), mR3CAST(sortedSphMarkers_D->tauXyXzYzD), mR4CAST(sr_tau_I_mu_i),
-        mR3CAST(vel_vis_Sorted_D), mR4CAST(derivVelRhoD_Sorted_D), mR3CAST(V_star_new), R1CAST(q_new),
-        R1CAST(csrValFunction), mR3CAST(csrValGradient), R1CAST(csrValLaplacian), U1CAST(csrColInd), U1CAST(Contact_i),
-        numAllMarkers, MaxVel, paramsH->dT, isErrorD);
+        mR3CAST(sortedSphMarkers_D->tauXxYyZzD), mR3CAST(sortedSphMarkers_D->tauXyXzYzD),
+        mR4CAST(fsiData->sr_tau_I_mu_i), mR3CAST(fsiData->vis_vel_SPH_D), mR4CAST(fsiData->derivVelRhoD),
+        mR3CAST(V_star_new), R1CAST(q_new), R1CAST(csrValFunction), mR3CAST(csrValGradient), R1CAST(csrValLaplacian),
+        U1CAST(csrColInd), U1CAST(Contact_i), numAllMarkers, MaxVel, paramsH->dT, isErrorD);
     ChUtilsDevice::Sync_CheckError(isErrorH, isErrorD, "Velocity_Correction_and_update");
 
-    CopySortedToOriginal_NonInvasive_R3(fsiData->vis_vel_SPH_D, vel_vis_Sorted_D, markersProximity_D->gridMarkerIndexD);
-    CopySortedToOriginal_NonInvasive_R4(fsiData->derivVelRhoD, derivVelRhoD_Sorted_D,
-                                        markersProximity_D->gridMarkerIndexD);
-    CopySortedToOriginal_NonInvasive_R3(sphMarkersD->velMasD, sortedSphMarkers_D->velMasD,
-                                        markersProximity_D->gridMarkerIndexD);
-    CopySortedToOriginal_NonInvasive_R4(sphMarkersD->rhoPresMuD, sortedSphMarkers_D->rhoPresMuD,
-                                        markersProximity_D->gridMarkerIndexD);
-    CopySortedToOriginal_NonInvasive_R4(sphMarkersD->posRadD, sortedSphMarkers_D->posRadD,
-                                        markersProximity_D->gridMarkerIndexD);
-    CopySortedToOriginal_NonInvasive_R3(sphMarkersD->tauXxYyZzD, sortedSphMarkers_D->tauXxYyZzD,
-                                        markersProximity_D->gridMarkerIndexD);
-    CopySortedToOriginal_NonInvasive_R3(sphMarkersD->tauXyXzYzD, sortedSphMarkers_D->tauXyXzYzD,
-                                        markersProximity_D->gridMarkerIndexD);
 
-    fsiCollisionSystem->ArrangeData(sphMarkersD);
+    // fsiCollisionSystem->ArrangeData(sphMarkersD);
     ChFsiForceI2SPH::PreProcessor(sortedSphMarkers_D, false);
 
     rhoPresMuD_old = sortedSphMarkers_D->rhoPresMuD;
@@ -1242,9 +1221,9 @@ void ChFsiForceI2SPH::ForceSPH(std::shared_ptr<SphMarkerDataD> otherSphMarkersD,
     //
     Shifting<<<numBlocks, numThreads>>>(
         mR4CAST(sortedSphMarkers_D->posRadD), mR4CAST(posRadD_old), mR4CAST(sortedSphMarkers_D->rhoPresMuD),
-        mR4CAST(rhoPresMuD_old), mR3CAST(sortedSphMarkers_D->velMasD), mR3CAST(velMasD_old), mR3CAST(vel_vis_Sorted_D),
-        R1CAST(csrValFunction), mR3CAST(csrValGradient), U1CAST(csrColInd), U1CAST(Contact_i), numAllMarkers, MaxVel,
-        paramsH->dT, isErrorD);
+        mR4CAST(rhoPresMuD_old), mR3CAST(sortedSphMarkers_D->velMasD), mR3CAST(velMasD_old),
+        mR3CAST(fsiData->vis_vel_SPH_D), R1CAST(csrValFunction), mR3CAST(csrValGradient), U1CAST(csrColInd),
+        U1CAST(Contact_i), numAllMarkers, MaxVel, paramsH->dT, isErrorD);
     ChUtilsDevice::Sync_CheckError(isErrorH, isErrorD, "Shifting");
     Real4_x unary_op(paramsH->rho0);
     thrust::plus<Real> binary_op;
@@ -1260,24 +1239,14 @@ void ChFsiForceI2SPH::ForceSPH(std::shared_ptr<SphMarkerDataD> otherSphMarkersD,
 
     // post-processing for conservative formulation
     if (paramsH->Conservative_Form && paramsH->ClampPressure) {
-        Real minP = thrust::transform_reduce(sphMarkersD->rhoPresMuD.begin(), sphMarkersD->rhoPresMuD.end(),
-                                             Real4_y_min(), 1e9, thrust::minimum<Real>());
+        Real minP =
+            thrust::transform_reduce(sortedSphMarkers_D->rhoPresMuD.begin(), sortedSphMarkers_D->rhoPresMuD.end(),
+                                     Real4_y_min(), 1e9, thrust::minimum<Real>());
         my_Functor_real4y negate(minP);
         thrust::for_each(sortedSphMarkers_D->rhoPresMuD.begin(), sortedSphMarkers_D->rhoPresMuD.end(), negate);
         printf("Shifting min pressure of %.3e to 0\n", minP);
     }
     //============================================================================================================
-    CopySortedToOriginal_NonInvasive_R4(fsiData->sr_tau_I_mu_i, sr_tau_I_mu_i, markersProximity_D->gridMarkerIndexD);
-    CopySortedToOriginal_NonInvasive_R3(sphMarkersD->velMasD, sortedSphMarkers_D->velMasD,
-                                        markersProximity_D->gridMarkerIndexD);
-    CopySortedToOriginal_NonInvasive_R4(sphMarkersD->rhoPresMuD, sortedSphMarkers_D->rhoPresMuD,
-                                        markersProximity_D->gridMarkerIndexD);
-    CopySortedToOriginal_NonInvasive_R4(sphMarkersD->posRadD, sortedSphMarkers_D->posRadD,
-                                        markersProximity_D->gridMarkerIndexD);
-    //    CopySortedToOriginal_NonInvasive_R3(sphMarkersD->tauXxYyZzD, sortedSphMarkers_D->tauXxYyZzD,
-    //                                        markersProximity_D->gridMarkerIndexD);
-    //    CopySortedToOriginal_NonInvasive_R3(sphMarkersD->tauXyXzYzD, sortedSphMarkers_D->tauXyXzYzD,
-    //                                        markersProximity_D->gridMarkerIndexD);
 
     csrValGradient.clear();
     csrValLaplacian.clear();

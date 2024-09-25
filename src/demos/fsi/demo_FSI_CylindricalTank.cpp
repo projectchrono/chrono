@@ -133,6 +133,7 @@ int main(int argc, char* argv[]) {
     sph_params.density_reinit_steps = 1000;
     sph_params.consistent_gradient_discretization = false;
     sph_params.consistent_laplacian_discretization = false;
+    sph_params.num_proximity_search_steps = 1;
 
     sysFSI.SetSPHParameters(sph_params);
     sysFSI.SetStepSize(step_size);
@@ -156,14 +157,13 @@ int main(int argc, char* argv[]) {
     geometry.materials.push_back(ChContactMaterialData());
     geometry.coll_spheres.push_back(utils::ChBodyGeometry::SphereShape(VNULL, radius, 0));
     if (show_rigid)
-        geometry.CreateVisualizationAssets(body, utils::ChBodyGeometry::VisualizationType::COLLISION);
+        geometry.CreateVisualizationAssets(body, VisualizationType::COLLISION);
 
     // Add as an FSI body (create BCE markers on a grid)
     fsi.AddRigidBody(body, geometry, true, false);
 
     // Enable height-based initial pressure for SPH particles
-    fsi.RegisterParticlePropertiesCallback(
-        chrono_types::make_shared<DepthPressurePropertiesCallback>(sysFSI, height));
+    fsi.RegisterParticlePropertiesCallback(chrono_types::make_shared<DepthPressurePropertiesCallback>(sysFSI, height));
 
     // Create SPH material (do not create boundary BCEs)
     fsi.Construct(r_inner, r_outer, height,  //

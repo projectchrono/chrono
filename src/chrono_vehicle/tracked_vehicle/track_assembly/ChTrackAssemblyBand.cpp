@@ -335,11 +335,11 @@ bool ChTrackAssemblyBand::FindAssemblyPoints(std::shared_ptr<ChBodyAuxRef> chass
 
         // Calculate the new tangents based off of the arc starting and ending points for each circle
         for (int i = 0; i < ScaledCircleRadius.size(); i++) {
-            double StartingArcPoint_x = cos(Arcs(i, 1)) * ScaledCircleRadius[i] + CirclePos[i].x();
-            double StartingArcPoint_z = sin(Arcs(i, 1)) * ScaledCircleRadius[i] + CirclePos[i].y();
+            double StartingArcPoint_x = std::cos(Arcs(i, 1)) * ScaledCircleRadius[i] + CirclePos[i].x();
+            double StartingArcPoint_z = std::sin(Arcs(i, 1)) * ScaledCircleRadius[i] + CirclePos[i].y();
 
-            double EndingArcPoint_x = cos(Arcs(i, 2)) * ScaledCircleRadius[i] + CirclePos[i].x();
-            double EndingArcPoint_z = sin(Arcs(i, 2)) * ScaledCircleRadius[i] + CirclePos[i].y();
+            double EndingArcPoint_x = std::cos(Arcs(i, 2)) * ScaledCircleRadius[i] + CirclePos[i].x();
+            double EndingArcPoint_z = std::sin(Arcs(i, 2)) * ScaledCircleRadius[i] + CirclePos[i].y();
 
             if (i == 0) {  // Sprocket
                 TangentPoints[0].first.x() = EndingArcPoint_x;

@@ -157,35 +157,35 @@ void ChDistanceIdler::AddVisualizationAssets(VisualizationType vis) {
 
     // Carrier-chassis revolute joint
     {
-        auto cyl = ChVehicleGeometry::AddVisualizationCylinder(m_carrier,                                    //
-                                                               ChVector3d(pR.x(), pC.y() - radius, pR.z()),  //
-                                                               ChVector3d(pR.x(), pC.y() + radius, pR.z()),  //
-                                                               3 * radius);
+        auto cyl = utils::ChBodyGeometry::AddVisualizationCylinder(m_carrier,                                    //
+                                                                   ChVector3d(pR.x(), pC.y() - radius, pR.z()),  //
+                                                                   ChVector3d(pR.x(), pC.y() + radius, pR.z()),  //
+                                                                   3 * radius);
         cyl->SetColor(carrier_col);
     }
 
     // Carrier-wheel revolute joint
     {
-        auto cyl = ChVehicleGeometry::AddVisualizationCylinder(m_carrier,                                    //
-                                                               ChVector3d(pW.x(), pC.y() - radius, pW.z()),  //
-                                                               ChVector3d(pW.x(), pC.y() + radius, pW.z()),  //
-                                                               2 * radius);
+        auto cyl = utils::ChBodyGeometry::AddVisualizationCylinder(m_carrier,                                    //
+                                                                   ChVector3d(pW.x(), pC.y() - radius, pW.z()),  //
+                                                                   ChVector3d(pW.x(), pC.y() + radius, pW.z()),  //
+                                                                   2 * radius);
         cyl->SetColor(carrier_col);
     }
 
     {
-        auto cyl = ChVehicleGeometry::AddVisualizationCylinder(m_carrier,                           //
-                                                               ChVector3d(pR.x(), pC.y(), pR.z()),  //
-                                                               ChVector3d(pW.x(), pC.y(), pW.z()),  //
-                                                               radius);
+        auto cyl = utils::ChBodyGeometry::AddVisualizationCylinder(m_carrier,                           //
+                                                                   ChVector3d(pR.x(), pC.y(), pR.z()),  //
+                                                                   ChVector3d(pW.x(), pC.y(), pW.z()),  //
+                                                                   radius);
         cyl->SetColor(carrier_col);
     }
 
     {
-        auto cyl = ChVehicleGeometry::AddVisualizationCylinder(m_carrier,                           //
-                                                               ChVector3d(pW.x(), pC.y(), pW.z()),  //
-                                                               ChVector3d(pM.x(), pC.y(), pM.z()),  //
-                                                               radius);
+        auto cyl = utils::ChBodyGeometry::AddVisualizationCylinder(m_carrier,                           //
+                                                                   ChVector3d(pW.x(), pC.y(), pW.z()),  //
+                                                                   ChVector3d(pM.x(), pC.y(), pM.z()),  //
+                                                                   radius);
         cyl->SetColor(carrier_col);
     }
 

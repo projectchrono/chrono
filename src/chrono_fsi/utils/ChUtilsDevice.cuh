@@ -152,13 +152,7 @@ class GpuTimer {
 /// Utilities for thrust device vectors.
 class CH_FSI_API ChUtilsDevice {
   public:
-    /// Fills out a thrust vector of Real3 on the device with a specific Real3 value.
-    static void FillVector(thrust::device_vector<Real3>& vector, const Real3& value);
-
-    /// Fills out a thrust vector of Real4 on the device with a specific Real4 value.
-    static void FillVector(thrust::device_vector<Real4>& vector, const Real4& value);
-
-    /// Error check.
+    //// TODO: eliminate and replace with cudaCheckErrorFlag
     static void Sync_CheckError(bool* isErrorH, bool* isErrorD, std::string crashReport);
 };
 

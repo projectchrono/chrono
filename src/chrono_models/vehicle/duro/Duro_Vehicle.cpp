@@ -347,7 +347,7 @@ void Duro_Vehicle::AddVisualizationLink(std::shared_ptr<ChBody> body,
     ChVector3d p_1 = body->TransformPointParentToLocal(pt_1);
     ChVector3d p_2 = body->TransformPointParentToLocal(pt_2);
 
-    auto cyl = ChVehicleGeometry::AddVisualizationCylinder(body, p_1, p_2, radius);
+    auto cyl = utils::ChBodyGeometry::AddVisualizationCylinder(body, p_1, p_2, radius);
     cyl->SetColor(color);
 }
 

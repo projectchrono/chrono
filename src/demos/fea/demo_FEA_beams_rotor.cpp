@@ -175,8 +175,8 @@ int main(int argc, char* argv[]) {
         nodes = builder.GetLastBeamNodes();
     }
     if (use_timoshenko) {
-        double Izz = (1.0 / 12.0) * beam_wz * pow(beam_wy, 3);
-        double Iyy = (1.0 / 12.0) * beam_wy * pow(beam_wz, 3);
+        double Izz = (1.0 / 12.0) * beam_wz * std::pow(beam_wy, 3);
+        double Iyy = (1.0 / 12.0) * beam_wy * std::pow(beam_wz, 3);
         DampingCoefficients mcoeffs;
         mcoeffs.bt = mcoeffs.bx = mcoeffs.by = mcoeffs.bz = 0.001;
         auto msection = chrono_types::make_shared<ChBeamSectionTimoshenkoAdvancedGeneric>(

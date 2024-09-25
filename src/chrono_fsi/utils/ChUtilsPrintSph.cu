@@ -288,10 +288,10 @@ void PrintFsiInfoToFile(const thrust::device_vector<Real3>& posRigidD,
                         const thrust::device_vector<Real3>& pos2DNodeD,
                         const thrust::device_vector<Real3>& vel1DNodeD,
                         const thrust::device_vector<Real3>& vel2DNodeD,
-                        const thrust::host_vector<Real3>& forceRigid,
-                        const thrust::host_vector<Real3>& torqueRigid,
-                        const thrust::host_vector<Real3>& force1DNode,
-                        const thrust::host_vector<Real3>& force2DNode,
+                        const thrust::device_vector<Real3>& forceRigidD,
+                        const thrust::device_vector<Real3>& torqueRigidD,
+                        const thrust::device_vector<Real3>& force1DNodeD,
+                        const thrust::device_vector<Real3>& force2DNodeD,
                         const std::string& dir,
                         const double time) {
     std::string delim = ",";
@@ -301,11 +301,15 @@ void PrintFsiInfoToFile(const thrust::device_vector<Real3>& posRigidD,
     thrust::host_vector<Real3> posRigidH = posRigidD;
     thrust::host_vector<Real4> velRigidH = velRigidD;
     thrust::host_vector<Real4> qRigidH = qRigidD;
+    thrust::host_vector<Real3> forceRigidH = forceRigidD;
+    thrust::host_vector<Real3> torqueRigidH = torqueRigidD;
+    thrust::host_vector<Real3> force1DNodeH = force1DNodeD;
+    thrust::host_vector<Real3> force2DNodeH = force2DNodeD;
 
     size_t numRigids = posRigidH.size();
     for (size_t i = 0; i < numRigids; i++) {
-        Real3 force = forceRigid[i];
-        Real3 torque = torqueRigid[i];
+        Real3 force = forceRigidH[i];
+        Real3 torque = torqueRigidH[i];
 
         Real3 pos = posRigidH[i];
         Real4 vel = velRigidH[i];
@@ -335,7 +339,7 @@ void PrintFsiInfoToFile(const thrust::device_vector<Real3>& posRigidD,
     size_t numNodes1D = pos1DNodeH.size();
 
     for (size_t i = 0; i < numNodes1D; i++) {
-        Real3 force = force1DNode[i];
+        Real3 force = force1DNodeH[i];
 
         Real3 pos = pos1DNodeH[i];
         Real3 vel = vel1DNodeH[i];
@@ -361,7 +365,7 @@ void PrintFsiInfoToFile(const thrust::device_vector<Real3>& posRigidD,
     size_t numNodes2D = pos2DNodeH.size();
 
     for (size_t i = 0; i < numNodes2D; i++) {
-        Real3 force = force2DNode[i];
+        Real3 force = force2DNodeH[i];
 
         Real3 pos = pos2DNodeH[i];
         Real3 vel = vel2DNodeH[i];

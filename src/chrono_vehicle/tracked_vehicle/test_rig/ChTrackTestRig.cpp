@@ -374,25 +374,25 @@ void ChTrackTestRig::AddPostVisualization(std::shared_ptr<ChBody> post,
     mat->SetDiffuseColor({color.R, color.G, color.B});
 
     // Platform (on post body)
-    ChVehicleGeometry::AddVisualizationCylinder(post,                              //
-                                                ChVector3d(0, 0, 0),               //
-                                                ChVector3d(0, 0, -m_post_height),  //
-                                                m_post_radius,                     //
-                                                mat);
+    utils::ChBodyGeometry::AddVisualizationCylinder(post,                              //
+                                                    ChVector3d(0, 0, 0),               //
+                                                    ChVector3d(0, 0, -m_post_height),  //
+                                                    m_post_radius,                     //
+                                                    mat);
 
     // Piston (on post body)
-    ChVehicleGeometry::AddVisualizationCylinder(post,                                   //
-                                                ChVector3d(0, 0, -m_post_height),       //
-                                                ChVector3d(0, 0, -15 * m_post_height),  //
-                                                m_post_radius / 6.0,                    //
-                                                mat);
+    utils::ChBodyGeometry::AddVisualizationCylinder(post,                                   //
+                                                    ChVector3d(0, 0, -m_post_height),       //
+                                                    ChVector3d(0, 0, -15 * m_post_height),  //
+                                                    m_post_radius / 6.0,                    //
+                                                    mat);
 
     // Post sleeve (on chassis/ground body)
-    ChVehicleGeometry::AddVisualizationCylinder(chassis,                                                //
-                                                post->GetPos() - ChVector3d(0, 0, 8 * m_post_height),   //
-                                                post->GetPos() - ChVector3d(0, 0, 16 * m_post_height),  //
-                                                m_post_radius / 4.0,                                    //
-                                                mat);
+    utils::ChBodyGeometry::AddVisualizationCylinder(chassis,                                                //
+                                                    post->GetPos() - ChVector3d(0, 0, 8 * m_post_height),   //
+                                                    post->GetPos() - ChVector3d(0, 0, 16 * m_post_height),  //
+                                                    m_post_radius / 4.0,                                    //
+                                                    mat);
 }
 
 // -----------------------------------------------------------------------------

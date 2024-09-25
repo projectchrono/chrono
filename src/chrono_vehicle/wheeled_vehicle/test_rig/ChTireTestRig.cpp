@@ -267,11 +267,11 @@ void ChTireTestRig::CreateMechanism(Mode mode) {
         auto mat = chrono_types::make_shared<ChVisualMaterial>();
         mat->SetDiffuseColor({0.8f, 0.2f, 0.2f});
 
-        ChVehicleGeometry::AddVisualizationCylinder(m_carrier_body,              //
-                                                    ChVector3d(+2 * dim, 0, 0),  //
-                                                    ChVector3d(-2 * dim, 0, 0),  //
-                                                    dim / 2,                     //
-                                                    mat);
+        utils::ChBodyGeometry::AddVisualizationCylinder(m_carrier_body,              //
+                                                        ChVector3d(+2 * dim, 0, 0),  //
+                                                        ChVector3d(-2 * dim, 0, 0),  //
+                                                        dim / 2,                     //
+                                                        mat);
 
         auto box = chrono_types::make_shared<ChVisualShapeBox>(dim / 3, dim / 3, 10 * dim);
         box->AddMaterial(mat);
@@ -292,11 +292,11 @@ void ChTireTestRig::CreateMechanism(Mode mode) {
         sphere->AddMaterial(mat);
         m_chassis_body->AddVisualShape(sphere);
 
-        ChVehicleGeometry::AddVisualizationCylinder(m_chassis_body,              //
-                                                    ChVector3d(0, 0, 0),         //
-                                                    ChVector3d(0, 0, -2 * dim),  //
-                                                    dim / 2,                     //
-                                                    mat);
+        utils::ChBodyGeometry::AddVisualizationCylinder(m_chassis_body,              //
+                                                        ChVector3d(0, 0, 0),         //
+                                                        ChVector3d(0, 0, -2 * dim),  //
+                                                        dim / 2,                     //
+                                                        mat);
     }
 
     m_slip_body = chrono_types::make_shared<ChBody>();
@@ -324,10 +324,10 @@ void ChTireTestRig::CreateMechanism(Mode mode) {
     m_spindle_body->SetInertiaXX(ChVector3d(0.01, 0.02, 0.01));
     m_spindle_body->SetPos(ChVector3d(0, 3 * dim, -4 * dim));
     m_spindle_body->SetRot(qc);
-    ChVehicleGeometry::AddVisualizationCylinder(m_spindle_body,              //
-                                                ChVector3d(0, 0, 0),         //
-                                                ChVector3d(0, -3 * dim, 0),  //
-                                                dim / 2);
+    utils::ChBodyGeometry::AddVisualizationCylinder(m_spindle_body,              //
+                                                    ChVector3d(0, 0, 0),         //
+                                                    ChVector3d(0, -3 * dim, 0),  //
+                                                    dim / 2);
 
     // Create joints and motors
     if (mode == Mode::TEST && m_ls_actuated) {

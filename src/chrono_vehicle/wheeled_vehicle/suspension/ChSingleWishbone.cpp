@@ -434,9 +434,9 @@ void ChSingleWishbone::AddVisualizationControlArm(std::shared_ptr<ChBody> arm,
     ChVector3d p_C = arm->TransformPointParentToLocal(pt_C);
     ChVector3d p_U = arm->TransformPointParentToLocal(pt_U);
 
-    ChVehicleGeometry::AddVisualizationCylinder(arm, p_C, p_U, radius);
-    ChVehicleGeometry::AddVisualizationCylinder(arm, p_C + ChVector3d(radius, 0, 0), p_C - ChVector3d(radius, 0, 0),
-                                                radius);
+    utils::ChBodyGeometry::AddVisualizationCylinder(arm, p_C, p_U, radius);
+    utils::ChBodyGeometry::AddVisualizationCylinder(arm, p_C + ChVector3d(radius, 0, 0), p_C - ChVector3d(radius, 0, 0),
+                                                    radius);
 }
 
 void ChSingleWishbone::AddVisualizationUpright(std::shared_ptr<ChBody> upright,
@@ -454,15 +454,15 @@ void ChSingleWishbone::AddVisualizationUpright(std::shared_ptr<ChBody> upright,
     ChVector3d p_T = upright->TransformPointParentToLocal(pt_T);  // connection to tierod
 
     if ((p_U - p_S).Length2() > threshold2) {
-        ChVehicleGeometry::AddVisualizationCylinder(upright, p_U, p_S, radius);
+        utils::ChBodyGeometry::AddVisualizationCylinder(upright, p_U, p_S, radius);
     }
 
     if ((p_U - p_A).Length2() > threshold2) {
-        ChVehicleGeometry::AddVisualizationCylinder(upright, p_U, p_A, radius);
+        utils::ChBodyGeometry::AddVisualizationCylinder(upright, p_U, p_A, radius);
     }
 
     if ((p_U - p_T).Length2() > threshold2) {
-        ChVehicleGeometry::AddVisualizationCylinder(upright, p_U, p_T, radius);
+        utils::ChBodyGeometry::AddVisualizationCylinder(upright, p_U, p_T, radius);
     }
 }
 
@@ -474,7 +474,7 @@ void ChSingleWishbone::AddVisualizationTierod(std::shared_ptr<ChBody> tierod,
     ChVector3d p_C = tierod->TransformPointParentToLocal(pt_C);
     ChVector3d p_U = tierod->TransformPointParentToLocal(pt_U);
 
-    ChVehicleGeometry::AddVisualizationCylinder(tierod, p_C, p_U, radius);
+    utils::ChBodyGeometry::AddVisualizationCylinder(tierod, p_C, p_U, radius);
 }
 
 // -----------------------------------------------------------------------------

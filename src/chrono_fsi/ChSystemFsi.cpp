@@ -27,12 +27,6 @@
 #include "chrono/utils/ChUtilsCreators.h"
 #include "chrono/utils/ChUtilsGenerators.h"
 
-#include "chrono/fea/ChElementCableANCF.h"
-#include "chrono/fea/ChElementShellANCF_3423.h"
-#include "chrono/fea/ChMesh.h"
-#include "chrono/fea/ChNodeFEAxyzD.h"
-#include "chrono/fea/ChContactSurfaceMesh.h"
-
 #include "chrono_fsi/ChSystemFsi.h"
 #include "chrono_fsi/physics/ChParams.h"
 #include "chrono_fsi/physics/ChSystemFsi_impl.cuh"
@@ -63,14 +57,16 @@ ChSystemFsi::ChSystemFsi(ChSystem* sysMBS)
     : m_sysMBS(sysMBS),
       m_verbose(true),
       m_is_initialized(false),
-      m_integrate_SPH(true),
       m_time(0),
       m_RTF(0),
       m_ratio_MBS(0),
+      m_pattern1D(BcePatternMesh1D::FULL),
+      m_pattern2D(BcePatternMesh2D::CENTERED),
+      m_remove_center1D(false),
+      m_remove_center2D(false),
       m_write_mode(OutputMode::NONE) {
     m_paramsH = chrono_types::make_shared<SimParams>();
     InitParams();
-
     m_sysFSI = chrono_types::make_unique<ChSystemFsi_impl>(m_paramsH);
 
     m_num_flex1D_elements = 0;
@@ -123,7 +119,7 @@ void ChSystemFsi::InitParams() {
     m_paramsH->USE_Consistent_L = false;
     m_paramsH->USE_Consistent_G = false;
 
-    m_paramsH->epsMinMarkersDis = 0.01;
+    m_paramsH->epsMinMarkersDis = Real(0.01);
 
     m_paramsH->markerMass = m_paramsH->volume0 * m_paramsH->rho0;
 
@@ -172,6 +168,8 @@ void ChSystemFsi::InitParams() {
 
     m_paramsH->use_default_limits = true;
     m_paramsH->use_init_pressure = false;
+
+    m_paramsH->num_proximity_search_steps = 4;
 }
 
 //--------------------------------------------------------------------------------------------------------------------------------
@@ -192,7 +190,7 @@ void ChSystemFsi::ReadParametersFromFile(const std::string& json_file) {
         return;
     }
 
-    char readBuffer[32768];
+    char readBuffer[65536];
     FileReadStream is(fp, readBuffer, sizeof(readBuffer));
     fclose(fp);
 
@@ -284,6 +282,9 @@ void ChSystemFsi::ReadParametersFromFile(const std::string& json_file) {
 
         if (doc["SPH Parameters"].HasMember("Consistent Discretization for Gradient"))
             m_paramsH->USE_Consistent_G = doc["SPH Parameters"]["Consistent Discretization for Gradient"].GetBool();
+
+        if (doc["SPH Parameters"].HasMember("Time steps per proximity search"))
+            m_paramsH->num_proximity_search_steps = doc["SPH Parameters"]["Time steps per proximity search"].GetInt();
     }
 
     if (doc.HasMember("Time Stepping")) {
@@ -560,10 +561,6 @@ void ChSystemFsi::SetAdaptiveTimeStepping(bool adaptive) {
     m_paramsH->Adaptive_time_stepping = adaptive;
 }
 
-void ChSystemFsi::SetSPHintegration(bool runSPH) {
-    m_integrate_SPH = runSPH;
-}
-
 void ChSystemFsi::SetDensity(double rho0) {
     m_paramsH->rho0 = rho0;
     m_paramsH->invrho0 = 1 / m_paramsH->rho0;
@@ -581,6 +578,10 @@ void ChSystemFsi::SetOutputLength(int OutputLength) {
 
 void ChSystemFsi::SetCohesionForce(double Fc) {
     m_paramsH->Coh_coeff = Fc;
+}
+
+void ChSystemFsi::SetNumProximitySearchSteps(int steps) {
+    m_paramsH->num_proximity_search_steps = steps;
 }
 
 ChSystemFsi::FluidProperties::FluidProperties() : density(1000), viscosity(0.1), kappa(0), char_length(1) {}
@@ -654,7 +655,8 @@ ChSystemFsi::SPHParameters::SPHParameters()
       num_bce_layers(3),
       consistent_gradient_discretization(false),
       consistent_laplacian_discretization(false),
-      kernel_threshold(0.8) {}
+      kernel_threshold(0.8),
+      num_proximity_search_steps(4) {}
 
 void ChSystemFsi::SetSPHParameters(const SPHParameters& sph_params) {
     m_paramsH->sph_method = sph_params.sph_method;
@@ -679,6 +681,8 @@ void ChSystemFsi::SetSPHParameters(const SPHParameters& sph_params) {
     m_paramsH->USE_Consistent_L = sph_params.consistent_laplacian_discretization;
 
     m_paramsH->C_Wi = Real(sph_params.kernel_threshold);
+
+    m_paramsH->num_proximity_search_steps = sph_params.num_proximity_search_steps;
 }
 
 ChSystemFsi::LinSolverParameters::LinSolverParameters()
@@ -702,12 +706,17 @@ std::string ChSystemFsi::GetPhysicsProblemString() const {
 }
 
 std::string ChSystemFsi::GetSphMethodTypeString() const {
+    std::string method = "";
     switch (m_paramsH->sph_method) {
         case SPHMethod::WCSPH:
-            return "WCSPH";
+            method = "WCSPH";
+            break;
         case SPHMethod::I2SPH:
-            return "I2SPH";
+            method = "I2SPH";
+            break;
     }
+
+    return method;
 }
 
 //--------------------------------------------------------------------------------------------------------------------------------
@@ -725,36 +734,65 @@ size_t ChSystemFsi::AddFsiBody(std::shared_ptr<ChBody> body) {
     return index;
 }
 
-size_t ChSystemFsi::AddFsiMesh1D(std::shared_ptr<fea::ChMesh> mesh, BcePatternMesh1D pattern, bool remove_center) {
-    ChFsiInterface::FsiMesh1D fsi_mesh;
+void ChSystemFsi::SetBcePattern1D(BcePatternMesh1D pattern, bool remove_center) {
+    m_pattern1D = pattern;
+    m_remove_center1D = remove_center;
+}
 
-    // Traverse all elements in the provided mesh and extract the 1-D elements elements.
-    // Keep track of node ownership
-    std::set<fea::ChNodeFEAxyz*> assigned;
-    for (const auto& element : mesh->GetElements()) {
-        if (auto cable_el = std::dynamic_pointer_cast<fea::ChElementCableANCF>(element)) {
-            std::shared_ptr<fea::ChNodeFEAxyz> node0 = cable_el->GetNodeA();
-            std::shared_ptr<fea::ChNodeFEAxyz> node1 = cable_el->GetNodeB();
-            ChVector2<bool> owns_node = {false, false};
-            if (assigned.count(node0.get()) == 0) {
-                assigned.insert(node0.get());
-                owns_node[0] = true;
-            }
-            if (assigned.count(node1.get()) == 0) {
-                assigned.insert(node1.get());
-                owns_node[1] = true;
-            }
-            auto segment = chrono_types::make_shared<fea::ChContactSegmentXYZ>();
-            segment->SetNodes({{node0, node1}});
-            segment->SetNodeOwnership(owns_node);
-            fsi_mesh.segments.push_back(segment);
+void ChSystemFsi::SetBcePattern2D(BcePatternMesh2D pattern, bool remove_center) {
+    m_pattern2D = pattern;
+    m_remove_center2D = remove_center;
+}
+
+void ChSystemFsi::AddFsiMesh(std::shared_ptr<fea::ChMesh> mesh) {
+    bool has_contact1D = false;
+    bool has_contact2D = false;
+
+    // Search for contact surfaces associated with the FEA mesh
+    for (const auto& surface : mesh->GetContactSurfaces()) {
+        if (auto surface_segs = std::dynamic_pointer_cast<fea::ChContactSurfaceSegmentSet>(surface)) {
+            AddFsiMesh1D(surface_segs);
+            has_contact1D = true;
+        } else if (auto surface_mesh = std::dynamic_pointer_cast<fea::ChContactSurfaceMesh>(surface)) {
+            AddFsiMesh2D(surface_mesh);
+            has_contact2D = true;
         }
     }
+
+    // If no 1D surface contact found, create one with a default contact material and add segments from cable and beam
+    // elements in the FEA mesh
+    if (!has_contact1D) {
+        ChContactMaterialData contact_material_data;  // default contact material
+        auto surface_segs = chrono_types::make_shared<fea::ChContactSurfaceSegmentSet>(
+            contact_material_data.CreateMaterial(ChContactMethod::SMC));
+        mesh->AddContactSurface(surface_segs);
+        surface_segs->AddAllSegments(0);
+        AddFsiMesh1D(surface_segs);
+    }
+
+    // If no 2D surface contact found, create one with a default contact material and extract the boundary faces of the
+    // FEA mesh
+    if (!has_contact2D) {
+        ChContactMaterialData contact_material_data;  // default contact material
+        auto surface_mesh = chrono_types::make_shared<fea::ChContactSurfaceMesh>(
+            contact_material_data.CreateMaterial(ChContactMethod::SMC));
+        mesh->AddContactSurface(surface_mesh);
+        surface_mesh->AddFacesFromBoundary(0, true, false, false);  // do not include cable and beam elements
+        AddFsiMesh2D(surface_mesh);
+    }
+}
+
+void ChSystemFsi::AddFsiMesh1D(std::shared_ptr<fea::ChContactSurfaceSegmentSet> surface) {
+    if (surface->GetNumSegments() == 0)
+        return;
+
+    ChFsiInterface::FsiMesh1D fsi_mesh;
+    fsi_mesh.contact_surface = surface;
 
     // Create maps from pointer-based to index-based for the nodes in the mesh contact segments.
     // These maps index only the nodes that are in ANCF cable elements (and not all nodes in the given FEA mesh).
     int vertex_index = 0;
-    for (const auto& seg : fsi_mesh.segments) {
+    for (const auto& seg : surface->GetSegmentsXYZ()) {
         if (fsi_mesh.ptr2ind_map.insert({seg->GetNode(0), vertex_index}).second) {
             fsi_mesh.ind2ptr_map.insert({vertex_index, seg->GetNode(0)});
             ++vertex_index;
@@ -766,7 +804,7 @@ size_t ChSystemFsi::AddFsiMesh1D(std::shared_ptr<fea::ChMesh> mesh, BcePatternMe
     }
 
     // Load index-based mesh connectivity (append to global list of 1-D flex segments)
-    for (const auto& seg : fsi_mesh.segments) {
+    for (const auto& seg : surface->GetSegmentsXYZ()) {
         auto node0_index = fsi_mesh.ptr2ind_map[seg->GetNode(0)];
         auto node1_index = fsi_mesh.ptr2ind_map[seg->GetNode(1)];
         m_sysFSI->fsiData->flex1D_Nodes_H.push_back(mI2(node0_index, node1_index));
@@ -774,46 +812,27 @@ size_t ChSystemFsi::AddFsiMesh1D(std::shared_ptr<fea::ChMesh> mesh, BcePatternMe
 
     // Create the BCE markers based on the mesh contact segments
     unsigned int meshID = (unsigned int)m_fsi_interface->m_fsi_meshes1D.size();
-    fsi_mesh.num_bce = AddBCE_mesh1D(meshID, fsi_mesh, pattern, remove_center);
+    fsi_mesh.num_bce = AddBCE_mesh1D(meshID, fsi_mesh);
 
     // Update total number of flex 1-D segments and associated nodes
-    m_num_flex1D_elements += fsi_mesh.segments.size();
-    m_num_flex1D_nodes += fsi_mesh.ind2ptr_map.size();
+    m_num_flex1D_elements += fsi_mesh.contact_surface->GetNumSegments();
+    m_num_flex1D_nodes += (unsigned int)fsi_mesh.ind2ptr_map.size();
 
     // Store the mesh contact surface
-    size_t index = m_fsi_interface->m_fsi_meshes1D.size();
     m_fsi_interface->m_fsi_meshes1D.push_back(fsi_mesh);
-
-    return index;
 }
 
-size_t ChSystemFsi::AddFsiMesh2D(std::shared_ptr<fea::ChMesh> mesh, BcePatternMesh2D pattern, bool remove_center) {
-    std::shared_ptr<fea::ChContactSurfaceMesh> contact_surface;
-
-    // Search for a contact surface mesh associated with the FEA mesh
-    for (const auto& surface : mesh->GetContactSurfaces()) {
-        if (auto surface_mesh = std::dynamic_pointer_cast<fea::ChContactSurfaceMesh>(surface)) {
-            contact_surface = surface_mesh;
-            break;
-        }
-    }
-
-    // If none found, create one with a default contact material and extract the boundary faces of the FEA mesh
-    if (!contact_surface) {
-        ChContactMaterialData contact_material_data;  // default contact material
-        contact_surface = chrono_types::make_shared<fea::ChContactSurfaceMesh>(
-            contact_material_data.CreateMaterial(ChContactMethod::SMC));
-        mesh->AddContactSurface(contact_surface);
-        contact_surface->AddFacesFromBoundary(0.1);
-    }
+void ChSystemFsi::AddFsiMesh2D(std::shared_ptr<fea::ChContactSurfaceMesh> surface) {
+    if (surface->GetNumTriangles() == 0)
+        return;
 
     ChFsiInterface::FsiMesh2D fsi_mesh;
-    fsi_mesh.contact_surface = contact_surface;
+    fsi_mesh.contact_surface = surface;
 
     // Create maps from pointer-based to index-based for the nodes in the mesh contact surface.
     // These maps index only the nodes that are in the contact surface (and not all nodes in the given FEA mesh).
     int vertex_index = 0;
-    for (const auto& tri : contact_surface->GetTrianglesXYZ()) {
+    for (const auto& tri : surface->GetTrianglesXYZ()) {
         if (fsi_mesh.ptr2ind_map.insert({tri->GetNode(0), vertex_index}).second) {
             fsi_mesh.ind2ptr_map.insert({vertex_index, tri->GetNode(0)});
             ++vertex_index;
@@ -828,11 +847,11 @@ size_t ChSystemFsi::AddFsiMesh2D(std::shared_ptr<fea::ChMesh> mesh, BcePatternMe
         }
     }
 
-    assert(fsi_mesh.ptr2ind_map.size() == contact_surface->GetNumVertices());
-    assert(fsi_mesh.ind2ptr_map.size() == contact_surface->GetNumVertices());
+    assert(fsi_mesh.ptr2ind_map.size() == surface->GetNumVertices());
+    assert(fsi_mesh.ind2ptr_map.size() == surface->GetNumVertices());
 
     // Load index-based mesh connectivity (append to global list of 1-D flex segments)
-    for (const auto& tri : contact_surface->GetTrianglesXYZ()) {
+    for (const auto& tri : surface->GetTrianglesXYZ()) {
         auto node0_index = fsi_mesh.ptr2ind_map[tri->GetNode(0)];
         auto node1_index = fsi_mesh.ptr2ind_map[tri->GetNode(1)];
         auto node2_index = fsi_mesh.ptr2ind_map[tri->GetNode(2)];
@@ -841,17 +860,14 @@ size_t ChSystemFsi::AddFsiMesh2D(std::shared_ptr<fea::ChMesh> mesh, BcePatternMe
 
     // Create the BCE markers based on the mesh contact surface
     unsigned int meshID = (unsigned int)m_fsi_interface->m_fsi_meshes2D.size();
-    fsi_mesh.num_bce = AddBCE_mesh2D(meshID, fsi_mesh, pattern, remove_center);
+    fsi_mesh.num_bce = AddBCE_mesh2D(meshID, fsi_mesh);
 
     // Update total number of flex 2-D faces and associated nodes
     m_num_flex2D_elements += fsi_mesh.contact_surface->GetNumTriangles();
-    m_num_flex2D_nodes += fsi_mesh.ind2ptr_map.size();
+    m_num_flex2D_nodes += (unsigned int)fsi_mesh.ind2ptr_map.size();
 
-    // Store the mesh contact surface
-    size_t index = m_fsi_interface->m_fsi_meshes1D.size();
+    // Store the FSI mesh contact surface
     m_fsi_interface->m_fsi_meshes2D.push_back(fsi_mesh);
-
-    return index;
 }
 
 //--------------------------------------------------------------------------------------------------------------------------------
@@ -934,6 +950,7 @@ void ChSystemFsi::Initialize() {
         cout << "  densityReinit: " << m_paramsH->densityReinit << endl;
 
         cout << "  Adaptive_time_stepping: " << m_paramsH->Adaptive_time_stepping << endl;
+        cout << "  Proximity search performed every " << m_paramsH->num_proximity_search_steps << " steps" << endl;
         cout << "  Co_number: " << m_paramsH->Co_number << endl;
         cout << "  dT: " << m_paramsH->dT << endl;
         cout << "  INV_dT: " << m_paramsH->INV_dT << endl;
@@ -1009,22 +1026,18 @@ void ChSystemFsi::Initialize() {
         }
     }
 
-    m_fsi_interface->LoadBodyState_Chrono2Fsi(m_sysFSI->fsiBodyState1_D);
-    m_fsi_interface->LoadMesh1DState_Chrono2Fsi(m_sysFSI->fsiMesh1DState_D);
-    m_fsi_interface->LoadMesh2DState_Chrono2Fsi(m_sysFSI->fsiMesh2DState_D);
-
-    // Construct midpoint rigid data
-    m_sysFSI->fsiBodyState2_D = m_sysFSI->fsiBodyState1_D;
+    m_fsi_interface->LoadBodyStates();
+    m_fsi_interface->LoadMeshStates();
 
     // Create BCE and SPH worker objects
-    m_bce_manager = chrono_types::make_shared<ChBce>(m_sysFSI->sortedSphMarkers_D, m_sysFSI->markersProximity_D,
+    m_bce_manager = chrono_types::make_shared<ChBce>(m_sysFSI->sortedSphMarkers2_D, m_sysFSI->markersProximity_D,
                                                      m_sysFSI->fsiData, m_paramsH, m_sysFSI->numObjectsH, m_verbose);
 
     m_fluid_dynamics = chrono_types::make_unique<ChFluidDynamics>(m_bce_manager, *m_sysFSI, m_paramsH,
                                                                   m_sysFSI->numObjectsH, m_verbose);
     // Initialize worker objects
-    m_bce_manager->Initialize(m_sysFSI->sphMarkers1_D,                                 //
-                              m_sysFSI->fsiBodyState1_D,                               //
+    m_bce_manager->Initialize(m_sysFSI->sphMarkers_D,                                  //
+                              m_sysFSI->fsiBodyState_D,                                //
                               m_sysFSI->fsiMesh1DState_D, m_sysFSI->fsiMesh2DState_D,  //
                               m_fsi_bodies_bce_num);
     m_fluid_dynamics->Initialize();
@@ -1034,21 +1047,6 @@ void ChSystemFsi::Initialize() {
 }
 
 //--------------------------------------------------------------------------------------------------------------------------------
-
-void ChSystemFsi::CopyDeviceDataToHalfStep() {
-    thrust::copy(m_sysFSI->sphMarkers2_D->posRadD.begin(), m_sysFSI->sphMarkers2_D->posRadD.end(),
-                 m_sysFSI->sphMarkers1_D->posRadD.begin());
-    thrust::copy(m_sysFSI->sphMarkers2_D->velMasD.begin(), m_sysFSI->sphMarkers2_D->velMasD.end(),
-                 m_sysFSI->sphMarkers1_D->velMasD.begin());
-    thrust::copy(m_sysFSI->sphMarkers2_D->rhoPresMuD.begin(), m_sysFSI->sphMarkers2_D->rhoPresMuD.end(),
-                 m_sysFSI->sphMarkers1_D->rhoPresMuD.begin());
-    if (m_paramsH->elastic_SPH) {
-        thrust::copy(m_sysFSI->sphMarkers2_D->tauXxYyZzD.begin(), m_sysFSI->sphMarkers2_D->tauXxYyZzD.end(),
-                     m_sysFSI->sphMarkers1_D->tauXxYyZzD.begin());
-        thrust::copy(m_sysFSI->sphMarkers2_D->tauXyXzYzD.begin(), m_sysFSI->sphMarkers2_D->tauXyXzYzD.end(),
-                     m_sysFSI->sphMarkers1_D->tauXyXzYzD.begin());
-    }
-}
 
 void ChSystemFsi::DoStepDynamics_FSI() {
     if (!m_is_initialized) {
@@ -1061,105 +1059,67 @@ void ChSystemFsi::DoStepDynamics_FSI() {
 
     m_timer_step.start();
 
+    if (m_time < 1e-6 || int(round(m_time / m_paramsH->dT)) % m_paramsH->num_proximity_search_steps == 0) {
+        m_fluid_dynamics->SortParticles();
+    }
+
+    m_sysFSI->ResetData();
+
     switch (m_paramsH->sph_method) {
         case SPHMethod::WCSPH: {
-            CopyDeviceDataToHalfStep();
-            ChUtilsDevice::FillVector(m_sysFSI->fsiData->derivVelRhoD, mR4(0));
-
-            if (m_integrate_SPH) {
-                m_fluid_dynamics->IntegrateSPH(m_sysFSI->sphMarkers2_D, m_sysFSI->sphMarkers1_D,        //
-                                               m_sysFSI->fsiBodyState2_D,                               //
-                                               m_sysFSI->fsiMesh1DState_D, m_sysFSI->fsiMesh2DState_D,  //
-                                               0.5 * m_paramsH->dT, m_time);
-                m_fluid_dynamics->IntegrateSPH(m_sysFSI->sphMarkers1_D, m_sysFSI->sphMarkers2_D,        //
-                                               m_sysFSI->fsiBodyState2_D,                               //
-                                               m_sysFSI->fsiMesh1DState_D, m_sysFSI->fsiMesh2DState_D,  //
-                                               1.0 * m_paramsH->dT, m_time);
-            }
-
-            m_bce_manager->Rigid_Forces_Torques(m_sysFSI->sphMarkers2_D, m_sysFSI->fsiBodyState2_D);
-            m_bce_manager->Flex1D_Forces(m_sysFSI->sphMarkers2_D, m_sysFSI->fsiMesh1DState_D);
-            m_bce_manager->Flex2D_Forces(m_sysFSI->sphMarkers2_D, m_sysFSI->fsiMesh2DState_D);
-
-            // Advance dynamics of the associated MBS system (if provided)
-            if (m_sysMBS) {
-                m_timer_MBS.start();
-
-                m_fsi_interface->ApplyBodyForce_Fsi2Chrono();
-                m_fsi_interface->ApplyMesh1DForce_Fsi2Chrono();
-                m_fsi_interface->ApplyMesh2DForce_Fsi2Chrono();
-
-                if (m_paramsH->dT_Flex == 0)
-                    m_paramsH->dT_Flex = m_paramsH->dT;
-                int sync = int(m_paramsH->dT / m_paramsH->dT_Flex);
-                if (sync < 1)
-                    sync = 1;
-                for (int t = 0; t < sync; t++) {
-                    m_sysMBS->DoStepDynamics(m_paramsH->dT / sync);
-                }
-
-                m_timer_MBS.stop();
-            }
-
-            m_fsi_interface->LoadBodyState_Chrono2Fsi(m_sysFSI->fsiBodyState2_D);
-            m_bce_manager->UpdateBodyMarkerState(m_sysFSI->sphMarkers2_D, m_sysFSI->fsiBodyState2_D);
-
-            m_fsi_interface->LoadMesh1DState_Chrono2Fsi(m_sysFSI->fsiMesh1DState_D);
-            m_bce_manager->UpdateMeshMarker1DState(m_sysFSI->sphMarkers2_D, m_sysFSI->fsiMesh1DState_D);
-
-            m_fsi_interface->LoadMesh2DState_Chrono2Fsi(m_sysFSI->fsiMesh2DState_D);
-            m_bce_manager->UpdateMeshMarker2DState(m_sysFSI->sphMarkers2_D, m_sysFSI->fsiMesh2DState_D);
-
+            m_sysFSI->CopyDeviceDataToHalfStep();
+            m_fluid_dynamics->IntegrateSPH(m_sysFSI->sortedSphMarkers2_D, m_sysFSI->sortedSphMarkers1_D,  //
+                                           m_sysFSI->fsiBodyState_D,                                      //
+                                           m_sysFSI->fsiMesh1DState_D, m_sysFSI->fsiMesh2DState_D,        //
+                                           0.5 * m_paramsH->dT, m_time, true);
+            m_fluid_dynamics->IntegrateSPH(m_sysFSI->sortedSphMarkers1_D, m_sysFSI->sortedSphMarkers2_D,  //
+                                           m_sysFSI->fsiBodyState_D,                                      //
+                                           m_sysFSI->fsiMesh1DState_D, m_sysFSI->fsiMesh2DState_D,        //
+                                           1.0 * m_paramsH->dT, m_time, false);
             break;
         }
 
         case SPHMethod::I2SPH: {
-            // A different coupling scheme is used for implicit SPH formulations
-            if (m_integrate_SPH) {
-                m_fluid_dynamics->IntegrateSPH(m_sysFSI->sphMarkers2_D, m_sysFSI->sphMarkers2_D,        //
-                                               m_sysFSI->fsiBodyState2_D,                               //
-                                               m_sysFSI->fsiMesh1DState_D, m_sysFSI->fsiMesh2DState_D,  //
-                                               0.0, m_time);
-            }
-
-            m_bce_manager->Rigid_Forces_Torques(m_sysFSI->sphMarkers2_D, m_sysFSI->fsiBodyState2_D);
-            m_bce_manager->Flex1D_Forces(m_sysFSI->sphMarkers2_D, m_sysFSI->fsiMesh1DState_D);
-            m_bce_manager->Flex2D_Forces(m_sysFSI->sphMarkers2_D, m_sysFSI->fsiMesh2DState_D);
-
-            // Advance dynamics of the associated MBS system (if provided)
-            if (m_sysMBS) {
-                m_timer_MBS.start();
-
-                m_fsi_interface->ApplyBodyForce_Fsi2Chrono();
-                m_fsi_interface->ApplyMesh1DForce_Fsi2Chrono();
-                m_fsi_interface->ApplyMesh2DForce_Fsi2Chrono();
-
-                if (m_paramsH->dT_Flex == 0)
-                    m_paramsH->dT_Flex = m_paramsH->dT;
-                int sync = int(m_paramsH->dT / m_paramsH->dT_Flex);
-                if (sync < 1)
-                    sync = 1;
-                if (m_verbose)
-                    cout << sync << " * Chrono StepDynamics with dt = " << m_paramsH->dT / sync << endl;
-                for (int t = 0; t < sync; t++) {
-                    m_sysMBS->DoStepDynamics(m_paramsH->dT / sync);
-                }
-
-                m_timer_MBS.stop();
-            }
-
-            m_fsi_interface->LoadBodyState_Chrono2Fsi(m_sysFSI->fsiBodyState2_D);
-            m_bce_manager->UpdateBodyMarkerState(m_sysFSI->sphMarkers2_D, m_sysFSI->fsiBodyState2_D);
-
-            m_fsi_interface->LoadMesh1DState_Chrono2Fsi(m_sysFSI->fsiMesh1DState_D);
-            m_bce_manager->UpdateMeshMarker1DState(m_sysFSI->sphMarkers2_D, m_sysFSI->fsiMesh1DState_D);
-
-            m_fsi_interface->LoadMesh2DState_Chrono2Fsi(m_sysFSI->fsiMesh2DState_D);
-            m_bce_manager->UpdateMeshMarker2DState(m_sysFSI->sphMarkers2_D, m_sysFSI->fsiMesh2DState_D);
-
+            m_bce_manager->updateBCEAcc(m_sysFSI->fsiBodyState_D, m_sysFSI->fsiMesh1DState_D,
+                                        m_sysFSI->fsiMesh2DState_D);
+            m_fluid_dynamics->IntegrateSPH(m_sysFSI->sortedSphMarkers2_D, m_sysFSI->sortedSphMarkers2_D,  //
+                                           m_sysFSI->fsiBodyState_D,                                      //
+                                           m_sysFSI->fsiMesh1DState_D, m_sysFSI->fsiMesh2DState_D,        //
+                                           0.0, m_time, false);
             break;
         }
     }
+
+    m_bce_manager->Rigid_Forces_Torques(m_sysFSI->fsiBodyState_D);
+    m_bce_manager->Flex1D_Forces(m_sysFSI->fsiMesh1DState_D);
+    m_bce_manager->Flex2D_Forces(m_sysFSI->fsiMesh2DState_D);
+
+    // Advance dynamics of the associated MBS system (if provided)
+    if (m_sysMBS) {
+        m_timer_MBS.start();
+
+        m_fsi_interface->ApplyBodyForces();
+        m_fsi_interface->ApplyMeshForces();
+
+        if (m_paramsH->dT_Flex == 0)
+            m_paramsH->dT_Flex = m_paramsH->dT;
+        int sync = int(m_paramsH->dT / m_paramsH->dT_Flex);
+        if (sync < 1)
+            sync = 1;
+        for (int t = 0; t < sync; t++) {
+            m_sysMBS->DoStepDynamics(m_paramsH->dT / sync);
+        }
+        m_timer_MBS.stop();
+    }
+
+    m_fsi_interface->LoadBodyStates();
+    m_bce_manager->UpdateBodyMarkerState(m_sysFSI->fsiBodyState_D);
+
+    m_fsi_interface->LoadMeshStates();
+    m_bce_manager->UpdateMeshMarker1DState(m_sysFSI->fsiMesh1DState_D);
+    m_bce_manager->UpdateMeshMarker2DState(m_sysFSI->fsiMesh2DState_D);
+
+    m_fluid_dynamics->CopySortedToOriginal(m_sysFSI->sortedSphMarkers2_D, m_sysFSI->sphMarkers_D);
 
     m_time += m_paramsH->dT;
 
@@ -1173,26 +1133,26 @@ void ChSystemFsi::DoStepDynamics_FSI() {
 
 void ChSystemFsi::WriteParticleFile(const std::string& outfilename) const {
     if (m_write_mode == OutputMode::CSV) {
-        utils::WriteCsvParticlesToFile(m_sysFSI->sphMarkers2_D->posRadD, m_sysFSI->sphMarkers2_D->velMasD,
-                                       m_sysFSI->sphMarkers2_D->rhoPresMuD, m_sysFSI->fsiData->referenceArray,
+        utils::WriteCsvParticlesToFile(m_sysFSI->sphMarkers_D->posRadD, m_sysFSI->sphMarkers_D->velMasD,
+                                       m_sysFSI->sphMarkers_D->rhoPresMuD, m_sysFSI->fsiData->referenceArray,
                                        outfilename);
     } else if (m_write_mode == OutputMode::CHPF) {
-        utils::WriteChPFParticlesToFile(m_sysFSI->sphMarkers2_D->posRadD, m_sysFSI->fsiData->referenceArray,
+        utils::WriteChPFParticlesToFile(m_sysFSI->sphMarkers_D->posRadD, m_sysFSI->fsiData->referenceArray,
                                         outfilename);
     }
 }
 
 void ChSystemFsi::PrintParticleToFile(const std::string& dir) const {
-    utils::PrintParticleToFile(m_sysFSI->sphMarkers2_D->posRadD, m_sysFSI->sphMarkers2_D->velMasD,
-                               m_sysFSI->sphMarkers2_D->rhoPresMuD, m_sysFSI->fsiData->sr_tau_I_mu_i,
-                               m_sysFSI->fsiData->derivVelRhoD, m_sysFSI->fsiData->referenceArray,
+    utils::PrintParticleToFile(m_sysFSI->sphMarkers_D->posRadD, m_sysFSI->sphMarkers_D->velMasD,
+                               m_sysFSI->sphMarkers_D->rhoPresMuD, m_sysFSI->fsiData->sr_tau_I_mu_i_Original,
+                               m_sysFSI->fsiData->derivVelRhoOriginalD, m_sysFSI->fsiData->referenceArray,
                                m_sysFSI->fsiData->referenceArray_FEA, dir, m_paramsH);
 }
 
 void ChSystemFsi::PrintFsiInfoToFile(const std::string& dir, double time) const {
     utils::PrintFsiInfoToFile(                                                                 //
-        m_sysFSI->fsiBodyState2_D->pos, m_sysFSI->fsiBodyState2_D->rot,                        //
-        m_sysFSI->fsiBodyState2_D->lin_vel,                                                    //
+        m_sysFSI->fsiBodyState_D->pos, m_sysFSI->fsiBodyState_D->rot,                          //
+        m_sysFSI->fsiBodyState_D->lin_vel,                                                     //
         m_sysFSI->fsiMesh1DState_D->pos_fsi_fea_D, m_sysFSI->fsiMesh2DState_D->pos_fsi_fea_D,  //
         m_sysFSI->fsiMesh1DState_D->vel_fsi_fea_D, m_sysFSI->fsiMesh2DState_D->vel_fsi_fea_D,  //
         m_sysFSI->fsiData->rigid_FSI_ForcesD, m_sysFSI->fsiData->rigid_FSI_TorquesD,           //
@@ -1202,23 +1162,22 @@ void ChSystemFsi::PrintFsiInfoToFile(const std::string& dir, double time) const 
 
 //--------------------------------------------------------------------------------------------------------------------------------
 
-void ChSystemFsi::AddSPHParticle(const ChVector3d& point,
-                                 double rho0,
-                                 double pres0,
-                                 double mu0,
-                                 const ChVector3d& velocity,
+void ChSystemFsi::AddSPHParticle(const ChVector3d& pos,
+                                 double rho,
+                                 double pres,
+                                 double mu,
+                                 const ChVector3d& vel,
                                  const ChVector3d& tauXxYyZz,
                                  const ChVector3d& tauXyXzYz) {
-    Real h = m_paramsH->HSML;
-    m_sysFSI->AddSPHParticle(utils::ToReal4(point, h), mR4(rho0, pres0, mu0, -1), utils::ToReal3(velocity),
+    m_sysFSI->AddSphParticle(utils::ToReal3(pos), rho, pres, mu, utils::ToReal3(vel),
                              utils::ToReal3(tauXxYyZz), utils::ToReal3(tauXyXzYz));
 }
 
-void ChSystemFsi::AddSPHParticle(const ChVector3d& point,
-                                 const ChVector3d& velocity,
+void ChSystemFsi::AddSPHParticle(const ChVector3d& pos,
+                                 const ChVector3d& vel,
                                  const ChVector3d& tauXxYyZz,
                                  const ChVector3d& tauXyXzYz) {
-    AddSPHParticle(point, m_paramsH->rho0, m_paramsH->BASEPRES, m_paramsH->mu0, velocity, tauXxYyZz, tauXyXzYz);
+    AddSPHParticle(pos, m_paramsH->rho0, m_paramsH->BASEPRES, m_paramsH->mu0, vel, tauXxYyZz, tauXyXzYz);
 }
 
 void ChSystemFsi::AddBoxSPH(const ChVector3d& boxCenter, const ChVector3d& boxHalfDim) {
@@ -1341,34 +1300,21 @@ size_t ChSystemFsi::AddPointsBCE(std::shared_ptr<ChBody> body,
                                  const std::vector<ChVector3d>& points,
                                  const ChFrame<>& rel_frame,
                                  bool solid) {
-    thrust::host_vector<Real4> bce;
-    for (const auto& p : points)
-        bce.push_back(mR4(p.x(), p.y(), p.z(), m_paramsH->HSML));
-
     // Set BCE marker type
-    int type = 0;
-    if (solid)
-        type = 1;
+    MarkerType type = solid ? MarkerType::BCE_RIGID : MarkerType::BCE_WALL;
 
-    for (const auto& p : bce) {
-        auto pos_shape = utils::ToChVector(p);
-        auto pos_body = rel_frame.TransformPointLocalToParent(pos_shape);
+    for (const auto& p : points) {
+        auto pos_body = rel_frame.TransformPointLocalToParent(p);
         auto pos_abs = body->GetFrameRefToAbs().TransformPointLocalToParent(pos_body);
         auto vel_abs = body->GetFrameRefToAbs().PointSpeedLocalToParent(pos_body);
 
-        m_sysFSI->sphMarkers_H->posRadH.push_back(mR4(utils::ToReal3(pos_abs), p.w));
-        m_sysFSI->sphMarkers_H->velMasH.push_back(utils::ToReal3(vel_abs));
-
-        m_sysFSI->sphMarkers_H->rhoPresMuH.push_back(
-            mR4(m_paramsH->rho0, m_paramsH->BASEPRES, m_paramsH->mu0, (double)type));
-        m_sysFSI->sphMarkers_H->tauXxYyZzH.push_back(mR3(0.0));
-        m_sysFSI->sphMarkers_H->tauXyXzYzH.push_back(mR3(0.0));
+        m_sysFSI->AddBceMarker(type, utils::ToReal3(pos_abs), utils::ToReal3(vel_abs));
     }
 
     if (solid)
-        m_fsi_bodies_bce_num.push_back((int)bce.size());
+        m_fsi_bodies_bce_num.push_back((int)points.size());
 
-    return bce.size();
+    return points.size();
 }
 
 //--------------------------------------------------------------------------------------------------------------------------------
@@ -1686,15 +1632,10 @@ void ChSystemFsi::CreateBCE_cone(double rad,
 
 //--------------------------------------------------------------------------------------------------------------------------------
 
-unsigned int ChSystemFsi::AddBCE_mesh1D(unsigned int meshID,
-                                        const ChFsiInterface::FsiMesh1D& fsi_mesh,
-                                        BcePatternMesh1D pattern,
-                                        bool remove_center) {
-    const auto& segments = fsi_mesh.segments;
+unsigned int ChSystemFsi::AddBCE_mesh1D(unsigned int meshID, const ChFsiInterface::FsiMesh1D& fsi_mesh) {
+    const auto& surface = fsi_mesh.contact_surface;
 
-    Real kernel_h = m_paramsH->HSML;
     Real spacing = m_paramsH->MULT_INITSPACE * m_paramsH->HSML;
-    Real4 rhoPresMuH = {m_paramsH->rho0, m_paramsH->BASEPRES, m_paramsH->mu0, 2};  // BCE markers of type 2
     int num_layers = m_paramsH->NUM_BCE_LAYERS;
 
     // Traverse the contact segments:
@@ -1702,10 +1643,10 @@ unsigned int ChSystemFsi::AddBCE_mesh1D(unsigned int meshID,
     //   (largest number that results in a discretization no coarser than the initial spacing)
     // - generate segment coordinates for a uniform grid over the segment
     // - generate locations of BCE points on segment
-    unsigned int num_seg = (unsigned int)segments.size();
+    unsigned int num_seg = (unsigned int)surface->GetSegmentsXYZ().size();
     unsigned int num_bce = 0;
     for (unsigned int segID = 0; segID < num_seg; segID++) {
-        const auto& seg = segments[segID];
+        const auto& seg = surface->GetSegmentsXYZ()[segID];
 
         const auto& P0 = seg->GetNode(0)->GetPos();  // vertex 0 position (absolute coordinates)
         const auto& P1 = seg->GetNode(1)->GetPos();  // vertex 1 position (absolute coordinates)
@@ -1738,16 +1679,16 @@ unsigned int ChSystemFsi::AddBCE_mesh1D(unsigned int meshID,
 
             for (int j = -num_layers + 1; j <= num_layers - 1; j += 2) {
                 for (int k = -num_layers + 1; k <= num_layers - 1; k += 2) {
-                    if (remove_center && j == 0 && k == 0)
+                    if (m_remove_center1D && j == 0 && k == 0)
                         continue;
-                    if (pattern == BcePatternMesh1D::STAR && std::abs(j) + std::abs(k) > num_layers)
+                    if (m_pattern1D == BcePatternMesh1D::STAR && std::abs(j) + std::abs(k) > num_layers)
                         continue;
                     double y_val = j * spacing / 2;
                     double z_val = k * spacing / 2;
                     auto Q = P + y_val * y_dir + z_val * z_dir;
-                    m_sysFSI->sphMarkers_H->posRadH.push_back(mR4(utils::ToReal3(Q), kernel_h));
-                    m_sysFSI->sphMarkers_H->velMasH.push_back(utils::ToReal3(V));
-                    m_sysFSI->sphMarkers_H->rhoPresMuH.push_back(rhoPresMuH);
+
+                    m_sysFSI->AddBceMarker(MarkerType::BCE_FLEX1D, utils::ToReal3(Q), utils::ToReal3(V));
+
                     m_sysFSI->fsiData->flex1D_BCEcoords_H.push_back(utils::ToReal3({lambda[0], y_val, z_val}));
                     m_sysFSI->fsiData->flex1D_BCEsolids_H.push_back(mU3(meshID, segID, m_num_flex1D_elements + segID));
                     n_bce++;
@@ -1762,15 +1703,10 @@ unsigned int ChSystemFsi::AddBCE_mesh1D(unsigned int meshID,
     return num_bce;
 }
 
-unsigned int ChSystemFsi::AddBCE_mesh2D(unsigned int meshID,
-                                        const ChFsiInterface::FsiMesh2D& fsi_mesh,
-                                        BcePatternMesh2D pattern,
-                                        bool remove_center) {
+unsigned int ChSystemFsi::AddBCE_mesh2D(unsigned int meshID, const ChFsiInterface::FsiMesh2D& fsi_mesh) {
     const auto& surface = fsi_mesh.contact_surface;
 
-    Real kernel_h = m_paramsH->HSML;
     Real spacing = m_paramsH->MULT_INITSPACE * m_paramsH->HSML;
-    Real4 rhoPresMuH = {m_paramsH->rho0, m_paramsH->BASEPRES, m_paramsH->mu0, 3};  // BCE markers of type 3
     int num_layers = m_paramsH->NUM_BCE_LAYERS;
 
     ////std::ofstream ofile("mesh2D.txt");
@@ -1803,9 +1739,11 @@ unsigned int ChSystemFsi::AddBCE_mesh2D(unsigned int meshID,
         int n2 = (int)std::ceil((P1 - P0).Length() / spacing);  // required divisions on edge 2
 
         int n_median = max(min(n0, n1), min(max(n0, n1), n2));  // number of divisions on each edge (median)
-        int n_max = std::max(n0, std::max(n1, n2));             // number of divisions on each edge (max)
+        ////int n_max = std::max(n0, std::max(n1, n2));             // number of divisions on each edge (max)
 
-        ////cout << "(" << n0 << " " << n1 << " " << n2 << ")   Median: " << n_median << "   Max: " << n_max << endl;
+        ////cout << "(" << n0 << " " << n1 << " " << n2 << ")";
+        ////cout << "  Median : " << n_median << " Max : " << n_max << endl;
+
         int n = n_median;
 
         ////ofile << P0 << endl;
@@ -1815,9 +1753,10 @@ unsigned int ChSystemFsi::AddBCE_mesh2D(unsigned int meshID,
         ////ofile << tri->OwnsEdge(0) << " " << tri->OwnsEdge(1) << " " << tri->OwnsEdge(2) << endl;
         ////ofile << n << endl;
 
+        bool remove_center = m_remove_center2D;
         int m_start = 0;
         int m_end = 0;
-        switch (pattern) {
+        switch (m_pattern2D) {
             case BcePatternMesh2D::INWARD:
                 m_start = -2 * (num_layers - 1);
                 m_end = 0;
@@ -1866,30 +1805,15 @@ unsigned int ChSystemFsi::AddBCE_mesh2D(unsigned int meshID,
                         continue;
                     double z_val = m * spacing / 2;
                     auto Q = P + z_val * normal;
-                    m_sysFSI->sphMarkers_H->posRadH.push_back(mR4(utils::ToReal3(Q), kernel_h));
-                    m_sysFSI->sphMarkers_H->velMasH.push_back(utils::ToReal3(V));
-                    m_sysFSI->sphMarkers_H->rhoPresMuH.push_back(rhoPresMuH);
+
+                    m_sysFSI->AddBceMarker(MarkerType::BCE_FLEX2D, utils::ToReal3(Q), utils::ToReal3(V));
+
                     m_sysFSI->fsiData->flex2D_BCEcoords_H.push_back(utils::ToReal3({lambda[0], lambda[1], z_val}));
                     m_sysFSI->fsiData->flex2D_BCEsolids_H.push_back(mU3(meshID, triID, m_num_flex2D_elements + triID));
                     n_bce++;
 
                     ////ofile << Q << endl;
                 }
-
-                /*
-                for (int m = 0; m < num_layers; m++) {
-                    auto z_val = z_start - m * spacing;
-                    auto Q = P + z_val * normal;
-                    m_sysFSI->sphMarkers_H->posRadH.push_back(mR4(utils::ToReal3(Q), kernel_h));
-                    m_sysFSI->sphMarkers_H->velMasH.push_back(utils::ToReal3(V));
-                    m_sysFSI->sphMarkers_H->rhoPresMuH.push_back(rhoPresMuH);
-                    m_sysFSI->fsiData->flex2D_BCEcoords_H.push_back(utils::ToReal3({lambda[0], lambda[1], z_val}));
-                    m_sysFSI->fsiData->flex2D_BCEsolids_H.push_back(mU3(meshID, triID, m_num_flex2D_elements + triID));
-                    n_bce++;
-
-                    ////ofile << Q << endl;
-                }
-                */
             }
         }
 
@@ -2102,6 +2026,10 @@ bool ChSystemFsi::GetAdaptiveTimeStepping() const {
     return m_paramsH->Adaptive_time_stepping;
 }
 
+int ChSystemFsi::GetNumProximitySearchSteps() const {
+    return m_paramsH->num_proximity_search_steps;
+}
+
 size_t ChSystemFsi::GetNumFluidMarkers() const {
     return m_sysFSI->numObjectsH->numFluidMarkers;
 }
@@ -2121,7 +2049,7 @@ size_t ChSystemFsi::GetNumBoundaryMarkers() const {
 //--------------------------------------------------------------------------------------------------------------------------------
 
 std::vector<ChVector3d> ChSystemFsi::GetParticlePositions() const {
-    thrust::host_vector<Real4> posRadH = m_sysFSI->sphMarkers2_D->posRadD;
+    thrust::host_vector<Real4> posRadH = m_sysFSI->sphMarkers_D->posRadD;
     std::vector<ChVector3d> pos;
 
     for (size_t i = 0; i < posRadH.size(); i++) {
@@ -2131,7 +2059,7 @@ std::vector<ChVector3d> ChSystemFsi::GetParticlePositions() const {
 }
 
 std::vector<ChVector3d> ChSystemFsi::GetParticleFluidProperties() const {
-    thrust::host_vector<Real4> rhoPresMuH = m_sysFSI->sphMarkers2_D->rhoPresMuD;
+    thrust::host_vector<Real4> rhoPresMuH = m_sysFSI->sphMarkers_D->rhoPresMuD;
     std::vector<ChVector3d> props;
 
     for (size_t i = 0; i < rhoPresMuH.size(); i++) {
@@ -2141,7 +2069,7 @@ std::vector<ChVector3d> ChSystemFsi::GetParticleFluidProperties() const {
 }
 
 std::vector<ChVector3d> ChSystemFsi::GetParticleVelocities() const {
-    thrust::host_vector<Real3> velH = m_sysFSI->sphMarkers2_D->velMasD;
+    thrust::host_vector<Real3> velH = m_sysFSI->sphMarkers_D->velMasD;
     std::vector<ChVector3d> vel;
 
     for (size_t i = 0; i < velH.size(); i++) {

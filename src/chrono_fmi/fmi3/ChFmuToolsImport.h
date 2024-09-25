@@ -30,6 +30,9 @@
 namespace chrono {
 namespace fmi3 {
 
+/// @addtogroup chrono_fmi3
+/// @{
+
 using FmuVariable = fmu_tools::fmi3::FmuVariable;
 
 /// Extension of FmuUnit class for Chrono FMUs.
@@ -41,7 +44,7 @@ class FmuChronoUnit : public fmu_tools::fmi3::FmuUnit {
     fmi3Status GetVecVariable(const std::string& name, ChVector3d& v) {
         std::string comp[3] = {"x", "y", "z"};
         for (int i = 0; i < 3; i++) {
-            auto status = GetVariable(name + "." + comp[i], &v.data()[i]);
+            auto status = GetVariable(name + "." + comp[i], v.data()[i]);
             if (status != fmi3Status::fmi3OK)
                 return status;
         }
@@ -52,7 +55,7 @@ class FmuChronoUnit : public fmu_tools::fmi3::FmuUnit {
     fmi3Status SetVecVariable(const std::string& name, const ChVector3d& v) {
         std::string comp[3] = {"x", "y", "z"};
         for (int i = 0; i < 3; i++) {
-            auto status = SetVariable(name + "." + comp[i], &v.data()[i]);
+            auto status = SetVariable(name + "." + comp[i], v.data()[i]);
             if (status != fmi3Status::fmi3OK)
                 return status;
         }
@@ -63,7 +66,7 @@ class FmuChronoUnit : public fmu_tools::fmi3::FmuUnit {
     fmi3Status GetQuatVariable(const std::string& name, ChQuaternion<>& q) {
         std::string comp[4] = {"e0", "e1", "e2", "e3"};
         for (int i = 0; i < 4; i++) {
-            auto status = GetVariable(name + "." + comp[i], &q.data()[i]);
+            auto status = GetVariable(name + "." + comp[i], q.data()[i]);
             if (status != fmi3Status::fmi3OK)
                 return status;
         }
@@ -74,7 +77,7 @@ class FmuChronoUnit : public fmu_tools::fmi3::FmuUnit {
     fmi3Status SetQuatVariable(const std::string& name, const ChQuaternion<>& q) {
         std::string comp[4] = {"e0", "e1", "e2", "e3"};
         for (int i = 0; i < 4; i++) {
-            auto status = SetVariable(name + "." + comp[i], &q.data()[i]);
+            auto status = SetVariable(name + "." + comp[i], q.data()[i]);
             if (status != fmi3Status::fmi3OK)
                 return status;
         }
@@ -161,6 +164,8 @@ class FmuChronoUnit : public fmu_tools::fmi3::FmuUnit {
         return fmi3Status::fmi3OK;
     }
 };
+
+/// @} chrono_fmi3
 
 }  // end namespace fmi3
 }  // end namespace chrono

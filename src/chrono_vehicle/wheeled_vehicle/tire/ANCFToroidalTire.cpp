@@ -18,6 +18,8 @@
 //
 // =============================================================================
 
+#include <cmath>
+
 #include "chrono_vehicle/wheeled_vehicle/tire/ANCFToroidalTire.h"
 
 using namespace chrono::fea;
@@ -51,14 +53,14 @@ void ANCFToroidalTire::CreateMesh(const ChFrameMoving<>& wheel_frame, VehicleSid
         for (int j = 0; j <= m_div_width; j++) {
             double theta = -CH_PI_2 + (CH_PI * j) / m_div_width;
 
-            double x = (m_rim_radius + m_height * cos(theta)) * cos(phi);
-            double y = m_height * sin(theta);
-            double z = (m_rim_radius + m_height * cos(theta)) * sin(phi);
+            double x = (m_rim_radius + m_height * std::cos(theta)) * std::cos(phi);
+            double y = m_height * std::sin(theta);
+            double z = (m_rim_radius + m_height * std::cos(theta)) * std::sin(phi);
             ChVector3d loc = wheel_frame.TransformPointLocalToParent(ChVector3d(x, y, z));
 
-            double nx = cos(theta) * cos(phi);
-            double ny = sin(theta);
-            double nz = cos(theta) * sin(phi);
+            double nx = std::cos(theta) * std::cos(phi);
+            double ny = std::sin(theta);
+            double nz = std::cos(theta) * std::sin(phi);
             ChVector3d dir = wheel_frame.TransformDirectionLocalToParent(ChVector3d(nx, ny, nz));
 
             auto node = chrono_types::make_shared<ChNodeFEAxyzD>(loc, dir);

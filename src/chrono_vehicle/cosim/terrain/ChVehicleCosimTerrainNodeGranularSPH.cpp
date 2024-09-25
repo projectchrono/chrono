@@ -264,13 +264,13 @@ void ChVehicleCosimTerrainNodeGranularSPH::CreateRigidProxy(unsigned int i) {
     body->EnableCollision(false);
 
     // Create visualization asset (use collision shapes)
-    m_geometry[i_shape].CreateVisualizationAssets(body, VisualizationType::NONE, true);
+    m_geometry[i_shape].CreateVisualizationAssets(body, VisualizationType::COLLISION);
 
     // Create collision shapes (only if obstacles are present)
     auto num_obstacles = m_obstacles.size();
     if (num_obstacles > 0) {
-        for (auto& mesh : m_geometry[i_shape].m_coll_meshes)
-            mesh.m_radius = m_radius;
+        for (auto& mesh : m_geometry[i_shape].coll_meshes)
+            mesh.radius = m_radius;
         m_geometry[i_shape].CreateCollisionShapes(body, 1, m_method);
         body->GetCollisionModel()->SetFamily(1);
         body->GetCollisionModel()->DisallowCollisionsWith(1);
@@ -284,18 +284,18 @@ void ChVehicleCosimTerrainNodeGranularSPH::CreateRigidProxy(unsigned int i) {
     m_proxies[i] = proxy;
 
     // Create BCE markers associated with collision shapes
-    for (const auto& box : m_geometry[i_shape].m_coll_boxes) {
-        sysFSI.AddBoxBCE(body, ChFrame<>(box.m_pos, box.m_rot), box.m_dims, true);
+    for (const auto& box : m_geometry[i_shape].coll_boxes) {
+        sysFSI.AddBoxBCE(body, ChFrame<>(box.pos, box.rot), box.dims, true);
     }
-    for (const auto& sphere : m_geometry[i_shape].m_coll_spheres) {
-        sysFSI.AddSphereBCE(body, ChFrame<>(sphere.m_pos, QUNIT), sphere.m_radius, true);
+    for (const auto& sphere : m_geometry[i_shape].coll_spheres) {
+        sysFSI.AddSphereBCE(body, ChFrame<>(sphere.pos, QUNIT), sphere.radius, true);
     }
-    for (const auto& cyl : m_geometry[i_shape].m_coll_cylinders) {
-        sysFSI.AddCylinderBCE(body, ChFrame<>(cyl.m_pos, cyl.m_rot), cyl.m_radius, cyl.m_length, true);
+    for (const auto& cyl : m_geometry[i_shape].coll_cylinders) {
+        sysFSI.AddCylinderBCE(body, ChFrame<>(cyl.pos, cyl.rot), cyl.radius, cyl.length, true);
     }
-    for (const auto& mesh : m_geometry[i_shape].m_coll_meshes) {
+    for (const auto& mesh : m_geometry[i_shape].coll_meshes) {
         std::vector<ChVector3d> point_cloud;
-        sysFSI.CreateMeshPoints(*mesh.m_trimesh, (double)sysFSI.GetInitialSpacing(), point_cloud);
+        sysFSI.CreateMeshPoints(*mesh.trimesh, (double)sysFSI.GetInitialSpacing(), point_cloud);
         sysFSI.AddPointsBCE(body, point_cloud, ChFrame<>(VNULL, QUNIT), true);
     }
 

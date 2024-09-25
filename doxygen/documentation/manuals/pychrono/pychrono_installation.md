@@ -20,17 +20,12 @@ To install a PyChrono conda module, do the following:
 1. Install the [Anaconda](https://www.anaconda.com/download/) Python distribution. <br>
 
 
-2. Optionally add the `conda-forge` and `intel` channels to the list of channels:
+2. Optionally add the `conda-forge` channel to the list of channels:
 ```
    conda config --add channels https://conda.anaconda.org/conda-forge
-   conda config --add channels https://conda.anaconda.org/intel
 ```   
 
-3. Decide which version of the Chrono code (latest release or latest code) you want and for which Python version.  Consult the list of available modules on the [PyChrono Anaconda Repository](https://anaconda.org/projectchrono/pychrono/files) and download the appropriate archive (tar.bz2). 
-
-   PyChrono packages built from a Chrono release version have label 'release'; PyChrono packages built from the latest Chrono development code have label 'main'.
-
-4. We striongly recommend to use a dedicated conda environment and install the desired Python distribution, necessary dependencies, and PyChrono package under that environment.
+3. We strongly recommend to use a dedicated conda environment and install the desired Python distribution, necessary dependencies, and PyChrono package under that environment.
 
    For example, to create a `chrono` environment with Python 3.9, use:
 ```
@@ -42,8 +37,8 @@ To install a PyChrono conda module, do the following:
 ```
    so that all subsequent conda commands occur within that environment.
 
-5. Install the necessary dependencies.<br>
-   **Attention**: Install the following packages using the versions specified below, in the order given, and *before* installing the PyChrono conda package itself!<br><br>
+4. Install the necessary dependencies.<br>
+   **Attention**: Install the following packages using the versions specified below, in the order given, and *before* installing the PyChrono conda package itself, which is done in a subsequent step!<br><br>
 
    - Intel MKL package (required for PyChrono demos using the Pardiso direct sparse linear solver, for Numpy, and for PythonOCC):
    ```
@@ -76,7 +71,12 @@ To install a PyChrono conda module, do the following:
      conda install -c conda-forge glfw
    ```
 
-6. Install the PyChrono conda package downloaded in step 3 above (for release or development Chrono code, a given operating system, and built for a given Python version):
+5. Decide which version of the Chrono code (latest release or latest code) you want and for which Python version.  Consult the list of available modules on the [PyChrono Anaconda Repository](https://anaconda.org/projectchrono/pychrono/files) and download the appropriate archive (tar.bz2). 
+
+   PyChrono packages built from a Chrono release version have label 'release'; PyChrono packages built from the latest Chrono development code have label 'main'.
+
+
+6. Install the PyChrono conda package downloaded in step 5 above (for release or development Chrono code, a given operating system, and built for a given Python version):
 ```
    conda install <pychrono_package>.tar.bz2
 ```    

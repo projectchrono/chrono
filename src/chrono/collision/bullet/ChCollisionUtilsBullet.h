@@ -29,6 +29,12 @@ namespace chrono {
 /// @addtogroup collision_bullet
 /// @{
 
+/// Utility class to convert a Chrono ChVector3d into a Bullet vector3.
+class ChApi cbtVector3CH : public cbtVector3 {
+  public:
+    cbtVector3CH(const chrono::ChVector3d& p) { setValue((cbtScalar)p.x(), (cbtScalar)p.y(), (cbtScalar)p.z()); }
+};
+
 /// Utilities for Bullet-based collision detection
 namespace bt_utils {
 

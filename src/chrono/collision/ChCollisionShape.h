@@ -37,6 +37,7 @@ class ChApi ChCollisionShape {
         TRIANGLEMESH,  // triangle mesh (compound object)
         BARREL,        // Not supported in Chrono collision system
         POINT,
+        SEGMENT,
         TRIANGLE,      // stand-alone collision triangle
         MESHTRIANGLE,  // triangle in a connected mesh
         CAPSULE,

@@ -12,6 +12,8 @@
 // Authors: Hammad Mazhar
 // =============================================================================
 
+#include <cmath>
+
 #include "chrono_multicore/solver/ChSolverMulticore.h"
 
 using namespace chrono;
@@ -54,7 +56,7 @@ uint ChSolverMulticoreSPGQP::Solve(ChSchurProduct& SchurProduct,
     real sigma_max = 0.9999;
     real gam = .1;
     int m = 10;
-    real gdiff = 1.0 / pow(size, 2.0);
+    real gdiff = 1.0 / std::pow(size, 2.0);
     lastgoodres = 10e30;
     f_hist.resize(max_iter + 1);
     temp.resize(size);
