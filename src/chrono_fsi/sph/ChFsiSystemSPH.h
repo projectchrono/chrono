@@ -33,11 +33,14 @@ namespace fsi {
 /// FSI system using an SPH-based fluid solver.
 class CH_FSI_API ChFsiSystemSPH : public ChFsiSystem {
   public:
-    ChFsiSystemSPH(ChSystem* sysMBS);
+    ChFsiSystemSPH(ChSystem& sysMBS, ChFluidSystemSPH& sysSPH);
     ~ChFsiSystemSPH();
 
     ChFluidSystemSPH& GetFluidSystemSPH() const;
     ChFsiInterfaceSPH& GetFsiInterface() const;
+
+    private:
+    ChFluidSystemSPH& m_sysSPH;
 };
 
 /// @} fsi_physics

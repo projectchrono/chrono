@@ -77,8 +77,8 @@ class BceManager {
   private:
     FsiDataManager& m_data_mgr;  ///< FSI data manager
 
-    thrust::device_vector<Real3> m_totalForceRigid;       ///< Total forces from fluid to bodies
-    thrust::device_vector<Real3> m_totalTorqueRigid;      ///< Total torques from fluid to bodies
+    thrust::device_vector<Real3> m_totalForceRigid;   ///< Total forces from fluid to bodies
+    thrust::device_vector<Real3> m_totalTorqueRigid;  ///< Total torques from fluid to bodies
 
     bool m_verbose;
 
@@ -86,8 +86,6 @@ class BceManager {
     void CalcRigidBceAcceleration();
     void CalcFlex1DBceAcceleration();
     void CalcFlex2DBceAcceleration();
-
-    friend class ChFsiSystemSPH;
 };
 
 /// @} fsi_physics

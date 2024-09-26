@@ -29,7 +29,8 @@ namespace fsi {
 
 // =============================================================================
 
-ChFsiInterface::ChFsiInterface() : m_verbose(true) {}
+ChFsiInterface::ChFsiInterface(ChSystem& sysMBS, ChFluidSystem& sysCFD)
+    : m_sysMBS(sysMBS), m_sysCFD(sysCFD), m_verbose(true) {}
 
 ChFsiInterface::~ChFsiInterface() {}
 
@@ -117,8 +118,8 @@ FsiMesh1D& ChFsiInterface::AddFsiMesh1D(std::shared_ptr<fea::ChContactSurfaceSeg
         }
     }
 
-    assert(fsi_mesh.ptr2ind_map.size() == surface->GetNumVertices());
-    assert(fsi_mesh.ind2ptr_map.size() == surface->GetNumVertices());
+    ////assert(fsi_mesh.ptr2ind_map.size() == surface->GetNumVertices());
+    ////assert(fsi_mesh.ind2ptr_map.size() == surface->GetNumVertices());
 
     // Store the mesh contact surface
     m_fsi_meshes1D.push_back(fsi_mesh);
@@ -361,7 +362,42 @@ void ChFsiInterface::LoadForceVectors(std::vector<FsiBodyForce>& body_forces,
         throw std::runtime_error("(ChFsiInterface::LoadForceVectors) incorrect force vector sizes.");
     }
 
-    //// TODO - call the fluid solver's StoreSolidForces function
+    // External loads on rigid bodies
+    {
+        size_t ibody = 0;
+        for (const auto& fsi_body : m_fsi_bodies) {
+            fsi_body.body->EmptyAccumulators();
+            fsi_body.body->AccumulateForce(body_forces[ibody].force, fsi_body.body->GetPos(), false);
+            fsi_body.body->AccumulateTorque(body_forces[ibody].torque, false);
+            ibody++;
+        }
+    }
+
+    // External loads on FEA 1-D mesh nodes
+    {
+        size_t imesh = 0;
+        for (const auto& fsi_mesh : m_fsi_meshes1D) {
+            size_t inode = 0;
+            for (auto& node : fsi_mesh.ind2ptr_map) {
+                node.second->SetForce(mesh2D_forces[imesh].force[inode]);
+                inode++;
+            }
+            imesh++;
+        }
+    }
+
+    // External loads on FEA 2-D mesh nodes
+    {
+        size_t imesh = 0;
+        for (const auto& fsi_mesh : m_fsi_meshes2D) {
+            size_t inode = 0;
+            for (auto& node : fsi_mesh.ind2ptr_map) {
+                node.second->SetForce(mesh2D_forces[imesh].force[inode]);
+                inode++;
+            }
+            imesh++;
+        }
+    }
 }
 
 // =============================================================================

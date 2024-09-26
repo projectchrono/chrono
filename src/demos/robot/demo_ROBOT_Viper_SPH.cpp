@@ -143,8 +143,8 @@ int main(int argc, char* argv[]) {
 
     // Create a physical system and a corresponding FSI system
     ChSystemNSC sysMBS;
-    ChFsiSystemSPH sysFSI(&sysMBS);
-    ChFluidSystemSPH& sysSPH = sysFSI.GetFluidSystemSPH();
+    ChFluidSystemSPH sysSPH;
+    ChFsiSystemSPH sysFSI(sysMBS, sysSPH);
 
     ChVector3d gravity = ChVector3d(0, 0, -9.81);
     sysMBS.SetGravitationalAcceleration(gravity);

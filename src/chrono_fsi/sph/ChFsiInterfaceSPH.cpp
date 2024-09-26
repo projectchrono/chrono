@@ -12,10 +12,11 @@
 // Author: Milad Rakhsha, Arman Pazouki, Wei Hu, Radu Serban
 // =============================================================================
 //
-// Base class for processing the interface between Chrono and fsi modules
+// Custom FSI interface for coupling the SPH-based fluid system with a Chrono MBS
 // =============================================================================
 
 #include "chrono_fsi/sph/ChFsiInterfaceSPH.h"
+#include "chrono_fsi/sph/physics/FsiDataManager.cuh"
 #include "chrono_fsi/sph/utils/ChUtilsDevice.cuh"
 #include "chrono_fsi/sph/utils/ChUtilsTypeConvert.h"
 
@@ -24,7 +25,8 @@ namespace fsi {
 
 using namespace sph;
 
-ChFsiInterfaceSPH::ChFsiInterfaceSPH(FsiDataManager& data_mgr) : ChFsiInterface(), m_data_mgr(data_mgr) {}
+ChFsiInterfaceSPH::ChFsiInterfaceSPH(ChSystem& sysMBS, ChFluidSystemSPH& sysSPH)
+    : ChFsiInterface(sysMBS, sysSPH), m_data_mgr(*sysSPH.m_data_mgr) {}
 
 ChFsiInterfaceSPH::~ChFsiInterfaceSPH() {}
 

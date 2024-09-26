@@ -23,18 +23,15 @@ namespace fsi {
 
 using namespace sph;
 
-ChFsiSystemSPH::ChFsiSystemSPH(ChSystem* sysMBS) : ChFsiSystem(sysMBS) {
-    auto sysSPH = chrono_types::make_shared<ChFluidSystemSPH>();
-    auto interfaceSPH = chrono_types::make_shared<ChFsiInterfaceSPH>(*sysSPH->m_data_mgr);
-
-    m_sysCFD = sysSPH;
-    m_fsi_interface = interfaceSPH;
+ChFsiSystemSPH::ChFsiSystemSPH(ChSystem& sysMBS, ChFluidSystemSPH& sysSPH)
+    : ChFsiSystem(sysMBS, sysSPH), m_sysSPH(sysSPH) {
+    m_fsi_interface = chrono_types::make_shared<ChFsiInterfaceSPH>(sysMBS, sysSPH);
 }
 
 ChFsiSystemSPH::~ChFsiSystemSPH() {}
 
 ChFluidSystemSPH& ChFsiSystemSPH::GetFluidSystemSPH() const {
-    return *std::static_pointer_cast<ChFluidSystemSPH>(m_sysCFD);
+    return m_sysSPH;
 }
 
 ChFsiInterfaceSPH& ChFsiSystemSPH::GetFsiInterface() const {

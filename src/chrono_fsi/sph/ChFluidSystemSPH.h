@@ -24,19 +24,18 @@
 
 #include "chrono_fsi/ChFluidSystem.h"
 
-#include "chrono_fsi/sph/ChFsiInterfaceSPH.h"
 #include "chrono_fsi/sph/ChFsiDefinitionsSPH.h"
+#include "chrono_fsi/sph/physics/FsiDataManager.cuh"
+#include "chrono_fsi/sph/physics/BceManager.cuh"
+#include "chrono_fsi/sph/physics/ChFluidDynamics.cuh"
 #include "chrono_fsi/sph/physics/ChParams.h"
 #include "chrono_fsi/sph/math/CustomMath.h"
 
 namespace chrono {
 namespace fsi {
 
-namespace sph {
-class FsiDataManager;
-class ChFluidDynamics;
-class BceManager;
-}  // namespace sph
+// For friend class declaration
+class ChFsiInterfaceSPH;
 
 /// @addtogroup fsi_physics
 /// @{
@@ -538,6 +537,7 @@ class CH_FSI_API ChFluidSystemSPH : public ChFluidSystem {
     bool m_remove_center2D;
 
     friend class ChFsiSystemSPH;
+    friend class ChFsiInterfaceSPH;
     friend class ChFsiVisualizationGL;
     friend class ChFsiVisualizationVSG;
 };

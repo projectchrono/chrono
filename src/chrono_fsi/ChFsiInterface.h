@@ -20,6 +20,7 @@
 
 #include "chrono_fsi/ChApiFsi.h"
 #include "chrono_fsi/ChFsiDefinitions.h"
+#include "chrono_fsi/ChFluidSystem.h"
 
 namespace chrono {
 namespace fsi {
@@ -130,9 +131,11 @@ class CH_FSI_API ChFsiInterface {
     virtual void ExchangeSolidForces() = 0;
 
   protected:
-    ChFsiInterface();
+    ChFsiInterface(ChSystem& sysMBS, ChFluidSystem& sysCFD);
 
     bool m_verbose;
+    ChSystem& m_sysMBS;
+    ChFluidSystem& m_sysCFD;
 
     std::vector<FsiBody> m_fsi_bodies;      ///< rigid bodies exposed to the FSI system
     std::vector<FsiMesh1D> m_fsi_meshes1D;  ///< FEA meshes with 1-D segments exposed to the FSI system

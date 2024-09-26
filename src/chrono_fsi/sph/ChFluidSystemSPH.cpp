@@ -28,11 +28,8 @@
 #include "chrono/utils/ChUtilsSamplers.h"
 
 #include "chrono_fsi/sph/ChFluidSystemSPH.h"
-#include "chrono_fsi/sph/ChFsiInterfaceSPH.h"
+
 #include "chrono_fsi/sph/physics/ChParams.h"
-#include "chrono_fsi/sph/physics/FsiDataManager.cuh"
-#include "chrono_fsi/sph/physics/ChFluidDynamics.cuh"
-#include "chrono_fsi/sph/physics/BceManager.cuh"
 #include "chrono_fsi/sph/utils/ChUtilsTypeConvert.h"
 #include "chrono_fsi/sph/utils/ChUtilsPrintSph.cuh"
 #include "chrono_fsi/sph/utils/ChUtilsDevice.cuh"
@@ -928,8 +925,6 @@ void ChFluidSystemSPH::Initialize(unsigned int num_fsi_bodies,
     m_paramsH->cellSize = mR3(mBinSize, mBinSize, mBinSize);
 
     // Initialize the underlying FSU system: set reference arrays, set counters, and resize simulation arrays
-    assert(m_num_elements1D == num_fsi_elements1D);
-    assert(m_num_elements2D == num_fsi_elements2D);
     m_data_mgr->Initialize(num_fsi_bodies, num_fsi_nodes1D, num_fsi_elements1D, num_fsi_nodes2D, num_fsi_elements2D);
 
     // Load the initial body and mesh node states

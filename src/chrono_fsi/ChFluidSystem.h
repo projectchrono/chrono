@@ -102,26 +102,22 @@ class CH_FSI_API ChFluidSystem {
     virtual void OnExchangeSolidStates() = 0;
 
     /// Load FSI body and mesh node states from the given vectors.
-    /// The functions LoadSolidStates and StoreSolidForces provide the coupling to a generic FSI interface.
-    /// A concrete fluid system can be paired with a corresponding FSI interface, both of which work on the same data
-    /// structures; in that case, the custom FSI interface need not use the mechanism provided by LoadSolidStates and
-    /// StoreSolidForces (which incur the cost of additional data copies).
+    /// The functions LoadSolidStates and StoreSolidForces allow using a generic FSI interface.
+    /// However, a concrete fluid system can be paired with a corresponding FSI interface, both of which work on the
+    /// same data structures; in that case, the custom FSI interface need not use the mechanism provided by
+    /// LoadSolidStates and StoreSolidForces (which incur the cost of additional data copies).
     virtual void LoadSolidStates(const std::vector<FsiBodyState>& body_states,
                                  const std::vector<FsiMeshState>& mesh1D_states,
-                                 const std::vector<FsiMeshState>& mesh2D_states) {
-        throw std::runtime_error("Coupling to a generic FSI interface is not supported by this fluid system");
-    }
+                                 const std::vector<FsiMeshState>& mesh2D_states) = 0;
 
     /// Store the body and mesh node forces to the given vectors.
-    /// The functions LoadSolidStates and StoreSolidForces provide the coupling to a generic FSI interface.
-    /// A concrete fluid system can be paired with a corresponding FSI interface, both of which work on the same data
-    /// structures; in that case, the custom FSI interface need not use the mechanism provided by LoadSolidStates and
-    /// StoreSolidForces (which incur the cost of additional data copies).
+    /// The functions LoadSolidStates and StoreSolidForces allow using a generic FSI interface.
+    /// However, a concrete fluid system can be paired with a corresponding FSI interface, both of which work on the
+    /// same data structures; in that case, the custom FSI interface need not use the mechanism provided by
+    /// LoadSolidStates and StoreSolidForces (which incur the cost of additional data copies).
     virtual void StoreSolidForces(std::vector<FsiBodyForce> body_forces,
                                   std::vector<FsiMeshForce> mesh1D_forces,
-                                  std::vector<FsiMeshForce> mesh2D_forces) {
-        throw std::runtime_error("Coupling to a generic FSI interface is not supported by this fluid system");
-    }
+                                  std::vector<FsiMeshForce> mesh2D_forces) = 0;
 
   protected:
     ChFluidSystem();
