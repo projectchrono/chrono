@@ -27,7 +27,7 @@ ChRobotKinematicsNdofNumerical::ChRobotKinematicsNdofNumerical(const std::vector
                                                                bool dosubsteps,
                                                                const int num_substeps)
     : m_tol(tol), m_iter(0), m_max_iter(max_iter), m_h(1e-7), m_dosubsteps(dosubsteps), m_num_substeps(num_substeps) {
-    m_num_joints = joints_abs_coord.size() - 1;  // remove first coord because it's robot base in world frame
+    m_num_joints = static_cast<int>(joints_abs_coord.size()) - 1;  // remove first coord because it's robot base in world frame
     m_HH.setIdentity(m_num_joints, m_num_joints);
     m_HH *= m_h;
     m_residual.resize(6);

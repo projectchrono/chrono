@@ -153,6 +153,11 @@ void ChRobotSCARA_CAD::SetupLinks() {
     // std::dynamic_pointer_cast<ChLinkMotorLinearPosition>(m_link_forearm_screw_transl)->SetGuideConstraint(ChLinkMotorLinearPosition::GuideConstraint::FREE);
     m_sys->Add(m_link_forearm_screw_transl);
 
+    // Fixture screw-end effector
+    auto fix_screw_end_effector = chrono_types::make_shared<ChLinkMateFix>();
+    fix_screw_end_effector->Initialize(m_end_effector, m_screw, m_end_effector->GetFrameCOMToAbs());
+    m_sys->Add(fix_screw_end_effector);
+
     m_motorlist = {m_link_base_biceps, m_link_biceps_forearm, m_link_forearm_screw_rot, m_link_forearm_screw_transl};
 }
 
