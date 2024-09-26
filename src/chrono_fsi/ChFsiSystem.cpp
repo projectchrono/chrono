@@ -159,7 +159,7 @@ void ChFsiSystem::Initialize() {
     std::vector<FsiMeshState> mesh1D_states;
     std::vector<FsiMeshState> mesh2D_states;
     m_fsi_interface->AllocateStateVectors(body_states, mesh1D_states, mesh2D_states);
-    m_fsi_interface->LoadStateVectors(body_states, mesh1D_states, mesh2D_states);
+    m_fsi_interface->StoreSolidStates(body_states, mesh1D_states, mesh2D_states);
 
     // Initialize fluid system with initial solid states
     m_sysCFD.SetStepSize(m_step_CFD);

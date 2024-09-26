@@ -244,11 +244,11 @@ bool ChFsiInterface::CheckStateVectors(const std::vector<FsiBodyState>& body_sta
     return true;
 }
 
-void ChFsiInterface::LoadStateVectors(std::vector<FsiBodyState>& body_states,
+void ChFsiInterface::StoreSolidStates(std::vector<FsiBodyState>& body_states,
                                       std::vector<FsiMeshState>& mesh1D_states,
                                       std::vector<FsiMeshState>& mesh2D_states) {
     if (!CheckStateVectors(body_states, mesh1D_states, mesh2D_states)) {
-        throw std::runtime_error("(ChFsiInterface::LoadStateVectors) incorrect state vector sizes.");
+        throw std::runtime_error("(ChFsiInterface::StoreSolidStates) incorrect state vector sizes.");
     }
 
     {
@@ -355,11 +355,11 @@ bool ChFsiInterface::CheckForceVectors(const std::vector<FsiBodyForce>& body_for
     return true;
 }
 
-void ChFsiInterface::LoadForceVectors(std::vector<FsiBodyForce>& body_forces,
-                                      std::vector<FsiMeshForce>& mesh1D_forces,
-                                      std::vector<FsiMeshForce>& mesh2D_forces) {
+void ChFsiInterface::LoadSolidForces(std::vector<FsiBodyForce>& body_forces,
+                                     std::vector<FsiMeshForce>& mesh1D_forces,
+                                     std::vector<FsiMeshForce>& mesh2D_forces) {
     if (!CheckForceVectors(body_forces, mesh1D_forces, mesh2D_forces)) {
-        throw std::runtime_error("(ChFsiInterface::LoadForceVectors) incorrect force vector sizes.");
+        throw std::runtime_error("(ChFsiInterface::LoadSolidForces) incorrect force vector sizes.");
     }
 
     // External loads on rigid bodies
@@ -398,6 +398,36 @@ void ChFsiInterface::LoadForceVectors(std::vector<FsiBodyForce>& body_forces,
             imesh++;
         }
     }
+}
+
+// =============================================================================
+
+ChFsiInterfaceGeneric::ChFsiInterfaceGeneric(ChSystem& sysMBS, ChFluidSystem& sysCFD)
+    : ChFsiInterface(sysMBS, sysCFD) {}
+
+ChFsiInterfaceGeneric::~ChFsiInterfaceGeneric() {}
+
+void ChFsiInterfaceGeneric::Initialize() {
+    ChFsiInterface::Initialize();
+
+    AllocateStateVectors(m_body_states, m_mesh1D_states, m_mesh2D_states);
+    AllocateForceVectors(m_body_forces, m_mesh1D_forces, m_mesh2D_forces);
+}
+
+void ChFsiInterfaceGeneric::ExchangeSolidStates() {
+    // Get solid states from multibody system in cached vectors
+    StoreSolidStates(m_body_states, m_mesh1D_states, m_mesh2D_states);
+
+    // Pass solid states to the fluid solver
+    m_sysCFD.LoadSolidStates(m_body_states, m_mesh1D_states, m_mesh2D_states);
+}
+
+void ChFsiInterfaceGeneric::ExchangeSolidForces() {
+    // Get solid forces from the fluid solver
+    m_sysCFD.StoreSolidForces(m_body_forces, m_mesh1D_forces, m_mesh2D_forces);
+
+    // Load solid forces to the multibody system (apply as external loads)
+    LoadSolidForces(m_body_forces, m_mesh1D_forces, m_mesh2D_forces);
 }
 
 // =============================================================================

@@ -16,26 +16,31 @@
 //
 // =============================================================================
 
+#include <iostream>
+
 #include "chrono_fsi/sph/ChFsiSystemSPH.h"
+#include "chrono_fsi/sph/ChFsiInterfaceSPH.h"
 
 namespace chrono {
 namespace fsi {
 
 using namespace sph;
 
-ChFsiSystemSPH::ChFsiSystemSPH(ChSystem& sysMBS, ChFluidSystemSPH& sysSPH)
+ChFsiSystemSPH::ChFsiSystemSPH(ChSystem& sysMBS, ChFluidSystemSPH& sysSPH, bool use_generic_interface)
     : ChFsiSystem(sysMBS, sysSPH), m_sysSPH(sysSPH) {
-    m_fsi_interface = chrono_types::make_shared<ChFsiInterfaceSPH>(sysMBS, sysSPH);
+    if (use_generic_interface) {
+        std::cout << "Create an FSI system using a generic FSI interface" << std::endl;
+        m_fsi_interface = chrono_types::make_shared<ChFsiInterfaceGeneric>(sysMBS, sysSPH);
+    } else {
+        std::cout << "Create an FSI system using a custom SPH FSI interface" << std::endl;
+        m_fsi_interface = chrono_types::make_shared<ChFsiInterfaceSPH>(sysMBS, sysSPH);
+    }
 }
 
 ChFsiSystemSPH::~ChFsiSystemSPH() {}
 
 ChFluidSystemSPH& ChFsiSystemSPH::GetFluidSystemSPH() const {
     return m_sysSPH;
-}
-
-ChFsiInterfaceSPH& ChFsiSystemSPH::GetFsiInterface() const {
-    return *std::static_pointer_cast<ChFsiInterfaceSPH>(m_fsi_interface);
 }
 
 }  // end namespace fsi

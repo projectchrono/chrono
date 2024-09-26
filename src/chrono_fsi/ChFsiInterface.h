@@ -106,17 +106,17 @@ class CH_FSI_API ChFsiInterface {
                            const std::vector<FsiMeshForce>& mesh_forces1D,
                            const std::vector<FsiMeshForce>& mesh_forces2D) const;
 
-    /// Utility function to load current solid phase states from the multibody system in the provided structures.
+    /// Utility function to get current solid phase states from the multibody system in the provided structures.
     /// A runtime exception is thrown if the output vectors do not have the appropriate sizes.
-    void LoadStateVectors(std::vector<FsiBodyState>& body_states,
+    void StoreSolidStates(std::vector<FsiBodyState>& body_states,
                           std::vector<FsiMeshState>& mesh1D_states,
                           std::vector<FsiMeshState>& mesh2D_states);
 
-    /// Utility function to load current solid phase forces from the fluid system in the provided structures.
+    /// Utility function to apply forces in the provided structures to the multibody system.
     /// A runtime exception is thrown if the output vectors do not have the appropriate sizes.
-    void LoadForceVectors(std::vector<FsiBodyForce>& body_forces,
-                          std::vector<FsiMeshForce>& mesh1D_forces,
-                          std::vector<FsiMeshForce>& mesh2D_forces);
+    void LoadSolidForces(std::vector<FsiBodyForce>& body_forces,
+                         std::vector<FsiMeshForce>& mesh1D_forces,
+                         std::vector<FsiMeshForce>& mesh2D_forces);
 
     // ------------
 
@@ -141,6 +141,34 @@ class CH_FSI_API ChFsiInterface {
     std::vector<FsiMesh1D> m_fsi_meshes1D;  ///< FEA meshes with 1-D segments exposed to the FSI system
     std::vector<FsiMesh2D> m_fsi_meshes2D;  ///< FEA meshes with 2-D faces exposed to the FSI system
 };
+
+// =============================================================================
+
+/// Generic interface between a Chrono multibody system and a fluid system.
+class ChFsiInterfaceGeneric : public ChFsiInterface {
+  public:
+    ChFsiInterfaceGeneric(ChSystem& sysMBS, ChFluidSystem& sysCFD);
+    ~ChFsiInterfaceGeneric();
+
+    /// Initialize the generic FSI interface.
+    virtual void Initialize() override;
+
+  private:
+    /// Exchange solid phase state information between the MBS and fluid system.
+    virtual void ExchangeSolidStates() override;
+
+    /// Exchange solid phase force information between the multibody and fluid systems.
+    virtual void ExchangeSolidForces() override;
+
+    std::vector<FsiBodyState> m_body_states;
+    std::vector<FsiBodyForce> m_body_forces;
+    std::vector<FsiMeshState> m_mesh1D_states;
+    std::vector<FsiMeshForce> m_mesh1D_forces;
+    std::vector<FsiMeshState> m_mesh2D_states;
+    std::vector<FsiMeshForce> m_mesh2D_forces;
+};
+
+// =============================================================================
 
 /// @} fsi_physics
 

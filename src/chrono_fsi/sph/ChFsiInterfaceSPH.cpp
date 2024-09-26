@@ -105,7 +105,7 @@ void ChFsiInterfaceSPH::ExchangeSolidForces() {
         // Transfer to host
         thrust::host_vector<Real3> forces_H = m_data_mgr.flex1D_FSIforces_D;
 
-        // Apply to FEA nodes
+        // Apply to FEA 1-D mesh nodes
         int index = 0;
         for (const auto& fsi_mesh : m_fsi_meshes1D) {
             int num_nodes = (int)fsi_mesh.ind2ptr_map.size();
@@ -120,7 +120,7 @@ void ChFsiInterfaceSPH::ExchangeSolidForces() {
         // Transfer to host
         thrust::host_vector<Real3> forces_H = m_data_mgr.flex2D_FSIforces_D;
 
-        // Apply to FEA nodes
+        // Apply to FEA 2-D mesh nodes
         int index = 0;
         for (const auto& fsi_mesh : m_fsi_meshes2D) {
             int num_nodes = (int)fsi_mesh.ind2ptr_map.size();
