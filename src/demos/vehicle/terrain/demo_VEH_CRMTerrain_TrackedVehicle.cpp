@@ -26,7 +26,7 @@
 #include "chrono/utils/ChUtilsInputOutput.h"
 #include "chrono/utils/ChUtils.h"
 
-#include "chrono_fsi/ChSystemFsi.h"
+#include "chrono_fsi/sph/ChFsiSystemSPH.h"
 
 #include "chrono_vehicle/ChVehicleModelData.h"
 #include "chrono_vehicle/driver/ChPathFollowerDriver.h"
@@ -36,12 +36,12 @@
 
 #include "chrono_thirdparty/filesystem/path.h"
 
-#include "chrono/assets/ChVisualSystem.h"
+#include "chrono_fsi/sph/visualization/ChFsiVisualization.h"
 #ifdef CHRONO_OPENGL
-    #include "chrono_fsi/visualization/ChFsiVisualizationGL.h"
+    #include "chrono_fsi/sph/visualization/ChFsiVisualizationGL.h"
 #endif
 #ifdef CHRONO_VSG
-    #include "chrono_fsi/visualization/ChFsiVisualizationVSG.h"
+    #include "chrono_fsi/sph/visualization/ChFsiVisualizationVSG.h"
 #endif
 
 #include "demos/SetChronoSolver.h"
@@ -105,14 +105,18 @@ int main(int argc, char* argv[]) {
     double initial_spacing = 0.02;
     CRMTerrain terrain(sys, initial_spacing);
     terrain.SetVerbose(verbose);
-    ChSystemFsi& sysFSI = terrain.GetSystemFSI();
+    ChFsiSystemSPH& sysFSI = terrain.GetSystemFSI();
+    ChFluidSystemSPH& sysSPH = sysFSI.GetFluidSystemSPH();
 
     // Set SPH parameters and soil material properties
     const ChVector3d gravity(0, 0, -9.81);
     sysFSI.SetGravitationalAcceleration(gravity);
     sys.SetGravitationalAcceleration(gravity);
 
-    ChSystemFsi::ElasticMaterialProperties mat_props;
+    sysFSI.SetStepSizeCFD(step_size);
+    sysFSI.SetStepsizeMBD(step_size);
+
+    ChFluidSystemSPH::ElasticMaterialProperties mat_props;
     mat_props.density = density;
     mat_props.Young_modulus = youngs_modulus;
     mat_props.Poisson_ratio = poisson_ratio;
@@ -127,9 +131,9 @@ int main(int argc, char* argv[]) {
     mat_props.dilation_angle = CH_PI / 10;  // default
     mat_props.cohesion_coeff = cohesion;
 
-    sysFSI.SetElasticSPH(mat_props);
+    sysSPH.SetElasticSPH(mat_props);
 
-    ChSystemFsi::SPHParameters sph_params;
+    ChFluidSystemSPH::SPHParameters sph_params;
     sph_params.sph_method = SPHMethod::WCSPH;
     sph_params.kernel_h = initial_spacing;
     sph_params.initial_spacing = initial_spacing;
@@ -137,12 +141,11 @@ int main(int argc, char* argv[]) {
     sph_params.consistent_gradient_discretization = false;
     sph_params.consistent_laplacian_discretization = false;
 
-    sysFSI.SetSPHParameters(sph_params);
-    sysFSI.SetStepSize(step_size);
+    sysSPH.SetSPHParameters(sph_params);
 
-    sysFSI.SetActiveDomain(ChVector3d(active_box_hdim));
+    sysSPH.SetActiveDomain(ChVector3d(active_box_hdim));
 
-    sysFSI.SetOutputLength(0);
+    sysSPH.SetOutputLength(0);
 
     // Add track shoes as FSI bodies
     CreateTrackBCEMarkers(vehicle, terrain);
@@ -156,8 +159,8 @@ int main(int argc, char* argv[]) {
     terrain.Initialize();
 
     const auto& aabb = terrain.GetSPHBoundingBox();
-    cout << "  SPH particles:     " << sysFSI.GetNumFluidMarkers() << endl;
-    cout << "  Bndry BCE markers: " << sysFSI.GetNumBoundaryMarkers() << endl;
+    cout << "  SPH particles:     " << sysSPH.GetNumFluidMarkers() << endl;
+    cout << "  Bndry BCE markers: " << sysSPH.GetNumBoundaryMarkers() << endl;
     cout << "  SPH AABB:          " << aabb.min << "   " << aabb.max << endl;
 
     // Create driver
@@ -197,7 +200,6 @@ int main(int argc, char* argv[]) {
         }
 
         visFSI->SetTitle("Tracked vehicle on CRM deformable terrain");
-        visFSI->SetVerbose(verbose);
         visFSI->SetSize(1280, 720);
         visFSI->AddCamera(ChVector3d(0, 8, 0.5), ChVector3d(0, -1, 0));
         visFSI->SetCameraMoveScale(0.2f);
@@ -253,7 +255,7 @@ int main(int argc, char* argv[]) {
                 break;
         }
         if (!visualization) {
-            cout << sysFSI.GetSimTime() << "  " << sysFSI.GetRTF() << endl;
+            cout << sysFSI.GetSimTime() << "  " << sysFSI.GetRtf() << endl;
         }
 
         // Synchronize sy^stems
@@ -262,7 +264,7 @@ int main(int argc, char* argv[]) {
 
         // Advance system state
         driver.Advance(step_size);
-        sysFSI.DoStepDynamics_FSI();
+        sysFSI.DoStepDynamics(step_size);
         t += step_size;
 
         frame++;
@@ -344,13 +346,14 @@ std::shared_ptr<ChBezierCurve> CreatePath(const std::string& path_file) {
 
 void CreateTrackBCEMarkers(std::shared_ptr<TrackedVehicle> vehicle, CRMTerrain& terrain) {
     auto& sysFSI = terrain.GetSystemFSI();
+    auto& sysSPH = sysFSI.GetFluidSystemSPH();
 
     // GetCollision shapes for a track shoe (will use only collision boxes)
     auto track_geometry = vehicle->GetTrackShoe(VehicleSide::LEFT, 0)->GetGroundContactGeometry();
 
     // Consider only collision boxes that are large enough
     utils::ChBodyGeometry geometry;
-    auto min_length = 2 * (terrain.GetSystemFSI().GetNumBCELayers() - 1) * sysFSI.GetInitialSpacing();
+    auto min_length = 2 * (sysSPH.GetNumBCELayers() - 1) * sysSPH.GetInitialSpacing();
     for (const auto& box : track_geometry.coll_boxes) {
         if (box.dims.x() > min_length && box.dims.y() > min_length && box.dims.z() < min_length) {
             geometry.coll_boxes.push_back(utils::ChBodyGeometry::BoxShape(box.pos, box.rot, box.dims));

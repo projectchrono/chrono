@@ -19,14 +19,14 @@
 
 #include "chrono/physics/ChSystemNSC.h"
 
-#include "chrono_fsi/ChFsiProblem.h"
+#include "chrono_fsi/sph/ChFsiProblemSPH.h"
 
-#include "chrono_fsi/visualization/ChFsiVisualization.h"
+#include "chrono_fsi/sph/visualization/ChFsiVisualization.h"
 #ifdef CHRONO_OPENGL
-    #include "chrono_fsi/visualization/ChFsiVisualizationGL.h"
+    #include "chrono_fsi/sph/visualization/ChFsiVisualizationGL.h"
 #endif
 #ifdef CHRONO_VSG
-    #include "chrono_fsi/visualization/ChFsiVisualizationVSG.h"
+    #include "chrono_fsi/sph/visualization/ChFsiVisualizationVSG.h"
 #endif
 
 #ifdef CHRONO_POSTPROCESS
@@ -49,10 +49,17 @@ using std::endl;
 ChVisualSystem::Type vis_type = ChVisualSystem::Type::VSG;
 
 // Container dimensions
-ChVector3d csize(4.0, 0.4, 1.5);
+//ChVector3d csize(4.0, 0.4, 1.5);
+//
+//// Size of initial volume of SPH material
+//ChVector3d fsize(4.0, 0.4, 0.8);
+
+ //Container dimensions
+ ChVector3d csize(8.0, 0.4, 1);
 
 // Size of initial volume of SPH material
-ChVector3d fsize(4.0, 0.4, 0.8);
+ ChVector3d fsize(4.0, 0.4, 0.5);
+
 
 // Visibility flags
 bool show_rigid = true;
@@ -172,7 +179,7 @@ int main(int argc, char* argv[]) {
     bool verbose = true;
     bool output = true;
     double output_fps = 20;
-    bool render = false;
+    bool render = true;
     double render_fps = 400;
     bool snapshots = false;
     int ps_freq = 1;
@@ -187,21 +194,27 @@ int main(int argc, char* argv[]) {
     // Create the FSI problem
     ChFsiProblemCartesian fsi(sysMBS, initial_spacing);
     fsi.SetVerbose(verbose);
-    ChSystemFsi& sysFSI = fsi.GetSystemFSI();
+    ChFsiSystemSPH& sysFSI = fsi.GetSystemFSI();
+    ChFluidSystemSPH& sysSPH = fsi.GetFluidSystemSPH();
+
 
     // Set gravitational acceleration
     const ChVector3d gravity(0, 0, -9.8);
     sysFSI.SetGravitationalAcceleration(gravity);
     sysMBS.SetGravitationalAcceleration(gravity);
 
+    // Set integration step size
+    sysFSI.SetStepSizeCFD(step_size);
+    sysFSI.SetStepsizeMBD(step_size);
+
     // Set CFD fluid properties
-    ChSystemFsi::FluidProperties fluid_props;
+    ChFluidSystemSPH::FluidProperties fluid_props;
     fluid_props.density = 1000;
     fluid_props.viscosity = 1;
-    sysFSI.SetCfdSPH(fluid_props);
+    sysSPH.SetCfdSPH(fluid_props);
 
     // Set SPH solution parameters
-    ChSystemFsi::SPHParameters sph_params;
+    ChFluidSystemSPH::SPHParameters sph_params;
     sph_params.sph_method = SPHMethod::WCSPH;
     sph_params.kernel_h = initial_spacing;
     sph_params.initial_spacing = initial_spacing;
@@ -213,13 +226,13 @@ int main(int argc, char* argv[]) {
     sph_params.consistent_laplacian_discretization = false;
     sph_params.num_proximity_search_steps = ps_freq;
     sph_params.artificial_viscosity = 0.02;
-    sysFSI.SetSPHParameters(sph_params);
-    sysFSI.SetStepSize(step_size);
-    sysFSI.SetNumBCELayers(5);
+
+    sysSPH.SetNumBCELayers(5);
+    sysSPH.SetSPHParameters(sph_params);
 
     // Enable height-based initial pressure for SPH particles
     fsi.RegisterParticlePropertiesCallback(
-        chrono_types::make_shared<DepthPressurePropertiesCallback>(sysFSI, fsize.z()));
+        chrono_types::make_shared<DepthPressurePropertiesCallback>(sysSPH, fsize.z()));
 
     // Create SPH material (do not create boundary BCEs)
     fsi.Construct(fsize,                // length x width x depth
@@ -233,45 +246,44 @@ int main(int argc, char* argv[]) {
     double period = 1.4;
     auto fun = chrono_types::make_shared<WaveFunctionDecay>(stroke, period);
 
-    auto body = fsi.AddWaveMaker(ChFsiProblem::WavemakerType::PISTON, csize, ChVector3d(0, 0, 0), fun);
+    auto body = fsi.AddWaveMaker(ChFsiProblemSPH::WavemakerType::PISTON, csize, ChVector3d(0, 0, 0), fun);
     ////auto fun = chrono_types::make_shared<WaveFunction>(0.25, 0.4, 1.25);
-    ////auto body = fsi.AddWaveMaker(ChFsiProblem::WavemakerType::FLAP, csize, ChVector3d(0, 0, 0), fun);   
+    ////auto body = fsi.AddWaveMaker(ChFsiProblemSPH::WavemakerType::FLAP, csize, ChVector3d(0, 0, 0), fun);  
 
     fsi.Initialize();
 
     // Output directories
-    std::string out_dir = GetChronoOutputPath() + "FSI_Wave_Tank_" + std::to_string(ps_freq) + "alpha_2e-2_decay_func_new_EOS_taller_17h";
-    if (output || snapshots) {
-        if (!filesystem::create_directory(filesystem::path(out_dir))) {
-            cerr << "Error creating directory " << out_dir << endl;
+    std::string out_dir = GetChronoOutputPath() + "FSI_Wave_Tank" + std::to_string(ps_freq) + "_Tait";
+
+    if (!filesystem::create_directory(filesystem::path(out_dir))) {
+        cerr << "Error creating directory " << out_dir << endl;
+        return 1;
+    }
+    out_dir = out_dir + "/" + sysSPH.GetPhysicsProblemString() + "_" + sysSPH.GetSphMethodTypeString();
+    if (!filesystem::create_directory(filesystem::path(out_dir))) {
+        cerr << "Error creating directory " << out_dir << endl;
+        return 1;
+    }
+
+    if (output) {
+        if (!filesystem::create_directory(filesystem::path(out_dir + "/particles"))) {
+            cerr << "Error creating directory " << out_dir + "/particles" << endl;
             return 1;
         }
-        out_dir = out_dir + "/" + sysFSI.GetPhysicsProblemString() + "_" + sysFSI.GetSphMethodTypeString();
-        if (!filesystem::create_directory(filesystem::path(out_dir))) {
-            cerr << "Error creating directory " << out_dir << endl;
+        if (!filesystem::create_directory(filesystem::path(out_dir + "/fsi"))) {
+            cerr << "Error creating directory " << out_dir + "/fsi" << endl;
             return 1;
         }
-
-        if (output) {
-            if (!filesystem::create_directory(filesystem::path(out_dir + "/particles"))) {
-                cerr << "Error creating directory " << out_dir + "/particles" << endl;
-                return 1;
-            }
-            if (!filesystem::create_directory(filesystem::path(out_dir + "/fsi"))) {
-                cerr << "Error creating directory " << out_dir + "/fsi" << endl;
-                return 1;
-            }
-            if (!filesystem::create_directory(filesystem::path(out_dir + "/vtk"))) {
-                cerr << "Error creating directory " << out_dir + "/vtk" << endl;
-                return 1;
-            }
+        if (!filesystem::create_directory(filesystem::path(out_dir + "/vtk"))) {
+            cerr << "Error creating directory " << out_dir + "/vtk" << endl;
+            return 1;
         }
+    }
 
-        if (snapshots) {
-            if (!filesystem::create_directory(filesystem::path(out_dir + "/snapshots"))) {
-                cerr << "Error creating directory " << out_dir + "/snapshots" << endl;
-                return 1;
-            }
+    if (snapshots) {
+        if (!filesystem::create_directory(filesystem::path(out_dir + "/snapshots"))) {
+            cerr << "Error creating directory " << out_dir + "/snapshots" << endl;
+            return 1;
         }
     }
 
@@ -325,9 +337,7 @@ int main(int argc, char* argv[]) {
 
     // Write results to a txt file
     std::string out_file = out_dir + "/results.txt";
-    std::ofstream ofile;
-    if (output)
-        ofile.open(out_file, std::ios::trunc);
+    std::ofstream ofile(out_file, std::ios::trunc);
 
     // Start the simulation
     double time = 0.0;
@@ -340,14 +350,13 @@ int main(int argc, char* argv[]) {
     while (time < t_end) {
         // Extract FSI force on piston body
         auto force_body = fsi.GetFsiBodyForce(body).x();
-        if (output)
-            ofile << time << "\t" << force_body << "\n";
+        ofile << time << "\t" << force_body << "\n";
 
         if (output && time >= out_frame / output_fps) {
             if (verbose)
                 cout << " -- Output frame " << out_frame << " at t = " << time << endl;
-            sysFSI.PrintParticleToFile(out_dir + "/particles");
-            sysFSI.PrintFsiInfoToFile(out_dir + "/fsi", time);
+            sysSPH.PrintParticleToFile(out_dir + "/particles");
+            sysSPH.PrintFsiInfoToFile(out_dir + "/fsi", time);
             out_frame++;
         }
 
@@ -369,7 +378,7 @@ int main(int argc, char* argv[]) {
         }
 
         // Call the FSI solver
-        sysFSI.DoStepDynamics_FSI();
+        sysFSI.DoStepDynamics(step_size);
 
         time += step_size;
         sim_frame++;
@@ -378,8 +387,7 @@ int main(int argc, char* argv[]) {
     std::cout << "End Time: " << t_end << std::endl;
     cout << "\nSimulation time: " << timer() << " seconds\n" << endl;
 
-    if (output)
-        ofile.close();
+    ofile.close();
 
 #ifdef CHRONO_POSTPROCESS
     postprocess::ChGnuPlot gplot(out_dir + "/results.gpl");

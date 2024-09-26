@@ -21,8 +21,6 @@
     "Artificial viscosity alpha": 0.02
   },
   "Time Stepping": {
-    "Fluid time step": 1e-4,
-    "Solid time step": 1e-4,
-    "Maximum time step": 1e-4
+    "Time step": 1e-4
   }
 }

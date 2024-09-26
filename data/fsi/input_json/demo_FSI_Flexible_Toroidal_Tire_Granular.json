@@ -16,9 +16,7 @@
     "Time steps per proximity search": 1
   },
   "Time Stepping": {
-    "Fluid time step": 2.5e-4,
-    "Solid time step": 2.5e-4,
-    "Maximum time step": 2.5e-4
+    "Time step": 2.5e-4
   },
   "Elastic SPH": {
     "Poisson ratio": 0.3,

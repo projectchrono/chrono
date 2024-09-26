@@ -20,15 +20,14 @@
 #include "chrono/physics/ChSystemSMC.h"
 #include "chrono/assets/ChVisualShapeBox.h"
 
-#include "chrono_fsi/ChSystemFsi.h"
-#include "chrono_fsi/ChFsiProblem.h"
+#include "chrono_fsi/sph/ChFsiProblemSPH.h"
 
-#include "chrono_fsi/visualization/ChFsiVisualization.h"
+#include "chrono_fsi/sph/visualization/ChFsiVisualization.h"
 #ifdef CHRONO_OPENGL
-    #include "chrono_fsi/visualization/ChFsiVisualizationGL.h"
+    #include "chrono_fsi/sph/visualization/ChFsiVisualizationGL.h"
 #endif
 #ifdef CHRONO_VSG
-    #include "chrono_fsi/visualization/ChFsiVisualizationVSG.h"
+    #include "chrono_fsi/sph/visualization/ChFsiVisualizationVSG.h"
 #endif
 
 #include "chrono_thirdparty/filesystem/path.h"
@@ -47,7 +46,7 @@ using std::endl;
 ChVisualSystem::Type vis_type = ChVisualSystem::Type::VSG;
 
 // Container dimensions
-ChVector3d csize(1.6, 1.4, 0.16);
+ChVector3d csize(1.6, 1.4, 0.5);
 
 // Size of the baffles
 ChVector3d bsize(0.1, 0.1, 0.16);
@@ -69,18 +68,18 @@ bool show_particles_sph = true;
 // ----------------------------------------------------------------------------
 
 // Callback for setting initial SPH particle properties
-class SPHPropertiesCallback : public ChFsiProblem::ParticlePropertiesCallback {
+class SPHPropertiesCallback : public ChFsiProblemSPH::ParticlePropertiesCallback {
   public:
-    SPHPropertiesCallback(const ChSystemFsi& sysFSI, double zero_height, const ChVector3d& init_velocity)
-        : ParticlePropertiesCallback(sysFSI), zero_height(zero_height), init_velocity(init_velocity) {
-        gz = std::abs(sysFSI.GetGravitationalAcceleration().z());
-        c2 = sysFSI.GetSoundSpeed() * sysFSI.GetSoundSpeed();
+    SPHPropertiesCallback(const ChFluidSystemSPH& sysSPH, double zero_height, const ChVector3d& init_velocity)
+        : ParticlePropertiesCallback(sysSPH), zero_height(zero_height), init_velocity(init_velocity) {
+        gz = std::abs(sysSPH.GetGravitationalAcceleration().z());
+        c2 = sysSPH.GetSoundSpeed() * sysSPH.GetSoundSpeed();
     }
 
     virtual void set(const ChVector3d& pos) override {
-        p0 = sysFSI.GetDensity() * gz * (zero_height - pos.z());
-        rho0 = sysFSI.GetDensity() + p0 / c2;
-        mu0 = sysFSI.GetViscosity();
+        p0 = sysSPH.GetDensity() * gz * (zero_height - pos.z());
+        rho0 = sysSPH.GetDensity() + p0 / c2;
+        mu0 = sysSPH.GetViscosity();
         v0 = init_velocity;
     }
 
@@ -92,7 +91,7 @@ class SPHPropertiesCallback : public ChFsiProblem::ParticlePropertiesCallback {
 
 // ----------------------------------------------------------------------------
 
-void CreateBaffles(ChFsiProblem& fsi) {
+void CreateBaffles(ChFsiProblemSPH& fsi) {
     ChSystem& sysMBS = fsi.GetSystyemMBS();
 
     // Common contact material and geometry
@@ -205,15 +204,20 @@ int main(int argc, char* argv[]) {
     // Create the FSI problem
     ChFsiProblemCartesian fsi(sysMBS, initial_spacing);
     fsi.SetVerbose(verbose);
-    ChSystemFsi& sysFSI = fsi.GetSystemFSI();
+    ChFsiSystemSPH& sysFSI = fsi.GetSystemFSI();
+    ChFluidSystemSPH& sysSPH = fsi.GetFluidSystemSPH();
 
     // Set gravitational acceleration
     const ChVector3d gravity(0, 0, -9.8);
     sysFSI.SetGravitationalAcceleration(gravity);
     sysMBS.SetGravitationalAcceleration(gravity);
 
+    // Set integration step size
+    sysFSI.SetStepSizeCFD(step_size);
+    sysFSI.SetStepsizeMBD(step_size);
+
     // Set soil propertiees
-    ChSystemFsi::ElasticMaterialProperties mat_props;
+    ChFluidSystemSPH::ElasticMaterialProperties mat_props;
     mat_props.density = 1800;
     mat_props.Young_modulus = 2e6;
     mat_props.Poisson_ratio = 0.3;
@@ -228,10 +232,10 @@ int main(int argc, char* argv[]) {
     mat_props.dilation_angle = CH_PI / 10;  // default
     mat_props.cohesion_coeff = 0;           // default
 
-    sysFSI.SetElasticSPH(mat_props);
+    sysSPH.SetElasticSPH(mat_props);
 
     // Set SPH solution parameters
-    ChSystemFsi::SPHParameters sph_params;
+    ChFluidSystemSPH::SPHParameters sph_params;
     sph_params.sph_method = SPHMethod::WCSPH;
     sph_params.kernel_h = 0.012;
     sph_params.initial_spacing = initial_spacing;
@@ -240,14 +244,14 @@ int main(int argc, char* argv[]) {
     sph_params.kernel_threshold = 0.8;
     sph_params.num_proximity_search_steps = ps_freq;
 
-    sysFSI.SetSPHParameters(sph_params);
+    sysSPH.SetSPHParameters(sph_params);
 
     // Create rigid bodies
     CreateBaffles(fsi);
 
     // Enable height-based initial pressure for SPH particles
-    ChVector3 v0(2, 0, 0);
-    fsi.RegisterParticlePropertiesCallback(chrono_types::make_shared<SPHPropertiesCallback>(sysFSI, fsize.z(), v0));
+    ChVector3d v0(1.5, 0, 0);
+    fsi.RegisterParticlePropertiesCallback(chrono_types::make_shared<SPHPropertiesCallback>(sysSPH, fsize.z(), v0));
 
     // Create SPH material (do not create boundary BCEs)
     fsi.Construct(fsize,                                                                          // box dimensions
@@ -264,6 +268,11 @@ int main(int argc, char* argv[]) {
                         side_walls,           // side walls
                         false                 // top wall
     );
+
+    // Explicitly set computational domain (necessary if no side walls)
+    ChAABB aabb(ChVector3d(-csize.x() / 2, -csize.y() / 2, -0.1),
+                ChVector3d(+csize.x() / 2, +csize.y() / 2, +0.1 + csize.z()));
+    fsi.SetComputationalDomainSize(aabb);
 
     if (show_rigid) {
         ChVector3d ground_box_size(csize.x(), csize.y(), 0.02);
@@ -361,8 +370,8 @@ int main(int argc, char* argv[]) {
     timer.start();
     while (time < t_end) {
         if (output && time >= out_frame / output_fps) {
-            sysFSI.PrintParticleToFile(out_dir + "/particles");
-            sysFSI.PrintFsiInfoToFile(out_dir + "/fsi", time);
+            sysSPH.PrintParticleToFile(out_dir + "/particles");
+            sysSPH.PrintFsiInfoToFile(out_dir + "/fsi", time);
             out_frame++;
         }
 
@@ -383,11 +392,11 @@ int main(int argc, char* argv[]) {
         }
 
         if (sim_frame % 1000 == 0) {
-            std::cout << "step: " << sim_frame << "\ttime: " << time << "\tRTF: " << sysFSI.GetRTF() << std::endl;
+            std::cout << "step: " << sim_frame << "\ttime: " << time << "\tRTF: " << sysFSI.GetRtf() << std::endl;
         }
 
         // Call the FSI solver
-        sysFSI.DoStepDynamics_FSI();
+        sysFSI.DoStepDynamics(step_size);
 
         time += step_size;
         sim_frame++;

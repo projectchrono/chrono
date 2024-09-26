@@ -21,14 +21,14 @@
 #include "chrono/utils/ChUtilsGenerators.h"
 #include "chrono/utils/ChUtilsGeometry.h"
 
-#include "chrono_fsi/ChSystemFsi.h"
+#include "chrono_fsi/sph/ChFsiSystemSPH.h"
 
-#include "chrono_fsi/visualization/ChFsiVisualization.h"
+#include "chrono_fsi/sph/visualization/ChFsiVisualization.h"
 #ifdef CHRONO_OPENGL
-    #include "chrono_fsi/visualization/ChFsiVisualizationGL.h"
+    #include "chrono_fsi/sph/visualization/ChFsiVisualizationGL.h"
 #endif
 #ifdef CHRONO_VSG
-    #include "chrono_fsi/visualization/ChFsiVisualizationVSG.h"
+    #include "chrono_fsi/sph/visualization/ChFsiVisualizationVSG.h"
 #endif
 
 #include "chrono_thirdparty/filesystem/path.h"
@@ -121,21 +121,22 @@ int main(int argc, char* argv[]) {
 
     // Create a physics system and an FSI system
     ChSystemSMC sysMBS;
-    ChSystemFsi sysFSI(&sysMBS);
+    ChFsiSystemSPH sysFSI(&sysMBS);
+    ChFluidSystemSPH& sysSPH = sysFSI.GetFluidSystemSPH();
 
     sysFSI.SetVerbose(verbose);
 
     // Use the specified input JSON file
-    sysFSI.ReadParametersFromFile(inputJson);
+    sysSPH.ReadParametersFromFile(inputJson);
 
     // Set frequency of proximity search
-    sysFSI.SetNumProximitySearchSteps(ps_freq);
+    sysSPH.SetNumProximitySearchSteps(ps_freq);
 
     // Set up the periodic boundary condition (only in Y direction)
-    auto initSpace0 = sysFSI.GetInitialSpacing();
+    auto initSpace0 = sysSPH.GetInitialSpacing();
     ChVector3d cMin = ChVector3d(-bxDim / 2 - 10.0 * initSpace0, -byDim / 2 - 1.0 * initSpace0 / 2.0, -2.0 * bzDim);
     ChVector3d cMax = ChVector3d(bxDim / 2 + 10.0 * initSpace0, byDim / 2 + 1.0 * initSpace0 / 2.0, 2.0 * bzDim);
-    sysFSI.SetBoundaries(cMin, cMax);
+    sysSPH.SetBoundaries(cMin, cMax);
 
     // Create Fluid region and discretize with SPH particles
     ChVector3d boxCenter(-bxDim / 2 + fxDim / 2, 0.0, fzDim / 2);
@@ -147,12 +148,12 @@ int main(int argc, char* argv[]) {
 
     // Add fluid particles from the sampler points to the FSI system
     size_t numPart = points.size();
-    double gz = std::abs(sysFSI.GetGravitationalAcceleration().z());
+    double gz = std::abs(sysSPH.GetGravitationalAcceleration().z());
     for (int i = 0; i < numPart; i++) {
         // Calculate the pressure of a steady state (p = rho*g*h)
-        auto pre_ini = sysFSI.GetDensity() * gz * (-points[i].z() + fzDim);
-        auto rho_ini = sysFSI.GetDensity() + pre_ini / (sysFSI.GetSoundSpeed() * sysFSI.GetSoundSpeed());
-        sysFSI.AddSPHParticle(points[i], rho_ini, pre_ini, sysFSI.GetViscosity());
+        auto pre_ini = sysSPH.GetDensity() * gz * (-points[i].z() + fzDim);
+        auto rho_ini = sysSPH.GetDensity() + pre_ini / (sysSPH.GetSoundSpeed() * sysSPH.GetSoundSpeed());
+        sysSPH.AddSPHParticle(points[i], rho_ini, pre_ini, sysSPH.GetViscosity());
     }
 
     // Create container and attach BCE SPH particles
@@ -161,7 +162,7 @@ int main(int argc, char* argv[]) {
     ground->EnableCollision(false);
     sysMBS.AddBody(ground);
 
-    sysFSI.AddBoxContainerBCE(ground,                                         //
+    sysSPH.AddBoxContainerBCE(ground,                                         //
                               ChFrame<>(ChVector3d(0, 0, bzDim / 2), QUNIT),  //
                               ChVector3d(bxDim, byDim, bzDim),                //
                               ChVector3i(2, 0, 2));
@@ -172,29 +173,27 @@ int main(int argc, char* argv[]) {
     // Output directories
     std::string out_dir = GetChronoOutputPath() + "FSI_Dam_Break_" + std::to_string(ps_freq);
 
-    if (output || snapshots) {
-        if (!filesystem::create_directory(filesystem::path(out_dir))) {
-            std::cerr << "Error creating directory " << out_dir << std::endl;
+    if (!filesystem::create_directory(filesystem::path(out_dir))) {
+        std::cerr << "Error creating directory " << out_dir << std::endl;
+        return 1;
+    }
+    out_dir = out_dir + "/" + sysSPH.GetPhysicsProblemString() + "_" + sysSPH.GetSphMethodTypeString();
+
+    if (!filesystem::create_directory(filesystem::path(out_dir))) {
+        std::cerr << "Error creating directory " << out_dir << std::endl;
+        return 1;
+    }
+
+    if (output) {
+        if (!filesystem::create_directory(filesystem::path(out_dir + "/particles"))) {
+            std::cerr << "Error creating directory " << out_dir + "/particles" << std::endl;
             return 1;
         }
-        out_dir = out_dir + "/" + sysFSI.GetPhysicsProblemString() + "_" + sysFSI.GetSphMethodTypeString();
-
-        if (!filesystem::create_directory(filesystem::path(out_dir))) {
-            std::cerr << "Error creating directory " << out_dir << std::endl;
+    }
+    if (snapshots) {
+        if (!filesystem::create_directory(filesystem::path(out_dir + "/snapshots"))) {
+            std::cerr << "Error creating directory " << out_dir + "/snapshots" << std::endl;
             return 1;
-        }
-
-        if (output) {
-            if (!filesystem::create_directory(filesystem::path(out_dir + "/particles"))) {
-                std::cerr << "Error creating directory " << out_dir + "/particles" << std::endl;
-                return 1;
-            }
-        }
-        if (snapshots) {
-            if (!filesystem::create_directory(filesystem::path(out_dir + "/snapshots"))) {
-                std::cerr << "Error creating directory " << out_dir + "/snapshots" << std::endl;
-                return 1;
-            }
         }
     }
 
@@ -238,7 +237,7 @@ int main(int argc, char* argv[]) {
     }
 
     // Start the simulation
-    double dT = sysFSI.GetStepSize();
+    double dT = sysFSI.GetStepSizeCFD();
     double time = 0;
     int sim_frame = 0;
     int out_frame = 0;
@@ -247,12 +246,10 @@ int main(int argc, char* argv[]) {
     ChTimer timer;
     timer.start();
     while (time < t_end) {
-        std::cout << "step: " << sim_frame << "  time: " << time << std::endl;
-
         // Save data of the simulation
         if (output && time >= out_frame / output_fps) {
             std::cout << "------- OUTPUT" << std::endl;
-            sysFSI.PrintParticleToFile(out_dir + "/particles");
+            sysSPH.PrintParticleToFile(out_dir + "/particles");
             out_frame++;
         }
 
@@ -260,6 +257,7 @@ int main(int argc, char* argv[]) {
         if (render && time >= render_frame / render_fps) {
             if (!visFSI->Render())
                 break;
+
             if (snapshots) {
                 if (verbose)
                     std::cout << " -- Snapshot frame " << render_frame << " at t = " << time << std::endl;
@@ -268,11 +266,12 @@ int main(int argc, char* argv[]) {
                          << ".bmp";
                 visFSI->GetVisualSystem()->WriteImageToFile(filename.str());
             }
+
             render_frame++;
         }
 
         // Call the FSI solver
-        sysFSI.DoStepDynamics_FSI();
+        sysFSI.DoStepDynamics(dT);
 
         time += dT;
         sim_frame++;

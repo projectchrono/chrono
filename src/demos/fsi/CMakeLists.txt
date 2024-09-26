@@ -50,7 +50,7 @@ if(ENABLE_MODULE_PARDISO_MKL)
     list(APPEND LIBS "ChronoEngine_pardisomkl")
 endif()
 
-list(APPEND LIBS "ChronoEngine_fsi")
+list(APPEND LIBS "ChronoEngine_fsi_sph")
 
 #--------------------------------------------------------------
 

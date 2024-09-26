@@ -27,19 +27,18 @@
 #include "chrono/utils/ChUtilsCreators.h"
 #include "chrono/utils/ChUtilsGenerators.h"
 #include "chrono/utils/ChUtilsInputOutput.h"
-
 #include "chrono/assets/ChVisualShapeTriangleMesh.h"
 
-#include "chrono_fsi/utils/ChUtilsPrintSph.cuh"
 #include "chrono_vehicle/ChVehicleModelData.h"
-
 #include "chrono_vehicle/cosim/terrain/ChVehicleCosimTerrainNodeGranularSPH.h"
 
+#include "chrono_fsi/sph/utils/ChUtilsPrintSph.cuh"
+
 #ifdef CHRONO_OPENGL
-    #include "chrono_fsi/visualization/ChFsiVisualizationGL.h"
+    #include "chrono_fsi/sph/visualization/ChFsiVisualizationGL.h"
 #endif
 #ifdef CHRONO_VSG
-    #include "chrono_fsi/visualization/ChFsiVisualizationVSG.h"
+    #include "chrono_fsi/sph/visualization/ChFsiVisualizationVSG.h"
 #endif
 
 using std::cout;
@@ -162,23 +161,25 @@ void ChVehicleCosimTerrainNodeGranularSPH::Construct() {
     double initSpace0 = 2 * m_radius;
     m_terrain = new CRMTerrain(*m_system, initSpace0);
     //////m_terrain->SetVerbose(true);
-    ChSystemFsi& sysFSI = m_terrain->GetSystemFSI();
+    ChFsiSystemSPH& sysFSI = m_terrain->GetSystemFSI();
+    ChFluidSystemSPH& sysSPH = sysFSI.GetFluidSystemSPH();
 
     // Let the FSI system read its parameters
     if (!m_specfile.empty())
-        sysFSI.ReadParametersFromFile(m_specfile);
+        sysSPH.ReadParametersFromFile(m_specfile);
 
     // Reload simulation parameters to FSI system
-    sysFSI.SetStepSize(m_step_size);
-    sysFSI.SetConsistentDerivativeDiscretization(false, false);
-    sysFSI.SetOutputLength(0);
+    sysFSI.SetStepSizeCFD(m_step_size);
+    sysFSI.SetStepsizeMBD(m_step_size);
+    sysSPH.SetConsistentDerivativeDiscretization(false, false);
+    sysSPH.SetOutputLength(0);
 
-    sysFSI.SetGravitationalAcceleration(ChVector3d(0, 0, m_gacc));
-    sysFSI.SetDensity(m_density);
-    sysFSI.SetCohesionForce(m_cohesion);
+    sysSPH.SetGravitationalAcceleration(ChVector3d(0, 0, m_gacc));
+    sysSPH.SetDensity(m_density);
+    sysSPH.SetCohesionForce(m_cohesion);
 
     // Set the SPH method
-    sysFSI.SetSPHMethod(SPHMethod::WCSPH);
+    sysSPH.SetSPHMethod(SPHMethod::WCSPH);
 
     // Construct the CRMTerrain (generate SPH particles and boundary BCE markers)
     switch (m_terrain_type) {
@@ -248,7 +249,8 @@ void ChVehicleCosimTerrainNodeGranularSPH::Construct() {
 // -----------------------------------------------------------------------------
 
 void ChVehicleCosimTerrainNodeGranularSPH::CreateRigidProxy(unsigned int i) {
-    ChSystemFsi& sysFSI = m_terrain->GetSystemFSI();
+    ChFsiSystemSPH& sysFSI = m_terrain->GetSystemFSI();
+    ChFluidSystemSPH& sysSPH = sysFSI.GetFluidSystemSPH();
 
     // Get shape associated with the given object
     int i_shape = m_obj_map[i];
@@ -285,18 +287,18 @@ void ChVehicleCosimTerrainNodeGranularSPH::CreateRigidProxy(unsigned int i) {
 
     // Create BCE markers associated with collision shapes
     for (const auto& box : m_geometry[i_shape].coll_boxes) {
-        sysFSI.AddBoxBCE(body, ChFrame<>(box.pos, box.rot), box.dims, true);
+        sysSPH.AddBoxBCE(body, ChFrame<>(box.pos, box.rot), box.dims, true);
     }
     for (const auto& sphere : m_geometry[i_shape].coll_spheres) {
-        sysFSI.AddSphereBCE(body, ChFrame<>(sphere.pos, QUNIT), sphere.radius, true);
+        sysSPH.AddSphereBCE(body, ChFrame<>(sphere.pos, QUNIT), sphere.radius, true);
     }
     for (const auto& cyl : m_geometry[i_shape].coll_cylinders) {
-        sysFSI.AddCylinderBCE(body, ChFrame<>(cyl.pos, cyl.rot), cyl.radius, cyl.length, true);
+        sysSPH.AddCylinderBCE(body, ChFrame<>(cyl.pos, cyl.rot), cyl.radius, cyl.length, true);
     }
     for (const auto& mesh : m_geometry[i_shape].coll_meshes) {
         std::vector<ChVector3d> point_cloud;
-        sysFSI.CreateMeshPoints(*mesh.trimesh, (double)sysFSI.GetInitialSpacing(), point_cloud);
-        sysFSI.AddPointsBCE(body, point_cloud, ChFrame<>(VNULL, QUNIT), true);
+        sysSPH.CreateMeshPoints(*mesh.trimesh, (double)sysSPH.GetInitialSpacing(), point_cloud);
+        sysSPH.AddPointsBCE(body, point_cloud, ChFrame<>(VNULL, QUNIT), true);
     }
 
     // Update dimension of FSI active domain based on shape AABB
@@ -308,7 +310,7 @@ void ChVehicleCosimTerrainNodeGranularSPH::OnInitialize(unsigned int num_objects
     ChVehicleCosimTerrainNodeChrono::OnInitialize(num_objects);
 
     // Initialize the SPH terrain
-    ChSystemFsi& sysFSI = m_terrain->GetSystemFSI();
+    ChFsiSystemSPH& sysFSI = m_terrain->GetSystemFSI();
     m_terrain->Initialize();
 
     // Initialize run-time visualization
@@ -318,7 +320,7 @@ void ChVehicleCosimTerrainNodeGranularSPH::OnInitialize(unsigned int num_objects
         vsys_VSG->SetClearColor(ChColor(0.455f, 0.525f, 0.640f));
         m_vsys = vsys_VSG;
 #elif defined(CHRONO_OPENGL)
-        m_vsys = chrono_types::make_shared<ChFsiVisualizationGL>(&sysFSI);
+        m_vsys = chrono_types::make_shared<ChFsiVisualizationGL>(sysFSI);
 #endif
         if (m_vsys) {
             m_vsys->SetTitle("Terrain Node (GranularSPH)");
@@ -373,7 +375,7 @@ void ChVehicleCosimTerrainNodeGranularSPH::OnAdvance(double step_size) {
     double t = 0;
     while (t < step_size) {
         double h = std::min<>(m_step_size, step_size - t);
-        m_terrain->GetSystemFSI().DoStepDynamics_FSI();
+        m_terrain->GetSystemFSI().DoStepDynamics(h);
         t += h;
     }
 }
@@ -397,13 +399,13 @@ void ChVehicleCosimTerrainNodeGranularSPH::OnRender() {
 
 void ChVehicleCosimTerrainNodeGranularSPH::OnOutputData(int frame) {
     // Save SPH and BCE particles' information into CSV files
-    m_terrain->GetSystemFSI().PrintParticleToFile(m_node_out_dir + "/simulation");
+    m_terrain->GetSystemFSI().GetFluidSystemSPH().PrintParticleToFile(m_node_out_dir + "/simulation");
 }
 
 void ChVehicleCosimTerrainNodeGranularSPH::OutputVisualizationData(int frame) {
     auto filename = OutputFilename(m_node_out_dir + "/visualization", "vis", "chpf", frame, 5);
-    m_terrain->GetSystemFSI().SetParticleOutputMode(ChSystemFsi::OutputMode::CHPF);
-    m_terrain->GetSystemFSI().WriteParticleFile(filename);
+    m_terrain->GetSystemFSI().GetFluidSystemSPH().SetParticleOutputMode(ChFluidSystemSPH::OutputMode::CHPF);
+    m_terrain->GetSystemFSI().GetFluidSystemSPH().WriteParticleFile(filename);
     if (m_obstacles.size() > 0) {
         filename = OutputFilename(m_node_out_dir + "/visualization", "vis", "dat", frame, 5);
         // Include only obstacle bodies
