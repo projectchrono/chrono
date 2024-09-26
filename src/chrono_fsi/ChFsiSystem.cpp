@@ -17,6 +17,7 @@
 // =============================================================================
 
 #include <cmath>
+#include <stdexcept>
 
 #include "chrono/core/ChTypes.h"
 
@@ -222,9 +223,8 @@ void ChFsiSystem::DoStepDynamics(double step) {
 
     // Apply fluid forces and torques on FSI solids
     m_timer_FSI.start();
-    m_sysCFD->OnApplySolidForces();
-    m_fsi_interface->ApplyBodyForces();
-    m_fsi_interface->ApplyMeshForces();
+    m_sysCFD->OnExchangeSolidForces();
+    m_fsi_interface->ExchangeSolidForces();
     m_timer_FSI.stop();
 
     // Advance the dynamics of the multibody system
@@ -242,9 +242,8 @@ void ChFsiSystem::DoStepDynamics(double step) {
 
     // Load new solid phase states
     m_timer_FSI.start();
-    m_fsi_interface->ApplyBodyStates();
-    m_fsi_interface->ApplyMeshStates();
-    m_sysCFD->OnLoadSolidStates();
+    m_fsi_interface->ExchangeSolidStates();
+    m_sysCFD->OnExchangeSolidStates();
     m_timer_FSI.stop();
 
     m_timer_step.stop();

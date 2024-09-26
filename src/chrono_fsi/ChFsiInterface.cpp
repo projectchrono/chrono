@@ -16,6 +16,7 @@
 // =============================================================================
 
 #include <vector>
+#include <stdexcept>
 
 #include "chrono_fsi/ChFsiInterface.h"
 
@@ -28,7 +29,7 @@ namespace fsi {
 
 // =============================================================================
 
-ChFsiInterface::ChFsiInterface(bool verbose) : m_verbose(verbose) {}
+ChFsiInterface::ChFsiInterface() : m_verbose(true) {}
 
 ChFsiInterface::~ChFsiInterface() {}
 
@@ -86,7 +87,7 @@ const ChVector3d& ChFsiInterface::GetFsiBodyTorque(size_t i) const {
 
 // ------------
 
-ChFsiInterface::FsiBody& ChFsiInterface::AddFsiBody(std::shared_ptr<ChBody> body) {
+FsiBody& ChFsiInterface::AddFsiBody(std::shared_ptr<ChBody> body) {
     FsiBody fsi_body;
     fsi_body.body = body;
     fsi_body.fsi_force = VNULL;
@@ -98,7 +99,7 @@ ChFsiInterface::FsiBody& ChFsiInterface::AddFsiBody(std::shared_ptr<ChBody> body
     return m_fsi_bodies.back();
 }
 
-ChFsiInterface::FsiMesh1D& ChFsiInterface::AddFsiMesh1D(std::shared_ptr<fea::ChContactSurfaceSegmentSet> surface) {
+FsiMesh1D& ChFsiInterface::AddFsiMesh1D(std::shared_ptr<fea::ChContactSurfaceSegmentSet> surface) {
     FsiMesh1D fsi_mesh;
     fsi_mesh.contact_surface = surface;
 
@@ -125,7 +126,7 @@ ChFsiInterface::FsiMesh1D& ChFsiInterface::AddFsiMesh1D(std::shared_ptr<fea::ChC
     return m_fsi_meshes1D.back();
 }
 
-ChFsiInterface::FsiMesh2D& ChFsiInterface::AddFsiMesh2D(std::shared_ptr<fea::ChContactSurfaceMesh> surface) {
+FsiMesh2D& ChFsiInterface::AddFsiMesh2D(std::shared_ptr<fea::ChContactSurfaceMesh> surface) {
     FsiMesh2D fsi_mesh;
     fsi_mesh.contact_surface = surface;
 
@@ -203,23 +204,41 @@ bool ChFsiInterface::CheckStateVectors(const std::vector<FsiBodyState>& body_sta
                                        const std::vector<FsiMeshState>& mesh1D_states,
                                        const std::vector<FsiMeshState>& mesh2D_states) const {
     if (body_states.size() != m_fsi_bodies.size()) {
-        cerr << "ERROR (ChFsiInterface::GetInitialBodyStates) incorrect size for vector of body states.";
+        cerr << "ERROR (ChFsiInterface::CheckStateVectors) incorrect size for vector of body states.";
         return false;
     }
 
     if (mesh1D_states.size() != m_fsi_meshes1D.size()) {
-        cerr << "ERROR (ChFsiInterface::GetInitialMeshStates1D) incorrect size for vector of mesh node states.";
+        cerr << "ERROR (ChFsiInterface::CheckStateVectors) incorrect size for vector of mesh node states.";
         return false;
     }
 
-    //// TODO: check nodes
+    for (size_t i = 0; i < mesh1D_states.size(); i++) {
+        auto num_nodes = m_fsi_meshes1D[i].GetNumNodes();
+        if (mesh1D_states[i].pos.size() != num_nodes ||  //
+            mesh1D_states[i].vel.size() != num_nodes ||  //
+            mesh1D_states[i].acc.size() != num_nodes) {
+            cerr << "ERROR (ChFsiInterface::CheckStateVectors) incorrect size of state vectors for mesh1D #" << i
+                 << endl;
+            return false;
+        }
+    }
 
     if (mesh2D_states.size() != m_fsi_meshes2D.size()) {
-        cerr << "ERROR (ChFsiInterface::GetInitialMeshStates2D) incorrect size for vector of mesh node states.";
+        cerr << "ERROR (ChFsiInterface::CheckStateVectors) incorrect size for vector of mesh node states.";
         return false;
     }
 
-    //// TODO: check nodes
+    for (size_t i = 0; i < mesh2D_states.size(); i++) {
+        auto num_nodes = m_fsi_meshes2D[i].GetNumNodes();
+        if (mesh2D_states[i].pos.size() != num_nodes ||  //
+            mesh2D_states[i].vel.size() != num_nodes ||  //
+            mesh2D_states[i].acc.size() != num_nodes) {
+            cerr << "ERROR (ChFsiInterface::CheckStateVectors) incorrect size of state vectors for mesh2D #" << i
+                 << endl;
+            return false;
+        }
+    }
 
     return true;
 }
@@ -299,28 +318,53 @@ void ChFsiInterface::AllocateForceVectors(std::vector<FsiBodyForce>& body_forces
 bool ChFsiInterface::CheckForceVectors(const std::vector<FsiBodyForce>& body_forces,
                                        const std::vector<FsiMeshForce>& mesh_forces1D,
                                        const std::vector<FsiMeshForce>& mesh_forces2D) const {
-    //// TODO
+    if (body_forces.size() != m_fsi_bodies.size()) {
+        cerr << "ERROR (ChFsiInterface::CheckForceVectors) incorrect size for vector of body forces.";
+        return false;
+    }
+
+    if (mesh_forces1D.size() != m_fsi_meshes1D.size()) {
+        cerr << "ERROR (ChFsiInterface::CheckForceVectors) incorrect size for vector of mesh node forces.";
+        return false;
+    }
+
+    for (size_t i = 0; i < mesh_forces1D.size(); i++) {
+        auto num_nodes = m_fsi_meshes1D[i].GetNumNodes();
+        if (mesh_forces1D[i].force.size() != num_nodes) {
+            cerr << "ERROR (ChFsiInterface::CheckForceVectors) incorrect size of force vectors for mesh1D #" << i
+                 << endl;
+            return false;
+        }
+    }
+
+    if (mesh_forces2D.size() != m_fsi_meshes2D.size()) {
+        cerr << "ERROR (ChFsiInterface::CheckForceVectors) incorrect size for vector of mesh node forces.";
+        return false;
+    }
+
+    for (size_t i = 0; i < mesh_forces2D.size(); i++) {
+        auto num_nodes = m_fsi_meshes2D[i].GetNumNodes();
+        if (mesh_forces2D[i].force.size() != num_nodes) {
+            cerr << "ERROR (ChFsiInterface::CheckForceVectors) incorrect size of force vectors for mesh2D #" << i
+                 << endl;
+            return false;
+        }
+    }
 
     return true;
 }
 
+void ChFsiInterface::LoadForceVectors(std::vector<FsiBodyForce>& body_forces,
+                                      std::vector<FsiMeshForce>& mesh1D_forces,
+                                      std::vector<FsiMeshForce>& mesh2D_forces) {
+    if (!CheckForceVectors(body_forces, mesh1D_forces, mesh2D_forces)) {
+        throw std::runtime_error("(ChFsiInterface::LoadForceVectors) incorrect force vector sizes.");
+    }
+
+    //// TODO - call the fluid solver's StoreSolidForces function
+}
+
 // =============================================================================
-
-unsigned int ChFsiInterface::FsiMesh1D::GetNumElements() const {
-    return contact_surface->GetNumSegments();
-}
-
-unsigned int ChFsiInterface::FsiMesh1D::GetNumNodes() const {
-    return (unsigned int)ind2ptr_map.size();
-}
-
-unsigned int ChFsiInterface::FsiMesh2D::GetNumElements() const {
-    return contact_surface->GetNumTriangles();
-}
-
-unsigned int ChFsiInterface::FsiMesh2D::GetNumNodes() const {
-    return (unsigned int)ind2ptr_map.size();
-}
 
 }  // end namespace fsi
 }  // end namespace chrono

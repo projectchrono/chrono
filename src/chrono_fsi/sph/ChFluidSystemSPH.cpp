@@ -673,9 +673,9 @@ std::string ChFluidSystemSPH::GetSphMethodTypeString() const {
 
 //--------------------------------------------------------------------------------------------------------------------------------
 
-void ChFluidSystemSPH::LoadInitialSolidStates(const std::vector<FsiBodyState>& body_states,
-                                              const std::vector<FsiMeshState>& mesh1D_states,
-                                              const std::vector<FsiMeshState>& mesh2D_states) {
+void ChFluidSystemSPH::LoadSolidStates(const std::vector<FsiBodyState>& body_states,
+                                       const std::vector<FsiMeshState>& mesh1D_states,
+                                       const std::vector<FsiMeshState>& mesh2D_states) {
     {
         size_t num_bodies = body_states.size();
         for (size_t i = 0; i < num_bodies; i++) {
@@ -692,9 +692,8 @@ void ChFluidSystemSPH::LoadInitialSolidStates(const std::vector<FsiBodyState>& b
     }
 
     {
-        int index = 0;
-
         size_t num_meshes = mesh1D_states.size();
+        int index = 0;
         for (size_t imesh = 0; imesh < num_meshes; imesh++) {
             size_t num_nodes = mesh1D_states[imesh].pos.size();
             for (size_t inode = 0; inode < num_nodes; inode++) {
@@ -710,9 +709,8 @@ void ChFluidSystemSPH::LoadInitialSolidStates(const std::vector<FsiBodyState>& b
     }
 
     {
-        int index = 0;
-
         size_t num_meshes = mesh2D_states.size();
+        int index = 0;
         for (size_t imesh = 0; imesh < num_meshes; imesh++) {
             size_t num_nodes = mesh2D_states[imesh].pos.size();
             for (size_t inode = 0; inode < num_nodes; inode++) {
@@ -728,7 +726,50 @@ void ChFluidSystemSPH::LoadInitialSolidStates(const std::vector<FsiBodyState>& b
     }
 }
 
-void ChFluidSystemSPH::OnAddFsiBody(unsigned int index, ChFsiInterface::FsiBody& fsi_body) {}
+void ChFluidSystemSPH::StoreSolidForces(std::vector<FsiBodyForce> body_forces,
+                                        std::vector<FsiMeshForce> mesh1D_forces,
+                                        std::vector<FsiMeshForce> mesh2D_forces) {
+    {
+        thrust::host_vector<Real3> forcesH = m_data_mgr->rigid_FSI_ForcesD;
+        thrust::host_vector<Real3> torquesH = m_data_mgr->rigid_FSI_TorquesD;
+
+        size_t num_bodies = body_forces.size();
+        for (size_t i = 0; i < num_bodies; i++) {
+            body_forces[i].force = ToChVector(forcesH[i]);
+            body_forces[i].torque = ToChVector(torquesH[i]);
+        }
+    }
+
+    {
+        thrust::host_vector<Real3> forces_H = m_data_mgr->flex1D_FSIforces_D;
+
+        size_t num_meshes = mesh1D_forces.size();
+        int index = 0;
+        for (size_t imesh = 0; imesh < num_meshes; imesh++) {
+            size_t num_nodes = mesh1D_forces[imesh].force.size();
+            for (size_t inode = 0; inode < num_nodes; inode++) {
+                mesh1D_forces[imesh].force[inode] = ToChVector(forces_H[index]);
+                index++;
+            }
+        }
+    }
+
+    {
+        thrust::host_vector<Real3> forces_H = m_data_mgr->flex2D_FSIforces_D;
+
+        size_t num_meshes = mesh2D_forces.size();
+        int index = 0;
+        for (size_t imesh = 0; imesh < num_meshes; imesh++) {
+            size_t num_nodes = mesh2D_forces[imesh].force.size();
+            for (size_t inode = 0; inode < num_nodes; inode++) {
+                mesh2D_forces[imesh].force[inode] = ToChVector(forces_H[index]);
+                index++;
+            }
+        }
+    }
+}
+
+void ChFluidSystemSPH::OnAddFsiBody(unsigned int index, FsiBody& fsi_body) {}
 
 void ChFluidSystemSPH::ChFluidSystemSPH::SetBcePattern1D(BcePatternMesh1D pattern, bool remove_center) {
     m_pattern1D = pattern;
@@ -740,7 +781,7 @@ void ChFluidSystemSPH::SetBcePattern2D(BcePatternMesh2D pattern, bool remove_cen
     m_remove_center2D = remove_center;
 }
 
-void ChFluidSystemSPH::OnAddFsiMesh1D(unsigned int index, ChFsiInterface::FsiMesh1D& fsi_mesh) {
+void ChFluidSystemSPH::OnAddFsiMesh1D(unsigned int index, FsiMesh1D& fsi_mesh) {
     // Load index-based mesh connectivity (append to global list of 1-D flex segments)
     for (const auto& seg : fsi_mesh.contact_surface->GetSegmentsXYZ()) {
         auto node0_index = fsi_mesh.ptr2ind_map[seg->GetNode(0)];
@@ -763,7 +804,7 @@ void ChFluidSystemSPH::OnAddFsiMesh1D(unsigned int index, ChFsiInterface::FsiMes
     }
 }
 
-void ChFluidSystemSPH::OnAddFsiMesh2D(unsigned int index, ChFsiInterface::FsiMesh2D& fsi_mesh) {
+void ChFluidSystemSPH::OnAddFsiMesh2D(unsigned int index, FsiMesh2D& fsi_mesh) {
     // Load index-based mesh connectivity (append to global list of 1-D flex segments)
     for (const auto& tri : fsi_mesh.contact_surface->GetTrianglesXYZ()) {
         auto node0_index = fsi_mesh.ptr2ind_map[tri->GetNode(0)];
@@ -892,7 +933,7 @@ void ChFluidSystemSPH::Initialize(unsigned int num_fsi_bodies,
     m_data_mgr->Initialize(num_fsi_bodies, num_fsi_nodes1D, num_fsi_elements1D, num_fsi_nodes2D, num_fsi_elements2D);
 
     // Load the initial body and mesh node states
-    LoadInitialSolidStates(body_states, mesh1D_states, mesh2D_states);
+    LoadSolidStates(body_states, mesh1D_states, mesh2D_states);
 
     // Create BCE and SPH worker objects
     m_bce_mgr = chrono_types::make_unique<BceManager>(*m_data_mgr, m_verbose);
@@ -1033,13 +1074,13 @@ void ChFluidSystemSPH::OnDoStepDynamics(double step) {
     }
 }
 
-void ChFluidSystemSPH::OnApplySolidForces() {
+void ChFluidSystemSPH::OnExchangeSolidForces() {
     m_bce_mgr->Rigid_Forces_Torques();
     m_bce_mgr->Flex1D_Forces();
     m_bce_mgr->Flex2D_Forces();
 }
 
-void ChFluidSystemSPH::OnLoadSolidStates() {
+void ChFluidSystemSPH::OnExchangeSolidStates() {
     m_bce_mgr->UpdateBodyMarkerState();
     m_bce_mgr->UpdateMeshMarker1DState();
     m_bce_mgr->UpdateMeshMarker2DState();
@@ -1547,7 +1588,7 @@ void ChFluidSystemSPH::CreateBCE_cone(double rad,
 
 //--------------------------------------------------------------------------------------------------------------------------------
 
-unsigned int ChFluidSystemSPH::AddBCE_mesh1D(unsigned int meshID, const ChFsiInterface::FsiMesh1D& fsi_mesh) {
+unsigned int ChFluidSystemSPH::AddBCE_mesh1D(unsigned int meshID, const FsiMesh1D& fsi_mesh) {
     const auto& surface = fsi_mesh.contact_surface;
 
     Real spacing = m_paramsH->MULT_INITSPACE * m_paramsH->HSML;
@@ -1618,7 +1659,7 @@ unsigned int ChFluidSystemSPH::AddBCE_mesh1D(unsigned int meshID, const ChFsiInt
     return num_bce;
 }
 
-unsigned int ChFluidSystemSPH::AddBCE_mesh2D(unsigned int meshID, const ChFsiInterface::FsiMesh2D& fsi_mesh) {
+unsigned int ChFluidSystemSPH::AddBCE_mesh2D(unsigned int meshID, const FsiMesh2D& fsi_mesh) {
     const auto& surface = fsi_mesh.contact_surface;
 
     Real spacing = m_paramsH->MULT_INITSPACE * m_paramsH->HSML;

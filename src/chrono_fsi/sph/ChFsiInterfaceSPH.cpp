@@ -24,78 +24,28 @@ namespace fsi {
 
 using namespace sph;
 
-ChFsiInterfaceSPH::ChFsiInterfaceSPH(FsiDataManager& data_mgr, bool verbose)
-    : ChFsiInterface(verbose), m_data_mgr(data_mgr) {}
+ChFsiInterfaceSPH::ChFsiInterfaceSPH(FsiDataManager& data_mgr) : ChFsiInterface(), m_data_mgr(data_mgr) {}
 
 ChFsiInterfaceSPH::~ChFsiInterfaceSPH() {}
 
-// ---------- Chrono rigid body Specifics --------------------------------------
-
-void ChFsiInterfaceSPH::ApplyBodyForces() {
-    thrust::host_vector<Real3> forcesH = m_data_mgr.rigid_FSI_ForcesD;
-    thrust::host_vector<Real3> torquesH = m_data_mgr.rigid_FSI_TorquesD;
-
-    int index = 0;
-    for (const auto& fsi_body : m_fsi_bodies) {
-        m_fsi_bodies[index].fsi_force = ToChVector(forcesH[index]);
-        m_fsi_bodies[index].fsi_torque = ToChVector(torquesH[index]);
-        fsi_body.body->EmptyAccumulators();
-        fsi_body.body->AccumulateForce(m_fsi_bodies[index].fsi_force, fsi_body.body->GetPos(), false);
-        fsi_body.body->AccumulateTorque(m_fsi_bodies[index].fsi_torque, false);
-        index++;
-    }
-}
-
-void ChFsiInterfaceSPH::ApplyBodyStates() {
-    int index = 0;
-    for (const auto& fsi_body : m_fsi_bodies) {
-        m_data_mgr.fsiBodyState_H->pos[index] = ToReal3(fsi_body.body->GetPos());
-        m_data_mgr.fsiBodyState_H->lin_vel[index] = ToReal3(fsi_body.body->GetPosDt());
-        m_data_mgr.fsiBodyState_H->lin_acc[index] = ToReal3(fsi_body.body->GetPosDt2());
-        m_data_mgr.fsiBodyState_H->rot[index] = ToReal4(fsi_body.body->GetRot());
-        m_data_mgr.fsiBodyState_H->ang_vel[index] = ToReal3(fsi_body.body->GetAngVelLocal());
-        m_data_mgr.fsiBodyState_H->ang_acc[index] = ToReal3(fsi_body.body->GetAngAccLocal());
-        index++;
-    }
-
-    m_data_mgr.fsiBodyState_D->CopyFromH(*m_data_mgr.fsiBodyState_H);
-}
-
-// ---------- Chrono FEA Specifics ---------------------------------------------
-
-void ChFsiInterfaceSPH::ApplyMeshForces() {
+void ChFsiInterfaceSPH::ExchangeSolidStates() {
     {
-        // Transfer to host
-        thrust::host_vector<Real3> forces_H = m_data_mgr.flex1D_FSIforces_D;
-
-        // Apply to FEA nodes
+        // Load from rigid bodies on host
         int index = 0;
-        for (const auto& fsi_mesh : m_fsi_meshes1D) {
-            int num_nodes = (int)fsi_mesh.ind2ptr_map.size();
-            for (auto& node : fsi_mesh.ind2ptr_map) {
-                node.second->SetForce(ToChVector(forces_H[index]));
-                index++;
-            }
+        for (const auto& fsi_body : m_fsi_bodies) {
+            m_data_mgr.fsiBodyState_H->pos[index] = ToReal3(fsi_body.body->GetPos());
+            m_data_mgr.fsiBodyState_H->lin_vel[index] = ToReal3(fsi_body.body->GetPosDt());
+            m_data_mgr.fsiBodyState_H->lin_acc[index] = ToReal3(fsi_body.body->GetPosDt2());
+            m_data_mgr.fsiBodyState_H->rot[index] = ToReal4(fsi_body.body->GetRot());
+            m_data_mgr.fsiBodyState_H->ang_vel[index] = ToReal3(fsi_body.body->GetAngVelLocal());
+            m_data_mgr.fsiBodyState_H->ang_acc[index] = ToReal3(fsi_body.body->GetAngAccLocal());
+            index++;
         }
+
+        // Transfer to device
+        m_data_mgr.fsiBodyState_D->CopyFromH(*m_data_mgr.fsiBodyState_H);
     }
 
-    {
-        // Transfer to host
-        thrust::host_vector<Real3> forces_H = m_data_mgr.flex2D_FSIforces_D;
-
-        // Apply to FEA nodes
-        int index = 0;
-        for (const auto& fsi_mesh : m_fsi_meshes2D) {
-            int num_nodes = (int)fsi_mesh.ind2ptr_map.size();
-            for (auto& node : fsi_mesh.ind2ptr_map) {
-                node.second->SetForce(ToChVector(forces_H[index]));
-                index++;
-            }
-        }
-    }
-}
-
-void ChFsiInterfaceSPH::ApplyMeshStates() {
     {
         // Load from FEA nodes on host
         int index = 0;
@@ -128,6 +78,55 @@ void ChFsiInterfaceSPH::ApplyMeshStates() {
 
         // Transfer to device
         m_data_mgr.fsiMesh2DState_D->CopyFromH(*m_data_mgr.fsiMesh2DState_H);
+    }
+}
+
+void ChFsiInterfaceSPH::ExchangeSolidForces() {
+    {
+        // Transfer to host
+        thrust::host_vector<Real3> forcesH = m_data_mgr.rigid_FSI_ForcesD;
+        thrust::host_vector<Real3> torquesH = m_data_mgr.rigid_FSI_TorquesD;
+
+        // Apply to rigid bodies
+        int index = 0;
+        for (const auto& fsi_body : m_fsi_bodies) {
+            m_fsi_bodies[index].fsi_force = ToChVector(forcesH[index]);
+            m_fsi_bodies[index].fsi_torque = ToChVector(torquesH[index]);
+            fsi_body.body->EmptyAccumulators();
+            fsi_body.body->AccumulateForce(m_fsi_bodies[index].fsi_force, fsi_body.body->GetPos(), false);
+            fsi_body.body->AccumulateTorque(m_fsi_bodies[index].fsi_torque, false);
+            index++;
+        }
+    }
+
+    {
+        // Transfer to host
+        thrust::host_vector<Real3> forces_H = m_data_mgr.flex1D_FSIforces_D;
+
+        // Apply to FEA nodes
+        int index = 0;
+        for (const auto& fsi_mesh : m_fsi_meshes1D) {
+            int num_nodes = (int)fsi_mesh.ind2ptr_map.size();
+            for (auto& node : fsi_mesh.ind2ptr_map) {
+                node.second->SetForce(ToChVector(forces_H[index]));
+                index++;
+            }
+        }
+    }
+
+    {
+        // Transfer to host
+        thrust::host_vector<Real3> forces_H = m_data_mgr.flex2D_FSIforces_D;
+
+        // Apply to FEA nodes
+        int index = 0;
+        for (const auto& fsi_mesh : m_fsi_meshes2D) {
+            int num_nodes = (int)fsi_mesh.ind2ptr_map.size();
+            for (auto& node : fsi_mesh.ind2ptr_map) {
+                node.second->SetForce(ToChVector(forces_H[index]));
+                index++;
+            }
+        }
     }
 }
 

@@ -25,7 +25,7 @@ using namespace sph;
 
 ChFsiSystemSPH::ChFsiSystemSPH(ChSystem* sysMBS) : ChFsiSystem(sysMBS) {
     auto sysSPH = chrono_types::make_shared<ChFluidSystemSPH>();
-    auto interfaceSPH = chrono_types::make_shared<ChFsiInterfaceSPH>(*sysSPH->m_data_mgr, m_verbose);
+    auto interfaceSPH = chrono_types::make_shared<ChFsiInterfaceSPH>(*sysSPH->m_data_mgr);
 
     m_sysCFD = sysSPH;
     m_fsi_interface = interfaceSPH;
