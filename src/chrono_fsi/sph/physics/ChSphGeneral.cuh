@@ -143,8 +143,8 @@ __device__ inline Real Eos(Real rho) {
     // from https://pysph.readthedocs.io/en/latest/reference/equations.html#basic-wcsph-equations, it says
     // it can avoid the particle sticking behavior.  
     // Tait EOS with Hughes and Graham Correction
-    if (rho < paramsD.rho0) //
-         rho = paramsD.rho0; //   
+    //if (rho < paramsD.rho0) //
+    //     rho = paramsD.rho0; //   
      Real gama = 7;
      Real B = 100 * paramsD.rho0 * paramsD.v_Max * paramsD.v_Max / gama;
      return B * (pow(rho / paramsD.rho0, gama) - 1) + paramsD.BASEPRES; //
