@@ -24,19 +24,18 @@
 
 #include "chrono_fsi/ChFluidSystem.h"
 
-#include "chrono_fsi/sph/ChFsiInterfaceSPH.h"
 #include "chrono_fsi/sph/ChFsiDefinitionsSPH.h"
+#include "chrono_fsi/sph/physics/FsiDataManager.cuh"
+#include "chrono_fsi/sph/physics/BceManager.cuh"
+#include "chrono_fsi/sph/physics/ChFluidDynamics.cuh"
 #include "chrono_fsi/sph/physics/ChParams.h"
 #include "chrono_fsi/sph/math/CustomMath.h"
 
 namespace chrono {
 namespace fsi {
 
-namespace sph {
-class FsiDataManager;
-class ChFluidDynamics;
-class BceManager;
-}  // namespace sph
+// For friend class declaration
+class ChFsiInterfaceSPH;
 
 /// @addtogroup fsi_physics
 /// @{
@@ -485,37 +484,44 @@ class CH_FSI_API ChFluidSystemSPH : public ChFluidSystem {
     /// Initialize simulation parameters with default values.
     void InitParams();
 
-    /// Load the given body and mesh node states in the data manager structures during initialization.
-    void LoadInitialSolidStates(const std::vector<FsiBodyState>& body_states,
-                                const std::vector<FsiMeshState>& mesh1D_states,
-                                const std::vector<FsiMeshState>& mesh2D_states);
+    /// Load the given body and mesh node states in the SPH data manager structures.
+    /// This function is not called if the SPH fluid system is paired with the custom SPH FSI interface.
+    virtual void LoadSolidStates(const std::vector<FsiBodyState>& body_states,
+                                 const std::vector<FsiMeshState>& mesh1D_states,
+                                 const std::vector<FsiMeshState>& mesh2D_states) override;
+
+    /// Store the body and mesh node forces from the SPH data manager to the given vectors.
+    /// This function is not called if the SPH fluid system is paired with the custom SPH FSI interface.
+    virtual void StoreSolidForces(std::vector<FsiBodyForce> body_forces,
+                                  std::vector<FsiMeshForce> mesh1D_forces,
+                                  std::vector<FsiMeshForce> mesh2D_forces) override;
 
     /// Additional actions taken after adding a rigid body to the FSI system.
-    virtual void OnAddFsiBody(unsigned int index, ChFsiInterface::FsiBody& fsi_body) override;
+    virtual void OnAddFsiBody(unsigned int index, FsiBody& fsi_body) override;
 
     /// Add a flexible solid with segment set contact to the FSI system.
-    virtual void OnAddFsiMesh1D(unsigned int index, ChFsiInterface::FsiMesh1D& fsi_mesh) override;
+    virtual void OnAddFsiMesh1D(unsigned int index, FsiMesh1D& fsi_mesh) override;
 
     /// Add a flexible solid with surface mesh contact to the FSI system.
-    virtual void OnAddFsiMesh2D(unsigned int index, ChFsiInterface::FsiMesh2D& fsi_mesh) override;
+    virtual void OnAddFsiMesh2D(unsigned int index, FsiMesh2D& fsi_mesh) override;
 
     /// Create and add BCE markers associated with the given set of contact segments.
     /// The BCE markers are created in the absolute coordinate frame.
-    unsigned int AddBCE_mesh1D(unsigned int meshID, const ChFsiInterface::FsiMesh1D& fsi_mesh);
+    unsigned int AddBCE_mesh1D(unsigned int meshID, const FsiMesh1D& fsi_mesh);
 
     /// Create and add BCE markers associated with the given mesh contact surface.
     /// The BCE markers are created in the absolute coordinate frame.
-    unsigned int AddBCE_mesh2D(unsigned int meshID, const ChFsiInterface::FsiMesh2D& fsi_mesh);
+    unsigned int AddBCE_mesh2D(unsigned int meshID, const FsiMesh2D& fsi_mesh);
 
     /// Function to integrate the fluid system in time.
     /// It uses a Runge-Kutta 2nd order algorithm to update the fluid dynamics.
     virtual void OnDoStepDynamics(double step) override;
 
     /// Additional actions taken before applying fluid forces to the solid phase.
-    virtual void OnApplySolidForces() override;
+    virtual void OnExchangeSolidForces() override;
 
     /// Additional actions taken after loading new solid phase states.
-    virtual void OnLoadSolidStates() override;
+    virtual void OnExchangeSolidStates() override;
 
     std::shared_ptr<sph::SimParams> m_paramsH;  ///< simulation parameters
 
@@ -534,6 +540,7 @@ class CH_FSI_API ChFluidSystemSPH : public ChFluidSystem {
     bool m_remove_center2D;
 
     friend class ChFsiSystemSPH;
+    friend class ChFsiInterfaceSPH;
     friend class ChFsiVisualizationGL;
     friend class ChFsiVisualizationVSG;
 };

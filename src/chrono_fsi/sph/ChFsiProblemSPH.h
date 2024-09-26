@@ -187,9 +187,9 @@ class CH_FSI_API ChFsiProblemSPH {
     /// defined by the body BCEs. Note that this assumes the BCE markers form a watertight boundary.
     int ProcessBodyMesh(RigidBody& b, ChTriangleMeshConnected trimesh, const ChVector3d& interior_point);
 
-    ChFsiSystemSPH m_sysFSI;           ///< underlying Chrono FSI system
-    ChFluidSystemSPH& m_sysSPH;        ///< associated Chrono SPH system
     ChSystem& m_sysMBS;                ///< associated Chrono MBS system
+    ChFluidSystemSPH m_sysSPH;         ///< underlying Chrono SPH system
+    ChFsiSystemSPH m_sysFSI;           ///< underlying Chrono FSI system
     double m_spacing;                  ///< particle and marker spacing
     std::shared_ptr<ChBody> m_ground;  ///< ground body
     GridPoints m_sph;                  ///< SPH particle grid locations

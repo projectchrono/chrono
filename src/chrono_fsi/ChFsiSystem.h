@@ -45,9 +45,6 @@ class CH_FSI_API ChFsiSystem {
     /// Destructor for the FSI system.
     virtual ~ChFsiSystem();
 
-    /// Access the associated fluid solver.
-    ChFluidSystem& GetFluidSystem() const;
-
     /// Access the associated FSI interface.
     ChFsiInterface& GetFsiInterface() const;
 
@@ -103,10 +100,10 @@ class CH_FSI_API ChFsiSystem {
     double GetRtf() const { return m_RTF; }
 
     /// Get current estimated RTF (real time factor) for the fluid system.
-    double GetRtfCFD() const { return m_sysCFD->GetRtf(); }
+    double GetRtfCFD() const { return m_sysCFD.GetRtf(); }
 
     /// Get current estimated RTF (real time factor) for the multibody system.
-    double GetRtfMBS() const { return m_sysMBS->GetRTF(); }
+    double GetRtfMBS() const { return m_sysMBS.GetRTF(); }
 
     /// Get ratio of simulation time spent in MBS integration.
     double GetRatioMBS() const { return m_ratio_MBS; }
@@ -140,9 +137,10 @@ class CH_FSI_API ChFsiSystem {
     //// TODO: add functions to get force on FEA nodes
 
   protected:
-    ChFsiSystem(ChSystem* sysMBS);
+    ChFsiSystem(ChSystem& sysMBS, ChFluidSystem& sysCFD);
 
-    std::shared_ptr<ChFluidSystem> m_sysCFD;          ///< FSI fluid solver
+    ChSystem& m_sysMBS;                               ///< multibody system
+    ChFluidSystem& m_sysCFD;                          ///< FSI fluid solver
     std::shared_ptr<ChFsiInterface> m_fsi_interface;  ///< FSI interface system
 
     bool m_verbose;         ///< enable/disable m_verbose terminal output
@@ -154,8 +152,6 @@ class CH_FSI_API ChFsiSystem {
 
     /// Add a flexible solid with surface mesh contact to the FSI system.
     void AddFsiMesh2D(std::shared_ptr<fea::ChContactSurfaceMesh> surface);
-
-    ChSystem* m_sysMBS;  ///< multibody system
 
     double m_step_MBD;  ///< time step for multibody dynamics
     double m_step_CFD;  ///< time step for fluid dynamics

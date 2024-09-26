@@ -22,7 +22,6 @@
 #include "chrono_fsi/ChFsiSystem.h"
 
 #include "chrono_fsi/sph/ChFluidSystemSPH.h"
-#include "chrono_fsi/sph/ChFsiInterfaceSPH.h"
 
 namespace chrono {
 namespace fsi {
@@ -33,11 +32,18 @@ namespace fsi {
 /// FSI system using an SPH-based fluid solver.
 class CH_FSI_API ChFsiSystemSPH : public ChFsiSystem {
   public:
-    ChFsiSystemSPH(ChSystem* sysMBS);
+    /// Construct an FSI system to couple the specified Chrono MBS system and SPH fluid system.
+    /// Data exchange between the tow systems is done through an FSI interface object, owned by the FSI system.
+    /// If 'use_generic_interface = true', the FSI system will use a generic FSI interface. Otherwise (default), use a
+    /// custom FSI interface which works directly with the data manager of the SPH fluid solver and thus circumvents
+    /// additional data movement.
+    ChFsiSystemSPH(ChSystem& sysMBS, ChFluidSystemSPH& sysSPH, bool use_generic_interface = false);
     ~ChFsiSystemSPH();
 
     ChFluidSystemSPH& GetFluidSystemSPH() const;
-    ChFsiInterfaceSPH& GetFsiInterface() const;
+
+  private:
+    ChFluidSystemSPH& m_sysSPH;
 };
 
 /// @} fsi_physics

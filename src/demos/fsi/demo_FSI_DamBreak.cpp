@@ -121,8 +121,8 @@ int main(int argc, char* argv[]) {
 
     // Create a physics system and an FSI system
     ChSystemSMC sysMBS;
-    ChFsiSystemSPH sysFSI(&sysMBS);
-    ChFluidSystemSPH& sysSPH = sysFSI.GetFluidSystemSPH();
+    ChFluidSystemSPH sysSPH;
+    ChFsiSystemSPH sysFSI(sysMBS, sysSPH);
 
     sysFSI.SetVerbose(verbose);
 

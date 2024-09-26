@@ -115,10 +115,9 @@ int main(int argc, char* argv[]) {
     sysMBS.SetCollisionSystemType(ChCollisionSystem::Type::BULLET);
 
     // Create the FSI problem
-    ChFsiSystemSPH sysFSI(&sysMBS);
+    ChFluidSystemSPH sysSPH;
+    ChFsiSystemSPH sysFSI(sysMBS, sysSPH);
     sysFSI.SetVerbose(verbose);
-
-    ChFluidSystemSPH& sysSPH = sysFSI.GetFluidSystemSPH();
 
     // cylindrical container
     // container needs to be higher than fluid, otherwise water spills from the top

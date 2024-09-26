@@ -17,6 +17,7 @@
 // =============================================================================
 
 #include <cmath>
+#include <stdexcept>
 
 #include "chrono/core/ChTypes.h"
 
@@ -37,8 +38,9 @@ using std::endl;
 namespace chrono {
 namespace fsi {
 
-ChFsiSystem::ChFsiSystem(ChSystem* sysMBS)
+ChFsiSystem::ChFsiSystem(ChSystem& sysMBS, ChFluidSystem& sysCFD)
     : m_sysMBS(sysMBS),
+      m_sysCFD(sysCFD),
       m_is_initialized(false),
       m_verbose(true),
       m_step_MBD(-1),
@@ -48,10 +50,6 @@ ChFsiSystem::ChFsiSystem(ChSystem* sysMBS)
       m_ratio_MBS(0) {}
 
 ChFsiSystem::~ChFsiSystem() {}
-
-ChFluidSystem& ChFsiSystem::GetFluidSystem() const {
-    return *m_sysCFD;
-}
 
 ChFsiInterface& ChFsiSystem::GetFsiInterface() const {
     return *m_fsi_interface;
@@ -71,14 +69,14 @@ void ChFsiSystem::SetStepSizeCFD(double step) {
 }
 
 void ChFsiSystem::SetGravitationalAcceleration(const ChVector3d& gravity) {
-    m_sysCFD->SetGravitationalAcceleration(gravity);
-    m_sysMBS->SetGravitationalAcceleration(gravity);
+    m_sysCFD.SetGravitationalAcceleration(gravity);
+    m_sysMBS.SetGravitationalAcceleration(gravity);
 }
 
 size_t ChFsiSystem::AddFsiBody(std::shared_ptr<ChBody> body) {
     unsigned int index = m_fsi_interface->GetNumBodies();
     auto& fsi_body = m_fsi_interface->AddFsiBody(body);
-    m_sysCFD->OnAddFsiBody(index, fsi_body);
+    m_sysCFD.OnAddFsiBody(index, fsi_body);
     return index;
 }
 
@@ -127,33 +125,23 @@ void ChFsiSystem::AddFsiMesh(std::shared_ptr<fea::ChMesh> mesh) {
 void ChFsiSystem::AddFsiMesh1D(std::shared_ptr<fea::ChContactSurfaceSegmentSet> surface) {
     unsigned int index = m_fsi_interface->GetNumMeshes1D();
     auto& fsi_mesh = m_fsi_interface->AddFsiMesh1D(surface);
-    m_sysCFD->OnAddFsiMesh1D(index, fsi_mesh);
+    m_sysCFD.OnAddFsiMesh1D(index, fsi_mesh);
 }
 
 void ChFsiSystem::AddFsiMesh2D(std::shared_ptr<fea::ChContactSurfaceMesh> surface) {
     unsigned int index = m_fsi_interface->GetNumMeshes2D();
     auto& fsi_mesh = m_fsi_interface->AddFsiMesh2D(surface);
-    m_sysCFD->OnAddFsiMesh2D(index, fsi_mesh);
+    m_sysCFD.OnAddFsiMesh2D(index, fsi_mesh);
 }
 
 void ChFsiSystem::Initialize() {
-    if (!m_sysCFD) {
-        cout << "ERROR: No fluid system was created." << endl;
-        throw std::runtime_error("No fluid system was created.");
-    }
-
-    if (!m_sysMBS) {
-        cout << "ERROR: No multibody system was specified." << endl;
-        throw std::runtime_error("No multibody system was specified.");
-    }
-
     if (!m_fsi_interface) {
         cout << "ERROR: No FSI interface was created." << endl;
         throw std::runtime_error("No FSI interface was created.");
     }
 
     if (m_step_CFD < 0)
-        m_step_CFD = m_sysCFD->GetStepSize();
+        m_step_CFD = m_sysCFD.GetStepSize();
 
     if (m_step_CFD < 0) {
         cout << "ERROR: Integration step size for fluid dynamics not set." << endl;
@@ -171,14 +159,14 @@ void ChFsiSystem::Initialize() {
     std::vector<FsiMeshState> mesh1D_states;
     std::vector<FsiMeshState> mesh2D_states;
     m_fsi_interface->AllocateStateVectors(body_states, mesh1D_states, mesh2D_states);
-    m_fsi_interface->LoadStateVectors(body_states, mesh1D_states, mesh2D_states);
+    m_fsi_interface->StoreSolidStates(body_states, mesh1D_states, mesh2D_states);
 
     // Initialize fluid system with initial solid states
-    m_sysCFD->SetStepSize(m_step_CFD);
-    m_sysCFD->Initialize(m_fsi_interface->GetNumBodies(),                                        //
-                         m_fsi_interface->GetNumNodes1D(), m_fsi_interface->GetNumElements1D(),  //
-                         m_fsi_interface->GetNumNodes2D(), m_fsi_interface->GetNumElements2D(),  //
-                         body_states, mesh1D_states, mesh2D_states);                             //
+    m_sysCFD.SetStepSize(m_step_CFD);
+    m_sysCFD.Initialize(m_fsi_interface->GetNumBodies(),                                        //
+                        m_fsi_interface->GetNumNodes1D(), m_fsi_interface->GetNumElements1D(),  //
+                        m_fsi_interface->GetNumNodes2D(), m_fsi_interface->GetNumElements2D(),  //
+                        body_states, mesh1D_states, mesh2D_states);                             //
 
     // Mark system as initialized
     m_is_initialized = true;
@@ -214,17 +202,16 @@ void ChFsiSystem::DoStepDynamics(double step) {
             double h = std::min<>(m_step_CFD, step - t);
             if (h <= threshold_CFD)
                 break;
-            m_sysCFD->DoStepDynamics(h);
+            m_sysCFD.DoStepDynamics(h);
             t += h;
         }
-        m_timer_CFD = m_sysCFD->GetTimerStep();
+        m_timer_CFD = m_sysCFD.GetTimerStep();
     }
 
     // Apply fluid forces and torques on FSI solids
     m_timer_FSI.start();
-    m_sysCFD->OnApplySolidForces();
-    m_fsi_interface->ApplyBodyForces();
-    m_fsi_interface->ApplyMeshForces();
+    m_sysCFD.OnExchangeSolidForces();
+    m_fsi_interface->ExchangeSolidForces();
     m_timer_FSI.stop();
 
     // Advance the dynamics of the multibody system
@@ -234,25 +221,23 @@ void ChFsiSystem::DoStepDynamics(double step) {
             double h = std::min<>(m_step_MBD, step - t);
             if (h <= threshold_MBD)
                 break;
-            m_sysMBS->DoStepDynamics(h);
+            m_sysMBS.DoStepDynamics(h);
             t += h;
         }
-        m_timer_MBS = m_sysMBS->GetTimerStep();
+        m_timer_MBS = m_sysMBS.GetTimerStep();
     }
 
     // Load new solid phase states
     m_timer_FSI.start();
-    m_fsi_interface->ApplyBodyStates();
-    m_fsi_interface->ApplyMeshStates();
-    m_sysCFD->OnLoadSolidStates();
+    m_fsi_interface->ExchangeSolidStates();
+    m_sysCFD.OnExchangeSolidStates();
     m_timer_FSI.stop();
 
     m_timer_step.stop();
 
     // Calculate RTF
     m_RTF = m_timer_step() / step;
-    if (m_sysMBS)
-        m_ratio_MBS = m_timer_MBS / m_timer_CFD;
+    m_ratio_MBS = m_timer_MBS / m_timer_CFD;
 
     // Update simulation time
     m_time += step;

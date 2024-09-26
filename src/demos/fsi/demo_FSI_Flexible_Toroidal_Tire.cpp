@@ -101,8 +101,8 @@ std::shared_ptr<fea::ChMesh> Create_MB_FE(ChSystemSMC& sysMBS, ChFsiSystemSPH& s
 int main(int argc, char* argv[]) {
     // Create an MBS system and an FSI system
     ChSystemSMC sysMBS;
-    ChFsiSystemSPH sysFSI(&sysMBS);
-    ChFluidSystemSPH& sysSPH = sysFSI.GetFluidSystemSPH();
+    ChFluidSystemSPH sysSPH;
+    ChFsiSystemSPH sysFSI(sysMBS, sysSPH);
 
     sysMBS.SetCollisionSystemType(ChCollisionSystem::Type::BULLET);
 

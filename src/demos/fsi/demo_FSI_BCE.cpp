@@ -35,8 +35,7 @@ int main(int argc, char* argv[]) {
     }
 
     ChSystemSMC sysMBS;
-    ChFsiSystemSPH sysFSI(&sysMBS);
-    ChFluidSystemSPH& sysSPH = sysFSI.GetFluidSystemSPH();
+    ChFluidSystemSPH sysSPH;
 
     double spacing = 0.025;
 

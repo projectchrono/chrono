@@ -18,12 +18,9 @@
 #ifndef CH_FSI_INTERFACE_H
 #define CH_FSI_INTERFACE_H
 
-#include "chrono/ChConfig.h"
-#include "chrono/physics/ChSystem.h"
-#include "chrono/fea/ChContactSurfaceMesh.h"
-#include "chrono/fea/ChContactSurfaceSegmentSet.h"
-
 #include "chrono_fsi/ChApiFsi.h"
+#include "chrono_fsi/ChFsiDefinitions.h"
+#include "chrono_fsi/ChFluidSystem.h"
 
 namespace chrono {
 namespace fsi {
@@ -33,68 +30,9 @@ namespace fsi {
 
 // =============================================================================
 
-/// Definition of a body state.
-struct FsiBodyState {
-    ChVector3d pos;      ///< global position
-    ChQuaternion<> rot;  ///< orientation with respect to global frame
-    ChVector3d lin_vel;  ///< linear velocity, expressed in the global frame
-    ChVector3d ang_vel;  ///< angular velocity, expressed in the global frame
-    ChVector3d lin_acc;  ///< linear acceleration, expressed in the global frame
-    ChVector3d ang_acc;  ///< angular acceleration, expressed in the global frame
-};
-
-/// Definition of a body wrench (force + torque).
-struct FsiBodyForce {
-    ChVector3d force;   ///< force at COM, expressed in the global frame
-    ChVector3d torque;  ///< torque, expressed in the global frame
-};
-
-/// Definition of node states for a mesh.
-struct FsiMeshState {
-    std::vector<ChVector3d> pos;  ///< global positions
-    std::vector<ChVector3d> vel;  ///< velocities, expressed in the global frame
-    std::vector<ChVector3d> acc;  ///< accelerations, expressed in the global frame
-};
-
-/// Definition of a node forces for a mesh.
-struct FsiMeshForce {
-    std::vector<ChVector3d> force;  ///< force, expressed in the global frame
-};
-
-// =============================================================================
-
 /// Base class for processing the interface between Chrono and FSI modules.
 class CH_FSI_API ChFsiInterface {
   public:
-    /// Description of a rigid body exposed to the FSI system.
-    struct FsiBody {
-        std::shared_ptr<ChBody> body;  ///< rigid body exposed to FSI system
-        ChVector3d fsi_force;          ///< fluid force at body COM (expressed in absolute frame)
-        ChVector3d fsi_torque;         ///< induced torque (expressed in absolute frame)
-    };
-
-    /// Description of an FEA mesh with 1-D segments exposed to the FSI system.
-    struct FsiMesh1D {
-        unsigned int GetNumElements() const;
-        unsigned int GetNumNodes() const;
-
-        std::shared_ptr<fea::ChContactSurfaceSegmentSet> contact_surface;  ///< FEA contact segments
-        std::map<std::shared_ptr<fea::ChNodeFEAxyz>, int> ptr2ind_map;     ///< pointer-based to index-based mapping
-        std::map<int, std::shared_ptr<fea::ChNodeFEAxyz>> ind2ptr_map;     ///< index-based to pointer-based mapping
-    };
-
-    /// Description of an FEA mesh with 2-D faces exposed to the FSI system.
-    struct FsiMesh2D {
-        unsigned int GetNumElements() const;
-        unsigned int GetNumNodes() const;
-
-        std::shared_ptr<fea::ChContactSurfaceMesh> contact_surface;     ///< FEA trimesh skin
-        std::map<std::shared_ptr<fea::ChNodeFEAxyz>, int> ptr2ind_map;  ///< pointer-based to index-based mapping
-        std::map<int, std::shared_ptr<fea::ChNodeFEAxyz>> ind2ptr_map;  ///< index-based to pointer-based mapping
-    };
-
-    // ------------
-
     virtual ~ChFsiInterface();
 
     void SetVerbose(bool verbose) { m_verbose = verbose; }
@@ -148,55 +86,89 @@ class CH_FSI_API ChFsiInterface {
 
     // ------------
 
-    /// Utility class to allocate state vectors.
+    /// Utility function to allocate state vectors.
     void AllocateStateVectors(std::vector<FsiBodyState>& body_states,
                               std::vector<FsiMeshState>& mesh1D_states,
                               std::vector<FsiMeshState>& mesh2D_states) const;
 
-    /// Utility class to allocate force vectors.
+    /// Utility function to allocate force vectors.
     void AllocateForceVectors(std::vector<FsiBodyForce>& body_forces,
                               std::vector<FsiMeshForce>& mesh_forces1D,
                               std::vector<FsiMeshForce>& mesh_forces2D) const;
 
-    /// Utility class to check sizes of state vectors.
+    /// Utility function to check sizes of state vectors.
     bool CheckStateVectors(const std::vector<FsiBodyState>& body_states,
                            const std::vector<FsiMeshState>& mesh1D_states,
                            const std::vector<FsiMeshState>& mesh2D_states) const;
 
-    /// Utility class to check sizes of force vectors.
+    /// Utility function to check sizes of force vectors.
     bool CheckForceVectors(const std::vector<FsiBodyForce>& body_forces,
                            const std::vector<FsiMeshForce>& mesh_forces1D,
                            const std::vector<FsiMeshForce>& mesh_forces2D) const;
 
-    /// Load current solid phase states from the multibody system in the provided structures.
+    /// Utility function to get current solid phase states from the multibody system in the provided structures.
     /// A runtime exception is thrown if the output vectors do not have the appropriate sizes.
-    void LoadStateVectors(std::vector<FsiBodyState>& body_states,
+    void StoreSolidStates(std::vector<FsiBodyState>& body_states,
                           std::vector<FsiMeshState>& mesh1D_states,
                           std::vector<FsiMeshState>& mesh2D_states);
 
+    /// Utility function to apply forces in the provided structures to the multibody system.
+    /// A runtime exception is thrown if the output vectors do not have the appropriate sizes.
+    void LoadSolidForces(std::vector<FsiBodyForce>& body_forces,
+                         std::vector<FsiMeshForce>& mesh1D_forces,
+                         std::vector<FsiMeshForce>& mesh2D_forces);
+
     // ------------
 
-    /// Extract FSI body states and apply them to the fluid system.
-    virtual void ApplyBodyStates() = 0;
+    /// Exchange solid phase state information between the MBS and fluid system.
+    /// - Extract FSI body states from MBS and apply them to the fluid system.
+    /// - Extract FSI mesh node states from MBS and apply them to the fluid system.
+    virtual void ExchangeSolidStates() = 0;
 
-    /// Extract FSI mesh node states and apply them to the fluid system.
-    virtual void ApplyMeshStates() = 0;
-
-    /// Apply fluid forces and torques as external loads to the FSI bodies.
-    virtual void ApplyBodyForces() = 0;
-
-    /// Apply fluid forces as external forces to the nodes of FSI meshes.
-    virtual void ApplyMeshForces() = 0;
+    /// Exchange solid phase force information between the multibody and fluid systems.
+    /// - Extract fluid forces on rigid bodies from fluid system and apply them as external loads to the MBS.
+    /// - Extract fluid forces on mesh nodes from fluid system and apply them as external loads to the MBS.
+    virtual void ExchangeSolidForces() = 0;
 
   protected:
-    ChFsiInterface(bool verbose);
+    ChFsiInterface(ChSystem& sysMBS, ChFluidSystem& sysCFD);
 
     bool m_verbose;
+    ChSystem& m_sysMBS;
+    ChFluidSystem& m_sysCFD;
 
     std::vector<FsiBody> m_fsi_bodies;      ///< rigid bodies exposed to the FSI system
     std::vector<FsiMesh1D> m_fsi_meshes1D;  ///< FEA meshes with 1-D segments exposed to the FSI system
     std::vector<FsiMesh2D> m_fsi_meshes2D;  ///< FEA meshes with 2-D faces exposed to the FSI system
 };
+
+// =============================================================================
+
+/// Generic interface between a Chrono multibody system and a fluid system.
+class ChFsiInterfaceGeneric : public ChFsiInterface {
+  public:
+    ChFsiInterfaceGeneric(ChSystem& sysMBS, ChFluidSystem& sysCFD);
+    ~ChFsiInterfaceGeneric();
+
+    /// Initialize the generic FSI interface.
+    virtual void Initialize() override;
+
+  private:
+    /// Exchange solid phase state information between the MBS and fluid system.
+    virtual void ExchangeSolidStates() override;
+
+    /// Exchange solid phase force information between the multibody and fluid systems.
+    virtual void ExchangeSolidForces() override;
+
+    std::vector<FsiBodyState> m_body_states;
+    std::vector<FsiBodyForce> m_body_forces;
+    std::vector<FsiMeshState> m_mesh1D_states;
+    std::vector<FsiMeshForce> m_mesh1D_forces;
+    std::vector<FsiMeshState> m_mesh2D_states;
+    std::vector<FsiMeshForce> m_mesh2D_forces;
+};
+
+// =============================================================================
 
 /// @} fsi_physics
 

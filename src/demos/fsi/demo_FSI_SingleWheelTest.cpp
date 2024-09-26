@@ -267,8 +267,8 @@ int main(int argc, char* argv[]) {
 
     // Create the MBS and FSI systems
     ChSystemSMC sysMBS;
-    ChFsiSystemSPH sysFSI(&sysMBS);
-    ChFluidSystemSPH& sysSPH = sysFSI.GetFluidSystemSPH();
+    ChFluidSystemSPH sysSPH;
+    ChFsiSystemSPH sysFSI(sysMBS, sysSPH);
 
     sysMBS.SetCollisionSystemType(ChCollisionSystem::Type::BULLET);
 

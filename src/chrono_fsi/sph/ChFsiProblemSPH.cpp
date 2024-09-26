@@ -39,8 +39,7 @@ namespace fsi {
 
 ChFsiProblemSPH::ChFsiProblemSPH(ChSystem& sys, double spacing)
     : m_sysMBS(sys),
-      m_sysFSI(ChFsiSystemSPH(&sys)),
-      m_sysSPH(m_sysFSI.GetFluidSystemSPH()),
+      m_sysFSI(ChFsiSystemSPH(m_sysMBS, m_sysSPH)),
       m_spacing(spacing),
       m_initialized(false),
       m_offset_sph(VNULL),
@@ -49,7 +48,7 @@ ChFsiProblemSPH::ChFsiProblemSPH(ChSystem& sys, double spacing)
     // Create ground body
     m_ground = chrono_types::make_shared<ChBody>();
     m_ground->SetFixed(true);
-    sys.AddBody(m_ground);
+    m_sysMBS.AddBody(m_ground);
 
     // Set parameters for underlying SPH system
     m_sysSPH.SetInitialSpacing(spacing);
