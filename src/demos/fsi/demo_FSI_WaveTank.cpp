@@ -20,6 +20,9 @@
 #include "chrono/physics/ChSystemNSC.h"
 
 #include "chrono_fsi/sph/ChFsiProblemSPH.h"
+#include "chrono/utils/ChUtilsCreators.h"
+#include "chrono/utils/ChUtilsGenerators.h"
+#include "chrono/utils/ChUtilsGeometry.h"
 
 #include "chrono_fsi/sph/visualization/ChFsiVisualization.h"
 #ifdef CHRONO_OPENGL
@@ -38,6 +41,7 @@
 
 using namespace chrono;
 using namespace chrono::fsi;
+using namespace chrono::utils;
 
 using std::cout;
 using std::cerr;
@@ -55,10 +59,10 @@ ChVisualSystem::Type vis_type = ChVisualSystem::Type::VSG;
 //ChVector3d fsize(4.0, 0.4, 0.8);
 
  //Container dimensions
- ChVector3d csize(8.0, 0.4, 1);
+ ChVector3d csize(8.0, 1.0, 1);
 
 // Size of initial volume of SPH material
- ChVector3d fsize(4.0, 0.4, 0.5);
+ ChVector3d fsize(8.0, 1.0, 0.6);
 
 
 // Visibility flags
@@ -234,26 +238,22 @@ int main(int argc, char* argv[]) {
     fsi.RegisterParticlePropertiesCallback(
         chrono_types::make_shared<DepthPressurePropertiesCallback>(sysSPH, fsize.z()));
 
-    // Create SPH material (do not create boundary BCEs)
+    // Create SPH material (with a slope)
     fsi.Construct(fsize,                // length x width x depth
-                  ChVector3d(0, 0, 0),  // position of bottom origin
-                  false,                // no bottom wall
-                  false                 // no side walls
+                  ChVector3d(0, 0, 0)  // position of bottom origin
     );
 
     // Create a wave tank
-    double stroke = 0.1;
+    double stroke = 0.2;
     double period = 1.4;
     auto fun = chrono_types::make_shared<WaveFunctionDecay>(stroke, period);
 
-    auto body = fsi.AddWaveMaker(ChFsiProblemSPH::WavemakerType::PISTON, csize, ChVector3d(0, 0, 0), fun);
-    ////auto fun = chrono_types::make_shared<WaveFunction>(0.25, 0.4, 1.25);
-    ////auto body = fsi.AddWaveMaker(ChFsiProblemSPH::WavemakerType::FLAP, csize, ChVector3d(0, 0, 0), fun);  
+    auto body = fsi.AddWaveMakerWithBeach(ChFsiProblemSPH::WavemakerType::PISTON, csize, fsize, ChVector3d(0, 0, 0), fun);
 
     fsi.Initialize();
 
     // Output directories
-    std::string out_dir = GetChronoOutputPath() + "FSI_Wave_Tank" + std::to_string(ps_freq) + "_Tait";
+    std::string out_dir = GetChronoOutputPath() + "FSI_Wave_Tank_debug_longer" + std::to_string(ps_freq) + "_Tait";
 
     if (!filesystem::create_directory(filesystem::path(out_dir))) {
         cerr << "Error creating directory " << out_dir << endl;

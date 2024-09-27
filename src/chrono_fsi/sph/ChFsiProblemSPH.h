@@ -233,7 +233,8 @@ class CH_FSI_API ChFsiProblemCartesian : public ChFsiProblemSPH {
     void Construct(const ChVector3d& box_size,  ///< box dimensions
                    const ChVector3d& pos,       ///< reference position
                    bool bottom_wall,            ///< create bottom boundary
-                   bool side_walls              ///< create side boundaries
+
+        bool side_walls              ///< create side boundaries
     );
 
     /// Construct SPH particles and optionally BCE markers from a given heightmap.
@@ -257,6 +258,15 @@ class CH_FSI_API ChFsiProblemCartesian : public ChFsiProblemSPH {
                    bool side_walls                     ///< create side boundaries
     );
 
+    /// Construct SPH particles and the BCE marker boundaries for a wave tank scenario with the beach.
+    /// This is for SPH particles only, and I do not want to create boundary particles yet
+    /// 
+    void Construct(const ChVector3d& box_size,   /// size of the wave tank dimension
+                   const ChVector3d& pos        /// position of the wave tank
+    );  
+
+
+
     /// Add fixed BCE markers, representing a container for the computational domain.
     /// The specified 'box_size' represents the dimensions of the *interior* of the box.
     /// The reference position is the center of the bottom face of the box.
@@ -274,6 +284,18 @@ class CH_FSI_API ChFsiProblemCartesian : public ChFsiProblemSPH {
                                          const ChVector3d& box_size,             ///< box dimensions
                                          const ChVector3d& pos,                  ///< reference position
                                          std::shared_ptr<ChFunction> piston_fun  ///< piston actuation function
+    );
+
+    /// <summary>
+    /// Add a rigid-body wavemaker (piston-type or flap-type) with a beach setup 
+    /// Note that this one I will need the size of the fluid as well to determine the slope 
+    /// </summary>
+    std::shared_ptr<ChBody> AddWaveMakerWithBeach(WavemakerType type,                     ///< wave generator type
+                                                  const ChVector3d& box_size,             ///< box dimensions
+                                                  const ChVector3d& pos,                  ///< reference position
+                                                  const ChVector3d& fluid_dim,            ///< dimension of the fluid
+                                                  std::shared_ptr<ChFunction> piston_fun  ///< piston actuation function
+
     );
 
   private:

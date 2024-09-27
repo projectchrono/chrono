@@ -730,6 +730,69 @@ void ChFsiProblemCartesian::Construct(const std::string& heightmap_file,
         m_offset_bce = m_offset_sph;
 }
 
+/// <summary>
+///  Luning TODO: This can actually get "absorbed" with the tank without beach, becasue one without beach is just slope angle being 0 
+/// </summary>
+/// <param name="box_size"></param>
+/// <param name="pos"></param>
+void ChFsiProblemCartesian::Construct(const ChVector3d& box_size, const ChVector3d& pos) {
+    if (m_verbose) {
+        cout << "Construct sph markers with slope" << endl;
+    }
+
+    // Number of points in each direction
+    int Nx = std::round(box_size.x() / m_spacing) + 1;
+    int Ny = std::round(box_size.y() / m_spacing) + 1;
+    int Nz = std::round(box_size.z() / m_spacing) + 1;
+
+    // Calculate the slope steepness based on the given formula
+    double slope_steepness = box_size.z() / (box_size.x() / 2);  // tan(slope_angle)
+
+    // Reserve space for sph markers
+    int num_sph = Nx * Ny * Nz;
+
+    std::vector<ChVector3i> sph;
+    sph.reserve(num_sph);
+
+    // Generate SPH points with a slope on the right (+x) half
+    for (int Iy = 0; Iy < Ny; Iy++) {
+        for (int Ix = 0; Ix < Nx; Ix++) {
+            for (int Iz = 0; Iz < Nz; Iz++) {
+                if (Ix < Nx / 2) {
+                    // Flat part on the left (-x)
+                    sph.push_back(ChVector3i(Ix, Iy, Iz));
+                } else {
+                    // Sloped part on the right (+x)
+                    int slope_offset = std::round(slope_steepness * (Ix - Nx / 2));
+
+                    // Check if the current z-value exceeds the slope height
+                    if (Iz >= slope_offset) {
+                        sph.push_back(ChVector3i(Ix, Iy, Iz));
+                    }
+                    // If Iz < slope_offset, do nothing (skip the point)
+                }
+            }
+        }
+    }
+
+
+    // Insert in cached sets
+    for (auto& p : sph) {
+        m_sph.insert(p);
+    }
+
+    if (m_verbose) {
+        cout << "  Particle grid size:      " << Nx << " " << Ny << " " << Nz << endl;
+        cout << "  Num. SPH particles:      " << m_sph.size() << " (" << sph.size() << ")" << endl;
+    }
+
+    m_offset_sph = pos - ChVector3d(box_size.x() / 2, box_size.y() / 2, 0);
+}
+
+
+
+
+
 size_t ChFsiProblemCartesian::AddBoxContainer(const ChVector3d& box_size,  // box dimensions
                                               const ChVector3d& pos,       // reference positions
                                               bool bottom_wall,            // create bottom boundary
@@ -932,6 +995,146 @@ std::shared_ptr<ChBody> ChFsiProblemCartesian::AddWaveMaker(
 
     return body;
 }
+
+
+std::shared_ptr<ChBody> ChFsiProblemCartesian::AddWaveMakerWithBeach(WavemakerType type,                     ///< wave generator type
+                                              const ChVector3d& box_size,             ///< box dimensions
+                                              const ChVector3d& fluid_dim,  ///< dimension of the fluid
+                                              const ChVector3d& pos,                  ///< reference position
+                                              std::shared_ptr<ChFunction> piston_fun  ///< piston actuation function
+
+){
+
+if (m_verbose) {
+        cout << "Construct piston wavemaker" << endl;
+    }
+
+    // Number of BCE layers
+    int bce_layers = m_sysSPH.GetNumBCELayers();
+    
+    // number of BCE layers extended on the right (so I have a long beach)
+    int bce_layers_right = 2 * bce_layers;
+    int Nx = std::round(box_size.x() / m_spacing) + 1;
+    int Ny = std::round(box_size.y() / m_spacing) + 1;
+    int Nz = std::round(box_size.z() / m_spacing) + 1;
+
+    int num_bce = Nx * Ny * bce_layers;                      // bottom
+    num_bce += (Nx + 2 * bce_layers) * 2 * bce_layers * Nz;  // -y and +y
+    num_bce += (Ny + 2 * bce_layers) * bce_layers * Nz;      // +x
+
+    std::vector<ChVector3i> bce;
+    bce.reserve(num_bce);
+
+    double slope_steepness = fluid_dim.z() / (fluid_dim.x() / 2);  // tan(theta)
+
+    // Bottom BCE points with a sloped bottom
+    for (int Ix = -bce_layers; Ix < Nx + bce_layers_right; Ix++) {
+        for (int Iy = 0; Iy < Ny; Iy++) {
+            // Determine the slope offset based on the x-position
+            int slope_offset = (Ix >= Nx / 2) ? std::round(slope_steepness * (Ix - Nx / 2)) : 0;
+
+            // For each BCE layer below the bottom surface
+            for (int Iz = 1; Iz <= bce_layers; Iz++) {
+                // Calculate the BCE marker position below the fluid
+                int bce_z = -Iz + slope_offset;
+                bce.push_back(ChVector3i(Ix, Iy, bce_z));  // Add BCE marker below the surface
+            }
+        }
+    }
+
+    // Generate BCE points on front and back walls
+    for (int Ix = -bce_layers; Ix < Nx + bce_layers + bce_layers_right; Ix++) {
+        for (int Iy = -bce_layers; Iy < 0; Iy++) {
+            for (int Iz = -bce_layers; Iz < Nz + bce_layers; Iz++) {
+                bce.push_back(ChVector3i(Ix, Iy, Iz));
+                bce.push_back(ChVector3i(Ix, Ny - 1 - Iy, Iz));
+            }
+        }
+    }
+
+    // wall on right side
+    for (int Iy = 0; Iy < Ny; Iy++) {
+        for (int Ix = -bce_layers; Ix < 0; Ix++) {
+            for (int Iz = -bce_layers; Iz < Nz + bce_layers; Iz++) {
+                bce.push_back(ChVector3i(Nx + bce_layers_right - 1 - Ix, Iy, Iz));
+            }
+        }
+    }
+
+    // Insert in cached sets
+    for (auto& p : bce) {
+        m_bce.insert(p);
+    }
+
+    if (m_verbose) {
+        cout << "  Particle grid size:      " << Nx << " " << Ny << " " << Nz << endl;
+        cout << "  Num. bndry. BCE markers: " << m_bce.size() << " (" << bce.size() << ")" << endl;
+    }
+
+    m_offset_bce = pos - ChVector3d(box_size.x() / 2, box_size.y() / 2, 0);
+
+    std::shared_ptr<ChBody> body;
+    double body_thickness = (bce_layers - 1) * m_spacing;
+    ChVector3d body_size(body_thickness, box_size.y(), box_size.z());
+    ChVector3d body_pos(-box_size.x() / 2 - body_thickness / 2 - m_spacing, 0, box_size.z() / 2);
+
+    switch (type) {
+        case WavemakerType::PISTON: {
+            // Create the piston body and a linear motor
+            body = chrono_types::make_shared<ChBody>();
+            body->SetPos(pos + body_pos);
+            body->SetRot(QUNIT);
+            body->SetFixed(false);
+            body->EnableCollision(false);
+            m_sysMBS.AddBody(body);
+
+            auto motor = chrono_types::make_shared<ChLinkMotorLinearPosition>();
+            motor->Initialize(body, m_ground, ChFramed(body->GetPos(), Q_ROTATE_Z_TO_X));
+            motor->SetMotorFunction(piston_fun);
+            m_sysMBS.AddLink(motor);
+
+            break;
+        }
+        case WavemakerType::FLAP: {
+            // Create the flap body and a rotational motor
+            auto rev_pos = pos + body_pos - ChVector3d(0, 0, box_size.z() / 2);
+
+            body_pos.z() -= body_thickness / 2;
+            body_size.z() += body_thickness;
+
+            body = chrono_types::make_shared<ChBody>();
+            body->SetPos(pos + body_pos);
+            body->SetRot(QUNIT);
+            body->SetFixed(false);
+            body->EnableCollision(false);
+            m_sysMBS.AddBody(body);
+
+            auto motor = chrono_types::make_shared<ChLinkMotorRotationAngle>();
+            motor->Initialize(body, m_ground, ChFramed(rev_pos, Q_ROTATE_Z_TO_Y));
+            motor->SetMotorFunction(piston_fun);
+            m_sysMBS.AddLink(motor);
+
+            break;
+        }
+    }
+
+    utils::ChBodyGeometry geometry;
+    geometry.coll_boxes.push_back(utils::ChBodyGeometry::BoxShape(VNULL, QUNIT, body_size));
+    geometry.CreateVisualizationAssets(body, VisualizationType::COLLISION);
+
+    // Add wavemaker body as FSI body
+    auto num_piston_bce = AddRigidBody(body, geometry, true);
+
+    if (m_verbose) {
+        cout << "  Body initialized at:   " << body->GetPos() << endl;
+        cout << "  Num. BCE markers:        " << num_piston_bce << endl;
+    }
+
+    return body;
+}
+
+
+
 
 ChVector3i ChFsiProblemCartesian::Snap2Grid(const ChVector3d& point) {
     return ChVector3i((int)std::round(point.x() / m_spacing),  //
