@@ -248,6 +248,10 @@ class CH_VEHICLE_API ChTMsimpleTire : public ChForceElementTire {
     };
 
     TireStates m_states;
+
+    // The Dahl ODE can be integrated by BDF1 or Trapezoidal Rule
+    // both work, BDF1 is less accurate
+    const bool m_use_bdf1{false};
 };
 
 }  // end namespace vehicle

@@ -236,8 +236,23 @@ void ChTMsimpleTire::CombinedCoulombForces(double& fx, double& fy, double fz, do
     double bry_dot = m_states.vsy - m_par.sigma0 * m_states.bry * fabs(m_states.vsy) / fc;  // dz/dt
     F.y() = -(m_par.sigma0 * m_states.bry + m_par.sigma1 * bry_dot);
     // Calculate the new ODE states (implicit Euler)
-    m_states.brx = (fc * m_states.brx + fc * h * m_states.vsx) / (fc + h * m_par.sigma0 * fabs(m_states.vsx));
-    m_states.bry = (fc * m_states.bry + fc * h * m_states.vsy) / (fc + h * m_par.sigma0 * fabs(m_states.vsy));
+    if (m_use_bdf1) {
+        // Calculate the new ODE states (Backward Euler / BDF1 / Gear1)
+        // implicit, A-stable
+        // Integration error ~ h
+        m_states.brx = (fc * m_states.brx + fc * h * m_states.vsx) / (fc + h * m_par.sigma0 * fabs(m_states.vsx));
+        m_states.bry = (fc * m_states.bry + fc * h * m_states.vsy) / (fc + h * m_par.sigma0 * fabs(m_states.vsy));
+    } else {
+        // Calculate the new ODE states (Trapezoidal Rule)
+        // implicit, A-stable
+        // Integration error ~ h^2
+        m_states.brx = (2.0 * m_states.brx * fc + 2.0 * fc * h * m_states.vsx -
+                        m_states.brx * h * m_par.sigma0 * std::abs(m_states.vsx)) /
+                       (2.0 * fc + h * m_par.sigma0 * std::abs(m_states.vsx));
+        m_states.bry = (2.0 * m_states.bry * fc + 2.0 * fc * h * m_states.vsy -
+                        m_states.bry * h * m_par.sigma0 * std::abs(m_states.vsy)) /
+                       (2.0 * fc + h * m_par.sigma0 * std::abs(m_states.vsy));
+    }
     // combine forces (friction circle)
     if (F.Length() > fz * muscale) {
         F.Normalize();
