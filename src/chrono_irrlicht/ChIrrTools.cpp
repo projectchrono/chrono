@@ -10,11 +10,15 @@
 //
 // =============================================================================
 
+#include <cmath>
+
 #include "chrono/solver/ChIterativeSolverVI.h"
+#include "chrono/solver/ChIterativeSolverLS.h"
 #include "chrono/physics/ChContactContainer.h"
 #include "chrono/physics/ChLinkMate.h"
 #include "chrono/assets/ChColor.h"
 #include "chrono/utils/ChProfiler.h"
+#include "chrono/utils/ChUtils.h"
 
 #include "chrono_irrlicht/ChIrrTools.h"
 #include "chrono_irrlicht/ChVisualSystemIrrlicht.h"
@@ -186,6 +190,10 @@ class _draw_reporter_class : public ChContactContainer::ReportContactCallback {
                 break;
             case ContactsDrawMode::CONTACT_NORMALS:
                 v2 = pA + vn * clen;
+
+                v1 = pB;
+                v2 = pB - vn * clen;
+
                 mcol = irr::video::SColor(200, 0, 100, 255);
                 break;
             case ContactsDrawMode::CONTACT_FORCES_N:
@@ -556,24 +564,31 @@ int drawAllLinkframes(ChVisualSystemIrrlicht* vis, double scale) {
 // -----------------------------------------------------------------------------
 // -----------------------------------------------------------------------------
 void drawHUDviolation(ChVisualSystemIrrlicht* vis, int pos_x, int pos_y, int width, int height) {
-    auto solver = std::dynamic_pointer_cast<ChIterativeSolverVI>(vis->GetSystem(0).GetSolver());
-    if (!solver)
+    auto solver = std::dynamic_pointer_cast<ChIterativeSolver>(vis->GetSystem(0).GetSolver());
+    if (!solver || solver->GetIterations() == 0)
         return;
 
-    solver->SetRecordViolation(true);
+    auto solver_vi = std::dynamic_pointer_cast<ChIterativeSolverVI>(solver);
+
+    if (solver_vi)
+        solver_vi->SetRecordViolation(true);
 
     double solver_tol = solver->GetTolerance();
-    int tolerance_line_y = (int)(height * 0.75);
+    int tolerance_line_y = (int)(height * 0.66);
     // the iterative solvers have a default tolerance of 0, so we need to have a guard against division by zero
     if (solver->GetTolerance() == 0) {
         tolerance_line_y = height - 1;
         solver_tol = 1e-6;
     }
-    double deltalambda_max =
-        *std::max_element(solver->GetDeltalambdaHistory().begin(), solver->GetDeltalambdaHistory().end());
 
-    int num_bars = std::min((int)solver->GetViolationHistory().size(), 50);
-    double num_it_per_bar = (double)solver->GetViolationHistory().size() / (double)num_bars;
+    double deltalambda_max =
+        solver_vi ? *std::max_element(solver_vi->GetDeltalambdaHistory().begin(),
+                                      solver_vi->GetDeltalambdaHistory().begin() + solver->GetIterations())
+                  : 1.0;
+
+    // WARNING: here it is assumed that non-VI solvers have no error history
+    int num_bars = solver_vi ? std::min((int)solver->GetMaxIterations(), 50) : 1;
+    double num_it_per_bar = solver_vi ? (double)solver->GetMaxIterations() / (double)num_bars : 1;
     // width = num_spacings*spacing_width + num_bars*viol_bar_width
     // num_spacings = num_bars + 1
     // spacing_width = 1/4*viol_bar_width;
@@ -581,48 +596,52 @@ void drawHUDviolation(ChVisualSystemIrrlicht* vis, int pos_x, int pos_y, int wid
     int viol_bar_width = (int)viol_bar_width_D;
     int spacing_width = std::max((int)(viol_bar_width_D / 4.), 1);
     int lamb_bar_width = std::min((int)(3.0 / 4.0 * viol_bar_width_D), viol_bar_width - 1);
-
     int actual_width = num_bars * viol_bar_width + (num_bars + 1) * spacing_width;
 
     irr::core::rect<s32> mrect(pos_x, pos_y, pos_x + actual_width, pos_y + height);
     vis->GetVideoDriver()->draw2DRectangle(irr::video::SColor(100, 200, 200, 230), mrect);
     int cur_bar = -1;
-    double cur_violation = 0;
+    double cur_error = 0;
     double cur_deltalambda = 0;
 
-    for (auto i = 0; i < solver->GetViolationHistory().size(); i++) {
-        cur_deltalambda = std::max(cur_deltalambda, solver->GetDeltalambdaHistory()[i]);
+    std::function<double(int)> getErrorI;
+    if (solver_vi)
+        getErrorI = [solver_vi](int i) { return solver_vi->GetViolationHistory().at(i); };
+    else
+        getErrorI = [solver](int i) { return solver->GetError(); };
 
-        if (i >= num_it_per_bar * (cur_bar + 1) || i == solver->GetViolationHistory().size() - 1) {
-            cur_violation = solver->GetViolationHistory()[i];
+    for (auto i = 0; i < solver->GetIterations(); i++) {
+        cur_deltalambda = solver_vi ? std::max(cur_deltalambda, solver_vi->GetDeltalambdaHistory().at(i)) : 0;
 
+        if (i >= num_it_per_bar * (cur_bar + 1) || i == solver->GetIterations() - 1) {
+            cur_error = ChClamp(getErrorI(i), solver_tol / 10.0, solver_tol * 100.0);
             cur_bar++;
-
             int pos_rect_x_start = spacing_width + cur_bar * (viol_bar_width + spacing_width);
+            int bar_height = (int)(height * ((1.0 - std::log10(solver_tol) + std::log10(cur_error)) / 3.0));
 
-            // printing the violation bar
+            // draw the error bar (red)
             vis->GetVideoDriver()->draw2DRectangle(
                 irr::video::SColor(90, 255, 0, 0),
-                irr::core::rect<s32>(
-                    pos_x + pos_rect_x_start,
-                    pos_y + height - std::min(height, (int)(0.25 * height * (cur_violation / solver_tol))),
-                    pos_x + pos_rect_x_start + viol_bar_width, pos_y + height),
+                irr::core::rect<s32>(pos_x + pos_rect_x_start, pos_y + height - std::min(height, bar_height),
+                                     pos_x + pos_rect_x_start + viol_bar_width, pos_y + height),
                 &mrect);
 
-            // printing the tolerance line
+            // draw the tolerance line
             vis->GetVideoDriver()->draw2DLine(
                 irr::core::position2d<s32>(pos_x, pos_y + tolerance_line_y),
                 irr::core::position2d<s32>(pos_x + actual_width, pos_y + tolerance_line_y),
                 irr::video::SColor(90, 255, 0, 20));
 
-            // printing the delta lambda bar
-            vis->GetVideoDriver()->draw2DRectangle(
-                irr::video::SColor(100, 255, 255, 0),
-                irr::core::rect<s32>(
-                    pos_x + pos_rect_x_start,
-                    pos_y + height - std::min(height, (int)((double)height * (cur_deltalambda / deltalambda_max))),
-                    pos_x + pos_rect_x_start + lamb_bar_width, pos_y + height),
-                &mrect);
+            if (solver_vi) {
+                // draw the delta lambda bar (yellow)
+                vis->GetVideoDriver()->draw2DRectangle(
+                    irr::video::SColor(100, 255, 255, 0),
+                    irr::core::rect<s32>(
+                        pos_x + pos_rect_x_start,
+                        pos_y + height - std::min(height, (int)((double)height * (cur_deltalambda / deltalambda_max))),
+                        pos_x + pos_rect_x_start + lamb_bar_width, pos_y + height),
+                    &mrect);
+            }
 
             // reset counters
             cur_deltalambda = 0;
@@ -632,12 +651,21 @@ void drawHUDviolation(ChVisualSystemIrrlicht* vis, int pos_x, int pos_y, int wid
     if (vis->GetDevice()->getGUIEnvironment()) {
         gui::IGUIFont* font = vis->GetDevice()->getGUIEnvironment()->getBuiltInFont();
         if (font) {
-            char buffer[100];
-            snprintf(buffer, sizeof(buffer), "Violation %g", solver->GetViolationHistory().back());
-            font->draw(irr::core::stringw(buffer).c_str(),
+            // print solver iterations at last solve
+            char buffer0[100];
+            snprintf(buffer0, sizeof(buffer0), "Iters: %d", solver->GetIterations());
+            font->draw(irr::core::stringw(buffer0).c_str(),
                        irr::core::rect<s32>(pos_x, pos_y, pos_x + actual_width, pos_y + 10),
                        irr::video::SColor(200, 100, 0, 0));
 
+            // print solver error
+            char buffer1[100];
+            snprintf(buffer1, sizeof(buffer1), "Error %g", solver->GetError());
+            font->draw(irr::core::stringw(buffer1).c_str(),
+                       irr::core::rect<s32>(pos_x, pos_y + 10, pos_x + actual_width, pos_y + 20),
+                       irr::video::SColor(200, 100, 0, 0));
+
+            // print solver tolerance
             char buffer2[100];
             snprintf(buffer2, sizeof(buffer2), "Tolerance: %g", solver->GetTolerance());
             font->draw(irr::core::stringw(buffer2).c_str(),
@@ -645,11 +673,15 @@ void drawHUDviolation(ChVisualSystemIrrlicht* vis, int pos_x, int pos_y, int wid
                                             pos_y + tolerance_line_y + 2),
                        irr::video::SColor(200, 100, 0, 0));
 
-            char buffer3[100];
-            snprintf(buffer3, sizeof(buffer3), "DLambda %g", solver->GetDeltalambdaHistory().back());
-            font->draw(irr::core::stringw(buffer3).c_str(),
-                       irr::core::rect<s32>(pos_x, pos_y + 10, pos_x + actual_width, pos_y + 20),
-                       irr::video::SColor(200, 200, 200, 0));
+            // print solver delta lambda
+            if (solver_vi) {
+                char buffer3[100];
+                snprintf(buffer3, sizeof(buffer3), "DLambda %g",
+                         solver_vi->GetDeltalambdaHistory().at(solver->GetIterations() - 1));
+                font->draw(irr::core::stringw(buffer3).c_str(),
+                           irr::core::rect<s32>(pos_x, pos_y + 20, pos_x + actual_width, pos_y + 30),
+                           irr::video::SColor(200, 100, 0, 0));
+            }
         }
     }
 }
@@ -764,8 +796,8 @@ void drawCircle(ChVisualSystemIrrlicht* vis,
 
     for (int iu = 1; iu <= resolution; iu++) {
         phaseB = CH_2PI * (double)iu / (double)resolution;
-        ChVector3d V1(radius * cos(phaseA), radius * sin(phaseA), 0);
-        ChVector3d V2(radius * cos(phaseB), radius * sin(phaseB), 0);
+        ChVector3d V1(radius * std::cos(phaseA), radius * std::sin(phaseA), 0);
+        ChVector3d V2(radius * std::cos(phaseB), radius * std::sin(phaseB), 0);
         drawSegment(vis, pos.TransformPointLocalToParent(V1), pos.TransformPointLocalToParent(V2), col, use_Zbuffer);
         phaseA = phaseB;
     }
@@ -804,8 +836,8 @@ void drawSpring(ChVisualSystemIrrlicht* vis,
     for (int iu = 1; iu <= resolution; iu++) {
         phaseB = turns * CH_2PI * (double)iu / (double)resolution;
         heightB = length * ((double)iu / (double)resolution);
-        ChVector3d V1(heightA, radius * cos(phaseA), radius * sin(phaseA));
-        ChVector3d V2(heightB, radius * cos(phaseB), radius * sin(phaseB));
+        ChVector3d V1(heightA, radius * std::cos(phaseA), radius * std::sin(phaseA));
+        ChVector3d V2(heightB, radius * std::cos(phaseB), radius * std::sin(phaseB));
         drawSegment(vis, pos.TransformPointLocalToParent(V1), pos.TransformPointLocalToParent(V2), col, use_Zbuffer);
         phaseA = phaseB;
         heightA = heightB;

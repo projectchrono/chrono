@@ -282,83 +282,106 @@ void PrintParticleToFile(const thrust::device_vector<Real4>& posRadD,
 }
 
 void PrintFsiInfoToFile(const thrust::device_vector<Real3>& posRigidD,
-                        const thrust::device_vector<Real4>& velRigidD,
                         const thrust::device_vector<Real4>& qRigidD,
-                        const thrust::device_vector<Real3>& posNodeD,
-                        const thrust::device_vector<Real3>& velNodeD,
-                        const thrust::host_vector<Real3>& forceRigid,
-                        const thrust::host_vector<Real3>& torqueRigid,
-                        const thrust::host_vector<Real3>& forceNode,
+                        const thrust::device_vector<Real4>& velRigidD,
+                        const thrust::device_vector<Real3>& pos1DNodeD,
+                        const thrust::device_vector<Real3>& pos2DNodeD,
+                        const thrust::device_vector<Real3>& vel1DNodeD,
+                        const thrust::device_vector<Real3>& vel2DNodeD,
+                        const thrust::device_vector<Real3>& forceRigidD,
+                        const thrust::device_vector<Real3>& torqueRigidD,
+                        const thrust::device_vector<Real3>& force1DNodeD,
+                        const thrust::device_vector<Real3>& force2DNodeD,
                         const std::string& dir,
                         const double time) {
+    std::string delim = ",";
+    bool create_file = (time <= 1e-8);
+
+    // Output FSI information for rigid bodies
     thrust::host_vector<Real3> posRigidH = posRigidD;
     thrust::host_vector<Real4> velRigidH = velRigidD;
     thrust::host_vector<Real4> qRigidH = qRigidD;
-    thrust::host_vector<Real3> posNodeH = posNodeD;
-    thrust::host_vector<Real3> velNodeH = velNodeD;
+    thrust::host_vector<Real3> forceRigidH = forceRigidD;
+    thrust::host_vector<Real3> torqueRigidH = torqueRigidD;
+    thrust::host_vector<Real3> force1DNodeH = force1DNodeD;
+    thrust::host_vector<Real3> force2DNodeH = force2DNodeD;
 
-    std::string delim = ",";
-    
-    // Output fsi information for rigid bodies
     size_t numRigids = posRigidH.size();
     for (size_t i = 0; i < numRigids; i++) {
-        Real3 mforce = forceRigid[i];
-        Real3 mtorque = torqueRigid[i];
+        Real3 force = forceRigidH[i];
+        Real3 torque = torqueRigidH[i];
 
-        // Output FSI information into csv files for each body.
-        // Enabled when an output directory is specified.
-        {
-            Real3 pos = posRigidH[i];
-            Real4 vel = velRigidH[i];
-            Real4 rot = qRigidH[i];
+        Real3 pos = posRigidH[i];
+        Real4 vel = velRigidH[i];
+        Real4 rot = qRigidH[i];
 
-            std::string filename = dir + "/FSI_body" + std::to_string(i) + ".csv";
-            std::ofstream file;
-            if (time > 1.0e-8)
-                file.open(filename, std::fstream::app);
-            else {
-                file.open(filename);
-                file << "Time" << delim << "x" << delim << "y" << delim << "z" << delim << "q0" << delim << "q1"
-                     << delim << "q2" << delim << "q3" << delim << "Vx" << delim << "Vy" << delim << "Vz" << delim
-                     << "Fx" << delim << "Fy" << delim << "Fz" << delim << "Tx" << delim << "Ty" << delim << "Tz"
-                     << std::endl;
-            }
+        std::string filename = dir + "/FSI_body" + std::to_string(i) + ".csv";
+        std::ofstream file;
+        if (create_file) {
+            file.open(filename);
+            file << "Time" << delim << "x" << delim << "y" << delim << "z" << delim << "q0" << delim << "q1" << delim
+                 << "q2" << delim << "q3" << delim << "Vx" << delim << "Vy" << delim << "Vz" << delim << "Fx" << delim
+                 << "Fy" << delim << "Fz" << delim << "Tx" << delim << "Ty" << delim << "Tz" << std::endl;
+        } else
+            file.open(filename, std::fstream::app);
 
-            file << time << delim << pos.x << delim << pos.y << delim << pos.z << delim
-                 << rot.x << delim << rot.y << delim << rot.z << delim << rot.w << delim << vel.x << delim
-                 << vel.y << delim << vel.z << delim << mforce.x << delim << mforce.y << delim << mforce.z
-                 << delim << mtorque.x << delim << mtorque.y << delim << mtorque.z << std::endl;
-            file.close();
-        }
+        file << time << delim << pos.x << delim << pos.y << delim << pos.z << delim << rot.x << delim << rot.y << delim
+             << rot.z << delim << rot.w << delim << vel.x << delim << vel.y << delim << vel.z << delim << force.x
+             << delim << force.y << delim << force.z << delim << torque.x << delim << torque.y << delim << torque.z
+             << std::endl;
+        file.close();
     }
 
-    // Output fsi information for flexible bodies
-    size_t numNodes = posNodeH.size();
-    for (size_t i = 0; i < numNodes; i++) {
-        Real3 mforce = forceNode[i];
+    // Output FSI information for nodes in 1-D flexible solids
+    thrust::host_vector<Real3> pos1DNodeH = pos1DNodeD;
+    thrust::host_vector<Real3> vel1DNodeH = vel1DNodeD;
 
-        // Output FSI information into csv files for each node.
-        // Enabled when an output directory is specified.
-        {
-            Real3 pos = posNodeH[i];
-            Real3 vel = velNodeH[i];
-            std::string filename = dir + "/FSI_node" + std::to_string(i) + ".csv";
-            std::ofstream file;
-            if (time > 1.0e-8)
-                file.open(filename, std::fstream::app);
-            else {
-                file.open(filename);
-                file << "Time" << delim << "x" << delim << "y" << delim << "z" << delim << "Vx" << delim << "Vy"
-                     << delim << "Vz" << delim << "Fx" << delim << "Fy" << delim << "Fz" << std::endl;
-            }
+    size_t numNodes1D = pos1DNodeH.size();
 
-            file << time << delim << pos.x << delim << pos.y << delim << pos.z << delim << vel.x
-                 << delim << vel.y << delim << vel.z << delim << mforce.x << delim << mforce.y << delim
-                 << mforce.z << std::endl;
-            file.close();
-        }
+    for (size_t i = 0; i < numNodes1D; i++) {
+        Real3 force = force1DNodeH[i];
+
+        Real3 pos = pos1DNodeH[i];
+        Real3 vel = vel1DNodeH[i];
+        std::string filename = dir + "/FSI_1Dnode" + std::to_string(i) + ".csv";
+        std::ofstream file;
+
+        if (create_file) {
+            file.open(filename);
+            file << "Time" << delim << "x" << delim << "y" << delim << "z" << delim << "Vx" << delim << "Vy" << delim
+                 << "Vz" << delim << "Fx" << delim << "Fy" << delim << "Fz" << std::endl;
+        } else
+            file.open(filename, std::fstream::app);
+
+        file << time << delim << pos.x << delim << pos.y << delim << pos.z << delim << vel.x << delim << vel.y << delim
+             << vel.z << delim << force.x << delim << force.y << delim << force.z << std::endl;
+        file.close();
     }
 
+    // Output FSI information for nodes in 2-D flexible solids
+    thrust::host_vector<Real3> pos2DNodeH = pos2DNodeD;
+    thrust::host_vector<Real3> vel2DNodeH = vel2DNodeD;
+
+    size_t numNodes2D = pos2DNodeH.size();
+
+    for (size_t i = 0; i < numNodes2D; i++) {
+        Real3 force = force2DNodeH[i];
+
+        Real3 pos = pos2DNodeH[i];
+        Real3 vel = vel2DNodeH[i];
+        std::string filename = dir + "/FSI_2Dnode" + std::to_string(i) + ".csv";
+        std::ofstream file;
+        if (create_file) {
+            file.open(filename);
+            file << "Time" << delim << "x" << delim << "y" << delim << "z" << delim << "Vx" << delim << "Vy" << delim
+                 << "Vz" << delim << "Fx" << delim << "Fy" << delim << "Fz" << std::endl;
+        } else
+            file.open(filename, std::fstream::app);
+
+        file << time << delim << pos.x << delim << pos.y << delim << pos.z << delim << vel.x << delim << vel.y << delim
+             << vel.z << delim << force.x << delim << force.y << delim << force.z << std::endl;
+        file.close();
+    }
 }
 
 void WriteCsvParticlesToFile(thrust::device_vector<Real4>& posRadD,

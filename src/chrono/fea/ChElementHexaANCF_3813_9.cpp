@@ -566,14 +566,14 @@ void Brick9_Force::Evaluate(ChVectorN<double, 33>& result, const double x, const
                         devStress.x() = StressK_eig(0) - hydroP;
                         devStress.y() = StressK_eig(1) - hydroP;
                         devStress.z() = StressK_eig(2) - hydroP;
-                        NormSn = sqrt(devStress.x() * devStress.x() + devStress.y() * devStress.y() +
-                                      devStress.z() * devStress.z());
+                        NormSn = std::sqrt(devStress.x() * devStress.x() + devStress.y() * devStress.y() +
+                                           devStress.z() * devStress.z());
 
                         // Second invariant of the stress tensor (J2)
-                        J2Rt = NormSn / sqrt(2.0);
+                        J2Rt = NormSn / std::sqrt(2.0);
 
                         // Trial (elastic) deviatoric stress for yield function
-                        double qtrial = sqrt(3.0) * J2Rt;
+                        double qtrial = std::sqrt(3.0) * J2Rt;
 
                         // Evaluation of J2 yield function
                         YieldFunc =
@@ -608,9 +608,9 @@ void Brick9_Force::Evaluate(ChVectorN<double, 33>& result, const double x, const
                             LogStrain(2) = devStressUp.z() / (2.0 * G) + EEVD3;
 
                             // Obtain eigenvalues current logarithmic strains
-                            lambda.x() = exp(2.0 * LogStrain(0));
-                            lambda.y() = exp(2.0 * LogStrain(1));
-                            lambda.z() = exp(2.0 * LogStrain(2));
+                            lambda.x() = std::exp(2.0 * LogStrain(0));
+                            lambda.y() = std::exp(2.0 * LogStrain(1));
+                            lambda.z() = std::exp(2.0 * LogStrain(2));
 
                             // Updated elastic left Cauchy strain tensor
                             ChMatrixNM<double, 3, 3> BEUP = lambda.x() * MM1 + lambda.y() * MM2 + lambda.z() * MM3;
@@ -660,10 +660,10 @@ void Brick9_Force::Evaluate(ChVectorN<double, 33>& result, const double x, const
                         devStress.y() = 2.0 * G * (LogStrain(1) - EEVD3);
                         devStress.z() = 2.0 * G * (LogStrain(2) - EEVD3);
                         // Euclidean natural norm of the second-order tensor
-                        NormSn = sqrt(devStress.x() * devStress.x() + devStress.y() * devStress.y() +
+                        NormSn = std::sqrt(devStress.x() * devStress.x() + devStress.y() * devStress.y() +
                                       devStress.z() * devStress.z());
 
-                        J2Rt = NormSn / sqrt(2.0);
+                        J2Rt = NormSn / std::sqrt(2.0);
 
                         double phi = m_element->m_FrictionAngle * CH_DEG_TO_RAD;    // Friction angle
                         double phi2 = m_element->m_DilatancyAngle * CH_DEG_TO_RAD;  // Dilatancy angle
@@ -675,19 +675,19 @@ void Brick9_Force::Evaluate(ChVectorN<double, 33>& result, const double x, const
 
                         switch (m_element->m_DPHardening) {
                             case 1:  // Tension corresponding to Abaqus model
-                                eta = tan(phi) / sqrt(3.0);
-                                gsi = (1.0 + tan(phi) / 3.0) / sqrt(3.0);
-                                etab = tan(phi2) / sqrt(3.0);
+                                eta = std::tan(phi) / std::sqrt(3.0);
+                                gsi = (1.0 + tan(phi) / 3.0) / std::sqrt(3.0);
+                                etab = tan(phi2) / std::sqrt(3.0);
                                 break;
                             case 2:  // Compression corresponding to Abaqus model
-                                eta = tan(phi) / sqrt(3.0);
-                                gsi = (1.0 - tan(phi) / 3.0) / sqrt(3.0);
-                                etab = tan(phi2) / sqrt(3.0);
+                                eta = std::tan(phi) / std::sqrt(3.0);
+                                gsi = (1.0 - std::tan(phi) / 3.0) / std::sqrt(3.0);
+                                etab = std::tan(phi2) / std::sqrt(3.0);
                                 break;
                             case 3:  // Shear corresponding to Abaqus model
-                                eta = tan(phi) / sqrt(3.0);
-                                gsi = 1.0 / sqrt(3.0);
-                                etab = tan(phi2) / sqrt(3.0);
+                                eta = std::tan(phi) / std::sqrt(3.0);
+                                gsi = 1.0 / std::sqrt(3.0);
+                                etab = std::tan(phi2) / std::sqrt(3.0);
                                 break;
                         }
 
@@ -776,9 +776,9 @@ void Brick9_Force::Evaluate(ChVectorN<double, 33>& result, const double x, const
                                 LogStrain(2) = devStressUp.z() / (2.0 * G) + hydroPUp / (3.0 * K);
                             }
                             // Update eigenvalues of strain tensor
-                            lambda.x() = exp(2.0 * LogStrain(0));
-                            lambda.y() = exp(2.0 * LogStrain(1));
-                            lambda.z() = exp(2.0 * LogStrain(2));
+                            lambda.x() = std::exp(2.0 * LogStrain(0));
+                            lambda.y() = std::exp(2.0 * LogStrain(1));
+                            lambda.z() = std::exp(2.0 * LogStrain(2));
                             // Updated left Cauchy-Green strain tensor
                             ChMatrixNM<double, 3, 3> BEUP = lambda.x() * MM1 + lambda.y() * MM2 + lambda.z() * MM3;
                             // Obtain plastic deformation tensor
@@ -830,10 +830,10 @@ void Brick9_Force::Evaluate(ChVectorN<double, 33>& result, const double x, const
                         devStress.y() = 2.0 * G * (LogStrain(1) - EEVD3);
                         devStress.z() = 2.0 * G * (LogStrain(2) - EEVD3);
                         // Euclidean natural norm of the second-order tensor
-                        NormSn = sqrt(devStress.x() * devStress.x() + devStress.y() * devStress.y() +
-                                      devStress.z() * devStress.z());
+                        NormSn = std::sqrt(devStress.x() * devStress.x() + devStress.y() * devStress.y() +
+                                           devStress.z() * devStress.z());
 
-                        J2Rt = NormSn / sqrt(2.0);
+                        J2Rt = NormSn / std::sqrt(2.0);
 
                         double phi = m_element->m_FrictionAngle * CH_DEG_TO_RAD;    // Friction angle
                         double phi2 = m_element->m_DilatancyAngle * CH_DEG_TO_RAD;  // Dilatancy angle
@@ -845,19 +845,19 @@ void Brick9_Force::Evaluate(ChVectorN<double, 33>& result, const double x, const
 
                         switch (m_element->m_DPHardening) {
                             case 1:  // Tension corresponding to Abaqus model
-                                eta = tan(phi) / sqrt(3.0);
-                                gsi = (1.0 + tan(phi) / 3.0) / sqrt(3.0);
-                                etab = tan(phi2) / sqrt(3.0);
+                                eta = std::tan(phi) / std::sqrt(3.0);
+                                gsi = (1.0 + std::tan(phi) / 3.0) / std::sqrt(3.0);
+                                etab = std::tan(phi2) / std::sqrt(3.0);
                                 break;
                             case 2:  // Compression corresponding to Abaqus model
-                                eta = tan(phi) / sqrt(3.0);
-                                gsi = (1.0 - tan(phi) / 3.0) / sqrt(3.0);
-                                etab = tan(phi2) / sqrt(3.0);
+                                eta = std::tan(phi) / std::sqrt(3.0);
+                                gsi = (1.0 - std::tan(phi) / 3.0) / std::sqrt(3.0);
+                                etab = std::tan(phi2) / std::sqrt(3.0);
                                 break;
                             case 3:  // Shear corresponding to Abaqus model
-                                eta = tan(phi) / sqrt(3.0);
-                                gsi = 1.0 / sqrt(3.0);
-                                etab = tan(phi2) / sqrt(3.0);
+                                eta = std::tan(phi) / std::sqrt(3.0);
+                                gsi = 1.0 / std::sqrt(3.0);
+                                etab = std::tan(phi2) / std::sqrt(3.0);
                                 break;
                         }
 
@@ -883,7 +883,7 @@ void Brick9_Force::Evaluate(ChVectorN<double, 33>& result, const double x, const
 
                         // CAP yield function
                         hydroPt = beta1 * m_element->m_YieldStress;
-                        double CapM = sqrt(3.0) * eta;
+                        double CapM = std::sqrt(3.0) * eta;
 
                         double MeanEffP;
                         double Hi;
@@ -893,7 +893,8 @@ void Brick9_Force::Evaluate(ChVectorN<double, 33>& result, const double x, const
 
                         YieldFunc_Cap = (1.0 / (m_element->m_DPCapBeta * m_element->m_DPCapBeta)) *
                                             (hydroP - hydroPt + MeanEffP) * (hydroP - hydroPt + MeanEffP) +
-                                        (sqrt(3.0) * J2Rt / CapM) * (sqrt(3.0) * J2Rt / CapM) - MeanEffP * MeanEffP;
+                                        (std::sqrt(3.0) * J2Rt / CapM) * (std::sqrt(3.0) * J2Rt / CapM) -
+                                        MeanEffP * MeanEffP;
 
                         double SQRJ2T = J2Rt;
                         double PT = hydroP;
@@ -982,7 +983,7 @@ void Brick9_Force::Evaluate(ChVectorN<double, 33>& result, const double x, const
                                 // Evaluate initial 2 residual vectors
                                 double Res01 = (1.0 / (m_element->m_DPCapBeta * m_element->m_DPCapBeta)) *
                                                    (P - hydroPt + MeanEffP) * (P - hydroPt + MeanEffP) +
-                                               (sqrt(3.0) * SQRJ2 / CapM) * (sqrt(3.0) * SQRJ2 / CapM) -
+                                               (std::sqrt(3.0) * SQRJ2 / CapM) * (std::sqrt(3.0) * SQRJ2 / CapM) -
                                                MeanEffP * MeanEffP;
                                 double Res02 = EPBAR - EPBARN +
                                                DGamma * 2.0 / (m_element->m_DPCapBeta * m_element->m_DPCapBeta) *
@@ -1001,8 +1002,8 @@ void Brick9_Force::Evaluate(ChVectorN<double, 33>& result, const double x, const
                                 double DALPHA;
                                 for (int ii = 0; ii < m_element->GetDPIterationNo(); ii++) {
                                     Acof = P - hydroPt + MeanEffP;
-                                    A11 = -12.0 * G / (CapM * CapM + 6.0 * G * DGamma) * (sqrt(3.0) * SQRJ2 / CapM) *
-                                          (sqrt(3.0) * SQRJ2 / CapM);
+                                    A11 = -12.0 * G / (CapM * CapM + 6.0 * G * DGamma) *
+                                          (std::sqrt(3.0) * SQRJ2 / CapM) * (std::sqrt(3.0) * SQRJ2 / CapM);
                                     A12 = 2.0 * Acof / (m_element->m_DPCapBeta * m_element->m_DPCapBeta) * (K + Hi) -
                                           2.0 * MeanEffP * Hi;
                                     A21 = 2.0 * Acof / (m_element->m_DPCapBeta * m_element->m_DPCapBeta);
@@ -1036,20 +1037,20 @@ void Brick9_Force::Evaluate(ChVectorN<double, 33>& result, const double x, const
 
                                     Res01 = (1.0 / (m_element->m_DPCapBeta * m_element->m_DPCapBeta)) *
                                                 (P - hydroPt + MeanEffP) * (P - hydroPt + MeanEffP) +
-                                            (sqrt(3.0) * SQRJ2 / CapM) * (sqrt(3.0) * SQRJ2 / CapM) -
+                                            (std::sqrt(3.0) * SQRJ2 / CapM) * (std::sqrt(3.0) * SQRJ2 / CapM) -
                                             MeanEffP * MeanEffP;
                                     Res02 = EPBAR - EPBARN +
                                             DGamma * 2.0 / (m_element->m_DPCapBeta * m_element->m_DPCapBeta) *
                                                 (P - hydroPt + MeanEffP);
 
                                     if (std::abs(Hi) < m_element->GetDPYieldTol()) {
-                                        if (sqrt(Res01 * Res01) < m_element->GetDPYieldTol() &&
-                                            sqrt(Res02 * Res02) < m_element->GetDPYieldTol())
+                                        if (std::sqrt(Res01 * Res01) < m_element->GetDPYieldTol() &&
+                                            std::sqrt(Res02 * Res02) < m_element->GetDPYieldTol())
 
                                             break;
                                     } else {
-                                        if (sqrt(Res01 * Res01) / std::abs(Hi) < m_element->GetDPYieldTol() &&
-                                            sqrt(Res02 * Res02) / std::abs(Hi) < m_element->GetDPYieldTol())
+                                        if (std::sqrt(Res01 * Res01) / std::abs(Hi) < m_element->GetDPYieldTol() &&
+                                            std::sqrt(Res02 * Res02) / std::abs(Hi) < m_element->GetDPYieldTol())
 
                                             break;
                                     }
@@ -1078,7 +1079,7 @@ void Brick9_Force::Evaluate(ChVectorN<double, 33>& result, const double x, const
                                     // initial resid vector
                                     Res01 = (1.0 / (m_element->m_DPCapBeta * m_element->m_DPCapBeta)) *
                                                 (P - hydroPt + MeanEffP) * (P - hydroPt + MeanEffP) +
-                                            (sqrt(3.0) * SQRJ2 / CapM) * (sqrt(3.0) * SQRJ2 / CapM) -
+                                            (std::sqrt(3.0) * SQRJ2 / CapM) * (std::sqrt(3.0) * SQRJ2 / CapM) -
                                             MeanEffP * MeanEffP;
                                     double DGamma_B1;
                                     double Res11;
@@ -1100,7 +1101,7 @@ void Brick9_Force::Evaluate(ChVectorN<double, 33>& result, const double x, const
                                         // Check yield functions
                                         Res11 = (1.0 / (m_element->m_DPCapBeta * m_element->m_DPCapBeta)) *
                                                     (P - hydroPt + MeanEffP) * (P - hydroPt + MeanEffP) +
-                                                (sqrt(3.0) * SQRJ2 / CapM) * (sqrt(3.0) * SQRJ2 / CapM) -
+                                                (std::sqrt(3.0) * SQRJ2 / CapM) * (std::sqrt(3.0) * SQRJ2 / CapM) -
                                                 MeanEffP * MeanEffP;
                                         DRes01 = (Res11 - Res01) / 1e-10;
 
@@ -1129,7 +1130,7 @@ void Brick9_Force::Evaluate(ChVectorN<double, 33>& result, const double x, const
                                         // Check yield functions
                                         Res01 = (1.0 / (m_element->m_DPCapBeta * m_element->m_DPCapBeta)) *
                                                     (P - hydroPt + MeanEffP) * (P - hydroPt + MeanEffP) +
-                                                (sqrt(3.0) * SQRJ2 / CapM) * (sqrt(3.0) * SQRJ2 / CapM) -
+                                                (std::sqrt(3.0) * SQRJ2 / CapM) * (std::sqrt(3.0) * SQRJ2 / CapM) -
                                                 MeanEffP * MeanEffP;
                                         if (std::abs(Hi) < m_element->GetDPYieldTol()) {
                                             if (std::abs(Res01) < m_element->GetDPYieldTol())
@@ -1180,9 +1181,9 @@ void Brick9_Force::Evaluate(ChVectorN<double, 33>& result, const double x, const
                                 }  // end if of transition return mapping
                             }      // end if Cap return mapping
                             // Update eigenvalues of strain tensor
-                            lambda.x() = exp(2.0 * LogStrain(0));
-                            lambda.y() = exp(2.0 * LogStrain(1));
-                            lambda.z() = exp(2.0 * LogStrain(2));
+                            lambda.x() = std::exp(2.0 * LogStrain(0));
+                            lambda.y() = std::exp(2.0 * LogStrain(1));
+                            lambda.z() = std::exp(2.0 * LogStrain(2));
                             // Updated left Cauchy-Green strain tensor
                             ChMatrixNM<double, 3, 3> BEUP = lambda.x() * MM1 + lambda.y() * MM2 + lambda.z() * MM3;
                             CCPinv = FI * BEUP * FI.transpose();
@@ -1631,13 +1632,13 @@ void Brick9_Jacobian::Evaluate(ChMatrixNM<double, 33, 33>& result, const double 
                         devStress.x() = StressK_eig(0) - hydroP;
                         devStress.y() = StressK_eig(1) - hydroP;
                         devStress.z() = StressK_eig(2) - hydroP;
-                        NormSn = sqrt(devStress.x() * devStress.x() + devStress.y() * devStress.y() +
-                                      devStress.z() * devStress.z());
+                        NormSn = std::sqrt(devStress.x() * devStress.x() + devStress.y() * devStress.y() +
+                                           devStress.z() * devStress.z());
 
                         // Second invariant of the stress tensor (J2)
-                        J2Rt = NormSn / sqrt(2.0);
+                        J2Rt = NormSn / std::sqrt(2.0);
                         // Trial stress for yield function
-                        double qtrial = sqrt(3.0) * J2Rt;
+                        double qtrial = std::sqrt(3.0) * J2Rt;
 
                         // Evaluation of J2 yield function
                         YieldFunc =
@@ -1655,7 +1656,7 @@ void Brick9_Jacobian::Evaluate(ChMatrixNM<double, 33, 33>& result, const double 
                             DeltaGamma = YieldFunc / (3.0 * G + m_element->m_HardeningSlope);
 
                             // Obtain some terms necessary for plastic Jacobian of internal forces
-                            qtrial = sqrt(3.0 / 2.0) * NormSn + 3.0 * G * DeltaGamma;
+                            qtrial = std::sqrt(3.0 / 2.0) * NormSn + 3.0 * G * DeltaGamma;
                             double AFACT = 2.0 * G * (1.0 - 3.0 * G * DeltaGamma / qtrial);
                             double BFACT = 6.0 * G * G *
                                            (DeltaGamma / qtrial - 1.0 / (3.0 * G + m_element->m_HardeningSlope)) /
@@ -1730,10 +1731,10 @@ void Brick9_Jacobian::Evaluate(ChMatrixNM<double, 33, 33>& result, const double 
                         devStress.y() = 2.0 * G * (LogStrain(1) - EEVD3);
                         devStress.z() = 2.0 * G * (LogStrain(2) - EEVD3);
                         // Euclidean natural norm of the second-order tensor
-                        NormSn = sqrt(devStress.x() * devStress.x() + devStress.y() * devStress.y() +
+                        NormSn = std::sqrt(devStress.x() * devStress.x() + devStress.y() * devStress.y() +
                                       devStress.z() * devStress.z());
 
-                        J2Rt = NormSn / sqrt(2.0);
+                        J2Rt = NormSn / std::sqrt(2.0);
 
                         double phi = m_element->m_FrictionAngle * CH_DEG_TO_RAD;    // Friction angle
                         double phi2 = m_element->m_DilatancyAngle * CH_DEG_TO_RAD;  // Dilatancy angle
@@ -1744,19 +1745,19 @@ void Brick9_Jacobian::Evaluate(ChMatrixNM<double, 33, 33>& result, const double 
 
                         switch (m_element->m_DPHardening) {
                             case 1:  // Tension corresponding to Abaqus model
-                                eta = tan(phi) / sqrt(3.0);
-                                gsi = (1.0 + tan(phi) / 3.0) / sqrt(3.0);
-                                etab = tan(phi2) / sqrt(3.0);
+                                eta = std::tan(phi) / std::sqrt(3.0);
+                                gsi = (1.0 + std::tan(phi) / 3.0) / std::sqrt(3.0);
+                                etab = std::tan(phi2) / std::sqrt(3.0);
                                 break;
                             case 2:  // Compression corresponding to Abaqus model
-                                eta = tan(phi) / sqrt(3.0);
-                                gsi = (1.0 - tan(phi) / 3.0) / sqrt(3.0);
-                                etab = tan(phi2) / sqrt(3.0);
+                                eta = std::tan(phi) / std::sqrt(3.0);
+                                gsi = (1.0 - std::tan(phi) / 3.0) / std::sqrt(3.0);
+                                etab = std::tan(phi2) / std::sqrt(3.0);
                                 break;
                             case 3:  // Shear corresponding to Abaqus model
-                                eta = tan(phi) / sqrt(3.0);
-                                gsi = 1.0 / sqrt(3.0);
-                                etab = tan(phi2) / sqrt(3.0);
+                                eta = std::tan(phi) / std::sqrt(3.0);
+                                gsi = 1.0 / std::sqrt(3.0);
+                                etab = std::tan(phi2) / std::sqrt(3.0);
                                 break;
                         }
 
@@ -1853,9 +1854,9 @@ void Brick9_Jacobian::Evaluate(ChMatrixNM<double, 33, 33>& result, const double 
                             double AFact;
                             if (Check_DP_Cone >= 0.0) {  // Consistent tangent for smooth cone wall return
                                 double Aux = 1.0 / (G + K * eta * etab + gsi * gsi * m_element->m_HardeningSlope);
-                                AFact = 2.0 * G * (1.0 - DeltaGamma / (sqrt(2.0) * ETDNorm));
-                                double BFact = 2.0 * G * (DeltaGamma / (sqrt(2.0) * ETDNorm) - G * Aux);
-                                double CFact = -sqrt(2.0) * G * Aux * K;
+                                AFact = 2.0 * G * (1.0 - DeltaGamma / (std::sqrt(2.0) * ETDNorm));
+                                double BFact = 2.0 * G * (DeltaGamma / (std::sqrt(2.0) * ETDNorm) - G * Aux);
+                                double CFact = -std::sqrt(2.0) * G * Aux * K;
                                 double DFact = K * (1.0 - K * eta * etab * Aux);
 
                                 for (int ii = 0; ii < 6; ii++) {
@@ -1906,10 +1907,10 @@ void Brick9_Jacobian::Evaluate(ChMatrixNM<double, 33, 33>& result, const double 
                         devStress.y() = 2.0 * G * (LogStrain(1) - EEVD3);
                         devStress.z() = 2.0 * G * (LogStrain(2) - EEVD3);
                         // Euclidean natural norm of the second-order tensor
-                        NormSn = sqrt(devStress.x() * devStress.x() + devStress.y() * devStress.y() +
+                        NormSn = std::sqrt(devStress.x() * devStress.x() + devStress.y() * devStress.y() +
                                       devStress.z() * devStress.z());
 
-                        J2Rt = NormSn / sqrt(2.0);
+                        J2Rt = NormSn / std::sqrt(2.0);
 
                         double phi = m_element->m_FrictionAngle * CH_DEG_TO_RAD;    // Friction angle
                         double phi2 = m_element->m_DilatancyAngle * CH_DEG_TO_RAD;  // Dilatancy angle
@@ -1921,19 +1922,19 @@ void Brick9_Jacobian::Evaluate(ChMatrixNM<double, 33, 33>& result, const double 
 
                         switch (m_element->m_DPHardening) {
                             case 1:  // Tension corresponding to Abaqus model
-                                eta = tan(phi) / sqrt(3.0);
-                                gsi = (1.0 + tan(phi) / 3.0) / sqrt(3.0);
-                                etab = tan(phi2) / sqrt(3.0);
+                                eta = std::tan(phi) / std::sqrt(3.0);
+                                gsi = (1.0 + std::tan(phi) / 3.0) / std::sqrt(3.0);
+                                etab = std::tan(phi2) / std::sqrt(3.0);
                                 break;
                             case 2:  // Compression corresponding to Abaqus model
-                                eta = tan(phi) / sqrt(3.0);
-                                gsi = (1.0 - tan(phi) / 3.0) / sqrt(3.0);
-                                etab = tan(phi2) / sqrt(3.0);
+                                eta = std::tan(phi) / std::sqrt(3.0);
+                                gsi = (1.0 - std::tan(phi) / 3.0) / std::sqrt(3.0);
+                                etab = std::tan(phi2) / std::sqrt(3.0);
                                 break;
                             case 3:  // Shear corresponding to Abaqus model
-                                eta = tan(phi) / sqrt(3.0);
-                                gsi = 1.0 / sqrt(3.0);
-                                etab = tan(phi2) / sqrt(3.0);
+                                eta = std::tan(phi) / std::sqrt(3.0);
+                                gsi = 1.0 / std::sqrt(3.0);
+                                etab = std::tan(phi2) / std::sqrt(3.0);
                                 break;
                         }
 
@@ -1959,7 +1960,7 @@ void Brick9_Jacobian::Evaluate(ChMatrixNM<double, 33, 33>& result, const double 
 
                         // CAP yield function
                         hydroPt = beta1 * m_element->m_YieldStress;
-                        double CapM = sqrt(3.0) * eta;
+                        double CapM = std::sqrt(3.0) * eta;
 
                         double MeanEffP;
                         double Hi;
@@ -1977,7 +1978,8 @@ void Brick9_Jacobian::Evaluate(ChMatrixNM<double, 33, 33>& result, const double 
 
                         YieldFunc_Cap = (1.0 / (m_element->m_DPCapBeta * m_element->m_DPCapBeta)) *
                                             (hydroP - hydroPt + MeanEffP) * (hydroP - hydroPt + MeanEffP) +
-                                        (sqrt(3.0) * J2Rt / CapM) * (sqrt(3.0) * J2Rt / CapM) - MeanEffP * MeanEffP;
+                                        (std::sqrt(3.0) * J2Rt / CapM) * (std::sqrt(3.0) * J2Rt / CapM) -
+                                        MeanEffP * MeanEffP;
 
                         double SQRJ2T = J2Rt;
                         double PT = hydroP;
@@ -2072,9 +2074,9 @@ void Brick9_Jacobian::Evaluate(ChMatrixNM<double, 33, 33>& result, const double 
                                 double AFact;
                                 if (Check_DP_Cone >= 0.0) {  // Consistent tangent for smooth cone wall return
                                     double Aux = 1.0 / (G + K * eta * etab + gsi * gsi * m_element->m_HardeningSlope);
-                                    AFact = 2.0 * G * (1.0 - DeltaGamma / (sqrt(2.0) * ETDNorm));
-                                    double BFact = 2.0 * G * (DeltaGamma / (sqrt(2.0) * ETDNorm) - G * Aux);
-                                    double CFact = -sqrt(2.0) * G * Aux * K;
+                                    AFact = 2.0 * G * (1.0 - DeltaGamma / (std::sqrt(2.0) * ETDNorm));
+                                    double BFact = 2.0 * G * (DeltaGamma / (std::sqrt(2.0) * ETDNorm) - G * Aux);
+                                    double CFact = -std::sqrt(2.0) * G * Aux * K;
                                     double DFact = K * (1.0 - K * eta * etab * Aux);
 
                                     for (int ii = 0; ii < 6; ii++) {
@@ -2122,15 +2124,17 @@ void Brick9_Jacobian::Evaluate(ChMatrixNM<double, 33, 33>& result, const double 
                                 // Evaluate initial 2 residual vectors
                                 Res01 = (1.0 / (m_element->m_DPCapBeta * m_element->m_DPCapBeta)) *
                                             (P - hydroPt + MeanEffP) * (P - hydroPt + MeanEffP) +
-                                        (sqrt(3.0) * SQRJ2 / CapM) * (sqrt(3.0) * SQRJ2 / CapM) - MeanEffP * MeanEffP;
+                                        (std::sqrt(3.0) * SQRJ2 / CapM) * (std::sqrt(3.0) * SQRJ2 / CapM) -
+                                        MeanEffP * MeanEffP;
                                 Res02 = EPBAR - EPBARN +
                                         DGamma * 2.0 / (m_element->m_DPCapBeta * m_element->m_DPCapBeta) *
                                             (P - hydroPt + MeanEffP);
 
                                 for (int ii = 0; ii < m_element->GetDPIterationNo(); ii++) {
                                     Acof = P - hydroPt + MeanEffP;
-                                    A11 = -12.0 * G / (CapM * CapM + 6.0 * G * DGamma) * (sqrt(3.0) * SQRJ2 / CapM) *
-                                          (sqrt(3.0) * SQRJ2 / CapM);
+                                    A11 = -12.0 * G / (CapM * CapM + 6.0 * G * DGamma) *
+                                          (std::sqrt(3.0) * SQRJ2 / CapM) *
+                                          (std::sqrt(3.0) * SQRJ2 / CapM);
                                     A12 = 2.0 * Acof / (m_element->m_DPCapBeta * m_element->m_DPCapBeta) * (K + Hi) -
                                           2.0 * MeanEffP * Hi;
                                     A21 = 2.0 * Acof / (m_element->m_DPCapBeta * m_element->m_DPCapBeta);
@@ -2164,19 +2168,19 @@ void Brick9_Jacobian::Evaluate(ChMatrixNM<double, 33, 33>& result, const double 
 
                                     Res01 = (1.0 / (m_element->m_DPCapBeta * m_element->m_DPCapBeta)) *
                                                 (P - hydroPt + MeanEffP) * (P - hydroPt + MeanEffP) +
-                                            (sqrt(3.0) * SQRJ2 / CapM) * (sqrt(3.0) * SQRJ2 / CapM) -
+                                            (std::sqrt(3.0) * SQRJ2 / CapM) * (std::sqrt(3.0) * SQRJ2 / CapM) -
                                             MeanEffP * MeanEffP;
                                     Res02 = EPBAR - EPBARN +
                                             DGamma * 2.0 / (m_element->m_DPCapBeta * m_element->m_DPCapBeta) *
                                                 (P - hydroPt + MeanEffP);
 
                                     if (std::abs(Hi) < m_element->GetDPYieldTol()) {
-                                        if (sqrt(Res01 * Res01) < m_element->GetDPYieldTol() &&
-                                            sqrt(Res02 * Res02) < m_element->GetDPYieldTol())
+                                        if (std::sqrt(Res01 * Res01) < m_element->GetDPYieldTol() &&
+                                            std::sqrt(Res02 * Res02) < m_element->GetDPYieldTol())
                                             break;
                                     } else {
-                                        if (sqrt(Res01 * Res01) / std::abs(Hi) < m_element->GetDPYieldTol() &&
-                                            sqrt(Res02 * Res02) / std::abs(Hi) < m_element->GetDPYieldTol())
+                                        if (std::sqrt(Res01 * Res01) / std::abs(Hi) < m_element->GetDPYieldTol() &&
+                                            std::sqrt(Res02 * Res02) / std::abs(Hi) < m_element->GetDPYieldTol())
                                             break;
                                     }
                                     if (ii == m_element->GetDPIterationNo() - 1)
@@ -2202,7 +2206,7 @@ void Brick9_Jacobian::Evaluate(ChMatrixNM<double, 33, 33>& result, const double 
                                     // initial resid vector
                                     Res01 = (1.0 / (m_element->m_DPCapBeta * m_element->m_DPCapBeta)) *
                                                 (P - hydroPt + MeanEffP) * (P - hydroPt + MeanEffP) +
-                                            (sqrt(3.0) * SQRJ2 / CapM) * (sqrt(3.0) * SQRJ2 / CapM) -
+                                            (std::sqrt(3.0) * SQRJ2 / CapM) * (std::sqrt(3.0) * SQRJ2 / CapM) -
                                             MeanEffP * MeanEffP;
                                     double DGamma_B1;
                                     double Res11;
@@ -2224,7 +2228,7 @@ void Brick9_Jacobian::Evaluate(ChMatrixNM<double, 33, 33>& result, const double 
                                         // Check yield functions
                                         Res11 = (1.0 / (m_element->m_DPCapBeta * m_element->m_DPCapBeta)) *
                                                     (P - hydroPt + MeanEffP) * (P - hydroPt + MeanEffP) +
-                                                (sqrt(3.0) * SQRJ2 / CapM) * (sqrt(3.0) * SQRJ2 / CapM) -
+                                                (std::sqrt(3.0) * SQRJ2 / CapM) * (std::sqrt(3.0) * SQRJ2 / CapM) -
                                                 MeanEffP * MeanEffP;
                                         DRes01 = (Res11 - Res01) / 1e-10;
 
@@ -2253,7 +2257,7 @@ void Brick9_Jacobian::Evaluate(ChMatrixNM<double, 33, 33>& result, const double 
                                         // Check yield functions
                                         Res01 = (1.0 / (m_element->m_DPCapBeta * m_element->m_DPCapBeta)) *
                                                     (P - hydroPt + MeanEffP) * (P - hydroPt + MeanEffP) +
-                                                (sqrt(3.0) * SQRJ2 / CapM) * (sqrt(3.0) * SQRJ2 / CapM) -
+                                                (std::sqrt(3.0) * SQRJ2 / CapM) * (std::sqrt(3.0) * SQRJ2 / CapM) -
                                                 MeanEffP * MeanEffP;
                                         if (std::abs(Hi) < m_element->GetDPYieldTol()) {
                                             if (std::abs(Res01) < m_element->GetDPYieldTol())
@@ -2328,8 +2332,8 @@ void Brick9_Jacobian::Evaluate(ChMatrixNM<double, 33, 33>& result, const double 
                                 double C22;
                                 if (FlagYieldType == 3) {  //!! Consistent tangent for cap surface
                                     Acof = P - hydroPt + MeanEffP;
-                                    A11 = -(-12.0 * G / (CapM * CapM + 6.0 * G * DGamma) * (sqrt(3.0) * SQRJ2 / CapM) *
-                                            (sqrt(3.0) * SQRJ2 / CapM));
+                                    A11 = -(-12.0 * G / (CapM * CapM + 6.0 * G * DGamma) *
+                                            (std::sqrt(3.0) * SQRJ2 / CapM) * (std::sqrt(3.0) * SQRJ2 / CapM));
                                     A12 = -(2.0 * Acof / (m_element->m_DPCapBeta * m_element->m_DPCapBeta) * (K + Hi) -
                                             2.0 * MeanEffP * Hi);
                                     A21 = -(2.0 * Acof / (m_element->m_DPCapBeta * m_element->m_DPCapBeta));
@@ -2341,11 +2345,11 @@ void Brick9_Jacobian::Evaluate(ChMatrixNM<double, 33, 33>& result, const double 
                                     B21 = -A21 / (A11 * A22 - A12 * A21);
                                     B22 = A11 / (A11 * A22 - A12 * A21);
 
-                                    C11 = 2.0 * sqrt(6.0) * G * (CapM * CapM) * sqrt(3.0) * SQRJ2T /
+                                    C11 = 2.0 * std::sqrt(6.0) * G * (CapM * CapM) * std::sqrt(3.0) * SQRJ2T /
                                           ((CapM * CapM + 6.0 * G * DGamma) * (CapM * CapM + 6.0 * G * DGamma)) * B11;
                                     C12 = 2.0 * Acof * K / (m_element->m_DPCapBeta * m_element->m_DPCapBeta) * B11 +
                                           2.0 * DGamma * K / (m_element->m_DPCapBeta * m_element->m_DPCapBeta) * B12;
-                                    C21 = 2.0 * sqrt(6.0) * G * (CapM * CapM) * sqrt(3.0) * SQRJ2T /
+                                    C21 = 2.0 * std::sqrt(6.0) * G * (CapM * CapM) * std::sqrt(3.0) * SQRJ2T /
                                           ((CapM * CapM + 6.0 * G * DGamma) * (CapM * CapM + 6.0 * G * DGamma)) * B21;
                                     C22 = 2.0 * Acof * K / (m_element->m_DPCapBeta * m_element->m_DPCapBeta) * B21 +
                                           2.0 * DGamma * K / (m_element->m_DPCapBeta * m_element->m_DPCapBeta) * B22;
@@ -2372,13 +2376,14 @@ void Brick9_Jacobian::Evaluate(ChMatrixNM<double, 33, 33>& result, const double 
                                     double Bcof = CapM * CapM + 6.0 * G * DGamma_B;
 
                                     A11 = -(-K * eta * etab - G * CapM * CapM / (CapM * CapM + 6.0 * G * DGamma_B));
-                                    A12 = -(2.0 * sqrt(3.0) * G * (CapM * CapM) * sqrt(3.0) * SQRJ2T * Acof /
+                                    A12 = -(2.0 * std::sqrt(3.0) * G * (CapM * CapM) * std::sqrt(3.0) * SQRJ2T * Acof /
                                             (Bcof * Bcof));
-                                    A21 = -(2.0 * sqrt(3.0) * G * (CapM * CapM) * sqrt(3.0) * SQRJ2T * Acof /
+                                    A21 = -(2.0 * std::sqrt(3.0) * G * (CapM * CapM) * std::sqrt(3.0) * SQRJ2T * Acof /
                                                 (Bcof * Bcof) -
                                             2.0 * K * etab * (P - hydroPt + MeanEffP) /
                                                 (m_element->m_DPCapBeta * m_element->m_DPCapBeta));
-                                    A22 = -(-12.0 * G * (CapM * CapM) * ((sqrt(3.0) * SQRJ2T) * (sqrt(3.0) * SQRJ2T)) *
+                                    A22 = -(-12.0 * G * (CapM * CapM) *
+                                            ((std::sqrt(3.0) * SQRJ2T) * (std::sqrt(3.0) * SQRJ2T)) *
                                             (Acof * Acof) / (Bcof * Bcof * Bcof));
 
                                     B11 = A22 / (A11 * A22 - A12 * A21);
@@ -2386,14 +2391,16 @@ void Brick9_Jacobian::Evaluate(ChMatrixNM<double, 33, 33>& result, const double 
                                     B21 = -A21 / (A11 * A22 - A12 * A21);
                                     B22 = A11 / (A11 * A22 - A12 * A21);
 
-                                    C11 = B11 * sqrt(2.0) * G * (CapM * CapM) / (CapM * CapM + 6.0 * G * DGamma_B) -
-                                          B12 * 2.0 * sqrt(2.0) * G * (CapM * CapM) /
+                                    C11 =
+                                        B11 * std::sqrt(2.0) * G * (CapM * CapM) / (CapM * CapM + 6.0 * G * DGamma_B) -
+                                        B12 * 2.0 * std::sqrt(2.0) * G * (CapM * CapM) /
                                               ((CapM * CapM + 6.0 * G * DGamma_B) * (CapM * CapM + 6.0 * G * DGamma_B));
                                     C12 = B11 * K * eta + B12 * 2.0 * K /
                                                               (m_element->m_DPCapBeta * m_element->m_DPCapBeta) *
                                                               (P - hydroPt + MeanEffP);
-                                    C21 = B21 * sqrt(2.0) * G * (CapM * CapM) / (CapM * CapM + 6.0 * G * DGamma_B) -
-                                          B22 * 2.0 * sqrt(2.0) * G * (CapM * CapM) /
+                                    C21 =
+                                        B21 * std::sqrt(2.0) * G * (CapM * CapM) / (CapM * CapM + 6.0 * G * DGamma_B) -
+                                        B22 * 2.0 * std::sqrt(2.0) * G * (CapM * CapM) /
                                               ((CapM * CapM + 6.0 * G * DGamma_B) * (CapM * CapM + 6.0 * G * DGamma_B));
                                     C22 = B21 * K * eta + B12 * 2.0 * K /
                                                               (m_element->m_DPCapBeta * m_element->m_DPCapBeta) *
@@ -2401,15 +2408,15 @@ void Brick9_Jacobian::Evaluate(ChMatrixNM<double, 33, 33>& result, const double 
 
                                     AFact = 2.0 * G * CapM * CapM / (CapM * CapM + 6.0 * G * DGamma_B);
                                     BFact =
-                                        -sqrt(2.0) * G * CapM * CapM / (CapM * CapM + 6.0 * G * DGamma_B) * C11 -
+                                        -std::sqrt(2.0) * G * CapM * CapM / (CapM * CapM + 6.0 * G * DGamma_B) * C11 -
                                         12.0 * G * G * CapM * CapM /
                                             ((CapM * CapM + 6.0 * G * DGamma_B) * (CapM * CapM + 6.0 * G * DGamma_B)) *
-                                            (ETDNorm - 1.0 / sqrt(2.0) * DGamma_A) * C21;
+                                            (ETDNorm - 1.0 / std::sqrt(2.0) * DGamma_A) * C21;
                                     C1Fact =
-                                        -sqrt(2.0) * G * CapM * CapM / (CapM * CapM + 6.0 * G * DGamma_B) * C12 -
+                                        -std::sqrt(2.0) * G * CapM * CapM / (CapM * CapM + 6.0 * G * DGamma_B) * C12 -
                                         12.0 * G * G * CapM * CapM /
                                             ((CapM * CapM + 6.0 * G * DGamma_B) * (CapM * CapM + 6.0 * G * DGamma_B)) *
-                                            (ETDNorm - 1.0 / sqrt(2.0) * DGamma_A) * C22;
+                                            (ETDNorm - 1.0 / std::sqrt(2.0) * DGamma_A) * C22;
                                     C2Fact = -K * etab * C11;
                                     DFact = K * (1.0 - etab * C12);
 

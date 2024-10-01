@@ -75,10 +75,10 @@ void ChSuspension::RemoveVisualizationAssets() {
 }
 
 void ChSuspension::AddVisualizationSpindle(VehicleSide side, double radius, double width) {
-    m_spindle_shapes[side] = ChVehicleGeometry::AddVisualizationCylinder(m_spindle[side],               //
-                                                                         ChVector3d(0, width / 2, 0),   //
-                                                                         ChVector3d(0, -width / 2, 0),  //
-                                                                         radius);
+    m_spindle_shapes[side] = utils::ChBodyGeometry::AddVisualizationCylinder(m_spindle[side],               //
+                                                                             ChVector3d(0, width / 2, 0),   //
+                                                                             ChVector3d(0, -width / 2, 0),  //
+                                                                             radius);
 }
 
 void ChSuspension::ApplyParkingBrake(bool brake) {

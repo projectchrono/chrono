@@ -1,28 +1,31 @@
 {
-
-  "Physical Properties of Fluid":
-  {
-    "Density":                1000,
-    "Viscosity":              1.0,
-    "Body Force":             [0.01, 0.0,  0.0],
-    "Gravity":                [0.0, 0.0,  0.0]
+  "Physical Properties of Fluid": {
+    "Density": 1000,
+    "Viscosity": 1.0,
+    "Body Force": [
+      0.01,
+      0.0,
+      0.0
+    ],
+    "Gravity": [
+      0.0,
+      0.0,
+      0.0
+    ]
   },
-
-  "SPH Parameters":
-  {
-    "Method":                         "WCSPH",
-    "Kernel h":                       0.01,
-    "Initial Spacing":                0.01,
-    "Maximum Velocity":               0.1,
-    "XSPH Coefficient":               0.0,
-    "Shifting Coefficient":           0.0,
-    "Density Reinitialization":       10000
+  "SPH Parameters": {
+    "Method": "WCSPH",
+    "Kernel h": 0.01,
+    "Initial Spacing": 0.01,
+    "Maximum Velocity": 0.1,
+    "XSPH Coefficient": 0.0,
+    "Shifting Coefficient": 0.0,
+    "Density Reinitialization": 10000,
+    "Time steps per proximity search": 1
   },
-
-  "Time Stepping":
-  {
-    "Fluid time step":               0.002,
-    "Solid time step":               0.002,
-    "Maximum time step":             0.002
+  "Time Stepping": {
+    "Fluid time step": 0.002,
+    "Solid time step": 0.002,
+    "Maximum time step": 0.002
   }
 }

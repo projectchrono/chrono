@@ -125,7 +125,7 @@ class AirCoilSpringBistopForce : public ChLinkTSDA::ForceFunctor {
           m_coilSpringF0(coilSpringF0),
           m_P0(p0) {
         // percalculations
-        double A0 = pow(m_piston_radius, 2.0) * CH_PI;
+        double A0 = std::pow(m_piston_radius, 2.0) * CH_PI;
         double V0 = m_cylinder_compression_length * A0;
         m_airSpringF0 = m_P0 * A0;
         std::cout << "Fzero = " << m_airSpringF0 << "N\n";
@@ -177,7 +177,7 @@ class AirCoilSpringBistopForce : public ChLinkTSDA::ForceFunctor {
             // std::cout << "Rebound Deflection: " << defl_rebound << " m\n";
         }
 
-        force = m_airSpringF0 * pow(m_hf0, m_kappa) / pow(m_hf0 - defl_spring, m_kappa) + defl_spring * m_k +
+        force = m_airSpringF0 * std::pow(m_hf0, m_kappa) / std::pow(m_hf0 - defl_spring, m_kappa) + defl_spring * m_k +
                 m_coilSpringF0 + m_bump.GetVal(defl_bump) - m_rebound.GetVal(defl_rebound);
         // std::cout << "d =" << defl_spring << " m\n";
         return force;

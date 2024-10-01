@@ -30,7 +30,7 @@ namespace fsi {
 class CH_FSI_API ChFsiVisualizationVSG : public ChFsiVisualization {
   public:
     /// Create a run-time FSI visualization object associated with a given Chrono::Fsi system.
-    ChFsiVisualizationVSG(ChSystemFsi* sysFSI, bool verbose = true);
+    ChFsiVisualizationVSG(ChSystemFsi* sysFSI);
 
     ~ChFsiVisualizationVSG();
 
@@ -78,7 +78,8 @@ class CH_FSI_API ChFsiVisualizationVSG : public ChFsiVisualization {
     /// Returns false if the visualization window was closed.
     virtual bool Render() override;
 
-    vsg3d::ChVisualSystemVSG& GetVisualSystem() const { return *m_vsys; }
+    /// Return the underlying VSG visualization system.
+    virtual ChVisualSystem* GetVisualSystem() const override { return m_vsys; }
 
   private:
     vsg3d::ChVisualSystemVSG* m_vsys;  ///< VSG visualization system

@@ -210,17 +210,17 @@ void ChRigidPinnedAxle::AddVisualizationAssets(VisualizationType vis) {
     ChVector3d pP = m_axleTube->TransformPointParentToLocal(m_axlePinLoc);
 
     // Add visualization assets for the axle tube body
-    ChVehicleGeometry::AddVisualizationCylinder(m_axleTube, pSL, pSR, getAxleTubeRadius());
+    utils::ChBodyGeometry::AddVisualizationCylinder(m_axleTube, pSL, pSR, getAxleTubeRadius());
 
     static const double threshold2 = 1e-6;
     if (pP.Length2() > threshold2) {
-        ChVehicleGeometry::AddVisualizationCylinder(m_axleTube, pP, VNULL, getAxleTubeRadius() / 2);
+        utils::ChBodyGeometry::AddVisualizationCylinder(m_axleTube, pP, VNULL, getAxleTubeRadius() / 2);
     }
 
-    ChVehicleGeometry::AddVisualizationCylinder(m_axleTube,                                        //
-                                                pP - ChVector3d(1.5 * getAxleTubeRadius(), 0, 0),  //
-                                                ChVector3d(1.5 * getAxleTubeRadius(), 0, 0),       //
-                                                getAxleTubeRadius());
+    utils::ChBodyGeometry::AddVisualizationCylinder(m_axleTube,                                        //
+                                                    pP - ChVector3d(1.5 * getAxleTubeRadius(), 0, 0),  //
+                                                    ChVector3d(1.5 * getAxleTubeRadius(), 0, 0),       //
+                                                    getAxleTubeRadius());
 }
 
 void ChRigidPinnedAxle::RemoveVisualizationAssets() {

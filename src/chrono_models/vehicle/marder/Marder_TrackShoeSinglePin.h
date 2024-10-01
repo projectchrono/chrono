@@ -65,7 +65,7 @@ class CH_MODELS_API Marder_TrackShoeSinglePin : public ChTrackShoeSinglePin {
     virtual ChVector3d GetLateralContactPoint() const override { return m_pin_center; }
 
     /// Return contact geometry and material for interaction with terrain.
-    virtual ChVehicleGeometry GetGroundContactGeometry() const override { return m_ground_geometry; }
+    virtual utils::ChBodyGeometry GetGroundContactGeometry() const override { return m_ground_geometry; }
 
   private:
     static const double m_shoe_height;
@@ -79,7 +79,7 @@ class CH_MODELS_API Marder_TrackShoeSinglePin : public ChTrackShoeSinglePin {
 
     static const ChVector3d m_pin_center;
 
-    ChVehicleGeometry m_ground_geometry;
+    utils::ChBodyGeometry m_ground_geometry;
 };
 
 /// @} vehicle_models_marder

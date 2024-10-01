@@ -161,6 +161,8 @@ set(CVM_HMMWV_POWERTRAIN_FILES
     hmmwv/powertrain/HMMWV_AutomaticTransmissionShafts.cpp
     hmmwv/powertrain/HMMWV_AutomaticTransmissionSimpleMap.h
     hmmwv/powertrain/HMMWV_AutomaticTransmissionSimpleMap.cpp
+        hmmwv/powertrain/HMMWV_AutomaticTransmissionSimpleCVT.cpp
+        hmmwv/powertrain/HMMWV_AutomaticTransmissionSimpleCVT.h
 )
 set(CVM_HMMWV_TIRE_FILES
     hmmwv/tire/HMMWV_RigidTire.cpp

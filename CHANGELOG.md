@@ -5,6 +5,10 @@ Change Log
 ==========
 
 - [Unreleased (development branch)](#unreleased-development-branch)
+  - [\[Changed\] Eigensolvers refactoring](#eigensolvers-refactoring)
+- [Release 9.0.1 (2024-07-03)](#release-901-2024-07-03)
+  - [\[Fixed\] Bug fixes in FSI solver](#fixed-bug-fixes-in-fsi-solver)
+  - [\[Fixed\] Miscellaneous bug fixes](#fixed-miscellaneous-bug-fixes)
 - [Release 9.0.0 (2024-05-20)](#release-900-2024-05-20)
   - [\[Changed\] Default number of threads](#changed-default-number-of-threads)
   - [\[Changed\] Refactoring of class and function names](#changed-refactoring-of-class-and-function-names)
@@ -107,6 +111,41 @@ Change Log
 - [Release 4.0.0 (2019-02-22)](#release-400-2019-02-22)
 
 # Unreleased (development branch)
+
+## [Changed] Eigensolvers refactoring
+
+All Chrono eingesolvers share some common features:
+- solve *generalized* eigenvalue problems i.e. `A*v = lambda*B*v`
+- are iterative and based on shift-and-invert methods
+- deal with real-valued matrices, but may have complex shifts and/or eigenpairs
+
+but they differ depending if the `A` and `B` matrices are *symmetric* (`ChSym____`) or not (`ChUnsym____`).
+
+The name pattern is now changed to `Ch[Sym|Unsym]GenEigenvalueSolver` to clarify this difference.
+
+These eigenvalue solvers are meant to deal directly with *matrices*, not with Chrono `ChSystem`s nor with `ChAssembly`s. This is indeed a task for `ChModalSolver` classes.
+
+The modal solvers are split into undamped and damped versions but, while the undamped case can generate either symmetric or unsymmetric problems, the damped case matrices are always unsymmetric. Because of this, different modal solvers may be equipped with different eigensolvers.
+
+Further details are explained in the documentation.
+
+# Release 9.0.1 (2024-07-03)
+
+## [Fixed] Bug fixes in FSI solver 
+
+- Use different formulas for computing BCE marker forces for the explicit and implicit SPH solvers (intermediate vector represents particle accelerations in the explicit solver, but represents particle forces in the implicit solvers).
+- Fix GridSampler to generate points fully covering the specified sampling domain.
+- Fix Chrono::FSI demos related to solid inertia properties, collision shapes, and BCE marker generation.
+- Add missing velocity setting for FSI particle visualization.
+
+## [Fixed] Miscellaneous bug fixes
+
+- Add checks for CUDA and Thrust versions at configuration time (latest supported versions are CUDA 12.3.2 and Thrust 2.2.0). Disable Chrono::Multicore and GPU-based Chrono modules for newer versions.
+- Fix calculation of relative position, velocity, and acceleration for `ChLinkMate`.
+- Fix calculation of relative frames on connected bodies for `ChLinkDistance`.
+- Implement tolerance-based stopping criteria for the Barzilai-Borwein solver.
+- Fix bug in inflating the axis-aligned bounding box for a `ChGeometry` object.
+- Fix bug in `ChTimer::GetTimeMilliseconds` which was previously reporting the elapsed time in microseconds.
 
 # Release 9.0.0 (2024-05-20)
 

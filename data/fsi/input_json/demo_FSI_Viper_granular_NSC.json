@@ -1,24 +1,25 @@
 {
-
   "Physical Properties of Fluid": {
     "Density": 1700,
-    "Gravity": [ 0.0, 0.0, -9.81 ]
+    "Gravity": [
+      0.0,
+      0.0,
+      -9.81
+    ]
   },
-
   "SPH Parameters": {
     "Method": "WCSPH",
     "Kernel h": 0.01,
     "Initial Spacing": 0.01,
     "XSPH Coefficient": 0.5,
-    "Shifting Coefficient": 1.0
+    "Shifting Coefficient": 1.0,
+    "Time steps per proximity search": 1
   },
-
   "Time Stepping": {
     "Fluid time step": 2.5e-4,
     "Solid time step": 2.5e-4,
     "Maximum time step": 2.5e-4
   },
-
   "Elastic SPH": {
     "Poisson ratio": 0.3,
     "Young modulus": 1.0e6,
@@ -28,9 +29,12 @@
     "mu_s": 0.7,
     "mu_2": 0.7,
     "particle diameter": 0.005,
-    "kernel threshold":0.8
+    "kernel threshold": 0.8
   },
-
-  "Body Active Domain": [ 0.4, 0.3, 0.5 ],
+  "Body Active Domain": [
+    0.4,
+    0.3,
+    0.5
+  ],
   "Settling Time": 0.0
 }

@@ -28,7 +28,7 @@
 #endif
 
 /**
-    @defgroup fmi FMI module
+    @defgroup chrono_fmi FMI module
     @brief FMU export and import functionality
 
     This module provides Chrono support for the Functional Mock-Up Interface (FMI) standard.
@@ -40,18 +40,31 @@
     - the [installation guide](@ref module_fmi_installation)
     - the [tutorials](@ref tutorial_table_of_content_chrono_fmi)
 
-    See:
-    - chrono::FmuChronoComponentBase
-    - chrono::FmuChronoUnit
+    @{
+      @defgroup chrono_fmi2 FMI 2.0 support
+      @defgroup chrono_fmi3 FMI 3.0 support
+
+      @defgroup fmu_tools
+      @brief Generic utility library for FMU export and import
+      
+      For additional information see the fmu_tools [repository](https://github.com/DigitalDynamicsLab/fmu_tools/blob/main/README.md)
+      @{
+        @defgroup fmu_tools_fmi2 FMI 2.0 utilities
+        @defgroup fmu_tools_fmi3 FMI 3.0 utilities
+      @}
+    @}
 */
 
 namespace chrono {
 
-/// @addtogroup fmi_module
+/// @addtogroup chrono_fmi
 /// @{
 
-/// Namespace with classes for the FMI module.
-namespace fmi {}
+/// Namespace with classes for the FMI module (FMI 2.0 support).
+namespace fmi2 {}
+
+/// Namespace with classes for the FMI module (FMI 3.0 support).
+namespace fmi3 {}
 
 /// @}
 }  // namespace chrono

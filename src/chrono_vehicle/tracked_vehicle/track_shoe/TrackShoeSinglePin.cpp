@@ -72,10 +72,9 @@ void TrackShoeSinglePin::Create(const rapidjson::Document& d) {
     int num_mats = d["Contact"]["Shoe Materials"].Size();
     for (int i = 0; i < num_mats; i++) {
         ChContactMaterialData minfo = ReadMaterialInfoJSON(d["Contact"]["Shoe Materials"][i]);
-        m_geometry.m_materials.push_back(minfo);
+        m_geometry.materials.push_back(minfo);
     }
-    m_ground_geometry.m_materials = m_geometry.m_materials;
-    m_ground_geometry.m_has_collision = false;
+    m_ground_geometry.materials = m_geometry.materials;
 
     // Read geometric collison data
     m_cyl_radius = d["Contact"]["Cylinder Shape"]["Radius"].GetDouble();
@@ -93,57 +92,53 @@ void TrackShoeSinglePin::Create(const rapidjson::Document& d) {
         assert(matID >= 0 && matID < num_mats);
 
         bool ground_geometry = shape.HasMember("Ground Contact") && shape["Ground Contact"].GetBool();
-        if (ground_geometry)
-            m_ground_geometry.m_has_collision = true;
 
         if (type.compare("SPHERE") == 0) {
             ChVector3d pos = ReadVectorJSON(shape["Location"]);
             double radius = shape["Radius"].GetDouble();
-            ChVehicleGeometry::SphereShape sphere(pos, radius, matID);
-            m_geometry.m_coll_spheres.push_back(sphere);
+            utils::ChBodyGeometry::SphereShape sphere(pos, radius, matID);
+            m_geometry.coll_spheres.push_back(sphere);
             if (ground_geometry)
-                m_ground_geometry.m_coll_spheres.push_back(sphere);
+                m_ground_geometry.coll_spheres.push_back(sphere);
         } else if (type.compare("BOX") == 0) {
             ChVector3d pos = ReadVectorJSON(shape["Location"]);
             ChQuaternion<> rot = ReadQuaternionJSON(shape["Orientation"]);
             ChVector3d dims = ReadVectorJSON(shape["Dimensions"]);
-            ChVehicleGeometry::BoxShape box(pos, rot, dims, matID);
-            m_geometry.m_coll_boxes.push_back(box);
+            utils::ChBodyGeometry::BoxShape box(pos, rot, dims, matID);
+            m_geometry.coll_boxes.push_back(box);
             if (ground_geometry)
-                m_ground_geometry.m_coll_boxes.push_back(box);
+                m_ground_geometry.coll_boxes.push_back(box);
         } else if (type.compare("CYLINDER") == 0) {
             ChVector3d pos = ReadVectorJSON(shape["Location"]);
             ChVector3d axis = ReadVectorJSON(shape["Axis"]);
             double radius = shape["Radius"].GetDouble();
             double length = shape["Length"].GetDouble();
-            ChVehicleGeometry::CylinderShape cylinder(pos, axis, radius, length, matID);
-            m_geometry.m_coll_cylinders.push_back(cylinder);
+            utils::ChBodyGeometry::CylinderShape cylinder(pos, axis, radius, length, matID);
+            m_geometry.coll_cylinders.push_back(cylinder);
             if (ground_geometry)
-                m_ground_geometry.m_coll_cylinders.push_back(cylinder);
+                m_ground_geometry.coll_cylinders.push_back(cylinder);
         } else if (type.compare("HULL") == 0) {
             std::string filename = shape["Filename"].GetString();
-            ChVehicleGeometry::ConvexHullsShape hull(filename, matID);
-            m_geometry.m_coll_hulls.push_back(hull);
+            utils::ChBodyGeometry::ConvexHullsShape hull(vehicle::GetDataFile(filename), matID);
+            m_geometry.coll_hulls.push_back(hull);
             if (ground_geometry)
-                m_ground_geometry.m_coll_hulls.push_back(hull);
+                m_ground_geometry.coll_hulls.push_back(hull);
         } else if (type.compare("MESH") == 0) {
             std::string filename = shape["Filename"].GetString();
             ChVector3d pos = ReadVectorJSON(shape["Location"]);
             double radius = shape["Contact Radius"].GetDouble();
-            ChVehicleGeometry::TrimeshShape mesh(pos, filename, radius, matID);
-            m_geometry.m_coll_meshes.push_back(mesh);
+            utils::ChBodyGeometry::TrimeshShape mesh(pos, vehicle::GetDataFile(filename), radius, matID);
+            m_geometry.coll_meshes.push_back(mesh);
             if (ground_geometry)
-                m_ground_geometry.m_coll_meshes.push_back(mesh);
+                m_ground_geometry.coll_meshes.push_back(mesh);
         }
     }
-
-    m_geometry.m_has_collision = true;
 
     // Read visualization data
     if (d.HasMember("Visualization")) {
         if (d["Visualization"].HasMember("Mesh")) {
-            m_geometry.m_vis_mesh_file = d["Visualization"]["Mesh"].GetString();
-            m_geometry.m_has_mesh = true;
+            std::string filename = d["Visualization"]["Mesh"].GetString();
+            m_geometry.vis_mesh_file = vehicle::GetDataFile(filename);
         }
 
         if (d["Visualization"].HasMember("Primitives")) {
@@ -155,31 +150,29 @@ void TrackShoeSinglePin::Create(const rapidjson::Document& d) {
                 if (type.compare("SPHERE") == 0) {
                     ChVector3d pos = ReadVectorJSON(shape["Location"]);
                     double radius = shape["Radius"].GetDouble();
-                    m_geometry.m_vis_spheres.push_back(ChVehicleGeometry::SphereShape(pos, radius));
+                    m_geometry.vis_spheres.push_back(utils::ChBodyGeometry::SphereShape(pos, radius));
                 } else if (type.compare("BOX") == 0) {
                     ChVector3d pos = ReadVectorJSON(shape["Location"]);
                     ChQuaternion<> rot = ReadQuaternionJSON(shape["Orientation"]);
                     ChVector3d dims = ReadVectorJSON(shape["Dimensions"]);
-                    m_geometry.m_vis_boxes.push_back(ChVehicleGeometry::BoxShape(pos, rot, dims));
+                    m_geometry.vis_boxes.push_back(utils::ChBodyGeometry::BoxShape(pos, rot, dims));
                 } else if (type.compare("CYLINDER") == 0) {
                     ChVector3d pos = ReadVectorJSON(shape["Location"]);
                     ChVector3d axis = ReadVectorJSON(shape["Axis"]);
                     double radius = shape["Radius"].GetDouble();
                     double length = shape["Length"].GetDouble();
-                    m_geometry.m_vis_cylinders.push_back(ChVehicleGeometry::CylinderShape(pos, axis, radius, length));
+                    m_geometry.vis_cylinders.push_back(utils::ChBodyGeometry::CylinderShape(pos, axis, radius, length));
                 }
             }
-            m_geometry.m_has_primitives = true;
         }
     } else {
         // Default to using the collision shapes
-        for (auto& box : m_geometry.m_coll_boxes) {
-            m_geometry.m_vis_boxes.push_back(box);
+        for (auto& box : m_geometry.coll_boxes) {
+            m_geometry.vis_boxes.push_back(box);
         }
-        for (auto& cyl : m_geometry.m_coll_cylinders) {
-            m_geometry.m_vis_cylinders.push_back(cyl);
+        for (auto& cyl : m_geometry.coll_cylinders) {
+            m_geometry.vis_cylinders.push_back(cyl);
         }
-        m_geometry.m_has_primitives = true;
     }
 }
 

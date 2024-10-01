@@ -57,10 +57,9 @@ class FSIStatsGL : public opengl::ChOpenGLStats {
 
 // -----------------------------------------------------------------------------
 
-ChFsiVisualizationGL::ChFsiVisualizationGL(ChSystemFsi* sysFSI, bool verbose)
+ChFsiVisualizationGL::ChFsiVisualizationGL(ChSystemFsi* sysFSI)
     : ChFsiVisualization(sysFSI), m_bce_start_index(0) {
     m_vsys = new opengl::ChVisualSystemOpenGL();
-    m_vsys->SetVerbose(verbose);
     m_vsys->AttachSystem(m_system);
     m_vsys->SetWindowTitle("");
     m_vsys->SetWindowSize(1280, 720);
@@ -191,7 +190,7 @@ bool ChFsiVisualizationGL::Render() {
 
     if (m_vsys->Run()) {
         // Copy SPH particle positions from device to host
-        thrust::host_vector<Real4> posH = m_systemFSI->m_sysFSI->sphMarkersD2->posRadD;
+        thrust::host_vector<Real4> posH = m_systemFSI->m_sysFSI->sphMarkers_D->posRadD;
 
         // List of proxy bodies
         const auto& blist = m_system->GetBodies();

@@ -9,12 +9,13 @@
 // http://projectchrono.org/license-chrono.txt.
 //
 // =============================================================================
-// Author: Milad Rakhsha, Wei Hu, Pei Li
+// Author: Milad Rakhsha, Wei Hu, Pei Li, Radu Serban
 // =============================================================================
 
-#include <assert.h>
-#include <stdlib.h>
+#include <cassert>
+#include <cstdlib>
 #include <ctime>
+#include <iomanip>
 
 #include "chrono/physics/ChSystemSMC.h"
 
@@ -42,21 +43,28 @@
 #ifdef CHRONO_VSG
     #include "chrono_fsi/visualization/ChFsiVisualizationVSG.h"
 #endif
+#ifdef CHRONO_POSTPROCESS
+    #include "chrono_postprocess/ChGnuPlot.h"
+#endif
 
+#include "chrono_thirdparty/cxxopts/ChCLI.h"
 #include "chrono_thirdparty/filesystem/path.h"
 
 using namespace chrono;
 using namespace chrono::fea;
 using namespace chrono::fsi;
 
-// -----------------------------------------------------------------
+using std::cout;
+using std::cerr;
+using std::endl;
+
+// -----------------------------------------------------------------------------
 
 // Run-time visualization system (OpenGL or VSG)
 ChVisualSystem::Type vis_type = ChVisualSystem::Type::VSG;
 
 // Set the output directory
-const std::string out_dir = GetChronoOutputPath() + "FSI_Flexible_Cable/";
-std::string MESH_CONNECTIVITY = out_dir + "Flex_MESH.vtk";
+std::string out_dir = GetChronoOutputPath() + "FSI_Flexible_Cable";
 
 // Dimension of the domain
 double smalldis = 1.0e-9;
@@ -79,41 +87,48 @@ double E = 8e9;
 double density = 8000;
 double BeamRayleighDamping = 0.02;
 
-// Output frequency
-bool output = false;
-double out_fps = 20;
+// -----------------------------------------------------------------------------
 
-// Final simulation time
-double t_end = 10.0;
+std::shared_ptr<fea::ChMesh> Create_MB_FE(ChSystemSMC& sysMBS, ChSystemFsi& sysFSI);
+bool GetProblemSpecs(int argc,
+                     char** argv,
+                     std::string& inputJSON,
+                     double& t_end,
+                     bool& verbose,
+                     bool& output,
+                     double& output_fps,
+                     bool& render,
+                     double& render_fps,
+                     bool& snapshots,
+                     int& ps_freq);
 
-// Enable/disable run-time visualization
-bool render = true;
-float render_fps = 100;
+// -----------------------------------------------------------------------------
 
-// -----------------------------------------------------------------
+class PositionVisibilityCallback : public ChParticleCloud::VisibilityCallback {
+  public:
+    PositionVisibilityCallback() {}
 
-std::vector<std::vector<int>> NodeNeighborElement_mesh;
+    virtual bool get(unsigned int n, const ChParticleCloud& cloud) const override {
+        auto p = cloud.GetParticlePos(n);
+        return p.y() > 0;
+    };
+};
 
-void Create_MB_FE(ChSystemSMC& sysMBS, ChSystemFsi& sysFSI);
-
-// -----------------------------------------------------------------
+// -----------------------------------------------------------------------------
 
 int main(int argc, char* argv[]) {
-    // Create oputput directories
-    if (!filesystem::create_directory(filesystem::path(out_dir))) {
-        std::cerr << "Error creating directory " << out_dir << std::endl;
-        return 1;
-    }
-    if (!filesystem::create_directory(filesystem::path(out_dir + "/particles"))) {
-        std::cerr << "Error creating directory " << out_dir + "/particles" << std::endl;
-        return 1;
-    }
-    if (!filesystem::create_directory(filesystem::path(out_dir + "/fsi"))) {
-        std::cerr << "Error creating directory " << out_dir + "/fsi" << std::endl;
-        return 1;
-    }
-    if (!filesystem::create_directory(filesystem::path(out_dir + "/vtk"))) {
-        std::cerr << "Error creating directory " << out_dir + "/vtk" << std::endl;
+    // Parse command line arguments
+    std::string inputJSON = GetChronoDataFile("fsi/input_json/demo_FSI_Flexible_Cable_Explicit.json");
+    double t_end = 10.0;
+    bool verbose = true;
+    bool output = false;
+    double output_fps = 20;
+    bool render = true;
+    double render_fps = 400;
+    bool snapshots = false;
+    int ps_freq = 1;
+    if (!GetProblemSpecs(argc, argv, inputJSON, t_end, verbose, output, output_fps, render, render_fps, snapshots,
+                         ps_freq)) {
         return 1;
     }
 
@@ -121,20 +136,12 @@ int main(int argc, char* argv[]) {
     ChSystemSMC sysMBS;
     ChSystemFsi sysFSI(&sysMBS);
 
-    // Use the default input file or you may enter your input parameters as a command line argument
-    std::string inputJson = GetChronoDataFile("fsi/input_json/demo_FSI_Flexible_Cable_Granular.json");
-    if (argc == 1) {
-        std::cout << "Use the default JSON file" << std::endl;
-    } else if (argc == 2) {
-        std::cout << "Use the specified JSON file" << std::endl;
-        std::string my_inputJson = std::string(argv[1]);
-        inputJson = my_inputJson;
-    } else {
-        std::cout << "usage: ./demo_FSI_Flexible_Cable_Granular <json_file>" << std::endl;
-        return 1;
-    }
-    sysFSI.ReadParametersFromFile(inputJson);
+    sysFSI.SetVerbose(verbose);
 
+    // Use the specified input JSON file
+    sysFSI.ReadParametersFromFile(inputJSON);
+
+    // Set simulation domain
     sysFSI.SetContainerDim(ChVector3d(bxDim, byDim, bzDim));
 
     auto initSpace0 = sysFSI.GetInitialSpacing();
@@ -143,13 +150,7 @@ int main(int argc, char* argv[]) {
     sysFSI.SetBoundaries(cMin, cMax);
 
     // Set SPH discretization type, consistent or inconsistent
-    sysFSI.SetDiscreType(false, false);
-
-    // Set wall boundary condition
-    sysFSI.SetWallBC(BceVersion::ADAMI);
-
-    // Set rigid body boundary condition
-    sysFSI.SetRigidBodyBC(BceVersion::ADAMI);
+    sysFSI.SetConsistentDerivativeDiscretization(false, false);
 
     // Create SPH particles of fluid region
     chrono::utils::ChGridSampler<> sampler(initSpace0);
@@ -162,9 +163,60 @@ int main(int argc, char* argv[]) {
     }
 
     // Create solids
-    Create_MB_FE(sysMBS, sysFSI);
+    auto mesh = Create_MB_FE(sysMBS, sysFSI);
+
+    sysFSI.SetNumProximitySearchSteps(ps_freq);
+
+    // Initialize FSI system
     sysFSI.Initialize();
-    auto my_mesh = sysFSI.GetFsiMesh();
+
+    out_dir = out_dir + std::to_string(ps_freq);
+
+    // Create oputput directories
+    if (output || snapshots) {
+        if (output) {
+            if (!filesystem::create_directory(filesystem::path(out_dir))) {
+                cerr << "Error creating directory " << out_dir << endl;
+                return 1;
+            }
+            out_dir = out_dir + "/" + sysFSI.GetPhysicsProblemString() + "_" + sysFSI.GetSphMethodTypeString();
+            if (!filesystem::create_directory(filesystem::path(out_dir))) {
+                cerr << "Error creating directory " << out_dir << endl;
+                return 1;
+            }
+
+            if (!filesystem::create_directory(filesystem::path(out_dir + "/particles"))) {
+                cerr << "Error creating directory " << out_dir + "/particles" << endl;
+                return 1;
+            }
+            if (!filesystem::create_directory(filesystem::path(out_dir + "/fsi"))) {
+                cerr << "Error creating directory " << out_dir + "/fsi" << endl;
+                return 1;
+            }
+            if (!filesystem::create_directory(filesystem::path(out_dir + "/vtk"))) {
+                cerr << "Error creating directory " << out_dir + "/vtk" << endl;
+                return 1;
+            }
+        }
+        if (snapshots) {
+            if (!output) {
+                // Create output directories if it does not exist
+                if (!filesystem::create_directory(filesystem::path(out_dir))) {
+                    cerr << "Error creating directory " << out_dir << endl;
+                    return 1;
+                }
+                out_dir = out_dir + "/" + sysFSI.GetPhysicsProblemString() + "_" + sysFSI.GetSphMethodTypeString();
+                if (!filesystem::create_directory(filesystem::path(out_dir))) {
+                    cerr << "Error creating directory " << out_dir << endl;
+                    return 1;
+                }
+            }
+            if (!filesystem::create_directory(filesystem::path(out_dir + "/snapshots"))) {
+                cerr << "Error creating directory " << out_dir + "/snapshots" << endl;
+                return 1;
+            }
+        }
+    }
 
     // Create a run-tme visualizer
 #ifndef CHRONO_OPENGL
@@ -185,23 +237,30 @@ int main(int argc, char* argv[]) {
             case ChVisualSystem::Type::OpenGL:
 #ifdef CHRONO_OPENGL
                 visFSI = chrono_types::make_shared<ChFsiVisualizationGL>(&sysFSI);
+                visFSI->AddCamera(ChVector3d(0, -2, 0.25), ChVector3d(0, 0, 0.25));
 #endif
                 break;
             case ChVisualSystem::Type::VSG: {
 #ifdef CHRONO_VSG
                 visFSI = chrono_types::make_shared<ChFsiVisualizationVSG>(&sysFSI);
+                visFSI->AddCamera(ChVector3d(0, -4, 0.25), ChVector3d(0, 0, 0.25));
 #endif
                 break;
             }
         }
 
         visFSI->SetTitle("Chrono::FSI flexible cable");
-        visFSI->AddCamera(ChVector3d(0, -12 * byDim, 0.5 * bzDim), ChVector3d(0, 0, 0.4 * bzDim));
+        visFSI->SetVerbose(verbose);
+        visFSI->SetSize(1920, 1200);
         visFSI->SetCameraMoveScale(1.0f);
-        visFSI->EnableFluidMarkers(true);
         visFSI->EnableBoundaryMarkers(true);
+        visFSI->EnableFlexBodyMarkers(true);
+        visFSI->SetColorFlexBodyMarkers(ChColor(1, 1, 1));
         visFSI->SetRenderMode(ChFsiVisualization::RenderMode::SOLID);
+        visFSI->SetParticleRenderMode(ChFsiVisualization::RenderMode::SOLID);
         visFSI->SetSPHColorCallback(chrono_types::make_shared<VelocityColorCallback>(0, 2.5));
+        visFSI->SetSPHVisibilityCallback(chrono_types::make_shared<PositionVisibilityCallback>());
+        visFSI->AttachSystem(&sysMBS);
         visFSI->Initialize();
     }
 
@@ -221,48 +280,98 @@ int main(int argc, char* argv[]) {
 
     // Simulation loop
     double dT = sysFSI.GetStepSize();
-
-    unsigned int output_steps = (unsigned int)round(1 / (out_fps * dT));
-    unsigned int render_steps = (unsigned int)round(1 / (render_fps * dT));
-
     double time = 0.0;
-    int current_step = 0;
+    int sim_frame = 0;
+    int out_frame = 0;
+    int render_frame = 0;
 
+    // Initial position of top most node
+    auto node = std::dynamic_pointer_cast<ChNodeFEAxyzD>(mesh->GetNode(0));
+    std::cout << "Initial position of top node: " << node->GetPos().x() << " " << node->GetPos().y() << " "
+              << node->GetPos().z() << std::endl;
+    ChVector3d init_pos = node->GetPos();
+
+    // Record Top node displacement
+    ChFunctionInterp displacement_recorder;
+    double displacement = 0;
     ChTimer timer;
     timer.start();
-    while (time < t_end) {
-        std::cout << current_step << " time: " << time << std::endl;
 
-        if (output && current_step % output_steps == 0) {
-            std::cout << "-------- Output" << std::endl;
+    std::string out_file = out_dir + "/results.txt";
+    std::ofstream ofile;
+    if (output) {
+        ofile.open(out_file, std::ios::trunc);
+    }
+
+    while (time < t_end) {
+        if (verbose)
+            cout << sim_frame << " time: " << time << endl;
+
+        if (output && time >= out_frame / output_fps) {
+            if (verbose)
+                cout << " -- Output frame " << out_frame << " at t = " << time << endl;
+
             sysFSI.PrintParticleToFile(out_dir + "/particles");
             sysFSI.PrintFsiInfoToFile(out_dir + "/fsi", time);
-            static int counter = 0;
-            std::string filename = out_dir + "/vtk/flex_body." + std::to_string(counter++) + ".vtk";
-            fea::ChMeshExporter::WriteFrame(my_mesh, MESH_CONNECTIVITY, filename);
+
+            std::ostringstream filename;
+            filename << out_dir << "/vtk/flex_body." << std::setw(5) << std::setfill('0') << out_frame + 1 << ".vtk";
+            fea::ChMeshExporter::WriteFrame(mesh, out_dir + "/Flex_MESH.vtk", filename.str());
+
+            out_frame++;
         }
 
         // Render FSI system
-        if (render && current_step % render_steps == 0) {
+        if (render && time >= render_frame / render_fps) {
             if (!visFSI->Render())
                 break;
+
+            if (snapshots) {
+                if (verbose)
+                    cout << " -- Snapshot frame " << render_frame << " at t = " << time << endl;
+                std::ostringstream filename;
+                filename << out_dir << "/snapshots/img_" << std::setw(5) << std::setfill('0') << render_frame + 1
+                         << ".bmp";
+                visFSI->GetVisualSystem()->WriteImageToFile(filename.str());
+            }
+
+            render_frame++;
+        }
+        ChVector3d pos = node->GetPos();
+        displacement =
+            sqrt(pow(pos.x() - init_pos.x(), 2) + pow(pos.y() - init_pos.y(), 2) + pow(pos.z() - init_pos.z(), 2));
+
+        displacement_recorder.AddPoint(time, displacement);
+
+        if (output) {
+            ofile << time << "\t" << pos.x() << "\t" << pos.y() << "\t" << pos.z() << "\n";
         }
 
         sysFSI.DoStepDynamics_FSI();
 
         time += dT;
-        current_step++;
+        sim_frame++;
     }
     timer.stop();
-    std::cout << "\nSimulation time: " << timer() << " seconds\n" << std::endl;
+    cout << "\nSimulation time: " << timer() << " seconds\n" << endl;
 
     return 0;
+
+#ifdef CHRONO_POSTPROCESS
+    postprocess::ChGnuPlot gplot(out_dir + "/height.gpl");
+    gplot.SetGrid();
+    std::string speed_title = "Displacement of top node in cable";
+    gplot.SetTitle(speed_title);
+    gplot.SetLabelX("time (s)");
+    gplot.SetLabelY("displacement (m)");
+    gplot.Plot(displacement_recorder, "", " with lines lt -1 lw 2 lc rgb'#3333BB' ");
+#endif
 }
 
-//--------------------------------------------------------------------
-// Create the objects of the MBD system. Rigid/flexible bodies, and if
-// fsi, their bce representation are created and added to the systems
-void Create_MB_FE(ChSystemSMC& sysMBS, ChSystemFsi& sysFSI) {
+// -----------------------------------------------------------------------------
+// Create the solid objects in the MBD system and their counterparts in the FSI system
+
+std::shared_ptr<fea::ChMesh> Create_MB_FE(ChSystemSMC& sysMBS, ChSystemFsi& sysFSI) {
     sysMBS.SetGravitationalAcceleration(ChVector3d(0, 0, 0));
     sysFSI.SetGravitationalAcceleration(ChVector3d(0, 0, -9.81));
 
@@ -271,7 +380,7 @@ void Create_MB_FE(ChSystemSMC& sysMBS, ChSystemFsi& sysFSI) {
     ground->EnableCollision(false);
     sysMBS.AddBody(ground);
 
-    // Fluid representation of walls
+    // FSI representation of walls
     sysFSI.AddBoxContainerBCE(ground,                                         //
                               ChFrame<>(ChVector3d(0, 0, bzDim / 2), QUNIT),  //
                               ChVector3d(bxDim, byDim, bzDim),                //
@@ -279,11 +388,10 @@ void Create_MB_FE(ChSystemSMC& sysMBS, ChSystemFsi& sysFSI) {
 
     auto initSpace0 = sysFSI.GetInitialSpacing();
 
-    // ******************************* Flexible bodies ***********************************
-    // Create a mesh, that is a container for groups of elements and their referenced nodes.
-    auto my_mesh = chrono_types::make_shared<fea::ChMesh>();
+    // Create an FEA mesh representing a cantilever beam modeled with ANCF cable elements
+    auto mesh = chrono_types::make_shared<fea::ChMesh>();
     std::vector<std::vector<int>> _1D_elementsNodes_mesh;
-    /*================== Cable Elements =================*/
+
     auto msection_cable = chrono_types::make_shared<ChBeamSectionCable>();
     msection_cable->SetDiameter(initSpace0);
     msection_cable->SetYoungModulus(E);
@@ -291,13 +399,14 @@ void Create_MB_FE(ChSystemSMC& sysMBS, ChSystemFsi& sysFSI) {
     msection_cable->SetRayleighDamping(BeamRayleighDamping);
 
     ChBuilderCableANCF builder;
-    builder.BuildBeam(my_mesh,                               // FEA mesh with nodes and elements
+    std::vector<std::vector<int>> node_nbrs;
+    builder.BuildBeam(mesh,                                  // FEA mesh with nodes and elements
                       msection_cable,                        // section material for cable elements
                       num_cable_element,                     // number of elements in the segment
                       ChVector3d(loc_x, 0.0, length_cable),  // beam start point
                       ChVector3d(loc_x, 0.0, initSpace0),    // beam end point
                       _1D_elementsNodes_mesh,                // node indices
-                      NodeNeighborElement_mesh               // neighbor node indices
+                      node_nbrs                              // neighbor node indices
     );
 
     auto node = std::dynamic_pointer_cast<ChNodeFEAxyzD>(builder.GetLastBeamNodes().back());
@@ -310,15 +419,61 @@ void Create_MB_FE(ChSystemSMC& sysMBS, ChSystemFsi& sysFSI) {
     dir_const->SetDirectionInAbsoluteCoords(node->GetSlope1());
     sysMBS.Add(dir_const);
 
-    // Add the mesh to the system
-    sysMBS.Add(my_mesh);
+    // Add the mesh to the MBS system
+    sysMBS.Add(mesh);
 
-    // fluid representation of flexible bodies
-    bool multilayer = true;
-    bool removeMiddleLayer = true;
-    sysFSI.AddFEAmeshBCE(my_mesh, NodeNeighborElement_mesh, _1D_elementsNodes_mesh, std::vector<std::vector<int>>(),
-                         true, false, multilayer, removeMiddleLayer, 1, 0);
+    // Add the mesh to the FSI system (only these meshes interact with the fluid)
+    sysFSI.SetBcePattern1D(BcePatternMesh1D::STAR, false);
+    sysFSI.AddFsiMesh(mesh);
 
-    sysFSI.AddFsiMesh(my_mesh, _1D_elementsNodes_mesh, std::vector<std::vector<int>>());
-    fea::ChMeshExporter::WriteMesh(my_mesh, MESH_CONNECTIVITY);
+    return mesh;
+}
+
+// -----------------------------------------------------------------------------
+
+bool GetProblemSpecs(int argc,
+                     char** argv,
+                     std::string& inputJSON,
+                     double& t_end,
+                     bool& verbose,
+                     bool& output,
+                     double& output_fps,
+                     bool& render,
+                     double& render_fps,
+                     bool& snapshots,
+                     int& ps_freq) {
+    ChCLI cli(argv[0], "Flexible cable FSI demo");
+
+    cli.AddOption<std::string>("Input", "inputJSON", "Problem specification file [JSON format]", inputJSON);
+    cli.AddOption<double>("Input", "t_end", "Simulation duration [s]", std::to_string(t_end));
+
+    cli.AddOption<bool>("Output", "quiet", "Disable verbose terminal output");
+
+    cli.AddOption<bool>("Output", "output", "Enable collection of output files");
+    cli.AddOption<double>("Output", "output_fps", "Output frequency [fps]", std::to_string(output_fps));
+
+    cli.AddOption<bool>("Visualization", "no_vis", "Disable run-time visualization");
+    cli.AddOption<double>("Visualization", "render_fps", "Render frequency [fps]", std::to_string(render_fps));
+    cli.AddOption<bool>("Visualization", "snapshots", "Enable writing snapshot image files");
+
+    cli.AddOption<int>("Proximity Search", "ps_freq", "Frequency of Proximity Search", std::to_string(ps_freq));
+
+    if (!cli.Parse(argc, argv)) {
+        cli.Help();
+        return false;
+    }
+
+    inputJSON = cli.Get("inputJSON").as<std::string>();
+    t_end = cli.GetAsType<double>("t_end");
+
+    verbose = !cli.GetAsType<bool>("quiet");
+    output = cli.GetAsType<bool>("output");
+    render = !cli.GetAsType<bool>("no_vis");
+    snapshots = cli.GetAsType<bool>("snapshots");
+
+    output_fps = cli.GetAsType<double>("output_fps");
+    render_fps = cli.GetAsType<double>("render_fps");
+    ps_freq = cli.GetAsType<int>("ps_freq");
+
+    return true;
 }

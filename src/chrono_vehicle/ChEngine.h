@@ -41,6 +41,10 @@ class CH_VEHICLE_API ChEngine : public ChPart {
     /// This is the torque passed to a transmission subsystem.
     virtual double GetOutputMotorshaftTorque() const = 0;
 
+    /// Return the reaction torque on the chassis body.
+    /// A concrete model may incorporate a physical connection to the chassis and therefore calculate this reaction.
+    virtual double GetChassisReactionTorque() const { return 0; }
+
   protected:
     ChEngine(const std::string& name = "");
 

@@ -190,7 +190,7 @@ double ChSolverAPGD::Solve(ChSystemDescriptor& sysd) {
         }  // (14) endwhile
 
         // (15) theta_(k+1) = (-theta_k^2 + theta_k * sqrt(theta_k^2 + 4)) / 2
-        thetaNew = (-theta * theta + theta * sqrt(theta * theta + 4.0)) / 2.0;
+        thetaNew = (-theta * theta + theta * std::sqrt(theta * theta + 4.0)) / 2.0;
 
         // (16) Beta_(k+1) = theta_k * (1 - theta_k) / (theta_k^2 + theta_(k+1))
         Beta = theta * (1.0 - theta) / (theta * theta + thetaNew);

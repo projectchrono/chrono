@@ -35,6 +35,7 @@ namespace modal {
 template <typename ScalarType>
 class ChModalVisualSystemIrrlicht;
 
+/// Custom Irrlicht event receiver for modal analysis visualization.
 template <typename ScalarType>
 class ChModalEventReceiver : public irr::IEventReceiver {
   public:
@@ -94,6 +95,7 @@ class ChModalEventReceiver : public irr::IEventReceiver {
     ChModalVisualSystemIrrlicht<ScalarType>* m_modal_vsys;
 };
 
+/// Customized Chrono Irrlicht visualization for modal analaysis.
 template <typename ScalarType>
 class ChModalVisualSystemIrrlicht : public irrlicht::ChVisualSystemIrrlicht {
   public:

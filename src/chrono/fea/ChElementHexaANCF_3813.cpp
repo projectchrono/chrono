@@ -19,6 +19,8 @@
 //// - reconsider the use of large static matrices
 //// - more use of Eigen expressions
 
+# include <cmath>
+
 #include "chrono/physics/ChSystem.h"
 #include "chrono/fea/ChElementHexaANCF_3813.h"
 
@@ -283,14 +285,14 @@ void Brick_ForceAnalytical::Evaluate(ChVectorN<double, 906>& result, const doubl
     G1xG2.Cross(G1, G2);
 
     // Tangent Frame
-    ChVector3d A1 = G1 / sqrt(G1[0] * G1[0] + G1[1] * G1[1] + G1[2] * G1[2]);
-    ChVector3d A3 = G1xG2 / sqrt(G1xG2[0] * G1xG2[0] + G1xG2[1] * G1xG2[1] + G1xG2[2] * G1xG2[2]);
+    ChVector3d A1 = G1 / std::sqrt(G1[0] * G1[0] + G1[1] * G1[1] + G1[2] * G1[2]);
+    ChVector3d A3 = G1xG2 / std::sqrt(G1xG2[0] * G1xG2[0] + G1xG2[1] * G1xG2[1] + G1xG2[2] * G1xG2[2]);
     ChVector3d A2 = A3.Cross(A1);
 
     // Direction for orthotropic material
     double theta = 0.0;
-    ChVector3d AA1 = A1 * cos(theta) + A2 * sin(theta);
-    ChVector3d AA2 = -A1 * sin(theta) + A2 * cos(theta);
+    ChVector3d AA1 = A1 * std::cos(theta) + A2 * std::sin(theta);
+    ChVector3d AA2 = -A1 * std::sin(theta) + A2 * std::cos(theta);
     ChVector3d AA3 = A3;
 
     // Beta
@@ -465,14 +467,14 @@ void Brick_ForceAnalytical::Evaluate(ChVectorN<double, 906>& result, const doubl
         // First invariant of Right Cauchy-Green deformation tensor
         double I1 = CG(0, 0) + CG(1, 1) + CG(2, 2);
         // Second invariant of Right Cauchy-Green deformation tensor
-        double I2 = 0.5 * (pow(I1, 2) - (pow(CG(0, 0), 2) + pow(CG(1, 0), 2) + pow(CG(2, 0), 2) + pow(CG(0, 1), 2) +
-                                         pow(CG(1, 1), 2) + pow(CG(2, 1), 2) + pow(CG(0, 2), 2) + pow(CG(1, 2), 2) +
-                                         pow(CG(2, 2), 2)));
+        double I2 = 0.5 * (std::pow(I1, 2) - (std::pow(CG(0, 0), 2) + std::pow(CG(1, 0), 2) + std::pow(CG(2, 0), 2) +
+                                              std::pow(CG(0, 1), 2) + std::pow(CG(1, 1), 2) + std::pow(CG(2, 1), 2) +
+                                              std::pow(CG(0, 2), 2) + std::pow(CG(1, 2), 2) + std::pow(CG(2, 2), 2)));
         // Third invariant of Right Cauchy-Green deformation tensor (must be very close to 1 for incompressible
         // material)
         double I3 = CG(0, 0) * CG(1, 1) * CG(2, 2) - CG(0, 0) * CG(1, 2) * CG(2, 1) + CG(0, 1) * CG(1, 2) * CG(2, 0) -
                     CG(0, 1) * CG(1, 0) * CG(2, 2) + CG(0, 2) * CG(1, 0) * CG(2, 1) - CG(2, 0) * CG(1, 1) * CG(0, 2);
-        double J = sqrt(I3);
+        double J = std::sqrt(I3);
         // double CCOM1 = 551584.0;                                    // C10   not 0.551584
         // double CCOM2 = 137896.0;                                    // C01   not 0.137896
         double CCOM3 = 2.0 * (element->CCOM1 + element->CCOM2) / (1.0 - 2.0 * 0.49);  // K:bulk modulus
@@ -481,9 +483,9 @@ void Brick_ForceAnalytical::Evaluate(ChVectorN<double, 906>& result, const doubl
         /// Calculation of stress tensor STR term to term: I1PC, I2PC, and JPC.
 
         // Stress tensor from first term of Mooney-Rivlin strain energy
-        I1PC = (ChMatrix33<>::Identity() - INVCG * (1.0 / 3.0 * I1)) * pow(I3, -1.0 / 3.0);
+        I1PC = (ChMatrix33<>::Identity() - INVCG * (1.0 / 3.0 * I1)) * std::pow(I3, -1.0 / 3.0);
         // Stress tensor from second term of Mooney-Rivlin strain energy
-        I2PC = (((ChMatrix33<>::Identity() * I1) - CG) - (INVCG * (2.0 / 3.0) * I2)) * pow(I3, -2.0 / 3.0);
+        I2PC = (((ChMatrix33<>::Identity() * I1) - CG) - (INVCG * (2.0 / 3.0) * I2)) * std::pow(I3, -2.0 / 3.0);
         // Stress tensor from penalty for incompressibility
         JPC = INVCG * (J / 2.0);
         // Definition of stress tensor from strain energy (including penalty for incompressibility CCOM3)
@@ -521,15 +523,15 @@ void Brick_ForceAnalytical::Evaluate(ChVectorN<double, 906>& result, const doubl
             INVCGN = CGN.inverse();
 
             I1 = CGN(0, 0) + CGN(1, 1) + CGN(2, 2);
-            I2 = 0.5 * (pow(I1, 2) - (pow(CGN(0, 0), 2) + pow(CGN(1, 0), 2) + pow(CGN(2, 0), 2) + pow(CGN(0, 1), 2) +
-                                      pow(CGN(1, 1), 2) + pow(CGN(2, 1), 2) + pow(CGN(0, 2), 2) + pow(CGN(1, 2), 2) +
-                                      pow(CGN(2, 2), 2)));
+            I2 = 0.5 * (std::pow(I1, 2) - (std::pow(CGN(0, 0), 2) + std::pow(CGN(1, 0), 2) + std::pow(CGN(2, 0), 2) +
+                                           std::pow(CGN(0, 1), 2) + std::pow(CGN(1, 1), 2) + std::pow(CGN(2, 1), 2) +
+                                           std::pow(CGN(0, 2), 2) + std::pow(CGN(1, 2), 2) + std::pow(CGN(2, 2), 2)));
             I3 = CGN(0, 0) * CGN(1, 1) * CGN(2, 2) - CGN(0, 0) * CGN(1, 2) * CGN(2, 1) +
                  CGN(0, 1) * CGN(1, 2) * CGN(2, 0) - CGN(0, 1) * CGN(1, 0) * CGN(2, 2) +
                  CGN(0, 2) * CGN(1, 0) * CGN(2, 1) - CGN(2, 0) * CGN(1, 1) * CGN(0, 2);
-            J = sqrt(I3);
-            I1PCN = (ChMatrix33<>::Identity() - INVCGN * (1.0 / 3.0 * I1)) * pow(I3, -1.0 / 3.0);
-            I2PCN = (((ChMatrix33<>::Identity() * I1) - CGN) - (INVCGN * (2.0 / 3.0) * I2)) * pow(I3, -2.0 / 3.0);
+            J = std::sqrt(I3);
+            I1PCN = (ChMatrix33<>::Identity() - INVCGN * (1.0 / 3.0 * I1)) * std::pow(I3, -1.0 / 3.0);
+            I2PCN = (((ChMatrix33<>::Identity() * I1) - CGN) - (INVCGN * (2.0 / 3.0) * I2)) * std::pow(I3, -2.0 / 3.0);
             JPCN = INVCGN * (J / 2.0);
             STRN = I1PCN * (element->CCOM1 * 2.0) + I2PCN * (element->CCOM2 * 2.0) + JPCN * (CCOM3 * (J - 1.0) * 2.0);
             TEMP5N(0) = STRN(0, 0);
@@ -818,14 +820,14 @@ void Brick_ForceNumerical::Evaluate(ChVectorN<double, 330>& result, const double
     G1xG2.Cross(G1, G2);
 
     ////Tangent Frame
-    ChVector3d A1 = G1 / sqrt(G1[0] * G1[0] + G1[1] * G1[1] + G1[2] * G1[2]);
-    ChVector3d A3 = G1xG2 / sqrt(G1xG2[0] * G1xG2[0] + G1xG2[1] * G1xG2[1] + G1xG2[2] * G1xG2[2]);
+    ChVector3d A1 = G1 / std::sqrt(G1[0] * G1[0] + G1[1] * G1[1] + G1[2] * G1[2]);
+    ChVector3d A3 = G1xG2 / std::sqrt(G1xG2[0] * G1xG2[0] + G1xG2[1] * G1xG2[1] + G1xG2[2] * G1xG2[2]);
     ChVector3d A2 = A3.Cross(A1);
 
     ////Direction for orthotropic material//
     double theta = 0.0;
-    ChVector3d AA1 = A1 * cos(theta) + A2 * sin(theta);
-    ChVector3d AA2 = -A1 * sin(theta) + A2 * cos(theta);
+    ChVector3d AA1 = A1 * std::cos(theta) + A2 * std::sin(theta);
+    ChVector3d AA2 = -A1 * std::sin(theta) + A2 * std::cos(theta);
     ChVector3d AA3 = A3;
 
     ////Beta
@@ -986,19 +988,19 @@ void Brick_ForceNumerical::Evaluate(ChVectorN<double, 330>& result, const double
 
         double Deld = 0.000001;
         double I1 = CG(0, 0) + CG(1, 1) + CG(2, 2);
-        double I2 = 0.5 * (pow(I1, 2) - (pow(CG(0, 0), 2) + pow(CG(1, 0), 2) + pow(CG(2, 0), 2) + pow(CG(0, 1), 2) +
-                                         pow(CG(1, 1), 2) + pow(CG(2, 1), 2) + pow(CG(0, 2), 2) + pow(CG(1, 2), 2) +
-                                         pow(CG(2, 2), 2)));
+        double I2 = 0.5 * (std::pow(I1, 2) - (std::pow(CG(0, 0), 2) + std::pow(CG(1, 0), 2) + std::pow(CG(2, 0), 2) +
+                                              std::pow(CG(0, 1), 2) + std::pow(CG(1, 1), 2) + std::pow(CG(2, 1), 2) +
+                                              std::pow(CG(0, 2), 2) + std::pow(CG(1, 2), 2) + std::pow(CG(2, 2), 2)));
         double I3 = CG(0, 0) * CG(1, 1) * CG(2, 2) - CG(0, 0) * CG(1, 2) * CG(2, 1) + CG(0, 1) * CG(1, 2) * CG(2, 0) -
                     CG(0, 1) * CG(1, 0) * CG(2, 2) + CG(0, 2) * CG(1, 0) * CG(2, 1) - CG(2, 0) * CG(1, 1) * CG(0, 2);
-        double J = sqrt(I3);
+        double J = std::sqrt(I3);
         // double CCOM1 = 551584.0;                                    // C10   not 0.551584
         // double CCOM2 = 137896.0;                                    // C01   not 0.137896
         double CCOM3 = 2.0 * (element->CCOM1 + element->CCOM2) / (1.0 - 2.0 * 0.49);  // K:bulk modulus
         double StockEPS;
 
-        I1PC = (ChMatrix33<>::Identity() - INVCG * (1.0 / 3.0 * I1)) * pow(I3, -1.0 / 3.0);
-        I2PC = (((ChMatrix33<>::Identity() * I1) - CG) - (INVCG * (2.0 / 3.0) * I2)) * pow(I3, -2.0 / 3.0);
+        I1PC = (ChMatrix33<>::Identity() - INVCG * (1.0 / 3.0 * I1)) * std::pow(I3, -1.0 / 3.0);
+        I2PC = (((ChMatrix33<>::Identity() * I1) - CG) - (INVCG * (2.0 / 3.0) * I2)) * std::pow(I3, -2.0 / 3.0);
         JPC = INVCG * (J / 2.0);
 
         STR = I1PC * (element->CCOM1 * 2.0) + I2PC * (element->CCOM2 * 2.0) + JPC * (CCOM3 * (J - 1.0) * 2.0);
@@ -1029,15 +1031,15 @@ void Brick_ForceNumerical::Evaluate(ChVectorN<double, 330>& result, const double
             CGN(1, 2) = CGN(2, 1);
             INVCGN = CGN.inverse();
             I1 = CGN(0, 0) + CGN(1, 1) + CGN(2, 2);
-            I2 = 0.5 * (pow(I1, 2) - (pow(CGN(0, 0), 2) + pow(CGN(1, 0), 2) + pow(CGN(2, 0), 2) + pow(CGN(0, 1), 2) +
-                                      pow(CGN(1, 1), 2) + pow(CGN(2, 1), 2) + pow(CGN(0, 2), 2) + pow(CGN(1, 2), 2) +
-                                      pow(CGN(2, 2), 2)));
+            I2 = 0.5 * (std::pow(I1, 2) - (std::pow(CGN(0, 0), 2) + std::pow(CGN(1, 0), 2) + std::pow(CGN(2, 0), 2) +
+                                           std::pow(CGN(0, 1), 2) + std::pow(CGN(1, 1), 2) + std::pow(CGN(2, 1), 2) +
+                                           std::pow(CGN(0, 2), 2) + std::pow(CGN(1, 2), 2) + std::pow(CGN(2, 2), 2)));
             I3 = CGN(0, 0) * CGN(1, 1) * CGN(2, 2) - CGN(0, 0) * CGN(1, 2) * CGN(2, 1) +
                  CGN(0, 1) * CGN(1, 2) * CGN(2, 0) - CGN(0, 1) * CGN(1, 0) * CGN(2, 2) +
                  CGN(0, 2) * CGN(1, 0) * CGN(2, 1) - CGN(2, 0) * CGN(1, 1) * CGN(0, 2);
-            J = sqrt(I3);
-            I1PCN = (ChMatrix33<>::Identity() - INVCGN * (1.0 / 3.0 * I1)) * pow(I3, -1.0 / 3.0);
-            I2PCN = (((ChMatrix33<>::Identity() * I1) - CGN) - (INVCGN * (2.0 / 3.0) * I2)) * pow(I3, -2.0 / 3.0);
+            J = std::sqrt(I3);
+            I1PCN = (ChMatrix33<>::Identity() - INVCGN * (1.0 / 3.0 * I1)) * std::pow(I3, -1.0 / 3.0);
+            I2PCN = (((ChMatrix33<>::Identity() * I1) - CGN) - (INVCGN * (2.0 / 3.0) * I2)) * std::pow(I3, -2.0 / 3.0);
             JPCN = INVCGN * (J / 2.0);
             STRN = I1PCN * (element->CCOM1 * 2.0) + I2PCN * (element->CCOM2 * 2.0) + JPCN * (CCOM3 * (J - 1.0) * 2.0);
             TEMP5N(0) = STRN(0, 0);
@@ -1689,12 +1691,12 @@ void ChElementHexaANCF_3813::T0DetJElementCenterForEAS(ChMatrixNM<double, 8, 3>&
     G1xG2.Cross(G1, G2);
 
     // Tangent Frame
-    ChVector3d A1 = G1 / sqrt(G1[0] * G1[0] + G1[1] * G1[1] + G1[2] * G1[2]);
-    ChVector3d A3 = G1xG2 / sqrt(G1xG2[0] * G1xG2[0] + G1xG2[1] * G1xG2[1] + G1xG2[2] * G1xG2[2]);
+    ChVector3d A1 = G1 / std::sqrt(G1[0] * G1[0] + G1[1] * G1[1] + G1[2] * G1[2]);
+    ChVector3d A3 = G1xG2 / std::sqrt(G1xG2[0] * G1xG2[0] + G1xG2[1] * G1xG2[1] + G1xG2[2] * G1xG2[2]);
     ChVector3d A2 = A3.Cross(A1);
     double theta = 0.0;
-    ChVector3d AA1 = A1 * cos(theta) + A2 * sin(theta);
-    ChVector3d AA2 = -A1 * sin(theta) + A2 * cos(theta);
+    ChVector3d AA1 = A1 * std::cos(theta) + A2 * std::sin(theta);
+    ChVector3d AA2 = -A1 * std::sin(theta) + A2 * std::cos(theta);
     ChVector3d AA3 = A3;
 
     // Beta
@@ -1722,17 +1724,17 @@ void ChElementHexaANCF_3813::T0DetJElementCenterForEAS(ChMatrixNM<double, 8, 3>&
     beta(7) = Vdot(AA2, j03);
     beta(8) = Vdot(AA3, j03);
 
-    T0(0, 0) = pow(beta(0), 2);
-    T0(1, 0) = pow(beta(1), 2);
+    T0(0, 0) = std::pow(beta(0), 2);
+    T0(1, 0) = std::pow(beta(1), 2);
     T0(2, 0) = 2.0 * beta(0) * beta(1);
-    T0(3, 0) = pow(beta(2), 2);
+    T0(3, 0) = std::pow(beta(2), 2);
     T0(4, 0) = 2.0 * beta(0) * beta(2);
     T0(5, 0) = 2.0 * beta(1) * beta(2);
 
-    T0(0, 1) = pow(beta(3), 2);
-    T0(1, 1) = pow(beta(4), 2);
+    T0(0, 1) = std::pow(beta(3), 2);
+    T0(1, 1) = std::pow(beta(4), 2);
     T0(2, 1) = 2.0 * beta(3) * beta(4);
-    T0(3, 1) = pow(beta(5), 2);
+    T0(3, 1) = std::pow(beta(5), 2);
     T0(4, 1) = 2.0 * beta(3) * beta(5);
     T0(5, 1) = 2.0 * beta(4) * beta(5);
 
@@ -1743,10 +1745,10 @@ void ChElementHexaANCF_3813::T0DetJElementCenterForEAS(ChMatrixNM<double, 8, 3>&
     T0(4, 2) = beta(0) * beta(5) + beta(2) * beta(3);
     T0(5, 2) = beta(2) * beta(4) + beta(1) * beta(5);
 
-    T0(0, 3) = pow(beta(6), 2);
-    T0(1, 3) = pow(beta(7), 2);
+    T0(0, 3) = std::pow(beta(6), 2);
+    T0(1, 3) = std::pow(beta(7), 2);
     T0(2, 3) = 2.0 * beta(6) * beta(7);
-    T0(3, 3) = pow(beta(8), 2);
+    T0(3, 3) = std::pow(beta(8), 2);
     T0(4, 3) = 2.0 * beta(6) * beta(8);
     T0(5, 3) = 2.0 * beta(7) * beta(8);
 

@@ -291,7 +291,7 @@ int CreateObjects(ChSystemMulticore* system) {
 // Create the falling ball such that its bottom point is at the specified height
 // and its downward initial velocity has the specified magnitude.
 // -----------------------------------------------------------------------------
-void CreateFallingBall(ChSystemMulticore* system, double z, double vz) {
+std::shared_ptr<ChBody> CreateFallingBall(ChSystemMulticore* system, double z, double vz) {
     // Create a material for the falling ball
 #ifdef USE_SMC
     auto mat_b = chrono_types::make_shared<ChContactMaterialSMC>();
@@ -306,6 +306,7 @@ void CreateFallingBall(ChSystemMulticore* system, double z, double vz) {
     // Create the falling ball
     auto ball = chrono_types::make_shared<ChBody>();
 
+    ball->SetName("falling_ball");
     ball->SetMass(mass_b);
     ball->SetInertiaXX(inertia_b);
     ball->SetPos(ChVector3d(0, 0, z + r_g + R_b));
@@ -317,6 +318,8 @@ void CreateFallingBall(ChSystemMulticore* system, double z, double vz) {
     utils::AddSphereGeometry(ball.get(), mat_b, R_b);
 
     system->AddBody(ball);
+
+    return ball;
 }
 
 // -----------------------------------------------------------------------------
@@ -422,8 +425,7 @@ int main(int argc, char* argv[]) {
 
         cout << "Create granular material" << endl;
         // Create the fixed falling ball just below the granular material
-        CreateFallingBall(sys, -3 * R_b, 0);
-        ball = sys->GetBodies().at(0);
+        ball = CreateFallingBall(sys, -3 * R_b, 0);
         ball->SetFixed(true);
         CreateObjects(sys);
     } else {
@@ -441,12 +443,15 @@ int main(int argc, char* argv[]) {
         utils::ReadCheckpoint(sys, checkpoint_file);
         cout << "  done.  Read " << sys->GetBodies().size() << " bodies." << endl;
 
+        // Note: we rely on the fact that the ball is the *first* body in the system
+        // (ReadCheckpoint creates bodies in the same order they were created when WriteCheckpoint was called)
+        ball = sys->GetBodies().at(0);
+
         // Move the falling ball just above the granular material with a velocity
         // given by free fall from the specified height and starting at rest.
         double z = FindHighest(sys);
         double vz = std::sqrt(2 * gravity * h);
         cout << "Move falling ball with center at " << z + R_b + r_g << " and velocity " << vz << endl;
-        ball = sys->GetBodies().at(0);
         ball->SetPos(ChVector3d(0, 0, z + r_g + R_b));
         ball->SetRot(ChQuaternion<>(1, 0, 0, 0));
         ball->SetPosDt(ChVector3d(0, 0, -vz));

@@ -138,7 +138,7 @@ class ChApi ChConstraintTwoTuplesContactN : public ChConstraintTwoTuples<Ta, Tb>
             return;
 
         // project orthogonally to generator segment of upper cone
-        double f_t = sqrt(f_t2);
+        double f_t = std::sqrt(f_t2);
         double f_n_proj = (f_t * friction + f_n) / (mu2 + 1);
         double f_t_proj = f_n_proj * friction;
         double tproj_div_t = f_t_proj / f_t;

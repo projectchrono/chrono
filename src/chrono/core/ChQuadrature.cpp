@@ -47,7 +47,7 @@ void ChQuadratureTables::glege_roots(ChMatrixDynamic<>& lcoef, int N, int ntable
     int i;
     double x, x1;
     for (i = 1; i <= N; i++) {
-        x = cos(CH_PI * (i - .25) / (N + .5));
+        x = std::cos(CH_PI * (i - .25) / (N + .5));
         int iters = 0;
         do {
             ++iters;

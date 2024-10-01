@@ -20,7 +20,6 @@
 #include "chrono/fea/ChNodeFEAxyzrot.h"
 #include "chrono/collision/ChCollisionModel.h"
 #include "chrono/physics/ChLoaderUV.h"
-#include "chrono/utils/ChUtilsGeometry.h"
 
 namespace chrono {
 namespace fea {
@@ -100,8 +99,7 @@ class ChApi ChContactTriangleXYZ : public ChContactable_3vars<3, 3, 3>, public C
                                             const ChState& state_x,
                                             const ChStateDelta& state_w) override;
 
-    /// Get the absolute speed of point abs_point if attached to the
-    /// surface. Easy in this case because there are no rotations..
+    /// Get the absolute speed of point abs_point if attached to the surface.
     virtual ChVector3d GetContactPointSpeed(const ChVector3d& abs_point) override;
 
     /// Return the frame of the associated collision model relative to the contactable object.
@@ -204,10 +202,10 @@ class ChApi ChContactTriangleXYZ : public ChContactable_3vars<3, 3, 3>, public C
     /// If true, use quadrature over u,v in [0..1] range as triangle volumetric coords.
     virtual bool IsTriangleIntegrationNeeded() override { return true; }
 
-    /// Compute u,v of contact point respect to triangle.
-    /// - u is in the node1->node2 direction.
-    /// - v is in the node1->node3 direction.
-    void ComputeUVfromP(const ChVector3d P, double& u, double& v);
+    /// Compute u,v of given point with respect to the triangle.
+    /// (u,v) represent barycentric coordinates of the point projection onto the segment, with u in the node1->node2
+    /// direction and v in the node1->node3 direction.
+    void ComputeUVfromP(const ChVector3d& P, double& u, double& v);
 
   private:
     std::array<std::shared_ptr<ChNodeFEAxyz>, 3> m_nodes;
@@ -398,7 +396,7 @@ class ChApi ChContactTriangleXYZRot : public ChContactable_3vars<6, 6, 6>, publi
     /// Compute u,v of contact point respect to triangle.
     /// u is node1->node2 direction,
     /// v is node1->node3 direction
-    void ComputeUVfromP(const ChVector3d P, double& u, double& v);
+    void ComputeUVfromP(const ChVector3d& P, double& u, double& v);
 
   private:
     std::array<std::shared_ptr<ChNodeFEAxyzrot>, 3> m_nodes;
@@ -406,33 +404,6 @@ class ChApi ChContactTriangleXYZRot : public ChContactable_3vars<6, 6, 6>, publi
     ChVector3b m_owns_edge;
 
     ChContactSurface* m_container;
-};
-
-// -----------------------------------------------------------------------------
-
-/// Contact element of segment type.
-/// Used to 'tessellate' FEA meshes with 1-D elements for collision purposes.
-class ChApi ChContactSegmentXYZ {
-  public:
-    ChContactSegmentXYZ() : m_owns_node({true, true}) {}
-    ChContactSegmentXYZ(const std::array<std::shared_ptr<ChNodeFEAxyz>, 2>& nodes)
-        : m_nodes(nodes), m_owns_node({true, true}) {}
-
-    /// Set the FEA nodes for which this is a proxy.
-    void SetNodes(const std::array<std::shared_ptr<ChNodeFEAxyz>, 2>& nodes) { m_nodes = nodes; }
-
-    /// Set node ownership.
-    void SetNodeOwnership(const ChVector2b& owns_node) { m_owns_node = owns_node; }
-
-    /// Acccess the specified FEA node for which this is a proxy.
-    std::shared_ptr<ChNodeFEAxyz> GetNode(int i) const { return m_nodes[i]; }
-
-    /// Returns true if the specified node is owned by this segment.
-    bool OwnsNode(int i) const { return m_owns_node[i]; }
-
-  private:
-    std::array<std::shared_ptr<ChNodeFEAxyz>, 2> m_nodes;
-    ChVector2b m_owns_node;
 };
 
 // -----------------------------------------------------------------------------
@@ -496,8 +467,10 @@ class ChApi ChContactSurfaceMesh : public ChContactSurface {
     /// - beams:
     ///     - ChElementCableANCF: ANCF beams (as sphere-swept lines, i.e. sequence of capsules)
     ///     - ChElementBeamEuler: Euler-Bernoulli beams (as sphere-swept lines, i.e. sequence of capsules)
-    void AddFacesFromBoundary(double sphere_swept = 0.0,  ///< radius of swept sphere
-                              bool ccw = true             ///< indicate clockwise or counterclockwise vertex ordering
+    void AddFacesFromBoundary(double sphere_swept = 0.0,           ///< radius of swept sphere
+                              bool ccw = true,                     ///< indicate counterclockwise vertex ordering
+                              bool include_cable_elements = true,  ///< create contact triangles for cable elements
+                              bool include_beam_elements = true    ///< create contact triangles for beam elements
     );
 
     /// Construct a contact surface from a triangular mesh.

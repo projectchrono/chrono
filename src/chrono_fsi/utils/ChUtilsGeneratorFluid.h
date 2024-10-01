@@ -38,8 +38,8 @@ Real massCalculator(Real Kernel_h, Real InitialSpacing, Real rho0);
 Real IniNeiNum(Real Kernel_h, Real InitialSpacing);
 
 /// Create fluid/granular SPH particles for the simulation.
-int2 CreateFluidMarkers(std::shared_ptr<SphMarkerDataH> sphMarkersH,
-                        std::shared_ptr<FsiGeneralData> fsiGeneralData,
+int2 CreateFluidMarkers(std::shared_ptr<SphMarkerDataH> sphMarkers_H,
+                        std::shared_ptr<FsiData> fsiData,
                         std::shared_ptr<SimParams> paramsH);
 
 /// @} fsi_utils

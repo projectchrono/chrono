@@ -37,10 +37,12 @@ ChLinkUniversal::ChLinkUniversal(const ChLinkUniversal& other) : ChLink(other) {
     m_frame1 = other.m_frame1;
     m_frame2 = other.m_frame2;
 
-    m_cnstr_x.SetVariables(&other.m_body1->Variables(), &other.m_body2->Variables());
-    m_cnstr_y.SetVariables(&other.m_body1->Variables(), &other.m_body2->Variables());
-    m_cnstr_z.SetVariables(&other.m_body1->Variables(), &other.m_body2->Variables());
-    m_cnstr_dot.SetVariables(&other.m_body1->Variables(), &other.m_body2->Variables());
+     if (other.m_body1 && other.m_body2) {
+        m_cnstr_x.SetVariables(&other.m_body1->Variables(), &other.m_body2->Variables());
+        m_cnstr_y.SetVariables(&other.m_body1->Variables(), &other.m_body2->Variables());
+        m_cnstr_z.SetVariables(&other.m_body1->Variables(), &other.m_body2->Variables());
+        m_cnstr_dot.SetVariables(&other.m_body1->Variables(), &other.m_body2->Variables());
+    }
 
     m_multipliers[0] = other.m_multipliers[0];
     m_multipliers[1] = other.m_multipliers[1];

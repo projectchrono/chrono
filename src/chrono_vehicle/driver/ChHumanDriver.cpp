@@ -314,8 +314,8 @@ void ChHumanDriver::Advance(double step) {  // distance in front of the vehicle.
     ChVector3d Lip_G;
     ChVector3d Rj_G;
     ChVector3d Rjp_G;
-    ChVector3d r_rv = t_g + tan(ny) * n_g;
-    ChVector3d r_lv = t_g - tan(ny) * n_g;
+    ChVector3d r_rv = t_g + std::tan(ny) * n_g;
+    ChVector3d r_lv = t_g - std::tan(ny) * n_g;
     while (!i_restrict && !j_restrict) {
         size_t i_next = GetNextI();
         size_t j_next = GetNextJ();

@@ -73,7 +73,7 @@ auto motor = chrono_types::make_shared<ChLinkMotorRotationAngle>();
 
 // Save data as csv files to see the results off-line using Paraview
 bool output = true;
-int out_fps = 20;
+int output_fps = 20;
 
 // Output directories and settings
 const std::string out_dir = GetChronoOutputPath() + "FSI_Single_Wheel_Test/";
@@ -304,19 +304,13 @@ int main(int argc, char* argv[]) {
     sysFSI.SetContainerDim(ChVector3d(bxDim, byDim, bzDim));
 
     // Set SPH discretization type, consistent or inconsistent
-    sysFSI.SetDiscreType(false, false);
-
-    // Set wall boundary condition
-    sysFSI.SetWallBC(BceVersion::ADAMI);
-
-    // Set rigid body boundary condition
-    sysFSI.SetRigidBodyBC(BceVersion::ADAMI);
+    sysFSI.SetConsistentDerivativeDiscretization(false, false);
 
     // Set cohsion of the granular material
     sysFSI.SetCohesionForce(1.0e2);
 
     // Setup the SPH method
-    sysFSI.SetSPHMethod(FluidDynamics::WCSPH);
+    sysFSI.SetSPHMethod(SPHMethod::WCSPH);
 
     // Set up the periodic boundary condition (if not, set relative larger values)
     ChVector3d cMin(-bxDim / 2 * 10, -byDim / 2 - 0.5 * iniSpacing, -bzDim * 10);
@@ -366,11 +360,10 @@ int main(int argc, char* argv[]) {
 #endif
 
     // Start the simulation
-    unsigned int output_steps = (unsigned int)round(1 / (out_fps * dT));
-    unsigned int render_steps = (unsigned int)round(1 / (render_fps * dT));
-
     double time = 0.0;
-    int current_step = 0;
+    int sim_frame = 0;
+    int out_frame = 0;
+    int render_frame = 0;
 
     ChTimer timer;
     timer.start();
@@ -400,27 +393,29 @@ int main(int argc, char* argv[]) {
             myDBP_Torque << time << "\t" << force.x() << "\t" << torque.z() << "\n";
         }
 
-        if (output && current_step % output_steps == 0) {
+        if (output && time >= out_frame / output_fps) {
             std::cout << "-------- Output" << std::endl;
             sysFSI.PrintParticleToFile(out_dir + "/particles");
             sysFSI.PrintFsiInfoToFile(out_dir + "/fsi", time);
             static int counter = 0;
             std::string filename = out_dir + "/vtk/wheel." + std::to_string(counter++) + ".vtk";
             WriteWheelVTK(filename, wheel_mesh, wheel->GetFrameRefToAbs());
+            out_frame++;
         }
 
         // Render SPH particles
 #ifdef CHRONO_OPENGL
-        if (render && current_step % render_steps == 0) {
+        if (render && time >= render_frame / render_fps) {
             if (!fsi_vis.Render())
                 break;
+            render_frame++;
         }
 #endif
 
         // Call the FSI solver
         sysFSI.DoStepDynamics_FSI();
         time += dT;
-        current_step++;
+        sim_frame++;
     }
     timer.stop();
     std::cout << "\nSimulation time: " << timer() << " seconds\n" << std::endl;

@@ -50,6 +50,9 @@ class CH_VEHICLE_API ChEngineShafts : public ChEngine {
     /// This is the torque passed to a transmission subsystem.
     virtual double GetOutputMotorshaftTorque() const override;
 
+    /// Return the reaction torque on the chassis body.
+    virtual double GetChassisReactionTorque() const override { return -m_motorblock_to_body->GetTorqueReactionOnShaft(); }
+
   protected:
     /// Construct a shafts-based engine model.
     ChEngineShafts(const std::string& name, const ChVector3d& dir_motor_block = ChVector3d(1, 0, 0));

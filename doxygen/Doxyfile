@@ -877,7 +877,8 @@ EXCLUDE                = ../src/chrono/collision/bullet/BulletCollision \
                          ../src/tests/README.md \
                          ../src/chrono_swig/chrono_python/README.md \
                          ../src/chrono_thirdparty/DEM-Engine/thirdparty \
-                         ../src/chrono_thirdparty/DEM-Engine/README.md
+                         ../src/chrono_thirdparty/DEM-Engine/README.md \
+                         ../src/chrono_thirdparty/fmu_tools/README.md
 
 # The EXCLUDE_SYMLINKS tag can be used to select whether or not files or
 # directories that are symbolic links (a Unix file system feature) are excluded
@@ -908,7 +909,11 @@ EXCLUDE_PATTERNS       = */src/demos/* \
                          */src/chrono_thirdparty/tinyobjloader \
                          */src/chrono_thirdparty/variant \
                          */src/chrono_thirdparty/filesystem \
-                         */src/chrono_thirdparty/fmu_tools
+                         */src/chrono_thirdparty/fast_matrix_market \
+                         */src/chrono_thirdparty/fmu_tools/rapidxml \
+                         */src/chrono_thirdparty/fmu_tools/miniz-cpp \
+                         */src/chrono_thirdparty/fmu_tools/variant \
+                         */src/chrono_thirdparty/fmu_tools/fmusim
 
 # The EXCLUDE_SYMBOLS tag can be used to specify one or more symbol names
 # (namespaces, classes, functions, etc.) that should be excluded from the

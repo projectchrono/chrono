@@ -79,7 +79,7 @@ class CH_VEHICLE_API ChTMeasyTire : public ChForceElementTire {
 
     /// Get the tire slip angle computed internally by the TMsimple model (in radians).
     /// The reported value will be similar to that reported by ChTire::GetSlipAngle.
-    double GetSlipAngle_internal() const { return atan(-m_states.sy); }
+    double GetSlipAngle_internal() const { return std::atan(-m_states.sy); }
 
     /// Get the tire longitudinal slip computed internally by the TMsimple model.
     /// The reported value will be similar to that reported by ChTire::GetLongitudinalSlip.
@@ -274,6 +274,10 @@ class CH_VEHICLE_API ChTMeasyTire : public ChForceElementTire {
     };
 
     TireStates m_states;
+
+    // The Dahl ODE can be integrated by BDF1 or Trapezoidal Rule
+    // both work, BDF1 is less accurate
+    const bool m_use_bdf1{false};
 };
 
 }  // end namespace vehicle

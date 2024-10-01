@@ -143,7 +143,7 @@ void ChRotaryArm::AddVisualizationAssets(VisualizationType vis) {
         return;
 
     // Visualization for arm
-    ChVehicleGeometry::AddVisualizationCylinder(m_link, m_pC, m_pL, getPitmanArmRadius());
+    utils::ChBodyGeometry::AddVisualizationCylinder(m_link, m_pC, m_pL, getPitmanArmRadius());
 }
 
 void ChRotaryArm::RemoveVisualizationAssets() {

@@ -37,8 +37,7 @@ ChVisualSystemOpenGL::ChVisualSystemOpenGL()
       m_particle_render_mode(RenderMode::POINTS),
       m_particle_radius(0.1f),
       particle_selector(nullptr),
-      render_stats(true),
-      m_verbose(true) {
+      render_stats(true) {
     stats_renderer = chrono_types::make_shared<ChOpenGLStatsDefault>();
 }
 

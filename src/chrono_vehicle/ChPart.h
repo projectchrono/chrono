@@ -32,11 +32,11 @@
 #include "chrono/physics/ChContactMaterialNSC.h"
 #include "chrono/physics/ChContactMaterialSMC.h"
 
+#include "chrono/utils/ChBodyGeometry.h"
 #include "chrono/utils/ChCompositeInertia.h"
 
 #include "chrono_vehicle/ChApiVehicle.h"
 #include "chrono_vehicle/ChSubsysDefs.h"
-#include "chrono_vehicle/ChVehicleGeometry.h"
 #include "chrono_vehicle/ChVehicleJoint.h"
 #include "chrono_vehicle/ChVehicleOutput.h"
 

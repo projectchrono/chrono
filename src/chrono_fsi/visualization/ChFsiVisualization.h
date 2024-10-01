@@ -43,6 +43,9 @@ class CH_FSI_API ChFsiVisualization {
 
     virtual ~ChFsiVisualization();
 
+    /// Enable/disable information terminal output during initialization (default: false).
+    void SetVerbose(bool verbose);
+
     /// Set title of the visualization window (default: "").
     virtual void SetTitle(const std::string& title);
 
@@ -83,6 +86,14 @@ class CH_FSI_API ChFsiVisualization {
     /// Set a callback for dynamic coloring of SPH particles.
     /// If none provided, SPH particles are rendered with a default color.
     void SetSPHColorCallback(std::shared_ptr<ChParticleCloud::ColorCallback> functor) { m_color_fun = functor; }
+
+    /// Set a callback for dynamic visibility of SPH particles.
+    /// If none provided, all SPH particles are visible.
+    void SetSPHVisibilityCallback(std::shared_ptr<ChParticleCloud::VisibilityCallback> functor) { m_vis_sph_fun = functor; }
+
+    /// Set a callback for dynamic visibility of boundary BCE markers.
+    /// If none provided, all boundary BCE markers are visible.
+    void SetBCEVisibilityCallback(std::shared_ptr<ChParticleCloud::VisibilityCallback> functor) { m_vis_bndry_fun = functor; }
 
     /// Set output directory for saving frame snapshots (default: ".").
     void SetImageOutputDirectory(const std::string& dir) { m_image_dir = dir; }
@@ -129,6 +140,9 @@ class CH_FSI_API ChFsiVisualization {
     /// Return the internal Chrono system that holds visualization shapes.
     ChSystem* GetSystem() const { return m_system; }
 
+    /// Return the underlying visualization system.
+    virtual ChVisualSystem* GetVisualSystem() const = 0;
+
   protected:
     ChSystemFsi* m_systemFSI;  ///< associated Chrono::FSI system
     ChSystem* m_system;        ///< internal Chrono system (holds proxies)
@@ -149,7 +163,9 @@ class CH_FSI_API ChFsiVisualization {
     ChColor m_rigid_bce_color;  ///< color for BCE markers on rigid bodies
     ChColor m_flex_bce_color;   ///< color for BCE markers on flex bodies
 
-    std::shared_ptr<ChParticleCloud::ColorCallback> m_color_fun;  ///< dynamic color functor for SPH particles
+    std::shared_ptr<ChParticleCloud::ColorCallback> m_color_fun;           ///< color functor for SPH particles
+    std::shared_ptr<ChParticleCloud::VisibilityCallback> m_vis_sph_fun;    ///< visibility functor for SPH particles
+    std::shared_ptr<ChParticleCloud::VisibilityCallback> m_vis_bndry_fun;  ///< visibility functor for bndry BCE markers
 
     bool m_write_images;      ///< if true, save snapshots
     std::string m_image_dir;  ///< directory for image files

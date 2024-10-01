@@ -37,7 +37,8 @@ ChLinkDistance::ChLinkDistance(const ChLinkDistance& other) : ChLink(other) {
     m_body1 = other.m_body1;
     m_body2 = other.m_body2;
     system = other.system;
-    Cx.SetVariables(&other.m_body1->Variables(), &other.m_body2->Variables());
+    if (other.m_body1 && other.m_body2)
+        Cx.SetVariables(&other.m_body1->Variables(), &other.m_body2->Variables());
     m_pos1 = other.m_pos1;
     m_pos2 = other.m_pos2;
     distance = other.distance;

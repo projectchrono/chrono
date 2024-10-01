@@ -190,11 +190,11 @@ UAZBUS_SAELeafspringAxle::UAZBUS_SAELeafspringAxle(const std::string& name) : Ch
     ChVector3d Ma = preload.Cross(ra);
     ChVector3d Mb = preload.Cross(rb);
 
-    double KrotLatA = m_lat_spring_trans_A * pow(ra.Length(), 2.0);
-    double KrotLatB = m_lat_spring_trans_B * pow(rb.Length(), 2.0);
+    double KrotLatA = m_lat_spring_trans_A * std::pow(ra.Length(), 2.0);
+    double KrotLatB = m_lat_spring_trans_B * std::pow(rb.Length(), 2.0);
 
-    double KrotVertA = m_vert_spring_trans_A * pow(ra.Length(), 2.0);
-    double KrotVertB = m_vert_spring_trans_B * pow(rb.Length(), 2.0);
+    double KrotVertA = m_vert_spring_trans_A * std::pow(ra.Length(), 2.0);
+    double KrotVertB = m_vert_spring_trans_B * std::pow(rb.Length(), 2.0);
 
     double rest_angle_A = Ma.y() / KrotVertA;
     double rest_angle_B = Mb.y() / KrotVertB;

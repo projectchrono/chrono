@@ -672,7 +672,7 @@ void ChSolidAxle::AddVisualizationLink(std::shared_ptr<ChBody> body,
     ChVector3d p_1 = body->TransformPointParentToLocal(pt_1);
     ChVector3d p_2 = body->TransformPointParentToLocal(pt_2);
 
-    ChVehicleGeometry::AddVisualizationCylinder(body, p_1, p_2, radius);
+    utils::ChBodyGeometry::AddVisualizationCylinder(body, p_1, p_2, radius);
     auto ns = body->GetVisualModel()->GetNumShapes();
     for (unsigned int i = 0; i < ns; i++)
         body->GetVisualModel()->GetShape(i)->SetColor(color);
@@ -689,8 +689,8 @@ void ChSolidAxle::AddVisualizationBellCrank(std::shared_ptr<ChBody> body,
     ChVector3d p_A = body->TransformPointParentToLocal(pt_A);
     ChVector3d p_T = body->TransformPointParentToLocal(pt_T);
 
-    ChVehicleGeometry::AddVisualizationCylinder(body, p_D, p_A, radius);
-    ChVehicleGeometry::AddVisualizationCylinder(body, p_A, p_T, radius);
+    utils::ChBodyGeometry::AddVisualizationCylinder(body, p_D, p_A, radius);
+    utils::ChBodyGeometry::AddVisualizationCylinder(body, p_A, p_T, radius);
 
     auto ns = body->GetVisualModel()->GetNumShapes();
     for (unsigned int i = 0; i < ns; i++)
@@ -711,15 +711,15 @@ void ChSolidAxle::AddVisualizationKnuckle(std::shared_ptr<ChBody> knuckle,
     ChVector3d p_T = knuckle->TransformPointParentToLocal(pt_T);
 
     if (p_L.Length2() > threshold2) {
-        ChVehicleGeometry::AddVisualizationCylinder(knuckle, p_L, VNULL, radius);
+        utils::ChBodyGeometry::AddVisualizationCylinder(knuckle, p_L, VNULL, radius);
     }
 
     if (p_U.Length2() > threshold2) {
-        ChVehicleGeometry::AddVisualizationCylinder(knuckle, p_U, VNULL, radius);
+        utils::ChBodyGeometry::AddVisualizationCylinder(knuckle, p_U, VNULL, radius);
     }
 
     if (p_T.Length2() > threshold2) {
-        ChVehicleGeometry::AddVisualizationCylinder(knuckle, p_T, VNULL, radius);
+        utils::ChBodyGeometry::AddVisualizationCylinder(knuckle, p_T, VNULL, radius);
     }
 
     auto ns = knuckle->GetVisualModel()->GetNumShapes();

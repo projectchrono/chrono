@@ -96,7 +96,7 @@ void ChConstraintRigidRigid::func_Project_spinning(int index, const vec2* ids, c
     real t_u = gam[3 * num_rigid_contacts + index * 3 + 1];
     real t_v = gam[3 * num_rigid_contacts + index * 3 + 2];
 
-    real t_tang = sqrt(t_v * t_v + t_u * t_u);
+    real t_tang = std::sqrt(t_v * t_v + t_u * t_u);
     real t_sptang = fabs(t_n);  // = sqrt(t_n*t_n);
 
     if (spinningfriction) {
@@ -364,7 +364,7 @@ void ChConstraintRigidRigid::Build_s() {
                    D_t_T(index * 2 + 1, body_id.y * 6 + 4) * +v_new[body_id.y * 6 + 4] +
                    D_t_T(index * 2 + 1, body_id.y * 6 + 5) * +v_new[body_id.y * 6 + 5];
 
-        data_manager->host_data.s[index * 1 + 0] = sqrt(s_v * s_v + s_w * s_w) * fric;
+        data_manager->host_data.s[index * 1 + 0] = std::sqrt(s_v * s_v + s_w * s_w) * fric;
     }
 }
 

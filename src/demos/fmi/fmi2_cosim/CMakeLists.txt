@@ -33,7 +33,7 @@ source_group("" FILES ${PROGRAM}.cpp)
 target_sources(${PROGRAM} PRIVATE ${PROGRAM}.cpp)
 target_include_directories(${PROGRAM} PUBLIC ${FMU_TOOLS_DIR})
 
-target_compile_definitions(${PROGRAM} PUBLIC FMU_OS_SUFFIX="${FMI_PLATFORM}")
+target_compile_definitions(${PROGRAM} PUBLIC FMI2_PLATFORM="${FMI2_PLATFORM}")
 target_compile_definitions(${PROGRAM} PUBLIC SHARED_LIBRARY_SUFFIX="${CMAKE_SHARED_LIBRARY_SUFFIX}")
 
 target_compile_definitions(${PROGRAM} PUBLIC DEMO_FMU_MAIN_DIR="${DEMO_FMU_MAIN_DIR}")

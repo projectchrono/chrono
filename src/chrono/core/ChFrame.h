@@ -22,6 +22,14 @@
 
 namespace chrono {
 
+namespace fmi2 {
+class FmuChronoComponentBase;
+}
+
+namespace fmi3 {
+class FmuChronoComponentBase;
+}
+
 /// Representation of a 3D transform.
 /// A 'frame' coordinate system has a translation and a rotation respect to a 'parent' coordinate system, usually the
 /// absolute (world) coordinates. Differently from a simple ChCoordsys object, the ChFrame also stores the 3x3 rotation
@@ -326,7 +334,8 @@ class ChFrame {
     ChCoordsys<Real> m_csys;  ///< position and rotation, as vector + quaternion
     ChMatrix33<Real> m_rmat;  ///< 3x3 orthogonal rotation matrix
 
-    friend class FmuChronoComponentBase;
+    friend class chrono::fmi2::FmuChronoComponentBase;
+    friend class chrono::fmi3::FmuChronoComponentBase;
 
   public:
     EIGEN_MAKE_ALIGNED_OPERATOR_NEW

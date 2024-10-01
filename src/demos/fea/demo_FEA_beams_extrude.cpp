@@ -16,6 +16,8 @@
 //
 // =============================================================================
 
+#include <cmath>
+
 #include "chrono/physics/ChSystemSMC.h"
 #include "chrono/physics/ChBodyEasy.h"
 #include "chrono/physics/ChLinkMotorRotationSpeed.h"
@@ -56,7 +58,7 @@ std::shared_ptr<ChBody> CreateLobedGear(ChVector3d gear_center,
     // cylindrical lobes
     for (int i = 0; i < lobe_copies; ++i) {
         double phase = CH_2PI * ((double)i / (double)lobe_copies);
-        ChVector3d loc(lobe_primitive_rad * sin(phase), lobe_primitive_rad * cos(phase), 0);
+        ChVector3d loc(lobe_primitive_rad * std::sin(phase), lobe_primitive_rad * std::cos(phase), 0);
         // shortcut from ChUtilsCreators.h: adds both collision shape and visualization asset
         chrono::utils::AddCylinderGeometry(mgear.get(), mysurfmaterial,             //
                                            lobe_width * 0.5, lobe_thickness * 0.5,  //

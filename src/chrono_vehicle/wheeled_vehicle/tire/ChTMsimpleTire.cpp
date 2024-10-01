@@ -132,7 +132,7 @@ void ChTMsimpleTire::Synchronize(double time, const ChTerrain& terrain) {
         double r_stat = m_unloaded_radius - m_data.depth;
         m_states.omega = wheel_state.omega;
         m_states.R_eff = (2.0 * m_unloaded_radius + r_stat) / 3.0;
-        m_states.P_len = 2.0 * sqrt(m_unloaded_radius * m_data.depth);
+        m_states.P_len = 2.0 * std::sqrt(m_unloaded_radius * m_data.depth);
         m_states.vta = m_states.R_eff * std::abs(m_states.omega) + m_vnum;
         m_states.vsx = m_data.vel.x() - m_states.omega * m_states.R_eff;
         m_states.vsy = m_data.vel.y();
@@ -236,8 +236,23 @@ void ChTMsimpleTire::CombinedCoulombForces(double& fx, double& fy, double fz, do
     double bry_dot = m_states.vsy - m_par.sigma0 * m_states.bry * fabs(m_states.vsy) / fc;  // dz/dt
     F.y() = -(m_par.sigma0 * m_states.bry + m_par.sigma1 * bry_dot);
     // Calculate the new ODE states (implicit Euler)
-    m_states.brx = (fc * m_states.brx + fc * h * m_states.vsx) / (fc + h * m_par.sigma0 * fabs(m_states.vsx));
-    m_states.bry = (fc * m_states.bry + fc * h * m_states.vsy) / (fc + h * m_par.sigma0 * fabs(m_states.vsy));
+    if (m_use_bdf1) {
+        // Calculate the new ODE states (Backward Euler / BDF1 / Gear1)
+        // implicit, A-stable
+        // Integration error ~ h
+        m_states.brx = (fc * m_states.brx + fc * h * m_states.vsx) / (fc + h * m_par.sigma0 * fabs(m_states.vsx));
+        m_states.bry = (fc * m_states.bry + fc * h * m_states.vsy) / (fc + h * m_par.sigma0 * fabs(m_states.vsy));
+    } else {
+        // Calculate the new ODE states (Trapezoidal Rule)
+        // implicit, A-stable
+        // Integration error ~ h^2
+        m_states.brx = (2.0 * m_states.brx * fc + 2.0 * fc * h * m_states.vsx -
+                        m_states.brx * h * m_par.sigma0 * std::abs(m_states.vsx)) /
+                       (2.0 * fc + h * m_par.sigma0 * std::abs(m_states.vsx));
+        m_states.bry = (2.0 * m_states.bry * fc + 2.0 * fc * h * m_states.vsy -
+                        m_states.bry * h * m_par.sigma0 * std::abs(m_states.vsy)) /
+                       (2.0 * fc + h * m_par.sigma0 * std::abs(m_states.vsy));
+    }
     // combine forces (friction circle)
     if (F.Length() > fz * muscale) {
         F.Normalize();
@@ -263,7 +278,7 @@ void ChTMsimpleTire::TMcombinedForces(double& fx, double& fy, double sx, double 
     double cbeta;
     double sbeta;
     if (m_states.vsx == 0.0 && m_states.omega * m_states.R_eff == 0.0 && s == 0.0) {
-        cbeta = 0.5 * sqrt(2.0);
+        cbeta = 0.5 * std::sqrt(2.0);
         sbeta = cbeta;
     } else {
         cbeta = sx / s;
@@ -277,9 +292,9 @@ void ChTMsimpleTire::TMcombinedForces(double& fx, double& fy, double sx, double 
     double Qcrit = Fs / F_max;
     ChClampValue(Qcrit, -1.0, 1.0);
     double K = F_max;
-    double B = CH_PI - asin(Qcrit);
+    double B = CH_PI - std::asin(Qcrit);
     double A = K * B / dF0;
-    double Fa = muscale * K * sin(B * (1.0 - exp(-s / A)));
+    double Fa = muscale * K * std::sin(B * (1.0 - std::exp(-s / A)));
 
     fx = Fa * cbeta;
     fy = Fa * sbeta;
@@ -412,11 +427,11 @@ void ChTMsimpleTire::GuessTruck80Par(double tireLoad,       // tire load force [
     double secth = tireWidth * ratio;  // tire section height
     double defl_max = 0.16 * secth;    // deflection at tire payload
 
-    m_par.pn = 0.5 * tireLoad * pow(pinfl_use / pinfl_li, 0.8);
+    m_par.pn = 0.5 * tireLoad * std::pow(pinfl_use / pinfl_li, 0.8);
     m_par.pn_max = 3.5 * m_par.pn;
 
     double CZ = tireLoad / defl_max;
-    double DZ = 2.0 * damping_ratio * sqrt(CZ * GetTireMass());
+    double DZ = 2.0 * damping_ratio * std::sqrt(CZ * GetTireMass());
 
     SetVerticalStiffness(CZ);
 
@@ -491,7 +506,7 @@ void ChTMsimpleTire::GuessPassCar70Par(double tireLoad,       // tire load force
     double secth = tireWidth * ratio;  // tire section height
     double defl_max = 0.16 * secth;    // deflection at tire payload
 
-    m_par.pn = 0.5 * tireLoad * pow(pinfl_use / pinfl_li, 0.8);
+    m_par.pn = 0.5 * tireLoad * std::pow(pinfl_use / pinfl_li, 0.8);
     m_par.pn_max = 3.5 * m_par.pn;
 
     m_width = tireWidth;
@@ -499,7 +514,7 @@ void ChTMsimpleTire::GuessPassCar70Par(double tireLoad,       // tire load force
     m_par.mu_0 = 0.8;
 
     double CZ = tireLoad / defl_max;
-    double DZ = 2.0 * damping_ratio * sqrt(CZ * GetTireMass());
+    double DZ = 2.0 * damping_ratio * std::sqrt(CZ * GetTireMass());
 
     SetVerticalStiffness(CZ);
 

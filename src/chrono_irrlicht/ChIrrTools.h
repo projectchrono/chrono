@@ -145,11 +145,13 @@ ChApiIrr int drawAllLinkframes(ChVisualSystemIrrlicht* vis, double scale = 0.01)
 /// Each vertical red bar of the plot represents the residual during the solver iterations.
 /// The rightmost red bar represents the residual after the latest iteration.
 /// The red horizontal line respresents the tolerance requested to the solver.
-/// The Y axis ranges from zero to four times the requested tolerance (or 4*1e-6 if no tolerance is set).
 /// If the last red bar does not fall below the red line, the solver did not converge.
+/// The Y axis is logarithmic for the error (residual) and ranges from log10(tol)-1 to log10(tol)+2.
+/// If the tolerance is set to 0 the graphics will consider a default tolerance of 1e-6.
 /// It is then recommended to increase the number of iterations, reduce the timestep or consider relaxing the tolerance.
-/// Yellow bars refers to the variation of Lagrange multipliers during the iterations.
-/// For them, the Y axis ranges from zero to the maximum variation observed among all the iterations of the last step.
+/// Yellow bars refer to the variation of Lagrange multipliers during the iterations (VI solvers only).
+/// For them, the Y axis ranges from zero to the maximum variation observed among all the iterations of the last step
+/// (linear scale).
 ChApiIrr void drawHUDviolation(ChVisualSystemIrrlicht* vis,
                                int pos_x = 10,
                                int pos_y = 290,

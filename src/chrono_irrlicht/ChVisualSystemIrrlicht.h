@@ -104,7 +104,7 @@ class ChApiIrr ChVisualSystemIrrlicht : virtual public ChVisualSystem {
     void SetLogLevel(irr::ELOG_LEVEL log_level);
 
     /// Set the scale for symbol drawing (default: 1).
-    void SetSymbolscale(double scale);
+    void SetSymbolScale(double scale);
 
     /// Initialize the visualization system.
     /// This creates the Irrlicht device using the current values for the optional device parameters.
@@ -231,6 +231,9 @@ class ChApiIrr ChVisualSystemIrrlicht : virtual public ChVisualSystem {
     /// Show the info panel in the 3D view.
     void ShowInfoPanel(bool val);
 
+    /// Show the convergence plot (available only for iterative solvers).
+    void ShowConvergencePlot(bool val);
+
     /// Set the active tab on the info panel.
     /// Has no effect, unless called after the visual system is initialized and attached.
     void SetInfoTab(int ntab);
@@ -245,7 +248,7 @@ class ChApiIrr ChVisualSystemIrrlicht : virtual public ChVisualSystem {
     void* GetWindowId() const { return m_device_params.WindowId; }
 
     /// Return the Irrlicht ChIrrGUI object.
-    ChIrrGUI* GetGUI() {return m_gui.get(); }
+    ChIrrGUI* GetGUI() { return m_gui.get(); }
 
     /// Process all visual assets in the associated ChSystem.
     /// This function is called by default by Initialize(), but can also be called later if further modifications to

@@ -12,6 +12,8 @@
 // Authors: Alessandro Tasora, Radu Serban
 // =============================================================================
 
+#include <cmath>
+
 #include "chrono/physics/ChLinkLockScrew.h"
 
 namespace chrono {
@@ -48,7 +50,7 @@ void ChLinkLockScrew::UpdateState() {
     if (fabs(relM.rot.e0()) < 0.707) {
         Crz = relM.rot.e0();  // cos(alpha/2)
         msign = +1;
-        zangle = acos(Crz);
+        zangle = std::acos(Crz);
         if (relM.rot.e3() < 0) {
             zangle = -zangle;  // a/2 = -acos(Crz);
             msign = -1;
@@ -62,8 +64,8 @@ void ChLinkLockScrew::UpdateState() {
         if (fabs(scr_C) > fabs(shiftedC))
             scr_C = shiftedC;
 
-        coeffa = +2.0 * tau * msign * 1 / (sqrt(1 - pow(Crz, 2.0)));
-        coeffb = +2.0 * tau * msign * Crz / (pow((1 - pow(Crz, 2)), 3.0 / 2.0));
+        coeffa = +2.0 * tau * msign * 1 / (std::sqrt(1 - std::pow(Crz, 2.0)));
+        coeffb = +2.0 * tau * msign * Crz / (std::pow((1 - std::pow(Crz, 2)), 3.0 / 2.0));
 
         scr_C_dt = relM_dt.pos.z() + relM_dt.rot.e0() * coeffa;
         scr_C_dtdt = relM_dtdt.pos.z() + relM_dt.rot.e0() * coeffb + relM_dtdt.rot.e0() * coeffa;
@@ -76,7 +78,7 @@ void ChLinkLockScrew::UpdateState() {
     } else {
         Crz = relM.rot.e3();  // Zz*sin(alpha/2)
         msign = +1;
-        zangle = asin(Crz);
+        zangle = std::asin(Crz);
         if (relM.rot.e0() < 0) {
             zangle = CH_PI - zangle;
             msign = -1;
@@ -90,8 +92,8 @@ void ChLinkLockScrew::UpdateState() {
         if (fabs(scr_C) > fabs(shiftedC))
             scr_C = shiftedC;
 
-        coeffa = -2.0 * tau * msign * 1 / (sqrt(1 - pow(Crz, 2.0)));
-        coeffb = -2.0 * tau * msign * Crz / (pow((1 - pow(Crz, 2)), 3.0 / 2.0));
+        coeffa = -2.0 * tau * msign * 1 / (std::sqrt(1 - std::pow(Crz, 2.0)));
+        coeffb = -2.0 * tau * msign * Crz / (std::pow((1 - std::pow(Crz, 2)), 3.0 / 2.0));
 
         scr_C_dt = relM_dt.pos.z() + relM_dt.rot.e3() * coeffa;
         scr_C_dtdt = relM_dtdt.pos.z() + relM_dt.rot.e3() * coeffb + relM_dtdt.rot.e3() * coeffa;

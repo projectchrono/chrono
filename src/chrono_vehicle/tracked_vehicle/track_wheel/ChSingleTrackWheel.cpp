@@ -62,10 +62,10 @@ void ChSingleTrackWheel::AddVisualizationAssets(VisualizationType vis) {
     double radius = GetRadius();
     double width = GetWidth();
 
-    ChVehicleGeometry::AddVisualizationCylinder(m_wheel,                       //
-                                                ChVector3d(0, width / 2, 0),   //
-                                                ChVector3d(0, -width / 2, 0),  //
-                                                radius);
+    utils::ChBodyGeometry::AddVisualizationCylinder(m_wheel,                       //
+                                                    ChVector3d(0, width / 2, 0),   //
+                                                    ChVector3d(0, -width / 2, 0),  //
+                                                    radius);
 }
 
 void ChSingleTrackWheel::RemoveVisualizationAssets() {

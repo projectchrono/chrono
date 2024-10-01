@@ -19,27 +19,21 @@
 
 #include "chrono/ChConfig.h"
 #include "chrono/physics/ChSystem.h"
+#include "chrono/fea/ChContactSurfaceMesh.h"
+#include "chrono/fea/ChContactSurfaceSegmentSet.h"
+
 #include "chrono_fsi/ChApiFsi.h"
 #include "chrono_fsi/physics/ChSystemFsi_impl.cuh"
-#include "chrono_fsi/physics/ChFsiGeneral.h"
+#include "chrono_fsi/physics/ChFsiBase.h"
 
 namespace chrono {
-
-// Forward declarations
-namespace fea {
-class ChNodeFEAxyzD;
-class ChMesh;
-class ChElementCableANCF;
-class ChElementShellANCF_3423;
-}  // namespace fea
-
 namespace fsi {
 
 /// @addtogroup fsi_physics
 /// @{
 
 /// Base class for processing the interface between Chrono and FSI modules.
-class ChFsiInterface : public ChFsiGeneral {
+class ChFsiInterface : public ChFsiBase {
   public:
     /// Constructor of the FSI interface class.
     ChFsiInterface(ChSystemFsi_impl& fsi, std::shared_ptr<SimParams> params);
@@ -47,33 +41,51 @@ class ChFsiInterface : public ChFsiGeneral {
     /// Destructor of the FSI interface class.
     ~ChFsiInterface();
 
+    /// Copy rigid body states from ChSystem to FsiSystem, then to the GPU memory.
+    void LoadBodyState_Chrono2Fsi(std::shared_ptr<FsiBodyStateD> fsiBodyStateD);
+
+    /// Copy FEA mesh states from ChSystem to FsiSystem, then to the GPU memory.
+    void LoadMesh1DState_Chrono2Fsi(std::shared_ptr<FsiMeshStateD> fsiMesh1DState_D);
+    void LoadMesh2DState_Chrono2Fsi(std::shared_ptr<FsiMeshStateD> fsiMesh2DState_D);
+
     /// Read the surface-integrated pressure and viscous forces form the fluid/granular dynamics system,
     /// and add these forces and torques as external forces to the ChSystem rigid bodies.
-    void Add_Rigid_ForceTorques_To_ChSystem();
-
-    /// Copy rigid bodies' information from ChSystem to FsiSystem, then to the GPU memory.
-    void Copy_FsiBodies_ChSystem_to_FsiSystem(std::shared_ptr<FsiBodiesDataD> fsiBodiesD);
+    void ApplyBodyForce_Fsi2Chrono();
 
     /// Add forces and torques as external forces to the ChSystem flexible bodies.
-    void Add_Flex_Forces_To_ChSystem();
-
-    /// Resize number of cable elements used in the flexible elements.
-    void ResizeChronoCablesData(const std::vector<std::vector<int>>& CableElementsNodesSTDVector);
-
-    /// Resize number of shell elements used in the flexible elements.
-    void ResizeChronoShellsData(const std::vector<std::vector<int>>& ShellElementsNodesSTDVector);
-
-    /// Copy flexible nodes' information from ChSystem to FsiSystem, then to the GPU memory.
-    void Copy_FsiNodes_ChSystem_to_FsiSystem(std::shared_ptr<FsiMeshDataD> FsiMeshD);
+    void ApplyMesh1DForce_Fsi2Chrono();
+    void ApplyMesh2DForce_Fsi2Chrono();
 
   private:
-    ChSystemFsi_impl& m_sysFSI;            ///< FSI system
-    std::shared_ptr<SimParams> m_paramsH;  ///< simulation parameters
-    bool m_verbose;                        ///< enable/disable m_verbose terminal output (default: true)
+    /// Description of a rigid body exposed to the FSI system.
+    struct FsiBody {
+        std::shared_ptr<ChBody> body;  ///< rigid body exposed to FSI system
+        ChVector3d fsi_force;          ///< fluid force at body COM (expressed in absolute frame)
+        ChVector3d fsi_torque;         ///< induced torque (expressed in absolute frame)
+    };
 
-    std::shared_ptr<fea::ChMesh> m_fsi_mesh;
-    std::vector<std::shared_ptr<ChBody>> m_fsi_bodies;             ///< bodies handled by the FSI system
-    std::vector<std::shared_ptr<fea::ChNodeFEAxyzD>> m_fsi_nodes;  ///< FEA nodes available in FSI system
+    /// Description of an FEA mesh with 1-D segments exposed to the FSI system.
+    struct FsiMesh1D {
+        std::shared_ptr<fea::ChContactSurfaceSegmentSet> contact_surface;  ///< FEA contact segments
+        std::map<std::shared_ptr<fea::ChNodeFEAxyz>, int> ptr2ind_map;     ///< pointer-based to index-based mapping
+        std::map<int, std::shared_ptr<fea::ChNodeFEAxyz>> ind2ptr_map;     ///< index-based to pointer-based mapping
+        int num_bce;                                                       ///< number of BCE markers for this mesh
+    };
+
+    /// Description of an FEA mesh with 2-D faces exposed to the FSI system.
+    struct FsiMesh2D {
+        std::shared_ptr<fea::ChContactSurfaceMesh> contact_surface;     ///< FEA trimesh skin
+        std::map<std::shared_ptr<fea::ChNodeFEAxyz>, int> ptr2ind_map;  ///< pointer-based to index-based mapping
+        std::map<int, std::shared_ptr<fea::ChNodeFEAxyz>> ind2ptr_map;  ///< index-based to pointer-based mapping
+        int num_bce;                                                    ///< number of BCE markers for this mesh
+    };
+
+    ChSystemFsi_impl& m_sysFSI;  ///< FSI system
+    bool m_verbose;              ///< terminal output (default: true)
+
+    std::vector<FsiBody> m_fsi_bodies;      ///< rigid bodies exposed to the FSI system
+    std::vector<FsiMesh1D> m_fsi_meshes1D;  ///< FEA meshes with 1-D segments exposed to the FSI system
+    std::vector<FsiMesh2D> m_fsi_meshes2D;  ///< FEA meshes with 2-D faces exposed to the FSI system
 
     friend class ChSystemFsi;
 };

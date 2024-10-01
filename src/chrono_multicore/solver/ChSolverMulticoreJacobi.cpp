@@ -12,6 +12,8 @@
 // Authors: Hammad Mazhar
 // =============================================================================
 
+#include <cmath>
+
 #include "chrono_multicore/solver/ChSolverMulticore.h"
 
 #if BLAZE_MAJOR_VERSION == 2
@@ -99,7 +101,7 @@ uint ChSolverMulticoreJacobi::Solve(ChSchurProduct& SchurProduct,
 
         ml_old = ml;
 
-        real gdiff = 1.0 / pow(data_manager->num_constraints, 2.0);
+        real gdiff = 1.0 / std::pow(data_manager->num_constraints, 2.0);
         SchurProduct(gamma, temp);
 
         objective_value = (gamma, (0.5 * temp - r));

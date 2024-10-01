@@ -30,8 +30,9 @@
 #include "chrono/core/ChVector3.h"
 #include "chrono/core/ChQuaternion.h"
 
+#include "chrono/utils/ChBodyGeometry.h"
+
 #include "chrono_vehicle/ChApiVehicle.h"
-#include "chrono_vehicle/ChVehicleGeometry.h"
 
 #ifdef CHRONO_POSTPROCESS
     #include "chrono_postprocess/ChBlender.h"
@@ -237,10 +238,10 @@ class CH_VEHICLE_API ChVehicleCosimBaseNode {
     virtual ChSystem* GetSystemPostprocess() const = 0;
 
     /// Utility function to pack and send a struct with geometry information.
-    void SendGeometry(const ChVehicleGeometry& geom, int dest) const;
+    void SendGeometry(const utils::ChBodyGeometry& geom, int dest) const;
 
     /// Utility function to receive and unpack a struct with geometry information.
-    void RecvGeometry(ChVehicleGeometry& geom, int source) const;
+    void RecvGeometry(utils::ChBodyGeometry& geom, int source) const;
 
     /// Utility function to display a progress bar to the terminal.
     /// Displays an ASCII progress bar for the quantity x which must be a value between 0 and n.

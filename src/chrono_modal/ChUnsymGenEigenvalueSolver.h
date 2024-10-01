@@ -32,6 +32,9 @@ class ChDirectSolverLS;
 
 namespace modal {
 
+/// @addtogroup modal
+/// @{
+
 /// Base interface class for iterative eigenvalue solvers for generalized problem with real generic matrices.
 /// Assumes shift-and-invert methods.
 class ChApiModal ChUnsymGenEigenvalueSolver : public ChGeneralizedEigenvalueSolver<std::complex<double>> {
@@ -93,8 +96,9 @@ class ChApiModal ChUnsymGenEigenvalueSolverKrylovSchur : public ChUnsymGenEigenv
     std::shared_ptr<ChDirectSolverLScomplex> m_linear_solver;
 };
 
-}  // end namespace modal
+/// @} modal
 
+}  // end namespace modal
 }  // end namespace chrono
 
 #endif

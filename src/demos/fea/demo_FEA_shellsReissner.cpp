@@ -17,6 +17,7 @@
 // =============================================================================
 
 #include <vector>
+#include <cmath>
 
 #include "chrono/physics/ChBodyEasy.h"
 #include "chrono/physics/ChLinkMate.h"
@@ -217,8 +218,8 @@ int main(int argc, char* argv[]) {
                 // Make nodes
                 double u = ((double)iu / (double)nels_U);
                 double w = ((double)iw / (double)nels_W);
-                ChVector3d nodepos((plate_Ri + (plate_Ro - plate_Ri) * w) * cos(u * arc), 0,
-                                   (plate_Ri + (plate_Ro - plate_Ri) * w) * sin(u * arc));
+                ChVector3d nodepos((plate_Ri + (plate_Ro - plate_Ri) * w) * std::cos(u * arc), 0,
+                                   (plate_Ri + (plate_Ro - plate_Ri) * w) * std::sin(u * arc));
                 ChQuaternion<> noderot(QUNIT);
                 ChFrame<> nodeframe(nodepos, noderot);
 
@@ -326,7 +327,7 @@ int main(int argc, char* argv[]) {
                 // Make nodes
                 double u = ((double)iu / (double)nels_U);
                 double w = ((double)iw / (double)nels_W);
-                ChVector3d nodepos((plate_R)*cos(w * arc), (plate_R)*sin(w * arc), u * plate_L);
+                ChVector3d nodepos((plate_R)*std::cos(w * arc), (plate_R)*std::sin(w * arc), u * plate_L);
                 ChQuaternion<> noderot(QUNIT);
                 ChFrame<> nodeframe(nodepos, noderot);
 

@@ -257,9 +257,9 @@ int main(int argc, char* argv[]) {
     ////robot.Initialize(ChCoordsys<>(ChVector3d(0, 0, 0), QUNIT));
     robot.Initialize(ChCoordsys<>(ChVector3d(0, 0, 0), QuatFromAngleX(CH_PI)));
 
-    robot.SetVisualizationTypeChassis(robosimian::VisualizationType::MESH);
-    robot.SetVisualizationTypeSled(robosimian::VisualizationType::MESH);
-    robot.SetVisualizationTypeLimbs(robosimian::VisualizationType::MESH);
+    robot.SetVisualizationTypeChassis(VisualizationType::MESH);
+    robot.SetVisualizationTypeSled(VisualizationType::MESH);
+    robot.SetVisualizationTypeLimbs(VisualizationType::MESH);
 
     // -----------------------------------
     // Create a driver and attach to robot

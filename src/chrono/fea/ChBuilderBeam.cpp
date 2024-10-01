@@ -343,17 +343,65 @@ void ChBuilderCableANCF::BuildBeam(std::shared_ptr<ChMesh> mesh,              //
 // ChBuilderBeamANCF
 // ------------------------------------------------------------------
 
-void ChBuilderBeamANCF::BuildBeam(std::shared_ptr<ChMesh> mesh,             // mesh to store the resulting elements
-                                  std::shared_ptr<ChMaterialBeamANCF> mat,  // section material for beam elements
-                                  const int N,                              // number of elements in the segment
-                                  const ChVector3d A,                       // starting point
-                                  const ChVector3d B,                       // ending point
-                                  const double h,                           // height
-                                  const double w,                           // width
-                                  const ChVector3d DIR,                     // initial nodal direction
-                                  const ChVector3d CUR,                     // initial nodal curvature
-                                  const bool grav,                          // set true to apply gravity force
-                                  const double damp                         // damping
+void ChBuilderBeamANCF_3243::BuildBeam(std::shared_ptr<ChMesh> mesh,             // mesh to store the resulting elements
+                                       std::shared_ptr<ChMaterialBeamANCF> mat,  // section material for beam elements
+                                       const int N,                              // number of elements in the segment
+                                       const ChVector3d A,                       // starting point
+                                       const ChVector3d B,                       // ending point
+                                       const double h,                           // height
+                                       const double w,                           // width
+                                       const ChVector3d dir_u,                   // initial nodal direction u
+                                       const ChVector3d dir_v,                   // initial nodal curvature v
+                                       const ChVector3d dir_w,                   // initial nodal curvature w
+                                       const bool grav,                          // set true to apply gravity force
+                                       const double damp                         // damping
+) {
+    beam_elems.clear();
+    beam_nodes.clear();
+
+    ChVector3d bdir_u = dir_u;
+    bdir_u.Normalize();
+    ChVector3d bdir_v = dir_v;
+    bdir_v.Normalize();
+    ChVector3d bdir_w = dir_w;
+    bdir_w.Normalize();
+
+    double tot_length = (B - A).Length();
+    auto nodeA = chrono_types::make_shared<ChNodeFEAxyzDDD>(A, bdir_u, bdir_v, bdir_w);
+    mesh->AddNode(nodeA);
+    beam_nodes.push_back(nodeA);
+
+    for (int i = 1; i <= N; ++i) {
+        double eta = (double)i / (double)N;
+        ChVector3d posB = A + (B - A) * eta;
+        auto nodeB = chrono_types::make_shared<ChNodeFEAxyzDDD>(posB, bdir_u, bdir_v, bdir_w);
+        mesh->AddNode(nodeB);
+        beam_nodes.push_back(nodeB);
+        auto element = chrono_types::make_shared<ChElementBeamANCF_3243>();
+        beam_elems.push_back(element);
+
+        element->SetNodes(beam_nodes[i - 1], beam_nodes[i]);
+        element->SetDimensions(tot_length / N, h, w);
+        element->SetMaterial(mat);
+        element->SetAlphaDamp(damp);
+
+        mesh->AddElement(element);
+    }
+
+    mesh->SetAutomaticGravity(grav);
+}
+
+void ChBuilderBeamANCF_3333::BuildBeam(std::shared_ptr<ChMesh> mesh,             // mesh to store the resulting elements
+                                       std::shared_ptr<ChMaterialBeamANCF> mat,  // section material for beam elements
+                                       const int N,                              // number of elements in the segment
+                                       const ChVector3d A,                       // starting point
+                                       const ChVector3d B,                       // ending point
+                                       const double h,                           // height
+                                       const double w,                           // width
+                                       const ChVector3d DIR,                     // initial nodal direction
+                                       const ChVector3d CUR,                     // initial nodal curvature
+                                       const bool grav,                          // set true to apply gravity force
+                                       const double damp                         // damping
 ) {
     beam_elems.clear();
     beam_nodes.clear();
@@ -373,15 +421,15 @@ void ChBuilderBeamANCF::BuildBeam(std::shared_ptr<ChMesh> mesh,             // m
         ChVector3d posC = posB - (B - A) / (2.0 * N);
         auto nodeB = chrono_types::make_shared<ChNodeFEAxyzDD>(posB, bdir, bcur);
         auto nodeC = chrono_types::make_shared<ChNodeFEAxyzDD>(posC, bdir, bcur);
-        mesh->AddNode(nodeB);
         mesh->AddNode(nodeC);
+        mesh->AddNode(nodeB);
         beam_nodes.push_back(nodeC);
         beam_nodes.push_back(nodeB);
         auto element = chrono_types::make_shared<ChElementBeamANCF_3333>();
         beam_elems.push_back(element);
 
         element->SetNodes(beam_nodes[2 * (i - 1)], beam_nodes[2 * i], beam_nodes[2 * i - 1]);
-        element->SetDimensions(tot_length / (double)N, h, w);
+        element->SetDimensions(tot_length / N, h, w);
         element->SetMaterial(mat);
         element->SetAlphaDamp(damp);
 

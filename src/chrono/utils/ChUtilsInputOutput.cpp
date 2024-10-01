@@ -126,13 +126,13 @@ bool WriteCheckpoint(ChSystem* system, const std::string& filename) {
                 }
                 case ChCollisionShape::Type::BOX: {
                     auto box = std::static_pointer_cast<ChCollisionShapeBox>(shape);
-                    const auto& hdims = box->GetHalflengths();
+                    const auto& hdims = box->GetLengths();
                     dims = {hdims.x(), hdims.y(), hdims.z()};
                     break;
                 }
                 case ChCollisionShape::Type::ELLIPSOID: {
                     auto ellipsoid = std::static_pointer_cast<ChCollisionShapeEllipsoid>(shape);
-                    const auto& r = ellipsoid->GetSemiaxes();
+                    const auto& r = ellipsoid->GetAxes();
                     dims = {r.x(), r.y(), r.z()};
                     break;
                 }
@@ -140,33 +140,33 @@ bool WriteCheckpoint(ChSystem* system, const std::string& filename) {
                     auto cylinder = std::static_pointer_cast<ChCollisionShapeCylinder>(shape);
                     auto height = cylinder->GetHeight();
                     auto radius = cylinder->GetRadius();
-                    dims = {radius, radius, height / 2};
+                    dims = {radius, radius, height};
                     break;
                 }
                 case ChCollisionShape::Type::CYLSHELL: {
                     auto cylshell = std::static_pointer_cast<ChCollisionShapeCylindricalShell>(shape);
                     auto height = cylshell->GetHeight();
                     auto radius = cylshell->GetRadius();
-                    dims = {radius, radius, height / 2};
+                    dims = {radius, radius, height};
                     break;
                 }
                 case ChCollisionShape::Type::CONE: {
                     auto cone = std::static_pointer_cast<ChCollisionShapeCone>(shape);
                     auto height = cone->GetHeight();
                     auto radius = cone->GetRadius();
-                    dims = {radius, radius, height / 2};
+                    dims = {radius, radius, height};
                     break;
                 }
                 case ChCollisionShape::Type::CAPSULE: {
                     auto capsule = std::static_pointer_cast<ChCollisionShapeCapsule>(shape);
                     auto height = capsule->GetHeight();
                     auto radius = capsule->GetRadius();
-                    dims = {radius, radius, height / 2};
+                    dims = {radius, radius, height};
                     break;
                 }
                 case ChCollisionShape::Type::ROUNDEDBOX: {
                     auto box = std::static_pointer_cast<ChCollisionShapeRoundedBox>(shape);
-                    const auto& hdims = box->GetHalflengths();
+                    const auto& hdims = box->GetLengths();
                     auto sradius = box->GetSRadius();
                     dims = {hdims.x(), hdims.y(), hdims.z(), sradius};
                     break;
@@ -176,7 +176,7 @@ bool WriteCheckpoint(ChSystem* system, const std::string& filename) {
                     auto height = cylinder->GetHeight();
                     auto radius = cylinder->GetRadius();
                     auto sradius = cylinder->GetSRadius();
-                    dims = {radius, radius, height / 2, sradius};
+                    dims = {radius, radius, height, sradius};
                     break;
                 }
                 default:
@@ -306,7 +306,7 @@ void ReadCheckpoint(ChSystem* system, const std::string& filename) {
                 case ChCollisionShape::Type::ELLIPSOID: {
                     ChVector3d size;
                     iss >> size.x() >> size.y() >> size.z();
-                    AddEllipsoidGeometry(body.get(), mat, size * 2, spos, srot);
+                    AddEllipsoidGeometry(body.get(), mat, size, spos, srot);
                 } break;
                 case ChCollisionShape::Type::BOX: {
                     ChVector3d size;
@@ -332,7 +332,7 @@ void ReadCheckpoint(ChSystem* system, const std::string& filename) {
                     ChVector3d size;
                     double srad;
                     iss >> size.x() >> size.y() >> size.z() >> srad;
-                    AddRoundedBoxGeometry(body.get(), mat, size * 2, srad, spos, srot);
+                    AddRoundedBoxGeometry(body.get(), mat, size, srad, spos, srot);
                 } break;
                 case ChCollisionShape::Type::ROUNDEDCYL: {
                     double radius, height, srad;

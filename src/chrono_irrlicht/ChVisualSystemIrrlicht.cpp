@@ -154,7 +154,7 @@ CameraVerticalDir ChVisualSystemIrrlicht::GetCameraVertical() {
     return (m_yup == true ? CameraVerticalDir::Y : CameraVerticalDir::Z);
 }
 
-void ChVisualSystemIrrlicht::SetSymbolscale(double scale) {
+void ChVisualSystemIrrlicht::SetSymbolScale(double scale) {
     m_gui->symbolscale = scale;
     if (m_gui->initialized)
         m_gui->SetSymbolScale(scale);
@@ -181,6 +181,9 @@ void ChVisualSystemIrrlicht::AttachSystem(ChSystem* sys) {
 void ChVisualSystemIrrlicht::Initialize() {
     if (m_initialized)
         return;
+
+    if (!m_verbose)
+        m_device_params.LoggingLevel = irr::ELL_NONE;
 
     // Create Irrlicht device using current parameter values.
     m_device = irr::createDeviceEx(m_device_params);
@@ -527,6 +530,10 @@ void ChVisualSystemIrrlicht::ShowProfiler(bool val) {
 
 void ChVisualSystemIrrlicht::ShowExplorer(bool val) {
     m_gui->show_explorer = val;
+}
+
+void ChVisualSystemIrrlicht::ShowConvergencePlot(bool val) {
+    m_gui->SetPlotConvergence(val);
 }
 
 // -----------------------------------------------------------------------------

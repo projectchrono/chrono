@@ -856,7 +856,7 @@ inline ChVector3<Real> ChQuaternion<Real>::GetAxisZ() const {
 
 template <class Real>
 inline Real ChQuaternion<Real>::Length() const {
-    return sqrt(Length2());
+    return std::sqrt(Length2());
 }
 
 template <class Real>
@@ -1010,10 +1010,10 @@ inline void ChQuaternion<Real>::SetFromRotVec(const ChVector3<Real>& angle_axis)
     Real theta_squared = angle_axis.Length2();
     // For non-zero rotation:
     if (theta_squared > 1e-30) {
-        Real theta = sqrt(theta_squared);
+        Real theta = std::sqrt(theta_squared);
         Real half_theta = theta / 2;
-        Real k = sin(half_theta) / theta;
-        m_data[0] = cos(half_theta);
+        Real k = std::sin(half_theta) / theta;
+        m_data[0] = std::cos(half_theta);
         m_data[1] = angle_axis.x() * k;
         m_data[2] = angle_axis.y() * k;
         m_data[3] = angle_axis.z() * k;
@@ -1033,8 +1033,8 @@ inline ChVector3<Real> ChQuaternion<Real>::GetRotVec() const {
     Real sin_squared = m_data[1] * m_data[1] + m_data[2] * m_data[2] + m_data[3] * m_data[3];
     // For non-zero rotation
     if (sin_squared > 1e-30) {
-        Real sin_theta = sqrt(sin_squared);
-        Real k = 2 * atan2(sin_theta, m_data[0]) / sin_theta;
+        Real sin_theta = std::sqrt(sin_squared);
+        Real k = 2 * std::atan2(sin_theta, m_data[0]) / sin_theta;
         angle_axis.x() = m_data[1] * k;
         angle_axis.y() = m_data[2] * k;
         angle_axis.z() = m_data[3] * k;
@@ -1051,8 +1051,8 @@ inline ChVector3<Real> ChQuaternion<Real>::GetRotVec() const {
 template <class Real>
 inline void ChQuaternion<Real>::SetFromAngleAxis(Real angle, const ChVector3<Real>& axis) {
     Real halfang = (angle / 2);
-    Real sinhalf = sin(halfang);
-    m_data[0] = cos(halfang);
+    Real sinhalf = std::sin(halfang);
+    m_data[0] = std::cos(halfang);
     m_data[1] = axis.x() * sinhalf;
     m_data[2] = axis.y() * sinhalf;
     m_data[3] = axis.z() * sinhalf;
@@ -1063,8 +1063,8 @@ inline void ChQuaternion<Real>::GetAngleAxis(Real& angle, ChVector3<Real>& axis)
     Real sin_squared = m_data[1] * m_data[1] + m_data[2] * m_data[2] + m_data[3] * m_data[3];
     // For non-zero rotation
     if (sin_squared > 0) {
-        Real sin_theta = sqrt(sin_squared);
-        angle = 2 * atan2(sin_theta, m_data[0]);
+        Real sin_theta = std::sqrt(sin_squared);
+        angle = 2 * std::atan2(sin_theta, m_data[0]);
         Real k = 1 / sin_theta;
         axis.x() = m_data[1] * k;
         axis.y() = m_data[2] * k;
@@ -1088,12 +1088,12 @@ inline void ChQuaternion<Real>::GetAngleAxis(Real& angle, ChVector3<Real>& axis)
 
 template <class Real>
 inline void ChQuaternion<Real>::SetFromCardanAnglesZYX(const ChVector3<Real>& ang) {
-    Real c1 = cos(ang.z() / 2);
-    Real s1 = sin(ang.z() / 2);
-    Real c2 = cos(ang.x() / 2);
-    Real s2 = sin(ang.x() / 2);
-    Real c3 = cos(ang.y() / 2);
-    Real s3 = sin(ang.y() / 2);
+    Real c1 = std::cos(ang.z() / 2);
+    Real s1 = std::sin(ang.z() / 2);
+    Real c2 = std::cos(ang.x() / 2);
+    Real s2 = std::sin(ang.x() / 2);
+    Real c3 = std::cos(ang.y() / 2);
+    Real s3 = std::sin(ang.y() / 2);
 
     Real c1c2 = c1 * c2;
     Real s1s2 = s1 * s2;
@@ -1112,23 +1112,23 @@ inline ChVector3<Real> ChQuaternion<Real>::GetCardanAnglesZYX() const {
     Real sqy = m_data[2] * m_data[2];
     Real sqz = m_data[3] * m_data[3];
     // heading
-    nasa.z() = atan2(2 * (m_data[1] * m_data[2] + m_data[3] * m_data[0]), (sqx - sqy - sqz + sqw));
+    nasa.z() = std::atan2(2 * (m_data[1] * m_data[2] + m_data[3] * m_data[0]), (sqx - sqy - sqz + sqw));
     // bank
-    nasa.y() = atan2(2 * (m_data[2] * m_data[3] + m_data[1] * m_data[0]), (-sqx - sqy + sqz + sqw));
+    nasa.y() = std::atan2(2 * (m_data[2] * m_data[3] + m_data[1] * m_data[0]), (-sqx - sqy + sqz + sqw));
     // attitude
-    nasa.x() = asin(-2 * (m_data[1] * m_data[3] - m_data[2] * m_data[0]));
+    nasa.x() = std::asin(-2 * (m_data[1] * m_data[3] - m_data[2] * m_data[0]));
     return nasa;
 }
 
 template <class Real>
 inline void ChQuaternion<Real>::SetFromCardanAnglesXYZ(const ChVector3<Real>& ang) {
     // Angles {phi;theta;psi} aka {roll;pitch;yaw}
-    Real t0 = cos(ang.z() * Real(0.5));
-    Real t1 = sin(ang.z() * Real(0.5));
-    Real t2 = cos(ang.x() * Real(0.5));
-    Real t3 = sin(ang.x() * Real(0.5));
-    Real t4 = cos(ang.y() * Real(0.5));
-    Real t5 = sin(ang.y() * Real(0.5));
+    Real t0 = std::cos(ang.z() * Real(0.5));
+    Real t1 = std::sin(ang.z() * Real(0.5));
+    Real t2 = std::cos(ang.x() * Real(0.5));
+    Real t3 = std::sin(ang.x() * Real(0.5));
+    Real t4 = std::cos(ang.y() * Real(0.5));
+    Real t5 = std::sin(ang.y() * Real(0.5));
 
     m_data[0] = t0 * t2 * t4 + t1 * t3 * t5;
     m_data[1] = t0 * t3 * t4 - t1 * t2 * t5;
@@ -1145,11 +1145,11 @@ inline ChVector3<Real> ChQuaternion<Real>::GetCardanAnglesXYZ() const {
     Real sq2 = m_data[2] * m_data[2];
     Real sq3 = m_data[3] * m_data[3];
     // roll
-    euler.x() = atan2(2 * (m_data[2] * m_data[3] + m_data[0] * m_data[1]), sq3 - sq2 - sq1 + sq0);
+    euler.x() = std::atan2(2 * (m_data[2] * m_data[3] + m_data[0] * m_data[1]), sq3 - sq2 - sq1 + sq0);
     // pitch
-    euler.y() = -asin(2 * (m_data[1] * m_data[3] - m_data[0] * m_data[2]));
+    euler.y() = -std::asin(2 * (m_data[1] * m_data[3] - m_data[0] * m_data[2]));
     // yaw
-    euler.z() = atan2(2 * (m_data[1] * m_data[2] + m_data[3] * m_data[0]), sq1 + sq0 - sq3 - sq2);
+    euler.z() = std::atan2(2 * (m_data[1] * m_data[2] + m_data[3] * m_data[0]), sq1 + sq0 - sq3 - sq2);
     return euler;
 }
 

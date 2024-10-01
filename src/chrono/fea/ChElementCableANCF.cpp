@@ -43,26 +43,26 @@ void ChElementCableANCF::SetNodes(std::shared_ptr<ChNodeFEAxyzD> nodeA, std::sha
 void ChElementCableANCF::ShapeFunctions(ShapeVector& N, double xi) {
     double l = GetRestLength();
 
-    N(0) = 1 - 3 * pow(xi, 2) + 2 * pow(xi, 3);
-    N(1) = l * (xi - 2 * pow(xi, 2) + pow(xi, 3));
-    N(2) = 3 * pow(xi, 2) - 2 * pow(xi, 3);
-    N(3) = l * (-pow(xi, 2) + pow(xi, 3));
+    N(0) = 1 - 3 * std::pow(xi, 2) + 2 * std::pow(xi, 3);
+    N(1) = l * (xi - 2 * std::pow(xi, 2) + std::pow(xi, 3));
+    N(2) = 3 * std::pow(xi, 2) - 2 * std::pow(xi, 3);
+    N(3) = l * (-std::pow(xi, 2) + std::pow(xi, 3));
 };
 
 void ChElementCableANCF::ShapeFunctionsDerivatives(ShapeVector& Nd, double xi) {
     double l = GetRestLength();
 
-    Nd(0) = (6.0 * pow(xi, 2.0) - 6.0 * xi) / l;
-    Nd(1) = 1.0 - 4.0 * xi + 3.0 * pow(xi, 2.0);
-    Nd(2) = -(6.0 * pow(xi, 2.0) - 6.0 * xi) / l;
-    Nd(3) = -2.0 * xi + 3.0 * pow(xi, 2.0);
+    Nd(0) = (6.0 * std::pow(xi, 2.0) - 6.0 * xi) / l;
+    Nd(1) = 1.0 - 4.0 * xi + 3.0 * std::pow(xi, 2.0);
+    Nd(2) = -(6.0 * std::pow(xi, 2.0) - 6.0 * xi) / l;
+    Nd(3) = -2.0 * xi + 3.0 * std::pow(xi, 2.0);
 };
 
 void ChElementCableANCF::ShapeFunctionsDerivatives2(ShapeVector& Ndd, double xi) {
     double l = GetRestLength();
-    Ndd(0) = (12 * xi - 6) / pow(l, 2);
+    Ndd(0) = (12 * xi - 6) / std::pow(l, 2);
     Ndd(1) = (-4 + 6 * xi) / l;
-    Ndd(2) = (6 - 12 * xi) / pow(l, 2);
+    Ndd(2) = (6 - 12 * xi) / std::pow(l, 2);
     Ndd(3) = (-2 + 6 * xi) / l;
 };
 
@@ -292,7 +292,7 @@ void ChElementCableANCF::ComputeInternalJacobians(double Kfactor, double Rfactor
                 ChVector3d vf1 = Vcross(vr_x, vr_xx);
                 double f = vf1.Length();
                 double g1 = vr_x.Length();
-                double g = pow(g1, 3);
+                double g = std::pow(g1, 3);
 
                 g_e = (3 * g1) * Nd * (*d) * Sd;
 
@@ -311,7 +311,7 @@ void ChElementCableANCF::ComputeInternalJacobians(double Kfactor, double Rfactor
                     f_e = (1 / f) * f1.transpose() * fe1;
                 }
 
-                k_e = (f_e * g - g_e * f) * (1 / (pow(g, 2)));
+                k_e = (f_e * g - g_e * f) * (1 / (std::pow(g, 2)));
 
                 result = k_e.transpose() * k_e;
             }
@@ -579,7 +579,7 @@ void ChElementCableANCF::ComputeInternalForces_Impl(const ChVector3d& pA,
             ChVector3d vf1 = Vcross(vr_x, vr_xx);
             double f = vf1.Length();
             double g1 = vr_x.Length();
-            double g = pow(g1, 3);
+            double g = std::pow(g1, 3);
             double k = f / g;
 
             g_e = (3 * g1) * Nd * (*d) * Sd;
@@ -599,7 +599,7 @@ void ChElementCableANCF::ComputeInternalForces_Impl(const ChVector3d& pA,
                 f_e = (1 / f) * f1.transpose() * fe1;
             }
 
-            k_e = (f_e * g - g_e * f) * (1 / (pow(g, 2)));
+            k_e = (f_e * g - g_e * f) * (1 / (std::pow(g, 2)));
 
             // Add damping if selected by user: curvature rate
             if (element->m_use_damping)
@@ -735,7 +735,7 @@ void ChElementCableANCF::EvaluateSectionStrain(const double eta, ChVector3d& Str
     ChVector3d vf1 = Vcross(vr_x, vr_xx);
     double f = vf1.Length();
     double g1 = vr_x.Length();
-    double g = pow(g1, 3);
+    double g = std::pow(g1, 3);
 
     StrainV.x() = vr_x.Length2() - 1.0;
     StrainV.y() = f / g;  // Bending strain measure (Gertmayer and Shabana, 2006)

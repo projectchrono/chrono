@@ -53,15 +53,23 @@ void ChUtilsDevice::FillVector(thrust::device_vector<Real4>& vector, const Real4
     thrust::fill(vector.begin(), vector.end(), value);
 }
 
-void ChUtilsDevice::Sync_CheckError(bool* isErrorH, bool* isErrorD, std::string carshReport) {
+void ChUtilsDevice::FillVector(thrust::device_vector<uint>& vector, const uint& value) {
+    thrust::fill(vector.begin(), vector.end(), value);
+}
+
+void ChUtilsDevice::FillVector(thrust::device_vector<Real>& vector, const Real& value) {
+    thrust::fill(vector.begin(), vector.end(), value);
+}
+
+void ChUtilsDevice::Sync_CheckError(bool* isErrorH, bool* isErrorD, std::string crashReport) {
     cudaDeviceSynchronize();
     cudaMemcpy(isErrorH, isErrorD, sizeof(bool), cudaMemcpyDeviceToHost);
     if (*isErrorH == true) {
-        throw std::runtime_error("Error! program crashed after " + carshReport + " !\n");
+        throw std::runtime_error("Error! program crashed after " + crashReport + " !\n");
     }
     cudaError_t e = cudaGetLastError();
     if (e != cudaSuccess) {
-        throw std::runtime_error("Error! program crashed after " + carshReport + " !\n");
+        throw std::runtime_error("Error! program crashed after " + crashReport + " !\n");
     }
     cudaCheckError();
 }

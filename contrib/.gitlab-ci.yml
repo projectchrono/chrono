@@ -297,7 +297,7 @@ windows:vs2022:test:
   extends: .windows
   script:
   - cd build
-  - ctest --output-on-failure -E "utest_PARSERS"
+  - ctest --output-on-failure -E "utest_PARSERS|utest_FSI"
   dependencies: ["windows:vs2022:build"]
 
 .windows-deploy-base:

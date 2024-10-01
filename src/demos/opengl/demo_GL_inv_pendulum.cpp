@@ -143,7 +143,7 @@ double MyController::GetCurrentCartLocation() {
 
 double MyController::GetCurrentPendAngle() {
     ChVector3d dir = m_pend->TransformDirectionLocalToParent(ChVector3d(0, 1, 0));
-    return atan2(-dir.x(), dir.y());
+    return std::atan2(-dir.x(), dir.y());
 }
 
 void MyController::Advance(double step) {

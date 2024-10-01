@@ -17,6 +17,7 @@
 // =============================================================================
 
 #include <algorithm>
+#include <cmath>
 
 #include "chrono/core/ChMatrix.h"
 #include "chrono/utils/ChUtils.h"
@@ -241,11 +242,11 @@ void ChButterworthLowpass::Config(unsigned int nPoles, double step, double fc) {
     m_Q.resize(m_n_biquad);
     if (m_n_single == 1) {
         for (unsigned int k = 1; k <= (nPoles - 1) / 2; k++) {
-            m_Q[k - 1] = -2.0 * cos(CH_PI * (2.0 * k + nPoles - 1) / (2.0 * nPoles));
+            m_Q[k - 1] = -2.0 * std::cos(CH_PI * (2.0 * k + nPoles - 1) / (2.0 * nPoles));
         }
     } else {
         for (unsigned int k = 1; k <= nPoles / 2; k++) {
-            m_Q[k - 1] = -2.0 * cos(CH_PI * (2.0 * k + nPoles - 1) / (2.0 * nPoles));
+            m_Q[k - 1] = -2.0 * std::cos(CH_PI * (2.0 * k + nPoles - 1) / (2.0 * nPoles));
         }
     }
 
@@ -356,11 +357,11 @@ void ChButterworthHighpass::Config(unsigned int nPoles, double step, double fc) 
     m_Q.resize(m_n_biquad);
     if (m_n_single == 1) {
         for (unsigned int k = 1; k <= (nPoles - 1) / 2; k++) {
-            m_Q[k - 1] = -2.0 * cos(CH_PI * (2.0 * k + nPoles - 1) / (2.0 * nPoles));
+            m_Q[k - 1] = -2.0 * std::cos(CH_PI * (2.0 * k + nPoles - 1) / (2.0 * nPoles));
         }
     } else {
         for (unsigned int k = 1; k <= nPoles / 2; k++) {
-            m_Q[k - 1] = -2.0 * cos(CH_PI * (2.0 * k + nPoles - 1) / (2.0 * nPoles));
+            m_Q[k - 1] = -2.0 * std::cos(CH_PI * (2.0 * k + nPoles - 1) / (2.0 * nPoles));
         }
     }
 
@@ -881,13 +882,13 @@ void ChISO2631_Vibration_SeatCushionLogger::AddData(double speed, double acc_x, 
     m_data_acc_y_wd.push_back(m_filter_wd_y.Filter(m_data_acc_y.back()));
     m_data_acc_z_wk.push_back(m_filter_wk_z.Filter(m_data_acc_z.back()));
 
-    m_data_aw_x_i.push_back(m_filter_int_aw_x.Filter(pow(m_data_acc_x_wd.back(), 2.0)));
-    m_data_aw_y_i.push_back(m_filter_int_aw_y.Filter(pow(m_data_acc_y_wd.back(), 2.0)));
-    m_data_aw_z_i.push_back(m_filter_int_aw_z.Filter(pow(m_data_acc_z_wk.back(), 2.0)));
+    m_data_aw_x_i.push_back(m_filter_int_aw_x.Filter(std::pow(m_data_acc_x_wd.back(), 2.0)));
+    m_data_aw_y_i.push_back(m_filter_int_aw_y.Filter(std::pow(m_data_acc_y_wd.back(), 2.0)));
+    m_data_aw_z_i.push_back(m_filter_int_aw_z.Filter(std::pow(m_data_acc_z_wk.back(), 2.0)));
 
-    m_data_vdv_x_i.push_back(m_filter_int_vdv_x.Filter(pow(m_data_acc_x_wd.back(), 4.0)));
-    m_data_vdv_y_i.push_back(m_filter_int_vdv_y.Filter(pow(m_data_acc_y_wd.back(), 4.0)));
-    m_data_vdv_z_i.push_back(m_filter_int_vdv_z.Filter(pow(m_data_acc_z_wk.back(), 4.0)));
+    m_data_vdv_x_i.push_back(m_filter_int_vdv_x.Filter(std::pow(m_data_acc_x_wd.back(), 4.0)));
+    m_data_vdv_y_i.push_back(m_filter_int_vdv_y.Filter(std::pow(m_data_acc_y_wd.back(), 4.0)));
+    m_data_vdv_z_i.push_back(m_filter_int_vdv_z.Filter(std::pow(m_data_acc_z_wk.back(), 4.0)));
 
     if (m_data_aw_x_avg.size() == 0) {
         m_data_aw_x_avg.push_back(0.0);
@@ -898,13 +899,13 @@ void ChISO2631_Vibration_SeatCushionLogger::AddData(double speed, double acc_x, 
         m_data_vdv_y_avg.push_back(0.0);
         m_data_vdv_z_avg.push_back(0.0);
     } else {
-        m_data_aw_x_avg.push_back(sqrt(m_data_aw_x_i.back() / m_logging_time));
-        m_data_aw_y_avg.push_back(sqrt(m_data_aw_y_i.back() / m_logging_time));
-        m_data_aw_z_avg.push_back(sqrt(m_data_aw_z_i.back() / m_logging_time));
+        m_data_aw_x_avg.push_back(std::sqrt(m_data_aw_x_i.back() / m_logging_time));
+        m_data_aw_y_avg.push_back(std::sqrt(m_data_aw_y_i.back() / m_logging_time));
+        m_data_aw_z_avg.push_back(std::sqrt(m_data_aw_z_i.back() / m_logging_time));
 
-        m_data_vdv_x_avg.push_back(pow(m_data_vdv_x_i.back() / m_logging_time, 0.25));
-        m_data_vdv_y_avg.push_back(pow(m_data_vdv_y_i.back() / m_logging_time, 0.25));
-        m_data_vdv_z_avg.push_back(pow(m_data_vdv_z_i.back() / m_logging_time, 0.25));
+        m_data_vdv_x_avg.push_back(std::pow(m_data_vdv_x_i.back() / m_logging_time, 0.25));
+        m_data_vdv_y_avg.push_back(std::pow(m_data_vdv_y_i.back() / m_logging_time, 0.25));
+        m_data_vdv_z_avg.push_back(std::pow(m_data_vdv_z_i.back() / m_logging_time, 0.25));
     }
 
     m_logging_time += m_step;
@@ -930,7 +931,7 @@ static double rms(const std::vector<double>& v) {
     for (size_t i = 0; i < v.size(); i++) {
         s += (v[i] - m) * (v[i] - m);
     }
-    return sqrt(s / v.size());
+    return std::sqrt(s / v.size());
 }
 
 static double maxval(const std::vector<double>& v) {
@@ -978,7 +979,7 @@ double ChISO2631_Vibration_SeatCushionLogger::GetAW_V() const {
     const double ky = 1.4;
     const double kz = 1.0;
 
-    return sqrt(pow(kx * GetAW_X(), 2.0) + pow(ky * GetAW_Y(), 2.0) + pow(kz * GetAW_Z(), 2.0));
+    return std::sqrt(std::pow(kx * GetAW_X(), 2.0) + std::pow(ky * GetAW_Y(), 2.0) + std::pow(kz * GetAW_Z(), 2.0));
 }
 
 double ChISO2631_Vibration_SeatCushionLogger::GetCrestFactor() const {
@@ -995,8 +996,8 @@ double ChISO2631_Vibration_SeatCushionLogger::GetVDV() const {
     const double ky = 1.4;
     const double kz = 1.0;
 
-    return sqrt(pow(kx * m_data_vdv_x_avg.back(), 2.0) + pow(ky * m_data_vdv_y_avg.back(), 2.0) +
-                pow(kz * m_data_vdv_z_avg.back(), 2.0));
+    return std::sqrt(std::pow(kx * m_data_vdv_x_avg.back(), 2.0) + std::pow(ky * m_data_vdv_y_avg.back(), 2.0) +
+                     std::pow(kz * m_data_vdv_z_avg.back(), 2.0));
 }
 
 double ChISO2631_Vibration_SeatCushionLogger::GetAVGSpeed() const {
@@ -1006,7 +1007,7 @@ double ChISO2631_Vibration_SeatCushionLogger::GetAVGSpeed() const {
 double ChISO2631_Vibration_SeatCushionLogger::GetSeverityVDV() const {
     if (m_data_aw_x_avg.empty())
         return 0;
-    return GetVDV() / (GetAW_V() * pow(m_logging_time, 0.25));
+    return GetVDV() / (GetAW_V() * std::pow(m_logging_time, 0.25));
 }
 
 double ChISO2631_Vibration_SeatCushionLogger::GetAbsorbedPowerVertical() {
@@ -1178,7 +1179,7 @@ double ChISO2631_Shock_SeatCushionLogger::GetSe() {
     m_dky = CalcPeaks(m_inp_y, false);
     m_dkz = CalcPeaks(m_inp_z, true);
 
-    return pow(pow(m_mx * m_dkx, 6.0) + pow(m_my * m_dky, 6.0) + pow(m_mz * m_dkz, 6.0), 1.0 / 6.0);
+    return std::pow(std::pow(m_mx * m_dkx, 6.0) + std::pow(m_my * m_dky, 6.0) + std::pow(m_mz * m_dkz, 6.0), 1.0 / 6.0);
 }
 
 double ChISO2631_Shock_SeatCushionLogger::GetLegacyAz() {
@@ -1220,12 +1221,12 @@ double ChISO2631_Shock_SeatCushionLogger::CalcPeaks(std::vector<double>& v, bool
                     }
                 }
             }
-            d += pow(mx, 6.0);
+            d += std::pow(mx, 6.0);
             id1 = id2;
         }
     }
 
-    return pow(d, 1.0 / 6.0);
+    return std::pow(d, 1.0 / 6.0);
 }
 
 void ChISO2631_Shock_SeatCushionLogger::Reset() {

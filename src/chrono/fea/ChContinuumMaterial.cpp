@@ -12,6 +12,8 @@
 // Authors: Alessandro Tasora, Radu Serban
 // =============================================================================
 
+#include <cmath>
+
 #include "chrono/fea/ChContinuumMaterial.h"
 
 namespace chrono {
@@ -273,16 +275,16 @@ ChContinuumDruckerPrager::ChContinuumDruckerPrager(const ChContinuumDruckerPrage
 
 void ChContinuumDruckerPrager::SetFromMohrCoulomb(double phi, double cohesion, bool inner_approx) {
     if (inner_approx) {
-        m_alpha = (2 * sin(phi)) / (sqrt(3.0) * (3.0 - sin(phi)));
-        m_elastic_yield = (6 * cohesion * cos(phi)) / (sqrt(3.0) * (3.0 - sin(phi)));
+        m_alpha = (2 * std::sin(phi)) / (std::sqrt(3.0) * (3.0 - std::sin(phi)));
+        m_elastic_yield = (6 * cohesion * std::cos(phi)) / (std::sqrt(3.0) * (3.0 - std::sin(phi)));
     } else {
-        m_alpha = (2 * sin(phi)) / (sqrt(3.0) * (3.0 + sin(phi)));
-        m_elastic_yield = (6 * cohesion * cos(phi)) / (sqrt(3.0) * (3.0 + sin(phi)));
+        m_alpha = (2 * std::sin(phi)) / (std::sqrt(3.0) * (3.0 + std::sin(phi)));
+        m_elastic_yield = (6 * cohesion * std::cos(phi)) / (std::sqrt(3.0) * (3.0 + std::sin(phi)));
     }
 }
 
 double ChContinuumDruckerPrager::ComputeYieldFunction(const ChStressTensor<>& mstress) const {
-    return (mstress.GetInvariant_I1() * this->m_alpha + sqrt(mstress.GetInvariant_J2()) - this->m_elastic_yield);
+    return (mstress.GetInvariant_I1() * this->m_alpha + std::sqrt(mstress.GetInvariant_J2()) - this->m_elastic_yield);
 }
 
 void ChContinuumDruckerPrager::ComputeReturnMapping(ChStrainTensor<>& plasticstrainflow,
@@ -298,7 +300,7 @@ void ChContinuumDruckerPrager::ComputeReturnMapping(ChStrainTensor<>& plasticstr
 
     if (fprager > 0) {
         if (mstress.GetInvariant_I1() * this->m_alpha -
-                sqrt(mstress.GetInvariant_J2()) * this->m_alpha * this->m_alpha - this->m_elastic_yield >
+                std::sqrt(mstress.GetInvariant_J2()) * this->m_alpha * this->m_alpha - this->m_elastic_yield >
             0) {
             // Case: tentative stress is in polar cone; a singular region where the gradient of
             // the yield function (or flow potential) is not defined. Just project to vertex.
@@ -315,7 +317,7 @@ void ChContinuumDruckerPrager::ComputeReturnMapping(ChStrainTensor<>& plasticstr
             // Just project using the yield (or flow potential) gradient.
             ChStrainTensor<> dFdS;
             ChStrainTensor<> dGdS;
-            double devsq = sqrt(mstress.GetInvariant_J2());
+            double devsq = std::sqrt(mstress.GetInvariant_J2());
             if (devsq > 10e-16) {
                 double sixdevsq = 6 * devsq;
 
@@ -364,11 +366,11 @@ void ChContinuumDruckerPrager::ComputePlasticStrainFlow(ChStrainTensor<>& mplast
                                                         const ChStrainTensor<>& mestrain) const {
     ChStressTensor<> mstress;
     this->ComputeElasticStress(mstress, mestrain);
-    double prager = mstress.GetInvariant_I1() * this->m_alpha + sqrt(mstress.GetInvariant_J2());
+    double prager = mstress.GetInvariant_I1() * this->m_alpha + std::sqrt(mstress.GetInvariant_J2());
     if (prager > this->m_elastic_yield) {
         ChVoightTensor<> mdev;
         mstress.GetDeviatoricPart(mdev);
-        double divisor = 2. * sqrt(mstress.GetInvariant_J2());
+        double divisor = 2. * std::sqrt(mstress.GetInvariant_J2());
         if (divisor > 10e-20)
             mdev *= 1. / divisor;
         mdev.XX() += this->m_dilatancy;
